@@ -588,6 +588,25 @@ export const assetFiles = (path: string) => {
 	return post<AssetFilesResponse>('/assets/files', { path });
 };
 
+export type AssetBatchOperation = "delete" | "copy" | "move";
+export interface AssetBatchChange {
+	old: string;
+	new?: string;
+};
+export type AssetBatchResponse = {
+	success: true;
+	changes: AssetBatchChange[];
+	affectedDirectories: string[];
+} | {
+	success: false;
+	message?: string;
+	changes?: AssetBatchChange[];
+	affectedDirectories?: string[];
+};
+export const assetBatch = (operation: AssetBatchOperation, sources: string[], target?: string) => {
+	return post<AssetBatchResponse>('/assets/batch', { operation, sources, target });
+};
+
 // Entries
 
 export interface EntryLaunchInfo {

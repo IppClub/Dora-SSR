@@ -39,7 +39,7 @@ import * as Yarn from './YarnConvert';
 import type { CodeWireData } from './CodeWire';
 import { AutoTypings } from './3rdParty/monaco-editor-auto-typings';
 import { TbSwitchVertical } from "react-icons/tb";
-import { BsSearch } from 'react-icons/bs';
+import SearchIcon from '@mui/icons-material/Search';
 import KeyboardShortcuts from './KeyboardShortcuts';
 import BottomLog from './BottomLog';
 import Modal from '@mui/material/Modal';
@@ -148,6 +148,26 @@ const isChildFolder = (child: string, parent: string) => {
 		return false;
 	}
 	return true;
+};
+
+const normalizeBatchPaths = (keys: string[]) => {
+	const sorted = [...new Set(keys)].sort((a, b) => a.length - b.length);
+	const result: string[] = [];
+	for (const key of sorted) {
+		if (result.some(parent => isChildFolder(key, parent))) continue;
+		result.push(key);
+	}
+	return result;
+};
+
+const replaceBatchPath = (key: string, changes: Service.AssetBatchChange[]) => {
+	const sorted = [...changes].sort((a, b) => b.old.length - a.old.length);
+	for (const change of sorted) {
+		if (change.new === undefined || !isChildFolder(key, change.old)) continue;
+		const relative = path.relative(change.old, key);
+		return relative === "" ? change.new : path.join(change.new, relative);
+	}
+	return key;
 };
 
 const isSingleBuildFile = (key: string) => {
@@ -682,6 +702,10 @@ export default function PersistentDrawerLeft() {
 	const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
 	const [treeScrollRequest, setTreeScrollRequest] = useState(0);
 	const [selectedNode, setSelectedNode] = useState<TreeDataType | null>(null);
+	const [multiSelectMode, setMultiSelectMode] = useState(false);
+	const [checkedKeys, setCheckedKeys] = useState<string[]>([]);
+	const [batchTargetMode, setBatchTargetMode] = useState<"copy" | "move" | null>(null);
+	const [batchOperationRunning, setBatchOperationRunning] = useState(false);
 	const [keyEvent, setKeyEvent] = useState<KeyboardEvent | null>(null);
 
 	const [openNewFile, setOpenNewFile] = useState<TreeDataType | null>(null);
@@ -721,7 +745,7 @@ export default function PersistentDrawerLeft() {
 	const [gameEntries, setGameEntries] = useState<Service.EntryLaunchInfo[]>([]);
 	const [entryView, setEntryView] = useState<"tool" | "game">("tool");
 	const [entryFilter, setEntryFilter] = useState("");
-	const { width: drawerWidth, enableResize, isResizing } = useResize({ minWidth: 165, defaultWidth: Info.drawerWidth });
+	const { width: drawerWidth, enableResize, isResizing } = useResize({ minWidth: 170, defaultWidth: Info.drawerWidth });
 	const [winSize, setWinSize] = useState({
 		width: window.innerWidth,
 		height: window.innerHeight
@@ -1004,6 +1028,10 @@ export default function PersistentDrawerLeft() {
 		}
 		addAlert(t("alert.platform", { platform: Info.platform }), "success");
 		document.addEventListener("keydown", (event: KeyboardEvent) => {
+			if (event.key === "Escape") {
+				setKeyEvent(event);
+				return;
+			}
 			if (event.ctrlKey || event.altKey || event.metaKey) {
 				switch (event.key) {
 					case 'N': case 'n':
@@ -2311,6 +2339,8 @@ export default function PersistentDrawerLeft() {
 			saveEditingInfo();
 			const editingInfo = lastEditingInfo;
 			const selectedKey = selectedKeysRef.current.at(0);
+			setCheckedKeys([]);
+			setBatchTargetMode(null);
 			setFiles([]);
 			void switchTab(null);
 			loadAssets().then(async (res) => {
@@ -3763,6 +3793,169 @@ export default function PersistentDrawerLeft() {
 		});
 	}, [addAlert, checkFileReadonly, expandedKeys, files, refreshTreeDirectory, updateDir, t, treeData, switchTab, tabIndex]);
 
+	const runBatchOperation = useCallback(async (
+		operation: Service.AssetBatchOperation,
+		target?: string
+	) => {
+		if (batchOperationRunning) return;
+		const sources = normalizeBatchPaths(checkedKeys).filter(key =>
+			key !== writablePath && isChildFolder(key, writablePath)
+		);
+		if (sources.length === 0) return;
+		setBatchOperationRunning(true);
+		try {
+			const res = await Service.assetBatch(operation, sources, target);
+			const changes = res.changes ?? [];
+			if (operation === "delete" && changes.length > 0) {
+				const removedPaths = changes.map(change => change.old);
+				for (const model of monaco.editor.getModels()) {
+					if (removedPaths.some(removed => isChildFolder(model.uri.fsPath, removed))) {
+						model.dispose();
+					}
+				}
+				const prevFiles = filesRef.current;
+				const prevTabIndex = tabIndexRef.current;
+				const activeKey = prevTabIndex !== null ? prevFiles[prevTabIndex]?.key : undefined;
+				const nextFiles = prevFiles.filter(file =>
+					!removedPaths.some(removed => isChildFolder(file.key, removed))
+				);
+				filesRef.current = nextFiles;
+				setFiles(nextFiles);
+				if (activeKey !== undefined) {
+					const nextActiveIndex = nextFiles.findIndex(file => file.key === activeKey);
+					if (nextActiveIndex >= 0) {
+						if (nextActiveIndex !== prevTabIndex) setTabIndex(nextActiveIndex);
+					} else if (nextFiles.length === 0) {
+						void switchTab(null);
+					} else {
+						const fallbackIndex = Math.min(prevTabIndex ?? 0, nextFiles.length - 1);
+						void switchTab(fallbackIndex, nextFiles[fallbackIndex]);
+					}
+				}
+				let nextExpanded = expandedKeysRef.current;
+				for (const removed of removedPaths) {
+					nextExpanded = removeExpandedPath(nextExpanded, removed);
+				}
+				expandedKeysRef.current = nextExpanded;
+				setExpandedKeys(nextExpanded);
+				const nextSelected = selectedKeysRef.current.filter(key =>
+					!removedPaths.some(removed => isChildFolder(key, removed))
+				);
+				selectedKeysRef.current = nextSelected;
+				setSelectedKeys(nextSelected);
+			} else if (operation === "move" && changes.length > 0) {
+				const nextFiles = filesRef.current.map(file => {
+					const nextKey = replaceBatchPath(file.key, changes);
+					return nextKey === file.key ? file : {
+						...file,
+						key: nextKey,
+						title: file.folder ? path.basename(nextKey) : file.title,
+					};
+				});
+				filesRef.current = nextFiles;
+				setFiles(nextFiles);
+				const nextExpanded = expandedKeysRef.current.map(key => replaceBatchPath(key, changes));
+				expandedKeysRef.current = nextExpanded;
+				setExpandedKeys(nextExpanded);
+				const nextSelected = selectedKeysRef.current.map(key => replaceBatchPath(key, changes));
+				selectedKeysRef.current = nextSelected;
+				setSelectedKeys(nextSelected);
+			}
+
+			const affectedDirectories = [...new Set(
+				res.affectedDirectories ?? [
+					...sources.map(source => path.dirname(source)),
+					...(target === undefined ? [] : [target]),
+				]
+			)];
+			for (const dir of affectedDirectories) {
+				await refreshTreeDirectory(dir, true);
+			}
+			const root = treeDataRef.current.at(0);
+			const selectedKey = selectedKeysRef.current.at(0);
+			setSelectedNode(root !== undefined && selectedKey !== undefined
+				? findTreeNode(root, selectedKey)
+				: null
+			);
+			setCheckedKeys([]);
+			setBatchTargetMode(null);
+			if (res.success) {
+				addAlert(t(`alert.batch${operation === "delete" ? "Deleted" : operation === "copy" ? "Copied" : "Moved"}`, {
+					count: changes.length,
+				}), "success");
+			} else {
+				addAlert(res.message ?? t("alert.batchFailed"), "error");
+			}
+		} catch {
+			addAlert(t("alert.batchFailed"), "error");
+		} finally {
+			setBatchOperationRunning(false);
+		}
+	}, [addAlert, batchOperationRunning, checkedKeys, refreshTreeDirectory, switchTab, t]);
+
+	const onToggleMultiSelect = useCallback(() => {
+		setMultiSelectMode(value => !value);
+		setCheckedKeys([]);
+		setBatchTargetMode(null);
+	}, []);
+
+	const onCheckTreeNodes = useCallback((keys: string[]) => {
+		setCheckedKeys(keys.filter(key => key !== writablePath && isChildFolder(key, writablePath)));
+	}, []);
+
+	const onBatchAction = useCallback((action: "delete" | "copy" | "move") => {
+		if (batchOperationRunning) return;
+		const sources = normalizeBatchPaths(checkedKeys);
+		if (sources.length === 0) return;
+		if (contentModified) {
+			addAlert(t("alert.batchSave"), "info");
+			return;
+		}
+		if (action === "delete") {
+			setPopupInfo({
+				title: t("tree.deleteSelected", { count: sources.length }),
+				msg: t("tree.confirmDeleteSelected", { count: sources.length }),
+				cancelable: true,
+				confirmed: () => {
+					void runBatchOperation("delete");
+				},
+			});
+			return;
+		}
+		setBatchTargetMode(action);
+	}, [addAlert, batchOperationRunning, checkedKeys, runBatchOperation, t]);
+
+	const onBatchTarget = useCallback((target: TreeDataType) => {
+		if (batchTargetMode === null || batchOperationRunning) return;
+		if (!target.dir || !isChildFolder(target.key, writablePath)) {
+			addAlert(t("alert.batchInvalidTarget"), "info");
+			return;
+		}
+		const sources = normalizeBatchPaths(checkedKeys);
+		if (sources.some(source => isChildFolder(target.key, source))) {
+			addAlert(t("alert.batchInvalidTarget"), "info");
+			return;
+		}
+		const operation = batchTargetMode;
+		setPopupInfo({
+			title: t(operation === "copy" ? "tree.copySelected" : "tree.moveSelected", {
+				count: sources.length,
+			}),
+			msg: t(operation === "copy" ? "tree.confirmCopySelected" : "tree.confirmMoveSelected", {
+				count: sources.length,
+				target: target.title,
+			}),
+			cancelable: true,
+			confirmed: () => {
+				void runBatchOperation(operation, target.key);
+			},
+		});
+	}, [addAlert, batchOperationRunning, batchTargetMode, checkedKeys, runBatchOperation, t]);
+
+	const onCancelBatchTarget = useCallback(() => {
+		setBatchTargetMode(null);
+	}, []);
+
 	const onUploaded = useCallback((dir: string, file: string, open: boolean) => {
 		const key = path.join(dir, file);
 		const newFiles = files.filter(f => path.relative(f.key, key) !== "");
@@ -4123,6 +4316,12 @@ export default function PersistentDrawerLeft() {
 		if (disconnected) {
 			return;
 		}
+		if (event.key === "Escape") {
+			if (multiSelectMode) {
+				onToggleMultiSelect();
+			}
+			return;
+		}
 		if (event.ctrlKey || event.altKey || event.metaKey) {
 			switch (event.key) {
 				case 'N': case 'n': {
@@ -4138,6 +4337,10 @@ export default function PersistentDrawerLeft() {
 				}
 				case 'D': case 'd': {
 					if (!event.shiftKey) break;
+					if (multiSelectMode && checkedKeys.length > 0) {
+						onBatchAction("delete");
+						break;
+					}
 					if (selectedNode === null) {
 						addAlert(t("alert.deleteNoTarget"), "info");
 						break;
@@ -4714,7 +4917,7 @@ export default function PersistentDrawerLeft() {
 											borderRadius: 1.5,
 										}}
 									>
-										<BsSearch />
+										<SearchIcon fontSize="small" />
 									</IconButton>
 								</Tooltip>
 							</Stack>
@@ -4722,11 +4925,19 @@ export default function PersistentDrawerLeft() {
 						<div style={{ flex: 1, minHeight: 0, padding: 0 }} hidden={leftDockTab !== "explorer"}>
 							<FileTree
 								selectedKeys={selectedKeys}
+								checkedKeys={checkedKeys}
 								expandedKeys={expandedKeys}
 								treeData={treeData}
 								scrollRequest={treeScrollRequest}
+								multiSelectMode={multiSelectMode}
+								batchTargetMode={batchTargetMode}
 								onMenuClick={onTreeMenuClick}
 								onSelect={onSelect}
+								onCheck={onCheckTreeNodes}
+								onToggleMultiSelect={onToggleMultiSelect}
+								onBatchAction={onBatchAction}
+								onBatchTarget={onBatchTarget}
+								onCancelBatchTarget={onCancelBatchTarget}
 								onExpand={onExpand}
 								loadData={loadTreeNode}
 								onDrop={onDrop}

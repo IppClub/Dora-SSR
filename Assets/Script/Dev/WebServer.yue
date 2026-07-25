@@ -1621,63 +1621,136 @@ HttpServer\post "/new", (req): success: false, message: "Failed" ->
 			if Content\save path, content
 				return success: true
 
+deleteAsset = (path) ->
+	return false unless Content\exist path
+	projectRoot = if Content\isdir(path) and isProjectRootDir(path) then path else nil
+	parent = Path\getPath path
+	files = Content\getFiles parent
+	name = Path\getName(path)\lower!
+	ext = Path\getExt path
+	for file in *files
+		if name == Path\getName(file)\lower!
+			switch Path\getExt file when "tl" then if ext in ["vs",]
+				Content\remove Path parent, file
+			when "lua" then if ext in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml"]
+				Content\remove Path parent, file
+	if Content\remove path
+		if projectRoot
+			AgentSession.deleteSessionsByProjectRoot projectRoot
+		return true
+	false
+
+moveAsset = (old, new) ->
+	return false unless Content\exist(old) and not Content\exist new
+	renamedDir = Content\isdir old
+	parent = Path\getPath new
+	files = Content\getFiles parent
+	if renamedDir
+		name = Path\getFilename(new)\lower!
+		for file in *files
+			if name == Path\getFilename(file)\lower!
+				return false
+	else
+		name = Path\getName(new)\lower!
+		ext = Path\getExt new
+		for file in *files
+			if name == Path\getName(file)\lower!
+				if ext not in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml", "lua"]
+					continue
+				elseif ("d" == Path\getExt name) and (Path\getExt(file) ~= ext)
+					continue
+				return false
+	return false unless Content\move old, new
+	if renamedDir
+		AgentSession.renameSessionsByProjectRoot old, new
+	newParent = Path\getPath new
+	parent = Path\getPath old
+	files = Content\getFiles parent
+	newName = Path\getName new
+	oldName = Path\getName old
+	name = oldName\lower!
+	ext = Path\getExt old
+	for file in *files
+		if name == Path\getName(file)\lower!
+			switch Path\getExt file when "tl" then if ext in ["vs",]
+				Content\move Path(parent, file), Path newParent, newName .. ".tl"
+			when "lua" then if ext in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml"]
+				Content\move Path(parent, file), Path newParent, newName .. ".lua"
+	true
+
 HttpServer\post "/delete", (req): success: false ->
 	switch req when {body: {:path}}
-		if Content\exist path
-			projectRoot = if Content\isdir(path) and isProjectRootDir(path) then path else nil
-			parent = Path\getPath path
-			files = Content\getFiles parent
-			name = Path\getName(path)\lower!
-			ext = Path\getExt path
-			for file in *files
-				if name == Path\getName(file)\lower!
-					switch Path\getExt file when "tl" then if ext in ["vs",]
-						Content\remove Path parent, file
-					when "lua" then if ext in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml"]
-						Content\remove Path parent, file
-			if Content\remove path
-				if projectRoot
-					AgentSession.deleteSessionsByProjectRoot projectRoot
-				return success: true
+		return success: true if deleteAsset path
 
 HttpServer\post "/rename", (req): success: false ->
 	switch req when {body: {:old, :new}}
-		if Content\exist(old) and not Content\exist new
-			renamedDir = Content\isdir old
-			parent = Path\getPath new
-			files = Content\getFiles parent
-			if renamedDir
-				name = Path\getFilename(new)\lower!
-				for file in *files
-					if name == Path\getFilename(file)\lower!
-						return success: false
+		return success: true if moveAsset old, new
+
+normalizeAssetPaths = (paths) ->
+	return nil unless type(paths) == "table"
+	unique = {}
+	candidates = {}
+	for path in *paths
+		return nil unless type(path) == "string"
+		relative = relativeToRoot path, Content.writablePath
+		return nil if relative == nil or relative == "" or not Content\exist path
+		for part in relative\gmatch "[^/]+"
+			return nil if part == ".."
+		unless unique[path]
+			unique[path] = true
+			candidates[] = path
+	table.sort candidates, (a, b) -> #a < #b
+	result = {}
+	for path in *candidates
+		contained = false
+		for parent in *result
+			if relativeToRoot(path, parent) ~= nil
+				contained = true
+				break
+		result[] = path unless contained
+	result
+
+HttpServer\postSchedule "/assets/batch", (req): success: false, message: "invalid request" ->
+	switch req when {body: {:operation, :sources}}
+		return success: false, message: "invalid operation" unless operation in ["delete", "copy", "move"]
+		sources = normalizeAssetPaths sources
+		return success: false, message: "invalid sources" unless sources and #sources > 0
+		target = req.body.target
+		destinations = {}
+		if operation ~= "delete"
+			return success: false, message: "invalid target" unless type(target) == "string"
+			targetRelative = relativeToRoot target, Content.writablePath
+			return success: false, message: "invalid target" if targetRelative == nil
+			return success: false, message: "invalid target" unless Content\exist(target) and Content\isdir target
+			for source in *sources
+				if Content\isdir(source) and relativeToRoot(target, source) ~= nil
+					return success: false, message: "target inside source"
+				destination = Path target, Path\getFilename source
+				return success: false, message: "target existed" if Content\exist destination
+				return success: false, message: "duplicate target" if destinations[destination]
+				destinations[destination] = true
+		changes = {}
+		affectedSet = {}
+		affectedDirectories = {}
+		addAffected = (dir) ->
+			return if affectedSet[dir]
+			affectedSet[dir] = true
+			affectedDirectories[] = dir
+		addAffected target if operation ~= "delete"
+		for source in *sources
+			addAffected Path\getPath source
+			if operation == "delete"
+				return success: false, message: "delete failed", :changes, :affectedDirectories unless deleteAsset source
+				changes[] = old: source
 			else
-				name = Path\getName(new)\lower!
-				ext = Path\getExt new
-				for file in *files
-					if name == Path\getName(file)\lower!
-						if ext not in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml", "lua"]
-							continue
-						elseif ("d" == Path\getExt name) and (Path\getExt(file) ~= ext)
-							continue
-						return success: false
-			if Content\move old, new
-				if renamedDir
-					AgentSession.renameSessionsByProjectRoot old, new
-				newParent = Path\getPath new
-				parent = Path\getPath old
-				files = Content\getFiles parent
-				newName = Path\getName new
-				oldName = Path\getName old
-				name = oldName\lower!
-				ext = Path\getExt old
-				for file in *files
-					if name == Path\getName(file)\lower!
-						switch Path\getExt file when "tl" then if ext in ["vs",]
-							Content\move Path(parent, file), Path newParent, newName .. ".tl"
-						when "lua" then if ext in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml"]
-							Content\move Path(parent, file), Path newParent, newName .. ".lua"
-				return success: true
+				destination = Path target, Path\getFilename source
+				ok = if operation == "copy"
+					Content\copyAsync source, destination
+				else
+					moveAsset source, destination
+				return success: false, message: operation .. " failed", :changes, :affectedDirectories unless ok
+				changes[] = old: source, new: destination
+		return success: true, :changes, :affectedDirectories
 
 withProjectSearchPaths = (projectRoot, projFile, fn) ->
 	fallbackPaths = {}
