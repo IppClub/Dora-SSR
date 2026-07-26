@@ -46,30 +46,32 @@ type gitAuth struct {
 }
 
 type gitCommand struct {
-	op          string
-	url         string
-	paths       []string
-	remote      string
-	branch      string
-	target      string
-	message     string
-	authorName  string
-	authorEmail string
-	action      string
-	depth       int
-	limit       int
-	force       bool
-	all         bool
-	allowEmpty  bool
-	amend       bool
-	bare        bool
-	create      bool
-	delete      bool
-	staged      bool
-	worktree    bool
-	confirm     bool
-	setUpstream bool
-	resetMode   git.ResetMode
+	op           string
+	url          string
+	paths        []string
+	remote       string
+	branch       string
+	target       string
+	message      string
+	authorName   string
+	authorEmail  string
+	action       string
+	depth        int
+	limit        int
+	force        bool
+	all          bool
+	allowEmpty   bool
+	amend        bool
+	bare         bool
+	create       bool
+	delete       bool
+	staged       bool
+	worktree     bool
+	confirm      bool
+	setUpstream  bool
+	resetMode    git.ResetMode
+	commitHash   string
+	metadataOnly bool
 }
 
 func StartRun(repoPath, command, optionsJSON string) int64 {
@@ -456,12 +458,29 @@ func parseLog(args []string) (gitCommand, error) {
 				return cmd, err
 			}
 			cmd.limit = limit
+		case "--metadata-only":
+			cmd.metadataOnly = true
+		case "--changed-files":
+			i++
+			if i >= len(args) {
+				return cmd, errors.New("log changed-files commit is required")
+			}
+			if !plumbing.IsHash(args[i]) {
+				return cmd, errors.New("log changed-files commit must be a full hash")
+			}
+			cmd.commitHash = args[i]
 		case "--":
 			cmd.paths = append(cmd.paths, args[i+1:]...)
-			return cmd, nil
+			i = len(args)
 		default:
 			return cmd, fmt.Errorf("unsupported log option %q", args[i])
 		}
+	}
+	if cmd.metadataOnly && cmd.commitHash != "" {
+		return cmd, errors.New("log metadata-only and changed-files cannot be combined")
+	}
+	if cmd.commitHash != "" && len(cmd.paths) != 0 {
+		return cmd, errors.New("log changed-files does not accept paths")
 	}
 	return cmd, nil
 }
@@ -731,7 +750,7 @@ func runCommand(ctx context.Context, j *job) {
 	case "ls-remote":
 		data, err = execLsRemote(j, cmd)
 	case "status":
-		data, err = execStatus(j.req.cmd.repoPath)
+		data, err = execStatusWithContext(ctx, j.req.cmd.repoPath)
 	case "diff":
 		data, err = execDiff(j.req.cmd.repoPath, cmd)
 	case "add":
@@ -879,6 +898,31 @@ func execStatus(repoPath string) (map[string]any, error) {
 		})
 	}
 	return map[string]any{"clean": status.IsClean(), "files": files}, nil
+}
+
+type gitDataResult struct {
+	data map[string]any
+	err  error
+}
+
+func waitGitDataWithContext(ctx context.Context, load func() (map[string]any, error)) (map[string]any, error) {
+	result := make(chan gitDataResult, 1)
+	go func() {
+		data, err := load()
+		result <- gitDataResult{data: data, err: err}
+	}()
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case loaded := <-result:
+		return loaded.data, loaded.err
+	}
+}
+
+func execStatusWithContext(ctx context.Context, repoPath string) (map[string]any, error) {
+	return waitGitDataWithContext(ctx, func() (map[string]any, error) {
+		return execStatus(repoPath)
+	})
 }
 
 func execDiff(repoPath string, cmd gitCommand) (map[string]any, error) {
@@ -1244,6 +1288,20 @@ func execLog(repoPath string, cmd gitCommand) (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
+	if cmd.commitHash != "" {
+		commit, err := repo.CommitObject(plumbing.NewHash(cmd.commitHash))
+		if err != nil {
+			return nil, err
+		}
+		files, err := commitChangedFiles(commit)
+		if err != nil {
+			return nil, err
+		}
+		return map[string]any{
+			"hash":  commit.Hash.String(),
+			"files": files,
+		}, nil
+	}
 	head, err := repo.Head()
 	if errors.Is(err, plumbing.ErrReferenceNotFound) {
 		return map[string]any{"commits": []map[string]any{}}, nil
@@ -1255,11 +1313,12 @@ func execLog(repoPath string, cmd gitCommand) (map[string]any, error) {
 	if len(cmd.paths) != 0 {
 		path = cmd.paths[0]
 	}
-	commits, err := shallowAwareLog(repo, head.Hash(), cmd.limit, path)
+	includeFiles := !cmd.metadataOnly || path != ""
+	commits, err := shallowAwareLog(repo, head.Hash(), cmd.limit, path, includeFiles)
 	return map[string]any{"commits": commits}, err
 }
 
-func shallowAwareLog(repo *git.Repository, from plumbing.Hash, limit int, path string) ([]map[string]any, error) {
+func shallowAwareLog(repo *git.Repository, from plumbing.Hash, limit int, path string, includeFiles bool) ([]map[string]any, error) {
 	shallowSet := map[plumbing.Hash]struct{}{}
 	if shallow, err := repo.Storer.Shallow(); err == nil {
 		for _, hash := range shallow {
@@ -1282,7 +1341,7 @@ func shallowAwareLog(repo *git.Repository, from plumbing.Hash, limit int, path s
 			continue
 		}
 		seen[commit.Hash] = struct{}{}
-		data, err := commitLogData(commit)
+		data, err := commitLogData(commit, includeFiles)
 		if err != nil {
 			return nil, err
 		}
@@ -1361,19 +1420,22 @@ func commitLogDataTouchesPath(data map[string]any, path string) bool {
 	return false
 }
 
-func commitLogData(commit *object.Commit) (map[string]any, error) {
-	files, err := commitChangedFiles(commit)
-	if err != nil {
-		return nil, err
-	}
-	return map[string]any{
+func commitLogData(commit *object.Commit, includeFiles bool) (map[string]any, error) {
+	data := map[string]any{
 		"hash":    commit.Hash.String(),
 		"message": strings.TrimSpace(commit.Message),
 		"author":  commit.Author.Name,
 		"email":   commit.Author.Email,
 		"when":    commit.Author.When.Format(time.RFC3339),
-		"files":   files,
-	}, nil
+	}
+	if includeFiles {
+		files, err := commitChangedFiles(commit)
+		if err != nil {
+			return nil, err
+		}
+		data["files"] = files
+	}
+	return data, nil
 }
 
 func commitChangedFiles(commit *object.Commit) ([]map[string]any, error) {

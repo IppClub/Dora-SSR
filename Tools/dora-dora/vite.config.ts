@@ -473,9 +473,6 @@ export default defineConfig(async ({ command, mode }) => {
 				},
 				output: {
 					manualChunks(id: string) {
-						if (id.includes('node_modules/monaco-editor')) {
-							return 'monaco';
-						}
 						if (id.includes('node_modules/@mui/') || id.includes('node_modules/@emotion/')) {
 							return 'mui';
 						}

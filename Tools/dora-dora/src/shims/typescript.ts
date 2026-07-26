@@ -1,6 +1,6 @@
 const ts = (globalThis as any).ts;
 if (!ts) {
-  throw new Error('TypeScript compiler is not loaded. Ensure /typescript.js is loaded before importing.');
+  throw new Error('TypeScript compiler is not loaded. Ensure the versioned compiler asset is loaded before importing.');
 }
 
 export default ts;

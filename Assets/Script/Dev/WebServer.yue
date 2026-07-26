@@ -497,7 +497,7 @@ gitSummary = (repoPath) ->
 	remoteStatus = remoteRes.status
 	currentBranch = gitCurrentBranch(branchStatus) or gitHeadBranch(repoPath)
 	branches = gitBranchesWithHead branchStatus, currentBranch
-	logRes = gitRunSync repoPath, "log -n 100", nil, 120
+	logRes = gitRunSync repoPath, "log --metadata-only -n 100", nil, 120
 	logStatus = if logRes.success
 		logRes.status
 	else
@@ -580,7 +580,7 @@ HttpServer\postSchedule "/git/summary", (req): invalidArguments ->
 
 HttpServer\postSchedule "/git/status-files", (req): invalidArguments ->
 	switch req when {body: {:repoPath}}
-		return gitRunSync repoPath, "status", nil, 10
+		return gitRunSync repoPath, "status", nil, 120
 
 HttpServer\postSchedule "/git/discard-untracked", (req): invalidArguments ->
 	switch req when {body: body}
@@ -632,7 +632,7 @@ HttpServer\postSchedule "/git/history", (req): invalidArguments ->
 	switch req when {body: body}
 		{:repoPath, :limit} = body
 		limit = math.max 1, math.min 100, tonumber(limit) or 20
-		return gitRunSync repoPath, "log -n #{limit}", nil, 10
+		return gitRunSync repoPath, "log --metadata-only -n #{limit}", nil, 10
 
 HttpServer\postSchedule "/git/remotes", (req): invalidArguments ->
 	switch req when {body: body}
@@ -2068,16 +2068,16 @@ HttpServer\post "/assets/files", (req): success: false ->
 		builtin = relativeToRoot(path, Content.assetPath) ~= nil
 		return success: false unless workspace or builtin
 		return success: false unless Content\exist(path) and Content\isdir(path)
-		node = visitAssets path, workspace, builtin, true
-		files = {}
-		visit = (item) ->
-			if item.dir
-				if item.children
-					for child in *item.children
-						visit child
-			else
-				files[] = item.key
-		visit node
+		globs = {"**", "!**/.DS_Store"}
+		if workspace
+			globs = {
+				"**", "!**/.DS_Store"
+				"!**/.upload/**", "!**/.download/**"
+				"!**/.www/**", "!**/.build/**"
+				"!**/.git/**", "!**/.cache/**"
+				"!**/node_modules/**"
+			}
+		files = [Path(path, file) for file in *Content\glob(path, globs, extentionLevels)]
 		return success: true, :files
 
 HttpServer\post "/assets", ->
@@ -2611,6 +2611,15 @@ status.buildAsync = (path) ->
 				return success: false, file: path, :message
 	return success: false, file: path, message: "invalid file to build"
 
+HttpServer\postSchedule "/git/commit-files", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :commit} = body
+		return success: false, message: "invalid repoPath" if gitInvalidRepoPath repoPath
+		return success: false, message: "invalid commit" unless type(commit) == "string" and commit\match "^[0-9a-fA-F]+$"
+		res = gitRunSync repoPath, "log --changed-files #{gitQuote commit}", nil, 10
+		return res unless res.success
+		return success: true, status: res.status, data: res.status and res.status.data
+
 thread ->
 	doraWeb = Path Content.assetPath, "www", "index.html"
 	doraReady = Path Content.appPath, ".www", "dora-ready"
@@ -2627,6 +2636,12 @@ thread ->
 			)
 			Content\save doraReady, readyContent
 			print "Dora Dora is ready!"
+	HttpServer\clearStaticCacheControls!
+	HttpServer\setStaticCacheControl "no-cache"
+	HttpServer\addStaticCacheControl(
+		"^/((assets|monacoeditorwork)/.*|typescript)-[A-Za-z0-9_-]{8,}[.][^/]+$"
+		"public, max-age=31536000, immutable"
+	)
 	if HttpServer\start 8866
 		:localIP = HttpServer
 		localIP = "localhost" if localIP == ""

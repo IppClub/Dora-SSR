@@ -23,12 +23,16 @@ export interface YarnEditorProps {
 	height: number;
 	defaultValue?: string;
 	onLoad: (data: YarnEditorData) => void;
+	onUnload?: (data: YarnEditorData) => void;
 	onChange: () => void;
 	onKeydown: (event: KeyboardEvent) => void;
 };
 
 const YarnEditor = memo((props: YarnEditorProps) => {
 	const frameRef = useRef<HTMLIFrameElement>(null);
+	const dataRef = useRef<YarnEditorData | null>(null);
+	const onUnloadRef = useRef(props.onUnload);
+	onUnloadRef.current = props.onUnload;
 	const { i18n, t } = useTranslation();
 	const language = i18n.language.match(/^zh/i) ? "zh" : "en";
 	const initialLanguage = useRef(language);
@@ -43,6 +47,15 @@ const YarnEditor = memo((props: YarnEditorProps) => {
 		const win = frameRef.current?.contentWindow;
 		if (win) syncLanguage(win);
 	}, [syncLanguage]);
+
+	useEffect(() => {
+		return () => {
+			if (dataRef.current !== null) {
+				onUnloadRef.current?.(dataRef.current);
+				dataRef.current = null;
+			}
+		};
+	}, []);
 
 	return <iframe
 		ref={frameRef}
@@ -84,6 +97,7 @@ const YarnEditor = memo((props: YarnEditorProps) => {
 						win.setTimeout(refresh, 120);
 					});
 				};
+				dataRef.current = data;
 				props.onLoad(data);
 				data.refreshLayout();
 

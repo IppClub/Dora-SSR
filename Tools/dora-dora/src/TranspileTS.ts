@@ -13,6 +13,12 @@ import { SourceMapConsumer } from 'source-map';
 import Info from './Info';
 import * as Service from './Service';
 import { getExtraLib } from './MonacoPath';
+import { setMonacoRuntime } from './MonacoRuntimeAccess';
+
+setMonacoRuntime({
+	monaco,
+	typescript: monacoTypescript,
+});
 
 type TsModule = typeof import('typescript');
 type TstlModule = typeof import('./3rdParty/tstl');
@@ -24,18 +30,30 @@ let cachedTstlOptions: TstlCompilerOptions | null = null;
 let cachedDeclarationOptions: CompilerOptions | null = null;
 let tstlPromise: Promise<TstlModule> | null = null;
 let outputCollectorPromise: Promise<OutputCollectorModule> | null = null;
+let typescriptUrlPromise: Promise<string> | null = null;
 
-function getTypescriptUrl() {
-	let url = "/typescript.js";
+async function getTypescriptUrl() {
 	try {
 		const custom = (globalThis as any).__TYPESCRIPT_CUSTOM_URL__;
 		if (typeof custom === "string" && custom.length > 0) {
-			url = custom;
+			return custom;
 		}
 	} catch {
 		// ignore
 	}
-	return url;
+	typescriptUrlPromise ??= fetch("/heavy-assets.json", {
+		cache: "no-cache",
+	}).then(async response => {
+		if (!response.ok) {
+			throw new Error(`Failed to load heavy asset manifest: ${response.status}`);
+		}
+		const manifest = await response.json() as { typescript?: unknown };
+		if (typeof manifest.typescript !== "string" || manifest.typescript.length === 0) {
+			throw new Error("Heavy asset manifest does not contain a TypeScript URL.");
+		}
+		return manifest.typescript;
+	});
+	return typescriptUrlPromise;
 }
 
 async function loadTypescriptCompiler(): Promise<TsModule> {
@@ -46,8 +64,7 @@ async function loadTypescriptCompiler(): Promise<TsModule> {
 		return cachedTs;
 	}
 	if (!tsPromise) {
-		tsPromise = new Promise((resolve, reject) => {
-			const url = getTypescriptUrl();
+		tsPromise = getTypescriptUrl().then(url => new Promise<TsModule>((resolve, reject) => {
 			if (typeof document === "undefined") {
 				const scope = globalThis as any;
 				if (typeof scope.importScripts === "function") {
@@ -83,7 +100,7 @@ async function loadTypescriptCompiler(): Promise<TsModule> {
 				reject(new Error(`Failed to load TypeScript compiler from ${url}`));
 			};
 			document.head.appendChild(script);
-		});
+		}));
 	}
 	return tsPromise;
 }

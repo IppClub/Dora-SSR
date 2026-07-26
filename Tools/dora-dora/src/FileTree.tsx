@@ -225,6 +225,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 		return keys;
 	}, [treeData]);
 	const scrollContainerRef = useRef<HTMLElement>(null);
+	const treeRef = useRef<React.ComponentRef<typeof Tree>>(null);
 	const [anchorItem, setAnchorItem] = useState<null | { target: Element, data: TreeDataType }>(null);
 	const [menuOpen, setMenuOpen] = useState(false);
 	const [suppressResizeScrollbar, setSuppressResizeScrollbar] = useState(false);
@@ -245,6 +246,13 @@ export default memo(function FileTree(props: FileTreeProps) {
 	useEffect(() => {
 		if (scrollRequest === 0) return;
 		const frame = window.requestAnimationFrame(() => {
+			const selectedKey = selectedKeys.at(0);
+			if (selectedKey !== undefined) {
+				treeRef.current?.scrollTo({
+					key: selectedKey,
+					align: "auto",
+				});
+			}
 			const selectedItem = scrollContainerRef.current?.querySelector<HTMLElement>(
 				'[role="treeitem"][aria-selected="true"]'
 			);
@@ -254,7 +262,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 			});
 		});
 		return () => window.cancelAnimationFrame(frame);
-	}, [scrollRequest]);
+	}, [scrollRequest, selectedKeys]);
 
 	useEffect(() => {
 		const container = scrollContainerRef.current;
@@ -551,6 +559,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 				}}
 			>
 				<Tree<TreeDataType>
+					ref={treeRef}
 					className="dora-resource-tree"
 					onRightClick={onRightClick}
 					showIcon

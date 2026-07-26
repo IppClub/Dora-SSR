@@ -987,7 +987,7 @@ gitSummary = function(repoPath) -- 487
 	local remoteStatus = remoteRes.status -- 497
 	local currentBranch = gitCurrentBranch(branchStatus) or gitHeadBranch(repoPath) -- 498
 	local branches = gitBranchesWithHead(branchStatus, currentBranch) -- 499
-	local logRes = gitRunSync(repoPath, "log -n 100", nil, 120) -- 500
+	local logRes = gitRunSync(repoPath, "log --metadata-only -n 100", nil, 120) -- 500
 	local logStatus -- 501
 	if logRes.success then -- 501
 		logStatus = logRes.status -- 502
@@ -1197,7 +1197,7 @@ HttpServer:postSchedule("/git/status-files", function(req) -- 581
 				end -- 582
 			end -- 582
 			if repoPath ~= nil then -- 582
-				return gitRunSync(repoPath, "status", nil, 10) -- 583
+				return gitRunSync(repoPath, "status", nil, 120) -- 583
 			end -- 582
 		end -- 582
 	end -- 582
@@ -1358,7 +1358,7 @@ HttpServer:postSchedule("/git/history", function(req) -- 631
 			if body ~= nil then -- 632
 				local repoPath, limit = body.repoPath, body.limit -- 633
 				limit = math.max(1, math.min(100, tonumber(limit) or 20)) -- 634
-				return gitRunSync(repoPath, "log -n " .. tostring(limit), nil, 10) -- 635
+				return gitRunSync(repoPath, "log --metadata-only -n " .. tostring(limit), nil, 10) -- 635
 			end -- 632
 		end -- 632
 	end -- 632
@@ -5057,23 +5057,35 @@ HttpServer:post("/assets/files", function(req) -- 2065
 						success = false -- 2070
 					} -- 2070
 				end -- 2070
-				local node = visitAssets(path, workspace, builtin, true) -- 2071
-				local files = { } -- 2072
-				local visit -- 2073
-				visit = function(item) -- 2073
-					if item.dir then -- 2074
-						if item.children then -- 2075
-							local _list_0 = item.children -- 2076
-							for _index_0 = 1, #_list_0 do -- 2076
-								local child = _list_0[_index_0] -- 2076
-								visit(child) -- 2077
-							end -- 2076
-						end -- 2075
-					else -- 2079
-						files[#files + 1] = item.key -- 2079
-					end -- 2074
-				end -- 2073
-				visit(node) -- 2080
+				local globs = { -- 2071
+					"**", -- 2071
+					"!**/.DS_Store" -- 2071
+				} -- 2071
+				if workspace then -- 2072
+					globs = { -- 2074
+						"**", -- 2074
+						"!**/.DS_Store", -- 2074
+						"!**/.upload/**", -- 2075
+						"!**/.download/**", -- 2075
+						"!**/.www/**", -- 2076
+						"!**/.build/**", -- 2076
+						"!**/.git/**", -- 2077
+						"!**/.cache/**", -- 2077
+						"!**/node_modules/**" -- 2078
+					} -- 2073
+				end -- 2072
+				local files -- 2080
+				do -- 2080
+					local _accum_0 = { } -- 2080
+					local _len_0 = 1 -- 2080
+					local _list_0 = Content:glob(path, globs, extentionLevels) -- 2080
+					for _index_0 = 1, #_list_0 do -- 2080
+						local file = _list_0[_index_0] -- 2080
+						_accum_0[_len_0] = Path(path, file) -- 2080
+						_len_0 = _len_0 + 1 -- 2080
+					end -- 2080
+					files = _accum_0 -- 2080
+				end -- 2080
 				return { -- 2081
 					success = true, -- 2081
 					files = files -- 2081
@@ -6404,34 +6416,71 @@ status.buildAsync = function(path) -- 2558
 		message = "invalid file to build" -- 2612
 	} -- 2612
 end -- 2558
-thread(function() -- 2614
-	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 2615
-	local doraReady = Path(Content.appPath, ".www", "dora-ready") -- 2616
-	if Content:exist(doraWeb) then -- 2617
-		local readyContent = App.version .. "\n" .. Content:load(doraWeb) -- 2618
-		local needReload -- 2619
-		if Content:exist(doraReady) then -- 2619
-			needReload = readyContent ~= Content:load(doraReady) -- 2620
-		else -- 2621
-			needReload = true -- 2621
-		end -- 2619
-		if needReload then -- 2622
-			Content:remove(Path(Content.appPath, ".www")) -- 2623
-			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 2624
-			Content:save(doraReady, readyContent) -- 2628
-			print("Dora Dora is ready!") -- 2629
-		end -- 2622
-	end -- 2617
-	if HttpServer:start(8866) then -- 2630
-		local localIP = HttpServer.localIP -- 2631
-		if localIP == "" then -- 2632
-			localIP = "localhost" -- 2632
-		end -- 2632
-		status.url = "http://" .. tostring(localIP) .. ":8866" -- 2633
-		return HttpServer:startWS(8868) -- 2634
-	else -- 2636
-		status.url = nil -- 2636
-		return print("8866 Port not available!") -- 2637
-	end -- 2630
+HttpServer:postSchedule("/git/commit-files", function(req) -- 2614
+	do -- 2615
+		local _type_0 = type(req) -- 2615
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 2615
+		if _tab_0 then -- 2615
+			local body = req.body -- 2615
+			if body ~= nil then -- 2615
+				local repoPath, commit = body.repoPath, body.commit -- 2616
+				if gitInvalidRepoPath(repoPath) then -- 2617
+					return { -- 2617
+						success = false, -- 2617
+						message = "invalid repoPath" -- 2617
+					} -- 2617
+				end -- 2617
+				if not (type(commit) == "string" and commit:match("^[0-9a-fA-F]+$")) then -- 2618
+					return { -- 2618
+						success = false, -- 2618
+						message = "invalid commit" -- 2618
+					} -- 2618
+				end -- 2618
+				local res = gitRunSync(repoPath, "log --changed-files " .. tostring(gitQuote(commit)), nil, 10) -- 2619
+				if not res.success then -- 2620
+					return res -- 2620
+				end -- 2620
+				return { -- 2621
+					success = true, -- 2621
+					status = res.status, -- 2621
+					data = res.status and res.status.data -- 2621
+				} -- 2621
+			end -- 2615
+		end -- 2615
+	end -- 2615
+	return invalidArguments -- 2614
 end) -- 2614
+thread(function() -- 2623
+	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 2624
+	local doraReady = Path(Content.appPath, ".www", "dora-ready") -- 2625
+	if Content:exist(doraWeb) then -- 2626
+		local readyContent = App.version .. "\n" .. Content:load(doraWeb) -- 2627
+		local needReload -- 2628
+		if Content:exist(doraReady) then -- 2628
+			needReload = readyContent ~= Content:load(doraReady) -- 2629
+		else -- 2630
+			needReload = true -- 2630
+		end -- 2628
+		if needReload then -- 2631
+			Content:remove(Path(Content.appPath, ".www")) -- 2632
+			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 2633
+			Content:save(doraReady, readyContent) -- 2637
+			print("Dora Dora is ready!") -- 2638
+		end -- 2631
+	end -- 2626
+	HttpServer:clearStaticCacheControls() -- 2639
+	HttpServer:setStaticCacheControl("no-cache") -- 2640
+	HttpServer:addStaticCacheControl("^/((assets|monacoeditorwork)/.*|typescript)-[A-Za-z0-9_-]{8,}[.][^/]+$", "public, max-age=31536000, immutable") -- 2641
+	if HttpServer:start(8866) then -- 2645
+		local localIP = HttpServer.localIP -- 2646
+		if localIP == "" then -- 2647
+			localIP = "localhost" -- 2647
+		end -- 2647
+		status.url = "http://" .. tostring(localIP) .. ":8866" -- 2648
+		return HttpServer:startWS(8868) -- 2649
+	else -- 2651
+		status.url = nil -- 2651
+		return print("8866 Port not available!") -- 2652
+	end -- 2645
+end) -- 2623
 return _module_0 -- 1

@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 import type { TreeDataType } from "./FileTree";
 import { ProfilerInfo } from "./ProfilerInfo";
 import { TypedEmitter } from "./utils/typedEmitter";
+import { LogBuffer } from "./LogBuffer";
 
 let authRequired = false;
 export const setAuthRequired = (required: boolean) => {
@@ -30,7 +31,7 @@ export interface OpenFileMessage {
 };
 
 type ServiceEvents = {
-	[WsEvent.Log]: [string, string];
+	[WsEvent.Log]: [string];
 	[WsEvent.Profiler]: [ProfilerInfo];
 	[WsEvent.UpdateFile]: [string, boolean, string];
 	[WsEvent.RefreshTree]: [];
@@ -133,27 +134,31 @@ const enum WsEvent {
 	Download = "Download",
 };
 
-let logText = "";
+const logBuffer = new LogBuffer();
 
 export const addLog = (text: string) => {
-	logText += text;
-	eventEmitter.emit(WsEvent.Log, text, logText);
+	logBuffer.append(text);
+	eventEmitter.emit(WsEvent.Log, text);
 };
 
 export const clearLog = () => {
-	logText = "";
-	eventEmitter.emit(WsEvent.Log, "", logText);
+	logBuffer.clear();
+	eventEmitter.emit(WsEvent.Log, "");
 };
 
 export const getLog = () => {
-	return logText;
+	return logBuffer.getText();
 };
 
-export const addLogListener = (listener: (newItem: string, allText: string) => void) => {
+export const isLogTruncated = () => {
+	return logBuffer.isTruncated();
+};
+
+export const addLogListener = (listener: (newItem: string) => void) => {
 	eventEmitter.on(WsEvent.Log, listener);
 };
 
-export const removeLogListener = (listener: (newItem: string, allText: string) => void) => {
+export const removeLogListener = (listener: (newItem: string) => void) => {
 	eventEmitter.off(WsEvent.Log, listener);
 };
 
@@ -294,8 +299,9 @@ export function openWebSocket() {
 					if (result && typeof result === "object" && "name" in result) {
 						switch (result.name) {
 							case WsEvent.Log: {
-								logText += result.text as string;
-								eventEmitter.emit(result.name, result.text, logText);
+								const text = result.text as string;
+								logBuffer.append(text);
+								eventEmitter.emit(result.name, text);
 								break;
 							}
 							case WsEvent.Profiler: {
@@ -1119,6 +1125,20 @@ export const gitCommitFileDiff = (req: { repoPath: string; commit: string; path:
 	return post<GitFileDiffResponse>("/git/commit-file-diff", req);
 };
 
+export interface GitCommitFilesResponse {
+	success: boolean;
+	message?: string;
+	status?: GitStatus;
+	data?: {
+		hash?: string;
+		files?: GitCommitFile[];
+	};
+}
+
+export const gitCommitFiles = (req: { repoPath: string; commit: string }) => {
+	return post<GitCommitFilesResponse>("/git/commit-files", req);
+};
+
 export const gitHistory = (req: { repoPath: string; limit?: number }) => {
 	return post<GitSyncResponse>("/git/history", req);
 };
@@ -1528,6 +1548,19 @@ export interface AgentSessionPatch {
 	pendingQuestionnaire?: AgentQuestionnaire | false;
 	hasActivePlan?: boolean;
 };
+
+if (
+	typeof window !== "undefined"
+	&& new URLSearchParams(window.location.search).get("doraPerf") === "1"
+) {
+	const diagnosticsWindow = window as typeof window & {
+		__doraPerfEmitAgentSessionPatch?: (patch: AgentSessionPatch) => boolean;
+	};
+	diagnosticsWindow.__doraPerfEmitAgentSessionPatch = (patch) => {
+		eventEmitter.emit("AgentSessionPatch", patch);
+		return true;
+	};
+}
 
 export type AgentSessionDetailResponse = {
 	success: true;

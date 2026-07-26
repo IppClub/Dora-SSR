@@ -23,10 +23,30 @@ import AgentStepList from './AgentStepList';
 import AgentChangeSetSummaryCard from './AgentChangeSetSummary';
 import AgentQuestionnaire from './AgentQuestionnaire';
 import doraAgent from './dora-agent.png';
+import {
+	agentCollectionToArray,
+	applyCheckpointCollectionPatches,
+	applyMessageCollectionPatches,
+	applyStepCollectionPatches,
+	createCheckpointCollection,
+	createMessageCollection,
+	createStepCollection,
+	isImmediateAgentPatch,
+	reconcileCheckpointCollection,
+	reconcileMessageCollection,
+	reconcileStepCollection,
+} from './AgentPatchBatch';
+import {
+	deleteAgentSessionSnapshot,
+	getAgentSessionSnapshot,
+	setAgentSessionSnapshot,
+} from './AgentSessionSnapshot';
+import { getAgentTailRenderWindow } from './AgentRenderWindow';
 
 const AGENT_LLM_CONFIG_STORAGE_KEY = "dora.agent.llmConfigId";
 
 interface AgentPanelProps {
+	active?: boolean;
 	sessionId: number;
 	projectRoot: string;
 	title: string;
@@ -51,17 +71,6 @@ function normalizeList<T>(value: unknown): T[] {
 	return [];
 }
 
-function upsertById<T extends { id: number }>(items: T[], nextItem: T): T[] {
-	const next = [...items];
-	const index = next.findIndex(item => item.id === nextItem.id);
-	if (index >= 0) {
-		next[index] = nextItem;
-	} else {
-		next.push(nextItem);
-	}
-	return next;
-}
-
 function getToolStepText(step: Service.AgentSessionStep): string {
 	const parts = [
 		step.reason,
@@ -78,10 +87,12 @@ function getFiniteNumber(value: unknown): number | undefined {
 
 export default function AgentPanel(props: AgentPanelProps) {
 	const HISTORY_VISIBLE_ROUNDS = 10;
+	const CURRENT_STEPS_VISIBLE_COUNT = 80;
 	const FETCH_URL_TOOL = "fetch_url";
 	const EXECUTE_COMMAND_TOOL = "execute_command";
 	const { t } = useTranslation();
-	const { sessionId, projectRoot, title, height, showHeader = true, initialPrompt, addAlert, onInitialPromptConsumed, onRollbackComplete, onOpenFile, onOpenLLMConfig } = props;
+	const { active = true, sessionId, projectRoot, title, height, showHeader = true, initialPrompt, addAlert, onInitialPromptConsumed, onRollbackComplete, onOpenFile, onOpenLLMConfig } = props;
+	const [initialSnapshot] = useState(() => getAgentSessionSnapshot(sessionId));
 	const [selectedSessionId, setSelectedSessionId] = useState(sessionId);
 	const [prompt, setPrompt] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -89,17 +100,20 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const [continueLoadingTaskId, setContinueLoadingTaskId] = useState<number | null>(null);
 	const [finishHandoffLoadingTaskId, setFinishHandoffLoadingTaskId] = useState<number | null>(null);
 	const [rollingBack, setRollingBack] = useState<number | null>(null);
-	const [session, setSession] = useState<Service.AgentSession | null>(null);
-	const [relatedSessions, setRelatedSessions] = useState<Service.AgentSession[]>([]);
-	const [spawnInfo, setSpawnInfo] = useState<Service.AgentSessionSpawnInfo | null>(null);
-	const [messages, setMessages] = useState<Service.AgentSessionMessage[]>([]);
-	const [steps, setSteps] = useState<Service.AgentSessionStep[]>([]);
-	const [checkpoints, setCheckpoints] = useState<Service.AgentCheckpointItem[]>([]);
-	const [pendingQuestionnaire, setPendingQuestionnaire] = useState<Service.AgentQuestionnaire | null>(null);
+	const [session, setSession] = useState<Service.AgentSession | null>(initialSnapshot?.session ?? null);
+	const [relatedSessions, setRelatedSessions] = useState<Service.AgentSession[]>(initialSnapshot?.relatedSessions ?? []);
+	const [spawnInfo, setSpawnInfo] = useState<Service.AgentSessionSpawnInfo | null>(initialSnapshot?.spawnInfo ?? null);
+	const [messageCollection, setMessageCollection] = useState(() => createMessageCollection(initialSnapshot?.messages ?? []));
+	const [stepCollection, setStepCollection] = useState(() => createStepCollection(initialSnapshot?.steps ?? []));
+	const [checkpointCollection, setCheckpointCollection] = useState(() => createCheckpointCollection(initialSnapshot?.checkpoints ?? []));
+	const messages = useMemo(() => agentCollectionToArray(messageCollection), [messageCollection]);
+	const steps = useMemo(() => agentCollectionToArray(stepCollection), [stepCollection]);
+	const checkpoints = useMemo(() => agentCollectionToArray(checkpointCollection), [checkpointCollection]);
+	const [pendingQuestionnaire, setPendingQuestionnaire] = useState<Service.AgentQuestionnaire | null>(initialSnapshot?.pendingQuestionnaire ?? null);
 	const [questionnaireSubmitting, setQuestionnaireSubmitting] = useState(false);
 	const [questionnaireCancelId, setQuestionnaireCancelId] = useState<number | null>(null);
-	const [workMode, setWorkMode] = useState<"code" | "plan">("code");
-	const [hasActivePlan, setHasActivePlan] = useState(false);
+	const [workMode, setWorkMode] = useState<"code" | "plan">(initialSnapshot?.workMode ?? "code");
+	const [hasActivePlan, setHasActivePlan] = useState(initialSnapshot?.hasActivePlan ?? false);
 	const [diffs, setDiffs] = useState<Record<number, Service.AgentCheckpointDiffFile[]>>({});
 	const [taskDiffs, setTaskDiffs] = useState<Record<number, Service.AgentCheckpointDiffFile[]>>({});
 	const [diffLoadingId, setDiffLoadingId] = useState<number | null>(null);
@@ -107,6 +121,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const [openedDiffId, setOpenedDiffId] = useState<number | null>(null);
 	const [openedTaskDiffId, setOpenedTaskDiffId] = useState<number | null>(null);
 	const [visibleHistoryRounds, setVisibleHistoryRounds] = useState(HISTORY_VISIBLE_ROUNDS);
+	const [visibleCurrentStepCount, setVisibleCurrentStepCount] = useState(CURRENT_STEPS_VISIBLE_COUNT);
 	const [isNearBottom, setIsNearBottom] = useState(true);
 	const [llmConfigMissing, setLLMConfigMissing] = useState(false);
 	const [llmConfigs, setLLMConfigs] = useState<Service.LLMConfigItem[]>([]);
@@ -121,10 +136,56 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const scrollRef = React.useRef<HTMLElement | null>(null);
 	const contentRef = React.useRef<HTMLDivElement | null>(null);
 	const isNearBottomRef = React.useRef(true);
-	const autoScrollTimerRef = React.useRef<number | null>(null);
 	const autoScrollRafRef = React.useRef<number | null>(null);
 	const consumedInitialPromptRef = React.useRef("");
 	const sessionPatchRevisionRef = React.useRef(0);
+	const onOpenFileRef = React.useRef(onOpenFile);
+	onOpenFileRef.current = onOpenFile;
+	const handleOpenFile = React.useCallback((filePath: string) => {
+		onOpenFileRef.current?.(filePath);
+	}, []);
+	const stableOnOpenFile = onOpenFile ? handleOpenFile : undefined;
+
+	const selectSession = React.useCallback((nextSessionId: number) => {
+		setSelectedSessionId(nextSessionId);
+		const snapshot = getAgentSessionSnapshot(nextSessionId);
+		if (!snapshot) return;
+		setSession(snapshot.session);
+		setRelatedSessions(snapshot.relatedSessions);
+		setSpawnInfo(snapshot.spawnInfo);
+		setMessageCollection(createMessageCollection(snapshot.messages));
+		setStepCollection(createStepCollection(snapshot.steps));
+		setCheckpointCollection(createCheckpointCollection(snapshot.checkpoints));
+		setPendingQuestionnaire(snapshot.pendingQuestionnaire);
+		setWorkMode(snapshot.workMode);
+		setHasActivePlan(snapshot.hasActivePlan);
+	}, []);
+
+	useEffect(() => {
+		if (session?.id !== selectedSessionId) return;
+		setAgentSessionSnapshot(selectedSessionId, {
+			session,
+			relatedSessions,
+			spawnInfo,
+			messages,
+			steps,
+			checkpoints,
+			pendingQuestionnaire,
+			workMode,
+			hasActivePlan,
+		});
+	}, [
+		checkpoints,
+		hasActivePlan,
+		messages,
+		pendingQuestionnaire,
+		relatedSessions,
+		selectedSessionId,
+		session,
+		spawnInfo,
+		steps,
+		workMode,
+	]);
 
 	const orderedRelatedSessions = useMemo(() => {
 		return [...relatedSessions].sort((a, b) => {
@@ -200,25 +261,12 @@ export default function AgentPanel(props: AgentPanelProps) {
 	}, []);
 
 	const scrollToBottom = React.useCallback((behavior: ScrollBehavior = "auto") => {
-		const applyScroll = () => {
-			const container = scrollRef.current;
-			if (!container) return;
-			container.scrollTo({ top: container.scrollHeight, behavior });
-		};
-		applyScroll();
-		window.requestAnimationFrame(() => {
-			applyScroll();
-			window.requestAnimationFrame(() => {
-				applyScroll();
-			});
-		});
+		const container = scrollRef.current;
+		if (!container) return;
+		container.scrollTo({ top: container.scrollHeight, behavior });
 	}, []);
 
 	const cancelAutoScroll = React.useCallback(() => {
-		if (autoScrollTimerRef.current !== null) {
-			window.clearTimeout(autoScrollTimerRef.current);
-			autoScrollTimerRef.current = null;
-		}
 		if (autoScrollRafRef.current !== null) {
 			window.cancelAnimationFrame(autoScrollRafRef.current);
 			autoScrollRafRef.current = null;
@@ -227,28 +275,15 @@ export default function AgentPanel(props: AgentPanelProps) {
 
 	const scheduleStickyBottomSync = React.useCallback((behavior: ScrollBehavior = "auto") => {
 		if (!isNearBottomRef.current) return;
-		cancelAutoScroll();
-		const start = window.performance.now();
-		const tick = () => {
+		if (autoScrollRafRef.current !== null) return;
+		autoScrollRafRef.current = window.requestAnimationFrame(() => {
+			autoScrollRafRef.current = null;
 			if (!isNearBottomRef.current) {
-				cancelAutoScroll();
 				return;
 			}
 			scrollToBottom(behavior);
-			if (window.performance.now() - start < 400) {
-				autoScrollRafRef.current = window.requestAnimationFrame(tick);
-			} else {
-				autoScrollRafRef.current = null;
-			}
-		};
-		tick();
-		autoScrollTimerRef.current = window.setTimeout(() => {
-			if (isNearBottomRef.current) {
-				scrollToBottom(behavior);
-			}
-			autoScrollTimerRef.current = null;
-		}, 500);
-	}, [cancelAutoScroll, scrollToBottom]);
+		});
+	}, [scrollToBottom]);
 
 	const syncBottomState = React.useCallback(() => {
 		const container = scrollRef.current;
@@ -270,15 +305,15 @@ export default function AgentPanel(props: AgentPanelProps) {
 				setWorkMode(res.session.kind === "main" ? res.session.workMode : "code");
 				setRelatedSessions(normalizeList<Service.AgentSession>(res.relatedSessions));
 				setSpawnInfo(res.spawnInfo ?? null);
-				setMessages(normalizeList<Service.AgentSessionMessage>(res.messages));
-				setSteps(normalizeList<Service.AgentSessionStep>(res.steps));
-				setCheckpoints(normalizeList<Service.AgentCheckpointItem>(res.checkpoints));
+				setMessageCollection(prev => reconcileMessageCollection(prev, normalizeList<Service.AgentSessionMessage>(res.messages)));
+				setStepCollection(prev => reconcileStepCollection(prev, normalizeList<Service.AgentSessionStep>(res.steps)));
+				setCheckpointCollection(prev => reconcileCheckpointCollection(prev, normalizeList<Service.AgentCheckpointItem>(res.checkpoints)));
 				setPendingQuestionnaire(res.pendingQuestionnaire ?? null);
 				setHasActivePlan(res.hasActivePlan);
 				return;
 			}
 			if (res.message === "session not found" && targetSessionId !== sessionId) {
-				setSelectedSessionId(sessionId);
+				selectSession(sessionId);
 				void refresh(false, sessionId);
 				return;
 			}
@@ -292,24 +327,24 @@ export default function AgentPanel(props: AgentPanelProps) {
 			setWorkMode(res.session.kind === "main" ? res.session.workMode : "code");
 			setRelatedSessions(normalizeList<Service.AgentSession>(res.relatedSessions));
 			setSpawnInfo(res.spawnInfo ?? null);
-			setMessages(normalizeList<Service.AgentSessionMessage>(res.messages));
-			setSteps(normalizeList<Service.AgentSessionStep>(res.steps));
-			setCheckpoints(normalizeList<Service.AgentCheckpointItem>(res.checkpoints));
+			setMessageCollection(prev => reconcileMessageCollection(prev, normalizeList<Service.AgentSessionMessage>(res.messages)));
+			setStepCollection(prev => reconcileStepCollection(prev, normalizeList<Service.AgentSessionStep>(res.steps)));
+			setCheckpointCollection(prev => reconcileCheckpointCollection(prev, normalizeList<Service.AgentCheckpointItem>(res.checkpoints)));
 			setPendingQuestionnaire(res.pendingQuestionnaire ?? null);
 			setHasActivePlan(res.hasActivePlan);
 			return;
 		}
 		if (res.message === "session not found" && targetSessionId !== sessionId) {
-			setSelectedSessionId(sessionId);
+			selectSession(sessionId);
 			void refresh(false, sessionId);
 			return;
 		}
 		addAlert?.(res.message, "error");
-	}, [addAlert, selectedSessionId, sessionId]);
+	}, [addAlert, selectedSessionId, selectSession, sessionId]);
 
 	useEffect(() => {
-		setSelectedSessionId(sessionId);
-	}, [sessionId]);
+		selectSession(sessionId);
+	}, [selectSession, sessionId]);
 
 	useEffect(() => {
 		if (
@@ -324,72 +359,97 @@ export default function AgentPanel(props: AgentPanelProps) {
 	}, [session?.currentTaskId, session?.currentTaskStatus, stoppingTaskId]);
 
 	useEffect(() => {
+		if (!active) return;
 		void refresh(false, selectedSessionId);
-	}, [refresh, selectedSessionId]);
+	}, [active, refresh, selectedSessionId]);
 
 	useEffect(() => {
-		const onPatch = (patch: Service.AgentSessionPatch) => {
-			if (patch.sessionId !== selectedSessionId) return;
-			sessionPatchRevisionRef.current += 1;
-			if (patch.relatedSessions) {
-				setRelatedSessions(normalizeList<Service.AgentSession>(patch.relatedSessions));
+		if (!active) return;
+		let queuedPatches: Service.AgentSessionPatch[] = [];
+		let flushTimer: number | null = null;
+		const flushPatches = () => {
+			if (flushTimer !== null) {
+				window.clearTimeout(flushTimer);
+				flushTimer = null;
 			}
-			if ("spawnInfo" in patch) {
-				setSpawnInfo(patch.spawnInfo ?? null);
-			}
-			if (patch.sessionDeleted) {
-				setSelectedSessionId(sessionId);
+			const patches = queuedPatches;
+			queuedPatches = [];
+			if (patches.length === 0) return;
+
+			if (patches.some(patch => patch.sessionDeleted)) {
+				deleteAgentSessionSnapshot(selectedSessionId);
+				selectSession(sessionId);
 				void refresh(false, sessionId);
 				return;
 			}
-			if (patch.session) {
-				setSession(patch.session);
-				setWorkMode(patch.session.kind === "main" ? patch.session.workMode : "code");
+
+			let nextRelatedSessions: Service.AgentSession[] | undefined;
+			let nextSpawnInfo: Service.AgentSessionSpawnInfo | null | undefined;
+			let hasSpawnInfo = false;
+			let nextSession: Service.AgentSession | undefined;
+			let mergedMetrics: Service.AgentMetrics | undefined;
+			let nextQuestionnaire: Service.AgentQuestionnaire | null | undefined;
+			let hasQuestionnaire = false;
+			let nextHasActivePlan: boolean | undefined;
+			let hasMessagePatch = false;
+			let hasStepPatch = false;
+			let hasCheckpointPatch = false;
+			for (const patch of patches) {
+				if (patch.relatedSessions) nextRelatedSessions = normalizeList<Service.AgentSession>(patch.relatedSessions);
+				if ("spawnInfo" in patch) {
+					nextSpawnInfo = patch.spawnInfo ?? null;
+					hasSpawnInfo = true;
+				}
+				if (patch.session) nextSession = patch.session;
+				if (patch.metrics) mergedMetrics = { ...(mergedMetrics ?? {}), ...patch.metrics };
+				if ("pendingQuestionnaire" in patch) {
+					nextQuestionnaire = patch.pendingQuestionnaire || null;
+					hasQuestionnaire = true;
+				}
+				if (typeof patch.hasActivePlan === "boolean") nextHasActivePlan = patch.hasActivePlan;
+				if (patch.message) hasMessagePatch = true;
+				if (patch.step || (patch.removedStepIds?.length ?? 0) > 0) hasStepPatch = true;
+				if (patch.checkpoint || patch.checkpoints) hasCheckpointPatch = true;
 			}
-			if ("pendingQuestionnaire" in patch) {
-				setPendingQuestionnaire(patch.pendingQuestionnaire || null);
+			if (nextRelatedSessions) setRelatedSessions(nextRelatedSessions);
+			if (hasSpawnInfo) setSpawnInfo(nextSpawnInfo ?? null);
+			if (nextSession || mergedMetrics) {
+				setSession(prev => {
+					const base = nextSession ?? prev;
+					if (!base || !mergedMetrics) return base;
+					return {
+						...base,
+						metrics: {
+							...(base.metrics ?? {}),
+							...mergedMetrics,
+						},
+					};
+				});
+				if (nextSession) setWorkMode(nextSession.kind === "main" ? nextSession.workMode : "code");
 			}
-			if (typeof patch.hasActivePlan === "boolean") {
-				setHasActivePlan(patch.hasActivePlan);
-			}
-			if (patch.metrics) {
-				setSession(prev => prev ? {
-					...prev,
-					metrics: {
-						...(prev.metrics ?? {}),
-						...patch.metrics,
-					},
-				} : prev);
-			}
-			if (patch.message) {
-				setMessages(prev => upsertById(prev, patch.message!).sort((a, b) => a.id - b.id));
-			}
-			if (patch.step) {
-				setSteps(prev => upsertById(prev, patch.step!).sort((a, b) => {
-					const taskDelta = (b.taskId ?? 0) - (a.taskId ?? 0);
-					if (taskDelta !== 0) return taskDelta;
-					return a.step - b.step;
-				}));
-			}
-			if (patch.removedStepIds && patch.removedStepIds.length > 0) {
-				setSteps(prev => prev.filter(step => !patch.removedStepIds!.includes(step.id)));
-			}
-			if (patch.checkpoints) {
-				setCheckpoints(normalizeList<Service.AgentCheckpointItem>(patch.checkpoints));
-			}
-			if (patch.checkpoint) {
-				setCheckpoints(prev => upsertById(prev, patch.checkpoint!).sort((a, b) => {
-					const taskDelta = b.taskId - a.taskId;
-					if (taskDelta !== 0) return taskDelta;
-					return b.seq - a.seq;
-				}));
+			if (hasQuestionnaire) setPendingQuestionnaire(nextQuestionnaire ?? null);
+			if (nextHasActivePlan !== undefined) setHasActivePlan(nextHasActivePlan);
+			if (hasMessagePatch) setMessageCollection(prev => applyMessageCollectionPatches(prev, patches));
+			if (hasStepPatch) setStepCollection(prev => applyStepCollectionPatches(prev, patches));
+			if (hasCheckpointPatch) setCheckpointCollection(prev => applyCheckpointCollectionPatches(prev, patches));
+		};
+		const onPatch = (patch: Service.AgentSessionPatch) => {
+			if (patch.sessionId !== selectedSessionId) return;
+			sessionPatchRevisionRef.current += 1;
+			queuedPatches.push(patch);
+			if (isImmediateAgentPatch(patch)) {
+				flushPatches();
+			} else if (flushTimer === null) {
+				flushTimer = window.setTimeout(flushPatches, 50);
 			}
 		};
 		Service.addAgentSessionPatchListener(onPatch);
 		return () => {
 			Service.removeAgentSessionPatchListener(onPatch);
+			if (flushTimer !== null) window.clearTimeout(flushTimer);
+			queuedPatches = [];
 		};
-	}, [refresh, selectedSessionId, sessionId]);
+	}, [active, refresh, selectSession, selectedSessionId, sessionId]);
 
 	useEffect(() => {
 		setVisibleHistoryRounds(HISTORY_VISIBLE_ROUNDS);
@@ -400,12 +460,12 @@ export default function AgentPanel(props: AgentPanelProps) {
 	}, [orderedRelatedSessions]);
 
 	useEffect(() => {
-		if (!hasAnyRunningSession) return;
+		if (!active || !hasAnyRunningSession) return;
 		const timer = window.setInterval(() => {
 			void refresh(true, selectedSessionId, true);
 		}, 3000);
 		return () => window.clearInterval(timer);
-	}, [hasAnyRunningSession, refresh, selectedSessionId]);
+	}, [active, hasAnyRunningSession, refresh, selectedSessionId]);
 
 	const lastMessage = messages[messages.length - 1];
 	const lastStep = steps[steps.length - 1];
@@ -419,10 +479,11 @@ export default function AgentPanel(props: AgentPanelProps) {
 	}, [messages]);
 
 	useLayoutEffect(() => {
-		if (!isNearBottom) return;
+		if (!active || !isNearBottom) return;
 		scheduleStickyBottomSync("auto");
 		return cancelAutoScroll;
 	}, [
+		active,
 		cancelAutoScroll,
 		isNearBottom,
 		scheduleStickyBottomSync,
@@ -438,6 +499,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 	]);
 
 	useEffect(() => {
+		if (!active) return;
 		const container = scrollRef.current;
 		if (!container) return;
 		const onScroll = () => {
@@ -449,9 +511,10 @@ export default function AgentPanel(props: AgentPanelProps) {
 		onScroll();
 		container.addEventListener("scroll", onScroll, { passive: true });
 		return () => container.removeEventListener("scroll", onScroll);
-	}, [syncBottomState, visibleHistoryRounds]);
+	}, [active, syncBottomState, visibleHistoryRounds]);
 
 	useEffect(() => {
+		if (!active) return;
 		const content = contentRef.current;
 		if (!content || typeof ResizeObserver === "undefined") return;
 		const observer = new ResizeObserver(() => {
@@ -460,22 +523,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		});
 		observer.observe(content);
 		return () => observer.disconnect();
-	}, [scheduleStickyBottomSync]);
-
-	useEffect(() => {
-		const content = contentRef.current;
-		if (!content || typeof MutationObserver === "undefined") return;
-		const observer = new MutationObserver(() => {
-			if (!isNearBottomRef.current) return;
-			scheduleStickyBottomSync("auto");
-		});
-		observer.observe(content, {
-			childList: true,
-			subtree: true,
-			characterData: true,
-		});
-		return () => observer.disconnect();
-	}, [scheduleStickyBottomSync]);
+	}, [active, scheduleStickyBottomSync]);
 
 	useEffect(() => {
 		return () => {
@@ -508,6 +556,10 @@ export default function AgentPanel(props: AgentPanelProps) {
 		].filter(taskId => taskId > 0);
 		return taskIds.length > 0 ? Math.max(...taskIds) : null;
 	}, [messages, steps, session?.currentTaskId]);
+
+	useEffect(() => {
+		setVisibleCurrentStepCount(CURRENT_STEPS_VISIBLE_COUNT);
+	}, [activeTaskId]);
 
 	const messageGroups = useMemo(() => {
 		if (!activeTaskId) {
@@ -599,6 +651,14 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const visibleSummaryMessages = useMemo(() => {
 		return messageGroups.currentSummaryMessages;
 	}, [messageGroups.currentSummaryMessages]);
+
+	const currentStepWindow = useMemo(() => {
+		return getAgentTailRenderWindow(
+			latestSteps,
+			visibleCurrentStepCount,
+			CURRENT_STEPS_VISIBLE_COUNT,
+		);
+	}, [latestSteps, visibleCurrentStepCount]);
 
 	const currentTaskChangeSet = useMemo<Service.AgentChangeSetSummary | null>(() => {
 		if (!activeTaskId || checkpoints.length === 0) return null;
@@ -949,7 +1009,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		}
 	};
 
-	const onToggleDiff = async (step: Service.AgentSessionStep) => {
+	const onToggleDiff = React.useCallback(async (step: Service.AgentSessionStep) => {
 		if (!step.checkpointId) return;
 		if (openedDiffId === step.checkpointId) {
 			setOpenedDiffId(null);
@@ -971,9 +1031,9 @@ export default function AgentPanel(props: AgentPanelProps) {
 		} finally {
 			setDiffLoadingId(null);
 		}
-	};
+	}, [addAlert, diffs, openedDiffId, selectedSessionId]);
 
-	const onRollback = async (step: Service.AgentSessionStep) => {
+	const onRollback = React.useCallback(async (step: Service.AgentSessionStep) => {
 		const seq = step.checkpointSeq;
 		const checkpointId = step.checkpointId;
 		if (!seq || !checkpointId || rollingBack !== null) return;
@@ -993,9 +1053,9 @@ export default function AgentPanel(props: AgentPanelProps) {
 		} finally {
 			setRollingBack(null);
 		}
-	};
+	}, [addAlert, onRollbackComplete, projectRoot, refresh, rollingBack, selectedSessionId, t]);
 
-	const onToggleTaskDiff = async (taskId: number) => {
+	const onToggleTaskDiff = React.useCallback(async (taskId: number) => {
 		if (openedTaskDiffId === taskId) {
 			setOpenedTaskDiffId(null);
 			return;
@@ -1013,9 +1073,9 @@ export default function AgentPanel(props: AgentPanelProps) {
 		} finally {
 			setTaskDiffLoadingId(null);
 		}
-	};
+	}, [addAlert, openedTaskDiffId, selectedSessionId, taskDiffs]);
 
-	const onRollbackTaskChangeSet = async (taskId: number) => {
+	const onRollbackTaskChangeSet = React.useCallback(async (taskId: number) => {
 		if (rollingBack !== null) return;
 		setRollingBack(-taskId);
 		try {
@@ -1033,7 +1093,17 @@ export default function AgentPanel(props: AgentPanelProps) {
 		} finally {
 			setRollingBack(null);
 		}
-	};
+	}, [addAlert, onRollbackComplete, projectRoot, refresh, rollingBack, selectedSessionId, t]);
+	const onRollbackRef = React.useRef(onRollback);
+	onRollbackRef.current = onRollback;
+	const handleRollback = React.useCallback((step: Service.AgentSessionStep) => {
+		void onRollbackRef.current(step);
+	}, []);
+	const onRollbackTaskChangeSetRef = React.useRef(onRollbackTaskChangeSet);
+	onRollbackTaskChangeSetRef.current = onRollbackTaskChangeSet;
+	const handleRollbackTaskChangeSet = React.useCallback((taskId: number) => {
+		void onRollbackTaskChangeSetRef.current(taskId);
+	}, []);
 
 	const tabButtons = useMemo(() => {
 		return orderedRelatedSessions.map(item => {
@@ -1044,7 +1114,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 					key={item.id}
 					size="small"
 					variant="outlined"
-					onClick={() => setSelectedSessionId(item.id)}
+					onClick={() => selectSession(item.id)}
 					sx={{
 						minWidth: 38,
 						height: 28,
@@ -1064,7 +1134,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 				</Button>
 			);
 		});
-	}, [orderedRelatedSessions, selectedSessionId, tabLabelMap]);
+	}, [orderedRelatedSessions, selectedSessionId, selectSession, tabLabelMap]);
 	const showEmptyState = messages.length === 0
 		&& steps.length === 0
 		&& !showSummaryShimmer
@@ -1072,7 +1142,11 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const emptyStateMinHeight = Math.max(260, height - 390);
 
 	return (
-		<Box sx={{ display: "flex", flexDirection: "column", height, position: "relative" }}>
+		<Box
+			data-agent-session-id={session?.id}
+			data-agent-task-status={session?.currentTaskStatus ?? session?.status}
+			sx={{ display: "flex", flexDirection: "column", height, position: "relative" }}
+		>
 			{showHeader ? (
 				<Box sx={{ px: 1, py: 1, borderBottom: `0.5px solid ${Color.Line}`, backgroundColor: Color.BackgroundDark }}>
 					<Stack direction="row" spacing={0.75} alignItems="center" justifyContent="space-between">
@@ -1124,7 +1198,12 @@ export default function AgentPanel(props: AgentPanelProps) {
 					{tabButtons}
 				</Stack>
 			) : null}
-			<MacScrollbar ref={scrollRef} skin="dark" style={{ flex: 1, minHeight: 0 }}>
+			<MacScrollbar
+				ref={scrollRef}
+				data-agent-scroll-container="true"
+				skin="dark"
+				style={{ flex: 1, minHeight: 0 }}
+			>
 				<Box ref={contentRef} sx={{ px: 3, py: 3, width: "100%", maxWidth: 1040, mx: "auto", boxSizing: "border-box" }}>
 					<Stack spacing={4}>
 						{showEmptyState ? (
@@ -1261,8 +1340,29 @@ export default function AgentPanel(props: AgentPanelProps) {
 						{latestSteps.length > 0 ? (
 							<Box>
 								<Typography variant="overline" sx={{ color: Color.TextSecondary, letterSpacing: "0.08em", display: "block", mb: 1.25 }}>{t("agent.steps")}</Typography>
+								{currentStepWindow.hiddenCount > 0 ? (
+									<Button
+										variant="text"
+										size="small"
+										onClick={() => setVisibleCurrentStepCount(prev => prev + CURRENT_STEPS_VISIBLE_COUNT)}
+										sx={{
+											mb: 1.5,
+											px: 0,
+											minWidth: 0,
+											justifyContent: "flex-start",
+											color: Color.TextSecondary,
+											textTransform: "none",
+											"&:hover": {
+												backgroundColor: "transparent",
+												color: Color.TextPrimary,
+											},
+										}}
+									>
+										{t("agent.showEarlierSteps", { count: currentStepWindow.revealCount })}
+									</Button>
+								) : null}
 								<AgentStepList
-									steps={latestSteps}
+									steps={currentStepWindow.items}
 									checkpointMap={checkpointMap}
 									diffs={diffs}
 									taskDiffs={taskDiffs}
@@ -1272,11 +1372,11 @@ export default function AgentPanel(props: AgentPanelProps) {
 									openedTaskDiffId={openedTaskDiffId}
 									running={session?.currentTaskStatus === "RUNNING"}
 									rollingBack={rollingBack}
-									onToggleDiff={(step) => void onToggleDiff(step)}
-									onToggleTaskDiff={(taskId) => void onToggleTaskDiff(taskId)}
-									onRollback={(seq) => void onRollback(seq)}
-									onRollbackTaskChangeSet={(taskId) => void onRollbackTaskChangeSet(taskId)}
-									onOpenFile={onOpenFile}
+									onToggleDiff={onToggleDiff}
+									onToggleTaskDiff={onToggleTaskDiff}
+									onRollback={handleRollback}
+									onRollbackTaskChangeSet={handleRollbackTaskChangeSet}
+									onOpenFile={stableOnOpenFile}
 								/>
 							</Box>
 						) : null}
@@ -1288,6 +1388,9 @@ export default function AgentPanel(props: AgentPanelProps) {
 								{visibleSummaryMessages.length > 0 ? (
 									<AgentMessageList
 										messages={visibleSummaryMessages}
+										streamingMessageId={session?.currentTaskStatus === "RUNNING"
+											? visibleSummaryMessages[visibleSummaryMessages.length - 1]?.id
+											: undefined}
 										editableMessageId={latestUserMessageId}
 										editDisabled={loading || continueLoadingTaskId !== null || finishHandoffLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING"}
 										onResendPrompt={resendPromptText}

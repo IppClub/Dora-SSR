@@ -38,6 +38,12 @@ import { useTranslation } from 'react-i18next';
 import * as Service from './Service';
 import { Color } from './Theme';
 import { EditorTheme } from './Editor';
+import {
+	claimTerminalGitJob,
+	getGitJobSnapshot,
+	subscribeGitJob,
+	trackGitJob,
+} from './GitJobStore';
 
 interface GitPanelProps {
 	projectRoot: string;
@@ -75,13 +81,6 @@ interface GitRemoteBranchRow {
 	depth: number;
 	type: "dir" | "branch";
 	branch?: Service.GitBranchInfo;
-}
-
-interface GitJobViewState {
-	jobId: number;
-	command: string;
-	startedAt: number;
-	status?: Service.GitStatus;
 }
 
 interface PendingCredentialSelection {
@@ -301,11 +300,23 @@ const isGitRepoBusy = (res: Service.GitFileDiffResponse) => (
 
 const isGitBusyMessage = (message?: string) => /repo path is already used by job/i.test(message ?? "");
 
-const isTransientSummaryFailure = (res: Service.GitSummaryResponse) => {
-	if (!res.success) return isGitBusyMessage(res.message);
-	if (res.isRepo) return false;
-	return isGitBusyMessage(res.message) || isGitBusyMessage(res.status?.message) || isGitBusyMessage(res.status?.error);
-};
+const isNotGitRepositoryMessage = (message?: string) => (
+	/repository does not exist|not a git repository/i.test(message ?? "")
+);
+
+async function loadGitSyncWithRetry<T extends { success: boolean; message?: string }>(
+	load: () => Promise<T>,
+	isCanceled: () => boolean,
+) {
+	let attempt = 0;
+	while (!isCanceled()) {
+		const res = await load();
+		if (res.success || !isGitBusyMessage(res.message) || isCanceled()) return res;
+		await delay(Math.min(200 + attempt * 100, 3000));
+		attempt++;
+	}
+	return undefined;
+}
 
 const loadPreviewDiff = async (
 	load: () => Promise<Service.GitFileDiffResponse>,
@@ -579,10 +590,11 @@ interface GitDiffPreviewProps {
 	preview: GitDiffPreviewState | null;
 	emptyMessage: string;
 	placeholderMessage?: string;
+	modelKey: "local" | "commit";
 }
 
 const GitDiffPreview = (props: GitDiffPreviewProps) => {
-	const { path, preview, emptyMessage, placeholderMessage } = props;
+	const { path, preview, emptyMessage, placeholderMessage, modelKey } = props;
 	const message = diffPreviewMessage(preview, path !== "", emptyMessage);
 	return (
 		<Box sx={{ flex: 1, minHeight: 0, background: "#222", overflow: "hidden" }}>
@@ -594,6 +606,10 @@ const GitDiffPreview = (props: GitDiffPreviewProps) => {
 					loading={null}
 					original={preview.oldText ?? ""}
 					modified={preview.newText ?? ""}
+					originalModelPath={`inmemory://dora-git/${modelKey}/original`}
+					modifiedModelPath={`inmemory://dora-git/${modelKey}/modified`}
+					keepCurrentOriginalModel
+					keepCurrentModifiedModel
 					options={{
 						readOnly: true,
 						renderSideBySide: true,
@@ -662,7 +678,12 @@ export default function GitPanel(props: GitPanelProps) {
 	const { t, i18n } = useTranslation();
 	const [summary, setSummary] = React.useState<Service.GitSummaryResponse | null>(null);
 	const [loading, setLoading] = React.useState(false);
-	const [job, setJob] = React.useState<GitJobViewState | null>(null);
+	const subscribeCurrentGitJob = React.useCallback(
+		(listener: () => void) => subscribeGitJob(projectRoot, listener),
+		[projectRoot],
+	);
+	const getCurrentGitJob = React.useCallback(() => getGitJobSnapshot(projectRoot), [projectRoot]);
+	const job = React.useSyncExternalStore(subscribeCurrentGitJob, getCurrentGitJob, getCurrentGitJob);
 	const [commitMessage, setCommitMessage] = React.useState("");
 	const [commitDescription, setCommitDescription] = React.useState("");
 	const [previewMode, setPreviewMode] = React.useState<GitPreviewMode>("local");
@@ -695,9 +716,13 @@ export default function GitPanel(props: GitPanelProps) {
 	const [dialogValues, setDialogValues] = React.useState<Record<string, string | boolean>>({});
 	const [diffPreview, setDiffPreview] = React.useState<GitDiffPreviewState | null>(null);
 	const [commitDiffPreview, setCommitDiffPreview] = React.useState<GitDiffPreviewState | null>(null);
+	const [commitFilesByHash, setCommitFilesByHash] = React.useState<Record<string, Service.GitCommitFile[]>>({});
+	const [commitFilesLoadingHash, setCommitFilesLoadingHash] = React.useState<string | null>(null);
+	const [commitFilesErrorByHash, setCommitFilesErrorByHash] = React.useState<Record<string, string>>({});
 	const cloneStartingRef = React.useRef(false);
 	const initStartingRef = React.useRef(false);
 	const pendingCredentialDoneRef = React.useRef<((status: Service.GitStatus) => void) | undefined>(undefined);
+	const summaryLoadGenerationRef = React.useRef(0);
 
 	const files = React.useMemo(() => splitFiles(getStatusFiles(summary ?? undefined)), [summary]);
 	const unstagedRows = React.useMemo(() => buildRows(files.unstaged, expanded, "unstaged"), [files.unstaged, expanded]);
@@ -753,8 +778,12 @@ export default function GitPanel(props: GitPanelProps) {
 		commitList.find(commit => commit.hash === selectedCommitHash) ?? commitList[0] ?? null
 	), [commitList, selectedCommitHash]);
 	const selectedCommitFiles = React.useMemo(() => (
-		asArray<Service.GitCommitFile>(selectedCommit?.files)
-	), [selectedCommit]);
+		selectedCommit
+			? commitFilesByHash[selectedCommit.hash] ?? asArray<Service.GitCommitFile>(selectedCommit.files)
+			: []
+	), [commitFilesByHash, selectedCommit]);
+	const selectedCommitFilesLoading = selectedCommit !== null && commitFilesLoadingHash === selectedCommit.hash;
+	const selectedCommitFilesError = selectedCommit ? commitFilesErrorByHash[selectedCommit.hash] : undefined;
 	const commitExpandedDefault = React.useMemo(() => collectParentDirs(selectedCommitFiles), [selectedCommitFiles]);
 	const commitExpandedKey = React.useMemo(() => Array.from(commitExpandedDefault).sort().join("|"), [commitExpandedDefault]);
 	const commitFileRows = React.useMemo(() => {
@@ -849,6 +878,53 @@ export default function GitPanel(props: GitPanelProps) {
 	React.useEffect(() => {
 		setCommitExpanded(new Set(commitExpandedDefault));
 	}, [commitExpandedDefault, commitExpandedKey, selectedCommit?.hash]);
+
+	React.useEffect(() => {
+		if (
+			previewMode !== "commits"
+			|| commitDetailTab !== "changes"
+			|| !selectedCommit
+			|| Object.prototype.hasOwnProperty.call(commitFilesByHash, selectedCommit.hash)
+			|| selectedCommit.files !== undefined
+		) {
+			return;
+		}
+		const hash = selectedCommit.hash;
+		let canceled = false;
+		setCommitFilesLoadingHash(hash);
+		setCommitFilesErrorByHash(prev => {
+			if (prev[hash] === undefined) return prev;
+			const next = { ...prev };
+			delete next[hash];
+			return next;
+		});
+		void Service.gitCommitFiles({ repoPath: projectRoot, commit: hash })
+			.then(res => {
+				if (canceled) return;
+				if (!res.success) {
+					setCommitFilesErrorByHash(prev => ({ ...prev, [hash]: res.message ?? t("git.failedLoadCommitFiles") }));
+					return;
+				}
+				const data = res.data ?? res.status?.data ?? {};
+				setCommitFilesByHash(prev => ({
+					...prev,
+					[hash]: asArray<Service.GitCommitFile>(data.files),
+				}));
+			})
+			.catch(() => {
+				if (!canceled) {
+					setCommitFilesErrorByHash(prev => ({ ...prev, [hash]: t("git.failedLoadCommitFiles") }));
+				}
+			})
+			.finally(() => {
+				if (!canceled) {
+					setCommitFilesLoadingHash(prev => prev === hash ? null : prev);
+				}
+			});
+		return () => {
+			canceled = true;
+		};
+	}, [commitDetailTab, commitFilesByHash, previewMode, projectRoot, selectedCommit, t]);
 
 	React.useEffect(() => {
 		if (!selectedCommit || !selectedCommitFilePath) {
@@ -954,6 +1030,9 @@ export default function GitPanel(props: GitPanelProps) {
 	const showAlert = React.useCallback((message: string, type: "success" | "info" | "warning" | "error" = "info") => {
 		addAlert?.(message, type);
 	}, [addAlert]);
+	const cancelSummaryLoad = React.useCallback(() => {
+		summaryLoadGenerationRef.current++;
+	}, []);
 
 	const openActionDialog = React.useCallback((state: GitActionDialogState) => {
 		const values: Record<string, string | boolean> = {};
@@ -986,92 +1065,135 @@ export default function GitPanel(props: GitPanelProps) {
 		setConfirmDialog(null);
 	}, [confirmDialog]);
 
-	const refresh = React.useCallback(async () => {
+	const expandStatusFiles = React.useCallback((status?: Service.GitStatus) => {
+		if (!status?.data?.files) return;
+		const statusFiles = status.data.files as Service.GitFileStatus[];
+		setExpanded(prev => {
+			const nextExpanded = new Set(prev);
+			for (const file of statusFiles) {
+				const parts = file.path.split(/[\\/]+/);
+				for (let i = 1; i < parts.length; i++) nextExpanded.add(parts.slice(0, i).join("/"));
+			}
+			return nextExpanded;
+		});
+	}, []);
+
+	const loadSummaryProgressively = React.useCallback(async () => {
+		const generation = ++summaryLoadGenerationRef.current;
+		const isCanceled = () => generation !== summaryLoadGenerationRef.current;
 		setLoading(true);
 		try {
-			const res = await Service.gitSummary({ repoPath: projectRoot });
-			setSummary(prev => {
-				if (isTransientSummaryFailure(res) && prev?.success && prev.isRepo) return prev;
-				return res;
-			});
-			if (!res.success) {
-				showAlert(res.message ?? t("git.failedDetectRepository"), "error");
+			const branchRes = await loadGitSyncWithRetry(
+				() => Service.gitBranches({ repoPath: projectRoot }),
+				isCanceled,
+			);
+			if (!branchRes || isCanceled()) return;
+			if (!branchRes.success) {
+				if (isNotGitRepositoryMessage(branchRes.message)) {
+					setSummary({ success: true, isRepo: false, message: branchRes.message, status: branchRes.status });
+				} else {
+					setSummary({ success: false, message: branchRes.message });
+					showAlert(branchRes.message ?? t("git.failedDetectRepository"), "error");
+				}
+				return;
 			}
-			if (res.success && res.status?.data?.files) {
-				const statusFiles = res.status.data.files as Service.GitFileStatus[];
-				setExpanded(prev => {
-					const nextExpanded = new Set(prev);
-					for (const file of statusFiles) {
-						const parts = file.path.split(/[\\/]+/);
-						for (let i = 1; i < parts.length; i++) nextExpanded.add(parts.slice(0, i).join("/"));
-					}
-					return nextExpanded;
-				});
+
+			const branchStatus = branchRes.status;
+			const currentBranch = branchStatus?.data?.current as string | undefined;
+			const branches = asArray<Service.GitBranchInfo>(branchStatus?.data?.branches);
+			const normalizedBranches = currentBranch && !branches.some(branch => branch.name === currentBranch && !branch.remote)
+				? [...branches, { name: currentBranch, current: true, unborn: true }]
+				: branches;
+			setSummary({
+				success: true,
+				isRepo: true,
+				currentBranch,
+				branches: normalizedBranches,
+				branchStatus,
+			});
+
+			const historyRes = await loadGitSyncWithRetry(
+				() => Service.gitHistory({ repoPath: projectRoot, limit: 100 }),
+				isCanceled,
+			);
+			if (!historyRes || isCanceled()) return;
+			const historyStatus = historyRes.success ? historyRes.status : undefined;
+			const commits = asArray<Service.GitLogCommit>(historyStatus?.data?.commits);
+			setSummary(prev => prev?.success && prev.isRepo ? {
+				...prev,
+				lastCommit: commits[0],
+				historyStatus,
+			} : prev);
+
+			const remoteRes = await loadGitSyncWithRetry(
+				() => Service.gitRemotes({ repoPath: projectRoot }),
+				isCanceled,
+			);
+			if (!remoteRes || isCanceled()) return;
+			const remoteStatus = remoteRes.success ? remoteRes.status : undefined;
+			const remotes = asArray<Service.GitRemoteInfo>(remoteStatus?.data?.remotes);
+			setSummary(prev => prev?.success && prev.isRepo ? {
+				...prev,
+				defaultRemote: remotes[0],
+				remotes,
+				remoteStatus,
+			} : prev);
+
+			const tagRes = commits.length > 0
+				? await loadGitSyncWithRetry(() => Service.gitTags({ repoPath: projectRoot }), isCanceled)
+				: undefined;
+			if (isCanceled()) return;
+			const tagStatus = tagRes?.success ? tagRes.status : undefined;
+			setSummary(prev => prev?.success && prev.isRepo ? { ...prev, tagStatus } : prev);
+
+			const statusRes = await loadGitSyncWithRetry(
+				() => Service.gitStatusFiles({ repoPath: projectRoot }),
+				isCanceled,
+			);
+			if (!statusRes || isCanceled()) return;
+			if (statusRes.success) {
+				expandStatusFiles(statusRes.status);
+				setSummary(prev => prev?.success && prev.isRepo ? {
+					...prev,
+					clean: statusRes.status?.data?.clean === true,
+					status: statusRes.status,
+				} : prev);
 			}
 		} catch (err) {
 			void err;
-			showAlert(t("git.failedRefresh"), "error");
+			if (!isCanceled()) showAlert(t("git.failedRefresh"), "error");
 		} finally {
-			setLoading(false);
+			if (!isCanceled()) setLoading(false);
 		}
-	}, [projectRoot, showAlert, t]);
+	}, [expandStatusFiles, projectRoot, showAlert, t]);
+
+	const refresh = React.useCallback(async () => {
+		await loadSummaryProgressively();
+	}, [loadSummaryProgressively]);
 
 	React.useEffect(() => {
+		cancelSummaryLoad();
 		setSummary(null);
 		setSelectedCommitHash(null);
 		setSelectedCommitFilePath("");
 		setCommitDiffPreview(null);
+		setCommitFilesByHash({});
+		setCommitFilesLoadingHash(null);
+		setCommitFilesErrorByHash({});
 		setSelectedBranchName(null);
 		setSelectedRemoteName(null);
 		setSelectedRemoteBranch(null);
 		setSelected({ unstaged: new Set(), staged: new Set() });
 		setLastRow({ unstaged: null, staged: null });
 		setDiffPreview(null);
-	}, [projectRoot, showAlert, t]);
+	}, [cancelSummaryLoad, projectRoot]);
 
 	React.useEffect(() => {
-		let retryTimer: ReturnType<typeof setTimeout> | undefined;
-		const tryRefresh = async (attempt: number) => {
-			const res = await Service.gitSummary({ repoPath: projectRoot });
-			if (res.success && res.isRepo) {
-				setSummary(res);
-				if (res.status?.data?.files) {
-					const statusFiles = res.status.data.files as Service.GitFileStatus[];
-					setExpanded(prev => {
-						const nextExpanded = new Set(prev);
-						for (const file of statusFiles) {
-							const parts = file.path.split(/[\\/]+/);
-							for (let i = 1; i < parts.length; i++) nextExpanded.add(parts.slice(0, i).join("/"));
-						}
-						return nextExpanded;
-					});
-				}
-				setLoading(false);
-				return;
-			}
-			if (isTransientSummaryFailure(res)) {
-				retryTimer = setTimeout(() => void tryRefresh(attempt + 1), Math.min(200 + attempt * 100, 3000));
-				return;
-			}
-			if (!res.success) {
-				setSummary(res);
-				showAlert(res.message ?? t("git.failedDetectRepository"), "error");
-				setLoading(false);
-				return;
-			}
-			if (!res.isRepo) {
-				setSummary(res);
-				setLoading(false);
-				return;
-			}
-			retryTimer = setTimeout(() => void tryRefresh(attempt + 1), Math.min(200 + attempt * 100, 3000));
-		};
-		setLoading(true);
-		void tryRefresh(0);
+		void loadSummaryProgressively();
 		return () => {
-			if (retryTimer !== undefined) clearTimeout(retryTimer);
+			cancelSummaryLoad();
 		};
-	}, [projectRoot]);
+	}, [cancelSummaryLoad, loadSummaryProgressively]);
 
 	const loadSettings = React.useCallback(async () => {
 		const [profileRes, authRes] = await Promise.all([Service.gitProfileGet(), Service.gitAuthList()]);
@@ -1089,26 +1211,14 @@ export default function GitPanel(props: GitPanelProps) {
 		void loadSettings();
 	}, [loadSettings]);
 
-	const pollJob = React.useCallback((jobId: number, command: string, onDone?: (status: Service.GitStatus) => void) => {
-		setJob({ jobId, command, startedAt: Date.now() });
-		const timer = window.setInterval(async () => {
-			const res = await Service.gitStatus({ jobId });
-			if (!res.success) {
-				window.clearInterval(timer);
-				showAlert(res.message ?? t("git.jobStatusFailed"), "error");
-				return;
-			}
-			setJob(current => current?.jobId === jobId ? { ...current, status: res.status } : current);
-			if (terminalStates.has(res.status.state)) {
-				window.clearInterval(timer);
-				void refresh();
-				if (res.status.state === "done" && gitCommandChangesWorkingTree(command)) {
-					await onRepositoryFilesChanged?.(projectRoot);
-				}
-				onDone?.(res.status);
-			}
-		}, 600);
-	}, [onRepositoryFilesChanged, projectRoot, refresh, showAlert, t]);
+	React.useEffect(() => {
+		if (!job?.status || !terminalStates.has(job.status.state)) return;
+		if (!claimTerminalGitJob(projectRoot, job.jobId)) return;
+		void refresh();
+		if (job.status.state === "done" && gitCommandChangesWorkingTree(job.command)) {
+			void onRepositoryFilesChanged?.(projectRoot);
+		}
+	}, [job, onRepositoryFilesChanged, projectRoot, refresh]);
 
 	const runCommand = React.useCallback(async (command: string, onDone?: (status: Service.GitStatus) => void, authId?: number) => {
 		const res = await Service.gitRun({ repoPath: projectRoot, command, authId });
@@ -1122,9 +1232,9 @@ export default function GitPanel(props: GitPanelProps) {
 			showAlert(res.message ?? t("git.failedStart", { command }), "error");
 			return false;
 		}
-		pollJob(res.jobId, command, onDone);
+		trackGitJob(projectRoot, res.jobId, command, onDone);
 		return true;
-	}, [pollJob, projectRoot, showAlert, t]);
+	}, [projectRoot, showAlert, t]);
 
 	const runPendingCredential = React.useCallback((authId: number) => {
 		if (!pendingCredential) return;
@@ -1142,20 +1252,7 @@ export default function GitPanel(props: GitPanelProps) {
 			showAlert(res.message ?? t("git.failedCancel"), "error");
 			return;
 		}
-		setJob(current => current?.jobId === job.jobId ? {
-			...current,
-			status: {
-				...(current.status ?? {
-					id: job.jobId,
-					kind: "status",
-					repoPath: projectRoot,
-				}),
-				state: "canceled",
-				progress: current.status?.progress ?? 0,
-				message: t("git.canceled"),
-			},
-		} : current);
-	}, [job, projectRoot, showAlert, t]);
+	}, [job, showAlert, t]);
 
 	const selectedPaths = React.useCallback((section: ChangeSection) => {
 		const source = section === "unstaged" ? files.unstaged : files.staged;
@@ -1830,6 +1927,7 @@ export default function GitPanel(props: GitPanelProps) {
 					preview={diffPreview}
 					emptyMessage={t("git.noDiff")}
 					placeholderMessage={selectedLocalDirectoryPath ? t("git.directorySelectedHint") : undefined}
+					modelKey="local"
 				/>
 				{commitForm}
 			</Box>
@@ -1962,7 +2060,7 @@ export default function GitPanel(props: GitPanelProps) {
 							</Box>
 							<GitFileTree
 								rows={commitFileRows}
-								emptyMessage={t("git.noFiles")}
+								emptyMessage={selectedCommitFilesLoading ? t("git.loadingCommitFiles") : selectedCommitFilesError ?? t("git.noFiles")}
 								containerSx={{ flex: 1, minHeight: 0 }}
 								scrollbarStyle={{ height: "100%" }}
 								expanded={commitExpanded}
@@ -1973,12 +2071,18 @@ export default function GitPanel(props: GitPanelProps) {
 								}}
 								onToggleDir={toggleCommitRowExpanded}
 							/>
+							{selectedCommitFilesLoading ? <LinearProgress sx={{ height: 2 }} /> : null}
 						</Box>
 						<Box sx={{ minHeight: 0, minWidth: 0, display: "flex", flexDirection: "column" }}>
 							<Box sx={{ height: 34, display: "flex", alignItems: "center", px: 1.25, borderBottom: `1px solid ${panelBorder}`, background: "#202020" }}>
 								<Typography variant="body2" noWrap sx={{ color: primaryText }}>{selectedCommitFilePath || t("git.changes")}</Typography>
 							</Box>
-							<GitDiffPreview path={selectedCommitFilePath} preview={commitDiffPreview} emptyMessage={t("git.noDiff")} />
+							<GitDiffPreview
+								path={selectedCommitFilePath}
+								preview={commitDiffPreview}
+								emptyMessage={t("git.noDiff")}
+								modelKey="commit"
+							/>
 						</Box>
 					</Box>
 				) : (

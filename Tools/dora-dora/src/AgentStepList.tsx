@@ -13,6 +13,7 @@ import type { AgentChangeSetSummary, AgentCheckpointDiffFile, AgentCheckpointIte
 import { Color } from './Theme';
 import AgentFileDiff from './AgentFileDiff';
 import AgentChangeSetSummaryCard from './AgentChangeSetSummary';
+import { recordAgentRowRender } from './AgentRenderDiagnostics';
 import './github-markdown-dark.css';
 
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -426,7 +427,7 @@ function ExpandableCommandBlock(props: {
 	);
 }
 
-export default function AgentStepList(props: AgentStepListProps) {
+function AgentStepListBody(props: AgentStepListProps) {
 	const { t } = useTranslation();
 	const [openedBuildErrors, setOpenedBuildErrors] = React.useState<Record<number, boolean>>({});
 	const [openedCommandBlocks, setOpenedCommandBlocks] = React.useState<Record<string, boolean>>({});
@@ -458,7 +459,11 @@ export default function AgentStepList(props: AgentStepListProps) {
 					: undefined;
 				if (questionnaireAnswer !== undefined) {
 					return (
-						<Box key={step.id} sx={{ display: "flex", justifyContent: "flex-end", minWidth: 0 }}>
+						<Box
+							key={step.id}
+							data-agent-step-id={step.id}
+							sx={{ display: "flex", justifyContent: "flex-end", minWidth: 0 }}
+						>
 							<Box sx={{
 								maxWidth: "78%",
 								width: "auto",
@@ -508,7 +513,7 @@ export default function AgentStepList(props: AgentStepListProps) {
 					&& step.result?.success === false
 					&& step.result?.interrupted !== true;
 				return (
-					<Box key={step.id} sx={{
+					<Box key={step.id} data-agent-step-id={step.id} sx={{
 						borderLeft: `2px solid ${isSystemStep ? "rgba(255,196,110,0.32)" : Color.Line}`,
 						pl: 1.5,
 						py: 0.25,
@@ -904,3 +909,37 @@ export default function AgentStepList(props: AgentStepListProps) {
 		</Stack>
 	);
 }
+
+type AgentStepRowProps = Omit<AgentStepListProps, "steps"> & {
+	step: AgentSessionStep;
+};
+
+const AgentStepRow = React.memo(function AgentStepRow(props: AgentStepRowProps) {
+	const { step, ...listProps } = props;
+	const renderCount = recordAgentRowRender("step", step.id);
+	return (
+		<Box
+			data-agent-step-row-id={step.id}
+			data-agent-step-render-count={renderCount}
+		>
+			<AgentStepListBody {...listProps} steps={[step]} />
+		</Box>
+	);
+});
+
+function AgentStepList(props: AgentStepListProps) {
+	const { steps, ...rowProps } = props;
+	return (
+		<Stack spacing={2}>
+			{steps.map(step => (
+				<AgentStepRow
+					key={step.id}
+					step={step}
+					{...rowProps}
+				/>
+			))}
+		</Stack>
+	);
+}
+
+export default React.memo(AgentStepList);

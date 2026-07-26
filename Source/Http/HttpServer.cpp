@@ -467,6 +467,7 @@ private:
 HttpServer::HttpServer()
 	: _authRequired(false)
 	, _authTokenHasExpiry(false)
+	, _staticCacheControl("no-cache")
 	, _thread(SharedAsyncThread.newThread()) { }
 
 HttpServer::~HttpServer() {
@@ -490,6 +491,49 @@ void HttpServer::setWWWPath(String var) {
 
 const std::string& HttpServer::getWWWPath() const noexcept {
 	return _wwwPath;
+}
+
+static bool isValidHeaderValue(String value) {
+	const auto text = value.toString();
+	return text.find('\r') == std::string::npos && text.find('\n') == std::string::npos;
+}
+
+bool HttpServer::setStaticCacheControl(String cacheControl) {
+	if (!isValidHeaderValue(cacheControl)) return false;
+	std::lock_guard<std::mutex> lock(_staticCacheControlMutex);
+	_staticCacheControl = cacheControl.toString();
+	return true;
+}
+
+bool HttpServer::addStaticCacheControl(String pattern, String cacheControl) {
+	if (!isValidHeaderValue(cacheControl)) return false;
+	try {
+		StaticCacheControlRule rule{
+			std::regex(pattern.toString(), std::regex::ECMAScript),
+			cacheControl.toString(),
+		};
+		std::lock_guard<std::mutex> lock(_staticCacheControlMutex);
+		_staticCacheControlRules.push_back(std::move(rule));
+		return true;
+	} catch (const std::regex_error&) {
+		return false;
+	}
+}
+
+void HttpServer::clearStaticCacheControls() {
+	std::lock_guard<std::mutex> lock(_staticCacheControlMutex);
+	_staticCacheControlRules.clear();
+}
+
+std::string HttpServer::getStaticCacheControl(String requestPath) {
+	const auto path = requestPath.toString();
+	std::lock_guard<std::mutex> lock(_staticCacheControlMutex);
+	for (const auto& rule : _staticCacheControlRules) {
+		if (std::regex_match(path, rule.pattern)) {
+			return rule.cacheControl;
+		}
+	}
+	return _staticCacheControl;
 }
 
 void HttpServer::setAuthToken(String var) {
@@ -785,6 +829,10 @@ bool HttpServer::start(int port) {
 		}
 		if (!result->empty()) {
 			res.set_header("Content-Type", content_type);
+			const auto cacheControl = getStaticCacheControl(req.path);
+			if (!cacheControl.empty()) {
+				res.set_header("Cache-Control", cacheControl);
+			}
 			res.body = std::move(*result);
 			return true;
 		}

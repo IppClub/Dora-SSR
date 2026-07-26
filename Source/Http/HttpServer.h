@@ -11,7 +11,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <chrono>
 #include <atomic>
 #include <mutex>
+#include <regex>
 #include <unordered_map>
+#include <vector>
 
 namespace httplib {
 struct Request;
@@ -72,6 +74,9 @@ public:
 	};
 
 	void upload(String pattern, const FileAcceptHandler& acceptHandler, const FileDoneHandler& doneHandler);
+	bool setStaticCacheControl(String cacheControl);
+	bool addStaticCacheControl(String pattern, String cacheControl);
+	void clearStaticCacheControls();
 	bool start(int port);
 	bool startWS(int port);
 	void stop();
@@ -103,6 +108,14 @@ private:
 	std::list<Service> _gets;
 	std::list<PostScheduled> _postScheduled;
 	std::list<File> _files;
+	struct StaticCacheControlRule {
+		std::regex pattern;
+		std::string cacheControl;
+	};
+	std::string getStaticCacheControl(String requestPath);
+	std::string _staticCacheControl;
+	std::vector<StaticCacheControlRule> _staticCacheControlRules;
+	std::mutex _staticCacheControlMutex;
 	Async* _thread;
 	Own<WebSocketServer> _webSocketServer;
 	Ref<Listener> _webSocketListener;

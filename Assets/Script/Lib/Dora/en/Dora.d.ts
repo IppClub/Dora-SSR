@@ -8567,6 +8567,25 @@ interface HttpServer {
 	 */
 	wwwPath: string
 	/**
+	 * Sets the default `Cache-Control` response header for static resources that do not match a rule.
+	 * Pass an empty string to omit the header. Values containing line breaks are rejected.
+	 * @param cacheControl The value of the `Cache-Control` response header.
+	 * @returns Whether the configuration was valid and applied.
+	 */
+	setStaticCacheControl(cacheControl: string): boolean;
+	/**
+	 * Adds a static resource cache rule. Request paths are fully matched against ECMAScript regular expressions in registration order.
+	 * Configure rules before starting the server.
+	 * @param pattern An ECMAScript regular expression used to match the request path.
+	 * @param cacheControl The `Cache-Control` response header for matching paths; pass an empty string to omit it.
+	 * @returns `true` when the expression and header value are valid.
+	 */
+	addStaticCacheControl(pattern: string, cacheControl: string): boolean;
+	/**
+	 * Clears all static resource cache rules without changing the default `Cache-Control` value.
+	 */
+	clearStaticCacheControls(): void;
+	/**
 	 * Starts the HTTP server on the specified port.
 	 * @param port The port number to start the server on.
 	 * @returns A boolean value indicating whether the server was started successfully.

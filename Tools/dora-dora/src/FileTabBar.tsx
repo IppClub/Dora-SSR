@@ -91,6 +91,7 @@ export const StyledTab = styled((props: StyledTabProps) => {
 		<Tooltip arrow title={tooltip}>
 			<Tab
 				{...newProps}
+				data-file-key={tooltip}
 				label={
 					<Box component="span" sx={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
 						<Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

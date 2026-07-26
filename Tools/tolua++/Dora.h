@@ -1500,6 +1500,9 @@ class HttpServer
 	tolua_readonly tolua_property__common string localIP;
 	tolua_readonly tolua_property__common int wSConnectionCount @ wsConnectionCount;
 	tolua_property__common string wWWPath @ wwwPath;
+	bool setStaticCacheControl(String cacheControl);
+	bool addStaticCacheControl(String pattern, String cacheControl);
+	void clearStaticCacheControls();
 	bool start(int port);
 	bool startWS(int port);
 	void stop();

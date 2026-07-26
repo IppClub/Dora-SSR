@@ -8563,6 +8563,25 @@ interface HttpServer {
 	 */
 	wwwPath: string
 	/**
+	 * 设置未匹配规则的静态资源所使用的默认 `Cache-Control` 响应头。
+	 * 传入空字符串可不发送该响应头。包含换行符的值会被拒绝。
+	 * @param cacheControl `Cache-Control` 响应头的值。
+	 * @returns 配置是否有效并已应用。
+	 */
+	setStaticCacheControl(cacheControl: string): boolean;
+	/**
+	 * 添加一条静态资源缓存规则。请求路径按注册顺序与 ECMAScript 正则表达式进行完整匹配。
+	 * 应在启动服务器前配置规则。
+	 * @param pattern 用于匹配请求路径的 ECMAScript 正则表达式。
+	 * @param cacheControl 匹配后使用的 `Cache-Control` 响应头；传入空字符串可不发送该响应头。
+	 * @returns 正则和响应头有效时返回 `true`。
+	 */
+	addStaticCacheControl(pattern: string, cacheControl: string): boolean;
+	/**
+	 * 清除所有静态资源缓存规则，不改变默认 `Cache-Control` 配置。
+	 */
+	clearStaticCacheControls(): void;
+	/**
 	 * 在指定端口上启动HTTP服务器。
 	 * @param port 要启动服务器的端口号。
 	 * @returns 一个布尔值，表示服务器是否成功启动。

@@ -5,14 +5,26 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
-import AgentPanel from './AgentPanel';
-import DoraUpload from './Upload';
-import GitPanel from './GitPanel';
 import { Color } from './Theme';
+
+const AgentPanel = React.lazy(() => import('./AgentPanel'));
+const DoraUpload = React.lazy(() => import('./Upload'));
+const GitPanel = React.lazy(() => import('./GitPanel'));
 
 type WorkspaceView = "agent" | "upload" | "git";
 
+function PanelFallback() {
+	return (
+		<Box sx={{
+			width: "100%",
+			height: "100%",
+			backgroundColor: Color.Background,
+		}} />
+	);
+}
+
 interface ProjectWorkspacePanelProps {
+	active?: boolean;
 	title: string;
 	height: number;
 	uploadPath: string;
@@ -35,6 +47,7 @@ interface ProjectWorkspacePanelProps {
 export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps) {
 	const { t } = useTranslation();
 	const {
+		active = true,
 		title,
 		height,
 		uploadPath,
@@ -60,6 +73,9 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 	});
 
 	const currentView = view ?? internalView;
+	const [mountedViews, setMountedViews] = React.useState<Set<WorkspaceView>>(
+		() => new Set([currentView]),
+	);
 	const headerHeight = 52;
 	const fullDisplayPath = displayPath ?? uploadPath;
 	const normalizedDisplayPath = fullDisplayPath.replace(/\/+$/, "");
@@ -75,6 +91,15 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 		}
 		setInternalView(hasAgent ? "agent" : "upload");
 	}, [view, hasAgent, agentSessionId, uploadPath]);
+
+	React.useEffect(() => {
+		setMountedViews(previous => {
+			if (previous.has(currentView)) return previous;
+			const next = new Set(previous);
+			next.add(currentView);
+			return next;
+		});
+	}, [currentView]);
 
 	const contentHeight = Math.max(height - headerHeight, 0);
 	const handleViewChange = (nextView: WorkspaceView) => {
@@ -123,6 +148,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 						{workspaceTabs.map(tab => (
 							<Button
 								key={tab.value}
+								data-workspace-view={tab.value}
 								size="small"
 								variant="text"
 								onClick={() => handleViewChange(tab.value)}
@@ -148,46 +174,53 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 				</Stack>
 			</Box>
 			<Box sx={{ flex: 1, minHeight: 0 }}>
-				{hasAgent ? (
+				{hasAgent && (currentView === "agent" || mountedViews.has("agent")) ? (
 					<Box sx={{ display: currentView === "agent" ? "block" : "none", height: "100%" }}>
-						<AgentPanel
-							sessionId={agentSessionId}
-							projectRoot={uploadPath}
-							title={title}
-							height={contentHeight}
-							showHeader={false}
-							initialPrompt={agentInitialPrompt}
-							addAlert={addAlert}
-							onInitialPromptConsumed={onAgentInitialPromptConsumed}
-							onRollbackComplete={onRollbackComplete}
-							onOpenFile={onOpenFile}
-							onRepositoryFilesChanged={onRepositoryFilesChanged}
-							onOpenLLMConfig={onOpenLLMConfig}
-						/>
+						<React.Suspense fallback={<PanelFallback />}>
+							<AgentPanel
+								active={active && currentView === "agent"}
+								sessionId={agentSessionId}
+								projectRoot={uploadPath}
+								title={title}
+								height={contentHeight}
+								showHeader={false}
+								initialPrompt={agentInitialPrompt}
+								addAlert={addAlert}
+								onInitialPromptConsumed={onAgentInitialPromptConsumed}
+								onRollbackComplete={onRollbackComplete}
+								onOpenFile={onOpenFile}
+								onRepositoryFilesChanged={onRepositoryFilesChanged}
+								onOpenLLMConfig={onOpenLLMConfig}
+							/>
+						</React.Suspense>
 					</Box>
 				) : null}
-				{currentView === "git" ? (
-					<GitPanel
-						projectRoot={uploadPath}
-						displayPath={displayPath}
-						height={contentHeight}
-						isWorkspaceRoot={isWorkspaceRoot}
-						addAlert={addAlert}
-						onOpenFile={onOpenFile}
-						onOpenProject={onOpenProject}
-						onRepositoryFilesChanged={onRepositoryFilesChanged}
-					/>
-				) : currentView === "upload" ? (
-					<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
-						<Box sx={{ minHeight: "100%", py: 3, }}>
-							<DoraUpload
-								onUploaded={onUploaded}
-								title={title}
-								path={uploadPath}
-								hideTitle
-							/>
-						</Box>
-					</MacScrollbar>
+				{active && currentView === "git" ? (
+					<React.Suspense fallback={<PanelFallback />}>
+						<GitPanel
+							projectRoot={uploadPath}
+							displayPath={displayPath}
+							height={contentHeight}
+							isWorkspaceRoot={isWorkspaceRoot}
+							addAlert={addAlert}
+							onOpenFile={onOpenFile}
+							onOpenProject={onOpenProject}
+							onRepositoryFilesChanged={onRepositoryFilesChanged}
+						/>
+					</React.Suspense>
+				) : active && currentView === "upload" ? (
+					<React.Suspense fallback={<PanelFallback />}>
+						<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
+							<Box sx={{ minHeight: "100%", py: 3, }}>
+								<DoraUpload
+									onUploaded={onUploaded}
+									title={title}
+									path={uploadPath}
+									hideTitle
+								/>
+							</Box>
+						</MacScrollbar>
+					</React.Suspense>
 				) : null}
 			</Box>
 		</Box>

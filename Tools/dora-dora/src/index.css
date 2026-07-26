@@ -16,6 +16,11 @@ body {
 	overflow: hidden;
 }
 
+.MuiTooltip-popper[data-popper-reference-hidden] {
+	visibility: hidden !important;
+	pointer-events: none !important;
+}
+
 code {
 	font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
 		monospace;
@@ -82,6 +87,20 @@ code {
 @media (pointer: coarse) {
 	.dora-splitter-dragger {
 		width: 24px !important;
+	}
+}
+
+@media (max-width: 489px) {
+	.dora-resource-panel {
+		position: absolute !important;
+		inset: 0 auto 0 0 !important;
+	}
+
+	.dora-content-panel {
+		flex: 1 1 100% !important;
+		width: 100% !important;
+		max-width: 100% !important;
+		min-width: 0 !important;
 	}
 }
 

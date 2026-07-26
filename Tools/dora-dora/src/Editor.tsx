@@ -14,6 +14,11 @@ import * as Service from './Service';
 import Info from './Info';
 import * as wa from './languages/wa';
 import * as yarn from './languages/yarn';
+import {
+	EditorTheme,
+	getInferDefinitionCommand,
+	setInferDefinitionCommand,
+} from './EditorRuntimeState';
 
 const getLanguageForFile = (file: string) => {
 	const dotIndex = file.lastIndexOf(".");
@@ -360,16 +365,6 @@ type InferDefinitionTarget = {
 	lineNumber: number;
 	column: number;
 };
-const inferDefinitionCommands = new Map<string, string>();
-
-export const setInferDefinitionCommand = (modelUri: string, command: string | null) => {
-	if (command === null) {
-		inferDefinitionCommands.delete(modelUri);
-		return;
-	}
-	inferDefinitionCommands.set(modelUri, command);
-};
-
 const hoverProvider = (lang: InferLang) => {
 	return {
 		provideHover: function (model, position) {
@@ -414,7 +409,7 @@ const hoverProvider = (lang: InferLang) => {
 						res.infered.file = "current file";
 					}
 					const label = `${res.infered.file}:${res.infered.row}:${res.infered.col}`;
-					const command = inferDefinitionCommands.get(model.uri.toString());
+		const command = getInferDefinitionCommand(model.uri.toString());
 					if (command !== undefined) {
 						const target: InferDefinitionTarget = {
 							file: res.infered.key ?? model.uri.fsPath,
@@ -671,4 +666,4 @@ monaco.languages.register({ id: 'yarn' });
 monaco.languages.setLanguageConfiguration('yarn', yarn.config);
 monaco.languages.setMonarchTokensProvider('yarn', yarn.language);
 
-export const EditorTheme = 'dora-dark';
+export { EditorTheme, setInferDefinitionCommand };

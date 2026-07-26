@@ -9,13 +9,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 import { LazyLog } from 'react-lazylog';
 import { useTranslation } from 'react-i18next';
 import { Color } from './Theme';
-import * as Service from './Service';
 import { memo, useEffect, useRef, useState } from 'react';
 import { LogFixRequest, buildLogFixMessage, logFixLineClassName } from './LogFix';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import LogFixPanel from './LogFixPanel';
+import { useBatchedLog } from './useBatchedLog';
 
 export interface BottomLogProps {
+	active?: boolean;
 	height: number;
 	onFixLog?: (request: LogFixRequest) => void;
 };
@@ -34,7 +35,8 @@ const formatPart = (text: string) => {
 const BottomLog = memo((props: BottomLogProps) => {
 	const { t } = useTranslation();
 	const logContainerRef = useRef<HTMLDivElement | null>(null);
-	const [text, setText] = useState(t("log.wait"));
+	const logSnapshot = useBatchedLog(props.active !== false);
+	const text = logSnapshot.text === "" ? t("log.wait") : logSnapshot.text;
 	const [fixTarget, setFixTarget] = useState<{
 		lineNumber: number;
 		top: number;
@@ -42,17 +44,6 @@ const BottomLog = memo((props: BottomLogProps) => {
 		message: string;
 		panelOpen: boolean;
 	} | null>(null);
-
-
-	useEffect(() => {
-		const logListener = (_newItem: string, allText: string) => {
-			setText(allText === "" ? t("log.wait") : allText);
-		};
-		Service.addLogListener(logListener);
-		return () => {
-			Service.removeLogListener(logListener);
-		};
-	}, [t]);
 
 	const showFixButton = (event: MouseEvent, container: HTMLElement) => {
 		if (!props.onFixLog) return;
@@ -82,6 +73,7 @@ const BottomLog = memo((props: BottomLogProps) => {
 	};
 
 	useEffect(() => {
+		if (props.active === false) return;
 		const container = logContainerRef.current;
 		if (!container) return;
 		const onMouseDown = (event: MouseEvent) => {
@@ -135,6 +127,26 @@ const BottomLog = memo((props: BottomLogProps) => {
 			stream
 			follow
 		/>
+		{logSnapshot.truncated ? (
+			<div
+				title={t("log.truncated")}
+				style={{
+					position: "absolute",
+					top: 8,
+					right: 12,
+					zIndex: 2,
+					padding: "3px 8px",
+					border: `1px solid ${Color.Warning}66`,
+					borderRadius: 6,
+					color: Color.Warning,
+					backgroundColor: "rgba(28, 24, 16, 0.92)",
+					fontSize: 12,
+					pointerEvents: "none",
+				}}
+			>
+				{t("log.truncatedShort")}
+			</div>
+		) : null}
 		{fixTarget && props.onFixLog && !fixTarget.panelOpen ? (
 			<button
 				type="button"

@@ -249,8 +249,33 @@ export default function AgentComposer(props: AgentComposerProps) {
 						boxSizing: "border-box",
 					}}
 				/>
-				<Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" sx={{ px: 1, pb: 1, minHeight: 38 }}>
-					<Stack direction="row" spacing={0.25} alignItems="center" sx={{ minWidth: 0 }}>
+				<Stack
+					direction="row"
+					spacing={1}
+					alignItems="center"
+					justifyContent="space-between"
+					sx={{
+						px: 1,
+						pb: 1,
+						minHeight: 38,
+						flexWrap: "wrap",
+						rowGap: 0.75,
+					}}
+				>
+					<Stack
+						direction="row"
+						spacing={0.25}
+						alignItems="center"
+						sx={{
+							minWidth: 0,
+							flexShrink: 0,
+							flexWrap: "wrap",
+							rowGap: 0.25,
+							"& .MuiButton-root": {
+								whiteSpace: "nowrap",
+							},
+						}}
+					>
 						{onPlanModeChange ? (
 							<Tooltip title={t("agent.planModeToggle")}>
 								<span>
@@ -312,7 +337,7 @@ export default function AgentComposer(props: AgentComposerProps) {
 							onClose={() => setModelTooltipOpen(false)}
 						>
 							<Select
-								value={llmConfigId ?? ""}
+								value={llmConfigs.some(item => item.id === llmConfigId) ? llmConfigId : ""}
 								displayEmpty
 								disabled={llmConfigs.length === 0 || onLLMConfigChange === undefined}
 								onOpen={() => {

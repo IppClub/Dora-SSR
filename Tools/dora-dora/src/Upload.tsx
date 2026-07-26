@@ -561,7 +561,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 							</Space>
 						),
 						children: (
-							<Space direction="vertical" style={{ width: '100%' }}>
+							<Space orientation="vertical" style={{ width: '100%' }}>
 								<Text type="secondary">{t('download.url')}</Text>
 								<TextArea
 									placeholder={t('download.urlPlaceholder')}
@@ -627,7 +627,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 							</Space>
 						),
 						children: (
-							<Space direction="vertical" style={{ width: '100%' }}>
+							<Space orientation="vertical" style={{ width: '100%' }}>
 								<div>
 									<Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
 										{t('upload.fileName')}:

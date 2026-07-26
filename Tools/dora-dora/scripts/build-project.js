@@ -33,4 +33,5 @@ buildEnv.NODE_OPTIONS = mergeNodeOptions("--max-old-space-size=8192");
 
 run(pnpmCmd, ["exec", "vite", "build"], { env: buildEnv });
 run(process.execPath, [path.join("scripts", "minify-javascript-codes.js")]);
+run(process.execPath, [path.join("scripts", "version-heavy-assets.js")]);
 run(process.execPath, [path.join("scripts", "sync-build-to-assets.js")]);

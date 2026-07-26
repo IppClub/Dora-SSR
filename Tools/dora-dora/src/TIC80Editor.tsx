@@ -6,7 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import { memo } from "react";
+import { memo, useEffect, useRef } from "react";
 import * as Service from "./Service";
 import { AlertColor } from "@mui/material";
 import { useTranslation } from 'react-i18next';
@@ -20,11 +20,21 @@ export interface TIC80EditorProps {
 	resPath: string;
 	defaultValue?: string;
 	onKeydown: (event: KeyboardEvent) => void;
+	onDirty?: () => void;
+	onSaved?: () => void;
 	addAlert: (msg: string, type: AlertColor) => void;
 };
 
 const TIC80Editor = memo((props: TIC80EditorProps) => {
 	const { t } = useTranslation();
+	const cleanupRef = useRef<(() => void) | null>(null);
+	const dirtyRevisionRef = useRef(0);
+	useEffect(() => {
+		return () => {
+			cleanupRef.current?.();
+			cleanupRef.current = null;
+		};
+	}, []);
 	return <iframe
 		width={props.width}
 		height={props.height}
@@ -69,6 +79,7 @@ const TIC80Editor = memo((props: TIC80EditorProps) => {
 								break;
 							}
 							case 'TIC80_WRITE_FILE': {
+								const savingRevision = dirtyRevisionRef.current;
 								// Write file using Service
 								try {
 									const blob = event.data.rom;
@@ -83,6 +94,9 @@ const TIC80Editor = memo((props: TIC80EditorProps) => {
 									});
 									const basename = Info.path.basename(props.filePath);
 									if (res.ok) {
+										if (dirtyRevisionRef.current === savingRevision) {
+											props.onSaved?.();
+										}
 										if (basename !== filename) {
 											props.addAlert(t("tic.overridden", { oldFilename: basename, newFilename: filename }), "success");
 										} else {
@@ -100,17 +114,9 @@ const TIC80Editor = memo((props: TIC80EditorProps) => {
 					}
 				};
 
-				window.addEventListener('message', handleMessage);
-
-				// Send file path to iframe
-				win.postMessage({
-					type: 'TIC80_INIT',
-					filePath: filePath,
-					defaultValue: props.defaultValue
-				}, '*');
-
-				// Handle keyboard events
-				win.document.addEventListener("keydown", (event: KeyboardEvent) => {
+				const handleKeydown = (event: KeyboardEvent) => {
+					dirtyRevisionRef.current += 1;
+					props.onDirty?.();
 					if (event.ctrlKey || event.altKey || event.metaKey) {
 						switch (event.key) {
 							case 'N': case 'n':
@@ -121,7 +127,29 @@ const TIC80Editor = memo((props: TIC80EditorProps) => {
 							}
 						}
 					}
-				});
+				};
+				const handlePointerDown = () => {
+					dirtyRevisionRef.current += 1;
+					props.onDirty?.();
+				};
+
+				cleanupRef.current?.();
+				window.addEventListener('message', handleMessage);
+				win.document.addEventListener("keydown", handleKeydown);
+				win.document.addEventListener("pointerdown", handlePointerDown);
+				cleanupRef.current = () => {
+					window.removeEventListener('message', handleMessage);
+					win.document.removeEventListener("keydown", handleKeydown);
+					win.document.removeEventListener("pointerdown", handlePointerDown);
+				};
+
+				// Send file path to iframe
+				win.postMessage({
+					type: 'TIC80_INIT',
+					filePath: filePath,
+					defaultValue: props.defaultValue
+				}, '*');
+
 			}
 		}}
 		src="tic80/index.html"

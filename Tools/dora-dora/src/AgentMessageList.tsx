@@ -12,18 +12,76 @@ import { useTranslation } from 'react-i18next';
 import { MacScrollbar } from 'mac-scrollbar';
 import type { AgentSessionMessage } from './Service';
 import { Color } from './Theme';
+import { recordAgentRowRender } from './AgentRenderDiagnostics';
 import './github-markdown-dark.css';
 
 const Markdown = React.lazy(() => import('./Markdown'));
+const MemoMarkdown = React.memo(function AgentMessageMarkdown(props: { content: string }) {
+	return <Markdown content={props.content} contentPadding={0} />;
+});
+
+const AgentAssistantMessageRow = React.memo(function AgentAssistantMessageRow(props: {
+	message: AgentSessionMessage;
+	streaming: boolean;
+}) {
+	const { message, streaming } = props;
+	const renderCount = recordAgentRowRender("message", message.id);
+	return (
+		<Box
+			data-agent-message-id={message.id}
+			data-agent-message-render-count={renderCount}
+			sx={{ display: "flex", justifyContent: "flex-start", minWidth: 0 }}
+		>
+			<Box sx={{ position: "relative", width: "100%", maxWidth: "100%", minWidth: 0 }}>
+				<Box
+					sx={{
+						p: 0,
+						width: "100%",
+						maxWidth: "100%",
+						minWidth: 0,
+						minHeight: 0,
+						backgroundColor: "transparent",
+						color: Color.TextPrimary,
+						fontSize: 16,
+						lineHeight: 1.75,
+						"& .markdown-body p": { whiteSpace: "pre-wrap" },
+						"& .markdown-body > :first-of-type": { marginTop: 0 },
+						"& .markdown-body > :last-child": { marginBottom: 0 },
+					}}
+				>
+					{streaming ? (
+						<Typography
+							component="div"
+							sx={{
+								color: Color.TextPrimary,
+								whiteSpace: "pre-wrap",
+								overflowWrap: "anywhere",
+								fontSize: 16,
+								lineHeight: 1.75,
+							}}
+						>
+							{message.content}
+						</Typography>
+					) : (
+						<React.Suspense fallback={null}>
+							<MemoMarkdown content={message.content} />
+						</React.Suspense>
+					)}
+				</Box>
+			</Box>
+		</Box>
+	);
+});
 
 interface AgentMessageListProps {
 	messages: AgentSessionMessage[];
+	streamingMessageId?: number;
 	editableMessageId?: number;
 	editDisabled?: boolean;
 	onResendPrompt?: (message: AgentSessionMessage, prompt: string) => Promise<boolean | undefined>;
 }
 
-export default function AgentMessageList(props: AgentMessageListProps) {
+function AgentMessageList(props: AgentMessageListProps) {
 	const { t } = useTranslation();
 	const { messages } = props;
 	const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
@@ -82,11 +140,20 @@ export default function AgentMessageList(props: AgentMessageListProps) {
 	return (
 		<Stack spacing={2}>
 			{messages.map(message => {
+				if (message.role === "assistant") {
+					return (
+						<AgentAssistantMessageRow
+							key={message.id}
+							message={message}
+							streaming={message.id === props.streamingMessageId}
+						/>
+					);
+				}
 				const editable = message.role === "user" && message.displayContent === undefined && message.id === props.editableMessageId && !props.editDisabled && props.onResendPrompt !== undefined;
 				const editing = editingMessageId === message.id;
 				const visibleContent = message.displayContent ?? message.content;
 				return (
-					<Box key={message.id} sx={{
+					<Box key={message.id} data-agent-message-id={message.id} sx={{
 						display: "flex",
 						justifyContent: message.role === "user" ? "flex-end" : "flex-start",
 						minWidth: 0,
@@ -110,28 +177,7 @@ export default function AgentMessageList(props: AgentMessageListProps) {
 								backgroundColor: message.role === "user" ? "rgba(255,255,255,0.06)" : "transparent",
 								boxShadow: message.role === "user" ? "inset 0 1px 0 rgba(255,255,255,0.02)" : "none",
 							}}>
-								{message.role === "assistant" ? (
-									<Box
-										sx={{
-											p: 0,
-											width: '100%',
-											maxWidth: '100%',
-											minWidth: 0,
-											minHeight: 0,
-											backgroundColor: "transparent",
-											color: Color.TextPrimary,
-											fontSize: 16,
-											lineHeight: 1.75,
-											'& .markdown-body p': { whiteSpace: 'pre-wrap' },
-											'& .markdown-body > :first-of-type': { marginTop: 0 },
-											'& .markdown-body > :last-child': { marginBottom: 0 },
-										}}
-									>
-										<React.Suspense fallback={null}>
-											<Markdown content={message.content} contentPadding={0} />
-										</React.Suspense>
-									</Box>
-								) : editing ? (
+								{editing ? (
 									<Box sx={{
 										width: "min(620px, 70vw)",
 										minWidth: "min(360px, 70vw)",
@@ -255,3 +301,17 @@ export default function AgentMessageList(props: AgentMessageListProps) {
 		</Stack>
 	);
 }
+
+const sameMessages = (left: AgentSessionMessage[], right: AgentSessionMessage[]) => {
+	if (left === right) return true;
+	if (left.length !== right.length) return false;
+	return left.every((message, index) => message === right[index]);
+};
+
+export default React.memo(AgentMessageList, (prev, next) => {
+	return sameMessages(prev.messages, next.messages)
+		&& prev.streamingMessageId === next.streamingMessageId
+		&& prev.editableMessageId === next.editableMessageId
+		&& prev.editDisabled === next.editDisabled
+		&& prev.onResendPrompt === next.onResendPrompt;
+});

@@ -13,7 +13,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import IconButton from '@mui/material/IconButton';
 import Fullscreen from '@mui/icons-material/Fullscreen';
 import FullscreenExit from '@mui/icons-material/FullscreenExit';
-import MonacoEditor, { loader } from "@monaco-editor/react";
+import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import FileTree, { TreeDataType, TreeMenuEvent } from "./FileTree";
 import FileTabBar, { TabMenuEvent, TabStatus } from './FileTabBar';
 import Info from './Info';
@@ -23,7 +23,6 @@ import { AlertColor, Button, Collapse, DialogActions, DialogContent, DialogConte
 import NewFileDialog, { DoraFileType } from './NewFileDialog';
 import logo from './logo.svg';
 import { TransitionGroup } from 'react-transition-group';
-import monaco, { monacoTypescript } from './monacoBase';
 import * as Service from './Service';
 import { AppBar, DrawerHeader, Entry, Main, PlayControl, PlayControlMode, StyledStack } from './Frame';
 import { Color } from './Theme';
@@ -42,7 +41,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import KeyboardShortcuts from './KeyboardShortcuts';
 import BottomLog from './BottomLog';
 import Modal from '@mui/material/Modal';
-import { EditorTheme, setInferDefinitionCommand } from './Editor';
+import { EditorTheme, setInferDefinitionCommand } from './EditorRuntimeState';
 import CodeIcon from '@mui/icons-material/Code';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -54,6 +53,16 @@ import { createEmptyActionDocument, writeLegacyModel } from './ActionEditor';
 import { createParticleDocument, writeParticleDocumentToXml } from './ParticleEditor';
 import { LogFixRequest } from './LogFix';
 import { getExtraLib, toFilePath, toTypeScriptFileName } from './MonacoPath';
+import {
+	getFileSearchIndexSize,
+	hasFileSearchIndex,
+	initializeFileSearchIndex,
+	invalidateFileSearchIndex,
+	moveFileSearchIndex,
+	updateFileSearchIndex,
+} from './FileSearchIndex';
+import type { FileSearchEntry, FileSearchSnapshot } from './FileSearchProtocol';
+import { getMonacoRuntime, getMonacoTypeScript, peekMonacoRuntime } from './MonacoRuntimeAccess';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -66,10 +75,12 @@ const ActionEditor = React.lazy(() => import('./ActionEditor/ActionEditor'));
 const ActionClipPreview = React.lazy(() => import('./ActionEditor/ActionClipPreview'));
 const BodyEditor = React.lazy(() => import('./BodyEditor/BodyEditor'));
 const ParticleEditor = React.lazy(() => import('./ParticleEditor/ParticleEditor'));
+const MonacoEditorRuntime = React.lazy(() => import('./MonacoEditorRuntime'));
 
 const { path } = Info;
-
-loader.config({ monaco });
+const monaco = new Proxy({} as typeof Monaco, {
+	get: (_target, property) => Reflect.get(getMonacoRuntime(), property),
+});
 
 let lastEditorActionTime = Date.now();
 let lastUploadedTime = Date.now();
@@ -390,15 +401,20 @@ interface EditingFile {
 	content: string;
 	contentModified: string | null;
 	folder: boolean;
-	onMount: (editor: monaco.editor.IStandaloneCodeEditor) => void;
-	editor?: monaco.editor.IStandaloneCodeEditor;
-	position?: monaco.IPosition;
+	onMount: (editor: Monaco.editor.IStandaloneCodeEditor) => void;
+	onUnmount?: (editor: Monaco.editor.IStandaloneCodeEditor) => void;
+	editor?: Monaco.editor.IStandaloneCodeEditor;
+	viewState?: Monaco.editor.ICodeEditorViewState | null;
+	position?: Monaco.IPosition;
 	mdEditing?: boolean;
 	yarnTextEditing?: boolean;
 	bodyTextEditing?: boolean;
 	particleTextEditing?: boolean;
 	yarnData?: YarnEditorData;
 	codeWireData?: CodeWireData;
+	visualSnapshotPending?: boolean;
+	visualSnapshotRevision?: number;
+	ticDirty?: boolean;
 	blocklyData?: string;
 	previewVersion?: number;
 	sortIndex?: number;
@@ -431,7 +447,7 @@ const getFolderProjectExtension = (type: FolderProjectType) => {
 
 const getNewFileTemplate = (ext: string) => {
 	let content = "";
-	let position: monaco.IPosition | undefined;
+	let position: Monaco.IPosition | undefined;
 	switch (ext) {
 		case ".lua":
 			content = "-- @preview-file on clear\n\n";
@@ -499,6 +515,7 @@ const getNewFileTemplate = (ext: string) => {
 const isBodyLuaFile = (filePath: string) => filePath.toLowerCase().endsWith(".b.lua");
 
 const editorBackground = <div style={{ width: '100%', height: '100%', backgroundColor: '#1a1a1a' }} />;
+const narrowSplitBreakpoint = 490;
 
 const Editor = memo((props: {
 	hidden?: boolean,
@@ -507,9 +524,10 @@ const Editor = memo((props: {
 	editingFile: EditingFile,
 	readOnly: boolean,
 	minimap: boolean,
-	onMount: (editor: monaco.editor.IStandaloneCodeEditor) => void,
-	onModified: (editingFile: EditingFile, content: string, lastChange?: monaco.editor.IModelContentChange) => void,
-	onValidate: (markers: monaco.editor.IMarker[], key: string) => void,
+	onMount: (editor: Monaco.editor.IStandaloneCodeEditor) => void,
+	onUnmount: (editor: Monaco.editor.IStandaloneCodeEditor) => void,
+	onModified: (editingFile: EditingFile, content: string, lastChange?: Monaco.editor.IModelContentChange) => void,
+	onValidate: (markers: Monaco.editor.IMarker[], key: string) => void,
 }) => {
 	const {
 		hidden,
@@ -520,47 +538,51 @@ const Editor = memo((props: {
 		readOnly,
 		minimap,
 		onMount,
+		onUnmount,
 		onModified,
 		onValidate
 	} = props;
-	const doValidate = useCallback((markers: monaco.editor.IMarker[]) => {
+	const doValidate = useCallback((markers: Monaco.editor.IMarker[]) => {
 		onValidate(markers, editingFile.key);
 	}, [onValidate, editingFile.key]);
-	const onChange = useCallback((content: string | undefined, ev: monaco.editor.IModelContentChangedEvent) => {
+	const onChange = useCallback((content: string | undefined, ev: Monaco.editor.IModelContentChangedEvent) => {
 		if (content === undefined) return;
 		onModified(editingFile, content, ev.changes.at(-1));
 	}, [onModified, editingFile]);
 	return (
 		<div hidden={hidden}>
-			<MonacoEditor
-				width={width}
-				height={height}
-				language={language}
-				theme={EditorTheme}
-				onMount={onMount}
-				keepCurrentModel
-				loading={editorBackground}
-				onChange={onChange}
-				onValidate={language === "typescript" ? doValidate : undefined}
-				path={monaco.Uri.file(editingFile.key).toString()}
-				options={{
-					readOnly,
-					padding: { top: 20 },
-					wordWrap: 'on',
-					wordBreak: 'keepAll',
-					selectOnLineNumbers: true,
-					matchBrackets: 'near',
-					fontSize: 18,
-					useTabStops: false,
-					insertSpaces: false,
-					renderWhitespace: 'all',
-					tabSize: 2,
-					minimap: {
-						enabled: minimap,
-					},
-					definitionLinkOpensInPeek: true,
-				}}
-			/>
+			<Suspense fallback={editorBackground}>
+				<MonacoEditorRuntime
+					width={width}
+					height={height}
+					language={language}
+					theme={EditorTheme}
+					onMount={onMount}
+					onUnmount={onUnmount}
+					keepCurrentModel
+					loading={editorBackground}
+					onChange={onChange}
+					onValidate={language === "typescript" ? doValidate : undefined}
+					filePath={editingFile.key}
+					options={{
+						readOnly,
+						padding: { top: 20 },
+						wordWrap: 'on',
+						wordBreak: 'keepAll',
+						selectOnLineNumbers: true,
+						matchBrackets: 'near',
+						fontSize: 18,
+						useTabStops: false,
+						insertSpaces: false,
+						renderWhitespace: 'all',
+						tabSize: 2,
+						minimap: {
+							enabled: minimap,
+						},
+						definitionLinkOpensInPeek: true,
+					}}
+				/>
+			</Suspense>
 		</div>
 	);
 });
@@ -592,6 +614,8 @@ let typeScriptSearchPathUpdateId = 0;
 
 const configureTypeScriptSearchPaths = (nextAssetPath: string, projectSourceRoot = "") => {
 	if (nextAssetPath === "") return;
+	const runtime = peekMonacoRuntime();
+	if (runtime === null) return;
 	const searchRoots = [
 		projectSourceRoot,
 		path.join(nextAssetPath, "Script", "Lib"),
@@ -599,6 +623,7 @@ const configureTypeScriptSearchPaths = (nextAssetPath: string, projectSourceRoot
 	const nextSearchPathKey = searchRoots.join("\n");
 	if (nextSearchPathKey === configuredTypeScriptSearchPathKey) return;
 	configuredTypeScriptSearchPathKey = nextSearchPathKey;
+	const monacoTypescript = getMonacoTypeScript();
 	const compilerOptions = { ...monacoTypescript.typescriptDefaults.getCompilerOptions() };
 	delete compilerOptions.baseUrl;
 	monacoTypescript.typescriptDefaults.setCompilerOptions({
@@ -607,6 +632,32 @@ const configureTypeScriptSearchPaths = (nextAssetPath: string, projectSourceRoot
 			"*": searchRoots.map(root => `${monaco.Uri.file(root).toString()}/*`),
 		},
 	});
+};
+
+let monacoDeclarationsPromise: Promise<void> | null = null;
+
+const initializeMonacoDeclarations = () => {
+	if (monacoDeclarationsPromise !== null) return monacoDeclarationsPromise;
+	const monacoTypescript = getMonacoTypeScript();
+	monacoTypescript.typescriptDefaults.setExtraLibs([]);
+	monacoDeclarationsPromise = Promise.all([
+		Service.read({ path: "es6-subset.d.ts" }),
+		Service.read({ path: "lua.d.ts" }),
+		Service.read({ path: "Dora.d.ts" }),
+	]).then(([es6, lua, dora]) => {
+		if (es6.success) {
+			monacoTypescript.typescriptDefaults.addExtraLib(es6.content, toTypeScriptFileName(es6.fullPath));
+		}
+		if (lua.success) {
+			monacoTypescript.typescriptDefaults.addExtraLib(lua.content, toTypeScriptFileName(lua.fullPath));
+		}
+		if (dora.success) {
+			monacoTypescript.typescriptDefaults.addExtraLib(dora.content, toTypeScriptFileName(dora.fullPath));
+		}
+	}).catch(() => {
+		// Declaration loading must not prevent the editor itself from mounting.
+	});
+	return monacoDeclarationsPromise;
 };
 
 const getProjectSourceRoot = async (projectFile: string) => {
@@ -640,9 +691,10 @@ export default function PersistentDrawerLeft() {
 	}[]>([]);
 	const alertTimersRef = useRef(new Map<string, number>());
 	const [isWaSaving, setIsWaSaving] = useState(false);
-	const [drawerOpen, setDrawerOpen] = useState(true);
+	const [drawerOpen, setDrawerOpen] = useState(() => window.innerWidth >= narrowSplitBreakpoint);
 	const [tabIndex, setTabIndex] = useState<number | null>(null);
 	const [files, setFiles] = useState<EditingFile[]>([]);
+	const [mountedTabKeys, setMountedTabKeys] = useState<string[]>([]);
 
 	const [treeData, setTreeData] = useState<TreeDataType[]>([]);
 	const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
@@ -686,7 +738,14 @@ export default function PersistentDrawerLeft() {
 
 	const [openFilter, setOpenFilter] = useState(false);
 	const [leftDockTab, setLeftDockTab] = useState<"explorer" | "search" | "tools">("explorer");
-	const [filterOptions, setFilterOptions] = useState<FilterOption[] | null>(null);
+	const [filterOptionCount, setFilterOptionCount] = useState(0);
+	const [filterOptionsLoading, setFilterOptionsLoading] = useState(false);
+	const filterOptionsRequestRef = useRef<{
+		key: string;
+		epoch: number;
+		promise: Promise<number | null>;
+	} | null>(null);
+	const fileSearchInvalidationEpochRef = useRef(0);
 	const [openLLMConfig, setOpenLLMConfig] = useState(false);
 	const [toolEntries, setToolEntries] = useState<Service.EntryLaunchInfo[]>([]);
 	const [gameEntries, setGameEntries] = useState<Service.EntryLaunchInfo[]>([]);
@@ -698,14 +757,15 @@ export default function PersistentDrawerLeft() {
 		width: window.innerWidth,
 		height: window.innerHeight
 	});
+	const windowWidthRef = useRef(window.innerWidth);
 	const statusBarHeight = 26;
-	const editorWidth = winSize.width - (drawerOpen ? drawerWidth : 0);
+	const narrowLayout = winSize.width < narrowSplitBreakpoint;
+	const effectiveDrawerWidth = narrowLayout
+		? Math.floor(winSize.width * 0.82)
+		: drawerWidth;
+	const editorWidth = winSize.width - (drawerOpen && !narrowLayout ? drawerWidth : 0);
 	const editorHeight = winSize.height - 48 - statusBarHeight;
 	const showFullLogo = drawerWidth > 235;
-	const onSplitterResize = useCallback((sizes: number[]) => {
-		if (!drawerOpen || sizes[0] === undefined) return;
-		setDrawerWidth(Math.max(170, Math.round(sizes[0])));
-	}, [drawerOpen]);
 	const onSplitterResizeEnd = useCallback((sizes: number[]) => {
 		setIsResizing(false);
 		if (!drawerOpen || sizes[0] === undefined) return;
@@ -727,13 +787,22 @@ export default function PersistentDrawerLeft() {
 	const expandedKeysRef = useRef(expandedKeys);
 	const selectedKeysRef = useRef(selectedKeys);
 	const tabIndexRef = useRef(tabIndex);
-	const currentTypeScriptModelRef = useRef<monaco.editor.ITextModel | null>(null);
+	const currentTypeScriptModelRef = useRef<Monaco.editor.ITextModel | null>(null);
 	const pendingUpdateFilesRef = useRef(new Map<string, UpdateFileEvent>());
 	const updateFileFlushTimerRef = useRef<number | null>(null);
 	const loadingTreeNodesRef = useRef(new Map<string, Promise<TreeDataType[] | null>>());
 
+	const updateCachedFileSearch = useCallback((file: string, exists: boolean) => {
+		updateFileSearchIndex(file, exists);
+		setFilterOptionCount(getFileSearchIndexSize());
+	}, []);
+
+	const moveCachedFileSearch = useCallback((oldPath: string, newPath: string) => {
+		moveFileSearchIndex(oldPath, newPath);
+	}, []);
+
 	const notifiedAgentTaskEndKeysRef = useRef(new Set<string>());
-	const openFileInTabRef = useRef<(key: string, title: string, folder: boolean, position?: monaco.IPosition, readOnly?: boolean) => void>(() => { });
+	const openFileInTabRef = useRef<(key: string, title: string, folder: boolean, position?: Monaco.IPosition, readOnly?: boolean) => void>(() => { });
 
 	const removeAlert = useCallback((key: string) => {
 		const timer = alertTimersRef.current.get(key);
@@ -845,6 +914,9 @@ export default function PersistentDrawerLeft() {
 	}, [fetchAssetChildren]);
 
 	const loadAssets = useCallback((expanded = expandedKeysRef.current) => {
+		fileSearchInvalidationEpochRef.current += 1;
+		invalidateFileSearchIndex();
+		setFilterOptionCount(0);
 		return Service.assets().then(async (res: TreeDataType) => {
 			res.root = true;
 			res.title = t("tree.assets");
@@ -1021,13 +1093,18 @@ export default function PersistentDrawerLeft() {
 			}
 		}, true);
 		window.addEventListener("resize", () => {
-			setDrawerOpen(open => {
-				setWinSize({
-					width: window.innerWidth,
-					height: window.innerHeight
-				});
-				return open;
-			});
+			const nextSize = {
+				width: window.innerWidth,
+				height: window.innerHeight
+			};
+			if (
+				windowWidthRef.current >= narrowSplitBreakpoint &&
+				nextSize.width < narrowSplitBreakpoint
+			) {
+				setDrawerOpen(false);
+			}
+			windowWidthRef.current = nextSize.width;
+			setWinSize(nextSize);
 		});
 		Service.addWSOpenListener(() => {
 			addAlert(t("log.open"), "success");
@@ -1038,23 +1115,10 @@ export default function PersistentDrawerLeft() {
 			setDisconnected(true);
 		});
 		Service.openWebSocket();
-		monacoTypescript.typescriptDefaults.setExtraLibs([]);
 		Promise.all([
-			Service.read({ path: "es6-subset.d.ts" }),
-			Service.read({ path: "lua.d.ts" }),
-			Service.read({ path: "Dora.d.ts" }),
 			loadAssets(),
 			loadEntries(),
-		]).then(([es6, lua, dora, res]) => {
-			if (es6.success) {
-				monacoTypescript.typescriptDefaults.addExtraLib(es6.content, toTypeScriptFileName(es6.fullPath));
-			}
-			if (lua.success) {
-				monacoTypescript.typescriptDefaults.addExtraLib(lua.content, toTypeScriptFileName(lua.fullPath));
-			}
-			if (dora.success) {
-				monacoTypescript.typescriptDefaults.addExtraLib(dora.content, toTypeScriptFileName(dora.fullPath));
-			}
+		]).then(([res]) => {
 			if (res !== null) {
 				setExpandedKeys([res.key]);
 			}
@@ -1136,7 +1200,7 @@ export default function PersistentDrawerLeft() {
 		return false;
 	}, [addAlert, t]);
 
-	const onModified = useCallback((editingFile: EditingFile, content: string, lastChange?: monaco.editor.IModelContentChange) => {
+	const onModified = useCallback((editingFile: EditingFile, content: string, lastChange?: Monaco.editor.IModelContentChange) => {
 		const editor = editingFile.editor;
 		if (editor === undefined) return;
 		const model = editor.getModel();
@@ -1157,7 +1221,7 @@ export default function PersistentDrawerLeft() {
 	}, [checkFileReadonly, setModified]);
 
 	const handleDrawerOpen = () => {
-		setDrawerOpen(!drawerOpen);
+		setDrawerOpen(open => !open);
 	};
 
 	const switchTab = useCallback(async (newValue: number | null, fileToFocus?: EditingFile) => {
@@ -1180,7 +1244,29 @@ export default function PersistentDrawerLeft() {
 	}, [switchTab, files]);
 
 	const currentFile = tabIndex !== null ? files.at(tabIndex) : undefined;
-	const revalidateActiveTypeScriptModel = useCallback((model: monaco.editor.ITextModel) => {
+	const currentFileKey = currentFile?.key;
+	const previousLeftDockTabRef = useRef(leftDockTab);
+	useEffect(() => {
+		const previousTab = previousLeftDockTabRef.current;
+		previousLeftDockTabRef.current = leftDockTab;
+		if (
+			leftDockTab !== "explorer"
+			|| previousTab === "explorer"
+			|| currentFileKey === undefined
+		) {
+			return;
+		}
+		void revealTreeNode(currentFileKey);
+	}, [currentFileKey, leftDockTab, revealTreeNode]);
+	useEffect(() => {
+		if (currentFileKey === undefined) return;
+		setMountedTabKeys(previous => {
+			const next = [...previous.filter(key => key !== currentFileKey), currentFileKey];
+			return next.length > 2 ? next.slice(next.length - 2) : next;
+		});
+	}, [currentFileKey]);
+	const mountedTabKeySet = useMemo(() => new Set(mountedTabKeys), [mountedTabKeys]);
+	const revalidateActiveTypeScriptModel = useCallback((model: Monaco.editor.ITextModel) => {
 		const ext = path.extname(model.uri.fsPath).toLowerCase();
 		if (ext !== ".ts" && ext !== ".tsx") return;
 		const searchPathUpdateId = ++typeScriptSearchPathUpdateId;
@@ -1417,8 +1503,11 @@ export default function PersistentDrawerLeft() {
 		}
 	}, [currentFile, currentFile?.editor, checkFileReadonly, revalidateActiveTypeScriptModel]);
 
-	const onEditorDidMount = useCallback((file: EditingFile) => async (editor: monaco.editor.IStandaloneCodeEditor) => {
+	const onEditorDidMount = useCallback((file: EditingFile) => async (editor: Monaco.editor.IStandaloneCodeEditor) => {
 		file.editor = editor;
+		if (file.viewState) {
+			editor.restoreViewState(file.viewState);
+		}
 		setFiles(prev => [...prev]);
 		let inferLang: "lua" | "tl" | "yue" | null = null;
 		const ext = path.extname(file.key).toLowerCase().substring(1);
@@ -1464,7 +1553,7 @@ export default function PersistentDrawerLeft() {
 			};
 			const openInferDefinition = (
 				target: InferDefinitionTarget | null | undefined,
-				ed: monaco.editor.ICodeEditor = editor,
+				ed: Monaco.editor.ICodeEditor = editor,
 			) => {
 				if (target === null || target === undefined) return;
 				const currentModel = ed.getModel();
@@ -1576,9 +1665,15 @@ export default function PersistentDrawerLeft() {
 		}
 		const model = editor.getModel();
 		if (model) {
-			model.setValue(file.content);
+			const expectedContent = file.contentModified ?? file.content;
+			if (model.getValue() !== expectedContent) {
+				model.setValue(expectedContent);
+			}
 		}
 		if (ext === "tsx" || ext === "ts") {
+			await initializeMonacoDeclarations();
+			configureTypeScriptSearchPaths(assetPath);
+			const monacoTypescript = getMonacoTypeScript();
 			if (ext === "tsx") {
 				import('./languages/jsx-monaco').then(({ jsxSyntaxHighlight }) => {
 					const { highlighter, dispose } = jsxSyntaxHighlight.highlighterBuilder({
@@ -1639,7 +1734,7 @@ export default function PersistentDrawerLeft() {
 			const displayPartsToString = (parts: TypeScriptDisplayPart[] | undefined) => {
 				return parts?.map((part) => part.text).join("").trim() ?? "";
 			};
-			const getPositionAtOffset = (content: string, offset: number): monaco.IPosition => {
+			const getPositionAtOffset = (content: string, offset: number): Monaco.IPosition => {
 				const clampedOffset = Math.max(0, Math.min(offset, content.length));
 				const prefix = content.slice(0, clampedOffset);
 				const lines = prefix.split(/\r\n|\r|\n/);
@@ -1656,8 +1751,8 @@ export default function PersistentDrawerLeft() {
 				return path.join(path.dirname(projFile), targetFile);
 			};
 			const resolveTypeScriptDefinitionTarget = async (
-				sourceModel: monaco.editor.ITextModel,
-				position: monaco.IPosition,
+				sourceModel: Monaco.editor.ITextModel,
+				position: Monaco.IPosition,
 			): Promise<TypeScriptDefinitionTarget | null> => {
 				const getWorker = await monacoTypescript.getTypeScriptWorker();
 				const worker = await getWorker(sourceModel.uri);
@@ -1686,7 +1781,7 @@ export default function PersistentDrawerLeft() {
 			};
 			const openTypeScriptDefinition = (
 				target: TypeScriptDefinitionTarget | null | undefined,
-				ed: monaco.editor.ICodeEditor = editor,
+				ed: Monaco.editor.ICodeEditor = editor,
 			) => {
 				if (target === null || target === undefined) return;
 				const currentModel = ed.getModel();
@@ -1709,7 +1804,7 @@ export default function PersistentDrawerLeft() {
 			const openTypeScriptDefinitionCommand = editor.addCommand(0, (_accessor, target?: TypeScriptDefinitionTarget) => {
 				openTypeScriptDefinition(target);
 			});
-			let definitionHoverProvider: monaco.IDisposable | null = null;
+			let definitionHoverProvider: Monaco.IDisposable | null = null;
 			if (openTypeScriptDefinitionCommand !== null) {
 				const sourceUri = model.uri.toString();
 				definitionHoverProvider = monaco.languages.registerHoverProvider("typescript", {
@@ -1723,7 +1818,7 @@ export default function PersistentDrawerLeft() {
 						) as TypeScriptQuickInfo | undefined;
 						const target = await resolveTypeScriptDefinitionTarget(hoverModel, position);
 						if (quickInfo === undefined && target === null) return undefined;
-						const contents: monaco.IMarkdownString[] = [];
+						const contents: Monaco.IMarkdownString[] = [];
 						const display = displayPartsToString(quickInfo?.displayParts);
 						if (display !== "") {
 							contents.push({
@@ -1844,6 +1939,11 @@ export default function PersistentDrawerLeft() {
 			void revalidateModel(model);
 		}
 	}, [t, checkFileReadonly, revalidateActiveTypeScriptModel]);
+	const onEditorWillUnmount = useCallback((file: EditingFile) => (editor: Monaco.editor.IStandaloneCodeEditor) => {
+		if (file.editor !== editor) return;
+		file.viewState = editor.saveViewState();
+		file.editor = undefined;
+	}, []);
 	const switchTabRef = useRef(switchTab);
 	const onEditorDidMountRef = useRef(onEditorDidMount);
 	switchTabRef.current = switchTab;
@@ -2017,7 +2117,7 @@ export default function PersistentDrawerLeft() {
 		});
 	}, [addAlert, openFile, switchTab, t]);
 
-	const openFileInTab = useCallback((key: string, title: string, folder: boolean, position?: monaco.IPosition, readOnly?: boolean) => {
+	const openFileInTab = useCallback((key: string, title: string, folder: boolean, position?: Monaco.IPosition, readOnly?: boolean) => {
 		let index: number | null = null;
 		const file = files.find((file, i) => {
 			if (path.relative(file.key, key) === "") {
@@ -2207,6 +2307,7 @@ export default function PersistentDrawerLeft() {
 		};
 
 		const handleUpdateFile = (file: string, exists: boolean, content: string) => {
+			updateCachedFileSearch(file, exists);
 			pendingUpdateFiles.set(file, { file, exists, content });
 			if (updateFileFlushTimerRef.current !== null) return;
 			updateFileFlushTimerRef.current = window.setTimeout(flushUpdateFileQueue, 500);
@@ -2221,7 +2322,7 @@ export default function PersistentDrawerLeft() {
 			pendingUpdateFiles.clear();
 			Service.removeUpdateFileListener(handleUpdateFile);
 		};
-	}, []);
+	}, [updateCachedFileSearch]);
 
 	useEffect(() => {
 		const terminalStatuses = new Set(["DONE", "FAILED", "STOPPED"]);
@@ -2862,6 +2963,7 @@ export default function PersistentDrawerLeft() {
 			confirmed: () => {
 				Service.deleteFile({ path: data.key }).then((res) => {
 					if (!res.success) return;
+					updateCachedFileSearch(data.key, false);
 					const currentRoot = treeDataRef.current.at(0);
 					if (currentRoot === undefined) return;
 					const removeResult = removeTreeNode(currentRoot, data.key);
@@ -2899,7 +3001,7 @@ export default function PersistentDrawerLeft() {
 				});
 			},
 		});
-	}, [addAlert, files, tabIndex, t, switchTab]);
+	}, [addAlert, files, tabIndex, t, switchTab, updateCachedFileSearch]);
 
 	const buildTreeData = useCallback(async (data: TreeDataType) => {
 		const { key } = data;
@@ -3251,6 +3353,9 @@ export default function PersistentDrawerLeft() {
 				addAlert(t("alert.startUnzip", { title }), "info");
 				Service.unzip({ zipFile: key, path: path.join(dir, name) }).then((res) => {
 					if (res.success) {
+						fileSearchInvalidationEpochRef.current += 1;
+						invalidateFileSearchIndex();
+						setFilterOptionCount(0);
 						addAlert(t("alert.doneUnzip", { title }), "success");
 					} else {
 						addAlert(t("alert.failedUnzip", { title }), "error");
@@ -3477,6 +3582,7 @@ export default function PersistentDrawerLeft() {
 							addAlert(t("alert.renameFailed"), "error");
 							return;
 						}
+						moveCachedFileSearch(oldFile, newFile);
 						const uri = monaco.Uri.file(oldFile);
 						const model = monaco.editor.getModel(uri);
 						if (model !== null) {
@@ -3587,6 +3693,11 @@ export default function PersistentDrawerLeft() {
 							addAlert(t(`alert.new${initRes.message}`), "error");
 							return;
 						}
+					}
+					if (initFile !== null) {
+						updateCachedFileSearch(initFile, true);
+					} else if (!folder) {
+						updateCachedFileSearch(newFile, true);
 					}
 					await refreshTreeDirectory(dir, true);
 					const openedFile = initFile ?? newFile;
@@ -3705,6 +3816,7 @@ export default function PersistentDrawerLeft() {
 				const doRename = () => {
 					return Service.rename({ old: self.key, new: newFile }).then((res) => {
 						if (res.success) {
+							moveCachedFileSearch(self.key, newFile);
 							addAlert(t("alert.moved", { from: self.title, to: targetName }), "success");
 							return true;
 						}
@@ -3753,7 +3865,7 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		});
-	}, [addAlert, checkFileReadonly, expandedKeys, files, refreshTreeDirectory, updateDir, t, treeData, switchTab, tabIndex]);
+	}, [addAlert, checkFileReadonly, expandedKeys, files, moveCachedFileSearch, refreshTreeDirectory, updateDir, t, treeData, switchTab, tabIndex]);
 
 	const runBatchOperation = useCallback(async (
 		operation: Service.AssetBatchOperation,
@@ -3767,6 +3879,9 @@ export default function PersistentDrawerLeft() {
 		setBatchOperationRunning(true);
 		try {
 			const res = await Service.assetBatch(operation, sources, target);
+			fileSearchInvalidationEpochRef.current += 1;
+			invalidateFileSearchIndex();
+			setFilterOptionCount(0);
 			const changes = res.changes ?? [];
 			if (operation === "delete" && changes.length > 0) {
 				const removedPaths = changes.map(change => change.old);
@@ -3920,6 +4035,7 @@ export default function PersistentDrawerLeft() {
 
 	const onUploaded = useCallback((dir: string, file: string, open: boolean) => {
 		const key = path.join(dir, file);
+		updateCachedFileSearch(key, true);
 		const newFiles = files.filter(f => path.relative(f.key, key) !== "");
 		if (file.length !== newFiles.length) {
 			setFiles(newFiles);
@@ -3946,7 +4062,7 @@ export default function PersistentDrawerLeft() {
 				}
 			}, 2000);
 		}
-	}, [tabIndex, refreshTreeDirectory, switchTab, files, openFileInTab]);
+	}, [tabIndex, refreshTreeDirectory, switchTab, files, openFileInTab, updateCachedFileSearch]);
 
 	const onWorkspaceViewChange = useCallback((fileKey: string, view: "agent" | "upload" | "git") => {
 		setFiles(prev => prev.map(file => file.key === fileKey ? { ...file, workspaceView: view } : file));
@@ -3956,13 +4072,13 @@ export default function PersistentDrawerLeft() {
 		setFiles(prev => prev.map(file => file.key === fileKey ? { ...file, agentInitialPrompt: undefined } : file));
 	}, []);
 
-	const checkFile = (file: EditingFile, content: string, model: monaco.editor.ITextModel, lastChange?: monaco.editor.IModelContentChange) => {
+	const checkFile = (file: EditingFile, content: string, model: Monaco.editor.ITextModel, lastChange?: Monaco.editor.IModelContentChange) => {
 		const ext = path.extname(file.key).toLowerCase();
 		if (ext === ".yarn") {
 			// Yarn file validation
 			Service.checkYarnFile({ code: content }).then((res) => {
 				let status: TabStatus = "normal";
-				const markers: monaco.editor.IMarkerData[] = [];
+				const markers: Monaco.editor.IMarkerData[] = [];
 				if (!res.success) {
 					status = "error";
 					const message = res.message;
@@ -4003,7 +4119,7 @@ export default function PersistentDrawerLeft() {
 		}
 		Service.check({ file: file.key, content }).then((res) => {
 			let status: TabStatus = "normal";
-			const markers: monaco.editor.IMarkerData[] = [];
+			const markers: Monaco.editor.IMarkerData[] = [];
 			if (!res.success && res.info !== undefined) {
 				for (let i = 0; i < res.info.length; i++) {
 					const [errType, filename, row, col, msg] = res.info[i];
@@ -4377,6 +4493,94 @@ export default function PersistentDrawerLeft() {
 		openFileInTab(key, title, false);
 	}, [openFileInTab]);
 
+	const ensureFileSearchIndex = useCallback((): Promise<number | null> => {
+		const rootNode = treeDataRef.current.at(0);
+		if (rootNode === undefined || writablePath === "") {
+			return Promise.resolve(null);
+		}
+		const currentWritablePath = writablePath;
+		const currentAssetPath = assetPath;
+		const key = `${currentWritablePath}\0${currentAssetPath}`;
+		if (hasFileSearchIndex(key)) {
+			return Promise.resolve(getFileSearchIndexSize());
+		}
+		const epoch = fileSearchInvalidationEpochRef.current;
+		let request = filterOptionsRequestRef.current;
+		if (request === null || request.key !== key || request.epoch !== epoch) {
+			const promise: Promise<number | null> = Service.assetFiles(currentWritablePath).then(async (res) => {
+				if (!res.success) return null;
+				const entries: FileSearchEntry[] = [];
+				const chunkSize = 2000;
+				for (let start = 0; start < res.files.length; start += chunkSize) {
+					const end = Math.min(start + chunkSize, res.files.length);
+					for (let i = start; i < end; i++) {
+						const file = res.files[i];
+						entries.push({
+							rootId: 0,
+							relativePath: path.relative(currentWritablePath, file),
+						});
+					}
+					if (end < res.files.length) {
+						await new Promise<void>(resolve => window.setTimeout(resolve, 0));
+					}
+				}
+				const { engineDev } = Info;
+				const toolPath = path.join(assetPath, "Script", "Tools");
+				const visitBuiltin = (node: TreeDataType) => {
+					if (!node.dir) {
+						const isToolFile = isChildFolder(node.key, toolPath) && path.dirname(node.key) === toolPath;
+						if (engineDev || isToolFile) {
+							entries.push({
+								rootId: 1,
+								relativePath: path.relative(currentAssetPath, node.key),
+							});
+						}
+					}
+					for (const child of node.children ?? []) {
+						visitBuiltin(child);
+					}
+				};
+				const builtinRoot = rootNode.children?.find(node => node.builtin);
+				if (builtinRoot !== undefined) {
+					visitBuiltin(builtinRoot);
+				}
+				if (fileSearchInvalidationEpochRef.current !== epoch) return null;
+				const snapshot: FileSearchSnapshot = {
+					key,
+					roots: [
+						{
+							id: 0,
+							kind: "workspace",
+							absolutePath: currentWritablePath,
+							label: rootNode.title,
+						},
+						{
+							id: 1,
+							kind: "builtin",
+							absolutePath: currentAssetPath,
+							label: builtinRoot?.title ?? t("tree.builtin"),
+						},
+					],
+					entries,
+				};
+				await initializeFileSearchIndex(snapshot);
+				return entries.length;
+			}).catch(() => null);
+			request = {
+				key,
+				epoch,
+				promise,
+			};
+			filterOptionsRequestRef.current = request;
+			void promise.finally(() => {
+				if (filterOptionsRequestRef.current?.promise === promise) {
+					filterOptionsRequestRef.current = null;
+				}
+			});
+		}
+		return request.promise;
+	}, [t]);
+
 	useEffect(() => {
 		if (!openFilter) return;
 		const rootNode = treeDataRef.current.at(0);
@@ -4384,47 +4588,55 @@ export default function PersistentDrawerLeft() {
 			setOpenFilter(false);
 			return;
 		}
+		const key = `${writablePath}\0${assetPath}`;
+		if (hasFileSearchIndex(key)) {
+			setFilterOptionCount(getFileSearchIndexSize());
+			setFilterOptionsLoading(false);
+			return;
+		}
+		setFilterOptionCount(0);
+		setFilterOptionsLoading(true);
 		let cancelled = false;
-		void Service.assetFiles(writablePath).then((res) => {
+		void ensureFileSearchIndex().then((count) => {
 			if (cancelled) return;
-			setOpenFilter(false);
-			if (!res.success) return;
-			const options: FilterOption[] = res.files.map((file) => ({
-				title: path.basename(file),
-				fileKey: file,
-				path: file.substring(writablePath.length + 1),
-			}));
-			const { engineDev } = Info;
-			const toolPath = path.join(assetPath, "Script", "Tools");
-			const visitBuiltin = (node: TreeDataType) => {
-				if (!node.dir) {
-					const isToolFile = isChildFolder(node.key, toolPath) && path.dirname(node.key) === toolPath;
-					if (engineDev || isToolFile) {
-						options.push({
-							title: node.title,
-							fileKey: node.key,
-							path: node.key.substring(assetPath.length + 1),
-						});
-					}
-				}
-				for (const child of node.children ?? []) {
-					visitBuiltin(child);
-				}
-			};
-			const builtinRoot = rootNode.children?.find(node => node.builtin);
-			if (builtinRoot !== undefined) {
-				visitBuiltin(builtinRoot);
-			}
-			setFilterOptions(options);
-		}).catch(() => {
-			if (!cancelled) {
+			setFilterOptionsLoading(false);
+			if (count === null) {
 				setOpenFilter(false);
+				return;
 			}
+			setFilterOptionCount(count);
 		});
 		return () => {
 			cancelled = true;
 		};
-	}, [openFilter, treeData]);
+	}, [ensureFileSearchIndex, openFilter]);
+
+	useEffect(() => {
+		const rootNode = treeData.at(0);
+		if (rootNode === undefined || writablePath === "") return;
+		const key = `${writablePath}\0${assetPath}`;
+		if (hasFileSearchIndex(key)) return;
+		let cancelled = false;
+		const warmIndex = () => {
+			if (cancelled) return;
+			void ensureFileSearchIndex().then((count) => {
+				if (cancelled || count === null) return;
+				setFilterOptionCount(count);
+			});
+		};
+		if (typeof window.requestIdleCallback === "function") {
+			const idleId = window.requestIdleCallback(warmIndex, { timeout: 2000 });
+			return () => {
+				cancelled = true;
+				window.cancelIdleCallback(idleId);
+			};
+		}
+		const timer = window.setTimeout(warmIndex, 800);
+		return () => {
+			cancelled = true;
+			window.clearTimeout(timer);
+		};
+	}, [ensureFileSearchIndex, treeData]);
 
 	const spineLoadFailed = useCallback((message: string) => {
 		addAlert(message, 'error');
@@ -4459,7 +4671,7 @@ export default function PersistentDrawerLeft() {
 		setOpenLog(null);
 	}, [openLog, onStopRunning]);
 
-	const onValidate = useCallback((markers: monaco.editor.IMarker[], key: string) => {
+	const onValidate = useCallback((markers: Monaco.editor.IMarker[], key: string) => {
 		if (checkFileReadonly(key, false)) return;
 		const file = files.find(f => f.key === key);
 		if (file === undefined) return;
@@ -4501,12 +4713,29 @@ export default function PersistentDrawerLeft() {
 	}, [files, checkFileReadonly]);
 
 	const onFileFilterClose = useCallback((value: FilterOption | null) => {
-		setFilterOptions(null);
+		setOpenFilter(false);
+		setFilterOptionsLoading(false);
 		if (value === null) {
 			return;
 		}
 		openFileInTab(value.fileKey, value.title, false);
-	}, [setFilterOptions, openFileInTab]);
+	}, [openFileInTab]);
+
+	useEffect(() => {
+		if (!openFilter) return;
+		const closeOnOutsidePointer = (event: PointerEvent) => {
+			const paper = document.querySelector('[data-file-filter-dialog="true"] .MuiDialog-paper');
+			if (
+				paper !== null
+				&& event.target instanceof Node
+				&& !paper.contains(event.target)
+			) {
+				onFileFilterClose(null);
+			}
+		};
+		document.addEventListener("pointerdown", closeOnOutsidePointer, true);
+		return () => document.removeEventListener("pointerdown", closeOnOutsidePointer, true);
+	}, [onFileFilterClose, openFilter]);
 
 	const onSearchOpenFile = useCallback((file: string, line: number, column: number) => {
 		if (tabIndex !== null && files[tabIndex]?.key === file) {
@@ -4541,14 +4770,28 @@ export default function PersistentDrawerLeft() {
 	return (
 		<Entry>
 			<Dialog
+				data-file-filter-dialog="true"
 				maxWidth="lg"
-				open={filterOptions !== null}
+				open={openFilter}
+				onClose={() => onFileFilterClose(null)}
+				onPointerDown={(event) => {
+					const target = event.target;
+					if (target instanceof Element && target.closest(".MuiDialog-paper") === null) {
+						onFileFilterClose(null);
+					}
+				}}
 				transitionDuration={0}
-				slotProps={{ transition: transitionProps }}
+				slotProps={{
+					transition: transitionProps,
+					backdrop: {
+						onMouseDown: () => onFileFilterClose(null),
+						onClick: () => onFileFilterClose(null),
+					},
+				}}
 			>
 				<DialogContent>
-					{filterOptions !== null ?
-						<FileFilter options={filterOptions} onClose={onFileFilterClose} /> : null
+					{openFilter ?
+						<FileFilter optionCount={filterOptionCount} loading={filterOptionsLoading} onClose={onFileFilterClose} /> : null
 					}
 				</DialogContent>
 			</Dialog>
@@ -4735,7 +4978,7 @@ export default function PersistentDrawerLeft() {
 				<CssBaseline />
 				<AppBar
 					position="fixed"
-					open={drawerOpen}
+					open={drawerOpen && !narrowLayout}
 					drawerWidth={drawerWidth}
 					isResizing={isResizing}
 				>
@@ -4781,8 +5024,9 @@ export default function PersistentDrawerLeft() {
 				</AppBar>
 				<Splitter
 					orientation="horizontal"
+					lazy
 					onResizeStart={() => setIsResizing(true)}
-					onResize={onSplitterResize}
+					onResize={() => undefined}
 					onResizeEnd={onSplitterResizeEnd}
 					classNames={{
 						dragger: {
@@ -4806,18 +5050,32 @@ export default function PersistentDrawerLeft() {
 					style={{ width: '100%', height: '100%' }}
 				>
 					<Splitter.Panel
-						size={drawerOpen ? drawerWidth : 0}
-						min={drawerOpen ? 170 : 0}
-						max="50%"
-						resizable={drawerOpen}
+						className="dora-resource-panel"
+						size={drawerOpen ? effectiveDrawerWidth : 0}
+						min={drawerOpen ? (narrowLayout ? effectiveDrawerWidth : 170) : 0}
+						max={narrowLayout ? effectiveDrawerWidth : "50%"}
+						resizable={drawerOpen && !narrowLayout}
 						destroyOnHidden={false}
 						style={{
 							overflow: 'hidden',
 							backgroundColor: Color.BackgroundDark,
 							color: Color.TextPrimary,
+							...(narrowLayout ? {
+								position: 'absolute',
+								inset: '0 auto 0 0',
+								zIndex: 3,
+								width: drawerOpen ? effectiveDrawerWidth : 0,
+								maxWidth: '82vw',
+								boxShadow: drawerOpen ? '12px 0 28px rgba(0, 0, 0, 0.42)' : 'none',
+							} : {}),
 						}}
 					>
-					<div style={{ display: 'flex', flexDirection: 'column', width: drawerWidth, height: '100%' }}>
+					<div style={{
+						display: 'flex',
+						flexDirection: 'column',
+						width: narrowLayout ? '100%' : drawerWidth,
+						height: '100%'
+					}}>
 						<div style={{
 							display: 'flex',
 							alignItems: 'center',
@@ -4905,6 +5163,22 @@ export default function PersistentDrawerLeft() {
 										<SearchIcon fontSize="small" />
 									</IconButton>
 								</Tooltip>
+								{narrowLayout ? (
+									<Tooltip title={t("action.close")}>
+										<IconButton
+											size="small"
+											color="inherit"
+											aria-label="close drawer"
+											onClick={handleDrawerOpen}
+											sx={{
+												border: `1px solid ${Color.Line}`,
+												borderRadius: 1.5,
+											}}
+										>
+											<Fullscreen fontSize="small" />
+										</IconButton>
+									</Tooltip>
+								) : null}
 							</Stack>
 						</div>
 						<div style={{ flex: 1, minHeight: 0, padding: 0 }} hidden={leftDockTab !== "explorer"}>
@@ -5048,19 +5322,37 @@ export default function PersistentDrawerLeft() {
 						</div>
 					</div>
 					</Splitter.Panel>
-					<Splitter.Panel min={320} style={{ overflow: 'hidden' }}>
+					<Splitter.Panel
+						className="dora-content-panel"
+						min={narrowLayout ? 0 : 320}
+						style={{
+							overflow: 'hidden',
+							...(narrowLayout ? {
+								flexBasis: '100%',
+								width: '100%',
+								maxWidth: '100%',
+							} : {}),
+						}}
+					>
 					<Box sx={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
 				<>{
 					files.map((file, index) => {
+						const active = tabIndex === index;
+						const visualStatePinned = file.visualSnapshotPending === true ||
+							file.ticDirty === true;
+						if (!active && !mountedTabKeySet.has(file.key) && !visualStatePinned) {
+							return null;
+						}
 						if (file.agentSessionId) {
 							return <Main
 								open
 								key={file.key}
-								hidden={tabIndex !== index}
+								hidden={!active}
 								drawerWidth={0}
 							>
 								<DrawerHeader />
 								<ProjectWorkspacePanel
+									active={active}
 									title={file.title}
 									height={editorHeight}
 									uploadPath={file.key}
@@ -5140,7 +5432,7 @@ export default function PersistentDrawerLeft() {
 						return <Main
 							open
 							key={file.key}
-							hidden={tabIndex !== index}
+							hidden={!active}
 							drawerWidth={0}
 						>
 							<DrawerHeader />
@@ -5230,14 +5522,32 @@ export default function PersistentDrawerLeft() {
 									<Suspense fallback={<div />}>
 										<YarnEditor
 											title={file.key}
-											defaultValue={file.content}
+											defaultValue={file.contentModified ?? file.content}
 											width={editorWidth}
 											height={editorHeight}
 											onLoad={(data) => {
 												file.yarnData = data;
 											}}
+											onUnload={(data) => {
+												if (file.yarnData === data) {
+													file.yarnData = undefined;
+												}
+											}}
 											onChange={() => {
+												const data = file.yarnData;
+												if (data === undefined) return;
+												const revision = (file.visualSnapshotRevision ?? 0) + 1;
+												file.visualSnapshotRevision = revision;
+												file.visualSnapshotPending = true;
 												setModified({ key: file.key, content: "" });
+												void data.getJSONData().then(value => {
+													if (file.visualSnapshotRevision !== revision) return;
+													const text = Yarn.convertYarnJsonToText(JSON.parse(value));
+													file.visualSnapshotPending = false;
+													setModified({ key: file.key, content: text });
+												}).catch(() => {
+													// Keep the live iframe pinned when a recoverable snapshot cannot be produced.
+												});
 											}}
 											onKeydown={(e) => {
 												setKeyEvent(e);
@@ -5299,14 +5609,25 @@ export default function PersistentDrawerLeft() {
 									<CodeWire
 										key={file.key}
 										title={file.key}
-										defaultValue={file.content}
+										defaultValue={file.contentModified ?? file.content}
 										width={editorWidth}
 										height={editorHeight}
 										onLoad={(data) => {
 											file.codeWireData = data;
 										}}
+										onUnload={(data) => {
+											if (file.codeWireData === data) {
+												if (file.contentModified !== null) {
+													file.contentModified = data.getVisualScript();
+												}
+												file.codeWireData = undefined;
+											}
+										}}
 										onChange={() => {
-											setModified({ key: file.key, content: "" });
+											const content = file.codeWireData?.getVisualScript();
+											if (content !== undefined) {
+												setModified({ key: file.key, content });
+											}
 										}}
 										onKeydown={(e) => {
 											setKeyEvent(e);
@@ -5347,6 +5668,16 @@ export default function PersistentDrawerLeft() {
 												defaultValue={file.content}
 												width={editorWidth}
 												height={editorHeight}
+												onDirty={() => {
+													if (file.ticDirty === true) return;
+													file.ticDirty = true;
+													setFiles(previous => previous.includes(file) ? [...previous] : previous);
+												}}
+												onSaved={() => {
+													if (file.ticDirty !== true) return;
+													file.ticDirty = false;
+													setFiles(previous => previous.includes(file) ? [...previous] : previous);
+												}}
 												onKeydown={(e) => {
 													setKeyEvent(e);
 												}}
@@ -5422,7 +5753,7 @@ export default function PersistentDrawerLeft() {
 								return null;
 							})()}
 							{(() => {
-								if (language) {
+								if (language && tabIndex === index && !hidden) {
 									const editorComponent = <Editor
 										key={file.key}
 										hidden={hidden}
@@ -5432,6 +5763,7 @@ export default function PersistentDrawerLeft() {
 										language={language}
 										minimap={!isResizing}
 										onMount={file.onMount}
+										onUnmount={onEditorWillUnmount(file)}
 										onModified={onModified}
 										onValidate={onValidate}
 										readOnly={readOnly}
@@ -5559,7 +5891,7 @@ export default function PersistentDrawerLeft() {
 					<KeyboardShortcuts />
 				}
 				<div style={{ position: 'fixed', left: winSize.width - editorWidth, bottom: statusBarHeight, width: editorWidth, zIndex: 998, transition: 'all 0.2s' }} hidden={!openBottomLog}>
-					<BottomLog height={editorHeight * 0.3} onFixLog={onFixLog} />
+					<BottomLog active={openBottomLog} height={editorHeight * 0.3} onFixLog={onFixLog} />
 				</div>
 				<Box sx={{
 					position: 'fixed',
@@ -5717,7 +6049,7 @@ export default function PersistentDrawerLeft() {
 				sx={{
 					pointerEvents: 'none',
 					position: 'fixed',
-					left: (drawerOpen ? drawerWidth : 0) + 20,
+					left: (drawerOpen && !narrowLayout ? drawerWidth : 0) + 20,
 					bottom: 20,
 					zIndex: 1200,
 					opacity: isWaSaving ? 1 : 0,

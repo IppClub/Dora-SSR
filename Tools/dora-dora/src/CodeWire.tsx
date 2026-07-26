@@ -6,7 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import { memo } from "react";
+import { memo, useEffect, useRef } from "react";
 
 export interface CodeWireData {
 	getScript: () => string;
@@ -21,11 +21,23 @@ export interface CodeWireProps {
 	height: number;
 	defaultValue?: string;
 	onLoad: (data: CodeWireData) => void;
+	onUnload?: (data: CodeWireData) => void;
 	onChange: () => void;
 	onKeydown: (event: KeyboardEvent) => void;
 };
 
 const CodeWire = memo((props: CodeWireProps) => {
+	const dataRef = useRef<CodeWireData | null>(null);
+	const onUnloadRef = useRef(props.onUnload);
+	onUnloadRef.current = props.onUnload;
+	useEffect(() => {
+		return () => {
+			if (dataRef.current !== null) {
+				onUnloadRef.current?.(dataRef.current);
+				dataRef.current = null;
+			}
+		};
+	}, []);
 	return <iframe
 		width={props.width}
 		height={props.height}
@@ -41,7 +53,9 @@ const CodeWire = memo((props: CodeWireProps) => {
 			if (props.defaultValue !== undefined && props.defaultValue !== "") {
 				win.setVisualScript(props.defaultValue);
 			}
-			props.onLoad(win as CodeWireData);
+			const data = win as CodeWireData;
+			dataRef.current = data;
+			props.onLoad(data);
 			win.document.addEventListener("keydown", (event: KeyboardEvent) => {
 				if (event.ctrlKey || event.altKey || event.metaKey) {
 					switch (event.key) {

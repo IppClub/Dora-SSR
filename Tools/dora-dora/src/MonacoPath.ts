@@ -6,12 +6,12 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import monaco, { monacoTypescript } from './monacoBase';
 import Info from './Info';
+import { getMonacoRuntime, getMonacoTypeScript } from './MonacoRuntimeAccess';
 
 export const toTypeScriptFileName = (file: string) => {
 	if (file.startsWith("file:")) return file;
-	return monaco.Uri.file(file).toString();
+	return getMonacoRuntime().Uri.file(file).toString();
 };
 
 export const toFilePath = (fileName: string) => {
@@ -19,12 +19,12 @@ export const toFilePath = (fileName: string) => {
 	try {
 		return Info.path.fromFileUrl(fileName);
 	} catch {
-		return monaco.Uri.parse(fileName).fsPath;
+		return getMonacoRuntime().Uri.parse(fileName).fsPath;
 	}
 };
 
 export const getExtraLib = (fileName: string) => {
-	const extraLibs = monacoTypescript.typescriptDefaults.getExtraLibs();
+	const extraLibs = getMonacoTypeScript().typescriptDefaults.getExtraLibs();
 	const directLib = extraLibs[fileName];
 	if (directLib !== undefined) return directLib;
 	const filePath = toFilePath(fileName);

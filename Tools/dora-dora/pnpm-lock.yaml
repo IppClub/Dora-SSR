@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
+  mac-scrollbar@0.13.8:
+    hash: 3b905f3f6a881213da58033602f7216edac21fc7ddf567a9cc6462ca26c26bf5
+    path: patches/mac-scrollbar@0.13.8.patch
   vite-plugin-monaco-editor@1.1.0:
     hash: 78bcfd876ec9dcb4b3100060e043c7d9f9f3242b269a1a0fd8f283bf74f97dc6
     path: patches/vite-plugin-monaco-editor@1.1.0.patch
@@ -102,7 +105,7 @@ importers:
         version: 3.3.0
       mac-scrollbar:
         specifier: ^0.13.8
-        version: 0.13.8
+        version: 0.13.8(patch_hash=3b905f3f6a881213da58033602f7216edac21fc7ddf567a9cc6462ca26c26bf5)
       match-sorter:
         specifier: ^8.3.0
         version: 8.3.0
@@ -6530,7 +6533,7 @@ snapshots:
 
   lz-string@1.5.0: {}
 
-  mac-scrollbar@0.13.8: {}
+  mac-scrollbar@0.13.8(patch_hash=3b905f3f6a881213da58033602f7216edac21fc7ddf567a9cc6462ca26c26bf5): {}
 
   markdown-table@3.0.4: {}
 

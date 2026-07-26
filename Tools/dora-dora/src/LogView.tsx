@@ -27,6 +27,7 @@ import type { TableColumnsType } from 'antd';
 import Info from './Info';
 import { LogFixRequest, buildLogFixMessage, logFixLineClassName } from './LogFix';
 import LogFixPanel from './LogFixPanel';
+import { useBatchedLog } from './useBatchedLog';
 
 export interface LogViewProps {
 	openName: string | null;
@@ -96,7 +97,8 @@ const transitionProps = {
 const LogView = memo((props: LogViewProps) => {
 	const { t } = useTranslation();
 	const logContainerRef = useRef<HTMLDivElement | null>(null);
-	const [text, setText] = useState(t("log.wait"));
+	const logSnapshot = useBatchedLog();
+	const text = logSnapshot.text === "" ? t("log.wait") : logSnapshot.text;
 	const [command, setCommand] = useState("");
 	const [history, setHistory] = useState<string[]>([]);
 	const [historyIndex, setHistoryIndex] = useState<number>(-1);
@@ -116,10 +118,6 @@ const LogView = memo((props: LogViewProps) => {
 	}, [t]);
 
 	useEffect(() => {
-		const logListener = (_newItem: string, allText: string) => {
-			setText(allText === "" ? t("log.wait") : allText);
-		};
-		Service.addLogListener(logListener);
 		const profilerListener = (info: ProfilerInfo) => {
 			if (!toggleProfiler) {
 				return;
@@ -132,7 +130,6 @@ const LogView = memo((props: LogViewProps) => {
 		};
 		Service.addProfilerListener(profilerListener);
 		return () => {
-			Service.removeLogListener(logListener);
 			Service.removeProfilerListener(profilerListener);
 		};
 	}, [t, profilerInfo?.loaderCosts, toggleProfiler]);
@@ -693,6 +690,27 @@ const LogView = memo((props: LogViewProps) => {
 						stream
 						follow
 					/>
+					{logSnapshot.truncated ? (
+						<Box
+							title={t("log.truncated")}
+							sx={{
+								position: "absolute",
+								top: 8,
+								right: 12,
+								zIndex: 2,
+								px: 1,
+								py: 0.375,
+								border: `1px solid ${Color.Warning}66`,
+								borderRadius: 1.5,
+								color: Color.Warning,
+								backgroundColor: "rgba(28, 24, 16, 0.92)",
+								fontSize: 12,
+								pointerEvents: "none",
+							}}
+						>
+							{t("log.truncatedShort")}
+						</Box>
+					) : null}
 					{fixTarget && props.onFixLog && !fixTarget.panelOpen ? (
 						<Button
 							size="small"
