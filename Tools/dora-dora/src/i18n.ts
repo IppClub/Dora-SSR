@@ -1579,7 +1579,7 @@ i18n
 					},
 					onboarding: {
 						firstProjectWelcomeTitle: "创建你的第一个 Dora SSR 工程",
-						firstProjectWelcomeDescription: "请花一分钟，创建一个可以直接运行的工程。",
+						firstProjectWelcomeDescription: "只要一分钟，创建一个可以直接运行的工程。",
 						workspaceTitle: "从工作空间开始",
 						workspaceDescription: "在左侧资源树中右键点击“工作空间”根节点。",
 						newMenuTitle: "新建内容",

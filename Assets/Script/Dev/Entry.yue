@@ -108,6 +108,9 @@ else
 unless config.showPreview?
 	config.showPreview = true
 
+unless config.webIDETourCompleted?
+	config.webIDETourCompleted = false
+
 unless config.authRequired?
 	config.authRequired = App.platform not in ["Android", "iOS"]
 HttpServer.authRequired = config.authRequired
@@ -819,7 +822,11 @@ extraOperations = do
 			if changed, alwaysOnTop := Checkbox zh and "窗口置顶" or "Always On Top", alwaysOnTop
 				App.alwaysOnTop = alwaysOnTop
 				config.alwaysOnTop = alwaysOnTop
-		:showPreview, :authRequired = config
+		{
+			:showPreview
+			:authRequired
+			:webIDETourCompleted
+		} = config
 		if changed, showPreview := Checkbox zh and "显示预览图" or "Show Preview", showPreview
 			config.showPreview = showPreview
 			updateEntries!
@@ -909,6 +916,8 @@ extraOperations = do
 			View.scale = scaleContent and screenScale or 1
 		if changed, engineDev := Checkbox zh and '引擎开发模式' or 'Engine Dev Mode', engineDev
 			config.engineDev = engineDev
+		if changed, webIDETourCompleted := Checkbox zh and "导览已完成" or "User Tour Done", webIDETourCompleted
+			config.webIDETourCompleted = webIDETourCompleted
 		if testingThread
 			BeginDisabled -> Button zh and "开始自动测试" or "Test automatically"
 		elseif Button zh and "开始自动测试" or "Test automatically"

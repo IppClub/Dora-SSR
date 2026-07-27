@@ -242,6 +242,19 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 						border: `1px solid ${Color.Line}`,
 						boxShadow: "0 18px 48px rgba(0, 0, 0, 0.46)",
 					},
+					footer: {
+						alignItems: "stretch",
+						flexDirection: "column",
+						gap: 12,
+					},
+					indicators: {
+						alignSelf: "flex-start",
+						flexWrap: "nowrap",
+						width: "100%",
+					},
+					actions: {
+						alignSelf: "flex-end",
+					},
 				}}
 			/>
 		</ConfigProvider>

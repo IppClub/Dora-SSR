@@ -843,7 +843,7 @@ bool HttpServer::start(int port) {
 	if (success) {
 		_stopping.store(false, std::memory_order_release);
 		for (const auto& get : _gets) {
-			server.Get(get.pattern, [this, handler = get.handler](const httplib::Request& req, httplib::Response& res) {
+			server.Get(get.pattern, [this, route = &get](const httplib::Request& req, httplib::Response& res) {
 				const auto requestGeneration = _generation.load(std::memory_order_acquire);
 				HttpServer::Request request;
 				request.headers.reserve(req.headers.size() * 2);
@@ -861,9 +861,9 @@ bool HttpServer::start(int port) {
 					request.contentType = it->second;
 				}
 				auto pending = std::make_shared<PendingLogicResult<HttpServer::Response>>();
-				SharedApplication.invokeInLogic([pending, handler, request = std::move(request)]() {
+				SharedApplication.invokeInLogic([pending, route, request = std::move(request)]() {
 					if (pending->isCancelled()) return;
-					pending->complete(handler(request));
+					pending->complete(route->handler(request));
 				});
 				auto response = pending->wait(_stopping, _generation, requestGeneration);
 				if (!response) {
@@ -875,7 +875,7 @@ bool HttpServer::start(int port) {
 			});
 		}
 		for (const auto& post : _posts) {
-			server.Post(post.pattern, [this, handler = post.handler](const httplib::Request& req, httplib::Response& res) {
+			server.Post(post.pattern, [this, route = &post](const httplib::Request& req, httplib::Response& res) {
 				const auto requestGeneration = _generation.load(std::memory_order_acquire);
 				if (req.path != "/auth"sv && req.path != "/auth/confirm"sv && !isAuthorized(req)) {
 					set_unauthorized(res);
@@ -898,9 +898,9 @@ bool HttpServer::start(int port) {
 				}
 				request.body = req.body;
 				auto pending = std::make_shared<PendingLogicResult<HttpServer::Response>>();
-				SharedApplication.invokeInLogic([pending, handler, request = std::move(request)]() {
+				SharedApplication.invokeInLogic([pending, route, request = std::move(request)]() {
 					if (pending->isCancelled()) return;
-					pending->complete(handler(request));
+					pending->complete(route->handler(request));
 				});
 				auto response = pending->wait(_stopping, _generation, requestGeneration);
 				if (!response) {
@@ -912,7 +912,7 @@ bool HttpServer::start(int port) {
 			});
 		}
 		for (const auto& post : _postScheduled) {
-			server.Post(post.pattern, [this, handler = post.handler](const httplib::Request& req, httplib::Response& res) {
+			server.Post(post.pattern, [this, route = &post](const httplib::Request& req, httplib::Response& res) {
 				const auto requestGeneration = _generation.load(std::memory_order_acquire);
 				if (req.path != "/auth"sv && req.path != "/auth/confirm"sv && !isAuthorized(req)) {
 					set_unauthorized(res);
@@ -935,9 +935,9 @@ bool HttpServer::start(int port) {
 				}
 				request.body = req.body;
 				auto pending = std::make_shared<PendingLogicResult<HttpServer::Response>>();
-				SharedApplication.invokeInLogic([pending, handler, request = std::move(request)]() {
+				SharedApplication.invokeInLogic([pending, route, request = std::move(request)]() {
 					if (pending->isCancelled()) return;
-					auto scheduleFunc = handler(request);
+					auto scheduleFunc = route->handler(request);
 					SharedDirector.getSystemScheduler()->schedule([pending, scheduleFunc = std::move(scheduleFunc)](double) {
 						if (pending->isCancelled()) return true;
 						auto fRes = scheduleFunc();
@@ -959,7 +959,7 @@ bool HttpServer::start(int port) {
 		}
 		for (const auto& postFile : _files) {
 			server.Post(postFile.pattern,
-				[this, acceptHandler = postFile.acceptHandler, doneHandler = postFile.doneHandler](const httplib::Request& req, httplib::Response& res, const httplib::ContentReader& content_reader) {
+				[this, route = &postFile](const httplib::Request& req, httplib::Response& res, const httplib::ContentReader& content_reader) {
 					const auto requestGeneration = _generation.load(std::memory_order_acquire);
 					if (req.path != "/auth"sv && req.path != "/auth/confirm"sv && !isAuthorized(req)) {
 						set_unauthorized(res);
@@ -990,9 +990,9 @@ bool HttpServer::start(int port) {
 					content_reader(
 						[&](const httplib::FormData& file) {
 							auto pending = std::make_shared<PendingLogicResult<std::optional<std::string>>>();
-							SharedApplication.invokeInLogic([pending, acceptHandler, request, filename = file.filename]() {
+							SharedApplication.invokeInLogic([pending, route, request, filename = file.filename]() {
 								if (pending->isCancelled()) return;
-								pending->complete(acceptHandler(request, filename));
+								pending->complete(route->acceptHandler(request, filename));
 							});
 							auto acceptedPath = pending->wait(_stopping, _generation, requestGeneration);
 							if (!acceptedPath) {
@@ -1025,11 +1025,11 @@ bool HttpServer::start(int port) {
 						return;
 					}
 					auto pending = std::make_shared<PendingLogicResult<bool>>();
-					SharedApplication.invokeInLogic([pending, doneHandler, request, acceptedFiles]() {
+					SharedApplication.invokeInLogic([pending, route, request, acceptedFiles]() {
 						if (pending->isCancelled()) return;
 						bool done = true;
 						for (const auto& file : acceptedFiles) {
-							if (!doneHandler(request, file)) {
+							if (!route->doneHandler(request, file)) {
 								SharedContent.remove(file);
 								done = false;
 								break;
@@ -1052,6 +1052,10 @@ bool HttpServer::start(int port) {
 				LogError("http server failed to start");
 			}
 		});
+		// Ensure a subsequent stop() can always close the listening socket.
+		// Server::stop() is a no-op until listen_after_bind() marks the server
+		// as running.
+		server.wait_until_ready();
 	}
 	return success;
 }
@@ -1099,6 +1103,11 @@ void HttpServer::stop() {
 	_stopping.store(true, std::memory_order_release);
 	_generation.fetch_add(1, std::memory_order_acq_rel);
 	getServer().stop();
+	// Server::stop() only closes the listening socket. Wait for
+	// listen_after_bind() to finish joining its request workers before
+	// destroying route callbacks, whose Lua handlers belong to the logic
+	// thread.
+	_thread->runInMainSync([]() { });
 	getServer().clear_posts();
 	_posts.clear();
 	_postScheduled.clear();
