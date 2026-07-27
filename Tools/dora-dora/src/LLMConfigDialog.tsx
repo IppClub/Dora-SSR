@@ -83,79 +83,79 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		id: 'deepseek',
 		label: 'DeepSeek',
 		url: 'https://api.deepseek.com/v1/chat/completions',
-		model: 'deepseek-v4-flash'
+		model: 'deepseek-v4-pro'
 	},
 	{
 		id: 'moonshot',
 		label: 'Moonshot',
 		url: 'https://api.moonshot.cn/v1/chat/completions',
-		model: 'moonshot-v1-auto'
+		model: 'kimi-k3'
 	},
 	{
 		id: 'qwen',
 		label: 'Qwen',
 		url: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
-		model: 'qwen-coder-plus'
+		model: 'qwen3.7-max'
 	},
 	{
 		id: 'openrouter',
 		label: 'OpenRouter',
 		url: 'https://openrouter.ai/api/v1/chat/completions',
-		model: 'anthropic/claude-sonnet-4.5'
+		model: '~anthropic/claude-sonnet-latest'
 	},
 	{
 		id: 'openai',
 		label: 'OpenAI',
 		url: 'https://api.openai.com/v1/chat/completions',
-		model: 'gpt-4.1'
+		model: 'gpt-5.6'
 	},
 	{
 		id: 'aihubmix',
 		label: 'AiHubMix',
 		url: 'https://aihubmix.com/v1/chat/completions',
-		model: 'gpt-4.1-mini'
+		model: 'gpt-5.6-luna'
 	},
 	{
 		id: 'siliconflow',
 		label: 'SiliconFlow',
 		url: 'https://api.siliconflow.cn/v1/chat/completions',
-		model: 'deepseek-ai/DeepSeek-V3'
+		model: 'deepseek-ai/DeepSeek-V4-Pro'
 	},
 	{
 		id: 'volcengine',
 		label: 'VolcEngine',
 		url: 'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
-		model: 'doubao-seed-1-6-thinking-250715'
+		model: 'doubao-seed-2-0-pro-260215'
 	},
 	{
 		id: 'volcengine-coding-plan',
 		label: 'VolcEngine Coding Plan',
 		url: 'https://ark.cn-beijing.volces.com/api/coding/v3/chat/completions',
-		model: 'doubao-seed-1-6-thinking-250715'
+		model: 'ark-code-latest'
 	},
 	{
 		id: 'byteplus',
 		label: 'BytePlus',
 		url: 'https://ark.ap-southeast.bytepluses.com/api/v3/chat/completions',
-		model: 'doubao-seed-1-6-thinking-250715'
+		model: 'dola-seed-2-1-turbo-260628'
 	},
 	{
 		id: 'byteplus-coding-plan',
 		label: 'BytePlus Coding Plan',
 		url: 'https://ark.ap-southeast.bytepluses.com/api/coding/v3/chat/completions',
-		model: 'doubao-seed-1-6-thinking-250715'
+		model: 'ark-code-latest'
 	},
 	{
 		id: 'minimax',
 		label: 'MiniMax',
 		url: 'https://api.minimax.io/v1/chat/completions',
-		model: 'MiniMax-M1'
+		model: 'MiniMax-M2.7'
 	},
 	{
 		id: 'minimax-cn',
 		label: 'MiniMax (CN)',
 		url: 'https://api.minimaxi.com/v1/chat/completions',
-		model: 'MiniMax-M1'
+		model: 'MiniMax-M2.7'
 	},
 	{
 		id: 'mimo',
@@ -175,13 +175,19 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		id: 'zai',
 		label: 'ZAI',
 		url: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
-		model: 'glm-5.1'
+		model: 'glm-5.2',
+		customOptions: JSON.stringify({
+			auxiliaryReasoningEffort: 'minimal',
+		}, null, 2)
 	},
 	{
 		id: 'zai-coding-plan',
 		label: 'ZAI Coding Plan',
 		url: 'https://open.bigmodel.cn/api/coding/paas/v4/chat/completions',
-		model: 'glm-5.1'
+		model: 'glm-5.2',
+		customOptions: JSON.stringify({
+			auxiliaryReasoningEffort: 'minimal',
+		}, null, 2)
 	},
 	{
 		id: 'ollama',

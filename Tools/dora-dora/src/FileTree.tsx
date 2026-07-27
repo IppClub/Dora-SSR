@@ -188,6 +188,8 @@ export interface FileTreeProps {
 	checkedKeys: string[];
 	expandedKeys: string[];
 	treeData: TreeDataType[];
+	firstProjectTourTargetKey?: string;
+	firstProjectTourWorkspaceRightClickOnly?: boolean;
 	scrollRequest: number;
 	resizing: boolean;
 	multiSelectMode: boolean;
@@ -199,6 +201,7 @@ export interface FileTreeProps {
 	onBatchTarget: (target: TreeDataType) => void;
 	onCancelBatchTarget: () => void;
 	onMenuClick: (event: TreeMenuEvent, data?: TreeDataType) => void;
+	onContextMenuOpen?: (data: TreeDataType) => void;
 	onExpand: (key: string[], info?: { node: TreeDataType; expanded: boolean }) => void;
 	loadData: (node: TreeDataType) => Promise<void>;
 	onDrop: (self: TreeDataType, target: TreeDataType) => void;
@@ -287,6 +290,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 
 	const onRightClick: NonNullable<TreeProps<TreeDataType>["onRightClick"]> = (info) => {
 		if (multiSelectMode) return;
+		if (info.node.key === props.firstProjectTourTargetKey) return;
 		setAnchorItem({ target: info.event.currentTarget, data: info.node });
 		setMenuOpen(true);
 	};
@@ -297,6 +301,13 @@ export default memo(function FileTree(props: FileTreeProps) {
 	};
 
 	const onSelect: NonNullable<TreeProps<TreeDataType>["onSelect"]> = (_keys, info) => {
+		if (
+			props.firstProjectTourWorkspaceRightClickOnly
+			&& info.node.root
+			&& !info.node.builtin
+		) {
+			return;
+		}
 		if (batchTargetMode !== null) {
 			if (info.node.dir) props.onBatchTarget(info.node);
 			return;
@@ -309,7 +320,11 @@ export default memo(function FileTree(props: FileTreeProps) {
 			);
 			return;
 		}
-		props.onSelect(info.selectedNodes);
+		props.onSelect(
+			info.node.key === props.firstProjectTourTargetKey
+				? [info.node]
+				: info.selectedNodes
+		);
 	};
 
 	const onCheck: NonNullable<TreeProps<TreeDataType>["onCheck"]> = (keys, info) => {
@@ -381,12 +396,20 @@ export default memo(function FileTree(props: FileTreeProps) {
 				onClose={() => handleClose("Cancel", anchorItem?.data)}
 				slotProps={{
 					transition: {
+						onEntered: () => {
+							if (anchorItem !== null) {
+								props.onContextMenuOpen?.(anchorItem.data);
+							}
+						},
 						onExited: () => setAnchorItem(null),
 					},
 				}}
 			>
 				{enableNew ?
-					<StyledMenuItem onClick={() => handleClose("New", anchorItem?.data)}>
+					<StyledMenuItem
+						data-first-project-new="true"
+						onClick={() => handleClose("New", anchorItem?.data)}
+					>
 						<ListItemIcon>
 							<AiOutlineFileAdd />
 						</ListItemIcon>
@@ -583,6 +606,16 @@ export default memo(function FileTree(props: FileTreeProps) {
 					loadedKeys={loadedKeys}
 					onLoad={() => { }}
 					selectedKeys={selectedKeys}
+					titleRender={(node) => (
+						<span
+							data-first-project-workspace-root={node.root && !node.builtin ? "true" : undefined}
+							data-first-project-agent-target={
+								node.key === props.firstProjectTourTargetKey ? "true" : undefined
+							}
+						>
+							{node.title}
+						</span>
+					)}
 					dropIndicatorRender={() => <div />}
 					styles={{
 						item: {
@@ -745,6 +778,8 @@ export default memo(function FileTree(props: FileTreeProps) {
 		}
 	}
 	return prev.treeData === next.treeData &&
+		prev.firstProjectTourTargetKey === next.firstProjectTourTargetKey &&
+		prev.firstProjectTourWorkspaceRightClickOnly === next.firstProjectTourWorkspaceRightClickOnly &&
 		prev.scrollRequest === next.scrollRequest &&
 		prev.resizing === next.resizing &&
 		prev.multiSelectMode === next.multiSelectMode &&

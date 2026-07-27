@@ -305,6 +305,7 @@ const App = React.lazy(() => Service.info().then((res) => {
 	Info.engineDev = res.engineDev;
 	Info.webProfiler = res.webProfiler;
 	Info.drawerWidth = res.drawerWidth;
+	Info.webIDETourCompleted = res.webIDETourCompleted;
 
 	Path.setPath(Info.path);
 

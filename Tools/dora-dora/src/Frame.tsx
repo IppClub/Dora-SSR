@@ -10,7 +10,7 @@ import { styled, ThemeProvider } from '@mui/material/styles';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Stack from '@mui/system/Stack';
 import { Box, Divider, IconButton, Tooltip } from '@mui/material';
-import { BsFillFileEarmarkPlayFill, BsFillPlayFill, BsFillStopFill, BsSearch, BsTerminal, BsGear } from 'react-icons/bs';
+import { BsFillFileEarmarkPlayFill, BsFillPlayFill, BsFillStopFill, BsSearch, BsTerminal, BsGear, BsQuestionCircle } from 'react-icons/bs';
 import { GoChecklist } from "react-icons/go";
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -92,11 +92,12 @@ export const DrawerHeader = styled('div')(({ theme }) => ({
 	justifyContent: 'flex-end',
 }));
 
-export type PlayControlMode = "Run" | "Run This" | "Stop" | "Go to File" | "View Log" | "LLM Config";
+export type PlayControlMode = "Run" | "Run This" | "Stop" | "Go to File" | "View Log" | "LLM Config" | "First Project Tour";
 
 export interface PlayControlProp {
 	onClick: (mode: PlayControlMode, noLog?: boolean) => void;
 	compact?: boolean;
+	showFirstProjectTour?: boolean;
 	buildProjectAction?: {
 		onClick: () => void;
 	};
@@ -133,9 +134,13 @@ export const PlayControl = memo((prop: PlayControlProp) => {
 		{ mode: "View Log", icon: <BsTerminal style={iconStyle} />, name: t("menu.viewLog"), shortcut: "Mod+." },
 		{ mode: "Go to File", icon: <BsSearch style={iconStyle} />, name: t("menu.goToFile"), shortcut: "Mod+P" },
 		{ mode: "LLM Config", icon: <BsGear style={iconStyle} />, name: t("menu.llmConfig") },
+		{ mode: "First Project Tour", icon: <BsQuestionCircle style={iconStyle} />, name: t("menu.firstProjectTour") },
 	];
 	const actionItems: React.ReactNode[] = [];
 	for (const action of actions) {
+		if (action.mode === "First Project Tour" && prop.showFirstProjectTour === false) {
+			continue;
+		}
 		if (action.mode === "View Log" && prop.buildProjectAction !== undefined) {
 			actionItems.push(
 				<Tooltip key="Build Project" title={`${t("menu.buildProject")} Mod+B`}>
@@ -157,6 +162,7 @@ export const PlayControl = memo((prop: PlayControlProp) => {
 				<IconButton
 					color="secondary"
 					aria-label={action.name}
+					data-play-control-mode={action.mode}
 					onClick={() => prop.onClick(action.mode)}
 					sx={buttonSx}
 				>

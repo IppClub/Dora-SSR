@@ -73,6 +73,7 @@ config = Config(
 	"updateNotification"
 	"writablePath"
 	"webIDEConnected"
+	"webIDETourCompleted"
 	"showPreview"
 	"authRequired"
 )

@@ -632,6 +632,9 @@ export const entryList = () => {
 
 // Info
 
+export interface InfoRequest {
+	webIDETourCompleted?: boolean;
+};
 export interface InfoResponse {
 	platform: "Windows" | "macOS" | "iOS" | "Android" | "Linux";
 	locale: string;
@@ -639,9 +642,10 @@ export interface InfoResponse {
 	engineDev: boolean;
 	webProfiler: boolean;
 	drawerWidth: number;
+	webIDETourCompleted: boolean;
 };
-export const info = () => {
-	return post<InfoResponse>("/info");
+export const info = (req?: InfoRequest) => {
+	return post<InfoResponse>("/info", req ?? {});
 };
 
 // LLM Config

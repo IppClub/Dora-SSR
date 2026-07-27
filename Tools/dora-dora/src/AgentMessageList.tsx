@@ -17,7 +17,7 @@ import Markdown from './Markdown';
 import './github-markdown-dark.css';
 
 const MemoMarkdown = React.memo(function AgentMessageMarkdown(props: { content: string }) {
-	return <Markdown content={props.content} contentPadding={0} />;
+	return <Markdown content={props.content} contentPadding={0} inheritTypography />;
 });
 
 const AgentAssistantMessageRow = React.memo(function AgentAssistantMessageRow(props: {

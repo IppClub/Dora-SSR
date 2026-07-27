@@ -168,14 +168,21 @@ function NewFileDialog(props: NewFileDialogProps) {
 			onClose={handleClose}
 			open={open}
 			transitionDuration={0}
-			slotProps={{ transition: transitionProps }}>
+			slotProps={{
+				transition: transitionProps,
+				paper: {
+					"data-first-project-new-dialog": "true",
+				},
+			}}>
 			<DialogTitle>{t("file.new")}</DialogTitle>
 			<Grid container columns={{ sm: 2, md: 3 }}>
 				{
 					fileTypes.map((fileType) => (
 						<Grid key={fileType.name} size={1}>
 							<ListItem>
-								<ListItemButton sx={{ height: "90px" }}
+								<ListItemButton
+									data-first-project-folder={fileType.name === "Folder" ? "true" : undefined}
+									sx={{ height: "90px" }}
 									onClick={() => handleListItemClick(fileType.name)}
 									key={fileType.name}
 								>

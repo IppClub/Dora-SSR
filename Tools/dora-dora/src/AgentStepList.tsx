@@ -401,7 +401,7 @@ function ExpandableCommandBlock(props: {
 				>
 					<MacScrollbar skin="dark" style={{ width: "100%", maxHeight: 320, padding: props.language ? undefined : "8px 10px" }}>
 						{props.language ? (
-							<Markdown content={markdownContent} contentPadding={0} />
+							<Markdown content={markdownContent} contentPadding={0} inheritTypography />
 						) : (
 							<Box
 								component="pre"
@@ -556,7 +556,7 @@ function AgentStepListBody(props: AgentStepListProps) {
 									'& .markdown-body > :last-child': { marginBottom: 0 },
 								}}
 							>
-								<Markdown content={visiblePrimaryContent} contentPadding={0} />
+								<Markdown content={visiblePrimaryContent} contentPadding={0} inheritTypography />
 							</Box>
 						) : null}
 						{historyEntryPreview !== "" ? (
@@ -583,7 +583,7 @@ function AgentStepListBody(props: AgentStepListProps) {
 												'& .markdown-body > :last-child': { marginBottom: 0 },
 											}}
 										>
-											<Markdown content={handoffMeta.summary} contentPadding={0} />
+											<Markdown content={handoffMeta.summary} contentPadding={0} inheritTypography />
 										</Box>
 									) : null}
 									<Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">

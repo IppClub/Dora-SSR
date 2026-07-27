@@ -1386,9 +1386,12 @@ HttpServer\post "/list", (req): success: false ->
 			files = nil if #files == 0
 			return success: true, :files
 
-HttpServer\post "/info", ->
+HttpServer\post "/info", (req) ->
 	import "Script.Dev.Entry"
-	:webProfiler, :drawerWidth = Entry.getConfig!
+	config = Entry.getConfig!
+	switch req when {body: {:webIDETourCompleted}}
+		config.webIDETourCompleted = webIDETourCompleted == true
+	:webProfiler, :drawerWidth, :webIDETourCompleted = config
 	engineDev = Entry.getEngineDev!
 	Entry.connectWebIDE!
 	return
@@ -1398,6 +1401,7 @@ HttpServer\post "/info", ->
 		:engineDev
 		:webProfiler
 		:drawerWidth
+		webIDETourCompleted: webIDETourCompleted == true
 
 ensureLLMConfigTable = ->
 	columns = DB\query "PRAGMA table_info(LLMConfig)"

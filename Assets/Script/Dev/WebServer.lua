@@ -3556,12 +3556,29 @@ HttpServer:post("/list", function(req) -- 1363
 		success = false -- 1363
 	} -- 1363
 end) -- 1363
-HttpServer:post("/info", function() -- 1389
+HttpServer:post("/info", function(req) -- 1389
 	local Entry = require("Script.Dev.Entry") -- 1390
-	local webProfiler, drawerWidth -- 1391
+	local config = Entry.getConfig() -- 1391
+	do -- 1392
+		local _type_0 = type(req) -- 1392
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1392
+		if _tab_0 then -- 1392
+			local webIDETourCompleted -- 1392
+			do -- 1392
+				local _obj_0 = req.body -- 1392
+				local _type_1 = type(_obj_0) -- 1392
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1392
+					webIDETourCompleted = _obj_0.webIDETourCompleted -- 1392
+				end -- 1392
+			end -- 1392
+			if webIDETourCompleted ~= nil then -- 1392
+				config.webIDETourCompleted = webIDETourCompleted == true -- 1393
+			end -- 1392
+		end -- 1392
+	end -- 1392
+	local webProfiler, drawerWidth, webIDETourCompleted -- 1394
 	do -- 1391
-		local _obj_0 = Entry.getConfig() -- 1391
-		webProfiler, drawerWidth = _obj_0.webProfiler, _obj_0.drawerWidth -- 1391
+		webProfiler, drawerWidth, webIDETourCompleted = config.webProfiler, config.drawerWidth, config.webIDETourCompleted -- 1394
 	end -- 1391
 	local engineDev = Entry.getEngineDev() -- 1392
 	Entry.connectWebIDE() -- 1393
@@ -3571,7 +3588,8 @@ HttpServer:post("/info", function() -- 1389
 		version = App.version, -- 1397
 		engineDev = engineDev, -- 1398
 		webProfiler = webProfiler, -- 1399
-		drawerWidth = drawerWidth -- 1400
+		drawerWidth = drawerWidth, -- 1400
+		webIDETourCompleted = webIDETourCompleted == true -- 1401
 	} -- 1394
 end) -- 1389
 local ensureLLMConfigTable -- 1402

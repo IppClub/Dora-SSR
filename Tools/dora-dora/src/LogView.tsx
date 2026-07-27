@@ -813,7 +813,11 @@ const LogView = memo((props: LogViewProps) => {
 					<Button onClick={onClear}>
 						{t("action.clear")}
 					</Button>
-					<Button onClick={props.onClose} style={{ marginRight: 10 }}>
+					<Button
+						data-first-project-log-close="true"
+						onClick={props.onClose}
+						style={{ marginRight: 10 }}
+					>
 						{t("action.close")}
 					</Button>
 				</Box>

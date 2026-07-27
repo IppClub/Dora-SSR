@@ -15,6 +15,7 @@ interface BasicInfo {
 	engineDev: boolean;
 	webProfiler: boolean;
 	drawerWidth: number;
+	webIDETourCompleted: boolean;
 };
 
 export default { locale: "" } as BasicInfo;

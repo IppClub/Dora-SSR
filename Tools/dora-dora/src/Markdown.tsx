@@ -37,27 +37,29 @@ export interface MarkdownProps {
 	path?: string;
 	onClick?: (link: string, key: string) => void;
 	contentPadding?: string | number;
+	inheritTypography?: boolean;
 };
 
 const Markdown = memo((props: MarkdownProps) => {
-	const contentPadding = props.contentPadding ?? "32px 36px 40px";
+	const documentMode = !props.inheritTypography;
+	const contentPadding = props.contentPadding ?? (documentMode ? "40px 48px 64px" : 0);
 	return <div
-		className="markdown-body"
+		className={`markdown-body markdown-body--${documentMode ? "document" : "embedded"}`}
 		style={{
 			width: "100%",
-			maxWidth: "100%",
+			maxWidth: documentMode ? 960 : "100%",
 			minWidth: 0,
 			boxSizing: "border-box",
-			margin: 0,
+			margin: documentMode ? "0 auto" : 0,
 			padding: contentPadding,
 			minHeight: 0,
 			overflowX: "hidden",
 			overflowWrap: "anywhere",
 			wordBreak: "break-word",
 			backgroundColor: "transparent",
-			fontSize: "inherit",
-			lineHeight: "inherit",
-			color: "inherit",
+			fontSize: props.inheritTypography ? "inherit" : undefined,
+			lineHeight: props.inheritTypography ? "inherit" : undefined,
+			color: props.inheritTypography ? "inherit" : undefined,
 		}}
 	>
 		<ReactMarkdown
