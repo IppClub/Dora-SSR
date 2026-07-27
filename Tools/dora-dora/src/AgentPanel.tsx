@@ -42,6 +42,7 @@ import {
 	setAgentSessionSnapshot,
 } from './AgentSessionSnapshot';
 import { getAgentTailRenderWindow } from './AgentRenderWindow';
+import { resolveAgentAutoScrollState } from './AgentAutoScroll';
 
 const AGENT_LLM_CONFIG_STORAGE_KEY = "dora.agent.llmConfigId";
 
@@ -94,6 +95,9 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const { active = true, sessionId, projectRoot, title, height, showHeader = true, initialPrompt, addAlert, onInitialPromptConsumed, onRollbackComplete, onOpenFile, onOpenLLMConfig } = props;
 	const [initialSnapshot] = useState(() => getAgentSessionSnapshot(sessionId));
 	const [selectedSessionId, setSelectedSessionId] = useState(sessionId);
+	const [hydratingSessionId, setHydratingSessionId] = useState<number | null>(
+		initialSnapshot ? null : sessionId
+	);
 	const [prompt, setPrompt] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [stoppingTaskId, setStoppingTaskId] = useState<number | null>(null);
@@ -122,7 +126,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const [openedTaskDiffId, setOpenedTaskDiffId] = useState<number | null>(null);
 	const [visibleHistoryRounds, setVisibleHistoryRounds] = useState(HISTORY_VISIBLE_ROUNDS);
 	const [visibleCurrentStepCount, setVisibleCurrentStepCount] = useState(CURRENT_STEPS_VISIBLE_COUNT);
-	const [isNearBottom, setIsNearBottom] = useState(true);
+	const [isFollowingOutput, setIsFollowingOutput] = useState(true);
 	const [llmConfigMissing, setLLMConfigMissing] = useState(false);
 	const [llmConfigs, setLLMConfigs] = useState<Service.LLMConfigItem[]>([]);
 	const [selectedLLMConfigId, setSelectedLLMConfigId] = useState<number | undefined>(() => {
@@ -135,8 +139,9 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const [disabledAgentTools, setDisabledAgentTools] = useState<string[]>([FETCH_URL_TOOL]);
 	const scrollRef = React.useRef<HTMLElement | null>(null);
 	const contentRef = React.useRef<HTMLDivElement | null>(null);
-	const isNearBottomRef = React.useRef(true);
-	const autoScrollRafRef = React.useRef<number | null>(null);
+	const isFollowingOutputRef = React.useRef(true);
+	const lastScrollTopRef = React.useRef(0);
+	const lastScrollHeightRef = React.useRef(0);
 	const consumedInitialPromptRef = React.useRef("");
 	const sessionPatchRevisionRef = React.useRef(0);
 	const onOpenFileRef = React.useRef(onOpenFile);
@@ -149,7 +154,11 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const selectSession = React.useCallback((nextSessionId: number) => {
 		setSelectedSessionId(nextSessionId);
 		const snapshot = getAgentSessionSnapshot(nextSessionId);
-		if (!snapshot) return;
+		if (!snapshot) {
+			setHydratingSessionId(nextSessionId);
+			return;
+		}
+		setHydratingSessionId(null);
 		setSession(snapshot.session);
 		setRelatedSessions(snapshot.relatedSessions);
 		setSpawnInfo(snapshot.spawnInfo);
@@ -263,37 +272,35 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const scrollToBottom = React.useCallback((behavior: ScrollBehavior = "auto") => {
 		const container = scrollRef.current;
 		if (!container) return;
-		container.scrollTo({ top: container.scrollHeight, behavior });
+		const targetScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
+		if (Math.abs(container.scrollTop - targetScrollTop) <= 1) return;
+		container.scrollTo({ top: targetScrollTop, behavior });
 	}, []);
-
-	const cancelAutoScroll = React.useCallback(() => {
-		if (autoScrollRafRef.current !== null) {
-			window.cancelAnimationFrame(autoScrollRafRef.current);
-			autoScrollRafRef.current = null;
-		}
-	}, []);
-
-	const scheduleStickyBottomSync = React.useCallback((behavior: ScrollBehavior = "auto") => {
-		if (!isNearBottomRef.current) return;
-		if (autoScrollRafRef.current !== null) return;
-		autoScrollRafRef.current = window.requestAnimationFrame(() => {
-			autoScrollRafRef.current = null;
-			if (!isNearBottomRef.current) {
-				return;
-			}
-			scrollToBottom(behavior);
-		});
-	}, [scrollToBottom]);
 
 	const syncBottomState = React.useCallback(() => {
 		const container = scrollRef.current;
 		if (!container) return true;
 		const distanceToBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-		const nextIsNearBottom = distanceToBottom <= 8;
-		isNearBottomRef.current = nextIsNearBottom;
-		setIsNearBottom(nextIsNearBottom);
-		return nextIsNearBottom;
+		const nextState = resolveAgentAutoScrollState({
+			followingOutput: isFollowingOutputRef.current,
+			previousScrollTop: lastScrollTopRef.current,
+			previousScrollHeight: lastScrollHeightRef.current,
+			scrollTop: container.scrollTop,
+			scrollHeight: container.scrollHeight,
+			distanceToBottom,
+		});
+		lastScrollTopRef.current = container.scrollTop;
+		lastScrollHeightRef.current = container.scrollHeight;
+		isFollowingOutputRef.current = nextState.followingOutput;
+		setIsFollowingOutput(nextState.followingOutput);
+		return nextState.followingOutput;
 	}, []);
+
+	const resumeFollowingOutput = React.useCallback((behavior: ScrollBehavior = "auto") => {
+		isFollowingOutputRef.current = true;
+		setIsFollowingOutput(true);
+		scrollToBottom(behavior);
+	}, [scrollToBottom]);
 
 	const refresh = React.useCallback(async (statusOnly = false, targetSessionId = selectedSessionId, ignoreIfPatched = false) => {
 		const patchRevision = sessionPatchRevisionRef.current;
@@ -360,7 +367,17 @@ export default function AgentPanel(props: AgentPanelProps) {
 
 	useEffect(() => {
 		if (!active) return;
-		void refresh(false, selectedSessionId);
+		let cancelled = false;
+		const targetSessionId = selectedSessionId;
+		void refresh(false, targetSessionId).finally(() => {
+			if (cancelled) return;
+			setHydratingSessionId(current =>
+				current === targetSessionId ? null : current
+			);
+		});
+		return () => {
+			cancelled = true;
+		};
 	}, [active, refresh, selectedSessionId]);
 
 	useEffect(() => {
@@ -479,14 +496,10 @@ export default function AgentPanel(props: AgentPanelProps) {
 	}, [messages]);
 
 	useLayoutEffect(() => {
-		if (!active || !isNearBottom) return;
-		scheduleStickyBottomSync("auto");
-		return cancelAutoScroll;
+		if (!active || !isFollowingOutputRef.current) return;
+		scrollToBottom("auto");
 	}, [
 		active,
-		cancelAutoScroll,
-		isNearBottom,
-		scheduleStickyBottomSync,
 		scrollToBottom,
 		messages.length,
 		lastMessage?.id,
@@ -518,18 +531,23 @@ export default function AgentPanel(props: AgentPanelProps) {
 		const content = contentRef.current;
 		if (!content || typeof ResizeObserver === "undefined") return;
 		const observer = new ResizeObserver(() => {
-			if (!isNearBottomRef.current) return;
-			scheduleStickyBottomSync("auto");
+			if (!isFollowingOutputRef.current) return;
+			// ResizeObserver runs before paint. Keep the bottom aligned here so
+			// async Markdown and Collapse growth cannot become visible for one
+			// frame before the scroll position catches up.
+			scrollToBottom("auto");
 		});
 		observer.observe(content);
 		return () => observer.disconnect();
-	}, [active, scheduleStickyBottomSync]);
+	}, [active, scrollToBottom]);
 
-	useEffect(() => {
-		return () => {
-			cancelAutoScroll();
-		};
-	}, [cancelAutoScroll]);
+	useLayoutEffect(() => {
+		isFollowingOutputRef.current = true;
+		lastScrollTopRef.current = 0;
+		lastScrollHeightRef.current = 0;
+		setIsFollowingOutput(true);
+		scrollToBottom("auto");
+	}, [scrollToBottom, selectedSessionId]);
 
 	const latestSteps = useMemo(() => {
 		const taskId = session?.currentTaskId;
@@ -1135,7 +1153,9 @@ export default function AgentPanel(props: AgentPanelProps) {
 			);
 		});
 	}, [orderedRelatedSessions, selectedSessionId, selectSession, tabLabelMap]);
-	const showEmptyState = messages.length === 0
+	const isSessionHydrating = hydratingSessionId === selectedSessionId;
+	const showEmptyState = !isSessionHydrating
+		&& messages.length === 0
 		&& steps.length === 0
 		&& !showSummaryShimmer
 		&& pendingQuestionnaire === null;
@@ -1145,6 +1165,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		<Box
 			data-agent-session-id={session?.id}
 			data-agent-task-status={session?.currentTaskStatus ?? session?.status}
+			data-agent-session-hydrating={isSessionHydrating ? "true" : "false"}
 			sx={{ display: "flex", flexDirection: "column", height, position: "relative" }}
 		>
 			{showHeader ? (
@@ -1202,10 +1223,13 @@ export default function AgentPanel(props: AgentPanelProps) {
 				ref={scrollRef}
 				data-agent-scroll-container="true"
 				skin="dark"
-				style={{ flex: 1, minHeight: 0 }}
+				// The panel owns bottom anchoring while output is streaming.
+				// Disable Chromium's independent anchor correction so the two
+				// systems do not pull the viewport in opposite directions.
+				style={{ flex: 1, minHeight: 0, overflowAnchor: "none" }}
 			>
 				<Box ref={contentRef} sx={{ px: 3, py: 3, width: "100%", maxWidth: 1040, mx: "auto", boxSizing: "border-box" }}>
-					<Stack spacing={4}>
+					<Stack spacing={4} sx={{ visibility: isSessionHydrating ? "hidden" : "visible" }}>
 						{showEmptyState ? (
 							<Box
 								sx={{
@@ -1485,6 +1509,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 								) : null}
 								{showSummaryShimmer ? (
 									<Typography
+										data-agent-thinking="true"
 										variant="body1"
 										sx={{
 											mt: visibleSummaryMessages.length > 0 ? 1.5 : 0,
@@ -1630,10 +1655,10 @@ export default function AgentPanel(props: AgentPanelProps) {
 					</Button>
 				</DialogActions>
 			</Dialog>
-			{!isNearBottom ? (
+			{!isFollowingOutput ? (
 				<Tooltip title={t("agent.scrollToBottom")}>
 					<IconButton
-						onClick={() => scrollToBottom("smooth")}
+						onClick={() => resumeFollowingOutput("smooth")}
 						sx={{
 							position: "absolute",
 							right: 24,

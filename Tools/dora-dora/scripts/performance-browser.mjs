@@ -499,7 +499,12 @@ async function sampleAgent(port) {
 			let previousFrame = startedAt;
 			let animationFrame = 0;
 			let patches = 1;
+			let stepPatches = 0;
+			let currentStepIndex = 0;
 			let content = "stream-0000 性能采样内容\\n";
+			let previousThinkingTop = null;
+			const thinkingPositionDeltas = [];
+			const bottomDistances = [];
 			const observer = typeof PerformanceObserver === "undefined"
 				? null
 				: new PerformanceObserver(list => {
@@ -513,6 +518,21 @@ async function sampleAgent(port) {
 			const trackFrame = timestamp => {
 				frameIntervals.push(timestamp - previousFrame);
 				previousFrame = timestamp;
+				const thinking = document.querySelector("[data-agent-thinking]");
+				if (thinking) {
+					const thinkingTop = thinking.getBoundingClientRect().top;
+					if (previousThinkingTop !== null) {
+						thinkingPositionDeltas.push(Math.abs(thinkingTop - previousThinkingTop));
+					}
+					previousThinkingTop = thinkingTop;
+				}
+				const scroll = document.querySelector("[data-agent-scroll-container]");
+				if (scroll) {
+					bottomDistances.push(Math.max(
+						0,
+						scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight
+					));
+				}
 				animationFrame = requestAnimationFrame(trackFrame);
 			};
 			animationFrame = requestAnimationFrame(trackFrame);
@@ -533,6 +553,50 @@ async function sampleAgent(port) {
 						updatedAt: now,
 					},
 				});
+				// Real Agent output alternates between streamed messages and
+				// tool rows whose Markdown height changes asynchronously.
+				// Exercise that path as well as the plain text stream.
+				if (patches % 20 === 0) {
+					currentStepIndex += 1;
+					stepPatches += 1;
+					emit({
+						name: "AgentSessionPatch",
+						sessionId,
+						step: {
+							id: 8_910_000_000 + currentStepIndex,
+							sessionId,
+							taskId,
+							step: currentStepIndex,
+							tool: "read_file",
+							status: "RUNNING",
+							reason: "正在检查第 " + currentStepIndex + " 个文件。\\n\\n- 读取内容\\n- 分析依赖",
+							reasoningContent: "",
+							params: { path: "src/stream-" + currentStepIndex + ".ts" },
+							createdAt: now,
+							updatedAt: now,
+						},
+					});
+				} else if (currentStepIndex > 0 && patches % 20 === 10) {
+					stepPatches += 1;
+					emit({
+						name: "AgentSessionPatch",
+						sessionId,
+						step: {
+							id: 8_910_000_000 + currentStepIndex,
+							sessionId,
+							taskId,
+							step: currentStepIndex,
+							tool: "read_file",
+							status: "DONE",
+							reason: "已检查第 " + currentStepIndex + " 个文件。\\n\\n- 读取内容完成\\n- 依赖分析完成\\n- 记录后续修改点",
+							reasoningContent: "",
+							params: { path: "src/stream-" + currentStepIndex + ".ts" },
+							result: { success: true },
+							createdAt: now,
+							updatedAt: now,
+						},
+					});
+				}
 			}, patchIntervalMs);
 			setTimeout(() => {
 				clearInterval(interval);
@@ -563,9 +627,12 @@ async function sampleAgent(port) {
 				setTimeout(() => resolve({
 					durationMs: streamDurationMs,
 					patches,
+					stepPatches,
 					contentLength: content.length,
 					frameIntervals,
 					longTasks,
+					thinkingPositionDeltas,
+					bottomDistances,
 				}), 500);
 			}, durationMs);
 		})`);
@@ -609,10 +676,15 @@ async function sampleAgent(port) {
 			sessionId: before.sessionId,
 			durationMs: stream.durationMs,
 			patches: stream.patches,
+			stepPatches: stream.stepPatches,
 			contentLength: stream.contentLength,
 			frameP50: percentile(stream.frameIntervals, 0.5),
 			frameP95: percentile(stream.frameIntervals, 0.95),
 			frameMax: Math.max(...stream.frameIntervals),
+			thinkingPositionP95: percentile(stream.thinkingPositionDeltas, 0.95),
+			thinkingPositionMax: Math.max(0, ...stream.thinkingPositionDeltas),
+			bottomDistanceP95: percentile(stream.bottomDistances, 0.95),
+			bottomDistanceMax: Math.max(0, ...stream.bottomDistances),
 			longTaskCount: stream.longTasks.length,
 			longTaskMax: Math.max(0, ...stream.longTasks),
 			probeRenderCount: after.probeRenderCount,
@@ -1005,6 +1077,9 @@ try {
 		if (sample.longTaskMax >= 100) {
 			failures.push(`Agent long task max ${sample.longTaskMax.toFixed(2)} ms exceeds 100 ms`);
 		}
+		if (sample.thinkingPositionP95 > 1) {
+			failures.push(`Agent thinking position P95 ${sample.thinkingPositionP95.toFixed(2)} px exceeds 1 px`);
+		}
 		if (sample.stableMessageRenderGrowth > 0 || sample.stableStepRenderGrowth > 0) {
 			failures.push("stable Agent history rows rendered during the synthetic stream");
 		}
@@ -1029,6 +1104,7 @@ try {
 			budgets: {
 				frameP95Ms: 25,
 				longTaskMaxMs: 100,
+				thinkingPositionP95Px: 1,
 				stableRenderGrowth: 0,
 				probeRenderCommits: `<= ${sample.renderBudget}`,
 				listenerGrowth: listenerGrowthBudget,

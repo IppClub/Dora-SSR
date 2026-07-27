@@ -5888,7 +5888,21 @@ export default function PersistentDrawerLeft() {
 				}
 				</>
 				{files.length > 0 ? null :
-					<KeyboardShortcuts />
+					<KeyboardShortcuts
+						left={drawerOpen && !narrowLayout ? drawerWidth : 0}
+						top={48}
+						bottom={statusBarHeight}
+						onGoToFile={() => setOpenFilter(true)}
+						onNewFile={() => {
+							const target = selectedNode ?? treeData.at(0);
+							if (target !== undefined) setOpenNewFile(target);
+						}}
+						onOpenProjects={() => {
+							if (!drawerOpen) handleDrawerOpen();
+							setLeftDockTab("tools");
+							setEntryView("game");
+						}}
+					/>
 				}
 				<div style={{ position: 'fixed', left: winSize.width - editorWidth, bottom: statusBarHeight, width: editorWidth, zIndex: 998, transition: 'all 0.2s' }} hidden={!openBottomLog}>
 					<BottomLog active={openBottomLog} height={editorHeight * 0.3} onFixLog={onFixLog} />

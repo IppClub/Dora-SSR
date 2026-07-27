@@ -14,9 +14,8 @@ import { Color } from './Theme';
 import AgentFileDiff from './AgentFileDiff';
 import AgentChangeSetSummaryCard from './AgentChangeSetSummary';
 import { recordAgentRowRender } from './AgentRenderDiagnostics';
+import Markdown from './Markdown';
 import './github-markdown-dark.css';
-
-const Markdown = React.lazy(() => import('./Markdown'));
 
 interface AgentStepListProps {
 	steps: AgentSessionStep[];
@@ -402,9 +401,7 @@ function ExpandableCommandBlock(props: {
 				>
 					<MacScrollbar skin="dark" style={{ width: "100%", maxHeight: 320, padding: props.language ? undefined : "8px 10px" }}>
 						{props.language ? (
-							<React.Suspense fallback={null}>
-								<Markdown content={markdownContent} contentPadding={0} />
-							</React.Suspense>
+							<Markdown content={markdownContent} contentPadding={0} />
 						) : (
 							<Box
 								component="pre"
@@ -559,9 +556,7 @@ function AgentStepListBody(props: AgentStepListProps) {
 									'& .markdown-body > :last-child': { marginBottom: 0 },
 								}}
 							>
-								<React.Suspense fallback={null}>
-									<Markdown content={visiblePrimaryContent} contentPadding={0} />
-								</React.Suspense>
+								<Markdown content={visiblePrimaryContent} contentPadding={0} />
 							</Box>
 						) : null}
 						{historyEntryPreview !== "" ? (
@@ -588,9 +583,7 @@ function AgentStepListBody(props: AgentStepListProps) {
 												'& .markdown-body > :last-child': { marginBottom: 0 },
 											}}
 										>
-											<React.Suspense fallback={null}>
-												<Markdown content={handoffMeta.summary} contentPadding={0} />
-											</React.Suspense>
+											<Markdown content={handoffMeta.summary} contentPadding={0} />
 										</Box>
 									) : null}
 									<Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">

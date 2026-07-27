@@ -6,58 +6,97 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import './KeyboardShortcuts.css';
+import FolderOpenOutlinedIcon from '@mui/icons-material/FolderOpenOutlined';
+import NoteAddOutlinedIcon from '@mui/icons-material/NoteAddOutlined';
+import SearchIcon from '@mui/icons-material/Search';
 import { useTranslation } from 'react-i18next';
+import doraWelcome from './dora-body.png';
+import './KeyboardShortcuts.css';
 
-const apple = navigator.platform.indexOf("Mac") === 0 || navigator.platform === "iPhone" || navigator.platform === "iPad";
+interface KeyboardShortcutsProps {
+	left: number;
+	top: number;
+	bottom: number;
+	onGoToFile: () => void;
+	onNewFile: () => void;
+	onOpenProjects: () => void;
+}
 
-const KeyboardShortcuts = () => {
+const apple = navigator.platform.indexOf("Mac") === 0
+	|| navigator.platform === "iPhone"
+	|| navigator.platform === "iPad";
+
+function ShortcutKeys({ keys }: { keys: string[] }) {
+	return (
+		<span className="welcome-shortcut-keys">
+			{keys.map(key => <kbd key={key} className="welcome-shortcut-key">{key}</kbd>)}
+		</span>
+	);
+}
+
+const KeyboardShortcuts = (props: KeyboardShortcutsProps) => {
 	const { t } = useTranslation();
-	const aShortcuts = [
-		{ description: t("menu.modKey"), keys: apple ? ['⌃', '⌥', '⌘'] : ['Ctrl', 'Alt', 'Win'] },
-		{ description: t("menu.goToFile"), keys: ['Mod', 'P'] },
-		{ description: t("menu.switchTab"), keys: ['Mod', 'Number'] },
-		{ description: t("menu.new"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'N'] },
-		{ description: t("menu.delete"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'D'] },
-		{ description: t("menu.save"), keys: ['Mod', 'S'] },
+	const shiftKey = apple ? "⇧" : "Shift";
+	const modHint = t(apple ? "menu.modKeyHintMac" : "menu.modKeyHintOther");
+	const actions = [
+		{
+			label: t("menu.goToFile"),
+			keys: ["Mod", "P"],
+			icon: <SearchIcon fontSize="small" />,
+			onClick: props.onGoToFile,
+		},
+		{
+			label: t("menu.new"),
+			keys: ["Mod", shiftKey, "N"],
+			icon: <NoteAddOutlinedIcon fontSize="small" />,
+			onClick: props.onNewFile,
+		},
+		{
+			label: t("menu.browseProjects"),
+			keys: [],
+			icon: <FolderOpenOutlinedIcon fontSize="small" />,
+			onClick: props.onOpenProjects,
+		},
 	];
-	const bShortcuts = [
-		{ description: t("menu.saveAll"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'S'] },
-		{ description: t("menu.viewLog"), keys: ['Mod', '.'] },
-		{ description: t("menu.stop"), keys: ['Mod', 'Q'] },
-		{ description: t("menu.buildProject"), keys: ['Mod', 'B'] },
-		{ description: t("menu.runThis"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'R'] },
-		{ description: t("menu.run"), keys: ['Mod', 'R'] },
+	const secondaryShortcuts = [
+		{ label: t("menu.save"), keys: ["Mod", "S"] },
+		{ label: t("menu.run"), keys: ["Mod", "R"] },
+		{ label: t("menu.viewLog"), keys: ["Mod", "."] },
 	];
 	return (
-		<div style={{ width: '100vw', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-			<div className="container">
-				<ul className="list">
-					{aShortcuts.map((shortcut, index) => (
-						<li key={index} className="list-item">
-							<span className="description">{shortcut.description}</span>
-							<div className="keys">
-								{shortcut.keys.map((key, keyIndex) => (
-									<kbd key={keyIndex} className="key">{key}</kbd>
-								))}
-							</div>
-						</li>
+		<section
+			className="welcome-empty-state"
+			style={{ left: props.left, top: props.top, bottom: props.bottom }}
+			aria-labelledby="welcome-empty-title"
+		>
+			<div className="welcome-empty-content">
+				<img className="welcome-empty-mascot" src={doraWelcome} alt="" aria-hidden="true" />
+				<h1 id="welcome-empty-title" className="welcome-empty-title">
+					{t("menu.emptyEditorTitle")}
+				</h1>
+				<p className="welcome-empty-description">
+					{t("menu.emptyEditorDescription")}
+				</p>
+				<div className="welcome-actions">
+					{actions.map(action => (
+						<button key={action.label} type="button" className="welcome-action" onClick={action.onClick}>
+							<span className="welcome-action-icon">{action.icon}</span>
+							<span>{action.label}</span>
+							{action.keys.length > 0 ? <ShortcutKeys keys={action.keys} /> : null}
+						</button>
 					))}
-				</ul>
-				<ul className="list">
-					{bShortcuts.map((shortcut, index) => (
-						<li key={index} className="list-item">
-							<span className="description">{shortcut.description}</span>
-							<div className="keys">
-								{shortcut.keys.map((key, keyIndex) => (
-									<kbd key={keyIndex} className="key">{key}</kbd>
-								))}
-							</div>
-						</li>
+				</div>
+				<div className="welcome-secondary-shortcuts">
+					{secondaryShortcuts.map(shortcut => (
+						<span key={shortcut.label} className="welcome-secondary-shortcut">
+							<span>{shortcut.label}</span>
+							<ShortcutKeys keys={shortcut.keys} />
+						</span>
 					))}
-				</ul>
+				</div>
+				<p className="welcome-mod-hint">{modHint}</p>
 			</div>
-		</div>
+		</section>
 	);
 };
 

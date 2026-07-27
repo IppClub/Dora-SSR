@@ -13,9 +13,9 @@ import { MacScrollbar } from 'mac-scrollbar';
 import type { AgentSessionMessage } from './Service';
 import { Color } from './Theme';
 import { recordAgentRowRender } from './AgentRenderDiagnostics';
+import Markdown from './Markdown';
 import './github-markdown-dark.css';
 
-const Markdown = React.lazy(() => import('./Markdown'));
 const MemoMarkdown = React.memo(function AgentMessageMarkdown(props: { content: string }) {
 	return <Markdown content={props.content} contentPadding={0} />;
 });
@@ -63,9 +63,7 @@ const AgentAssistantMessageRow = React.memo(function AgentAssistantMessageRow(pr
 							{message.content}
 						</Typography>
 					) : (
-						<React.Suspense fallback={null}>
-							<MemoMarkdown content={message.content} />
-						</React.Suspense>
+						<MemoMarkdown content={message.content} />
 					)}
 				</Box>
 			</Box>

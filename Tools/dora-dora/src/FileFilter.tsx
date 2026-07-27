@@ -84,14 +84,17 @@ const MacScrollbarListbox = styled(MacScrollbarListboxBase)({
 		'&:hover': {
 			backgroundColor: Color.ThemeMuted,
 		},
-		'&.Mui-focused': {
-			backgroundColor: Color.Theme + '33',
+		'&.Mui-focused:not(.dora-file-filter-highlighted)': {
+			backgroundColor: 'transparent',
 		},
-		'&.Mui-focusVisible': {
-			backgroundColor: Color.Theme + '44',
+		'&.Mui-focusVisible:not(.dora-file-filter-highlighted)': {
+			backgroundColor: 'transparent',
 		},
 		'&[aria-selected="true"]': {
 			backgroundColor: Color.Theme + '2e',
+		},
+		'&.dora-file-filter-highlighted': {
+			backgroundColor: Color.Theme + '44',
 		},
 	},
 });
@@ -105,6 +108,7 @@ const FileFilter = (props: FileFilterProps) => {
 	const inputLatencySamples = useRef<number[]>([]);
 	const [inputValue, setInputValue] = useState("");
 	const [results, setResults] = useState<FilterOption[]>([]);
+	const [highlightedIndex, setHighlightedIndex] = useState(-1);
 	const [searchLoading, setSearchLoading] = useState(false);
 
 	useEffect(() => {
@@ -123,24 +127,44 @@ const FileFilter = (props: FileFilterProps) => {
 		updateSearchInputDiagnostics(samples);
 	}, [inputValue]);
 
+	useLayoutEffect(() => {
+		const option = highlightedIndex < 0
+			? null
+			: document.querySelector<HTMLElement>(
+				`[data-file-filter-option-index="${highlightedIndex}"]`,
+			);
+		option?.scrollIntoView({ block: "nearest" });
+	}, [highlightedIndex, results]);
+
 	useEffect(() => {
 		const input = inputValue.trim();
 		const revision = ++searchRevision.current;
 		highlightedOption.current = null;
+		setHighlightedIndex(-1);
 		if (input === "") {
 			setResults([]);
 			setSearchLoading(false);
 			return;
 		}
+		if (props.loading) {
+			setResults([]);
+			setSearchLoading(false);
+			return;
+		}
+		setResults([]);
 		setSearchLoading(true);
 		const timer = window.setTimeout(() => {
 			void searchFileIndex(input, maxResults).then(options => {
 				if (revision !== searchRevision.current) return;
+				highlightedOption.current = options[0] ?? null;
+				setHighlightedIndex(options.length > 0 ? 0 : -1);
 				setResults(options);
 				setSearchLoading(false);
 			});
 		}, 50);
-		return () => window.clearTimeout(timer);
+		return () => {
+			window.clearTimeout(timer);
+		};
 	}, [inputValue, props.loading]);
 
 	return <Autocomplete
@@ -152,6 +176,10 @@ const FileFilter = (props: FileFilterProps) => {
 		onInputChange={(_, value, reason) => {
 			if (reason === "input") {
 				inputStartedAt.current = performance.now();
+				highlightedOption.current = null;
+				setHighlightedIndex(-1);
+				setResults([]);
+				setSearchLoading(value.trim() !== "" && !props.loading);
 			}
 			setInputValue(value);
 		}}
@@ -163,8 +191,12 @@ const FileFilter = (props: FileFilterProps) => {
 		}}
 		noOptionsText={t("popup.searchFilesEmpty")}
 		getOptionLabel={(option) => option.fileKey}
-		onHighlightChange={(_, option) => {
+		onHighlightChange={(_, option, reason) => {
+			if (option === null || reason === "keyboard") return;
+			const index = results.indexOf(option);
+			if (index < 0) return;
 			highlightedOption.current = option;
+			setHighlightedIndex(index);
 		}}
 		onKeyDown={(event) => {
 			if (event.key === "Escape") {
@@ -174,11 +206,25 @@ const FileFilter = (props: FileFilterProps) => {
 				props.onClose(null);
 				return;
 			}
-			if (event.key === "Enter" && highlightedOption.current !== null) {
+			if ((event.key === "ArrowDown" || event.key === "ArrowUp") && results.length > 0) {
 				(event as typeof event & { defaultMuiPrevented?: boolean }).defaultMuiPrevented = true;
 				event.preventDefault();
 				event.stopPropagation();
-				props.onClose(highlightedOption.current);
+				setHighlightedIndex(current => {
+					const next = event.key === "ArrowDown"
+						? Math.min(results.length - 1, current < 0 ? 0 : current + 1)
+						: Math.max(0, current < 0 ? 0 : current - 1);
+					highlightedOption.current = results[next] ?? null;
+					return next;
+				});
+				return;
+			}
+			const selectedOption = results[highlightedIndex] ?? highlightedOption.current;
+			if (event.key === "Enter" && selectedOption !== null) {
+				(event as typeof event & { defaultMuiPrevented?: boolean }).defaultMuiPrevented = true;
+				event.preventDefault();
+				event.stopPropagation();
+				props.onClose(selectedOption);
 			}
 		}}
 		renderInput={(params) => <TextField
@@ -194,6 +240,9 @@ const FileFilter = (props: FileFilterProps) => {
 					"data-file-filter-input": "true",
 					"data-file-filter-option-count": props.optionCount,
 					"data-file-filter-result-count": results.length,
+					"aria-activedescendant": highlightedIndex < 0
+						? undefined
+						: `${params.inputProps.id}-option-${highlightedIndex}`,
 				},
 				input: {
 					...params.InputProps,
@@ -205,10 +254,17 @@ const FileFilter = (props: FileFilterProps) => {
 			}}
 			label={t("popup.goToFile")}
 		/>}
-		renderOption={(props, option) => {
-			const { key, ...liProps } = props;
+		renderOption={(props, option, state) => {
+			const { key, className, ...liProps } = props;
+			const highlighted = state.index === highlightedIndex;
 			return (
-				<li key={option.fileKey} {...liProps}>
+				<li
+					key={option.fileKey}
+					{...liProps}
+					className={`${className ?? ""}${highlighted ? " dora-file-filter-highlighted" : ""}`}
+					data-file-filter-option-index={state.index}
+					aria-selected={highlighted}
+				>
 					{option.title}&emsp;&emsp;
 					<p style={{ textAlign: 'right', color: Color.TextSecondary, fontSize: '12px' }}>{option.path}</p>
 				</li>
