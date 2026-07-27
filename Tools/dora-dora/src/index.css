@@ -16,6 +16,247 @@ body {
 	overflow: hidden;
 }
 
+.dora-native-checkbox {
+	width: 16px;
+	height: 16px;
+	margin: 0;
+	flex: 0 0 auto;
+	accent-color: #fac03d;
+	color-scheme: dark;
+	cursor: pointer;
+}
+
+.dora-native-checkbox:disabled {
+	opacity: 0.55;
+	cursor: default;
+}
+
+.dora-native-radio {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 16px;
+	height: 16px;
+	margin: 0;
+	flex: 0 0 auto;
+	border: 1px solid #5a5a5a;
+	border-radius: 50%;
+	background: #181818;
+	cursor: pointer;
+	transition:
+		border-color 120ms ease,
+		background-color 120ms ease,
+		box-shadow 120ms ease;
+}
+
+.dora-native-radio:hover:not(:disabled) {
+	border-color: rgba(250, 192, 61, 0.72);
+}
+
+.dora-native-radio:checked {
+	border-color: #fac03d;
+	background: #fac03d;
+	box-shadow: inset 0 0 0 4px #181818;
+}
+
+.dora-native-radio:focus-visible {
+	outline: 1px solid rgba(250, 192, 61, 0.8);
+	outline-offset: 2px;
+}
+
+.dora-native-radio:disabled {
+	opacity: 0.55;
+	cursor: default;
+}
+
+.dora-visual-editor {
+	--dora-editor-accent: #fac03d;
+	--dora-editor-accent-soft: rgba(250, 192, 61, 0.12);
+	--dora-editor-surface: #1a1a1a;
+	--dora-editor-control: #303030;
+	--dora-editor-control-hover: #383838;
+	--dora-editor-field: #181818;
+	--dora-editor-line: rgba(255, 255, 255, 0.125);
+	--dora-editor-text: #d7d7d7;
+	--dora-editor-text-muted: #8f9aa6;
+	color: var(--dora-editor-text);
+	background: #1f1f1f;
+}
+
+.dora-editor-toolbar,
+.dora-editor-panel,
+.dora-editor-tool-rail {
+	background: var(--dora-editor-surface);
+}
+
+.dora-editor-toolbar button,
+.dora-editor-panel button,
+.dora-editor-tool-rail button {
+	border-radius: 6px !important;
+	transition:
+		background-color 120ms ease,
+		border-color 120ms ease,
+		color 120ms ease,
+		box-shadow 120ms ease;
+}
+
+.dora-editor-toolbar button:hover:not(:disabled),
+.dora-editor-panel button:hover:not(:disabled),
+.dora-editor-tool-rail button:hover:not(:disabled) {
+	box-shadow: inset 0 0 0 999px rgba(255, 255, 255, 0.04);
+}
+
+.dora-editor-toolbar button[aria-pressed="true"],
+.dora-editor-panel button[aria-pressed="true"],
+.dora-editor-tool-rail button[aria-pressed="true"] {
+	border-color: rgba(250, 192, 61, 0.4) !important;
+	background-color: rgba(250, 192, 61, 0.12) !important;
+	color: #fac03d !important;
+	box-shadow: none;
+}
+
+.dora-editor-toolbar button[aria-pressed="true"]:hover:not(:disabled),
+.dora-editor-panel button[aria-pressed="true"]:hover:not(:disabled),
+.dora-editor-tool-rail button[aria-pressed="true"]:hover:not(:disabled) {
+	border-color: rgba(250, 192, 61, 0.53) !important;
+	background-color: rgba(250, 192, 61, 0.16) !important;
+	box-shadow: none;
+}
+
+.dora-editor-toolbar button:focus-visible,
+.dora-editor-panel button:focus-visible,
+.dora-editor-tool-rail button:focus-visible {
+	outline: 1px solid var(--dora-editor-accent);
+	outline-offset: 2px;
+}
+
+.dora-editor-toolbar input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+.dora-editor-toolbar select,
+.dora-editor-panel input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+.dora-editor-panel select {
+	border-radius: 6px;
+	transition:
+		border-color 120ms ease,
+		box-shadow 120ms ease;
+}
+
+.dora-editor-toolbar input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):focus,
+.dora-editor-toolbar select:focus,
+.dora-editor-panel input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):focus,
+.dora-editor-panel select:focus {
+	outline: none;
+	border-color: var(--dora-editor-accent) !important;
+	box-shadow: 0 0 0 2px rgba(250, 192, 61, 0.12);
+}
+
+.dora-editor-section-title {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding-bottom: 6px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+	color: var(--dora-editor-text) !important;
+}
+
+.dora-editor-section-title::before {
+	content: "";
+	width: 2px;
+	height: 12px;
+	border-radius: 1px;
+	background: var(--dora-editor-accent);
+}
+
+.dora-editor-panel .dora-editor-tree-visibility-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	min-width: 22px;
+	min-height: 22px;
+	padding: 0;
+	border: 1px solid transparent;
+	border-radius: 4px !important;
+	background: transparent;
+	color: var(--dora-editor-text-muted);
+	cursor: pointer;
+	box-shadow: none;
+}
+
+.dora-editor-panel .dora-editor-tree-visibility-button:hover:not(:disabled) {
+	border-color: rgba(255, 255, 255, 0.08);
+	background: rgba(255, 255, 255, 0.06);
+	box-shadow: none;
+}
+
+.dora-editor-panel .dora-editor-tree-node-button {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	height: 34px;
+	padding: 3px 10px 3px 3px;
+	overflow: visible;
+	border: 1px solid transparent;
+	border-radius: 6px !important;
+	background: transparent;
+	color: var(--dora-editor-text);
+	font-size: 16px;
+	text-align: left;
+	white-space: nowrap;
+	cursor: pointer;
+	box-sizing: border-box;
+	box-shadow: none;
+}
+
+.dora-editor-panel .dora-editor-tree-node-button:hover:not(:disabled) {
+	border-color: rgba(255, 255, 255, 0.06);
+	background: rgba(255, 255, 255, 0.04);
+	box-shadow: none;
+}
+
+.dora-editor-panel .dora-editor-tree-node-button[data-selected="true"] {
+	border-color: rgba(255, 255, 255, 0.08);
+	background: #3a3a3a;
+}
+
+.dora-editor-panel .dora-editor-tree-node-button[data-selected="true"]:hover:not(:disabled) {
+	background: #404040;
+}
+
+.dora-editor-flat-list {
+	overflow: hidden;
+	border: 1px solid var(--dora-editor-line);
+	background: #161616;
+}
+
+.dora-editor-panel .dora-editor-flat-list button {
+	display: block;
+	width: 100%;
+	min-height: 28px;
+	padding: 0 10px;
+	border: 0 !important;
+	border-bottom: 1px solid var(--dora-editor-line) !important;
+	border-radius: 0 !important;
+	background: transparent !important;
+	color: var(--dora-editor-text) !important;
+	text-align: left;
+	box-shadow: none;
+}
+
+.dora-editor-panel .dora-editor-flat-list button:hover:not(:disabled) {
+	background: rgba(255, 255, 255, 0.04) !important;
+	box-shadow: none;
+}
+
+.dora-editor-panel .dora-editor-flat-list button[aria-pressed="true"] {
+	border-color: var(--dora-editor-line) !important;
+	background: rgba(250, 192, 61, 0.12) !important;
+	color: #ffe7ad !important;
+}
+
+.dora-editor-panel .dora-editor-flat-list button[aria-pressed="true"]:hover:not(:disabled) {
+	background: rgba(250, 192, 61, 0.16) !important;
+}
+
 .MuiTooltip-popper[data-popper-reference-hidden] {
 	visibility: hidden !important;
 	pointer-events: none !important;

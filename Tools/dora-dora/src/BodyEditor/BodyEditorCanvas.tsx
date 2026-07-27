@@ -1449,11 +1449,13 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 
 	return (
 		<div
+			className="dora-visual-editor"
 			tabIndex={0}
 			onKeyDown={onKeyDown}
 			style={{ display: active ? "flex" : "none", width, height, minWidth: 0, minHeight: 0, flexDirection: "column", position: "relative", outline: "none" }}
 		>
 			<div
+				className="dora-editor-toolbar"
 				style={{
 					height: topToolbarHeight,
 					flexShrink: 0,
@@ -1477,12 +1479,13 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 									type="button"
 									title={getIconLabel(name)}
 									aria-label={getIconLabel(name)}
+									aria-pressed={selected}
 									onClick={() => runTool(name)}
 									style={{
 										width: 30,
 										height: 30,
 										border: "1px solid " + (selected ? "#fac03d" : "#343434"),
-										background: selected ? "#5f4917" : "#303030",
+										background: selected ? "rgba(250, 192, 61, 0.12)" : "#303030",
 										padding: 3,
 										cursor: "pointer",
 									}}
@@ -1502,13 +1505,14 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 							<button
 								key={mode}
 								type="button"
+								aria-pressed={selected}
 								disabled={editDisabled}
 								onClick={() => setGizmoMode(mode)}
 								style={{
 									height: 30,
 									minWidth: 52,
 									border: "1px solid " + (selected ? "#fac03d" : "#343434"),
-									background: selected ? "#5f4917" : "#303030",
+									background: selected ? "rgba(250, 192, 61, 0.12)" : "#303030",
 									color: selected ? "#ffe7ad" : "#d7d7d7",
 									cursor: editDisabled ? "default" : "pointer",
 									opacity: editDisabled ? 0.55 : 1,
@@ -1521,6 +1525,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 					<label style={{ display: "flex", alignItems: "center", gap: 4, color: "#d7d7d7", fontSize: 12, marginLeft: 4 }}>
 						<input
 							type="checkbox"
+							className="dora-native-checkbox"
 							checked={fixedSnap}
 							disabled={editDisabled}
 							onChange={(event) => setFixedSnap(event.currentTarget.checked)}
@@ -1603,7 +1608,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 				</Stack>
 			</div>
 			<div style={{ display: "flex", flex: 1, minHeight: 0, position: "relative" }}>
-				<div style={{
+				<div className="dora-editor-tool-rail" style={{
 					width: toolbarWidth,
 					height: mainHeight,
 					background: "#1a1a1a",
@@ -1651,13 +1656,14 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 										type="button"
 										title={getIconLabel(iconName)}
 										aria-label={getIconLabel(iconName)}
+										aria-pressed={selected}
 										disabled={disabled}
 										onClick={() => runTool(name)}
 										style={{
 											width: 34,
 											height: 34,
 											border: "1px solid " + (selected ? "#fac03d" : "#2b2b2b"),
-											background: selected ? "#5f4917" : "#252525",
+											background: selected ? "rgba(250, 192, 61, 0.12)" : "#252525",
 											padding: 4,
 											cursor: disabled ? "default" : "pointer",
 											opacity: disabled ? 0.55 : 1,
@@ -1766,6 +1772,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 								<button
 									key={type}
 									type="button"
+									aria-pressed={selected}
 									onClick={() => {
 										if (pendingJointType === type) {
 											setPendingJointType(null);
@@ -1779,7 +1786,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 									}}
 									style={{
 										height: 28,
-										background: selected ? "#5f4917" : "#252525",
+										background: selected ? "rgba(250, 192, 61, 0.12)" : "#252525",
 										color: selected ? "#ffe7ad" : "#d7d7d7",
 										border: "1px solid " + (selected ? "#fac03d" : "#3a3a3a"),
 										cursor: "pointer",
@@ -1794,7 +1801,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 						</div>
 					</div>
 				) : null}
-				<div style={{
+				<div className="dora-editor-panel" style={{
 					display: showSidePanel ? "flex" : "none",
 					flexDirection: "column",
 					width: actualListWidth,
@@ -1812,6 +1819,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 									<div key={item.id} style={{ padding: "4px 8px 0" }}>
 										<button
 											type="button"
+											aria-pressed={selected}
 											onClick={() => selectItem(item.id)}
 											style={{
 												width: "100%",
@@ -1822,7 +1830,7 @@ export default memo(function BodyEditorCanvas(props: BodyEditorCanvasProps) {
 												textAlign: "left",
 												padding: "7px 10px",
 												border: "1px solid " + (selected ? "#fac03d" : "#3f3f3f"),
-												background: selected ? "rgba(250, 192, 61, 0.16)" : "rgba(24, 24, 24, 0.7)",
+												background: selected ? "rgba(250, 192, 61, 0.12)" : "rgba(24, 24, 24, 0.7)",
 												color: selected ? "#ffe7ad" : "#d7d7d7",
 												cursor: "pointer",
 												boxSizing: "border-box",
@@ -2216,10 +2224,11 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 							<button
 								key={type}
 								type="button"
+								aria-pressed={selected}
 								disabled={readOnly}
 								onClick={() => onCreateSubShape(type)}
 								style={{
-									background: selected ? "#5f4917" : "#252525",
+									background: selected ? "rgba(250, 192, 61, 0.12)" : "#252525",
 									color: selected ? "#ffe7ad" : "#d7d7d7",
 									border: "1px solid " + (selected ? "#fac03d" : "#3a3a3a"),
 									height: 26,
@@ -2248,6 +2257,7 @@ const PropertyPanel = memo(function PropertyPanel(props: {
 						<label key={field.name} style={{ display: "flex", alignItems: "center", gap: 6, color: "#d7d7d7", fontSize: 12, marginTop: 8 }}>
 							<input
 								type="checkbox"
+								className="dora-native-checkbox"
 								checked={value === true}
 								disabled={readOnly}
 								onChange={(event) => onUpdateField(field.name, parseValue(field, "", event.currentTarget.checked))}

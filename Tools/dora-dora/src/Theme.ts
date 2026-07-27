@@ -148,6 +148,38 @@ export const theme = createTheme({
 				},
 			},
 		},
+		MuiCheckbox: {
+			styleOverrides: {
+				root: {
+					color: Color.TextSecondary,
+					'&:hover': {
+						backgroundColor: Color.ThemeMuted,
+					},
+					'&.Mui-checked, &.MuiCheckbox-indeterminate': {
+						color: Color.Theme,
+					},
+					'&.Mui-disabled': {
+						color: Color.DisabledText,
+					},
+				},
+			},
+		},
+		MuiRadio: {
+			styleOverrides: {
+				root: {
+					color: Color.TextSecondary,
+					'&:hover': {
+						backgroundColor: Color.ThemeMuted,
+					},
+					'&.Mui-checked': {
+						color: Color.Theme,
+					},
+					'&.Mui-disabled': {
+						color: Color.DisabledText,
+					},
+				},
+			},
+		},
 		MuiFormControlLabel: {
 			styleOverrides: {
 				label: {

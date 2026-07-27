@@ -1,6 +1,7 @@
 import { Fragment, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent, PointerEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { MacScrollbar } from "mac-scrollbar";
 import { Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControlLabel, IconButton, Stack, TextField, Tooltip, Typography } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
@@ -1053,8 +1054,8 @@ export default memo(function ParticleEditorCanvas(props: ParticleEditorCanvasPro
 
 	return (
 		<>
-			<Box tabIndex={0} onKeyDown={onKeyDown} sx={{ width, height, display: "flex", flexDirection: "column", background: "#1f1f1f", overflow: "hidden", outline: "none" }}>
-				<Stack direction="row" alignItems="center" spacing={1} sx={{ height: 44, borderBottom: "1px solid #2b2b2b", padding: "2px 10px 0", flexShrink: 0, background: "#1a1a1a", boxSizing: "border-box" }}>
+			<Box className="dora-visual-editor" tabIndex={0} onKeyDown={onKeyDown} sx={{ width, height, display: "flex", flexDirection: "column", background: "#1f1f1f", overflow: "hidden", outline: "none" }}>
+				<Stack className="dora-editor-toolbar" direction="row" alignItems="center" spacing={1} sx={{ height: 44, borderBottom: "1px solid #2b2b2b", padding: "2px 10px 0", flexShrink: 0, background: "#1a1a1a", boxSizing: "border-box" }}>
 					<Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
 						<Typography sx={{ color: "#9aa4af", fontSize: 12, marginRight: "2px" }}>{t("particleEditor.toolbar.view", "View")}</Typography>
 						{viewToolNames.map((name) => (
@@ -1162,30 +1163,32 @@ export default memo(function ParticleEditorCanvas(props: ParticleEditorCanvasPro
 							}}
 						/>
 					</Box>
-					<Box sx={{ width: 320, borderLeft: "1px solid #2b2b2b", overflow: "auto", padding: "10px 12px 96px", flexShrink: 0, background: "#1a1a1a", boxSizing: "border-box" }}>
-						<Typography sx={sectionTitleStyle}>{t("particleEditor.presets.title", "Presets")}</Typography>
-						<Box sx={{ maxHeight: 124, overflowY: "auto", marginBottom: "8px", paddingRight: "4px" }}>
-							<Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
-								{particlePresets.map((preset) => (
-									<button
-										key={preset.id}
-										type="button"
-										disabled={readOnly}
-										onClick={() => onApplyPreset(preset.id)}
-										style={{
-											height: 28,
-											border: "1px solid #3a3a3a",
-											background: "#252525",
-											color: "#d7d7d7",
-											cursor: readOnly ? "default" : "pointer",
-											opacity: readOnly ? 0.55 : 1,
-											fontSize: 12,
-										}}
-									>
-										{t(`particleEditor.presets.${preset.id}`, preset.label)}
-									</button>
-								))}
-							</Box>
+					<Box className="dora-editor-panel" sx={{ width: 320, borderLeft: "1px solid #2b2b2b", overflow: "auto", padding: "10px 12px 96px", flexShrink: 0, background: "#1a1a1a", boxSizing: "border-box" }}>
+						<Typography className="dora-editor-section-title" sx={sectionTitleStyle}>{t("particleEditor.presets.title", "Presets")}</Typography>
+						<Box sx={{ height: 124, marginBottom: "8px" }}>
+							<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
+								<Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", paddingRight: "4px" }}>
+									{particlePresets.map((preset) => (
+										<button
+											key={preset.id}
+											type="button"
+											disabled={readOnly}
+											onClick={() => onApplyPreset(preset.id)}
+											style={{
+												height: 28,
+												border: "1px solid #3a3a3a",
+												background: "#252525",
+												color: "#d7d7d7",
+												cursor: readOnly ? "default" : "pointer",
+												opacity: readOnly ? 0.55 : 1,
+												fontSize: 12,
+											}}
+										>
+											{t(`particleEditor.presets.${preset.id}`, preset.label)}
+										</button>
+									))}
+								</Box>
+							</MacScrollbar>
 						</Box>
 						{textureWarning ? <Box sx={{ color: "#f0b36a", fontSize: 12, marginBottom: 1 }}>{textureWarning}</Box> : null}
 						{diagnostics.length > 0 ? (
@@ -1193,7 +1196,7 @@ export default memo(function ParticleEditorCanvas(props: ParticleEditorCanvasPro
 								{diagnostics.slice(0, 4).map((item, index) => <div key={`${item.path}:${index}`}>{item.message}</div>)}
 							</Box>
 						) : null}
-						<Typography sx={sectionTitleStyle}>{t("particleEditor.sections.general", "General")}</Typography>
+						<Typography className="dora-editor-section-title" sx={sectionTitleStyle}>{t("particleEditor.sections.general", "General")}</Typography>
 						<Stack spacing={0.75}>
 							<NumberRow
 								label={fieldLabel("duration", "Duration")}
@@ -1209,7 +1212,7 @@ export default memo(function ParticleEditorCanvas(props: ParticleEditorCanvasPro
 							<NumberRow label={fieldLabel("life", "Life")} path="particleLifespan" fields={fields} min={0} step={0.1} disabled={readOnly} onUpdateField={onUpdateField} />
 							<NumberRow label={fieldLabel("lifeVar", "Life Var")} path="particleLifespanVariance" fields={fields} min={0} step={0.1} disabled={readOnly} onUpdateField={onUpdateField} />
 						</Stack>
-						<Typography sx={sectionTitleStyle}>{t("particleEditor.sections.emission", "Emission")}</Typography>
+						<Typography className="dora-editor-section-title" sx={sectionTitleStyle}>{t("particleEditor.sections.emission", "Emission")}</Typography>
 						<Stack spacing={0.75}>
 							<NumberRow label={fieldLabel("angle", "Angle")} path="angle" fields={fields} step={1} disabled={readOnly} onUpdateField={onUpdateField} />
 							<NumberRow label={fieldLabel("angleVar", "Angle Var")} path="angleVariance" fields={fields} step={1} disabled={readOnly} onUpdateField={onUpdateField} />
@@ -1218,14 +1221,14 @@ export default memo(function ParticleEditorCanvas(props: ParticleEditorCanvasPro
 							<NumberRow label={fieldLabel("varX", "Var X")} path="startPositionVariance.x" fields={fields} min={0} step={1} disabled={readOnly} onUpdateField={onUpdateField} />
 							<NumberRow label={fieldLabel("varY", "Var Y")} path="startPositionVariance.y" fields={fields} min={0} step={1} disabled={readOnly} onUpdateField={onUpdateField} />
 						</Stack>
-						<Typography sx={sectionTitleStyle}>{t("particleEditor.sections.color", "Color")}</Typography>
+						<Typography className="dora-editor-section-title" sx={sectionTitleStyle}>{t("particleEditor.sections.color", "Color")}</Typography>
 						<Stack spacing={1}>
 							<ColorRows label={fieldLabel("start", "Start")} basePath="startColor" fields={fields} disabled={readOnly} onUpdateColor={onUpdateColor} />
 							<ColorVarianceRows label={fieldLabel("startVariation", "Start Variation")} basePath="startColor" variancePath="startColorVariance" fields={fields} disabled={readOnly} onUpdateField={onUpdateField} />
 							<ColorRows label={fieldLabel("finish", "Finish")} basePath="finishColor" fields={fields} disabled={readOnly} onUpdateColor={onUpdateColor} />
 							<ColorVarianceRows label={fieldLabel("finishVariation", "Finish Variation")} basePath="finishColor" variancePath="finishColorVariance" fields={fields} disabled={readOnly} onUpdateField={onUpdateField} />
 						</Stack>
-						<Typography sx={sectionTitleStyle}>{t("particleEditor.sections.sizeRotation", "Size / Rotation")}</Typography>
+						<Typography className="dora-editor-section-title" sx={sectionTitleStyle}>{t("particleEditor.sections.sizeRotation", "Size / Rotation")}</Typography>
 						<Stack spacing={0.75}>
 							<NumberRow label={fieldLabel("startSize", "Start Size")} path="startParticleSize" fields={fields} min={0} step={1} disabled={readOnly} onUpdateField={onUpdateField} />
 							<NumberRow label={fieldLabel("startVar", "Start Var")} path="startParticleSizeVariance" fields={fields} min={0} step={1} disabled={readOnly} onUpdateField={onUpdateField} />
@@ -1244,7 +1247,7 @@ export default memo(function ParticleEditorCanvas(props: ParticleEditorCanvasPro
 							<NumberRow label={fieldLabel("rotEnd", "Rot End")} path="rotationEnd" fields={fields} step={1} disabled={readOnly} onUpdateField={onUpdateField} />
 							<NumberRow label={fieldLabel("rotEndVar", "Rot End Var")} path="rotationEndVariance" fields={fields} step={1} disabled={readOnly} onUpdateField={onUpdateField} />
 						</Stack>
-						<Typography sx={sectionTitleStyle}>{t("particleEditor.sections.texture", "Texture")}</Typography>
+						<Typography className="dora-editor-section-title" sx={sectionTitleStyle}>{t("particleEditor.sections.texture", "Texture")}</Typography>
 						<Stack spacing={0.75}>
 							<Box sx={rowStyle}>
 								<Typography sx={{ color: "#8f9aa6", fontSize: 12 }}>{fieldLabel("texture", "Texture")}</Typography>
@@ -1320,7 +1323,7 @@ export default memo(function ParticleEditorCanvas(props: ParticleEditorCanvasPro
 								</select>
 							</Box>
 						</Stack>
-						<Typography sx={sectionTitleStyle}>{t("particleEditor.sections.emitter", "Emitter")}</Typography>
+						<Typography className="dora-editor-section-title" sx={sectionTitleStyle}>{t("particleEditor.sections.emitter", "Emitter")}</Typography>
 						<Stack direction="row" spacing={1}>
 							{(["gravity", "radius"] as const).map((mode) => {
 								const selected = fields.emitterMode === mode;
@@ -1328,13 +1331,14 @@ export default memo(function ParticleEditorCanvas(props: ParticleEditorCanvasPro
 									<button
 										key={mode}
 										type="button"
+										aria-pressed={selected}
 										disabled={readOnly}
 										onClick={() => onUpdateField("emitterMode", mode, true)}
 										style={{
 											height: 26,
 											minWidth: 72,
 											border: "1px solid " + (selected ? "#fac03d" : "#3a3a3a"),
-											background: selected ? "#5f4917" : "#252525",
+											background: selected ? "rgba(250, 192, 61, 0.12)" : "#252525",
 											color: selected ? "#ffe7ad" : "#d7d7d7",
 											cursor: readOnly ? "default" : "pointer",
 											opacity: readOnly ? 0.55 : 1,
@@ -1348,7 +1352,7 @@ export default memo(function ParticleEditorCanvas(props: ParticleEditorCanvasPro
 						<Divider sx={{ borderColor: "#2b2b2b", margin: "10px 0" }} />
 						{fields.emitterMode === "gravity" ? (
 							<Stack spacing={0.75}>
-								<FormControlLabel control={<Checkbox size="small" checked={fields.gravity.rotationIsDir} disabled={readOnly} onChange={(event) => onUpdateField("gravity.rotationIsDir", event.target.checked, true)} sx={{ color: "#8f9aa6", "&.Mui-checked": { color: "#fac03d" } }} />} label={fieldLabel("rotationFollowsDirection", "Rotation follows direction")} sx={{ color: "#d7d7d7", "& .MuiFormControlLabel-label": { fontSize: 12 } }} />
+								<FormControlLabel control={<Checkbox size="small" checked={fields.gravity.rotationIsDir} disabled={readOnly} onChange={(event) => onUpdateField("gravity.rotationIsDir", event.target.checked, true)} />} label={fieldLabel("rotationFollowsDirection", "Rotation follows direction")} sx={{ color: "#d7d7d7", "& .MuiFormControlLabel-label": { fontSize: 12 } }} />
 								<NumberRow label={fieldLabel("gravityX", "Gravity X")} path="gravity.gravity.x" fields={fields} step={1} disabled={readOnly} onUpdateField={onUpdateField} />
 								<NumberRow label={fieldLabel("gravityY", "Gravity Y")} path="gravity.gravity.y" fields={fields} step={1} disabled={readOnly} onUpdateField={onUpdateField} />
 								<NumberRow label={fieldLabel("speed", "Speed")} path="gravity.speed" fields={fields} step={1} disabled={readOnly} onUpdateField={onUpdateField} />

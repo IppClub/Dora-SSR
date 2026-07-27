@@ -169,7 +169,7 @@ const easeNames = [
 
 const themeColor = "#fac03d";
 const themeTextColor = "#ffe7ad";
-const themePanelBg = "#5f4917";
+const themePanelBg = "rgba(250, 192, 61, 0.12)";
 const themeRangeBg = "rgba(250, 192, 61, 0.35)";
 
 const styles = {
@@ -554,16 +554,16 @@ const drawActionCanvas = (
 		ctx.restore();
 		if (rect.nodeId === props.selectedNodeId) {
 			const bounds = getScreenBounds(corners);
-			const padding = 6;
+			const padding = 5;
 			ctx.save();
 			ctx.strokeStyle = "rgba(170, 176, 184, 0.95)";
-			ctx.lineWidth = 1.5;
-			ctx.setLineDash([5, 3]);
+			ctx.lineWidth = 1.25;
+			ctx.setLineDash([5, 4]);
 			ctx.strokeRect(bounds.minX - padding, bounds.minY - padding, bounds.width + padding * 2, bounds.height + padding * 2);
 			ctx.restore();
 		} else {
-			ctx.strokeStyle = withAlpha("#0b0b0b", Math.max(0.45, rect.opacity));
-			ctx.lineWidth = 1;
+			ctx.strokeStyle = withAlpha("#9aa4b2", Math.max(0.08, Math.min(0.18, rect.opacity * 0.14)));
+			ctx.lineWidth = 0.75;
 			drawPath(ctx, corners);
 			ctx.stroke();
 		}
@@ -680,6 +680,7 @@ const CheckField = memo(function CheckField(props: {
 		<label style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6, color: "#d7d7d7", fontSize: 12 }}>
 			<input
 				type="checkbox"
+				className="dora-native-checkbox"
 				checked={props.checked}
 				disabled={props.readOnly}
 				onChange={(event) => props.onChange(event.currentTarget.checked)}
@@ -692,6 +693,7 @@ const CheckField = memo(function CheckField(props: {
 const TabButton = (props: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
 	<button
 		type="button"
+		aria-pressed={props.active}
 		onClick={props.onClick}
 		style={{
 			...styles.button,
@@ -710,7 +712,7 @@ const TabButton = (props: { active: boolean; onClick: () => void; children: Reac
 const TreeEyeIcon = memo(function TreeEyeIcon(props: { visible: boolean }) {
 	const { visible } = props;
 	return (
-		<svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" style={{ display: "block" }}>
+		<svg width="16" height="16" viewBox="0 0 22 22" aria-hidden="true" style={{ display: "block" }}>
 			<path
 				d="M2.5 11C4.8 7.8 7.6 6.2 11 6.2S17.2 7.8 19.5 11C17.2 14.2 14.4 15.8 11 15.8S4.8 14.2 2.5 11Z"
 				fill="none"
@@ -730,11 +732,10 @@ const TreeEyeIcon = memo(function TreeEyeIcon(props: { visible: boolean }) {
 const TreeClipPreview = memo(function TreeClipPreview(props: {
 	editor: ActionEditorCanvasProps;
 	node: ActionNode;
-	onSelect: () => void;
 }) {
-	const { editor, node, onSelect } = props;
+	const { editor, node } = props;
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
-	const previewSize = 30;
+	const previewSize = 26;
 	const clipRect = node.clip ? editor.clipDocument?.rects[node.clip] : undefined;
 
 	useEffect(() => {
@@ -776,23 +777,7 @@ const TreeClipPreview = memo(function TreeClipPreview(props: {
 		);
 	}, [clipRect, editor.atlasImage, node.clip]);
 
-	return (
-		<button
-			type="button"
-			onClick={onSelect}
-			style={{
-				width: previewSize,
-				height: previewSize,
-				padding: 0,
-				border: 0,
-				background: "transparent",
-				cursor: "pointer",
-				flexShrink: 0,
-			}}
-		>
-			<canvas ref={canvasRef} aria-hidden="true" style={{ display: "block" }} />
-		</button>
-	);
+	return <canvas ref={canvasRef} aria-hidden="true" style={{ display: "block", flexShrink: 0, borderRadius: 3 }} />;
 });
 
 const NodeTree = memo(function NodeTree(props: {
@@ -813,6 +798,7 @@ const NodeTree = memo(function NodeTree(props: {
 			<div style={{ display: "flex", alignItems: "center", gap: 2, paddingLeft: depth * 14, minHeight: 34, width: "max-content", minWidth: "100%" }}>
 				<button
 					type="button"
+					className="dora-editor-tree-visibility-button"
 					title={previewVisible ? tr(editor, "hide") : tr(editor, "showAll")}
 					onClick={() => {
 						const next = new Set(hiddenIds);
@@ -821,42 +807,23 @@ const NodeTree = memo(function NodeTree(props: {
 						onHiddenChange(next);
 					}}
 					style={{
-						width: 22,
-						height: 30,
-						padding: 0,
-						border: 0,
-						background: "transparent",
-						cursor: "pointer",
 						flexShrink: 0,
 					}}
 				>
 					<TreeEyeIcon visible={previewVisible} />
 				</button>
-				<TreeClipPreview
-					editor={editor}
-					node={node}
-					onSelect={() => editor.onSelectionChange(node.id)}
-				/>
 				<button
 					type="button"
+					className="dora-editor-tree-node-button"
+					data-selected={selected}
 					onClick={() => editor.onSelectionChange(node.id)}
 					style={{
 						flex: 1,
-						height: 30,
 						minWidth: "max-content",
-						textAlign: "left",
-						padding: "0 10px",
-						overflow: "visible",
-						whiteSpace: "nowrap",
-						border: "1px solid transparent",
-						background: selected ? "#3a3a3a" : "transparent",
-						color: "#d7d7d7",
-						cursor: "pointer",
-						fontSize: 16,
-						boxSizing: "border-box",
 					}}
 				>
-					{getTreeNodeLabel(editor, node)}
+					<TreeClipPreview editor={editor} node={node} />
+					<span>{getTreeNodeLabel(editor, node)}</span>
 				</button>
 			</div>
 			{node.children.map((child) => (
@@ -1170,7 +1137,7 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 	};
 
 	const renderLeftPanel = () => (
-		<div style={{ width: leftPanelWidth, display: showSidePanels ? "flex" : "none", flexDirection: "column", borderRight: "1px solid #2b2b2b", background: "#1a1a1a", minHeight: 0 }}>
+		<div className="dora-editor-panel" style={{ width: leftPanelWidth, display: showSidePanels ? "flex" : "none", flexDirection: "column", borderRight: "1px solid #2b2b2b", background: "#1a1a1a", minHeight: 0 }}>
 			<div style={{ padding: 8, borderBottom: "1px solid #2b2b2b" }}>
 				<label style={styles.label}>{tr(props, "clip")}</label>
 				<select
@@ -1310,10 +1277,10 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 				}} style={styles.button}>{tr(props, "addLook")}</button>
 				{props.selectedLook !== null ? <button type="button" disabled={props.readOnly} onClick={() => { props.onDocumentChange(removeActionLook(props.document, props.selectedLook!)); props.onLookSelect(null); }} style={styles.button}>{tr(props, "deleteLook")}</button> : null}
 			</div>
-			<div style={{ border: "1px solid #2b2b2b", height: 180, marginBottom: 8 }}>
+			<div className="dora-editor-flat-list" style={{ height: 180, marginBottom: 8 }}>
 				<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
 					{props.document.looks.map((look) => (
-						<button key={look} type="button" onClick={() => { props.onLookSelect(look); props.onAnimationSelect(null); props.onPlaybackPlayingChange(false); }} style={{ ...styles.button, ...(props.selectedLook === look ? styles.buttonActive : null), width: "100%", textAlign: "left", borderWidth: 0, borderBottom: "1px solid #2b2b2b" }}>{look}</button>
+						<button key={look} type="button" aria-pressed={props.selectedLook === look} onClick={() => { props.onLookSelect(look); props.onAnimationSelect(null); props.onPlaybackPlayingChange(false); }} style={{ ...styles.button, ...(props.selectedLook === look ? styles.buttonActive : null), width: "100%", textAlign: "left", borderWidth: 0, borderBottom: "1px solid #2b2b2b" }}>{look}</button>
 					))}
 				</MacScrollbar>
 			</div>
@@ -1421,8 +1388,8 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 			<>
 				<div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
 					<span style={styles.label}>{tr(props, "track")}</span>
-					<label style={{ color: "#d7d7d7", fontSize: 12 }}><input type="radio" checked={track?.type !== "frame"} disabled={props.readOnly} onChange={() => props.selectedAnimation && props.onDocumentChange(upsertActionKeyFrame(props.document, selected.id, props.selectedAnimation, props.playbackTime))} /> {tr(props, "key")}</label>
-					<label style={{ color: "#d7d7d7", fontSize: 12 }}><input type="radio" checked={track?.type === "frame"} disabled={props.readOnly} onChange={() => props.selectedAnimation && props.onDocumentChange(setActionFrameTrack(props.document, selected.id, props.selectedAnimation, createDefaultFrameTrack(props, selected)))} /> {tr(props, "sequence")}</label>
+					<label style={{ color: "#d7d7d7", fontSize: 12, display: "inline-flex", alignItems: "center", gap: 6 }}><input className="dora-native-radio" type="radio" checked={track?.type !== "frame"} disabled={props.readOnly} onChange={() => props.selectedAnimation && props.onDocumentChange(upsertActionKeyFrame(props.document, selected.id, props.selectedAnimation, props.playbackTime))} />{tr(props, "key")}</label>
+					<label style={{ color: "#d7d7d7", fontSize: 12, display: "inline-flex", alignItems: "center", gap: 6 }}><input className="dora-native-radio" type="radio" checked={track?.type === "frame"} disabled={props.readOnly} onChange={() => props.selectedAnimation && props.onDocumentChange(setActionFrameTrack(props.document, selected.id, props.selectedAnimation, createDefaultFrameTrack(props, selected)))} />{tr(props, "sequence")}</label>
 				</div>
 				{track?.type === "frame" ? renderAnimationFrameTrack(track) : (
 					<>
@@ -1457,18 +1424,18 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 				<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
 					<div>
 						<div style={styles.label}>{tr(props, "animation")}</div>
-						<div style={{ border: "1px solid #2b2b2b", height: 120 }}>
+						<div className="dora-editor-flat-list" style={{ height: 120 }}>
 							<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
-								{props.document.animations.map((animation) => <button key={animation} type="button" onClick={() => { props.onAnimationSelect(animation); props.onPlaybackTimeChange(0); }} style={{ ...styles.button, ...(props.selectedAnimation === animation ? styles.buttonActive : null), width: "100%", textAlign: "left", borderWidth: 0, borderBottom: "1px solid #2b2b2b" }}>{animation}</button>)}
+								{props.document.animations.map((animation) => <button key={animation} type="button" aria-pressed={props.selectedAnimation === animation} onClick={() => { props.onAnimationSelect(animation); props.onPlaybackTimeChange(0); }} style={{ ...styles.button, ...(props.selectedAnimation === animation ? styles.buttonActive : null), width: "100%", textAlign: "left", borderWidth: 0, borderBottom: "1px solid #2b2b2b" }}>{animation}</button>)}
 							</MacScrollbar>
 						</div>
 					</div>
 					<div>
 						<div style={styles.label}>{tr(props, "look")}</div>
-						<div style={{ border: "1px solid #2b2b2b", height: 120 }}>
+						<div className="dora-editor-flat-list" style={{ height: 120 }}>
 							<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
-								<button type="button" onClick={() => props.onLookSelect(null)} style={{ ...styles.button, ...(props.selectedLook === null ? styles.buttonActive : null), width: "100%", textAlign: "left", borderWidth: 0, borderBottom: "1px solid #2b2b2b" }}>{tr(props, "defaultLook")}</button>
-								{props.document.looks.map((look) => <button key={look} type="button" onClick={() => props.onLookSelect(look)} style={{ ...styles.button, ...(props.selectedLook === look ? styles.buttonActive : null), width: "100%", textAlign: "left", borderWidth: 0, borderBottom: "1px solid #2b2b2b" }}>{look}</button>)}
+								<button type="button" aria-pressed={props.selectedLook === null} onClick={() => props.onLookSelect(null)} style={{ ...styles.button, ...(props.selectedLook === null ? styles.buttonActive : null), width: "100%", textAlign: "left", borderWidth: 0, borderBottom: "1px solid #2b2b2b" }}>{tr(props, "defaultLook")}</button>
+								{props.document.looks.map((look) => <button key={look} type="button" aria-pressed={props.selectedLook === look} onClick={() => props.onLookSelect(look)} style={{ ...styles.button, ...(props.selectedLook === look ? styles.buttonActive : null), width: "100%", textAlign: "left", borderWidth: 0, borderBottom: "1px solid #2b2b2b" }}>{look}</button>)}
 							</MacScrollbar>
 						</div>
 					</div>
@@ -1505,7 +1472,7 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 	};
 
 	const renderRightPanel = () => (
-		<div style={{ width: rightPanelWidth, display: showSidePanels ? "flex" : "none", flexDirection: "column", borderLeft: "1px solid #2b2b2b", background: "#1a1a1a", minHeight: 0 }}>
+		<div className="dora-editor-panel" style={{ width: rightPanelWidth, display: showSidePanels ? "flex" : "none", flexDirection: "column", borderLeft: "1px solid #2b2b2b", background: "#1a1a1a", minHeight: 0 }}>
 			<div style={{ display: "flex", gap: 4, padding: 6, borderBottom: "1px solid #2b2b2b" }}>
 				<TabButton active={props.editMode === "pose"} onClick={() => props.onEditModeChange("pose")}>{tr(props, "pose")}</TabButton>
 				<TabButton active={props.editMode === "look"} onClick={() => props.onEditModeChange("look")}>{tr(props, "look")}</TabButton>
@@ -1564,7 +1531,7 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 	};
 
 	const renderTopToolbar = () => (
-		<div style={{ height: topToolbarHeight, flexShrink: 0, display: "flex", alignItems: "center", gap: 8, paddingTop: 2, paddingLeft: 10, paddingRight: 10, borderBottom: "1px solid #2b2b2b", background: "#1a1a1a", boxSizing: "border-box" }}>
+		<div className="dora-editor-toolbar" style={{ height: topToolbarHeight, flexShrink: 0, display: "flex", alignItems: "center", gap: 8, paddingTop: 2, paddingLeft: 10, paddingRight: 10, borderBottom: "1px solid #2b2b2b", background: "#1a1a1a", boxSizing: "border-box" }}>
 			<div style={{ display: "flex", alignItems: "center", gap: 6 }}>
 				<span style={{ color: "#9aa4af", fontSize: 12, marginRight: 2 }}>{props.t("bodyEditor.toolbar.view")}</span>
 				{actionViewToolNames.map((name) => (
@@ -1573,6 +1540,7 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 						type="button"
 						title={tr(props, name)}
 						aria-label={tr(props, name)}
+						aria-pressed={axisTool === name}
 						onClick={() => runViewTool(name)}
 						style={{
 							width: 30,
@@ -1596,6 +1564,7 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 						<button
 							key={mode}
 							type="button"
+							aria-pressed={selectedMode}
 							disabled={props.readOnly}
 							onClick={() => setGizmoMode(mode)}
 							style={{
@@ -1614,13 +1583,13 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 				})}
 				{!toolSelectOnly ? (
 					<label style={{ display: "flex", alignItems: "center", gap: 4, color: "#d7d7d7", fontSize: 12, marginLeft: 4 }}>
-						<input type="checkbox" checked={fixedSnap} disabled={props.readOnly} onChange={(event) => setFixedSnap(event.currentTarget.checked)} />
+						<input className="dora-native-checkbox" type="checkbox" checked={fixedSnap} disabled={props.readOnly} onChange={(event) => setFixedSnap(event.currentTarget.checked)} />
 						{tr(props, "fixed")}
 					</label>
 				) : null}
 			</div>
 			<label style={{ color: "#d7d7d7", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
-				<input type="checkbox" checked={anisotropicFiltering} onChange={(event) => setAnisotropicFiltering(event.currentTarget.checked)} />
+				<input className="dora-native-checkbox" type="checkbox" checked={anisotropicFiltering} onChange={(event) => setAnisotropicFiltering(event.currentTarget.checked)} />
 				{tr(props, "anisotropic")}
 			</label>
 			<Stack direction="row" spacing={1}>
@@ -1763,6 +1732,7 @@ export default memo(function ActionEditorCanvas(props: ActionEditorCanvasProps) 
 
 	return (
 		<div
+			className="dora-visual-editor"
 			tabIndex={0}
 			onKeyDown={onKeyDown}
 			style={{ display: props.active ? "flex" : "none", width: props.width, height: props.height, minWidth: 0, minHeight: 0, flexDirection: "column", background: "#1f1f1f", color: "#d7d7d7", outline: "none", overflow: "hidden" }}

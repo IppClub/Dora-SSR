@@ -566,7 +566,6 @@ const Editor = memo((props: {
 					theme={EditorTheme}
 					onMount={onMount}
 					onUnmount={onUnmount}
-					keepCurrentModel
 					loading={editorBackground}
 					onChange={onChange}
 					onValidate={language === "typescript" ? doValidate : undefined}
@@ -701,7 +700,6 @@ export default function PersistentDrawerLeft() {
 	const [drawerOpen, setDrawerOpen] = useState(() => window.innerWidth >= narrowSplitBreakpoint);
 	const [tabIndex, setTabIndex] = useState<number | null>(null);
 	const [files, setFiles] = useState<EditingFile[]>([]);
-	const [mountedTabKeys, setMountedTabKeys] = useState<string[]>([]);
 
 	const [treeData, setTreeData] = useState<TreeDataType[]>([]);
 	const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
@@ -1226,6 +1224,10 @@ export default function PersistentDrawerLeft() {
 		const model = editor.getModel();
 		if (model === null) return;
 		if (!checkFileReadonly(editingFile.key, false) && !editingFile.readOnly) {
+			// Keep the tab snapshot in sync before the debounced validation runs.
+			// Otherwise a quick tab round-trip can remount the editor with the
+			// previous snapshot and overwrite the retained Monaco model.
+			editingFile.contentModified = content !== editingFile.content ? content : null;
 			lastEditorActionTime = Date.now();
 			setIsEditorActioning(true);
 			new Promise((resolve) => {
@@ -1317,14 +1319,6 @@ export default function PersistentDrawerLeft() {
 		}
 		void revealTreeNode(currentFileKey);
 	}, [currentFileKey, leftDockTab, revealTreeNode]);
-	useEffect(() => {
-		if (currentFileKey === undefined) return;
-		setMountedTabKeys(previous => {
-			const next = [...previous.filter(key => key !== currentFileKey), currentFileKey];
-			return next.length > 2 ? next.slice(next.length - 2) : next;
-		});
-	}, [currentFileKey]);
-	const mountedTabKeySet = useMemo(() => new Set(mountedTabKeys), [mountedTabKeys]);
 	const revalidateActiveTypeScriptModel = useCallback((model: Monaco.editor.ITextModel) => {
 		const ext = path.extname(model.uri.fsPath).toLowerCase();
 		if (ext !== ".ts" && ext !== ".tsx") return;
@@ -5653,11 +5647,6 @@ export default function PersistentDrawerLeft() {
 				<>{
 					files.map((file, index) => {
 						const active = tabIndex === index;
-						const visualStatePinned = file.visualSnapshotPending === true ||
-							file.ticDirty === true;
-						if (!active && !mountedTabKeySet.has(file.key) && !visualStatePinned) {
-							return null;
-						}
 						if (file.agentSessionId) {
 							return <Main
 								open
@@ -5800,7 +5789,7 @@ export default function PersistentDrawerLeft() {
 									<ActionEditor
 										filePath={file.key}
 										resourceBasePath={parentPath}
-										sourceContent={file.content}
+										sourceContent={file.contentModified ?? file.content}
 										width={editorWidth}
 										height={editorHeight}
 										active={tabIndex === index}
@@ -5956,7 +5945,7 @@ export default function PersistentDrawerLeft() {
 									height={tabIndex === index ? editorHeight : 0}
 									file={file.key}
 									readOnly={readOnly}
-									initialJson={file.content}
+									initialJson={file.contentModified ?? file.content}
 									onSave={saveCurrentTab}
 									onChange={(json, blocklyCode) => {
 										setModified({ key: file.key, content: json, blocklyCode });
@@ -6068,7 +6057,7 @@ export default function PersistentDrawerLeft() {
 								return null;
 							})()}
 							{(() => {
-								if (language && tabIndex === index && !hidden) {
+								if (language) {
 									const editorComponent = <Editor
 										key={file.key}
 										hidden={hidden}

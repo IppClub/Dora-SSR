@@ -19,7 +19,7 @@
 | 阶段 | 状态 | 目标 | 当前说明 |
 | --- | --- | --- | --- |
 | P0 基线与回归工具 | 已完成 | 建立可重复性能样本和预算 | 服务端、搜索、bundle 与无头 Chrome 三轮基线均已自动化；`?doraPerf=1` 提供 DOM、listener、Heap、重资源、Agent 行级计数和搜索输入指标 |
-| P1 生命周期与高频渲染 | 已完成 | 停止隐藏面板和 Splitter 的无效工作 | Agent、BottomLog、Splitter、活动 Tab、Monaco 和重型视图生命周期均完成；Yarn/CodeWire 使用可恢复快照，TIC 使用干净回收/脏状态固定策略 |
+| P1 生命周期与高频渲染 | 已完成 | 停止隐藏面板和 Splitter 的无效工作 | Agent、BottomLog 和 Splitter 隐藏时停止后台工作；已打开 Tab 保留实例并只隐藏，由用户控制同时打开数量 |
 | P2 Agent 与日志管线 | 已完成 | 长会话和持续输出保持流畅 | patch 批处理、长期规范化、轻量流式渲染、行级 memo、历史窗口和有界日志已完成；生产浏览器 30 秒、1,201 patch 压力预算通过 |
 | P3 跳转文件搜索 | 已完成 | 大工作区搜索不阻塞输入 | Worker、Top 100、request ID、50 ms debounce 和增量索引已实现；空查询、键盘、关闭及真实新建/重命名/删除均通过浏览器验收 |
 | P4 Git 按需数据 | 已完成 | 列表只取元数据，选中后取 Diff | 元数据、changed-files、Summary 渐进加载和 Go status 取消释放均已验收 |
@@ -41,9 +41,9 @@
 | LIFE-04 | Splitter 使用原生 lazy 预览拖拽 | 已完成 | PERF-01 | 拖动期间不连续刷新 App 顶层状态 | 源码检查、浏览器拖拽 | Ant Splitter 拖动时仅更新预览手柄，松手后才提交尺寸 |
 | LIFE-05 | Splitter 结束时单次 layout 和持久化 | 已完成 | LIFE-04 | 宽度准确保存，Monaco/滚动条不抖动 | 重启恢复与拖拽检查 | 实测 291 → 360 px，页面重载后恢复为 360 px |
 | LIFE-06 | BottomLog 隐藏时取消 React 更新 | 已完成 | PERF-01 | 隐藏状态持续日志不触发 BottomLog render | 代码检查、面板开关检查 | 隐藏时解除日志和 DOM 事件订阅，重新打开时从 Service 快照同步 |
-| LIFE-07 | 抽离活动 Tab 渲染容器 | 已完成 | LIFE-01, PERF-02 | App 不再为所有 Tab 构造完整视图 | 多 Tab DOM、listener、Heap 采样 | App 只构造活动 Tab 与最近 1 个 Tab；3 个混合 Tab 连续切换时 `main` 始终为 2，隐藏项目 Tab 的 Agent 明确收到 `active=false` |
-| LIFE-08 | Monaco Model 与 Editor 实例生命周期拆分 | 已完成 | LIFE-07 | 未激活 Tab 保留内容但释放重型 Editor | 光标/撤销/诊断恢复检查 | `keepCurrentModel` 保留 Model，卸载保存 viewState 并清除 Editor 引用，重挂载不再无条件 `setValue`；文本/项目往返 Editor 1 → 0 → 1，未保存内容、光标位置和撤销栈均恢复，控制台无错误 |
-| LIFE-09 | 重型编辑器 LRU 策略 | 已完成 | LIFE-07 | 最近视图可快速返回，超预算实例被释放 | 多类型 Tab 往返 | Yarn 使用带 revision 的异步文本快照，CodeWire 同步保存 visual script；两者未保存状态均通过 iframe 1→0→1 恢复。干净 TIC 为 1→0→1；发生指针输入后保持 iframe 1、`main` 3，成功保存且无新输入后才解除固定 |
+| LIFE-07 | Tab 实例生命周期 | 已完成 | LIFE-01, PERF-02 | 已打开 Tab 不因程序预算被自动卸载 | 多 Tab DOM 与状态往返 | 取消两实例 LRU；未激活 Tab 只隐藏，隐藏项目 Tab 的 Agent 明确收到 `active=false` |
+| LIFE-08 | Monaco 编辑状态保留 | 已完成 | LIFE-07 | 未激活 Tab 保留内容、光标和撤销栈 | 快速切换与多 Tab 往返 | Monaco Editor 与 Model 随打开 Tab 保留；修改内容同步写入 Tab 快照，避免 500 ms 校验节流窗口覆盖新内容 |
+| LIFE-09 | 重型编辑器状态保护 | 已完成 | LIFE-07 | 自动回收不再造成内部状态丢失 | 多类型 Tab 往返 | 取消重型编辑器 LRU；Yarn/CodeWire/TIC 快照和监听器清理逻辑继续保留，用于关闭、刷新和异常恢复 |
 | LIFE-10 | 窄屏资源树改为覆盖层 | 已完成 | LIFE-04 | 纵屏内容区不再被 Splitter 最小宽度挤压或裁切 | 双视口自动化、iOS Safari 检查 | `<490 px` 默认隐藏资源树，内容区保持 100% 宽；资源树以 82% 宽覆盖层开合并有显式关闭按钮；达到断点后恢复原 Splitter |
 | AGENT-01 | Agent patch 进入批处理队列 | 已完成 | PERF-01 | 同一帧/50 ms 内 patch 合并提交 | 流式输出采样 | 默认 50 ms；停止、问卷、会话结束立即提交；5,000 patch 合并测试由 5,000 次提交模型降为 1 次 |
 | AGENT-02 | 消息、步骤和 checkpoint 规范化存储 | 已完成 | AGENT-01 | 不再每个 patch 执行全数组查找和排序 | 单元测试、Profiler | 长期状态使用 `Map + orderedIds`；既有实体更新复用顺序与稳定实体引用，只有增删或排序字段变化才重建顺序；5,000 次同消息 patch 批量归并约 0.21 ms |
@@ -157,7 +157,7 @@
 | 项目 | 建议 | 决策状态 |
 | --- | --- | --- |
 | Agent 数据 store 选型 | 先使用轻量模块级 external store 和 `useSyncExternalStore`，不急于引入大型状态库 | 待确认 |
-| 非激活 Monaco Editor 保留数量 | Monaco Editor 只保留活动实例；顶部 Tab 内容容器保留活动项和最近 1 项 | 已按建议实施 |
+| 非激活编辑器保留策略 | 已打开 Tab 的编辑器实例全部保留；由用户通过关闭 Tab 控制资源占用 | 已确认 |
 | 日志内存预算 | 默认 10,000 行或 4 MB，任一达到即截断最旧内容 | 已按建议实施 |
 | Agent patch 批次 | 默认 50 ms；停止、问卷和错误等控制事件立即提交 | 已按建议实施 |
 | 文件搜索方案 | 优先 Worker，本地完整索引；移动端不达标时再做服务端 Top N | 建议采用 |
@@ -208,6 +208,7 @@
 | 2026-07-26 | PERF-04 / QA-07 触控仿真 | 待开始 → 进行中 | `perf:mobile:browser` 启用 Chrome 移动设备和 5 触点仿真，覆盖 390×844 纵屏资源树覆盖层、844×390 横屏 Splitter/搜索/首次 Esc/资源树，以及同页方向切换 | 纵屏内容区保持 390 px，覆盖层 319 px 且可触控开合；横屏 Splitter 触摸移动 40 px；41,294 候选仅渲染 Top 100；输入 P95 0.8 ms；横转纵后资源树 370→0 px、内容区 390 px；控制台 0 错误 | 物理手机上的浏览器地址栏、系统手势冲突与操作手感仍待真机验收 |
 | 2026-07-26 | LIFE-10 / QA-07 纵屏修复 | 待开始 → 已完成 / 进行中 | 实测发现 390 px 纵屏无法同时满足资源树 170 px 与内容区 320 px；改为 `<490 px` 默认收起资源树、内容区全宽、资源树 82% 覆盖层，并增加显式关闭按钮 | Chrome 双视口自动化通过；iPhone 17 / iOS 26.5 Simulator Safari 中既有 Agent 会话首帧可见，覆盖层开合及 Dora/文件/Git 切换正常 | iOS 模拟器只验证 WebKit 和布局，不替代物理手机验收 |
 | 2026-07-26 | PERF-04 / QA-07 物理设备复核 | 进行中 → 阻塞 | 再次枚举本机可用移动设备，明确外部验收的实际可执行条件 | `xcrun xctrace list devices` 的 Devices 仅有 MacBook Pro，其余均列在 Simulators；`adb devices -l` 无设备 | 连接并授权至少一台物理 iOS 或 Android 手机后，按 QA-07 样本检查地址栏占位、系统手势冲突、资源树拖拽/覆盖层、搜索、Agent 和 Git 手感即可解除 |
+| 2026-07-27 | LIFE-07～09 策略修订 | 两实例 LRU → 用户控制 | 取消顶部 Tab 和 Monaco Editor 的自动卸载；非活动 Tab 只隐藏。文本修改同步更新 Tab 快照，`.model` 与 Blockly 重载源统一使用未保存内容 | 6 个混合 Tab 连续切换时 `main` 6、Monaco Editor 2、iframe 1 均保持不变；控制台 0 错误；lint、生产构建和 `git diff --check` 通过 | 设备资源占用现在随用户打开的 Tab 数增长，用户可通过主动关闭 Tab 释放 |
 
 ## 每轮实施约定
 

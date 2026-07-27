@@ -7,7 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 import { forwardRef, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { HTMLAttributes } from 'react';
+import type { HTMLAttributes, MutableRefObject } from 'react';
 import { Autocomplete, CircularProgress, TextField } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { MacScrollbar } from 'mac-scrollbar';
@@ -46,15 +46,70 @@ interface MacScrollbarListboxProps extends HTMLAttributes<HTMLElement> {
 }
 
 const MacScrollbarListboxBase = forwardRef<HTMLElement, MacScrollbarListboxProps>((props, ref) => {
-	const { ownerState: _, sx: __, style, ...listboxProps } = props;
+	const { ownerState: _, sx: __, style, onWheel, ...listboxProps } = props;
+	const listboxRef = useRef<HTMLElement | null>(null);
+
+	useLayoutEffect(() => {
+		const node = listboxRef.current;
+		const mutableRef = typeof ref === "function" || ref === null
+			? null
+			: ref as MutableRefObject<HTMLElement | null>;
+		if (typeof ref === "function") {
+			ref(node);
+		} else if (mutableRef !== null) {
+			mutableRef.current = node;
+		}
+		return () => {
+			if (typeof ref === "function") {
+				ref(null);
+			} else if (mutableRef !== null) {
+				mutableRef.current = null;
+			}
+		};
+	}, [ref]);
+
+	useLayoutEffect(() => {
+		const updateMaxHeight = () => {
+			const listbox = listboxRef.current;
+			if (listbox === null) return;
+			const viewport = window.visualViewport;
+			const viewportHeight = viewport?.height ?? window.innerHeight;
+			const viewportBottom = (viewport?.offsetTop ?? 0) + viewportHeight;
+			const availableHeight = Math.max(0, viewportBottom - listbox.getBoundingClientRect().top - 12);
+			listbox.style.maxHeight = `${Math.min(viewportHeight * 0.5, availableHeight)}px`;
+		};
+		const frame = requestAnimationFrame(updateMaxHeight);
+		window.addEventListener("resize", updateMaxHeight);
+		window.visualViewport?.addEventListener("resize", updateMaxHeight);
+		window.visualViewport?.addEventListener("scroll", updateMaxHeight);
+		return () => {
+			cancelAnimationFrame(frame);
+			window.removeEventListener("resize", updateMaxHeight);
+			window.visualViewport?.removeEventListener("resize", updateMaxHeight);
+			window.visualViewport?.removeEventListener("scroll", updateMaxHeight);
+		};
+	}, []);
+
 	return (
 		<MacScrollbar
 			{...listboxProps}
-			ref={ref}
+			ref={listboxRef}
 			as="ul"
 			skin="dark"
 			suppressScrollX
-			style={style}
+			onWheel={(event) => {
+				onWheel?.(event);
+				if (event.defaultPrevented) return;
+				const listbox = event.currentTarget;
+				const maxScrollTop = Math.max(0, listbox.scrollHeight - listbox.clientHeight);
+				const reachedTop = event.deltaY < 0 && listbox.scrollTop <= 0;
+				const reachedBottom = event.deltaY > 0 && listbox.scrollTop >= maxScrollTop - 1;
+				if (reachedTop || reachedBottom) {
+					event.preventDefault();
+				}
+				event.stopPropagation();
+			}}
+			style={{ ...style, overscrollBehavior: 'contain' }}
 		/>
 	);
 });
@@ -68,33 +123,48 @@ const MacScrollbarListbox = styled(MacScrollbarListboxBase)({
 	overflow: 'auto',
 	position: 'relative',
 	'& .MuiAutocomplete-option': {
-		minHeight: 48,
+		height: 64,
+		minHeight: 64,
+		maxHeight: 64,
 		display: 'flex',
 		overflow: 'hidden',
 		justifyContent: 'flex-start',
 		alignItems: 'center',
+		gap: 16,
 		cursor: 'pointer',
 		padding: '6px 16px',
 		boxSizing: 'border-box',
 		outline: 0,
 		WebkitTapHighlightColor: 'transparent',
-		'@media (min-width: 600px)': {
-			minHeight: 'auto',
-		},
 		'&:hover': {
 			backgroundColor: Color.ThemeMuted,
 		},
-		'&.Mui-focused:not(.dora-file-filter-highlighted)': {
-			backgroundColor: 'transparent',
+		'&.Mui-focused': {
+			backgroundColor: Color.Theme + '44',
 		},
-		'&.Mui-focusVisible:not(.dora-file-filter-highlighted)': {
-			backgroundColor: 'transparent',
+		'&.Mui-focusVisible': {
+			backgroundColor: Color.Theme + '44',
 		},
 		'&[aria-selected="true"]': {
 			backgroundColor: Color.Theme + '2e',
 		},
-		'&.dora-file-filter-highlighted': {
-			backgroundColor: Color.Theme + '44',
+		'& .dora-file-filter-title': {
+			flex: '0 0 auto',
+			whiteSpace: 'nowrap',
+		},
+		'& .dora-file-filter-path': {
+			flex: '1 1 auto',
+			minWidth: 0,
+			overflow: 'hidden',
+			color: Color.TextSecondary,
+			display: '-webkit-box',
+			fontSize: 12,
+			lineHeight: '18px',
+			textAlign: 'right',
+			whiteSpace: 'normal',
+			wordBreak: 'break-all',
+			WebkitBoxOrient: 'vertical',
+			WebkitLineClamp: 2,
 		},
 	},
 });
@@ -102,13 +172,11 @@ MacScrollbarListbox.displayName = "MacScrollbarListbox";
 
 const FileFilter = (props: FileFilterProps) => {
 	const { t } = useTranslation();
-	const highlightedOption = useRef<FilterOption | null>(null);
 	const searchRevision = useRef(0);
 	const inputStartedAt = useRef<number | null>(null);
 	const inputLatencySamples = useRef<number[]>([]);
 	const [inputValue, setInputValue] = useState("");
 	const [results, setResults] = useState<FilterOption[]>([]);
-	const [highlightedIndex, setHighlightedIndex] = useState(-1);
 	const [searchLoading, setSearchLoading] = useState(false);
 
 	useEffect(() => {
@@ -127,20 +195,9 @@ const FileFilter = (props: FileFilterProps) => {
 		updateSearchInputDiagnostics(samples);
 	}, [inputValue]);
 
-	useLayoutEffect(() => {
-		const option = highlightedIndex < 0
-			? null
-			: document.querySelector<HTMLElement>(
-				`[data-file-filter-option-index="${highlightedIndex}"]`,
-			);
-		option?.scrollIntoView({ block: "nearest" });
-	}, [highlightedIndex, results]);
-
 	useEffect(() => {
 		const input = inputValue.trim();
 		const revision = ++searchRevision.current;
-		highlightedOption.current = null;
-		setHighlightedIndex(-1);
 		if (input === "") {
 			setResults([]);
 			setSearchLoading(false);
@@ -156,8 +213,6 @@ const FileFilter = (props: FileFilterProps) => {
 		const timer = window.setTimeout(() => {
 			void searchFileIndex(input, maxResults).then(options => {
 				if (revision !== searchRevision.current) return;
-				highlightedOption.current = options[0] ?? null;
-				setHighlightedIndex(options.length > 0 ? 0 : -1);
 				setResults(options);
 				setSearchLoading(false);
 			});
@@ -168,6 +223,7 @@ const FileFilter = (props: FileFilterProps) => {
 	}, [inputValue, props.loading]);
 
 	return <Autocomplete
+		autoHighlight
 		forcePopupIcon={false}
 		fullWidth
 		disableListWrap
@@ -176,8 +232,6 @@ const FileFilter = (props: FileFilterProps) => {
 		onInputChange={(_, value, reason) => {
 			if (reason === "input") {
 				inputStartedAt.current = performance.now();
-				highlightedOption.current = null;
-				setHighlightedIndex(-1);
 				setResults([]);
 				setSearchLoading(value.trim() !== "" && !props.loading);
 			}
@@ -191,40 +245,12 @@ const FileFilter = (props: FileFilterProps) => {
 		}}
 		noOptionsText={t("popup.searchFilesEmpty")}
 		getOptionLabel={(option) => option.fileKey}
-		onHighlightChange={(_, option, reason) => {
-			if (option === null || reason === "keyboard") return;
-			const index = results.indexOf(option);
-			if (index < 0) return;
-			highlightedOption.current = option;
-			setHighlightedIndex(index);
-		}}
 		onKeyDown={(event) => {
 			if (event.key === "Escape") {
 				(event as typeof event & { defaultMuiPrevented?: boolean }).defaultMuiPrevented = true;
 				event.preventDefault();
 				event.stopPropagation();
 				props.onClose(null);
-				return;
-			}
-			if ((event.key === "ArrowDown" || event.key === "ArrowUp") && results.length > 0) {
-				(event as typeof event & { defaultMuiPrevented?: boolean }).defaultMuiPrevented = true;
-				event.preventDefault();
-				event.stopPropagation();
-				setHighlightedIndex(current => {
-					const next = event.key === "ArrowDown"
-						? Math.min(results.length - 1, current < 0 ? 0 : current + 1)
-						: Math.max(0, current < 0 ? 0 : current - 1);
-					highlightedOption.current = results[next] ?? null;
-					return next;
-				});
-				return;
-			}
-			const selectedOption = results[highlightedIndex] ?? highlightedOption.current;
-			if (event.key === "Enter" && selectedOption !== null) {
-				(event as typeof event & { defaultMuiPrevented?: boolean }).defaultMuiPrevented = true;
-				event.preventDefault();
-				event.stopPropagation();
-				props.onClose(selectedOption);
 			}
 		}}
 		renderInput={(params) => <TextField
@@ -240,9 +266,6 @@ const FileFilter = (props: FileFilterProps) => {
 					"data-file-filter-input": "true",
 					"data-file-filter-option-count": props.optionCount,
 					"data-file-filter-result-count": results.length,
-					"aria-activedescendant": highlightedIndex < 0
-						? undefined
-						: `${params.inputProps.id}-option-${highlightedIndex}`,
 				},
 				input: {
 					...params.InputProps,
@@ -255,18 +278,15 @@ const FileFilter = (props: FileFilterProps) => {
 			label={t("popup.goToFile")}
 		/>}
 		renderOption={(props, option, state) => {
-			const { key, className, ...liProps } = props;
-			const highlighted = state.index === highlightedIndex;
+			const { key: _, ...liProps } = props;
 			return (
 				<li
 					key={option.fileKey}
 					{...liProps}
-					className={`${className ?? ""}${highlighted ? " dora-file-filter-highlighted" : ""}`}
 					data-file-filter-option-index={state.index}
-					aria-selected={highlighted}
 				>
-					{option.title}&emsp;&emsp;
-					<p style={{ textAlign: 'right', color: Color.TextSecondary, fontSize: '12px' }}>{option.path}</p>
+					<span className="dora-file-filter-title">{option.title}</span>
+					<span className="dora-file-filter-path" title={option.path}>{option.path}</span>
 				</li>
 			);
 		}}
