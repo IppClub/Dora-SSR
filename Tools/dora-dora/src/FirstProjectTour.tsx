@@ -140,6 +140,7 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 	const agentPhase = props.current >= 10;
 	const steps = agentPhase ? allSteps.slice(10) : allSteps.slice(0, 10);
 	const current = agentPhase ? props.current - 10 : props.current;
+	const hasActions = !agentPhase && [0, 4, 7, 9].includes(current);
 
 	return (
 		<ConfigProvider
@@ -169,8 +170,10 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 				width={320}
 				onChange={() => undefined}
 				onClose={props.onClose}
-				actionsRender={(_, info) => (
-					<Space size={8}>
+				actionsRender={(_, info) => {
+					if (!hasActions) return null;
+					return (
+						<Space size={8}>
 						{!agentPhase && info.current === 0 ? (
 							<Button
 								size="small"
@@ -233,8 +236,9 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 								{t("onboarding.next")}
 							</Button>
 						) : null}
-					</Space>
-				)}
+						</Space>
+					);
+				}}
 				styles={{
 					section: {
 						maxWidth: 320,
@@ -245,7 +249,7 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 					footer: {
 						alignItems: "stretch",
 						flexDirection: "column",
-						gap: 12,
+						gap: hasActions ? 12 : 0,
 					},
 					indicators: {
 						alignSelf: "flex-start",
@@ -254,6 +258,7 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 					},
 					actions: {
 						alignSelf: "flex-end",
+						display: hasActions ? undefined : "none",
 					},
 				}}
 			/>

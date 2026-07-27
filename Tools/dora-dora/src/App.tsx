@@ -1134,12 +1134,6 @@ export default function PersistentDrawerLeft() {
 			}
 			Service.editingInfo().then(res => {
 				const fileParam = new URLSearchParams(window.location.search).get("file");
-				const openFirstProjectTour = () => {
-					if (Info.webIDETourCompleted) return;
-					setFirstProjectTourCurrent(0);
-					setFirstProjectTourCreating(false);
-					setFirstProjectTourOpen(true);
-				};
 				if (fileParam !== null && fileParam !== "") {
 					const normalizedFile = decodeURIComponent(fileParam);
 					const editingInfo: Service.EditingInfo = {
@@ -1154,9 +1148,7 @@ export default function PersistentDrawerLeft() {
 					void openEditingInfoFiles(editingInfo);
 				} else if (res.success && res.editingInfo) {
 					const editingInfo: Service.EditingInfo = JSON.parse(res.editingInfo);
-					void openEditingInfoFiles(editingInfo).then(openFirstProjectTour);
-				} else if (res.success) {
-					openFirstProjectTour();
+					void openEditingInfoFiles(editingInfo);
 				}
 			});
 		});

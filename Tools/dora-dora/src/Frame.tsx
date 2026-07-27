@@ -126,6 +126,45 @@ export const PlayControl = memo((prop: PlayControlProp) => {
 			height: iconSize,
 		},
 	};
+	const firstProjectTourButtonSx = {
+		...buttonSx,
+		color: Color.Theme,
+		backgroundColor: 'transparent',
+		'@keyframes dora-first-project-tour-pulse': {
+			'0%, 100%': {
+				opacity: 0.3,
+				filter: `drop-shadow(0 0 2px ${Color.Theme}55)`,
+				transform: 'scale(1)',
+			},
+			'50%': {
+				opacity: 1,
+				filter: `drop-shadow(0 0 2px ${Color.Theme}) drop-shadow(0 0 10px ${Color.Theme}dd)`,
+				transform: 'scale(1)',
+			},
+		},
+		'&:hover': {
+			color: Color.Theme,
+			backgroundColor: Color.Line,
+		},
+		'& svg': {
+			width: iconSize,
+			height: iconSize,
+			animation: 'dora-first-project-tour-pulse 1.8s ease-in-out infinite',
+			transformOrigin: 'center',
+		},
+		'&:hover svg': {
+			opacity: 1,
+			filter: `drop-shadow(0 0 3px ${Color.Theme}) drop-shadow(0 0 10px ${Color.Theme}dd)`,
+			transform: 'scale(1.08)',
+			animationPlayState: 'paused',
+		},
+		'@media (prefers-reduced-motion: reduce)': {
+			'& svg': {
+				animation: 'none',
+				opacity: 1,
+			},
+		},
+	};
 
 	const actions: { mode: PlayControlMode; icon: React.ReactNode; name: string; shortcut?: string }[] = [
 		{ mode: "Run", icon: <BsFillPlayFill style={iconStyle} />, name: t("menu.run"), shortcut: "Mod+R" },
@@ -164,7 +203,7 @@ export const PlayControl = memo((prop: PlayControlProp) => {
 					aria-label={action.name}
 					data-play-control-mode={action.mode}
 					onClick={() => prop.onClick(action.mode)}
-					sx={buttonSx}
+					sx={action.mode === "First Project Tour" ? firstProjectTourButtonSx : buttonSx}
 				>
 					{action.icon}
 				</IconButton>
