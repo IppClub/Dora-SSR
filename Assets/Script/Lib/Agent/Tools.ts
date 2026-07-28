@@ -120,6 +120,26 @@ export type ApplyChangesResult = {
 	message: string;
 };
 
+export type DeleteFileResult = {
+	success: true;
+	taskId: number;
+	checkpointed: true;
+	reversible: true;
+	binary: false;
+	checkpointId: number;
+	checkpointSeq: number;
+} | {
+	success: true;
+	taskId: number;
+	checkpointed: false;
+	reversible: false;
+	binary: true;
+	message: string;
+} | {
+	success: false;
+	message: string;
+};
+
 export type RollbackResult = {
 	success: true;
 	checkpointId: number;
@@ -2270,6 +2290,62 @@ export function applyFileChanges(taskId: number, workDir: string, changes: FileC
 		taskId,
 		checkpointId,
 		checkpointSeq: nextSeq,
+	};
+}
+
+export function deleteFile(taskId: number, workDir: string, targetFile: string, options: ApplyChangesOptions = {}): DeleteFileResult {
+	const storage = requireAgentStorage();
+	if (!storage.success) return storage;
+	if (!isValidWorkDir(workDir)) {
+		return { success: false, message: "invalid workDir" };
+	}
+	if (!getTaskStatus(taskId)) {
+		return { success: false, message: "task not found" };
+	}
+	if (!isValidWorkspacePath(targetFile)) {
+		return { success: false, message: `invalid path: ${targetFile}` };
+	}
+	const fullPath = resolveWorkspaceFilePath(workDir, targetFile);
+	if (!fullPath) {
+		return { success: false, message: `invalid path: ${targetFile}` };
+	}
+	if (Content.exist(fullPath) && Content.isdir(fullPath)) {
+		return { success: false, message: `delete_file only supports files, not directories: ${targetFile}` };
+	}
+
+	let isBinary = false;
+	if (Content.exist(fullPath)) {
+		try {
+			const [, detectedBinary] = Content.getAttr(fullPath);
+			isBinary = detectedBinary === true;
+		} catch (e) {
+			Log("Warn", `[Agent.Tools] Content.getAttr failed before deleting ${fullPath}: ${tostring(e)}`);
+		}
+	}
+	if (!isBinary) {
+		const result = applyFileChanges(taskId, workDir, [{ path: targetFile, op: "delete" }], options);
+		if (!result.success) return result;
+		return {
+			...result,
+			checkpointed: true,
+			reversible: true,
+			binary: false,
+		};
+	}
+
+	if (!Content.remove(fullPath)) {
+		return { success: false, message: `failed to delete binary file: ${targetFile}` };
+	}
+	if (!sendWebIDEFileUpdate(fullPath, false, "")) {
+		sendWebIDERefreshTree();
+	}
+	return {
+		success: true,
+		taskId,
+		checkpointed: false,
+		reversible: false,
+		binary: true,
+		message: "Binary file deleted directly without a checkpoint; this deletion cannot be rolled back.",
 	};
 }
 

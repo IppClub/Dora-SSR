@@ -1119,6 +1119,7 @@ function projectEditResultForLLM(result: Record<string, unknown>): Record<string
 	const projected: Record<string, unknown> = {};
 	const scalarKeys = [
 		"success", "changed", "mode", "checkpointId", "checkpointSeq",
+		"checkpointed", "reversible", "binary",
 		"actualSaved", "actualSavedCharacters", "currentFileExists", "currentCharacters", "currentState",
 	];
 	for (let i = 0; i < scalarKeys.length; i++) {
@@ -3582,7 +3583,7 @@ class DeleteFileAction extends Node<AgentShared> {
 	}
 
 	async exec(input: { targetFile: string; taskId: number; workDir: string }): Promise<Record<string, unknown>> {
-		const result = Tools.applyFileChanges(input.taskId, input.workDir, [{ path: input.targetFile, op: "delete" }], {
+		const result = Tools.deleteFile(input.taskId, input.workDir, input.targetFile, {
 			summary: `delete_file: ${input.targetFile}`,
 			toolName: "delete_file",
 		});
@@ -3593,8 +3594,12 @@ class DeleteFileAction extends Node<AgentShared> {
 			success: true,
 			changed: true,
 			mode: "delete",
-			checkpointId: result.checkpointId,
-			checkpointSeq: result.checkpointSeq,
+			checkpointed: result.checkpointed,
+			reversible: result.reversible,
+			binary: result.binary,
+			checkpointId: result.checkpointed ? result.checkpointId : undefined,
+			checkpointSeq: result.checkpointed ? result.checkpointSeq : undefined,
+			message: result.checkpointed ? undefined : result.message,
 			files: [{ path: input.targetFile, op: "delete" as const }],
 		};
 	}
@@ -4130,7 +4135,7 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 			return { success: false, message: "This .agent/main file is managed automatically and cannot be deleted with delete_file." };
 		}
 		const isInternalDocumentEdit = AgentRuntimePolicy.isAgentInternalDocumentPath(normalizedTargetFile);
-		const result = Tools.applyFileChanges(shared.taskId, shared.workingDir, [{ path: targetFile, op: "delete" }], {
+		const result = Tools.deleteFile(shared.taskId, shared.workingDir, targetFile, {
 			summary: `delete_file: ${targetFile}`,
 			toolName: "delete_file",
 		});
@@ -4149,8 +4154,12 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 			success: true,
 			changed: true,
 			mode: "delete",
-			checkpointId: result.checkpointId,
-			checkpointSeq: result.checkpointSeq,
+			checkpointed: result.checkpointed,
+			reversible: result.reversible,
+			binary: result.binary,
+			checkpointId: result.checkpointed ? result.checkpointId : undefined,
+			checkpointSeq: result.checkpointed ? result.checkpointSeq : undefined,
+			message: result.checkpointed ? undefined : result.message,
 			files: [{ path: targetFile, op: "delete" as const }],
 		};
 	}
