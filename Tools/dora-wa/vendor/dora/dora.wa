@@ -2288,7 +2288,7 @@ type MaterialAlphaMode3D :struct {
 }
 
 func MaterialAlphaMode3D.ToValue() => i32 {
-	return self.value
+	return this.value
 }
 
 global MaterialAlphaMode3DOpaque = MaterialAlphaMode3D{value: 0}
