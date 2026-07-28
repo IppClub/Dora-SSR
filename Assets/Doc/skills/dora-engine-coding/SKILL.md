@@ -71,7 +71,7 @@ Search especially for:
 - physics/collision: `PhysicsWorld`, `Body`, `BodyDef`, `FixtureDef`, `Sensor`
 - ECS: `Entity`, `Group`, `Observer`, component queries
 - UI/components/layout: `Button`, `Menu`, `AlignNode`, UI controls
-- audio: `Audio`, `AudioSource`, buses/effects
+- audio: `Audio`, `AudioSource`, buses/effects (create missing effects with `generate_sfx` and original background music with `generate_music`; do not ask the user to provide WAV files)
 - async/coroutines: `thread`, `threadLoop`, `sleep`, `once`, `loop`, scheduler jobs
 - scene/camera: `Director`, `Camera`, `Director.ui`, `Director.entry`, scheduler APIs
 - resources/files: `Content`, `Cache`, `Path`, asset loading/saving
@@ -245,11 +245,20 @@ Use this as a decision map. It is not a full API reference; exact signatures com
 | Actions/animation | `Action`, `Move`, `Scale`, `Sequence`, `Playable`, `Model` | Search exact signatures |
 | Physics/collision | `PhysicsWorld`, `Body`, `BodyDef`, `FixtureDef`, `Sensor` | Always search first |
 | ECS/game architecture | `Entity`, `Group`, components | Always search first |
-| Audio | `Audio`, `AudioSource` | Always search first |
+| Audio | `Audio`, `AudioSource` | Always search first; use `generate_sfx` + `Audio.play` for effects, or `generate_music` + `Audio.playStream` for background music |
 | Async/coroutines | `thread`, `threadLoop`, `sleep`, `once`, `loop` | Search when using coroutine/timing APIs |
 | Tile maps | `TileNode` | Always search first |
 | Particles/effects/video | `Particle`, `EffekNode`, `VideoNode`, `TIC80Node` | Always search first |
 | Platformer framework | `Platformer`, `PlatformWorld` | Always search first |
+
+### Generated game music workflow
+
+- Use `generate_music` for an original loop. Match `style`, `intensity`, key/mode, BPM, and structure to the requested gameplay state instead of asking for an external audio file.
+- Enable `stems` when gameplay intensity changes at runtime. Create synchronized `AudioSource` nodes for `_melody.wav`, `_bass.wav`, `_harmony.wav`, and `_drums.wav`, start them together, and mix their volumes by game state.
+- Use `intro_bars`, `outro_bars`, and `stinger` for transitions instead of abruptly starting or stopping the main loop.
+- Every generation produces a `.music.json` project. Use `generate_music_variation` with that sidecar to create compatible exploration/combat/boss variants while preserving tempo, key, form, and instruments.
+- Enable `export_midi` when the user wants to continue arranging in a DAW. Runtime playback should still use the generated WAV assets.
+- Generated music synthesis is frame-chunked and cancellable. Do not replace its temporary files or report completion until the tool returns success and lists every written companion asset.
 
 ## Implementation Workflow
 

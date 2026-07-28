@@ -13,6 +13,9 @@ export type AgentToolName =
 	| "glob_files"
 	| "build"
 	| "fetch_url"
+	| "generate_sfx"
+	| "generate_music"
+	| "generate_music_variation"
 	| "execute_command"
 	| "list_sub_agents"
 	| "spawn_sub_agent"
@@ -28,6 +31,9 @@ const BUILT_IN_AGENT_TOOL_NAMES: AgentToolName[] = [
 	"glob_files",
 	"build",
 	"fetch_url",
+	"generate_sfx",
+	"generate_music",
+	"generate_music_variation",
 	"execute_command",
 	"list_sub_agents",
 	"spawn_sub_agent",
@@ -310,6 +316,88 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			"This tool is available only when the user enables fetch_url for the current Agent task.",
 			"Targets must stay inside the current project and existing files or directories are not overwritten.",
 			"This tool writes to a temporary file first, then moves it into place only after the GET succeeds.",
+		],
+	},
+	{
+		name: "generate_sfx",
+		roles: ["main", "sub"],
+		workModes: ["code"],
+		description: "Synthesize a retro sound effect (sfxr-style) and save it as a WAV file in the project. Use this to create game audio assets directly instead of asking the user to provide them.",
+		parameters: [
+			{ name: "path", type: "string", required: true, description: "Workspace-relative output path ending in .wav, e.g. Audio/jump.wav. An existing file is overwritten." },
+			{ name: "type", type: "string", required: true, enum: ["jump", "explosion", "hit", "pickup", "laser", "powerup", "click", "random"], description: "Sound preset to synthesize. random picks one of the other presets at random." },
+			{ name: "seed", type: "number", description: "Optional integer seed. The same type and seed always produce the same sound; omit for a time-seeded variant." },
+			{ name: "volume", type: "number", description: "Optional output volume from 0 to 1. Defaults to 0.8." },
+		],
+		rules: [
+			"Generated files are mono 16-bit 44.1 kHz WAV, at most a few seconds long.",
+			"Play generated effects with Audio.play (WAV sound effects) or an audio-source node; use Audio.playStream only for long background music.",
+			"To iterate on a sound, call again with a different seed; to reproduce a sound exactly, keep the same type and seed.",
+			"The success result reports the saved path, duration, byte size, and the seed actually used.",
+		],
+	},
+	{
+		name: "generate_music",
+		roles: ["main", "sub"],
+		workModes: ["code"],
+		description: "Compose and synthesize deterministic retro background music, then save it as a loop-ready WAV file in the project. Use this when a game needs original background music rather than a short sound effect.",
+		parameters: [
+			{ name: "path", type: "string", required: true, description: "Workspace-relative output path ending in .wav, e.g. Audio/forest_theme.wav. An existing file is overwritten." },
+			{ name: "style", type: "string", required: true, enum: ["chiptune", "adventure", "calm", "tense", "victory", "random"], description: "Musical style. random deterministically chooses one of the other styles from the seed." },
+			{ name: "seed", type: "number", description: "Optional integer seed controlling the key, progression, melody, and arrangement. The same arguments reproduce the same track." },
+			{ name: "duration", type: "number", description: "Approximate duration in seconds, clamped to 4-32 and rounded to complete 4/4 bars for seamless looping. Defaults to 16." },
+			{ name: "bpm", type: "number", description: "Optional tempo from 60 to 200 BPM. Each style has its own default." },
+			{ name: "volume", type: "number", description: "Optional master volume from 0 to 1. Defaults to 0.65." },
+			{ name: "intensity", type: "number", description: "Arrangement intensity from 0 to 1. Controls drums, bass activity, harmony density, and melodic range. Defaults to 0.6." },
+			{ name: "key", type: "string", enum: ["random", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"], description: "Optional musical key. Defaults to random." },
+			{ name: "mode", type: "string", enum: ["auto", "major", "minor", "pentatonic", "harmonic_minor", "dorian", "phrygian", "chromatic"], description: "Optional scale or mode. auto uses the style default." },
+			{ name: "progression", type: "string", description: "Optional comma-separated Roman-numeral chord progression, e.g. i,VI,III,VII or I,V,vi,IV." },
+			{ name: "structure", type: "string", description: "Comma-separated section form such as A,A,B,A. Repeated labels reproduce the same motif. Defaults to A,A,B,A." },
+			{ name: "bars_per_section", type: "number", description: "Bars per structure section, clamped to 1-8. Defaults to 2." },
+			{ name: "melody_complexity", type: "number", description: "Melodic density, interval range, and ornamentation from 0 to 1. Defaults to 0.55." },
+			{ name: "rhythm_complexity", type: "number", description: "Rhythmic activity and syncopation from 0 to 1. Defaults to 0.45." },
+			{ name: "variation", type: "number", description: "Amount of section-to-section mutation from 0 to 1. Defaults to 0.25." },
+			{ name: "lead_instrument", type: "string", enum: ["auto", "square", "pulse", "saw", "triangle", "sine", "organ", "bell", "pluck", "fm", "pad", "guitar", "strings"], description: "Lead synthesizer voice. auto uses the style default." },
+			{ name: "bass_instrument", type: "string", enum: ["auto", "square", "pulse", "saw", "triangle", "sine", "organ", "pluck", "fm", "sub", "guitar"], description: "Bass synthesizer voice." },
+			{ name: "harmony_instrument", type: "string", enum: ["auto", "square", "pulse", "saw", "triangle", "sine", "organ", "bell", "pluck", "fm", "pad", "guitar", "strings"], description: "Arpeggio and pad synthesizer voice." },
+			{ name: "stereo", type: "boolean", description: "Generate stereo audio with per-part panning. Defaults to true." },
+			{ name: "reverb", type: "number", description: "Reverb amount from 0 to 1. Defaults to the style preset." },
+			{ name: "delay", type: "number", description: "Tempo-synced delay amount from 0 to 1. Defaults to the style preset." },
+			{ name: "chorus", type: "number", description: "Stereo chorus width from 0 to 1. Defaults to the style preset." },
+			{ name: "distortion", type: "number", description: "Soft distortion amount from 0 to 1. Defaults to the style preset." },
+			{ name: "bit_crush", type: "number", description: "Bit-crusher amount from 0 to 1. Zero disables it." },
+			{ name: "low_pass", type: "number", description: "Low-pass filtering amount from 0 to 1. Zero disables it; higher values make the mix darker." },
+			{ name: "stems", type: "boolean", description: "Also export synchronized melody, bass, harmony, and drums WAV stems." },
+			{ name: "intro_bars", type: "number", description: "Export a separate intro segment with 0-8 bars. Defaults to 0." },
+			{ name: "outro_bars", type: "number", description: "Export a separate outro segment with 0-8 bars. Defaults to 0." },
+			{ name: "stinger", type: "string", enum: ["none", "victory", "failure", "both"], description: "Optionally export one-bar victory and/or failure stingers." },
+			{ name: "export_midi", type: "boolean", description: "Also export the generated note arrangement as a Standard MIDI file." },
+		],
+		rules: [
+			"Generated music is deterministic 16-bit 44.1 kHz PCM WAV and consists of complete 4/4 bars with click-free loop boundaries.",
+			"Use Audio.playStream for generated background music; reserve Audio.play for short WAV sound effects.",
+			"When stems are enabled, create synchronized AudioSource nodes for _melody, _bass, _harmony, and _drums, start them together, and adapt intensity through their volumes.",
+			"Every generation writes a .music.json sidecar that can be passed to generate_music_variation; optional MIDI output can be continued in a DAW.",
+			"Try a different seed for another composition while keeping the same style, duration, and BPM.",
+			"The success result reports the actual bar-rounded duration, tempo, key, style, byte size, and seed.",
+		],
+	},
+	{
+		name: "generate_music_variation",
+		roles: ["main", "sub"],
+		workModes: ["code"],
+		description: "Regenerate a controlled variation from a .music.json project created by generate_music, preserving its tempo, key, form, instruments, and export settings unless overridden.",
+		parameters: [
+			{ name: "project", type: "string", required: true, description: "Workspace-relative .music.json project path." },
+			{ name: "path", type: "string", required: true, description: "Workspace-relative output WAV path for the new variation." },
+			{ name: "seed", type: "number", description: "Optional replacement seed. Omit to deterministically derive the next seed from the project." },
+			{ name: "style", type: "string", enum: ["chiptune", "adventure", "calm", "tense", "victory"], description: "Optional style override." },
+			{ name: "intensity", type: "number", description: "Optional intensity override from 0 to 1." },
+			{ name: "variation", type: "number", description: "Optional mutation amount override from 0 to 1." },
+		],
+		rules: [
+			"Use this instead of starting from scratch when several intensity levels or alternate takes must remain musically compatible.",
+			"The source project is never modified; the new WAV receives its own .music.json sidecar.",
 		],
 	},
 	{

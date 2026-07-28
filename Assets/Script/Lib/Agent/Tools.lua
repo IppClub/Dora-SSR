@@ -3723,4 +3723,2323 @@ function ____exports.fetchUrl(req) -- 3112
 		}) -- 3220
 	end) -- 3220
 end -- 3112
-return ____exports -- 3112
+local SFX_SAMPLE_RATE = 44100 -- 3256
+local SFX_MAX_SAMPLES = SFX_SAMPLE_RATE * 3 -- 3257
+local SFX_OVERSAMPLING = 8 -- 3258
+local SFX_NOISE_SIZE = 32 -- 3259
+local SFX_PHASER_SIZE = 1024 -- 3260
+local SFX_WAV_PACK_CHUNK = 1024 -- 3261
+--- Park-Miller LCG. Math.random is not acceptable here: the same seed must
+-- always reproduce the same sound, and ordinary double arithmetic keeps the
+-- multiplication exact (state * 16807 stays below 2^53).
+local function createSfxRng(seed) -- 3272
+	local state = math.floor(math.abs(seed)) % 2147483647 -- 3273
+	if state <= 0 then -- 3273
+		state = 1 -- 3274
+	end -- 3274
+	return {next = function() -- 3275
+		state = state * 16807 % 2147483647 -- 3277
+		return (state - 1) / 2147483646 -- 3278
+	end} -- 3276
+end -- 3272
+local function resetSfxrParams() -- 3309
+	return { -- 3310
+		waveType = 0, -- 3311
+		startFreq = 0.3, -- 3312
+		minFreq = 0, -- 3313
+		slide = 0, -- 3314
+		deltaSlide = 0, -- 3315
+		duty = 0, -- 3316
+		dutySweep = 0, -- 3317
+		vibDepth = 0, -- 3318
+		vibSpeed = 0, -- 3319
+		attack = 0, -- 3320
+		sustain = 0.3, -- 3321
+		decay = 0.4, -- 3322
+		punch = 0, -- 3323
+		changeAmount = 0, -- 3324
+		changeSpeed = 0, -- 3325
+		phaserOffset = 0, -- 3326
+		phaserSweep = 0, -- 3327
+		lpCutoff = 1, -- 3328
+		lpCutoffSweep = 0, -- 3329
+		lpResonance = 0, -- 3330
+		hpCutoff = 0, -- 3331
+		hpCutoffSweep = 0, -- 3332
+		repeatSpeed = 0 -- 3333
+	} -- 3333
+end -- 3309
+--- Preset generators ported from the classic sfxr/as3sfxr randomizers.
+-- Parameter names map: changeAmount = arp_mod, changeSpeed = arp_speed.
+local function generateSfxrPreset(kind, rng) -- 3341
+	local function rnd() -- 3342
+		return rng:next() -- 3342
+	end -- 3342
+	local function frnd(range) -- 3343
+		return rnd() * range -- 3343
+	end -- 3343
+	local p = resetSfxrParams() -- 3344
+	repeat -- 3344
+		local ____switch663 = kind -- 3344
+		local ____cond663 = ____switch663 == "pickup" -- 3344
+		if ____cond663 then -- 3344
+			do -- 3344
+				p.waveType = math.floor(rnd() * 3) -- 3347
+				p.startFreq = 0.4 + frnd(0.5) -- 3348
+				p.attack = 0 -- 3349
+				p.sustain = frnd(0.1) -- 3350
+				p.decay = 0.1 + frnd(0.4) -- 3351
+				p.punch = 0.3 + frnd(0.3) -- 3352
+				if rnd() < 0.5 then -- 3352
+					p.changeSpeed = 0.5 + frnd(0.2) -- 3354
+					p.changeAmount = 0.2 + frnd(0.4) -- 3355
+				end -- 3355
+				break -- 3357
+			end -- 3357
+		end -- 3357
+		____cond663 = ____cond663 or ____switch663 == "laser" -- 3357
+		if ____cond663 then -- 3357
+			do -- 3357
+				p.waveType = math.floor(rnd() * 3) -- 3360
+				if p.waveType == 2 and rnd() < 0.5 then -- 3360
+					p.waveType = math.floor(rnd() * 2) -- 3361
+				end -- 3361
+				p.startFreq = 0.5 + frnd(0.5) -- 3362
+				p.minFreq = p.startFreq - 0.2 - frnd(0.6) -- 3363
+				if p.minFreq < 0.2 then -- 3363
+					p.minFreq = 0.2 -- 3364
+				end -- 3364
+				p.slide = -0.15 - frnd(0.2) -- 3365
+				if rnd() < 0.33 then -- 3365
+					p.startFreq = 0.3 + frnd(0.6) -- 3367
+					p.minFreq = frnd(0.1) -- 3368
+					p.slide = -0.35 - frnd(0.3) -- 3369
+				end -- 3369
+				if rnd() < 0.5 then -- 3369
+					p.duty = frnd(0.5) -- 3372
+					p.dutySweep = frnd(0.2) -- 3373
+				else -- 3373
+					p.duty = 0.4 + frnd(0.5) -- 3375
+					p.dutySweep = -frnd(0.7) -- 3376
+				end -- 3376
+				p.attack = 0 -- 3378
+				p.sustain = 0.1 + frnd(0.2) -- 3379
+				p.decay = frnd(0.4) -- 3380
+				if rnd() < 0.5 then -- 3380
+					p.punch = frnd(0.3) -- 3381
+				end -- 3381
+				if rnd() < 0.33 then -- 3381
+					p.phaserOffset = frnd(0.2) -- 3383
+					p.phaserSweep = -frnd(0.2) -- 3384
+				end -- 3384
+				if rnd() < 0.5 then -- 3384
+					p.hpCutoff = frnd(0.3) -- 3386
+				end -- 3386
+				break -- 3387
+			end -- 3387
+		end -- 3387
+		____cond663 = ____cond663 or ____switch663 == "explosion" -- 3387
+		if ____cond663 then -- 3387
+			do -- 3387
+				p.waveType = 3 -- 3390
+				p.startFreq = 0.1 + frnd(0.4) -- 3391
+				p.slide = -0.1 + frnd(0.4) -- 3392
+				p.attack = 0 -- 3393
+				p.sustain = 0.1 + frnd(0.2) -- 3394
+				p.decay = frnd(0.5) -- 3395
+				if rnd() < 0.5 then -- 3395
+					p.phaserOffset = -0.3 + frnd(0.9) -- 3397
+					p.phaserSweep = -frnd(0.3) -- 3398
+				end -- 3398
+				if rnd() < 0.33 then -- 3398
+					p.startFreq = 0.2 + frnd(0.7) -- 3401
+					p.slide = -0.2 - frnd(0.2) -- 3402
+				end -- 3402
+				if rnd() < 0.5 then -- 3402
+					p.punch = 0.2 + frnd(0.6) -- 3404
+				end -- 3404
+				break -- 3405
+			end -- 3405
+		end -- 3405
+		____cond663 = ____cond663 or ____switch663 == "powerup" -- 3405
+		if ____cond663 then -- 3405
+			do -- 3405
+				p.waveType = rnd() < 0.5 and 0 or 1 -- 3408
+				p.startFreq = 0.2 + frnd(0.3) -- 3409
+				p.slide = 0.1 + frnd(0.2) -- 3410
+				p.changeAmount = 0.2 + frnd(0.4) -- 3411
+				p.changeSpeed = 0.6 + frnd(0.3) -- 3412
+				p.attack = 0 -- 3413
+				p.sustain = 0.2 + frnd(0.3) -- 3414
+				p.decay = frnd(0.2) -- 3415
+				p.punch = 0.2 + frnd(0.4) -- 3416
+				break -- 3417
+			end -- 3417
+		end -- 3417
+		____cond663 = ____cond663 or ____switch663 == "hit" -- 3417
+		if ____cond663 then -- 3417
+			do -- 3417
+				p.waveType = math.floor(rnd() * 3) -- 3420
+				if p.waveType == 2 then -- 3420
+					p.waveType = 3 -- 3421
+				end -- 3421
+				p.startFreq = 0.2 + frnd(0.6) -- 3422
+				p.slide = -0.3 - frnd(0.4) -- 3423
+				p.attack = 0 -- 3424
+				p.sustain = frnd(0.1) -- 3425
+				p.decay = 0.1 + frnd(0.2) -- 3426
+				if rnd() < 0.5 then -- 3426
+					p.hpCutoff = frnd(0.3) -- 3427
+				end -- 3427
+				break -- 3428
+			end -- 3428
+		end -- 3428
+		____cond663 = ____cond663 or ____switch663 == "jump" -- 3428
+		if ____cond663 then -- 3428
+			do -- 3428
+				p.waveType = 0 -- 3431
+				p.startFreq = 0.3 + frnd(0.3) -- 3432
+				p.slide = 0.1 + frnd(0.2) -- 3433
+				p.attack = 0 -- 3434
+				p.sustain = 0.1 + frnd(0.3) -- 3435
+				p.decay = 0.1 + frnd(0.2) -- 3436
+				if rnd() < 0.5 then -- 3436
+					p.duty = frnd(0.6) -- 3438
+					p.dutySweep = frnd(0.2) -- 3439
+				end -- 3439
+				break -- 3441
+			end -- 3441
+		end -- 3441
+		____cond663 = ____cond663 or ____switch663 == "click" -- 3441
+		if ____cond663 then -- 3441
+			do -- 3441
+				p.waveType = math.floor(rnd() * 2) -- 3444
+				p.startFreq = 0.2 + frnd(0.4) -- 3445
+				p.attack = 0 -- 3446
+				p.sustain = 0.05 + frnd(0.05) -- 3447
+				p.decay = 0.05 + frnd(0.15) -- 3448
+				p.hpCutoff = 0.1 -- 3449
+				break -- 3450
+			end -- 3450
+		end -- 3450
+		do -- 3450
+			do -- 3450
+				local families = { -- 3453
+					"jump", -- 3453
+					"explosion", -- 3453
+					"hit", -- 3453
+					"pickup", -- 3453
+					"laser", -- 3453
+					"powerup", -- 3453
+					"click" -- 3453
+				} -- 3453
+				return generateSfxrPreset( -- 3454
+					families[math.floor(rnd() * #families) + 1], -- 3454
+					rng -- 3454
+				) -- 3454
+			end -- 3454
+		end -- 3454
+	until true -- 3454
+	return p -- 3457
+end -- 3341
+--- Synthesize float samples in [-1, 1] from sfxr parameters. Port of the
+-- classic sfxr sample generator: frequency slide, arpeggio, vibrato, square
+-- duty sweep, ADSR envelope with punch, one-pole low/high pass filters, and a
+-- phaser tap. Length is bounded by the envelope plus SFX_MAX_SAMPLES.
+local function synthSfxr(p, masterVolume, rng) -- 3466
+	local samples = {} -- 3467
+	local startPeriod = 100 / (p.startFreq * p.startFreq + 0.001) -- 3468
+	local fperiod = startPeriod -- 3469
+	local period = math.floor(fperiod) -- 3470
+	local fmaxperiod = 100 / (p.minFreq * p.minFreq + 0.001) -- 3471
+	local startSlide = 1 - p.slide ^ 3 * 0.01 -- 3472
+	local fslide = startSlide -- 3473
+	local fdslide = -p.deltaSlide ^ 3 * 0.000001 -- 3474
+	local squareDuty = 0.5 - p.duty * 0.5 -- 3475
+	local squareSlide = -p.dutySweep * 0.00005 -- 3476
+	local arpMod = p.changeAmount >= 0 and 1 - p.changeAmount ^ 2 * 0.9 or 1 + p.changeAmount ^ 2 * 10 -- 3477
+	local arpTime = 0 -- 3480
+	local arpLimit = math.floor((1 - p.changeSpeed) ^ 2 * 20000) + 32 -- 3481
+	if p.changeSpeed >= 1 then -- 3481
+		arpLimit = 0 -- 3482
+	end -- 3482
+	local envStage = 0 -- 3483
+	local envTime = 0 -- 3484
+	local envLength = { -- 3485
+		math.max( -- 3486
+			1, -- 3486
+			math.floor(p.attack * p.attack * 100000) -- 3486
+		), -- 3486
+		math.max( -- 3487
+			1, -- 3487
+			math.floor(p.sustain * p.sustain * 100000) -- 3487
+		), -- 3487
+		math.max( -- 3488
+			1, -- 3488
+			math.floor(p.decay * p.decay * 100000) -- 3488
+		) -- 3488
+	} -- 3488
+	local phaserBuffer = {} -- 3490
+	do -- 3490
+		local i = 0 -- 3491
+		while i < SFX_PHASER_SIZE do -- 3491
+			phaserBuffer[#phaserBuffer + 1] = 0 -- 3491
+			i = i + 1 -- 3491
+		end -- 3491
+	end -- 3491
+	local fphase = p.phaserOffset ^ 2 * 1020 -- 3492
+	if p.phaserOffset < 0 then -- 3492
+		fphase = -fphase -- 3493
+	end -- 3493
+	local fdsweep = p.phaserSweep ^ 2 * (p.phaserSweep < 0 and -1 or 1) -- 3494
+	local iphase = math.floor(math.abs(fphase)) -- 3495
+	if iphase > SFX_PHASER_SIZE - 1 then -- 3495
+		iphase = SFX_PHASER_SIZE - 1 -- 3496
+	end -- 3496
+	local ipp = 0 -- 3497
+	local phaserOn = p.phaserOffset ~= 0 or p.phaserSweep ~= 0 -- 3498
+	local noiseBuffer = {} -- 3499
+	do -- 3499
+		local i = 0 -- 3500
+		while i < SFX_NOISE_SIZE do -- 3500
+			noiseBuffer[#noiseBuffer + 1] = rng:next() * 2 - 1 -- 3500
+			i = i + 1 -- 3500
+		end -- 3500
+	end -- 3500
+	local fltp = 0 -- 3501
+	local fltdp = 0 -- 3502
+	local fltw = p.lpCutoff ^ 3 * 0.1 -- 3503
+	local fltwD = 1 + p.lpCutoffSweep * 0.0001 -- 3504
+	local fltdmp = 5 / (1 + p.lpResonance ^ 2 * 20) * (0.01 + fltw) -- 3505
+	local fltphp = 0 -- 3506
+	local flthp = p.hpCutoff ^ 2 * 0.1 -- 3507
+	local flthpD = 1 + p.hpCutoffSweep * 0.0003 -- 3508
+	local vibPhase = 0 -- 3509
+	local vibSpeed = p.vibSpeed ^ 2 * 0.01 -- 3510
+	local vibAmp = p.vibDepth * 0.5 -- 3511
+	local repeatTime = 0 -- 3512
+	local repeatLimit = p.repeatSpeed > 0 and math.floor((1 - p.repeatSpeed) ^ 2 * 20000) + 32 or 0 -- 3513
+	local phase = 0 -- 3516
+	local finished = false -- 3517
+	while not finished and #samples < SFX_MAX_SAMPLES do -- 3517
+		repeatTime = repeatTime + 1 -- 3519
+		if repeatLimit > 0 and repeatTime >= repeatLimit then -- 3519
+			repeatTime = 0 -- 3521
+			fperiod = startPeriod -- 3522
+			fslide = startSlide -- 3523
+		end -- 3523
+		arpTime = arpTime + 1 -- 3525
+		if arpLimit > 0 and arpTime >= arpLimit then -- 3525
+			arpLimit = 0 -- 3527
+			fperiod = fperiod * arpMod -- 3528
+		end -- 3528
+		fslide = fslide + fdslide -- 3530
+		fperiod = fperiod * fslide -- 3531
+		if fperiod > fmaxperiod then -- 3531
+			fperiod = fmaxperiod -- 3533
+			if p.minFreq > 0 then -- 3533
+				finished = true -- 3534
+			end -- 3534
+		end -- 3534
+		local rfperiod = fperiod -- 3536
+		if vibAmp > 0 then -- 3536
+			vibPhase = vibPhase + vibSpeed -- 3538
+			rfperiod = fperiod * (1 + math.sin(vibPhase) * vibAmp) -- 3539
+		end -- 3539
+		period = math.floor(rfperiod) -- 3541
+		if period < SFX_OVERSAMPLING then -- 3541
+			period = SFX_OVERSAMPLING -- 3542
+		end -- 3542
+		squareDuty = squareDuty + squareSlide -- 3543
+		if squareDuty < 0 then -- 3543
+			squareDuty = 0 -- 3544
+		end -- 3544
+		if squareDuty > 0.5 then -- 3544
+			squareDuty = 0.5 -- 3545
+		end -- 3545
+		envTime = envTime + 1 -- 3546
+		if envStage == 0 and envTime >= envLength[1] then -- 3546
+			envStage = 1 -- 3548
+			envTime = 0 -- 3549
+		elseif envStage == 1 and envTime >= envLength[2] then -- 3549
+			envStage = 2 -- 3551
+			envTime = 0 -- 3552
+		elseif envStage == 2 and envTime >= envLength[3] then -- 3552
+			finished = true -- 3554
+		end -- 3554
+		local envVol = 0 -- 3556
+		if envStage == 0 then -- 3556
+			envVol = envTime / envLength[1] -- 3557
+		elseif envStage == 1 then -- 3557
+			envVol = 1 + (1 - envTime / envLength[2]) * 2 * p.punch -- 3558
+		else -- 3558
+			envVol = 1 - envTime / envLength[3] -- 3559
+		end -- 3559
+		fphase = fphase + fdsweep -- 3560
+		iphase = math.floor(math.abs(fphase)) -- 3561
+		if iphase > SFX_PHASER_SIZE - 1 then -- 3561
+			iphase = SFX_PHASER_SIZE - 1 -- 3562
+		end -- 3562
+		flthp = flthp * flthpD -- 3563
+		if flthp < 0 then -- 3563
+			flthp = 0 -- 3564
+		end -- 3564
+		if flthp > 0.1 then -- 3564
+			flthp = 0.1 -- 3565
+		end -- 3565
+		local sample = 0 -- 3566
+		do -- 3566
+			local subSampleIndex = 0 -- 3567
+			while subSampleIndex < SFX_OVERSAMPLING do -- 3567
+				phase = phase + 1 -- 3568
+				if phase >= period then -- 3568
+					phase = phase % period -- 3570
+					if p.waveType == 3 then -- 3570
+						do -- 3570
+							local i = 0 -- 3572
+							while i < SFX_NOISE_SIZE do -- 3572
+								noiseBuffer[i + 1] = rng:next() * 2 - 1 -- 3572
+								i = i + 1 -- 3572
+							end -- 3572
+						end -- 3572
+					end -- 3572
+				end -- 3572
+				local cyclePos = phase / period -- 3575
+				local subSample = 0 -- 3576
+				if p.waveType == 0 then -- 3576
+					subSample = cyclePos < squareDuty and 0.5 or -0.5 -- 3577
+				elseif p.waveType == 1 then -- 3577
+					subSample = 1 - cyclePos * 2 -- 3578
+				elseif p.waveType == 2 then -- 3578
+					subSample = math.sin(cyclePos * 2 * math.pi) -- 3579
+				else -- 3579
+					subSample = noiseBuffer[math.floor(cyclePos * SFX_NOISE_SIZE) + 1] -- 3580
+				end -- 3580
+				local prevFltp = fltp -- 3581
+				fltw = fltw * fltwD -- 3582
+				if fltw < 0 then -- 3582
+					fltw = 0 -- 3583
+				end -- 3583
+				if fltw > 0.1 then -- 3583
+					fltw = 0.1 -- 3584
+				end -- 3584
+				if p.lpCutoff >= 1 then -- 3584
+					fltp = subSample -- 3586
+					fltdp = 0 -- 3587
+				else -- 3587
+					fltdp = fltdp + (subSample - fltp) * fltw -- 3589
+					fltdp = fltdp - fltdp * fltdmp -- 3590
+					fltp = fltp + fltdp -- 3591
+				end -- 3591
+				fltphp = fltphp + (fltp - prevFltp) -- 3593
+				fltphp = fltphp - fltphp * flthp -- 3594
+				subSample = fltphp -- 3595
+				if phaserOn then -- 3595
+					phaserBuffer[ipp + 1] = subSample -- 3597
+					subSample = subSample + phaserBuffer[(ipp - iphase + SFX_PHASER_SIZE) % SFX_PHASER_SIZE + 1] -- 3598
+					ipp = (ipp + 1) % SFX_PHASER_SIZE -- 3599
+				end -- 3599
+				sample = sample + subSample * envVol -- 3601
+				subSampleIndex = subSampleIndex + 1 -- 3567
+			end -- 3567
+		end -- 3567
+		sample = sample / SFX_OVERSAMPLING -- 3603
+		if sample > 1 then -- 3603
+			sample = 1 -- 3604
+		end -- 3604
+		if sample < -1 then -- 3604
+			sample = -1 -- 3605
+		end -- 3605
+		samples[#samples + 1] = sample * masterVolume -- 3606
+	end -- 3606
+	return samples -- 3608
+end -- 3466
+local function encodePcmWav(samples, sampleRate, rightSamples) -- 3611
+	local channels = rightSamples and 2 or 1 -- 3612
+	local dataSize = #samples * channels * 2 -- 3613
+	local parts = {} -- 3614
+	parts[#parts + 1] = string.pack("<c4I4c4", "RIFF", 36 + dataSize, "WAVE") -- 3615
+	parts[#parts + 1] = string.pack( -- 3616
+		"<c4I4I2I2I4I4I2I2", -- 3616
+		"fmt ", -- 3616
+		16, -- 3616
+		1, -- 3616
+		channels, -- 3616
+		sampleRate, -- 3616
+		sampleRate * channels * 2, -- 3616
+		channels * 2, -- 3616
+		16 -- 3616
+	) -- 3616
+	parts[#parts + 1] = string.pack("<c4I4", "data", dataSize) -- 3617
+	do -- 3617
+		local start = 0 -- 3618
+		while start < #samples do -- 3618
+			local ____end = math.min(start + SFX_WAV_PACK_CHUNK, #samples) -- 3619
+			local fmt = "<" -- 3620
+			local values = {} -- 3621
+			do -- 3621
+				local i = start -- 3622
+				while i < ____end do -- 3622
+					fmt = fmt .. "i2" -- 3623
+					local left = samples[i + 1] -- 3624
+					local leftRaw = left >= 0 and math.floor(left * 32767 + 0.5) or math.ceil(left * 32768 - 0.5) -- 3625
+					values[#values + 1] = math.max( -- 3626
+						-32768, -- 3626
+						math.min(32767, leftRaw) -- 3626
+					) -- 3626
+					if rightSamples then -- 3626
+						fmt = fmt .. "i2" -- 3628
+						local right = rightSamples[i + 1] -- 3629
+						local rightRaw = right >= 0 and math.floor(right * 32767 + 0.5) or math.ceil(right * 32768 - 0.5) -- 3630
+						values[#values + 1] = math.max( -- 3631
+							-32768, -- 3631
+							math.min(32767, rightRaw) -- 3631
+						) -- 3631
+					end -- 3631
+					i = i + 1 -- 3622
+				end -- 3622
+			end -- 3622
+			parts[#parts + 1] = string.pack( -- 3634
+				fmt, -- 3634
+				table.unpack(values) -- 3634
+			) -- 3634
+			start = start + SFX_WAV_PACK_CHUNK -- 3618
+		end -- 3618
+	end -- 3618
+	return table.concat(parts, "") -- 3636
+end -- 3611
+local sfxAutoSeedStep = 0 -- 3639
+function ____exports.generateSfx(req) -- 3641
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3641
+		local relPath = __TS__StringTrim(req.path or "") -- 3650
+		if relPath == "" then -- 3650
+			return ____awaiter_resolve(nil, {success = false, message = "missing path"}) -- 3650
+		end -- 3650
+		if not __TS__StringEndsWith( -- 3650
+			string.lower(relPath), -- 3654
+			".wav" -- 3654
+		) then -- 3654
+			return ____awaiter_resolve(nil, {success = false, path = relPath, message = "generate_sfx writes WAV files; path must end in .wav"}) -- 3654
+		end -- 3654
+		local kind = string.lower(__TS__StringTrim(req.type or "")) -- 3657
+		local validKinds = { -- 3658
+			"jump", -- 3658
+			"explosion", -- 3658
+			"hit", -- 3658
+			"pickup", -- 3658
+			"laser", -- 3658
+			"powerup", -- 3658
+			"click", -- 3658
+			"random" -- 3658
+		} -- 3658
+		if __TS__ArrayIndexOf(validKinds, kind) < 0 then -- 3658
+			return ____awaiter_resolve( -- 3658
+				nil, -- 3658
+				{ -- 3660
+					success = false, -- 3660
+					path = relPath, -- 3660
+					message = (("unknown type '" .. req.type) .. "'; expected one of: ") .. table.concat(validKinds, ", ") -- 3660
+				} -- 3660
+			) -- 3660
+		end -- 3660
+		local target = resolveWorkspaceFilePath(req.workDir, relPath) -- 3662
+		if not target then -- 3662
+			return ____awaiter_resolve(nil, {success = false, path = relPath, message = "invalid path"}) -- 3662
+		end -- 3662
+		if Content:exist(target) and Content:isdir(target) then -- 3662
+			return ____awaiter_resolve(nil, {success = false, path = relPath, message = "target path is a directory"}) -- 3662
+		end -- 3662
+		local ____this_68 -- 3662
+		____this_68 = req -- 3669
+		local ____opt_67 = ____this_68.isCancelled -- 3669
+		if (____opt_67 and ____opt_67(____this_68)) == true then -- 3669
+			return ____awaiter_resolve(nil, {success = false, path = relPath, message = "canceled", interrupted = true}) -- 3669
+		end -- 3669
+		sfxAutoSeedStep = sfxAutoSeedStep + 1 -- 3672
+		local seed = 0 -- 3673
+		if type(req.seed) == "number" and req.seed == req.seed and math.abs(req.seed) < 2147483647 then -- 3673
+			seed = math.floor(req.seed) -- 3675
+		else -- 3675
+			seed = os.time() % 1000000000 + sfxAutoSeedStep * 7919 -- 3677
+		end -- 3677
+		local volume = 0.8 -- 3679
+		if type(req.volume) == "number" and req.volume == req.volume then -- 3679
+			volume = math.min( -- 3681
+				1, -- 3681
+				math.max(0, req.volume) -- 3681
+			) -- 3681
+		end -- 3681
+		local operationId = createOperationId() -- 3683
+		local rng = createSfxRng(seed) -- 3684
+		local presetKind = kind -- 3685
+		if presetKind == "random" then -- 3685
+			local families = { -- 3687
+				"jump", -- 3687
+				"explosion", -- 3687
+				"hit", -- 3687
+				"pickup", -- 3687
+				"laser", -- 3687
+				"powerup", -- 3687
+				"click" -- 3687
+			} -- 3687
+			presetKind = families[math.floor(rng:next() * #families) + 1] -- 3688
+		end -- 3688
+		local ____this_70 -- 3688
+		____this_70 = req -- 3690
+		local ____opt_69 = ____this_70.onProgress -- 3690
+		if ____opt_69 ~= nil then -- 3690
+			____opt_69(____this_70, { -- 3690
+				state = "running", -- 3691
+				operationId = operationId, -- 3692
+				path = relPath, -- 3693
+				stage = "synth", -- 3694
+				message = "synthesizing " .. presetKind -- 3695
+			}) -- 3695
+		end -- 3695
+		local params = generateSfxrPreset(presetKind, rng) -- 3697
+		local samples = synthSfxr(params, volume, rng) -- 3698
+		if #samples == 0 then -- 3698
+			return ____awaiter_resolve(nil, {success = false, path = relPath, message = "synthesis produced no samples"}) -- 3698
+		end -- 3698
+		local ____this_72 -- 3698
+		____this_72 = req -- 3702
+		local ____opt_71 = ____this_72.isCancelled -- 3702
+		if (____opt_71 and ____opt_71(____this_72)) == true then -- 3702
+			return ____awaiter_resolve(nil, {success = false, path = relPath, message = "canceled", interrupted = true}) -- 3702
+		end -- 3702
+		local ____this_74 -- 3702
+		____this_74 = req -- 3705
+		local ____opt_73 = ____this_74.onProgress -- 3705
+		if ____opt_73 ~= nil then -- 3705
+			____opt_73(____this_74, { -- 3705
+				state = "running", -- 3706
+				operationId = operationId, -- 3707
+				path = relPath, -- 3708
+				stage = "write", -- 3709
+				message = "writing WAV" -- 3710
+			}) -- 3710
+		end -- 3710
+		local wav = encodePcmWav(samples, SFX_SAMPLE_RATE) -- 3712
+		if not ensureDirForFile(target) then -- 3712
+			return ____awaiter_resolve(nil, {success = false, path = relPath, message = "failed to create target directory"}) -- 3712
+		end -- 3712
+		if not Content:save(target, wav) then -- 3712
+			return ____awaiter_resolve(nil, {success = false, path = relPath, message = "failed to write WAV file"}) -- 3712
+		end -- 3712
+		if not syncDownloadedFileToWebIDE(target) then -- 3712
+			Log("Warn", "[generate_sfx] failed to sync file update target=" .. target) -- 3720
+		end -- 3720
+		local durationSeconds = math.floor(#samples / SFX_SAMPLE_RATE * 100 + 0.5) / 100 -- 3722
+		Log( -- 3723
+			"Info", -- 3723
+			(((((((("[generate_sfx] type=" .. presetKind) .. " seed=") .. tostring(seed)) .. " path=") .. relPath) .. " bytes=") .. tostring(#wav)) .. " samples=") .. tostring(#samples) -- 3723
+		) -- 3723
+		return ____awaiter_resolve( -- 3723
+			nil, -- 3723
+			{ -- 3724
+				success = true, -- 3725
+				path = relPath, -- 3726
+				bytesWritten = #wav, -- 3727
+				durationSeconds = durationSeconds, -- 3728
+				sampleRate = SFX_SAMPLE_RATE, -- 3729
+				seed = seed, -- 3730
+				description = ((((((((((((("Saved a " .. presetKind) .. " sound effect to ") .. relPath) .. " (") .. tostring(#wav)) .. " bytes, ") .. tostring(durationSeconds)) .. "s, mono 16-bit ") .. tostring(SFX_SAMPLE_RATE)) .. " Hz, seed ") .. tostring(seed)) .. "). Play it with Audio.play(\"") .. relPath) .. "\") or an audio-source node; regenerate with a new seed or reproduce it with the same seed." -- 3731
+			} -- 3731
+		) -- 3731
+	end) -- 3731
+end -- 3641
+local MUSIC_SAMPLE_RATE = 44100 -- 3855
+local MUSIC_STEPS_PER_BAR = 16 -- 3856
+local MUSIC_MIN_SECONDS = 4 -- 3857
+local MUSIC_MAX_SECONDS = 32 -- 3858
+local MUSIC_NOISE_SIZE = 2048 -- 3859
+local MUSIC_RENDER_CHUNK = 8192 -- 3860
+local MUSIC_KEY_NAMES = { -- 3861
+	"C", -- 3861
+	"C#", -- 3861
+	"D", -- 3861
+	"D#", -- 3861
+	"E", -- 3861
+	"F", -- 3861
+	"F#", -- 3861
+	"G", -- 3861
+	"G#", -- 3861
+	"A", -- 3861
+	"A#", -- 3861
+	"B" -- 3861
+} -- 3861
+local MUSIC_VALID_MODES = { -- 3862
+	"major", -- 3862
+	"minor", -- 3862
+	"pentatonic", -- 3862
+	"harmonic_minor", -- 3862
+	"dorian", -- 3862
+	"phrygian", -- 3862
+	"chromatic" -- 3862
+} -- 3862
+local MUSIC_VALID_INSTRUMENTS = { -- 3863
+	"square", -- 3863
+	"pulse", -- 3863
+	"saw", -- 3863
+	"triangle", -- 3863
+	"sine", -- 3863
+	"organ", -- 3863
+	"bell", -- 3863
+	"pluck", -- 3863
+	"fm", -- 3863
+	"pad", -- 3863
+	"sub", -- 3863
+	"guitar", -- 3863
+	"strings" -- 3863
+} -- 3863
+local function clamp01(value) -- 3865
+	return math.min( -- 3866
+		1, -- 3866
+		math.max(0, value) -- 3866
+	) -- 3866
+end -- 3865
+local function getMusicStyleConfig(style) -- 3869
+	repeat -- 3869
+		local ____switch754 = style -- 3869
+		local ____cond754 = ____switch754 == "adventure" -- 3869
+		if ____cond754 then -- 3869
+			return { -- 3871
+				bpm = 124, -- 3872
+				mode = "major", -- 3872
+				progression = {0, 3, 4, 0}, -- 3872
+				melodyStepSpan = 2, -- 3872
+				melodyDensity = 0.82, -- 3873
+				leadInstrument = "strings", -- 3873
+				bassInstrument = "triangle", -- 3873
+				harmonyInstrument = "organ", -- 3873
+				melodyMix = 0.28, -- 3874
+				bassMix = 0.24, -- 3874
+				harmonyMix = 0.15, -- 3874
+				drumMix = 0.22, -- 3874
+				hatStride = 2, -- 3874
+				reverb = 0.16, -- 3875
+				delay = 0.1, -- 3875
+				chorus = 0.18, -- 3875
+				distortion = 0.04 -- 3875
+			} -- 3875
+		end -- 3875
+		____cond754 = ____cond754 or ____switch754 == "calm" -- 3875
+		if ____cond754 then -- 3875
+			return { -- 3877
+				bpm = 84, -- 3878
+				mode = "pentatonic", -- 3878
+				progression = {0, 4, 3, 4}, -- 3878
+				melodyStepSpan = 4, -- 3878
+				melodyDensity = 0.72, -- 3879
+				leadInstrument = "bell", -- 3879
+				bassInstrument = "sub", -- 3879
+				harmonyInstrument = "pad", -- 3879
+				melodyMix = 0.3, -- 3880
+				bassMix = 0.2, -- 3880
+				harmonyMix = 0.18, -- 3880
+				drumMix = 0.1, -- 3880
+				hatStride = 4, -- 3880
+				reverb = 0.34, -- 3881
+				delay = 0.16, -- 3881
+				chorus = 0.28, -- 3881
+				distortion = 0 -- 3881
+			} -- 3881
+		end -- 3881
+		____cond754 = ____cond754 or ____switch754 == "tense" -- 3881
+		if ____cond754 then -- 3881
+			return { -- 3883
+				bpm = 152, -- 3884
+				mode = "minor", -- 3884
+				progression = {0, 5, 6, 4}, -- 3884
+				melodyStepSpan = 2, -- 3884
+				melodyDensity = 0.88, -- 3885
+				leadInstrument = "saw", -- 3885
+				bassInstrument = "saw", -- 3885
+				harmonyInstrument = "pulse", -- 3885
+				melodyMix = 0.24, -- 3886
+				bassMix = 0.29, -- 3886
+				harmonyMix = 0.15, -- 3886
+				drumMix = 0.26, -- 3886
+				hatStride = 1, -- 3886
+				reverb = 0.1, -- 3887
+				delay = 0.08, -- 3887
+				chorus = 0.1, -- 3887
+				distortion = 0.2 -- 3887
+			} -- 3887
+		end -- 3887
+		____cond754 = ____cond754 or ____switch754 == "victory" -- 3887
+		if ____cond754 then -- 3887
+			return { -- 3889
+				bpm = 148, -- 3890
+				mode = "major", -- 3890
+				progression = {0, 3, 4, 0}, -- 3890
+				melodyStepSpan = 2, -- 3890
+				melodyDensity = 0.92, -- 3891
+				leadInstrument = "square", -- 3891
+				bassInstrument = "triangle", -- 3891
+				harmonyInstrument = "organ", -- 3891
+				melodyMix = 0.31, -- 3892
+				bassMix = 0.22, -- 3892
+				harmonyMix = 0.18, -- 3892
+				drumMix = 0.24, -- 3892
+				hatStride = 2, -- 3892
+				reverb = 0.22, -- 3893
+				delay = 0.12, -- 3893
+				chorus = 0.16, -- 3893
+				distortion = 0.04 -- 3893
+			} -- 3893
+		end -- 3893
+		do -- 3893
+			return { -- 3895
+				bpm = 138, -- 3896
+				mode = "major", -- 3896
+				progression = {0, 4, 5, 3}, -- 3896
+				melodyStepSpan = 2, -- 3896
+				melodyDensity = 0.86, -- 3897
+				leadInstrument = "square", -- 3897
+				bassInstrument = "saw", -- 3897
+				harmonyInstrument = "pulse", -- 3897
+				melodyMix = 0.28, -- 3898
+				bassMix = 0.25, -- 3898
+				harmonyMix = 0.16, -- 3898
+				drumMix = 0.22, -- 3898
+				hatStride = 2, -- 3898
+				reverb = 0.1, -- 3899
+				delay = 0.08, -- 3899
+				chorus = 0.12, -- 3899
+				distortion = 0.06 -- 3899
+			} -- 3899
+		end -- 3899
+	until true -- 3899
+end -- 3869
+local function musicScale(mode) -- 3904
+	if mode == "minor" then -- 3904
+		return { -- 3905
+			0, -- 3905
+			2, -- 3905
+			3, -- 3905
+			5, -- 3905
+			7, -- 3905
+			8, -- 3905
+			10 -- 3905
+		} -- 3905
+	end -- 3905
+	if mode == "pentatonic" then -- 3905
+		return { -- 3906
+			0, -- 3906
+			2, -- 3906
+			4, -- 3906
+			7, -- 3906
+			9 -- 3906
+		} -- 3906
+	end -- 3906
+	if mode == "harmonic_minor" then -- 3906
+		return { -- 3907
+			0, -- 3907
+			2, -- 3907
+			3, -- 3907
+			5, -- 3907
+			7, -- 3907
+			8, -- 3907
+			11 -- 3907
+		} -- 3907
+	end -- 3907
+	if mode == "dorian" then -- 3907
+		return { -- 3908
+			0, -- 3908
+			2, -- 3908
+			3, -- 3908
+			5, -- 3908
+			7, -- 3908
+			9, -- 3908
+			10 -- 3908
+		} -- 3908
+	end -- 3908
+	if mode == "phrygian" then -- 3908
+		return { -- 3909
+			0, -- 3909
+			1, -- 3909
+			3, -- 3909
+			5, -- 3909
+			7, -- 3909
+			8, -- 3909
+			10 -- 3909
+		} -- 3909
+	end -- 3909
+	if mode == "chromatic" then -- 3909
+		return { -- 3910
+			0, -- 3910
+			1, -- 3910
+			2, -- 3910
+			3, -- 3910
+			4, -- 3910
+			5, -- 3910
+			6, -- 3910
+			7, -- 3910
+			8, -- 3910
+			9, -- 3910
+			10, -- 3910
+			11 -- 3910
+		} -- 3910
+	end -- 3910
+	return { -- 3911
+		0, -- 3911
+		2, -- 3911
+		4, -- 3911
+		5, -- 3911
+		7, -- 3911
+		9, -- 3911
+		11 -- 3911
+	} -- 3911
+end -- 3904
+local function musicScaleNote(root, scale, degree) -- 3914
+	local octave = math.floor(degree / #scale) -- 3915
+	local index = degree % #scale -- 3916
+	return root + octave * 12 + scale[index + 1] -- 3917
+end -- 3914
+local function parseRomanDegree(token) -- 3920
+	local normalized = __TS__StringTrim(token) -- 3921
+	while __TS__StringStartsWith(normalized, "b") or __TS__StringStartsWith(normalized, "#") do -- 3921
+		normalized = string.sub(normalized, 2) -- 3922
+	end -- 3922
+	normalized = string.upper(normalized) -- 3923
+	if normalized == "I" then -- 3923
+		return 0 -- 3924
+	end -- 3924
+	if normalized == "II" then -- 3924
+		return 1 -- 3925
+	end -- 3925
+	if normalized == "III" then -- 3925
+		return 2 -- 3926
+	end -- 3926
+	if normalized == "IV" then -- 3926
+		return 3 -- 3927
+	end -- 3927
+	if normalized == "V" then -- 3927
+		return 4 -- 3928
+	end -- 3928
+	if normalized == "VI" then -- 3928
+		return 5 -- 3929
+	end -- 3929
+	if normalized == "VII" then -- 3929
+		return 6 -- 3930
+	end -- 3930
+	return nil -- 3931
+end -- 3920
+local function parseMusicProgression(text, fallback) -- 3934
+	local normalized = __TS__StringTrim(text or "") -- 3935
+	if normalized == "" then -- 3935
+		return { -- 3936
+			degrees = __TS__ArraySlice(fallback), -- 3936
+			text = table.concat( -- 3936
+				__TS__ArrayMap( -- 3936
+					fallback, -- 3936
+					function(____, value) return tostring(value) end -- 3936
+				), -- 3936
+				"," -- 3936
+			) -- 3936
+		} -- 3936
+	end -- 3936
+	local tokens = __TS__StringSplit(normalized, ",") -- 3937
+	local degrees = {} -- 3938
+	do -- 3938
+		local i = 0 -- 3939
+		while i < #tokens do -- 3939
+			local degree = parseRomanDegree(tokens[i + 1]) -- 3940
+			if degree == nil then -- 3940
+				return { -- 3941
+					degrees = __TS__ArraySlice(fallback), -- 3941
+					text = table.concat( -- 3941
+						__TS__ArrayMap( -- 3941
+							fallback, -- 3941
+							function(____, value) return tostring(value) end -- 3941
+						), -- 3941
+						"," -- 3941
+					) -- 3941
+				} -- 3941
+			end -- 3941
+			degrees[#degrees + 1] = degree -- 3942
+			i = i + 1 -- 3939
+		end -- 3939
+	end -- 3939
+	return #degrees > 0 and ({degrees = degrees, text = normalized}) or ({ -- 3944
+		degrees = __TS__ArraySlice(fallback), -- 3944
+		text = table.concat( -- 3944
+			__TS__ArrayMap( -- 3944
+				fallback, -- 3944
+				function(____, value) return tostring(value) end -- 3944
+			), -- 3944
+			"," -- 3944
+		) -- 3944
+	}) -- 3944
+end -- 3934
+local function parseMusicStructure(text) -- 3947
+	local tokens = __TS__StringSplit(text or "A,A,B,A", ",") -- 3948
+	local result = {} -- 3949
+	do -- 3949
+		local i = 0 -- 3950
+		while i < #tokens and #result < 8 do -- 3950
+			local label = string.upper(__TS__StringTrim(tokens[i + 1])) -- 3951
+			if label ~= "" then -- 3951
+				result[#result + 1] = string.sub(label, 1, 8) -- 3952
+			end -- 3952
+			i = i + 1 -- 3950
+		end -- 3950
+	end -- 3950
+	return #result > 0 and result or ({"A"}) -- 3954
+end -- 3947
+local function resolveMusicInstrument(value, fallback) -- 3957
+	local normalized = string.lower(__TS__StringTrim(value or "auto")) -- 3958
+	return __TS__ArrayIndexOf(MUSIC_VALID_INSTRUMENTS, normalized) >= 0 and normalized or fallback -- 3959
+end -- 3957
+local function fillMusicNote(notes, ages, start, span, note) -- 3962
+	local ____end = math.min(start + span, #notes) -- 3963
+	do -- 3963
+		local i = start -- 3964
+		while i < ____end do -- 3964
+			notes[i + 1] = note -- 3965
+			ages[i + 1] = i - start -- 3966
+			i = i + 1 -- 3964
+		end -- 3964
+	end -- 3964
+end -- 3962
+local function sectionSeed(seed, label, barInSection, variation) -- 3970
+	local hash = 0 -- 3971
+	do -- 3971
+		local i = 0 -- 3972
+		while i < #label do -- 3972
+			hash = (hash * 31 + __TS__StringCharCodeAt(label, i)) % 2147483647 -- 3972
+			i = i + 1 -- 3972
+		end -- 3972
+	end -- 3972
+	return seed + hash * 131 + barInSection * 104729 + math.floor(variation * 10000) * 8191 -- 3973
+end -- 3970
+local function createMusicArrangement(options, bars, seedOffset) -- 3976
+	if seedOffset == nil then -- 3976
+		seedOffset = 0 -- 3976
+	end -- 3976
+	local totalSteps = bars * MUSIC_STEPS_PER_BAR -- 3977
+	local melodyNotes = {} -- 3978
+	local melodyAges = {} -- 3979
+	local bassNotes = {} -- 3980
+	local bassAges = {} -- 3981
+	local arpNotes = {} -- 3982
+	local chordRoots = {} -- 3983
+	local rootNote = 48 + options.rootPitchClass -- 3984
+	do -- 3984
+		local i = 0 -- 3985
+		while i < totalSteps do -- 3985
+			melodyNotes[#melodyNotes + 1] = -1 -- 3986
+			melodyAges[#melodyAges + 1] = 0 -- 3986
+			bassNotes[#bassNotes + 1] = -1 -- 3986
+			bassAges[#bassAges + 1] = 0 -- 3986
+			arpNotes[#arpNotes + 1] = -1 -- 3987
+			chordRoots[#chordRoots + 1] = rootNote -- 3987
+			i = i + 1 -- 3985
+		end -- 3985
+	end -- 3985
+	local scale = musicScale(options.mode) -- 3989
+	local styleConfig = getMusicStyleConfig(options.style) -- 3990
+	local chordToneChoices = {0, 2, 4, 7} -- 3991
+	local melodySpan = options.rhythmComplexity > 0.72 and 1 or styleConfig.melodyStepSpan -- 3992
+	local density = clamp01(styleConfig.melodyDensity * (0.55 + options.melodyComplexity * 0.65)) -- 3993
+	do -- 3993
+		local bar = 0 -- 3994
+		while bar < bars do -- 3994
+			local sectionIndex = math.floor(bar / options.barsPerSection) % #options.structure -- 3995
+			local sectionLabel = options.structure[sectionIndex + 1] -- 3996
+			local barInSection = bar % options.barsPerSection -- 3997
+			local localRng = createSfxRng(sectionSeed(options.seed + seedOffset, sectionLabel, barInSection, options.variation)) -- 3998
+			local sectionOffset = math.max( -- 3999
+				0, -- 3999
+				(string.byte(sectionLabel, 1) or 0 / 0) - 65 -- 3999
+			) -- 3999
+			local progressionIndex = (barInSection + sectionOffset) % #options.progression -- 4000
+			local chordDegree = options.progression[progressionIndex + 1] -- 4001
+			local chordRoot = musicScaleNote(rootNote, scale, chordDegree) -- 4002
+			local barStart = bar * MUSIC_STEPS_PER_BAR -- 4003
+			do -- 4003
+				local localStep = 0 -- 4004
+				while localStep < MUSIC_STEPS_PER_BAR do -- 4004
+					local step = barStart + localStep -- 4005
+					chordRoots[step + 1] = chordRoot -- 4006
+					if options.intensity > 0.25 or localStep % 2 == 0 then -- 4006
+						local arpTone = ({0, 2, 4, 2})[localStep % 4 + 1] -- 4008
+						arpNotes[step + 1] = musicScaleNote(rootNote + 12, scale, chordDegree + arpTone) -- 4009
+					end -- 4009
+					localStep = localStep + 1 -- 4004
+				end -- 4004
+			end -- 4004
+			do -- 4004
+				local localStep = 0 -- 4012
+				while localStep < MUSIC_STEPS_PER_BAR do -- 4012
+					local step = barStart + localStep -- 4013
+					local movingBass = options.intensity > 0.58 and localStep == 12 -- 4014
+					local bassDegree = chordDegree + (movingBass and 4 or 0) -- 4015
+					fillMusicNote( -- 4016
+						bassNotes, -- 4016
+						bassAges, -- 4016
+						step, -- 4016
+						4, -- 4016
+						musicScaleNote(rootNote - 12, scale, bassDegree) -- 4016
+					) -- 4016
+					localStep = localStep + 4 -- 4012
+				end -- 4012
+			end -- 4012
+			do -- 4012
+				local localStep = 0 -- 4018
+				while localStep < MUSIC_STEPS_PER_BAR do -- 4018
+					do -- 4018
+						if localRng:next() > density then -- 4018
+							goto __continue802 -- 4019
+						end -- 4019
+						local step = barStart + localStep -- 4020
+						local choice = chordToneChoices[math.floor(localRng:next() * #chordToneChoices) + 1] -- 4021
+						if options.melodyComplexity > 0.65 and localRng:next() < options.melodyComplexity * 0.35 then -- 4021
+							choice = choice + 1 -- 4022
+						end -- 4022
+						local note = musicScaleNote(rootNote + 12, scale, chordDegree + choice) -- 4023
+						if localRng:next() < options.melodyComplexity * 0.3 then -- 4023
+							note = note + 12 -- 4024
+						end -- 4024
+						if options.variation > 0 and sectionLabel ~= "A" and localRng:next() < options.variation * 0.5 then -- 4024
+							note = note + scale[2] -- 4025
+						end -- 4025
+						fillMusicNote( -- 4026
+							melodyNotes, -- 4026
+							melodyAges, -- 4026
+							step, -- 4026
+							melodySpan, -- 4026
+							note -- 4026
+						) -- 4026
+					end -- 4026
+					::__continue802:: -- 4026
+					localStep = localStep + melodySpan -- 4018
+				end -- 4018
+			end -- 4018
+			bar = bar + 1 -- 3994
+		end -- 3994
+	end -- 3994
+	return { -- 4029
+		melodyNotes = melodyNotes, -- 4029
+		melodyAges = melodyAges, -- 4029
+		bassNotes = bassNotes, -- 4029
+		bassAges = bassAges, -- 4029
+		arpNotes = arpNotes, -- 4029
+		chordRoots = chordRoots -- 4029
+	} -- 4029
+end -- 3976
+local function musicFrequency(note) -- 4032
+	return 440 * 2 ^ ((note - 69) / 12) -- 4033
+end -- 4032
+local function musicWave(phase, instrument) -- 4036
+	if instrument == "square" then -- 4036
+		return phase < 0.5 and 0.7 or -0.7 -- 4037
+	end -- 4037
+	if instrument == "pulse" then -- 4037
+		return phase < 0.25 and 0.75 or -0.45 -- 4038
+	end -- 4038
+	if instrument == "saw" then -- 4038
+		return 1 - phase * 2 -- 4039
+	end -- 4039
+	if instrument == "triangle" or instrument == "pluck" then -- 4039
+		return phase < 0.5 and phase * 4 - 1 or 3 - phase * 4 -- 4040
+	end -- 4040
+	if instrument == "organ" then -- 4040
+		return math.sin(phase * 2 * math.pi) * 0.72 + math.sin(phase * 6 * math.pi) * 0.28 -- 4041
+	end -- 4041
+	if instrument == "bell" then -- 4041
+		return math.sin(phase * 2 * math.pi) * 0.68 + math.sin(phase * 8 * math.pi) * 0.32 -- 4042
+	end -- 4042
+	if instrument == "fm" then -- 4042
+		return math.sin(phase * 2 * math.pi + math.sin(phase * 6 * math.pi) * 2.2) -- 4043
+	end -- 4043
+	if instrument == "pad" then -- 4043
+		return math.sin(phase * 2 * math.pi) * 0.65 + (phase < 0.5 and phase * 4 - 1 or 3 - phase * 4) * 0.35 -- 4044
+	end -- 4044
+	if instrument == "sub" then -- 4044
+		return math.sin(phase * 2 * math.pi) * 0.85 + math.sin(phase * 4 * math.pi) * 0.15 -- 4045
+	end -- 4045
+	if instrument == "guitar" then -- 4045
+		return (phase < 0.5 and phase * 4 - 1 or 3 - phase * 4) * 0.72 + math.sin(phase * 6 * math.pi) * 0.28 -- 4046
+	end -- 4046
+	if instrument == "strings" then -- 4046
+		return (1 - phase * 2) * 0.55 + math.sin(phase * 2 * math.pi) * 0.45 -- 4047
+	end -- 4047
+	return math.sin(phase * 2 * math.pi) -- 4048
+end -- 4036
+local function musicEnvelope(time, length, attack, release, instrument) -- 4051
+	if time < 0 or time >= length then -- 4051
+		return 0 -- 4052
+	end -- 4052
+	local value = 1 -- 4053
+	if time < attack then -- 4053
+		value = time / attack -- 4054
+	end -- 4054
+	local remaining = length - time -- 4055
+	if remaining < release then -- 4055
+		value = value * (remaining / release) -- 4056
+	end -- 4056
+	if instrument == "pluck" or instrument == "bell" or instrument == "guitar" then -- 4056
+		value = value * (1 / (1 + time * (instrument == "bell" and 3.5 or 8))) -- 4057
+	end -- 4057
+	return clamp01(value) -- 4058
+end -- 4051
+local function createStereoSamples(stereo) -- 4061
+	return stereo and ({left = {}, right = {}}) or ({left = {}}) -- 4062
+end -- 4061
+local function pushStereo(samples, left, right) -- 4065
+	if samples.right then -- 4065
+		local ____samples_left_75 = samples.left -- 4065
+		____samples_left_75[#____samples_left_75 + 1] = left -- 4067
+		local ____samples_right_76 = samples.right -- 4067
+		____samples_right_76[#____samples_right_76 + 1] = right -- 4068
+	else -- 4068
+		local ____samples_left_77 = samples.left -- 4068
+		____samples_left_77[#____samples_left_77 + 1] = (left + right) * 0.5 -- 4070
+	end -- 4070
+end -- 4065
+local function yieldMusicFrame() -- 4074
+	return __TS__New( -- 4075
+		__TS__Promise, -- 4075
+		function(____, resolve) -- 4075
+			Director.systemScheduler:schedule(once(function() return resolve(nil) end)) -- 4076
+		end -- 4075
+	) -- 4075
+end -- 4074
+local function synthMusic(options, arrangement, bars, renderKind, captureStems, onProgress, isCancelled) -- 4080
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 4080
+		local stepSeconds = 60 / options.bpm / 4 -- 4089
+		local durationSeconds = bars * MUSIC_STEPS_PER_BAR * stepSeconds -- 4090
+		local totalSamples = math.floor(durationSeconds * MUSIC_SAMPLE_RATE) -- 4091
+		local mix = createStereoSamples(options.stereo) -- 4092
+		local stems = captureStems and ({ -- 4093
+			melody = createStereoSamples(options.stereo), -- 4094
+			bass = createStereoSamples(options.stereo), -- 4094
+			harmony = createStereoSamples(options.stereo), -- 4095
+			drums = createStereoSamples(options.stereo) -- 4095
+		}) or nil -- 4095
+		local noiseRng = createSfxRng(options.seed + bars * 65537 + (renderKind == "loop" and 1 or 17)) -- 4097
+		local noise = {} -- 4098
+		do -- 4098
+			local i = 0 -- 4099
+			while i < MUSIC_NOISE_SIZE do -- 4099
+				noise[#noise + 1] = noiseRng:next() * 2 - 1 -- 4099
+				i = i + 1 -- 4099
+			end -- 4099
+		end -- 4099
+		local melodyPhase = 0 -- 4100
+		local bassPhase = 0 -- 4100
+		local arpPhase = 0 -- 4100
+		local padPhase = 0 -- 4100
+		local filteredLeft = 0 -- 4101
+		local filteredRight = 0 -- 4101
+		local peak = 0 -- 4102
+		local clippingSamples = 0 -- 4102
+		local fadeSamples = math.max( -- 4103
+			1, -- 4103
+			math.floor(MUSIC_SAMPLE_RATE * 0.008) -- 4103
+		) -- 4103
+		local delayFrames = math.max( -- 4104
+			1, -- 4104
+			math.floor(MUSIC_SAMPLE_RATE * 60 / options.bpm * 0.5) -- 4104
+		) -- 4104
+		local reverbFrames = math.max( -- 4105
+			1, -- 4105
+			math.floor(MUSIC_SAMPLE_RATE * 0.073) -- 4105
+		) -- 4105
+		local delayLeft = {} -- 4106
+		local delayRight = {} -- 4106
+		local reverbLeft = {} -- 4106
+		local reverbRight = {} -- 4106
+		do -- 4106
+			local i = 0 -- 4107
+			while i < delayFrames do -- 4107
+				delayLeft[#delayLeft + 1] = 0 -- 4107
+				delayRight[#delayRight + 1] = 0 -- 4107
+				i = i + 1 -- 4107
+			end -- 4107
+		end -- 4107
+		do -- 4107
+			local i = 0 -- 4108
+			while i < reverbFrames do -- 4108
+				reverbLeft[#reverbLeft + 1] = 0 -- 4108
+				reverbRight[#reverbRight + 1] = 0 -- 4108
+				i = i + 1 -- 4108
+			end -- 4108
+		end -- 4108
+		do -- 4108
+			local sampleIndex = 0 -- 4109
+			while sampleIndex < totalSamples do -- 4109
+				if sampleIndex % MUSIC_RENDER_CHUNK == 0 then -- 4109
+					if (isCancelled and isCancelled()) == true then -- 4109
+						return ____awaiter_resolve(nil, nil) -- 4109
+					end -- 4109
+					if onProgress ~= nil then -- 4109
+						onProgress(math.floor(sampleIndex / totalSamples * 100)) -- 4112
+					end -- 4112
+					if sampleIndex > 0 then -- 4112
+						__TS__Await(yieldMusicFrame()) -- 4113
+					end -- 4113
+				end -- 4113
+				local time = sampleIndex / MUSIC_SAMPLE_RATE -- 4115
+				local stepFloat = time / stepSeconds -- 4116
+				local stepIndex = math.min( -- 4117
+					#arrangement.melodyNotes - 1, -- 4117
+					math.floor(stepFloat) -- 4117
+				) -- 4117
+				local stepTime = (stepFloat - stepIndex) * stepSeconds -- 4118
+				local melody = 0 -- 4119
+				local bass = 0 -- 4119
+				local harmony = 0 -- 4119
+				local drums = 0 -- 4119
+				local melodyNote = arrangement.melodyNotes[stepIndex + 1] -- 4120
+				if melodyNote >= 0 then -- 4120
+					melodyPhase = (melodyPhase + musicFrequency(melodyNote) / MUSIC_SAMPLE_RATE) % 1 -- 4122
+					local noteTime = arrangement.melodyAges[stepIndex + 1] * stepSeconds + stepTime -- 4123
+					local span = options.rhythmComplexity > 0.72 and 1 or getMusicStyleConfig(options.style).melodyStepSpan -- 4124
+					local noteLength = span * stepSeconds * (0.72 + options.rhythmComplexity * 0.22) -- 4125
+					local env = musicEnvelope( -- 4126
+						noteTime, -- 4126
+						noteLength, -- 4126
+						0.004, -- 4126
+						math.min(0.05, noteLength * 0.3), -- 4126
+						options.leadInstrument -- 4126
+					) -- 4126
+					melody = musicWave(melodyPhase, options.leadInstrument) * env * getMusicStyleConfig(options.style).melodyMix -- 4127
+				end -- 4127
+				local bassNote = arrangement.bassNotes[stepIndex + 1] -- 4129
+				if bassNote >= 0 then -- 4129
+					bassPhase = (bassPhase + musicFrequency(bassNote) / MUSIC_SAMPLE_RATE) % 1 -- 4131
+					local noteTime = arrangement.bassAges[stepIndex + 1] * stepSeconds + stepTime -- 4132
+					local env = musicEnvelope( -- 4133
+						noteTime, -- 4133
+						stepSeconds * 3.75, -- 4133
+						0.008, -- 4133
+						0.08, -- 4133
+						options.bassInstrument -- 4133
+					) -- 4133
+					bass = musicWave(bassPhase, options.bassInstrument) * env * getMusicStyleConfig(options.style).bassMix -- 4134
+				end -- 4134
+				local arpNote = arrangement.arpNotes[stepIndex + 1] -- 4136
+				if arpNote >= 0 then -- 4136
+					arpPhase = (arpPhase + musicFrequency(arpNote) / MUSIC_SAMPLE_RATE) % 1 -- 4138
+					local arpEnv = musicEnvelope( -- 4139
+						stepTime, -- 4139
+						stepSeconds * 0.72, -- 4139
+						0.003, -- 4139
+						math.min(0.035, stepSeconds * 0.25), -- 4139
+						options.harmonyInstrument -- 4139
+					) -- 4139
+					harmony = harmony + musicWave(arpPhase, options.harmonyInstrument) * arpEnv * getMusicStyleConfig(options.style).harmonyMix -- 4140
+				end -- 4140
+				local padNote = arrangement.chordRoots[stepIndex + 1] + 12 -- 4142
+				padPhase = (padPhase + musicFrequency(padNote) / MUSIC_SAMPLE_RATE) % 1 -- 4143
+				harmony = harmony + musicWave(padPhase, options.harmonyInstrument) * (options.style == "calm" and 0.1 or 0.035) -- 4144
+				local localStep = stepIndex % MUSIC_STEPS_PER_BAR -- 4145
+				local noiseSample = noise[sampleIndex % MUSIC_NOISE_SIZE + 1] -- 4146
+				local previousNoise = noise[(sampleIndex + MUSIC_NOISE_SIZE - 1) % MUSIC_NOISE_SIZE + 1] -- 4147
+				local drumConfig = getMusicStyleConfig(options.style) -- 4148
+				local ____temp_82 -- 4149
+				if options.intensity > 0.78 then -- 4149
+					____temp_82 = localStep % 4 == 0 -- 4149
+				else -- 4149
+					____temp_82 = localStep == 0 or localStep == 8 -- 4149
+				end -- 4149
+				local kickOn = ____temp_82 -- 4149
+				local kickDecay = 0 -- 4150
+				if kickOn then -- 4150
+					local kickLength = math.min(stepSeconds, 0.16) -- 4152
+					if stepTime < kickLength then -- 4152
+						kickDecay = 1 - stepTime / kickLength -- 4154
+						drums = drums + math.sin(2 * math.pi * (58 + 82 * kickDecay) * stepTime) * kickDecay * kickDecay * drumConfig.drumMix -- 4155
+					end -- 4155
+				end -- 4155
+				if localStep == 4 or localStep == 12 then -- 4155
+					local snareLength = math.min(stepSeconds, 0.13) -- 4159
+					if stepTime < snareLength then -- 4159
+						local decay = 1 - stepTime / snareLength -- 4161
+						drums = drums + (noiseSample * 0.78 + math.sin(2 * math.pi * 180 * stepTime) * 0.22) * decay * drumConfig.drumMix * 0.68 -- 4162
+						if options.intensity > 0.62 then -- 4162
+							local clapPhase = stepTime * 38 % 1 -- 4164
+							drums = drums + noiseSample * (clapPhase < 0.22 and 1 or 0) * decay * drumConfig.drumMix * 0.24 -- 4165
+						end -- 4165
+					end -- 4165
+				end -- 4165
+				local hatStride = options.rhythmComplexity > 0.7 and 1 or drumConfig.hatStride -- 4169
+				if localStep % hatStride == 0 then -- 4169
+					local hatLength = math.min(stepSeconds, 0.045) -- 4171
+					if stepTime < hatLength then -- 4171
+						drums = drums + (noiseSample - previousNoise) * (1 - stepTime / hatLength) * drumConfig.drumMix * 0.18 -- 4172
+					end -- 4172
+				end -- 4172
+				if localStep == 14 and options.intensity > 0.48 then -- 4172
+					local openHatLength = math.min(stepSeconds, 0.12) -- 4175
+					if stepTime < openHatLength then -- 4175
+						drums = drums + (noiseSample - previousNoise) * (1 - stepTime / openHatLength) * drumConfig.drumMix * 0.15 -- 4176
+					end -- 4176
+				end -- 4176
+				if localStep % 4 == 2 and options.intensity > 0.82 then -- 4176
+					local rideLength = math.min(stepSeconds, 0.08) -- 4179
+					if stepTime < rideLength then -- 4179
+						drums = drums + math.sin(2 * math.pi * 1800 * stepTime) * (1 - stepTime / rideLength) * drumConfig.drumMix * 0.09 -- 4180
+					end -- 4180
+				end -- 4180
+				if localStep >= 13 and options.rhythmComplexity > 0.68 then -- 4180
+					local tomLength = math.min(stepSeconds, 0.1) -- 4183
+					if stepTime < tomLength then -- 4183
+						local tomDecay = 1 - stepTime / tomLength -- 4185
+						local tomFrequency = 150 - (localStep - 13) * 24 -- 4186
+						drums = drums + math.sin(2 * math.pi * tomFrequency * stepTime) * tomDecay * drumConfig.drumMix * 0.26 -- 4187
+					end -- 4187
+				end -- 4187
+				local sectionStep = stepIndex % (options.barsPerSection * MUSIC_STEPS_PER_BAR) -- 4190
+				local sectionTime = sectionStep * stepSeconds + stepTime -- 4191
+				if sectionTime < 0.32 and options.intensity > 0.72 then -- 4191
+					drums = drums + (noiseSample - previousNoise * 0.5) * (1 - sectionTime / 0.32) * drumConfig.drumMix * 0.16 -- 4193
+				end -- 4193
+				local duck = 1 - kickDecay * options.intensity * 0.24 -- 4195
+				melody = melody * (duck * (0.72 + options.intensity * 0.42)) -- 4196
+				bass = bass * (0.65 + options.intensity * 0.55) -- 4197
+				harmony = harmony * (duck * (0.5 + options.intensity * 0.62)) -- 4198
+				drums = drums * (0.32 + options.intensity * 0.85) -- 4199
+				local chorusPan = math.sin(time * 2 * math.pi * 0.35) * options.chorus * 0.18 -- 4200
+				local melodyLeft = melody * (0.82 - chorusPan) -- 4201
+				local melodyRight = melody * (1.18 + chorusPan) -- 4201
+				local bassLeft = bass -- 4202
+				local bassRight = bass -- 4202
+				local harmonyLeft = harmony * (1.18 + chorusPan) -- 4203
+				local harmonyRight = harmony * (0.82 - chorusPan) -- 4203
+				local drumsLeft = drums * 1.02 -- 4204
+				local drumsRight = drums * 0.98 -- 4204
+				local left = melodyLeft + bassLeft + harmonyLeft + drumsLeft -- 4205
+				local right = melodyRight + bassRight + harmonyRight + drumsRight -- 4206
+				local delayPos = sampleIndex % delayFrames -- 4207
+				local reverbPos = sampleIndex % reverbFrames -- 4208
+				local delayedL = delayLeft[delayPos + 1] -- 4209
+				local delayedR = delayRight[delayPos + 1] -- 4209
+				local reverbedL = reverbLeft[reverbPos + 1] -- 4210
+				local reverbedR = reverbRight[reverbPos + 1] -- 4210
+				delayLeft[delayPos + 1] = left + delayedR * 0.34 -- 4211
+				delayRight[delayPos + 1] = right + delayedL * 0.34 -- 4212
+				reverbLeft[reverbPos + 1] = left + reverbedR * 0.42 -- 4213
+				reverbRight[reverbPos + 1] = right + reverbedL * 0.42 -- 4214
+				left = left + (delayedL * options.delay + reverbedL * options.reverb * 0.45) -- 4215
+				right = right + (delayedR * options.delay + reverbedR * options.reverb * 0.45) -- 4216
+				if options.lowPass > 0 then -- 4216
+					local filterRate = 1 - options.lowPass * 0.94 -- 4218
+					filteredLeft = filteredLeft + (left - filteredLeft) * filterRate -- 4219
+					filteredRight = filteredRight + (right - filteredRight) * filterRate -- 4220
+					left = filteredLeft -- 4221
+					right = filteredRight -- 4222
+				else -- 4222
+					filteredLeft = left -- 4224
+					filteredRight = right -- 4225
+				end -- 4225
+				local drive = 1 + options.distortion * 5 -- 4227
+				left = left * drive / (1 + math.abs(left) * drive * 0.58) -- 4228
+				right = right * drive / (1 + math.abs(right) * drive * 0.58) -- 4229
+				if options.bitCrush > 0 then -- 4229
+					local bits = math.max( -- 4231
+						4, -- 4231
+						16 - math.floor(options.bitCrush * 12) -- 4231
+					) -- 4231
+					local levels = 2 ^ (bits - 1) -- 4232
+					left = math.floor(left * levels + 0.5) / levels -- 4233
+					right = math.floor(right * levels + 0.5) / levels -- 4234
+				end -- 4234
+				local edgeFade = 1 -- 4236
+				if sampleIndex < fadeSamples then -- 4236
+					edgeFade = sampleIndex / fadeSamples -- 4237
+				end -- 4237
+				if sampleIndex >= totalSamples - fadeSamples then -- 4237
+					edgeFade = (totalSamples - 1 - sampleIndex) / fadeSamples -- 4238
+				end -- 4238
+				left = left * (options.volume * edgeFade * 0.72) -- 4239
+				right = right * (options.volume * edgeFade * 0.72) -- 4240
+				peak = math.max( -- 4241
+					peak, -- 4241
+					math.abs(left), -- 4241
+					math.abs(right) -- 4241
+				) -- 4241
+				if math.abs(left) > 1 or math.abs(right) > 1 then -- 4241
+					clippingSamples = clippingSamples + 1 -- 4242
+				end -- 4242
+				left = math.max( -- 4243
+					-1, -- 4243
+					math.min(1, left) -- 4243
+				) -- 4243
+				right = math.max( -- 4244
+					-1, -- 4244
+					math.min(1, right) -- 4244
+				) -- 4244
+				pushStereo(mix, left, right) -- 4245
+				if stems then -- 4245
+					local stemGain = options.volume * edgeFade * 0.72 -- 4247
+					pushStereo(stems.melody, melodyLeft * stemGain, melodyRight * stemGain) -- 4248
+					pushStereo(stems.bass, bassLeft * stemGain, bassRight * stemGain) -- 4249
+					pushStereo(stems.harmony, harmonyLeft * stemGain, harmonyRight * stemGain) -- 4250
+					pushStereo(stems.drums, drumsLeft * stemGain, drumsRight * stemGain) -- 4251
+				end -- 4251
+				sampleIndex = sampleIndex + 1 -- 4109
+			end -- 4109
+		end -- 4109
+		if onProgress ~= nil then -- 4109
+			onProgress(100) -- 4254
+		end -- 4254
+		return ____awaiter_resolve(nil, {mix = mix, peak = peak, clippingSamples = clippingSamples, stems = stems}) -- 4254
+	end) -- 4254
+end -- 4080
+local function encodeMusicMidi(arrangement, options) -- 4258
+	local events = {} -- 4260
+	local stepTicks = 120 -- 4261
+	local function addNote(tick, duration, channel, note, velocity) -- 4262
+		events[#events + 1] = { -- 4263
+			tick = tick, -- 4263
+			order = 1, -- 4263
+			data = string.char(144 + channel, note, velocity) -- 4263
+		} -- 4263
+		events[#events + 1] = { -- 4264
+			tick = tick + duration, -- 4264
+			order = 0, -- 4264
+			data = string.char(128 + channel, note, 0) -- 4264
+		} -- 4264
+	end -- 4262
+	local function addSustainedVoice(notes, ages, channel, velocity) -- 4266
+		do -- 4266
+			local step = 0 -- 4267
+			while step < #notes do -- 4267
+				do -- 4267
+					if notes[step + 1] < 0 or ages[step + 1] ~= 0 then -- 4267
+						goto __continue872 -- 4268
+					end -- 4268
+					local span = 1 -- 4269
+					while step + span < #notes and notes[step + span + 1] == notes[step + 1] and ages[step + span + 1] == span do -- 4269
+						span = span + 1 -- 4270
+					end -- 4270
+					addNote( -- 4271
+						step * stepTicks, -- 4271
+						span * stepTicks, -- 4271
+						channel, -- 4271
+						notes[step + 1], -- 4271
+						velocity -- 4271
+					) -- 4271
+				end -- 4271
+				::__continue872:: -- 4271
+				step = step + 1 -- 4267
+			end -- 4267
+		end -- 4267
+	end -- 4266
+	addSustainedVoice(arrangement.melodyNotes, arrangement.melodyAges, 0, 92) -- 4274
+	addSustainedVoice(arrangement.bassNotes, arrangement.bassAges, 1, 84) -- 4275
+	do -- 4275
+		local step = 0 -- 4276
+		while step < #arrangement.arpNotes do -- 4276
+			if arrangement.arpNotes[step + 1] >= 0 then -- 4276
+				addNote( -- 4277
+					step * stepTicks, -- 4277
+					math.floor(stepTicks * 0.72), -- 4277
+					2, -- 4277
+					arrangement.arpNotes[step + 1], -- 4277
+					66 -- 4277
+				) -- 4277
+			end -- 4277
+			local localStep = step % MUSIC_STEPS_PER_BAR -- 4278
+			if localStep == 0 or localStep == 8 then -- 4278
+				addNote( -- 4279
+					step * stepTicks, -- 4279
+					60, -- 4279
+					9, -- 4279
+					36, -- 4279
+					100 -- 4279
+				) -- 4279
+			end -- 4279
+			if localStep == 4 or localStep == 12 then -- 4279
+				addNote( -- 4281
+					step * stepTicks, -- 4281
+					60, -- 4281
+					9, -- 4281
+					38, -- 4281
+					86 -- 4281
+				) -- 4281
+				if options.intensity > 0.62 then -- 4281
+					addNote( -- 4282
+						step * stepTicks, -- 4282
+						45, -- 4282
+						9, -- 4282
+						39, -- 4282
+						62 -- 4282
+					) -- 4282
+				end -- 4282
+			end -- 4282
+			if localStep % 2 == 0 then -- 4282
+				addNote( -- 4284
+					step * stepTicks, -- 4284
+					30, -- 4284
+					9, -- 4284
+					42, -- 4284
+					54 -- 4284
+				) -- 4284
+			end -- 4284
+			if localStep == 14 and options.intensity > 0.48 then -- 4284
+				addNote( -- 4285
+					step * stepTicks, -- 4285
+					90, -- 4285
+					9, -- 4285
+					46, -- 4285
+					60 -- 4285
+				) -- 4285
+			end -- 4285
+			if localStep % 4 == 2 and options.intensity > 0.82 then -- 4285
+				addNote( -- 4286
+					step * stepTicks, -- 4286
+					60, -- 4286
+					9, -- 4286
+					51, -- 4286
+					48 -- 4286
+				) -- 4286
+			end -- 4286
+			if localStep >= 13 and options.rhythmComplexity > 0.68 then -- 4286
+				addNote( -- 4287
+					step * stepTicks, -- 4287
+					70, -- 4287
+					9, -- 4287
+					45 - (localStep - 13) * 2, -- 4287
+					70 -- 4287
+				) -- 4287
+			end -- 4287
+			if step % (options.barsPerSection * MUSIC_STEPS_PER_BAR) == 0 and options.intensity > 0.72 then -- 4287
+				addNote( -- 4288
+					step * stepTicks, -- 4288
+					120, -- 4288
+					9, -- 4288
+					49, -- 4288
+					72 -- 4288
+				) -- 4288
+			end -- 4288
+			step = step + 1 -- 4276
+		end -- 4276
+	end -- 4276
+	__TS__ArraySort( -- 4290
+		events, -- 4290
+		function(____, a, b) return a.tick == b.tick and a.order - b.order or a.tick - b.tick end -- 4290
+	) -- 4290
+	local function variableLength(value) -- 4291
+		local bytes = {value % 128} -- 4292
+		local rest = math.floor(value / 128) -- 4293
+		while rest > 0 do -- 4293
+			bytes[#bytes + 1] = rest % 128 + 128 -- 4295
+			rest = math.floor(rest / 128) -- 4296
+		end -- 4296
+		local result = "" -- 4298
+		do -- 4298
+			local i = #bytes - 1 -- 4299
+			while i >= 0 do -- 4299
+				result = result .. string.char(bytes[i + 1]) -- 4299
+				i = i - 1 -- 4299
+			end -- 4299
+		end -- 4299
+		return result -- 4300
+	end -- 4291
+	local tempo = math.floor(60000000 / options.bpm) -- 4302
+	local parts = {string.char( -- 4303
+		0, -- 4303
+		255, -- 4303
+		81, -- 4303
+		3, -- 4303
+		math.floor(tempo / 65536) % 256, -- 4303
+		math.floor(tempo / 256) % 256, -- 4303
+		tempo % 256 -- 4303
+	)} -- 4303
+	parts[#parts + 1] = string.char( -- 4304
+		0, -- 4304
+		255, -- 4304
+		88, -- 4304
+		4, -- 4304
+		4, -- 4304
+		2, -- 4304
+		24, -- 4304
+		8 -- 4304
+	) -- 4304
+	local lastTick = 0 -- 4305
+	do -- 4305
+		local i = 0 -- 4306
+		while i < #events do -- 4306
+			parts[#parts + 1] = variableLength(events[i + 1].tick - lastTick) .. events[i + 1].data -- 4307
+			lastTick = events[i + 1].tick -- 4308
+			i = i + 1 -- 4306
+		end -- 4306
+	end -- 4306
+	parts[#parts + 1] = string.char(0, 255, 47, 0) -- 4310
+	local track = table.concat(parts, "") -- 4311
+	return (string.pack( -- 4312
+		">c4I4I2I2I2", -- 4312
+		"MThd", -- 4312
+		6, -- 4312
+		0, -- 4312
+		1, -- 4312
+		480 -- 4312
+	) .. string.pack(">c4I4", "MTrk", #track)) .. track -- 4312
+end -- 4258
+local function musicSiblingPath(path, suffix, extension) -- 4315
+	if extension == nil then -- 4315
+		extension = ".wav" -- 4315
+	end -- 4315
+	return (__TS__StringSlice(path, 0, #path - 4) .. suffix) .. extension -- 4316
+end -- 4315
+local function saveGeneratedAsset(target, data, operationId) -- 4319
+	if not ensureDirForFile(target) then -- 4319
+		return false -- 4320
+	end -- 4320
+	local temp = ((target .. ".") .. operationId) .. ".tmp" -- 4321
+	local backup = ((target .. ".") .. operationId) .. ".bak" -- 4322
+	Content:remove(temp) -- 4323
+	Content:remove(backup) -- 4324
+	if not Content:save(temp, data) then -- 4324
+		return false -- 4325
+	end -- 4325
+	local hadTarget = Content:exist(target) -- 4326
+	if hadTarget and not Content:move(target, backup) then -- 4326
+		Content:remove(temp) -- 4328
+		return false -- 4329
+	end -- 4329
+	if not Content:move(temp, target) then -- 4329
+		Content:remove(temp) -- 4332
+		if hadTarget then -- 4332
+			Content:move(backup, target) -- 4333
+		end -- 4333
+		return false -- 4334
+	end -- 4334
+	Content:remove(backup) -- 4336
+	return true -- 4337
+end -- 4319
+local function musicFingerprint(options) -- 4340
+	local raw = table.concat( -- 4341
+		{ -- 4341
+			options.style, -- 4342
+			tostring(options.seed), -- 4342
+			tostring(options.bpm), -- 4342
+			tostring(options.bars), -- 4342
+			tostring(options.volume), -- 4342
+			tostring(options.intensity), -- 4343
+			options.key, -- 4343
+			options.mode, -- 4343
+			options.progressionText, -- 4343
+			table.concat(options.structure, ","), -- 4343
+			tostring(options.barsPerSection), -- 4344
+			tostring(options.melodyComplexity), -- 4344
+			tostring(options.rhythmComplexity), -- 4344
+			tostring(options.variation), -- 4344
+			options.leadInstrument, -- 4345
+			options.bassInstrument, -- 4345
+			options.harmonyInstrument, -- 4345
+			tostring(options.stereo), -- 4345
+			tostring(options.reverb), -- 4346
+			tostring(options.delay), -- 4346
+			tostring(options.chorus), -- 4346
+			tostring(options.distortion), -- 4346
+			tostring(options.bitCrush), -- 4346
+			tostring(options.lowPass), -- 4347
+			tostring(options.stems), -- 4347
+			tostring(options.introBars), -- 4347
+			tostring(options.outroBars), -- 4347
+			options.stinger, -- 4347
+			tostring(options.exportMidi) -- 4347
+		}, -- 4347
+		"|" -- 4348
+	) -- 4348
+	local hash = 2166136261 -- 4349
+	do -- 4349
+		local i = 0 -- 4350
+		while i < #raw do -- 4350
+			hash = (hash * 16777619 + __TS__StringCharCodeAt(raw, i)) % 2147483647 -- 4350
+			i = i + 1 -- 4350
+		end -- 4350
+	end -- 4350
+	return "music-v1-" .. tostring(math.floor(hash)) -- 4351
+end -- 4340
+local function musicProjectObject(path, options, files, bytesWritten, durationSeconds, peak, clippingSamples, sourceProject) -- 4354
+	return { -- 4364
+		version = 1, -- 4365
+		generator = "Dora.CodingAgent.generate_music", -- 4365
+		fingerprint = musicFingerprint(options), -- 4365
+		path = path, -- 4366
+		files = files, -- 4366
+		bytesWritten = bytesWritten, -- 4366
+		durationSeconds = durationSeconds, -- 4366
+		peak = peak, -- 4366
+		clippingSamples = clippingSamples, -- 4366
+		sourceProject = sourceProject, -- 4366
+		params = { -- 4367
+			style = options.style, -- 4368
+			seed = options.seed, -- 4368
+			duration = options.duration, -- 4368
+			bpm = options.bpm, -- 4368
+			volume = options.volume, -- 4368
+			intensity = options.intensity, -- 4369
+			key = options.key, -- 4369
+			mode = options.mode, -- 4369
+			progression = options.progressionText, -- 4369
+			structure = table.concat(options.structure, ","), -- 4370
+			barsPerSection = options.barsPerSection, -- 4370
+			melodyComplexity = options.melodyComplexity, -- 4371
+			rhythmComplexity = options.rhythmComplexity, -- 4371
+			variation = options.variation, -- 4371
+			leadInstrument = options.leadInstrument, -- 4372
+			bassInstrument = options.bassInstrument, -- 4372
+			harmonyInstrument = options.harmonyInstrument, -- 4372
+			stereo = options.stereo, -- 4373
+			reverb = options.reverb, -- 4373
+			delay = options.delay, -- 4373
+			chorus = options.chorus, -- 4373
+			distortion = options.distortion, -- 4374
+			bitCrush = options.bitCrush, -- 4374
+			lowPass = options.lowPass, -- 4374
+			stems = options.stems, -- 4374
+			introBars = options.introBars, -- 4375
+			outroBars = options.outroBars, -- 4375
+			stinger = options.stinger, -- 4375
+			exportMidi = options.exportMidi -- 4375
+		} -- 4375
+	} -- 4375
+end -- 4354
+local function readCachedMusicResult(workDir, path, options) -- 4380
+	local projectPath = musicSiblingPath(path, "", ".music.json") -- 4381
+	local target = resolveWorkspaceFilePath(workDir, path) -- 4382
+	local projectFull = resolveWorkspaceFilePath(workDir, projectPath) -- 4383
+	if not target or not projectFull or not Content:exist(target) or not Content:exist(projectFull) then -- 4383
+		return nil -- 4384
+	end -- 4384
+	local projectText = Content:load(projectFull) -- 4385
+	if type(projectText) ~= "string" then -- 4385
+		return nil -- 4386
+	end -- 4386
+	local decoded = safeJsonDecode(projectText) -- 4387
+	if not decoded or type(decoded) ~= "table" then -- 4387
+		return nil -- 4388
+	end -- 4388
+	local record = decoded -- 4389
+	if record.fingerprint ~= musicFingerprint(options) or not __TS__ArrayIsArray(record.files) then -- 4389
+		return nil -- 4390
+	end -- 4390
+	local files = {} -- 4391
+	do -- 4391
+		local i = 0 -- 4392
+		while i < #record.files do -- 4392
+			if type(record.files[i + 1]) ~= "string" then -- 4392
+				return nil -- 4393
+			end -- 4393
+			local relative = record.files[i + 1] -- 4394
+			local full = resolveWorkspaceFilePath(workDir, relative) -- 4395
+			if not full or not Content:exist(full) then -- 4395
+				return nil -- 4396
+			end -- 4396
+			files[#files + 1] = relative -- 4397
+			i = i + 1 -- 4392
+		end -- 4392
+	end -- 4392
+	if __TS__ArrayIndexOf(files, projectPath) < 0 then -- 4392
+		files[#files + 1] = projectPath -- 4399
+	end -- 4399
+	local durationSeconds = type(record.durationSeconds) == "number" and record.durationSeconds or options.duration -- 4400
+	local bytesWritten = type(record.bytesWritten) == "number" and record.bytesWritten or 0 -- 4401
+	local midiPath = options.exportMidi and musicSiblingPath(path, "", ".mid") or nil -- 4402
+	return { -- 4403
+		success = true, -- 4404
+		path = path, -- 4404
+		files = files, -- 4404
+		projectPath = projectPath, -- 4404
+		midiPath = midiPath, -- 4404
+		bytesWritten = bytesWritten, -- 4404
+		durationSeconds = durationSeconds, -- 4404
+		sampleRate = MUSIC_SAMPLE_RATE, -- 4405
+		channels = options.stereo and 2 or 1, -- 4405
+		seed = options.seed, -- 4405
+		style = options.style, -- 4406
+		bpm = options.bpm, -- 4406
+		bars = options.bars, -- 4406
+		key = options.key, -- 4406
+		mode = options.mode, -- 4406
+		description = ((("Reused cached deterministic music assets for " .. path) .. " (") .. musicFingerprint(options)) .. ")." -- 4407
+	} -- 4407
+end -- 4380
+local musicAutoSeedStep = 0 -- 4411
+function ____exports.generateMusic(req) -- 4413
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 4413
+		local relPath = __TS__StringTrim(req.path or "") -- 4422
+		if relPath == "" then -- 4422
+			return ____awaiter_resolve(nil, {success = false, message = "missing path"}) -- 4422
+		end -- 4422
+		if not __TS__StringEndsWith( -- 4422
+			string.lower(relPath), -- 4424
+			".wav" -- 4424
+		) then -- 4424
+			return ____awaiter_resolve(nil, {success = false, path = relPath, message = "generate_music writes WAV files; path must end in .wav"}) -- 4424
+		end -- 4424
+		local requestedStyle = string.lower(__TS__StringTrim(req.style or "")) -- 4425
+		local validStyles = { -- 4426
+			"chiptune", -- 4426
+			"adventure", -- 4426
+			"calm", -- 4426
+			"tense", -- 4426
+			"victory", -- 4426
+			"random" -- 4426
+		} -- 4426
+		if __TS__ArrayIndexOf(validStyles, requestedStyle) < 0 then -- 4426
+			return ____awaiter_resolve( -- 4426
+				nil, -- 4426
+				{ -- 4427
+					success = false, -- 4427
+					path = relPath, -- 4427
+					message = (("unknown style '" .. req.style) .. "'; expected one of: ") .. table.concat(validStyles, ", ") -- 4427
+				} -- 4427
+			) -- 4427
+		end -- 4427
+		local target = resolveWorkspaceFilePath(req.workDir, relPath) -- 4428
+		if not target then -- 4428
+			return ____awaiter_resolve(nil, {success = false, path = relPath, message = "invalid path"}) -- 4428
+		end -- 4428
+		if Content:exist(target) and Content:isdir(target) then -- 4428
+			return ____awaiter_resolve(nil, {success = false, path = relPath, message = "target path is a directory"}) -- 4428
+		end -- 4428
+		local ____this_86 -- 4428
+		____this_86 = req -- 4431
+		local ____opt_85 = ____this_86.isCancelled -- 4431
+		if (____opt_85 and ____opt_85(____this_86)) == true then -- 4431
+			return ____awaiter_resolve(nil, {success = false, path = relPath, message = "canceled", interrupted = true}) -- 4431
+		end -- 4431
+		musicAutoSeedStep = musicAutoSeedStep + 1 -- 4432
+		local seed = type(req.seed) == "number" and req.seed == req.seed and math.abs(req.seed) < 2147483647 and math.floor(req.seed) or os.time() % 1000000000 + musicAutoSeedStep * 104729 -- 4433
+		local styleRng = createSfxRng(seed) -- 4435
+		local style = requestedStyle -- 4436
+		if style == "random" then -- 4436
+			local styles = { -- 4438
+				"chiptune", -- 4438
+				"adventure", -- 4438
+				"calm", -- 4438
+				"tense", -- 4438
+				"victory" -- 4438
+			} -- 4438
+			style = styles[math.floor(styleRng:next() * #styles) + 1] -- 4439
+		end -- 4439
+		local styleConfig = getMusicStyleConfig(style) -- 4441
+		local bpm = type(req.bpm) == "number" and req.bpm == req.bpm and math.floor(math.min( -- 4442
+			200, -- 4442
+			math.max(60, req.bpm) -- 4442
+		)) or styleConfig.bpm -- 4442
+		local requestedDuration = type(req.duration) == "number" and req.duration == req.duration and req.duration or 16 -- 4443
+		requestedDuration = math.min( -- 4444
+			MUSIC_MAX_SECONDS, -- 4444
+			math.max(MUSIC_MIN_SECONDS, requestedDuration) -- 4444
+		) -- 4444
+		local barSeconds = 240 / bpm -- 4445
+		local minBars = math.max( -- 4446
+			1, -- 4446
+			math.ceil(MUSIC_MIN_SECONDS / barSeconds) -- 4446
+		) -- 4446
+		local maxBars = math.max( -- 4447
+			minBars, -- 4447
+			math.floor(MUSIC_MAX_SECONDS / barSeconds) -- 4447
+		) -- 4447
+		local bars = math.min( -- 4448
+			maxBars, -- 4448
+			math.max( -- 4448
+				minBars, -- 4448
+				math.floor(requestedDuration / barSeconds + 0.5) -- 4448
+			) -- 4448
+		) -- 4448
+		local duration = bars * barSeconds -- 4449
+		local requestedKey = string.upper(__TS__StringTrim(req.key or "random")) -- 4450
+		local rootPitchClass = __TS__ArrayIndexOf(MUSIC_KEY_NAMES, requestedKey) -- 4451
+		if rootPitchClass < 0 then -- 4451
+			rootPitchClass = math.floor(styleRng:next() * #MUSIC_KEY_NAMES) -- 4452
+		end -- 4452
+		local requestedMode = string.lower(__TS__StringTrim(req.mode or "auto")) -- 4453
+		local mode = __TS__ArrayIndexOf(MUSIC_VALID_MODES, requestedMode) >= 0 and requestedMode or styleConfig.mode -- 4454
+		local parsedProgression = parseMusicProgression(req.progression, styleConfig.progression) -- 4455
+		local options = { -- 4456
+			style = style, -- 4457
+			seed = seed, -- 4457
+			bpm = bpm, -- 4457
+			bars = bars, -- 4457
+			duration = duration, -- 4457
+			volume = type(req.volume) == "number" and req.volume == req.volume and clamp01(req.volume) or 0.65, -- 4458
+			intensity = type(req.intensity) == "number" and req.intensity == req.intensity and clamp01(req.intensity) or 0.6, -- 4459
+			rootPitchClass = rootPitchClass, -- 4460
+			key = MUSIC_KEY_NAMES[rootPitchClass + 1], -- 4460
+			mode = mode, -- 4460
+			progression = parsedProgression.degrees, -- 4461
+			progressionText = parsedProgression.text, -- 4461
+			structure = parseMusicStructure(req.structure), -- 4462
+			barsPerSection = type(req.barsPerSection) == "number" and math.floor(math.min( -- 4463
+				8, -- 4463
+				math.max(1, req.barsPerSection) -- 4463
+			)) or 2, -- 4463
+			melodyComplexity = type(req.melodyComplexity) == "number" and clamp01(req.melodyComplexity) or 0.55, -- 4464
+			rhythmComplexity = type(req.rhythmComplexity) == "number" and clamp01(req.rhythmComplexity) or 0.45, -- 4465
+			variation = type(req.variation) == "number" and clamp01(req.variation) or 0.25, -- 4466
+			leadInstrument = resolveMusicInstrument(req.leadInstrument, styleConfig.leadInstrument), -- 4467
+			bassInstrument = resolveMusicInstrument(req.bassInstrument, styleConfig.bassInstrument), -- 4468
+			harmonyInstrument = resolveMusicInstrument(req.harmonyInstrument, styleConfig.harmonyInstrument), -- 4469
+			stereo = req.stereo ~= false, -- 4470
+			reverb = type(req.reverb) == "number" and clamp01(req.reverb) or styleConfig.reverb, -- 4471
+			delay = type(req.delay) == "number" and clamp01(req.delay) or styleConfig.delay, -- 4472
+			chorus = type(req.chorus) == "number" and clamp01(req.chorus) or styleConfig.chorus, -- 4473
+			distortion = type(req.distortion) == "number" and clamp01(req.distortion) or styleConfig.distortion, -- 4474
+			bitCrush = type(req.bitCrush) == "number" and clamp01(req.bitCrush) or 0, -- 4475
+			lowPass = type(req.lowPass) == "number" and clamp01(req.lowPass) or 0, -- 4476
+			stems = req.stems == true, -- 4477
+			introBars = type(req.introBars) == "number" and math.floor(math.min( -- 4478
+				8, -- 4478
+				math.max(0, req.introBars) -- 4478
+			)) or 0, -- 4478
+			outroBars = type(req.outroBars) == "number" and math.floor(math.min( -- 4479
+				8, -- 4479
+				math.max(0, req.outroBars) -- 4479
+			)) or 0, -- 4479
+			stinger = __TS__ArrayIndexOf( -- 4480
+				{"victory", "failure", "both"}, -- 4480
+				string.lower(req.stinger or "none") -- 4480
+			) >= 0 and string.lower(req.stinger or "none") or "none", -- 4480
+			exportMidi = req.exportMidi == true -- 4481
+		} -- 4481
+		local cached = readCachedMusicResult(req.workDir, relPath, options) -- 4483
+		if cached then -- 4483
+			local ____this_88 -- 4483
+			____this_88 = req -- 4485
+			local ____opt_87 = ____this_88.onProgress -- 4485
+			if ____opt_87 ~= nil then -- 4485
+				____opt_87(____this_88, { -- 4485
+					state = "running", -- 4485
+					operationId = "cache", -- 4485
+					path = relPath, -- 4485
+					stage = "cache", -- 4485
+					percent = 100, -- 4485
+					message = "reusing matching deterministic music assets" -- 4485
+				}) -- 4485
+			end -- 4485
+			return ____awaiter_resolve(nil, cached) -- 4485
+		end -- 4485
+		local operationId = createOperationId() -- 4488
+		local files = {} -- 4489
+		local bytesWritten = 0 -- 4490
+		local function saveAudio(relative, render) -- 4491
+			local full = resolveWorkspaceFilePath(req.workDir, relative) -- 4492
+			if not full then -- 4492
+				return false -- 4493
+			end -- 4493
+			local wav = encodePcmWav(render.mix.left, MUSIC_SAMPLE_RATE, render.mix.right) -- 4494
+			if not saveGeneratedAsset(full, wav, operationId) then -- 4494
+				return false -- 4495
+			end -- 4495
+			files[#files + 1] = relative -- 4496
+			bytesWritten = bytesWritten + #wav -- 4496
+			syncDownloadedFileToWebIDE(full) -- 4496
+			return true -- 4497
+		end -- 4491
+		local ____this_90 -- 4491
+		____this_90 = req -- 4499
+		local ____opt_89 = ____this_90.onProgress -- 4499
+		if ____opt_89 ~= nil then -- 4499
+			____opt_89( -- 4499
+				____this_90, -- 4499
+				{ -- 4499
+					state = "running", -- 4499
+					operationId = operationId, -- 4499
+					path = relPath, -- 4499
+					stage = "compose", -- 4499
+					percent = 0, -- 4499
+					message = ((((((("composing " .. style) .. " in ") .. options.key) .. " ") .. mode) .. " at ") .. tostring(bpm)) .. " BPM" -- 4499
+				} -- 4499
+			) -- 4499
+		end -- 4499
+		local arrangement = createMusicArrangement(options, bars) -- 4500
+		local render = __TS__Await(synthMusic( -- 4501
+			options, -- 4501
+			arrangement, -- 4501
+			bars, -- 4501
+			"loop", -- 4501
+			options.stems, -- 4501
+			function(percent) -- 4501
+				local ____this_92 -- 4501
+				____this_92 = req -- 4501
+				local ____opt_91 = ____this_92.onProgress -- 4501
+				return ____opt_91 and ____opt_91( -- 4501
+					____this_92, -- 4501
+					{ -- 4501
+						state = "running", -- 4502
+						operationId = operationId, -- 4502
+						path = relPath, -- 4502
+						stage = "synth", -- 4502
+						percent = percent, -- 4502
+						message = ("synthesizing loop (" .. tostring(percent)) .. "%)" -- 4502
+					} -- 4502
+				) -- 4502
+			end, -- 4501
+			req.isCancelled -- 4503
+		)) -- 4503
+		if not render then -- 4503
+			return ____awaiter_resolve(nil, {success = false, path = relPath, message = "canceled", interrupted = true}) -- 4503
+		end -- 4503
+		local ____this_94 -- 4503
+		____this_94 = req -- 4505
+		local ____opt_93 = ____this_94.onProgress -- 4505
+		if ____opt_93 ~= nil then -- 4505
+			____opt_93(____this_94, { -- 4505
+				state = "running", -- 4505
+				operationId = operationId, -- 4505
+				path = relPath, -- 4505
+				stage = "write", -- 4505
+				percent = 100, -- 4505
+				message = "writing music assets" -- 4505
+			}) -- 4505
+		end -- 4505
+		if not saveAudio(relPath, render) then -- 4505
+			return ____awaiter_resolve(nil, {success = false, path = relPath, message = "failed to write music WAV"}) -- 4505
+		end -- 4505
+		if render.stems then -- 4505
+			local stemNames = {"melody", "bass", "harmony", "drums"} -- 4508
+			do -- 4508
+				local i = 0 -- 4509
+				while i < #stemNames do -- 4509
+					local name = stemNames[i + 1] -- 4510
+					local relative = musicSiblingPath(relPath, "_" .. name) -- 4511
+					local full = resolveWorkspaceFilePath(req.workDir, relative) -- 4512
+					if not full then -- 4512
+						return ____awaiter_resolve(nil, {success = false, path = relPath, message = "invalid stem path: " .. relative}) -- 4512
+					end -- 4512
+					local wav = encodePcmWav(render.stems[name].left, MUSIC_SAMPLE_RATE, render.stems[name].right) -- 4514
+					if not saveGeneratedAsset(full, wav, operationId) then -- 4514
+						return ____awaiter_resolve(nil, {success = false, path = relPath, message = ("failed to write " .. name) .. " stem"}) -- 4514
+					end -- 4514
+					files[#files + 1] = relative -- 4516
+					bytesWritten = bytesWritten + #wav -- 4516
+					syncDownloadedFileToWebIDE(full) -- 4516
+					__TS__Await(yieldMusicFrame()) -- 4517
+					i = i + 1 -- 4509
+				end -- 4509
+			end -- 4509
+		end -- 4509
+		local segmentSpecs = {} -- 4520
+		if options.introBars > 0 then -- 4520
+			segmentSpecs[#segmentSpecs + 1] = {suffix = "_intro", bars = options.introBars, kind = "intro", seedOffset = 3001} -- 4521
+		end -- 4521
+		if options.outroBars > 0 then -- 4521
+			segmentSpecs[#segmentSpecs + 1] = {suffix = "_outro", bars = options.outroBars, kind = "outro", seedOffset = 6007} -- 4522
+		end -- 4522
+		if options.stinger == "victory" or options.stinger == "both" then -- 4522
+			segmentSpecs[#segmentSpecs + 1] = { -- 4523
+				suffix = "_victory", -- 4523
+				bars = 1, -- 4523
+				kind = "stinger", -- 4523
+				style = "victory", -- 4523
+				seedOffset = 9001 -- 4523
+			} -- 4523
+		end -- 4523
+		if options.stinger == "failure" or options.stinger == "both" then -- 4523
+			segmentSpecs[#segmentSpecs + 1] = { -- 4524
+				suffix = "_failure", -- 4524
+				bars = 1, -- 4524
+				kind = "stinger", -- 4524
+				style = "tense", -- 4524
+				seedOffset = 12007 -- 4524
+			} -- 4524
+		end -- 4524
+		do -- 4524
+			local i = 0 -- 4525
+			while i < #segmentSpecs do -- 4525
+				local spec = segmentSpecs[i + 1] -- 4526
+				local segmentStyle = spec.style or options.style -- 4527
+				local segmentConfig = getMusicStyleConfig(segmentStyle) -- 4528
+				local segmentOptions = __TS__ObjectAssign({}, options, { -- 4529
+					style = segmentStyle, -- 4531
+					seed = options.seed + spec.seedOffset, -- 4532
+					mode = spec.style and segmentConfig.mode or options.mode, -- 4533
+					progression = spec.style and segmentConfig.progression or options.progression, -- 4534
+					leadInstrument = spec.style and segmentConfig.leadInstrument or options.leadInstrument, -- 4535
+					bassInstrument = spec.style and segmentConfig.bassInstrument or options.bassInstrument, -- 4536
+					harmonyInstrument = spec.style and segmentConfig.harmonyInstrument or options.harmonyInstrument, -- 4537
+					intensity = spec.style and 0.9 or options.intensity, -- 4538
+					stems = false -- 4539
+				}) -- 4539
+				local segmentArrangement = createMusicArrangement(segmentOptions, spec.bars, spec.seedOffset) -- 4541
+				local segment = __TS__Await(synthMusic( -- 4542
+					segmentOptions, -- 4542
+					segmentArrangement, -- 4542
+					spec.bars, -- 4542
+					spec.kind, -- 4542
+					false, -- 4542
+					nil, -- 4542
+					req.isCancelled -- 4542
+				)) -- 4542
+				if not segment then -- 4542
+					return ____awaiter_resolve(nil, {success = false, path = relPath, message = "canceled", interrupted = true}) -- 4542
+				end -- 4542
+				if not saveAudio( -- 4542
+					musicSiblingPath(relPath, spec.suffix), -- 4544
+					segment -- 4544
+				) then -- 4544
+					return ____awaiter_resolve(nil, {success = false, path = relPath, message = ("failed to write " .. spec.suffix) .. " segment"}) -- 4544
+				end -- 4544
+				i = i + 1 -- 4525
+			end -- 4525
+		end -- 4525
+		local midiPath -- 4546
+		if options.exportMidi then -- 4546
+			midiPath = musicSiblingPath(relPath, "", ".mid") -- 4548
+			local midiFull = resolveWorkspaceFilePath(req.workDir, midiPath) -- 4549
+			local midi = encodeMusicMidi(arrangement, options) -- 4550
+			if not midiFull or not saveGeneratedAsset(midiFull, midi, operationId) then -- 4550
+				return ____awaiter_resolve(nil, {success = false, path = relPath, message = "failed to write MIDI file"}) -- 4550
+			end -- 4550
+			files[#files + 1] = midiPath -- 4552
+			bytesWritten = bytesWritten + #midi -- 4552
+			syncDownloadedFileToWebIDE(midiFull) -- 4552
+		end -- 4552
+		local actualDuration = math.floor(#render.mix.left / MUSIC_SAMPLE_RATE * 100 + 0.5) / 100 -- 4554
+		local projectPath = musicSiblingPath(relPath, "", ".music.json") -- 4555
+		local projectFull = resolveWorkspaceFilePath(req.workDir, projectPath) -- 4556
+		local projectText = safeJsonEncode( -- 4557
+			musicProjectObject( -- 4557
+				relPath, -- 4558
+				options, -- 4558
+				__TS__ArraySlice(files), -- 4558
+				bytesWritten, -- 4558
+				actualDuration, -- 4558
+				render.peak, -- 4558
+				render.clippingSamples, -- 4558
+				req.sourceProject -- 4558
+			), -- 4558
+			true, -- 4559
+			false -- 4559
+		) -- 4559
+		if not projectFull or not projectText or not saveGeneratedAsset(projectFull, projectText, operationId) then -- 4559
+			return ____awaiter_resolve(nil, {success = false, path = relPath, message = "failed to write music project file"}) -- 4559
+		end -- 4559
+		files[#files + 1] = projectPath -- 4561
+		bytesWritten = bytesWritten + #projectText -- 4561
+		syncDownloadedFileToWebIDE(projectFull) -- 4561
+		if render.clippingSamples > 0 then -- 4561
+			Log( -- 4562
+				"Warn", -- 4562
+				(("[generate_music] limiter caught " .. tostring(render.clippingSamples)) .. " clipping sample(s), pre-limit peak=") .. tostring(render.peak) -- 4562
+			) -- 4562
+		end -- 4562
+		Log( -- 4563
+			"Info", -- 4563
+			(((((((((((((("[generate_music] style=" .. style) .. " seed=") .. tostring(seed)) .. " bpm=") .. tostring(bpm)) .. " bars=") .. tostring(bars)) .. " key=") .. options.key) .. " ") .. mode) .. " files=") .. tostring(#files)) .. " bytes=") .. tostring(bytesWritten) -- 4563
+		) -- 4563
+		return ____awaiter_resolve( -- 4563
+			nil, -- 4563
+			{ -- 4564
+				success = true, -- 4565
+				path = relPath, -- 4565
+				files = files, -- 4565
+				projectPath = projectPath, -- 4565
+				midiPath = midiPath, -- 4565
+				bytesWritten = bytesWritten, -- 4565
+				durationSeconds = actualDuration, -- 4565
+				sampleRate = MUSIC_SAMPLE_RATE, -- 4566
+				channels = options.stereo and 2 or 1, -- 4566
+				seed = seed, -- 4566
+				style = style, -- 4566
+				bpm = bpm, -- 4566
+				bars = bars, -- 4566
+				key = options.key, -- 4567
+				mode = mode, -- 4567
+				description = ((((((((((((((((("Saved " .. tostring(bars)) .. " bars of ") .. style) .. " background music in ") .. options.key) .. " ") .. mode) .. " at ") .. tostring(bpm)) .. " BPM to ") .. relPath) .. ", plus ") .. tostring(#files - 1)) .. " companion asset(s). Stream the loop with Audio.playStream(\"") .. relPath) .. "\", true); use ") .. projectPath) .. " to create compatible variations." -- 4568
+			} -- 4568
+		) -- 4568
+	end) -- 4568
+end -- 4413
+function ____exports.generateMusicVariation(req) -- 4572
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 4572
+		local projectRel = __TS__StringTrim(req.project or "") -- 4576
+		if not __TS__StringEndsWith( -- 4576
+			string.lower(projectRel), -- 4577
+			".music.json" -- 4577
+		) then -- 4577
+			return ____awaiter_resolve(nil, {success = false, path = req.path, message = "project must end in .music.json"}) -- 4577
+		end -- 4577
+		local projectFull = resolveWorkspaceFilePath(req.workDir, projectRel) -- 4578
+		if not projectFull or not Content:exist(projectFull) or Content:isdir(projectFull) then -- 4578
+			return ____awaiter_resolve(nil, {success = false, path = req.path, message = "music project file not found"}) -- 4578
+		end -- 4578
+		local text = Content:load(projectFull) -- 4580
+		if type(text) ~= "string" then -- 4580
+			return ____awaiter_resolve(nil, {success = false, path = req.path, message = "failed to read music project file"}) -- 4580
+		end -- 4580
+		local decoded, decodeError = safeJsonDecode(text) -- 4582
+		if not decoded or type(decoded) ~= "table" then -- 4582
+			return ____awaiter_resolve( -- 4582
+				nil, -- 4582
+				{ -- 4583
+					success = false, -- 4583
+					path = req.path, -- 4583
+					message = "invalid music project: " .. tostring(decodeError) -- 4583
+				} -- 4583
+			) -- 4583
+		end -- 4583
+		local params = decoded.params -- 4584
+		if not params or type(params) ~= "table" then -- 4584
+			return ____awaiter_resolve(nil, {success = false, path = req.path, message = "music project is missing params"}) -- 4584
+		end -- 4584
+		local p = params -- 4586
+		local function numberValue(name) -- 4587
+			return type(p[name]) == "number" and p[name] or nil -- 4587
+		end -- 4587
+		local function stringValue(name) -- 4588
+			return type(p[name]) == "string" and p[name] or nil -- 4588
+		end -- 4588
+		local function boolValue(name) -- 4589
+			local ____temp_95 -- 4589
+			if type(p[name]) == "boolean" then -- 4589
+				____temp_95 = p[name] -- 4589
+			else -- 4589
+				____temp_95 = nil -- 4589
+			end -- 4589
+			return ____temp_95 -- 4589
+		end -- 4589
+		local oldSeed = numberValue("seed") or 1 -- 4590
+		return ____awaiter_resolve( -- 4590
+			nil, -- 4590
+			____exports.generateMusic({ -- 4591
+				workDir = req.workDir, -- 4592
+				path = req.path, -- 4592
+				style = req.style or stringValue("style") or "chiptune", -- 4592
+				seed = req.seed or oldSeed + 7919, -- 4593
+				duration = numberValue("duration"), -- 4593
+				bpm = numberValue("bpm"), -- 4593
+				volume = numberValue("volume"), -- 4593
+				intensity = req.intensity or numberValue("intensity"), -- 4594
+				key = stringValue("key"), -- 4594
+				mode = stringValue("mode"), -- 4594
+				progression = stringValue("progression"), -- 4595
+				structure = stringValue("structure"), -- 4595
+				barsPerSection = numberValue("barsPerSection"), -- 4595
+				melodyComplexity = numberValue("melodyComplexity"), -- 4596
+				rhythmComplexity = numberValue("rhythmComplexity"), -- 4596
+				variation = req.variation or numberValue("variation"), -- 4597
+				leadInstrument = stringValue("leadInstrument"), -- 4597
+				bassInstrument = stringValue("bassInstrument"), -- 4598
+				harmonyInstrument = stringValue("harmonyInstrument"), -- 4598
+				stereo = boolValue("stereo"), -- 4598
+				reverb = numberValue("reverb"), -- 4599
+				delay = numberValue("delay"), -- 4599
+				chorus = numberValue("chorus"), -- 4599
+				distortion = numberValue("distortion"), -- 4599
+				bitCrush = numberValue("bitCrush"), -- 4600
+				lowPass = numberValue("lowPass"), -- 4600
+				stems = boolValue("stems"), -- 4600
+				introBars = numberValue("introBars"), -- 4600
+				outroBars = numberValue("outroBars"), -- 4600
+				stinger = stringValue("stinger"), -- 4601
+				exportMidi = boolValue("exportMidi"), -- 4601
+				sourceProject = projectRel, -- 4601
+				onProgress = req.onProgress, -- 4602
+				isCancelled = req.isCancelled -- 4602
+			}) -- 4602
+		) -- 4602
+	end) -- 4602
+end -- 4572
+return ____exports -- 4572

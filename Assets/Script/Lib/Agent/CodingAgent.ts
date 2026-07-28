@@ -1921,7 +1921,8 @@ function applyCompressedSessionState(
 			const nextToolLine = sessionSummary.slice(markerIndex, markerIndex + 120);
 			const toolNames: AgentToolName[] = [
 				"read_file", "edit_file", "delete_file", "grep_files", "search_dora_api",
-				"glob_files", "build", "fetch_url", "execute_command", "list_sub_agents",
+				"glob_files", "build", "fetch_url", "generate_sfx", "generate_music", "generate_music_variation",
+				"execute_command", "list_sub_agents",
 				"spawn_sub_agent", "finish",
 			];
 			for (let i = 0; i < toolNames.length; i++) {
@@ -2016,6 +2017,15 @@ function inferToolNameFromXMLParams(params: Record<string, unknown>): AgentToolN
 	}
 	if (hasXMLParam(params, "maxEntries")) {
 		return "glob_files";
+	}
+	if (hasXMLParam(params, "project") && hasXMLParam(params, "path")) {
+		return "generate_music_variation";
+	}
+	if (hasXMLParam(params, "style") && hasXMLParam(params, "path")) {
+		return "generate_music";
+	}
+	if (hasXMLParam(params, "type") && hasXMLParam(params, "path")) {
+		return "generate_sfx";
 	}
 	if (hasXMLParam(params, "message") || hasXMLParam(params, "response") || hasXMLParam(params, "summary")) {
 		return "finish";
@@ -4214,6 +4224,103 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 						success: false,
 						...progress,
 					},
+				});
+			},
+		});
+		return result as unknown as Record<string, unknown>;
+	}
+	if (action.tool === "generate_sfx") {
+		const result = await Tools.generateSfx({
+			workDir: shared.workingDir,
+			path: typeof params.path === "string" ? params.path : "",
+			type: typeof params.type === "string" ? params.type : "",
+			seed: typeof params.seed === "number" ? params.seed : undefined,
+			volume: typeof params.volume === "number" ? params.volume : undefined,
+			isCancelled: () => shared.stopToken.stopped === true,
+			onProgress: progress => {
+				emitAgentEvent(shared, {
+					type: "tool_progress",
+					sessionId: shared.sessionId,
+					taskId: shared.taskId,
+					step: action.step,
+					tool: action.tool,
+					result: {
+						success: false,
+						...progress,
+					},
+				});
+			},
+		});
+		return result as unknown as Record<string, unknown>;
+	}
+	if (action.tool === "generate_music") {
+		const result = await Tools.generateMusic({
+			workDir: shared.workingDir,
+			path: typeof params.path === "string" ? params.path : "",
+			style: typeof params.style === "string" ? params.style : "",
+			seed: typeof params.seed === "number" ? params.seed : undefined,
+			duration: typeof params.duration === "number" ? params.duration : undefined,
+			bpm: typeof params.bpm === "number" ? params.bpm : undefined,
+			volume: typeof params.volume === "number" ? params.volume : undefined,
+			intensity: typeof params.intensity === "number" ? params.intensity : undefined,
+			key: typeof params.key === "string" ? params.key : undefined,
+			mode: typeof params.mode === "string" ? params.mode : undefined,
+			progression: typeof params.progression === "string" ? params.progression : undefined,
+			structure: typeof params.structure === "string" ? params.structure : undefined,
+			barsPerSection: typeof params.bars_per_section === "number" ? params.bars_per_section : undefined,
+			melodyComplexity: typeof params.melody_complexity === "number" ? params.melody_complexity : undefined,
+			rhythmComplexity: typeof params.rhythm_complexity === "number" ? params.rhythm_complexity : undefined,
+			variation: typeof params.variation === "number" ? params.variation : undefined,
+			leadInstrument: typeof params.lead_instrument === "string" ? params.lead_instrument : undefined,
+			bassInstrument: typeof params.bass_instrument === "string" ? params.bass_instrument : undefined,
+			harmonyInstrument: typeof params.harmony_instrument === "string" ? params.harmony_instrument : undefined,
+			stereo: typeof params.stereo === "boolean" ? params.stereo : undefined,
+			reverb: typeof params.reverb === "number" ? params.reverb : undefined,
+			delay: typeof params.delay === "number" ? params.delay : undefined,
+			chorus: typeof params.chorus === "number" ? params.chorus : undefined,
+			distortion: typeof params.distortion === "number" ? params.distortion : undefined,
+			bitCrush: typeof params.bit_crush === "number" ? params.bit_crush : undefined,
+			lowPass: typeof params.low_pass === "number" ? params.low_pass : undefined,
+			stems: typeof params.stems === "boolean" ? params.stems : undefined,
+			introBars: typeof params.intro_bars === "number" ? params.intro_bars : undefined,
+			outroBars: typeof params.outro_bars === "number" ? params.outro_bars : undefined,
+			stinger: typeof params.stinger === "string" ? params.stinger : undefined,
+			exportMidi: typeof params.export_midi === "boolean" ? params.export_midi : undefined,
+			isCancelled: () => shared.stopToken.stopped === true,
+			onProgress: progress => {
+				emitAgentEvent(shared, {
+					type: "tool_progress",
+					sessionId: shared.sessionId,
+					taskId: shared.taskId,
+					step: action.step,
+					tool: action.tool,
+					result: {
+						success: false,
+						...progress,
+					},
+				});
+			},
+		});
+		return result as unknown as Record<string, unknown>;
+	}
+	if (action.tool === "generate_music_variation") {
+		const result = await Tools.generateMusicVariation({
+			workDir: shared.workingDir,
+			project: typeof params.project === "string" ? params.project : "",
+			path: typeof params.path === "string" ? params.path : "",
+			seed: typeof params.seed === "number" ? params.seed : undefined,
+			style: typeof params.style === "string" ? params.style : undefined,
+			intensity: typeof params.intensity === "number" ? params.intensity : undefined,
+			variation: typeof params.variation === "number" ? params.variation : undefined,
+			isCancelled: () => shared.stopToken.stopped === true,
+			onProgress: progress => {
+				emitAgentEvent(shared, {
+					type: "tool_progress",
+					sessionId: shared.sessionId,
+					taskId: shared.taskId,
+					step: action.step,
+					tool: action.tool,
+					result: { success: false, ...progress },
 				});
 			},
 		});
