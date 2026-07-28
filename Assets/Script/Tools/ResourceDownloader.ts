@@ -7,6 +7,7 @@ import {
 	isMinigame,
 	paginateResources,
 	type ResourceInfo,
+	type ResourcePage,
 	type ResourceSection,
 } from "Script/Tools/ResourceDownloader/Catalog";
 import {
@@ -58,8 +59,23 @@ const run = (fileName: string) => {
 	thread(() => Entry.enterEntryAsync({ entryName: "Project", fileName }));
 };
 
-const displayText = (text: string, limit: number) =>
-	text.length <= limit ? text : `${text.substring(0, limit - 1)}…`;
+const inlineText = (text: string) => {
+	const [collapsed] = string.gsub(text, "%s+", " ");
+	const [withoutLeadingSpace] = string.gsub(collapsed, "^%s+", "");
+	const [trimmed] = string.gsub(withoutLeadingSpace, "%s+$", "");
+	return trimmed;
+};
+
+const truncateText = (text: string, byteLimit: number) => {
+	if (string.len(text) <= byteLimit) return { text, truncated: false };
+	const nextCharacter = utf8.offset(text, 0, byteLimit + 1) ?? byteLimit + 1;
+	return {
+		text: `${string.sub(text, 1, nextCharacter - 1)}…`,
+		truncated: true,
+	};
+};
+
+const displayText = (text: string, byteLimit: number) => truncateText(text, byteLimit).text;
 
 class ResourceDownloader {
 	private readonly node: Node.Type;
@@ -71,7 +87,8 @@ class ResourceDownloader {
 	private categoryIndex = 1;
 	private filterText = "";
 	private page = 0;
-	private headerHeight = 118;
+	private resetListScroll = false;
+	private headerHeight = 88;
 	private isCatalogLoading = false;
 	private catalogStatus?: CatalogSyncStatus;
 	private catalogWarning = "";
@@ -84,6 +101,8 @@ class ResourceDownloader {
 	private popupShow = false;
 	private deleteResource?: ResourceInfo;
 	private deletePopupShow = false;
+	private detailsResource?: ResourceInfo;
+	private detailsPopupShow = false;
 	private previewTextures = new Map<string, Texture2D.Type>();
 	private pendingPreviews = new Set<string>();
 	private previewOrder: string[] = [];
@@ -96,7 +115,6 @@ class ResourceDownloader {
 		});
 		this.node.onCleanup(() => {
 			this.cancelOperations = true;
-			for (const file of this.previewTextures.keys()) Cache.unload(file);
 			this.previewTextures.clear();
 			this.pendingPreviews.clear();
 		});
@@ -262,12 +280,26 @@ class ResourceDownloader {
 		);
 	}
 
-	private drawHeader(width: number) {
+	private drawHeader(width: number, page: ResourcePage) {
+		this.headerHeight = this.catalogError !== "" || this.catalogWarning !== "" ? 148 : 118;
 		ImGui.SetNextWindowPos(Vec2.zero, SetCond.Always, Vec2.zero);
 		ImGui.SetNextWindowSize(Vec2(width, this.headerHeight), SetCond.Always);
 		ImGui.PushStyleVar(ImGui.StyleVarVec.WindowPadding, Vec2(16, 8), () => {
 			ImGui.Begin("Dora Resource Catalog Header", windowsNoScrollFlags, () => {
 				ImGui.TextColored(themeColor, zh ? "Dora SSR 社区资源" : "Dora SSR Community");
+				ImGui.SameLine();
+				ImGui.TextDisabled("(?)");
+				if (ImGui.IsItemHovered()) {
+					ImGui.BeginTooltip(() => {
+						ImGui.PushTextWrapPos(420, () => {
+							ImGui.TextWrapped(
+								zh
+									? "项目通过 Git 安装到 Download；安装后可通过 Git 继续更新和维护。"
+									: "Projects are installed with Git. After installation, your Git workflow owns updates and local changes.",
+							);
+						});
+					});
+				}
 				ImGui.SameLine();
 				this.drawStatusLine();
 				const refreshWidth = zh ? 80 : 85;
@@ -284,12 +316,6 @@ class ResourceDownloader {
 					ImGui.TextColored(Color(0xffff5a5a), displayText(this.catalogError, 150));
 				} else if (this.catalogWarning !== "") {
 					ImGui.TextColored(Color(0xff66b3ff), displayText(this.catalogWarning, 150));
-				} else {
-					ImGui.TextDisabled(
-						zh
-							? "项目通过 Git 安装到 Download；安装后可通过 Git 继续更新和维护。"
-							: "Projects are installed with Git. After installation, your Git workflow owns updates and local changes.",
-					);
 				}
 
 				ImGui.BeginTabBar("resource-sections", tabBarFlags, () => {
@@ -329,14 +355,31 @@ class ResourceDownloader {
 					this.filterText = this.filterBuffer.text;
 					this.page = 0;
 				}
+
+				if (this.resources.length > 0) {
+					ImGui.TextDisabled(
+						zh
+							? `共 ${page.total} 项 · 第 ${page.page + 1}/${page.pageCount} 页`
+							: `${page.total} items · page ${page.page + 1}/${page.pageCount}`,
+					);
+					ImGui.SameLine();
+					if (page.page > 0 && ImGui.SmallButton(zh ? "上一页" : "Previous")) {
+						this.page--;
+						this.resetListScroll = true;
+					}
+					if (page.page > 0) ImGui.SameLine();
+					if (page.page + 1 < page.pageCount && ImGui.SmallButton(zh ? "下一页" : "Next")) {
+						this.page++;
+						this.resetListScroll = true;
+					}
+				}
 			});
 		});
 	}
 
-	private drawPreview(resource: ResourceInfo, itemWidth: number) {
+	private drawPreview(resource: ResourceInfo, itemWidth: number, previewHeight: number) {
 		const texture = this.loadPreview(resource);
 		const availableWidth = itemWidth - 20;
-		const previewHeight = 150;
 		if (!texture) {
 			ImGui.Dummy(Vec2(availableWidth, previewHeight));
 			return;
@@ -354,10 +397,16 @@ class ResourceDownloader {
 
 	private drawResourceCard(resource: ResourceInfo, itemWidth: number) {
 		const title = resource.title[zh ? "zh-Hans" : "en"];
-		const description = resource.description[zh ? "zh-Hans" : "en"];
+		const description = inlineText(resource.description[zh ? "zh-Hans" : "en"]);
+		const displayedDescription = truncateText(description, 160);
+		const descriptionLines = (itemWidth >= 500 ? 2 : itemWidth >= 340 ? 3 : 4) + (zh ? 0 : 1);
+		const descriptionHeight = ImGui.GetTextLineHeightWithSpacing() * descriptionLines;
+		const previewHeight = math.max(150, math.min(240, (itemWidth - 20) * 0.45));
+		const cardHeight = 164 + previewHeight + descriptionHeight;
 		const version = this.selectedVersion(resource);
+		const source = version.sources[0];
 		const installed = isResourceInstalled(resource.id);
-		ImGui.BeginChild(`card-${resource.id}`, Vec2(itemWidth, 420), () => {
+		ImGui.BeginChild(`card-${resource.id}`, Vec2(itemWidth, cardHeight), () => {
 			ImGui.TextColored(themeColor, displayText(title, 46));
 			if (isMinigame(resource)) {
 				ImGui.SameLine();
@@ -367,18 +416,16 @@ class ResourceDownloader {
 				ImGui.SameLine();
 				ImGui.TextDisabled(resource.status.toUpperCase());
 			}
-			this.drawPreview(resource, itemWidth);
-			ImGui.PushTextWrapPos(itemWidth - 12, () => {
-				ImGui.TextWrapped(displayText(description, 190));
-			});
-			ImGui.TextDisabled(
-				`${version.name} · ${version.commit.substring(0, 8)} · ${
-					resource.license.status === "pending"
-						? (zh ? "许可待完善" : "license pending")
-						: resource.license.spdx
-				}`,
+			this.drawPreview(resource, itemWidth, previewHeight);
+			ImGui.BeginChild(
+				`description-${resource.id}`,
+				Vec2(-1, descriptionHeight),
+				[],
+				[WindowFlag.NoScrollbar, WindowFlag.NoScrollWithMouse],
+				() => {
+					ImGui.TextWrapped(displayedDescription.text);
+				},
 			);
-			const source = version.sources[0];
 			if (source !== undefined && ImGui.TextLink(`${zh ? "项目仓库" : "Repository"}##repo-${resource.id}`)) {
 				App.openURL(source.url);
 			}
@@ -387,6 +434,18 @@ class ResourceDownloader {
 					ImGui.PushTextWrapPos(420, () => ImGui.Text(source.url));
 				});
 			}
+			if (source !== undefined) ImGui.SameLine();
+			if (ImGui.TextLink(`${zh ? "详情" : "Details"}##details-${resource.id}`)) {
+				this.detailsResource = resource;
+				this.detailsPopupShow = true;
+			}
+			ImGui.TextDisabled(
+				`${version.name} · ${version.commit.substring(0, 8)} · ${
+					resource.license.status === "pending"
+						? (zh ? "许可待完善" : "license pending")
+						: resource.license.spdx
+				}`,
+			);
 			const versionNames = resource.versions.map(item => `${item.name} (${item.commit.substring(0, 7)})`);
 			if (versionNames.length > 1 && !installed) {
 				ImGui.SetNextItemWidth(-1);
@@ -422,6 +481,74 @@ class ResourceDownloader {
 				}
 			}
 			this.drawRunPopup(resource);
+		});
+	}
+
+	private drawDetailsPopup() {
+		const popupTitle = zh ? "作品详情" : "Project Details";
+		if (this.detailsPopupShow) {
+			this.detailsPopupShow = false;
+			ImGui.OpenPopup(popupTitle);
+		}
+		const { width, height } = App.visualSize;
+		ImGui.SetNextWindowSize(
+			Vec2(
+				math.max(260, math.min(560, width - 40)),
+				math.max(220, math.min(420, height - 40)),
+			),
+			SetCond.Appearing,
+		);
+		ImGui.BeginPopupModal(popupTitle, () => {
+			const resource = this.detailsResource;
+			if (!resource) {
+				ImGui.CloseCurrentPopup();
+				return;
+			}
+			const version = this.selectedVersion(resource);
+			const status = resource.status === "active"
+				? (zh ? "可用" : "Available")
+				: resource.status === "deprecated"
+					? (zh ? "已弃用" : "Deprecated")
+					: resource.status === "unavailable"
+						? (zh ? "暂不可用" : "Unavailable")
+						: (zh ? "已阻止" : "Blocked");
+			const license = resource.license.status === "pending"
+				? (zh ? "许可待完善" : "Pending")
+				: resource.license.spdx;
+			const detailLine = (label: string, value: string) => {
+				ImGui.TextDisabled(`${label}:`);
+				ImGui.SameLine();
+				ImGui.TextWrapped(value);
+			};
+			ImGui.TextColored(themeColor, resource.title[zh ? "zh-Hans" : "en"]);
+			ImGui.Separator();
+			ImGui.BeginChild("resource-details-text", Vec2(-1, -48), () => {
+				ImGui.TextColored(themeColor, zh ? "简介" : "Description");
+				ImGui.TextWrapped(resource.description[zh ? "zh-Hans" : "en"]);
+				ImGui.Spacing();
+				ImGui.TextColored(themeColor, zh ? "项目信息" : "Project Information");
+				detailLine(zh ? "类型" : "Type", isMinigame(resource) ? (zh ? "小游戏" : "Mini Game") : (zh ? "社区作品" : "Community Project"));
+				detailLine(
+					zh ? "分类" : "Categories",
+					resource.categories.length > 0
+						? resource.categories.join(" · ")
+						: (zh ? "未分类" : "Uncategorized"),
+				);
+				detailLine(
+					zh ? "标签" : "Tags",
+					resource.tags.length > 0 ? resource.tags.join(" · ") : (zh ? "无" : "None"),
+				);
+				detailLine(zh ? "状态" : "Status", status);
+				detailLine(zh ? "版本" : "Version", version.name);
+				detailLine(zh ? "发布时间" : "Published", version.publishedAt);
+				detailLine("Commit", version.commit);
+				detailLine(zh ? "许可证" : "License", license);
+				ImGui.ScrollWhenDraggingOnVoid();
+			});
+			if (ImGui.Button(zh ? "关闭" : "Close", Vec2(-1, 30))) {
+				this.detailsResource = undefined;
+				ImGui.CloseCurrentPopup();
+			}
 		});
 	}
 
@@ -478,23 +605,26 @@ class ResourceDownloader {
 
 	private update() {
 		const { width, height } = App.visualSize;
-		this.drawHeader(width);
 		const maxColumns = math.max(math.floor(width / 360), 1);
-		const itemWidth = (width - 36 - (maxColumns - 1) * 12) / maxColumns;
 		const category = this.categoryIndex > 1 ? this.categories[this.categoryIndex - 2] : undefined;
 		const filtered = filterResources(this.resources, {
 			section: this.section,
 			category,
 			query: this.filterText,
 		});
-		const pageSize = maxColumns * 3;
+		const pageSize = 12;
 		const page = paginateResources(filtered, this.page, pageSize);
 		this.page = page.page;
+		this.drawHeader(width, page);
 
 		ImGui.SetNextWindowPos(Vec2(0, this.headerHeight), SetCond.Always, Vec2.zero);
 		ImGui.SetNextWindowSize(Vec2(width, height - this.headerHeight), SetCond.Always);
 		ImGui.PushStyleVar(ImGui.StyleVarVec.WindowPadding, Vec2(14, 10), () => {
 			ImGui.Begin("Dora Resource Catalog", windowsFlags, () => {
+				if (this.resetListScroll) {
+					this.resetListScroll = false;
+					ImGui.SetScrollY(0);
+				}
 				if (this.resources.length === 0) {
 					ImGui.Dummy(Vec2(0, 30));
 					ImGui.TextWrapped(
@@ -503,23 +633,15 @@ class ResourceDownloader {
 							: (zh ? "正在准备资源目录…" : "Preparing the resource catalog…"),
 					);
 				} else {
-					ImGui.TextDisabled(
-						zh
-							? `共 ${page.total} 项 · 第 ${page.page + 1}/${page.pageCount} 页`
-							: `${page.total} items · page ${page.page + 1}/${page.pageCount}`,
-					);
-					ImGui.SameLine();
-					if (page.page > 0 && ImGui.SmallButton(zh ? "上一页" : "Previous")) this.page--;
-					if (page.page > 0) ImGui.SameLine();
-					if (page.page + 1 < page.pageCount && ImGui.SmallButton(zh ? "下一页" : "Next")) this.page++;
-					ImGui.Separator();
 					ImGui.Columns(maxColumns, false);
 					for (const resource of page.items) {
-						this.drawResourceCard(resource, itemWidth);
+						this.drawResourceCard(resource, ImGui.GetContentRegionAvail().x);
 						ImGui.NextColumn();
 					}
 					ImGui.Columns(1, false);
+					ImGui.Dummy(Vec2(0, 60));
 				}
+				this.drawDetailsPopup();
 				this.drawDeletePopup();
 				this.drawMessagePopup();
 				ImGui.ScrollWhenDraggingOnVoid();

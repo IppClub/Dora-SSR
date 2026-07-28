@@ -530,18 +530,8 @@ func fetchLFS(ctx context.Context, j *job, repoPath, remote string, hydrate, all
 		totalBytes := lfsObjectsSize(toDownload)
 		j.setProgress(stageStart, lfsDownloadProgressMessage(0, len(toDownload), 0, totalBytes))
 		n, dlErr := downloadLFSObjectsConcurrent(ctx, repo, remote, repoPath, toDownload, j.req.cmd.options, func(done, total int, received int64) {
-			ratio := 0.0
-			if total > 0 {
-				ratio = float64(done) / float64(total)
-			}
-			if totalBytes > 0 {
-				ratio = float64(received) / float64(totalBytes)
-			}
-			if ratio > 1 {
-				ratio = 1
-			}
 			j.setProgress(
-				stageStart+(0.9-stageStart)*ratio,
+				lfsDownloadProgressValue(stageStart, done, total, received, totalBytes),
 				lfsDownloadProgressMessage(done, total, received, totalBytes),
 			)
 		})
@@ -904,6 +894,24 @@ func lfsDownloadProgressMessage(done, total int, received, totalBytes int64) str
 		message += fmt.Sprintf(" · %s / %s", formatLFSBytes(received), formatLFSBytes(totalBytes))
 	}
 	return message
+}
+
+func lfsDownloadProgressValue(stageStart float64, done, total int, received, totalBytes int64) float64 {
+	ratio := 0.0
+	if total > 0 {
+		ratio = float64(done) / float64(total)
+	}
+	if totalBytes > 0 {
+		ratio = float64(received) / float64(totalBytes)
+	}
+	if ratio > 1 {
+		ratio = 1
+	}
+	const stageEnd = 0.98
+	if stageStart >= stageEnd {
+		return stageStart
+	}
+	return stageStart + (stageEnd-stageStart)*ratio
 }
 
 func formatLFSBytes(bytes int64) string {

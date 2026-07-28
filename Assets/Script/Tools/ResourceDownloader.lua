@@ -3,9 +3,7 @@ local ____lualib = require("lualib_bundle") -- 1
 local __TS__SparseArrayNew = ____lualib.__TS__SparseArrayNew -- 1
 local __TS__SparseArrayPush = ____lualib.__TS__SparseArrayPush -- 1
 local __TS__SparseArraySpread = ____lualib.__TS__SparseArraySpread -- 1
-local __TS__StringSubstring = ____lualib.__TS__StringSubstring -- 1
 local __TS__Class = ____lualib.__TS__Class -- 1
-local __TS__Iterator = ____lualib.__TS__Iterator -- 1
 local Map = ____lualib.Map -- 1
 local __TS__New = ____lualib.__TS__New -- 1
 local Set = ____lualib.Set -- 1
@@ -13,6 +11,7 @@ local __TS__AsyncAwaiter = ____lualib.__TS__AsyncAwaiter -- 1
 local __TS__Await = ____lualib.__TS__Await -- 1
 local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf -- 1
 local __TS__ArraySplice = ____lualib.__TS__ArraySplice -- 1
+local __TS__StringSubstring = ____lualib.__TS__StringSubstring -- 1
 local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
 local ____exports = {} -- 1
 local ____Dora = require("Dora") -- 2
@@ -32,616 +31,748 @@ local ____Catalog = require("Script.Tools.ResourceDownloader.Catalog") -- 5
 local filterResources = ____Catalog.filterResources -- 6
 local isMinigame = ____Catalog.isMinigame -- 7
 local paginateResources = ____Catalog.paginateResources -- 8
-local ____CatalogSync = require("Script.Tools.ResourceDownloader.CatalogSync") -- 12
-local loadCachedCatalog = ____CatalogSync.loadCachedCatalog -- 13
-local syncCatalog = ____CatalogSync.syncCatalog -- 14
-local ____GitInstaller = require("Script.Tools.ResourceDownloader.GitInstaller") -- 18
-local getResourceInstallPath = ____GitInstaller.getResourceInstallPath -- 19
-local installResource = ____GitInstaller.installResource -- 20
-local isResourceInstalled = ____GitInstaller.isResourceInstalled -- 21
-local windowsNoScrollFlags = { -- 25
-	"NoMove", -- 26
-	"NoCollapse", -- 27
-	"NoResize", -- 28
-	"NoDecoration", -- 29
-	"NoSavedSettings", -- 30
-	"NoFocusOnAppearing", -- 31
-	"NoBringToFrontOnFocus" -- 32
-} -- 32
-local ____array_0 = __TS__SparseArrayNew(table.unpack(windowsNoScrollFlags)) -- 32
-__TS__SparseArrayPush(____array_0, "AlwaysVerticalScrollbar") -- 32
-local windowsFlags = {__TS__SparseArraySpread(____array_0)} -- 35
-local tabBarFlags = {"FittingPolicyScroll", "DrawSelectedOverline", "NoCloseWithMiddleMouseButton", "TabListPopupButton"} -- 40
-local zh = false -- 47
-do -- 47
-	local matchedLocale = string.match(App.locale, "^zh") -- 49
-	zh = matchedLocale ~= nil -- 50
-end -- 50
-local themeColor = App.themeColor -- 52
-local function defaultBanner() -- 53
-	return Path(Content.assetPath, "Image", "banner.jpg") -- 53
-end -- 53
-local function run(fileName) -- 55
-	local Entry = require("Script.Dev.Entry") -- 56
-	Entry.allClear() -- 57
-	thread(function() return Entry.enterEntryAsync({entryName = "Project", fileName = fileName}) end) -- 58
-end -- 55
-local function displayText(text, limit) -- 61
-	return #text <= limit and text or __TS__StringSubstring(text, 0, limit - 1) .. "…" -- 62
-end -- 61
-local ResourceDownloader = __TS__Class() -- 64
-ResourceDownloader.name = "ResourceDownloader" -- 64
-function ResourceDownloader.prototype.____constructor(self) -- 91
-	self.filterBuffer = Buffer(80) -- 66
-	self.resources = {} -- 67
-	self.categories = {} -- 68
-	self.section = "featured" -- 70
-	self.categoryIndex = 1 -- 71
-	self.filterText = "" -- 72
-	self.page = 0 -- 73
-	self.headerHeight = 118 -- 74
-	self.isCatalogLoading = false -- 75
-	self.catalogWarning = "" -- 77
-	self.catalogError = "" -- 78
-	self.cancelOperations = false -- 79
-	self.popupTitle = "" -- 82
-	self.popupMessage = "" -- 83
-	self.popupShow = false -- 84
-	self.deletePopupShow = false -- 86
-	self.previewTextures = __TS__New(Map) -- 87
-	self.pendingPreviews = __TS__New(Set) -- 88
-	self.previewOrder = {} -- 89
-	self.node = Node() -- 92
-	self.node:schedule(function() -- 93
-		self:update() -- 94
-		return false -- 95
-	end) -- 93
-	self.node:onCleanup(function() -- 97
-		self.cancelOperations = true -- 98
-		for ____, file in __TS__Iterator(self.previewTextures:keys()) do -- 99
-			Cache:unload(file) -- 99
-		end -- 99
-		self.previewTextures:clear() -- 100
-		self.pendingPreviews:clear() -- 101
-	end) -- 97
-	local cached = loadCachedCatalog() -- 103
-	if cached.success and cached.snapshot then -- 103
-		self:applySnapshot(cached.snapshot) -- 104
-	end -- 104
-	self:refreshCatalog(false) -- 105
-end -- 91
-function ResourceDownloader.prototype.applySnapshot(self, snapshot) -- 108
-	self.snapshot = snapshot -- 109
-	self.resources = snapshot.catalog.resources -- 110
-	self.categories = snapshot.catalog.categories -- 111
-	self.page = 0 -- 112
-end -- 108
-function ResourceDownloader.prototype.refreshCatalog(self, force) -- 115
-	if self.isCatalogLoading then -- 115
-		return -- 116
-	end -- 116
-	self.isCatalogLoading = true -- 117
-	self.catalogError = "" -- 118
-	self.catalogWarning = ""; -- 119
-	(function() -- 120
-		return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 120
-			local result = __TS__Await(syncCatalog({ -- 121
-				force = force, -- 122
-				isCanceled = function() return self.cancelOperations end, -- 123
-				onStatus = function(____, status) -- 124
-					if self.isCatalogLoading then -- 124
-						self.catalogStatus = status -- 125
-					end -- 125
-				end -- 124
-			})) -- 124
-			self.isCatalogLoading = false -- 128
-			self.catalogStatus = nil -- 129
-			if result.success and result.snapshot then -- 129
-				self:applySnapshot(result.snapshot) -- 131
-				if result.usedCache and result.message then -- 131
-					self.catalogWarning = result.message -- 132
-				end -- 132
-			else -- 132
-				self.catalogError = result.message or (zh and "资源目录同步失败" or "Catalog synchronization failed") -- 134
-			end -- 134
-		end) -- 134
-	end)() -- 120
-end -- 115
-function ResourceDownloader.prototype.showMessage(self, title, message) -- 139
-	self.popupTitle = title -- 140
-	self.popupMessage = message -- 141
-	self.popupShow = true -- 142
-end -- 139
-function ResourceDownloader.prototype.touchPreview(self, file) -- 145
-	local oldIndex = __TS__ArrayIndexOf(self.previewOrder, file) -- 146
-	if oldIndex >= 0 then -- 146
-		__TS__ArraySplice(self.previewOrder, oldIndex, 1) -- 147
-	end -- 147
-	local ____self_previewOrder_1 = self.previewOrder -- 147
-	____self_previewOrder_1[#____self_previewOrder_1 + 1] = file -- 148
-	while #self.previewOrder > 36 do -- 148
-		local expiredFile = table.remove(self.previewOrder, 1) -- 150
-		if not expiredFile then -- 150
-			break -- 151
-		end -- 151
-		self.previewTextures:delete(expiredFile) -- 152
-		Cache:unload(expiredFile) -- 153
-	end -- 153
-end -- 145
-function ResourceDownloader.prototype.loadPreview(self, resource) -- 157
-	local file = resource.bannerPath or defaultBanner() -- 158
-	local existing = self.previewTextures:get(file) -- 159
-	if existing then -- 159
-		self:touchPreview(file) -- 161
-		return existing -- 162
-	end -- 162
-	if self.pendingPreviews:has(file) then -- 162
-		return nil -- 164
-	end -- 164
-	if not Content:exist(file) then -- 164
-		return nil -- 165
-	end -- 165
-	self.pendingPreviews:add(file) -- 166
-	thread(function() -- 167
-		Cache:loadAsync(file) -- 168
-		self.pendingPreviews:delete(file) -- 169
-		if self.cancelOperations then -- 169
-			return -- 170
-		end -- 170
-		local texture = Texture2D(file) -- 171
-		if not texture then -- 171
-			return -- 172
-		end -- 172
-		if texture.width > 4096 or texture.height > 4096 then -- 172
-			Cache:unload(file) -- 174
-			return -- 175
-		end -- 175
-		self.previewTextures:set(file, texture) -- 177
-		self:touchPreview(file) -- 178
-	end) -- 167
-	return nil -- 180
+local ____CatalogSync = require("Script.Tools.ResourceDownloader.CatalogSync") -- 13
+local loadCachedCatalog = ____CatalogSync.loadCachedCatalog -- 14
+local syncCatalog = ____CatalogSync.syncCatalog -- 15
+local ____GitInstaller = require("Script.Tools.ResourceDownloader.GitInstaller") -- 19
+local getResourceInstallPath = ____GitInstaller.getResourceInstallPath -- 20
+local installResource = ____GitInstaller.installResource -- 21
+local isResourceInstalled = ____GitInstaller.isResourceInstalled -- 22
+local windowsNoScrollFlags = { -- 26
+	"NoMove", -- 27
+	"NoCollapse", -- 28
+	"NoResize", -- 29
+	"NoDecoration", -- 30
+	"NoSavedSettings", -- 31
+	"NoFocusOnAppearing", -- 32
+	"NoBringToFrontOnFocus" -- 33
+} -- 33
+local ____array_0 = __TS__SparseArrayNew(table.unpack(windowsNoScrollFlags)) -- 33
+__TS__SparseArrayPush(____array_0, "AlwaysVerticalScrollbar") -- 33
+local windowsFlags = {__TS__SparseArraySpread(____array_0)} -- 36
+local tabBarFlags = {"FittingPolicyScroll", "DrawSelectedOverline", "NoCloseWithMiddleMouseButton", "TabListPopupButton"} -- 41
+local zh = false -- 48
+do -- 48
+	local matchedLocale = string.match(App.locale, "^zh") -- 50
+	zh = matchedLocale ~= nil -- 51
+end -- 51
+local themeColor = App.themeColor -- 53
+local function defaultBanner() -- 54
+	return Path(Content.assetPath, "Image", "banner.jpg") -- 54
+end -- 54
+local function run(fileName) -- 56
+	local Entry = require("Script.Dev.Entry") -- 57
+	Entry.allClear() -- 58
+	thread(function() return Entry.enterEntryAsync({entryName = "Project", fileName = fileName}) end) -- 59
+end -- 56
+local function inlineText(text) -- 62
+	local collapsed = string.gsub(text, "%s+", " ") -- 63
+	local withoutLeadingSpace = string.gsub(collapsed, "^%s+", "") -- 64
+	local trimmed = string.gsub(withoutLeadingSpace, "%s+$", "") -- 65
+	return trimmed -- 66
+end -- 62
+local function truncateText(text, byteLimit) -- 69
+	if string.len(text) <= byteLimit then -- 69
+		return {text = text, truncated = false} -- 70
+	end -- 70
+	local nextCharacter = utf8.offset(text, 0, byteLimit + 1) or byteLimit + 1 -- 71
+	return { -- 72
+		text = string.sub(text, 1, nextCharacter - 1) .. "…", -- 73
+		truncated = true -- 74
+	} -- 74
+end -- 69
+local function displayText(text, byteLimit) -- 78
+	return truncateText(text, byteLimit).text -- 78
+end -- 78
+local ResourceDownloader = __TS__Class() -- 80
+ResourceDownloader.name = "ResourceDownloader" -- 80
+function ResourceDownloader.prototype.____constructor(self) -- 110
+	self.filterBuffer = Buffer(80) -- 82
+	self.resources = {} -- 83
+	self.categories = {} -- 84
+	self.section = "featured" -- 86
+	self.categoryIndex = 1 -- 87
+	self.filterText = "" -- 88
+	self.page = 0 -- 89
+	self.resetListScroll = false -- 90
+	self.headerHeight = 88 -- 91
+	self.isCatalogLoading = false -- 92
+	self.catalogWarning = "" -- 94
+	self.catalogError = "" -- 95
+	self.cancelOperations = false -- 96
+	self.popupTitle = "" -- 99
+	self.popupMessage = "" -- 100
+	self.popupShow = false -- 101
+	self.deletePopupShow = false -- 103
+	self.detailsPopupShow = false -- 105
+	self.previewTextures = __TS__New(Map) -- 106
+	self.pendingPreviews = __TS__New(Set) -- 107
+	self.previewOrder = {} -- 108
+	self.node = Node() -- 111
+	self.node:schedule(function() -- 112
+		self:update() -- 113
+		return false -- 114
+	end) -- 112
+	self.node:onCleanup(function() -- 116
+		self.cancelOperations = true -- 117
+		self.previewTextures:clear() -- 118
+		self.pendingPreviews:clear() -- 119
+	end) -- 116
+	local cached = loadCachedCatalog() -- 121
+	if cached.success and cached.snapshot then -- 121
+		self:applySnapshot(cached.snapshot) -- 122
+	end -- 122
+	self:refreshCatalog(false) -- 123
+end -- 110
+function ResourceDownloader.prototype.applySnapshot(self, snapshot) -- 126
+	self.snapshot = snapshot -- 127
+	self.resources = snapshot.catalog.resources -- 128
+	self.categories = snapshot.catalog.categories -- 129
+	self.page = 0 -- 130
+end -- 126
+function ResourceDownloader.prototype.refreshCatalog(self, force) -- 133
+	if self.isCatalogLoading then -- 133
+		return -- 134
+	end -- 134
+	self.isCatalogLoading = true -- 135
+	self.catalogError = "" -- 136
+	self.catalogWarning = ""; -- 137
+	(function() -- 138
+		return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 138
+			local result = __TS__Await(syncCatalog({ -- 139
+				force = force, -- 140
+				isCanceled = function() return self.cancelOperations end, -- 141
+				onStatus = function(____, status) -- 142
+					if self.isCatalogLoading then -- 142
+						self.catalogStatus = status -- 143
+					end -- 143
+				end -- 142
+			})) -- 142
+			self.isCatalogLoading = false -- 146
+			self.catalogStatus = nil -- 147
+			if result.success and result.snapshot then -- 147
+				self:applySnapshot(result.snapshot) -- 149
+				if result.usedCache and result.message then -- 149
+					self.catalogWarning = result.message -- 150
+				end -- 150
+			else -- 150
+				self.catalogError = result.message or (zh and "资源目录同步失败" or "Catalog synchronization failed") -- 152
+			end -- 152
+		end) -- 152
+	end)() -- 138
+end -- 133
+function ResourceDownloader.prototype.showMessage(self, title, message) -- 157
+	self.popupTitle = title -- 158
+	self.popupMessage = message -- 159
+	self.popupShow = true -- 160
 end -- 157
-function ResourceDownloader.prototype.selectedVersion(self, resource) -- 183
-	local index = math.max( -- 184
-		1, -- 184
-		math.min(resource.selectedVersion, #resource.versions) -- 184
-	) -- 184
-	resource.selectedVersion = index -- 185
-	return resource.versions[index] -- 186
-end -- 183
-function ResourceDownloader.prototype.install(self, resource) -- 189
-	if self.installingId or not self.snapshot then -- 189
-		return -- 190
-	end -- 190
-	local version = self:selectedVersion(resource) -- 191
-	self.installingId = resource.id -- 192
-	self.installProgress = {progress = 0, message = zh and "准备安装" or "Preparing installation"}; -- 193
-	(function() -- 194
-		return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 194
-			local ____installResource_5 = installResource -- 195
-			local ____resource_4 = resource -- 195
-			local ____opt_2 = self.snapshot -- 195
-			local result = __TS__Await(____installResource_5( -- 195
-				____resource_4, -- 195
-				version, -- 195
-				{ -- 195
-					catalogCommit = ____opt_2 and ____opt_2.commit or "", -- 196
-					isCanceled = function() return self.cancelOperations end, -- 197
-					onProgress = function(____, progress) -- 198
-						self.installProgress = progress -- 199
-					end -- 198
-				} -- 198
-			)) -- 198
-			self.installingId = nil -- 202
-			self.installProgress = nil -- 203
-			if not result.success and not result.canceled then -- 203
-				self:showMessage(zh and "安装失败" or "Installation failed", result.message or (zh and "无法安装资源" or "Could not install the resource")) -- 205
-			end -- 205
-		end) -- 205
-	end)() -- 194
-end -- 189
-function ResourceDownloader.prototype.runResource(self, resource) -- 213
-	local basePath = getResourceInstallPath(resource.id) -- 214
-	if #resource.entrypoints == 0 then -- 214
-		run(Path(basePath, "init")) -- 216
-		return -- 217
-	end -- 217
-	if #resource.entrypoints == 1 then -- 217
-		run(Path(basePath, resource.entrypoints[1].path)) -- 220
-		return -- 221
-	end -- 221
-	ImGui.OpenPopup("run-" .. resource.id) -- 223
-end -- 213
-function ResourceDownloader.prototype.drawRunPopup(self, resource) -- 226
-	if #resource.entrypoints <= 1 then -- 226
-		return -- 227
-	end -- 227
-	ImGui.BeginPopup( -- 228
-		"run-" .. resource.id, -- 228
-		function() -- 228
-			for ____, entry in ipairs(resource.entrypoints) do -- 229
-				if ImGui.Selectable((((entry.name .. "##") .. resource.id) .. "-") .. entry.path) then -- 229
-					run(Path( -- 231
-						getResourceInstallPath(resource.id), -- 231
-						entry.path -- 231
-					)) -- 231
-				end -- 231
-			end -- 231
-		end -- 228
-	) -- 228
-end -- 226
-function ResourceDownloader.prototype.drawStatusLine(self) -- 237
-	if self.catalogStatus then -- 237
-		ImGui.TextDisabled(self.catalogStatus.message) -- 239
-		ImGui.SameLine() -- 240
-		ImGui.ProgressBar( -- 241
-			self.catalogStatus.progress, -- 241
-			Vec2(130, 0) -- 241
-		) -- 241
-		return -- 242
-	end -- 242
-	if self.snapshot then -- 242
-		ImGui.TextDisabled(((zh and "目录" or "Catalog") .. " ") .. __TS__StringSubstring(self.snapshot.commit, 0, 8)) -- 245
-		if ImGui.IsItemHovered() then -- 245
-			ImGui.BeginTooltip(function() -- 249
-				ImGui.PushTextWrapPos( -- 250
-					420, -- 250
-					function() -- 250
-						local ____ImGui_TextWrapped_9 = ImGui.TextWrapped -- 251
-						local ____temp_8 = zh and "来源" or "Source" -- 251
-						local ____opt_6 = self.snapshot -- 251
-						____ImGui_TextWrapped_9((____temp_8 .. ": ") .. (____opt_6 and ____opt_6.source or "")) -- 251
-						local ____ImGui_Text_13 = ImGui.Text -- 252
-						local ____temp_12 = zh and "同步时间" or "Synced" -- 252
-						local ____opt_10 = self.snapshot -- 252
-						____ImGui_Text_13((____temp_12 .. ": ") .. (____opt_10 and ____opt_10.syncedAt or "")) -- 252
-					end -- 250
-				) -- 250
-			end) -- 249
-		end -- 249
-		return -- 256
-	end -- 256
-	ImGui.TextDisabled(self.catalogError ~= "" and (zh and "目录不可用" or "Catalog unavailable") or (zh and "正在获取资源目录…" or "Fetching the resource catalog…")) -- 258
-end -- 237
-function ResourceDownloader.prototype.drawHeader(self, width) -- 265
-	ImGui.SetNextWindowPos(Vec2.zero, "Always", Vec2.zero) -- 266
-	ImGui.SetNextWindowSize( -- 267
-		Vec2(width, self.headerHeight), -- 267
-		"Always" -- 267
-	) -- 267
-	ImGui.PushStyleVar( -- 268
-		"WindowPadding", -- 268
-		Vec2(16, 8), -- 268
-		function() -- 268
-			ImGui.Begin( -- 269
-				"Dora Resource Catalog Header", -- 269
-				windowsNoScrollFlags, -- 269
-				function() -- 269
-					ImGui.TextColored(themeColor, zh and "Dora SSR 社区资源" or "Dora SSR Community") -- 270
-					ImGui.SameLine() -- 271
-					self:drawStatusLine() -- 272
-					local refreshWidth = zh and 80 or 85 -- 273
-					ImGui.SameLine() -- 274
-					ImGui.Dummy(Vec2( -- 275
-						math.max( -- 275
-							0, -- 275
-							width - ImGui.GetCursorPosX() - refreshWidth - 24 -- 275
-						), -- 275
-						0 -- 275
-					)) -- 275
-					ImGui.SameLine() -- 276
-					if self.isCatalogLoading then -- 276
-						ImGui.BeginDisabled(function() return ImGui.Button( -- 278
-							zh and "同步中" or "Syncing", -- 278
-							Vec2(refreshWidth, 0) -- 278
-						) end) -- 278
-					elseif ImGui.Button( -- 278
-						zh and "刷新目录" or "Refresh", -- 279
-						Vec2(refreshWidth, 0) -- 279
-					) then -- 279
-						self:refreshCatalog(true) -- 280
-					end -- 280
-					if self.catalogError ~= "" then -- 280
-						ImGui.TextColored( -- 284
-							Color(4294924890), -- 284
-							displayText(self.catalogError, 150) -- 284
-						) -- 284
-					elseif self.catalogWarning ~= "" then -- 284
-						ImGui.TextColored( -- 286
-							Color(4284920831), -- 286
-							displayText(self.catalogWarning, 150) -- 286
-						) -- 286
-					else -- 286
-						ImGui.TextDisabled(zh and "项目通过 Git 安装到 Download；安装后可通过 Git 继续更新和维护。" or "Projects are installed with Git. After installation, your Git workflow owns updates and local changes.") -- 288
-					end -- 288
-					ImGui.BeginTabBar( -- 295
-						"resource-sections", -- 295
-						tabBarFlags, -- 295
-						function() -- 295
-							ImGui.BeginTabItem( -- 296
-								zh and "作品" or "Projects", -- 296
-								function() -- 296
-									if self.section ~= "featured" then -- 296
-										self.section = "featured" -- 298
-										self.page = 0 -- 299
-									end -- 299
-								end -- 296
-							) -- 296
-							ImGui.BeginTabItem( -- 302
-								"Mini Games", -- 302
-								function() -- 302
-									if self.section ~= "minigame" then -- 302
-										self.section = "minigame" -- 304
-										self.page = 0 -- 305
-									end -- 305
-								end -- 302
-							) -- 302
-							ImGui.BeginTabItem( -- 308
-								zh and "全部" or "All", -- 308
-								function() -- 308
-									if self.section ~= "all" then -- 308
-										self.section = "all" -- 310
-										self.page = 0 -- 311
-									end -- 311
-								end -- 308
-							) -- 308
-						end -- 295
-					) -- 295
-					ImGui.SameLine() -- 316
-					ImGui.SetNextItemWidth(zh and 150 or 165) -- 317
-					local categoryNames = { -- 318
-						zh and "全部分类" or "All categories", -- 318
-						table.unpack(self.categories) -- 318
-					} -- 318
-					local categoryChanged, categoryIndex = ImGui.Combo("##resource-category", self.categoryIndex, categoryNames) -- 319
-					if categoryChanged then -- 319
-						self.categoryIndex = categoryIndex -- 321
-						self.page = 0 -- 322
-					end -- 322
-					ImGui.SameLine() -- 324
-					ImGui.TextDisabled(zh and "搜索" or "Search") -- 325
-					ImGui.SameLine() -- 326
-					ImGui.SetNextItemWidth(-1) -- 327
-					if ImGui.InputText("##resource-search", self.filterBuffer, {"AutoSelectAll"}) then -- 327
-						self.filterText = self.filterBuffer.text -- 329
-						self.page = 0 -- 330
-					end -- 330
-				end -- 269
-			) -- 269
-		end -- 268
-	) -- 268
-end -- 265
-function ResourceDownloader.prototype.drawPreview(self, resource, itemWidth) -- 336
-	local texture = self:loadPreview(resource) -- 337
-	local availableWidth = itemWidth - 20 -- 338
-	local previewHeight = 150 -- 339
-	if not texture then -- 339
-		ImGui.Dummy(Vec2(availableWidth, previewHeight)) -- 341
-		return -- 342
-	end -- 342
-	local scale = math.min(availableWidth / texture.width, previewHeight / texture.height) -- 344
-	local imageWidth = texture.width * scale -- 345
-	local imageHeight = texture.height * scale -- 346
-	if imageWidth < availableWidth then -- 346
-		ImGui.Dummy(Vec2((availableWidth - imageWidth) / 2, 0)) -- 348
-		ImGui.SameLine() -- 349
-	end -- 349
-	ImGui.Image( -- 351
-		resource.bannerPath or defaultBanner(), -- 351
-		Vec2(imageWidth, imageHeight) -- 351
-	) -- 351
-	if imageHeight < previewHeight then -- 351
-		ImGui.Dummy(Vec2(0, previewHeight - imageHeight)) -- 352
-	end -- 352
-end -- 336
-function ResourceDownloader.prototype.drawResourceCard(self, resource, itemWidth) -- 355
-	local title = resource.title[zh and "zh-Hans" or "en"] -- 356
-	local description = resource.description[zh and "zh-Hans" or "en"] -- 357
-	local version = self:selectedVersion(resource) -- 358
-	local installed = isResourceInstalled(resource.id) -- 359
-	ImGui.BeginChild( -- 360
-		"card-" .. resource.id, -- 360
-		Vec2(itemWidth, 420), -- 360
-		function() -- 360
-			ImGui.TextColored( -- 361
-				themeColor, -- 361
-				displayText(title, 46) -- 361
-			) -- 361
-			if isMinigame(resource) then -- 361
-				ImGui.SameLine() -- 363
-				ImGui.TextDisabled("MINI") -- 364
-			end -- 364
-			if resource.status ~= "active" then -- 364
-				ImGui.SameLine() -- 367
-				ImGui.TextDisabled(string.upper(resource.status)) -- 368
-			end -- 368
-			self:drawPreview(resource, itemWidth) -- 370
-			ImGui.PushTextWrapPos( -- 371
-				itemWidth - 12, -- 371
-				function() -- 371
-					ImGui.TextWrapped(displayText(description, 190)) -- 372
-				end -- 371
-			) -- 371
-			ImGui.TextDisabled((((version.name .. " · ") .. __TS__StringSubstring(version.commit, 0, 8)) .. " · ") .. (resource.license.status == "pending" and (zh and "许可待完善" or "license pending") or resource.license.spdx)) -- 374
-			local source = version.sources[1] -- 381
-			if source ~= nil and ImGui.TextLink(((zh and "项目仓库" or "Repository") .. "##repo-") .. resource.id) then -- 381
-				App:openURL(source.url) -- 383
-			end -- 383
-			if source ~= nil and ImGui.IsItemHovered() then -- 383
-				ImGui.BeginTooltip(function() -- 386
-					ImGui.PushTextWrapPos( -- 387
-						420, -- 387
-						function() return ImGui.Text(source.url) end -- 387
-					) -- 387
-				end) -- 386
-			end -- 386
-			local versionNames = __TS__ArrayMap( -- 390
-				resource.versions, -- 390
-				function(____, item) return ((item.name .. " (") .. __TS__StringSubstring(item.commit, 0, 7)) .. ")" end -- 390
-			) -- 390
-			if #versionNames > 1 and not installed then -- 390
-				ImGui.SetNextItemWidth(-1) -- 392
-				local changed, selected = ImGui.Combo("##version-" .. resource.id, resource.selectedVersion, versionNames) -- 393
-				if changed then -- 393
-					resource.selectedVersion = selected -- 394
-				end -- 394
-			end -- 394
-			local currentInstall = self.installingId == resource.id -- 396
-			if currentInstall and self.installProgress then -- 396
-				ImGui.ProgressBar( -- 398
-					self.installProgress.progress, -- 398
-					Vec2(-1, 26) -- 398
-				) -- 398
-				ImGui.TextDisabled(displayText(self.installProgress.message, 60)) -- 399
-			elseif installed then -- 399
-				if resource.runnable and resource.status ~= "blocked" then -- 399
-					if ImGui.Button(((zh and "测试" or "Run") .. "##run-button-") .. resource.id) then -- 399
-						self:runResource(resource) -- 403
-					end -- 403
-					ImGui.SameLine() -- 405
-				end -- 405
-				ImGui.BeginDisabled(function() return ImGui.Button(((zh and "已安装" or "Installed") .. "##installed-") .. resource.id) end) -- 407
-				ImGui.SameLine() -- 408
-				if ImGui.Button(((zh and "删除" or "Delete") .. "##delete-") .. resource.id) then -- 408
-					self.deleteResource = resource -- 410
-					self.deletePopupShow = true -- 411
-				end -- 411
-			else -- 411
-				local cannotInstall = self.installingId ~= nil or resource.status == "unavailable" or resource.status == "blocked" or not self.snapshot -- 414
-				if cannotInstall then -- 414
-					ImGui.BeginDisabled(function() return ImGui.Button(((zh and "安装" or "Install") .. "##install-") .. resource.id) end) -- 419
-				elseif ImGui.Button(((zh and "安装" or "Install") .. "##install-") .. resource.id) then -- 419
-					self:install(resource) -- 421
-				end -- 421
-			end -- 421
-			self:drawRunPopup(resource) -- 424
-		end -- 360
-	) -- 360
-end -- 355
-function ResourceDownloader.prototype.drawDeletePopup(self) -- 428
-	local popupTitle = zh and "删除项目" or "Delete project" -- 429
-	if self.deletePopupShow then -- 429
-		self.deletePopupShow = false -- 431
-		ImGui.OpenPopup(popupTitle) -- 432
-	end -- 432
-	ImGui.BeginPopupModal( -- 434
-		popupTitle, -- 434
-		function() -- 434
-			local resource = self.deleteResource -- 435
-			if not resource then -- 435
-				ImGui.CloseCurrentPopup() -- 437
-				return -- 438
-			end -- 438
-			ImGui.TextWrapped(zh and ("将删除 Download/" .. resource.id) .. "，其中可能包含你的 Git 提交和本地修改。" or ("This removes Download/" .. resource.id) .. ", including any local Git commits and changes.") -- 440
-			if ImGui.Button( -- 440
-				zh and "取消" or "Cancel", -- 445
-				Vec2(120, 30) -- 445
-			) then -- 445
-				self.deleteResource = nil -- 446
-				ImGui.CloseCurrentPopup() -- 447
-			end -- 447
-			ImGui.SameLine() -- 449
-			if ImGui.Button( -- 449
-				zh and "确认删除" or "Delete", -- 450
-				Vec2(120, 30) -- 450
-			) then -- 450
-				local removed = Content:remove(getResourceInstallPath(resource.id)) -- 451
-				self.deleteResource = nil -- 452
-				if removed then -- 452
-					Director.postNode:emit("UpdateEntries") -- 454
-				else -- 454
-					self:showMessage(zh and "删除失败" or "Deletion failed", zh and "无法删除项目目录，请检查文件是否正被占用。" or "Could not remove the project directory.") -- 456
-				end -- 456
-				ImGui.CloseCurrentPopup() -- 461
-			end -- 461
-		end -- 434
-	) -- 434
-end -- 428
-function ResourceDownloader.prototype.drawMessagePopup(self) -- 466
-	if self.popupShow then -- 466
-		self.popupShow = false -- 468
-		ImGui.OpenPopup("ResourceMessage") -- 469
-	end -- 469
-	ImGui.BeginPopupModal( -- 471
-		"ResourceMessage", -- 471
-		function() -- 471
-			ImGui.Text(self.popupTitle) -- 472
-			ImGui.Separator() -- 473
-			ImGui.PushTextWrapPos( -- 474
-				380, -- 474
-				function() return ImGui.TextWrapped(self.popupMessage) end -- 474
-			) -- 474
-			if ImGui.Button( -- 474
-				zh and "确认" or "OK", -- 475
-				Vec2(380, 30) -- 475
-			) then -- 475
-				ImGui.CloseCurrentPopup() -- 475
-			end -- 475
-		end -- 471
-	) -- 471
-end -- 466
-function ResourceDownloader.prototype.update(self) -- 479
-	local ____App_visualSize_14 = App.visualSize -- 480
-	local width = ____App_visualSize_14.width -- 480
-	local height = ____App_visualSize_14.height -- 480
-	self:drawHeader(width) -- 481
-	local maxColumns = math.max( -- 482
-		math.floor(width / 360), -- 482
-		1 -- 482
-	) -- 482
-	local itemWidth = (width - 36 - (maxColumns - 1) * 12) / maxColumns -- 483
-	local category = self.categoryIndex > 1 and self.categories[self.categoryIndex - 2 + 1] or nil -- 484
-	local filtered = filterResources(self.resources, {section = self.section, category = category, query = self.filterText}) -- 485
-	local pageSize = maxColumns * 3 -- 490
-	local page = paginateResources(filtered, self.page, pageSize) -- 491
-	self.page = page.page -- 492
-	ImGui.SetNextWindowPos( -- 494
-		Vec2(0, self.headerHeight), -- 494
-		"Always", -- 494
-		Vec2.zero -- 494
-	) -- 494
-	ImGui.SetNextWindowSize( -- 495
-		Vec2(width, height - self.headerHeight), -- 495
-		"Always" -- 495
-	) -- 495
-	ImGui.PushStyleVar( -- 496
-		"WindowPadding", -- 496
-		Vec2(14, 10), -- 496
-		function() -- 496
-			ImGui.Begin( -- 497
-				"Dora Resource Catalog", -- 497
-				windowsFlags, -- 497
-				function() -- 497
-					if #self.resources == 0 then -- 497
-						ImGui.Dummy(Vec2(0, 30)) -- 499
-						ImGui.TextWrapped(self.catalogError ~= "" and self.catalogError or (zh and "正在准备资源目录…" or "Preparing the resource catalog…")) -- 500
-					else -- 500
-						ImGui.TextDisabled(zh and ((((("共 " .. tostring(page.total)) .. " 项 · 第 ") .. tostring(page.page + 1)) .. "/") .. tostring(page.pageCount)) .. " 页" or (((tostring(page.total) .. " items · page ") .. tostring(page.page + 1)) .. "/") .. tostring(page.pageCount)) -- 506
-						ImGui.SameLine() -- 511
-						if page.page > 0 and ImGui.SmallButton(zh and "上一页" or "Previous") then -- 511
-							self.page = self.page - 1 -- 512
-						end -- 512
-						if page.page > 0 then -- 512
-							ImGui.SameLine() -- 513
-						end -- 513
-						if page.page + 1 < page.pageCount and ImGui.SmallButton(zh and "下一页" or "Next") then -- 513
-							self.page = self.page + 1 -- 514
-						end -- 514
-						ImGui.Separator() -- 515
-						ImGui.Columns(maxColumns, false) -- 516
-						for ____, resource in ipairs(page.items) do -- 517
-							self:drawResourceCard(resource, itemWidth) -- 518
-							ImGui.NextColumn() -- 519
-						end -- 519
-						ImGui.Columns(1, false) -- 521
-					end -- 521
-					self:drawDeletePopup() -- 523
-					self:drawMessagePopup() -- 524
-					ImGui.ScrollWhenDraggingOnVoid() -- 525
-				end -- 497
+function ResourceDownloader.prototype.touchPreview(self, file) -- 163
+	local oldIndex = __TS__ArrayIndexOf(self.previewOrder, file) -- 164
+	if oldIndex >= 0 then -- 164
+		__TS__ArraySplice(self.previewOrder, oldIndex, 1) -- 165
+	end -- 165
+	local ____self_previewOrder_1 = self.previewOrder -- 165
+	____self_previewOrder_1[#____self_previewOrder_1 + 1] = file -- 166
+	while #self.previewOrder > 36 do -- 166
+		local expiredFile = table.remove(self.previewOrder, 1) -- 168
+		if not expiredFile then -- 168
+			break -- 169
+		end -- 169
+		self.previewTextures:delete(expiredFile) -- 170
+		Cache:unload(expiredFile) -- 171
+	end -- 171
+end -- 163
+function ResourceDownloader.prototype.loadPreview(self, resource) -- 175
+	local file = resource.bannerPath or defaultBanner() -- 176
+	local existing = self.previewTextures:get(file) -- 177
+	if existing then -- 177
+		self:touchPreview(file) -- 179
+		return existing -- 180
+	end -- 180
+	if self.pendingPreviews:has(file) then -- 180
+		return nil -- 182
+	end -- 182
+	if not Content:exist(file) then -- 182
+		return nil -- 183
+	end -- 183
+	self.pendingPreviews:add(file) -- 184
+	thread(function() -- 185
+		Cache:loadAsync(file) -- 186
+		self.pendingPreviews:delete(file) -- 187
+		if self.cancelOperations then -- 187
+			return -- 188
+		end -- 188
+		local texture = Texture2D(file) -- 189
+		if not texture then -- 189
+			return -- 190
+		end -- 190
+		if texture.width > 4096 or texture.height > 4096 then -- 190
+			Cache:unload(file) -- 192
+			return -- 193
+		end -- 193
+		self.previewTextures:set(file, texture) -- 195
+		self:touchPreview(file) -- 196
+	end) -- 185
+	return nil -- 198
+end -- 175
+function ResourceDownloader.prototype.selectedVersion(self, resource) -- 201
+	local index = math.max( -- 202
+		1, -- 202
+		math.min(resource.selectedVersion, #resource.versions) -- 202
+	) -- 202
+	resource.selectedVersion = index -- 203
+	return resource.versions[index] -- 204
+end -- 201
+function ResourceDownloader.prototype.install(self, resource) -- 207
+	if self.installingId or not self.snapshot then -- 207
+		return -- 208
+	end -- 208
+	local version = self:selectedVersion(resource) -- 209
+	self.installingId = resource.id -- 210
+	self.installProgress = {progress = 0, message = zh and "准备安装" or "Preparing installation"}; -- 211
+	(function() -- 212
+		return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 212
+			local ____installResource_5 = installResource -- 213
+			local ____resource_4 = resource -- 213
+			local ____opt_2 = self.snapshot -- 213
+			local result = __TS__Await(____installResource_5( -- 213
+				____resource_4, -- 213
+				version, -- 213
+				{ -- 213
+					catalogCommit = ____opt_2 and ____opt_2.commit or "", -- 214
+					isCanceled = function() return self.cancelOperations end, -- 215
+					onProgress = function(____, progress) -- 216
+						self.installProgress = progress -- 217
+					end -- 216
+				} -- 216
+			)) -- 216
+			self.installingId = nil -- 220
+			self.installProgress = nil -- 221
+			if not result.success and not result.canceled then -- 221
+				self:showMessage(zh and "安装失败" or "Installation failed", result.message or (zh and "无法安装资源" or "Could not install the resource")) -- 223
+			end -- 223
+		end) -- 223
+	end)() -- 212
+end -- 207
+function ResourceDownloader.prototype.runResource(self, resource) -- 231
+	local basePath = getResourceInstallPath(resource.id) -- 232
+	if #resource.entrypoints == 0 then -- 232
+		run(Path(basePath, "init")) -- 234
+		return -- 235
+	end -- 235
+	if #resource.entrypoints == 1 then -- 235
+		run(Path(basePath, resource.entrypoints[1].path)) -- 238
+		return -- 239
+	end -- 239
+	ImGui.OpenPopup("run-" .. resource.id) -- 241
+end -- 231
+function ResourceDownloader.prototype.drawRunPopup(self, resource) -- 244
+	if #resource.entrypoints <= 1 then -- 244
+		return -- 245
+	end -- 245
+	ImGui.BeginPopup( -- 246
+		"run-" .. resource.id, -- 246
+		function() -- 246
+			for ____, entry in ipairs(resource.entrypoints) do -- 247
+				if ImGui.Selectable((((entry.name .. "##") .. resource.id) .. "-") .. entry.path) then -- 247
+					run(Path( -- 249
+						getResourceInstallPath(resource.id), -- 249
+						entry.path -- 249
+					)) -- 249
+				end -- 249
+			end -- 249
+		end -- 246
+	) -- 246
+end -- 244
+function ResourceDownloader.prototype.drawStatusLine(self) -- 255
+	if self.catalogStatus then -- 255
+		ImGui.TextDisabled(self.catalogStatus.message) -- 257
+		ImGui.SameLine() -- 258
+		ImGui.ProgressBar( -- 259
+			self.catalogStatus.progress, -- 259
+			Vec2(130, 0) -- 259
+		) -- 259
+		return -- 260
+	end -- 260
+	if self.snapshot then -- 260
+		ImGui.TextDisabled(((zh and "目录" or "Catalog") .. " ") .. __TS__StringSubstring(self.snapshot.commit, 0, 8)) -- 263
+		if ImGui.IsItemHovered() then -- 263
+			ImGui.BeginTooltip(function() -- 267
+				ImGui.PushTextWrapPos( -- 268
+					420, -- 268
+					function() -- 268
+						local ____ImGui_TextWrapped_9 = ImGui.TextWrapped -- 269
+						local ____temp_8 = zh and "来源" or "Source" -- 269
+						local ____opt_6 = self.snapshot -- 269
+						____ImGui_TextWrapped_9((____temp_8 .. ": ") .. (____opt_6 and ____opt_6.source or "")) -- 269
+						local ____ImGui_Text_13 = ImGui.Text -- 270
+						local ____temp_12 = zh and "同步时间" or "Synced" -- 270
+						local ____opt_10 = self.snapshot -- 270
+						____ImGui_Text_13((____temp_12 .. ": ") .. (____opt_10 and ____opt_10.syncedAt or "")) -- 270
+					end -- 268
+				) -- 268
+			end) -- 267
+		end -- 267
+		return -- 274
+	end -- 274
+	ImGui.TextDisabled(self.catalogError ~= "" and (zh and "目录不可用" or "Catalog unavailable") or (zh and "正在获取资源目录…" or "Fetching the resource catalog…")) -- 276
+end -- 255
+function ResourceDownloader.prototype.drawHeader(self, width, page) -- 283
+	self.headerHeight = (self.catalogError ~= "" or self.catalogWarning ~= "") and 148 or 118 -- 284
+	ImGui.SetNextWindowPos(Vec2.zero, "Always", Vec2.zero) -- 285
+	ImGui.SetNextWindowSize( -- 286
+		Vec2(width, self.headerHeight), -- 286
+		"Always" -- 286
+	) -- 286
+	ImGui.PushStyleVar( -- 287
+		"WindowPadding", -- 287
+		Vec2(16, 8), -- 287
+		function() -- 287
+			ImGui.Begin( -- 288
+				"Dora Resource Catalog Header", -- 288
+				windowsNoScrollFlags, -- 288
+				function() -- 288
+					ImGui.TextColored(themeColor, zh and "Dora SSR 社区资源" or "Dora SSR Community") -- 289
+					ImGui.SameLine() -- 290
+					ImGui.TextDisabled("(?)") -- 291
+					if ImGui.IsItemHovered() then -- 291
+						ImGui.BeginTooltip(function() -- 293
+							ImGui.PushTextWrapPos( -- 294
+								420, -- 294
+								function() -- 294
+									ImGui.TextWrapped(zh and "项目通过 Git 安装到 Download；安装后可通过 Git 继续更新和维护。" or "Projects are installed with Git. After installation, your Git workflow owns updates and local changes.") -- 295
+								end -- 294
+							) -- 294
+						end) -- 293
+					end -- 293
+					ImGui.SameLine() -- 303
+					self:drawStatusLine() -- 304
+					local refreshWidth = zh and 80 or 85 -- 305
+					ImGui.SameLine() -- 306
+					ImGui.Dummy(Vec2( -- 307
+						math.max( -- 307
+							0, -- 307
+							width - ImGui.GetCursorPosX() - refreshWidth - 24 -- 307
+						), -- 307
+						0 -- 307
+					)) -- 307
+					ImGui.SameLine() -- 308
+					if self.isCatalogLoading then -- 308
+						ImGui.BeginDisabled(function() return ImGui.Button( -- 310
+							zh and "同步中" or "Syncing", -- 310
+							Vec2(refreshWidth, 0) -- 310
+						) end) -- 310
+					elseif ImGui.Button( -- 310
+						zh and "刷新目录" or "Refresh", -- 311
+						Vec2(refreshWidth, 0) -- 311
+					) then -- 311
+						self:refreshCatalog(true) -- 312
+					end -- 312
+					if self.catalogError ~= "" then -- 312
+						ImGui.TextColored( -- 316
+							Color(4294924890), -- 316
+							displayText(self.catalogError, 150) -- 316
+						) -- 316
+					elseif self.catalogWarning ~= "" then -- 316
+						ImGui.TextColored( -- 318
+							Color(4284920831), -- 318
+							displayText(self.catalogWarning, 150) -- 318
+						) -- 318
+					end -- 318
+					ImGui.BeginTabBar( -- 321
+						"resource-sections", -- 321
+						tabBarFlags, -- 321
+						function() -- 321
+							ImGui.BeginTabItem( -- 322
+								zh and "作品" or "Projects", -- 322
+								function() -- 322
+									if self.section ~= "featured" then -- 322
+										self.section = "featured" -- 324
+										self.page = 0 -- 325
+									end -- 325
+								end -- 322
+							) -- 322
+							ImGui.BeginTabItem( -- 328
+								"Mini Games", -- 328
+								function() -- 328
+									if self.section ~= "minigame" then -- 328
+										self.section = "minigame" -- 330
+										self.page = 0 -- 331
+									end -- 331
+								end -- 328
+							) -- 328
+							ImGui.BeginTabItem( -- 334
+								zh and "全部" or "All", -- 334
+								function() -- 334
+									if self.section ~= "all" then -- 334
+										self.section = "all" -- 336
+										self.page = 0 -- 337
+									end -- 337
+								end -- 334
+							) -- 334
+						end -- 321
+					) -- 321
+					ImGui.SameLine() -- 342
+					ImGui.SetNextItemWidth(zh and 150 or 165) -- 343
+					local categoryNames = { -- 344
+						zh and "全部分类" or "All categories", -- 344
+						table.unpack(self.categories) -- 344
+					} -- 344
+					local categoryChanged, categoryIndex = ImGui.Combo("##resource-category", self.categoryIndex, categoryNames) -- 345
+					if categoryChanged then -- 345
+						self.categoryIndex = categoryIndex -- 347
+						self.page = 0 -- 348
+					end -- 348
+					ImGui.SameLine() -- 350
+					ImGui.TextDisabled(zh and "搜索" or "Search") -- 351
+					ImGui.SameLine() -- 352
+					ImGui.SetNextItemWidth(-1) -- 353
+					if ImGui.InputText("##resource-search", self.filterBuffer, {"AutoSelectAll"}) then -- 353
+						self.filterText = self.filterBuffer.text -- 355
+						self.page = 0 -- 356
+					end -- 356
+					if #self.resources > 0 then -- 356
+						ImGui.TextDisabled(zh and ((((("共 " .. tostring(page.total)) .. " 项 · 第 ") .. tostring(page.page + 1)) .. "/") .. tostring(page.pageCount)) .. " 页" or (((tostring(page.total) .. " items · page ") .. tostring(page.page + 1)) .. "/") .. tostring(page.pageCount)) -- 360
+						ImGui.SameLine() -- 365
+						if page.page > 0 and ImGui.SmallButton(zh and "上一页" or "Previous") then -- 365
+							self.page = self.page - 1 -- 367
+							self.resetListScroll = true -- 368
+						end -- 368
+						if page.page > 0 then -- 368
+							ImGui.SameLine() -- 370
+						end -- 370
+						if page.page + 1 < page.pageCount and ImGui.SmallButton(zh and "下一页" or "Next") then -- 370
+							self.page = self.page + 1 -- 372
+							self.resetListScroll = true -- 373
+						end -- 373
+					end -- 373
+				end -- 288
+			) -- 288
+		end -- 287
+	) -- 287
+end -- 283
+function ResourceDownloader.prototype.drawPreview(self, resource, itemWidth, previewHeight) -- 380
+	local texture = self:loadPreview(resource) -- 381
+	local availableWidth = itemWidth - 20 -- 382
+	if not texture then -- 382
+		ImGui.Dummy(Vec2(availableWidth, previewHeight)) -- 384
+		return -- 385
+	end -- 385
+	local scale = math.min(availableWidth / texture.width, previewHeight / texture.height) -- 387
+	local imageWidth = texture.width * scale -- 388
+	local imageHeight = texture.height * scale -- 389
+	if imageWidth < availableWidth then -- 389
+		ImGui.Dummy(Vec2((availableWidth - imageWidth) / 2, 0)) -- 391
+		ImGui.SameLine() -- 392
+	end -- 392
+	ImGui.Image( -- 394
+		resource.bannerPath or defaultBanner(), -- 394
+		Vec2(imageWidth, imageHeight) -- 394
+	) -- 394
+	if imageHeight < previewHeight then -- 394
+		ImGui.Dummy(Vec2(0, previewHeight - imageHeight)) -- 395
+	end -- 395
+end -- 380
+function ResourceDownloader.prototype.drawResourceCard(self, resource, itemWidth) -- 398
+	local title = resource.title[zh and "zh-Hans" or "en"] -- 399
+	local description = inlineText(resource.description[zh and "zh-Hans" or "en"]) -- 400
+	local displayedDescription = truncateText(description, 160) -- 401
+	local descriptionLines = (itemWidth >= 500 and 2 or (itemWidth >= 340 and 3 or 4)) + (zh and 0 or 1) -- 402
+	local descriptionHeight = ImGui.GetTextLineHeightWithSpacing() * descriptionLines -- 403
+	local previewHeight = math.max( -- 404
+		150, -- 404
+		math.min(240, (itemWidth - 20) * 0.45) -- 404
+	) -- 404
+	local cardHeight = 164 + previewHeight + descriptionHeight -- 405
+	local version = self:selectedVersion(resource) -- 406
+	local source = version.sources[1] -- 407
+	local installed = isResourceInstalled(resource.id) -- 408
+	ImGui.BeginChild( -- 409
+		"card-" .. resource.id, -- 409
+		Vec2(itemWidth, cardHeight), -- 409
+		function() -- 409
+			ImGui.TextColored( -- 410
+				themeColor, -- 410
+				displayText(title, 46) -- 410
+			) -- 410
+			if isMinigame(resource) then -- 410
+				ImGui.SameLine() -- 412
+				ImGui.TextDisabled("MINI") -- 413
+			end -- 413
+			if resource.status ~= "active" then -- 413
+				ImGui.SameLine() -- 416
+				ImGui.TextDisabled(string.upper(resource.status)) -- 417
+			end -- 417
+			self:drawPreview(resource, itemWidth, previewHeight) -- 419
+			ImGui.BeginChild( -- 420
+				"description-" .. resource.id, -- 421
+				Vec2(-1, descriptionHeight), -- 422
+				{}, -- 423
+				{"NoScrollbar", "NoScrollWithMouse"}, -- 424
+				function() -- 425
+					ImGui.TextWrapped(displayedDescription.text) -- 426
+				end -- 425
+			) -- 425
+			if source ~= nil and ImGui.TextLink(((zh and "项目仓库" or "Repository") .. "##repo-") .. resource.id) then -- 425
+				App:openURL(source.url) -- 430
+			end -- 430
+			if source ~= nil and ImGui.IsItemHovered() then -- 430
+				ImGui.BeginTooltip(function() -- 433
+					ImGui.PushTextWrapPos( -- 434
+						420, -- 434
+						function() return ImGui.Text(source.url) end -- 434
+					) -- 434
+				end) -- 433
+			end -- 433
+			if source ~= nil then -- 433
+				ImGui.SameLine() -- 437
+			end -- 437
+			if ImGui.TextLink(((zh and "详情" or "Details") .. "##details-") .. resource.id) then -- 437
+				self.detailsResource = resource -- 439
+				self.detailsPopupShow = true -- 440
+			end -- 440
+			ImGui.TextDisabled((((version.name .. " · ") .. __TS__StringSubstring(version.commit, 0, 8)) .. " · ") .. (resource.license.status == "pending" and (zh and "许可待完善" or "license pending") or resource.license.spdx)) -- 442
+			local versionNames = __TS__ArrayMap( -- 449
+				resource.versions, -- 449
+				function(____, item) return ((item.name .. " (") .. __TS__StringSubstring(item.commit, 0, 7)) .. ")" end -- 449
+			) -- 449
+			if #versionNames > 1 and not installed then -- 449
+				ImGui.SetNextItemWidth(-1) -- 451
+				local changed, selected = ImGui.Combo("##version-" .. resource.id, resource.selectedVersion, versionNames) -- 452
+				if changed then -- 452
+					resource.selectedVersion = selected -- 453
+				end -- 453
+			end -- 453
+			local currentInstall = self.installingId == resource.id -- 455
+			if currentInstall and self.installProgress then -- 455
+				ImGui.ProgressBar( -- 457
+					self.installProgress.progress, -- 457
+					Vec2(-1, 26) -- 457
+				) -- 457
+				ImGui.TextDisabled(displayText(self.installProgress.message, 60)) -- 458
+			elseif installed then -- 458
+				if resource.runnable and resource.status ~= "blocked" then -- 458
+					if ImGui.Button(((zh and "测试" or "Run") .. "##run-button-") .. resource.id) then -- 458
+						self:runResource(resource) -- 462
+					end -- 462
+					ImGui.SameLine() -- 464
+				end -- 464
+				ImGui.BeginDisabled(function() return ImGui.Button(((zh and "已安装" or "Installed") .. "##installed-") .. resource.id) end) -- 466
+				ImGui.SameLine() -- 467
+				if ImGui.Button(((zh and "删除" or "Delete") .. "##delete-") .. resource.id) then -- 467
+					self.deleteResource = resource -- 469
+					self.deletePopupShow = true -- 470
+				end -- 470
+			else -- 470
+				local cannotInstall = self.installingId ~= nil or resource.status == "unavailable" or resource.status == "blocked" or not self.snapshot -- 473
+				if cannotInstall then -- 473
+					ImGui.BeginDisabled(function() return ImGui.Button(((zh and "安装" or "Install") .. "##install-") .. resource.id) end) -- 478
+				elseif ImGui.Button(((zh and "安装" or "Install") .. "##install-") .. resource.id) then -- 478
+					self:install(resource) -- 480
+				end -- 480
+			end -- 480
+			self:drawRunPopup(resource) -- 483
+		end -- 409
+	) -- 409
+end -- 398
+function ResourceDownloader.prototype.drawDetailsPopup(self) -- 487
+	local popupTitle = zh and "作品详情" or "Project Details" -- 488
+	if self.detailsPopupShow then -- 488
+		self.detailsPopupShow = false -- 490
+		ImGui.OpenPopup(popupTitle) -- 491
+	end -- 491
+	local ____App_visualSize_14 = App.visualSize -- 493
+	local width = ____App_visualSize_14.width -- 493
+	local height = ____App_visualSize_14.height -- 493
+	ImGui.SetNextWindowSize( -- 494
+		Vec2( -- 495
+			math.max( -- 496
+				260, -- 496
+				math.min(560, width - 40) -- 496
+			), -- 496
+			math.max( -- 497
+				220, -- 497
+				math.min(420, height - 40) -- 497
 			) -- 497
-		end -- 496
-	) -- 496
-end -- 479
-__TS__New(ResourceDownloader) -- 531
-return ____exports -- 531
+		), -- 497
+		"Appearing" -- 499
+	) -- 499
+	ImGui.BeginPopupModal( -- 501
+		popupTitle, -- 501
+		function() -- 501
+			local resource = self.detailsResource -- 502
+			if not resource then -- 502
+				ImGui.CloseCurrentPopup() -- 504
+				return -- 505
+			end -- 505
+			local version = self:selectedVersion(resource) -- 507
+			local status = resource.status == "active" and (zh and "可用" or "Available") or (resource.status == "deprecated" and (zh and "已弃用" or "Deprecated") or (resource.status == "unavailable" and (zh and "暂不可用" or "Unavailable") or (zh and "已阻止" or "Blocked"))) -- 508
+			local license = resource.license.status == "pending" and (zh and "许可待完善" or "Pending") or resource.license.spdx -- 515
+			local function detailLine(label, value) -- 518
+				ImGui.TextDisabled(label .. ":") -- 519
+				ImGui.SameLine() -- 520
+				ImGui.TextWrapped(value) -- 521
+			end -- 518
+			ImGui.TextColored(themeColor, resource.title[zh and "zh-Hans" or "en"]) -- 523
+			ImGui.Separator() -- 524
+			ImGui.BeginChild( -- 525
+				"resource-details-text", -- 525
+				Vec2(-1, -48), -- 525
+				function() -- 525
+					ImGui.TextColored(themeColor, zh and "简介" or "Description") -- 526
+					ImGui.TextWrapped(resource.description[zh and "zh-Hans" or "en"]) -- 527
+					ImGui.Spacing() -- 528
+					ImGui.TextColored(themeColor, zh and "项目信息" or "Project Information") -- 529
+					detailLine( -- 530
+						zh and "类型" or "Type", -- 530
+						isMinigame(resource) and (zh and "小游戏" or "Mini Game") or (zh and "社区作品" or "Community Project") -- 530
+					) -- 530
+					detailLine( -- 531
+						zh and "分类" or "Categories", -- 532
+						#resource.categories > 0 and table.concat(resource.categories, " · ") or (zh and "未分类" or "Uncategorized") -- 533
+					) -- 533
+					detailLine( -- 537
+						zh and "标签" or "Tags", -- 538
+						#resource.tags > 0 and table.concat(resource.tags, " · ") or (zh and "无" or "None") -- 539
+					) -- 539
+					detailLine(zh and "状态" or "Status", status) -- 541
+					detailLine(zh and "版本" or "Version", version.name) -- 542
+					detailLine(zh and "发布时间" or "Published", version.publishedAt) -- 543
+					detailLine("Commit", version.commit) -- 544
+					detailLine(zh and "许可证" or "License", license) -- 545
+					ImGui.ScrollWhenDraggingOnVoid() -- 546
+				end -- 525
+			) -- 525
+			if ImGui.Button( -- 525
+				zh and "关闭" or "Close", -- 548
+				Vec2(-1, 30) -- 548
+			) then -- 548
+				self.detailsResource = nil -- 549
+				ImGui.CloseCurrentPopup() -- 550
+			end -- 550
+		end -- 501
+	) -- 501
+end -- 487
+function ResourceDownloader.prototype.drawDeletePopup(self) -- 555
+	local popupTitle = zh and "删除项目" or "Delete project" -- 556
+	if self.deletePopupShow then -- 556
+		self.deletePopupShow = false -- 558
+		ImGui.OpenPopup(popupTitle) -- 559
+	end -- 559
+	ImGui.BeginPopupModal( -- 561
+		popupTitle, -- 561
+		function() -- 561
+			local resource = self.deleteResource -- 562
+			if not resource then -- 562
+				ImGui.CloseCurrentPopup() -- 564
+				return -- 565
+			end -- 565
+			ImGui.TextWrapped(zh and ("将删除 Download/" .. resource.id) .. "，其中可能包含你的 Git 提交和本地修改。" or ("This removes Download/" .. resource.id) .. ", including any local Git commits and changes.") -- 567
+			if ImGui.Button( -- 567
+				zh and "取消" or "Cancel", -- 572
+				Vec2(120, 30) -- 572
+			) then -- 572
+				self.deleteResource = nil -- 573
+				ImGui.CloseCurrentPopup() -- 574
+			end -- 574
+			ImGui.SameLine() -- 576
+			if ImGui.Button( -- 576
+				zh and "确认删除" or "Delete", -- 577
+				Vec2(120, 30) -- 577
+			) then -- 577
+				local removed = Content:remove(getResourceInstallPath(resource.id)) -- 578
+				self.deleteResource = nil -- 579
+				if removed then -- 579
+					Director.postNode:emit("UpdateEntries") -- 581
+				else -- 581
+					self:showMessage(zh and "删除失败" or "Deletion failed", zh and "无法删除项目目录，请检查文件是否正被占用。" or "Could not remove the project directory.") -- 583
+				end -- 583
+				ImGui.CloseCurrentPopup() -- 588
+			end -- 588
+		end -- 561
+	) -- 561
+end -- 555
+function ResourceDownloader.prototype.drawMessagePopup(self) -- 593
+	if self.popupShow then -- 593
+		self.popupShow = false -- 595
+		ImGui.OpenPopup("ResourceMessage") -- 596
+	end -- 596
+	ImGui.BeginPopupModal( -- 598
+		"ResourceMessage", -- 598
+		function() -- 598
+			ImGui.Text(self.popupTitle) -- 599
+			ImGui.Separator() -- 600
+			ImGui.PushTextWrapPos( -- 601
+				380, -- 601
+				function() return ImGui.TextWrapped(self.popupMessage) end -- 601
+			) -- 601
+			if ImGui.Button( -- 601
+				zh and "确认" or "OK", -- 602
+				Vec2(380, 30) -- 602
+			) then -- 602
+				ImGui.CloseCurrentPopup() -- 602
+			end -- 602
+		end -- 598
+	) -- 598
+end -- 593
+function ResourceDownloader.prototype.update(self) -- 606
+	local ____App_visualSize_15 = App.visualSize -- 607
+	local width = ____App_visualSize_15.width -- 607
+	local height = ____App_visualSize_15.height -- 607
+	local maxColumns = math.max( -- 608
+		math.floor(width / 360), -- 608
+		1 -- 608
+	) -- 608
+	local category = self.categoryIndex > 1 and self.categories[self.categoryIndex - 2 + 1] or nil -- 609
+	local filtered = filterResources(self.resources, {section = self.section, category = category, query = self.filterText}) -- 610
+	local pageSize = 12 -- 615
+	local page = paginateResources(filtered, self.page, pageSize) -- 616
+	self.page = page.page -- 617
+	self:drawHeader(width, page) -- 618
+	ImGui.SetNextWindowPos( -- 620
+		Vec2(0, self.headerHeight), -- 620
+		"Always", -- 620
+		Vec2.zero -- 620
+	) -- 620
+	ImGui.SetNextWindowSize( -- 621
+		Vec2(width, height - self.headerHeight), -- 621
+		"Always" -- 621
+	) -- 621
+	ImGui.PushStyleVar( -- 622
+		"WindowPadding", -- 622
+		Vec2(14, 10), -- 622
+		function() -- 622
+			ImGui.Begin( -- 623
+				"Dora Resource Catalog", -- 623
+				windowsFlags, -- 623
+				function() -- 623
+					if self.resetListScroll then -- 623
+						self.resetListScroll = false -- 625
+						ImGui.SetScrollY(0) -- 626
+					end -- 626
+					if #self.resources == 0 then -- 626
+						ImGui.Dummy(Vec2(0, 30)) -- 629
+						ImGui.TextWrapped(self.catalogError ~= "" and self.catalogError or (zh and "正在准备资源目录…" or "Preparing the resource catalog…")) -- 630
+					else -- 630
+						ImGui.Columns(maxColumns, false) -- 636
+						for ____, resource in ipairs(page.items) do -- 637
+							self:drawResourceCard( -- 638
+								resource, -- 638
+								ImGui.GetContentRegionAvail().x -- 638
+							) -- 638
+							ImGui.NextColumn() -- 639
+						end -- 639
+						ImGui.Columns(1, false) -- 641
+						ImGui.Dummy(Vec2(0, 60)) -- 642
+					end -- 642
+					self:drawDetailsPopup() -- 644
+					self:drawDeletePopup() -- 645
+					self:drawMessagePopup() -- 646
+					ImGui.ScrollWhenDraggingOnVoid() -- 647
+				end -- 623
+			) -- 623
+		end -- 622
+	) -- 622
+end -- 606
+__TS__New(ResourceDownloader) -- 653
+return ____exports -- 653

@@ -385,8 +385,8 @@ func (j *job) setProgress(progress float64, message string) {
 	if j.state != StateRunning {
 		return
 	}
+	j.message = message
 	if progress >= j.progress {
-		j.message = message
 		j.progress = progress
 	}
 }

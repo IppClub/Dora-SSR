@@ -70,7 +70,13 @@ let preparing = false;
 let installing = false;
 let canceled = false;
 let progress: UpdateProgress | undefined;
-let prepared: PreparedUpdate | undefined;
+interface PreparedInstallation {
+	snapshot: UpdateSnapshot;
+	platform: UpdatePlatform;
+	update: PreparedUpdate;
+	installPath?: string;
+}
+let prepared: PreparedInstallation | undefined;
 let extractedPath = "";
 let popupTitle = "";
 let popupMessage = "";
@@ -161,16 +167,20 @@ const checkForUpdates = () => {
 	})();
 };
 
-const installPreparedPackage = (
-	valueSnapshot: UpdateSnapshot,
-	platform: UpdatePlatform,
-	value: PreparedUpdate,
-) => {
+const installPreparedPackage = (pending: PreparedInstallation) => {
+	const { snapshot: valueSnapshot, platform, update: value } = pending;
 	const version = snapshotVersion(valueSnapshot);
 	const packageInfo = valueSnapshot.source === "AtomGit"
 		? valueSnapshot.manifest.packages[platform]
 		: valueSnapshot.packages[platform];
 	installing = true;
+	if (pending.installPath && Content.exist(pending.installPath)) {
+		progress = { progress: 1, message: zh ? "正在启动安装程序…" : "Starting installer…", source: value.source };
+		App.install(pending.installPath);
+		installing = false;
+		progress = undefined;
+		return;
+	}
 	progress = { progress: 0.94, message: zh ? "正在解压更新…" : "Extracting update…", source: value.source };
 	thread(() => {
 		const unzipPath = Path(Path.getPath(value.file), "unpacked");
@@ -207,6 +217,7 @@ const installPreparedPackage = (
 			);
 			return;
 		}
+		pending.installPath = installPath;
 		App.install(installPath);
 		installing = false;
 		progress = undefined;
@@ -239,8 +250,12 @@ const beginUpdate = () => {
 			}
 			return;
 		}
-		prepared = value;
-		installPreparedPackage(valueSnapshot, platform, value);
+		prepared = {
+			snapshot: valueSnapshot,
+			platform,
+			update: value,
+		};
+		installPreparedPackage(prepared);
 	})();
 };
 
@@ -317,27 +332,6 @@ threadLoop(() => {
 			ImGui.TextColored(themeColor, zh ? "稳定版本：" : "Stable version:");
 			ImGui.SameLine();
 			ImGui.Text(snapshotDisplayVersion(visibleSnapshot));
-			ImGui.TextColored(themeColor, zh ? "更新来源：" : "Update source:");
-			ImGui.SameLine();
-			ImGui.Text(visibleSnapshot.source);
-			if (ImGui.IsItemHovered()) {
-				ImGui.BeginTooltip(() => {
-					ImGui.PushTextWrapPos(390, () => {
-						if (visibleSnapshot.source === "AtomGit") {
-							ImGui.Text(`${zh ? "清单提交" : "Manifest commit"}: ${visibleSnapshot.commit}`);
-							ImGui.Text(`${zh ? "签名者" : "Signer"}: ${visibleSnapshot.signer}`);
-							ImGui.Text(`${zh ? "验证时间" : "Verified"}: ${visibleSnapshot.verifiedAt}`);
-						} else {
-							ImGui.Text(`${zh ? "发布时间" : "Published"}: ${visibleSnapshot.publishedAt}`);
-							ImGui.TextWrapped(
-								zh
-									? "GitHub API 只提供 Release 版本号，无法判断同版本安装包的 revision；需要时可直接重新下载。"
-									: "The GitHub API exposes only the Release version, so it cannot identify package revisions within the same version. You can redownload when needed.",
-							);
-						}
-					});
-				});
-			}
 			const comparison = compareSnapshotWithCurrent(visibleSnapshot);
 			ImGui.PushTextWrapPos(410, () => {
 				if (comparison < 0) {
@@ -372,15 +366,28 @@ threadLoop(() => {
 			const installSupported = platform === "android"
 				|| platform === "windows-x86"
 				|| platform === "macos-universal";
-			if (snapshot && installSupported) {
-				const comparison = compareSnapshotWithCurrent(snapshot);
-				if (ImGui.Button(
-					comparison < 0
-						? (zh ? "下载并安装" : "Download and install")
-						: (zh ? "重新下载并安装" : "Redownload and install"),
-					Vec2(-1, 30),
-				)) {
-					beginUpdate();
+			if (installSupported) {
+				if (prepared) {
+					const pending = prepared;
+					ImGui.TextColored(
+						themeColor,
+						zh
+							? `${pending.update.source} 安装包已下载并验证。`
+							: `${pending.update.source} package is downloaded and verified.`,
+					);
+					if (ImGui.Button(zh ? "继续安装" : "Continue installation", Vec2(-1, 30))) {
+						installPreparedPackage(pending);
+					}
+				} else if (snapshot) {
+					const comparison = compareSnapshotWithCurrent(snapshot);
+					if (ImGui.Button(
+						comparison < 0
+							? (zh ? "下载并安装" : "Download and install")
+							: (zh ? "重新下载并安装" : "Redownload and install"),
+						Vec2(-1, 30),
+					)) {
+						beginUpdate();
+					}
 				}
 			}
 		}
@@ -397,6 +404,6 @@ threadLoop(() => {
 const node = Node();
 node.onCleanup(() => {
 	canceled = true;
-	if (prepared) Content.remove(prepared.cleanupPath);
+	if (prepared) Content.remove(prepared.update.cleanupPath);
 	if (extractedPath !== "") Content.remove(extractedPath);
 });

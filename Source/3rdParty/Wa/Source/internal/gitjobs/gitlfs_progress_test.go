@@ -43,6 +43,33 @@ func TestLFSDownloadProgressMessage(t *testing.T) {
 	}
 }
 
+func TestLFSDownloadProgressContinuesAfterCloneProgress(t *testing.T) {
+	const stageStart = 0.91
+	middle := lfsDownloadProgressValue(stageStart, 0, 1, 10*1024*1024, 20*1024*1024)
+	if middle <= stageStart {
+		t.Fatalf("expected LFS progress to advance beyond %.2f, got %.2f", stageStart, middle)
+	}
+	finished := lfsDownloadProgressValue(stageStart, 1, 1, 20*1024*1024, 20*1024*1024)
+	if finished != 0.98 {
+		t.Fatalf("expected LFS stage to finish at 0.98, got %.2f", finished)
+	}
+}
+
+func TestSetProgressKeepsLatestMessageWithoutRegressingValue(t *testing.T) {
+	j := &job{
+		state:    StateRunning,
+		progress: 0.91,
+		message:  "receiving objects",
+	}
+	j.setProgress(0.90, "downloading LFS objects 0/1 · 4.0 MiB / 20.0 MiB")
+	if j.progress != 0.91 {
+		t.Fatalf("progress regressed to %.2f", j.progress)
+	}
+	if j.message != "downloading LFS objects 0/1 · 4.0 MiB / 20.0 MiB" {
+		t.Fatalf("progress message was not refreshed: %q", j.message)
+	}
+}
+
 func TestDownloadLFSObjectReportsIntermediateBytes(t *testing.T) {
 	const chunkSize = 128 * 1024
 	payload := bytes.Repeat([]byte("Dora SSR"), chunkSize)
