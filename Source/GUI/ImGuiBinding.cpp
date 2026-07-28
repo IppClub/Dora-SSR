@@ -1443,7 +1443,9 @@ void Columns(
 }
 
 void ScrollWhenDraggingOnVoid() {
-	ImGuiButtonFlags button_flags = ImGuiButtonFlags_MouseButtonLeft;
+	ImGuiButtonFlags button_flags = static_cast<ImGuiButtonFlags>(
+		static_cast<int>(ImGuiButtonFlags_MouseButtonLeft)
+		| static_cast<int>(ImGuiButtonFlags_FlattenChildren));
 	ImGuiContext& g = *ImGui::GetCurrentContext();
 	ImGuiWindow* window = g.CurrentWindow;
 	bool hovered = false;
