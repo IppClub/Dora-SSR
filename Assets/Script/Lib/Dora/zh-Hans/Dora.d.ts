@@ -8833,7 +8833,7 @@ const wasm: Wasm;
 export {wasm as Wasm};
 
 type GitJobState = "queued" | "running" | "done" | "error" | "canceled";
-type GitKind = "init" | "clone" | "ls-remote" | "status" | "diff" | "add" | "rm" | "commit" | "pull" | "fetch" | "push" | "log" | "checkout" | "reset" | "restore" | "clean" | "branch" | "tag" | "remote" | "mv";
+type GitKind = "init" | "clone" | "ls-remote" | "status" | "diff" | "add" | "rm" | "commit" | "pull" | "fetch" | "push" | "log" | "checkout" | "reset" | "restore" | "clean" | "branch" | "tag" | "remote" | "mv" | "verify-resource" | "verify-update" | "verify-update-package";
 type GitRefKind = "head" | "branch" | "tag" | "remote" | "ref";
 type GitDiffMode = "diff" | "empty" | "binary" | "large";
 
@@ -9011,7 +9011,25 @@ interface GitCheckoutData {
 	unborn?: boolean;
 }
 
-type GitResultData = GitHashData | GitCloneData | GitInitData | GitLsRemoteData | GitWorktreeStatusData | GitDiffData | GitPathsData | GitCommitData | GitUpToDateData | GitLogData | GitRestoreData | GitBranchData | GitBranchListData | GitTagData | GitTagListData | GitRemoteData | GitRemoteListData | GitMoveData | GitCheckoutData;
+interface GitVerifyUpdateData {
+	commit: string;
+	previous?: string;
+	descendant: boolean;
+	signer: string;
+}
+
+interface GitVerifyResourceData {
+	commit: string;
+	files: number;
+}
+
+interface GitVerifyUpdatePackageData {
+	path: string;
+	size: number;
+	sha256: string;
+}
+
+type GitResultData = GitHashData | GitCloneData | GitInitData | GitLsRemoteData | GitWorktreeStatusData | GitDiffData | GitPathsData | GitCommitData | GitUpToDateData | GitLogData | GitRestoreData | GitBranchData | GitBranchListData | GitTagData | GitTagListData | GitRemoteData | GitRemoteListData | GitMoveData | GitCheckoutData | GitVerifyUpdateData | GitVerifyResourceData | GitVerifyUpdatePackageData;
 
 interface GitStatusBase {
 	id: number;
@@ -9055,8 +9073,11 @@ interface GitBranchStatus extends GitDoneStatusBase { kind: "branch"; data: GitB
 interface GitTagStatus extends GitDoneStatusBase { kind: "tag"; data: GitTagData | GitTagListData; }
 interface GitRemoteStatus extends GitDoneStatusBase { kind: "remote"; data: GitRemoteData | GitRemoteListData; }
 interface GitMoveStatus extends GitDoneStatusBase { kind: "mv"; data: GitMoveData; }
+interface GitVerifyResourceStatus extends GitDoneStatusBase { kind: "verify-resource"; data: GitVerifyResourceData; }
+interface GitVerifyUpdateStatus extends GitDoneStatusBase { kind: "verify-update"; data: GitVerifyUpdateData; }
+interface GitVerifyUpdatePackageStatus extends GitDoneStatusBase { kind: "verify-update-package"; data: GitVerifyUpdatePackageData; }
 
-type GitDoneStatus = GitInitStatus | GitCloneStatus | GitLsRemoteStatus | GitWorktreeStatus | GitDiffStatus | GitAddStatus | GitRmStatus | GitCommitStatus | GitPullStatus | GitFetchStatus | GitPushStatus | GitLogStatus | GitCheckoutStatus | GitResetStatus | GitRestoreStatus | GitCleanStatus | GitBranchStatus | GitTagStatus | GitRemoteStatus | GitMoveStatus;
+type GitDoneStatus = GitInitStatus | GitCloneStatus | GitLsRemoteStatus | GitWorktreeStatus | GitDiffStatus | GitAddStatus | GitRmStatus | GitCommitStatus | GitPullStatus | GitFetchStatus | GitPushStatus | GitLogStatus | GitCheckoutStatus | GitResetStatus | GitRestoreStatus | GitCleanStatus | GitBranchStatus | GitTagStatus | GitRemoteStatus | GitMoveStatus | GitVerifyResourceStatus | GitVerifyUpdateStatus | GitVerifyUpdatePackageStatus;
 type GitStatus = GitQueuedStatus | GitRunningStatus | GitErrorStatus | GitCanceledStatus | GitDoneStatus;
 
 /**
@@ -9098,6 +9119,9 @@ interface Git {
 	 * - `tag`、`tag <name>`、`tag -a <name> -m <msg>`、`tag -d <name>`
 	 * - `remote`、`remote -v`、`remote add <name> <url>`、`remote set-url <name> <url>`、`remote remove <name>`
 	 * - `mv <from> <to>`（仅支持单文件）
+	 * - `verify-resource <40位提交哈希>`
+	 * - `verify-update <40位提交哈希> [上次可信提交哈希]`
+	 * - `verify-update-package <路径> <sha256> <文件大小>`
 	 *
 	 * 文件路径均相对于 `repoPath`。pull、fetch 和 push 默认使用 `origin`；
 	 * 省略分支时使用当前分支。`reset --hard` 必须带 `--confirm`。

@@ -971,7 +971,7 @@ export const exist = (req: FileExistRequest) => {
 // Git
 
 export type GitJobState = "queued" | "running" | "done" | "error" | "canceled";
-export type GitKind = "init" | "clone" | "ls-remote" | "status" | "diff" | "add" | "rm" | "commit" | "pull" | "fetch" | "push" | "log" | "checkout" | "reset" | "restore" | "clean" | "branch" | "tag" | "remote" | "mv";
+export type GitKind = "init" | "clone" | "ls-remote" | "status" | "diff" | "add" | "rm" | "commit" | "pull" | "fetch" | "push" | "log" | "checkout" | "reset" | "restore" | "clean" | "branch" | "tag" | "remote" | "mv" | "verify-resource";
 
 export interface GitFileStatus {
 	path: string;

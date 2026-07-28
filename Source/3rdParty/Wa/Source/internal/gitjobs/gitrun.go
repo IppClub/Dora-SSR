@@ -3,6 +3,7 @@ package gitjobs
 import (
 	"container/heap"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -71,6 +72,8 @@ type gitCommand struct {
 	setUpstream  bool
 	resetMode    git.ResetMode
 	commitHash   string
+	expectedHash string
+	expectedSize int64
 	metadataOnly bool
 }
 
@@ -162,6 +165,12 @@ func parseGitCommand(repoPath, command string) (gitCommand, error) {
 		return parseRemote(args[1:])
 	case "mv":
 		return parseMv(args[1:])
+	case "verify-update":
+		return parseVerifyUpdate(args[1:])
+	case "verify-update-package":
+		return parseVerifyUpdatePackage(args[1:])
+	case "verify-resource":
+		return parseVerifyResource(args[1:])
 	default:
 		return gitCommand{}, fmt.Errorf("unsupported git command %q", args[0])
 	}
@@ -719,6 +728,52 @@ func parseMv(args []string) (gitCommand, error) {
 	return gitCommand{op: "mv", paths: []string{args[0]}, target: args[1]}, nil
 }
 
+func parseVerifyUpdate(args []string) (gitCommand, error) {
+	if len(args) < 1 || len(args) > 2 {
+		return gitCommand{}, errors.New("verify-update requires a commit and optional last-known-good commit")
+	}
+	for _, arg := range args {
+		if !plumbing.IsHash(arg) {
+			return gitCommand{}, errors.New("verify-update commits must be full 40-character hashes")
+		}
+	}
+	cmd := gitCommand{op: "verify-update", commitHash: args[0]}
+	if len(args) == 2 {
+		cmd.target = args[1]
+	}
+	return cmd, nil
+}
+
+func parseVerifyUpdatePackage(args []string) (gitCommand, error) {
+	if len(args) != 3 {
+		return gitCommand{}, errors.New("verify-update-package requires a path, SHA-256, and size")
+	}
+	hash := strings.ToLower(args[1])
+	if len(hash) != 64 {
+		return gitCommand{}, errors.New("verify-update-package SHA-256 must contain 64 hexadecimal characters")
+	}
+	if _, err := hex.DecodeString(hash); err != nil {
+		return gitCommand{}, errors.New("verify-update-package SHA-256 must contain 64 hexadecimal characters")
+	}
+	size, err := strconv.ParseInt(args[2], 10, 64)
+	if err != nil || size < 1 {
+		return gitCommand{}, errors.New("verify-update-package size must be a positive integer")
+	}
+	return gitCommand{
+		op:           "verify-update-package",
+		paths:        []string{args[0]},
+		expectedHash: hash,
+		expectedSize: size,
+	}, nil
+}
+
+func parseVerifyResource(args []string) (gitCommand, error) {
+	if len(args) != 1 || !plumbing.IsHash(args[0]) {
+		return gitCommand{}, errors.New("verify-resource requires one full 40-character commit hash")
+	}
+	return gitCommand{op: "verify-resource", commitHash: args[0]}, nil
+}
+
 func noExtraArgs(name string, args []string) error {
 	if len(args) != 0 {
 		return fmt.Errorf("%s does not accept arguments", name)
@@ -783,6 +838,12 @@ func runCommand(ctx context.Context, j *job) {
 		data, err = execRemote(j.req.cmd.repoPath, cmd)
 	case "mv":
 		data, err = execMv(j.req.cmd.repoPath, cmd)
+	case "verify-update":
+		data, err = execVerifyUpdate(j.req.cmd.repoPath, cmd)
+	case "verify-update-package":
+		data, err = execVerifyUpdatePackage(j.req.cmd.repoPath, cmd)
+	case "verify-resource":
+		data, err = execVerifyResource(j.req.cmd.repoPath, cmd)
 	default:
 		err = fmt.Errorf("unsupported git command %q", cmd.op)
 	}

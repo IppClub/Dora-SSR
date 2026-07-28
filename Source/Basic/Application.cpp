@@ -36,6 +36,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <iostream>
 #include <thread>
 
+#if BX_PLATFORM_OSX
+#include <unistd.h>
+#endif // BX_PLATFORM_OSX
+
 #define DORA_VERSION "1.9.0"_slice
 #define DORA_REVISION "5"_slice
 
@@ -1391,6 +1395,128 @@ void Application::install(String path) {
 			&pi)) {
 		CloseHandle(pi.hProcess);
 		CloseHandle(pi.hThread);
+	}
+	Application::setDevMode(false);
+	Application::shutdown();
+#elif BX_PLATFORM_OSX && !defined(DORA_AS_LIB)
+	AssertUnless(SharedContent.isAbsolutePath(path), "expecting an absolute path");
+	std::error_code error;
+	auto sourceApp = fs::weakly_canonical(fs::path(path.toString()), error);
+	if (error
+		|| sourceApp.extension() != ".app"
+		|| !fs::is_directory(sourceApp, error)
+		|| !fs::is_regular_file(sourceApp / "Contents" / "MacOS" / "Dora", error)) {
+		Error("Application.install() expects a valid Dora.app bundle");
+		return;
+	}
+
+	char* basePath = SDL_GetBasePath();
+	if (!basePath) {
+		Error("Application.install() failed to locate the running application");
+		return;
+	}
+	auto resourcesPath = fs::weakly_canonical(fs::path(basePath), error);
+	SDL_free(basePath);
+	auto targetApp = resourcesPath.parent_path().parent_path();
+	if (error
+		|| targetApp.extension() != ".app"
+		|| !fs::is_directory(targetApp, error)
+		|| fs::equivalent(sourceApp, targetApp, error)) {
+		Error("Application.install() failed to locate a replaceable application bundle");
+		return;
+	}
+
+	auto pid = getpid();
+	auto targetName = targetApp.filename().string();
+	auto stagingApp = targetApp.parent_path() / ("." + targetName + ".update-" + std::to_string(pid));
+	auto backupApp = targetApp.parent_path() / ("." + targetName + ".backup-" + std::to_string(pid));
+	fs::remove_all(stagingApp, error);
+	error.clear();
+	fs::remove_all(backupApp, error);
+	error.clear();
+	fs::copy(
+		sourceApp,
+		stagingApp,
+		fs::copy_options::recursive | fs::copy_options::copy_symlinks,
+		error);
+	auto stagingExecutable = stagingApp / "Contents" / "MacOS" / "Dora";
+	if (!error && fs::is_regular_file(stagingExecutable, error)) {
+		fs::permissions(
+			stagingExecutable,
+			fs::perms::owner_exec | fs::perms::group_exec | fs::perms::others_exec,
+			fs::perm_options::add,
+			error);
+	}
+	if (error
+		|| !fs::is_regular_file(stagingExecutable, error)
+		|| access(stagingExecutable.c_str(), X_OK) != 0) {
+		auto message = error ? error.message() : "staged application is incomplete";
+		fs::remove_all(stagingApp, error);
+		Error("Application.install() failed to stage the macOS update: {}", message);
+		return;
+	}
+
+	auto helperPath = fs::temp_directory_path() / ("dora-self-update-" + std::to_string(pid) + ".sh");
+	{
+		std::ofstream helper(helperPath, std::ios::trunc);
+		if (!helper) {
+			fs::remove_all(stagingApp, error);
+			Error("Application.install() failed to create the macOS update helper");
+			return;
+		}
+		helper << R"(#!/bin/sh
+pid="$1"
+staging="$2"
+target="$3"
+backup="$4"
+while kill -0 "$pid" 2>/dev/null; do
+	sleep 0.1
+done
+if mv "$target" "$backup" && mv "$staging" "$target"; then
+	if /usr/bin/open "$target"; then
+		(
+			sleep 30
+			rm -rf "$backup"
+			rm -f "$0"
+		) >/dev/null 2>&1 &
+		exit 0
+	fi
+	rm -rf "$target"
+	if mv "$backup" "$target"; then
+		/usr/bin/open "$target"
+	fi
+	rm -f "$0"
+	exit 1
+fi
+if [ ! -e "$target" ] && [ -e "$backup" ]; then
+	mv "$backup" "$target"
+fi
+rm -rf "$staging"
+/usr/bin/open "$target"
+rm -f "$0"
+exit 1
+)";
+	}
+
+	auto pidText = std::to_string(pid);
+	auto child = fork();
+	if (child == 0) {
+		execl(
+			"/bin/sh",
+			"sh",
+			helperPath.c_str(),
+			pidText.c_str(),
+			stagingApp.c_str(),
+			targetApp.c_str(),
+			backupApp.c_str(),
+			static_cast<char*>(nullptr));
+		_exit(127);
+	}
+	if (child < 0) {
+		fs::remove_all(stagingApp, error);
+		fs::remove(helperPath, error);
+		Error("Application.install() failed to launch the macOS update helper");
+		return;
 	}
 	Application::setDevMode(false);
 	Application::shutdown();

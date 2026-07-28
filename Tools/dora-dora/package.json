@@ -72,6 +72,7 @@
 		"perf:bundle:check": "node scripts/report-performance.mjs --shell-budget-kib=700",
 		"perf:log": "node scripts/performance-log-pressure.mjs",
 		"test:git-job-store": "node scripts/test-git-job-store.mjs",
+		"test:git-progress": "node scripts/test-git-progress.mjs",
 		"test:log-buffer": "node scripts/test-log-buffer.mjs",
 		"test:agent-patch-batch": "node scripts/test-agent-patch-batch.mjs",
 		"test:agent-auto-scroll": "node scripts/test-agent-auto-scroll.mjs",

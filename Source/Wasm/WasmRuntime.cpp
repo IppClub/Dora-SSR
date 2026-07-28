@@ -3007,7 +3007,7 @@ bool Git::cancel(int64_t jobId) {
 		std::string status = poll(jobId);
 		if (!IsGitTerminalStatus(status)) {
 			status = fmt::format(
-				"{{\"id\":{},\"state\":\"canceled\",\"kind\":\"{}\",\"repoPath\":\"{}\",\"message\":\"canceled\"}}",
+				"{{\"id\":{},\"state\":\"canceled\",\"kind\":\"{}\",\"repoPath\":\"{}\",\"progress\":0,\"message\":\"canceled\"}}",
 				jobId,
 				EscapeJsonString(handle.kind),
 				EscapeJsonString(handle.repoPath));

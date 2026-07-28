@@ -219,7 +219,7 @@ func runJob(j *job) {
 		return
 	}
 	switch j.kind {
-	case "add", "branch", "checkout", "clean", "commit", "diff", "fetch", "init", "log", "ls-remote", "mv", "push", "remote", "reset", "restore", "rm", "status", "tag":
+	case "add", "branch", "checkout", "clean", "commit", "diff", "fetch", "init", "log", "ls-remote", "mv", "push", "remote", "reset", "restore", "rm", "status", "tag", "verify-resource", "verify-update", "verify-update-package":
 		runCommand(j.ctx, j)
 	case "clone":
 		if j.req.cmd.command != "" {
@@ -370,6 +370,24 @@ func (j *job) setProgressMessage(message string) {
 	j.message = message
 	if j.progress < 0.9 {
 		j.progress += 0.01
+	}
+}
+
+func (j *job) progressValue() float64 {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	return j.progress
+}
+
+func (j *job) setProgress(progress float64, message string) {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	if j.state != StateRunning {
+		return
+	}
+	if progress >= j.progress {
+		j.message = message
+		j.progress = progress
 	}
 }
 

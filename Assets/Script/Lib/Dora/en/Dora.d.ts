@@ -8837,7 +8837,7 @@ const wasm: Wasm;
 export {wasm as Wasm};
 
 type GitJobState = "queued" | "running" | "done" | "error" | "canceled";
-type GitKind = "init" | "clone" | "ls-remote" | "status" | "diff" | "add" | "rm" | "commit" | "pull" | "fetch" | "push" | "log" | "checkout" | "reset" | "restore" | "clean" | "branch" | "tag" | "remote" | "mv";
+type GitKind = "init" | "clone" | "ls-remote" | "status" | "diff" | "add" | "rm" | "commit" | "pull" | "fetch" | "push" | "log" | "checkout" | "reset" | "restore" | "clean" | "branch" | "tag" | "remote" | "mv" | "verify-resource" | "verify-update" | "verify-update-package";
 type GitRefKind = "head" | "branch" | "tag" | "remote" | "ref";
 type GitDiffMode = "diff" | "empty" | "binary" | "large";
 
@@ -9015,7 +9015,25 @@ interface GitCheckoutData {
 	unborn?: boolean;
 }
 
-type GitResultData = GitHashData | GitCloneData | GitInitData | GitLsRemoteData | GitWorktreeStatusData | GitDiffData | GitPathsData | GitCommitData | GitUpToDateData | GitLogData | GitRestoreData | GitBranchData | GitBranchListData | GitTagData | GitTagListData | GitRemoteData | GitRemoteListData | GitMoveData | GitCheckoutData;
+interface GitVerifyUpdateData {
+	commit: string;
+	previous?: string;
+	descendant: boolean;
+	signer: string;
+}
+
+interface GitVerifyResourceData {
+	commit: string;
+	files: number;
+}
+
+interface GitVerifyUpdatePackageData {
+	path: string;
+	size: number;
+	sha256: string;
+}
+
+type GitResultData = GitHashData | GitCloneData | GitInitData | GitLsRemoteData | GitWorktreeStatusData | GitDiffData | GitPathsData | GitCommitData | GitUpToDateData | GitLogData | GitRestoreData | GitBranchData | GitBranchListData | GitTagData | GitTagListData | GitRemoteData | GitRemoteListData | GitMoveData | GitCheckoutData | GitVerifyUpdateData | GitVerifyResourceData | GitVerifyUpdatePackageData;
 
 interface GitStatusBase {
 	id: number;
@@ -9059,8 +9077,11 @@ interface GitBranchStatus extends GitDoneStatusBase { kind: "branch"; data: GitB
 interface GitTagStatus extends GitDoneStatusBase { kind: "tag"; data: GitTagData | GitTagListData; }
 interface GitRemoteStatus extends GitDoneStatusBase { kind: "remote"; data: GitRemoteData | GitRemoteListData; }
 interface GitMoveStatus extends GitDoneStatusBase { kind: "mv"; data: GitMoveData; }
+interface GitVerifyResourceStatus extends GitDoneStatusBase { kind: "verify-resource"; data: GitVerifyResourceData; }
+interface GitVerifyUpdateStatus extends GitDoneStatusBase { kind: "verify-update"; data: GitVerifyUpdateData; }
+interface GitVerifyUpdatePackageStatus extends GitDoneStatusBase { kind: "verify-update-package"; data: GitVerifyUpdatePackageData; }
 
-type GitDoneStatus = GitInitStatus | GitCloneStatus | GitLsRemoteStatus | GitWorktreeStatus | GitDiffStatus | GitAddStatus | GitRmStatus | GitCommitStatus | GitPullStatus | GitFetchStatus | GitPushStatus | GitLogStatus | GitCheckoutStatus | GitResetStatus | GitRestoreStatus | GitCleanStatus | GitBranchStatus | GitTagStatus | GitRemoteStatus | GitMoveStatus;
+type GitDoneStatus = GitInitStatus | GitCloneStatus | GitLsRemoteStatus | GitWorktreeStatus | GitDiffStatus | GitAddStatus | GitRmStatus | GitCommitStatus | GitPullStatus | GitFetchStatus | GitPushStatus | GitLogStatus | GitCheckoutStatus | GitResetStatus | GitRestoreStatus | GitCleanStatus | GitBranchStatus | GitTagStatus | GitRemoteStatus | GitMoveStatus | GitVerifyResourceStatus | GitVerifyUpdateStatus | GitVerifyUpdatePackageStatus;
 type GitStatus = GitQueuedStatus | GitRunningStatus | GitErrorStatus | GitCanceledStatus | GitDoneStatus;
 
 /**
@@ -9105,6 +9126,9 @@ interface Git {
 	 * - `tag`, `tag <name>`, `tag -a <name> -m <msg>`, `tag -d <name>`
 	 * - `remote`, `remote -v`, `remote add <name> <url>`, `remote set-url <name> <url>`, `remote remove <name>`
 	 * - `mv <from> <to>` (single files only)
+	 * - `verify-resource <40-character-commit-hash>`
+	 * - `verify-update <40-character-commit-hash> [last-known-good-hash]`
+	 * - `verify-update-package <path> <sha256> <size>`
 	 *
 	 * Paths are relative to `repoPath`. pull, fetch, and push default to
 	 * `origin`; omitting a branch uses the current branch. `reset --hard`

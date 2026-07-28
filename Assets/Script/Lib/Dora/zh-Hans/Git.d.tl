@@ -30,6 +30,9 @@ local record Git
 		"tag"
 		"remote"
 		"mv"
+		"verify-resource"
+		"verify-update"
+		"verify-update-package"
 	end
 
 	enum RefKind
@@ -265,6 +268,9 @@ local record Git
 	-- * `tag` | `tag <name>` | `tag -a <name> -m <msg>` | `tag -d <name>`
 	-- * `remote` | `remote -v` | `remote add <name> <url>` | `remote set-url <name> <url>` | `remote remove <name>`
 	-- * `mv <from> <to>`（仅支持单文件）
+	-- * `verify-resource <40位提交哈希>`
+	-- * `verify-update <40位提交哈希> [上次可信提交哈希]`
+	-- * `verify-update-package <路径> <sha256> <文件大小>`
 	-- 文件路径均相对于 repoPath。pull、fetch 和 push 默认使用 origin；
 	-- 省略分支时使用当前分支。reset --hard 必须带 --confirm。
 	-- push -u|--set-upstream 会在推送成功后更新本地分支配置。

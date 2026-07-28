@@ -1,67 +1,26 @@
 // @preview-file on clear
-import { HttpClient, json, thread, App, Vec2, Path, Content, Node, Texture2D, Job, Cache, Buffer, Director } from 'Dora';
-import { SetCond, WindowFlag, TabBarFlag } from "ImGui";
-import * as ImGui from 'ImGui';
-import * as Config from 'Config';
-
-const DefaultURL = "http://39.155.148.157:8866";
-
-interface ResConfig {
-	url: string;
-}
-
-const url = Buffer(1024);
-const config = Config<ResConfig>(".ResConf", "url");
-config.load();
-
-if (typeof config.url === "string") {
-	url.text = config.url;
-} else {
-	url.text = config.url = DefaultURL;
-}
-
-let zh = false;
-{
-	const [res] = string.match(App.locale, "^zh");
-	zh = res !== undefined;
-}
-
-interface PackageListVersion {
-	version: number;
-	updatedAt: number;
-}
-
-interface PackageVersion {
-	file: string;
-	size: number;
-	tag: string;
-	commit: string;
-	download: string;
-	updatedAt: number;
-}
-
-interface PackageInfo {
-	name: string;
-	url: string;
-	versions: PackageVersion[];
-	currentVersion?: number;
-	versionNames?: string[];
-}
-
-interface RepoInfo {
-	name: string;
-	title: {
-		zh: string;
-		en: string;
-	};
-	desc: {
-		zh: string;
-		en: string;
-	};
-	categories?: string[];
-	exe?: boolean | string[];
-	noBanner?: boolean;
-}
+import { App, Buffer, Cache, Color, Content, Director, Node, Path, Texture2D, thread, Vec2 } from "Dora";
+import { SetCond, TabBarFlag, WindowFlag } from "ImGui";
+import * as ImGui from "ImGui";
+import {
+	filterResources,
+	isMinigame,
+	paginateResources,
+	type ResourceInfo,
+	type ResourceSection,
+} from "Script/Tools/ResourceDownloader/Catalog";
+import {
+	loadCachedCatalog,
+	syncCatalog,
+	type CatalogSnapshot,
+	type CatalogSyncStatus,
+} from "Script/Tools/ResourceDownloader/CatalogSync";
+import {
+	getResourceInstallPath,
+	installResource,
+	isResourceInstalled,
+	type ResourceInstallProgress,
+} from "Script/Tools/ResourceDownloader/GitInstaller";
 
 const windowsNoScrollFlags = [
 	WindowFlag.NoMove,
@@ -74,14 +33,8 @@ const windowsNoScrollFlags = [
 ];
 
 const windowsFlags = [
-	WindowFlag.NoMove,
-	WindowFlag.NoCollapse,
-	WindowFlag.NoResize,
-	WindowFlag.NoDecoration,
-	WindowFlag.NoSavedSettings,
+	...windowsNoScrollFlags,
 	WindowFlag.AlwaysVerticalScrollbar,
-	WindowFlag.NoFocusOnAppearing,
-	WindowFlag.NoBringToFrontOnFocus,
 ];
 
 const tabBarFlags = [
@@ -91,38 +44,49 @@ const tabBarFlags = [
 	TabBarFlag.TabListPopupButton,
 ];
 
+let zh = false;
+{
+	const [matchedLocale] = string.match(App.locale, "^zh");
+	zh = matchedLocale !== undefined;
+}
 const themeColor = App.themeColor;
-
-const sep = () => ImGui.SeparatorText("");
-const thinSep = () => ImGui.PushStyleVar(ImGui.StyleVarNum.SeparatorTextBorderSize, 1, sep);
+const defaultBanner = () => Path(Content.assetPath, "Image", "banner.jpg");
 
 const run = (fileName: string) => {
 	const Entry = require("Script.Dev.Entry");
 	Entry.allClear();
-	thread(() => {
-		Entry.enterEntryAsync({ entryName: "Project", fileName });
-	});
+	thread(() => Entry.enterEntryAsync({ entryName: "Project", fileName }));
 };
 
+const displayText = (text: string, limit: number) =>
+	text.length <= limit ? text : `${text.substring(0, limit - 1)}…`;
+
 class ResourceDownloader {
-	private packages: PackageInfo[] = [];
-	private repos: Map<string, RepoInfo> = new Map();
-	private downloadProgress: Map<string, { progress: number, status: string }> = new Map();
-	private downloadTasks: Map<string, Job> = new Map();
-	private popupMessageTitle = "";
+	private readonly node: Node.Type;
+	private readonly filterBuffer = Buffer(80);
+	private resources: ResourceInfo[] = [];
+	private categories: string[] = [];
+	private snapshot?: CatalogSnapshot;
+	private section: ResourceSection = "featured";
+	private categoryIndex = 1;
+	private filterText = "";
+	private page = 0;
+	private headerHeight = 118;
+	private isCatalogLoading = false;
+	private catalogStatus?: CatalogSyncStatus;
+	private catalogWarning = "";
+	private catalogError = "";
+	private cancelOperations = false;
+	private installingId?: string;
+	private installProgress?: ResourceInstallProgress;
+	private popupTitle = "";
 	private popupMessage = "";
 	private popupShow = false;
-	private cancelDownload = false;
-	private isDownloading = false;
-	private node: Node.Type;
-	private previewTextures: Map<string, Texture2D.Type> = new Map();
-	private previewFiles: Map<string, string> = new Map();
-	private downloadedPackages: Set<string> = new Set();
-	private isLoading = false;
-	private filterBuf = Buffer(20);
-	private filterText = "";
-	private categories: string[] = [];
-	private headerHeight = 80;
+	private deleteResource?: ResourceInfo;
+	private deletePopupShow = false;
+	private previewTextures = new Map<string, Texture2D.Type>();
+	private pendingPreviews = new Set<string>();
+	private previewOrder: string[] = [];
 
 	constructor() {
 		this.node = Node();
@@ -131,465 +95,436 @@ class ResourceDownloader {
 			return false;
 		});
 		this.node.onCleanup(() => {
-			this.cancelDownload = true;
+			this.cancelOperations = true;
+			for (const file of this.previewTextures.keys()) Cache.unload(file);
+			this.previewTextures.clear();
+			this.pendingPreviews.clear();
 		});
-		this.loadData();
+		const cached = loadCachedCatalog();
+		if (cached.success && cached.snapshot) this.applySnapshot(cached.snapshot);
+		this.refreshCatalog(false);
 	}
 
-	private showPopup(title: string, msg: string) {
-		this.popupMessageTitle = title;
-		this.popupMessage = msg;
+	private applySnapshot(snapshot: CatalogSnapshot) {
+		this.snapshot = snapshot;
+		this.resources = snapshot.catalog.resources;
+		this.categories = snapshot.catalog.categories;
+		this.page = 0;
+	}
+
+	private refreshCatalog(force: boolean) {
+		if (this.isCatalogLoading) return;
+		this.isCatalogLoading = true;
+		this.catalogError = "";
+		this.catalogWarning = "";
+		(async () => {
+			const result = await syncCatalog({
+				force,
+				isCanceled: () => this.cancelOperations,
+				onStatus: status => {
+					if (this.isCatalogLoading) this.catalogStatus = status;
+				},
+			});
+			this.isCatalogLoading = false;
+			this.catalogStatus = undefined;
+			if (result.success && result.snapshot) {
+				this.applySnapshot(result.snapshot);
+				if (result.usedCache && result.message) this.catalogWarning = result.message;
+			} else {
+				this.catalogError = result.message ?? (zh ? "资源目录同步失败" : "Catalog synchronization failed");
+			}
+		})();
+	}
+
+	private showMessage(title: string, message: string) {
+		this.popupTitle = title;
+		this.popupMessage = message;
 		this.popupShow = true;
 	}
 
-	private loadData() {
-		if (this.isLoading) return;
-		this.isLoading = true;
-		thread(() => {
-			let reload = false;
-			const versionResponse = HttpClient.getAsync(`${config.url}/api/v1/package-list-version`);
-			const packageListVersionFile = Path(Content.appPath, ".cache", "preview", "package-list-version.json");
-			if (versionResponse) {
-				const [version] = json.decode(versionResponse);
-				const packageListVersion = version as PackageListVersion;
-				if (Content.exist(packageListVersionFile)) {
-					const [oldVersion] = json.decode(Content.load(packageListVersionFile));
-					const oldPackageListVersion = oldVersion as PackageListVersion;
-					if (packageListVersion.version !== oldPackageListVersion.version) {
-						reload = true;
-					}
-				} else {
-					reload = true;
-				}
-			}
-			if (reload) {
-				this.categories = [];
-				this.packages = [];
-				this.repos = new Map();
-				this.previewTextures.clear();
-				this.previewFiles.clear();
-				const cachePath = Path(Content.appPath, ".cache", "preview");
-				Content.remove(cachePath);
-			}
-			// Load packages data
-			const cachePath = Path(Content.appPath, ".cache", "preview");
-			Content.mkdir(cachePath);
-			if (reload && versionResponse) {
-				Content.save(packageListVersionFile, versionResponse);
-			}
-			const packagesFile = Path(cachePath, "packages.json");
-			if (Content.exist(packagesFile)) {
-				const [packages] = json.decode(Content.load(packagesFile));
-				this.packages = packages as PackageInfo[];
-			} else {
-				const packagesResponse = HttpClient.getAsync(`${config.url}/api/v1/packages`);
-				if (packagesResponse) {
-					// Cache packages data
-					const [packages] = json.decode(packagesResponse);
-					this.packages = packages as PackageInfo[];
-					Content.save(packagesFile, packagesResponse);
-				}
-			}
-			for (const pkg of this.packages) {
-				pkg.currentVersion = 1;
-				pkg.versionNames = pkg.versions.map(v => {
-					return v.tag === "" ? "No Tag" : v.tag;
-				});
-			}
-
-			// Load repos data
-			const catSet = new Set<string>();
-			const loadRepos = (repos: RepoInfo[]) => {
-				for (let repo of repos) {
-					this.repos.set(repo.name, repo);
-					if (repo.categories) {
-						for (let cat of repo.categories) {
-							catSet.add(cat);
-						}
-					}
-				}
-			};
-			const reposFile = Path(cachePath, "repos.json");
-			if (Content.exist(reposFile)) {
-				const [repos] = json.decode(Content.load(reposFile));
-				loadRepos(repos as RepoInfo[]);
-			} else {
-				const reposResponse = HttpClient.getAsync(`${config.url}/assets/repos.json`);
-				if (reposResponse) {
-					const [repos] = json.decode(reposResponse);
-					loadRepos(repos as RepoInfo[]);
-					Content.save(reposFile, reposResponse);
-				}
-			}
-			for (let cat of catSet) {
-				this.categories.push(cat);
-			}
-
-			// Load preview images for each package
-			for (const pkg of this.packages) {
-				const downloadPath = Path(Content.writablePath, "Download", pkg.name);
-				if (Content.exist(downloadPath)) {
-					this.downloadedPackages.add(pkg.name);
-				}
-			}
-			for (const pkg of this.packages) {
-				this.loadPreviewImage(pkg.name);
-			}
-			this.isLoading = false;
-		});
+	private touchPreview(file: string) {
+		const oldIndex = this.previewOrder.indexOf(file);
+		if (oldIndex >= 0) this.previewOrder.splice(oldIndex, 1);
+		this.previewOrder.push(file);
+		while (this.previewOrder.length > 36) {
+			const expiredFile = this.previewOrder.shift();
+			if (!expiredFile) break;
+			this.previewTextures.delete(expiredFile);
+			Cache.unload(expiredFile);
+		}
 	}
 
-	private loadPreviewImage(name: string) {
-		const repo = this.repos.get(name);
-		if (repo !== undefined && repo.noBanner) {
-			const cacheFile = Path(Content.assetPath, "Image", "banner.jpg");
-			if (Content.exist(cacheFile)) {
-				Cache.loadAsync(cacheFile);
-				const texture = Texture2D(cacheFile);
-				if (texture) {
-					this.previewTextures.set(name, texture);
-					this.previewFiles.set(name, cacheFile);
-				}
+	private loadPreview(resource: ResourceInfo) {
+		const file = resource.bannerPath ?? defaultBanner();
+		const existing = this.previewTextures.get(file);
+		if (existing) {
+			this.touchPreview(file);
+			return existing;
+		}
+		if (this.pendingPreviews.has(file)) return undefined;
+		if (!Content.exist(file)) return undefined;
+		this.pendingPreviews.add(file);
+		thread(() => {
+			Cache.loadAsync(file);
+			this.pendingPreviews.delete(file);
+			if (this.cancelOperations) return;
+			const texture = Texture2D(file);
+			if (!texture) return;
+			if (texture.width > 4096 || texture.height > 4096) {
+				Cache.unload(file);
 				return;
 			}
-		}
-		const cachePath = Path(Content.appPath, ".cache", "preview");
-		const cacheFile = Path(cachePath, name + ".jpg");
-		if (Content.exist(cacheFile)) {
-			Cache.loadAsync(cacheFile);
-			const texture = Texture2D(cacheFile);
-			if (texture) {
-				this.previewTextures.set(name, texture);
-				this.previewFiles.set(name, cacheFile);
-			}
-			return;
-		}
-		const imageUrl = `${config.url}/assets/${name}/banner.jpg`;
-		const response = HttpClient.downloadAsync(imageUrl, cacheFile, 10);
-		if (response) {
-			Cache.loadAsync(cacheFile);
-			const texture = Texture2D(cacheFile);
-			if (texture) {
-				this.previewTextures.set(name, texture);
-				this.previewFiles.set(name, cacheFile);
-			}
-		} else {
-			print(`Failed to load preview image for ${name}`);
-		}
+			this.previewTextures.set(file, texture);
+			this.touchPreview(file);
+		});
+		return undefined;
 	}
 
-	private isDownloaded(name: string): boolean {
-		return this.downloadedPackages.has(name);
+	private selectedVersion(resource: ResourceInfo) {
+		const index = math.max(1, math.min(resource.selectedVersion, resource.versions.length));
+		resource.selectedVersion = index;
+		return resource.versions[index - 1];
 	}
 
-	private downloadPackage(pkg: PackageInfo) {
-		if (this.downloadTasks.has(pkg.name)) {
-			return;
-		}
-
-		const task = thread(() => {
-			this.isDownloading = true;
-			let downloadStatus = (zh ? "正在下载：" : "Downloading: ") + pkg.name;
-			const downloadPath = Path(Content.writablePath, ".download");
-			Content.mkdir(downloadPath);
-			const currentVersion = pkg.currentVersion ?? 1;
-			const version = pkg.versions[currentVersion - 1];
-			const targetFile = Path(downloadPath, version.file);
-
-			const success = HttpClient.downloadAsync(
-				version.download,
-				targetFile,
-				1200,
-				(current, total) => {
-					if (this.cancelDownload) {
-						return true;
-					}
-					this.downloadProgress.set(pkg.name, { progress: current / total, status: downloadStatus });
-					return false;
-				}
-			);
-
-			if (success) {
-				downloadStatus = zh ? `解压中：${pkg.name}` : `Unziping: ${pkg.name}`;
-				this.downloadProgress.set(pkg.name, { progress: 1, status: downloadStatus })
-				const unzipPath = Path(Content.writablePath, "Download", pkg.name);
-				Content.remove(unzipPath);
-				if (Content.unzipAsync(targetFile, unzipPath)) {
-					Content.remove(targetFile);
-					this.downloadedPackages.add(pkg.name);
-					const repo = this.repos.get(pkg.name);
-					if (repo) {
-						const [str] = json.encode(repo);
-						if (str) {
-							if (Content.mkdir(Path(unzipPath, ".dora"))) {
-								Content.save(Path(unzipPath, ".dora", "repo.json"), str);
-								const previewFile = this.previewFiles.get(pkg.name);
-								if (previewFile && Content.exist(previewFile)) {
-									Content.copy(previewFile, Path(unzipPath, ".dora", "banner.jpg"));
-								}
-							}
-						}
-					}
-					Director.postNode.emit("UpdateEntries");
-				} else {
-					Content.remove(unzipPath);
-					this.showPopup(
-						zh ? "解压失败" : "Failed to unzip",
-						zh ? `无法解压文件：${version.file}` : `Failed to unzip: ${version.file}`
-					);
-				}
-			} else {
-				Content.remove(targetFile);
-				this.showPopup(
-					zh ? "下载失败" : "Download failed",
-					zh ? `无法从该地址下载：${version.download}` : `Failed to download from: ${version.download}`
+	private install(resource: ResourceInfo) {
+		if (this.installingId || !this.snapshot) return;
+		const version = this.selectedVersion(resource);
+		this.installingId = resource.id;
+		this.installProgress = { progress: 0, message: zh ? "准备安装" : "Preparing installation" };
+		(async () => {
+			const result = await installResource(resource, version, {
+				catalogCommit: this.snapshot?.commit ?? "",
+				isCanceled: () => this.cancelOperations,
+				onProgress: progress => {
+					this.installProgress = progress;
+				},
+			});
+			this.installingId = undefined;
+			this.installProgress = undefined;
+			if (!result.success && !result.canceled) {
+				this.showMessage(
+					zh ? "安装失败" : "Installation failed",
+					result.message ?? (zh ? "无法安装资源" : "Could not install the resource"),
 				);
 			}
-
-			this.isDownloading = false;
-			this.downloadProgress.delete(pkg.name);
-			this.downloadTasks.delete(pkg.name);
-		});
-
-		this.downloadTasks.set(pkg.name, task);
+		})();
 	}
 
-	private messagePopup() {
-		ImGui.Text(this.popupMessageTitle);
-		ImGui.Separator();
-		ImGui.PushTextWrapPos(300, () => {
-			ImGui.TextWrapped(this.popupMessage);
-		});
-		if (ImGui.Button(zh ? "确认" : "OK", Vec2(300, 30))) {
-			ImGui.CloseCurrentPopup();
+	private runResource(resource: ResourceInfo) {
+		const basePath = getResourceInstallPath(resource.id);
+		if (resource.entrypoints.length === 0) {
+			run(Path(basePath, "init"));
+			return;
 		}
+		if (resource.entrypoints.length === 1) {
+			run(Path(basePath, resource.entrypoints[0].path));
+			return;
+		}
+		ImGui.OpenPopup(`run-${resource.id}`);
 	}
 
-	public update() {
-		const { width, height } = App.visualSize;
-		let filterCategory: undefined | string = undefined;
-		ImGui.SetNextWindowPos(Vec2.zero, SetCond.Always, Vec2.zero);
-		ImGui.SetNextWindowSize(Vec2(width, this.headerHeight), SetCond.Always);
-		ImGui.PushStyleVar(ImGui.StyleVarVec.WindowPadding, Vec2(10, 0), () => ImGui.Begin("Dora Community Header", windowsNoScrollFlags, () => {
-			ImGui.Dummy(Vec2(0, 0));
-			ImGui.TextColored(themeColor, zh ? "Dora SSR 社区资源" : "Dora SSR Resources");
+	private drawRunPopup(resource: ResourceInfo) {
+		if (resource.entrypoints.length <= 1) return;
+		ImGui.BeginPopup(`run-${resource.id}`, () => {
+			for (const entry of resource.entrypoints) {
+				if (ImGui.Selectable(`${entry.name}##${resource.id}-${entry.path}`)) {
+					run(Path(getResourceInstallPath(resource.id), entry.path));
+				}
+			}
+		});
+	}
+
+	private drawStatusLine() {
+		if (this.catalogStatus) {
+			ImGui.TextDisabled(this.catalogStatus.message);
 			ImGui.SameLine();
-			ImGui.TextDisabled("(?)");
+			ImGui.ProgressBar(this.catalogStatus.progress, Vec2(130, 0));
+			return;
+		}
+		if (this.snapshot) {
+			ImGui.TextDisabled(
+				`${zh ? "目录" : "Catalog"} ${this.snapshot.commit.substring(0, 8)}`,
+			);
 			if (ImGui.IsItemHovered()) {
 				ImGui.BeginTooltip(() => {
-					ImGui.PushTextWrapPos(300, () => {
-						ImGui.Text(zh ? "使用该工具来下载 Dora SSR 的社区资源到 `Download` 目录。" : "Use this tool to download Dora SSR community resources to the `Download` directory.");
+					ImGui.PushTextWrapPos(420, () => {
+						ImGui.TextWrapped(`${zh ? "来源" : "Source"}: ${this.snapshot?.source ?? ""}`);
+						ImGui.Text(`${zh ? "同步时间" : "Synced"}: ${this.snapshot?.syncedAt ?? ""}`);
 					});
 				});
 			}
-			const padding = zh ? 400 : 440;
-			if (width >= padding) {
+			return;
+		}
+		ImGui.TextDisabled(
+			this.catalogError !== ""
+				? (zh ? "目录不可用" : "Catalog unavailable")
+				: (zh ? "正在获取资源目录…" : "Fetching the resource catalog…"),
+		);
+	}
+
+	private drawHeader(width: number) {
+		ImGui.SetNextWindowPos(Vec2.zero, SetCond.Always, Vec2.zero);
+		ImGui.SetNextWindowSize(Vec2(width, this.headerHeight), SetCond.Always);
+		ImGui.PushStyleVar(ImGui.StyleVarVec.WindowPadding, Vec2(16, 8), () => {
+			ImGui.Begin("Dora Resource Catalog Header", windowsNoScrollFlags, () => {
+				ImGui.TextColored(themeColor, zh ? "Dora SSR 社区资源" : "Dora SSR Community");
 				ImGui.SameLine();
-				ImGui.Dummy(Vec2(width - padding, 0));
+				this.drawStatusLine();
+				const refreshWidth = zh ? 80 : 85;
 				ImGui.SameLine();
-				ImGui.SetNextItemWidth((zh ? -40 : -55) - 40);
-				if (ImGui.InputText(zh ? '筛选' : 'Filter', this.filterBuf, [ImGui.InputTextFlag.AutoSelectAll,])) {
-					const [res] = string.match(this.filterBuf.text, "[^%%%.%[]+");
-					this.filterText = (res ?? '').toLowerCase();
+				ImGui.Dummy(Vec2(math.max(0, width - ImGui.GetCursorPosX() - refreshWidth - 24), 0));
+				ImGui.SameLine();
+				if (this.isCatalogLoading) {
+					ImGui.BeginDisabled(() => ImGui.Button(zh ? "同步中" : "Syncing", Vec2(refreshWidth, 0)));
+				} else if (ImGui.Button(zh ? "刷新目录" : "Refresh", Vec2(refreshWidth, 0))) {
+					this.refreshCatalog(true);
+				}
+
+				if (this.catalogError !== "") {
+					ImGui.TextColored(Color(0xffff5a5a), displayText(this.catalogError, 150));
+				} else if (this.catalogWarning !== "") {
+					ImGui.TextColored(Color(0xff66b3ff), displayText(this.catalogWarning, 150));
+				} else {
+					ImGui.TextDisabled(
+						zh
+							? "项目通过 Git 安装到 Download；安装后可通过 Git 继续更新和维护。"
+							: "Projects are installed with Git. After installation, your Git workflow owns updates and local changes.",
+					);
+				}
+
+				ImGui.BeginTabBar("resource-sections", tabBarFlags, () => {
+					ImGui.BeginTabItem(zh ? "作品" : "Projects", () => {
+						if (this.section !== "featured") {
+							this.section = "featured";
+							this.page = 0;
+						}
+					});
+					ImGui.BeginTabItem("Mini Games", () => {
+						if (this.section !== "minigame") {
+							this.section = "minigame";
+							this.page = 0;
+						}
+					});
+					ImGui.BeginTabItem(zh ? "全部" : "All", () => {
+						if (this.section !== "all") {
+							this.section = "all";
+							this.page = 0;
+						}
+					});
+				});
+
+				ImGui.SameLine();
+				ImGui.SetNextItemWidth(zh ? 150 : 165);
+				const categoryNames = [zh ? "全部分类" : "All categories", ...this.categories];
+				const [categoryChanged, categoryIndex] = ImGui.Combo("##resource-category", this.categoryIndex, categoryNames);
+				if (categoryChanged) {
+					this.categoryIndex = categoryIndex;
+					this.page = 0;
+				}
+				ImGui.SameLine();
+				ImGui.TextDisabled(zh ? "搜索" : "Search");
+				ImGui.SameLine();
+				ImGui.SetNextItemWidth(-1);
+				if (ImGui.InputText("##resource-search", this.filterBuffer, [ImGui.InputTextFlag.AutoSelectAll])) {
+					this.filterText = this.filterBuffer.text;
+					this.page = 0;
+				}
+			});
+		});
+	}
+
+	private drawPreview(resource: ResourceInfo, itemWidth: number) {
+		const texture = this.loadPreview(resource);
+		const availableWidth = itemWidth - 20;
+		const previewHeight = 150;
+		if (!texture) {
+			ImGui.Dummy(Vec2(availableWidth, previewHeight));
+			return;
+		}
+		const scale = math.min(availableWidth / texture.width, previewHeight / texture.height);
+		const imageWidth = texture.width * scale;
+		const imageHeight = texture.height * scale;
+		if (imageWidth < availableWidth) {
+			ImGui.Dummy(Vec2((availableWidth - imageWidth) / 2, 0));
+			ImGui.SameLine();
+		}
+		ImGui.Image(resource.bannerPath ?? defaultBanner(), Vec2(imageWidth, imageHeight));
+		if (imageHeight < previewHeight) ImGui.Dummy(Vec2(0, previewHeight - imageHeight));
+	}
+
+	private drawResourceCard(resource: ResourceInfo, itemWidth: number) {
+		const title = resource.title[zh ? "zh-Hans" : "en"];
+		const description = resource.description[zh ? "zh-Hans" : "en"];
+		const version = this.selectedVersion(resource);
+		const installed = isResourceInstalled(resource.id);
+		ImGui.BeginChild(`card-${resource.id}`, Vec2(itemWidth, 420), () => {
+			ImGui.TextColored(themeColor, displayText(title, 46));
+			if (isMinigame(resource)) {
+				ImGui.SameLine();
+				ImGui.TextDisabled("MINI");
+			}
+			if (resource.status !== "active") {
+				ImGui.SameLine();
+				ImGui.TextDisabled(resource.status.toUpperCase());
+			}
+			this.drawPreview(resource, itemWidth);
+			ImGui.PushTextWrapPos(itemWidth - 12, () => {
+				ImGui.TextWrapped(displayText(description, 190));
+			});
+			ImGui.TextDisabled(
+				`${version.name} · ${version.commit.substring(0, 8)} · ${
+					resource.license.status === "pending"
+						? (zh ? "许可待完善" : "license pending")
+						: resource.license.spdx
+				}`,
+			);
+			const source = version.sources[0];
+			if (source !== undefined && ImGui.TextLink(`${zh ? "项目仓库" : "Repository"}##repo-${resource.id}`)) {
+				App.openURL(source.url);
+			}
+			if (source !== undefined && ImGui.IsItemHovered()) {
+				ImGui.BeginTooltip(() => {
+					ImGui.PushTextWrapPos(420, () => ImGui.Text(source.url));
+				});
+			}
+			const versionNames = resource.versions.map(item => `${item.name} (${item.commit.substring(0, 7)})`);
+			if (versionNames.length > 1 && !installed) {
+				ImGui.SetNextItemWidth(-1);
+				const [changed, selected] = ImGui.Combo(`##version-${resource.id}`, resource.selectedVersion, versionNames);
+				if (changed) resource.selectedVersion = selected;
+			}
+			const currentInstall = this.installingId === resource.id;
+			if (currentInstall && this.installProgress) {
+				ImGui.ProgressBar(this.installProgress.progress, Vec2(-1, 26));
+				ImGui.TextDisabled(displayText(this.installProgress.message, 60));
+			} else if (installed) {
+				if (resource.runnable && resource.status !== "blocked") {
+					if (ImGui.Button(`${zh ? "测试" : "Run"}##run-button-${resource.id}`)) {
+						this.runResource(resource);
+					}
+					ImGui.SameLine();
+				}
+				ImGui.BeginDisabled(() => ImGui.Button(`${zh ? "已安装" : "Installed"}##installed-${resource.id}`));
+				ImGui.SameLine();
+				if (ImGui.Button(`${zh ? "删除" : "Delete"}##delete-${resource.id}`)) {
+					this.deleteResource = resource;
+					this.deletePopupShow = true;
 				}
 			} else {
-				ImGui.SameLine();
-				ImGui.Dummy(Vec2(width - (zh ? 250 : 255), 0));
+				const cannotInstall = this.installingId !== undefined
+					|| resource.status === "unavailable"
+					|| resource.status === "blocked"
+					|| !this.snapshot;
+				if (cannotInstall) {
+					ImGui.BeginDisabled(() => ImGui.Button(`${zh ? "安装" : "Install"}##install-${resource.id}`));
+				} else if (ImGui.Button(`${zh ? "安装" : "Install"}##install-${resource.id}`)) {
+					this.install(resource);
+				}
+			}
+			this.drawRunPopup(resource);
+		});
+	}
+
+	private drawDeletePopup() {
+		const popupTitle = zh ? "删除项目" : "Delete project";
+		if (this.deletePopupShow) {
+			this.deletePopupShow = false;
+			ImGui.OpenPopup(popupTitle);
+		}
+		ImGui.BeginPopupModal(popupTitle, () => {
+			const resource = this.deleteResource;
+			if (!resource) {
+				ImGui.CloseCurrentPopup();
+				return;
+			}
+			ImGui.TextWrapped(
+				zh
+					? `将删除 Download/${resource.id}，其中可能包含你的 Git 提交和本地修改。`
+					: `This removes Download/${resource.id}, including any local Git commits and changes.`,
+			);
+			if (ImGui.Button(zh ? "取消" : "Cancel", Vec2(120, 30))) {
+				this.deleteResource = undefined;
+				ImGui.CloseCurrentPopup();
 			}
 			ImGui.SameLine();
-			if (ImGui.CollapsingHeader("##option")) {
-				this.headerHeight = 130;
-				ImGui.SetNextItemWidth(zh ? -200 : -230);
-				if (ImGui.InputText(zh ? "服务器" : "Server", url)) {
-					if (url.text == "") {
-						url.text = DefaultURL;
-					}
-					config.url = url.text;
-				}
-				ImGui.SameLine();
-				if (ImGui.Button(zh ? "刷新" : "Reload")) {
-					const packageListVersionFile = Path(Content.appPath, ".cache", "preview", "package-list-version.json");
-					Content.remove(packageListVersionFile);
-					this.loadData();
-				}
-				ImGui.Separator();
-			} else {
-				this.headerHeight = 80;
-			}
-			ImGui.PushStyleVar(ImGui.StyleVarVec.WindowPadding, Vec2(10, 10), () => ImGui.BeginTabBar("categories", tabBarFlags, () => {
-				ImGui.BeginTabItem(zh ? '全部' : 'All', () => {
-					filterCategory = undefined;
-				});
-				for (let cat of this.categories) {
-					ImGui.BeginTabItem(cat, () => {
-						filterCategory = cat;
-					});
-				}
-			}));
-		}));
-		function matchCat(this: unknown, cat: string) { return filterCategory === cat; }
-		const maxColumns = math.max(math.floor(width / 320), 1);
-		const itemWidth = (width - 60) / maxColumns - 10;
-		ImGui.SetNextWindowPos(Vec2(0, this.headerHeight), SetCond.Always, Vec2.zero);
-		ImGui.SetNextWindowSize(Vec2(width, height - this.headerHeight - 50), SetCond.Always);
-		ImGui.PushStyleVar(ImGui.StyleVarNum.Alpha, 1, () => ImGui.PushStyleVar(ImGui.StyleVarVec.WindowPadding, Vec2(20, 10), () => ImGui.Begin("Dora Community Resources", windowsFlags, () => {
-			ImGui.Columns(maxColumns, false);
-
-			// Display resources
-			for (const pkg of this.packages) {
-				const repo = this.repos.get(pkg.name)
-				if (!repo) continue;
-				if (filterCategory !== undefined) {
-					if (!repo.categories) continue;
-					if (repo.categories.find(matchCat) === undefined) {
-						continue;
-					}
-				}
-
-				const title = repo.title[zh ? "zh" : "en"];
-
-				if (this.filterText !== '') {
-					const [res] = string.match(title.toLowerCase(), this.filterText);
-					if (!res) continue;
-				}
-
-				// Title
-				ImGui.TextColored(themeColor, title);
-
-				// Preview image
-				const previewTexture = this.previewTextures.get(pkg.name);
-				if (previewTexture) {
-					const { width, height } = previewTexture;
-					// 保持宽高比，适应宽度
-					const scale = (itemWidth - 30) / width;
-					const scaledSize = Vec2(width * scale, height * scale);
-					const previewFile = this.previewFiles.get(pkg.name);
-					if (previewFile) {
-						ImGui.Dummy(Vec2.zero);
-						ImGui.SameLine();
-						ImGui.Image(previewFile, scaledSize);
-					}
+			if (ImGui.Button(zh ? "确认删除" : "Delete", Vec2(120, 30))) {
+				const removed = Content.remove(getResourceInstallPath(resource.id));
+				this.deleteResource = undefined;
+				if (removed) {
+					Director.postNode.emit("UpdateEntries");
 				} else {
-					ImGui.Text(zh ? "加载预览图中..." : "Loading preview...");
+					this.showMessage(
+						zh ? "删除失败" : "Deletion failed",
+						zh ? "无法删除项目目录，请检查文件是否正被占用。" : "Could not remove the project directory.",
+					);
 				}
-
-				ImGui.TextWrapped(repo.desc[zh ? "zh" : "en"]);
-
-				ImGui.TextColored(themeColor, zh ? `项目地址：` : `Repo URL:`);
-				ImGui.SameLine();
-				if (ImGui.TextLink((zh ? '这里' : 'here') + `##${pkg.url}`)) {
-					App.openURL(pkg.url);
-				}
-				if (ImGui.IsItemHovered()) {
-					ImGui.BeginTooltip(() => {
-						ImGui.PushTextWrapPos(300, () => {
-							ImGui.Text(pkg.url);
-						});
-					});
-				}
-
-				const currentVersion = pkg.currentVersion ?? 1;
-				const version = pkg.versions[currentVersion - 1];
-				if ("number" === typeof version.updatedAt) {
-					ImGui.TextColored(themeColor, zh ? `同步时间：` : `Updated:`);
-					ImGui.SameLine();
-					const dateStr = os.date("%Y-%m-%d %H:%M:%S", version.updatedAt);
-					ImGui.Text(dateStr);
-				}
-
-				// Package info
-				ImGui.TextColored(themeColor, zh ? `文件大小：` : `File Size:`);
-				ImGui.SameLine();
-				ImGui.Text(`${(version.size / 1024 / 1024).toFixed(2)} MB`);
-
-				// Progress bar
-				const progress = this.downloadProgress.get(pkg.name);
-				if (progress !== undefined) {
-					ImGui.ProgressBar(progress.progress, Vec2(-1, 30));
-					ImGui.BeginDisabled(() => {
-						ImGui.Button(progress.status);
-					});
-				}
-
-				// Download button
-				if (progress === undefined) {
-					const isDownloaded = this.isDownloaded(pkg.name);
-					const exeText = (zh ? "测试" : "Test") + `##test-${pkg.name}`;
-					const buttonText = (isDownloaded ?
-						(zh ? "重新下载" : "Re-Download") :
-						(zh ? "下载" : "Download")) + `##download-${pkg.name}`;
-					const deleteText = (zh ? "删除" : "Delete") + `##delete-${pkg.name}`;
-					const runable = repo.exe !== false;
-					if (this.isDownloading) {
-						ImGui.BeginDisabled(() => {
-							if (runable) {
-								ImGui.Button(exeText);
-								ImGui.SameLine();
-							}
-							ImGui.Button(buttonText);
-							if (isDownloaded) {
-								ImGui.SameLine();
-								ImGui.Button(deleteText);
-							}
-						});
-					} else {
-						if (isDownloaded && runable) {
-							if (typeof repo.exe === 'object') {
-								const exeList = repo.exe;
-								const popupId = `select-${pkg.name}`;
-								if (ImGui.Button(exeText)) {
-									ImGui.OpenPopup(popupId);
-								}
-								ImGui.BeginPopup(popupId, () => {
-									for (const entry of exeList) {
-										if (ImGui.Selectable(`${entry}##run-${pkg.name}-${entry}`)) {
-											run(Path(Content.writablePath, "Download", pkg.name, entry, "init"));
-										}
-									}
-								});
-							} else {
-								if (ImGui.Button(exeText)) {
-									run(Path(Content.writablePath, "Download", pkg.name, "init"));
-								}
-							}
-							ImGui.SameLine();
-						}
-						if (ImGui.Button(buttonText)) {
-							this.downloadPackage(pkg);
-						}
-						if (isDownloaded) {
-							ImGui.SameLine();
-							if (ImGui.Button(deleteText)) {
-								Content.remove(Path(Content.writablePath, "Download", pkg.name));
-								this.downloadedPackages.delete(pkg.name);
-								Director.postNode.emit("UpdateEntries");
-							}
-						}
-					}
-				}
-
-				if (!this.isDownloading && pkg.versionNames && pkg.currentVersion) {
-					ImGui.SameLine();
-					ImGui.SetNextItemWidth(-20);
-					const [changed, currentVersion] = ImGui.Combo("##" + pkg.name, pkg.currentVersion, pkg.versionNames);
-					if (changed) {
-						pkg.currentVersion = currentVersion;
-					}
-				}
-
-				thinSep();
-				ImGui.NextColumn();
+				ImGui.CloseCurrentPopup();
 			}
+		});
+	}
 
-			ImGui.Columns(1, false);
-			ImGui.ScrollWhenDraggingOnVoid();
+	private drawMessagePopup() {
+		if (this.popupShow) {
+			this.popupShow = false;
+			ImGui.OpenPopup("ResourceMessage");
+		}
+		ImGui.BeginPopupModal("ResourceMessage", () => {
+			ImGui.Text(this.popupTitle);
+			ImGui.Separator();
+			ImGui.PushTextWrapPos(380, () => ImGui.TextWrapped(this.popupMessage));
+			if (ImGui.Button(zh ? "确认" : "OK", Vec2(380, 30))) ImGui.CloseCurrentPopup();
+		});
+	}
 
-			if (this.popupShow) {
-				this.popupShow = false;
-				ImGui.OpenPopup("MessagePopup");
-			}
-			ImGui.BeginPopupModal("MessagePopup", () => this.messagePopup());
-		})));
+	private update() {
+		const { width, height } = App.visualSize;
+		this.drawHeader(width);
+		const maxColumns = math.max(math.floor(width / 360), 1);
+		const itemWidth = (width - 36 - (maxColumns - 1) * 12) / maxColumns;
+		const category = this.categoryIndex > 1 ? this.categories[this.categoryIndex - 2] : undefined;
+		const filtered = filterResources(this.resources, {
+			section: this.section,
+			category,
+			query: this.filterText,
+		});
+		const pageSize = maxColumns * 3;
+		const page = paginateResources(filtered, this.page, pageSize);
+		this.page = page.page;
+
+		ImGui.SetNextWindowPos(Vec2(0, this.headerHeight), SetCond.Always, Vec2.zero);
+		ImGui.SetNextWindowSize(Vec2(width, height - this.headerHeight), SetCond.Always);
+		ImGui.PushStyleVar(ImGui.StyleVarVec.WindowPadding, Vec2(14, 10), () => {
+			ImGui.Begin("Dora Resource Catalog", windowsFlags, () => {
+				if (this.resources.length === 0) {
+					ImGui.Dummy(Vec2(0, 30));
+					ImGui.TextWrapped(
+						this.catalogError !== ""
+							? this.catalogError
+							: (zh ? "正在准备资源目录…" : "Preparing the resource catalog…"),
+					);
+				} else {
+					ImGui.TextDisabled(
+						zh
+							? `共 ${page.total} 项 · 第 ${page.page + 1}/${page.pageCount} 页`
+							: `${page.total} items · page ${page.page + 1}/${page.pageCount}`,
+					);
+					ImGui.SameLine();
+					if (page.page > 0 && ImGui.SmallButton(zh ? "上一页" : "Previous")) this.page--;
+					if (page.page > 0) ImGui.SameLine();
+					if (page.page + 1 < page.pageCount && ImGui.SmallButton(zh ? "下一页" : "Next")) this.page++;
+					ImGui.Separator();
+					ImGui.Columns(maxColumns, false);
+					for (const resource of page.items) {
+						this.drawResourceCard(resource, itemWidth);
+						ImGui.NextColumn();
+					}
+					ImGui.Columns(1, false);
+				}
+				this.drawDeletePopup();
+				this.drawMessagePopup();
+				ImGui.ScrollWhenDraggingOnVoid();
+			});
+		});
 	}
 }
 

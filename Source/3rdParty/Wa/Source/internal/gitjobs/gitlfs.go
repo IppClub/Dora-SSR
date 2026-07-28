@@ -66,6 +66,19 @@ type lfsObjectError struct {
 	Message string `json:"message"`
 }
 
+type lfsProgressReader struct {
+	reader   io.Reader
+	progress func(int64)
+}
+
+func (r lfsProgressReader) Read(buffer []byte) (int, error) {
+	n, err := r.reader.Read(buffer)
+	if n > 0 && r.progress != nil {
+		r.progress(int64(n))
+	}
+	return n, err
+}
+
 const (
 	lfsConcurrentTransfers = 3
 	lfsBatchChunkSize      = 100
@@ -513,8 +526,24 @@ func fetchLFS(ctx context.Context, j *job, repoPath, remote string, hydrate, all
 				toDownload = append(toDownload, object)
 			}
 		}
-		n, dlErr := downloadLFSObjectsConcurrent(ctx, repo, remote, repoPath, toDownload, j.req.cmd.options, func(done, total int) {
-			j.setProgressMessage(fmt.Sprintf("downloading LFS objects %d/%d", done, total))
+		stageStart := j.progressValue()
+		totalBytes := lfsObjectsSize(toDownload)
+		j.setProgress(stageStart, lfsDownloadProgressMessage(0, len(toDownload), 0, totalBytes))
+		n, dlErr := downloadLFSObjectsConcurrent(ctx, repo, remote, repoPath, toDownload, j.req.cmd.options, func(done, total int, received int64) {
+			ratio := 0.0
+			if total > 0 {
+				ratio = float64(done) / float64(total)
+			}
+			if totalBytes > 0 {
+				ratio = float64(received) / float64(totalBytes)
+			}
+			if ratio > 1 {
+				ratio = 1
+			}
+			j.setProgress(
+				stageStart+(0.9-stageStart)*ratio,
+				lfsDownloadProgressMessage(done, total, received, totalBytes),
+			)
 		})
 		if dlErr != nil {
 			return nil, dlErr
@@ -604,10 +633,11 @@ func pushLFS(ctx context.Context, j *job, repoPath, remote, branch string) (map[
 	return map[string]any{"objects": len(objects), "uploaded": uploaded}, nil
 }
 
-func downloadLFSObjectsConcurrent(ctx context.Context, repo *git.Repository, remote, repoPath string, objects []lfsBatchObject, options runOptions, progress func(done, total int)) (int, error) {
+func downloadLFSObjectsConcurrent(ctx context.Context, repo *git.Repository, remote, repoPath string, objects []lfsBatchObject, options runOptions, progress func(done, total int, received int64)) (int, error) {
 	total := len(objects)
 	var (
 		completed atomic.Int32
+		received  atomic.Int64
 		firstErr  error
 		errOnce   sync.Once
 		failed    atomic.Bool
@@ -627,13 +657,15 @@ func downloadLFSObjectsConcurrent(ctx context.Context, repo *git.Repository, rem
 			if failed.Load() || ctx.Err() != nil {
 				return
 			}
-			if err := downloadLFSObject(ctx, repo, remote, repoPath, obj, obj.Actions["download"], options); err != nil {
+			if err := downloadLFSObject(ctx, repo, remote, repoPath, obj, obj.Actions["download"], options, func(bytes int64) {
+				progress(int(completed.Load()), total, received.Add(bytes))
+			}); err != nil {
 				errOnce.Do(func() { firstErr = err })
 				failed.Store(true)
 				return
 			}
 			done := int(completed.Add(1))
-			progress(done, total)
+			progress(done, total, received.Load())
 		}()
 	}
 	wg.Wait()
@@ -814,7 +846,7 @@ func firstRemoteName(repo *git.Repository) string {
 	return "origin"
 }
 
-func downloadLFSObject(ctx context.Context, repo *git.Repository, remote, repoPath string, object lfsBatchObject, action lfsAction, options runOptions) error {
+func downloadLFSObject(ctx context.Context, repo *git.Repository, remote, repoPath string, object lfsBatchObject, action lfsAction, options runOptions, progress func(int64)) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, action.Href, nil)
 	if err != nil {
 		return err
@@ -839,7 +871,7 @@ func downloadLFSObject(ctx context.Context, repo *git.Repository, remote, repoPa
 	tempPath := temp.Name()
 	defer os.Remove(tempPath)
 	hash := sha256.New()
-	size, err := io.Copy(io.MultiWriter(temp, hash), res.Body)
+	size, err := io.Copy(io.MultiWriter(temp, hash), lfsProgressReader{reader: res.Body, progress: progress})
 	if closeErr := temp.Close(); err == nil {
 		err = closeErr
 	}
@@ -854,6 +886,40 @@ func downloadLFSObject(ctx context.Context, repo *git.Repository, remote, repoPa
 		return err
 	}
 	return os.Rename(tempPath, target)
+}
+
+func lfsObjectsSize(objects []lfsBatchObject) int64 {
+	var total int64
+	for _, object := range objects {
+		if object.Size > 0 {
+			total += object.Size
+		}
+	}
+	return total
+}
+
+func lfsDownloadProgressMessage(done, total int, received, totalBytes int64) string {
+	message := fmt.Sprintf("downloading LFS objects %d/%d", done, total)
+	if totalBytes > 0 {
+		message += fmt.Sprintf(" · %s / %s", formatLFSBytes(received), formatLFSBytes(totalBytes))
+	}
+	return message
+}
+
+func formatLFSBytes(bytes int64) string {
+	const unit = int64(1024)
+	if bytes < unit {
+		return fmt.Sprintf("%d B", bytes)
+	}
+	value := float64(bytes)
+	suffixes := [...]string{"KiB", "MiB", "GiB", "TiB"}
+	for _, suffix := range suffixes {
+		value /= float64(unit)
+		if value < float64(unit) || suffix == suffixes[len(suffixes)-1] {
+			return fmt.Sprintf("%.1f %s", value, suffix)
+		}
+	}
+	return fmt.Sprintf("%d B", bytes)
 }
 
 func uploadLFSObject(ctx context.Context, repo *git.Repository, remote, repoPath string, object lfsBatchObject, action lfsAction, options runOptions) error {

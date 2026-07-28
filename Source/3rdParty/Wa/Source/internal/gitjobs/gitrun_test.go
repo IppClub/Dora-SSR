@@ -78,6 +78,15 @@ func TestParseLogDataModes(t *testing.T) {
 	}
 }
 
+func TestVerifyCatalogIsNotAnEngineCommand(t *testing.T) {
+	if _, err := parseGitCommand(
+		"/tmp/repo",
+		"verify-catalog 0123456789abcdef0123456789abcdef01234567",
+	); err == nil {
+		t.Fatal("catalog source verification must remain outside the engine")
+	}
+}
+
 func TestExecLogLoadsChangedFilesOnDemand(t *testing.T) {
 	repoPath, lastHash := createTestRepository(t, 2)
 	metadata, err := execLog(repoPath, gitCommand{op: "log", limit: 20, metadataOnly: true})

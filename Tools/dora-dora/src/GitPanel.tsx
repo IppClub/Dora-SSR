@@ -44,6 +44,7 @@ import {
 	subscribeGitJob,
 	trackGitJob,
 } from './GitJobStore';
+import { parseGitProgressMessage } from './GitProgress';
 
 interface GitPanelProps {
 	projectRoot: string;
@@ -732,7 +733,14 @@ export default function GitPanel(props: GitPanelProps) {
 	const isRepo = !!summary?.success && summary.isRepo;
 	const jobRunning = !!job && (!job.status || !terminalStates.has(job.status.state));
 	const jobState = job?.status?.state ?? "idle";
-	const jobStatusText = job ? (job.status?.error ?? job.status?.message ?? job.status?.state ?? t("git.queued")) : t("git.noGitTask");
+	const rawJobStatusText = job ? (job.status?.error ?? job.status?.message ?? job.status?.state ?? t("git.queued")) : t("git.noGitTask");
+	const jobProgressMessage = React.useMemo(() => parseGitProgressMessage(rawJobStatusText), [rawJobStatusText]);
+	const jobStatusText = jobProgressMessage.kind === "lfs-download"
+		? t("git.lfsDownloading", { done: jobProgressMessage.done, total: jobProgressMessage.total })
+		: jobProgressMessage.raw;
+	const jobStatusDetail = jobProgressMessage.kind === "lfs-download" && jobProgressMessage.received && jobProgressMessage.totalBytes
+		? `${jobProgressMessage.received} / ${jobProgressMessage.totalBytes}`
+		: undefined;
 	const cloneJob = job && /^clone(?:\s|$)/.test(job.command) ? job : null;
 	const cloneJobRunning = !!cloneJob && (!cloneJob.status || !terminalStates.has(cloneJob.status.state));
 	const cloneBusy = cloneStarting || jobRunning || !!pendingCredential && /^clone(?:\s|$)/.test(pendingCredential.command);
@@ -2098,9 +2106,9 @@ export default function GitPanel(props: GitPanelProps) {
 		<Box
 			sx={{
 				width: "100%",
-				maxWidth: 360,
+				maxWidth: 460,
 				minWidth: 200,
-				height: 34,
+				height: 44,
 				justifySelf: "center",
 				border: `1px solid ${panelBorder}`,
 				backgroundColor: "#242424",
@@ -2120,25 +2128,28 @@ export default function GitPanel(props: GitPanelProps) {
 					backgroundColor: jobRunning ? accent : (jobState === "error" ? Color.Error : "#6f7680"),
 				}}
 			/>
-			<Box sx={{ minWidth: 0, display: "flex", alignItems: "baseline", justifyContent: "center", gap: 0.75 }}>
-				<Typography variant="body2" noWrap sx={{ color: job ? primaryText : mutedText, fontSize: 12, fontWeight: job ? 700 : 600, lineHeight: 1 }}>
-					{job?.command ?? t("git.noGitTask")}
-				</Typography>
-				{job ? (
-					<Typography
-						variant="caption"
-						noWrap
-						sx={{
-							color: job.status?.state === "error" ? Color.Error : mutedText,
-							fontSize: 11,
-							lineHeight: 1,
-							textTransform: "lowercase",
-						}}
-					>
-						{jobStatusText}
+			<Tooltip title={job ? `${job.command}\n${rawJobStatusText}` : ""} placement="bottom">
+				<Box sx={{ minWidth: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0.35 }}>
+					<Typography variant="body2" noWrap sx={{ width: "100%", textAlign: "center", color: job ? primaryText : mutedText, fontSize: 12, fontWeight: job ? 700 : 600, lineHeight: 1 }}>
+						{job?.command ?? t("git.noGitTask")}
 					</Typography>
-				) : null}
-			</Box>
+					{job ? (
+						<Typography
+							variant="caption"
+							noWrap
+							sx={{
+								width: "100%",
+								textAlign: "center",
+								color: job.status?.state === "error" ? Color.Error : mutedText,
+								fontSize: 11,
+								lineHeight: 1,
+							}}
+						>
+							{jobStatusText}{jobStatusDetail ? ` · ${jobStatusDetail}` : ""}
+						</Typography>
+					) : null}
+				</Box>
+			</Tooltip>
 			<Box sx={{ display: "flex", justifyContent: "center" }}>
 				{job ? (
 					<IconButton
@@ -2312,9 +2323,18 @@ export default function GitPanel(props: GitPanelProps) {
 									<Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75 }}>
 										<Box sx={{ minWidth: 0, flex: 1 }}>
 											<Typography variant="body2" noWrap sx={{ color: primaryText, fontFamily: "monospace", fontSize: 12 }}>{cloneJob.command}</Typography>
-											<Typography variant="caption" noWrap sx={{ display: "block", color: cloneJob.status?.state === "error" ? Color.Error : mutedText }}>
-												{cloneJob.status?.error ?? cloneJob.status?.message ?? cloneJob.status?.state ?? t("git.queued")}
-											</Typography>
+											<Tooltip title={rawJobStatusText} placement="bottom-start">
+												<Box>
+													<Typography variant="caption" noWrap sx={{ display: "block", color: cloneJob.status?.state === "error" ? Color.Error : mutedText }}>
+														{jobStatusText}
+													</Typography>
+													{jobStatusDetail ? (
+														<Typography variant="caption" noWrap sx={{ display: "block", color: primaryText, fontVariantNumeric: "tabular-nums" }}>
+															{jobStatusDetail}
+														</Typography>
+													) : null}
+												</Box>
+											</Tooltip>
 										</Box>
 										{cloneJobRunning ? (
 											<Button size="small" onClick={cancelJob} sx={{ minWidth: 0, color: mutedText }}>{t("git.cancel")}</Button>
