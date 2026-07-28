@@ -759,7 +759,7 @@ export default function PersistentDrawerLeft() {
 	const [openLLMConfig, setOpenLLMConfig] = useState(false);
 	const [toolEntries, setToolEntries] = useState<Service.EntryLaunchInfo[]>([]);
 	const [gameEntries, setGameEntries] = useState<Service.EntryLaunchInfo[]>([]);
-	const [entryView, setEntryView] = useState<"tool" | "game">("tool");
+	const [entryView, setEntryView] = useState<"tool" | "game">("game");
 	const [entryFilter, setEntryFilter] = useState("");
 	const [drawerWidth, setDrawerWidth] = useState(Math.max(170, Info.drawerWidth ?? 300));
 	const [isResizing, setIsResizing] = useState(false);
@@ -5524,25 +5524,6 @@ export default function PersistentDrawerLeft() {
 									<Button
 										size="small"
 										variant="outlined"
-										onClick={() => setEntryView("tool")}
-										sx={{
-											textTransform: "none",
-											minWidth: 0,
-											color: Color.Primary,
-											backgroundColor: entryView === "tool" ? Color.Theme + "11" : "transparent",
-											borderColor: entryView === "tool" ? Color.Theme + "55" : Color.Line,
-											borderRadius: 1.5,
-											"&:hover": {
-												backgroundColor: entryView === "tool" ? Color.Theme + "11" : "transparent",
-												borderColor: entryView === "tool" ? Color.Theme + "55" : Color.Line,
-											},
-										}}
-									>
-										{t("menu.tools")}
-									</Button>
-									<Button
-										size="small"
-										variant="outlined"
 										onClick={() => setEntryView("game")}
 										sx={{
 											textTransform: "none",
@@ -5558,6 +5539,25 @@ export default function PersistentDrawerLeft() {
 										}}
 									>
 										{t("menu.projects")}
+									</Button>
+									<Button
+										size="small"
+										variant="outlined"
+										onClick={() => setEntryView("tool")}
+										sx={{
+											textTransform: "none",
+											minWidth: 0,
+											color: Color.Primary,
+											backgroundColor: entryView === "tool" ? Color.Theme + "11" : "transparent",
+											borderColor: entryView === "tool" ? Color.Theme + "55" : Color.Line,
+											borderRadius: 1.5,
+											"&:hover": {
+												backgroundColor: entryView === "tool" ? Color.Theme + "11" : "transparent",
+												borderColor: entryView === "tool" ? Color.Theme + "55" : Color.Line,
+											},
+										}}
+									>
+										{t("menu.tools")}
 									</Button>
 								</Stack>
 								<Button size="small" onClick={() => loadEntries()}>
