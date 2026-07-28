@@ -97,6 +97,7 @@ export type PlayControlMode = "Run" | "Run This" | "Stop" | "Go to File" | "View
 export interface PlayControlProp {
 	onClick: (mode: PlayControlMode, noLog?: boolean) => void;
 	compact?: boolean;
+	touch?: boolean;
 	showFirstProjectTour?: boolean;
 	buildProjectAction?: {
 		onClick: () => void;
@@ -105,11 +106,11 @@ export interface PlayControlProp {
 
 export const PlayControl = memo((prop: PlayControlProp) => {
 	const { t } = useTranslation();
-	const buttonSize = prop.compact ? 26 : 36;
+	const buttonSize = prop.touch ? 34 : prop.compact ? 26 : 36;
 	const controlWidth = prop.compact ? undefined : 116;
-	const controlHeight = prop.compact ? 26 : 48;
+	const controlHeight = prop.touch ? 36 : prop.compact ? 26 : 48;
 	const buttonRadius = prop.compact ? 1 : 1.5;
-	const iconSize = prop.compact ? 16 : undefined;
+	const iconSize = prop.touch ? 18 : prop.compact ? 16 : undefined;
 	const iconStyle = { fontSize: iconSize };
 	const buttonSx = {
 		width: buttonSize,

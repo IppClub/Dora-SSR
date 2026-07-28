@@ -41,6 +41,7 @@ export interface FileTabBarProps {
 	onChange: (index: number) => void;
 	onMenuClick: (event: TabMenuEvent) => void;
 	onTabClose: (key: string) => void;
+	compact?: boolean;
 };
 
 interface StyledTabsProps {
@@ -48,21 +49,24 @@ interface StyledTabsProps {
 	value: number | false;
 	scrollButtons?: boolean;
 	onChange?: (event: React.SyntheticEvent, newValue: number) => void;
+	compact?: boolean;
 }
 
-export const StyledTabs = styled((props: StyledTabsProps) => (
-	<Tabs
+export const StyledTabs = styled((props: StyledTabsProps) => {
+	const { compact: _compact, ...tabsProps } = props;
+	return <Tabs
 		variant='scrollable'
 		selectionFollowsFocus
-		{...props}
+		{...tabsProps}
 		slotProps={{
 			indicator: {
 				children: <span className="MuiTabs-indicatorSpan" />
 			}
 		}}
-	/>
-))({
+	/>;
+})<{ compact?: boolean }>(({ compact }) => ({
 	margin: 0,
+	minHeight: compact ? 40 : 48,
 	'& .MuiTabs-indicator': {
 		display: 'flex',
 		justifyContent: 'center',
@@ -73,7 +77,7 @@ export const StyledTabs = styled((props: StyledTabsProps) => (
 		width: '100%',
 		backgroundColor: Color.Theme,
 	},
-});
+}));
 
 interface StyledTabProps {
 	label: string;
@@ -81,12 +85,14 @@ interface StyledTabProps {
 	status: TabStatus;
 	onContextMenu: (event: React.MouseEvent) => void;
 	onTabClose?: (key: string) => void;
+	compact?: boolean;
 }
 
 export const StyledTab = styled((props: StyledTabProps) => {
 	const { label, tooltip, onTabClose } = props;
 	const newProps = { ...props };
 	delete newProps.onTabClose;
+	delete newProps.compact;
 	return (
 		<Tooltip arrow title={tooltip}>
 			<Tab
@@ -139,7 +145,7 @@ export const StyledTab = styled((props: StyledTabProps) => {
 			/>
 		</Tooltip>
 	);
-})(({ theme, status }) => {
+})(({ theme, status, compact }) => {
 	let color = Color.Secondary;
 	let selectedColor = Color.Primary;
 	switch (status) {
@@ -157,10 +163,10 @@ export const StyledTab = styled((props: StyledTabProps) => {
 		fontWeight: theme.typography.fontWeightRegular,
 		fontSize: theme.typography.pxToRem(15),
 		marginRight: theme.spacing(1),
-		minHeight: 48,
+		minHeight: compact ? 40 : 48,
 		minWidth: 0,
-		paddingLeft: theme.spacing(1.5),
-		paddingRight: theme.spacing(1),
+		paddingLeft: theme.spacing(compact ? 1 : 1.5),
+		paddingRight: theme.spacing(compact ? 0.5 : 1),
 		color,
 		'&.Mui-selected': {
 			color: selectedColor,
@@ -179,7 +185,7 @@ export type TabMenuEvent =
 	"CloseAll";
 
 export default memo(function FileTabBar(props: FileTabBarProps) {
-	const { index, items = [], onChange, onMenuClick, onTabClose } = props;
+	const { index, items = [], onChange, onMenuClick, onTabClose, compact = false } = props;
 	const [anchorEl, setAnchorEl] = useState<Element | null>(null);
 	const [value, setValue] = useState<number | false>(false);
 	const { t } = useTranslation();
@@ -211,6 +217,7 @@ export default memo(function FileTabBar(props: FileTabBarProps) {
 				scrollButtons={items.length > 0}
 				onChange={handleChange}
 				aria-label="styled tabs"
+				compact={compact}
 			>
 				{
 					items.map((item, index) =>
@@ -221,6 +228,7 @@ export default memo(function FileTabBar(props: FileTabBarProps) {
 							tooltip={item.key}
 							label={(index < 9 ? index + 1 + '.' : '') + (item.contentModified !== null ? '*' + item.title : item.title)}
 							status={item.status}
+							compact={compact}
 						/>
 					)
 				}

@@ -26,6 +26,7 @@ const AGENT_USER_PROMPT_MAX_CHARS = 12000;
 const CONTEXT_USAGE_LOW_COLOR = "rgba(255,255,255,0.42)";
 
 interface AgentComposerProps {
+	compact?: boolean;
 	prompt: string;
 	loading: boolean;
 	running: boolean;
@@ -62,6 +63,7 @@ function formatCompactNumber(value: number): string {
 }
 
 function ContextUsageRing(props: {
+	compact?: boolean;
 	ratio?: number;
 	usedTokens?: number;
 	maxTokens?: number;
@@ -94,13 +96,15 @@ function ContextUsageRing(props: {
 		})
 		: "";
 	const title = actualTitle !== "" ? `${contextTitle}\n${actualTitle}` : contextTitle;
+	const outerSize = props.compact ? 26 : 28;
+	const innerSize = props.compact ? 20 : 22;
 	return (
 		<Tooltip title={<span style={{ whiteSpace: "pre-line" }}>{title}</span>}>
 			<Box
 				aria-label={title}
 				sx={{
-					width: 28,
-					height: 28,
+					width: outerSize,
+					height: outerSize,
 					borderRadius: "50%",
 					background: `conic-gradient(${color} ${percent * 3.6}deg, ${trackColor} 0deg)`,
 					display: "grid",
@@ -110,8 +114,8 @@ function ContextUsageRing(props: {
 			>
 				<Box
 					sx={{
-						width: 22,
-						height: 22,
+						width: innerSize,
+						height: innerSize,
 						borderRadius: "50%",
 						backgroundColor: Color.BackgroundDark,
 						display: "grid",
@@ -134,6 +138,7 @@ function ContextUsageRing(props: {
 export default function AgentComposer(props: AgentComposerProps) {
 	const { t } = useTranslation();
 	const {
+		compact = false,
 		prompt,
 		loading,
 		running,
@@ -170,13 +175,14 @@ export default function AgentComposer(props: AgentComposerProps) {
 		const textarea = textAreaRef.current;
 		if (textarea == null) return;
 		textarea.style.height = "0px";
-		const nextHeight = Math.max(64, Math.min(textarea.scrollHeight, 220));
+		const maxHeight = compact ? 160 : 220;
+		const nextHeight = Math.max(compact ? 44 : 64, Math.min(textarea.scrollHeight, maxHeight));
 		textarea.style.height = `${nextHeight}px`;
-		textarea.style.overflowY = textarea.scrollHeight > 220 ? "auto" : "hidden";
-	}, [prompt]);
+		textarea.style.overflowY = textarea.scrollHeight > maxHeight ? "auto" : "hidden";
+	}, [compact, prompt]);
 
 	const toolButtonSx = (enabled: boolean) => ({
-		height: 30,
+		height: compact ? 28 : 30,
 		minWidth: 0,
 		px: 1,
 		borderRadius: 1.5,
@@ -193,14 +199,23 @@ export default function AgentComposer(props: AgentComposerProps) {
 	});
 
 	return (
-		<Box sx={{ px: 2, pt: 1, pb: 2, backgroundColor: Color.Background, flexShrink: 0 }}>
+		<Box
+			data-agent-composer-compact={compact ? "true" : "false"}
+			sx={{
+				px: compact ? 1.25 : 2,
+				pt: compact ? 0.5 : 1,
+				pb: compact ? 0.75 : 2,
+				backgroundColor: Color.Background,
+				flexShrink: 0,
+			}}
+		>
 			<Box
 				sx={{
 					width: "100%",
 					maxWidth: 980,
 					mx: "auto",
 					border: `1px solid ${inputFocused ? `${Color.Theme}88` : Color.Line}`,
-					borderRadius: 3,
+					borderRadius: compact ? 2 : 3,
 					backgroundColor: Color.BackgroundDark,
 					overflow: "hidden",
 					transition: "border-color 140ms ease",
@@ -235,9 +250,9 @@ export default function AgentComposer(props: AgentComposerProps) {
 					style={{
 						display: "block",
 						width: "100%",
-						minHeight: 64,
-						maxHeight: 220,
-						padding: "14px 16px 8px",
+						minHeight: compact ? 44 : 64,
+						maxHeight: compact ? 160 : 220,
+						padding: compact ? "8px 10px 4px" : "14px 16px 8px",
 						border: "none",
 						outline: "none",
 						resize: "none",
@@ -255,11 +270,11 @@ export default function AgentComposer(props: AgentComposerProps) {
 					alignItems="center"
 					justifyContent="space-between"
 					sx={{
-						px: 1,
-						pb: 1,
-						minHeight: 38,
+						px: compact ? 0.75 : 1,
+						pb: compact ? 0.5 : 1,
+						minHeight: compact ? 32 : 38,
 						flexWrap: "wrap",
-						rowGap: 0.75,
+						rowGap: compact ? 0.25 : 0.75,
 					}}
 				>
 					<Stack
@@ -326,7 +341,7 @@ export default function AgentComposer(props: AgentComposerProps) {
 						) : null}
 					</Stack>
 					<Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
-						<ContextUsageRing ratio={contextRatio} usedTokens={usedTokens} maxTokens={maxTokens} actualUsage={actualUsage} />
+						<ContextUsageRing compact={compact} ratio={contextRatio} usedTokens={usedTokens} maxTokens={maxTokens} actualUsage={actualUsage} />
 						<Tooltip
 							title={t("agent.modelForNextRun")}
 							disableFocusListener
@@ -363,8 +378,8 @@ export default function AgentComposer(props: AgentComposerProps) {
 								}}
 								inputProps={{ "aria-label": t("agent.modelForNextRun") }}
 								sx={{
-									maxWidth: 180,
-									minWidth: 96,
+									maxWidth: compact ? 140 : 180,
+									minWidth: compact ? 76 : 96,
 									fontSize: 12,
 									color: Color.TextSecondary,
 									"& .MuiSelect-select": { py: 0.25, pr: "22px !important" },
@@ -381,8 +396,8 @@ export default function AgentComposer(props: AgentComposerProps) {
 									onClick={running ? (canStop ? onStop : undefined) : onSend}
 									disabled={actionDisabled}
 									sx={{
-										width: 32,
-										height: 32,
+										width: compact ? 30 : 32,
+										height: compact ? 30 : 32,
 										borderRadius: 1.75,
 										backgroundColor: running ? `${Color.Warning}20` : Color.Theme,
 										color: running ? Color.Warning : Color.BackgroundDark,

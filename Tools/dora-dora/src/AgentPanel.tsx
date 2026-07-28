@@ -48,6 +48,7 @@ const AGENT_LLM_CONFIG_STORAGE_KEY = "dora.agent.llmConfigId";
 
 interface AgentPanelProps {
 	active?: boolean;
+	compact?: boolean;
 	sessionId: number;
 	projectRoot: string;
 	title: string;
@@ -92,7 +93,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const FETCH_URL_TOOL = "fetch_url";
 	const EXECUTE_COMMAND_TOOL = "execute_command";
 	const { t } = useTranslation();
-	const { active = true, sessionId, projectRoot, title, height, showHeader = true, initialPrompt, addAlert, onInitialPromptConsumed, onRollbackComplete, onOpenFile, onOpenLLMConfig } = props;
+	const { active = true, compact = false, sessionId, projectRoot, title, height, showHeader = true, initialPrompt, addAlert, onInitialPromptConsumed, onRollbackComplete, onOpenFile, onOpenLLMConfig } = props;
 	const [initialSnapshot] = useState(() => getAgentSessionSnapshot(sessionId));
 	const [selectedSessionId, setSelectedSessionId] = useState(sessionId);
 	const [hydratingSessionId, setHydratingSessionId] = useState<number | null>(
@@ -1166,6 +1167,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 			data-agent-session-id={session?.id}
 			data-agent-task-status={session?.currentTaskStatus ?? session?.status}
 			data-agent-session-hydrating={isSessionHydrating ? "true" : "false"}
+			data-agent-compact={compact ? "true" : "false"}
 			sx={{ display: "flex", flexDirection: "column", height, position: "relative" }}
 		>
 			{showHeader ? (
@@ -1228,8 +1230,8 @@ export default function AgentPanel(props: AgentPanelProps) {
 				// systems do not pull the viewport in opposite directions.
 				style={{ flex: 1, minHeight: 0, overflowAnchor: "none" }}
 			>
-				<Box ref={contentRef} sx={{ px: 3, py: 3, width: "100%", maxWidth: 1040, mx: "auto", boxSizing: "border-box" }}>
-					<Stack spacing={4} sx={{ visibility: isSessionHydrating ? "hidden" : "visible" }}>
+				<Box ref={contentRef} sx={{ px: compact ? 1.5 : 3, py: compact ? 1.25 : 3, width: "100%", maxWidth: 1040, mx: "auto", boxSizing: "border-box" }}>
+					<Stack spacing={compact ? 2.25 : 4} sx={{ visibility: isSessionHydrating ? "hidden" : "visible" }}>
 						{showEmptyState ? (
 							<Box
 								sx={{
@@ -1604,6 +1606,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 				/>
 			) : <>
 				<AgentComposer
+					compact={compact}
 					prompt={prompt}
 					loading={loading || continueLoadingTaskId !== null || finishHandoffLoadingTaskId !== null || stoppingTaskId !== null}
 						running={session?.currentTaskStatus === "RUNNING"}
@@ -1661,8 +1664,10 @@ export default function AgentPanel(props: AgentPanelProps) {
 						onClick={() => resumeFollowingOutput("smooth")}
 						sx={{
 							position: "absolute",
-							right: 24,
-							bottom: 168,
+							right: compact ? 12 : 24,
+							bottom: compact ? 104 : 168,
+							width: compact ? 40 : undefined,
+							height: compact ? 40 : undefined,
 							zIndex: 2,
 							backgroundColor: "rgba(255,255,255,0.08)",
 							backdropFilter: "blur(10px)",

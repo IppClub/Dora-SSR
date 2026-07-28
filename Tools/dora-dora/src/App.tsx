@@ -517,6 +517,19 @@ const isBodyLuaFile = (filePath: string) => filePath.toLowerCase().endsWith(".b.
 
 const editorBackground = <div style={{ width: '100%', height: '100%', backgroundColor: '#1a1a1a' }} />;
 const narrowSplitBreakpoint = 490;
+const compactAgentWidthBreakpoint = 760;
+const compactAgentHeightBreakpoint = 760;
+const viewportSettleDelay = 160;
+
+const getViewportSize = () => ({
+	width: Math.round(window.visualViewport?.width ?? window.innerWidth),
+	height: Math.round(window.visualViewport?.height ?? window.innerHeight),
+});
+
+const syncViewportSize = (size = getViewportSize()) => {
+	document.documentElement.style.setProperty("--dora-viewport-height", `${size.height}px`);
+	return size;
+};
 
 const Editor = memo((props: {
 	hidden?: boolean,
@@ -763,18 +776,21 @@ export default function PersistentDrawerLeft() {
 	const [entryFilter, setEntryFilter] = useState("");
 	const [drawerWidth, setDrawerWidth] = useState(Math.max(170, Info.drawerWidth ?? 300));
 	const [isResizing, setIsResizing] = useState(false);
-	const [winSize, setWinSize] = useState({
-		width: window.innerWidth,
-		height: window.innerHeight
-	});
-	const windowWidthRef = useRef(window.innerWidth);
-	const statusBarHeight = 26;
+	const [winSize, setWinSize] = useState(syncViewportSize);
+	const windowWidthRef = useRef(winSize.width);
+	const viewportHeightRef = useRef(winSize.height);
+	const activeLayoutFile = tabIndex !== null ? files.at(tabIndex) : undefined;
+	const compactAgentLayout = (winSize.width < compactAgentWidthBreakpoint || winSize.height < compactAgentHeightBreakpoint)
+		&& activeLayoutFile !== undefined
+		&& (activeLayoutFile.workspaceView ?? "agent") === "agent";
+	const appBarHeight = compactAgentLayout ? 40 : 48;
+	const statusBarHeight = compactAgentLayout ? 0 : 26;
 	const narrowLayout = winSize.width < narrowSplitBreakpoint;
 	const effectiveDrawerWidth = narrowLayout
 		? Math.floor(winSize.width * 0.82)
 		: drawerWidth;
 	const editorWidth = winSize.width - (drawerOpen && !narrowLayout ? drawerWidth : 0);
-	const editorHeight = winSize.height - 48 - statusBarHeight;
+	const editorHeight = winSize.height - appBarHeight - statusBarHeight;
 	const showFullLogo = drawerWidth > 235;
 	const onSplitterResizeEnd = useCallback((sizes: number[]) => {
 		setIsResizing(false);
@@ -1066,6 +1082,45 @@ export default function PersistentDrawerLeft() {
 	}, [entryFilter, entryView, gameEntries, toolEntries]);
 
 	useEffect(() => {
+		let viewportUpdateTimer: number | undefined;
+		const commitViewportSize = (nextSize = getViewportSize()) => {
+			viewportUpdateTimer = undefined;
+			syncViewportSize(nextSize);
+			if (
+				windowWidthRef.current >= narrowSplitBreakpoint &&
+				nextSize.width < narrowSplitBreakpoint
+			) {
+				setDrawerOpen(false);
+			}
+			windowWidthRef.current = nextSize.width;
+			viewportHeightRef.current = nextSize.height;
+			setWinSize(nextSize);
+		};
+		const scheduleViewportSize = () => {
+			if (viewportUpdateTimer !== undefined) {
+				window.clearTimeout(viewportUpdateTimer);
+			}
+			const nextSize = getViewportSize();
+			if (nextSize.height < viewportHeightRef.current) {
+				commitViewportSize(nextSize);
+				return;
+			}
+			viewportUpdateTimer = window.setTimeout(commitViewportSize, viewportSettleDelay);
+		};
+		window.addEventListener("resize", scheduleViewportSize);
+		window.visualViewport?.addEventListener("resize", scheduleViewportSize);
+		window.visualViewport?.addEventListener("scroll", scheduleViewportSize);
+		return () => {
+			window.removeEventListener("resize", scheduleViewportSize);
+			window.visualViewport?.removeEventListener("resize", scheduleViewportSize);
+			window.visualViewport?.removeEventListener("scroll", scheduleViewportSize);
+			if (viewportUpdateTimer !== undefined) {
+				window.clearTimeout(viewportUpdateTimer);
+			}
+		};
+	}, []);
+
+	useEffect(() => {
 		if (Info.version === undefined) {
 			addAlert(t("alert.getInfo"), "error");
 			return;
@@ -1102,20 +1157,6 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		}, true);
-		window.addEventListener("resize", () => {
-			const nextSize = {
-				width: window.innerWidth,
-				height: window.innerHeight
-			};
-			if (
-				windowWidthRef.current >= narrowSplitBreakpoint &&
-				nextSize.width < narrowSplitBreakpoint
-			) {
-				setDrawerOpen(false);
-			}
-			windowWidthRef.current = nextSize.width;
-			setWinSize(nextSize);
-		});
 		Service.addWSOpenListener(() => {
 			addAlert(t("log.open"), "success");
 			setDisconnected(false);
@@ -5270,7 +5311,8 @@ export default function PersistentDrawerLeft() {
 						backgroundColor: Color.BackgroundDark,
 						width: "100%",
 						color: Color.Primary,
-						minHeight: 48,
+						minHeight: appBarHeight,
+						height: appBarHeight,
 						pl: 2.2
 					}}>
 						<IconButton
@@ -5279,8 +5321,8 @@ export default function PersistentDrawerLeft() {
 							onClick={handleDrawerOpen}
 							edge="start"
 							sx={{
-								width: 36,
-								height: 36,
+								width: compactAgentLayout ? 32 : 36,
+								height: compactAgentLayout ? 32 : 36,
 								borderRadius: 1.5,
 								color: Color.Secondary,
 								backgroundColor: 'transparent',
@@ -5302,8 +5344,31 @@ export default function PersistentDrawerLeft() {
 								onChange={tabBarOnChange}
 								onMenuClick={onTabMenuClick}
 								onTabClose={onTabClose}
+								compact={compactAgentLayout}
 							/>
 						</Box>
+						{compactAgentLayout ? (
+							<Box sx={{
+								display: 'flex',
+								alignItems: 'center',
+								flexShrink: 0,
+								maxWidth: '44vw',
+								overflowX: 'auto',
+								overflowY: 'hidden',
+								scrollbarWidth: 'none',
+								'&::-webkit-scrollbar': { display: 'none' },
+							}}>
+								<PlayControl
+									compact
+									touch
+									onClick={onPlayControlClick}
+									showFirstProjectTour={!firstProjectTourCompleted}
+									buildProjectAction={{
+										onClick: () => void buildCurrentProject(),
+									}}
+								/>
+							</Box>
+						) : null}
 					</Toolbar>
 				</AppBar>
 				<Splitter
@@ -5646,9 +5711,10 @@ export default function PersistentDrawerLeft() {
 								hidden={!active}
 								drawerWidth={0}
 							>
-								<DrawerHeader />
+								<DrawerHeader sx={{ minHeight: compactAgentLayout && active ? appBarHeight : 48 }} />
 								<ProjectWorkspacePanel
 									active={active}
+									compact={compactAgentLayout && active}
 									title={file.title}
 									height={editorHeight}
 									uploadPath={file.key}
@@ -6208,40 +6274,42 @@ export default function PersistentDrawerLeft() {
 				<div style={{ position: 'fixed', left: winSize.width - editorWidth, bottom: statusBarHeight, width: editorWidth, zIndex: 998, transition: 'all 0.2s' }} hidden={!openBottomLog}>
 					<BottomLog active={openBottomLog} height={editorHeight * 0.3} onFixLog={onFixLog} />
 				</div>
-				<Box sx={{
-					position: 'fixed',
-					left: winSize.width - editorWidth,
-					bottom: 0,
-					width: editorWidth,
-					height: statusBarHeight,
-					zIndex: 999,
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'space-between',
-					px: 1,
-					backgroundColor: Color.BackgroundDark,
-					color: Color.TextSecondary,
-					fontSize: 12,
-					lineHeight: `${statusBarHeight}px`,
-				}}>
+				{compactAgentLayout ? null : <>
 					<Box sx={{
-						minWidth: 0,
-						overflow: 'hidden',
-						textOverflow: 'ellipsis',
-						whiteSpace: 'nowrap',
+						position: 'fixed',
+						left: winSize.width - editorWidth,
+						bottom: 0,
+						width: editorWidth,
+						height: statusBarHeight,
+						zIndex: 999,
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'space-between',
+						px: 1,
+						backgroundColor: Color.BackgroundDark,
+						color: Color.TextSecondary,
+						fontSize: 12,
+						lineHeight: `${statusBarHeight}px`,
 					}}>
+						<Box sx={{
+							minWidth: 0,
+							overflow: 'hidden',
+							textOverflow: 'ellipsis',
+							whiteSpace: 'nowrap',
+						}}>
+						</Box>
+						<Box sx={{ display: 'flex', alignItems: 'center', height: '100%', flexShrink: 0 }}>
+							<PlayControl
+								compact
+								onClick={onPlayControlClick}
+								showFirstProjectTour={!firstProjectTourCompleted}
+								buildProjectAction={{
+									onClick: () => void buildCurrentProject(),
+								}}
+							/>
+						</Box>
 					</Box>
-					<Box sx={{ display: 'flex', alignItems: 'center', height: '100%', flexShrink: 0 }}>
-						<PlayControl
-							compact
-							onClick={onPlayControlClick}
-							showFirstProjectTour={!firstProjectTourCompleted}
-							buildProjectAction={{
-								onClick: () => void buildCurrentProject(),
-							}}
-						/>
-					</Box>
-				</Box>
+				</>}
 				<div style={{ zIndex: 1200 }}>
 					<StyledStack>
 						<TransitionGroup>

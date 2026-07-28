@@ -25,6 +25,7 @@ function PanelFallback() {
 
 interface ProjectWorkspacePanelProps {
 	active?: boolean;
+	compact?: boolean;
 	title: string;
 	height: number;
 	uploadPath: string;
@@ -48,6 +49,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 	const { t } = useTranslation();
 	const {
 		active = true,
+		compact = false,
 		title,
 		height,
 		uploadPath,
@@ -76,7 +78,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 	const [mountedViews, setMountedViews] = React.useState<Set<WorkspaceView>>(
 		() => new Set([currentView]),
 	);
-	const headerHeight = 52;
+	const headerHeight = compact ? 44 : 52;
 	const fullDisplayPath = displayPath ?? uploadPath;
 	const normalizedDisplayPath = fullDisplayPath.replace(/\/+$/, "");
 	const parentSeparatorIndex = normalizedDisplayPath.lastIndexOf("/");
@@ -113,25 +115,27 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 	];
 
 	return (
-		<Box sx={{ display: "flex", flexDirection: "column", height }}>
+		<Box data-compact-agent-layout={compact ? "true" : "false"} sx={{ display: "flex", flexDirection: "column", height }}>
 			<Box sx={{
 				height: headerHeight,
-				px: 2,
+				px: compact ? 1.25 : 2,
 				borderBottom: `1px solid ${Color.Line}`,
 				backgroundColor: Color.BackgroundDark,
 				display: "flex",
 				alignItems: "center",
 				flexShrink: 0,
 			}}>
-				<Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between" sx={{ minWidth: 0, width: "100%" }}>
+				<Stack direction="row" spacing={compact ? 1 : 2} alignItems="center" justifyContent="space-between" sx={{ minWidth: 0, width: "100%" }}>
 					<Box sx={{ minWidth: 0, flex: 1 }}>
 						<Stack direction="row" spacing={1.25} alignItems="baseline" sx={{ minWidth: 0 }}>
-							<Typography variant="subtitle1" noWrap sx={{ color: Color.TextPrimary, fontWeight: 650, letterSpacing: "-0.01em", minWidth: 0, flexShrink: 1 }}>
+							<Typography variant={compact ? "body1" : "subtitle1"} noWrap sx={{ color: Color.TextPrimary, fontWeight: 650, letterSpacing: "-0.01em", minWidth: 0, flexShrink: 1 }}>
 								{title}
 							</Typography>
-							<Typography variant="caption" noWrap title={fullDisplayPath} sx={{ color: Color.TextSecondary, minWidth: 0, flex: 1 }}>
-								{contextualDisplayPath}
-							</Typography>
+							{compact ? null : (
+								<Typography variant="caption" noWrap title={fullDisplayPath} sx={{ color: Color.TextSecondary, minWidth: 0, flex: 1 }}>
+									{contextualDisplayPath}
+								</Typography>
+							)}
 						</Stack>
 					</Box>
 					<Stack
@@ -139,7 +143,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 						spacing={0.5}
 						sx={{
 							flexShrink: 0,
-							p: 0.5,
+							p: compact ? 0.25 : 0.5,
 							border: `1px solid ${Color.Line}`,
 							borderRadius: 2,
 							backgroundColor: Color.Background,
@@ -154,12 +158,12 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 								onClick={() => handleViewChange(tab.value)}
 								aria-pressed={currentView === tab.value}
 								sx={{
-									height: 30,
+									height: compact ? 28 : 30,
 									color: currentView === tab.value ? Color.Theme : Color.TextSecondary,
 									backgroundColor: currentView === tab.value ? Color.ThemeMuted : "transparent",
 									borderRadius: 1.25,
-									px: 1.4,
-									minWidth: 52,
+									px: compact ? 1 : 1.4,
+									minWidth: compact ? 44 : 52,
 									whiteSpace: "nowrap",
 									"&:hover": {
 										color: currentView === tab.value ? Color.Theme : Color.TextPrimary,
@@ -179,6 +183,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 						<React.Suspense fallback={<PanelFallback />}>
 							<AgentPanel
 								active={active && currentView === "agent"}
+								compact={compact}
 								sessionId={agentSessionId}
 								projectRoot={uploadPath}
 								title={title}
