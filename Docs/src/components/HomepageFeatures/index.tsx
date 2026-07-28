@@ -1,6 +1,7 @@
 import React, {JSX, useEffect, useRef, useState} from 'react';
 import clsx from 'clsx';
 import Translate from '@docusaurus/Translate';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './styles.module.css';
 
 const pixDora = require('@site/static/img/art/pixel/dora.png');
@@ -159,16 +160,6 @@ const ToolFeatureList: FeatureItem[] = [
 	},
 ];
 
-const languages = [
-	{src: require('@site/static/img/lang/lua.png').default, alt: 'Lua'},
-	{src: require('@site/static/img/lang/typescript.png').default, alt: 'TypeScript'},
-	{src: require('@site/static/img/lang/teal.png').default, alt: 'Teal'},
-	{src: require('@site/static/img/lang/yuescript.png').default, alt: 'YueScript'},
-	{src: '/img/lang/wa.svg', alt: 'Wa'},
-	{src: require('@site/static/img/lang/rust.png').default, alt: 'Rust', wide: true},
-	{src: '/img/lang/csharp.svg', alt: 'C#'},
-];
-
 function PromotionFeature({title, image, description}: FeatureItem) {
 	return (
 		<article className={styles.promotionFeature}>
@@ -201,6 +192,16 @@ function SectionHeading({id, children, mascot}: {id: string; children: React.Rea
 }
 
 export default function HomepageFeatures(): JSX.Element {
+	const languages = [
+		{src: require('@site/static/img/lang/lua.png').default, alt: 'Lua'},
+		{src: require('@site/static/img/lang/typescript.png').default, alt: 'TypeScript'},
+		{src: require('@site/static/img/lang/teal.png').default, alt: 'Teal'},
+		{src: require('@site/static/img/lang/yuescript.png').default, alt: 'YueScript'},
+		{src: useBaseUrl('/img/lang/wa.svg'), alt: 'Wa'},
+		{src: require('@site/static/img/lang/rust.png').default, alt: 'Rust', wide: true},
+		{src: useBaseUrl('/img/lang/csharp.svg'), alt: 'C#'},
+	];
+
 	return (
 		<section className={styles.features}>
 			<div className="container">
