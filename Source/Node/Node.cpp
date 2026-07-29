@@ -891,7 +891,11 @@ bool Node::update(double deltaTime) {
 		if (!_updateItem->scheduledThreadFuncs.empty()) {
 			auto funcs = std::move(_updateItem->scheduledThreadFuncs);
 			for (auto it = funcs.begin(); it != funcs.end();) {
-				if ((**it)(deltaTime)) {
+				bool finished = (**it)(deltaTime);
+				if (_flags.isOn(Node::Cleanup)) {
+					return true;
+				}
+				if (finished) {
 					it = funcs.erase(it);
 				} else {
 					it++;
