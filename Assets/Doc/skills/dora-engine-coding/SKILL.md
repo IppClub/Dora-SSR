@@ -253,12 +253,60 @@ Use this as a decision map. It is not a full API reference; exact signatures com
 
 ### Generated game music workflow
 
-- Use `generate_music` for an original loop. Match `style`, `intensity`, key/mode, BPM, and structure to the requested gameplay state instead of asking for an external audio file.
-- Enable `stems` when gameplay intensity changes at runtime. Create synchronized `AudioSource` nodes for `_melody.wav`, `_bass.wav`, `_harmony.wav`, and `_drums.wav`, start them together, and mix their volumes by game state.
-- Use `intro_bars`, `outro_bars`, and `stinger` for transitions instead of abruptly starting or stopping the main loop.
-- Every generation produces a `.music.json` project. Use `generate_music_variation` with that sidecar to create compatible exploration/combat/boss variants while preserving tempo, key, form, and instruments.
-- Enable `export_midi` when the user wants to continue arranging in a DAW. Runtime playback should still use the generated WAV assets.
-- Generated music synthesis is frame-chunked and cancellable. Do not replace its temporary files or report completion until the tool returns success and lists every written companion asset.
+Use two layers instead of exposing every synthesizer control as tool arguments:
+
+1. **Fast path — `generate_music`:** provide `path`, `style`, and only the optional controls that matter (`seed`, `duration`, `bpm`, `intensity`, `tonality`, `asset_pack`). `tonality` accepts compact values such as `D minor` or `F# dorian`. Choose `asset_pack=loop` for one loop, `adaptive` for synchronized stems, `cinematic` for intro/outro/stingers, or `full` for all companion assets plus MIDI.
+2. **Advanced path — typed Audio DSL:** when the request needs exact form, chord progression, instruments, effects, or export settings, write a project TypeScript module ending in `.audio.ts`. Import `defineMusic` and `renderMusic` from `Agent/AudioDSL`; do not hand-write the generated Lua or pass dozens of scalar tool arguments.
+
+A complete advanced module follows this shape:
+
+```ts
+import { defineMusic, renderMusic } from 'Agent/AudioDSL';
+import type { AudioJobHooks } from 'Agent/AudioDSL';
+
+const job = defineMusic({
+	output: 'Audio/frostline_theme.wav',
+	composition: {
+		style: 'tense',
+		seed: 2407,
+		duration: 24,
+		tempo: 132,
+		key: 'D',
+		mode: 'dorian',
+		progression: ['i', 'VI', 'III', 'VII'],
+		structure: ['A', 'A', 'B', 'A'],
+	},
+	arrangement: {
+		intensity: 0.72,
+		barsPerSection: 2,
+		melodyComplexity: 0.6,
+		rhythmComplexity: 0.7,
+		variation: 0.3,
+	},
+	instruments: { lead: 'pulse', bass: 'sub', harmony: 'pad' },
+	effects: { volume: 0.65, stereo: true, reverb: 0.25, delay: 0.12 },
+	exports: { stems: true, introBars: 1, outroBars: 1, stinger: 'both', midi: true },
+});
+
+export function run(
+	workDir: string,
+	isCancelled?: () => boolean,
+	onProgress?: AudioJobHooks['onProgress'],
+) {
+	return renderMusic(workDir, job, { isCancelled, onProgress });
+}
+```
+
+Build the `.audio.ts` module first so TypeScript catches invalid field names and enum values. Then execute the compiled module with `execute_command` in Lua mode:
+
+```lua
+local audioJob = requireProjectModule("Audio.FrostlineTheme.audio")
+return audioJob.run(projectDir, isCancelled, reportProgress)
+```
+
+`execute_command` runs Lua in a coroutine, forwards `reportProgress`, exposes cancellation through `isCancelled`, and awaits a returned TypeScriptToLua Promise. The successful tool result contains the returned generation result as `value`; do not add a polling loop around it.
+
+Every generation writes a `.music.json` project. Use `generate_music_variation` with that sidecar for compatible alternate intensity or mutation takes. For adaptive playback, start `_melody.wav`, `_bass.wav`, `_harmony.wav`, and `_drums.wav` together on synchronized `AudioSource` nodes and mix their volumes by game state. Use `Audio.playStream` for long music and `Audio.play` for short effects.
 
 ## Implementation Workflow
 

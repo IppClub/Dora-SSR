@@ -1,5 +1,10 @@
 -- [ts]: AudioToolRuntime.ts
 local ____lualib = require("lualib_bundle") -- 1
+local __TS__StringTrim = ____lualib.__TS__StringTrim -- 1
+local __TS__StringSplit = ____lualib.__TS__StringSplit -- 1
+local __TS__ArrayFilter = ____lualib.__TS__ArrayFilter -- 1
+local __TS__ArraySlice = ____lualib.__TS__ArraySlice -- 1
+local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf -- 1
 local __TS__AsyncAwaiter = ____lualib.__TS__AsyncAwaiter -- 1
 local __TS__Await = ____lualib.__TS__Await -- 1
 local ____exports = {} -- 1
@@ -31,14 +36,51 @@ end -- 40
 local function optionalNumberParam(params, name) -- 44
 	return type(params[name]) == "number" and params[name] or nil -- 45
 end -- 44
-local function optionalBooleanParam(params, name) -- 48
-	local ____temp_0 -- 49
-	if type(params[name]) == "boolean" then -- 49
-		____temp_0 = params[name] -- 49
-	else -- 49
-		____temp_0 = nil -- 49
+local function parseTonality(value) -- 48
+	local text = __TS__StringTrim(value or "auto") -- 49
+	if text == "" or string.lower(text) == "auto" then -- 49
+		return {} -- 50
 	end -- 49
-	return ____temp_0 -- 49
+	local parts = __TS__ArrayFilter( -- 51
+		__TS__StringSplit(text, " "), -- 51
+		function(____, part) return part ~= "" end -- 51
+	) -- 51
+	local ____opt_0 = parts[1] -- 51
+	local key = ____opt_0 and string.upper(parts[1]) -- 52
+	local mode = #parts > 1 and string.lower(table.concat( -- 53
+		__TS__ArraySlice(parts, 1), -- 53
+		"_" -- 53
+	)) or nil -- 53
+	local validKeys = { -- 54
+		"C", -- 54
+		"C#", -- 54
+		"D", -- 54
+		"D#", -- 54
+		"E", -- 54
+		"F", -- 54
+		"F#", -- 54
+		"G", -- 54
+		"G#", -- 54
+		"A", -- 54
+		"A#", -- 54
+		"B" -- 54
+	} -- 54
+	local validModes = { -- 55
+		"major", -- 55
+		"minor", -- 55
+		"pentatonic", -- 55
+		"harmonic_minor", -- 55
+		"dorian", -- 55
+		"phrygian", -- 55
+		"chromatic" -- 55
+	} -- 55
+	if not key or __TS__ArrayIndexOf(validKeys, key) < 0 then -- 55
+		return {error = ("invalid tonality '" .. text) .. "': expected a key such as D or F# dorian"} -- 56
+	end -- 56
+	if mode ~= nil and __TS__ArrayIndexOf(validModes, mode) < 0 then -- 56
+		return {error = ((("invalid tonality '" .. text) .. "': unknown mode '") .. mode) .. "'"} -- 57
+	end -- 57
+	return {key = key, mode = mode} -- 58
 end -- 48
 function ____exports.executeAudioTool(req) -- 52
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 52
@@ -65,7 +107,6 @@ function ____exports.executeAudioTool(req) -- 52
 					project = stringParam(params, "project"), -- 68
 					path = stringParam(params, "path"), -- 69
 					seed = optionalNumberParam(params, "seed"), -- 70
-					style = optionalStringParam(params, "style"), -- 71
 					intensity = optionalNumberParam(params, "intensity"), -- 72
 					variation = optionalNumberParam(params, "variation"), -- 73
 					isCancelled = req.isCancelled, -- 74
@@ -73,6 +114,30 @@ function ____exports.executeAudioTool(req) -- 52
 				}) -- 75
 			) -- 75
 		end -- 75
+		local tonality = parseTonality(optionalStringParam(params, "tonality")) -- 86
+		local assetPack = optionalStringParam(params, "asset_pack") or "loop" -- 87
+		if tonality.error then -- 87
+			return ____awaiter_resolve( -- 87
+				nil, -- 87
+				{ -- 88
+					success = false, -- 88
+					path = stringParam(params, "path"), -- 88
+					message = tonality.error -- 88
+				} -- 88
+			) -- 88
+		end -- 88
+		if __TS__ArrayIndexOf({"loop", "adaptive", "cinematic", "full"}, assetPack) < 0 then -- 88
+			return ____awaiter_resolve( -- 88
+				nil, -- 88
+				{ -- 90
+					success = false, -- 90
+					path = stringParam(params, "path"), -- 90
+					message = ("invalid asset_pack '" .. assetPack) .. "'" -- 90
+				} -- 90
+			) -- 90
+		end -- 90
+		local cinematic = assetPack == "cinematic" or assetPack == "full" -- 92
+		local adaptive = assetPack == "adaptive" or assetPack == "full" -- 93
 		return ____awaiter_resolve( -- 75
 			nil, -- 75
 			AudioGenerator.generateMusic({ -- 78
@@ -82,31 +147,14 @@ function ____exports.executeAudioTool(req) -- 52
 				seed = optionalNumberParam(params, "seed"), -- 82
 				duration = optionalNumberParam(params, "duration"), -- 83
 				bpm = optionalNumberParam(params, "bpm"), -- 84
-				volume = optionalNumberParam(params, "volume"), -- 85
 				intensity = optionalNumberParam(params, "intensity"), -- 86
-				key = optionalStringParam(params, "key"), -- 87
-				mode = optionalStringParam(params, "mode"), -- 88
-				progression = optionalStringParam(params, "progression"), -- 89
-				structure = optionalStringParam(params, "structure"), -- 90
-				barsPerSection = optionalNumberParam(params, "bars_per_section"), -- 91
-				melodyComplexity = optionalNumberParam(params, "melody_complexity"), -- 92
-				rhythmComplexity = optionalNumberParam(params, "rhythm_complexity"), -- 93
-				variation = optionalNumberParam(params, "variation"), -- 94
-				leadInstrument = optionalStringParam(params, "lead_instrument"), -- 95
-				bassInstrument = optionalStringParam(params, "bass_instrument"), -- 96
-				harmonyInstrument = optionalStringParam(params, "harmony_instrument"), -- 97
-				stereo = optionalBooleanParam(params, "stereo"), -- 98
-				reverb = optionalNumberParam(params, "reverb"), -- 99
-				delay = optionalNumberParam(params, "delay"), -- 100
-				chorus = optionalNumberParam(params, "chorus"), -- 101
-				distortion = optionalNumberParam(params, "distortion"), -- 102
-				bitCrush = optionalNumberParam(params, "bit_crush"), -- 103
-				lowPass = optionalNumberParam(params, "low_pass"), -- 104
-				stems = optionalBooleanParam(params, "stems"), -- 105
-				introBars = optionalNumberParam(params, "intro_bars"), -- 106
-				outroBars = optionalNumberParam(params, "outro_bars"), -- 107
-				stinger = optionalStringParam(params, "stinger"), -- 108
-				exportMidi = optionalBooleanParam(params, "export_midi"), -- 109
+				key = tonality.key, -- 102
+				mode = tonality.mode, -- 103
+				stems = adaptive, -- 104
+				introBars = cinematic and 1 or 0, -- 105
+				outroBars = cinematic and 1 or 0, -- 106
+				stinger = cinematic and "both" or "none", -- 107
+				exportMidi = assetPack == "full", -- 108
 				isCancelled = req.isCancelled, -- 110
 				onProgress = req.onProgress -- 111
 			}) -- 111

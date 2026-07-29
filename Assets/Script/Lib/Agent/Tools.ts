@@ -264,6 +264,7 @@ export type ExecuteCommandResult = {
 	mode: ExecuteCommandMode;
 	output: string;
 	cwd?: string;
+	value?: unknown;
 } | {
 	success: false;
 	mode?: ExecuteCommandMode;
@@ -2547,6 +2548,20 @@ const EXECUTE_COMMAND_ERROR_MAX = 4000;
 const LUA_COMMAND_DEFAULT_TIMEOUT_SECONDS = 30;
 let agentEntryRuntimeOwner = "";
 
+interface TSTLPromiseValue {
+	state: number;
+	value?: unknown;
+	rejectionReason?: unknown;
+	addCallbacks: unknown;
+}
+
+function asTSTLPromiseValue(value: unknown): TSTLPromiseValue | undefined {
+	if (!value || type(value) !== "table") return undefined;
+	const record = value as Record<string, unknown>;
+	if (typeof record.state !== "number" || typeof record.addCallbacks !== "function") return undefined;
+	return record as unknown as TSTLPromiseValue;
+}
+
 function truncateCommandOutput(output: string): string {
 	if (output.length <= EXECUTE_COMMAND_OUTPUT_MAX) return output;
 	return `${output.slice(0, EXECUTE_COMMAND_OUTPUT_MAX)}\n... output truncated ...`;
@@ -2571,6 +2586,7 @@ function executeLuaCommand(req: {
 	}
 	const output: string[] = [];
 	const entry = require("Script.Dev.Entry") as DevEntryModule;
+	let commandAborted = false;
 	let ownsEntryRuntime = false;
 	let entryObjectBaseline = 0;
 	let entryLuaRefBaseline = 0;
@@ -2645,6 +2661,23 @@ function executeLuaCommand(req: {
 	};
 	const env = setmetatable({
 		projectDir: req.workDir,
+		isCancelled: () => commandAborted || req.isCancelled?.() === true,
+		reportProgress: (value: unknown, callbackValue?: unknown) => {
+			const actualValue = callbackValue ?? value;
+			if (!req.onProgress || !actualValue || type(actualValue) !== "table") return;
+			const progress = actualValue as Record<string, unknown>;
+			let amount: number | undefined;
+			if (typeof progress.percent === "number") amount = math.min(1, math.max(0, progress.percent / 100));
+			else if (typeof progress.progress === "number") amount = math.min(1, math.max(0, progress.progress));
+			req.onProgress({
+				state: "running",
+				mode: "lua",
+				operationId: req.operationId,
+				progress: amount,
+				stage: typeof progress.stage === "string" ? progress.stage : "lua",
+				message: typeof progress.message === "string" ? progress.message : "Lua command running",
+			});
+		},
 		requireProjectModule: (moduleNameValue: unknown, reloadModulesValue?: unknown): unknown => {
 			if (typeof moduleNameValue !== "string") {
 				error("requireProjectModule expects a project module name string");
@@ -2737,12 +2770,16 @@ function executeLuaCommand(req: {
 	}
 	return new Promise(resolve => {
 		let settled = false;
+		let started = false;
+		let frameTimedOut = false;
+		let watchdogMessage: string | undefined;
 		const startedAt = App.runningTime;
-		const onProgress = req.onProgress;
-		const isCancelled = req.isCancelled;
+		const previousGlobalPrint = _G["print"];
 		const finish = (result: ExecuteCommandResult) => {
 			if (settled) return;
 			settled = true;
+			commandAborted = true;
+			_G["print"] = previousGlobalPrint;
 			const cleanupError = stopOwnedEntry();
 			if (!result.success && cleanupError !== undefined) {
 				result.cleanupError = cleanupError;
@@ -2759,8 +2796,8 @@ function executeLuaCommand(req: {
 			}
 			resolve(result);
 		};
-		if (onProgress) {
-			onProgress({
+		if (req.onProgress) {
+			req.onProgress({
 				state: "pending",
 				mode: "lua",
 				operationId: req.operationId,
@@ -2768,9 +2805,27 @@ function executeLuaCommand(req: {
 				message: "Lua command pending",
 			});
 		}
+		const commandThread = coroutine.create(() => {
+			let value = fn();
+			const promise = asTSTLPromiseValue(value);
+			if (promise !== undefined) {
+				while (promise.state === 0) coroutine.yield(false);
+				if (promise.state === 2) error(tostring(promise.rejectionReason));
+				value = promise.value;
+			}
+			return value;
+		});
+		debug.sethook(commandThread, () => {
+			watchdogMessage ??= checkEntryWatchdog();
+			if (watchdogMessage !== undefined) error(watchdogMessage);
+			if (App.elapsedTime >= AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds) {
+				frameTimedOut = true;
+				error(`Lua command exceeded ${tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)} seconds in one game frame`);
+			}
+		}, "", AgentConfig.AGENT_LIMITS.executeCommandHookInstructionCount);
 		Director.systemScheduler.schedule(() => {
 			if (settled) return true;
-			const watchdogMessage = checkEntryWatchdog();
+			watchdogMessage ??= checkEntryWatchdog();
 			if (watchdogMessage !== undefined) {
 				finish({
 					success: false,
@@ -2782,7 +2837,8 @@ function executeLuaCommand(req: {
 				});
 				return true;
 			}
-			if (isCancelled && isCancelled()) {
+			if (req.isCancelled?.() === true) {
+				commandAborted = true;
 				finish({
 					success: false,
 					mode: "lua",
@@ -2794,6 +2850,7 @@ function executeLuaCommand(req: {
 				return true;
 			}
 			if (App.runningTime - startedAt >= req.timeoutSeconds) {
+				commandAborted = true;
 				finish({
 					success: false,
 					mode: "lua",
@@ -2803,12 +2860,9 @@ function executeLuaCommand(req: {
 				});
 				return true;
 			}
-			return false;
-		});
-		Director.systemScheduler.schedule(once(() => {
-			if (settled) return;
-			if (onProgress) {
-				onProgress({
+			if (!started) {
+				started = true;
+				req.onProgress?.({
 					state: "running",
 					mode: "lua",
 					operationId: req.operationId,
@@ -2816,42 +2870,33 @@ function executeLuaCommand(req: {
 					message: "Lua command running",
 				});
 			}
-			const previousGlobalPrint = _G["print"];
-			const [previousHook, previousHookMask, previousHookCount] = debug.gethook();
-			let frameTimedOut = false, watchdogMessage: string | undefined;
 			_G["print"] = capturePrint;
-			debug.sethook(() => {
-				watchdogMessage ??= checkEntryWatchdog();
-				if (watchdogMessage !== undefined) error(watchdogMessage);
-				if (App.elapsedTime >= AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds) {
-					frameTimedOut = true;
-					error(`Lua command exceeded ${tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)} seconds in one game frame`);
-				}
-			}, "", AgentConfig.AGENT_LIMITS.executeCommandHookInstructionCount);
-			const [ok, runtimeErr] = pcall(fn);
-			if (previousHook !== undefined && previousHookMask !== undefined && previousHookCount !== undefined) {
-				debug.sethook(
-					previousHook as (event: "call" | "tail call" | "return" | "line" | "count", line?: number) => unknown,
-					previousHookMask,
-					previousHookCount,
-				);
-			} else {
-				debug.sethook();
-			}
+			const [ok, commandValue] = coroutine.resume(commandThread);
 			_G["print"] = previousGlobalPrint;
 			if (!ok) {
 				finish({
 					success: false,
 					mode: "lua",
 					output: truncateCommandOutput(output.join("\n")),
-					message: watchdogMessage ?? (frameTimedOut ? `Lua command exceeded ${tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)} seconds in one game frame` : truncateCommandError(toStr(runtimeErr))),
+					message: watchdogMessage ?? (frameTimedOut
+						? `Lua command exceeded ${tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)} seconds in one game frame`
+						: truncateCommandError(toStr(commandValue))),
 					phase: frameTimedOut ? "timeout" : "execute",
 					interrupted: watchdogMessage !== undefined || frameTimedOut ? true : undefined,
 				});
-				return;
+				return true;
 			}
-			finish({ success: true, mode: "lua", output: truncateCommandOutput(output.join("\n")) });
-		}));
+			if (coroutine.status(commandThread) === "dead") {
+				finish({
+					success: true,
+					mode: "lua",
+					output: truncateCommandOutput(output.join("\n")),
+					value: commandValue,
+				});
+				return true;
+			}
+			return false;
+		});
 	});
 }
 

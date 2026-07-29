@@ -338,100 +338,17 @@ ____exports.AGENT_TOOL_PROMPTS = { -- 184
 			{name = "seed", type = "number", description = "Optional integer seed controlling the key, progression, melody, and arrangement. The same arguments reproduce the same track."}, -- 347
 			{name = "duration", type = "number", description = "Approximate duration in seconds, clamped to 4-32 and rounded to complete 4/4 bars for seamless looping. Defaults to 16."}, -- 348
 			{name = "bpm", type = "number", description = "Optional tempo from 60 to 200 BPM. Each style has its own default."}, -- 349
-			{name = "volume", type = "number", description = "Optional master volume from 0 to 1. Defaults to 0.65."}, -- 350
 			{name = "intensity", type = "number", description = "Arrangement intensity from 0 to 1. Controls drums, bass activity, harmony density, and melodic range. Defaults to 0.6."}, -- 351
-			{name = "key", type = "string", enum = { -- 352
-				"random", -- 352
-				"C", -- 352
-				"C#", -- 352
-				"D", -- 352
-				"D#", -- 352
-				"E", -- 352
-				"F", -- 352
-				"F#", -- 352
-				"G", -- 352
-				"G#", -- 352
-				"A", -- 352
-				"A#", -- 352
-				"B" -- 352
-			}, description = "Optional musical key. Defaults to random."}, -- 352
-			{name = "mode", type = "string", enum = { -- 353
-				"auto", -- 353
-				"major", -- 353
-				"minor", -- 353
-				"pentatonic", -- 353
-				"harmonic_minor", -- 353
-				"dorian", -- 353
-				"phrygian", -- 353
-				"chromatic" -- 353
-			}, description = "Optional scale or mode. auto uses the style default."}, -- 353
-			{name = "progression", type = "string", description = "Optional comma-separated Roman-numeral chord progression, e.g. i,VI,III,VII or I,V,vi,IV."}, -- 354
-			{name = "structure", type = "string", description = "Comma-separated section form such as A,A,B,A. Repeated labels reproduce the same motif. Defaults to A,A,B,A."}, -- 355
-			{name = "bars_per_section", type = "number", description = "Bars per structure section, clamped to 1-8. Defaults to 2."}, -- 356
-			{name = "melody_complexity", type = "number", description = "Melodic density, interval range, and ornamentation from 0 to 1. Defaults to 0.55."}, -- 357
-			{name = "rhythm_complexity", type = "number", description = "Rhythmic activity and syncopation from 0 to 1. Defaults to 0.45."}, -- 358
-			{name = "variation", type = "number", description = "Amount of section-to-section mutation from 0 to 1. Defaults to 0.25."}, -- 359
-			{name = "lead_instrument", type = "string", enum = { -- 360
-				"auto", -- 360
-				"square", -- 360
-				"pulse", -- 360
-				"saw", -- 360
-				"triangle", -- 360
-				"sine", -- 360
-				"organ", -- 360
-				"bell", -- 360
-				"pluck", -- 360
-				"fm", -- 360
-				"pad", -- 360
-				"guitar", -- 360
-				"strings" -- 360
-			}, description = "Lead synthesizer voice. auto uses the style default."}, -- 360
-			{name = "bass_instrument", type = "string", enum = { -- 361
-				"auto", -- 361
-				"square", -- 361
-				"pulse", -- 361
-				"saw", -- 361
-				"triangle", -- 361
-				"sine", -- 361
-				"organ", -- 361
-				"pluck", -- 361
-				"fm", -- 361
-				"sub", -- 361
-				"guitar" -- 361
-			}, description = "Bass synthesizer voice."}, -- 361
-			{name = "harmony_instrument", type = "string", enum = { -- 362
-				"auto", -- 362
-				"square", -- 362
-				"pulse", -- 362
-				"saw", -- 362
-				"triangle", -- 362
-				"sine", -- 362
-				"organ", -- 362
-				"bell", -- 362
-				"pluck", -- 362
-				"fm", -- 362
-				"pad", -- 362
-				"guitar", -- 362
-				"strings" -- 362
-			}, description = "Arpeggio and pad synthesizer voice."}, -- 362
-			{name = "stereo", type = "boolean", description = "Generate stereo audio with per-part panning. Defaults to true."}, -- 363
-			{name = "reverb", type = "number", description = "Reverb amount from 0 to 1. Defaults to the style preset."}, -- 364
-			{name = "delay", type = "number", description = "Tempo-synced delay amount from 0 to 1. Defaults to the style preset."}, -- 365
-			{name = "chorus", type = "number", description = "Stereo chorus width from 0 to 1. Defaults to the style preset."}, -- 366
-			{name = "distortion", type = "number", description = "Soft distortion amount from 0 to 1. Defaults to the style preset."}, -- 367
-			{name = "bit_crush", type = "number", description = "Bit-crusher amount from 0 to 1. Zero disables it."}, -- 368
-			{name = "low_pass", type = "number", description = "Low-pass filtering amount from 0 to 1. Zero disables it; higher values make the mix darker."}, -- 369
-			{name = "stems", type = "boolean", description = "Also export synchronized melody, bass, harmony, and drums WAV stems."}, -- 370
-			{name = "intro_bars", type = "number", description = "Export a separate intro segment with 0-8 bars. Defaults to 0."}, -- 371
-			{name = "outro_bars", type = "number", description = "Export a separate outro segment with 0-8 bars. Defaults to 0."}, -- 372
-			{name = "stinger", type = "string", enum = {"none", "victory", "failure", "both"}, description = "Optionally export one-bar victory and/or failure stingers."}, -- 373
-			{name = "export_midi", type = "boolean", description = "Also export the generated note arrangement as a Standard MIDI file."} -- 374
+			{name = "tonality", type = "string", description = "Optional compact key and mode such as D, D minor, F# dorian, or auto. Defaults to the style preset."}, -- 351
+			{name = "asset_pack", type = "string", enum = {"loop", "adaptive", "cinematic", "full"}, description = "Output bundle: loop writes the main WAV; adaptive adds synchronized stems; cinematic adds intro, outro, and stingers; full adds all of those plus MIDI. Defaults to loop."} -- 352
 		}, -- 374
 		rules = { -- 376
 			"Generated music is deterministic 16-bit 44.1 kHz PCM WAV and consists of complete 4/4 bars with click-free loop boundaries.", -- 377
 			"Use Audio.playStream for generated background music; reserve Audio.play for short WAV sound effects.", -- 378
-			"When stems are enabled, create synchronized AudioSource nodes for _melody, _bass, _harmony, and _drums, start them together, and adapt intensity through their volumes.", -- 379
-			"Every generation writes a .music.json sidecar that can be passed to generate_music_variation; optional MIDI output can be continued in a DAW.", -- 380
+			"Use asset_pack=adaptive when runtime intensity mixing needs synchronized _melody, _bass, _harmony, and _drums stems.", -- 357
+			"Use asset_pack=cinematic for intro/outro/stingers, or full for stems, transitions, and MIDI together.", -- 358
+			"Every generation writes a .music.json sidecar that can be passed to generate_music_variation.", -- 359
+			"For detailed composition, instruments, effects, form, and export control, author a typed Agent/AudioDSL TypeScript module as described by the Dora coding skill, build it, then run it through execute_command.", -- 360
 			"Try a different seed for another composition while keeping the same style, duration, and BPM.", -- 381
 			"The success result reports the actual bar-rounded duration, tempo, key, style, byte size, and seed." -- 382
 		} -- 382
@@ -445,13 +362,6 @@ ____exports.AGENT_TOOL_PROMPTS = { -- 184
 			{name = "project", type = "string", required = true, description = "Workspace-relative .music.json project path."}, -- 391
 			{name = "path", type = "string", required = true, description = "Workspace-relative output WAV path for the new variation."}, -- 392
 			{name = "seed", type = "number", description = "Optional replacement seed. Omit to deterministically derive the next seed from the project."}, -- 393
-			{name = "style", type = "string", enum = { -- 394
-				"chiptune", -- 394
-				"adventure", -- 394
-				"calm", -- 394
-				"tense", -- 394
-				"victory" -- 394
-			}, description = "Optional style override."}, -- 394
 			{name = "intensity", type = "number", description = "Optional intensity override from 0 to 1."}, -- 395
 			{name = "variation", type = "number", description = "Optional mutation amount override from 0 to 1."} -- 396
 		}, -- 396
@@ -470,7 +380,7 @@ ____exports.AGENT_TOOL_PROMPTS = { -- 184
 				enum = {"lua", "git"}, -- 409
 				description = "Use lua for a short Lua snippet inside the Dora engine, or git for a supported Git command handled by the engine Git client." -- 409
 			}, -- 409
-			{name = "code", type = "string", description = "Raw Lua code to execute when mode is lua. YueScript is not supported. Use print(...) for output that should appear in the tool result."}, -- 410
+			{name = "code", type = "string", description = "Raw Lua code to execute when mode is lua. YueScript is not supported. The command may yield across frames and may return a value or a TypeScriptToLua Promise."}, -- 389
 			{name = "command", type = "string", description = "Git command to execute when mode is git. The command may start with git, but shell syntax, pipes, redirects, and git -C are not supported."}, -- 411
 			{name = "cwd", type = "string", description = "Optional project-relative directory for non-clone git commands. Defaults to the project root. Use this for Git operations inside a cloned sub-repository instead of git -C."}, -- 412
 			{name = "timeoutSeconds", type = "number", description = "Optional total command timeout. Defaults to 30 seconds for Lua and 600 seconds for Git. Lua mode also interrupts a command thread that occupies one game frame for 5 seconds, but cannot interrupt a blocking native call."} -- 413
@@ -480,11 +390,11 @@ ____exports.AGENT_TOOL_PROMPTS = { -- 184
 			"Lua mode accepts raw Lua code only; do not send YueScript syntax.", -- 417
 			"Lua mode runs with a temporary environment whose global lookups fall back to Dora APIs; global writes stay in that one command and are not shared with later commands.", -- 418
 			"Lua command code is checked every 10,000 VM instructions against App.elapsedTime. A command thread that occupies one game frame for 5 seconds is interrupted; time spent yielded across frames does not accumulate toward this per-frame limit, and blocking native calls remain non-interruptible.", -- 419
-			"Lua mode exposes projectDir, refreshTree(path?), getEntryStatus(), enterEntryAsync(entry), and stopEntry(). getEntryStatus() returns a table containing success and running booleans.", -- 420
+			"Lua mode exposes projectDir, isCancelled(), reportProgress(progress), refreshTree(path?), getEntryStatus(), enterEntryAsync(entry), and stopEntry(). getEntryStatus() returns a table containing success and running booleans.", -- 399
 			"enterEntryAsync runs a built project-relative Lua entry as an isolated Agent test. The tool automatically stops an entry it started when the command succeeds, fails, is canceled, or times out.", -- 421
 			"An Entry watchdog checks live Dora object and Lua-reference growth every frame and from the Lua instruction hook. Growth of 50,000 C++ objects or 10,000 Lua references stops the test, runs Entry cleanup, and returns the measured growth; replace such tests with bounded entities and fixed simulation steps.", -- 422
 			"Call refreshTree(\"relative/file\") after single-file changes, or refreshTree() after directory or bulk changes.", -- 423
-			"Lua mode returns only text printed with print(...). It does not return arbitrary Lua return values.", -- 424
+			"Lua mode runs as a coroutine and awaits a returned TypeScriptToLua Promise without blocking the game frame. Its success result includes the command return value when present, in addition to captured print output.", -- 403
 			"Only one Agent command may own the Dora entry runtime at a time. If it is busy, retry later instead of waiting inside the command.", -- 425
 			"Git mode uses the engine Git client, not a system shell. Supported commands follow Dora Git API support.", -- 426
 			"Git mode accepts cwd for non-clone commands. cwd must be a project-relative existing directory. Do not use git -C.", -- 427

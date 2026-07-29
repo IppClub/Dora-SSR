@@ -45,8 +45,17 @@ function optionalNumberParam(params: Record<string, unknown>, name: string): num
 	return typeof params[name] === "number" ? params[name] as number : undefined;
 }
 
-function optionalBooleanParam(params: Record<string, unknown>, name: string): boolean | undefined {
-	return typeof params[name] === "boolean" ? params[name] as boolean : undefined;
+function parseTonality(value: string | undefined): { key?: string; mode?: string; error?: string } {
+	const text = (value ?? "auto").trim();
+	if (text === "" || text.toLowerCase() === "auto") return {};
+	const parts = text.split(" ").filter(part => part !== "");
+	const key = parts[0]?.toUpperCase();
+	const mode = parts.length > 1 ? parts.slice(1).join("_").toLowerCase() : undefined;
+	const validKeys: string[] = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+	const validModes: string[] = ["major", "minor", "pentatonic", "harmonic_minor", "dorian", "phrygian", "chromatic"];
+	if (!key || validKeys.indexOf(key) < 0) return { error: `invalid tonality '${text}': expected a key such as D or F# dorian` };
+	if (mode !== undefined && validModes.indexOf(mode) < 0) return { error: `invalid tonality '${text}': unknown mode '${mode}'` };
+	return { key, mode };
 }
 
 export async function executeAudioTool(req: AudioToolExecutionRequest): Promise<AudioGenerator.GenerateSfxResult | AudioGenerator.GenerateMusicResult> {
@@ -68,13 +77,20 @@ export async function executeAudioTool(req: AudioToolExecutionRequest): Promise<
 			project: stringParam(params, "project"),
 			path: stringParam(params, "path"),
 			seed: optionalNumberParam(params, "seed"),
-			style: optionalStringParam(params, "style"),
 			intensity: optionalNumberParam(params, "intensity"),
 			variation: optionalNumberParam(params, "variation"),
 			isCancelled: req.isCancelled,
 			onProgress: req.onProgress,
 		});
 	}
+	const tonality = parseTonality(optionalStringParam(params, "tonality"));
+	const assetPack = optionalStringParam(params, "asset_pack") ?? "loop";
+	if (tonality.error) return { success: false, path: stringParam(params, "path"), message: tonality.error };
+	if (["loop", "adaptive", "cinematic", "full"].indexOf(assetPack) < 0) {
+		return { success: false, path: stringParam(params, "path"), message: `invalid asset_pack '${assetPack}'` };
+	}
+	const cinematic = assetPack === "cinematic" || assetPack === "full";
+	const adaptive = assetPack === "adaptive" || assetPack === "full";
 	return AudioGenerator.generateMusic({
 		workDir: req.workDir,
 		path: stringParam(params, "path"),
@@ -82,31 +98,14 @@ export async function executeAudioTool(req: AudioToolExecutionRequest): Promise<
 		seed: optionalNumberParam(params, "seed"),
 		duration: optionalNumberParam(params, "duration"),
 		bpm: optionalNumberParam(params, "bpm"),
-		volume: optionalNumberParam(params, "volume"),
 		intensity: optionalNumberParam(params, "intensity"),
-		key: optionalStringParam(params, "key"),
-		mode: optionalStringParam(params, "mode"),
-		progression: optionalStringParam(params, "progression"),
-		structure: optionalStringParam(params, "structure"),
-		barsPerSection: optionalNumberParam(params, "bars_per_section"),
-		melodyComplexity: optionalNumberParam(params, "melody_complexity"),
-		rhythmComplexity: optionalNumberParam(params, "rhythm_complexity"),
-		variation: optionalNumberParam(params, "variation"),
-		leadInstrument: optionalStringParam(params, "lead_instrument"),
-		bassInstrument: optionalStringParam(params, "bass_instrument"),
-		harmonyInstrument: optionalStringParam(params, "harmony_instrument"),
-		stereo: optionalBooleanParam(params, "stereo"),
-		reverb: optionalNumberParam(params, "reverb"),
-		delay: optionalNumberParam(params, "delay"),
-		chorus: optionalNumberParam(params, "chorus"),
-		distortion: optionalNumberParam(params, "distortion"),
-		bitCrush: optionalNumberParam(params, "bit_crush"),
-		lowPass: optionalNumberParam(params, "low_pass"),
-		stems: optionalBooleanParam(params, "stems"),
-		introBars: optionalNumberParam(params, "intro_bars"),
-		outroBars: optionalNumberParam(params, "outro_bars"),
-		stinger: optionalStringParam(params, "stinger"),
-		exportMidi: optionalBooleanParam(params, "export_midi"),
+		key: tonality.key,
+		mode: tonality.mode,
+		stems: adaptive,
+		introBars: cinematic ? 1 : 0,
+		outroBars: cinematic ? 1 : 0,
+		stinger: cinematic ? "both" : "none",
+		exportMidi: assetPack === "full",
 		isCancelled: req.isCancelled,
 		onProgress: req.onProgress,
 	});
