@@ -7,6 +7,7 @@ local __TS__StringStartsWith = ____lualib.__TS__StringStartsWith -- 1
 local __TS__StringAccess = ____lualib.__TS__StringAccess -- 1
 local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
 local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf -- 1
+local __TS__ArraySlice = ____lualib.__TS__ArraySlice -- 1
 local __TS__ArrayFilter = ____lualib.__TS__ArrayFilter -- 1
 local __TS__ObjectAssign = ____lualib.__TS__ObjectAssign -- 1
 local __TS__SparseArrayNew = ____lualib.__TS__SparseArrayNew -- 1
@@ -71,12 +72,12 @@ end -- 179
 function ____exports.isKnownToolName(name) -- 625
 	return __TS__ArrayIndexOf(BUILT_IN_AGENT_TOOL_NAMES, name) >= 0 -- 626
 end -- 625
-function ____exports.buildDecisionToolSchemaForTools(tools, context) -- 779
-	return __TS__ArrayMap( -- 780
-		tools, -- 780
-		function(____, tool) return tool.schema and tool:schema(context) or createFunctionToolSchemaFromPrompt(tool, context) end -- 781
-	) -- 781
-end -- 779
+function ____exports.buildDecisionToolSchemaForTools(tools, context) -- 783
+	return __TS__ArrayMap( -- 784
+		tools, -- 784
+		function(____, tool) return tool.schema and tool:schema(context) or createFunctionToolSchemaFromPrompt(tool, context) end -- 785
+	) -- 785
+end -- 783
 BUILT_IN_AGENT_TOOL_NAMES = { -- 25
 	"read_file", -- 26
 	"edit_file", -- 27
@@ -633,140 +634,143 @@ local function formatXMLRepairToolReference(tool) -- 618
 	local reason = tool.name == "finish" and "no reason tag" or "reason tag required" -- 621
 	return (((("- " .. tool.name) .. ": params: ") .. params) .. "; ") .. reason -- 622
 end -- 618
-function ____exports.getAllowedToolsForRole(role, options) -- 629
-	return __TS__ArrayMap( -- 630
-		__TS__ArrayFilter( -- 630
-			____exports.AGENT_TOOL_PROMPTS, -- 630
-			function(____, tool) return hasRole(tool, role) and ____exports.isKnownToolName(tool.name) and isToolCapabilityEnabled(tool, options) end -- 631
-		), -- 631
-		function(____, tool) return tool.name end -- 632
-	) -- 632
+function ____exports.getBuiltInAgentToolNames() -- 629
+	return __TS__ArraySlice(BUILT_IN_AGENT_TOOL_NAMES) -- 630
 end -- 629
-function ____exports.buildCurrentToolAvailabilityGuidance() -- 635
-	return table.concat({"Current tool availability:", "- every tool defined in the current system prompt or exposed in the current tool schema is executable", "- capabilities disabled for this task are omitted from both the definitions and schema"}, "\n") -- 636
-end -- 635
-function ____exports.getToolPromptsForRole(role, options) -- 643
-	return __TS__ArrayFilter( -- 648
-		____exports.AGENT_TOOL_PROMPTS, -- 648
-		function(____, tool) return hasRole(tool, role) and ((options and options.includeFinish) == true or tool.name ~= "finish") and isToolCapabilityEnabled(tool, options) end -- 648
-	) -- 648
-end -- 643
-local SUB_AGENT_REQUIRED_FINISH_PARAMS = { -- 655
-	"message", -- 656
-	"outcome", -- 657
-	"validation", -- 658
-	"knownIssues", -- 659
-	"assumptions", -- 660
-	"learningCandidates" -- 661
-} -- 661
-local function getDecisionToolPromptsForRole(role, options) -- 664
-	local tools = ____exports.getToolPromptsForRole(role, options) -- 669
-	if role ~= "sub" then -- 669
-		return tools -- 670
-	end -- 670
-	return __TS__ArrayMap( -- 671
-		tools, -- 671
-		function(____, tool) return tool.name ~= "finish" and tool or __TS__ObjectAssign( -- 671
-			{}, -- 671
-			tool, -- 672
-			{parameters = __TS__ArrayMap( -- 671
-				tool.parameters or ({}), -- 673
-				function(____, parameter) return __TS__ObjectAssign( -- 673
-					{}, -- 673
-					parameter, -- 674
-					{required = __TS__ArrayIndexOf(SUB_AGENT_REQUIRED_FINISH_PARAMS, parameter.name) >= 0} -- 673
-				) end -- 673
-			)} -- 673
-		) end -- 673
-	) -- 673
-end -- 664
-function ____exports.buildToolDefinitionsDetailed(tools, options) -- 680
-	local title = (options and options.title) ~= nil and options.title or "Available tools:" -- 685
-	local context = options and options.context or DEFAULT_SCHEMA_CONTEXT -- 686
-	local sections = __TS__ArrayMap( -- 687
-		tools, -- 687
-		function(____, tool, index) return formatToolPrompt(tool, index, context) end -- 687
-	) -- 687
-	if (options and options.includeXmlRules) == true then -- 687
-		local reasonTools = table.concat( -- 689
-			__TS__ArrayMap( -- 689
-				__TS__ArrayFilter( -- 689
-					tools, -- 689
-					function(____, tool) return tool.name ~= "finish" end -- 690
-				), -- 690
-				function(____, tool) return tool.name end -- 691
-			), -- 691
-			", " -- 692
-		) -- 692
-		sections[#sections + 1] = ("XML mode object fields:\n- Use a single root tag: <tool_call>.\n- For " .. (reasonTools ~= "" and reasonTools or "tools other than finish")) .. ", include <tool>, <reason>, and <params>.\n- For finish, omit <reason> and include <message> plus every other required parameter shown above inside <params>.\n- Inside <params>, use one child tag per parameter and preserve each tag content as raw text." -- 693
-	end -- 693
-	local body = table.concat(sections, "\n\n") -- 699
-	return title ~= "" and (title .. "\n") .. body or body -- 700
-end -- 680
-function ____exports.buildRoleToolDefinitionsDetailed(role, options) -- 703
-	return ____exports.buildToolDefinitionsDetailed( -- 711
-		getDecisionToolPromptsForRole(role, {includeFinish = options and options.includeFinish, disabledAgentTools = options and options.disabledAgentTools, workMode = options and options.workMode}), -- 712
-		{title = options and options.title, includeXmlRules = options and options.includeXmlRules, context = options and options.context} -- 717
-	) -- 717
-end -- 703
-function ____exports.buildXMLRepairToolReference(role, options) -- 725
-	local tools = ____exports.getToolPromptsForRole(role, {includeFinish = true, disabledAgentTools = options and options.disabledAgentTools, workMode = options and options.workMode}) -- 726
-	local ____array_28 = __TS__SparseArrayNew( -- 726
-		"Allowed tools and XML params:", -- 732
-		table.unpack(__TS__ArrayMap( -- 733
-			tools, -- 733
-			function(____, tool) return formatXMLRepairToolReference(tool) end -- 733
-		)) -- 733
-	) -- 733
-	__TS__SparseArrayPush( -- 733
-		____array_28, -- 733
-		"", -- 734
-		"XML shape:", -- 735
-		"- Wrap the decision in exactly one <tool_call> root.", -- 736
-		"- For tools except finish: include <tool>, <reason>, and <params>.", -- 737
-		"- For finish: include <tool>, omit <reason>, and include <message> plus every other required parameter shown above inside <params>.", -- 738
-		"- Inside <params>, use one child tag per parameter name above." -- 739
-	) -- 739
-	local lines = {__TS__SparseArraySpread(____array_28)} -- 731
-	return table.concat(lines, "\n") -- 741
-end -- 725
-____exports.AGENT_TOOL_DEFINITIONS_DETAILED = ____exports.buildToolDefinitionsDetailed( -- 744
-	____exports.getToolPromptsForRole("sub"), -- 745
-	{title = "Available tools:"} -- 746
-) -- 746
-____exports.MAIN_AGENT_TOOL_DEFINITIONS_DETAILED = "\n" .. ____exports.buildToolDefinitionsDetailed( -- 749
-	__TS__ArrayFilter( -- 750
-		____exports.getToolPromptsForRole("main"), -- 750
-		function(____, tool) return __TS__ArrayIndexOf( -- 751
-			__TS__ArrayMap( -- 751
-				____exports.getToolPromptsForRole("sub"), -- 751
-				function(____, subTool) return subTool.name end -- 751
-			), -- 751
-			tool.name -- 751
-		) < 0 end -- 751
-	), -- 751
-	{title = ""} -- 752
-) -- 752
-____exports.XML_TOOL_DEFINITIONS_DETAILED = "\n\n" .. ____exports.buildToolDefinitionsDetailed( -- 755
-	__TS__ArrayFilter( -- 756
-		____exports.AGENT_TOOL_PROMPTS, -- 756
-		function(____, tool) return tool.name == "finish" end -- 756
-	), -- 756
-	{title = "", includeXmlRules = true} -- 757
-) -- 757
-function ____exports.canPreExecuteTool(tool) -- 760
-	local prompt = getToolPrompt(tool) -- 761
-	return (prompt and prompt.preExecutable) == true -- 762
-end -- 760
-function ____exports.canRunToolInParallel(tool) -- 765
-	local prompt = getToolPrompt(tool) -- 766
-	return (prompt and prompt.parallelSafe) == true -- 767
-end -- 765
-function ____exports.buildDecisionToolSchema(role, searchDoraApiLimitMax, options) -- 770
-	local context = {searchDoraApiLimitMax = searchDoraApiLimitMax} -- 771
-	return ____exports.buildDecisionToolSchemaForTools( -- 772
-		getDecisionToolPromptsForRole(role, {includeFinish = true, disabledAgentTools = options and options.disabledAgentTools, workMode = options and options.workMode}), -- 772
-		context -- 776
-	) -- 776
-end -- 770
-return ____exports -- 770
+function ____exports.getAllowedToolsForRole(role, options) -- 633
+	return __TS__ArrayMap( -- 634
+		__TS__ArrayFilter( -- 634
+			____exports.AGENT_TOOL_PROMPTS, -- 634
+			function(____, tool) return hasRole(tool, role) and ____exports.isKnownToolName(tool.name) and isToolCapabilityEnabled(tool, options) end -- 635
+		), -- 635
+		function(____, tool) return tool.name end -- 636
+	) -- 636
+end -- 633
+function ____exports.buildCurrentToolAvailabilityGuidance() -- 639
+	return table.concat({"Current tool availability:", "- every tool defined in the current system prompt or exposed in the current tool schema is executable", "- capabilities disabled for this task are omitted from both the definitions and schema"}, "\n") -- 640
+end -- 639
+function ____exports.getToolPromptsForRole(role, options) -- 647
+	return __TS__ArrayFilter( -- 652
+		____exports.AGENT_TOOL_PROMPTS, -- 652
+		function(____, tool) return hasRole(tool, role) and ((options and options.includeFinish) == true or tool.name ~= "finish") and isToolCapabilityEnabled(tool, options) end -- 652
+	) -- 652
+end -- 647
+local SUB_AGENT_REQUIRED_FINISH_PARAMS = { -- 659
+	"message", -- 660
+	"outcome", -- 661
+	"validation", -- 662
+	"knownIssues", -- 663
+	"assumptions", -- 664
+	"learningCandidates" -- 665
+} -- 665
+local function getDecisionToolPromptsForRole(role, options) -- 668
+	local tools = ____exports.getToolPromptsForRole(role, options) -- 673
+	if role ~= "sub" then -- 673
+		return tools -- 674
+	end -- 674
+	return __TS__ArrayMap( -- 675
+		tools, -- 675
+		function(____, tool) return tool.name ~= "finish" and tool or __TS__ObjectAssign( -- 675
+			{}, -- 675
+			tool, -- 676
+			{parameters = __TS__ArrayMap( -- 675
+				tool.parameters or ({}), -- 677
+				function(____, parameter) return __TS__ObjectAssign( -- 677
+					{}, -- 677
+					parameter, -- 678
+					{required = __TS__ArrayIndexOf(SUB_AGENT_REQUIRED_FINISH_PARAMS, parameter.name) >= 0} -- 677
+				) end -- 677
+			)} -- 677
+		) end -- 677
+	) -- 677
+end -- 668
+function ____exports.buildToolDefinitionsDetailed(tools, options) -- 684
+	local title = (options and options.title) ~= nil and options.title or "Available tools:" -- 689
+	local context = options and options.context or DEFAULT_SCHEMA_CONTEXT -- 690
+	local sections = __TS__ArrayMap( -- 691
+		tools, -- 691
+		function(____, tool, index) return formatToolPrompt(tool, index, context) end -- 691
+	) -- 691
+	if (options and options.includeXmlRules) == true then -- 691
+		local reasonTools = table.concat( -- 693
+			__TS__ArrayMap( -- 693
+				__TS__ArrayFilter( -- 693
+					tools, -- 693
+					function(____, tool) return tool.name ~= "finish" end -- 694
+				), -- 694
+				function(____, tool) return tool.name end -- 695
+			), -- 695
+			", " -- 696
+		) -- 696
+		sections[#sections + 1] = ("XML mode object fields:\n- Use a single root tag: <tool_call>.\n- For " .. (reasonTools ~= "" and reasonTools or "tools other than finish")) .. ", include <tool>, <reason>, and <params>.\n- For finish, omit <reason> and include <message> plus every other required parameter shown above inside <params>.\n- Inside <params>, use one child tag per parameter and preserve each tag content as raw text." -- 697
+	end -- 697
+	local body = table.concat(sections, "\n\n") -- 703
+	return title ~= "" and (title .. "\n") .. body or body -- 704
+end -- 684
+function ____exports.buildRoleToolDefinitionsDetailed(role, options) -- 707
+	return ____exports.buildToolDefinitionsDetailed( -- 715
+		getDecisionToolPromptsForRole(role, {includeFinish = options and options.includeFinish, disabledAgentTools = options and options.disabledAgentTools, workMode = options and options.workMode}), -- 716
+		{title = options and options.title, includeXmlRules = options and options.includeXmlRules, context = options and options.context} -- 721
+	) -- 721
+end -- 707
+function ____exports.buildXMLRepairToolReference(role, options) -- 729
+	local tools = ____exports.getToolPromptsForRole(role, {includeFinish = true, disabledAgentTools = options and options.disabledAgentTools, workMode = options and options.workMode}) -- 730
+	local ____array_28 = __TS__SparseArrayNew( -- 730
+		"Allowed tools and XML params:", -- 736
+		table.unpack(__TS__ArrayMap( -- 737
+			tools, -- 737
+			function(____, tool) return formatXMLRepairToolReference(tool) end -- 737
+		)) -- 737
+	) -- 737
+	__TS__SparseArrayPush( -- 737
+		____array_28, -- 737
+		"", -- 738
+		"XML shape:", -- 739
+		"- Wrap the decision in exactly one <tool_call> root.", -- 740
+		"- For tools except finish: include <tool>, <reason>, and <params>.", -- 741
+		"- For finish: include <tool>, omit <reason>, and include <message> plus every other required parameter shown above inside <params>.", -- 742
+		"- Inside <params>, use one child tag per parameter name above." -- 743
+	) -- 743
+	local lines = {__TS__SparseArraySpread(____array_28)} -- 735
+	return table.concat(lines, "\n") -- 745
+end -- 729
+____exports.AGENT_TOOL_DEFINITIONS_DETAILED = ____exports.buildToolDefinitionsDetailed( -- 748
+	____exports.getToolPromptsForRole("sub"), -- 749
+	{title = "Available tools:"} -- 750
+) -- 750
+____exports.MAIN_AGENT_TOOL_DEFINITIONS_DETAILED = "\n" .. ____exports.buildToolDefinitionsDetailed( -- 753
+	__TS__ArrayFilter( -- 754
+		____exports.getToolPromptsForRole("main"), -- 754
+		function(____, tool) return __TS__ArrayIndexOf( -- 755
+			__TS__ArrayMap( -- 755
+				____exports.getToolPromptsForRole("sub"), -- 755
+				function(____, subTool) return subTool.name end -- 755
+			), -- 755
+			tool.name -- 755
+		) < 0 end -- 755
+	), -- 755
+	{title = ""} -- 756
+) -- 756
+____exports.XML_TOOL_DEFINITIONS_DETAILED = "\n\n" .. ____exports.buildToolDefinitionsDetailed( -- 759
+	__TS__ArrayFilter( -- 760
+		____exports.AGENT_TOOL_PROMPTS, -- 760
+		function(____, tool) return tool.name == "finish" end -- 760
+	), -- 760
+	{title = "", includeXmlRules = true} -- 761
+) -- 761
+function ____exports.canPreExecuteTool(tool) -- 764
+	local prompt = getToolPrompt(tool) -- 765
+	return (prompt and prompt.preExecutable) == true -- 766
+end -- 764
+function ____exports.canRunToolInParallel(tool) -- 769
+	local prompt = getToolPrompt(tool) -- 770
+	return (prompt and prompt.parallelSafe) == true -- 771
+end -- 769
+function ____exports.buildDecisionToolSchema(role, searchDoraApiLimitMax, options) -- 774
+	local context = {searchDoraApiLimitMax = searchDoraApiLimitMax} -- 775
+	return ____exports.buildDecisionToolSchemaForTools( -- 776
+		getDecisionToolPromptsForRole(role, {includeFinish = true, disabledAgentTools = options and options.disabledAgentTools, workMode = options and options.workMode}), -- 776
+		context -- 780
+	) -- 780
+end -- 774
+return ____exports -- 774

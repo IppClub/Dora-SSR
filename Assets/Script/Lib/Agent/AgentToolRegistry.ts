@@ -626,6 +626,10 @@ export function isKnownToolName(name: string): name is AgentToolName {
 	return BUILT_IN_AGENT_TOOL_NAMES.indexOf(name as AgentToolName) >= 0;
 }
 
+export function getBuiltInAgentToolNames(): AgentToolName[] {
+	return BUILT_IN_AGENT_TOOL_NAMES.slice();
+}
+
 export function getAllowedToolsForRole(role: AgentRole, options?: AgentToolCapabilityOptions): AgentToolName[] {
 	return AGENT_TOOL_PROMPTS
 		.filter(tool => hasRole(tool, role) && isKnownToolName(tool.name) && isToolCapabilityEnabled(tool, options))
