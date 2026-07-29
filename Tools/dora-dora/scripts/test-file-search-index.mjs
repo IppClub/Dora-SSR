@@ -76,11 +76,12 @@ assert.equal(index.search("skyhok", 100)[0]?.relativePath.includes("Skyhook"), t
 
 const filterSource = await readFile(path.resolve("src/FileFilter.tsx"), "utf8");
 assert.doesNotMatch(filterSource, /from ['"]match-sorter['"]/);
-assert.doesNotMatch(filterSource, /\sautoHighlight(?:\s|=)/);
-assert.match(filterSource, /highlightedOption\.current = options\[0\] \?\? null/);
-assert.match(filterSource, /setHighlightedIndex\(options\.length > 0 \? 0 : -1\)/);
-assert.match(filterSource, /dora-file-filter-highlighted/);
-assert.match(filterSource, /event\.key === "ArrowDown"/);
+assert.doesNotMatch(filterSource, /Autocomplete/);
+assert.match(filterSource, /setSelectedIndex\(0\)/);
+assert.match(filterSource, /aria-selected=\{selected\}/);
+assert.match(filterSource, /case "ArrowDown":/);
+assert.match(filterSource, /case "Enter":/);
+assert.match(filterSource, /touchAction: "pan-y"/);
 const managerSource = await readFile(path.resolve("src/FileSearchIndex.ts"), "utf8");
 assert.match(managerSource, /new Worker\(new URL\("\.\/FileSearchWorker\.ts"/);
 

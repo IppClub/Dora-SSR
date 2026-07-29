@@ -448,6 +448,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 .markdown-body p,
 .markdown-body li,
 .markdown-body blockquote,
+.markdown-body a,
+.markdown-body dd,
+.markdown-body dt,
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6,
 .markdown-body td,
 .markdown-body th {
 	overflow-wrap: anywhere;

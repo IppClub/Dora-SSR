@@ -22,6 +22,7 @@ import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import CloseIcon from '@mui/icons-material/Close';
 import {
 	AiOutlineFolder,
@@ -202,6 +203,7 @@ export interface FileTreeProps {
 	onCancelBatchTarget: () => void;
 	onMenuClick: (event: TreeMenuEvent, data?: TreeDataType) => void;
 	onContextMenuOpen?: (data: TreeDataType) => void;
+	onFirstProjectTourTargetSelect?: (data: TreeDataType) => void;
 	onExpand: (key: string[], info?: { node: TreeDataType; expanded: boolean }) => void;
 	loadData: (node: TreeDataType) => Promise<void>;
 	onDrop: (self: TreeDataType, target: TreeDataType) => void;
@@ -229,10 +231,126 @@ export default memo(function FileTree(props: FileTreeProps) {
 	}, [treeData]);
 	const scrollContainerRef = useRef<HTMLElement>(null);
 	const treeRef = useRef<React.ComponentRef<typeof Tree>>(null);
+	const touchLongPressTimerRef = useRef<number | null>(null);
+	const touchStartRef = useRef<{
+		identifier: number;
+		x: number;
+		y: number;
+	} | null>(null);
+	const touchDragAllowedRef = useRef(false);
+	const touchDragBlockedRef = useRef(false);
+	const lastInputWasTouchRef = useRef(false);
 	const [anchorItem, setAnchorItem] = useState<null | { target: Element, data: TreeDataType }>(null);
 	const [menuOpen, setMenuOpen] = useState(false);
 	const [suppressResizeScrollbar, setSuppressResizeScrollbar] = useState(false);
 	const { t } = useTranslation();
+
+	const cancelTouchLongPress = () => {
+		if (touchLongPressTimerRef.current !== null) {
+			window.clearTimeout(touchLongPressTimerRef.current);
+			touchLongPressTimerRef.current = null;
+		}
+	};
+
+	const startTouchLongPress = (
+		event: React.PointerEvent<HTMLSpanElement>,
+		node: TreeDataType
+	) => {
+		if (
+			event.pointerType !== "touch"
+			|| multiSelectMode
+			|| (
+				event.target instanceof Element
+				&& event.target.closest("[data-touch-drag-handle]") !== null
+			)
+			|| (
+				props.firstProjectTourWorkspaceRightClickOnly
+				&& (!node.root || node.builtin)
+			)
+		) {
+			return;
+		}
+		cancelTouchLongPress();
+		const target = event.currentTarget;
+		touchLongPressTimerRef.current = window.setTimeout(() => {
+			touchLongPressTimerRef.current = null;
+			props.onContextMenuOpen?.(node);
+			setAnchorItem({ target, data: node });
+			setMenuOpen(true);
+		}, 500);
+	};
+
+	const trackTreeTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+		lastInputWasTouchRef.current = true;
+		touchDragBlockedRef.current = false;
+		touchDragAllowedRef.current = (
+			event.target instanceof Element
+			&& event.target.closest("[data-touch-drag-handle]") !== null
+		);
+		if (touchDragAllowedRef.current) {
+			cancelTouchLongPress();
+		}
+		if (
+			!(event.target instanceof Element)
+			|| event.target.closest(".ant-tree-node-content-wrapper") === null
+		) {
+			touchStartRef.current = null;
+			return;
+		}
+		const touch = event.changedTouches[0];
+		if (touch === undefined) return;
+		touchStartRef.current = {
+			identifier: touch.identifier,
+			x: touch.clientX,
+			y: touch.clientY,
+		};
+	};
+
+	const trackTreeTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+		const start = touchStartRef.current;
+		if (start === null) return;
+		const touch = Array.from(event.changedTouches).find(
+			(item) => item.identifier === start.identifier
+		);
+		if (
+			touch !== undefined
+			&& Math.hypot(touch.clientX - start.x, touch.clientY - start.y) >= 8
+		) {
+			cancelTouchLongPress();
+		}
+	};
+
+	const finishTreeTouch = () => {
+		touchStartRef.current = null;
+		touchDragAllowedRef.current = false;
+		touchDragBlockedRef.current = false;
+	};
+
+	const cancelTreeTouch = () => {
+		touchStartRef.current = null;
+		touchDragAllowedRef.current = false;
+		// Keep the blocked flag through the following pointercancel event so a
+		// cancelled native drag does not also cancel the long-press menu.
+		window.setTimeout(() => {
+			touchDragBlockedRef.current = false;
+		}, 0);
+	};
+
+	const gateTreeDragStart = (event: React.DragEvent<HTMLDivElement>) => {
+		if (lastInputWasTouchRef.current && !touchDragAllowedRef.current) {
+			touchDragBlockedRef.current = true;
+			event.preventDefault();
+			event.stopPropagation();
+		}
+	};
+
+	const finishTouchLongPressPointer = () => {
+		if (!touchDragBlockedRef.current) {
+			cancelTouchLongPress();
+		}
+	};
+
+	useEffect(() => cancelTouchLongPress, []);
 
 	useEffect(() => {
 		if (resizing) {
@@ -372,7 +490,17 @@ export default memo(function FileTree(props: FileTreeProps) {
 	const enableUpdateDora = ext === ".mod" && (((!isRoot && !isBuiltin) || Info.engineDev));
 
 	return (
-		<div style={{ position: "relative", width: "100%", height: "100%" }}>
+		<div
+			style={{ position: "relative", width: "100%", height: "100%" }}
+			onMouseDownCapture={() => {
+				lastInputWasTouchRef.current = false;
+			}}
+			onTouchStartCapture={trackTreeTouchStart}
+			onTouchMoveCapture={trackTreeTouchMove}
+			onTouchEndCapture={finishTreeTouch}
+			onTouchCancelCapture={cancelTreeTouch}
+			onDragStartCapture={gateTreeDragStart}
+		>
 			<MacScrollbar
 				ref={scrollContainerRef}
 				className={suppressResizeScrollbar ? "dora-resource-tree-scrollbar-resizing" : undefined}
@@ -559,6 +687,34 @@ export default memo(function FileTree(props: FileTreeProps) {
 					".dora-resource-tree .ant-tree-node-content-wrapper.ant-tree-node-selected": {
 						boxShadow: `inset 2px 0 0 ${Color.Theme}`,
 					},
+					".dora-resource-tree-touch-drag-handle": {
+						display: "none",
+					},
+					"@media (pointer: coarse)": {
+						".dora-resource-tree-title": {
+							display: "inline-flex",
+							alignItems: "center",
+							minWidth: 0,
+							maxWidth: "100%",
+						},
+						".dora-resource-tree-title-text": {
+							overflow: "hidden",
+							textOverflow: "ellipsis",
+							whiteSpace: "nowrap",
+						},
+						".dora-resource-tree-touch-drag-handle": {
+							display: "inline-flex",
+							alignItems: "center",
+							justifyContent: "center",
+							flex: "0 0 28px",
+							width: 28,
+							height: 26,
+							marginInlineStart: 2,
+							color: Color.TextSecondary,
+							touchAction: "none",
+							cursor: "grab",
+						},
+					},
 				}} />
 			<ConfigProvider
 				theme={{
@@ -595,7 +751,16 @@ export default memo(function FileTree(props: FileTreeProps) {
 					icon={fileIcon}
 					switcherIcon={switcherIcon}
 					switcherLoadingIcon={<CaretDownFilled style={{ fontSize: 10 }} />}
-					draggable={multiSelectMode ? false : { icon: false }}
+					draggable={multiSelectMode
+						? false
+						: {
+							icon: false,
+							nodeDraggable: (node) => !(
+								props.firstProjectTourWorkspaceRightClickOnly
+								&& node.root
+								&& !node.builtin
+							),
+						}}
 					onDrop={onDrop}
 					expandedKeys={expandedKeys}
 					treeData={visibleTreeData}
@@ -608,12 +773,44 @@ export default memo(function FileTree(props: FileTreeProps) {
 					selectedKeys={selectedKeys}
 					titleRender={(node) => (
 						<span
+							className="dora-resource-tree-title"
 							data-first-project-workspace-root={node.root && !node.builtin ? "true" : undefined}
 							data-first-project-agent-target={
 								node.key === props.firstProjectTourTargetKey ? "true" : undefined
 							}
+							onPointerDown={(event) => startTouchLongPress(event, node)}
+							onPointerUp={cancelTouchLongPress}
+							onPointerCancel={finishTouchLongPressPointer}
+							onClick={node.key === props.firstProjectTourTargetKey
+								? (event) => {
+									event.stopPropagation();
+									if (props.onFirstProjectTourTargetSelect !== undefined) {
+										props.onFirstProjectTourTargetSelect(node);
+									} else {
+										props.onSelect([node]);
+									}
+								}
+								: undefined}
+							style={node.root && !node.builtin && props.firstProjectTourWorkspaceRightClickOnly
+								? {
+									display: "inline-flex",
+									alignItems: "center",
+									width: "100%",
+									minHeight: 26,
+									touchAction: "pan-y",
+								}
+								: undefined}
 						>
-							{node.title}
+							<span className="dora-resource-tree-title-text">{node.title}</span>
+							{!multiSelectMode ? (
+								<span
+									className="dora-resource-tree-touch-drag-handle"
+									data-touch-drag-handle="true"
+									aria-label={t("tree.dragHandle")}
+								>
+									<DragIndicatorIcon sx={{ fontSize: 18 }} />
+								</span>
+							) : null}
 						</span>
 					)}
 					dropIndicatorRender={() => <div />}
@@ -780,6 +977,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 	return prev.treeData === next.treeData &&
 		prev.firstProjectTourTargetKey === next.firstProjectTourTargetKey &&
 		prev.firstProjectTourWorkspaceRightClickOnly === next.firstProjectTourWorkspaceRightClickOnly &&
+		prev.onFirstProjectTourTargetSelect === next.onFirstProjectTourTargetSelect &&
 		prev.scrollRequest === next.scrollRequest &&
 		prev.resizing === next.resizing &&
 		prev.multiSelectMode === next.multiSelectMode &&

@@ -136,7 +136,7 @@ function AgentMessageList(props: AgentMessageListProps) {
 	}, [editingPrompt, editingMessageId]);
 
 	return (
-		<Stack spacing={2}>
+		<Stack spacing={2} sx={{ width: "100%", maxWidth: "100%", minWidth: 0, overflowX: "hidden" }}>
 			{messages.map(message => {
 				if (message.role === "assistant") {
 					return (
@@ -257,7 +257,13 @@ function AgentMessageList(props: AgentMessageListProps) {
 										</Stack>
 									</Box>
 								) : (
-									<Typography variant="body1" sx={{ color: Color.TextPrimary, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+									<Typography variant="body1" sx={{
+										color: Color.TextPrimary,
+										whiteSpace: "pre-wrap",
+										overflowWrap: "anywhere",
+										wordBreak: "break-word",
+										lineHeight: 1.6,
+									}}>
 										{visibleContent}
 									</Typography>
 								)}

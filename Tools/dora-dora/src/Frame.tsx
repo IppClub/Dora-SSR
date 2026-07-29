@@ -211,16 +211,28 @@ export const PlayControl = memo((prop: PlayControlProp) => {
 			</Tooltip>
 		);
 	}
-	return <Box style={{
-		backgroundColor: "#0000",
-		width: controlWidth === undefined ? "auto" : `${controlWidth}px`,
-		height: `${controlHeight}px`,
-		color: Color.Primary,
-		flexShrink: 0,
-		display: "flex",
-		alignItems: "center",
-		justifyContent: "center",
-	}}>
+	return <Box
+		data-play-control-strip="true"
+		style={{
+			backgroundColor: "#0000",
+			width: controlWidth === undefined ? (prop.touch ? "100%" : "auto") : `${controlWidth}px`,
+			maxWidth: "100%",
+			height: `${controlHeight}px`,
+			color: Color.Primary,
+			flexShrink: 0,
+			display: "flex",
+			alignItems: "center",
+			justifyContent: prop.touch ? "flex-start" : "center",
+			overflowX: prop.touch ? "auto" : "visible",
+			overflowY: "hidden",
+			scrollbarWidth: "none",
+		}}
+		sx={prop.touch ? {
+			"&::-webkit-scrollbar": {
+				display: "none",
+			},
+		} : undefined}
+	>
 		{actionItems}
 	</Box>;
 });

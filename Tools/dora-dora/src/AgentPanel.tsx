@@ -1225,12 +1225,22 @@ export default function AgentPanel(props: AgentPanelProps) {
 				ref={scrollRef}
 				data-agent-scroll-container="true"
 				skin="dark"
+				suppressScrollX
 				// The panel owns bottom anchoring while output is streaming.
 				// Disable Chromium's independent anchor correction so the two
 				// systems do not pull the viewport in opposite directions.
 				style={{ flex: 1, minHeight: 0, overflowAnchor: "none" }}
 			>
-				<Box ref={contentRef} sx={{ px: compact ? 1.5 : 3, py: compact ? 1.25 : 3, width: "100%", maxWidth: 1040, mx: "auto", boxSizing: "border-box" }}>
+				<Box ref={contentRef} sx={{
+					px: compact ? 1.5 : 3,
+					py: compact ? 1.25 : 3,
+					width: "100%",
+					maxWidth: 1040,
+					minWidth: 0,
+					mx: "auto",
+					boxSizing: "border-box",
+					overflowX: "hidden",
+				}}>
 					<Stack spacing={compact ? 2.25 : 4} sx={{ visibility: isSessionHydrating ? "hidden" : "visible" }}>
 						{showEmptyState ? (
 							<Box

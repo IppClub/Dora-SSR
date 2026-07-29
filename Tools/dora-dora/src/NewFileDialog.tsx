@@ -12,6 +12,9 @@ import ListItemText from '@mui/material/ListItemText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 
 import luaLogo from './lua.png';
 import yueLogo from './yuescript.png';
@@ -153,6 +156,8 @@ const transitionProps = {
 function NewFileDialog(props: NewFileDialogProps) {
 	const { t } = useTranslation();
 	const { onClose, open } = props;
+	const compact = useMediaQuery('(max-width: 600px)');
+	const veryNarrow = useMediaQuery('(max-width: 350px)');
 
 	const handleClose = () => {
 		onClose(undefined);
@@ -165,6 +170,7 @@ function NewFileDialog(props: NewFileDialogProps) {
 	return (
 		<Dialog
 			maxWidth="md"
+			fullWidth
 			onClose={handleClose}
 			open={open}
 			transitionDuration={0}
@@ -172,22 +178,77 @@ function NewFileDialog(props: NewFileDialogProps) {
 				transition: transitionProps,
 				paper: {
 					"data-first-project-new-dialog": "true",
+					sx: compact ? {
+						width: "calc(100% - 24px)",
+						maxHeight: "calc(var(--dora-viewport-height, 100dvh) - 24px)",
+						m: 1.5,
+					} : undefined,
 				},
 			}}>
-			<DialogTitle>{t("file.new")}</DialogTitle>
-			<Grid container columns={{ sm: 2, md: 3 }}>
+			<DialogTitle sx={{
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "space-between",
+				...(compact ? {
+					position: "sticky",
+					top: 0,
+					zIndex: 1,
+					py: 1,
+					backgroundColor: "background.paper",
+				} : {}),
+			}}>
+				{t("file.new")}
+				<IconButton
+					aria-label={t("action.close")}
+					onClick={handleClose}
+					size="small"
+					sx={{ ml: 1, color: "text.secondary" }}
+				>
+					<CloseIcon fontSize="small" />
+				</IconButton>
+			</DialogTitle>
+			<Grid container columns={{ xs: 2, sm: 2, md: 3 }} sx={compact ? { px: 0.75, pb: 0.75 } : undefined}>
 				{
 					fileTypes.map((fileType) => (
 						<Grid key={fileType.name} size={1}>
-							<ListItem>
+							<ListItem sx={compact ? { p: 0.5 } : undefined}>
 								<ListItemButton
 									data-first-project-folder={fileType.name === "Folder" ? "true" : undefined}
-									sx={{ height: "90px" }}
+									sx={{
+										height: veryNarrow ? 64 : compact ? 82 : 90,
+										minWidth: 0,
+										px: compact ? 1 : 2,
+										"& > img, & > svg": compact ? {
+											width: veryNarrow ? 32 : 36,
+											height: veryNarrow ? 32 : 36,
+											flexShrink: 0,
+										} : undefined,
+									}}
 									onClick={() => handleListItemClick(fileType.name)}
 									key={fileType.name}
 								>
 									{fileType.icon}
-									<ListItemText primary={fileType.label ? t(fileType.label) : fileType.name} secondary={t(fileType.desc)} sx={{ paddingLeft: fileType.padding }} />
+									<ListItemText
+										primary={fileType.label ? t(fileType.label) : fileType.name}
+										secondary={t(fileType.desc)}
+										sx={{
+											pl: compact ? 1 : fileType.padding,
+											minWidth: 0,
+											m: 0,
+											"& .MuiListItemText-primary": compact ? {
+												fontSize: veryNarrow ? 12.5 : 13,
+												lineHeight: 1.3,
+											} : undefined,
+											"& .MuiListItemText-secondary": compact ? {
+												display: veryNarrow ? "none" : "-webkit-box",
+												overflow: "hidden",
+												WebkitBoxOrient: "vertical",
+												WebkitLineClamp: 2,
+												fontSize: 11,
+												lineHeight: 1.3,
+											} : undefined,
+										}}
+									/>
 								</ListItemButton>
 							</ListItem>
 						</Grid>

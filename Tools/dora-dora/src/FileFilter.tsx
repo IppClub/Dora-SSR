@@ -6,10 +6,9 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import { forwardRef, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { HTMLAttributes, MutableRefObject } from 'react';
-import { Autocomplete, CircularProgress, TextField } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import type { KeyboardEvent } from 'react';
+import { Box, CircularProgress, TextField, Typography } from '@mui/material';
 import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
 import { Color } from './Theme';
@@ -40,144 +39,17 @@ const updateSearchInputDiagnostics = (samples: number[]) => {
 	diagnostics.dataset.doraPerfSearchInputMax = (sorted.at(-1) ?? 0).toFixed(2);
 };
 
-interface MacScrollbarListboxProps extends HTMLAttributes<HTMLElement> {
-	ownerState?: unknown;
-	sx?: unknown;
-}
-
-const MacScrollbarListboxBase = forwardRef<HTMLElement, MacScrollbarListboxProps>((props, ref) => {
-	const { ownerState: _, sx: __, style, onWheel, ...listboxProps } = props;
-	const listboxRef = useRef<HTMLElement | null>(null);
-
-	useLayoutEffect(() => {
-		const node = listboxRef.current;
-		const mutableRef = typeof ref === "function" || ref === null
-			? null
-			: ref as MutableRefObject<HTMLElement | null>;
-		if (typeof ref === "function") {
-			ref(node);
-		} else if (mutableRef !== null) {
-			mutableRef.current = node;
-		}
-		return () => {
-			if (typeof ref === "function") {
-				ref(null);
-			} else if (mutableRef !== null) {
-				mutableRef.current = null;
-			}
-		};
-	}, [ref]);
-
-	useLayoutEffect(() => {
-		const updateMaxHeight = () => {
-			const listbox = listboxRef.current;
-			if (listbox === null) return;
-			const viewport = window.visualViewport;
-			const viewportHeight = viewport?.height ?? window.innerHeight;
-			const viewportBottom = (viewport?.offsetTop ?? 0) + viewportHeight;
-			const availableHeight = Math.max(0, viewportBottom - listbox.getBoundingClientRect().top - 12);
-			listbox.style.maxHeight = `${Math.min(viewportHeight * 0.5, availableHeight)}px`;
-		};
-		const frame = requestAnimationFrame(updateMaxHeight);
-		window.addEventListener("resize", updateMaxHeight);
-		window.visualViewport?.addEventListener("resize", updateMaxHeight);
-		window.visualViewport?.addEventListener("scroll", updateMaxHeight);
-		return () => {
-			cancelAnimationFrame(frame);
-			window.removeEventListener("resize", updateMaxHeight);
-			window.visualViewport?.removeEventListener("resize", updateMaxHeight);
-			window.visualViewport?.removeEventListener("scroll", updateMaxHeight);
-		};
-	}, []);
-
-	return (
-		<MacScrollbar
-			{...listboxProps}
-			ref={listboxRef}
-			as="ul"
-			skin="dark"
-			suppressScrollX
-			onWheel={(event) => {
-				onWheel?.(event);
-				if (event.defaultPrevented) return;
-				const listbox = event.currentTarget;
-				const maxScrollTop = Math.max(0, listbox.scrollHeight - listbox.clientHeight);
-				const reachedTop = event.deltaY < 0 && listbox.scrollTop <= 0;
-				const reachedBottom = event.deltaY > 0 && listbox.scrollTop >= maxScrollTop - 1;
-				if (reachedTop || reachedBottom) {
-					event.preventDefault();
-				}
-				event.stopPropagation();
-			}}
-			style={{ ...style, overscrollBehavior: 'contain' }}
-		/>
-	);
-});
-MacScrollbarListboxBase.displayName = "MacScrollbarListboxBase";
-
-const MacScrollbarListbox = styled(MacScrollbarListboxBase)({
-	listStyle: 'none',
-	margin: 0,
-	padding: '8px 0',
-	maxHeight: '50vh',
-	overflow: 'auto',
-	position: 'relative',
-	'& .MuiAutocomplete-option': {
-		height: 64,
-		minHeight: 64,
-		maxHeight: 64,
-		display: 'flex',
-		overflow: 'hidden',
-		justifyContent: 'flex-start',
-		alignItems: 'center',
-		gap: 16,
-		cursor: 'pointer',
-		padding: '6px 16px',
-		boxSizing: 'border-box',
-		outline: 0,
-		WebkitTapHighlightColor: 'transparent',
-		'&:hover': {
-			backgroundColor: Color.ThemeMuted,
-		},
-		'&.Mui-focused': {
-			backgroundColor: Color.Theme + '44',
-		},
-		'&.Mui-focusVisible': {
-			backgroundColor: Color.Theme + '44',
-		},
-		'&[aria-selected="true"]': {
-			backgroundColor: Color.Theme + '2e',
-		},
-		'& .dora-file-filter-title': {
-			flex: '0 0 auto',
-			whiteSpace: 'nowrap',
-		},
-		'& .dora-file-filter-path': {
-			flex: '1 1 auto',
-			minWidth: 0,
-			overflow: 'hidden',
-			color: Color.TextSecondary,
-			display: '-webkit-box',
-			fontSize: 12,
-			lineHeight: '18px',
-			textAlign: 'right',
-			whiteSpace: 'normal',
-			wordBreak: 'break-all',
-			WebkitBoxOrient: 'vertical',
-			WebkitLineClamp: 2,
-		},
-	},
-});
-MacScrollbarListbox.displayName = "MacScrollbarListbox";
-
 const FileFilter = (props: FileFilterProps) => {
 	const { t } = useTranslation();
+	const listboxId = useId();
+	const listboxRef = useRef<HTMLElement | null>(null);
 	const searchRevision = useRef(0);
 	const inputStartedAt = useRef<number | null>(null);
 	const inputLatencySamples = useRef<number[]>([]);
 	const [inputValue, setInputValue] = useState("");
 	const [results, setResults] = useState<FilterOption[]>([]);
 	const [searchLoading, setSearchLoading] = useState(false);
+	const [selectedIndex, setSelectedIndex] = useState(0);
 
 	useEffect(() => {
 		updateSearchInputDiagnostics([]);
@@ -201,20 +73,24 @@ const FileFilter = (props: FileFilterProps) => {
 		if (input === "") {
 			setResults([]);
 			setSearchLoading(false);
+			setSelectedIndex(0);
 			return;
 		}
 		if (props.loading) {
 			setResults([]);
 			setSearchLoading(false);
+			setSelectedIndex(0);
 			return;
 		}
 		setResults([]);
 		setSearchLoading(true);
+		setSelectedIndex(0);
 		const timer = window.setTimeout(() => {
 			void searchFileIndex(input, maxResults).then(options => {
 				if (revision !== searchRevision.current) return;
 				setResults(options);
 				setSearchLoading(false);
+				setSelectedIndex(0);
 			});
 		}, 50);
 		return () => {
@@ -222,80 +98,225 @@ const FileFilter = (props: FileFilterProps) => {
 		};
 	}, [inputValue, props.loading]);
 
-	return <Autocomplete
-		autoHighlight
-		forcePopupIcon={false}
-		fullWidth
-		disableListWrap
-		open={inputValue.trim() !== ""}
-		inputValue={inputValue}
-		onInputChange={(_, value, reason) => {
-			if (reason === "input") {
-				inputStartedAt.current = performance.now();
-				setResults([]);
-				setSearchLoading(value.trim() !== "" && !props.loading);
-			}
-			setInputValue(value);
-		}}
-		filterOptions={(options) => options}
-		options={results}
-		loading={props.loading || searchLoading}
-		slots={{
-			listbox: MacScrollbarListbox,
-		}}
-		noOptionsText={t("popup.searchFilesEmpty")}
-		getOptionLabel={(option) => option.fileKey}
-		onKeyDown={(event) => {
-			if (event.key === "Escape") {
-				(event as typeof event & { defaultMuiPrevented?: boolean }).defaultMuiPrevented = true;
+	useLayoutEffect(() => {
+		const listbox = listboxRef.current;
+		if (listbox === null || results.length === 0) return;
+		listbox
+			.querySelector<HTMLElement>(`[data-file-filter-option-index="${selectedIndex}"]`)
+			?.scrollIntoView({ block: "nearest" });
+	}, [results, selectedIndex]);
+
+	const selectOption = (index: number) => {
+		const option = results[index];
+		if (option !== undefined) {
+			props.onClose(option);
+		}
+	};
+
+	const onInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+		switch (event.key) {
+			case "ArrowDown":
+				event.preventDefault();
+				event.stopPropagation();
+				if (results.length > 0) {
+					setSelectedIndex(index => Math.min(results.length - 1, index + 1));
+				}
+				break;
+			case "ArrowUp":
+				event.preventDefault();
+				event.stopPropagation();
+				if (results.length > 0) {
+					setSelectedIndex(index => Math.max(0, index - 1));
+				}
+				break;
+			case "Home":
+				if (results.length === 0) break;
+				event.preventDefault();
+				event.stopPropagation();
+				setSelectedIndex(0);
+				break;
+			case "End":
+				if (results.length === 0) break;
+				event.preventDefault();
+				event.stopPropagation();
+				setSelectedIndex(results.length - 1);
+				break;
+			case "Enter":
+				if (results.length === 0) break;
+				event.preventDefault();
+				event.stopPropagation();
+				selectOption(selectedIndex);
+				break;
+			case "Escape":
 				event.preventDefault();
 				event.stopPropagation();
 				props.onClose(null);
-			}
-		}}
-		renderInput={(params) => <TextField
-			autoFocus
+				break;
+		}
+	};
+
+	const queryActive = inputValue.trim() !== "";
+	const loading = props.loading || searchLoading;
+
+	return (
+		<Box
 			sx={{
-				m: 1,
-				width: '50ch',
+				display: "flex",
+				flexDirection: "column",
+				width: "100%",
+				maxHeight: "calc(var(--dora-viewport-height, 100dvh) - 16px)",
+				overflow: "hidden",
 			}}
-			{...params}
-			slotProps={{
-				htmlInput: {
-					...params.inputProps,
-					"data-file-filter-input": "true",
-					"data-file-filter-option-count": props.optionCount,
-					"data-file-filter-result-count": results.length,
-				},
-				input: {
-					...params.InputProps,
-					endAdornment: <>
-						{props.loading || searchLoading ? <CircularProgress color="inherit" size={18} /> : null}
-						{params.InputProps.endAdornment}
-					</>,
-				},
-			}}
-			label={t("popup.goToFile")}
-		/>}
-		renderOption={(props, option, state) => {
-			const { key: _, ...liProps } = props;
-			return (
-				<li
-					key={option.fileKey}
-					{...liProps}
-					data-file-filter-option-index={state.index}
+		>
+			<Box sx={{ p: { xs: 1, sm: 1.5 } }}>
+				<TextField
+					autoFocus
+					fullWidth
+					value={inputValue}
+					onChange={(event) => {
+						inputStartedAt.current = performance.now();
+						const value = event.target.value;
+						setResults([]);
+						setSelectedIndex(0);
+						setSearchLoading(value.trim() !== "" && !props.loading);
+						setInputValue(value);
+					}}
+					onKeyDown={onInputKeyDown}
+					label={t("popup.goToFile")}
+					sx={{
+						"& .MuiInputBase-root": {
+							minHeight: { xs: 52, sm: 56 },
+						},
+					}}
+					slotProps={{
+						htmlInput: {
+							"data-file-filter-input": "true",
+							"data-file-filter-option-count": props.optionCount,
+							"data-file-filter-result-count": results.length,
+							"aria-controls": queryActive ? listboxId : undefined,
+							"aria-activedescendant": results.length > 0
+								? `${listboxId}-option-${selectedIndex}`
+								: undefined,
+							autoComplete: "off",
+						},
+						input: {
+							endAdornment: loading ? <CircularProgress color="inherit" size={18} /> : null,
+						},
+					}}
+				/>
+			</Box>
+			{queryActive ? (
+				<MacScrollbar
+					ref={listboxRef}
+					id={listboxId}
+					role="listbox"
+					aria-label={t("popup.goToFile")}
+					skin="dark"
+					suppressScrollX
+					style={{
+						width: "100%",
+						maxHeight: "min(440px, calc(var(--dora-viewport-height, 100dvh) - 104px))",
+						minHeight: results.length > 0 ? 64 : 56,
+						overflowX: "hidden",
+						overscrollBehavior: "contain",
+						touchAction: "pan-y",
+						WebkitOverflowScrolling: "touch",
+					}}
 				>
-					<span className="dora-file-filter-title">{option.title}</span>
-					<span className="dora-file-filter-path" title={option.path}>{option.path}</span>
-				</li>
-			);
-		}}
-		onChange={(_, value, reason) => {
-			if (value !== null && reason === "selectOption") {
-				props.onClose(value);
-			}
-		}}
-	/>;
-}
+					{results.length > 0 ? results.map((option, index) => {
+						const selected = index === selectedIndex;
+						return (
+							<Box
+								key={option.fileKey}
+								id={`${listboxId}-option-${index}`}
+								component="button"
+								type="button"
+								role="option"
+								aria-selected={selected}
+								data-file-filter-option-index={index}
+								onMouseMove={() => setSelectedIndex(index)}
+								onClick={() => selectOption(index)}
+								sx={{
+									width: "100%",
+									minHeight: { xs: 64, sm: 56 },
+									display: "flex",
+									flexDirection: { xs: "column", sm: "row" },
+									alignItems: { xs: "flex-start", sm: "center" },
+									justifyContent: "flex-start",
+									gap: { xs: 0.25, sm: 2 },
+									px: { xs: 1.5, sm: 2 },
+									py: { xs: 1, sm: 0.75 },
+									border: "none",
+									borderRadius: 0,
+									outline: 0,
+									backgroundColor: selected ? `${Color.Theme}2e` : "transparent",
+									color: Color.TextPrimary,
+									font: "inherit",
+									textAlign: "left",
+									cursor: "pointer",
+									boxSizing: "border-box",
+									WebkitTapHighlightColor: "transparent",
+									"&:hover": {
+										backgroundColor: selected ? `${Color.Theme}38` : Color.ThemeMuted,
+									},
+									"&:focus-visible": {
+										backgroundColor: `${Color.Theme}44`,
+									},
+								}}
+							>
+								<Typography
+									component="span"
+									sx={{
+										flex: { sm: "0 1 auto" },
+										maxWidth: "100%",
+										color: Color.TextPrimary,
+										fontSize: { xs: 15, sm: 16 },
+										lineHeight: 1.4,
+										whiteSpace: "nowrap",
+										overflow: "hidden",
+										textOverflow: "ellipsis",
+									}}
+								>
+									{option.title}
+								</Typography>
+								<Typography
+									component="span"
+									title={option.path}
+									sx={{
+										flex: "1 1 auto",
+										minWidth: 0,
+										maxWidth: "100%",
+										color: Color.TextSecondary,
+										fontSize: 12,
+										lineHeight: "18px",
+										textAlign: { xs: "left", sm: "right" },
+										whiteSpace: "nowrap",
+										overflow: "hidden",
+										textOverflow: "ellipsis",
+									}}
+								>
+									{option.path}
+								</Typography>
+							</Box>
+						);
+					}) : (
+						<Box sx={{
+							minHeight: 56,
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
+							px: 2,
+							color: Color.TextSecondary,
+						}}>
+							<Typography variant="body2">
+								{loading ? t("popup.searchFilesSearching") : t("popup.searchFilesEmpty")}
+							</Typography>
+						</Box>
+					)}
+				</MacScrollbar>
+			) : null}
+		</Box>
+	);
+};
 
 export default FileFilter;

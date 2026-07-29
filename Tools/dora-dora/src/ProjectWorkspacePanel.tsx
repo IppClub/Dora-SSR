@@ -216,7 +216,7 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 				) : active && currentView === "upload" ? (
 					<React.Suspense fallback={<PanelFallback />}>
 						<MacScrollbar skin="dark" style={{ width: "100%", height: "100%" }}>
-							<Box sx={{ minHeight: "100%", py: 3, }}>
+							<Box sx={{ minHeight: "100%", py: compact ? 1.5 : 3 }}>
 								<DoraUpload
 									onUploaded={onUploaded}
 									title={title}

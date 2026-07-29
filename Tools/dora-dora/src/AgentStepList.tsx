@@ -446,7 +446,7 @@ function AgentStepListBody(props: AgentStepListProps) {
 		onOpenFile,
 	} = props;
 	return (
-		<Stack spacing={2}>
+		<Stack spacing={2} sx={{ width: "100%", maxWidth: "100%", minWidth: 0, overflowX: "hidden" }}>
 			{steps.map(step => {
 				const checkpoint = step.checkpointId ? checkpointMap.get(step.checkpointId) : undefined;
 				const questionnaireAnswer = step.tool === "questionnaire_answer"
@@ -514,7 +514,12 @@ function AgentStepListBody(props: AgentStepListProps) {
 						borderLeft: `2px solid ${isSystemStep ? "rgba(255,196,110,0.32)" : Color.Line}`,
 						pl: 1.5,
 						py: 0.25,
+						width: "100%",
+						maxWidth: "100%",
 						minWidth: 0,
+						boxSizing: "border-box",
+						overflowWrap: "anywhere",
+						wordBreak: "break-word",
 					}}>
 						<Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
 							<Typography variant="caption" sx={{ color: Color.TextSecondary }}>
@@ -686,7 +691,16 @@ function AgentStepListBody(props: AgentStepListProps) {
 							</Stack>
 						) : null}
 						{paramItems.length > 0 ? (
-							<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block", mt: step.reason ? 0.75 : 1, lineHeight: 1.6 }}>
+							<Typography variant="caption" sx={{
+								color: Color.TextSecondary,
+								display: "block",
+								maxWidth: "100%",
+								mt: step.reason ? 0.75 : 1,
+								lineHeight: 1.6,
+								whiteSpace: "normal",
+								overflowWrap: "anywhere",
+								wordBreak: "break-word",
+							}}>
 								{paramItems.map((item, index) => (
 									<React.Fragment key={`${item.label}:${item.value ?? ""}:${index}`}>
 										{index > 0 ? " · " : null}

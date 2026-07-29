@@ -44,10 +44,22 @@ export interface FirstProjectTourProps {
 export const firstProjectExampleCode = 'print("Hello Dora!");';
 
 const target = (selector: string) => () =>
-	document.querySelector<HTMLElement>(selector) ?? document.body;
+	document.querySelector<HTMLElement>(selector);
+
+const playControlTarget = (mode: string) => () =>
+	Array.from(document.querySelectorAll<HTMLElement>(
+		`[data-play-control-mode="${mode}"]`
+	)).find((element) => {
+		const rect = element.getBoundingClientRect();
+		return rect.width > 0
+			&& rect.height > 0
+			&& element.closest('[data-play-control-strip="true"]') !== null;
+	}) ?? null;
 
 export default function FirstProjectTour(props: FirstProjectTourProps) {
 	const { t } = useTranslation();
+	const compact = typeof window !== "undefined"
+		&& (window.innerWidth <= 600 || window.innerHeight <= 520);
 	const allSteps = useMemo<NonNullable<TourProps['steps']>>(() => [
 		{
 			target: null,
@@ -59,7 +71,7 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 			target: target('[data-first-project-workspace-root="true"]'),
 			title: t("onboarding.workspaceTitle"),
 			description: t("onboarding.workspaceDescription"),
-			placement: "right",
+			placement: compact ? "bottomLeft" : "right",
 		},
 		{
 			target: target('[data-first-project-new="true"]'),
@@ -83,7 +95,7 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 			target: target('[data-first-project-checkbox="true"]'),
 			title: t("onboarding.projectOptionTitle"),
 			description: t("onboarding.projectOptionDescription"),
-			placement: "right",
+			placement: compact ? "top" : "right",
 		},
 		{
 			target: target('[data-first-project-create="true"]'),
@@ -92,7 +104,7 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 			placement: "topRight",
 		},
 		{
-			target: target('[data-first-project-editor="true"]'),
+			target: compact ? null : target('[data-first-project-editor="true"]'),
 			title: t("onboarding.exampleCodeTitle"),
 			description: (
 				<div>
@@ -110,10 +122,10 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 					</code>
 				</div>
 			),
-			placement: "leftTop",
+			placement: compact ? "center" : "leftTop",
 		},
 		{
-			target: target('[data-play-control-mode="Run"]'),
+			target: playControlTarget("Run"),
 			title: t("onboarding.runTitle"),
 			description: t("onboarding.runDescription"),
 			placement: "topRight",
@@ -128,15 +140,15 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 			target: target('[data-first-project-log-close="true"]'),
 			title: t("onboarding.closeLogTitle"),
 			description: t("onboarding.closeLogDescription"),
-			placement: "topRight",
+			placement: compact ? "top" : "topRight",
 		},
 		{
 			target: target('[data-first-project-agent-target="true"]'),
 			title: t("onboarding.agentTitle"),
 			description: t("onboarding.agentDescription"),
-			placement: "right",
+			placement: compact ? "topRight" : "right",
 		},
-	], [t]);
+	], [compact, t]);
 	const agentPhase = props.current >= 10;
 	const steps = agentPhase ? allSteps.slice(10) : allSteps.slice(0, 10);
 	const current = agentPhase ? props.current - 10 : props.current;
@@ -167,7 +179,7 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 				mask={{ color: "rgba(0, 0, 0, 0.58)" }}
 				scrollIntoViewOptions={{ block: "nearest", behavior: "smooth" }}
 				zIndex={1500}
-				width={320}
+				width={compact ? Math.min(280, window.innerWidth - 24) : 320}
 				onChange={() => undefined}
 				onClose={props.onClose}
 				actionsRender={(_, info) => {

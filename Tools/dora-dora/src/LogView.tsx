@@ -10,6 +10,7 @@ import { LazyLog } from 'react-lazylog';
 import * as Service from './Service';
 import { FormEvent, memo, useEffect, useRef, useState } from 'react';
 import { Box, Button, Dialog, DialogActions, DialogContent, FormControl, TextField, Tooltip } from '@mui/material';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTranslation } from 'react-i18next';
 import { Entry, Separator } from './Frame';
 import { Color } from './Theme';
@@ -34,6 +35,7 @@ export interface LogViewProps {
 	height: number;
 	onClose: () => void;
 	onFixLog?: (request: LogFixRequest) => void;
+	allowBackgroundInteraction?: boolean;
 };
 
 interface LoaderDataType {
@@ -96,15 +98,19 @@ const transitionProps = {
 
 const LogView = memo((props: LogViewProps) => {
 	const { t } = useTranslation();
+	const compactLayout = useMediaQuery('(max-width: 760px), (max-height: 520px)');
+	const portraitLayout = useMediaQuery('(max-width: 760px) and (orientation: portrait)');
 	const logContainerRef = useRef<HTMLDivElement | null>(null);
 	const logSnapshot = useBatchedLog();
 	const text = logSnapshot.text === "" ? t("log.wait") : logSnapshot.text;
 	const [command, setCommand] = useState("");
 	const [history, setHistory] = useState<string[]>([]);
 	const [historyIndex, setHistoryIndex] = useState<number>(-1);
-	const [toggleProfiler, setToggleProfiler] = useState(Info.webProfiler);
+	const [toggleProfiler, setToggleProfiler] = useState(compactLayout ? false : Info.webProfiler);
 	const [profilerInfo, setProfilerInfo] = useState<ProfilerInfo | null>(null);
 	const [tableColumns, setTableColumns] = useState<TableColumnsType<LoaderDataType>>(getTableColumns(t));
+	const [logHeight, setLogHeight] = useState(1);
+	const previousOpenNameRef = useRef<string | null>(null);
 	const [fixTarget, setFixTarget] = useState<{
 		lineNumber: number;
 		top: number;
@@ -116,6 +122,15 @@ const LogView = memo((props: LogViewProps) => {
 	useEffect(() => {
 		setTableColumns(getTableColumns(t));
 	}, [t]);
+
+	useEffect(() => {
+		const wasClosed = previousOpenNameRef.current === null;
+		const isOpen = props.openName !== null;
+		if (compactLayout && wasClosed && isOpen) {
+			setToggleProfiler(false);
+		}
+		previousOpenNameRef.current = props.openName;
+	}, [compactLayout, props.openName]);
 
 	useEffect(() => {
 		const profilerListener = (info: ProfilerInfo) => {
@@ -274,6 +289,22 @@ const LogView = memo((props: LogViewProps) => {
 			panelOpen: false,
 		});
 	};
+
+	useEffect(() => {
+		const container = logContainerRef.current;
+		if (!container) return;
+		const updateHeight = () => {
+			const nextHeight = Math.max(1, Math.floor(container.getBoundingClientRect().height));
+			setLogHeight(current => current === nextHeight ? current : nextHeight);
+		};
+		const observer = new ResizeObserver(updateHeight);
+		observer.observe(container);
+		const frame = requestAnimationFrame(updateHeight);
+		return () => {
+			cancelAnimationFrame(frame);
+			observer.disconnect();
+		};
+	}, [compactLayout, props.openName, toggleProfiler]);
 
 	useEffect(() => {
 		const container = logContainerRef.current;
@@ -595,24 +626,69 @@ const LogView = memo((props: LogViewProps) => {
 	}
 
 	const consoleMinHeight = props.height * 0.3;
+	const showLogPanel = !toggleProfiler || !compactLayout;
 
 	return <Entry>
 		<Dialog
+			data-log-view-dialog="true"
 			maxWidth="lg"
 			fullWidth
+			fullScreen={compactLayout}
 			keepMounted
 			open={props.openName !== null}
+			onClose={props.onClose}
+			hideBackdrop={props.allowBackgroundInteraction}
+			disablePortal={props.allowBackgroundInteraction}
+			disableAutoFocus={props.allowBackgroundInteraction}
+			disableEnforceFocus={props.allowBackgroundInteraction}
+			disableRestoreFocus={props.allowBackgroundInteraction}
 			aria-labelledby="logview-dialog-title"
 			aria-describedby="logview-dialog-description"
 			transitionDuration={0}
-			slotProps={{ transition: transitionProps }}
+			sx={props.allowBackgroundInteraction ? {
+				pointerEvents: "none",
+				"& .MuiDialog-paper": {
+					pointerEvents: "auto",
+				},
+			} : undefined}
+			slotProps={{
+				transition: transitionProps,
+				paper: {
+					sx: {
+						height: compactLayout ? "var(--dora-viewport-height, 100dvh)" : "auto",
+						maxHeight: compactLayout ? "var(--dora-viewport-height, 100dvh)" : undefined,
+						m: compactLayout ? 0 : undefined,
+						overflow: "hidden",
+					},
+				},
+			}}
 		>
-			<DialogContent style={{ overflow: "hidden", margin: 0, padding: 0 }}>
-				<div hidden={!toggleProfiler}>
+			<DialogContent sx={{
+				display: "flex",
+				flexDirection: "column",
+				flex: compactLayout ? "1 1 auto" : "0 0 auto",
+				width: "100%",
+				height: compactLayout ? "auto" : props.height,
+				minHeight: 0,
+				overflow: "hidden",
+				m: 0,
+				p: 0,
+			}}>
+				<Box
+					hidden={!toggleProfiler}
+					data-log-view-performance="true"
+					sx={{
+						display: toggleProfiler ? "flex" : "none",
+						flexDirection: "column",
+						flex: compactLayout ? "1 1 auto" : "0 0 auto",
+						minHeight: 0,
+					}}
+				>
 					<Box sx={{
 						width: "100%",
-						height: props.height - consoleMinHeight - 1,
-						background: Color.BackgroundDark
+						height: compactLayout ? "100%" : props.height - consoleMinHeight - 1,
+						minHeight: 0,
+						background: Color.BackgroundDark,
 					}}>
 						<ConfigProvider
 							theme={{
@@ -629,49 +705,76 @@ const LogView = memo((props: LogViewProps) => {
 							}}
 						>
 							<MacScrollbar skin='dark' style={{ width: '100%', height: '100%' }}>
-								<div style={{
-									display: 'flex',
-									flexDirection: 'row',
-									flexWrap: 'wrap',
-									width: '100%',
-									height: '100%',
-									padding: 10,
+								<Box sx={{
+									display: "grid",
+									gridTemplateColumns: compactLayout
+										? "repeat(auto-fit, minmax(min(100%, max(160px, calc((100% - 16px) / 3))), 1fr))"
+										: "repeat(4, minmax(0, 1fr))",
+									gap: 1,
+									width: "100%",
+									minWidth: 0,
+									p: { xs: 1, sm: 1.25 },
+									boxSizing: "border-box",
+									alignItems: "start",
 								}}>
-									<div style={{ padding: 5, width: '25%', minHeight: 400 }}>
-										<Descriptions title={t('pro.basic')} layout='vertical' bordered items={basicItems} size='small' />
-									</div>
-									<div style={{ padding: 5, width: '25%', height: 290 }}>
-										<Descriptions title={t('pro.time')} layout='vertical' bordered items={timeItems} size='small' />
-										{lineConfig ? <Line {...lineConfig} /> : null}
-									</div>
-									<div style={{ padding: 5, width: '25%', height: 290 }}>
-										<Descriptions title={t('pro.object')} layout='vertical' bordered items={objectItems} size='small' />
-										{pieConfig ? <Pie {...pieConfig} /> : null}
-									</div>
-									<div style={{ padding: 5, width: '25%', minHeight: 290 }}>
-										<Descriptions title={t('pro.memory')} layout='vertical' bordered items={memoryItems} size='small' />
-									</div>
-									<div style={{ padding: 5, width: '50%', minHeight: 290 }}>
+									<Box sx={{ minWidth: 0, minHeight: compactLayout ? "auto" : 400 }}>
+										<Descriptions title={t('pro.basic')} layout='vertical' bordered items={basicItems} size='small' column={3} />
+									</Box>
+									<Box sx={{ minWidth: 0, minHeight: 290 }}>
+										<Descriptions title={t('pro.time')} layout='vertical' bordered items={timeItems} size='small' column={2} />
+										{lineConfig ? <Box sx={{ pointerEvents: "none" }}>
+											<Line {...lineConfig} />
+										</Box> : null}
+									</Box>
+									<Box sx={{ minWidth: 0, minHeight: 290 }}>
+										<Descriptions title={t('pro.object')} layout='vertical' bordered items={objectItems} size='small' column={3} />
+										{pieConfig ? <Box sx={{ pointerEvents: "none" }}>
+											<Pie {...pieConfig} />
+										</Box> : null}
+									</Box>
+									<Box sx={{ minWidth: 0, minHeight: 290 }}>
+										<Descriptions title={t('pro.memory')} layout='vertical' bordered items={memoryItems} size='small' column={3} />
+									</Box>
+									<Box sx={{
+										minWidth: 0,
+										minHeight: 290,
+										gridColumn: compactLayout ? "1 / -1" : "span 2",
+									}}>
 										<Divider>{t('pro.loaderTimeCosts')} ({totalLoaderCost.toFixed(4)} s)</Divider>
-										<Table bordered dataSource={profilerInfo?.loaderCosts?.map((item) => {
-											return {
-												key: item.order,
-												order: item.order,
-												time: item.time,
-												depth: item.depth,
-												moduleName: item.moduleName,
-											};
-										})} columns={tableColumns} />
-									</div>
-								</div>
+										<Box sx={{ width: "100%", overflowX: "auto" }}>
+											<Table bordered dataSource={profilerInfo?.loaderCosts?.map((item) => {
+												return {
+													key: item.order,
+													order: item.order,
+													time: item.time,
+													depth: item.depth,
+													moduleName: item.moduleName,
+												};
+											})} columns={tableColumns} />
+										</Box>
+									</Box>
+								</Box>
 							</MacScrollbar>
 						</ConfigProvider>
 					</Box>
-					<Separator />
-				</div>
-				<div style={{ position: "relative" }} ref={logContainerRef}>
+					{compactLayout ? null : <Separator />}
+				</Box>
+				<Box
+					data-log-view-console="true"
+					ref={logContainerRef}
+					sx={{
+						position: "relative",
+						display: showLogPanel ? "block" : "none",
+						flex: toggleProfiler && !compactLayout
+							? `0 0 ${consoleMinHeight}px`
+							: "1 1 auto",
+						height: toggleProfiler && !compactLayout ? consoleMinHeight : "auto",
+						minHeight: 0,
+						overflow: "hidden",
+					}}
+				>
 					<LazyLog
-						height={toggleProfiler ? consoleMinHeight : props.height}
+						height={logHeight}
 						text={text}
 						style={{
 							WebkitScrollSnapType: "none",
@@ -774,15 +877,39 @@ const LogView = memo((props: LogViewProps) => {
 							/>
 						</Box>
 					) : null}
-				</div>
+				</Box>
 			</DialogContent>
-			<DialogActions>
-				<form noValidate autoComplete="off" style={{ flex: 1, minWidth: 0 }} onSubmit={onSubmit}>
+			<DialogActions
+				data-log-view-actions="true"
+				sx={{
+					flexDirection: portraitLayout ? "column" : "row",
+					alignItems: "stretch",
+					flexShrink: 0,
+					gap: compactLayout ? 1 : 0,
+					p: compactLayout ? 1 : undefined,
+					backgroundColor: Color.BackgroundDark,
+					"& > :not(style) ~ :not(style)": {
+						ml: portraitLayout ? 0 : undefined,
+					},
+				}}
+			>
+				<form
+					noValidate
+					autoComplete="off"
+					style={{
+						flex: portraitLayout ? "0 0 auto" : 1,
+						width: portraitLayout ? "100%" : "auto",
+						minWidth: 0,
+					}}
+					onSubmit={onSubmit}
+				>
 					<FormControl fullWidth sx={{
-						paddingRight: 1,
+						pr: portraitLayout ? 0 : 1,
 					}}
 					>
 						<TextField
+							fullWidth
+							size={compactLayout ? "small" : "medium"}
 							label={t("log.command")}
 							id="commandline"
 							value={command}
@@ -791,7 +918,15 @@ const LogView = memo((props: LogViewProps) => {
 						/>
 					</FormControl>
 				</form>
-				<Box sx={{ flexShrink: 0, minWidth: 0, p: 0, m: 0 }}>
+				<Box sx={{
+					display: "grid",
+					gridTemplateColumns: portraitLayout ? "repeat(4, minmax(0, 1fr))" : "repeat(4, auto)",
+					width: portraitLayout ? "100%" : "auto",
+					flexShrink: 0,
+					minWidth: 0,
+					p: 0,
+					m: 0,
+				}}>
 					<Button
 						aria-label="toggle-profiler"
 						onClick={onToggleProfiler}
@@ -800,8 +935,7 @@ const LogView = memo((props: LogViewProps) => {
 							color: Color.Secondary,
 							minWidth: 0,
 							height: 36,
-							pl: 2,
-							pr: 2,
+							px: compactLayout ? 1 : 2,
 							whiteSpace: 'nowrap',
 						}}
 					>
@@ -816,7 +950,7 @@ const LogView = memo((props: LogViewProps) => {
 					<Button
 						data-first-project-log-close="true"
 						onClick={props.onClose}
-						style={{ marginRight: 10 }}
+						sx={{ minWidth: 0, px: compactLayout ? 1 : 2, mr: compactLayout ? 0 : 1.25 }}
 					>
 						{t("action.close")}
 					</Button>

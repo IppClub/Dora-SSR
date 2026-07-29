@@ -780,11 +780,12 @@ export default function PersistentDrawerLeft() {
 	const windowWidthRef = useRef(winSize.width);
 	const viewportHeightRef = useRef(winSize.height);
 	const activeLayoutFile = tabIndex !== null ? files.at(tabIndex) : undefined;
-	const compactAgentLayout = (winSize.width < compactAgentWidthBreakpoint || winSize.height < compactAgentHeightBreakpoint)
+	const compactViewportLayout = winSize.width < compactAgentWidthBreakpoint || winSize.height < compactAgentHeightBreakpoint;
+	const compactAgentLayout = compactViewportLayout
 		&& activeLayoutFile !== undefined
 		&& (activeLayoutFile.workspaceView ?? "agent") === "agent";
 	const appBarHeight = compactAgentLayout ? 40 : 48;
-	const statusBarHeight = compactAgentLayout ? 0 : 26;
+	const statusBarHeight = compactAgentLayout ? 0 : compactViewportLayout ? 36 : 26;
 	const narrowLayout = winSize.width < narrowSplitBreakpoint;
 	const effectiveDrawerWidth = narrowLayout
 		? Math.floor(winSize.width * 0.82)
@@ -2492,6 +2493,9 @@ export default function PersistentDrawerLeft() {
 				const rootRes = await Service.agentProjectRoot({ path: key, isDir: true });
 				if (rootRes.success && rootRes.found && rootRes.projectRoot === key) {
 					const opened = await openAgentSessionTab(key, true, { silentWhenNotFound: true });
+					if (opened && narrowLayout) {
+						setDrawerOpen(false);
+					}
 					if (
 						opened
 						&& firstProjectTourOpen
@@ -2504,15 +2508,22 @@ export default function PersistentDrawerLeft() {
 					return;
 				}
 				openFileInTab(key, title, true);
+				if (narrowLayout) {
+					setDrawerOpen(false);
+				}
 			})();
 			return;
 		}
 		openFileInTab(key, title, dir);
+		if (narrowLayout) {
+			setDrawerOpen(false);
+		}
 	}, [
 		completeFirstProjectTour,
 		firstProjectTourCurrent,
 		firstProjectTourFile,
 		firstProjectTourOpen,
+		narrowLayout,
 		openAgentSessionTab,
 		openFileInTab,
 	]);
@@ -3759,9 +3770,9 @@ export default function PersistentDrawerLeft() {
 			if (!completed) return;
 			if (openLog === null) {
 				locateFirstProjectAgent();
-				return;
+			} else {
+				setFirstProjectTourCurrent(10);
 			}
-			setFirstProjectTourCurrent(10);
 		});
 	}, [locateFirstProjectAgent, openLog, persistFirstProjectTourCompletion]);
 
@@ -3776,6 +3787,51 @@ export default function PersistentDrawerLeft() {
 		void revealTreeNode(target.key);
 		setFirstProjectTourCurrent(1);
 	}, [addAlert, revealTreeNode, t]);
+
+	useEffect(() => {
+		if (!firstProjectTourOpen || firstProjectTourCurrent !== 8) return;
+		let secondFrame = 0;
+		const firstFrame = window.requestAnimationFrame(() => {
+			secondFrame = window.requestAnimationFrame(() => {
+				const runButton = Array.from(document.querySelectorAll<HTMLElement>(
+					'[data-play-control-mode="Run"]'
+				)).find((element) => {
+					const rect = element.getBoundingClientRect();
+					return rect.width > 0
+						&& rect.height > 0
+						&& element.closest('[data-play-control-strip="true"]') !== null;
+				});
+				if (runButton === undefined) return;
+				const strip = runButton.closest<HTMLElement>(
+					'[data-play-control-strip="true"]'
+				);
+				if (strip === null) {
+					runButton.scrollIntoView({
+						behavior: "auto",
+						block: "nearest",
+						inline: "center",
+					});
+					return;
+				}
+				const stripRect = strip.getBoundingClientRect();
+				const buttonRect = runButton.getBoundingClientRect();
+				strip.scrollTo({
+					left: Math.max(
+						0,
+						strip.scrollLeft
+							+ buttonRect.left
+							- stripRect.left
+							- (strip.clientWidth - buttonRect.width) / 2
+					),
+					behavior: "auto",
+				});
+			});
+		});
+		return () => {
+			window.cancelAnimationFrame(firstFrame);
+			window.cancelAnimationFrame(secondFrame);
+		};
+	}, [firstProjectTourCurrent, firstProjectTourOpen]);
 
 	const handleFilenameClose = (callbacks?: {
 		onCreated?: (openedFile: string) => void;
@@ -4002,6 +4058,7 @@ export default function PersistentDrawerLeft() {
 			onCreated: (openedFile) => {
 				setFirstProjectTourCreating(false);
 				setFirstProjectTourFile(openedFile);
+				if (narrowLayout) setDrawerOpen(false);
 				setFirstProjectTourCurrent(7);
 			},
 			onFailed: () => {
@@ -4930,10 +4987,11 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const onCloseLog = useCallback(() => {
-		const continueFirstProjectTour = firstProjectTourOpen && firstProjectTourCurrent === 10;
 		if (openLog?.stopOnClose) onStopRunning();
 		setOpenLog(null);
-		if (continueFirstProjectTour) locateFirstProjectAgent();
+		if (firstProjectTourOpen && firstProjectTourCurrent === 10) {
+			locateFirstProjectAgent();
+		}
 	}, [
 		firstProjectTourCurrent,
 		firstProjectTourOpen,
@@ -4992,22 +5050,6 @@ export default function PersistentDrawerLeft() {
 		openFileInTab(value.fileKey, value.title, false);
 	}, [openFileInTab]);
 
-	useEffect(() => {
-		if (!openFilter) return;
-		const closeOnOutsidePointer = (event: PointerEvent) => {
-			const paper = document.querySelector('[data-file-filter-dialog="true"] .MuiDialog-paper');
-			if (
-				paper !== null
-				&& event.target instanceof Node
-				&& !paper.contains(event.target)
-			) {
-				onFileFilterClose(null);
-			}
-		};
-		document.addEventListener("pointerdown", closeOnOutsidePointer, true);
-		return () => document.removeEventListener("pointerdown", closeOnOutsidePointer, true);
-	}, [onFileFilterClose, openFilter]);
-
 	const onSearchOpenFile = useCallback((file: string, line: number, column: number) => {
 		if (tabIndex !== null && files[tabIndex]?.key === file) {
 			const editor = files[tabIndex]?.editor;
@@ -5042,31 +5084,48 @@ export default function PersistentDrawerLeft() {
 		<Entry>
 			<Dialog
 				data-file-filter-dialog="true"
-				maxWidth="lg"
+				fullWidth
+				maxWidth="md"
 				open={openFilter}
 				onClose={() => onFileFilterClose(null)}
-				onPointerDown={(event) => {
-					const target = event.target;
-					if (target instanceof Element && target.closest(".MuiDialog-paper") === null) {
-						onFileFilterClose(null);
-					}
-				}}
 				transitionDuration={0}
+				sx={{
+					"& .MuiDialog-container": {
+						alignItems: { xs: "center", sm: "flex-start" },
+					},
+				}}
 				slotProps={{
 					transition: transitionProps,
-					backdrop: {
-						onMouseDown: () => onFileFilterClose(null),
-						onClick: () => onFileFilterClose(null),
+					paper: {
+						sx: {
+							width: {
+								xs: "calc(100% - 16px)",
+								sm: "min(760px, calc(100% - 32px))",
+							},
+							maxWidth: 760,
+							maxHeight: "calc(var(--dora-viewport-height, 100dvh) - 16px)",
+							m: { xs: 1, sm: 0 },
+							mx: { sm: 2 },
+							mt: { sm: "clamp(32px, 12vh, 96px)" },
+							mb: { sm: 2 },
+							overflow: "hidden",
+						},
 					},
 				}}
 			>
-				<DialogContent>
+				<DialogContent sx={{ p: 0, overflow: "hidden" }}>
 					{openFilter ?
 						<FileFilter optionCount={filterOptionCount} loading={filterOptionsLoading} onClose={onFileFilterClose} /> : null
 					}
 				</DialogContent>
 			</Dialog>
-			<LogView openName={openLog === null ? null : openLog.title} height={editorHeight * 0.9} onClose={onCloseLog} onFixLog={onFixLog} />
+			<LogView
+				openName={openLog === null ? null : openLog.title}
+				height={editorHeight * 0.9}
+				onClose={onCloseLog}
+				onFixLog={onFixLog}
+				allowBackgroundInteraction={firstProjectTourOpen && firstProjectTourCurrent === 10}
+			/>
 			<Dialog
 				maxWidth="lg"
 				open={popupInfo !== null}
@@ -5194,7 +5253,7 @@ export default function PersistentDrawerLeft() {
 								label={t("file.projectNamed", { name: "Wa" })}
 								control={
 									<Checkbox
-										checked={fileInfo?.project}
+										checked={fileInfo?.project ?? false}
 										onChange={(event) => {
 											if (fileInfo === null) return;
 											const newFileInfo = { ...fileInfo, project: event.target.checked };
@@ -5212,7 +5271,7 @@ export default function PersistentDrawerLeft() {
 									label={t("file.project")}
 									control={
 										<Checkbox
-											checked={fileInfo?.project}
+											checked={fileInfo?.project ?? false}
 											onChange={(event) => {
 												if (fileInfo === null) return;
 												setFileInfo({ ...fileInfo, project: event.target.checked });
@@ -5412,7 +5471,7 @@ export default function PersistentDrawerLeft() {
 							...(narrowLayout ? {
 								position: 'absolute',
 								inset: '0 auto 0 0',
-								zIndex: 3,
+								zIndex: firstProjectTourOpen && firstProjectTourCurrent === 11 ? 1400 : 3,
 								width: drawerOpen ? effectiveDrawerWidth : 0,
 								maxWidth: '82vw',
 								boxShadow: drawerOpen ? '12px 0 28px rgba(0, 0, 0, 0.42)' : 'none',
@@ -5537,7 +5596,7 @@ export default function PersistentDrawerLeft() {
 								expandedKeys={expandedKeys}
 								treeData={treeData}
 								firstProjectTourTargetKey={
-									firstProjectTourCurrent === 11 && firstProjectTourFile !== null
+									firstProjectTourOpen && firstProjectTourFile !== null
 										? path.dirname(firstProjectTourFile)
 										: undefined
 								}
@@ -5557,6 +5616,24 @@ export default function PersistentDrawerLeft() {
 									) {
 										setFirstProjectTourCurrent(2);
 									}
+								}}
+								onFirstProjectTourTargetSelect={(data) => {
+									if (
+										!firstProjectTourOpen
+										|| firstProjectTourCurrent !== 11
+										|| firstProjectTourFile === null
+										|| data.key !== path.dirname(firstProjectTourFile)
+									) {
+										onSelect([data]);
+										return;
+									}
+									setSelectedKeys([data.key]);
+									setSelectedNode(data);
+									void openAgentSessionTab(data.key, true, { silentWhenNotFound: true }).then((opened) => {
+										if (!opened) return;
+										if (narrowLayout) setDrawerOpen(false);
+										completeFirstProjectTour();
+									});
 								}}
 								onSelect={onSelect}
 								onCheck={onCheckTreeNodes}
@@ -5714,7 +5791,7 @@ export default function PersistentDrawerLeft() {
 								<DrawerHeader sx={{ minHeight: compactAgentLayout && active ? appBarHeight : 48 }} />
 								<ProjectWorkspacePanel
 									active={active}
-									compact={compactAgentLayout && active}
+									compact={compactViewportLayout && active}
 									title={file.title}
 									height={editorHeight}
 									uploadPath={file.key}
@@ -6230,6 +6307,8 @@ export default function PersistentDrawerLeft() {
 								} else if (file.folder) {
 									return (
 										<ProjectWorkspacePanel
+											active={active}
+											compact={compactViewportLayout && active}
 											title={file.title}
 											height={editorHeight}
 											uploadPath={file.key}
@@ -6298,9 +6377,18 @@ export default function PersistentDrawerLeft() {
 							whiteSpace: 'nowrap',
 						}}>
 						</Box>
-						<Box sx={{ display: 'flex', alignItems: 'center', height: '100%', flexShrink: 0 }}>
+						<Box sx={{
+							display: 'flex',
+							alignItems: 'center',
+							height: '100%',
+							minWidth: 0,
+							maxWidth: '100%',
+							flexShrink: 1,
+							overflow: 'hidden',
+						}}>
 							<PlayControl
 								compact
+								touch={compactViewportLayout}
 								onClick={onPlayControlClick}
 								showFirstProjectTour={!firstProjectTourCompleted}
 								buildProjectAction={{
