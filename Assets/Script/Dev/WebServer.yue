@@ -2061,9 +2061,9 @@ visitAssets = (path, workspace, builtin, recursive = true) ->
 
 HttpServer\post "/assets/children", (req): success: false ->
 	switch req when {body: {:path}}
-		return success: false unless relativeToRoot(path, Content.writablePath) ~= nil
-		return success: false unless Content\exist(path) and Content\isdir(path)
-		node = visitAssets path, true, nil, false
+		workspace, builtin = relativeToRoot(path, Content.writablePath) ~= nil, relativeToRoot(path, Content.assetPath) ~= nil
+		return success: false unless (workspace or builtin) and Content\exist(path) and Content\isdir(path)
+		node = visitAssets path, workspace, builtin, false
 		return success: true, children: node.children or {}
 
 HttpServer\post "/assets/files", (req): success: false ->

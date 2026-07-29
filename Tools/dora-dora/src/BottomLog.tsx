@@ -81,7 +81,7 @@ const BottomLog = memo((props: BottomLogProps) => {
 		};
 		const onScroll = (event: Event) => {
 			if ((event.target as HTMLElement | null)?.closest("[data-log-fix-panel]")) return;
-			setFixTarget(null);
+			setFixTarget(current => current?.panelOpen ? current : null);
 		};
 		container.addEventListener("mousedown", onMouseDown, true);
 		container.addEventListener("scroll", onScroll, true);

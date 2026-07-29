@@ -314,7 +314,7 @@ const LogView = memo((props: LogViewProps) => {
 		};
 		const onScroll = (event: Event) => {
 			if ((event.target as HTMLElement | null)?.closest("[data-log-fix-panel]")) return;
-			setFixTarget(null);
+			setFixTarget(current => current?.panelOpen ? current : null);
 		};
 		container.addEventListener("mousedown", onMouseDown, true);
 		container.addEventListener("scroll", onScroll, true);
@@ -704,31 +704,36 @@ const LogView = memo((props: LogViewProps) => {
 								}
 							}}
 						>
-							<MacScrollbar skin='dark' style={{ width: '100%', height: '100%' }}>
+							<MacScrollbar
+								skin='dark'
+								suppressScrollX
+								style={{ width: '100%', height: '100%' }}
+							>
 								<Box sx={{
 									display: "grid",
 									gridTemplateColumns: compactLayout
 										? "repeat(auto-fit, minmax(min(100%, max(160px, calc((100% - 16px) / 3))), 1fr))"
 										: "repeat(4, minmax(0, 1fr))",
-									gap: 1,
+									columnGap: 1,
+									rowGap: 0,
 									width: "100%",
 									minWidth: 0,
 									p: { xs: 1, sm: 1.25 },
 									boxSizing: "border-box",
 									alignItems: "start",
 								}}>
-									<Box sx={{ minWidth: 0, minHeight: compactLayout ? "auto" : 400 }}>
+									<Box sx={{ minWidth: 0 }}>
 										<Descriptions title={t('pro.basic')} layout='vertical' bordered items={basicItems} size='small' column={3} />
 									</Box>
 									<Box sx={{ minWidth: 0, minHeight: 290 }}>
 										<Descriptions title={t('pro.time')} layout='vertical' bordered items={timeItems} size='small' column={2} />
-										{lineConfig ? <Box sx={{ pointerEvents: "none" }}>
+										{toggleProfiler && lineConfig ? <Box sx={{ height: 220, pointerEvents: "none" }}>
 											<Line {...lineConfig} />
 										</Box> : null}
 									</Box>
 									<Box sx={{ minWidth: 0, minHeight: 290 }}>
 										<Descriptions title={t('pro.object')} layout='vertical' bordered items={objectItems} size='small' column={3} />
-										{pieConfig ? <Box sx={{ pointerEvents: "none" }}>
+										{toggleProfiler && pieConfig ? <Box sx={{ height: 220, pointerEvents: "none" }}>
 											<Pie {...pieConfig} />
 										</Box> : null}
 									</Box>
@@ -740,7 +745,9 @@ const LogView = memo((props: LogViewProps) => {
 										minHeight: 290,
 										gridColumn: compactLayout ? "1 / -1" : "span 2",
 									}}>
-										<Divider>{t('pro.loaderTimeCosts')} ({totalLoaderCost.toFixed(4)} s)</Divider>
+										<Divider style={{ margin: "0px 0 8px" }}>
+											{t('pro.loaderTimeCosts')} ({totalLoaderCost.toFixed(4)} s)
+										</Divider>
 										<Box sx={{ width: "100%", overflowX: "auto" }}>
 											<Table bordered dataSource={profilerInfo?.loaderCosts?.map((item) => {
 												return {
@@ -883,7 +890,7 @@ const LogView = memo((props: LogViewProps) => {
 				data-log-view-actions="true"
 				sx={{
 					flexDirection: portraitLayout ? "column" : "row",
-					alignItems: "stretch",
+					alignItems: portraitLayout ? "stretch" : "center",
 					flexShrink: 0,
 					gap: compactLayout ? 1 : 0,
 					p: compactLayout ? 1 : undefined,
@@ -924,6 +931,7 @@ const LogView = memo((props: LogViewProps) => {
 					width: portraitLayout ? "100%" : "auto",
 					flexShrink: 0,
 					minWidth: 0,
+					alignItems: "center",
 					p: 0,
 					m: 0,
 				}}>

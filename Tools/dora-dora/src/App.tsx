@@ -13,6 +13,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import IconButton from '@mui/material/IconButton';
 import Fullscreen from '@mui/icons-material/Fullscreen';
 import FullscreenExit from '@mui/icons-material/FullscreenExit';
+import CloseIcon from '@mui/icons-material/Close';
 import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import FileTree, { TreeDataType, TreeMenuEvent } from "./FileTree";
 import FileTabBar, { TabMenuEvent, TabStatus } from './FileTabBar';
@@ -790,6 +791,9 @@ export default function PersistentDrawerLeft() {
 	const effectiveDrawerWidth = narrowLayout
 		? Math.floor(winSize.width * 0.82)
 		: drawerWidth;
+	const drawerToggleLabel = narrowLayout
+		? t(drawerOpen ? "action.closeResourcePanel" : "action.openResourcePanel")
+		: t(drawerOpen ? "action.enterEditorFullscreen" : "action.exitEditorFullscreen");
 	const editorWidth = winSize.width - (drawerOpen && !narrowLayout ? drawerWidth : 0);
 	const editorHeight = winSize.height - appBarHeight - statusBarHeight;
 	const showFullLogo = drawerWidth > 235;
@@ -5374,24 +5378,28 @@ export default function PersistentDrawerLeft() {
 						height: appBarHeight,
 						pl: 2.2
 					}}>
-						<IconButton
-							color="inherit"
-							aria-label="open drawer"
-							onClick={handleDrawerOpen}
-							edge="start"
-							sx={{
-								width: compactAgentLayout ? 32 : 36,
-								height: compactAgentLayout ? 32 : 36,
-								borderRadius: 1.5,
-								color: Color.Secondary,
-								backgroundColor: 'transparent',
-								'&:hover': {
-									backgroundColor: Color.Line,
-								},
-							}}
-						>
-							{drawerOpen ? <Fullscreen /> : <FullscreenExit />}
-						</IconButton>
+						<Tooltip title={drawerToggleLabel}>
+							<IconButton
+								color="inherit"
+								aria-label={drawerToggleLabel}
+								onClick={handleDrawerOpen}
+								edge="start"
+								sx={{
+									width: compactAgentLayout ? 32 : 36,
+									height: compactAgentLayout ? 32 : 36,
+									borderRadius: 1.5,
+									color: Color.Secondary,
+									backgroundColor: 'transparent',
+									'&:hover': {
+										backgroundColor: Color.Line,
+									},
+								}}
+								>
+									{narrowLayout
+										? <AccountTreeIcon sx={{ fontSize: 18 }} />
+										: drawerOpen ? <Fullscreen /> : <FullscreenExit />}
+							</IconButton>
+						</Tooltip>
 						<Box sx={{ flex: 1, minWidth: 0, m: 0, p: 0 }}>
 							<FileTabBar
 								index={tabIndex}
@@ -5430,6 +5438,29 @@ export default function PersistentDrawerLeft() {
 						) : null}
 					</Toolbar>
 				</AppBar>
+				{narrowLayout
+					&& drawerOpen
+					&& !(firstProjectTourOpen && firstProjectTourCurrent === 11) ? (
+					<Box
+						aria-hidden="true"
+						onPointerDown={(event) => event.stopPropagation()}
+						onClick={(event) => {
+							event.preventDefault();
+							event.stopPropagation();
+							setDrawerOpen(false);
+						}}
+						onContextMenu={(event) => {
+							event.preventDefault();
+							event.stopPropagation();
+						}}
+						sx={{
+							position: "fixed",
+							inset: `0 0 0 ${effectiveDrawerWidth}px`,
+							zIndex: 2,
+							backgroundColor: "rgba(0, 0, 0, 0.28)",
+						}}
+					/>
+				) : null}
 				<Splitter
 					orientation="horizontal"
 					lazy
@@ -5572,18 +5603,20 @@ export default function PersistentDrawerLeft() {
 									</IconButton>
 								</Tooltip>
 								{narrowLayout ? (
-									<Tooltip title={t("action.close")}>
+									<Tooltip title={t("action.closeResourcePanel")}>
 										<IconButton
 											size="small"
-											color="inherit"
-											aria-label="close drawer"
+											aria-label={t("action.closeResourcePanel")}
 											onClick={handleDrawerOpen}
 											sx={{
-												border: `1px solid ${Color.Line}`,
-												borderRadius: 1.5,
+												color: Color.TextSecondary,
+												"&:hover": {
+													color: Color.TextPrimary,
+													backgroundColor: Color.Line,
+												},
 											}}
 										>
-											<Fullscreen fontSize="small" />
+											<CloseIcon fontSize="small" />
 										</IconButton>
 									</Tooltip>
 								) : null}

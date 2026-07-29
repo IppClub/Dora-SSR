@@ -326,6 +326,10 @@ i18n
 						"clear": "Clear",
 						"close": "Close",
 						"apply": "Apply",
+						"openResourcePanel": "Open resource panel",
+						"closeResourcePanel": "Close resource panel",
+						"enterEditorFullscreen": "Enter editor fullscreen",
+						"exitEditorFullscreen": "Exit editor fullscreen",
 					},
 					file: {
 						new: "New Item",
@@ -1496,6 +1500,10 @@ i18n
 						"clear": "清空",
 						"close": "关闭",
 						"apply": "应用",
+						"openResourcePanel": "打开资源面板",
+						"closeResourcePanel": "关闭资源面板",
+						"enterEditorFullscreen": "主编辑区全屏",
+						"exitEditorFullscreen": "退出主编辑区全屏",
 					},
 					file: {
 						new: "新建内容",

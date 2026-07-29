@@ -240,7 +240,11 @@ export default memo(function FileTree(props: FileTreeProps) {
 	const touchDragAllowedRef = useRef(false);
 	const touchDragBlockedRef = useRef(false);
 	const lastInputWasTouchRef = useRef(false);
-	const [anchorItem, setAnchorItem] = useState<null | { target: Element, data: TreeDataType }>(null);
+	const [anchorItem, setAnchorItem] = useState<null | {
+		target: Element;
+		data: TreeDataType;
+		position: { top: number; left: number };
+	}>(null);
 	const [menuOpen, setMenuOpen] = useState(false);
 	const [suppressResizeScrollbar, setSuppressResizeScrollbar] = useState(false);
 	const { t } = useTranslation();
@@ -272,10 +276,14 @@ export default memo(function FileTree(props: FileTreeProps) {
 		}
 		cancelTouchLongPress();
 		const target = event.currentTarget;
+		const position = {
+			top: event.clientY,
+			left: event.clientX + 8,
+		};
 		touchLongPressTimerRef.current = window.setTimeout(() => {
 			touchLongPressTimerRef.current = null;
 			props.onContextMenuOpen?.(node);
-			setAnchorItem({ target, data: node });
+			setAnchorItem({ target, data: node, position });
 			setMenuOpen(true);
 		}, 500);
 	};
@@ -409,7 +417,17 @@ export default memo(function FileTree(props: FileTreeProps) {
 	const onRightClick: NonNullable<TreeProps<TreeDataType>["onRightClick"]> = (info) => {
 		if (multiSelectMode) return;
 		if (info.node.key === props.firstProjectTourTargetKey) return;
-		setAnchorItem({ target: info.event.currentTarget, data: info.node });
+		const target = info.event.target instanceof Element
+			? info.event.target.closest(".ant-tree-node-content-wrapper") ?? info.event.currentTarget
+			: info.event.currentTarget;
+		setAnchorItem({
+			target,
+			data: info.node,
+			position: {
+				top: info.event.clientY,
+				left: info.event.clientX + 8,
+			},
+		});
 		setMenuOpen(true);
 	};
 
@@ -488,6 +506,8 @@ export default memo(function FileTree(props: FileTreeProps) {
 		(ext === ".ts" || ext === ".tsx") &&
 		((!isRoot && !isBuiltin) || Info.engineDev);
 	const enableUpdateDora = ext === ".mod" && (((!isRoot && !isBuiltin) || Info.engineDev));
+	const menuOpensAbove = anchorItem !== null
+		&& anchorItem.position.top > window.innerHeight / 2;
 
 	return (
 		<div
@@ -515,14 +535,24 @@ export default memo(function FileTree(props: FileTreeProps) {
 					height: '100%',
 				}}
 			>
-			<StyledMenu
-				id="dora-menu"
-				anchorEl={anchorItem?.target}
-				keepMounted
-				autoFocus={false}
-				open={menuOpen}
-				onClose={() => handleClose("Cancel", anchorItem?.data)}
-				slotProps={{
+				<StyledMenu
+					id="dora-menu"
+					anchorReference="anchorPosition"
+					anchorPosition={anchorItem?.position}
+					keepMounted
+					autoFocus={false}
+					open={menuOpen}
+					onClose={() => handleClose("Cancel", anchorItem?.data)}
+					transformOrigin={{
+						vertical: menuOpensAbove ? "bottom" : "top",
+						horizontal: "left",
+					}}
+					slotProps={{
+						paper: {
+							sx: {
+								marginTop: menuOpensAbove ? "-8px" : undefined,
+							},
+						},
 					transition: {
 						onEntered: () => {
 							if (anchorItem !== null) {
@@ -770,7 +800,9 @@ export default memo(function FileTree(props: FileTreeProps) {
 					loadData={loadData}
 					loadedKeys={loadedKeys}
 					onLoad={() => { }}
-					selectedKeys={selectedKeys}
+					selectedKeys={menuOpen && anchorItem !== null
+						? [anchorItem.data.key]
+						: selectedKeys}
 					titleRender={(node) => (
 						<span
 							className="dora-resource-tree-title"

@@ -5024,17 +5024,13 @@ HttpServer:post("/assets/children", function(req) -- 2062
 				end -- 2063
 			end -- 2063
 			if path ~= nil then -- 2063
-				if not (relativeToRoot(path, Content.writablePath) ~= nil) then -- 2064
-					return { -- 2064
-						success = false -- 2064
-					} -- 2064
-				end -- 2064
-				if not (Content:exist(path) and Content:isdir(path)) then -- 2065
+				local workspace, builtin = relativeToRoot(path, Content.writablePath) ~= nil, relativeToRoot(path, Content.assetPath) ~= nil -- 2064
+				if not ((workspace or builtin) and Content:exist(path) and Content:isdir(path)) then -- 2065
 					return { -- 2065
 						success = false -- 2065
 					} -- 2065
 				end -- 2065
-				local node = visitAssets(path, true, nil, false) -- 2066
+				local node = visitAssets(path, workspace, builtin, false) -- 2066
 				return { -- 2067
 					success = true, -- 2067
 					children = node.children or { } -- 2067
