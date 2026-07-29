@@ -105,13 +105,10 @@ getProjectDirFromFile = (file) ->
 
 relativeToRoot = (file, root) ->
 	return nil unless file and file ~= "" and root and root ~= ""
-	return "" if file == root
-	prefix = root
-	prefix ..= "/" unless prefix\sub(-1) == "/"
-	if file\sub(1, #prefix) == prefix
-		file\sub #prefix + 1
-	else
-		nil
+	relative = Path\getRelative file, root
+	return nil if relative == "" or relative == ".." or relative\sub(1, 3) == "../" or relative\sub(1, 3) == "..\\"
+	return "" if relative == "."
+	relative
 
 getProjectSourceRoot = (projectRoot) ->
 	return nil unless projectRoot and projectRoot ~= "" and Content\exist(projectRoot) and Content\isdir(projectRoot)
@@ -1698,8 +1695,6 @@ normalizeAssetPaths = (paths) ->
 		return nil unless type(path) == "string"
 		relative = relativeToRoot path, Content.writablePath
 		return nil if relative == nil or relative == "" or not Content\exist path
-		for part in relative\gmatch "[^/]+"
-			return nil if part == ".."
 		unless unique[path]
 			unique[path] = true
 			candidates[] = path

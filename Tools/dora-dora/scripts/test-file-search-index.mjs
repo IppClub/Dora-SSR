@@ -8,6 +8,7 @@ import { pathToFileURL } from "node:url";
 const outputDir = await mkdtemp(path.join(tmpdir(), "dora-file-search-"));
 const outputFile = path.join(outputDir, "FileSearchIndexCore.mjs");
 const managerOutputFile = path.join(outputDir, "FileSearchIndex.mjs");
+const pathUtilsOutputFile = path.join(outputDir, "PathUtils.mjs");
 await build({
 	entryPoints: [path.resolve("src/FileSearchIndexCore.ts")],
 	bundle: true,
@@ -22,7 +23,39 @@ await build({
 	platform: "browser",
 	outfile: managerOutputFile,
 });
+await build({
+	entryPoints: [path.resolve("src/PathUtils.ts")],
+	bundle: true,
+	format: "esm",
+	platform: "node",
+	outfile: pathUtilsOutputFile,
+});
 const { FileSearchIndexCore } = await import(pathToFileURL(outputFile).href);
+const {
+	isPathWithin,
+	joinCanonicalRelativePath,
+	relativePathFromRoot,
+	toCanonicalRelativePath,
+	toUrlPath,
+} = await import(pathToFileURL(pathUtilsOutputFile).href);
+
+assert.equal(isPathWithin("C:\\Workspace\\Game\\init.ts", "c:\\workspace", path.win32), true);
+assert.equal(isPathWithin("C:\\Workspace2\\init.ts", "C:\\Workspace", path.win32), false);
+assert.equal(isPathWithin("D:\\Workspace\\init.ts", "C:\\Workspace", path.win32), false);
+assert.equal(isPathWithin("C:\\Workspace", "C:\\Workspace", path.win32), true);
+assert.equal(
+	relativePathFromRoot("C:\\Workspace", "C:\\Workspace\\Game\\init.ts", path.win32),
+	"Game/init.ts",
+);
+assert.equal(relativePathFromRoot("C:\\Workspace", "C:\\Workspace2\\init.ts", path.win32), null);
+assert.equal(toCanonicalRelativePath("Game\\Script\\init.ts", path.win32), "Game/Script/init.ts");
+assert.equal(toUrlPath("Game\\Script\\init.ts", path.win32), "Game/Script/init.ts");
+assert.equal(
+	joinCanonicalRelativePath("C:\\Workspace", "Game/Script/init.ts", path.win32),
+	"C:\\Workspace\\Game\\Script\\init.ts",
+);
+assert.equal(isPathWithin("/workspace/game/init.ts", "/workspace", path.posix), true);
+assert.equal(isPathWithin("/workspace-copy/init.ts", "/workspace", path.posix), false);
 
 const entries = Array.from({ length: 41_752 }, (_, index) => {
 	const title = index % 1000 === 0 ? `SkyhookController${index}.tsx` : `GeneratedFile${index}.ts`;

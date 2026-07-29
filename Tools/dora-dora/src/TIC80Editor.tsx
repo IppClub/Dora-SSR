@@ -11,6 +11,7 @@ import * as Service from "./Service";
 import { AlertColor } from "@mui/material";
 import { useTranslation } from 'react-i18next';
 import Info from './Info';
+import { toUrlPath } from './PathUtils';
 
 export interface TIC80EditorProps {
 	title: string;
@@ -53,7 +54,7 @@ const TIC80Editor = memo((props: TIC80EditorProps) => {
 							case 'TIC80_READ_FILE': {
 								// Download binary file using HTTP GET
 								try {
-									const response = await fetch(Service.addr("/" + props.resPath.replace(/\\/g, "/")));
+									const response = await fetch(Service.addr("/" + toUrlPath(props.resPath, Info.path)));
 									if (response.ok) {
 										const arrayBuffer = await response.arrayBuffer();
 										const rom = new Uint8Array(arrayBuffer);

@@ -1,3 +1,4 @@
+import Info from "../Info";
 import type { ActionDiagnostic, ActionDocument, ActionNode } from "./ActionDocument";
 import { escapeXml, parseActionXml } from "./ActionXml";
 
@@ -33,11 +34,8 @@ const parseRect = (value: string | undefined): Omit<ActionClipRect, "name"> => {
 };
 
 const resolveSiblingPath = (filePath: string | undefined, sibling: string) => {
-	if (!filePath || sibling === "" || sibling.startsWith("/")) return sibling;
-	const normalized = filePath.replace(/\\/g, "/");
-	const index = normalized.lastIndexOf("/");
-	if (index < 0) return sibling;
-	return `${normalized.slice(0, index)}/${sibling}`;
+	if (!filePath || sibling === "" || Info.path.isAbsolute(sibling)) return sibling;
+	return Info.path.join(Info.path.dirname(filePath), sibling);
 };
 
 export const parseLegacyClip = (xml: string, clipPath?: string): ActionClipDocument => {

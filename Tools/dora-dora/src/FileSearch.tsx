@@ -14,6 +14,7 @@ import * as Service from './Service';
 import { Color } from './Theme';
 import Info from './Info';
 import SearchIcon from '@mui/icons-material/Search';
+import { isPathWithin } from './PathUtils';
 
 const { path } = Info;
 
@@ -149,8 +150,7 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 		if (rawInclude.length === 0) return searchPath;
 		const cleaned = rawInclude.replace(/^[\\/]+/, "");
 		const joined = path.normalize(path.join(searchPath, cleaned));
-		const rel = path.relative(searchPath, joined);
-		if (rel.startsWith("..") || path.isAbsolute(rel)) return "";
+		if (!isPathWithin(joined, searchPath, path)) return "";
 		return joined;
 	}, [searchPath, includeEnabled, includePath]);
 
@@ -206,8 +206,8 @@ const FileSearchPanel = (props: FileSearchDialogProps) => {
 
 	const toDisplayPath = useCallback((file: string) => {
 		if (!searchPath) return file;
+		if (!isPathWithin(file, searchPath, path)) return file;
 		const rel = path.relative(searchPath, file);
-		if (rel.startsWith("..")) return file;
 		return rel === "" ? file : rel;
 	}, [searchPath]);
 

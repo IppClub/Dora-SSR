@@ -1,5 +1,6 @@
 import * as Service from "../Service";
 import Info from "../Info";
+import { isPathWithin, toUrlPath } from "../PathUtils";
 import { parseLegacyClip } from "../ActionEditor/ActionClip";
 import { ParticleRect } from "./ParticleDocument";
 import { ParticleTextureSource } from "./ParticleWebGLRenderer";
@@ -21,18 +22,15 @@ export type ParticleResourceResult = {
 };
 
 export const particleResourceToServedUrl = (resourcePath: string, resourceBasePath: string) => {
-	const normalized = resourcePath.replace(/\\/g, "/");
-	const base = resourceBasePath.replace(/\\/g, "/");
-	if (normalized.startsWith(base)) {
-		return "/" + normalized.slice(base.length).replace(/^\/+/, "");
-	}
-	return "/" + normalized.replace(/^\/+/, "");
+	const servedPath = isPathWithin(resourcePath, resourceBasePath, Info.path)
+		? Info.path.relative(resourceBasePath, resourcePath)
+		: Info.path.normalize(resourcePath);
+	return "/" + toUrlPath(servedPath, Info.path).replace(/^\/+/, "");
 };
 
 export const resolveParticleResourcePath = (resourcePath: string, resourceBasePath: string) => {
 	if (resourcePath === "") return "";
-	const normalized = resourcePath.replace(/\\/g, "/");
-	if (normalized.startsWith("/") || /^[A-Za-z]:[\\/]/.test(resourcePath)) return resourcePath;
+	if (Info.path.isAbsolute(resourcePath)) return Info.path.normalize(resourcePath);
 	return Info.path.normalize(Info.path.join(resourceBasePath, resourcePath));
 };
 
@@ -41,9 +39,7 @@ export const isParticleTextureImageSource = (source: string) => {
 	return imageExts.some((ext) => lower.endsWith(ext));
 };
 
-const normalizeResourcePath = (path: string) => path.replace(/\\/g, "/");
-
-const toResourceRelativePath = (path: string, root: string) => normalizeResourcePath(Info.path.relative(root, path));
+const toResourceRelativePath = (path: string, root: string) => toUrlPath(Info.path.relative(root, path), Info.path);
 
 export const findParticleTextureResourceFiles = async (root: string) => {
 	const listed = await Service.list({ path: root });

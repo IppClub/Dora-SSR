@@ -13,6 +13,7 @@ import { Color } from './Theme';
 import * as Service from './Service';
 import Info from './Info';
 import { useTranslation } from 'react-i18next';
+import { toUrlPath } from './PathUtils';
 
 export interface SpinePlayerProps {
 	skelFile: string;
@@ -22,8 +23,8 @@ export interface SpinePlayerProps {
 
 const SpinePlayer = memo((props: SpinePlayerProps) => {
 	const { skelFile, atlasFile } = props;
-	const skelUrl = Service.addr("/" + skelFile.replace(/\\/g, "/"));
-	const atlasUrl = Service.addr("/" + atlasFile.replace(/\\/g, "/"));
+	const skelUrl = Service.addr("/" + toUrlPath(skelFile, Info.path));
+	const atlasUrl = Service.addr("/" + toUrlPath(atlasFile, Info.path));
 	const playerRef = useRef<HTMLDivElement>(null);
 	const { t } = useTranslation();
 

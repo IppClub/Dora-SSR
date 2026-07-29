@@ -23,7 +23,10 @@ call "%SCRIPT_DIR%build_lib_wa_windows.bat" %BUILD_MODE%
 if errorlevel 1 exit /b %errorlevel%
 
 set SUBDIR_PATH=%SCRIPT_DIR%..\..\Source\Rust
-cd /d %SUBDIR_PATH%
+cd /d "%SUBDIR_PATH%"
+call "%SCRIPT_DIR%setup_cargo_target_windows.bat"
+if errorlevel 1 exit /b %errorlevel%
+
 rustup target add i686-pc-windows-msvc
 if errorlevel 1 exit /b %errorlevel%
 
@@ -34,5 +37,5 @@ if /I "%BUILD_MODE%"=="release" (
 )
 if errorlevel 1 exit /b %errorlevel%
 
-copy target\i686-pc-windows-msvc\%BUILD_MODE%\dora_runtime.lib lib\Windows\dora_runtime.lib
+copy "%DORA_CARGO_TARGET_DIR%\i686-pc-windows-msvc\%BUILD_MODE%\dora_runtime.lib" "lib\Windows\dora_runtime.lib"
 if errorlevel 1 exit /b %errorlevel%

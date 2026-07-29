@@ -1,4 +1,5 @@
 import Info from "../Info";
+import { isPathWithin, toUrlPath } from "../PathUtils";
 
 export type BodyFaceKind = "empty" | "sprite" | "clip" | "playable";
 
@@ -62,17 +63,14 @@ export const getBodyFaceLabel = (face: string) => {
 };
 
 export const bodyResourceToServedUrl = (resourcePath: string, resourceBasePath: string) => {
-	const normalized = resourcePath.replace(/\\/g, "/");
-	const base = resourceBasePath.replace(/\\/g, "/");
-	if (normalized.startsWith(base)) {
-		return "/" + normalized.slice(base.length).replace(/^\/+/, "");
-	}
-	return "/" + normalized.replace(/^\/+/, "");
+	const servedPath = isPathWithin(resourcePath, resourceBasePath, Info.path)
+		? Info.path.relative(resourceBasePath, resourcePath)
+		: Info.path.normalize(resourcePath);
+	return "/" + toUrlPath(servedPath, Info.path).replace(/^\/+/, "");
 };
 
 export const resolveBodyFaceResourcePath = (resourcePath: string, resourceBasePath: string) => {
 	if (resourcePath === "") return "";
-	const normalized = resourcePath.replace(/\\/g, "/");
-	if (normalized.startsWith("/") || /^[A-Za-z]:[\\/]/.test(resourcePath)) return resourcePath;
+	if (Info.path.isAbsolute(resourcePath)) return Info.path.normalize(resourcePath);
 	return Info.path.normalize(Info.path.join(resourceBasePath, resourcePath));
 };

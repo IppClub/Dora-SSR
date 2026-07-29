@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Box, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
+import Info from "../Info";
 import * as Service from "../Service";
 import { parseLegacyClip, type ActionClipDocument } from "./ActionClip";
 import { toServedResourceUrl } from "./ActionResource";
@@ -303,7 +304,7 @@ export default memo(function ActionClipPreview(props: ActionClipPreviewProps) {
 	const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
 		const hit = findHitArea(event);
 		if (!hit) return;
-		const clipRef = `${filePath.split(/[\\/]/).pop() ?? filePath}|${hit.name}`;
+		const clipRef = `${Info.path.basename(filePath)}|${hit.name}`;
 		copyWithFallback(clipRef).then((copied) => {
 			addAlert(
 				copied

@@ -907,14 +907,13 @@ bool Content::visitDir(String path, const std::function<bool(String, String)>& f
 }
 
 static std::tuple<std::string, std::string> splitDirectoryAndFilename(const std::string& filePath) {
-	std::string file = filePath;
-	std::string path;
-	size_t pos = filePath.find_last_of("/\\");
-	if (pos != std::string::npos) {
-		path = filePath.substr(0, pos + 1);
-		file = filePath.substr(pos + 1);
-	}
-	return std::make_tuple(path, file);
+	return std::make_tuple(Path::getPath(filePath), Path::getFilename(filePath));
+}
+
+static bool isRelativePathWithin(const fs::path& relativePath) {
+	if (relativePath.empty()) return false;
+	auto first = relativePath.begin();
+	return first != relativePath.end() && *first != fs::path("..");
 }
 
 Content::SearchedPath Content::getFullPathAndPackage(String filename) {
@@ -927,9 +926,9 @@ Content::SearchedPath Content::getFullPathAndPackage(String filename) {
 
 	if (Content::isAbsolutePath(targetFile)) {
 		for (const auto& zipFile : _searchZipPaths) {
-			auto relative = fs::path(targetFile.begin(), targetFile.end()).lexically_relative(zipFile.first).string();
-			auto relSlice = Slice(relative);
-			if (!relSlice.empty() && targetFile.left(3) != "..\\"_slice && targetFile.left(3) != "../"_slice) {
+			auto relativePath = fs::path(targetFile.begin(), targetFile.end()).lexically_relative(zipFile.first);
+			auto relative = relativePath.string();
+			if (isRelativePathWithin(relativePath)) {
 				if (relative == "."_slice || zipFile.second->fileExists(relative)) {
 					return {targetFile.toString(), zipFile.second.get(), relative};
 				}
@@ -1030,9 +1029,8 @@ void Content::insertSearchPath(int index, String path, bool withLock) {
 					_fullPathCache.clear();
 				}
 			} else {
-				auto relativePath = fs::path(searchPath).lexically_relative(fs::path(Content::getAssetPath())).string();
-				auto relSlice = Slice(relativePath);
-				if (!relativePath.empty() && relSlice.left(3) != "..\\"_slice && relSlice.left(3) != "../"_slice) {
+				auto relativePath = fs::path(searchPath).lexically_relative(fs::path(Content::getAssetPath()));
+				if (isRelativePathWithin(relativePath)) {
 					Error("can not set file \"{}\" under asset path as search package", path.toString());
 				} else {
 					auto zipFile = New<ZipFile>(searchPath);

@@ -15,7 +15,7 @@ interface IndexedFileSearchEntry extends FileSearchEntry {
 }
 
 const getTitle = (relativePath: string) => {
-	const slash = Math.max(relativePath.lastIndexOf("/"), relativePath.lastIndexOf("\\"));
+	const slash = relativePath.lastIndexOf("/");
 	return slash >= 0 ? relativePath.slice(slash + 1) : relativePath;
 };
 
@@ -56,13 +56,11 @@ export class FileSearchIndexCore {
 			}
 			return;
 		}
-		const prefixForward = `${entry.relativePath}/`;
-		const prefixBackward = `${entry.relativePath}\\`;
+		const prefix = `${entry.relativePath}/`;
 		this.entries = this.entries.filter(item => {
 			const removed = item.rootId === entry.rootId && (
 				item.relativePath === entry.relativePath
-				|| item.relativePath.startsWith(prefixForward)
-				|| item.relativePath.startsWith(prefixBackward)
+				|| item.relativePath.startsWith(prefix)
 			);
 			if (removed) this.entriesByKey.delete(getEntryKey(item));
 			return !removed;
@@ -70,16 +68,14 @@ export class FileSearchIndexCore {
 	}
 
 	move(oldEntry: FileSearchEntry, newEntry: FileSearchEntry) {
-		const prefixForward = `${oldEntry.relativePath}/`;
-		const prefixBackward = `${oldEntry.relativePath}\\`;
+		const prefix = `${oldEntry.relativePath}/`;
 		let changed = false;
 		this.entries = this.entries.map(entry => {
 			if (
 				entry.rootId !== oldEntry.rootId
 				|| (
 					entry.relativePath !== oldEntry.relativePath
-					&& !entry.relativePath.startsWith(prefixForward)
-					&& !entry.relativePath.startsWith(prefixBackward)
+					&& !entry.relativePath.startsWith(prefix)
 				)
 			) {
 				return entry;

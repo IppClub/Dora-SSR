@@ -40,7 +40,16 @@ void main()
 	// Determine if current pixel is within text fill range
 	float textAlpha = smoothstep(textEdgeMin, textEdgeMax, sdfValue);
 
-	// Composition: If within outline range but not in text range, show outline color; otherwise show text color
-	vec4 color = mix(u_outlineColor, v_color0, textAlpha);
-	gl_FragColor = vec4(color.rgb, color.a * max(outlineAlpha, textAlpha));
+	// Composite the text over the outline in premultiplied space, then convert
+	// back to straight alpha for the sprite blend state. Mixing the two RGB
+	// values directly lets the default transparent-black outline darken the
+	// antialiased text edge.
+	float textCoverage = textAlpha * v_color0.a;
+	float outlineCoverage = outlineAlpha * u_outlineColor.a * (1.0 - textCoverage);
+	float alpha = textCoverage + outlineCoverage;
+	vec3 premultipliedColor =
+		v_color0.rgb * textCoverage +
+		u_outlineColor.rgb * outlineCoverage;
+	vec3 color = premultipliedColor / max(alpha, 0.00001);
+	gl_FragColor = vec4(color, alpha);
 }

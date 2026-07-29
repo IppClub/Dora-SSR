@@ -19,6 +19,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
 import { FileSearchIndexCore } from "./FileSearchIndexCore";
+import Info from "./Info";
+import {
+	joinCanonicalRelativePath,
+	relativePathFromRoot,
+	toCanonicalRelativePath,
+} from "./PathUtils";
 import type {
 	FileSearchEntry,
 	FileSearchRoot,
@@ -52,28 +58,18 @@ const resolvePendingQueries = () => {
 	pendingQueries.clear();
 };
 
-const normalizeRelativePath = (value: string) => value.replace(/^[\\/]+/, "");
 const getEntryKey = (entry: FileSearchEntry) => `${entry.rootId}:${entry.relativePath}`;
 
 const getRelativePath = (rootPath: string, file: string) => {
-	const normalizedRoot = rootPath.replaceAll("\\", "/").replace(/\/+$/, "");
-	const normalizedFile = file.replaceAll("\\", "/");
-	if (normalizedFile === normalizedRoot) return "";
-	const prefix = `${normalizedRoot}/`;
-	const caseInsensitive = /^[A-Za-z]:\//.test(normalizedRoot);
-	const comparableFile = caseInsensitive ? normalizedFile.toLocaleLowerCase() : normalizedFile;
-	const comparablePrefix = caseInsensitive ? prefix.toLocaleLowerCase() : prefix;
-	if (!comparableFile.startsWith(comparablePrefix)) return null;
-	return normalizeRelativePath(normalizedFile.slice(prefix.length));
+	return relativePathFromRoot(rootPath, file, Info.path);
 };
 
 const joinRootPath = (rootPath: string, relativePath: string) => {
-	const separator = rootPath.includes("\\") && !rootPath.includes("/") ? "\\" : "/";
-	return `${rootPath.replace(/[\\/]+$/, "")}${separator}${relativePath.replaceAll("/", separator).replaceAll("\\", separator)}`;
+	return joinCanonicalRelativePath(rootPath, relativePath, Info.path);
 };
 
 const getTitle = (relativePath: string) => {
-	const slash = Math.max(relativePath.lastIndexOf("/"), relativePath.lastIndexOf("\\"));
+	const slash = relativePath.lastIndexOf("/");
 	return slash >= 0 ? relativePath.slice(slash + 1) : relativePath;
 };
 
@@ -98,11 +94,11 @@ const getRoot = (rootId: number): FileSearchRoot | null => (
 const toFilterOption = (entry: FileSearchEntry): FilterOption | null => {
 	const root = getRoot(entry.rootId);
 	if (root === null) return null;
-	const relativePath = normalizeRelativePath(entry.relativePath);
+	const relativePath = toCanonicalRelativePath(entry.relativePath, Info.path);
 	return {
 		title: getTitle(relativePath),
 		fileKey: joinRootPath(root.absolutePath, relativePath),
-		path: `${root.label}/${relativePath.replaceAll("\\", "/")}`,
+		path: `${root.label}/${relativePath}`,
 		rootKind: root.kind,
 	};
 };
@@ -152,7 +148,13 @@ const ensureWorker = () => {
 
 export const initializeFileSearchIndex = (nextSnapshot: FileSearchSnapshot) => {
 	if (snapshot?.key === nextSnapshot.key) return readyPromise;
-	snapshot = nextSnapshot;
+	snapshot = {
+		...nextSnapshot,
+		entries: nextSnapshot.entries.map(entry => ({
+			...entry,
+			relativePath: toCanonicalRelativePath(entry.relativePath, Info.path),
+		})),
+	};
 	fallbackIndex = null;
 	resolveReady?.();
 	resolveReady = null;
@@ -165,7 +167,7 @@ export const initializeFileSearchIndex = (nextSnapshot: FileSearchSnapshot) => {
 	generation += 1;
 	updateDiagnostics({
 		doraPerfSearchGeneration: generation,
-		doraPerfSearchIndexedOptions: nextSnapshot.entries.length,
+		doraPerfSearchIndexedOptions: snapshot.entries.length,
 		doraPerfSearchReady: false,
 	});
 	readyPromise = new Promise<void>(resolve => {
@@ -174,7 +176,7 @@ export const initializeFileSearchIndex = (nextSnapshot: FileSearchSnapshot) => {
 	currentWorker.postMessage({
 		type: "initialize",
 		generation,
-		entries: nextSnapshot.entries,
+		entries: snapshot.entries,
 	} satisfies FileSearchWorkerRequest);
 	return readyPromise;
 };
@@ -248,16 +250,14 @@ export const updateFileSearchIndex = (file: string, exists: boolean) => {
 		} satisfies FileSearchWorkerRequest);
 	}
 	const entryKey = getEntryKey(entry);
-	const prefixForward = `${entry.relativePath}/`;
-	const prefixBackward = `${entry.relativePath}\\`;
+	const prefix = `${entry.relativePath}/`;
 	const nextEntries = exists
 		? snapshot.entries.some(item => getEntryKey(item) === entryKey)
 			? snapshot.entries
 			: [...snapshot.entries, entry]
 		: snapshot.entries.filter(item => item.rootId !== entry.rootId || (
 			item.relativePath !== entry.relativePath
-			&& !item.relativePath.startsWith(prefixForward)
-			&& !item.relativePath.startsWith(prefixBackward)
+			&& !item.relativePath.startsWith(prefix)
 		));
 	snapshot = {
 		...snapshot,
@@ -281,15 +281,13 @@ export const moveFileSearchIndex = (oldPath: string, newPath: string) => {
 			newEntry,
 		} satisfies FileSearchWorkerRequest);
 	}
-	const prefixForward = `${oldEntry.relativePath}/`;
-	const prefixBackward = `${oldEntry.relativePath}\\`;
+	const prefix = `${oldEntry.relativePath}/`;
 	const nextEntries = snapshot.entries.map(entry => {
 		if (
 			entry.rootId !== oldEntry.rootId
 			|| (
 				entry.relativePath !== oldEntry.relativePath
-				&& !entry.relativePath.startsWith(prefixForward)
-				&& !entry.relativePath.startsWith(prefixBackward)
+				&& !entry.relativePath.startsWith(prefix)
 			)
 		) {
 			return entry;

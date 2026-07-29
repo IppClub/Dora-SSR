@@ -65,6 +65,7 @@ import {
 } from './FileSearchIndex';
 import type { FileSearchEntry, FileSearchSnapshot } from './FileSearchProtocol';
 import { getMonacoRuntime, getMonacoTypeScript, peekMonacoRuntime } from './MonacoRuntimeAccess';
+import { isPathWithin, relativePathFromRoot, toUrlPath } from './PathUtils';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -155,11 +156,7 @@ window.onbeforeunload = (event: BeforeUnloadEvent) => {
 };
 
 const isChildFolder = (child: string, parent: string) => {
-	if (!child.startsWith(parent)) return false;
-	if (path.relative(parent, child).startsWith("..")) {
-		return false;
-	}
-	return true;
+	return isPathWithin(child, parent, path);
 };
 
 const normalizeBatchPaths = (keys: string[]) => {
@@ -209,10 +206,9 @@ const findTreeNode = (node: TreeDataType, key: string): TreeDataType | null => {
 };
 
 const splitRelativePath = (root: string, target: string): string[] | null => {
-	if (!isChildFolder(target, root)) return null;
-	const relativePath = path.relative(root, target);
-	if (relativePath === "") return [];
-	return relativePath.split(/[\\/]+/).filter(Boolean);
+	const relativePath = relativePathFromRoot(root, target, path);
+	if (relativePath === null) return null;
+	return relativePath === "" ? [] : relativePath.split("/");
 };
 
 const appendExpandedKey = (expanded: string[], key: string): string[] => {
@@ -822,6 +818,7 @@ export default function PersistentDrawerLeft() {
 	const pendingUpdateFilesRef = useRef(new Map<string, UpdateFileEvent>());
 	const updateFileFlushTimerRef = useRef<number | null>(null);
 	const loadingTreeNodesRef = useRef(new Map<string, Promise<TreeDataType[] | null>>());
+	const failedTreeNodeLoadsRef = useRef(new Set<string>());
 
 	const updateCachedFileSearch = useCallback((file: string, exists: boolean) => {
 		updateFileSearchIndex(file, exists);
@@ -945,6 +942,7 @@ export default function PersistentDrawerLeft() {
 	}, [fetchAssetChildren]);
 
 	const loadAssets = useCallback((expanded = expandedKeysRef.current) => {
+		failedTreeNodeLoadsRef.current.clear();
 		fileSearchInvalidationEpochRef.current += 1;
 		invalidateFileSearchIndex();
 		setFilterOptionCount(0);
@@ -963,15 +961,20 @@ export default function PersistentDrawerLeft() {
 
 	const loadTreeNode = useCallback(async (data: TreeDataType) => {
 		if (!data.dir || data.builtin) return;
+		if (failedTreeNodeLoadsRef.current.has(data.key)) return;
 		const currentRoot = treeDataRef.current.at(0);
 		if (currentRoot === undefined || currentRoot.key === data.key) return;
 		const currentNode = findTreeNode(currentRoot, data.key);
 		if (currentNode === null || currentNode.children !== undefined) return;
 		const children = await fetchAssetChildren(data.key);
 		if (children === null) {
-			addAlert(t("alert.assetLoad"), "error");
+			if (!failedTreeNodeLoadsRef.current.has(data.key)) {
+				failedTreeNodeLoadsRef.current.add(data.key);
+				addAlert(t("alert.assetLoad"), "error");
+			}
 			return;
 		}
+		failedTreeNodeLoadsRef.current.delete(data.key);
 		const latestRoot = treeDataRef.current.at(0);
 		if (latestRoot === undefined) return;
 		const updated = replaceTreeNodeChildren(latestRoot, data.key, children);
@@ -1208,8 +1211,8 @@ export default function PersistentDrawerLeft() {
 		const builtin = assetPath !== "" && isChildFolder(targetPath, assetPath);
 		const basePath = builtin ? assetPath : writablePath;
 		const rootLabel = builtin ? t("tree.builtin") : t("tree.assets");
-		const relativePath = basePath !== "" ? path.relative(basePath, targetPath) : "";
-		const segments = relativePath.split(/[\\/]+/).filter(Boolean);
+		const relativePath = basePath !== "" ? relativePathFromRoot(basePath, targetPath, path) ?? "" : "";
+		const segments = relativePath === "" ? [] : relativePath.split("/");
 		const displayPath = segments.length > 0 ? [rootLabel, ...segments].join("/") : rootLabel;
 		return trailingSep && segments.length > 0 ? displayPath + path.sep : displayPath;
 	};
@@ -3451,7 +3454,7 @@ export default function PersistentDrawerLeft() {
 					break;
 				}
 				const downloadFile = (filename: string) => {
-					const downloadPath = path.relative(writablePath, filename).replace("\\", "/");
+					const downloadPath = toUrlPath(path.relative(writablePath, filename), path);
 					const x = new XMLHttpRequest();
 					x.open("GET", Service.addr("/" + downloadPath), true);
 					x.responseType = 'blob';
@@ -4812,7 +4815,7 @@ export default function PersistentDrawerLeft() {
 	}
 
 	const onJumpLink = useCallback((link: string, fromFile: string) => {
-		const key = path.join(path.dirname(fromFile), ...link.split("[\\/]"));
+		const key = path.join(path.dirname(fromFile), link);
 		const title = path.basename(key);
 		openFileInTab(key, title, false);
 	}, [openFileInTab]);
@@ -6164,7 +6167,7 @@ export default function PersistentDrawerLeft() {
 									<MacScrollbar skin='dark' hidden={file.mdEditing} style={{ height: editorHeight, width: '100%', maxWidth: '100%', minWidth: 0 }}>
 										<Markdown
 											fileKey={file.key}
-											path={Service.addr("/" + path.relative(parentPath, path.dirname(file.key)).replace("\\", "/"))}
+											path={Service.addr("/" + toUrlPath(path.relative(parentPath, path.dirname(file.key)), path))}
 											content={file.contentModified ?? file.content}
 											onClick={onJumpLink}
 										/>
@@ -6195,9 +6198,10 @@ export default function PersistentDrawerLeft() {
 									<Container maxWidth="lg">
 										<DrawerHeader />
 										<Image src={
-											appendCacheKey(Service.addr("/" + path
-												.relative(parentPath, file.key)
-												.replace("\\", "/")), file.previewVersion)
+											appendCacheKey(
+												Service.addr("/" + toUrlPath(path.relative(parentPath, file.key), path)),
+												file.previewVersion,
+											)
 										} preview={false} />
 									</Container>
 								</MacScrollbar> : null

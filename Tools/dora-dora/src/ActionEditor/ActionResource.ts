@@ -1,21 +1,11 @@
-const normalizeResourcePath = (path: string) => path.replace(/\\/g, "/");
-
-const isChildPath = (child: string, parent: string) => {
-	const normalizedChild = normalizeResourcePath(child);
-	const normalizedParent = normalizeResourcePath(parent);
-	if (!normalizedChild.startsWith(normalizedParent)) return false;
-	const next = normalizedChild.charAt(normalizedParent.length);
-	return next === "" || next === "/";
-};
+import Info from "../Info";
+import { isPathWithin, toUrlPath } from "../PathUtils";
 
 export const toServedResourcePath = (filePath: string, resourceBasePath?: string) => {
-	const normalizedPath = normalizeResourcePath(filePath);
-	const normalizedBase = resourceBasePath ? normalizeResourcePath(resourceBasePath) : "";
-	if (normalizedBase && isChildPath(normalizedPath, normalizedBase)) {
-		const relative = normalizedPath.slice(normalizedBase.length);
-		return relative.startsWith("/") ? relative.slice(1) : relative;
+	if (resourceBasePath && isPathWithin(filePath, resourceBasePath, Info.path)) {
+		return toUrlPath(Info.path.relative(resourceBasePath, filePath), Info.path);
 	}
-	return normalizedPath.startsWith("/") ? normalizedPath.slice(1) : normalizedPath;
+	return toUrlPath(Info.path.normalize(filePath), Info.path).replace(/^\/+/, "");
 };
 
 export const toServedResourceUrl = (filePath: string, resourceBasePath?: string) => {

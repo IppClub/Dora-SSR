@@ -1,3 +1,4 @@
+import Info from "../Info";
 import {
 	ActionDocument,
 	ActionFrameTrack,
@@ -413,7 +414,7 @@ export const writeLegacyModel = (document: ActionDocument) => {
 
 const defaultClipFileForModel = (modelPath?: string) => {
 	if (!modelPath) return "";
-	const file = modelPath.split("/").pop() ?? "";
+	const file = Info.path.basename(modelPath);
 	return file.replace(/\.model$/i, ".clip");
 };
 

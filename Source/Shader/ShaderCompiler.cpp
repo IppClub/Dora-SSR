@@ -25,14 +25,7 @@ struct ShaderCompilerFileContext {
 
 static bool tryGetEmbeddedShaderSource(String path, std::string& data) {
 #if DORA_HAS_EMBEDDED_BGFX_SHADERS
-	std::string file = path.toString();
-	while (!file.empty() && file.front() == '/') {
-		file.erase(file.begin());
-	}
-	auto pos = file.find_last_of("/\\");
-	if (pos != std::string::npos) {
-		file.erase(0, pos + 1);
-	}
+	auto file = Path::getFilename(path);
 	if (file == "bgfx_shader.sh") {
 		data = BgfxEmbeddedShaders::kBgfxShaderSh;
 		return true;

@@ -14,6 +14,7 @@ import Info from './Info';
 import * as Service from './Service';
 import { getExtraLib } from './MonacoPath';
 import { setMonacoRuntime } from './MonacoRuntimeAccess';
+import { isPathWithin } from './PathUtils';
 
 setMonacoRuntime({
 	monaco,
@@ -307,7 +308,7 @@ function createCompilerHost(
 			}
 			if (Info.path.isAbsolute(fileName)) {
 				const relativePath = Info.path.relative(currentDirectory, fileName);
-				if (!relativePath.startsWith('..')) {
+				if (isPathWithin(fileName, currentDirectory, Info.path)) {
 					const ext = Info.path.extname(relativePath);
 					let baseName = Info.path.basename(relativePath, ext);
 					baseName = Info.path.extname(baseName) === ".d" ? Info.path.basename(baseName, ".d") : baseName;

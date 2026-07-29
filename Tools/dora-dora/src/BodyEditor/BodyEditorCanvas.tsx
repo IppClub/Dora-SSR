@@ -6,6 +6,7 @@ import { Fragment, memo, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useTranslation } from "react-i18next";
 import ClipSliceDialog from "../ClipSliceDialog";
 import Info from "../Info";
+import { toUrlPath } from "../PathUtils";
 import * as Service from "../Service";
 import { parseLegacyClip, type ActionClipRect } from "../ActionEditor/ActionClip";
 import { BODY_STRUCTS_BY_TYPE, BodyDocument, BodyLuaValue, BodyStructDocument, BodyStructField, BodyVector } from "./BodyDocument";
@@ -90,9 +91,7 @@ type LoadedFaceImage = {
 	objectUrl: string;
 };
 
-const normalizeFacePath = (path: string) => path.replace(/\\/g, "/");
-
-const toFaceRelativePath = (path: string, root: string) => normalizeFacePath(Info.path.relative(root, path));
+const toFaceRelativePath = (path: string, root: string) => toUrlPath(Info.path.relative(root, path), Info.path);
 
 const loadFaceImageElement = async (filePath: string, servedResourceBasePath: string): Promise<LoadedFaceImage> => {
 	const response = await fetch(Service.addr(bodyResourceToServedUrl(filePath, servedResourceBasePath)));

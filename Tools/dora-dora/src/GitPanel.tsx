@@ -38,6 +38,7 @@ import { useTranslation } from 'react-i18next';
 import * as Service from './Service';
 import { Color } from './Theme';
 import { EditorTheme } from './Editor';
+import Info from './Info';
 import {
 	claimTerminalGitJob,
 	getGitJobSnapshot,
@@ -236,8 +237,7 @@ const dialogContentSx = {
 	pt: "20px !important",
 };
 
-const trimSlash = (value: string) => value.replace(/[\\/]+$/, "");
-const joinPath = (base: string, child: string) => `${trimSlash(base)}/${child.replace(/^[\\/]+/, "")}`;
+const joinPath = (base: string, child: string) => Info.path.join(base, child);
 
 const quoteArg = (value: string) => {
 	if (/^[\w./:-]+$/.test(value)) return value;

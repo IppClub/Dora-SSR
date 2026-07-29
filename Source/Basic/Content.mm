@@ -15,20 +15,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DORA_BEGIN
 
 bool Content::isFileExist(String filePath) {
-	if (filePath[0] != '/') {
-		std::string path = filePath.toString();
-		std::string file;
-		size_t pos = path.find_last_of("/");
-		if (pos != std::string::npos) {
-			file = path.substr(pos + 1);
-			path = path.substr(0, pos + 1);
-			NSString* fullPath = [[NSBundle mainBundle]
-				pathForResource:[NSString stringWithUTF8String:file.c_str()]
-						 ofType:nil
-					inDirectory:[NSString stringWithUTF8String:path.c_str()]];
-			if (fullPath != nil) {
-				return true;
-			}
+	if (!Content::isAbsolutePath(filePath)) {
+		auto path = Path::getPath(filePath);
+		auto file = Path::getFilename(filePath);
+		NSString* fullPath = [[NSBundle mainBundle]
+			pathForResource:[NSString stringWithUTF8String:file.c_str()]
+					 ofType:nil
+				inDirectory:[NSString stringWithUTF8String:path.c_str()]];
+		if (fullPath != nil) {
+			return true;
 		}
 	} else {
 		// Search path is an absolute path.
@@ -41,7 +36,7 @@ bool Content::isFileExist(String filePath) {
 }
 
 std::string Content::getFullPathForDirectoryAndFilename(String directory, String filename) {
-	if (directory[0] != '/') {
+	if (!Content::isAbsolutePath(directory)) {
 		NSString* fullPath = [[NSBundle mainBundle]
 			pathForResource:[NSString stringWithUTF8String:filename.c_str()]
 					 ofType:nil
@@ -50,7 +45,7 @@ std::string Content::getFullPathForDirectoryAndFilename(String directory, String
 			return [fullPath UTF8String];
 		}
 	} else {
-		std::string fullPath = directory.toString() + filename.toString();
+		auto fullPath = Path::concat({directory, filename});
 		// Search path is an absolute path.
 		NSFileManager* fileManager = [NSFileManager defaultManager];
 		if ([fileManager fileExistsAtPath:[NSString stringWithUTF8String:fullPath.c_str()]]) {
