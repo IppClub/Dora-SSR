@@ -2772,6 +2772,16 @@ local EXECUTE_COMMAND_OUTPUT_MAX = 12000 -- 2545
 local EXECUTE_COMMAND_ERROR_MAX = 4000 -- 2546
 local LUA_COMMAND_DEFAULT_TIMEOUT_SECONDS = 30 -- 2547
 local agentEntryRuntimeOwner = "" -- 2548
+local function asTSTLPromiseValue(value) -- 2558
+	if not value or type(value) ~= "table" then -- 2558
+		return nil -- 2559
+	end -- 2559
+	local record = value -- 2560
+	if type(record.state) ~= "number" or type(record.addCallbacks) ~= "function" then -- 2560
+		return nil -- 2561
+	end -- 2561
+	return record -- 2562
+end -- 2558
 local function truncateCommandOutput(output) -- 2550
 	if #output <= EXECUTE_COMMAND_OUTPUT_MAX then -- 2550
 		return output -- 2551
@@ -2797,6 +2807,7 @@ local function executeLuaCommand(req) -- 2560
 	end -- 2570
 	local output = {} -- 2572
 	local entry = require("Script.Dev.Entry") -- 2573
+	local commandAborted = false -- 2589
 	local ownsEntryRuntime = false -- 2574
 	local entryObjectBaseline = 0 -- 2575
 	local entryLuaRefBaseline = 0 -- 2576
@@ -2889,6 +2900,47 @@ local function executeLuaCommand(req) -- 2560
 	local env = setmetatable( -- 2646
 		{ -- 2646
 			projectDir = req.workDir, -- 2647
+			isCancelled = function() -- 2664
+				local ____commandAborted_43 = commandAborted -- 2664
+				if not ____commandAborted_43 then -- 2664
+					local ____this_42 -- 2664
+					____this_42 = req -- 2664
+					local ____opt_41 = ____this_42.isCancelled -- 2664
+					____commandAborted_43 = (____opt_41 and ____opt_41(____this_42)) == true -- 2664
+				end -- 2664
+				return ____commandAborted_43 -- 2664
+			end, -- 2664
+			reportProgress = function(value, callbackValue) -- 2665
+				local ____callbackValue_44 = callbackValue -- 2666
+				if ____callbackValue_44 == nil then -- 2666
+					____callbackValue_44 = value -- 2666
+				end -- 2666
+				local actualValue = ____callbackValue_44 -- 2666
+				if not req.onProgress or not actualValue or type(actualValue) ~= "table" then -- 2666
+					return -- 2667
+				end -- 2667
+				local progress = actualValue -- 2668
+				local amount -- 2669
+				if type(progress.percent) == "number" then -- 2669
+					amount = math.min( -- 2670
+						1, -- 2670
+						math.max(0, progress.percent / 100) -- 2670
+					) -- 2670
+				elseif type(progress.progress) == "number" then -- 2670
+					amount = math.min( -- 2671
+						1, -- 2671
+						math.max(0, progress.progress) -- 2671
+					) -- 2671
+				end -- 2671
+				req:onProgress({ -- 2672
+					state = "running", -- 2673
+					mode = "lua", -- 2674
+					operationId = req.operationId, -- 2675
+					progress = amount, -- 2676
+					stage = type(progress.stage) == "string" and progress.stage or "lua", -- 2677
+					message = type(progress.message) == "string" and progress.message or "Lua command running" -- 2678
+				}) -- 2678
+			end, -- 2665
 			requireProjectModule = function(moduleNameValue, reloadModulesValue) -- 2648
 				if type(moduleNameValue) ~= "string" then -- 2648
 					error("requireProjectModule expects a project module name string") -- 2650
@@ -3016,14 +3068,18 @@ local function executeLuaCommand(req) -- 2560
 		__TS__Promise, -- 2738
 		function(____, resolve) -- 2738
 			local settled = false -- 2739
+			local started = false -- 2773
+			local frameTimedOut = false -- 2774
+			local watchdogMessage -- 2775
 			local startedAt = App.runningTime -- 2740
-			local onProgress = req.onProgress -- 2741
-			local isCancelled = req.isCancelled -- 2742
+			local previousGlobalPrint = _G.print -- 2777
 			local function finish(result) -- 2743
 				if settled then -- 2743
 					return -- 2744
 				end -- 2744
 				settled = true -- 2745
+				commandAborted = true -- 2781
+				_G.print = previousGlobalPrint -- 2782
 				local cleanupError = stopOwnedEntry() -- 2746
 				if not result.success and cleanupError ~= nil then -- 2746
 					result.cleanupError = cleanupError -- 2748
@@ -3040,8 +3096,8 @@ local function executeLuaCommand(req) -- 2560
 				end -- 2758
 				resolve(nil, result) -- 2760
 			end -- 2743
-			if onProgress then -- 2743
-				onProgress(nil, { -- 2763
+			if req.onProgress then -- 2778
+				req:onProgress({ -- 2800
 					state = "pending", -- 2764
 					mode = "lua", -- 2765
 					operationId = req.operationId, -- 2766
@@ -3049,11 +3105,44 @@ local function executeLuaCommand(req) -- 2560
 					message = "Lua command pending" -- 2768
 				}) -- 2768
 			end -- 2768
+			local commandThread = coroutine.create(function() -- 2808
+				local value = fn() -- 2809
+				local promise = asTSTLPromiseValue(value) -- 2810
+				if promise ~= nil then -- 2810
+					while promise.state == 0 do -- 2810
+						coroutine.yield(false) -- 2812
+					end -- 2812
+					if promise.state == 2 then -- 2812
+						error(tostring(promise.rejectionReason)) -- 2813
+					end -- 2813
+					value = promise.value -- 2814
+				end -- 2814
+				return value -- 2816
+			end) -- 2808
+			debug.sethook( -- 2818
+				commandThread, -- 2818
+				function() -- 2818
+					if watchdogMessage == nil then -- 2818
+						watchdogMessage = checkEntryWatchdog() -- 2819
+					end -- 2819
+					if watchdogMessage ~= nil then -- 2819
+						error(watchdogMessage) -- 2820
+					end -- 2820
+					if App.elapsedTime >= AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds then -- 2820
+						frameTimedOut = true -- 2822
+						error(("Lua command exceeded " .. tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)) .. " seconds in one game frame") -- 2823
+					end -- 2823
+				end, -- 2818
+				"", -- 2825
+				AgentConfig.AGENT_LIMITS.executeCommandHookInstructionCount -- 2825
+			) -- 2825
 			Director.systemScheduler:schedule(function() -- 2771
 				if settled then -- 2771
 					return true -- 2772
 				end -- 2772
-				local watchdogMessage = checkEntryWatchdog() -- 2773
+				if watchdogMessage == nil then -- 2827
+					watchdogMessage = checkEntryWatchdog() -- 2828
+				end -- 2828
 				if watchdogMessage ~= nil then -- 2773
 					finish({ -- 2775
 						success = false, -- 2776
@@ -3065,7 +3154,11 @@ local function executeLuaCommand(req) -- 2560
 					}) -- 2781
 					return true -- 2783
 				end -- 2783
-				if isCancelled and isCancelled(nil) then -- 2783
+				local ____this_46 -- 2838
+				____this_46 = req -- 2840
+				local ____opt_45 = ____this_46.isCancelled -- 2840
+				if (____opt_45 and ____opt_45(____this_46)) == true then -- 2840
+					commandAborted = true -- 2841
 					finish({ -- 2786
 						success = false, -- 2787
 						mode = "lua", -- 2788
@@ -3077,6 +3170,7 @@ local function executeLuaCommand(req) -- 2560
 					return true -- 2794
 				end -- 2794
 				if App.runningTime - startedAt >= req.timeoutSeconds then -- 2794
+					commandAborted = true -- 2853
 					finish({ -- 2797
 						success = false, -- 2798
 						mode = "lua", -- 2799
@@ -3086,75 +3180,55 @@ local function executeLuaCommand(req) -- 2560
 					}) -- 2802
 					return true -- 2804
 				end -- 2804
-				return false -- 2806
-			end) -- 2771
-			Director.systemScheduler:schedule(once(function() -- 2808
-				if settled then -- 2808
-					return -- 2809
+				if not started then -- 2861
+					started = true -- 2864
+					local ____this_48 -- 2864
+					____this_48 = req -- 2865
+					local ____opt_47 = ____this_48.onProgress -- 2865
+					if ____opt_47 ~= nil then -- 2865
+						____opt_47(____this_48, { -- 2865
+							state = "running", -- 2866
+							mode = "lua", -- 2867
+							operationId = req.operationId, -- 2868
+							stage = "lua", -- 2869
+							message = "Lua command running" -- 2870
+						}) -- 2870
+					end -- 2870
 				end -- 2809
-				if onProgress then -- 2809
-					onProgress(nil, { -- 2811
-						state = "running", -- 2812
-						mode = "lua", -- 2813
-						operationId = req.operationId, -- 2814
-						stage = "lua", -- 2815
-						message = "Lua command running" -- 2816
-					}) -- 2816
-				end -- 2816
-				local previousGlobalPrint = _G.print -- 2819
-				local previousHook, previousHookMask, previousHookCount = debug.gethook() -- 2820
-				local frameTimedOut = false -- 2821
-				local watchdogMessage -- 2821
 				_G.print = capturePrint -- 2822
-				debug.sethook( -- 2823
-					function() -- 2823
-						if watchdogMessage == nil then -- 2823
-							watchdogMessage = checkEntryWatchdog() -- 2824
-						end -- 2824
-						if watchdogMessage ~= nil then -- 2824
-							error(watchdogMessage) -- 2825
-						end -- 2825
-						if App.elapsedTime >= AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds then -- 2825
-							frameTimedOut = true -- 2827
-							error(("Lua command exceeded " .. tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)) .. " seconds in one game frame") -- 2828
-						end -- 2828
-					end, -- 2823
-					"", -- 2830
-					AgentConfig.AGENT_LIMITS.executeCommandHookInstructionCount -- 2830
-				) -- 2830
-				local ok, runtimeErr = pcall(fn) -- 2831
-				if previousHook ~= nil and previousHookMask ~= nil and previousHookCount ~= nil then -- 2831
-					debug.sethook(previousHook, previousHookMask, previousHookCount) -- 2833
-				else -- 2833
-					debug.sethook() -- 2839
-				end -- 2839
+				local ok, commandValue = coroutine.resume(commandThread) -- 2874
 				_G.print = previousGlobalPrint -- 2841
 				if not ok then -- 2841
-					local ____truncateCommandOutput_result_42 = truncateCommandOutput(table.concat(output, "\n")) -- 2846
-					local ____temp_43 = watchdogMessage or (frameTimedOut and ("Lua command exceeded " .. tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)) .. " seconds in one game frame" or truncateCommandError(toStr(runtimeErr))) -- 2847
-					local ____temp_44 = frameTimedOut and "timeout" or "execute" -- 2848
-					local ____temp_41 -- 2849
+					local ____truncateCommandOutput_result_50 = truncateCommandOutput(table.concat(output, "\n")) -- 2880
+					local ____temp_51 = watchdogMessage or (frameTimedOut and ("Lua command exceeded " .. tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)) .. " seconds in one game frame" or truncateCommandError(toStr(commandValue))) -- 2881
+					local ____temp_52 = frameTimedOut and "timeout" or "execute" -- 2884
+					local ____temp_49 -- 2885
 					if watchdogMessage ~= nil or frameTimedOut then -- 2849
-						____temp_41 = true -- 2849
+						____temp_49 = true -- 2885
 					else -- 2849
-						____temp_41 = nil -- 2849
+						____temp_49 = nil -- 2885
 					end -- 2849
 					finish({ -- 2843
 						success = false, -- 2844
 						mode = "lua", -- 2845
-						output = ____truncateCommandOutput_result_42, -- 2846
-						message = ____temp_43, -- 2847
-						phase = ____temp_44, -- 2848
-						interrupted = ____temp_41 -- 2849
+						output = ____truncateCommandOutput_result_50, -- 2880
+						message = ____temp_51, -- 2881
+						phase = ____temp_52, -- 2884
+						interrupted = ____temp_49 -- 2885
 					}) -- 2849
-					return -- 2851
+					return true -- 2887
 				end -- 2851
-				finish({ -- 2853
-					success = true, -- 2853
-					mode = "lua", -- 2853
-					output = truncateCommandOutput(table.concat(output, "\n")) -- 2853
-				}) -- 2853
-			end)) -- 2808
+				if coroutine.status(commandThread) == "dead" then -- 2887
+					finish({ -- 2890
+						success = true, -- 2891
+						mode = "lua", -- 2892
+						output = truncateCommandOutput(table.concat(output, "\n")), -- 2893
+						value = commandValue -- 2894
+					}) -- 2894
+					return true -- 2896
+				end -- 2896
+				return false -- 2898
+			end) -- 2826
 		end -- 2738
 	) -- 2738
 end -- 2560
@@ -3255,7 +3329,7 @@ local function cloneGitToTarget(req) -- 2903
 		local tempPath = Path(tempRoot, req.operationId .. ".repo") -- 2931
 		Content:remove(tempPath) -- 2932
 		local depth = parsed.depth or "1" -- 2933
-		local ____array_45 = __TS__SparseArrayNew( -- 2933
+		local ____array_53 = __TS__SparseArrayNew( -- 2978
 			"clone", -- 2935
 			quoteGitArg(parsed.url), -- 2936
 			quoteGitArg(Path:getFilename(tempPath)), -- 2937
@@ -3265,21 +3339,21 @@ local function cloneGitToTarget(req) -- 2903
 			}) or ({})) -- 2938
 		) -- 2938
 		__TS__SparseArrayPush( -- 2938
-			____array_45, -- 2938
+			____array_53, -- 2983
 			table.unpack(depth ~= "" and ({ -- 2939
 				"--depth",
 				quoteGitArg(depth) -- 2939
 			}) or ({})) -- 2939
 		) -- 2939
 		local command = table.concat( -- 2934
-			{__TS__SparseArraySpread(____array_45)}, -- 2934
+			{__TS__SparseArraySpread(____array_53)}, -- 2979
 			" " -- 2940
 		) -- 2940
-		local ____this_47 -- 2940
-		____this_47 = req -- 2941
-		local ____opt_46 = ____this_47.onProgress -- 2941
-		if ____opt_46 ~= nil then -- 2941
-			____opt_46(____this_47, { -- 2941
+		local ____this_55 -- 2985
+		____this_55 = req -- 2986
+		local ____opt_54 = ____this_55.onProgress -- 2986
+		if ____opt_54 ~= nil then -- 2986
+			____opt_54(____this_55, { -- 2986
 				state = "pending", -- 2942
 				mode = "git", -- 2943
 				operationId = req.operationId, -- 2944
@@ -3293,30 +3367,30 @@ local function cloneGitToTarget(req) -- 2903
 			command, -- 2951
 			function(status) return emitGitProgress("git", req.operationId, req.onProgress, status) end, -- 2952
 			function() -- 2953
-				local ____this_49 -- 2953
-				____this_49 = req -- 2953
-				local ____opt_48 = ____this_49.isCancelled -- 2953
-				return (____opt_48 and ____opt_48(____this_49)) == true -- 2953
+				local ____this_57 -- 2998
+				____this_57 = req -- 2998
+				local ____opt_56 = ____this_57.isCancelled -- 2998
+				return (____opt_56 and ____opt_56(____this_57)) == true -- 2998
 			end, -- 2953
 			req.timeoutSeconds -- 2954
 		)) -- 2954
 		if not gitRes.success then -- 2954
 			local cleanupError = cleanupPath(tempPath) -- 2957
-			local ____formatGitStatusOutput_result_53 = formatGitStatusOutput(gitRes.status) -- 2961
-			local ____temp_54 = gitRes.message or "git clone failed" -- 2962
-			local ____gitRes_interrupted_52 = gitRes.interrupted -- 2963
-			if not ____gitRes_interrupted_52 then -- 2963
-				local ____this_51 -- 2963
-				____this_51 = req -- 2963
-				local ____opt_50 = ____this_51.isCancelled -- 2963
-				____gitRes_interrupted_52 = (____opt_50 and ____opt_50(____this_51)) == true -- 2963
+			local ____formatGitStatusOutput_result_61 = formatGitStatusOutput(gitRes.status) -- 3006
+			local ____temp_62 = gitRes.message or "git clone failed" -- 3007
+			local ____gitRes_interrupted_60 = gitRes.interrupted -- 3008
+			if not ____gitRes_interrupted_60 then -- 3008
+				local ____this_59 -- 3008
+				____this_59 = req -- 3008
+				local ____opt_58 = ____this_59.isCancelled -- 3008
+				____gitRes_interrupted_60 = (____opt_58 and ____opt_58(____this_59)) == true -- 3008
 			end -- 2963
 			return ____awaiter_resolve(nil, { -- 2963
 				success = false, -- 2959
 				mode = "git", -- 2960
-				output = ____formatGitStatusOutput_result_53, -- 2961
-				message = ____temp_54, -- 2962
-				interrupted = ____gitRes_interrupted_52, -- 2963
+				output = ____formatGitStatusOutput_result_61, -- 3006
+				message = ____temp_62, -- 3007
+				interrupted = ____gitRes_interrupted_60, -- 3008
 				cleanupError = cleanupError -- 2964
 			}) -- 2964
 		end -- 2964
@@ -3461,11 +3535,11 @@ local function executeGitCommand(req) -- 3020
 			}) -- 3044
 		end -- 3044
 		command = applyGitProfileToCommit(command) -- 3046
-		local ____this_56 -- 3046
-		____this_56 = req -- 3047
-		local ____opt_55 = ____this_56.onProgress -- 3047
-		if ____opt_55 ~= nil then -- 3047
-			____opt_55(____this_56, { -- 3047
+		local ____this_64 -- 3091
+		____this_64 = req -- 3092
+		local ____opt_63 = ____this_64.onProgress -- 3092
+		if ____opt_63 ~= nil then -- 3092
+			____opt_63(____this_64, { -- 3092
 				state = "pending", -- 3048
 				mode = "git", -- 3049
 				operationId = req.operationId, -- 3050
@@ -3479,32 +3553,32 @@ local function executeGitCommand(req) -- 3020
 			command, -- 3057
 			function(status) return emitGitProgress("git", req.operationId, req.onProgress, status) end, -- 3058
 			function() -- 3059
-				local ____this_58 -- 3059
-				____this_58 = req -- 3059
-				local ____opt_57 = ____this_58.isCancelled -- 3059
-				return (____opt_57 and ____opt_57(____this_58)) == true -- 3059
+				local ____this_66 -- 3104
+				____this_66 = req -- 3104
+				local ____opt_65 = ____this_66.isCancelled -- 3104
+				return (____opt_65 and ____opt_65(____this_66)) == true -- 3104
 			end, -- 3059
 			req.timeoutSeconds -- 3060
 		)) -- 3060
 		local output = formatGitStatusOutput(gitRes.status) -- 3062
 		if not gitRes.success then -- 3062
-			local ____output_62 = output -- 3067
-			local ____cwd_relative_63 = cwd.relative -- 3068
-			local ____temp_64 = gitRes.message or "git command failed" -- 3069
-			local ____gitRes_interrupted_61 = gitRes.interrupted -- 3070
-			if not ____gitRes_interrupted_61 then -- 3070
-				local ____this_60 -- 3070
-				____this_60 = req -- 3070
-				local ____opt_59 = ____this_60.isCancelled -- 3070
-				____gitRes_interrupted_61 = (____opt_59 and ____opt_59(____this_60)) == true -- 3070
+			local ____output_70 = output -- 3112
+			local ____cwd_relative_71 = cwd.relative -- 3113
+			local ____temp_72 = gitRes.message or "git command failed" -- 3114
+			local ____gitRes_interrupted_69 = gitRes.interrupted -- 3115
+			if not ____gitRes_interrupted_69 then -- 3115
+				local ____this_68 -- 3115
+				____this_68 = req -- 3115
+				local ____opt_67 = ____this_68.isCancelled -- 3115
+				____gitRes_interrupted_69 = (____opt_67 and ____opt_67(____this_68)) == true -- 3115
 			end -- 3070
 			return ____awaiter_resolve(nil, { -- 3070
 				success = false, -- 3065
 				mode = "git", -- 3066
-				output = ____output_62, -- 3067
-				cwd = ____cwd_relative_63, -- 3068
-				message = ____temp_64, -- 3069
-				interrupted = ____gitRes_interrupted_61 -- 3070
+				output = ____output_70, -- 3112
+				cwd = ____cwd_relative_71, -- 3113
+				message = ____temp_72, -- 3114
+				interrupted = ____gitRes_interrupted_69 -- 3115
 			}) -- 3070
 		end -- 3070
 		return ____awaiter_resolve(nil, {success = true, mode = "git", cwd = cwd.relative, output = output}) -- 3070
@@ -3613,10 +3687,10 @@ function ____exports.fetchUrl(req) -- 3112
 		end -- 3142
 		emitProgress({state = "pending", message = "download pending", stage = "download"}) -- 3153
 		local function interrupted() -- 3158
-			local ____this_66 -- 3158
-			____this_66 = req -- 3158
-			local ____opt_65 = ____this_66.isCancelled -- 3158
-			return (____opt_65 and ____opt_65(____this_66)) == true -- 3158
+			local ____this_74 -- 3203
+			____this_74 = req -- 3203
+			local ____opt_73 = ____this_74.isCancelled -- 3203
+			return (____opt_73 and ____opt_73(____this_74)) == true -- 3203
 		end -- 3158
 		if not ensureDirForFile(tempPath) then -- 3158
 			return ____awaiter_resolve(nil, { -- 3158
@@ -3723,4 +3797,10 @@ function ____exports.fetchUrl(req) -- 3112
 		}) -- 3220
 	end) -- 3220
 end -- 3112
-return ____exports -- 3112
+do -- 3112
+	local ____AudioGenerator = require("Agent.AudioGenerator") -- 3223
+	____exports.generateSfx = ____AudioGenerator.generateSfx -- 3224
+	____exports.generateMusic = ____AudioGenerator.generateMusic -- 3225
+	____exports.generateMusicVariation = ____AudioGenerator.generateMusicVariation -- 3226
+end -- 3226
+return ____exports -- 3226

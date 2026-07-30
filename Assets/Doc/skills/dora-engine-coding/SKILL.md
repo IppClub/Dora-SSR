@@ -71,7 +71,7 @@ Search especially for:
 - physics/collision: `PhysicsWorld`, `Body`, `BodyDef`, `FixtureDef`, `Sensor`
 - ECS: `Entity`, `Group`, `Observer`, component queries
 - UI/components/layout: `Button`, `Menu`, `AlignNode`, UI controls
-- audio: `Audio`, `AudioSource`, buses/effects
+- audio: `Audio`, `AudioSource`, buses/effects (create missing effects with `generate_sfx` and original background music with `generate_music`; do not ask the user to provide WAV files)
 - async/coroutines: `thread`, `threadLoop`, `sleep`, `once`, `loop`, scheduler jobs
 - scene/camera: `Director`, `Camera`, `Director.ui`, `Director.entry`, scheduler APIs
 - resources/files: `Content`, `Cache`, `Path`, asset loading/saving
@@ -245,11 +245,68 @@ Use this as a decision map. It is not a full API reference; exact signatures com
 | Actions/animation | `Action`, `Move`, `Scale`, `Sequence`, `Playable`, `Model` | Search exact signatures |
 | Physics/collision | `PhysicsWorld`, `Body`, `BodyDef`, `FixtureDef`, `Sensor` | Always search first |
 | ECS/game architecture | `Entity`, `Group`, components | Always search first |
-| Audio | `Audio`, `AudioSource` | Always search first |
+| Audio | `Audio`, `AudioSource` | Always search first; use `generate_sfx` + `Audio.play` for effects, or `generate_music` + `Audio.playStream` for background music |
 | Async/coroutines | `thread`, `threadLoop`, `sleep`, `once`, `loop` | Search when using coroutine/timing APIs |
 | Tile maps | `TileNode` | Always search first |
 | Particles/effects/video | `Particle`, `EffekNode`, `VideoNode`, `TIC80Node` | Always search first |
 | Platformer framework | `Platformer`, `PlatformWorld` | Always search first |
+
+### Generated game music workflow
+
+Use two layers instead of exposing every synthesizer control as tool arguments:
+
+1. **Fast path — `generate_music`:** provide `path`, `style`, and only the optional controls that matter (`seed`, `duration`, `bpm`, `intensity`, `tonality`, `asset_pack`). `tonality` accepts compact values such as `D minor` or `F# dorian`. Choose `asset_pack=loop` for one loop, `adaptive` for synchronized stems, `cinematic` for intro/outro/stingers, or `full` for all companion assets plus MIDI.
+2. **Advanced path — typed Audio DSL:** when the request needs exact form, chord progression, instruments, effects, or export settings, write a project TypeScript module ending in `.audio.ts`. Import `defineMusic` and `renderMusic` from `Agent/AudioDSL`; do not hand-write the generated Lua or pass dozens of scalar tool arguments.
+
+A complete advanced module follows this shape:
+
+```ts
+import { defineMusic, renderMusic } from 'Agent/AudioDSL';
+import type { AudioJobHooks } from 'Agent/AudioDSL';
+
+const job = defineMusic({
+	output: 'Audio/frostline_theme.wav',
+	composition: {
+		style: 'tense',
+		seed: 2407,
+		duration: 24,
+		tempo: 132,
+		key: 'D',
+		mode: 'dorian',
+		progression: ['i', 'VI', 'III', 'VII'],
+		structure: ['A', 'A', 'B', 'A'],
+	},
+	arrangement: {
+		intensity: 0.72,
+		barsPerSection: 2,
+		melodyComplexity: 0.6,
+		rhythmComplexity: 0.7,
+		variation: 0.3,
+	},
+	instruments: { lead: 'pulse', bass: 'sub', harmony: 'pad' },
+	effects: { volume: 0.65, stereo: true, reverb: 0.25, delay: 0.12 },
+	exports: { stems: true, introBars: 1, outroBars: 1, stinger: 'both', midi: true },
+});
+
+export function run(
+	workDir: string,
+	isCancelled?: () => boolean,
+	onProgress?: AudioJobHooks['onProgress'],
+) {
+	return renderMusic(workDir, job, { isCancelled, onProgress });
+}
+```
+
+Build the `.audio.ts` module first so TypeScript catches invalid field names and enum values. Then execute the compiled module with `execute_command` in Lua mode:
+
+```lua
+local audioJob = requireProjectModule("Audio.FrostlineTheme.audio")
+return audioJob.run(projectDir, isCancelled, reportProgress)
+```
+
+`execute_command` runs Lua in a coroutine, forwards `reportProgress`, exposes cancellation through `isCancelled`, and awaits a returned TypeScriptToLua Promise. The successful tool result contains the returned generation result as `value`; do not add a polling loop around it.
+
+Every generation writes a `.music.json` project. Use `generate_music_variation` with that sidecar for compatible alternate intensity or mutation takes. For adaptive playback, start `_melody.wav`, `_bass.wav`, `_harmony.wav`, and `_drums.wav` together on synchronized `AudioSource` nodes and mix their volumes by game state. Use `Audio.playStream` for long music and `Audio.play` for short effects.
 
 ## Implementation Workflow
 

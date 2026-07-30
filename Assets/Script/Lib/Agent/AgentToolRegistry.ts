@@ -13,6 +13,9 @@ export type AgentToolName =
 	| "glob_files"
 	| "build"
 	| "fetch_url"
+	| "generate_sfx"
+	| "generate_music"
+	| "generate_music_variation"
 	| "execute_command"
 	| "list_sub_agents"
 	| "spawn_sub_agent"
@@ -28,6 +31,9 @@ const BUILT_IN_AGENT_TOOL_NAMES: AgentToolName[] = [
 	"glob_files",
 	"build",
 	"fetch_url",
+	"generate_sfx",
+	"generate_music",
+	"generate_music_variation",
 	"execute_command",
 	"list_sub_agents",
 	"spawn_sub_agent",
@@ -313,13 +319,74 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 		],
 	},
 	{
+		name: "generate_sfx",
+		roles: ["main", "sub"],
+		workModes: ["code"],
+		description: "Synthesize a retro sound effect (sfxr-style) and save it as a WAV file in the project. Use this to create game audio assets directly instead of asking the user to provide them.",
+		parameters: [
+			{ name: "path", type: "string", required: true, description: "Workspace-relative output path ending in .wav, e.g. Audio/jump.wav. An existing file is overwritten." },
+			{ name: "type", type: "string", required: true, enum: ["jump", "explosion", "hit", "pickup", "laser", "powerup", "click", "random"], description: "Sound preset to synthesize. random picks one of the other presets at random." },
+			{ name: "seed", type: "number", description: "Optional integer seed. The same type and seed always produce the same sound; omit for a time-seeded variant." },
+			{ name: "volume", type: "number", description: "Optional output volume from 0 to 1. Defaults to 0.8." },
+		],
+		rules: [
+			"Generated files are mono 16-bit 44.1 kHz WAV, at most a few seconds long.",
+			"Play generated effects with Audio.play (WAV sound effects) or an audio-source node; use Audio.playStream only for long background music.",
+			"To iterate on a sound, call again with a different seed; to reproduce a sound exactly, keep the same type and seed.",
+			"The success result reports the saved path, duration, byte size, and the seed actually used.",
+		],
+	},
+	{
+		name: "generate_music",
+		roles: ["main", "sub"],
+		workModes: ["code"],
+		description: "Compose and synthesize deterministic retro background music, then save it as a loop-ready WAV file in the project. Use this when a game needs original background music rather than a short sound effect.",
+		parameters: [
+			{ name: "path", type: "string", required: true, description: "Workspace-relative output path ending in .wav, e.g. Audio/forest_theme.wav. An existing file is overwritten." },
+			{ name: "style", type: "string", required: true, enum: ["chiptune", "adventure", "calm", "tense", "victory", "random"], description: "Musical style. random deterministically chooses one of the other styles from the seed." },
+			{ name: "seed", type: "number", description: "Optional integer seed controlling the key, progression, melody, and arrangement. The same arguments reproduce the same track." },
+			{ name: "duration", type: "number", description: "Approximate duration in seconds, clamped to 4-32 and rounded to complete 4/4 bars for seamless looping. Defaults to 16." },
+			{ name: "bpm", type: "number", description: "Optional tempo from 60 to 200 BPM. Each style has its own default." },
+			{ name: "intensity", type: "number", description: "Arrangement intensity from 0 to 1. Controls drums, bass activity, harmony density, and melodic range. Defaults to 0.6." },
+			{ name: "tonality", type: "string", description: "Optional compact key and mode such as D, D minor, F# dorian, or auto. Defaults to the style preset." },
+			{ name: "asset_pack", type: "string", enum: ["loop", "adaptive", "cinematic", "full"], description: "Output bundle: loop writes the main WAV; adaptive adds synchronized stems; cinematic adds intro, outro, and stingers; full adds all of those plus MIDI. Defaults to loop." },
+		],
+		rules: [
+			"Generated music is deterministic 16-bit 44.1 kHz PCM WAV and consists of complete 4/4 bars with click-free loop boundaries.",
+			"Use Audio.playStream for generated background music; reserve Audio.play for short WAV sound effects.",
+			"Use asset_pack=adaptive when runtime intensity mixing needs synchronized _melody, _bass, _harmony, and _drums stems.",
+			"Use asset_pack=cinematic for intro/outro/stingers, or full for stems, transitions, and MIDI together.",
+			"Every generation writes a .music.json sidecar that can be passed to generate_music_variation.",
+			"For detailed composition, instruments, effects, form, and export control, author a typed Agent/AudioDSL TypeScript module as described by the Dora coding skill, build it, then run it through execute_command.",
+			"Try a different seed for another composition while keeping the same style, duration, and BPM.",
+			"The success result reports the actual bar-rounded duration, tempo, key, style, byte size, and seed.",
+		],
+	},
+	{
+		name: "generate_music_variation",
+		roles: ["main", "sub"],
+		workModes: ["code"],
+		description: "Regenerate a controlled variation from a .music.json project created by generate_music, preserving its tempo, key, form, instruments, and export settings unless overridden.",
+		parameters: [
+			{ name: "project", type: "string", required: true, description: "Workspace-relative .music.json project path." },
+			{ name: "path", type: "string", required: true, description: "Workspace-relative output WAV path for the new variation." },
+			{ name: "seed", type: "number", description: "Optional replacement seed. Omit to deterministically derive the next seed from the project." },
+			{ name: "intensity", type: "number", description: "Optional intensity override from 0 to 1." },
+			{ name: "variation", type: "number", description: "Optional mutation amount override from 0 to 1." },
+		],
+		rules: [
+			"Use this instead of starting from scratch when several intensity levels or alternate takes must remain musically compatible.",
+			"The source project is never modified; the new WAV receives its own .music.json sidecar.",
+		],
+	},
+	{
 		name: "execute_command",
 		roles: ["main", "sub"],
 		workModes: ["code"],
 		description: "Execute a controlled engine command.",
 		parameters: [
 			{ name: "mode", type: "string", required: true, enum: ["lua", "git"], description: "Use lua for a short Lua snippet inside the Dora engine, or git for a supported Git command handled by the engine Git client." },
-			{ name: "code", type: "string", description: "Raw Lua code to execute when mode is lua. YueScript is not supported. Use print(...) for output that should appear in the tool result." },
+			{ name: "code", type: "string", description: "Raw Lua code to execute when mode is lua. YueScript is not supported. The command may yield across frames and may return a value or a TypeScriptToLua Promise." },
 			{ name: "command", type: "string", description: "Git command to execute when mode is git. The command may start with git, but shell syntax, pipes, redirects, and git -C are not supported." },
 			{ name: "cwd", type: "string", description: "Optional project-relative directory for non-clone git commands. Defaults to the project root. Use this for Git operations inside a cloned sub-repository instead of git -C." },
 			{ name: "timeoutSeconds", type: "number", description: "Optional total command timeout. Defaults to 30 seconds for Lua and 600 seconds for Git. Lua mode also interrupts a command thread that occupies one game frame for 5 seconds, but cannot interrupt a blocking native call." },
@@ -329,11 +396,11 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			"Lua mode accepts raw Lua code only; do not send YueScript syntax.",
 			"Lua mode runs with a temporary environment whose global lookups fall back to Dora APIs; global writes stay in that one command and are not shared with later commands.",
 			"Lua command code is checked every 10,000 VM instructions against App.elapsedTime. A command thread that occupies one game frame for 5 seconds is interrupted; time spent yielded across frames does not accumulate toward this per-frame limit, and blocking native calls remain non-interruptible.",
-			"Lua mode exposes projectDir, refreshTree(path?), getEntryStatus(), enterEntryAsync(entry), and stopEntry(). getEntryStatus() returns a table containing success and running booleans.",
+			"Lua mode exposes projectDir, isCancelled(), reportProgress(progress), refreshTree(path?), getEntryStatus(), enterEntryAsync(entry), and stopEntry(). getEntryStatus() returns a table containing success and running booleans.",
 			"enterEntryAsync runs a built project-relative Lua entry as an isolated Agent test. The tool automatically stops an entry it started when the command succeeds, fails, is canceled, or times out.",
 			"An Entry watchdog checks live Dora object and Lua-reference growth every frame and from the Lua instruction hook. Growth of 50,000 C++ objects or 10,000 Lua references stops the test, runs Entry cleanup, and returns the measured growth; replace such tests with bounded entities and fixed simulation steps.",
 			"Call refreshTree(\"relative/file\") after single-file changes, or refreshTree() after directory or bulk changes.",
-			"Lua mode returns only text printed with print(...). It does not return arbitrary Lua return values.",
+			"Lua mode runs as a coroutine and awaits a returned TypeScriptToLua Promise without blocking the game frame. Its success result includes the command return value when present, in addition to captured print output.",
 			"Only one Agent command may own the Dora entry runtime at a time. If it is busy, retry later instead of waiting inside the command.",
 			"Git mode uses the engine Git client, not a system shell. Supported commands follow Dora Git API support.",
 			"Git mode accepts cwd for non-clone commands. cwd must be a project-relative existing directory. Do not use git -C.",
@@ -536,6 +603,10 @@ function formatXMLRepairToolReference(tool: ToolPrompt): string {
 
 export function isKnownToolName(name: string): name is AgentToolName {
 	return BUILT_IN_AGENT_TOOL_NAMES.indexOf(name as AgentToolName) >= 0;
+}
+
+export function getBuiltInAgentToolNames(): AgentToolName[] {
+	return BUILT_IN_AGENT_TOOL_NAMES.slice();
 }
 
 export function getAllowedToolsForRole(role: AgentRole, options?: AgentToolCapabilityOptions): AgentToolName[] {

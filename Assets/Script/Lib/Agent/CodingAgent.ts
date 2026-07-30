@@ -8,6 +8,7 @@ import { MemoryCompressor } from 'Agent/Memory';
 import type { AgentPromptPack, AgentConversationMessage } from 'Agent/Memory';
 import * as AgentToolRegistry from 'Agent/AgentToolRegistry';
 import type { AgentDecisionMode, AgentRole, AgentToolName, AgentWorkMode } from 'Agent/AgentToolRegistry';
+import * as AudioToolRuntime from 'Agent/AudioToolRuntime';
 import * as AgentSkills from 'Agent/AgentSkills';
 import * as AgentConfig from 'Agent/AgentConfig';
 import * as AgentRuntimePolicy from 'Agent/AgentRuntimePolicy';
@@ -1919,11 +1920,7 @@ function applyCompressedSessionState(
 		const markerIndex = sessionSummary.indexOf(marker);
 		if (markerIndex >= 0) {
 			const nextToolLine = sessionSummary.slice(markerIndex, markerIndex + 120);
-			const toolNames: AgentToolName[] = [
-				"read_file", "edit_file", "delete_file", "grep_files", "search_dora_api",
-				"glob_files", "build", "fetch_url", "execute_command", "list_sub_agents",
-				"spawn_sub_agent", "finish",
-			];
+			const toolNames = AgentToolRegistry.getBuiltInAgentToolNames();
 			for (let i = 0; i < toolNames.length; i++) {
 				const tool = toolNames[i];
 				if (nextToolLine.indexOf(`\`${tool}\``) >= 0) {
@@ -2017,6 +2014,8 @@ function inferToolNameFromXMLParams(params: Record<string, unknown>): AgentToolN
 	if (hasXMLParam(params, "maxEntries")) {
 		return "glob_files";
 	}
+	const audioTool = AudioToolRuntime.inferAudioToolNameFromParams(params);
+	if (audioTool !== undefined) return audioTool;
 	if (hasXMLParam(params, "message") || hasXMLParam(params, "response") || hasXMLParam(params, "summary")) {
 		return "finish";
 	}
@@ -4202,6 +4201,28 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 			workDir: shared.workingDir,
 			url: typeof params.url === "string" ? params.url : "",
 			target: typeof params.target === "string" ? params.target : "",
+			isCancelled: () => shared.stopToken.stopped === true,
+			onProgress: progress => {
+				emitAgentEvent(shared, {
+					type: "tool_progress",
+					sessionId: shared.sessionId,
+					taskId: shared.taskId,
+					step: action.step,
+					tool: action.tool,
+					result: {
+						success: false,
+						...progress,
+					},
+				});
+			},
+		});
+		return result as unknown as Record<string, unknown>;
+	}
+	if (AudioToolRuntime.isAudioAgentToolName(action.tool)) {
+		const result = await AudioToolRuntime.executeAudioTool({
+			tool: action.tool,
+			params,
+			workDir: shared.workingDir,
 			isCancelled: () => shared.stopToken.stopped === true,
 			onProgress: progress => {
 				emitAgentEvent(shared, {
