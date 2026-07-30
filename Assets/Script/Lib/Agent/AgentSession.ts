@@ -1541,7 +1541,7 @@ function truncatePersistedSessionBeforeLatestUserPrompt(session: AgentSessionIte
 	storage.writeSessionState(messages, lastConsolidatedIndex, carryMessageIndex);
 }
 
-function removeStoppedTaskSummary(session: AgentSessionItem): void {
+function removeContinuableTaskSummary(session: AgentSessionItem): void {
 	const taskId = session.currentTaskId;
 	if (taskId === undefined) return;
 	DB.exec(
@@ -2583,8 +2583,8 @@ function startPromptTask(
 		? { success: true as const, taskId: options.existingTaskId }
 		: Tools.createTask(normalizedPrompt, taskWorkMode);
 	if (!taskRes.success) return { success: false, message: taskRes.message };
-	if (session.currentTaskStatus === "STOPPED") {
-		removeStoppedTaskSummary(session);
+	if (session.currentTaskStatus === "STOPPED" || session.currentTaskStatus === "FAILED") {
+		removeContinuableTaskSummary(session);
 	}
 	const taskId = taskRes.taskId;
 	const previousTaskId = options?.existingTaskId === undefined ? session.currentTaskId : undefined;
