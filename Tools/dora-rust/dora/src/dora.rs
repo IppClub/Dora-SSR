@@ -3016,7 +3016,8 @@ impl Content {
     /// Loads arbitrary binary content through Dora's resource search mechanism.
     pub fn load_bytes(filename: &str) -> Option<Vec<u8>> {
         let result = unsafe { content_load(from_string(filename)) };
-        if result <= 0 {
+        // Native handles are opaque bit patterns; tagged Android pointers can be negative as i64.
+        if result == 0 {
             return None;
         }
         unsafe {
@@ -3039,7 +3040,7 @@ impl Content {
     /// * `String` - The content of the loaded file.
     pub fn load(filename: &str) -> Option<String> {
         let result = unsafe { content_load(from_string(filename)) };
-        if result > 0 {
+        if result != 0 {
             Some(to_string(result))
         } else {
             None
