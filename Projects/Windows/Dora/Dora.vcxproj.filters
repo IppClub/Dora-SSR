@@ -1983,6 +1983,12 @@
     <ClCompile Include="..\..\..\Source\Audio\Audio.cpp">
       <Filter>Audio</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Audio\OggSources.c">
+      <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Audio\VorbisSources.c">
+      <Filter>Audio</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\Node\AudioSource.cpp">
       <Filter>Node</Filter>
     </ClCompile>

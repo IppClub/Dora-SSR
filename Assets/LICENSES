@@ -2007,14 +2007,12 @@ SOFTWARE.
 
 --------
 
-vorbis_rs, libogg, and libvorbis: BSD-3-Clause License
+libogg and aoTuV/libvorbis: BSD-3-Clause License
 
-vorbis_rs copyright (c) Alejandro González and contributors
 libogg copyright (c) 2002, Xiph.org Foundation
 aoTuV/libvorbis copyright (c) 2003-2021 Aoyumi and
 copyright (c) 2002-2020 Xiph.org Foundation
 
-https://github.com/ComunidadAylas/vorbis-rs
 https://xiph.org/ogg/
 https://xiph.org/vorbis/
 

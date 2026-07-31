@@ -30,7 +30,6 @@ serde_json = "1.0"
 ebur128 = "0.1.10"
 lewton = "0.10.2"
 rustysynth = "1.3.6"
-vorbis_rs = { version = "0.5.6", default-features = false }
 urlencoding = "2.1"
 
 [profile.release]

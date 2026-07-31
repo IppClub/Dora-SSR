@@ -10,6 +10,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Basic/Object.h"
 
+#include <cstddef>
+#include <cstdint>
+
+extern "C" int32_t dora_audio_encode_wav_to_ogg(
+	const char* inputPath,
+	const char* outputPath,
+	float quality,
+	void (*progress)(float, void*),
+	void* userData,
+	float progressStart,
+	float progressEnd,
+	uint64_t* bytesWritten,
+	char* error,
+	size_t errorCapacity);
+
 namespace SoLoud {
 class Wav;
 class WavStream;

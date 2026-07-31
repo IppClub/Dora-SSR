@@ -827,6 +827,10 @@
 		3C948C472E1690DA00E6B280 /* AudioSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C948C452E1690DA00E6B280 /* AudioSource.cpp */; };
 		3C948C4A2E1690F800E6B280 /* Audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C948C492E1690F800E6B280 /* Audio.cpp */; };
 		3C948C4B2E1690F800E6B280 /* Audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C948C492E1690F800E6B280 /* Audio.cpp */; };
+		F00200012F3A000100000001 /* OggSources.c in Sources */ = {isa = PBXBuildFile; fileRef = F00200012F3A000100000011 /* OggSources.c */; };
+		F00200012F3A000100000002 /* OggSources.c in Sources */ = {isa = PBXBuildFile; fileRef = F00200012F3A000100000011 /* OggSources.c */; };
+		F00200012F3A000100000003 /* VorbisSources.c in Sources */ = {isa = PBXBuildFile; fileRef = F00200012F3A000100000012 /* VorbisSources.c */; };
+		F00200012F3A000100000004 /* VorbisSources.c in Sources */ = {isa = PBXBuildFile; fileRef = F00200012F3A000100000012 /* VorbisSources.c */; };
 		3C948C4E2E16910600E6B280 /* AudioCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C948C4D2E16910600E6B280 /* AudioCache.cpp */; };
 		3C948C4F2E16910600E6B280 /* AudioCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C948C4D2E16910600E6B280 /* AudioCache.cpp */; };
 		3C984C5E2F03B57B00DC8437 /* h264bsd_decoder.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C332F03B57B00DC8437 /* h264bsd_decoder.c */; };
@@ -2235,6 +2239,8 @@
 		3C948C452E1690DA00E6B280 /* AudioSource.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioSource.cpp; sourceTree = "<group>"; };
 		3C948C482E1690F800E6B280 /* Audio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Audio.h; sourceTree = "<group>"; };
 		3C948C492E1690F800E6B280 /* Audio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Audio.cpp; sourceTree = "<group>"; };
+		F00200012F3A000100000011 /* OggSources.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = OggSources.c; sourceTree = "<group>"; };
+		F00200012F3A000100000012 /* VorbisSources.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = VorbisSources.c; sourceTree = "<group>"; };
 		3C948C4C2E16910600E6B280 /* AudioCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioCache.h; sourceTree = "<group>"; };
 		3C948C4D2E16910600E6B280 /* AudioCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioCache.cpp; sourceTree = "<group>"; };
 		3C984C272F03B57B00DC8437 /* basetype.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = basetype.h; sourceTree = "<group>"; };
@@ -4215,6 +4221,8 @@
 			children = (
 				3C948C482E1690F800E6B280 /* Audio.h */,
 				3C948C492E1690F800E6B280 /* Audio.cpp */,
+				F00200012F3A000100000011 /* OggSources.c */,
+				F00200012F3A000100000012 /* VorbisSources.c */,
 			);
 			path = Audio;
 			sourceTree = "<group>";
@@ -5985,6 +5993,8 @@
 				3C592F622CA4F61700CAF224 /* lcode.c in Sources */,
 				3C592F632CA4F61700CAF224 /* linit.c in Sources */,
 				3C948C4B2E1690F800E6B280 /* Audio.cpp in Sources */,
+				F00200012F3A000100000002 /* OggSources.c in Sources */,
+				F00200012F3A000100000004 /* VorbisSources.c in Sources */,
 				3C592F642CA4F61700CAF224 /* lobject.c in Sources */,
 				3C592F652CA4F61700CAF224 /* lparser.c in Sources */,
 				3C592F662CA4F61700CAF224 /* lmem.c in Sources */,
@@ -6592,6 +6602,8 @@
 				3C592F822CA4F61700CAF224 /* lcode.c in Sources */,
 				3C592F832CA4F61700CAF224 /* linit.c in Sources */,
 				3C948C4A2E1690F800E6B280 /* Audio.cpp in Sources */,
+				F00200012F3A000100000001 /* OggSources.c in Sources */,
+				F00200012F3A000100000003 /* VorbisSources.c in Sources */,
 				3C592F842CA4F61700CAF224 /* lobject.c in Sources */,
 				3C592F852CA4F61700CAF224 /* lparser.c in Sources */,
 				3C592F862CA4F61700CAF224 /* lmem.c in Sources */,

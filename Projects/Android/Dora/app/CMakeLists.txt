@@ -148,6 +148,8 @@ add_library(main SHARED
 	src/main/cpp/Common/Debug.cpp
 	src/main/cpp/Common/MemoryPool.cpp
 	src/main/cpp/Audio/Audio.cpp
+	src/main/cpp/Audio/OggSources.c
+	src/main/cpp/Audio/VorbisSources.c
 	src/main/cpp/Support/Common.cpp
 	src/main/cpp/Support/Geometry.cpp
 	src/main/cpp/Support/Array.cpp

@@ -199,6 +199,8 @@ add_executable(dora-ssr
 	../../Source/Common/Debug.cpp
 	../../Source/Common/MemoryPool.cpp
 	../../Source/Audio/Audio.cpp
+	../../Source/Audio/OggSources.c
+	../../Source/Audio/VorbisSources.c
 	../../Source/Support/Common.cpp
 	../../Source/Support/Geometry.cpp
 	../../Source/Support/Array.cpp

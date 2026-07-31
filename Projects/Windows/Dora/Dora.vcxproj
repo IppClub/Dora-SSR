@@ -1894,6 +1894,14 @@
     <ClCompile Include="..\..\..\Source\Animation\Animation.cpp" />
     <ClCompile Include="..\..\..\Source\Animation\ModelDef.cpp" />
     <ClCompile Include="..\..\..\Source\Audio\Audio.cpp" />
+    <ClCompile Include="..\..\..\Source\Audio\OggSources.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Audio\VorbisSources.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\Basic\Application.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\AutoreleasePool.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Content.cpp" />

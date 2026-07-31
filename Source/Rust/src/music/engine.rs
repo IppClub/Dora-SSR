@@ -7,7 +7,6 @@ use std::f32::consts::TAU;
 use std::ffi::{c_char, c_void, CStr, CString};
 use std::fs::{self, File};
 use std::io::{BufReader, BufWriter, Read, Write};
-use std::num::{NonZeroU32, NonZeroU8};
 use std::path::{Component, Path, PathBuf};
 use std::ptr;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -16,9 +15,40 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use super::builtin::{release_seconds, BuiltinDrumKit, BuiltinInstrument, BuiltinSynth};
 use crate::soundfont::load_sound_font;
-use vorbis_rs::VorbisEncoderBuilder;
 
 type ProgressCallback = extern "C" fn(f32, *mut c_void);
+
+#[cfg(not(test))]
+extern "C" {
+	fn dora_audio_encode_wav_to_ogg(
+		input_path: *const c_char,
+		output_path: *const c_char,
+		quality: f32,
+		progress: Option<ProgressCallback>,
+		user_data: *mut c_void,
+		progress_start: f32,
+		progress_end: f32,
+		bytes_written: *mut u64,
+		error: *mut c_char,
+		error_capacity: usize,
+	) -> i32;
+}
+
+#[cfg(test)]
+unsafe fn dora_audio_encode_wav_to_ogg(
+	_input_path: *const c_char,
+	_output_path: *const c_char,
+	_quality: f32,
+	_progress: Option<ProgressCallback>,
+	_user_data: *mut c_void,
+	_progress_start: f32,
+	_progress_end: f32,
+	_bytes_written: *mut u64,
+	_error: *mut c_char,
+	_error_capacity: usize,
+) -> i32 {
+	0
+}
 
 const SAMPLE_RATE: i32 = 44_100;
 /// Rendering uses a conservative fixed level; the completed mix is then normalized independently
@@ -3268,8 +3298,6 @@ impl Drop for TempPath {
 fn encode_wav_to_ogg(
 	input: &Path,
 	output: &Path,
-	sample_rate: i32,
-	channels: u16,
 	progress: Option<ProgressCallback>,
 	user_data: *mut c_void,
 	progress_start: f32,
@@ -3283,38 +3311,6 @@ fn encode_wav_to_ogg(
 			)
 		})?;
 	}
-	let mut reader = BufReader::new(
-		File::open(input)
-			.map_err(|error| format!("failed to open WAV '{}': {error}", input.display()))?,
-	);
-	let mut header = [0u8; 44];
-	reader
-		.read_exact(&mut header)
-		.map_err(|error| format!("failed to read WAV '{}': {error}", input.display()))?;
-	if &header[0..4] != b"RIFF"
-		|| &header[8..12] != b"WAVE"
-		|| &header[12..16] != b"fmt "
-		|| u16::from_le_bytes([header[20], header[21]]) != 1
-		|| u16::from_le_bytes([header[22], header[23]]) != channels
-		|| u32::from_le_bytes([header[24], header[25], header[26], header[27]])
-			!= sample_rate as u32
-		|| u16::from_le_bytes([header[34], header[35]]) != 16
-		|| &header[36..40] != b"data"
-	{
-		return Err(format!(
-			"generated WAV '{}' has an unsupported format",
-			input.display()
-		));
-	}
-	let data_size = u32::from_le_bytes([header[40], header[41], header[42], header[43]]) as usize;
-	let frame_size = channels as usize * 2;
-	if data_size % frame_size != 0 {
-		return Err(format!(
-			"generated WAV '{}' contains a partial PCM frame",
-			input.display()
-		));
-	}
-
 	static OGG_STEP: AtomicU64 = AtomicU64::new(0);
 	let step = OGG_STEP.fetch_add(1, Ordering::Relaxed);
 	let name = output
@@ -3324,70 +3320,40 @@ fn encode_wav_to_ogg(
 	let temp = output.with_file_name(format!("{name}.{}.{}.music.tmp", std::process::id(), step));
 	let _ = fs::remove_file(&temp);
 	let _temp_guard = TempPath(temp.clone());
-	let file = File::create(&temp).map_err(|error| {
-		format!(
-			"failed to create temporary Ogg '{}': {error}",
-			temp.display()
+	let input_path = CString::new(input.to_string_lossy().as_bytes())
+		.map_err(|_| format!("WAV path contains a null byte: '{}'", input.display()))?;
+	let temp_path = CString::new(temp.to_string_lossy().as_bytes())
+		.map_err(|_| format!("Ogg path contains a null byte: '{}'", temp.display()))?;
+	let mut bytes_written = 0u64;
+	let mut error = vec![0 as c_char; 1024];
+	let success = unsafe {
+		dora_audio_encode_wav_to_ogg(
+			input_path.as_ptr(),
+			temp_path.as_ptr(),
+			0.5,
+			progress,
+			user_data,
+			progress_start,
+			progress_end,
+			&mut bytes_written,
+			error.as_mut_ptr(),
+			error.len(),
 		)
-	})?;
-	let sink = BufWriter::new(file);
-	let frequency = NonZeroU32::new(sample_rate as u32)
-		.ok_or_else(|| "Ogg sample rate must be positive".to_string())?;
-	let channel_count = NonZeroU8::new(channels as u8)
-		.ok_or_else(|| "Ogg channel count must be positive".to_string())?;
-	let serial = (std::process::id() as i32)
-		.wrapping_mul(31)
-		.wrapping_add(step as i32);
-	let mut encoder = VorbisEncoderBuilder::new_with_serial(frequency, channel_count, sink, serial)
-		.build()
-		.map_err(|error| format!("failed to initialize Ogg encoder: {error}"))?;
-
-	const BLOCK_FRAMES: usize = 4096;
-	let total_frames = data_size / frame_size;
-	let mut encoded_frames = 0usize;
-	let mut bytes = vec![0u8; BLOCK_FRAMES * frame_size];
-	let mut planes = vec![vec![0.0f32; BLOCK_FRAMES]; channels as usize];
-	while encoded_frames < total_frames {
-		let frames = (total_frames - encoded_frames).min(BLOCK_FRAMES);
-		reader
-			.read_exact(&mut bytes[..frames * frame_size])
-			.map_err(|error| format!("failed to read WAV PCM '{}': {error}", input.display()))?;
-		for frame in 0..frames {
-			for channel in 0..channels as usize {
-				let offset = (frame * channels as usize + channel) * 2;
-				let sample = i16::from_le_bytes([bytes[offset], bytes[offset + 1]]);
-				planes[channel][frame] = sample as f32 / 32768.0;
-			}
-		}
-		let block = planes
-			.iter()
-			.map(|plane| &plane[..frames])
-			.collect::<Vec<_>>();
-		encoder.encode_audio_block(block).map_err(|error| {
-			format!("failed while encoding Ogg '{}': {error}", output.display())
-		})?;
-		encoded_frames += frames;
-		if let Some(callback) = progress {
-			let ratio = if total_frames == 0 {
-				1.0
+	};
+	if success == 0 {
+		let reason = unsafe { CStr::from_ptr(error.as_ptr()) }
+			.to_string_lossy()
+			.into_owned();
+		return Err(format!(
+			"failed to encode Ogg '{}': {}",
+			output.display(),
+			if reason.is_empty() {
+				"unknown encoder error"
 			} else {
-				encoded_frames as f32 / total_frames as f32
-			};
-			callback(
-				progress_start + (progress_end - progress_start) * ratio,
-				user_data,
-			);
-		}
+				&reason
+			}
+		));
 	}
-	let mut sink = encoder
-		.finish()
-		.map_err(|error| format!("failed to finish Ogg '{}': {error}", output.display()))?;
-	sink.flush()
-		.map_err(|error| format!("failed to flush Ogg '{}': {error}", output.display()))?;
-	drop(sink);
-	let bytes_written = fs::metadata(&temp)
-		.map_err(|error| format!("failed to inspect Ogg '{}': {error}", temp.display()))?
-		.len();
 	replace_file(&temp, output)?;
 	Ok(bytes_written)
 }
@@ -4381,16 +4347,7 @@ fn render_definition(
 		for (index, (wav_path, path, _guard)) in ogg_sources.iter().enumerate() {
 			let start = 0.94 + 0.05 * index as f32 / count as f32;
 			let end = 0.94 + 0.05 * (index + 1) as f32 / count as f32;
-			bytes_written += encode_wav_to_ogg(
-				wav_path,
-				&path,
-				sample_rate,
-				channels,
-				progress,
-				user_data,
-				start,
-				end,
-			)?;
+			bytes_written += encode_wav_to_ogg(wav_path, &path, progress, user_data, start, end)?;
 			let relative = relative_string(&project, &path)?;
 			encoded_files.push(relative);
 		}
@@ -4821,31 +4778,6 @@ mod tests {
 		let bytes = midi_bytes(&song);
 		assert_eq!(&bytes[0..4], b"MThd");
 		assert!(bytes.windows(4).any(|value| value == b"MTrk"));
-	}
-
-	#[test]
-	fn encodes_generated_wav_as_decodable_ogg() {
-		let id = format!("dora-music-ogg-{}-{}", std::process::id(), automatic_seed());
-		let wav = std::env::temp_dir().join(format!("{id}.wav"));
-		let ogg = std::env::temp_dir().join(format!("{id}.ogg"));
-		let frames = 4_410u64;
-		let mut writer = WavWriter::create(&wav, SAMPLE_RATE, 2, frames).unwrap();
-		for frame in 0..frames {
-			let sample =
-				(frame as f32 * 440.0 * std::f32::consts::TAU / SAMPLE_RATE as f32).sin() * 0.25;
-			writer.write(sample, sample, 2).unwrap();
-		}
-		writer.finish().unwrap();
-		let bytes =
-			encode_wav_to_ogg(&wav, &ogg, SAMPLE_RATE, 2, None, ptr::null_mut(), 0.0, 1.0).unwrap();
-		assert!(bytes > 0);
-		let mut decoder =
-			lewton::inside_ogg::OggStreamReader::new(File::open(&ogg).unwrap()).unwrap();
-		assert_eq!(decoder.ident_hdr.audio_channels, 2);
-		assert_eq!(decoder.ident_hdr.audio_sample_rate, SAMPLE_RATE as u32);
-		assert!(decoder.read_dec_packet_itl().unwrap().is_some());
-		let _ = fs::remove_file(wav);
-		let _ = fs::remove_file(ogg);
 	}
 
 	#[test]

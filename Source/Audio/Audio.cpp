@@ -32,6 +32,217 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "soloud_robotizefilter.h"
 #include "soloud_waveshaperfilter.h"
 
+#include "ogg/ogg.h"
+#include "vorbis/vorbisenc.h"
+
+#include <algorithm>
+#include <array>
+#include <atomic>
+#include <cstdio>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <vector>
+
+namespace {
+
+uint16_t readLE16(const uint8_t* data) {
+	return static_cast<uint16_t>(static_cast<uint16_t>(data[0]) | (static_cast<uint16_t>(data[1]) << 8));
+}
+
+uint32_t readLE32(const uint8_t* data) {
+	return static_cast<uint32_t>(data[0])
+		| (static_cast<uint32_t>(data[1]) << 8)
+		| (static_cast<uint32_t>(data[2]) << 16)
+		| (static_cast<uint32_t>(data[3]) << 24);
+}
+
+void setOggError(char* buffer, size_t capacity, const char* message) {
+	if (!buffer || capacity == 0) return;
+	std::snprintf(buffer, capacity, "%s", message);
+}
+
+std::filesystem::path oggPath(const char* value) {
+#if defined(__cpp_char8_t)
+	return std::filesystem::path(reinterpret_cast<const char8_t*>(value));
+#else
+	return std::filesystem::u8path(value);
+#endif
+}
+
+} // namespace
+
+extern "C" int32_t dora_audio_encode_wav_to_ogg(
+	const char* inputPath,
+	const char* outputPath,
+	float quality,
+	void (*progress)(float, void*),
+	void* userData,
+	float progressStart,
+	float progressEnd,
+	uint64_t* bytesWritten,
+	char* error,
+	size_t errorCapacity) {
+	if (bytesWritten) *bytesWritten = 0;
+	if (error && errorCapacity > 0) error[0] = '\0';
+	if (!inputPath || !outputPath || !bytesWritten) {
+		setOggError(error, errorCapacity, "invalid Ogg encoder arguments");
+		return 0;
+	}
+
+	try {
+		std::ifstream input(oggPath(inputPath), std::ios::binary);
+		if (!input) {
+			setOggError(error, errorCapacity, "failed to open WAV input");
+			return 0;
+		}
+		std::array<uint8_t, 44> header {};
+		input.read(reinterpret_cast<char*>(header.data()), static_cast<std::streamsize>(header.size()));
+		if (input.gcount() != static_cast<std::streamsize>(header.size())
+			|| std::memcmp(header.data(), "RIFF", 4) != 0
+			|| std::memcmp(header.data() + 8, "WAVE", 4) != 0
+			|| std::memcmp(header.data() + 12, "fmt ", 4) != 0
+			|| readLE16(header.data() + 20) != 1
+			|| readLE16(header.data() + 34) != 16
+			|| std::memcmp(header.data() + 36, "data", 4) != 0) {
+			setOggError(error, errorCapacity, "generated WAV has an unsupported format");
+			return 0;
+		}
+		const uint16_t channels = readLE16(header.data() + 22);
+		const uint32_t sampleRate = readLE32(header.data() + 24);
+		const uint32_t dataSize = readLE32(header.data() + 40);
+		const size_t frameSize = static_cast<size_t>(channels) * sizeof(int16_t);
+		if (channels == 0 || sampleRate == 0 || dataSize % frameSize != 0) {
+			setOggError(error, errorCapacity, "generated WAV contains invalid PCM data");
+			return 0;
+		}
+
+		std::ofstream output(oggPath(outputPath), std::ios::binary | std::ios::trunc);
+		if (!output) {
+			setOggError(error, errorCapacity, "failed to create Ogg output");
+			return 0;
+		}
+
+		vorbis_info info;
+		vorbis_info_init(&info);
+		if (vorbis_encode_init_vbr(&info, channels, sampleRate, quality) != 0) {
+			vorbis_info_clear(&info);
+			setOggError(error, errorCapacity, "failed to initialize Ogg encoder");
+			return 0;
+		}
+		vorbis_comment comment;
+		vorbis_comment_init(&comment);
+		vorbis_comment_add_tag(&comment, const_cast<char*>("ENCODER"), const_cast<char*>("Dora SSR"));
+		vorbis_dsp_state dsp;
+		vorbis_analysis_init(&dsp, &info);
+		vorbis_block block;
+		vorbis_block_init(&dsp, &block);
+		ogg_stream_state stream;
+		static std::atomic<uint32_t> nextSerial {0};
+		const int serial = static_cast<int>(nextSerial.fetch_add(1, std::memory_order_relaxed) + 1);
+		ogg_stream_init(&stream, serial);
+
+		auto cleanup = [&]() {
+			ogg_stream_clear(&stream);
+			vorbis_block_clear(&block);
+			vorbis_dsp_clear(&dsp);
+			vorbis_comment_clear(&comment);
+			vorbis_info_clear(&info);
+		};
+		auto writePage = [&](const ogg_page& page) {
+			output.write(reinterpret_cast<const char*>(page.header), page.header_len);
+			output.write(reinterpret_cast<const char*>(page.body), page.body_len);
+			*bytesWritten += static_cast<uint64_t>(page.header_len + page.body_len);
+			return output.good();
+		};
+
+		ogg_packet headerPacket;
+		ogg_packet commentPacket;
+		ogg_packet codePacket;
+		if (vorbis_analysis_headerout(&dsp, &comment, &headerPacket, &commentPacket, &codePacket) != 0) {
+			cleanup();
+			setOggError(error, errorCapacity, "failed to create Ogg headers");
+			return 0;
+		}
+		ogg_stream_packetin(&stream, &headerPacket);
+		ogg_stream_packetin(&stream, &commentPacket);
+		ogg_stream_packetin(&stream, &codePacket);
+		ogg_page page;
+		while (ogg_stream_flush(&stream, &page)) {
+			if (!writePage(page)) {
+				cleanup();
+				setOggError(error, errorCapacity, "failed to write Ogg headers");
+				return 0;
+			}
+		}
+
+		constexpr size_t BlockFrames = 4096;
+		const uint64_t totalFrames = dataSize / frameSize;
+		uint64_t encodedFrames = 0;
+		std::vector<int16_t> pcm(BlockFrames * channels);
+		bool eos = false;
+		while (!eos) {
+			const uint64_t remaining = totalFrames - encodedFrames;
+			const size_t frames = static_cast<size_t>(std::min<uint64_t>(BlockFrames, remaining));
+			if (frames > 0) {
+				const size_t byteCount = frames * frameSize;
+				input.read(reinterpret_cast<char*>(pcm.data()), static_cast<std::streamsize>(byteCount));
+				if (input.gcount() != static_cast<std::streamsize>(byteCount)) {
+					cleanup();
+					setOggError(error, errorCapacity, "failed to read WAV PCM data");
+					return 0;
+				}
+				float** buffer = vorbis_analysis_buffer(&dsp, static_cast<int>(frames));
+				for (size_t frame = 0; frame < frames; ++frame) {
+					for (uint16_t channel = 0; channel < channels; ++channel) {
+						buffer[channel][frame] = pcm[frame * channels + channel] / 32768.0f;
+					}
+				}
+				vorbis_analysis_wrote(&dsp, static_cast<int>(frames));
+				encodedFrames += frames;
+				if (progress) {
+					const float ratio = totalFrames == 0 ? 1.0f : static_cast<float>(encodedFrames) / static_cast<float>(totalFrames);
+					progress(progressStart + (progressEnd - progressStart) * ratio, userData);
+				}
+			} else {
+				vorbis_analysis_wrote(&dsp, 0);
+			}
+
+			while (vorbis_analysis_blockout(&dsp, &block) == 1) {
+				vorbis_analysis(&block, nullptr);
+				vorbis_bitrate_addblock(&block);
+				ogg_packet packet;
+				while (vorbis_bitrate_flushpacket(&dsp, &packet)) {
+					ogg_stream_packetin(&stream, &packet);
+					while (!eos && ogg_stream_pageout(&stream, &page)) {
+						if (!writePage(page)) {
+							cleanup();
+							setOggError(error, errorCapacity, "failed while writing Ogg audio");
+							return 0;
+						}
+						eos = ogg_page_eos(&page) != 0;
+					}
+				}
+			}
+		}
+
+		output.flush();
+		const bool succeeded = output.good();
+		cleanup();
+		if (!succeeded) {
+			setOggError(error, errorCapacity, "failed to flush Ogg output");
+			return 0;
+		}
+		return 1;
+	} catch (const std::exception& exception) {
+		setOggError(error, errorCapacity, exception.what());
+		return 0;
+	} catch (...) {
+		setOggError(error, errorCapacity, "unexpected Ogg encoder failure");
+		return 0;
+	}
+}
+
 void soloud_stop_voice(uint32_t handle) {
 	SharedApplication.invokeInLogic([handle]() {
 		SharedAudio.removeRef(handle);

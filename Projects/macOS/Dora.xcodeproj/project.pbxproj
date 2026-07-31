@@ -86,6 +86,8 @@
 		3C5929EC2CA4ED1900CAF224 /* ParticleCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929D32CA4ED1900CAF224 /* ParticleCache.cpp */; };
 		3C5929ED2CA4ED1900CAF224 /* SkeletonCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929D72CA4ED1900CAF224 /* SkeletonCache.cpp */; };
 		3C5929F02CA4ED4D00CAF224 /* Audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929EF2CA4ED4D00CAF224 /* Audio.cpp */; };
+		F00100012F3A000100000001 /* OggSources.c in Sources */ = {isa = PBXBuildFile; fileRef = F00100012F3A000100000011 /* OggSources.c */; };
+		F00100012F3A000100000002 /* VorbisSources.c in Sources */ = {isa = PBXBuildFile; fileRef = F00100012F3A000100000012 /* VorbisSources.c */; };
 		3C592A012CA4ED5F00CAF224 /* Database.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929FA2CA4ED5F00CAF224 /* Database.cpp */; };
 		3C592A022CA4ED5F00CAF224 /* Application.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929F32CA4ED5F00CAF224 /* Application.mm */; };
 		3C592A032CA4ED5F00CAF224 /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929FE2CA4ED5F00CAF224 /* Object.cpp */; };
@@ -839,6 +841,8 @@
 		3C5929E02CA4ED1900CAF224 /* XmlItemCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XmlItemCache.h; sourceTree = "<group>"; };
 		3C5929EE2CA4ED4D00CAF224 /* Audio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Audio.h; sourceTree = "<group>"; };
 		3C5929EF2CA4ED4D00CAF224 /* Audio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Audio.cpp; sourceTree = "<group>"; };
+		F00100012F3A000100000011 /* OggSources.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = OggSources.c; sourceTree = "<group>"; };
+		F00100012F3A000100000012 /* VorbisSources.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = VorbisSources.c; sourceTree = "<group>"; };
 		3C5929F12CA4ED5F00CAF224 /* Application.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Application.h; sourceTree = "<group>"; };
 		3C5929F22CA4ED5F00CAF224 /* Application.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Application.cpp; sourceTree = "<group>"; };
 		3C5929F32CA4ED5F00CAF224 /* Application.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Application.mm; sourceTree = "<group>"; };
@@ -2700,6 +2704,8 @@
 			children = (
 				3C5929EE2CA4ED4D00CAF224 /* Audio.h */,
 				3C5929EF2CA4ED4D00CAF224 /* Audio.cpp */,
+				F00100012F3A000100000011 /* OggSources.c */,
+				F00100012F3A000100000012 /* VorbisSources.c */,
 			);
 			path = Audio;
 			sourceTree = "<group>";
@@ -4925,6 +4931,8 @@
 				3C592A382CA4EE3600CAF224 /* ImGuiDora.cpp in Sources */,
 				3C53E93C2BE8CF1100039640 /* PixelGrid.cpp in Sources */,
 				3C5929F02CA4ED4D00CAF224 /* Audio.cpp in Sources */,
+				F00100012F3A000100000001 /* OggSources.c in Sources */,
+				F00100012F3A000100000002 /* VorbisSources.c in Sources */,
 				3C53E93F2BE8CF1100039640 /* Log.cpp in Sources */,
 				3C5933A12CA4F8C700CAF224 /* Rotation.cpp in Sources */,
 				3C5933A22CA4F8C700CAF224 /* Effekseer.EffectNodeTrack.cpp in Sources */,
