@@ -301,6 +301,24 @@ do
 
 	local Content = getmetatable(Dora.Content)
 	local wait = Dora.wait
+
+	local Audio = getmetatable(Dora.Audio)
+	local Audio_renderMusicAsync = Audio.renderMusicAsync
+	Audio.renderMusicAsync = function(self, request, progress)
+		local _, mainThread = coroutine.running()
+		assert(not mainThread, "Audio.renderMusicAsync should be run in a thread")
+		local result
+		local done = false
+		Audio_renderMusicAsync(self, request, progress, function(response)
+			result = response
+			done = true
+		end)
+		wait(function()
+			return done
+		end)
+		return result
+	end
+
 	local Content_loadAsync = Content.loadAsync
 	Content.loadAsync = function(self, filename)
 		local _, mainThread = coroutine.running()

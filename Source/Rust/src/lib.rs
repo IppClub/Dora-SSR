@@ -4,6 +4,8 @@ extern crate bitflags;
 pub use dora_ssr::*;
 mod bgfx_rs;
 pub mod dora_3d;
+pub mod music;
+mod soundfont;
 pub use bgfx_rs::*;
 
 use clap::Parser;

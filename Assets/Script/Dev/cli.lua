@@ -407,6 +407,14 @@ local function projectRootFor(project, target, targetIsDir)
 	return findProjectRoot(target, targetIsDir) or findProjectRoot(project, true) or project
 end
 
+local function typescriptRootFor(project, target, targetIsDir)
+	local builtinLibRoot = pathJoin(assetRoot(), "Script", "Lib")
+	if relativeToRoot(target, builtinLibRoot) ~= nil then
+		return builtinLibRoot
+	end
+	return projectRootFor(project, target, targetIsDir)
+end
+
 local function baseUrl(options)
 	return "http://" .. options.host .. ":" .. tostring(options.port)
 end
@@ -505,7 +513,7 @@ local function buildTs(options, project, target)
 	print("Compiling Dora SSR TypeScript project: " .. buildTarget)
 	local doc = postJson(options, "/ts/build", {
 		path = buildTarget:gsub("\\", "/"),
-		projectRoot = projectRootFor(project, buildTarget, CLI.isDir(buildTarget)):gsub("\\", "/"),
+		projectRoot = typescriptRootFor(project, buildTarget, CLI.isDir(buildTarget)):gsub("\\", "/"),
 	})
 	expectSuccess(doc, "Compilation failed.")
 	print("Compilation complete.")

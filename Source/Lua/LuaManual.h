@@ -19,6 +19,9 @@ int Application_estimateTokens(Application* self, String text, double asciiToken
 /* Event */
 int dora_emit(lua_State* L);
 
+/* Audio */
+int dora_audio_render_music_async(lua_State* L);
+
 /* Path */
 int Path_create(lua_State* L);
 

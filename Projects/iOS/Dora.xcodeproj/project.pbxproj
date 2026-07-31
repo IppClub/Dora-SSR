@@ -25,6 +25,7 @@
 		D03D00020000000000000008 /* Surface3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D03D00100000000000000008 /* Surface3D.cpp */; };
 		3C030CF824CAE6580074786E /* Script in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF024CAE6570074786E /* Script */; };
 		3C030CFB24CAE6580074786E /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF324CAE6570074786E /* Font */; };
+		3C5F00112F2C000000000001 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = 3C5F00102F2C000000000001 /* Audio */; };
 		3C0C7751275742990030BDCD /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C0C774D275742990030BDCD /* miniz.c */; };
 		3C0C7752275742990030BDCD /* ZipUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0C7750275742990030BDCD /* ZipUtils.cpp */; };
 		3C0C77552757437E0030BDCD /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C0C774D275742990030BDCD /* miniz.c */; };
@@ -1041,6 +1042,7 @@
 		3CBE0F0026087F7B003F4F45 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1F87C81DF7B4C5005F1B4D /* AVFoundation.framework */; };
 		3CBE0F0126087F7B003F4F45 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE3316F1D96D92700F9C3F6 /* CoreMotion.framework */; };
 		3CBE0F0826087F7B003F4F45 /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF324CAE6570074786E /* Font */; };
+		3C5F00122F2C000000000001 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = 3C5F00102F2C000000000001 /* Audio */; };
 		3CBE0F0926087F7B003F4F45 /* Script in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF024CAE6570074786E /* Script */; };
 		3CBE0F4D26088937003F4F45 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F2226087FC8003F4F45 /* libSDL2.a */; };
 		3CBE0F5126088B89003F4F45 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */; };
@@ -1290,6 +1292,7 @@
 		D03D00100000000000000008 /* Surface3D.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ../../Source/Node/Surface3D.cpp; sourceTree = SOURCE_ROOT; };
 		3C030CF024CAE6570074786E /* Script */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Script; sourceTree = "<group>"; };
 		3C030CF324CAE6570074786E /* Font */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Font; sourceTree = "<group>"; };
+		3C5F00102F2C000000000001 /* Audio */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Audio; sourceTree = "<group>"; };
 		3C0C774D275742990030BDCD /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = miniz.c; sourceTree = "<group>"; };
 		3C0C774E275742990030BDCD /* ZipUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZipUtils.h; sourceTree = "<group>"; };
 		3C0C774F275742990030BDCD /* miniz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = miniz.h; sourceTree = "<group>"; };
@@ -3497,6 +3500,7 @@
 				3CBED1E52DD5C17400E6F2FC /* dora-wa */,
 				3C60DE142A2069FE007D7865 /* Doc */,
 				3CA8DF0E2A0CE83D0022CC90 /* www */,
+				3C5F00102F2C000000000001 /* Audio */,
 				3C030CF324CAE6570074786E /* Font */,
 				3CFD21442ECD65AF00FD55EB /* Image */,
 				3C030CF024CAE6570074786E /* Script */,
@@ -5336,6 +5340,7 @@
 				3CBED1E72DD5C18F00E6F2FC /* dora-wa in Resources */,
 				3C60DE162A2069FE007D7865 /* Doc in Resources */,
 				3CA8DF102A0CE83D0022CC90 /* www in Resources */,
+				3C5F00122F2C000000000001 /* Audio in Resources */,
 				3CBE0F0826087F7B003F4F45 /* Font in Resources */,
 				3CFD21452ECD65AF00FD55EB /* Image in Resources */,
 				3CBE0F0926087F7B003F4F45 /* Script in Resources */,
@@ -5354,6 +5359,7 @@
 				3CBED1E62DD5C17A00E6F2FC /* dora-wa in Resources */,
 				3C60DE152A2069FE007D7865 /* Doc in Resources */,
 				3CA8DF0F2A0CE83D0022CC90 /* www in Resources */,
+				3C5F00112F2C000000000001 /* Audio in Resources */,
 				3C030CFB24CAE6580074786E /* Font in Resources */,
 				3CFD21472ECD65D500FD55EB /* Image in Resources */,
 				3C030CF824CAE6580074786E /* Script in Resources */,

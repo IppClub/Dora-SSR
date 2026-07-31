@@ -45,6 +45,7 @@ import { getAgentTailRenderWindow } from './AgentRenderWindow';
 import { resolveAgentAutoScrollState } from './AgentAutoScroll';
 
 const AGENT_LLM_CONFIG_STORAGE_KEY = "dora.agent.llmConfigId";
+const AGENT_LLM_CONFIG_CHANGE_EVENT = "dora-agent-llm-config-changed";
 
 interface AgentPanelProps {
 	active?: boolean;
@@ -134,6 +135,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 		const value = Number(window.localStorage.getItem(AGENT_LLM_CONFIG_STORAGE_KEY));
 		return Number.isFinite(value) && value > 0 ? value : undefined;
 	});
+	const selectedLLMConfigIdRef = React.useRef(selectedLLMConfigId);
 	// Engine-side Lua/Git commands are bounded by the Agent command sandbox and
 	// are required for real build/runtime validation. Keep network fetch opt-in,
 	// but make local validation available in every new main session.
@@ -240,22 +242,24 @@ export default function AgentPanel(props: AgentPanelProps) {
 		try {
 			const res = await Service.listLLMConfigs();
 			if (!res.success) {
-				return selectedLLMConfigId;
+				return selectedLLMConfigIdRef.current;
 			}
 			const items = res.items ?? [];
 			setLLMConfigs(items);
+			const currentId = selectedLLMConfigIdRef.current;
 			const storedId = Number(window.localStorage.getItem(AGENT_LLM_CONFIG_STORAGE_KEY));
-			const nextId = items.some(item => item.id === selectedLLMConfigId)
-				? selectedLLMConfigId
+			const nextId = items.some(item => item.id === currentId)
+				? currentId
 				: (items.some(item => item.id === storedId) ? storedId : items[0]?.id);
+			selectedLLMConfigIdRef.current = nextId;
 			setSelectedLLMConfigId(nextId);
 			setLLMConfigMissing(nextId === undefined);
 			if (nextId !== undefined) window.localStorage.setItem(AGENT_LLM_CONFIG_STORAGE_KEY, String(nextId));
 			return nextId;
 		} catch {
-			return selectedLLMConfigId;
+			return selectedLLMConfigIdRef.current;
 		}
-	}, [selectedLLMConfigId]);
+	}, []);
 
 	useEffect(() => {
 		const refreshConfigs = () => void resolveLLMConfigId();
@@ -264,10 +268,37 @@ export default function AgentPanel(props: AgentPanelProps) {
 		return () => window.removeEventListener('llm-configs-changed', refreshConfigs);
 	}, [resolveLLMConfigId]);
 
+	useEffect(() => {
+		const applySelection = (configId: number) => {
+			if (!Number.isFinite(configId) || configId <= 0) return;
+			selectedLLMConfigIdRef.current = configId;
+			setSelectedLLMConfigId(configId);
+			setLLMConfigMissing(false);
+		};
+		const handleSelectionChange = (event: Event) => {
+			applySelection(Number((event as CustomEvent<number>).detail));
+		};
+		const handleStorage = (event: StorageEvent) => {
+			if (event.key === AGENT_LLM_CONFIG_STORAGE_KEY) {
+				applySelection(Number(event.newValue));
+			}
+		};
+		window.addEventListener(AGENT_LLM_CONFIG_CHANGE_EVENT, handleSelectionChange);
+		window.addEventListener('storage', handleStorage);
+		return () => {
+			window.removeEventListener(AGENT_LLM_CONFIG_CHANGE_EVENT, handleSelectionChange);
+			window.removeEventListener('storage', handleStorage);
+		};
+	}, []);
+
 	const selectLLMConfig = React.useCallback((configId: number) => {
+		selectedLLMConfigIdRef.current = configId;
 		setSelectedLLMConfigId(configId);
 		setLLMConfigMissing(false);
 		window.localStorage.setItem(AGENT_LLM_CONFIG_STORAGE_KEY, String(configId));
+		window.dispatchEvent(new CustomEvent<number>(AGENT_LLM_CONFIG_CHANGE_EVENT, {
+			detail: configId,
+		}));
 	}, []);
 
 	const scrollToBottom = React.useCallback((behavior: ScrollBehavior = "auto") => {
@@ -1424,9 +1455,6 @@ export default function AgentPanel(props: AgentPanelProps) {
 								{visibleSummaryMessages.length > 0 ? (
 									<AgentMessageList
 										messages={visibleSummaryMessages}
-										streamingMessageId={session?.currentTaskStatus === "RUNNING"
-											? visibleSummaryMessages[visibleSummaryMessages.length - 1]?.id
-											: undefined}
 										editableMessageId={latestUserMessageId}
 										editDisabled={loading || continueLoadingTaskId !== null || finishHandoffLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING"}
 										onResendPrompt={resendPromptText}

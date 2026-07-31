@@ -174,7 +174,13 @@ bool Content::move(String src, String dst) {
 	if (!err) {
 		return true;
 	}
-	Warn("failed to move file from \"{}\" to \"{}\" due to \"{}\", trying copy and remove fallback.", src.toString(), dst.toString(), err.message());
+	bool isCrossDevice = err == std::errc::cross_device_link;
+#if BX_PLATFORM_WINDOWS
+	isCrossDevice = isCrossDevice || err.value() == ERROR_NOT_SAME_DEVICE;
+#endif // BX_PLATFORM_WINDOWS
+	if (!isCrossDevice) {
+		Warn("failed to move file from \"{}\" to \"{}\" due to \"{}\", trying copy and remove fallback.", src.toString(), dst.toString(), err.message());
+	}
 	if (!Content::copyUnsafe(src, dst)) {
 		Warn("failed to copy file from \"{}\" to \"{}\" during move fallback.", src.toString(), dst.toString());
 		return false;

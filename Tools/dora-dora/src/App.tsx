@@ -1217,10 +1217,6 @@ export default function PersistentDrawerLeft() {
 		return trailingSep && segments.length > 0 ? displayPath + path.sep : displayPath;
 	};
 
-	useEffect(() => {
-		configureTypeScriptSearchPaths(assetPath);
-	}, [treeData]);
-
 	const setModified = useCallback((modified: Modified) => {
 		setFiles(prev => {
 			let changed = false;
@@ -1381,6 +1377,14 @@ export default function PersistentDrawerLeft() {
 			void revalidateModel(model);
 		})();
 	}, []);
+	useEffect(() => {
+		const model = currentTypeScriptModelRef.current;
+		if (model === null) {
+			configureTypeScriptSearchPaths(assetPath);
+			return;
+		}
+		revalidateActiveTypeScriptModel(model);
+	}, [treeData, revalidateActiveTypeScriptModel]);
 	const openAgentSessionTab = useCallback(async (
 		targetPath: string,
 		isDir: boolean,
@@ -1791,7 +1795,6 @@ export default function PersistentDrawerLeft() {
 		}
 		if (ext === "tsx" || ext === "ts") {
 			await initializeMonacoDeclarations();
-			configureTypeScriptSearchPaths(assetPath);
 			const monacoTypescript = getMonacoTypeScript();
 			if (ext === "tsx") {
 				import('./languages/jsx-monaco').then(({ jsxSyntaxHighlight }) => {
@@ -1813,7 +1816,6 @@ export default function PersistentDrawerLeft() {
 			}
 			const projFile = model.uri.fsPath;
 			const projectSourceRoot = await getProjectSourceRoot(projFile);
-			configureTypeScriptSearchPaths(assetPath, projectSourceRoot);
 			let revalidateTimer: number | undefined;
 			const scheduleModelRevalidation = () => {
 				if (editor.getModel() !== model || currentTypeScriptModelRef.current !== model) return;
@@ -2054,8 +2056,9 @@ export default function PersistentDrawerLeft() {
 				}
 			});
 			await autoTyping.resolveContents();
-			const { revalidateModel } = await import('./TranspileTS');
-			void revalidateModel(model);
+			if (currentTypeScriptModelRef.current === model) {
+				revalidateActiveTypeScriptModel(model);
+			}
 		}
 	}, [t, checkFileReadonly, revalidateActiveTypeScriptModel]);
 	const onEditorWillUnmount = useCallback((file: EditingFile) => (editor: Monaco.editor.IStandaloneCodeEditor) => {

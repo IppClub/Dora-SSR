@@ -276,6 +276,105 @@ struct PathData {
 	FillStrokeData fillStroke;
 };
 
+static void drawArc(NVGcontext* context, const Vec2& start, const std::vector<float>& args) {
+	constexpr float Pi = 3.14159265358979323846f;
+	float rx = std::abs(args[0]);
+	float ry = std::abs(args[1]);
+	float rotation = std::fmod(args[2], 360.0f) * Pi / 180.0f;
+	bool largeArc = args[3] != 0.0f;
+	bool sweep = args[4] != 0.0f;
+	Vec2 end{args[5], args[6]};
+
+	if (start == end) return;
+	if (rx == 0.0f || ry == 0.0f) {
+		nvgLineTo(context, end.x, end.y);
+		return;
+	}
+
+	float cosRotation = std::cos(rotation);
+	float sinRotation = std::sin(rotation);
+	float halfX = (start.x - end.x) * 0.5f;
+	float halfY = (start.y - end.y) * 0.5f;
+	float transformedX = cosRotation * halfX + sinRotation * halfY;
+	float transformedY = -sinRotation * halfX + cosRotation * halfY;
+	float rxSquared = rx * rx;
+	float rySquared = ry * ry;
+	float transformedXSquared = transformedX * transformedX;
+	float transformedYSquared = transformedY * transformedY;
+
+	// Scale radii up when the requested ellipse is too small to connect the
+	// endpoints, as required by the SVG endpoint-to-center conversion.
+	float radiiScale = transformedXSquared / rxSquared + transformedYSquared / rySquared;
+	if (radiiScale > 1.0f) {
+		float scale = std::sqrt(radiiScale);
+		rx *= scale;
+		ry *= scale;
+		rxSquared = rx * rx;
+		rySquared = ry * ry;
+	}
+
+	float denominator = rxSquared * transformedYSquared + rySquared * transformedXSquared;
+	float numerator = std::max(
+		0.0f,
+		rxSquared * rySquared - rxSquared * transformedYSquared - rySquared * transformedXSquared);
+	float centerScale = denominator == 0.0f ? 0.0f : std::sqrt(numerator / denominator);
+	if (largeArc == sweep) centerScale = -centerScale;
+
+	float centerTransformedX = centerScale * rx * transformedY / ry;
+	float centerTransformedY = -centerScale * ry * transformedX / rx;
+	float centerX = cosRotation * centerTransformedX - sinRotation * centerTransformedY
+		+ (start.x + end.x) * 0.5f;
+	float centerY = sinRotation * centerTransformedX + cosRotation * centerTransformedY
+		+ (start.y + end.y) * 0.5f;
+
+	float startAngle = std::atan2(
+		(transformedY - centerTransformedY) / ry,
+		(transformedX - centerTransformedX) / rx);
+	float endVectorX = (-transformedX - centerTransformedX) / rx;
+	float endVectorY = (-transformedY - centerTransformedY) / ry;
+	float startVectorX = (transformedX - centerTransformedX) / rx;
+	float startVectorY = (transformedY - centerTransformedY) / ry;
+	float angleDelta = std::atan2(
+		startVectorX * endVectorY - startVectorY * endVectorX,
+		startVectorX * endVectorX + startVectorY * endVectorY);
+	if (!sweep && angleDelta > 0.0f) {
+		angleDelta -= 2.0f * Pi;
+	} else if (sweep && angleDelta < 0.0f) {
+		angleDelta += 2.0f * Pi;
+	}
+
+	int segmentCount = std::max(1, s_cast<int>(std::ceil(std::abs(angleDelta) / (Pi * 0.5f))));
+	float segmentAngle = angleDelta / segmentCount;
+	auto transformPoint = [&](float x, float y) {
+		return Vec2{
+			centerX + cosRotation * x - sinRotation * y,
+			centerY + sinRotation * x + cosRotation * y};
+	};
+	for (int i = 0; i < segmentCount; ++i) {
+		float angle1 = startAngle + i * segmentAngle;
+		float angle2 = angle1 + segmentAngle;
+		float alpha = 4.0f / 3.0f * std::tan(segmentAngle * 0.25f);
+		float cosAngle1 = std::cos(angle1);
+		float sinAngle1 = std::sin(angle1);
+		float cosAngle2 = std::cos(angle2);
+		float sinAngle2 = std::sin(angle2);
+		Vec2 control1 = transformPoint(
+			rx * (cosAngle1 - alpha * sinAngle1),
+			ry * (sinAngle1 + alpha * cosAngle1));
+		Vec2 control2 = transformPoint(
+			rx * (cosAngle2 + alpha * sinAngle2),
+			ry * (sinAngle2 - alpha * cosAngle2));
+		Vec2 segmentEnd = i + 1 == segmentCount
+			? end
+			: transformPoint(rx * cosAngle2, ry * sinAngle2);
+		nvgBezierTo(
+			context,
+			control1.x, control1.y,
+			control2.x, control2.y,
+			segmentEnd.x, segmentEnd.y);
+	}
+}
+
 static bool getTransform(std::optional<nvg::Transform>& transform, Slice v) {
 	v.trimSpace();
 	std::vector<float> result;
@@ -515,12 +614,12 @@ void SVGCache::Parser::xmlSAX2StartElement(std::string_view name, const std::vec
 				for (auto ch : v) {
 					if (ch == '\n' || ch == '\t') continue;
 					switch (ch) {
-						case 'a':
 						case 't':
 							throw rapidxml::parse_error(
 								fmt::format("Path command {} is not implemeneted", command.value()).c_str(),
 								r_cast<void*>(c_cast<char*>(name.data())));
 							break;
+						case 'a':
 						case 'c':
 						case 'h':
 						case 'l':
@@ -607,6 +706,11 @@ void SVGCache::Parser::xmlSAX2StartElement(std::string_view name, const std::vec
 						if (std::islower(cmd.command)) {
 							auto previous = ctx->previousPathXY.back();
 							switch (cmd.command) {
+								case 'a': {
+									args[5] += previous.x;
+									args[6] += previous.y;
+									break;
+								}
 								case 'c':
 								case 'h':
 								case 'l':
@@ -673,6 +777,11 @@ void SVGCache::Parser::xmlSAX2StartElement(std::string_view name, const std::vec
 						}
 						// Handles generic commands.
 						switch (command) {
+							case 'A':
+								drawArc(ctx->nvg, ctx->previousPathXY.back(), args);
+								ctx->previousPathXY.back() = {args[5], args[6]};
+								previousPath = {command, args};
+								break;
 							case 'C':
 								nvgBezierTo(ctx->nvg, args[0], args[1], args[2], args[3], args[4], args[5]);
 								ctx->previousPathXY.back() = {args[4], args[5]};

@@ -22,9 +22,8 @@ const MemoMarkdown = React.memo(function AgentMessageMarkdown(props: { content: 
 
 const AgentAssistantMessageRow = React.memo(function AgentAssistantMessageRow(props: {
 	message: AgentSessionMessage;
-	streaming: boolean;
 }) {
-	const { message, streaming } = props;
+	const { message } = props;
 	const renderCount = recordAgentRowRender("message", message.id);
 	return (
 		<Box
@@ -49,22 +48,7 @@ const AgentAssistantMessageRow = React.memo(function AgentAssistantMessageRow(pr
 						"& .markdown-body > :last-child": { marginBottom: 0 },
 					}}
 				>
-					{streaming ? (
-						<Typography
-							component="div"
-							sx={{
-								color: Color.TextPrimary,
-								whiteSpace: "pre-wrap",
-								overflowWrap: "anywhere",
-								fontSize: 16,
-								lineHeight: 1.75,
-							}}
-						>
-							{message.content}
-						</Typography>
-					) : (
-						<MemoMarkdown content={message.content} />
-					)}
+					<MemoMarkdown content={message.content} />
 				</Box>
 			</Box>
 		</Box>
@@ -73,7 +57,6 @@ const AgentAssistantMessageRow = React.memo(function AgentAssistantMessageRow(pr
 
 interface AgentMessageListProps {
 	messages: AgentSessionMessage[];
-	streamingMessageId?: number;
 	editableMessageId?: number;
 	editDisabled?: boolean;
 	onResendPrompt?: (message: AgentSessionMessage, prompt: string) => Promise<boolean | undefined>;
@@ -143,7 +126,6 @@ function AgentMessageList(props: AgentMessageListProps) {
 						<AgentAssistantMessageRow
 							key={message.id}
 							message={message}
-							streaming={message.id === props.streamingMessageId}
 						/>
 					);
 				}
@@ -161,9 +143,12 @@ function AgentMessageList(props: AgentMessageListProps) {
 							maxWidth: message.role === "user" ? "78%" : "100%",
 							width: message.role === "user" ? "auto" : "100%",
 							minWidth: 0,
-							pb: editable && !editing ? 2.25 : 0,
 							border: message.role === "user" ? "none" : undefined,
 							"&:hover .agent-message-edit-button": {
+								opacity: 1,
+								pointerEvents: "auto",
+							},
+							"&:focus-within .agent-message-edit-button": {
 								opacity: 1,
 								pointerEvents: "auto",
 							},
@@ -269,15 +254,13 @@ function AgentMessageList(props: AgentMessageListProps) {
 								)}
 							</Box>
 							{editable && !editing ? (
-								<Tooltip title={t("agent.editPrompt")}>
-									<IconButton
-										size="small"
+								<Box sx={{ display: "flex", justifyContent: "flex-end", mt: 0.25, mr: 0.5, minHeight: 24 }}>
+									<Tooltip title={t("agent.editPrompt")}>
+										<IconButton
+											size="small"
 										className="agent-message-edit-button"
 										onClick={() => startEdit(message)}
 										sx={{
-											position: "absolute",
-											right: 4,
-											bottom: -10,
 											width: 24,
 											height: 24,
 											opacity: 0,
@@ -292,11 +275,16 @@ function AgentMessageList(props: AgentMessageListProps) {
 												color: "rgba(238,238,238,0.92)",
 												backgroundColor: "transparent",
 											},
+											"@media (hover: none)": {
+												opacity: 1,
+												pointerEvents: "auto",
+											},
 										}}
-									>
-										<EditIcon fontSize="small" />
-									</IconButton>
-								</Tooltip>
+										>
+											<EditIcon fontSize="small" />
+										</IconButton>
+									</Tooltip>
+								</Box>
 							) : null}
 						</Box>
 					</Box>
@@ -314,7 +302,6 @@ const sameMessages = (left: AgentSessionMessage[], right: AgentSessionMessage[])
 
 export default React.memo(AgentMessageList, (prev, next) => {
 	return sameMessages(prev.messages, next.messages)
-		&& prev.streamingMessageId === next.streamingMessageId
 		&& prev.editableMessageId === next.editableMessageId
 		&& prev.editDisabled === next.editDisabled
 		&& prev.onResendPrompt === next.onResendPrompt;

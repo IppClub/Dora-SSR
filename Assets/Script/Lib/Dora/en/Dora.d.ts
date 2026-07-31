@@ -1608,6 +1608,20 @@ class Audio {
 	 * @param velocityZ The z-axis velocity.
 	 */
 	setListenerVelocity(velocityX: number, velocityY: number, velocityZ: number): void;
+
+	/**
+	 * Runs the internal music generator from an encoded request.
+	 * Project code should use `Agent/Gen/Music.generateMusicAsync` for typed parameters and results.
+	 *
+	 * @param request Encoded music request.
+	 * @param progress Called with generation progress from 0 to 1.
+	 * @returns Encoded generation result.
+	 * @internal
+	 */
+	renderMusicAsync(
+		request: string,
+		progress: (this: void, value: number) => void
+	): string;
 }
 
 const audio: Audio;

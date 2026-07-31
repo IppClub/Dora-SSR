@@ -27,8 +27,6 @@ type OutputCollectorModule = typeof import('./3rdParty/tstl/transpilation/output
 
 let tsPromise: Promise<TsModule> | null = null;
 let cachedTs: TsModule | null = null;
-let cachedTstlOptions: TstlCompilerOptions | null = null;
-let cachedDeclarationOptions: CompilerOptions | null = null;
 let tstlPromise: Promise<TstlModule> | null = null;
 let outputCollectorPromise: Promise<OutputCollectorModule> | null = null;
 let typescriptUrlPromise: Promise<string> | null = null;
@@ -121,48 +119,39 @@ async function loadOutputCollector(): Promise<OutputCollectorModule> {
 }
 
 function getTstlOptions(ts: TsModule, tstl: TstlModule): TstlCompilerOptions {
-	if (!cachedTstlOptions) {
-		const scriptTarget = ts.ScriptTarget.ESNext;
-		const moduleKind = ts.ModuleKind.ESNext;
-		cachedTstlOptions = {
-			strict: true,
-			jsx: ts.JsxEmit.React,
-			luaTarget: tstl.LuaTarget.Lua55,
-			luaLibImport: tstl.LuaLibImportKind.Require,
-			noHeader: true,
-			sourceMap: true,
-			noImplicitSelf: true,
-			moduleResolution: ts.ModuleResolutionKind.Classic,
-			target: scriptTarget,
-			module: moduleKind,
-		};
-	}
-	return cachedTstlOptions;
+	return {
+		strict: true,
+		jsx: ts.JsxEmit.React,
+		luaTarget: tstl.LuaTarget.Lua55,
+		luaLibImport: tstl.LuaLibImportKind.Require,
+		noHeader: true,
+		sourceMap: true,
+		noImplicitSelf: true,
+		moduleResolution: ts.ModuleResolutionKind.Classic,
+		target: ts.ScriptTarget.ESNext,
+		module: ts.ModuleKind.ESNext,
+	};
 }
 
 function getDeclarationOptions(ts: TsModule): CompilerOptions {
-	if (!cachedDeclarationOptions) {
-		const scriptTarget = ts.ScriptTarget.ESNext;
-		const moduleKind = ts.ModuleKind.ESNext;
-		cachedDeclarationOptions = {
-			declaration: true,
-			emitDeclarationOnly: true,
-			strict: true,
-			jsx: ts.JsxEmit.React,
-			sourceMap: true,
-			moduleResolution: ts.ModuleResolutionKind.Classic,
-			target: scriptTarget,
-			module: moduleKind,
-		};
-	}
-	return cachedDeclarationOptions;
+	return {
+		declaration: true,
+		emitDeclarationOnly: true,
+		strict: true,
+		jsx: ts.JsxEmit.React,
+		sourceMap: true,
+		moduleResolution: ts.ModuleResolutionKind.Classic,
+		target: ts.ScriptTarget.ESNext,
+		module: ts.ModuleKind.ESNext,
+	};
 }
 
 function createCompilerHost(
 	ts: TsModule,
 	rootFileName: string,
 	content: string,
-	projectRoot?: string
+	projectRoot: string | undefined,
+	compilerOptions: CompilerOptions
 ): [CompilerHost, Map<string, string>] {
 	const currentDirectory = projectRoot && projectRoot !== "" ? projectRoot : Info.path.dirname(rootFileName);
 	const writeFiles = new Map<string, string>();
@@ -416,6 +405,31 @@ function createCompilerHost(
 				return undefined;
 			}
 		},
+		resolveModuleNames(moduleNames, containingFile) {
+			return moduleNames.map(moduleName => {
+				const resolved = ts.resolveModuleName(moduleName, containingFile, compilerOptions, compilerHost).resolvedModule;
+				if (resolved !== undefined || moduleName.startsWith(".") || Info.path.isAbsolute(moduleName)) {
+					return resolved;
+				}
+				const source = Service.readSync({
+					path: moduleName,
+					exts: [".d.ts", ".ts", ".tsx"],
+					projFile: containingFile,
+					projectRoot,
+				});
+				if (!source?.success) return undefined;
+				const extension = source.fullPath.endsWith(".d.ts")
+					? ts.Extension.Dts
+					: source.fullPath.endsWith(".tsx")
+						? ts.Extension.Tsx
+						: ts.Extension.Ts;
+				return {
+					resolvedFileName: source.fullPath,
+					extension,
+					isExternalLibraryImport: true,
+				};
+			});
+		},
 	};
 	return [compilerHost, writeFiles];
 }
@@ -427,11 +441,16 @@ function createTypescriptProgram(
 	content: string,
 	projectRoot?: string
 ): Program {
-	const [compilerHost] = createCompilerHost(ts, rootFileName, content, projectRoot);
 	const sourceRoot = projectRoot && projectRoot !== "" ? projectRoot : Info.path.dirname(rootFileName);
-	tstlOptions.baseUrl = sourceRoot;
-	tstlOptions.rootDir = sourceRoot;
-	return ts.createProgram([rootFileName], tstlOptions, compilerHost);
+	// WebSocket transpile requests may overlap across Agent projects. Keep the
+	// project-specific paths on this program instead of mutating shared options.
+	const compilerOptions = {
+		...tstlOptions,
+		baseUrl: sourceRoot,
+		rootDir: sourceRoot,
+	};
+	const [compilerHost] = createCompilerHost(ts, rootFileName, content, projectRoot, compilerOptions);
+	return ts.createProgram([rootFileName], compilerOptions, compilerHost);
 }
 
 (SourceMapConsumer as any).initialize({
@@ -590,8 +609,9 @@ export async function addDiagnosticToLog(fileName: string, diagnostics: readonly
 
 export async function getDeclarationFile(fileName: string, content: string) {
 	const ts = await loadTypescriptCompiler();
-	const [host, writeFiles] = createCompilerHost(ts, fileName, content);
-	const program = ts.createProgram([fileName], getDeclarationOptions(ts), host);
+	const compilerOptions = getDeclarationOptions(ts);
+	const [host, writeFiles] = createCompilerHost(ts, fileName, content, undefined, compilerOptions);
+	const program = ts.createProgram([fileName], compilerOptions, host);
 	const result = program.emit();
 	await addDiagnosticToLog(fileName, result.diagnostics);
 	const baseName = Info.path.basename(fileName, Info.path.extname(fileName));

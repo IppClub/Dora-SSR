@@ -17,12 +17,107 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Other/xlsxtext.hpp"
 #include "SQLiteCpp/SQLiteCpp.h"
 
+#include "rapidjson/document.h"
+
 extern "C" {
 int colibc_json_decode(lua_State* L);
 int colibc_json_encode(lua_State* L);
+char* dora_music_render(const char* requestJson, const char* soundFontPath, void (*progress)(float, void*), void* userData);
+void dora_music_string_free(char* value);
 }
 
 NS_DORA_BEGIN
+
+namespace {
+
+struct MusicRenderProgress {
+	std::atomic<float> value{0.0f};
+	std::atomic_bool finished{false};
+	float reported = -1.0f;
+};
+
+// The audio-render worker invokes this callback while generation is running.
+void updateMusicRenderProgress(float progress, void* userData) {
+	auto state = r_cast<MusicRenderProgress*>(userData);
+	state->value.store(progress, std::memory_order_relaxed);
+}
+
+std::string resolveMusicSoundFontPath(const std::string& request) {
+	rapidjson::Document document;
+	document.Parse(request.data(), request.size());
+	if (document.HasParseError() || !document.IsObject() || !document.HasMember("definition")) {
+		return {};
+	}
+	const auto& definition = document["definition"];
+	if (!definition.IsObject() || !definition.HasMember("synth")) return {};
+	const auto& synth = definition["synth"];
+	if (!synth.IsObject() || !synth.HasMember("file") || !synth["file"].IsString()) {
+		return {};
+	}
+	const auto& file = synth["file"];
+	if (file.GetStringLength() == 0) return {};
+	return SharedContent.getFullPath(
+		std::string(file.GetString(), file.GetStringLength()));
+}
+
+} // namespace
+
+int dora_audio_render_music_async(lua_State* L) {
+#ifndef TOLUA_RELEASE
+	tolua_Error tolua_err;
+	if (!tolua_isusertype(L, 1, "Audio", 0, &tolua_err)
+		|| !tolua_isstring(L, 2, 0, &tolua_err)
+		|| !tolua_isfunction(L, 3, &tolua_err)
+		|| !tolua_isfunction(L, 4, &tolua_err)
+		|| !tolua_isnoobj(L, 5, &tolua_err)) {
+		goto tolua_lerror;
+	} else
+#endif
+	{
+		auto request = tolua_toslice(L, 2, nullptr).toString();
+		auto soundFontPath = resolveMusicSoundFontPath(request);
+		Ref<LuaHandler> progressHandler(LuaHandler::create(tolua_ref_function(L, 3)));
+		Ref<LuaHandler> completionHandler(LuaHandler::create(tolua_ref_function(L, 4)));
+		auto progress = std::make_shared<MusicRenderProgress>();
+		SharedDirector.getSystemScheduler()->schedule([progress, progressHandler](double) {
+			if (progress->finished.load(std::memory_order_acquire)) return true;
+			auto value = progress->value.load(std::memory_order_relaxed);
+			if (value > progress->reported) {
+				progress->reported = value;
+				tolua_pushnumber(SharedLuaEngine.getState(), value);
+				SharedLuaEngine.executeFunction(progressHandler->get(), 1);
+			}
+			return false;
+		});
+		SharedAsyncThread.run(
+			[request = std::move(request), soundFontPath = std::move(soundFontPath), progress]() {
+				char* result = dora_music_render(
+					request.c_str(), soundFontPath.c_str(), updateMusicRenderProgress, progress.get());
+				std::string response = result ? result : R"({"success":false,"message":"music generator returned no result"})";
+				if (result) dora_music_string_free(result);
+				return Values::alloc(std::move(response));
+			},
+			[progress, progressHandler, completionHandler](Own<Values> values) {
+				std::string response;
+				values->get(response);
+				auto value = progress->value.load(std::memory_order_relaxed);
+				if (value > progress->reported) {
+					progress->reported = value;
+					tolua_pushnumber(SharedLuaEngine.getState(), value);
+					SharedLuaEngine.executeFunction(progressHandler->get(), 1);
+				}
+				progress->finished.store(true, std::memory_order_release);
+				tolua_pushslice(SharedLuaEngine.getState(), response);
+				SharedLuaEngine.executeFunction(completionHandler->get(), 1);
+			});
+	}
+	return 0;
+#ifndef TOLUA_RELEASE
+tolua_lerror:
+	tolua_error(L, "#ferror in function 'Audio.renderMusicAsync'.", &tolua_err);
+	return 0;
+#endif
+}
 
 /* Event */
 

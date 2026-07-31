@@ -931,6 +931,12 @@ LuaEngine::LuaEngine()
 		}
 		tolua_endmodule(L);
 
+		tolua_beginmodule(L, "Audio");
+		{
+			tolua_function(L, "renderMusicAsync", dora_audio_render_music_async);
+		}
+		tolua_endmodule(L);
+
 		tolua_beginmodule(L, "Path");
 		{
 			tolua_call(L, MT_CALL, Path_create);

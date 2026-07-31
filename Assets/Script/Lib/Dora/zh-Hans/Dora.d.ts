@@ -1612,6 +1612,20 @@ class Audio {
 	 * @param velocityZ z 轴速度。
 	 */
 	setListenerVelocity(velocityX: number, velocityY: number, velocityZ: number): void;
+
+	/**
+	 * 根据编码后的请求运行内部音乐生成器。
+	 * 工程代码应使用 `Agent/Gen/Music.generateMusicAsync`，以获得类型安全的参数和结果。
+	 *
+	 * @param request 编码后的音乐生成请求。
+	 * @param progress 生成进度回调，取值范围为 0 到 1。
+	 * @returns 编码后的生成结果。
+	 * @internal
+	 */
+	renderMusicAsync(
+		request: string,
+		progress: (this: void, value: number) => void
+	): string;
 }
 
 const audio: Audio;

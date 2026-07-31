@@ -22,6 +22,7 @@ Lua command code runs in a temporary environment:
 
 - Dora API globals are available through the command environment.
 - `projectDir` is the current project directory.
+- `reportProgress(update)` forwards structured progress to the Agent tool UI.
 - `print(...)` is the only output captured into the tool result.
 - Return values are not captured.
 - Global writes are local to the current command and are not shared with later commands.
@@ -33,6 +34,24 @@ Lua command code runs in a temporary environment:
 - `enterEntryAsync({ entryName?, fileName? })` starts a built Lua entry from the current project. `fileName` is project-relative, defaults to `init`, and may include its source or Lua extension.
 - `stopEntry()` stops an entry started by this command. The tool also stops it automatically when the command succeeds, fails, is canceled, or times out.
 - The Dora entry runtime is shared. If another Agent command owns it, do not wait in a loop; report the contention or retry in a later Agent turn.
+
+## Progress Reporting
+
+Use `reportProgress(...)` when the command itself coordinates meaningful stages:
+
+```lua
+local required = { "init.lua", "Script" }
+for index, relativePath in ipairs(required) do
+  assert(Content:exist(Path(projectDir, relativePath)), "missing: " .. relativePath)
+  reportProgress({
+    progress = index / #required,
+    message = "checked " .. relativePath,
+  })
+end
+print("project validation completed")
+```
+
+Use `progress` in the range `0..1`; `stage` and `message` are optional. Report only meaningful increments. Progress only updates the UI: it does not yield or reset timeouts, and final evidence must still be emitted with `print(...)`.
 
 ## In-Engine Game Script Validation
 

@@ -537,6 +537,7 @@
 		3CB86CB42F0BC9A00035A077 /* parse_note.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CB86CB32F0BC9A00035A077 /* parse_note.c */; };
 		3CBC784D24CE7528003C9E83 /* Script in Resources */ = {isa = PBXBuildFile; fileRef = 3CBC784524CE7527003C9E83 /* Script */; };
 		3CBC785224CE7528003C9E83 /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3CBC784A24CE7527003C9E83 /* Font */; };
+		3C5F00012F2C000000000001 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = 3C5F00002F2C000000000001 /* Audio */; };
 		3CBED0992DD5C0A100E6F2FC /* dora-wa in Resources */ = {isa = PBXBuildFile; fileRef = 3CBED0982DD5C08B00E6F2FC /* dora-wa */; };
 		3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CC81FF51D966770008C8B77 /* Assets.xcassets */; };
 		3CD029161E07DD720016E1EC /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029151E07DD720016E1EC /* libSDL2.a */; };
@@ -1916,6 +1917,7 @@
 		3CB86CB32F0BC9A00035A077 /* parse_note.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = parse_note.c; sourceTree = "<group>"; };
 		3CBC784524CE7527003C9E83 /* Script */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Script; sourceTree = "<group>"; };
 		3CBC784A24CE7527003C9E83 /* Font */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Font; sourceTree = "<group>"; };
+		3C5F00002F2C000000000001 /* Audio */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Audio; sourceTree = "<group>"; };
 		3CBED0982DD5C08B00E6F2FC /* dora-wa */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "dora-wa"; sourceTree = "<group>"; };
 		3CC81FE61D966770008C8B77 /* Dora.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dora.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CC81FF51D966770008C8B77 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Dora/Assets.xcassets; sourceTree = "<group>"; };
@@ -2211,6 +2213,7 @@
 				3CBED0982DD5C08B00E6F2FC /* dora-wa */,
 				3C60DE122A2069CE007D7865 /* Doc */,
 				3CA8DF0C2A0CE6FD0022CC90 /* www */,
+				3C5F00002F2C000000000001 /* Audio */,
 				3CBC784A24CE7527003C9E83 /* Font */,
 				3CFD213F2ECD656900FD55EB /* Image */,
 				3CBC784524CE7527003C9E83 /* Script */,
@@ -4662,6 +4665,7 @@
 				3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */,
 				3CBED0992DD5C0A100E6F2FC /* dora-wa in Resources */,
 				3CA8DF0D2A0CE6FD0022CC90 /* www in Resources */,
+				3C5F00012F2C000000000001 /* Audio in Resources */,
 				3CBC785224CE7528003C9E83 /* Font in Resources */,
 				3CFD21402ECD656900FD55EB /* Image in Resources */,
 				3CBC784D24CE7528003C9E83 /* Script in Resources */,

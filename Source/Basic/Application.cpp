@@ -41,7 +41,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #endif // BX_PLATFORM_OSX
 
 #define DORA_VERSION "1.9.1"_slice
-#define DORA_REVISION "8"_slice
+#define DORA_REVISION "9"_slice
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -1341,27 +1341,81 @@ void Application::install(String path) {
 	auto assetPath = SharedContent.getAssetPath();
 	auto appPath = path.toString();
 	auto bakPath = Path::concat({assetPath, "Bak"sv});
-	SharedContent.remove(bakPath);
-	{
-		auto dirs = SharedContent.getDirs(assetPath);
-		auto files = SharedContent.getFiles(assetPath);
-		SharedContent.createFolder(bakPath);
-		for (const auto& dir : dirs) {
-			SharedContent.move(Path::concat({assetPath, dir}), Path::concat({bakPath, dir}));
-		}
-		for (const auto& file : files) {
-			SharedContent.move(Path::concat({assetPath, file}), Path::concat({bakPath, file}));
-		}
+	if (SharedContent.exist(bakPath) && !SharedContent.remove(bakPath)) {
+		Error("Application.install() failed to remove the previous Windows update backup");
+		return;
 	}
-	{
-		auto dirs = SharedContent.getDirs(appPath);
-		auto files = SharedContent.getFiles(appPath);
-		for (const auto& dir : dirs) {
-			SharedContent.move(Path::concat({appPath, dir}), Path::concat({assetPath, dir}));
+	auto dirs = SharedContent.getDirs(assetPath);
+	auto files = SharedContent.getFiles(assetPath);
+	if (!SharedContent.createFolder(bakPath) && !SharedContent.isFolder(bakPath)) {
+		Error("Application.install() failed to create the Windows update backup");
+		return;
+	}
+
+	std::vector<std::pair<std::string, std::string>> backedUp;
+	auto restoreBackup = [&]() {
+		bool success = true;
+		for (auto it = backedUp.rbegin(); it != backedUp.rend(); ++it) {
+			if (!SharedContent.move(it->second, it->first)) {
+				Error("Application.install() failed to restore \"{}\" from the Windows update backup", it->first);
+				success = false;
+			}
 		}
-		for (const auto& file : files) {
-			SharedContent.move(Path::concat({appPath, file}), Path::concat({assetPath, file}));
+		return success;
+	};
+	auto backup = [&](const std::string& name) {
+		auto source = Path::concat({assetPath, name});
+		auto target = Path::concat({bakPath, name});
+		if (!SharedContent.move(source, target)) {
+			if (SharedContent.exist(target)) SharedContent.remove(target);
+			Error("Application.install() failed to back up \"{}\"", source);
+			restoreBackup();
+			return false;
 		}
+		backedUp.emplace_back(std::move(source), std::move(target));
+		return true;
+	};
+	for (const auto& dir : dirs) {
+		if (!backup(dir)) return;
+	}
+	for (const auto& file : files) {
+		if (!backup(file)) return;
+	}
+
+	std::vector<std::pair<std::string, std::string>> installed;
+	auto rollbackInstalled = [&]() {
+		bool success = true;
+		for (auto it = installed.rbegin(); it != installed.rend(); ++it) {
+			if (!SharedContent.move(it->second, it->first)) {
+				Error("Application.install() failed to return incomplete update item \"{}\"", it->first);
+				if (SharedContent.exist(it->second) && SharedContent.exist(it->first)) {
+					SharedContent.remove(it->second);
+				}
+				success = false;
+			}
+		}
+		return success;
+	};
+	auto install = [&](const std::string& name) {
+		auto source = Path::concat({appPath, name});
+		auto target = Path::concat({assetPath, name});
+		if (!SharedContent.move(source, target)) {
+			if (SharedContent.exist(target)) SharedContent.remove(target);
+			rollbackInstalled();
+			Error("Application.install() failed to install \"{}\"", source);
+			restoreBackup();
+			return false;
+		}
+		installed.emplace_back(std::move(source), std::move(target));
+		return true;
+	};
+	dirs = SharedContent.getDirs(appPath);
+	files = SharedContent.getFiles(appPath);
+	for (const auto& dir : dirs) {
+		if (!install(dir)) return;
+	}
+	for (const auto& file : files) {
+		if (!install(file)) return;
 	}
 
 	STARTUPINFOW si;
@@ -1383,8 +1437,9 @@ void Application::install(String path) {
 		return wideStr;
 	};
 
-	if (CreateProcessW(NULL,
-			getCommand().data(),
+	auto command = getCommand();
+	if (command.empty() || !CreateProcessW(NULL,
+			command.data(),
 			NULL,
 			NULL,
 			FALSE,
@@ -1393,9 +1448,13 @@ void Application::install(String path) {
 			NULL,
 			&si,
 			&pi)) {
-		CloseHandle(pi.hProcess);
-		CloseHandle(pi.hThread);
+		Error("Application.install() failed to start the updated Windows application, error code: {}", GetLastError());
+		rollbackInstalled();
+		restoreBackup();
+		return;
 	}
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
 	Application::setDevMode(false);
 	Application::shutdown();
 #elif BX_PLATFORM_OSX && !defined(DORA_AS_LIB)

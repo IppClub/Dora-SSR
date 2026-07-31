@@ -2722,6 +2722,22 @@ function executeLuaCommand(req: {
 			if (!ownsEntryRuntime) return false;
 			return entry.stop();
 		},
+		reportProgress: (value: unknown, callbackValue?: unknown) => {
+			const actualValue = callbackValue ?? value;
+			if (!req.onProgress || !actualValue || type(actualValue) !== "table") return;
+			const progress = actualValue as Record<string, unknown>;
+			const amount = typeof progress.progress === "number"
+				? math.min(1, math.max(0, progress.progress))
+				: undefined;
+			req.onProgress({
+				state: "running",
+				mode: "lua",
+				operationId: req.operationId,
+				progress: amount,
+				stage: typeof progress.stage === "string" ? progress.stage : "lua",
+				message: typeof progress.message === "string" ? progress.message : "Lua command running",
+			});
+		},
 	}, {
 		__index: Dora,
 	});
@@ -2737,13 +2753,23 @@ function executeLuaCommand(req: {
 	}
 	return new Promise(resolve => {
 		let settled = false;
+		let commandRoutine: Dora.Job | undefined;
 		const startedAt = App.runningTime;
 		const onProgress = req.onProgress;
 		const isCancelled = req.isCancelled;
 		const finish = (result: ExecuteCommandResult) => {
 			if (settled) return;
 			settled = true;
-			const cleanupError = stopOwnedEntry();
+			let cleanupError: string | undefined;
+			if (!result.success && (result.interrupted === true || result.phase === "timeout")) {
+				try {
+					entry.allClear();
+				} catch (e) {
+					cleanupError = `failed to clear interrupted Lua command runtime: ${tostring(e)}`;
+				}
+			}
+			const entryCleanupError = stopOwnedEntry();
+			cleanupError ??= entryCleanupError;
 			if (!result.success && cleanupError !== undefined) {
 				result.cleanupError = cleanupError;
 			} else if (result.success && cleanupError !== undefined) {
@@ -2768,44 +2794,7 @@ function executeLuaCommand(req: {
 				message: "Lua command pending",
 			});
 		}
-		Director.systemScheduler.schedule(() => {
-			if (settled) return true;
-			const watchdogMessage = checkEntryWatchdog();
-			if (watchdogMessage !== undefined) {
-				finish({
-					success: false,
-					mode: "lua",
-					output: truncateCommandOutput(output.join("\n")),
-					message: watchdogMessage,
-					phase: "execute",
-					interrupted: true,
-				});
-				return true;
-			}
-			if (isCancelled && isCancelled()) {
-				finish({
-					success: false,
-					mode: "lua",
-					output: truncateCommandOutput(output.join("\n")),
-					message: "Lua command canceled",
-					phase: "execute",
-					interrupted: true,
-				});
-				return true;
-			}
-			if (App.runningTime - startedAt >= req.timeoutSeconds) {
-				finish({
-					success: false,
-					mode: "lua",
-					output: truncateCommandOutput(output.join("\n")),
-					message: `Lua command timed out after ${tostring(req.timeoutSeconds)} seconds`,
-					phase: "timeout",
-				});
-				return true;
-			}
-			return false;
-		});
-		Director.systemScheduler.schedule(once(() => {
+		commandRoutine = once(() => {
 			if (settled) return;
 			if (onProgress) {
 				onProgress({
@@ -2851,7 +2840,65 @@ function executeLuaCommand(req: {
 				return;
 			}
 			finish({ success: true, mode: "lua", output: truncateCommandOutput(output.join("\n")) });
-		}));
+		});
+		Director.systemScheduler.schedule(() => {
+			if (settled) return true;
+			const watchdogMessage = checkEntryWatchdog();
+			if (watchdogMessage !== undefined) {
+				finish({
+					success: false,
+					mode: "lua",
+					output: truncateCommandOutput(output.join("\n")),
+					message: watchdogMessage,
+					phase: "execute",
+					interrupted: true,
+				});
+				return true;
+			}
+			if (isCancelled && isCancelled()) {
+				finish({
+					success: false,
+					mode: "lua",
+					output: truncateCommandOutput(output.join("\n")),
+					message: "Lua command canceled",
+					phase: "execute",
+					interrupted: true,
+				});
+				return true;
+			}
+			if (App.runningTime - startedAt >= req.timeoutSeconds) {
+				finish({
+					success: false,
+					mode: "lua",
+					output: truncateCommandOutput(output.join("\n")),
+					message: `Lua command timed out after ${tostring(req.timeoutSeconds)} seconds`,
+					phase: "timeout",
+				});
+				return true;
+			}
+			if (commandRoutine === undefined) {
+				finish({
+					success: false,
+					mode: "lua",
+					output: truncateCommandOutput(output.join("\n")),
+					message: "Lua command coroutine is unavailable",
+					phase: "execute",
+				});
+				return true;
+			}
+			const [resumeSuccess, resumeResult] = coroutine.resume(commandRoutine);
+			if (!resumeSuccess) {
+				finish({
+					success: false,
+					mode: "lua",
+					output: truncateCommandOutput(output.join("\n")),
+					message: truncateCommandError(toStr(resumeResult)),
+					phase: "execute",
+				});
+				return true;
+			}
+			return settled || resumeResult === true;
+		});
 	});
 }
 
