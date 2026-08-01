@@ -22,8 +22,31 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Support/Dictionary.h"
 #include "Support/Value.h"
 
-#define CPPHTTPLIB_ZLIB_SUPPORT
-#include "httplib/httplib.h"
+#define XRT_NO_SUBPROCESS
+#define XRT_NO_LOGGER
+#define XRT_NO_FILE_ASYNC
+#define XRT_NO_COROUTINE
+#define XRT_NO_XID
+#define XRT_NO_BUFFER
+#define XRT_NO_ARRAY
+#define XRT_NO_BSMN
+#define XRT_NO_MEMUNIT
+#define XRT_NO_MEMPOOL_FS
+#define XRT_NO_STACK
+#define XRT_NO_AVLTREE
+#define XRT_NO_MEMPOOL
+#define XRT_NO_DICT
+#define XRT_NO_LIST
+#define XRT_NO_VALUE
+#define XRT_NO_JSON
+#define XRT_NO_XSON
+#define XRT_NO_TEMPLATE
+#define XRT_NO_REGEX
+#define i8 xrt_i8
+extern "C" {
+#include "xrt/xrt.h"
+}
+#undef i8
 
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
@@ -168,14 +191,21 @@ static std::string canonicalize_query(std::vector<std::pair<std::string, std::st
 	std::string query;
 	for (size_t i = 0; i < params.size(); ++i) {
 		if (i > 0) query += '&';
-		query += httplib::encode_uri(params[i].first);
+		auto encode = [](const std::string& text) {
+			std::string result(text.size() * 3 + 1, '\0');
+			size_t length = 0;
+			if (!xrtPercentEncodeTo(text.data(), text.size(), result.data(), result.size(), &length, false)) return std::string{};
+			result.resize(length);
+			return result;
+		};
+		query += encode(params[i].first);
 		query += '=';
-		query += httplib::encode_uri(params[i].second);
+		query += encode(params[i].second);
 	}
 	return query;
 }
 
-static std::string canonicalize_path(const std::string& path, const httplib::Params& params) {
+static std::string canonicalize_path(const std::string& path, const std::vector<std::pair<std::string, std::string>>& params) {
 	if (params.empty()) return path;
 	std::vector<std::pair<std::string, std::string>> pairs;
 	pairs.reserve(params.size());
@@ -200,8 +230,15 @@ static std::vector<std::pair<std::string, std::string>> parse_query_pairs(const 
 		auto part = query.substr(start, amp - start);
 		auto eq = part.find('=');
 		if (eq != std::string::npos) {
-			auto name = httplib::decode_uri(part.substr(0, eq));
-			auto value = httplib::decode_uri(part.substr(eq + 1));
+			auto decode = [](const std::string& text) {
+				std::string result(text.size() + 1, '\0');
+				size_t length = 0;
+				if (!xrtPercentDecodeTo(text.data(), text.size(), result.data(), result.size(), &length, true)) return std::string{};
+				result.resize(length);
+				return result;
+			};
+			auto name = decode(part.substr(0, eq));
+			auto value = decode(part.substr(eq + 1));
 			params.emplace_back(std::move(name), std::move(value));
 		}
 		start = amp + 1;
@@ -218,18 +255,17 @@ static Dictionary* makeAppWSMessage(String type, std::string&& msg = std::string
 
 class WebSocketServer {
 	struct Connection {
-		explicit Connection(httplib::ws::WebSocket* ws)
+		explicit Connection(xwsconn* ws)
 			: webSocket(ws) { }
-		httplib::ws::WebSocket* webSocket = nullptr;
+		xwsconn* webSocket = nullptr;
 		std::mutex lock;
 	};
 	using ConnectionPtr = std::shared_ptr<Connection>;
-	using ConnectionSet = std::set<ConnectionPtr>;
+	using ConnectionMap = std::unordered_map<xwsconn*, ConnectionPtr>;
 
 public:
 	explicit WebSocketServer(HttpServer* owner)
-		: _thread(SharedAsyncThread.newThread())
-		, _owner(owner) { }
+		: _owner(owner) { }
 
 	~WebSocketServer() {
 		stop();
@@ -249,8 +285,8 @@ public:
 		for (const auto& connection : connections) {
 			if (!connection) continue;
 			std::lock_guard<std::mutex> guard(connection->lock);
-			if (connection->webSocket && connection->webSocket->is_open()) {
-				if (!connection->webSocket->send(msg.data(), msg.size())) {
+			if (connection->webSocket && xrtWsConnIsOpen(connection->webSocket)) {
+				if (xrtWsConnSendBinary(connection->webSocket, msg.data(), msg.size()) != XRT_NET_OK) {
 					Error("failed to send message to websocket connection!");
 				}
 			}
@@ -270,89 +306,86 @@ public:
 	}
 
 	bool start(int port) {
-		try {
-			_server.WebSocket(".*", [this](const httplib::Request& req, httplib::ws::WebSocket& ws) {
-				auto resource = req.target.empty() ? req.path : req.target;
-				if (_owner && _owner->_authRequired && !_owner->isWebSocketAuthorized(resource)) {
-					ws.close(httplib::ws::CloseStatus::PolicyViolation, "unauthorized"s);
-					return;
-				}
-				auto connection = std::make_shared<Connection>(&ws);
-				{
-					std::lock_guard<std::mutex> guard(_connectionLock);
-					_connections.insert(connection);
-				}
-				SharedApplication.invokeInLogic([]() {
-					Event::send("AppWS"sv, makeAppWSMessage("Open"_slice));
-				});
-				std::string msg;
-				httplib::ws::ReadResult ret;
-				while ((ret = ws.read(msg))) {
-					if (ret == httplib::ws::Binary) {
-						auto message = std::make_shared<std::string>(std::move(msg));
-						SharedApplication.invokeInLogic([message = std::move(message)]() {
-							Event::send("AppWS"sv, makeAppWSMessage("Receive"_slice, std::move(*message)));
-						});
-					}
-				}
-				{
-					std::lock_guard<std::mutex> guard(connection->lock);
-					connection->webSocket = nullptr;
-				}
-				{
-					std::lock_guard<std::mutex> guard(_connectionLock);
-					_connections.erase(connection);
-				}
-				SharedApplication.invokeInLogic([]() {
-					Event::send("AppWS"sv, makeAppWSMessage("Close"_slice));
-				});
-			});
-			if (!_server.bind_to_port("0.0.0.0", port)) {
-				Error("failed to bind websocket server port {}!", port);
-				return false;
-			}
+		auto engine = r_cast<xnetengine*>(DoraXrtNetworkEngine());
+		if (!engine) return false;
+		xwsserverconfig config;
+		xrtWsServerConfigInit(&config);
+		xrtNetAddrInitAny(&config.tBindAddr, AF_INET, s_cast<uint16>(port));
+		config.iRecvLimit = 16u * 1024u * 1024u;
+		xwsserverevents events{};
+		events.OnAuthorize = [](ptr owner, xwsserver*, xwsconn*, const char* target) {
+			auto self = r_cast<WebSocketServer*>(owner);
+			return !self->_owner || self->_owner->isWebSocketAuthorized(target ? target : "/"s);
+		};
+		events.OnOpen = [](ptr owner, xwsserver*, xwsconn* ws) {
+			auto self = r_cast<WebSocketServer*>(owner);
+			auto connection = std::make_shared<Connection>(ws);
 			{
-				std::lock_guard<std::mutex> guard(_shutdownLock);
-				_stopped = false;
+				std::lock_guard<std::mutex> guard(self->_connectionLock);
+				self->_connections.emplace(ws, std::move(connection));
 			}
-			_thread->run([this]() {
-				if (!_server.listen_after_bind()) {
-					Error("websocket server failed to start");
-				}
-				{
-					std::lock_guard<std::mutex> guard(_shutdownLock);
-					_stopped = true;
-				}
-				_waitForShutdown.notify_all();
+			SharedApplication.invokeInLogic([]() {
+				Event::send("AppWS"sv, makeAppWSMessage("Open"_slice));
 			});
-			LogHandler += std::make_pair(this, &WebSocketServer::sendLog);
-			return true;
-		} catch (const std::exception& e) {
-			Error("failed to start websocket server! {}", e.what());
+		};
+		auto receive = [](ptr, xwsserver*, xwsconn*, const void* data, size_t length) {
+			auto message = std::make_shared<std::string>(r_cast<const char*>(data), length);
+			SharedApplication.invokeInLogic([message = std::move(message)]() {
+				Event::send("AppWS"sv, makeAppWSMessage("Receive"_slice, std::move(*message)));
+			});
+		};
+		events.OnBinary = receive;
+		events.OnText = [](ptr owner, xwsserver* server, xwsconn* ws, const char* data, size_t length) {
+			auto message = std::make_shared<std::string>(data, length);
+			SharedApplication.invokeInLogic([message = std::move(message)]() {
+				Event::send("AppWS"sv, makeAppWSMessage("Receive"_slice, std::move(*message)));
+			});
+		};
+		events.OnClose = [](ptr owner, xwsserver*, xwsconn* ws, xnet_result) {
+			auto self = r_cast<WebSocketServer*>(owner);
+			ConnectionPtr connection;
+			{
+				std::lock_guard<std::mutex> guard(self->_connectionLock);
+				auto it = self->_connections.find(ws);
+				if (it != self->_connections.end()) {
+					connection = std::move(it->second);
+					self->_connections.erase(it);
+				}
+			}
+			if (connection) {
+				std::lock_guard<std::mutex> guard(connection->lock);
+				connection->webSocket = nullptr;
+			}
+			SharedApplication.invokeInLogic([]() {
+				Event::send("AppWS"sv, makeAppWSMessage("Close"_slice));
+			});
+		};
+		events.OnError = [](ptr, xwsserver*, xwsconn*, int error) {
+			Error("websocket server error: {}", error);
+		};
+		_server = xrtWsServerCreate(engine, &config, &events, this);
+		if (!_server || xrtWsServerStart(_server) != XRT_NET_OK) {
+			if (_server) xrtWsServerDestroy(_server);
+			_server = nullptr;
+			Error("failed to bind websocket server port {}!", port);
 			return false;
 		}
+		LogHandler += std::make_pair(this, &WebSocketServer::sendLog);
+		return true;
 	}
 
 	void stop() {
-		bool needStop = false;
-		{
-			std::lock_guard<std::mutex> guard(_shutdownLock);
-			needStop = !_stopped;
-		}
-		if (needStop) {
+		if (_server) {
 			auto connections = snapshotConnections();
 			for (const auto& connection : connections) {
 				if (!connection) continue;
 				std::lock_guard<std::mutex> guard(connection->lock);
-				if (connection->webSocket && connection->webSocket->is_open()) {
-					connection->webSocket->close(httplib::ws::CloseStatus::GoingAway, "shutting down"s);
+				if (connection->webSocket && xrtWsConnIsOpen(connection->webSocket)) {
+					xrtWsConnClose(connection->webSocket, XWS_CLOSE_GOING_AWAY, "shutting down");
 				}
 			}
-			_server.stop();
-			std::unique_lock<std::mutex> lock(_shutdownLock);
-			_waitForShutdown.wait(lock, [this]() {
-				return _stopped;
-			});
+			xrtWsServerDestroy(_server);
+			_server = nullptr;
 		}
 		LogHandler -= std::make_pair(this, &WebSocketServer::sendLog);
 	}
@@ -362,21 +395,17 @@ private:
 		std::vector<ConnectionPtr> connections;
 		std::lock_guard<std::mutex> guard(_connectionLock);
 		connections.reserve(_connections.size());
-		for (const auto& connection : _connections) {
+		for (const auto& [_, connection] : _connections) {
 			connections.push_back(connection);
 		}
 		return connections;
 	}
 
 private:
-	Async* _thread;
 	HttpServer* _owner;
-	httplib::Server _server;
-	ConnectionSet _connections;
+	xwsserver* _server = nullptr;
+	ConnectionMap _connections;
 	mutable std::mutex _connectionLock;
-	mutable std::mutex _shutdownLock;
-	std::condition_variable _waitForShutdown;
-	bool _stopped = true;
 };
 
 HttpServer::Response::Response(HttpServer::Response&& res)
@@ -390,19 +419,23 @@ void HttpServer::Response::operator=(HttpServer::Response&& res) {
 	status = res.status;
 }
 
-static httplib::Server& getServer() {
-	static httplib::Server server;
-	return server;
+static std::optional<Slice> find_header(const HttpServer::Request& req, String name) {
+	auto expected = name.toString();
+	for (size_t i = 0; i + 1 < req.headers.size(); i += 2) {
+		auto actual = req.headers[i].toString();
+		if (actual.size() == expected.size() && std::equal(actual.begin(), actual.end(), expected.begin(), [](char a, char b) {
+			return std::tolower(s_cast<unsigned char>(a)) == std::tolower(s_cast<unsigned char>(b));
+		})) return req.headers[i + 1];
+	}
+	return std::nullopt;
 }
 
-static bool has_valid_auth(const httplib::Request& req, const std::string& token) {
-	auto it = req.headers.find("X-Dora-Auth"s);
-	if (it != req.headers.end() && it->second == token) {
+static bool has_valid_auth(const HttpServer::Request& req, const std::string& token) {
+	if (auto value = find_header(req, "X-Dora-Auth"_slice); value && *value == token) {
 		return true;
 	}
-	it = req.headers.find("Authorization"s);
-	if (it != req.headers.end()) {
-		const std::string& auth = it->second;
+	if (auto value = find_header(req, "Authorization"_slice)) {
+		const auto auth = value->toString();
 		if (auth == token) {
 			return true;
 		}
@@ -415,22 +448,26 @@ static bool has_valid_auth(const httplib::Request& req, const std::string& token
 			return true;
 		}
 	}
-	for (const auto& param : req.params) {
-		if (param.first == "auth"s && param.second == token) {
+	for (size_t i = 0; i + 1 < req.params.size(); i += 2) {
+		if (req.params[i] == "auth"_slice && req.params[i + 1] == token) {
 			return true;
 		}
 	}
 	return false;
 }
 
-static void set_unauthorized(httplib::Response& res) {
-	res.status = 401;
-	res.set_content(R"({"success":false,"message":"unauthorized"})"s, "application/json"s);
+static void set_response(xhttpdresponse* response, int status, const std::string& content, const std::string& contentType) {
+	xrtHttpdResponseSetStatus(response, s_cast<uint32>(status), nullptr);
+	if (!contentType.empty()) xrtHttpdResponseSetHeader(response, "Content-Type", contentType.c_str());
+	xrtHttpdResponseSetBodyCopy(response, content.data(), content.size(), nullptr);
 }
 
-static void set_service_unavailable(httplib::Response& res) {
-	res.status = 503;
-	res.set_content(R"({"success":false,"message":"server shutting down"})"s, "application/json"s);
+static void set_unauthorized(xhttpdresponse* response) {
+	set_response(response, 401, R"({"success":false,"message":"unauthorized"})"s, "application/json"s);
+}
+
+static void set_service_unavailable(xhttpdresponse* response) {
+	set_response(response, 503, R"({"success":false,"message":"server shutting down"})"s, "application/json"s);
 }
 
 template <class T>
@@ -467,8 +504,7 @@ private:
 HttpServer::HttpServer()
 	: _authRequired(false)
 	, _authTokenHasExpiry(false)
-	, _staticCacheControl("no-cache")
-	, _thread(SharedAsyncThread.newThread()) { }
+	, _staticCacheControl("no-cache") { }
 
 HttpServer::~HttpServer() {
 	stop();
@@ -577,7 +613,7 @@ bool HttpServer::isAuthRequired() const noexcept {
 	return _authRequired;
 }
 
-bool HttpServer::isAuthorized(const httplib::Request& req) {
+bool HttpServer::isAuthorized(const Request& req) {
 	if (!_authRequired) {
 		return true;
 	}
@@ -592,20 +628,20 @@ bool HttpServer::isAuthorized(const httplib::Request& req) {
 		return false;
 	}
 	if (!_authSessionId.empty()) {
-		auto sessionIt = req.headers.find("X-Dora-Session"s);
-		auto timestampIt = req.headers.find("X-Dora-Timestamp"s);
-		auto nonceIt = req.headers.find("X-Dora-Nonce"s);
-		auto signatureIt = req.headers.find("X-Dora-Signature"s);
-		if (sessionIt == req.headers.end() || timestampIt == req.headers.end() || nonceIt == req.headers.end() || signatureIt == req.headers.end()) {
+		auto sessionHeader = find_header(req, "X-Dora-Session"_slice);
+		auto timestampHeader = find_header(req, "X-Dora-Timestamp"_slice);
+		auto nonceHeader = find_header(req, "X-Dora-Nonce"_slice);
+		auto signatureHeader = find_header(req, "X-Dora-Signature"_slice);
+		if (!sessionHeader || !timestampHeader || !nonceHeader || !signatureHeader) {
 			return false;
 		}
-		const auto& sessionId = sessionIt->second;
+		auto sessionId = sessionHeader->toString();
 		if (sessionId != _authSessionId) {
 			return false;
 		}
 		long long timestamp = 0;
 		try {
-			timestamp = std::stoll(timestampIt->second);
+			timestamp = std::stoll(timestampHeader->toString());
 		} catch (...) {
 			return false;
 		}
@@ -614,12 +650,14 @@ bool HttpServer::isAuthorized(const httplib::Request& req) {
 		if (std::llabs(nowSeconds - timestamp) > AuthSignatureTTLSeconds) {
 			return false;
 		}
-		const auto& nonce = nonceIt->second;
-		auto path = canonicalize_path(req.path, req.params);
-		auto bodyHash = sha256_hex(req.body);
-		auto payload = fmt::format("{}\n{}\n{}\n{}\n{}\n{}", sessionId, req.method, path, timestampIt->second, nonce, bodyHash);
+		auto nonce = nonceHeader->toString();
+		std::vector<std::pair<std::string, std::string>> params;
+		for (size_t i = 0; i + 1 < req.params.size(); i += 2) params.emplace_back(req.params[i].toString(), req.params[i + 1].toString());
+		auto path = canonicalize_path(req.path.toString(), params);
+		auto bodyHash = sha256_hex(req.body.toString());
+		auto payload = fmt::format("{}\n{}\n{}\n{}\n{}\n{}", sessionId, req.method.toString(), path, timestampHeader->toString(), nonce, bodyHash);
 		auto expected = hmac_sha256_hex(_authSessionSecret, payload);
-		if (expected != signatureIt->second) {
+		if (expected != signatureHeader->toString()) {
 			return false;
 		}
 		{
@@ -779,285 +817,246 @@ void HttpServer::upload(String pattern, const FileAcceptHandler& acceptHandler, 
 	_files.push_back({pattern.toString(), acceptHandler, doneHandler});
 }
 
+static bool route_matches(const std::string& pattern, const std::string& path) {
+	try {
+		return std::regex_match(path, std::regex(pattern, std::regex::ECMAScript));
+	} catch (const std::regex_error&) {
+		return pattern == path;
+	}
+}
+
+static HttpServer::Request make_request(const xhttpdrequest* nativeRequest, std::vector<std::string>& paramStorage) {
+	HttpServer::Request request;
+	request.method = nativeRequest->sMethod;
+	request.path = nativeRequest->sPath;
+	request.headers.reserve(nativeRequest->iHeaderCount * 2u);
+	for (uint32 i = 0; i < nativeRequest->iHeaderCount; ++i) {
+		request.headers.emplace_back(nativeRequest->arrHeaders[i].sName);
+		request.headers.emplace_back(nativeRequest->arrHeaders[i].sValue);
+	}
+	auto params = parse_query_pairs(nativeRequest->sTarget);
+	paramStorage.reserve(params.size() * 2u);
+	for (auto& [name, value] : params) {
+		paramStorage.push_back(std::move(name));
+		paramStorage.push_back(std::move(value));
+	}
+	request.params.reserve(paramStorage.size());
+	for (const auto& value : paramStorage) request.params.emplace_back(value);
+	if (auto contentType = xrtHttpdRequestHeader(nativeRequest, "Content-Type")) request.contentType = contentType;
+	if (nativeRequest->pBody && nativeRequest->iBodyLen > 0u) request.body = Slice(nativeRequest->pBody, nativeRequest->iBodyLen);
+	return request;
+}
+
+static bool valid_static_path(const std::string& path) {
+	if (path.empty() || path.front() != '/' || path.find('\0') != std::string::npos) return false;
+	size_t start = 1;
+	while (start <= path.size()) {
+		auto end = path.find('/', start);
+		if (end == std::string::npos) end = path.size();
+		auto part = std::string_view(path).substr(start, end - start);
+		if (part == ".."sv) return false;
+		start = end + 1;
+	}
+	return true;
+}
+
+static const char* content_type_for_path(const std::string& path) {
+	auto dot = path.find_last_of('.');
+	auto ext = dot == std::string::npos ? std::string{} : path.substr(dot);
+	std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char ch) { return s_cast<char>(std::tolower(ch)); });
+	static const std::unordered_map<std::string, const char*> types{
+		{".html", "text/html; charset=utf-8"}, {".htm", "text/html; charset=utf-8"},
+		{".js", "text/javascript; charset=utf-8"}, {".mjs", "text/javascript; charset=utf-8"},
+		{".css", "text/css; charset=utf-8"}, {".json", "application/json; charset=utf-8"},
+		{".txt", "text/plain; charset=utf-8"}, {".xml", "application/xml; charset=utf-8"},
+		{".svg", "image/svg+xml"}, {".png", "image/png"}, {".jpg", "image/jpeg"}, {".jpeg", "image/jpeg"},
+		{".gif", "image/gif"}, {".webp", "image/webp"}, {".ico", "image/x-icon"},
+		{".wasm", "application/wasm"}, {".pdf", "application/pdf"}, {".zip", "application/zip"},
+		{".woff", "font/woff"}, {".woff2", "font/woff2"}, {".ttf", "font/ttf"}, {".otf", "font/otf"},
+		{".mp3", "audio/mpeg"}, {".ogg", "audio/ogg"}, {".wav", "audio/wav"}, {".mp4", "video/mp4"},
+	};
+	auto it = types.find(ext);
+	return it == types.end() ? "application/octet-stream" : it->second;
+}
+
 bool HttpServer::start(int port) {
-	auto& server = getServer();
-	if (server.is_running()) return false;
-	server.set_default_headers({{"Access-Control-Allow-Origin"s, "*"s},
-		{"Access-Control-Allow-Headers"s, "*"s}});
-	server.set_file_request_handler([this](const httplib::Request& req, httplib::Response& res) {
-		const auto requestGeneration = _generation.load(std::memory_order_acquire);
-		std::string path = req.path;
-		if (!httplib::detail::is_valid_path(path)) {
-			return false;
-		}
-		if (path.back() == '/') {
-			path += "index.html";
-		}
-		if (path.size() > 0 && path[0] == '/') {
-			path.erase(path.begin());
-		}
-		if (!SharedContent.exist(path)) {
-			bool found = false;
-			if (!_wwwPath.empty()) {
-				auto checkPath = Path::concat({_wwwPath, path});
-				if (SharedContent.exist(checkPath)) {
-					path = checkPath;
-					found = true;
-				}
-			}
-			if (!found) {
-				auto checkPath = Path::concat({SharedContent.getWritablePath(), path});
-				if (SharedContent.exist(checkPath)) {
-					path = checkPath;
-					found = true;
-				}
-			}
-			if (!found) {
-				return false;
-			}
-		}
-		auto content_type = httplib::detail::find_content_type(path, {}, "application/octet-stream"s);
-		auto pending = std::make_shared<PendingLogicResult<std::string>>();
-		SharedContent.getThread()->run([pending, path = std::move(path)]() {
-			if (pending->isCancelled()) return;
-			pending->complete(SharedContent.loadUnsafe(path));
-		});
-		auto result = pending->wait(_stopping, _generation, requestGeneration);
-		if (!result) {
-			set_service_unavailable(res);
+	if (_server) return false;
+	auto engine = r_cast<xnetengine*>(DoraXrtNetworkEngine());
+	if (!engine) return false;
+	xhttpdconfig config;
+	xrtHttpdConfigInit(&config);
+	xrtNetAddrInitAny(&config.tBindAddr, AF_INET, s_cast<uint16>(port));
+	config.iRecvLimit = 512u * 1024u * 1024u;
+	config.iBodyLimit = config.iRecvLimit;
+	xhttpdevents events{};
+	events.OnRequest = [](ptr owner, xhttpdserver*, xhttpdconn*, const xhttpdrequest* nativeRequest, xhttpdresponse* nativeResponse) {
+		auto self = r_cast<HttpServer*>(owner);
+		const auto requestGeneration = self->_generation.load(std::memory_order_acquire);
+		xrtHttpdResponseSetHeader(nativeResponse, "Access-Control-Allow-Origin", "*");
+		xrtHttpdResponseSetHeader(nativeResponse, "Access-Control-Allow-Headers", "*");
+		std::vector<std::string> paramStorage;
+		auto request = make_request(nativeRequest, paramStorage);
+		auto path = request.path.toString();
+		auto respond = [&](HttpServer::Response&& response) {
+			set_response(nativeResponse, response.status > 0 ? response.status : 200, response.content, response.contentType);
+		};
+		if (nativeRequest->iMethod == XHTTPD_METHOD_OPTIONS) {
+			set_response(nativeResponse, 200, {}, {});
 			return true;
 		}
-		if (!result->empty()) {
-			res.set_header("Content-Type", content_type);
-			const auto cacheControl = getStaticCacheControl(req.path);
-			if (!cacheControl.empty()) {
-				res.set_header("Cache-Control", cacheControl);
+		if (nativeRequest->iMethod == XHTTPD_METHOD_GET) {
+			for (const auto& route : self->_gets) {
+				if (!route_matches(route.pattern, path)) continue;
+				auto pending = std::make_shared<PendingLogicResult<HttpServer::Response>>();
+				SharedApplication.invokeInLogic([pending, route = &route, request]() {
+					if (!pending->isCancelled()) pending->complete(route->handler(request));
+				});
+				auto response = pending->wait(self->_stopping, self->_generation, requestGeneration);
+				if (!response) set_service_unavailable(nativeResponse); else respond(std::move(*response));
+				return true;
 			}
-			res.body = std::move(*result);
+			std::string decodedPath(path.size() + 1, '\0');
+			size_t decodedLength = 0;
+			if (!xrtPercentDecodeTo(path.data(), path.size(), decodedPath.data(), decodedPath.size(), &decodedLength, false)) return false;
+			decodedPath.resize(decodedLength);
+			if (!valid_static_path(decodedPath)) return false;
+			if (decodedPath.back() == '/') decodedPath += "index.html";
+			auto requestPath = decodedPath;
+			decodedPath.erase(decodedPath.begin());
+			if (!SharedContent.exist(decodedPath)) {
+				bool found = false;
+				if (!self->_wwwPath.empty()) {
+					auto checkPath = Path::concat({self->_wwwPath, decodedPath});
+					if (SharedContent.exist(checkPath)) { decodedPath = checkPath; found = true; }
+				}
+				if (!found) {
+					auto checkPath = Path::concat({SharedContent.getWritablePath(), decodedPath});
+					if (SharedContent.exist(checkPath)) { decodedPath = checkPath; found = true; }
+				}
+				if (!found) return false;
+			}
+			auto pending = std::make_shared<PendingLogicResult<std::string>>();
+			SharedContent.getThread()->run([pending, file = decodedPath]() {
+				if (!pending->isCancelled()) pending->complete(SharedContent.loadUnsafe(file));
+			});
+			auto content = pending->wait(self->_stopping, self->_generation, requestGeneration);
+			if (!content) {
+				set_service_unavailable(nativeResponse);
+				return true;
+			}
+			if (content->empty()) return false;
+			xrtHttpdResponseSetHeader(nativeResponse, "Content-Type", content_type_for_path(decodedPath));
+			auto cacheControl = self->getStaticCacheControl(requestPath);
+			if (!cacheControl.empty()) xrtHttpdResponseSetHeader(nativeResponse, "Cache-Control", cacheControl.c_str());
+			xrtHttpdResponseSetStatus(nativeResponse, 200u, nullptr);
+			xrtHttpdResponseSetBodyCopy(nativeResponse, content->data(), content->size(), nullptr);
+			return true;
+		}
+		if (nativeRequest->iMethod != XHTTPD_METHOD_POST) return false;
+		if (path != "/auth"sv && path != "/auth/confirm"sv && !self->isAuthorized(request)) {
+			set_unauthorized(nativeResponse);
+			return true;
+		}
+		for (const auto& route : self->_posts) {
+			if (!route_matches(route.pattern, path)) continue;
+			auto pending = std::make_shared<PendingLogicResult<HttpServer::Response>>();
+			SharedApplication.invokeInLogic([pending, route = &route, request]() {
+				if (!pending->isCancelled()) pending->complete(route->handler(request));
+			});
+			auto response = pending->wait(self->_stopping, self->_generation, requestGeneration);
+			if (!response) set_service_unavailable(nativeResponse); else respond(std::move(*response));
+			return true;
+		}
+		for (const auto& route : self->_postScheduled) {
+			if (!route_matches(route.pattern, path)) continue;
+			auto pending = std::make_shared<PendingLogicResult<HttpServer::Response>>();
+			SharedApplication.invokeInLogic([pending, route = &route, request]() {
+				if (pending->isCancelled()) return;
+				auto scheduleFunc = route->handler(request);
+				SharedDirector.getSystemScheduler()->schedule([pending, scheduleFunc = std::move(scheduleFunc)](double) {
+					if (pending->isCancelled()) return true;
+					auto response = scheduleFunc();
+					if (!response) return false;
+					pending->complete(std::move(*response));
+					return true;
+				});
+			});
+			auto response = pending->wait(self->_stopping, self->_generation, requestGeneration);
+			if (!response) set_service_unavailable(nativeResponse); else respond(std::move(*response));
+			return true;
+		}
+		for (const auto& route : self->_files) {
+			if (!route_matches(route.pattern, path)) continue;
+			auto contentType = xrtHttpdRequestHeader(nativeRequest, "Content-Type");
+			xrtstrview boundary{};
+			if (!contentType || !xrtMultipartBoundaryFromContentType(contentType, &boundary) || !nativeRequest->pBody) {
+				set_response(nativeResponse, 403, {}, {});
+				return true;
+			}
+			xrthttputillimits limits;
+			xrtHttpUtilLimitsInit(&limits);
+			limits.iMaxMultipartBytes = 512u * 1024u * 1024u;
+			if (!xrtMultipartValidateN(nativeRequest->pBody, nativeRequest->iBodyLen, boundary.sPtr, boundary.iLen, &limits)) {
+				set_response(nativeResponse, 400, {}, {});
+				return true;
+			}
+			std::list<std::string> acceptedFiles;
+			size_t offset = 0;
+			xrtmultipartpartview part{};
+			while (xrtMultipartNextN(nativeRequest->pBody, nativeRequest->iBodyLen, boundary.sPtr, boundary.iLen, &offset, &part)) {
+				if ((part.iFlags & XRT_MULTIPART_F_HAS_FILENAME) == 0u) continue;
+				std::string filename(part.tFileName.iLen * 3u + 1u, '\0');
+				size_t filenameLength = 0;
+				if (!xrtMultipartDecodeFileNameTo(&part, filename.data(), filename.size(), &filenameLength)) {
+					set_response(nativeResponse, 400, {}, {});
+					return true;
+				}
+				filename.resize(filenameLength);
+				auto accepted = std::make_shared<PendingLogicResult<std::optional<std::string>>>();
+				SharedApplication.invokeInLogic([accepted, route = &route, request, filename]() {
+					if (!accepted->isCancelled()) accepted->complete(route->acceptHandler(request, filename));
+				});
+				auto acceptedPath = accepted->wait(self->_stopping, self->_generation, requestGeneration);
+				if (!acceptedPath) {
+					set_service_unavailable(nativeResponse);
+					return true;
+				}
+				if (!acceptedPath->has_value()) {
+					set_response(nativeResponse, 403, {}, {});
+					return true;
+				}
+				auto file = std::move(acceptedPath->value());
+				auto stream = std::unique_ptr<SDL_RWops, decltype(&SDL_RWclose)>(SDL_RWFromFile(file.c_str(), "wb+"), SDL_RWclose);
+				if (!stream || SDL_RWwrite(stream.get(), part.tBody.sPtr, 1, part.tBody.iLen) != part.tBody.iLen) {
+					set_response(nativeResponse, 500, {}, {});
+					return true;
+				}
+				acceptedFiles.emplace_back(std::move(file));
+			}
+			auto done = std::make_shared<PendingLogicResult<bool>>();
+			SharedApplication.invokeInLogic([done, route = &route, request, acceptedFiles]() {
+				if (done->isCancelled()) return;
+				bool success = true;
+				for (const auto& file : acceptedFiles) {
+					if (!route->doneHandler(request, file)) { SharedContent.remove(file); success = false; break; }
+				}
+				done->complete(success);
+			});
+			auto success = done->wait(self->_stopping, self->_generation, requestGeneration);
+			if (!success) set_service_unavailable(nativeResponse); else set_response(nativeResponse, *success ? 200 : 500, {}, {});
 			return true;
 		}
 		return false;
-	});
-	server.Options(".*", [](const httplib::Request& req, httplib::Response& res) { });
-	bool success = server.bind_to_port("0.0.0.0", port);
-	if (success) {
-		_stopping.store(false, std::memory_order_release);
-		for (const auto& get : _gets) {
-			server.Get(get.pattern, [this, route = &get](const httplib::Request& req, httplib::Response& res) {
-				const auto requestGeneration = _generation.load(std::memory_order_acquire);
-				HttpServer::Request request;
-				request.headers.reserve(req.headers.size() * 2);
-				for (const auto& header : req.headers) {
-					request.headers.emplace_back(header.first);
-					request.headers.emplace_back(header.second);
-				}
-				request.params.reserve(req.params.size() * 2);
-				for (const auto& param : req.params) {
-					request.params.emplace_back(param.first);
-					request.params.emplace_back(param.second);
-				}
-				if (auto it = req.headers.find("Content-Type"s);
-					it != req.headers.end()) {
-					request.contentType = it->second;
-				}
-				auto pending = std::make_shared<PendingLogicResult<HttpServer::Response>>();
-				SharedApplication.invokeInLogic([pending, route, request = std::move(request)]() {
-					if (pending->isCancelled()) return;
-					pending->complete(route->handler(request));
-				});
-				auto response = pending->wait(_stopping, _generation, requestGeneration);
-				if (!response) {
-					set_service_unavailable(res);
-					return;
-				}
-				res.set_content(response->content, response->contentType);
-				res.status = response->status;
-			});
-		}
-		for (const auto& post : _posts) {
-			server.Post(post.pattern, [this, route = &post](const httplib::Request& req, httplib::Response& res) {
-				const auto requestGeneration = _generation.load(std::memory_order_acquire);
-				if (req.path != "/auth"sv && req.path != "/auth/confirm"sv && !isAuthorized(req)) {
-					set_unauthorized(res);
-					return;
-				}
-				HttpServer::Request request;
-				request.headers.reserve(req.headers.size() * 2);
-				for (const auto& header : req.headers) {
-					request.headers.emplace_back(header.first);
-					request.headers.emplace_back(header.second);
-				}
-				request.params.reserve(req.params.size() * 2);
-				for (const auto& param : req.params) {
-					request.params.emplace_back(param.first);
-					request.params.emplace_back(param.second);
-				}
-				if (auto it = req.headers.find("Content-Type"s);
-					it != req.headers.end()) {
-					request.contentType = it->second;
-				}
-				request.body = req.body;
-				auto pending = std::make_shared<PendingLogicResult<HttpServer::Response>>();
-				SharedApplication.invokeInLogic([pending, route, request = std::move(request)]() {
-					if (pending->isCancelled()) return;
-					pending->complete(route->handler(request));
-				});
-				auto response = pending->wait(_stopping, _generation, requestGeneration);
-				if (!response) {
-					set_service_unavailable(res);
-					return;
-				}
-				res.set_content(response->content, response->contentType);
-				res.status = response->status;
-			});
-		}
-		for (const auto& post : _postScheduled) {
-			server.Post(post.pattern, [this, route = &post](const httplib::Request& req, httplib::Response& res) {
-				const auto requestGeneration = _generation.load(std::memory_order_acquire);
-				if (req.path != "/auth"sv && req.path != "/auth/confirm"sv && !isAuthorized(req)) {
-					set_unauthorized(res);
-					return;
-				}
-				HttpServer::Request request;
-				request.headers.reserve(req.headers.size() * 2);
-				for (const auto& header : req.headers) {
-					request.headers.emplace_back(header.first);
-					request.headers.emplace_back(header.second);
-				}
-				request.params.reserve(req.params.size() * 2);
-				for (const auto& param : req.params) {
-					request.params.emplace_back(param.first);
-					request.params.emplace_back(param.second);
-				}
-				if (auto it = req.headers.find("Content-Type"s);
-					it != req.headers.end()) {
-					request.contentType = it->second;
-				}
-				request.body = req.body;
-				auto pending = std::make_shared<PendingLogicResult<HttpServer::Response>>();
-				SharedApplication.invokeInLogic([pending, route, request = std::move(request)]() {
-					if (pending->isCancelled()) return;
-					auto scheduleFunc = route->handler(request);
-					SharedDirector.getSystemScheduler()->schedule([pending, scheduleFunc = std::move(scheduleFunc)](double) {
-						if (pending->isCancelled()) return true;
-						auto fRes = scheduleFunc();
-						if (fRes) {
-							pending->complete(std::move(fRes.value()));
-							return true;
-						}
-						return false;
-					});
-				});
-				auto response = pending->wait(_stopping, _generation, requestGeneration);
-				if (!response) {
-					set_service_unavailable(res);
-					return;
-				}
-				res.set_content(response->content, response->contentType);
-				res.status = response->status;
-			});
-		}
-		for (const auto& postFile : _files) {
-			server.Post(postFile.pattern,
-				[this, route = &postFile](const httplib::Request& req, httplib::Response& res, const httplib::ContentReader& content_reader) {
-					const auto requestGeneration = _generation.load(std::memory_order_acquire);
-					if (req.path != "/auth"sv && req.path != "/auth/confirm"sv && !isAuthorized(req)) {
-						set_unauthorized(res);
-						return;
-					}
-					if (!req.is_multipart_form_data()) {
-						res.status = 403;
-						return;
-					}
-					HttpServer::Request request;
-					request.headers.reserve(req.headers.size() * 2);
-					for (const auto& header : req.headers) {
-						request.headers.emplace_back(header.first);
-						request.headers.emplace_back(header.second);
-					}
-					request.params.reserve(req.params.size() * 2);
-					for (const auto& param : req.params) {
-						request.params.emplace_back(param.first);
-						request.params.emplace_back(param.second);
-					}
-					if (auto it = req.headers.find("Content-Type"s);
-						it != req.headers.end()) {
-						request.contentType = it->second;
-					}
-					std::list<std::string> acceptedFiles;
-					std::list<std::shared_ptr<SDL_RWops>> streams;
-					bool serverStopping = false;
-					content_reader(
-						[&](const httplib::FormData& file) {
-							auto pending = std::make_shared<PendingLogicResult<std::optional<std::string>>>();
-							SharedApplication.invokeInLogic([pending, route, request, filename = file.filename]() {
-								if (pending->isCancelled()) return;
-								pending->complete(route->acceptHandler(request, filename));
-							});
-							auto acceptedPath = pending->wait(_stopping, _generation, requestGeneration);
-							if (!acceptedPath) {
-								serverStopping = true;
-								return false;
-							}
-							if (!acceptedPath->has_value()) return false;
-							auto fullPath = std::move(acceptedPath->value());
-							SDL_RWops* stream = SDL_RWFromFile(fullPath.c_str(), "wb+");
-							if (!stream) return false;
-							streams.push_back({stream, [](SDL_RWops* io) {
-												   SDL_RWclose(io);
-											   }});
-							acceptedFiles.emplace_back(std::move(fullPath));
-							return true;
-						},
-						[&](const char* data, size_t data_length) {
-							if (!streams.empty()) {
-								size_t written = SDL_RWwrite(streams.back().get(), data, 1, data_length);
-								if (written == data_length) {
-									return true;
-								}
-							}
-							acceptedFiles.pop_back();
-							return false;
-						});
-					streams.clear();
-					if (serverStopping) {
-						set_service_unavailable(res);
-						return;
-					}
-					auto pending = std::make_shared<PendingLogicResult<bool>>();
-					SharedApplication.invokeInLogic([pending, route, request, acceptedFiles]() {
-						if (pending->isCancelled()) return;
-						bool done = true;
-						for (const auto& file : acceptedFiles) {
-							if (!route->doneHandler(request, file)) {
-								SharedContent.remove(file);
-								done = false;
-								break;
-							}
-						}
-						pending->complete(done);
-					});
-					auto done = pending->wait(_stopping, _generation, requestGeneration);
-					if (!done) {
-						set_service_unavailable(res);
-						return;
-					}
-					if (!*done) {
-						res.status = 500;
-					}
-				});
-		}
-		_thread->run([]() {
-			if (!getServer().listen_after_bind()) {
-				LogError("http server failed to start");
-			}
-		});
-		// Ensure a subsequent stop() can always close the listening socket.
-		// Server::stop() is a no-op until listen_after_bind() marks the server
-		// as running.
-		server.wait_until_ready();
+	};
+	events.OnError = [](ptr, xhttpdserver*, xhttpdconn*, int error) { Error("http server error: {}", error); };
+	auto server = xrtHttpdCreate(engine, &config, &events, this);
+	if (!server || xrtHttpdStart(server) != XRT_NET_OK) {
+		if (server) xrtHttpdDestroy(server);
+		return false;
 	}
-	return success;
+	_server = server;
+	_stopping.store(false, std::memory_order_release);
+	return true;
 }
 
 bool HttpServer::startWS(int port) {
@@ -1102,13 +1101,12 @@ bool HttpServer::startWS(int port) {
 void HttpServer::stop() {
 	_stopping.store(true, std::memory_order_release);
 	_generation.fetch_add(1, std::memory_order_acq_rel);
-	getServer().stop();
-	// Server::stop() only closes the listening socket. Wait for
-	// listen_after_bind() to finish joining its request workers before
-	// destroying route callbacks, whose Lua handlers belong to the logic
-	// thread.
-	_thread->runInMainSync([]() { });
-	getServer().clear_posts();
+	if (_server) {
+		auto server = r_cast<xhttpdserver*>(_server);
+		_server = nullptr;
+		xrtHttpdDestroy(server);
+	}
+	_gets.clear();
 	_posts.clear();
 	_postScheduled.clear();
 	_files.clear();
@@ -1120,7 +1118,7 @@ void HttpServer::stop() {
 }
 
 const char* HttpServer::getVersion() {
-	return CPPHTTPLIB_VERSION;
+	return "2026-05-21";
 }
 
 /* HttpClient */

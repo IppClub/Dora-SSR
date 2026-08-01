@@ -4138,6 +4138,7 @@
 			void (*OnPong)(ptr pOwner, xwsclient* pClient, const void* pData, size_t iLen);
 		} xwsclientevents;
 		typedef struct {
+			bool (*OnAuthorize)(ptr pOwner, xwsserver* pServer, xwsconn* pConn, const char* sTarget);
 			void (*OnOpen)(ptr pOwner, xwsserver* pServer, xwsconn* pConn);
 			void (*OnText)(ptr pOwner, xwsserver* pServer, xwsconn* pConn, const char* pData, size_t iLen);
 			void (*OnBinary)(ptr pOwner, xwsserver* pServer, xwsconn* pConn, const void* pData, size_t iLen);
@@ -5598,7 +5599,7 @@
 	{
 		uint32 iBlock = iIdx >> 8;
 		uint32 iPos = iIdx & 0xFF;
-		str pBlock = xrtPtrArrayGet_Inline(&objBSMM->PageMMU, iBlock + 1);
+		str pBlock = (str)xrtPtrArrayGet_Inline(&objBSMM->PageMMU, iBlock + 1);
 		if ( pBlock ) {
 			return &pBlock[iPos * objBSMM->ItemLength];
 		} else {
@@ -6183,7 +6184,7 @@
 			return NULL;
 		}
 		bool bNew;
-		Dict_Key* pNode = xrtAVLTreeInsert(&objHT->AVLT, objKey, &bNew);
+		Dict_Key* pNode = (Dict_Key*)xrtAVLTreeInsert(&objHT->AVLT, objKey, &bNew);
 		if ( pNode ) {
 			if ( bNewRet ) {
 				*bNewRet = bNew;
@@ -6218,7 +6219,7 @@
 		if ( !xrtOwnerBeginMutable(&objHT->Owner, (str)"dict belongs to another thread.") ) {
 			return NULL;
 		}
-		Dict_Key* pNode = xrtAVLTreeSearch(&objHT->AVLT, objKey);
+		Dict_Key* pNode = (Dict_Key*)xrtAVLTreeSearch(&objHT->AVLT, objKey);
 		if ( pNode ) {
 			pRet = &pNode[1];
 		}
@@ -6875,7 +6876,7 @@
 		if ( !xvoPrepareStoreWithOwner_Inline(&pColl->Owner, objKey->Value) ) {
 			return FALSE;
 		}
-		Coll_Key* pNode = xrtAVLTreeInsert(pColl, objKey, &bNew);
+		Coll_Key* pNode = (Coll_Key*)xrtAVLTreeInsert(pColl, objKey, &bNew);
 		if ( pNode ) {
 			if ( bNew ) {
 				pNode->Hash = objKey->Hash;
@@ -61129,6 +61130,7 @@ typedef struct {
 	void (*OnPong)(ptr pOwner, xwsclient* pClient, const void* pData, size_t iLen);
 } xwsclientevents;
 typedef struct {
+	bool (*OnAuthorize)(ptr pOwner, xwsserver* pServer, xwsconn* pConn, const char* sTarget);
 	void (*OnOpen)(ptr pOwner, xwsserver* pServer, xwsconn* pConn);
 	void (*OnText)(ptr pOwner, xwsserver* pServer, xwsconn* pConn, const char* pData, size_t iLen);
 	void (*OnBinary)(ptr pOwner, xwsserver* pServer, xwsconn* pConn, const void* pData, size_t iLen);
@@ -62303,6 +62305,11 @@ static void __xwsServerStreamOnRecv(ptr pOwner, xnetstream* pStream, xnetchain* 
 			__xwsServerEmitError(pServer, pConn, -31);
 			(void)__xwsSendHttpReply(pStream, 400u, "Bad Request", NULL, NULL, true);
 			if ( iParse == XCODEC_STATUS_FRAME ) { xrtCodecHttp1MessageUnit(&tMsg); }
+			return;
+		}
+		if ( pServer->tEvents.OnAuthorize && !pServer->tEvents.OnAuthorize(pServer->pUserData, pServer, pConn, tMsg.sTarget) ) {
+			(void)__xwsSendHttpReply(pStream, 401u, "Unauthorized", NULL, NULL, true);
+			xrtCodecHttp1MessageUnit(&tMsg);
 			return;
 		}
 		// 计算服务端 Accept 值

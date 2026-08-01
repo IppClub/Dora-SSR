@@ -1769,7 +1769,7 @@ std::string Dora::Application::getDeps() const noexcept {
 		"- SQLiteCpp {}\n"
 		"- wasm3 {}\n"
 		"- fmt {}\n"
-		"- httplib {}\n"
+		"- xrt {}\n"
 		"- spdlog {}.{}.{}",
 		SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL,
 		BGFX_API_VERSION,

@@ -17,10 +17,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <unordered_map>
 #include <vector>
 
-namespace httplib {
-struct Request;
-}
-
 NS_DORA_BEGIN
 
 class WebSocketServer;
@@ -36,6 +32,8 @@ public:
 	PROPERTY_READONLY(std::string, LocalIP);
 	PROPERTY_READONLY(int, WSConnectionCount);
 	struct Request {
+		Slice method;
+		Slice path;
 		std::vector<Slice> headers;
 		std::vector<Slice> params;
 		Slice contentType;
@@ -103,7 +101,7 @@ private:
 	static constexpr int AuthSignatureTTLSeconds = 60;
 	std::unordered_map<std::string, std::chrono::steady_clock::time_point> _authNonces;
 	std::mutex _authNonceMutex;
-	bool isAuthorized(const httplib::Request& req);
+	bool isAuthorized(const Request& req);
 	bool isTokenValid(const std::string& token);
 	bool isWebSocketAuthorized(const std::string& resource);
 	std::list<Service> _posts;
@@ -118,7 +116,7 @@ private:
 	std::string _staticCacheControl;
 	std::vector<StaticCacheControlRule> _staticCacheControlRules;
 	std::mutex _staticCacheControlMutex;
-	Async* _thread;
+	void* _server = nullptr;
 	Own<WebSocketServer> _webSocketServer;
 	Ref<Listener> _webSocketListener;
 	SINGLETON_REF(HttpServer, AsyncThread, Director);

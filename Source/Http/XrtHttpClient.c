@@ -19,8 +19,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Http/XrtHttpClient.h"
 
-#define XRT_NO_XHTTPD
-#define XRT_NO_XWS
 #define XRT_NO_SUBPROCESS
 #define XRT_NO_LOGGER
 #define XRT_NO_FILE_ASYNC
@@ -92,6 +90,16 @@ static int DoraXrtHttpAttachRuntimeThread(void) {
 		xrtThreadDetachCurrent();
 	}
 	return xrtThreadAttachCurrent() != NULL;
+}
+
+void* DoraXrtNetworkEngine(void) {
+	xnetengine* engine;
+	if (!DoraXrtHttpAttachRuntimeThread()) {
+		return NULL;
+	}
+	engine = xrtNetSyncGetHiddenEngine();
+	xrtThreadDetachCurrent();
+	return engine;
 }
 
 static int DoraXrtHttpIsRedirect(unsigned int statusCode) {
