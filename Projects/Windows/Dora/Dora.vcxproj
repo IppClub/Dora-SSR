@@ -2038,7 +2038,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Http\HttpServer.cpp" />
-    <ClCompile Include="..\..\..\Source\Http\XrtHttpClient.c">
+    <ClCompile Include="..\..\..\Source\Http\XrtNetwork.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -2887,7 +2887,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="..\..\..\Source\GUI\ImGuiBinding.h" />
     <ClInclude Include="..\..\..\Source\Http\HttpServer.h" />
-    <ClInclude Include="..\..\..\Source\Http\XrtHttpClient.h" />
+    <ClInclude Include="..\..\..\Source\Http\XrtNetwork.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\xrt\xrt.h" />
   </ItemGroup>
   <ItemGroup>

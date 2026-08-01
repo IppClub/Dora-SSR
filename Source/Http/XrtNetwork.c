@@ -17,7 +17,7 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#include "Http/XrtHttpClient.h"
+#include "Http/XrtNetwork.h"
 
 #define XRT_NO_SUBPROCESS
 #define XRT_NO_LOGGER
@@ -92,7 +92,7 @@ static int DoraXrtHttpAttachRuntimeThread(void) {
 	return xrtThreadAttachCurrent() != NULL;
 }
 
-void* DoraXrtNetworkEngine(void) {
+static void* DoraXrtNetworkEngine(void) {
 	xnetengine* engine;
 	if (!DoraXrtHttpAttachRuntimeThread()) {
 		return NULL;
@@ -102,7 +102,7 @@ void* DoraXrtNetworkEngine(void) {
 	return engine;
 }
 
-void* DoraXrtNetworkEngineCreate(unsigned int workerCount) {
+static void* DoraXrtNetworkEngineCreate(unsigned int workerCount) {
 	xnetengineconfig config;
 	xnetengine* engine;
 	if (!DoraXrtHttpAttachRuntimeThread()) {
@@ -119,12 +119,329 @@ void* DoraXrtNetworkEngineCreate(unsigned int workerCount) {
 	return engine;
 }
 
-void DoraXrtNetworkEngineDestroy(void* engine) {
+static void DoraXrtNetworkEngineDestroy(void* engine) {
 	if (!engine || !DoraXrtHttpAttachRuntimeThread()) {
 		return;
 	}
 	xrtNetEngineDestroy((xnetengine*)engine);
 	xrtThreadDetachCurrent();
+}
+
+struct DoraXrtHttpServer {
+	xhttpdserver* native;
+	DoraXrtHttpServerEvents events;
+	void* userData;
+};
+
+struct DoraXrtHttpServerResponse {
+	xhttpdresponse* native;
+};
+
+struct DoraXrtWebSocketServer {
+	xnetengine* engine;
+	xwsserver* native;
+	DoraXrtWebSocketServerEvents events;
+	void* userData;
+};
+
+static int DoraXrtStringEqualNoCase(const char* left, const char* right) {
+	unsigned char a;
+	unsigned char b;
+	if (!left || !right) {
+		return 0;
+	}
+	while (*left && *right) {
+		a = (unsigned char)*left++;
+		b = (unsigned char)*right++;
+		if (tolower(a) != tolower(b)) {
+			return 0;
+		}
+	}
+	return *left == '\0' && *right == '\0';
+}
+
+static bool DoraXrtHttpServerOnRequest(
+	ptr owner,
+	xhttpdserver* nativeServer,
+	xhttpdconn* connection,
+	const xhttpdrequest* nativeRequest,
+	xhttpdresponse* nativeResponse) {
+	DoraXrtHttpServer* server = (DoraXrtHttpServer*)owner;
+	DoraXrtHttpHeaderView headers[XHTTPD_MAX_HEADERS];
+	DoraXrtHttpServerRequest request;
+	DoraXrtHttpServerResponse response;
+	uint32 index;
+	(void)nativeServer;
+	(void)connection;
+	if (!server || !server->events.onRequest || !nativeRequest || !nativeResponse) {
+		return false;
+	}
+	for (index = 0; index < nativeRequest->iHeaderCount && index < XHTTPD_MAX_HEADERS; ++index) {
+		headers[index].name = nativeRequest->arrHeaders[index].sName;
+		headers[index].value = nativeRequest->arrHeaders[index].sValue;
+	}
+	memset(&request, 0, sizeof(request));
+	request.method = (DoraXrtHttpMethod)nativeRequest->iMethod;
+	request.methodText = nativeRequest->sMethod;
+	request.target = nativeRequest->sTarget;
+	request.path = nativeRequest->sPath;
+	request.headers = headers;
+	request.headerCount = index;
+	request.body = nativeRequest->pBody;
+	request.bodyLen = nativeRequest->iBodyLen;
+	response.native = nativeResponse;
+	return server->events.onRequest(server->userData, &request, &response) != 0;
+}
+
+static void DoraXrtHttpServerOnError(ptr owner, xhttpdserver* nativeServer, xhttpdconn* connection, int error) {
+	DoraXrtHttpServer* server = (DoraXrtHttpServer*)owner;
+	(void)nativeServer;
+	(void)connection;
+	if (server && server->events.onError) {
+		server->events.onError(server->userData, error);
+	}
+}
+
+DoraXrtHttpServer* DoraXrtHttpServerCreate(unsigned int port, size_t receiveLimit, const DoraXrtHttpServerEvents* events, void* userData) {
+	DoraXrtHttpServer* server;
+	xnetengine* engine;
+	xhttpdconfig config;
+	xhttpdevents nativeEvents;
+	if (!events || !events->onRequest || port > 65535u || receiveLimit > UINT32_MAX) {
+		return NULL;
+	}
+	engine = (xnetengine*)DoraXrtNetworkEngine();
+	if (!engine) {
+		return NULL;
+	}
+	server = (DoraXrtHttpServer*)calloc(1u, sizeof(DoraXrtHttpServer));
+	if (!server) {
+		return NULL;
+	}
+	server->events = *events;
+	server->userData = userData;
+	xrtHttpdConfigInit(&config);
+	xrtNetAddrInitAny(&config.tBindAddr, AF_INET, (uint16)port);
+	config.iRecvLimit = (uint32)receiveLimit;
+	config.iBodyLimit = (uint32)receiveLimit;
+	memset(&nativeEvents, 0, sizeof(nativeEvents));
+	nativeEvents.OnRequest = DoraXrtHttpServerOnRequest;
+	nativeEvents.OnError = DoraXrtHttpServerOnError;
+	server->native = xrtHttpdCreate(engine, &config, &nativeEvents, server);
+	if (!server->native || xrtHttpdStart(server->native) != XRT_NET_OK) {
+		if (server->native) {
+			xrtHttpdDestroy(server->native);
+		}
+		free(server);
+		return NULL;
+	}
+	return server;
+}
+
+void DoraXrtHttpServerDestroy(DoraXrtHttpServer* server) {
+	if (!server) {
+		return;
+	}
+	if (server->native) {
+		xrtHttpdDestroy(server->native);
+		server->native = NULL;
+	}
+	free(server);
+}
+
+const char* DoraXrtHttpServerRequestHeader(const DoraXrtHttpServerRequest* request, const char* name) {
+	size_t index;
+	if (!request || !name) {
+		return NULL;
+	}
+	for (index = 0; index < request->headerCount; ++index) {
+		if (DoraXrtStringEqualNoCase(request->headers[index].name, name)) {
+			return request->headers[index].value;
+		}
+	}
+	return NULL;
+}
+
+void DoraXrtHttpServerResponseSetStatus(DoraXrtHttpServerResponse* response, unsigned int statusCode, const char* reason) {
+	if (response && response->native) {
+		xrtHttpdResponseSetStatus(response->native, (uint32)statusCode, reason);
+	}
+}
+
+int DoraXrtHttpServerResponseSetHeader(DoraXrtHttpServerResponse* response, const char* name, const char* value) {
+	return response && response->native && xrtHttpdResponseSetHeader(response->native, name, value);
+}
+
+int DoraXrtHttpServerResponseSetBodyCopy(DoraXrtHttpServerResponse* response, const void* body, size_t bodyLen, const char* contentType) {
+	return response && response->native && xrtHttpdResponseSetBodyCopy(response->native, body, bodyLen, contentType);
+}
+
+int DoraXrtPercentEncode(const char* input, size_t inputLen, char* output, size_t outputCap, size_t* outputLen, int spaceAsPlus) {
+	return xrtPercentEncodeTo(input, inputLen, output, outputCap, outputLen, spaceAsPlus != 0);
+}
+
+int DoraXrtPercentDecode(const char* input, size_t inputLen, char* output, size_t outputCap, size_t* outputLen, int plusAsSpace) {
+	return xrtPercentDecodeTo(input, inputLen, output, outputCap, outputLen, plusAsSpace != 0);
+}
+
+int DoraXrtMultipartForEachFile(const char* contentType, const void* body, size_t bodyLen, size_t maxBytes, DoraXrtMultipartFileHandler handler, void* userData) {
+	xrtstrview boundary;
+	xrthttputillimits limits;
+	size_t offset = 0;
+	xrtmultipartpartview part;
+	if (!contentType || !body || !handler || !xrtMultipartBoundaryFromContentType(contentType, &boundary)) {
+		return 0;
+	}
+	xrtHttpUtilLimitsInit(&limits);
+	limits.iMaxMultipartBytes = maxBytes;
+	if (!xrtMultipartValidateN(body, bodyLen, boundary.sPtr, boundary.iLen, &limits)) {
+		return 0;
+	}
+	memset(&part, 0, sizeof(part));
+	while (xrtMultipartNextN(body, bodyLen, boundary.sPtr, boundary.iLen, &offset, &part)) {
+		DoraXrtMultipartFileView file;
+		char* fileName;
+		size_t fileNameLen = 0;
+		int keepGoing;
+		if ((part.iFlags & XRT_MULTIPART_F_HAS_FILENAME) == 0u) {
+			continue;
+		}
+		fileName = (char*)malloc(part.tFileName.iLen * 3u + 1u);
+		if (!fileName) {
+			return 0;
+		}
+		if (!xrtMultipartDecodeFileNameTo(&part, fileName, part.tFileName.iLen * 3u + 1u, &fileNameLen)) {
+			free(fileName);
+			return 0;
+		}
+		fileName[fileNameLen] = '\0';
+		file.fileName = fileName;
+		file.fileNameLen = fileNameLen;
+		file.body = part.tBody.sPtr;
+		file.bodyLen = part.tBody.iLen;
+		keepGoing = handler(userData, &file);
+		free(fileName);
+		if (!keepGoing) {
+			return -1;
+		}
+	}
+	return 1;
+}
+
+static bool DoraXrtWebSocketOnAuthorize(ptr owner, xwsserver* nativeServer, xwsconn* connection, const char* target) {
+	DoraXrtWebSocketServer* server = (DoraXrtWebSocketServer*)owner;
+	(void)nativeServer;
+	return !server || !server->events.onAuthorize || server->events.onAuthorize(server->userData, (DoraXrtWebSocketConnection*)connection, target) != 0;
+}
+
+static void DoraXrtWebSocketOnOpen(ptr owner, xwsserver* nativeServer, xwsconn* connection) {
+	DoraXrtWebSocketServer* server = (DoraXrtWebSocketServer*)owner;
+	(void)nativeServer;
+	if (server && server->events.onOpen) {
+		server->events.onOpen(server->userData, (DoraXrtWebSocketConnection*)connection);
+	}
+}
+
+static void DoraXrtWebSocketOnText(ptr owner, xwsserver* nativeServer, xwsconn* connection, const char* data, size_t dataLen) {
+	DoraXrtWebSocketServer* server = (DoraXrtWebSocketServer*)owner;
+	(void)nativeServer;
+	if (server && server->events.onText) {
+		server->events.onText(server->userData, (DoraXrtWebSocketConnection*)connection, data, dataLen);
+	}
+}
+
+static void DoraXrtWebSocketOnBinary(ptr owner, xwsserver* nativeServer, xwsconn* connection, const void* data, size_t dataLen) {
+	DoraXrtWebSocketServer* server = (DoraXrtWebSocketServer*)owner;
+	(void)nativeServer;
+	if (server && server->events.onBinary) {
+		server->events.onBinary(server->userData, (DoraXrtWebSocketConnection*)connection, data, dataLen);
+	}
+}
+
+static void DoraXrtWebSocketOnClose(ptr owner, xwsserver* nativeServer, xwsconn* connection, xnet_result reason) {
+	DoraXrtWebSocketServer* server = (DoraXrtWebSocketServer*)owner;
+	(void)nativeServer;
+	if (server && server->events.onClose) {
+		server->events.onClose(server->userData, (DoraXrtWebSocketConnection*)connection, (int)reason);
+	}
+}
+
+static void DoraXrtWebSocketOnError(ptr owner, xwsserver* nativeServer, xwsconn* connection, int error) {
+	DoraXrtWebSocketServer* server = (DoraXrtWebSocketServer*)owner;
+	(void)nativeServer;
+	(void)connection;
+	if (server && server->events.onError) {
+		server->events.onError(server->userData, error);
+	}
+}
+
+DoraXrtWebSocketServer* DoraXrtWebSocketServerCreate(unsigned int port, size_t receiveLimit, const DoraXrtWebSocketServerEvents* events, void* userData) {
+	DoraXrtWebSocketServer* server;
+	xwsserverconfig config;
+	xwsserverevents nativeEvents;
+	if (!events || port > 65535u || receiveLimit > UINT32_MAX) {
+		return NULL;
+	}
+	server = (DoraXrtWebSocketServer*)calloc(1u, sizeof(DoraXrtWebSocketServer));
+	if (!server) {
+		return NULL;
+	}
+	server->events = *events;
+	server->userData = userData;
+	server->engine = (xnetengine*)DoraXrtNetworkEngineCreate(1u);
+	if (!server->engine) {
+		free(server);
+		return NULL;
+	}
+	xrtWsServerConfigInit(&config);
+	xrtNetAddrInitAny(&config.tBindAddr, AF_INET, (uint16)port);
+	config.iRecvLimit = (uint32)receiveLimit;
+	memset(&nativeEvents, 0, sizeof(nativeEvents));
+	nativeEvents.OnAuthorize = DoraXrtWebSocketOnAuthorize;
+	nativeEvents.OnOpen = DoraXrtWebSocketOnOpen;
+	nativeEvents.OnText = DoraXrtWebSocketOnText;
+	nativeEvents.OnBinary = DoraXrtWebSocketOnBinary;
+	nativeEvents.OnClose = DoraXrtWebSocketOnClose;
+	nativeEvents.OnError = DoraXrtWebSocketOnError;
+	server->native = xrtWsServerCreate(server->engine, &config, &nativeEvents, server);
+	if (!server->native || xrtWsServerStart(server->native) != XRT_NET_OK) {
+		if (server->native) {
+			xrtWsServerDestroy(server->native);
+		}
+		DoraXrtNetworkEngineDestroy(server->engine);
+		free(server);
+		return NULL;
+	}
+	return server;
+}
+
+void DoraXrtWebSocketServerDestroy(DoraXrtWebSocketServer* server) {
+	if (!server) {
+		return;
+	}
+	if (server->native) {
+		xrtWsServerDestroy(server->native);
+		server->native = NULL;
+	}
+	if (server->engine) {
+		DoraXrtNetworkEngineDestroy(server->engine);
+		server->engine = NULL;
+	}
+	free(server);
+}
+
+int DoraXrtWebSocketConnectionIsOpen(DoraXrtWebSocketConnection* connection) {
+	return connection && xrtWsConnIsOpen((xwsconn*)connection);
+}
+
+int DoraXrtWebSocketConnectionSendBinary(DoraXrtWebSocketConnection* connection, const void* data, size_t dataLen) {
+	return connection && xrtWsConnSendBinary((xwsconn*)connection, data, dataLen) == XRT_NET_OK;
+}
+
+void DoraXrtWebSocketConnectionClose(DoraXrtWebSocketConnection* connection, unsigned int code, const char* reason) {
+	if (connection) {
+		xrtWsConnClose((xwsconn*)connection, (uint16)code, reason);
+	}
 }
 
 static int DoraXrtHttpIsRedirect(unsigned int statusCode) {

@@ -687,8 +687,8 @@
 		3C5931B12CA4F67300CAF224 /* Header.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FE42CA4F67300CAF224 /* Header.cpp */; };
 		3C5931B22CA4F67300CAF224 /* Keyboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930012CA4F67300CAF224 /* Keyboard.cpp */; };
 		3C5931B32CA4F67300CAF224 /* HttpServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FFC2CA4F67300CAF224 /* HttpServer.cpp */; };
-		3C9F00012F3A000000000002 /* XrtHttpClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C9F00032F3A000000000002 /* XrtHttpClient.c */; };
-		3C9F00022F3A000000000002 /* XrtHttpClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C9F00032F3A000000000002 /* XrtHttpClient.c */; };
+		3C9F00012F3A000000000002 /* XrtNetwork.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C9F00032F3A000000000002 /* XrtNetwork.c */; };
+		3C9F00022F3A000000000002 /* XrtNetwork.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C9F00032F3A000000000002 /* XrtNetwork.c */; };
 		3C5931B42CA4F67300CAF224 /* Spine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930472CA4F67300CAF224 /* Spine.cpp */; };
 		3C5931B52CA4F67300CAF224 /* AlignNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C59302F2CA4F67300CAF224 /* AlignNode.cpp */; };
 		3C5931B62CA4F67300CAF224 /* RenderTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C59307C2CA4F67300CAF224 /* RenderTarget.cpp */; };
@@ -2074,8 +2074,8 @@
 		3C592FF92CA4F67300CAF224 /* ImGuiDora.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ImGuiDora.cpp; sourceTree = "<group>"; };
 		3C592FFB2CA4F67300CAF224 /* HttpServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HttpServer.h; sourceTree = "<group>"; };
 		3C592FFC2CA4F67300CAF224 /* HttpServer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = HttpServer.cpp; sourceTree = "<group>"; };
-		3C9F00032F3A000000000002 /* XrtHttpClient.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = XrtHttpClient.c; sourceTree = "<group>"; };
-		3C9F00042F3A000000000002 /* XrtHttpClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XrtHttpClient.h; sourceTree = "<group>"; };
+		3C9F00032F3A000000000002 /* XrtNetwork.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = XrtNetwork.c; sourceTree = "<group>"; };
+		3C9F00042F3A000000000002 /* XrtNetwork.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XrtNetwork.h; sourceTree = "<group>"; };
 		3C592FFE2CA4F67300CAF224 /* Controller.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Controller.h; sourceTree = "<group>"; };
 		3C592FFF2CA4F67300CAF224 /* Controller.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Controller.cpp; sourceTree = "<group>"; };
 		3C5930002CA4F67300CAF224 /* Keyboard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Keyboard.h; sourceTree = "<group>"; };
@@ -4366,8 +4366,8 @@
 			children = (
 				3C592FFB2CA4F67300CAF224 /* HttpServer.h */,
 				3C592FFC2CA4F67300CAF224 /* HttpServer.cpp */,
-				3C9F00042F3A000000000002 /* XrtHttpClient.h */,
-				3C9F00032F3A000000000002 /* XrtHttpClient.c */,
+				3C9F00042F3A000000000002 /* XrtNetwork.h */,
+				3C9F00032F3A000000000002 /* XrtNetwork.c */,
 			);
 			path = Http;
 			sourceTree = "<group>";
@@ -5873,7 +5873,7 @@
 				3C984C942F03B5DB00DC8437 /* VideoNode.cpp in Sources */,
 				3C59328F2CA4F67300CAF224 /* Keyboard.cpp in Sources */,
 				3C5932902CA4F67300CAF224 /* HttpServer.cpp in Sources */,
-				3C9F00022F3A000000000002 /* XrtHttpClient.c in Sources */,
+				3C9F00022F3A000000000002 /* XrtNetwork.c in Sources */,
 				3C5932912CA4F67300CAF224 /* Spine.cpp in Sources */,
 				3C5932922CA4F67300CAF224 /* AlignNode.cpp in Sources */,
 				3C5932932CA4F67300CAF224 /* RenderTarget.cpp in Sources */,
@@ -6482,7 +6482,7 @@
 				3C984C952F03B5DB00DC8437 /* VideoNode.cpp in Sources */,
 				3C5931B22CA4F67300CAF224 /* Keyboard.cpp in Sources */,
 				3C5931B32CA4F67300CAF224 /* HttpServer.cpp in Sources */,
-				3C9F00012F3A000000000002 /* XrtHttpClient.c in Sources */,
+				3C9F00012F3A000000000002 /* XrtNetwork.c in Sources */,
 				3C5931B42CA4F67300CAF224 /* Spine.cpp in Sources */,
 				3C5931B52CA4F67300CAF224 /* AlignNode.cpp in Sources */,
 				3C5931B62CA4F67300CAF224 /* RenderTarget.cpp in Sources */,

@@ -1353,7 +1353,7 @@
     <ClCompile Include="..\..\..\Source\Http\HttpServer.cpp">
       <Filter>Http</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\Http\XrtHttpClient.c">
+    <ClCompile Include="..\..\..\Source\Http\XrtNetwork.c">
       <Filter>Http</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Lua\Xml\XmlResolver.cpp">
@@ -3266,7 +3266,7 @@
     <ClInclude Include="..\..\..\Source\Http\HttpServer.h">
       <Filter>Http</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\Http\XrtHttpClient.h">
+    <ClInclude Include="..\..\..\Source\Http\XrtNetwork.h">
       <Filter>Http</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\xrt\xrt.h">

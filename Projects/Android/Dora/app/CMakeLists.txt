@@ -139,7 +139,7 @@ add_library(main SHARED
 	src/main/cpp/Lua/TealCompiler.cpp
 	src/main/cpp/Lua/LuaEngine.cpp
 	src/main/cpp/Http/HttpServer.cpp
-	src/main/cpp/Http/XrtHttpClient.c
+	src/main/cpp/Http/XrtNetwork.c
 	src/main/cpp/Wasm/WasmRuntime.cpp
 	src/main/cpp/Const/Header.cpp
 	src/main/cpp/Common/Utils.cpp

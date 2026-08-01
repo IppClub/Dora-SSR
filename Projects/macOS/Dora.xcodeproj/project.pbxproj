@@ -445,7 +445,7 @@
 		3C68A8C12F95A8DF00DDC115 /* Model3D.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8C32F95A8DF00DDC115 /* Model3D.cpp */; };
 		3C68A8C42F95ADDF00DDC115 /* Model3DCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C68A8C62F95ADDF00DDC115 /* Model3DCache.cpp */; };
 		3C76449F2CFD93D100DEDC0B /* libdora_runtime.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C76449E2CFD93D100DEDC0B /* libdora_runtime.a */; };
-		3C9F00012F3A000000000001 /* XrtHttpClient.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C9F00022F3A000000000001 /* XrtHttpClient.c */; };
+		3C9F00012F3A000000000001 /* XrtNetwork.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C9F00022F3A000000000001 /* XrtNetwork.c */; };
 		3CA32CE926FEE8440046C13D /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA32CE826FEE8440046C13D /* GameController.framework */; };
 		3CA32CEB26FEE89E0046C13D /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA32CEA26FEE89E0046C13D /* CoreHaptics.framework */; };
 		3CA718A71FCCF11000B6AC80 /* lodepng.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA718A61FCCF11000B6AC80 /* lodepng.cpp */; };
@@ -1659,8 +1659,8 @@
 		3C8708642B5E0FAC002E9658 /* OutOfRange.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OutOfRange.hpp; sourceTree = "<group>"; };
 		3C8708652B5E0FAC002E9658 /* BodyShapeFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = BodyShapeFunction.hpp; sourceTree = "<group>"; };
 		3C8934B320F3094A00124463 /* Dora.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Dora.h; sourceTree = "<group>"; };
-		3C9F00022F3A000000000001 /* XrtHttpClient.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = XrtHttpClient.c; sourceTree = "<group>"; };
-		3C9F00032F3A000000000001 /* XrtHttpClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XrtHttpClient.h; sourceTree = "<group>"; };
+		3C9F00022F3A000000000001 /* XrtNetwork.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = XrtNetwork.c; sourceTree = "<group>"; };
+		3C9F00032F3A000000000001 /* XrtNetwork.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XrtNetwork.h; sourceTree = "<group>"; };
 		3CA32CE826FEE8440046C13D /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = System/Library/Frameworks/GameController.framework; sourceTree = SDKROOT; };
 		3CA32CEA26FEE89E0046C13D /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = System/Library/Frameworks/CoreHaptics.framework; sourceTree = SDKROOT; };
 		3CA718A51FCCF11000B6AC80 /* lodepng.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lodepng.h; sourceTree = "<group>"; };
@@ -2818,8 +2818,8 @@
 			children = (
 				3C592A392CA4EE4500CAF224 /* HttpServer.h */,
 				3C592A3A2CA4EE4500CAF224 /* HttpServer.cpp */,
-				3C9F00032F3A000000000001 /* XrtHttpClient.h */,
-				3C9F00022F3A000000000001 /* XrtHttpClient.c */,
+				3C9F00032F3A000000000001 /* XrtNetwork.h */,
+				3C9F00022F3A000000000001 /* XrtNetwork.c */,
 			);
 			path = Http;
 			sourceTree = "<group>";
@@ -5215,7 +5215,7 @@
 				3C5929E52CA4ED1900CAF224 /* Cache.cpp in Sources */,
 				3C5929E62CA4ED1900CAF224 /* AtlasCache.cpp in Sources */,
 				3C592A3B2CA4EE4500CAF224 /* HttpServer.cpp in Sources */,
-				3C9F00012F3A000000000001 /* XrtHttpClient.c in Sources */,
+				3C9F00012F3A000000000001 /* XrtNetwork.c in Sources */,
 				3C5929E72CA4ED1900CAF224 /* ModelCache.cpp in Sources */,
 				3C68A8C42F95ADDF00DDC115 /* Model3DCache.cpp in Sources */,
 				3C5929E82CA4ED1900CAF224 /* AudioCache.cpp in Sources */,

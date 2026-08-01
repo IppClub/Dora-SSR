@@ -190,7 +190,7 @@ add_executable(dora-ssr
 	../../Source/Lua/TealCompiler.cpp
 	../../Source/Lua/LuaEngine.cpp
 	../../Source/Http/HttpServer.cpp
-	../../Source/Http/XrtHttpClient.c
+	../../Source/Http/XrtNetwork.c
 	../../Source/Wasm/WasmRuntime.cpp
 	../../Source/Const/Header.cpp
 	../../Source/Common/Utils.cpp

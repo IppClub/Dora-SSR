@@ -17,7 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Async.h"
 #include "Event/Event.h"
 #include "GUI/ImGuiDora.h"
-#include "Http/XrtHttpClient.h"
+#include "Http/XrtNetwork.h"
 #include "Input/Controller.h"
 #include "Lua/ToLua/tolua++.h"
 

@@ -83,6 +83,7 @@
 		"test:entry-list-cache": "node scripts/test-entry-list-cache.mjs",
 		"test:audio-preview": "node scripts/test-audio-preview.mjs",
 		"test:heavy-assets": "node scripts/test-heavy-assets.mjs",
+		"test:xrt-network-wrapper": "node scripts/test-xrt-network-wrapper.mjs",
 		"preview": "vite preview",
 		"lint": "oxlint src",
 		"postinstall": "node scripts/copy-typescript.js"

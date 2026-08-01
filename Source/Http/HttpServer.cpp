@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Http/HttpServer.h"
 
-#include "Http/XrtHttpClient.h"
+#include "Http/XrtNetwork.h"
 
 #include "Basic/Application.h"
 #include "Basic/Content.h"
@@ -22,32 +22,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Support/Dictionary.h"
 #include "Support/Value.h"
 #include "Test/Test.h"
-
-#define XRT_NO_SUBPROCESS
-#define XRT_NO_LOGGER
-#define XRT_NO_FILE_ASYNC
-#define XRT_NO_COROUTINE
-#define XRT_NO_XID
-#define XRT_NO_BUFFER
-#define XRT_NO_ARRAY
-#define XRT_NO_BSMN
-#define XRT_NO_MEMUNIT
-#define XRT_NO_MEMPOOL_FS
-#define XRT_NO_STACK
-#define XRT_NO_AVLTREE
-#define XRT_NO_MEMPOOL
-#define XRT_NO_DICT
-#define XRT_NO_LIST
-#define XRT_NO_VALUE
-#define XRT_NO_JSON
-#define XRT_NO_XSON
-#define XRT_NO_TEMPLATE
-#define XRT_NO_REGEX
-#define i8 xrt_i8
-extern "C" {
-#include "xrt/xrt.h"
-}
-#undef i8
 
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
@@ -89,6 +63,9 @@ namespace fs = std::filesystem;
 #include "SDL.h"
 
 #if BX_PLATFORM_WINDOWS
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
 static std::string get_local_ip() {
 	std::string localIP;
 
@@ -113,7 +90,10 @@ static std::string get_local_ip() {
 	return localIP;
 }
 #else // BX_PLATFORM_WINDOWS
+#include <arpa/inet.h>
 #include <ifaddrs.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 
 static std::string get_local_ip() {
 	std::string localIP;
@@ -200,7 +180,7 @@ static std::string canonicalize_query(std::vector<std::pair<std::string, std::st
 		auto encode = [](const std::string& text) {
 			std::string result(text.size() * 3 + 1, '\0');
 			size_t length = 0;
-			if (!xrtPercentEncodeTo(text.data(), text.size(), result.data(), result.size(), &length, false)) return std::string{};
+			if (!DoraXrtPercentEncode(text.data(), text.size(), result.data(), result.size(), &length, false)) return std::string{};
 			result.resize(length);
 			return result;
 		};
@@ -239,7 +219,7 @@ static std::vector<std::pair<std::string, std::string>> parse_query_pairs(const 
 			auto decode = [](const std::string& text) {
 				std::string result(text.size() + 1, '\0');
 				size_t length = 0;
-				if (!xrtPercentDecodeTo(text.data(), text.size(), result.data(), result.size(), &length, true)) return std::string{};
+				if (!DoraXrtPercentDecode(text.data(), text.size(), result.data(), result.size(), &length, true)) return std::string{};
 				result.resize(length);
 				return result;
 			};
@@ -261,13 +241,13 @@ static Dictionary* makeAppWSMessage(String type, std::string&& msg = std::string
 
 class WebSocketServer {
 	struct Connection {
-		explicit Connection(xwsconn* ws)
+		explicit Connection(DoraXrtWebSocketConnection* ws)
 			: webSocket(ws) { }
-		xwsconn* webSocket = nullptr;
+		DoraXrtWebSocketConnection* webSocket = nullptr;
 		std::mutex lock;
 	};
 	using ConnectionPtr = std::shared_ptr<Connection>;
-	using ConnectionMap = std::unordered_map<xwsconn*, ConnectionPtr>;
+	using ConnectionMap = std::unordered_map<DoraXrtWebSocketConnection*, ConnectionPtr>;
 
 public:
 	explicit WebSocketServer(HttpServer* owner)
@@ -291,8 +271,8 @@ public:
 		for (const auto& connection : connections) {
 			if (!connection) continue;
 			std::lock_guard<std::mutex> guard(connection->lock);
-			if (connection->webSocket && xrtWsConnIsOpen(connection->webSocket)) {
-				if (xrtWsConnSendBinary(connection->webSocket, msg.data(), msg.size()) != XRT_NET_OK) {
+			if (connection->webSocket && DoraXrtWebSocketConnectionIsOpen(connection->webSocket)) {
+				if (!DoraXrtWebSocketConnectionSendBinary(connection->webSocket, msg.data(), msg.size())) {
 					Error("failed to send message to websocket connection!");
 				}
 			}
@@ -312,18 +292,12 @@ public:
 	}
 
 	bool start(int port) {
-		_engine = r_cast<xnetengine*>(DoraXrtNetworkEngineCreate(1));
-		if (!_engine) return false;
-		xwsserverconfig config;
-		xrtWsServerConfigInit(&config);
-		xrtNetAddrInitAny(&config.tBindAddr, AF_INET, s_cast<uint16>(port));
-		config.iRecvLimit = 16u * 1024u * 1024u;
-		xwsserverevents events{};
-		events.OnAuthorize = [](ptr owner, xwsserver*, xwsconn*, const char* target) {
+		DoraXrtWebSocketServerEvents events{};
+		events.onAuthorize = [](void* owner, DoraXrtWebSocketConnection*, const char* target) -> int {
 			auto self = r_cast<WebSocketServer*>(owner);
 			return !self->_owner || self->_owner->isWebSocketAuthorized(target ? target : "/"s);
 		};
-		events.OnOpen = [](ptr owner, xwsserver*, xwsconn* ws) {
+		events.onOpen = [](void* owner, DoraXrtWebSocketConnection* ws) {
 			auto self = r_cast<WebSocketServer*>(owner);
 			auto connection = std::make_shared<Connection>(ws);
 			{
@@ -334,20 +308,20 @@ public:
 				Event::send("AppWS"sv, makeAppWSMessage("Open"_slice));
 			});
 		};
-		auto receive = [](ptr, xwsserver*, xwsconn*, const void* data, size_t length) {
+		auto receive = [](void*, DoraXrtWebSocketConnection*, const void* data, size_t length) {
 			auto message = std::make_shared<std::string>(r_cast<const char*>(data), length);
 			SharedApplication.invokeInLogic([message = std::move(message)]() {
 				Event::send("AppWS"sv, makeAppWSMessage("Receive"_slice, std::move(*message)));
 			});
 		};
-		events.OnBinary = receive;
-		events.OnText = [](ptr owner, xwsserver* server, xwsconn* ws, const char* data, size_t length) {
-			auto message = std::make_shared<std::string>(data, length);
+		events.onBinary = receive;
+		events.onText = [](void*, DoraXrtWebSocketConnection*, const void* data, size_t length) {
+			auto message = std::make_shared<std::string>(r_cast<const char*>(data), length);
 			SharedApplication.invokeInLogic([message = std::move(message)]() {
 				Event::send("AppWS"sv, makeAppWSMessage("Receive"_slice, std::move(*message)));
 			});
 		};
-		events.OnClose = [](ptr owner, xwsserver*, xwsconn* ws, xnet_result) {
+		events.onClose = [](void* owner, DoraXrtWebSocketConnection* ws, int) {
 			auto self = r_cast<WebSocketServer*>(owner);
 			ConnectionPtr connection;
 			{
@@ -366,15 +340,11 @@ public:
 				Event::send("AppWS"sv, makeAppWSMessage("Close"_slice));
 			});
 		};
-		events.OnError = [](ptr, xwsserver*, xwsconn*, int error) {
+		events.onError = [](void*, int error) {
 			Error("websocket server error: {}", error);
 		};
-		_server = xrtWsServerCreate(_engine, &config, &events, this);
-		if (!_server || xrtWsServerStart(_server) != XRT_NET_OK) {
-			if (_server) xrtWsServerDestroy(_server);
-			_server = nullptr;
-			DoraXrtNetworkEngineDestroy(_engine);
-			_engine = nullptr;
+		_server = DoraXrtWebSocketServerCreate(port, 16u * 1024u * 1024u, &events, this);
+		if (!_server) {
 			Error("failed to bind websocket server port {}!", port);
 			return false;
 		}
@@ -388,16 +358,12 @@ public:
 			for (const auto& connection : connections) {
 				if (!connection) continue;
 				std::lock_guard<std::mutex> guard(connection->lock);
-				if (connection->webSocket && xrtWsConnIsOpen(connection->webSocket)) {
-					xrtWsConnClose(connection->webSocket, XWS_CLOSE_GOING_AWAY, "shutting down");
+				if (connection->webSocket && DoraXrtWebSocketConnectionIsOpen(connection->webSocket)) {
+					DoraXrtWebSocketConnectionClose(connection->webSocket, DORA_XRT_WEBSOCKET_CLOSE_GOING_AWAY, "shutting down");
 				}
 			}
-			xrtWsServerDestroy(_server);
+			DoraXrtWebSocketServerDestroy(_server);
 			_server = nullptr;
-		}
-		if (_engine) {
-			DoraXrtNetworkEngineDestroy(_engine);
-			_engine = nullptr;
 		}
 		LogHandler -= std::make_pair(this, &WebSocketServer::sendLog);
 	}
@@ -415,8 +381,7 @@ private:
 
 private:
 	HttpServer* _owner;
-	xnetengine* _engine = nullptr;
-	xwsserver* _server = nullptr;
+	DoraXrtWebSocketServer* _server = nullptr;
 	ConnectionMap _connections;
 	mutable std::mutex _connectionLock;
 };
@@ -469,17 +434,17 @@ static bool has_valid_auth(const HttpServer::Request& req, const std::string& to
 	return false;
 }
 
-static void set_response(xhttpdresponse* response, int status, const std::string& content, const std::string& contentType) {
-	xrtHttpdResponseSetStatus(response, s_cast<uint32>(status), nullptr);
-	if (!contentType.empty()) xrtHttpdResponseSetHeader(response, "Content-Type", contentType.c_str());
-	xrtHttpdResponseSetBodyCopy(response, content.data(), content.size(), nullptr);
+static void set_response(DoraXrtHttpServerResponse* response, int status, const std::string& content, const std::string& contentType) {
+	DoraXrtHttpServerResponseSetStatus(response, s_cast<unsigned int>(status), nullptr);
+	if (!contentType.empty()) DoraXrtHttpServerResponseSetHeader(response, "Content-Type", contentType.c_str());
+	DoraXrtHttpServerResponseSetBodyCopy(response, content.data(), content.size(), nullptr);
 }
 
-static void set_unauthorized(xhttpdresponse* response) {
+static void set_unauthorized(DoraXrtHttpServerResponse* response) {
 	set_response(response, 401, R"({"success":false,"message":"unauthorized"})"s, "application/json"s);
 }
 
-static void set_service_unavailable(xhttpdresponse* response) {
+static void set_service_unavailable(DoraXrtHttpServerResponse* response) {
 	set_response(response, 503, R"({"success":false,"message":"server shutting down"})"s, "application/json"s);
 }
 
@@ -838,16 +803,16 @@ static bool route_matches(const std::string& pattern, const std::string& path) {
 	}
 }
 
-static HttpServer::Request make_request(const xhttpdrequest* nativeRequest, std::vector<std::string>& paramStorage) {
+static HttpServer::Request make_request(const DoraXrtHttpServerRequest* nativeRequest, std::vector<std::string>& paramStorage) {
 	HttpServer::Request request;
-	request.method = nativeRequest->sMethod;
-	request.path = nativeRequest->sPath;
-	request.headers.reserve(nativeRequest->iHeaderCount * 2u);
-	for (uint32 i = 0; i < nativeRequest->iHeaderCount; ++i) {
-		request.headers.emplace_back(nativeRequest->arrHeaders[i].sName);
-		request.headers.emplace_back(nativeRequest->arrHeaders[i].sValue);
+	request.method = nativeRequest->methodText;
+	request.path = nativeRequest->path;
+	request.headers.reserve(nativeRequest->headerCount * 2u);
+	for (size_t i = 0; i < nativeRequest->headerCount; ++i) {
+		request.headers.emplace_back(nativeRequest->headers[i].name);
+		request.headers.emplace_back(nativeRequest->headers[i].value);
 	}
-	auto params = parse_query_pairs(nativeRequest->sTarget);
+	auto params = parse_query_pairs(nativeRequest->target);
 	paramStorage.reserve(params.size() * 2u);
 	for (auto& [name, value] : params) {
 		paramStorage.push_back(std::move(name));
@@ -855,8 +820,8 @@ static HttpServer::Request make_request(const xhttpdrequest* nativeRequest, std:
 	}
 	request.params.reserve(paramStorage.size());
 	for (const auto& value : paramStorage) request.params.emplace_back(value);
-	if (auto contentType = xrtHttpdRequestHeader(nativeRequest, "Content-Type")) request.contentType = contentType;
-	if (nativeRequest->pBody && nativeRequest->iBodyLen > 0u) request.body = Slice(nativeRequest->pBody, nativeRequest->iBodyLen);
+	if (auto contentType = DoraXrtHttpServerRequestHeader(nativeRequest, "Content-Type")) request.contentType = contentType;
+	if (nativeRequest->body && nativeRequest->bodyLen > 0u) request.body = Slice(r_cast<const char*>(nativeRequest->body), nativeRequest->bodyLen);
 	return request;
 }
 
@@ -1161,35 +1126,28 @@ static RangeParseResult parse_byte_range(const HttpServer::Request& request, siz
 
 bool HttpServer::start(int port) {
 	if (_server) return false;
-	auto engine = r_cast<xnetengine*>(DoraXrtNetworkEngine());
-	if (!engine) return false;
-	xhttpdconfig config;
-	xrtHttpdConfigInit(&config);
-	xrtNetAddrInitAny(&config.tBindAddr, AF_INET, s_cast<uint16>(port));
-	config.iRecvLimit = 512u * 1024u * 1024u;
-	config.iBodyLimit = config.iRecvLimit;
-	xhttpdevents events{};
-	events.OnRequest = [](ptr owner, xhttpdserver*, xhttpdconn*, const xhttpdrequest* nativeRequest, xhttpdresponse* nativeResponse) {
+	DoraXrtHttpServerEvents events{};
+	events.onRequest = [](void* owner, const DoraXrtHttpServerRequest* nativeRequest, DoraXrtHttpServerResponse* nativeResponse) -> int {
 		auto self = r_cast<HttpServer*>(owner);
 		const auto requestGeneration = self->_generation.load(std::memory_order_acquire);
-		xrtHttpdResponseSetHeader(nativeResponse, "Access-Control-Allow-Origin", "*");
-		xrtHttpdResponseSetHeader(nativeResponse, "Access-Control-Allow-Headers", "*");
+		DoraXrtHttpServerResponseSetHeader(nativeResponse, "Access-Control-Allow-Origin", "*");
+		DoraXrtHttpServerResponseSetHeader(nativeResponse, "Access-Control-Allow-Headers", "*");
 		std::vector<std::string> paramStorage;
 		auto request = make_request(nativeRequest, paramStorage);
 		auto path = request.path.toString();
 		const bool gzipAccepted = accepts_gzip(request);
 		auto respond = [&](HttpServer::Response&& response) {
 			auto prepared = prepare_dynamic_response(std::move(response), gzipAccepted);
-			if (prepared.varyAcceptEncoding) xrtHttpdResponseSetHeader(nativeResponse, "Vary", "Accept-Encoding");
-			if (prepared.gzipEncoded) xrtHttpdResponseSetHeader(nativeResponse, "Content-Encoding", "gzip");
+			if (prepared.varyAcceptEncoding) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Accept-Encoding");
+			if (prepared.gzipEncoded) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Encoding", "gzip");
 			set_response(nativeResponse, prepared.response.status > 0 ? prepared.response.status : 200, prepared.response.content, prepared.response.contentType);
 		};
-		if (nativeRequest->iMethod == XHTTPD_METHOD_OPTIONS) {
+		if (nativeRequest->method == DORA_XRT_HTTP_METHOD_OPTIONS) {
 			set_response(nativeResponse, 200, {}, {});
 			return true;
 		}
-		if (nativeRequest->iMethod == XHTTPD_METHOD_GET || nativeRequest->iMethod == XHTTPD_METHOD_HEAD) {
-			if (nativeRequest->iMethod == XHTTPD_METHOD_GET) {
+		if (nativeRequest->method == DORA_XRT_HTTP_METHOD_GET || nativeRequest->method == DORA_XRT_HTTP_METHOD_HEAD) {
+			if (nativeRequest->method == DORA_XRT_HTTP_METHOD_GET) {
 				for (const auto& route : self->_gets) {
 					if (!route_matches(route.pattern, path)) continue;
 					auto pending = std::make_shared<PendingLogicResult<HttpServer::Response>>();
@@ -1203,7 +1161,7 @@ bool HttpServer::start(int port) {
 			}
 			std::string decodedPath(path.size() + 1, '\0');
 			size_t decodedLength = 0;
-			if (!xrtPercentDecodeTo(path.data(), path.size(), decodedPath.data(), decodedPath.size(), &decodedLength, false)) return false;
+			if (!DoraXrtPercentDecode(path.data(), path.size(), decodedPath.data(), decodedPath.size(), &decodedLength, false)) return false;
 			decodedPath.resize(decodedLength);
 			if (!valid_static_path(decodedPath)) return false;
 			if (decodedPath.back() == '/') decodedPath += "index.html";
@@ -1242,17 +1200,17 @@ bool HttpServer::start(int port) {
 				return true;
 			}
 			if (content->data.empty()) return false;
-			xrtHttpdResponseSetHeader(nativeResponse, "Content-Type", contentType);
-			if (compressible) xrtHttpdResponseSetHeader(nativeResponse, "Vary", "Accept-Encoding");
-			if (content->gzipEncoded) xrtHttpdResponseSetHeader(nativeResponse, "Content-Encoding", "gzip");
+			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Type", contentType);
+			if (compressible) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Accept-Encoding");
+			if (content->gzipEncoded) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Encoding", "gzip");
 			auto cacheControl = self->getStaticCacheControl(requestPath);
-			if (!cacheControl.empty()) xrtHttpdResponseSetHeader(nativeResponse, "Cache-Control", cacheControl.c_str());
-			xrtHttpdResponseSetHeader(nativeResponse, "Accept-Ranges", "bytes");
+			if (!cacheControl.empty()) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Cache-Control", cacheControl.c_str());
+			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Accept-Ranges", "bytes");
 			ByteRange range;
 			auto rangeResult = parse_byte_range(request, content->data.size(), range);
 			if (rangeResult == RangeParseResult::Unsatisfiable) {
 				auto contentRange = fmt::format("bytes */{}", content->data.size());
-				xrtHttpdResponseSetHeader(nativeResponse, "Content-Range", contentRange.c_str());
+				DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Range", contentRange.c_str());
 				set_response(nativeResponse, 416, {}, {});
 				return true;
 			}
@@ -1261,18 +1219,18 @@ bool HttpServer::start(int port) {
 			auto length = last - first + 1;
 			if (rangeResult == RangeParseResult::Valid) {
 				auto contentRange = fmt::format("bytes {}-{}/{}", first, last, content->data.size());
-				xrtHttpdResponseSetHeader(nativeResponse, "Content-Range", contentRange.c_str());
+				DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Range", contentRange.c_str());
 			}
-			xrtHttpdResponseSetStatus(nativeResponse, rangeResult == RangeParseResult::Valid ? 206u : 200u, nullptr);
-			if (nativeRequest->iMethod == XHTTPD_METHOD_HEAD) {
+			DoraXrtHttpServerResponseSetStatus(nativeResponse, rangeResult == RangeParseResult::Valid ? 206u : 200u, nullptr);
+			if (nativeRequest->method == DORA_XRT_HTTP_METHOD_HEAD) {
 				auto contentLength = std::to_string(length);
-				xrtHttpdResponseSetHeader(nativeResponse, "Content-Length", contentLength.c_str());
+				DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Length", contentLength.c_str());
 			} else {
-				xrtHttpdResponseSetBodyCopy(nativeResponse, content->data.data() + first, length, nullptr);
+				DoraXrtHttpServerResponseSetBodyCopy(nativeResponse, content->data.data() + first, length, nullptr);
 			}
 			return true;
 		}
-		if (nativeRequest->iMethod != XHTTPD_METHOD_POST) return false;
+		if (nativeRequest->method != DORA_XRT_HTTP_METHOD_POST) return false;
 		if (path != "/auth"sv && path != "/auth/confirm"sv && !self->isAuthorized(request)) {
 			set_unauthorized(nativeResponse);
 			return true;
@@ -1307,52 +1265,57 @@ bool HttpServer::start(int port) {
 		}
 		for (const auto& route : self->_files) {
 			if (!route_matches(route.pattern, path)) continue;
-			auto contentType = xrtHttpdRequestHeader(nativeRequest, "Content-Type");
-			xrtstrview boundary{};
-			if (!contentType || !xrtMultipartBoundaryFromContentType(contentType, &boundary) || !nativeRequest->pBody) {
+			auto contentType = DoraXrtHttpServerRequestHeader(nativeRequest, "Content-Type");
+			if (!contentType || !nativeRequest->body) {
 				set_response(nativeResponse, 403, {}, {});
 				return true;
 			}
-			xrthttputillimits limits;
-			xrtHttpUtilLimitsInit(&limits);
-			limits.iMaxMultipartBytes = 512u * 1024u * 1024u;
-			if (!xrtMultipartValidateN(nativeRequest->pBody, nativeRequest->iBodyLen, boundary.sPtr, boundary.iLen, &limits)) {
+			std::list<std::string> acceptedFiles;
+			struct MultipartContext {
+				HttpServer* server;
+				const File* route;
+				const Request* request;
+				DoraXrtHttpServerResponse* response;
+				std::list<std::string>* acceptedFiles;
+				uint64_t requestGeneration;
+			};
+			MultipartContext context{self, &route, &request, nativeResponse, &acceptedFiles, requestGeneration};
+			auto multipartResult = DoraXrtMultipartForEachFile(
+				contentType,
+				nativeRequest->body,
+				nativeRequest->bodyLen,
+				512u * 1024u * 1024u,
+				[](void* userData, const DoraXrtMultipartFileView* part) {
+					auto context = r_cast<MultipartContext*>(userData);
+					std::string filename(part->fileName, part->fileNameLen);
+					auto accepted = std::make_shared<PendingLogicResult<std::optional<std::string>>>();
+					SharedApplication.invokeInLogic([accepted, route = context->route, request = *context->request, filename = std::move(filename)]() {
+						if (!accepted->isCancelled()) accepted->complete(route->acceptHandler(request, filename));
+					});
+					auto acceptedPath = accepted->wait(context->server->_stopping, context->server->_generation, context->requestGeneration);
+					if (!acceptedPath) {
+						set_service_unavailable(context->response);
+						return 0;
+					}
+					if (!acceptedPath->has_value()) {
+						set_response(context->response, 403, {}, {});
+						return 0;
+					}
+					auto file = std::move(acceptedPath->value());
+					auto stream = std::unique_ptr<SDL_RWops, decltype(&SDL_RWclose)>(SDL_RWFromFile(file.c_str(), "wb+"), SDL_RWclose);
+					if (!stream || SDL_RWwrite(stream.get(), part->body, 1, part->bodyLen) != part->bodyLen) {
+						set_response(context->response, 500, {}, {});
+						return 0;
+					}
+					context->acceptedFiles->emplace_back(std::move(file));
+					return 1;
+				},
+				&context);
+			if (multipartResult == 0) {
 				set_response(nativeResponse, 400, {}, {});
 				return true;
 			}
-			std::list<std::string> acceptedFiles;
-			size_t offset = 0;
-			xrtmultipartpartview part{};
-			while (xrtMultipartNextN(nativeRequest->pBody, nativeRequest->iBodyLen, boundary.sPtr, boundary.iLen, &offset, &part)) {
-				if ((part.iFlags & XRT_MULTIPART_F_HAS_FILENAME) == 0u) continue;
-				std::string filename(part.tFileName.iLen * 3u + 1u, '\0');
-				size_t filenameLength = 0;
-				if (!xrtMultipartDecodeFileNameTo(&part, filename.data(), filename.size(), &filenameLength)) {
-					set_response(nativeResponse, 400, {}, {});
-					return true;
-				}
-				filename.resize(filenameLength);
-				auto accepted = std::make_shared<PendingLogicResult<std::optional<std::string>>>();
-				SharedApplication.invokeInLogic([accepted, route = &route, request, filename]() {
-					if (!accepted->isCancelled()) accepted->complete(route->acceptHandler(request, filename));
-				});
-				auto acceptedPath = accepted->wait(self->_stopping, self->_generation, requestGeneration);
-				if (!acceptedPath) {
-					set_service_unavailable(nativeResponse);
-					return true;
-				}
-				if (!acceptedPath->has_value()) {
-					set_response(nativeResponse, 403, {}, {});
-					return true;
-				}
-				auto file = std::move(acceptedPath->value());
-				auto stream = std::unique_ptr<SDL_RWops, decltype(&SDL_RWclose)>(SDL_RWFromFile(file.c_str(), "wb+"), SDL_RWclose);
-				if (!stream || SDL_RWwrite(stream.get(), part.tBody.sPtr, 1, part.tBody.iLen) != part.tBody.iLen) {
-					set_response(nativeResponse, 500, {}, {});
-					return true;
-				}
-				acceptedFiles.emplace_back(std::move(file));
-			}
+			if (multipartResult < 0) return true;
 			auto done = std::make_shared<PendingLogicResult<bool>>();
 			SharedApplication.invokeInLogic([done, route = &route, request, acceptedFiles]() {
 				if (done->isCancelled()) return;
@@ -1368,12 +1331,9 @@ bool HttpServer::start(int port) {
 		}
 		return false;
 	};
-	events.OnError = [](ptr, xhttpdserver*, xhttpdconn*, int error) { Error("http server error: {}", error); };
-	auto server = xrtHttpdCreate(engine, &config, &events, this);
-	if (!server || xrtHttpdStart(server) != XRT_NET_OK) {
-		if (server) xrtHttpdDestroy(server);
-		return false;
-	}
+	events.onError = [](void*, int error) { Error("http server error: {}", error); };
+	auto server = DoraXrtHttpServerCreate(port, 512u * 1024u * 1024u, &events, this);
+	if (!server) return false;
 	_server = server;
 	_stopping.store(false, std::memory_order_release);
 	return true;
@@ -1422,9 +1382,9 @@ void HttpServer::stop() {
 	_stopping.store(true, std::memory_order_release);
 	_generation.fetch_add(1, std::memory_order_acq_rel);
 	if (_server) {
-		auto server = r_cast<xhttpdserver*>(_server);
+		auto server = r_cast<DoraXrtHttpServer*>(_server);
 		_server = nullptr;
-		xrtHttpdDestroy(server);
+		DoraXrtHttpServerDestroy(server);
 	}
 	_gets.clear();
 	_posts.clear();
