@@ -900,7 +900,8 @@ export default function PersistentDrawerLeft() {
 		};
 	}, []);
 
-	const [disconnected, setDisconnected] = useState(true);
+	const [webSocketState, setWebSocketState] = useState<"connecting" | "connected" | "disconnected">("connecting");
+	const disconnected = webSocketState !== "connected";
 
 	filesRef.current = files;
 	treeDataRef.current = treeData;
@@ -1167,11 +1168,11 @@ export default function PersistentDrawerLeft() {
 		}, true);
 		Service.addWSOpenListener(() => {
 			addAlert(t("log.open"), "success");
-			setDisconnected(false);
+			setWebSocketState("connected");
 		});
 		Service.addWSCloseListener(() => {
 			addAlert(t("log.close"), "error");
-			setDisconnected(true);
+			setWebSocketState("disconnected");
 		});
 		Service.openWebSocket();
 		Promise.all([
@@ -6523,7 +6524,7 @@ export default function PersistentDrawerLeft() {
 					</StyledStack>
 				</div>
 				<Modal
-					open={disconnected}
+					open={webSocketState === "disconnected"}
 					disableAutoFocus
 					disableEnforceFocus
 					disablePortal
