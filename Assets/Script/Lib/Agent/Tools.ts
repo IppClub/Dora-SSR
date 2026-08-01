@@ -2572,6 +2572,8 @@ function executeLuaCommand(req: {
 	const output: string[] = [];
 	const entry = require("Script.Dev.Entry") as DevEntryModule;
 	let ownsEntryRuntime = false;
+	let contentAccessed = false;
+	let refreshTreeCalled = false;
 	let entryObjectBaseline = 0;
 	let entryLuaRefBaseline = 0;
 	const acquireEntryRuntime = () => {
@@ -2643,6 +2645,16 @@ function executeLuaCommand(req: {
 		}
 		output.push(parts.join("\t"));
 	};
+	const refreshTree = (path?: unknown) => {
+		refreshTreeCalled = true;
+		if (path === undefined) {
+			return refreshProjectTree(req.workDir);
+		}
+		if (typeof path !== "string") {
+			error("refreshTree expects a project-relative file path string or no argument");
+		}
+		return refreshProjectTree(req.workDir, path as string);
+	};
 	const env = setmetatable({
 		projectDir: req.workDir,
 		requireProjectModule: (moduleNameValue: unknown, reloadModulesValue?: unknown): unknown => {
@@ -2694,15 +2706,6 @@ function executeLuaCommand(req: {
 			}
 		},
 		print: capturePrint,
-		refreshTree: (path?: unknown) => {
-			if (path === undefined) {
-				return refreshProjectTree(req.workDir);
-			}
-			if (typeof path !== "string") {
-				error("refreshTree expects a project-relative file path string or no argument");
-			}
-			return refreshProjectTree(req.workDir, path as string);
-		},
 		getEntryStatus: () => entry.getCurrentEntryStatus(),
 		enterEntryAsync: (value: unknown): LuaMultiReturn<[boolean, string | undefined]> => {
 			const normalized = normalizeEntryFile(value);
@@ -2739,7 +2742,16 @@ function executeLuaCommand(req: {
 			});
 		},
 	}, {
-		__index: Dora,
+		__index: (_table: unknown, key: unknown) => {
+			if (key === "Content") {
+				contentAccessed = true;
+				return Content;
+			}
+			if (key === "refreshTree") {
+				return refreshTree;
+			}
+			return (Dora as unknown as Record<string, unknown>)[tostring(key)];
+		},
 	});
 	const [fn, compileErr] = load(code, "=(agent_command)", "t", env);
 	if (!fn) {
@@ -2770,6 +2782,9 @@ function executeLuaCommand(req: {
 			}
 			const entryCleanupError = stopOwnedEntry();
 			cleanupError ??= entryCleanupError;
+			if (contentAccessed && !refreshTreeCalled && !refreshProjectTree(req.workDir)) {
+				Log("Warn", `[execute_command] failed to refresh Web IDE tree after Lua command workDir=${req.workDir}`);
+			}
 			if (!result.success && cleanupError !== undefined) {
 				result.cleanupError = cleanupError;
 			} else if (result.success && cleanupError !== undefined) {
@@ -3116,6 +3131,9 @@ async function executeGitCommand(req: {
 			message: gitRes.message ?? "git command failed",
 			interrupted: gitRes.interrupted || req.isCancelled?.() === true,
 		};
+	}
+	if (!refreshProjectTree(req.workDir)) {
+		Log("Warn", `[execute_command] failed to refresh Web IDE tree after Git command workDir=${req.workDir} cwd=${cwd.relative}`);
 	}
 	return { success: true, mode: "git", cwd: cwd.relative, output };
 }

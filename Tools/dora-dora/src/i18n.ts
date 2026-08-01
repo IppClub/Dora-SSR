@@ -18,6 +18,13 @@ i18n
 					spine: {
 						load: "failed to load {{file}}",
 					},
+					audioPreview: {
+						title: "Audio preview",
+						play: "Play",
+						pause: "Pause",
+						seek: "Seek audio",
+						failed: "Failed",
+					},
 					actionEditor: {
 						title: "ActionEditor",
 						readOnly: "Read Only",
@@ -1191,6 +1198,13 @@ i18n
 				translation: {
 					spine: {
 						load: "加载 {{file}} 失败",
+					},
+					audioPreview: {
+						title: "音频试听",
+						play: "播放",
+						pause: "暂停",
+						seek: "调整播放进度",
+						failed: "加载失败",
 					},
 					actionEditor: {
 						title: "动作编辑器",

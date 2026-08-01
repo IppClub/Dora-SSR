@@ -8,8 +8,9 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useTranslation } from 'react-i18next';
 import type { AgentChangeSetSummary, AgentCheckpointDiffFile } from './Service';
-import AgentFileDiff from './AgentFileDiff';
 import { Color } from './Theme';
+
+const AgentFileDiff = React.lazy(() => import('./AgentFileDiff'));
 
 interface AgentChangeSetSummaryProps {
 	changeSet: AgentChangeSetSummary;
@@ -144,11 +145,13 @@ export default function AgentChangeSetSummaryCard(props: AgentChangeSetSummaryPr
 					{diffLoading ? <CircularProgress size={16} /> : null}
 				</Stack>
 				<Collapse in={diffOpen} timeout="auto" unmountOnExit>
-					<Stack spacing={1} sx={{ mt: 0.25 }}>
-						{diffFiles.map(file => (
-							<AgentFileDiff key={`${file.path}:${file.op}`} file={file} />
-						))}
-					</Stack>
+					<React.Suspense fallback={<CircularProgress size={16} sx={{ mt: 0.25 }} />}>
+						<Stack spacing={1} sx={{ mt: 0.25 }}>
+							{diffFiles.map(file => (
+								<AgentFileDiff key={`${file.path}:${file.op}`} file={file} />
+							))}
+						</Stack>
+					</React.Suspense>
 				</Collapse>
 			</Stack>
 		</Box>

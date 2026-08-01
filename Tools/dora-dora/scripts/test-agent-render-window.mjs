@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { build } from "esbuild";
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -38,5 +38,14 @@ const complete = getAgentTailRenderWindow(steps, 240, 80);
 assert.equal(complete.items, steps, "fully visible windows should reuse the source array");
 assert.equal(complete.hiddenCount, 0);
 assert.equal(complete.revealCount, 0);
+
+for (const sourceFile of ["AgentStepList.tsx", "AgentChangeSetSummary.tsx"]) {
+	const source = await readFile(path.resolve("src", sourceFile), "utf8");
+	assert.doesNotMatch(source, /import AgentFileDiff from/);
+	assert.match(source, /React\.lazy\(\(\) => import\(['"]\.\/AgentFileDiff['"]\)\)/);
+	assert.match(source, /<React\.Suspense/);
+}
+const appSource = await readFile(path.resolve("src/App.tsx"), "utf8");
+assert.match(appSource, /if \(language && \(active \|\| file\.editor !== undefined\)\)/);
 
 console.log("Agent render window bounded-tail and reveal tests passed.");

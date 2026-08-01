@@ -58,7 +58,7 @@ import yarnLogo from './yarn.png';
 import doraAnimationLogo from './dora-animation.png';
 import doraBodyLogo from './dora-body.png';
 import { DiCode } from 'react-icons/di';
-import { TbMoodConfuzed, TbSql } from 'react-icons/tb';
+import { TbMoodConfuzed, TbMusic, TbSql } from 'react-icons/tb';
 import { SiNodered } from 'react-icons/si';
 import { VscMarkdown } from 'react-icons/vsc';
 import { MacScrollbar } from 'mac-scrollbar';
@@ -158,6 +158,10 @@ const fileIcon = (props: TreeNodeProps) => {
 				case ".png":
 				case ".jpg":
 					return <FcImageFile size={14} />;
+				case ".wav":
+				case ".ogg":
+				case ".mp3":
+					return <TbMusic size={14} color="#fac03d" />;
 				case ".wasm":
 					return <SiWebassembly size={12} />;
 				case ".skel":

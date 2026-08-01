@@ -2129,9 +2129,9 @@ HttpServer\post "/assets", ->
 		]
 	}
 
-HttpServer\post "/entry/list", ->
+HttpServer\post "/entry/list", (req) ->
 	import "Script.Dev.Entry"
-	res = Entry.getLaunchEntries!
+	res = Entry.getLaunchEntries (req and req.body and req.body.refresh == true)
 	res.success = true
 	res
 

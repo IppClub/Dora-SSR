@@ -66,6 +66,8 @@ import {
 import type { FileSearchEntry, FileSearchSnapshot } from './FileSearchProtocol';
 import { getMonacoRuntime, getMonacoTypeScript, peekMonacoRuntime } from './MonacoRuntimeAccess';
 import { isPathWithin, relativePathFromRoot, toUrlPath } from './PathUtils';
+import { getResourceTreeReconcileDirectories } from './ResourceTreeSync';
+import AudioPreviewCard from './AudioPreviewCard';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -610,7 +612,16 @@ interface UpdateFileEvent {
 	content: string;
 }
 
-const previewFileExts = new Set([".png", ".jpg", ".jpeg", ".clip", ".par"]);
+interface AudioPreviewState {
+	file: string;
+	title: string;
+	version: number;
+	playRequest: number;
+}
+
+const audioFileExts = new Set([".wav", ".ogg", ".mp3"]);
+const isAudioFile = (file: string) => audioFileExts.has(path.extname(file).toLowerCase());
+const previewFileExts = new Set([".png", ".jpg", ".jpeg", ".clip", ".par", ...audioFileExts]);
 
 const appendCacheKey = (url: string, key?: number) => {
 	if (key === undefined) return url;
@@ -680,7 +691,7 @@ const getProjectSourceRoot = async (projectFile: string) => {
 	const rootRes = await Service.projectRoot({ path: projectFile, isDir: false });
 	if (!rootRes.success || !rootRes.found || !rootRes.projectRoot) return "";
 	const scriptDir = path.join(rootRes.projectRoot, "Script");
-	const scriptRes = await Service.list({ path: scriptDir });
+	const scriptRes = await Service.exist({ file: scriptDir });
 	return scriptRes.success ? scriptDir : rootRes.projectRoot;
 };
 
@@ -716,6 +727,7 @@ export default function PersistentDrawerLeft() {
 	const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
 	const [treeScrollRequest, setTreeScrollRequest] = useState(0);
 	const [selectedNode, setSelectedNode] = useState<TreeDataType | null>(null);
+	const [audioPreview, setAudioPreview] = useState<AudioPreviewState | null>(null);
 	const [multiSelectMode, setMultiSelectMode] = useState(false);
 	const [checkedKeys, setCheckedKeys] = useState<string[]>([]);
 	const [batchTargetMode, setBatchTargetMode] = useState<"copy" | "move" | null>(null);
@@ -769,6 +781,8 @@ export default function PersistentDrawerLeft() {
 	const [openLLMConfig, setOpenLLMConfig] = useState(false);
 	const [toolEntries, setToolEntries] = useState<Service.EntryLaunchInfo[]>([]);
 	const [gameEntries, setGameEntries] = useState<Service.EntryLaunchInfo[]>([]);
+	const entriesLoadedRef = useRef(false);
+	const entryLoadPromiseRef = useRef<Promise<Service.EntryListResponse | null> | null>(null);
 	const [entryView, setEntryView] = useState<"tool" | "game">("game");
 	const [entryFilter, setEntryFilter] = useState("");
 	const [drawerWidth, setDrawerWidth] = useState(Math.max(170, Info.drawerWidth ?? 300));
@@ -814,15 +828,60 @@ export default function PersistentDrawerLeft() {
 	const expandedKeysRef = useRef(expandedKeys);
 	const selectedKeysRef = useRef(selectedKeys);
 	const tabIndexRef = useRef(tabIndex);
+	const audioPreviewRef = useRef(audioPreview);
+	const audioPlayRequestRef = useRef(0);
 	const currentTypeScriptModelRef = useRef<Monaco.editor.ITextModel | null>(null);
 	const pendingUpdateFilesRef = useRef(new Map<string, UpdateFileEvent>());
 	const updateFileFlushTimerRef = useRef<number | null>(null);
+	const updateFileReconcileGenerationRef = useRef(0);
 	const loadingTreeNodesRef = useRef(new Map<string, Promise<TreeDataType[] | null>>());
 	const failedTreeNodeLoadsRef = useRef(new Set<string>());
 
 	const updateCachedFileSearch = useCallback((file: string, exists: boolean) => {
 		updateFileSearchIndex(file, exists);
 		setFilterOptionCount(getFileSearchIndexSize());
+	}, []);
+
+	const openAudioPreview = useCallback((file: string, title: string) => {
+		const playRequest = ++audioPlayRequestRef.current;
+		setAudioPreview(current => ({
+			file,
+			title,
+			version: current?.file === file ? current.version : 0,
+			playRequest,
+		}));
+	}, []);
+
+	const closeAudioPreviewPath = useCallback((removedPath: string) => {
+		setAudioPreview(current => current !== null && isChildFolder(current.file, removedPath)
+			? null
+			: current
+		);
+	}, []);
+
+	const moveAudioPreviewPath = useCallback((oldPath: string, newPath: string) => {
+		setAudioPreview(current => {
+			if (current === null || !isChildFolder(current.file, oldPath)) return current;
+			const relative = path.relative(oldPath, current.file);
+			const nextFile = relative === "" ? newPath : path.join(newPath, relative);
+			return {
+				...current,
+				file: nextFile,
+				title: path.basename(nextFile),
+				version: current.version + 1,
+			};
+		});
+	}, []);
+
+	const reconcileAudioPreview = useCallback(() => {
+		const current = audioPreviewRef.current;
+		if (current === null) return;
+		void Service.exist({ file: current.file }).then(result => {
+			setAudioPreview(latest => {
+				if (latest === null || latest.file !== current.file) return latest;
+				return result.success ? { ...latest, version: latest.version + 1 } : null;
+			});
+		});
 	}, []);
 
 	const moveCachedFileSearch = useCallback((oldPath: string, newPath: string) => {
@@ -908,6 +967,7 @@ export default function PersistentDrawerLeft() {
 	expandedKeysRef.current = expandedKeys;
 	selectedKeysRef.current = selectedKeys;
 	tabIndexRef.current = tabIndex;
+	audioPreviewRef.current = audioPreview;
 
 	const fetchAssetChildren = useCallback((key: string): Promise<TreeDataType[] | null> => {
 		const pending = loadingTreeNodesRef.current.get(key);
@@ -942,7 +1002,10 @@ export default function PersistentDrawerLeft() {
 		return hydrateNode(root);
 	}, [fetchAssetChildren]);
 
-	const loadAssets = useCallback((expanded = expandedKeysRef.current) => {
+	const loadAssets = useCallback((
+		expanded = expandedKeysRef.current,
+		shouldApply: () => boolean = () => true,
+	) => {
 		failedTreeNodeLoadsRef.current.clear();
 		fileSearchInvalidationEpochRef.current += 1;
 		invalidateFileSearchIndex();
@@ -951,6 +1014,7 @@ export default function PersistentDrawerLeft() {
 			res.root = true;
 			res.title = t("tree.assets");
 			const hydrated = await hydrateExpandedTree(res, expanded);
+			if (!shouldApply()) return null;
 			treeDataRef.current = [hydrated];
 			setTreeData([hydrated]);
 			return hydrated;
@@ -984,16 +1048,21 @@ export default function PersistentDrawerLeft() {
 		setTreeData([updated.root]);
 	}, [addAlert, fetchAssetChildren, t]);
 
-	const refreshTreeDirectory = useCallback(async (dir: string, force = false) => {
+	const refreshTreeDirectory = useCallback(async (
+		dir: string,
+		force = false,
+		shouldApply: () => boolean = () => true,
+	) => {
 		const currentRoot = treeDataRef.current.at(0);
 		if (currentRoot === undefined) return null;
 		if (dir === currentRoot.key) {
-			return loadAssets();
+			return loadAssets(expandedKeysRef.current, shouldApply);
 		}
 		const currentNode = findTreeNode(currentRoot, dir);
 		if (currentNode === null || (currentNode.children === undefined && !force)) return currentNode;
 		const children = await fetchAssetChildren(dir);
 		if (children === null) return null;
+		if (!shouldApply()) return null;
 		const latestRoot = treeDataRef.current.at(0);
 		if (latestRoot === undefined) return null;
 		const updated = replaceTreeNodeChildren(latestRoot, dir, children);
@@ -1059,29 +1128,49 @@ export default function PersistentDrawerLeft() {
 		return loadAssets().then(() => { });
 	}, [loadAssets]);
 
+	const cancelPendingUpdateFileBatch = useCallback(() => {
+		updateFileReconcileGenerationRef.current += 1;
+		if (updateFileFlushTimerRef.current !== null) {
+			window.clearTimeout(updateFileFlushTimerRef.current);
+			updateFileFlushTimerRef.current = null;
+		}
+		pendingUpdateFilesRef.current.clear();
+	}, []);
+
 	useEffect(() => {
 		const handleRefreshTree = () => {
+			// RefreshTree is a newer canonical snapshot than every UpdateFile that
+			// arrived before it. Do not let a delayed batch replay stale nodes after it.
+			cancelPendingUpdateFileBatch();
+			reconcileAudioPreview();
 			void scheduleGitAssetsRefresh();
 		};
 		Service.addRefreshTreeListener(handleRefreshTree);
 		return () => {
 			Service.removeRefreshTreeListener(handleRefreshTree);
 		};
-	}, [scheduleGitAssetsRefresh]);
+	}, [cancelPendingUpdateFileBatch, reconcileAudioPreview, scheduleGitAssetsRefresh]);
 
 
 
 
-	const loadEntries = useCallback(() => {
-		return Service.entryList().then((res) => {
+	const loadEntries = useCallback((refresh = false) => {
+		if (!refresh && entriesLoadedRef.current) return Promise.resolve(null);
+		if (!refresh && entryLoadPromiseRef.current !== null) return entryLoadPromiseRef.current;
+		const request = Service.entryList(refresh).then((res) => {
 			if (res.success) {
 				setToolEntries(res.tools ?? []);
 				setGameEntries(res.games ?? []);
+				entriesLoadedRef.current = true;
 			}
 			return res;
 		}).catch(() => {
 			return null;
+		}).finally(() => {
+			entryLoadPromiseRef.current = null;
 		});
+		entryLoadPromiseRef.current = request;
+		return request;
 	}, []);
 	const visibleEntries = useMemo(() => {
 		const entries = entryView === "tool" ? toolEntries : gameEntries;
@@ -1175,10 +1264,7 @@ export default function PersistentDrawerLeft() {
 			setWebSocketState("disconnected");
 		});
 		Service.openWebSocket();
-		Promise.all([
-			loadAssets(),
-			loadEntries(),
-		]).then(([res]) => {
+		loadAssets().then((res) => {
 			if (res !== null) {
 				setExpandedKeys([res.key]);
 			}
@@ -2241,6 +2327,10 @@ export default function PersistentDrawerLeft() {
 	}, [addAlert, openFile, switchTab, t]);
 
 	const openFileInTab = useCallback((key: string, title: string, folder: boolean, position?: Monaco.IPosition, readOnly?: boolean) => {
+		if (!folder && isAudioFile(key)) {
+			openAudioPreview(key, title);
+			return;
+		}
 		let index: number | null = null;
 		const file = files.find((file, i) => {
 			if (path.relative(file.key, key) === "") {
@@ -2283,7 +2373,7 @@ export default function PersistentDrawerLeft() {
 				setFiles([...files]);
 			}
 		}
-	}, [switchTab, files, openFile]);
+	}, [switchTab, files, openAudioPreview, openFile]);
 	openFileInTabRef.current = openFileInTab;
 
 	useEffect(() => {
@@ -2306,8 +2396,17 @@ export default function PersistentDrawerLeft() {
 	useEffect(() => {
 		const applyUpdateFileBatch = (events: UpdateFileEvent[]) => {
 			if (events.length === 0) return;
+			const reconcileGeneration = ++updateFileReconcileGenerationRef.current;
 			let nextRoot = treeDataRef.current.at(0);
 			if (nextRoot === undefined) return;
+			// Resolve canonical refresh targets before optimistic insertion. A newly
+			// inserted filtered directory (for example .build) must not become its
+			// own refresh boundary.
+			const reconcileDirectories = getResourceTreeReconcileDirectories(
+				nextRoot,
+				events.map(event => event.file),
+				path,
+			);
 			let nextExpanded = expandedKeysRef.current;
 			let nextFiles = filesRef.current;
 			let treeChanged = false;
@@ -2321,9 +2420,12 @@ export default function PersistentDrawerLeft() {
 				if (!exists) {
 					const removeResult = removeTreeNode(nextRoot, file);
 					const removedNode = removeResult.removedNode;
-					for (const model of monaco.editor.getModels()) {
-						if (isChildFolder(model.uri.fsPath, file)) {
-							model.dispose();
+					const monacoRuntime = peekMonacoRuntime();
+					if (monacoRuntime !== null) {
+						for (const model of monacoRuntime.monaco.editor.getModels()) {
+							if (isChildFolder(model.uri.fsPath, file)) {
+								model.dispose();
+							}
 						}
 					}
 					if (nextRoot.key !== file && removedNode !== null) {
@@ -2419,6 +2521,22 @@ export default function PersistentDrawerLeft() {
 					}
 				}
 			}
+
+			// UpdateFile carries file content, not the Web IDE's directory filtering,
+			// source-file precedence, or sorting rules. Re-read the smallest loaded
+			// canonical directories after applying the immediate optimistic update.
+			if (reconcileDirectories.length > 0) {
+				void (async () => {
+					for (let i = 0; i < reconcileDirectories.length; i++) {
+						if (updateFileReconcileGenerationRef.current !== reconcileGeneration) return;
+						await refreshTreeDirectory(
+							reconcileDirectories[i],
+							true,
+							() => updateFileReconcileGenerationRef.current === reconcileGeneration,
+						);
+					}
+				})();
+			}
 		};
 
 		const pendingUpdateFiles = pendingUpdateFilesRef.current;
@@ -2426,11 +2544,24 @@ export default function PersistentDrawerLeft() {
 			updateFileFlushTimerRef.current = null;
 			const events = [...pendingUpdateFiles.values()];
 			pendingUpdateFiles.clear();
+			// The server's canonical tree can hide generated paths or replace a
+			// lower-priority source file. Incremental search updates cannot model
+			// those rules reliably, so rebuild the index on the next search.
+			fileSearchInvalidationEpochRef.current += 1;
+			invalidateFileSearchIndex();
+			setFilterOptionCount(0);
 			applyUpdateFileBatch(events);
 		};
 
 		const handleUpdateFile = (file: string, exists: boolean, content: string) => {
-			updateCachedFileSearch(file, exists);
+			setAudioPreview(current => {
+				if (current === null) return current;
+				if (!exists && isChildFolder(current.file, file)) return null;
+				if (exists && path.relative(current.file, file) === "") {
+					return { ...current, version: current.version + 1 };
+				}
+				return current;
+			});
 			pendingUpdateFiles.set(file, { file, exists, content });
 			if (updateFileFlushTimerRef.current !== null) return;
 			updateFileFlushTimerRef.current = window.setTimeout(flushUpdateFileQueue, 500);
@@ -2445,7 +2576,7 @@ export default function PersistentDrawerLeft() {
 			pendingUpdateFiles.clear();
 			Service.removeUpdateFileListener(handleUpdateFile);
 		};
-	}, [updateCachedFileSearch]);
+	}, [refreshTreeDirectory]);
 
 	useEffect(() => {
 		const terminalStatuses = new Set(["DONE", "FAILED", "STOPPED"]);
@@ -2525,6 +2656,13 @@ export default function PersistentDrawerLeft() {
 			})();
 			return;
 		}
+		if (isAudioFile(key)) {
+			openAudioPreview(key, title);
+			if (narrowLayout) {
+				setDrawerOpen(false);
+			}
+			return;
+		}
 		openFileInTab(key, title, dir);
 		if (narrowLayout) {
 			setDrawerOpen(false);
@@ -2535,6 +2673,7 @@ export default function PersistentDrawerLeft() {
 		firstProjectTourFile,
 		firstProjectTourOpen,
 		narrowLayout,
+		openAudioPreview,
 		openAgentSessionTab,
 		openFileInTab,
 	]);
@@ -3112,6 +3251,7 @@ export default function PersistentDrawerLeft() {
 			confirmed: () => {
 				void (async () => {
 					const removeDeletedPathFromUI = async () => {
+						closeAudioPreviewPath(data.key);
 						updateCachedFileSearch(data.key, false);
 						const currentRoot = treeDataRef.current.at(0);
 						if (currentRoot !== undefined) {
@@ -3174,7 +3314,7 @@ export default function PersistentDrawerLeft() {
 				})();
 			},
 		});
-	}, [addAlert, refreshTreeDirectory, t, switchTab, updateCachedFileSearch]);
+	}, [addAlert, closeAudioPreviewPath, refreshTreeDirectory, t, switchTab, updateCachedFileSearch]);
 
 	const buildTreeData = useCallback(async (data: TreeDataType) => {
 		const { key } = data;
@@ -3871,6 +4011,7 @@ export default function PersistentDrawerLeft() {
 							return;
 						}
 						moveCachedFileSearch(oldFile, newFile);
+						moveAudioPreviewPath(oldFile, newFile);
 						const uri = monaco.Uri.file(oldFile);
 						const model = monaco.editor.getModel(uri);
 						if (model !== null) {
@@ -4135,6 +4276,7 @@ export default function PersistentDrawerLeft() {
 					return Service.rename({ old: self.key, new: newFile }).then((res) => {
 						if (res.success) {
 							moveCachedFileSearch(self.key, newFile);
+							moveAudioPreviewPath(self.key, newFile);
 							addAlert(t("alert.moved", { from: self.title, to: targetName }), "success");
 							return true;
 						}
@@ -4183,7 +4325,7 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		});
-	}, [addAlert, checkFileReadonly, expandedKeys, files, moveCachedFileSearch, refreshTreeDirectory, updateDir, t, treeData, switchTab, tabIndex]);
+	}, [addAlert, checkFileReadonly, expandedKeys, files, moveAudioPreviewPath, moveCachedFileSearch, refreshTreeDirectory, updateDir, t, treeData, switchTab, tabIndex]);
 
 	const runBatchOperation = useCallback(async (
 		operation: Service.AssetBatchOperation,
@@ -4203,6 +4345,7 @@ export default function PersistentDrawerLeft() {
 			const changes = res.changes ?? [];
 			if (operation === "delete" && changes.length > 0) {
 				const removedPaths = changes.map(change => change.old);
+				for (const removedPath of removedPaths) closeAudioPreviewPath(removedPath);
 				for (const model of monaco.editor.getModels()) {
 					if (removedPaths.some(removed => isChildFolder(model.uri.fsPath, removed))) {
 						model.dispose();
@@ -4239,6 +4382,16 @@ export default function PersistentDrawerLeft() {
 				selectedKeysRef.current = nextSelected;
 				setSelectedKeys(nextSelected);
 			} else if (operation === "move" && changes.length > 0) {
+				setAudioPreview(current => {
+					if (current === null) return current;
+					const nextFile = replaceBatchPath(current.file, changes);
+					return nextFile === current.file ? current : {
+						...current,
+						file: nextFile,
+						title: path.basename(nextFile),
+						version: current.version + 1,
+					};
+				});
 				const nextFiles = filesRef.current.map(file => {
 					const nextKey = replaceBatchPath(file.key, changes);
 					return nextKey === file.key ? file : {
@@ -4286,7 +4439,7 @@ export default function PersistentDrawerLeft() {
 		} finally {
 			setBatchOperationRunning(false);
 		}
-	}, [addAlert, batchOperationRunning, checkedKeys, refreshTreeDirectory, switchTab, t]);
+	}, [addAlert, batchOperationRunning, checkedKeys, closeAudioPreviewPath, refreshTreeDirectory, switchTab, t]);
 
 	const onToggleMultiSelect = useCallback(() => {
 		setMultiSelectMode(value => !value);
@@ -4942,33 +5095,6 @@ export default function PersistentDrawerLeft() {
 		};
 	}, [ensureFileSearchIndex, openFilter]);
 
-	useEffect(() => {
-		const rootNode = treeData.at(0);
-		if (rootNode === undefined || writablePath === "") return;
-		const key = `${writablePath}\0${assetPath}`;
-		if (hasFileSearchIndex(key)) return;
-		let cancelled = false;
-		const warmIndex = () => {
-			if (cancelled) return;
-			void ensureFileSearchIndex().then((count) => {
-				if (cancelled || count === null) return;
-				setFilterOptionCount(count);
-			});
-		};
-		if (typeof window.requestIdleCallback === "function") {
-			const idleId = window.requestIdleCallback(warmIndex, { timeout: 2000 });
-			return () => {
-				cancelled = true;
-				window.cancelIdleCallback(idleId);
-			};
-		}
-		const timer = window.setTimeout(warmIndex, 800);
-		return () => {
-			cancelled = true;
-			window.clearTimeout(timer);
-		};
-	}, [ensureFileSearchIndex, treeData]);
-
 	const spineLoadFailed = useCallback((message: string) => {
 		addAlert(message, 'error');
 	}, [addAlert]);
@@ -5130,13 +5256,15 @@ export default function PersistentDrawerLeft() {
 					}
 				</DialogContent>
 			</Dialog>
-			<LogView
-				openName={openLog === null ? null : openLog.title}
-				height={editorHeight * 0.9}
-				onClose={onCloseLog}
-				onFixLog={onFixLog}
-				allowBackgroundInteraction={firstProjectTourOpen && firstProjectTourCurrent === 10}
-			/>
+			{openLog !== null ? (
+				<LogView
+					openName={openLog.title}
+					height={editorHeight * 0.9}
+					onClose={onCloseLog}
+					onFixLog={onFixLog}
+					allowBackgroundInteraction={firstProjectTourOpen && firstProjectTourCurrent === 10}
+				/>
+			) : null}
 			<Dialog
 				maxWidth="lg"
 				open={popupInfo !== null}
@@ -5581,9 +5709,9 @@ export default function PersistentDrawerLeft() {
 										size="small"
 										color="inherit"
 										aria-pressed={leftDockTab === "tools"}
-										onClick={() => {
-											setLeftDockTab("tools");
-											loadEntries();
+									onClick={() => {
+										setLeftDockTab("tools");
+										void loadEntries();
 										}}
 										sx={{
 											backgroundColor: leftDockTab === "tools" ? Color.Theme + "11" : "transparent",
@@ -5742,7 +5870,7 @@ export default function PersistentDrawerLeft() {
 										{t("menu.tools")}
 									</Button>
 								</Stack>
-								<Button size="small" onClick={() => loadEntries()}>
+								<Button size="small" onClick={() => void loadEntries(true)}>
 									{t("menu.reload")}
 								</Button>
 							</Stack>
@@ -6233,7 +6361,7 @@ export default function PersistentDrawerLeft() {
 								return null;
 							})()}
 							{(() => {
-								if (language) {
+								if (language && (active || file.editor !== undefined)) {
 									const editorComponent = <Editor
 										key={file.key}
 										hidden={hidden}
@@ -6391,6 +6519,21 @@ export default function PersistentDrawerLeft() {
 						}}
 					/>
 				}
+				{audioPreview !== null ? (
+					<AudioPreviewCard
+						title={audioPreview.title}
+						src={appendCacheKey(
+							Service.addr("/" + toUrlPath(path.relative(
+								isChildFolder(audioPreview.file, assetPath) ? assetPath : writablePath,
+								audioPreview.file,
+							), path)),
+							audioPreview.version,
+						)}
+						playRequest={audioPreview.playRequest}
+						top={appBarHeight + 12}
+						onClose={() => setAudioPreview(null)}
+					/>
+				) : null}
 				<div style={{ position: 'fixed', left: winSize.width - editorWidth, bottom: statusBarHeight, width: editorWidth, zIndex: 998, transition: 'all 0.2s' }} hidden={!openBottomLog}>
 					<BottomLog active={openBottomLog} height={editorHeight * 0.3} onFixLog={onFixLog} />
 				</div>

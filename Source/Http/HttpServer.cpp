@@ -997,6 +997,26 @@ struct StaticContent {
 	bool gzipEncoded = false;
 };
 
+constexpr size_t DynamicResponseCompressionThreshold = 1024;
+
+struct DynamicResponseContent {
+	HttpServer::Response response;
+	bool varyAcceptEncoding = false;
+	bool gzipEncoded = false;
+};
+
+static DynamicResponseContent prepare_dynamic_response(HttpServer::Response&& response, bool gzipAccepted) {
+	DynamicResponseContent result{std::move(response)};
+	result.varyAcceptEncoding = is_compressible_content_type(result.response.contentType);
+	if (gzipAccepted && result.varyAcceptEncoding && result.response.content.size() >= DynamicResponseCompressionThreshold) {
+		if (auto compressed = gzip_compress(result.response.content); compressed && compressed->size() < result.response.content.size()) {
+			result.response.content = std::move(*compressed);
+			result.gzipEncoded = true;
+		}
+	}
+	return result;
+}
+
 #if DORA_TEST
 static std::optional<std::string> gzip_decompress(std::string_view content) {
 	z_stream stream{};
@@ -1056,6 +1076,38 @@ DORA_TEST_ENTRY(HttpCompressionCpp) {
 		auto decompressed = gzip_decompress(*compressed);
 		passed &= check(decompressed && *decompressed == original, "gzip output should round-trip exactly"_slice);
 	}
+
+	HttpServer::Response jsonResponse;
+	jsonResponse.contentType = "application/json; charset=utf-8";
+	jsonResponse.content = original;
+	auto preparedJson = prepare_dynamic_response(std::move(jsonResponse), true);
+	passed &= check(preparedJson.varyAcceptEncoding, "compressible dynamic responses should vary on Accept-Encoding"_slice);
+	passed &= check(preparedJson.gzipEncoded, "large JSON dynamic responses should be gzip encoded"_slice);
+	if (preparedJson.gzipEncoded) {
+		auto decompressed = gzip_decompress(preparedJson.response.content);
+		passed &= check(decompressed && *decompressed == original, "dynamic JSON gzip output should round-trip exactly"_slice);
+	}
+
+	HttpServer::Response identityResponse;
+	identityResponse.contentType = "application/json";
+	identityResponse.content = original;
+	auto preparedIdentity = prepare_dynamic_response(std::move(identityResponse), false);
+	passed &= check(preparedIdentity.varyAcceptEncoding, "identity JSON responses should still vary on Accept-Encoding"_slice);
+	passed &= check(!preparedIdentity.gzipEncoded && preparedIdentity.response.content == original, "clients without gzip support should receive the original response"_slice);
+
+	HttpServer::Response smallResponse;
+	smallResponse.contentType = "text/plain; charset=utf-8";
+	smallResponse.content = "small response";
+	auto preparedSmall = prepare_dynamic_response(std::move(smallResponse), true);
+	passed &= check(preparedSmall.varyAcceptEncoding, "small text responses should still vary on Accept-Encoding"_slice);
+	passed &= check(!preparedSmall.gzipEncoded && preparedSmall.response.content == "small response", "small dynamic responses should stay uncompressed"_slice);
+
+	HttpServer::Response binaryResponse;
+	binaryResponse.contentType = "image/png";
+	binaryResponse.content.assign(DynamicResponseCompressionThreshold * 2, '\0');
+	auto preparedBinary = prepare_dynamic_response(std::move(binaryResponse), true);
+	passed &= check(!preparedBinary.varyAcceptEncoding, "binary dynamic responses should not vary on Accept-Encoding"_slice);
+	passed &= check(!preparedBinary.gzipEncoded, "binary dynamic responses should not be gzip encoded"_slice);
 	return passed;
 }
 #endif // DORA_TEST
@@ -1125,8 +1177,12 @@ bool HttpServer::start(int port) {
 		std::vector<std::string> paramStorage;
 		auto request = make_request(nativeRequest, paramStorage);
 		auto path = request.path.toString();
+		const bool gzipAccepted = accepts_gzip(request);
 		auto respond = [&](HttpServer::Response&& response) {
-			set_response(nativeResponse, response.status > 0 ? response.status : 200, response.content, response.contentType);
+			auto prepared = prepare_dynamic_response(std::move(response), gzipAccepted);
+			if (prepared.varyAcceptEncoding) xrtHttpdResponseSetHeader(nativeResponse, "Vary", "Accept-Encoding");
+			if (prepared.gzipEncoded) xrtHttpdResponseSetHeader(nativeResponse, "Content-Encoding", "gzip");
+			set_response(nativeResponse, prepared.response.status > 0 ? prepared.response.status : 200, prepared.response.content, prepared.response.contentType);
 		};
 		if (nativeRequest->iMethod == XHTTPD_METHOD_OPTIONS) {
 			set_response(nativeResponse, 200, {}, {});

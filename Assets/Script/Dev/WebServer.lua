@@ -5198,9 +5198,9 @@ HttpServer:post("/assets", function() -- 2082
 		children = _anon_func_6(builtinChildren, workspace, zh) -- 2120
 	} -- 2115
 end) -- 2082
-HttpServer:post("/entry/list", function() -- 2132
+HttpServer:post("/entry/list", function(req) -- 2132
 	local Entry = require("Script.Dev.Entry") -- 2133
-	local res = Entry.getLaunchEntries() -- 2134
+	local res = Entry.getLaunchEntries((req and req.body and req.body.refresh == true)) -- 2134
 	res.success = true -- 2135
 	return res -- 2136
 end) -- 2132

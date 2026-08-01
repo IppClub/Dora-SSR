@@ -115,6 +115,10 @@ assert.match(filterSource, /aria-selected=\{selected\}/);
 assert.match(filterSource, /case "ArrowDown":/);
 assert.match(filterSource, /case "Enter":/);
 assert.match(filterSource, /touchAction: "pan-y"/);
+const appSource = await readFile(path.resolve("src/App.tsx"), "utf8");
+assert.doesNotMatch(appSource, /requestIdleCallback\(warmIndex/);
+assert.match(appSource, /if \(!openFilter\) return;/);
+assert.match(appSource, /Service\.exist\(\{ file: scriptDir \}\)/);
 const managerSource = await readFile(path.resolve("src/FileSearchIndex.ts"), "utf8");
 assert.match(managerSource, /new Worker\(new URL\("\.\/FileSearchWorker\.ts"/);
 

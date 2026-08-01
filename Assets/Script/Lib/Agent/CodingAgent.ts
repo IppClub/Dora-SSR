@@ -747,6 +747,7 @@ function writeStepLLMDebugFile(path: string, content: string): boolean {
 		AgentUtils.Log("Warn", `[CodingAgent] failed to save LLM debug file: ${path}`);
 		return false;
 	}
+	Tools.sendWebIDEFileUpdate(path, true, content);
 	return true;
 }
 

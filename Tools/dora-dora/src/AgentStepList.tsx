@@ -11,11 +11,12 @@ import { MacScrollbar } from 'mac-scrollbar';
 import { useTranslation } from 'react-i18next';
 import type { AgentChangeSetSummary, AgentCheckpointDiffFile, AgentCheckpointItem, AgentSessionStep } from './Service';
 import { Color } from './Theme';
-import AgentFileDiff from './AgentFileDiff';
 import AgentChangeSetSummaryCard from './AgentChangeSetSummary';
 import { recordAgentRowRender } from './AgentRenderDiagnostics';
 import Markdown from './Markdown';
 import './github-markdown-dark.css';
+
+const AgentFileDiff = React.lazy(() => import('./AgentFileDiff'));
 
 interface AgentStepListProps {
 	steps: AgentSessionStep[];
@@ -901,11 +902,13 @@ function AgentStepListBody(props: AgentStepListProps) {
 								</Stack>
 								{canViewDiff && openedDiffId === step.checkpointId ? (
 									<Box sx={{ mt: 1.25 }}>
-										<Stack spacing={1}>
-											{(diffs[step.checkpointId!] ?? []).map(file => (
-												<AgentFileDiff key={`${file.path}:${file.op}`} file={file} />
-											))}
-										</Stack>
+										<React.Suspense fallback={<CircularProgress size={16} />}>
+											<Stack spacing={1}>
+												{(diffs[step.checkpointId!] ?? []).map(file => (
+													<AgentFileDiff key={`${file.path}:${file.op}`} file={file} />
+												))}
+											</Stack>
+										</React.Suspense>
 									</Box>
 								) : null}
 							</Box>

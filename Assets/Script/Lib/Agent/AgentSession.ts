@@ -723,7 +723,10 @@ function savePendingQuestionnaire(projectRoot: string, questionnaire: AgentQuest
 	Content.remove(tempPath);
 	if (!Content.save(tempPath, encodeJson(questionnaire))) return false;
 	if (Content.exist(path)) Content.remove(path);
-	if (Content.move(tempPath, path)) return true;
+	if (Content.move(tempPath, path)) {
+		Tools.sendWebIDEFileUpdate(path, true, encodeJson(questionnaire));
+		return true;
+	}
 	Content.remove(tempPath);
 	return false;
 }
@@ -733,7 +736,9 @@ function removePendingQuestionnaire(session: AgentSessionItem): boolean {
 	if (!Content.exist(path)) return true;
 	const questionnaire = decodeQuestionnaireFile(sanitizeUTF8(Content.load(path) as string));
 	if (questionnaire && questionnaire.sessionId !== session.id) return false;
-	return Content.remove(path);
+	if (!Content.remove(path)) return false;
+	Tools.sendWebIDEFileUpdate(path, false, "");
+	return true;
 }
 
 async function publishQuestionnaire(request: {
@@ -900,7 +905,9 @@ function deleteSessionRecords(sessionId: number, preserveArtifacts = false) {
 		removePendingQuestionnaire(session);
 	}
 	if (!preserveArtifacts && session && session.kind === "sub" && session.memoryScope !== "") {
-		Content.remove(Path(session.projectRoot, ".agent", session.memoryScope));
+		if (Content.remove(Path(session.projectRoot, ".agent", session.memoryScope))) {
+			Tools.sendWebIDERefreshTree();
+		}
 	}
 	for (let i = 0; i < taskIds.length; i++) {
 		cleanupTaskHeavyData(taskIds[i]);
@@ -1217,7 +1224,10 @@ function writePendingHandoff(projectRoot: string, memoryScope: string, value: Pe
 	const path = Path(dir, `${value.id}.json`);
 	const [text] = safeJsonEncode(value as unknown as object);
 	if (!text) return false;
-	return Content.save(path, `${text}\n`);
+	const content = `${text}\n`;
+	if (!Content.save(path, content)) return false;
+	Tools.sendWebIDEFileUpdate(path, true, content);
+	return true;
 }
 
 function listPendingHandoffs(projectRoot: string, memoryScope: string): PendingSubAgentHandoffItem[] {
@@ -1275,7 +1285,9 @@ function listPendingHandoffs(projectRoot: string, memoryScope: string): PendingS
 function deletePendingHandoff(projectRoot: string, memoryScope: string, id: string): void {
 	const path = Path(getPendingHandoffDir(projectRoot, memoryScope), `${id}.json`);
 	if (Content.exist(path)) {
-		Content.remove(path);
+		if (Content.remove(path)) {
+			Tools.sendWebIDEFileUpdate(path, false, "");
+		}
 	}
 }
 

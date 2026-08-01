@@ -370,8 +370,8 @@ updateEntries = ->
 
 updateEntries!
 
-export getLaunchEntries = ->
-	updateEntries!
+export getLaunchEntries = (refresh = false) ->
+	updateEntries! if refresh
 	toInfo = (entry, kind) ->
 		file = entry.fileName
 		asProj = not entry.builtin

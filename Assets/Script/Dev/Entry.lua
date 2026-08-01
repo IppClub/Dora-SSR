@@ -681,8 +681,13 @@ updateEntries = function() -- 348
 end -- 348
 updateEntries() -- 371
 local getLaunchEntries -- 373
-getLaunchEntries = function() -- 373
-	updateEntries() -- 374
+getLaunchEntries = function(refresh) -- 373
+	if refresh == nil then -- 373
+		refresh = false -- 373
+	end -- 373
+	if refresh then -- 374
+		updateEntries() -- 374
+	end -- 374
 	local toInfo -- 375
 	toInfo = function(entry, kind) -- 375
 		local file = entry.fileName -- 376

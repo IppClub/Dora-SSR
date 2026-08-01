@@ -2798,991 +2798,1009 @@ local function executeLuaCommand(req) -- 2560
 	local output = {} -- 2572
 	local entry = require("Script.Dev.Entry") -- 2573
 	local ownsEntryRuntime = false -- 2574
-	local entryObjectBaseline = 0 -- 2575
-	local entryLuaRefBaseline = 0 -- 2576
-	local function acquireEntryRuntime() -- 2577
-		if agentEntryRuntimeOwner ~= "" and agentEntryRuntimeOwner ~= req.operationId then -- 2577
-			error("Dora entry runtime is busy with another Agent command") -- 2579
-		end -- 2579
-		agentEntryRuntimeOwner = req.operationId -- 2581
-		ownsEntryRuntime = true -- 2582
-	end -- 2577
-	local function stopOwnedEntry() -- 2584
-		if not ownsEntryRuntime then -- 2584
-			return nil -- 2585
-		end -- 2585
-		local cleanupError -- 2586
-		do -- 2586
-			local function ____catch(e) -- 2586
-				cleanupError = "failed to stop Agent test entry: " .. tostring(e) -- 2590
+	local contentAccessed = false -- 2575
+	local refreshTreeCalled = false -- 2576
+	local entryObjectBaseline = 0 -- 2577
+	local entryLuaRefBaseline = 0 -- 2578
+	local function acquireEntryRuntime() -- 2579
+		if agentEntryRuntimeOwner ~= "" and agentEntryRuntimeOwner ~= req.operationId then -- 2579
+			error("Dora entry runtime is busy with another Agent command") -- 2581
+		end -- 2581
+		agentEntryRuntimeOwner = req.operationId -- 2583
+		ownsEntryRuntime = true -- 2584
+	end -- 2579
+	local function stopOwnedEntry() -- 2586
+		if not ownsEntryRuntime then -- 2586
+			return nil -- 2587
+		end -- 2587
+		local cleanupError -- 2588
+		do -- 2588
+			local function ____catch(e) -- 2588
+				cleanupError = "failed to stop Agent test entry: " .. tostring(e) -- 2592
+			end -- 2592
+			local ____try, ____hasReturned = pcall(function() -- 2592
+				entry.stop() -- 2590
+			end) -- 2590
+			if not ____try then -- 2590
+				____catch(____hasReturned) -- 2590
 			end -- 2590
-			local ____try, ____hasReturned = pcall(function() -- 2590
-				entry.stop() -- 2588
-			end) -- 2588
-			if not ____try then -- 2588
-				____catch(____hasReturned) -- 2588
-			end -- 2588
-		end -- 2588
-		ownsEntryRuntime = false -- 2592
-		if agentEntryRuntimeOwner == req.operationId then -- 2592
-			agentEntryRuntimeOwner = "" -- 2594
-		end -- 2594
-		return cleanupError -- 2596
-	end -- 2584
-	local function startEntryWatchdog() -- 2598
-		entryObjectBaseline = Dora.Object.count -- 2599
-		entryLuaRefBaseline = Dora.Object.luaRefCount -- 2600
-	end -- 2598
-	local function checkEntryWatchdog() -- 2602
-		if not ownsEntryRuntime then -- 2602
-			return nil -- 2603
-		end -- 2603
-		local objectCount = Dora.Object.count -- 2604
-		local luaRefCount = Dora.Object.luaRefCount -- 2605
-		local objectGrowth = math.max(0, objectCount - entryObjectBaseline) -- 2606
-		local luaRefGrowth = math.max(0, luaRefCount - entryLuaRefBaseline) -- 2607
-		local exceededTotal = objectGrowth >= AgentConfig.AGENT_LIMITS.executeCommandMaxObjectGrowth or luaRefGrowth >= AgentConfig.AGENT_LIMITS.executeCommandMaxLuaRefGrowth -- 2608
-		if not exceededTotal then -- 2608
-			return nil -- 2611
-		end -- 2611
-		return ("Entry watchdog stopped the test and cleaned up after abnormal object growth: " .. ((("live objects +" .. tostring(objectGrowth)) .. ", Lua references +") .. tostring(luaRefGrowth)) .. ". ") .. "Use a bounded test with a strict entity limit and only a few fixed simulation steps." -- 2612
-	end -- 2602
-	local function normalizeEntryFile(value) -- 2616
-		if not value or type(value) ~= "table" then -- 2616
-			error("enterEntryAsync expects a table with an optional project-relative fileName") -- 2618
-		end -- 2618
-		local descriptor = value -- 2620
-		local relativeFile = type(descriptor.fileName) == "string" and __TS__StringTrim(descriptor.fileName) or "" -- 2621
-		if relativeFile == "" then -- 2621
-			relativeFile = "init" -- 2622
-		end -- 2622
-		if not isValidWorkspacePath(relativeFile) then -- 2622
-			error("enterEntryAsync fileName must be a project-relative path without '..'") -- 2624
+		end -- 2590
+		ownsEntryRuntime = false -- 2594
+		if agentEntryRuntimeOwner == req.operationId then -- 2594
+			agentEntryRuntimeOwner = "" -- 2596
+		end -- 2596
+		return cleanupError -- 2598
+	end -- 2586
+	local function startEntryWatchdog() -- 2600
+		entryObjectBaseline = Dora.Object.count -- 2601
+		entryLuaRefBaseline = Dora.Object.luaRefCount -- 2602
+	end -- 2600
+	local function checkEntryWatchdog() -- 2604
+		if not ownsEntryRuntime then -- 2604
+			return nil -- 2605
+		end -- 2605
+		local objectCount = Dora.Object.count -- 2606
+		local luaRefCount = Dora.Object.luaRefCount -- 2607
+		local objectGrowth = math.max(0, objectCount - entryObjectBaseline) -- 2608
+		local luaRefGrowth = math.max(0, luaRefCount - entryLuaRefBaseline) -- 2609
+		local exceededTotal = objectGrowth >= AgentConfig.AGENT_LIMITS.executeCommandMaxObjectGrowth or luaRefGrowth >= AgentConfig.AGENT_LIMITS.executeCommandMaxLuaRefGrowth -- 2610
+		if not exceededTotal then -- 2610
+			return nil -- 2613
+		end -- 2613
+		return ("Entry watchdog stopped the test and cleaned up after abnormal object growth: " .. ((("live objects +" .. tostring(objectGrowth)) .. ", Lua references +") .. tostring(luaRefGrowth)) .. ". ") .. "Use a bounded test with a strict entity limit and only a few fixed simulation steps." -- 2614
+	end -- 2604
+	local function normalizeEntryFile(value) -- 2618
+		if not value or type(value) ~= "table" then -- 2618
+			error("enterEntryAsync expects a table with an optional project-relative fileName") -- 2620
+		end -- 2620
+		local descriptor = value -- 2622
+		local relativeFile = type(descriptor.fileName) == "string" and __TS__StringTrim(descriptor.fileName) or "" -- 2623
+		if relativeFile == "" then -- 2623
+			relativeFile = "init" -- 2624
 		end -- 2624
-		local fileName = Path(req.workDir, relativeFile) -- 2626
-		local ext = Path:getExt(fileName) -- 2627
-		if ext ~= "" then -- 2627
-			fileName = Path:replaceExt(fileName, "") -- 2628
-		end -- 2628
-		local luaFile = Path:replaceExt(fileName, "lua") -- 2629
-		if not Content:exist(luaFile) then -- 2629
-			error("Agent test entry was not built: " .. luaFile) -- 2631
-		end -- 2631
-		local requestedName = type(descriptor.entryName) == "string" and __TS__StringTrim(descriptor.entryName) or "" -- 2633
-		return { -- 2634
-			fileName = fileName, -- 2635
-			entryName = requestedName ~= "" and requestedName or Path:getName(fileName) -- 2636
-		} -- 2636
-	end -- 2616
-	local function capturePrint(...) -- 2639
-		local values = {...} -- 2639
-		local parts = {} -- 2640
-		do -- 2640
-			local i = 0 -- 2641
-			while i < #values do -- 2641
-				parts[#parts + 1] = tostring(values[i + 1]) -- 2642
-				i = i + 1 -- 2641
-			end -- 2641
-		end -- 2641
-		output[#output + 1] = table.concat(parts, "\t") -- 2644
-	end -- 2639
-	local env = setmetatable( -- 2646
-		{ -- 2646
-			projectDir = req.workDir, -- 2647
-			requireProjectModule = function(moduleNameValue, reloadModulesValue) -- 2648
-				if type(moduleNameValue) ~= "string" then -- 2648
-					error("requireProjectModule expects a project module name string") -- 2650
-				end -- 2650
-				local moduleName = __TS__StringTrim(moduleNameValue) -- 2652
-				if moduleName == "" or (string.find(moduleName, "..", nil, true) or 0) - 1 >= 0 or (string.find(moduleName, "/", nil, true) or 0) - 1 == 0 then -- 2652
-					error("requireProjectModule expects a non-empty project module name without '..' or an absolute path") -- 2654
-				end -- 2654
-				local reloadModules = {moduleName} -- 2656
-				if reloadModulesValue ~= nil then -- 2656
-					if not __TS__ArrayIsArray(reloadModulesValue) then -- 2656
-						error("requireProjectModule reloadModules must be an array of module names") -- 2659
-					end -- 2659
-					local items = reloadModulesValue -- 2661
-					do -- 2661
-						local i = 0 -- 2662
-						while i < #items do -- 2662
-							local item = items[i + 1] -- 2663
-							if type(item) ~= "string" or __TS__StringTrim(item) == "" or (string.find(item, "..", nil, true) or 0) - 1 >= 0 then -- 2663
-								error("requireProjectModule reloadModules contains an invalid module name") -- 2665
-							end -- 2665
-							if __TS__ArrayIndexOf(reloadModules, item) < 0 then -- 2665
-								reloadModules[#reloadModules + 1] = item -- 2667
-							end -- 2667
-							i = i + 1 -- 2662
-						end -- 2662
-					end -- 2662
+		if not isValidWorkspacePath(relativeFile) then -- 2624
+			error("enterEntryAsync fileName must be a project-relative path without '..'") -- 2626
+		end -- 2626
+		local fileName = Path(req.workDir, relativeFile) -- 2628
+		local ext = Path:getExt(fileName) -- 2629
+		if ext ~= "" then -- 2629
+			fileName = Path:replaceExt(fileName, "") -- 2630
+		end -- 2630
+		local luaFile = Path:replaceExt(fileName, "lua") -- 2631
+		if not Content:exist(luaFile) then -- 2631
+			error("Agent test entry was not built: " .. luaFile) -- 2633
+		end -- 2633
+		local requestedName = type(descriptor.entryName) == "string" and __TS__StringTrim(descriptor.entryName) or "" -- 2635
+		return { -- 2636
+			fileName = fileName, -- 2637
+			entryName = requestedName ~= "" and requestedName or Path:getName(fileName) -- 2638
+		} -- 2638
+	end -- 2618
+	local function capturePrint(...) -- 2641
+		local values = {...} -- 2641
+		local parts = {} -- 2642
+		do -- 2642
+			local i = 0 -- 2643
+			while i < #values do -- 2643
+				parts[#parts + 1] = tostring(values[i + 1]) -- 2644
+				i = i + 1 -- 2643
+			end -- 2643
+		end -- 2643
+		output[#output + 1] = table.concat(parts, "\t") -- 2646
+	end -- 2641
+	local function refreshTree(path) -- 2648
+		refreshTreeCalled = true -- 2649
+		if path == nil then -- 2649
+			return refreshProjectTree(req.workDir) -- 2651
+		end -- 2651
+		if type(path) ~= "string" then -- 2651
+			error("refreshTree expects a project-relative file path string or no argument") -- 2654
+		end -- 2654
+		return refreshProjectTree(req.workDir, path) -- 2656
+	end -- 2648
+	local env = setmetatable( -- 2658
+		{ -- 2658
+			projectDir = req.workDir, -- 2659
+			requireProjectModule = function(moduleNameValue, reloadModulesValue) -- 2660
+				if type(moduleNameValue) ~= "string" then -- 2660
+					error("requireProjectModule expects a project module name string") -- 2662
 				end -- 2662
-				local luaPackage = _G.package -- 2670
-				local previousPath = luaPackage.path -- 2674
-				local previousSearchPaths = Content.searchPaths -- 2675
-				local scopedSearchPaths = {req.workDir} -- 2676
-				do -- 2676
-					local i = 0 -- 2677
-					while i < #previousSearchPaths do -- 2677
-						local searchPath = previousSearchPaths[i + 1] -- 2678
-						if searchPath ~= req.workDir then -- 2678
-							scopedSearchPaths[#scopedSearchPaths + 1] = searchPath -- 2679
-						end -- 2679
-						i = i + 1 -- 2677
-					end -- 2677
-				end -- 2677
-				luaPackage.path = (((Path(req.workDir, "?.lua") .. ";") .. Path(req.workDir, "?", "init.lua")) .. ";") .. previousPath -- 2681
-				Content.searchPaths = scopedSearchPaths -- 2682
-				do -- 2682
-					local ____try, ____hasReturned, ____returnValue = pcall(function() -- 2682
-						do -- 2682
-							local i = 0 -- 2684
-							while i < #reloadModules do -- 2684
-								local reloadName = reloadModules[i + 1] -- 2685
-								luaPackage.loaded[reloadName] = nil -- 2686
-								luaPackage.loaded[table.concat( -- 2687
-									__TS__StringSplit(reloadName, "/"), -- 2687
-									"." -- 2687
-								)] = nil -- 2687
-								luaPackage.loaded[table.concat( -- 2688
-									__TS__StringSplit(reloadName, "."), -- 2688
-									"/" -- 2688
-								)] = nil -- 2688
-								i = i + 1 -- 2684
-							end -- 2684
-						end -- 2684
-						return true, require(table.concat( -- 2690
-							__TS__StringSplit(moduleName, "/"), -- 2690
-							"." -- 2690
-						)) -- 2690
-					end) -- 2690
-					do -- 2690
-						Content.searchPaths = previousSearchPaths -- 2692
-						luaPackage.path = previousPath -- 2693
-					end -- 2693
-					if not ____try then -- 2693
-						error(____hasReturned, 0) -- 2693
-					end -- 2693
-					if ____try and ____hasReturned then -- 2693
-						return ____returnValue -- 2683
-					end -- 2683
-				end -- 2683
-			end, -- 2648
-			print = capturePrint, -- 2696
-			refreshTree = function(path) -- 2697
-				if path == nil then -- 2697
-					return refreshProjectTree(req.workDir) -- 2699
-				end -- 2699
-				if type(path) ~= "string" then -- 2699
-					error("refreshTree expects a project-relative file path string or no argument") -- 2702
-				end -- 2702
-				return refreshProjectTree(req.workDir, path) -- 2704
-			end, -- 2697
-			getEntryStatus = function() return entry.getCurrentEntryStatus() end, -- 2706
-			enterEntryAsync = function(value) -- 2707
-				local normalized = normalizeEntryFile(value) -- 2708
-				acquireEntryRuntime() -- 2709
-				entry.allClear() -- 2710
-				startEntryWatchdog() -- 2711
-				local success, message = entry.enterEntryAsync({ -- 2712
-					entryName = normalized.entryName, -- 2713
-					fileName = normalized.fileName, -- 2714
-					workDir = req.workDir, -- 2715
-					projectRoot = req.workDir, -- 2716
-					runKind = "agent_test" -- 2717
-				}) -- 2717
-				return success, message -- 2719
-			end, -- 2707
-			stopEntry = function() -- 2721
-				if not ownsEntryRuntime then -- 2721
-					return false -- 2722
-				end -- 2722
-				return entry.stop() -- 2723
-			end, -- 2721
-			reportProgress = function(value, callbackValue) -- 2725
-				local ____callbackValue_41 = callbackValue -- 2726
-				if ____callbackValue_41 == nil then -- 2726
-					____callbackValue_41 = value -- 2726
-				end -- 2726
-				local actualValue = ____callbackValue_41 -- 2726
-				if not req.onProgress or not actualValue or type(actualValue) ~= "table" then -- 2726
-					return -- 2727
-				end -- 2727
-				local progress = actualValue -- 2728
-				local amount = type(progress.progress) == "number" and math.min( -- 2729
-					1, -- 2730
-					math.max(0, progress.progress) -- 2730
-				) or nil -- 2730
-				req:onProgress({ -- 2732
-					state = "running", -- 2733
-					mode = "lua", -- 2734
-					operationId = req.operationId, -- 2735
-					progress = amount, -- 2736
-					stage = type(progress.stage) == "string" and progress.stage or "lua", -- 2737
-					message = type(progress.message) == "string" and progress.message or "Lua command running" -- 2738
-				}) -- 2738
-			end -- 2725
-		}, -- 2725
-		{__index = Dora} -- 2741
-	) -- 2741
-	local fn, compileErr = load(code, "=(agent_command)", "t", env) -- 2744
-	if not fn then -- 2744
-		return __TS__Promise.resolve({ -- 2746
-			success = false, -- 2747
-			mode = "lua", -- 2748
-			output = truncateCommandOutput(table.concat(output, "\n")), -- 2749
-			message = truncateCommandError(toStr(compileErr)), -- 2750
-			phase = "compile" -- 2751
-		}) -- 2751
-	end -- 2751
-	return __TS__New( -- 2754
-		__TS__Promise, -- 2754
-		function(____, resolve) -- 2754
-			local settled = false -- 2755
-			local commandRoutine -- 2756
-			local startedAt = App.runningTime -- 2757
-			local onProgress = req.onProgress -- 2758
-			local isCancelled = req.isCancelled -- 2759
-			local function finish(result) -- 2760
-				if settled then -- 2760
-					return -- 2761
-				end -- 2761
-				settled = true -- 2762
-				local cleanupError -- 2763
-				if not result.success and (result.interrupted == true or result.phase == "timeout") then -- 2763
-					do -- 2763
-						local function ____catch(e) -- 2763
-							cleanupError = "failed to clear interrupted Lua command runtime: " .. tostring(e) -- 2768
-						end -- 2768
-						local ____try, ____hasReturned = pcall(function() -- 2768
-							entry.allClear() -- 2766
-						end) -- 2766
-						if not ____try then -- 2766
-							____catch(____hasReturned) -- 2766
-						end -- 2766
-					end -- 2766
-				end -- 2766
-				local entryCleanupError = stopOwnedEntry() -- 2771
-				if cleanupError == nil then -- 2771
-					cleanupError = entryCleanupError -- 2772
-				end -- 2772
-				if not result.success and cleanupError ~= nil then -- 2772
-					result.cleanupError = cleanupError -- 2774
-				elseif result.success and cleanupError ~= nil then -- 2774
-					resolve(nil, { -- 2776
-						success = false, -- 2777
-						mode = "lua", -- 2778
-						output = result.output, -- 2779
-						message = cleanupError, -- 2780
-						phase = "execute", -- 2781
-						cleanupError = cleanupError -- 2782
-					}) -- 2782
-					return -- 2784
+				local moduleName = __TS__StringTrim(moduleNameValue) -- 2664
+				if moduleName == "" or (string.find(moduleName, "..", nil, true) or 0) - 1 >= 0 or (string.find(moduleName, "/", nil, true) or 0) - 1 == 0 then -- 2664
+					error("requireProjectModule expects a non-empty project module name without '..' or an absolute path") -- 2666
+				end -- 2666
+				local reloadModules = {moduleName} -- 2668
+				if reloadModulesValue ~= nil then -- 2668
+					if not __TS__ArrayIsArray(reloadModulesValue) then -- 2668
+						error("requireProjectModule reloadModules must be an array of module names") -- 2671
+					end -- 2671
+					local items = reloadModulesValue -- 2673
+					do -- 2673
+						local i = 0 -- 2674
+						while i < #items do -- 2674
+							local item = items[i + 1] -- 2675
+							if type(item) ~= "string" or __TS__StringTrim(item) == "" or (string.find(item, "..", nil, true) or 0) - 1 >= 0 then -- 2675
+								error("requireProjectModule reloadModules contains an invalid module name") -- 2677
+							end -- 2677
+							if __TS__ArrayIndexOf(reloadModules, item) < 0 then -- 2677
+								reloadModules[#reloadModules + 1] = item -- 2679
+							end -- 2679
+							i = i + 1 -- 2674
+						end -- 2674
+					end -- 2674
+				end -- 2674
+				local luaPackage = _G.package -- 2682
+				local previousPath = luaPackage.path -- 2686
+				local previousSearchPaths = Content.searchPaths -- 2687
+				local scopedSearchPaths = {req.workDir} -- 2688
+				do -- 2688
+					local i = 0 -- 2689
+					while i < #previousSearchPaths do -- 2689
+						local searchPath = previousSearchPaths[i + 1] -- 2690
+						if searchPath ~= req.workDir then -- 2690
+							scopedSearchPaths[#scopedSearchPaths + 1] = searchPath -- 2691
+						end -- 2691
+						i = i + 1 -- 2689
+					end -- 2689
+				end -- 2689
+				luaPackage.path = (((Path(req.workDir, "?.lua") .. ";") .. Path(req.workDir, "?", "init.lua")) .. ";") .. previousPath -- 2693
+				Content.searchPaths = scopedSearchPaths -- 2694
+				do -- 2694
+					local ____try, ____hasReturned, ____returnValue = pcall(function() -- 2694
+						do -- 2694
+							local i = 0 -- 2696
+							while i < #reloadModules do -- 2696
+								local reloadName = reloadModules[i + 1] -- 2697
+								luaPackage.loaded[reloadName] = nil -- 2698
+								luaPackage.loaded[table.concat( -- 2699
+									__TS__StringSplit(reloadName, "/"), -- 2699
+									"." -- 2699
+								)] = nil -- 2699
+								luaPackage.loaded[table.concat( -- 2700
+									__TS__StringSplit(reloadName, "."), -- 2700
+									"/" -- 2700
+								)] = nil -- 2700
+								i = i + 1 -- 2696
+							end -- 2696
+						end -- 2696
+						return true, require(table.concat( -- 2702
+							__TS__StringSplit(moduleName, "/"), -- 2702
+							"." -- 2702
+						)) -- 2702
+					end) -- 2702
+					do -- 2702
+						Content.searchPaths = previousSearchPaths -- 2704
+						luaPackage.path = previousPath -- 2705
+					end -- 2705
+					if not ____try then -- 2705
+						error(____hasReturned, 0) -- 2705
+					end -- 2705
+					if ____try and ____hasReturned then -- 2705
+						return ____returnValue -- 2695
+					end -- 2695
+				end -- 2695
+			end, -- 2660
+			print = capturePrint, -- 2708
+			getEntryStatus = function() return entry.getCurrentEntryStatus() end, -- 2709
+			enterEntryAsync = function(value) -- 2710
+				local normalized = normalizeEntryFile(value) -- 2711
+				acquireEntryRuntime() -- 2712
+				entry.allClear() -- 2713
+				startEntryWatchdog() -- 2714
+				local success, message = entry.enterEntryAsync({ -- 2715
+					entryName = normalized.entryName, -- 2716
+					fileName = normalized.fileName, -- 2717
+					workDir = req.workDir, -- 2718
+					projectRoot = req.workDir, -- 2719
+					runKind = "agent_test" -- 2720
+				}) -- 2720
+				return success, message -- 2722
+			end, -- 2710
+			stopEntry = function() -- 2724
+				if not ownsEntryRuntime then -- 2724
+					return false -- 2725
+				end -- 2725
+				return entry.stop() -- 2726
+			end, -- 2724
+			reportProgress = function(value, callbackValue) -- 2728
+				local ____callbackValue_41 = callbackValue -- 2729
+				if ____callbackValue_41 == nil then -- 2729
+					____callbackValue_41 = value -- 2729
+				end -- 2729
+				local actualValue = ____callbackValue_41 -- 2729
+				if not req.onProgress or not actualValue or type(actualValue) ~= "table" then -- 2729
+					return -- 2730
+				end -- 2730
+				local progress = actualValue -- 2731
+				local amount = type(progress.progress) == "number" and math.min( -- 2732
+					1, -- 2733
+					math.max(0, progress.progress) -- 2733
+				) or nil -- 2733
+				req:onProgress({ -- 2735
+					state = "running", -- 2736
+					mode = "lua", -- 2737
+					operationId = req.operationId, -- 2738
+					progress = amount, -- 2739
+					stage = type(progress.stage) == "string" and progress.stage or "lua", -- 2740
+					message = type(progress.message) == "string" and progress.message or "Lua command running" -- 2741
+				}) -- 2741
+			end -- 2728
+		}, -- 2728
+		{__index = function(_table, key) -- 2744
+			if key == "Content" then -- 2744
+				contentAccessed = true -- 2747
+				return Content -- 2748
+			end -- 2748
+			if key == "refreshTree" then -- 2748
+				return refreshTree -- 2751
+			end -- 2751
+			return Dora[tostring(key)] -- 2753
+		end} -- 2745
+	) -- 2745
+	local fn, compileErr = load(code, "=(agent_command)", "t", env) -- 2756
+	if not fn then -- 2756
+		return __TS__Promise.resolve({ -- 2758
+			success = false, -- 2759
+			mode = "lua", -- 2760
+			output = truncateCommandOutput(table.concat(output, "\n")), -- 2761
+			message = truncateCommandError(toStr(compileErr)), -- 2762
+			phase = "compile" -- 2763
+		}) -- 2763
+	end -- 2763
+	return __TS__New( -- 2766
+		__TS__Promise, -- 2766
+		function(____, resolve) -- 2766
+			local settled = false -- 2767
+			local commandRoutine -- 2768
+			local startedAt = App.runningTime -- 2769
+			local onProgress = req.onProgress -- 2770
+			local isCancelled = req.isCancelled -- 2771
+			local function finish(result) -- 2772
+				if settled then -- 2772
+					return -- 2773
+				end -- 2773
+				settled = true -- 2774
+				local cleanupError -- 2775
+				if not result.success and (result.interrupted == true or result.phase == "timeout") then -- 2775
+					do -- 2775
+						local function ____catch(e) -- 2775
+							cleanupError = "failed to clear interrupted Lua command runtime: " .. tostring(e) -- 2780
+						end -- 2780
+						local ____try, ____hasReturned = pcall(function() -- 2780
+							entry.allClear() -- 2778
+						end) -- 2778
+						if not ____try then -- 2778
+							____catch(____hasReturned) -- 2778
+						end -- 2778
+					end -- 2778
+				end -- 2778
+				local entryCleanupError = stopOwnedEntry() -- 2783
+				if cleanupError == nil then -- 2783
+					cleanupError = entryCleanupError -- 2784
 				end -- 2784
-				resolve(nil, result) -- 2786
-			end -- 2760
-			if onProgress then -- 2760
-				onProgress(nil, { -- 2789
-					state = "pending", -- 2790
-					mode = "lua", -- 2791
-					operationId = req.operationId, -- 2792
-					stage = "lua", -- 2793
-					message = "Lua command pending" -- 2794
-				}) -- 2794
-			end -- 2794
-			commandRoutine = once(function() -- 2797
-				if settled then -- 2797
-					return -- 2798
-				end -- 2798
-				if onProgress then -- 2798
-					onProgress(nil, { -- 2800
-						state = "running", -- 2801
-						mode = "lua", -- 2802
-						operationId = req.operationId, -- 2803
-						stage = "lua", -- 2804
-						message = "Lua command running" -- 2805
-					}) -- 2805
-				end -- 2805
-				local previousGlobalPrint = _G.print -- 2808
-				local previousHook, previousHookMask, previousHookCount = debug.gethook() -- 2809
-				local frameTimedOut = false -- 2810
-				local watchdogMessage -- 2810
-				_G.print = capturePrint -- 2811
-				debug.sethook( -- 2812
-					function() -- 2812
-						if watchdogMessage == nil then -- 2812
-							watchdogMessage = checkEntryWatchdog() -- 2813
-						end -- 2813
-						if watchdogMessage ~= nil then -- 2813
-							error(watchdogMessage) -- 2814
-						end -- 2814
-						if App.elapsedTime >= AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds then -- 2814
-							frameTimedOut = true -- 2816
-							error(("Lua command exceeded " .. tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)) .. " seconds in one game frame") -- 2817
-						end -- 2817
-					end, -- 2812
-					"", -- 2819
-					AgentConfig.AGENT_LIMITS.executeCommandHookInstructionCount -- 2819
-				) -- 2819
-				local ok, runtimeErr = pcall(fn) -- 2820
-				if previousHook ~= nil and previousHookMask ~= nil and previousHookCount ~= nil then -- 2820
-					debug.sethook(previousHook, previousHookMask, previousHookCount) -- 2822
-				else -- 2822
-					debug.sethook() -- 2828
-				end -- 2828
-				_G.print = previousGlobalPrint -- 2830
-				if not ok then -- 2830
-					local ____truncateCommandOutput_result_43 = truncateCommandOutput(table.concat(output, "\n")) -- 2835
-					local ____temp_44 = watchdogMessage or (frameTimedOut and ("Lua command exceeded " .. tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)) .. " seconds in one game frame" or truncateCommandError(toStr(runtimeErr))) -- 2836
-					local ____temp_45 = frameTimedOut and "timeout" or "execute" -- 2837
-					local ____temp_42 -- 2838
-					if watchdogMessage ~= nil or frameTimedOut then -- 2838
-						____temp_42 = true -- 2838
-					else -- 2838
-						____temp_42 = nil -- 2838
-					end -- 2838
-					finish({ -- 2832
-						success = false, -- 2833
-						mode = "lua", -- 2834
-						output = ____truncateCommandOutput_result_43, -- 2835
-						message = ____temp_44, -- 2836
-						phase = ____temp_45, -- 2837
-						interrupted = ____temp_42 -- 2838
-					}) -- 2838
-					return -- 2840
-				end -- 2840
-				finish({ -- 2842
-					success = true, -- 2842
-					mode = "lua", -- 2842
-					output = truncateCommandOutput(table.concat(output, "\n")) -- 2842
-				}) -- 2842
-			end) -- 2797
-			Director.systemScheduler:schedule(function() -- 2844
-				if settled then -- 2844
-					return true -- 2845
-				end -- 2845
-				local watchdogMessage = checkEntryWatchdog() -- 2846
-				if watchdogMessage ~= nil then -- 2846
-					finish({ -- 2848
-						success = false, -- 2849
-						mode = "lua", -- 2850
-						output = truncateCommandOutput(table.concat(output, "\n")), -- 2851
-						message = watchdogMessage, -- 2852
-						phase = "execute", -- 2853
-						interrupted = true -- 2854
-					}) -- 2854
-					return true -- 2856
-				end -- 2856
-				if isCancelled and isCancelled(nil) then -- 2856
-					finish({ -- 2859
-						success = false, -- 2860
-						mode = "lua", -- 2861
-						output = truncateCommandOutput(table.concat(output, "\n")), -- 2862
-						message = "Lua command canceled", -- 2863
-						phase = "execute", -- 2864
-						interrupted = true -- 2865
-					}) -- 2865
-					return true -- 2867
-				end -- 2867
-				if App.runningTime - startedAt >= req.timeoutSeconds then -- 2867
-					finish({ -- 2870
-						success = false, -- 2871
-						mode = "lua", -- 2872
-						output = truncateCommandOutput(table.concat(output, "\n")), -- 2873
-						message = ("Lua command timed out after " .. tostring(req.timeoutSeconds)) .. " seconds", -- 2874
-						phase = "timeout" -- 2875
-					}) -- 2875
-					return true -- 2877
-				end -- 2877
-				if commandRoutine == nil then -- 2877
-					finish({ -- 2880
-						success = false, -- 2881
-						mode = "lua", -- 2882
-						output = truncateCommandOutput(table.concat(output, "\n")), -- 2883
-						message = "Lua command coroutine is unavailable", -- 2884
-						phase = "execute" -- 2885
-					}) -- 2885
-					return true -- 2887
-				end -- 2887
-				local resumeSuccess, resumeResult = coroutine.resume(commandRoutine) -- 2889
-				if not resumeSuccess then -- 2889
-					finish({ -- 2891
-						success = false, -- 2892
-						mode = "lua", -- 2893
-						output = truncateCommandOutput(table.concat(output, "\n")), -- 2894
-						message = truncateCommandError(toStr(resumeResult)), -- 2895
-						phase = "execute" -- 2896
-					}) -- 2896
-					return true -- 2898
-				end -- 2898
-				return settled or resumeResult == true -- 2900
-			end) -- 2844
-		end -- 2754
-	) -- 2754
+				if contentAccessed and not refreshTreeCalled and not refreshProjectTree(req.workDir) then -- 2784
+					Log("Warn", "[execute_command] failed to refresh Web IDE tree after Lua command workDir=" .. req.workDir) -- 2786
+				end -- 2786
+				if not result.success and cleanupError ~= nil then -- 2786
+					result.cleanupError = cleanupError -- 2789
+				elseif result.success and cleanupError ~= nil then -- 2789
+					resolve(nil, { -- 2791
+						success = false, -- 2792
+						mode = "lua", -- 2793
+						output = result.output, -- 2794
+						message = cleanupError, -- 2795
+						phase = "execute", -- 2796
+						cleanupError = cleanupError -- 2797
+					}) -- 2797
+					return -- 2799
+				end -- 2799
+				resolve(nil, result) -- 2801
+			end -- 2772
+			if onProgress then -- 2772
+				onProgress(nil, { -- 2804
+					state = "pending", -- 2805
+					mode = "lua", -- 2806
+					operationId = req.operationId, -- 2807
+					stage = "lua", -- 2808
+					message = "Lua command pending" -- 2809
+				}) -- 2809
+			end -- 2809
+			commandRoutine = once(function() -- 2812
+				if settled then -- 2812
+					return -- 2813
+				end -- 2813
+				if onProgress then -- 2813
+					onProgress(nil, { -- 2815
+						state = "running", -- 2816
+						mode = "lua", -- 2817
+						operationId = req.operationId, -- 2818
+						stage = "lua", -- 2819
+						message = "Lua command running" -- 2820
+					}) -- 2820
+				end -- 2820
+				local previousGlobalPrint = _G.print -- 2823
+				local previousHook, previousHookMask, previousHookCount = debug.gethook() -- 2824
+				local frameTimedOut = false -- 2825
+				local watchdogMessage -- 2825
+				_G.print = capturePrint -- 2826
+				debug.sethook( -- 2827
+					function() -- 2827
+						if watchdogMessage == nil then -- 2827
+							watchdogMessage = checkEntryWatchdog() -- 2828
+						end -- 2828
+						if watchdogMessage ~= nil then -- 2828
+							error(watchdogMessage) -- 2829
+						end -- 2829
+						if App.elapsedTime >= AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds then -- 2829
+							frameTimedOut = true -- 2831
+							error(("Lua command exceeded " .. tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)) .. " seconds in one game frame") -- 2832
+						end -- 2832
+					end, -- 2827
+					"", -- 2834
+					AgentConfig.AGENT_LIMITS.executeCommandHookInstructionCount -- 2834
+				) -- 2834
+				local ok, runtimeErr = pcall(fn) -- 2835
+				if previousHook ~= nil and previousHookMask ~= nil and previousHookCount ~= nil then -- 2835
+					debug.sethook(previousHook, previousHookMask, previousHookCount) -- 2837
+				else -- 2837
+					debug.sethook() -- 2843
+				end -- 2843
+				_G.print = previousGlobalPrint -- 2845
+				if not ok then -- 2845
+					local ____truncateCommandOutput_result_43 = truncateCommandOutput(table.concat(output, "\n")) -- 2850
+					local ____temp_44 = watchdogMessage or (frameTimedOut and ("Lua command exceeded " .. tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)) .. " seconds in one game frame" or truncateCommandError(toStr(runtimeErr))) -- 2851
+					local ____temp_45 = frameTimedOut and "timeout" or "execute" -- 2852
+					local ____temp_42 -- 2853
+					if watchdogMessage ~= nil or frameTimedOut then -- 2853
+						____temp_42 = true -- 2853
+					else -- 2853
+						____temp_42 = nil -- 2853
+					end -- 2853
+					finish({ -- 2847
+						success = false, -- 2848
+						mode = "lua", -- 2849
+						output = ____truncateCommandOutput_result_43, -- 2850
+						message = ____temp_44, -- 2851
+						phase = ____temp_45, -- 2852
+						interrupted = ____temp_42 -- 2853
+					}) -- 2853
+					return -- 2855
+				end -- 2855
+				finish({ -- 2857
+					success = true, -- 2857
+					mode = "lua", -- 2857
+					output = truncateCommandOutput(table.concat(output, "\n")) -- 2857
+				}) -- 2857
+			end) -- 2812
+			Director.systemScheduler:schedule(function() -- 2859
+				if settled then -- 2859
+					return true -- 2860
+				end -- 2860
+				local watchdogMessage = checkEntryWatchdog() -- 2861
+				if watchdogMessage ~= nil then -- 2861
+					finish({ -- 2863
+						success = false, -- 2864
+						mode = "lua", -- 2865
+						output = truncateCommandOutput(table.concat(output, "\n")), -- 2866
+						message = watchdogMessage, -- 2867
+						phase = "execute", -- 2868
+						interrupted = true -- 2869
+					}) -- 2869
+					return true -- 2871
+				end -- 2871
+				if isCancelled and isCancelled(nil) then -- 2871
+					finish({ -- 2874
+						success = false, -- 2875
+						mode = "lua", -- 2876
+						output = truncateCommandOutput(table.concat(output, "\n")), -- 2877
+						message = "Lua command canceled", -- 2878
+						phase = "execute", -- 2879
+						interrupted = true -- 2880
+					}) -- 2880
+					return true -- 2882
+				end -- 2882
+				if App.runningTime - startedAt >= req.timeoutSeconds then -- 2882
+					finish({ -- 2885
+						success = false, -- 2886
+						mode = "lua", -- 2887
+						output = truncateCommandOutput(table.concat(output, "\n")), -- 2888
+						message = ("Lua command timed out after " .. tostring(req.timeoutSeconds)) .. " seconds", -- 2889
+						phase = "timeout" -- 2890
+					}) -- 2890
+					return true -- 2892
+				end -- 2892
+				if commandRoutine == nil then -- 2892
+					finish({ -- 2895
+						success = false, -- 2896
+						mode = "lua", -- 2897
+						output = truncateCommandOutput(table.concat(output, "\n")), -- 2898
+						message = "Lua command coroutine is unavailable", -- 2899
+						phase = "execute" -- 2900
+					}) -- 2900
+					return true -- 2902
+				end -- 2902
+				local resumeSuccess, resumeResult = coroutine.resume(commandRoutine) -- 2904
+				if not resumeSuccess then -- 2904
+					finish({ -- 2906
+						success = false, -- 2907
+						mode = "lua", -- 2908
+						output = truncateCommandOutput(table.concat(output, "\n")), -- 2909
+						message = truncateCommandError(toStr(resumeResult)), -- 2910
+						phase = "execute" -- 2911
+					}) -- 2911
+					return true -- 2913
+				end -- 2913
+				return settled or resumeResult == true -- 2915
+			end) -- 2859
+		end -- 2766
+	) -- 2766
 end -- 2560
-local function formatGitStatusOutput(status) -- 2905
-	if not status then -- 2905
-		return "" -- 2906
-	end -- 2906
-	local lines = {} -- 2907
-	local state = toStr(status.state) -- 2908
-	local kind = toStr(status.kind) -- 2909
-	local message = toStr(status.message) -- 2910
-	local errorMessage = toStr(status.error) -- 2911
-	if kind ~= "" or state ~= "" then -- 2911
-		lines[#lines + 1] = table.concat( -- 2913
-			__TS__ArrayFilter( -- 2913
-				{kind, state}, -- 2913
-				function(____, item) return item ~= "" end -- 2913
-			), -- 2913
-			": " -- 2913
-		) -- 2913
-	end -- 2913
-	if message ~= "" then -- 2913
-		lines[#lines + 1] = message -- 2915
-	end -- 2915
-	if errorMessage ~= "" then -- 2915
-		lines[#lines + 1] = errorMessage -- 2916
-	end -- 2916
-	local data = status.data -- 2917
-	if data ~= nil then -- 2917
-		local dataText = encodeJSON(data) -- 2919
-		lines[#lines + 1] = dataText ~= nil and dataText or tostring(data) -- 2920
-	end -- 2920
-	return truncateCommandOutput(table.concat(lines, "\n")) -- 2922
-end -- 2905
-local function emitGitProgress(mode, operationId, onProgress, status) -- 2925
-	if not onProgress then -- 2925
-		return -- 2931
+local function formatGitStatusOutput(status) -- 2920
+	if not status then -- 2920
+		return "" -- 2921
+	end -- 2921
+	local lines = {} -- 2922
+	local state = toStr(status.state) -- 2923
+	local kind = toStr(status.kind) -- 2924
+	local message = toStr(status.message) -- 2925
+	local errorMessage = toStr(status.error) -- 2926
+	if kind ~= "" or state ~= "" then -- 2926
+		lines[#lines + 1] = table.concat( -- 2928
+			__TS__ArrayFilter( -- 2928
+				{kind, state}, -- 2928
+				function(____, item) return item ~= "" end -- 2928
+			), -- 2928
+			": " -- 2928
+		) -- 2928
+	end -- 2928
+	if message ~= "" then -- 2928
+		lines[#lines + 1] = message -- 2930
+	end -- 2930
+	if errorMessage ~= "" then -- 2930
+		lines[#lines + 1] = errorMessage -- 2931
 	end -- 2931
-	local progress = type(status.progress) == "number" and status.progress or nil -- 2932
-	local kind = toStr(status.kind) -- 2933
-	local message = toStr(status.message) -- 2934
-	local state = toStr(status.state) -- 2935
-	local jobId = type(status.id) == "number" and status.id or nil -- 2936
-	onProgress({ -- 2937
-		state = "running", -- 2938
-		mode = mode, -- 2939
-		operationId = operationId, -- 2940
-		stage = kind ~= "" and kind or "git", -- 2941
-		message = message ~= "" and message or (state ~= "" and state or "running"), -- 2942
-		progress = progress, -- 2943
-		jobId = jobId, -- 2944
-		gitState = state ~= "" and state or nil, -- 2945
-		gitKind = kind ~= "" and kind or nil -- 2946
-	}) -- 2946
-end -- 2925
-local function cloneGitToTarget(req) -- 2950
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2950
-		local parsed = parseGitCloneCommand(req.command) -- 2958
-		if parsed == nil then -- 2958
-			return ____awaiter_resolve(nil, nil) -- 2958
-		end -- 2958
-		if not parsed.success then -- 2958
-			return ____awaiter_resolve(nil, { -- 2958
-				success = false, -- 2961
-				mode = "git", -- 2961
-				output = "", -- 2961
-				message = parsed.message, -- 2961
-				phase = "validate" -- 2961
-			}) -- 2961
-		end -- 2961
-		local target = resolveWorkspaceFilePath(req.workDir, parsed.target) -- 2963
-		if not target then -- 2963
-			return ____awaiter_resolve(nil, { -- 2963
-				success = false, -- 2965
-				mode = "git", -- 2965
-				output = "", -- 2965
-				message = "invalid clone target path", -- 2965
-				phase = "validate" -- 2965
-			}) -- 2965
-		end -- 2965
-		if Content:exist(target) then -- 2965
-			return ____awaiter_resolve(nil, { -- 2965
-				success = false, -- 2968
-				mode = "git", -- 2968
-				output = "", -- 2968
-				message = "target already exists", -- 2968
-				phase = "validate" -- 2968
-			}) -- 2968
-		end -- 2968
-		local targetParent = Path:getPath(target) -- 2970
-		if not ensureDirPath(targetParent) then -- 2970
-			return ____awaiter_resolve(nil, {success = false, mode = "git", output = "", message = "failed to create target parent directory"}) -- 2970
-		end -- 2970
-		local tempRoot = getAgentDownloadTempRoot() -- 2974
-		if not ensureDirPath(tempRoot) then -- 2974
-			return ____awaiter_resolve(nil, {success = false, mode = "git", output = "", message = "failed to create agent download temp directory"}) -- 2974
-		end -- 2974
-		local tempPath = Path(tempRoot, req.operationId .. ".repo") -- 2978
-		Content:remove(tempPath) -- 2979
-		local depth = parsed.depth or "1" -- 2980
-		local ____array_46 = __TS__SparseArrayNew( -- 2980
-			"clone", -- 2982
-			quoteGitArg(parsed.url), -- 2983
-			quoteGitArg(Path:getFilename(tempPath)), -- 2984
-			table.unpack(parsed.ref ~= nil and parsed.ref ~= "" and ({ -- 2985
-				"-b", -- 2985
-				quoteGitArg(parsed.ref) -- 2985
-			}) or ({})) -- 2985
-		) -- 2985
-		__TS__SparseArrayPush( -- 2985
-			____array_46, -- 2985
-			table.unpack(depth ~= "" and ({ -- 2986
+	local data = status.data -- 2932
+	if data ~= nil then -- 2932
+		local dataText = encodeJSON(data) -- 2934
+		lines[#lines + 1] = dataText ~= nil and dataText or tostring(data) -- 2935
+	end -- 2935
+	return truncateCommandOutput(table.concat(lines, "\n")) -- 2937
+end -- 2920
+local function emitGitProgress(mode, operationId, onProgress, status) -- 2940
+	if not onProgress then -- 2940
+		return -- 2946
+	end -- 2946
+	local progress = type(status.progress) == "number" and status.progress or nil -- 2947
+	local kind = toStr(status.kind) -- 2948
+	local message = toStr(status.message) -- 2949
+	local state = toStr(status.state) -- 2950
+	local jobId = type(status.id) == "number" and status.id or nil -- 2951
+	onProgress({ -- 2952
+		state = "running", -- 2953
+		mode = mode, -- 2954
+		operationId = operationId, -- 2955
+		stage = kind ~= "" and kind or "git", -- 2956
+		message = message ~= "" and message or (state ~= "" and state or "running"), -- 2957
+		progress = progress, -- 2958
+		jobId = jobId, -- 2959
+		gitState = state ~= "" and state or nil, -- 2960
+		gitKind = kind ~= "" and kind or nil -- 2961
+	}) -- 2961
+end -- 2940
+local function cloneGitToTarget(req) -- 2965
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2965
+		local parsed = parseGitCloneCommand(req.command) -- 2973
+		if parsed == nil then -- 2973
+			return ____awaiter_resolve(nil, nil) -- 2973
+		end -- 2973
+		if not parsed.success then -- 2973
+			return ____awaiter_resolve(nil, { -- 2973
+				success = false, -- 2976
+				mode = "git", -- 2976
+				output = "", -- 2976
+				message = parsed.message, -- 2976
+				phase = "validate" -- 2976
+			}) -- 2976
+		end -- 2976
+		local target = resolveWorkspaceFilePath(req.workDir, parsed.target) -- 2978
+		if not target then -- 2978
+			return ____awaiter_resolve(nil, { -- 2978
+				success = false, -- 2980
+				mode = "git", -- 2980
+				output = "", -- 2980
+				message = "invalid clone target path", -- 2980
+				phase = "validate" -- 2980
+			}) -- 2980
+		end -- 2980
+		if Content:exist(target) then -- 2980
+			return ____awaiter_resolve(nil, { -- 2980
+				success = false, -- 2983
+				mode = "git", -- 2983
+				output = "", -- 2983
+				message = "target already exists", -- 2983
+				phase = "validate" -- 2983
+			}) -- 2983
+		end -- 2983
+		local targetParent = Path:getPath(target) -- 2985
+		if not ensureDirPath(targetParent) then -- 2985
+			return ____awaiter_resolve(nil, {success = false, mode = "git", output = "", message = "failed to create target parent directory"}) -- 2985
+		end -- 2985
+		local tempRoot = getAgentDownloadTempRoot() -- 2989
+		if not ensureDirPath(tempRoot) then -- 2989
+			return ____awaiter_resolve(nil, {success = false, mode = "git", output = "", message = "failed to create agent download temp directory"}) -- 2989
+		end -- 2989
+		local tempPath = Path(tempRoot, req.operationId .. ".repo") -- 2993
+		Content:remove(tempPath) -- 2994
+		local depth = parsed.depth or "1" -- 2995
+		local ____array_46 = __TS__SparseArrayNew( -- 2995
+			"clone", -- 2997
+			quoteGitArg(parsed.url), -- 2998
+			quoteGitArg(Path:getFilename(tempPath)), -- 2999
+			table.unpack(parsed.ref ~= nil and parsed.ref ~= "" and ({ -- 3000
+				"-b", -- 3000
+				quoteGitArg(parsed.ref) -- 3000
+			}) or ({})) -- 3000
+		) -- 3000
+		__TS__SparseArrayPush( -- 3000
+			____array_46, -- 3000
+			table.unpack(depth ~= "" and ({ -- 3001
 				"--depth",
-				quoteGitArg(depth) -- 2986
-			}) or ({})) -- 2986
-		) -- 2986
-		local command = table.concat( -- 2981
-			{__TS__SparseArraySpread(____array_46)}, -- 2981
-			" " -- 2987
-		) -- 2987
-		local ____this_48 -- 2987
-		____this_48 = req -- 2988
-		local ____opt_47 = ____this_48.onProgress -- 2988
-		if ____opt_47 ~= nil then -- 2988
-			____opt_47(____this_48, { -- 2988
-				state = "pending", -- 2989
-				mode = "git", -- 2990
-				operationId = req.operationId, -- 2991
-				stage = "clone", -- 2992
-				message = "clone pending", -- 2993
-				progress = 0 -- 2994
-			}) -- 2994
-		end -- 2994
-		local gitRes = __TS__Await(runGitAndWait( -- 2996
-			tempRoot, -- 2997
-			command, -- 2998
-			function(status) return emitGitProgress("git", req.operationId, req.onProgress, status) end, -- 2999
-			function() -- 3000
-				local ____this_50 -- 3000
-				____this_50 = req -- 3000
-				local ____opt_49 = ____this_50.isCancelled -- 3000
-				return (____opt_49 and ____opt_49(____this_50)) == true -- 3000
-			end, -- 3000
-			req.timeoutSeconds -- 3001
-		)) -- 3001
-		if not gitRes.success then -- 3001
-			local cleanupError = cleanupPath(tempPath) -- 3004
-			local ____formatGitStatusOutput_result_54 = formatGitStatusOutput(gitRes.status) -- 3008
-			local ____temp_55 = gitRes.message or "git clone failed" -- 3009
-			local ____gitRes_interrupted_53 = gitRes.interrupted -- 3010
-			if not ____gitRes_interrupted_53 then -- 3010
-				local ____this_52 -- 3010
-				____this_52 = req -- 3010
-				local ____opt_51 = ____this_52.isCancelled -- 3010
-				____gitRes_interrupted_53 = (____opt_51 and ____opt_51(____this_52)) == true -- 3010
-			end -- 3010
-			return ____awaiter_resolve(nil, { -- 3010
-				success = false, -- 3006
-				mode = "git", -- 3007
-				output = ____formatGitStatusOutput_result_54, -- 3008
-				message = ____temp_55, -- 3009
-				interrupted = ____gitRes_interrupted_53, -- 3010
-				cleanupError = cleanupError -- 3011
-			}) -- 3011
-		end -- 3011
-		if not Content:move(tempPath, target) then -- 3011
-			local cleanupError = cleanupPath(tempPath) -- 3015
-			return ____awaiter_resolve( -- 3015
-				nil, -- 3015
-				{ -- 3016
-					success = false, -- 3016
-					mode = "git", -- 3016
-					output = formatGitStatusOutput(gitRes.status), -- 3016
-					message = "failed to move cloned repository into target path", -- 3016
-					cleanupError = cleanupError -- 3016
-				} -- 3016
-			) -- 3016
-		end -- 3016
-		if not refreshProjectTree(req.workDir) then -- 3016
-			Log("Warn", "[execute_command] failed to refresh Web IDE tree after clone target=" .. target) -- 3019
-		end -- 3019
-		local commit = getGitHeadCommit(target) -- 3021
-		local output = table.concat( -- 3022
-			__TS__ArrayFilter( -- 3022
-				{ -- 3022
-					formatGitStatusOutput(gitRes.status), -- 3023
-					(("cloned " .. parsed.url) .. " to ") .. parsed.target, -- 3023
-					commit ~= nil and "commit " .. commit or "" -- 3025
-				}, -- 3025
-				function(____, item) return item ~= "" end -- 3026
-			), -- 3026
-			"\n" -- 3026
-		) -- 3026
-		return ____awaiter_resolve( -- 3026
-			nil, -- 3026
-			{ -- 3027
-				success = true, -- 3027
-				mode = "git", -- 3027
-				output = truncateCommandOutput(output) -- 3027
-			} -- 3027
-		) -- 3027
-	end) -- 3027
-end -- 2950
-local function loadGitProfile() -- 3030
-	local rows -- 3031
-	do -- 3031
-		local function ____catch() -- 3031
-			return true, nil -- 3035
-		end -- 3035
-		local ____try, ____hasReturned, ____returnValue = pcall(function() -- 3035
-			rows = DB:query("select name, email from GitProfile where id = 1 limit 1") -- 3033
-		end) -- 3033
-		if not ____try then -- 3033
-			____hasReturned, ____returnValue = ____catch() -- 3033
-		end -- 3033
-		if ____hasReturned then -- 3033
-			return ____returnValue -- 3032
-		end -- 3032
-	end -- 3032
-	if not rows or not rows[1] then -- 3032
-		return nil -- 3037
-	end -- 3037
-	local name = toStr(rows[1][1]) -- 3038
-	local email = toStr(rows[1][2]) -- 3039
-	if name == "" and email == "" then -- 3039
-		return nil -- 3040
-	end -- 3040
-	return {name = name, email = email} -- 3041
-end -- 3030
-local function applyGitProfileToCommit(command) -- 3044
-	local args = shellSplit(command) -- 3045
-	if args[1] ~= "commit" then -- 3045
-		return command -- 3046
-	end -- 3046
-	local hasName = false -- 3047
-	local hasEmail = false -- 3048
-	for ____, arg in ipairs(args) do -- 3049
-		if arg == "--author-name" then
-			hasName = true -- 3050
+				quoteGitArg(depth) -- 3001
+			}) or ({})) -- 3001
+		) -- 3001
+		local command = table.concat( -- 2996
+			{__TS__SparseArraySpread(____array_46)}, -- 2996
+			" " -- 3002
+		) -- 3002
+		local ____this_48 -- 3002
+		____this_48 = req -- 3003
+		local ____opt_47 = ____this_48.onProgress -- 3003
+		if ____opt_47 ~= nil then -- 3003
+			____opt_47(____this_48, { -- 3003
+				state = "pending", -- 3004
+				mode = "git", -- 3005
+				operationId = req.operationId, -- 3006
+				stage = "clone", -- 3007
+				message = "clone pending", -- 3008
+				progress = 0 -- 3009
+			}) -- 3009
+		end -- 3009
+		local gitRes = __TS__Await(runGitAndWait( -- 3011
+			tempRoot, -- 3012
+			command, -- 3013
+			function(status) return emitGitProgress("git", req.operationId, req.onProgress, status) end, -- 3014
+			function() -- 3015
+				local ____this_50 -- 3015
+				____this_50 = req -- 3015
+				local ____opt_49 = ____this_50.isCancelled -- 3015
+				return (____opt_49 and ____opt_49(____this_50)) == true -- 3015
+			end, -- 3015
+			req.timeoutSeconds -- 3016
+		)) -- 3016
+		if not gitRes.success then -- 3016
+			local cleanupError = cleanupPath(tempPath) -- 3019
+			local ____formatGitStatusOutput_result_54 = formatGitStatusOutput(gitRes.status) -- 3023
+			local ____temp_55 = gitRes.message or "git clone failed" -- 3024
+			local ____gitRes_interrupted_53 = gitRes.interrupted -- 3025
+			if not ____gitRes_interrupted_53 then -- 3025
+				local ____this_52 -- 3025
+				____this_52 = req -- 3025
+				local ____opt_51 = ____this_52.isCancelled -- 3025
+				____gitRes_interrupted_53 = (____opt_51 and ____opt_51(____this_52)) == true -- 3025
+			end -- 3025
+			return ____awaiter_resolve(nil, { -- 3025
+				success = false, -- 3021
+				mode = "git", -- 3022
+				output = ____formatGitStatusOutput_result_54, -- 3023
+				message = ____temp_55, -- 3024
+				interrupted = ____gitRes_interrupted_53, -- 3025
+				cleanupError = cleanupError -- 3026
+			}) -- 3026
+		end -- 3026
+		if not Content:move(tempPath, target) then -- 3026
+			local cleanupError = cleanupPath(tempPath) -- 3030
+			return ____awaiter_resolve( -- 3030
+				nil, -- 3030
+				{ -- 3031
+					success = false, -- 3031
+					mode = "git", -- 3031
+					output = formatGitStatusOutput(gitRes.status), -- 3031
+					message = "failed to move cloned repository into target path", -- 3031
+					cleanupError = cleanupError -- 3031
+				} -- 3031
+			) -- 3031
+		end -- 3031
+		if not refreshProjectTree(req.workDir) then -- 3031
+			Log("Warn", "[execute_command] failed to refresh Web IDE tree after clone target=" .. target) -- 3034
+		end -- 3034
+		local commit = getGitHeadCommit(target) -- 3036
+		local output = table.concat( -- 3037
+			__TS__ArrayFilter( -- 3037
+				{ -- 3037
+					formatGitStatusOutput(gitRes.status), -- 3038
+					(("cloned " .. parsed.url) .. " to ") .. parsed.target, -- 3038
+					commit ~= nil and "commit " .. commit or "" -- 3040
+				}, -- 3040
+				function(____, item) return item ~= "" end -- 3041
+			), -- 3041
+			"\n" -- 3041
+		) -- 3041
+		return ____awaiter_resolve( -- 3041
+			nil, -- 3041
+			{ -- 3042
+				success = true, -- 3042
+				mode = "git", -- 3042
+				output = truncateCommandOutput(output) -- 3042
+			} -- 3042
+		) -- 3042
+	end) -- 3042
+end -- 2965
+local function loadGitProfile() -- 3045
+	local rows -- 3046
+	do -- 3046
+		local function ____catch() -- 3046
+			return true, nil -- 3050
 		end -- 3050
-		if arg == "--author-email" then
-			hasEmail = true -- 3051
-		end -- 3051
-	end -- 3051
-	if hasName and hasEmail then -- 3051
-		return command -- 3053
-	end -- 3053
-	local profile = loadGitProfile() -- 3054
-	if not profile then -- 3054
-		return command -- 3055
+		local ____try, ____hasReturned, ____returnValue = pcall(function() -- 3050
+			rows = DB:query("select name, email from GitProfile where id = 1 limit 1") -- 3048
+		end) -- 3048
+		if not ____try then -- 3048
+			____hasReturned, ____returnValue = ____catch() -- 3048
+		end -- 3048
+		if ____hasReturned then -- 3048
+			return ____returnValue -- 3047
+		end -- 3047
+	end -- 3047
+	if not rows or not rows[1] then -- 3047
+		return nil -- 3052
+	end -- 3052
+	local name = toStr(rows[1][1]) -- 3053
+	local email = toStr(rows[1][2]) -- 3054
+	if name == "" and email == "" then -- 3054
+		return nil -- 3055
 	end -- 3055
-	local additions = {} -- 3056
-	if not hasName and profile.name ~= "" then -- 3056
-		__TS__ArrayPush( -- 3058
-			additions, -- 3058
-			"--author-name",
-			quoteGitArg(profile.name) -- 3058
-		) -- 3058
-	end -- 3058
-	if not hasEmail and profile.email ~= "" then -- 3058
-		__TS__ArrayPush( -- 3061
-			additions, -- 3061
-			"--author-email",
-			quoteGitArg(profile.email) -- 3061
-		) -- 3061
+	return {name = name, email = email} -- 3056
+end -- 3045
+local function applyGitProfileToCommit(command) -- 3059
+	local args = shellSplit(command) -- 3060
+	if args[1] ~= "commit" then -- 3060
+		return command -- 3061
 	end -- 3061
-	if #additions == 0 then -- 3061
-		return command -- 3063
-	end -- 3063
-	return (command .. " ") .. table.concat(additions, " ") -- 3064
-end -- 3044
-local function executeGitCommand(req) -- 3067
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3067
-		local command = normalizeGitCommand(req.command or "") -- 3076
-		if command == "" then -- 3076
-			return ____awaiter_resolve(nil, { -- 3076
-				success = false, -- 3078
-				mode = "git", -- 3078
-				output = "", -- 3078
-				message = "missing command", -- 3078
-				phase = "validate" -- 3078
-			}) -- 3078
-		end -- 3078
-		local cloneResult = __TS__Await(cloneGitToTarget({ -- 3080
-			workDir = req.workDir, -- 3081
-			command = command, -- 3082
-			operationId = req.operationId, -- 3083
-			timeoutSeconds = req.timeoutSeconds, -- 3084
-			onProgress = req.onProgress, -- 3085
-			isCancelled = req.isCancelled -- 3086
-		})) -- 3086
-		if cloneResult ~= nil then -- 3086
-			return ____awaiter_resolve(nil, cloneResult) -- 3086
-		end -- 3086
-		local cwd = resolveWorkspaceDirectoryPath(req.workDir, req.cwd) -- 3089
-		if not cwd.success then -- 3089
-			return ____awaiter_resolve(nil, { -- 3089
-				success = false, -- 3091
-				mode = "git", -- 3091
-				output = "", -- 3091
-				cwd = req.cwd, -- 3091
-				message = cwd.message, -- 3091
-				phase = "validate" -- 3091
-			}) -- 3091
-		end -- 3091
-		command = applyGitProfileToCommit(command) -- 3093
-		local ____this_57 -- 3093
-		____this_57 = req -- 3094
-		local ____opt_56 = ____this_57.onProgress -- 3094
-		if ____opt_56 ~= nil then -- 3094
-			____opt_56(____this_57, { -- 3094
-				state = "pending", -- 3095
-				mode = "git", -- 3096
-				operationId = req.operationId, -- 3097
-				stage = "git", -- 3098
-				message = "git command pending", -- 3099
-				progress = 0 -- 3100
-			}) -- 3100
-		end -- 3100
-		local gitRes = __TS__Await(runGitAndWait( -- 3102
-			cwd.path, -- 3103
-			command, -- 3104
-			function(status) return emitGitProgress("git", req.operationId, req.onProgress, status) end, -- 3105
-			function() -- 3106
-				local ____this_59 -- 3106
-				____this_59 = req -- 3106
-				local ____opt_58 = ____this_59.isCancelled -- 3106
-				return (____opt_58 and ____opt_58(____this_59)) == true -- 3106
-			end, -- 3106
-			req.timeoutSeconds -- 3107
-		)) -- 3107
-		local output = formatGitStatusOutput(gitRes.status) -- 3109
-		if not gitRes.success then -- 3109
-			local ____output_63 = output -- 3114
-			local ____cwd_relative_64 = cwd.relative -- 3115
-			local ____temp_65 = gitRes.message or "git command failed" -- 3116
-			local ____gitRes_interrupted_62 = gitRes.interrupted -- 3117
-			if not ____gitRes_interrupted_62 then -- 3117
-				local ____this_61 -- 3117
-				____this_61 = req -- 3117
-				local ____opt_60 = ____this_61.isCancelled -- 3117
-				____gitRes_interrupted_62 = (____opt_60 and ____opt_60(____this_61)) == true -- 3117
-			end -- 3117
-			return ____awaiter_resolve(nil, { -- 3117
-				success = false, -- 3112
-				mode = "git", -- 3113
-				output = ____output_63, -- 3114
-				cwd = ____cwd_relative_64, -- 3115
-				message = ____temp_65, -- 3116
-				interrupted = ____gitRes_interrupted_62 -- 3117
-			}) -- 3117
-		end -- 3117
-		return ____awaiter_resolve(nil, {success = true, mode = "git", cwd = cwd.relative, output = output}) -- 3117
-	end) -- 3117
-end -- 3067
-function ____exports.executeCommand(req) -- 3123
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3123
-		local mode = req.mode -- 3133
-		if mode ~= "lua" and mode ~= "git" then -- 3133
-			return ____awaiter_resolve(nil, {success = false, message = "mode must be lua or git", phase = "validate"}) -- 3133
-		end -- 3133
-		if mode == "lua" then -- 3133
-			return ____awaiter_resolve( -- 3133
-				nil, -- 3133
-				executeLuaCommand({ -- 3138
-					workDir = req.workDir, -- 3139
-					code = req.code or "", -- 3140
-					timeoutSeconds = math.max( -- 3141
-						1, -- 3141
-						math.floor(__TS__Number(req.timeoutSeconds or LUA_COMMAND_DEFAULT_TIMEOUT_SECONDS)) -- 3141
-					), -- 3141
-					operationId = createOperationId(), -- 3142
-					onProgress = req.onProgress, -- 3143
-					isCancelled = req.isCancelled -- 3144
-				}) -- 3144
-			) -- 3144
-		end -- 3144
-		local operationId = createOperationId() -- 3147
-		return ____awaiter_resolve( -- 3147
-			nil, -- 3147
-			executeGitCommand({ -- 3148
-				workDir = req.workDir, -- 3149
-				command = req.command or "", -- 3150
-				cwd = req.cwd, -- 3151
-				timeoutSeconds = math.max( -- 3152
-					1, -- 3152
-					math.floor(__TS__Number(req.timeoutSeconds or 600)) -- 3152
-				), -- 3152
-				operationId = operationId, -- 3153
-				onProgress = req.onProgress, -- 3154
-				isCancelled = req.isCancelled -- 3155
-			}) -- 3155
-		) -- 3155
-	end) -- 3155
-end -- 3123
-function ____exports.fetchUrl(req) -- 3159
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3159
-		local mode = "download" -- 3166
-		local url = __TS__StringTrim(req.url or "") -- 3167
-		local targetRel = __TS__StringTrim(req.target or "") -- 3168
-		if not isHttpUrl(url) then -- 3168
-			return ____awaiter_resolve(nil, { -- 3168
-				success = false, -- 3170
-				state = "failed", -- 3170
-				mode = mode, -- 3170
-				target = targetRel, -- 3170
-				message = "fetch_url only supports http:// and https:// URLs" -- 3170
-			}) -- 3170
-		end -- 3170
-		if targetRel == "" then -- 3170
-			return ____awaiter_resolve(nil, {success = false, state = "failed", mode = mode, message = "missing target"}) -- 3170
-		end -- 3170
-		local target = resolveWorkspaceFilePath(req.workDir, targetRel) -- 3175
-		if not target then -- 3175
-			return ____awaiter_resolve(nil, { -- 3175
-				success = false, -- 3177
-				state = "failed", -- 3177
-				mode = mode, -- 3177
-				target = targetRel, -- 3177
-				message = "invalid target path" -- 3177
-			}) -- 3177
-		end -- 3177
-		if Content:exist(target) then -- 3177
-			return ____awaiter_resolve(nil, { -- 3177
-				success = false, -- 3180
-				state = "failed", -- 3180
-				mode = mode, -- 3180
-				target = targetRel, -- 3180
-				message = "target already exists" -- 3180
-			}) -- 3180
-		end -- 3180
-		local operationId = createOperationId() -- 3182
-		local tempRoot = getAgentDownloadTempRoot() -- 3183
-		if not ensureDirPath(tempRoot) then -- 3183
-			return ____awaiter_resolve(nil, { -- 3183
-				success = false, -- 3185
-				state = "failed", -- 3185
-				mode = mode, -- 3185
-				target = targetRel, -- 3185
-				message = "failed to create agent download temp directory" -- 3185
-			}) -- 3185
-		end -- 3185
-		local tempPath = Path(tempRoot, operationId .. ".download") -- 3187
-		Content:remove(tempPath) -- 3188
-		local function emitProgress(progress) -- 3189
-			if not req.onProgress then -- 3189
-				return -- 3190
-			end -- 3190
-			req:onProgress(__TS__ObjectAssign({ -- 3191
-				state = "running", -- 3192
-				mode = mode, -- 3193
-				operationId = operationId, -- 3194
+	local hasName = false -- 3062
+	local hasEmail = false -- 3063
+	for ____, arg in ipairs(args) do -- 3064
+		if arg == "--author-name" then
+			hasName = true -- 3065
+		end -- 3065
+		if arg == "--author-email" then
+			hasEmail = true -- 3066
+		end -- 3066
+	end -- 3066
+	if hasName and hasEmail then -- 3066
+		return command -- 3068
+	end -- 3068
+	local profile = loadGitProfile() -- 3069
+	if not profile then -- 3069
+		return command -- 3070
+	end -- 3070
+	local additions = {} -- 3071
+	if not hasName and profile.name ~= "" then -- 3071
+		__TS__ArrayPush( -- 3073
+			additions, -- 3073
+			"--author-name",
+			quoteGitArg(profile.name) -- 3073
+		) -- 3073
+	end -- 3073
+	if not hasEmail and profile.email ~= "" then -- 3073
+		__TS__ArrayPush( -- 3076
+			additions, -- 3076
+			"--author-email",
+			quoteGitArg(profile.email) -- 3076
+		) -- 3076
+	end -- 3076
+	if #additions == 0 then -- 3076
+		return command -- 3078
+	end -- 3078
+	return (command .. " ") .. table.concat(additions, " ") -- 3079
+end -- 3059
+local function executeGitCommand(req) -- 3082
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3082
+		local command = normalizeGitCommand(req.command or "") -- 3091
+		if command == "" then -- 3091
+			return ____awaiter_resolve(nil, { -- 3091
+				success = false, -- 3093
+				mode = "git", -- 3093
+				output = "", -- 3093
+				message = "missing command", -- 3093
+				phase = "validate" -- 3093
+			}) -- 3093
+		end -- 3093
+		local cloneResult = __TS__Await(cloneGitToTarget({ -- 3095
+			workDir = req.workDir, -- 3096
+			command = command, -- 3097
+			operationId = req.operationId, -- 3098
+			timeoutSeconds = req.timeoutSeconds, -- 3099
+			onProgress = req.onProgress, -- 3100
+			isCancelled = req.isCancelled -- 3101
+		})) -- 3101
+		if cloneResult ~= nil then -- 3101
+			return ____awaiter_resolve(nil, cloneResult) -- 3101
+		end -- 3101
+		local cwd = resolveWorkspaceDirectoryPath(req.workDir, req.cwd) -- 3104
+		if not cwd.success then -- 3104
+			return ____awaiter_resolve(nil, { -- 3104
+				success = false, -- 3106
+				mode = "git", -- 3106
+				output = "", -- 3106
+				cwd = req.cwd, -- 3106
+				message = cwd.message, -- 3106
+				phase = "validate" -- 3106
+			}) -- 3106
+		end -- 3106
+		command = applyGitProfileToCommit(command) -- 3108
+		local ____this_57 -- 3108
+		____this_57 = req -- 3109
+		local ____opt_56 = ____this_57.onProgress -- 3109
+		if ____opt_56 ~= nil then -- 3109
+			____opt_56(____this_57, { -- 3109
+				state = "pending", -- 3110
+				mode = "git", -- 3111
+				operationId = req.operationId, -- 3112
+				stage = "git", -- 3113
+				message = "git command pending", -- 3114
+				progress = 0 -- 3115
+			}) -- 3115
+		end -- 3115
+		local gitRes = __TS__Await(runGitAndWait( -- 3117
+			cwd.path, -- 3118
+			command, -- 3119
+			function(status) return emitGitProgress("git", req.operationId, req.onProgress, status) end, -- 3120
+			function() -- 3121
+				local ____this_59 -- 3121
+				____this_59 = req -- 3121
+				local ____opt_58 = ____this_59.isCancelled -- 3121
+				return (____opt_58 and ____opt_58(____this_59)) == true -- 3121
+			end, -- 3121
+			req.timeoutSeconds -- 3122
+		)) -- 3122
+		local output = formatGitStatusOutput(gitRes.status) -- 3124
+		if not gitRes.success then -- 3124
+			local ____output_63 = output -- 3129
+			local ____cwd_relative_64 = cwd.relative -- 3130
+			local ____temp_65 = gitRes.message or "git command failed" -- 3131
+			local ____gitRes_interrupted_62 = gitRes.interrupted -- 3132
+			if not ____gitRes_interrupted_62 then -- 3132
+				local ____this_61 -- 3132
+				____this_61 = req -- 3132
+				local ____opt_60 = ____this_61.isCancelled -- 3132
+				____gitRes_interrupted_62 = (____opt_60 and ____opt_60(____this_61)) == true -- 3132
+			end -- 3132
+			return ____awaiter_resolve(nil, { -- 3132
+				success = false, -- 3127
+				mode = "git", -- 3128
+				output = ____output_63, -- 3129
+				cwd = ____cwd_relative_64, -- 3130
+				message = ____temp_65, -- 3131
+				interrupted = ____gitRes_interrupted_62 -- 3132
+			}) -- 3132
+		end -- 3132
+		if not refreshProjectTree(req.workDir) then -- 3132
+			Log("Warn", (("[execute_command] failed to refresh Web IDE tree after Git command workDir=" .. req.workDir) .. " cwd=") .. cwd.relative) -- 3136
+		end -- 3136
+		return ____awaiter_resolve(nil, {success = true, mode = "git", cwd = cwd.relative, output = output}) -- 3136
+	end) -- 3136
+end -- 3082
+function ____exports.executeCommand(req) -- 3141
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3141
+		local mode = req.mode -- 3151
+		if mode ~= "lua" and mode ~= "git" then -- 3151
+			return ____awaiter_resolve(nil, {success = false, message = "mode must be lua or git", phase = "validate"}) -- 3151
+		end -- 3151
+		if mode == "lua" then -- 3151
+			return ____awaiter_resolve( -- 3151
+				nil, -- 3151
+				executeLuaCommand({ -- 3156
+					workDir = req.workDir, -- 3157
+					code = req.code or "", -- 3158
+					timeoutSeconds = math.max( -- 3159
+						1, -- 3159
+						math.floor(__TS__Number(req.timeoutSeconds or LUA_COMMAND_DEFAULT_TIMEOUT_SECONDS)) -- 3159
+					), -- 3159
+					operationId = createOperationId(), -- 3160
+					onProgress = req.onProgress, -- 3161
+					isCancelled = req.isCancelled -- 3162
+				}) -- 3162
+			) -- 3162
+		end -- 3162
+		local operationId = createOperationId() -- 3165
+		return ____awaiter_resolve( -- 3165
+			nil, -- 3165
+			executeGitCommand({ -- 3166
+				workDir = req.workDir, -- 3167
+				command = req.command or "", -- 3168
+				cwd = req.cwd, -- 3169
+				timeoutSeconds = math.max( -- 3170
+					1, -- 3170
+					math.floor(__TS__Number(req.timeoutSeconds or 600)) -- 3170
+				), -- 3170
+				operationId = operationId, -- 3171
+				onProgress = req.onProgress, -- 3172
+				isCancelled = req.isCancelled -- 3173
+			}) -- 3173
+		) -- 3173
+	end) -- 3173
+end -- 3141
+function ____exports.fetchUrl(req) -- 3177
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3177
+		local mode = "download" -- 3184
+		local url = __TS__StringTrim(req.url or "") -- 3185
+		local targetRel = __TS__StringTrim(req.target or "") -- 3186
+		if not isHttpUrl(url) then -- 3186
+			return ____awaiter_resolve(nil, { -- 3186
+				success = false, -- 3188
+				state = "failed", -- 3188
+				mode = mode, -- 3188
+				target = targetRel, -- 3188
+				message = "fetch_url only supports http:// and https:// URLs" -- 3188
+			}) -- 3188
+		end -- 3188
+		if targetRel == "" then -- 3188
+			return ____awaiter_resolve(nil, {success = false, state = "failed", mode = mode, message = "missing target"}) -- 3188
+		end -- 3188
+		local target = resolveWorkspaceFilePath(req.workDir, targetRel) -- 3193
+		if not target then -- 3193
+			return ____awaiter_resolve(nil, { -- 3193
+				success = false, -- 3195
+				state = "failed", -- 3195
+				mode = mode, -- 3195
 				target = targetRel, -- 3195
-				tempPath = tempPath -- 3196
-			}, progress)) -- 3196
-		end -- 3189
-		emitProgress({state = "pending", message = "download pending", stage = "download"}) -- 3200
-		local function interrupted() -- 3205
-			local ____this_67 -- 3205
-			____this_67 = req -- 3205
-			local ____opt_66 = ____this_67.isCancelled -- 3205
-			return (____opt_66 and ____opt_66(____this_67)) == true -- 3205
-		end -- 3205
-		if not ensureDirForFile(tempPath) then -- 3205
-			return ____awaiter_resolve(nil, { -- 3205
-				success = false, -- 3207
-				state = "failed", -- 3207
-				mode = mode, -- 3207
-				target = targetRel, -- 3207
-				message = "failed to create temporary file directory" -- 3207
-			}) -- 3207
+				message = "invalid target path" -- 3195
+			}) -- 3195
+		end -- 3195
+		if Content:exist(target) then -- 3195
+			return ____awaiter_resolve(nil, { -- 3195
+				success = false, -- 3198
+				state = "failed", -- 3198
+				mode = mode, -- 3198
+				target = targetRel, -- 3198
+				message = "target already exists" -- 3198
+			}) -- 3198
+		end -- 3198
+		local operationId = createOperationId() -- 3200
+		local tempRoot = getAgentDownloadTempRoot() -- 3201
+		if not ensureDirPath(tempRoot) then -- 3201
+			return ____awaiter_resolve(nil, { -- 3201
+				success = false, -- 3203
+				state = "failed", -- 3203
+				mode = mode, -- 3203
+				target = targetRel, -- 3203
+				message = "failed to create agent download temp directory" -- 3203
+			}) -- 3203
+		end -- 3203
+		local tempPath = Path(tempRoot, operationId .. ".download") -- 3205
+		Content:remove(tempPath) -- 3206
+		local function emitProgress(progress) -- 3207
+			if not req.onProgress then -- 3207
+				return -- 3208
+			end -- 3208
+			req:onProgress(__TS__ObjectAssign({ -- 3209
+				state = "running", -- 3210
+				mode = mode, -- 3211
+				operationId = operationId, -- 3212
+				target = targetRel, -- 3213
+				tempPath = tempPath -- 3214
+			}, progress)) -- 3214
 		end -- 3207
-		local downloadRes = __TS__Await(downloadFile({ -- 3209
-			url = url, -- 3210
-			tempPath = tempPath, -- 3211
-			timeout = 600, -- 3212
-			isCancelled = interrupted, -- 3213
-			onProgress = function(____, current, total) -- 3214
-				local totalNumber = type(total) == "number" and total or 0 -- 3215
-				emitProgress({ -- 3216
-					stage = "download", -- 3217
-					message = "downloading", -- 3218
-					current = current, -- 3219
-					total = total, -- 3220
-					progress = totalNumber > 0 and current / totalNumber or nil -- 3221
-				}) -- 3221
-			end -- 3214
-		})) -- 3214
-		if not downloadRes.success then -- 3214
-			local cleanupError = cleanupPath(tempPath) -- 3226
-			return ____awaiter_resolve( -- 3226
-				nil, -- 3226
-				{ -- 3227
-					success = false, -- 3228
-					state = "failed", -- 3229
-					mode = mode, -- 3230
-					target = targetRel, -- 3231
-					message = interrupted() and "download canceled" or (downloadRes.message or "download failed"), -- 3232
-					interrupted = downloadRes.interrupted or interrupted(), -- 3233
-					cleanupError = cleanupError -- 3234
-				} -- 3234
-			) -- 3234
-		end -- 3234
-		if not ensureDirForFile(target) then -- 3234
-			local cleanupError = cleanupPath(tempPath) -- 3238
-			return ____awaiter_resolve(nil, { -- 3238
-				success = false, -- 3239
-				state = "failed", -- 3239
-				mode = mode, -- 3239
-				target = targetRel, -- 3239
-				message = "failed to create target directory", -- 3239
-				cleanupError = cleanupError -- 3239
-			}) -- 3239
-		end -- 3239
-		if not Content:move(tempPath, target) then -- 3239
-			local cleanupError = cleanupPath(tempPath) -- 3242
-			return ____awaiter_resolve(nil, { -- 3242
-				success = false, -- 3243
-				state = "failed", -- 3243
-				mode = mode, -- 3243
-				target = targetRel, -- 3243
-				message = "failed to move downloaded file into target path", -- 3243
-				cleanupError = cleanupError -- 3243
-			}) -- 3243
-		end -- 3243
-		local bytesWritten = downloadRes.bytesWritten -- 3245
-		local ____try = __TS__AsyncAwaiter(function() -- 3245
-			local size = Content:getAttr(target) -- 3247
-			if bytesWritten == nil or bytesWritten <= 0 then -- 3247
-				bytesWritten = type(size) == "number" and size or nil -- 3249
-			end -- 3249
-		end) -- 3249
-		____try = ____try.catch( -- 3249
-			____try, -- 3249
-			function(____, _) -- 3249
-				return __TS__AsyncAwaiter(function() -- 3249
-				end) -- 3249
-			end -- 3249
-		) -- 3249
-		__TS__Await(____try) -- 3246
-		if bytesWritten == nil or bytesWritten <= 0 then -- 3246
-			local ____try = __TS__AsyncAwaiter(function() -- 3246
-				local loaded = Content:load(target) -- 3256
-				if type(loaded) == "string" then -- 3256
-					bytesWritten = #loaded -- 3258
-				end -- 3258
-			end) -- 3258
-			____try = ____try.catch( -- 3258
-				____try, -- 3258
-				function(____, _) -- 3258
-					return __TS__AsyncAwaiter(function() -- 3258
-					end) -- 3258
-				end -- 3258
-			) -- 3258
-			__TS__Await(____try) -- 3255
-		end -- 3255
-		if not syncDownloadedFileToWebIDE(target) then -- 3255
-			Log("Warn", "[fetch_url] failed to sync downloaded file update target=" .. target) -- 3265
-		end -- 3265
-		return ____awaiter_resolve(nil, { -- 3265
-			success = true, -- 3267
-			state = "done", -- 3267
-			mode = mode, -- 3267
-			target = targetRel, -- 3267
-			bytesWritten = bytesWritten -- 3267
-		}) -- 3267
-	end) -- 3267
-end -- 3159
-return ____exports -- 3159
+		emitProgress({state = "pending", message = "download pending", stage = "download"}) -- 3218
+		local function interrupted() -- 3223
+			local ____this_67 -- 3223
+			____this_67 = req -- 3223
+			local ____opt_66 = ____this_67.isCancelled -- 3223
+			return (____opt_66 and ____opt_66(____this_67)) == true -- 3223
+		end -- 3223
+		if not ensureDirForFile(tempPath) then -- 3223
+			return ____awaiter_resolve(nil, { -- 3223
+				success = false, -- 3225
+				state = "failed", -- 3225
+				mode = mode, -- 3225
+				target = targetRel, -- 3225
+				message = "failed to create temporary file directory" -- 3225
+			}) -- 3225
+		end -- 3225
+		local downloadRes = __TS__Await(downloadFile({ -- 3227
+			url = url, -- 3228
+			tempPath = tempPath, -- 3229
+			timeout = 600, -- 3230
+			isCancelled = interrupted, -- 3231
+			onProgress = function(____, current, total) -- 3232
+				local totalNumber = type(total) == "number" and total or 0 -- 3233
+				emitProgress({ -- 3234
+					stage = "download", -- 3235
+					message = "downloading", -- 3236
+					current = current, -- 3237
+					total = total, -- 3238
+					progress = totalNumber > 0 and current / totalNumber or nil -- 3239
+				}) -- 3239
+			end -- 3232
+		})) -- 3232
+		if not downloadRes.success then -- 3232
+			local cleanupError = cleanupPath(tempPath) -- 3244
+			return ____awaiter_resolve( -- 3244
+				nil, -- 3244
+				{ -- 3245
+					success = false, -- 3246
+					state = "failed", -- 3247
+					mode = mode, -- 3248
+					target = targetRel, -- 3249
+					message = interrupted() and "download canceled" or (downloadRes.message or "download failed"), -- 3250
+					interrupted = downloadRes.interrupted or interrupted(), -- 3251
+					cleanupError = cleanupError -- 3252
+				} -- 3252
+			) -- 3252
+		end -- 3252
+		if not ensureDirForFile(target) then -- 3252
+			local cleanupError = cleanupPath(tempPath) -- 3256
+			return ____awaiter_resolve(nil, { -- 3256
+				success = false, -- 3257
+				state = "failed", -- 3257
+				mode = mode, -- 3257
+				target = targetRel, -- 3257
+				message = "failed to create target directory", -- 3257
+				cleanupError = cleanupError -- 3257
+			}) -- 3257
+		end -- 3257
+		if not Content:move(tempPath, target) then -- 3257
+			local cleanupError = cleanupPath(tempPath) -- 3260
+			return ____awaiter_resolve(nil, { -- 3260
+				success = false, -- 3261
+				state = "failed", -- 3261
+				mode = mode, -- 3261
+				target = targetRel, -- 3261
+				message = "failed to move downloaded file into target path", -- 3261
+				cleanupError = cleanupError -- 3261
+			}) -- 3261
+		end -- 3261
+		local bytesWritten = downloadRes.bytesWritten -- 3263
+		local ____try = __TS__AsyncAwaiter(function() -- 3263
+			local size = Content:getAttr(target) -- 3265
+			if bytesWritten == nil or bytesWritten <= 0 then -- 3265
+				bytesWritten = type(size) == "number" and size or nil -- 3267
+			end -- 3267
+		end) -- 3267
+		____try = ____try.catch( -- 3267
+			____try, -- 3267
+			function(____, _) -- 3267
+				return __TS__AsyncAwaiter(function() -- 3267
+				end) -- 3267
+			end -- 3267
+		) -- 3267
+		__TS__Await(____try) -- 3264
+		if bytesWritten == nil or bytesWritten <= 0 then -- 3264
+			local ____try = __TS__AsyncAwaiter(function() -- 3264
+				local loaded = Content:load(target) -- 3274
+				if type(loaded) == "string" then -- 3274
+					bytesWritten = #loaded -- 3276
+				end -- 3276
+			end) -- 3276
+			____try = ____try.catch( -- 3276
+				____try, -- 3276
+				function(____, _) -- 3276
+					return __TS__AsyncAwaiter(function() -- 3276
+					end) -- 3276
+				end -- 3276
+			) -- 3276
+			__TS__Await(____try) -- 3273
+		end -- 3273
+		if not syncDownloadedFileToWebIDE(target) then -- 3273
+			Log("Warn", "[fetch_url] failed to sync downloaded file update target=" .. target) -- 3283
+		end -- 3283
+		return ____awaiter_resolve(nil, { -- 3283
+			success = true, -- 3285
+			state = "done", -- 3285
+			mode = mode, -- 3285
+			target = targetRel, -- 3285
+			bytesWritten = bytesWritten -- 3285
+		}) -- 3285
+	end) -- 3285
+end -- 3177
+return ____exports -- 3177

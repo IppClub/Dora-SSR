@@ -626,8 +626,8 @@ export interface EntryListResponse {
 	games: EntryLaunchInfo[];
 	tools: EntryLaunchInfo[];
 };
-export const entryList = () => {
-	return post<EntryListResponse>("/entry/list");
+export const entryList = (refresh = false) => {
+	return post<EntryListResponse>("/entry/list", { refresh });
 };
 
 // Info
