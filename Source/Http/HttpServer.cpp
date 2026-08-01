@@ -21,6 +21,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Event/Listener.h"
 #include "Support/Dictionary.h"
 #include "Support/Value.h"
+#include "Test/Test.h"
 
 #define XRT_NO_SUBPROCESS
 #define XRT_NO_LOGGER
@@ -53,6 +54,8 @@ extern "C" {
 
 #include "yuescript/parser.hpp"
 
+#include "zlib.h"
+
 #if BX_PLATFORM_LINUX
 #include <limits.h>
 #include <unistd.h>
@@ -68,11 +71,13 @@ namespace fs = std::filesystem;
 #endif // BX_PLATFORM_LINUX
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <charconv>
 #include <chrono>
 #include <condition_variable>
 #include <cstdlib>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -887,6 +892,174 @@ static const char* content_type_for_path(const std::string& path) {
 	return it == types.end() ? "application/octet-stream" : it->second;
 }
 
+static bool is_compressible_content_type(std::string_view contentType) {
+	auto separator = contentType.find(';');
+	auto mimeType = contentType.substr(0, separator);
+	if (mimeType.rfind("text/", 0) == 0) return mimeType != "text/event-stream"sv;
+	return mimeType == "image/svg+xml"sv
+		|| mimeType == "application/javascript"sv
+		|| mimeType == "application/x-javascript"sv
+		|| mimeType == "application/json"sv
+		|| mimeType == "application/ld+json"sv
+		|| mimeType == "application/xml"sv
+		|| mimeType == "application/xhtml+xml"sv
+		|| mimeType == "application/rss+xml"sv
+		|| mimeType == "application/atom+xml"sv
+		|| mimeType == "application/xslt+xml"sv
+		|| mimeType == "application/protobuf"sv;
+}
+
+static std::string_view trim_http_token(std::string_view value) {
+	while (!value.empty() && (value.front() == ' ' || value.front() == '\t')) value.remove_prefix(1);
+	while (!value.empty() && (value.back() == ' ' || value.back() == '\t')) value.remove_suffix(1);
+	return value;
+}
+
+static bool token_equals_ignore_case(std::string_view left, std::string_view right) {
+	return left.size() == right.size() && std::equal(left.begin(), left.end(), right.begin(), [](char a, char b) {
+		return std::tolower(s_cast<unsigned char>(a)) == std::tolower(s_cast<unsigned char>(b));
+	});
+}
+
+static std::optional<double> content_coding_quality(std::string_view value) {
+	double quality = 1.0;
+	auto separator = value.find(';');
+	while (separator != std::string_view::npos) {
+		value.remove_prefix(separator + 1);
+		separator = value.find(';');
+		auto parameter = trim_http_token(value.substr(0, separator));
+		auto equal = parameter.find('=');
+		if (equal == std::string_view::npos || !token_equals_ignore_case(trim_http_token(parameter.substr(0, equal)), "q"sv)) continue;
+		auto qualityText = trim_http_token(parameter.substr(equal + 1));
+		if (qualityText.empty()) return std::nullopt;
+		std::string text(qualityText);
+		char* end = nullptr;
+		quality = std::strtod(text.c_str(), &end);
+		if (end != text.c_str() + text.size() || quality < 0.0 || quality > 1.0) return std::nullopt;
+		break;
+	}
+	return quality;
+}
+
+static bool accepts_gzip_header(std::string_view value) {
+	std::optional<double> gzipQuality;
+	std::optional<double> wildcardQuality;
+	while (!value.empty()) {
+		auto comma = value.find(',');
+		auto item = trim_http_token(value.substr(0, comma));
+		auto separator = item.find(';');
+		auto coding = trim_http_token(item.substr(0, separator));
+		if (auto quality = content_coding_quality(item)) {
+			if (token_equals_ignore_case(coding, "gzip"sv)) gzipQuality = *quality;
+			else if (coding == "*"sv) wildcardQuality = *quality;
+		}
+		if (comma == std::string_view::npos) break;
+		value.remove_prefix(comma + 1);
+	}
+	return gzipQuality.value_or(wildcardQuality.value_or(0.0)) > 0.0;
+}
+
+static bool accepts_gzip(const HttpServer::Request& request) {
+	auto header = find_header(request, "Accept-Encoding"_slice);
+	return header && accepts_gzip_header({header->rawData(), header->size()});
+}
+
+static std::optional<std::string> gzip_compress(std::string_view content) {
+	z_stream stream{};
+	if (deflateInit2(&stream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, MAX_WBITS + 16, 8, Z_DEFAULT_STRATEGY) != Z_OK) return std::nullopt;
+	std::string compressed;
+	compressed.reserve(content.size() / 2);
+	std::array<unsigned char, 64 * 1024> buffer{};
+	size_t offset = 0;
+	int result = Z_OK;
+	while (result != Z_STREAM_END) {
+		if (stream.avail_in == 0 && offset < content.size()) {
+			auto length = std::min(content.size() - offset, s_cast<size_t>(std::numeric_limits<uInt>::max()));
+			stream.next_in = r_cast<Bytef*>(const_cast<char*>(content.data() + offset));
+			stream.avail_in = s_cast<uInt>(length);
+			offset += length;
+		}
+		stream.next_out = buffer.data();
+		stream.avail_out = s_cast<uInt>(buffer.size());
+		result = deflate(&stream, offset == content.size() ? Z_FINISH : Z_NO_FLUSH);
+		if (result != Z_OK && result != Z_STREAM_END) {
+			deflateEnd(&stream);
+			return std::nullopt;
+		}
+		compressed.append(r_cast<const char*>(buffer.data()), buffer.size() - stream.avail_out);
+	}
+	deflateEnd(&stream);
+	return compressed;
+}
+
+struct StaticContent {
+	std::string data;
+	bool gzipEncoded = false;
+};
+
+#if DORA_TEST
+static std::optional<std::string> gzip_decompress(std::string_view content) {
+	z_stream stream{};
+	if (inflateInit2(&stream, MAX_WBITS + 16) != Z_OK) return std::nullopt;
+	std::string decompressed;
+	std::array<unsigned char, 64 * 1024> buffer{};
+	size_t offset = 0;
+	int result = Z_OK;
+	while (result != Z_STREAM_END) {
+		if (stream.avail_in == 0 && offset < content.size()) {
+			auto length = std::min(content.size() - offset, s_cast<size_t>(std::numeric_limits<uInt>::max()));
+			stream.next_in = r_cast<Bytef*>(const_cast<char*>(content.data() + offset));
+			stream.avail_in = s_cast<uInt>(length);
+			offset += length;
+		}
+		stream.next_out = buffer.data();
+		stream.avail_out = s_cast<uInt>(buffer.size());
+		result = inflate(&stream, Z_NO_FLUSH);
+		if (result != Z_OK && result != Z_STREAM_END) {
+			inflateEnd(&stream);
+			return std::nullopt;
+		}
+		decompressed.append(r_cast<const char*>(buffer.data()), buffer.size() - stream.avail_out);
+	}
+	inflateEnd(&stream);
+	return decompressed;
+}
+
+DORA_TEST_ENTRY(HttpCompressionCpp) {
+	auto check = [](bool condition, String message) {
+		if (!condition) LogError(fmt::format("HttpCompressionCpp: {}", message.toString()));
+		return condition;
+	};
+	bool passed = true;
+	passed &= check(is_compressible_content_type("text/javascript; charset=utf-8"sv), "JavaScript should be compressible"_slice);
+	passed &= check(is_compressible_content_type("application/json"sv), "JSON should be compressible"_slice);
+	passed &= check(is_compressible_content_type("image/svg+xml"sv), "SVG should be compressible"_slice);
+	passed &= check(!is_compressible_content_type("text/event-stream"sv), "event streams should not be compressed"_slice);
+	passed &= check(!is_compressible_content_type("image/png"sv), "PNG should not be compressed"_slice);
+	passed &= check(!is_compressible_content_type("application/wasm"sv), "Wasm should not be compressed"_slice);
+
+	passed &= check(accepts_gzip_header("gzip"sv), "gzip token should be accepted"_slice);
+	passed &= check(accepts_gzip_header("br, GZip; q=0.5"sv), "gzip token matching should ignore case"_slice);
+	passed &= check(accepts_gzip_header("br; q=1, *; q=0.25"sv), "positive wildcard should accept gzip"_slice);
+	passed &= check(!accepts_gzip_header("gzip; q=0"sv), "q=0 should reject gzip"_slice);
+	passed &= check(!accepts_gzip_header("*;q=1, gzip;q=0"sv), "explicit gzip rejection should override wildcard"_slice);
+	passed &= check(!accepts_gzip_header("gzip;q=invalid"sv), "invalid gzip quality should be rejected"_slice);
+	passed &= check(!accepts_gzip_header("br, deflate"sv), "unsupported encodings should not enable gzip"_slice);
+
+	std::string original;
+	for (int i = 0; i < 4096; ++i) original += "Dora SSR xrt gzip response test.\n";
+	auto compressed = gzip_compress(original);
+	passed &= check(compressed.has_value(), "gzip compression should succeed"_slice);
+	if (compressed) {
+		passed &= check(compressed->size() < original.size(), "compressible data should become smaller"_slice);
+		passed &= check(compressed->size() >= 2 && s_cast<unsigned char>((*compressed)[0]) == 0x1f && s_cast<unsigned char>((*compressed)[1]) == 0x8b, "output should have a gzip header"_slice);
+		auto decompressed = gzip_decompress(*compressed);
+		passed &= check(decompressed && *decompressed == original, "gzip output should round-trip exactly"_slice);
+	}
+	return passed;
+}
+#endif // DORA_TEST
+
 enum class RangeParseResult {
 	None,
 	Valid,
@@ -992,33 +1165,46 @@ bool HttpServer::start(int port) {
 				}
 				if (!found) return false;
 			}
-			auto pending = std::make_shared<PendingLogicResult<std::string>>();
-			SharedContent.getThread()->run([pending, file = decodedPath]() {
-				if (!pending->isCancelled()) pending->complete(SharedContent.loadUnsafe(file));
+			const auto* contentType = content_type_for_path(decodedPath);
+			const bool compressible = is_compressible_content_type(contentType);
+			const bool useGzip = compressible && !find_header(request, "Range"_slice) && accepts_gzip(request);
+			auto pending = std::make_shared<PendingLogicResult<StaticContent>>();
+			SharedContent.getThread()->run([pending, file = decodedPath, useGzip]() {
+				if (pending->isCancelled()) return;
+				StaticContent result{SharedContent.loadUnsafe(file)};
+				if (useGzip && !result.data.empty()) {
+					if (auto compressed = gzip_compress(result.data); compressed && compressed->size() < result.data.size()) {
+						result.data = std::move(*compressed);
+						result.gzipEncoded = true;
+					}
+				}
+				if (!pending->isCancelled()) pending->complete(std::move(result));
 			});
 			auto content = pending->wait(self->_stopping, self->_generation, requestGeneration);
 			if (!content) {
 				set_service_unavailable(nativeResponse);
 				return true;
 			}
-			if (content->empty()) return false;
-			xrtHttpdResponseSetHeader(nativeResponse, "Content-Type", content_type_for_path(decodedPath));
+			if (content->data.empty()) return false;
+			xrtHttpdResponseSetHeader(nativeResponse, "Content-Type", contentType);
+			if (compressible) xrtHttpdResponseSetHeader(nativeResponse, "Vary", "Accept-Encoding");
+			if (content->gzipEncoded) xrtHttpdResponseSetHeader(nativeResponse, "Content-Encoding", "gzip");
 			auto cacheControl = self->getStaticCacheControl(requestPath);
 			if (!cacheControl.empty()) xrtHttpdResponseSetHeader(nativeResponse, "Cache-Control", cacheControl.c_str());
 			xrtHttpdResponseSetHeader(nativeResponse, "Accept-Ranges", "bytes");
 			ByteRange range;
-			auto rangeResult = parse_byte_range(request, content->size(), range);
+			auto rangeResult = parse_byte_range(request, content->data.size(), range);
 			if (rangeResult == RangeParseResult::Unsatisfiable) {
-				auto contentRange = fmt::format("bytes */{}", content->size());
+				auto contentRange = fmt::format("bytes */{}", content->data.size());
 				xrtHttpdResponseSetHeader(nativeResponse, "Content-Range", contentRange.c_str());
 				set_response(nativeResponse, 416, {}, {});
 				return true;
 			}
 			auto first = rangeResult == RangeParseResult::Valid ? range.first : 0;
-			auto last = rangeResult == RangeParseResult::Valid ? range.last : content->size() - 1;
+			auto last = rangeResult == RangeParseResult::Valid ? range.last : content->data.size() - 1;
 			auto length = last - first + 1;
 			if (rangeResult == RangeParseResult::Valid) {
-				auto contentRange = fmt::format("bytes {}-{}/{}", first, last, content->size());
+				auto contentRange = fmt::format("bytes {}-{}/{}", first, last, content->data.size());
 				xrtHttpdResponseSetHeader(nativeResponse, "Content-Range", contentRange.c_str());
 			}
 			xrtHttpdResponseSetStatus(nativeResponse, rangeResult == RangeParseResult::Valid ? 206u : 200u, nullptr);
@@ -1026,7 +1212,7 @@ bool HttpServer::start(int port) {
 				auto contentLength = std::to_string(length);
 				xrtHttpdResponseSetHeader(nativeResponse, "Content-Length", contentLength.c_str());
 			} else {
-				xrtHttpdResponseSetBodyCopy(nativeResponse, content->data() + first, length, nullptr);
+				xrtHttpdResponseSetBodyCopy(nativeResponse, content->data.data() + first, length, nullptr);
 			}
 			return true;
 		}
