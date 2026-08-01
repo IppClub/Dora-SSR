@@ -10,8 +10,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <chrono>
 #include <atomic>
+#include <memory>
 #include <mutex>
 #include <regex>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -148,7 +150,13 @@ protected:
 	HttpClient();
 
 private:
-	Async* _downloadThread;
+	struct DownloadWorker {
+		std::thread thread;
+		std::shared_ptr<std::atomic_bool> completed;
+	};
+	void reapDownloadWorkers(bool all);
+	std::mutex _downloadWorkersMutex;
+	std::vector<DownloadWorker> _downloadWorkers;
 	std::atomic_bool _stopped;
 	SINGLETON_REF(HttpClient, AsyncThread, Director);
 };

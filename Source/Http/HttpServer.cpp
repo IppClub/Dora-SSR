@@ -1333,8 +1333,7 @@ static int on_xrt_download_stream_chunk(const char* data, size_t dataLen, size_t
 } // namespace
 
 HttpClient::HttpClient()
-	: _downloadThread(nullptr)
-	, _stopped(false) {
+	: _stopped(false) {
 }
 
 HttpClient::~HttpClient() {
@@ -1357,6 +1356,20 @@ bool HttpClient::cancel(RequestId requestId) {
 bool HttpClient::isRequestActive(RequestId requestId) const {
 	auto request = get_http_client_request(requestId);
 	return request && !request->finished.load(std::memory_order_relaxed);
+}
+
+void HttpClient::reapDownloadWorkers(bool all) {
+	std::lock_guard<std::mutex> lock(_downloadWorkersMutex);
+	for (auto it = _downloadWorkers.begin(); it != _downloadWorkers.end();) {
+		if (all || it->completed->load(std::memory_order_acquire)) {
+			if (it->thread.joinable()) {
+				it->thread.join();
+			}
+			it = _downloadWorkers.erase(it);
+		} else {
+			++it;
+		}
+	}
 }
 
 HttpClient::RequestId HttpClient::postAsync(String url, std::span<Slice> headers, String json, float timeout, const ContentPartHandler& partCallback, const ContentHandler& callback) {
@@ -1523,23 +1536,24 @@ HttpClient::RequestId HttpClient::downloadAsync(String url, String filePath, flo
 		progress(true, 0, 0);
 		return 0;
 	}
-	if (!_downloadThread) {
-		_downloadThread = SharedAsyncThread.newThread();
-	}
 	auto request = register_http_client_request();
 	if (!request) {
 		progress(true, 0, 0);
 		return 0;
 	}
 	auto progressFunc = std::make_shared<std::function<bool(bool interrupted, uint64_t current, uint64_t total)>>(progress);
-	_downloadThread->run([request, fileStr = filePath.toString(), urlStr = url.toString(), timeout, progressFunc]() -> Own<Values> {
+	auto completed = std::make_shared<std::atomic_bool>(false);
+	auto fileStr = filePath.toString();
+	auto urlStr = url.toString();
+	auto worker = [request, fileStr, urlStr, timeout, progressFunc, completed]() {
+		DEFER(completed->store(true, std::memory_order_release));
 		try {
 			if (request->cancelling.load(std::memory_order_relaxed)) {
 				SharedApplication.invokeInLogic([progressFunc]() {
 					(*progressFunc)(true, 0, 0);
 				});
 				unregister_http_client_request(request);
-				return nullptr;
+				return;
 			}
 			std::vector<std::string> headerNames;
 			std::vector<std::string> headerValues;
@@ -1551,7 +1565,7 @@ HttpClient::RequestId HttpClient::downloadAsync(String url, String filePath, flo
 			if (!out) {
 				Error("invalid local file path \"{}\" to download to", fileStr);
 				unregister_http_client_request(request);
-				return nullptr;
+				return;
 			}
 			auto stream = std::shared_ptr<SDL_RWops>{out, [](SDL_RWops* io) {
 														 SDL_RWclose(io);
@@ -1583,7 +1597,7 @@ HttpClient::RequestId HttpClient::downloadAsync(String url, String filePath, flo
 				fs::remove_all(fileStr, err);
 				WarnIf(err, "failed to remove download file \"{}\" due to \"{}\".", fileStr, err.message());
 				unregister_http_client_request(request);
-				return nullptr;
+				return;
 			}
 			SharedApplication.invokeInLogic([request, progressFunc, total = s_cast<uint64_t>(streamContext.written), stream, stopped]() {
 				if (!*stopped) {
@@ -1605,10 +1619,38 @@ HttpClient::RequestId HttpClient::downloadAsync(String url, String filePath, flo
 			});
 		}
 		unregister_http_client_request(request);
-		return nullptr;
-	},
-		[progressFunc](Own<Values>) {
-		});
+	};
+	reapDownloadWorkers(false);
+	bool stoppedBeforeStart = false;
+	bool startFailed = false;
+	std::string startError;
+	{
+		std::lock_guard<std::mutex> lock(_downloadWorkersMutex);
+		if (_stopped.load(std::memory_order_relaxed)) {
+			stoppedBeforeStart = true;
+		} else {
+			bool workerSlotAdded = false;
+			try {
+				_downloadWorkers.push_back({std::thread{}, completed});
+				workerSlotAdded = true;
+				_downloadWorkers.back().thread = std::thread(std::move(worker));
+			} catch (const std::exception& ex) {
+				startFailed = true;
+				startError = ex.what();
+				if (workerSlotAdded) {
+					_downloadWorkers.pop_back();
+				}
+			}
+		}
+	}
+	if (stoppedBeforeStart || startFailed) {
+		if (startFailed) {
+			Error("failed to start download worker for \"{}\" due to: {}", urlStr, startError);
+		}
+		unregister_http_client_request(request);
+		progress(true, 0, 0);
+		return 0;
+	}
 	return request->id;
 }
 
@@ -1620,6 +1662,7 @@ void HttpClient::stop() {
 			request->cancelling.store(true, std::memory_order_relaxed);
 		}
 	}
+	reapDownloadWorkers(true);
 }
 
 NS_DORA_END
