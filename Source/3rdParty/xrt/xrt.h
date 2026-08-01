@@ -3842,7 +3842,7 @@
 	#define XCODEC_HTTP1_MAX_HEADERS 100u
 	#define XCODEC_HTTP1_HEADER_MAX_LENGTH 8192u
 	#define XCODEC_HTTP1_TOKEN_CAP   64u
-	#define XCODEC_HTTP1_TARGET_CAP  256u
+	#define XCODEC_HTTP1_TARGET_CAP  8192u
 	#define XCODEC_HTTP1_VALUE_CAP   256u
 	#define XCODEC_HTTP1_REASON_CAP  128u
 	#define XCODEC_HTTP1_F_NONE       0x00000000u
@@ -4024,9 +4024,9 @@
 		typedef struct xrt_httpd_server xhttpdserver;
 		typedef struct xrt_httpd_conn xhttpdconn;
 		#define XHTTPD_METHOD_CAP         16u
-		#define XHTTPD_TARGET_CAP         256u
-		#define XHTTPD_PATH_CAP           256u
-		#define XHTTPD_QUERY_CAP          256u
+		#define XHTTPD_TARGET_CAP         8192u
+		#define XHTTPD_PATH_CAP           8192u
+		#define XHTTPD_QUERY_CAP          8192u
 		#define XHTTPD_VERSION_CAP        32u
 		#define XHTTPD_REASON_CAP         128u
 		#define XHTTPD_HEADER_NAME_CAP    64u
@@ -34977,7 +34977,7 @@ XXAPI const xcodecparserops* xrtCodecLengthOps(void)
 #define XCODEC_HTTP1_MAX_HEADERS 100u
 #define XCODEC_HTTP1_HEADER_MAX_LENGTH 8192u
 #define XCODEC_HTTP1_TOKEN_CAP   64u
-#define XCODEC_HTTP1_TARGET_CAP  256u
+#define XCODEC_HTTP1_TARGET_CAP  8192u
 #define XCODEC_HTTP1_VALUE_CAP   256u
 #define XCODEC_HTTP1_REASON_CAP  128u
 #define XCODEC_HTTP1_F_NONE       0x00000000u
@@ -58984,9 +58984,9 @@ XXAPI xhttpresponse* xrtHttpExecuteSync(xnetengine* pEngine, const xhttprequest*
 */
 #if !defined(XRT_BUILD_CORE)
 #define XHTTPD_METHOD_CAP         16u
-#define XHTTPD_TARGET_CAP         256u
-#define XHTTPD_PATH_CAP           256u
-#define XHTTPD_QUERY_CAP          256u
+#define XHTTPD_TARGET_CAP         8192u
+#define XHTTPD_PATH_CAP           8192u
+#define XHTTPD_QUERY_CAP          8192u
 #define XHTTPD_VERSION_CAP        32u
 #define XHTTPD_REASON_CAP         128u
 #define XHTTPD_HEADER_NAME_CAP    64u

@@ -69,6 +69,7 @@ namespace fs = std::filesystem;
 
 #include <algorithm>
 #include <atomic>
+#include <charconv>
 #include <chrono>
 #include <condition_variable>
 #include <cstdlib>
@@ -879,6 +880,53 @@ static const char* content_type_for_path(const std::string& path) {
 	return it == types.end() ? "application/octet-stream" : it->second;
 }
 
+enum class RangeParseResult {
+	None,
+	Valid,
+	Unsatisfiable,
+};
+
+struct ByteRange {
+	size_t first = 0;
+	size_t last = 0;
+};
+
+static RangeParseResult parse_byte_range(const HttpServer::Request& request, size_t contentSize, ByteRange& result) {
+	auto header = find_header(request, "Range"_slice);
+	if (!header) return RangeParseResult::None;
+	auto value = header->toString();
+	if (value.rfind("bytes="s, 0) != 0) return RangeParseResult::None;
+	auto range = std::string_view(value).substr(6);
+	if (range.empty() || range.find(',') != std::string_view::npos || contentSize == 0) return RangeParseResult::Unsatisfiable;
+	auto dash = range.find('-');
+	if (dash == std::string_view::npos) return RangeParseResult::Unsatisfiable;
+	auto firstText = range.substr(0, dash);
+	auto lastText = range.substr(dash + 1);
+	auto parse = [](std::string_view text, uint64_t& number) {
+		if (text.empty()) return false;
+		auto [ptr, error] = std::from_chars(text.data(), text.data() + text.size(), number);
+		return error == std::errc{} && ptr == text.data() + text.size();
+	};
+	uint64_t first = 0;
+	uint64_t last = 0;
+	if (firstText.empty()) {
+		uint64_t suffix = 0;
+		if (!parse(lastText, suffix) || suffix == 0) return RangeParseResult::Unsatisfiable;
+		result.first = suffix >= contentSize ? 0 : contentSize - s_cast<size_t>(suffix);
+		result.last = contentSize - 1;
+		return RangeParseResult::Valid;
+	}
+	if (!parse(firstText, first) || first >= contentSize) return RangeParseResult::Unsatisfiable;
+	if (lastText.empty()) {
+		last = contentSize - 1;
+	} else if (!parse(lastText, last) || first > last) {
+		return RangeParseResult::Unsatisfiable;
+	}
+	result.first = s_cast<size_t>(first);
+	result.last = s_cast<size_t>(std::min<uint64_t>(last, contentSize - 1));
+	return RangeParseResult::Valid;
+}
+
 bool HttpServer::start(int port) {
 	if (_server) return false;
 	auto engine = r_cast<xnetengine*>(DoraXrtNetworkEngine());
@@ -904,16 +952,18 @@ bool HttpServer::start(int port) {
 			set_response(nativeResponse, 200, {}, {});
 			return true;
 		}
-		if (nativeRequest->iMethod == XHTTPD_METHOD_GET) {
-			for (const auto& route : self->_gets) {
-				if (!route_matches(route.pattern, path)) continue;
-				auto pending = std::make_shared<PendingLogicResult<HttpServer::Response>>();
-				SharedApplication.invokeInLogic([pending, route = &route, request]() {
-					if (!pending->isCancelled()) pending->complete(route->handler(request));
-				});
-				auto response = pending->wait(self->_stopping, self->_generation, requestGeneration);
-				if (!response) set_service_unavailable(nativeResponse); else respond(std::move(*response));
-				return true;
+		if (nativeRequest->iMethod == XHTTPD_METHOD_GET || nativeRequest->iMethod == XHTTPD_METHOD_HEAD) {
+			if (nativeRequest->iMethod == XHTTPD_METHOD_GET) {
+				for (const auto& route : self->_gets) {
+					if (!route_matches(route.pattern, path)) continue;
+					auto pending = std::make_shared<PendingLogicResult<HttpServer::Response>>();
+					SharedApplication.invokeInLogic([pending, route = &route, request]() {
+						if (!pending->isCancelled()) pending->complete(route->handler(request));
+					});
+					auto response = pending->wait(self->_stopping, self->_generation, requestGeneration);
+					if (!response) set_service_unavailable(nativeResponse); else respond(std::move(*response));
+					return true;
+				}
 			}
 			std::string decodedPath(path.size() + 1, '\0');
 			size_t decodedLength = 0;
@@ -948,8 +998,29 @@ bool HttpServer::start(int port) {
 			xrtHttpdResponseSetHeader(nativeResponse, "Content-Type", content_type_for_path(decodedPath));
 			auto cacheControl = self->getStaticCacheControl(requestPath);
 			if (!cacheControl.empty()) xrtHttpdResponseSetHeader(nativeResponse, "Cache-Control", cacheControl.c_str());
-			xrtHttpdResponseSetStatus(nativeResponse, 200u, nullptr);
-			xrtHttpdResponseSetBodyCopy(nativeResponse, content->data(), content->size(), nullptr);
+			xrtHttpdResponseSetHeader(nativeResponse, "Accept-Ranges", "bytes");
+			ByteRange range;
+			auto rangeResult = parse_byte_range(request, content->size(), range);
+			if (rangeResult == RangeParseResult::Unsatisfiable) {
+				auto contentRange = fmt::format("bytes */{}", content->size());
+				xrtHttpdResponseSetHeader(nativeResponse, "Content-Range", contentRange.c_str());
+				set_response(nativeResponse, 416, {}, {});
+				return true;
+			}
+			auto first = rangeResult == RangeParseResult::Valid ? range.first : 0;
+			auto last = rangeResult == RangeParseResult::Valid ? range.last : content->size() - 1;
+			auto length = last - first + 1;
+			if (rangeResult == RangeParseResult::Valid) {
+				auto contentRange = fmt::format("bytes {}-{}/{}", first, last, content->size());
+				xrtHttpdResponseSetHeader(nativeResponse, "Content-Range", contentRange.c_str());
+			}
+			xrtHttpdResponseSetStatus(nativeResponse, rangeResult == RangeParseResult::Valid ? 206u : 200u, nullptr);
+			if (nativeRequest->iMethod == XHTTPD_METHOD_HEAD) {
+				auto contentLength = std::to_string(length);
+				xrtHttpdResponseSetHeader(nativeResponse, "Content-Length", contentLength.c_str());
+			} else {
+				xrtHttpdResponseSetBodyCopy(nativeResponse, content->data() + first, length, nullptr);
+			}
 			return true;
 		}
 		if (nativeRequest->iMethod != XHTTPD_METHOD_POST) return false;
