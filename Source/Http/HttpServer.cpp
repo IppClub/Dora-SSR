@@ -307,8 +307,8 @@ public:
 	}
 
 	bool start(int port) {
-		auto engine = r_cast<xnetengine*>(DoraXrtNetworkEngine());
-		if (!engine) return false;
+		_engine = r_cast<xnetengine*>(DoraXrtNetworkEngineCreate(1));
+		if (!_engine) return false;
 		xwsserverconfig config;
 		xrtWsServerConfigInit(&config);
 		xrtNetAddrInitAny(&config.tBindAddr, AF_INET, s_cast<uint16>(port));
@@ -364,10 +364,12 @@ public:
 		events.OnError = [](ptr, xwsserver*, xwsconn*, int error) {
 			Error("websocket server error: {}", error);
 		};
-		_server = xrtWsServerCreate(engine, &config, &events, this);
+		_server = xrtWsServerCreate(_engine, &config, &events, this);
 		if (!_server || xrtWsServerStart(_server) != XRT_NET_OK) {
 			if (_server) xrtWsServerDestroy(_server);
 			_server = nullptr;
+			DoraXrtNetworkEngineDestroy(_engine);
+			_engine = nullptr;
 			Error("failed to bind websocket server port {}!", port);
 			return false;
 		}
@@ -388,6 +390,10 @@ public:
 			xrtWsServerDestroy(_server);
 			_server = nullptr;
 		}
+		if (_engine) {
+			DoraXrtNetworkEngineDestroy(_engine);
+			_engine = nullptr;
+		}
 		LogHandler -= std::make_pair(this, &WebSocketServer::sendLog);
 	}
 
@@ -404,6 +410,7 @@ private:
 
 private:
 	HttpServer* _owner;
+	xnetengine* _engine = nullptr;
 	xwsserver* _server = nullptr;
 	ConnectionMap _connections;
 	mutable std::mutex _connectionLock;

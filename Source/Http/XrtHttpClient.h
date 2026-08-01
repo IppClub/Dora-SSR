@@ -71,6 +71,8 @@ int DoraXrtHmacSha256Hex(const void* key, size_t keyLen, const void* data, size_
 const char* DoraXrtHttpStatusName(int status);
 void DoraXrtHttpResponseFree(DoraXrtHttpResponse* response);
 void* DoraXrtNetworkEngine(void);
+void* DoraXrtNetworkEngineCreate(unsigned int workerCount);
+void DoraXrtNetworkEngineDestroy(void* engine);
 
 #ifdef __cplusplus
 }

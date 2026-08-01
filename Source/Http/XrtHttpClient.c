@@ -102,6 +102,31 @@ void* DoraXrtNetworkEngine(void) {
 	return engine;
 }
 
+void* DoraXrtNetworkEngineCreate(unsigned int workerCount) {
+	xnetengineconfig config;
+	xnetengine* engine;
+	if (!DoraXrtHttpAttachRuntimeThread()) {
+		return NULL;
+	}
+	xrtNetEngineConfigInit(&config);
+	config.iWorkerCount = workerCount;
+	engine = xrtNetEngineCreate(&config);
+	if (engine && xrtNetEngineStart(engine) != XRT_NET_OK) {
+		xrtNetEngineDestroy(engine);
+		engine = NULL;
+	}
+	xrtThreadDetachCurrent();
+	return engine;
+}
+
+void DoraXrtNetworkEngineDestroy(void* engine) {
+	if (!engine || !DoraXrtHttpAttachRuntimeThread()) {
+		return;
+	}
+	xrtNetEngineDestroy((xnetengine*)engine);
+	xrtThreadDetachCurrent();
+}
+
 static int DoraXrtHttpIsRedirect(unsigned int statusCode) {
 	return statusCode == 301u || statusCode == 302u || statusCode == 303u ||
 		statusCode == 307u || statusCode == 308u;
