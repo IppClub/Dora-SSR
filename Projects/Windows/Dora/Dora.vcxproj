@@ -448,110 +448,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\font\font_manager.cpp" />
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_byte_stream.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_cavlc.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_conceal.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_deblocking.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_decoder.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_dpb.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_image.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_inter_prediction.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_intra_prediction.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_macroblock_layer.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_nal_unit.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_neighbour.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_pic_order_cnt.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_pic_param_set.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_reconstruct.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_sei.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_seq_param_set.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_slice_data.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_slice_group_map.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_slice_header.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_storage.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_stream.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_transform.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_util.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_vlc.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_vui.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -1894,7 +1790,7 @@
     <ClCompile Include="..\..\..\Source\Animation\Animation.cpp" />
     <ClCompile Include="..\..\..\Source\Animation\ModelDef.cpp" />
     <ClCompile Include="..\..\..\Source\Audio\Audio.cpp" />
-    <ClCompile Include="..\..\..\Source\Audio\OggSources.c">
+    <ClCompile Include="..\..\..\Source\3rdParty\ogg\OggSources.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -1952,6 +1848,29 @@
     <ClCompile Include="..\..\..\Source\Lua\LuaHandler.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\LuaManual.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\TealCompiler.cpp" />
+    <ClCompile Include="..\..\..\Source\Love\LoveRuntime.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>../../../Source/3rdParty/Lua;../../../Source/3rdParty/Love/src/modules;../../../Source/3rdParty/theora/include;../../../Source/3rdParty/theora/lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Love\LoveVideoSources.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>../../../Source/3rdParty/Love/src/modules;../../../Source/3rdParty/theora/include;../../../Source/3rdParty/theora/lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Love\LoveDataAlgorithms.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Love\LoveLZ4.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Love\LoveLZ4HC.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Love\LoveNode.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_event.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_fix.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_is.cpp" />
@@ -1983,6 +1902,10 @@
     <ClCompile Include="..\..\..\Source\Node\TIC80Node.cpp" />
     <ClCompile Include="..\..\..\Source\Node\TileNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\VGNode.cpp" />
+    <ClCompile Include="..\..\..\Source\3rdParty\theora\TheoraSources.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>..\..\..\Source\3rdParty\ogg\include;..\..\..\Source\3rdParty\theora\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\Node\VideoNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\View3D.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Visual3D.cpp" />
@@ -2247,35 +2170,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\std.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\xchar.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\font\font_manager.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\basetype.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_byte_stream.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_cavlc.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_cfg.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_conceal.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_container.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_deblocking.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_decoder.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_dpb.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_image.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_inter_prediction.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_intra_prediction.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_macroblock_layer.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_nal_unit.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_neighbour.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_pic_order_cnt.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_pic_param_set.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_reconstruct.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_sei.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_seq_param_set.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_slice_data.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_slice_group_map.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_slice_header.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_storage.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_stream.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_transform.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_util.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_vlc.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\h264bsd\h264bsd_vui.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imconfig.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui_internal.h" />
@@ -2826,6 +2720,8 @@
     <ClInclude Include="..\..\..\Source\Lua\LuaFromXml.h" />
     <ClInclude Include="..\..\..\Source\Lua\LuaHandler.h" />
     <ClInclude Include="..\..\..\Source\Lua\LuaManual.h" />
+    <ClInclude Include="..\..\..\Source\Love\LoveRuntime.h" />
+    <ClInclude Include="..\..\..\Source\Love\LoveNode.h" />
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua++.h" />
     <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua_event.h" />
     <ClInclude Include="..\..\..\Source\Lua\Xml\DoraTag.h" />
@@ -2935,13 +2831,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>..\..\..\Source\3rdParty\bgfx\build\windows\x86\debug;..\..\..\Source\3rdParty\SDL2\Lib\Windows\Debug;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;..\..\..\Source\3rdParty\Wa\Lib\Windows;..\..\..\Source\Rust\lib\Windows;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\Source\3rdParty\bgfx\build\windows\x86\debug;..\..\..\Source\3rdParty\SDL2\Lib\Windows\Debug;..\..\..\Source\3rdParty\Love\Artifacts\Windows;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;..\..\..\Source\3rdParty\Wa\Lib\Windows;..\..\..\Source\Rust\lib\Windows;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\build\$(Configuration)\</OutDir>
     <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>..\..\..\Source\3rdParty\bgfx\build\windows\x86\release;..\..\..\Source\3rdParty\SDL2\Lib\Windows\Release;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;..\..\..\Source\3rdParty\Wa\Lib\Windows;..\..\..\Source\Rust\lib\Windows;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\Source\3rdParty\bgfx\build\windows\x86\release;..\..\..\Source\3rdParty\SDL2\Lib\Windows\Release;..\..\..\Source\3rdParty\Love\Artifacts\Windows;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;..\..\..\Source\3rdParty\Wa\Lib\Windows;..\..\..\Source\Rust\lib\Windows;$(LibraryPath)</LibraryPath>
     <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
     <OutDir>$(SolutionDir)\build\$(Configuration)\</OutDir>
   </PropertyGroup>
@@ -2951,20 +2847,21 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;_ITERATOR_DEBUG_LEVEL=0;WITH_SDL2_STATIC;SDL_MAIN_HANDLED;BX_CONFIG_DEBUG=1;d_m3HasWASI;LUA_USE_WINDOWS;SPDLOG_FMT_EXTERNAL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/JoltPhysics;../../../Source/3rdParty/bx/include/bx/compat/msvc;../../../Source/3rdParty/bgfx/include;../../../Source/3rdParty/bx/include;../../../Source/3rdParty/bimg/include;../../../Source/3rdParty/SDL2/include;../../../Source/3rdParty/Lua;../../../Source/3rdParty/Zip;../../../Source/3rdParty/soloud;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/dragonBones;../../../Source/3rdParty/wasm3;../../../Source/3rdParty/Zip/zlib;../../../Source/3rdParty/Effekseer;../../../Source/3rdParty/h264bsd;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/Love/src;../../../Source/3rdParty/JoltPhysics;../../../Source/3rdParty/bx/include/bx/compat/msvc;../../../Source/3rdParty/bgfx/include;../../../Source/3rdParty/bx/include;../../../Source/3rdParty/bimg/include;../../../Source/3rdParty/SDL2/include;../../../Source/3rdParty/Lua;../../../Source/3rdParty/Zip;../../../Source/3rdParty/soloud;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/dragonBones;../../../Source/3rdParty/wasm3;../../../Source/3rdParty/Zip/zlib;../../../Source/3rdParty/Effekseer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeaderFile>Const/Header.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ObjectFileName>$(IntDir)\_1\_2\_3\%(RelativeDir)\</ObjectFileName>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
-      <AdditionalOptions>/Zc:__cplusplus /wd4244 /wd4996 /utf-8 /wd4200 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/FS /Zc:__cplusplus /wd4244 /wd4996 /utf-8 /wd4200 %(AdditionalOptions)</AdditionalOptions>
       <UseStandardPreprocessor>true</UseStandardPreprocessor>
+	  <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfx.lib;bimg.lib;bimg_decode.lib;bx.lib;shaderc-lib.lib;fcpp.lib;psapi.lib;setupapi.lib;userenv.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;ntdll.lib;dora_runtime.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;love.lib;bgfx.lib;bimg.lib;bimg_decode.lib;bx.lib;shaderc-lib.lib;fcpp.lib;psapi.lib;setupapi.lib;userenv.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;ntdll.lib;dora_runtime.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
@@ -2994,7 +2891,7 @@ xcopy /Y /D "$(ProjectDir)..\..\..\Source\3rdParty\Wa\Lib\Windows\wa.dll" "$(Out
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;WITH_SDL2_STATIC;SDL_MAIN_HANDLED;BX_CONFIG_DEBUG=0;d_m3HasWASI;LUA_USE_WINDOWS;SPDLOG_FMT_EXTERNAL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/JoltPhysics;../../../Source/3rdParty/bx/include/bx/compat/msvc;../../../Source/3rdParty/bgfx/include;../../../Source/3rdParty/bx/include;../../../Source/3rdParty/bimg/include;../../../Source/3rdParty/SDL2/include;../../../Source/3rdParty/Lua;../../../Source/3rdParty/Zip;../../../Source/3rdParty/soloud;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/dragonBones;../../../Source/3rdParty/wasm3;../../../Source/3rdParty/Zip/zlib;../../../Source/3rdParty/Effekseer;../../../Source/3rdParty/h264bsd;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../Source;../../../Source/3rdParty;../../../Source/3rdParty/Love/src;../../../Source/3rdParty/JoltPhysics;../../../Source/3rdParty/bx/include/bx/compat/msvc;../../../Source/3rdParty/bgfx/include;../../../Source/3rdParty/bx/include;../../../Source/3rdParty/bimg/include;../../../Source/3rdParty/SDL2/include;../../../Source/3rdParty/Lua;../../../Source/3rdParty/Zip;../../../Source/3rdParty/soloud;../../../Source/3rdParty/lodepng;../../../Source/3rdParty/imgui;../../../Source/3rdParty/implot;../../../Source/3rdParty/sqlite;../../../Source/3rdParty/dragonBones;../../../Source/3rdParty/wasm3;../../../Source/3rdParty/Zip/zlib;../../../Source/3rdParty/Effekseer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
@@ -3003,15 +2900,16 @@ xcopy /Y /D "$(ProjectDir)..\..\..\Source\3rdParty\Wa\Lib\Windows\wa.dll" "$(Out
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ObjectFileName>$(IntDir)\_1\_2\_3\%(RelativeDir)\</ObjectFileName>
       <DisableSpecificWarnings>4819</DisableSpecificWarnings>
-      <AdditionalOptions>/Zc:__cplusplus /wd4244 /wd4996 /utf-8 /wd4200 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/FS /Zc:__cplusplus /wd4244 /wd4996 /utf-8 /wd4200 %(AdditionalOptions)</AdditionalOptions>
       <UseStandardPreprocessor>true</UseStandardPreprocessor>
+	  <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfx.lib;bimg.lib;bimg_decode.lib;bx.lib;fcpp.lib;shaderc-lib.lib;psapi.lib;msvcrt.lib;setupapi.lib;userenv.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;ntdll.lib;dora_runtime.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;love.lib;bgfx.lib;bimg.lib;bimg_decode.lib;bx.lib;fcpp.lib;shaderc-lib.lib;psapi.lib;msvcrt.lib;setupapi.lib;userenv.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;ntdll.lib;dora_runtime.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>

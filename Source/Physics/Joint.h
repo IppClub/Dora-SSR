@@ -21,6 +21,7 @@ class JointDef;
 class MoveJoint;
 class MotorJoint;
 class Dictionary;
+class LoveNode;
 
 class Joint : public Object {
 public:
@@ -127,6 +128,7 @@ protected:
 	WRef<PhysicsWorld> _world;
 	pr::JointID _joint;
 	friend class DestructionListener;
+	friend class LoveNode;
 	friend class Object;
 	DORA_TYPE_OVERRIDE(Joint);
 };

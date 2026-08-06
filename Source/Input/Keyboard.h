@@ -22,7 +22,7 @@ class Keyboard : public NonCopyable {
 public:
 	virtual ~Keyboard();
 	bool init();
-	void attachIME(const KeyboardHandler& handler);
+	void attachIME(const KeyboardHandler& handler, bool showScreenKeyboard = true);
 	void detachIME();
 	bool isIMEAttached() const;
 	void updateIMEPosHint(const Vec2& pos);

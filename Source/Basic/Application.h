@@ -73,7 +73,11 @@ public:
 	void invokeInRender(const std::function<void()>& func);
 	void invokeInLogic(const std::function<void()>& func);
 	void openURL(String url);
+	void vibrate(double seconds);
+	bool hasBackgroundMusic() const;
+	bool setAudioMixWithSystem(bool mix);
 	void openFileDialog(bool folderOnly, const std::function<void(std::string)>& callback);
+	std::string getExecutablePath() const;
 	void install(String path);
 	bool saveLog(String filename);
 	std::string saveScreenshot(String filename);

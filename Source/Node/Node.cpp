@@ -1531,11 +1531,11 @@ bool Node::isControllerEnabled() const noexcept {
 	return _flags.isOn(Node::ControllerEnabled);
 }
 
-void Node::attachIME() {
+void Node::attachIME(bool showScreenKeyboard) {
 	WRef<Node> self(this);
 	SharedKeyboard.attachIME([self](Event* e) {
 		if (self) self->emit(e);
-	});
+	}, showScreenKeyboard);
 }
 
 void Node::detachIME() {

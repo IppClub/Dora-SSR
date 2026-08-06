@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <cstddef>
 #include <cstdint>
+#include <span>
 
 extern "C" int32_t dora_audio_encode_wav_to_ogg(
 	const char* inputPath,
@@ -41,6 +42,10 @@ public:
 	PROPERTY_READONLY_CLASS(uint64_t, StorageSize);
 	PROPERTY_READONLY_CLASS(uint32_t, Count);
 	virtual SoLoud::AudioSource* getSource() const = 0;
+	virtual double getDuration() const = 0;
+	virtual double getSampleRate() const = 0;
+	virtual uint64_t getSampleCount() const = 0;
+	virtual uint32_t getChannelCount() const = 0;
 
 protected:
 	static uint64_t _storageSize;
@@ -51,6 +56,10 @@ class WavFile : public AudioFile {
 public:
 	virtual ~WavFile();
 	virtual SoLoud::AudioSource* getSource() const override;
+	virtual double getDuration() const override;
+	virtual double getSampleRate() const override;
+	virtual uint64_t getSampleCount() const override;
+	virtual uint32_t getChannelCount() const override;
 	virtual bool init() override;
 	CREATE_FUNC_NULLABLE(WavFile);
 
@@ -68,6 +77,10 @@ class WavStream : public AudioFile {
 public:
 	virtual ~WavStream();
 	virtual SoLoud::AudioSource* getSource() const override;
+	virtual double getDuration() const override;
+	virtual double getSampleRate() const override;
+	virtual uint64_t getSampleCount() const override;
+	virtual uint32_t getChannelCount() const override;
 	virtual bool init() override;
 	CREATE_FUNC_NULLABLE(WavStream);
 
@@ -79,6 +92,37 @@ private:
 	OwnArray<uint8_t> _data;
 	SoLoud::WavStream* _stream;
 	DORA_TYPE_OVERRIDE(WavStream);
+};
+
+class PCMQueueFile : public AudioFile {
+public:
+	virtual ~PCMQueueFile();
+	virtual SoLoud::AudioSource* getSource() const override;
+	virtual double getDuration() const override;
+	virtual double getSampleRate() const override;
+	virtual uint64_t getSampleCount() const override;
+	virtual uint32_t getChannelCount() const override;
+	virtual bool init() override;
+
+	bool queue(std::span<const uint8_t> pcm);
+	void clear();
+	uint32_t getFreeBufferCount() const;
+	uint32_t getBitDepth() const;
+	uint32_t getBufferCount() const;
+
+	CREATE_FUNC_NULLABLE(PCMQueueFile);
+
+protected:
+	PCMQueueFile(uint32_t sampleRate, uint32_t bitDepth, uint32_t channels, uint32_t buffers);
+
+private:
+	class QueueSource;
+	uint32_t _sampleRate;
+	uint32_t _bitDepth;
+	uint32_t _channels;
+	uint32_t _buffers;
+	QueueSource* _queue;
+	DORA_TYPE_OVERRIDE(PCMQueueFile);
 };
 
 class AudioBus : public Object {
@@ -102,12 +146,13 @@ public:
 	CREATE_FUNC_NOT_NULL(AudioBus);
 
 protected:
-	AudioBus();
+	AudioBus(AudioBus* parent = nullptr);
 
 private:
 	SoLoud::Bus* _bus;
 	SoLoud::Filter** _filters;
 	uint32_t _handle;
+	Ref<AudioBus> _parent;
 	DORA_TYPE_OVERRIDE(AudioBus);
 };
 
@@ -115,7 +160,17 @@ class Node;
 
 class Audio : public NonCopyable {
 public:
+	enum class DistanceModel {
+		None,
+		Inverse,
+		InverseClamped,
+		Linear,
+		LinearClamped,
+		Exponent,
+		ExponentClamped,
+	};
 	PROPERTY(float, SoundSpeed);
+	PROPERTY(float, DopplerScale);
 	PROPERTY(float, GlobalVolume);
 	PROPERTY(Node*, Listener);
 	PROPERTY_READONLY_CALL(SoLoud::Soloud*, SoLoud);
@@ -133,6 +188,13 @@ public:
 	void setListenerAt(float aAtX, float aAtY, float aAtZ);
 	void setListenerUp(float aUpX, float aUpY, float aUpZ);
 	void setListenerVelocity(float aVelocityX, float aVelocityY, float aVelocityZ);
+	void setListenerPosition(float aPosX, float aPosY, float aPosZ);
+	void getListenerPosition(float& aPosX, float& aPosY, float& aPosZ) const;
+	void getListenerAt(float& aAtX, float& aAtY, float& aAtZ) const;
+	void getListenerUp(float& aUpX, float& aUpY, float& aUpZ) const;
+	void getListenerVelocity(float& aVelocityX, float& aVelocityY, float& aVelocityZ) const;
+	void setDistanceModel(DistanceModel model);
+	DistanceModel getDistanceModel() const;
 
 public:
 	void addRef(uint32_t handle, AudioFile* audioFile, const std::function<void(uint32_t)>& callback);

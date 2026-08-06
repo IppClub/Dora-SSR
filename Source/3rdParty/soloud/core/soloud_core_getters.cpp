@@ -81,6 +81,11 @@ namespace SoLoud
 		return mMaxActiveVoices;
 	}
 
+	unsigned int Soloud::getMaxActiveSourceVoiceCount() const
+	{
+		return mMaxActiveSourceVoices;
+	}
+
 	unsigned int Soloud::getActiveVoiceCount()
 	{
 		lockAudioMutex_internal();

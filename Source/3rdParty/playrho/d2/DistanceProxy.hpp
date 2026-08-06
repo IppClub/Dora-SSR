@@ -31,6 +31,7 @@
 #include <cassert> // for assert
 #include <cstddef> // for std::size_t
 #include <limits> // for std::numeric_limits
+#include <optional>
 #include <vector>
 
 // IWYU pragma: begin_exports
@@ -88,7 +89,9 @@ public:
           m_normals{copy.m_normals},
 #endif
           m_count{copy.m_count},
-          m_vertexRadius{copy.m_vertexRadius}
+          m_vertexRadius{copy.m_vertexRadius},
+          m_previousVertex{copy.m_previousVertex},
+          m_nextVertex{copy.m_nextVertex}
     {
 #ifdef IMPLEMENT_DISTANCEPROXY_WITH_BUFFERS
         const auto count = copy.m_count;
@@ -116,14 +119,18 @@ public:
     /// @warning Behavior is not specified if normals aren't normals for adjacent vertices.
     /// @warning Behavior is not specified if any normal is not unique.
     DistanceProxy(const NonNegative<Length>& vertexRadius, const VertexCounter count,
-                  const Length2* vertices, const UnitVec* normals) noexcept
+                  const Length2* vertices, const UnitVec* normals,
+                  std::optional<Length2> previousVertex = std::nullopt,
+                  std::optional<Length2> nextVertex = std::nullopt) noexcept
         :
 #ifndef IMPLEMENT_DISTANCEPROXY_WITH_BUFFERS
           m_vertices{vertices},
           m_normals{normals},
 #endif
           m_count{count},
-          m_vertexRadius{vertexRadius}
+          m_vertexRadius{vertexRadius},
+          m_previousVertex{previousVertex},
+          m_nextVertex{nextVertex}
     {
         assert(count < 1u || vertices);
         assert(count < 2u || normals);
@@ -165,6 +172,20 @@ public:
         return m_count;
     }
 
+    /// @brief Gets the optional vertex preceding vertex zero.
+    /// @details Connectivity vertices are not part of the convex child. They let
+    ///   collision algorithms suppress internal contacts at connected-edge seams.
+    const std::optional<Length2>& GetPreviousVertex() const noexcept
+    {
+        return m_previousVertex;
+    }
+
+    /// @brief Gets the optional vertex following the last vertex.
+    const std::optional<Length2>& GetNextVertex() const noexcept
+    {
+        return m_nextVertex;
+    }
+
     /// @brief Gets a vertex by index.
     /// @param index Index value less than count of vertices represented by this proxy.
     /// @pre The given @p index is less than <code>GetVertexCount()</code>.
@@ -197,6 +218,8 @@ private:
 #endif
     VertexCounter m_count = 0; ///< Count of valid elements of m_vertices.
     NonNegativeFF<Length> m_vertexRadius = 0_m; ///< Radius of the vertices of the associated shape.
+    std::optional<Length2> m_previousVertex; ///< Optional preceding connectivity vertex.
+    std::optional<Length2> m_nextVertex; ///< Optional following connectivity vertex.
 };
 
 // Free functions...

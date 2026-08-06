@@ -12,6 +12,7 @@ import type { CompilerOptions as TstlCompilerOptions } from './3rdParty/tstl';
 import { SourceMapConsumer } from 'source-map';
 import Info from './Info';
 import * as Service from './Service';
+import type { TranspileTSVirtualFile } from './Service';
 import { getExtraLib } from './MonacoPath';
 import { setMonacoRuntime } from './MonacoRuntimeAccess';
 import { isPathWithin } from './PathUtils';
@@ -30,6 +31,7 @@ let cachedTs: TsModule | null = null;
 let tstlPromise: Promise<TstlModule> | null = null;
 let outputCollectorPromise: Promise<OutputCollectorModule> | null = null;
 let typescriptUrlPromise: Promise<string> | null = null;
+let sourceMapWasmPromise: Promise<void> | null = null;
 
 async function getTypescriptUrl() {
 	try {
@@ -118,6 +120,31 @@ async function loadOutputCollector(): Promise<OutputCollectorModule> {
 	return outputCollectorPromise;
 }
 
+async function loadSourceMapWasm() {
+	if (!sourceMapWasmPromise) {
+		sourceMapWasmPromise = fetch("/mappings.wasm").then(async response => {
+			if (!response.ok) {
+				throw new Error(`Failed to load source-map WASM: ${response.status}`);
+			}
+			SourceMapConsumer.initialize({
+				'lib/mappings.wasm': await response.arrayBuffer(),
+			});
+		});
+	}
+	return sourceMapWasmPromise;
+}
+
+export async function warmupTypescriptTranspiler() {
+	// TSTL's TypeScript shim reads globalThis.ts while the module is imported,
+	// so the compiler script must finish before either TSTL chunk starts.
+	await loadTypescriptCompiler();
+	await Promise.all([
+		loadTstl(),
+		loadOutputCollector(),
+		loadSourceMapWasm(),
+	]);
+}
+
 function getTstlOptions(ts: TsModule, tstl: TstlModule): TstlCompilerOptions {
 	return {
 		strict: true,
@@ -151,7 +178,8 @@ function createCompilerHost(
 	rootFileName: string,
 	content: string,
 	projectRoot: string | undefined,
-	compilerOptions: CompilerOptions
+	compilerOptions: CompilerOptions,
+	virtualFiles?: readonly TranspileTSVirtualFile[],
 ): [CompilerHost, Map<string, string>] {
 	const currentDirectory = projectRoot && projectRoot !== "" ? projectRoot : Info.path.dirname(rootFileName);
 	const writeFiles = new Map<string, string>();
@@ -163,6 +191,48 @@ function createCompilerHost(
 		content: string;
 	};
 	const sourceCache = new Map<string, SourceFileData | null>();
+	const virtualFilesByPath = new Map<string, SourceFileData>();
+	const virtualFilesByModule = new Map<string, SourceFileData>();
+	for (const entry of virtualFiles ?? []) {
+		const source = { fileName: Info.path.normalize(entry.file), content: entry.content };
+		virtualFilesByPath.set(source.fileName, source);
+		if (entry.moduleName !== undefined && entry.moduleName !== "") {
+			virtualFilesByModule.set(entry.moduleName, source);
+		}
+	}
+	const readVirtualPath = (requestedPath: string, exts?: string[]) => {
+		const normalizedPath = Info.path.normalize(requestedPath);
+		const paths = [normalizedPath];
+		if (!Info.path.isAbsolute(normalizedPath)) {
+			paths.push(Info.path.normalize(Info.path.join(currentDirectory, normalizedPath)));
+		}
+		for (const path of paths) {
+			const candidates = [path];
+			let stem = path;
+			if (path.endsWith(".d.ts")) {
+				stem = path.slice(0, -".d.ts".length);
+			} else {
+				const ext = Info.path.extname(path);
+				if (ext === ".ts" || ext === ".tsx") stem = path.slice(0, -ext.length);
+			}
+			for (const ext of exts ?? []) candidates.push(stem + ext);
+			for (const candidate of candidates) {
+				const source = virtualFilesByPath.get(Info.path.normalize(candidate));
+				if (source !== undefined) return source;
+			}
+		}
+		return undefined;
+	};
+	const readVirtualFile = (requestedPath: string, exts?: string[]) => {
+		const source = readVirtualPath(requestedPath, exts);
+		if (source !== undefined) return source;
+		const normalizedPath = Info.path.normalize(requestedPath);
+		const baseName = Info.path.basename(normalizedPath);
+		const moduleName = Info.path.extname(baseName) === ""
+			? baseName
+			: Info.path.basename(baseName, Info.path.extname(baseName));
+		return virtualFilesByModule.get(moduleName);
+	};
 	const isSamePath = (a: string, b: string) => {
 		try {
 			return Info.path.relative(a, b) === "";
@@ -211,6 +281,17 @@ function createCompilerHost(
 		if (isSamePath(rootFileName, fileName)) {
 			return cacheSource({ fileName: rootFileName, content });
 		}
+		// A native build request carries an immutable Content snapshot. Prefer its
+		// exact path over an existing Monaco model: UpdateFile notifications are
+		// intentionally UI-batched, so that model may still contain the previous
+		// generation during a rapid project rebuild.
+		if (virtualFiles !== undefined) {
+			const source = readVirtualPath(fileName, options?.exts);
+			if (source !== undefined) {
+				syncModelContent(monaco.Uri.file(source.fileName), source.content);
+				return cacheSource(source);
+			}
+		}
 		const readResolvedFile = (targetPath: string, exts?: string[], fallbackToBaseName = false) => {
 			const resolvedCacheKey = `${Info.path.normalize(targetPath)}\n${exts?.join("|") ?? ""}\n${fallbackToBaseName ? "base" : ""}`;
 			if (sourceCache.has(resolvedCacheKey)) {
@@ -220,7 +301,17 @@ function createCompilerHost(
 				sourceCache.set(resolvedCacheKey, source ?? null);
 				return source;
 			};
-			const readSync = (path: string) => Service.readSync({ path, exts, projFile: rootFileName, projectRoot });
+			const readSync = (path: string) => {
+				if (virtualFiles !== undefined) {
+					const source = readVirtualFile(path, exts);
+					return source === undefined ? { success: false as const } : {
+						success: true as const,
+						content: source.content,
+						fullPath: source.fileName,
+					};
+				}
+				return Service.readSync({ path, exts, projFile: rootFileName, projectRoot });
+			};
 			let res = readSync(targetPath);
 			if (!res?.success && fallbackToBaseName && Info.path.isAbsolute(targetPath)) {
 				const ext = Info.path.extname(targetPath);
@@ -243,6 +334,13 @@ function createCompilerHost(
 		};
 		const mappedUri = pathMap.get(fileName);
 		if (mappedUri !== undefined) {
+			if (virtualFiles !== undefined) {
+				const source = virtualFilesByPath.get(Info.path.normalize(mappedUri.fsPath));
+				if (source !== undefined) {
+					syncModelContent(mappedUri, source.content);
+					return cacheSource(source);
+				}
+			}
 			const mappedModel = monaco.editor.getModel(mappedUri);
 			if (mappedModel !== null) {
 				return cacheSource({ fileName: mappedUri.fsPath, content: mappedModel.getValue() });
@@ -275,6 +373,18 @@ function createCompilerHost(
 				return false;
 			}
 			fileName = Info.path.normalize(fileName);
+			// The native /ts/build request is authoritative for project files. Resolve
+			// it before consulting Monaco: UpdateFile is intentionally UI-batched and
+			// can still expose the previous generation during a rapid rebuild.
+			if (virtualFiles !== undefined) {
+				const source = readVirtualPath(fileName, [".d.ts", ".ts", ".tsx"]);
+				if (source !== undefined) {
+					const sourceUri = monaco.Uri.file(source.fileName);
+					syncModelContent(sourceUri, source.content);
+					pathMap.set(fileName, sourceUri);
+					return true;
+				}
+			}
 			const uri = pathMap.get(fileName);
 			if (uri !== undefined) {
 				const model = monaco.editor.getModel(uri);
@@ -411,12 +521,17 @@ function createCompilerHost(
 				if (resolved !== undefined || moduleName.startsWith(".") || Info.path.isAbsolute(moduleName)) {
 					return resolved;
 				}
-				const source = Service.readSync({
-					path: moduleName,
-					exts: [".d.ts", ".ts", ".tsx"],
-					projFile: containingFile,
-					projectRoot,
-				});
+				const virtualSource = virtualFiles === undefined
+					? undefined
+					: readVirtualFile(moduleName, [".d.ts", ".ts", ".tsx"]);
+				const source = virtualSource === undefined
+					? virtualFiles === undefined ? Service.readSync({
+						path: moduleName,
+						exts: [".d.ts", ".ts", ".tsx"],
+						projFile: containingFile,
+						projectRoot,
+					}) : { success: false as const }
+					: { success: true as const, content: virtualSource.content, fullPath: virtualSource.fileName };
 				if (!source?.success) return undefined;
 				const extension = source.fullPath.endsWith(".d.ts")
 					? ts.Extension.Dts
@@ -439,7 +554,8 @@ function createTypescriptProgram(
 	tstlOptions: TstlCompilerOptions,
 	rootFileName: string,
 	content: string,
-	projectRoot?: string
+	projectRoot?: string,
+	virtualFiles?: readonly TranspileTSVirtualFile[],
 ): Program {
 	const sourceRoot = projectRoot && projectRoot !== "" ? projectRoot : Info.path.dirname(rootFileName);
 	// WebSocket transpile requests may overlap across Agent projects. Keep the
@@ -449,23 +565,21 @@ function createTypescriptProgram(
 		baseUrl: sourceRoot,
 		rootDir: sourceRoot,
 	};
-	const [compilerHost] = createCompilerHost(ts, rootFileName, content, projectRoot, compilerOptions);
+	const [compilerHost] = createCompilerHost(ts, rootFileName, content, projectRoot, compilerOptions, virtualFiles);
 	return ts.createProgram([rootFileName], compilerOptions, compilerHost);
 }
-
-(SourceMapConsumer as any).initialize({
-	'lib/mappings.wasm': "/mappings.wasm"
-});
 
 export async function transpileTypescript(
 	fileName: string,
 	content: string,
-	projectRoot?: string
+	projectRoot?: string,
+	virtualFiles?: readonly TranspileTSVirtualFile[],
 ) {
 	const ts = await loadTypescriptCompiler();
 	const tstl = await loadTstl();
+	await loadSourceMapWasm();
 	const tstlOptions = getTstlOptions(ts, tstl);
-	const program = createTypescriptProgram(ts, tstlOptions, fileName, content, projectRoot);
+	const program = createTypescriptProgram(ts, tstlOptions, fileName, content, projectRoot, virtualFiles);
 	let diagnostics = ts.getPreEmitDiagnostics(program);
 	const { createEmitOutputCollector } = await loadOutputCollector();
 	const collector = createEmitOutputCollector();
@@ -475,7 +589,12 @@ export async function transpileTypescript(
 			fileExists: () => true,
 			getCurrentDirectory: () => projectRoot && projectRoot !== "" ? projectRoot : Info.path.dirname(fileName),
 			readFile: (filename) => {
-				const res = Service.readSync({ path: filename, projectRoot });
+				const normalizedFilename = Info.path.normalize(filename);
+				const virtualSource = virtualFiles?.find(entry => Info.path.normalize(entry.file) === normalizedFilename);
+				const res = virtualSource === undefined ? virtualFiles === undefined
+					? Service.readSync({ path: filename, projectRoot })
+					: { success: false as const }
+					: { success: true as const, content: virtualSource.content };
 				if (res?.success) {
 					return res.content;
 				}
@@ -496,7 +615,9 @@ export async function transpileTypescript(
 			return true;
 		}
 	});
-	await addDiagnosticToLog(fileName, otherFileDiagnostics);
+	if (virtualFiles === undefined) {
+		await addDiagnosticToLog(fileName, otherFileDiagnostics);
+	}
 
 	const success = diagnostics.length === 0;
 	const file = collector.files.find(({ sourceFiles }) => sourceFiles.some(f => {
@@ -509,7 +630,7 @@ export async function transpileTypescript(
 			let modifiedLuaCode: string | undefined;
 			await SourceMapConsumer.with(luaSourceMap, null, consumer => {
 				let lastValidTsLineNumber: number | null = null;
-				modifiedLuaCode = `-- [${Info.path.extname(fileName).substring(1).toLowerCase()}]: ${Info.path.basename(fileName)}\n` + luaCode.map((line, index) => {
+				modifiedLuaCode = `-- [${Info.path.extname(fileName).substring(1).toLowerCase()}]: ${Info.path.normalize(fileName)}\n` + luaCode.map((line, index) => {
 					const firstNonWhitespaceIndex = line.search(/\S|$/);
 					const originalPosition = consumer.originalPositionFor({ line: index + 1, column: firstNonWhitespaceIndex });
 					if (originalPosition.line != null) {

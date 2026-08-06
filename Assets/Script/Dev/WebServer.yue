@@ -984,7 +984,7 @@ HttpServer\postSchedule "/check", (req): success: true ->
 			return luaCheck file, content
 		when "yue"
 			luaCodes, info = yueCheck file, content, false
-			success = false
+			success = luaCodes ~= nil
 			if luaCodes
 				luaSuccess, luaInfo = luaCheckWithLineInfo file, luaCodes
 				info = [...info, ...luaInfo]
@@ -1065,12 +1065,13 @@ HttpServer\postSchedule "/infer", (req): success: false ->
 				updateInferedDesc infered
 				return success: true, :infered
 
-getParamDocs = (signatures): nil ->
+getParamDocs = (signatures) ->
+	return nil unless signatures and #signatures > 0
+	docs = {}
 	if codes := Content\loadAsync signatures[1].file
 		comments = []
 		params = []
 		line = 0
-		docs = []
 		returnType = nil
 		for lineCode in codes\gmatch "([^\r\n]*)\r?\n?"
 			line += 1
@@ -1110,18 +1111,25 @@ getParamDocs = (signatures): nil ->
 				comments = []
 				params = []
 				returnType = nil
-		results = []
-		for doc in *docs
-			continue unless doc
-			doc.desc = if doc.params
-				"function(#{table.concat [param.name for param in *doc.params], ', '})"
+	results = []
+	for i, signature in ipairs signatures
+		item = {
+			desc: signature.desc
+			doc: ""
+			file: signature.file
+			row: signature.row
+			col: signature.col
+		}
+		if doc := docs[i]
+			item.doc = doc.doc
+			if doc.params
+				item.params = doc.params
+				item.desc = "function(#{table.concat [param.name for param in *doc.params], ', '})"
 			else
-				"function()"
-			if doc.returnType
-				doc.desc ..= ": #{doc.returnType}"
-				doc.returnType = nil
-			results[] = doc
-		return if #results > 0 then results else nil
+				item.desc = "function()"
+			item.desc ..= ": #{doc.returnType}" if doc.returnType
+		results[] = item
+	return results
 
 HttpServer\postSchedule "/signature", (req): success: false ->
 	switch req when {body: {:lang, :file, :content, :line, :row}}
@@ -1870,6 +1878,14 @@ HttpServer\get "/read-sync", (req): success: false ->
 		if readResult := readFile fallbackPaths
 			return readResult
 
+addGeneratedSourceHeader = (codes, language, file, preserveTIC80 = false) ->
+	header = "-- [#{language}]: #{file}"
+	if preserveTIC80
+		if codes\match "^%-%-[ \t]*tic80[ \t]*[\r\n]"
+			return (codes\gsub "^([^\r\n]*\r?\n)", "%1#{header}\n", 1)
+		return "-- tic80\n#{header}\n#{codes}"
+	"#{header}\n#{codes}"
+
 compileFileAsync = (inputFile, sourceCodes, projectRoot = nil): nil ->
 	file = inputFile
 	searchPath = if projectRoot and projectRoot ~= "" and Content\exist(projectRoot) and Content\isdir(projectRoot)
@@ -1909,7 +1925,7 @@ compileFileAsync = (inputFile, sourceCodes, projectRoot = nil): nil ->
 			if codes == ""
 				resultCodes = ""
 				return nil
-			resultCodes = "-- [yue]: #{file}\n#{codes}"
+			resultCodes = addGeneratedSourceHeader codes, "yue", file, isTIC80
 			resultCodes
 		if not success
 			Content\remove outputFile
@@ -1922,8 +1938,8 @@ compileFileAsync = (inputFile, sourceCodes, projectRoot = nil): nil ->
 		if codes, err := teal.toluaAsync sourceCodes, file, searchPath
 			if isTIC80
 				codes = codes\gsub "^require%(\"tic80\"%)", "-- tic80"
-			resultCodes = codes
-			Content\saveAsync outputFile, codes
+			resultCodes = addGeneratedSourceHeader codes, "tl", file, isTIC80
+			Content\saveAsync outputFile, resultCodes
 		else
 			Content\remove outputFile
 			resultCodes = false
@@ -2431,19 +2447,71 @@ tsBuildGlobs =
 	- "!**/.*/**"
 	- "!**/node_modules/**"
 
+tsSnapshotGlobs =
+	- "**/*.ts"
+	- "**/*.tsx"
+	- "**/*.lua"
+	- "!**/.*/**"
+	- "!**/node_modules/**"
+
+collectTSVirtualFiles = (sourceRoot) ->
+	files = []
+	seen = {}
+	addFile = (file, moduleName = nil, virtualFile = nil) ->
+		targetFile = virtualFile or file
+		return if seen[targetFile]
+		if content := Content\load file
+			seen[targetFile] = true
+			entry = file: targetFile, :content
+			entry.moduleName = moduleName if moduleName and moduleName ~= ""
+			files[] = entry
+	if sourceRoot and Content\exist(sourceRoot) and Content\isdir(sourceRoot)
+		for subFile in *Content\glob sourceRoot, tsSnapshotGlobs
+			addFile Path sourceRoot, subFile
+		libraryRoots =
+			- Path sourceRoot, "Script", "Lib"
+			- Path sourceRoot, "Lib"
+			- Path Content.assetPath, "Script", "Lib"
+		for libraryRoot in *libraryRoots
+			if Content\exist(libraryRoot) and Content\isdir(libraryRoot)
+				for subFile in *Content\glob libraryRoot, tsSnapshotGlobs
+					file = Path libraryRoot, subFile
+					virtualFile = Path sourceRoot, subFile
+					addFile file, nil, virtualFile
+	locale = if App.locale\match '^zh' then 'zh-Hans' else 'en'
+	declarationRoot = Path Content.assetPath, "Script", "Lib", "Dora", locale
+	for file in *Content\getFiles declarationRoot
+		if Path\getExt(file) == "ts" and Path\getExt(Path\getName(file)) == "d"
+			fullPath = Path declarationRoot, file
+			moduleName = Path\getName Path\getName file
+			addFile fullPath, moduleName
+	lualibBundle = Path Content.assetPath, "Script", "Lib", "lualib_bundle.lua"
+	if content := Content\load lualibBundle
+		files[] = file: "lualib_bundle.lua", :content
+	lualibRoot = Path Content.assetPath, "Script", "Lib", "lualib"
+	for file in *Content\getFiles lualibRoot
+		if Path\getExt(file) == "lua"
+			if content := Content\load Path lualibRoot, file
+				files[] = file: Path("lualib", file), :content
+	files
+
 transpileTSFile = do
+	const tsReadyTimeout = 5
 	const tsBuildTimeout = 30
 	tsBuildRequestId = 0
-	(file, content, sourceRoot) ->
+	(file, content, sourceRoot, files) ->
 		tsBuildRequestId += 1
 		requestId = tsBuildRequestId
 		done = false
+		ready = false
 		result = nil
 		listener = Node!
 		listener\gslot "AppWS", (event) ->
 			if event.type == "Receive"
 				if res := json.decode event.msg
-					if res.name == "TranspileTS" and res.id == requestId
+					if res.name == "TranspileTSReadyV3" and res.id == requestId
+						ready = true
+					elseif res.name == "TranspileTSV3" and res.id == requestId
 						listener\removeFromParent!
 						if res.success
 							luaFile = Path\replaceExt file, "lua"
@@ -2452,7 +2520,15 @@ transpileTSFile = do
 						else
 							result = success: false, :file, message: res.message
 						done = true
-		emit "AppWS", "Send", json.encode name: "TranspileTS", id: requestId, :file, :content, projectRoot: sourceRoot
+		emit "AppWS", "Send", json.encode name: "TranspileTSProbeV3", id: requestId
+		readyDeadline = App.runningTime + tsReadyTimeout
+		wait -> ready or HttpServer.wsConnectionCount == 0 or App.runningTime >= readyDeadline
+		unless ready
+			listener\removeFromParent!
+			if HttpServer.wsConnectionCount == 0
+				return success: false, :file, message: "Web IDE disconnected"
+			return success: false, :file, message: "TypeScript transpiler is not ready"
+		emit "AppWS", "Send", json.encode name: "TranspileTSV3", id: requestId, :file, :content, projectRoot: sourceRoot, :files
 		deadline = App.runningTime + tsBuildTimeout
 		wait -> done or HttpServer.wsConnectionCount == 0 or App.runningTime >= deadline
 		unless done
@@ -2479,7 +2555,8 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 				return success: false, message: "failed to read file"
 			emit "AppWS", "Send", json.encode name: "UpdateFile", file: path, exists: true, :content, projectRoot: sourceRoot
 			if "d" ~= Path\getExt Path\getName path
-				messages[] = transpileTSFile path, content, sourceRoot
+				files = collectTSVirtualFiles sourceRoot or Path\getPath path
+				messages[] = transpileTSFile path, content, sourceRoot, files
 			return success: true, :messages
 		else
 			fileData = {}
@@ -2491,9 +2568,10 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 					emit "AppWS", "Send", json.encode name: "UpdateFile", :file, exists: true, :content, projectRoot: sourceRoot
 				else
 					messages[] = success: false, :file, message: "failed to read file"
+			files = collectTSVirtualFiles sourceRoot or path
 			for file, content in pairs fileData
 				continue if "d" == Path\getExt Path\getName file
-				messages[] = transpileTSFile file, content, sourceRoot
+				messages[] = transpileTSFile file, content, sourceRoot, files
 			return success: true, :messages
 
 HttpServer\post "/download", (req): success: false ->
@@ -2623,7 +2701,9 @@ thread ->
 	doraWeb = Path Content.assetPath, "www", "index.html"
 	doraReady = Path Content.appPath, ".www", "dora-ready"
 	if Content\exist doraWeb
-		readyContent = App.version .. "\n" .. Content\load doraWeb
+		heavyAssets = Path Content.assetPath, "www", "heavy-assets.json"
+		heavyAssetsContent = if Content\exist heavyAssets then Content\load heavyAssets else ""
+		readyContent = App.version .. "\n" .. Content\load(doraWeb) .. "\n" .. heavyAssetsContent
 		needReload = if Content\exist doraReady
 			readyContent ~= Content\load doraReady
 		else true

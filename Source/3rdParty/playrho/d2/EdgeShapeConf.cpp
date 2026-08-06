@@ -29,7 +29,8 @@ static_assert(detail::IsValidShapeTypeV<EdgeShapeConf>);
 
 EdgeShapeConf::EdgeShapeConf(const Length2& vA, const Length2& vB, // force line-break
                              const EdgeShapeConf& conf) noexcept
-    : ShapeBuilder{conf}, vertexRadius{conf.vertexRadius}, ngon{{vA, vB}}
+    : ShapeBuilder{conf}, vertexRadius{conf.vertexRadius},
+      previousVertex{conf.previousVertex}, nextVertex{conf.nextVertex}, ngon{{vA, vB}}
 {
     // Intentionally empty.
 }
@@ -37,25 +38,65 @@ EdgeShapeConf::EdgeShapeConf(const Length2& vA, const Length2& vB, // force line
 EdgeShapeConf& EdgeShapeConf::Set(const Length2& vA, const Length2& vB) noexcept
 {
     ngon = NgonWithFwdNormals<2>{{vA, vB}};
+    previousVertex.reset();
+    nextVertex.reset();
+    return *this;
+}
+
+EdgeShapeConf& EdgeShapeConf::UsePreviousVertex(const Length2& value) noexcept
+{
+    previousVertex = value;
+    return *this;
+}
+
+EdgeShapeConf& EdgeShapeConf::ClearPreviousVertex() noexcept
+{
+    previousVertex.reset();
+    return *this;
+}
+
+EdgeShapeConf& EdgeShapeConf::UseNextVertex(const Length2& value) noexcept
+{
+    nextVertex = value;
+    return *this;
+}
+
+EdgeShapeConf& EdgeShapeConf::ClearNextVertex() noexcept
+{
+    nextVertex.reset();
     return *this;
 }
 
 EdgeShapeConf& EdgeShapeConf::Translate(const Length2& value) noexcept
 {
     ngon = NgonWithFwdNormals<2>{{GetVertexA() + value, GetVertexB() + value}};
+    if (previousVertex) *previousVertex += value;
+    if (nextVertex) *nextVertex += value;
     return *this;
 }
 
 EdgeShapeConf& EdgeShapeConf::Scale(const Vec2& value) noexcept
 {
-    return Set(Length2{GetX(value) * GetX(GetVertexA()), GetY(value) * GetY(GetVertexA())},
-               Length2{GetX(value) * GetX(GetVertexB()), GetY(value) * GetY(GetVertexB())});
+    const auto previous = previousVertex;
+    const auto next = nextVertex;
+    Set(Length2{GetX(value) * GetX(GetVertexA()), GetY(value) * GetY(GetVertexA())},
+        Length2{GetX(value) * GetX(GetVertexB()), GetY(value) * GetY(GetVertexB())});
+    if (previous) UsePreviousVertex(Length2{
+        GetX(value) * GetX(*previous), GetY(value) * GetY(*previous)});
+    if (next) UseNextVertex(Length2{
+        GetX(value) * GetX(*next), GetY(value) * GetY(*next)});
+    return *this;
 }
 
 EdgeShapeConf& EdgeShapeConf::Rotate(const UnitVec& value) noexcept
 {
-    return Set(::playrho::d2::Rotate(GetVertexA(), value),
-               ::playrho::d2::Rotate(GetVertexB(), value));
+    const auto previous = previousVertex;
+    const auto next = nextVertex;
+    Set(::playrho::d2::Rotate(GetVertexA(), value),
+        ::playrho::d2::Rotate(GetVertexB(), value));
+    if (previous) UsePreviousVertex(::playrho::d2::Rotate(*previous, value));
+    if (next) UseNextVertex(::playrho::d2::Rotate(*next, value));
+    return *this;
 }
 
 } // namespace playrho::d2

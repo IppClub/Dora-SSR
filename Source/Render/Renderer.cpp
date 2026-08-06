@@ -16,9 +16,12 @@ NS_DORA_BEGIN
 
 void Renderer::render() {
 	uint32_t stencilState = SharedRendererManager.getCurrentStencilState();
-	if (stencilState != BGFX_STENCIL_NONE) {
-		bgfx::setStencil(stencilState);
-	}
+	bgfx::setStencil(stencilState);
+	RendererManager::ScissorState scissor;
+	if (SharedRendererManager.getCurrentScissorState(scissor))
+		bgfx::setScissor(scissor.x, scissor.y, scissor.width, scissor.height);
+	else
+		bgfx::setScissor(UINT16_MAX);
 }
 
 RendererManager::RendererManager()
@@ -47,9 +50,15 @@ void RendererManager::flush() {
 }
 
 uint64_t RendererManager::applyState(uint64_t state) const noexcept {
-	if (_stateOverrides.empty()) return state;
-	constexpr uint64_t depthState = BGFX_STATE_DEPTH_TEST_MASK | BGFX_STATE_WRITE_Z;
-	return (state & ~depthState) | _stateOverrides.top();
+	for (const auto& overrideState : _stateOverrides)
+		state = (state & ~overrideState.mask) | (overrideState.state & overrideState.mask);
+	return state;
+}
+
+bool RendererManager::getCurrentScissorState(ScissorState& state) const noexcept {
+	if (_scissorStates.empty()) return false;
+	state = _scissorStates.back();
+	return true;
 }
 
 void RendererManager::pushStencilState(uint32_t stencilState) {
@@ -58,6 +67,15 @@ void RendererManager::pushStencilState(uint32_t stencilState) {
 
 void RendererManager::popStencilState() {
 	_stencilStates.pop();
+}
+
+void RendererManager::pushScissorState(ScissorState scissorState) {
+	_scissorStates.push_back(scissorState);
+}
+
+void RendererManager::popScissorState() {
+	AssertIf(_scissorStates.empty(), "pop invalid renderer scissor scope.");
+	_scissorStates.pop_back();
 }
 
 bool RendererManager::isGrouping() const noexcept {
@@ -86,12 +104,21 @@ void RendererManager::popGroup() {
 }
 
 void RendererManager::pushState(uint64_t state) {
-	_stateOverrides.push(state);
+	constexpr uint64_t depthState = BGFX_STATE_DEPTH_TEST_MASK | BGFX_STATE_WRITE_Z;
+	pushStateOverride(depthState, state);
 }
 
 void RendererManager::popState() {
+	popStateOverride();
+}
+
+void RendererManager::pushStateOverride(uint64_t mask, uint64_t state) {
+	_stateOverrides.push_back({mask, state});
+}
+
+void RendererManager::popStateOverride() {
 	AssertIf(_stateOverrides.empty(), "pop invalid renderer state scope.");
-	_stateOverrides.pop();
+	_stateOverrides.pop_back();
 }
 
 NS_DORA_END

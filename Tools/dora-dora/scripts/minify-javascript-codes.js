@@ -14,14 +14,16 @@ const buildDir = path.resolve(repoRoot, "build");
 const typescriptPath = path.join(buildDir, "typescript.js");
 const monacoWorkDir = path.join(buildDir, "monacoeditorwork");
 
-function minifyFile(filePath) {
+function minifyFile(filePath, { minifyIdentifiers = true, postlude = "" } = {}) {
 	const source = fs.readFileSync(filePath, "utf8");
 	const result = esbuild.transformSync(source, {
-		minify: true,
+		minifyWhitespace: true,
+		minifySyntax: true,
+		minifyIdentifiers,
 		legalComments: "none",
 		target: "es2017",
 	});
-	fs.writeFileSync(filePath, result.code, "utf8");
+	fs.writeFileSync(filePath, result.code + postlude, "utf8");
 	console.log(`Minified ${filePath}`);
 }
 
@@ -30,7 +32,13 @@ if (!fs.existsSync(typescriptPath)) {
 	process.exit(1);
 }
 
-minifyFile(typescriptPath);
+// TypeScript's browser build exposes its API through the top-level `ts`
+// identifier. Renaming that identifier makes the classic script load
+// successfully without publishing the compiler to the Web IDE runtime.
+minifyFile(typescriptPath, {
+	minifyIdentifiers: false,
+	postlude: "\nglobalThis.ts = ts;\n",
+});
 
 if (!fs.existsSync(monacoWorkDir)) {
 	console.warn(`Missing build output at ${monacoWorkDir}. Skipping Monaco worker minify.`);

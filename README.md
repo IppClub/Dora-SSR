@@ -76,7 +76,7 @@ Dora SSR is a cross-platform game engine for building games directly on the devi
 - Cross-platform runtime: runs natively on `Android`, `Windows`, `Linux`, `iOS`, `macOS`, and `HarmonyOS`.
 - Scene system: tree-based 2D and 3D scenes, an approachable [ECS](https://dora-ssr.net/docs/tutorial/using-ecs) module, cameras, materials, lighting, models, animation, and 3D physics.
 - 2D production: supports Spine2D, DragonBones, built-in skeletal animation, [PlayRho](https://github.com/louis-langholtz/PlayRho) physics, tile maps, particles, and retro TIC-80 content.
-- Media and graphics: asynchronous asset loading, H.264 playback, multi-format audio with spatial effects, runtime shader compilation, Effekseer, NanoVG, ImGui, and TrueType rendering.
+- Media and graphics: asynchronous asset loading, Ogg/Theora playback, multi-format audio with spatial effects, runtime shader compilation, Effekseer, NanoVG, ImGui, and TrueType rendering.
 - Game patterns: includes reusable logic and AI support for [2D platformer](https://dora-ssr.net/docs/example/Platformer%20Tutorial/start) development.
 
 ### Content and Tooling

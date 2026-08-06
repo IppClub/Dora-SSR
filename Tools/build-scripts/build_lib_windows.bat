@@ -19,6 +19,12 @@ if errorlevel 1 exit /b %errorlevel%
 call "%SCRIPT_DIR%build_lib_bgfx_windows.bat" %BUILD_MODE%
 if errorlevel 1 exit /b %errorlevel%
 
+call "%SCRIPT_DIR%build_lib_love_windows.bat" %BUILD_MODE%
+if errorlevel 1 exit /b %errorlevel%
+
+call "%SCRIPT_DIR%build_lib_theora_windows.bat" %BUILD_MODE%
+if errorlevel 1 exit /b %errorlevel%
+
 call "%SCRIPT_DIR%build_lib_wa_windows.bat" %BUILD_MODE%
 if errorlevel 1 exit /b %errorlevel%
 

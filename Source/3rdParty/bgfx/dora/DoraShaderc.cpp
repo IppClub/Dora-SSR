@@ -36,7 +36,8 @@ static DoraShadercRenderer getBuiltInRenderer() {
 #elif SHADERC_CONFIG_METAL
     return DoraShadercRenderer_Metal;
 #elif SHADERC_CONFIG_GLSL
-    return BX_PLATFORM_ANDROID ? DoraShadercRenderer_OpenGLES : DoraShadercRenderer_OpenGL;
+    return (BX_PLATFORM_ANDROID || (BX_PLATFORM_LINUX && BX_CPU_ARM))
+        ? DoraShadercRenderer_OpenGLES : DoraShadercRenderer_OpenGL;
 #elif SHADERC_CONFIG_SPIRV
     return DoraShadercRenderer_Vulkan;
 #else
@@ -74,6 +75,7 @@ static const char* getBgfxPlatformName(DoraShadercPlatform platform) {
 static bool isRendererBuilt(DoraShadercRenderer renderer) {
     switch (renderer) {
         case DoraShadercRenderer_OpenGL:
+        case DoraShadercRenderer_OpenGLES:
 #if SHADERC_CONFIG_GLSL
             return true;
 #else
@@ -112,10 +114,9 @@ static const char* getShaderProfile(
 ) {
     switch (renderer) {
         case DoraShadercRenderer_OpenGL:
-            if (platform == DoraShadercPlatform_Android) {
-                return stage == DoraShadercStage_Compute ? "310_es" : "300_es";
-            }
             return "430";
+        case DoraShadercRenderer_OpenGLES:
+            return stage == DoraShadercStage_Compute ? "310_es" : "300_es";
         case DoraShadercRenderer_Metal:
             return "metal";
         case DoraShadercRenderer_Direct3D11:
@@ -478,6 +479,7 @@ void DoraShadercInitOptions(DoraShadercOptions* options) {
 const char* DoraShadercGetRendererName(DoraShadercRenderer renderer) {
     switch (renderer) {
         case DoraShadercRenderer_OpenGL: return "OpenGL";
+        case DoraShadercRenderer_OpenGLES: return "OpenGL ES";
         case DoraShadercRenderer_Metal: return "Metal";
         case DoraShadercRenderer_Direct3D11: return "Direct3D11";
         case DoraShadercRenderer_Direct3D12: return "Direct3D12";

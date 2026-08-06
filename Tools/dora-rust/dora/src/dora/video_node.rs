@@ -45,22 +45,7 @@ impl VideoNode {
 	///
 	/// # Arguments
 	///
-	/// * `filename` - The path to the video file. It should be a valid video file path with `.h264` suffix.
-	///     H.264 format requirements:
-	///       - Video codec: H.264 / AVC only (no H.265/HEVC, VP9, AV1, etc.).
-	///       - Bitstream format: Annex-B byte stream is required (NAL units separated by 0x000001 / 0x00000001 start codes).
-	///         MP4/FLV-style AVCC (length-prefixed NAL units) is NOT supported unless converted to Annex-B beforehand.
-	///       - Stream type: video-only elementary stream is recommended. Audio tracks (if any) are ignored.
-	///       - Profile/level constraints (recommended for maximum compatibility and performance):
-	///           * Baseline / Constrained Baseline profile is recommended.
-	///           * Progressive frames only (no interlaced/field-coded content).
-	///           * No B-frames is recommended (e.g., baseline) to avoid output reordering costs.
-	///       - Color format: YUV 4:2:0 (8-bit) is recommended; other chroma formats may be unsupported.
-	///       - Frame rate: Constant frame rate (CFR) is recommended. Variable frame rate streams may play with unstable timing.
-	///       - Resolution/performance notes:
-	///           * 4K and high-bitrate streams may be CPU intensive for software decoding.
-	///           * For smooth playback on mid-range devices, 720p/1080p and moderate bitrates are recommended.
-	///       - It is recommended to use the `ffmpeg` tool to convert the video file to H.264 format before using it.
+	/// * `filename` - The path to an Ogg (`.ogv`) file containing a Theora video stream. VideoNode reads it through Dora Content, renders video only, supports Theora 4:2:0/4:2:2/4:4:4, and decodes in software; play audio separately.
 	/// * `looped` - (optional) Whether the video should loop. Default is false.
 	///
 	/// # Returns

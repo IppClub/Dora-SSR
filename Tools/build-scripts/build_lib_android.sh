@@ -26,6 +26,8 @@ esac
 
 "$SCRIPT_DIR/build_lib_sdl2.sh" android "--$BUILD_MODE"
 "$SCRIPT_DIR/build_lib_bgfx.sh" android "--$BUILD_MODE"
+"$SCRIPT_DIR/build_lib_love.sh" android "--$BUILD_MODE"
+"$SCRIPT_DIR/build_lib_theora.sh" android "--$BUILD_MODE"
 "$SCRIPT_DIR/build_lib_wa.sh" android "$BUILD_MODE"
 
 cd "$SCRIPT_DIR/../../Source/Rust"

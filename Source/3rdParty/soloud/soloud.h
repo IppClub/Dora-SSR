@@ -94,6 +94,8 @@ freely, subject to the following restrictions:
 // Default resampler for both main and bus mixers
 #define SOLOUD_DEFAULT_RESAMPLER SoLoud::Soloud::RESAMPLER_LINEAR
 
+#include "soloud_distance_model.h"
+
 //
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
@@ -320,6 +322,8 @@ namespace SoLoud
 		float getGlobalVolume() const;
 		// Get current maximum active voice setting
 		unsigned int getMaxActiveVoiceCount() const;
+		// Get maximum number of non-bus voices in the active set.
+		unsigned int getMaxActiveSourceVoiceCount() const;
 		// Query whether a voice is set to loop.
 		bool getLooping(handle aVoiceHandle);
 		// Query whether a voice is set to auto-stop when it ends.
@@ -335,6 +339,8 @@ namespace SoLoud
 		void setAutoStop(handle aVoiceHandle, bool aAutoStop);
 		// Set current maximum active voice setting
 		result setMaxActiveVoiceCount(unsigned int aVoiceCount);
+		// Limit active non-bus voices without consuming the mandatory bus budget.
+		result setMaxActiveSourceVoiceCount(unsigned int aVoiceCount);
 		// Set behavior for inaudible sounds
 		void setInaudibleBehavior(handle aVoiceHandle, bool aMustTick, bool aKill);
 		// Set the global volume
@@ -425,6 +431,14 @@ namespace SoLoud
 		result set3dSoundSpeed(float aSpeed);
 		// Get the current speed of sound constant for doppler
 		float get3dSoundSpeed();
+		// Set the application-global doppler scale. Default = 1.0
+		void set3dDopplerScale(float aScale);
+		// Get the application-global doppler scale.
+		float get3dDopplerScale();
+		// Set the application-global distance attenuation model.
+		void set3dDistanceModel(DISTANCE_MODELS aModel);
+		// Get the application-global distance attenuation model.
+		DISTANCE_MODELS get3dDistanceModel();
 		// Set 3d listener parameters
 		void set3dListenerParameters(float aPosX, float aPosY, float aPosZ, float aAtX, float aAtY, float aAtZ, float aUpX, float aUpY, float aUpZ, float aVelocityX = 0.0f, float aVelocityY = 0.0f, float aVelocityZ = 0.0f);
 		// Set 3d listener position
@@ -442,12 +456,22 @@ namespace SoLoud
 		void set3dSourcePosition(handle aVoiceHandle, float aPosX, float aPosY, float aPosZ);
 		// Set 3d audio source velocity
 		void set3dSourceVelocity(handle aVoiceHandle, float aVelocityX, float aVelocityY, float aVelocityZ);
+		// Set 3d audio source direction and cone parameters (angles are full-width radians)
+		void set3dSourceCone(handle aVoiceHandle, float aDirectionX, float aDirectionY,
+			float aDirectionZ, float aInnerAngle, float aOuterAngle, float aOuterVolume,
+			float aOuterHighGain = 1.0f);
+		// Set OpenAL-compatible distance-based high-frequency absorption.
+		void set3dSourceAirAbsorption(handle aVoiceHandle, float aFactor);
 		// Set 3d audio source min/max distance (distance < min means max volume)
 		void set3dSourceMinMaxDistance(handle aVoiceHandle, float aMinDistance, float aMaxDistance);
 		// Set 3d audio source attenuation parameters
 		void set3dSourceAttenuation(handle aVoiceHandle, unsigned int aAttenuationModel, float aAttenuationRolloffFactor);
 		// Set 3d audio source doppler factor to reduce or enhance doppler effect. Default = 1.0
 		void set3dSourceDopplerFactor(handle aVoiceHandle, float aDopplerFactor);
+		// Set whether a playing 3d voice uses listener-relative coordinates.
+		void set3dSourceListenerRelative(handle aVoiceHandle, bool aListenerRelative);
+		// Set application-specific source gain limits.
+		void setVoiceVolumeLimits(handle aVoiceHandle, float aMinVolume, float aMaxVolume);
 
 		// Rest of the stuff is used internally.
 
@@ -504,6 +528,8 @@ namespace SoLoud
 
 		// Max. number of active voices. Busses and tickable inaudibles also count against this.
 		unsigned int mMaxActiveVoices;
+		// Max. active leaf voices. Tickable buses do not consume this budget.
+		unsigned int mMaxActiveSourceVoices;
 		// Highest voice in use so far
 		unsigned int mHighestVoice;
 		// Scratch buffer, used for resampling.
@@ -572,6 +598,10 @@ namespace SoLoud
 		float m3dVelocity[3];
 		// 3d speed of sound (for doppler)
 		float m3dSoundSpeed;
+		// Application-global doppler scale
+		float m3dDopplerScale;
+		// Application-global distance attenuation model
+		DISTANCE_MODELS m3dDistanceModel;
 
 		// 3d position of speakers
 		float m3dSpeakerPosition[3 * MAX_CHANNELS];

@@ -40,8 +40,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <atomic>
 #include <cstdio>
 #include <cstring>
+#include <deque>
 #include <filesystem>
 #include <fstream>
+#include <mutex>
 #include <vector>
 
 namespace {
@@ -268,6 +270,22 @@ SoLoud::AudioSource* WavFile::getSource() const {
 	return _wav;
 }
 
+double WavFile::getDuration() const {
+	return _wav ? _wav->getLength() : 0.0;
+}
+
+double WavFile::getSampleRate() const {
+	return _wav ? _wav->mBaseSamplerate : 0.0;
+}
+
+uint64_t WavFile::getSampleCount() const {
+	return _wav ? _wav->mSampleCount : 0;
+}
+
+uint32_t WavFile::getChannelCount() const {
+	return _wav ? _wav->mChannels : 0;
+}
+
 WavFile::WavFile(OwnArray<uint8_t>&& data, size_t size)
 	: _wav(nullptr)
 	, _data(std::move(data))
@@ -304,6 +322,22 @@ SoLoud::AudioSource* WavStream::getSource() const {
 	return _stream;
 }
 
+double WavStream::getDuration() const {
+	return _stream ? _stream->getLength() : 0.0;
+}
+
+double WavStream::getSampleRate() const {
+	return _stream ? _stream->mBaseSamplerate : 0.0;
+}
+
+uint64_t WavStream::getSampleCount() const {
+	return _stream ? _stream->mSampleCount : 0;
+}
+
+uint32_t WavStream::getChannelCount() const {
+	return _stream ? _stream->mChannels : 0;
+}
+
 bool WavStream::init() {
 	_stream = new SoLoud::WavStream();
 	SoLoud::result result = _stream->loadMem(_data.get(), s_cast<uint32_t>(_size), false, false);
@@ -333,14 +367,234 @@ WavStream::~WavStream() {
 	}
 }
 
+/* PCMQueueFile */
+
+class PCMQueueFile::QueueSource : public SoLoud::AudioSource {
+public:
+	struct Buffer {
+		std::vector<float> samples;
+		uint32_t frames = 0;
+		uint32_t offset = 0;
+	};
+
+	class Instance : public SoLoud::AudioSourceInstance {
+	public:
+		explicit Instance(QueueSource* parent)
+			: _parent(parent) { }
+
+		virtual unsigned int getAudio(float* output, unsigned int samplesToRead,
+			unsigned int bufferSize) override {
+			return _parent->read(output, samplesToRead, bufferSize);
+		}
+
+		virtual bool hasEnded() override {
+			return _parent->empty();
+		}
+
+		virtual SoLoud::result seek(double seconds, float*, unsigned int) override {
+			_parent->discard(static_cast<uint64_t>(seconds * _parent->_sampleRate));
+			mStreamPosition = seconds;
+			return SoLoud::SO_NO_ERROR;
+		}
+
+	private:
+		QueueSource* _parent;
+	};
+
+	QueueSource(uint32_t sampleRate, uint32_t bitDepth, uint32_t channels, uint32_t buffers)
+		: _sampleRate(sampleRate)
+		, _bitDepth(bitDepth)
+		, _channels(channels)
+		, _capacity(buffers) {
+		mBaseSamplerate = static_cast<float>(sampleRate);
+		mChannels = channels;
+		setSingleInstance(true);
+	}
+
+	virtual Instance* createInstance() override {
+		return new Instance(this);
+	}
+
+	bool queue(std::span<const uint8_t> pcm) {
+		const uint32_t bytesPerFrame = _channels * (_bitDepth / 8);
+		if (pcm.size() % bytesPerFrame != 0)
+			return false;
+		if (pcm.empty())
+			return true;
+		std::lock_guard<std::mutex> lock(_mutex);
+		if (_buffers.size() >= _capacity)
+			return false;
+
+		Buffer buffer;
+		buffer.frames = static_cast<uint32_t>(pcm.size() / bytesPerFrame);
+		buffer.samples.resize(static_cast<size_t>(buffer.frames) * _channels);
+		for (uint32_t frame = 0; frame < buffer.frames; ++frame) {
+			for (uint32_t channel = 0; channel < _channels; ++channel) {
+				const size_t input = static_cast<size_t>(frame) * bytesPerFrame
+					+ channel * (_bitDepth / 8);
+				float sample = 0.0f;
+				if (_bitDepth == 8) {
+					sample = (static_cast<int>(pcm[input]) - 128) * (1.0f / 128.0f);
+				} else {
+					int value = static_cast<int>(pcm[input])
+						| (static_cast<int>(pcm[input + 1]) << 8);
+					if (value >= 0x8000) value -= 0x10000;
+					sample = value * (1.0f / 32768.0f);
+				}
+				buffer.samples[static_cast<size_t>(channel) * buffer.frames + frame] = sample;
+			}
+		}
+		_queuedFrames += buffer.frames;
+		_buffers.push_back(std::move(buffer));
+		return true;
+	}
+
+	void clear() {
+		std::lock_guard<std::mutex> lock(_mutex);
+		_buffers.clear();
+		_queuedFrames = 0;
+	}
+
+	uint32_t getFreeBufferCount() const {
+		std::lock_guard<std::mutex> lock(_mutex);
+		return _capacity - static_cast<uint32_t>(_buffers.size());
+	}
+
+	uint64_t getQueuedFrames() const {
+		std::lock_guard<std::mutex> lock(_mutex);
+		return _queuedFrames;
+	}
+
+private:
+	unsigned int read(float* output, unsigned int samplesToRead, unsigned int bufferSize) {
+		std::lock_guard<std::mutex> lock(_mutex);
+		unsigned int written = 0;
+		while (written < samplesToRead && !_buffers.empty()) {
+			auto& buffer = _buffers.front();
+			const uint32_t available = buffer.frames - buffer.offset;
+			const uint32_t count = std::min<uint32_t>(available, samplesToRead - written);
+			for (uint32_t channel = 0; channel < _channels; ++channel) {
+				std::copy_n(buffer.samples.data()
+						+ static_cast<size_t>(channel) * buffer.frames + buffer.offset,
+					count, output + static_cast<size_t>(channel) * bufferSize + written);
+			}
+			buffer.offset += count;
+			written += count;
+			if (buffer.offset == buffer.frames) {
+				_queuedFrames -= buffer.frames;
+				_buffers.pop_front();
+			}
+		}
+		return written;
+	}
+
+	bool empty() const {
+		std::lock_guard<std::mutex> lock(_mutex);
+		return _buffers.empty();
+	}
+
+	void discard(uint64_t frames) {
+		std::lock_guard<std::mutex> lock(_mutex);
+		while (frames > 0 && !_buffers.empty()) {
+			auto& buffer = _buffers.front();
+			const uint32_t available = buffer.frames - buffer.offset;
+			if (frames < available) {
+				buffer.offset += static_cast<uint32_t>(frames);
+				break;
+			}
+			frames -= available;
+			_queuedFrames -= buffer.frames;
+			_buffers.pop_front();
+		}
+	}
+
+	uint32_t _sampleRate;
+	uint32_t _bitDepth;
+	uint32_t _channels;
+	uint32_t _capacity;
+	mutable std::mutex _mutex;
+	std::deque<Buffer> _buffers;
+	uint64_t _queuedFrames = 0;
+};
+
+PCMQueueFile::PCMQueueFile(uint32_t sampleRate, uint32_t bitDepth,
+	uint32_t channels, uint32_t buffers)
+	: _sampleRate(sampleRate)
+	, _bitDepth(bitDepth)
+	, _channels(channels)
+	, _buffers(buffers < 1 ? 8 : std::min<uint32_t>(buffers, 64))
+	, _queue(nullptr) {
+	_count++;
+}
+
+PCMQueueFile::~PCMQueueFile() {
+	_count--;
+	delete _queue;
+	_queue = nullptr;
+}
+
+bool PCMQueueFile::init() {
+	if (_sampleRate == 0 || (_bitDepth != 8 && _bitDepth != 16)
+		|| (_channels != 1 && _channels != 2))
+		return false;
+	_queue = new QueueSource(_sampleRate, _bitDepth, _channels, _buffers);
+	return true;
+}
+
+SoLoud::AudioSource* PCMQueueFile::getSource() const {
+	return _queue;
+}
+
+double PCMQueueFile::getDuration() const {
+	return _queue ? static_cast<double>(_queue->getQueuedFrames()) / _sampleRate : 0.0;
+}
+
+double PCMQueueFile::getSampleRate() const {
+	return _sampleRate;
+}
+
+uint64_t PCMQueueFile::getSampleCount() const {
+	return _queue ? _queue->getQueuedFrames() : 0;
+}
+
+uint32_t PCMQueueFile::getChannelCount() const {
+	return _channels;
+}
+
+bool PCMQueueFile::queue(std::span<const uint8_t> pcm) {
+	return _queue && _queue->queue(pcm);
+}
+
+void PCMQueueFile::clear() {
+	if (_queue) _queue->clear();
+}
+
+uint32_t PCMQueueFile::getFreeBufferCount() const {
+	return _queue ? _queue->getFreeBufferCount() : 0;
+}
+
+uint32_t PCMQueueFile::getBitDepth() const {
+	return _bitDepth;
+}
+
+uint32_t PCMQueueFile::getBufferCount() const {
+	return _buffers;
+}
+
 /* AudioBus */
 
-AudioBus::AudioBus()
+AudioBus::AudioBus(AudioBus* parent)
 	: _bus(new SoLoud::Bus())
-	, _filters(nullptr) {
+	, _filters(nullptr)
+	, _handle(0)
+	, _parent(parent) {
 }
 
 AudioBus::~AudioBus() {
+	if (_handle != 0) {
+		if (auto soloud = SharedAudio.getSoLoud()) soloud->stop(_handle);
+		_handle = 0;
+	}
 	if (_bus) {
 		delete _bus;
 		_bus = nullptr;
@@ -355,32 +609,43 @@ AudioBus::~AudioBus() {
 }
 
 bool AudioBus::init() {
-	_handle = SharedAudio.getSoLoud()->play(*_bus);
+	auto soloud = SharedAudio.getSoLoud();
+	if (!soloud) return false;
+	_handle = soloud->play(*_bus, 1.0f, 0.0f, false, _parent ? _parent->getHandle() : 0);
+	if (_handle == 0) return false;
+	soloud->setProtectVoice(_handle, true);
+	// SoLoud::Bus keeps a separate channel handle which its mixer uses to
+	// select child voices. Directly routing children through Soloud::play does
+	// not initialize that field, so resolve it as soon as the bus is playing.
+	_bus->findBusHandle();
 	return Object::init();
 }
 
 void AudioBus::setPan(float var) {
-	SharedAudio.getSoLoud()->setPan(_handle, var);
+	if (auto soloud = SharedAudio.getSoLoud()) soloud->setPan(_handle, var);
 }
 
 float AudioBus::getPan() const noexcept {
-	return SharedAudio.getSoLoud()->getPan(_handle);
+	if (auto soloud = SharedAudio.getSoLoud()) return soloud->getPan(_handle);
+	return 0.0f;
 }
 
 void AudioBus::setVolume(float var) {
-	SharedAudio.getSoLoud()->setVolume(_handle, var);
+	if (auto soloud = SharedAudio.getSoLoud()) soloud->setVolume(_handle, var);
 }
 
 float AudioBus::getVolume() const noexcept {
-	return SharedAudio.getSoLoud()->getVolume(_handle);
+	if (auto soloud = SharedAudio.getSoLoud()) return soloud->getVolume(_handle);
+	return 0.0f;
 }
 
 void AudioBus::setPlaySpeed(float var) {
-	SharedAudio.getSoLoud()->setRelativePlaySpeed(_handle, var);
+	if (auto soloud = SharedAudio.getSoLoud()) soloud->setRelativePlaySpeed(_handle, var);
 }
 
 float AudioBus::getPlaySpeed() const noexcept {
-	return SharedAudio.getSoLoud()->getRelativePlaySpeed(_handle);
+	if (auto soloud = SharedAudio.getSoLoud()) return soloud->getRelativePlaySpeed(_handle);
+	return 0.0f;
 }
 
 uint32_t AudioBus::getHandle() const noexcept {
@@ -388,30 +653,39 @@ uint32_t AudioBus::getHandle() const noexcept {
 }
 
 void AudioBus::fadeVolume(double time, float toVolume) {
-	SharedAudio.getSoLoud()->fadeVolume(_handle, toVolume, time);
+	if (auto soloud = SharedAudio.getSoLoud()) soloud->fadeVolume(_handle, toVolume, time);
 }
 
 void AudioBus::fadePan(double time, float toPan) {
-	SharedAudio.getSoLoud()->fadePan(_handle, toPan, time);
+	if (auto soloud = SharedAudio.getSoLoud()) soloud->fadePan(_handle, toPan, time);
 }
 
 void AudioBus::fadePlaySpeed(double time, float toPlaySpeed) {
-	SharedAudio.getSoLoud()->fadeRelativePlaySpeed(_handle, toPlaySpeed, time);
+	if (auto soloud = SharedAudio.getSoLoud()) soloud->fadeRelativePlaySpeed(_handle, toPlaySpeed, time);
 }
 
 void AudioBus::setFilter(uint32_t index, String name) {
 	if (!_filters) {
 		_filters = new SoLoud::Filter*[FILTERS_PER_STREAM];
-		std::fill(_filters, _filters + 1, nullptr);
+		std::fill(_filters, _filters + FILTERS_PER_STREAM, nullptr);
 	}
 	if (index >= FILTERS_PER_STREAM) {
 		Error("filter index {} out of range, max is {}", index, FILTERS_PER_STREAM - 1);
 		return;
 	}
+	// Bus::setFilter replaces the live instance under SoLoud's audio mutex.
+	// Detach it before deleting the owning filter object, since several filter
+	// instances retain a pointer to that object while the mixer is running.
+	if (_filters[index]) {
+		_bus->setFilter(index, nullptr);
+		delete _filters[index];
+		_filters[index] = nullptr;
+	}
 	switch (Switch::hash(name)) {
 		case ""_hash: {
 			if (_filters[index]) {
 				delete _filters[index];
+				_filters[index] = nullptr;
 			}
 			_bus->setFilter(index, nullptr);
 			break;
@@ -511,22 +785,24 @@ void AudioBus::setFilter(uint32_t index, String name) {
 }
 
 void AudioBus::setFilterParameter(uint32_t index, uint32_t attrId, float value) {
-	SharedAudio.getSoLoud()->setFilterParameter(_handle, index, attrId, value);
+	if (auto soloud = SharedAudio.getSoLoud()) soloud->setFilterParameter(_handle, index, attrId, value);
 }
 
 float AudioBus::getFilterParameter(uint32_t index, uint32_t attrId) {
-	return SharedAudio.getSoLoud()->getFilterParameter(_handle, index, attrId);
+	if (auto soloud = SharedAudio.getSoLoud()) return soloud->getFilterParameter(_handle, index, attrId);
+	return 0.0f;
 }
 
 void AudioBus::fadeFilterParameter(uint32_t index, uint32_t attrId, float to, double time) {
-	SharedAudio.getSoLoud()->fadeFilterParameter(_handle, index, attrId, to, time);
+	if (auto soloud = SharedAudio.getSoLoud()) soloud->fadeFilterParameter(_handle, index, attrId, to, time);
 }
 
 /* Audio */
 
 Audio::Audio()
-	: _soloud(nullptr)
-	, _currentVoice(0) { }
+	: _paused(false)
+	, _currentVoice(0)
+	, _soloud(nullptr) { }
 
 SoLoud::Soloud* Audio::getSoLoud() {
 	return _soloud;
@@ -542,12 +818,27 @@ Audio::~Audio() {
 
 bool Audio::init() {
 	_soloud = new SoLoud::Soloud();
-	SoLoud::result result = _soloud->init(SoLoud::Soloud::CLIP_ROUNDOFF, SoLoud::Soloud::AUTO, DORA_SAMPLERATE);
+	SoLoud::result result = _soloud->init(SoLoud::Soloud::CLIP_ROUNDOFF, DORA_AUDIO_BACKEND, DORA_SAMPLERATE);
 	if (result) {
 		Warn("SoLoud backend failed ({}), audio disabled.", _soloud->getErrorString(result));
 		delete _soloud;
 		_soloud = nullptr;
 		return false;
+	}
+	// Love Source filters are hosted by per-Source SoLoud buses, and each
+	// LoveNode owns one parent bus. Keep 255 internal routing slots (the limit
+	// of SoLoud's 8-bit resampler-owner table), but keep only the 32 strongest
+	// leaf voices active. Other Sources retain valid handles and may re-enter
+	// the same active list after a later volume/3D/lifecycle reorder.
+	result = _soloud->setMaxActiveVoiceCount(255);
+	if (result) {
+		Warn("SoLoud active voice capacity could not be raised ({}).",
+			_soloud->getErrorString(result));
+	}
+	result = _soloud->setMaxActiveSourceVoiceCount(32);
+	if (result) {
+		Warn("SoLoud active Source voice budget could not be configured ({}).",
+			_soloud->getErrorString(result));
 	}
 	SharedDirector.getSystemScheduler()->schedule([this](double deltaTime) {
 		if (_listener) {
@@ -564,8 +855,10 @@ bool Audio::init() {
 }
 
 uint32_t Audio::play(String filename, bool loop) {
+	if (!_soloud) return 0;
 	if (auto audioFile = SharedAudioCache.load(filename)) {
-		uint32_t handle = SharedAudio.getSoLoud()->play(*audioFile->getSource());
+		uint32_t handle = _soloud->play(*audioFile->getSource());
+		if (handle == 0) return 0;
 		_soloud->setLooping(handle, loop);
 		SharedAudio.addRef(handle, audioFile, nullptr);
 		return handle;
@@ -574,13 +867,15 @@ uint32_t Audio::play(String filename, bool loop) {
 }
 
 void Audio::stop(uint32_t handle) {
-	_soloud->stop(handle);
+	if (_soloud) _soloud->stop(handle);
 }
 
 void Audio::playStream(String filename, bool loop, float crossFadeTime) {
+	if (!_soloud) return;
 	stopStream(crossFadeTime);
 	std::string file(filename);
 	SharedContent.loadAsyncUnsafe(filename, [file, this, crossFadeTime, loop](uint8_t* data, int64_t size) {
+		if (!_soloud) return;
 		if (_currentStream) {
 			auto stream = _currentStream->getSource();
 			stream->stop();
@@ -634,23 +929,44 @@ void Audio::stopAll(float fadeTime) {
 }
 
 void Audio::setGlobalVolume(float var) {
-	_soloud->setGlobalVolume(var);
+	if (_soloud) _soloud->setGlobalVolume(var);
 }
 
 float Audio::getGlobalVolume() const noexcept {
-	return _soloud->getGlobalVolume();
+	return _soloud ? _soloud->getGlobalVolume() : 0.0f;
 }
 
 void Audio::setSoundSpeed(float var) {
-	_soloud->set3dSoundSpeed(var);
+	if (_soloud) _soloud->set3dSoundSpeed(var);
 }
 
 float Audio::getSoundSpeed() const noexcept {
-	return _soloud->get3dSoundSpeed();
+	return _soloud ? _soloud->get3dSoundSpeed() : 0.0f;
+}
+
+void Audio::setDopplerScale(float var) {
+	if (_soloud) _soloud->set3dDopplerScale(var);
+}
+
+float Audio::getDopplerScale() const noexcept {
+	return _soloud ? _soloud->get3dDopplerScale() : 1.0f;
+}
+
+void Audio::setDistanceModel(Audio::DistanceModel model) {
+	if (_soloud) {
+		_soloud->set3dDistanceModel(static_cast<SoLoud::DISTANCE_MODELS>(model));
+	}
+}
+
+Audio::DistanceModel Audio::getDistanceModel() const {
+	return _soloud
+		? static_cast<Audio::DistanceModel>(_soloud->get3dDistanceModel())
+		: Audio::DistanceModel::InverseClamped;
 }
 
 void Audio::setPauseAllCurrent(bool aPause) {
-	_soloud->setPauseAll(aPause);
+	_paused = aPause;
+	if (_soloud) _soloud->setPauseAll(aPause);
 }
 
 void Audio::setListener(Node* node) {
@@ -662,15 +978,43 @@ Node* Audio::getListener() const noexcept {
 }
 
 void Audio::setListenerAt(float aAtX, float aAtY, float aAtZ) {
-	_soloud->set3dListenerAt(aAtX, aAtY, aAtZ);
+	if (_soloud) _soloud->set3dListenerAt(aAtX, aAtY, aAtZ);
 }
 
 void Audio::setListenerUp(float aUpX, float aUpY, float aUpZ) {
-	_soloud->set3dListenerUp(aUpX, aUpY, aUpZ);
+	if (_soloud) _soloud->set3dListenerUp(aUpX, aUpY, aUpZ);
 }
 
 void Audio::setListenerVelocity(float aVelocityX, float aVelocityY, float aVelocityZ) {
-	_soloud->set3dListenerVelocity(aVelocityX, aVelocityY, aVelocityZ);
+	if (_soloud) _soloud->set3dListenerVelocity(aVelocityX, aVelocityY, aVelocityZ);
+}
+
+void Audio::setListenerPosition(float aPosX, float aPosY, float aPosZ) {
+	if (_soloud) _soloud->set3dListenerPosition(aPosX, aPosY, aPosZ);
+}
+
+void Audio::getListenerPosition(float& aPosX, float& aPosY, float& aPosZ) const {
+	aPosX = _soloud ? _soloud->m3dPosition[0] : 0.0f;
+	aPosY = _soloud ? _soloud->m3dPosition[1] : 0.0f;
+	aPosZ = _soloud ? _soloud->m3dPosition[2] : 0.0f;
+}
+
+void Audio::getListenerAt(float& aAtX, float& aAtY, float& aAtZ) const {
+	aAtX = _soloud ? _soloud->m3dAt[0] : 0.0f;
+	aAtY = _soloud ? _soloud->m3dAt[1] : 0.0f;
+	aAtZ = _soloud ? _soloud->m3dAt[2] : 1.0f;
+}
+
+void Audio::getListenerUp(float& aUpX, float& aUpY, float& aUpZ) const {
+	aUpX = _soloud ? _soloud->m3dUp[0] : 0.0f;
+	aUpY = _soloud ? _soloud->m3dUp[1] : 1.0f;
+	aUpZ = _soloud ? _soloud->m3dUp[2] : 0.0f;
+}
+
+void Audio::getListenerVelocity(float& aVelocityX, float& aVelocityY, float& aVelocityZ) const {
+	aVelocityX = _soloud ? _soloud->m3dVelocity[0] : 0.0f;
+	aVelocityY = _soloud ? _soloud->m3dVelocity[1] : 0.0f;
+	aVelocityZ = _soloud ? _soloud->m3dVelocity[2] : 0.0f;
 }
 
 void Audio::addRef(uint32_t handle, AudioFile* audioFile, const std::function<void(uint32_t)>& callback) {

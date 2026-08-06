@@ -10,14 +10,59 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Basic/Application.h"
 
+#if BX_PLATFORM_OSX || BX_PLATFORM_IOS
+
+#import <Foundation/Foundation.h>
+
+NS_DORA_BEGIN
+std::string Application::getExecutablePath() const {
+	@autoreleasepool {
+		NSString* path = [NSBundle mainBundle].executablePath;
+		return path == nil ? std::string() : std::string(path.UTF8String);
+	}
+}
+NS_DORA_END
+
+#endif // BX_PLATFORM_OSX || BX_PLATFORM_IOS
+
 #if BX_PLATFORM_IOS
 
 #include "SDL.h"
 #include "SDL_syswm.h"
 
+#import <AVFoundation/AVFoundation.h>
+#import <AudioToolbox/AudioServices.h>
 #import <QuartzCore/CAMetalLayer.h>
 
 NS_DORA_BEGIN
+void Application::vibrate(double seconds) {
+	DORA_UNUSED_PARAM(seconds);
+	@autoreleasepool {
+		AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+	}
+}
+
+bool Application::hasBackgroundMusic() const {
+	@autoreleasepool {
+		AVAudioSession* session = [AVAudioSession sharedInstance];
+		return session.secondaryAudioShouldBeSilencedHint;
+	}
+}
+
+bool Application::setAudioMixWithSystem(bool mix) {
+	@autoreleasepool {
+		AVAudioSession* session = [AVAudioSession sharedInstance];
+		NSString* category = mix ? AVAudioSessionCategoryAmbient : AVAudioSessionCategorySoloAmbient;
+		NSError* error = nil;
+		if (![session setCategory:category error:&error]) {
+			Error("failed to set iOS audio mix policy: {}",
+				error == nil ? "unknown AVAudioSession error" : error.localizedDescription.UTF8String);
+			return false;
+		}
+		return true;
+	}
+}
+
 void Application::updateWindowSize() {
 	SDL_SysWMinfo wmi;
 	SDL_VERSION(&wmi.version);

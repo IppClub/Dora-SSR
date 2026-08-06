@@ -30,13 +30,13 @@
 namespace playrho {
 
 /// @brief A holder for contact filtering data.
-/// @note This data structure size is 9-bytes.
+/// @note This data structure size is 10-bytes.
 struct Filter {
     /// @brief Bits type definition.
     using bits_type = std::uint32_t;
 
     /// @brief Index type definition.
-    using index_type = std::int8_t;
+    using index_type = std::int16_t;
 
     /// @brief Default category bits.
     static constexpr auto DefaultCategoryBits = bits_type(0x1);

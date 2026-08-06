@@ -98,6 +98,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #define DORA_SAMPLERATE 44100
 #endif
 
+/** @brief SoLoud backend selected during audio initialization.
+ *
+ * Defaults to SoLoud::Soloud::AUTO (0). Keeping this configurable also lets
+ * platform builds verify the engine's audio-unavailable path without changing
+ * runtime behavior or depending on a particular host audio device.
+ */
+#ifndef DORA_AUDIO_BACKEND
+#define DORA_AUDIO_BACKEND 0
+#endif
+
 #ifdef DORA_AS_LIB
 	#if BX_PLATFORM_WINDOWS
 		#define DORA_EXPORT __declspec(dllexport)

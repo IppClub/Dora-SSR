@@ -93,6 +93,11 @@ Assets/Doc/en
 
 # xmake build cache
 .xmake/
+Source/3rdParty/Love/Artifacts/
+Source/Love/build*/
+Projects/*/build-love*/
+Projects/Linux/build-theora-check/
+Docs/design/evidence/
 Source/3rdParty/bgfx/dora/generated
 Source/3rdParty/SDL2/Lib/
 Source/3rdParty/Wa/Lib/

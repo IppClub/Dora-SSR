@@ -40,7 +40,16 @@ namespace SoLoud
 		m3dVelocity[0] = 0;
 		m3dVelocity[1] = 0;
 		m3dVelocity[2] = 0;
+		m3dConeDirection[0] = 0;
+		m3dConeDirection[1] = 0;
+		m3dConeDirection[2] = 0;
+		m3dConeInnerAngle = 6.28318530717958647692f;
+		m3dConeOuterAngle = 6.28318530717958647692f;
+		m3dConeOuterVolume = 0.0f;
+		m3dConeOuterHighGain = 1.0f;
+		m3dAirAbsorptionFactor = 0.0f;
 		m3dVolume = 0;
+		m3dHighFrequencyGain = 1.0f;
 		mCollider = 0;
 		mColliderData = 0;
 		mAttenuator = 0;
@@ -75,6 +84,16 @@ namespace SoLoud
 		for (i = 0; i < MAX_CHANNELS; i++)
 			mChannelVolume[i] = 1.0f;		
 		mSetVolume = 1.0f;
+		mMinVolume = 0.0f;
+		mMaxVolume = 1.0f;
+		mUseVolumeLimits = false;
+		mUseSpatialHighFrequencyFilter = false;
+		mSpatialHighFrequencyGain = 1.0f;
+		mSpatialHighShelfGain = -1.0f;
+		mSpatialHighShelfSamplerate = 0.0f;
+		mSpatialHighShelfB0 = 1.0f;
+		mSpatialHighShelfB1 = mSpatialHighShelfB2 = 0.0f;
+		mSpatialHighShelfA1 = mSpatialHighShelfA2 = 0.0f;
 		mBaseSamplerate = 44100.0f;
 		mSamplerate = 44100.0f;
 		mSetRelativePlaySpeed = 1.0f;
@@ -93,10 +112,15 @@ namespace SoLoud
 		for (i = 0; i < MAX_CHANNELS; i++)
 		{
 			mCurrentChannelVolume[i] = 0;
+			mSpatialHighShelfState1[i] = 0.0f;
+			mSpatialHighShelfState2[i] = 0.0f;
 		}
 		// behind pointers because we swap between the two buffers
 		mResampleData[0] = 0;
 		mResampleData[1] = 0;
+		mVirtualResampleData = 0;
+		mVirtualResampleDataSize = 0;
+		mVirtualResampleDataValid = false;
 		mSrcOffset = 0;
 		mLeftoverSamples = 0;
 		mDelaySamples = 0;
@@ -111,6 +135,7 @@ namespace SoLoud
 		{
 			delete mFilter[i];
 		}		
+		delete[] mVirtualResampleData;
 	}
 
 	void AudioSourceInstance::init(AudioSource &aSource, int aPlayIndex)
@@ -119,6 +144,14 @@ namespace SoLoud
 		mBaseSamplerate = aSource.mBaseSamplerate;
 		mSamplerate = mBaseSamplerate;
 		mChannels = aSource.mChannels;
+		const unsigned int virtualResampleSize = SAMPLE_GRANULARITY * mChannels * 2;
+		if (mVirtualResampleDataSize < virtualResampleSize)
+		{
+			delete[] mVirtualResampleData;
+			mVirtualResampleData = new float[virtualResampleSize];
+			mVirtualResampleDataSize = virtualResampleSize;
+		}
+		mVirtualResampleDataValid = false;
 		mStreamTime = 0.0f;
 		mStreamPosition = 0.0f;
 		mLoopPoint = aSource.mLoopPoint;
@@ -350,4 +383,3 @@ namespace SoLoud
 
 
 };
-

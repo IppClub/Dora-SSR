@@ -71,7 +71,39 @@ ChainShapeConf& ChainShapeConf::Set(std::vector<Length2> vertices)
         throw InvalidArgument("too many vertices");
     }
 
+    if (size(vertices) > std::size_t{2} && vertices.back() == vertices.front()) {
+        previousVertex = vertices[size(vertices) - 2];
+        nextVertex = vertices[1];
+    }
+    else {
+        previousVertex.reset();
+        nextVertex.reset();
+    }
     segments = VerticesWithNormals{std::move(vertices)};
+    return *this;
+}
+
+ChainShapeConf& ChainShapeConf::UsePreviousVertex(const Length2& value) noexcept
+{
+    previousVertex = value;
+    return *this;
+}
+
+ChainShapeConf& ChainShapeConf::ClearPreviousVertex() noexcept
+{
+    previousVertex.reset();
+    return *this;
+}
+
+ChainShapeConf& ChainShapeConf::UseNextVertex(const Length2& value) noexcept
+{
+    nextVertex = value;
+    return *this;
+}
+
+ChainShapeConf& ChainShapeConf::ClearNextVertex() noexcept
+{
+    nextVertex.reset();
     return *this;
 }
 
@@ -80,6 +112,8 @@ ChainShapeConf& ChainShapeConf::Translate(const Length2& value)
     auto vertices = segments.GetVertices();
     std::for_each(begin(vertices), end(vertices), [=](Length2& v) { v = v + value; });
     segments = VerticesWithNormals{std::move(vertices)};
+    if (previousVertex) *previousVertex += value;
+    if (nextVertex) *nextVertex += value;
     return *this;
 }
 
@@ -90,6 +124,10 @@ ChainShapeConf& ChainShapeConf::Scale(const Vec2& value)
         v = Length2{GetX(value) * GetX(v), GetY(value) * GetY(v)};
     });
     segments = VerticesWithNormals{std::move(vertices)};
+    if (previousVertex) *previousVertex = Length2{
+        GetX(value) * GetX(*previousVertex), GetY(value) * GetY(*previousVertex)};
+    if (nextVertex) *nextVertex = Length2{
+        GetX(value) * GetX(*nextVertex), GetY(value) * GetY(*nextVertex)};
     return *this;
 }
 
@@ -99,6 +137,8 @@ ChainShapeConf& ChainShapeConf::Rotate(const UnitVec& value)
     std::for_each(begin(vertices), end(vertices),
                   [=](Length2& v) { v = ::playrho::d2::Rotate(v, value); });
     segments = VerticesWithNormals{std::move(vertices)};
+    if (previousVertex) *previousVertex = ::playrho::d2::Rotate(*previousVertex, value);
+    if (nextVertex) *nextVertex = ::playrho::d2::Rotate(*nextVertex, value);
     return *this;
 }
 
@@ -153,7 +193,14 @@ DistanceProxy ChainShapeConf::GetChild(ChildCounter index) const
     }
     const auto vertexCount = GetVertexCount();
     if (vertexCount > 1) {
-        return DistanceProxy{vertexRadius, 2, &segments.GetVertices()[index], &segments.GetNormals()[index * 2]};
+        const auto previous = index > 0
+            ? std::optional<Length2>{GetVertex(index - 1)}
+            : previousVertex;
+        const auto next = index + 2 < vertexCount
+            ? std::optional<Length2>{GetVertex(index + 2)}
+            : nextVertex;
+        return DistanceProxy{vertexRadius, 2, &segments.GetVertices()[index],
+                             &segments.GetNormals()[index * 2], previous, next};
     }
     return DistanceProxy{vertexRadius, 1, &segments.GetVertices()[index], nullptr};
 }
@@ -177,6 +224,7 @@ ChainShapeConf GetChainShapeConf(const Length2& dimensions)
     conf.Add(topLeft);
     conf.Add(btmLeft);
     conf.Add(conf.GetVertex(0));
+    conf.UsePreviousVertex(btmLeft).UseNextVertex(topRight);
 
     return conf;
 }
@@ -193,6 +241,8 @@ ChainShapeConf GetChainShapeConf(const AABB& arg)
     conf.Add(Length2{rangeX.GetMin(), rangeY.GetMax()}); // top left
     conf.Add(Length2{rangeX.GetMin(), rangeY.GetMin()}); // bottom left
     conf.Add(conf.GetVertex(0)); // close the chain around to first point
+    conf.UsePreviousVertex(conf.GetVertex(conf.GetVertexCount() - 2))
+        .UseNextVertex(conf.GetVertex(1));
 
     return conf;
 }

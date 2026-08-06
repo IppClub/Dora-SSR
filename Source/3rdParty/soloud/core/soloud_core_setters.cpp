@@ -91,6 +91,17 @@ namespace SoLoud
 		return SO_NO_ERROR;
 	}
 
+	result Soloud::setMaxActiveSourceVoiceCount(unsigned int aVoiceCount)
+	{
+		if (aVoiceCount == 0 || aVoiceCount >= VOICE_COUNT)
+			return INVALID_PARAMETER;
+		lockAudioMutex_internal();
+		mMaxActiveSourceVoices = aVoiceCount;
+		mActiveVoiceDirty = true;
+		unlockAudioMutex_internal();
+		return SO_NO_ERROR;
+	}
+
 	void Soloud::setPauseAll(bool aPause)
 	{
 		lockAudioMutex_internal();
@@ -218,6 +229,16 @@ namespace SoLoud
 		FOR_ALL_VOICES_PRE
 			mVoice[ch]->mVolumeFader.mActive = 0;
 			setVoiceVolume_internal(ch, aVolume);
+		FOR_ALL_VOICES_POST
+	}
+
+	void Soloud::setVoiceVolumeLimits(handle aVoiceHandle, float aMinVolume, float aMaxVolume)
+	{
+		FOR_ALL_VOICES_PRE
+			mVoice[ch]->mMinVolume = aMinVolume;
+			mVoice[ch]->mMaxVolume = aMaxVolume;
+			mVoice[ch]->mUseVolumeLimits = true;
+			updateVoiceVolume_internal(ch);
 		FOR_ALL_VOICES_POST
 	}
 

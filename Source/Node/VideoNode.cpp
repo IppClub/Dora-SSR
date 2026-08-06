@@ -12,359 +12,307 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Basic/Content.h"
 
+extern "C" {
+#include "3rdParty/ogg/ogg.h"
+#include "3rdParty/theora/include/theora/theoradec.h"
+}
+
+#include <algorithm>
+#include <condition_variable>
+
 NS_DORA_BEGIN
 
-class AnnexBNalSplitter {
-public:
-	explicit AnnexBNalSplitter(bool includeStartCode = true)
-		: _includeStartCode(includeStartCode) { }
+namespace {
 
-	void push(const uint8_t* data, size_t len) {
-		if (!data || len == 0) return;
-		_buf.insert(_buf.end(), data, data + len);
-	}
-
-	std::optional<std::vector<uint8_t>> popNal() {
-		size_t sc0 = 0;
-		size_t sc0_len = 0;
-		if (!findStartCode(0, sc0, sc0_len)) {
-			trimGarbageNoStartCode();
-			return std::nullopt;
-		}
-
-		if (sc0 > 0) {
-			erasePrefix(sc0);
-			sc0 = 0;
-		}
-
-		size_t sc1 = 0;
-		size_t sc1_len = 0;
-		if (!findStartCode(sc0 + sc0_len, sc1, sc1_len)) {
-			return std::nullopt;
-		}
-
-		size_t nal_begin = _includeStartCode ? sc0 : (sc0 + sc0_len);
-		size_t nal_end = sc1;
-
-		if (nal_end <= nal_begin) {
-			erasePrefix(sc1);
-			return std::nullopt;
-		}
-
-		std::vector<uint8_t> nal(_buf.begin() + nal_begin, _buf.begin() + nal_end);
-
-		erasePrefix(sc1);
-
-		return nal;
-	}
-
-	std::optional<std::vector<uint8_t>> flushLastNal() {
-		size_t sc0 = 0, sc0_len = 0;
-		if (!findStartCode(0, sc0, sc0_len)) return std::nullopt;
-
-		if (sc0 > 0) {
-			erasePrefix(sc0);
-			sc0 = 0;
-		}
-
-		size_t nal_begin = _includeStartCode ? 0 : sc0_len;
-		if (_buf.size() <= nal_begin) return std::nullopt;
-
-		std::vector<uint8_t> nal(_buf.begin() + nal_begin, _buf.end());
-		_buf.clear();
-		return nal;
-	}
-
-	void clear() { _buf.clear(); }
-
-private:
-	bool findStartCode(size_t from, size_t& pos, size_t& len) const {
-		const size_t n = _buf.size();
-		if (n < 3 || from >= n) return false;
-
-		for (size_t i = from; i + 3 <= n; ++i) {
-			if (i + 2 < n && _buf[i] == 0x00 && _buf[i + 1] == 0x00 && _buf[i + 2] == 0x01) {
-				pos = i;
-				len = 3;
-				return true;
-			}
-			if (i + 3 < n && _buf[i] == 0x00 && _buf[i + 1] == 0x00 && _buf[i + 2] == 0x00 && _buf[i + 3] == 0x01) {
-				pos = i;
-				len = 4;
-				return true;
-			}
-		}
-		return false;
-	}
-
-	void erasePrefix(size_t count) {
-		if (count == 0) return;
-		if (count >= _buf.size()) {
-			_buf.clear();
-			return;
-		}
-		std::memmove(_buf.data(), _buf.data() + count, _buf.size() - count);
-		_buf.resize(_buf.size() - count);
-	}
-
-	void trimGarbageNoStartCode() {
-		if (_buf.size() > 3) {
-			std::vector<uint8_t> tail(_buf.end() - 3, _buf.end());
-			_buf.swap(tail);
-		}
-	}
-
-private:
-	bool _includeStartCode = true;
-	std::vector<uint8_t> _buf;
+struct VideoFrame {
+	std::vector<uint8_t> rgba;
 };
 
 class VideoData : public VideoDataImpl {
 public:
-	virtual ~VideoData() {
-		if (decoderStorage != nullptr) {
-			h264bsdShutdown(decoderStorage);
-			h264bsdFree(decoderStorage);
-			decoderStorage = nullptr;
-		}
-		if (fileHandle != nullptr) {
-			SDL_RWclose(fileHandle);
-			fileHandle = nullptr;
-		}
+	~VideoData() override {
+		shutdownDecoder();
 	}
 
-	std::vector<uint8_t> streamBuffer;
-	size_t streamBufferPos;
-	std::list<std::vector<uint32_t>> frameBuffers; // RGBA buffer
-	storage_t* decoderStorage = nullptr;
-	SDL_RWops* fileHandle = nullptr;
-	uint32_t currentPicId = 0;
-	uint32_t videoWidth = 0;
-	uint32_t videoHeight = 0;
-	float frameRate = 0;
-	bool looped = false;
-	std::mutex buffersMutex;
-	std::atomic<bool> stoped = false;
-	static constexpr size_t CHUNK_SIZE = 64 * 1024; // 64KB chunks
-	uint8_t buffer[CHUNK_SIZE];
-	AnnexBNalSplitter splitter;
-
 	bool init(String filename) {
-		decoderStorage = h264bsdAlloc();
-		if (!decoderStorage) {
-			Error("VideoNode: failed to allocate decoder storage");
+		auto [data, size] = SharedContent.load(filename);
+		if (!data || size == 0) {
+			Error("VideoNode: failed to load Ogg/Theora video through Content: {}", filename.toString());
 			return false;
 		}
 
-		u32 result = h264bsdInit(decoderStorage, 1); // 0 = enable output reordering
-		if (result != H264BSD_RDY) {
-			Error("VideoNode: failed to initialize decoder, error code: {}", result);
-			h264bsdFree(decoderStorage);
-			decoderStorage = nullptr;
+		fileData.assign(data.get(), data.get() + size);
+		if (!openStream()) {
+			Error("VideoNode: invalid or unsupported Ogg/Theora video: {}", filename.toString());
 			return false;
 		}
-
-		std::string fullPath = SharedContent.getFullPath(filename);
-		fileHandle = SDL_RWFromFile(fullPath.c_str(), "rb");
-		if (!fileHandle) {
-			Error("VideoNode: failed to open file: {}, error: {}", fullPath, SDL_GetError());
-			return false;
-		}
-
-		while (readFileChunk(true)) {
-			if (videoWidth > 0 && videoHeight > 0) {
-				break;
-			}
-		}
-
-		if (videoWidth == 0 || videoHeight == 0 || frameRate == 0) {
-			Error("VideoNode: failed to get video parameters from file {}", fullPath);
-			return false;
-		}
-
 		return true;
 	}
 
-	bool readFileChunk(bool init = false) {
-		if (!fileHandle) return false;
+	void decode() {
+		while (!stopped.load(std::memory_order_acquire)) {
+			{
+				std::unique_lock lock(framesMutex);
+				framesChanged.wait(lock, [this]() {
+					return stopped.load(std::memory_order_acquire) || frames.size() < maxBufferedFrames;
+				});
+				if (stopped.load(std::memory_order_acquire)) break;
+			}
 
+			if (decodeNextFrame()) continue;
+
+			if (looped && !stopped.load(std::memory_order_acquire)) {
+				if (openStream()) continue;
+				Error("VideoNode: failed to rewind Ogg/Theora video");
+			}
+
+			{
+				std::scoped_lock lock(framesMutex);
+				frames.emplace_back();
+			}
+			framesChanged.notify_all();
+			break;
+		}
+	}
+
+	std::optional<VideoFrame> getFrame() {
+		std::optional<VideoFrame> result;
 		{
-			std::scoped_lock<std::mutex> lock(buffersMutex);
-			if (frameRate > 0 && frameBuffers.size() >= frameRate * 2) {
+			std::scoped_lock lock(framesMutex);
+			if (!frames.empty()) {
+				result = std::move(frames.front());
+				frames.pop_front();
+			}
+		}
+		if (result) framesChanged.notify_all();
+		return result;
+	}
+
+	void stop() {
+		stopped.store(true, std::memory_order_release);
+		framesChanged.notify_all();
+	}
+
+	uint32_t videoWidth = 0;
+	uint32_t videoHeight = 0;
+	double frameRate = 0.0;
+	bool looped = false;
+
+private:
+	bool readPage() {
+		while (ogg_sync_pageout(&sync, &page) != 1) {
+			if (readPosition >= fileData.size()) return false;
+			const size_t count = std::min<size_t>(8192, fileData.size() - readPosition);
+			char* buffer = ogg_sync_buffer(&sync, s_cast<long>(count));
+			if (!buffer) return false;
+			std::memcpy(buffer, fileData.data() + readPosition, count);
+			readPosition += count;
+			if (ogg_sync_wrote(&sync, s_cast<long>(count)) != 0) return false;
+		}
+		return true;
+	}
+
+	bool findTheoraStream() {
+		while (readPage()) {
+			if (!ogg_page_bos(&page)) break;
+
+			ogg_stream_state candidate{};
+			if (ogg_stream_init(&candidate, ogg_page_serialno(&page)) != 0) return false;
+			ogg_stream_pagein(&candidate, &page);
+
+			ogg_packet packet{};
+			const bool theora = ogg_stream_packetpeek(&candidate, &packet) == 1
+				&& packet.bytes >= 7
+				&& (packet.packet[0] & 0x80) != 0
+				&& std::memcmp(packet.packet + 1, "theora", 6) == 0;
+			if (theora) {
+				stream = candidate;
+				streamInitialized = true;
+				videoSerial = ogg_page_serialno(&page);
+				pageValid = true;
 				return true;
 			}
+			ogg_stream_clear(&candidate);
+		}
+		return false;
+	}
+
+	bool readPacket(ogg_packet& packet) {
+		if (!streamInitialized) return false;
+		while (ogg_stream_packetout(&stream, &packet) != 1) {
+			if (pageValid && ogg_page_serialno(&page) == videoSerial && ogg_page_eos(&page)) return false;
+			do {
+				if (!readPage()) return false;
+				pageValid = true;
+			} while (ogg_page_serialno(&page) != videoSerial);
+			if (ogg_stream_pagein(&stream, &page) != 0) return false;
+		}
+		return true;
+	}
+
+	bool openStream() {
+		shutdownDecoder();
+		readPosition = 0;
+		pageValid = false;
+		pendingPacket = false;
+
+		if (ogg_sync_init(&sync) != 0) return false;
+		syncInitialized = true;
+		th_info_init(&info);
+		infoInitialized = true;
+		th_comment_init(&comment);
+		commentInitialized = true;
+
+		if (!findTheoraStream()) return false;
+
+		int result = 1;
+		while (result > 0) {
+			if (!readPacket(packet)) return false;
+			result = th_decode_headerin(&info, &comment, &setup, &packet);
+			if (result < 0) return false;
 		}
 
-		size_t bytesRead = SDL_RWread(fileHandle, buffer, 1, CHUNK_SIZE);
+		decoder = th_decode_alloc(&info, setup);
+		th_setup_free(setup);
+		setup = nullptr;
+		if (!decoder) return false;
 
-		if (bytesRead > 0) {
-			splitter.push(buffer, bytesRead);
-			auto nal = splitter.popNal();
-			if (!nal) return true;
-			streamBuffer.insert(streamBuffer.end(), nal.value().begin(), nal.value().end());
-			processVideoFrame();
-			return true;
-		} else if (auto nal = splitter.popNal(); nal) {
-			streamBuffer.insert(streamBuffer.end(), nal.value().begin(), nal.value().end());
-			processVideoFrame();
-			return true;
-		} else {
-			if (!init && looped) {
-				if (decoderStorage != nullptr) {
-					h264bsdShutdown(decoderStorage);
-					h264bsdFree(decoderStorage);
-					decoderStorage = nullptr;
-				}
-
-				decoderStorage = h264bsdAlloc();
-				if (!decoderStorage) {
-					Error("VideoNode: failed to allocate decoder storage");
-					return false;
-				}
-
-				u32 result = h264bsdInit(decoderStorage, 1); // 0 = enable output reordering
-				if (result != H264BSD_RDY) {
-					Error("VideoNode: failed to initialize decoder, error code: {}", result);
-					h264bsdFree(decoderStorage);
-					decoderStorage = nullptr;
-					return false;
-				}
-
-				currentPicId = 0;
-				streamBuffer.clear();
-				streamBufferPos = 0;
-				splitter.clear();
-				SDL_RWseek(fileHandle, 0, RW_SEEK_SET);
-			} else if (!init) {
-				std::scoped_lock<std::mutex> lock(buffersMutex);
-				frameBuffers.emplace_back();
-			}
+		const uint32_t decodedWidth = info.pic_width;
+		const uint32_t decodedHeight = info.pic_height;
+		if (decodedWidth == 0 || decodedHeight == 0
+			|| decodedWidth > UINT16_MAX || decodedHeight > UINT16_MAX
+			|| info.fps_numerator == 0 || info.fps_denominator == 0) return false;
+		const double decodedFrameRate = static_cast<double>(info.fps_numerator) / info.fps_denominator;
+		if (decodedFrameRate < 1.0 || decodedFrameRate > 240.0) return false;
+		if (videoWidth == 0) {
+			videoWidth = decodedWidth;
+			videoHeight = decodedHeight;
+			frameRate = decodedFrameRate;
+			maxBufferedFrames = std::clamp<size_t>(static_cast<size_t>(std::ceil(frameRate * 2.0)), 2, 240);
+		} else if (videoWidth != decodedWidth || videoHeight != decodedHeight
+			|| frameRate != decodedFrameRate) {
 			return false;
 		}
+		pendingPacket = true;
+		return true;
 	}
 
-	std::optional<std::vector<uint32_t>> getFrame() {
-		std::scoped_lock<std::mutex> lock(buffersMutex);
-		if (frameBuffers.empty()) {
-			return std::nullopt;
+	bool decodeNextFrame() {
+		while (!stopped.load(std::memory_order_acquire)) {
+			if (!pendingPacket && !readPacket(packet)) return false;
+			pendingPacket = false;
+
+			ogg_int64_t granulePosition = -1;
+			const int result = th_decode_packetin(decoder, &packet, &granulePosition);
+			if (result < 0) continue;
+			if (result > 0) continue;
+
+			th_ycbcr_buffer planes{};
+			if (th_decode_ycbcr_out(decoder, planes) != 0) continue;
+
+			VideoFrame frame;
+			convertFrame(planes, frame.rgba);
+			{
+				std::scoped_lock lock(framesMutex);
+				frames.emplace_back(std::move(frame));
+			}
+			framesChanged.notify_all();
+			return true;
 		}
-		auto front = std::move(frameBuffers.front());
-		frameBuffers.pop_front();
-		return front;
+		return false;
 	}
 
-	void processVideoFrame() {
-		if (!decoderStorage) return;
+	void convertFrame(const th_ycbcr_buffer& planes, std::vector<uint8_t>& rgba) const {
+		rgba.resize(static_cast<size_t>(videoWidth) * videoHeight * 4);
+		const int chromaShiftX = info.pixel_fmt == TH_PF_444 ? 0 : 1;
+		const int chromaShiftY = info.pixel_fmt == TH_PF_420 ? 1 : 0;
 
-		while (true) {
-			if (streamBufferPos >= streamBuffer.size()) {
-				break;
-			}
-
-			if (streamBufferPos >= 1024 * 1024 * 2) {
-				streamBuffer.erase(streamBuffer.begin(), streamBuffer.begin() + streamBufferPos);
-				streamBufferPos = 0;
-			}
-
-			h264bsdFlushBuffer(decoderStorage);
-
-			uint8_t* byteStrm = streamBuffer.data() + streamBufferPos;
-			u32 len = s_cast<u32>(streamBuffer.size() - streamBufferPos);
-			u32 readBytes = 0;
-			u32 result = h264bsdDecode(decoderStorage, byteStrm, len, currentPicId, &readBytes);
-
-			bool hasErr = false;
-			switch (result) {
-				case H264BSD_RDY:
-					streamBufferPos += readBytes;
-					break;
-				case H264BSD_HDRS_RDY: {
-					streamBufferPos += readBytes;
-					u32 top, left, width, height, croppingFlag;
-					if (videoWidth == 0 || videoHeight == 0) {
-						h264bsdCroppingParams(decoderStorage, &croppingFlag, &left, &width, &top, &height);
-						if (!croppingFlag) {
-							width = h264bsdPicWidth(decoderStorage) * 16;
-							height = h264bsdPicHeight(decoderStorage) * 16;
-						}
-						videoWidth = width;
-						videoHeight = height;
-						parseFrameRate();
-					}
-					break;
-				}
-				case H264BSD_PIC_RDY: {
-					streamBufferPos += readBytes;
-					u32 picId = 0;
-					u32 isIdrPic = 0;
-					u32 numErrMbs = 0;
-					u32* rgbaData = h264bsdNextOutputPictureRGBA(decoderStorage, &picId, &isIdrPic, &numErrMbs);
-					if (rgbaData && videoWidth > 0 && videoHeight > 0) {
-						size_t frameSize = videoWidth * videoHeight;
-						std::vector<uint32_t> frameBuffer;
-						frameBuffer.resize(frameSize);
-						std::memcpy(frameBuffer.data(), rgbaData, frameSize * sizeof(uint32_t));
-						{
-							std::scoped_lock<std::mutex> lock(buffersMutex);
-							frameBuffers.emplace_back(std::move(frameBuffer));
-						}
-						currentPicId++;
-					}
-					break;
-				}
-				case H264BSD_ERROR: {
-					hasErr = true;
-					break;
-				}
-				case H264BSD_PARAM_SET_ERROR:
-				case H264BSD_MEMALLOC_ERROR: {
-					hasErr = true;
-					Error("VideoNode: decode error code: {}", result);
-					break;
-				}
-				default: {
-					hasErr = true;
-					Error("VideoNode: unexpected error code: {}", result);
-					break;
-				}
-			}
-			if (readBytes == 0) {
-				break;
-			}
-			if (hasErr) {
-				break;
+		for (uint32_t y = 0; y < videoHeight; ++y) {
+			const int sourceY = s_cast<int>(y) + info.pic_y;
+			const int chromaY = sourceY >> chromaShiftY;
+			for (uint32_t x = 0; x < videoWidth; ++x) {
+				const int sourceX = s_cast<int>(x) + info.pic_x;
+				const int chromaX = sourceX >> chromaShiftX;
+				const int yy = planes[0].data[sourceY * planes[0].stride + sourceX];
+				const int cb = planes[1].data[chromaY * planes[1].stride + chromaX];
+				const int cr = planes[2].data[chromaY * planes[2].stride + chromaX];
+				const int c = std::max(0, yy - 16);
+				const int d = cb - 128;
+				const int e = cr - 128;
+				const auto clampByte = [](int value) {
+					return s_cast<uint8_t>(std::clamp(value, 0, 255));
+				};
+				const size_t offset = (static_cast<size_t>(y) * videoWidth + x) * 4;
+				rgba[offset] = clampByte((298 * c + 409 * e + 128) >> 8);
+				rgba[offset + 1] = clampByte((298 * c - 100 * d - 208 * e + 128) >> 8);
+				rgba[offset + 2] = clampByte((298 * c + 516 * d + 128) >> 8);
+				rgba[offset + 3] = 255;
 			}
 		}
 	}
 
-	void parseFrameRate() {
-		if (!decoderStorage) return;
-
-		seqParamSet_t* activeSps = decoderStorage->activeSps;
-		if (!activeSps) return;
-
-		if (!activeSps->vuiParametersPresentFlag || !activeSps->vuiParameters) {
-			return;
+	void shutdownDecoder() {
+		if (decoder) {
+			th_decode_free(decoder);
+			decoder = nullptr;
 		}
-
-		vuiParameters_t* vui = activeSps->vuiParameters;
-
-		if (vui->timingInfoPresentFlag && vui->timeScale > 0 && vui->numUnitsInTick > 0) {
-			frameRate = static_cast<float>(vui->timeScale) / static_cast<float>(vui->numUnitsInTick) / 2;
-			if (frameRate < 1.0f || frameRate > 120.0f) {
-				Warn("VideoNode: parsed frame rate {} fps seems invalid, using default 30 fps", frameRate);
-				frameRate = 30.0f;
-			}
+		if (setup) {
+			th_setup_free(setup);
+			setup = nullptr;
+		}
+		if (commentInitialized) {
+			th_comment_clear(&comment);
+			commentInitialized = false;
+		}
+		if (infoInitialized) {
+			th_info_clear(&info);
+			infoInitialized = false;
+		}
+		if (streamInitialized) {
+			ogg_stream_clear(&stream);
+			streamInitialized = false;
+		}
+		if (syncInitialized) {
+			ogg_sync_clear(&sync);
+			syncInitialized = false;
 		}
 	}
+
+	std::vector<uint8_t> fileData;
+	size_t readPosition = 0;
+	ogg_sync_state sync{};
+	ogg_stream_state stream{};
+	ogg_page page{};
+	ogg_packet packet{};
+	int videoSerial = 0;
+	bool syncInitialized = false;
+	bool streamInitialized = false;
+	bool pageValid = false;
+	bool pendingPacket = false;
+	th_info info{};
+	th_comment comment{};
+	th_setup_info* setup = nullptr;
+	th_dec_ctx* decoder = nullptr;
+	bool infoInitialized = false;
+	bool commentInitialized = false;
+	std::deque<VideoFrame> frames;
+	std::mutex framesMutex;
+	std::condition_variable framesChanged;
+	size_t maxBufferedFrames = 2;
+	std::atomic<bool> stopped = false;
 };
+
+void releaseFrame(void*, void* userData) {
+	delete r_cast<std::vector<uint8_t>*>(userData);
+}
+
+} // namespace
 
 VideoNode::VideoNode(String filename, bool looped)
 	: _filename(filename.toString())
 	, _looped(looped)
 	, _frameAccumulator(0.0)
-	, _paused(false) {
-}
+	, _paused(false) { }
 
 VideoNode::~VideoNode() {
 	cleanupResources();
@@ -374,22 +322,14 @@ bool VideoNode::init() {
 	if (!Sprite::init()) return false;
 
 	auto videoData = std::make_shared<VideoData>();
-	_videoData = videoData;
 	videoData->looped = _looped;
-	if (!videoData->init(_filename)) {
-		return false;
-	}
+	if (!videoData->init(_filename)) return false;
+	_videoData = videoData;
 
-	setSize({s_cast<float>(videoData->videoWidth),
-		s_cast<float>(videoData->videoHeight)});
+	setSize({s_cast<float>(videoData->videoWidth), s_cast<float>(videoData->videoHeight)});
 
 	_thread = New<Async>();
-	_thread->run([videoData]() {
-		while (!videoData->stoped) {
-			videoData->readFileChunk();
-		}
-	});
-
+	_thread->run([videoData]() { videoData->decode(); });
 	scheduleUpdate();
 	return true;
 }
@@ -400,10 +340,12 @@ void VideoNode::cleanup() {
 }
 
 void VideoNode::cleanupResources() {
-	if (_videoData) {
-		s_cast<VideoData*>(_videoData.get())->stoped = true;
-		_videoData = nullptr;
+	if (_videoData) s_cast<VideoData*>(_videoData.get())->stop();
+	if (_thread) {
+		_thread->stop();
+		_thread = nullptr;
 	}
+	_videoData = nullptr;
 }
 
 void VideoNode::pause() {
@@ -418,85 +360,52 @@ bool VideoNode::isPaused() const {
 	return _paused;
 }
 
-static void releaseFrame(void*, void* userData) {
-	auto buffer = r_cast<std::vector<uint32_t>*>(userData);
-	delete buffer;
-}
-
 VideoNode::UpdateFlag VideoNode::updateTexture() {
 	auto videoData = s_cast<VideoData*>(_videoData.get());
 	if (!videoData) return UpdateFlag::Stop;
 
-	uint32_t videoWidth = videoData->videoWidth;
-	uint32_t videoHeight = videoData->videoHeight;
-	if (videoWidth == 0 || videoHeight == 0) {
-		return UpdateFlag::Stop;
-	}
-
 	auto frame = videoData->getFrame();
-	if (!frame) {
-		return UpdateFlag::Wait;
-	}
+	if (!frame) return UpdateFlag::Wait;
+	if (frame->rgba.empty()) return UpdateFlag::Stop;
 
-	if (frame.value().empty()) {
-		return UpdateFlag::Stop;
-	}
-
+	const uint32_t videoWidth = videoData->videoWidth;
+	const uint32_t videoHeight = videoData->videoHeight;
 	auto texture = getTexture();
-
-	if (!texture || texture->getWidth() != s_cast<int>(videoWidth) || texture->getHeight() != s_cast<int>(videoHeight)) {
-
-		bgfx::TextureHandle textureHandle = bgfx::createTexture2D(
-			s_cast<uint16_t>(videoWidth),
-			s_cast<uint16_t>(videoHeight),
-			false, 1,
+	if (!texture || texture->getWidth() != s_cast<int>(videoWidth)
+		|| texture->getHeight() != s_cast<int>(videoHeight)) {
+		const bgfx::TextureHandle textureHandle = bgfx::createTexture2D(
+			s_cast<uint16_t>(videoWidth), s_cast<uint16_t>(videoHeight), false, 1,
 			bgfx::TextureFormat::RGBA8);
-
 		if (!bgfx::isValid(textureHandle)) {
-			Error("VideoNode: failed to create texture");
+			Error("VideoNode: failed to create Ogg/Theora texture");
 			return UpdateFlag::Stop;
 		}
 
 		bgfx::TextureInfo info;
-		bgfx::calcTextureSize(info,
-			s_cast<uint16_t>(videoWidth),
-			s_cast<uint16_t>(videoHeight),
-			0, false, false, 1,
-			bgfx::TextureFormat::RGBA8);
-
+		bgfx::calcTextureSize(info, s_cast<uint16_t>(videoWidth), s_cast<uint16_t>(videoHeight),
+			0, false, false, 1, bgfx::TextureFormat::RGBA8);
 		texture = Texture2D::create(textureHandle, info, BGFX_TEXTURE_NONE);
 		setTexture(texture);
-		setTextureRect(Rect{0.0f, 0.0f, s_cast<float>(videoData->videoWidth), s_cast<float>(videoData->videoHeight)});
+		setTextureRect(Rect{0.0f, 0.0f, s_cast<float>(videoWidth), s_cast<float>(videoHeight)});
 	}
 
-	if (texture) {
-		auto buffer = new std::vector<uint32_t>(std::move(frame.value()));
-		const bgfx::Memory* mem = bgfx::makeRef(
-			buffer->data(),
-			s_cast<uint32_t>(buffer->size() * sizeof(uint32_t)),
-			releaseFrame,
-			buffer);
-
-		bgfx::updateTexture2D(texture->getHandle(), 0, 0, 0, 0,
-			s_cast<uint16_t>(videoWidth),
-			s_cast<uint16_t>(videoHeight),
-			mem);
-	}
-
+	auto buffer = new std::vector<uint8_t>(std::move(frame->rgba));
+	const bgfx::Memory* memory = bgfx::makeRef(buffer->data(), s_cast<uint32_t>(buffer->size()),
+		releaseFrame, buffer);
+	bgfx::updateTexture2D(texture->getHandle(), 0, 0, 0, 0,
+		s_cast<uint16_t>(videoWidth), s_cast<uint16_t>(videoHeight), memory);
 	return UpdateFlag::Done;
 }
 
 bool VideoNode::update(double deltaTime) {
 	auto videoData = s_cast<VideoData*>(_videoData.get());
 	if (!videoData) return true;
-	if (!_paused && videoData->frameRate > 0.0f) {
+	if (!_paused && videoData->frameRate > 0.0) {
 		_frameAccumulator += deltaTime;
-		double frameTime = 1.0 / videoData->frameRate;
+		const double frameTime = 1.0 / videoData->frameRate;
 		if (_frameAccumulator >= frameTime) {
-			_frameAccumulator -= frameTime;
-			if (UpdateFlag::Stop == updateTexture()) {
-				return true;
-			}
+			_frameAccumulator = std::fmod(_frameAccumulator, frameTime);
+			if (updateTexture() == UpdateFlag::Stop) return true;
 		}
 	}
 	return Sprite::update(deltaTime);

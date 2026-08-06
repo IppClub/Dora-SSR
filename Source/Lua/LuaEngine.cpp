@@ -1803,7 +1803,7 @@ bool LuaEngine::to(std::string& value, int index) {
 
 bool LuaEngine::to(Slice& value, int index) {
 	if (lua_isstring(L, index)) {
-		value = tolua_toslice(L, index, 0).toString();
+		value = tolua_toslice(L, index, 0);
 		return true;
 	}
 	return false;

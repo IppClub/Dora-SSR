@@ -2856,8 +2856,9 @@ interface NodeEventHandlerMap {
 	 * Triggers after calling `node.attachIME()`.
 	 * @param text The text that is being edited.
 	 * @param startPos The starting position of the text being edited.
+	 * @param length The length of the selected editing range.
 	*/
-	TextEditing(this: void, text: string, startPos: number): void;
+	TextEditing(this: void, text: string, startPos: number, length: number): void;
 
 	/**
 	 * The ButtonDown slot is triggered when a game controller button is pressed down.
@@ -3607,7 +3608,7 @@ class Node extends Object {
 	 * Registers a callback for the event triggered when text is being edited.
 	 * @param callback The callback function to register.
 	 */
-	onTextEditing(callback: (this: void, text: string, startPos: number) => void): void;
+	onTextEditing(callback: (this: void, text: string, startPos: number, length: number) => void): void;
 
 	/**
 	 * Registers a callback for the event triggered when a button is pressed down on a controller.
@@ -8298,22 +8299,7 @@ export namespace VideoNode {
 interface VideoNodeClass {
 	/**
 	 * Creates a new VideoNode object.
-	 * @param filename The path to the video file. It should be a valid video file path with `.h264` suffix.
-	 *     H.264 format requirements:
-	 *     - Video codec: H.264 / AVC only (no H.265/HEVC, VP9, AV1, etc.).
-	 *     - Bitstream format: Annex-B byte stream is required (NAL units separated by 0x000001 / 0x00000001 start codes).
-	 *       MP4/FLV-style AVCC (length-prefixed NAL units) is NOT supported unless converted to Annex-B beforehand.
-	 *     - Stream type: video-only elementary stream is recommended. Audio tracks (if any) are ignored.
-	 *     - Profile/level constraints (recommended for maximum compatibility and performance):
-	 *         * Baseline / Constrained Baseline profile is recommended.
-	 *         * Progressive frames only (no interlaced/field-coded content).
-	 *         * No B-frames is recommended (e.g., baseline) to avoid output reordering costs.
-	 *     - Color format: YUV 4:2:0 (8-bit) is recommended; other chroma formats may be unsupported.
-	 *     - Frame rate: Constant frame rate (CFR) is recommended. Variable frame rate streams may play with unstable timing.
-	 *     - Resolution/performance notes:
-	 *         * 4K and high-bitrate streams may be CPU intensive for software decoding.
-	 *         * For smooth playback on mid-range devices, 720p/1080p and moderate bitrates are recommended.
-	 *     - It is recommended to use the `ffmpeg` tool to convert the video file to H.264 format before using it.
+	 * @param filename The path to an Ogg (`.ogv`) file containing a Theora video stream. VideoNode reads it through Dora Content, renders video only, supports Theora 4:2:0/4:2:2/4:4:4, and decodes in software; play audio separately.
 	 * @param looped [optional] Whether the video should loop. Default is `false`.
 	 * @returns The created VideoNode object. If the video file is not loaded, it will return undefined.
 	 */
@@ -8390,6 +8376,29 @@ interface TIC80NodeClass {
 
 const tic80NodeClass: TIC80NodeClass;
 export {tic80NodeClass as TIC80Node};
+
+/** A Dora scene node that owns and runs one isolated Love Lua state. */
+class LoveNode extends Sprite {
+	private constructor();
+	readonly bootFile: string;
+	readonly sourceRoot: string;
+	readonly lastError: string;
+	readonly running: boolean;
+	/** Destroys the old Love state, reloads the boot file, and starts a new state. */
+	restart(): boolean;
+}
+
+export namespace LoveNode {
+	export type Type = LoveNode;
+}
+
+interface LoveNodeClass {
+	/** Creates a LoveNode from a boot Lua file. Returns undefined when loading fails. */
+	(this: void, bootFile: string): LoveNode | undefined;
+}
+
+const loveNodeClass: LoveNodeClass;
+export {loveNodeClass as LoveNode};
 
 export const enum TypeName {
 	Size = "Size",

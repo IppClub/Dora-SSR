@@ -26,7 +26,8 @@ Pass::Uniform::~Uniform() {
 Pass::Uniform::Uniform(bgfx::UniformHandle handle, Own<Value>&& value)
 	: _handle(handle)
 	, _value(std::move(value))
-	, _slot(0) { }
+	, _slot(0)
+	, _samplerFlags(UINT32_MAX) { }
 
 bgfx::UniformHandle Pass::Uniform::getHandle() const noexcept {
 	return _handle;
@@ -44,9 +45,31 @@ uint8_t Pass::Uniform::getSlot() const noexcept {
 	return _slot;
 }
 
+void Pass::Uniform::setSamplerFlags(uint32_t var) {
+	_samplerFlags = var;
+}
+
+uint32_t Pass::Uniform::getSamplerFlags() const noexcept {
+	return _samplerFlags;
+}
+
+void Pass::Uniform::setVec4Array(std::span<const Vec4> values) {
+	_vec4Array.assign(values.begin(), values.end());
+	_matrixArray.clear();
+}
+
+void Pass::Uniform::setMatrixArray(std::span<const Matrix> values) {
+	_matrixArray.assign(values.begin(), values.end());
+	_vec4Array.clear();
+}
+
 void Pass::Uniform::apply() {
-	if (auto texture = _value->as<Texture2D>()) {
-		bgfx::setTexture(_slot, _handle, texture->getHandle(), UINT32_MAX);
+	if (!_vec4Array.empty()) {
+		bgfx::setUniform(_handle, _vec4Array.data(), static_cast<uint16_t>(_vec4Array.size()));
+	} else if (!_matrixArray.empty()) {
+		bgfx::setUniform(_handle, _matrixArray.data(), static_cast<uint16_t>(_matrixArray.size()));
+	} else if (auto texture = _value->as<Texture2D>()) {
+		bgfx::setTexture(_slot, _handle, texture->getHandle(), _samplerFlags);
 	} else if (auto value = _value->asVal<float>()) {
 		Vec4 v4{*value, 0, 0, 0};
 		bgfx::setUniform(_handle, &v4.x);
@@ -125,6 +148,22 @@ void Pass::set(String name, const Vec4& var) {
 	}
 }
 
+void Pass::set(String name, std::span<const Vec4> values) {
+	AssertUnless(!values.empty() && values.size() <= std::numeric_limits<uint16_t>::max(),
+		"uniform Vec4 array count is out of range");
+	std::string uname(name);
+	auto it = _uniforms.find(uname);
+	if (it != _uniforms.end()) {
+		it->second->setVec4Array(values);
+	} else {
+		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Vec4,
+			static_cast<uint16_t>(values.size()));
+		auto uniform = Uniform::create(handle, Value::alloc(Vec4{}));
+		uniform->setVec4Array(values);
+		_uniforms[uname] = uniform;
+	}
+}
+
 void Pass::set(String name, Color var) {
 	set(name, var.toVec4());
 }
@@ -140,16 +179,38 @@ void Pass::set(String name, const Matrix& var) {
 	}
 }
 
+void Pass::set(String name, std::span<const Matrix> values) {
+	AssertUnless(!values.empty() && values.size() <= std::numeric_limits<uint16_t>::max(),
+		"uniform Matrix array count is out of range");
+	std::string uname(name);
+	auto it = _uniforms.find(uname);
+	if (it != _uniforms.end()) {
+		it->second->setMatrixArray(values);
+	} else {
+		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Mat4,
+			static_cast<uint16_t>(values.size()));
+		auto uniform = Uniform::create(handle, Value::alloc(Matrix{}));
+		uniform->setMatrixArray(values);
+		_uniforms[uname] = uniform;
+	}
+}
+
 void Pass::set(String name, Texture2D* texture, uint8_t slot) {
+	set(name, texture, slot, UINT32_MAX);
+}
+
+void Pass::set(String name, Texture2D* texture, uint8_t slot, uint32_t flags) {
 	std::string uname(name);
 	auto it = _uniforms.find(uname);
 	if (it != _uniforms.end() && it->second->getValue()->as<Texture2D>()) {
 		it->second->getValue()->set(texture);
 		it->second->setSlot(slot);
+		it->second->setSamplerFlags(flags);
 	} else {
 		bgfx::UniformHandle handle = bgfx::createUniform(uname.c_str(), bgfx::UniformType::Sampler);
 		auto uniform = Uniform::create(handle, Value::alloc(texture));
 		uniform->setSlot(slot);
+		uniform->setSamplerFlags(flags);
 		_uniforms[uname] = uniform;
 	}
 }

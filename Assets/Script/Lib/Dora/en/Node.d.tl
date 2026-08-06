@@ -594,7 +594,7 @@ local record Node
 	-- @param callback (function) The callback function to register.
 	-- 	@param text (string) The text being edited.
 	-- 	@param startPos (integer) The starting position of the text being edited.
-	onTextEditing: function(self: Node, callback: function(text: string, startPos: integer))
+	onTextEditing: function(self: Node, callback: function(text: string, startPos: integer, length: integer))
 
 	-- Registers callback for event triggered when a button is pressed down on a controller.
 	-- This function also sets `node.controllerEnabled = true`.
@@ -800,7 +800,7 @@ local record __SLOT__
 	-- Triggers after calling `node:attachIME()`.
 	-- @param text (string) The text that is being edited.
 	-- @param startPos (integer) The starting position of the text being edited.
-	["TextEditing"]: function(text: string, startPos: integer)
+	["TextEditing"]: function(text: string, startPos: integer, length: integer)
 
 	-- The ButtonDown slot is triggered when a game controller button is pressed down.
 	-- Triggers after setting `node.controllerEnabled = true`.

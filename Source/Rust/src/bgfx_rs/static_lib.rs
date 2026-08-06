@@ -270,6 +270,14 @@ pub enum TextureFormat {
 	D24F,
 	D32F,
 	D0S8,
+	/// EAC R11
+	EACR,
+	/// EAC signed R11
+	EACRS,
+	/// EAC RG11
+	EACRG,
+	/// EAC signed RG11
+	EACRGS,
 	/// Number of entries in the enum
 	Count,
 }

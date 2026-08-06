@@ -191,12 +191,29 @@ void Keyboard::clearChanges() {
 	}
 }
 
-void Keyboard::attachIME(const KeyboardHandler& handler) {
+void Keyboard::attachIME(const KeyboardHandler& handler, bool showScreenKeyboard) {
 	if (_imeHandler) {
 		Event detachEvent("DetachIME"_slice);
 		_imeHandler(&detachEvent);
 	} else {
-		SharedApplication.invokeInRender(SDL_StartTextInput);
+		SharedApplication.invokeInRender([showScreenKeyboard]() {
+			if (showScreenKeyboard) {
+				SDL_StartTextInput();
+				return;
+			}
+			const char* previousHint = SDL_GetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD);
+			const bool hadPreviousHint = previousHint != nullptr;
+			const std::string previousValue = previousHint ? previousHint : "";
+			// Match SDL's initial state: accept text events without opening the
+			// mobile screen keyboard or keeping Android's DummyEdit focused.
+			SDL_StopTextInput();
+			SDL_SetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD, "0");
+			SDL_StartTextInput();
+			if (hadPreviousHint)
+				SDL_SetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD, previousValue.c_str());
+			else
+				SDL_ResetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD);
+		});
 	}
 	_imeHandler = handler;
 	Event attachEvent("AttachIME"_slice);
@@ -236,12 +253,15 @@ void Keyboard::handleEvent(const SDL_Event& event) {
 				int key = event.key.keysym.scancode;
 				Slice name = _codeNames[key];
 				if (!name.empty()) {
-					bool oldDown = _oldCodeStates[key];
+					bool oldDown = _newCodeStates[key];
 					_newCodeStates[key] = true;
-					if (!oldDown) {
+					if (!oldDown && event.key.repeat == 0) {
 						_changedKeys.push_back(event.key.keysym.sym);
 						EventArgs<Slice> keyDown("KeyDown"_slice, name);
 						handler(&keyDown);
+					} else if (event.key.repeat != 0) {
+						EventArgs<Slice> keyRepeat("KeyRepeat"_slice, name);
+						handler(&keyRepeat);
 					}
 					EventArgs<Slice> keyPressed("KeyPressed"_slice, name);
 					handler(&keyPressed);
@@ -251,12 +271,15 @@ void Keyboard::handleEvent(const SDL_Event& event) {
 				int key = event.key.keysym.sym;
 				Slice name = _keyNames[key];
 				if (!name.empty()) {
-					bool oldDown = _oldKeyStates[key];
+					bool oldDown = _newKeyStates[key];
 					_newKeyStates[key] = true;
-					if (!oldDown) {
+					if (!oldDown && event.key.repeat == 0) {
 						_changedKeys.push_back(event.key.keysym.sym);
 						EventArgs<Slice> keyDown("KeyDown"_slice, name);
 						handler(&keyDown);
+					} else if (event.key.repeat != 0) {
+						EventArgs<Slice> keyRepeat("KeyRepeat"_slice, name);
+						handler(&keyRepeat);
 					}
 					EventArgs<Slice> keyPressed("KeyPressed"_slice, name);
 					handler(&keyPressed);
@@ -269,7 +292,7 @@ void Keyboard::handleEvent(const SDL_Event& event) {
 				int key = event.key.keysym.scancode;
 				Slice name = _codeNames[key];
 				if (!name.empty()) {
-					bool oldDown = _oldCodeStates[key];
+					bool oldDown = _newCodeStates[key];
 					_newCodeStates[key] = false;
 					if (oldDown) {
 						_changedKeys.push_back(event.key.keysym.sym);
@@ -282,7 +305,7 @@ void Keyboard::handleEvent(const SDL_Event& event) {
 				int key = event.key.keysym.sym;
 				Slice name = _keyNames[key];
 				if (!name.empty()) {
-					bool oldDown = _oldKeyStates[key];
+					bool oldDown = _newKeyStates[key];
 					_newKeyStates[key] = false;
 					if (oldDown) {
 						_changedKeys.push_back(event.key.keysym.sym);
@@ -301,7 +324,7 @@ void Keyboard::handleEvent(const SDL_Event& event) {
 		}
 		case SDL_TEXTEDITING: {
 			Slice text(event.edit.text);
-			EventArgs<Slice, int> textEditing("TextEditing"_slice, text, event.edit.start);
+			EventArgs<Slice, int, int> textEditing("TextEditing"_slice, text, event.edit.start, event.edit.length);
 			_imeHandler(&textEditing);
 			break;
 		}

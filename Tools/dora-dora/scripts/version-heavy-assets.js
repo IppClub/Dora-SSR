@@ -47,6 +47,21 @@ fs.writeFileSync(
 	"utf8",
 );
 
+// Load the compiler before the main module can open the WebSocket. Native
+// /ts/build requests wait on that socket, so fetching this script lazily after
+// the connection is visible would deadlock the single scheduled HTTP service.
+const indexPath = path.join(buildDir, "index.html");
+let indexHtml = fs.readFileSync(indexPath, "utf8");
+const moduleScriptMarker = '<script type="module"';
+if (!indexHtml.includes(moduleScriptMarker)) {
+	throw new Error(`Missing main module script in ${indexPath}`);
+}
+indexHtml = indexHtml.replace(
+	moduleScriptMarker,
+	`<script src="${typescriptAsset.versionedUrl}"></script>\n  ${moduleScriptMarker}`,
+);
+fs.writeFileSync(indexPath, indexHtml, "utf8");
+
 function collectHtmlFiles(directory, result = []) {
 	for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
 		const filePath = path.join(directory, entry.name);

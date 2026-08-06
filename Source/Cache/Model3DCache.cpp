@@ -35,6 +35,7 @@ uint64_t dora_3d_begin_environment_upload(uint64_t prepared);
 int32_t dora_3d_step_environment_upload(uint64_t job, uint64_t maxBytes, uint64_t* uploadedBytes);
 void dora_3d_cancel_environment_upload(uint64_t job);
 void dora_3d_discard_prepared_environment(uint64_t prepared);
+void dora_3d_cleanup();
 }
 #endif // DORA_NO_RUST
 
@@ -102,6 +103,16 @@ uint64_t Model3DDef::getHandle() const noexcept {
 
 uint64_t Model3DDef::getResidentBytes() const noexcept {
 	return _residentBytes;
+}
+
+Model3DCache::~Model3DCache() {
+	unload();
+#ifndef DORA_NO_RUST
+	// Rust owns the global 3D renderer registries and their bgfx resources.
+	// Release them while bgfx is still alive; otherwise the process-exit leak
+	// checker reports the default textures, shaders, programs and uniforms.
+	dora_3d_cleanup();
+#endif // DORA_NO_RUST
 }
 
 Model3DDef* Model3DCache::load(String filename) {

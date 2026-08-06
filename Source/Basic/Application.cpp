@@ -25,6 +25,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "SDL.h"
 #include "SDL_syswm.h"
+#if BX_PLATFORM_ANDROID
+#include "SDL_system.h"
+#endif
+#include "bx/filepath.h"
 #include "bx/timer.h"
 
 #include <chrono>
@@ -36,9 +40,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <iostream>
 #include <thread>
 
-#if BX_PLATFORM_OSX
+#if BX_PLATFORM_OSX || BX_PLATFORM_ANDROID
 #include <unistd.h>
-#endif // BX_PLATFORM_OSX
+#endif // BX_PLATFORM_OSX || BX_PLATFORM_ANDROID
 
 #define DORA_VERSION "1.9.1"_slice
 #define DORA_REVISION "11"_slice
@@ -803,6 +807,19 @@ bool Application::isDevMode() const noexcept {
 	return _devMode;
 }
 
+#if !BX_PLATFORM_OSX && !BX_PLATFORM_IOS
+std::string Application::getExecutablePath() const {
+#if BX_PLATFORM_ANDROID
+	char path[2048] = {};
+	const ssize_t length = readlink("/proc/self/exe", path, sizeof(path));
+	return length > 0 && length < s_cast<ssize_t>(sizeof(path))
+		? std::string(path, s_cast<size_t>(length)) : std::string();
+#else
+	return bx::FilePath(bx::Dir::Executable).getCPtr();
+#endif
+}
+#endif // !BX_PLATFORM_OSX && !BX_PLATFORM_IOS
+
 // This function runs in main (render) thread, and do render work
 int Application::run(MainFunc mainFunc) {
 	_mainFunc = mainFunc;
@@ -1334,6 +1351,57 @@ void Application::openURL(String url) {
 		}
 	});
 }
+
+#if BX_PLATFORM_ANDROID
+void Application::vibrate(double seconds) {
+	JNIEnv* env = Android_JNI_GetEnv();
+	jobject activity = r_cast<jobject>(SDL_AndroidGetActivity());
+	if (!env || !activity) return;
+	jclass clazz = env->GetObjectClass(activity);
+	jmethodID method = clazz ? env->GetMethodID(clazz, "vibrate", "(D)V") : nullptr;
+	if (method) {
+		env->CallVoidMethod(activity, method, static_cast<jdouble>(seconds));
+	}
+	if (env->ExceptionCheck()) {
+		env->ExceptionClear();
+		Error("failed to invoke Android device vibration");
+	}
+	if (clazz) env->DeleteLocalRef(clazz);
+	env->DeleteLocalRef(activity);
+}
+
+bool Application::hasBackgroundMusic() const {
+	JNIEnv* env = Android_JNI_GetEnv();
+	jobject activity = r_cast<jobject>(SDL_AndroidGetActivity());
+	if (!env || !activity) return false;
+	jclass clazz = env->GetObjectClass(activity);
+	jmethodID method = clazz ? env->GetMethodID(clazz, "hasBackgroundMusic", "()Z") : nullptr;
+	bool active = method && env->CallBooleanMethod(activity, method) == JNI_TRUE;
+	if (env->ExceptionCheck()) {
+		env->ExceptionClear();
+		Error("failed to query Android background music state");
+		active = false;
+	}
+	if (clazz) env->DeleteLocalRef(clazz);
+	env->DeleteLocalRef(activity);
+	return active;
+}
+#elif !BX_PLATFORM_IOS
+void Application::vibrate(double seconds) {
+	DORA_UNUSED_PARAM(seconds);
+}
+
+bool Application::hasBackgroundMusic() const {
+	return false;
+}
+#endif
+
+#if !BX_PLATFORM_IOS
+bool Application::setAudioMixWithSystem(bool mix) {
+	(void)mix;
+	return false;
+}
+#endif
 
 void Application::install(String path) {
 #if BX_PLATFORM_WINDOWS && !defined(DORA_AS_LIB)

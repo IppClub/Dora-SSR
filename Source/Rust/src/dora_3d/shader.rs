@@ -13,6 +13,7 @@ use std::f32::consts::PI;
 use std::ffi::CString;
 use std::os::raw::c_char;
 use std::path::Path;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, OnceLock};
 use std::time::Instant;
 use std::{mem::MaybeUninit, ptr};
@@ -94,6 +95,9 @@ struct ShaderState {
 	_prefilter_texture: Dora3DHandle,
 	prefilter_texture_bgfx: bgfx_sys::bgfx_texture_handle_t,
 }
+
+static SHADER_STATE: OnceLock<ShaderState> = OnceLock::new();
+static SHADER_RESOURCES_CLEANED: AtomicBool = AtomicBool::new(false);
 
 #[derive(Debug)]
 struct EquirectEnvironment {
@@ -1163,7 +1167,6 @@ fn importance_sample_ggx(xi: [f32; 2], roughness: f32, normal: Vec3) -> Vec3 {
 }
 
 fn shader_state() -> &'static ShaderState {
-	static SHADER_STATE: OnceLock<ShaderState> = OnceLock::new();
 	SHADER_STATE.get_or_init(|| {
 		let unlit = create_builtin_program("vs_model3d", "fs_model3d");
 		let sheen_roughness = create_builtin_program("vs_model3d", "fs_model3d_sheen");
@@ -1318,6 +1321,77 @@ fn shader_state() -> &'static ShaderState {
 				.unwrap_or_else(texture::invalid_handle),
 		}
 	})
+}
+
+pub fn clear_shader_resources() {
+	let Some(state) = SHADER_STATE.get() else {
+		return;
+	};
+	if SHADER_RESOURCES_CLEANED.swap(true, Ordering::AcqRel) {
+		return;
+	}
+	let programs = [
+		state.programs.unlit,
+		state.programs.sheen_roughness,
+		state.programs.thickness_sheen,
+		state.programs.shadow,
+	];
+	let uniforms = [
+		state.u_camera_proj,
+		state.u_model_inst,
+		state.u_normal_model,
+		state.u_uv,
+		state.u_model_color,
+		state.u_uv_inversed,
+		state.u_view_pos,
+		state.u_env_diffuse,
+		state.u_env_specular,
+		state.u_pbr_params,
+		state.u_directional_light_direction,
+		state.u_directional_light_color,
+		state.u_point_light_position_range,
+		state.u_point_light_color_intensity,
+		state.u_overflow_light_sh,
+		state.u_shadow_matrix,
+		state.u_shadow_params,
+		state.u_emissive_scaling,
+		state.u_soft_particle_param,
+		state.u_reconstruction_param1,
+		state.u_reconstruction_param2,
+		state.u_uv_inversed_back,
+		state.u_misc_flags,
+		state.s_base_color,
+		state.s_metallic_roughness,
+		state.s_normal,
+		state.s_emissive,
+		state.s_occlusion,
+		state.s_clearcoat,
+		state.s_clearcoat_roughness,
+		state.s_clearcoat_normal,
+		state.s_irradiance,
+		state.s_prefilter,
+		state.s_shadow_map,
+		state.s_specular,
+		state.s_specular_color,
+		state.s_transmission,
+		state.s_thickness,
+		state.s_thickness_sheen,
+		state.s_sheen_color,
+		state.s_sheen_roughness,
+		state.u_joints,
+	];
+	unsafe {
+		for program in programs {
+			if program.idx != u16::MAX {
+				bgfx_sys::bgfx_destroy_program(program);
+			}
+		}
+		for uniform in uniforms {
+			if uniform.idx != u16::MAX {
+				bgfx_sys::bgfx_destroy_uniform(uniform);
+			}
+		}
+	}
 }
 
 fn choose_program(

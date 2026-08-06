@@ -26,6 +26,7 @@
 		3C030CF824CAE6580074786E /* Script in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF024CAE6570074786E /* Script */; };
 		3C030CFB24CAE6580074786E /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF324CAE6570074786E /* Font */; };
 		3C5F00112F2C000000000001 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = 3C5F00102F2C000000000001 /* Audio */; };
+		A10F20000000000000000001 /* Shader in Resources */ = {isa = PBXBuildFile; fileRef = A10F20000000000000000003 /* Shader */; };
 		3C0C7751275742990030BDCD /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C0C774D275742990030BDCD /* miniz.c */; };
 		3C0C7752275742990030BDCD /* ZipUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0C7750275742990030BDCD /* ZipUtils.cpp */; };
 		3C0C77552757437E0030BDCD /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C0C774D275742990030BDCD /* miniz.c */; };
@@ -676,6 +677,13 @@
 		3C5931A62CA4F67300CAF224 /* Content.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FAE2CA4F67300CAF224 /* Content.mm */; };
 		3C5931A72CA4F67300CAF224 /* Entity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FEB2CA4F67300CAF224 /* Entity.cpp */; };
 		3C5931A82CA4F67300CAF224 /* LuaEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930222CA4F67300CAF224 /* LuaEngine.cpp */; };
+		A10E10000000000000000001 /* LoveRuntime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000003 /* LoveRuntime.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Lua -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
+		A10E1000000000000000002C /* liblove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000002A /* liblove.a */; };
+		A10E10000000000000000023 /* LoveVideoSources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000025 /* LoveVideoSources.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
+		A10E10000000000000000006 /* LoveNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000008 /* LoveNode.cpp */; };
+		A10E1000000000000000000D /* LoveDataAlgorithms.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000000A /* LoveDataAlgorithms.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty/Love/src"; }; };
+		A10E1000000000000000000E /* LoveLZ4.c in Sources */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000000B /* LoveLZ4.c */; };
+		A10E1000000000000000000F /* LoveLZ4HC.c in Sources */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000000C /* LoveLZ4HC.c */; };
 		3C5931A92CA4F67300CAF224 /* Array.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930DF2CA4F67300CAF224 /* Array.cpp */; };
 		3C5931AA2CA4F67300CAF224 /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FB42CA4F67300CAF224 /* Object.cpp */; };
 		3C5931AB2CA4F67300CAF224 /* DebugDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930542CA4F67300CAF224 /* DebugDraw.cpp */; };
@@ -788,6 +796,13 @@
 		3C5932832CA4F67300CAF224 /* Content.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FAE2CA4F67300CAF224 /* Content.mm */; };
 		3C5932842CA4F67300CAF224 /* Entity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FEB2CA4F67300CAF224 /* Entity.cpp */; };
 		3C5932852CA4F67300CAF224 /* LuaEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930222CA4F67300CAF224 /* LuaEngine.cpp */; };
+		A10E10000000000000000002 /* LoveRuntime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000003 /* LoveRuntime.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Lua -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
+		A10E1000000000000000002B /* liblove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000029 /* liblove.a */; };
+		A10E10000000000000000024 /* LoveVideoSources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000025 /* LoveVideoSources.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
+		A10E10000000000000000007 /* LoveNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000008 /* LoveNode.cpp */; };
+		A10E10000000000000000010 /* LoveDataAlgorithms.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000000A /* LoveDataAlgorithms.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty/Love/src"; }; };
+		A10E10000000000000000011 /* LoveLZ4.c in Sources */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000000B /* LoveLZ4.c */; };
+		A10E10000000000000000012 /* LoveLZ4HC.c in Sources */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000000C /* LoveLZ4HC.c */; };
 		3C5932862CA4F67300CAF224 /* Array.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930DF2CA4F67300CAF224 /* Array.cpp */; };
 		3C5932872CA4F67300CAF224 /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FB42CA4F67300CAF224 /* Object.cpp */; };
 		3C5932882CA4F67300CAF224 /* DebugDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930542CA4F67300CAF224 /* DebugDraw.cpp */; };
@@ -833,60 +848,10 @@
 		F00200012F3A000100000004 /* VorbisSources.c in Sources */ = {isa = PBXBuildFile; fileRef = F00200012F3A000100000012 /* VorbisSources.c */; };
 		3C948C4E2E16910600E6B280 /* AudioCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C948C4D2E16910600E6B280 /* AudioCache.cpp */; };
 		3C948C4F2E16910600E6B280 /* AudioCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C948C4D2E16910600E6B280 /* AudioCache.cpp */; };
-		3C984C5E2F03B57B00DC8437 /* h264bsd_decoder.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C332F03B57B00DC8437 /* h264bsd_decoder.c */; };
-		3C984C5F2F03B57B00DC8437 /* h264bsd_nal_unit.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C3F2F03B57B00DC8437 /* h264bsd_nal_unit.c */; };
-		3C984C602F03B57B00DC8437 /* h264bsd_slice_header.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C512F03B57B00DC8437 /* h264bsd_slice_header.c */; };
-		3C984C612F03B57B00DC8437 /* h264bsd_neighbour.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C412F03B57B00DC8437 /* h264bsd_neighbour.c */; };
-		3C984C622F03B57B00DC8437 /* h264bsd_macroblock_layer.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C3D2F03B57B00DC8437 /* h264bsd_macroblock_layer.c */; };
-		3C984C632F03B57B00DC8437 /* h264bsd_slice_group_map.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C4F2F03B57B00DC8437 /* h264bsd_slice_group_map.c */; };
-		3C984C642F03B57B00DC8437 /* h264bsd_vui.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C5D2F03B57B00DC8437 /* h264bsd_vui.c */; };
-		3C984C652F03B57B00DC8437 /* h264bsd_byte_stream.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C292F03B57B00DC8437 /* h264bsd_byte_stream.c */; };
-		3C984C662F03B57B00DC8437 /* h264bsd_inter_prediction.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C392F03B57B00DC8437 /* h264bsd_inter_prediction.c */; };
-		3C984C672F03B57B00DC8437 /* h264bsd_pic_param_set.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C452F03B57B00DC8437 /* h264bsd_pic_param_set.c */; };
-		3C984C682F03B57B00DC8437 /* h264bsd_seq_param_set.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C4B2F03B57B00DC8437 /* h264bsd_seq_param_set.c */; };
-		3C984C692F03B57B00DC8437 /* h264bsd_pic_order_cnt.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C432F03B57B00DC8437 /* h264bsd_pic_order_cnt.c */; };
-		3C984C6A2F03B57B00DC8437 /* h264bsd_intra_prediction.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C3B2F03B57B00DC8437 /* h264bsd_intra_prediction.c */; };
-		3C984C6B2F03B57B00DC8437 /* h264bsd_slice_data.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C4D2F03B57B00DC8437 /* h264bsd_slice_data.c */; };
-		3C984C6C2F03B57B00DC8437 /* h264bsd_stream.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C552F03B57B00DC8437 /* h264bsd_stream.c */; };
-		3C984C6D2F03B57B00DC8437 /* h264bsd_dpb.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C352F03B57B00DC8437 /* h264bsd_dpb.c */; };
-		3C984C6E2F03B57B00DC8437 /* h264bsd_image.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C372F03B57B00DC8437 /* h264bsd_image.c */; };
-		3C984C6F2F03B57B00DC8437 /* h264bsd_util.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C592F03B57B00DC8437 /* h264bsd_util.c */; };
-		3C984C702F03B57B00DC8437 /* h264bsd_transform.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C572F03B57B00DC8437 /* h264bsd_transform.c */; };
-		3C984C712F03B57B00DC8437 /* h264bsd_storage.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C532F03B57B00DC8437 /* h264bsd_storage.c */; };
-		3C984C722F03B57B00DC8437 /* h264bsd_conceal.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C2E2F03B57B00DC8437 /* h264bsd_conceal.c */; };
-		3C984C732F03B57B00DC8437 /* h264bsd_cavlc.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C2B2F03B57B00DC8437 /* h264bsd_cavlc.c */; };
-		3C984C742F03B57B00DC8437 /* h264bsd_vlc.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C5B2F03B57B00DC8437 /* h264bsd_vlc.c */; };
-		3C984C752F03B57B00DC8437 /* h264bsd_reconstruct.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C472F03B57B00DC8437 /* h264bsd_reconstruct.c */; };
-		3C984C762F03B57B00DC8437 /* h264bsd_sei.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C492F03B57B00DC8437 /* h264bsd_sei.c */; };
-		3C984C772F03B57B00DC8437 /* h264bsd_deblocking.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C312F03B57B00DC8437 /* h264bsd_deblocking.c */; };
-		3C984C782F03B57B00DC8437 /* h264bsd_decoder.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C332F03B57B00DC8437 /* h264bsd_decoder.c */; };
-		3C984C792F03B57B00DC8437 /* h264bsd_nal_unit.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C3F2F03B57B00DC8437 /* h264bsd_nal_unit.c */; };
-		3C984C7A2F03B57B00DC8437 /* h264bsd_slice_header.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C512F03B57B00DC8437 /* h264bsd_slice_header.c */; };
-		3C984C7B2F03B57B00DC8437 /* h264bsd_neighbour.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C412F03B57B00DC8437 /* h264bsd_neighbour.c */; };
-		3C984C7C2F03B57B00DC8437 /* h264bsd_macroblock_layer.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C3D2F03B57B00DC8437 /* h264bsd_macroblock_layer.c */; };
-		3C984C7D2F03B57B00DC8437 /* h264bsd_slice_group_map.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C4F2F03B57B00DC8437 /* h264bsd_slice_group_map.c */; };
-		3C984C7E2F03B57B00DC8437 /* h264bsd_vui.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C5D2F03B57B00DC8437 /* h264bsd_vui.c */; };
-		3C984C7F2F03B57B00DC8437 /* h264bsd_byte_stream.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C292F03B57B00DC8437 /* h264bsd_byte_stream.c */; };
-		3C984C802F03B57B00DC8437 /* h264bsd_inter_prediction.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C392F03B57B00DC8437 /* h264bsd_inter_prediction.c */; };
-		3C984C812F03B57B00DC8437 /* h264bsd_pic_param_set.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C452F03B57B00DC8437 /* h264bsd_pic_param_set.c */; };
-		3C984C822F03B57B00DC8437 /* h264bsd_seq_param_set.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C4B2F03B57B00DC8437 /* h264bsd_seq_param_set.c */; };
-		3C984C832F03B57B00DC8437 /* h264bsd_pic_order_cnt.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C432F03B57B00DC8437 /* h264bsd_pic_order_cnt.c */; };
-		3C984C842F03B57B00DC8437 /* h264bsd_intra_prediction.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C3B2F03B57B00DC8437 /* h264bsd_intra_prediction.c */; };
-		3C984C852F03B57B00DC8437 /* h264bsd_slice_data.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C4D2F03B57B00DC8437 /* h264bsd_slice_data.c */; };
-		3C984C862F03B57B00DC8437 /* h264bsd_stream.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C552F03B57B00DC8437 /* h264bsd_stream.c */; };
-		3C984C872F03B57B00DC8437 /* h264bsd_dpb.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C352F03B57B00DC8437 /* h264bsd_dpb.c */; };
-		3C984C882F03B57B00DC8437 /* h264bsd_image.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C372F03B57B00DC8437 /* h264bsd_image.c */; };
-		3C984C892F03B57B00DC8437 /* h264bsd_util.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C592F03B57B00DC8437 /* h264bsd_util.c */; };
-		3C984C8A2F03B57B00DC8437 /* h264bsd_transform.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C572F03B57B00DC8437 /* h264bsd_transform.c */; };
-		3C984C8B2F03B57B00DC8437 /* h264bsd_storage.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C532F03B57B00DC8437 /* h264bsd_storage.c */; };
-		3C984C8C2F03B57B00DC8437 /* h264bsd_conceal.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C2E2F03B57B00DC8437 /* h264bsd_conceal.c */; };
-		3C984C8D2F03B57B00DC8437 /* h264bsd_cavlc.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C2B2F03B57B00DC8437 /* h264bsd_cavlc.c */; };
-		3C984C8E2F03B57B00DC8437 /* h264bsd_vlc.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C5B2F03B57B00DC8437 /* h264bsd_vlc.c */; };
-		3C984C8F2F03B57B00DC8437 /* h264bsd_reconstruct.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C472F03B57B00DC8437 /* h264bsd_reconstruct.c */; };
-		3C984C902F03B57B00DC8437 /* h264bsd_sei.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C492F03B57B00DC8437 /* h264bsd_sei.c */; };
-		3C984C912F03B57B00DC8437 /* h264bsd_deblocking.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C312F03B57B00DC8437 /* h264bsd_deblocking.c */; };
-		3C984C942F03B5DB00DC8437 /* VideoNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C932F03B5DB00DC8437 /* VideoNode.cpp */; };
-		3C984C952F03B5DB00DC8437 /* VideoNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C932F03B5DB00DC8437 /* VideoNode.cpp */; };
+		3C984C5E2F03B57B00DC8437 /* TheoraSources.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C332F03B57B00DC8437 /* TheoraSources.c */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
+		3C984C782F03B57B00DC8437 /* TheoraSources.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C332F03B57B00DC8437 /* TheoraSources.c */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
+		3C984C942F03B5DB00DC8437 /* VideoNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C932F03B5DB00DC8437 /* VideoNode.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
+		3C984C952F03B5DB00DC8437 /* VideoNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C932F03B5DB00DC8437 /* VideoNode.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
 		3CA780042AE66FB000B7BADA /* RayCastOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77F242AE66FAD00B7BADA /* RayCastOutput.cpp */; };
 		3CA780052AE66FB000B7BADA /* RayCastOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77F242AE66FAD00B7BADA /* RayCastOutput.cpp */; };
 		3CA780062AE66FB000B7BADA /* EdgeShapeConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77F292AE66FAD00B7BADA /* EdgeShapeConf.cpp */; };
@@ -1047,6 +1012,7 @@
 		3CBE0F0126087F7B003F4F45 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE3316F1D96D92700F9C3F6 /* CoreMotion.framework */; };
 		3CBE0F0826087F7B003F4F45 /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF324CAE6570074786E /* Font */; };
 		3C5F00122F2C000000000001 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = 3C5F00102F2C000000000001 /* Audio */; };
+		A10F20000000000000000002 /* Shader in Resources */ = {isa = PBXBuildFile; fileRef = A10F20000000000000000003 /* Shader */; };
 		3CBE0F0926087F7B003F4F45 /* Script in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF024CAE6570074786E /* Script */; };
 		3CBE0F4D26088937003F4F45 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F2226087FC8003F4F45 /* libSDL2.a */; };
 		3CBE0F5126088B89003F4F45 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */; };
@@ -1297,6 +1263,7 @@
 		3C030CF024CAE6570074786E /* Script */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Script; sourceTree = "<group>"; };
 		3C030CF324CAE6570074786E /* Font */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Font; sourceTree = "<group>"; };
 		3C5F00102F2C000000000001 /* Audio */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Audio; sourceTree = "<group>"; };
+		A10F20000000000000000003 /* Shader */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Shader; sourceTree = "<group>"; };
 		3C0C774D275742990030BDCD /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = miniz.c; sourceTree = "<group>"; };
 		3C0C774E275742990030BDCD /* ZipUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZipUtils.h; sourceTree = "<group>"; };
 		3C0C774F275742990030BDCD /* miniz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = miniz.h; sourceTree = "<group>"; };
@@ -2112,6 +2079,16 @@
 		3C5930272CA4F67300CAF224 /* LuaManual.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LuaManual.h; sourceTree = "<group>"; };
 		3C5930282CA4F67300CAF224 /* LuaManual.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LuaManual.cpp; sourceTree = "<group>"; };
 		3C5930292CA4F67300CAF224 /* TealCompiler.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TealCompiler.cpp; sourceTree = "<group>"; };
+		A10E10000000000000000003 /* LoveRuntime.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LoveRuntime.cpp; sourceTree = "<group>"; };
+		A10E10000000000000000029 /* liblove.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liblove.a; path = "../../Source/3rdParty/Love/Artifacts/iOS-Simulator/liblove.a"; sourceTree = "<group>"; };
+		A10E1000000000000000002A /* liblove.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liblove.a; path = ../../Source/3rdParty/Love/Artifacts/iOS/liblove.a; sourceTree = "<group>"; };
+		A10E10000000000000000025 /* LoveVideoSources.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LoveVideoSources.cpp; sourceTree = "<group>"; };
+		A10E10000000000000000004 /* LoveRuntime.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoveRuntime.h; sourceTree = "<group>"; };
+		A10E10000000000000000008 /* LoveNode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LoveNode.cpp; sourceTree = "<group>"; };
+		A10E10000000000000000009 /* LoveNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoveNode.h; sourceTree = "<group>"; };
+		A10E1000000000000000000A /* LoveDataAlgorithms.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LoveDataAlgorithms.cpp; sourceTree = "<group>"; };
+		A10E1000000000000000000B /* LoveLZ4.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = LoveLZ4.c; sourceTree = "<group>"; };
+		A10E1000000000000000000C /* LoveLZ4HC.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = LoveLZ4HC.c; sourceTree = "<group>"; };
 		3C59302B2CA4F67300CAF224 /* ML.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ML.h; sourceTree = "<group>"; };
 		3C59302C2CA4F67300CAF224 /* ML.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ML.cpp; sourceTree = "<group>"; };
 		3C59302E2CA4F67300CAF224 /* AlignNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AlignNode.h; sourceTree = "<group>"; };
@@ -2239,65 +2216,11 @@
 		3C948C452E1690DA00E6B280 /* AudioSource.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioSource.cpp; sourceTree = "<group>"; };
 		3C948C482E1690F800E6B280 /* Audio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Audio.h; sourceTree = "<group>"; };
 		3C948C492E1690F800E6B280 /* Audio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Audio.cpp; sourceTree = "<group>"; };
-		F00200012F3A000100000011 /* OggSources.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = OggSources.c; sourceTree = "<group>"; };
+		F00200012F3A000100000011 /* OggSources.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = OggSources.c; path = ../../Source/3rdParty/ogg/OggSources.c; sourceTree = SOURCE_ROOT; };
 		F00200012F3A000100000012 /* VorbisSources.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = VorbisSources.c; sourceTree = "<group>"; };
 		3C948C4C2E16910600E6B280 /* AudioCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioCache.h; sourceTree = "<group>"; };
 		3C948C4D2E16910600E6B280 /* AudioCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioCache.cpp; sourceTree = "<group>"; };
-		3C984C272F03B57B00DC8437 /* basetype.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = basetype.h; sourceTree = "<group>"; };
-		3C984C282F03B57B00DC8437 /* h264bsd_byte_stream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_byte_stream.h; sourceTree = "<group>"; };
-		3C984C292F03B57B00DC8437 /* h264bsd_byte_stream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_byte_stream.c; sourceTree = "<group>"; };
-		3C984C2A2F03B57B00DC8437 /* h264bsd_cavlc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_cavlc.h; sourceTree = "<group>"; };
-		3C984C2B2F03B57B00DC8437 /* h264bsd_cavlc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_cavlc.c; sourceTree = "<group>"; };
-		3C984C2C2F03B57B00DC8437 /* h264bsd_cfg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_cfg.h; sourceTree = "<group>"; };
-		3C984C2D2F03B57B00DC8437 /* h264bsd_conceal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_conceal.h; sourceTree = "<group>"; };
-		3C984C2E2F03B57B00DC8437 /* h264bsd_conceal.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_conceal.c; sourceTree = "<group>"; };
-		3C984C2F2F03B57B00DC8437 /* h264bsd_container.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_container.h; sourceTree = "<group>"; };
-		3C984C302F03B57B00DC8437 /* h264bsd_deblocking.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_deblocking.h; sourceTree = "<group>"; };
-		3C984C312F03B57B00DC8437 /* h264bsd_deblocking.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_deblocking.c; sourceTree = "<group>"; };
-		3C984C322F03B57B00DC8437 /* h264bsd_decoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_decoder.h; sourceTree = "<group>"; };
-		3C984C332F03B57B00DC8437 /* h264bsd_decoder.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_decoder.c; sourceTree = "<group>"; };
-		3C984C342F03B57B00DC8437 /* h264bsd_dpb.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_dpb.h; sourceTree = "<group>"; };
-		3C984C352F03B57B00DC8437 /* h264bsd_dpb.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_dpb.c; sourceTree = "<group>"; };
-		3C984C362F03B57B00DC8437 /* h264bsd_image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_image.h; sourceTree = "<group>"; };
-		3C984C372F03B57B00DC8437 /* h264bsd_image.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_image.c; sourceTree = "<group>"; };
-		3C984C382F03B57B00DC8437 /* h264bsd_inter_prediction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_inter_prediction.h; sourceTree = "<group>"; };
-		3C984C392F03B57B00DC8437 /* h264bsd_inter_prediction.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_inter_prediction.c; sourceTree = "<group>"; };
-		3C984C3A2F03B57B00DC8437 /* h264bsd_intra_prediction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_intra_prediction.h; sourceTree = "<group>"; };
-		3C984C3B2F03B57B00DC8437 /* h264bsd_intra_prediction.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_intra_prediction.c; sourceTree = "<group>"; };
-		3C984C3C2F03B57B00DC8437 /* h264bsd_macroblock_layer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_macroblock_layer.h; sourceTree = "<group>"; };
-		3C984C3D2F03B57B00DC8437 /* h264bsd_macroblock_layer.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_macroblock_layer.c; sourceTree = "<group>"; };
-		3C984C3E2F03B57B00DC8437 /* h264bsd_nal_unit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_nal_unit.h; sourceTree = "<group>"; };
-		3C984C3F2F03B57B00DC8437 /* h264bsd_nal_unit.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_nal_unit.c; sourceTree = "<group>"; };
-		3C984C402F03B57B00DC8437 /* h264bsd_neighbour.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_neighbour.h; sourceTree = "<group>"; };
-		3C984C412F03B57B00DC8437 /* h264bsd_neighbour.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_neighbour.c; sourceTree = "<group>"; };
-		3C984C422F03B57B00DC8437 /* h264bsd_pic_order_cnt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_pic_order_cnt.h; sourceTree = "<group>"; };
-		3C984C432F03B57B00DC8437 /* h264bsd_pic_order_cnt.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_pic_order_cnt.c; sourceTree = "<group>"; };
-		3C984C442F03B57B00DC8437 /* h264bsd_pic_param_set.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_pic_param_set.h; sourceTree = "<group>"; };
-		3C984C452F03B57B00DC8437 /* h264bsd_pic_param_set.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_pic_param_set.c; sourceTree = "<group>"; };
-		3C984C462F03B57B00DC8437 /* h264bsd_reconstruct.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_reconstruct.h; sourceTree = "<group>"; };
-		3C984C472F03B57B00DC8437 /* h264bsd_reconstruct.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_reconstruct.c; sourceTree = "<group>"; };
-		3C984C482F03B57B00DC8437 /* h264bsd_sei.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_sei.h; sourceTree = "<group>"; };
-		3C984C492F03B57B00DC8437 /* h264bsd_sei.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_sei.c; sourceTree = "<group>"; };
-		3C984C4A2F03B57B00DC8437 /* h264bsd_seq_param_set.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_seq_param_set.h; sourceTree = "<group>"; };
-		3C984C4B2F03B57B00DC8437 /* h264bsd_seq_param_set.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_seq_param_set.c; sourceTree = "<group>"; };
-		3C984C4C2F03B57B00DC8437 /* h264bsd_slice_data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_slice_data.h; sourceTree = "<group>"; };
-		3C984C4D2F03B57B00DC8437 /* h264bsd_slice_data.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_slice_data.c; sourceTree = "<group>"; };
-		3C984C4E2F03B57B00DC8437 /* h264bsd_slice_group_map.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_slice_group_map.h; sourceTree = "<group>"; };
-		3C984C4F2F03B57B00DC8437 /* h264bsd_slice_group_map.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_slice_group_map.c; sourceTree = "<group>"; };
-		3C984C502F03B57B00DC8437 /* h264bsd_slice_header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_slice_header.h; sourceTree = "<group>"; };
-		3C984C512F03B57B00DC8437 /* h264bsd_slice_header.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_slice_header.c; sourceTree = "<group>"; };
-		3C984C522F03B57B00DC8437 /* h264bsd_storage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_storage.h; sourceTree = "<group>"; };
-		3C984C532F03B57B00DC8437 /* h264bsd_storage.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_storage.c; sourceTree = "<group>"; };
-		3C984C542F03B57B00DC8437 /* h264bsd_stream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_stream.h; sourceTree = "<group>"; };
-		3C984C552F03B57B00DC8437 /* h264bsd_stream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_stream.c; sourceTree = "<group>"; };
-		3C984C562F03B57B00DC8437 /* h264bsd_transform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_transform.h; sourceTree = "<group>"; };
-		3C984C572F03B57B00DC8437 /* h264bsd_transform.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_transform.c; sourceTree = "<group>"; };
-		3C984C582F03B57B00DC8437 /* h264bsd_util.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_util.h; sourceTree = "<group>"; };
-		3C984C592F03B57B00DC8437 /* h264bsd_util.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_util.c; sourceTree = "<group>"; };
-		3C984C5A2F03B57B00DC8437 /* h264bsd_vlc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_vlc.h; sourceTree = "<group>"; };
-		3C984C5B2F03B57B00DC8437 /* h264bsd_vlc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_vlc.c; sourceTree = "<group>"; };
-		3C984C5C2F03B57B00DC8437 /* h264bsd_vui.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = h264bsd_vui.h; sourceTree = "<group>"; };
-		3C984C5D2F03B57B00DC8437 /* h264bsd_vui.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = h264bsd_vui.c; sourceTree = "<group>"; };
+		3C984C332F03B57B00DC8437 /* TheoraSources.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TheoraSources.c; sourceTree = "<group>"; };
 		3C984C922F03B5DB00DC8437 /* VideoNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoNode.h; sourceTree = "<group>"; };
 		3C984C932F03B5DB00DC8437 /* VideoNode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VideoNode.cpp; sourceTree = "<group>"; };
 		3CA77F212AE66FAD00B7BADA /* RayCastInput.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = RayCastInput.hpp; sourceTree = "<group>"; };
@@ -2792,6 +2715,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A10E1000000000000000002B /* liblove.a in Frameworks */,
 				3C1030772F5F24400029F68F /* libspirv-cross.a in Frameworks */,
 				3C1030782F5F24400029F68F /* libspirv-opt.a in Frameworks */,
 				3C1030792F5F24400029F68F /* libglslang.a in Frameworks */,
@@ -2823,6 +2747,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A10E1000000000000000002C /* liblove.a in Frameworks */,
 				3C1030852F5F24590029F68F /* libfcpp.a in Frameworks */,
 				3C1030862F5F24590029F68F /* libspirv-cross.a in Frameworks */,
 				3C1030872F5F24590029F68F /* libshaderc-lib.a in Frameworks */,
@@ -3506,6 +3431,7 @@
 				3CBED1E52DD5C17400E6F2FC /* dora-wa */,
 				3C60DE142A2069FE007D7865 /* Doc */,
 				3CA8DF0E2A0CE83D0022CC90 /* www */,
+				A10F20000000000000000003 /* Shader */,
 				3C5F00102F2C000000000001 /* Audio */,
 				3C030CF324CAE6570074786E /* Font */,
 				3CFD21442ECD65AF00FD55EB /* Image */,
@@ -4221,7 +4147,6 @@
 			children = (
 				3C948C482E1690F800E6B280 /* Audio.h */,
 				3C948C492E1690F800E6B280 /* Audio.cpp */,
-				F00200012F3A000100000011 /* OggSources.c */,
 				F00200012F3A000100000012 /* VorbisSources.c */,
 			);
 			path = Audio;
@@ -4444,6 +4369,21 @@
 				3C5930292CA4F67300CAF224 /* TealCompiler.cpp */,
 			);
 			path = Lua;
+			sourceTree = "<group>";
+		};
+		A10E10000000000000000005 /* Love */ = {
+			isa = PBXGroup;
+			children = (
+				A10E10000000000000000004 /* LoveRuntime.h */,
+				A10E10000000000000000003 /* LoveRuntime.cpp */,
+				A10E10000000000000000025 /* LoveVideoSources.cpp */,
+				A10E10000000000000000009 /* LoveNode.h */,
+				A10E10000000000000000008 /* LoveNode.cpp */,
+				A10E1000000000000000000A /* LoveDataAlgorithms.cpp */,
+				A10E1000000000000000000B /* LoveLZ4.c */,
+				A10E1000000000000000000C /* LoveLZ4HC.c */,
+			);
+			path = Love;
 			sourceTree = "<group>";
 		};
 		3C59302D2CA4F67300CAF224 /* ML */ = {
@@ -4699,71 +4639,19 @@
 			path = font;
 			sourceTree = "<group>";
 		};
-		3C984C102F03B56000DC8437 /* h264bsd */ = {
+		3C984C102F03B56000DC8437 /* theora */ = {
 			isa = PBXGroup;
 			children = (
-				3C984C272F03B57B00DC8437 /* basetype.h */,
-				3C984C282F03B57B00DC8437 /* h264bsd_byte_stream.h */,
-				3C984C292F03B57B00DC8437 /* h264bsd_byte_stream.c */,
-				3C984C2A2F03B57B00DC8437 /* h264bsd_cavlc.h */,
-				3C984C2B2F03B57B00DC8437 /* h264bsd_cavlc.c */,
-				3C984C2C2F03B57B00DC8437 /* h264bsd_cfg.h */,
-				3C984C2D2F03B57B00DC8437 /* h264bsd_conceal.h */,
-				3C984C2E2F03B57B00DC8437 /* h264bsd_conceal.c */,
-				3C984C2F2F03B57B00DC8437 /* h264bsd_container.h */,
-				3C984C302F03B57B00DC8437 /* h264bsd_deblocking.h */,
-				3C984C312F03B57B00DC8437 /* h264bsd_deblocking.c */,
-				3C984C322F03B57B00DC8437 /* h264bsd_decoder.h */,
-				3C984C332F03B57B00DC8437 /* h264bsd_decoder.c */,
-				3C984C342F03B57B00DC8437 /* h264bsd_dpb.h */,
-				3C984C352F03B57B00DC8437 /* h264bsd_dpb.c */,
-				3C984C362F03B57B00DC8437 /* h264bsd_image.h */,
-				3C984C372F03B57B00DC8437 /* h264bsd_image.c */,
-				3C984C382F03B57B00DC8437 /* h264bsd_inter_prediction.h */,
-				3C984C392F03B57B00DC8437 /* h264bsd_inter_prediction.c */,
-				3C984C3A2F03B57B00DC8437 /* h264bsd_intra_prediction.h */,
-				3C984C3B2F03B57B00DC8437 /* h264bsd_intra_prediction.c */,
-				3C984C3C2F03B57B00DC8437 /* h264bsd_macroblock_layer.h */,
-				3C984C3D2F03B57B00DC8437 /* h264bsd_macroblock_layer.c */,
-				3C984C3E2F03B57B00DC8437 /* h264bsd_nal_unit.h */,
-				3C984C3F2F03B57B00DC8437 /* h264bsd_nal_unit.c */,
-				3C984C402F03B57B00DC8437 /* h264bsd_neighbour.h */,
-				3C984C412F03B57B00DC8437 /* h264bsd_neighbour.c */,
-				3C984C422F03B57B00DC8437 /* h264bsd_pic_order_cnt.h */,
-				3C984C432F03B57B00DC8437 /* h264bsd_pic_order_cnt.c */,
-				3C984C442F03B57B00DC8437 /* h264bsd_pic_param_set.h */,
-				3C984C452F03B57B00DC8437 /* h264bsd_pic_param_set.c */,
-				3C984C462F03B57B00DC8437 /* h264bsd_reconstruct.h */,
-				3C984C472F03B57B00DC8437 /* h264bsd_reconstruct.c */,
-				3C984C482F03B57B00DC8437 /* h264bsd_sei.h */,
-				3C984C492F03B57B00DC8437 /* h264bsd_sei.c */,
-				3C984C4A2F03B57B00DC8437 /* h264bsd_seq_param_set.h */,
-				3C984C4B2F03B57B00DC8437 /* h264bsd_seq_param_set.c */,
-				3C984C4C2F03B57B00DC8437 /* h264bsd_slice_data.h */,
-				3C984C4D2F03B57B00DC8437 /* h264bsd_slice_data.c */,
-				3C984C4E2F03B57B00DC8437 /* h264bsd_slice_group_map.h */,
-				3C984C4F2F03B57B00DC8437 /* h264bsd_slice_group_map.c */,
-				3C984C502F03B57B00DC8437 /* h264bsd_slice_header.h */,
-				3C984C512F03B57B00DC8437 /* h264bsd_slice_header.c */,
-				3C984C522F03B57B00DC8437 /* h264bsd_storage.h */,
-				3C984C532F03B57B00DC8437 /* h264bsd_storage.c */,
-				3C984C542F03B57B00DC8437 /* h264bsd_stream.h */,
-				3C984C552F03B57B00DC8437 /* h264bsd_stream.c */,
-				3C984C562F03B57B00DC8437 /* h264bsd_transform.h */,
-				3C984C572F03B57B00DC8437 /* h264bsd_transform.c */,
-				3C984C582F03B57B00DC8437 /* h264bsd_util.h */,
-				3C984C592F03B57B00DC8437 /* h264bsd_util.c */,
-				3C984C5A2F03B57B00DC8437 /* h264bsd_vlc.h */,
-				3C984C5B2F03B57B00DC8437 /* h264bsd_vlc.c */,
-				3C984C5C2F03B57B00DC8437 /* h264bsd_vui.h */,
-				3C984C5D2F03B57B00DC8437 /* h264bsd_vui.c */,
+				3C984C332F03B57B00DC8437 /* TheoraSources.c */,
 			);
-			path = h264bsd;
+			path = ../3rdParty/theora;
 			sourceTree = "<group>";
 		};
 		3C98626E1D9CA4500056A045 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				A10E10000000000000000029 /* liblove.a */,
+				A10E1000000000000000002A /* liblove.a */,
 				3C1030752F5F243F0029F68F /* libfcpp.a */,
 				3C1030742F5F243F0029F68F /* libglslang.a */,
 				3C1030832F5F24590029F68F /* libglslang.a */,
@@ -5005,9 +4893,10 @@
 		3CB410221E05B08B00A8804D /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				F00200012F3A000100000011 /* OggSources.c */,
 				3C1038002F0E0E3300395953 /* tic80 */,
 				3C361E1D2C1AFF190079B68B /* tmxlite */,
-				3C984C102F03B56000DC8437 /* h264bsd */,
+				3C984C102F03B56000DC8437 /* theora */,
 				3C0FB6802BF1970C0098E88D /* Effekseer */,
 				3C53E9C92BEB440A00039640 /* yoga */,
 				3C5399F22998DECB00E9125C /* colib */,
@@ -5142,6 +5031,7 @@
 				3C592FFD2CA4F67300CAF224 /* Http */,
 				3C5930062CA4F67300CAF224 /* Input */,
 				3C59302A2CA4F67300CAF224 /* Lua */,
+				A10E10000000000000000005 /* Love */,
 				3C59302D2CA4F67300CAF224 /* ML */,
 				3C59304E2CA4F67300CAF224 /* Node */,
 				3C59305D2CA4F67300CAF224 /* Physics */,
@@ -5348,6 +5238,7 @@
 				3CBED1E72DD5C18F00E6F2FC /* dora-wa in Resources */,
 				3C60DE162A2069FE007D7865 /* Doc in Resources */,
 				3CA8DF102A0CE83D0022CC90 /* www in Resources */,
+				A10F20000000000000000002 /* Shader in Resources */,
 				3C5F00122F2C000000000001 /* Audio in Resources */,
 				3CBE0F0826087F7B003F4F45 /* Font in Resources */,
 				3CFD21452ECD65AF00FD55EB /* Image in Resources */,
@@ -5367,6 +5258,7 @@
 				3CBED1E62DD5C17A00E6F2FC /* dora-wa in Resources */,
 				3C60DE152A2069FE007D7865 /* Doc in Resources */,
 				3CA8DF0F2A0CE83D0022CC90 /* www in Resources */,
+				A10F20000000000000000001 /* Shader in Resources */,
 				3C5F00112F2C000000000001 /* Audio in Resources */,
 				3C030CFB24CAE6580074786E /* Font in Resources */,
 				3CFD21472ECD65D500FD55EB /* Image in Resources */,
@@ -5679,32 +5571,7 @@
 				3C0FB69A2BF1970C0098E88D /* Effekseer.Client.cpp in Sources */,
 				3CA780872AE66FB000B7BADA /* DynamicMemory.cpp in Sources */,
 				3C0FB70C2BF1970C0098E88D /* EffekseerRenderer.RingRendererBase.cpp in Sources */,
-				3C984C5E2F03B57B00DC8437 /* h264bsd_decoder.c in Sources */,
-				3C984C5F2F03B57B00DC8437 /* h264bsd_nal_unit.c in Sources */,
-				3C984C602F03B57B00DC8437 /* h264bsd_slice_header.c in Sources */,
-				3C984C612F03B57B00DC8437 /* h264bsd_neighbour.c in Sources */,
-				3C984C622F03B57B00DC8437 /* h264bsd_macroblock_layer.c in Sources */,
-				3C984C632F03B57B00DC8437 /* h264bsd_slice_group_map.c in Sources */,
-				3C984C642F03B57B00DC8437 /* h264bsd_vui.c in Sources */,
-				3C984C652F03B57B00DC8437 /* h264bsd_byte_stream.c in Sources */,
-				3C984C662F03B57B00DC8437 /* h264bsd_inter_prediction.c in Sources */,
-				3C984C672F03B57B00DC8437 /* h264bsd_pic_param_set.c in Sources */,
-				3C984C682F03B57B00DC8437 /* h264bsd_seq_param_set.c in Sources */,
-				3C984C692F03B57B00DC8437 /* h264bsd_pic_order_cnt.c in Sources */,
-				3C984C6A2F03B57B00DC8437 /* h264bsd_intra_prediction.c in Sources */,
-				3C984C6B2F03B57B00DC8437 /* h264bsd_slice_data.c in Sources */,
-				3C984C6C2F03B57B00DC8437 /* h264bsd_stream.c in Sources */,
-				3C984C6D2F03B57B00DC8437 /* h264bsd_dpb.c in Sources */,
-				3C984C6E2F03B57B00DC8437 /* h264bsd_image.c in Sources */,
-				3C984C6F2F03B57B00DC8437 /* h264bsd_util.c in Sources */,
-				3C984C702F03B57B00DC8437 /* h264bsd_transform.c in Sources */,
-				3C984C712F03B57B00DC8437 /* h264bsd_storage.c in Sources */,
-				3C984C722F03B57B00DC8437 /* h264bsd_conceal.c in Sources */,
-				3C984C732F03B57B00DC8437 /* h264bsd_cavlc.c in Sources */,
-				3C984C742F03B57B00DC8437 /* h264bsd_vlc.c in Sources */,
-				3C984C752F03B57B00DC8437 /* h264bsd_reconstruct.c in Sources */,
-				3C984C762F03B57B00DC8437 /* h264bsd_sei.c in Sources */,
-				3C984C772F03B57B00DC8437 /* h264bsd_deblocking.c in Sources */,
+				3C984C5E2F03B57B00DC8437 /* TheoraSources.c in Sources */,
 				3CA780272AE66FB000B7BADA /* AABB.cpp in Sources */,
 				3CA780352AE66FB000B7BADA /* WorldBody.cpp in Sources */,
 				3CBFB70E2643782A006348C8 /* implot_demo.cpp in Sources */,
@@ -5861,6 +5728,12 @@
 				3C5932832CA4F67300CAF224 /* Content.mm in Sources */,
 				3C5932842CA4F67300CAF224 /* Entity.cpp in Sources */,
 				3C5932852CA4F67300CAF224 /* LuaEngine.cpp in Sources */,
+				A10E10000000000000000002 /* LoveRuntime.cpp in Sources */,
+				A10E10000000000000000024 /* LoveVideoSources.cpp in Sources */,
+				A10E10000000000000000007 /* LoveNode.cpp in Sources */,
+				A10E10000000000000000010 /* LoveDataAlgorithms.cpp in Sources */,
+				A10E10000000000000000011 /* LoveLZ4.c in Sources */,
+				A10E10000000000000000012 /* LoveLZ4HC.c in Sources */,
 				3C5932862CA4F67300CAF224 /* Array.cpp in Sources */,
 				3C5932872CA4F67300CAF224 /* Object.cpp in Sources */,
 				3C5932882CA4F67300CAF224 /* DebugDraw.cpp in Sources */,
@@ -6288,32 +6161,7 @@
 				3CC15DBF2C17E3F8004763E7 /* gzclose.c in Sources */,
 				3C0FB6812BF1970C0098E88D /* ForceFields.cpp in Sources */,
 				3CA780062AE66FB000B7BADA /* EdgeShapeConf.cpp in Sources */,
-				3C984C782F03B57B00DC8437 /* h264bsd_decoder.c in Sources */,
-				3C984C792F03B57B00DC8437 /* h264bsd_nal_unit.c in Sources */,
-				3C984C7A2F03B57B00DC8437 /* h264bsd_slice_header.c in Sources */,
-				3C984C7B2F03B57B00DC8437 /* h264bsd_neighbour.c in Sources */,
-				3C984C7C2F03B57B00DC8437 /* h264bsd_macroblock_layer.c in Sources */,
-				3C984C7D2F03B57B00DC8437 /* h264bsd_slice_group_map.c in Sources */,
-				3C984C7E2F03B57B00DC8437 /* h264bsd_vui.c in Sources */,
-				3C984C7F2F03B57B00DC8437 /* h264bsd_byte_stream.c in Sources */,
-				3C984C802F03B57B00DC8437 /* h264bsd_inter_prediction.c in Sources */,
-				3C984C812F03B57B00DC8437 /* h264bsd_pic_param_set.c in Sources */,
-				3C984C822F03B57B00DC8437 /* h264bsd_seq_param_set.c in Sources */,
-				3C984C832F03B57B00DC8437 /* h264bsd_pic_order_cnt.c in Sources */,
-				3C984C842F03B57B00DC8437 /* h264bsd_intra_prediction.c in Sources */,
-				3C984C852F03B57B00DC8437 /* h264bsd_slice_data.c in Sources */,
-				3C984C862F03B57B00DC8437 /* h264bsd_stream.c in Sources */,
-				3C984C872F03B57B00DC8437 /* h264bsd_dpb.c in Sources */,
-				3C984C882F03B57B00DC8437 /* h264bsd_image.c in Sources */,
-				3C984C892F03B57B00DC8437 /* h264bsd_util.c in Sources */,
-				3C984C8A2F03B57B00DC8437 /* h264bsd_transform.c in Sources */,
-				3C984C8B2F03B57B00DC8437 /* h264bsd_storage.c in Sources */,
-				3C984C8C2F03B57B00DC8437 /* h264bsd_conceal.c in Sources */,
-				3C984C8D2F03B57B00DC8437 /* h264bsd_cavlc.c in Sources */,
-				3C984C8E2F03B57B00DC8437 /* h264bsd_vlc.c in Sources */,
-				3C984C8F2F03B57B00DC8437 /* h264bsd_reconstruct.c in Sources */,
-				3C984C902F03B57B00DC8437 /* h264bsd_sei.c in Sources */,
-				3C984C912F03B57B00DC8437 /* h264bsd_deblocking.c in Sources */,
+				3C984C782F03B57B00DC8437 /* TheoraSources.c in Sources */,
 				3C0FB6E92BF1970C0098E88D /* Effekseer.Random.cpp in Sources */,
 				3C0FB6932BF1970C0098E88D /* SplineGenerator.cpp in Sources */,
 				3C0FB6E52BF1970C0098E88D /* Effekseer.Matrix43.cpp in Sources */,
@@ -6470,6 +6318,12 @@
 				3C5931A62CA4F67300CAF224 /* Content.mm in Sources */,
 				3C5931A72CA4F67300CAF224 /* Entity.cpp in Sources */,
 				3C5931A82CA4F67300CAF224 /* LuaEngine.cpp in Sources */,
+				A10E10000000000000000001 /* LoveRuntime.cpp in Sources */,
+				A10E10000000000000000023 /* LoveVideoSources.cpp in Sources */,
+				A10E10000000000000000006 /* LoveNode.cpp in Sources */,
+				A10E1000000000000000000D /* LoveDataAlgorithms.cpp in Sources */,
+				A10E1000000000000000000E /* LoveLZ4.c in Sources */,
+				A10E1000000000000000000F /* LoveLZ4HC.c in Sources */,
 				3C5931A92CA4F67300CAF224 /* Array.cpp in Sources */,
 				3C5931AA2CA4F67300CAF224 /* Object.cpp in Sources */,
 				3C5931AB2CA4F67300CAF224 /* DebugDraw.cpp in Sources */,
@@ -6695,6 +6549,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"../../Source/3rdParty/SDL2/Lib/iOS-Simulator",
+					"../../Source/3rdParty/Love/Artifacts/iOS-Simulator",
 					../../Source/3rdParty/bgfx/build/ios/simulator,
 					"../../Source/3rdParty/Wa/Lib/iOS-Simulator",
 					"../../Source/Rust/lib/iOS-Simulator",
@@ -6724,7 +6579,6 @@
 					../../Source/3rdParty/wasm3,
 					../../Source/3rdParty/Zip/zlib,
 					../../Source/3rdParty/Effekseer,
-					../../Source/3rdParty/h264bsd,
 				);
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
@@ -6770,6 +6624,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"../../Source/3rdParty/SDL2/Lib/iOS-Simulator",
+					"../../Source/3rdParty/Love/Artifacts/iOS-Simulator",
 					../../Source/3rdParty/bgfx/build/ios/simulator,
 					"../../Source/3rdParty/Wa/Lib/iOS-Simulator",
 					"../../Source/Rust/lib/iOS-Simulator",
@@ -6799,7 +6654,6 @@
 					../../Source/3rdParty/wasm3,
 					../../Source/3rdParty/Zip/zlib,
 					../../Source/3rdParty/Effekseer,
-					../../Source/3rdParty/h264bsd,
 				);
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
@@ -6999,6 +6853,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					../../Source/3rdParty/SDL2/Lib/iOS,
+					../../Source/3rdParty/Love/Artifacts/iOS,
 					../../Source/3rdParty/bgfx/build/ios/device,
 					../../Source/3rdParty/Wa/Lib/iOS,
 					../../Source/Rust/lib/iOS,
@@ -7028,7 +6883,6 @@
 					../../Source/3rdParty/wasm3,
 					../../Source/3rdParty/Zip/zlib,
 					../../Source/3rdParty/Effekseer,
-					../../Source/3rdParty/h264bsd,
 				);
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};
@@ -7073,6 +6927,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					../../Source/3rdParty/SDL2/Lib/iOS,
+					../../Source/3rdParty/Love/Artifacts/iOS,
 					../../Source/3rdParty/bgfx/build/ios/device,
 					../../Source/3rdParty/Wa/Lib/iOS,
 					../../Source/Rust/lib/iOS,
@@ -7102,7 +6957,6 @@
 					../../Source/3rdParty/wasm3,
 					../../Source/3rdParty/Zip/zlib,
 					../../Source/3rdParty/Effekseer,
-					../../Source/3rdParty/h264bsd,
 				);
 				VALID_ARCHS = "$(ARCHS_STANDARD)";
 			};

@@ -33,6 +33,12 @@ bool operator== (const DistanceProxy& lhs, const DistanceProxy& rhs) noexcept
         return false;
     }
 
+    if (lhs.GetPreviousVertex() != rhs.GetPreviousVertex() ||
+        lhs.GetNextVertex() != rhs.GetNextVertex())
+    {
+        return false;
+    }
+
     // No need to compare normals since they should be invariant to the vertices.
     const auto lhr = lhs.GetVertices();
     const auto rhr = rhs.GetVertices();

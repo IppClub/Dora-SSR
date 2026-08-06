@@ -12,12 +12,15 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.media.AudioManager;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.os.Build;
@@ -48,6 +51,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.core.content.FileProvider;
+import androidx.annotation.Keep;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -99,6 +103,7 @@ public class MainActivity extends SDLActivity {
 	};
 	private final Handler uiHandler = new Handler(Looper.getMainLooper());
 	private final Runnable autoHideSideMenu = this::collapseSideMenu;
+	private Vibrator vibrator;
 	public static String waBuild(String path) { return Wa.waBuild(path); }
 	public static String waFormat(String path) { return Wa.waFormat(path); }
 	public static long waGitStartClone(String url, String path, String branch, String token, long depth) { return Wa.waGitStartClone(url, path, branch, token, depth); }
@@ -110,6 +115,7 @@ public class MainActivity extends SDLActivity {
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 		configureEdgeToEdgeWindow();
 		IntentFilter downloadFilter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -151,6 +157,9 @@ public class MainActivity extends SDLActivity {
 
 	@Override
 	protected void onPause() {
+		if (vibrator != null) {
+			vibrator.cancel();
+		}
 		if (ideWebView != null) {
 			ideWebView.onPause();
 		}
@@ -159,6 +168,9 @@ public class MainActivity extends SDLActivity {
 
 	@Override
 	protected void onDestroy() {
+		if (vibrator != null) {
+			vibrator.cancel();
+		}
 		if (ideWebView != null) {
 			ideWebView.destroy();
 			ideWebView = null;
@@ -169,6 +181,28 @@ public class MainActivity extends SDLActivity {
 		}
 		uiHandler.removeCallbacks(autoHideSideMenu);
 		super.onDestroy();
+	}
+
+	@Keep
+	public void vibrate(double seconds) {
+		if (vibrator == null) {
+			return;
+		}
+		long duration = (long) (seconds * 1000.0);
+		if (duration <= 0) {
+			return;
+		}
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			vibrator.vibrate(VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE));
+		} else {
+			vibrator.vibrate(duration);
+		}
+	}
+
+	@Keep
+	public boolean hasBackgroundMusic() {
+		AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+		return audioManager != null && audioManager.isMusicActive();
 	}
 
 	private void hideSystemUI() {

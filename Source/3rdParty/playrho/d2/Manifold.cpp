@@ -155,6 +155,408 @@ ClipList GetClipPoints(const Length2& shape0_abs_v0, const Length2& shape0_abs_v
     return ClipSegmentToLine(points, +shape0_abs_e0_dir, shape0_dp_v1_e0, shape0_e.second);
 }
 
+bool HasConnectedEdgeTopology(const DistanceProxy& shape) noexcept
+{
+    return shape.GetVertexCount() == 2 &&
+           (shape.GetPreviousVertex().has_value() || shape.GetNextVertex().has_value());
+}
+
+Manifold FlipManifold(const Manifold& value) noexcept
+{
+    if (value.GetPointCount() == 0) {
+        return {};
+    }
+    if (value.GetType() == Manifold::e_circles) {
+        const auto feature = value.GetContactFeature(0);
+        return Manifold::GetForCircles(value.GetPoint(0).localPoint, feature.indexB,
+                                       value.GetLocalPoint(), feature.indexA);
+    }
+    auto result = value.GetType() == Manifold::e_faceA
+        ? Manifold::GetForFaceB(value.GetLocalNormal(), value.GetLocalPoint())
+        : Manifold::GetForFaceA(value.GetLocalNormal(), value.GetLocalPoint());
+    for (auto i = Manifold::size_type{0}; i < value.GetPointCount(); ++i) {
+        result.AddPoint({value.GetPoint(i).localPoint, Flip(value.GetContactFeature(i))});
+    }
+    return result;
+}
+
+/// @brief Collides a connected edge and circle using the neighbouring edges to
+///   assign endpoint Voronoi regions.
+/// @details This is the PlayRho-unit equivalent of Love 11.5's
+///   b2CollideEdgeAndCircle path. Ghost vertices remain topology metadata and
+///   never become vertices of the convex distance proxy.
+Manifold CollideConnectedEdgeAndCircle(const DistanceProxy& edge,
+                                       const Transformation& edgeXf,
+                                       const DistanceProxy& circle,
+                                       const Transformation& circleXf,
+                                       bool flipped) noexcept
+{
+    assert(edge.GetVertexCount() == 2);
+    assert(circle.GetVertexCount() == 1);
+
+    const auto q = InverseTransform(Transform(circle.GetVertex(0), circleXf), edgeXf);
+    const auto a = edge.GetVertex(0);
+    const auto b = edge.GetVertex(1);
+    const auto e = b - a;
+    const auto u = Dot(e, b - q);
+    const auto v = Dot(e, q - a);
+    const auto totalRadius = Length{edge.GetVertexRadius() + circle.GetVertexRadius()};
+
+    auto manifold = Manifold{};
+    if (v <= 0_m2) {
+        if (GetMagnitudeSquared(q - a) > Square(totalRadius)) {
+            return {};
+        }
+        if (const auto& previous = edge.GetPreviousVertex()) {
+            const auto previousEdge = a - *previous;
+            if (Dot(previousEdge, a - q) > 0_m2) {
+                return {};
+            }
+        }
+        manifold = Manifold::GetForCircles(a, 0, circle.GetVertex(0), 0);
+    }
+    else if (u <= 0_m2) {
+        if (GetMagnitudeSquared(q - b) > Square(totalRadius)) {
+            return {};
+        }
+        if (const auto& next = edge.GetNextVertex()) {
+            const auto nextEdge = *next - b;
+            if (Dot(nextEdge, q - b) > 0_m2) {
+                return {};
+            }
+        }
+        manifold = Manifold::GetForCircles(b, 1, circle.GetVertex(0), 0);
+    }
+    else {
+        const auto edgeLengthSquared = GetMagnitudeSquared(e);
+        assert(edgeLengthSquared > 0_m2);
+        const auto p = (u * a + v * b) / edgeLengthSquared;
+        if (GetMagnitudeSquared(q - p) > Square(totalRadius)) {
+            return {};
+        }
+        auto normal = GetUnitVector(GetFwdPerpendicular(e));
+        if (Dot(normal, q - a) < 0_m) {
+            normal = -normal;
+        }
+        manifold = Manifold::GetForFaceA(normal, a,
+            {circle.GetVertex(0), GetFaceVertexContactFeature(0, 0)});
+    }
+    return flipped ? FlipManifold(manifold) : manifold;
+}
+
+enum class ConnectedAxisType { Unknown, Edge, Polygon };
+
+struct ConnectedAxis
+{
+    ConnectedAxisType type = ConnectedAxisType::Unknown;
+    VertexCounter index = InvalidVertex;
+    Length separation = -MaxFloat * Meter;
+};
+
+struct ConnectedReferenceFace
+{
+    VertexCounter i1 = 0;
+    VertexCounter i2 = 0;
+    Length2 v1;
+    Length2 v2;
+    UnitVec normal;
+    UnitVec sideNormal1;
+    Length sideOffset1 = 0_m;
+    UnitVec sideNormal2;
+    Length sideOffset2 = 0_m;
+};
+
+/// @brief Edge-polygon collider with adjacent-edge normal limits.
+/// @details This follows the b2EPCollider algorithm vendored by Love 11.5:
+///   classify both edge junctions, select front/back, constrain candidate
+///   polygon axes to the adjacent-edge normal cone, and finally clip.
+class ConnectedEdgePolygonCollider
+{
+public:
+    ConnectedEdgePolygonCollider(const DistanceProxy& edge,
+                                 const Transformation& edgeXf,
+                                 const DistanceProxy& polygon,
+                                 const Transformation& polygonXf,
+                                 const Manifold::Conf& conf)
+        : _edge{edge}
+        , _polygon{polygon}
+        , _relativeXf{Transformation{
+            InverseTransform(polygonXf.p, edgeXf),
+            InverseRotate(polygonXf.q, edgeXf.q)}}
+        , _totalRadius{Length{edge.GetVertexRadius() + polygon.GetVertexRadius()}}
+        , _angularSlop{Real{DefaultAngularSlop / Radian}}
+        , _linearSlop{conf.linearSlop}
+    {
+        for (auto i = VertexCounter{0}; i < polygon.GetVertexCount(); ++i) {
+            _vertices.push_back(Transform(polygon.GetVertex(i), _relativeXf));
+            _normals.push_back(Rotate(polygon.GetNormal(i), _relativeXf.q));
+        }
+        _centroid = Transform(ComputeCentroid(polygon.GetVertices()), _relativeXf);
+    }
+
+    Manifold Collide(bool flipped)
+    {
+        const auto v0 = _edge.GetPreviousVertex();
+        const auto v1 = _edge.GetVertex(0);
+        const auto v2 = _edge.GetVertex(1);
+        const auto v3 = _edge.GetNextVertex();
+
+        const auto edge1 = GetUnitVector(v2 - v1);
+        const auto normal1 = GetFwdPerpendicular(edge1);
+        const auto offset1 = Dot(normal1, _centroid - v1);
+        auto normal0 = UnitVec::GetZero();
+        auto normal2 = UnitVec::GetZero();
+        auto offset0 = 0_m;
+        auto offset2 = 0_m;
+        auto convex1 = false;
+        auto convex2 = false;
+
+        if (v0) {
+            const auto edge0 = GetUnitVector(v1 - *v0);
+            normal0 = GetFwdPerpendicular(edge0);
+            convex1 = Cross(edge0, edge1) >= Real{0};
+            offset0 = Dot(normal0, _centroid - *v0);
+        }
+        if (v3) {
+            const auto edge2 = GetUnitVector(*v3 - v2);
+            normal2 = GetFwdPerpendicular(edge2);
+            convex2 = Cross(edge1, edge2) > Real{0};
+            offset2 = Dot(normal2, _centroid - v2);
+        }
+
+        ClassifyNormalRange(v0.has_value(), v3.has_value(), convex1, convex2,
+                            offset0, offset1, offset2, normal0, normal1, normal2);
+
+        const auto edgeAxis = ComputeEdgeSeparation(v1);
+        if (edgeAxis.separation > _totalRadius) {
+            return {};
+        }
+        const auto polygonAxis = ComputePolygonSeparation(v1, v2);
+        if (polygonAxis.type != ConnectedAxisType::Unknown &&
+            polygonAxis.separation > _totalRadius) {
+            return {};
+        }
+
+        auto primaryAxis = edgeAxis;
+        if (polygonAxis.type != ConnectedAxisType::Unknown &&
+            polygonAxis.separation > Real{0.98f} * edgeAxis.separation + _linearSlop / Real{5}) {
+            primaryAxis = polygonAxis;
+        }
+
+        ClipList incident;
+        auto reference = ConnectedReferenceFace{};
+        if (primaryAxis.type == ConnectedAxisType::Edge) {
+            auto bestIndex = VertexCounter{0};
+            auto bestValue = Dot(_normal, _normals[0]);
+            for (auto i = VertexCounter{1}; i < _polygon.GetVertexCount(); ++i) {
+                const auto value = Dot(_normal, _normals[i]);
+                if (value < bestValue) {
+                    bestValue = value;
+                    bestIndex = i;
+                }
+            }
+            const auto nextIndex = GetModuloNext(bestIndex, _polygon.GetVertexCount());
+            incident.push_back({_vertices[bestIndex],
+                GetFaceVertexContactFeature(0, bestIndex)});
+            incident.push_back({_vertices[nextIndex],
+                GetFaceVertexContactFeature(0, nextIndex)});
+            if (_front) {
+                reference.i1 = 0;
+                reference.i2 = 1;
+                reference.v1 = v1;
+                reference.v2 = v2;
+                reference.normal = normal1;
+            }
+            else {
+                reference.i1 = 1;
+                reference.i2 = 0;
+                reference.v1 = v2;
+                reference.v2 = v1;
+                reference.normal = -normal1;
+            }
+        }
+        else {
+            const auto nextIndex = GetModuloNext(primaryAxis.index, _polygon.GetVertexCount());
+            incident.push_back({v1,
+                GetVertexFaceContactFeature(0, primaryAxis.index)});
+            incident.push_back({v2,
+                GetVertexFaceContactFeature(0, primaryAxis.index)});
+            reference.i1 = primaryAxis.index;
+            reference.i2 = nextIndex;
+            reference.v1 = _vertices[reference.i1];
+            reference.v2 = _vertices[reference.i2];
+            reference.normal = _normals[reference.i1];
+        }
+
+        reference.sideNormal1 = GetFwdPerpendicular(reference.normal);
+        reference.sideNormal2 = -reference.sideNormal1;
+        reference.sideOffset1 = Dot(reference.sideNormal1, reference.v1);
+        reference.sideOffset2 = Dot(reference.sideNormal2, reference.v2);
+        const auto clip1 = ClipSegmentToLine(incident, reference.sideNormal1,
+                                             reference.sideOffset1, reference.i1);
+        if (size(clip1) < MaxManifoldPoints) {
+            return {};
+        }
+        const auto clip2 = ClipSegmentToLine(clip1, reference.sideNormal2,
+                                             reference.sideOffset2, reference.i2);
+        if (size(clip2) < MaxManifoldPoints) {
+            return {};
+        }
+
+        auto manifold = primaryAxis.type == ConnectedAxisType::Edge
+            ? Manifold::GetForFaceA(reference.normal, reference.v1)
+            : Manifold::GetForFaceB(_polygon.GetNormal(reference.i1),
+                                    _polygon.GetVertex(reference.i1));
+        for (const auto& point : clip2) {
+            if (Dot(reference.normal, point.v - reference.v1) <= _totalRadius) {
+                if (primaryAxis.type == ConnectedAxisType::Edge) {
+                    manifold.AddPoint({InverseTransform(point.v, _relativeXf), point.cf});
+                }
+                else {
+                    manifold.AddPoint({point.v, Flip(point.cf)});
+                }
+            }
+        }
+        if (manifold.GetPointCount() == 0) {
+            return {};
+        }
+        return flipped ? FlipManifold(manifold) : manifold;
+    }
+
+private:
+    void ClassifyNormalRange(bool hasPrevious, bool hasNext, bool convex1, bool convex2,
+                             Length offset0, Length offset1, Length offset2,
+                             UnitVec normal0, UnitVec normal1, UnitVec normal2) noexcept
+    {
+        if (hasPrevious && hasNext) {
+            if (convex1 && convex2) {
+                _front = offset0 >= 0_m || offset1 >= 0_m || offset2 >= 0_m;
+                _normal = _front ? normal1 : -normal1;
+                _lowerLimit = _front ? normal0 : -normal1;
+                _upperLimit = _front ? normal2 : -normal1;
+            }
+            else if (convex1) {
+                _front = offset0 >= 0_m || (offset1 >= 0_m && offset2 >= 0_m);
+                _normal = _front ? normal1 : -normal1;
+                _lowerLimit = _front ? normal0 : -normal2;
+                _upperLimit = _front ? normal1 : -normal1;
+            }
+            else if (convex2) {
+                _front = offset2 >= 0_m || (offset0 >= 0_m && offset1 >= 0_m);
+                _normal = _front ? normal1 : -normal1;
+                _lowerLimit = _front ? normal1 : -normal1;
+                _upperLimit = _front ? normal2 : -normal0;
+            }
+            else {
+                _front = offset0 >= 0_m && offset1 >= 0_m && offset2 >= 0_m;
+                _normal = _front ? normal1 : -normal1;
+                _lowerLimit = _front ? normal1 : -normal2;
+                _upperLimit = _front ? normal1 : -normal0;
+            }
+        }
+        else if (hasPrevious) {
+            if (convex1) {
+                _front = offset0 >= 0_m || offset1 >= 0_m;
+                _normal = _front ? normal1 : -normal1;
+                _lowerLimit = _front ? normal0 : normal1;
+                _upperLimit = -normal1;
+            }
+            else {
+                _front = offset0 >= 0_m && offset1 >= 0_m;
+                _normal = _front ? normal1 : -normal1;
+                _lowerLimit = normal1;
+                _upperLimit = _front ? -normal1 : -normal0;
+            }
+        }
+        else if (hasNext) {
+            if (convex2) {
+                _front = offset1 >= 0_m || offset2 >= 0_m;
+                _normal = _front ? normal1 : -normal1;
+                _lowerLimit = -normal1;
+                _upperLimit = _front ? normal2 : normal1;
+            }
+            else {
+                _front = offset1 >= 0_m && offset2 >= 0_m;
+                _normal = _front ? normal1 : -normal1;
+                _lowerLimit = _front ? -normal1 : -normal2;
+                _upperLimit = normal1;
+            }
+        }
+        else {
+            _front = offset1 >= 0_m;
+            _normal = _front ? normal1 : -normal1;
+            _lowerLimit = _front ? -normal1 : normal1;
+            _upperLimit = _lowerLimit;
+        }
+    }
+
+    ConnectedAxis ComputeEdgeSeparation(const Length2& v1) const noexcept
+    {
+        auto axis = ConnectedAxis{ConnectedAxisType::Edge, _front ? VertexCounter{0} : VertexCounter{1},
+                                  MaxFloat * Meter};
+        for (const auto& vertex : _vertices) {
+            axis.separation = std::min(axis.separation, Dot(_normal, vertex - v1));
+        }
+        return axis;
+    }
+
+    ConnectedAxis ComputePolygonSeparation(const Length2& v1, const Length2& v2) const noexcept
+    {
+        auto axis = ConnectedAxis{};
+        const auto perpendicular = GetRevPerpendicular(_normal);
+        for (auto i = VertexCounter{0}; i < _polygon.GetVertexCount(); ++i) {
+            const auto normal = -_normals[i];
+            const auto separation = std::min(Dot(normal, _vertices[i] - v1),
+                                             Dot(normal, _vertices[i] - v2));
+            if (separation > _totalRadius) {
+                return {ConnectedAxisType::Polygon, i, separation};
+            }
+            if (Dot(normal, perpendicular) >= Real{0}) {
+                const auto delta = Vec2{GetX(normal) - GetX(_upperLimit),
+                                        GetY(normal) - GetY(_upperLimit)};
+                if (Dot(delta, _normal) < -_angularSlop) {
+                    continue;
+                }
+            }
+            else {
+                const auto delta = Vec2{GetX(normal) - GetX(_lowerLimit),
+                                        GetY(normal) - GetY(_lowerLimit)};
+                if (Dot(delta, _normal) < -_angularSlop) {
+                    continue;
+                }
+            }
+            if (axis.type == ConnectedAxisType::Unknown || separation > axis.separation) {
+                axis = {ConnectedAxisType::Polygon, i, separation};
+            }
+        }
+        return axis;
+    }
+
+    const DistanceProxy& _edge;
+    const DistanceProxy& _polygon;
+    Transformation _relativeXf;
+    Length _totalRadius;
+    Real _angularSlop;
+    Length _linearSlop;
+    ArrayList<Length2, MaxShapeVertices, VertexCounter> _vertices;
+    ArrayList<UnitVec, MaxShapeVertices, VertexCounter> _normals;
+    Length2 _centroid;
+    UnitVec _normal;
+    UnitVec _lowerLimit;
+    UnitVec _upperLimit;
+    bool _front = false;
+};
+
+Manifold CollideConnectedEdgeAndPolygon(const DistanceProxy& edge,
+                                        const Transformation& edgeXf,
+                                        const DistanceProxy& polygon,
+                                        const Transformation& polygonXf,
+                                        const Manifold::Conf& conf,
+                                        bool flipped)
+{
+    return ConnectedEdgePolygonCollider{edge, edgeXf, polygon, polygonXf, conf}.Collide(flipped);
+}
+
 } // anonymous namespace
 
 Manifold::Conf GetManifoldConf(const StepConf& conf) noexcept
@@ -400,6 +802,23 @@ Manifold CollideShapes(const DistanceProxy& shapeA, const Transformation& xfA, /
     // Choose reference edge as min(minA, minB)
     // Find incident edge
     // Clip
+
+    if (HasConnectedEdgeTopology(shapeA)) {
+        if (shapeB.GetVertexCount() == 1) {
+            return CollideConnectedEdgeAndCircle(shapeA, xfA, shapeB, xfB, false);
+        }
+        if (shapeB.GetVertexCount() > 2) {
+            return CollideConnectedEdgeAndPolygon(shapeA, xfA, shapeB, xfB, conf, false);
+        }
+    }
+    if (HasConnectedEdgeTopology(shapeB)) {
+        if (shapeA.GetVertexCount() == 1) {
+            return CollideConnectedEdgeAndCircle(shapeB, xfB, shapeA, xfA, true);
+        }
+        if (shapeA.GetVertexCount() > 2) {
+            return CollideConnectedEdgeAndPolygon(shapeB, xfB, shapeA, xfA, conf, true);
+        }
+    }
 
     const auto totalRadius = shapeA.GetVertexRadius() + shapeB.GetVertexRadius();
     const auto countA = shapeA.GetVertexCount();

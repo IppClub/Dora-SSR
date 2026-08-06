@@ -247,7 +247,7 @@ public:
 	Size alignItems(const Size& size, float padding = 10.0f);
 	void moveAndCullItems(const Vec2& delta);
 
-	void attachIME();
+	void attachIME(bool showScreenKeyboard = true);
 	void detachIME();
 
 public:

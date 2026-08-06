@@ -65,6 +65,14 @@ void View::clear() {
 	_orders.clear();
 }
 
+bool View::isIdle() const noexcept {
+	return _views.empty() && _orders.empty();
+}
+
+bool View::hasActiveView() const noexcept {
+	return !_views.empty();
+}
+
 void View::pushInner(String viewName) {
 	AssertIf(_id > MaxViews - 1, "running views exceeded max view number {}.", s_cast<int>(MaxViews));
 	bgfx::ViewId viewId = s_cast<bgfx::ViewId>(++_id);

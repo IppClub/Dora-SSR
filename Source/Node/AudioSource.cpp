@@ -71,7 +71,9 @@ bool AudioSource::isLooping() const noexcept {
 
 bool AudioSource::isPlaying() const noexcept {
 	if (_handle != 0) {
-		return SharedAudio.isVoicePlaying(_handle);
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			return soloud->isValidVoiceHandle(_handle);
+		}
 	}
 	return false;
 }
@@ -82,6 +84,32 @@ void AudioSource::seek(double startTime) {
 			soloud->seek(_handle, startTime);
 		}
 	}
+}
+
+void AudioSource::setPaused(bool paused) {
+	if (_handle != 0 && isPlaying()) {
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->setPause(_handle, paused);
+		}
+	}
+}
+
+bool AudioSource::isPaused() const {
+	if (_handle != 0 && isPlaying()) {
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			return soloud->getPause(_handle);
+		}
+	}
+	return false;
+}
+
+double AudioSource::getCurrentTime() const {
+	if (_handle != 0 && isPlaying()) {
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			return soloud->getStreamPosition(_handle);
+		}
+	}
+	return 0.0;
 }
 
 void AudioSource::scheduleStop(double timeToStop) {
@@ -110,18 +138,40 @@ AudioSource::AudioSource(String filename, bool autoRemove, AudioBus* bus)
 	, _handle(0)
 	, _is3D(false)
 	, _loop(false)
+	, _protected(false)
+	, _useExplicit3DPosition(false)
+	, _useVolumeLimits(false)
+	, _listenerRelative(false)
 	, _autoRemove(autoRemove)
-	, _attenuation(0)
-	, _attenuationFactor(1.0f)
-	, _dopplerFactor(1.0f)
+	, _position3D{0.0f, 0.0f, 0.0f}
 	, _velocity{0.0f, 0.0f, 0.0f}
-	, _minDistance(0.0f)
-	, _maxDistance(1000000.0f)
+	, _direction3D{0.0f, 0.0f, 0.0f}
+	, _loopStartTime(0.0)
 	, _volume(1.0f)
 	, _pan(0.0f)
 	, _playSpeed(1.0f)
-	, _loopStartTime(0.0)
+	, _minDistance(0.0f)
+	, _maxDistance(1000000.0f)
+	, _attenuation(0)
+	, _attenuationFactor(1.0f)
+	, _dopplerFactor(1.0f)
+	, _coneInnerAngle(6.28318530717958647692f)
+	, _coneOuterAngle(6.28318530717958647692f)
+	, _coneOuterVolume(0.0f)
+	, _coneOuterHighGain(1.0f)
+	, _airAbsorptionFactor(0.0f)
+	, _minVolumeLimit(0.0f)
+	, _maxVolumeLimit(1.0f)
 	, _bus(bus) {
+}
+
+AudioSource::AudioSource(AudioFile* audioFile, bool autoRemove, AudioBus* bus)
+	: AudioSource(""_slice, autoRemove, bus) {
+	_audioFile = audioFile;
+}
+
+AudioFile* AudioSource::getAudioFile() const {
+	return _audioFile ? _audioFile.get() : SharedAudioCache.load(_filename);
 }
 
 void AudioSource::visit() {
@@ -131,9 +181,13 @@ void AudioSource::visit() {
 	}
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud(); soloud && SharedAudio.isVoicePlaying(_handle)) {
-			Vec4 point;
-			Matrix::mulVec4(point, getWorld(), {0.0f, 0.0f, 0.0f, 1.0f});
-			soloud->set3dSourcePosition(_handle, point.x, point.y, point.z);
+			if (_useExplicit3DPosition) {
+				soloud->set3dSourcePosition(_handle, _position3D.x, _position3D.y, _position3D.z);
+			} else {
+				Vec4 point;
+				Matrix::mulVec4(point, getWorld(), {0.0f, 0.0f, 0.0f, 1.0f});
+				soloud->set3dSourcePosition(_handle, point.x, point.y, point.z);
+			}
 		}
 	}
 	Node::visit();
@@ -143,23 +197,28 @@ void AudioSource::cleanup() {
 	if (_flags.isOff(Node::Cleanup)) {
 		Node::cleanup();
 		_bus = nullptr;
+		_audioFile = nullptr;
 		_handle = 0;
 	}
 }
 
 bool AudioSource::playBackground() {
 	AssertIf(_flags.isOn(Node::Cleanup), "can not operate on an invalid AudioSource");
-	if (_handle != 0 && SharedAudio.isVoicePlaying(_handle)) {
+	if (_handle != 0 && isPlaying()) {
 		return false;
 	}
 	_is3D = false;
 	auto soloud = SharedAudio.getSoLoud();
 	if (!soloud) return false;
-	if (auto audioFile = SharedAudioCache.load(_filename)) {
+	if (auto audioFile = getAudioFile()) {
 		uint32_t busHandle = _bus ? _bus->getHandle() : 0;
 		_pan = 0.0f;
 		_handle = soloud->playBackground(*audioFile->getSource(), _volume, false, busHandle);
 		soloud->setProtectVoice(_handle, true);
+		soloud->setLooping(_handle, _loop);
+		if (_useVolumeLimits) {
+			soloud->setVoiceVolumeLimits(_handle, _minVolumeLimit, _maxVolumeLimit);
+		}
 		if (_playSpeed != 1.0f) {
 			soloud->setRelativePlaySpeed(_handle, _playSpeed);
 		}
@@ -184,13 +243,13 @@ bool AudioSource::playBackground() {
 
 bool AudioSource::play(double delayTime) {
 	AssertIf(_flags.isOn(Node::Cleanup), "can not operate on an invalid AudioSource");
-	if (_handle != 0 && SharedAudio.isVoicePlaying(_handle)) {
+	if (_handle != 0 && isPlaying()) {
 		return false;
 	}
 	_is3D = false;
 	auto soloud = SharedAudio.getSoLoud();
 	if (!soloud) return false;
-	if (auto audioFile = SharedAudioCache.load(_filename)) {
+	if (auto audioFile = getAudioFile()) {
 		uint32_t busHandle = _bus ? _bus->getHandle() : 0;
 		if (delayTime <= 0) {
 			_handle = soloud->play(*audioFile->getSource(), _volume, _pan, false, busHandle);
@@ -199,6 +258,10 @@ bool AudioSource::play(double delayTime) {
 		}
 		if (_protected) {
 			soloud->setProtectVoice(_handle, true);
+		}
+		soloud->setLooping(_handle, _loop);
+		if (_useVolumeLimits) {
+			soloud->setVoiceVolumeLimits(_handle, _minVolumeLimit, _maxVolumeLimit);
 		}
 		if (_playSpeed != 1.0f) {
 			soloud->setRelativePlaySpeed(_handle, _playSpeed);
@@ -223,16 +286,20 @@ bool AudioSource::play(double delayTime) {
 
 bool AudioSource::play3D(double delayTime) {
 	AssertIf(_flags.isOn(Node::Cleanup), "can not operate on an invalid AudioSource");
-	if (_handle != 0 && SharedAudio.isVoicePlaying(_handle)) {
+	if (_handle != 0 && isPlaying()) {
 		return false;
 	}
 	_is3D = true;
 	auto soloud = SharedAudio.getSoLoud();
 	if (!soloud) return false;
-	if (auto audioFile = SharedAudioCache.load(_filename)) {
+	if (auto audioFile = getAudioFile()) {
 		uint32_t busHandle = _bus ? _bus->getHandle() : 0;
 		Vec4 point;
-		Matrix::mulVec4(point, getWorld(), {0.0f, 0.0f, 0.0f, 1.0f});
+		if (_useExplicit3DPosition) {
+			point = {_position3D.x, _position3D.y, _position3D.z, 1.0f};
+		} else {
+			Matrix::mulVec4(point, getWorld(), {0.0f, 0.0f, 0.0f, 1.0f});
+		}
 		if (delayTime < 0) {
 			_handle = soloud->play3d(*audioFile->getSource(), point.x, point.y, point.z, 0.0f, 0.0f, 0.0f, _volume, false, busHandle);
 		} else {
@@ -242,6 +309,7 @@ bool AudioSource::play3D(double delayTime) {
 		if (_protected) {
 			soloud->setProtectVoice(_handle, true);
 		}
+		soloud->setLooping(_handle, _loop);
 		if (_playSpeed != 1.0f) {
 			soloud->setRelativePlaySpeed(_handle, _playSpeed);
 		}
@@ -249,9 +317,16 @@ bool AudioSource::play3D(double delayTime) {
 			soloud->setLoopPoint(_handle, _loopStartTime);
 		}
 		soloud->set3dSourceVelocity(_handle, _velocity.x, _velocity.y, _velocity.z);
+		soloud->set3dSourceCone(_handle, _direction3D.x, _direction3D.y, _direction3D.z,
+			_coneInnerAngle, _coneOuterAngle, _coneOuterVolume, _coneOuterHighGain);
+		soloud->set3dSourceAirAbsorption(_handle, _airAbsorptionFactor);
 		soloud->set3dSourceMinMaxDistance(_handle, _minDistance, _maxDistance);
 		soloud->set3dSourceAttenuation(_handle, _attenuation, _attenuationFactor);
 		soloud->set3dSourceDopplerFactor(_handle, _dopplerFactor);
+		soloud->set3dSourceListenerRelative(_handle, _listenerRelative);
+		if (_useVolumeLimits) {
+			soloud->setVoiceVolumeLimits(_handle, _minVolumeLimit, _maxVolumeLimit);
+		}
 		WRef<AudioSource> self(this);
 		SharedAudio.addRef(_handle, audioFile, [self](uint32_t handle) {
 			if (self && self->_handle == handle) {
@@ -285,11 +360,74 @@ void AudioSource::setProtected(bool var) {
 	}
 }
 
+void AudioSource::set3DPosition(float x, float y, float z) {
+	_useExplicit3DPosition = true;
+	_position3D = {x, y, z};
+	if (_handle != 0) {
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->set3dSourcePosition(_handle, x, y, z);
+		}
+	}
+}
+
 void AudioSource::setVelocity(float vx, float vy, float vz) {
 	_velocity = {vx, vy, vz};
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->set3dSourceVelocity(_handle, vx, vy, vz);
+		}
+	}
+}
+
+void AudioSource::set3DDirection(float x, float y, float z) {
+	_direction3D = {x, y, z};
+	if (_handle != 0) {
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->set3dSourceCone(_handle, _direction3D.x, _direction3D.y, _direction3D.z,
+				_coneInnerAngle, _coneOuterAngle, _coneOuterVolume, _coneOuterHighGain);
+		}
+	}
+}
+
+void AudioSource::set3DCone(float innerAngle, float outerAngle, float outerVolume,
+	float outerHighGain) {
+	_coneInnerAngle = innerAngle;
+	_coneOuterAngle = outerAngle;
+	_coneOuterVolume = outerVolume;
+	_coneOuterHighGain = outerHighGain;
+	if (_handle != 0) {
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->set3dSourceCone(_handle, _direction3D.x, _direction3D.y, _direction3D.z,
+				_coneInnerAngle, _coneOuterAngle, _coneOuterVolume, _coneOuterHighGain);
+		}
+	}
+}
+
+void AudioSource::setAirAbsorptionFactor(float factor) {
+	_airAbsorptionFactor = factor;
+	if (_handle != 0) {
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->set3dSourceAirAbsorption(_handle, factor);
+		}
+	}
+}
+
+void AudioSource::setVolumeLimits(float minVolume, float maxVolume) {
+	_useVolumeLimits = true;
+	_minVolumeLimit = minVolume;
+	_maxVolumeLimit = maxVolume;
+	if (_handle != 0) {
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->setVoiceVolumeLimits(_handle, minVolume, maxVolume);
+		}
+	}
+}
+
+void AudioSource::setListenerRelative(bool relative) {
+	_listenerRelative = relative;
+	if (_handle != 0) {
+		if (auto soloud = SharedAudio.getSoLoud()) {
+			soloud->set3dSourceListenerRelative(_handle, relative);
 		}
 	}
 }
@@ -318,6 +456,9 @@ void AudioSource::setAttenuation(AudioSource::AttenuationModel model, float fact
 			break;
 		case AudioSource::AttenuationModel::ExponentialDistance:
 			modelType = SoLoud::AudioSource::EXPONENTIAL_DISTANCE;
+			break;
+		case AudioSource::AttenuationModel::ApplicationDistance:
+			modelType = SoLoud::AudioSource::APPLICATION_DISTANCE;
 			break;
 	}
 	_attenuation = modelType;

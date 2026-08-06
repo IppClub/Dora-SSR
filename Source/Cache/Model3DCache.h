@@ -61,6 +61,7 @@ public:
 
 protected:
 	Model3DCache() { }
+	~Model3DCache();
 
 private:
 	struct UploadTask {

@@ -25,7 +25,7 @@ export namespace React {
 		static isComponent = true;
 	}
 
-	export const Fragment = undefined;
+	export const Fragment = undefined as unknown as (props: unknown) => Element | Element[];
 
 	function flattenChild(this: void, ch: unknown): LuaMultiReturn<[unknown, boolean]> {
 		if (type(ch) !== "table") {

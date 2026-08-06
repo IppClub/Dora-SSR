@@ -1053,7 +1053,7 @@ PhysicsWorld::PhysicsWorld() {
 	_stepConf.regPositionIters = 1;
 	static_assert(sizeof(decltype(pr::Filter::categoryBits)) == 4, "filter category should be 32 bits");
 	static_assert(sizeof(decltype(pr::Filter::maskBits)) == 4, "filter mask should be 32 bits");
-	static_assert(sizeof(decltype(pr::Filter::groupIndex)) == 1, "filter group index should be 8 bits");
+	static_assert(sizeof(decltype(pr::Filter::groupIndex)) == 2, "filter group index should be 16 bits");
 }
 
 PhysicsWorld::~PhysicsWorld() {

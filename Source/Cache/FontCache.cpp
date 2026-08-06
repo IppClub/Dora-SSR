@@ -202,6 +202,10 @@ Font* FontCache::load(String fontName, uint32_t fontSize, bool sdf) {
 		return fontIt->second;
 	} else if (auto file = loadFontFile(fontName)) {
 		bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(file->getHandle(), bakedFontSize, sdf);
+		if (!bgfx::isValid(fontHandle)) {
+			Error("failed to parse font \"{}\".", fontName.toString());
+			return nullptr;
+		}
 		Font* font = Font::create(file, fontHandle);
 		_fonts[fontFaceName] = font;
 		return font;
@@ -274,6 +278,11 @@ void FontCache::loadAync(String fontName, uint32_t fontSize, bool sdf, const std
 		auto fileIt = _fontFiles.find(fontFile);
 		if (fileIt != _fontFiles.end()) {
 			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), bakedFontSize, sdf);
+			if (!bgfx::isValid(fontHandle)) {
+				Error("failed to parse font \"{}\".", fontNameStr);
+				callback(nullptr);
+				return;
+			}
 			Font* font = Font::create(fileIt->second.get(), fontHandle);
 			_fonts[fontFaceName] = font;
 			callback(font);
@@ -283,6 +292,12 @@ void FontCache::loadAync(String fontName, uint32_t fontSize, bool sdf, const std
 				TrueTypeFile* file = TrueTypeFile::create(trueTypeHandle);
 				_fontFiles[fontFile] = file;
 				bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, bakedFontSize, sdf);
+				if (!bgfx::isValid(fontHandle)) {
+					Error("failed to parse font \"{}\".", fontFile);
+					_fontFiles.erase(fontFile);
+					callback(nullptr);
+					return;
+				}
 				Font* font = Font::create(file, fontHandle);
 				_fonts[fontFaceName] = font;
 				callback(font);

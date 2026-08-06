@@ -47,6 +47,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/TouchDispather.h"
 #include "Lua/LuaEngine.h"
 #include "Lua/LuaHandler.h"
+#include "Love/LoveNode.h"
 #include "Node/AlignNode.h"
 #include "Node/AudioSource.h"
 #include "Node/ClipNode.h"
