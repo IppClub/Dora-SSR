@@ -24,6 +24,7 @@ freely, subject to the following restrictions:
 
 #include <math.h>
 #include "soloud_internal.h"
+#include "soloud_spatial_gain.h"
 
 // 3d audio operations
 
@@ -142,6 +143,8 @@ namespace SoLoud
 
 	float doppler(vec3 aDeltaPos, const vec3 &aSrcVel, const vec3 &aDstVel, float aFactor, float aSoundSpeed)
 	{
+		if (aFactor <= 0)
+			return 1.0f;
 		float deltamag = aDeltaPos.mag();
 		if (deltamag == 0)
 			return 1.0f;
@@ -221,6 +224,7 @@ namespace SoLoud
 			AudioSourceInstance3dData * v = &m3dData[aVoiceArray[i]];
 
 			float vol = 1;
+			bool applicationDistance = false;
 
 			// custom collider
 			if (v->mCollider)
@@ -254,6 +258,12 @@ namespace SoLoud
 			{
 				switch (v->m3dAttenuationModel)
 				{
+				case AudioSource::APPLICATION_DISTANCE:
+					applicationDistance = true;
+					vol *= calculateDistanceAttenuation(m3dDistanceModel, dist,
+						v->m3dMinDistance, v->m3dMaxDistance,
+						v->m3dAttenuationRolloff);
+					break;
 				case AudioSource::INVERSE_DISTANCE:
 					vol *= attenuateInvDistance(dist, v->m3dMinDistance, v->m3dMaxDistance, v->m3dAttenuationRolloff);
 					break;
@@ -269,12 +279,20 @@ namespace SoLoud
 				}
 			}
 
-			// cone
-
-			// (todo) vol *= conev;
+			// OpenAL-compatible directional cone base and high-frequency gains.
+			vol *= calculateConeAttenuation(v->m3dConeDirection[0],
+				v->m3dConeDirection[1], v->m3dConeDirection[2],
+				pos.mX, pos.mY, pos.mZ, v->m3dConeInnerAngle,
+				v->m3dConeOuterAngle, v->m3dConeOuterVolume);
+			v->m3dHighFrequencyGain = calculateHighFrequencyAttenuation(
+				v->m3dConeDirection[0], v->m3dConeDirection[1],
+				v->m3dConeDirection[2], pos.mX, pos.mY, pos.mZ,
+				v->m3dConeInnerAngle, v->m3dConeOuterAngle,
+				v->m3dConeOuterHighGain, dist, v->m3dMinDistance,
+				v->m3dAttenuationRolloff, v->m3dAirAbsorptionFactor);
 
 			// doppler
-			v->mDopplerValue = doppler(pos, vel, lvel, v->m3dDopplerFactor, m3dSoundSpeed);
+			v->mDopplerValue = doppler(pos, vel, lvel, v->m3dDopplerFactor * m3dDopplerScale, m3dSoundSpeed);
 
 			// panning
 			pos = m.mul(pos);
@@ -290,7 +308,9 @@ namespace SoLoud
 				// Different speaker "focus" calculations to try, if the default "bleeds" too much..
 				//speakervol = (speakervol * speakervol + speakervol) / 2;
 				//speakervol = speakervol * speakervol;
-				v->mChannelVolume[j] = vol * speakervol;
+				// Keep application-model attenuation in overall volume only so it
+				// is applied once, while preserving legacy SoLoud model behavior.
+				v->mChannelVolume[j] = applicationDistance ? speakervol : vol * speakervol;
 			}
 			for (; j < MAX_CHANNELS; j++)
 			{
@@ -340,6 +360,9 @@ namespace SoLoud
 				{
 					vi->mChannelVolume[j] = v->mChannelVolume[j];
 				}
+				vi->mUseSpatialHighFrequencyFilter =
+					v->m3dAttenuationModel == AudioSource::APPLICATION_DISTANCE;
+				vi->mSpatialHighFrequencyGain = v->m3dHighFrequencyGain;
 
 				if (vi->mOverallVolume < 0.001f)
 				{
@@ -524,6 +547,28 @@ namespace SoLoud
 		return m3dSoundSpeed;
 	}
 
+	void Soloud::set3dDopplerScale(float aScale)
+	{
+		if (aScale >= 0)
+			m3dDopplerScale = aScale;
+	}
+
+	float Soloud::get3dDopplerScale()
+	{
+		return m3dDopplerScale;
+	}
+
+	void Soloud::set3dDistanceModel(DISTANCE_MODELS aModel)
+	{
+		if (aModel >= DISTANCE_NONE && aModel < DISTANCE_MODEL_COUNT)
+			m3dDistanceModel = aModel;
+	}
+
+	DISTANCE_MODELS Soloud::get3dDistanceModel()
+	{
+		return m3dDistanceModel;
+	}
+
 	
 	void Soloud::set3dListenerParameters(float aPosX, float aPosY, float aPosZ, float aAtX, float aAtY, float aAtZ, float aUpX, float aUpY, float aUpZ, float aVelocityX, float aVelocityY, float aVelocityZ)
 	{
@@ -606,6 +651,28 @@ namespace SoLoud
 		FOR_ALL_VOICES_POST_3D
 	}
 
+	void Soloud::set3dSourceCone(handle aVoiceHandle, float aDirectionX,
+		float aDirectionY, float aDirectionZ, float aInnerAngle,
+		float aOuterAngle, float aOuterVolume, float aOuterHighGain)
+	{
+		FOR_ALL_VOICES_PRE_3D
+			m3dData[ch].m3dConeDirection[0] = aDirectionX;
+			m3dData[ch].m3dConeDirection[1] = aDirectionY;
+			m3dData[ch].m3dConeDirection[2] = aDirectionZ;
+			m3dData[ch].m3dConeInnerAngle = aInnerAngle;
+			m3dData[ch].m3dConeOuterAngle = aOuterAngle;
+			m3dData[ch].m3dConeOuterVolume = aOuterVolume;
+			m3dData[ch].m3dConeOuterHighGain = aOuterHighGain;
+		FOR_ALL_VOICES_POST_3D
+	}
+
+	void Soloud::set3dSourceAirAbsorption(handle aVoiceHandle, float aFactor)
+	{
+		FOR_ALL_VOICES_PRE_3D
+			m3dData[ch].m3dAirAbsorptionFactor = aFactor;
+		FOR_ALL_VOICES_POST_3D
+	}
+
 	
 	void Soloud::set3dSourceMinMaxDistance(handle aVoiceHandle, float aMinDistance, float aMaxDistance)
 	{
@@ -629,6 +696,24 @@ namespace SoLoud
 	{
 		FOR_ALL_VOICES_PRE_3D
 			m3dData[ch].m3dDopplerFactor = aDopplerFactor;
+		FOR_ALL_VOICES_POST_3D
+	}
+
+
+	void Soloud::set3dSourceListenerRelative(handle aVoiceHandle, bool aListenerRelative)
+	{
+		FOR_ALL_VOICES_PRE_3D
+			if (aListenerRelative)
+				m3dData[ch].mFlags |= AudioSourceInstance::LISTENER_RELATIVE;
+			else
+				m3dData[ch].mFlags &= ~AudioSourceInstance::LISTENER_RELATIVE;
+			if (mVoice[ch])
+			{
+				if (aListenerRelative)
+					mVoice[ch]->mFlags |= AudioSourceInstance::LISTENER_RELATIVE;
+				else
+					mVoice[ch]->mFlags &= ~AudioSourceInstance::LISTENER_RELATIVE;
+			}
 		FOR_ALL_VOICES_POST_3D
 	}
 };

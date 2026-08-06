@@ -36,7 +36,10 @@ Touch::Touch(int id)
 	, _worldLocation{Vec2::zero}
 	, _worldPreLocation{Vec2::zero}
 	, _flags(Touch::Enabled)
-	, _id(id) { }
+	, _id(id)
+	, _fromMouse(false)
+	, _mouseButton(0)
+	, _clickCount(1) { }
 
 void Touch::setEnabled(bool var) {
 	_flags.set(Touch::Enabled, var);
@@ -84,6 +87,18 @@ const Vec2& Touch::getWorldPreLocation() const noexcept {
 
 uint32_t Touch::getSource() {
 	return _source;
+}
+
+bool Touch::isFromMouse() const noexcept {
+	return _fromMouse;
+}
+
+int Touch::getMouseButton() const noexcept {
+	return _mouseButton;
+}
+
+int Touch::getClickCount() const noexcept {
+	return _clickCount;
 }
 
 /* TouchHandler */
@@ -284,6 +299,19 @@ bool NodeTouchHandler::down(const SDL_Event& event) {
 	Vec2 viewPos = getViewPos(event);
 	Vec2 pos = getPos({viewPos.x, viewPos.y, 0.0f});
 	Touch* touch = alloc(id);
+	if (event.type == SDL_MOUSEBUTTONDOWN) {
+		touch->_fromMouse = true;
+		touch->_clickCount = event.button.clicks;
+		switch (event.button.button) {
+			case SDL_BUTTON_RIGHT: touch->_mouseButton = 2; break;
+			case SDL_BUTTON_MIDDLE: touch->_mouseButton = 3; break;
+			default: touch->_mouseButton = event.button.button; break;
+		}
+	} else {
+		touch->_fromMouse = false;
+		touch->_mouseButton = 0;
+		touch->_clickCount = 1;
+	}
 	if (_target->getSize() == Size::zero || Rect(Vec2::zero, _target->getSize()).containsPoint(pos)) {
 		touch->_preLocation = touch->_location = pos;
 		touch->_viewPreLocation = touch->_viewLocation = viewPos;
@@ -393,6 +421,7 @@ void NodeTouchHandler::mouseMove(const SDL_Event& event) {
 	Vec2 pos = getPos({viewPos.x, viewPos.y, 0.0f});
 	if (!_mouseMoveTouch) {
 		_mouseMoveTouch = Touch::create(0);
+		_mouseMoveTouch->_fromMouse = true;
 		_mouseMoveTouch->_flags.setOn(Touch::IsFirst);
 		_mouseMoveTouch->_preLocation = _mouseMoveTouch->_location = pos;
 		_mouseMoveTouch->_viewPreLocation = _mouseMoveTouch->_viewLocation = viewPos;

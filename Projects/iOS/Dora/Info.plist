@@ -22,6 +22,8 @@
 	<string>119</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Love2D projects can access the microphone when they start an audio RecordingDevice.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>Launch Screen</string>
 	<key>UIStatusBarHidden</key>
@@ -39,4 +41,3 @@
 	</array>
 </dict>
 </plist>
-

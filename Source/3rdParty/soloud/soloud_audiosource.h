@@ -60,7 +60,6 @@ namespace SoLoud
 		// 3d velocity
 		float m3dVelocity[3];
 		// 3d cone direction
-		/*
 		float m3dConeDirection[3];
 		// 3d cone inner angle
 		float m3dConeInnerAngle;
@@ -68,7 +67,10 @@ namespace SoLoud
 		float m3dConeOuterAngle;
 		// 3d cone outer volume multiplier
 		float m3dConeOuterVolume;
-		*/
+		// 3d cone outer high-frequency multiplier
+		float m3dConeOuterHighGain;
+		// OpenAL-compatible air absorption factor
+		float m3dAirAbsorptionFactor;
 		// 3d min distance
 		float m3dMinDistance;
 		// 3d max distance
@@ -90,6 +92,8 @@ namespace SoLoud
 		float mDopplerValue;		
 		// Overall 3d volume
 		float m3dVolume;
+		// Combined cone and air high-frequency gain
+		float m3dHighFrequencyGain;
 		// Channel volume
 		float mChannelVolume[MAX_CHANNELS];
 		// Copy of flags
@@ -139,6 +143,18 @@ namespace SoLoud
 		float mChannelVolume[MAX_CHANNELS];
 		// Set volume
 		float mSetVolume;
+		// Optional application volume limits (used by the Love compatibility layer)
+		float mMinVolume;
+		float mMaxVolume;
+		bool mUseVolumeLimits;
+		bool mUseSpatialHighFrequencyFilter;
+		float mSpatialHighFrequencyGain;
+		float mSpatialHighShelfGain;
+		float mSpatialHighShelfSamplerate;
+		float mSpatialHighShelfB0, mSpatialHighShelfB1, mSpatialHighShelfB2;
+		float mSpatialHighShelfA1, mSpatialHighShelfA2;
+		float mSpatialHighShelfState1[MAX_CHANNELS];
+		float mSpatialHighShelfState2[MAX_CHANNELS];
 		// Overall volume overall = set * 3d
 		float mOverallVolume;
 		// Base samplerate; samplerate = base samplerate * relative play speed
@@ -179,6 +195,11 @@ namespace SoLoud
 		void init(AudioSource &aSource, int aPlayIndex);
 		// Pointers to buffers for the resampler
 		float *mResampleData[2];
+		// Saved resampler state while this voice is outside the active mix budget.
+		// This preserves decoder read-ahead without creating a second voice list.
+		float *mVirtualResampleData;
+		unsigned int mVirtualResampleDataSize;
+		bool mVirtualResampleDataValid;
 		// Sub-sample playhead; 16.16 fixed point
 		unsigned int mSrcOffset;
 		// Samples left over from earlier pass
@@ -236,7 +257,9 @@ namespace SoLoud
 			// Linear distance attenuation model
 			LINEAR_DISTANCE = 2,
 			// Exponential distance attenuation model
-			EXPONENTIAL_DISTANCE = 3
+			EXPONENTIAL_DISTANCE = 3,
+			// Use Soloud's application-global OpenAL-compatible distance model
+			APPLICATION_DISTANCE = 4
 		};
 
 		// Flags. See AudioSource::FLAGS

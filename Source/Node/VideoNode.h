@@ -11,15 +11,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Async.h"
 #include "Node/Sprite.h"
 
-extern "C" {
-#include "3rdParty/h264bsd/h264bsd_decoder.h"
-#include "3rdParty/h264bsd/h264bsd_seq_param_set.h"
-#include "3rdParty/h264bsd/h264bsd_storage.h"
-#include "3rdParty/h264bsd/h264bsd_vui.h"
-}
-
-#include "SDL_rwops.h"
-
 NS_DORA_BEGIN
 
 class VideoDataImpl {

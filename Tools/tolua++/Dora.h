@@ -1442,6 +1442,16 @@ class TIC80Node : public Sprite
 	static bool mergePng(String outputFile, String coverPngFile, String resourceCartFile, String codeFile = "");
 };
 
+class LoveNode : public Sprite
+{
+	tolua_readonly tolua_property__common String bootFile;
+	tolua_readonly tolua_property__common String sourceRoot;
+	tolua_readonly tolua_property__common String lastError;
+	tolua_readonly tolua_property__bool bool running;
+	bool restart();
+	static LoveNode* create(String bootFile);
+};
+
 class Menu : public Node
 {
 	tolua_property__bool bool enabled;

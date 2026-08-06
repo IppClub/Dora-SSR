@@ -26,6 +26,8 @@ esac
 
 "$SCRIPT_DIR/build_lib_sdl2.sh" ios "--$BUILD_MODE"
 "$SCRIPT_DIR/build_lib_bgfx.sh" ios "--$BUILD_MODE"
+"$SCRIPT_DIR/build_lib_love.sh" ios "--$BUILD_MODE"
+"$SCRIPT_DIR/build_lib_theora.sh" ios "--$BUILD_MODE"
 "$SCRIPT_DIR/build_lib_wa.sh" ios "$BUILD_MODE"
 
 cd "$SCRIPT_DIR/../../Source/Rust"

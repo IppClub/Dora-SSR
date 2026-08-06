@@ -20,6 +20,79 @@ namespace stl = tinystl;
 
 namespace bgfx {
 
+namespace {
+
+uint16_t readBigEndian16(const uint8_t* data) {
+	return static_cast<uint16_t>((static_cast<uint16_t>(data[0]) << 8) | data[1]);
+}
+
+uint32_t readBigEndian32(const uint8_t* data) {
+	return (static_cast<uint32_t>(data[0]) << 24)
+		| (static_cast<uint32_t>(data[1]) << 16)
+		| (static_cast<uint32_t>(data[2]) << 8)
+		| static_cast<uint32_t>(data[3]);
+}
+
+bool hasRange(uint32_t offset, uint32_t length, uint32_t size) {
+	return offset <= size && length <= size - offset;
+}
+
+bool validateSfntDirectory(const uint8_t* buffer, uint32_t size, uint32_t sfntOffset) {
+	if (!buffer || !hasRange(sfntOffset, 12, size)) return false;
+	const uint32_t signature = readBigEndian32(buffer + sfntOffset);
+	if (signature != 0x00010000 && signature != 0x4f54544f // OTTO
+		&& signature != 0x74727565 && signature != 0x74797031) // true, typ1
+		return false;
+	const uint16_t tableCount = readBigEndian16(buffer + sfntOffset + 4);
+	if (tableCount == 0 || tableCount > 4096
+		|| !hasRange(sfntOffset + 12, static_cast<uint32_t>(tableCount) * 16, size))
+		return false;
+
+	bool hasCmap = false;
+	bool hasHead = false;
+	bool hasHhea = false;
+	bool hasHmtx = false;
+	bool hasMaxp = false;
+	bool hasGlyf = false;
+	bool hasLoca = false;
+	bool hasCff = false;
+	for (uint16_t index = 0; index < tableCount; ++index) {
+		const uint8_t* record = buffer + sfntOffset + 12 + static_cast<uint32_t>(index) * 16;
+		const uint32_t tag = readBigEndian32(record);
+		const uint32_t offset = readBigEndian32(record + 8);
+		const uint32_t length = readBigEndian32(record + 12);
+		if (!hasRange(offset, length, size)) return false;
+		switch (tag) {
+			case 0x636d6170: hasCmap = length >= 4; break; // cmap
+			case 0x68656164: hasHead = length >= 54; break; // head
+			case 0x68686561: hasHhea = length >= 36; break; // hhea
+			case 0x686d7478: hasHmtx = length >= 4; break; // hmtx
+			case 0x6d617870: hasMaxp = length >= 6; break; // maxp
+			case 0x676c7966: hasGlyf = length > 0; break; // glyf
+			case 0x6c6f6361: hasLoca = length >= 4; break; // loca
+			case 0x43464620: // CFF
+			case 0x43464632: hasCff = length > 0; break; // CFF2
+			default: break;
+		}
+	}
+	return hasCmap && hasHead && hasHhea && hasHmtx && hasMaxp
+		&& ((hasGlyf && hasLoca) || hasCff);
+}
+
+bool validateFontBuffer(const uint8_t* buffer, uint32_t size) {
+	if (!buffer || size < 12) return false;
+	if (readBigEndian32(buffer) != 0x74746366) // ttcf
+		return validateSfntDirectory(buffer, size, 0);
+	if (!hasRange(0, 16, size)) return false;
+	const uint32_t fontCount = readBigEndian32(buffer + 8);
+	if (fontCount == 0 || fontCount > 4096
+		|| !hasRange(12, fontCount * 4, size))
+		return false;
+	return validateSfntDirectory(buffer, size, readBigEndian32(buffer + 12));
+}
+
+} // namespace
+
 class TrueTypeFont {
 public:
 	TrueTypeFont();
@@ -52,6 +125,10 @@ TrueTypeFont::~TrueTypeFont() { }
 bool TrueTypeFont::init(const uint8_t* _buffer, uint32_t _bufferSize, uint32_t _pixelHeight, bool _sdf) {
 	AssertUnless(m_fontInfo.data == nullptr, "TrueTypeFont already initialized");
 	_pixelHeight = Math::clamp(_pixelHeight, 5U, 128U);
+	if (!validateFontBuffer(_buffer, _bufferSize)) {
+		Error("invalid or truncated TrueType/OpenType font data.");
+		return false;
+	}
 
 	if (!stbtt_InitFont(&m_fontInfo, _buffer, stbtt_GetFontOffsetForIndex(_buffer, 0))) {
 		Error("stbtt_InitFont failed.");

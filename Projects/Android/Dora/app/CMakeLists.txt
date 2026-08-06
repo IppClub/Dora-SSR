@@ -7,6 +7,8 @@ set(DORA_SDL2_ROOT ${DORA_ROOT}/Source/3rdParty/SDL2)
 include_directories(
 	src/main/cpp
 	src/main/cpp/3rdParty
+	src/main/cpp/3rdParty/Love/src
+	src/main/cpp/3rdParty/Love/src/modules
 	${DORA_SDL2_ROOT}/include
 	src/main/cpp/3rdParty/bx/include
 	src/main/cpp/3rdParty/bimg/include
@@ -23,7 +25,8 @@ include_directories(
 	src/main/cpp/3rdParty/wasm3
 	src/main/cpp/3rdParty/Zip/zlib
 	src/main/cpp/3rdParty/Effekseer
-	src/main/cpp/3rdParty/h264bsd
+	src/main/cpp/3rdParty/theora/include
+	src/main/cpp/3rdParty/theora/lib
 	src/main/cpp/3rdParty/JoltPhysics
 )
 
@@ -84,6 +87,12 @@ set_target_properties(
 	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/Rust/lib/Android/${ANDROID_ABI}/libdora_runtime.a
 )
 
+add_library(LOVE-lib STATIC IMPORTED)
+set_target_properties(
+	LOVE-lib PROPERTIES IMPORTED_LOCATION
+	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/Love/Artifacts/Android/${ANDROID_ABI}/liblove.a
+)
+
 add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=0 -Dd_m3HasWASI -DLUA_USE_LINUX -DSPDLOG_FMT_EXTERNAL)
 
 add_library(main SHARED
@@ -138,6 +147,12 @@ add_library(main SHARED
 	src/main/cpp/Lua/LuaHandler.cpp
 	src/main/cpp/Lua/TealCompiler.cpp
 	src/main/cpp/Lua/LuaEngine.cpp
+	src/main/cpp/Love/LoveRuntime.cpp
+	src/main/cpp/Love/LoveVideoSources.cpp
+	src/main/cpp/Love/LoveDataAlgorithms.cpp
+	src/main/cpp/Love/LoveLZ4.c
+	src/main/cpp/Love/LoveLZ4HC.c
+	src/main/cpp/Love/LoveNode.cpp
 	src/main/cpp/Http/HttpServer.cpp
 	src/main/cpp/Http/XrtNetwork.c
 	src/main/cpp/Wasm/WasmRuntime.cpp
@@ -148,7 +163,7 @@ add_library(main SHARED
 	src/main/cpp/Common/Debug.cpp
 	src/main/cpp/Common/MemoryPool.cpp
 	src/main/cpp/Audio/Audio.cpp
-	src/main/cpp/Audio/OggSources.c
+	src/main/cpp/3rdParty/ogg/OggSources.c
 	src/main/cpp/Audio/VorbisSources.c
 	src/main/cpp/Support/Common.cpp
 	src/main/cpp/Support/Geometry.cpp
@@ -645,32 +660,7 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/tmxlite/Map.cpp
 	src/main/cpp/3rdParty/tmxlite/ImageLayer.cpp
 	src/main/cpp/3rdParty/tmxlite/detail/pugixml.cpp
-	src/main/cpp/3rdParty/h264bsd/h264bsd_slice_header.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_dpb.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_transform.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_pic_order_cnt.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_intra_prediction.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_stream.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_byte_stream.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_slice_data.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_pic_param_set.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_conceal.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_sei.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_storage.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_cavlc.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_deblocking.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_decoder.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_reconstruct.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_macroblock_layer.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_image.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_inter_prediction.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_seq_param_set.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_nal_unit.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_vui.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_util.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_slice_group_map.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_neighbour.c
-	src/main/cpp/3rdParty/h264bsd/h264bsd_vlc.c
+	src/main/cpp/3rdParty/theora/TheoraSources.c
 	src/main/cpp/3rdParty/tic80/cart.c
 	src/main/cpp/3rdParty/tic80/tools.c
 	src/main/cpp/3rdParty/tic80/tic.c
@@ -689,4 +679,4 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/tic80/vendor/blip-buf/blip_wasm_host.cpp
 )
 
-target_link_libraries(main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib DORA-lib)
+target_link_libraries(main android log EGL z GLESv1_CM GLESv2 SDL2-lib LOVE-lib BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib DORA-lib)

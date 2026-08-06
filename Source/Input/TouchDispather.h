@@ -51,6 +51,9 @@ public:
 	PROPERTY_READONLY_CREF(Vec2, WorldLocation);
 	PROPERTY_READONLY_CREF(Vec2, WorldPreLocation);
 	PROPERTY_READONLY_CLASS(uint32_t, Source);
+	bool isFromMouse() const noexcept;
+	int getMouseButton() const noexcept;
+	int getClickCount() const noexcept;
 	CREATE_FUNC_NOT_NULL(Touch);
 
 protected:
@@ -65,6 +68,9 @@ private:
 	Vec2 _viewPreLocation;
 	Vec2 _worldLocation;
 	Vec2 _worldPreLocation;
+	bool _fromMouse;
+	int _mouseButton;
+	int _clickCount;
 	enum {
 		Enabled = 1,
 		Selected = 1 << 1,

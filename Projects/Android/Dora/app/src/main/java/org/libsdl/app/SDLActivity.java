@@ -1362,7 +1362,12 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             if (isTextInputEvent(event)) {
                 if (ic != null) {
-                    ic.commitText(String.valueOf((char) event.getUnicodeChar()), 1);
+                    if (ic instanceof SDLInputConnection) {
+                        ((SDLInputConnection) ic).commitTextFromKeyEvent(
+                                String.valueOf((char) event.getUnicodeChar()), 1);
+                    } else {
+                        ic.commitText(String.valueOf((char) event.getUnicodeChar()), 1);
+                    }
                 } else {
                     SDLInputConnection.nativeCommitText(String.valueOf((char) event.getUnicodeChar()), 1);
                 }
@@ -1951,6 +1956,7 @@ class SDLInputConnection extends BaseInputConnection {
 
     protected EditText mEditText;
     protected String mCommittedText = "";
+    protected boolean mGenerateScancodes = true;
 
     public SDLInputConnection(View targetView, boolean fullEditor) {
         super(targetView, fullEditor);
@@ -1992,6 +1998,15 @@ class SDLInputConnection extends BaseInputConnection {
         }
         updateText();
         return true;
+    }
+
+    public boolean commitTextFromKeyEvent(CharSequence text, int newCursorPosition) {
+        mGenerateScancodes = false;
+        try {
+            return commitText(text, newCursorPosition);
+        } finally {
+            mGenerateScancodes = true;
+        }
     }
 
     @Override
@@ -2059,7 +2074,7 @@ class SDLInputConnection extends BaseInputConnection {
                     }
                 }
                 /* Higher code points don't generate simulated scancodes */
-                if (codePoint < 128) {
+                if (codePoint < 128 && mGenerateScancodes) {
                     nativeGenerateScancodeForUnichar((char)codePoint);
                 }
                 offset += Character.charCount(codePoint);
@@ -2114,4 +2129,3 @@ class SDLClipboardHandler implements
         SDLActivity.onNativeClipboardChanged();
     }
 }
-

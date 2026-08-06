@@ -26,6 +26,7 @@
 /// @brief Definition of the @c ChainShapeConf class and closely related code.
 
 #include <cassert>
+#include <optional>
 #include <vector>
 
 // IWYU pragma: begin_exports
@@ -110,6 +111,30 @@ struct ChainShapeConf : public ShapeBuilder<ChainShapeConf>
     /// @brief Adds the given vertex.
     ChainShapeConf& Add(const Length2& vertex);
 
+    /// @brief Uses an external vertex preceding the first child edge.
+    ChainShapeConf& UsePreviousVertex(const Length2& value) noexcept;
+
+    /// @brief Removes the external vertex preceding the first child edge.
+    ChainShapeConf& ClearPreviousVertex() noexcept;
+
+    /// @brief Gets the optional external vertex preceding the chain.
+    const std::optional<Length2>& GetPreviousVertex() const noexcept
+    {
+        return previousVertex;
+    }
+
+    /// @brief Uses an external vertex following the last child edge.
+    ChainShapeConf& UseNextVertex(const Length2& value) noexcept;
+
+    /// @brief Removes the external vertex following the last child edge.
+    ChainShapeConf& ClearNextVertex() noexcept;
+
+    /// @brief Gets the optional external vertex following the chain.
+    const std::optional<Length2>& GetNextVertex() const noexcept
+    {
+        return nextVertex;
+    }
+
     /// @brief Translates the vertices by the given amount.
     /// @note This function provides the strong exception guarantee. The state of this instance
     ///   won't change if this function throws any exception.
@@ -169,7 +194,8 @@ struct ChainShapeConf : public ShapeBuilder<ChainShapeConf>
         return lhs.vertexRadius == rhs.vertexRadius && lhs.friction == rhs.friction &&
                lhs.restitution == rhs.restitution && lhs.density == rhs.density &&
                lhs.filter == rhs.filter && lhs.isSensor == rhs.isSensor &&
-               lhs.segments == rhs.segments;
+               lhs.segments == rhs.segments && lhs.previousVertex == rhs.previousVertex &&
+               lhs.nextVertex == rhs.nextVertex;
     }
 
     /// @brief Inequality operator.
@@ -187,6 +213,9 @@ struct ChainShapeConf : public ShapeBuilder<ChainShapeConf>
     ///   shapes more prone to roll off of them.
     /// @note This should be a non-negative value.
     NonNegative<Length> vertexRadius = GetDefaultVertexRadius();
+
+    std::optional<Length2> previousVertex; ///< Optional preceding connectivity vertex.
+    std::optional<Length2> nextVertex; ///< Optional following connectivity vertex.
 
     VerticesWithNormals segments; ///< Vertex & normals data
 };

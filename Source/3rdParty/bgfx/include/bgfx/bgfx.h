@@ -193,7 +193,6 @@ namespace bgfx
 			ASTC10x10,    //!< ASTC 10x10 1.28 BPP
 			ASTC12x10,    //!< ASTC 12x10 1.07 BPP
 			ASTC12x12,    //!< ASTC 12x12 0.89 BPP
-
 			Unknown,      // Compressed formats above.
 
 			R1,
@@ -259,6 +258,12 @@ namespace bgfx
 			D24F,
 			D32F,
 			D0S8,
+
+			// Appended to preserve the public numeric values of existing formats.
+			EACR,         //!< EAC R11
+			EACRS,        //!< EAC signed R11
+			EACRG,        //!< EAC RG11
+			EACRGS,       //!< EAC signed RG11
 
 			Count
 		};

@@ -37,6 +37,7 @@ set(DORA_BGFX_BUILD_DIR ${DORA_BGFX_ROOT}/build/linux/${DORA_BGFX_ARCH}/${DORA_B
 set(DORA_SDL2_BUILD_DIR ${DORA_SDL2_ROOT}/Lib/Linux/${DORA_RUNTIME_ARCH})
 set(DORA_WA_BUILD_DIR ${DORA_SOURCE_ROOT}/3rdParty/Wa/Lib/Linux/${DORA_WA_ARCH})
 set(DORA_RUNTIME_BUILD_DIR ${DORA_SOURCE_ROOT}/Rust/lib/Linux/${DORA_RUNTIME_ARCH})
+set(DORA_LOVE_BUILD_DIR ${DORA_SOURCE_ROOT}/3rdParty/Love/Artifacts/Linux/${DORA_RUNTIME_ARCH})
 if(DORA_BGFX_ARCH STREQUAL "arm64")
 	set(DORA_RENDER_LINK_LIBS EGL GLESv2 X11)
 else()
@@ -55,6 +56,8 @@ include_directories(
 	${DORA_SOURCE_ROOT}/3rdParty/bx/include/compat/linux
 	${DORA_SOURCE_ROOT}
 	${DORA_SOURCE_ROOT}/3rdParty
+	${DORA_SOURCE_ROOT}/3rdParty/Love/src
+	${DORA_SOURCE_ROOT}/3rdParty/Love/src/modules
 	${DORA_SOURCE_ROOT}/3rdParty/JoltPhysics
 	${DORA_SOURCE_ROOT}/3rdParty/Lua
 	${DORA_SOURCE_ROOT}/3rdParty/Zip
@@ -68,13 +71,20 @@ include_directories(
 	${DORA_SOURCE_ROOT}/3rdParty/wasm3
 	${DORA_SOURCE_ROOT}/3rdParty/Zip/zlib
 	${DORA_SOURCE_ROOT}/3rdParty/Effekseer
-	${DORA_SOURCE_ROOT}/3rdParty/h264bsd
+	${DORA_SOURCE_ROOT}/3rdParty/theora/include
+	${DORA_SOURCE_ROOT}/3rdParty/theora/lib
 )
 
 add_library(BGFX-lib STATIC IMPORTED)
 set_target_properties(
 	BGFX-lib PROPERTIES IMPORTED_LOCATION
 	${DORA_BGFX_BUILD_DIR}/libbgfx.a
+)
+
+add_library(LOVE-lib STATIC IMPORTED)
+set_target_properties(
+	LOVE-lib PROPERTIES IMPORTED_LOCATION
+	${DORA_LOVE_BUILD_DIR}/liblove.a
 )
 
 add_library(BX-lib STATIC IMPORTED)
@@ -189,6 +199,12 @@ add_executable(dora-ssr
 	../../Source/Lua/LuaHandler.cpp
 	../../Source/Lua/TealCompiler.cpp
 	../../Source/Lua/LuaEngine.cpp
+	../../Source/Love/LoveRuntime.cpp
+	../../Source/Love/LoveVideoSources.cpp
+	../../Source/Love/LoveDataAlgorithms.cpp
+	../../Source/Love/LoveLZ4.c
+	../../Source/Love/LoveLZ4HC.c
+	../../Source/Love/LoveNode.cpp
 	../../Source/Http/HttpServer.cpp
 	../../Source/Http/XrtNetwork.c
 	../../Source/Wasm/WasmRuntime.cpp
@@ -199,7 +215,7 @@ add_executable(dora-ssr
 	../../Source/Common/Debug.cpp
 	../../Source/Common/MemoryPool.cpp
 	../../Source/Audio/Audio.cpp
-	../../Source/Audio/OggSources.c
+	../../Source/3rdParty/ogg/OggSources.c
 	../../Source/Audio/VorbisSources.c
 	../../Source/Support/Common.cpp
 	../../Source/Support/Geometry.cpp
@@ -697,32 +713,7 @@ add_executable(dora-ssr
 	../../Source/3rdParty/tmxlite/ImageLayer.cpp
 	../../Source/3rdParty/tmxlite/detail/pugixml.cpp
 	../../Source/3rdParty/nfd/nfd_portal.cpp
-	../../Source/3rdParty/h264bsd/h264bsd_slice_header.c
-	../../Source/3rdParty/h264bsd/h264bsd_dpb.c
-	../../Source/3rdParty/h264bsd/h264bsd_transform.c
-	../../Source/3rdParty/h264bsd/h264bsd_pic_order_cnt.c
-	../../Source/3rdParty/h264bsd/h264bsd_intra_prediction.c
-	../../Source/3rdParty/h264bsd/h264bsd_stream.c
-	../../Source/3rdParty/h264bsd/h264bsd_byte_stream.c
-	../../Source/3rdParty/h264bsd/h264bsd_slice_data.c
-	../../Source/3rdParty/h264bsd/h264bsd_pic_param_set.c
-	../../Source/3rdParty/h264bsd/h264bsd_conceal.c
-	../../Source/3rdParty/h264bsd/h264bsd_sei.c
-	../../Source/3rdParty/h264bsd/h264bsd_storage.c
-	../../Source/3rdParty/h264bsd/h264bsd_cavlc.c
-	../../Source/3rdParty/h264bsd/h264bsd_deblocking.c
-	../../Source/3rdParty/h264bsd/h264bsd_decoder.c
-	../../Source/3rdParty/h264bsd/h264bsd_reconstruct.c
-	../../Source/3rdParty/h264bsd/h264bsd_macroblock_layer.c
-	../../Source/3rdParty/h264bsd/h264bsd_image.c
-	../../Source/3rdParty/h264bsd/h264bsd_inter_prediction.c
-	../../Source/3rdParty/h264bsd/h264bsd_seq_param_set.c
-	../../Source/3rdParty/h264bsd/h264bsd_nal_unit.c
-	../../Source/3rdParty/h264bsd/h264bsd_vui.c
-	../../Source/3rdParty/h264bsd/h264bsd_util.c
-	../../Source/3rdParty/h264bsd/h264bsd_slice_group_map.c
-	../../Source/3rdParty/h264bsd/h264bsd_neighbour.c
-	../../Source/3rdParty/h264bsd/h264bsd_vlc.c
+	../../Source/3rdParty/theora/TheoraSources.c
 	../../Source/3rdParty/tic80/cart.c
 	../../Source/3rdParty/tic80/tools.c
 	../../Source/3rdParty/tic80/tic.c
@@ -741,4 +732,4 @@ add_executable(dora-ssr
 	../../Source/3rdParty/tic80/vendor/blip-buf/blip_wasm_host.cpp
 )
 
-target_link_libraries(dora-ssr z SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib ${DORA_RENDER_LINK_LIBS} ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib m dl pthread rt)
+target_link_libraries(dora-ssr z SDL2-lib LOVE-lib BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib ${DORA_RENDER_LINK_LIBS} ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib m dl pthread rt)

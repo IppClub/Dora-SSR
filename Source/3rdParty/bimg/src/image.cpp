@@ -121,6 +121,10 @@ namespace bimg
 		{  24,  1, 1,  3, 1, 1, 24, 0,  0,  0,  0,  0, uint8_t(bx::EncodingType::Float) }, // D24F
 		{  32,  1, 1,  4, 1, 1, 32, 0,  0,  0,  0,  0, uint8_t(bx::EncodingType::Float) }, // D32F
 		{   8,  1, 1,  1, 1, 1,  0, 8,  0,  0,  0,  0, uint8_t(bx::EncodingType::Unorm) }, // D0S8
+		{   4,  4, 4,  8, 1, 1,  0, 0, 11,  0,  0,  0, uint8_t(bx::EncodingType::Unorm) }, // EACR
+		{   4,  4, 4,  8, 1, 1,  0, 0, 11,  0,  0,  0, uint8_t(bx::EncodingType::Snorm) }, // EACRS
+		{   8,  4, 4, 16, 1, 1,  0, 0, 11, 11,  0,  0, uint8_t(bx::EncodingType::Unorm) }, // EACRG
+		{   8,  4, 4, 16, 1, 1,  0, 0, 11, 11,  0,  0, uint8_t(bx::EncodingType::Snorm) }, // EACRGS
 	};
 	static_assert(TextureFormat::Count == BX_COUNTOF(s_imageBlockInfo) );
 
@@ -222,12 +226,17 @@ namespace bimg
 		"D24F",       // D24F
 		"D32F",       // D32F
 		"D0S8",       // D0S8
+		"EACR",       // EACR
+		"EACRS",      // EACRS
+		"EACRG",      // EACRG
+		"EACRGS",     // EACRGS
 	};
 	static_assert(TextureFormat::Count == BX_COUNTOF(s_textureFormatName) );
 
 	bool isCompressed(TextureFormat::Enum _format)
 	{
-		return _format < TextureFormat::Unknown;
+		return _format < TextureFormat::Unknown
+			|| (_format >= TextureFormat::EACR && _format <= TextureFormat::EACRGS);
 	}
 
 	bool isColor(TextureFormat::Enum _format)
@@ -240,7 +249,7 @@ namespace bimg
 	bool isDepth(TextureFormat::Enum _format)
 	{
 		return _format > TextureFormat::UnknownDepth
-			&& _format < TextureFormat::Count
+			&& _format <= TextureFormat::D0S8
 			;
 	}
 
@@ -318,6 +327,8 @@ namespace bimg
 
 	uint32_t imageGetSize(TextureInfo* _info, uint16_t _width, uint16_t _height, uint16_t _depth, bool _cubeMap, bool _hasMips, uint16_t _numLayers, TextureFormat::Enum _format)
 	{
+		const uint16_t logicalWidth = _width;
+		const uint16_t logicalHeight = _height;
 		const ImageBlockInfo& blockInfo = getBlockInfo(_format);
 		const uint8_t  bpp         = blockInfo.bitsPerPixel;
 		const uint16_t blockWidth  = blockInfo.blockWidth;
@@ -329,7 +340,17 @@ namespace bimg
 		_width  = bx::max<uint16_t>(blockWidth  * minBlockX, ( (_width  + blockWidth  - 1) / blockWidth)*blockWidth);
 		_height = bx::max<uint16_t>(blockHeight * minBlockY, ( (_height + blockHeight - 1) / blockHeight)*blockHeight);
 		_depth  = bx::max<uint16_t>(1, _depth);
-		const uint8_t  numMips = calcNumMips(_hasMips, _width, _height, _depth);
+		const bool pvrtc1 = _format == TextureFormat::PTC12
+			|| _format == TextureFormat::PTC14
+			|| _format == TextureFormat::PTC12A
+			|| _format == TextureFormat::PTC14A;
+		// PVRTC1 has a 2x2-block minimum payload, but the GPU texture and its mip
+		// count still use the logical dimensions from the container. Treating the
+		// padded storage extent as the texture extent turns a valid 8x8 2bpp image
+		// into 16x8 and adds a bogus fifth mip level.
+		const uint8_t numMips = pvrtc1
+			? calcNumMips(_hasMips, logicalWidth, logicalHeight, _depth)
+			: calcNumMips(_hasMips, _width, _height, _depth);
 		const uint32_t sides   = _cubeMap ? 6 : 1;
 
 		uint32_t width  = _width;
@@ -355,8 +376,8 @@ namespace bimg
 		if (NULL != _info)
 		{
 			_info->format  = _format;
-			_info->width   = _width;
-			_info->height  = _height;
+			_info->width   = pvrtc1 ? logicalWidth : _width;
+			_info->height  = pvrtc1 ? logicalHeight : _height;
 			_info->depth   = _depth;
 			_info->numMips = numMips;
 			_info->numLayers = _numLayers;
@@ -1155,6 +1176,10 @@ namespace bimg
 		{ NULL,               NULL                 }, // D24F
 		{ bx::packR32F,       bx::unpackR32F       }, // D32F
 		{ bx::packR8,         bx::unpackR8         }, // D0S8
+		{ NULL,               NULL                 }, // EACR
+		{ NULL,               NULL                 }, // EACRS
+		{ NULL,               NULL                 }, // EACRG
+		{ NULL,               NULL                 }, // EACRGS
 	};
 	static_assert(TextureFormat::Count == BX_COUNTOF(s_packUnpack) );
 
@@ -1343,6 +1368,7 @@ namespace bimg
 		output->m_hasAlpha = imageContainer.m_hasAlpha;
 
 		const uint16_t numSides = imageContainer.m_numLayers * (imageContainer.m_cubeMap ? 6 : 1);
+		uint32_t parsedSize = 0;
 
 		for (uint16_t side = 0; side < numSides; ++side)
 		{
@@ -1356,10 +1382,22 @@ namespace bimg
 					{
 						uint8_t* dstData = const_cast<uint8_t*>(dstMip.m_data);
 						bx::memCopy(dstData, mip.m_data, mip.m_size);
+						parsedSize += mip.m_size;
 					}
 				}
 			}
 		}
+
+		// imageAlloc rounds compressed dimensions to their minimum block storage
+		// size and expands any mipmapped texture to a full chain. A parsed
+		// container must expose the logical dimensions, exact mip count, and exact
+		// payload size declared by its header; the backing allocation remains
+		// padded while the copy above addresses its storage layout.
+		output->m_size = parsedSize;
+		output->m_width = imageContainer.m_width;
+		output->m_height = imageContainer.m_height;
+		output->m_depth = bx::max<uint32_t>(1, imageContainer.m_depth);
+		output->m_numMips = imageContainer.m_numMips;
 
 		return output;
 	}
@@ -4139,6 +4177,10 @@ namespace bimg
 		{ KTX_RGB,                          TextureFormat::RGB8  },
 		{ KTX_RGBA,                         TextureFormat::RGBA8 },
 		{ KTX_COMPRESSED_RGB_S3TC_DXT1_EXT, TextureFormat::BC1   },
+		{ KTX_COMPRESSED_R11_EAC,           TextureFormat::EACR  },
+		{ KTX_COMPRESSED_SIGNED_R11_EAC,    TextureFormat::EACRS },
+		{ KTX_COMPRESSED_RG11_EAC,          TextureFormat::EACRG },
+		{ KTX_COMPRESSED_SIGNED_RG11_EAC,   TextureFormat::EACRGS},
 	};
 
 	bool imageParseKtx(ImageContainer& _imageContainer, bx::ReaderSeekerI* _reader, bx::Error* _err)
@@ -4289,6 +4331,11 @@ namespace bimg
 #define PVR3_DXT5             11
 #define PVR3_BC4              12
 #define PVR3_BC5              13
+#define PVR3_ETC2_RGB         22
+#define PVR3_ETC2_RGBA        23
+#define PVR3_ETC2_RGBA1       24
+#define PVR3_EAC_R            25
+#define PVR3_EAC_RG           26
 #define PVR3_R8               PVR3_MAKE8CC('r',   0,   0,   0,  8,  0,  0,  0)
 #define PVR3_R16              PVR3_MAKE8CC('r',   0,   0,   0, 16,  0,  0,  0)
 #define PVR3_R32              PVR3_MAKE8CC('r',   0,   0,   0, 32,  0,  0,  0)
@@ -4306,13 +4353,16 @@ namespace bimg
 #define PVR3_RGBA51           PVR3_MAKE8CC('r', 'g', 'b', 'a',  5,  5,  5,  1)
 #define PVR3_RGB10A2          PVR3_MAKE8CC('r', 'g', 'b', 'a', 10, 10, 10,  2)
 
-#define PVR3_CHANNEL_TYPE_ANY   UINT32_MAX
-#define PVR3_CHANNEL_TYPE_FLOAT UINT32_C(12)
+#define PVR3_CHANNEL_TYPE_ANY     UINT32_MAX
+#define PVR3_CHANNEL_TYPE_SNORM8  UINT32_C(1)
+#define PVR3_CHANNEL_TYPE_SNORM16 UINT32_C(5)
+#define PVR3_CHANNEL_TYPE_SNORM32 UINT32_C(9)
+#define PVR3_CHANNEL_TYPE_FLOAT   UINT32_C(12)
 
 	struct TranslatePvr3Format
 	{
 		uint64_t m_format;
-		uint32_t m_channelTypeMask;
+		uint32_t m_channelType;
 		TextureFormat::Enum m_textureFormat;
 	};
 
@@ -4332,6 +4382,17 @@ namespace bimg
 		{ PVR3_DXT5,             PVR3_CHANNEL_TYPE_ANY,   TextureFormat::BC3     },
 		{ PVR3_BC4,              PVR3_CHANNEL_TYPE_ANY,   TextureFormat::BC4     },
 		{ PVR3_BC5,              PVR3_CHANNEL_TYPE_ANY,   TextureFormat::BC5     },
+		{ PVR3_ETC2_RGB,         PVR3_CHANNEL_TYPE_ANY,   TextureFormat::ETC2    },
+		{ PVR3_ETC2_RGBA,        PVR3_CHANNEL_TYPE_ANY,   TextureFormat::ETC2A   },
+		{ PVR3_ETC2_RGBA1,       PVR3_CHANNEL_TYPE_ANY,   TextureFormat::ETC2A1  },
+		{ PVR3_EAC_R,            PVR3_CHANNEL_TYPE_SNORM8,  TextureFormat::EACRS  },
+		{ PVR3_EAC_R,            PVR3_CHANNEL_TYPE_SNORM16, TextureFormat::EACRS  },
+		{ PVR3_EAC_R,            PVR3_CHANNEL_TYPE_SNORM32, TextureFormat::EACRS  },
+		{ PVR3_EAC_R,            PVR3_CHANNEL_TYPE_ANY,     TextureFormat::EACR   },
+		{ PVR3_EAC_RG,           PVR3_CHANNEL_TYPE_SNORM8,  TextureFormat::EACRGS },
+		{ PVR3_EAC_RG,           PVR3_CHANNEL_TYPE_SNORM16, TextureFormat::EACRGS },
+		{ PVR3_EAC_RG,           PVR3_CHANNEL_TYPE_SNORM32, TextureFormat::EACRGS },
+		{ PVR3_EAC_RG,           PVR3_CHANNEL_TYPE_ANY,     TextureFormat::EACRG  },
 		{ PVR3_R8,               PVR3_CHANNEL_TYPE_ANY,   TextureFormat::R8      },
 		{ PVR3_R16,              PVR3_CHANNEL_TYPE_ANY,   TextureFormat::R16U    },
 		{ PVR3_R16,              PVR3_CHANNEL_TYPE_FLOAT, TextureFormat::R16F    },
@@ -4404,13 +4465,28 @@ namespace bimg
 		TextureFormat::Enum format = TextureFormat::Unknown;
 		bool hasAlpha = false;
 
+		// Prefer an exact channel-type mapping before the generic fallback. This is
+		// required both for signed EAC and for the existing float PVR formats.
 		for (uint32_t ii = 0; ii < BX_COUNTOF(s_translatePvr3Format); ++ii)
 		{
 			if (s_translatePvr3Format[ii].m_format == pixelFormat
-			&&  channelType == (s_translatePvr3Format[ii].m_channelTypeMask & channelType) )
+			&&  s_translatePvr3Format[ii].m_channelType == channelType)
 			{
 				format = s_translatePvr3Format[ii].m_textureFormat;
 				break;
+			}
+		}
+
+		if (TextureFormat::Unknown == format)
+		{
+			for (uint32_t ii = 0; ii < BX_COUNTOF(s_translatePvr3Format); ++ii)
+			{
+				if (s_translatePvr3Format[ii].m_format == pixelFormat
+				&&  s_translatePvr3Format[ii].m_channelType == PVR3_CHANNEL_TYPE_ANY)
+				{
+					format = s_translatePvr3Format[ii].m_textureFormat;
+					break;
+				}
 			}
 		}
 

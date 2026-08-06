@@ -128,6 +128,9 @@ const enum WsEvent {
 	Log = "Log",
 	Profiler = "Profiler",
 	TranspileTS = "TranspileTS",
+	TranspileTSProbeV3 = "TranspileTSProbeV3",
+	TranspileTSReadyV3 = "TranspileTSReadyV3",
+	TranspileTSV3 = "TranspileTSV3",
 	UpdateFile = "UpdateFile",
 	RefreshTree = "RefreshTree",
 	OpenFile = "OpenFile",
@@ -230,7 +233,14 @@ type TranspileTSQueueItem = {
 	file: string;
 	content: string;
 	projectRoot?: string;
+	files?: TranspileTSVirtualFile[];
 	id?: unknown;
+};
+
+export type TranspileTSVirtualFile = {
+	file: string;
+	content: string;
+	moduleName?: string;
 };
 
 const sendTranspileTSResponse = (item: TranspileTSQueueItem, response: WebSocketPayload) => {
@@ -243,16 +253,21 @@ const sendTranspileTSResponse = (item: TranspileTSQueueItem, response: WebSocket
 const handleTranspileTS = async (item: TranspileTSQueueItem) => {
 	try {
 		const { transpileTypescript, getDiagnosticMessage } = await import('./TranspileTS');
-		const { success, luaCode, diagnostics } = await transpileTypescript(item.file, item.content, item.projectRoot);
+		const { success, luaCode, diagnostics } = await transpileTypescript(
+			item.file,
+			item.content,
+			item.projectRoot,
+			item.files,
+		);
 		if (success) {
-			sendTranspileTSResponse(item, { name: WsEvent.TranspileTS, success, file: item.file, luaCode, message: "" });
+			sendTranspileTSResponse(item, { name: WsEvent.TranspileTSV3, success, file: item.file, luaCode, message: "" });
 		} else {
 			const message = await getDiagnosticMessage(item.file, diagnostics);
-			sendTranspileTSResponse(item, { name: WsEvent.TranspileTS, success, file: item.file, luaCode: "", message });
+			sendTranspileTSResponse(item, { name: WsEvent.TranspileTSV3, success, file: item.file, luaCode: "", message });
 		}
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
-		sendTranspileTSResponse(item, { name: WsEvent.TranspileTS, success: false, file: item.file, luaCode: "", message });
+		sendTranspileTSResponse(item, { name: WsEvent.TranspileTSV3, success: false, file: item.file, luaCode: "", message });
 	}
 };
 
@@ -271,6 +286,15 @@ export function openWebSocket() {
 		}
 		void (async () => {
 			try {
+				// Do not publish a WebSocket connection until all transpiler chunks
+				// are ready. The native build endpoint synchronously waits for the
+				// socket response and cannot serve lazy asset requests meanwhile.
+				try {
+					const { warmupTypescriptTranspiler } = await import('./TranspileTS');
+					await warmupTypescriptTranspiler();
+				} catch (error) {
+					console.error("Failed to warm the TypeScript transpiler:", error);
+				}
 				if (session) {
 					const signedUrl = await buildWebSocketUrl(wsUrl(), session);
 					webSocket = new WebSocket(signedUrl);
@@ -332,13 +356,23 @@ export function openWebSocket() {
 								eventEmitter.emit(result.name, result.url, result.status, result.progress);
 								break;
 							}
-							case WsEvent.TranspileTS: {
-								const { file, content, projectRoot } = result;
+							case WsEvent.TranspileTSProbeV3: {
+								sendWebSocketMessage({ name: WsEvent.TranspileTSReadyV3, id: result.id });
+								break;
+							}
+							case WsEvent.TranspileTSV3: {
+								const { file, content, projectRoot, files } = result;
 								if (typeof file === 'string' && typeof content === 'string') {
 									void handleTranspileTS({
 										file,
 										content,
 										projectRoot: typeof projectRoot === "string" ? projectRoot : undefined,
+										files: Array.isArray(files) ? files.filter((entry): entry is TranspileTSVirtualFile => {
+											if (entry === null || typeof entry !== "object") return false;
+											const candidate = entry as Record<string, unknown>;
+											return typeof candidate.file === "string" && typeof candidate.content === "string"
+												&& (candidate.moduleName === undefined || typeof candidate.moduleName === "string");
+										}) : undefined,
 										id: result.id
 									});
 								}

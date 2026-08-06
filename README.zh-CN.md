@@ -76,7 +76,7 @@
 - 跨平台支持：原生运行于 `Android`、`Windows`、`Linux`、`iOS`、`macOS` 与 `鸿蒙`。
 - 场景系统：树形 2D / 3D 场景、易用的 [ECS](https://dora-ssr.net/zh-Hans/docs/tutorial/using-ecs)、相机、材质、光照、模型、动画与 3D 物理。
 - 2D 制作能力：支持 Spine2D、DragonBones、内置骨骼动画、[PlayRho](https://github.com/louis-langholtz/PlayRho) 物理、瓦片地图、粒子与复古 TIC-80 内容。
-- 媒体与图形：异步资源加载、H.264 视频、多格式音频及空间音效、运行时 shader 编译、Effekseer、NanoVG、ImGui 与 TrueType 字体渲染。
+- 媒体与图形：异步资源加载、Ogg/Theora 视频、多格式音频及空间音效、运行时 shader 编译、Effekseer、NanoVG、ImGui 与 TrueType 字体渲染。
 - 游戏类型支持：提供 [2D 平台游戏](https://dora-ssr.net/zh-Hans/docs/example/Platformer%20Tutorial/start) 的可复用逻辑与 AI 开发框架。
 
 ### 内容与工具链

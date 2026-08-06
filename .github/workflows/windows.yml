@@ -67,9 +67,27 @@ jobs:
       - name: Windows build
         if: "!startsWith(github.ref, 'refs/tags/')"
         run: Tools\build-scripts\build_windows.bat debug
+      - name: Checkout Dora-Example tests
+        uses: actions/checkout@v4
+        with:
+          repository: ippclub/Dora-Example
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || 'master' }}
+          path: Dora-Example
+      - name: Love runtime tests
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        run: |
+          cmake -S Dora-Example\Test\Love -B Dora-Example\Test\Love\build-windows-tests -A Win32 -DDORA_SSR_ROOT="${{ github.workspace }}"
+          cmake --build Dora-Example\Test\Love\build-windows-tests --config Debug --parallel
+          ctest --test-dir Dora-Example\Test\Love\build-windows-tests -C Debug --output-on-failure
       - name: Windows release build
         if: startsWith(github.ref, 'refs/tags/')
         run: Tools\build-scripts\build_windows.bat release
+      - name: Love runtime release tests
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          cmake -S Dora-Example\Test\Love -B Dora-Example\Test\Love\build-windows-tests -A Win32 -DDORA_SSR_ROOT="${{ github.workspace }}"
+          cmake --build Dora-Example\Test\Love\build-windows-tests --config Release --parallel
+          ctest --test-dir Dora-Example\Test\Love\build-windows-tests -C Release --output-on-failure
       - name: Generate tutorial docs
         if: startsWith(github.ref, 'refs/tags/')
         run: node Docs/scripts/generate-language-docs.js
@@ -100,7 +118,7 @@ jobs:
           Pop-Location
           ren dora-ssr-windows-x86.zip dora-ssr-${{ github.ref_name }}-windows-x86.zip
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |

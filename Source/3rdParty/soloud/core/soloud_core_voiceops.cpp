@@ -23,6 +23,7 @@ freely, subject to the following restrictions:
 */
 
 #include "soloud.h"
+#include "soloud_spatial_gain.h"
 
 #include <cstdint>
 
@@ -158,6 +159,10 @@ namespace SoLoud
 		SOLOUD_ASSERT(aVoice < VOICE_COUNT);
 		SOLOUD_ASSERT(mInsideAudioThreadMutex);
 		mVoice[aVoice]->mOverallVolume = mVoice[aVoice]->mSetVolume * m3dData[aVoice].m3dVolume;
+		mVoice[aVoice]->mOverallVolume = calculateFinalSourceGain(
+			mVoice[aVoice]->mOverallVolume, mVoice[aVoice]->mMinVolume,
+			mVoice[aVoice]->mMaxVolume, mVoice[aVoice]->mUseVolumeLimits,
+			m3dData[aVoice].m3dAttenuationModel == AudioSource::APPLICATION_DISTANCE);
 		if (mVoice[aVoice]->mFlags & AudioSourceInstance::PAUSED)
 		{
 			int i;

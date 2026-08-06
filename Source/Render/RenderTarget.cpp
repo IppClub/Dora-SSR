@@ -26,12 +26,47 @@ NS_DORA_BEGIN
 
 std::stack<RenderTarget*> RenderTarget::_applyingStack;
 
-RenderTarget::RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format)
+RenderTarget::RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format,
+	uint64_t textureFlags)
 	: _textureWidth(width)
 	, _textureHeight(height)
 	, _format(format)
+	, _textureFlags(textureFlags)
 	, _frameBufferHandle(BGFX_INVALID_HANDLE)
 	, _dummy(Node::create(false)) {
+}
+
+RenderTarget::RenderTarget(std::vector<Texture2D*> colorTextures, Texture2D* depthTexture)
+	: RenderTarget([&]() {
+		std::vector<Attachment> attachments;
+		attachments.reserve(colorTextures.size());
+		for (auto* texture : colorTextures) attachments.push_back({texture});
+		return attachments;
+	}(), depthTexture ? std::optional<Attachment>(Attachment{depthTexture}) : std::nullopt) { }
+
+RenderTarget::RenderTarget(std::vector<Attachment> colorAttachments,
+	std::optional<Attachment> depthAttachment)
+	: _textureWidth(0)
+	, _textureHeight(0)
+	, _format(!colorAttachments.empty() && colorAttachments.front().texture
+		? colorAttachments.front().texture->getInfo().format
+		: depthAttachment && depthAttachment->texture
+			? depthAttachment->texture->getInfo().format : bgfx::TextureFormat::RGBA8)
+	, _texture(colorAttachments.empty() ? nullptr : colorAttachments.front().texture)
+	, _depthTexture(depthAttachment ? depthAttachment->texture : nullptr)
+	, _colorAttachments(std::move(colorAttachments))
+	, _depthAttachment(depthAttachment)
+	, _externalAttachments(true)
+	, _frameBufferHandle(BGFX_INVALID_HANDLE)
+	, _dummy(Node::create(false)) {
+	const Attachment* first = !_colorAttachments.empty() ? &_colorAttachments.front()
+		: _depthAttachment ? &*_depthAttachment : nullptr;
+	if (first && first->texture) {
+		_textureWidth = s_cast<uint16_t>(std::max(1, first->texture->getWidth() >> first->mip));
+		_textureHeight = s_cast<uint16_t>(std::max(1, first->texture->getHeight() >> first->mip));
+	}
+	_colorTextures.reserve(_colorAttachments.size());
+	for (const auto& attachment : _colorAttachments) _colorTextures.emplace_back(attachment.texture);
 }
 
 RenderTarget::~RenderTarget() {
@@ -67,19 +102,55 @@ Texture2D* RenderTarget::getDepthTexture() const noexcept {
 
 bool RenderTarget::init() {
 	if (!Object::init()) return false;
+	if (_externalAttachments) {
+		if (_colorTextures.empty() && !_depthTexture) return false;
+		std::vector<bgfx::Attachment> attachments;
+		attachments.reserve(_colorAttachments.size() + (_depthAttachment ? 1 : 0));
+		auto append = [&](const Attachment& attachment) {
+			if (!attachment.texture || !bgfx::isValid(attachment.texture->getHandle())) return false;
+			const auto& info = attachment.texture->getInfo();
+			if (attachment.mip >= info.numMips
+				|| std::max(1, attachment.texture->getWidth() >> attachment.mip) != _textureWidth
+				|| std::max(1, attachment.texture->getHeight() >> attachment.mip) != _textureHeight)
+				return false;
+			uint16_t layers = info.cubeMap ? 6 : info.depth > 1
+				? std::max<uint16_t>(1, info.depth >> attachment.mip) : info.numLayers;
+			if (attachment.layer >= layers) return false;
+			bgfx::Attachment value;
+			value.init(attachment.texture->getHandle(), bgfx::Access::Write,
+				attachment.layer, 1, attachment.mip, attachment.resolve);
+			attachments.push_back(value);
+			return true;
+		};
+		for (const auto& attachment : _colorAttachments)
+			if (!append(attachment)) return false;
+		if (_depthAttachment && !append(*_depthAttachment)) return false;
+		if (attachments.size() > std::numeric_limits<uint8_t>::max()) return false;
+		_frameBufferHandle = bgfx::createFrameBuffer(s_cast<uint8_t>(attachments.size()), attachments.data(), false);
+		return bgfx::isValid(_frameBufferHandle);
+	}
 
-	const uint64_t textureFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_TEXTURE_RT;
+	const uint64_t textureFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP
+		| BGFX_TEXTURE_RT | _textureFlags;
 	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, _format, textureFlags);
 	if (!bgfx::isValid(textureHandle)) return false;
 
-	const uint64_t depthTextureFlags = BGFX_TEXTURE_RT | BGFX_TEXTURE_RT_WRITE_ONLY;
+	const uint64_t depthTextureFlags = BGFX_TEXTURE_RT | BGFX_TEXTURE_RT_WRITE_ONLY
+		| (_textureFlags & BGFX_TEXTURE_RT_MSAA_MASK);
 	const auto depthTextureFormat = bgfx::TextureFormat::D24S8;
 	bgfx::TextureHandle depthTextureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, depthTextureFormat, depthTextureFlags);
-	if (!bgfx::isValid(depthTextureHandle)) return false;
+	if (!bgfx::isValid(depthTextureHandle)) {
+		bgfx::destroy(textureHandle);
+		return false;
+	}
 
 	bgfx::TextureHandle texHandles[] = {textureHandle, depthTextureHandle};
 	_frameBufferHandle = bgfx::createFrameBuffer(2, texHandles);
-	if (!bgfx::isValid(_frameBufferHandle)) return false;
+	if (!bgfx::isValid(_frameBufferHandle)) {
+		bgfx::destroy(textureHandle);
+		bgfx::destroy(depthTextureHandle);
+		return false;
+	}
 
 	bgfx::TextureInfo info;
 	bgfx::calcTextureSize(info,
@@ -95,18 +166,13 @@ bool RenderTarget::init() {
 	return true;
 }
 
-void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float depth, uint8_t stencil) {
+void RenderTarget::renderAfterClear(Node* target, uint16_t clearFlags, Color color, float depth, uint8_t stencil) {
 	SharedRendererManager.flush();
 	SharedView.pushFront("RenderTarget"_slice, [&]() {
 		bgfx::ViewId viewId = SharedView.getId();
 		bgfx::setViewFrameBuffer(viewId, _frameBufferHandle);
 		bgfx::setViewRect(viewId, 0, 0, _textureWidth, _textureHeight);
-		if (clear) {
-			bgfx::setViewClear(viewId, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
-				color.toRGBA(), depth, stencil);
-		} else {
-			bgfx::setViewClear(viewId, BGFX_CLEAR_NONE);
-		}
+		bgfx::setViewClear(viewId, clearFlags, color.toRGBA(), depth, stencil);
 		Matrix viewProj;
 		switch (bgfx::getCaps()->rendererType) {
 			case bgfx::RendererType::OpenGL:
@@ -139,6 +205,9 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 		}
 		SharedDirector.pushViewProjection(viewProj, [&]() {
 			bgfx::setViewTransform(viewId, nullptr, viewProj.m);
+			// A touched view is required for clear-only passes and for framebuffer
+			// resolve operations such as Love Canvas manual mipmap generation.
+			bgfx::touch(viewId);
 			_applyingStack.push(this);
 			renderOnly(target);
 			_applyingStack.pop();
@@ -157,25 +226,47 @@ void RenderTarget::renderOnly(Node* target) {
 }
 
 void RenderTarget::render(Node* target) {
-	renderAfterClear(target, false);
+	renderAfterClear(target, BGFX_CLEAR_NONE);
 }
 
 void RenderTarget::renderWithClear(Color color, float depth, uint8_t stencil) {
-	renderAfterClear(nullptr, true, color, depth, stencil);
+	renderAfterClear(nullptr, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+		color, depth, stencil);
 }
 
 void RenderTarget::renderWithClear(Node* target, Color color, float depth, uint8_t stencil) {
-	renderAfterClear(target, true, color, depth, stencil);
+	renderAfterClear(target, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
+		color, depth, stencil);
 }
 
-void RenderTarget::saveAsync(String filename, const std::function<void(bool)>& callback) {
-	AssertIf((bgfx::getCaps()->supported & BGFX_CAPS_TEXTURE_READ_BACK) == 0, "texture read back not supported.");
+void RenderTarget::renderWithClearFlags(Node* target, uint16_t clearFlags, Color color,
+	float depth, uint8_t stencil) {
+	renderAfterClear(target, clearFlags, color, depth, stencil);
+}
 
+bool RenderTarget::readPixelsAsync(const std::function<void(uint16_t, uint16_t, std::vector<uint8_t>)>& callback) {
+	if (!callback) {
+		Warn("RenderTarget async readback requires a completion callback.");
+		return false;
+	}
+	if (!_texture) {
+		Warn("RenderTarget async readback failed because the target has no color texture.");
+		return false;
+	}
+	if ((_textureFlags & BGFX_TEXTURE_RT_WRITE_ONLY) != 0) {
+		Warn("RenderTarget async readback is unavailable for a write-only target.");
+		return false;
+	}
+	if ((bgfx::getCaps()->supported & BGFX_CAPS_TEXTURE_READ_BACK) == 0) {
+		Warn("RenderTarget async readback is unsupported by renderer {}.",
+			bgfx::getRendererName(bgfx::getCaps()->rendererType));
+		return false;
+	}
 	uint64_t extraFlags = 0;
 	switch (bgfx::getCaps()->rendererType) {
 		case bgfx::RendererType::Direct3D11:
 		case bgfx::RendererType::Direct3D12:
-		case bgfx::RendererType::OpenGLES:
+		case bgfx::RendererType::Metal:
 			extraFlags = BGFX_TEXTURE_BLIT_DST;
 			break;
 		default:
@@ -185,49 +276,162 @@ void RenderTarget::saveAsync(String filename, const std::function<void(bool)>& c
 	if (extraFlags) {
 		const uint64_t textureFlags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_TEXTURE_READ_BACK;
 		textureHandle = bgfx::createTexture2D(_textureWidth, _textureHeight, false, 1, _format, textureFlags | extraFlags);
+		if (!bgfx::isValid(textureHandle)) {
+			Warn("RenderTarget async readback failed to create a {}x{} staging texture.",
+				_textureWidth, _textureHeight);
+			return false;
+		}
 		SharedView.pushBack("SaveTarget"_slice, [&]() {
 			bgfx::blit(SharedView.getId(), textureHandle, 0, 0, _texture->getHandle());
 		});
 	} else {
 		textureHandle = _texture->getHandle();
 	}
-	uint8_t* data = new uint8_t[_texture->getInfo().storageSize];
-	uint32_t frame = bgfx::readTexture(textureHandle, data);
-	uint32_t width = s_cast<uint32_t>(_textureWidth);
-	uint32_t height = s_cast<uint32_t>(_textureHeight);
-	std::string file(filename);
-	SharedDirector.getSystemScheduler()->schedule([frame, textureHandle, extraFlags, data, width, height, file, callback](double deltaTime) {
+	if (!bgfx::isValid(textureHandle)) {
+		Warn("RenderTarget async readback received an invalid color texture handle.");
+		return false;
+	}
+	auto data = std::make_shared<std::vector<uint8_t>>(_texture->getInfo().storageSize);
+	uint32_t frame = bgfx::readTexture(textureHandle, data->data());
+	uint16_t width = _textureWidth;
+	uint16_t height = _textureHeight;
+	SharedDirector.getSystemScheduler()->schedule([frame, textureHandle, extraFlags, data, width, height, callback](double deltaTime) mutable {
 		DORA_UNUSED_PARAM(deltaTime);
 		if (frame <= SharedApplication.getFrame()) {
 			if (extraFlags) {
 				bgfx::destroy(textureHandle);
 			}
-			SharedAsyncThread.run(
+			callback(width, height, std::move(*data));
+			return true;
+		}
+		return false;
+	});
+	return true;
+}
+
+RenderTarget::ReadPixelsResult RenderTarget::readPixelsSync(std::vector<uint8_t>& pixels) {
+	uint16_t layer = 0;
+	uint8_t mip = 0;
+	if (_externalAttachments && !_colorAttachments.empty()) {
+		layer = _colorAttachments.front().layer;
+		mip = _colorAttachments.front().mip;
+	}
+	return readPixelsSync(pixels, layer, mip);
+}
+
+RenderTarget::ReadPixelsResult RenderTarget::readPixelsSync(std::vector<uint8_t>& pixels,
+	uint16_t layer, uint8_t mip) {
+	pixels.clear();
+	if (!_texture)
+		return ReadPixelsResult::NoTexture;
+	if ((_textureFlags & BGFX_TEXTURE_RT_WRITE_ONLY) != 0)
+		return ReadPixelsResult::WriteOnly;
+	if ((bgfx::getCaps()->supported & BGFX_CAPS_TEXTURE_READ_BACK) == 0)
+		return ReadPixelsResult::Unsupported;
+	if (SharedView.hasActiveView())
+		return ReadPixelsResult::ActiveView;
+
+	const auto& sourceInfo = _texture->getInfo();
+	if (mip >= sourceInfo.numMips)
+		return ReadPixelsResult::InvalidTexture;
+	const uint16_t layers = sourceInfo.cubeMap ? 6
+		: sourceInfo.depth > 1 ? std::max<uint16_t>(1, sourceInfo.depth >> mip)
+		: sourceInfo.numLayers;
+	if (layer >= layers)
+		return ReadPixelsResult::InvalidTexture;
+	const uint16_t width = std::max<uint16_t>(1, _texture->getWidth() >> mip);
+	const uint16_t height = std::max<uint16_t>(1, _texture->getHeight() >> mip);
+
+	bool needsStaging = layer != 0 || mip != 0 || sourceInfo.numMips > 1
+		|| sourceInfo.numLayers > 1 || sourceInfo.depth > 1 || sourceInfo.cubeMap;
+	switch (bgfx::getCaps()->rendererType) {
+		case bgfx::RendererType::Direct3D11:
+		case bgfx::RendererType::Direct3D12:
+		case bgfx::RendererType::Metal:
+			needsStaging = true;
+			break;
+		default:
+			break;
+	}
+
+	bgfx::TextureHandle textureHandle = _texture->getHandle();
+	if (!bgfx::isValid(textureHandle))
+		return ReadPixelsResult::InvalidTexture;
+	if (needsStaging) {
+		if ((bgfx::getCaps()->supported & BGFX_CAPS_TEXTURE_BLIT) == 0)
+			return ReadPixelsResult::Unsupported;
+		const uint64_t flags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP
+			| BGFX_TEXTURE_READ_BACK | BGFX_TEXTURE_BLIT_DST;
+		textureHandle = bgfx::createTexture2D(width, height, false, 1, _format, flags);
+		if (!bgfx::isValid(textureHandle))
+			return ReadPixelsResult::StagingTextureFailed;
+		SharedView.pushBack("ReadTarget"_slice, [&]() {
+			bgfx::blit(SharedView.getId(), textureHandle, 0, 0, 0, 0,
+				_texture->getHandle(), mip, 0, 0, layer, width, height, 1);
+		});
+	}
+
+	bgfx::TextureInfo readInfo;
+	bgfx::calcTextureSize(readInfo, width, height, 1, false, false, 1, _format);
+	pixels.resize(readInfo.storageSize);
+	const uint32_t readyFrame = bgfx::readTexture(textureHandle, pixels.data(),
+		needsStaging ? 0 : mip);
+	auto [order, count] = SharedView.getOrders();
+	if (count > 0)
+		bgfx::setViewOrder(0, count, order);
+	SharedView.clear();
+
+	uint32_t submittedFrame = 0;
+	int remainingFrames = 16;
+	do {
+		submittedFrame = bgfx::frame();
+	} while (submittedFrame < readyFrame && --remainingFrames > 0);
+
+	if (needsStaging)
+		bgfx::destroy(textureHandle);
+	if (submittedFrame < readyFrame) {
+		pixels.clear();
+		return ReadPixelsResult::TimedOut;
+	}
+	return ReadPixelsResult::Success;
+}
+
+void RenderTarget::saveAsync(String filename, const std::function<void(bool)>& callback) {
+	std::string file(filename);
+	if (!readPixelsAsync([file, callback](uint16_t width, uint16_t height, std::vector<uint8_t> pixels) {
+		auto data = std::make_shared<std::vector<uint8_t>>(std::move(pixels));
+		SharedAsyncThread.run(
 				[data, width, height]() {
 					unsigned error;
 					LodePNGState state;
 					lodepng_state_init(&state);
 					uint8_t* out = nullptr;
 					size_t outSize = 0;
-					error = lodepng_encode(&out, &outSize, data, width, height, &state);
+					error = lodepng_encode(&out, &outSize, data->data(), width, height, &state);
 					lodepng_state_cleanup(&state);
-					delete[] data;
-					return Values::alloc(out, outSize);
+					return Values::alloc(error, out, outSize);
 				},
 				[callback, file](Own<Values> values) {
+					unsigned error;
 					uint8_t* out;
 					size_t outSize;
-					values->get(out, outSize);
-					Slice content(r_cast<char*>(out), outSize);
-					SharedContent.saveAsync(file, content, [out, callback](bool success) {
+					values->get(error, out, outSize);
+					if (error != 0 || !out || outSize == 0) {
+						Warn("RenderTarget PNG encoding failed for \"{}\" with error code {}.",
+							file, error);
 						::free(out);
+						callback(false);
+						return;
+					}
+					Slice content(r_cast<char*>(out), outSize);
+					SharedContent.saveAsync(file, content, [out, callback, file](bool success) {
+						::free(out);
+						if (!success)
+							Warn("RenderTarget failed to save PNG through Content: \"{}\".", file);
 						callback(success);
 					});
 				});
-			return true;
-		}
-		return false;
-	});
+	})) callback(false);
 }
 
 RenderTarget* RenderTarget::getCurrent() {

@@ -366,6 +366,23 @@ void DrawNode::drawVertices(const std::vector<VertexColor>& verts) {
 	_flags.setOn(DrawNode::VertexPosDirty);
 }
 
+void DrawNode::drawIndexedVertices(const std::vector<DrawVertexInput>& verts,
+	const std::vector<uint16_t>& indices) {
+	const uint16_t start = s_cast<uint16_t>(_vertices.size());
+	_posColors.reserve(_posColors.size() + verts.size());
+	_vertices.reserve(_vertices.size() + verts.size());
+	_indices.reserve(_indices.size() + indices.size());
+	for (const auto& vertex : verts) {
+		_posColors.push_back({vertex.position, vertex.color});
+		_vertices.push_back({0, 0, 0, 0, 0, vertex.texCoord.x, vertex.texCoord.y});
+	}
+	for (const auto index : indices) {
+		_indices.push_back(start + index);
+	}
+	_flags.setOn(DrawNode::VertexColorDirty);
+	_flags.setOn(DrawNode::VertexPosDirty);
+}
+
 void DrawNode::clear() {
 	_posColors.clear();
 	_vertices.clear();

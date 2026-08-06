@@ -28,6 +28,8 @@
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2025年 Dora SSR. All rights reserved.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Love2D projects can access the microphone when they start an audio RecordingDevice.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 </dict>

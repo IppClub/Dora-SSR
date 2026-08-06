@@ -340,6 +340,10 @@ namespace bgfx { namespace mtl
 		{ MTLPixelFormatDepth32Float,                   MTLPixelFormatInvalid,                       MTLReadWriteTextureTierNone, { $R, $G, $B, $A }, false }, // D24F
 		{ MTLPixelFormatDepth32Float,                   MTLPixelFormatInvalid,                       MTLReadWriteTextureTierNone, { $R, $G, $B, $A }, false }, // D32F
 		{ MTLPixelFormatStencil8,                       MTLPixelFormatInvalid,                       MTLReadWriteTextureTierNone, { $R, $G, $B, $A }, false }, // D0S8
+		{ MTLPixelFormat(170/*EAC_R11Unorm*/),          MTLPixelFormatInvalid,                       MTLReadWriteTextureTierNone, { $R, $G, $B, $A }, false }, // EACR
+		{ MTLPixelFormat(172/*EAC_R11Snorm*/),          MTLPixelFormatInvalid,                       MTLReadWriteTextureTierNone, { $R, $G, $B, $A }, false }, // EACRS
+		{ MTLPixelFormat(174/*EAC_RG11Unorm*/),         MTLPixelFormatInvalid,                       MTLReadWriteTextureTierNone, { $R, $G, $B, $A }, false }, // EACRG
+		{ MTLPixelFormat(176/*EAC_RG11Snorm*/),         MTLPixelFormatInvalid,                       MTLReadWriteTextureTierNone, { $R, $G, $B, $A }, false }, // EACRGS
 #undef $0
 #undef $1
 #undef $R
@@ -851,6 +855,18 @@ static_assert(BX_COUNTOF(s_accessNames) == Access::Count, "Invalid s_accessNames
 				g_caps.formats[TextureFormat::PTC14 ] =
 				g_caps.formats[TextureFormat::PTC12A] =
 				g_caps.formats[TextureFormat::PTC14A] = BGFX_CAPS_FORMAT_TEXTURE_NONE;
+
+				// EAC is available on Apple-family GPUs under macOS 11+, but not on
+				// legacy Intel/AMD Mac GPUs. Keep capability reporting tied to the
+				// actual device family instead of disabling the format by OS alone.
+				if (![m_device respondsToSelector: @selector(supportsFamily:)]
+				||  ![m_device supportsFamily: MTLGPUFamilyApple1])
+				{
+					g_caps.formats[TextureFormat::EACR  ] =
+					g_caps.formats[TextureFormat::EACRS ] =
+					g_caps.formats[TextureFormat::EACRG ] =
+					g_caps.formats[TextureFormat::EACRGS] = BGFX_CAPS_FORMAT_TEXTURE_NONE;
+				}
 
 				g_caps.formats[TextureFormat::RGB9E5F] &= ~(BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER | BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER_MSAA);
 			}

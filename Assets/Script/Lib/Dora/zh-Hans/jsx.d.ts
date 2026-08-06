@@ -253,7 +253,7 @@ class Node {
 	 * @param text 正在编辑的文本。
 	 * @param startPos 正在编辑的文本的起始位置。
 	*/
-	onTextEditing?(this: void, text: string, startPos: number): void;
+	onTextEditing?(this: void, text: string, startPos: number, length: number): void;
 
 	/**
 	 * 当游戏控制器按钮被按下时触发ButtonDown事件。
@@ -746,22 +746,8 @@ class VideoNode extends Sprite {
 	ref?: Ref<Dora.VideoNode.Type>;
 
 	/**
-	 * 视频文件的路径。应为 `.h264` 后缀及格式有效的视频文件路径。
-	 * H.264 格式要求：
-	 * - 视频编码：仅支持 H.264 / AVC（不支持 H.265/HEVC，VP9，AV1 等）。
-	 * - 比特流格式：需为 Annex-B 字节流（NAL 单元之间以 0x000001 / 0x00000001 起始码分隔）。
-	 *   MP4/FLV 格式的 AVCC（长度前缀 NAL 单元）不支持，除非预先转换为 Annex-B。
-	 * - 流类型：推荐仅包含视频的流。音频轨道（如有）会被忽略。
-	 * - 配置文件/级别建议（为最大兼容性和性能）：
-	 *   * 推荐 Baseline / Constrained Baseline profile。
-	 *   * 仅支持逐行扫描（progressive）帧（不支持隔行/场编码内容）。
-	 *   * 推荐不含 B 帧（如 baseline），以避免输出重排序开销。
-	 * - 色彩格式：推荐 YUV 4:2:0（8 位）；其他色度格式可能不被支持。
-	 * - 帧率：推荐恒定帧率（CFR），可变帧率可能导致播放时序不稳定。
-	 * - 分辨率/性能说明：
-	 *   * 4K 与高码率流在纯软件解码时可能会有较高的 CPU 占用。
-	 *   * 中等性能设备建议使用 720p/1080p 及适中码率以保证流畅播放。
-	 * - 建议使用 `ffmpeg` 工具将视频文件转换为 H.264 格式后再使用。
+	 * 包含 Theora 视频流的 Ogg（`.ogv`）文件路径。VideoNode 通过 Dora Content
+	 * 读取，仅渲染视频，支持 Theora 4:2:0/4:2:2/4:4:4 并使用软件解码；音频需单独播放。
 	 */
 	file: string;
 

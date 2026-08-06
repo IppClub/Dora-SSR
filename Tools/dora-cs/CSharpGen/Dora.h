@@ -4329,24 +4329,7 @@ object class VideoNode : public Sprite
 	/// Creates a new VideoNode object for playing a video.
 	/// </summary>
 	/// <param name="filename">
-	/// The path to the video file. It should be a valid video file path with `.h264` suffix.
-	/// <para>
-	/// <b>H.264 format requirements:</b><br/>
-	/// - Video codec: H.264 / AVC only (no H.265/HEVC, VP9, AV1, etc.).<br/>
-	/// - Bitstream format: Annex-B byte stream is required (NAL units separated by 0x000001 / 0x00000001 start codes).<br/>
-	///   MP4/FLV-style AVCC (length-prefixed NAL units) is NOT supported unless converted to Annex-B beforehand.<br/>
-	/// - Stream type: video-only elementary stream is recommended. Audio tracks (if any) are ignored.<br/>
-	/// - Profile/level constraints (recommended for maximum compatibility and performance):<br/>
-	///   &nbsp;&nbsp;* Baseline / Constrained Baseline profile is recommended.<br/>
-	///   &nbsp;&nbsp;* Progressive frames only (no interlaced/field-coded content).<br/>
-	///   &nbsp;&nbsp;* No B-frames is recommended (e.g., baseline) to avoid output reordering costs.<br/>
-	/// - Color format: YUV 4:2:0 (8-bit) is recommended; other chroma formats may be unsupported.<br/>
-	/// - Frame rate: Constant frame rate (CFR) is recommended. Variable frame rate streams may play with unstable timing.<br/>
-	/// - Resolution/performance notes:<br/>
-	///   &nbsp;&nbsp;* 4K and high-bitrate streams may be CPU intensive for software decoding.<br/>
-	///   &nbsp;&nbsp;* For smooth playback on mid-range devices, 720p/1080p and moderate bitrates are recommended.<br/>
-	/// - It is recommended to use the `ffmpeg` tool to convert the video file to H.264 format before using it.<br/>
-	/// </para>
+	/// The path to an Ogg (`.ogv`) file containing a Theora video stream. VideoNode reads it through Dora Content, renders video only, supports Theora 4:2:0/4:2:2/4:4:4, and decodes in software; play audio separately.
 	/// </param>
 	/// <param name="looped">
 	/// (Optional) Whether the video should loop. Default is false.

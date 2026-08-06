@@ -68,8 +68,10 @@ static const std::string& loadShaderFileData(ShaderCompilerFileContext& context,
 static int toDoraRenderer(bgfx::RendererType::Enum type) {
 	switch (type) {
 		case bgfx::RendererType::OpenGL:
-		case bgfx::RendererType::OpenGLES:
 			return DoraShadercRenderer_OpenGL;
+
+		case bgfx::RendererType::OpenGLES:
+			return DoraShadercRenderer_OpenGLES;
 
 		case bgfx::RendererType::Metal:
 			return DoraShadercRenderer_Metal;
@@ -146,8 +148,26 @@ static long shaderGetFileSizeCallback(const char* path, void* userData) {
 	return s_cast<long>(fileData.size());
 }
 
-static std::string compileShaderSource(String source, ShaderStage stage, bool fromFile, std::string& err, String sourcePath = "") {
+static std::string compileShaderSource(String source, ShaderStage stage, bool fromFile,
+	std::string& err, String sourcePath = "", std::string* warnings = nullptr,
+	String varyingDef = "") {
 	std::string result;
+	err.clear();
+	if (warnings) warnings->clear();
+
+	int shadercMajor = 0;
+	int shadercMinor = 0;
+	int shadercPatch = 0;
+	DoraShadercGetVersion(&shadercMajor, &shadercMinor, &shadercPatch);
+	if (shadercMajor != DORA_SHADERC_VERSION_MAJOR
+		|| shadercMinor != DORA_SHADERC_VERSION_MINOR
+		|| shadercPatch != DORA_SHADERC_VERSION_PATCH) {
+		err = fmt::format(
+			"DoraShaderc ABI mismatch: engine expects {}.{}.{}, linked library is {}.{}.{}; rebuild the platform bgfx/shaderc libraries",
+			DORA_SHADERC_VERSION_MAJOR, DORA_SHADERC_VERSION_MINOR, DORA_SHADERC_VERSION_PATCH,
+			shadercMajor, shadercMinor, shadercPatch);
+		return result;
+	}
 
 	int doraRenderer = toDoraRenderer(bgfx::getRendererType());
 	if (doraRenderer < 0) {
@@ -179,6 +199,9 @@ static std::string compileShaderSource(String source, ShaderStage stage, bool fr
 		if (!dir.empty() && !filename.empty()) {
 			varyingDefPathStr = dir + "/varying.def.sc";
 			options.varyingDefPath = varyingDefPathStr.c_str();
+			if (!varyingDef.empty()) {
+				context.files[varyingDefPathStr] = varyingDef.toString();
+			}
 		}
 	}
 
@@ -197,6 +220,9 @@ static std::string compileShaderSource(String source, ShaderStage stage, bool fr
 		DoraShadercFreeResult(&compileResult);
 		return result;
 	}
+	if (warnings && compileResult.warningMessage) {
+		warnings->assign(compileResult.warningMessage);
+	}
 
 	if (compileResult.bytecode && compileResult.bytecodeSize > 0) {
 		result.resize(compileResult.bytecodeSize);
@@ -210,10 +236,11 @@ static std::string compileShaderSource(String source, ShaderStage stage, bool fr
 ShaderCompiler::ShaderCompiler()
 	: _thread(SharedAsyncThread.newThread()) { }
 
-std::string ShaderCompiler::compile(String source, ShaderStage stage, bool fromFile, std::string& err, String sourcePath) {
+std::string ShaderCompiler::compile(String source, ShaderStage stage, bool fromFile,
+	std::string& err, String sourcePath, std::string* warnings, String varyingDef) {
 	std::string result;
 	_thread->runInMainSync([&]() {
-		result = compileShaderSource(source, stage, fromFile, err, sourcePath);
+		result = compileShaderSource(source, stage, fromFile, err, sourcePath, warnings, varyingDef);
 	});
 	return result;
 }

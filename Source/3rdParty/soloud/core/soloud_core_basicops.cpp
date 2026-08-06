@@ -143,6 +143,20 @@ namespace SoLoud
 		result singleres = SO_NO_ERROR;
 		FOR_ALL_VOICES_PRE
 			singleres = mVoice[ch]->seek(aSeconds, mScratch.mData, mScratchSize);
+		if (singleres == SO_NO_ERROR)
+		{
+			// Seeking replaces both the decoder cursor and any read-ahead state
+			// saved while this voice was outside Dora's active Source budget.
+			mVoice[ch]->mSrcOffset = 0;
+			mVoice[ch]->mLeftoverSamples = 0;
+			mVoice[ch]->mVirtualResampleDataValid = false;
+			if (mVoice[ch]->mResampleData[0])
+				memset(mVoice[ch]->mResampleData[0], 0,
+					sizeof(float) * SAMPLE_GRANULARITY * MAX_CHANNELS);
+			if (mVoice[ch]->mResampleData[1])
+				memset(mVoice[ch]->mResampleData[1], 0,
+					sizeof(float) * SAMPLE_GRANULARITY * MAX_CHANNELS);
+		}
 		if (singleres != SO_NO_ERROR)
 			res = singleres;
 		FOR_ALL_VOICES_POST

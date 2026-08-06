@@ -26,6 +26,7 @@
 /// @brief Definition of the @c EdgeShapeConf class and closely related code.
 
 #include <array>
+#include <optional>
 
 // IWYU pragma: begin_exports
 
@@ -107,6 +108,30 @@ struct EdgeShapeConf : public ShapeBuilder<EdgeShapeConf>
         return ngon.GetVertices()[1];
     }
 
+    /// @brief Uses a vertex preceding vertex A for connected-edge topology.
+    EdgeShapeConf& UsePreviousVertex(const Length2& value) noexcept;
+
+    /// @brief Removes the preceding connected-edge vertex.
+    EdgeShapeConf& ClearPreviousVertex() noexcept;
+
+    /// @brief Gets the optional vertex preceding vertex A.
+    const std::optional<Length2>& GetPreviousVertex() const noexcept
+    {
+        return previousVertex;
+    }
+
+    /// @brief Uses a vertex following vertex B for connected-edge topology.
+    EdgeShapeConf& UseNextVertex(const Length2& value) noexcept;
+
+    /// @brief Removes the following connected-edge vertex.
+    EdgeShapeConf& ClearNextVertex() noexcept;
+
+    /// @brief Gets the optional vertex following vertex B.
+    const std::optional<Length2>& GetNextVertex() const noexcept
+    {
+        return nextVertex;
+    }
+
     /// @brief Vertex radius.
     /// @details This is the radius from the vertex that the shape's "skin" should
     ///   extend outward by. While any edges &mdash; line segments between multiple
@@ -115,6 +140,9 @@ struct EdgeShapeConf : public ShapeBuilder<EdgeShapeConf>
     ///   to edge lengths therefore will be more prone to rolling or having other
     ///   shapes more prone to roll off of them.
     NonNegativeFF<Length> vertexRadius = GetDefaultVertexRadius();
+
+    std::optional<Length2> previousVertex; ///< Optional preceding connectivity vertex.
+    std::optional<Length2> nextVertex; ///< Optional following connectivity vertex.
 
     NgonWithFwdNormals<2> ngon; ///< N-gon value of the object.
 };
@@ -133,7 +161,8 @@ inline bool operator==(const EdgeShapeConf& lhs, const EdgeShapeConf& rhs) noexc
     return lhs.vertexRadius == rhs.vertexRadius && lhs.friction == rhs.friction &&
            lhs.restitution == rhs.restitution && lhs.density == rhs.density &&
            lhs.filter == rhs.filter && lhs.isSensor == rhs.isSensor &&
-           lhs.ngon == rhs.ngon;
+           lhs.ngon == rhs.ngon && lhs.previousVertex == rhs.previousVertex &&
+           lhs.nextVertex == rhs.nextVertex;
 }
 
 /// @brief Inequality operator.
@@ -157,7 +186,8 @@ inline DistanceProxy GetChild(const EdgeShapeConf& arg, ChildCounter index)
     }
     return DistanceProxy{arg.vertexRadius, 2, // force line-break
         data(arg.ngon.GetVertices()), // explicitly decay array into pointer
-        data(arg.ngon.GetNormals()) // explicitly decay array into pointer
+        data(arg.ngon.GetNormals()), // explicitly decay array into pointer
+        arg.previousVertex, arg.nextVertex
     };
 }
 

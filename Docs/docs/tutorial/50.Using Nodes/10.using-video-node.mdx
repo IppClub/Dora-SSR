@@ -9,70 +9,62 @@ This tutorial will guide you through using VideoNode, including how to prepare v
 
 ## 1. Video Format Requirements
 
-Before using VideoNode, you need to prepare your video files in the correct format. VideoNode supports H.264 encoded video files with specific requirements:
+VideoNode accepts an Ogg container with a Theora video stream. Files are read through Dora Content, so packaged resources and mounted archives use the same path rules as other assets.
 
 ### 1.1 Supported Video Format
 
-- **Video codec**: H.264 / AVC only (H.265/HEVC, VP9, AV1, etc. are not supported)
-- **Bitstream format**: Annex-B byte stream format is required (NAL units separated by `0x000001` or `0x00000001` start codes)
-  - MP4/FLV-style AVCC (length-prefixed NAL units) is NOT supported unless converted to Annex-B beforehand
-- **Stream type**: Video-only elementary stream is recommended (audio tracks, if any, are ignored)
-- **Profile/level**: Baseline / Constrained Baseline profile is recommended for maximum compatibility
-- **Frame type**: Progressive frames only (no interlaced/field-coded content)
-- **B-frames**: No B-frames is recommended (e.g., baseline) to avoid output reordering costs
-- **Color format**: YUV 4:2:0 (8-bit) is recommended; other chroma formats may be unsupported
-- **Frame rate**: Constant frame rate (CFR) is recommended; variable frame rate streams may play with unstable timing
+- **Container**: Ogg (`.ogv`)
+- **Video codec**: Theora
+- **Color format**: Theora 4:2:0, 4:2:2, and 4:4:4 streams are accepted and converted to RGBA for rendering
+- **Audio**: VideoNode renders video only. Love Video may separately synchronize an audio `Source` through Dora SoLoud.
 - **Resolution/performance**:
   - 4K and high-bitrate streams may be CPU intensive for software decoding
   - For smooth playback on mid-range devices, 720p/1080p and moderate bitrates are recommended
 
 ### 1.2 Converting Videos Using FFmpeg
 
-It is recommended to use the `ffmpeg` tool to convert video files to the required H.264 format. Here are some example commands:
+Use an FFmpeg build with the `libtheora` encoder to create an Ogg/Theora file:
 
-#### Converting MP4 to H.264 Annex-B Format
+#### Converting MP4 to Ogg/Theora
 
 ```bash
-# Basic conversion: Extract video stream and convert to H.264 Annex-B format
-ffmpeg -i input.mp4 -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -an -bsf:v h264_mp4toannexb output.h264
+# Basic conversion
+ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -an output.ogv
 
 # With specific resolution and bitrate (recommended for better performance)
-ffmpeg -i input.mp4 -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -s 1280x720 -b:v 2M -r 30 -an -bsf:v h264_mp4toannexb output.h264
+ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -s 1280x720 -r 30 -an output.ogv
 
 # For 1080p video
-ffmpeg -i input.mp4 -c:v libx264 -profile:v baseline -level 3.1 -pix_fmt yuv420p -s 1920x1080 -b:v 4M -r 30 -an -bsf:v h264_mp4toannexb output.h264
+ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -s 1920x1080 -r 30 -an output.ogv
 ```
 
 **Parameter explanations:**
-- `-c:v libx264`: Use H.264 codec
-- `-profile:v baseline`: Use Baseline profile for maximum compatibility
-- `-level 3.0` or `3.1`: Set H.264 level (adjust based on resolution)
+- `-c:v libtheora`: Use the Theora encoder
+- `-q:v 7`: Select video quality (adjust for size and quality)
 - `-pix_fmt yuv420p`: Set pixel format to YUV 4:2:0
 - `-s 1280x720`: Set resolution (optional, adjust as needed)
-- `-b:v 2M`: Set video bitrate (optional, adjust as needed)
 - `-r 30`: Set frame rate to 30 fps (optional, adjust as needed)
 - `-an`: Remove audio track
-- `-bsf:v h264_mp4toannexb`: Convert from MP4 format to Annex-B format (critical!)
 
 #### Converting Other Formats
 
 ```bash
 # Convert from AVI
-ffmpeg -i input.avi -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -an -bsf:v h264_mp4toannexb output.h264
+ffmpeg -i input.avi -c:v libtheora -q:v 7 -pix_fmt yuv420p -an output.ogv
 
 # Convert from MOV
-ffmpeg -i input.mov -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -an -bsf:v h264_mp4toannexb output.h264
+ffmpeg -i input.mov -c:v libtheora -q:v 7 -pix_fmt yuv420p -an output.ogv
 ```
 
 :::tip Tip
-After conversion, make sure the output file has the `.h264` extension. Place the converted video file in your project's resource directory so it can be loaded by VideoNode.
+After conversion, keep the `.ogv` extension and place the file in the project's Content resource tree.
 :::
 
 ## 2. Creating a VideoNode Instance
 
 To create a VideoNode, you need to provide the path to the video file. The VideoNode constructor accepts two parameters:
 
-- `filename`: The path to the video file (should have `.h264` extension)
+- `filename`: The Content path to an Ogg/Theora video file (normally `.ogv`)
 - `looped`: (Optional) Whether the video should loop. Default is `false`
 
 <Tabs groupId="language-select">
@@ -82,10 +74,10 @@ To create a VideoNode, you need to provide the path to the video file. The Video
 local VideoNode <const> = require("VideoNode")
 
 -- Create a VideoNode that plays once
-local video = VideoNode("assets/video.h264")
+local video = VideoNode("assets/video.ogv")
 
 -- Create a VideoNode that loops
-local loopingVideo = VideoNode("assets/video.h264", true)
+local loopingVideo = VideoNode("assets/video.ogv", true)
 ```
 
 </TabItem>
@@ -95,10 +87,10 @@ local loopingVideo = VideoNode("assets/video.h264", true)
 local VideoNode <const> = require("VideoNode")
 
 -- Create a VideoNode that plays once
-local video = VideoNode("assets/video.h264")
+local video = VideoNode("assets/video.ogv")
 
 -- Create a VideoNode that loops
-local loopingVideo = VideoNode("assets/video.h264", true)
+local loopingVideo = VideoNode("assets/video.ogv", true)
 ```
 
 </TabItem>
@@ -108,10 +100,10 @@ local loopingVideo = VideoNode("assets/video.h264", true)
 import { VideoNode } from "Dora";
 
 // Create a VideoNode that plays once
-const video = VideoNode("assets/video.h264");
+const video = VideoNode("assets/video.ogv");
 
 // Create a VideoNode that loops
-const loopingVideo = VideoNode("assets/video.h264", true);
+const loopingVideo = VideoNode("assets/video.ogv", true);
 ```
 
 </TabItem>
@@ -121,10 +113,10 @@ const loopingVideo = VideoNode("assets/video.h264", true);
 _ENV = Dora
 
 -- Create a VideoNode that plays once
-video = VideoNode "assets/video.h264"
+video = VideoNode "assets/video.ogv"
 
 -- Create a VideoNode that loops
-loopingVideo = VideoNode "assets/video.h264", true
+loopingVideo = VideoNode "assets/video.ogv", true
 ```
 
 </TabItem>
@@ -146,7 +138,7 @@ local VideoNode <const> = require("VideoNode")
 local Vec2 <const> = require("Vec2")
 
 -- Create a VideoNode
-local video = VideoNode("assets/video.h264")
+local video = VideoNode("assets/video.ogv")
 
 if video then
 	-- Set position
@@ -165,7 +157,7 @@ local VideoNode <const> = require("VideoNode")
 local Vec2 <const> = require("Vec2")
 
 -- Create a VideoNode
-local video = VideoNode("assets/video.h264")
+local video = VideoNode("assets/video.ogv")
 
 if not video is nil then
 	-- Set position
@@ -183,7 +175,7 @@ end
 import { VideoNode, Vec2 } from "Dora";
 
 // Create a VideoNode
-const video = VideoNode("assets/video.h264");
+const video = VideoNode("assets/video.ogv");
 
 if (video) {
 	// Set position
@@ -201,7 +193,7 @@ if (video) {
 _ENV = Dora
 
 -- Create a VideoNode
-with VideoNode "assets/video.h264"
+with VideoNode "assets/video.ogv"
 	-- Set position
 	.position = Vec2 400, 300
 
@@ -228,7 +220,7 @@ local VideoNode <const> = require("VideoNode")
 local Vec2 <const> = require("Vec2")
 local Scale <const> = require("Scale")
 
-local video = VideoNode("assets/video.h264", true) -- Loop enabled
+local video = VideoNode("assets/video.ogv", true) -- Loop enabled
 
 if video then
 	-- Position the video
@@ -257,7 +249,7 @@ local VideoNode <const> = require("VideoNode")
 local Vec2 <const> = require("Vec2")
 local Scale <const> = require("Scale")
 
-local video = VideoNode("assets/video.h264", true) -- Loop enabled
+local video = VideoNode("assets/video.ogv", true) -- Loop enabled
 
 if not video is nil then
 	-- Position the video
@@ -284,7 +276,7 @@ end
 ```ts
 import { VideoNode, Vec2, Scale } from "Dora";
 
-const video = VideoNode("assets/video.h264", true); // Loop enabled
+const video = VideoNode("assets/video.ogv", true); // Loop enabled
 
 if (video) {
 	// Position the video
@@ -311,7 +303,7 @@ if (video) {
 ```yue
 _ENV = Dora
 
-with VideoNode "assets/video.h264", true -- Loop enabled
+with VideoNode "assets/video.ogv", true -- Loop enabled
 	-- Position the video
 	.position = Vec2 400, 300
 
@@ -384,7 +376,7 @@ local Vec2 <const> = require("Vec2")
 local Size <const> = require("Size")
 
 -- Create a looping video node
-local video = VideoNode("assets/background_video.h264", true)
+local video = VideoNode("assets/background_video.ogv", true)
 
 if video then
 	-- Scale to fit screen if needed
@@ -410,7 +402,7 @@ local Vec2 <const> = require("Vec2")
 local Size <const> = require("Size")
 
 -- Create a looping video node
-local video = VideoNode("assets/background_video.h264", true)
+local video = VideoNode("assets/background_video.ogv", true)
 
 if not video is nil then
 	-- Scale to fit screen if needed
@@ -434,7 +426,7 @@ end
 import { VideoNode, Vec2, Size, App } from "Dora";
 
 // Create a looping video node
-const video = VideoNode("assets/background_video.h264", true);
+const video = VideoNode("assets/background_video.ogv", true);
 
 if (video) {
 	// Scale to fit screen if needed
@@ -458,7 +450,7 @@ if (video) {
 _ENV = Dora
 
 -- Create a looping video node
-with VideoNode "assets/background_video.h264", true
+with VideoNode "assets/background_video.ogv", true
 	-- Scale to fit screen if needed
 	visualSize = App.visualSize
 	videoSize = .size
@@ -493,7 +485,7 @@ When using VideoNode, keep the following performance tips in mind:
 
 In this tutorial, you learned how to:
 
-- Prepare video files in the correct H.264 Annex-B format using FFmpeg
+- Prepare video files in the correct Ogg/Theora format using FFmpeg
 - Create VideoNode instances
 - Mount VideoNodes to the game scene (which automatically starts playback)
 - Control video display using Sprite properties

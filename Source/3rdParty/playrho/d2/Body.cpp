@@ -269,7 +269,11 @@ bool Body::Detach(ShapeID shapeId)
 
 void SetTransformation(Body& body, const Transformation& value) noexcept
 {
-    SetSweep(body, Sweep{Position{value.p, GetAngle(value.q)}, GetSweep(body).localCenter});
+    const auto localCenter = GetSweep(body).localCenter;
+    SetSweep(body, Sweep{
+        Position{Transform(localCenter, value), GetAngle(value.q)},
+        localCenter
+    });
 }
 
 void SetLocation(Body& body, const Length2& value)
@@ -284,7 +288,7 @@ Angle GetAngle(const Body& body) noexcept
 
 void SetAngle(Body& body, Angle value)
 {
-    SetSweep(body, Sweep{Position{GetSweep(body).pos1.linear, value}, GetLocalCenter(body)});
+    SetTransformation(body, Transformation{GetLocation(body), UnitVec::Get(value)});
 }
 
 Velocity GetVelocity(const Body& body, Time h) noexcept

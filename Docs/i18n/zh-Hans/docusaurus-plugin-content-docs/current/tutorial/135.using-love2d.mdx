@@ -1,0 +1,126 @@
+# 在 Dora SSR 中运行 Love2D 项目
+
+Dora SSR 可以把兼容 Love2D 11.5 的项目作为场景节点运行。每个
+`LoveNode` 都拥有独立的 Lua 5.5 state、虚拟窗口表面、事件队列、物理世界和
+音频总线。节点最终进入 Dora 场景树，因此 Dora 项目可以放置、缩放、隐藏、
+重启或同时运行多个 Love 项目，而不会把宿主窗口和应用主循环交给 Love。
+
+这里提供的是 Love 项目的源码与 API 兼容，不是 LuaJIT ABI 兼容，也不会嵌入
+SDL 的应用主循环。
+
+## 创建 LoveNode
+
+把 Love 项目放在 Dora Content 搜索路径中。最小项目仍使用标准 Love callback：
+
+```lua title="LoveGame/main.lua"
+local love = require("love")
+
+function love.load()
+	message = "来自独立 Love state 的问候"
+end
+
+function love.update(dt)
+	-- 只更新当前 Love 实例。
+end
+
+function love.draw()
+	love.graphics.clear(0.05, 0.08, 0.12, 1)
+	love.graphics.print(message, 24, 24)
+end
+```
+
+在普通 Dora 程序中创建节点：
+
+```lua title="Script/init.lua"
+local _ENV = Dora
+
+local game = LoveNode("LoveGame/main.lua")
+if game then
+	game.position = game.position + Vec2(80, 40)
+	game.scaleX = 0.75
+	game.scaleY = 0.75
+	game:addTo(Director.entry)
+end
+```
+
+`conf.lua`、`main.lua` 和项目模块相对 Love source root 解析，也可以加载
+`.love` ZIP 包。读取、写入、mount、模块加载和包 staging 全部经过 Dora
+`Content`；隔离 state 不能加载 native Lua module，也不能用宿主绝对路径绕过
+Content 策略。
+
+`game:restart()` 会先关闭旧 state 及其实例资源，再启动一个全新的 state。
+运行错误或普通 `love.event.quit()` 只停止当前节点。`love.event.quit("restart")`
+会在 `love.quit()` 返回后对当前 LoveNode 执行同样的完整重启；callback 返回真值可取消请求。
+
+## 编辑器与多语言支持
+
+Love 定义按需启用，并继续使用 Dora 现有编译流程：
+
+- Lua、Teal、YueScript：`local love = require("love")`
+- TypeScript 和 TSX：`import "love"`
+
+普通 Dora 文件不会默认获得 `love` 定义，也没有首行注释、项目 profile、Love
+专属 TSX 转换等特殊规则。因此同一个项目可以混合 Dora 与 Love 源码，而不会
+污染其他文件的全局定义。TypeScript、Teal、YueScript 的运行错误会映射回原始
+源码位置。
+
+引擎随附的声明文件是当前可调用函数和对象方法的权威清单。下表描述更高层的
+模块支持边界。
+
+## 兼容状态
+
+- **已支持**：表中说明的嵌入式子集已经实现，并有自动化与平台运行测试。
+- **部分支持**：常用 API 已可用，但该 Love 模块尚未完整实现。
+- **延后**：明确不属于首版嵌入运行时。
+
+| 模块 | 状态 | 已实现范围和重要限制 |
+| --- | --- | --- |
+| Root callbacks | 已支持 | `load`、`update`、`draw`、`quit`、宿主驱动的 `run`，以及当前已实现的输入和接触回调。Dora 始终拥有主循环。 |
+| `love.graphics` | 部分支持 | 包含 background/default filter/reset/stack depth、rough/smooth line style、miter/bevel/none join 与 wireframe 的 DisplayState、二维仿射变换 apply/replace/point 转换、renderer limits/capabilities、texture type、Love 11.5 image format、renderer info、LoveNode 实例级 `getStats`、顺序/性能提示 `discard/flushBatch`、图元、ImageData/CompressedImageData→Image 上传、Image/ArrayImage 选层绘制/Quad/Font/ImageFont/Text、Canvas/MRT、Mesh、SpriteBatch、ParticleSystem、硬件 instancing、Shader、stencil/depth/cull/scissor intersection/blend 和读回子集。Canvas table setup 支持临时 depth/stencil、由 renderer 能力决定的 D16/D24/D32F/D24S8 Canvas、自定义颜色+depth/stencil 组合和 depth-only 目标，并事务式校验附件角色、owner、尺寸、MSAA、反馈和生命周期。`newImageFont` 支持 ImageData、FileData、Content 路径或 ImageRasterizer，保留 separator 透明、spacing、DPI、可变 glyph 宽度与合并 textured-mesh 绘制；ImageFont 之间支持 fallback，但会拒绝 ImageFont 与 TrueType 混用。`drawLayer` 与 `draw(ArrayImage)` 已支持显式、默认和 Quad layer 的真实像素绘制。SpriteBatch 可使用二维 Image/Canvas 或 ArrayImage；`add` 采用 Quad layer，`addLayer/setLayer` 显式选择一基层，同批混合多个 ArrayImage layer 仍只提交一次 indexed draw，并同时支持内部默认数组 effect 与自定义 `extern ArrayImage MainTex` Shader。`attachAttribute` 会强引用 Mesh，可替换内建 position/texture-coordinate/color 流或向 Shader 提供自定义 attribute，并按 Love 语义校验完整批次所需的顶点数。自定义 Shader 可采样 `VaryingTexCoord.xyz`；GLSL3 custom vertex attribute 支持跨目标安全的 `layout(location = 4..15) in`，命名或匿名的浮点/矩阵/integer/boolean interface block、固定成员数组、block 实例数组、固定命名及可递归内联匿名嵌套 struct、direct/interface/struct 同类型多声明符、动态多级索引、单个插值限定符和合法的 `smooth centroid` / `noperspective centroid` 组合会进入同一 varying 链路。integer/boolean varying 必须显式使用 `flat`，完整 32-bit signed/unsigned 值已在 Metal 与 OpenGL ES 保持。drawable 类型不匹配、字体纹理和无纹理图元会在提交前拒绝。虚拟 surface 的 DPI 固定为 1；默认及逐纹理 min/mag filter 必须相同。line style/join 已使用真实细分几何、smooth alpha fringe，并按 Love 顺序在细分后应用包括非均匀 scale/shear 的二维仿射矩阵。wireframe 会把三角形提交展开为 renderer line-list 边且不影响 points；由于 line-list 不再携带三角形面，和 face cull 组合时不声明逐像素等价。Stats 只计算该 LoveNode 的兼容层命令提交和自有资源，不混入 Dora 全局渲染及共享系统字体 atlas。压缩纹理支持取决于 renderer，Love 12 `getTextureFormats` 不开放；其它 GLSL `layout`、layered/mipmap Canvas 和部分扩展 batch 路径仍未实现。 |
+| `love.window` | 部分支持 | 每节点虚拟表面的尺寸、`getMode`/`setMode`/Love 11.5 `updateMode`、像素换算、单虚拟 display、safe-area/orientation/open/visible/focus 查询，以及实例局部 title/vsync/display-sleep 请求。仅 settings 的 `updateMode` 保留当前尺寸和未指定设置；宿主所有的 fullscreen/high-DPI/display 变更事务式失败。close、移动、最小/最大化、attention、icon 和 message box 等宿主动作仍不可用。 |
+| `love.event` | 部分支持 | 实例独立 FIFO，支持 `pump`、`poll`、`wait`、`push`、`clear`、`quit`。空队列 `wait` 立即返回，避免阻塞宿主线程造成事件投递死锁；`quit("restart")` 与 `push("quit", "restart")` 在 callback 退栈后只完整重启当前 LoveNode，且可由 `love.quit()` 取消。 |
+| `love.timer` | 已支持 | 宿主驱动的 `step`、delta/FPS/average delta、`sleep` 和 `getTime`。 |
+| `love.keyboard` | 部分支持 | Love 11.5 九方法全方法面已接入：实例 repeat、key/scancode vararg/table 查询、当前布局转换、屏幕键盘查询、焦点路由、文本输入/编辑回调和候选窗矩形投影。常量使用固定 Love 11.5 表；其他物理布局、系统自动重复和真实候选窗位置仍待平台验收。 |
+| `love.mouse` | 部分支持 | Love 11.5 全部 18 个模块方法和 Cursor 对象均已接入：位置、vararg/table `isDown`、可见性、grab、relative mode、ImageData/Content filename/FileData 自定义 cursor 与十二种 system cursor，以及按键、点击次数、移动、滚轮、节点局部坐标和 mouse/touch 来源分离。只有焦点 LoveNode 操作宿主，失焦、重启和退出恢复默认；物理多键 chording 与更多平台体验仍待验收。 |
+| `love.touch` | 部分支持 | 按下/移动/释放、触点枚举、位置、压力和稳定 lightuserdata ID。当前路由压力固定为 1，物理多点触控仍待验证。 |
+| `love.joystick` | 部分支持 | Love 11.5 模块完整方法面和 21 方法 Joystick 对象已接入：枚举、稳定对象、1-based ID、元数据、原始/gamepad 查询、mapping 查询/修改/载入/保存、rumble 与 callback。Mapping 按 GUID 对应用全局生效，但 mapping 文件仍使用调用实例的 Content source/save 视图；物理输入和震动输出仍需设备验收。 |
+| `love.filesystem` | 部分支持 | source/save identity、读写追加、load/lines、File/FileData、目录、Lua require path、ZIP/FileData mount、`.love` source，以及 deprecated 的存在性/类型/大小/时间查询。所有 I/O 经过 Dora `Content`；Content 没有时间戳契约时修改时间会明确返回不可用。不开放 native C module、宿主 symlink 开关和任意宿主路径。 |
+| `love.audio` | 部分支持 | static/stream Source 与 8/16-bit mono/stereo Queueable Source 由 Dora `AudioSource` 节点承载；支持 play/pause/stop、active count、clone、loop、volume、pitch、seek/tell、有界 PCM queue、空间 Source 属性、volume limits、direct filter 与经明确记录差异的 SoLoud 命名 effect 近似适配。listener、Doppler scale、七种 distance model 及 iOS `setMixWithSystem` 音频会话策略按整个 Dora 应用共享，Source/effect 所有权与实例 AudioBus 仍隔离。`setMixWithSystem` 在 iOS 切换 Ambient/SoloAmbient，其他平台按 Love 11.5 返回 false。`getRecordingDevices` 和 RecordingDevice 九方法通过 SDL 有界内存 capture 实现，返回 SoundData，不经过 Content 或 SoLoud。物理输入、权限弹窗与设备热插拔仍待平台验收。 |
+| `love.sound` | 部分支持 | SoundData 构造和 sample 访问；WAV/OGG/MP3/FLAC 解码；Decoder 分块、seek、clone、metadata 和转 SoundData。 |
+| `love.image` | 部分支持 | Love 11.5 全部 17 种 ImageData pixel format、Content 解码、clone、pixel、map/paste、Data 查询和 PNG/TGA 两种 encode。TGA 已通过 Content 保存/读取、bimg 解码、GPU 上传和 framebuffer 读回。`newCompressedData`、`isCompressed` 与 CompressedImageData 的 Data/clone/format/mipmap 查询走 Content→bimg 路径；CompressedImageData 可用 base mip 或显式完整 mip chain 创建 graphics Image，DDS/DXT1 三层纹理已通过 Metal 验证。其他压缩格式/renderer 组合仍未完整覆盖。 |
+| `love.font` | 已支持 | 独立 Image、TrueType 与文本 BMFont Rasterizer，RGBA8/LA8 GlyphData/Data、`newGlyphData/newRasterizer`，以及 `love.graphics.Font` 的测量、换行、glyph 查询、kerning、line height 和 fallback。TrueType 与 BMFont descriptor/page 全部走 Content/Data，支持多页和相对 descriptor 的 page 加载；目标不含 AngelCode 二进制 BMFont，stb hinting 也不宣称与 Love 的 FreeType 后端逐像素一致。 |
+| `love.data` | 部分支持 | ByteData、DataView、CompressedData、hex/base64、zlib/gzip/deflate/LZ4、MD5/SHA 和 Lua pack/unpack。不提供 FFI pointer。 |
+| `love.math` | 部分支持 | RandomGenerator、颜色/gamma、convex/triangulation、Love 11.5 noise、Transform 和 BezierCurve。Love 12 才有的 `perlinNoise`/`simplexNoise` 名称不属于目标版本。 |
+| `love.physics` | 部分支持 | 独立 PlayRho world；World/Body/Fixture/Contact；Circle/Rectangle/Polygon/Edge/Chain（含 external ghost topology）；query/raycast；Love 11.5 全部十一类 Joint。新版 Box2D 3 单边 Chain 和 Love 12 `getDistance` 不是目标语义。 |
+| `love.system` | 部分支持 | OS/CPU/power、clipboard、受限 HTTP/HTTPS/mailto URL、vibration 参数语义和 background music 查询。移动设备行为仍待平台验证。 |
+| `love.thread` | 部分支持 | Thread 使用独立 Lua 5.5 state；已实现 runtime 作用域 Channel、阻塞/原子操作、Data/table 复制、`threaderror`、经 Content 的 worker 文件操作、restart/close 取消及截图 Channel。macOS 与 Linux ARM64 已验收，其余平台运行矩阵仍在进行。 |
+| `love.video` | 部分支持 | 已支持 Content 输入的 Ogg/Theora `VideoStream`、可绘制 `Video` 及 Vorbis/SoLoud Source 音画同步；macOS 与 Linux ARM64 已验证 Content 加载、暂停像素稳定、跨 EOF loop 像素和清理，其余平台播放矩阵仍在扩充。 |
+| Audio recording | 部分支持 | 已实现 SDL capture 设备枚举与 Love 11.5 RecordingDevice API；物理麦克风和权限行为仍待平台验收。 |
+
+## Lua 兼容边界
+
+Love state 使用 Lua 5.5。支持源代码、当前 Lua 5.5 bytecode、`unpack`、
+`loadstring`、`package.loaders` 和 32-bit `bit` 兼容模块。`getfenv/setfenv`
+对 Lua 函数和正数调用栈层级提供有限源码兼容；`getfenv(0)` 返回隔离 state
+的全局表，而 Lua 5.5 无法等价支持 `setfenv(0, env)` 替换 Lua 5.1 thread
+environment，因此会返回定向错误。LuaJIT `ffi`、`jit`、LuaJIT/Lua 5.1
+bytecode 以及 Lua 5.1 ABI native module 同样会被定向拒绝。请提供源码，
+或使用 Dora 随附的 Lua 5.5 重新编译 bytecode。
+
+## 当前平台证据
+
+macOS 已完成当前子集的构建与运行证据，包括 Metal 像素测试、SoLoud 音频、
+PlayRho 物理、多实例隔离、重载和 Sanitizer。iOS Simulator 已完成 target 构建，
+并实跑 Canvas 读回、多实例、基础 SoLoud Source 生命周期、十三场景高级图形矩阵
+和完整 PlayRho PhysicsScene。Android 已完成三 ABI 打包，并在 Android 14 / API 34
+AVD 上通过双 LoveNode、同一套 OpenGL ES 高级图形与物理矩阵，以及系统注入的
+单点/多点触摸、键盘和显式 IME 焦点/文本链路。
+
+Linux ARM64 已从当前源码构建，并在 Ubuntu 26.04 中通过 Dora 标准
+`Script.Dev.Entry` 启动。Mesa llvmpipe OpenGL ES 3.0 下已通过完整 Mouse/Cursor、
+RGBA8/MSAA Canvas 读回、PlayRho 物理、十三场景高级图形矩阵、两个隔离 LoveNode、
+跨 restart 的两代 native Thread，以及从 RenderTarget 读回的 Ogg/Theora VideoNode 像素。
+该 headless 运行使用 Xvfb 与 SDL dummy audio，因此不能证明物理输入、真实显示驱动或可听输出。
+Windows 当前仍只有工程清单审计证据；移动真机物理 I/O、麦克风、触觉、跨应用音频
+竞争和可听输出也继续作为发布验收项。在对应 Dora 发行版明确列出支持平台前，不应把
+上表的“已支持”理解为已经完成全部发布平台矩阵。

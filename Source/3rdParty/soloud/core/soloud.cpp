@@ -22,6 +22,7 @@ freely, subject to the following restrictions:
    distribution.
 */
 
+#include <algorithm>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h> // sin
@@ -29,6 +30,7 @@ freely, subject to the following restrictions:
 #include "soloud_internal.h"
 #include "soloud_thread.h"
 #include "soloud_fft.h"
+#include "soloud_spatial_gain.h"
 
 
 #ifdef SOLOUD_SSE_INTRINSICS
@@ -164,7 +166,10 @@ namespace SoLoud
 		m3dVelocity[1] = 0;
 		m3dVelocity[2] = 0;		
 		m3dSoundSpeed = 343.3f;
+		m3dDopplerScale = 1.0f;
+		m3dDistanceModel = DISTANCE_INVERSE_CLAMPED;
 		mMaxActiveVoices = 16;
+		mMaxActiveSourceVoices = 16;
 		mHighestVoice = 0;
 		mResampleData = NULL;
 		mResampleDataOwner = NULL;
@@ -1713,6 +1718,36 @@ namespace SoLoud
 									mStreamTime);
 							}
 						}
+
+						if (voice->mUseSpatialHighFrequencyFilter)
+						{
+							if (voice->mSpatialHighShelfGain != voice->mSpatialHighFrequencyGain
+								|| voice->mSpatialHighShelfSamplerate != voice->mSamplerate)
+							{
+								const HighShelfCoefficients coefficients = calculateOpenALHighShelf(
+									voice->mSamplerate, voice->mSpatialHighFrequencyGain);
+								voice->mSpatialHighShelfB0 = coefficients.b0;
+								voice->mSpatialHighShelfB1 = coefficients.b1;
+								voice->mSpatialHighShelfB2 = coefficients.b2;
+								voice->mSpatialHighShelfA1 = coefficients.a1;
+								voice->mSpatialHighShelfA2 = coefficients.a2;
+								voice->mSpatialHighShelfGain = voice->mSpatialHighFrequencyGain;
+								voice->mSpatialHighShelfSamplerate = voice->mSamplerate;
+							}
+							const HighShelfCoefficients coefficients{
+								voice->mSpatialHighShelfB0, voice->mSpatialHighShelfB1,
+								voice->mSpatialHighShelfB2, voice->mSpatialHighShelfA1,
+								voice->mSpatialHighShelfA2};
+							for (unsigned int channel = 0; channel < voice->mChannels; ++channel)
+							{
+								float &state1 = voice->mSpatialHighShelfState1[channel];
+								float &state2 = voice->mSpatialHighShelfState2[channel];
+								float *samples = voice->mResampleData[0] + channel * SAMPLE_GRANULARITY;
+								for (unsigned int sample = 0; sample < SAMPLE_GRANULARITY; ++sample)
+									samples[sample] = processHighShelfSample(samples[sample],
+										coefficients, state1, state2);
+							}
+						}
 					}
 					else
 					{
@@ -1919,7 +1954,7 @@ namespace SoLoud
 		unsigned int i, j;
 		for (i = 0; i < mMaxActiveVoices; i++)
 		{
-			for (j = 0; j < mMaxActiveVoices; j++)
+			for (j = 0; j < mActiveVoiceCount; j++)
 			{
 				if (mResampleDataOwner[i] && mResampleDataOwner[i] == mVoice[mActiveVoice[j]])
 				{
@@ -1933,8 +1968,22 @@ namespace SoLoud
 		{
 			if (!(live[i] & 1) && mResampleDataOwner[i]) // For all dead channels with owners..
 			{
-				mResampleDataOwner[i]->mResampleData[0] = 0;
-				mResampleDataOwner[i]->mResampleData[1] = 0;
+				AudioSourceInstance *voice = mResampleDataOwner[i];
+				const unsigned int samples = SAMPLE_GRANULARITY * voice->mChannels;
+				const unsigned int savedSize = samples * 2;
+				if (voice->mVirtualResampleDataSize < savedSize)
+				{
+					delete[] voice->mVirtualResampleData;
+					voice->mVirtualResampleData = new float[savedSize];
+					voice->mVirtualResampleDataSize = savedSize;
+				}
+				memcpy(voice->mVirtualResampleData,
+					voice->mResampleData[0], sizeof(float) * samples);
+				memcpy(voice->mVirtualResampleData + samples,
+					voice->mResampleData[1], sizeof(float) * samples);
+				voice->mVirtualResampleDataValid = true;
+				voice->mResampleData[0] = 0;
+				voice->mResampleData[1] = 0;
 				mResampleDataOwner[i] = 0;
 			}
 		}
@@ -1954,10 +2003,25 @@ namespace SoLoud
 				}
 				SOLOUD_ASSERT(found != -1);
 				mResampleDataOwner[found] = mVoice[mActiveVoice[i]];
-				mResampleDataOwner[found]->mResampleData[0] = mResampleData[found * 2 + 0];
-				mResampleDataOwner[found]->mResampleData[1] = mResampleData[found * 2 + 1];
-				memset(mResampleDataOwner[found]->mResampleData[0], 0, sizeof(float) * SAMPLE_GRANULARITY * MAX_CHANNELS);
-				memset(mResampleDataOwner[found]->mResampleData[1], 0, sizeof(float) * SAMPLE_GRANULARITY * MAX_CHANNELS);
+				AudioSourceInstance *voice = mResampleDataOwner[found];
+				voice->mResampleData[0] = mResampleData[found * 2 + 0];
+				voice->mResampleData[1] = mResampleData[found * 2 + 1];
+				if (voice->mVirtualResampleDataValid)
+				{
+					const unsigned int samples = SAMPLE_GRANULARITY * voice->mChannels;
+					memcpy(voice->mResampleData[0],
+						voice->mVirtualResampleData, sizeof(float) * samples);
+					memcpy(voice->mResampleData[1],
+						voice->mVirtualResampleData + samples, sizeof(float) * samples);
+					voice->mVirtualResampleDataValid = false;
+				}
+				else
+				{
+					memset(voice->mResampleData[0], 0,
+						sizeof(float) * SAMPLE_GRANULARITY * MAX_CHANNELS);
+					memset(voice->mResampleData[1], 0,
+						sizeof(float) * SAMPLE_GRANULARITY * MAX_CHANNELS);
+				}
 				latestfree = found + 1;
 			}
 		}
@@ -1990,40 +2054,62 @@ namespace SoLoud
 			}
 		}
 
-		// Check for early out
-		if (candidates <= mMaxActiveVoices)
+		if (mustlive >= mMaxActiveVoices)
 		{
-			// everything is audible, early out
+			// Mandatory ticking buses consumed the whole resampling table. Map the
+			// selected buses so overload degrades to virtual leaf voices instead of
+			// dereferencing null resampling buffers in the audio thread.
+			mActiveVoiceCount = mMaxActiveVoices;
+			mapResampleBuffers_internal();
+			return;
+		}
+
+		// Dora modification: routing capacity and active Source capacity are
+		// independent within the same active list. Buses must tick to route
+		// filtered children, but they do not consume the Source budget.
+		const unsigned int sourceSlots = (std::min)(mMaxActiveSourceVoices,
+			mMaxActiveVoices - mustlive);
+		const unsigned int selectedVoices = mustlive + sourceSlots;
+
+		// Check for early out
+		if (candidates <= selectedVoices)
+		{
+			// everything is active, early out
 			mActiveVoiceCount = candidates;
 			mapResampleBuffers_internal();
 			return;
 		}
 
-		mActiveVoiceCount = mMaxActiveVoices;
+		mActiveVoiceCount = selectedVoices;
 
-		if (mustlive >= mMaxActiveVoices)
-		{
-			// Oopsie. Well, nothing to sort, since the "must live" voices already
-			// ate all our active voice slots.
-			// This is a potentially an error situation, but we have no way to report
-			// error from here. And asserting could be bad, too.
-			return;
-		}
-
-		// If we get this far, there's nothing to it: we'll have to sort the voices to find the most audible.
+		// Sort candidate Source voices by routed gain to select the active subset.
+		auto routedVolume = [this](unsigned int aVoice) {
+			float volume = fabsf(mVoice[aVoice]->mOverallVolume);
+			unsigned int busHandle = mVoice[aVoice]->mBusHandle;
+			// A normal Love Source has two levels (Source bus -> LoveNode bus).
+			// Keep a hard bound so malformed custom bus graphs cannot loop forever.
+			for (unsigned int depth = 0; depth < 16 && busHandle != 0 && busHandle != ~0u; ++depth)
+			{
+				const int bus = getVoiceFromHandle_internal(busHandle);
+				if (bus < 0 || !mVoice[bus]) break;
+				volume *= fabsf(mVoice[bus]->mOverallVolume);
+				busHandle = mVoice[bus]->mBusHandle;
+			}
+			return volume;
+		};
 
 		// Iterative partial quicksort:
 		int left = 0, stack[24], pos = 0, right;
 		int len = candidates - mustlive;
 		unsigned int *data = mActiveVoice + mustlive;
-		int k = mActiveVoiceCount;
+		int k = mActiveVoiceCount - mustlive;
 		for (;;) 
 		{                                 
 			for (; left + 1 < len; len++) 
 			{                
 				if (pos == 24) len = stack[pos = 0]; 
 				int pivot = data[left];
-				float pivotvol = mVoice[pivot]->mOverallVolume;
+				float pivotvol = routedVolume(pivot);
 				stack[pos++] = len;      
 				for (right = left - 1;;) 
 				{
@@ -2031,12 +2117,12 @@ namespace SoLoud
 					{
 						right++;
 					} 
-					while (mVoice[data[right]]->mOverallVolume > pivotvol);
+					while (routedVolume(data[right]) > pivotvol);
 					do
 					{
 						len--;
 					}
-					while (pivotvol > mVoice[data[len]]->mOverallVolume);
+					while (pivotvol > routedVolume(data[len]));
 					if (right >= len) break;       
 					int temp = data[right];
 					data[right] = data[len];
@@ -2141,7 +2227,6 @@ namespace SoLoud
 				}
 
 				mVoice[i]->mStreamTime += buffertime;
-				mVoice[i]->mStreamPosition += (double)buffertime * (double)mVoice[i]->mOverallRelativePlaySpeed;
 
 				// TODO: this is actually unstable, because mStreamTime depends on the relative
 				// play speed. 
@@ -2192,6 +2277,22 @@ namespace SoLoud
 
 		if (mActiveVoiceDirty)
 			calcActiveVoices_internal();
+
+		// Stream time drives faders and scheduled operations for every voice which
+		// is not explicitly paused. Stream position, however, describes decoded
+		// playback progress. Voices omitted from the single active list by Dora's
+		// Source budget do not call getAudio(), so advancing their position here
+		// would make the reported cursor diverge from the decoder cursor. Keep
+		// those voices pause-like until they can re-enter mActiveVoice.
+		for (i = 0; i < (signed)mActiveVoiceCount; ++i)
+		{
+			AudioSourceInstance *voice = mVoice[mActiveVoice[i]];
+			if (voice && !(voice->mFlags & AudioSourceInstance::PAUSED))
+			{
+				voice->mStreamPosition += (double)buffertime
+					* (double)voice->mOverallRelativePlaySpeed;
+			}
+		}
 	
 		mixBus_internal(mOutputScratch.mData, aSamples, aStride, mScratch.mData, 0, (float)mSamplerate, mChannels, mResampler);
 

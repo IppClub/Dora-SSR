@@ -5617,6 +5617,14 @@ extern "C"
 #define BGFX_TEXTURE_FORMAT_BIMG(_fmt) \
 	static_assert(uint32_t(bgfx::TextureFormat::_fmt) == uint32_t(bimg::TextureFormat::_fmt) )
 
+// Keep the pre-existing bgfx C/C++ texture format ABI stable for Dora's
+// separately built native libraries. New formats must be appended after D0S8.
+static_assert(uint32_t(bgfx::TextureFormat::Unknown) == 34);
+static_assert(uint32_t(bgfx::TextureFormat::RGBA8) == 67);
+static_assert(uint32_t(bgfx::TextureFormat::D0S8) == 95);
+static_assert(uint32_t(bgfx::TextureFormat::EACR) == 96);
+static_assert(uint32_t(bgfx::TextureFormat::Count) == 100);
+
 BGFX_TEXTURE_FORMAT_BIMG(BC1);
 BGFX_TEXTURE_FORMAT_BIMG(BC2);
 BGFX_TEXTURE_FORMAT_BIMG(BC3);
@@ -5651,6 +5659,10 @@ BGFX_TEXTURE_FORMAT_BIMG(ASTC10x8);
 BGFX_TEXTURE_FORMAT_BIMG(ASTC10x10);
 BGFX_TEXTURE_FORMAT_BIMG(ASTC12x10);
 BGFX_TEXTURE_FORMAT_BIMG(ASTC12x12);
+BGFX_TEXTURE_FORMAT_BIMG(EACR);
+BGFX_TEXTURE_FORMAT_BIMG(EACRS);
+BGFX_TEXTURE_FORMAT_BIMG(EACRG);
+BGFX_TEXTURE_FORMAT_BIMG(EACRGS);
 BGFX_TEXTURE_FORMAT_BIMG(Unknown);
 BGFX_TEXTURE_FORMAT_BIMG(R1);
 BGFX_TEXTURE_FORMAT_BIMG(A8);

@@ -21,6 +21,12 @@ public:
 
 class RendererManager : public NonCopyable {
 public:
+	struct ScissorState {
+		uint16_t x = 0;
+		uint16_t y = 0;
+		uint16_t width = 0;
+		uint16_t height = 0;
+	};
 	PROPERTY(Renderer*, Current);
 	PROPERTY_READONLY(uint32_t, CurrentStencilState);
 	PROPERTY_READONLY_BOOL(Grouping);
@@ -31,6 +37,7 @@ public:
 	 * regular 2D batches can depth-test against the 3D scene.
 	 */
 	uint64_t applyState(uint64_t state) const noexcept;
+	bool getCurrentScissorState(ScissorState& state) const noexcept;
 
 	template <typename Func>
 	void pushState(uint64_t state, const Func& workHere) {
@@ -46,6 +53,20 @@ public:
 		popStencilState();
 	}
 
+	template <typename Func>
+	void pushScissorState(ScissorState scissorState, const Func& workHere) {
+		pushScissorState(scissorState);
+		workHere();
+		popScissorState();
+	}
+
+	template <typename Func>
+	void pushStateOverride(uint64_t mask, uint64_t state, const Func& workHere) {
+		pushStateOverride(mask, state);
+		workHere();
+		popStateOverride();
+	}
+
 	void pushGroupItem(Node* item);
 
 	template <typename Func>
@@ -59,16 +80,25 @@ protected:
 	RendererManager();
 	void pushStencilState(uint32_t stencilState);
 	void popStencilState();
+	void pushScissorState(ScissorState scissorState);
+	void popScissorState();
 	void pushGroup(uint32_t capacity);
 	void popGroup();
 	void pushState(uint64_t state);
 	void popState();
+	void pushStateOverride(uint64_t mask, uint64_t state);
+	void popStateOverride();
 
 private:
 	std::stack<uint32_t> _stencilStates;
+	std::vector<ScissorState> _scissorStates;
 	Renderer* _currentRenderer;
 	std::stack<Own<std::vector<Node*>>> _renderGroups;
-	std::stack<uint64_t> _stateOverrides;
+	struct StateOverride {
+		uint64_t mask = 0;
+		uint64_t state = 0;
+	};
+	std::vector<StateOverride> _stateOverrides;
 	SINGLETON_REF(RendererManager, BGFXDora);
 };
 

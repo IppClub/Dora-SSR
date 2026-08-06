@@ -76,6 +76,7 @@ pub extern "C" fn dora_3d_cleanup() {
 	visual3d::clear_registry();
 	super::material::clear_registry();
 	shader::clear_environment_cache();
+	shader::clear_shader_resources();
 	super::mesh::clear_registry();
 	super::texture::clear_registry();
 	camera3d::clear_registry();

@@ -46,6 +46,12 @@ struct VertexColor {
 	Color color;
 };
 
+struct DrawVertexInput {
+	Vec4 position;
+	Vec4 color;
+	Vec2 texCoord;
+};
+
 class DrawNode : public Node {
 public:
 	PROPERTY_CREF(BlendFunc, BlendFunc);
@@ -60,6 +66,8 @@ public:
 	void drawPolygon(const std::vector<Vec2>& verts, Color fillColor, float borderWidth, Color borderColor);
 	void drawPolygon(const Vec2* verts, uint32_t count, Color fillColor, float borderWidth = 0.0f, Color borderColor = Color());
 	void drawVertices(const std::vector<VertexColor>& verts);
+	void drawIndexedVertices(const std::vector<DrawVertexInput>& verts,
+		const std::vector<uint16_t>& indices);
 	void clear();
 	CREATE_FUNC_NOT_NULL(DrawNode);
 

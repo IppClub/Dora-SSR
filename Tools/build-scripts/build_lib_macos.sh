@@ -43,6 +43,8 @@ esac
 
 "$SCRIPT_DIR/build_lib_sdl2.sh" macos "--$BUILD_MODE" "$TARGET_ARCH"
 "$SCRIPT_DIR/build_lib_bgfx.sh" macos "--$BUILD_MODE" "$TARGET_ARCH"
+"$SCRIPT_DIR/build_lib_love.sh" macos "--$BUILD_MODE" "$TARGET_ARCH"
+"$SCRIPT_DIR/build_lib_theora.sh" macos "--$BUILD_MODE" "$TARGET_ARCH"
 "$SCRIPT_DIR/build_lib_wa.sh" macos "$BUILD_MODE" "$TARGET_ARCH"
 
 cd "$SCRIPT_DIR/../../Source/Rust"

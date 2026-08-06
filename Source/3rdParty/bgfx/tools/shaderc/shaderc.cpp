@@ -449,18 +449,24 @@ namespace bgfx
 		}
 	}
 
-	const char* interpolationDx11(const char* _glsl)
+	std::string interpolationDx11(const char* _glsl)
 	{
-		if (0 == bx::strCmp(_glsl, "smooth") )
+		std::string result;
+		const char* current = _glsl;
+		while ('\0' != *current)
 		{
-			return "linear";
+			while (' ' == *current || '\t' == *current) ++current;
+			const char* end = current;
+			while ('\0' != *end && ' ' != *end && '\t' != *end) ++end;
+			if (end == current) break;
+			const std::string token(current, end);
+			if (!result.empty() ) result += ' ';
+			if (token == "smooth") result += "linear";
+			else if (token == "flat") result += "nointerpolation";
+			else result += token; // centroid, noperspective
+			current = end;
 		}
-		else if (0 == bx::strCmp(_glsl, "flat") )
-		{
-			return "nointerpolation";
-		}
-
-		return _glsl; // centroid, noperspective
+		return result;
 	}
 
 	const char* shadercGetUniformTypeName(UniformType::Enum _enum)
@@ -1407,7 +1413,7 @@ namespace bgfx
 				eol.set(eol.getPtr() + 1, parse.getTerm() );
 
 				bx::StringView precision;
-				bx::StringView interpolation;
+				std::string interpolation;
 				bx::StringView typen = nextWord(parse);
 
 				if (0 == bx::strCmp(typen, "lowp", 4)
@@ -1418,16 +1424,17 @@ namespace bgfx
 					typen = nextWord(parse);
 				}
 
-				if (0 == bx::strCmp(typen, "flat", 4)
-				||  0 == bx::strCmp(typen, "smooth", 6)
-				||  0 == bx::strCmp(typen, "noperspective", 13)
-				||  0 == bx::strCmp(typen, "centroid", 8) )
+				while (0 == bx::strCmp(typen, "flat", 4)
+				||     0 == bx::strCmp(typen, "smooth", 6)
+				||     0 == bx::strCmp(typen, "noperspective", 13)
+				||     0 == bx::strCmp(typen, "centroid", 8) )
 				{
 					if ('f' == _options.shaderType
 					||   profile->lang == ShadingLang::GLSL
 					||   profile->lang == ShadingLang::ESSL)
 					{
-						interpolation = typen;
+						if (!interpolation.empty() ) interpolation += ' ';
+						interpolation.append(typen.getPtr(), typen.getTerm() );
 						usesInterpolationQualifiers = true;
 					}
 
@@ -1461,9 +1468,9 @@ namespace bgfx
 						var.m_precision.assign(precision.getPtr(), precision.getTerm() );
 					}
 
-					if (!interpolation.isEmpty() )
+					if (!interpolation.empty() )
 					{
-						var.m_interpolation.assign(interpolation.getPtr(), interpolation.getTerm() );
+						var.m_interpolation = interpolation;
 					}
 
 					var.m_type.assign(typen.getPtr(), typen.getTerm() );
@@ -2008,7 +2015,7 @@ namespace bgfx
 								const Varying& var = varyingIt->second;
 								preprocessor.writef(" \\\n\t%s%s %s %s : %s"
 									, arg++ > 0 ? ", " : "  "
-									, interpolationDx11(var.m_interpolation.c_str() )
+									, interpolationDx11(var.m_interpolation.c_str() ).c_str()
 									, var.m_type.c_str()
 									, var.m_name.c_str()
 									, var.m_semantics.c_str()
@@ -2121,7 +2128,7 @@ namespace bgfx
 								const Varying& var = varyingIt->second;
 								preprocessor.writef(
 									  "\t%s %s %s : %s;\n"
-									, interpolationDx11(var.m_interpolation.c_str() )
+									, interpolationDx11(var.m_interpolation.c_str() ).c_str()
 									, var.m_type.c_str()
 									, var.m_name.c_str()
 									, var.m_semantics.c_str()
@@ -2300,9 +2307,13 @@ namespace bgfx
 								&& !bx::findIdentifierMatch(preprocessedInput, s_bitsToEncoders).isEmpty()
 								;
 
+							// GLSL ES 3.00 already provides floatBitsToInt/Uint and
+							// int/uintBitsToFloat in vertex and fragment shaders. Do not
+							// promote an ESSL 300 fragment shader to ESSL 310 merely because
+							// bgfx's uniform packing uses those functions.
 							if (!bx::strFind(preprocessedInput, "layout(std430").isEmpty()
 							||  !bx::strFind(preprocessedInput, "image2D").isEmpty()
-							||  usesBitsToEncoders)
+							||  (usesBitsToEncoders && profile->lang == ShadingLang::GLSL))
 							{
 								if (profile->lang == ShadingLang::GLSL
 								&&  glsl_profile < 430)

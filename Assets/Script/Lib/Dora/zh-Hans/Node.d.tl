@@ -596,7 +596,7 @@ local record Node
 	-- 注册编辑文本时触发的回调函数。
 	-- @param callback (function) 编辑文本时的回调函数。
 	-- 	@param text (string) 编辑的文本。
-	onTextEditing: function(self: Node, callback: function(text: string, startPos: integer))
+	onTextEditing: function(self: Node, callback: function(text: string, startPos: integer, length: integer))
 
 	-- 注册按下游戏手柄按键时触发的回调函数。
 	-- 同时会设置节点的`controllerEnabled`属性为 true。
@@ -802,7 +802,7 @@ local record __SLOT__
 	-- 在调用`node:attachIME()`之后触发。
 	-- @param text (string) 正在编辑的文本。
 	-- @param startPos (integer) 正在编辑的文本的起始位置。
-	["TextEditing"]: function(text: string, startPos: integer)
+	["TextEditing"]: function(text: string, startPos: integer, length: integer)
 
 	-- 当游戏控制器按钮被按下时触发ButtonDown事件。
 	-- 在设置`node.controllerEnabled = true`之后触发。

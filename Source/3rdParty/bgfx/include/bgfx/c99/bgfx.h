@@ -268,6 +268,11 @@ typedef enum bgfx_texture_format
     BGFX_TEXTURE_FORMAT_D32F,                 /** (94)                                */
     BGFX_TEXTURE_FORMAT_D0S8,                 /** (95)                                */
 
+    BGFX_TEXTURE_FORMAT_EACR,                 /** (96) EAC R11                        */
+    BGFX_TEXTURE_FORMAT_EACRS,                /** (97) EAC signed R11                 */
+    BGFX_TEXTURE_FORMAT_EACRG,                /** (98) EAC RG11                       */
+    BGFX_TEXTURE_FORMAT_EACRGS,               /** (99) EAC signed RG11                */
+
     BGFX_TEXTURE_FORMAT_COUNT
 
 } bgfx_texture_format_t;

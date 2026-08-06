@@ -19,6 +19,22 @@ class Texture2D;
 
 class RenderTarget : public Object {
 public:
+	struct Attachment {
+		Texture2D* texture = nullptr;
+		uint16_t layer = 0;
+		uint16_t mip = 0;
+		uint8_t resolve = BGFX_RESOLVE_AUTO_GEN_MIPS;
+	};
+	enum class ReadPixelsResult {
+		Success,
+		NoTexture,
+		WriteOnly,
+		Unsupported,
+		ActiveView,
+		InvalidTexture,
+		StagingTextureFailed,
+		TimedOut,
+	};
 	PROPERTY_READONLY(uint16_t, Width);
 	PROPERTY_READONLY(uint16_t, Height);
 	PROPERTY(Camera*, Camera);
@@ -29,13 +45,23 @@ public:
 	void render(Node* target);
 	void renderWithClear(Color color, float depth = 1.0f, uint8_t stencil = 0);
 	void renderWithClear(Node* target, Color color, float depth = 1.0f, uint8_t stencil = 0);
+	void renderWithClearFlags(Node* target, uint16_t clearFlags, Color color = 0x0,
+		float depth = 1.0f, uint8_t stencil = 0);
+	bool readPixelsAsync(const std::function<void(uint16_t, uint16_t, std::vector<uint8_t>)>& callback);
+	ReadPixelsResult readPixelsSync(std::vector<uint8_t>& pixels);
+	ReadPixelsResult readPixelsSync(std::vector<uint8_t>& pixels, uint16_t layer, uint8_t mip);
 	void saveAsync(String filename, const std::function<void(bool)>& callback);
 	static RenderTarget* getCurrent();
 	CREATE_FUNC_NULLABLE(RenderTarget);
 
 protected:
-	RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8);
-	void renderAfterClear(Node* target, bool clear, Color color = 0x0, float depth = 1.0f, uint8_t stencil = 0);
+	RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8,
+		uint64_t textureFlags = 0);
+	RenderTarget(std::vector<Texture2D*> colorTextures, Texture2D* depthTexture);
+	RenderTarget(std::vector<Attachment> colorAttachments,
+		std::optional<Attachment> depthAttachment = std::nullopt);
+	void renderAfterClear(Node* target, uint16_t clearFlags, Color color = 0x0,
+		float depth = 1.0f, uint8_t stencil = 0);
 	void renderOnly(Node* target);
 	void end();
 
@@ -43,8 +69,13 @@ private:
 	uint16_t _textureWidth;
 	uint16_t _textureHeight;
 	bgfx::TextureFormat::Enum _format;
+	uint64_t _textureFlags = 0;
 	Ref<Texture2D> _texture;
 	Ref<Texture2D> _depthTexture;
+	std::vector<Ref<Texture2D>> _colorTextures;
+	std::vector<Attachment> _colorAttachments;
+	std::optional<Attachment> _depthAttachment;
+	bool _externalAttachments = false;
 	Ref<Camera> _camera;
 	Ref<Node> _dummy;
 	bgfx::TextureHandle _textureHandle;

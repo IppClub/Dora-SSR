@@ -56,6 +56,8 @@ public:
 	}
 
 	std::pair<bgfx::ViewId*, uint16_t> getOrders();
+	bool isIdle() const noexcept;
+	bool hasActiveView() const noexcept;
 
 protected:
 	View();

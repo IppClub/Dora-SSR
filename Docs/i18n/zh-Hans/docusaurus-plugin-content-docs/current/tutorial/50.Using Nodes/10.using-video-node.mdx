@@ -9,70 +9,62 @@ import TabItem from '@theme/TabItem';
 
 ## 1. 视频格式要求
 
-在使用 VideoNode 之前，您需要将视频文件准备为正确的格式。VideoNode 支持特定要求的 H.264 编码视频文件：
+VideoNode 接受包含 Theora 视频流的 Ogg 容器。文件统一通过 Dora Content 读取，因此打包资源和挂载归档使用与其它资源相同的路径规则。
 
 ### 1.1 支持的视频格式
 
-- **视频编码**：仅支持 H.264 / AVC（不支持 H.265/HEVC、VP9、AV1 等）
-- **比特流格式**：需要 Annex-B 字节流格式（NAL 单元之间以 `0x000001` 或 `0x00000001` 起始码分隔）
-  - MP4/FLV 格式的 AVCC（长度前缀 NAL 单元）不支持，除非预先转换为 Annex-B
-- **流类型**：推荐仅包含视频的基本流（音频轨道，如有，将被忽略）
-- **配置文件/级别**：推荐使用 Baseline / Constrained Baseline profile 以获得最大兼容性
-- **帧类型**：仅支持逐行扫描帧（不支持隔行/场编码内容）
-- **B 帧**：推荐不含 B 帧（例如 baseline），以避免输出重排序开销
-- **色彩格式**：推荐 YUV 4:2:0（8 位）；其他色度格式可能不被支持
-- **帧率**：推荐恒定帧率（CFR）；可变帧率流可能导致播放时序不稳定
+- **容器**：Ogg（`.ogv`）
+- **视频编码**：Theora
+- **色彩格式**：支持 Theora 4:2:0、4:2:2 和 4:4:4，并在渲染前转换为 RGBA
+- **音频**：VideoNode 只渲染视频；Love Video 可另外通过 Dora SoLoud 同步音频 `Source`
 - **分辨率/性能**：
   - 4K 和高码率流在纯软件解码时可能会占用大量 CPU
   - 为了在中等性能设备上流畅播放，推荐使用 720p/1080p 和适中的码率
 
 ### 1.2 使用 FFmpeg 转换视频
 
-建议使用 `ffmpeg` 工具将视频文件转换为所需的 H.264 格式。以下是一些示例命令：
+可使用带 `libtheora` 编码器的 FFmpeg 生成 Ogg/Theora 文件：
 
-#### 将 MP4 转换为 H.264 Annex-B 格式
+#### 将 MP4 转换为 Ogg/Theora
 
 ```bash
-# 基本转换：提取视频流并转换为 H.264 Annex-B 格式
-ffmpeg -i input.mp4 -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -an -bsf:v h264_mp4toannexb output.h264
+# 基本转换
+ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -an output.ogv
 
 # 指定分辨率和码率（推荐以获得更好的性能）
-ffmpeg -i input.mp4 -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -s 1280x720 -b:v 2M -r 30 -an -bsf:v h264_mp4toannexb output.h264
+ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -s 1280x720 -r 30 -an output.ogv
 
 # 1080p 视频
-ffmpeg -i input.mp4 -c:v libx264 -profile:v baseline -level 3.1 -pix_fmt yuv420p -s 1920x1080 -b:v 4M -r 30 -an -bsf:v h264_mp4toannexb output.h264
+ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -s 1920x1080 -r 30 -an output.ogv
 ```
 
 **参数说明：**
-- `-c:v libx264`：使用 H.264 编码器
-- `-profile:v baseline`：使用 Baseline profile 以获得最大兼容性
-- `-level 3.0` 或 `3.1`：设置 H.264 级别（根据分辨率调整）
+- `-c:v libtheora`：使用 Theora 编码器
+- `-q:v 7`：设置视频质量（可按体积与画质需求调整）
 - `-pix_fmt yuv420p`：设置像素格式为 YUV 4:2:0
 - `-s 1280x720`：设置分辨率（可选，根据需要调整）
-- `-b:v 2M`：设置视频码率（可选，根据需要调整）
 - `-r 30`：设置帧率为 30 fps（可选，根据需要调整）
 - `-an`：移除音频轨道
-- `-bsf:v h264_mp4toannexb`：从 MP4 格式转换为 Annex-B 格式（关键！）
 
 #### 转换其他格式
 
 ```bash
 # 从 AVI 转换
-ffmpeg -i input.avi -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -an -bsf:v h264_mp4toannexb output.h264
+ffmpeg -i input.avi -c:v libtheora -q:v 7 -pix_fmt yuv420p -an output.ogv
 
 # 从 MOV 转换
-ffmpeg -i input.mov -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -an -bsf:v h264_mp4toannexb output.h264
+ffmpeg -i input.mov -c:v libtheora -q:v 7 -pix_fmt yuv420p -an output.ogv
 ```
 
 :::tip 提示
-转换后，确保输出文件具有 `.h264` 扩展名。将转换后的视频文件放置在项目的资源目录中，以便 VideoNode 可以加载它。
+转换后请保留 `.ogv` 扩展名，并将文件放入项目的 Content 资源树。
 :::
 
 ## 2. 创建 VideoNode 实例
 
 要创建 VideoNode，您需要提供视频文件的路径。VideoNode 构造函数接受两个参数：
 
-- `filename`：视频文件的路径（应具有 `.h264` 扩展名）
+- `filename`：Ogg/Theora 视频的 Content 路径（通常为 `.ogv`）
 - `looped`：（可选）视频是否循环播放。默认为 `false`
 
 <Tabs groupId="language-select">
@@ -82,10 +74,10 @@ ffmpeg -i input.mov -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p
 local VideoNode <const> = require("VideoNode")
 
 -- 创建一个播放一次的 VideoNode
-local video = VideoNode("assets/video.h264")
+local video = VideoNode("assets/video.ogv")
 
 -- 创建一个循环播放的 VideoNode
-local loopingVideo = VideoNode("assets/video.h264", true)
+local loopingVideo = VideoNode("assets/video.ogv", true)
 ```
 
 </TabItem>
@@ -95,10 +87,10 @@ local loopingVideo = VideoNode("assets/video.h264", true)
 local VideoNode <const> = require("VideoNode")
 
 -- 创建一个播放一次的 VideoNode
-local video = VideoNode("assets/video.h264")
+local video = VideoNode("assets/video.ogv")
 
 -- 创建一个循环播放的 VideoNode
-local loopingVideo = VideoNode("assets/video.h264", true)
+local loopingVideo = VideoNode("assets/video.ogv", true)
 ```
 
 </TabItem>
@@ -108,10 +100,10 @@ local loopingVideo = VideoNode("assets/video.h264", true)
 import { VideoNode } from "Dora";
 
 // 创建一个播放一次的 VideoNode
-const video = VideoNode("assets/video.h264");
+const video = VideoNode("assets/video.ogv");
 
 // 创建一个循环播放的 VideoNode
-const loopingVideo = VideoNode("assets/video.h264", true);
+const loopingVideo = VideoNode("assets/video.ogv", true);
 ```
 
 </TabItem>
@@ -121,10 +113,10 @@ const loopingVideo = VideoNode("assets/video.h264", true);
 _ENV = Dora
 
 -- 创建一个播放一次的 VideoNode
-video = VideoNode "assets/video.h264"
+video = VideoNode "assets/video.ogv"
 
 -- 创建一个循环播放的 VideoNode
-loopingVideo = VideoNode "assets/video.h264", true
+loopingVideo = VideoNode "assets/video.ogv", true
 ```
 
 </TabItem>
@@ -146,7 +138,7 @@ local VideoNode <const> = require("VideoNode")
 local Vec2 <const> = require("Vec2")
 
 -- 创建一个 VideoNode
-local video = VideoNode("assets/video.h264")
+local video = VideoNode("assets/video.ogv")
 
 if video then
 	-- 设置位置
@@ -165,7 +157,7 @@ local VideoNode <const> = require("VideoNode")
 local Vec2 <const> = require("Vec2")
 
 -- 创建一个 VideoNode
-local video = VideoNode("assets/video.h264")
+local video = VideoNode("assets/video.ogv")
 
 if not video is nil then
 	-- 设置位置
@@ -183,7 +175,7 @@ end
 import { VideoNode, Vec2 } from "Dora";
 
 // 创建一个 VideoNode
-const video = VideoNode("assets/video.h264");
+const video = VideoNode("assets/video.ogv");
 
 if (video) {
 	// 设置位置
@@ -201,7 +193,7 @@ if (video) {
 _ENV = Dora
 
 -- 创建一个 VideoNode
-with VideoNode "assets/video.h264"
+with VideoNode "assets/video.ogv"
 	-- 设置位置
 	.position = Vec2 400, 300
 
@@ -228,7 +220,7 @@ local VideoNode <const> = require("VideoNode")
 local Vec2 <const> = require("Vec2")
 local Scale <const> = require("Scale")
 
-local video = VideoNode("assets/video.h264", true) -- 启用循环
+local video = VideoNode("assets/video.ogv", true) -- 启用循环
 
 if video then
 	-- 定位视频
@@ -257,7 +249,7 @@ local VideoNode <const> = require("VideoNode")
 local Vec2 <const> = require("Vec2")
 local Scale <const> = require("Scale")
 
-local video = VideoNode("assets/video.h264", true) -- 启用循环
+local video = VideoNode("assets/video.ogv", true) -- 启用循环
 
 if not video is nil then
 	-- 定位视频
@@ -284,7 +276,7 @@ end
 ```ts
 import { VideoNode, Vec2, Scale } from "Dora";
 
-const video = VideoNode("assets/video.h264", true); // 启用循环
+const video = VideoNode("assets/video.ogv", true); // 启用循环
 
 if (video) {
 	// 定位视频
@@ -311,7 +303,7 @@ if (video) {
 ```yue
 _ENV = Dora
 
-with VideoNode "assets/video.h264", true -- 启用循环
+with VideoNode "assets/video.ogv", true -- 启用循环
 	-- 定位视频
 	.position = Vec2 400, 300
 
@@ -384,7 +376,7 @@ local Vec2 <const> = require("Vec2")
 local Size <const> = require("Size")
 
 -- 创建一个循环播放的视频节点
-local video = VideoNode("assets/background_video.h264", true)
+local video = VideoNode("assets/background_video.ogv", true)
 
 if video then
 	-- 如果需要，缩放到适合屏幕
@@ -410,7 +402,7 @@ local Vec2 <const> = require("Vec2")
 local Size <const> = require("Size")
 
 -- 创建一个循环播放的视频节点
-local video = VideoNode("assets/background_video.h264", true)
+local video = VideoNode("assets/background_video.ogv", true)
 
 if not video is nil then
 	-- 如果需要，缩放到适合屏幕
@@ -434,7 +426,7 @@ end
 import { VideoNode, Vec2, Size, App } from "Dora";
 
 // 创建一个循环播放的视频节点
-const video = VideoNode("assets/background_video.h264", true);
+const video = VideoNode("assets/background_video.ogv", true);
 
 if (video) {
 	// 如果需要，缩放到适合屏幕
@@ -458,7 +450,7 @@ if (video) {
 _ENV = Dora
 
 -- 创建一个循环播放的视频节点
-with VideoNode "assets/background_video.h264", true
+with VideoNode "assets/background_video.ogv", true
 	-- 如果需要，缩放到适合屏幕
 	visualSize = App.visualSize
 	videoSize = .size
@@ -493,7 +485,7 @@ with VideoNode "assets/background_video.h264", true
 
 在本教程中，您学习了如何：
 
-- 使用 FFmpeg 将视频文件准备为正确的 H.264 Annex-B 格式
+- 使用 FFmpeg 将视频文件准备为正确的 Ogg/Theora 格式
 - 创建 VideoNode 实例
 - 将 VideoNode 挂载到游戏场景（会自动开始播放）
 - 使用 Sprite 属性控制视频显示

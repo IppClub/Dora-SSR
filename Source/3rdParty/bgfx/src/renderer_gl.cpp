@@ -312,6 +312,10 @@ namespace bgfx { namespace gl
 		{ GL_DEPTH_COMPONENT32F,                       GL_ZERO,                                      GL_DEPTH_COMPONENT,                          GL_DEPTH_COMPONENT,                          GL_FLOAT,                        false, { $_, $_, $_, $_ } }, // D24F
 		{ GL_DEPTH_COMPONENT32F,                       GL_ZERO,                                      GL_DEPTH_COMPONENT,                          GL_DEPTH_COMPONENT,                          GL_FLOAT,                        false, { $_, $_, $_, $_ } }, // D32F
 		{ GL_STENCIL_INDEX8,                           GL_ZERO,                                      GL_STENCIL_INDEX,                            GL_STENCIL_INDEX,                            GL_UNSIGNED_BYTE,                false, { $_, $_, $_, $_ } }, // D0S8
+		{ GL_COMPRESSED_R11_EAC,                       GL_ZERO,                                      GL_COMPRESSED_R11_EAC,                       GL_COMPRESSED_R11_EAC,                       GL_ZERO,                         false, { $_, $_, $_, $_ } }, // EACR
+		{ GL_COMPRESSED_SIGNED_R11_EAC,                GL_ZERO,                                      GL_COMPRESSED_SIGNED_R11_EAC,                GL_COMPRESSED_SIGNED_R11_EAC,                GL_ZERO,                         false, { $_, $_, $_, $_ } }, // EACRS
+		{ GL_COMPRESSED_RG11_EAC,                      GL_ZERO,                                      GL_COMPRESSED_RG11_EAC,                      GL_COMPRESSED_RG11_EAC,                      GL_ZERO,                         false, { $_, $_, $_, $_ } }, // EACRG
+		{ GL_COMPRESSED_SIGNED_RG11_EAC,               GL_ZERO,                                      GL_COMPRESSED_SIGNED_RG11_EAC,               GL_COMPRESSED_SIGNED_RG11_EAC,               GL_ZERO,                         false, { $_, $_, $_, $_ } }, // EACRGS
 #undef $_
 #undef $0
 #undef $1
@@ -422,6 +426,10 @@ namespace bgfx { namespace gl
 		GL_DEPTH_COMPONENT32F, // D24F
 		GL_DEPTH_COMPONENT32F, // D32F
 		GL_STENCIL_INDEX8,     // D0S8
+		GL_ZERO,               // EACR
+		GL_ZERO,               // EACRS
+		GL_ZERO,               // EACRG
+		GL_ZERO,               // EACRGS
 	};
 	static_assert(TextureFormat::Count == BX_COUNTOF(s_rboFormat) );
 
@@ -523,6 +531,10 @@ namespace bgfx { namespace gl
 		GL_ZERO,           // D24F
 		GL_ZERO,           // D32F
 		GL_ZERO,           // D0S8
+		GL_ZERO,           // EACR
+		GL_ZERO,           // EACRS
+		GL_ZERO,           // EACRG
+		GL_ZERO,           // EACRGS
 	};
 	static_assert(TextureFormat::Count == BX_COUNTOF(s_imageFormat) );
 
@@ -1802,6 +1814,10 @@ namespace bgfx { namespace gl
 			case TextureFormat::ETC2:
 			case TextureFormat::ETC2A:
 			case TextureFormat::ETC2A1:
+			case TextureFormat::EACR:
+			case TextureFormat::EACRS:
+			case TextureFormat::EACRG:
+			case TextureFormat::EACRGS:
 				return emscripten_webgl_enable_extension(ctx, "WEBGL_compressed_texture_etc");
 
 			case TextureFormat::ASTC4x4:
@@ -2524,6 +2540,10 @@ namespace bgfx { namespace gl
 				s_textureFormat[TextureFormat::ETC2  ].m_supported |= etc2Supported;
 				s_textureFormat[TextureFormat::ETC2A ].m_supported |= etc2Supported;
 				s_textureFormat[TextureFormat::ETC2A1].m_supported |= etc2Supported;
+				s_textureFormat[TextureFormat::EACR   ].m_supported |= etc2Supported;
+				s_textureFormat[TextureFormat::EACRS  ].m_supported |= etc2Supported;
+				s_textureFormat[TextureFormat::EACRG  ].m_supported |= etc2Supported;
+				s_textureFormat[TextureFormat::EACRGS ].m_supported |= etc2Supported;
 
 				if (!s_textureFormat[TextureFormat::ETC1].m_supported
 				&&   s_textureFormat[TextureFormat::ETC2].m_supported)
@@ -3451,15 +3471,19 @@ namespace bgfx { namespace gl
 
 					if (GL_FRAMEBUFFER_COMPLETE == glCheckFramebufferStatus(GL_FRAMEBUFFER) )
 					{
+						GLint packAlignment;
+						GL_CHECK(glGetIntegerv(GL_PACK_ALIGNMENT, &packAlignment) );
+						GL_CHECK(glPixelStorei(GL_PACK_ALIGNMENT, 1) );
 						GL_CHECK(glReadPixels(
 							  0
 							, 0
 							, texture.m_width
 							, texture.m_height
-							, m_readPixelsFmt
-							, GL_UNSIGNED_BYTE
+							, texture.m_fmt
+							, texture.m_type
 							, _data
 							) );
+						GL_CHECK(glPixelStorei(GL_PACK_ALIGNMENT, packAlignment) );
 					}
 
 					frameBuffer.destroy();
@@ -7024,7 +7048,11 @@ namespace bgfx { namespace gl
 					}
 					else
 					{
-						if (1 < texture.m_numLayers
+						// A 3D texture still has one array layer in bgfx metadata, but an
+						// individual depth slice must be attached with
+						// glFramebufferTextureLayer. Passing GL_TEXTURE_3D to
+						// glFramebufferTexture2D is invalid on both desktop GL and GLES.
+						if ( (1 < texture.m_numLayers || GL_TEXTURE_3D == texture.m_target)
 						&&  !texture.isCubeMap() )
 						{
 							if (1 < at.numLayers)

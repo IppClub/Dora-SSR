@@ -25,9 +25,12 @@ public:
 	void set(String name, float var);
 	void set(String name, float var1, float var2, float var3, float var4);
 	void set(String name, const Vec4& var);
+	void set(String name, std::span<const Vec4> values);
 	void set(String name, Color var);
 	void set(String name, const Matrix& var);
+	void set(String name, std::span<const Matrix> values);
 	void set(String name, Texture2D* texture, uint8_t slot);
+	void set(String name, Texture2D* texture, uint8_t slot, uint32_t flags);
 	void remove(String name);
 	Value* get(String name) const;
 	bgfx::ProgramHandle apply();
@@ -43,6 +46,9 @@ private:
 		PROPERTY_READONLY(bgfx::UniformHandle, Handle);
 		PROPERTY_READONLY(Value*, Value);
 		PROPERTY(uint8_t, Slot);
+		PROPERTY(uint32_t, SamplerFlags);
+		void setVec4Array(std::span<const Vec4> values);
+		void setMatrixArray(std::span<const Matrix> values);
 		virtual ~Uniform();
 		void apply();
 		CREATE_FUNC_NOT_NULL(Uniform);
@@ -54,6 +60,9 @@ private:
 		bgfx::UniformHandle _handle;
 		Own<Value> _value;
 		uint8_t _slot;
+		uint32_t _samplerFlags;
+		std::vector<Vec4> _vec4Array;
+		std::vector<Matrix> _matrixArray;
 	};
 	bool _grabPass;
 	Ref<Shader> _fragShader;

@@ -19,7 +19,7 @@ extern "C" {
  * ============================================================ */
 
 #define DORA_SHADERC_VERSION_MAJOR 1
-#define DORA_SHADERC_VERSION_MINOR 0
+#define DORA_SHADERC_VERSION_MINOR 1
 #define DORA_SHADERC_VERSION_PATCH 0
 
 /* ============================================================
@@ -94,12 +94,12 @@ typedef enum {
  * Renderer backend
  */
 typedef enum {
-    DoraShadercRenderer_OpenGL = 0,       /* OpenGL / OpenGL ES */
-    DoraShadercRenderer_OpenGLES = 0,     /* Alias for OpenGL */
+    DoraShadercRenderer_OpenGL = 0,       /* Desktop OpenGL */
     DoraShadercRenderer_Metal = 1,        /* Apple Metal */
     DoraShadercRenderer_Direct3D11 = 2,   /* Windows D3D11 */
     DoraShadercRenderer_Direct3D12 = 3,   /* Windows D3D12 */
     DoraShadercRenderer_Vulkan = 4,       /* Vulkan */
+    DoraShadercRenderer_OpenGLES = 5,     /* OpenGL ES */
 } DoraShadercRenderer;
 
 /**

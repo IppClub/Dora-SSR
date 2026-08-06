@@ -26,6 +26,8 @@ esac
 
 "$SCRIPT_DIR/build_lib_sdl2.sh" linux "--$BUILD_MODE"
 "$SCRIPT_DIR/build_lib_bgfx.sh" linux "--$BUILD_MODE"
+"$SCRIPT_DIR/build_lib_love.sh" linux "--$BUILD_MODE"
+"$SCRIPT_DIR/build_lib_theora.sh" linux "--$BUILD_MODE"
 "$SCRIPT_DIR/build_lib_wa.sh" linux "$BUILD_MODE"
 
 cd "$SCRIPT_DIR/../../Source/Rust"
