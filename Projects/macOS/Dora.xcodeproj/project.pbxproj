@@ -9,8 +9,8 @@
 /* Begin PBXBuildFile section */
 		3C01B02E2FA2F2B900AAC148 /* libwa.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C01B02D2FA2F2B900AAC148 /* libwa.a */; };
 		3C030CA124CABDFE0074786E /* DecisionTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C030C9F24CABDFD0074786E /* DecisionTree.cpp */; };
-		3C03A9FA2EF2513100B706C8 /* TheoraSources.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C03A9962EF250FC00B706C8 /* TheoraSources.c */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
-		3C03AA012EF2522E00B706C8 /* VideoNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C03AA002EF2522E00B706C8 /* VideoNode.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
+		3C03A9FA2EF2513100B706C8 /* libtheoradec.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C03A9962EF250FC00B706C8 /* libtheoradec.a */; };
+		3C03AA012EF2522E00B706C8 /* VideoNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C03AA002EF2522E00B706C8 /* VideoNode.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/theora/include"; }; };
 		3C078D7D2E14CD2D00C05BA4 /* AudioSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C078D7C2E14CD2D00C05BA4 /* AudioSource.cpp */; };
 		3C1030592F5F12E20029F68F /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029131E07DD5F0016E1EC /* libbgfx.a */; };
 		3C10305A2F5F12E20029F68F /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3731EADF594008EADB3 /* libbimg_decode.a */; };
@@ -105,9 +105,9 @@
 		3C592A6F2CA4EEF000CAF224 /* LuaBinding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A612CA4EEF000CAF224 /* LuaBinding.cpp */; };
 		3C592A702CA4EEF000CAF224 /* LuaCode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A622CA4EEF000CAF224 /* LuaCode.cpp */; };
 		3C592A712CA4EEF000CAF224 /* LuaEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A642CA4EEF000CAF224 /* LuaEngine.cpp */; };
-		A10E00000000000000000001 /* LoveRuntime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E00000000000000000003 /* LoveRuntime.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Lua -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
+		A10E00000000000000000001 /* LoveRuntime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E00000000000000000003 /* LoveRuntime.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Lua -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include"; }; };
 		A10E00000000000000000027 /* liblove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A10E00000000000000000026 /* liblove.a */; };
-		A10E00000000000000000022 /* LoveVideoSources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E00000000000000000023 /* LoveVideoSources.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
+		A10E00000000000000000022 /* LoveVideoSources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E00000000000000000023 /* LoveVideoSources.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include"; }; };
 		A10E00000000000000000005 /* LoveNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E00000000000000000007 /* LoveNode.cpp */; };
 		A10E0000000000000000000B /* LoveDataAlgorithms.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E00000000000000000008 /* LoveDataAlgorithms.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty/Love/src"; }; };
 		A10E0000000000000000000C /* LoveLZ4.c in Sources */ = {isa = PBXBuildFile; fileRef = A10E00000000000000000009 /* LoveLZ4.c */; };
@@ -635,7 +635,7 @@
 		3C01B02D2FA2F2B900AAC148 /* libwa.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwa.a; path = ../../Source/3rdParty/Wa/Lib/macOS/libwa.a; sourceTree = "<group>"; };
 		3C030C9F24CABDFD0074786E /* DecisionTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DecisionTree.cpp; sourceTree = "<group>"; };
 		3C030CA024CABDFD0074786E /* DecisionTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DecisionTree.h; sourceTree = "<group>"; };
-		3C03A9962EF250FC00B706C8 /* TheoraSources.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TheoraSources.c; sourceTree = "<group>"; };
+		3C03A9962EF250FC00B706C8 /* libtheoradec.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtheoradec.a; path = ../../Source/3rdParty/theora/Lib/macOS/libtheoradec.a; sourceTree = "<group>"; };
 		3C03A9FF2EF2522E00B706C8 /* VideoNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoNode.h; sourceTree = "<group>"; };
 		3C03AA002EF2522E00B706C8 /* VideoNode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VideoNode.cpp; sourceTree = "<group>"; };
 		3C078D7B2E14CD2D00C05BA4 /* AudioSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioSource.h; sourceTree = "<group>"; };
@@ -2096,6 +2096,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10E00000000000000000027 /* liblove.a in Frameworks */,
+				3C03A9FA2EF2513100B706C8 /* libtheoradec.a in Frameworks */,
 				3C1030622F5F12E30029F68F /* libspirv-opt.a in Frameworks */,
 				3C1030632F5F12E30029F68F /* libfcpp.a in Frameworks */,
 				3C1030642F5F12E30029F68F /* libglslang.a in Frameworks */,
@@ -2170,7 +2171,7 @@
 		3C03A9FE2EF2518D00B706C8 /* theora */ = {
 			isa = PBXGroup;
 			children = (
-				3C03A9962EF250FC00B706C8 /* TheoraSources.c */,
+				3C03A9962EF250FC00B706C8 /* libtheoradec.a */,
 			);
 			path = ../3rdParty/theora;
 			sourceTree = "<group>";
@@ -5038,7 +5039,6 @@
 				3C592ADB2CA4EFE200CAF224 /* Define.cpp in Sources */,
 				3C592ADC2CA4EFE200CAF224 /* Face.cpp in Sources */,
 				3CF7CE832F1600F000F35E6B /* blip_wasm_host.cpp in Sources */,
-				3C03A9FA2EF2513100B706C8 /* TheoraSources.c in Sources */,
 				3C592ADD2CA4EFE200CAF224 /* VisualCache.cpp in Sources */,
 				3C592ADE2CA4EFE200CAF224 /* AINode.cpp in Sources */,
 				3C592ADF2CA4EFE200CAF224 /* Data.cpp in Sources */,
@@ -5363,6 +5363,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Source/3rdParty/SDL2/Lib/macOS",
 					"$(SRCROOT)/../../Source/3rdParty/Love/Artifacts/macOS",
+					"$(SRCROOT)/../../Source/3rdParty/theora/Lib/macOS",
 					"$(SRCROOT)/../../Source/3rdParty/bgfx/build/macosx/universal",
 					"$(SRCROOT)/../../Source/3rdParty/Wa/Lib/macOS",
 					"$(SRCROOT)/../../Source/Rust/Lib/macOS",
@@ -5440,6 +5441,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Source/3rdParty/SDL2/Lib/macOS",
 					"$(SRCROOT)/../../Source/3rdParty/Love/Artifacts/macOS",
+					"$(SRCROOT)/../../Source/3rdParty/theora/Lib/macOS",
 					"$(SRCROOT)/../../Source/3rdParty/bgfx/build/macosx/universal",
 					"$(SRCROOT)/../../Source/3rdParty/Wa/Lib/macOS",
 					"$(SRCROOT)/../../Source/Rust/Lib/macOS",

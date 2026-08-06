@@ -7,7 +7,7 @@ target("theoradec")
     set_kind("static")
     set_basename("theoradec")
     add_files("TheoraSources.c")
-    add_includedirs("include", "lib", "..", {public = true})
+    add_includedirs("include", "Source", "..", {public = true})
 
     if is_plat("macosx") then
         set_toolchains("xcode", {target_minver = "11.3"})

@@ -2013,7 +2013,6 @@
     <ClCompile Include="..\..\..\Source\Cache\FontCache.cpp">
       <Filter>Cache</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\theora\TheoraSources.c" />
     <ClCompile Include="..\..\..\Source\Node\VideoNode.cpp">
       <Filter>Node</Filter>
     </ClCompile>

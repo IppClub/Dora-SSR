@@ -1851,12 +1851,12 @@
     <ClCompile Include="..\..\..\Source\Love\LoveRuntime.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>../../../Source/3rdParty/Lua;../../../Source/3rdParty/Love/src/modules;../../../Source/3rdParty/theora/include;../../../Source/3rdParty/theora/lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../Source/3rdParty/Lua;../../../Source/3rdParty/Love/src/modules;../../../Source/3rdParty/theora/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Love\LoveVideoSources.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>../../../Source/3rdParty/Love/src/modules;../../../Source/3rdParty/theora/include;../../../Source/3rdParty/theora/lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../Source/3rdParty/Love/src/modules;../../../Source/3rdParty/theora/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Love\LoveDataAlgorithms.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -1902,10 +1902,6 @@
     <ClCompile Include="..\..\..\Source\Node\TIC80Node.cpp" />
     <ClCompile Include="..\..\..\Source\Node\TileNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\VGNode.cpp" />
-    <ClCompile Include="..\..\..\Source\3rdParty\theora\TheoraSources.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>..\..\..\Source\3rdParty\ogg\include;..\..\..\Source\3rdParty\theora\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Node\VideoNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\View3D.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Visual3D.cpp" />
@@ -2831,13 +2827,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>..\..\..\Source\3rdParty\bgfx\build\windows\x86\debug;..\..\..\Source\3rdParty\SDL2\Lib\Windows\Debug;..\..\..\Source\3rdParty\Love\Artifacts\Windows;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;..\..\..\Source\3rdParty\Wa\Lib\Windows;..\..\..\Source\Rust\lib\Windows;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\Source\3rdParty\bgfx\build\windows\x86\debug;..\..\..\Source\3rdParty\SDL2\Lib\Windows\Debug;..\..\..\Source\3rdParty\Love\Artifacts\Windows;..\..\..\Source\3rdParty\theora\Lib\Windows\Debug;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;..\..\..\Source\3rdParty\Wa\Lib\Windows;..\..\..\Source\Rust\lib\Windows;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\build\$(Configuration)\</OutDir>
     <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>..\..\..\Source\3rdParty\bgfx\build\windows\x86\release;..\..\..\Source\3rdParty\SDL2\Lib\Windows\Release;..\..\..\Source\3rdParty\Love\Artifacts\Windows;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;..\..\..\Source\3rdParty\Wa\Lib\Windows;..\..\..\Source\Rust\lib\Windows;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\Source\3rdParty\bgfx\build\windows\x86\release;..\..\..\Source\3rdParty\SDL2\Lib\Windows\Release;..\..\..\Source\3rdParty\Love\Artifacts\Windows;..\..\..\Source\3rdParty\theora\Lib\Windows\Release;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;..\..\..\Source\3rdParty\Wa\Lib\Windows;..\..\..\Source\Rust\lib\Windows;$(LibraryPath)</LibraryPath>
     <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
     <OutDir>$(SolutionDir)\build\$(Configuration)\</OutDir>
   </PropertyGroup>
@@ -2861,7 +2857,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;love.lib;bgfx.lib;bimg.lib;bimg_decode.lib;bx.lib;shaderc-lib.lib;fcpp.lib;psapi.lib;setupapi.lib;userenv.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;ntdll.lib;dora_runtime.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;love.lib;theoradec.lib;bgfx.lib;bimg.lib;bimg_decode.lib;bx.lib;shaderc-lib.lib;fcpp.lib;psapi.lib;setupapi.lib;userenv.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;ntdll.lib;dora_runtime.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
@@ -2909,7 +2905,7 @@ xcopy /Y /D "$(ProjectDir)..\..\..\Source\3rdParty\Wa\Lib\Windows\wa.dll" "$(Out
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;love.lib;bgfx.lib;bimg.lib;bimg_decode.lib;bx.lib;fcpp.lib;shaderc-lib.lib;psapi.lib;msvcrt.lib;setupapi.lib;userenv.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;ntdll.lib;dora_runtime.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;love.lib;theoradec.lib;bgfx.lib;bimg.lib;bimg_decode.lib;bx.lib;fcpp.lib;shaderc-lib.lib;psapi.lib;msvcrt.lib;setupapi.lib;userenv.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;ntdll.lib;dora_runtime.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>

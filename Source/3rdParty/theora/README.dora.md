@@ -12,5 +12,6 @@ The decoder uses the libogg sources under `Source/3rdParty/ogg`, compiled once
 through `Source/3rdParty/ogg/OggSources.c`. Do not add
 a second Ogg build target for Theora.
 
-Prebuilt outputs go under `Artifacts`, not `Lib`: on default macOS filesystems
-`Lib` would collide with libtheora's required lowercase `lib` source directory.
+The upstream implementation sources are stored under `Source`. The xmake
+target compiles the portable `TheoraSources.c` amalgamation into a standalone
+static library, and Dora platform projects consume its outputs from `Lib`.

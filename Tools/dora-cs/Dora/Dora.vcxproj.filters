@@ -1944,9 +1944,6 @@
     <ClCompile Include="..\..\..\Source\3rdParty\ogg\OggSources.c">
       <Filter>3rdParty</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\theora\TheoraSources.c">
-      <Filter>3rdParty</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Node\AudioSource.cpp">
       <Filter>Node</Filter>
     </ClCompile>

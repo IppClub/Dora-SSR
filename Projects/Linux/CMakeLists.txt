@@ -38,6 +38,7 @@ set(DORA_SDL2_BUILD_DIR ${DORA_SDL2_ROOT}/Lib/Linux/${DORA_RUNTIME_ARCH})
 set(DORA_WA_BUILD_DIR ${DORA_SOURCE_ROOT}/3rdParty/Wa/Lib/Linux/${DORA_WA_ARCH})
 set(DORA_RUNTIME_BUILD_DIR ${DORA_SOURCE_ROOT}/Rust/lib/Linux/${DORA_RUNTIME_ARCH})
 set(DORA_LOVE_BUILD_DIR ${DORA_SOURCE_ROOT}/3rdParty/Love/Artifacts/Linux/${DORA_RUNTIME_ARCH})
+set(DORA_THEORA_BUILD_DIR ${DORA_SOURCE_ROOT}/3rdParty/theora/Lib/Linux/${DORA_RUNTIME_ARCH})
 if(DORA_BGFX_ARCH STREQUAL "arm64")
 	set(DORA_RENDER_LINK_LIBS EGL GLESv2 X11)
 else()
@@ -72,7 +73,6 @@ include_directories(
 	${DORA_SOURCE_ROOT}/3rdParty/Zip/zlib
 	${DORA_SOURCE_ROOT}/3rdParty/Effekseer
 	${DORA_SOURCE_ROOT}/3rdParty/theora/include
-	${DORA_SOURCE_ROOT}/3rdParty/theora/lib
 )
 
 add_library(BGFX-lib STATIC IMPORTED)
@@ -85,6 +85,12 @@ add_library(LOVE-lib STATIC IMPORTED)
 set_target_properties(
 	LOVE-lib PROPERTIES IMPORTED_LOCATION
 	${DORA_LOVE_BUILD_DIR}/liblove.a
+)
+
+add_library(THEORA-lib STATIC IMPORTED)
+set_target_properties(
+	THEORA-lib PROPERTIES IMPORTED_LOCATION
+	${DORA_THEORA_BUILD_DIR}/libtheoradec.a
 )
 
 add_library(BX-lib STATIC IMPORTED)
@@ -713,7 +719,6 @@ add_executable(dora-ssr
 	../../Source/3rdParty/tmxlite/ImageLayer.cpp
 	../../Source/3rdParty/tmxlite/detail/pugixml.cpp
 	../../Source/3rdParty/nfd/nfd_portal.cpp
-	../../Source/3rdParty/theora/TheoraSources.c
 	../../Source/3rdParty/tic80/cart.c
 	../../Source/3rdParty/tic80/tools.c
 	../../Source/3rdParty/tic80/tic.c
@@ -732,4 +737,4 @@ add_executable(dora-ssr
 	../../Source/3rdParty/tic80/vendor/blip-buf/blip_wasm_host.cpp
 )
 
-target_link_libraries(dora-ssr z SDL2-lib LOVE-lib BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib ${DORA_RENDER_LINK_LIBS} ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib m dl pthread rt)
+target_link_libraries(dora-ssr z SDL2-lib LOVE-lib THEORA-lib BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib ${DORA_RENDER_LINK_LIBS} ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib m dl pthread rt)

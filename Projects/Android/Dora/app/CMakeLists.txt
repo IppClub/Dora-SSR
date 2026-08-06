@@ -26,7 +26,6 @@ include_directories(
 	src/main/cpp/3rdParty/Zip/zlib
 	src/main/cpp/3rdParty/Effekseer
 	src/main/cpp/3rdParty/theora/include
-	src/main/cpp/3rdParty/theora/lib
 	src/main/cpp/3rdParty/JoltPhysics
 )
 
@@ -91,6 +90,12 @@ add_library(LOVE-lib STATIC IMPORTED)
 set_target_properties(
 	LOVE-lib PROPERTIES IMPORTED_LOCATION
 	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/Love/Artifacts/Android/${ANDROID_ABI}/liblove.a
+)
+
+add_library(THEORA-lib STATIC IMPORTED)
+set_target_properties(
+	THEORA-lib PROPERTIES IMPORTED_LOCATION
+	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/theora/Lib/Android/${ANDROID_ABI}/libtheoradec.a
 )
 
 add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=0 -Dd_m3HasWASI -DLUA_USE_LINUX -DSPDLOG_FMT_EXTERNAL)
@@ -660,7 +665,6 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/tmxlite/Map.cpp
 	src/main/cpp/3rdParty/tmxlite/ImageLayer.cpp
 	src/main/cpp/3rdParty/tmxlite/detail/pugixml.cpp
-	src/main/cpp/3rdParty/theora/TheoraSources.c
 	src/main/cpp/3rdParty/tic80/cart.c
 	src/main/cpp/3rdParty/tic80/tools.c
 	src/main/cpp/3rdParty/tic80/tic.c
@@ -679,4 +683,4 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/tic80/vendor/blip-buf/blip_wasm_host.cpp
 )
 
-target_link_libraries(main android log EGL z GLESv1_CM GLESv2 SDL2-lib LOVE-lib BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib DORA-lib)
+target_link_libraries(main android log EGL z GLESv1_CM GLESv2 SDL2-lib LOVE-lib THEORA-lib BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib DORA-lib)

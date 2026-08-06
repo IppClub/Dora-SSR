@@ -677,9 +677,9 @@
 		3C5931A62CA4F67300CAF224 /* Content.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FAE2CA4F67300CAF224 /* Content.mm */; };
 		3C5931A72CA4F67300CAF224 /* Entity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FEB2CA4F67300CAF224 /* Entity.cpp */; };
 		3C5931A82CA4F67300CAF224 /* LuaEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930222CA4F67300CAF224 /* LuaEngine.cpp */; };
-		A10E10000000000000000001 /* LoveRuntime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000003 /* LoveRuntime.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Lua -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
+		A10E10000000000000000001 /* LoveRuntime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000003 /* LoveRuntime.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Lua -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include"; }; };
 		A10E1000000000000000002C /* liblove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000002A /* liblove.a */; };
-		A10E10000000000000000023 /* LoveVideoSources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000025 /* LoveVideoSources.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
+		A10E10000000000000000023 /* LoveVideoSources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000025 /* LoveVideoSources.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include"; }; };
 		A10E10000000000000000006 /* LoveNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000008 /* LoveNode.cpp */; };
 		A10E1000000000000000000D /* LoveDataAlgorithms.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000000A /* LoveDataAlgorithms.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty/Love/src"; }; };
 		A10E1000000000000000000E /* LoveLZ4.c in Sources */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000000B /* LoveLZ4.c */; };
@@ -796,9 +796,9 @@
 		3C5932832CA4F67300CAF224 /* Content.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FAE2CA4F67300CAF224 /* Content.mm */; };
 		3C5932842CA4F67300CAF224 /* Entity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FEB2CA4F67300CAF224 /* Entity.cpp */; };
 		3C5932852CA4F67300CAF224 /* LuaEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930222CA4F67300CAF224 /* LuaEngine.cpp */; };
-		A10E10000000000000000002 /* LoveRuntime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000003 /* LoveRuntime.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Lua -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
+		A10E10000000000000000002 /* LoveRuntime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000003 /* LoveRuntime.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Lua -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include"; }; };
 		A10E1000000000000000002B /* liblove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000029 /* liblove.a */; };
-		A10E10000000000000000024 /* LoveVideoSources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000025 /* LoveVideoSources.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
+		A10E10000000000000000024 /* LoveVideoSources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000025 /* LoveVideoSources.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include"; }; };
 		A10E10000000000000000007 /* LoveNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000008 /* LoveNode.cpp */; };
 		A10E10000000000000000010 /* LoveDataAlgorithms.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000000A /* LoveDataAlgorithms.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty/Love/src"; }; };
 		A10E10000000000000000011 /* LoveLZ4.c in Sources */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000000B /* LoveLZ4.c */; };
@@ -848,10 +848,10 @@
 		F00200012F3A000100000004 /* VorbisSources.c in Sources */ = {isa = PBXBuildFile; fileRef = F00200012F3A000100000012 /* VorbisSources.c */; };
 		3C948C4E2E16910600E6B280 /* AudioCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C948C4D2E16910600E6B280 /* AudioCache.cpp */; };
 		3C948C4F2E16910600E6B280 /* AudioCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C948C4D2E16910600E6B280 /* AudioCache.cpp */; };
-		3C984C5E2F03B57B00DC8437 /* TheoraSources.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C332F03B57B00DC8437 /* TheoraSources.c */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
-		3C984C782F03B57B00DC8437 /* TheoraSources.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C332F03B57B00DC8437 /* TheoraSources.c */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
-		3C984C942F03B5DB00DC8437 /* VideoNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C932F03B5DB00DC8437 /* VideoNode.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
-		3C984C952F03B5DB00DC8437 /* VideoNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C932F03B5DB00DC8437 /* VideoNode.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/theora/include -I../../Source/3rdParty/theora/lib"; }; };
+		3C984C5E2F03B57B00DC8437 /* libtheoradec.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C984C332F03B57B00DC8437 /* libtheoradec.a */; };
+		3C984C782F03B57B00DC8437 /* libtheoradec.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A20E20000000000000000001 /* libtheoradec.a */; };
+		3C984C942F03B5DB00DC8437 /* VideoNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C932F03B5DB00DC8437 /* VideoNode.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/theora/include"; }; };
+		3C984C952F03B5DB00DC8437 /* VideoNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C984C932F03B5DB00DC8437 /* VideoNode.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/theora/include"; }; };
 		3CA780042AE66FB000B7BADA /* RayCastOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77F242AE66FAD00B7BADA /* RayCastOutput.cpp */; };
 		3CA780052AE66FB000B7BADA /* RayCastOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77F242AE66FAD00B7BADA /* RayCastOutput.cpp */; };
 		3CA780062AE66FB000B7BADA /* EdgeShapeConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77F292AE66FAD00B7BADA /* EdgeShapeConf.cpp */; };
@@ -2220,7 +2220,8 @@
 		F00200012F3A000100000012 /* VorbisSources.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = VorbisSources.c; sourceTree = "<group>"; };
 		3C948C4C2E16910600E6B280 /* AudioCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioCache.h; sourceTree = "<group>"; };
 		3C948C4D2E16910600E6B280 /* AudioCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioCache.cpp; sourceTree = "<group>"; };
-		3C984C332F03B57B00DC8437 /* TheoraSources.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TheoraSources.c; sourceTree = "<group>"; };
+		3C984C332F03B57B00DC8437 /* libtheoradec.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtheoradec.a; path = "../../Source/3rdParty/theora/Lib/iOS-Simulator/libtheoradec.a"; sourceTree = "<group>"; };
+		A20E20000000000000000001 /* libtheoradec.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtheoradec.a; path = ../../Source/3rdParty/theora/Lib/iOS/libtheoradec.a; sourceTree = "<group>"; };
 		3C984C922F03B5DB00DC8437 /* VideoNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoNode.h; sourceTree = "<group>"; };
 		3C984C932F03B5DB00DC8437 /* VideoNode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = VideoNode.cpp; sourceTree = "<group>"; };
 		3CA77F212AE66FAD00B7BADA /* RayCastInput.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = RayCastInput.hpp; sourceTree = "<group>"; };
@@ -2716,6 +2717,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10E1000000000000000002B /* liblove.a in Frameworks */,
+				3C984C5E2F03B57B00DC8437 /* libtheoradec.a in Frameworks */,
 				3C1030772F5F24400029F68F /* libspirv-cross.a in Frameworks */,
 				3C1030782F5F24400029F68F /* libspirv-opt.a in Frameworks */,
 				3C1030792F5F24400029F68F /* libglslang.a in Frameworks */,
@@ -2748,6 +2750,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10E1000000000000000002C /* liblove.a in Frameworks */,
+				3C984C782F03B57B00DC8437 /* libtheoradec.a in Frameworks */,
 				3C1030852F5F24590029F68F /* libfcpp.a in Frameworks */,
 				3C1030862F5F24590029F68F /* libspirv-cross.a in Frameworks */,
 				3C1030872F5F24590029F68F /* libshaderc-lib.a in Frameworks */,
@@ -4642,7 +4645,8 @@
 		3C984C102F03B56000DC8437 /* theora */ = {
 			isa = PBXGroup;
 			children = (
-				3C984C332F03B57B00DC8437 /* TheoraSources.c */,
+				3C984C332F03B57B00DC8437 /* libtheoradec.a */,
+				A20E20000000000000000001 /* libtheoradec.a */,
 			);
 			path = ../3rdParty/theora;
 			sourceTree = "<group>";
@@ -5571,7 +5575,6 @@
 				3C0FB69A2BF1970C0098E88D /* Effekseer.Client.cpp in Sources */,
 				3CA780872AE66FB000B7BADA /* DynamicMemory.cpp in Sources */,
 				3C0FB70C2BF1970C0098E88D /* EffekseerRenderer.RingRendererBase.cpp in Sources */,
-				3C984C5E2F03B57B00DC8437 /* TheoraSources.c in Sources */,
 				3CA780272AE66FB000B7BADA /* AABB.cpp in Sources */,
 				3CA780352AE66FB000B7BADA /* WorldBody.cpp in Sources */,
 				3CBFB70E2643782A006348C8 /* implot_demo.cpp in Sources */,
@@ -6161,7 +6164,6 @@
 				3CC15DBF2C17E3F8004763E7 /* gzclose.c in Sources */,
 				3C0FB6812BF1970C0098E88D /* ForceFields.cpp in Sources */,
 				3CA780062AE66FB000B7BADA /* EdgeShapeConf.cpp in Sources */,
-				3C984C782F03B57B00DC8437 /* TheoraSources.c in Sources */,
 				3C0FB6E92BF1970C0098E88D /* Effekseer.Random.cpp in Sources */,
 				3C0FB6932BF1970C0098E88D /* SplineGenerator.cpp in Sources */,
 				3C0FB6E52BF1970C0098E88D /* Effekseer.Matrix43.cpp in Sources */,
@@ -6550,6 +6552,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"../../Source/3rdParty/SDL2/Lib/iOS-Simulator",
 					"../../Source/3rdParty/Love/Artifacts/iOS-Simulator",
+					"../../Source/3rdParty/theora/Lib/iOS-Simulator",
 					../../Source/3rdParty/bgfx/build/ios/simulator,
 					"../../Source/3rdParty/Wa/Lib/iOS-Simulator",
 					"../../Source/Rust/lib/iOS-Simulator",
@@ -6625,6 +6628,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"../../Source/3rdParty/SDL2/Lib/iOS-Simulator",
 					"../../Source/3rdParty/Love/Artifacts/iOS-Simulator",
+					"../../Source/3rdParty/theora/Lib/iOS-Simulator",
 					../../Source/3rdParty/bgfx/build/ios/simulator,
 					"../../Source/3rdParty/Wa/Lib/iOS-Simulator",
 					"../../Source/Rust/lib/iOS-Simulator",
@@ -6854,6 +6858,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					../../Source/3rdParty/SDL2/Lib/iOS,
 					../../Source/3rdParty/Love/Artifacts/iOS,
+					../../Source/3rdParty/theora/Lib/iOS,
 					../../Source/3rdParty/bgfx/build/ios/device,
 					../../Source/3rdParty/Wa/Lib/iOS,
 					../../Source/Rust/lib/iOS,
@@ -6928,6 +6933,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					../../Source/3rdParty/SDL2/Lib/iOS,
 					../../Source/3rdParty/Love/Artifacts/iOS,
+					../../Source/3rdParty/theora/Lib/iOS,
 					../../Source/3rdParty/bgfx/build/ios/device,
 					../../Source/3rdParty/Wa/Lib/iOS,
 					../../Source/Rust/lib/iOS,

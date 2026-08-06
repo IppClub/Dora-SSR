@@ -20,7 +20,7 @@ if errorlevel 1 exit /b %errorlevel%
 xmake build -j 8 theoradec
 if errorlevel 1 exit /b %errorlevel%
 
-if /I "%BUILD_MODE%"=="debug" (set OUT_DIR=Artifacts\Windows\Debug) else (set OUT_DIR=Artifacts\Windows\Release)
+if /I "%BUILD_MODE%"=="debug" (set OUT_DIR=Lib\Windows\Debug) else (set OUT_DIR=Lib\Windows\Release)
 if not exist "%OUT_DIR%" mkdir "%OUT_DIR%"
 copy /Y "build\windows\x86\%BUILD_MODE%\theoradec.lib" "%OUT_DIR%\theoradec.lib" >nul
 if errorlevel 1 exit /b %errorlevel%

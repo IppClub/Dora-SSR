@@ -32,27 +32,27 @@ build_macos() {
 	if [ "$TARGET_ARCH" = "universal" ]; then
 		build_arch macosx arm64
 		build_arch macosx x86_64
-		mkdir -p "$THEORA_DIR/Artifacts/macOS"
-		lipo -create "$THEORA_DIR/build/macosx/arm64/$BUILD_MODE/libtheoradec.a" "$THEORA_DIR/build/macosx/x86_64/$BUILD_MODE/libtheoradec.a" -output "$THEORA_DIR/Artifacts/macOS/libtheoradec.a"
+		mkdir -p "$THEORA_DIR/Lib/macOS"
+		lipo -create "$THEORA_DIR/build/macosx/arm64/$BUILD_MODE/libtheoradec.a" "$THEORA_DIR/build/macosx/x86_64/$BUILD_MODE/libtheoradec.a" -output "$THEORA_DIR/Lib/macOS/libtheoradec.a"
 	else
 		build_arch macosx "$TARGET_ARCH"
-		copy_library macosx "$TARGET_ARCH" Artifacts/macOS
+		copy_library macosx "$TARGET_ARCH" Lib/macOS
 	fi
 }
 
 build_ios() {
 	build_arch iphoneos arm64
-	copy_library iphoneos arm64 Artifacts/iOS
+	copy_library iphoneos arm64 Lib/iOS
 	build_arch iphoneos arm64 --appledev=simulator
 	build_arch iphoneos x86_64 --appledev=simulator
-	mkdir -p "$THEORA_DIR/Artifacts/iOS-Simulator"
-	lipo -create "$THEORA_DIR/build/iphoneos/arm64/$BUILD_MODE/libtheoradec.a" "$THEORA_DIR/build/iphoneos/x86_64/$BUILD_MODE/libtheoradec.a" -output "$THEORA_DIR/Artifacts/iOS-Simulator/libtheoradec.a"
+	mkdir -p "$THEORA_DIR/Lib/iOS-Simulator"
+	lipo -create "$THEORA_DIR/build/iphoneos/arm64/$BUILD_MODE/libtheoradec.a" "$THEORA_DIR/build/iphoneos/x86_64/$BUILD_MODE/libtheoradec.a" -output "$THEORA_DIR/Lib/iOS-Simulator/libtheoradec.a"
 }
 
 build_android() {
 	for arch in arm64-v8a armeabi-v7a x86_64; do
 		build_arch android "$arch"
-		copy_library android "$arch" "Artifacts/Android/$arch"
+		copy_library android "$arch" "Lib/Android/$arch"
 	done
 }
 
@@ -68,7 +68,7 @@ build_linux() {
 		*) echo "Unsupported Linux architecture: $(uname -m)" >&2; exit 1 ;;
 	esac
 	build_arch linux "$arch"
-	copy_library linux "$arch" "Artifacts/Linux/$arch"
+	copy_library linux "$arch" "Lib/Linux/$arch"
 }
 
 for arg in "$@"; do

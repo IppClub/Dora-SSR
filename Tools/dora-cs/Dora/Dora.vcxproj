@@ -1794,11 +1794,6 @@
       <PrecompiledHeader Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|Win32&apos;">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|Win32&apos;">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\theora\TheoraSources.c">
-      <PrecompiledHeader Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|Win32&apos;">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|Win32&apos;">NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>..\..\..\Source\3rdParty\ogg\include;..\..\..\Source\3rdParty\theora\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Basic\Application.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\AutoreleasePool.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Content.cpp" />
@@ -2777,13 +2772,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>..\..\..\Source\3rdParty\bgfx\build\windows\x86\debug;..\..\..\Source\3rdParty\SDL2\Lib\Windows\Debug;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;..\..\..\Source\3rdParty\Wa\Lib\Windows;..\..\..\Source\Rust\lib\Windows;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\Source\3rdParty\bgfx\build\windows\x86\debug;..\..\..\Source\3rdParty\SDL2\Lib\Windows\Debug;..\..\..\Source\3rdParty\theora\Lib\Windows\Debug;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;..\..\..\Source\3rdParty\Wa\Lib\Windows;..\..\..\Source\Rust\lib\Windows;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\build\$(Configuration)\</OutDir>
     <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>..\..\..\Source\3rdParty\bgfx\build\windows\x86\release;..\..\..\Source\3rdParty\SDL2\Lib\Windows\Release;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;..\..\..\Source\3rdParty\Wa\Lib\Windows;..\..\..\Source\Rust\lib\Windows;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\Source\3rdParty\bgfx\build\windows\x86\release;..\..\..\Source\3rdParty\SDL2\Lib\Windows\Release;..\..\..\Source\3rdParty\theora\Lib\Windows\Release;..\..\..\Source\3rdParty\Lua\Lib\Windows;..\..\..\Source\3rdParty\Zip\Lib\Windows;..\..\..\Source\3rdParty\Wa\Lib\Windows;..\..\..\Source\Rust\lib\Windows;$(LibraryPath)</LibraryPath>
     <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
     <OutDir>$(SolutionDir)\build\$(Configuration)\</OutDir>
   </PropertyGroup>
@@ -2806,7 +2801,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfx.lib;bimg.lib;bimg_decode.lib;bx.lib;shaderc-lib.lib;fcpp.lib;psapi.lib;setupapi.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;theoradec.lib;bgfx.lib;bimg.lib;bimg_decode.lib;bx.lib;shaderc-lib.lib;fcpp.lib;psapi.lib;setupapi.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
@@ -2852,7 +2847,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;bgfx.lib;bimg.lib;bimg_decode.lib;bx.lib;fcpp.lib;shaderc-lib.lib;psapi.lib;msvcrt.lib;setupapi.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;theoradec.lib;bgfx.lib;bimg.lib;bimg_decode.lib;bx.lib;fcpp.lib;shaderc-lib.lib;psapi.lib;msvcrt.lib;setupapi.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>

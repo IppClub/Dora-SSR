@@ -94,6 +94,7 @@ Assets/Doc/en
 # xmake build cache
 .xmake/
 Source/3rdParty/Love/Artifacts/
+Source/3rdParty/theora/Lib/
 Source/Love/build*/
 Projects/*/build-love*/
 Projects/Linux/build-theora-check/
