@@ -23562,9 +23562,14 @@ void LoveRuntime::registerPhysicsTypes()
 		{"getTangentSpeed", physicsContactGetTangentSpeed},
 		{"setTangentSpeed", physicsContactSetTangentSpeed},
 	});
+	struct PhysicsTypeOverride {
+		::love::Type *type;
+		lua_CFunction typeFunction;
+		lua_CFunction typeOfFunction;
+	};
 	for (const auto &[type, typeFunction, typeOfFunction] : {
-		std::tuple{&PhysicsShapeLoveType, physicsShapeObjectType, physicsShapeObjectTypeOf},
-		std::tuple{&PhysicsJointLoveType, physicsJointObjectType, physicsJointObjectTypeOf},
+		PhysicsTypeOverride{&PhysicsShapeLoveType, physicsShapeObjectType, physicsShapeObjectTypeOf},
+		PhysicsTypeOverride{&PhysicsJointLoveType, physicsJointObjectType, physicsJointObjectTypeOf},
 	})
 	{
 		::love::luax_gettypemetatable(_state, *type);
