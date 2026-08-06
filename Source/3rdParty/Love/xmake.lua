@@ -32,6 +32,7 @@ target("love")
         add_cxxflags("/utf-8", {tools = "cl"})
         if is_mode("debug") then
             set_runtimes("MTd")
+            add_defines("_ITERATOR_DEBUG_LEVEL=0")
         else
             set_runtimes("MT")
         end
