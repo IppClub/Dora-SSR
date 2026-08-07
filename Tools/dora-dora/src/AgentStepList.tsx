@@ -147,9 +147,9 @@ function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: 
 			if (offset !== undefined && offset > 0) push(t("agent.paramLabels.offset"), String(offset));
 			return items;
 		}
-		case "search_dora_api": {
+		case "search_dora_doc": {
 			const pattern = typeof params.pattern === "string" ? params.pattern : "";
-			const docSource = typeof params.docSource === "string" ? params.docSource : "api";
+		const docType = typeof params.docType === "string" ? params.docType : "dora-api";
 			const programmingLanguage = typeof params.programmingLanguage === "string"
 				? params.programmingLanguage
 				: "";
@@ -159,7 +159,7 @@ function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: 
 			const useRegex = params.useRegex === true;
 			const caseSensitive = params.caseSensitive === true;
 			push(t("agent.paramLabels.pattern"), pattern);
-			push(t("agent.paramLabels.docType"), t(`agent.docSources.${docSource}`, { defaultValue: docSource }));
+			push(t("agent.paramLabels.docType"), t(`agent.docTypes.${docType}`, { defaultValue: docType }));
 			push(t("agent.paramLabels.language"), programmingLanguage);
 			if (limit !== undefined) push(t("agent.paramLabels.limit"), String(limit));
 			pushFlag(t("agent.regex"), useRegex);

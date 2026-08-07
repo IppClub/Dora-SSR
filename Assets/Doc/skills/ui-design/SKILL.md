@@ -48,7 +48,7 @@ When building UI inside a Dora game/workspace:
 
 - Follow the `dora-engine-coding` skill first.
 - Prefer `.tsx` with `DoraX` when JSX layout is useful; otherwise use Dora nodes directly.
-- Use `search_dora_api` before unfamiliar Dora UI APIs.
+- Use `search_dora_doc` before unfamiliar Dora UI APIs.
 - Attach runtime UI to the correct Dora node (`Director.ui`, `Director.entry`, or the existing root) based on project conventions.
 - Use `View.size` to position and scale HUD elements; support resizing where possible.
 - Keep reusable UI in modules/components instead of dumping large UI code into `init.ts` when the UI has multiple sections.

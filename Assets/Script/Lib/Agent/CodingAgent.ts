@@ -1019,7 +1019,7 @@ function sanitizeSearchResultForHistory(
 	result: Record<string, unknown>
 ): Record<string, unknown> {
 	if (result.success !== true || !isArray(result.results)) return result;
-	if (tool !== "grep_files" && tool !== "search_dora_api") return result;
+	if (tool !== "grep_files" && tool !== "search_dora_doc") return result;
 	const clone: Record<string, unknown> = {};
 	for (const key in result) {
 		clone[key] = result[key];
@@ -1289,7 +1289,7 @@ export function getDecisionDisabledAgentTools(shared: AgentShared): AgentToolNam
 }
 
 function getDecisionToolDefinitions(shared: AgentShared): string {
-	const params = { SEARCH_DORA_API_LIMIT_MAX: tostring(AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax) };
+	const params = { SEARCH_DORA_DOC_LIMIT_MAX: tostring(AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax) };
 	const usesDefaultToolPrompts = shared.promptPack.toolDefinitionsDetailed === AgentToolRegistry.AGENT_TOOL_DEFINITIONS_DETAILED
 		&& shared.promptPack.mainAgentToolDefinitionsDetailed === AgentToolRegistry.MAIN_AGENT_TOOL_DEFINITIONS_DETAILED
 		&& shared.promptPack.xmlToolDefinitionsDetailed === AgentToolRegistry.XML_TOOL_DEFINITIONS_DETAILED;
@@ -1300,7 +1300,7 @@ function getDecisionToolDefinitions(shared: AgentShared): string {
 		const definitions = AgentToolRegistry.buildRoleToolDefinitionsDetailed(shared.role, {
 			includeFinish: true,
 			includeXmlRules: true,
-			context: { searchDoraApiLimitMax: AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax },
+			context: { searchDoraDocLimitMax: AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax },
 			disabledAgentTools: getDecisionDisabledAgentTools(shared),
 			workMode: shared.workMode,
 		});
@@ -1321,7 +1321,7 @@ function getDecisionToolDefinitions(shared: AgentShared): string {
 }
 
 function getDecisionToolSchemaText(shared: AgentShared): string {
-	const [toolsText] = AgentUtils.safeJsonEncode(AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax, {
+	const [toolsText] = AgentUtils.safeJsonEncode(AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, {
 		disabledAgentTools: getDecisionDisabledAgentTools(shared),
 		workMode: shared.workMode,
 	}) as object);
@@ -1448,7 +1448,7 @@ async function executeToolActionWithPreExecution(shared: AgentShared, action: Ag
 			guidance.push("A deterministic test failure remains unresolved. Prefer a narrow authored-source fix and a successful build before further testing or generated-output investigation.");
 		}
 	}
-	if (action.tool === "search_dora_api") {
+	if (action.tool === "search_dora_doc") {
 		if (shared.unbuiltEdits === true) {
 			guidance.push("There are unbuilt authored changes. Apply only relevant API evidence from this result, then prefer building before more discovery.");
 		}
@@ -1551,7 +1551,7 @@ async function maybeCompressHistory(
 						|| shared.llmOptions.reasoning_effort.trim() === "")
 					? { reasoning_effort: "minimal" }
 					: {}),
-				tools: AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax, {
+				tools: AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, {
 					disabledAgentTools: getDecisionDisabledAgentTools(shared),
 					workMode: shared.workMode,
 				}),
@@ -1921,7 +1921,7 @@ function applyCompressedSessionState(
 		if (markerIndex >= 0) {
 			const nextToolLine = sessionSummary.slice(markerIndex, markerIndex + 120);
 			const toolNames: AgentToolName[] = [
-				"read_file", "edit_file", "delete_file", "grep_files", "search_dora_api",
+				"read_file", "edit_file", "delete_file", "grep_files", "search_dora_doc",
 				"glob_files", "build", "fetch_url", "execute_command", "list_sub_agents",
 				"spawn_sub_agent", "finish",
 			];
@@ -2003,8 +2003,8 @@ function inferToolNameFromXMLParams(params: Record<string, unknown>): AgentToolN
 		if (hasXMLParam(params, "path")) return "read_file";
 		return undefined;
 	}
-	if (hasXMLParam(params, "docSource") || hasXMLParam(params, "programmingLanguage")) {
-		if (hasXMLParam(params, "pattern")) return "search_dora_api";
+	if (hasXMLParam(params, "docType") || hasXMLParam(params, "programmingLanguage")) {
+		if (hasXMLParam(params, "pattern")) return "search_dora_doc";
 		return undefined;
 	}
 	if (hasXMLParam(params, "groupByFile") || hasXMLParam(params, "caseSensitive")) {
@@ -2497,11 +2497,16 @@ function validateDecision(
 		return { success: true, params };
 	}
 
-	if (tool === "search_dora_api") {
+	if (tool === "search_dora_doc") {
 		const pattern = typeof params.pattern === "string" ? params.pattern.trim() : "";
-		if (pattern === "") return { success: false, message: "search_dora_api requires pattern" };
+		if (pattern === "") return { success: false, message: "search_dora_doc requires pattern" };
+		const docType = typeof params.docType === "string" ? params.docType : "dora-api";
+		if (docType !== "dora-api" && docType !== "dora-tutorial" && docType !== "love-api" && docType !== "tic80-api") {
+			return { success: false, message: "search_dora_doc requires docType: dora-tutorial, dora-api, love-api, or tic80-api" };
+		}
 		params.pattern = pattern;
-		params.limit = clampIntegerParam(params.limit, 8, 1, AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax);
+		params.docType = docType;
+		params.limit = clampIntegerParam(params.limit, 8, 1, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax);
 		return { success: true, params };
 	}
 
@@ -2805,7 +2810,7 @@ ${candidateReasoningSection}`
 	const toolRepairReference = AgentToolRegistry.buildRoleToolDefinitionsDetailed(shared.role, {
 		includeFinish: true,
 		includeXmlRules: true,
-		context: { searchDoraApiLimitMax: AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax },
+		context: { searchDoraDocLimitMax: AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax },
 		disabledAgentTools: getDecisionDisabledAgentTools(shared),
 		workMode: shared.workMode,
 	});
@@ -2929,7 +2934,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			return { success: false, message: getCancelledReason(shared) };
 		}
 		AgentUtils.Log("Info", `[CodingAgent] tool-calling decision start step=${shared.step + 1}${lastError ? ` retry_error=${lastError}` : ""}`);
-		const tools = AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax, {
+		const tools = AgentToolRegistry.buildDecisionToolSchema(shared.role, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, {
 			disabledAgentTools: getDecisionDisabledAgentTools(shared),
 			workMode: shared.workMode,
 		});
@@ -3415,7 +3420,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 }
 
 class ReadFileAction extends Node<AgentShared> {
-	async prep(shared: AgentShared): Promise<{ path: string; startLine: number; endLine: number; tool: "read_file"; workDir: string; docLanguage: Tools.DoraAPIDocLanguage }> {
+	async prep(shared: AgentShared): Promise<{ path: string; startLine: number; endLine: number; tool: "read_file"; workDir: string; docLanguage: Tools.DoraDocLanguage }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
 		emitAgentStartEvent(shared, last);
@@ -3433,7 +3438,7 @@ class ReadFileAction extends Node<AgentShared> {
 		};
 	}
 
-	async exec(input: { path: string; startLine: number; endLine: number; tool: "read_file"; workDir: string; docLanguage: Tools.DoraAPIDocLanguage }): Promise<Record<string, unknown>> {
+	async exec(input: { path: string; startLine: number; endLine: number; tool: "read_file"; workDir: string; docLanguage: Tools.DoraDocLanguage }): Promise<Record<string, unknown>> {
 		return Tools.readFile(
 			input.workDir,
 			input.path,
@@ -3499,7 +3504,7 @@ class SearchFilesAction extends Node<AgentShared> {
 	}
 }
 
-class SearchDoraAPIAction extends Node<AgentShared> {
+class SearchDoraDocAction extends Node<AgentShared> {
 	async prep(shared: AgentShared): Promise<{ params: Record<string, unknown>; useChineseResponse: boolean }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
@@ -3509,12 +3514,12 @@ class SearchDoraAPIAction extends Node<AgentShared> {
 
 	async exec(input: { params: Record<string, unknown>; useChineseResponse: boolean }): Promise<Record<string, unknown>> {
 		const params = input.params;
-		const result = await Tools.searchDoraAPI({
+		const result = await Tools.searchDoraDoc({
 			pattern: (params.pattern as string) ?? "",
-			docSource: ((params.docSource as string) ?? "api") as Tools.DoraAPIDocSource,
-			docLanguage: (input.useChineseResponse ? "zh" : "en") as Tools.DoraAPIDocLanguage,
-			programmingLanguage: ((params.programmingLanguage as string) ?? "ts") as Tools.DoraAPIProgrammingLanguage,
-			limit: math.min(AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax, math.max(1, Number(params.limit ?? 8))),
+			docType: ((params.docType as string) ?? "dora-api") as Tools.DoraDocSearchType,
+			docLanguage: (input.useChineseResponse ? "zh" : "en") as Tools.DoraDocLanguage,
+			programmingLanguage: ((params.programmingLanguage as string) ?? "ts") as Tools.DoraDocProgrammingLanguage,
+			limit: math.min(AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, math.max(1, Number(params.limit ?? 8))),
 			useRegex: params.useRegex as boolean | undefined,
 			caseSensitive: false,
 			includeContent: true,
@@ -4086,14 +4091,14 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		});
 		return result as unknown as Record<string, unknown>;
 	}
-	if (action.tool === "search_dora_api") {
+	if (action.tool === "search_dora_doc") {
 		shared.apiSearchesSinceBuild = (shared.apiSearchesSinceBuild ?? 0) + 1;
-		const result = await Tools.searchDoraAPI({
+		const result = await Tools.searchDoraDoc({
 			pattern: (params.pattern as string) ?? "",
-			docSource: ((params.docSource as string) ?? "api") as Tools.DoraAPIDocSource,
-			docLanguage: (shared.useChineseResponse ? "zh" : "en") as Tools.DoraAPIDocLanguage,
-			programmingLanguage: ((params.programmingLanguage as string) ?? "ts") as Tools.DoraAPIProgrammingLanguage,
-			limit: math.min(AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax, math.max(1, Number(params.limit ?? 8))),
+			docType: ((params.docType as string) ?? "dora-api") as Tools.DoraDocSearchType,
+			docLanguage: (shared.useChineseResponse ? "zh" : "en") as Tools.DoraDocLanguage,
+			programmingLanguage: ((params.programmingLanguage as string) ?? "ts") as Tools.DoraDocProgrammingLanguage,
+			limit: math.min(AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, math.max(1, Number(params.limit ?? 8))),
 			useRegex: params.useRegex as boolean | undefined,
 			caseSensitive: false,
 			includeContent: true,
@@ -4402,7 +4407,7 @@ function sanitizeToolActionResultForHistory(action: AgentActionRecord, result: R
 	if (action.tool === "read_file") {
 		return sanitizeReadResultForHistory(action.tool, result);
 	}
-	if (action.tool === "grep_files" || action.tool === "search_dora_api") {
+	if (action.tool === "grep_files" || action.tool === "search_dora_doc") {
 		return sanitizeSearchResultForHistory(action.tool, result);
 	}
 	if (action.tool === "glob_files") {
@@ -4695,7 +4700,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 		const main = new MainDecisionAgent(1, 0);
 		const read = new ReadFileAction(1, 0);
 		const search = new SearchFilesAction(1, 0);
-		const searchDora = new SearchDoraAPIAction(1, 0);
+		const searchDora = new SearchDoraDocAction(1, 0);
 		const list = new ListFilesAction(1, 0);
 		const listSub = new ListSubAgentsAction(1, 0);
 		const del = new DeleteFileAction(1, 0);
@@ -4709,7 +4714,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 
 		main.on("batch_tools", batch);
 		main.on("grep_files", search);
-		main.on("search_dora_api", searchDora);
+		main.on("search_dora_doc", searchDora);
 		main.on("glob_files", list);
 		main.on("fetch_url", fetch);
 		main.on("execute_command", exec);

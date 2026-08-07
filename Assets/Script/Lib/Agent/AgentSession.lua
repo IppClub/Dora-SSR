@@ -238,7 +238,7 @@ function decodeHandoffEvidence(value) -- 410
 					end -- 443
 					local item = raw -- 444
 					authoritativeSources[#authoritativeSources + 1] = { -- 445
-						tool = "search_dora_api", -- 446
+						tool = "search_dora_doc", -- 446
 						query = takeUtf8Head( -- 447
 							sanitizeUTF8(toStr(item.query)), -- 447
 							300 -- 447
@@ -391,7 +391,7 @@ function getTaskHandoffEvidence(taskId, changeSet) -- 528
 		commands = {}, -- 531
 		authoritativeSources = {} -- 532
 	} -- 532
-	local rows = queryRows(("SELECT tool, status, params_json, result_json FROM " .. TABLE_STEP) .. "\n\t\tWHERE task_id = ? AND tool IN (?, ?, ?) ORDER BY step ASC", {taskId, "build", "execute_command", "search_dora_api"}) or ({}) -- 534
+	local rows = queryRows(("SELECT tool, status, params_json, result_json FROM " .. TABLE_STEP) .. "\n\t\tWHERE task_id = ? AND tool IN (?, ?, ?) ORDER BY step ASC", {taskId, "build", "execute_command", "search_dora_doc"}) or ({}) -- 534
 	do -- 534
 		local i = 0 -- 539
 		while i < #rows do -- 539
@@ -419,15 +419,15 @@ function getTaskHandoffEvidence(taskId, changeSet) -- 528
 					result = passed and "passed" or "failed", -- 557
 					evidence = summarizeHandoffResult(result) -- 558
 				} -- 558
-			elseif tool == "search_dora_api" and #evidence.authoritativeSources < 8 then -- 558
+			elseif tool == "search_dora_doc" and #evidence.authoritativeSources < 8 then -- 558
 				local ____evidence_authoritativeSources_10 = evidence.authoritativeSources -- 558
 				____evidence_authoritativeSources_10[#____evidence_authoritativeSources_10 + 1] = { -- 561
-					tool = "search_dora_api", -- 562
+					tool = "search_dora_doc", -- 562
 					query = takeUtf8Head( -- 563
 						__TS__StringTrim(sanitizeUTF8(toStr(params.pattern))), -- 563
 						300 -- 563
 					), -- 563
-					source = __TS__StringTrim(sanitizeUTF8(toStr(params.docSource or "api"))), -- 564
+					source = __TS__StringTrim(sanitizeUTF8(toStr(params.docType or "dora-api"))), -- 564
 					result = passed and "passed" or "failed" -- 565
 				} -- 565
 			end -- 565

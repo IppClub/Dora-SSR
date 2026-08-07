@@ -119,7 +119,7 @@ export interface AgentHandoffEvidenceItem {
 		evidence: string;
 	}[];
 	authoritativeSources: {
-		tool: "search_dora_api";
+		tool: "search_dora_doc";
 		query: string;
 		source: string;
 		result: "passed" | "failed";
@@ -443,7 +443,7 @@ function decodeHandoffEvidence(value: unknown): AgentHandoffEvidenceItem | undef
 			if (!raw || Array.isArray(raw) || type(raw) !== "table") continue;
 			const item = raw as Record<string, unknown>;
 			authoritativeSources.push({
-				tool: "search_dora_api",
+				tool: "search_dora_doc",
 				query: takeUtf8Head(sanitizeUTF8(toStr(item.query)), 300),
 				source: sanitizeUTF8(toStr(item.source)),
 				result: item.result === "passed" ? "passed" : "failed",
@@ -534,7 +534,7 @@ function getTaskHandoffEvidence(taskId: number, changeSet?: AgentChangeSetSummar
 	const rows = queryRows(
 		`SELECT tool, status, params_json, result_json FROM ${TABLE_STEP}
 		WHERE task_id = ? AND tool IN (?, ?, ?) ORDER BY step ASC`,
-		[taskId, "build", "execute_command", "search_dora_api"],
+		[taskId, "build", "execute_command", "search_dora_doc"],
 	) ?? [];
 	for (let i = 0; i < rows.length; i++) {
 		const tool = toStr(rows[i][0]);
@@ -557,11 +557,11 @@ function getTaskHandoffEvidence(taskId: number, changeSet?: AgentChangeSetSummar
 				result: passed ? "passed" : "failed",
 				evidence: summarizeHandoffResult(result),
 			});
-		} else if (tool === "search_dora_api" && evidence.authoritativeSources.length < 8) {
+		} else if (tool === "search_dora_doc" && evidence.authoritativeSources.length < 8) {
 			evidence.authoritativeSources.push({
-				tool: "search_dora_api",
+				tool: "search_dora_doc",
 				query: takeUtf8Head(sanitizeUTF8(toStr(params.pattern)).trim(), 300),
-				source: sanitizeUTF8(toStr(params.docSource || "api")).trim(),
+				source: sanitizeUTF8(toStr(params.docType || "dora-api")).trim(),
 				result: passed ? "passed" : "failed",
 			});
 		}

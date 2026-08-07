@@ -2848,7 +2848,7 @@ getParamDocs = function(signatures) -- 1068
 				if doc.params then -- 1125
 					item.params = doc.params -- 1126
 					item.desc = "function(" .. tostring(table.concat(_anon_func_3(doc), ', ')) .. ")" -- 1127
-				else -- 1129
+				elseif doc.returnType then -- 1128
 					item.desc = "function()" -- 1129
 				end -- 1125
 				if doc.returnType then -- 1130
@@ -4475,11 +4475,11 @@ HttpServer:postSchedule("/doc/search", function(req) -- 1794
 			message = "unsupported doc language" -- 1797
 		} -- 1797
 	end -- 1797
-	local source = body.docSource -- 1798
-	if not (("api" == source or "tutorial" == source)) then -- 1799
+	local docType = body.docType -- 1798
+	if not (("dora-tutorial" == docType or "dora-api" == docType or "love-api" == docType or "tic80-api" == docType)) then -- 1799
 		return { -- 1799
 			success = false, -- 1799
-			message = "unsupported doc source" -- 1799
+			message = "unsupported doc type" -- 1799
 		} -- 1799
 	end -- 1799
 	local codeLanguage = body.programmingLanguage -- 1800
@@ -4496,10 +4496,10 @@ HttpServer:postSchedule("/doc/search", function(req) -- 1794
 		} -- 1802
 	end -- 1802
 	local result = nil -- 1803
-	AgentTools.searchDoraAPIHttp({ -- 1805
+	AgentTools.searchDoraDocHttp({ -- 1805
 		pattern = body.pattern, -- 1805
 		docLanguage = agentDocLanguage(language), -- 1806
-		docSource = source, -- 1807
+		docType = docType, -- 1807
 		programmingLanguage = codeLanguage, -- 1808
 		limit = body.limit, -- 1809
 		useRegex = body.useRegex, -- 1810

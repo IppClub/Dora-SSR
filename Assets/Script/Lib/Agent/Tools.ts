@@ -345,23 +345,23 @@ export type SearchFilesToolResult = {
 	message: string;
 };
 
-export type DoraAPIDocLanguage = "zh" | "en";
-export type DoraAPIDocSource = "api" | "tutorial";
-export type DoraAPIProgrammingLanguage = "ts" | "tsx" | "lua" | "yue" | "teal" | "tl" | "wa";
+export type DoraDocLanguage = "zh" | "en";
+export type DoraDocSearchType = "dora-tutorial" | "dora-api" | "love-api" | "tic80-api";
+export type DoraDocProgrammingLanguage = "ts" | "tsx" | "lua" | "yue" | "teal" | "tl" | "wa";
 
-export interface DoraAPISearchHit {
+export interface DoraDocSearchHit {
 	file: string;
 	line?: number;
 	content?: string;
 }
 
-export type DoraAPISearchResult = {
+export type DoraDocSearchResult = {
 	success: true;
-	docSource: DoraAPIDocSource;
-	docLanguage: DoraAPIDocLanguage;
-	programmingLanguage: DoraAPIProgrammingLanguage;
+	docType: DoraDocSearchType;
+	docLanguage: DoraDocLanguage;
+	programmingLanguage: DoraDocProgrammingLanguage;
 	exts: string[];
-	results: DoraAPISearchHit[];
+	results: DoraDocSearchHit[];
 	hint?: string;
 	totalResults?: number;
 	truncated?: boolean;
@@ -372,9 +372,9 @@ export type DoraAPISearchResult = {
 	message: string;
 };
 
-export type DoraAPIReadDocResult = {
+export type DoraDocReadResult = {
 	success: true;
-	docLanguage: DoraAPIDocLanguage;
+	docLanguage: DoraDocLanguage;
 	file: string;
 	content: string;
 	startLine?: number;
@@ -522,26 +522,26 @@ function resolveWorkspaceDirectoryPath(workDir: string, path?: string): { succes
 	return { success: true, path: resolved, relative };
 }
 
-function getDoraAPIDocRoot(docLanguage: DoraAPIDocLanguage): string {
+function getDoraDocDefinitionRoot(docLanguage: DoraDocLanguage): string {
 	const zhDir = Path(Content.assetPath, "Script", "Lib", "Dora", "zh-Hans");
 	const enDir = Path(Content.assetPath, "Script", "Lib", "Dora", "en");
 	return docLanguage === "zh" ? zhDir : enDir;
 }
 
-function getDoraTutorialDocRoot(docLanguage: DoraAPIDocLanguage): string {
+function getDoraTutorialDocRoot(docLanguage: DoraDocLanguage): string {
 	const zhDir = Path(Content.assetPath, "Doc", "zh-Hans", "Tutorial");
 	const enDir = Path(Content.assetPath, "Doc", "en", "Tutorial");
 	return docLanguage === "zh" ? zhDir : enDir;
 }
 
-function getDoraAPIDocExtsByCodeLanguage(programmingLanguage: DoraAPIProgrammingLanguage): string[] {
+function getDoraDocDefinitionExtsByCodeLanguage(programmingLanguage: DoraDocProgrammingLanguage): string[] {
 	if (programmingLanguage === "ts" || programmingLanguage === "tsx") {
 		return ["ts"];
 	}
 	return ["tl"];
 }
 
-function getTutorialProgrammingLanguageDir(programmingLanguage: DoraAPIProgrammingLanguage): string {
+function getTutorialProgrammingLanguageDir(programmingLanguage: DoraDocProgrammingLanguage): string {
 	switch (programmingLanguage) {
 		case "teal": return "tl";
 		case "tl": return "tl";
@@ -550,11 +550,11 @@ function getTutorialProgrammingLanguageDir(programmingLanguage: DoraAPIProgrammi
 }
 
 function getDoraDocSearchTarget(
-	docSource: DoraAPIDocSource,
-	docLanguage: DoraAPIDocLanguage,
-	programmingLanguage: DoraAPIProgrammingLanguage
+	docType: DoraDocSearchType,
+	docLanguage: DoraDocLanguage,
+	programmingLanguage: DoraDocProgrammingLanguage
 ): { root: string; exts: string[]; globs: string[] } {
-	if (docSource === "tutorial") {
+	if (docType === "dora-tutorial") {
 		const tutorialRoot = getDoraTutorialDocRoot(docLanguage);
 		const langDir = getTutorialProgrammingLanguageDir(programmingLanguage);
 		return {
@@ -563,47 +563,87 @@ function getDoraDocSearchTarget(
 			globs: ["**/*.md"],
 		};
 	}
-	const exts = getDoraAPIDocExtsByCodeLanguage(programmingLanguage);
+	const exts = getDoraDocDefinitionExtsByCodeLanguage(programmingLanguage);
+	if (docType === "love-api" || docType === "tic80-api") {
+		const name = docType === "love-api" ? "love" : "tic80";
+		return {
+			root: getDoraDocDefinitionRoot(docLanguage),
+			exts,
+			globs: exts.map(ext => `${name}.d.${ext}`),
+		};
+	}
 	return {
-		root: getDoraAPIDocRoot(docLanguage),
+		root: getDoraDocDefinitionRoot(docLanguage),
 		exts,
-		globs: exts.map(ext => `**/*.${ext}`),
+		globs: exts.flatMap(ext => [
+			`**/*.${ext}`,
+			`!**/love.d.${ext}`,
+			`!**/tic80.d.${ext}`,
+		]),
 	};
 }
 
-function getDoraDocResultBaseRoot(docSource: DoraAPIDocSource, docLanguage: DoraAPIDocLanguage): string {
-	if (docSource === "tutorial") {
+function getDoraDocResultBaseRoot(docType: DoraDocSearchType, docLanguage: DoraDocLanguage): string {
+	if (docType === "dora-tutorial") {
 		return getDoraTutorialDocRoot(docLanguage);
 	}
-	return getDoraAPIDocRoot(docLanguage);
+	return getDoraDocDefinitionRoot(docLanguage);
+}
+
+function isDoraDocFileInScope(docType: DoraDocSearchType, file: string): boolean {
+	const normalized = file.split("\\").join("/").toLowerCase();
+	const segments = normalized.split("/");
+	const baseName = segments[segments.length - 1] ?? normalized;
+	if (docType === "dora-tutorial") return normalized.endsWith(".md");
+	if (docType === "love-api") return normalized === "love.d.ts" || normalized === "love.d.tl";
+	if (docType === "tic80-api") return normalized === "tic80.d.ts" || normalized === "tic80.d.tl";
+	return (normalized.endsWith(".ts") || normalized.endsWith(".tl"))
+		&& baseName !== "love.d.ts"
+		&& baseName !== "love.d.tl"
+		&& baseName !== "tic80.d.ts"
+		&& baseName !== "tic80.d.tl";
 }
 
 const AGENT_DORA_DOC_PREFIX = "@dora-doc/";
 
-function toDocRelativePath(baseRoot: string, path: string, docSource: DoraAPIDocSource): string {
+function toDocRelativePath(baseRoot: string, path: string, docType: DoraDocSearchType): string {
 	if (!path || path.length === 0) return path;
 	const relative = Content.isAbsolutePath(path) ? Path.getRelative(path, baseRoot) : path;
-	return `${AGENT_DORA_DOC_PREFIX}${docSource}/${relative}`;
+	return `${AGENT_DORA_DOC_PREFIX}${docType}/${relative}`;
 }
 
-function resolveAgentDoraDocFilePath(path: string, docLanguage?: DoraAPIDocLanguage): string | undefined {
+function resolveAgentDoraDocFilePath(path: string, docLanguage?: DoraDocLanguage): string | undefined {
 	if (!docLanguage) return undefined;
 	let relative = path;
-	let source: DoraAPIDocSource = "tutorial";
+	let docType: DoraDocSearchType = "dora-tutorial";
 	if (path.startsWith(AGENT_DORA_DOC_PREFIX)) {
 		const namespaced = path.slice(AGENT_DORA_DOC_PREFIX.length);
-		if (namespaced.startsWith("api/")) {
-			source = "api";
+		if (namespaced.startsWith("dora-api/")) {
+			docType = "dora-api";
+			relative = namespaced.slice(9);
+		} else if (namespaced.startsWith("love-api/")) {
+			docType = "love-api";
+			relative = namespaced.slice(9);
+		} else if (namespaced.startsWith("tic80-api/")) {
+			docType = "tic80-api";
+			relative = namespaced.slice(10);
+		} else if (namespaced.startsWith("dora-tutorial/")) {
+			docType = "dora-tutorial";
+			relative = namespaced.slice(14);
+		} else if (namespaced.startsWith("api/")) {
+			docType = "dora-api";
 			relative = namespaced.slice(4);
 		} else if (namespaced.startsWith("tutorial/")) {
+			docType = "dora-tutorial";
 			relative = namespaced.slice(9);
 		} else {
 			return undefined;
 		}
 	}
 	if (!isValidWorkspacePath(relative)) return undefined;
-	const candidate = Path(getDoraDocResultBaseRoot(source, docLanguage), relative);
-	const root = getDoraDocResultBaseRoot(source, docLanguage);
+	if (!isDoraDocFileInScope(docType, relative)) return undefined;
+	const root = getDoraDocResultBaseRoot(docType, docLanguage);
+	const candidate = Path(root, relative);
 	const checked = Path.getRelative(candidate, root);
 	if (checked === ".." || checked.startsWith("../") || checked.startsWith("..\\")) return undefined;
 	if (Content.exist(candidate) && !Content.isdir(candidate)) {
@@ -1592,7 +1632,7 @@ export function getTaskChangeSetDiff(taskId: number): CheckpointDiffResult {
 	return { success: true, files };
 }
 
-function readWorkspaceFile(workDir: string, path: string, docLanguage?: DoraAPIDocLanguage): ReadFileResult {
+function readWorkspaceFile(workDir: string, path: string, docLanguage?: DoraDocLanguage): ReadFileResult {
 	const engineLog = readEngineLogFile(path);
 	if (engineLog) return engineLog;
 	const fullPath = resolveWorkspaceFilePath(workDir, path);
@@ -1611,7 +1651,7 @@ function readWorkspaceFile(workDir: string, path: string, docLanguage?: DoraAPID
 	return { success: false, message: "file not found" };
 }
 
-export function readFileRaw(workDir: string, path: string, docLanguage?: DoraAPIDocLanguage): ReadFileResult {
+export function readFileRaw(workDir: string, path: string, docLanguage?: DoraDocLanguage): ReadFileResult {
 	const result = readWorkspaceFile(workDir, path, docLanguage);
 	if (!result.success && Content.exist(path) && !Content.isdir(path)) {
 		const attr = inspectReadableFile(path);
@@ -1745,7 +1785,7 @@ export function readFile(
 	path: string,
 	startLine?: number,
 	endLine?: number,
-	docLanguage?: DoraAPIDocLanguage
+	docLanguage?: DoraDocLanguage
 ): ReadFileResult {
 	const fallback = readFileRaw(workDir, path, docLanguage);
 	if (!fallback.success || fallback.content === undefined) return fallback;
@@ -1865,8 +1905,8 @@ function buildGroupedSearchResults(results: SearchFilesResult[]): {
 	return out;
 }
 
-function mergeDoraAPISearchHitsUnique(resultsList: DoraAPISearchHit[][]): DoraAPISearchHit[] {
-	const merged: DoraAPISearchHit[] = [];
+function mergeDoraDocSearchHitsUnique(resultsList: DoraDocSearchHit[][]): DoraDocSearchHit[] {
+	const merged: DoraDocSearchHit[] = [];
 	const seen = new Set<string>();
 	let index = 0;
 	let advanced = true;
@@ -1887,8 +1927,8 @@ function mergeDoraAPISearchHitsUnique(resultsList: DoraAPISearchHit[][]): DoraAP
 	return merged;
 }
 
-function getDoraAPIFilePriority(file: string, docSource: DoraAPIDocSource, programmingLanguage: DoraAPIProgrammingLanguage): number {
-	if (docSource !== "api") return 100;
+function getDoraDocFilePriority(file: string, docType: DoraDocSearchType, programmingLanguage: DoraDocProgrammingLanguage): number {
+	if (docType !== "dora-api") return 100;
 	if (programmingLanguage !== "tsx") return 100;
 	switch (Path.getFilename(file).toLowerCase()) {
 		case "jsx.d.ts": return 0;
@@ -1898,15 +1938,15 @@ function getDoraAPIFilePriority(file: string, docSource: DoraAPIDocSource, progr
 	}
 }
 
-function sortDoraAPISearchHits(
-	hits: DoraAPISearchHit[],
-	docSource: DoraAPIDocSource,
-	programmingLanguage: DoraAPIProgrammingLanguage
-): DoraAPISearchHit[] {
+function sortDoraDocSearchHits(
+	hits: DoraDocSearchHit[],
+	docType: DoraDocSearchType,
+	programmingLanguage: DoraDocProgrammingLanguage
+): DoraDocSearchHit[] {
 	const sorted = hits.slice();
 	sorted.sort((a, b) => {
-		const pa = getDoraAPIFilePriority(a.file, docSource, programmingLanguage);
-		const pb = getDoraAPIFilePriority(b.file, docSource, programmingLanguage);
+		const pa = getDoraDocFilePriority(a.file, docType, programmingLanguage);
+		const pb = getDoraDocFilePriority(b.file, docType, programmingLanguage);
 		if (pa !== pb) return pa - pb;
 		const fa = a.file.toLowerCase();
 		const fb = b.file.toLowerCase();
@@ -1994,25 +2034,25 @@ export async function searchFiles(req: {
 	});
 }
 
-export async function searchDoraAPI(req: {
+export async function searchDoraDoc(req: {
 	pattern: string;
-	docLanguage: DoraAPIDocLanguage;
-	programmingLanguage: DoraAPIProgrammingLanguage;
-	docSource?: DoraAPIDocSource;
+	docLanguage: DoraDocLanguage;
+	programmingLanguage: DoraDocProgrammingLanguage;
+	docType?: DoraDocSearchType;
 	limit?: number;
 	useRegex?: boolean;
 	caseSensitive?: boolean;
 	includeContent?: boolean;
 	contentWindow?: number;
-}): Promise<DoraAPISearchResult> {
+}): Promise<DoraDocSearchResult> {
 	const pattern = (req.pattern ?? "").trim();
 	if (pattern === "") return { success: false, message: "empty pattern" };
 	const patterns = splitSearchPatterns(pattern);
 	if (patterns.length === 0) return { success: false, message: "empty pattern" };
-	const docSource = req.docSource ?? "api";
-	const target = getDoraDocSearchTarget(docSource, req.docLanguage, req.programmingLanguage);
+	const docType = req.docType ?? "dora-api";
+	const target = getDoraDocSearchTarget(docType, req.docLanguage, req.programmingLanguage);
 	const docRoot = target.root;
-	const resultBaseRoot = getDoraDocResultBaseRoot(docSource, req.docLanguage);
+	const resultBaseRoot = getDoraDocResultBaseRoot(docType, req.docLanguage);
 	if (!Content.exist(docRoot) || !Content.isdir(docRoot)) {
 		return { success: false, message: `doc root not found: ${docRoot}` };
 	}
@@ -2024,7 +2064,7 @@ export async function searchDoraAPI(req: {
 	return new Promise(resolve => {
 		Director.systemScheduler.schedule(once(() => {
 			try {
-				const allHits: DoraAPISearchHit[][] = [];
+				const allHits: DoraDocSearchHit[][] = [];
 				for (let p = 0; p < patterns.length; p++) {
 					const raw = Content.searchFilesAsync(
 						docRoot,
@@ -2037,10 +2077,10 @@ export async function searchDoraAPI(req: {
 						req.includeContent ?? true,
 						req.contentWindow ?? 80
 					);
-					const hits: DoraAPISearchHit[] = [];
+					const hits: DoraDocSearchHit[] = [];
 					for (let i = 0; i < raw.length; i++) {
 						const row = raw[i];
-						const file = toDocRelativePath(resultBaseRoot, row.file, docSource);
+						const file = toDocRelativePath(resultBaseRoot, row.file, docType);
 						if (file === "") continue;
 						hits.push({
 							file,
@@ -2048,9 +2088,9 @@ export async function searchDoraAPI(req: {
 							content: typeof row.content === "string" ? row.content : undefined,
 						});
 					}
-					allHits.push(sortDoraAPISearchHits(hits, docSource, req.programmingLanguage).slice(0, limit));
+					allHits.push(sortDoraDocSearchHits(hits, docType, req.programmingLanguage).slice(0, limit));
 				}
-				let hits = mergeDoraAPISearchHitsUnique(allHits);
+				let hits = mergeDoraDocSearchHitsUnique(allHits);
 				let fallbackPatterns: string[] | undefined;
 				// Preserve phrase search first. If a model sends a space-separated
 				// keyword list instead of the documented `|` form and gets no hits,
@@ -2059,7 +2099,7 @@ export async function searchDoraAPI(req: {
 					const terms = splitWhitespaceSearchPatterns(pattern);
 					if (terms.length > 1) {
 						fallbackPatterns = terms;
-						const fallbackHits: DoraAPISearchHit[][] = [];
+						const fallbackHits: DoraDocSearchHit[][] = [];
 						for (let p = 0; p < terms.length; p++) {
 							const raw = Content.searchFilesAsync(
 								docRoot,
@@ -2072,10 +2112,10 @@ export async function searchDoraAPI(req: {
 								req.includeContent ?? true,
 								req.contentWindow ?? 80
 							);
-							const termHits: DoraAPISearchHit[] = [];
+							const termHits: DoraDocSearchHit[] = [];
 							for (let i = 0; i < raw.length; i++) {
 								const row = raw[i];
-								const file = toDocRelativePath(resultBaseRoot, row.file, docSource);
+								const file = toDocRelativePath(resultBaseRoot, row.file, docType);
 								if (file === "") continue;
 								termHits.push({
 									file,
@@ -2083,14 +2123,14 @@ export async function searchDoraAPI(req: {
 									content: typeof row.content === "string" ? row.content : undefined,
 								});
 							}
-							fallbackHits.push(sortDoraAPISearchHits(termHits, docSource, req.programmingLanguage).slice(0, limit));
+							fallbackHits.push(sortDoraDocSearchHits(termHits, docType, req.programmingLanguage).slice(0, limit));
 						}
-						hits = mergeDoraAPISearchHitsUnique(fallbackHits);
+						hits = mergeDoraDocSearchHitsUnique(fallbackHits);
 					}
 				}
 				resolve({
 					success: true,
-					docSource,
+					docType,
 					docLanguage: req.docLanguage,
 					programmingLanguage: req.programmingLanguage,
 					exts,
@@ -2108,36 +2148,48 @@ export async function searchDoraAPI(req: {
 	});
 }
 
-export function searchDoraAPIHttp(req: {
+export function searchDoraDocHttp(req: {
 	pattern: string;
-	docLanguage: DoraAPIDocLanguage;
-	programmingLanguage: DoraAPIProgrammingLanguage;
-	docSource?: DoraAPIDocSource;
+	docLanguage: DoraDocLanguage;
+	programmingLanguage: DoraDocProgrammingLanguage;
+	docType?: DoraDocSearchType;
 	limit?: number;
 	useRegex?: boolean;
 	caseSensitive?: boolean;
 	includeContent?: boolean;
 	contentWindow?: number;
-}, callback: (result: DoraAPISearchResult) => void) {
-	searchDoraAPI(req).then(result => callback(result));
+}, callback: (result: DoraDocSearchResult) => void) {
+	searchDoraDoc(req).then(result => callback(result));
 }
 
 export function readDoraDoc(req: {
-	docLanguage: DoraAPIDocLanguage;
+	docLanguage: DoraDocLanguage;
 	file: string;
 	startLine?: number;
 	endLine?: number;
-}): DoraAPIReadDocResult {
+}): DoraDocReadResult {
 	const requestedFile = (req.file ?? "").split("\\").join("/");
 	let file = requestedFile;
-	let namespacedSource: DoraAPIDocSource | undefined = undefined;
+	let namespacedType: DoraDocSearchType | undefined = undefined;
 	if (requestedFile.startsWith(AGENT_DORA_DOC_PREFIX)) {
 		const namespaced = requestedFile.slice(AGENT_DORA_DOC_PREFIX.length);
-		if (namespaced.startsWith("api/")) {
-			namespacedSource = "api";
+		if (namespaced.startsWith("dora-api/")) {
+			namespacedType = "dora-api";
+			file = namespaced.slice(9);
+		} else if (namespaced.startsWith("love-api/")) {
+			namespacedType = "love-api";
+			file = namespaced.slice(9);
+		} else if (namespaced.startsWith("tic80-api/")) {
+			namespacedType = "tic80-api";
+			file = namespaced.slice(10);
+		} else if (namespaced.startsWith("dora-tutorial/")) {
+			namespacedType = "dora-tutorial";
+			file = namespaced.slice(14);
+		} else if (namespaced.startsWith("api/")) {
+			namespacedType = "dora-api";
 			file = namespaced.slice(4);
 		} else if (namespaced.startsWith("tutorial/")) {
-			namespacedSource = "tutorial";
+			namespacedType = "dora-tutorial";
 			file = namespaced.slice(9);
 		} else {
 			return { success: false, message: "invalid Dora doc namespace" };
@@ -2150,8 +2202,11 @@ export function readDoraDoc(req: {
 	const isTutorialDoc = lowerFile.endsWith(".md");
 	const isAPIDoc = lowerFile.endsWith(".ts") || lowerFile.endsWith(".tl");
 	if (!isTutorialDoc && !isAPIDoc) return { success: false, message: "unsupported doc file type" };
-	const docSource: DoraAPIDocSource = namespacedSource ?? (isTutorialDoc ? "tutorial" : "api");
-	const root = getDoraDocResultBaseRoot(docSource, req.docLanguage);
+	const docType: DoraDocSearchType = namespacedType ?? (isTutorialDoc ? "dora-tutorial" : "dora-api");
+	if (!isDoraDocFileInScope(docType, file)) {
+		return { success: false, message: "document is outside the requested search type" };
+	}
+	const root = getDoraDocResultBaseRoot(docType, req.docLanguage);
 	const fullPath = Path(root, file);
 	const relative = Path.getRelative(fullPath, root);
 	if (relative === ".." || relative.startsWith("../") || relative.startsWith("..\\")) {

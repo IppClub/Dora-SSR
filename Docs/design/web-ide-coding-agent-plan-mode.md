@@ -108,7 +108,7 @@ stateDiagram-v2
 | `edit_file` | 允许 | 受限允许 | Plan mode 只能写登记的规划文档 |
 | `delete_file` | 允许 | 受限允许 | Plan mode 只能删除可删除的辅助规划文档 |
 | `grep_files` | 允许 | 允许 | 用于调查当前实现 |
-| `search_dora_api` | 允许 | 允许 | 用于确认 Dora API 和教程约束 |
+| `search_dora_doc` | 允许 | 允许 | 用于按类型确认 Dora 教程、Dora API、LÖVE API 或 TIC-80 API 约束 |
 | `glob_files` | 允许 | 允许 | 用于发现文件和工程结构 |
 | `ask_user` | 不暴露 | 允许 | 发布结构化调查问卷 |
 | `finish` | 允许 | 允许 | Code mode 完成开发；Plan mode提交方案供审阅 |
@@ -125,7 +125,7 @@ read_file
 edit_file
 delete_file
 grep_files
-search_dora_api
+search_dora_doc
 glob_files
 ask_user
 finish
@@ -320,7 +320,7 @@ Plan mode 调用 `finish` 前必须满足：
 - 是否接受迁移成本或破坏性变更。
 - 用户自定义的约束和补充说明。
 
-Agent 不应询问可以通过 `read_file`、`grep_files`、`glob_files` 或 `search_dora_api` 得到的事实。
+Agent 不应询问可以通过 `read_file`、`grep_files`、`glob_files` 或 `search_dora_doc` 得到的事实。
 
 ### 8.2 参数 Schema
 

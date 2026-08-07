@@ -261,7 +261,7 @@ function sanitizeSearchResultForHistory(tool, result) -- 1017
 	if result.success ~= true or not isArray(result.results) then -- 1017
 		return result -- 1021
 	end -- 1021
-	if tool ~= "grep_files" and tool ~= "search_dora_api" then -- 1021
+	if tool ~= "grep_files" and tool ~= "search_dora_doc" then -- 1021
 		return result -- 1022
 	end -- 1022
 	local clone = {} -- 1023
@@ -518,7 +518,7 @@ function ____exports.getDecisionDisabledAgentTools(shared) -- 1284
 	return __TS__ArraySlice(shared.disabledAgentTools) -- 1288
 end -- 1284
 function getDecisionToolDefinitions(shared) -- 1291
-	local params = {SEARCH_DORA_API_LIMIT_MAX = tostring(AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax)} -- 1292
+	local params = {SEARCH_DORA_DOC_LIMIT_MAX = tostring(AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax)} -- 1292
 	local usesDefaultToolPrompts = shared.promptPack.toolDefinitionsDetailed == AgentToolRegistry.AGENT_TOOL_DEFINITIONS_DETAILED and shared.promptPack.mainAgentToolDefinitionsDetailed == AgentToolRegistry.MAIN_AGENT_TOOL_DEFINITIONS_DETAILED and shared.promptPack.xmlToolDefinitionsDetailed == AgentToolRegistry.XML_TOOL_DEFINITIONS_DETAILED -- 1293
 	local base = shared.promptPack.toolDefinitionsDetailed -- 1296
 	local mainAgentTools = shared.role == "main" and shared.promptPack.mainAgentToolDefinitionsDetailed or "" -- 1297
@@ -528,7 +528,7 @@ function getDecisionToolDefinitions(shared) -- 1291
 			{ -- 1300
 				includeFinish = true, -- 1301
 				includeXmlRules = true, -- 1302
-				context = {searchDoraApiLimitMax = AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax}, -- 1303
+				context = {searchDoraDocLimitMax = AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax}, -- 1303
 				disabledAgentTools = ____exports.getDecisionDisabledAgentTools(shared), -- 1304
 				workMode = shared.workMode -- 1305
 			} -- 1305
@@ -627,7 +627,7 @@ function applyCompressedSessionState(shared, compressedCount, carryMessageIndex,
 				"edit_file", -- 1924
 				"delete_file", -- 1924
 				"grep_files", -- 1924
-				"search_dora_api", -- 1924
+				"search_dora_doc", -- 1924
 				"glob_files", -- 1925
 				"build", -- 1925
 				"fetch_url", -- 1925
@@ -678,9 +678,9 @@ function inferToolNameFromXMLParams(params) -- 1995
 		end -- 2003
 		return nil -- 2004
 	end -- 2004
-	if hasXMLParam(params, "docSource") or hasXMLParam(params, "programmingLanguage") then -- 2004
+	if hasXMLParam(params, "docType") or hasXMLParam(params, "programmingLanguage") then -- 2004
 		if hasXMLParam(params, "pattern") then -- 2004
-			return "search_dora_api" -- 2007
+			return "search_dora_doc" -- 2007
 		end -- 2007
 		return nil -- 2008
 	end -- 2008
@@ -1049,13 +1049,18 @@ function validateDecision(tool, params) -- 2436
 		params.offset = clampIntegerParam(params.offset, 0, 0) -- 2496
 		return {success = true, params = params} -- 2497
 	end -- 2497
-	if tool == "search_dora_api" then -- 2497
+	if tool == "search_dora_doc" then -- 2497
 		local pattern = type(params.pattern) == "string" and __TS__StringTrim(params.pattern) or "" -- 2501
 		if pattern == "" then -- 2501
-			return {success = false, message = "search_dora_api requires pattern"} -- 2502
+			return {success = false, message = "search_dora_doc requires pattern"} -- 2502
 		end -- 2502
+		local docType = type(params.docType) == "string" and params.docType or "dora-api"
+		if docType ~= "dora-api" and docType ~= "dora-tutorial" and docType ~= "love-api" and docType ~= "tic80-api" then
+			return {success = false, message = "search_dora_doc requires docType: dora-tutorial, dora-api, love-api, or tic80-api"}
+		end
 		params.pattern = pattern -- 2503
-		params.limit = clampIntegerParam(params.limit, 8, 1, AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax) -- 2504
+		params.docType = docType
+		params.limit = clampIntegerParam(params.limit, 8, 1, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax) -- 2504
 		return {success = true, params = params} -- 2505
 	end -- 2505
 	if tool == "glob_files" then -- 2505
@@ -1458,27 +1463,27 @@ function executeToolAction(shared, action) -- 4028
 			})) -- 4085
 			return ____awaiter_resolve(nil, result) -- 4085
 		end -- 4085
-		if action.tool == "search_dora_api" then -- 4085
+		if action.tool == "search_dora_doc" then -- 4085
 			shared.apiSearchesSinceBuild = (shared.apiSearchesSinceBuild or 0) + 1 -- 4090
-			local ____Tools_searchDoraAPI_173 = Tools.searchDoraAPI -- 4091
+			local ____Tools_searchDoraDoc_173 = Tools.searchDoraDoc -- 4091
 			local ____temp_169 = params.pattern or "" -- 4092
-			local ____temp_170 = params.docSource or "api" -- 4093
+			local ____temp_170 = params.docType or "dora-api" -- 4093
 			local ____temp_171 = shared.useChineseResponse and "zh" or "en" -- 4094
 			local ____temp_172 = params.programmingLanguage or "ts" -- 4095
 			local ____math_min_168 = math.min -- 4096
-			local ____AgentConfig_AGENT_LIMITS_searchDoraApiLimitMax_167 = AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax -- 4096
+			local ____AgentConfig_AGENT_LIMITS_searchDoraDocLimitMax_167 = AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax -- 4096
 			local ____math_max_166 = math.max -- 4096
 			local ____params_limit_165 = params.limit -- 4096
 			if ____params_limit_165 == nil then -- 4096
 				____params_limit_165 = 8 -- 4096
 			end -- 4096
-			local result = __TS__Await(____Tools_searchDoraAPI_173({ -- 4091
+			local result = __TS__Await(____Tools_searchDoraDoc_173({ -- 4091
 				pattern = ____temp_169, -- 4092
-				docSource = ____temp_170, -- 4093
+				docType = ____temp_170, -- 4093
 				docLanguage = ____temp_171, -- 4094
 				programmingLanguage = ____temp_172, -- 4095
 				limit = ____math_min_168( -- 4096
-					____AgentConfig_AGENT_LIMITS_searchDoraApiLimitMax_167, -- 4096
+					____AgentConfig_AGENT_LIMITS_searchDoraDocLimitMax_167, -- 4096
 					____math_max_166( -- 4096
 						1, -- 4096
 						__TS__Number(____params_limit_165) -- 4096
@@ -1843,7 +1848,7 @@ function sanitizeToolActionResultForHistory(action, result) -- 4401
 	if action.tool == "read_file" then -- 4401
 		return sanitizeReadResultForHistory(action.tool, result) -- 4403
 	end -- 4403
-	if action.tool == "grep_files" or action.tool == "search_dora_api" then -- 4403
+	if action.tool == "grep_files" or action.tool == "search_dora_doc" then -- 4403
 		return sanitizeSearchResultForHistory(action.tool, result) -- 4406
 	end -- 4406
 	if action.tool == "glob_files" then -- 4406
@@ -2513,7 +2518,7 @@ end -- 1259
 local function getDecisionToolSchemaText(shared) -- 1323
 	local toolsText = AgentUtils.safeJsonEncode(AgentToolRegistry.buildDecisionToolSchema( -- 1324
 		shared.role, -- 1324
-		AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax, -- 1324
+		AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, -- 1324
 		{ -- 1324
 			disabledAgentTools = ____exports.getDecisionDisabledAgentTools(shared), -- 1325
 			workMode = shared.workMode -- 1326
@@ -2660,7 +2665,7 @@ local function executeToolActionWithPreExecution(shared, action) -- 1406
 				guidance[#guidance + 1] = "A deterministic test failure remains unresolved. Prefer a narrow authored-source fix and a successful build before further testing or generated-output investigation." -- 1448
 			end -- 1448
 		end -- 1448
-		if action.tool == "search_dora_api" then -- 1448
+		if action.tool == "search_dora_doc" then -- 1448
 			if shared.unbuiltEdits == true then -- 1448
 				guidance[#guidance + 1] = "There are unbuilt authored changes. Apply only relevant API evidence from this result, then prefer building before more discovery." -- 1453
 			end -- 1453
@@ -2741,7 +2746,7 @@ local function maybeCompressHistory(shared, includePendingUserPrompt, pendingUse
 					) and (type(shared.llmOptions.reasoning_effort) ~= "string" or __TS__StringTrim(shared.llmOptions.reasoning_effort) == "") and ({reasoning_effort = "minimal"}) or ({}), -- 1549
 					{tools = AgentToolRegistry.buildDecisionToolSchema( -- 1547
 						shared.role, -- 1554
-						AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax, -- 1554
+						AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, -- 1554
 						{ -- 1554
 							disabledAgentTools = ____exports.getDecisionDisabledAgentTools(shared), -- 1555
 							workMode = shared.workMode -- 1556
@@ -3260,7 +3265,7 @@ local function buildXmlRepairMessages(shared, originalRaw, originalReasoning, ca
 		{ -- 2805
 			includeFinish = true, -- 2806
 			includeXmlRules = true, -- 2807
-			context = {searchDoraApiLimitMax = AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax}, -- 2808
+			context = {searchDoraDocLimitMax = AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax}, -- 2808
 			disabledAgentTools = ____exports.getDecisionDisabledAgentTools(shared), -- 2809
 			workMode = shared.workMode -- 2810
 		} -- 2810
@@ -3361,7 +3366,7 @@ function MainDecisionAgent.prototype.callDecisionByToolCalling(self, shared, las
 		) -- 2931
 		local tools = AgentToolRegistry.buildDecisionToolSchema( -- 2932
 			shared.role, -- 2932
-			AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax, -- 2932
+			AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, -- 2932
 			{ -- 2932
 				disabledAgentTools = ____exports.getDecisionDisabledAgentTools(shared), -- 2933
 				workMode = shared.workMode -- 2934
@@ -4118,10 +4123,10 @@ function SearchFilesAction.prototype.post(self, shared, _prepRes, execRes) -- 34
 		return ____awaiter_resolve(nil, "main") -- 3497
 	end) -- 3497
 end -- 3487
-local SearchDoraAPIAction = __TS__Class() -- 3502
-SearchDoraAPIAction.name = "SearchDoraAPIAction" -- 3502
-__TS__ClassExtends(SearchDoraAPIAction, Node) -- 3502
-function SearchDoraAPIAction.prototype.prep(self, shared) -- 3503
+local SearchDoraDocAction = __TS__Class() -- 3502
+SearchDoraDocAction.name = "SearchDoraDocAction" -- 3502
+__TS__ClassExtends(SearchDoraDocAction, Node) -- 3502
+function SearchDoraDocAction.prototype.prep(self, shared) -- 3503
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3503
 		local last = shared.history[#shared.history] -- 3504
 		if not last then -- 3504
@@ -4134,28 +4139,28 @@ function SearchDoraAPIAction.prototype.prep(self, shared) -- 3503
 		return ____awaiter_resolve(nil, {params = last.params, useChineseResponse = shared.useChineseResponse}) -- 3506
 	end) -- 3506
 end -- 3503
-function SearchDoraAPIAction.prototype.exec(self, input) -- 3510
+function SearchDoraDocAction.prototype.exec(self, input) -- 3510
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3510
 		local params = input.params -- 3511
-		local ____Tools_searchDoraAPI_129 = Tools.searchDoraAPI -- 3512
+		local ____Tools_searchDoraDoc_129 = Tools.searchDoraDoc -- 3512
 		local ____temp_125 = params.pattern or "" -- 3513
-		local ____temp_126 = params.docSource or "api" -- 3514
+		local ____temp_126 = params.docType or "dora-api" -- 3514
 		local ____temp_127 = input.useChineseResponse and "zh" or "en" -- 3515
 		local ____temp_128 = params.programmingLanguage or "ts" -- 3516
 		local ____math_min_124 = math.min -- 3517
-		local ____AgentConfig_AGENT_LIMITS_searchDoraApiLimitMax_123 = AgentConfig.AGENT_LIMITS.searchDoraApiLimitMax -- 3517
+		local ____AgentConfig_AGENT_LIMITS_searchDoraDocLimitMax_123 = AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax -- 3517
 		local ____math_max_122 = math.max -- 3517
 		local ____params_limit_121 = params.limit -- 3517
 		if ____params_limit_121 == nil then -- 3517
 			____params_limit_121 = 8 -- 3517
 		end -- 3517
-		local result = __TS__Await(____Tools_searchDoraAPI_129({ -- 3512
+		local result = __TS__Await(____Tools_searchDoraDoc_129({ -- 3512
 			pattern = ____temp_125, -- 3513
-			docSource = ____temp_126, -- 3514
+			docType = ____temp_126, -- 3514
 			docLanguage = ____temp_127, -- 3515
 			programmingLanguage = ____temp_128, -- 3516
 			limit = ____math_min_124( -- 3517
-				____AgentConfig_AGENT_LIMITS_searchDoraApiLimitMax_123, -- 3517
+				____AgentConfig_AGENT_LIMITS_searchDoraDocLimitMax_123, -- 3517
 				____math_max_122( -- 3517
 					1, -- 3517
 					__TS__Number(____params_limit_121) -- 3517
@@ -4169,7 +4174,7 @@ function SearchDoraAPIAction.prototype.exec(self, input) -- 3510
 		return ____awaiter_resolve(nil, result) -- 3521
 	end) -- 3521
 end -- 3510
-function SearchDoraAPIAction.prototype.post(self, shared, _prepRes, execRes) -- 3526
+function SearchDoraDocAction.prototype.post(self, shared, _prepRes, execRes) -- 3526
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 3526
 		local last = shared.history[#shared.history] -- 3527
 		if last ~= nil then -- 3527
@@ -4940,7 +4945,7 @@ function CodingAgentFlow.prototype.____constructor(self, role) -- 4694
 	local main = __TS__New(MainDecisionAgent, 1, 0) -- 4695
 	local read = __TS__New(ReadFileAction, 1, 0) -- 4696
 	local search = __TS__New(SearchFilesAction, 1, 0) -- 4697
-	local searchDora = __TS__New(SearchDoraAPIAction, 1, 0) -- 4698
+	local searchDora = __TS__New(SearchDoraDocAction, 1, 0) -- 4698
 	local list = __TS__New(ListFilesAction, 1, 0) -- 4699
 	local listSub = __TS__New(ListSubAgentsAction, 1, 0) -- 4700
 	local del = __TS__New(DeleteFileAction, 1, 0) -- 4701
@@ -4953,7 +4958,7 @@ function CodingAgentFlow.prototype.____constructor(self, role) -- 4694
 	local done = __TS__New(EndNode, 1, 0) -- 4708
 	main:on("batch_tools", batch) -- 4710
 	main:on("grep_files", search) -- 4711
-	main:on("search_dora_api", searchDora) -- 4712
+	main:on("search_dora_doc", searchDora)
 	main:on("glob_files", list) -- 4713
 	main:on("fetch_url", fetch) -- 4714
 	main:on("execute_command", exec) -- 4715

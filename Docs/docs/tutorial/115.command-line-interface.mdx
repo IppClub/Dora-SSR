@@ -69,7 +69,7 @@ Commands:
   status [-p project]
   doctor [-p project] [--fix]
   log [-n lines]
-  doc search <pattern> [-l zh-Hans|en] [--source api|tutorial] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
+  doc search <pattern> [-l zh-Hans|en] [--source dora-api|dora-tutorial|love-api|tic80-api] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
   doc read <file> [-l zh-Hans|en] [--start line] [--end line]
   rust build [-p project]
   rust run <target-path> [-p project]
@@ -101,7 +101,7 @@ Search results print doc file paths and matching lines. Read a returned file wit
 Dora cli doc read ts/using-sprite.md --start 1 --end 80
 ```
 
-`-l` defaults to `en` for `doc search` and `doc read`. `--source` can be `api` or `tutorial` for search. `--lang` selects the API or tutorial language variant. `teal` and `tl` both use the Teal docs.
+`-l` defaults to `en` for `doc search` and `doc read`. `--source` selects exactly one documentation set: `dora-api`, `dora-tutorial`, `love-api`, or `tic80-api`. `--lang` selects the TypeScript/TSX or Teal declaration variant (and the tutorial language directory for `dora-tutorial`). `teal` and `tl` both use the Teal docs.
 
 ## 4. TypeScript and Script Projects
 

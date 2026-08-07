@@ -147,9 +147,9 @@ end
 local function docHelp(action)
 	if action == "search" then
 		print([[
-Usage: dora cli doc search <pattern> [-l zh-Hans|en] [--source api|tutorial] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
+Usage: dora cli doc search <pattern> [-l zh-Hans|en] [--source dora-api|dora-tutorial|love-api|tic80-api] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
 
-Search Dora SSR API docs or tutorials.
+Search one Dora, LÖVE, or TIC-80 documentation set.
 Use | inside pattern to search alternatives.
 ]])
 	elseif action == "read" then
@@ -163,7 +163,7 @@ Read a Dora SSR doc file returned by doc search.
 Usage: dora cli doc <command> [options]
 
 Commands:
-	search <pattern> [-l zh-Hans|en] [--source api|tutorial] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
+	search <pattern> [-l zh-Hans|en] [--source dora-api|dora-tutorial|love-api|tic80-api] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
 	read <file> [-l zh-Hans|en] [--start line] [--end line]
 ]])
 	end
@@ -274,7 +274,7 @@ local function parseOptions(args, index)
 		entry = "init.lua",
 		lang = "all",
 		langProvided = false,
-		docSource = "tutorial",
+		docType = "dora-api",
 		docCode = nil,
 		json = false,
 		startLine = nil,
@@ -335,7 +335,7 @@ local function parseOptions(args, index)
 		elseif arg == "--source" or arg == "--doc-source" then
 			index = index + 1
 			if index > #args then fail(arg .. " expects a value") end
-			options.docSource = args[index]
+			options.docType = args[index]
 			index = index + 1
 		elseif arg == "--code" then
 			index = index + 1
@@ -897,11 +897,12 @@ local function docProgrammingLanguage(options)
 	fail("Unsupported doc code language: " .. tostring(language))
 end
 
-local function docSource(options)
-	if options.docSource == "api" or options.docSource == "tutorial" then
-		return options.docSource
+local function docType(options)
+	if options.docType == "dora-api" or options.docType == "dora-tutorial"
+		or options.docType == "love-api" or options.docType == "tic80-api" then
+		return options.docType
 	end
-	fail("Unsupported doc source: " .. tostring(options.docSource))
+	fail("Unsupported doc type: " .. tostring(options.docType))
 end
 
 local function printDocSearchResults(doc)
@@ -945,7 +946,7 @@ local function runDocCommand(args)
 		local doc = postJson(options, "/doc/search", {
 			pattern = pattern,
 			docLanguage = docLanguage(options),
-			docSource = docSource(options),
+			docType = docType(options),
 			programmingLanguage = docProgrammingLanguage(options),
 			limit = limit,
 			includeContent = true,

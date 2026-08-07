@@ -39,24 +39,24 @@ Dora has its own TypeScript definitions such as `Dora.d.ts`. Do not invent names
 
 ### Lookup protocol
 
-Call `search_dora_api` before using any Dora API that is not shown in the baseline section below or not already used correctly in the project.
+Call `search_dora_doc` before using any Dora API that is not shown in the baseline section below or not already used correctly in the project.
 
 For implementation tasks, keep lookup bounded so it does not replace implementation:
 
 - When the runtime reports a fresh project, start from the disclosed short code file or create the requested entry directly (default to `init.ts` for a Dora TypeScript task). Consult relevant tutorials or APIs when they help, and prefer an early build so subsequent work can use compiler feedback.
 - If the requested game fits the baseline APIs below, do not search first. Inspect the entry, implement the smallest complete playable loop, then build.
-- Before the first edit, use at most one batched `search_dora_api` call for all genuinely unfamiliar APIs. Do not issue separate searches for APIs already covered by the baseline.
+- Before the first edit, use at most one batched `search_dora_doc` call for all genuinely unfamiliar APIs. Do not issue separate searches for APIs already covered by the baseline.
 - After that lookup, edit and build. Search again only for a concrete compiler or runtime error that cannot be resolved from the returned signature.
 - Do not use runtime command tools for project discovery, file inspection, or API/type-definition lookup. Use the corresponding file/search tools.
 - Prefer build diagnostics over speculative design research. Do not spend repeated Agent steps comparing optional architectures before a playable baseline exists.
-- After editing source, build before another `search_dora_api` call. A later search is justified only by a concrete build/runtime diagnostic that requires an unfamiliar API.
+- After editing source, build before another `search_dora_doc` call. A later search is justified only by a concrete build/runtime diagnostic that requires an unfamiliar API.
 
 Use:
 
 - `programmingLanguage: "ts"` for `.ts` files.
 - `programmingLanguage: "tsx"` for DoraX/JSX files.
-- `docSource: "api"` for signatures/types.
-- `docSource: "tutorial"` for usage examples when signatures alone are not enough.
+- `docType: "dora-api"` for signatures/types.
+- `docType: "dora-tutorial"` for usage examples when signatures alone are not enough.
 - `docLanguage: "zh"` if the user is Chinese or Chinese docs are preferred; otherwise `"en"`.
 
 After searching:
@@ -85,10 +85,10 @@ Search especially for:
 Example tool searches:
 
 ```text
-search_dora_api pattern="PhysicsWorld|Body|FixtureDef" docSource="api" programmingLanguage="ts" limit=8
-search_dora_api pattern="Button|Menu|AlignNode" docSource="api" programmingLanguage="ts" limit=8
-search_dora_api pattern="AudioSource|Audio" docSource="api" programmingLanguage="ts" limit=8
-search_dora_api pattern="thread|sleep|threadLoop" docSource="api" programmingLanguage="ts" limit=8
+search_dora_doc pattern="PhysicsWorld|Body|FixtureDef" docType="dora-api" programmingLanguage="ts" limit=8
+search_dora_doc pattern="Button|Menu|AlignNode" docType="dora-api" programmingLanguage="ts" limit=8
+search_dora_doc pattern="AudioSource|Audio" docType="dora-api" programmingLanguage="ts" limit=8
+search_dora_doc pattern="thread|sleep|threadLoop" docType="dora-api" programmingLanguage="ts" limit=8
 ```
 
 ## Module Import Rules
@@ -233,7 +233,7 @@ Baseline mapping:
 
 ## Runtime API Coverage Map
 
-Use this as a decision map. It is not a full API reference; exact signatures come from `search_dora_api`.
+Use this as a decision map. It is not a full API reference; exact signatures come from `search_dora_doc`.
 
 | Need | Likely start | Lookup rule |
 | --- | --- | --- |
@@ -292,7 +292,7 @@ For a playable game, `build` success and `running=true` are necessary but not su
 - Code imports from Dora runtime modules (`Dora`, `DoraX`, `Platformer`, `ImGui`, `nvg`) as appropriate.
 - TypeScript project imports use valid slash-separated Dora root/search-path module names (for example `game/Game`), with no `./`/`../` prefix or source/output file extension; `requireProjectModule` dependency cache names use dots (for example `game.Game`).
 - No `any` or bare `null` was added to Dora runtime TypeScript.
-- Non-baseline Dora APIs were confirmed with `search_dora_api` or existing correct project code.
+- Non-baseline Dora APIs were confirmed with `search_dora_doc` or existing correct project code.
 - Game loop uses Dora scheduling and `dt`.
 - Each node has at most one intended scheduled callback; validation probes do not replace the game loop.
 - Rendering nodes are attached to `Director.entry` or an existing Dora node.

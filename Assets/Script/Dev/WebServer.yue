@@ -1125,7 +1125,7 @@ getParamDocs = (signatures) ->
 			if doc.params
 				item.params = doc.params
 				item.desc = "function(#{table.concat [param.name for param in *doc.params], ', '})"
-			else
+			elseif doc.returnType
 				item.desc = "function()"
 			item.desc ..= ": #{doc.returnType}" if doc.returnType
 		results[] = item
@@ -1795,16 +1795,16 @@ HttpServer\postSchedule "/doc/search", (req): success: false, message: "invalid 
 	body = req.body or {}
 	language = body.docLanguage
 	return success: false, message: "unsupported doc language" unless language in ["en", "zh-Hans"]
-	source = body.docSource
-	return success: false, message: "unsupported doc source" unless source in ["api", "tutorial"]
+	docType = body.docType
+	return success: false, message: "unsupported doc type" unless docType in ["dora-tutorial", "dora-api", "love-api", "tic80-api"]
 	codeLanguage = body.programmingLanguage
 	return success: false, message: "unsupported programming language" unless codeLanguage in ["ts", "tsx", "lua", "yue", "tl", "wa"]
 	return success: false, message: "missing pattern" unless body.pattern
 	result = nil
-	AgentTools.searchDoraAPIHttp {
+	AgentTools.searchDoraDocHttp {
 		pattern: body.pattern
 		docLanguage: agentDocLanguage language
-		docSource: source
+		:docType
 		programmingLanguage: codeLanguage
 		limit: body.limit
 		useRegex: body.useRegex

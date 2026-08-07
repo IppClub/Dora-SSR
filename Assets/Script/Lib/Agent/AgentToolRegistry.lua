@@ -82,7 +82,7 @@ BUILT_IN_AGENT_TOOL_NAMES = { -- 22
 	"edit_file", -- 24
 	"delete_file", -- 25
 	"grep_files", -- 26
-	"search_dora_api", -- 27
+	"search_dora_doc", -- 27
 	"glob_files", -- 28
 	"build", -- 29
 	"fetch_url", -- 30
@@ -175,8 +175,8 @@ ____exports.AGENT_TOOL_PROMPTS = { -- 178
 		roles = {"main", "sub"}, -- 181
 		workModes = {"code", "plan"}, -- 182
 		description = "Read a specific line range from a file.", -- 183
-		parameters = {{name = "path", type = "string", required = true, description = "Workspace-relative file path to read, or an exact @dora-doc/... path returned by search_dora_api."}, {name = "startLine", type = "number", description = "Starting line number. Positive values are 1-based; negative values count from the end. Defaults to 1. 0 is invalid."}, {name = "endLine", type = "number", description = "Ending line number. Positive values are 1-based; negative values count from the end. If omitted, defaults to 300 for positive startLine, or -1 for negative startLine. 0 is invalid."}}, -- 184
-		rules = {"startLine defaults to 1. If endLine is omitted, it defaults to 300 when startLine is positive, or -1 when startLine is negative.", "Paths returned by search_dora_api are authoritative built-in documentation paths and can be read directly without modifying them."}, -- 189
+		parameters = {{name = "path", type = "string", required = true, description = "Workspace-relative file path to read, or an exact @dora-doc/... path returned by search_dora_doc."}, {name = "startLine", type = "number", description = "Starting line number. Positive values are 1-based; negative values count from the end. Defaults to 1. 0 is invalid."}, {name = "endLine", type = "number", description = "Ending line number. Positive values are 1-based; negative values count from the end. If omitted, defaults to 300 for positive startLine, or -1 for negative startLine. 0 is invalid."}}, -- 184
+		rules = {"startLine defaults to 1. If endLine is omitted, it defaults to 300 when startLine is positive, or -1 when startLine is negative.", "Paths returned by search_dora_doc are authoritative built-in documentation paths and can be read directly without modifying them."}, -- 189
 		parallelSafe = true -- 193
 	}, -- 193
 	{ -- 195
@@ -238,13 +238,13 @@ ____exports.AGENT_TOOL_PROMPTS = { -- 178
 		parallelSafe = true -- 264
 	}, -- 264
 	{ -- 266
-		name = "search_dora_api", -- 267
+		name = "search_dora_doc", -- 267
 		roles = {"main", "sub"}, -- 268
 		workModes = {"code", "plan"}, -- 269
-		description = "Search Dora SSR game engine docs and tutorials.", -- 270
+		description = "Search one authoritative Dora, LÖVE, or TIC-80 documentation set.", -- 270
 		parameters = { -- 271
 			{name = "pattern", type = "string", required = true, description = "Query string to search for. Use | to express OR alternatives."}, -- 272
-			{name = "docSource", type = "string", enum = {"api", "tutorial"}, description = "Search API docs or tutorials. Defaults to api."}, -- 273
+			{name = "docType", type = "string", enum = {"dora-tutorial", "dora-api", "love-api", "tic80-api"}, description = "Exact documentation set to search. Defaults to dora-api."}, -- 273
 			{name = "programmingLanguage", type = "string", enum = { -- 274
 				"ts", -- 274
 				"tsx", -- 274
@@ -257,16 +257,17 @@ ____exports.AGENT_TOOL_PROMPTS = { -- 178
 			{ -- 275
 				name = "limit", -- 275
 				type = "number", -- 275
-				description = function(context) return ("Maximum number of matches to return, up to " .. tostring(context.searchDoraApiLimitMax)) .. "." end -- 275
+				description = function(context) return ("Maximum number of matches to return, up to " .. tostring(context.searchDoraDocLimitMax)) .. "." end -- 275
 			}, -- 275
 			{name = "useRegex", type = "boolean", description = "Set true when pattern is a regular expression."} -- 276
 		}, -- 276
 		rules = { -- 278
-			"`docSource` defaults to `api`. Use `tutorial` to search teaching docs.", -- 279
-			"Every result file uses the @dora-doc/api/... or @dora-doc/tutorial/... namespace and is readable with read_file.", -- 280
+			"`docType` defaults to `dora-api`; select `dora-tutorial`, `love-api`, or `tic80-api` explicitly when needed.", -- 279
+			"Each type searches only its matching files: Dora tutorials, Dora API definitions excluding Love/TIC-80, love.d.*, or tic80.d.*.",
+			"Every result file uses the @dora-doc/<docType>/... namespace and is readable with read_file.", -- 280
 			"Use `|` inside pattern to separate alternative queries; results are merged by union (OR), not AND.", -- 281
 			"`useRegex` defaults to false whenever supported by a search tool.", -- 282
-			function(context) return ("`limit` restricts each individual pattern search and must be <= " .. tostring(context.searchDoraApiLimitMax)) .. "." end -- 283
+			function(context) return ("`limit` restricts each individual pattern search and must be <= " .. tostring(context.searchDoraDocLimitMax)) .. "." end -- 283
 		}, -- 283
 		preExecutable = true, -- 285
 		parallelSafe = true -- 286
@@ -401,7 +402,7 @@ ____exports.AGENT_TOOL_PROMPTS = { -- 178
 			}, required = {"id", "prompt", "type"}} -- 465
 		}}, -- 465
 		rules = { -- 471
-			"Inspect the project before asking; do not ask for facts available through read_file, grep_files, glob_files, or search_dora_api.", -- 472
+			"Inspect the project before asking; do not ask for facts available through read_file, grep_files, glob_files, or search_dora_doc.", -- 472
 			"ask_user has no document-update prerequisite. Incorporate the answers into .agent/plan/PLAN.md and .agent/plan/PROGRESS.md before finish.", -- 473
 			"For single_choice, mark at most one option recommended. For multiple_choice, recommended options form a suggested set and must not exceed maxSelections.", -- 474
 			"ask_user must be the only tool call in the response.", -- 475
@@ -410,7 +411,7 @@ ____exports.AGENT_TOOL_PROMPTS = { -- 178
 		} -- 477
 	} -- 477
 } -- 477
-local DEFAULT_SCHEMA_CONTEXT = {searchDoraApiLimitMax = 20} -- 482
+local DEFAULT_SCHEMA_CONTEXT = {searchDoraDocLimitMax = 20} -- 482
 local function hasRole(tool, role) -- 486
 	return __TS__ArrayIndexOf(tool.roles, role) >= 0 -- 487
 end -- 486
@@ -594,8 +595,8 @@ function ____exports.canRunToolInParallel(tool) -- 678
 	local prompt = getToolPrompt(tool) -- 679
 	return (prompt and prompt.parallelSafe) == true -- 680
 end -- 678
-function ____exports.buildDecisionToolSchema(role, searchDoraApiLimitMax, options) -- 683
-	local context = {searchDoraApiLimitMax = searchDoraApiLimitMax} -- 684
+function ____exports.buildDecisionToolSchema(role, searchDoraDocLimitMax, options) -- 683
+	local context = {searchDoraDocLimitMax = searchDoraDocLimitMax} -- 684
 	return ____exports.buildDecisionToolSchemaForTools( -- 685
 		getDecisionToolPromptsForRole(role, {includeFinish = true, disabledAgentTools = options and options.disabledAgentTools, workMode = options and options.workMode}), -- 685
 		context -- 689

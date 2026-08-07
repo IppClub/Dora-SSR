@@ -339,7 +339,7 @@ local function resolveWorkspaceDirectoryPath(workDir, path) -- 507
 	end -- 520
 	return {success = true, path = resolved, relative = relative} -- 522
 end -- 507
-local function getDoraAPIDocRoot(docLanguage) -- 525
+local function getDoraDocDefinitionRoot(docLanguage) -- 525
 	local zhDir = Path( -- 526
 		Content.assetPath, -- 526
 		"Script", -- 526
@@ -361,7 +361,7 @@ local function getDoraTutorialDocRoot(docLanguage) -- 531
 	local enDir = Path(Content.assetPath, "Doc", "en", "Tutorial") -- 533
 	return docLanguage == "zh" and zhDir or enDir -- 534
 end -- 531
-local function getDoraAPIDocExtsByCodeLanguage(programmingLanguage) -- 537
+local function getDoraDocDefinitionExtsByCodeLanguage(programmingLanguage) -- 537
 	if programmingLanguage == "ts" or programmingLanguage == "tsx" then -- 537
 		return {"ts"} -- 539
 	end -- 539
@@ -383,8 +383,8 @@ local function getTutorialProgrammingLanguageDir(programmingLanguage) -- 544
 		end -- 548
 	until true -- 548
 end -- 544
-local function getDoraDocSearchTarget(docSource, docLanguage, programmingLanguage) -- 552
-	if docSource == "tutorial" then -- 552
+local function getDoraDocSearchTarget(docType, docLanguage, programmingLanguage) -- 552
+	if docType == "dora-tutorial" then -- 552
 		local tutorialRoot = getDoraTutorialDocRoot(docLanguage) -- 558
 		local langDir = getTutorialProgrammingLanguageDir(programmingLanguage) -- 559
 		return { -- 560
@@ -393,42 +393,76 @@ local function getDoraDocSearchTarget(docSource, docLanguage, programmingLanguag
 			globs = {"**/*.md"} -- 563
 		} -- 563
 	end -- 563
-	local exts = getDoraAPIDocExtsByCodeLanguage(programmingLanguage) -- 566
+	local exts = getDoraDocDefinitionExtsByCodeLanguage(programmingLanguage) -- 566
+	if docType == "love-api" or docType == "tic80-api" then
+		local name = docType == "love-api" and "love" or "tic80"
+		return {
+			root = getDoraDocDefinitionRoot(docLanguage),
+			exts = exts,
+			globs = __TS__ArrayMap(exts, function(____, ext) return (name .. ".d.") .. ext end)
+		}
+	end
+	local globs = {}
+	for ____, ext in ipairs(exts) do
+		globs[#globs + 1] = "**/*." .. ext
+		globs[#globs + 1] = "!**/love.d." .. ext
+		globs[#globs + 1] = "!**/tic80.d." .. ext
+	end
 	return { -- 567
-		root = getDoraAPIDocRoot(docLanguage), -- 568
+		root = getDoraDocDefinitionRoot(docLanguage), -- 568
 		exts = exts, -- 569
-		globs = __TS__ArrayMap( -- 570
-			exts, -- 570
-			function(____, ext) return "**/*." .. ext end -- 570
-		) -- 570
+		globs = globs -- 570
 	} -- 570
 end -- 552
-local function getDoraDocResultBaseRoot(docSource, docLanguage) -- 574
-	if docSource == "tutorial" then -- 574
+local function getDoraDocResultBaseRoot(docType, docLanguage) -- 574
+	if docType == "dora-tutorial" then -- 574
 		return getDoraTutorialDocRoot(docLanguage) -- 576
 	end -- 576
-	return getDoraAPIDocRoot(docLanguage) -- 578
+	return getDoraDocDefinitionRoot(docLanguage) -- 578
 end -- 574
+local function isDoraDocFileInScope(docType, file)
+	local normalized = string.lower(table.concat(__TS__StringSplit(file, "\\"), "/"))
+	local baseName = string.match(normalized, "([^/]+)$") or normalized
+	if docType == "dora-tutorial" then return __TS__StringEndsWith(normalized, ".md") end
+	if docType == "love-api" then return normalized == "love.d.ts" or normalized == "love.d.tl" end
+	if docType == "tic80-api" then return normalized == "tic80.d.ts" or normalized == "tic80.d.tl" end
+	return (__TS__StringEndsWith(normalized, ".ts") or __TS__StringEndsWith(normalized, ".tl"))
+		and baseName ~= "love.d.ts" and baseName ~= "love.d.tl"
+		and baseName ~= "tic80.d.ts" and baseName ~= "tic80.d.tl"
+end
 local AGENT_DORA_DOC_PREFIX = "@dora-doc/" -- 581
-local function toDocRelativePath(baseRoot, path, docSource) -- 583
+local function toDocRelativePath(baseRoot, path, docType) -- 583
 	if not path or #path == 0 then -- 583
 		return path -- 584
 	end -- 584
 	local relative = Content:isAbsolutePath(path) and Path:getRelative(path, baseRoot) or path -- 585
-	return ((AGENT_DORA_DOC_PREFIX .. docSource) .. "/") .. relative -- 586
+	return ((AGENT_DORA_DOC_PREFIX .. docType) .. "/") .. relative -- 586
 end -- 583
 local function resolveAgentDoraDocFilePath(path, docLanguage) -- 589
 	if not docLanguage then -- 589
 		return nil -- 590
 	end -- 590
 	local relative = path -- 591
-	local source = "tutorial" -- 592
+	local docType = "dora-tutorial" -- 592
 	if __TS__StringStartsWith(path, AGENT_DORA_DOC_PREFIX) then -- 592
 		local namespaced = __TS__StringSlice(path, #AGENT_DORA_DOC_PREFIX) -- 594
-		if __TS__StringStartsWith(namespaced, "api/") then -- 594
-			source = "api" -- 596
+		if __TS__StringStartsWith(namespaced, "dora-api/") then
+			docType = "dora-api"
+			relative = string.sub(namespaced, 10)
+		elseif __TS__StringStartsWith(namespaced, "love-api/") then
+			docType = "love-api"
+			relative = string.sub(namespaced, 10)
+		elseif __TS__StringStartsWith(namespaced, "tic80-api/") then
+			docType = "tic80-api"
+			relative = string.sub(namespaced, 11)
+		elseif __TS__StringStartsWith(namespaced, "dora-tutorial/") then
+			docType = "dora-tutorial"
+			relative = string.sub(namespaced, 15)
+		elseif __TS__StringStartsWith(namespaced, "api/") then -- 594
+			docType = "dora-api" -- 596
 			relative = string.sub(namespaced, 5) -- 597
 		elseif __TS__StringStartsWith(namespaced, "tutorial/") then -- 597
+			docType = "dora-tutorial"
 			relative = string.sub(namespaced, 10) -- 599
 		else -- 599
 			return nil -- 601
@@ -437,11 +471,12 @@ local function resolveAgentDoraDocFilePath(path, docLanguage) -- 589
 	if not isValidWorkspacePath(relative) then -- 601
 		return nil -- 604
 	end -- 604
+	if not isDoraDocFileInScope(docType, relative) then return nil end
+	local root = getDoraDocResultBaseRoot(docType, docLanguage) -- 606
 	local candidate = Path( -- 605
-		getDoraDocResultBaseRoot(source, docLanguage), -- 605
+		root, -- 605
 		relative -- 605
 	) -- 605
-	local root = getDoraDocResultBaseRoot(source, docLanguage) -- 606
 	local checked = Path:getRelative(candidate, root) -- 607
 	if checked == ".." or __TS__StringStartsWith(checked, "../") or __TS__StringStartsWith(checked, "..\\") then -- 607
 		return nil -- 608
@@ -1863,7 +1898,7 @@ local function buildGroupedSearchResults(results) -- 1832
 	end -- 1861
 	return out -- 1865
 end -- 1832
-local function mergeDoraAPISearchHitsUnique(resultsList) -- 1868
+local function mergeDoraDocSearchHitsUnique(resultsList) -- 1868
 	local merged = {} -- 1869
 	local seen = __TS__New(Set) -- 1870
 	local index = 0 -- 1871
@@ -1895,8 +1930,8 @@ local function mergeDoraAPISearchHitsUnique(resultsList) -- 1868
 	end -- 1885
 	return merged -- 1887
 end -- 1868
-local function getDoraAPIFilePriority(file, docSource, programmingLanguage) -- 1890
-	if docSource ~= "api" then -- 1890
+local function getDoraDocFilePriority(file, docType, programmingLanguage) -- 1890
+	if docType ~= "dora-api" then -- 1890
 		return 100 -- 1891
 	end -- 1891
 	if programmingLanguage ~= "tsx" then -- 1891
@@ -1921,13 +1956,13 @@ local function getDoraAPIFilePriority(file, docSource, programmingLanguage) -- 1
 		end -- 1897
 	until true -- 1897
 end -- 1890
-local function sortDoraAPISearchHits(hits, docSource, programmingLanguage) -- 1901
+local function sortDoraDocSearchHits(hits, docType, programmingLanguage) -- 1901
 	local sorted = __TS__ArraySlice(hits) -- 1906
 	__TS__ArraySort( -- 1907
 		sorted, -- 1907
 		function(____, a, b) -- 1907
-			local pa = getDoraAPIFilePriority(a.file, docSource, programmingLanguage) -- 1908
-			local pb = getDoraAPIFilePriority(b.file, docSource, programmingLanguage) -- 1909
+			local pa = getDoraDocFilePriority(a.file, docType, programmingLanguage) -- 1908
+			local pb = getDoraDocFilePriority(b.file, docType, programmingLanguage) -- 1909
 			if pa ~= pb then -- 1909
 				return pa - pb -- 1910
 			end -- 1910
@@ -2053,7 +2088,7 @@ function ____exports.searchFiles(req) -- 1919
 		) -- 1948
 	end) -- 1948
 end -- 1919
-function ____exports.searchDoraAPI(req) -- 1997
+function ____exports.searchDoraDoc(req) -- 1997
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 1997
 		local pattern = __TS__StringTrim(req.pattern or "") -- 2008
 		if pattern == "" then -- 2008
@@ -2063,10 +2098,10 @@ function ____exports.searchDoraAPI(req) -- 1997
 		if #patterns == 0 then -- 2010
 			return ____awaiter_resolve(nil, {success = false, message = "empty pattern"}) -- 2010
 		end -- 2010
-		local docSource = req.docSource or "api" -- 2012
-		local target = getDoraDocSearchTarget(docSource, req.docLanguage, req.programmingLanguage) -- 2013
+		local docType = req.docType or "dora-api" -- 2012
+		local target = getDoraDocSearchTarget(docType, req.docLanguage, req.programmingLanguage) -- 2013
 		local docRoot = target.root -- 2014
-		local resultBaseRoot = getDoraDocResultBaseRoot(docSource, req.docLanguage) -- 2015
+		local resultBaseRoot = getDoraDocResultBaseRoot(docType, req.docLanguage) -- 2015
 		if not Content:exist(docRoot) or not Content:isdir(docRoot) then -- 2015
 			return ____awaiter_resolve(nil, {success = false, message = "doc root not found: " .. docRoot}) -- 2015
 		end -- 2015
@@ -2135,7 +2170,7 @@ function ____exports.searchDoraAPI(req) -- 1997
 											while i < #raw do -- 2041
 												do -- 2041
 													local row = raw[i + 1] -- 2042
-													local file = toDocRelativePath(resultBaseRoot, row.file, docSource) -- 2043
+											local file = toDocRelativePath(resultBaseRoot, row.file, docType) -- 2043
 													if file == "" then -- 2043
 														goto __continue406 -- 2044
 													end -- 2044
@@ -2150,14 +2185,14 @@ function ____exports.searchDoraAPI(req) -- 1997
 											end -- 2041
 										end -- 2041
 										allHits[#allHits + 1] = __TS__ArraySlice( -- 2051
-											sortDoraAPISearchHits(hits, docSource, req.programmingLanguage), -- 2051
+										sortDoraDocSearchHits(hits, docType, req.programmingLanguage), -- 2051
 											0, -- 2051
 											limit -- 2051
 										) -- 2051
 										p = p + 1 -- 2028
 									end -- 2028
 								end -- 2028
-								local hits = mergeDoraAPISearchHitsUnique(allHits) -- 2053
+								local hits = mergeDoraDocSearchHitsUnique(allHits) -- 2053
 								local fallbackPatterns -- 2054
 								if #hits == 0 and #patterns == 1 and req.useRegex ~= true and (string.find(pattern, "|", nil, true) or 0) - 1 < 0 then -- 2054
 									local terms = splitWhitespaceSearchPatterns(pattern) -- 2059
@@ -2197,7 +2232,7 @@ function ____exports.searchDoraAPI(req) -- 1997
 													while i < #raw do -- 2076
 														do -- 2076
 															local row = raw[i + 1] -- 2077
-															local file = toDocRelativePath(resultBaseRoot, row.file, docSource) -- 2078
+																	local file = toDocRelativePath(resultBaseRoot, row.file, docType) -- 2078
 															if file == "" then -- 2078
 																goto __continue413 -- 2079
 															end -- 2079
@@ -2212,19 +2247,19 @@ function ____exports.searchDoraAPI(req) -- 1997
 													end -- 2076
 												end -- 2076
 												fallbackHits[#fallbackHits + 1] = __TS__ArraySlice( -- 2086
-													sortDoraAPISearchHits(termHits, docSource, req.programmingLanguage), -- 2086
+															sortDoraDocSearchHits(termHits, docType, req.programmingLanguage), -- 2086
 													0, -- 2086
 													limit -- 2086
 												) -- 2086
 												p = p + 1 -- 2063
 											end -- 2063
 										end -- 2063
-										hits = mergeDoraAPISearchHitsUnique(fallbackHits) -- 2088
+										hits = mergeDoraDocSearchHitsUnique(fallbackHits) -- 2088
 									end -- 2088
 								end -- 2088
 								resolve(nil, { -- 2091
 									success = true, -- 2092
-									docSource = docSource, -- 2093
+									docType = docType,
 									docLanguage = req.docLanguage, -- 2094
 									programmingLanguage = req.programmingLanguage, -- 2095
 									exts = exts, -- 2096
@@ -2246,8 +2281,8 @@ function ____exports.searchDoraAPI(req) -- 1997
 		) -- 2024
 	end) -- 2024
 end -- 1997
-function ____exports.searchDoraAPIHttp(req, callback) -- 2111
-	local ____self_39 = ____exports.searchDoraAPI(req) -- 2111
+function ____exports.searchDoraDocHttp(req, callback) -- 2111
+	local ____self_39 = ____exports.searchDoraDoc(req) -- 2111
 	____self_39["then"]( -- 2111
 		____self_39, -- 2111
 		function(____, result) return callback(result) end -- 2122
@@ -2259,14 +2294,26 @@ function ____exports.readDoraDoc(req) -- 2125
 		"/" -- 2131
 	) -- 2131
 	local file = requestedFile -- 2132
-	local namespacedSource = nil -- 2133
+	local namespacedType = nil -- 2133
 	if __TS__StringStartsWith(requestedFile, AGENT_DORA_DOC_PREFIX) then -- 2133
 		local namespaced = __TS__StringSlice(requestedFile, #AGENT_DORA_DOC_PREFIX) -- 2135
-		if __TS__StringStartsWith(namespaced, "api/") then -- 2135
-			namespacedSource = "api" -- 2137
+		if __TS__StringStartsWith(namespaced, "dora-api/") then
+			namespacedType = "dora-api"
+			file = string.sub(namespaced, 10)
+		elseif __TS__StringStartsWith(namespaced, "love-api/") then
+			namespacedType = "love-api"
+			file = string.sub(namespaced, 10)
+		elseif __TS__StringStartsWith(namespaced, "tic80-api/") then
+			namespacedType = "tic80-api"
+			file = string.sub(namespaced, 11)
+		elseif __TS__StringStartsWith(namespaced, "dora-tutorial/") then
+			namespacedType = "dora-tutorial"
+			file = string.sub(namespaced, 15)
+		elseif __TS__StringStartsWith(namespaced, "api/") then -- 2135
+			namespacedType = "dora-api" -- 2137
 			file = string.sub(namespaced, 5) -- 2138
 		elseif __TS__StringStartsWith(namespaced, "tutorial/") then -- 2138
-			namespacedSource = "tutorial" -- 2140
+			namespacedType = "dora-tutorial" -- 2140
 			file = string.sub(namespaced, 10) -- 2141
 		else -- 2141
 			return {success = false, message = "invalid Dora doc namespace"} -- 2143
@@ -2281,8 +2328,11 @@ function ____exports.readDoraDoc(req) -- 2125
 	if not isTutorialDoc and not isAPIDoc then -- 2151
 		return {success = false, message = "unsupported doc file type"} -- 2152
 	end -- 2152
-	local docSource = namespacedSource or (isTutorialDoc and "tutorial" or "api") -- 2153
-	local root = getDoraDocResultBaseRoot(docSource, req.docLanguage) -- 2154
+	local docType = namespacedType or (isTutorialDoc and "dora-tutorial" or "dora-api") -- 2153
+	if not isDoraDocFileInScope(docType, file) then
+		return {success = false, message = "document is outside the requested search type"}
+	end
+	local root = getDoraDocResultBaseRoot(docType, req.docLanguage) -- 2154
 	local fullPath = Path(root, file) -- 2155
 	local relative = Path:getRelative(fullPath, root) -- 2156
 	if relative == ".." or __TS__StringStartsWith(relative, "../") or __TS__StringStartsWith(relative, "..\\") then -- 2156

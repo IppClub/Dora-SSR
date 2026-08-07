@@ -80,6 +80,7 @@
 		"test:agent-session-snapshot": "node scripts/test-agent-session-snapshot.mjs",
 		"test:file-search-index": "node scripts/test-file-search-index.mjs",
 		"test:resource-tree-sync": "node scripts/test-resource-tree-sync.mjs",
+		"test:agent-doc-search": "node scripts/test-agent-doc-search.mjs",
 		"test:entry-list-cache": "node scripts/test-entry-list-cache.mjs",
 		"test:audio-preview": "node scripts/test-audio-preview.mjs",
 		"test:heavy-assets": "node scripts/test-heavy-assets.mjs",

@@ -69,7 +69,7 @@ Commands:
   status [-p project]
   doctor [-p project] [--fix]
   log [-n lines]
-  doc search <pattern> [-l zh-Hans|en] [--source api|tutorial] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
+  doc search <pattern> [-l zh-Hans|en] [--source dora-api|dora-tutorial|love-api|tic80-api] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
   doc read <file> [-l zh-Hans|en] [--start line] [--end line]
   rust build [-p project]
   rust run <target-path> [-p project]
@@ -101,7 +101,7 @@ Dora cli doc search "Sprite|Node" --source api --lang tsx -n 20
 Dora cli doc read ts/using-sprite.md --start 1 --end 80
 ```
 
-`doc search` 和 `doc read` 的 `-l` 默认是 `en`。搜索时 `--source` 可以是 `api` 或 `tutorial`。`--lang` 用来选择 API 或教程的语言版本。`teal` 和 `tl` 都会使用 Teal 文档。
+`doc search` 和 `doc read` 的 `-l` 默认是 `en`。搜索时 `--source` 精确选择一类文档：`dora-api`、`dora-tutorial`、`love-api` 或 `tic80-api`。`--lang` 用来选择 TypeScript/TSX 或 Teal 定义版本（选择 `dora-tutorial` 时则决定教程语言目录）。`teal` 和 `tl` 都会使用 Teal 文档。
 
 ## 4. TypeScript 和脚本项目
 

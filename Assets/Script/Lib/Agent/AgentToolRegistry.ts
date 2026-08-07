@@ -9,7 +9,7 @@ export type AgentToolName =
 	| "edit_file"
 	| "delete_file"
 	| "grep_files"
-	| "search_dora_api"
+	| "search_dora_doc"
 	| "glob_files"
 	| "build"
 	| "fetch_url"
@@ -24,7 +24,7 @@ const BUILT_IN_AGENT_TOOL_NAMES: AgentToolName[] = [
 	"edit_file",
 	"delete_file",
 	"grep_files",
-	"search_dora_api",
+	"search_dora_doc",
 	"glob_files",
 	"build",
 	"fetch_url",
@@ -45,7 +45,7 @@ export type AgentFunctionToolSchema = {
 };
 
 export interface AgentToolSchemaContext {
-	searchDoraApiLimitMax: number;
+	searchDoraDocLimitMax: number;
 }
 
 export interface AgentToolCapabilityOptions {
@@ -182,13 +182,13 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 		workModes: ["code", "plan"],
 		description: "Read a specific line range from a file.",
 		parameters: [
-			{ name: "path", type: "string", required: true, description: "Workspace-relative file path to read, or an exact @dora-doc/... path returned by search_dora_api." },
+			{ name: "path", type: "string", required: true, description: "Workspace-relative file path to read, or an exact @dora-doc/... path returned by search_dora_doc." },
 			{ name: "startLine", type: "number", description: "Starting line number. Positive values are 1-based; negative values count from the end. Defaults to 1. 0 is invalid." },
 			{ name: "endLine", type: "number", description: "Ending line number. Positive values are 1-based; negative values count from the end. If omitted, defaults to 300 for positive startLine, or -1 for negative startLine. 0 is invalid." },
 		],
 		rules: [
 			"startLine defaults to 1. If endLine is omitted, it defaults to 300 when startLine is positive, or -1 when startLine is negative.",
-			"Paths returned by search_dora_api are authoritative built-in documentation paths and can be read directly without modifying them.",
+			"Paths returned by search_dora_doc are authoritative built-in documentation paths and can be read directly without modifying them.",
 		],
 		parallelSafe: true,
 	},
@@ -264,23 +264,24 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 		parallelSafe: true,
 	},
 	{
-		name: "search_dora_api",
+		name: "search_dora_doc",
 		roles: ["main", "sub"],
 		workModes: ["code", "plan"],
-		description: "Search Dora SSR game engine docs and tutorials.",
+		description: "Search one authoritative Dora, LÖVE, or TIC-80 documentation set.",
 		parameters: [
 			{ name: "pattern", type: "string", required: true, description: "Query string to search for. Use | to express OR alternatives." },
-			{ name: "docSource", type: "string", enum: ["api", "tutorial"], description: "Search API docs or tutorials. Defaults to api." },
+			{ name: "docType", type: "string", enum: ["dora-tutorial", "dora-api", "love-api", "tic80-api"], description: "Exact documentation set to search. Defaults to dora-api." },
 			{ name: "programmingLanguage", type: "string", enum: ["ts", "tsx", "lua", "yue", "teal", "tl", "wa"], description: "Preferred language variant to search." },
-			{ name: "limit", type: "number", description: context => `Maximum number of matches to return, up to ${context.searchDoraApiLimitMax}.` },
+			{ name: "limit", type: "number", description: context => `Maximum number of matches to return, up to ${context.searchDoraDocLimitMax}.` },
 			{ name: "useRegex", type: "boolean", description: "Set true when pattern is a regular expression." },
 		],
 		rules: [
-			"`docSource` defaults to `api`. Use `tutorial` to search teaching docs.",
-			"Every result file uses the @dora-doc/api/... or @dora-doc/tutorial/... namespace and is readable with read_file.",
+			"`docType` defaults to `dora-api`; select `dora-tutorial`, `love-api`, or `tic80-api` explicitly when needed.",
+			"Each type searches only its matching files: Dora tutorials, Dora API definitions excluding Love/TIC-80, love.d.*, or tic80.d.*.",
+			"Every result file uses the @dora-doc/<docType>/... namespace and is readable with read_file.",
 			"Use `|` inside pattern to separate alternative queries; results are merged by union (OR), not AND.",
 			"`useRegex` defaults to false whenever supported by a search tool.",
-			context => `\`limit\` restricts each individual pattern search and must be <= ${context.searchDoraApiLimitMax}.`,
+			context => `\`limit\` restricts each individual pattern search and must be <= ${context.searchDoraDocLimitMax}.`,
 		],
 		preExecutable: true,
 		parallelSafe: true,
@@ -469,7 +470,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			},
 		],
 		rules: [
-			"Inspect the project before asking; do not ask for facts available through read_file, grep_files, glob_files, or search_dora_api.",
+			"Inspect the project before asking; do not ask for facts available through read_file, grep_files, glob_files, or search_dora_doc.",
 			"ask_user has no document-update prerequisite. Incorporate the answers into .agent/plan/PLAN.md and .agent/plan/PROGRESS.md before finish.",
 			"For single_choice, mark at most one option recommended. For multiple_choice, recommended options form a suggested set and must not exceed maxSelections.",
 			"ask_user must be the only tool call in the response.",
@@ -480,7 +481,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 ];
 
 const DEFAULT_SCHEMA_CONTEXT: AgentToolSchemaContext = {
-	searchDoraApiLimitMax: 20,
+	searchDoraDocLimitMax: 20,
 };
 
 function hasRole(tool: ToolPrompt, role: AgentRole): boolean {
@@ -680,8 +681,8 @@ export function canRunToolInParallel(tool: AgentToolName): boolean {
 	return prompt?.parallelSafe === true;
 }
 
-export function buildDecisionToolSchema(role: AgentRole, searchDoraApiLimitMax: number, options?: AgentToolCapabilityOptions) {
-	const context = { searchDoraApiLimitMax };
+export function buildDecisionToolSchema(role: AgentRole, searchDoraDocLimitMax: number, options?: AgentToolCapabilityOptions) {
+	const context = { searchDoraDocLimitMax };
 	return buildDecisionToolSchemaForTools(getDecisionToolPromptsForRole(role, {
 		includeFinish: true,
 		disabledAgentTools: options?.disabledAgentTools,

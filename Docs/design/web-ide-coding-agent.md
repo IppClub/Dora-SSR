@@ -1420,7 +1420,7 @@ AgentStepList.rollback(checkpointSeq)
 若作用域位于内置资源目录：
 
 - 允许 `read_file`
-- 允许 `search_dora_api`
+- 允许 `search_dora_doc`
 - 允许 `search_files`
 - 禁止 `edit_file`
 - 禁止 `delete_file`
