@@ -1281,6 +1281,7 @@ public:
 	std::size_t getPeakAllocationBytes() const noexcept { return _peakAllocationBytes; }
 	int getConfiguredWidth() const noexcept { return _configuredWidth; }
 	int getConfiguredHeight() const noexcept { return _configuredHeight; }
+	const std::string &getConfigurationWarnings() const noexcept { return _configurationWarnings; }
 	const std::string &getSourceRoot() const noexcept { return _sourceRoot; }
 	const std::string &getSaveRoot() const noexcept { return _saveRoot; }
 	const std::string &getIdentity() const noexcept { return _identity; }
@@ -2347,6 +2348,7 @@ private:
 	std::vector<MountedArchive> _mountedArchives;
 	int _configuredWidth = 800;
 	int _configuredHeight = 600;
+	std::string _configurationWarnings;
 	bool _windowResizable = false;
 	std::string _windowTitle = "Untitled";
 	int _windowVSync = 1;

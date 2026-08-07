@@ -3367,6 +3367,8 @@ bool LoveNode::loadBoot()
 	}
 	if (!_runtime->configure(error))
 		return reportError("love.conf", error);
+	if (!_runtime->getConfigurationWarnings().empty())
+		Warn("LoveNode [{}] love.conf: {}", _bootFile, _runtime->getConfigurationWarnings());
 	if (!setupSurface(_runtime->getConfiguredWidth(), _runtime->getConfiguredHeight()))
 		return false;
 

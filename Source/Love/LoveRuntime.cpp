@@ -24512,6 +24512,7 @@ bool LoveRuntime::boot(std::string_view code, std::string_view chunkName, std::s
 bool LoveRuntime::configure(std::string &error)
 {
 	error.clear();
+	_configurationWarnings.clear();
 	if (_status != Status::Ready)
 	{
 		error = "LoveRuntime must be ready before configure";
@@ -24528,25 +24529,55 @@ bool LoveRuntime::configure(std::string &error)
 		lua_pushlstring(_state, _identity.data(), _identity.size());
 		lua_setfield(_state, -2, "identity");
 	}
+	else
+	{
+		lua_pushboolean(_state, false);
+		lua_setfield(_state, -2, "identity");
+	}
+	const auto setBooleanField = [this](const char *field, bool value) {
+		lua_pushboolean(_state, value);
+		lua_setfield(_state, -2, field);
+	};
+	setBooleanField("console", false);
+	setBooleanField("appendidentity", false);
+	setBooleanField("externalstorage", false);
+	setBooleanField("accelerometerjoystick", true);
+	setBooleanField("gammacorrect", false);
 	lua_newtable(_state);
-	lua_pushboolean(_state, true);
-	lua_setfield(_state, -2, "mixwithsystem");
+	setBooleanField("mixwithsystem", true);
+	setBooleanField("mic", false);
 	lua_setfield(_state, -2, "audio");
+	lua_newtable(_state);
+	static constexpr std::array<const char *, 18> ModuleNames = {
+		"data", "event", "keyboard", "mouse", "timer", "joystick", "touch", "image",
+		"graphics", "audio", "math", "physics", "sound", "system", "font", "thread",
+		"window", "video"};
+	for (const auto *module : ModuleNames)
+		setBooleanField(module, true);
+	lua_setfield(_state, -2, "modules");
 	lua_newtable(_state);
 	lua_pushinteger(_state, DefaultWindowWidth);
 	lua_setfield(_state, -2, "width");
 	lua_pushinteger(_state, DefaultWindowHeight);
 	lua_setfield(_state, -2, "height");
-	lua_pushboolean(_state, false);
-	lua_setfield(_state, -2, "fullscreen");
+	lua_pushinteger(_state, 1);
+	lua_setfield(_state, -2, "minwidth");
+	lua_pushinteger(_state, 1);
+	lua_setfield(_state, -2, "minheight");
+	setBooleanField("fullscreen", false);
+	lua_pushliteral(_state, "desktop");
+	lua_setfield(_state, -2, "fullscreentype");
 	lua_pushinteger(_state, 1);
 	lua_setfield(_state, -2, "display");
-	lua_pushboolean(_state, false);
-	lua_setfield(_state, -2, "highdpi");
-	lua_pushboolean(_state, false);
-	lua_setfield(_state, -2, "resizable");
+	setBooleanField("highdpi", false);
+	setBooleanField("usedpiscale", true);
+	setBooleanField("resizable", false);
+	setBooleanField("borderless", false);
+	setBooleanField("centered", true);
 	lua_pushinteger(_state, 1);
 	lua_setfield(_state, -2, "vsync");
+	lua_pushinteger(_state, 0);
+	lua_setfield(_state, -2, "msaa");
 	lua_setfield(_state, -2, "window");
 	lua_pushvalue(_state, -1);
 	const int configuration = luaL_ref(_state, LUA_REGISTRYINDEX);
@@ -24605,8 +24636,11 @@ bool LoveRuntime::configure(std::string &error)
 		int isInteger = 0;
 		const lua_Integer display = lua_tointegerx(_state, -1, &isInteger);
 		lua_pop(_state, 1);
-		if (!isInteger || display != 1 || fullscreen || highdpi)
-			error = "embedded LoveNode requires t.window.fullscreen=false, highdpi=false, and display=1";
+		if (!isInteger || display < 1)
+			error = "love.conf t.window.display must be a positive integer";
+		else if (display != 1 || fullscreen || highdpi)
+			_configurationWarnings = "ignoring unsupported embedded window settings; "
+				"LoveNode uses t.window.fullscreen=false, highdpi=false, and display=1";
 		if (error.empty())
 		{
 			lua_getfield(_state, -1, "vsync");
@@ -24617,7 +24651,7 @@ bool LoveRuntime::configure(std::string &error)
 			else vsync = static_cast<int>(configuredVSync);
 		}
 	}
-	const bool supported = valid && !fullscreen && !highdpi && error.empty();
+	const bool supported = valid && error.empty();
 	lua_pop(_state, 2);
 	lua_rawgeti(_state, LUA_REGISTRYINDEX, configuration);
 	lua_getfield(_state, -1, "title");
@@ -24630,11 +24664,12 @@ bool LoveRuntime::configure(std::string &error)
 	const std::string configuredTitle = lua_tostring(_state, -1);
 	lua_pop(_state, 1);
 	lua_getfield(_state, -1, "identity");
-	if (!lua_isnil(_state, -1) && !lua_isstring(_state, -1))
+	const bool disabledIdentity = lua_isboolean(_state, -1) && !lua_toboolean(_state, -1);
+	if (!lua_isnil(_state, -1) && !lua_isstring(_state, -1) && !disabledIdentity)
 	{
 		lua_pop(_state, 2);
 		luaL_unref(_state, LUA_REGISTRYINDEX, configuration);
-		return fail("love.conf t.identity must be a string or nil", error);
+		return fail("love.conf t.identity must be a string, false, or nil", error);
 	}
 	const std::string configuredIdentity = lua_isstring(_state, -1) ? lua_tostring(_state, -1) : _identity;
 	lua_pop(_state, 1);
