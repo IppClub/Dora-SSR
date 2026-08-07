@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <stdexcept>
+
 #include "BuildSettings.h"
 
 

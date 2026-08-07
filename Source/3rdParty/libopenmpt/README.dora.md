@@ -11,6 +11,8 @@ SoLoud's upstream `Openmpt` audio source.
 
 The files below `common`, `soundbase`, `soundlib`, `sounddsp`, `libopenmpt`,
 and `include/miniz`, plus `common/svn_version.h`, are copied from that release.
-Their implementation is not rewritten by Dora. `Source/3rdParty/Love/xmake.lua`
-is Dora-only build integration and compiles the same libopenmpt core source
-groups selected by the upstream makefile.
+Dora retains the upstream implementation and adds only an explicit
+`#include <stdexcept>` to `common/mptUUID.h`, because current MSVC no longer
+exposes `std::domain_error` through the older transitive include chain.
+`Source/3rdParty/Love/xmake.lua` is Dora-only build integration and compiles
+the same libopenmpt core source groups selected by the upstream makefile.
