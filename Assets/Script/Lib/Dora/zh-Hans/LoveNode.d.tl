@@ -16,7 +16,7 @@ end
 local record LoveNodeClass
 	type Type = LoveNode
 
-	-- 使用 boot Lua 文件创建 LoveNode；加载失败时返回 nil。
+	-- 使用 boot Lua 文件、.love 包或 ZIP 包创建 LoveNode。不带扩展名的相对路径也会尝试解析为 `<路径>.love`、`<路径>.zip` 或 `<路径>/main.lua`；加载失败时返回 nil。
 	metamethod __call: function(self: LoveNodeClass, bootFile: string): LoveNode | nil
 end
 

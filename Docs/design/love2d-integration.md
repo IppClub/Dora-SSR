@@ -3,7 +3,7 @@
 本文定义 Dora 引擎整合 Love2D 核心源码和 `love.*` API 的最终架构边界。实现目标不是在 Dora 中再嵌入一套 LuaJIT，也不是用 Lua 脚本近似模拟少量 Love2D API，而是复用 Love2D 上层模块与行为，在 Dora 的 Lua 5.5、渲染、音频、输入和文件系统之上提供可多实例运行的纯 Love 环境。
 
 分阶段任务、状态和验收证据记录在 [Dora Love2D 整合开发进度](./love2d-integration-progress.md)。
-面向使用者的运行说明、逐模块兼容边界与 Lua 版本限制记录在[公开 Love2D 指南](../docs/tutorial/135.using-love2d.mdx)，公开页必须和本设计及进度表同步更新。
+面向使用者的运行说明、逐模块兼容边界与 Lua 版本限制记录在[公开 Love2D 指南](../docs/tutorial/50.Using%20Nodes/13.using-love2d.mdx)，公开页必须和本设计及进度表同步更新。
 
 ## 最终决策
 

@@ -16,7 +16,7 @@ end
 local record LoveNodeClass
 	type Type = LoveNode
 
-	-- Creates a LoveNode from a boot Lua file. Returns nil when loading fails.
+	-- Creates a LoveNode from a boot Lua file, .love package, or ZIP package. An extensionless relative path also resolves to `<path>.love`, `<path>.zip`, or `<path>/main.lua`. Returns nil when loading fails.
 	metamethod __call: function(self: LoveNodeClass, bootFile: string): LoveNode | nil
 end
 

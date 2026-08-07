@@ -3287,24 +3287,46 @@ bool LoveNode::loadBoot()
 	_lastError.clear();
 	_audioBus = nullptr;
 	clearLovePackage();
-	if (_bootFile.empty() || !SharedContent.exist(_bootFile))
+	std::string effectiveBootFile = _bootFile;
+	if (!_bootFile.empty() && !SharedContent.isAbsolutePath(_bootFile)
+		&& Path::getExt(_bootFile).empty())
+	{
+		std::vector<std::string> candidates {_bootFile};
+		if (!Path::getFilename(_bootFile).empty())
+		{
+			candidates.push_back(Path::replaceExt(_bootFile, "love"_slice));
+			candidates.push_back(Path::replaceExt(_bootFile, "zip"_slice));
+		}
+		candidates.push_back(Path::concat({_bootFile, "main.lua"_slice}));
+		for (const auto &candidate : candidates)
+		{
+			if (SharedContent.exist(candidate) && !SharedContent.isFolder(candidate))
+			{
+				effectiveBootFile = candidate;
+				break;
+			}
+		}
+	}
+	if (effectiveBootFile.empty() || !SharedContent.exist(effectiveBootFile)
+		|| SharedContent.isFolder(effectiveBootFile))
 		return reportError("boot", "file does not exist");
 
 	std::string error;
-	std::string effectiveBootFile = _bootFile;
 	std::string fullPath;
-	const bool package = Path::getExt(_bootFile) == "love";
+	const std::string resolvedBootFile = effectiveBootFile;
+	const std::string resolvedExtension = Path::getExt(resolvedBootFile);
+	const bool package = resolvedExtension == "love" || resolvedExtension == "zip";
 	if (package)
 	{
 		if (!extractLovePackage(effectiveBootFile, error))
-			return reportError(".love package", error);
+			return reportError("Love package", error);
 		fullPath = effectiveBootFile;
 		_sourceRoot = _packageRoot;
 	}
 	else
 	{
-		fullPath = SharedContent.getFullPath(_bootFile);
-		_sourceRoot = Path::getPath(fullPath.empty() ? _bootFile : fullPath);
+		fullPath = SharedContent.getFullPath(effectiveBootFile);
+		_sourceRoot = Path::getPath(fullPath.empty() ? effectiveBootFile : fullPath);
 	}
 	_audioBus = SharedAudio.getSoLoud() ? AudioBus::create() : nullptr;
 
@@ -3348,7 +3370,9 @@ bool LoveNode::loadBoot()
 	if (!setupSurface(_runtime->getConfiguredWidth(), _runtime->getConfiguredHeight()))
 		return false;
 
-	const std::string bootChunk = package ? "@" + _bootFile + "!/main.lua" : "@" + _bootFile;
+	const std::string bootChunk = package
+		? "@" + resolvedBootFile + "!/main.lua"
+		: "@" + resolvedBootFile;
 	if (!_runtime->execute(SharedContent.loadStr(effectiveBootFile), bootChunk, error))
 		return reportError("boot", error);
 
@@ -3369,16 +3393,17 @@ bool LoveNode::extractLovePackage(std::string &mainFile, std::string &error)
 	constexpr std::size_t MaximumPackageFiles = 4096;
 	constexpr std::size_t MaximumPackageFileSize = 256u * 1024u * 1024u;
 	constexpr std::size_t MaximumPackageExpandedSize = 512u * 1024u * 1024u;
-	auto archiveData = SharedContent.load(_bootFile);
+	const std::string packageFile = mainFile;
+	auto archiveData = SharedContent.load(packageFile);
 	if (!archiveData.first || archiveData.second == 0)
 	{
-		error = "Dora Content failed to read package '" + _bootFile + "'";
+		error = "Dora Content failed to read package '" + packageFile + "'";
 		return false;
 	}
 	ZipFile archive(std::move(archiveData));
 	if (!archive.isOK())
 	{
-		error = "Dora Zip failed to open package '" + _bootFile + "' from Content memory";
+		error = "Dora Zip failed to open package '" + packageFile + "' from Content memory";
 		return false;
 	}
 	const auto files = archive.getAllFiles();

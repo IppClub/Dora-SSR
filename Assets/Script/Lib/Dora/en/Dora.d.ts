@@ -8393,7 +8393,7 @@ export namespace LoveNode {
 }
 
 interface LoveNodeClass {
-	/** Creates a LoveNode from a boot Lua file. Returns undefined when loading fails. */
+	/** Creates a LoveNode from a boot Lua file, .love package, or ZIP package. An extensionless relative path also resolves to `<path>.love`, `<path>.zip`, or `<path>/main.lua`. Returns undefined when loading fails. */
 	(this: void, bootFile: string): LoveNode | undefined;
 }
 
