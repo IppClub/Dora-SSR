@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 import { LazyLog } from 'react-lazylog';
 import * as Service from './Service';
-import { FormEvent, memo, useEffect, useRef, useState } from 'react';
+import { FormEvent, memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Box, Button, Dialog, DialogActions, DialogContent, FormControl, TextField, Tooltip } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTranslation } from 'react-i18next';
@@ -101,6 +101,7 @@ const LogView = memo((props: LogViewProps) => {
 	const compactLayout = useMediaQuery('(max-width: 760px), (max-height: 520px)');
 	const portraitLayout = useMediaQuery('(max-width: 760px) and (orientation: portrait)');
 	const logContainerRef = useRef<HTMLDivElement | null>(null);
+	const [logContainer, setLogContainer] = useState<HTMLDivElement | null>(null);
 	const logSnapshot = useBatchedLog();
 	const text = logSnapshot.text === "" ? t("log.wait") : logSnapshot.text;
 	const [command, setCommand] = useState("");
@@ -118,6 +119,10 @@ const LogView = memo((props: LogViewProps) => {
 		message: string;
 		panelOpen: boolean;
 	} | null>(null);
+	const handleLogContainerRef = useCallback((container: HTMLDivElement | null) => {
+		logContainerRef.current = container;
+		setLogContainer(container);
+	}, []);
 
 	useEffect(() => {
 		setTableColumns(getTableColumns(t));
@@ -291,20 +296,19 @@ const LogView = memo((props: LogViewProps) => {
 	};
 
 	useEffect(() => {
-		const container = logContainerRef.current;
-		if (!container) return;
+		if (!logContainer) return;
 		const updateHeight = () => {
-			const nextHeight = Math.max(1, Math.floor(container.getBoundingClientRect().height));
+			const nextHeight = Math.max(1, Math.floor(logContainer.getBoundingClientRect().height));
 			setLogHeight(current => current === nextHeight ? current : nextHeight);
 		};
 		const observer = new ResizeObserver(updateHeight);
-		observer.observe(container);
+		observer.observe(logContainer);
 		const frame = requestAnimationFrame(updateHeight);
 		return () => {
 			cancelAnimationFrame(frame);
 			observer.disconnect();
 		};
-	}, [compactLayout, props.openName, toggleProfiler]);
+	}, [compactLayout, logContainer, props.openName, toggleProfiler]);
 
 	useEffect(() => {
 		const container = logContainerRef.current;
@@ -768,7 +772,7 @@ const LogView = memo((props: LogViewProps) => {
 				</Box>
 				<Box
 					data-log-view-console="true"
-					ref={logContainerRef}
+					ref={handleLogContainerRef}
 					sx={{
 						position: "relative",
 						display: showLogPanel ? "block" : "none",
