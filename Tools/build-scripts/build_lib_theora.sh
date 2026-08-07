@@ -43,10 +43,12 @@ build_macos() {
 build_ios() {
 	build_arch iphoneos arm64
 	copy_library iphoneos arm64 Lib/iOS
-	build_arch iphoneos arm64 --appledev=simulator
-	build_arch iphoneos x86_64 --appledev=simulator
+	# Device and simulator arm64 must not share an xmake output directory.
+	# Otherwise a cached device object can be archived as the simulator slice.
+	build_arch iphoneos arm64 --appledev=simulator --ccache=n --builddir=build-ios-simulator
+	build_arch iphoneos x86_64 --appledev=simulator --ccache=n --builddir=build-ios-simulator
 	mkdir -p "$THEORA_DIR/Lib/iOS-Simulator"
-	lipo -create "$THEORA_DIR/build/iphoneos/arm64/$BUILD_MODE/libtheoradec.a" "$THEORA_DIR/build/iphoneos/x86_64/$BUILD_MODE/libtheoradec.a" -output "$THEORA_DIR/Lib/iOS-Simulator/libtheoradec.a"
+	lipo -create "$THEORA_DIR/build-ios-simulator/iphoneos/arm64/$BUILD_MODE/libtheoradec.a" "$THEORA_DIR/build-ios-simulator/iphoneos/x86_64/$BUILD_MODE/libtheoradec.a" -output "$THEORA_DIR/Lib/iOS-Simulator/libtheoradec.a"
 }
 
 build_android() {
