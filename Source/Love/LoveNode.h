@@ -216,6 +216,11 @@ private:
 		std::span<const std::uint8_t> rgba8,
 		std::span<const Love::GraphicsBackend::ImageFontGlyph> glyphs, float dpiScale,
 		Love::GraphicsBackend::TextureFilter filter, std::string &error) override;
+	virtual Love::GraphicsBackend::FontHandle newBMFont(
+		std::span<const Love::GraphicsBackend::BMFontPage> pages,
+		std::span<const Love::GraphicsBackend::BMFontGlyph> glyphs, int lineHeight,
+		int baseline, float dpiScale, Love::GraphicsBackend::TextureFilter filter,
+		std::string &error) override;
 	virtual void releaseFont(Love::GraphicsBackend::FontHandle font) override;
 	virtual float getFontWidth(Love::GraphicsBackend::FontHandle font, std::string_view text) const override;
 	virtual float getFontHeight(Love::GraphicsBackend::FontHandle font) const override;
@@ -959,16 +964,22 @@ private:
 	{
 		struct ImageGlyph
 		{
+			int page = 0;
 			int x = 0;
+			int y = 0;
 			int width = 0;
+			int height = 0;
 			int advance = 0;
+			int bearingX = 0;
+			int bearingY = 0;
 		};
 		std::string filename;
 		int size = 12;
 		Ref<Font> font;
-		Ref<Texture2D> imageTexture;
+		std::vector<Ref<Texture2D>> imageTextures;
 		std::unordered_map<std::uint32_t, ImageGlyph> imageGlyphs;
 		float dpiScale = 1.0f;
+		int baseline = 0;
 		Love::GraphicsBackend::TextureFilter imageFilter = Love::GraphicsBackend::TextureFilter::Linear;
 		std::vector<Love::GraphicsBackend::FontHandle> fallbacks;
 		float lineHeight = 1.0f;

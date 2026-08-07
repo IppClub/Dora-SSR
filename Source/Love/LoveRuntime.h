@@ -148,6 +148,24 @@ public:
 		int width = 0;
 		int advance = 0;
 	};
+	struct BMFontPage
+	{
+		int width = 0;
+		int height = 0;
+		std::span<const std::uint8_t> rgba8;
+	};
+	struct BMFontGlyph
+	{
+		std::uint32_t codepoint = 0;
+		int page = 0;
+		int x = 0;
+		int y = 0;
+		int width = 0;
+		int height = 0;
+		int advance = 0;
+		int bearingX = 0;
+		int bearingY = 0;
+	};
 	struct CanvasSettings
 	{
 		std::string_view format = "rgba8";
@@ -484,6 +502,14 @@ public:
 	{
 		(void)width; (void)height; (void)rgba8; (void)glyphs; (void)dpiScale; (void)filter;
 		error = "Love ImageFonts are unavailable in this graphics backend";
+		return 0;
+	}
+	virtual FontHandle newBMFont(std::span<const BMFontPage> pages,
+		std::span<const BMFontGlyph> glyphs, int lineHeight, int baseline, float dpiScale,
+		TextureFilter filter, std::string &error)
+	{
+		(void)pages; (void)glyphs; (void)lineHeight; (void)baseline; (void)dpiScale; (void)filter;
+		error = "Love BMFonts are unavailable in this graphics backend";
 		return 0;
 	}
 	virtual void releaseFont(FontHandle font) = 0;

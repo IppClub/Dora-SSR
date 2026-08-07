@@ -16422,6 +16422,16 @@ GraphicsBackend::FontHandle LoveRuntime::ensureDefaultFont(std::string &error)
 int LoveRuntime::graphicsNewFont(lua_State *state)
 {
 	auto *runtime = runtimeFromUpvalue(state);
+	if (luaL_testudata(state, 1, RasterizerLoveType.getName()))
+	{
+		auto *rasterizer = ::love::luax_checktype<RasterizerUserdata>(state, 1, RasterizerLoveType);
+		luaL_argcheck(state, rasterizer->runtime == runtime, 1,
+			"Rasterizer belongs to another LoveRuntime");
+		if (rasterizer->kind == RasterizerUserdata::Kind::BMFont)
+			return graphicsNewImageFont(state);
+		return luaL_argerror(state, 1,
+			"newFont currently accepts a BMFont Rasterizer, filename, or font size");
+	}
 	std::string filename;
 	int size = 12;
 	if (lua_type(state, 1) == LUA_TNUMBER)
@@ -16433,6 +16443,16 @@ int LoveRuntime::graphicsNewFont(lua_State *state)
 		if (!runtime->resolveReadPath(requested, filename, error))
 			return luaL_error(state, "Love Font '%s' resolution failed: %s", requested.c_str(), error.c_str());
 		size = static_cast<int>(luaL_optinteger(state, 2, 12));
+		const auto extension = std::filesystem::path(filename).extension();
+		if (extension == ".fnt" || extension == ".FNT")
+		{
+			luaL_argcheck(state, lua_isnoneornil(state, 2), 2,
+				"BMFont creation does not accept a font size; pass page images to love.font.newBMFontRasterizer instead");
+			lua_settop(state, 1);
+			fontNewBMFontRasterizer(state);
+			lua_replace(state, 1);
+			return graphicsNewImageFont(state);
+		}
 	}
 	luaL_argcheck(state, size > 0 && size <= 4096, lua_type(state, 1) == LUA_TNUMBER ? 1 : 2,
 		"Font size must be between 1 and 4096");
@@ -16472,6 +16492,36 @@ int LoveRuntime::graphicsNewImageFont(lua_State *state)
 	{
 		luaL_argcheck(state, rasterizer->runtime == runtime, 1,
 			"Rasterizer belongs to another LoveRuntime");
+		if (rasterizer->kind == RasterizerUserdata::Kind::BMFont)
+		{
+			std::vector<std::vector<std::uint8_t>> pixels;
+			std::vector<GraphicsBackend::BMFontPage> pages;
+			pixels.reserve(rasterizer->sourceObjects.size());
+			pages.reserve(rasterizer->sourceObjects.size());
+			for (const auto &source : rasterizer->sourceObjects)
+			{
+				auto *page = static_cast<ImageDataUserdata *>(source.get());
+				if (!page || page->runtime != runtime || std::string_view(page->format) != "rgba8")
+					return luaL_error(state, "BMFont Rasterizer has an invalid page ImageData");
+				pixels.emplace_back();
+				imageDataToRGBA8(*page, pixels.back());
+				pages.push_back({page->width, page->height, pixels.back()});
+			}
+			std::vector<GraphicsBackend::BMFontGlyph> glyphs;
+			glyphs.reserve(rasterizer->bmGlyphs.size());
+			for (const auto &[codepoint, glyph] : rasterizer->bmGlyphs)
+				glyphs.push_back({codepoint, glyph.page, glyph.x, glyph.y, glyph.width, glyph.height,
+					glyph.advance, glyph.bearingX, glyph.bearingY});
+			std::string error;
+			const auto handle = runtime->_graphicsBackend->newBMFont(pages, glyphs,
+				rasterizer->height, rasterizer->ascent, rasterizer->dpiScale,
+				runtime->_graphicsDefaultFilter, error);
+			if (handle == 0)
+				return luaL_error(state, "Love BMFont creation failed: %s",
+					error.empty() ? "Dora graphics backend rejected the BMFont" : error.c_str());
+			pushFont(state, runtime, handle);
+			return 1;
+		}
 		luaL_argcheck(state, rasterizer->kind == RasterizerUserdata::Kind::Image, 1,
 			"newImageFont currently requires an Image Rasterizer");
 		image = rasterizer->sourceObjects.empty() ? nullptr

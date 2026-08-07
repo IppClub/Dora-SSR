@@ -7904,7 +7904,7 @@ Love::GraphicsBackend::FontHandle LoveNode::newImageFont(int width, int height,
 	}
 	FontResource resource;
 	resource.size = height;
-	resource.imageTexture = texture;
+	resource.imageTextures.emplace_back(texture);
 	resource.dpiScale = dpiScale;
 	resource.imageFilter = filter;
 	for (const auto &glyph : glyphs)
@@ -7914,7 +7914,72 @@ Love::GraphicsBackend::FontHandle LoveNode::newImageFont(int width, int height,
 			error = "Love ImageFont glyph rectangle is outside its atlas";
 			return 0;
 		}
-		resource.imageGlyphs[glyph.codepoint] = {glyph.x, glyph.width, glyph.advance};
+		resource.imageGlyphs[glyph.codepoint] = {0, glyph.x, 0, glyph.width, height,
+			glyph.advance, 0, 0};
+	}
+	const auto handle = _nextFontHandle++;
+	_fonts.emplace(handle, std::move(resource));
+	error.clear();
+	return handle;
+}
+
+Love::GraphicsBackend::FontHandle LoveNode::newBMFont(
+	std::span<const Love::GraphicsBackend::BMFontPage> pages,
+	std::span<const Love::GraphicsBackend::BMFontGlyph> glyphs, int lineHeight, int baseline,
+	float dpiScale, Love::GraphicsBackend::TextureFilter filter, std::string &error)
+{
+	if (pages.empty() || glyphs.empty() || lineHeight <= 0 || !std::isfinite(dpiScale) || dpiScale <= 0.0f)
+	{
+		error = "Love BMFont has invalid pages, glyphs, metrics, or DPI scale";
+		return 0;
+	}
+	FontResource resource;
+	resource.size = lineHeight;
+	resource.baseline = baseline;
+	resource.dpiScale = dpiScale;
+	resource.imageFilter = filter;
+	resource.imageTextures.reserve(pages.size());
+	for (const auto &page : pages)
+	{
+		if (page.width <= 0 || page.height <= 0 || page.width > UINT16_MAX || page.height > UINT16_MAX
+			|| page.rgba8.size() != static_cast<std::size_t>(page.width) * page.height * 4
+			|| page.rgba8.size() > UINT32_MAX)
+		{
+			error = "Love BMFont page has invalid RGBA8 dimensions";
+			return 0;
+		}
+		const auto gpu = bgfx::createTexture2D(static_cast<uint16_t>(page.width), static_cast<uint16_t>(page.height),
+			false, 1, bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_NONE,
+			bgfx::copy(page.rgba8.data(), static_cast<uint32_t>(page.rgba8.size())));
+		if (!bgfx::isValid(gpu))
+		{
+			error = "Dora/bgfx failed to create a Love BMFont atlas";
+			return 0;
+		}
+		bgfx::TextureInfo info;
+		bgfx::calcTextureSize(info, static_cast<uint16_t>(page.width), static_cast<uint16_t>(page.height),
+			1, false, false, 1, bgfx::TextureFormat::RGBA8);
+		Ref<Texture2D> texture(Texture2D::create(gpu, info, BGFX_TEXTURE_NONE));
+		if (!texture)
+		{
+			bgfx::destroy(gpu);
+			error = "Dora failed to wrap a Love BMFont atlas texture";
+			return 0;
+		}
+		resource.imageTextures.emplace_back(std::move(texture));
+	}
+	for (const auto &glyph : glyphs)
+	{
+		if (glyph.page < 0 || static_cast<std::size_t>(glyph.page) >= pages.size()
+			|| glyph.x < 0 || glyph.y < 0 || glyph.width < 0 || glyph.height < 0
+			|| glyph.x > pages[glyph.page].width - glyph.width
+			|| glyph.y > pages[glyph.page].height - glyph.height)
+		{
+			error = "Love BMFont glyph rectangle is outside its atlas";
+			return 0;
+		}
+		resource.imageGlyphs[glyph.codepoint] = {glyph.page, glyph.x, glyph.y, glyph.width,
+			glyph.height, glyph.advance, glyph.bearingX, glyph.bearingY};
 	}
 	const auto handle = _nextFontHandle++;
 	_fonts.emplace(handle, std::move(resource));
@@ -7932,7 +7997,7 @@ float LoveNode::getFontWidth(Love::GraphicsBackend::FontHandle font, std::string
 	const auto it = _fonts.find(font);
 	if (it == _fonts.end())
 		return 0.0f;
-	if (it->second.imageTexture)
+	if (!it->second.imageTextures.empty())
 	{
 		std::vector<Utf8Unit> units;
 		if (!decodeUtf8Units(text, units)) return 0.0f;
@@ -7941,7 +8006,7 @@ float LoveNode::getFontWidth(Love::GraphicsBackend::FontHandle font, std::string
 			auto findGlyph = [this, codepoint](Love::GraphicsBackend::FontHandle handle)
 				-> std::pair<const FontResource *, const FontResource::ImageGlyph *> {
 				const auto resource = _fonts.find(handle);
-				if (resource == _fonts.end() || !resource->second.imageTexture) return {nullptr, nullptr};
+				if (resource == _fonts.end() || resource->second.imageTextures.empty()) return {nullptr, nullptr};
 				const auto glyph = resource->second.imageGlyphs.find(codepoint);
 				return glyph == resource->second.imageGlyphs.end()
 					? std::pair<const FontResource *, const FontResource::ImageGlyph *>{nullptr, nullptr}
@@ -8032,7 +8097,7 @@ float LoveNode::getFontHeight(Love::GraphicsBackend::FontHandle font) const
 	const auto it = _fonts.find(font);
 	if (it == _fonts.end())
 		return 0.0f;
-	if (it->second.imageTexture)
+	if (!it->second.imageTextures.empty())
 		return std::floor(static_cast<float>(it->second.size) / it->second.dpiScale + 0.5f);
 	if (!it->second.font) return 0.0f;
 	const auto &info = it->second.font->getInfo();
@@ -8043,7 +8108,9 @@ float LoveNode::getFontHeight(Love::GraphicsBackend::FontHandle font) const
 float LoveNode::getFontBaseline(Love::GraphicsBackend::FontHandle font) const
 {
 	const auto it = _fonts.find(font);
-	if (it == _fonts.end() || it->second.imageTexture || !it->second.font)
+	if (it != _fonts.end() && !it->second.imageTextures.empty())
+		return static_cast<float>(it->second.baseline) / it->second.dpiScale;
+	if (it == _fonts.end() || !it->second.imageTextures.empty() || !it->second.font)
 		return 0.0f;
 	const float scale = static_cast<float>(it->second.size) / static_cast<float>(DORA_SDF_FONT_BASE_SIZE);
 	return static_cast<float>(it->second.font->getInfo().ascender) * scale;
@@ -8057,7 +8124,7 @@ float LoveNode::getFontAscent(Love::GraphicsBackend::FontHandle font) const
 float LoveNode::getFontDescent(Love::GraphicsBackend::FontHandle font) const
 {
 	const auto it = _fonts.find(font);
-	if (it == _fonts.end() || it->second.imageTexture || !it->second.font)
+	if (it == _fonts.end() || !it->second.imageTextures.empty() || !it->second.font)
 		return 0.0f;
 	const float scale = static_cast<float>(it->second.size) / static_cast<float>(DORA_SDF_FONT_BASE_SIZE);
 	return static_cast<float>(it->second.font->getInfo().descender) * scale;
@@ -8068,7 +8135,7 @@ bool LoveNode::hasFontGlyph(Love::GraphicsBackend::FontHandle font, std::uint32_
 	const auto primary = _fonts.find(font);
 	if (primary == _fonts.end())
 		return false;
-	if (primary->second.imageTexture && primary->second.imageGlyphs.contains(codepoint)) return true;
+	if (!primary->second.imageTextures.empty() && primary->second.imageGlyphs.contains(codepoint)) return true;
 	if (primary->second.font
 		&& SharedFontManager.hasGlyph(primary->second.font->getHandle(), codepoint))
 		return true;
@@ -8076,7 +8143,7 @@ bool LoveNode::hasFontGlyph(Love::GraphicsBackend::FontHandle font, std::uint32_
 	{
 		const auto fallback = _fonts.find(handle);
 		if (fallback == _fonts.end()) continue;
-		if (fallback->second.imageTexture && fallback->second.imageGlyphs.contains(codepoint)) return true;
+		if (!fallback->second.imageTextures.empty() && fallback->second.imageGlyphs.contains(codepoint)) return true;
 		if (fallback->second.font
 			&& SharedFontManager.hasGlyph(fallback->second.font->getHandle(), codepoint)) return true;
 	}
@@ -8088,7 +8155,7 @@ float LoveNode::getFontKerning(Love::GraphicsBackend::FontHandle font,
 {
 	const auto primary = _fonts.find(font);
 	if (primary == _fonts.end()) return 0.0f;
-	if (primary->second.imageTexture) return 0.0f;
+	if (!primary->second.imageTextures.empty()) return 0.0f;
 	std::vector<Love::GraphicsBackend::FontHandle> candidates{font};
 	candidates.insert(candidates.end(), primary->second.fallbacks.begin(), primary->second.fallbacks.end());
 	for (const auto handle : candidates)
@@ -8116,7 +8183,7 @@ bool LoveNode::setFontFallbacks(Love::GraphicsBackend::FontHandle font,
 		error = "Dora Font fallback primary handle is closed";
 		return false;
 	}
-	const bool imageFont = primary->second.imageTexture != nullptr;
+	const bool imageFont = !primary->second.imageTextures.empty();
 	for (const auto fallback : fallbacks)
 	{
 		const auto resource = _fonts.find(fallback);
@@ -8125,7 +8192,7 @@ bool LoveNode::setFontFallbacks(Love::GraphicsBackend::FontHandle font,
 			error = "Dora Font fallback handle is closed";
 			return false;
 		}
-		if ((resource->second.imageTexture != nullptr) != imageFont)
+		if ((!resource->second.imageTextures.empty()) != imageFont)
 		{
 			error = "Love Font fallbacks must use the same rasterizer data type";
 			return false;
@@ -8221,7 +8288,7 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 	const auto it = _fonts.find(font);
 	if (it == _fonts.end())
 		return;
-	if (it->second.imageTexture)
+	if (!it->second.imageTextures.empty())
 	{
 		std::vector<std::string> lines;
 		if (wrapLimit >= 0.0f) getFontWrap(font, text, wrapLimit, lines);
@@ -8240,6 +8307,7 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 		struct ImageTextBatch
 		{
 			const FontResource *resource = nullptr;
+			int page = 0;
 			std::vector<SpriteVertex> vertices;
 			std::vector<uint32_t> indices;
 		};
@@ -8257,7 +8325,7 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 			auto contains = [this, codepoint](Love::GraphicsBackend::FontHandle handle)
 				-> const FontResource * {
 				const auto resource = _fonts.find(handle);
-				if (resource == _fonts.end() || !resource->second.imageTexture
+				if (resource == _fonts.end() || resource->second.imageTextures.empty()
 					|| !resource->second.imageGlyphs.contains(codepoint)) return nullptr;
 				return &resource->second;
 			};
@@ -8284,23 +8352,32 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 				if (resource)
 				{
 					const auto glyph = resource->imageGlyphs.find(unit.codepoint);
-					if (batches.empty() || batches.back().resource != resource)
-						batches.push_back({resource});
-					auto &batch = batches.back();
-					const float textureWidth = static_cast<float>(resource->imageTexture->getWidth());
+					const auto &texture = resource->imageTextures[static_cast<std::size_t>(glyph->second.page)];
+					const float textureWidth = static_cast<float>(texture->getWidth());
+					const float textureHeight = static_cast<float>(texture->getHeight());
 					const float width = static_cast<float>(glyph->second.width) / resource->dpiScale;
-					const float height = std::floor(static_cast<float>(resource->size)
-						/ resource->dpiScale + 0.5f);
+					const float height = static_cast<float>(glyph->second.height) / resource->dpiScale;
 					const float left = static_cast<float>(glyph->second.x) / textureWidth;
 					const float right = static_cast<float>(glyph->second.x + glyph->second.width) / textureWidth;
-					const float top = static_cast<float>(lineIndex) * lineAdvance;
-					const auto base = static_cast<uint32_t>(batch.vertices.size());
-					appendVertex(batch, cursor, top, left, 0.0f);
-					appendVertex(batch, cursor + width, top, right, 0.0f);
-					appendVertex(batch, cursor + width, top + height, right, 1.0f);
-					appendVertex(batch, cursor, top + height, left, 1.0f);
-					batch.indices.insert(batch.indices.end(),
-						{base, base + 1, base + 2, base, base + 2, base + 3});
+					const float uvTop = static_cast<float>(glyph->second.y) / textureHeight;
+					const float uvBottom = static_cast<float>(glyph->second.y + glyph->second.height) / textureHeight;
+					const float top = static_cast<float>(lineIndex) * lineAdvance
+						- static_cast<float>(glyph->second.bearingY) / resource->dpiScale;
+					const float leftPosition = cursor + static_cast<float>(glyph->second.bearingX) / resource->dpiScale;
+					if (width > 0.0f && height > 0.0f)
+					{
+						if (batches.empty() || batches.back().resource != resource
+							|| batches.back().page != glyph->second.page)
+							batches.push_back({resource, glyph->second.page});
+						auto &batch = batches.back();
+						const auto base = static_cast<uint32_t>(batch.vertices.size());
+						appendVertex(batch, leftPosition, top, left, uvTop);
+						appendVertex(batch, leftPosition + width, top, right, uvTop);
+						appendVertex(batch, leftPosition + width, top + height, right, uvBottom);
+						appendVertex(batch, leftPosition, top + height, left, uvBottom);
+						batch.indices.insert(batch.indices.end(),
+							{base, base + 1, base + 2, base, base + 2, base + 3});
+					}
 					cursor += std::floor(static_cast<float>(glyph->second.advance)
 						/ resource->dpiScale + 0.5f);
 				}
@@ -8329,9 +8406,9 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 				auto *node = LoveDynamicMeshNode::create(std::move(dynamicVertices),
 					std::move(batch.indices), std::move(attributes),
 					std::vector<LoveDynamicMeshInstanceAttribute>{}, 1, std::array<Vec4, 5>{},
-					batch.resource->imageTexture,
+					batch.resource->imageTextures[static_cast<std::size_t>(batch.page)],
 					toDoraBlendFunc(_blendMode, _blendAlphaMode),
-					meshSamplerFlags(batch.resource->imageTexture, batch.resource->imageFilter,
+					meshSamplerFlags(batch.resource->imageTextures[static_cast<std::size_t>(batch.page)], batch.resource->imageFilter,
 					Love::GraphicsBackend::TextureWrap::Clamp, Love::GraphicsBackend::TextureWrap::Clamp),
 					shader.effect.get(), pixelHeight, false, _wireframe);
 				(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(node);
@@ -8340,9 +8417,9 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 			}
 			SpriteEffect *effect = _activeShader == 0 ? nullptr : _shaders.at(_activeShader).effect.get();
 			auto *node = LoveTexturedMeshNode::create(std::move(batch.vertices),
-				std::move(batch.indices), batch.resource->imageTexture,
+				std::move(batch.indices), batch.resource->imageTextures[static_cast<std::size_t>(batch.page)],
 				toDoraBlendFunc(_blendMode, _blendAlphaMode),
-				meshSamplerFlags(batch.resource->imageTexture, batch.resource->imageFilter,
+				meshSamplerFlags(batch.resource->imageTextures[static_cast<std::size_t>(batch.page)], batch.resource->imageFilter,
 					Love::GraphicsBackend::TextureWrap::Clamp, Love::GraphicsBackend::TextureWrap::Clamp),
 				effect, true, _wireframe);
 			(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(node);
@@ -8798,7 +8875,8 @@ Love::GraphicsBackend::Stats LoveNode::getStats() const
 	for (const auto &[handle, font] : _fonts)
 	{
 		DORA_UNUSED_PARAM(handle);
-		addTexture(font.imageTexture);
+		for (const auto &texture : font.imageTextures)
+			addTexture(texture);
 	}
 	return stats;
 }
