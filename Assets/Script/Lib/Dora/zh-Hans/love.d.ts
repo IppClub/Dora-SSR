@@ -1931,6 +1931,12 @@ declare global {
 		 */
 		interface Shader extends Object {
 			/**
+			 * 获取 Shader 中是否存在指定的 extern 变量。
+			 *
+			 * @deprecated 兼容 LÖVE 0.10 之前版本的接口，请改用 hasUniform。
+			 */
+			getExternVariable(name: string): boolean;
+			/**
 			 * 返回编译着色器代码时的任何警告和错误消息。如果图形硬件有任何不喜欢的地方，这可以用于调试着色器。
 			 *
 			 * @returns warnings — 警告和错误消息（如果有）。
@@ -3317,6 +3323,14 @@ declare global {
 		 * @returns imagedata — 窗口图标图像数据，如果没有使用 love.window.setIcon. 设置图标则为零
 		 */
 		getIcon(this: void): ImageData | undefined;
+		/**
+		 * 使用 ImageData 设置窗口图标。
+		 *
+		 * 嵌入式 LoveNode 会接受该请求，但不会修改 Dora 宿主应用的图标。
+		 * @param imagedata — 窗口图标的图像数据。
+		 * @returns success — 图标请求被接受时返回 true。
+		 */
+		setIcon(this: void, imagedata: ImageData): boolean;
 		/**
 		 * 获取窗口的显示模式和属性。
 		 *
@@ -6385,6 +6399,12 @@ declare global {
 		 * @returns playing — 如果源正在播放则为 true，否则为 false。
 		 */
 		isPlaying(): boolean;
+		/**
+		 * 返回此 Source 是否处于停止状态。此方法是兼容旧版 LÖVE 的废弃接口，表示既未播放也未暂停。
+		 *
+		 * @deprecated Lua 中请同时使用 `not source:isPlaying()` 与 `not source:isPaused()`。
+		 */
+		isStopped(): boolean;
 		isPaused(): boolean;
 		/**
 		 * 设置源是否应循环。

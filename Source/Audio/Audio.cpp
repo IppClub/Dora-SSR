@@ -19,6 +19,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "soloud_wav.h"
 #include "soloud_wavstream.h"
+#include "soloud_openmpt.h"
+
+#include "libopenmpt/libopenmpt/libopenmpt.h"
 
 #include "soloud_bassboostfilter.h"
 #include "soloud_biquadresonantfilter.h"
@@ -365,6 +368,63 @@ WavStream::~WavStream() {
 		delete _stream;
 		_stream = nullptr;
 	}
+}
+
+/* OpenmptFile */
+
+SoLoud::AudioSource* OpenmptFile::getSource() const {
+	return _openmpt;
+}
+
+double OpenmptFile::getDuration() const {
+	return _duration;
+}
+
+double OpenmptFile::getSampleRate() const {
+	return _openmpt ? _openmpt->mBaseSamplerate : 0.0;
+}
+
+uint64_t OpenmptFile::getSampleCount() const {
+	return _openmpt ? static_cast<uint64_t>(_duration * _openmpt->mBaseSamplerate) : 0;
+}
+
+uint32_t OpenmptFile::getChannelCount() const {
+	return _openmpt ? _openmpt->mChannels : 0;
+}
+
+OpenmptFile::OpenmptFile(OwnArray<uint8_t>&& data, size_t size)
+	: _data(std::move(data))
+	, _size(size)
+	, _duration(0.0)
+	, _openmpt(nullptr) {
+	_count++;
+	_storageSize += _size;
+}
+
+OpenmptFile::~OpenmptFile() {
+	_count--;
+	_storageSize -= _size;
+	delete _openmpt;
+}
+
+bool OpenmptFile::init() {
+	_openmpt = new SoLoud::Openmpt();
+	const SoLoud::result result = _openmpt->loadMem(
+		_data.get(), static_cast<unsigned int>(_size), false, false);
+	if (result != SoLoud::SO_NO_ERROR) {
+		delete _openmpt;
+		_openmpt = nullptr;
+		Error("failed to load tracker module due to reason: {}.",
+			SharedAudio.getSoLoud() ? SharedAudio.getSoLoud()->getErrorString(result) : "soloud is not initialized");
+		return false;
+	}
+	if (auto* module = openmpt_module_create_from_memory(
+			_data.get(), _size, nullptr, nullptr, nullptr)) {
+		_duration = openmpt_module_get_duration_seconds(module);
+		openmpt_module_destroy(module);
+	}
+	_data.reset();
+	return true;
 }
 
 /* PCMQueueFile */

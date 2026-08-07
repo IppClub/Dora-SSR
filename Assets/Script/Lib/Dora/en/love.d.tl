@@ -2004,6 +2004,10 @@ local record Shader
 	-- Returns:
 	--   warnings: Warning and error messages (if any).
 	getWarnings: function(self: Shader): string
+	-- Gets whether an extern variable exists in the Shader.
+	--
+	-- Deprecated compatibility alias for hasUniform used by LÖVE versions before 0.10.
+	getExternVariable: function(self: Shader, name: string): boolean
 	-- Gets whether a uniform / extern variable exists in the Shader.
 	--
 	-- If a graphics driver's shader compiler determines that a uniform / extern variable doesn't affect the final output
@@ -2161,6 +2165,14 @@ local record Window
 	-- Returns:
 	--   imagedata: The window icon imagedata, or nil if no icon has been set with love.window.setIcon.
 	getIcon: function(): any
+	-- Sets the window icon from ImageData.
+	--
+	-- Embedded LoveNode surfaces accept this request without changing the Dora host application's icon.
+	-- Parameters:
+	--   imagedata: The window icon image data.
+	-- Returns:
+	--   success: True when the icon request was accepted.
+	setIcon: function(imagedata: any): boolean
 	-- Gets the display mode and properties of the window.
 	--
 	-- Returns:
@@ -5354,6 +5366,9 @@ local record Source
 	-- Returns:
 	--   playing: True if the Source is playing, false otherwise.
 	isPlaying: function(self: Source): boolean
+	-- Returns whether this Source is stopped. Deprecated compatibility alias which is true only when the Source is
+	-- neither playing nor paused.
+	isStopped: function(self: Source): boolean
 	isPaused: function(self: Source): boolean
 	-- Sets whether the Source should loop.
 	--

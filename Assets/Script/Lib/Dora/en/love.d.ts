@@ -1931,6 +1931,12 @@ declare global {
 		 */
 		interface Shader extends Object {
 			/**
+			 * Gets whether an extern variable exists in the Shader.
+			 *
+			 * @deprecated Compatibility alias for hasUniform used by LÖVE versions before 0.10.
+			 */
+			getExternVariable(name: string): boolean;
+			/**
 			 * Returns any warning and error messages from compiling the shader code. This can be used for debugging your shaders if there's anything the graphics hardware doesn't like.
 			 *
 			 * @returns warnings — Warning and error messages (if any).
@@ -3317,6 +3323,14 @@ declare global {
 		 * @returns imagedata — The window icon imagedata, or nil if no icon has been set with love.window.setIcon.
 		 */
 		getIcon(this: void): ImageData | undefined;
+		/**
+		 * Sets the window icon from ImageData.
+		 *
+		 * Embedded LoveNode surfaces accept this request without changing the Dora host application's icon.
+		 * @param imagedata — The window icon image data.
+		 * @returns success — True when the icon request was accepted.
+		 */
+		setIcon(this: void, imagedata: ImageData): boolean;
 		/**
 		 * Gets the display mode and properties of the window.
 		 *
@@ -6385,6 +6399,12 @@ declare global {
 		 * @returns playing — True if the Source is playing, false otherwise.
 		 */
 		isPlaying(): boolean;
+		/**
+		 * Returns whether this Source is stopped. Deprecated compatibility alias for checking that it is neither playing nor paused.
+		 *
+		 * @deprecated Use `not source:isPlaying()` together with `not source:isPaused()` in Lua.
+		 */
+		isStopped(): boolean;
 		isPaused(): boolean;
 		/**
 		 * Sets whether the Source should loop.

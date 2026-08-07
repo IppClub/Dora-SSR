@@ -862,8 +862,16 @@ private:
 		Love::GraphicsBackend::TextureType type = Love::GraphicsBackend::TextureType::Texture2D;
 		int slices = 1;
 		std::vector<Ref<Texture2D>> layerTextures;
+		std::shared_ptr<std::vector<std::uint8_t>> sharedFilePixels;
+		bool copyOnWrite = false;
 	};
 	std::unordered_map<Love::GraphicsBackend::ImageHandle, ImageResource> _images;
+	struct CachedFileImage
+	{
+		Ref<Texture2D> texture;
+		std::shared_ptr<std::vector<std::uint8_t>> pixels;
+	};
+	std::unordered_map<std::string, CachedFileImage> _fileImages;
 	Ref<Texture2D> _whiteTexture;
 	Love::GraphicsBackend::ShaderHandle _arrayTextureShader = 0;
 	struct ShaderUniform

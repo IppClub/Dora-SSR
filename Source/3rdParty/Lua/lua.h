@@ -170,6 +170,10 @@ LUA_API lua_CFunction (lua_atpanic) (lua_State *L, lua_CFunction panicf);
 
 LUA_API lua_Number (lua_version) (lua_State *L);
 
+/* Dora extension: enables Lua 5.1-compatible mutable for-loop variables for
+** an isolated Lua state. New states keep the Lua 5.5 read-only default. */
+LUA_API void (lua_setloopvarcompat) (lua_State *L, int enabled);
+
 
 /*
 ** basic stack manipulation

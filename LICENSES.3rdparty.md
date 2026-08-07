@@ -19,6 +19,7 @@ THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL
 - ghc ([gulrak/filesystem](https://github.com/gulrak/filesystem)): [MIT License](Source/3rdParty/ghc/LICENSE)
 - [libogg](https://gitlab.xiph.org/xiph/ogg): [BSD-3-Clause License](Source/3rdParty/ogg/COPYING)
 - [libtheora](https://gitlab.xiph.org/xiph/theora): [BSD-3-Clause License](Source/3rdParty/theora/COPYING)
+- [libopenmpt](https://lib.openmpt.org/libopenmpt/): [BSD 3-Clause License](Source/3rdParty/libopenmpt/LICENSE)
 - [imgui](https://github.com/ocornut/imgui): [MIT License](Source/3rdParty/imgui/LICENSE.txt)
 - [Jolt Physics](https://github.com/jrouwe/JoltPhysics): [MIT License](Source/3rdParty/JoltPhysics/LICENSE)
 - [implot](https://github.com/epezent/implot): [MIT License](Source/3rdParty/implot/LICENSE)

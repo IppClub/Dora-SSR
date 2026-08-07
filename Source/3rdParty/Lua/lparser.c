@@ -1656,7 +1656,8 @@ static void fixforjump (FuncState *fs, int pc, int dest, int back) {
 /*
 ** Generate code for a 'for' loop.
 */
-static void forbody (LexState *ls, int base, int line, int nvars, int isgen) {
+static void forbody (LexState *ls, int base, int line, int nvars, int isgen,
+                     int mutablecontrol) {
   /* forbody -> DO block */
   static const OpCode forprep[2] = {OP_FORPREP, OP_TFORPREP};
   static const OpCode forloop[2] = {OP_FORLOOP, OP_TFORLOOP};
@@ -1667,9 +1668,13 @@ static void forbody (LexState *ls, int base, int line, int nvars, int isgen) {
   prep = luaK_codeABx(fs, forprep[isgen], base, 0);
   fs->freereg--;  /* both 'forprep' remove one register from the stack */
   enterblock(fs, &bl, 0);  /* scope for declared variables */
-  adjustlocalvars(ls, nvars);
-  luaK_reserveregs(fs, nvars);
+  adjustlocalvars(ls, nvars + mutablecontrol);
+  luaK_reserveregs(fs, nvars + mutablecontrol);
+  if (mutablecontrol)
+    luaK_codeABC(fs, OP_MOVE, base + 3 + nvars, base + 3, 0);
   block(ls);
+  if (mutablecontrol)
+    luaK_codeABC(fs, OP_MOVE, base + 3, base + 3 + nvars, 0);
   leaveblock(fs);  /* end of scope for declared variables */
   fixforjump(fs, prep, luaK_getlabel(fs), 0);
   if (isgen) {  /* generic for? */
@@ -1686,9 +1691,9 @@ static void forbody (LexState *ls, int base, int line, int nvars, int isgen) {
 ** Control whether for-loop control variables are read-only
 */
 #if LUA_COMPAT_LOOPVAR
-#define LOOPVARKIND	VDKREG
+#define loopvarkind(ls)	VDKREG
 #else  /* by default, these variables are read only */
-#define LOOPVARKIND	RDKCONST
+#define loopvarkind(ls)	(G((ls)->L)->loopvarcompat ? VDKREG : RDKCONST)
 #endif
 
 static void fornum (LexState *ls, TString *varname, int line) {
@@ -1697,7 +1702,7 @@ static void fornum (LexState *ls, TString *varname, int line) {
   int base = fs->freereg;
   new_localvarliteral(ls, "(for state)");
   new_localvarliteral(ls, "(for state)");
-  new_varkind(ls, varname, LOOPVARKIND);  /* control variable */
+  new_varkind(ls, varname, loopvarkind(ls));  /* control variable */
   checknext(ls, '=');
   exp1(ls);  /* initial value */
   checknext(ls, ',');
@@ -1709,7 +1714,7 @@ static void fornum (LexState *ls, TString *varname, int line) {
     luaK_reserveregs(fs, 1);
   }
   adjustlocalvars(ls, 2);  /* start scope for internal variables */
-  forbody(ls, base, line, 1, 0);
+  forbody(ls, base, line, 1, 0, 0);
 }
 
 
@@ -1720,23 +1725,26 @@ static void forlist (LexState *ls, TString *indexname) {
   int nvars = 4;  /* function, state, closing, control */
   int line;
   int base = fs->freereg;
+  int mutablecontrol = G(ls->L)->loopvarcompat != 0;
   /* create internal variables */
   new_localvarliteral(ls, "(for state)");  /* iterator function */
   new_localvarliteral(ls, "(for state)");  /* state */
   new_localvarliteral(ls, "(for state)");  /* closing var. (after swap) */
-  new_varkind(ls, indexname, LOOPVARKIND);  /* control variable */
+  new_varkind(ls, indexname, loopvarkind(ls));  /* control variable */
   /* other declared variables */
   while (testnext(ls, ',')) {
     new_localvar(ls, str_checkname(ls));
     nvars++;
   }
+  if (mutablecontrol)
+    new_varkind(ls, luaS_newliteral(ls->L, "(for mutable control)"), RDKCONST);
   checknext(ls, TK_IN);
   line = ls->linenumber;
   adjust_assign(ls, 4, explist(ls, &e), &e);
   adjustlocalvars(ls, 3);  /* start scope for internal variables */
   marktobeclosed(fs);  /* last internal var. must be closed */
   luaK_checkstack(fs, 2);  /* extra space to call iterator */
-  forbody(ls, base, line, nvars - 3, 1);
+  forbody(ls, base, line, nvars - 3, 1, mutablecontrol);
 }
 
 
@@ -2199,4 +2207,3 @@ LClosure *luaY_parser (lua_State *L, ZIO *z, Mbuffer *buff,
   L->top.p--;  /* remove scanner's table */
   return cl;  /* closure is on the stack, too */
 }
-

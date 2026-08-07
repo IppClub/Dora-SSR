@@ -366,6 +366,7 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud, unsigned seed) {
   g->gckind = KGC_INC;
   g->gcstopem = 0;
   g->gcemergency = 0;
+  g->loopvarcompat = 0;
   g->finobj = g->tobefnz = g->fixedgc = NULL;
   g->firstold1 = g->survival = g->old1 = g->reallyold = NULL;
   g->finobjsur = g->finobjold1 = g->finobjrold = NULL;
@@ -422,4 +423,3 @@ void luaE_warnerror (lua_State *L, const char *where) {
   luaE_warning(L, msg, 1);
   luaE_warning(L, ")", 0);
 }
-

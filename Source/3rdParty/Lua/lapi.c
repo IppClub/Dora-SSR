@@ -1357,6 +1357,13 @@ LUA_API void lua_setallocf (lua_State *L, lua_Alloc f, void *ud) {
 }
 
 
+LUA_API void lua_setloopvarcompat (lua_State *L, int enabled) {
+  lua_lock(L);
+  G(L)->loopvarcompat = cast_byte(enabled != 0);
+  lua_unlock(L);
+}
+
+
 void lua_setwarnf (lua_State *L, lua_WarnFunction f, void *ud) {
   lua_lock(L);
   G(L)->ud_warn = ud;
@@ -1492,5 +1499,4 @@ LUA_API void lua_upvaluejoin (lua_State *L, int fidx1, int n1,
   *up1 = *up2;
   luaC_objbarrier(L, f1, *up1);
 }
-
 

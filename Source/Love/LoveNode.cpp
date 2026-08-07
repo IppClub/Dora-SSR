@@ -23,6 +23,7 @@ SOFTWARE. */
 #include "Love/LoveNode.h"
 
 #include <charconv>
+#include <climits>
 
 #include "Basic/Application.h"
 #include "Basic/Content.h"
@@ -51,6 +52,7 @@ SOFTWARE. */
 #include "Render/View.h"
 #include "Shader/ShaderCompiler.h"
 #include "ZipUtils.h"
+#include "libopenmpt/libopenmpt/libopenmpt.h"
 
 #include "SDL.h"
 
@@ -148,6 +150,82 @@ bool isSafeLovePackagePath(std::string_view path)
 		start = separator + 1;
 	}
 	return true;
+}
+
+bool isValidUtf8(std::string_view text)
+{
+	for (std::size_t offset = 0; offset < text.size();)
+	{
+		const auto first = static_cast<unsigned char>(text[offset]);
+		std::size_t length = 0;
+		std::uint32_t codepoint = 0;
+		if (first < 0x80) { length = 1; codepoint = first; }
+		else if ((first & 0xe0) == 0xc0) { length = 2; codepoint = first & 0x1f; }
+		else if ((first & 0xf0) == 0xe0) { length = 3; codepoint = first & 0x0f; }
+		else if ((first & 0xf8) == 0xf0) { length = 4; codepoint = first & 0x07; }
+		else return false;
+		if (offset + length > text.size()) return false;
+		for (std::size_t index = 1; index < length; ++index)
+		{
+			const auto byte = static_cast<unsigned char>(text[offset + index]);
+			if ((byte & 0xc0) != 0x80) return false;
+			codepoint = (codepoint << 6) | (byte & 0x3f);
+		}
+		const std::uint32_t minimum = length == 1 ? 0 : length == 2 ? 0x80
+			: length == 3 ? 0x800 : 0x10000;
+		if (codepoint < minimum || codepoint > 0x10ffff
+			|| (codepoint >= 0xd800 && codepoint <= 0xdfff)) return false;
+		offset += length;
+	}
+	return true;
+}
+
+std::string legacyArchivePath(std::string_view path)
+{
+	static constexpr char Hex[] = "0123456789abcdef";
+	std::string result = "__dora_legacy_zip__/";
+	result.reserve(result.size() + path.size() * 2);
+	for (const unsigned char byte : path)
+	{
+		result.push_back(Hex[byte >> 4]);
+		result.push_back(Hex[byte & 0x0f]);
+	}
+	return result;
+}
+
+struct LoveArchivePath
+{
+	std::string archivePath;
+	std::string stagedPath;
+	bool escapedLegacy = false;
+};
+
+std::optional<LoveArchivePath> resolveLoveArchivePath(
+	const std::string &archivePath, std::string &error)
+{
+	if (archivePath.empty() || archivePath.front() == '/')
+	{
+		error = "ZIP entry contains an absolute or empty filename";
+		return std::nullopt;
+	}
+	for (std::size_t start = 0; start <= archivePath.size();)
+	{
+		const auto separator = archivePath.find('/', start);
+		const auto component = archivePath.substr(start,
+			separator == std::string::npos ? archivePath.size() - start : separator - start);
+		if (component.empty() || component == "." || component == "..")
+		{
+			error = "ZIP entry contains an unsafe path component";
+			return std::nullopt;
+		}
+		if (separator == std::string::npos) break;
+		start = separator + 1;
+	}
+	LoveArchivePath result{archivePath, archivePath};
+	if (isValidUtf8(archivePath)) return result;
+	result.stagedPath = legacyArchivePath(archivePath);
+	result.escapedLegacy = true;
+	return result;
 }
 
 class LoveRenderStateNode final : public Node
@@ -899,6 +977,18 @@ void blankShaderMatchesPreservingLines(std::string &text, const std::regex &patt
 			if (text[index] != '\n' && text[index] != '\r') text[index] = ' ';
 }
 
+void blankShaderMatchesPreservingLines(std::string &text, const std::string &syntax,
+	const std::regex &pattern)
+{
+	for (std::sregex_iterator it(syntax.begin(), syntax.end(), pattern), end; it != end; ++it)
+	{
+		const std::size_t start = static_cast<std::size_t>(it->position());
+		const std::size_t length = static_cast<std::size_t>(it->length());
+		for (std::size_t index = start; index < start + length; ++index)
+			if (text[index] != '\n' && text[index] != '\r') text[index] = ' ';
+	}
+}
+
 bool parseLoveShaderLanguage(std::string_view source, LoveShaderLanguage &language,
 	std::string &body, std::string &error)
 {
@@ -990,6 +1080,182 @@ std::string maskLoveShaderComments(std::string_view source)
 		else ++index;
 	}
 	return masked;
+}
+
+std::string maskLoveShaderInactiveStage(std::string_view source, bool vertex)
+{
+	std::string masked(source);
+	struct Conditional
+	{
+		bool parentActive;
+		bool condition;
+	};
+	std::vector<Conditional> stack;
+	bool active = true;
+	std::size_t lineStart = 0;
+	while (lineStart < masked.size())
+	{
+		const std::size_t lineEnd = masked.find('\n', lineStart);
+		const std::size_t end = lineEnd == std::string::npos ? masked.size() : lineEnd;
+		const std::string line = masked.substr(lineStart, end - lineStart);
+		std::smatch match;
+		bool directive = false;
+		if (std::regex_match(line, match,
+				std::regex(R"(^\s*#\s*(?:ifdef\s+|if\s+defined\s*\(\s*)(VERTEX|PIXEL)\s*\)?\s*$)")))
+		{
+			const bool condition = match[1].str() == "VERTEX" ? vertex : !vertex;
+			stack.push_back({active, condition});
+			active = active && condition;
+			directive = true;
+		}
+		else if (std::regex_match(line, std::regex(R"(^\s*#\s*else\s*$)")) && !stack.empty())
+		{
+			const auto &conditional = stack.back();
+			active = conditional.parentActive && !conditional.condition;
+			directive = true;
+		}
+		else if (std::regex_match(line, std::regex(R"(^\s*#\s*endif\s*$)")) && !stack.empty())
+		{
+			active = stack.back().parentActive;
+			stack.pop_back();
+			directive = true;
+		}
+		if (directive || !active)
+			for (std::size_t index = lineStart; index < end; ++index)
+				if (masked[index] != '\r') masked[index] = ' ';
+		if (lineEnd == std::string::npos) break;
+		lineStart = lineEnd + 1;
+	}
+	return masked;
+}
+
+void renameLoveShaderShadowedFunctionParameters(std::string &body,
+	std::string_view globalName)
+{
+	// A GLSL function parameter may shadow a global uniform. Uniforms are mapped
+	// to bgfx names below, so protect the parameter and all references in that
+	// function before replacing the remaining global identifier occurrences.
+	const std::string syntax = maskLoveShaderComments(body);
+	static const std::regex functionPattern(
+		R"((?:^|[;}\n])\s*(?:(?:lowp|mediump|highp)\s+)?[A-Za-z_][A-Za-z0-9_]*(?:\s*\[\s*[0-9]*\s*\])?\s+[A-Za-z_][A-Za-z0-9_]*\s*\(([^()]*)\)\s*\{)");
+	const std::regex parameterPattern("(?:^|,)\\s*(?:(?:const|in|out|inout|lowp|mediump|highp)\\s+)*"
+		"[A-Za-z_][A-Za-z0-9_]*(?:\\s*\\[\\s*[0-9]*\\s*\\])?\\s+"
+		+ regexEscape(globalName) + "\\b");
+	const std::regex identifier("\\b" + regexEscape(globalName) + "\\b");
+	struct FunctionRange
+	{
+		std::size_t start;
+		std::size_t end;
+		std::string replacement;
+	};
+	std::vector<FunctionRange> ranges;
+	int shadowIndex = 0;
+	for (std::sregex_iterator it(syntax.begin(), syntax.end(), functionPattern), end;
+		it != end; ++it)
+	{
+		if (!std::regex_search((*it)[1].str(), parameterPattern)) continue;
+		const std::size_t start = static_cast<std::size_t>(it->position());
+		const std::size_t openBrace = start + static_cast<std::size_t>(it->length()) - 1;
+		int depth = 1;
+		std::size_t closeBrace = openBrace + 1;
+		for (; closeBrace < syntax.size() && depth != 0; ++closeBrace)
+		{
+			if (syntax[closeBrace] == '{') ++depth;
+			else if (syntax[closeBrace] == '}') --depth;
+		}
+		if (depth != 0) continue;
+		ranges.push_back({start, closeBrace,
+			"loveLocal_" + std::string(globalName) + "_" + std::to_string(shadowIndex++)});
+	}
+	for (auto it = ranges.rbegin(); it != ranges.rend(); ++it)
+	{
+		const std::string function = body.substr(it->start, it->end - it->start);
+		body.replace(it->start, it->end - it->start,
+			std::regex_replace(function, identifier, it->replacement));
+	}
+}
+
+void localizeLoveShaderStageGlobals(std::string &body, bool vertex)
+{
+	// GLSL permits writable stage-scope variables. bgfx's HLSL path interprets
+	// those as uniforms, which makes assignments illegal. Love shaders normally
+	// use them as entry-function temporaries, so move supported declarations into
+	// the current stage entry point while preserving source line positions.
+	const std::string syntax = maskLoveShaderComments(
+		maskLoveShaderInactiveStage(body, vertex));
+	static const std::regex declarationPattern(
+		R"(\b(?:(?:lowp|mediump|highp)\s+)?(?:float|vec2|vec3|vec4|mat2|mat3|mat4|int|ivec2|ivec3|ivec4|uint|uvec2|uvec3|uvec4|bool|bvec2|bvec3|bvec4)\s+[A-Za-z_][A-Za-z0-9_]*(?:\s*\[\s*[0-9]+\s*\])?(?:\s*=\s*[^;{}]+)?\s*;)");
+	std::vector<std::pair<std::size_t, std::size_t>> ranges;
+	std::string locals;
+	int braceDepth = 0;
+	std::size_t scanned = 0;
+	for (std::sregex_iterator it(syntax.begin(), syntax.end(), declarationPattern), end;
+		it != end; ++it)
+	{
+		const std::size_t start = static_cast<std::size_t>(it->position());
+		for (; scanned < start; ++scanned)
+		{
+			if (syntax[scanned] == '{') ++braceDepth;
+			else if (syntax[scanned] == '}') --braceDepth;
+		}
+		if (braceDepth != 0) continue;
+		const std::size_t lineStart = syntax.rfind('\n', start);
+		const std::string_view prefix(syntax.data()
+			+ (lineStart == std::string::npos ? 0 : lineStart + 1),
+			start - (lineStart == std::string::npos ? 0 : lineStart + 1));
+		if (std::regex_search(std::string(prefix), std::regex(
+			R"(\b(?:uniform|extern|varying|attribute|in|out)\s+(?:(?:lowp|mediump|highp)\s+)?$)")))
+			continue;
+		const std::size_t length = static_cast<std::size_t>(it->length());
+		locals += body.substr(start, length) + " ";
+		ranges.emplace_back(start, length);
+	}
+	if (ranges.empty()) return;
+	for (const auto &[start, length] : ranges)
+		for (std::size_t index = start; index < start + length; ++index)
+			if (body[index] != '\n' && body[index] != '\r') body[index] = ' ';
+	const std::regex entryPattern(vertex
+		? R"(\bvec4\s+position\s*\([^)]*\)\s*\{)"
+		: R"(\b(?:vec4\s+effect\s*\([^)]*\)|void\s+effect\s*\(\s*\))\s*\{)");
+	std::smatch entry;
+	if (!std::regex_search(body, entry, entryPattern)) return;
+	const std::size_t openBrace = static_cast<std::size_t>(entry.position() + entry.length() - 1);
+	body.insert(openBrace + 1, " " + locals);
+}
+
+void rewriteLoveShaderVectorConstructorComparisons(std::string &body,
+	std::string_view vectorName)
+{
+	struct Replacement
+	{
+		std::size_t position;
+		std::size_t length;
+		std::string text;
+	};
+	std::vector<Replacement> replacements;
+	const std::string name = regexEscape(vectorName);
+	const std::array<std::regex, 2> patterns = {
+		std::regex("(\\b" + name + "\\b)\\s*(==|!=)\\s*(vec[234]\\s*\\([^()]*\\))"),
+		std::regex("(vec[234]\\s*\\([^()]*\\))\\s*(==|!=)\\s*(\\b" + name + "\\b)"),
+	};
+	for (const auto &pattern : patterns)
+		for (std::sregex_iterator it(body.begin(), body.end(), pattern), end; it != end; ++it)
+		{
+			const std::string operation = (*it)[2].str();
+			replacements.push_back({static_cast<std::size_t>(it->position()),
+				static_cast<std::size_t>(it->length()),
+				(operation == "==" ? "all(" : "any(") + (*it)[1].str() + " "
+					+ operation + " " + (*it)[3].str() + ")"});
+		}
+	std::sort(replacements.begin(), replacements.end(),
+		[](const auto &left, const auto &right) { return left.position > right.position; });
+	std::size_t previous = body.size();
+	for (const auto &replacement : replacements)
+	{
+		if (replacement.position + replacement.length > previous) continue;
+		body.replace(replacement.position, replacement.length, replacement.text);
+		previous = replacement.position;
+	}
 }
 
 bool normalizeLoveShaderInterpolation(std::string_view qualifiers,
@@ -1681,7 +1947,8 @@ bool parseLoveShaderVaryings(std::string_view vertexSource, std::string_view pix
 	auto parse = [&](std::string_view source, std::vector<ParsedVarying> &result,
 		std::string_view stage, const std::regex &pattern) {
 		std::unordered_set<std::string> names;
-		const std::string text(source);
+		const std::string text = maskLoveShaderComments(
+			maskLoveShaderInactiveStage(source, stage == "vertex"));
 		for (std::sregex_iterator it(text.begin(), text.end(), pattern), end; it != end; ++it)
 		{
 			std::string interpolation;
@@ -1739,8 +2006,13 @@ bool parseLoveShaderVaryings(std::string_view vertexSource, std::string_view pix
 	std::unordered_map<std::string, ParsedVarying> vertexDeclarations;
 	for (const auto &varying : vertexVaryings) vertexDeclarations.emplace(varying.name, varying);
 	std::unordered_set<std::string> pixelInputs;
+	std::string pixelUsage = maskLoveShaderComments(
+		maskLoveShaderInactiveStage(pixelSource, false));
+	blankShaderMatchesPreservingLines(pixelUsage, pixelVaryingPattern);
 	for (const auto &[name, type, interpolation, count, array] : pixelVaryings)
 	{
+		if (!std::regex_search(pixelUsage,
+				std::regex("\\b" + regexEscape(name) + "\\b"))) continue;
 		pixelInputs.insert(name);
 		const auto found = vertexDeclarations.find(name);
 		if (found == vertexDeclarations.end())
@@ -2158,7 +2430,9 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 		: R"(([A-Za-z_][A-Za-z0-9_]*))");
 	std::vector<std::string> localVaryings;
 	std::unordered_set<std::string> localVaryingNames;
-	for (std::sregex_iterator it(body.begin(), body.end(), varyingPattern), end; it != end; ++it)
+	const std::string varyingSyntax = maskLoveShaderComments(
+		maskLoveShaderInactiveStage(body, vertex));
+	for (std::sregex_iterator it(varyingSyntax.begin(), varyingSyntax.end(), varyingPattern), end; it != end; ++it)
 	{
 		const std::string declarators = (*it)[language == LoveShaderLanguage::GLSL3 ? 3 : 2].str();
 		for (std::sregex_iterator declaratorIt(declarators.begin(), declarators.end(),
@@ -2170,7 +2444,7 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 			localVaryingNames.insert(name);
 		}
 	}
-	blankShaderMatchesPreservingLines(body, varyingPattern);
+	blankShaderMatchesPreservingLines(body, varyingSyntax, varyingPattern);
 	std::string customInputs;
 	std::string customPositionParameters;
 	std::string customPositionArguments;
@@ -2179,6 +2453,7 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 	std::string customVaryingArguments;
 	std::string customVaryingLocals;
 	std::string customVaryingStores;
+	std::string customVertexFunctionLocals;
 	std::string vertexIDArgument;
 	if (vertex)
 	{
@@ -2193,7 +2468,9 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 		};
 		std::vector<ParsedAttribute> parsedAttributes;
 		std::unordered_set<std::string> declaredNames;
-		for (std::sregex_iterator it(body.begin(), body.end(), attributePattern), end; it != end; ++it)
+		const std::string attributeSyntax = maskLoveShaderComments(
+			maskLoveShaderInactiveStage(body, true));
+		for (std::sregex_iterator it(attributeSyntax.begin(), attributeSyntax.end(), attributePattern), end; it != end; ++it)
 		{
 			const std::size_t typeGroup = language == LoveShaderLanguage::GLSL3 ? 2 : 1;
 			const std::size_t nameGroup = language == LoveShaderLanguage::GLSL3 ? 3 : 2;
@@ -2217,7 +2494,7 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 			}
 			parsedAttributes.push_back({(*it)[typeGroup].str(), name, location});
 		}
-		blankShaderMatchesPreservingLines(body, attributePattern);
+		blankShaderMatchesPreservingLines(body, attributeSyntax, attributePattern);
 		static constexpr std::array<std::pair<bgfx::Attrib::Enum, std::string_view>, 15> semantics = {{
 			{bgfx::Attrib::TexCoord1, "a_texcoord1"}, {bgfx::Attrib::TexCoord2, "a_texcoord2"},
 			{bgfx::Attrib::TexCoord3, "a_texcoord3"}, {bgfx::Attrib::TexCoord4, "a_texcoord4"},
@@ -2331,7 +2608,7 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 		if (instanced) customInputs += ", i_data0, i_data1, i_data2, i_data3, i_data4";
 	}
 	static const std::regex uniformPattern(
-		R"(\b(?:extern|uniform)\s+(number|float|vec2|vec3|vec4|mat2|mat3|mat4|int|ivec2|ivec3|ivec4|uint|uvec2|uvec3|uvec4|bool|bvec2|bvec3|bvec4|Image|ArrayImage|CubeImage|VolumeImage)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s*\[\s*([0-9]+)\s*\])?\s*;)");
+		R"(\b(?:extern|uniform)\s+(?:(?:lowp|mediump|highp)\s+)?(number|float|vec2|vec3|vec4|mat2|mat3|mat4|int|ivec2|ivec3|ivec4|uint|uvec2|uvec3|uvec4|bool|bvec2|bvec3|bvec4|Image|ArrayImage|CubeImage|VolumeImage)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s*\[\s*([0-9]+)\s*\])?\s*;)");
 	struct ParsedUniform
 	{
 		std::string sourceType;
@@ -2343,7 +2620,9 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 		int count = 1;
 	};
 	std::vector<ParsedUniform> uniforms;
-	for (std::sregex_iterator it(body.begin(), body.end(), uniformPattern), end; it != end; ++it)
+	const std::string uniformSyntax = maskLoveShaderComments(
+		maskLoveShaderInactiveStage(body, vertex));
+	for (std::sregex_iterator it(uniformSyntax.begin(), uniformSyntax.end(), uniformPattern), end; it != end; ++it)
 	{
 		const std::string sourceType = (*it)[1].str();
 		const std::string name = (*it)[2].str();
@@ -2362,7 +2641,10 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 		uniforms.push_back({sourceType, name, gpuName, shaderUniformType(sourceType), shaderTextureType(sourceType),
 			shaderUniformComponents(sourceType), count});
 	}
-	blankShaderMatchesPreservingLines(body, uniformPattern);
+	blankShaderMatchesPreservingLines(body, uniformSyntax, uniformPattern);
+	for (const auto &uniform : uniforms)
+		renameLoveShaderShadowedFunctionParameters(body, uniform.name);
+	localizeLoveShaderStageGlobals(body, vertex);
 	for (const std::string &name : localVaryings)
 	{
 		const auto found = varyingMap.find(name);
@@ -2372,8 +2654,27 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 			return false;
 		}
 		const auto &varying = found->second;
+		if (varying.type.starts_with("vec"))
+			rewriteLoveShaderVectorConstructorComparisons(body, name);
 		const std::string parameter = "loveVarying_" + name;
-		body = std::regex_replace(body, std::regex("\\b" + regexEscape(name) + "\\b"), parameter);
+		const std::regex identifier("\\b" + regexEscape(name) + "\\b");
+		if (!std::regex_search(body, identifier)) continue;
+		body = std::regex_replace(body, identifier, parameter);
+		if (vertex && !varying.pixelInput)
+		{
+			customVertexFunctionLocals += varying.type + " " + parameter;
+			if (varying.array)
+			{
+				customVertexFunctionLocals += "[" + std::to_string(varying.count) + "]; ";
+				for (int element = 0; element < varying.count; ++element)
+					customVertexFunctionLocals += parameter + "[" + std::to_string(element)
+						+ "] = " + loveShaderVaryingZeroValue(varying.type, varying.components) + "; ";
+			}
+			else customVertexFunctionLocals += " = "
+				+ loveShaderVaryingZeroValue(varying.type, varying.components) + "; ";
+			continue;
+		}
+		if (!vertex && !varying.pixelInput) continue;
 		customVaryingParameters += ", " + std::string(vertex ? "inout " : "")
 			+ varying.type + " " + parameter;
 		if (varying.array)
@@ -2417,8 +2718,7 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 				}
 				customVaryingArguments += ", " + local;
 			}
-			else if (vertex && (varying.columns > 1
-				|| isLoveShaderNonFloatVaryingType(varying.type)))
+			else if (vertex)
 			{
 				const std::string local = "loveVaryingLocal_" + name;
 				customVaryingLocals += varying.type + " " + local + " = "
@@ -2435,21 +2735,6 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 				}
 			}
 			else customVaryingArguments += ", " + loveShaderVaryingValue(varying);
-		}
-		else if (vertex)
-		{
-			const std::string local = "loveVaryingLocal_" + name;
-			customVaryingLocals += varying.type + " " + local;
-			if (varying.array)
-			{
-				customVaryingLocals += "[" + std::to_string(varying.count) + "]; ";
-				for (int element = 0; element < varying.count; ++element)
-					customVaryingLocals += local + "[" + std::to_string(element) + "] = "
-						+ loveShaderVaryingZeroValue(varying.type, varying.components) + "; ";
-			}
-			else customVaryingLocals += " = "
-				+ loveShaderVaryingZeroValue(varying.type, varying.components) + "; ";
-			customVaryingArguments += ", " + local;
 		}
 	}
 	std::string declarations;
@@ -2607,6 +2892,7 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 #define VolumeImage sampler3D
 #define Texel texture2D
 #define VaryingColor v_color0
+#define love_ScreenSize vec4(u_viewRect.zw, 1.0, 0.0)
 )sc";
 	const std::string varyingTexCoordMacro
 		= translated.mainTextureType == Love::GraphicsBackend::TextureType::Array
@@ -2648,6 +2934,20 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 				+ (translated.usesVertexID ? ", int loveVertexID" : "")
 				+ (translated.usesInstanceID ? ", int loveInstanceID" : "") + "$3",
 			std::regex_constants::format_first_only);
+		if (!customVertexFunctionLocals.empty())
+		{
+			std::smatch rewrittenPosition;
+			const bool foundPosition = std::regex_search(body, rewrittenPosition, positionDeclaration);
+			const std::size_t openBrace = !foundPosition ? std::string::npos
+				: body.find('{', static_cast<std::size_t>(rewrittenPosition.position()
+					+ rewrittenPosition.length()));
+			if (openBrace == std::string::npos)
+			{
+				error = "Love vertex Shader position function has no body";
+				return false;
+			}
+			body.insert(openBrace + 1, " " + customVertexFunctionLocals);
+		}
 		const std::string instanceSupport = instanced ? R"sc(
 uniform vec4 u_loveInstanceSelectors[5];
 vec4 loveInstanceAttribute(vec4 vertexValue, float selector,
@@ -2681,7 +2981,7 @@ vec4 loveInstanceAttribute(vec4 vertexValue, float selector,
 			+ constructorHelpers
 			+ "#define VertexPosition loveVertexPosition\n#define VertexTexCoord loveVertexTexCoord\n"
 			  "#define VertexColor loveVertexColor\n#define ConstantColor vec4_splat(1.0)\n"
-			+ "#line 1\n" + body
+			+ "#define VERTEX 1\n#line 1\n" + body
 			+ "\n#line 100000\nvoid main() { " + customVaryingLocals
 			  + "v_color0 = " + colorValue + "; v_texcoord0 = " + varyingTexCoord + ";"
 			  + arrayLayerOutput + " "
@@ -2697,6 +2997,7 @@ vec4 loveInstanceAttribute(vec4 vertexValue, float selector,
 		static const std::regex standardEffect(R"((\bvec4\s+effect\s*\()([^\)]*)(\)))");
 		static const std::regex customEffect(R"(\bvoid\s+effect\s*\(\s*\))");
 		const bool custom = !source.empty() && std::regex_search(body, customEffect);
+		std::string pixelCoordName;
 		if (!custom && !translated.mainTextureType)
 			translated.mainTextureType = Love::GraphicsBackend::TextureType::Texture2D;
 		if (!source.empty() && !custom && !std::regex_search(body, standardEffect))
@@ -2706,6 +3007,25 @@ vec4 loveInstanceAttribute(vec4 vertexValue, float selector,
 		}
 		if (body.empty())
 			body = "vec4 effect(vec4 color, Image loveTexture, vec2 uv, vec2 screen) { return Texel(loveTexture, uv) * color; }";
+		if (!custom)
+		{
+			std::smatch effectMatch;
+			std::smatch screenMatch;
+			static const std::regex screenParameter(
+				R"((?:^|,)\s*(?:(?:lowp|mediump|highp)\s+)?vec2\s+([A-Za-z_][A-Za-z0-9_]*)\s*$)");
+			if (!std::regex_search(body, effectMatch, standardEffect))
+			{
+				error = "Love pixel Shader effect function must end with a vec2 screen-coordinate parameter";
+				return false;
+			}
+			const std::string parameters = effectMatch[2].str();
+			if (!std::regex_search(parameters, screenMatch, screenParameter))
+			{
+				error = "Love pixel Shader effect function must end with a vec2 screen-coordinate parameter";
+				return false;
+			}
+			pixelCoordName = screenMatch[1].str();
+		}
 		if (!custom && !customVaryingParameters.empty())
 			body = std::regex_replace(body, standardEffect,
 				"$1$2" + customVaryingParameters + "$3", std::regex_constants::format_first_only);
@@ -2749,18 +3069,20 @@ vec4 loveInstanceAttribute(vec4 vertexValue, float selector,
 				if (index != 0) outputParameters += ", ";
 				outputParameters += "inout vec4 love_CanvasOutput" + std::to_string(index);
 			}
-			outputParameters += ", vec4 v_color0, vec2 v_texcoord0";
+			outputParameters += ", vec4 v_color0, vec2 v_texcoord0, vec2 lovePixelCoord";
 			if (translated.mainTextureType == Love::GraphicsBackend::TextureType::Array)
 				outputParameters += ", vec4 v_texcoord1";
 			body = std::regex_replace(body, customEffect,
 				"void effect(" + outputParameters
 					+ customVaryingParameters + ")");
+			pixelCoordName = "lovePixelCoord";
 		}
 		else if (std::regex_search(body, std::regex(R"(\blove_Canvases\b)")))
 		{
 			error = "love_Canvases requires the custom void effect() pixel entry point";
 			return false;
 		}
+		body = std::regex_replace(body, std::regex(R"(\blove_PixelCoord\b)"), pixelCoordName);
 		const std::string pixelCommon = custom
 			? "#define love_PixelColor love_CanvasOutput0\n"
 			: "#define love_PixelColor gl_FragColor\n";
@@ -2781,7 +3103,7 @@ vec4 loveInstanceAttribute(vec4 vertexValue, float selector,
 				if (index != 0) customMain += ", ";
 				customMain += "love_CanvasOutput" + std::to_string(index);
 			}
-			customMain += ", v_color0, v_texcoord0";
+			customMain += ", v_color0, v_texcoord0, gl_FragCoord.xy";
 			if (translated.mainTextureType == Love::GraphicsBackend::TextureType::Array)
 				customMain += ", v_texcoord1";
 			customMain += customVaryingArguments + "); ";
@@ -2802,7 +3124,7 @@ vec4 loveInstanceAttribute(vec4 vertexValue, float selector,
 			+ customVaryingStreams + "\n" + std::string(common)
 			+ varyingTexCoordMacro + pixelCommon + mainSamplerDeclaration + declarations
 			+ constructorHelpers
-			+ "#line 1\n" + body
+			+ "#define PIXEL 1\n#line 1\n" + body
 			+ (custom
 				? "\n#line 100000\n" + customMain
 				: "\n#line 100000\nvoid main() { " + customVaryingLocals
@@ -3421,11 +3743,24 @@ bool LoveNode::extractLovePackage(std::string &mainFile, std::string &error)
 		return false;
 	}
 	std::size_t expandedSize = 0;
+	std::vector<LoveArchivePath> resolvedFiles;
+	resolvedFiles.reserve(files.size());
+	std::unordered_set<std::string> stagedPaths;
 	for (const auto &file : files)
 	{
-		if (!isSafeLovePackagePath(file))
+		std::string pathError;
+		auto resolved = resolveLoveArchivePath(file, pathError);
+		if (!resolved || !isSafeLovePackagePath(resolved->stagedPath))
 		{
-			error = "Love package contains an unsafe path: '" + file + "'";
+			error = "Love package contains an unsafe ZIP entry '"
+				+ legacyArchivePath(file) + "': "
+				+ (pathError.empty() ? "invalid normalized path" : pathError);
+			return false;
+		}
+		if (!stagedPaths.insert(resolved->stagedPath).second)
+		{
+			error = "Love package contains duplicate normalized path: '"
+				+ resolved->stagedPath + "'";
 			return false;
 		}
 		const auto size = archive.getFileSize(file);
@@ -3436,6 +3771,7 @@ bool LoveNode::extractLovePackage(std::string &mainFile, std::string &error)
 			return false;
 		}
 		expandedSize += *size;
+		resolvedFiles.push_back(std::move(*resolved));
 	}
 
 	const auto sequence = LovePackageSequence.fetch_add(1, std::memory_order_relaxed);
@@ -3447,25 +3783,30 @@ bool LoveNode::extractLovePackage(std::string &mainFile, std::string &error)
 		_packageRoot.clear();
 		return false;
 	}
-	for (const auto &file : files)
+	for (const auto &file : resolvedFiles)
 	{
-		const auto expectedSize = archive.getFileSize(file).value_or(0);
-		auto data = archive.getFileData(file);
+		const auto expectedSize = archive.getFileSize(file.archivePath).value_or(0);
+		auto data = archive.getFileData(file.archivePath);
 		if ((!data.first && expectedSize != 0) || data.second != expectedSize)
 		{
-			error = "Dora Zip failed to extract Love package entry '" + file + "'";
+			error = "Dora Zip failed to extract Love package entry '"
+				+ legacyArchivePath(file.archivePath) + "'";
 			clearLovePackage();
 			return false;
 		}
-		const std::string target = Path::concat({_packageRoot, file});
+		const std::string target = Path::concat({_packageRoot, file.stagedPath});
 		const std::string parent = Path::getPath(target);
 		if ((!SharedContent.exist(parent) && !SharedContent.createFolder(parent))
 			|| !SharedContent.save(target, data.first.get(), static_cast<std::int64_t>(data.second)))
 		{
-			error = "Dora Content failed to stage Love package entry '" + file + "'";
+			error = "Dora Content failed to stage Love package entry '"
+				+ file.stagedPath + "'";
 			clearLovePackage();
 			return false;
 		}
+		if (file.escapedLegacy)
+			Warn("LoveNode [{}] staged a non-UTF-8 ZIP filename as {}",
+				_bootFile, file.stagedPath);
 	}
 	mainFile = Path::concat({_packageRoot, "main.lua"_slice});
 	error.clear();
@@ -3693,6 +4034,7 @@ void LoveNode::clearInstanceResources()
 		if (pass.root) pass.root->cleanup();
 	_frameRoot = nullptr;
 	_images.clear();
+	_fileImages.clear();
 	_whiteTexture = nullptr;
 	for (auto &[shaderHandle, shader] : _shaders)
 	{
@@ -4946,6 +5288,17 @@ Love::GraphicsBackend::ImageHandle LoveNode::newImage(const std::string &filenam
 	std::string fullPath;
 	if (!_runtime || !_runtime->resolveReadPath(filename, fullPath, error))
 		return 0;
+	if (const auto cached = _fileImages.find(fullPath); cached != _fileImages.end())
+	{
+		const auto handle = _nextImageHandle++;
+		ImageResource resource;
+		resource.texture = cached->second.texture;
+		resource.sharedFilePixels = cached->second.pixels;
+		resource.copyOnWrite = true;
+		_images.emplace(handle, std::move(resource));
+		error.clear();
+		return handle;
+	}
 	std::string encoded;
 	if (!load(fullPath, encoded, error))
 		return 0;
@@ -4958,8 +5311,16 @@ Love::GraphicsBackend::ImageHandle LoveNode::newImage(const std::string &filenam
 			+ "' (format '" + Path::getExt(filename) + "') in LoveNode '" + _bootFile + "'";
 		return 0;
 	}
-	return newImage(Love::GraphicsBackend::TextureType::Texture2D,
+	const auto handle = newImage(Love::GraphicsBackend::TextureType::Texture2D,
 		width, height, 1, rgba8, error);
+	if (handle == 0)
+		return 0;
+	auto pixels = std::make_shared<std::vector<std::uint8_t>>(std::move(rgba8));
+	auto image = _images.find(handle);
+	image->second.sharedFilePixels = pixels;
+	image->second.copyOnWrite = true;
+	_fileImages.emplace(fullPath, CachedFileImage{image->second.texture, std::move(pixels)});
+	return handle;
 }
 
 Love::GraphicsBackend::ImageHandle LoveNode::newImage(Love::GraphicsBackend::TextureType type,
@@ -5392,6 +5753,41 @@ bool LoveNode::replaceImagePixels(Love::GraphicsBackend::ImageHandle image, int 
 	std::span<const std::uint8_t> rgba8, std::string &error)
 {
 	const auto it = _images.find(image);
+	if (it != _images.end() && it->second.copyOnWrite)
+	{
+		auto &resource = it->second;
+		const int textureWidth = resource.texture ? resource.texture->getWidth() : 0;
+		const int textureHeight = resource.texture ? resource.texture->getHeight() : 0;
+		if (!resource.sharedFilePixels || textureWidth <= 0 || textureHeight <= 0)
+		{
+			error = "Love Image shared file texture has no copy-on-write pixels";
+			return false;
+		}
+		const bgfx::TextureHandle gpu = bgfx::createTexture2D(
+			static_cast<uint16_t>(textureWidth), static_cast<uint16_t>(textureHeight), false, 1,
+			bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_NONE,
+			bgfx::copy(resource.sharedFilePixels->data(),
+				static_cast<uint32_t>(resource.sharedFilePixels->size())));
+		if (!bgfx::isValid(gpu))
+		{
+			error = "bgfx failed to separate a shared Love Image before replacePixels";
+			return false;
+		}
+		bgfx::TextureInfo info;
+		bgfx::calcTextureSize(info, static_cast<uint16_t>(textureWidth),
+			static_cast<uint16_t>(textureHeight), 1, false, false, 1,
+			bgfx::TextureFormat::RGBA8);
+		Texture2D *texture = Texture2D::create(gpu, info, BGFX_TEXTURE_NONE);
+		if (!texture)
+		{
+			bgfx::destroy(gpu);
+			error = "Dora failed to separate a shared Love Image before replacePixels";
+			return false;
+		}
+		resource.texture = texture;
+		resource.sharedFilePixels.reset();
+		resource.copyOnWrite = false;
+	}
 	if (it == _images.end() || !it->second.texture || slice < 0 || mipmap < 0
 		|| x < 0 || y < 0 || width <= 0 || height <= 0
 		|| rgba8.size() != static_cast<std::size_t>(width) * height * 4
@@ -6914,20 +7310,13 @@ bool LoveNode::drawMesh(std::span<const Love::GraphicsBackend::MeshVertex> verti
 				error = "active Love Shader requires enabled Mesh vertex attribute '" + name + "'";
 				return false;
 			}
-			if (found->components != shaderAttribute.components)
-			{
-				error = "Mesh vertex attribute '" + name + "' has "
-					+ std::to_string(found->components) + " components, but the active Shader expects "
-					+ std::to_string(shaderAttribute.components);
-				return false;
-			}
 			if (found->perInstance)
 			{
 				if (!addInstanceAttribute(*found, shaderAttribute.selectorIndex,
 					Vec4{0.0f, 0.0f, 0.0f, 1.0f})) return false;
 				dynamicAttributes.push_back({shaderAttribute.semantic, shaderAttribute.components,
 					std::vector<float>(vertices.size()
-						* static_cast<std::size_t>(found->components), 0.0f)});
+						* static_cast<std::size_t>(shaderAttribute.components), 0.0f)});
 			}
 			else
 			{
@@ -6936,7 +7325,27 @@ bool LoveNode::drawMesh(std::span<const Love::GraphicsBackend::MeshVertex> verti
 					error = "Mesh vertex attribute '" + name + "' has an invalid value count";
 					return false;
 				}
-				dynamicAttributes.push_back({shaderAttribute.semantic, shaderAttribute.components, found->values});
+				if (found->components == shaderAttribute.components)
+					dynamicAttributes.push_back({shaderAttribute.semantic,
+						shaderAttribute.components, found->values});
+				else
+				{
+					std::vector<float> values;
+					values.reserve(vertices.size()
+						* static_cast<std::size_t>(shaderAttribute.components));
+					for (std::size_t vertex = 0; vertex < vertices.size(); ++vertex)
+					{
+						float expanded[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+						const float *source = found->values.data()
+							+ vertex * static_cast<std::size_t>(found->components);
+						std::copy_n(source, std::min(found->components,
+							shaderAttribute.components), expanded);
+						values.insert(values.end(), expanded,
+							expanded + shaderAttribute.components);
+					}
+					dynamicAttributes.push_back({shaderAttribute.semantic,
+						shaderAttribute.components, std::move(values)});
+				}
 			}
 		}
 		if (shaderResource.usesVertexID)
@@ -9144,6 +9553,9 @@ bool LoveNode::encodeImage(std::string_view format, int width, int height,
 	return true;
 }
 
+bool decodeLoveTracker(std::string_view encoded, std::vector<float> &samples,
+	std::string &error);
+
 bool LoveNode::decodeSound(std::string_view encoded, int &sampleRate, int &channels,
 	std::vector<float> &samples, std::string &error)
 {
@@ -9159,8 +9571,16 @@ bool LoveNode::decodeSound(std::string_view encoded, int &sampleRate, int &chann
 	if (result != SoLoud::SO_NO_ERROR || !wav.mData || wav.mSampleCount == 0
 		|| wav.mChannels == 0 || wav.mBaseSamplerate <= 0.0f)
 	{
-		error = "Dora Content/SoLoud failed to decode SoundData";
-		return false;
+		std::string trackerError;
+		if (!decodeLoveTracker(encoded, samples, trackerError))
+		{
+			error = "Dora Content/SoLoud failed to decode SoundData: " + trackerError;
+			return false;
+		}
+		sampleRate = 44100;
+		channels = 2;
+		error.clear();
+		return true;
 	}
 	sampleRate = static_cast<int>(std::lround(wav.mBaseSamplerate));
 	channels = static_cast<int>(wav.mChannels);
@@ -9170,6 +9590,60 @@ bool LoveNode::decodeSound(std::string_view encoded, int &sampleRate, int &chann
 		for (unsigned int channel = 0; channel < wav.mChannels; ++channel)
 			samples[static_cast<std::size_t>(frame) * wav.mChannels + channel]
 				= wav.mData[static_cast<std::size_t>(channel) * wav.mSampleCount + frame];
+	}
+	error.clear();
+	return true;
+}
+
+bool decodeLoveTracker(std::string_view encoded, std::vector<float> &samples,
+	std::string &error)
+{
+	constexpr int SampleRate = 44100;
+	constexpr int Channels = 2;
+	constexpr std::size_t ChunkFrames = 4096;
+	constexpr std::size_t MaximumSamples = 256u * 1024u * 1024u / sizeof(float);
+	if (encoded.empty())
+	{
+		error = "Love tracker decoder received empty or oversized module data";
+		return false;
+	}
+	openmpt_module *module = openmpt_module_create_from_memory(
+		encoded.data(), encoded.size(), nullptr, nullptr, nullptr);
+	if (!module)
+	{
+		error = "libopenmpt rejected the tracker module";
+		return false;
+	}
+	openmpt_module_set_repeat_count(module, 0);
+	std::array<float, ChunkFrames> left{};
+	std::array<float, ChunkFrames> right{};
+	samples.clear();
+	while (true)
+	{
+		const std::size_t frames = openmpt_module_read_float_stereo(
+			module, SampleRate, ChunkFrames, left.data(), right.data());
+		if (frames == 0)
+			break;
+		if (samples.size() > MaximumSamples - frames * Channels)
+		{
+			openmpt_module_destroy(module);
+			samples.clear();
+			error = "Love tracker module exceeds the decoded SoundData limit";
+			return false;
+		}
+		const std::size_t offset = samples.size();
+		samples.resize(offset + frames * Channels);
+		for (std::size_t frame = 0; frame < frames; ++frame)
+		{
+			samples[offset + frame * Channels] = left[frame];
+			samples[offset + frame * Channels + 1] = right[frame];
+		}
+	}
+	openmpt_module_destroy(module);
+	if (samples.empty())
+	{
+		error = "libopenmpt rendered an empty tracker module";
+		return false;
 	}
 	error.clear();
 	return true;
@@ -9250,16 +9724,31 @@ bool LoveNode::mountArchive(std::string_view archiveName, std::string_view data,
 		return false;
 	}
 	std::size_t expandedSize = 0;
+	std::vector<LoveArchivePath> resolvedFiles;
+	resolvedFiles.reserve(files.size());
+	std::unordered_set<std::string> stagedPaths;
 	for (const auto &file : files)
 	{
+		std::string pathError;
+		auto resolved = resolveLoveArchivePath(file, pathError);
 		const auto size = archive.getFileSize(file);
-		if (!isSafeLovePackagePath(file) || !size || *size > MaximumFileSize
+		if (!resolved || !isSafeLovePackagePath(resolved->stagedPath)
+			|| !size || *size > MaximumFileSize
 			|| expandedSize > MaximumExpandedSize - *size)
 		{
-			error = "Love mount archive contains an unsafe or oversized entry: '" + file + "'";
+			error = "Love mount archive contains an unsafe or oversized ZIP entry '"
+				+ legacyArchivePath(file) + "'"
+				+ (pathError.empty() ? "" : ": " + pathError);
+			return false;
+		}
+		if (!stagedPaths.insert(resolved->stagedPath).second)
+		{
+			error = "Love mount archive contains duplicate normalized path: '"
+				+ resolved->stagedPath + "'";
 			return false;
 		}
 		expandedSize += *size;
+		resolvedFiles.push_back(std::move(*resolved));
 	}
 	const auto sequence = LoveMountSequence.fetch_add(1, std::memory_order_relaxed);
 	mountedRoot = Path::concat({SharedContent.getWritablePath(), "LoveMounts"_slice,
@@ -9271,21 +9760,25 @@ bool LoveNode::mountArchive(std::string_view archiveName, std::string_view data,
 		return false;
 	}
 	_mountedArchiveRoots.insert(mountedRoot);
-	for (const auto &file : files)
+	for (const auto &file : resolvedFiles)
 	{
-		const auto expectedSize = archive.getFileSize(file).value_or(0);
-		auto entry = archive.getFileData(file);
-		const std::string target = Path::concat({mountedRoot, file});
+		const auto expectedSize = archive.getFileSize(file.archivePath).value_or(0);
+		auto entry = archive.getFileData(file.archivePath);
+		const std::string target = Path::concat({mountedRoot, file.stagedPath});
 		const std::string parent = Path::getPath(target);
 		if ((!entry.first && expectedSize != 0) || entry.second != expectedSize
 			|| (!SharedContent.exist(parent) && !SharedContent.createFolder(parent))
 			|| !SharedContent.save(target, entry.first.get(), static_cast<std::int64_t>(entry.second)))
 		{
-			error = "Dora Content failed to stage Love mount entry '" + file + "'";
+			error = "Dora Content failed to stage Love mount entry '"
+				+ file.stagedPath + "'";
 			unmountArchive(mountedRoot);
 			mountedRoot.clear();
 			return false;
 		}
+		if (file.escapedLegacy)
+			Warn("LoveNode [{}] staged a non-UTF-8 mounted ZIP filename as {}",
+				_bootFile, file.stagedPath);
 	}
 	error.clear();
 	return true;
@@ -9307,6 +9800,39 @@ Love::AudioBackend::SourceHandle LoveNode::newSource(const std::string &filename
 			+ std::string(sourceType) + "', format '" + Path::getExt(filename)
 			+ "') in LoveNode '" + _bootFile + "'";
 		return 0;
+	}
+	std::string extension = Path::getExt(filename);
+	std::transform(extension.begin(), extension.end(), extension.begin(),
+		[](unsigned char character) { return static_cast<char>(std::tolower(character)); });
+	if (extension == "mod" || extension == "s3m" || extension == "xm" || extension == "it")
+	{
+		AudioFile *audioFile = OpenmptFile::create(
+			std::move(data.first), static_cast<std::size_t>(data.second));
+		if (!audioFile)
+		{
+			error = "SoLoud Openmpt failed to load Love audio Source '" + filename + "'";
+			return 0;
+		}
+		AudioBus *effectsBus = _audioBus ? AudioBus::create(_audioBus) : nullptr;
+		AudioSource *audioNode = AudioSource::create(audioFile, false, effectsBus);
+		if (!audioNode)
+		{
+			error = "failed to create Dora AudioSource node for tracker Source '" + filename + "'";
+			return 0;
+		}
+		addChild(audioNode);
+		const auto handle = _nextAudioSourceHandle++;
+		AudioResource resource;
+		resource.node = audioNode;
+		resource.file = audioFile;
+		resource.effectsBus = effectsBus;
+		audioNode->setVolumeLimits(resource.minVolume, resource.maxVolume);
+		audioNode->set3DPosition(0.0f, 0.0f, 0.0f);
+		audioNode->setMinMaxDistance(resource.referenceDistance, resource.maxDistance);
+		audioNode->setAttenuation(AudioSource::AttenuationModel::ApplicationDistance, resource.rolloff);
+		_audioSources.emplace(handle, std::move(resource));
+		error.clear();
+		return handle;
 	}
 	AudioFile *audioFile = sourceType == "stream"
 		? static_cast<AudioFile *>(WavStream::create(std::move(data.first), static_cast<std::size_t>(data.second)))

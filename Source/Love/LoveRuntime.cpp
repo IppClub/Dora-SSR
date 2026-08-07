@@ -465,6 +465,11 @@ std::string incompatibleBytecodeError(std::string_view code)
 
 int loadLoveChunk(lua_State *state, std::string_view code, const char *chunkName)
 {
+	if (code.size() >= 3
+		&& static_cast<unsigned char>(code[0]) == 0xef
+		&& static_cast<unsigned char>(code[1]) == 0xbb
+		&& static_cast<unsigned char>(code[2]) == 0xbf)
+		code.remove_prefix(3);
 	const std::string compatibilityError = incompatibleBytecodeError(code);
 	if (!compatibilityError.empty())
 	{
@@ -997,6 +1002,7 @@ struct ImageUserdata final
 	GraphicsBackend::TextureType textureType = GraphicsBackend::TextureType::Texture2D;
 	int slices = 1;
 	GraphicsBackend::TextureFilter filter = GraphicsBackend::TextureFilter::Linear;
+	GraphicsBackend::TextureFilter magFilter = GraphicsBackend::TextureFilter::Linear;
 	GraphicsBackend::TextureWrap wrapU = GraphicsBackend::TextureWrap::Clamp;
 	GraphicsBackend::TextureWrap wrapV = GraphicsBackend::TextureWrap::Clamp;
 	GraphicsBackend::TextureWrap wrapW = GraphicsBackend::TextureWrap::Clamp;
@@ -3303,26 +3309,52 @@ bool drawMode(lua_State *state, int index)
 	return false;
 }
 
-bool isSafeVirtualPath(std::string_view filename, bool allowEmpty = false)
+bool normalizeLoveVirtualPath(std::string_view filename, std::string &normalized,
+	bool allowEmpty = false)
 {
-	if (filename.empty())
-		return allowEmpty;
 	if (filename.find('\\') != std::string_view::npos)
 		return false;
-	const std::filesystem::path path(filename);
-	if (path.is_absolute() || path.has_root_name() || path.has_root_directory())
-		return false;
-	for (const auto &part : path)
+	// PhysFS-backed LÖVE paths are rooted at the game's virtual filesystem.
+	// Existing games commonly spell that root with a leading slash and keep a
+	// trailing slash for directories. Normalize both forms before confinement.
+	while (filename.starts_with('/'))
+		filename.remove_prefix(1);
+	while (filename.starts_with("./"))
+		filename.remove_prefix(2);
+	while (filename.ends_with('/'))
+		filename.remove_suffix(1);
+	if (filename.empty())
 	{
-		const std::string component = part.string();
+		normalized.clear();
+		return allowEmpty;
+	}
+	normalized.clear();
+	std::size_t start = 0;
+	while (start <= filename.size())
+	{
+		const std::size_t slash = filename.find('/', start);
+		const std::size_t end = slash == std::string_view::npos ? filename.size() : slash;
+		const std::string_view component = filename.substr(start, end - start);
 		if (component.empty() || component == "." || component == "..")
 			return false;
+		if (!normalized.empty()) normalized.push_back('/');
+		normalized.append(component);
+		if (slash == std::string_view::npos) break;
+		start = slash + 1;
 	}
 	return true;
 }
 
+bool isSafeVirtualPath(std::string_view filename, bool allowEmpty = false)
+{
+	std::string normalized;
+	return normalizeLoveVirtualPath(filename, normalized, allowEmpty);
+}
+
 bool normalizeLoveModulePath(std::string_view moduleName, std::string &modulePath)
 {
+	while (moduleName.starts_with("./"))
+		moduleName.remove_prefix(2);
 	if (moduleName.empty())
 		return false;
 	modulePath.clear();
@@ -3378,7 +3410,8 @@ bool resolveEntryWithinRoot(const std::string &rootText, std::string_view filena
 {
 	if (rootText.empty())
 		return false;
-	if (!isSafeVirtualPath(filename, allowRoot))
+	std::string normalized;
+	if (!normalizeLoveVirtualPath(filename, normalized, allowRoot))
 	{
 		error = "Love filesystem path must be relative and cannot contain '.', '..', or backslashes: "
 			+ std::string(filename);
@@ -3391,7 +3424,8 @@ bool resolveEntryWithinRoot(const std::string &rootText, std::string_view filena
 		error = "failed to resolve Love filesystem root: " + pathError.message();
 		return false;
 	}
-	const std::filesystem::path unresolved = filename.empty() ? root : root / std::filesystem::path(filename);
+	const std::filesystem::path unresolved = normalized.empty()
+		? root : root / std::filesystem::path(normalized);
 	resolved = std::filesystem::weakly_canonical(unresolved, pathError);
 	if (pathError || !isInsideRoot(root, resolved, allowRoot))
 	{
@@ -3428,6 +3462,14 @@ int pushFilesystemFailure(lua_State *state, const std::string &message)
 bool resolveWritableEntry(LoveRuntime *runtime, std::string_view filename,
 	std::filesystem::path &resolved, bool allowRoot, std::string &error)
 {
+	// A leading slash is accepted as a read-only virtual-root spelling for
+	// compatibility, but writes remain explicitly relative to the identity
+	// directory so no game can confuse them with host absolute paths.
+	if (filename.starts_with('/'))
+	{
+		error = "Love filesystem write path must be relative: " + std::string(filename);
+		return false;
+	}
 	if (runtime == nullptr || runtime->getSaveRoot().empty())
 	{
 		error = "Love filesystem save directory is not configured";
@@ -3797,6 +3839,9 @@ bool LoveRuntime::open(std::string &error)
 		error = "failed to create Love Lua 5.5 state";
 		return false;
 	}
+	// LÖVE 11.5 embeds LuaJIT/Lua 5.1 semantics, where loop variables can be
+	// reassigned. Keep this compatibility local to the isolated Love state.
+	lua_setloopvarcompat(_state, 1);
 	lua_pushlightuserdata(_state, this);
 	lua_setfield(_state, LUA_REGISTRYINDEX, LoveRuntimeRegistry);
 
@@ -3806,8 +3851,20 @@ bool LoveRuntime::open(std::string &error)
 	::love::luax_insistpinnedthread(_state);
 	static constexpr std::string_view compatibility = R"lua(
 unpack = table.unpack
+table.getn = table.getn or function(value)
+	return #value
+end
 math.pow = math.pow or function(base, exponent)
 	return base ^ exponent
+end
+math.atan2 = math.atan2 or function(y, x)
+	return math.atan(y, x)
+end
+local native_require = require
+require = function(name)
+	-- Lua 5.2+ also returns loader data. LuaJIT/Lua 5.1 LÖVE code
+	-- expects one result, especially when require is the final argument.
+	return (native_require(name))
 end
 local native_load = load
 load = function(chunk, chunkname, mode, env)
@@ -3821,6 +3878,9 @@ load = function(chunk, chunkname, mode, env)
 				:format(version >> 4, version & 0x0f)
 		end
 	end
+	-- Passing an explicit nil environment to Lua 5.5 creates a chunk whose
+	-- _ENV is nil. LuaJIT loadstring omits that argument and inherits _G.
+	if env == nil then return native_load(chunk, chunkname, mode) end
 	return native_load(chunk, chunkname, mode, env)
 end
 loadstring = load
@@ -3832,10 +3892,40 @@ end
 local compatibility_global = _G
 local compatibility_type = type
 local compatibility_error = error
+local compatibility_native_randomseed = math.randomseed
+local compatibility_native_random = math.random
 local compatibility_getinfo = debug.getinfo
 local compatibility_getupvalue = debug.getupvalue
 local compatibility_upvaluejoin = debug.upvaluejoin
 local compatibility_noenv = setmetatable({}, {__mode = "k"})
+
+-- LuaJIT's math.randomseed accepts any finite number, while Lua 5.5 requires
+-- an exact integer. Existing Love games commonly seed it from getTime(), so
+-- truncate fractional inputs just like LuaJIT-compatible numeric C APIs.
+math.randomseed = function(seed, stream)
+	if compatibility_type(seed) == "number" and math.tointeger(seed) == nil then
+		seed = seed < 0 and math.ceil(seed) or math.floor(seed)
+	end
+	if compatibility_type(stream) == "number" and math.tointeger(stream) == nil then
+		stream = stream < 0 and math.ceil(stream) or math.floor(stream)
+	end
+	return compatibility_native_randomseed(seed, stream)
+end
+
+-- LuaJIT's numeric C API truncates finite numeric bounds toward zero. Lua 5.5
+-- requires exact integer values, so preserve the behavior expected by older
+-- LÖVE games without changing Dora's main Lua state.
+math.random = function(lower, upper)
+	if lower == nil then return compatibility_native_random() end
+	if compatibility_type(lower) == "number" and math.tointeger(lower) == nil then
+		lower = lower < 0 and math.ceil(lower) or math.floor(lower)
+	end
+	if upper == nil then return compatibility_native_random(lower) end
+	if compatibility_type(upper) == "number" and math.tointeger(upper) == nil then
+		upper = upper < 0 and math.ceil(upper) or math.floor(upper)
+	end
+	return compatibility_native_random(lower, upper)
+end
 
 local function compatibility_function(selector, api)
 	local kind = compatibility_type(selector)
@@ -5086,6 +5176,32 @@ int LoveRuntime::loveRun(lua_State *)
 {
 	// Dora owns the application loop. The compatibility entry point must never
 	// start Love's standalone loop or present an operating-system window.
+	return 0;
+}
+
+int LoveRuntime::loveGetVersion(lua_State *state)
+{
+	lua_pushinteger(state, 11);
+	lua_pushinteger(state, 5);
+	lua_pushinteger(state, 0);
+	lua_pushliteral(state, "Mysterious Mysteries");
+	return 4;
+}
+
+int LoveRuntime::loveHandler(lua_State *state)
+{
+	const int argumentCount = lua_gettop(state);
+	const char *name = lua_tostring(state, lua_upvalueindex(1));
+	lua_getglobal(state, "love");
+	lua_getfield(state, -1, name);
+	lua_remove(state, -2);
+	if (!lua_isfunction(state, -1))
+	{
+		lua_pop(state, 1);
+		return 0;
+	}
+	lua_insert(state, 1);
+	lua_call(state, argumentCount, 0);
 	return 0;
 }
 
@@ -9544,6 +9660,16 @@ int LoveRuntime::audioSourceIsPlaying(lua_State *state)
 	return 1;
 }
 
+int LoveRuntime::audioSourceIsStopped(lua_State *state)
+{
+	auto *source = checkAudioSource(state, 1);
+	luaL_argcheck(state, source->runtime && source->runtime->_audioBackend
+		&& source->runtime->_audioHandles.contains(source->handle), 1, "closed Source");
+	lua_pushboolean(state, !source->runtime->_audioBackend->isSourcePlaying(source->handle)
+		&& !source->runtime->_audioBackend->isSourcePaused(source->handle));
+	return 1;
+}
+
 int LoveRuntime::audioSourceIsPaused(lua_State *state)
 {
 	auto *source = checkAudioSource(state, 1);
@@ -11276,7 +11402,8 @@ int LoveRuntime::filesystemSetRequirePath(lua_State *state)
 			return luaL_argerror(state, 1, "Love require path has too many patterns");
 		if (!pattern.empty())
 		{
-			if (pattern.find(':') != std::string::npos || pattern.find('\0') != std::string::npos)
+			if (pattern.starts_with('/') || pattern.find(':') != std::string::npos
+				|| pattern.find('\0') != std::string::npos)
 				return luaL_argerror(state, 1, "Love require path patterns must be relative and confined");
 			std::string probe = pattern;
 			std::size_t offset = 0;
@@ -11982,6 +12109,17 @@ int LoveRuntime::windowGetIcon(lua_State *state)
 {
 	// The virtual surface has no independent application icon.
 	lua_pushnil(state);
+	return 1;
+}
+
+int LoveRuntime::windowSetIcon(lua_State *state)
+{
+	auto *icon = checkImageData(state, 1);
+	luaL_argcheck(state, icon->width > 0 && icon->height > 0, 1,
+		"window icon ImageData must have positive dimensions");
+	// LoveNode does not own Dora's host window icon. Accept the virtual-window
+	// request as a no-op so portable games do not fail during love.load.
+	lua_pushboolean(state, true);
 	return 1;
 }
 
@@ -13969,6 +14107,7 @@ int LoveRuntime::graphicsNewImage(lua_State *state)
 	}
 	auto *image = new ImageUserdata(runtime, handle, GraphicsBackend::TextureType::Texture2D, 1);
 	image->filter = runtime->_graphicsDefaultFilter;
+	image->magFilter = runtime->_graphicsDefaultFilter;
 	image->anisotropy = runtime->_graphicsDefaultAnisotropy;
 	image->mipmapCount = createdMipmapCount;
 	image->format = std::move(createdFormat);
@@ -14153,6 +14292,7 @@ int newLayeredImage(lua_State *state, LoveRuntime *runtime,
 				error.empty() ? "failed to create compressed non-2D Image" : error.c_str());
 		auto *image = new ImageUserdata(runtime, handle, type, slices);
 		image->filter = runtime->getGraphicsDefaultFilter();
+		image->magFilter = runtime->getGraphicsDefaultFilter();
 		image->anisotropy = runtime->getGraphicsDefaultAnisotropy();
 		image->mipmapCount = static_cast<int>(compressedLevels.size());
 		image->format = compressedFormat;
@@ -14323,6 +14463,7 @@ int newLayeredImage(lua_State *state, LoveRuntime *runtime,
 			error.empty() ? "failed to create non-2D Image" : error.c_str());
 	auto *image = new ImageUserdata(runtime, handle, type, slices);
 	image->filter = runtime->getGraphicsDefaultFilter();
+	image->magFilter = runtime->getGraphicsDefaultFilter();
 	image->anisotropy = runtime->getGraphicsDefaultAnisotropy();
 	image->mipmapCount = static_cast<int>(levels.size());
 	image->linear = linear;
@@ -18911,13 +19052,13 @@ int LoveRuntime::imageSetFilter(lua_State *state)
 		return luaL_argerror(state, 2, "expected 'linear' or 'nearest'");
 	if (mag != "linear" && mag != "nearest")
 		return luaL_argerror(state, 3, "expected 'linear' or 'nearest'");
-	if (min != mag)
-		return luaL_error(state, "embedded Dora Images require matching minification and magnification filters");
 	const float anisotropy = static_cast<float>(luaL_optnumber(state, 4, 1.0));
 	luaL_argcheck(state, std::isfinite(anisotropy) && anisotropy >= 1.0f, 4,
 		"anisotropy must be a finite number greater than or equal to 1");
 	image->filter = min == "nearest" ? GraphicsBackend::TextureFilter::Nearest
 		: anisotropy > 1.0f ? GraphicsBackend::TextureFilter::Anisotropic
+		: GraphicsBackend::TextureFilter::Linear;
+	image->magFilter = mag == "nearest" ? GraphicsBackend::TextureFilter::Nearest
 		: GraphicsBackend::TextureFilter::Linear;
 	image->anisotropy = anisotropy;
 	return 0;
@@ -18927,9 +19068,10 @@ int LoveRuntime::imageGetFilter(lua_State *state)
 {
 	auto *image = checkImage(state, 1);
 	luaL_argcheck(state, image->runtime && image->handle != 0 && image->runtime->_graphicsBackend, 1, "closed Image");
-	const char *mode = image->filter == GraphicsBackend::TextureFilter::Nearest ? "nearest" : "linear";
-	lua_pushstring(state, mode);
-	lua_pushstring(state, mode);
+	const char *min = image->filter == GraphicsBackend::TextureFilter::Nearest ? "nearest" : "linear";
+	const char *mag = image->magFilter == GraphicsBackend::TextureFilter::Nearest ? "nearest" : "linear";
+	lua_pushstring(state, min);
+	lua_pushstring(state, mag);
 	lua_pushnumber(state, image->anisotropy);
 	return 3;
 }
@@ -19262,7 +19404,7 @@ int LoveRuntime::canvasNewImageData(lua_State *state)
 		canvas->handle) == runtime->_graphicsCanvases.end()
 		&& canvas->handle != runtime->_graphicsCanvasDepthStencil, 1,
 		"Canvas:newImageData cannot be called while that Canvas is currently active");
-	if (runtime->_graphicsFrameActive)
+	if (runtime->_graphicsFrameActive && !runtime->_graphicsLoadCallbackActive)
 		return luaL_error(state,
 			"embedded Dora Canvas:newImageData is currently available only outside love.draw");
 
@@ -19298,8 +19440,21 @@ int LoveRuntime::canvasNewImageData(lua_State *state)
 		"invalid Canvas readback rectangle");
 	std::vector<std::uint8_t> pixels;
 	std::string error;
-	if (!runtime->_graphicsBackend->readCanvas(canvas->handle,
-		static_cast<int>(slice - 1), mipIndex, x, y, width, height, pixels, error))
+	const bool resumeLoadFrame = runtime->_graphicsFrameActive
+		&& runtime->_graphicsLoadCallbackActive;
+	if (resumeLoadFrame)
+	{
+		runtime->_graphicsBackend->endFrame();
+		runtime->_graphicsFrameActive = false;
+	}
+	const bool read = runtime->_graphicsBackend->readCanvas(canvas->handle,
+		static_cast<int>(slice - 1), mipIndex, x, y, width, height, pixels, error);
+	if (resumeLoadFrame)
+	{
+		runtime->_graphicsBackend->beginFrame();
+		runtime->_graphicsFrameActive = true;
+	}
+	if (!read)
 		return luaL_error(state, "Love Canvas readback failed: %s",
 			error.empty() ? "Dora graphics backend rejected the readback" : error.c_str());
 	const char *format = std::string_view(canvas->format) == "srgba8" ? "rgba8" : canvas->format;
@@ -23235,6 +23390,7 @@ void LoveRuntime::registerShaderType()
 {
 	static const luaL_Reg functions[] = {
 			{"getWarnings", shaderGetWarnings},
+			{"getExternVariable", shaderHasUniform},
 			{"hasUniform", shaderHasUniform},
 			{"send", shaderSend},
 			{"sendColor", shaderSendColor},
@@ -23270,6 +23426,7 @@ void LoveRuntime::registerAudioSourceType()
 			{"pause", audioSourcePause},
 			{"stop", audioSourceStop},
 			{"isPlaying", audioSourceIsPlaying},
+			{"isStopped", audioSourceIsStopped},
 			{"isPaused", audioSourceIsPaused},
 			{"setLooping", audioSourceSetLooping},
 			{"isLooping", audioSourceIsLooping},
@@ -23685,6 +23842,25 @@ void LoveRuntime::registerLoveModule()
 	lua_setfield(_state, -2, "_version_revision");
 	lua_pushcfunction(_state, loveRun);
 	lua_setfield(_state, -2, "run");
+	lua_pushcfunction(_state, loveGetVersion);
+	lua_setfield(_state, -2, "getVersion");
+
+	lua_newtable(_state);
+	static constexpr std::array<const char *, 31> HandlerNames = {
+		"directorydropped", "displayrotated", "filedropped", "focus", "gamepadaxis",
+		"gamepadpressed", "gamepadreleased", "joystickadded", "joystickaxis",
+		"joystickhat", "joystickpressed", "joystickreleased", "joystickremoved",
+		"keypressed", "keyreleased", "lowmemory", "mousefocus", "mousemoved",
+		"mousepressed", "mousereleased", "quit", "resize", "textedited", "textinput",
+		"threaderror", "touchmoved", "touchpressed", "touchreleased", "visible",
+		"wheelmoved", "localechanged"};
+	for (const auto *name : HandlerNames)
+	{
+		lua_pushstring(_state, name);
+		lua_pushcclosure(_state, loveHandler, 1);
+		lua_setfield(_state, -2, name);
+	}
+	lua_setfield(_state, -2, "handlers");
 
 	lua_newtable(_state);
 	const struct
@@ -23926,6 +24102,7 @@ void LoveRuntime::registerLoveModule()
 		{"getFullscreen", windowGetFullscreen},
 		{"isOpen", windowIsOpen},
 		{"getIcon", windowGetIcon},
+		{"setIcon", windowSetIcon},
 		{"getMode", windowGetMode},
 		{"setMode", windowSetMode},
 		{"updateMode", windowUpdateMode},
@@ -24589,12 +24766,31 @@ bool LoveRuntime::configure(std::string &error)
 
 	lua_rawgeti(_state, LUA_REGISTRYINDEX, configuration);
 	lua_getfield(_state, -1, "window");
-	if (!lua_istable(_state, -1))
+	const bool windowDisabled = lua_isnil(_state, -1)
+		|| (lua_isboolean(_state, -1) && !lua_toboolean(_state, -1));
+	if (!lua_istable(_state, -1) && !windowDisabled)
 	{
 		lua_pop(_state, 2);
 		luaL_unref(_state, LUA_REGISTRYINDEX, configuration);
 		return fail("love.conf must leave t.window as a table", error);
 	}
+	if (windowDisabled)
+	{
+		lua_pop(_state, 1);
+		lua_newtable(_state);
+		lua_pushinteger(_state, DefaultWindowWidth); lua_setfield(_state, -2, "width");
+		lua_pushinteger(_state, DefaultWindowHeight); lua_setfield(_state, -2, "height");
+		lua_pushboolean(_state, false); lua_setfield(_state, -2, "fullscreen");
+		lua_pushboolean(_state, false); lua_setfield(_state, -2, "highdpi");
+		lua_pushboolean(_state, false); lua_setfield(_state, -2, "resizable");
+		lua_pushinteger(_state, 1); lua_setfield(_state, -2, "display");
+		lua_pushinteger(_state, 1); lua_setfield(_state, -2, "vsync");
+		_configurationWarnings = "window module is disabled; LoveNode keeps its virtual surface available";
+	}
+	const auto appendConfigurationWarning = [this](std::string_view warning) {
+		if (!_configurationWarnings.empty()) _configurationWarnings += "; ";
+		_configurationWarnings += warning;
+	};
 	const auto readDimension = [&](const char *field, int &value) {
 		lua_getfield(_state, -1, field);
 		int isInteger = 0;
@@ -24639,12 +24835,18 @@ bool LoveRuntime::configure(std::string &error)
 		if (!isInteger || display < 1)
 			error = "love.conf t.window.display must be a positive integer";
 		else if (display != 1 || fullscreen || highdpi)
-			_configurationWarnings = "ignoring unsupported embedded window settings; "
-				"LoveNode uses t.window.fullscreen=false, highdpi=false, and display=1";
+			appendConfigurationWarning("ignoring unsupported embedded window settings; "
+				"LoveNode uses t.window.fullscreen=false, highdpi=false, and display=1");
 		if (error.empty())
 		{
 			lua_getfield(_state, -1, "vsync");
-			const lua_Integer configuredVSync = lua_tointegerx(_state, -1, &isInteger);
+			lua_Integer configuredVSync = 0;
+			if (lua_isboolean(_state, -1))
+			{
+				configuredVSync = lua_toboolean(_state, -1) ? 1 : 0;
+				isInteger = 1;
+			}
+			else configuredVSync = lua_tointegerx(_state, -1, &isInteger);
 			lua_pop(_state, 1);
 			if (!isInteger || configuredVSync < -1 || configuredVSync > 1)
 				error = "love.conf t.window.vsync must be -1, 0, or 1";
@@ -24722,7 +24924,20 @@ bool LoveRuntime::start(std::string &error)
 		error = "LoveRuntime must be ready before start";
 		return false;
 	}
-	if (!callLoveCallback("load", 0, 0, error))
+	lua_getglobal(_state, "love");
+	lua_getfield(_state, -1, "load");
+	const bool hasLoadCallback = lua_isfunction(_state, -1);
+	lua_pop(_state, 2);
+	if (_graphicsBackend && hasLoadCallback)
+		_graphicsBackend->beginFrame();
+	_graphicsFrameActive = hasLoadCallback;
+	_graphicsLoadCallbackActive = hasLoadCallback;
+	const bool loaded = callLoveCallback("load", 0, 0, error);
+	_graphicsLoadCallbackActive = false;
+	_graphicsFrameActive = false;
+	if (_graphicsBackend && hasLoadCallback)
+		_graphicsBackend->endFrame();
+	if (!loaded)
 		return false;
 
 	_status = Status::Running;

@@ -1785,6 +1785,10 @@ local record Shader
 	-- 返回值：
 	--  warnings: 警告和错误消息（如果有）。
 	getWarnings: function(self: Shader): string
+	-- 获取Shader中是否存在指定的extern变量。
+	--
+	-- 这是用于兼容LÖVE 0.10之前版本的旧接口，请改用hasUniform。
+	getExternVariable: function(self: Shader, name: string): boolean
 	-- 获取Shader中是否存在uniform / extern变量。
 	--
 	-- 如果图形驱动程序的着色器编译器确定统一/外部变量不会影响着色器的最终输出，它可能会优化该变量。在这种情况下该函数将返回 false。
@@ -1924,6 +1928,14 @@ local record Window
 	-- 返回值：
 	--  imagedata: 窗口图标图像数据，如果没有使用 love.window.setIcon. 设置图标则为零
 	getIcon: function(): any
+	-- 使用 ImageData 设置窗口图标。
+	--
+	-- 嵌入式 LoveNode 会接受该请求，但不会修改 Dora 宿主应用的图标。
+	-- 参数：
+	--  imagedata: 窗口图标的图像数据。
+	-- 返回值：
+	--  success: 图标请求被接受时返回 true。
+	setIcon: function(imagedata: any): boolean
 	-- 获取窗口的显示模式和属性。
 	--
 	-- 返回值：
@@ -4842,6 +4854,8 @@ local record Source
 	-- 返回值：
 	--  playing: 如果源正在播放则为 true，否则为 false。
 	isPlaying: function(self: Source): boolean
+	-- 返回此 Source 是否处于停止状态。此方法是兼容旧版 LÖVE 的废弃接口，仅当 Source 既未播放也未暂停时返回 true。
+	isStopped: function(self: Source): boolean
 	isPaused: function(self: Source): boolean
 	-- 设置源是否应循环。
 	--

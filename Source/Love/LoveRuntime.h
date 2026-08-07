@@ -1372,6 +1372,8 @@ private:
 	static int channelPerformAtomic(lua_State *state);
 	static int sourceModuleSearcher(lua_State *state);
 	static int loveRun(lua_State *state);
+	static int loveGetVersion(lua_State *state);
+	static int loveHandler(lua_State *state);
 	static int graphicsClear(lua_State *state);
 	static int graphicsDiscard(lua_State *state);
 	static int graphicsFlushBatch(lua_State *state);
@@ -1836,6 +1838,7 @@ private:
 	static int windowGetFullscreen(lua_State *state);
 	static int windowIsOpen(lua_State *state);
 	static int windowGetIcon(lua_State *state);
+	static int windowSetIcon(lua_State *state);
 	static int windowGetPosition(lua_State *state);
 	static int windowGetSafeArea(lua_State *state);
 	static int windowSetTitle(lua_State *state);
@@ -2025,6 +2028,7 @@ private:
 	static int audioSourcePause(lua_State *state);
 	static int audioSourceStop(lua_State *state);
 	static int audioSourceIsPlaying(lua_State *state);
+	static int audioSourceIsStopped(lua_State *state);
 	static int audioSourceIsPaused(lua_State *state);
 	static int audioSourceSetLooping(lua_State *state);
 	static int audioSourceIsLooping(lua_State *state);
@@ -2396,6 +2400,7 @@ private:
 	GraphicsBackend::LineJoin _graphicsLineJoin = GraphicsBackend::LineJoin::Miter;
 	float _graphicsPointSize = 1.0f;
 	bool _graphicsFrameActive = false;
+	bool _graphicsLoadCallbackActive = false;
 	using GraphicsTransform = GraphicsBackend::Transform2D;
 	struct GraphicsState
 	{

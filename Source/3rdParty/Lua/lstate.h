@@ -342,6 +342,7 @@ typedef struct global_State {
   lu_byte gcstopem;  /* stops emergency collections */
   lu_byte gcstp;  /* control whether GC is running */
   lu_byte gcemergency;  /* true if this is an emergency collection */
+  lu_byte loopvarcompat;  /* allow assignments to for-loop variables */
   GCObject *allgc;  /* list of all collectable objects */
   GCObject **sweepgc;  /* current position of sweep in list */
   GCObject *finobj;  /* list of collectable objects with finalizers */
@@ -448,4 +449,3 @@ LUAI_FUNC TStatus luaE_resetthread (lua_State *L, TStatus status);
 
 
 #endif
-

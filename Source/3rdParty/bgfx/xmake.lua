@@ -667,6 +667,10 @@ local function add_bgfx_sources()
 end
 
 local function add_bgfx_common_settings()
+    -- LÖVE permits games to retain many Canvas objects. Each Dora Canvas owns
+    -- a bgfx framebuffer, and the upstream default of 128 is too small for
+    -- otherwise valid games which pre-render per-tile canvases at load time.
+    add_defines("BGFX_CONFIG_MAX_FRAME_BUFFERS=256")
     add_includedirs(path.join(BGFX_DIR, "include"), {public = true})
     add_includedirs(path.join(BGFX_DIR, "3rdparty"), {public = true})
     add_includedirs(path.join(BGFX_DIR, "3rdparty/renderdoc"), {public = true})

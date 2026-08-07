@@ -29,6 +29,7 @@ extern "C" int32_t dora_audio_encode_wav_to_ogg(
 namespace SoLoud {
 class Wav;
 class WavStream;
+class Openmpt;
 class Soloud;
 class AudioSource;
 class Bus;
@@ -92,6 +93,28 @@ private:
 	OwnArray<uint8_t> _data;
 	SoLoud::WavStream* _stream;
 	DORA_TYPE_OVERRIDE(WavStream);
+};
+
+class OpenmptFile : public AudioFile {
+public:
+	virtual ~OpenmptFile();
+	virtual SoLoud::AudioSource* getSource() const override;
+	virtual double getDuration() const override;
+	virtual double getSampleRate() const override;
+	virtual uint64_t getSampleCount() const override;
+	virtual uint32_t getChannelCount() const override;
+	virtual bool init() override;
+	CREATE_FUNC_NULLABLE(OpenmptFile);
+
+protected:
+	OpenmptFile(OwnArray<uint8_t>&& data, size_t size);
+
+private:
+	OwnArray<uint8_t> _data;
+	size_t _size;
+	double _duration;
+	SoLoud::Openmpt* _openmpt;
+	DORA_TYPE_OVERRIDE(OpenmptFile);
 };
 
 class PCMQueueFile : public AudioFile {
