@@ -5506,8 +5506,13 @@ int LoveRuntime::threadObjectStart(lua_State *state)
 				lua_pushlightuserdata(threadState, &runtime);
 				lua_pushcclosure(threadState, traceback, 1);
 				const int errorHandler = lua_gettop(threadState);
-				if (loadLoveChunk(threadState, worker->code, worker->chunkName.c_str()) != LUA_OK)
+				const std::string chunkName = runtime.prepareGeneratedChunk(
+					worker->code, worker->chunkName);
+				if (loadLoveChunk(threadState, worker->code, chunkName.c_str()) != LUA_OK)
+				{
+					runtime.rewriteGeneratedErrorOnStack(threadState);
 					workerError = lua_tostring(threadState, -1);
+				}
 				else
 				{
 					for (const auto &argument : worker->arguments)

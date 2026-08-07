@@ -833,7 +833,7 @@ main.ts / main.tl / main.yue
 - TIC-80 是通用源标识位置的既有例外：Teal/Yue 产物第一行固定为 `-- tic80`，第二行才是 `-- [tl]/[yue]: source`，避免破坏运行时首行识别；这不是 Love 编译规则。
 - 路径由通用编译服务按当前 project root 决定，可为完整 Content 路径或项目内路径。协议不要求 Love 项目 profile、首行源码注释或 Love 专属 build 分支。
 - LoveRuntime 在每个隔离 state 内加载 chunk 时解析该标识，并把生成 Lua 行建立为实例局部映射；普通 Lua 没有该标识时完全沿用原 chunk name 和 traceback。
-- 映射同时应用于 boot 主文件、`require` 经 Dora Content source searcher 加载的模块，以及 `love.filesystem.load` 返回的 chunk；语法错误与 callback traceback 都回写为原扩展名、完整源路径和原行号。
+- 映射同时应用于 boot 主文件、`require` 经 Dora Content source searcher 加载的模块、`love.filesystem.load` 返回的 chunk，以及 `love.thread.newThread` 在独立子 state 中加载的入口 chunk；语法错误、callback traceback 和 thread error 都回写为原扩展名、完整源路径和原行号。
 - Lua 的长 chunk name 会受 `LUA_IDSIZE` 截断。LoveRuntime 只在 traceback 生成后匹配该 state 已登记的截断名并恢复完整路径，不修改 Lua 5.5 全局行为；restart/close 会清空映射，避免跨 LoveNode 或跨代串扰。
 
 ### 现有代码接入位置
