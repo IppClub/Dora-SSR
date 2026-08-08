@@ -210,6 +210,17 @@
 
 #endif // MPT_BUILD_XCODE
 
+#if defined(MPT_BUILD_DORA)
+// Dora provides one shared miniz implementation to all engine consumers.
+// Do not let platform defaults silently switch libopenmpt back to zlib.
+#ifdef MPT_WITH_ZLIB
+#undef MPT_WITH_ZLIB
+#endif
+#ifndef MPT_WITH_MINIZ
+#define MPT_WITH_MINIZ
+#endif
+#endif
+
 
 
 #if defined(MODPLUG_TRACKER)
@@ -792,4 +803,3 @@
 #define ZLIB_DLL
 #endif
 #endif
-

@@ -15,11 +15,10 @@ target("openmpt")
         "../libopenmpt/libopenmpt/libopenmpt_c.cpp",
         "../libopenmpt/libopenmpt/libopenmpt_cxx.cpp",
         "../libopenmpt/libopenmpt/libopenmpt_impl.cpp",
-        "../libopenmpt/libopenmpt/libopenmpt_ext_impl.cpp",
-        "../libopenmpt/include/miniz/miniz.c"
+        "../libopenmpt/libopenmpt/libopenmpt_ext_impl.cpp"
     )
-    add_includedirs("../libopenmpt", "../libopenmpt/common", "../libopenmpt/include")
-    add_defines("LIBOPENMPT_BUILD", "MPT_WITH_MINIZ")
+    add_includedirs("../libopenmpt", "../libopenmpt/common", "../libopenmpt/include", "../Zip")
+    add_defines("LIBOPENMPT_BUILD", "MPT_BUILD_DORA", "MPT_WITH_MINIZ")
 
     if is_plat("macosx") then
         set_toolchains("xcode", {target_minver = "11.3"})

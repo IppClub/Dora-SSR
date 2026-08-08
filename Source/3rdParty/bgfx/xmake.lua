@@ -21,6 +21,7 @@ end
 local BGFX_DIR = os.scriptdir()
 local BIMG_DIR = path.join(BGFX_DIR, "../bimg")
 local BX_DIR = path.join(BGFX_DIR, "../bx")
+local MINIZ_DIR = path.join(BGFX_DIR, "../Zip")
 
 -- 通用配置
 add_rules("mode.debug", "mode.release")
@@ -645,10 +646,9 @@ target("bimg_decode")
     
     add_includedirs(path.join(BIMG_DIR, "include"), {public = true})
     add_includedirs(path.join(BIMG_DIR, "3rdparty"))
-    add_includedirs(path.join(BIMG_DIR, "3rdparty/tinyexr/deps/miniz"))
+    add_includedirs(MINIZ_DIR)
     
     add_files(table.unpack(resolve_sources(BIMG_DIR, bimg_decode_src)))
-    add_files(path.join(BIMG_DIR, "3rdparty/tinyexr/deps/miniz/miniz.c"))
     
     if is_plat("linux", "android") then
         add_cxxflags("-fPIC", {force = true})
@@ -700,6 +700,9 @@ if has_config("with-shared") then
         set_kind("shared")
         add_deps("bx", "bimg", "bimg_decode")
         add_common_target_settings({fast_math = true})
+        -- The shared-library variant is itself a final link product, so it
+        -- provides the one canonical miniz implementation needed by TinyEXR.
+        add_files(path.join(MINIZ_DIR, "miniz.c"))
         
         add_defines("BGFX_SHARED_LIB_BUILD=1", {public = true})
 
