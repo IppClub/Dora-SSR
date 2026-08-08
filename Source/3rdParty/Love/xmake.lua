@@ -1,3 +1,5 @@
+includes("../LuaSocket/xmake.lua")
+
 set_project("love")
 set_version("11.5")
 set_languages("cxx20")
@@ -51,7 +53,7 @@ target("openmpt")
 target("love")
     set_kind("static")
     set_basename("love")
-    add_deps("openmpt")
+    add_deps("openmpt", "luasocket-objects")
     add_files(
         "src/common/Object.cpp",
         "src/common/types.cpp",

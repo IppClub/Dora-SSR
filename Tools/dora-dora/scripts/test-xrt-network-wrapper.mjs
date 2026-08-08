@@ -74,7 +74,12 @@ typedef int64_t i64;
 int main() {
 	DoraXrtHttpServer* httpServer = nullptr;
 	DoraXrtWebSocketServer* webSocketServer = nullptr;
-	return httpServer == nullptr && webSocketServer == nullptr ? 0 : 1;
+	DoraXrtHttpResponse response{};
+	DoraXrtHttpHeader header{};
+	response.headers = &header;
+	response.headerCount = 1;
+	return httpServer == nullptr && webSocketServer == nullptr
+		&& response.headers == &header && response.headerCount == 1 ? 0 : 1;
 }
 `,
 });

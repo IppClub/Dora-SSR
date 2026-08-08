@@ -19,6 +19,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
 #include "Love/LoveRuntime.h"
+#include "Lua/BuiltinModules.h"
 #include "3rdParty/Love/src/libraries/lz4/lz4.h"
 #include "3rdParty/Love/src/libraries/lz4/lz4hc.h"
 #include "3rdParty/Love/src/common/Object.h"
@@ -4049,6 +4050,11 @@ end
 		|| lua_pcall(_state, 0, 0, 0) != LUA_OK)
 	{
 		error = lua_tostring(_state, -1);
+		close();
+		return false;
+	}
+	if (!dora_open_builtin_modules(_state, error))
+	{
 		close();
 		return false;
 	}

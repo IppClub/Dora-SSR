@@ -19,6 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "GUI/ImGuiDora.h"
 #include "Http/XrtNetwork.h"
 #include "Input/Controller.h"
+#include "Lua/BuiltinModules.h"
 #include "Lua/ToLua/tolua++.h"
 
 #include "Other/utf8.h"
@@ -396,8 +397,9 @@ void cliSetFunc(lua_State* L, const char* name, lua_CFunction func) {
 	lua_setfield(L, -2, name);
 }
 
-void cliRegisterLua(lua_State* L, int argc, char* argv[], const fs::path& scriptPath, int cliIndex, const std::optional<fs::path>& assetPath) {
+bool cliRegisterLua(lua_State* L, int argc, char* argv[], const fs::path& scriptPath, int cliIndex, const std::optional<fs::path>& assetPath, std::string& error) {
 	luaL_openlibs(L);
+	if (!dora_open_builtin_modules(L, error)) return false;
 	luaL_requiref(L, "json", luaopen_colibc_json, 1);
 	lua_pop(L, 1);
 	luaL_requiref(L, "yue", luaopen_yue, 1);
@@ -452,6 +454,7 @@ void cliRegisterLua(lua_State* L, int argc, char* argv[], const fs::path& script
 	cliSetFunc(L, "http", cliLuaHttp);
 	lua_setfield(L, -2, "CLI");
 	lua_setglobal(L, "Dora");
+	return true;
 }
 
 bool cliSkipEntrySearchDir(const fs::path& path) {
@@ -538,7 +541,11 @@ int runCliApplication(int argc, char* argv[]) {
 		std::cerr << "Failed to create Lua state for Dora CLI.\n";
 		return 1;
 	}
-	cliRegisterLua(state.L, argc, argv, *scriptPath, cliIndex, asset.path);
+	std::string builtinModuleError;
+	if (!cliRegisterLua(state.L, argc, argv, *scriptPath, cliIndex, asset.path, builtinModuleError)) {
+		std::cerr << "Failed to initialize builtin Lua modules: " << builtinModuleError << "\n";
+		return 1;
+	}
 	auto path = scriptPath->string();
 	if (luaL_loadfile(state.L, path.c_str()) != LUA_OK) {
 		std::cerr << lua_tostring(state.L, -1) << "\n";

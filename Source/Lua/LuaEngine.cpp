@@ -8,9 +8,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 
+#include "Lua/BuiltinModules.h"
 #include "Lua/LuaEngine.h"
 
 #include "Common/Async.h"
+#include "Http/XrtNetwork.h"
 #include "Lua/LuaBinding.h"
 #include "Lua/LuaFromXml.h"
 #include "Lua/LuaHandler.h"
@@ -20,11 +22,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Lua/Xml/DoraTag.h"
 #include "Lua/Xml/XmlResolver.h"
+#include "3rdParty/LuaSocket/LuaScripts.h"
 #include "yarnflow/yarn_compiler.h"
 
 extern "C" {
 int luaopen_yue(lua_State* L);
 int luaopen_colibc_json(lua_State* L);
+int luaopen_socket_core(lua_State* L);
+int luaopen_mime_core(lua_State* L);
 } // extern "C"
 
 NS_DORA_BEGIN
@@ -91,6 +96,263 @@ static int dora_trace_back(lua_State* L) {
 	LogErrorThreaded(tolua_toslice(L, -1, nullptr).toString());
 	lua_pop(L, 3); // empty
 	return 0;
+}
+
+static int dora_builtin_lua_loader(lua_State* L) {
+	auto data = static_cast<const char*>(lua_touserdata(L, lua_upvalueindex(1)));
+	auto size = s_cast<size_t>(lua_tointeger(L, lua_upvalueindex(2)));
+	auto chunkName = lua_tostring(L, lua_upvalueindex(3));
+	const bool hasModuleName = !lua_isnone(L, 1);
+	lua_settop(L, hasModuleName ? 1 : 0);
+	if (luaL_loadbufferx(L, data, size, chunkName, "t") != LUA_OK) {
+		return lua_error(L);
+	}
+	if (hasModuleName) {
+		lua_pushvalue(L, 1);
+	}
+	lua_call(L, hasModuleName ? 1 : 0, LUA_MULTRET);
+	if (hasModuleName) lua_remove(L, 1);
+	return lua_gettop(L);
+}
+
+static void dora_preload_lua_module(lua_State* L, const DoraLuaSocketScripts::Script& script) {
+	lua_getglobal(L, "package");
+	lua_getfield(L, -1, "preload");
+	lua_pushlightuserdata(L, const_cast<unsigned char*>(script.data));
+	lua_pushinteger(L, s_cast<lua_Integer>(script.size));
+	lua_pushstring(L, script.chunkName);
+	lua_pushcclosure(L, dora_builtin_lua_loader, 3);
+	lua_setfield(L, -2, script.module);
+	lua_pop(L, 2);
+}
+
+static int dora_https_request(lua_State* L) {
+	luaL_checktype(L, 1, LUA_TTABLE);
+
+	lua_getfield(L, 1, "url");
+	std::string requestUrl(luaL_checkstring(L, -1));
+	lua_pop(L, 1);
+	lua_getfield(L, 1, "method");
+	std::string requestMethod(lua_isnil(L, -1) ? "GET" : luaL_checkstring(L, -1));
+	lua_pop(L, 1);
+
+	const char* body = nullptr;
+	size_t bodyLen = 0;
+	lua_getfield(L, 1, "body");
+	if (!lua_isnil(L, -1)) body = luaL_checklstring(L, -1, &bodyLen);
+	std::string requestBody(body ? std::string(body, bodyLen) : std::string());
+	lua_pop(L, 1);
+
+	double timeoutSeconds = 60.0;
+	lua_getfield(L, 1, "timeout");
+	if (!lua_isnil(L, -1)) timeoutSeconds = luaL_checknumber(L, -1);
+	lua_pop(L, 1);
+	timeoutSeconds = std::max(0.0, std::min(timeoutSeconds,
+		static_cast<double>(std::numeric_limits<unsigned int>::max()) / 1000.0));
+	const auto timeoutMs = s_cast<unsigned int>(timeoutSeconds * 1000.0);
+
+	bool verifyPeer = false;
+	lua_getfield(L, 1, "verify");
+	if (lua_isboolean(L, -1)) {
+		verifyPeer = lua_toboolean(L, -1) != 0;
+	} else if (lua_isstring(L, -1)) {
+		verifyPeer = std::string_view(lua_tostring(L, -1)) == "peer";
+	}
+	lua_pop(L, 1);
+
+	std::vector<std::string> headerNames;
+	std::vector<std::string> headerValues;
+	lua_getfield(L, 1, "headers");
+	if (!lua_isnil(L, -1)) {
+		luaL_checktype(L, -1, LUA_TTABLE);
+		lua_pushnil(L);
+		while (lua_next(L, -2) != 0) {
+			size_t valueLen = 0;
+			const char* name = luaL_checkstring(L, -2);
+			const char* value = luaL_tolstring(L, -1, &valueLen);
+			headerNames.emplace_back(name);
+			headerValues.emplace_back(value, valueLen);
+			lua_pop(L, 2);
+		}
+	}
+	lua_pop(L, 1);
+
+	std::vector<const char*> headerNameViews;
+	std::vector<const char*> headerValueViews;
+	headerNameViews.reserve(headerNames.size());
+	headerValueViews.reserve(headerValues.size());
+	for (size_t i = 0; i < headerNames.size(); ++i) {
+		headerNameViews.push_back(headerNames[i].c_str());
+		headerValueViews.push_back(headerValues[i].c_str());
+	}
+
+	DoraXrtHttpResponse response{};
+	const int status = DoraXrtHttpExecute(
+		requestMethod.c_str(), requestUrl.c_str(),
+		headerNameViews.data(), headerValueViews.data(), headerNameViews.size(),
+		body ? requestBody.data() : nullptr, bodyLen, timeoutMs, verifyPeer ? 1 : 0,
+		nullptr, nullptr, &response);
+	if (status != 0) {
+		lua_pushnil(L);
+		lua_pushstring(L, DoraXrtHttpStatusName(status));
+		DoraXrtHttpResponseFree(&response);
+		return 2;
+	}
+
+	lua_pushlstring(L, response.body ? response.body : "", response.bodyLen);
+	lua_pushinteger(L, response.statusCode);
+	lua_createtable(L, 0, s_cast<int>(response.headerCount));
+	for (size_t i = 0; i < response.headerCount; ++i) {
+		std::string name = response.headers[i].name ? response.headers[i].name : "";
+		for (char& c : name) c = s_cast<char>(std::tolower(s_cast<unsigned char>(c)));
+		lua_getfield(L, -1, name.c_str());
+		if (lua_isstring(L, -1)) {
+			size_t previousLen = 0;
+			const char* previous = lua_tolstring(L, -1, &previousLen);
+			std::string combined(previous, previousLen);
+			combined += ", ";
+			combined += response.headers[i].value ? response.headers[i].value : "";
+			lua_pop(L, 1);
+			lua_pushlstring(L, combined.data(), combined.size());
+		} else {
+			lua_pop(L, 1);
+			lua_pushstring(L, response.headers[i].value ? response.headers[i].value : "");
+		}
+		lua_setfield(L, -2, name.c_str());
+	}
+	lua_pushstring(L, response.statusLine ? response.statusLine : "");
+	DoraXrtHttpResponseFree(&response);
+	return 4;
+}
+
+static int luaopen_dora_https(lua_State* L) {
+	lua_createtable(L, 0, 1);
+	lua_pushcfunction(L, dora_https_request);
+	lua_setfield(L, -2, "request");
+	return 1;
+}
+
+static constexpr std::string_view bit32Source = R"lua(
+local mask = 0xffffffff
+local function integer(value, level)
+	if type(value) ~= "number" then
+		error("number expected, got " .. type(value), level or 3)
+	end
+	local result = math.tointeger(value)
+	if result == nil then
+		result = math.modf(value)
+	end
+	return result
+end
+local function normalize(value)
+	return integer(value, 4) & mask
+end
+local function displacement(value)
+	return integer(value, 4)
+end
+local bit32 = {}
+function bit32.arshift(value, disp)
+	value, disp = normalize(value), displacement(disp)
+	if disp < 0 then
+		if disp <= -32 then return 0 end
+		return (value << -disp) & mask
+	end
+	if disp >= 32 then return value >= 0x80000000 and mask or 0 end
+	if value >= 0x80000000 then value = value - 0x100000000 end
+	return (value >> disp) & mask
+end
+function bit32.band(...)
+	local result = mask
+	for index = 1, select("#", ...) do result = result & normalize(select(index, ...)) end
+	return result
+end
+function bit32.bnot(value) return (~normalize(value)) & mask end
+function bit32.bor(...)
+	local result = 0
+	for index = 1, select("#", ...) do result = result | normalize(select(index, ...)) end
+	return result
+end
+function bit32.btest(...) return bit32.band(...) ~= 0 end
+function bit32.bxor(...)
+	local result = 0
+	for index = 1, select("#", ...) do result = result ~ normalize(select(index, ...)) end
+	return result
+end
+local function fieldrange(field, width)
+	field = displacement(field)
+	width = width == nil and 1 or displacement(width)
+	if field < 0 then error("field cannot be negative", 4) end
+	if width <= 0 then error("width must be positive", 4) end
+	if field + width > 32 then error("trying to access non-existent bits", 4) end
+	return field, width
+end
+function bit32.extract(value, field, width)
+	field, width = fieldrange(field, width)
+	local fieldmask = width == 32 and mask or ((1 << width) - 1)
+	return (normalize(value) >> field) & fieldmask
+end
+function bit32.replace(value, replacement, field, width)
+	field, width = fieldrange(field, width)
+	local fieldmask = width == 32 and mask or ((1 << width) - 1)
+	local shifted = (fieldmask << field) & mask
+	return ((normalize(value) & ~shifted) | ((normalize(replacement) & fieldmask) << field)) & mask
+end
+function bit32.lrotate(value, disp)
+	value, disp = normalize(value), displacement(disp) % 32
+	if disp == 0 then return value end
+	return ((value << disp) | (value >> (32 - disp))) & mask
+end
+function bit32.lshift(value, disp)
+	value, disp = normalize(value), displacement(disp)
+	if disp < 0 then return bit32.rshift(value, -disp) end
+	if disp >= 32 then return 0 end
+	return (value << disp) & mask
+end
+function bit32.rrotate(value, disp) return bit32.lrotate(value, -displacement(disp)) end
+function bit32.rshift(value, disp)
+	value, disp = normalize(value), displacement(disp)
+	if disp < 0 then return bit32.lshift(value, -disp) end
+	if disp >= 32 then return 0 end
+	return value >> disp
+end
+return bit32
+)lua";
+
+static int dora_register_builtin_modules(lua_State* L) {
+	luaL_requiref(L, "socket.core", luaopen_socket_core, 0);
+	lua_pop(L, 1);
+	luaL_requiref(L, "mime.core", luaopen_mime_core, 0);
+	lua_pop(L, 1);
+	luaL_requiref(L, "dora.https", luaopen_dora_https, 0);
+	lua_pop(L, 1);
+	for (const auto& script : DoraLuaSocketScripts::scripts) {
+		dora_preload_lua_module(L, script);
+	}
+	if (luaL_loadbufferx(L, bit32Source.data(), bit32Source.size(), "@dora-builtin/bit32.lua", "t") != LUA_OK) {
+		return lua_error(L);
+	}
+	lua_call(L, 0, 1);
+	lua_pushvalue(L, -1);
+	lua_setglobal(L, "bit32");
+	lua_getglobal(L, "package");
+	lua_getfield(L, -1, "loaded");
+	lua_pushvalue(L, -3);
+	lua_setfield(L, -2, "bit32");
+	lua_pop(L, 3);
+	return 0;
+}
+
+bool dora_open_builtin_modules(lua_State* L, std::string& error) {
+	const int top = lua_gettop(L);
+	lua_pushcfunction(L, dora_register_builtin_modules);
+	if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
+		error = lua_tostring(L, -1);
+		lua_settop(L, top);
+		return false;
+	}
+	lua_settop(L, top);
+	error.clear();
+	return true;
 }
 
 static int dora_load_file(lua_State* L, String filename, String moduleName = nullptr) {
@@ -891,6 +1153,10 @@ LuaEngine::LuaEngine()
 	, _tlState(nullptr) {
 
 	dora_load_base(L);
+	std::string builtinModuleError;
+	if (!dora_open_builtin_modules(L, builtinModuleError)) {
+		LogError(fmt::format("failed to initialize builtin Lua modules: {}", builtinModuleError));
+	}
 	luaL_requiref(L, "json", luaopen_colibc_json, 0);
 	lua_pop(L, 1);
 

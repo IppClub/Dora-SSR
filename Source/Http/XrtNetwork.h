@@ -28,9 +28,17 @@ extern "C" {
 typedef int (*DoraXrtHttpShouldCancel)(void* userData);
 typedef int (*DoraXrtHttpStreamHandler)(const char* data, size_t dataLen, size_t current, size_t total, void* userData);
 
+typedef struct DoraXrtHttpHeader {
+	char* name;
+	char* value;
+} DoraXrtHttpHeader;
+
 typedef struct DoraXrtHttpResponse {
 	int netStatus;
 	int statusCode;
+	char* statusLine;
+	DoraXrtHttpHeader* headers;
+	size_t headerCount;
 	char* body;
 	size_t bodyLen;
 } DoraXrtHttpResponse;

@@ -30,6 +30,15 @@ local apiFiles = {
 	["Star.d.ts"] = true,
 	["Utils.d.ts"] = true,
 	["tic80.d.ts"] = true,
+	["bit32.d.ts"] = true,
+	["socket.d.ts"] = true,
+	["socket.http.d.ts"] = true,
+	["socket.url.d.ts"] = true,
+	["socket.ftp.d.ts"] = true,
+	["socket.smtp.d.ts"] = true,
+	["ssl.https.d.ts"] = true,
+	["ltn12.d.ts"] = true,
+	["mime.d.ts"] = true,
 }
 
 local ignoredDirs = {

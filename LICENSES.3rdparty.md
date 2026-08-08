@@ -26,6 +26,7 @@ THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL
 - [lodepng](https://github.com/lvandeve/lodepng): [zlib License](Source/3rdParty/lodepng/LICENSE)
 - [LOVE](https://github.com/love2d/love): [zlib and bundled third-party licenses](Source/3rdParty/Love/license.txt)
 - [Lua](https://github.com/lua/lua): [MIT License](Source/3rdParty/Lua/LICENSE)
+- [LuaSocket](https://github.com/lunarmodules/luasocket): [MIT License](Source/3rdParty/LuaSocket/LICENSE)
 - ml ([MachineLearning-DecisionTree](https://github.com/PiggyGaGa/MachineLearning-DecisionTree)): [BSD-2 License](Source/3rdParty/ml/LICENSE)
 - [nanovg](https://github.com/memononen/nanovg): [zlib License](Source/3rdParty/nanovg/LICENSE.txt)
 - [playrho](https://github.com/louis-langholtz/PlayRho): [zlib License](Source/3rdParty/playrho/LICENSE.txt)

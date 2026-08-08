@@ -65,6 +65,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 #include <signal.h>
 #endif
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #define DORA_XRT_HTTP_MAX_REDIRECTS 5
@@ -450,22 +451,62 @@ static int DoraXrtHttpIsRedirect(unsigned int statusCode) {
 }
 
 static int DoraXrtHttpCopyResponse(const xhttpresponse* src, DoraXrtHttpResponse* dst) {
+	size_t statusLineLen;
 	if (!dst) {
 		return 0;
 	}
 	dst->statusCode = src ? (int)src->iStatusCode : 0;
+	dst->statusLine = NULL;
+	dst->headers = NULL;
+	dst->headerCount = 0;
 	dst->body = NULL;
 	dst->bodyLen = 0;
-	if (!src || !src->pBody || src->iBodyLen == 0u) {
+	if (!src) {
 		return 1;
 	}
-	dst->body = (char*)malloc(src->iBodyLen);
-	if (!dst->body) {
-		return 0;
+	statusLineLen = strlen(src->sVersion) + strlen(src->sReason) + 32u;
+	dst->statusLine = (char*)malloc(statusLineLen);
+	if (!dst->statusLine) goto fail;
+	(void)snprintf(dst->statusLine, statusLineLen, "%s %u %s",
+		src->sVersion[0] ? src->sVersion : "HTTP/1.1",
+		(unsigned int)src->iStatusCode,
+		src->sReason);
+	if (src->iHeaderCount > 0u) {
+		dst->headers = (DoraXrtHttpHeader*)calloc(src->iHeaderCount, sizeof(DoraXrtHttpHeader));
+		if (!dst->headers) goto fail;
+		for (size_t i = 0; i < src->iHeaderCount; ++i) {
+			const char* name = src->arrHeaders[i].sName ? src->arrHeaders[i].sName : "";
+			const char* value = src->arrHeaders[i].sValue ? src->arrHeaders[i].sValue : "";
+			dst->headerCount = i + 1u;
+			dst->headers[i].name = (char*)malloc(strlen(name) + 1u);
+			dst->headers[i].value = (char*)malloc(strlen(value) + 1u);
+			if (!dst->headers[i].name || !dst->headers[i].value) goto fail;
+			strcpy(dst->headers[i].name, name);
+			strcpy(dst->headers[i].value, value);
+		}
 	}
-	memcpy(dst->body, src->pBody, src->iBodyLen);
-	dst->bodyLen = src->iBodyLen;
+	if (src->pBody && src->iBodyLen > 0u) {
+		dst->body = (char*)malloc(src->iBodyLen);
+		if (!dst->body) goto fail;
+		memcpy(dst->body, src->pBody, src->iBodyLen);
+		dst->bodyLen = src->iBodyLen;
+	}
 	return 1;
+
+fail:
+	free(dst->body);
+	dst->body = NULL;
+	dst->bodyLen = 0;
+	for (size_t i = 0; i < dst->headerCount; ++i) {
+		free(dst->headers[i].name);
+		free(dst->headers[i].value);
+	}
+	free(dst->headers);
+	dst->headers = NULL;
+	dst->headerCount = 0;
+	free(dst->statusLine);
+	dst->statusLine = NULL;
+	return 0;
 }
 
 static int DoraXrtHttpResolveRedirect(const char* baseUrl, const char* location, char* outUrl, size_t outUrlCap) {
@@ -1504,8 +1545,17 @@ void DoraXrtHttpResponseFree(DoraXrtHttpResponse* response) {
 		return;
 	}
 	free(response->body);
+	for (size_t i = 0; i < response->headerCount; ++i) {
+		free(response->headers[i].name);
+		free(response->headers[i].value);
+	}
+	free(response->headers);
+	free(response->statusLine);
 	response->body = NULL;
 	response->bodyLen = 0;
+	response->headers = NULL;
+	response->headerCount = 0;
+	response->statusLine = NULL;
 	response->statusCode = 0;
 	response->netStatus = 0;
 }
