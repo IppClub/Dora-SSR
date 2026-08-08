@@ -40,6 +40,9 @@ local function configure_luasocket_target()
             add_defines("UNIX_HAS_SUN_LEN")
         elseif is_plat("android") then
             add_cflags("-fPIC", {force = true})
+        elseif is_plat("linux") then
+            add_defines("_POSIX_C_SOURCE=200809L")
+            add_cflags("-fvisibility=hidden", "-fPIC", {force = true})
         else
             add_cflags("-fvisibility=hidden", "-fPIC", {force = true})
         end
