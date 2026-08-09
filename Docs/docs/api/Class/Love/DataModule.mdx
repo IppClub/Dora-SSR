@@ -1,0 +1,586 @@
+# DataModule
+
+**Description:**
+
+&emsp;&emsp;Provides functionality for creating and transforming data.
+
+## newByteData
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Data object containing arbitrary bytes.
+
+	-- Data:getPointer along with LuaJIT's FFI can be used to manipulate the contents of the ByteData object after it has been created.
+
+**Signature:**
+```tl
+newByteData: function(size: integer): ByteData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| size | integer | The size in bytes of the new Data object. (Default: data:getSize().) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ByteData | bytedata — The new Data object. |
+
+## newByteData
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Data object containing arbitrary bytes.
+
+	-- Data:getPointer along with LuaJIT's FFI can be used to manipulate the contents of the ByteData object after it has been created.
+
+**Signature:**
+```tl
+newByteData: function(bytes: string): ByteData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| bytes | string | The size in bytes of the new Data object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ByteData | bytedata — The new Data object. |
+
+## newByteData
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Data object containing arbitrary bytes.
+
+	-- Data:getPointer along with LuaJIT's FFI can be used to manipulate the contents of the ByteData object after it has been created.
+
+**Signature:**
+```tl
+newByteData: function(data: Data, offset?: integer, size?: integer): ByteData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| data | Data | The existing Data object to copy. |
+| offset | integer | The offset of the subsection to copy, in bytes. (Default: 0.) |
+| size | integer | The size in bytes of the new Data object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ByteData | bytedata — The new Data object. |
+
+## newDataView
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Data referencing a subsection of an existing Data object.
+Overload details:
+1. Data:getString and Data:getPointer will return the original Data object's contents, with the view's offset
+and size applied.
+
+**Signature:**
+```tl
+newDataView: function(data: any, offset: integer, size: integer): DataView
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| data | any | The Data object to reference. |
+| offset | integer | The offset of the subsection to reference, in bytes. |
+| size | integer | The size in bytes of the subsection to reference. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| DataView | The new Data view. |
+
+## encode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Encode Data or a string to a Data or string in one of the EncodeFormats.
+
+**Signature:**
+```tl
+encode: function(container: string, format: EncodeFormat, source: string | Data, line_length?: integer): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| container | string | What type to return the encoded data as. |
+| format | EncodeFormat | The format of the output data. |
+| source | string | Data | The raw data to encode. |
+| line_length | integer | The maximum line length of the output. Only supported for base64, ignored if 0. (Default: 0.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | encoded — ByteData/string which contains the encoded version of source. |
+
+## encode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Encode Data or a string to a Data or string in one of the EncodeFormats.
+
+**Signature:**
+```tl
+encode: function(container: string, format: EncodeFormat, source: string | Data, line_length?: integer): ByteData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| container | string | What type to return the encoded data as. |
+| format | EncodeFormat | The format of the output data. |
+| source | string | Data | The raw data to encode. |
+| line_length | integer | The maximum line length of the output. Only supported for base64, ignored if 0. (Default: 0.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ByteData | encoded — ByteData/string which contains the encoded version of source. |
+
+## decode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Decode Data or a string from any of the EncodeFormats to Data or string.
+
+**Signature:**
+```tl
+decode: function(container: string, format: EncodeFormat, source: string | Data): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| container | string | What type to return the decoded data as. |
+| format | EncodeFormat | The format of the input data. |
+| source | string | Data | The raw (encoded) data to decode. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | decoded — ByteData/string which contains the decoded version of source. |
+
+## decode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Decode Data or a string from any of the EncodeFormats to Data or string.
+
+**Signature:**
+```tl
+decode: function(container: string, format: EncodeFormat, source: string | Data): ByteData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| container | string | What type to return the decoded data as. |
+| format | EncodeFormat | The format of the input data. |
+| source | string | Data | The raw (encoded) data to decode. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ByteData | decoded — ByteData/string which contains the decoded version of source. |
+
+## compress
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Compresses a string or data using a specific compression algorithm.
+
+**Signature:**
+```tl
+compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| container | string | What type to return the compressed data as. |
+| format | CompressionFormat | The format to use when compressing the string. |
+| source | string | Data | The raw (un-compressed) string to compress. |
+| level | integer | The level of compression to use, between 0 and 9. -1 indicates the default level. The meaning of this argument depends on the compression format being used. (Default: -1.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | compressedData — CompressedData/string which contains the compressed version of rawstring. |
+
+## compress
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Compresses a string or data using a specific compression algorithm.
+
+**Signature:**
+```tl
+compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| container | string | What type to return the compressed data as. |
+| format | CompressionFormat | The format to use when compressing the data. |
+| source | string | Data | A Data object containing the raw (un-compressed) data to compress. |
+| level | integer | The level of compression to use, between 0 and 9. -1 indicates the default level. The meaning of this argument depends on the compression format being used. (Default: -1.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| CompressedData | CompressedData/string which contains the compressed version of data. |
+
+## decompress
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Decompresses a CompressedData or previously compressed string or Data object.
+
+**Signature:**
+```tl
+decompress: function(container: string, compressed: CompressedData): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| container | string | What type to return the decompressed data as. |
+| compressed | CompressedData | The compressed data to decompress. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | decompressedData — Data/string containing the raw decompressed data. |
+
+## decompress
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Decompresses a CompressedData or previously compressed string or Data object.
+
+**Signature:**
+```tl
+decompress: function(container: string, compressed: CompressedData): ByteData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| container | string | What type to return the decompressed data as. |
+| compressed | CompressedData | The compressed data to decompress. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ByteData | decompressedData — Data/string containing the raw decompressed data. |
+
+## decompress
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Decompresses a CompressedData or previously compressed string or Data object.
+
+**Signature:**
+```tl
+decompress: function(container: string, format: CompressionFormat, source: string | Data): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| container | string | What type to return the decompressed data as. |
+| format | CompressionFormat | The format that was used to compress the given data. |
+| source | string | Data | A Data object containing data previously compressed with love.data.compress. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | decompressedData — Data/string containing the raw decompressed data. |
+
+## decompress
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Decompresses a CompressedData or previously compressed string or Data object.
+
+**Signature:**
+```tl
+decompress: function(container: string, format: CompressionFormat, source: string | Data): ByteData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| container | string | What type to return the decompressed data as. |
+| format | CompressionFormat | The format that was used to compress the given data. |
+| source | string | Data | A Data object containing data previously compressed with love.data.compress. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ByteData | decompressedData — Data/string containing the raw decompressed data. |
+
+## pack
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Packs (serializes) simple Lua values.
+
+	-- This function behaves the same as Lua 5.3's string.pack.
+
+**Signature:**
+```tl
+pack: function(container: string, format: string, values: any...): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| container | string | What type to return the encoded data as. |
+| format | string | A string determining how the values are packed. Follows the rules of Lua 5.3's string.pack format strings. |
+| values | any... | The first value (number, boolean, or string) to serialize. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | data — Data/string which contains the serialized data. |
+
+## pack
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Packs (serializes) simple Lua values.
+
+	-- This function behaves the same as Lua 5.3's string.pack.
+
+**Signature:**
+```tl
+pack: function(container: string, format: string, values: any...): ByteData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| container | string | What type to return the encoded data as. |
+| format | string | A string determining how the values are packed. Follows the rules of Lua 5.3's string.pack format strings. |
+| values | any... | The first value (number, boolean, or string) to serialize. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ByteData | data — Data/string which contains the serialized data. |
+
+## unpack
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Unpacks (deserializes) a byte-string or Data into simple Lua values.
+
+	-- This function behaves the same as Lua 5.3's string.unpack.
+
+**Signature:**
+```tl
+unpack: function(format: string, source: string, position?: integer): any...
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| format | string | A string determining how the values were packed. Follows the rules of Lua 5.3's string.pack format strings. |
+| source | string | A string containing the packed (serialized) data. |
+| position | integer | Where to start reading in the string. Negative values can be used to read relative from the end of the string. (Default: 1.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| any... | v1 — The first value (number, boolean, or string) that was unpacked. |
+
+## unpack
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Unpacks (deserializes) a byte-string or Data into simple Lua values.
+
+	-- This function behaves the same as Lua 5.3's string.unpack.
+
+**Signature:**
+```tl
+unpack: function(format: string, source: Data, position?: integer): any...
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| format | string | A string determining how the values were packed. Follows the rules of Lua 5.3's string.pack format strings. |
+| source | Data | A Data object containing the packed (serialized) data. |
+| position | integer | 1-based index indicating where to start reading in the Data. Negative values can be used to read relative from the end of the Data object. (Default: 1.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| any... | v1 — The first value (number, boolean, or string) that was unpacked. |
+
+## getPackedSize
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the size in bytes that a given format used with love.data.pack will use.
+This function behaves the same as Lua 5.3's string.packsize.
+Overload details:
+1. The format string cannot have the variable-length options 's' or 'z'.
+
+**Signature:**
+```tl
+getPackedSize: function(format: string): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| format | string | A string determining how the values are packed. Follows the rules of Lua 5.3's string.pack format strings. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The size in bytes that the packed data will use. |
+
+## hash
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Compute the message digest of a string using a specified hash algorithm.
+
+**Signature:**
+```tl
+hash: function(hash_function: HashFunction, source: string): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| hash_function | HashFunction | Hash algorithm to use. |
+| source | string | String to hash. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | rawdigest — Raw message digest string. |
+
+## hash
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Compute the message digest of a string using a specified hash algorithm.
+
+**Signature:**
+```tl
+hash: function(hash_function: HashFunction, source: Data): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| hash_function | HashFunction | Hash algorithm to use. |
+| source | Data | Data to hash. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | rawdigest — Raw message digest string. |

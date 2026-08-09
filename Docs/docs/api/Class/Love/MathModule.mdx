@@ -1,0 +1,957 @@
+# MathModule
+
+**Description:**
+
+&emsp;&emsp;Provides system-independent mathematical functions.
+
+## newRandomGenerator
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new RandomGenerator object which is completely independent of other RandomGenerator objects and random functions.
+
+**Signature:**
+```tl
+newRandomGenerator: function(seed?: number): RandomGenerator
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| seed | number | The initial seed number to use for this object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| RandomGenerator | rng — The new Random Number Generator object. |
+
+## newRandomGenerator
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new RandomGenerator object which is completely independent of other RandomGenerator objects and random functions.
+
+**Signature:**
+```tl
+newRandomGenerator: function(low: number, high: number): RandomGenerator
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| low | number | The lower 32 bits of the seed number to use for this object. |
+| high | number | The higher 32 bits of the seed number to use for this object. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| RandomGenerator | rng — The new Random Number Generator object. |
+
+## newTransform
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Transform object.
+
+**Signature:**
+```tl
+newTransform: function(): Transform
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Transform | transform — The new Transform object. |
+
+## newTransform
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Transform object.
+
+**Signature:**
+```tl
+newTransform: function(x: number, y: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number): Transform
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The position of the new Transform on the x-axis. |
+| y | number | The position of the new Transform on the y-axis. |
+| angle | number | The orientation of the new Transform in radians. (Default: 0.) |
+| scale_x | number | Scale factor on the x-axis. (Default: 1.) |
+| scale_y | number | Scale factor on the y-axis. (Default: sx.) |
+| origin_x | number | Origin offset on the x-axis. (Default: 0.) |
+| origin_y | number | Origin offset on the y-axis. (Default: 0.) |
+| shear_x | number | Shearing / skew factor on the x-axis. (Default: 0.) |
+| shear_y | number | Shearing / skew factor on the y-axis. (Default: 0.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Transform | transform — The new Transform object. |
+
+## newBezierCurve
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new BezierCurve object.
+
+	-- The number of vertices in the control polygon determines the degree of the curve, e.g. three vertices define a quadratic (degree 2) Bézier curve, four vertices define a cubic (degree 3) Bézier curve, etc.
+
+**Signature:**
+```tl
+newBezierCurve: function(vertices: {number}): BezierCurve
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vertices | \{number} | The vertices of the control polygon as a table in the form of \{x1, y1, x2, y2, x3, y3, ...}. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| BezierCurve | curve — A Bézier curve object. |
+
+## newBezierCurve
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new BezierCurve object.
+
+	-- The number of vertices in the control polygon determines the degree of the curve, e.g. three vertices define a quadratic (degree 2) Bézier curve, four vertices define a cubic (degree 3) Bézier curve, etc.
+
+**Signature:**
+```tl
+newBezierCurve: function(coordinates: number...): BezierCurve
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| coordinates | number... | The vertices of the control polygon as a table in the form of \{x1, y1, x2, y2, x3, y3, ...}. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| BezierCurve | curve — A Bézier curve object. |
+
+## noise
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Generates a Simplex or Perlin noise value in 1-4 dimensions. The return value will always be the same, given the same arguments.
+
+	-- Simplex noise is closely related to Perlin noise. It is widely used for procedural content generation.
+
+	-- There are many webpages which discuss Perlin and Simplex noise in detail.
+
+**Signature:**
+```tl
+noise: function(x: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The number used to generate the noise value. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | value — The noise value in the range of 1. |
+
+## noise
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Generates a Simplex or Perlin noise value in 1-4 dimensions. The return value will always be the same, given the same arguments.
+
+	-- Simplex noise is closely related to Perlin noise. It is widely used for procedural content generation.
+
+	-- There are many webpages which discuss Perlin and Simplex noise in detail.
+
+**Signature:**
+```tl
+noise: function(x: number, y: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The first value of the 2-dimensional vector used to generate the noise value. |
+| y | number | The second value of the 2-dimensional vector used to generate the noise value. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | value — The noise value in the range of 1. |
+
+## noise
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Generates a Simplex or Perlin noise value in 1-4 dimensions. The return value will always be the same, given the same arguments.
+
+	-- Simplex noise is closely related to Perlin noise. It is widely used for procedural content generation.
+
+	-- There are many webpages which discuss Perlin and Simplex noise in detail.
+
+**Signature:**
+```tl
+noise: function(x: number, y: number, z: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The first value of the 3-dimensional vector used to generate the noise value. |
+| y | number | The second value of the 3-dimensional vector used to generate the noise value. |
+| z | number | The third value of the 3-dimensional vector used to generate the noise value. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | value — The noise value in the range of 1. |
+
+## noise
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Generates a Simplex or Perlin noise value in 1-4 dimensions. The return value will always be the same, given the same arguments.
+
+	-- Simplex noise is closely related to Perlin noise. It is widely used for procedural content generation.
+
+	-- There are many webpages which discuss Perlin and Simplex noise in detail.
+
+**Signature:**
+```tl
+noise: function(x: number, y: number, z: number, w: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The first value of the 4-dimensional vector used to generate the noise value. |
+| y | number | The second value of the 4-dimensional vector used to generate the noise value. |
+| z | number | The third value of the 4-dimensional vector used to generate the noise value. |
+| w | number | The fourth value of the 4-dimensional vector used to generate the noise value. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | value — The noise value in the range of 1. |
+
+## random
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Generates a pseudo-random number in a platform independent manner. The default love.run seeds this function at startup, so you generally don't need to seed it yourself.
+
+**Signature:**
+```tl
+random: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | number — The pseudo-random number. |
+
+## random
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Generates a pseudo-random number in a platform independent manner. The default love.run seeds this function at startup, so you generally don't need to seed it yourself.
+
+**Signature:**
+```tl
+random: function(upper: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| upper | number | The maximum possible value it should return. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The pseudo-random integer number. |
+
+## random
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Generates a pseudo-random number in a platform independent manner. The default love.run seeds this function at startup, so you generally don't need to seed it yourself.
+
+**Signature:**
+```tl
+random: function(lower: number, upper: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| lower | number | The minimum possible value it should return. |
+| upper | number | The maximum possible value it should return. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The pseudo-random integer number. |
+
+## randomNormal
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Get a normally distributed pseudo random number.
+
+**Signature:**
+```tl
+randomNormal: function(standard_deviation?: number, mean?: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| standard_deviation | number | Standard deviation of the distribution. (Default: 1.) |
+| mean | number | The mean of the distribution. (Default: 0.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | Normally distributed random number with variance (stddev)² and the specified mean. |
+
+## setRandomSeed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the seed of the random number generator using the specified integer number. This is called internally at startup, so you generally don't need to call it yourself.
+
+**Signature:**
+```tl
+setRandomSeed: function(seed: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| seed | number | The integer number with which you want to seed the randomization. Must be within the range of 2^53 - 1. |
+
+## setRandomSeed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the seed of the random number generator using the specified integer number. This is called internally at startup, so you generally don't need to call it yourself.
+
+**Signature:**
+```tl
+setRandomSeed: function(low: number, high: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| low | number | The lower 32 bits of the seed value. Must be within the range of 2^32 - 1. |
+| high | number | The higher 32 bits of the seed value. Must be within the range of 2^32 - 1. |
+
+## getRandomSeed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the seed of the random number generator.
+The seed is split into two numbers due to Lua's use of doubles for all number values - doubles can't accurately
+represent integer values above 2^53, but the seed can be an integer value up to 2^64.
+
+**Signature:**
+```tl
+getRandomSeed: function(): number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | Integer number representing the lower 32 bits of the random number generator's 64 bit seed value. |
+| number | Integer number representing the higher 32 bits of the random number generator's 64 bit seed value. |
+
+## setRandomState
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the current state of the random number generator. The value used as an argument for this function is an
+opaque implementation-dependent string and should only originate from a previous call to love.math.getRandomState.
+This is different from love.math.setRandomSeed in that setRandomState directly sets the random number generator's
+current implementation-dependent state, whereas setRandomSeed gives it a new seed value.
+Overload details:
+1. The effect of the state string does not depend on the current operating system.
+
+**Signature:**
+```tl
+setRandomState: function(state: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| state | string | The new state of the random number generator, represented as a string. This should originate from a previous call to love.math.getRandomState. |
+
+## getRandomState
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current state of the random number generator. This returns an opaque implementation-dependent string
+which is only useful for later use with love.math.setRandomState or RandomGenerator:setState.
+This is different from love.math.getRandomSeed in that getRandomState gets the random number generator's current
+state, whereas getRandomSeed gets the previously set seed number.
+Overload details:
+1. The value of the state string does not depend on the current operating system.
+
+**Signature:**
+```tl
+getRandomState: function(): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The current state of the random number generator, represented as a string. |
+
+## colorToBytes
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a color from 0..1 to 0..255 range.
+
+**Signature:**
+```tl
+colorToBytes: function(red: number, green: number, blue: number, alpha?: number): number, number, number, number | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| red | number | Red color component. |
+| green | number | Green color component. |
+| blue | number | Blue color component. |
+| alpha | number | Alpha color component. (Default: nil.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | rb — Red color component in 0..255 range. |
+| number | gb — Green color component in 0..255 range. |
+| number | bb — Blue color component in 0..255 range. |
+| number \| nil | ab — Alpha color component in 0..255 range or nil if alpha is not specified. |
+
+## colorToBytes
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a color from 0..1 to 0..255 range.
+
+**Signature:**
+```tl
+colorToBytes: function(color: {number}): number, number, number, number | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| color | \{number} | Red color component. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | rb — Red color component in 0..255 range. |
+| number | gb — Green color component in 0..255 range. |
+| number | bb — Blue color component in 0..255 range. |
+| number \| nil | ab — Alpha color component in 0..255 range or nil if alpha is not specified. |
+
+## colorFromBytes
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a color from 0..255 to 0..1 range.
+
+**Signature:**
+```tl
+colorFromBytes: function(red: number, green: number, blue: number, alpha?: number): number, number, number, number | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| red | number | Red color component in 0..255 range. |
+| green | number | Green color component in 0..255 range. |
+| blue | number | Blue color component in 0..255 range. |
+| alpha | number | Alpha color component in 0..255 range. (Default: nil.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | r — Red color component in 0..1 range. |
+| number | g — Green color component in 0..1 range. |
+| number | b — Blue color component in 0..1 range. |
+| number \| nil | a — Alpha color component in 0..1 range or nil if alpha is not specified. |
+
+## colorFromBytes
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a color from 0..255 to 0..1 range.
+
+**Signature:**
+```tl
+colorFromBytes: function(color: {number}): number, number, number, number | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| color | \{number} | Red color component in 0..255 range. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | r — Red color component in 0..1 range. |
+| number | g — Green color component in 0..1 range. |
+| number | b — Blue color component in 0..1 range. |
+| number \| nil | a — Alpha color component in 0..1 range or nil if alpha is not specified. |
+
+## gammaToLinear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a color from gamma-space (sRGB) to linear-space (RGB). This is useful when doing gamma-correct rendering and you need to do math in linear RGB in the few cases where LÖVE doesn't handle conversions automatically.
+
+	-- Read more about gamma-correct rendering here, here, and here.
+
+	-- In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+
+**Signature:**
+```tl
+gammaToLinear: function(red: number, green?: number, blue?: number, alpha?: number): number, number | nil, number | nil, number | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| red | number | The red channel of the sRGB color to convert. |
+| green | number | The green channel of the sRGB color to convert. |
+| blue | number | The blue channel of the sRGB color to convert. |
+| alpha | number | The alpha channel, which is returned unchanged. (Default: nil.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | lr — The red channel of the converted color in linear RGB space. |
+| number \| nil | lg — The green channel of the converted color in linear RGB space. |
+| number \| nil | lb — The blue channel of the converted color in linear RGB space. |
+| number \| nil | lc — The value of the color channel in linear RGB space. |
+
+## gammaToLinear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a color from gamma-space (sRGB) to linear-space (RGB). This is useful when doing gamma-correct rendering and you need to do math in linear RGB in the few cases where LÖVE doesn't handle conversions automatically.
+
+	-- Read more about gamma-correct rendering here, here, and here.
+
+	-- In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+
+**Signature:**
+```tl
+gammaToLinear: function(color: {number}): number, number | nil, number | nil, number | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| color | \{number} | A table with the red, green, and blue channels of the sRGB color to convert. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | lr — The red channel of the converted color in linear RGB space. |
+| number \| nil | lg — The green channel of the converted color in linear RGB space. |
+| number \| nil | lb — The blue channel of the converted color in linear RGB space. |
+| number \| nil | lc — The value of the color channel in linear RGB space. |
+
+## linearToGamma
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a color from linear-space (RGB) to gamma-space (sRGB). This is useful when storing linear RGB color values in an image, because the linear RGB color space has less precision than sRGB for dark colors, which can result in noticeable color banding when drawing.
+
+	-- In general, colors chosen based on what they look like on-screen are already in gamma-space and should not be double-converted. Colors calculated using math are often in the linear RGB space.
+
+	-- Read more about gamma-correct rendering here, here, and here.
+
+	-- In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+
+**Signature:**
+```tl
+linearToGamma: function(red: number, green?: number, blue?: number, alpha?: number): number, number | nil, number | nil, number | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| red | number | The red channel of the linear RGB color to convert. |
+| green | number | The green channel of the linear RGB color to convert. |
+| blue | number | The blue channel of the linear RGB color to convert. |
+| alpha | number | The alpha channel, which is returned unchanged. (Default: nil.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | cr — The red channel of the converted color in gamma sRGB space. |
+| number \| nil | cg — The green channel of the converted color in gamma sRGB space. |
+| number \| nil | cb — The blue channel of the converted color in gamma sRGB space. |
+| number \| nil | c — The value of the color channel in gamma sRGB space. |
+
+## linearToGamma
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a color from linear-space (RGB) to gamma-space (sRGB). This is useful when storing linear RGB color values in an image, because the linear RGB color space has less precision than sRGB for dark colors, which can result in noticeable color banding when drawing.
+
+	-- In general, colors chosen based on what they look like on-screen are already in gamma-space and should not be double-converted. Colors calculated using math are often in the linear RGB space.
+
+	-- Read more about gamma-correct rendering here, here, and here.
+
+	-- In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+
+**Signature:**
+```tl
+linearToGamma: function(color: {number}): number, number | nil, number | nil, number | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| color | \{number} | A table with the red, green, and blue channels of the linear RGB color to convert. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | cr — The red channel of the converted color in gamma sRGB space. |
+| number \| nil | cg — The green channel of the converted color in gamma sRGB space. |
+| number \| nil | cb — The blue channel of the converted color in gamma sRGB space. |
+| number \| nil | c — The value of the color channel in gamma sRGB space. |
+
+## isConvex
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether a polygon is convex.
+
+	-- PolygonShapes in love.physics, some forms of Meshes, and polygons drawn with love.graphics.polygon must be simple convex polygons.
+
+**Signature:**
+```tl
+isConvex: function(vertices: {number}): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vertices | \{number} | The vertices of the polygon as a table in the form of \{x1, y1, x2, y2, x3, y3, ...}. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | convex — Whether the given polygon is convex. |
+
+## isConvex
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether a polygon is convex.
+
+	-- PolygonShapes in love.physics, some forms of Meshes, and polygons drawn with love.graphics.polygon must be simple convex polygons.
+
+**Signature:**
+```tl
+isConvex: function(coordinates: number...): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| coordinates | number... | The vertices of the polygon as a table in the form of \{x1, y1, x2, y2, x3, y3, ...}. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | convex — Whether the given polygon is convex. |
+
+## triangulate
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Decomposes a simple convex or concave polygon into triangles.
+
+**Signature:**
+```tl
+triangulate: function(vertices: {number}): {{number}}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vertices | \{number} | Polygon to triangulate. Must not intersect itself. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{\{number}} | triangles — List of triangles the polygon is composed of, in the form of \{\{x1, y1, x2, y2, x3, y3}, \{x1, y1, x2, y2, x3, y3}, ...}. |
+
+## triangulate
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Decomposes a simple convex or concave polygon into triangles.
+
+**Signature:**
+```tl
+triangulate: function(coordinates: number...): {{number}}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| coordinates | number... | Polygon to triangulate. Must not intersect itself. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{\{number}} | triangles — List of triangles the polygon is composed of, in the form of \{\{x1, y1, x2, y2, x3, y3}, \{x1, y1, x2, y2, x3, y3}, ...}. |
+
+## compress
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Deprecated alias of love.data.compress.
+
+**Signature:**
+```tl
+compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| container | string | The type of value to return. |
+| format | CompressionFormat | The compression format to use. |
+| source | string | Data | The uncompressed source data. |
+| level | integer | The compression level, from 0 to 9, or -1 for the default level. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The compressed data as a string. |
+
+## compress
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Deprecated alias of love.data.compress.
+
+**Signature:**
+```tl
+compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| container | string | The type of value to return. |
+| format | CompressionFormat | The compression format to use. |
+| source | string | Data | The uncompressed source data. |
+| level | integer | The compression level, from 0 to 9, or -1 for the default level. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| CompressedData | The compressed data as a CompressedData object. |
+
+## decompress
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Deprecated alias of love.data.decompress.
+
+**Signature:**
+```tl
+decompress: function(container: string, compressed: CompressedData): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| container | string | The type of value to return. |
+| compressed | CompressedData | The compressed data to decompress. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The decompressed data as a string. |
+
+## decompress
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Deprecated alias of love.data.decompress.
+
+**Signature:**
+```tl
+decompress: function(container: string, compressed: CompressedData): ByteData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| container | string | The type of value to return. |
+| compressed | CompressedData | The compressed data to decompress. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ByteData | The decompressed data as a ByteData object. |

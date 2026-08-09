@@ -1,0 +1,657 @@
+# Mesh
+
+**Description:**
+
+&emsp;&emsp;A 2D polygon mesh used for drawing arbitrary textured shapes.
+
+## type
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the type of the object as a string.
+
+**Signature:**
+```tl
+type: function(self: Mesh): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The type as a string. |
+
+## Of
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether an object is of a certain type. If the object has the type with the specified name in its
+hierarchy, this function will return true.
+
+**Signature:**
+```tl
+typeOf: function(self: Mesh, type_name: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| type_name | string | The name of the type to check for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the object is of the specified type, false otherwise. |
+
+## release
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Destroys the object's Lua reference. The object will be completely deleted if it's not referenced by any other
+LÖVE object or thread.
+This method can be used to immediately clean up resources without waiting for Lua's garbage collector.
+
+**Signature:**
+```tl
+release: function(self: Mesh): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the object was released by this call, false if it had been previously released. |
+
+## setVertices
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Replaces a range of vertices in the Mesh with new ones. The total number of vertices in a Mesh cannot be changed after it has been created. This is often more efficient than calling Mesh:setVertex in a loop.
+
+**Signature:**
+```tl
+setVertices: function(self: Mesh, vertices: {MeshVertex}, start_vertex?: integer, vertex_count?: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vertices | \{MeshVertex} | The table filled with vertex information tables for each vertex, in the form of \{vertex, ...} where each vertex is a table in the form of \{attributecomponent, ...}. |
+| start_vertex | integer | The index of the first vertex to replace. (Default: 1.) |
+| vertex_count | integer | Amount of vertices to replace. (Default: all.) |
+
+## setVertices
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Replaces a range of vertices in the Mesh with new ones. The total number of vertices in a Mesh cannot be changed after it has been created. This is often more efficient than calling Mesh:setVertex in a loop.
+
+**Signature:**
+```tl
+setVertices: function(self: Mesh, data: Data, start_vertex?: integer, vertex_count?: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| data | Data | A Data object to copy from. The contents of the Data must match the layout of this Mesh's vertex format. |
+| start_vertex | integer | The index of the first vertex to replace. (Default: 1.) |
+| vertex_count | integer | Amount of vertices to replace. (Default: all.) |
+
+## setVertex
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the properties of a vertex in the Mesh.
+
+	-- In versions prior to 11.0, color and byte component values were within the range of 0 to 255 instead of 0 to 1.
+
+**Signature:**
+```tl
+setVertex: function(self: Mesh, index: integer, vertex: MeshVertex)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index of the the vertex you want to modify (one-based). |
+| vertex | MeshVertex | A table with vertex information, in the form of \{attributecomponent, ...}. |
+
+## setVertex
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the properties of a vertex in the Mesh.
+
+	-- In versions prior to 11.0, color and byte component values were within the range of 0 to 255 instead of 0 to 1.
+
+**Signature:**
+```tl
+setVertex: function(self: Mesh, index: integer, components: number...)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index of the the vertex you want to modify (one-based). |
+| components | number... | A table with vertex information. |
+
+## getVertex
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the properties of a vertex in the Mesh.
+In versions prior to 11.0, color and byte component values were within the range of 0 to 255 instead of 0 to 1.
+Overload details:
+1. The values are returned in the same order as the vertex attributes in the Mesh's vertex format. A standard
+Mesh that wasn't created with a custom vertex format will return two position numbers, two texture coordinate
+numbers, and four color components: x, y, u, v, r, g, b, a.
+2. Gets the vertex components of a Mesh that wasn't created with a custom vertex format.
+
+**Signature:**
+```tl
+getVertex: function(self: Mesh, index: integer): any
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The one-based index of the vertex you want to retrieve the information for. Depending on the overload: The index of the vertex you want to retrieve the information for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| any | The first component of the first vertex attribute in the specified vertex. |
+
+## setVertexAttribute
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the properties of a specific attribute within a vertex in the Mesh.
+Meshes without a custom vertex format specified in love.graphics.newMesh have position as their first attribute,
+texture coordinates as their second attribute, and color as their third attribute.
+Overload details:
+1. Attribute components which exist within the attribute but are not specified as arguments default to 0 for
+attributes with the float data type, and 255 for the byte data type.
+
+**Signature:**
+```tl
+setVertexAttribute: function(self: Mesh, vertex_index: integer, attribute_index: integer, components: number...)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vertex_index | integer | The index of the the vertex to be modified (one-based). |
+| attribute_index | integer | The index of the attribute within the vertex to be modified (one-based). |
+| components | number... | The new value for the first component of the attribute. |
+
+## getVertexAttribute
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the properties of a specific attribute within a vertex in the Mesh.
+Meshes without a custom vertex format specified in love.graphics.newMesh have position as their first attribute,
+texture coordinates as their second attribute, and color as their third attribute.
+
+**Signature:**
+```tl
+getVertexAttribute: function(self: Mesh, vertex_index: integer, attribute_index: integer): any
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vertex_index | integer | The index of the the vertex you want to retrieve the attribute for (one-based). |
+| attribute_index | integer | The index of the attribute within the vertex to be retrieved (one-based). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| any | The value of the first component of the attribute. |
+
+## getVertexCount
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the total number of vertices in the Mesh.
+
+**Signature:**
+```tl
+getVertexCount: function(self: Mesh): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The total number of vertices in the mesh. |
+
+## getVertexFormat
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the vertex format that the Mesh was created with.
+Overload details:
+1. If a Mesh wasn't created with a custom vertex format, it will have the following vertex format: defaultformat
+= \{ \{'VertexPosition', 'float', 2}, -- The x,y position of each vertex. \{'VertexTexCoord', 'float', 2}, --
+The u,v texture coordinates of each vertex. \{'VertexColor', 'byte', 4} -- The r,g,b,a color of each vertex. }
+
+**Signature:**
+```tl
+getVertexFormat: function(self: Mesh): {{any}}
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{\{any}} | The vertex format of the Mesh, which is a table containing tables for each vertex attribute the Mesh was created with, in the form of \{attribute, ...}. |
+
+## setAttributeEnabled
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Enables or disables a specific vertex attribute in the Mesh. Vertex data from disabled attributes is not used when
+drawing the Mesh.
+Overload details:
+1. If a Mesh wasn't created with a custom vertex format, it will have 3 vertex attributes named VertexPosition,
+VertexTexCoord, and VertexColor. Otherwise the attribute name must either match one of the vertex attributes
+specified in the vertex format when creating the Mesh, or must match a vertex attribute from another Mesh
+attached to this Mesh via Mesh:attachAttribute.
+
+**Signature:**
+```tl
+setAttributeEnabled: function(self: Mesh, name: string, enabled: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the vertex attribute to enable or disable. |
+| enabled | boolean | Whether the vertex attribute is used when drawing this Mesh. |
+
+## isAttributeEnabled
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether a specific vertex attribute in the Mesh is enabled. Vertex data from disabled attributes is not used
+when drawing the Mesh.
+Overload details:
+1. If a Mesh wasn't created with a custom vertex format, it will have 3 vertex attributes named VertexPosition,
+VertexTexCoord, and VertexColor. Otherwise the attribute name must either match one of the vertex attributes
+specified in the vertex format when creating the Mesh, or must match a vertex attribute from another Mesh
+attached to this Mesh via Mesh:attachAttribute.
+
+**Signature:**
+```tl
+isAttributeEnabled: function(self: Mesh, name: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the vertex attribute to be checked. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the vertex attribute is used when drawing this Mesh. |
+
+## attachAttribute
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches a vertex attribute from a different Mesh onto this Mesh, for use when drawing. This can be used to share
+vertex attribute data between several different Meshes.
+Overload details:
+1. If a Mesh wasn't created with a custom vertex format, it will have 3 vertex attributes named VertexPosition,
+VertexTexCoord, and VertexColor. Custom named attributes can be accessed in a vertex shader by declaring them
+as attribute vec4 MyCustomAttributeName; at the top-level of the vertex shader code. The name must match what
+was specified in the Mesh's vertex format and in the name argument of Mesh:attachAttribute.
+
+**Signature:**
+```tl
+attachAttribute: function(self: Mesh, name: string, mesh: Mesh, step?: string, attribute_name?: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the vertex attribute to attach. |
+| mesh | Mesh | The Mesh to get the vertex attribute from. |
+| step | string | Whether the attribute will be per-vertex or per-instance when the mesh is drawn. (Default: 'pervertex'.) |
+| attribute_name | string | The name of the attribute to use in shader code. Defaults to the name of the attribute in the given mesh. Can be used to use a different name for this attribute when rendering. (Default: name.) |
+
+## detachAttribute
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes a previously attached vertex attribute from this Mesh.
+
+**Signature:**
+```tl
+detachAttribute: function(self: Mesh, name: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the attached vertex attribute to detach. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the attribute was successfully detached. |
+
+## setVertexMap
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the vertex map for the Mesh. The vertex map describes the order in which the vertices are used when the Mesh is drawn. The vertices, vertex map, and mesh draw mode work together to determine what exactly is displayed on the screen.
+
+	-- The vertex map allows you to re-order or reuse vertices when drawing without changing the actual vertex parameters or duplicating vertices. It is especially useful when combined with different Mesh Draw Modes.
+
+**Signature:**
+```tl
+setVertexMap: function(self: Mesh)
+```
+
+## setVertexMap
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the vertex map for the Mesh. The vertex map describes the order in which the vertices are used when the Mesh is drawn. The vertices, vertex map, and mesh draw mode work together to determine what exactly is displayed on the screen.
+
+	-- The vertex map allows you to re-order or reuse vertices when drawing without changing the actual vertex parameters or duplicating vertices. It is especially useful when combined with different Mesh Draw Modes.
+
+**Signature:**
+```tl
+setVertexMap: function(self: Mesh, indices: {number})
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| indices | \{number} | A table containing a list of vertex indices to use when drawing. Values must be in the range of Mesh:getVertexCount(). |
+
+## setVertexMap
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the vertex map for the Mesh. The vertex map describes the order in which the vertices are used when the Mesh is drawn. The vertices, vertex map, and mesh draw mode work together to determine what exactly is displayed on the screen.
+
+	-- The vertex map allows you to re-order or reuse vertices when drawing without changing the actual vertex parameters or duplicating vertices. It is especially useful when combined with different Mesh Draw Modes.
+
+**Signature:**
+```tl
+setVertexMap: function(self: Mesh, indices: number...)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| indices | number... | A table containing a list of vertex indices to use when drawing. Values must be in the range of Mesh:getVertexCount(). |
+
+## setVertexMap
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the vertex map for the Mesh. The vertex map describes the order in which the vertices are used when the Mesh is drawn. The vertices, vertex map, and mesh draw mode work together to determine what exactly is displayed on the screen.
+
+	-- The vertex map allows you to re-order or reuse vertices when drawing without changing the actual vertex parameters or duplicating vertices. It is especially useful when combined with different Mesh Draw Modes.
+
+**Signature:**
+```tl
+setVertexMap: function(self: Mesh, data: Data, data_type: IndexDataType, index_count?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| data | Data | Table of vertex indices to use when drawing. Values must be in the range of Mesh:getVertexCount()-1 |
+| data_type | IndexDataType | Datatype of the vertex indices table above. |
+| index_count | number | The index of the third vertex to use when drawing. |
+
+## getVertexMap
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the vertex map for the Mesh. The vertex map describes the order in which the vertices are used when the Mesh
+is drawn. The vertices, vertex map, and mesh draw mode work together to determine what exactly is displayed on the
+screen.
+If no vertex map has been set previously via Mesh:setVertexMap, then this function will return nil in LÖVE
+0.10.0+, or an empty table in 0.9.2 and older.
+
+**Signature:**
+```tl
+getVertexMap: function(self: Mesh): {integer} | nil
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{integer} or nil | A table containing the list of vertex indices used when drawing. |
+
+## setTexture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the texture (Image or Canvas) used when drawing the Mesh.
+
+**Signature:**
+```tl
+setTexture: function(self: Mesh)
+```
+
+## setTexture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the texture (Image or Canvas) used when drawing the Mesh.
+
+**Signature:**
+```tl
+setTexture: function(self: Mesh, texture: Image | Canvas)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| texture | Image | Canvas | The Image or Canvas to texture the Mesh with when drawing. |
+
+## getTexture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the texture (Image or Canvas) used when drawing the Mesh.
+
+**Signature:**
+```tl
+getTexture: function(self: Mesh): Image | Canvas | nil
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Image or Canvas or nil | The Image or Canvas to texture the Mesh with when drawing, or nil if none is set. |
+
+## setDrawMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the mode used when drawing the Mesh.
+
+**Signature:**
+```tl
+setDrawMode: function(self: Mesh, mode: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| mode | string | The mode to use when drawing the Mesh. |
+
+## getDrawMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the mode used when drawing the Mesh.
+
+**Signature:**
+```tl
+getDrawMode: function(self: Mesh): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The mode used when drawing the Mesh. |
+
+## setDrawRange
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Restricts the drawn vertices of the Mesh to a subset of the total.
+
+**Signature:**
+```tl
+setDrawRange: function(self: Mesh)
+```
+
+## setDrawRange
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Restricts the drawn vertices of the Mesh to a subset of the total.
+
+**Signature:**
+```tl
+setDrawRange: function(self: Mesh, start: integer, count: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| start | integer | The index of the first vertex to use when drawing, or the index of the first value in the vertex map to use if one is set for this Mesh. |
+| count | integer | The number of vertices to use when drawing, or number of values in the vertex map to use if one is set for this Mesh. |
+
+## getDrawRange
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the range of vertices used when drawing the Mesh.
+Overload details:
+1. If the Mesh's draw range has not been set previously with Mesh:setDrawRange, this function will return nil.
+
+**Signature:**
+```tl
+getDrawRange: function(self: Mesh): any
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| any | The index of the first vertex used when drawing, or the index of the first value in the vertex map used if one is set for this Mesh. |
+
+## flush
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Immediately sends all modified vertex data in the Mesh to the graphics card.
+Normally it isn't necessary to call this method as love.graphics.draw(mesh, ...) will do it automatically if
+needed, but explicitly using **Mesh:flush** gives more control over when the work happens.
+If this method is used, it generally shouldn't be called more than once (at most) between love.graphics.draw(mesh,
+...) calls.
+
+**Signature:**
+```tl
+flush: function(self: Mesh)
+```

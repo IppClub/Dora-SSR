@@ -1,0 +1,584 @@
+# Image
+
+**描述：**
+
+&emsp;&emsp;可绘制图像类型。
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: Image): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: Image): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: Image, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## getWidth
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取纹理的宽度。
+
+**签名：**
+```tl
+getWidth: function(self: Image): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 纹理的宽度。 |
+
+## getHeight
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取纹理的高度。
+
+**签名：**
+```tl
+getHeight: function(self: Image): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 纹理的高度。 |
+
+## getDimensions
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取纹理的宽度和高度。
+
+**签名：**
+```tl
+getDimensions: function(self: Image): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 纹理的宽度。 |
+| number | 纹理的高度。 |
+
+## getPixelWidth
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取纹理的宽度（以像素为单位）。
+DPI 比例因子，而不是像素。使用 getWidth 进行与绘制纹理相关的计算（例如，计算原点偏移量），并且仅在专门处理像素时（例如使用 Canvas:newImageData 时）使用 getPixelWidth。
+
+**签名：**
+```tl
+getPixelWidth: function(self: Image): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 纹理的宽度，以像素为单位。 |
+
+## getPixelHeight
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取纹理的高度（以像素为单位）。
+DPI 比例因子，而不是像素。使用 getHeight 进行与绘制纹理相关的计算（例如，计算原点偏移量），并且仅在专门处理像素时（例如使用 Canvas:newImageData 时）使用 getPixelHeight。
+
+**签名：**
+```tl
+getPixelHeight: function(self: Image): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 纹理的高度，以像素为单位。 |
+
+## getPixelDimensions
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取纹理的宽度和高度（以像素为单位）。
+Texture:getDimensions 获取纹理的尺寸，单位是按纹理的 DPI 比例因子缩放的单位，而不是像素。使用 getDimensions
+进行与绘制纹理相关的计算（例如计算原点偏移），并且仅在专门处理像素时（例如使用 Canvas:newImageData 时）使用 getPixelDimensions。
+
+**签名：**
+```tl
+getPixelDimensions: function(self: Image): integer, integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 纹理的宽度，以像素为单位。 |
+| integer | 纹理的高度，以像素为单位。 |
+
+## getDPIScale
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取纹理的DPI比例因子。
+DPI 比例因子表示相对像素密度。 DPI 比例因子为 2 意味着纹理在每个维度上的像素密度是 DPI 比例因子为 1 的纹理的两倍（同一区域中像素数量的 4 倍）。
+例如，像素尺寸为 100x100、DPI 比例因子为 2 的纹理将被绘制为 50x50。这对于高 dpi/视网膜显示器非常有用，可以轻松地交换更高或更低像素密度的图像和画布，而无需任何额外的手动缩放逻辑。
+
+**签名：**
+```tl
+getDPIScale: function(self: Image): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 纹理的 DPI 比例因子。 |
+
+## getTextureType
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取纹理的类型。
+
+**签名：**
+```tl
+getTextureType: function(self: Image): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 纹理的类型。 |
+
+## getDepth
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取体积纹理的深度。对于 2D、立方体贴图和数组纹理返回 1。
+
+**签名：**
+```tl
+getDepth: function(self: Image): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 体积纹理的深度。 |
+
+## getLayerCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取数组纹理中的层数/切片数。对于 2D、立方体贴图和体积纹理，返回 1。
+
+**签名：**
+```tl
+getLayerCount: function(self: Image): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 阵列纹理中的层数。 |
+
+## getMipmapCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取纹理中包含的 mipmap 数量。如果纹理不是使用 mipmap 创建的，它将返回 1。
+
+**签名：**
+```tl
+getMipmapCount: function(self: Image): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 纹理中 mipmap 的数量。 |
+
+## getMipmapFilter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取纹理的 mipmap 过滤模式。在 11.0 之前，此方法仅适用于图像。
+
+**签名：**
+```tl
+getMipmapFilter: function(self: Image): string, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 在 mipmap 级别之间使用的过滤模式。如果未启用 mipmap 过滤，则为 nil。 |
+| number | 用于确定图像在绘制时是否应使用比正常情况更多或更少详细的 mipmap 级别的值。 |
+
+## setMipmapFilter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置纹理的 mipmap 过滤器模式。在 11.0 之前，此方法仅适用于图像。
+
+	-- Mipmapping 在以缩小比例绘制纹理时非常有用。它可以提高性能并减少锯齿问题。
+
+	-- 在创建时启用了 mipmaps 标志，以便 mipmap 过滤器产生任何效果。在 0.10.0 之前的版本中，最好在使用 love.graphics.newImage 创建图像后直接调用此方法，以避免某些图形驱动程序中的错误。
+
+	-- 由于硬件限制和驱动程序错误，在 0.10.0 之前的版本中，未从 CompressedData 加载的图像必须具有二维幂（64x64、512x256 等）才能使用 mipmap。
+
+**签名：**
+```tl
+setMipmapFilter: function(self: Image)
+```
+
+## setMipmapFilter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置纹理的 mipmap 过滤器模式。在 11.0 之前，此方法仅适用于图像。
+
+	-- Mipmapping 在以缩小比例绘制纹理时非常有用。它可以提高性能并减少锯齿问题。
+
+	-- 在创建时启用了 mipmaps 标志，以便 mipmap 过滤器产生任何效果。在 0.10.0 之前的版本中，最好在使用 love.graphics.newImage 创建图像后直接调用此方法，以避免某些图形驱动程序中的错误。
+
+	-- 由于硬件限制和驱动程序错误，在 0.10.0 之前的版本中，未从 CompressedData 加载的图像必须具有二维幂（64x64、512x256 等）才能使用 mipmap。
+
+**签名：**
+```tl
+setMipmapFilter: function(self: Image, filter: FilterMode, sharpness?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filter | FilterMode | 在 mipmap 级别之间使用的过滤模式。 'nearest' 通常会提供更好的性能。 |
+| sharpness | number | 正的锐度值使纹理在绘制时使用更详细的 mipmap 级别，但会牺牲性能。负值则相反。 （默认值：0。） |
+
+## getFormat
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取纹理的像素格式。
+
+**签名：**
+```tl
+getFormat: function(self: Image): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 创建纹理时使用的像素格式。 |
+
+## isCompressed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取图像是否是从压缩数据创建的。
+压缩图像在 VRAM 中占用的空间更少，并且绘制压缩图像通常比绘制根据原始像素数据创建的图像更有效。
+
+**签名：**
+```tl
+isCompressed: function(self: Image): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 图像是否作为压缩纹理存储在 GPU 上。 |
+
+## isFormatLinear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取图像是否是在线性（非伽玛校正）标志设置为 true 的情况下创建的。
+当未启用伽玛校正渲染时，此方法始终返回 false。
+
+**签名：**
+```tl
+isFormatLinear: function(self: Image): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 当启用伽玛校正渲染时，图像的内部像素格式是否是线性的（未进行伽玛校正）。 |
+
+## replacePixels
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;替换图像的内容。
+
+**签名：**
+```tl
+replacePixels: function(self: Image, data: any, slice?: integer, mipmap?: integer, x?: integer, y?: integer, reload_mipmaps?: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| data | any | 用于替换内容的新 ImageData。 |
+| slice | integer | 要替换哪个立方体贴图面、数组索引或体积层（如果适用）。 （默认值：1。） |
+| mipmap | integer | 如果图像具有 mipmap，则要替换的 mimap 级别。 （默认值：1。） |
+| x | integer | 距要替换的图像左上角的 x 偏移量（以像素为单位）。给定 ImageData 的宽度加上此值不得大于图像指定 mipmap 级别的像素宽度。 （默认值：0。） |
+| y | integer | 距要替换的图像左上角的 y 偏移量（以像素为单位）。给定 ImageData 的高度加上此值不得大于图像指定 mipmap 级别的像素高度。 （默认值：0。） |
+| reload_mipmaps | boolean | 替换图像像素后是否生成新的 mipmap。如果图像是使用自动生成的 mipmap 创建的，则默认为 true，否则默认为 false。 （默认值：假。） |
+
+## isReadable
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取是否可以绘制纹理并将其发送到着色器。
+使用模板和/或深度 PixelFormat 创建的画布默认情况下不可读，除非在传递到 love.graphics.newCanvas. 的设置表中指定 Readable=true
+仍然可以渲染不可读的画布。
+
+**签名：**
+```tl
+isReadable: function(self: Image): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 纹理是否可读。 |
+
+## getDepthSampleMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取在着色器中从深度纹理采样时使用的比较模式。
+深度纹理比较模式是高级低级功能，通常与 3D 阴影贴图一起使用。
+
+**签名：**
+```tl
+getDepthSampleMode: function(self: Image): string | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string or nil | 在着色器中从此纹理采样时使用的比较模式，如果尚未在此纹理上调用 setDepthSampleMode，则为 nil。 （默认值：无。） |
+
+## setDepthSampleMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置从着色器中的深度纹理采样时使用的比较模式。深度纹理比较模式是高级低级功能，通常与 3D 阴影贴图一起使用。
+在着色器中使用具有比较模式设置的深度纹理时，必须将其声明为sampler2DShadow 并在GLSL 3 着色器中使用。在着色器中访问纹理的结果将返回一个介于 0 和 1
+之间的浮点数，与通过比较操作的测试集的样本数量成正比（如果启用双线性过滤，最多将使用 4 个样本）。
+深度纹理比较只能与可读的深度格式画布一起使用。
+
+**签名：**
+```tl
+setDepthSampleMode: function(self: Image, mode?: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mode | string | 在着色器中从此纹理采样时使用的比较模式。 |
+
+## setFilter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置纹理的过滤模式。
+
+**签名：**
+```tl
+setFilter: function(self: Image, min_filter: string, mag_filter?: string, anisotropy?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| min_filter | string | 缩小纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。 |
+| mag_filter | string | 放大纹理时使用的过滤器模式（在屏幕上以比其像素大小更大的尺寸渲染它）。 （默认值：分钟。） |
+| anisotropy | number | 使用的各向异性过滤的最大数量。 （默认值：1。） |
+
+## getFilter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取纹理的滤镜模式。
+
+**签名：**
+```tl
+getFilter: function(self: Image): string, string, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 缩小纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。 |
+| string | 放大纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。 |
+| number | 使用的各向异性过滤的最大量。 |
+
+## setWrap
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置纹理的环绕属性。
+当使用大于纹理范围的四边形绘制纹理时，或者使用使用 [0, 1] 之外的纹理坐标的自定义着色器时，此函数设置纹理的重复方式。纹理可以被夹紧或设置为在水平和垂直方向上重复。
+夹紧的纹理仅出现一次（纹理的边缘拉伸以填充四边形的范围），而重复的纹理则根据四边形中的空间重复多次。
+
+**签名：**
+```tl
+setWrap: function(self: Image, horizontal: string, vertical?: string, depth?: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| horizontal | string | 纹理的水平环绕模式。 |
+| vertical | string | 纹理的垂直环绕模式。 （默认：水平。） |
+| depth | string | 体积纹理 z 轴的包裹模式。 （默认值：水平。） |
+
+## getWrap
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取纹理的环绕属性。
+该函数返回当前设置的纹理水平和垂直环绕模式。
+
+**签名：**
+```tl
+getWrap: function(self: Image): string, string, string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 纹理的水平环绕模式。 |
+| string | 纹理的垂直环绕模式。 |
+| string | 体积纹理 z 轴的包裹模式。 |

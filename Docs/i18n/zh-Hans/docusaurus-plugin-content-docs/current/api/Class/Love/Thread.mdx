@@ -1,0 +1,144 @@
+# Thread
+
+**描述：**
+
+&emsp;&emsp;线程是可以与其他线程并行运行的代码块。可以使用 Channel 对象在不同线程之间发送数据。
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: Thread): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: Thread): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: Thread, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## start
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;启动线程。
+从0.9.0版本开始，线程可以在执行完成后重新启动。
+重载说明：
+1. 传递给 Thread:start 的参数可以通过“'...'”（可变参数表达式）在线程的主文件中访问。
+
+**签名：**
+```tl
+start: function(self: Thread, args: any...): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| args | any... | 字符串、数字、布尔值、LÖVE 对象或简单表格。 |
+
+## wait
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;等待线程完成。
+该调用将阻塞，直到线程完成。
+
+**签名：**
+```tl
+wait: function(self: Thread)
+```
+
+## getError
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;如果线程产生错误，则从线程中检索错误字符串。
+
+**签名：**
+```tl
+getError: function(self: Thread): string | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string or nil | 错误消息，如果线程没有引起错误则为零。 |
+
+## isRunning
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回线程当前是否正在运行。
+未运行的线程可以用Thread:start（重新）启动。
+
+**签名：**
+```tl
+isRunning: function(self: Thread): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果线程正在运行则为 true，否则为 false。 |

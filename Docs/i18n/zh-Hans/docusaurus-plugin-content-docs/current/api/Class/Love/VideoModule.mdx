@@ -1,0 +1,30 @@
+# VideoModule
+
+**描述：**
+
+&emsp;&emsp;该模块负责解码、控制和流式传输视频文件。
+
+## newVideoStream
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的视频流。目前仅支持 Ogg Theora 视频文件。 VideoStreams 无法绘制视频，请参阅 love.graphics.newVideo 。
+
+**签名：**
+```tl
+newVideoStream: function(filename: string): VideoStream
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | Ogg Theora 视频文件的文件路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| VideoStream | 一个新的视频流。 |

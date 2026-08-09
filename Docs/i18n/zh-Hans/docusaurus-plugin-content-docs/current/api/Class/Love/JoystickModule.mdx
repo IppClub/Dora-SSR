@@ -1,0 +1,204 @@
+# JoystickModule
+
+**描述：**
+
+&emsp;&emsp;提供用户操纵杆的接口。
+
+## getJoysticks
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取已连接操纵杆的列表。
+
+**签名：**
+```tl
+getJoysticks: function(): {Joystick}
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{Joystick} | 当前连接的操纵杆列表。 |
+
+## getJoystickCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取连接的操纵杆数量。
+
+**签名：**
+```tl
+getJoystickCount: function(): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 连接的操纵杆数量。 |
+
+## setGamepadMapping
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将虚拟游戏手柄输入绑定到特定类型的所有操纵杆的按钮、轴或帽子。例如，如果此函数与 OS X 中的 Dualshock 3 控制器返回的 GUID 一起使用，则绑定将影响在 OS X 中运行时与游戏一起使用的“'all'”Dualshock 3 控制器的 Joystick:getGamepadAxis 和 Joystick:isGamepadDown。
+
+	-- LÖVE 包含许多常见控制器的内置游戏手柄绑定。此功能允许您更改默认情况下不被识别为游戏手柄的操纵杆类型的绑定或添加新的绑定。
+
+	-- 虚拟游戏手柄按钮和轴是围绕 Xbox 360 控制器布局设计的。
+
+**签名：**
+```tl
+setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, type: string, index: integer): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| guid | string | 绑定将影响的操纵杆类型的依赖于操作系统的 GUID。 |
+| input | GamepadAxis | GamepadButton | 要绑定的虚拟游戏手柄按钮。 |
+| type | string | 将虚拟游戏手柄按钮绑定到的输入类型。 |
+| index | integer | 将虚拟游戏手柄按钮绑定到的轴、按钮或帽子的索引。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | success — 虚拟手柄按键是否绑定成功。 |
+
+## setGamepadMapping
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将虚拟游戏手柄输入绑定到特定类型的所有操纵杆的按钮、轴或帽子。例如，如果此函数与 OS X 中的 Dualshock 3 控制器返回的 GUID 一起使用，则绑定将影响在 OS X 中运行时与游戏一起使用的“'all'”Dualshock 3 控制器的 Joystick:getGamepadAxis 和 Joystick:isGamepadDown。
+
+	-- LÖVE 包含许多常见控制器的内置游戏手柄绑定。此功能允许您更改默认情况下不被识别为游戏手柄的操纵杆类型的绑定或添加新的绑定。
+
+	-- 虚拟游戏手柄按钮和轴是围绕 Xbox 360 控制器布局设计的。
+
+**签名：**
+```tl
+setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, type: string, index: integer, direction: JoystickHat): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| guid | string | 绑定将影响的操纵杆类型的依赖于操作系统的 GUID。 |
+| input | GamepadAxis | GamepadButton | 要绑定的虚拟游戏手柄轴。 |
+| type | string | 将虚拟游戏手柄轴绑定到的输入类型。 |
+| index | integer | 将虚拟游戏手柄轴绑定到的轴、按钮或帽子的索引。 |
+| direction | JoystickHat | 帽子的方向，如果虚拟游戏手柄轴将绑定到帽子。否则为零。 （默认值：无。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 情况：虚拟手柄轴是否绑定成功。 |
+
+## loadGamepadMappings
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;加载使用 love.joystick.saveGamepadMappings. 创建的游戏手柄映射字符串或文件
+它还可以识别任何 SDL 游戏控制器映射字符串，例如使用 Steam 的 Big Picture 控制器配置界面或这个漂亮的数据库创建的字符串。如果为已知的控制器 GUID 加载新映射，则更高版本将覆盖当前加载的映射。
+重载说明：
+1. 从文件加载游戏手柄映射字符串。 2. 直接加载游戏手柄映射字符串。
+
+**签名：**
+```tl
+loadGamepadMappings: function(mappings_or_filename: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mappings_or_filename | string | 从中加载映射字符串的文件名。取决于重载：要加载的映射字符串。 |
+
+## saveGamepadMappings
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;保存所有被识别为游戏手柄并且最近使用过或者其游戏手柄绑定已被修改的虚拟游戏手柄映射。
+
+	-- 映射存储为字符串，以便与 love.joystick.loadGamepadMappings.
+
+**签名：**
+```tl
+saveGamepadMappings: function(): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | mappings — 写入文件的映射字符串。 |
+
+## saveGamepadMappings
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;保存所有被识别为游戏手柄并且最近使用过或者其游戏手柄绑定已被修改的虚拟游戏手柄映射。
+
+	-- 映射存储为字符串，以便与 love.joystick.loadGamepadMappings.
+
+**签名：**
+```tl
+saveGamepadMappings: function(filename: string): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 保存映射字符串的文件名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 映射字符串。 |
+
+## getGamepadMappingString
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取具有给定 GUID 的操纵杆的完整游戏手柄映射字符串，如果 GUID 未被识别为游戏手柄，则返回 nil。
+映射字符串包含用于将操纵杆的按钮和轴映射到标准游戏手柄布局的绑定信息，并且可以在以后与 love.joystick.loadGamepadMappings.
+
+**签名：**
+```tl
+getGamepadMappingString: function(guid: string): string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| guid | string | 要获取其映射字符串的 GUID 值。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string or nil | 包含操纵杆游戏手柄映射的字符串，如果 GUID 未被识别为游戏手柄则为零。 |

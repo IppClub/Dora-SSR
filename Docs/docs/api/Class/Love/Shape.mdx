@@ -1,0 +1,127 @@
+# Shape
+
+**Description:**
+
+&emsp;&emsp;Shapes are solid 2d geometrical objects which handle the mass and collision of a Body in love.physics.
+
+## type
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the type of the object as a string.
+
+**Signature:**
+```tl
+type: function(self: Shape): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The type as a string. |
+
+## Of
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether an object is of a certain type. If the object has the type with the specified name in its
+hierarchy, this function will return true.
+
+**Signature:**
+```tl
+typeOf: function(self: Shape, type_name: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| type_name | string | The name of the type to check for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the object is of the specified type, false otherwise. |
+
+## release
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Destroys the object's Lua reference. The object will be completely deleted if it's not referenced by any other
+LÖVE object or thread.
+This method can be used to immediately clean up resources without waiting for Lua's garbage collector.
+
+**Signature:**
+```tl
+release: function(self: Shape): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the object was released by this call, false if it had been previously released. |
+
+## getType
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets a string representing the Shape.
+This function can be useful for conditional debug drawing.
+
+**Signature:**
+```tl
+getType: function(self: Shape): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The type of the Shape. |
+
+## getRadius
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the radius of the shape.
+
+**Signature:**
+```tl
+getRadius: function(self: Shape): number
+	getPoints: function(self: Shape): number...
+	validate: function(self: Shape): boolean
+	getVertexCount: function(self: Shape): integer
+	getPoint: function(self: Shape, index: integer): number, number
+	getChildEdge: function(self: Shape, index: integer): Shape
+	getPreviousVertex: function(self: Shape): number | nil, number | nil
+	getNextVertex: function(self: Shape): number | nil, number | nil
+	setPreviousVertex: function(self: Shape, x?: number, y?: number)
+	setNextVertex: function(self: Shape, x?: number, y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index parameter. |
+| x | number | The x parameter. |
+| y | number | The y parameter. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number or number... or boolean or integer or Shape or number or nil | The radius of the shape. |

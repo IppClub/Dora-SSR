@@ -1,0 +1,143 @@
+# Quad
+
+**描述：**
+
+&emsp;&emsp;具有纹理坐标信息的四边形（具有四个边和四个角的多边形）。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: Quad): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: Quad, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: Quad): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## setViewport
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;根据视口设置纹理坐标。
+
+**签名：**
+```tl
+setViewport: function(self: Quad, x: number, y: number, width: number, height: number, texture_width?: number, texture_height?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 沿 x 轴的左上角。 |
+| y | number | y 轴的左上角。 |
+| width | number | 视口的宽度。 |
+| height | number | 视口的高度。 |
+| texture_width | number | 可选的新参考宽度，纹理的宽度。如果设置，则必须大于 0。 （默认值：无。） |
+| texture_height | number | 可选的新参考高度，纹理的高度。如果设置，则必须大于 0。 （默认值：无。） |
+
+## getViewport
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取此Quad 的当前视口。
+
+**签名：**
+```tl
+getViewport: function(self: Quad): number, number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 沿 x 轴的左上角。 |
+| number | y 轴的左上角。 |
+| number | 视口的宽度。 |
+| number | 视口的高度。 |
+
+## getTextureDimensions
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取最初在 love.graphics.newQuad.
+
+**签名：**
+```tl
+getTextureDimensions: function(self: Quad): number, number
+	setLayer: function(self: Quad, layer: integer)
+	getLayer: function(self: Quad): integer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| layer | integer | layer 参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number or integer | 四边形使用的纹理宽度。 |
+| number | 四边形使用的纹理高度。 |

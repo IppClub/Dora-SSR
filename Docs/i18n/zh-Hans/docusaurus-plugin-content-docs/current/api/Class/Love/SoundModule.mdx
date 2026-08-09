@@ -1,0 +1,170 @@
+# SoundModule
+
+**描述：**
+
+&emsp;&emsp;该模块负责解码声音文件。它无法播放声音，请参阅 love.audio 。
+
+## newDecoder
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;尝试在指定文件中查找编码声音数据的解码器。
+
+**签名：**
+```tl
+newDecoder: function(filename: string, buffer_size?: integer): Decoder
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 带有编码声音数据的文件的文件名。 |
+| buffer_size | integer | 每个解码块的大小（以字节为单位）。 （默认值：2048。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Decoder | decoder — 一个新的解码器对象。 |
+
+## newDecoder
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;尝试在指定文件中查找编码声音数据的解码器。
+
+**签名：**
+```tl
+newDecoder: function(data: FileData, buffer_size?: integer): Decoder
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| data | FileData | 带有编码声音数据的文件的文件名。 |
+| buffer_size | integer | 每个解码块的大小（以字节为单位）。 （默认值：2048。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Decoder | decoder — 一个新的解码器对象。 |
+
+## newSoundData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从文件路径、文件或解码器创建新的 SoundData。还可以创建具有自定义采样率、通道和位深度的 SoundData。
+
+	-- 声音数据将以原始格式解码到内存中。建议仅创建简短的声音（例如效果），因为这样 3 分钟的歌曲会使用 30 MB 的内存。
+
+**签名：**
+```tl
+newSoundData: function(samples: number, sample_rate?: integer, bit_depth?: integer, channels?: integer): SoundData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| samples | number | 样本总数。 |
+| sample_rate | integer | 每秒采样数（默认值：44100。） |
+| bit_depth | integer | 每个样本的位数（8 或 16）。 （默认值：16。） |
+| channels | integer | 1 表示单声道，2 表示立体声。 （默认值：2。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| SoundData | soundData — 一个新的 SoundData 对象。 |
+
+## newSoundData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从文件路径、文件或解码器创建新的 SoundData。还可以创建具有自定义采样率、通道和位深度的 SoundData。
+
+	-- 声音数据将以原始格式解码到内存中。建议仅创建简短的声音（例如效果），因为这样 3 分钟的歌曲会使用 30 MB 的内存。
+
+**签名：**
+```tl
+newSoundData: function(filename: string, buffer_size?: integer): SoundData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要加载的文件的文件名。 |
+| buffer_size | integer | 每秒采样数（默认值：44100。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| SoundData | soundData — 一个新的 SoundData 对象。 |
+
+## newSoundData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从文件路径、文件或解码器创建新的 SoundData。还可以创建具有自定义采样率、通道和位深度的 SoundData。
+
+	-- 声音数据将以原始格式解码到内存中。建议仅创建简短的声音（例如效果），因为这样 3 分钟的歌曲会使用 30 MB 的内存。
+
+**签名：**
+```tl
+newSoundData: function(data: FileData, buffer_size?: integer): SoundData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| data | FileData | 从此解码器解码数据直到 EOF。 |
+| buffer_size | integer | 每秒采样数（默认值：44100。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| SoundData | soundData — 一个新的 SoundData 对象。 |
+
+## newSoundData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从文件路径、文件或解码器创建新的 SoundData。还可以创建具有自定义采样率、通道和位深度的 SoundData。
+
+	-- 声音数据将以原始格式解码到内存中。建议仅创建简短的声音（例如效果），因为这样 3 分钟的歌曲会使用 30 MB 的内存。
+
+**签名：**
+```tl
+newSoundData: function(decoder: Decoder): SoundData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| decoder | Decoder | 从该解码器解码数据直到 EOF。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| SoundData | soundData — 一个新的 SoundData 对象。 |

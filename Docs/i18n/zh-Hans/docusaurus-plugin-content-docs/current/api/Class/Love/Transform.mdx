@@ -1,0 +1,449 @@
+# Transform
+
+**描述：**
+
+&emsp;&emsp;包含坐标系变换的对象。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: Transform): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: Transform, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: Transform): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## clone
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建此变换的新副本。
+
+**签名：**
+```tl
+clone: function(self: Transform): Transform
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Transform | 此变换的副本。 |
+
+## inverse
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个包含此变换的逆变换的新变换。
+
+**签名：**
+```tl
+inverse: function(self: Transform): Transform
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Transform | 一个新的 Transform 对象，表示此 Transform 矩阵的逆矩阵。 |
+
+## apply
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将给定的其他 Transform 对象应用于此对象。
+这有效地将此 Transform 的内部变换矩阵与其他 Transform 的（即 self * other）相乘，并将结果存储在此对象中。
+
+**签名：**
+```tl
+apply: function(self: Transform, other: Transform): Transform
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| other | Transform | 应用于此变换的另一个变换对象。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Transform | 调用该方法的 Transform 对象。允许轻松链接 Transform 方法。 |
+
+## isAffine2DTransform
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查变换是否是仿射变换。
+
+**签名：**
+```tl
+isAffine2DTransform: function(self: Transform): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果变换对象是仿射变换，则为 true，否则为 false。 |
+
+## translate
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将平移应用到变换的坐标系。此方法不会重置任何先前应用的转换。
+
+**签名：**
+```tl
+translate: function(self: Transform, x: number, y: number): Transform
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 沿 x 轴的相对平移。 |
+| y | number | 沿 y 轴的相对平移。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Transform | 调用该方法的 Transform 对象。允许轻松链接 Transform 方法。 |
+
+## rotate
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;对变换的坐标系应用旋转。此方法不会重置任何先前应用的转换。
+
+**签名：**
+```tl
+rotate: function(self: Transform, angle: number): Transform
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| angle | number | 旋转此变换的相对角度（以弧度为单位）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Transform | 调用该方法的 Transform 对象。允许轻松链接 Transform 方法。 |
+
+## scale
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;缩放变换的坐标系。此方法不会重置任何先前应用的转换。
+
+**签名：**
+```tl
+scale: function(self: Transform, x: number, y?: number): Transform
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 沿 x 轴的相对比例因子。 |
+| y | number | 沿 y 轴的相对比例因子。 （默认值：sx。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Transform | 调用该方法的 Transform 对象。允许轻松链接 Transform 方法。 |
+
+## shear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将剪切因子（倾斜）应用于变换的坐标系。此方法不会重置任何先前应用的转换。
+
+**签名：**
+```tl
+shear: function(self: Transform, x: number, y: number): Transform
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 沿 x 轴的剪切因子。 |
+| y | number | 沿 y 轴的剪切因子。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Transform | 调用该方法的 Transform 对象。允许轻松链接 Transform 方法。 |
+
+## reset
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将变换重置为同一状态。所有先前应用的转换都将被删除。
+
+**签名：**
+```tl
+reset: function(self: Transform): Transform
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Transform | 调用该方法的 Transform 对象。允许轻松链接 Transform 方法。 |
+
+## setTransformation
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将变换重置为指定的变换参数。
+
+**签名：**
+```tl
+setTransformation: function(self: Transform, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number): Transform
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 变换在 x 轴上的位置。 |
+| y | number | 变换在 y 轴上的位置。 |
+| angle | number | 变换的方向（以弧度为单位）。 （默认值：0。） |
+| scale_x | number | x 轴上的比例因子。 （默认值：1。） |
+| scale_y | number | y 轴的比例因子。 （默认值：sx。） |
+| origin_x | number | x 轴上的原点偏移。 （默认值：0。） |
+| origin_y | number | y 轴上的原点偏移。 （默认值：0。） |
+| shear_x | number | x 轴上的剪切/倾斜因子。 （默认值：0。） |
+| shear_y | number | y 轴上的剪切/倾斜因子。 （默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Transform | 调用该方法的 Transform 对象。允许轻松链接 Transform 方法。 |
+
+## setMatrix
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;直接设置Transform的内部4x4变换矩阵。
+
+**签名：**
+```tl
+setMatrix: function(self: Transform, layout: string, elements: {number} | {{number}}): Transform
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| layout | string | 如何解释矩阵元素参数（行优先或列优先）。 |
+| elements | \{number} | \{\{number}} | 包含 16 个矩阵元素的平面表。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Transform | transform — 调用该方法的 Transform 对象。允许轻松链接 Transform 方法。 |
+
+## setMatrix
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;直接设置Transform的内部4x4变换矩阵。
+
+**签名：**
+```tl
+setMatrix: function(self: Transform, elements: {number} | {{number}}): Transform
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| elements | \{number} | \{\{number}} | 如何解释矩阵元素参数（行优先或列优先）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Transform | transform — 调用该方法的 Transform 对象。允许轻松链接 Transform 方法。 |
+
+## getMatrix
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取此Transform存储的内部4x4变换矩阵。矩阵按行优先顺序返回。
+
+**签名：**
+```tl
+getMatrix: function(self: Transform): number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 矩阵第一行的第一列。 |
+| number | 矩阵第一行的第二列。 |
+| number | 矩阵第一行的第三列。 |
+| number | 矩阵第一行的第四列。 |
+| number | 矩阵第二行第一列。 |
+| number | 矩阵第二行的第二列。 |
+| number | 矩阵第二行第三列。 |
+| number | 矩阵第二行第四列。 |
+| number | 矩阵第三行第一列。 |
+| number | 矩阵第三行第二列。 |
+| number | 矩阵第三行第三列。 |
+| number | 矩阵第三行第四列。 |
+| number | 矩阵第四行第一列。 |
+| number | 矩阵第四行第二列。 |
+| number | 矩阵第四行第三列。 |
+| number | 矩阵第四行第四列。 |
+
+## transformPoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将 Transform 对象的变换应用到给定的 2D 位置。
+这有效地将给定位置从全局坐标转换到变换的局部坐标空间。
+
+**签名：**
+```tl
+transformPoint: function(self: Transform, x: number, y: number): number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 全局坐标中位置的 x 分量。 |
+| y | number | 全局坐标中位置的 y 分量。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 应用变换的位置的 x 分量。 |
+| number | 应用变换的位置的 y 分量。 |
+
+## inverseTransformPoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将 Transform 对象的变换反向应用到给定的 2D 位置。
+这有效地将给定位置从变换的局部坐标空间转换为全局坐标。
+如果给定的变换应用了用于游戏中相机系统的变换，则此方法的一种用途是将屏幕空间鼠标位置转换为全局世界坐标。
+
+**签名：**
+```tl
+inverseTransformPoint: function(self: Transform, x: number, y: number): number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 应用变换的位置的 x 分量。 |
+| y | number | 应用变换的位置的 y 分量。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 全局坐标中位置的 x 分量。 |
+| number | 全局坐标中位置的 y 分量。 |

@@ -1,0 +1,125 @@
+# Shape
+
+**描述：**
+
+&emsp;&emsp;形状是固体二维几何对象，用于处理 love.physics.
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: Shape): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: Shape, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: Shape): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## getType
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取表示形状的字符串。
+此函数对于条件调试绘图很有用。
+
+**签名：**
+```tl
+getType: function(self: Shape): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 形状的类型。 |
+
+## getRadius
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取形状的半径。
+
+**签名：**
+```tl
+getRadius: function(self: Shape): number
+	getPoints: function(self: Shape): number...
+	validate: function(self: Shape): boolean
+	getVertexCount: function(self: Shape): integer
+	getPoint: function(self: Shape, index: integer): number, number
+	getChildEdge: function(self: Shape, index: integer): Shape
+	getPreviousVertex: function(self: Shape): number | nil, number | nil
+	getNextVertex: function(self: Shape): number | nil, number | nil
+	setPreviousVertex: function(self: Shape, x?: number, y?: number)
+	setNextVertex: function(self: Shape, x?: number, y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | index 参数。 |
+| x | number | x 参数。 |
+| y | number | y 参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number or number... or boolean or integer or Shape or number or nil | 形状的半径。 |

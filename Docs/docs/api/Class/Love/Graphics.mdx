@@ -1,0 +1,3292 @@
+# Graphics
+
+**Description:**
+
+&emsp;&emsp;The primary responsibility for the love.graphics module is the drawing of lines, shapes, text, Images and
+other Drawable objects onto the screen. Its secondary responsibilities include loading external files
+(including Images and Fonts) into memory, creating specialized objects (such as ParticleSystems or
+Canvases) and managing screen geometry.
+
+## clear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Clears the screen or active Canvas to the specified color.
+
+	-- This function is called automatically before love.draw in the default love.run function. See the example in love.run for a typical use of this function.
+
+	-- Note that the scissor area bounds the cleared region.
+
+	-- In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+
+	-- In versions prior to background color instead.
+
+**Signature:**
+```tl
+clear: function()
+```
+
+## clear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Clears the screen or active Canvas to the specified color.
+
+	-- This function is called automatically before love.draw in the default love.run function. See the example in love.run for a typical use of this function.
+
+	-- Note that the scissor area bounds the cleared region.
+
+	-- In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+
+	-- In versions prior to background color instead.
+
+**Signature:**
+```tl
+clear: function(red: number, green: number, blue: number, alpha?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| red | number | A table in the form of \{r, g, b, a} containing the color to clear the first active Canvas to. |
+| green | number | Additional tables for each active Canvas. |
+| blue | number | Whether to clear the active stencil buffer, if present. It can also be an integer between 0 and 255 to clear the stencil buffer to a specific value. (Default: true.) |
+| alpha | number | Whether to clear the active depth buffer, if present. It can also be a number between 0 and 1 to clear the depth buffer to a specific value. (Default: true.) |
+
+## discard
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Discards (trashes) the contents of the screen or active Canvas. This is a performance optimization function with
+niche use cases.
+If the active Canvas has just been changed and the 'replace' BlendMode is about to be used to draw something which
+covers the entire screen, calling love.graphics.discard rather than calling love.graphics.clear or doing nothing
+may improve performance on mobile devices.
+On some desktop systems this function may do nothing.
+
+**Signature:**
+```tl
+discard: function(discard_color?: boolean | {boolean}, discard_depth_stencil?: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| discard_color | boolean or \{boolean} | Whether to discard the texture(s) of the active Canvas(es) (the contents of the screen if no Canvas is active.) (Default: true.) |
+| discard_depth_stencil | boolean | Whether to discard the contents of the stencil buffer of the screen / active Canvas. (Default: true.) |
+
+## flushBatch
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Immediately renders any pending automatically batched draws.
+LÖVE will call this function internally as needed when most state is changed, so it is not necessary to manually
+call it.
+The current batch will be automatically flushed by love.graphics state changes (except for the transform stack and
+the current color), as well as Shader:send and methods on Textures which change their state. Using a different
+Image in consecutive love.graphics.draw calls will also flush the current batch.
+SpriteBatches, ParticleSystems, Meshes, and Text objects do their own batching and do not affect automatic
+batching of other draws, aside from flushing the current batch when they're drawn.
+
+**Signature:**
+```tl
+flushBatch: function()
+```
+
+## setBackgroundColor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the background color.
+
+**Signature:**
+```tl
+setBackgroundColor: function(red: number, green: number, blue: number, alpha?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| red | number | The red component (0-1). |
+| green | number | The green component (0-1). |
+| blue | number | The blue component (0-1). |
+| alpha | number | The alpha component (0-1). (Default: 1.) |
+
+## setBackgroundColor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the background color.
+
+**Signature:**
+```tl
+setBackgroundColor: function(color: Color)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| color | Color | A numerical indexed table with the red, green, blue and alpha values as numbers. The alpha is optional and defaults to 1 if it is left out. |
+
+## getBackgroundColor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current background color.
+In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+
+**Signature:**
+```tl
+getBackgroundColor: function(): number, number, number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The red component (0-1). |
+| number | The green component (0-1). |
+| number | The blue component (0-1). |
+| number | The alpha component (0-1). |
+
+## setDefaultFilter
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the default scaling filters used with Images, Canvases, and Fonts.
+Overload details:
+1. This function does not apply retroactively to loaded images.
+
+**Signature:**
+```tl
+setDefaultFilter: function(min_filter: string, mag_filter?: string, anisotropy?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| min_filter | string | Filter mode used when scaling the image down. |
+| mag_filter | string | Filter mode used when scaling the image up. (Default: min.) |
+| anisotropy | number | Maximum amount of Anisotropic Filtering used. (Default: 1.) |
+
+## getDefaultFilter
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the default scaling filters used with Images, Canvases, and Fonts.
+
+**Signature:**
+```tl
+getDefaultFilter: function(): string, string, number
+	setDefaultMipmapFilter: function(filter?: string, sharpness?: number)
+	getDefaultMipmapFilter: function(): string | nil, number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filter | string | The filter parameter. |
+| sharpness | number | The sharpness parameter. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string or string or nil | Filter mode used when scaling the image down. |
+| string or number | Filter mode used when scaling the image up. |
+| number | Maximum amount of Anisotropic Filtering used. |
+
+## setColor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the color used for drawing.
+In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+
+**Signature:**
+```tl
+setColor: function(red: number, green: number, blue: number, alpha?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| red | number | The amount of red. |
+| green | number | The amount of green. |
+| blue | number | The amount of blue. |
+| alpha | number | The amount of alpha. The alpha value will be applied to all subsequent draw operations, even the drawing of an image. (Default: 1.) |
+
+## getColor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current color.
+In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+
+**Signature:**
+```tl
+getColor: function(): number, number, number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The red component (0-1). |
+| number | The green component (0-1). |
+| number | The blue component (0-1). |
+| number | The alpha component (0-1). |
+
+## setLineWidth
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the line width.
+
+**Signature:**
+```tl
+setLineWidth: function(width: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| width | number | The width of the line. |
+
+## getLineWidth
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current line width.
+Overload details:
+1. This function does not work in 0.8.0, but has been fixed in version 0.9.0. Use the following snippet to
+circumvent this in 0.8.0; love.graphics._getLineWidth = love.graphics.getLineWidth
+love.graphics._setLineWidth = love.graphics.setLineWidth function love.graphics.getLineWidth() return
+love.graphics.varlinewidth or 1 end function love.graphics.setLineWidth(w) love.graphics.varlinewidth = w;
+return love.graphics._setLineWidth(w) end
+
+**Signature:**
+```tl
+getLineWidth: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The current line width. |
+
+## setLineStyle
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the line style.
+
+**Signature:**
+```tl
+setLineStyle: function(style: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| style | string | The LineStyle to use. Line styles include smooth and rough. |
+
+## getLineStyle
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the line style.
+
+**Signature:**
+```tl
+getLineStyle: function(): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The current line style. |
+
+## setLineJoin
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the line join style. See LineJoin for the possible options.
+
+**Signature:**
+```tl
+setLineJoin: function(join: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| join | string | The LineJoin to use. |
+
+## getLineJoin
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the line join style.
+
+**Signature:**
+```tl
+getLineJoin: function(): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The LineJoin style. |
+
+## setWireframe
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets whether wireframe lines will be used when drawing.
+
+**Signature:**
+```tl
+setWireframe: function(enable: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| enable | boolean | True to enable wireframe mode when drawing, false to disable it. |
+
+## isWireframe
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether wireframe mode is used when drawing.
+
+**Signature:**
+```tl
+isWireframe: function(): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if wireframe lines are used when drawing, false if it's not. |
+
+## setPointSize
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the point size.
+
+**Signature:**
+```tl
+setPointSize: function(size: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| size | number | The new point size. |
+
+## getPointSize
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the point size.
+
+**Signature:**
+```tl
+getPointSize: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The current point size. |
+
+## getDimensions
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the width and height in pixels of the window.
+
+**Signature:**
+```tl
+getDimensions: function(): number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The width of the window. |
+| number | The height of the window. |
+
+## getWidth
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the width in pixels of the window.
+
+**Signature:**
+```tl
+getWidth: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The width of the window. |
+
+## getHeight
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the height in pixels of the window.
+
+**Signature:**
+```tl
+getHeight: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The height of the window. |
+
+## getPixelDimensions
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the width and height in pixels of the window.
+love.graphics.getDimensions gets the dimensions of the window in units scaled by the screen's DPI scale factor,
+rather than pixels. Use getDimensions for calculations related to drawing to the screen and using the graphics
+coordinate system (calculating the center of the screen, for example), and getPixelDimensions only when dealing
+specifically with underlying pixels (pixel-related calculations in a pixel Shader, for example).
+
+**Signature:**
+```tl
+getPixelDimensions: function(): number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The width of the window in pixels. |
+| number | The height of the window in pixels. |
+
+## getPixelWidth
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the width in pixels of the window.
+The graphics coordinate system and DPI scale factor, rather than raw pixels. Use getWidth for calculations related
+to drawing to the screen and using the coordinate system (calculating the center of the screen, for example), and
+getPixelWidth only when dealing specifically with underlying pixels (pixel-related calculations in a pixel Shader,
+for example).
+
+**Signature:**
+```tl
+getPixelWidth: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The width of the window in pixels. |
+
+## getPixelHeight
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the height in pixels of the window.
+The graphics coordinate system and DPI scale factor, rather than raw pixels. Use getHeight for calculations
+related to drawing to the screen and using the coordinate system (calculating the center of the screen, for
+example), and getPixelHeight only when dealing specifically with underlying pixels (pixel-related calculations in
+a pixel Shader, for example).
+
+**Signature:**
+```tl
+getPixelHeight: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The height of the window in pixels. |
+
+## getDPIScale
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the DPI scale factor of the window.
+The DPI scale factor represents relative pixel density. The pixel density inside the window might be greater (or
+smaller) than the 'size' of the window. For example on a retina screen in Mac OS X with the highdpi window flag
+enabled, the window may take up the same physical size as an 800x600 window, but the area inside the window uses
+1600x1200 pixels. love.graphics.getDPIScale() would return 2 in that case.
+The love.window.fromPixels and love.window.toPixels functions can also be used to convert between units.
+The highdpi window flag must be enabled to use the full pixel density of a Retina screen on Mac OS X and iOS. The
+flag currently does nothing on Windows and Linux, and on Android it is effectively always enabled.
+Overload details:
+1. The units of love.graphics.getWidth, love.graphics.getHeight, love.mouse.getPosition, mouse events,
+love.touch.getPosition, and touch events are always in DPI-scaled units rather than pixels. In LÖVE 0.10 and
+older they were in pixels.
+
+**Signature:**
+```tl
+getDPIScale: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The pixel scale factor associated with the window. |
+
+## getSupported
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the optional graphics features and whether they're supported on the system.
+Some older or low-end systems don't always support all graphics features.
+
+**Signature:**
+```tl
+getSupported: function(target?: any): GraphicsFeatures
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| target | any | The target parameter. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| GraphicsFeatures | A table containing GraphicsFeature keys, and boolean values indicating whether each feature is supported. |
+
+## getTextureTypes
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the available texture types, and whether each is supported.
+
+**Signature:**
+```tl
+getTextureTypes: function(target?: any): {string: boolean}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| target | any | The target parameter. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{string: boolean} | A table containing TextureTypes as keys, and a boolean indicating whether the type is supported as values. Not all systems support all types. |
+
+## getImageFormats
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the raw and compressed pixel formats usable for Images, and whether each is supported.
+
+**Signature:**
+```tl
+getImageFormats: function(target?: any): {string: boolean}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| target | any | The target parameter. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{string: boolean} | A table containing PixelFormats as keys, and a boolean indicating whether the format is supported as values. Not all systems support all formats. |
+
+## getRendererInfo
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets information about the system's video card and drivers.
+
+**Signature:**
+```tl
+getRendererInfo: function(): string, string, string, string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The name of the renderer, e.g. 'OpenGL' or 'OpenGL ES'. |
+| string | The version of the renderer with some extra driver-dependent version info, e.g. '2.1 INTEL-8.10.44'. |
+| string | The name of the graphics card vendor, e.g. 'Intel Inc'. |
+| string | The name of the graphics card, e.g. 'Intel HD Graphics 3000 OpenGL Engine'. |
+
+## getSystemLimits
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the system-dependent maximum values for love.graphics features.
+
+**Signature:**
+```tl
+getSystemLimits: function(target?: any): GraphicsSystemLimits
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| target | any | The target parameter. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| GraphicsSystemLimits | A table containing GraphicsLimit keys, and number values. |
+
+## getStats
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets performance-related rendering statistics.
+
+**Signature:**
+```tl
+getStats: function(): GraphicsStats
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| GraphicsStats | stats — A table with the following fields: |
+
+## getStats
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets performance-related rendering statistics.
+
+**Signature:**
+```tl
+getStats: function(target: any): GraphicsStats
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| target | any | A table which will be filled in with the stat fields below. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| GraphicsStats | The table that was passed in above, now containing the following fields: |
+
+## captureScreenshot
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a screenshot once the current frame is done (after love.draw has finished).
+
+	-- Since this function enqueues a screenshot capture rather than executing it immediately, it can be called from an input callback or love.update and it will still capture all of what's drawn to the screen in that frame.
+
+**Signature:**
+```tl
+captureScreenshot: function(filename: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The filename to save the screenshot to. The encoded image type is determined based on the extension of the filename, and must be one of the ImageFormats. |
+
+## captureScreenshot
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a screenshot once the current frame is done (after love.draw has finished).
+
+	-- Since this function enqueues a screenshot capture rather than executing it immediately, it can be called from an input callback or love.update and it will still capture all of what's drawn to the screen in that frame.
+
+**Signature:**
+```tl
+captureScreenshot: function(callback: function(image_data: ImageData))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function(image_data: ImageData | ) Function which gets called once the screenshot has been captured. An ImageData is passed into the function as its only argument. |
+
+## captureScreenshot
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a screenshot once the current frame is done (after love.draw has finished).
+
+	-- Since this function enqueues a screenshot capture rather than executing it immediately, it can be called from an input callback or love.update and it will still capture all of what's drawn to the screen in that frame.
+
+**Signature:**
+```tl
+captureScreenshot: function(channel: Channel)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| channel | Channel | The Channel to push the generated ImageData to. |
+
+## rectangle
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a rectangle.
+Overload details:
+1. Draws a rectangle with rounded corners.
+
+**Signature:**
+```tl
+rectangle: function(mode: string, x: number, y: number, width: number, height: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| mode | string | How to draw the rectangle. |
+| x | number | The position of top-left corner along the x-axis. |
+| y | number | The position of top-left corner along the y-axis. |
+| width | number | Width of the rectangle. |
+| height | number | Height of the rectangle. |
+
+## circle
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a circle.
+
+**Signature:**
+```tl
+circle: function(mode: string, x: number, y: number, radius: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| mode | string | How to draw the circle. |
+| x | number | The position of the center along x-axis. |
+| y | number | The position of the center along y-axis. |
+| radius | number | The radius of the circle. |
+
+## arc
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a filled or unfilled arc at position (x, y). The arc is drawn from angle1 to angle2 in radians. The segments parameter determines how many segments are used to draw the arc. The more segments, the smoother the edge.
+
+**Signature:**
+```tl
+arc: function(mode: DrawMode, x: number, y: number, radius: number, angle1: number, angle2: number, segments?: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| mode | DrawMode | How to draw the arc. |
+| x | number | The position of the center along x-axis. |
+| y | number | The position of the center along y-axis. |
+| radius | number | Radius of the arc. |
+| angle1 | number | The angle at which the arc begins. |
+| angle2 | number | The angle at which the arc terminates. |
+| segments | integer | The number of segments used for drawing the arc. (Default: 10.) |
+
+## arc
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a filled or unfilled arc at position (x, y). The arc is drawn from angle1 to angle2 in radians. The segments parameter determines how many segments are used to draw the arc. The more segments, the smoother the edge.
+
+**Signature:**
+```tl
+arc: function(mode: DrawMode, arc_mode: ArcMode, x: number, y: number, radius: number, angle1: number, angle2: number, segments?: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| mode | DrawMode | How to draw the arc. |
+| arc_mode | ArcMode | The type of arc to draw. |
+| x | number | The position of the center along x-axis. |
+| y | number | The position of the center along y-axis. |
+| radius | number | Radius of the arc. |
+| angle1 | number | The angle at which the arc begins. |
+| angle2 | number | The angle at which the arc terminates. |
+| segments | integer | The number of segments used for drawing the arc. (Default: 10.) |
+
+## ellipse
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws an ellipse.
+
+**Signature:**
+```tl
+ellipse: function(mode: string, x: number, y: number, radius_x: number, radius_y: number, segments?: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| mode | string | How to draw the ellipse. |
+| x | number | The position of the center along x-axis. |
+| y | number | The position of the center along y-axis. |
+| radius_x | number | The radius of the ellipse along the x-axis (half the ellipse's width). |
+| radius_y | number | The radius of the ellipse along the y-axis (half the ellipse's height). |
+| segments | integer | The number of segments used for drawing the ellipse. |
+
+## line
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws lines between points.
+
+**Signature:**
+```tl
+line: function(x1: number, y1: number, x2: number, y2: number, coordinates: number...)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x1 | number | The position of first point on the x-axis. |
+| y1 | number | The position of first point on the y-axis. |
+| x2 | number | The position of second point on the x-axis. |
+| y2 | number | The position of second point on the y-axis. |
+| coordinates | number... | You can continue passing point positions to draw a polyline. |
+
+## polygon
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draw a polygon.
+Following the mode argument, this function can accept multiple numeric arguments or a single table of numeric
+arguments. In either case the arguments are interpreted as alternating x and y coordinates of the polygon's
+vertices.
+
+**Signature:**
+```tl
+polygon: function(mode: string, x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, coordinates: number...)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| mode | string | How to draw the polygon. |
+| x1 | number | The vertices of the polygon. Depending on the overload: The vertices of the polygon as a table. |
+| y1 | number | The y1 parameter. |
+| x2 | number | The x2 parameter. |
+| y2 | number | The y2 parameter. |
+| x3 | number | The x3 parameter. |
+| y3 | number | The y3 parameter. |
+| coordinates | number... | The coordinates parameter. |
+
+## points
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws one or more points.
+Overload details:
+1. Draws one or more individually colored points. In versions prior to 11.0, color component values were within
+the range of 0 to 255 instead of 0 to 1. The pixel grid is actually offset to the center of each pixel. So to
+get clean pixels drawn use 0.5 + integer increments. Points are not affected by size is always in pixels.
+
+**Signature:**
+```tl
+points: function(x1: number, y1: number, coordinates: number...)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x1 | number | The position of the first point on the x-axis. |
+| y1 | number | The position of the first point on the y-axis. |
+| coordinates | number... | The x and y coordinates of additional points. |
+
+## present
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Displays the results of drawing operations on the screen.
+This function is used when writing your own love.run function. It presents all the results of your drawing
+operations on the screen. See the example in love.run for a typical use of this function.
+Overload details:
+1. * If love.window.setMode has vsync equal to true, this function can't run more frequently than the refresh
+rate (e.g. 60 Hz), and will halt the program until ready if necessary.
+
+**Signature:**
+```tl
+present: function()
+```
+
+## push
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Copies and pushes the current coordinate transformation to the transformation stack.
+
+	-- This function is always used to prepare for a corresponding pop operation later. It stores the current coordinate transformation state into the transformation stack and keeps it active. Later changes to the transformation can be undone by using the pop operation, which returns the coordinate transform to the state it was in before calling push.
+
+**Signature:**
+```tl
+push: function()
+```
+
+## push
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Copies and pushes the current coordinate transformation to the transformation stack.
+
+	-- This function is always used to prepare for a corresponding pop operation later. It stores the current coordinate transformation state into the transformation stack and keeps it active. Later changes to the transformation can be undone by using the pop operation, which returns the coordinate transform to the state it was in before calling push.
+
+**Signature:**
+```tl
+push: function(stack_type: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| stack_type | string | The type of stack to push (e.g. just transformation state, or all love.graphics state). |
+
+## pop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Pops the current coordinate transformation from the transformation stack.
+This function is always used to reverse a previous push operation. It returns the current transformation state to
+what it was before the last preceding push.
+
+**Signature:**
+```tl
+pop: function()
+```
+
+## getStackDepth
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current depth of the transform / state stack (the number of pushes without corresponding pops).
+
+**Signature:**
+```tl
+getStackDepth: function(): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The current depth of the transform and state love.graphics stack. |
+
+## origin
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Resets the current coordinate transformation.
+This function is always used to reverse any previous calls to love.graphics.rotate, love.graphics.scale,
+love.graphics.shear or love.graphics.translate. It returns the current transformation state to its defaults.
+
+**Signature:**
+```tl
+origin: function()
+```
+
+## translate
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Translates the coordinate system in two dimensions.
+When this function is called with two numbers, dx, and dy, all the following drawing operations take effect as if
+their x and y coordinates were x+dx and y+dy.
+Scale and translate are not commutative operations, therefore, calling them in different orders will change the
+outcome.
+This change lasts until love.draw() exits or else a love.graphics.pop reverts to a previous love.graphics.push.
+Translating using whole numbers will prevent tearing/blurring of images and fonts draw after translating.
+
+**Signature:**
+```tl
+translate: function(dx: number, dy: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| dx | number | The translation relative to the x-axis. |
+| dy | number | The translation relative to the y-axis. |
+
+## rotate
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Rotates the coordinate system in two dimensions.
+Calling this function affects all future drawing operations by rotating the coordinate system around the origin by
+the given amount of radians. This change lasts until love.draw() exits.
+
+**Signature:**
+```tl
+rotate: function(angle: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| angle | number | The amount to rotate the coordinate system in radians. |
+
+## scale
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Scales the coordinate system in two dimensions.
+By default the coordinate system in LÖVE corresponds to the display pixels in horizontal and vertical directions
+one-to-one, and the x-axis increases towards the right while the y-axis increases downwards. Scaling the
+coordinate system changes this relation.
+After scaling by sx and sy, all coordinates are treated as if they were multiplied by sx and sy. Every result of a
+drawing operation is also correspondingly scaled, so scaling by (2, 2) for example would mean making everything
+twice as large in both x- and y-directions. Scaling by a negative value flips the coordinate system in the
+corresponding direction, which also means everything will be drawn flipped or upside down, or both. Scaling by
+zero is not a useful operation.
+Scale and translate are not commutative operations, therefore, calling them in different orders will change the
+outcome.
+Scaling lasts until love.draw() exits.
+
+**Signature:**
+```tl
+scale: function(sx: number, sy?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sx | number | The scaling in the direction of the x-axis. |
+| sy | number | The scaling in the direction of the y-axis. If omitted, it defaults to same as parameter sx. (Default: sx.) |
+
+## shear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Shears the coordinate system.
+
+**Signature:**
+```tl
+shear: function(kx: number, ky: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| kx | number | The shear factor on the x-axis. |
+| ky | number | The shear factor on the y-axis. |
+
+## applyTransform
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Applies the given Transform object to the current coordinate transformation.
+This effectively multiplies the existing coordinate transformation's matrix with the Transform object's internal
+matrix to produce the new coordinate transformation.
+
+**Signature:**
+```tl
+applyTransform: function(transform: Transform)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| transform | Transform | The Transform object to apply to the current graphics coordinate transform. |
+
+## replaceTransform
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Replaces the current coordinate transformation with the given Transform object.
+
+**Signature:**
+```tl
+replaceTransform: function(transform: Transform)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| transform | Transform | The Transform object to replace the current graphics coordinate transform with. |
+
+## transformPoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts the given 2D position from global coordinates into screen-space.
+This effectively applies the current graphics transformations to the given position. A similar
+Transform:transformPoint method exists for Transform objects.
+
+**Signature:**
+```tl
+transformPoint: function(x: number, y: number): number, number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The x component of the position in global coordinates. |
+| y | number | The y component of the position in global coordinates. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The x component of the position with graphics transformations applied. |
+| number | The y component of the position with graphics transformations applied. |
+
+## inverseTransformPoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts the given 2D position from screen-space into global coordinates.
+This effectively applies the reverse of the current graphics transformations to the given position. A similar
+Transform:inverseTransformPoint method exists for Transform objects.
+
+**Signature:**
+```tl
+inverseTransformPoint: function(x: number, y: number): number, number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The x component of the screen-space position. |
+| y | number | The y component of the screen-space position. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The x component of the position in global coordinates. |
+| number | The y component of the position in global coordinates. |
+
+## isActive
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether the graphics module is able to be used. If it is not active, love.graphics function and method calls
+will not work correctly and may cause the program to crash.
+The graphics module is inactive if a window is not open, or if the app is in the background on iOS. Typically the
+app's execution will be automatically paused by the system, in the latter case.
+
+**Signature:**
+```tl
+isActive: function(): boolean
+	isCreated: function(): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the graphics module is active and able to be used. |
+
+## isGammaCorrect
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether gamma-correct rendering is supported and enabled. It can be enabled by setting t.gammacorrect = true
+in love.conf.
+Not all devices support gamma-correct rendering, in which case it will be automatically disabled and this function
+will return false. It is supported on desktop systems which have graphics cards that are capable of using OpenGL 3
+/ DirectX 10, and iOS devices that can use OpenGL ES 3.
+Overload details:
+1. When gamma-correct rendering is enabled, many functions and objects perform automatic color conversion
+between sRGB and linear RGB in order for blending and shader math to be mathematically correct (which they
+aren't if it's not enabled.) * The colors passed into converted from sRGB to linear RGB. * The colors set in
+text with per-character colors, points with per-point colors, standard custom Meshes which use the
+'VertexColor' attribute name will automatically be converted from sRGB to linear RGB when those objects are
+drawn. * creating the Image. * Everything drawn to the screen will be blended in linear RGB and then the
+result will be converted to sRGB for display. * Canvases which use the 'normal' or 'srgb' CanvasFormat will
+have their content blended in linear RGB and the result will be stored in the canvas in sRGB, when drawing to
+them. When the Canvas itself is drawn, its pixel colors will be converted from sRGB to linear RGB in the same
+manner as Images. Keeping the canvas pixel data stored as sRGB allows for better precision (less banding) for
+darker colors compared to 'rgba8'. Because most conversions are automatically handled, your own code doesn't
+need to worry about sRGB and linear RGB color conversions when gamma-correct rendering is enabled, except in
+a couple cases: * If a Mesh with custom vertex attributes is used and one of the attributes is meant to be
+used as a color in a Shader, and the attribute isn't named 'VertexColor'. * If a Shader is used which has
+uniform / extern variables or other variables that are meant to be used as colors, and Shader:sendColor isn't
+used. In both cases, love.math.gammaToLinear can be used to convert color values to linear RGB in Lua code,
+or the gammaCorrectColor (or unGammaCorrectColor if necessary) shader functions can be used inside shader
+code. Those shader functions ''only'' do conversions if gamma-correct rendering is actually enabled. The
+LOVE_GAMMA_CORRECT shader preprocessor define will be set if so. Read more about gamma-correct rendering
+here, here, and here.
+
+**Signature:**
+```tl
+isGammaCorrect: function(): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if gamma-correct rendering is supported and was enabled in love.conf, false otherwise. |
+
+## reset
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Resets the current graphics settings.
+Calling reset makes the current drawing color white, the current background color black, disables any active color
+component masks, disables wireframe mode and resets the current graphics transformation to the origin. It also
+sets both the point and line drawing modes to smooth and their sizes to 1.0.
+
+**Signature:**
+```tl
+reset: function()
+```
+
+## setBlendMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the blending mode.
+Overload details:
+1. The default 'alphamultiply' alpha mode should normally be preferred except when drawing content with
+pre-multiplied alpha. If content is drawn to a Canvas using the 'alphamultiply' mode, the Canvas texture will
+have pre-multiplied alpha afterwards, so the 'premultiplied' alpha mode should generally be used when drawing
+a Canvas to the screen.
+
+**Signature:**
+```tl
+setBlendMode: function(mode: string, alpha_mode?: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| mode | string | The blend mode to use. |
+| alpha_mode | string | What to do with the alpha of drawn objects when blending. (Default: 'alphamultiply'.) |
+
+## getBlendMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the blending mode.
+
+**Signature:**
+```tl
+getBlendMode: function(): string, string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The current blend mode. |
+| string | The current blend alpha mode – it determines how the alpha of drawn objects affects blending. |
+
+## setScissor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets or disables scissor.
+
+	-- The scissor limits the drawing area to a specified rectangle. This affects all graphics calls, including love.graphics.clear.
+
+	-- The dimensions of the scissor is unaffected by graphical transformations (translate, scale, ...).
+
+**Signature:**
+```tl
+setScissor: function()
+```
+
+## setScissor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets or disables scissor.
+
+	-- The scissor limits the drawing area to a specified rectangle. This affects all graphics calls, including love.graphics.clear.
+
+	-- The dimensions of the scissor is unaffected by graphical transformations (translate, scale, ...).
+
+**Signature:**
+```tl
+setScissor: function(x: number, y: number, width: number, height: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | x coordinate of upper left corner. |
+| y | number | y coordinate of upper left corner. |
+| width | number | width of clipping rectangle. |
+| height | number | height of clipping rectangle. |
+
+## getScissor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current scissor box.
+
+**Signature:**
+```tl
+getScissor: function(): number | nil, number | nil, number | nil, number | nil
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number or nil | The x-component of the top-left point of the box. |
+| number or nil | The y-component of the top-left point of the box. |
+| number or nil | The width of the box. |
+| number or nil | The height of the box. |
+
+## intersectScissor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the scissor to the rectangle created by the intersection of the specified rectangle with the existing
+scissor. If no scissor is active yet, it behaves like love.graphics.setScissor.
+The scissor limits the drawing area to a specified rectangle. This affects all graphics calls, including
+love.graphics.clear.
+The dimensions of the scissor is unaffected by graphical transformations (translate, scale, ...).
+
+**Signature:**
+```tl
+intersectScissor: function(x: number, y: number, width: number, height: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The x-coordinate of the upper left corner of the rectangle to intersect with the existing scissor rectangle. |
+| y | number | The y-coordinate of the upper left corner of the rectangle to intersect with the existing scissor rectangle. |
+| width | number | The width of the rectangle to intersect with the existing scissor rectangle. |
+| height | number | The height of the rectangle to intersect with the existing scissor rectangle. |
+
+## setColorMask
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the color mask. Enables or disables specific color components when rendering and clearing the screen. For example, if '''red''' is set to '''false''', no further changes will be made to the red component of any pixels.
+
+**Signature:**
+```tl
+setColorMask: function()
+```
+
+## setColorMask
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the color mask. Enables or disables specific color components when rendering and clearing the screen. For example, if '''red''' is set to '''false''', no further changes will be made to the red component of any pixels.
+
+**Signature:**
+```tl
+setColorMask: function(red: boolean, green: boolean, blue: boolean, alpha: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| red | boolean | Render red component. |
+| green | boolean | Render green component. |
+| blue | boolean | Render blue component. |
+| alpha | boolean | Render alpha component. |
+
+## getColorMask
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the active color components used when drawing. Normally all 4 components are active unless
+love.graphics.setColorMask has been used.
+The color mask determines whether individual components of the colors of drawn objects will affect the color of
+the screen. They affect love.graphics.clear and Canvas:clear as well.
+
+**Signature:**
+```tl
+getColorMask: function(): boolean, boolean, boolean, boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the red color component is active when rendering. |
+| boolean | Whether the green color component is active when rendering. |
+| boolean | Whether the blue color component is active when rendering. |
+| boolean | Whether the alpha color component is active when rendering. |
+
+## setDepthMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Configures depth testing and writing to the depth buffer.
+
+	-- This is low-level functionality designed for use with custom vertex shaders and Meshes with custom vertex attributes. No higher level APIs are provided to set the depth of 2D graphics such as shapes, lines, and Images.
+
+**Signature:**
+```tl
+setDepthMode: function()
+```
+
+## setDepthMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Configures depth testing and writing to the depth buffer.
+
+	-- This is low-level functionality designed for use with custom vertex shaders and Meshes with custom vertex attributes. No higher level APIs are provided to set the depth of 2D graphics such as shapes, lines, and Images.
+
+**Signature:**
+```tl
+setDepthMode: function(compare: CompareMode, write: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| compare | CompareMode | Depth comparison mode used for depth testing. |
+| write | boolean | Whether to write update / write values to the depth buffer when rendering. |
+
+## getDepthMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current depth test mode and whether writing to the depth buffer is enabled.
+This is low-level functionality designed for use with custom vertex shaders and Meshes with custom vertex
+attributes. No higher level APIs are provided to set the depth of 2D graphics such as shapes, lines, and Images.
+
+**Signature:**
+```tl
+getDepthMode: function(): string, boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | Depth comparison mode used for depth testing. |
+| boolean | Whether to write update / write values to the depth buffer when rendering. |
+
+## setMeshCullMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets whether back-facing triangles in a Mesh are culled.
+This is designed for use with low level custom hardware-accelerated 3D rendering via custom vertex attributes on
+Meshes, custom vertex shaders, and depth testing with a depth buffer.
+By default, both front- and back-facing triangles in Meshes are rendered.
+
+**Signature:**
+```tl
+setMeshCullMode: function(mode: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| mode | string | The Mesh face culling mode to use (whether to render everything, cull back-facing triangles, or cull front-facing triangles). |
+
+## getMeshCullMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether back-facing triangles in a Mesh are culled.
+Mesh face culling is designed for use with low level custom hardware-accelerated 3D rendering via custom vertex
+attributes on Meshes, custom vertex shaders, and depth testing with a depth buffer.
+
+**Signature:**
+```tl
+getMeshCullMode: function(): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The Mesh face culling mode in use (whether to render everything, cull back-facing triangles, or cull front-facing triangles). |
+
+## setFrontFaceWinding
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets whether triangles with clockwise- or counterclockwise-ordered vertices are considered front-facing.
+This is designed for use in combination with Mesh face culling. Other love.graphics shapes, lines, and sprites are
+not guaranteed to have a specific winding order to their internal vertices.
+
+**Signature:**
+```tl
+setFrontFaceWinding: function(winding: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| winding | string | The winding mode to use. The default winding is counterclockwise ('ccw'). |
+
+## getFrontFaceWinding
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether triangles with clockwise- or counterclockwise-ordered vertices are considered front-facing.
+This is designed for use in combination with Mesh face culling. Other love.graphics shapes, lines, and sprites are
+not guaranteed to have a specific winding order to their internal vertices.
+
+**Signature:**
+```tl
+getFrontFaceWinding: function(): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The winding mode being used. The default winding is counterclockwise ('ccw'). |
+
+## stencil
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws geometry as a stencil.
+
+	-- The geometry drawn by the supplied function sets invisible stencil values of pixels, instead of setting pixel colors. The stencil buffer (which contains those stencil values) can act like a mask / stencil - love.graphics.setStencilTest can be used afterward to determine how further rendering is affected by the stencil values in each pixel.
+
+	-- Stencil values are integers within the range of 255.
+
+**Signature:**
+```tl
+stencil: function(draw: function(), action?: StencilAction, value?: integer, keep_values_or_clear_value?: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| draw | function( | ) Function which draws geometry. The stencil values of pixels, rather than the color of each pixel, will be affected by the geometry. |
+| action | StencilAction | How to modify any stencil values of pixels that are touched by what's drawn in the stencil function. (Default: 'replace'.) |
+| value | integer | The new stencil value to use for pixels if the 'replace' stencil action is used. Has no effect with other stencil actions. Must be between 0 and 255. (Default: 1.) |
+| keep_values_or_clear_value | boolean | True to preserve old stencil values of pixels, false to re-set every pixel's stencil value to 0 before executing the stencil function. love.graphics.clear will also re-set all stencil values. (Default: false.) |
+
+## stencil
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws geometry as a stencil.
+
+	-- The geometry drawn by the supplied function sets invisible stencil values of pixels, instead of setting pixel colors. The stencil buffer (which contains those stencil values) can act like a mask / stencil - love.graphics.setStencilTest can be used afterward to determine how further rendering is affected by the stencil values in each pixel.
+
+	-- Stencil values are integers within the range of 255.
+
+**Signature:**
+```tl
+stencil: function(draw: function(), action: StencilAction, value: integer, keep_values_or_clear_value: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| draw | function( | ) Function which draws geometry. The stencil values of pixels, rather than the color of each pixel, will be affected by the geometry. |
+| action | StencilAction | How to modify any stencil values of pixels that are touched by what's drawn in the stencil function. (Default: 'replace'.) |
+| value | integer | The new stencil value to use for pixels if the 'replace' stencil action is used. Has no effect with other stencil actions. Must be between 0 and 255. (Default: 1.) |
+| keep_values_or_clear_value | number | True to preserve old stencil values of pixels, false to re-set every pixel's stencil value to 0 before executing the stencil function. love.graphics.clear will also re-set all stencil values. (Default: false.) |
+
+## setStencilTest
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Configures or disables stencil testing.
+
+	-- When stencil testing is enabled, the geometry of everything that is drawn afterward will be clipped / stencilled out based on a comparison between the arguments of this function and the stencil value of each pixel that the geometry touches. The stencil values of pixels are affected via love.graphics.stencil.
+
+**Signature:**
+```tl
+setStencilTest: function()
+```
+
+## setStencilTest
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Configures or disables stencil testing.
+
+	-- When stencil testing is enabled, the geometry of everything that is drawn afterward will be clipped / stencilled out based on a comparison between the arguments of this function and the stencil value of each pixel that the geometry touches. The stencil values of pixels are affected via love.graphics.stencil.
+
+**Signature:**
+```tl
+setStencilTest: function(compare: CompareMode, value: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| compare | CompareMode | The type of comparison to make for each pixel. |
+| value | integer | The value to use when comparing with the stencil value of each pixel. Must be between 0 and 255. |
+
+## getStencilTest
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current stencil test configuration.
+When stencil testing is enabled, the geometry of everything that is drawn afterward will be clipped / stencilled
+out based on a comparison between the arguments of this function and the stencil value of each pixel that the
+geometry touches. The stencil values of pixels are affected via love.graphics.stencil.
+Each Canvas has its own per-pixel stencil values.
+
+**Signature:**
+```tl
+getStencilTest: function(): string, integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The type of comparison that is made for each pixel. Will be 'always' if stencil testing is disabled. |
+| integer | The value used when comparing with the stencil value of each pixel. |
+
+## newFont
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Font from a TrueType Font or BMFont file. Created fonts are not cached, in that calling this function with the same arguments will always create a new Font object.
+
+	-- All variants which accept a filename can also accept a Data object instead.
+
+**Signature:**
+```tl
+newFont: function(size?: integer): Font
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| size | integer | The size of the font in pixels. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Font | font — A Font object which can be used to draw text on screen. |
+
+## newFont
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Font from a TrueType Font or BMFont file. Created fonts are not cached, in that calling this function with the same arguments will always create a new Font object.
+
+	-- All variants which accept a filename can also accept a Data object instead.
+
+**Signature:**
+```tl
+newFont: function(filename: string, size?: integer): Font
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The filepath to the TrueType font file. |
+| size | integer | The size of the font in pixels. (Default: 12.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Font | font — A Font object which can be used to draw text on screen. |
+
+## setNewFont
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates and sets a new Font.
+
+**Signature:**
+```tl
+setNewFont: function(size?: integer): Font
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| size | integer | The size of the font. (Default: 12.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Font | font — The new font. |
+
+## setNewFont
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates and sets a new Font.
+
+**Signature:**
+```tl
+setNewFont: function(filename: string, size?: integer): Font
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The path and name of the file with the font. |
+| size | integer | The size of the font. (Default: 12.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Font | font — The new font. |
+
+## newImageFont
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new specifically formatted image.
+
+	-- In versions prior to 0.9.0, LÖVE expects ISO 8859-1 encoding for the glyphs string.
+
+**Signature:**
+```tl
+newImageFont: function(source: string | FileData | ImageData, glyphs: string, extra_spacing?: integer, dpi_scale?: number): Font
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| source | string | FileData | ImageData | The filepath to the image file. |
+| glyphs | string | A string of the characters in the image in order from left to right. |
+| extra_spacing | integer | Additional spacing (positive or negative) to apply to each glyph in the Font. (Default: 0.) |
+| dpi_scale | number | The DPI scale factor of the font. (Default: 1.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Font | font — A Font object which can be used to draw text on screen. |
+
+## newImageFont
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new specifically formatted image.
+
+	-- In versions prior to 0.9.0, LÖVE expects ISO 8859-1 encoding for the glyphs string.
+
+**Signature:**
+```tl
+newImageFont: function(rasterizer: Rasterizer): Font
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| rasterizer | Rasterizer | The ImageData object to create the font from. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Font | font — A Font object which can be used to draw text on screen. |
+
+## newText
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new drawable Text object.
+
+**Signature:**
+```tl
+newText: function(font: Font, text?: any): Text
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| font | Font | The font to use for the text. |
+| text | any | The initial string of text that the new Text object will contain. May be nil. (Default: nil.) Depending on the overload: A table containing colors and strings to add to the object, in the form of \{color1, string1, color2, string2, ...}. color1: A table containing red, green, blue, and optional alpha components to use as a color for the next string in the table, in the form of \{red, green, blue, alpha}. string1: A string of text which has a color specified by the previous color. color2: A table containing red, green, blue, and optional alpha components to use as a color for the next string in the table, in the form of \{red, green, blue, alpha}. string2: A string of text which has a color specified by the previous color. ...: Additional colors and strings. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Text | The new drawable Text object. |
+
+## setFont
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Set an already-loaded Font as the current font or create and load a new one from the file and size.
+It's recommended that Font objects are created with love.graphics.newFont in the loading stage and then passed to
+this function in the drawing stage.
+
+**Signature:**
+```tl
+setFont: function(font: Font)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| font | Font | The Font object to use. |
+
+## getFont
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current Font object.
+
+**Signature:**
+```tl
+getFont: function(): Font
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Font | The current Font. Automatically creates and sets the default font, if none is set yet. |
+
+## print
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws text on screen. If no Font is set, one will be created and set (once) if needed.
+As of LOVE 0.7.1, when using translation and scaling functions while drawing text, this function assumes the scale
+occurs first. If you don't script with this in mind, the text won't be in the right position, or possibly even on
+screen.
+love.graphics.print and love.graphics.printf both support UTF-8 encoding. You'll also need a proper Font for
+special characters.
+In versions prior to 11.0, color and byte component values were within the range of 0 to 255 instead of 0 to 1.
+Overload details:
+1. The color set by love.graphics.setColor will be combined (multiplied) with the colors of the text.
+
+**Signature:**
+```tl
+print: function(text: string | number, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| text | string or number | The text to draw. |
+| x | number | The position to draw the object (x-axis). (Default: 0.) Depending on the overload: The position of the text on the x-axis. (Default: 0.) |
+| y | number | The position to draw the object (y-axis). (Default: 0.) Depending on the overload: The position of the text on the y-axis. (Default: 0.) |
+| angle | number | The orientation of the text in radians. (Default: 0.) |
+| scale_x | number | Scale factor (x-axis). (Default: 1.) Depending on the overload: Scale factor on the x-axis. (Default: 1.) |
+| scale_y | number | Scale factor (y-axis). (Default: sx.) Depending on the overload: Scale factor on the y-axis. (Default: sx.) |
+| origin_x | number | Origin offset (x-axis). (Default: 0.) Depending on the overload: Origin offset on the x-axis. (Default: 0.) |
+| origin_y | number | Origin offset (y-axis). (Default: 0.) Depending on the overload: Origin offset on the y-axis. (Default: 0.) |
+| shear_x | number | Shearing factor (x-axis). (Default: 0.) Depending on the overload: Shearing / skew factor on the x-axis. (Default: 0.) |
+| shear_y | number | Shearing factor (y-axis). (Default: 0.) Depending on the overload: Shearing / skew factor on the y-axis. (Default: 0.) |
+
+## printf
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws formatted text, with word wrap and alignment.
+See additional notes in love.graphics.print.
+The word wrap limit is applied before any scaling, rotation, and other coordinate transformations. Therefore the
+amount of text per line stays constant given the same wrap limit, even if the scale arguments change.
+In version 0.9.2 and earlier, wrapping was implemented by breaking up words by spaces and putting them back
+together to make sure things fit nicely within the limit provided. However, due to the way this is done, extra
+spaces between words would end up missing when printed on the screen, and some lines could overflow past the
+provided wrap limit. In version 0.10.0 and newer this is no longer the case.
+In versions prior to 11.0, color and byte component values were within the range of 0 to 255 instead of 0 to 1.
+Overload details:
+1. The color set by love.graphics.setColor will be combined (multiplied) with the colors of the text.
+
+**Signature:**
+```tl
+printf: function(text: string | number, x: number, y: number, limit: number, align?: string, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| text | string or number | A text string. |
+| x | number | The position on the x-axis. Depending on the overload: The position of the text (x-axis). |
+| y | number | The position on the y-axis. Depending on the overload: The position of the text (y-axis). |
+| limit | number | Wrap the line after this many horizontal pixels. Depending on the overload: The maximum width in pixels of the text before it gets automatically wrapped to a new line. |
+| align | string | The alignment. (Default: 'left'.) Depending on the overload: The alignment of the text. |
+| angle | number | Orientation (radians). (Default: 0.) |
+| scale_x | number | Scale factor (x-axis). (Default: 1.) |
+| scale_y | number | Scale factor (y-axis). (Default: sx.) |
+| origin_x | number | Origin offset (x-axis). (Default: 0.) |
+| origin_y | number | Origin offset (y-axis). (Default: 0.) |
+| shear_x | number | Shearing factor (x-axis). (Default: 0.) Depending on the overload: Shearing / skew factor (x-axis). (Default: 0.) |
+| shear_y | number | Shearing factor (y-axis). (Default: 0.) Depending on the overload: Shearing / skew factor (y-axis). (Default: 0.) |
+
+## newImage
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Image from a filepath, FileData, an ImageData, or a CompressedImageData, and optionally generates or specifies mipmaps for the image.
+
+**Signature:**
+```tl
+newImage: function(filename: string, settings?: ImageSettings): Image
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The filepath to the image file. |
+| settings | ImageSettings | A table containing the following fields: (Default: nil.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Image | image — A new Image object which can be drawn on screen. |
+
+## newImage
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Image from a filepath, FileData, an ImageData, or a CompressedImageData, and optionally generates or specifies mipmaps for the image.
+
+**Signature:**
+```tl
+newImage: function(data: FileData, settings?: CompressedImageSettings): Image
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| data | FileData | The FileData containing image file. |
+| settings | CompressedImageSettings | A table containing the following fields: (Default: nil.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Image | image — A new Image object which can be drawn on screen. |
+
+## newImage
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Image from a filepath, FileData, an ImageData, or a CompressedImageData, and optionally generates or specifies mipmaps for the image.
+
+**Signature:**
+```tl
+newImage: function(data: ImageData, settings?: ImageSettings): Image
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| data | ImageData | The ImageData containing image. |
+| settings | ImageSettings | A table containing the following fields: (Default: nil.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Image | image — A new Image object which can be drawn on screen. |
+
+## newImage
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Image from a filepath, FileData, an ImageData, or a CompressedImageData, and optionally generates or specifies mipmaps for the image.
+
+**Signature:**
+```tl
+newImage: function(data: CompressedImageData, settings?: CompressedImageSettings): Image
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| data | CompressedImageData | A CompressedImageData object. The Image will use this CompressedImageData to reload itself when love.window.setMode is called. |
+| settings | CompressedImageSettings | A table containing the following fields: (Default: nil.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Image | image — A new Image object which can be drawn on screen. |
+
+## newVideo
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new drawable Video. Currently only Ogg Theora video files are supported.
+
+**Signature:**
+```tl
+newVideo: function(filename: string, settings?: any): Video
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The file path to the Ogg Theora video file. |
+| settings | any | A table containing the following fields: (Default: nil.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Video | video — A new Video. |
+
+## newVideo
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new drawable Video. Currently only Ogg Theora video files are supported.
+
+**Signature:**
+```tl
+newVideo: function(stream: VideoStream, settings?: any): Video
+	_newVideo: function(filename_or_stream: string | VideoStream, dpi_scale?: number): Video
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| stream | VideoStream | The file path to the Ogg Theora video file. |
+| settings | any | A table containing the following fields: (Default: nil.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Video | video — A new Video. |
+
+## newArrayImage
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new array Image.
+An array image / array texture is a single object which contains multiple 'layers' or 'slices' of 2D sub-images.
+It can be thought of similarly to a texture atlas or sprite sheet, but it doesn't suffer from the same tile / quad
+bleeding artifacts that texture atlases do – although every sub-image must have the same dimensions.
+A specific layer of an array image can be drawn with love.graphics.drawLayer / SpriteBatch:addLayer, or with the
+Quad variant of love.graphics.draw and Quad:setLayer, or via a custom Shader.
+To use an array image in a Shader, it must be declared as a ArrayImage or sampler2DArray type (instead of Image or
+sampler2D). The Texel(ArrayImage image, vec3 texturecoord) shader function must be used to get pixel colors from a
+slice of the array image. The vec3 argument contains the texture coordinate in the first two components, and the
+0-based slice index in the third component.
+Overload details:
+1. Creates an array Image given a different image file for each slice of the resulting array image object.
+Illustration of how an array image works: an external illustration A DPI scale of 2 (double the normal pixel
+density) will result in the image taking up the same space on-screen as an image with half its pixel
+dimensions that has a DPI scale of 1. This allows for easily swapping out image assets that take the same
+space on-screen but have different pixel densities, which makes supporting high-dpi / retina resolution
+require less code logic. In order to use an Array Texture or other non-2D texture types as the main texture
+in a custom void effect() variant must be used in the pixel shader, and MainTex must be declared as an
+ArrayImage or sampler2DArray like so: uniform ArrayImage MainTex;.
+
+**Signature:**
+```tl
+newArrayImage: function(layers: {ImageData}, settings?: LayeredImageSettings): Image
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| layers | \{ImageData} | A table containing filepaths to images (or File, FileData, ImageData, or CompressedImageData objects), in an array. Each sub-image must have the same dimensions. A table of tables can also be given, where each sub-table contains all mipmap levels for the slice index of that sub-table. |
+| settings | LayeredImageSettings | Optional table of settings to configure the array image, containing the following fields: (Default: nil.) mipmaps: True to make the image use mipmaps, false to disable them. Mipmaps will be automatically generated if the image isn't a compressed texture format. (Default: false.) linear: True to treat the image's pixels as linear instead of sRGB, when gamma correct rendering is enabled. Most images are authored as sRGB. (Default: false.) dpiscale: The DPI scale to use when drawing the array image and calling getWidth/getHeight. (Default: 1.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Image | An Array Image object. |
+
+## newCubeImage
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new cubemap Image.
+Cubemap images have 6 faces (sides) which represent a cube. They can't be rendered directly, they can only be used
+in Shader code (and sent to the shader via Shader:send).
+To use a cubemap image in a Shader, it must be declared as a CubeImage or samplerCube type (instead of Image or
+sampler2D). The Texel(CubeImage image, vec3 direction) shader function must be used to get pixel colors from the
+cubemap. The vec3 argument is a normalized direction from the center of the cube, rather than explicit texture
+coordinates.
+Each face in a cubemap image must have square dimensions.
+For variants of this function which accept a single image containing multiple cubemap faces, they must be laid out
+in one of the following forms in the image:
++y
++z +x -z
+-y
+-x
+or:
++y
+-x +z +x -z
+-y
+or:
++x
+-x
++y
+-y
++z
+-z
+or:
++x -x +y -y +z -z
+Overload details:
+1. Creates a cubemap Image given a single image file containing multiple cube faces.
+2. Creates a cubemap Image given a different image file for each cube face.
+
+**Signature:**
+```tl
+newCubeImage: function(faces: {ImageData}, settings?: LayeredImageSettings): Image
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| faces | \{ImageData} | A table containing 6 filepaths to images (or File, FileData, ImageData, or CompressedImageData objects), in an array. Each face image must have the same dimensions. A table of tables can also be given, where each sub-table contains all mipmap levels for the cube face index of that sub-table. |
+| settings | LayeredImageSettings | Optional table of settings to configure the cubemap image, containing the following fields: (Default: nil.) mipmaps: True to make the image use mipmaps, false to disable them. Mipmaps will be automatically generated if the image isn't a compressed texture format. (Default: false.) linear: True to treat the image's pixels as linear instead of sRGB, when gamma correct rendering is enabled. Most images are authored as sRGB. (Default: false.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Image | An cubemap Image object. |
+
+## newVolumeImage
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new volume (3D) Image.
+Volume images are 3D textures with width, height, and depth. They can't be rendered directly, they can only be
+used in Shader code (and sent to the shader via Shader:send).
+To use a volume image in a Shader, it must be declared as a VolumeImage or sampler3D type (instead of Image or
+sampler2D). The Texel(VolumeImage image, vec3 texcoords) shader function must be used to get pixel colors from the
+volume image. The vec3 argument is a normalized texture coordinate with the z component representing the depth to
+sample at (ranging from 1).
+Volume images are typically used as lookup tables in shaders for color grading, for example, because sampling
+using a texture coordinate that is partway in between two pixels can interpolate across all 3 dimensions in the
+volume image, resulting in a smooth gradient even when a small-sized volume image is used as the lookup table.
+Array images are a much better choice than volume images for storing multiple different sprites in a single array
+image for directly drawing them.
+Overload details:
+1. Creates a volume Image given multiple image files with matching dimensions. Volume images are not supported
+on some older mobile devices. Use love.graphics.getTextureTypes to check at runtime.
+
+**Signature:**
+```tl
+newVolumeImage: function(slices: {ImageData}, settings?: LayeredImageSettings): Image
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| slices | \{ImageData} | A table containing filepaths to images (or File, FileData, ImageData, or CompressedImageData objects), in an array. A table of tables can also be given, where each sub-table represents a single mipmap level and contains all layers for that mipmap. |
+| settings | LayeredImageSettings | Optional table of settings to configure the volume image, containing the following fields: (Default: nil.) mipmaps: True to make the image use mipmaps, false to disable them. Mipmaps will be automatically generated if the image isn't a compressed texture format. (Default: false.) linear: True to treat the image's pixels as linear instead of sRGB, when gamma correct rendering is enabled. Most images are authored as sRGB. (Default: false.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Image | A volume Image object. |
+
+## newCanvas
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Canvas object for offscreen rendering.
+
+**Signature:**
+```tl
+newCanvas: function(): Canvas
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Canvas | canvas — A new Canvas with dimensions equal to the window's size in pixels. |
+
+## newCanvas
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Canvas object for offscreen rendering.
+
+**Signature:**
+```tl
+newCanvas: function(width: integer, height: integer, settings?: CanvasSettings): Canvas
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| width | integer | The desired width of the Canvas. |
+| height | integer | The desired height of the Canvas. |
+| settings | CanvasSettings | A table containing the given fields: (Default: nil.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Canvas | A new Canvas with specified width and height. |
+
+## getCanvasFormats
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the available Canvas formats, and whether each is supported.
+
+**Signature:**
+```tl
+getCanvasFormats: function(readable?: boolean, formats?: {string: boolean}): {string: boolean}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| readable | boolean | If true, the returned formats will only be indicated as supported if readable flag set to true for that format, and vice versa if the parameter is false. |
+| formats | \{string: boolean} | The formats parameter. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{string: boolean} | A table containing CanvasFormats as keys, and a boolean indicating whether the format is supported as values. Not all systems support all formats. Depending on the overload: A table containing CanvasFormats as keys, and a boolean indicating whether the format is supported as values (taking into account the readable parameter). Not all systems support all formats. |
+
+## setCanvas
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Captures drawing operations to a Canvas.
+
+**Signature:**
+```tl
+setCanvas: function()
+```
+
+## setCanvas
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Captures drawing operations to a Canvas.
+
+**Signature:**
+```tl
+setCanvas: function(canvas: Canvas, canvases: Canvas...)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| canvas | Canvas | The new render target. |
+| canvases | Canvas... | A table specifying the active Canvas(es), their mipmap levels and active layers if applicable, and whether to use a stencil and/or depth buffer. |
+
+## setCanvas
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Captures drawing operations to a Canvas.
+
+**Signature:**
+```tl
+setCanvas: function(canvases: {Canvas})
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| canvases | \{Canvas} | A table specifying the active Canvas(es), their mipmap levels and active layers if applicable, and whether to use a stencil and/or depth buffer. |
+
+## setCanvas
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Captures drawing operations to a Canvas.
+
+**Signature:**
+```tl
+setCanvas: function(setup: CanvasSetup)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| setup | CanvasSetup | A table specifying the active Canvas(es), their mipmap levels and active layers if applicable, and whether to use a stencil and/or depth buffer. |
+
+## getCanvas
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current target Canvas.
+
+**Signature:**
+```tl
+getCanvas: function(): Canvas | nil
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Canvas or nil | The Canvas set by setCanvas. Returns nil if drawing to the real screen. |
+
+## newQuad
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Quad.
+
+	-- The purpose of a Quad is to use a fraction of an image to draw objects, as opposed to drawing entire image. It is most useful for sprite sheets and atlases: in a sprite atlas, multiple sprites reside in same image, quad is used to draw a specific sprite from that image; in animated sprites with all frames residing in the same image, quad is used to draw specific frame from the animation.
+
+**Signature:**
+```tl
+newQuad: function(x: number, y: number, width: number, height: number, image: Image | Canvas): Quad
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The top-left position in the Image along the x-axis. |
+| y | number | The top-left position in the Image along the y-axis. |
+| width | number | The width of the Quad in the Image. (Must be greater than 0.) |
+| height | number | The height of the Quad in the Image. (Must be greater than 0.) |
+| image | Image | Canvas | The texture whose width and height will be used as the reference width and height. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Quad | quad — The new Quad. |
+
+## newQuad
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Quad.
+
+	-- The purpose of a Quad is to use a fraction of an image to draw objects, as opposed to drawing entire image. It is most useful for sprite sheets and atlases: in a sprite atlas, multiple sprites reside in same image, quad is used to draw a specific sprite from that image; in animated sprites with all frames residing in the same image, quad is used to draw specific frame from the animation.
+
+**Signature:**
+```tl
+newQuad: function(x: number, y: number, width: number, height: number, texture_width: number, texture_height: number): Quad
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The top-left position in the Image along the x-axis. |
+| y | number | The top-left position in the Image along the y-axis. |
+| width | number | The width of the Quad in the Image. (Must be greater than 0.) |
+| height | number | The height of the Quad in the Image. (Must be greater than 0.) |
+| texture_width | number | The reference width, the width of the Image. (Must be greater than 0.) |
+| texture_height | number | The reference height, the height of the Image. (Must be greater than 0.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Quad | quad — The new Quad. |
+
+## newMesh
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Mesh.
+
+	-- Use Mesh:setTexture if the Mesh should be textured with an Image or Canvas when it's drawn.
+
+	-- In versions prior to 11.0, color and byte component values were within the range of 0 to 255 instead of 0 to 1.
+
+**Signature:**
+```tl
+newMesh: function(vertices: {MeshVertex} | number, draw_mode?: MeshDrawMode, usage?: MeshUsage): Mesh
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vertices | \{MeshVertex} | number | The table filled with vertex information tables for each vertex as follows: |
+| draw_mode | MeshDrawMode | How the vertices are used when drawing. The default mode 'fan' is sufficient for simple convex polygons. (Default: 'fan'.) |
+| usage | MeshUsage | The expected usage of the Mesh. The specified usage mode affects the Mesh's memory usage and performance. (Default: 'dynamic'.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Mesh | mesh — The new mesh. |
+
+## newMesh
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Mesh.
+
+	-- Use Mesh:setTexture if the Mesh should be textured with an Image or Canvas when it's drawn.
+
+	-- In versions prior to 11.0, color and byte component values were within the range of 0 to 255 instead of 0 to 1.
+
+**Signature:**
+```tl
+newMesh: function(format: {MeshVertexFormat}, vertices: {MeshVertex} | number | Data, draw_mode?: MeshDrawMode, usage?: MeshUsage): Mesh
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| format | \{MeshVertexFormat} | A table in the form of \{attribute, ...}. Each attribute is a table which specifies a custom vertex attribute used for each vertex. |
+| vertices | \{MeshVertex} | number | Data | The table filled with vertex information tables for each vertex, in the form of \{vertex, ...} where each vertex is a table in the form of \{attributecomponent, ...}. |
+| draw_mode | MeshDrawMode | The Image or Canvas to use when drawing the Mesh. May be nil to use no texture. (Default: nil.) |
+| usage | MeshUsage | The expected usage of the Mesh. The specified usage mode affects the Mesh's memory usage and performance. (Default: 'dynamic'.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Mesh | mesh — The new mesh. |
+
+## newSpriteBatch
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new SpriteBatch object.
+
+**Signature:**
+```tl
+newSpriteBatch: function(texture: Image | Canvas, size?: integer, usage?: string): SpriteBatch
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| texture | Image or Canvas | The Image or Canvas to use for the sprites. |
+| size | integer | The maximum number of sprites that the SpriteBatch can contain at any given time. Since version 11.0, additional sprites added past this number will automatically grow the spritebatch. (Default: 1000.) |
+| usage | string | The expected usage of the SpriteBatch. The specified usage mode affects the SpriteBatch's memory usage and performance. (Default: 'dynamic'.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| SpriteBatch | The new SpriteBatch. |
+
+## newParticleSystem
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new ParticleSystem.
+
+**Signature:**
+```tl
+newParticleSystem: function(texture: Image | Canvas, size?: integer): ParticleSystem
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| texture | Image or Canvas | The texture (Image or Canvas) to use. |
+| size | integer | The max number of particles at the same time. (Default: 1000.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ParticleSystem | A new ParticleSystem. |
+
+## newShader
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Shader object for hardware-accelerated vertex and pixel effects. A Shader contains either vertex
+shader code, pixel shader code, or both.
+Shaders are small programs which are run on the graphics card when drawing. Vertex shaders are run once for each
+vertex (for example, an image has 4 vertices - one at each corner. A Mesh might have many more.) Pixel shaders are
+run once for each pixel on the screen which the drawn object touches. Pixel shader code is executed after all the
+object's vertices have been processed by the vertex shader.
+
+**Signature:**
+```tl
+newShader: function(source: string | FileData, pixel_source?: string | FileData): Shader
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| source | string or FileData | The pixel shader code, or a filename pointing to a file with the code. |
+| pixel_source | string or FileData | The vertex shader code, or a filename pointing to a file with the code. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Shader | A Shader object for use in drawing operations. |
+
+## validateShader
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Validates shader code. Check if specified shader code does not contain any errors.
+
+**Signature:**
+```tl
+validateShader: function(gles: boolean, source: string | FileData, pixel_source?: string | FileData): boolean, string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| gles | boolean | Validate code as GLSL ES shader. |
+| source | string or FileData | The pixel shader code, or a filename pointing to a file with the code. |
+| pixel_source | string or FileData | The vertex shader code, or a filename pointing to a file with the code. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | true if specified shader code doesn't contain any errors. false otherwise. |
+| string or nil | Reason why shader code validation failed (or nil if validation succeded). |
+
+## setShader
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets or resets a Shader as the current pixel effect or vertex shaders. All drawing operations until the next ''love.graphics.setShader'' will be drawn using the Shader object specified.
+
+**Signature:**
+```tl
+setShader: function()
+```
+
+## setShader
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets or resets a Shader as the current pixel effect or vertex shaders. All drawing operations until the next ''love.graphics.setShader'' will be drawn using the Shader object specified.
+
+**Signature:**
+```tl
+setShader: function(shader: Shader)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| shader | Shader | The new shader. |
+
+## getShader
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current Shader. Returns nil if none is set.
+
+**Signature:**
+```tl
+getShader: function(): Shader | nil
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Shader or nil | The currently active Shader, or nil if none is set. |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a Drawable object (an Image, Canvas, SpriteBatch, ParticleSystem, Mesh, Text object, or Video) on the screen with optional rotation, scaling and shearing.
+
+	-- Objects are drawn relative to their local coordinate system. The origin is by default located at the top left corner of Image and Canvas. All scaling, shearing, and rotation arguments transform the object relative to that point. Also, the position of the origin can be specified on the screen coordinate system.
+
+	-- It's possible to rotate an object about its center by offsetting the origin to the center. Angles must be given in radians for rotation. One can also use a negative scaling factor to flip about its centerline.
+
+	-- Note that the offsets are applied before rotation, scaling, or shearing; scaling and shearing are applied before rotation.
+
+	-- The right and bottom edges of the object are shifted at an angle defined by the shearing factors.
+
+	-- When using the default shader anything drawn with this function will be tinted according to the currently selected color. Set it to pure white to preserve the object's original colors.
+
+**Signature:**
+```tl
+draw: function(image: Image, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| image | Image | A drawable object. |
+| x | number | The position to draw the object (x-axis). (Default: 0.) |
+| y | number | The position to draw the object (y-axis). (Default: 0.) |
+| angle | number | Orientation (radians). (Default: 0.) |
+| scale_x | number | Scale factor (x-axis). (Default: 1.) |
+| scale_y | number | Scale factor (y-axis). (Default: sx.) |
+| origin_x | number | Origin offset (x-axis). (Default: 0.) |
+| origin_y | number | Origin offset (y-axis). (Default: 0.) |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a Drawable object (an Image, Canvas, SpriteBatch, ParticleSystem, Mesh, Text object, or Video) on the screen with optional rotation, scaling and shearing.
+
+	-- Objects are drawn relative to their local coordinate system. The origin is by default located at the top left corner of Image and Canvas. All scaling, shearing, and rotation arguments transform the object relative to that point. Also, the position of the origin can be specified on the screen coordinate system.
+
+	-- It's possible to rotate an object about its center by offsetting the origin to the center. Angles must be given in radians for rotation. One can also use a negative scaling factor to flip about its centerline.
+
+	-- Note that the offsets are applied before rotation, scaling, or shearing; scaling and shearing are applied before rotation.
+
+	-- The right and bottom edges of the object are shifted at an angle defined by the shearing factors.
+
+	-- When using the default shader anything drawn with this function will be tinted according to the currently selected color. Set it to pure white to preserve the object's original colors.
+
+**Signature:**
+```tl
+draw: function(image: Image, quad: Quad, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| image | Image | A drawable object. |
+| quad | Quad | The Quad to draw on screen. |
+| x | number | The position to draw the object (x-axis). |
+| y | number | The position to draw the object (y-axis). |
+| angle | number | Scale factor (x-axis). (Default: 1.) |
+| scale_x | number | Scale factor (y-axis). (Default: sx.) |
+| scale_y | number | Origin offset (x-axis). (Default: 0.) |
+| origin_x | number | Origin offset (y-axis). (Default: 0.) |
+| origin_y | number | Shearing factor (x-axis). (Default: 0.) |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a Canvas on the screen with optional rotation, scaling, and shearing.
+
+**Signature:**
+```tl
+draw: function(canvas: Canvas, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| canvas | Canvas | The Canvas to draw. |
+| x | number | The position to draw the object on the x-axis. (Default: 0.) |
+| y | number | The position to draw the object on the y-axis. (Default: 0.) |
+| angle | number | The orientation in radians. (Default: 0.) |
+| scale_x | number | The scale factor on the x-axis. (Default: 1.) |
+| scale_y | number | The scale factor on the y-axis. (Default: scaleX.) |
+| origin_x | number | The origin offset on the x-axis. (Default: 0.) |
+| origin_y | number | The origin offset on the y-axis. (Default: 0.) |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a Canvas on the screen with optional rotation, scaling, and shearing.
+
+**Signature:**
+```tl
+draw: function(canvas: Canvas, quad: Quad, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| canvas | Canvas | The Canvas to draw. |
+| quad | Quad | The subsection of the drawable to draw. |
+| x | number | The position to draw the object on the x-axis. (Default: 0.) |
+| y | number | The position to draw the object on the y-axis. (Default: 0.) |
+| angle | number | The orientation in radians. (Default: 0.) |
+| scale_x | number | The scale factor on the x-axis. (Default: 1.) |
+| scale_y | number | The scale factor on the y-axis. (Default: scaleX.) |
+| origin_x | number | The origin offset on the x-axis. (Default: 0.) |
+| origin_y | number | The origin offset on the y-axis. (Default: 0.) |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a Mesh on the screen with optional rotation, scaling, and shearing.
+
+**Signature:**
+```tl
+draw: function(mesh: Mesh, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| mesh | Mesh | The Mesh to draw. |
+| x | number | The position to draw the object on the x-axis. (Default: 0.) |
+| y | number | The position to draw the object on the y-axis. (Default: 0.) |
+| angle | number | The orientation in radians. (Default: 0.) |
+| scale_x | number | The scale factor on the x-axis. (Default: 1.) |
+| scale_y | number | The scale factor on the y-axis. (Default: scaleX.) |
+| origin_x | number | The origin offset on the x-axis. (Default: 0.) |
+| origin_y | number | The origin offset on the y-axis. (Default: 0.) |
+| shear_x | number | The shearing factor on the x-axis. (Default: 0.) |
+| shear_y | number | The shearing factor on the y-axis. (Default: 0.) |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a SpriteBatch on the screen with optional rotation, scaling, and shearing.
+
+**Signature:**
+```tl
+draw: function(batch: SpriteBatch, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| batch | SpriteBatch | The SpriteBatch to draw. |
+| x | number | The position to draw the object on the x-axis. (Default: 0.) |
+| y | number | The position to draw the object on the y-axis. (Default: 0.) |
+| angle | number | The orientation in radians. (Default: 0.) |
+| scale_x | number | The scale factor on the x-axis. (Default: 1.) |
+| scale_y | number | The scale factor on the y-axis. (Default: scaleX.) |
+| origin_x | number | The origin offset on the x-axis. (Default: 0.) |
+| origin_y | number | The origin offset on the y-axis. (Default: 0.) |
+| shear_x | number | The shearing factor on the x-axis. (Default: 0.) |
+| shear_y | number | The shearing factor on the y-axis. (Default: 0.) |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a ParticleSystem on the screen with optional rotation, scaling, and shearing.
+
+**Signature:**
+```tl
+draw: function(particles: ParticleSystem, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| particles | ParticleSystem | The ParticleSystem to draw. |
+| x | number | The position to draw the object on the x-axis. (Default: 0.) |
+| y | number | The position to draw the object on the y-axis. (Default: 0.) |
+| angle | number | The orientation in radians. (Default: 0.) |
+| scale_x | number | The scale factor on the x-axis. (Default: 1.) |
+| scale_y | number | The scale factor on the y-axis. (Default: scaleX.) |
+| origin_x | number | The origin offset on the x-axis. (Default: 0.) |
+| origin_y | number | The origin offset on the y-axis. (Default: 0.) |
+| shear_x | number | The shearing factor on the x-axis. (Default: 0.) |
+| shear_y | number | The shearing factor on the y-axis. (Default: 0.) |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a Text on the screen with optional rotation, scaling, and shearing.
+
+**Signature:**
+```tl
+draw: function(text: Text, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| text | Text | The Text object to draw. |
+| x | number | The position to draw the object on the x-axis. (Default: 0.) |
+| y | number | The position to draw the object on the y-axis. (Default: 0.) |
+| angle | number | The orientation in radians. (Default: 0.) |
+| scale_x | number | The scale factor on the x-axis. (Default: 1.) |
+| scale_y | number | The scale factor on the y-axis. (Default: scaleX.) |
+| origin_x | number | The origin offset on the x-axis. (Default: 0.) |
+| origin_y | number | The origin offset on the y-axis. (Default: 0.) |
+| shear_x | number | The shearing factor on the x-axis. (Default: 0.) |
+| shear_y | number | The shearing factor on the y-axis. (Default: 0.) |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a Video on the screen with optional rotation, scaling, and shearing.
+
+**Signature:**
+```tl
+draw: function(video: Video, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| video | Video | The Video to draw. |
+| x | number | The position to draw the object on the x-axis. (Default: 0.) |
+| y | number | The position to draw the object on the y-axis. (Default: 0.) |
+| angle | number | The orientation in radians. (Default: 0.) |
+| scale_x | number | The scale factor on the x-axis. (Default: 1.) |
+| scale_y | number | The scale factor on the y-axis. (Default: scaleX.) |
+| origin_x | number | The origin offset on the x-axis. (Default: 0.) |
+| origin_y | number | The origin offset on the y-axis. (Default: 0.) |
+| shear_x | number | The shearing factor on the x-axis. (Default: 0.) |
+| shear_y | number | The shearing factor on the y-axis. (Default: 0.) |
+
+## drawLayer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a layer of an Table Texture.
+
+**Signature:**
+```tl
+drawLayer: function(image: Image, layer: integer, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| image | Image | The Table Texture to draw. |
+| layer | integer | The index of the layer to use when drawing. |
+| x | number | The position to draw the texture (x-axis). (Default: 0.) |
+| y | number | The position to draw the texture (y-axis). (Default: 0.) |
+| angle | number | Orientation (radians). (Default: 0.) |
+| scale_x | number | Scale factor (x-axis). (Default: 1.) |
+| scale_y | number | Scale factor (y-axis). (Default: sx.) |
+| origin_x | number | Origin offset (x-axis). (Default: 0.) |
+| origin_y | number | Origin offset (y-axis). (Default: 0.) |
+
+## drawLayer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a layer of an Table Texture.
+
+**Signature:**
+```tl
+drawLayer: function(image: Image, layer: integer, quad: Quad, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| image | Image | The Table Texture to draw. |
+| layer | integer | The index of the layer to use when drawing. |
+| quad | Quad | The subsection of the texture's layer to use when drawing. |
+| x | number | The position to draw the texture (x-axis). (Default: 0.) |
+| y | number | The position to draw the texture (y-axis). (Default: 0.) |
+| angle | number | Scale factor (x-axis). (Default: 1.) |
+| scale_x | number | Scale factor (y-axis). (Default: sx.) |
+| scale_y | number | Origin offset (x-axis). (Default: 0.) |
+| origin_x | number | Origin offset (y-axis). (Default: 0.) |
+| origin_y | number | Shearing factor (x-axis). (Default: 0.) |
+
+## drawInstanced
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws many instances of a Mesh with a single draw call, using hardware geometry instancing.
+Each instance can have unique properties (positions, colors, etc.) but will not by default unless a custom
+per-instance vertex attributes or the love_InstanceID GLSL 3 vertex shader variable is used, otherwise they will
+all render at the same position on top of each other.
+Instancing is not supported by some older GPUs that are only capable of using OpenGL ES 2 or OpenGL 2. Use
+love.graphics.getSupported to check.
+
+**Signature:**
+```tl
+drawInstanced: function(mesh: Mesh, instance_count: integer, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| mesh | Mesh | The mesh to render. |
+| instance_count | integer | The number of instances to render. |
+| x | number | The position to draw the instances (x-axis). (Default: 0.) |
+| y | number | The position to draw the instances (y-axis). (Default: 0.) |
+| angle | number | Orientation (radians). (Default: 0.) |
+| scale_x | number | Scale factor (x-axis). (Default: 1.) |
+| scale_y | number | Scale factor (y-axis). (Default: sx.) |
+| origin_x | number | Origin offset (x-axis). (Default: 0.) |
+| origin_y | number | Origin offset (y-axis). (Default: 0.) |
+| shear_x | number | Shearing factor (x-axis). (Default: 0.) |
+| shear_y | number | Shearing factor (y-axis). (Default: 0.) |

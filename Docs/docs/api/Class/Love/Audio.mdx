@@ -1,0 +1,701 @@
+# Audio
+
+**Description:**
+
+&emsp;&emsp;Provides an interface to create noise with the user's speakers.
+
+## newSource
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Source from a filepath, File, Decoder or SoundData.
+
+	-- Sources created from SoundData are always static.
+
+**Signature:**
+```tl
+newSource: function(filename: string, source_type?: string): Source
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The filepath to the audio file. |
+| source_type | string | Streaming or static source. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Source | source — A new Source that can play the specified audio. |
+
+## newSource
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Source from a filepath, File, Decoder or SoundData.
+
+	-- Sources created from SoundData are always static.
+
+**Signature:**
+```tl
+newSource: function(data: SoundData): Source
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| data | SoundData | The SoundData to create a Source from. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Source | A new Source that can play the specified audio. The SourceType of the returned audio is 'static'. |
+
+## newQueueableSource
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Source usable for real-time generated sound playback with Source:queue.
+Overload details:
+1. The sample rate, bit depth, and channel count of any SoundData used with Source:queue must match the
+parameters given to this constructor.
+
+**Signature:**
+```tl
+newQueueableSource: function(sample_rate: integer, bit_depth: integer, channels: integer, buffers?: integer): Source
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sample_rate | integer | Number of samples per second when playing. |
+| bit_depth | integer | Bits per sample (8 or 16). |
+| channels | integer | 1 for mono or 2 for stereo. |
+| buffers | integer | The number of buffers that can be queued up at any given time with Source:queue. Cannot be greater than 64. A sensible default (~8) is chosen if no value is specified. (Default: 0.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Source | The new Source usable with Source:queue. |
+
+## play
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Starts playing all Sources contained in a table simultaneously.
+
+**Signature:**
+```tl
+play: function(sources: {Source}): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sources | \{Source} | A table containing the Sources to play. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether all specified Sources were successfully started. |
+
+## play
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Starts playing all supplied Sources simultaneously.
+
+**Signature:**
+```tl
+play: function(sources: Source...): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sources | Source... | The Sources to play. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether all specified Sources were successfully started. |
+
+## pause
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Pauses all currently active Sources and returns them.
+
+**Signature:**
+```tl
+pause: function(): {Source}
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{Source} | Sources — A table containing a list of Sources that were paused by this call. |
+
+## pause
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Pauses all Sources contained in a table.
+
+**Signature:**
+```tl
+pause: function(sources: {Source})
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sources | \{Source} | A table containing the Sources to pause. |
+
+## pause
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Pauses all supplied Sources.
+
+**Signature:**
+```tl
+pause: function(sources: Source...)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sources | Source... | The Sources to pause. |
+
+## stop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Stops all currently active Sources.
+
+**Signature:**
+```tl
+stop: function()
+```
+
+## stop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Stops all Sources contained in a table.
+
+**Signature:**
+```tl
+stop: function(sources: {Source})
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sources | \{Source} | A table containing the Sources to stop. |
+
+## stop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Stops all supplied Sources simultaneously.
+
+**Signature:**
+```tl
+stop: function(sources: Source...)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sources | Source... | The Sources to stop. |
+
+## getActiveSourceCount
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current number of simultaneously playing sources.
+
+**Signature:**
+```tl
+getActiveSourceCount: function(): integer
+	getSourceCount: function(): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The current number of simultaneously playing sources. |
+
+## setVolume
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the master volume.
+
+**Signature:**
+```tl
+setVolume: function(volume: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| volume | number | 1.0 is max and 0.0 is off. |
+
+## getVolume
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the master volume.
+
+**Signature:**
+```tl
+getVolume: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The current master volume |
+
+## setMixWithSystem
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets whether the system should mix the audio with the system's audio.
+
+**Signature:**
+```tl
+setMixWithSystem: function(mix: boolean): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| mix | boolean | True to enable mixing, false to disable it. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the change succeeded, false otherwise. |
+
+## setPosition
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the position of the listener, which determines how sounds play.
+
+**Signature:**
+```tl
+setPosition: function(x: number, y: number, z?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The x position of the listener. |
+| y | number | The y position of the listener. |
+| z | number | The z position of the listener. |
+
+## getPosition
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the position of the listener. Please note that positional audio only works for mono (i.e. non-stereo)
+sources.
+
+**Signature:**
+```tl
+getPosition: function(): number, number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The X position of the listener. |
+| number | The Y position of the listener. |
+| number | The Z position of the listener. |
+
+## setOrientation
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the orientation of the listener.
+
+**Signature:**
+```tl
+setOrientation: function(forward_x: number, forward_y: number, forward_z: number,
+		up_x: number, up_y: number, up_z: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| forward_x | number | The forward_x parameter. |
+| forward_y | number | The forward_y parameter. |
+| forward_z | number | The forward_z parameter. |
+| up_x | number | The up_x parameter. |
+| up_y | number | The up_y parameter. |
+| up_z | number | The up_z parameter. |
+
+## getOrientation
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the orientation of the listener.
+
+**Signature:**
+```tl
+getOrientation: function(): number, number, number, number, number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | Forward x of the listener orientation. |
+| number | Forward y of the listener orientation. |
+| number | Forward z of the listener orientation. |
+| number | Up x of the listener orientation. |
+| number | Up y of the listener orientation. |
+| number | Up z of the listener orientation. |
+
+## setVelocity
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the velocity of the listener.
+
+**Signature:**
+```tl
+setVelocity: function(x: number, y: number, z?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The X velocity of the listener. |
+| y | number | The Y velocity of the listener. |
+| z | number | The Z velocity of the listener. |
+
+## getVelocity
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the velocity of the listener.
+
+**Signature:**
+```tl
+getVelocity: function(): number, number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The X velocity of the listener. |
+| number | The Y velocity of the listener. |
+| number | The Z velocity of the listener. |
+
+## setDopplerScale
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets a global scale factor for velocity-based doppler effects. The default scale value is 1.
+
+**Signature:**
+```tl
+setDopplerScale: function(scale: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| scale | number | The new doppler scale factor. The scale must be greater than 0. |
+
+## getDopplerScale
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current global scale factor for velocity-based doppler effects.
+
+**Signature:**
+```tl
+getDopplerScale: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The current doppler scale factor. |
+
+## setDistanceModel
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the distance attenuation model.
+
+**Signature:**
+```tl
+setDistanceModel: function(model: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| model | string | The new distance model. |
+
+## getDistanceModel
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the distance attenuation model.
+
+**Signature:**
+```tl
+getDistanceModel: function(): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The current distance model. The default is 'inverseclamped'. |
+
+## setEffect
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Defines an effect that can be applied to a Source.
+Not all system supports audio effects. Use love.audio.isEffectsSupported to check.
+
+**Signature:**
+```tl
+setEffect: function(name: string, settings?: AudioEffectSettings | boolean): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the effect. |
+| settings | AudioEffectSettings or boolean | The settings to use for this effect, with the following fields: type: The type of effect to use. volume: The volume of the effect. ...: Effect-specific settings. See EffectType for available effects and their corresponding settings. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the effect was successfully created. Depending on the overload: Whether the effect was successfully disabled. |
+
+## getEffect
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the settings associated with an effect.
+
+**Signature:**
+```tl
+getEffect: function(name: string, target?: AudioEffectSettings): AudioEffectSettings | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the effect. |
+| target | AudioEffectSettings | The target parameter. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| AudioEffectSettings or nil | The settings associated with the effect. |
+
+## getActiveEffects
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets a list of the names of the currently enabled effects.
+
+**Signature:**
+```tl
+getActiveEffects: function(): {string}
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{string} | The list of the names of the currently enabled effects. |
+
+## getMaxSceneEffects
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the maximum number of active effects supported by the system.
+
+**Signature:**
+```tl
+getMaxSceneEffects: function(): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The maximum number of active effects. |
+
+## getMaxSourceEffects
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the maximum number of active Effects in a single Source object, that the system can support.
+Overload details:
+1. This function return 0 for system that doesn't support audio effects.
+
+**Signature:**
+```tl
+getMaxSourceEffects: function(): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The maximum number of active Effects per Source. |
+
+## getRecordingDevices
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets a list of RecordingDevices on the system.
+The first device in the list is the user's default recording device. The list may be empty if there are no
+microphones connected to the system.
+Audio recording is currently not supported on iOS.
+Overload details:
+1. Audio recording for Android is supported since 11.3. However, it's not supported when APK from Play Store is
+used.
+
+**Signature:**
+```tl
+getRecordingDevices: function(): {RecordingDevice}
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{RecordingDevice} | The list of connected recording devices. |
+
+## isEffectsSupported
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether audio effects are supported in the system.
+Overload details:
+1. Older Linux distributions that ship with older OpenAL library may not support audio effects. Furthermore, iOS
+doesn't support audio effects at all.
+
+**Signature:**
+```tl
+isEffectsSupported: function(): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if effects are supported, false otherwise. |

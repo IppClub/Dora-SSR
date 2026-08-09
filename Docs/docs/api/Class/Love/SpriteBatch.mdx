@@ -1,0 +1,589 @@
+# SpriteBatch
+
+**Description:**
+
+&emsp;&emsp;Using a single image, draw any number of identical copies of the image using a single call to
+love.graphics.draw(). This can be used, for example, to draw repeating copies of a single background image
+with high performance.
+
+## type
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the type of the object as a string.
+
+**Signature:**
+```tl
+type: function(self: SpriteBatch): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The type as a string. |
+
+## Of
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether an object is of a certain type. If the object has the type with the specified name in its
+hierarchy, this function will return true.
+
+**Signature:**
+```tl
+typeOf: function(self: SpriteBatch, type_name: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| type_name | string | The name of the type to check for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the object is of the specified type, false otherwise. |
+
+## release
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Destroys the object's Lua reference. The object will be completely deleted if it's not referenced by any other
+LÖVE object or thread.
+This method can be used to immediately clean up resources without waiting for Lua's garbage collector.
+
+**Signature:**
+```tl
+release: function(self: SpriteBatch): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the object was released by this call, false if it had been previously released. |
+
+## add
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds a sprite to the batch. Sprites are drawn in the order they are added.
+
+**Signature:**
+```tl
+add: function(self: SpriteBatch, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The position to draw the object (x-axis). |
+| y | number | The position to draw the object (y-axis). |
+| angle | number | Orientation (radians). (Default: 0.) |
+| scale_x | number | Scale factor (x-axis). (Default: 1.) |
+| scale_y | number | Scale factor (y-axis). (Default: sx.) |
+| origin_x | number | Origin offset (x-axis). (Default: 0.) |
+| origin_y | number | Origin offset (y-axis). (Default: 0.) |
+| shear_x | number | Shear factor (x-axis). (Default: 0.) |
+| shear_y | number | Shear factor (y-axis). (Default: 0.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | id — An identifier for the added sprite. |
+
+## add
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds a sprite to the batch. Sprites are drawn in the order they are added.
+
+**Signature:**
+```tl
+add: function(self: SpriteBatch, quad: Quad, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| quad | Quad | The Quad to add. |
+| x | number | The position to draw the object (x-axis). |
+| y | number | The position to draw the object (y-axis). |
+| angle | number | Orientation (radians). (Default: 0.) |
+| scale_x | number | Scale factor (x-axis). (Default: 1.) |
+| scale_y | number | Scale factor (y-axis). (Default: sx.) |
+| origin_x | number | Origin offset (x-axis). (Default: 0.) |
+| origin_y | number | Origin offset (y-axis). (Default: 0.) |
+| shear_x | number | Shear factor (x-axis). (Default: 0.) |
+| shear_y | number | Shear factor (y-axis). (Default: 0.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | id — An identifier for the added sprite. |
+
+## set
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Changes a sprite in the batch. This requires the sprite index returned by SpriteBatch:add or SpriteBatch:addLayer.
+
+**Signature:**
+```tl
+set: function(self: SpriteBatch, index: integer, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index of the sprite that will be changed. |
+| x | number | The position to draw the object (x-axis). |
+| y | number | The position to draw the object (y-axis). |
+| angle | number | Orientation (radians). (Default: 0.) |
+| scale_x | number | Scale factor (x-axis). (Default: 1.) |
+| scale_y | number | Scale factor (y-axis). (Default: sx.) |
+| origin_x | number | Origin offset (x-axis). (Default: 0.) |
+| origin_y | number | Origin offset (y-axis). (Default: 0.) |
+| shear_x | number | Shear factor (x-axis). (Default: 0.) |
+| shear_y | number | Shear factor (y-axis). (Default: 0.) |
+
+## set
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Changes a sprite in the batch. This requires the sprite index returned by SpriteBatch:add or SpriteBatch:addLayer.
+
+**Signature:**
+```tl
+set: function(self: SpriteBatch, index: integer, quad: Quad, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index of the sprite that will be changed. |
+| quad | Quad | The Quad used on the image of the batch. |
+| x | number | The position to draw the object (x-axis). |
+| y | number | The position to draw the object (y-axis). |
+| angle | number | Orientation (radians). (Default: 0.) |
+| scale_x | number | Scale factor (x-axis). (Default: 1.) |
+| scale_y | number | Scale factor (y-axis). (Default: sx.) |
+| origin_x | number | Origin offset (x-axis). (Default: 0.) |
+| origin_y | number | Origin offset (y-axis). (Default: 0.) |
+| shear_x | number | Shear factor (x-axis). (Default: 0.) |
+| shear_y | number | Shear factor (y-axis). (Default: 0.) |
+
+## addLayer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds a sprite to a batch created with an Table Texture.
+
+**Signature:**
+```tl
+addLayer: function(self: SpriteBatch, layer: integer, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| layer | integer | The index of the layer to use for this sprite. |
+| x | number | The position to draw the sprite (x-axis). (Default: 0.) |
+| y | number | The position to draw the sprite (y-axis). (Default: 0.) |
+| angle | number | Orientation (radians). (Default: 0.) |
+| scale_x | number | Scale factor (x-axis). (Default: 1.) |
+| scale_y | number | Scale factor (y-axis). (Default: sx.) |
+| origin_x | number | Origin offset (x-axis). (Default: 0.) |
+| origin_y | number | Origin offset (y-axis). (Default: 0.) |
+| shear_x | number | Shearing factor (x-axis). (Default: 0.) |
+| shear_y | number | Shearing factor (y-axis). (Default: 0.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | spriteindex — The index of the added sprite, for use with SpriteBatch:set or SpriteBatch:setLayer. |
+
+## addLayer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds a sprite to a batch created with an Table Texture.
+
+**Signature:**
+```tl
+addLayer: function(self: SpriteBatch, layer: integer, quad: Quad, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number): integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| layer | integer | The index of the layer to use for this sprite. |
+| quad | Quad | The subsection of the texture's layer to use when drawing the sprite. |
+| x | number | The position to draw the sprite (x-axis). (Default: 0.) |
+| y | number | The position to draw the sprite (y-axis). (Default: 0.) |
+| angle | number | Orientation (radians). (Default: 0.) |
+| scale_x | number | Scale factor (x-axis). (Default: 1.) |
+| scale_y | number | Scale factor (y-axis). (Default: sx.) |
+| origin_x | number | Origin offset (x-axis). (Default: 0.) |
+| origin_y | number | Origin offset (y-axis). (Default: 0.) |
+| shear_x | number | Shearing factor (x-axis). (Default: 0.) |
+| shear_y | number | Shearing factor (y-axis). (Default: 0.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | spriteindex — The index of the added sprite, for use with SpriteBatch:set or SpriteBatch:setLayer. |
+
+## setLayer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Changes a sprite previously added with add or addLayer, in a batch created with an Table Texture.
+
+**Signature:**
+```tl
+setLayer: function(self: SpriteBatch, index: integer, layer: integer, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index of the existing sprite to replace. |
+| layer | integer | The index of the layer in the Table Texture to use for this sprite. |
+| x | number | The position to draw the sprite (x-axis). (Default: 0.) |
+| y | number | The position to draw the sprite (y-axis). (Default: 0.) |
+| angle | number | Orientation (radians). (Default: 0.) |
+| scale_x | number | Scale factor (x-axis). (Default: 1.) |
+| scale_y | number | Scale factor (y-axis). (Default: sx.) |
+| origin_x | number | Origin offset (x-axis). (Default: 0.) |
+| origin_y | number | Origin offset (y-axis). (Default: 0.) |
+| shear_x | number | Shearing factor (x-axis). (Default: 0.) |
+| shear_y | number | Shearing factor (y-axis). (Default: 0.) |
+
+## setLayer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Changes a sprite previously added with add or addLayer, in a batch created with an Table Texture.
+
+**Signature:**
+```tl
+setLayer: function(self: SpriteBatch, index: integer, layer: integer, quad: Quad, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index of the existing sprite to replace. |
+| layer | integer | The index of the layer to use for this sprite. |
+| quad | Quad | The subsection of the texture's layer to use when drawing the sprite. |
+| x | number | The position to draw the sprite (x-axis). (Default: 0.) |
+| y | number | The position to draw the sprite (y-axis). (Default: 0.) |
+| angle | number | Orientation (radians). (Default: 0.) |
+| scale_x | number | Scale factor (x-axis). (Default: 1.) |
+| scale_y | number | Scale factor (y-axis). (Default: sx.) |
+| origin_x | number | Origin offset (x-axis). (Default: 0.) |
+| origin_y | number | Origin offset (y-axis). (Default: 0.) |
+| shear_x | number | Shearing factor (x-axis). (Default: 0.) |
+| shear_y | number | Shearing factor (y-axis). (Default: 0.) |
+
+## clear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes all sprites from the buffer.
+
+**Signature:**
+```tl
+clear: function(self: SpriteBatch)
+```
+
+## flush
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Immediately sends all new and modified sprite data in the batch to the graphics card.
+Normally it isn't necessary to call this method as love.graphics.draw(spritebatch, ...) will do it automatically
+if needed, but explicitly using SpriteBatch:flush gives more control over when the work happens.
+If this method is used, it generally shouldn't be called more than once (at most) between
+love.graphics.draw(spritebatch, ...) calls.
+
+**Signature:**
+```tl
+flush: function(self: SpriteBatch)
+```
+
+## setTexture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the texture (Image or Canvas) used for the sprites in the batch, when drawing.
+
+**Signature:**
+```tl
+setTexture: function(self: SpriteBatch, texture: Image | Canvas)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| texture | Image or Canvas | The new Image or Canvas to use for the sprites in the batch. |
+
+## getTexture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the texture (Image or Canvas) used by the SpriteBatch.
+
+**Signature:**
+```tl
+getTexture: function(self: SpriteBatch): Image | Canvas
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Image or Canvas | The Image or Canvas used by the SpriteBatch. |
+
+## setColor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the color that will be used for the next add and set operations. Calling the function without arguments will disable all per-sprite colors for the SpriteBatch.
+
+	-- In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+
+	-- In version 0.9.2 and older, the global color set with love.graphics.setColor will not work on the SpriteBatch if any of the sprites has its own color.
+
+**Signature:**
+```tl
+setColor: function(self: SpriteBatch)
+```
+
+## setColor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the color that will be used for the next add and set operations. Calling the function without arguments will disable all per-sprite colors for the SpriteBatch.
+
+	-- In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+
+	-- In version 0.9.2 and older, the global color set with love.graphics.setColor will not work on the SpriteBatch if any of the sprites has its own color.
+
+**Signature:**
+```tl
+setColor: function(self: SpriteBatch, red: number, green: number, blue: number, alpha?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| red | number | The amount of red. |
+| green | number | The amount of green. |
+| blue | number | The amount of blue. |
+| alpha | number | The amount of alpha. (Default: 1.) |
+
+## setColor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the color that will be used for the next add and set operations. Calling the function without arguments will disable all per-sprite colors for the SpriteBatch.
+
+	-- In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+
+	-- In version 0.9.2 and older, the global color set with love.graphics.setColor will not work on the SpriteBatch if any of the sprites has its own color.
+
+**Signature:**
+```tl
+setColor: function(self: SpriteBatch, color: Color)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| color | Color | The amount of red. |
+
+## getColor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the color that will be used for the next add and set operations.
+If no color has been set with SpriteBatch:setColor or the current SpriteBatch color has been cleared, this method
+will return nil.
+In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+
+**Signature:**
+```tl
+getColor: function(self: SpriteBatch): number, number, number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The red component (0-1). |
+| number | The green component (0-1). |
+| number | The blue component (0-1). |
+| number | The alpha component (0-1). |
+
+## getCount
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the number of sprites currently in the SpriteBatch.
+
+**Signature:**
+```tl
+getCount: function(self: SpriteBatch): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The number of sprites currently in the batch. |
+
+## getBufferSize
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the maximum number of sprites the SpriteBatch can hold.
+
+**Signature:**
+```tl
+getBufferSize: function(self: SpriteBatch): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The maximum number of sprites the batch can hold. |
+
+## attachAttribute
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches a per-vertex attribute from a Mesh onto this SpriteBatch, for use when drawing. This can be combined with
+a Shader to augment a SpriteBatch with per-vertex or additional per-sprite information instead of just having
+per-sprite colors.
+Each sprite in a SpriteBatch has 4 vertices in the following order: top-left, bottom-left, top-right,
+bottom-right. The index returned by SpriteBatch:add (and used by SpriteBatch:set) can used to determine the first
+vertex of a specific sprite with the formula 1 + 4 * ( id - 1 ).
+Overload details:
+1. If a created with a custom vertex format, it will have 3 vertex attributes named VertexPosition,
+VertexTexCoord, and VertexColor. If vertex attributes with those names are attached to the SpriteBatch, it
+will override the SpriteBatch's sprite positions, texture coordinates, and sprite colors, respectively.
+Custom named attributes can be accessed in a vertex shader by declaring them as attribute vec4
+MyCustomAttributeName; at the top-level of the vertex shader code. The name must match what was specified in
+the Mesh's vertex format and in the name argument of SpriteBatch:attachAttribute. A Mesh must have at least 4
+* SpriteBatch:getBufferSize vertices in order to be attachable to a SpriteBatch.
+
+**Signature:**
+```tl
+attachAttribute: function(self: SpriteBatch, name: string, mesh: Mesh)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the vertex attribute to attach. |
+| mesh | Mesh | The Mesh to get the vertex attribute from. |
+
+## setDrawRange
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Restricts the drawn sprites in the SpriteBatch to a subset of the total.
+
+**Signature:**
+```tl
+setDrawRange: function(self: SpriteBatch)
+```
+
+## setDrawRange
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Restricts the drawn sprites in the SpriteBatch to a subset of the total.
+
+**Signature:**
+```tl
+setDrawRange: function(self: SpriteBatch, start: integer, count: integer)
+	getDrawRange: function(self: SpriteBatch): number, number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| start | integer | The index of the first sprite to draw. Index 1 corresponds to the first sprite added with SpriteBatch:add. |
+| count | integer | The number of sprites to draw. |

@@ -1,0 +1,192 @@
+# FontModule
+
+**Description:**
+
+&emsp;&emsp;Allows you to work with fonts.
+
+## newImageRasterizer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Image Rasterizer.
+Overload details:
+1. Create an ImageRasterizer from the image data.
+
+**Signature:**
+```tl
+newImageRasterizer: function(image_data: ImageData, glyphs: string, extra_spacing?: integer, dpi_scale?: number): Rasterizer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| image_data | ImageData | Font image data. |
+| glyphs | string | String containing font glyphs. |
+| extra_spacing | integer | Font extra spacing. (Default: 0.) |
+| dpi_scale | number | Font DPI scale. (Default: 1.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Rasterizer | The rasterizer. |
+
+## newBMFontRasterizer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new BMFont Rasterizer.
+
+**Signature:**
+```tl
+newBMFontRasterizer: function(filename_or_file_data: string | FileData, images?: ImageData | string | FileData | {ImageData | string | FileData}, dpi_scale?: number): Rasterizer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename_or_file_data | string or FileData | The image data containing the drawable pictures of font glyphs. Depending on the |
+| images | ImageData or string or FileData or \{ImageData or string or FileData} | The sequence of glyphs in the ImageData. |
+| dpi_scale | number | DPI scale. (Default: 1.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Rasterizer | The rasterizer. |
+
+## newTrueTypeRasterizer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new TrueType Rasterizer.
+
+**Signature:**
+```tl
+newTrueTypeRasterizer: function(size?: number, hinting?: string, dpi_scale?: number): Rasterizer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| size | number | The font size. (Default: 12.) |
+| hinting | string | True Type hinting mode. (Default: 'normal'.) |
+| dpi_scale | number | The font DPI scale. (Default: love.window.getDPIScale().) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Rasterizer | rasterizer — The rasterizer. |
+
+## newTrueTypeRasterizer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new TrueType Rasterizer.
+
+**Signature:**
+```tl
+newTrueTypeRasterizer: function(filename_or_data: string | Data, size?: number, hinting?: string, dpi_scale?: number): Rasterizer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename_or_data | string | Data | File data containing font. |
+| size | number | The font size. (Default: 12.) |
+| hinting | string | True Type hinting mode. (Default: 'normal'.) |
+| dpi_scale | number | The font DPI scale. (Default: love.window.getDPIScale().) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Rasterizer | rasterizer — The rasterizer. |
+
+## newRasterizer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Rasterizer.
+
+**Signature:**
+```tl
+newRasterizer: function(size?: number, hinting?: string, dpi_scale?: number): Rasterizer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| size | number | The font size. (Default: 12.) |
+| hinting | string | True Type hinting mode. (Default: 'normal'.) |
+| dpi_scale | number | The font DPI scale. (Default: love.window.getDPIScale().) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Rasterizer | rasterizer — The rasterizer. |
+
+## newRasterizer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Rasterizer.
+
+**Signature:**
+```tl
+newRasterizer: function(filename_or_data: string | Data, size?: number, hinting?: string, dpi_scale?: number): Rasterizer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename_or_data | string | Data | File data containing font. |
+| size | number | The font size. (Default: 12.) |
+| hinting | string | True Type hinting mode. (Default: 'normal'.) |
+| dpi_scale | number | DPI scale. (Default: 1.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Rasterizer | rasterizer — The rasterizer. |
+
+## newGlyphData
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new GlyphData.
+
+**Signature:**
+```tl
+newGlyphData: function(rasterizer: Rasterizer, glyph: string | integer): GlyphData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| rasterizer | Rasterizer | The Rasterizer containing the font. |
+| glyph | string or integer | The character code of the glyph. |

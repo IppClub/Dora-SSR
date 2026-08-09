@@ -1,0 +1,27 @@
+# socket
+
+**Description:**
+
+&emsp;&emsp;LuaSocket 3.1.0 TCP, UDP, DNS, timeout, source and sink interfaces.
+
+**Signature:**
+```tl
+local type Source = function(): string | nil, string | nil
+local type Sink = function(chunk?: string, err?: string): integer | nil, string | nil
+local type Filter = function(chunk?: string): string | nil
+```
+
+## getfd
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the native descriptor used by socket.select.
+
+**Signature:**
+```tl
+getfd: function(self: Selectable): number
+	-- Returns whether unread buffered data makes the socket immediately readable.
+	dirty: function(self: Selectable): boolean
+```

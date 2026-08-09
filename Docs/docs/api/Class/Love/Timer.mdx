@@ -1,0 +1,122 @@
+# Timer
+
+**Description:**
+
+&emsp;&emsp;Provides an interface to the user's clock.
+
+## step
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Measures the time between two frames.
+Calling this changes the return value of love.timer.getDelta.
+
+**Signature:**
+```tl
+step: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The time passed (in seconds). |
+
+## getDelta
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the time between the last two frames.
+
+**Signature:**
+```tl
+getDelta: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The time passed (in seconds). |
+
+## getFPS
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the current frames per second.
+
+**Signature:**
+```tl
+getFPS: function(): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The current FPS. |
+
+## getAverageDelta
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the average delta time (seconds per frame) over the last second.
+
+**Signature:**
+```tl
+getAverageDelta: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The average delta time over the last second. |
+
+## sleep
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Pauses the current thread for the specified amount of time.
+
+**Signature:**
+```tl
+sleep: function(seconds: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| seconds | number | Seconds to sleep for. |
+
+## getTime
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the value of a timer with an unspecified starting time.
+This function should only be used to calculate differences between points in time, as the starting time of the
+timer is unknown.
+
+**Signature:**
+```tl
+getTime: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The time in seconds. Given as a decimal, accurate to the microsecond. |

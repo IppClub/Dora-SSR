@@ -1,0 +1,317 @@
+# Contact
+
+**描述：**
+
+&emsp;&emsp;联系人是为了管理世界中的碰撞而创建的对象。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: Contact): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: Contact, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: Contact): boolean
+	isValid: function(self: Contact): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## getFixtures
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取保持接触形状的两个夹具。
+
+**签名：**
+```tl
+getFixtures: function(self: Contact): Fixture, Fixture
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Fixture | 第一个装置。 |
+| Fixture | 第二场比赛。 |
+
+## getChildren
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取两个碰撞灯具形状的子索引。对于 ChainShapes，索引 1 是链中的第一条边。与 Fixture:rayCast 或 ChainShape:getChildEdge 一起使用。
+
+**签名：**
+```tl
+getChildren: function(self: Contact): integer, integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 第一个灯具形状的子索引。 |
+| integer | 第二个灯具形状的子索引。 |
+
+## getPositions
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回两个碰撞夹具的接触点。可以有一个或两个点。
+
+**签名：**
+```tl
+getPositions: function(self: Contact): number...
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number... | 第一个接触点的 x 坐标。 |
+
+## getNormal
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取两个接触形状之间的法向量。
+该函数返回从第一个形状指向第二个形状的单位向量的坐标。
+
+**签名：**
+```tl
+getNormal: function(self: Contact): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 法线向量的 x 分量。 |
+| number | 法向量的 y 分量。 |
+
+## getFriction
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取两个接触形状之间的摩擦力。
+
+**签名：**
+```tl
+getFriction: function(self: Contact): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 接触的摩擦力。 |
+
+## setFriction
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置接触摩擦力。
+
+**签名：**
+```tl
+setFriction: function(self: Contact, friction: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| friction | number | 接触摩擦力。 |
+
+## resetFriction
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将接触摩擦重置为两个夹具的混合值。
+
+**签名：**
+```tl
+resetFriction: function(self: Contact)
+```
+
+## getRestitution
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取两个接触形状之间的恢复。
+
+**签名：**
+```tl
+getRestitution: function(self: Contact): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 两个形状之间的恢复。 |
+
+## setRestitution
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置接触恢复。
+
+**签名：**
+```tl
+setRestitution: function(self: Contact, restitution: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| restitution | number | 联系人恢复原状。 |
+
+## resetRestitution
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将接触恢复重置为两个灯具的混合值。
+
+**签名：**
+```tl
+resetRestitution: function(self: Contact)
+```
+
+## isEnabled
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回联系人是否已启用。如果在 preSolve 回调中禁用了接触，则碰撞将被忽略。
+
+**签名：**
+```tl
+isEnabled: function(self: Contact): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果启用则为 true，否则为 false。 |
+
+## setEnabled
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;启用或禁用联系人。
+
+**签名：**
+```tl
+setEnabled: function(self: Contact, enabled: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| enabled | boolean | True 表示启用，False 表示禁用。 |
+
+## isTouching
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回两个碰撞的装置是否相互接触。
+
+**签名：**
+```tl
+isTouching: function(self: Contact): boolean
+	getTangentSpeed: function(self: Contact): number
+	setTangentSpeed: function(self: Contact, speed: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| speed | number | speed 参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean or number | 如果它们接触则为真，否则为假。 |

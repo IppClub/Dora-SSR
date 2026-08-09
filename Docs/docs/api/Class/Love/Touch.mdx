@@ -1,0 +1,83 @@
+# Touch
+
+**Description:**
+
+&emsp;&emsp;Provides an interface to touch-screen presses.
+
+## getTouches
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets a list of all active touch-presses.
+Overload details:
+1. The id values are the same as those used as arguments to love.touchpressed, love.touchmoved, and
+love.touchreleased. The id value of a specific touch-press is only guaranteed to be unique for the duration
+of that touch-press. As soon as love.touchreleased is called using that id, it may be reused for a new
+touch-press via love.touchpressed.
+
+**Signature:**
+```tl
+getTouches: function(): {TouchID}
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{TouchID} | A list of active touch-press id values, which can be used with love.touch.getPosition. |
+
+## getPosition
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current position of the specified touch-press, in pixels.
+Overload details:
+1. The unofficial Android and iOS ports of LÖVE 0.9.2 reported touch-press positions as normalized values in
+the range of 1, whereas this API reports positions in pixels.
+
+**Signature:**
+```tl
+getPosition: function(id: TouchID): number, number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| id | TouchID | The identifier of the touch-press. Use love.touch.getTouches, love.touchpressed, or love.touchmoved to obtain touch id values. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The position along the x-axis of the touch-press inside the window, in pixels. |
+| number | The position along the y-axis of the touch-press inside the window, in pixels. |
+
+## getPressure
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current pressure of the specified touch-press.
+
+**Signature:**
+```tl
+getPressure: function(id: TouchID): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| id | TouchID | The identifier of the touch-press. Use love.touch.getTouches, love.touchpressed, or love.touchmoved to obtain touch id values. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The pressure of the touch-press. Most touch screens aren't pressure sensitive, in which case the pressure will be 1. |

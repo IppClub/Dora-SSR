@@ -1,0 +1,477 @@
+# File
+
+**描述：**
+
+&emsp;&emsp;表示文件系统上的一个文件。接受文件路径的函数也可以接受文件。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: File): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: File, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: File): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## open
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;打开文件进行写入、读取或追加。
+重载说明：
+1. 如果您收到错误消息'Could not set write directory'，请尝试设置保存目录。这可以通过 love.filesystem.setIdentity 或通过在 love.conf
+中设置身份字段来完成（仅适用于 love 0.7 或更高版本）。
+
+**签名：**
+```tl
+open: function(self: File, mode: FileMode): boolean | nil, string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mode | FileMode | 打开文件的模式。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean or nil | 成功则为 true，否则为 false。 |
+| string or nil | 发生错误时的错误字符串。 |
+
+## close
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;关闭文件。
+
+**签名：**
+```tl
+close: function(self: File): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 是否关闭成功。 |
+
+## isOpen
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取文件是否打开。
+
+**签名：**
+```tl
+isOpen: function(self: File): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果文件当前打开则为 true，否则为 false。 |
+
+## getSize
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回文件大小。
+
+**签名：**
+```tl
+getSize: function(self: File): number | nil, string | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number or nil | 文件大小（以字节为单位）。 |
+
+## read
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从文件中读取多个字节。
+
+**签名：**
+```tl
+read: function(self: File, size?: integer): string | nil, number | string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| size | integer | 要读取的字节数。 （默认值：全部。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string \| nil | contents — 读取字节的内容。 |
+| number \| string | size — 已读取多少字节。 |
+
+## read
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从文件中读取多个字节。
+
+**签名：**
+```tl
+read: function(self: File, container: string, size?: integer): string | nil, number | string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 返回文件内容的类型。 |
+| size | integer | 要读取的字节数。 （默认值：全部。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string \| nil | FileData 或包含读取字节的字符串。 |
+| number \| string | size — 已读取多少字节。 |
+
+## read
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从文件中读取多个字节。
+
+**签名：**
+```tl
+read: function(self: File, container: string, size?: integer): FileData | nil, number | string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 返回文件内容的类型。 |
+| size | integer | 要读取的字节数。 （默认值：全部。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| FileData \| nil | FileData 或包含读取字节的字符串。 |
+| number \| string | size — 已读取多少字节。 |
+
+## write
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将数据写入文件。
+
+**签名：**
+```tl
+write: function(self: File, data: string, size?: integer): boolean | nil, string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| data | string | 要写入的字符串数据。 |
+| size | integer | 要写入多少字节。 （默认值：全部。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean \| nil | success — 操作是否成功。 |
+| string \| nil | err — 发生错误时的错误字符串。 |
+
+## write
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将数据写入文件。
+
+**签名：**
+```tl
+write: function(self: File, data: FileData, size?: integer): boolean | nil, string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| data | FileData | 要写入的数据对象。 |
+| size | integer | 要写入多少字节。 （默认值：全部。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean \| nil | success — 操作是否成功。 |
+| string \| nil | err — 发生错误时的错误字符串。 |
+
+## flush
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将文件中所有缓冲的写入数据刷新到磁盘。
+
+**签名：**
+```tl
+flush: function(self: File): boolean | nil, string | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean or nil | 文件是否成功将任何缓冲数据刷新到磁盘。 |
+| string or nil | 错误字符串，如果发生错误并且文件无法刷新。 |
+
+## isEOF
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取是否已到达文件结尾。
+
+**签名：**
+```tl
+isEOF: function(self: File): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 是否已到达EOF。 |
+
+## tell
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回文件中的位置。
+
+**签名：**
+```tl
+tell: function(self: File): number | nil, string | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number or nil | 当前位置。 |
+
+## seek
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;查找文件中的位置
+
+**签名：**
+```tl
+seek: function(self: File, position: number): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| position | number | 寻求 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 操作是否成功 |
+
+## lines
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;迭代文件中的所有行。
+
+**签名：**
+```tl
+lines: function(self: File): function(): string | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| function or string or nil | 迭代器（可用于 for 循环）。 |
+
+## setBuffer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置为写入或追加而打开的文件的缓冲模式。启用缓冲的文件在达到缓冲区大小限制之前不会将数据写入磁盘，具体取决于缓冲模式。
+File:flush 将强制将所有缓冲数据写入磁盘。
+
+**签名：**
+```tl
+setBuffer: function(self: File, mode: BufferMode, size?: integer): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mode | BufferMode | 要使用的缓冲模式。 |
+| size | integer | 文件缓冲区的最大大小（以字节为单位）。 （默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 缓冲模式是否设置成功。 |
+
+## getBuffer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取文件的缓冲模式。
+
+**签名：**
+```tl
+getBuffer: function(self: File): BufferMode, integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| BufferMode | 文件当前的缓冲模式。 |
+| integer | 文件缓冲区的最大大小（以字节为单位）。 |
+
+## getMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取打开文件的FileMode。
+
+**签名：**
+```tl
+getMode: function(self: File): FileMode
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| FileMode | 此文件打开的模式。 |
+
+## getFilename
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取创建 File 对象时使用的文件名。如果文件对象源自 love.filedropped 回调，则文件名将是完整的与平台相关的文件路径。
+
+**签名：**
+```tl
+getFilename: function(self: File): string
+	getExtension: function(self: File): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 文件的文件名。 |

@@ -1,0 +1,149 @@
+# Event
+
+**Description:**
+
+&emsp;&emsp;Manages events, like keypresses.
+
+## pump
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Dora owns the platform event pump; this does not pump a second OS queue.
+Pump events into the event queue.
+This is a low-level function, and is usually not called by the user, but by love.run.
+Note that this does need to be called for any OS to think you're still running,
+and if you want to handle OS-generated events at all (think callbacks).
+
+**Signature:**
+```tl
+pump: function()
+```
+
+## poll
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns an iterator for messages in the event queue.
+
+**Signature:**
+```tl
+poll: function(): function(): any...
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| function or any... | Iterator function usable in a for loop. |
+
+## wait
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Like love.event.poll(), but blocks until there is an event in the queue.
+
+**Signature:**
+```tl
+wait: function(): any...
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| any... | The name of event. |
+
+## push
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds an event to the event queue.
+From 0.10.0 onwards, you may pass an arbitrary amount of arguments with this function, though the default
+callbacks don't ever use more than six.
+
+**Signature:**
+```tl
+push: function(name: string, args: any...): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the event. |
+| args | any... | First event argument. (Default: nil.) |
+
+## clear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Clears the event queue.
+
+**Signature:**
+```tl
+clear: function()
+```
+
+## quit
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds the quit event to the queue.
+
+	-- The quit event is a signal for the event handler to close LÖVE. It's possible to abort the exit process with the love.quit callback.
+
+**Signature:**
+```tl
+quit: function(exit_status?: number): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| exit_status | number | The program exit status to use when closing the application. (Default: 0.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Always returns true after the quit event is queued. |
+
+## quit
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds the quit event to the queue.
+
+	-- The quit event is a signal for the event handler to close LÖVE. It's possible to abort the exit process with the love.quit callback.
+
+**Signature:**
+```tl
+quit: function(reason: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| reason | string | Tells the default love.run to exit and restart the game without relaunching the executable. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Always returns true after the restart quit event is queued. |

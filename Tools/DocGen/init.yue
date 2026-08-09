@@ -172,7 +172,10 @@ generate = (path, file, cn)->
 						else
 							mods[] = name
 							currentType = "Record"
-							records[] = [prefix .. table.concat(mods, '.'), doc]
+							recordName = table.concat mods, '.'
+							if modName == "love" and recordName != "Love" and not recordName\match "^Love%."
+								recordName = "Love." .. recordName
+							records[] = [prefix .. recordName, doc]
 					if currentType == "Item"
 						doc[] = "# #{modName}"
 						sig = group[# - 2]
@@ -196,7 +199,7 @@ generate = (path, file, cn)->
 				last = group[#]
 				last = last\gsub "[ \t]+$", ""
 				metaField = last\match "^%s*metamethod%s*([%w_]+)"
-				fieldName or= metaField
+				fieldName = metaField
 				constField = last\match "^%s*const%s*([%w_]+)"
 				embedField = last\match "^%s*embed%s*([%w_]+)"
 				enumField = last\match "^%s*enum%s*([%w_]+)"
@@ -249,6 +252,13 @@ generate = (path, file, cn)->
 					doc[] = "**#{cn and '签名：' or 'Signature:'}**\n```tl\n#{last}\n```"
 				transformDocs doc, group, 2, #group - 1
 
+assertUnique = (items, category)->
+	seen = {}
+	for {name} in *items
+		if seen[name]
+			error "duplicate #{category} API document: #{name}"
+		seen[name] = true
+
 gen = (docPath, target, cn)->
 	records = {}
 	classes = {}
@@ -264,6 +274,9 @@ gen = (docPath, target, cn)->
 		switch Path\getExt file
 			when "tl"
 				generate docPath, file, cn
+
+	assertUnique records, "class"
+	assertUnique classes, "class object"
 
 	Content\remove Path Content.writablePath, target
 
@@ -329,4 +342,3 @@ docPath = Path Content.assetPath, "Script", "Lib", "Dora", "en"
 gen docPath, ".doc", false
 docPath = Path Content.assetPath, "Script", "Lib", "Dora", "zh-Hans"
 gen docPath, ".zhdoc", true
-

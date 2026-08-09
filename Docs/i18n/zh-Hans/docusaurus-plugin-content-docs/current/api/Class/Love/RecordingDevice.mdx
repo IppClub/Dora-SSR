@@ -1,0 +1,253 @@
+# RecordingDevice
+
+**描述：**
+
+&emsp;&emsp;表示能够录制声音的音频输入设备。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: RecordingDevice): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: RecordingDevice, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: RecordingDevice): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## start
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;开始使用此设备录制音频。
+重载说明：
+1. 在调用 RecordingDevice:getData 或 RecordingDevice:stop 之前，内部使用环形缓冲区来存储记录的数据 - 前者会清除缓冲区。如果在调用 getData 或 stop
+之前缓冲区完全填满，则不适合缓冲区的最旧数据将丢失。
+
+**签名：**
+```tl
+start: function(self: RecordingDevice, samples?: integer, sample_rate?: integer, bit_depth?: integer, channels?: integer): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| samples | integer | 记录时在内部环形缓冲区中存储的最大样本数。 RecordingDevice:getData 调用时会清除内部缓冲区。 |
+| sample_rate | integer | 记录时每秒存储的样本数。 （默认值：8000。） |
+| bit_depth | integer | 每个样本的位数。 （默认值：16。） |
+| channels | integer | 是否以单声道或立体声录制。大多数麦克风不支持超过 1 个通道。 （默认值：1。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果设备使用指定参数成功开始录制，则为 true，否则为 false。 |
+
+## stop
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;停止从此设备录制音频。当前位于设备缓冲区中的任何声音数据都将被返回。
+
+**签名：**
+```tl
+stop: function(self: RecordingDevice): SoundData | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| SoundData or nil | 当前在设备缓冲区中的声音数据，如果设备没有录音则为零。 |
+
+## getData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取存储在设备内部环形缓冲区中的所有录制音频 SoundData。
+调用此函数时，内部环形缓冲区会被清除，因此再次调用它只会在上次调用后录制音频。如果设备的内部环形缓冲区在调用 getData 之前完全填满，则不适合缓冲区的最旧数据将丢失。
+
+**签名：**
+```tl
+getData: function(self: RecordingDevice): SoundData | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| SoundData or nil | 录制的音频数据，如果设备未录制则为零。 |
+
+## getSampleCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前记录的样本数。
+
+**签名：**
+```tl
+getSampleCount: function(self: RecordingDevice): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 迄今为止已记录的样本数。 |
+
+## getSampleRate
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前记录的每秒样本数。
+
+**签名：**
+```tl
+getSampleRate: function(self: RecordingDevice): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 每秒记录的样本数（采样率）。 |
+
+## getBitDepth
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前记录的数据中每个样本的位数。
+
+**签名：**
+```tl
+getBitDepth: function(self: RecordingDevice): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 当前记录的数据中每个样本的位数。 |
+
+## getChannelCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前正在录制的通道数（单声道或立体声）。
+
+**签名：**
+```tl
+getChannelCount: function(self: RecordingDevice): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 正在录制的通道数（1 个为单声道，2 个为立体声）。 |
+
+## getName
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取录音设备的名称。
+
+**签名：**
+```tl
+getName: function(self: RecordingDevice): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 设备的名称。 |
+
+## isRecording
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取设备当前是否正在录制。
+
+**签名：**
+```tl
+isRecording: function(self: RecordingDevice): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果录音则为 true，否则为 false。 |

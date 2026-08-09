@@ -1,0 +1,952 @@
+# MathModule
+
+**描述：**
+
+&emsp;&emsp;提供与系统无关的数学函数。
+
+## newRandomGenerator
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 RandomGenerator 对象，该对象完全独立于其他 RandomGenerator 对象和随机函数。
+
+**签名：**
+```tl
+newRandomGenerator: function(seed?: number): RandomGenerator
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| seed | number | 用于此对象的初始种子号。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| RandomGenerator | rng — 新的随机数生成器对象。 |
+
+## newRandomGenerator
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 RandomGenerator 对象，该对象完全独立于其他 RandomGenerator 对象和随机函数。
+
+**签名：**
+```tl
+newRandomGenerator: function(low: number, high: number): RandomGenerator
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| low | number | 用于此对象的种子号的低 32 位。 |
+| high | number | 用于此对象的种子号的高 32 位。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| RandomGenerator | rng — 新的随机数生成器对象。 |
+
+## newTransform
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 Transform 对象。
+
+**签名：**
+```tl
+newTransform: function(): Transform
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Transform | transform — 新的变换对象。 |
+
+## newTransform
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 Transform 对象。
+
+**签名：**
+```tl
+newTransform: function(x: number, y: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number): Transform
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 新变换在 x 轴上的位置。 |
+| y | number | 新变换在 y 轴上的位置。 |
+| angle | number | 新变换的方向（以弧度为单位）。 （默认值：0。） |
+| scale_x | number | x 轴上的比例因子。 （默认值：1。） |
+| scale_y | number | y 轴的比例因子。 （默认值：sx。） |
+| origin_x | number | x 轴上的原点偏移。 （默认值：0。） |
+| origin_y | number | y 轴上的原点偏移。 （默认值：0。） |
+| shear_x | number | x 轴上的剪切/倾斜因子。 （默认值：0。） |
+| shear_y | number | y 轴上的剪切/倾斜因子。 （默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Transform | transform — 新的变换对象。 |
+
+## newBezierCurve
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 BezierCurve 对象。
+
+	-- 控制多边形中的顶点数决定了曲线的阶数，例如三个顶点定义二次（2 次）贝塞尔曲线，四个顶点定义三次（3 次）贝塞尔曲线，等等。
+
+**签名：**
+```tl
+newBezierCurve: function(vertices: {number}): BezierCurve
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| vertices | \{number} | 控制多边形的顶点作为表格，形式为\{x1, y1, x2, y2, x3, y3, ...}。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| BezierCurve | curve — 贝塞尔曲线对象。 |
+
+## newBezierCurve
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 BezierCurve 对象。
+
+	-- 控制多边形中的顶点数决定了曲线的阶数，例如三个顶点定义二次（2 次）贝塞尔曲线，四个顶点定义三次（3 次）贝塞尔曲线，等等。
+
+**签名：**
+```tl
+newBezierCurve: function(coordinates: number...): BezierCurve
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| coordinates | number... | 控制多边形的顶点作为表格，形式为\{x1, y1, x2, y2, x3, y3, ...}。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| BezierCurve | curve — 贝塞尔曲线对象。 |
+
+## noise
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;生成 1-4 维的 Simplex 或 Perlin 噪声值。给定相同的参数，返回值将始终相同。
+
+	-- 单纯形噪声与 Perlin 噪声密切相关。它广泛用于程序内容生成。
+
+	-- 有很多网页详细讨论了 Perlin 和 Simplex 噪声。
+
+**签名：**
+```tl
+noise: function(x: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 用于生成噪声值的数字。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | value — 1范围内的噪声值。 |
+
+## noise
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;生成 1-4 维的 Simplex 或 Perlin 噪声值。给定相同的参数，返回值将始终相同。
+
+	-- 单纯形噪声与 Perlin 噪声密切相关。它广泛用于程序内容生成。
+
+	-- 有很多网页详细讨论了 Perlin 和 Simplex 噪声。
+
+**签名：**
+```tl
+noise: function(x: number, y: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 用于生成噪声值的二维向量的第一个值。 |
+| y | number | 用于生成噪声值的二维向量的第二个值。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | value — 1范围内的噪声值。 |
+
+## noise
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;生成 1-4 维的 Simplex 或 Perlin 噪声值。给定相同的参数，返回值将始终相同。
+
+	-- 单纯形噪声与 Perlin 噪声密切相关。它广泛用于程序内容生成。
+
+	-- 有很多网页详细讨论了 Perlin 和 Simplex 噪声。
+
+**签名：**
+```tl
+noise: function(x: number, y: number, z: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 用于生成噪声值的 3 维向量的第一个值。 |
+| y | number | 用于生成噪声值的三维向量的第二个值。 |
+| z | number | 用于生成噪声值的三维向量的第三个值。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | value — 1范围内的噪声值。 |
+
+## noise
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;生成 1-4 维的 Simplex 或 Perlin 噪声值。给定相同的参数，返回值将始终相同。
+
+	-- 单纯形噪声与 Perlin 噪声密切相关。它广泛用于程序内容生成。
+
+	-- 有很多网页详细讨论了 Perlin 和 Simplex 噪声。
+
+**签名：**
+```tl
+noise: function(x: number, y: number, z: number, w: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 用于生成噪声值的 4 维向量的第一个值。 |
+| y | number | 用于生成噪声值的 4 维向量的第二个值。 |
+| z | number | 用于生成噪声值的 4 维向量的第三个值。 |
+| w | number | 用于生成噪声值的 4 维向量的第四个值。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | value — 1范围内的噪声值。 |
+
+## random
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;以独立于平台的方式生成伪随机数。默认的 love.run 在启动时为该函数设置种子，因此您通常不需要自己为其设置种子。
+
+**签名：**
+```tl
+random: function(): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | number — 伪随机数。 |
+
+## random
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;以独立于平台的方式生成伪随机数。默认的 love.run 在启动时为该函数设置种子，因此您通常不需要自己为其设置种子。
+
+**签名：**
+```tl
+random: function(upper: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| upper | number | 它应该返回的最大可能值。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 伪随机整数。 |
+
+## random
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;以独立于平台的方式生成伪随机数。默认的 love.run 在启动时为该函数设置种子，因此您通常不需要自己为其设置种子。
+
+**签名：**
+```tl
+random: function(lower: number, upper: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| lower | number | 它应该返回的最小可能值。 |
+| upper | number | 它应该返回的最大可能值。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 伪随机整数。 |
+
+## randomNormal
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取正态分布的伪随机数。
+
+**签名：**
+```tl
+randomNormal: function(standard_deviation?: number, mean?: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| standard_deviation | number | 分布的标准偏差。 （默认值：1。） |
+| mean | number | 分布的平均值。 （默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 具有方差 (stddev)² 和指定平均值的正态分布随机数。 |
+
+## setRandomSeed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用指定的整数设置随机数生成器的种子。这是在启动时内部调用的，因此您通常不需要自己调用它。
+
+**签名：**
+```tl
+setRandomSeed: function(seed: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| seed | number | 您想要用于随机化种子的整数。必须在 2^53 - 1 范围内。 |
+
+## setRandomSeed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用指定的整数设置随机数生成器的种子。这是在启动时内部调用的，因此您通常不需要自己调用它。
+
+**签名：**
+```tl
+setRandomSeed: function(low: number, high: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| low | number | 种子值的低 32 位。必须在 2^32 - 1 范围内。 |
+| high | number | 种子值的高 32 位。必须在 2^32 - 1 范围内。 |
+
+## getRandomSeed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取随机数生成器的种子。
+由于Lua对所有数值都使用双精度数，因此种子被分成两个数字 - 双精度数无法准确表示大于2^53的整数值，但种子可以是最大2^64的整数值。
+
+**签名：**
+```tl
+getRandomSeed: function(): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 表示随机数生成器的 64 位种子值的低 32 位的整数。 |
+| number | 表示随机数生成器的 64 位种子值的高 32 位的整数。 |
+
+## setRandomState
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置随机数生成器的当前状态。用作此函数参数的值是一个不透明的依赖于实现的字符串，并且只能源自先前对 love.math.getRandomState.
+这与 love.math.setRandomSeed 不同，setRandomState 直接设置随机数生成器的当前依赖于实现的状态，而 setRandomSeed 为其提供新的种子值。
+重载说明：
+1. 状态字符串的效果与当前操作系统无关。
+
+**签名：**
+```tl
+setRandomState: function(state: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| state | string | 随机数生成器的新状态，表示为字符串。这应该源自之前对 love.math.getRandomState. |
+
+## getRandomState
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取随机数生成器的当前状态。这将返回一个不透明的依赖于实现的字符串，该字符串仅对以后与 love.math.setRandomState 或 RandomGenerator:setState 一起使用有用。
+这与 love.math.getRandomSeed 不同，getRandomState 获取随机数生成器的当前状态，而 getRandomSeed 获取之前设置的种子数。
+重载说明：
+1. 状态字符串的值与当前操作系统无关。
+
+**签名：**
+```tl
+getRandomState: function(): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 随机数生成器的当前状态，表示为字符串。 |
+
+## colorToBytes
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将颜色从 0..1 转换到 0..255 范围。
+
+**签名：**
+```tl
+colorToBytes: function(red: number, green: number, blue: number, alpha?: number): number, number, number, number | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| red | number | 红色分量。 |
+| green | number | 绿色分量。 |
+| blue | number | 蓝色分量。 |
+| alpha | number | Alpha 颜色分量。 （默认值：无。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | rb — 0..255 范围内的红色分量。 |
+| number | gb — 0..255 范围内的绿色分量。 |
+| number | bb — 0..255 范围内的蓝色分量。 |
+| number \| nil | ab — 0..255 范围内的 Alpha 颜色分量，如果未指定 alpha，则为零。 |
+
+## colorToBytes
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将颜色从 0..1 转换到 0..255 范围。
+
+**签名：**
+```tl
+colorToBytes: function(color: {number}): number, number, number, number | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| color | \{number} | 红色分量。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | rb — 0..255 范围内的红色分量。 |
+| number | gb — 0..255 范围内的绿色分量。 |
+| number | bb — 0..255 范围内的蓝色分量。 |
+| number \| nil | ab — 0..255 范围内的 Alpha 颜色分量，如果未指定 alpha，则为零。 |
+
+## colorFromBytes
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将颜色从 0..255 转换为 0..1 范围。
+
+**签名：**
+```tl
+colorFromBytes: function(red: number, green: number, blue: number, alpha?: number): number, number, number, number | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| red | number | 0..255 范围内的红色分量。 |
+| green | number | 0..255 范围内的绿色分量。 |
+| blue | number | 0..255 范围内的蓝色分量。 |
+| alpha | number | 0..255 范围内的 Alpha 颜色分量。 （默认值：无。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | r — 0..1 范围内的红色分量。 |
+| number | g — 0..1 范围内的绿色分量。 |
+| number | b — 0..1 范围内的蓝色分量。 |
+| number \| nil | a — 0..1 范围内的 Alpha 颜色分量，如果未指定 alpha，则为零。 |
+
+## colorFromBytes
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将颜色从 0..255 转换为 0..1 范围。
+
+**签名：**
+```tl
+colorFromBytes: function(color: {number}): number, number, number, number | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| color | \{number} | 0..255 范围内的红色分量。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | r — 0..1 范围内的红色分量。 |
+| number | g — 0..1 范围内的绿色分量。 |
+| number | b — 0..1 范围内的蓝色分量。 |
+| number \| nil | a — 0..1 范围内的 Alpha 颜色分量，如果未指定 alpha，则为零。 |
+
+## gammaToLinear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将颜色从伽玛空间 (sRGB) 转换为线性空间 (RGB)。这在进行伽马校正渲染时非常有用，并且在 LÖVE 无法自动处理转换的少数情况下，您需要使用线性 RGB 进行数学计算。
+
+	-- 在此处、此处和此处阅读有关伽玛校正渲染的更多信息。
+
+	-- 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+gammaToLinear: function(red: number, green?: number, blue?: number, alpha?: number): number, number | nil, number | nil, number | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| red | number | 要转换的 sRGB 颜色的红色通道。 |
+| green | number | 要转换的 sRGB 颜色的绿色通道。 |
+| blue | number | 要转换的 sRGB 颜色的蓝色通道。 |
+| alpha | number | Alpha 通道，将保持不变并原样返回。（默认值：nil。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | lr — 线性 RGB 空间中转换颜色的红色通道。 |
+| number \| nil | lg — 线性 RGB 空间中转换颜色的绿色通道。 |
+| number \| nil | lb — 线性RGB空间中转换颜色的蓝色通道。 |
+| number \| nil | lc — 线性RGB空间中颜色通道的值。 |
+
+## gammaToLinear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将颜色从伽玛空间 (sRGB) 转换为线性空间 (RGB)。这在进行伽马校正渲染时非常有用，并且在 LÖVE 无法自动处理转换的少数情况下，您需要使用线性 RGB 进行数学计算。
+
+	-- 在此处、此处和此处阅读有关伽玛校正渲染的更多信息。
+
+	-- 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+gammaToLinear: function(color: {number}): number, number | nil, number | nil, number | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| color | \{number} | 一个表，其中包含要转换的 sRGB 颜色的红色、绿色和蓝色通道。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | lr — 线性 RGB 空间中转换颜色的红色通道。 |
+| number \| nil | lg — 线性 RGB 空间中转换颜色的绿色通道。 |
+| number \| nil | lb — 线性RGB空间中转换颜色的蓝色通道。 |
+| number \| nil | lc — 线性RGB空间中颜色通道的值。 |
+
+## linearToGamma
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将颜色从线性空间 (RGB) 转换为伽玛空间 (sRGB)。这在图像中存储线性 RGB 颜色值时非常有用，因为对于深色，线性 RGB 颜色空间的精度低于 sRGB，这可能会导致绘图时出现明显的色带。
+
+	-- 一般来说，根据屏幕上的外观选择的颜色已经在伽马空间中，不应该进行双重转换。使用数学计算的颜色通常位于线性 RGB 空间中。
+
+	-- 在此处、此处和此处阅读有关伽玛校正渲染的更多信息。
+
+	-- 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+linearToGamma: function(red: number, green?: number, blue?: number, alpha?: number): number, number | nil, number | nil, number | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| red | number | 要转换的线性 RGB 颜色的红色通道。 |
+| green | number | 要转换的线性 RGB 颜色的绿色通道。 |
+| blue | number | 要转换的线性 RGB 颜色的蓝色通道。 |
+| alpha | number | Alpha 通道，将保持不变并原样返回。（默认值：nil。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | cr — gamma sRGB 空间中转换颜色的红色通道。 |
+| number \| nil | cg — gamma sRGB 空间中转换颜色的绿色通道。 |
+| number \| nil | cb — gamma sRGB 空间中转换颜色的蓝色通道。 |
+| number \| nil | c — gamma sRGB 空间中颜色通道的值。 |
+
+## linearToGamma
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将颜色从线性空间 (RGB) 转换为伽玛空间 (sRGB)。这在图像中存储线性 RGB 颜色值时非常有用，因为对于深色，线性 RGB 颜色空间的精度低于 sRGB，这可能会导致绘图时出现明显的色带。
+
+	-- 一般来说，根据屏幕上的外观选择的颜色已经在伽马空间中，不应该进行双重转换。使用数学计算的颜色通常位于线性 RGB 空间中。
+
+	-- 在此处、此处和此处阅读有关伽玛校正渲染的更多信息。
+
+	-- 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+linearToGamma: function(color: {number}): number, number | nil, number | nil, number | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| color | \{number} | 一个表，其中包含要转换的线性 RGB 颜色的红色、绿色和蓝色通道。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | cr — gamma sRGB 空间中转换颜色的红色通道。 |
+| number \| nil | cg — gamma sRGB 空间中转换颜色的绿色通道。 |
+| number \| nil | cb — gamma sRGB 空间中转换颜色的蓝色通道。 |
+| number \| nil | c — gamma sRGB 空间中颜色通道的值。 |
+
+## isConvex
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查多边形是否为凸多边形。
+
+	-- love.physics 中的 PolygonShapes、某些形式的网格以及使用 love.graphics.polygon 绘制的多边形必须是简单的凸多边形。
+
+**签名：**
+```tl
+isConvex: function(vertices: {number}): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| vertices | \{number} | 多边形的顶点作为表格，形式为\{x1, y1, x2, y2, x3, y3, ...}。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | convex — 给定的多边形是否是凸的。 |
+
+## isConvex
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查多边形是否为凸多边形。
+
+	-- love.physics 中的 PolygonShapes、某些形式的网格以及使用 love.graphics.polygon 绘制的多边形必须是简单的凸多边形。
+
+**签名：**
+```tl
+isConvex: function(coordinates: number...): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| coordinates | number... | 多边形的顶点作为表格，形式为\{x1, y1, x2, y2, x3, y3, ...}。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | convex — 给定的多边形是否是凸的。 |
+
+## triangulate
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将简单的凸多边形或凹多边形分解为三角形。
+
+**签名：**
+```tl
+triangulate: function(vertices: {number}): {{number}}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| vertices | \{number} | 用于三角测量的多边形。不得与自身相交。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{\{number}} | triangles — 多边形组成的三角形列表，格式为 \{\{x1, y1, x2, y2, x3, y3}, \{x1, y1, x2, y2, x3, y3}, ...}。 |
+
+## triangulate
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将简单的凸多边形或凹多边形分解为三角形。
+
+**签名：**
+```tl
+triangulate: function(coordinates: number...): {{number}}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| coordinates | number... | 用于三角测量的多边形。不得与自身相交。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{\{number}} | triangles — 多边形组成的三角形列表，格式为 \{\{x1, y1, x2, y2, x3, y3}, \{x1, y1, x2, y2, x3, y3}, ...}。 |
+
+## compress
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;love.data.compress 的弃用别名。
+
+**签名：**
+```tl
+compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 要返回的值类型。 |
+| format | CompressionFormat | 使用的压缩格式。 |
+| source | string | Data | 未压缩的源数据。 |
+| level | integer | 压缩级别，范围为 0 到 9；-1 表示使用默认级别。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串形式的压缩数据。 |
+
+## compress
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;love.data.compress 的弃用别名。
+
+**签名：**
+```tl
+compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 要返回的值类型。 |
+| format | CompressionFormat | 使用的压缩格式。 |
+| source | string | Data | 未压缩的源数据。 |
+| level | integer | 压缩级别，范围为 0 到 9；-1 表示使用默认级别。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| CompressedData | CompressedData 对象形式的压缩数据。 |
+
+## decompress
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;love.data.decompress 的弃用别名。
+
+**签名：**
+```tl
+decompress: function(container: string, compressed: CompressedData): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 要返回的值类型。 |
+| compressed | CompressedData | 要解压的压缩数据。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串形式的解压缩数据。 |
+
+## decompress
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;love.data.decompress 的弃用别名。
+
+**签名：**
+```tl
+decompress: function(container: string, compressed: CompressedData): ByteData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 要返回的值类型。 |
+| compressed | CompressedData | 要解压的压缩数据。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ByteData | ByteData 对象形式的解压缩数据。 |

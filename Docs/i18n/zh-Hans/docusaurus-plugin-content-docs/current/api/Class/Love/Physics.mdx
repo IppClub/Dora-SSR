@@ -1,0 +1,889 @@
+# Physics
+
+**描述：**
+
+&emsp;&emsp;可以真实地模拟二维刚体物理。该模块基于Box2D，并且该API与Box2D API尽可能接近地对应。
+
+## setMeter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将像素设置为米比例因子。
+物理模块中的所有坐标都除以该数字并转换为米，它创建了一种将对象直接绘制到屏幕上而不需要图形转换的便捷方法。
+建议创建不大于10倍比例的形状。这很重要，因为 Box2D 经过调整，可以很好地处理 0.1 到 10 米的形状尺寸。默认仪表刻度为 30。
+
+**签名：**
+```tl
+setMeter: function(scale: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| scale | number | 整数比例因子。 |
+
+## getMeter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回仪表比例因子。
+物理模块中的所有坐标都除以这个数字，创建了一种将对象直接绘制到屏幕上的便捷方法，而无需进行图形转换。
+建议创建不大于10倍比例的形状。这很重要，因为 Box2D 经过调整，可以很好地处理 0.1 到 10 米的形状尺寸。
+
+**签名：**
+```tl
+getMeter: function(): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 整数比例因子。 |
+
+## newWorld
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创造一个新世界。
+
+**签名：**
+```tl
+newWorld: function(x_gravity?: number, y_gravity?: number, sleep?: boolean): World
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x_gravity | number | 重力的 x 分量。 （默认值：0。） |
+| y_gravity | number | 重力的 y 分量。 （默认值：0。） |
+| sleep | boolean | 这个世界的身体是否可以睡觉。 （默认值：true。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| World | 美丽的新世界。 |
+
+## newBody
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的实体。
+身体分为三种类型。
+* 静态物体不移动，具有无限质量，可用于关卡边界。
+* 动态物体是模拟中的主要角色，它们与一切物体发生碰撞。
+* 运动体不会对力产生反应，只会与动态体发生碰撞。
+连接或移除夹具时会计算主体的质量，但可以随时使用 Body:setMass 或 Body:resetMassData 进行更改。
+
+**签名：**
+```tl
+newBody: function(world: World, x?: number, y?: number, body_type?: string): Body
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| world | World | 创造身体的世界。 |
+| x | number | 主体的 x 位置。 （默认值：0。） |
+| y | number | 主体的 y 位置。 （默认值：0。） |
+| body_type | string | 主体的类型。 （默认：'static'。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Body | 一个新的身体。 |
+
+## newFixture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建夹具并将其附加到主体。
+请注意，在创建 Fixture 时，Shape 对象被复制而不是保留为引用。要获取 Fixture 拥有的 Shape 对象，请使用 Fixture:getShape。
+
+**签名：**
+```tl
+newFixture: function(body: Body, shape: Shape, density?: number): Fixture
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| body | Body | 连接固定装置的主体。 |
+| shape | Shape | 要复制到夹具的形状。 |
+| density | number | 灯具的密度。 （默认值：1。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Fixture | 新的固定装置。 |
+
+## newCircleShape
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 CircleShape。
+
+**签名：**
+```tl
+newCircleShape: function(radius: number): CircleShape
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| radius | number | 圆的半径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| CircleShape | shape — 新形状。 |
+
+## newCircleShape
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 CircleShape。
+
+**签名：**
+```tl
+newCircleShape: function(x: number, y: number, radius: number): CircleShape
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 圆的 x 位置。 |
+| y | number | 圆的 y 位置。 |
+| radius | number | 圆的半径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| CircleShape | shape — 新形状。 |
+
+## newRectangleShape
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建矩形 PolygonShapes 的简写。
+
+	-- 默认情况下，本地原点位于矩形的“'center'”，而不是图形的左上角。
+
+**签名：**
+```tl
+newRectangleShape: function(width: number, height: number): PolygonShape
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| width | number | 矩形的宽度。 |
+| height | number | 矩形的高度。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| PolygonShape | shape — 一个新的多边形形状。 |
+
+## newRectangleShape
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建矩形 PolygonShapes 的简写。
+
+	-- 默认情况下，本地原点位于矩形的“'center'”，而不是图形的左上角。
+
+**签名：**
+```tl
+newRectangleShape: function(x: number, y: number, width: number, height: number, angle?: number): PolygonShape
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 沿 x 轴的偏移。 |
+| y | number | 沿 y 轴的偏移量。 |
+| width | number | 矩形的宽度。 |
+| height | number | 矩形的高度。 |
+| angle | number | 矩形的初始角度。 （默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| PolygonShape | shape — 一个新的多边形形状。 |
+
+## newPolygonShape
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的PolygonShape。
+
+	-- 这个形状最多可以有8个顶点，并且必须形成一个凸形状。
+
+**签名：**
+```tl
+newPolygonShape: function(points: {number}): PolygonShape
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| points | \{number} | 用于构造多边形的顶点列表，格式为\{x1, y1, x2, y2, x3, y3, ...}。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| PolygonShape | shape — 一个新的多边形形状。 |
+
+## newPolygonShape
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的PolygonShape。
+
+	-- 这个形状最多可以有8个顶点，并且必须形成一个凸形状。
+
+**签名：**
+```tl
+newPolygonShape: function(points: number...): PolygonShape
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| points | number... | 用于构造多边形的顶点列表，格式为\{x1, y1, x2, y2, x3, y3, ...}。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| PolygonShape | shape — 一个新的多边形形状。 |
+
+## newEdgeShape
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 EdgeShape。
+
+**签名：**
+```tl
+newEdgeShape: function(x1: number, y1: number, x2: number, y2: number): Shape
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x1 | number | 第一个点的 x 位置。 |
+| y1 | number | 第一个点的 y 位置。 |
+| x2 | number | 第二个点的 x 位置。 |
+| y2 | number | 第二个点的 y 位置。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Shape | 新形状。 |
+
+## newChainShape
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 ChainShape。
+
+**签名：**
+```tl
+newChainShape: function(loop: boolean, points: {number}): ChainShape
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| loop | boolean | 如果链应该循环回到第一个点。 |
+| points | \{number} | 用于构造 ChainShape 的点列表，格式为 \{x1, y1, x2, y2, ...}。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ChainShape | shape — 新形状。 |
+
+## newChainShape
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 ChainShape。
+
+**签名：**
+```tl
+newChainShape: function(loop: boolean, points: number...): ChainShape
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| loop | boolean | 如果链应该循环回到第一个点。 |
+| points | number... | 用于构造 ChainShape 的点列表，格式为 \{x1, y1, x2, y2, ...}。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ChainShape | shape — 新形状。 |
+
+## newDistanceJoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在两个实体之间创建一个 DistanceJoint。
+该关节将两个物体上两点之间的距离限制为恒定。这两个点是在世界坐标中指定的，并且在创建此关节时假定两个主体就位。第一个锚点连接到第一主体，第二个锚点连接到第二主体，并且这些点限定距离关节的长度。
+
+**签名：**
+```tl
+newDistanceJoint: function(body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, collide_connected?: boolean): Joint
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| body1 | Body | 第一个连接到关节的主体。 |
+| body2 | Body | 连接到关节的第二个主体。 |
+| x1 | number | 第一个锚点（世界空间）的 x 位置。 |
+| y1 | number | 第一个锚点（世界空间）的 y 位置。 |
+| x2 | number | 第二个锚点（世界空间）的 x 位置。 |
+| y2 | number | 第二个锚点（世界空间）的 y 位置。 |
+| collide_connected | boolean | 指定两个实体是否应该相互碰撞。 （默认值：假。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Joint | 新的距离关节。 |
+
+## newRevoluteJoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在两个实体之间创建枢轴关节。
+
+	-- 这个关节将两个物体连接到一个点，它们可以围绕该点旋转。
+
+**签名：**
+```tl
+newRevoluteJoint: function(body1: Body, body2: Body, x: number, y: number, collide_connected?: boolean): RevoluteJoint
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| body1 | Body | 第一具尸体。 |
+| body2 | Body | 第二具尸体。 |
+| x | number | 连接点的 x 位置。 |
+| y | number | 连接点的 y 位置。 |
+| collide_connected | boolean | 指定两个实体是否应该相互碰撞。 （默认值：假。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| RevoluteJoint | joint — 新的旋转接头。 |
+
+## newRevoluteJoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在两个实体之间创建枢轴关节。
+
+	-- 这个关节将两个物体连接到一个点，它们可以围绕该点旋转。
+
+**签名：**
+```tl
+newRevoluteJoint: function(body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, collide_connected?: boolean, reference_angle?: number): RevoluteJoint
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| body1 | Body | 第一具尸体。 |
+| body2 | Body | 第二具尸体。 |
+| x1 | number | 第一个连接点的 x 位置。 |
+| y1 | number | 第一个连接点的 y 位置。 |
+| x2 | number | 第二个连接点的 x 位置。 |
+| y2 | number | 第二个连接点的 y 位置。 |
+| collide_connected | boolean | 指定两个实体是否应该相互碰撞。 （默认值：假。） |
+| reference_angle | number | body1 和 body2 之间的参考角度，以弧度为单位。 （默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| RevoluteJoint | joint — 新的旋转接头。 |
+
+## newPrismaticJoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在两个实体之间创建 PrismaticJoint。
+
+	-- 棱柱关节约束两个实体在指定轴上相对移动。它不允许相对旋转。其定义和操作与旋转关节类似，但用平移和力代替角度和扭矩。
+
+**签名：**
+```tl
+newPrismaticJoint: function(body1: Body, body2: Body, x: number, y: number, axis_x: number, axis_y: number, collide_connected?: boolean): PrismaticJoint
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| body1 | Body | 第一个用棱柱关节连接的主体。 |
+| body2 | Body | 用棱柱关节连接的第二个主体。 |
+| x | number | 锚点的 x 坐标。 |
+| y | number | 锚点的 y 坐标。 |
+| axis_x | number | 轴向量的 x 坐标。 |
+| axis_y | number | 轴向量的 y 坐标。 |
+| collide_connected | boolean | 指定两个实体是否应该相互碰撞。 （默认值：假。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| PrismaticJoint | joint — 新的棱柱形关节。 |
+
+## newPrismaticJoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在两个实体之间创建 PrismaticJoint。
+
+	-- 棱柱关节约束两个实体在指定轴上相对移动。它不允许相对旋转。其定义和操作与旋转关节类似，但用平移和力代替角度和扭矩。
+
+**签名：**
+```tl
+newPrismaticJoint: function(body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, axis_x: number, axis_y: number, collide_connected?: boolean, reference_angle?: number): PrismaticJoint
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| body1 | Body | 第一个用棱柱关节连接的主体。 |
+| body2 | Body | 用棱柱关节连接的第二个主体。 |
+| x1 | number | 第一个锚点的 x 坐标。 |
+| y1 | number | 第一个锚点的 y 坐标。 |
+| x2 | number | 第二个锚点的 x 坐标。 |
+| y2 | number | 第二个锚点的 y 坐标。 |
+| axis_x | number | 轴单位矢量的 x 坐标。 |
+| axis_y | number | 轴单位矢量的 y 坐标。 |
+| collide_connected | boolean | 指定两个实体是否应该相互碰撞。 （默认值：假。） |
+| reference_angle | number | body1 和 body2 之间的参考角度，以弧度为单位。 （默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| PrismaticJoint | joint — 新的棱柱形关节。 |
+
+## newWeldJoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在两个实体之间创建约束关节。 WeldJoint 本质上是将两个实体粘合在一起。然而，由于 Box2D 的迭代求解器，约束有点软。
+
+**签名：**
+```tl
+newWeldJoint: function(body1: Body, body2: Body, x: number, y: number, collide_connected?: boolean): WeldJoint
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| body1 | Body | 第一个连接到关节的主体。 |
+| body2 | Body | 连接到关节的第二个主体。 |
+| x | number | 锚点的 x 位置（世界空间）。 |
+| y | number | 锚点（世界空间）的 y 位置。 |
+| collide_connected | boolean | 指定两个实体是否应该相互碰撞。 （默认值：假。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| WeldJoint | joint — 新的 WeldJoint。 |
+
+## newWeldJoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在两个实体之间创建约束关节。 WeldJoint 本质上是将两个实体粘合在一起。然而，由于 Box2D 的迭代求解器，约束有点软。
+
+**签名：**
+```tl
+newWeldJoint: function(body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, collide_connected?: boolean, reference_angle?: number): WeldJoint
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| body1 | Body | 第一个连接到关节的主体。 |
+| body2 | Body | 连接到关节的第二个主体。 |
+| x1 | number | 第一个锚点（世界空间）的 x 位置。 |
+| y1 | number | 第一个锚点（世界空间）的 y 位置。 |
+| x2 | number | 第二个锚点（世界空间）的 x 位置。 |
+| y2 | number | 第二个锚点（世界空间）的 y 位置。 |
+| collide_connected | boolean | 指定两个实体是否应该相互碰撞。 （默认值：假。） |
+| reference_angle | number | body1 和 body2 之间的参考角度，以弧度为单位。 （默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| WeldJoint | joint — 新的 WeldJoint。 |
+
+## newFrictionJoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在两个物体之间创建摩擦接头。 FrictionJoint 将摩擦力施加到物体上。
+
+**签名：**
+```tl
+newFrictionJoint: function(body1: Body, body2: Body, x: number, y: number, collide_connected?: boolean): FrictionJoint
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| body1 | Body | 第一个连接到关节的主体。 |
+| body2 | Body | 连接到关节的第二个主体。 |
+| x | number | 锚点的 x 位置。 |
+| y | number | 锚点的 y 位置。 |
+| collide_connected | boolean | 指定两个实体是否应该相互碰撞。 （默认值：假。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| FrictionJoint | joint — 新的摩擦关节。 |
+
+## newFrictionJoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在两个物体之间创建摩擦接头。 FrictionJoint 将摩擦力施加到物体上。
+
+**签名：**
+```tl
+newFrictionJoint: function(body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, collide_connected?: boolean): FrictionJoint
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| body1 | Body | 第一个连接到关节的主体。 |
+| body2 | Body | 连接到关节的第二个主体。 |
+| x1 | number | 第一个锚点的 x 位置。 |
+| y1 | number | 第一个锚点的 y 位置。 |
+| x2 | number | 第二个锚点的 x 位置。 |
+| y2 | number | 第二个锚点的 y 位置。 |
+| collide_connected | boolean | 指定两个实体是否应该相互碰撞。 （默认值：假。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| FrictionJoint | joint — 新的摩擦关节。 |
+
+## newRopeJoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在两个实体之间创建关节。它的唯一功能是强制这些实体之间的最大距离。
+
+**签名：**
+```tl
+newRopeJoint: function(body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, max_length: number, collide_connected?: boolean): Joint
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| body1 | Body | 第一个连接到关节的主体。 |
+| body2 | Body | 连接到关节的第二个主体。 |
+| x1 | number | 第一个锚点的 x 位置。 |
+| y1 | number | 第一个锚点的 y 位置。 |
+| x2 | number | 第二个锚点的 x 位置。 |
+| y2 | number | 第二个锚点的 y 位置。 |
+| max_length | number | 实体的最大距离。 |
+| collide_connected | boolean | 指定两个实体是否应该相互碰撞。 （默认值：假。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Joint | 新的 RopeJoint。 |
+
+## newPulleyJoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个 PulleyJoint 将两个实体相互连接并连接到地面。
+滑轮接头模拟带有可选滑轮组的滑轮。如果比率参数的值不同于 1，则模拟绳索在一侧比另一侧延伸得更快。在滑轮接头中，模拟绳索的总长度为常数 length1 +ratio * length2，该值在创建滑轮接头时设置。
+如果一侧完全伸展，滑轮接头可能会出现不可预测的行为。建议使用 setMaxLengths 方法来限制每条边可以达到的最大长度。
+
+**签名：**
+```tl
+newPulleyJoint: function(body1: Body, body2: Body, ground_x1: number, ground_y1: number, ground_x2: number, ground_y2: number, x1: number, y1: number, x2: number, y2: number, ratio?: number, collide_connected?: boolean): Joint
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| body1 | Body | 第一个与滑轮接头连接的主体。 |
+| body2 | Body | 与滑轮接头连接的第二个主体。 |
+| ground_x1 | number | 第一个主体的地锚点的 x 坐标。 |
+| ground_y1 | number | 第一个主体的地锚的 y 坐标。 |
+| ground_x2 | number | 第二个主体的地锚点的 x 坐标。 |
+| ground_y2 | number | 第二个物体的地锚点的 y 坐标。 |
+| x1 | number | 第一个主体中滑轮关节锚点的 x 坐标。 |
+| y1 | number | 第一个主体中滑轮关节锚点的 y 坐标。 |
+| x2 | number | 第二个主体中滑轮关节锚点的 x 坐标。 |
+| y2 | number | 第二个主体中滑轮关节锚点的 y 坐标。 |
+| ratio | number | 关节比例。 （默认值：1。） |
+| collide_connected | boolean | 指定两个实体是否应该相互碰撞。 （默认值：true。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Joint | 新的滑轮接头。 |
+
+## newWheelJoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建车轮接头。
+
+**签名：**
+```tl
+newWheelJoint: function(body1: Body, body2: Body, x: number, y: number, axis_x: number, axis_y: number, collide_connected?: boolean): WheelJoint
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| body1 | Body | 第一具尸体。 |
+| body2 | Body | 第二具尸体。 |
+| x | number | 锚点的 x 位置。 |
+| y | number | 锚点的 y 位置。 |
+| axis_x | number | 轴单位向量的 x 位置。 |
+| axis_y | number | 轴单位向量的 y 位置。 |
+| collide_connected | boolean | 指定两个实体是否应该相互碰撞。 （默认值：假。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| WheelJoint | joint — 新的 WheelJoint。 |
+
+## newWheelJoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建车轮接头。
+
+**签名：**
+```tl
+newWheelJoint: function(body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, axis_x: number, axis_y: number, collide_connected?: boolean): WheelJoint
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| body1 | Body | 第一具尸体。 |
+| body2 | Body | 第二具尸体。 |
+| x1 | number | 第一个锚点的 x 位置。 |
+| y1 | number | 第一个锚点的 y 位置。 |
+| x2 | number | 第二个锚点的 x 位置。 |
+| y2 | number | 第二个锚点的 y 位置。 |
+| axis_x | number | 轴单位向量的 x 位置。 |
+| axis_y | number | 轴单位向量的 y 位置。 |
+| collide_connected | boolean | 指定两个实体是否应该相互碰撞。 （默认值：假。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| WheelJoint | joint — 新的 WheelJoint。 |
+
+## newMouseJoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在身体和鼠标之间创建一个关节。
+这个关节实际上将身体连接到世界上的一个固定点。为了使其跟随鼠标，固定点必须在每个时间步更新（示例如下）。
+使用 MouseJoint 而不是直接更改身体位置的优点是，对其他关节的碰撞和反应由物理引擎处理。
+
+**签名：**
+```tl
+newMouseJoint: function(body: Body, x: number, y: number): Joint
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| body | Body | 连接到鼠标的主体。 |
+| x | number | 连接点的 x 位置。 |
+| y | number | 连接点的 y 位置。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Joint | 新的鼠标关节。 |
+
+## newMotorJoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在两个实体之间创建一个关节，控制它们之间的相对运动。
+一旦创建了 MotorJoint，就可以指定位置和旋转偏移，以及为达到目标偏移而应用的最大电机力和扭矩。
+
+**签名：**
+```tl
+newMotorJoint: function(body1: Body, body2: Body, correction_factor?: number, collide_connected?: boolean): Joint
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| body1 | Body | 第一个连接到关节的主体。 |
+| body2 | Body | 连接到关节的第二个主体。 |
+| correction_factor | number | 关节的初始位置修正系数，取值范围为1。（默认：0.3。） |
+| collide_connected | boolean | 指定两个实体是否应该相互碰撞。 （默认值：假。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Joint | 新的 MotorJoint。 |
+
+## newGearJoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建连接两个关节的 GearJoint。
+齿轮接头连接两个必须是棱柱或旋转接头的接头。使用这个关节需要它使用的关节将各自的身体连接到地面，并以地面作为第一身体。破坏主体和关节时，必须确保先破坏齿轮关节，然后再破坏其他关节。
+齿轮接头具有一个比率，该比率确定所连接接头的角度或距离值如何相互关联。公式坐标 1 + 比率 * 坐标 2 始终具有在创建齿轮接头时设置的常量值。
+
+**签名：**
+```tl
+newGearJoint: function(joint1: Joint, joint2: Joint, ratio?: number, collide_connected?: boolean): Joint
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| joint1 | Joint | 第一个与齿轮接头连接的接头。 |
+| joint2 | Joint | 与齿轮接头连接的第二个接头。 |
+| ratio | number | 齿轮比。 （默认值：1。） |
+| collide_connected | boolean | 指定两个实体是否应该相互碰撞。 （默认值：假。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Joint | 新的齿轮接头。 |

@@ -1,0 +1,133 @@
+# ImageModule
+
+**描述：**
+
+&emsp;&emsp;提供解码编码图像数据的接口。
+
+## newImageData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 ImageData 对象。
+
+**签名：**
+```tl
+newImageData: function(width: number, height: integer, format?: ImagePixelFormat, data?: string | FileData): ImageData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| width | number | ImageData 的宽度。 |
+| height | integer | ImageData 的高度。 |
+| format | ImagePixelFormat | ImageData 的像素格式。 （默认：'rgba8'。） |
+| data | string | FileData | 可选的原始字节数据，以“'format'”指定的格式加载到 ImageData 中。 （默认值：nil。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ImageData | imageData — 新的空白 ImageData 对象。每个像素的颜色值（包括 Alpha 值！）将设置为零。 |
+
+## newImageData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 ImageData 对象。
+
+**签名：**
+```tl
+newImageData: function(filename: string): ImageData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 图像文件的文件名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ImageData | 新的 ImageData 对象。 |
+
+## newImageData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 ImageData 对象。
+
+**签名：**
+```tl
+newImageData: function(data: FileData): ImageData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| data | FileData | 要加载到 ImageData 中的数据（RGBA 字节，从左到右、从上到下）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ImageData | 新的 ImageData 对象。 |
+
+## newCompressedData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从压缩图像文件创建一个新的 CompressedImageData 对象。 LÖVE 支持多种压缩纹理格式，在 CompressedImageFormat 页面中列出。
+
+**签名：**
+```tl
+newCompressedData: function(filename_or_data: string | FileData): CompressedImageData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename_or_data | string or FileData | 压缩图像文件的文件名。取决于重载：包含压缩图像的 FileData。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| CompressedImageData | 新的 CompressedImageData 对象。 |
+
+## isCompressed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;确定文件是否可以作为 CompressedImageData 加载。
+
+**签名：**
+```tl
+isCompressed: function(filename_or_data: string | FileData): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename_or_data | string or FileData | 可能压缩的图像文件的文件名。根据重载：可能包含压缩图像的 FileData。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 文件是否可以作为 CompressedImageData 加载。取决于重载：FileData 是否可以作为 CompressedImageData 加载。 |

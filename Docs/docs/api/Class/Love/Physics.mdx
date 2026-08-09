@@ -1,0 +1,910 @@
+# Physics
+
+**Description:**
+
+&emsp;&emsp;Can simulate 2D rigid body physics in a realistic manner. This module is based on Box2D, and this API
+corresponds to the Box2D API as closely as possible.
+
+## setMeter
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the pixels to meter scale factor.
+All coordinates in the physics module are divided by this number and converted to meters, and it creates a
+convenient way to draw the objects directly to the screen without the need for graphics transformations.
+It is recommended to create shapes no larger than 10 times the scale. This is important because Box2D is tuned to
+work well with shape sizes from 0.1 to 10 meters. The default meter scale is 30.
+
+**Signature:**
+```tl
+setMeter: function(scale: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| scale | number | The scale factor as an integer. |
+
+## getMeter
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the meter scale factor.
+All coordinates in the physics module are divided by this number, creating a convenient way to draw the objects
+directly to the screen without the need for graphics transformations.
+It is recommended to create shapes no larger than 10 times the scale. This is important because Box2D is tuned to
+work well with shape sizes from 0.1 to 10 meters.
+
+**Signature:**
+```tl
+getMeter: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The scale factor as an integer. |
+
+## newWorld
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new World.
+
+**Signature:**
+```tl
+newWorld: function(x_gravity?: number, y_gravity?: number, sleep?: boolean): World
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x_gravity | number | The x component of gravity. (Default: 0.) |
+| y_gravity | number | The y component of gravity. (Default: 0.) |
+| sleep | boolean | Whether the bodies in this world are allowed to sleep. (Default: true.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| World | A brave new World. |
+
+## newBody
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new body.
+There are three types of bodies.
+* Static bodies do not move, have a infinite mass, and can be used for level boundaries.
+* Dynamic bodies are the main actors in the simulation, they collide with everything.
+* Kinematic bodies do not react to forces and only collide with dynamic bodies.
+The mass of the body gets calculated when a Fixture is attached or removed, but can be changed at any time with
+Body:setMass or Body:resetMassData.
+
+**Signature:**
+```tl
+newBody: function(world: World, x?: number, y?: number, body_type?: string): Body
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| world | World | The world to create the body in. |
+| x | number | The x position of the body. (Default: 0.) |
+| y | number | The y position of the body. (Default: 0.) |
+| body_type | string | The type of the body. (Default: 'static'.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Body | A new body. |
+
+## newFixture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates and attaches a Fixture to a body.
+Note that the Shape object is copied rather than kept as a reference when the Fixture is created. To get the Shape
+object that the Fixture owns, use Fixture:getShape.
+
+**Signature:**
+```tl
+newFixture: function(body: Body, shape: Shape, density?: number): Fixture
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body | Body | The body which gets the fixture attached. |
+| shape | Shape | The shape to be copied to the fixture. |
+| density | number | The density of the fixture. (Default: 1.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Fixture | The new fixture. |
+
+## newCircleShape
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new CircleShape.
+
+**Signature:**
+```tl
+newCircleShape: function(radius: number): CircleShape
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| radius | number | The radius of the circle. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| CircleShape | shape — The new shape. |
+
+## newCircleShape
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new CircleShape.
+
+**Signature:**
+```tl
+newCircleShape: function(x: number, y: number, radius: number): CircleShape
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The x position of the circle. |
+| y | number | The y position of the circle. |
+| radius | number | The radius of the circle. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| CircleShape | shape — The new shape. |
+
+## newRectangleShape
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Shorthand for creating rectangular PolygonShapes.
+
+	-- By default, the local origin is located at the '''center''' of the rectangle as opposed to the top left for graphics.
+
+**Signature:**
+```tl
+newRectangleShape: function(width: number, height: number): PolygonShape
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| width | number | The width of the rectangle. |
+| height | number | The height of the rectangle. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| PolygonShape | shape — A new PolygonShape. |
+
+## newRectangleShape
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Shorthand for creating rectangular PolygonShapes.
+
+	-- By default, the local origin is located at the '''center''' of the rectangle as opposed to the top left for graphics.
+
+**Signature:**
+```tl
+newRectangleShape: function(x: number, y: number, width: number, height: number, angle?: number): PolygonShape
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The offset along the x-axis. |
+| y | number | The offset along the y-axis. |
+| width | number | The width of the rectangle. |
+| height | number | The height of the rectangle. |
+| angle | number | The initial angle of the rectangle. (Default: 0.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| PolygonShape | shape — A new PolygonShape. |
+
+## newPolygonShape
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new PolygonShape.
+
+	-- This shape can have 8 vertices at most, and must form a convex shape.
+
+**Signature:**
+```tl
+newPolygonShape: function(points: {number}): PolygonShape
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| points | \{number} | A list of vertices to construct the polygon, in the form of \{x1, y1, x2, y2, x3, y3, ...}. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| PolygonShape | shape — A new PolygonShape. |
+
+## newPolygonShape
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new PolygonShape.
+
+	-- This shape can have 8 vertices at most, and must form a convex shape.
+
+**Signature:**
+```tl
+newPolygonShape: function(points: number...): PolygonShape
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| points | number... | A list of vertices to construct the polygon, in the form of \{x1, y1, x2, y2, x3, y3, ...}. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| PolygonShape | shape — A new PolygonShape. |
+
+## newEdgeShape
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new EdgeShape.
+
+**Signature:**
+```tl
+newEdgeShape: function(x1: number, y1: number, x2: number, y2: number): Shape
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x1 | number | The x position of the first point. |
+| y1 | number | The y position of the first point. |
+| x2 | number | The x position of the second point. |
+| y2 | number | The y position of the second point. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Shape | The new shape. |
+
+## newChainShape
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new ChainShape.
+
+**Signature:**
+```tl
+newChainShape: function(loop: boolean, points: {number}): ChainShape
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| loop | boolean | If the chain should loop back to the first point. |
+| points | \{number} | A list of points to construct the ChainShape, in the form of \{x1, y1, x2, y2, ...}. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ChainShape | shape — The new shape. |
+
+## newChainShape
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new ChainShape.
+
+**Signature:**
+```tl
+newChainShape: function(loop: boolean, points: number...): ChainShape
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| loop | boolean | If the chain should loop back to the first point. |
+| points | number... | A list of points to construct the ChainShape, in the form of \{x1, y1, x2, y2, ...}. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ChainShape | shape — The new shape. |
+
+## newDistanceJoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a DistanceJoint between two bodies.
+This joint constrains the distance between two points on two bodies to be constant. These two points are specified
+in world coordinates and the two bodies are assumed to be in place when this joint is created. The first anchor
+point is connected to the first body and the second to the second body, and the points define the length of the
+distance joint.
+
+**Signature:**
+```tl
+newDistanceJoint: function(body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, collide_connected?: boolean): Joint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body1 | Body | The first body to attach to the joint. |
+| body2 | Body | The second body to attach to the joint. |
+| x1 | number | The x position of the first anchor point (world space). |
+| y1 | number | The y position of the first anchor point (world space). |
+| x2 | number | The x position of the second anchor point (world space). |
+| y2 | number | The y position of the second anchor point (world space). |
+| collide_connected | boolean | Specifies whether the two bodies should collide with each other. (Default: false.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Joint | The new distance joint. |
+
+## newRevoluteJoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a pivot joint between two bodies.
+
+	-- This joint connects two bodies to a point around which they can pivot.
+
+**Signature:**
+```tl
+newRevoluteJoint: function(body1: Body, body2: Body, x: number, y: number, collide_connected?: boolean): RevoluteJoint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body1 | Body | The first body. |
+| body2 | Body | The second body. |
+| x | number | The x position of the connecting point. |
+| y | number | The y position of the connecting point. |
+| collide_connected | boolean | Specifies whether the two bodies should collide with each other. (Default: false.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| RevoluteJoint | joint — The new revolute joint. |
+
+## newRevoluteJoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a pivot joint between two bodies.
+
+	-- This joint connects two bodies to a point around which they can pivot.
+
+**Signature:**
+```tl
+newRevoluteJoint: function(body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, collide_connected?: boolean, reference_angle?: number): RevoluteJoint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body1 | Body | The first body. |
+| body2 | Body | The second body. |
+| x1 | number | The x position of the first connecting point. |
+| y1 | number | The y position of the first connecting point. |
+| x2 | number | The x position of the second connecting point. |
+| y2 | number | The y position of the second connecting point. |
+| collide_connected | boolean | Specifies whether the two bodies should collide with each other. (Default: false.) |
+| reference_angle | number | The reference angle between body1 and body2, in radians. (Default: 0.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| RevoluteJoint | joint — The new revolute joint. |
+
+## newPrismaticJoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a PrismaticJoint between two bodies.
+
+	-- A prismatic joint constrains two bodies to move relatively to each other on a specified axis. It does not allow for relative rotation. Its definition and operation are similar to a revolute joint, but with translation and force substituted for angle and torque.
+
+**Signature:**
+```tl
+newPrismaticJoint: function(body1: Body, body2: Body, x: number, y: number, axis_x: number, axis_y: number, collide_connected?: boolean): PrismaticJoint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body1 | Body | The first body to connect with a prismatic joint. |
+| body2 | Body | The second body to connect with a prismatic joint. |
+| x | number | The x coordinate of the anchor point. |
+| y | number | The y coordinate of the anchor point. |
+| axis_x | number | The x coordinate of the axis vector. |
+| axis_y | number | The y coordinate of the axis vector. |
+| collide_connected | boolean | Specifies whether the two bodies should collide with each other. (Default: false.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| PrismaticJoint | joint — The new prismatic joint. |
+
+## newPrismaticJoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a PrismaticJoint between two bodies.
+
+	-- A prismatic joint constrains two bodies to move relatively to each other on a specified axis. It does not allow for relative rotation. Its definition and operation are similar to a revolute joint, but with translation and force substituted for angle and torque.
+
+**Signature:**
+```tl
+newPrismaticJoint: function(body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, axis_x: number, axis_y: number, collide_connected?: boolean, reference_angle?: number): PrismaticJoint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body1 | Body | The first body to connect with a prismatic joint. |
+| body2 | Body | The second body to connect with a prismatic joint. |
+| x1 | number | The x coordinate of the first anchor point. |
+| y1 | number | The y coordinate of the first anchor point. |
+| x2 | number | The x coordinate of the second anchor point. |
+| y2 | number | The y coordinate of the second anchor point. |
+| axis_x | number | The x coordinate of the axis unit vector. |
+| axis_y | number | The y coordinate of the axis unit vector. |
+| collide_connected | boolean | Specifies whether the two bodies should collide with each other. (Default: false.) |
+| reference_angle | number | The reference angle between body1 and body2, in radians. (Default: 0.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| PrismaticJoint | joint — The new prismatic joint. |
+
+## newWeldJoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a constraint joint between two bodies. A WeldJoint essentially glues two bodies together. The constraint is a bit soft, however, due to Box2D's iterative solver.
+
+**Signature:**
+```tl
+newWeldJoint: function(body1: Body, body2: Body, x: number, y: number, collide_connected?: boolean): WeldJoint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body1 | Body | The first body to attach to the joint. |
+| body2 | Body | The second body to attach to the joint. |
+| x | number | The x position of the anchor point (world space). |
+| y | number | The y position of the anchor point (world space). |
+| collide_connected | boolean | Specifies whether the two bodies should collide with each other. (Default: false.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| WeldJoint | joint — The new WeldJoint. |
+
+## newWeldJoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a constraint joint between two bodies. A WeldJoint essentially glues two bodies together. The constraint is a bit soft, however, due to Box2D's iterative solver.
+
+**Signature:**
+```tl
+newWeldJoint: function(body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, collide_connected?: boolean, reference_angle?: number): WeldJoint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body1 | Body | The first body to attach to the joint. |
+| body2 | Body | The second body to attach to the joint. |
+| x1 | number | The x position of the first anchor point (world space). |
+| y1 | number | The y position of the first anchor point (world space). |
+| x2 | number | The x position of the second anchor point (world space). |
+| y2 | number | The y position of the second anchor point (world space). |
+| collide_connected | boolean | Specifies whether the two bodies should collide with each other. (Default: false.) |
+| reference_angle | number | The reference angle between body1 and body2, in radians. (Default: 0.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| WeldJoint | joint — The new WeldJoint. |
+
+## newFrictionJoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a friction joint between two bodies. A FrictionJoint applies friction to a body.
+
+**Signature:**
+```tl
+newFrictionJoint: function(body1: Body, body2: Body, x: number, y: number, collide_connected?: boolean): FrictionJoint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body1 | Body | The first body to attach to the joint. |
+| body2 | Body | The second body to attach to the joint. |
+| x | number | The x position of the anchor point. |
+| y | number | The y position of the anchor point. |
+| collide_connected | boolean | Specifies whether the two bodies should collide with each other. (Default: false.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| FrictionJoint | joint — The new FrictionJoint. |
+
+## newFrictionJoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a friction joint between two bodies. A FrictionJoint applies friction to a body.
+
+**Signature:**
+```tl
+newFrictionJoint: function(body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, collide_connected?: boolean): FrictionJoint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body1 | Body | The first body to attach to the joint. |
+| body2 | Body | The second body to attach to the joint. |
+| x1 | number | The x position of the first anchor point. |
+| y1 | number | The y position of the first anchor point. |
+| x2 | number | The x position of the second anchor point. |
+| y2 | number | The y position of the second anchor point. |
+| collide_connected | boolean | Specifies whether the two bodies should collide with each other. (Default: false.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| FrictionJoint | joint — The new FrictionJoint. |
+
+## newRopeJoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a joint between two bodies. Its only function is enforcing a max distance between these bodies.
+
+**Signature:**
+```tl
+newRopeJoint: function(body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, max_length: number, collide_connected?: boolean): Joint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body1 | Body | The first body to attach to the joint. |
+| body2 | Body | The second body to attach to the joint. |
+| x1 | number | The x position of the first anchor point. |
+| y1 | number | The y position of the first anchor point. |
+| x2 | number | The x position of the second anchor point. |
+| y2 | number | The y position of the second anchor point. |
+| max_length | number | The maximum distance for the bodies. |
+| collide_connected | boolean | Specifies whether the two bodies should collide with each other. (Default: false.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Joint | The new RopeJoint. |
+
+## newPulleyJoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a PulleyJoint to join two bodies to each other and the ground.
+The pulley joint simulates a pulley with an optional block and tackle. If the ratio parameter has a value
+different from one, then the simulated rope extends faster on one side than the other. In a pulley joint the total
+length of the simulated rope is the constant length1 + ratio * length2, which is set when the pulley joint is
+created.
+Pulley joints can behave unpredictably if one side is fully extended. It is recommended that the method
+setMaxLengths be used to constrain the maximum lengths each side can attain.
+
+**Signature:**
+```tl
+newPulleyJoint: function(body1: Body, body2: Body, ground_x1: number, ground_y1: number, ground_x2: number, ground_y2: number, x1: number, y1: number, x2: number, y2: number, ratio?: number, collide_connected?: boolean): Joint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body1 | Body | The first body to connect with a pulley joint. |
+| body2 | Body | The second body to connect with a pulley joint. |
+| ground_x1 | number | The x coordinate of the first body's ground anchor. |
+| ground_y1 | number | The y coordinate of the first body's ground anchor. |
+| ground_x2 | number | The x coordinate of the second body's ground anchor. |
+| ground_y2 | number | The y coordinate of the second body's ground anchor. |
+| x1 | number | The x coordinate of the pulley joint anchor in the first body. |
+| y1 | number | The y coordinate of the pulley joint anchor in the first body. |
+| x2 | number | The x coordinate of the pulley joint anchor in the second body. |
+| y2 | number | The y coordinate of the pulley joint anchor in the second body. |
+| ratio | number | The joint ratio. (Default: 1.) |
+| collide_connected | boolean | Specifies whether the two bodies should collide with each other. (Default: true.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Joint | The new pulley joint. |
+
+## newWheelJoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a wheel joint.
+
+**Signature:**
+```tl
+newWheelJoint: function(body1: Body, body2: Body, x: number, y: number, axis_x: number, axis_y: number, collide_connected?: boolean): WheelJoint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body1 | Body | The first body. |
+| body2 | Body | The second body. |
+| x | number | The x position of the anchor point. |
+| y | number | The y position of the anchor point. |
+| axis_x | number | The x position of the axis unit vector. |
+| axis_y | number | The y position of the axis unit vector. |
+| collide_connected | boolean | Specifies whether the two bodies should collide with each other. (Default: false.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| WheelJoint | joint — The new WheelJoint. |
+
+## newWheelJoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a wheel joint.
+
+**Signature:**
+```tl
+newWheelJoint: function(body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, axis_x: number, axis_y: number, collide_connected?: boolean): WheelJoint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body1 | Body | The first body. |
+| body2 | Body | The second body. |
+| x1 | number | The x position of the first anchor point. |
+| y1 | number | The y position of the first anchor point. |
+| x2 | number | The x position of the second anchor point. |
+| y2 | number | The y position of the second anchor point. |
+| axis_x | number | The x position of the axis unit vector. |
+| axis_y | number | The y position of the axis unit vector. |
+| collide_connected | boolean | Specifies whether the two bodies should collide with each other. (Default: false.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| WheelJoint | joint — The new WheelJoint. |
+
+## newMouseJoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a joint between a body and the mouse.
+This joint actually connects the body to a fixed point in the world. To make it follow the mouse, the fixed point
+must be updated every timestep (example below).
+The advantage of using a MouseJoint instead of just changing a body position directly is that collisions and
+reactions to other joints are handled by the physics engine.
+
+**Signature:**
+```tl
+newMouseJoint: function(body: Body, x: number, y: number): Joint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body | Body | The body to attach to the mouse. |
+| x | number | The x position of the connecting point. |
+| y | number | The y position of the connecting point. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Joint | The new mouse joint. |
+
+## newMotorJoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a joint between two bodies which controls the relative motion between them.
+Position and rotation offsets can be specified once the MotorJoint has been created, as well as the maximum motor
+force and torque that will be be applied to reach the target offsets.
+
+**Signature:**
+```tl
+newMotorJoint: function(body1: Body, body2: Body, correction_factor?: number, collide_connected?: boolean): Joint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| body1 | Body | The first body to attach to the joint. |
+| body2 | Body | The second body to attach to the joint. |
+| correction_factor | number | The joint's initial position correction factor, in the range of 1. (Default: 0.3.) |
+| collide_connected | boolean | Specifies whether the two bodies should collide with each other. (Default: false.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Joint | The new MotorJoint. |
+
+## newGearJoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a GearJoint connecting two Joints.
+The gear joint connects two joints that must be either prismatic or revolute joints. Using this joint requires
+that the joints it uses connect their respective bodies to the ground and have the ground as the first body. When
+destroying the bodies and joints you must make sure you destroy the gear joint before the other joints.
+The gear joint has a ratio the determines how the angular or distance values of the connected joints relate to
+each other. The formula coordinate1 + ratio * coordinate2 always has a constant value that is set when the gear
+joint is created.
+
+**Signature:**
+```tl
+newGearJoint: function(joint1: Joint, joint2: Joint, ratio?: number, collide_connected?: boolean): Joint
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| joint1 | Joint | The first joint to connect with a gear joint. |
+| joint2 | Joint | The second joint to connect with a gear joint. |
+| ratio | number | The gear ratio. (Default: 1.) |
+| collide_connected | boolean | Specifies whether the two bodies should collide with each other. (Default: false.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Joint | The new gear joint. |

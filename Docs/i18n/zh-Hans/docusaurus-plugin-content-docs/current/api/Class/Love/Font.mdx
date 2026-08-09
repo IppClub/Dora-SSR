@@ -1,0 +1,380 @@
+# Font
+
+**描述：**
+
+&emsp;&emsp;定义可以在屏幕上绘制的字符的形状。
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: Font): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: Font): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: Font, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## getWidth
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;确定给定字符串所采用的最大宽度（考虑换行符）。
+
+**签名：**
+```tl
+getWidth: function(self: Font, text: string): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | string | 一个字符串。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 文本的宽度。 |
+
+## getHeight
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字体的高度。
+字体的高度是包括任何间距的大小；它需要的高度。
+
+**签名：**
+```tl
+getHeight: function(self: Font): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 字体的高度（以像素为单位）。 |
+
+## getBaseline
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字体的基线。
+大多数脚本都共享基线的概念：字符所在的假想水平线。在某些脚本中，部分字形位于基线下方。
+
+**签名：**
+```tl
+getBaseline: function(self: Font): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 字体的基线（以像素为单位）。 |
+
+## getAscent
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字体的上升度。
+上升跨越基线和距基线最远的字形顶部之间的距离。
+
+**签名：**
+```tl
+getAscent: function(self: Font): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 字体的上升（以像素为单位）。 |
+
+## getDescent
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字体的血统。
+下降跨越字体中基线和最低下降字形之间的距离。
+
+**签名：**
+```tl
+getDescent: function(self: Font): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 字体的下降（以像素为单位）。 |
+
+## hasGlyphs
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取 Font 是否可以渲染字符或字符串。
+
+**签名：**
+```tl
+hasGlyphs: function(self: Font, text_or_codepoint: string | integer, ...: string | integer): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text_or_codepoint | string or integer | UTF-8 编码的 unicode 字符串。 |
+| ... | string or integer | ... 参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 字体是否可以渲染字符串中的所有UTF-8字符。取决于重载：字体是否可以渲染字符表示的所有字形。取决于重载：字体是否可以渲染由代码点数字表示的所有字形。 |
+
+## getKerning
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字体中两个字符之间的字距调整。
+字距调整通常在 love.graphics.print、文本对象、Font:getWidth、Font:getWrap 等中自动处理。当手动将文本拼接在一起时，此功能非常有用。
+
+**签名：**
+```tl
+getKerning: function(self: Font, left: string | integer, right: string | integer): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| left | string or integer | 左边的字符。取决于重载：左侧字形的 unicode 编号。 |
+| right | string or integer | 正确的字符。取决于重载：正确字形的 unicode 编号。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 添加到两个字符之间的间距的字距调整量。可能是负值。 |
+
+## setFallbacks
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置后备字体。当字体不包含字形时，它将替换下一个后续后备字体中的字形。这类似于在层叠样式表 (CSS) 中设置 'font stack'。
+重载说明：
+1. 如果调用此函数，则应在调用 love.graphics.print、Font:getWrap 和其他使用字形定位信息的 Font 方法之前调用。每个后备字体必须从与主字体相同的文件类型创建。例如，从 .ttf
+文件创建的字体只能使用从 .ttf 文件创建的后备字体。
+
+**签名：**
+```tl
+setFallbacks: function(self: Font, ...: Font)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| ... | Font | ... 参数。 |
+
+## setLineHeight
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置行高。
+当以行渲染字体时，实际高度将由行高乘以字体高度确定。默认值为 1.0。
+
+**签名：**
+```tl
+setLineHeight: function(self: Font, height: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| height | number | 新行高。 |
+
+## getLineHeight
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取行高。
+这将是之前由 Font:setLineHeight 设置的值，默认情况下为 1.0。
+
+**签名：**
+```tl
+getLineHeight: function(self: Font): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 当前行高。 |
+
+## getDPIScale
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字体的 DPI 比例因子。
+DPI 比例因子表示相对像素密度。 DPI 比例因子为 2 意味着与 DPI 比例因子为 1 的字体相比，字体的字形在每个维度上的像素密度是两倍（同一区域中像素数量的 4 倍）。
+TrueType 字体的字体大小在内部按字体指定的 DPI 比例因子进行缩放。默认情况下，LÖVE 在创建 TrueType 字体时使用屏幕的 DPI 比例因子。
+
+**签名：**
+```tl
+getDPIScale: function(self: Font): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 字体的 DPI 比例因子。 |
+
+## getFilter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字体的过滤模式。
+
+**签名：**
+```tl
+getFilter: function(self: Font): string, string, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 缩小字体时使用的过滤模式。 |
+| string | 放大字体时使用的过滤模式。 |
+| number | 使用的各向异性过滤的最大量。 |
+
+## setFilter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置字体的过滤模式。
+
+**签名：**
+```tl
+setFilter: function(self: Font, min: string, mag?: string, anisotropy?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| min | string | 如何缩小字体。 |
+| mag | string | 如何放大字体。 |
+| anisotropy | number | 使用的各向异性过滤的最大量。 （默认值：1。） |
+
+## getWrap
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取文本的格式信息（给定换行限制）。
+此函数正确解释换行符（即 '\n'）。
+
+**签名：**
+```tl
+getWrap: function(self: Font, text: string, wrap_limit: number): number, {string}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | string | 将被换行的文本。 |
+| wrap_limit | number | 在换行之前允许“'text'”每行的最大宽度（以像素为单位）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 换行文本的最大宽度。 |
+| \{string} | 包含换行的每一行文本的序列。 |

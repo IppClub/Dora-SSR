@@ -1,0 +1,308 @@
+# World
+
+**Description:**
+
+&emsp;&emsp;A world is an object that contains all bodies and joints.
+
+## type
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the type of the object as a string.
+
+**Signature:**
+```tl
+type: function(self: World): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The type as a string. |
+
+## Of
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether an object is of a certain type. If the object has the type with the specified name in its
+hierarchy, this function will return true.
+
+**Signature:**
+```tl
+typeOf: function(self: World, type_name: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| type_name | string | The name of the type to check for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the object is of the specified type, false otherwise. |
+
+## release
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Destroys the object's Lua reference. The object will be completely deleted if it's not referenced by any other
+LÖVE object or thread.
+This method can be used to immediately clean up resources without waiting for Lua's garbage collector.
+
+**Signature:**
+```tl
+release: function(self: World): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the object was released by this call, false if it had been previously released. |
+
+## destroy
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Destroys the world, taking all bodies, joints, fixtures and their shapes with it.
+An error will occur if you attempt to use any of the destroyed objects after calling this function.
+
+**Signature:**
+```tl
+destroy: function(self: World)
+```
+
+## isDestroyed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether the World is destroyed. Destroyed worlds cannot be used.
+
+**Signature:**
+```tl
+isDestroyed: function(self: World): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the World is destroyed. |
+
+## update
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Update the state of the world.
+
+**Signature:**
+```tl
+update: function(self: World, delta_time: number, velocity_iterations?: integer, position_iterations?: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| delta_time | number | The time (in seconds) to advance the physics simulation. |
+| velocity_iterations | integer | The maximum number of steps used to determine the new velocities when resolving a collision. (Default: 8.) |
+| position_iterations | integer | The maximum number of steps used to determine the new positions when resolving a collision. (Default: 3.) |
+
+## setGravity
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Set the gravity of the world.
+
+**Signature:**
+```tl
+setGravity: function(self: World, x: number, y: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The x component of gravity. |
+| y | number | The y component of gravity. |
+
+## getGravity
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Get the gravity of the world.
+
+**Signature:**
+```tl
+getGravity: function(self: World): number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The x component of gravity. |
+| number | The y component of gravity. |
+
+## setSleepingAllowed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the sleep behaviour of the world.
+
+**Signature:**
+```tl
+setSleepingAllowed: function(self: World, allowed: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| allowed | boolean | True if bodies in the world are allowed to sleep, or false if not. |
+
+## isSleepingAllowed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the sleep behaviour of the world.
+
+**Signature:**
+```tl
+isSleepingAllowed: function(self: World): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if bodies in the world are allowed to sleep, or false if not. |
+
+## queryBoundingBox
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Calls a function for each fixture inside the specified area by searching for any overlapping bounding box
+(Fixture:getBoundingBox).
+
+**Signature:**
+```tl
+queryBoundingBox: function(self: World, x1: number, y1: number, x2: number, y2: number, callback: function(any): boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x1 | number | The x position of the top-left point. |
+| y1 | number | The y position of the top-left point. |
+| x2 | number | The x position of the bottom-right point. |
+| y2 | number | The y position of the bottom-right point. |
+| callback | function | This function gets passed one argument, the fixture, and should return a boolean. The search will continue if it is true or stop if it is false. |
+
+## rayCast
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Casts a ray and calls a function for each fixtures it intersects.
+Overload details:
+1. There is a bug in LÖVE 0.8.0 where the normal vector passed to the callback function gets scaled by
+love.physics.getMeter.
+
+**Signature:**
+```tl
+rayCast: function(self: World, x1: number, y1: number, x2: number, y2: number, callback: function(any, number, number, number, number, number): number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x1 | number | The x position of the starting point of the ray. |
+| y1 | number | The x position of the starting point of the ray. |
+| x2 | number | The x position of the end point of the ray. |
+| y2 | number | The x value of the surface normal vector of the shape edge. |
+| callback | function | A function called for each fixture intersected by the ray. The function gets six arguments and should return a number as a control value. The intersection points fed into the function will be in an arbitrary order. If you wish to find the closest point of intersection, you'll need to do that yourself within the function. The easiest way to do that is by using the fraction value. |
+
+## setCallbacks
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets functions for the collision callbacks during the world update.
+Four Lua functions can be given as arguments. The value nil removes a function.
+When called, each function will be passed three arguments. The first two arguments are the colliding fixtures and
+the third argument is the Contact between them. The postSolve callback additionally gets the normal and tangent
+impulse for each contact point. See notes.
+If you are interested to know when exactly each callback is called, consult a Box2d manual
+
+**Signature:**
+```tl
+setCallbacks: function(self: World, begin_contact?: function(any, any, any), end_contact?: function(any, any, any), pre_solve?: function(any, any, any), post_solve?: function(any, any, any, ...: number))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| begin_contact | function | Gets called when two fixtures begin to overlap. |
+| end_contact | function | Gets called when two fixtures cease to overlap. This will also be called outside of a world update, when colliding objects are destroyed. |
+| pre_solve | function | Gets called before a collision gets resolved. (Default: nil.) |
+| post_solve | function | Gets called after the collision has been resolved. (Default: nil.) |
+
+## getCallbacks
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns functions for the callbacks during the world update.
+
+**Signature:**
+```tl
+getCallbacks: function(self: World): function(any, any, any) | nil, function(any, any, any) | nil, function(any, any, any) | nil, function(any, any, any, ...: number) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| ... | number | The ... parameter. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| function | Gets called when two fixtures begin to overlap. |
+| function | Gets called when two fixtures cease to overlap. |
+| function | Gets called before a collision gets resolved. |
+| function | Gets called after the collision has been resolved. |

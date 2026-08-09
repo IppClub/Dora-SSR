@@ -1,0 +1,438 @@
+# Shader
+
+**描述：**
+
+&emsp;&emsp;着色器用于高级硬件加速像素或顶点操作。这些效果是用基于 GLSL（OpenGL 着色语言）的语言编写的，并进行了一些简化以便于编码。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: Shader): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: Shader, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: Shader): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## getWarnings
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回编译着色器代码时的任何警告和错误消息。如果图形硬件有任何不喜欢的地方，这可以用于调试着色器。
+
+**签名：**
+```tl
+getWarnings: function(self: Shader): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 警告和错误消息（如果有）。 |
+
+## getExternVariable
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取Shader中是否存在指定的extern变量。
+这是用于兼容LÖVE 0.10之前版本的旧接口，请改用hasUniform。
+
+**签名：**
+```tl
+getExternVariable: function(self: Shader, name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | name 参数。 |
+
+## hasUniform
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取Shader中是否存在uniform / extern变量。
+如果图形驱动程序的着色器编译器确定统一/外部变量不会影响着色器的最终输出，它可能会优化该变量。在这种情况下该函数将返回 false。
+
+**签名：**
+```tl
+hasUniform: function(self: Shader, name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 统一变量的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 着色器中是否存在uniform并影响其最终输出。 |
+
+## send
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将一个或多个值发送到特殊的 (''uniform'') variable inside the shader. Uniform variables have to be marked using the ''uniform'' or ''extern'' 关键字，例如
+
+	-- 统一浮动时间； // 'float' 是 GLSL 着色器中使用的典型数字类型。
+
+	-- 统一浮点varsvec2 light_pos；
+
+	-- 统一vec4颜色[4;
+
+	-- 相应的发送调用将是
+
+	-- 着色器：发送('time', t)
+
+	-- 着色器：发送('vars',a,b)
+
+	-- 着色器：发送('light_pos', \{light_x, light_y})
+
+	-- 着色器：发送（'colors'，\{r1，g1，b1，a1}，\{r2，g2，b2，a2}，\{r3，g3，b3，a3}，\{r4，g4，b4，a4}）
+
+	-- 统一/外部变量在着色器代码中是只读的，并保持不变，直到被 Shader:send 调用修改。统一变量可以在着色器的顶点和像素组件中访问，只要在每个组件中声明该变量即可。
+
+**签名：**
+```tl
+send: function(self: Shader, name: string, texture: Image | Canvas, textures: Image | Canvas...)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 发送到着色器的数字名称。 |
+| texture | Image | Canvas | 纹理（图像或画布）发送到统一变量。 |
+| textures | Image | Canvas... | 如果统一变量是表，则要发送的附加数字。 |
+
+## send
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将一个或多个值发送到特殊的 (''uniform'') variable inside the shader. Uniform variables have to be marked using the ''uniform'' or ''extern'' 关键字，例如
+
+	-- 统一浮动时间； // 'float' 是 GLSL 着色器中使用的典型数字类型。
+
+	-- 统一浮点varsvec2 light_pos；
+
+	-- 统一vec4颜色[4;
+
+	-- 相应的发送调用将是
+
+	-- 着色器：发送('time', t)
+
+	-- 着色器：发送('vars',a,b)
+
+	-- 着色器：发送('light_pos', \{light_x, light_y})
+
+	-- 着色器：发送（'colors'，\{r1，g1，b1，a1}，\{r2，g2，b2，a2}，\{r3，g3，b3，a3}，\{r4，g4，b4，a4}）
+
+	-- 统一/外部变量在着色器代码中是只读的，并保持不变，直到被 Shader:send 调用修改。统一变量可以在着色器的顶点和像素组件中访问，只要在每个组件中声明该变量即可。
+
+**签名：**
+```tl
+send: function(self: Shader, name: string, matrix_layout: MatrixLayout, matrices: {number} | {{number}}...)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 发送到着色器的向量的名称。 |
+| matrix_layout | MatrixLayout | 内存中矩阵的布局（行优先或列优先）。 |
+| matrices | \{number} | \{\{number}}... | Additional matrices of the same type as ''matrix'' 才能存储在统一表中。 |
+
+## send
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将一个或多个值发送到特殊的 (''uniform'') variable inside the shader. Uniform variables have to be marked using the ''uniform'' or ''extern'' 关键字，例如
+
+	-- 统一浮动时间； // 'float' 是 GLSL 着色器中使用的典型数字类型。
+
+	-- 统一浮点varsvec2 light_pos；
+
+	-- 统一vec4颜色[4;
+
+	-- 相应的发送调用将是
+
+	-- 着色器：发送('time', t)
+
+	-- 着色器：发送('vars',a,b)
+
+	-- 着色器：发送('light_pos', \{light_x, light_y})
+
+	-- 着色器：发送（'colors'，\{r1，g1，b1，a1}，\{r2，g2，b2，a2}，\{r3，g3，b3，a3}，\{r4，g4，b4，a4}）
+
+	-- 统一/外部变量在着色器代码中是只读的，并保持不变，直到被 Shader:send 调用修改。统一变量可以在着色器的顶点和像素组件中访问，只要在每个组件中声明该变量即可。
+
+**签名：**
+```tl
+send: function(self: Shader, name: string, data: Data, offset?: number, size?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 发送到着色器的矩阵的名称。 |
+| data | Data | 包含要发送的值的数据对象。 |
+| offset | number | 从数据对象开始处的偏移量（以字节为单位）。 （默认值：0。） |
+| size | number | 要发送的数据的大小（以字节为单位）。如果为零，则将复制与指定的统一用途一样多的字节。 （默认值：全部。） |
+
+## send
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将一个或多个值发送到特殊的 (''uniform'') variable inside the shader. Uniform variables have to be marked using the ''uniform'' or ''extern'' 关键字，例如
+
+	-- 统一浮动时间； // 'float' 是 GLSL 着色器中使用的典型数字类型。
+
+	-- 统一浮点varsvec2 light_pos；
+
+	-- 统一vec4颜色[4;
+
+	-- 相应的发送调用将是
+
+	-- 着色器：发送('time', t)
+
+	-- 着色器：发送('vars',a,b)
+
+	-- 着色器：发送('light_pos', \{light_x, light_y})
+
+	-- 着色器：发送（'colors'，\{r1，g1，b1，a1}，\{r2，g2，b2，a2}，\{r3，g3，b3，a3}，\{r4，g4，b4，a4}）
+
+	-- 统一/外部变量在着色器代码中是只读的，并保持不变，直到被 Shader:send 调用修改。统一变量可以在着色器的顶点和像素组件中访问，只要在每个组件中声明该变量即可。
+
+**签名：**
+```tl
+send: function(self: Shader, name: string, matrix_layout: MatrixLayout, data: Data, offset?: number, size?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 发送到着色器的纹理的名称。 |
+| matrix_layout | MatrixLayout | 内存中矩阵的布局（行优先或列优先）。 |
+| data | Data | 包含要发送的值的数据对象。 |
+| offset | number | 从数据对象开始处的偏移量（以字节为单位）。 （默认值：0。） |
+| size | number | 要发送的数据的大小（以字节为单位）。如果为零，则将复制与指定的统一用途一样多的字节。 （默认值：全部。） |
+
+## send
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将一个或多个值发送到特殊的 (''uniform'') variable inside the shader. Uniform variables have to be marked using the ''uniform'' or ''extern'' 关键字，例如
+
+	-- 统一浮动时间； // 'float' 是 GLSL 着色器中使用的典型数字类型。
+
+	-- 统一浮点varsvec2 light_pos；
+
+	-- 统一vec4颜色[4;
+
+	-- 相应的发送调用将是
+
+	-- 着色器：发送('time', t)
+
+	-- 着色器：发送('vars',a,b)
+
+	-- 着色器：发送('light_pos', \{light_x, light_y})
+
+	-- 着色器：发送（'colors'，\{r1，g1，b1，a1}，\{r2，g2，b2，a2}，\{r3，g3，b3，a3}，\{r4，g4，b4，a4}）
+
+	-- 统一/外部变量在着色器代码中是只读的，并保持不变，直到被 Shader:send 调用修改。统一变量可以在着色器的顶点和像素组件中访问，只要在每个组件中声明该变量即可。
+
+**签名：**
+```tl
+send: function(self: Shader, name: string, data: Data, matrix_layout: MatrixLayout, offset?: number, size?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 发送到着色器的制服名称。 |
+| data | Data | 包含要发送的值的数据对象。 |
+| matrix_layout | MatrixLayout | 内存中矩阵的布局（行优先或列优先）。 |
+| offset | number | 从数据对象开始处的偏移量（以字节为单位）。 （默认值：0。） |
+| size | number | 要发送的数据的大小（以字节为单位）。如果为零，则将复制与指定的统一用途一样多的字节。 （默认值：全部。） |
+
+## send
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将一个或多个值发送到特殊的 (''uniform'') variable inside the shader. Uniform variables have to be marked using the ''uniform'' or ''extern'' 关键字，例如
+
+	-- 统一浮动时间； // 'float' 是 GLSL 着色器中使用的典型数字类型。
+
+	-- 统一浮点varsvec2 light_pos；
+
+	-- 统一vec4颜色[4;
+
+	-- 相应的发送调用将是
+
+	-- 着色器：发送('time', t)
+
+	-- 着色器：发送('vars',a,b)
+
+	-- 着色器：发送('light_pos', \{light_x, light_y})
+
+	-- 着色器：发送（'colors'，\{r1，g1，b1，a1}，\{r2，g2，b2，a2}，\{r3，g3，b3，a3}，\{r4，g4，b4，a4}）
+
+	-- 统一/外部变量在着色器代码中是只读的，并保持不变，直到被 Shader:send 调用修改。统一变量可以在着色器的顶点和像素组件中访问，只要在每个组件中声明该变量即可。
+
+**签名：**
+```tl
+send: function(self: Shader, name: string, values: ShaderValue...)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 发送到着色器的统一矩阵的名称。 |
+| values | ShaderValue... | 纹理（图像或画布）发送到统一变量。 |
+
+## sendColor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将一种或多种颜色发送到着色器内的特殊 (''extern'' / ''uniform'') vec3 或 vec4 变量。颜色分量必须在 1 的范围内。如果启用全局伽玛校正，则对颜色进行伽玛校正。
+
+	-- 外部变量必须使用“'extern'”关键字进行标记，例如
+
+	-- 外部 vec4 颜色；
+
+	-- 相应的 sendColor 调用将是
+
+	-- 着色器:sendColor('Color', \{r, g, b, a})
+
+	-- 外部变量可以在着色器的顶点和像素阶段访问，只要在每个阶段声明该变量即可。
+
+	-- 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+sendColor: function(self: Shader, name: string, data: Data, offset?: number, size?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要在着色器中发送到的颜色外部变量的名称。 |
+| data | Data | 一个表，其中包含红色、绿色、蓝色和 1 范围内的可选 alpha 颜色分量，以向量形式发送到外部。 |
+| offset | number | 当 extern 是表时要发送的附加颜色。所有颜色都必须具有相同的大小（例如仅 vec3）。 |
+| size | number | 从 Data 对象读取的字节数。 |
+
+## sendColor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将一种或多种颜色发送到着色器内的特殊 (''extern'' / ''uniform'') vec3 或 vec4 变量。颜色分量必须在 1 的范围内。如果启用全局伽玛校正，则对颜色进行伽玛校正。
+
+	-- 外部变量必须使用“'extern'”关键字进行标记，例如
+
+	-- 外部 vec4 颜色；
+
+	-- 相应的 sendColor 调用将是
+
+	-- 着色器:sendColor('Color', \{r, g, b, a})
+
+	-- 外部变量可以在着色器的顶点和像素阶段访问，只要在每个阶段声明该变量即可。
+
+	-- 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+sendColor: function(self: Shader, name: string, values: ShaderValue...)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要在着色器中发送到的颜色外部变量的名称。 |
+| values | ShaderValue... | 一个表，其中包含红色、绿色、蓝色和 1 范围内的可选 alpha 颜色分量，以向量形式发送到外部。 |

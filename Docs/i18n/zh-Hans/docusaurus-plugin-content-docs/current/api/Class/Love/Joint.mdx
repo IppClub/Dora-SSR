@@ -1,0 +1,346 @@
+# Joint
+
+**描述：**
+
+&emsp;&emsp;将多个物体连接在一起以独特的方式进行交互。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: Joint): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: Joint, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: Joint): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## destroy
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;明确摧毁关节。如果您在调用此函数后尝试使用该对象，将会发生错误。
+在0.7.2中，当你没有时间等待垃圾回收时，这个函数
+可用于立即释放对象。
+
+**签名：**
+```tl
+destroy: function(self: Joint)
+```
+
+## isDestroyed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取关节是否被破坏。损坏的关节无法使用。
+
+**签名：**
+```tl
+isDestroyed: function(self: Joint): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 关节是否被破坏。 |
+
+## getType
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取表示类型的字符串。
+
+**签名：**
+```tl
+getType: function(self: Joint): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 带有关节类型名称的字符串。 |
+
+## getBodies
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取关节所附加的实体。
+
+**签名：**
+```tl
+getBodies: function(self: Joint): Body, Body
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Body | 第一个身体。 |
+| Body | 第二个身体。 |
+
+## getAnchors
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取关节的锚点。
+
+**签名：**
+```tl
+getAnchors: function(self: Joint): number, number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 主体 1 上锚点的 x 分量。 |
+| number | 主体 1 上锚点的 y 分量。 |
+| number | 主体 2 上锚点的 x 分量。 |
+| number | 主体 2 上锚点的 y 分量。 |
+
+## getReactionForce
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回第二个物体上的反作用力（以牛顿为单位）
+
+**签名：**
+```tl
+getReactionForce: function(self: Joint, inverse_delta_time: number): number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| inverse_delta_time | number | 力作用多长时间。通常为反时间步长或 1/dt。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 力的 x 分量。 |
+| number | 力的 y 分量。 |
+
+## getReactionTorque
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回第二个物体上的反作用扭矩。
+
+**签名：**
+```tl
+getReactionTorque: function(self: Joint, inverse_delta_time: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| inverse_delta_time | number | 力作用多长时间。通常为反时间步长或 1/dt。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 第二个物体上的反作用扭矩。 |
+
+## getCollideConnected
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取连接的Bodies是否发生碰撞。
+
+**签名：**
+```tl
+getCollideConnected: function(self: Joint): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果碰撞则为 true，否则为 false。 |
+
+## setUserData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将 Lua 值与关节相关联。
+要删除引用，请显式传递 nil。
+
+**签名：**
+```tl
+setUserData: function(self: Joint, value: any)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| value | any | 与关节关联的 Lua 值。 |
+
+## getUserData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回与此关节关联的 Lua 值。
+
+**签名：**
+```tl
+getUserData: function(self: Joint): any
+	setLength: function(self: Joint, length: number)
+	getLength: function(self: Joint): number
+	setFrequency: function(self: Joint, frequency: number)
+	getFrequency: function(self: Joint): number
+	setDampingRatio: function(self: Joint, ratio: number)
+	getDampingRatio: function(self: Joint): number
+	getJointAngle: function(self: Joint): number
+	getJointSpeed: function(self: Joint): number
+	setMotorEnabled: function(self: Joint, enabled: boolean)
+	isMotorEnabled: function(self: Joint): boolean
+	setMaxMotorTorque: function(self: Joint, torque: number)
+	getMaxMotorTorque: function(self: Joint): number
+	setMotorSpeed: function(self: Joint, speed: number)
+	getMotorSpeed: function(self: Joint): number
+	getMotorTorque: function(self: Joint, inverse_delta_time: number): number
+	setLimitsEnabled: function(self: Joint, enabled: boolean)
+	areLimitsEnabled: function(self: Joint): boolean
+	hasLimitsEnabled: function(self: Joint): boolean
+	setUpperLimit: function(self: Joint, upper: number)
+	setLowerLimit: function(self: Joint, lower: number)
+	setLimits: function(self: Joint, lower: number, upper: number)
+	getUpperLimit: function(self: Joint): number
+	getLowerLimit: function(self: Joint): number
+	getLimits: function(self: Joint): number, number
+	getReferenceAngle: function(self: Joint): number
+	getJointTranslation: function(self: Joint): number
+	setMaxMotorForce: function(self: Joint, force: number)
+	getMaxMotorForce: function(self: Joint): number
+	getMotorForce: function(self: Joint, inverse_delta_time: number): number
+	getAxis: function(self: Joint): number, number
+	setMaxForce: function(self: Joint, force: number)
+	getMaxForce: function(self: Joint): number
+	setMaxTorque: function(self: Joint, torque: number)
+	getMaxTorque: function(self: Joint): number
+	setMaxLength: function(self: Joint, length: number)
+	getMaxLength: function(self: Joint): number
+	getGroundAnchors: function(self: Joint): number, number, number, number
+	getLengthA: function(self: Joint): number
+	getLengthB: function(self: Joint): number
+	getRatio: function(self: Joint): number
+	setSpringFrequency: function(self: Joint, frequency: number)
+	getSpringFrequency: function(self: Joint): number
+	setSpringDampingRatio: function(self: Joint, ratio: number)
+	getSpringDampingRatio: function(self: Joint): number
+	setTarget: function(self: Joint, x: number, y: number)
+	getTarget: function(self: Joint): number, number
+	setLinearOffset: function(self: Joint, x: number, y: number)
+	getLinearOffset: function(self: Joint): number, number
+	setAngularOffset: function(self: Joint, angle: number)
+	getAngularOffset: function(self: Joint): number
+	setCorrectionFactor: function(self: Joint, factor: number)
+	getCorrectionFactor: function(self: Joint): number
+	setRatio: function(self: Joint, ratio: number)
+	getJoints: function(self: Joint): Joint, Joint
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| length | number | length 参数。 |
+| frequency | number | frequency 参数。 |
+| ratio | number | ratio 参数。 |
+| enabled | boolean | enabled 参数。 |
+| torque | number | torque 参数。 |
+| speed | number | speed 参数。 |
+| inverse_delta_time | number | inverse_delta_time 参数。 |
+| upper | number | upper 参数。 |
+| lower | number | lower 参数。 |
+| force | number | force 参数。 |
+| x | number | x 参数。 |
+| y | number | y 参数。 |
+| angle | number | angle 参数。 |
+| factor | number | factor 参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| any or number or boolean or Joint | 与关节关联的 Lua 值。 |

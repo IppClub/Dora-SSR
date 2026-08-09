@@ -1,0 +1,209 @@
+# JoystickModule
+
+**Description:**
+
+&emsp;&emsp;Provides an interface to the user's joystick.
+
+## getJoysticks
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets a list of connected Joysticks.
+
+**Signature:**
+```tl
+getJoysticks: function(): {Joystick}
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{Joystick} | The list of currently connected Joysticks. |
+
+## getJoystickCount
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the number of connected joysticks.
+
+**Signature:**
+```tl
+getJoystickCount: function(): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The number of connected joysticks. |
+
+## setGamepadMapping
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Binds a virtual gamepad input to a button, axis or hat for all Joysticks of a certain type. For example, if this function is used with a GUID returned by a Dualshock 3 controller in OS X, the binding will affect Joystick:getGamepadAxis and Joystick:isGamepadDown for ''all'' Dualshock 3 controllers used with the game when run in OS X.
+
+	-- LÖVE includes built-in gamepad bindings for many common controllers. This function lets you change the bindings or add new ones for types of Joysticks which aren't recognized as gamepads by default.
+
+	-- The virtual gamepad buttons and axes are designed around the Xbox 360 controller layout.
+
+**Signature:**
+```tl
+setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, type: string, index: integer): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| guid | string | The OS-dependent GUID for the type of Joystick the binding will affect. |
+| input | GamepadAxis | GamepadButton | The virtual gamepad button to bind. |
+| type | string | The type of input to bind the virtual gamepad button to. |
+| index | integer | The index of the axis, button, or hat to bind the virtual gamepad button to. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | success — Whether the virtual gamepad button was successfully bound. |
+
+## setGamepadMapping
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Binds a virtual gamepad input to a button, axis or hat for all Joysticks of a certain type. For example, if this function is used with a GUID returned by a Dualshock 3 controller in OS X, the binding will affect Joystick:getGamepadAxis and Joystick:isGamepadDown for ''all'' Dualshock 3 controllers used with the game when run in OS X.
+
+	-- LÖVE includes built-in gamepad bindings for many common controllers. This function lets you change the bindings or add new ones for types of Joysticks which aren't recognized as gamepads by default.
+
+	-- The virtual gamepad buttons and axes are designed around the Xbox 360 controller layout.
+
+**Signature:**
+```tl
+setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, type: string, index: integer, direction: JoystickHat): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| guid | string | The OS-dependent GUID for the type of Joystick the binding will affect. |
+| input | GamepadAxis | GamepadButton | The virtual gamepad axis to bind. |
+| type | string | The type of input to bind the virtual gamepad axis to. |
+| index | integer | The index of the axis, button, or hat to bind the virtual gamepad axis to. |
+| direction | JoystickHat | The direction of the hat, if the virtual gamepad axis will be bound to a hat. nil otherwise. (Default: nil.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the virtual gamepad axis was successfully bound. |
+
+## loadGamepadMappings
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Loads a gamepad mappings string or file created with love.joystick.saveGamepadMappings.
+It also recognizes any SDL gamecontroller mapping string, such as those created with Steam's Big Picture
+controller configure interface, or this nice database. If a new mapping is loaded for an already known controller
+GUID, the later version will overwrite the one currently loaded.
+Overload details:
+1. Loads a gamepad mappings string from a file.
+2. Loads a gamepad mappings string directly.
+
+**Signature:**
+```tl
+loadGamepadMappings: function(mappings_or_filename: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| mappings_or_filename | string | The filename to load the mappings string from. Depending on the overload: The mappings string to load. |
+
+## saveGamepadMappings
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Saves the virtual gamepad mappings of all recognized as gamepads and have either been recently used or their gamepad bindings have been modified.
+
+	-- The mappings are stored as a string for use with love.joystick.loadGamepadMappings.
+
+**Signature:**
+```tl
+saveGamepadMappings: function(): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | mappings — The mappings string that was written to the file. |
+
+## saveGamepadMappings
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Saves the virtual gamepad mappings of all recognized as gamepads and have either been recently used or their gamepad bindings have been modified.
+
+	-- The mappings are stored as a string for use with love.joystick.loadGamepadMappings.
+
+**Signature:**
+```tl
+saveGamepadMappings: function(filename: string): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The filename to save the mappings string to. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The mappings string. |
+
+## getGamepadMappingString
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the full gamepad mapping string of the Joysticks which have the given GUID, or nil if the GUID isn't
+recognized as a gamepad.
+The mapping string contains binding information used to map the Joystick's buttons an axes to the standard
+gamepad layout, and can be used later with love.joystick.loadGamepadMappings.
+
+**Signature:**
+```tl
+getGamepadMappingString: function(guid: string): string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| guid | string | The GUID value to get the mapping string for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string or nil | A string containing the Joystick's gamepad mappings, or nil if the GUID is not recognized as a gamepad. |

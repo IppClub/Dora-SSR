@@ -1,0 +1,1252 @@
+# ParticleSystem
+
+**Description:**
+
+&emsp;&emsp;A ParticleSystem can be used to create particle effects like fire or smoke.
+
+## type
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the type of the object as a string.
+
+**Signature:**
+```tl
+type: function(self: ParticleSystem): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The type as a string. |
+
+## Of
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether an object is of a certain type. If the object has the type with the specified name in its
+hierarchy, this function will return true.
+
+**Signature:**
+```tl
+typeOf: function(self: ParticleSystem, type_name: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| type_name | string | The name of the type to check for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the object is of the specified type, false otherwise. |
+
+## release
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Destroys the object's Lua reference. The object will be completely deleted if it's not referenced by any other
+LÖVE object or thread.
+This method can be used to immediately clean up resources without waiting for Lua's garbage collector.
+
+**Signature:**
+```tl
+release: function(self: ParticleSystem): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the object was released by this call, false if it had been previously released. |
+
+## clone
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates an identical copy of the ParticleSystem in the stopped state.
+Overload details:
+1. Cloned ParticleSystem inherit all the set-able state of the original ParticleSystem, but they are initialized
+stopped.
+
+**Signature:**
+```tl
+clone: function(self: ParticleSystem): ParticleSystem
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ParticleSystem | The new identical copy of this ParticleSystem. |
+
+## setTexture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the texture (Image or Canvas) to be used for the particles.
+
+**Signature:**
+```tl
+setTexture: function(self: ParticleSystem, texture: Image | Canvas)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| texture | Image or Canvas | An Image or Canvas to use for the particles. |
+
+## getTexture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the texture (Image or Canvas) used for the particles.
+
+**Signature:**
+```tl
+getTexture: function(self: ParticleSystem): Image | Canvas
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Image or Canvas | The Image or Canvas used for the particles. |
+
+## setBufferSize
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the size of the buffer (the max allowed amount of particles in the system).
+
+**Signature:**
+```tl
+setBufferSize: function(self: ParticleSystem, size: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| size | integer | The buffer size. |
+
+## getBufferSize
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the maximum number of particles the ParticleSystem can have at once.
+
+**Signature:**
+```tl
+getBufferSize: function(self: ParticleSystem): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The maximum number of particles. |
+
+## setInsertMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the mode to use when the ParticleSystem adds new particles.
+
+**Signature:**
+```tl
+setInsertMode: function(self: ParticleSystem, mode: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| mode | string | The mode to use when the ParticleSystem adds new particles. |
+
+## getInsertMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the mode used when the ParticleSystem adds new particles.
+
+**Signature:**
+```tl
+getInsertMode: function(self: ParticleSystem): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The mode used when the ParticleSystem adds new particles. |
+
+## setEmissionRate
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the amount of particles emitted per second.
+
+**Signature:**
+```tl
+setEmissionRate: function(self: ParticleSystem, rate: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| rate | number | The amount of particles per second. |
+
+## getEmissionRate
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the amount of particles emitted per second.
+
+**Signature:**
+```tl
+getEmissionRate: function(self: ParticleSystem): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The amount of particles per second. |
+
+## setEmitterLifetime
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets how long the particle system should emit particles (if -1 then it emits particles forever).
+
+**Signature:**
+```tl
+setEmitterLifetime: function(self: ParticleSystem, lifetime: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| lifetime | number | The lifetime of the emitter (in seconds). |
+
+## getEmitterLifetime
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets how long the particle system will emit particles (if -1 then it emits particles forever).
+
+**Signature:**
+```tl
+getEmitterLifetime: function(self: ParticleSystem): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The lifetime of the emitter (in seconds). |
+
+## setParticleLifetime
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the lifetime of the particles.
+
+**Signature:**
+```tl
+setParticleLifetime: function(self: ParticleSystem, minimum: number, maximum?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| minimum | number | The minimum life of the particles (in seconds). |
+| maximum | number | The maximum life of the particles (in seconds). (Default: min.) |
+
+## getParticleLifetime
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the lifetime of the particles.
+
+**Signature:**
+```tl
+getParticleLifetime: function(self: ParticleSystem): number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The minimum life of the particles (in seconds). |
+| number | The maximum life of the particles (in seconds). |
+
+## setPosition
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the position of the emitter.
+
+**Signature:**
+```tl
+setPosition: function(self: ParticleSystem, x: number, y: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | Position along x-axis. |
+| y | number | Position along y-axis. |
+
+## getPosition
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the position of the emitter.
+
+**Signature:**
+```tl
+getPosition: function(self: ParticleSystem): number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | Position along x-axis. |
+| number | Position along y-axis. |
+
+## moveTo
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Moves the position of the emitter. This results in smoother particle spawning behaviour than if
+ParticleSystem:setPosition is used every frame.
+
+**Signature:**
+```tl
+moveTo: function(self: ParticleSystem, x: number, y: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | Position along x-axis. |
+| y | number | Position along y-axis. |
+
+## setEmissionArea
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets area-based spawn parameters for the particles. Newly created particles will spawn in an area around the
+emitter based on the parameters to this function.
+
+**Signature:**
+```tl
+setEmissionArea: function(self: ParticleSystem, distribution?: string, x?: number, y?: number, angle?: number, relative?: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| distribution | string | The type of distribution for new particles. |
+| x | number | The maximum spawn distance from the emitter along the x-axis for uniform distribution, or the standard deviation along the x-axis for normal distribution. |
+| y | number | The maximum spawn distance from the emitter along the y-axis for uniform distribution, or the standard deviation along the y-axis for normal distribution. |
+| angle | number | The angle in radians of the emission area. (Default: 0.) |
+| relative | boolean | True if newly spawned particles will be oriented relative to the center of the emission area, false otherwise. (Default: false.) |
+
+## getEmissionArea
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the area-based spawn parameters for the particles.
+
+**Signature:**
+```tl
+getEmissionArea: function(self: ParticleSystem): string, number, number, number, boolean
+	setAreaSpread: function(self: ParticleSystem, distribution?: string, x?: number, y?: number)
+	getAreaSpread: function(self: ParticleSystem): string, number, number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| distribution | string | The distribution parameter. |
+| x | number | The x parameter. |
+| y | number | The y parameter. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The type of distribution for new particles. |
+| number | The maximum spawn distance from the emitter along the x-axis for uniform distribution, or the standard deviation along the x-axis for normal distribution. |
+| number | The maximum spawn distance from the emitter along the y-axis for uniform distribution, or the standard deviation along the y-axis for normal distribution. |
+| number | The angle in radians of the emission area. |
+| boolean | True if newly spawned particles will be oriented relative to the center of the emission area, false otherwise. |
+
+## setDirection
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the direction the particles will be emitted in.
+
+**Signature:**
+```tl
+setDirection: function(self: ParticleSystem, direction: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| direction | number | The direction of the particles (in radians). |
+
+## getDirection
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the direction of the particle emitter (in radians).
+
+**Signature:**
+```tl
+getDirection: function(self: ParticleSystem): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The direction of the emitter (radians). |
+
+## setSpread
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the amount of spread for the system.
+
+**Signature:**
+```tl
+setSpread: function(self: ParticleSystem, spread: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| spread | number | The amount of spread (radians). |
+
+## getSpread
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the amount of directional spread of the particle emitter (in radians).
+
+**Signature:**
+```tl
+getSpread: function(self: ParticleSystem): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The spread of the emitter (radians). |
+
+## setSpeed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the speed of the particles.
+
+**Signature:**
+```tl
+setSpeed: function(self: ParticleSystem, minimum: number, maximum?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| minimum | number | The minimum linear speed of the particles. |
+| maximum | number | The maximum linear speed of the particles. (Default: min.) |
+
+## getSpeed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the speed of the particles.
+
+**Signature:**
+```tl
+getSpeed: function(self: ParticleSystem): number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The minimum linear speed of the particles. |
+| number | The maximum linear speed of the particles. |
+
+## setLinearAcceleration
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the linear acceleration (acceleration along the x and y axes) for particles.
+Every particle created will accelerate along the x and y axes between xmin,ymin and xmax,ymax.
+
+**Signature:**
+```tl
+setLinearAcceleration: function(self: ParticleSystem, xmin: number, ymin: number, xmax?: number, ymax?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| xmin | number | The minimum acceleration along the x axis. |
+| ymin | number | The minimum acceleration along the y axis. |
+| xmax | number | The maximum acceleration along the x axis. (Default: xmin.) |
+| ymax | number | The maximum acceleration along the y axis. (Default: ymin.) |
+
+## getLinearAcceleration
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the linear acceleration (acceleration along the x and y axes) for particles.
+Every particle created will accelerate along the x and y axes between xmin,ymin and xmax,ymax.
+
+**Signature:**
+```tl
+getLinearAcceleration: function(self: ParticleSystem): number, number, number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The minimum acceleration along the x axis. |
+| number | The minimum acceleration along the y axis. |
+| number | The maximum acceleration along the x axis. |
+| number | The maximum acceleration along the y axis. |
+
+## setRadialAcceleration
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Set the radial acceleration (away from the emitter).
+
+**Signature:**
+```tl
+setRadialAcceleration: function(self: ParticleSystem, minimum: number, maximum?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| minimum | number | The minimum acceleration. |
+| maximum | number | The maximum acceleration. (Default: min.) |
+
+## getRadialAcceleration
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the radial acceleration (away from the emitter).
+
+**Signature:**
+```tl
+getRadialAcceleration: function(self: ParticleSystem): number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The minimum acceleration. |
+| number | The maximum acceleration. |
+
+## setTangentialAcceleration
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the tangential acceleration (acceleration perpendicular to the particle's direction).
+
+**Signature:**
+```tl
+setTangentialAcceleration: function(self: ParticleSystem, minimum: number, maximum?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| minimum | number | The minimum acceleration. |
+| maximum | number | The maximum acceleration. (Default: min.) |
+
+## getTangentialAcceleration
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the tangential acceleration (acceleration perpendicular to the particle's direction).
+
+**Signature:**
+```tl
+getTangentialAcceleration: function(self: ParticleSystem): number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The minimum acceleration. |
+| number | The maximum acceleration. |
+
+## setLinearDamping
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the amount of linear damping (constant deceleration) for particles.
+
+**Signature:**
+```tl
+setLinearDamping: function(self: ParticleSystem, minimum: number, maximum?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| minimum | number | The minimum amount of linear damping applied to particles. |
+| maximum | number | The maximum amount of linear damping applied to particles. (Default: min.) |
+
+## getLinearDamping
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the amount of linear damping (constant deceleration) for particles.
+
+**Signature:**
+```tl
+getLinearDamping: function(self: ParticleSystem): number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The minimum amount of linear damping applied to particles. |
+| number | The maximum amount of linear damping applied to particles. |
+
+## setSizes
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets a series of sizes by which to scale a particle sprite. 1.0 is normal size. The particle system will
+interpolate between each size evenly over the particle's lifetime.
+At least one size must be specified. A maximum of eight may be used.
+
+**Signature:**
+```tl
+setSizes: function(self: ParticleSystem, sizes: number...)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sizes | number... | The first size. |
+
+## getSizes
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the series of sizes by which the sprite is scaled. 1.0 is normal size. The particle system will interpolate
+between each size evenly over the particle's lifetime.
+
+**Signature:**
+```tl
+getSizes: function(self: ParticleSystem): number...
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number... | The first size. |
+
+## setSizeVariation
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the amount of size variation (0 meaning no variation and 1 meaning full variation between start and end).
+
+**Signature:**
+```tl
+setSizeVariation: function(self: ParticleSystem, variation: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| variation | number | The amount of variation (0 meaning no variation and 1 meaning full variation between start and end). |
+
+## getSizeVariation
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the amount of size variation (0 meaning no variation and 1 meaning full variation between start and end).
+
+**Signature:**
+```tl
+getSizeVariation: function(self: ParticleSystem): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The amount of variation (0 meaning no variation and 1 meaning full variation between start and end). |
+
+## setRotation
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the rotation of the image upon particle creation (in radians).
+
+**Signature:**
+```tl
+setRotation: function(self: ParticleSystem, minimum: number, maximum?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| minimum | number | The minimum initial angle (radians). |
+| maximum | number | The maximum initial angle (radians). (Default: min.) |
+
+## getRotation
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the rotation of the image upon particle creation (in radians).
+
+**Signature:**
+```tl
+getRotation: function(self: ParticleSystem): number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The minimum initial angle (radians). |
+| number | The maximum initial angle (radians). |
+
+## setSpin
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the spin of the sprite.
+
+**Signature:**
+```tl
+setSpin: function(self: ParticleSystem, start: number, finish?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| start | number | The minimum spin (radians per second). |
+| finish | number | The maximum spin (radians per second). (Default: min.) |
+
+## getSpin
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the spin of the sprite.
+
+**Signature:**
+```tl
+getSpin: function(self: ParticleSystem): number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The minimum spin (radians per second). |
+| number | The maximum spin (radians per second). |
+
+## setSpinVariation
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the amount of spin variation (0 meaning no variation and 1 meaning full variation between start and end).
+
+**Signature:**
+```tl
+setSpinVariation: function(self: ParticleSystem, variation: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| variation | number | The amount of variation (0 meaning no variation and 1 meaning full variation between start and end). |
+
+## getSpinVariation
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the amount of spin variation (0 meaning no variation and 1 meaning full variation between start and end).
+
+**Signature:**
+```tl
+getSpinVariation: function(self: ParticleSystem): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The amount of variation (0 meaning no variation and 1 meaning full variation between start and end). |
+
+## setOffset
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Set the offset position which the particle sprite is rotated around.
+If this function is not used, the particles rotate around their center.
+
+**Signature:**
+```tl
+setOffset: function(self: ParticleSystem, x: number, y: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The x coordinate of the rotation offset. |
+| y | number | The y coordinate of the rotation offset. |
+
+## getOffset
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the particle image's draw offset.
+
+**Signature:**
+```tl
+getOffset: function(self: ParticleSystem): number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The x coordinate of the particle image's draw offset. |
+| number | The y coordinate of the particle image's draw offset. |
+
+## setColors
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets a series of colors to apply to the particle sprite. The particle system will interpolate between each color
+evenly over the particle's lifetime.
+Arguments can be passed in groups of four, representing the components of the desired RGBA value, or as tables of
+RGBA component values, with a default alpha value of 1 if only three values are given. At least one color must be
+specified. A maximum of eight may be used.
+In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+
+**Signature:**
+```tl
+setColors: function(self: ParticleSystem, colors: any...)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| colors | any... | First color, a numerical indexed table with the red, green, blue and alpha values as numbers (0-1). The alpha is optional and defaults to 1 if it is left out. |
+
+## getColors
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the series of colors applied to the particle sprite.
+In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+
+**Signature:**
+```tl
+getColors: function(self: ParticleSystem): {number}...
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{number}... | First color, red component (0-1). |
+
+## setQuads
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets a series of Quads to use for the particle sprites. Particles will choose a Quad from the list based on the
+particle's current lifetime, allowing for the use of animated sprite sheets with ParticleSystems.
+
+**Signature:**
+```tl
+setQuads: function(self: ParticleSystem, quads: any...)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| quads | any... | A table containing the Quads to use. |
+
+## getQuads
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the series of Quads used for the particle sprites.
+
+**Signature:**
+```tl
+getQuads: function(self: ParticleSystem): {Quad}
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{Quad} | A table containing the Quads used. |
+
+## setRelativeRotation
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets whether particle angles and rotations are relative to their velocities. If enabled, particles are aligned to
+the angle of their velocities and rotate relative to that angle.
+
+**Signature:**
+```tl
+setRelativeRotation: function(self: ParticleSystem, enabled: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| enabled | boolean | True to enable relative particle rotation, false to disable it. |
+
+## hasRelativeRotation
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether particle angles and rotations are relative to their velocities. If enabled, particles are aligned to
+the angle of their velocities and rotate relative to that angle.
+
+**Signature:**
+```tl
+hasRelativeRotation: function(self: ParticleSystem): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if relative particle rotation is enabled, false if it's disabled. |
+
+## getCount
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the number of particles that are currently in the system.
+
+**Signature:**
+```tl
+getCount: function(self: ParticleSystem): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The current number of live particles. |
+
+## start
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Starts the particle emitter.
+
+**Signature:**
+```tl
+start: function(self: ParticleSystem)
+```
+
+## stop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Stops the particle emitter, resetting the lifetime counter.
+
+**Signature:**
+```tl
+stop: function(self: ParticleSystem)
+```
+
+## pause
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Pauses the particle emitter.
+
+**Signature:**
+```tl
+pause: function(self: ParticleSystem)
+```
+
+## reset
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Resets the particle emitter, removing any existing particles and resetting the lifetime counter.
+
+**Signature:**
+```tl
+reset: function(self: ParticleSystem)
+```
+
+## emit
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Emits a burst of particles from the particle emitter.
+
+**Signature:**
+```tl
+emit: function(self: ParticleSystem, count: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| count | integer | The amount of particles to emit. The number of emitted particles will be truncated if the particle system's max buffer size is reached. |
+
+## isActive
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether the particle system is actively emitting particles.
+
+**Signature:**
+```tl
+isActive: function(self: ParticleSystem): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if system is active, false otherwise. |
+
+## isPaused
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether the particle system is paused.
+
+**Signature:**
+```tl
+isPaused: function(self: ParticleSystem): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if system is paused, false otherwise. |
+
+## isStopped
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether the particle system is stopped.
+
+**Signature:**
+```tl
+isStopped: function(self: ParticleSystem): boolean
+	isEmpty: function(self: ParticleSystem): boolean
+	isFull: function(self: ParticleSystem): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if system is stopped, false otherwise. |
+
+## update
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Updates the particle system; moving, creating and killing particles.
+
+**Signature:**
+```tl
+update: function(self: ParticleSystem, delta_time: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| delta_time | number | The time (seconds) since last frame. |

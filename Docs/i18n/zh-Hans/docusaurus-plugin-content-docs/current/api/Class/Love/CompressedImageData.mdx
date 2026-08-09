@@ -1,0 +1,339 @@
+# CompressedImageData
+
+**描述：**
+
+&emsp;&emsp;表示旨在在 RAM 中保持压缩状态的压缩图像数据。
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: CompressedImageData): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: CompressedImageData): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: CompressedImageData, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## getString
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的完整数据。
+
+**签名：**
+```tl
+getString: function(self: CompressedImageData): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 原始数据。 |
+
+## getSize
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取数据的大小（以字节为单位）。
+
+**签名：**
+```tl
+getSize: function(self: CompressedImageData): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 数据的大小（以字节为单位）。 |
+
+## getPointer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取指向数据的指针。可以与 LuaJIT 的 FFI 等库一起使用。
+
+**签名：**
+```tl
+getPointer: function(self: CompressedImageData): any
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| any | 指向数据的原始指针。 |
+
+## getFFIPointer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取指向数据的 FFI 指针。
+这个函数应该是首选，而不是 Data:getPointer ，因为后者使用轻量用户数据，当使用 LuaJIT 时，它无法在一些新的 ARM64 架构上存储更多所有可能的内存地址。
+
+**签名：**
+```tl
+getFFIPointer: function(self: CompressedImageData): nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| nil | 指向数据的原始 void* 指针，如果 FFI 不可用则为零。 |
+
+## clone
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建数据对象的新副本。
+
+**签名：**
+```tl
+clone: function(self: CompressedImageData): CompressedImageData
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| CompressedImageData | 新副本。 |
+
+## getWidth
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取压缩图像数据的宽度。
+
+**签名：**
+```tl
+getWidth: function(self: CompressedImageData): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | width — 压缩图像数据的宽度。 |
+
+## getWidth
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取压缩图像数据的宽度。
+
+**签名：**
+```tl
+getWidth: function(self: CompressedImageData, mipmap: integer): integer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mipmap | integer | mipmap 级别。必须在 CompressedImageData:getMipmapCount() 范围内。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | CompressedImageData 的特定 mipmap 级别的宽度。 |
+
+## getHeight
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取 CompressedImageData 的高度。
+
+**签名：**
+```tl
+getHeight: function(self: CompressedImageData): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | height — 压缩图像数据的高度。 |
+
+## getHeight
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取 CompressedImageData 的高度。
+
+**签名：**
+```tl
+getHeight: function(self: CompressedImageData, mipmap: integer): integer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mipmap | integer | mipmap 级别。必须在 CompressedImageData:getMipmapCount() 范围内。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 压缩图像数据的特定 mipmap 级别的高度。 |
+
+## getDimensions
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取 CompressedImageData 的宽度和高度。
+
+**签名：**
+```tl
+getDimensions: function(self: CompressedImageData): integer, integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | width — 压缩图像数据的宽度。 |
+| integer | height — 压缩图像数据的高度。 |
+
+## getDimensions
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取 CompressedImageData 的宽度和高度。
+
+**签名：**
+```tl
+getDimensions: function(self: CompressedImageData, mipmap: integer): integer, integer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mipmap | integer | mipmap 级别。必须在 CompressedImageData:getMipmapCount() 范围内。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | CompressedImageData 的特定 mipmap 级别的宽度。 |
+| integer | 压缩图像数据的特定 mipmap 级别的高度。 |
+
+## getMipmapCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取 CompressedImageData 中的 mipmap 级别数。基本 mipmap 级别（原始图像）包含在计数中。
+重载说明：
+1. Mipmap 过滤无法激活，会出现 Image:setMipmapFilter 错误。大多数可以创建压缩纹理的工具都能够在同一文件中自动为其生成 mipmap。
+
+**签名：**
+```tl
+getMipmapCount: function(self: CompressedImageData): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 压缩图像数据中存储的 mipmap 级别数。 |
+
+## getFormat
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取压缩图像数据的格式。
+
+**签名：**
+```tl
+getFormat: function(self: CompressedImageData): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 压缩图像数据的格式。 |

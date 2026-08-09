@@ -1,0 +1,178 @@
+# System
+
+**Description:**
+
+&emsp;&emsp;Provides access to information about the user's system.
+
+## getOS
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current operating system. In general, LÖVE abstracts away the need to know the current operating system,
+but there are a few cases where it can be useful (especially in combination with os.execute.)
+Overload details:
+1. In LÖVE version 0.8.0, the '''love._os''' string contains the current operating system.
+
+**Signature:**
+```tl
+getOS: function(): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The current operating system. 'OS X', 'Windows', 'Linux', 'Android' or 'iOS'. |
+
+## getProcessorCount
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the amount of logical processor in the system.
+Overload details:
+1. The number includes the threads reported if technologies such as Intel's Hyper-threading are enabled. For
+example, on a 4-core CPU with Hyper-threading, this function will return 8.
+
+**Signature:**
+```tl
+getProcessorCount: function(): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | Amount of logical processors. |
+
+## setClipboardText
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Puts text in the clipboard.
+
+**Signature:**
+```tl
+setClipboardText: function(text: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| text | string | The new text to hold in the system's clipboard. |
+
+## getClipboardText
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets text from the clipboard.
+
+**Signature:**
+```tl
+getClipboardText: function(): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The text currently held in the system's clipboard. |
+
+## getPowerInfo
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets information about the system's power supply.
+
+**Signature:**
+```tl
+getPowerInfo: function(): string, integer | nil, integer | nil
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The basic state of the power supply. |
+| integer or nil | Percentage of battery life left, between 0 and 100. nil if the value can't be determined or there's no battery. |
+| integer or nil | Seconds of battery life left. nil if the value can't be determined or there's no battery. |
+
+## openURL
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Opens a URL with the user's web or file browser.
+Overload details:
+1. Passing file:// scheme in Android 7.0 (Nougat) and later always result in failure. Prior to 11.2, this will
+crash LÖVE instead of returning false.
+
+**Signature:**
+```tl
+openURL: function(url: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| url | string | The URL to open. Must be formatted as a proper URL. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the URL was opened successfully. |
+
+## vibrate
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Causes the device to vibrate, if possible. Currently this will only work on Android and iOS devices that have a
+built-in vibration motor.
+
+**Signature:**
+```tl
+vibrate: function(seconds?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| seconds | number | The duration to vibrate for. If called on an iOS device, it will always vibrate for 0.5 seconds due to limitations in the iOS system APIs. (Default: 0.5.) |
+
+## hasBackgroundMusic
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether another application on the system is playing music in the background.
+Currently this is implemented on iOS and Android, and will always return false on other operating systems. The
+t.audio.mixwithsystem flag in love.conf can be used to configure whether background audio / music from other apps
+should play while LÖVE is open.
+
+**Signature:**
+```tl
+hasBackgroundMusic: function(): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the user is playing music in the background via another app, false otherwise. |

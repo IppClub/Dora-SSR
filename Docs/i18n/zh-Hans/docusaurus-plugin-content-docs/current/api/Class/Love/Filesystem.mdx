@@ -1,0 +1,884 @@
+# Filesystem
+
+**描述：**
+
+&emsp;&emsp;提供用户文件系统的接口。
+
+## setIdentity
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置游戏的写入目录。
+请注意，您只能设置用于存储文件的文件夹名称，而不能设置位置。
+
+**签名：**
+```tl
+setIdentity: function(identity: string, append_to_path?: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| identity | string | 将用作写入目录的新标识。 |
+| append_to_path | boolean | append_to_path 参数。 |
+
+## getIdentity
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取游戏的写入目录名称。
+请注意，这仅返回存储文件的文件夹的名称，而不是完整路径。
+
+**签名：**
+```tl
+getIdentity: function(): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 用作写入目录的标识。 |
+
+## getSource
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回 .love 文件或目录的完整路径。如果游戏融合到 LÖVE 可执行文件，则返回可执行文件。
+
+**签名：**
+```tl
+getSource: function(): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | .love 文件或目录的完整平台相关路径。 |
+
+## getSaveDirectory
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取指定保存目录的完整路径。
+如果您想使用标准 io 库（或其他库）来
+在保存目录中读取或写入。
+
+**签名：**
+```tl
+getSaveDirectory: function(): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 保存目录的绝对路径。 |
+
+## getWorkingDirectory
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前工作目录。
+
+**签名：**
+```tl
+getWorkingDirectory: function(): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 当前工作目录。 |
+
+## getUserDirectory
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回用户目录
+
+**签名：**
+```tl
+getUserDirectory: function(): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 用户目录的路径 |
+
+## getAppdataDirectory
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回应用程序数据目录（可能与 getUserDirectory 相同）
+
+**签名：**
+```tl
+getAppdataDirectory: function(): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 应用程序数据目录的路径 |
+
+## getSourceBaseDirectory
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回包含 .love 文件的目录的完整路径。如果游戏融合到 LÖVE 可执行文件，则返回包含可执行文件的目录。
+如果 love.filesystem.isFused 为 true，则该函数返回的路径可以传递给 love.filesystem.mount，这将使包含主游戏的目录（例如 C:\Program
+Files\coolgame\）可以被 love.filesystem. 读取
+
+**签名：**
+```tl
+getSourceBaseDirectory: function(): string
+	getExecutablePath: function(): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 包含 .love 文件的目录的完整平台相关路径。 |
+
+## getRealDirectory
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取包含文件路径的目录的特定于平台的绝对路径。
+这可用于确定文件是否位于保存目录或游戏源.love 内。
+重载说明：
+1. 该函数返回包含给定“'file path'”的目录，而不是文件。例如，如果文件 snapshot1.png 存在于游戏保存目录中名为 snapshots 的目录中，则
+love.filesystem.getRealDirectory('screenshots/screenshot1.png') 将返回与 love.filesystem.getSaveDirectory.
+
+**签名：**
+```tl
+getRealDirectory: function(filename: string): string | nil, string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要获取目录的文件路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string or nil | 包含文件路径的目录的特定于平台的完整路径。 |
+
+## getRequirePath
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取调用 require 时将搜索的文件系统路径。
+该函数返回的路径字符串是由分号分隔的路径模板序列。传递给 ''require'' will be inserted in place of any question mark ('?') character in each
+template (after the dot characters in the argument passed to ''require'' 的参数被目录分隔符替换。）
+路径相对于游戏的源目录和保存目录，以及使用 love.filesystem.mount.
+重载说明：
+1. 默认路径字符串是'?.lua;?/init.lua'，这使得require('cool')尝试加载cool.lua，然后如果cool.lua不存在则尝试cool/init.lua。
+
+**签名：**
+```tl
+getRequirePath: function(): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | ''require''函数将在love的文件系统中检查的路径。 |
+
+## setRequirePath
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置调用 require 时将搜索的文件系统路径。
+提供给此函数的路径字符串是由分号分隔的路径模板序列。传递给 ''require'' will be inserted in place of any question mark ('?') character in each
+template (after the dot characters in the argument passed to ''require'' 的参数被目录分隔符替换。）
+路径相对于游戏的源目录和保存目录，以及使用 love.filesystem.mount.
+重载说明：
+1. 默认路径字符串是'?.lua;?/init.lua'，这使得require('cool')尝试加载cool.lua，然后如果cool.lua不存在则尝试cool/init.lua。
+
+**签名：**
+```tl
+setRequirePath: function(path: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | ''require''函数将在love的文件系统中检查的路径。 |
+
+## mount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在游戏的保存目录中安装zip文件或文件夹以供读取。
+
+	-- 如果游戏处于融合模式，也可以挂载love.filesystem.getSourceBaseDirectory。
+
+**签名：**
+```tl
+mount: function(archive: string, mountpoint: string, append_to_path?: boolean): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| archive | string | 游戏保存目录中要挂载的文件夹或zip文件。 |
+| mountpoint | string | 存档将安装到的新路径。 |
+| append_to_path | boolean | 读取已安装存档之前或之后的文件路径时是否搜索存档。这包括游戏的源目录和保存目录。 （默认值：假。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | success — 如果存档已成功安装，则为 true，否则为 false。 |
+
+## mount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在游戏的保存目录中安装zip文件或文件夹以供读取。
+
+	-- 如果游戏处于融合模式，也可以挂载love.filesystem.getSourceBaseDirectory。
+
+**签名：**
+```tl
+mount: function(archive: FileData, mountpoint: string, append_to_path?: boolean): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| archive | FileData | 游戏保存目录中要挂载的文件夹或zip文件。 |
+| mountpoint | string | 存档将安装到的新路径。 |
+| append_to_path | boolean | 读取已安装存档之前或之后的文件路径时是否搜索存档。这包括游戏的源目录和保存目录。 （默认值：假。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | success — 如果存档已成功安装，则为 true，否则为 false。 |
+
+## unmount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;卸载之前使用 love.filesystem.mount.
+
+**签名：**
+```tl
+unmount: function(archive: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| archive | string | 当前挂载的游戏保存目录中的文件夹或zip文件。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | success — 如果存档已成功卸载，则为 true，否则为 false。 |
+
+## unmount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;卸载之前使用 love.filesystem.mount.
+
+**签名：**
+```tl
+unmount: function(archive: FileData): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| archive | FileData | 当前挂载的游戏保存目录中的文件夹或zip文件。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | success — 如果存档已成功卸载，则为 true，否则为 false。 |
+
+## isFused
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取游戏是否处于融合模式。
+如果游戏处于融合模式，其保存目录将直接位于Appdata目录中，而不是Appdata/LOVE/中。游戏还能够加载位于保存目录中的 C Lua 动态库。
+如果源 .love 已融合到可执行文件（请参阅游戏分发），或者在启动游戏时将 '--fused' 作为命令行参数给出，则游戏处于融合模式。
+
+**签名：**
+```tl
+isFused: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果游戏处于融合模式则为 true，否则为 false。 |
+
+## newFile
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的文件对象。
+
+	-- 需要打开才可以访问。
+
+**签名：**
+```tl
+newFile: function(filename: string): File
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 文件的文件名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| File | file — 新的文件对象。 |
+
+## newFile
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的文件对象。
+
+	-- 需要打开才可以访问。
+
+**签名：**
+```tl
+newFile: function(filename: string, mode: OpenFileMode): File
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 文件的文件名。 |
+| mode | OpenFileMode | 打开文件的模式。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| File | 新的 File 对象，如果发生错误则为 nil。 |
+
+## newFileData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从磁盘上的文件或内存中的字符串创建一个新的 FileData 对象。
+
+**签名：**
+```tl
+newFileData: function(filename: string): FileData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 文件路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| FileData | data — 新的文件数据。 |
+
+## newFileData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从磁盘上的文件或内存中的字符串创建一个新的 FileData 对象。
+
+**签名：**
+```tl
+newFileData: function(file: File): FileData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| file | File | 文件路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| FileData | 新的 FileData，如果发生错误则为零。 |
+
+## newFileData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从磁盘上的文件或内存中的字符串创建一个新的 FileData 对象。
+
+**签名：**
+```tl
+newFileData: function(data: string, filename: string): FileData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| data | string | 要复制到新 FileData 对象中的 Data 对象。 |
+| filename | string | 文件的名称。当将 FileData 对象传递到 love.audio.newSource. |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| FileData | 新的 FileData，如果发生错误则为零。 |
+
+## read
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;读取文件的内容。
+
+**签名：**
+```tl
+read: function(filename: string, size?: integer): string | nil, number | string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 文件的名称（和路径）。 |
+| size | integer | 读取多少字节。 （默认：全部。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string \| nil | contents — 文件内容。 |
+| number \| string | size — 已读取多少字节。 |
+
+## read
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;读取文件的内容。
+
+**签名：**
+```tl
+read: function(container: string, filename: string, size?: integer): string | nil, number | string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 返回文件内容的类型。 |
+| filename | string | 文件的名称（和路径） |
+| size | integer | 读取多少字节（默认：全部。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string \| nil | 返回 nil 作为内容。 |
+| number \| string | size — 已读取多少字节。 |
+
+## read
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;读取文件的内容。
+
+**签名：**
+```tl
+read: function(container: string, filename: string, size?: integer): FileData | nil, number | string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 返回文件内容的类型。 |
+| filename | string | 文件的名称（和路径） |
+| size | integer | 读取多少字节（默认：全部。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| FileData \| nil | FileData 或包含文件内容的字符串。 |
+| number \| string | size — 已读取多少字节。 |
+
+## load
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;加载 Lua 文件（但不运行它）。
+
+**签名：**
+```tl
+load: function(filename: string): function | nil, string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 文件的名称（和路径）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| function | 加载的块。 |
+| string or nil | 文件无法打开时的错误消息。 |
+
+## lines
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;迭代文件中的行。
+
+**签名：**
+```tl
+lines: function(filename: string): function(): string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 文件的名称（和路径） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| function or string or nil | 迭代文件 |
+
+## write
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将数据写入保存目录中的文件。如果该文件已经存在，它将被新内容完全替换。
+
+**签名：**
+```tl
+write: function(filename: string, data: string, size?: integer): boolean, string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 文件的名称（和路径）。 |
+| data | string | 要写入文件的字符串数据。 |
+| size | integer | 要写入多少字节。 （默认值：全部。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | success — 如果操作成功。 |
+| string \| nil | message — 如果操作不成功，则会出现错误消息。 |
+
+## write
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将数据写入保存目录中的文件。如果该文件已经存在，它将被新内容完全替换。
+
+**签名：**
+```tl
+write: function(filename: string, data: FileData, size?: integer): boolean, string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 文件的名称（和路径）。 |
+| data | FileData | 要写入文件的数据对象。 |
+| size | integer | 要写入多少字节。 （默认值：全部。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | success — 如果操作成功。 |
+| string \| nil | message — 如果操作不成功，则会出现错误消息。 |
+
+## append
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将数据附加到现有文件。
+
+**签名：**
+```tl
+append: function(filename: string, data: string, size?: integer): boolean, string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 文件的名称（和路径）。 |
+| data | string | 要附加到文件的字符串数据。 |
+| size | integer | 要写入多少字节。 （默认值：全部。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | success — 如果操作成功则为 True，如果有错误则为 nil。 |
+| string \| nil | errormsg — 失败时的错误消息。 |
+
+## append
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将数据附加到现有文件。
+
+**签名：**
+```tl
+append: function(filename: string, data: FileData, size?: integer): boolean, string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 文件的名称（和路径）。 |
+| data | FileData | 要附加到文件的数据对象。 |
+| size | integer | 要写入多少字节。 （默认值：全部。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | success — 如果操作成功则为 True，如果有错误则为 nil。 |
+| string \| nil | errormsg — 失败时的错误消息。 |
+
+## getInfo
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取有关指定文件或目录的信息。
+
+**签名：**
+```tl
+getInfo: function(filename: string): FileInfo | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要检查的文件或目录路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| FileInfo \| nil | info — 包含有关指定路径的信息的表，如果路径中不存在任何内容，则为零。该表包含以下字段： |
+
+## getInfo
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取有关指定文件或目录的信息。
+
+**签名：**
+```tl
+getInfo: function(filename: string, filter_type: FileType): FileInfo | nil
+	exists: function(filename: string): boolean
+	isDirectory: function(filename: string): boolean
+	isFile: function(filename: string): boolean
+	isSymlink: function(filename: string): boolean
+	getLastModified: function(filename: string): number | nil, string | nil
+	getSize: function(filename: string): number | nil, string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 要检查的文件或目录路径。 |
+| filter_type | FileType | 如果给定路径中的项目与指定的文件类型匹配，则导致 getInfo 仅返回信息表。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| FileInfo \| nil | 作为参数给出的表，如果路径中不存在任何内容，则为 nil。该表将填写以下字段： |
+
+## createDirectory
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;递归创建一个目录。
+当使用 'a/b' 调用时，它会创建 'a' 和 'a/b'（如果它们尚不存在）。
+
+**签名：**
+```tl
+createDirectory: function(name: string): boolean, string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要创建的目录。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果目录已创建则为 True，否则为 false。 |
+
+## remove
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;删除文件或空目录。
+重载说明：
+1. 删除前目录必须为空，否则会失败。只需事先删除目录中的所有文件和文件夹即可。如果文件存在于 .love 但不存在于保存目录中，它也会返回 false。打开的文件会阻止删除底层文件。只需关闭文件即可将其删除。
+
+**签名：**
+```tl
+remove: function(name: string): boolean, string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要删除的文件或目录。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果文件/目录被删除则为 true，否则为 false。 |
+
+## getDirectoryItems
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回一个表，其中包含指定路径中的文件和子目录的名称。该表未以任何方式排序；顺序未定义。
+如果传递给函数的路径存在于游戏和保存目录中，它将列出两个地方的文件和目录。
+
+**签名：**
+```tl
+getDirectoryItems: function(directory?: string): {string}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| directory | string | 目录。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{string} | 以字符串形式包含所有文件和子目录名称的序列。 |

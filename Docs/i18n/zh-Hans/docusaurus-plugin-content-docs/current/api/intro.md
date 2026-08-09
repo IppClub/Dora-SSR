@@ -121,6 +121,7 @@ sidebar_position: 0
 * [VGNode](/docs/api/Class/VGNode)
 * [VideoNode](/docs/api/Class/VideoNode)
 * [TIC80Node](/docs/api/Class/TIC80Node)
+* [LoveNode](/docs/api/Class/LoveNode)
 * [SVG](/docs/api/Class/SVG)
 * [Particle](/docs/api/Class/Particle)
 

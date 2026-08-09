@@ -1,0 +1,532 @@
+# Joystick
+
+**描述：**
+
+&emsp;&emsp;代表物理操纵杆。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: Joystick): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: Joystick, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: Joystick): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## isConnected
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取Joystick是否已连接。
+
+**签名：**
+```tl
+isConnected: function(self: Joystick): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果操纵杆当前已连接，则为 true，否则为 false。 |
+
+## getName
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取操纵杆的名称。
+
+**签名：**
+```tl
+getName: function(self: Joystick): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 操纵杆的名称。 |
+
+## getID
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取操纵杆的唯一标识符。即使操纵杆断开连接并重新连接，标识符在游戏的生命周期中也将保持不变，但当游戏重新启动时，它“'will'”会发生变化。
+
+**签名：**
+```tl
+getID: function(self: Joystick): integer, integer | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 操纵杆的唯一标识符。只要游戏运行，就保持不变。 |
+| integer or nil | 唯一实例标识符。每次重新连接操纵杆时都会发生变化。如果操纵杆未连接则为零。 |
+
+## getGUID
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取物理操纵杆类型所特有的稳定 GUID，该 GUID 不会随时间变化。例如，OS X 中的所有 Sony Dualshock 3 控制器都具有相同的 GUID。该值取决于平台。
+
+**签名：**
+```tl
+getGUID: function(self: Joystick): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 操纵杆类型的依赖于操作系统的唯一标识符。 |
+
+## getDeviceInfo
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取操纵杆的 USB 供应商 ID、产品 ID 和产品版本号，这些信息在不同操作系统中保持一致。
+可用于为不同的游戏手柄显示不同的图标等。
+重载说明：
+1. 某些 Linux 发行版可能未附带 SDL 2.0.6 或更高版本，在这种情况下，此函数将为所有三个值返回 0。
+
+**签名：**
+```tl
+getDeviceInfo: function(self: Joystick): integer, integer, integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 操纵杆的 USB 供应商 ID。 |
+| integer | 操纵杆的 USB 产品 ID。 |
+| integer | 操纵杆的产品版本。 |
+
+## getAxisCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取操纵杆上的轴数。
+
+**签名：**
+```tl
+getAxisCount: function(self: Joystick): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 可用轴的数量。 |
+
+## getButtonCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取操纵杆上的按钮数量。
+
+**签名：**
+```tl
+getButtonCount: function(self: Joystick): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 可用按钮的数量。 |
+
+## getHatCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取操纵杆上的帽子数量。
+
+**签名：**
+```tl
+getHatCount: function(self: Joystick): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 操纵杆有多少顶帽子。 |
+
+## getAxis
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取轴的方向。
+
+**签名：**
+```tl
+getAxis: function(self: Joystick, axis: integer): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| axis | integer | 要检查的轴的索引。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 轴的当前值。 |
+
+## getAxes
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取每个轴的方向。
+
+**签名：**
+```tl
+getAxes: function(self: Joystick): number...
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number... | 轴 1 的方向。 |
+
+## getHat
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取操纵杆帽子的方向。
+
+**签名：**
+```tl
+getHat: function(self: Joystick, hat: integer): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| hat | integer | 要检查的帽子的索引。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 帽子被推的方向。 |
+
+## isDown
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查操纵杆上的按钮是否被按下。
+LÖVE 0.9.0 有一个错误，要求传递给 Joystick:isDown 的按钮索引是基于 0 的而不是基于 1 的，例如对于此功能，按钮 1 将为 0。它在 0.9.1 中被修复。
+
+**签名：**
+```tl
+isDown: function(self: Joystick, buttons: integer...): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| buttons | integer... | 要检查的按钮的索引。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果任何提供的按钮被按下，则为 True，否则为 false。 |
+
+## isGamepad
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取Joystick是否被识别为游戏手柄。如果是这种情况，则可以通过 Joystick:getGamepadAxis、Joystick:isGamepadDown、love.gamepadpressed
+和相关函数，在不同的操作系统和操纵杆型号中以标准化方式使用操纵杆的按钮和轴。
+LÖVE 自动识别与 Xbox 360 控制器布局相似的最流行的控制器作为游戏手柄，但您可以使用 love.joystick.setGamepadMapping.
+重载说明：
+1. 如果操纵杆被识别为游戏手柄，则虚拟游戏手柄轴和按钮的物理位置尽可能与标准 Xbox 360 控制器的布局相对应。
+
+**签名：**
+```tl
+isGamepad: function(self: Joystick): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果操纵杆被识别为游戏手柄则为 true，否则为 false。 |
+
+## isGamepadDown
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查是否按下了操纵杆上的虚拟游戏手柄按钮。如果操纵杆未被识别为游戏手柄或未连接，则此函数将始终返回 false。
+
+**签名：**
+```tl
+isGamepadDown: function(self: Joystick, buttons: string...): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| buttons | string... | 要检查的游戏手柄按钮。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果任何提供的按钮被按下，则为 True，否则为 false。 |
+
+## getGamepadAxis
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取虚拟游戏手柄轴的方向。如果操纵杆未被识别为游戏手柄或未连接，此函数将始终返回 0。
+
+**签名：**
+```tl
+getGamepadAxis: function(self: Joystick, axis: string): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| axis | string | 要检查的虚拟轴。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 轴的当前值。 |
+
+## getGamepadMapping
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取虚拟游戏手柄输入绑定的按钮、轴或帽子。
+重载说明：
+1. 如果操纵杆未被识别为游戏手柄或虚拟游戏手柄轴未绑定到操纵杆输入，则返回 nil。 2. 虚拟游戏手柄轴和按钮的物理位置尽可能与标准 Xbox 360 控制器的布局相对应。
+
+**签名：**
+```tl
+getGamepadMapping: function(self: Joystick, input: string): string | nil, integer | nil, string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| input | string | 要获取绑定的虚拟游戏手柄轴。根据过载：要获取绑定的虚拟游戏手柄按钮。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string or nil | 虚拟游戏手柄轴绑定的输入类型。取决于过载：虚拟游戏手柄按钮绑定的输入类型。 |
+| integer or nil | 虚拟游戏手柄轴绑定到的操纵杆按钮、轴或帽子的索引。 取决于过载：虚拟游戏手柄按钮绑定到的操纵杆按钮、轴或帽子的索引。 |
+| string or nil | 帽子的方向（如果虚拟游戏手柄轴绑定到帽子）。否则为零。取决于过载：帽子的方向（如果虚拟游戏手柄按钮绑定到帽子）。否则为零。 |
+
+## getGamepadMappingString
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取此操纵杆的完整游戏手柄映射字符串，如果未将其识别为游戏手柄，则返回 nil。
+映射字符串包含用于将操纵杆的按钮和轴映射到标准游戏手柄布局的绑定信息，并且可以在以后与 love.joystick.loadGamepadMappings.
+
+**签名：**
+```tl
+getGamepadMappingString: function(self: Joystick): string | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string or nil | 包含操纵杆的游戏手柄映射的字符串，如果操纵杆未被识别为游戏手柄则为零。 |
+
+## isVibrationSupported
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取Joystick是否支持振动。
+重载说明：
+1. 第一次调用此函数可能会比预期花费更多时间，因为需要初始化 SDL 的触觉/力反馈子系统。
+
+**签名：**
+```tl
+isVibrationSupported: function(self: Joystick): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果此操纵杆支持隆隆声/力反馈振动，则为 true，否则为 false。 |
+
+## setVibration
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置带有震动支持的操纵杆上的振动电机速度。大多数常见的游戏手柄都具有此功能，但并非所有驱动程序都提供适当的支持。使用Joystick:isVibrationSupported进行检查。
+
+**签名：**
+```tl
+setVibration: function(self: Joystick): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | success — 如果振动成功应用则为 true，否则为 false。 |
+
+## setVibration
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置带有震动支持的操纵杆上的振动电机速度。大多数常见的游戏手柄都具有此功能，但并非所有驱动程序都提供适当的支持。使用Joystick:isVibrationSupported进行检查。
+
+**签名：**
+```tl
+setVibration: function(self: Joystick, left: number, right?: number, duration?: number): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| left | number | 操纵杆上左侧振动电机的强度。必须在 1 范围内。 |
+| right | number | 操纵杆上右侧振动电机的强度。必须在 1 范围内。 |
+| duration | number | 振动的持续时间（以秒为单位）。负值意味着无限的持续时间。 （默认值：-1。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果振动已成功禁用，则为 true；如果未成功禁用，则为 false。 |
+
+## getVibration
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取支持震动的操纵杆上当前的振动电机强度。
+
+**签名：**
+```tl
+getVibration: function(self: Joystick): number, number
+		getConnectedIndex: function(self: Joystick): integer | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number or integer or nil | 操纵杆上左侧振动电机的当前强度。 |
+| number | 操纵杆上右侧振动电机的当前强度。 |

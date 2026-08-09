@@ -1,0 +1,302 @@
+# World
+
+**描述：**
+
+&emsp;&emsp;世界是一个包含所有身体和关节的对象。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: World): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: World, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: World): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## destroy
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;毁灭世界，带走所有的身体、关节、固定装置及其形状。
+如果您在调用此函数后尝试使用任何已销毁的对象，将会发生错误。
+
+**签名：**
+```tl
+destroy: function(self: World)
+```
+
+## isDestroyed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取世界是否被毁灭。被摧毁的世界无法使用。
+
+**签名：**
+```tl
+isDestroyed: function(self: World): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 世界是否毁灭。 |
+
+## update
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;更新世界状况。
+
+**签名：**
+```tl
+update: function(self: World, delta_time: number, velocity_iterations?: integer, position_iterations?: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| delta_time | number | 推进物理模拟的时间（以秒为单位）。 |
+| velocity_iterations | integer | 解决碰撞时用于确定新速度的最大步数。 （默认值：8。） |
+| position_iterations | integer | 解决碰撞时用于确定新位置的最大步数。 （默认值：3。） |
+
+## setGravity
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置世界的重力。
+
+**签名：**
+```tl
+setGravity: function(self: World, x: number, y: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 重力的 x 分量。 |
+| y | number | 重力的 y 分量。 |
+
+## getGravity
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取世界的重力。
+
+**签名：**
+```tl
+getGravity: function(self: World): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 重力的 x 分量。 |
+| number | 重力的 y 分量。 |
+
+## setSleepingAllowed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置世界的睡眠行为。
+
+**签名：**
+```tl
+setSleepingAllowed: function(self: World, allowed: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| allowed | boolean | 如果世界上的物体被允许睡觉，则为真，否则为假。 |
+
+## isSleepingAllowed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取世界的睡眠行为。
+
+**签名：**
+```tl
+isSleepingAllowed: function(self: World): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果世界上的物体被允许睡觉，则为真，否则为假。 |
+
+## queryBoundingBox
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;通过搜索任何重叠的边界框 (Fixture:getBoundingBox)，为指定区域内的每个灯具调用函数。
+
+**签名：**
+```tl
+queryBoundingBox: function(self: World, x1: number, y1: number, x2: number, y2: number, callback: function(any): boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x1 | number | 左上角点的 x 位置。 |
+| y1 | number | 左上角点的 y 位置。 |
+| x2 | number | 右下点的 x 位置。 |
+| y2 | number | 右下点的 y 位置。 |
+| callback | function | 该函数传递一个参数，即固定装置，并且应该返回一个布尔值。如果为 true，则继续搜索；如果为 false，则停止搜索。 |
+
+## rayCast
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;投射光线并为其相交的每个灯具调用函数。
+重载说明：
+1. LÖVE 0.8.0 中有一个错误，传递给回调函数的法线向量按 love.physics.getMeter.
+
+**签名：**
+```tl
+rayCast: function(self: World, x1: number, y1: number, x2: number, y2: number, callback: function(any, number, number, number, number, number): number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x1 | number | 射线起点的 x 位置。 |
+| y1 | number | 射线起点的 x 位置。 |
+| x2 | number | 射线终点的 x 位置。 |
+| y2 | number | 形状边缘的表面法线向量的 x 值。 |
+| callback | function | 为与光线相交的每个夹具调用的函数。该函数有六个参数，并应返回一个数字作为控制值。输入到函数中的交点将采用任意顺序。如果您希望找到最近的交点，则需要在函数内自行完成。最简单的方法是使用分数值。 |
+
+## setCallbacks
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置世界更新期间碰撞回调的函数。
+四个 Lua 函数可以作为参数给出。值 nil 删除一个函数。
+调用时，每个函数将传递三个参数。前两个参数是碰撞装置，第三个参数是它们之间的接触。 postSolve 回调还获取每个接触点的法线和切线冲量。参见注释。
+如果您有兴趣了解每个回调的确切调用时间，请参阅 Box2d 手册
+
+**签名：**
+```tl
+setCallbacks: function(self: World, begin_contact?: function(any, any, any), end_contact?: function(any, any, any), pre_solve?: function(any, any, any), post_solve?: function(any, any, any, ...: number))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| begin_contact | function | 当两个灯具开始重叠时被调用。 |
+| end_contact | function | 当两个灯具不再重叠时被调用。当碰撞对象被破坏时，这也会在世界更新之外被调用。 |
+| pre_solve | function | 在冲突解决之前被调用。 （默认值：无。） |
+| post_solve | function | 冲突解决后被调用。 （默认值：无。） |
+
+## getCallbacks
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回世界更新期间回调的函数。
+
+**签名：**
+```tl
+getCallbacks: function(self: World): function(any, any, any) | nil, function(any, any, any) | nil, function(any, any, any) | nil, function(any, any, any, ...: number) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| ... | number | ... 参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| function | 当两个灯具开始重叠时被调用。 |
+| function | 当两个灯具不再重叠时被调用。 |
+| function | 在冲突解决之前被调用。 |
+| function | 冲突解决后被调用。 |

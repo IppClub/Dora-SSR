@@ -1,0 +1,771 @@
+# Window
+
+**描述：**
+
+&emsp;&emsp;提供用于修改和检索有关程序窗口的信息的接口。
+
+## getDesktopDimensions
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取桌面的宽度和高度。
+
+**签名：**
+```tl
+getDesktopDimensions: function(display?: integer): integer, integer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| display | integer | 显示的索引（如果有多个监视器可用）。 （默认值：1。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 桌面的宽度。 |
+| integer | 桌面的高度。 |
+
+## getDisplayCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取已连接显示器的数量。
+
+**签名：**
+```tl
+getDisplayCount: function(): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 当前连接的显示器数量。 |
+
+## getDisplayName
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取显示器的名称。
+
+**签名：**
+```tl
+getDisplayName: function(display: integer): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| display | integer | 要获取其名称的显示器的索引。 （默认值：1。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 指定显示器的名称。 |
+
+## getDisplayOrientation
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前设备显示方向。
+
+**签名：**
+```tl
+getDisplayOrientation: function(display?: integer): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| display | integer | 显示索引以获取其显示方向，或 nil 以获得默认显示索引。 （默认值：无。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 当前设备显示方向。 |
+
+## getFullscreenModes
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取支持的全屏模式列表。
+
+**签名：**
+```tl
+getFullscreenModes: function(display?: integer): {WindowSize}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| display | integer | 显示的索引（如果有多个监视器可用）。 （默认值：1。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{WindowSize} | 宽度/高度对的表。 （请注意，这可能不按顺序排列。） |
+
+## setFullscreen
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;进入或退出全屏。如果连接了多个显示器，则根据窗口当前所在的显示来选择进入全屏时要使用的显示。
+重载说明：
+1. 如果进入全屏模式并且窗口大小与显示器的显示模式之一不匹配（在普通全屏模式下）或窗口大小与桌面大小不匹配（在 'desktop' 全屏模式下），窗口将适当调整大小。当使用此功能退出全屏模式时，窗口将再次恢复到其原始大小。
+
+**签名：**
+```tl
+setFullscreen: function(fullscreen: boolean, fullscreen_type?: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| fullscreen | boolean | 是否进入或退出全屏模式。 |
+| fullscreen_type | string | 要使用的全屏模式类型。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果尝试进入全屏成功则为 true，否则为 false。 |
+
+## getFullscreen
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取窗口是否全屏。
+
+**签名：**
+```tl
+getFullscreen: function(): boolean, string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果窗口是全屏则为 true，否则为 false。 |
+| string | 使用的全屏模式类型。 |
+
+## isOpen
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查窗口是否打开。
+
+**签名：**
+```tl
+isOpen: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果窗口打开则为 true，否则为 false。 |
+
+## getIcon
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取窗口图标。
+
+**签名：**
+```tl
+getIcon: function(): any
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| any | 窗口图标图像数据，如果没有使用 love.window.setIcon. 设置图标则为零 |
+
+## setIcon
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用 ImageData 设置窗口图标。
+嵌入式 LoveNode 会接受该请求，但不会修改 Dora 宿主应用的图标。
+
+**签名：**
+```tl
+setIcon: function(imagedata: any): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| imagedata | any | 窗口图标的图像数据。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 图标请求被接受时返回 true。 |
+
+## getMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取窗口的显示模式和属性。
+
+**签名：**
+```tl
+getMode: function(): integer, integer, WindowMode
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 窗口宽度。 |
+| integer | 窗口高度。 |
+| WindowMode | 具有窗口属性的表： |
+
+## setMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置窗口的显示模式和属性。
+如果宽度或高度为0，setMode 将使用桌面的宽度和高度。
+更改显示模式可能会产生副作用：例如，画布将被清除，并且值会预先发送到带有画布的着色器，或者如果需要的话，之后重新绘制到它们。
+重载说明：
+1. * 如果启用全屏并且不支持宽度或高度（请参阅 resize 事件将被触发。 * 如果全屏类型为 'desktop' ，那么窗口将自动调整大小到桌面分辨率。 * 如果宽度和高度大于或等于桌面尺寸（包括都设置为
+0）并且全屏设置为 false，则会显示 'visually' 全屏，但不是真正的全屏和 conf.lua （即 t.window = false）并使用此函数手动创建窗口，那么您不得在此函数之前调用任何其他
+love.graphics.* 函数，否则将导致未定义的行为和/或崩溃，因为没有窗口，OpenGL 无法正常运行 * 目前不支持透明背景。
+
+**签名：**
+```tl
+setMode: function(width: integer, height: integer, settings?: WindowMode): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| width | integer | 显示宽度。 |
+| height | integer | 显示高度。 |
+| settings | WindowMode | 带有选项的标志表： fullscreen: 全屏（true）或窗口化（false）。 （默认值：假。） fullscreentype: 要使用的全屏类型。在 0.9.0 到 0.9.2 中默认为 'normal'，在 0.10.0 及更早版本中默认为 'desktop'。 （默认：'desktop'。） vsync: 如果 LÖVE 应该等待垂直同步则为 true，否则为 false。 （默认值：true。） msaa: 抗锯齿样本数。 （默认值：0。） stencil: 是否应分配模板缓冲区。如果为 true，模板缓冲区将有 8 位。 （默认值：true。） depth: 深度缓冲区中的位数。 （默认值：0。） resizable: 如果窗口应在窗口模式下调整大小，则为 true，否则为 false。 （默认值：假。） borderless: 如果窗口在窗口模式下应无边框，则为 true，否则为 false。 （默认值：假。） centered: 如果窗口应在窗口模式下居中，则为 true，否则为 false。 （默认值：true。） display: 如果有多个监视器可用，则显示窗口的显示器索引。 （默认值：1。） minwidth: 窗口的最小宽度（如果可以调整大小）。不能小于 1。（默认值：1。） minheight: 窗口的最小高度（如果可以调整大小）。不能小于 1。（默认值：1。） highdpi: 如果应在 macOS 和 iOS 中的 Retina 显示屏上使用高 dpi 模式，则为 true。在非 Retina 显示器上不执行任何操作。 （默认值：假。） x: 指定显示中窗口位置的 x 坐标。 （默认值：无。） y: 指定显示中窗口位置的 y 坐标。 （默认值：无。） usedpiscale: 如果为 false，则禁用自动 DPI 缩放。 （默认值：true。） srgb: 在0.10.0中删除（改为在conf.lua中设置t.gamma Correct）。如果在绘制到屏幕时应应用 sRGB gamma 校正，则为 True。 （默认值：假。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果成功则为 true，否则为 false。 |
+
+## updateMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置窗口的显示模式和属性，不修改未指定的属性。
+
+	-- 如果宽度或高度为0，updateMode 将使用桌面的宽度和高度。
+
+	-- 更改显示模式可能会产生副作用：例如，画布将被清除。确保事先保存画布的内容，或者如果需要的话，之后重新绘制。
+
+**签名：**
+```tl
+updateMode: function(settings: WindowModeSettings): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| settings | WindowModeSettings | 具有以下可选字段的设置表。任何未填写的字段都将使用 love.window.getMode. |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | success — 如果成功则为 true，否则为 false。 |
+
+## updateMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置窗口的显示模式和属性，不修改未指定的属性。
+
+	-- 如果宽度或高度为0，updateMode 将使用桌面的宽度和高度。
+
+	-- 更改显示模式可能会产生副作用：例如，画布将被清除。确保事先保存画布的内容，或者如果需要的话，之后重新绘制。
+
+**签名：**
+```tl
+updateMode: function(width: number, height: integer, settings?: WindowModeSettings): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| width | number | 窗口宽度。 |
+| height | integer | 窗口高度。 |
+| settings | WindowModeSettings | 具有以下可选字段的设置表。任何未填写的字段都将使用 love.window.getMode. |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | success — 如果成功则为 true，否则为 false。 |
+
+## getPosition
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取窗口在屏幕上的位置。
+窗口位置位于其当前所在显示器的坐标空间中。
+
+**签名：**
+```tl
+getPosition: function(): integer, integer, integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 窗口位置的 x 坐标。 |
+| integer | 窗口位置的 y 坐标。 |
+| integer | 窗口所在显示器的索引。 |
+
+## getSafeArea
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取窗口内已知未被系统标题栏、iPhone X 缺口等遮挡的区域。有助于确保用户可以看到 UI 元素。
+重载说明：
+1. 返回的值采用 DPI 缩放单位（与大多数其他与窗口相关的 API 相同的坐标系），而不是像素。
+
+**签名：**
+```tl
+getSafeArea: function(): number, number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 安全区域的起始位置（x 轴）。 |
+| number | 安全区域的起始位置（y 轴）。 |
+| number | 安全区域的宽度。 |
+| number | 安全区域的高度。 |
+
+## setTitle
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置窗口标题。
+
+**签名：**
+```tl
+setTitle: function(title: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| title | string | 新窗口标题。 |
+
+## getTitle
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取窗口标题。
+
+**签名：**
+```tl
+getTitle: function(): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 当前窗口标题。 |
+
+## setVSync
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置垂直同步模式。
+重载说明：
+1. * 并非所有图形驱动程序都支持自适应垂直同步（-1 值）。在这种情况下，它将自动设置为 1。 * 如果您不知道关闭垂直同步可能产生的影响，建议保持垂直同步处于激活状态。 * 与 love.window.setMode
+和 love.window.updateMode. 不同，该函数不会重新创建窗口
+
+**签名：**
+```tl
+setVSync: function(vsync: boolean | integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| vsync | boolean or integer | 垂直同步编号：1 表示启用，0 表示禁用，-1 表示自适应垂直同步。 |
+
+## getVSync
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前垂直同步（vsync）。
+重载说明：
+1. 如果您想获取当前的垂直同步状态，这可能是 love.window.getMode 的更便宜的替代方案。
+
+**签名：**
+```tl
+getVSync: function(): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 当前垂直同步状态。如果启用，则为 1；如果禁用，则为 0；如果为自适应垂直同步，则为 -1。 |
+
+## setDisplaySleepEnabled
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置程序运行时是否允许显示器休眠。
+默认情况下禁用显示睡眠。如果允许显示器休眠，某些类型的输入（例如按下操纵杆按钮）可能不会阻止显示器休眠。
+
+**签名：**
+```tl
+setDisplaySleepEnabled: function(enabled: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| enabled | boolean | true 则启用系统显示睡眠， false 则禁用它。 |
+
+## isDisplaySleepEnabled
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取程序运行时是否允许显示器休眠。
+默认情况下禁用显示睡眠。如果允许显示器休眠，某些类型的输入（例如按下操纵杆按钮）可能不会阻止显示器休眠。
+
+**签名：**
+```tl
+isDisplaySleepEnabled: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果启用/允许系统显示睡眠则为 true，否则为 false。 |
+
+## hasFocus
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查游戏窗口是否有键盘焦点。
+
+**签名：**
+```tl
+hasFocus: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果窗口具有焦点则为 True，否则为 false。 |
+
+## hasMouseFocus
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查游戏窗口是否有鼠标焦点。
+
+**签名：**
+```tl
+hasMouseFocus: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果窗口有鼠标焦点则为 true，否则为 false。 |
+
+## isVisible
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查游戏窗口是否可见。
+如果窗口未最小化且程序未隐藏，则窗口被视为可见。
+
+**签名：**
+```tl
+isVisible: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果窗口可见则为 true，如果不可见则为 false。 |
+
+## isMaximized
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取Window当前是否最大化。
+如果窗口不是全屏且可调整大小，并且用户已按下窗口的最大化按钮或已调用 love.window.maximize ，则窗口可以最大化。
+
+**签名：**
+```tl
+isMaximized: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果窗口当前在窗口模式下最大化，则为 true，否则为 false。 |
+
+## isMinimized
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取窗口当前是否最小化。
+
+**签名：**
+```tl
+isMinimized: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果窗口当前最小化则为 true，否则为 false。 |
+
+## getDPIScale
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取与窗口关联的 DPI 比例因子。
+窗口内的像素密度可能大于（或小于）窗口的 'size' 。例如，在启用了 highdpi 窗口标志的 Mac OS X 中的视网膜屏幕上，窗口可能占用与 800x600 窗口相同的物理尺寸，但窗口内的区域使用
+1600x1200 像素。在这种情况下，love.window.getDPIScale() 将返回 2.0。
+love.window.fromPixels 和 love.window.toPixels 函数也可用于单位之间的转换。
+必须启用 highdpi 窗口标志才能在 Mac OS X 和 iOS 上使用 Retina 屏幕的完整像素密度。该标志目前在 Windows 和 Linux 上没有任何作用，而在 Android
+上它实际上始终处于启用状态。
+重载说明：
+1. love.graphics.getWidth、love.graphics.getHeight、love.mouse.getPosition、鼠标事件、love.touch.getPosition
+和触摸事件的单位始终以像素为单位。
+
+**签名：**
+```tl
+getDPIScale: function(): number
+	getNativeDPIScale: function(): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 与窗口关联的像素比例因子。 |
+
+## toPixels
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将数字从与密度无关的单位转换为像素。
+
+	-- 窗口内的像素密度可能大于（或小于）窗口的 'size' 。例如，在启用了 highdpi 窗口标志的 Mac OS X 中的视网膜屏幕上，窗口可能占用与 800x600 窗口相同的物理尺寸，但窗口内的区域使用 1600x1200 像素。在这种情况下，love.window.toPixels(800) 将返回 1600。
+
+	-- 这用于将坐标从用户期望它们在屏幕上显示的尺寸转换为像素。 love.window.fromPixels 则相反。必须启用 highdpi 窗口标志才能在 Mac OS X 和 iOS 上使用 Retina 屏幕的完整像素密度。该标志目前在 Windows 和 Linux 上没有任何作用，而在 Android 上它实际上始终处于启用状态。
+
+	-- 大多数 LÖVE 函数返回值并期望参数以像素为单位，而不是与密度无关的单位。
+
+**签名：**
+```tl
+toPixels: function(value: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| value | number | 与密度无关的单位中要转换为像素的数字。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | pixelvalue — 转换后的数字，以像素为单位。 |
+
+## toPixels
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将数字从与密度无关的单位转换为像素。
+
+	-- 窗口内的像素密度可能大于（或小于）窗口的 'size' 。例如，在启用了 highdpi 窗口标志的 Mac OS X 中的视网膜屏幕上，窗口可能占用与 800x600 窗口相同的物理尺寸，但窗口内的区域使用 1600x1200 像素。在这种情况下，love.window.toPixels(800) 将返回 1600。
+
+	-- 这用于将坐标从用户期望它们在屏幕上显示的尺寸转换为像素。 love.window.fromPixels 则相反。必须启用 highdpi 窗口标志才能在 Mac OS X 和 iOS 上使用 Retina 屏幕的完整像素密度。该标志目前在 Windows 和 Linux 上没有任何作用，而在 Android 上它实际上始终处于启用状态。
+
+	-- 大多数 LÖVE 函数返回值并期望参数以像素为单位，而不是与密度无关的单位。
+
+**签名：**
+```tl
+toPixels: function(x: number, y: number): number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 以与密度无关的单位表示的坐标的 x 轴值，以转换为像素。 |
+| y | number | 以与密度无关的单位表示的坐标的 y 轴值，以转换为像素。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | pixelvalue — 转换后的数字，以像素为单位。 |
+| number | px — 转换后的 x 轴坐标值，以像素为单位。 |
+
+## fromPixels
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将数字从像素转换为与密度无关的单位。
+
+	-- 窗口内的像素密度可能大于（或小于）窗口的 'size' 。例如，在启用了 highdpi 窗口标志的 Mac OS X 中的视网膜屏幕上，窗口可能占用与 800x600 窗口相同的物理尺寸，但窗口内的区域使用 1600x1200 像素。在这种情况下，love.window.fromPixels(1600) 将返回 800。
+
+	-- 此函数将坐标从像素转换为用户期望它们在屏幕上显示的大小。 love.window.toPixels 则相反。必须启用 highdpi 窗口标志才能在 Mac OS X 和 iOS 上使用 Retina 屏幕的完整像素密度。该标志目前在 Windows 和 Linux 上没有任何作用，而在 Android 上它实际上始终处于启用状态。
+
+	-- 大多数 LÖVE 函数返回值并期望参数以像素为单位，而不是与密度无关的单位。
+
+**签名：**
+```tl
+fromPixels: function(value: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| value | number | 以像素为单位的数字，要转换为与密度无关的单位。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | value — 转换后的数字，采用与密度无关的单位。 |
+
+## fromPixels
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将数字从像素转换为与密度无关的单位。
+
+	-- 窗口内的像素密度可能大于（或小于）窗口的 'size' 。例如，在启用了 highdpi 窗口标志的 Mac OS X 中的视网膜屏幕上，窗口可能占用与 800x600 窗口相同的物理尺寸，但窗口内的区域使用 1600x1200 像素。在这种情况下，love.window.fromPixels(1600) 将返回 800。
+
+	-- 此函数将坐标从像素转换为用户期望它们在屏幕上显示的大小。 love.window.toPixels 则相反。必须启用 highdpi 窗口标志才能在 Mac OS X 和 iOS 上使用 Retina 屏幕的完整像素密度。该标志目前在 Windows 和 Linux 上没有任何作用，而在 Android 上它实际上始终处于启用状态。
+
+	-- 大多数 LÖVE 函数返回值并期望参数以像素为单位，而不是与密度无关的单位。
+
+**签名：**
+```tl
+fromPixels: function(x: number, y: number): number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 坐标的 x 轴值（以像素为单位）。 |
+| y | number | 坐标的 y 轴值（以像素为单位）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | value — 转换后的数字，采用与密度无关的单位。 |
+| number | x — 转换后的 x 轴坐标值，采用与密度无关的单位。 |

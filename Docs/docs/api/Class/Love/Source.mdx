@@ -1,0 +1,1061 @@
+# Source
+
+**Description:**
+
+&emsp;&emsp;A Source represents audio you can play back.
+
+## type
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the type of the object as a string.
+
+**Signature:**
+```tl
+type: function(self: Source): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The type as a string. |
+
+## Of
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether an object is of a certain type. If the object has the type with the specified name in its
+hierarchy, this function will return true.
+
+**Signature:**
+```tl
+typeOf: function(self: Source, type_name: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| type_name | string | The name of the type to check for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the object is of the specified type, false otherwise. |
+
+## release
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Destroys the object's Lua reference. The object will be completely deleted if it's not referenced by any other
+LÖVE object or thread.
+This method can be used to immediately clean up resources without waiting for Lua's garbage collector.
+
+**Signature:**
+```tl
+release: function(self: Source): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the object was released by this call, false if it had been previously released. |
+
+## clone
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates an identical copy of the Source in the stopped state.
+Static Sources will use significantly less memory and take much less time to be created if Source:clone is used to
+create them instead of love.audio.newSource, so this method should be preferred when making multiple Sources which
+play the same sound.
+Overload details:
+1. Cloned Sources inherit all the set-able state of the original Source, but they are initialized stopped.
+
+**Signature:**
+```tl
+clone: function(self: Source): Source
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Source | The new identical copy of this Source. |
+
+## play
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Starts playing the Source.
+
+**Signature:**
+```tl
+play: function(self: Source): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the Source was able to successfully start playing. |
+
+## pause
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Pauses the Source.
+
+**Signature:**
+```tl
+pause: function(self: Source)
+```
+
+## stop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Stops a Source.
+
+**Signature:**
+```tl
+stop: function(self: Source)
+```
+
+## isPlaying
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns whether the Source is playing.
+
+**Signature:**
+```tl
+isPlaying: function(self: Source): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the Source is playing, false otherwise. |
+
+## isStopped
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns whether this Source is stopped. Deprecated compatibility alias which is true only when the Source is
+neither playing nor paused.
+
+**Signature:**
+```tl
+isStopped: function(self: Source): boolean
+	isPaused: function(self: Source): boolean
+```
+
+## setLooping
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets whether the Source should loop.
+
+**Signature:**
+```tl
+setLooping: function(self: Source, looping: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| looping | boolean | True if the source should loop, false otherwise. |
+
+## isLooping
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns whether the Source will loop.
+
+**Signature:**
+```tl
+isLooping: function(self: Source): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the Source will loop, false otherwise. |
+
+## setVolume
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the current volume of the Source.
+
+**Signature:**
+```tl
+setVolume: function(self: Source, volume: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| volume | number | The volume for a Source, where 1.0 is normal volume. Volume cannot be raised above 1.0. |
+
+## getVolume
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current volume of the Source.
+
+**Signature:**
+```tl
+getVolume: function(self: Source): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The volume of the Source, where 1.0 is normal volume. |
+
+## setPitch
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the pitch of the Source.
+
+**Signature:**
+```tl
+setPitch: function(self: Source, pitch: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| pitch | number | Calculated with regard to 1 being the base pitch. Each reduction by 50 percent equals a pitch shift of -12 semitones (one octave reduction). Each doubling equals a pitch shift of 12 semitones (one octave increase). Zero is not a legal value. |
+
+## getPitch
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current pitch of the Source.
+
+**Signature:**
+```tl
+getPitch: function(self: Source): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The pitch, where 1.0 is normal. |
+
+## seek
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the currently playing position of the Source.
+
+**Signature:**
+```tl
+seek: function(self: Source, offset: number, unit?: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| offset | number | The position to seek to. |
+| unit | string | The unit of the position value. (Default: 'seconds'.) |
+
+## tell
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the currently playing position of the Source.
+
+**Signature:**
+```tl
+tell: function(self: Source, unit?: string): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| unit | string | The type of unit for the return value. (Default: 'seconds'.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The currently playing position of the Source. |
+
+## getDuration
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the duration of the Source. For streaming Sources it may not always be sample-accurate, and may return -1 if
+the duration cannot be determined at all.
+
+**Signature:**
+```tl
+getDuration: function(self: Source, unit?: string): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| unit | string | The time unit for the return value. (Default: 'seconds'.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The duration of the Source, or -1 if it cannot be determined. |
+
+## getChannelCount
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the number of channels in the Source. Only 1-channel (mono) Sources can use directional and positional
+effects.
+
+**Signature:**
+```tl
+getChannelCount: function(self: Source): integer
+	getChannels: function(self: Source): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | 1 for mono, 2 for stereo. |
+
+## getFreeBufferCount
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the number of free buffer slots in a queueable Source. If the queueable Source is playing, this value will
+increase up to the amount the Source was created with. If the queueable Source is stopped, it will process all of
+its internal buffers first, in which case this function will always return the amount it was created with.
+
+**Signature:**
+```tl
+getFreeBufferCount: function(self: Source): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | How many more SoundData objects can be queued up. |
+
+## queue
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Queues SoundData for playback in a queueable Source.
+
+	-- This method requires the Source to be created via love.audio.newQueueableSource.
+
+**Signature:**
+```tl
+queue: function(self: Source, data: SoundData, length?: number): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| data | SoundData | The data to queue. The SoundData's sample rate, bit depth, and channel count must match the Source's. |
+| length | number | The number of bytes to queue. (Default: all remaining data.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | success — True if the data was successfully queued for playback, false if there were no available buffers to use for queueing. |
+
+## queue
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Queues SoundData for playback in a queueable Source.
+
+	-- This method requires the Source to be created via love.audio.newQueueableSource.
+
+**Signature:**
+```tl
+queue: function(self: Source, data: SoundData, offset: number, length: number): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| data | SoundData | The data to queue. The SoundData's sample rate, bit depth, and channel count must match the Source's. |
+| offset | number | The byte offset at which to start queueing data. |
+| length | number | The number of bytes to queue. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | success — True if the data was successfully queued for playback, false if there were no available buffers to use for queueing. |
+
+## setPosition
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the position of the Source. Please note that this only works for mono (i.e. non-stereo) sound files!
+
+**Signature:**
+```tl
+setPosition: function(self: Source, x: number, y: number, z?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The X position of the Source. |
+| y | number | The Y position of the Source. |
+| z | number | The Z position of the Source. |
+
+## getPosition
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the position of the Source.
+
+**Signature:**
+```tl
+getPosition: function(self: Source): number, number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The X position of the Source. |
+| number | The Y position of the Source. |
+| number | The Z position of the Source. |
+
+## setVelocity
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the velocity of the Source.
+This does '''not''' change the position of the Source, but lets the application know how it has to calculate the
+doppler effect.
+
+**Signature:**
+```tl
+setVelocity: function(self: Source, x: number, y: number, z?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The X part of the velocity vector. |
+| y | number | The Y part of the velocity vector. |
+| z | number | The Z part of the velocity vector. |
+
+## getVelocity
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the velocity of the Source.
+
+**Signature:**
+```tl
+getVelocity: function(self: Source): number, number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The X part of the velocity vector. |
+| number | The Y part of the velocity vector. |
+| number | The Z part of the velocity vector. |
+
+## setDirection
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the direction vector of the Source. A zero vector makes the source non-directional.
+
+**Signature:**
+```tl
+setDirection: function(self: Source, x: number, y: number, z?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The X part of the direction vector. |
+| y | number | The Y part of the direction vector. |
+| z | number | The Z part of the direction vector. |
+
+## getDirection
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the direction of the Source.
+
+**Signature:**
+```tl
+getDirection: function(self: Source): number, number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The X part of the direction vector. |
+| number | The Y part of the direction vector. |
+| number | The Z part of the direction vector. |
+
+## setCone
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the Source's directional volume cones. Together with Source:setDirection, the cone angles allow for the
+Source's volume to vary depending on its direction.
+
+**Signature:**
+```tl
+setCone: function(self: Source, inner_angle: number, outer_angle: number, outer_volume?: number, outer_high_gain?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| inner_angle | number | The inner angle from the Source's direction, in radians. The Source will play at normal volume if the listener is inside the cone defined by this angle. |
+| outer_angle | number | The outer angle from the Source's direction, in radians. The Source will play at a volume between the normal and outer volumes, if the listener is in between the cones defined by the inner and outer angles. |
+| outer_volume | number | The Source's volume when the listener is outside both the inner and outer cone angles. (Default: 0.) |
+| outer_high_gain | number | The outer_high_gain parameter. |
+
+## getCone
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the Source's directional volume cones. Together with Source:setDirection, the cone angles allow for the
+Source's volume to vary depending on its direction.
+
+**Signature:**
+```tl
+getCone: function(self: Source): number, number, number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The inner angle from the Source's direction, in radians. The Source will play at normal volume if the listener is inside the cone defined by this angle. |
+| number | The outer angle from the Source's direction, in radians. The Source will play at a volume between the normal and outer volumes, if the listener is in between the cones defined by the inner and outer angles. |
+| number | The Source's volume when the listener is outside both the inner and outer cone angles. |
+
+## setAirAbsorption
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the amount of air absorption applied to the Source.
+By default the value is set to 0 which means that air absorption effects are disabled. A value of 1 will apply
+high frequency attenuation to the Source at a rate of 0.05 dB per meter.
+Air absorption can simulate sound transmission through foggy air, dry air, smoky atmosphere, etc. It can be used
+to simulate different atmospheric conditions within different locations in an area.
+Overload details:
+1. Audio air absorption functionality is not supported on iOS.
+
+**Signature:**
+```tl
+setAirAbsorption: function(self: Source, factor: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| factor | number | The amount of air absorption applied to the Source. Must be between 0 and 10. |
+
+## getAirAbsorption
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the amount of air absorption applied to the Source.
+By default the value is set to 0 which means that air absorption effects are disabled. A value of 1 will apply
+high frequency attenuation to the Source at a rate of 0.05 dB per meter.
+Overload details:
+1. Audio air absorption functionality is not supported on iOS.
+
+**Signature:**
+```tl
+getAirAbsorption: function(self: Source): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The amount of air absorption applied to the Source. |
+
+## setVolumeLimits
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the volume limits of the source. The limits have to be numbers from 0 to 1.
+
+**Signature:**
+```tl
+setVolumeLimits: function(self: Source, min_volume: number, max_volume: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| min_volume | number | The minimum volume. |
+| max_volume | number | The maximum volume. |
+
+## getVolumeLimits
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the volume limits of the source.
+
+**Signature:**
+```tl
+getVolumeLimits: function(self: Source): number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The minimum volume. |
+| number | The maximum volume. |
+
+## setRelative
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets whether the Source's position, velocity, direction, and cone angles are relative to the listener, or
+absolute.
+By default, all sources are absolute and therefore relative to the origin of love's coordinate system 0, 0. Only
+absolute sources are affected by the position of the listener. Please note that positional audio only works for
+mono (i.e. non-stereo) sources.
+
+**Signature:**
+```tl
+setRelative: function(self: Source, relative: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| relative | boolean | True to make the position, velocity, direction and cone angles relative to the listener, false to make them absolute. (Default: false.) |
+
+## isRelative
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether the Source's position, velocity, direction, and cone angles are relative to the listener.
+
+**Signature:**
+```tl
+isRelative: function(self: Source): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the position, velocity, direction and cone angles are relative to the listener, false if they're absolute. |
+
+## setAttenuationDistances
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the reference and maximum attenuation distances of the Source. The parameters, combined with the current
+DistanceModel, affect how the Source's volume attenuates based on distance.
+Distance attenuation is only applicable to Sources based on mono (rather than stereo) audio.
+
+**Signature:**
+```tl
+setAttenuationDistances: function(self: Source, reference_distance: number, max_distance: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| reference_distance | number | The new reference attenuation distance. If the current DistanceModel is clamped, this is the minimum attenuation distance. |
+| max_distance | number | The new maximum attenuation distance. |
+
+## getAttenuationDistances
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the reference and maximum attenuation distances of the Source. The values, combined with the current
+DistanceModel, affect how the Source's volume attenuates based on distance from the listener.
+
+**Signature:**
+```tl
+getAttenuationDistances: function(self: Source): number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The current reference attenuation distance. If the current DistanceModel is clamped, this is the minimum distance before the Source is no longer attenuated. |
+| number | The current maximum attenuation distance. |
+
+## setRolloff
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the rolloff factor which affects the strength of the used distance attenuation.
+Extended information and detailed formulas can be found in the chapter '3.4. Attenuation By Distance' of OpenAL
+1.1 specification.
+
+**Signature:**
+```tl
+setRolloff: function(self: Source, rolloff: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| rolloff | number | The new rolloff factor. |
+
+## getRolloff
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the rolloff factor of the source.
+
+**Signature:**
+```tl
+getRolloff: function(self: Source): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The rolloff factor. |
+
+## setFilter
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets a low-pass, high-pass, or band-pass filter to apply when playing the Source.
+
+**Signature:**
+```tl
+setFilter: function(self: Source): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | success — Whether the filter was successfully applied to the Source. |
+
+## setFilter
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets a low-pass, high-pass, or band-pass filter to apply when playing the Source.
+
+**Signature:**
+```tl
+setFilter: function(self: Source, filter: AudioFilterSettings): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filter | AudioFilterSettings | The filter settings to use for this Source, with the following fields: |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | success — Whether the filter was successfully applied to the Source. |
+
+## getFilter
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the filter settings currently applied to the Source.
+
+**Signature:**
+```tl
+getFilter: function(self: Source, target?: AudioFilterSettings): AudioFilterSettings | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| target | AudioFilterSettings | The target parameter. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| AudioFilterSettings or nil | The filter settings to use for this Source, or nil if the Source has no active filter. The table has the following fields: |
+
+## setEffect
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Applies an audio effect to the Source.
+
+	-- The effect must have been previously defined using love.audio.setEffect.
+
+**Signature:**
+```tl
+setEffect: function(self: Source, name: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the effect previously set up with love.audio.setEffect. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | success — Whether the effect was successfully applied to this Source. |
+
+## setEffect
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Applies an audio effect to the Source.
+
+	-- The effect must have been previously defined using love.audio.setEffect.
+
+**Signature:**
+```tl
+setEffect: function(self: Source, name: string, enabled: boolean): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the effect previously set up with love.audio.setEffect. |
+| enabled | boolean | Whether the effect should be enabled. Pass false to disable an active effect. (Default: true.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | success — Whether the effect was successfully applied to this Source. |
+
+## setEffect
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Applies an audio effect to the Source.
+
+	-- The effect must have been previously defined using love.audio.setEffect.
+
+**Signature:**
+```tl
+setEffect: function(self: Source, name: string, enabled: AudioFilterSettings): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the effect previously set up with love.audio.setEffect. |
+| enabled | AudioFilterSettings | The filter settings to apply prior to the effect, with the following fields: |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the effect and filter were successfully applied to this Source. |
+
+## getEffect
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the filter settings associated to a specific effect.
+This function returns nil if the effect was applied with no filter settings associated to it.
+
+**Signature:**
+```tl
+getEffect: function(self: Source, name: string, target?: AudioFilterSettings): boolean, AudioFilterSettings | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The name of the effect. |
+| target | AudioFilterSettings | An optional empty table that will be filled with the filter settings. (Default: \{}.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | The settings for the filter associated to this effect, or nil if the effect is not present in this Source or has no filter associated. The table has the following fields: |
+
+## getActiveEffects
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets a list of the Source's active effect names.
+
+**Signature:**
+```tl
+getActiveEffects: function(self: Source): {string}
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{string} | A list of the source's active effect names. |
+
+## getType
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the type of the Source.
+
+**Signature:**
+```tl
+getType: function(self: Source): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The type of the source. |

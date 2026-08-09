@@ -1,0 +1,576 @@
+# SpriteBatch
+
+**描述：**
+
+&emsp;&emsp;使用单个图像，通过一次调用 love.graphics.draw() 绘制任意数量的相同图像副本。例如，这可用于以高性能绘制单个背景图像的重复副本。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: SpriteBatch): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: SpriteBatch, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: SpriteBatch): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## add
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将精灵添加到批次中。精灵按照添加的顺序绘制。
+
+**签名：**
+```tl
+add: function(self: SpriteBatch, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number): integer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 绘制对象的位置（x 轴）。 |
+| y | number | 绘制对象的位置（y 轴）。 |
+| angle | number | 方向（弧度）。 （默认值：0。） |
+| scale_x | number | 比例因子（x 轴）。 （默认值：1。） |
+| scale_y | number | 比例因子（y 轴）。 （默认值：sx。） |
+| origin_x | number | 原点偏移（x 轴）。 （默认值：0。） |
+| origin_y | number | 原点偏移（y 轴）。 （默认值：0。） |
+| shear_x | number | 剪切因子（x 轴）。 （默认值：0。） |
+| shear_y | number | 剪切因子（y 轴）。 （默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | id — 添加的精灵的标识符。 |
+
+## add
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将精灵添加到批次中。精灵按照添加的顺序绘制。
+
+**签名：**
+```tl
+add: function(self: SpriteBatch, quad: Quad, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number): integer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| quad | Quad | 要添加的四边形。 |
+| x | number | 绘制对象的位置（x 轴）。 |
+| y | number | 绘制对象的位置（y 轴）。 |
+| angle | number | 方向（弧度）。 （默认值：0。） |
+| scale_x | number | 比例因子（x 轴）。 （默认值：1。） |
+| scale_y | number | 比例因子（y 轴）。 （默认值：sx。） |
+| origin_x | number | 原点偏移（x 轴）。 （默认值：0。） |
+| origin_y | number | 原点偏移（y 轴）。 （默认值：0。） |
+| shear_x | number | 剪切因子（x 轴）。 （默认值：0。） |
+| shear_y | number | 剪切因子（y 轴）。 （默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | id — 添加的精灵的标识符。 |
+
+## set
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;更改批次中的精灵。这需要 SpriteBatch:add 或 SpriteBatch:addLayer 返回的精灵索引。
+
+**签名：**
+```tl
+set: function(self: SpriteBatch, index: integer, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 将要更改的精灵的索引。 |
+| x | number | 绘制对象的位置（x 轴）。 |
+| y | number | 绘制对象的位置（y 轴）。 |
+| angle | number | 方向（弧度）。 （默认值：0。） |
+| scale_x | number | 比例因子（x 轴）。 （默认值：1。） |
+| scale_y | number | 比例因子（y 轴）。 （默认值：sx。） |
+| origin_x | number | 原点偏移（x 轴）。 （默认值：0。） |
+| origin_y | number | 原点偏移（y 轴）。 （默认值：0。） |
+| shear_x | number | 剪切因子（x 轴）。 （默认值：0。） |
+| shear_y | number | 剪切因子（y 轴）。 （默认值：0。） |
+
+## set
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;更改批次中的精灵。这需要 SpriteBatch:add 或 SpriteBatch:addLayer 返回的精灵索引。
+
+**签名：**
+```tl
+set: function(self: SpriteBatch, index: integer, quad: Quad, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 将要更改的精灵的索引。 |
+| quad | Quad | 批次图像上使用的 Quad。 |
+| x | number | 绘制对象的位置（x 轴）。 |
+| y | number | 绘制对象的位置（y 轴）。 |
+| angle | number | 方向（弧度）。 （默认值：0。） |
+| scale_x | number | 比例因子（x 轴）。 （默认值：1。） |
+| scale_y | number | 比例因子（y 轴）。 （默认值：sx。） |
+| origin_x | number | 原点偏移（x 轴）。 （默认值：0。） |
+| origin_y | number | 原点偏移（y 轴）。 （默认值：0。） |
+| shear_x | number | 剪切因子（x 轴）。 （默认值：0。） |
+| shear_y | number | 剪切因子（y 轴）。 （默认值：0。） |
+
+## addLayer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将精灵添加到使用表纹理创建的批次中。
+
+**签名：**
+```tl
+addLayer: function(self: SpriteBatch, layer: integer, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number): integer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| layer | integer | 用于该精灵的图层索引。 |
+| x | number | 绘制精灵的位置（x 轴）。 （默认值：0。） |
+| y | number | 绘制精灵的位置（y 轴）。 （默认值：0。） |
+| angle | number | 方向（弧度）。 （默认值：0。） |
+| scale_x | number | 比例因子（x 轴）。 （默认值：1。） |
+| scale_y | number | 比例因子（y 轴）。 （默认值：sx。） |
+| origin_x | number | 原点偏移（x 轴）。 （默认值：0。） |
+| origin_y | number | 原点偏移（y 轴）。 （默认值：0。） |
+| shear_x | number | 剪切因子（x 轴）。 （默认值：0。） |
+| shear_y | number | 剪切因子（y 轴）。 （默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | spriteindex — 添加的精灵的索引，与 SpriteBatch:set 或 SpriteBatch:setLayer 一起使用。 |
+
+## addLayer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将精灵添加到使用表纹理创建的批次中。
+
+**签名：**
+```tl
+addLayer: function(self: SpriteBatch, layer: integer, quad: Quad, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number): integer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| layer | integer | 用于该精灵的图层索引。 |
+| quad | Quad | 绘制精灵时使用的纹理层的分段。 |
+| x | number | 绘制精灵的位置（x 轴）。 （默认值：0。） |
+| y | number | 绘制精灵的位置（y 轴）。 （默认值：0。） |
+| angle | number | 方向（弧度）。 （默认值：0。） |
+| scale_x | number | 比例因子（x 轴）。 （默认值：1。） |
+| scale_y | number | 比例因子（y 轴）。 （默认值：sx。） |
+| origin_x | number | 原点偏移（x 轴）。 （默认值：0。） |
+| origin_y | number | 原点偏移（y 轴）。 （默认值：0。） |
+| shear_x | number | 剪切因子（x 轴）。 （默认值：0。） |
+| shear_y | number | 剪切因子（y 轴）。 （默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | spriteindex — 添加的精灵的索引，与 SpriteBatch:set 或 SpriteBatch:setLayer 一起使用。 |
+
+## setLayer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在使用表纹理创建的批处理中更改先前使用 add 或 addLayer 添加的精灵。
+
+**签名：**
+```tl
+setLayer: function(self: SpriteBatch, index: integer, layer: integer, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 要替换的现有精灵的索引。 |
+| layer | integer | 用于此精灵的阵列纹理中的图层索引。 |
+| x | number | 绘制精灵的位置（x 轴）。 （默认值：0。） |
+| y | number | 绘制精灵的位置（y 轴）。 （默认值：0。） |
+| angle | number | 方向（弧度）。 （默认值：0。） |
+| scale_x | number | 比例因子（x 轴）。 （默认值：1。） |
+| scale_y | number | 比例因子（y 轴）。 （默认值：sx。） |
+| origin_x | number | 原点偏移（x 轴）。 （默认值：0。） |
+| origin_y | number | 原点偏移（y 轴）。 （默认值：0。） |
+| shear_x | number | 剪切因子（x 轴）。 （默认值：0。） |
+| shear_y | number | 剪切因子（y 轴）。 （默认值：0。） |
+
+## setLayer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在使用表纹理创建的批处理中更改先前使用 add 或 addLayer 添加的精灵。
+
+**签名：**
+```tl
+setLayer: function(self: SpriteBatch, index: integer, layer: integer, quad: Quad, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 要替换的现有精灵的索引。 |
+| layer | integer | 用于此精灵的图层的索引。 |
+| quad | Quad | 绘制精灵时使用的纹理层的分段。 |
+| x | number | 绘制精灵的位置（x 轴）。 （默认值：0。） |
+| y | number | 绘制精灵的位置（y 轴）。 （默认值：0。） |
+| angle | number | 方向（弧度）。 （默认值：0。） |
+| scale_x | number | 比例因子（x 轴）。 （默认值：1。） |
+| scale_y | number | 比例因子（y 轴）。 （默认值：sx。） |
+| origin_x | number | 原点偏移（x 轴）。 （默认值：0。） |
+| origin_y | number | 原点偏移（y 轴）。 （默认值：0。） |
+| shear_x | number | 剪切因子（x 轴）。 （默认值：0。） |
+| shear_y | number | 剪切因子（y 轴）。 （默认值：0。） |
+
+## clear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从缓冲区中删除所有精灵。
+
+**签名：**
+```tl
+clear: function(self: SpriteBatch)
+```
+
+## flush
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;立即将批次中所有新的和修改的精灵数据发送到显卡。
+通常不需要调用此方法，因为 love.graphics.draw(spritebatch, ...) 会在需要时自动执行此操作，但显式使用 SpriteBatch:flush 可以更好地控制工作何时发生。
+如果使用此方法，则通常不应在 love.graphics.draw(spritebatch, ...) 调用之间多次（最多）调用它。
+
+**签名：**
+```tl
+flush: function(self: SpriteBatch)
+```
+
+## setTexture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置绘制时用于批处理中的精灵的纹理（图像或画布）。
+
+**签名：**
+```tl
+setTexture: function(self: SpriteBatch, texture: Image | Canvas)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| texture | Image or Canvas | 用于批处理中的精灵的新图像或画布。 |
+
+## getTexture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取SpriteBatch使用的纹理（Image或Canvas）。
+
+**签名：**
+```tl
+getTexture: function(self: SpriteBatch): Image | Canvas
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Image or Canvas | SpriteBatch 使用的图像或画布。 |
+
+## setColor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置将用于下一个添加和设置操作的颜色。调用不带参数的函数将禁用 SpriteBatch 的所有每个精灵颜色。
+
+	-- 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+	-- 在版本 0.9.2 及更早版本中，如果任何精灵有自己的颜色，则使用 love.graphics.setColor 设置的全局颜色将无法在 SpriteBatch 上工作。
+
+**签名：**
+```tl
+setColor: function(self: SpriteBatch)
+```
+
+## setColor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置将用于下一个添加和设置操作的颜色。调用不带参数的函数将禁用 SpriteBatch 的所有每个精灵颜色。
+
+	-- 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+	-- 在版本 0.9.2 及更早版本中，如果任何精灵有自己的颜色，则使用 love.graphics.setColor 设置的全局颜色将无法在 SpriteBatch 上工作。
+
+**签名：**
+```tl
+setColor: function(self: SpriteBatch, red: number, green: number, blue: number, alpha?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| red | number | 红色的量。 |
+| green | number | 绿色量。 |
+| blue | number | 蓝色的量。 |
+| alpha | number | 阿尔法的数量。 （默认值：1。） |
+
+## setColor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置将用于下一个添加和设置操作的颜色。调用不带参数的函数将禁用 SpriteBatch 的所有每个精灵颜色。
+
+	-- 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+	-- 在版本 0.9.2 及更早版本中，如果任何精灵有自己的颜色，则使用 love.graphics.setColor 设置的全局颜色将无法在 SpriteBatch 上工作。
+
+**签名：**
+```tl
+setColor: function(self: SpriteBatch, color: Color)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| color | Color | 红色的量。 |
+
+## getColor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取将用于下一个添加和设置操作的颜色。
+如果没有使用 SpriteBatch:setColor 设置颜色或当前 SpriteBatch 颜色已被清除，则此方法将返回 nil。
+在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+getColor: function(self: SpriteBatch): number, number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 红色分量 (0-1)。 |
+| number | 绿色分量 (0-1)。 |
+| number | 蓝色分量 (0-1)。 |
+| number | alpha 分量 (0-1)。 |
+
+## getCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取SpriteBatch中当前精灵的数量。
+
+**签名：**
+```tl
+getCount: function(self: SpriteBatch): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 当前批次中的精灵数量。 |
+
+## getBufferSize
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取 SpriteBatch 可以容纳的最大精灵数。
+
+**签名：**
+```tl
+getBufferSize: function(self: SpriteBatch): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 批次可以容纳的精灵的最大数量。 |
+
+## attachAttribute
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将网格中的每顶点属性附加到此 SpriteBatch 上，以供绘制时使用。它可以与 Shader 结合使用，以使用每个顶点或附加的每个精灵信息来增强 SpriteBatch，而不仅仅是每个精灵颜色。
+SpriteBatch 中的每个精灵都有 4 个顶点，按以下顺序排列：左上、左下、右上、右下。 SpriteBatch:add 返回的索引（并由 SpriteBatch:set 使用）可用于通过公式 1 + 4 * ( id
+- 1 ) 确定特定精灵的第一个顶点。
+重载说明：
+1. 如果使用自定义顶点格式创建，它将有 3 个顶点属性，分别为 VertexPosition、VertexTexCoord 和 VertexColor。如果具有这些名称的顶点属性附加到 SpriteBatch，它将分别覆盖
+SpriteBatch 的精灵位置、纹理坐标和精灵颜色。 可以通过将自定义命名属性声明为属性 vec4 MyCustomAttributeName
+在顶点着色器中访问它们；位于顶点着色器代码的顶层。该名称必须与网格体顶点格式和 SpriteBatch:attachAttribute 的名称参数中指定的名称相匹配。网格体必须至少有 4 *
+SpriteBatch:getBufferSize 顶点才能附加到 SpriteBatch。
+
+**签名：**
+```tl
+attachAttribute: function(self: SpriteBatch, name: string, mesh: Mesh)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要附加的顶点属性的名称。 |
+| mesh | Mesh | 要从中获取顶点属性的网格体。 |
+
+## setDrawRange
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将 SpriteBatch 中绘制的精灵限制为总数的子集。
+
+**签名：**
+```tl
+setDrawRange: function(self: SpriteBatch)
+```
+
+## setDrawRange
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将 SpriteBatch 中绘制的精灵限制为总数的子集。
+
+**签名：**
+```tl
+setDrawRange: function(self: SpriteBatch, start: integer, count: integer)
+	getDrawRange: function(self: SpriteBatch): number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| start | integer | 要绘制的第一个精灵的索引。索引 1 对应于添加了 SpriteBatch:add 的第一个精灵。 |
+| count | integer | 要绘制的精灵数量。 |

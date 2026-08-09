@@ -25,7 +25,7 @@ metamethod __call: function(
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| filename | string | The Dora Content path to an Ogg container with a Theora video stream, normally using the `.ogv` suffix. The decoder accepts Theora 4:2:0, 4:2:2, and 4:4:4 streams. VideoNode renders video only; audio tracks are not played by this node. |
+| filename | string | The path to an Ogg (`.ogv`) file containing a Theora video stream. VideoNode reads it through Dora Content, renders video only, supports Theora 4:2:0/4:2:2/4:4:4, and decodes in software; play audio separately. |
 | looped | boolean | [optional] Whether the video should loop. Default is false. |
 
 **Returns:**

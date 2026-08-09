@@ -1,0 +1,78 @@
+# LoveNode
+
+**Description:**
+
+&emsp;&emsp;A Dora scene node that owns and runs one isolated Love Lua state.
+
+**Class Object:** [LoveNode Class](/docs/api/Class%20Object/LoveNode).
+
+## bootFile
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The boot file or package path used to create this LoveNode.
+
+**Signature:**
+```tl
+bootFile: string
+```
+
+## sourceRoot
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The root directory used to resolve this LoveNode's project files.
+
+**Signature:**
+```tl
+sourceRoot: string
+```
+
+## lastError
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The most recent error reported while loading or running the Love project. An empty string means no error has been reported.
+
+**Signature:**
+```tl
+lastError: string
+```
+
+## running
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether this LoveNode currently owns a running Love Lua state.
+
+**Signature:**
+```tl
+running: boolean
+```
+
+## restart
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Destroys the old Love state, reloads the boot file, and starts a new state.
+
+**Signature:**
+```tl
+restart: function(self: LoveNode): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the Love project was restarted successfully. |

@@ -204,14 +204,22 @@ declare global {
 			 *
 			 * Due to hardware restrictions and driver bugs, in versions prior to 0.10.0 images that weren't loaded from a CompressedData must have power-of-two dimensions (64x64, 512x256, etc.) to use mipmaps.
 			 *
-			 * Overload details:
-			 * 1. On mobile devices (Android and iOS), the sharpness parameter is not supported and will do nothing. You can use a custom compressed and its CompressedData has mipmap data included, it will use that.
-			 * 2. Disables mipmap filtering.
-			 *
-			 * @param filter The filter mode to use in between mipmap levels. 'nearest' will often give better performance.
-			 * @param sharpness A positive sharpness value makes the texture use a more detailed mipmap level when drawing, at the expense of performance. A negative value does the reverse. (Default: 0.)
 			 */
-			setMipmapFilter(filter?: FilterMode, sharpness?: number): void;
+			setMipmapFilter(): void;
+/**
+ * Sets the mipmap filter mode for a Texture. Prior to 11.0 this method only worked on Images.
+ *
+ * Mipmapping is useful when drawing a texture at a reduced scale. It can improve performance and reduce aliasing issues.
+ *
+ * In created with the mipmaps flag enabled for the mipmap filter to have any effect. In versions prior to 0.10.0 it's best to call this method directly after creating the image with love.graphics.newImage, to avoid bugs in certain graphics drivers.
+ *
+ * Due to hardware restrictions and driver bugs, in versions prior to 0.10.0 images that weren't loaded from a CompressedData must have power-of-two dimensions (64x64, 512x256, etc.) to use mipmaps.
+ *
+
+ * @param filter The filter mode to use in between mipmap levels. 'nearest' will often give better performance.
+ * @param sharpness A positive sharpness value makes the texture use a more detailed mipmap level when drawing, at the expense of performance. A negative value does the reverse. (Default: 0.)
+ */
+			setMipmapFilter(filter: FilterMode, sharpness?: number): void;
 			/**
 			 * Gets the mipmap filter mode for a Texture. Prior to 11.0 this method only worked on Images.
 			 *
@@ -598,14 +606,22 @@ declare global {
 			 *
 			 * Due to hardware restrictions and driver bugs, in versions prior to 0.10.0 images that weren't loaded from a CompressedData must have power-of-two dimensions (64x64, 512x256, etc.) to use mipmaps.
 			 *
-			 * Overload details:
-			 * 1. On mobile devices (Android and iOS), the sharpness parameter is not supported and will do nothing. You can use a custom compressed and its CompressedData has mipmap data included, it will use that.
-			 * 2. Disables mipmap filtering.
-			 *
-			 * @param filter The filter mode to use in between mipmap levels. 'nearest' will often give better performance.
-			 * @param sharpness A positive sharpness value makes the texture use a more detailed mipmap level when drawing, at the expense of performance. A negative value does the reverse. (Default: 0.)
 			 */
-			setMipmapFilter(filter?: FilterMode, sharpness?: number): void;
+			setMipmapFilter(): void;
+/**
+ * Sets the mipmap filter mode for a Texture. Prior to 11.0 this method only worked on Images.
+ *
+ * Mipmapping is useful when drawing a texture at a reduced scale. It can improve performance and reduce aliasing issues.
+ *
+ * In created with the mipmaps flag enabled for the mipmap filter to have any effect. In versions prior to 0.10.0 it's best to call this method directly after creating the image with love.graphics.newImage, to avoid bugs in certain graphics drivers.
+ *
+ * Due to hardware restrictions and driver bugs, in versions prior to 0.10.0 images that weren't loaded from a CompressedData must have power-of-two dimensions (64x64, 512x256, etc.) to use mipmaps.
+ *
+
+ * @param filter The filter mode to use in between mipmap levels. 'nearest' will often give better performance.
+ * @param sharpness A positive sharpness value makes the texture use a more detailed mipmap level when drawing, at the expense of performance. A negative value does the reverse. (Default: 0.)
+ */
+			setMipmapFilter(filter: FilterMode, sharpness?: number): void;
 			/**
 			 * Gets the mipmap filter mode for a Texture. Prior to 11.0 this method only worked on Images.
 			 *
@@ -892,46 +908,49 @@ declare global {
 			/**
 			 * Replaces the contents of the Text object with a new unformatted string.
 			 *
-			 * Overload details:
-			 * 1. The color set by love.graphics.setColor will be combined (multiplied) with the colors of the text, when drawing the Text object.
-			 *
-			 * @param text The new string of text to use. Depending on the overload: A table containing colors and strings to use as the new text, in the form of {color1, string1, color2, string2, ...}.
-			 * @param text.color1 A table containing red, green, blue, and optional alpha components to use as a color for the next string in the table, in the form of {red, green, blue, alpha}.
-			 * @param text.string1 A string of text which has a color specified by the previous color.
-			 * @param text.color2 A table containing red, green, blue, and optional alpha components to use as a color for the next string in the table, in the form of {red, green, blue, alpha}.
-			 * @param text.string2 A string of text which has a color specified by the previous color.
-			 * @param text.... Additional colors and strings.
+
+			 * @param text The new string of text to use.
 			 */
-			set(text: ColoredText): void;
+			set(text: string): void;
+/**
+ * Replaces the contents of the Text object with a new unformatted string.
+ *
+
+ * @param text A table containing colors and strings to use as the new text, in the form of {color1, string1, color2, string2, ...}.
+ */
+			set(text: (string | Color)[]): void;
 			/**
 			 * Replaces the contents of the Text object with a new formatted string.
 			 *
-			 * Overload details:
-			 * 1. The color set by love.graphics.setColor will be combined (multiplied) with the colors of the text, when drawing the Text object.
-			 *
-			 * @param text The new string of text to use. Depending on the overload: A table containing colors and strings to use as the new text, in the form of {color1, string1, color2, string2, ...}.
-			 * @param text.color1 A table containing red, green, blue, and optional alpha components to use as a color for the next string in the table, in the form of {red, green, blue, alpha}.
-			 * @param text.string1 A string of text which has a color specified by the previous color.
-			 * @param text.color2 A table containing red, green, blue, and optional alpha components to use as a color for the next string in the table, in the form of {red, green, blue, alpha}.
-			 * @param text.string2 A string of text which has a color specified by the previous color.
-			 * @param text.... Additional colors and strings.
+
+			 * @param text The new string of text to use.
 			 * @param wrapLimit The maximum width in pixels of the text before it gets automatically wrapped to a new line.
 			 * @param align The alignment of the text.
 			 */
-			setf(text: ColoredText, wrapLimit: number, align: AlignMode): void;
+			setf(text: string, wrapLimit: number, align: AlignMode): void;
+/**
+ * Replaces the contents of the Text object with a new formatted string.
+ *
+
+ * @param text A table containing colors and strings to use as the new text, in the form of {color1, string1, color2, string2, ...}.
+ * @param wrapLimit The maximum width in pixels of the text before it gets automatically wrapped to a new line.
+ * @param align The alignment of the text.
+ */
+			setf(text: (string | Color)[], wrapLimit: number, align: AlignMode): void;
 			/**
 			 * Adds additional colored text to the Text object at the specified position.
 			 *
-			 * Overload details:
-			 * 1. The color set by love.graphics.setColor will be combined (multiplied) with the colors of the text, when drawing the Text object.
-			 *
-			 * @param text The text to add to the object. Depending on the overload: A table containing colors and strings to add to the object, in the form of {color1, string1, color2, string2, ...}.
-			 * @param text.color1 A table containing red, green, blue, and optional alpha components to use as a color for the next string in the table, in the form of {red, green, blue, alpha}.
-			 * @param text.string1 A string of text which has a color specified by the previous color.
-			 * @param text.color2 A table containing red, green, blue, and optional alpha components to use as a color for the next string in the table, in the form of {red, green, blue, alpha}.
-			 * @param text.string2 A string of text which has a color specified by the previous color.
-			 * @param text.... Additional colors and strings.
+
+			 * @param text The text to add to the object.
 			 * @param transform The position of the new text on the x-axis. (Default: 0.)
+			 * @returns index — An index number that can be used with Text:getWidth or Text:getHeight.
+			 */
+			add(text: ColoredText, transform: Transform): number;
+			/**
+			 * Adds additional colored text to the Text object at the specified position.
+			 *
+
+			 * @param text A table containing colors and strings to add to the object, in the form of {color1, string1, color2, string2, ...}.
 			 * @param x The position of the new text on the x-axis. (Default: 0.)
 			 * @param y The position of the new text on the y-axis. (Default: 0.)
 			 * @param angle The orientation of the new text in radians. (Default: 0.)
@@ -941,28 +960,31 @@ declare global {
 			 * @param originY Origin offset on the y-axis. (Default: 0.)
 			 * @param shearX Shearing / skew factor on the x-axis. (Default: 0.)
 			 * @param shearY Shearing / skew factor on the y-axis. (Default: 0.)
-			 *
 			 * @returns index — An index number that can be used with Text:getWidth or Text:getHeight.
 			 */
-			add(text: ColoredText, transform: Transform): number;
 			add(text: ColoredText, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): number;
 			/**
 			 * Adds additional formatted / colored text to the Text object at the specified position.
 			 *
 			 * The word wrap limit is applied before any scaling, rotation, and other coordinate transformations. Therefore the amount of text per line stays constant given the same wrap limit, even if the scale arguments change.
 			 *
-			 * Overload details:
-			 * 1. The color set by love.graphics.setColor will be combined (multiplied) with the colors of the text, when drawing the Text object.
-			 *
-			 * @param text The text to add to the object. Depending on the overload: A table containing colors and strings to add to the object, in the form of {color1, string1, color2, string2, ...}.
-			 * @param text.color1 A table containing red, green, blue, and optional alpha components to use as a color for the next string in the table, in the form of {red, green, blue, alpha}.
-			 * @param text.string1 A string of text which has a color specified by the previous color.
-			 * @param text.color2 A table containing red, green, blue, and optional alpha components to use as a color for the next string in the table, in the form of {red, green, blue, alpha}.
-			 * @param text.string2 A string of text which has a color specified by the previous color.
-			 * @param text.... Additional colors and strings.
+
+			 * @param text The text to add to the object.
 			 * @param wrapLimit The maximum width in pixels of the text before it gets automatically wrapped to a new line.
 			 * @param align The alignment of the text.
 			 * @param transform The position of the new text (x-axis).
+			 * @returns index — An index number that can be used with Text:getWidth or Text:getHeight.
+			 */
+			addf(text: ColoredText, wrapLimit: number, align: AlignMode, transform: Transform): number;
+			/**
+			 * Adds additional formatted / colored text to the Text object at the specified position.
+			 *
+			 * The word wrap limit is applied before any scaling, rotation, and other coordinate transformations. Therefore the amount of text per line stays constant given the same wrap limit, even if the scale arguments change.
+			 *
+
+			 * @param text A table containing colors and strings to add to the object, in the form of {color1, string1, color2, string2, ...}.
+			 * @param wrapLimit The maximum width in pixels of the text before it gets automatically wrapped to a new line.
+			 * @param align The alignment of the text.
 			 * @param x The position of the new text (x-axis).
 			 * @param y The position of the new text (y-axis).
 			 * @param angle Orientation (radians). (Default: 0.)
@@ -972,10 +994,8 @@ declare global {
 			 * @param originY Origin offset (y-axis). (Default: 0.)
 			 * @param shearX Shearing / skew factor (x-axis). (Default: 0.)
 			 * @param shearY Shearing / skew factor (y-axis). (Default: 0.)
-			 *
 			 * @returns index — An index number that can be used with Text:getWidth or Text:getHeight.
 			 */
-			addf(text: ColoredText, wrapLimit: number, align: AlignMode, transform: Transform): number;
 			addf(text: ColoredText, wrapLimit: number, align: AlignMode, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): number;
 			/**
 			 * Clears the contents of the Text object.
@@ -996,38 +1016,52 @@ declare global {
 			/**
 			 * Gets the width of the text in pixels.
 			 *
-			 * Overload details:
-			 * 1. Gets the width of a specific sub-string that was previously added to the Text object.
-			 *
-			 * @param index An index number returned by Text:add or Text:addf.
-			 *
-			 * @returns width — The width of the text. If multiple sub-strings have been added with Text:add, the width of the last sub-string is returned. Depending on the overload: The width of the sub-string (before scaling and other transformations).
+
+			 * @returns width — The width of the text. If multiple sub-strings have been added with Text:add, the width of the last sub-string is returned.
 			 */
-			getWidth(index?: number): number;
+			getWidth(): number;
+/**
+ * Gets the width of the text in pixels.
+ *
+
+ * @param index An index number returned by Text:add or Text:addf.
+ * @returns The width of the sub-string (before scaling and other transformations).
+ */
+			getWidth(index: number): number;
 			/**
 			 * Gets the height of the text in pixels.
 			 *
-			 * Overload details:
-			 * 1. Gets the height of a specific sub-string that was previously added to the Text object.
-			 *
-			 * @param index An index number returned by Text:add or Text:addf.
-			 *
-			 * @returns  height  — The height of the text. If multiple sub-strings have been added with Text:add, the height of the last sub-string is returned.
+
+			 * @returns height  — The height of the text. If multiple sub-strings have been added with Text:add, the height of the last sub-string is returned.
 			 * @returns height — The height of the sub-string (before scaling and other transformations).
 			 */
-			getHeight(index?: number): number;
+			getHeight(): number;
+/**
+ * Gets the height of the text in pixels.
+ *
+
+ * @param index An index number returned by Text:add or Text:addf.
+ * @returns height  — The height of the text. If multiple sub-strings have been added with Text:add, the height of the last sub-string is returned.
+ * @returns height — The height of the sub-string (before scaling and other transformations).
+ */
+			getHeight(index: number): number;
 			/**
 			 * Gets the width and height of the text in pixels.
 			 *
-			 * Overload details:
-			 * 1. Gets the width and height of a specific sub-string that was previously added to the Text object.
-			 *
-			 * @param index An index number returned by Text:add or Text:addf.
-			 *
-			 * @returns width — The width of the text. If multiple sub-strings have been added with Text:add, the width of the last sub-string is returned. Depending on the overload: The width of the sub-string (before scaling and other transformations).
-			 * @returns height — The height of the text. If multiple sub-strings have been added with Text:add, the height of the last sub-string is returned. Depending on the overload: The height of the sub-string (before scaling and other transformations).
+
+			 * @returns width — The width of the text. If multiple sub-strings have been added with Text:add, the width of the last sub-string is returned.
+			 * @returns height — The height of the text. If multiple sub-strings have been added with Text:add, the height of the last sub-string is returned.
 			 */
-			getDimensions(index?: number): LuaMultiReturn<[number, number]>;
+			getDimensions(): LuaMultiReturn<[number, number]>;
+/**
+ * Gets the width and height of the text in pixels.
+ *
+
+ * @param index An index number returned by Text:add or Text:addf.
+ * @returns The width of the sub-string (before scaling and other transformations).
+ * @returns The height of the sub-string (before scaling and other transformations).
+ */
+			getDimensions(index: number): LuaMultiReturn<[number, number]>;
 		}
 		/** A quadrilateral (a polygon with four sides and four corners) with texture coordinate information.
 		 */
@@ -1068,63 +1102,40 @@ declare global {
 			/**
 			 * Replaces a range of vertices in the Mesh with new ones. The total number of vertices in a Mesh cannot be changed after it has been created. This is often more efficient than calling Mesh:setVertex in a loop.
 			 *
-			 * Overload details:
-			 * 1. The values in each vertex table are in the same order as the vertex attributes in the Mesh's vertex format. A standard Mesh that wasn't created with a custom vertex format will use two position numbers, two texture coordinate numbers, and four color components per vertex: x, y, u, v, r, g, b, a. If no value is supplied for a specific vertex attribute component, it will be set to a default value of 0 if its data type is 'float', or 255 if its data type is 'byte'.
-			 * 2. Sets the vertex components of the Mesh by copying directly from the memory of a Data object. If LuaJIT's FFI is used to populate the Data object via Data:getPointer and ffi.cast, this variant can be drastically more efficient than other methods of setting Mesh vertex data.
-			 * 3. Sets the vertex components of a Mesh that wasn't created with a custom vertex format.
-			 *
-			 * @param vertices The table filled with vertex information tables for each vertex, in the form of {vertex, ...} where each vertex is a table in the form of {attributecomponent, ...}. Depending on the overload: The table filled with vertex information tables for each vertex as follows:
-			 * @param vertices.attributecomponent The first component of the first vertex attribute in the vertex.
-			 * @param vertices.... Additional components of all vertex attributes in the vertex.
-			 * @param vertices.1 The position of the vertex on the x-axis.
-			 * @param vertices.2 The position of the vertex on the y-axis.
-			 * @param vertices.3 The horizontal component of the texture coordinate. Texture coordinates are normally in the range of 1, but can be greater or less (see WrapMode).
-			 * @param vertices.4 The vertical component of the texture coordinate. Texture coordinates are normally in the range of 1, but can be greater or less (see WrapMode).
-			 * @param vertices.5 The red color component. (Default: 1.)
-			 * @param vertices.6 The green color component. (Default: 1.)
-			 * @param vertices.7 The blue color component. (Default: 1.)
-			 * @param vertices.8 The alpha color component. (Default: 1.)
+
+			 * @param vertices The table filled with vertex information tables for each vertex, in the form of {vertex, ...} where each vertex is a table in the form of {attributecomponent, ...}.
 			 * @param startVertex The index of the first vertex to replace. (Default: 1.)
 			 * @param vertexCount Amount of vertices to replace. (Default: all.)
-			 * @param data A Data object to copy from. The contents of the Data must match the layout of this Mesh's vertex format.
 			 */
 			setVertices(vertices: MeshVertex[], startVertex?: number, vertexCount?: number): void;
+			/**
+			 * Replaces a range of vertices in the Mesh with new ones. The total number of vertices in a Mesh cannot be changed after it has been created. This is often more efficient than calling Mesh:setVertex in a loop.
+			 *
+
+			 * @param data A Data object to copy from. The contents of the Data must match the layout of this Mesh's vertex format.
+			 * @param startVertex The index of the first vertex to replace. (Default: 1.)
+			 * @param vertexCount Amount of vertices to replace. (Default: all.)
+			 */
 			setVertices(data: Data, startVertex?: number, vertexCount?: number): void;
 			/**
 			 * Sets the properties of a vertex in the Mesh.
 			 *
 			 * In versions prior to 11.0, color and byte component values were within the range of 0 to 255 instead of 0 to 1.
 			 *
-			 * Overload details:
-			 * 1. The arguments are in the same order as the vertex attributes in the Mesh's vertex format. A standard Mesh that wasn't created with a custom vertex format will use two position numbers, two texture coordinate numbers, and four color components per vertex: x, y, u, v, r, g, b, a. If no value is supplied for a specific vertex attribute component, it will be set to a default value of 0 if its data type is 'float', or 1 if its data type is 'byte'.
-			 * 2. The table indices are in the same order as the vertex attributes in the Mesh's vertex format. A standard Mesh that wasn't created with a custom vertex format will use two position numbers, two texture coordinate numbers, and four color components per vertex: x, y, u, v, r, g, b, a. If no value is supplied for a specific vertex attribute component, it will be set to a default value of 0 if its data type is 'float', or 1 if its data type is 'byte'.
-			 * 3. Sets the vertex components of a Mesh that wasn't created with a custom vertex format.
-			 *
+
 			 * @param index The index of the the vertex you want to modify (one-based).
-			 * @param vertex A table with vertex information, in the form of {attributecomponent, ...}. Depending on the overload: A table with vertex information.
-			 * @param vertex.attributecomponent The first component of the first vertex attribute in the specified vertex.
-			 * @param vertex.... Additional components of all vertex attributes in the specified vertex.
-			 * @param vertex.1 The position of the vertex on the x-axis.
-			 * @param vertex.2 The position of the vertex on the y-axis.
-			 * @param vertex.3 The u texture coordinate. Texture coordinates are normally in the range of 1, but can be greater or less (see WrapMode.)
-			 * @param vertex.4 The v texture coordinate. Texture coordinates are normally in the range of 1, but can be greater or less (see WrapMode.)
-			 * @param vertex.5 The red color component. (Default: 1.)
-			 * @param vertex.6 The green color component. (Default: 1.)
-			 * @param vertex.7 The blue color component. (Default: 1.)
-			 * @param vertex.8 The alpha color component. (Default: 1.)
-			 * @param components A table with vertex information, in the form of {attributecomponent, ...}. Depending on the overload: A table with vertex information.
-			 * @param components.attributecomponent The first component of the first vertex attribute in the specified vertex.
-			 * @param components.... Additional components of all vertex attributes in the specified vertex.
-			 * @param components.1 The position of the vertex on the x-axis.
-			 * @param components.2 The position of the vertex on the y-axis.
-			 * @param components.3 The u texture coordinate. Texture coordinates are normally in the range of 1, but can be greater or less (see WrapMode.)
-			 * @param components.4 The v texture coordinate. Texture coordinates are normally in the range of 1, but can be greater or less (see WrapMode.)
-			 * @param components.5 The red color component. (Default: 1.)
-			 * @param components.6 The green color component. (Default: 1.)
-			 * @param components.7 The blue color component. (Default: 1.)
-			 * @param components.8 The alpha color component. (Default: 1.)
+			 * @param vertex A table with vertex information, in the form of {attributecomponent, ...}.
 			 */
 			setVertex(index: number, vertex: MeshVertex): void;
+			/**
+			 * Sets the properties of a vertex in the Mesh.
+			 *
+			 * In versions prior to 11.0, color and byte component values were within the range of 0 to 255 instead of 0 to 1.
+			 *
+
+			 * @param index The index of the the vertex you want to modify (one-based).
+			 * @param components A table with vertex information.
+			 */
 			setVertex(index: number, ...components: number[]): void;
 			/**
 			 * Gets the properties of a vertex in the Mesh.
@@ -1238,14 +1249,36 @@ declare global {
 			 *
 			 * The vertex map allows you to re-order or reuse vertices when drawing without changing the actual vertex parameters or duplicating vertices. It is especially useful when combined with different Mesh Draw Modes.
 			 *
+			 */
+			setVertexMap(): void;
+			/**
+			 * Sets the vertex map for the Mesh. The vertex map describes the order in which the vertices are used when the Mesh is drawn. The vertices, vertex map, and mesh draw mode work together to determine what exactly is displayed on the screen.
+			 *
+			 * The vertex map allows you to re-order or reuse vertices when drawing without changing the actual vertex parameters or duplicating vertices. It is especially useful when combined with different Mesh Draw Modes.
+			 *
+
 			 * @param indices A table containing a list of vertex indices to use when drawing. Values must be in the range of Mesh:getVertexCount().
+			 */
+			setVertexMap(indices: number[]): void;
+			/**
+			 * Sets the vertex map for the Mesh. The vertex map describes the order in which the vertices are used when the Mesh is drawn. The vertices, vertex map, and mesh draw mode work together to determine what exactly is displayed on the screen.
+			 *
+			 * The vertex map allows you to re-order or reuse vertices when drawing without changing the actual vertex parameters or duplicating vertices. It is especially useful when combined with different Mesh Draw Modes.
+			 *
+
+			 * @param indices A table containing a list of vertex indices to use when drawing. Values must be in the range of Mesh:getVertexCount().
+			 */
+			setVertexMap(...indices: number[]): void;
+			/**
+			 * Sets the vertex map for the Mesh. The vertex map describes the order in which the vertices are used when the Mesh is drawn. The vertices, vertex map, and mesh draw mode work together to determine what exactly is displayed on the screen.
+			 *
+			 * The vertex map allows you to re-order or reuse vertices when drawing without changing the actual vertex parameters or duplicating vertices. It is especially useful when combined with different Mesh Draw Modes.
+			 *
+
 			 * @param data Array of vertex indices to use when drawing. Values must be in the range of Mesh:getVertexCount()-1
 			 * @param dataType Datatype of the vertex indices array above.
 			 * @param indexCount The index of the third vertex to use when drawing.
 			 */
-			setVertexMap(): void;
-			setVertexMap(indices: number[]): void;
-			setVertexMap(...indices: number[]): void;
 			setVertexMap(data: Data, dataType: IndexDataType, indexCount?: number): void;
 			/**
 			 * Gets the vertex map for the Mesh. The vertex map describes the order in which the vertices are used when the Mesh is drawn. The vertices, vertex map, and mesh draw mode work together to determine what exactly is displayed on the screen.
@@ -1258,12 +1291,15 @@ declare global {
 			/**
 			 * Sets the texture (Image or Canvas) used when drawing the Mesh.
 			 *
-			 * Overload details:
-			 * 1. Disables any texture from being used when drawing the Mesh. Untextured meshes have a white color by default.
-			 *
-			 * @param texture The Image or Canvas to texture the Mesh with when drawing.
 			 */
-			setTexture(texture?: Image | Canvas): void;
+			setTexture(): void;
+/**
+ * Sets the texture (Image or Canvas) used when drawing the Mesh.
+ *
+
+ * @param texture The Image or Canvas to texture the Mesh with when drawing.
+ */
+			setTexture(texture: Image | Canvas): void;
 			/**
 			 * Gets the texture (Image or Canvas) used when drawing the Mesh.
 			 *
@@ -1285,13 +1321,15 @@ declare global {
 			/**
 			 * Restricts the drawn vertices of the Mesh to a subset of the total.
 			 *
-			 * Overload details:
-			 * 1. Allows all vertices in the Mesh to be drawn.
+			 */
+			setDrawRange(): void;
+			/**
+			 * Restricts the drawn vertices of the Mesh to a subset of the total.
 			 *
+
 			 * @param start The index of the first vertex to use when drawing, or the index of the first value in the vertex map to use if one is set for this Mesh.
 			 * @param count The number of vertices to use when drawing, or number of values in the vertex map to use if one is set for this Mesh.
 			 */
-			setDrawRange(): void;
 			setDrawRange(start: number, count: number): void;
 			/**
 			 * Gets the range of vertices used when drawing the Mesh.
@@ -1318,9 +1356,7 @@ declare global {
 			/**
 			 * Adds a sprite to the batch. Sprites are drawn in the order they are added.
 			 *
-			 * Overload details:
-			 * 1. Adds a Quad to the batch.
-			 *
+
 			 * @param x The position to draw the object (x-axis).
 			 * @param y The position to draw the object (y-axis).
 			 * @param angle Orientation (radians). (Default: 0.)
@@ -1330,18 +1366,30 @@ declare global {
 			 * @param originY Origin offset (y-axis). (Default: 0.)
 			 * @param shearX Shear factor (x-axis). (Default: 0.)
 			 * @param shearY Shear factor (y-axis). (Default: 0.)
-			 * @param quad The Quad to add.
-			 *
 			 * @returns id — An identifier for the added sprite.
 			 */
 			add(x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): number;
+			/**
+			 * Adds a sprite to the batch. Sprites are drawn in the order they are added.
+			 *
+
+			 * @param quad The Quad to add.
+			 * @param x The position to draw the object (x-axis).
+			 * @param y The position to draw the object (y-axis).
+			 * @param angle Orientation (radians). (Default: 0.)
+			 * @param scaleX Scale factor (x-axis). (Default: 1.)
+			 * @param scaleY Scale factor (y-axis). (Default: sx.)
+			 * @param originX Origin offset (x-axis). (Default: 0.)
+			 * @param originY Origin offset (y-axis). (Default: 0.)
+			 * @param shearX Shear factor (x-axis). (Default: 0.)
+			 * @param shearY Shear factor (y-axis). (Default: 0.)
+			 * @returns id — An identifier for the added sprite.
+			 */
 			add(quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): number;
 			/**
 			 * Changes a sprite in the batch. This requires the sprite index returned by SpriteBatch:add or SpriteBatch:addLayer.
 			 *
-			 * Overload details:
-			 * 1. Changes a sprite with a Quad in the batch. This requires the index returned by SpriteBatch:add or SpriteBatch:addLayer. SpriteBatches do not support removing individual sprites. One can do a pseudo removal (instead of clearing and re-adding everything) by: SpriteBatch:set(id, 0, 0, 0, 0, 0) This makes all the sprite's vertices equal (because the x and y scales are 0), which prevents the GPU from fully processing the sprite when drawing the SpriteBatch.
-			 *
+
 			 * @param index The index of the sprite that will be changed.
 			 * @param x The position to draw the object (x-axis).
 			 * @param y The position to draw the object (y-axis).
@@ -1352,19 +1400,29 @@ declare global {
 			 * @param originY Origin offset (y-axis). (Default: 0.)
 			 * @param shearX Shear factor (x-axis). (Default: 0.)
 			 * @param shearY Shear factor (y-axis). (Default: 0.)
-			 * @param quad The Quad used on the image of the batch.
 			 */
 			set(index: number, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
+			/**
+			 * Changes a sprite in the batch. This requires the sprite index returned by SpriteBatch:add or SpriteBatch:addLayer.
+			 *
+
+			 * @param index The index of the sprite that will be changed.
+			 * @param quad The Quad used on the image of the batch.
+			 * @param x The position to draw the object (x-axis).
+			 * @param y The position to draw the object (y-axis).
+			 * @param angle Orientation (radians). (Default: 0.)
+			 * @param scaleX Scale factor (x-axis). (Default: 1.)
+			 * @param scaleY Scale factor (y-axis). (Default: sx.)
+			 * @param originX Origin offset (x-axis). (Default: 0.)
+			 * @param originY Origin offset (y-axis). (Default: 0.)
+			 * @param shearX Shear factor (x-axis). (Default: 0.)
+			 * @param shearY Shear factor (y-axis). (Default: 0.)
+			 */
 			set(index: number, quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
 			/**
 			 * Adds a sprite to a batch created with an Array Texture.
 			 *
-			 * Overload details:
-			 * 1. Adds a layer of the SpriteBatch's Array Texture.
-			 * 2. Adds a layer of the SpriteBatch's Array Texture using the specified Quad. The specified layer index overrides any layer index set on the Quad via Quad:setLayer.
-			 * 3. Adds a layer of the SpriteBatch's Array Texture using the specified Transform.
-			 * 4. Adds a layer of the SpriteBatch's Array Texture using the specified Quad and Transform. In order to use an Array Texture or other non-2D texture types as the main texture in a custom void effect() variant must be used in the pixel shader, and MainTex must be declared as an ArrayImage or sampler2DArray like so: uniform ArrayImage MainTex;.
-			 *
+
 			 * @param layer The index of the layer to use for this sprite.
 			 * @param x The position to draw the sprite (x-axis). (Default: 0.)
 			 * @param y The position to draw the sprite (y-axis). (Default: 0.)
@@ -1375,23 +1433,15 @@ declare global {
 			 * @param originY Origin offset (y-axis). (Default: 0.)
 			 * @param shearX Shearing factor (x-axis). (Default: 0.)
 			 * @param shearY Shearing factor (y-axis). (Default: 0.)
-			 * @param quad The subsection of the texture's layer to use when drawing the sprite.
-			 *
 			 * @returns spriteindex — The index of the added sprite, for use with SpriteBatch:set or SpriteBatch:setLayer.
 			 */
 			addLayer(layer: number, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): number;
-			addLayer(layer: number, quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): number;
 			/**
-			 * Changes a sprite previously added with add or addLayer, in a batch created with an Array Texture.
+			 * Adds a sprite to a batch created with an Array Texture.
 			 *
-			 * Overload details:
-			 * 1. Changes the sprite in the SpriteBatch.
-			 * 2. Adds a layer of the SpriteBatch's Array Texture using the specified Quad. The specified layer index overrides any layer index set on the Quad via Quad:setLayer.
-			 * 3. Adds a layer of the SpriteBatch's Array Texture using the specified Transform.
-			 * 4. Adds a layer of the SpriteBatch's Array Texture using the specified Quad and Transform. The specified layer index overrides any layer index set on the Quad via Quad:setLayer.
-			 *
-			 * @param index The index of the existing sprite to replace.
-			 * @param layer The index of the layer in the Array Texture to use for this sprite. Depending on the overload: The index of the layer to use for this sprite.
+
+			 * @param layer The index of the layer to use for this sprite.
+			 * @param quad The subsection of the texture's layer to use when drawing the sprite.
 			 * @param x The position to draw the sprite (x-axis). (Default: 0.)
 			 * @param y The position to draw the sprite (y-axis). (Default: 0.)
 			 * @param angle Orientation (radians). (Default: 0.)
@@ -1401,9 +1451,43 @@ declare global {
 			 * @param originY Origin offset (y-axis). (Default: 0.)
 			 * @param shearX Shearing factor (x-axis). (Default: 0.)
 			 * @param shearY Shearing factor (y-axis). (Default: 0.)
-			 * @param quad The subsection of the texture's layer to use when drawing the sprite.
+			 * @returns spriteindex — The index of the added sprite, for use with SpriteBatch:set or SpriteBatch:setLayer.
+			 */
+			addLayer(layer: number, quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): number;
+			/**
+			 * Changes a sprite previously added with add or addLayer, in a batch created with an Array Texture.
+			 *
+
+			 * @param index The index of the existing sprite to replace.
+			 * @param layer The index of the layer in the Array Texture to use for this sprite.
+			 * @param x The position to draw the sprite (x-axis). (Default: 0.)
+			 * @param y The position to draw the sprite (y-axis). (Default: 0.)
+			 * @param angle Orientation (radians). (Default: 0.)
+			 * @param scaleX Scale factor (x-axis). (Default: 1.)
+			 * @param scaleY Scale factor (y-axis). (Default: sx.)
+			 * @param originX Origin offset (x-axis). (Default: 0.)
+			 * @param originY Origin offset (y-axis). (Default: 0.)
+			 * @param shearX Shearing factor (x-axis). (Default: 0.)
+			 * @param shearY Shearing factor (y-axis). (Default: 0.)
 			 */
 			setLayer(index: number, layer: number, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
+			/**
+			 * Changes a sprite previously added with add or addLayer, in a batch created with an Array Texture.
+			 *
+
+			 * @param index The index of the existing sprite to replace.
+			 * @param layer The index of the layer to use for this sprite.
+			 * @param quad The subsection of the texture's layer to use when drawing the sprite.
+			 * @param x The position to draw the sprite (x-axis). (Default: 0.)
+			 * @param y The position to draw the sprite (y-axis). (Default: 0.)
+			 * @param angle Orientation (radians). (Default: 0.)
+			 * @param scaleX Scale factor (x-axis). (Default: 1.)
+			 * @param scaleY Scale factor (y-axis). (Default: sx.)
+			 * @param originX Origin offset (x-axis). (Default: 0.)
+			 * @param originY Origin offset (y-axis). (Default: 0.)
+			 * @param shearX Shearing factor (x-axis). (Default: 0.)
+			 * @param shearY Shearing factor (y-axis). (Default: 0.)
+			 */
 			setLayer(index: number, layer: number, quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
 			/**
 			 * Removes all sprites from the buffer.
@@ -1436,17 +1520,32 @@ declare global {
 			 *
 			 * In version 0.9.2 and older, the global color set with love.graphics.setColor will not work on the SpriteBatch if any of the sprites has its own color.
 			 *
-			 * Overload details:
-			 * 1. Disables all per-sprite colors for this SpriteBatch.
+			 */
+			setColor(): void;
+			/**
+			 * Sets the color that will be used for the next add and set operations. Calling the function without arguments will disable all per-sprite colors for the SpriteBatch.
 			 *
+			 * In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+			 *
+			 * In version 0.9.2 and older, the global color set with love.graphics.setColor will not work on the SpriteBatch if any of the sprites has its own color.
+			 *
+
 			 * @param red The amount of red.
 			 * @param green The amount of green.
 			 * @param blue The amount of blue.
 			 * @param alpha The amount of alpha. (Default: 1.)
+			 */
+			setColor(red: number, green: number, blue: number, alpha?: number): void;
+			/**
+			 * Sets the color that will be used for the next add and set operations. Calling the function without arguments will disable all per-sprite colors for the SpriteBatch.
+			 *
+			 * In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+			 *
+			 * In version 0.9.2 and older, the global color set with love.graphics.setColor will not work on the SpriteBatch if any of the sprites has its own color.
+			 *
+
 			 * @param color The amount of red.
 			 */
-			setColor(): void;
-			setColor(red: number, green: number, blue: number, alpha?: number): void;
 			setColor(color: Color): void;
 			/**
 			 * Gets the color that will be used for the next add and set operations.
@@ -1488,13 +1587,15 @@ declare global {
 			/**
 			 * Restricts the drawn sprites in the SpriteBatch to a subset of the total.
 			 *
-			 * Overload details:
-			 * 1. Allows all sprites in the SpriteBatch to be drawn.
+			 */
+			setDrawRange(): void;
+			/**
+			 * Restricts the drawn sprites in the SpriteBatch to a subset of the total.
 			 *
+
 			 * @param start The index of the first sprite to draw. Index 1 corresponds to the first sprite added with SpriteBatch:add.
 			 * @param count The number of sprites to draw.
 			 */
-			setDrawRange(): void;
 			setDrawRange(start: number, count: number): void;
 			getDrawRange(): LuaMultiReturn<[number, number]> | undefined;
 		}
@@ -1973,26 +2074,150 @@ declare global {
 			 *
 			 * Uniform / extern variables are read-only in the shader code and remain constant until modified by a Shader:send call. Uniform variables can be accessed in both the Vertex and Pixel components of a shader, as long as the variable is declared in each.
 			 *
-			 * Overload details:
-			 * 1. Because all numbers in Lua are floating point, in versions prior to 0.10.2 you must use the function Shader:sendInt to send values to uniform int variables in the shader's code.
-			 * 2. Sends uniform values to the Shader sourced from the contents of a Data object. This directly copies the bytes of the data.
-			 * 3. Sends uniform matrices to the Shader sourced from the contents of a Data object. This directly copies the bytes of the data.
-			 *
-			 * @param name Name of the number to send to the shader. Depending on the overload: Name of the vector to send to the shader. Depending on the overload: Name of the matrix to send to the shader. Depending on the overload: Name of the Texture to send to the shader. Depending on the overload: Name of the boolean to send to the shader. Depending on the overload: Name of the uniform to send to the shader. Depending on the overload: Name of the uniform matrix to send to the shader.
+
+			 * @param name Name of the number to send to the shader.
 			 * @param texture Texture (Image or Canvas) to send to the uniform variable.
-			 * @param textures Additional numbers to send if the uniform variable is an array. Depending on the overload: Additional vectors to send if the uniform variable is an array. All vectors need to be of the same size (e.g. only vec3's). Depending on the overload: Additional matrices of the same type as ''matrix'' to store in a uniform array. Depending on the overload: Additional booleans to send if the uniform variable is an array.
-			 * @param matrixLayout The layout (row- or column-major) of the matrix. Depending on the overload: The layout (row- or column-major) of the matrix in memory.
-			 * @param matrices Additional numbers to send if the uniform variable is an array. Depending on the overload: Additional vectors to send if the uniform variable is an array. All vectors need to be of the same size (e.g. only vec3's). Depending on the overload: Additional matrices of the same type as ''matrix'' to store in a uniform array. Depending on the overload: Additional booleans to send if the uniform variable is an array.
+			 * @param textures Additional numbers to send if the uniform variable is an array.
+			 */
+			send(name: string, texture: Image | Canvas, ...textures: (Image | Canvas)[]): void;
+			/**
+			 * Sends one or more values to a special (''uniform'') variable inside the shader. Uniform variables have to be marked using the ''uniform'' or ''extern'' keyword, e.g.
+			 *
+			 * uniform float time; // 'float' is the typical number type used in GLSL shaders.
+			 *
+			 * uniform float varsvec2 light_pos;
+			 *
+			 * uniform vec4 colors[4;
+			 *
+			 * The corresponding send calls would be
+			 *
+			 * shader:send('time', t)
+			 *
+			 * shader:send('vars',a,b)
+			 *
+			 * shader:send('light_pos', {light_x, light_y})
+			 *
+			 * shader:send('colors', {r1, g1, b1, a1}, {r2, g2, b2, a2}, {r3, g3, b3, a3}, {r4, g4, b4, a4})
+			 *
+			 * Uniform / extern variables are read-only in the shader code and remain constant until modified by a Shader:send call. Uniform variables can be accessed in both the Vertex and Pixel components of a shader, as long as the variable is declared in each.
+			 *
+
+			 * @param name Name of the vector to send to the shader.
+			 * @param matrixLayout The layout (row- or column-major) of the matrix in memory.
+			 * @param matrices Additional vectors to send if the uniform variable is an array. All vectors need to be of the same size (e.g. only vec3's).
+			 */
+			send(name: string, matrixLayout: MatrixLayout, ...matrices: (number[] | number[][])[]): void;
+			/**
+			 * Sends one or more values to a special (''uniform'') variable inside the shader. Uniform variables have to be marked using the ''uniform'' or ''extern'' keyword, e.g.
+			 *
+			 * uniform float time; // 'float' is the typical number type used in GLSL shaders.
+			 *
+			 * uniform float varsvec2 light_pos;
+			 *
+			 * uniform vec4 colors[4;
+			 *
+			 * The corresponding send calls would be
+			 *
+			 * shader:send('time', t)
+			 *
+			 * shader:send('vars',a,b)
+			 *
+			 * shader:send('light_pos', {light_x, light_y})
+			 *
+			 * shader:send('colors', {r1, g1, b1, a1}, {r2, g2, b2, a2}, {r3, g3, b3, a3}, {r4, g4, b4, a4})
+			 *
+			 * Uniform / extern variables are read-only in the shader code and remain constant until modified by a Shader:send call. Uniform variables can be accessed in both the Vertex and Pixel components of a shader, as long as the variable is declared in each.
+			 *
+
+			 * @param name Name of the matrix to send to the shader.
 			 * @param data Data object containing the values to send.
 			 * @param offset Offset in bytes from the start of the Data object. (Default: 0.)
 			 * @param size Size in bytes of the data to send. If nil, as many bytes as the specified uniform uses will be copied. (Default: all.)
+			 */
+			send(name: string, data: Data, offset?: number, size?: number): void;
+			/**
+			 * Sends one or more values to a special (''uniform'') variable inside the shader. Uniform variables have to be marked using the ''uniform'' or ''extern'' keyword, e.g.
+			 *
+			 * uniform float time; // 'float' is the typical number type used in GLSL shaders.
+			 *
+			 * uniform float varsvec2 light_pos;
+			 *
+			 * uniform vec4 colors[4;
+			 *
+			 * The corresponding send calls would be
+			 *
+			 * shader:send('time', t)
+			 *
+			 * shader:send('vars',a,b)
+			 *
+			 * shader:send('light_pos', {light_x, light_y})
+			 *
+			 * shader:send('colors', {r1, g1, b1, a1}, {r2, g2, b2, a2}, {r3, g3, b3, a3}, {r4, g4, b4, a4})
+			 *
+			 * Uniform / extern variables are read-only in the shader code and remain constant until modified by a Shader:send call. Uniform variables can be accessed in both the Vertex and Pixel components of a shader, as long as the variable is declared in each.
+			 *
+
+			 * @param name Name of the Texture to send to the shader.
+			 * @param matrixLayout The layout (row- or column-major) of the matrix in memory.
+			 * @param data Data object containing the values to send.
+			 * @param offset Offset in bytes from the start of the Data object. (Default: 0.)
+			 * @param size Size in bytes of the data to send. If nil, as many bytes as the specified uniform uses will be copied. (Default: all.)
+			 */
+			send(name: string, matrixLayout: MatrixLayout, data: Data, offset?: number, size?: number): void;
+			/**
+			 * Sends one or more values to a special (''uniform'') variable inside the shader. Uniform variables have to be marked using the ''uniform'' or ''extern'' keyword, e.g.
+			 *
+			 * uniform float time; // 'float' is the typical number type used in GLSL shaders.
+			 *
+			 * uniform float varsvec2 light_pos;
+			 *
+			 * uniform vec4 colors[4;
+			 *
+			 * The corresponding send calls would be
+			 *
+			 * shader:send('time', t)
+			 *
+			 * shader:send('vars',a,b)
+			 *
+			 * shader:send('light_pos', {light_x, light_y})
+			 *
+			 * shader:send('colors', {r1, g1, b1, a1}, {r2, g2, b2, a2}, {r3, g3, b3, a3}, {r4, g4, b4, a4})
+			 *
+			 * Uniform / extern variables are read-only in the shader code and remain constant until modified by a Shader:send call. Uniform variables can be accessed in both the Vertex and Pixel components of a shader, as long as the variable is declared in each.
+			 *
+
+			 * @param name Name of the boolean to send to the shader.
+			 * @param data Data object containing the values to send.
+			 * @param matrixLayout The layout (row- or column-major) of the matrix in memory.
+			 * @param offset Offset in bytes from the start of the Data object. (Default: 0.)
+			 * @param size Size in bytes of the data to send. If nil, as many bytes as the specified uniform uses will be copied. (Default: all.)
+			 */
+			send(name: string, data: Data, matrixLayout: MatrixLayout, offset?: number, size?: number): void;
+			/**
+			 * Sends one or more values to a special (''uniform'') variable inside the shader. Uniform variables have to be marked using the ''uniform'' or ''extern'' keyword, e.g.
+			 *
+			 * uniform float time; // 'float' is the typical number type used in GLSL shaders.
+			 *
+			 * uniform float varsvec2 light_pos;
+			 *
+			 * uniform vec4 colors[4;
+			 *
+			 * The corresponding send calls would be
+			 *
+			 * shader:send('time', t)
+			 *
+			 * shader:send('vars',a,b)
+			 *
+			 * shader:send('light_pos', {light_x, light_y})
+			 *
+			 * shader:send('colors', {r1, g1, b1, a1}, {r2, g2, b2, a2}, {r3, g3, b3, a3}, {r4, g4, b4, a4})
+			 *
+			 * Uniform / extern variables are read-only in the shader code and remain constant until modified by a Shader:send call. Uniform variables can be accessed in both the Vertex and Pixel components of a shader, as long as the variable is declared in each.
+			 *
+
+			 * @param name Name of the uniform to send to the shader.
 			 * @param values Texture (Image or Canvas) to send to the uniform variable.
 			 */
-			send(name: string, texture: Image | Canvas, ...textures: (Image | Canvas)[]): void;
-			send(name: string, matrixLayout: MatrixLayout, ...matrices: (number[] | number[][])[]): void;
-			send(name: string, data: Data, offset?: number, size?: number): void;
-			send(name: string, matrixLayout: MatrixLayout, data: Data, offset?: number, size?: number): void;
-			send(name: string, data: Data, matrixLayout: MatrixLayout, offset?: number, size?: number): void;
 			send(name: string, ...values: ShaderValue[]): void;
 			/**
 			 * Sends one or more colors to a special (''extern'' / ''uniform'') vec3 or vec4 variable inside the shader. The color components must be in the range of 1. The colors are gamma-corrected if global gamma-correction is enabled.
@@ -2009,12 +2234,32 @@ declare global {
 			 *
 			 * In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
 			 *
+
 			 * @param name The name of the color extern variable to send to in the shader.
 			 * @param data A table with red, green, blue, and optional alpha color components in the range of 1 to send to the extern as a vector.
 			 * @param offset Additional colors to send in case the extern is an array. All colors need to be of the same size (e.g. only vec3's).
-			 * @param values A table with red, green, blue, and optional alpha color components in the range of 1 to send to the extern as a vector.
+			 * @param size The number of bytes to read from the Data object.
 			 */
 			sendColor(name: string, data: Data, offset?: number, size?: number): void;
+			/**
+			 * Sends one or more colors to a special (''extern'' / ''uniform'') vec3 or vec4 variable inside the shader. The color components must be in the range of 1. The colors are gamma-corrected if global gamma-correction is enabled.
+			 *
+			 * Extern variables must be marked using the ''extern'' keyword, e.g.
+			 *
+			 * extern vec4 Color;
+			 *
+			 * The corresponding sendColor call would be
+			 *
+			 * shader:sendColor('Color', {r, g, b, a})
+			 *
+			 * Extern variables can be accessed in both the Vertex and Pixel stages of a shader, as long as the variable is declared in each.
+			 *
+			 * In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+			 *
+
+			 * @param name The name of the color extern variable to send to in the shader.
+			 * @param values A table with red, green, blue, and optional alpha color components in the range of 1 to send to the extern as a vector.
+			 */
 			sendColor(name: string, ...values: ShaderValue[]): void;
 		}
 
@@ -2033,18 +2278,26 @@ declare global {
 		 *
 		 * In versions prior to background color instead.
 		 *
-		 * Overload details:
-		 * 1. Clears the screen to the background color in 0.9.2 and earlier, or to transparent black (0, 0, 0, 0) in LÖVE 0.10.0 and newer.
-		 * 2. Clears the screen or active Canvas to the specified color.
-		 * 3. Clears multiple active Canvases to different colors, if multiple Canvases are active at once via love.graphics.setCanvas. A color must be specified for each active Canvas, when this function variant is used.
-		 * 4. Clears the stencil or depth buffers without having to clear the color canvas as well.
-		 *
-		 * @param red A table in the form of {r, g, b, a} containing the color to clear the first active Canvas to.
-		 * @param green Additional tables for each active Canvas.
-		 * @param blue Whether to clear the active stencil buffer, if present. It can also be an integer between 0 and 255 to clear the stencil buffer to a specific value. (Default: true.)
-		 * @param alpha Whether to clear the active depth buffer, if present. It can also be a number between 0 and 1 to clear the depth buffer to a specific value. (Default: true.)
 		 */
-		clear(this: void, red?: number, green?: number, blue?: number, alpha?: number): void;
+		clear(this: void): void;
+/**
+ * Clears the screen or active Canvas to the specified color.
+ *
+ * This function is called automatically before love.draw in the default love.run function. See the example in love.run for a typical use of this function.
+ *
+ * Note that the scissor area bounds the cleared region.
+ *
+ * In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+ *
+ * In versions prior to background color instead.
+ *
+
+ * @param red A table in the form of {r, g, b, a} containing the color to clear the first active Canvas to.
+ * @param green Additional tables for each active Canvas.
+ * @param blue Whether to clear the active stencil buffer, if present. It can also be an integer between 0 and 255 to clear the stencil buffer to a specific value. (Default: true.)
+ * @param alpha Whether to clear the active depth buffer, if present. It can also be a number between 0 and 1 to clear the depth buffer to a specific value. (Default: true.)
+ */
+		clear(this: void, red: number, green: number, blue: number, alpha?: number): void;
 		/**
 		 * Discards (trashes) the contents of the screen or active Canvas. This is a performance optimization function with niche use cases.
 		 *
@@ -2069,13 +2322,19 @@ declare global {
 		/**
 		 * Sets the background color.
 		 *
+
 		 * @param red The red component (0-1).
 		 * @param green The green component (0-1).
 		 * @param blue The blue component (0-1).
 		 * @param alpha The alpha component (0-1). (Default: 1.)
-		 * @param color A numerical indexed table with the red, green, blue and alpha values as numbers. The alpha is optional and defaults to 1 if it is left out.
 		 */
 		setBackgroundColor(this: void, red: number, green: number, blue: number, alpha?: number): void;
+		/**
+		 * Sets the background color.
+		 *
+
+		 * @param color A numerical indexed table with the red, green, blue and alpha values as numbers. The alpha is optional and defaults to 1 if it is left out.
+		 */
 		setBackgroundColor(this: void, color: Color): void;
 		/**
 		 * Gets the current background color.
@@ -2291,12 +2550,8 @@ declare global {
 		/**
 		 * Gets performance-related rendering statistics.
 		 *
-		 * Overload details:
-		 * 1. This variant accepts an existing table to fill in, instead of creating a new one.
-		 *
-		 * @param target A table which will be filled in with the stat fields below.
-		 *
-		 * @returns stats — A table with the following fields: Depending on the overload: The table that was passed in above, now containing the following fields:
+
+		 * @returns stats — A table with the following fields:
 		 * @returns stats.drawcalls — The number of draw calls made so far during the current frame.
 		 * @returns stats.canvasswitches — The number of times the active Canvas has been switched so far during the current frame.
 		 * @returns stats.texturememory — The estimated total size in bytes of video memory used by all loaded Images, Canvases, and Fonts.
@@ -2306,23 +2561,49 @@ declare global {
 		 * @returns stats.shaderswitches — The number of times the active Shader has been changed so far during the current frame.
 		 * @returns stats.drawcallsbatched — The number of draw calls that were saved by LÖVE's automatic batching, since the start of the frame.
 		 */
-		getStats(this: void, target?: any): GraphicsStats;
+		getStats(this: void): GraphicsStats;
+/**
+ * Gets performance-related rendering statistics.
+ *
+
+ * @param target A table which will be filled in with the stat fields below.
+ * @returns The table that was passed in above, now containing the following fields:
+ * @returns stats.drawcalls — The number of draw calls made so far during the current frame.
+ * @returns stats.canvasswitches — The number of times the active Canvas has been switched so far during the current frame.
+ * @returns stats.texturememory — The estimated total size in bytes of video memory used by all loaded Images, Canvases, and Fonts.
+ * @returns stats.images — The number of Image objects currently loaded.
+ * @returns stats.canvases — The number of Canvas objects currently loaded.
+ * @returns stats.fonts — The number of Font objects currently loaded.
+ * @returns stats.shaderswitches — The number of times the active Shader has been changed so far during the current frame.
+ * @returns stats.drawcallsbatched — The number of draw calls that were saved by LÖVE's automatic batching, since the start of the frame.
+ */
+		getStats(this: void, target: any): GraphicsStats;
 		/**
 		 * Creates a screenshot once the current frame is done (after love.draw has finished).
 		 *
 		 * Since this function enqueues a screenshot capture rather than executing it immediately, it can be called from an input callback or love.update and it will still capture all of what's drawn to the screen in that frame.
 		 *
-		 * Overload details:
-		 * 1. Capture a screenshot and save it to a file at the end of the current frame.
-		 * 2. Capture a screenshot and call a callback with the generated ImageData at the end of the current frame.
-		 * 3. Capture a screenshot and push the generated ImageData to a Channel at the end of the current frame.
-		 *
+
 		 * @param filename The filename to save the screenshot to. The encoded image type is determined based on the extension of the filename, and must be one of the ImageFormats.
-		 * @param callback Function which gets called once the screenshot has been captured. An ImageData is passed into the function as its only argument.
-		 * @param channel The Channel to push the generated ImageData to.
 		 */
 		captureScreenshot(this: void, filename: string): void;
+		/**
+		 * Creates a screenshot once the current frame is done (after love.draw has finished).
+		 *
+		 * Since this function enqueues a screenshot capture rather than executing it immediately, it can be called from an input callback or love.update and it will still capture all of what's drawn to the screen in that frame.
+		 *
+
+		 * @param callback Function which gets called once the screenshot has been captured. An ImageData is passed into the function as its only argument.
+		 */
 		captureScreenshot(this: void, callback: (imageData: ImageData) => void): void;
+		/**
+		 * Creates a screenshot once the current frame is done (after love.draw has finished).
+		 *
+		 * Since this function enqueues a screenshot capture rather than executing it immediately, it can be called from an input callback or love.update and it will still capture all of what's drawn to the screen in that frame.
+		 *
+
+		 * @param channel The Channel to push the generated ImageData to.
+		 */
 		captureScreenshot(this: void, channel: Channel): void;
 		/**
 		 * Draws a rectangle.
@@ -2349,9 +2630,7 @@ declare global {
 		/**
 		 * Draws a filled or unfilled arc at position (x, y). The arc is drawn from angle1 to angle2 in radians. The segments parameter determines how many segments are used to draw the arc. The more segments, the smoother the edge.
 		 *
-		 * Overload details:
-		 * 1. Draws an arc using the 'pie' ArcType.
-		 *
+
 		 * @param mode How to draw the arc.
 		 * @param x The position of the center along x-axis.
 		 * @param y The position of the center along y-axis.
@@ -2359,9 +2638,21 @@ declare global {
 		 * @param angle1 The angle at which the arc begins.
 		 * @param angle2 The angle at which the arc terminates.
 		 * @param segments The number of segments used for drawing the arc. (Default: 10.)
-		 * @param arcMode The type of arc to draw.
 		 */
 		arc(this: void, mode: DrawMode, x: number, y: number, radius: number, angle1: number, angle2: number, segments?: number): void;
+		/**
+		 * Draws a filled or unfilled arc at position (x, y). The arc is drawn from angle1 to angle2 in radians. The segments parameter determines how many segments are used to draw the arc. The more segments, the smoother the edge.
+		 *
+
+		 * @param mode How to draw the arc.
+		 * @param arcMode The type of arc to draw.
+		 * @param x The position of the center along x-axis.
+		 * @param y The position of the center along y-axis.
+		 * @param radius Radius of the arc.
+		 * @param angle1 The angle at which the arc begins.
+		 * @param angle2 The angle at which the arc terminates.
+		 * @param segments The number of segments used for drawing the arc. (Default: 10.)
+		 */
 		arc(this: void, mode: DrawMode, arcMode: ArcMode, x: number, y: number, radius: number, angle1: number, angle2: number, segments?: number): void;
 		/**
 		 * Draws an ellipse.
@@ -2418,13 +2709,17 @@ declare global {
 		 *
 		 * This function is always used to prepare for a corresponding pop operation later. It stores the current coordinate transformation state into the transformation stack and keeps it active. Later changes to the transformation can be undone by using the pop operation, which returns the coordinate transform to the state it was in before calling push.
 		 *
-		 * Overload details:
-		 * 1. Pushes the current transformation to the transformation stack.
-		 * 2. Pushes a specific type of state to the stack.
-		 *
-		 * @param stackType The type of stack to push (e.g. just transformation state, or all love.graphics state).
 		 */
-		push(this: void, stackType?: "transform" | "all"): void;
+		push(this: void): void;
+/**
+ * Copies and pushes the current coordinate transformation to the transformation stack.
+ *
+ * This function is always used to prepare for a corresponding pop operation later. It stores the current coordinate transformation state into the transformation stack and keeps it active. Later changes to the transformation can be undone by using the pop operation, which returns the coordinate transform to the state it was in before calling push.
+ *
+
+ * @param stackType The type of stack to push (e.g. just transformation state, or all love.graphics state).
+ */
+		push(this: void, stackType: "transform" | "all"): void;
 		/**
 		 * Pops the current coordinate transformation from the transformation stack.
 		 *
@@ -2575,16 +2870,21 @@ declare global {
 		 *
 		 * The dimensions of the scissor is unaffected by graphical transformations (translate, scale, ...).
 		 *
-		 * Overload details:
-		 * 1. Limits the drawing area to a specified rectangle.
-		 * 2. Disables scissor.
+		 */
+		setScissor(this: void): void;
+		/**
+		 * Sets or disables scissor.
 		 *
+		 * The scissor limits the drawing area to a specified rectangle. This affects all graphics calls, including love.graphics.clear.
+		 *
+		 * The dimensions of the scissor is unaffected by graphical transformations (translate, scale, ...).
+		 *
+
 		 * @param x x coordinate of upper left corner.
 		 * @param y y coordinate of upper left corner.
 		 * @param width width of clipping rectangle.
 		 * @param height height of clipping rectangle.
 		 */
-		setScissor(this: void): void;
 		setScissor(this: void, x: number, y: number, width: number, height: number): void;
 		/**
 		 * Gets the current scissor box.
@@ -2611,16 +2911,17 @@ declare global {
 		/**
 		 * Sets the color mask. Enables or disables specific color components when rendering and clearing the screen. For example, if '''red''' is set to '''false''', no further changes will be made to the red component of any pixels.
 		 *
-		 * Overload details:
-		 * 1. Enables color masking for the specified color components.
-		 * 2. Disables color masking.
+		 */
+		setColorMask(this: void): void;
+		/**
+		 * Sets the color mask. Enables or disables specific color components when rendering and clearing the screen. For example, if '''red''' is set to '''false''', no further changes will be made to the red component of any pixels.
 		 *
+
 		 * @param red Render red component.
 		 * @param green Render green component.
 		 * @param blue Render blue component.
 		 * @param alpha Render alpha component.
 		 */
-		setColorMask(this: void): void;
 		setColorMask(this: void, red: boolean, green: boolean, blue: boolean, alpha: boolean): void;
 		/**
 		 * Gets the active color components used when drawing. Normally all 4 components are active unless love.graphics.setColorMask has been used.
@@ -2638,13 +2939,17 @@ declare global {
 		 *
 		 * This is low-level functionality designed for use with custom vertex shaders and Meshes with custom vertex attributes. No higher level APIs are provided to set the depth of 2D graphics such as shapes, lines, and Images.
 		 *
-		 * Overload details:
-		 * 1. Disables depth testing and depth writes.
+		 */
+		setDepthMode(this: void): void;
+		/**
+		 * Configures depth testing and writing to the depth buffer.
 		 *
+		 * This is low-level functionality designed for use with custom vertex shaders and Meshes with custom vertex attributes. No higher level APIs are provided to set the depth of 2D graphics such as shapes, lines, and Images.
+		 *
+
 		 * @param compare Depth comparison mode used for depth testing.
 		 * @param write Whether to write update / write values to the depth buffer when rendering.
 		 */
-		setDepthMode(this: void): void;
 		setDepthMode(this: void, compare: CompareMode, write: boolean): void;
 		/**
 		 * Gets the current depth test mode and whether writing to the depth buffer is enabled.
@@ -2696,27 +3001,43 @@ declare global {
 		 *
 		 * Stencil values are integers within the range of 255.
 		 *
-		 * Overload details:
-		 * 1. It is possible to draw to the screen and to the stencil values of pixels at the same time, by using love.graphics.setColorMask inside the stencil function to enable drawing to all color components.
-		 *
+
 		 * @param draw Function which draws geometry. The stencil values of pixels, rather than the color of each pixel, will be affected by the geometry.
 		 * @param action How to modify any stencil values of pixels that are touched by what's drawn in the stencil function. (Default: 'replace'.)
 		 * @param value The new stencil value to use for pixels if the 'replace' stencil action is used. Has no effect with other stencil actions. Must be between 0 and 255. (Default: 1.)
 		 * @param keepValuesOrClearValue True to preserve old stencil values of pixels, false to re-set every pixel's stencil value to 0 before executing the stencil function. love.graphics.clear will also re-set all stencil values. (Default: false.)
 		 */
-		stencil(this: void, draw: () => void, action?: StencilAction, value?: number, keepValuesOrClearValue?: boolean | number): void;
+		stencil(this: void, draw: () => void, action?: StencilAction, value?: number, keepValuesOrClearValue?: boolean): void;
+/**
+ * Draws geometry as a stencil.
+ *
+ * The geometry drawn by the supplied function sets invisible stencil values of pixels, instead of setting pixel colors. The stencil buffer (which contains those stencil values) can act like a mask / stencil - love.graphics.setStencilTest can be used afterward to determine how further rendering is affected by the stencil values in each pixel.
+ *
+ * Stencil values are integers within the range of 255.
+ *
+
+ * @param draw Function which draws geometry. The stencil values of pixels, rather than the color of each pixel, will be affected by the geometry.
+ * @param action How to modify any stencil values of pixels that are touched by what's drawn in the stencil function. (Default: 'replace'.)
+ * @param value The new stencil value to use for pixels if the 'replace' stencil action is used. Has no effect with other stencil actions. Must be between 0 and 255. (Default: 1.)
+ * @param keepValuesOrClearValue True to preserve old stencil values of pixels, false to re-set every pixel's stencil value to 0 before executing the stencil function. love.graphics.clear will also re-set all stencil values. (Default: false.)
+ */
+		stencil(this: void, draw: () => void, action: StencilAction, value: number, keepValuesOrClearValue: number): void;
 		/**
 		 * Configures or disables stencil testing.
 		 *
 		 * When stencil testing is enabled, the geometry of everything that is drawn afterward will be clipped / stencilled out based on a comparison between the arguments of this function and the stencil value of each pixel that the geometry touches. The stencil values of pixels are affected via love.graphics.stencil.
 		 *
-		 * Overload details:
-		 * 1. Disables stencil testing.
+		 */
+		setStencilTest(this: void): void;
+		/**
+		 * Configures or disables stencil testing.
 		 *
+		 * When stencil testing is enabled, the geometry of everything that is drawn afterward will be clipped / stencilled out based on a comparison between the arguments of this function and the stencil value of each pixel that the geometry touches. The stencil values of pixels are affected via love.graphics.stencil.
+		 *
+
 		 * @param compare The type of comparison to make for each pixel.
 		 * @param value The value to use when comparing with the stencil value of each pixel. Must be between 0 and 255.
 		 */
-		setStencilTest(this: void): void;
 		setStencilTest(this: void, compare: CompareMode, value: number): void;
 		/**
 		 * Gets the current stencil test configuration.
@@ -2734,42 +3055,61 @@ declare global {
 		 *
 		 * All variants which accept a filename can also accept a Data object instead.
 		 *
-		 * Overload details:
-		 * 1. Create a new BMFont or TrueType font. If the file is a TrueType font, it will be size 12. Use the variant below to create a TrueType font with a custom size.
-		 * 2. Create a new TrueType font.
-		 * 3. Create a new BMFont.
-		 * 4. Create a new instance of the default font (Vera Sans) with a custom size.
-		 *
-		 * @param size The size of the font in pixels. Depending on the overload: The size of the font in pixels. (Default: 12.)
-		 * @param filename The filepath to the BMFont or TrueType font file. Depending on the overload: The filepath to the TrueType font file. Depending on the overload: The filepath to the BMFont file.
-		 *
+
+		 * @param size The size of the font in pixels.
 		 * @returns font — A Font object which can be used to draw text on screen.
 		 */
 		newFont(this: void, size?: number): Font;
+		/**
+		 * Creates a new Font from a TrueType Font or BMFont file. Created fonts are not cached, in that calling this function with the same arguments will always create a new Font object.
+		 *
+		 * All variants which accept a filename can also accept a Data object instead.
+		 *
+
+		 * @param filename The filepath to the TrueType font file.
+		 * @param size The size of the font in pixels. (Default: 12.)
+		 * @returns font — A Font object which can be used to draw text on screen.
+		 */
 		newFont(this: void, filename: string, size?: number): Font;
 		/**
 		 * Creates and sets a new Font.
 		 *
+
 		 * @param size The size of the font. (Default: 12.)
-		 * @param filename The path and name of the file with the font.
-		 *
 		 * @returns font — The new font.
 		 */
 		setNewFont(this: void, size?: number): Font;
+		/**
+		 * Creates and sets a new Font.
+		 *
+
+		 * @param filename The path and name of the file with the font.
+		 * @param size The size of the font. (Default: 12.)
+		 * @returns font — The new font.
+		 */
 		setNewFont(this: void, filename: string, size?: number): Font;
 		/**
 		 * Creates a new specifically formatted image.
 		 *
 		 * In versions prior to 0.9.0, LÖVE expects ISO 8859-1 encoding for the glyphs string.
 		 *
-		 * @param source The filepath to the image file. Depending on the overload: The ImageData object to create the font from.
+
+		 * @param source The filepath to the image file.
 		 * @param glyphs A string of the characters in the image in order from left to right.
 		 * @param extraSpacing Additional spacing (positive or negative) to apply to each glyph in the Font. (Default: 0.)
-		 * @param rasterizer The filepath to the image file. Depending on the overload: The ImageData object to create the font from.
-		 *
+		 * @param dpiScale The DPI scale factor of the font. (Default: 1.)
 		 * @returns font — A Font object which can be used to draw text on screen.
 		 */
 		newImageFont(this: void, source: string | FileData | ImageData, glyphs: string, extraSpacing?: number, dpiScale?: number): Font;
+		/**
+		 * Creates a new specifically formatted image.
+		 *
+		 * In versions prior to 0.9.0, LÖVE expects ISO 8859-1 encoding for the glyphs string.
+		 *
+
+		 * @param rasterizer The ImageData object to create the font from.
+		 * @returns font — A Font object which can be used to draw text on screen.
+		 */
 		newImageFont(this: void, rasterizer: Rasterizer): Font;
 		/**
 		 * Creates a new drawable Text object.
@@ -2854,31 +3194,56 @@ declare global {
 		/**
 		 * Creates a new Image from a filepath, FileData, an ImageData, or a CompressedImageData, and optionally generates or specifies mipmaps for the image.
 		 *
+
 		 * @param filename The filepath to the image file.
 		 * @param settings A table containing the following fields: (Default: nil.)
-		 * @param settings.dpiscale The DPI scale to use when drawing the image and calling getWidth/getHeight. (Default: 1.)
-		 * @param settings.linear True to treat the image's pixels as linear instead of sRGB, when gamma correct rendering is enabled. Most images are authored as sRGB. (Default: false.)
-		 * @param settings.mipmaps If true, mipmaps for the image will be automatically generated (or taken from the images's file if possible, if the image originated from a CompressedImageData). (Default: false.)
-		 * @param data The filepath to the image file. Depending on the overload: The FileData containing image file. Depending on the overload: The ImageData containing image. Depending on the overload: A CompressedImageData object. The Image will use this CompressedImageData to reload itself when love.window.setMode is called.
-		 *
 		 * @returns image — A new Image object which can be drawn on screen.
 		 */
 		newImage(this: void, filename: string, settings?: ImageSettings): Image;
+		/**
+		 * Creates a new Image from a filepath, FileData, an ImageData, or a CompressedImageData, and optionally generates or specifies mipmaps for the image.
+		 *
+
+		 * @param data The FileData containing image file.
+		 * @param settings A table containing the following fields: (Default: nil.)
+		 * @returns image — A new Image object which can be drawn on screen.
+		 */
 		newImage(this: void, data: FileData, settings?: CompressedImageSettings): Image;
+		/**
+		 * Creates a new Image from a filepath, FileData, an ImageData, or a CompressedImageData, and optionally generates or specifies mipmaps for the image.
+		 *
+
+		 * @param data The ImageData containing image.
+		 * @param settings A table containing the following fields: (Default: nil.)
+		 * @returns image — A new Image object which can be drawn on screen.
+		 */
 		newImage(this: void, data: ImageData, settings?: ImageSettings): Image;
+		/**
+		 * Creates a new Image from a filepath, FileData, an ImageData, or a CompressedImageData, and optionally generates or specifies mipmaps for the image.
+		 *
+
+		 * @param data A CompressedImageData object. The Image will use this CompressedImageData to reload itself when love.window.setMode is called.
+		 * @param settings A table containing the following fields: (Default: nil.)
+		 * @returns image — A new Image object which can be drawn on screen.
+		 */
 		newImage(this: void, data: CompressedImageData, settings?: CompressedImageSettings): Image;
 		/**
 		 * Creates a new drawable Video. Currently only Ogg Theora video files are supported.
 		 *
-		 * @param filename The file path to the Ogg Theora video file. Depending on the overload: The file path to the Ogg Theora video file (or VideoStream).
+
+		 * @param filename The file path to the Ogg Theora video file.
 		 * @param settings A table containing the following fields: (Default: nil.)
-		 * @param settings.audio Whether to try to load the video's audio into an audio Source. If not explicitly set to true or false, it will try without causing an error if the video has no audio. (Default: false.)
-		 * @param settings.dpiscale The DPI scale factor of the video. (Default: love.graphics.getDPIScale().)
-		 * @param stream The file path to the Ogg Theora video file (or VideoStream). Depending on the overload: The file path to the Ogg Theora video file. Depending on the overload: A video stream object.
-		 *
 		 * @returns video — A new Video.
 		 */
 		newVideo(this: void, filename: string, settings?: {audio?: boolean; dpiscale?: number}): Video;
+		/**
+		 * Creates a new drawable Video. Currently only Ogg Theora video files are supported.
+		 *
+
+		 * @param stream The file path to the Ogg Theora video file.
+		 * @param settings A table containing the following fields: (Default: nil.)
+		 * @returns video — A new Video.
+		 */
 		newVideo(this: void, stream: VideoStream, settings?: {audio?: boolean; dpiscale?: number}): Video;
 		_newVideo(this: void, filenameOrStream: string | VideoStream, dpiScale?: number): Video;
 		/**
@@ -2984,23 +3349,20 @@ declare global {
 		/**
 		 * Creates a new Canvas object for offscreen rendering.
 		 *
-		 * Overload details:
-		 * 1. Creates a 2D or cubemap Canvas using the given settings. Some Canvas formats have higher system requirements than the default format. Use love.graphics.getCanvasFormats to check for support.
-		 * 2. Creates a volume or array texture-type Canvas.
-		 *
-		 * @param width The desired width of the Canvas.
-		 * @param height The desired height of the Canvas.
-		 * @param settings A table containing the given fields: (Default: nil.)
-		 * @param settings.type The type of Canvas to create. (Default: '2d'.) Depending on the overload: The type of Canvas to create. (Default: 'array'.)
-		 * @param settings.format The format of the Canvas. (Default: 'normal'.)
-		 * @param settings.readable Whether the Canvas is readable (drawable and accessible in a Shader). True by default for regular formats, false by default for depth/stencil formats. Depending on the overload: Whether the Canvas is readable (drawable and accessible in a Shader). True by default for regular formats, false by default for depth/stencil formats. (Default: nil.)
-		 * @param settings.msaa The desired number of multisample antialiasing (MSAA) samples used when drawing to the Canvas. (Default: 0.)
-		 * @param settings.dpiscale The DPI scale factor of the Canvas, used when drawing to the Canvas as well as when drawing the Canvas to the screen. (Default: love.graphics.getDPIScale().)
-		 * @param settings.mipmaps Whether the Canvas has mipmaps, and whether to automatically regenerate them if so. (Default: 'none'.)
-		 *
-		 * @returns canvas — A new Canvas with dimensions equal to the window's size in pixels. Depending on the overload: A new Canvas with specified width and height.
+
+		 * @returns canvas — A new Canvas with dimensions equal to the window's size in pixels.
 		 */
-		newCanvas(this: void, width?: number, height?: number, settings?: CanvasSettings): Canvas;
+		newCanvas(this: void): Canvas;
+/**
+ * Creates a new Canvas object for offscreen rendering.
+ *
+
+ * @param width The desired width of the Canvas.
+ * @param height The desired height of the Canvas.
+ * @param settings A table containing the given fields: (Default: nil.)
+ * @returns A new Canvas with specified width and height.
+ */
+		newCanvas(this: void, width: number, height: number, settings?: CanvasSettings): Canvas;
 		/**
 		 * Gets the available Canvas formats, and whether each is supported.
 		 *
@@ -3012,32 +3374,29 @@ declare global {
 		/**
 		 * Captures drawing operations to a Canvas.
 		 *
-		 * Overload details:
-		 * 1. Sets the render target to a specified stencil or depth testing with an active Canvas, the stencil buffer or depth buffer must be explicitly enabled in setCanvas via the variants below. Note that no canvas should be active when ''love.graphics.present'' is called. ''love.graphics.present'' is called at the end of love.draw in the default love.run, hence if you activate a canvas using this function, you normally need to deactivate it at some point before ''love.draw'' finishes.
-		 * 2. Resets the render target to the screen, i.e. re-enables drawing to the screen.
-		 * 3. Sets the render target to multiple simultaneous 2D Canvases. All drawing operations until the next ''love.graphics.setCanvas'' call will be redirected to the specified canvases and not shown on the screen. Normally all drawing operations will draw only to the first canvas passed to the function, but that can be changed if a pixel shader is used with the void effect function instead of the regular vec4 effect. All canvas arguments must have the same widths and heights and the same texture type. Not all computers which support Canvases will support multiple render targets. If love.graphics.isSupported('multicanvas') returns true, at least 4 simultaneously active canvases are supported.
-		 * 4. Sets the render target to the specified layer/slice and mipmap level of the given non-2D Canvas. All drawing operations until the next ''love.graphics.setCanvas'' call will be redirected to the Canvas and not shown on the screen.
-		 * 5. Sets the active render target(s) and active stencil and depth buffers based on the specified setup information. All drawing operations until the next ''love.graphics.setCanvas'' call will be redirected to the specified Canvases and not shown on the screen. The RenderTargetSetup parameters can either be a Canvas|[1]|The Canvas to use for this active render target.}} {{param|number|mipmap (1)|The mipmap level to render to, for Canvases with [[Texture:getMipmapCount|mipmaps.}} {{param|number|layer (1)|Only used for Volume and Array-type Canvases. For Array textures this is the array layer to render to. For volume textures this is the depth slice.}} {{param|number|face (1)|Only used for Cubemap-type Canvases. The cube face index to render to (between 1 and 6)}}
-		 *
-		 * @param canvas The new target. Depending on the overload: The new render target.
-		 * @param canvases The mipmap level to render to, for Canvases with mipmaps. (Default: 1.) Depending on the overload: A table specifying the active Canvas(es), their mipmap levels and active layers if applicable, and whether to use a stencil and/or depth buffer.
-		 * @param canvases.1 The Canvas to render to.
-		 * @param canvases.2 An additional Canvas to render to, if multiple simultaneous render targets are wanted. (Default: nil.)
-		 * @param canvases.... Additional Canvases to render to, if multiple simultaneous render targets are wanted.
-		 * @param canvases.stencil Whether an internally managed stencil buffer should be used, if the depthstencil field isn't set. (Default: false.)
-		 * @param canvases.depth Whether an internally managed depth buffer should be used, if the depthstencil field isn't set. (Default: false.)
-		 * @param canvases.depthstencil An optional custom depth/stencil formatted Canvas to use for the depth and/or stencil buffer. (Default: nil.)
-		 * @param setup A table specifying the active Canvas(es), their mipmap levels and active layers if applicable, and whether to use a stencil and/or depth buffer.
-		 * @param setup.1 The Canvas to render to.
-		 * @param setup.2 An additional Canvas to render to, if multiple simultaneous render targets are wanted. (Default: nil.)
-		 * @param setup.... Additional Canvases to render to, if multiple simultaneous render targets are wanted.
-		 * @param setup.stencil Whether an internally managed stencil buffer should be used, if the depthstencil field isn't set. (Default: false.)
-		 * @param setup.depth Whether an internally managed depth buffer should be used, if the depthstencil field isn't set. (Default: false.)
-		 * @param setup.depthstencil An optional custom depth/stencil formatted Canvas to use for the depth and/or stencil buffer. (Default: nil.)
 		 */
 		setCanvas(): void;
+		/**
+		 * Captures drawing operations to a Canvas.
+		 *
+
+		 * @param canvas The new render target.
+		 * @param canvases A table specifying the active Canvas(es), their mipmap levels and active layers if applicable, and whether to use a stencil and/or depth buffer.
+		 */
 		setCanvas(canvas: Canvas, ...canvases: Canvas[]): void;
+		/**
+		 * Captures drawing operations to a Canvas.
+		 *
+
+		 * @param canvases A table specifying the active Canvas(es), their mipmap levels and active layers if applicable, and whether to use a stencil and/or depth buffer.
+		 */
 		setCanvas(canvases: Canvas[]): void;
+		/**
+		 * Captures drawing operations to a Canvas.
+		 *
+
+		 * @param setup A table specifying the active Canvas(es), their mipmap levels and active layers if applicable, and whether to use a stencil and/or depth buffer.
+		 */
 		setCanvas(setup: CanvasSetup): void;
 		/**
 		 * Gets the current target Canvas.
@@ -3050,17 +3409,29 @@ declare global {
 		 *
 		 * The purpose of a Quad is to use a fraction of an image to draw objects, as opposed to drawing entire image. It is most useful for sprite sheets and atlases: in a sprite atlas, multiple sprites reside in same image, quad is used to draw a specific sprite from that image; in animated sprites with all frames residing in the same image, quad is used to draw specific frame from the animation.
 		 *
+
 		 * @param x The top-left position in the Image along the x-axis.
 		 * @param y The top-left position in the Image along the y-axis.
 		 * @param width The width of the Quad in the Image. (Must be greater than 0.)
 		 * @param height The height of the Quad in the Image. (Must be greater than 0.)
 		 * @param image The texture whose width and height will be used as the reference width and height.
-		 * @param textureWidth The reference width, the width of the Image. (Must be greater than 0.)
-		 * @param textureHeight The reference height, the height of the Image. (Must be greater than 0.)
-		 *
 		 * @returns quad — The new Quad.
 		 */
 		newQuad(x: number, y: number, width: number, height: number, image: Image | Canvas): Quad;
+		/**
+		 * Creates a new Quad.
+		 *
+		 * The purpose of a Quad is to use a fraction of an image to draw objects, as opposed to drawing entire image. It is most useful for sprite sheets and atlases: in a sprite atlas, multiple sprites reside in same image, quad is used to draw a specific sprite from that image; in animated sprites with all frames residing in the same image, quad is used to draw specific frame from the animation.
+		 *
+
+		 * @param x The top-left position in the Image along the x-axis.
+		 * @param y The top-left position in the Image along the y-axis.
+		 * @param width The width of the Quad in the Image. (Must be greater than 0.)
+		 * @param height The height of the Quad in the Image. (Must be greater than 0.)
+		 * @param textureWidth The reference width, the width of the Image. (Must be greater than 0.)
+		 * @param textureHeight The reference height, the height of the Image. (Must be greater than 0.)
+		 * @returns quad — The new Quad.
+		 */
 		newQuad(x: number, y: number, width: number, height: number, textureWidth: number, textureHeight: number): Quad;
 		/**
 		 * Creates a new Mesh.
@@ -3069,33 +3440,27 @@ declare global {
 		 *
 		 * In versions prior to 11.0, color and byte component values were within the range of 0 to 255 instead of 0 to 1.
 		 *
-		 * Overload details:
-		 * 1. Creates a standard Mesh with the specified vertices.
-		 * 2. Creates a standard Mesh with the specified number of vertices. Mesh:setVertices or Mesh:setVertex and Mesh:setDrawRange can be used to specify vertex information once the Mesh is created.
-		 * 3. Creates a Mesh with custom vertex attributes and the specified vertex data. The values in each vertex table are in the same order as the vertex attributes in the specified vertex format. If no value is supplied for a specific vertex attribute component, it will be set to a default value of 0 if its data type is 'float', or 1 if its data type is 'byte'. If the data type of an attribute is 'float', components can be in the range 1 to 4, if the data type is 'byte' it must be 4. If a custom vertex attribute uses the name 'VertexPosition', 'VertexTexCoord', or 'VertexColor', then the vertex data for that vertex attribute will be used for the standard vertex positions, texture coordinates, or vertex colors respectively, when drawing the Mesh. Otherwise a Vertex Shader is required in order to make use of the vertex attribute when the Mesh is drawn. A Mesh '''must''' have a 'VertexPosition' attribute in order to be drawn, but it can be attached from a different Mesh via Mesh:attachAttribute. To use a custom named vertex attribute in a Vertex Shader, it must be declared as an attribute variable of the same name. Variables can be sent from Vertex Shader code to Pixel Shader code by making a varying variable. For example: ''Vertex Shader code'' attribute vec2 CoolVertexAttribute; varying vec2 CoolVariable; vec4 position(mat4 transform_projection, vec4 vertex_position) {  CoolVariable = CoolVertexAttribute;  return transform_projection * vertex_position; } ''Pixel Shader code'' varying vec2 CoolVariable; vec4 effect(vec4 color, Image tex, vec2 texcoord, vec2 pixcoord) {  vec4 texcolor = Texel(tex, texcoord + CoolVariable);  return texcolor * color; }
-		 * 4. Creates a Mesh with custom vertex attributes and the specified number of vertices. Each vertex attribute component is initialized to 0 if its data type is 'float', or 1 if its data type is 'byte'. Vertex Shader is required in order to make use of the vertex attribute when the Mesh is drawn. A Mesh '''must''' have a 'VertexPosition' attribute in order to be drawn, but it can be attached from a different Mesh via Mesh:attachAttribute.
-		 * 5. Mesh:setVertices or Mesh:setVertex and Mesh:setDrawRange can be used to specify vertex information once the Mesh is created.
-		 *
-		 * @param vertices The table filled with vertex information tables for each vertex as follows: Depending on the overload: The table filled with vertex information tables for each vertex, in the form of {vertex, ...} where each vertex is a table in the form of {attributecomponent, ...}.
-		 * @param vertices.1 The position of the vertex on the x-axis.
-		 * @param vertices.2 The position of the vertex on the y-axis.
-		 * @param vertices.3 The u texture coordinate of the vertex. Texture coordinates are normally in the range of 1, but can be greater or less (see WrapMode.) (Default: 0.)
-		 * @param vertices.4 The v texture coordinate of the vertex. Texture coordinates are normally in the range of 1, but can be greater or less (see WrapMode.) (Default: 0.)
-		 * @param vertices.5 The red component of the vertex color. (Default: 1.)
-		 * @param vertices.6 The green component of the vertex color. (Default: 1.)
-		 * @param vertices.7 The blue component of the vertex color. (Default: 1.)
-		 * @param vertices.8 The alpha component of the vertex color. (Default: 1.)
-		 * @param vertices.attributecomponent The first component of the first vertex attribute in the vertex.
-		 * @param vertices.... Additional components of all vertex attributes in the vertex.
-		 * @param drawMode How the vertices are used when drawing. The default mode 'fan' is sufficient for simple convex polygons. (Default: 'fan'.) Depending on the overload: The Image or Canvas to use when drawing the Mesh. May be nil to use no texture. (Default: nil.)
+
+		 * @param vertices The table filled with vertex information tables for each vertex as follows:
+		 * @param drawMode How the vertices are used when drawing. The default mode 'fan' is sufficient for simple convex polygons. (Default: 'fan'.)
 		 * @param usage The expected usage of the Mesh. The specified usage mode affects the Mesh's memory usage and performance. (Default: 'dynamic'.)
-		 * @param format A table in the form of {attribute, ...}. Each attribute is a table which specifies a custom vertex attribute used for each vertex.
-		 * @param format.attribute A table containing the attribute's name, it's data type, and the number of components in the attribute, in the form of {name, datatype, components}.
-		 * @param format.... Additional vertex attribute format tables.
-		 *
 		 * @returns mesh — The new mesh.
 		 */
 		newMesh(vertices: MeshVertex[] | number, drawMode?: MeshDrawMode, usage?: MeshUsage): Mesh;
+		/**
+		 * Creates a new Mesh.
+		 *
+		 * Use Mesh:setTexture if the Mesh should be textured with an Image or Canvas when it's drawn.
+		 *
+		 * In versions prior to 11.0, color and byte component values were within the range of 0 to 255 instead of 0 to 1.
+		 *
+
+		 * @param format A table in the form of {attribute, ...}. Each attribute is a table which specifies a custom vertex attribute used for each vertex.
+		 * @param vertices The table filled with vertex information tables for each vertex, in the form of {vertex, ...} where each vertex is a table in the form of {attributecomponent, ...}.
+		 * @param drawMode The Image or Canvas to use when drawing the Mesh. May be nil to use no texture. (Default: nil.)
+		 * @param usage The expected usage of the Mesh. The specified usage mode affects the Mesh's memory usage and performance. (Default: 'dynamic'.)
+		 * @returns mesh — The new mesh.
+		 */
 		newMesh(format: MeshVertexFormat[], vertices: MeshVertex[] | number | Data, drawMode?: MeshDrawMode, usage?: MeshUsage): Mesh;
 		/**
 		 * Creates a new SpriteBatch object.
@@ -3141,13 +3506,15 @@ declare global {
 		/**
 		 * Sets or resets a Shader as the current pixel effect or vertex shaders. All drawing operations until the next ''love.graphics.setShader'' will be drawn using the Shader object specified.
 		 *
-		 * Overload details:
-		 * 1. Sets the current shader to a specified Shader. All drawing operations until the next ''love.graphics.setShader'' will be drawn using the Shader object specified.
-		 * 2. Disables shaders, allowing unfiltered drawing operations.
-		 *
-		 * @param shader The new shader.
 		 */
-		setShader(shader?: Shader): void;
+		setShader(): void;
+/**
+ * Sets or resets a Shader as the current pixel effect or vertex shaders. All drawing operations until the next ''love.graphics.setShader'' will be drawn using the Shader object specified.
+ *
+
+ * @param shader The new shader.
+ */
+		setShader(shader: Shader): void;
 		/**
 		 * Gets the current Shader. Returns nil if none is set.
 		 *
@@ -3167,42 +3534,117 @@ declare global {
 		 *
 		 * When using the default shader anything drawn with this function will be tinted according to the currently selected color. Set it to pure white to preserve the object's original colors.
 		 *
+
 		 * @param image A drawable object.
-		 * @param x The position to draw the object (x-axis). (Default: 0.) Depending on the overload: The position to draw the object (x-axis).
-		 * @param y The position to draw the object (y-axis). (Default: 0.) Depending on the overload: The position to draw the object (y-axis).
-		 * @param angle Orientation (radians). (Default: 0.) Depending on the overload: Scale factor (x-axis). (Default: 1.)
-		 * @param scaleX Scale factor (x-axis). (Default: 1.) Depending on the overload: Scale factor (y-axis). (Default: sx.)
-		 * @param scaleY Scale factor (y-axis). (Default: sx.) Depending on the overload: Origin offset (x-axis). (Default: 0.)
-		 * @param originX Origin offset (x-axis). (Default: 0.) Depending on the overload: Origin offset (y-axis). (Default: 0.)
-		 * @param originY Origin offset (y-axis). (Default: 0.) Depending on the overload: Shearing factor (x-axis). (Default: 0.)
-		 * @param quad The Quad to draw on screen.
+		 * @param x The position to draw the object (x-axis). (Default: 0.)
+		 * @param y The position to draw the object (y-axis). (Default: 0.)
+		 * @param angle Orientation (radians). (Default: 0.)
+		 * @param scaleX Scale factor (x-axis). (Default: 1.)
+		 * @param scaleY Scale factor (y-axis). (Default: sx.)
+		 * @param originX Origin offset (x-axis). (Default: 0.)
+		 * @param originY Origin offset (y-axis). (Default: 0.)
 		 */
 		draw(image: Image, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
+		/**
+		 * Draws a Drawable object (an Image, Canvas, SpriteBatch, ParticleSystem, Mesh, Text object, or Video) on the screen with optional rotation, scaling and shearing.
+		 *
+		 * Objects are drawn relative to their local coordinate system. The origin is by default located at the top left corner of Image and Canvas. All scaling, shearing, and rotation arguments transform the object relative to that point. Also, the position of the origin can be specified on the screen coordinate system.
+		 *
+		 * It's possible to rotate an object about its center by offsetting the origin to the center. Angles must be given in radians for rotation. One can also use a negative scaling factor to flip about its centerline.
+		 *
+		 * Note that the offsets are applied before rotation, scaling, or shearing; scaling and shearing are applied before rotation.
+		 *
+		 * The right and bottom edges of the object are shifted at an angle defined by the shearing factors.
+		 *
+		 * When using the default shader anything drawn with this function will be tinted according to the currently selected color. Set it to pure white to preserve the object's original colors.
+		 *
+
+		 * @param image A drawable object.
+		 * @param quad The Quad to draw on screen.
+		 * @param x The position to draw the object (x-axis).
+		 * @param y The position to draw the object (y-axis).
+		 * @param angle Scale factor (x-axis). (Default: 1.)
+		 * @param scaleX Scale factor (y-axis). (Default: sx.)
+		 * @param scaleY Origin offset (x-axis). (Default: 0.)
+		 * @param originX Origin offset (y-axis). (Default: 0.)
+		 * @param originY Shearing factor (x-axis). (Default: 0.)
+		 */
 		draw(image: Image, quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
 		/**
 		 * Draws a layer of an Array Texture.
 		 *
-		 * Overload details:
-		 * 1. Draws a layer of an Array Texture.
-		 * 2. Draws a layer of an Array Texture using the specified Quad. The specified layer index overrides any layer index set on the Quad via Quad:setLayer.
-		 * 3. Draws a layer of an Array Texture using the specified Transform.
-		 * 4. Draws a layer of an Array Texture using the specified Quad and Transform. In order to use an Array Texture or other non-2D texture types as the main texture in a custom void effect() variant must be used in the pixel shader, and MainTex must be declared as an ArrayImage or sampler2DArray like so: uniform ArrayImage MainTex;.
-		 *
+
 		 * @param image The Array Texture to draw.
 		 * @param layer The index of the layer to use when drawing.
 		 * @param x The position to draw the texture (x-axis). (Default: 0.)
 		 * @param y The position to draw the texture (y-axis). (Default: 0.)
-		 * @param angle Orientation (radians). (Default: 0.) Depending on the overload: Scale factor (x-axis). (Default: 1.)
-		 * @param scaleX Scale factor (x-axis). (Default: 1.) Depending on the overload: Scale factor (y-axis). (Default: sx.)
-		 * @param scaleY Scale factor (y-axis). (Default: sx.) Depending on the overload: Origin offset (x-axis). (Default: 0.)
-		 * @param originX Origin offset (x-axis). (Default: 0.) Depending on the overload: Origin offset (y-axis). (Default: 0.)
-		 * @param originY Origin offset (y-axis). (Default: 0.) Depending on the overload: Shearing factor (x-axis). (Default: 0.)
-		 * @param quad The subsection of the texture's layer to use when drawing.
+		 * @param angle Orientation (radians). (Default: 0.)
+		 * @param scaleX Scale factor (x-axis). (Default: 1.)
+		 * @param scaleY Scale factor (y-axis). (Default: sx.)
+		 * @param originX Origin offset (x-axis). (Default: 0.)
+		 * @param originY Origin offset (y-axis). (Default: 0.)
 		 */
 		drawLayer(image: Image, layer: number, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
+		/**
+		 * Draws a layer of an Array Texture.
+		 *
+
+		 * @param image The Array Texture to draw.
+		 * @param layer The index of the layer to use when drawing.
+		 * @param quad The subsection of the texture's layer to use when drawing.
+		 * @param x The position to draw the texture (x-axis). (Default: 0.)
+		 * @param y The position to draw the texture (y-axis). (Default: 0.)
+		 * @param angle Scale factor (x-axis). (Default: 1.)
+		 * @param scaleX Scale factor (y-axis). (Default: sx.)
+		 * @param scaleY Origin offset (x-axis). (Default: 0.)
+		 * @param originX Origin offset (y-axis). (Default: 0.)
+		 * @param originY Shearing factor (x-axis). (Default: 0.)
+		 */
 		drawLayer(image: Image, layer: number, quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
+		/**
+		 * Draws a Canvas on the screen with optional rotation, scaling, and shearing.
+		 *
+
+		 * @param canvas The Canvas to draw.
+		 * @param x The position to draw the object on the x-axis. (Default: 0.)
+		 * @param y The position to draw the object on the y-axis. (Default: 0.)
+		 * @param angle The orientation in radians. (Default: 0.)
+		 * @param scaleX The scale factor on the x-axis. (Default: 1.)
+		 * @param scaleY The scale factor on the y-axis. (Default: scaleX.)
+		 * @param originX The origin offset on the x-axis. (Default: 0.)
+		 * @param originY The origin offset on the y-axis. (Default: 0.)
+		 */
 		draw(canvas: Canvas, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
+		/**
+		 * Draws a Canvas on the screen with optional rotation, scaling, and shearing.
+		 *
+
+		 * @param canvas The Canvas to draw.
+		 * @param quad The subsection of the drawable to draw.
+		 * @param x The position to draw the object on the x-axis. (Default: 0.)
+		 * @param y The position to draw the object on the y-axis. (Default: 0.)
+		 * @param angle The orientation in radians. (Default: 0.)
+		 * @param scaleX The scale factor on the x-axis. (Default: 1.)
+		 * @param scaleY The scale factor on the y-axis. (Default: scaleX.)
+		 * @param originX The origin offset on the x-axis. (Default: 0.)
+		 * @param originY The origin offset on the y-axis. (Default: 0.)
+		 */
 		draw(canvas: Canvas, quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
+		/**
+		 * Draws a Mesh on the screen with optional rotation, scaling, and shearing.
+		 *
+
+		 * @param mesh The Mesh to draw.
+		 * @param x The position to draw the object on the x-axis. (Default: 0.)
+		 * @param y The position to draw the object on the y-axis. (Default: 0.)
+		 * @param angle The orientation in radians. (Default: 0.)
+		 * @param scaleX The scale factor on the x-axis. (Default: 1.)
+		 * @param scaleY The scale factor on the y-axis. (Default: scaleX.)
+		 * @param originX The origin offset on the x-axis. (Default: 0.)
+		 * @param originY The origin offset on the y-axis. (Default: 0.)
+		 * @param shearX The shearing factor on the x-axis. (Default: 0.)
+		 * @param shearY The shearing factor on the y-axis. (Default: 0.)
+		 */
 		draw(mesh: Mesh, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
 		/**
 		 * Draws many instances of a Mesh with a single draw call, using hardware geometry instancing.
@@ -3224,9 +3666,69 @@ declare global {
 		 * @param shearY Shearing factor (y-axis). (Default: 0.)
 		 */
 		drawInstanced(mesh: Mesh, instanceCount: number, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
+		/**
+		 * Draws a SpriteBatch on the screen with optional rotation, scaling, and shearing.
+		 *
+
+		 * @param batch The SpriteBatch to draw.
+		 * @param x The position to draw the object on the x-axis. (Default: 0.)
+		 * @param y The position to draw the object on the y-axis. (Default: 0.)
+		 * @param angle The orientation in radians. (Default: 0.)
+		 * @param scaleX The scale factor on the x-axis. (Default: 1.)
+		 * @param scaleY The scale factor on the y-axis. (Default: scaleX.)
+		 * @param originX The origin offset on the x-axis. (Default: 0.)
+		 * @param originY The origin offset on the y-axis. (Default: 0.)
+		 * @param shearX The shearing factor on the x-axis. (Default: 0.)
+		 * @param shearY The shearing factor on the y-axis. (Default: 0.)
+		 */
 		draw(batch: SpriteBatch, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
+		/**
+		 * Draws a ParticleSystem on the screen with optional rotation, scaling, and shearing.
+		 *
+
+		 * @param particles The ParticleSystem to draw.
+		 * @param x The position to draw the object on the x-axis. (Default: 0.)
+		 * @param y The position to draw the object on the y-axis. (Default: 0.)
+		 * @param angle The orientation in radians. (Default: 0.)
+		 * @param scaleX The scale factor on the x-axis. (Default: 1.)
+		 * @param scaleY The scale factor on the y-axis. (Default: scaleX.)
+		 * @param originX The origin offset on the x-axis. (Default: 0.)
+		 * @param originY The origin offset on the y-axis. (Default: 0.)
+		 * @param shearX The shearing factor on the x-axis. (Default: 0.)
+		 * @param shearY The shearing factor on the y-axis. (Default: 0.)
+		 */
 		draw(particles: ParticleSystem, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
+		/**
+		 * Draws a Text on the screen with optional rotation, scaling, and shearing.
+		 *
+
+		 * @param text The Text object to draw.
+		 * @param x The position to draw the object on the x-axis. (Default: 0.)
+		 * @param y The position to draw the object on the y-axis. (Default: 0.)
+		 * @param angle The orientation in radians. (Default: 0.)
+		 * @param scaleX The scale factor on the x-axis. (Default: 1.)
+		 * @param scaleY The scale factor on the y-axis. (Default: scaleX.)
+		 * @param originX The origin offset on the x-axis. (Default: 0.)
+		 * @param originY The origin offset on the y-axis. (Default: 0.)
+		 * @param shearX The shearing factor on the x-axis. (Default: 0.)
+		 * @param shearY The shearing factor on the y-axis. (Default: 0.)
+		 */
 		draw(text: Text, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
+		/**
+		 * Draws a Video on the screen with optional rotation, scaling, and shearing.
+		 *
+
+		 * @param video The Video to draw.
+		 * @param x The position to draw the object on the x-axis. (Default: 0.)
+		 * @param y The position to draw the object on the y-axis. (Default: 0.)
+		 * @param angle The orientation in radians. (Default: 0.)
+		 * @param scaleX The scale factor on the x-axis. (Default: 1.)
+		 * @param scaleY The scale factor on the y-axis. (Default: scaleX.)
+		 * @param originX The origin offset on the x-axis. (Default: 0.)
+		 * @param originY The origin offset on the y-axis. (Default: 0.)
+		 * @param shearX The shearing factor on the x-axis. (Default: 0.)
+		 * @param shearY The shearing factor on the y-axis. (Default: 0.)
+		 */
 		draw(video: Video, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
 		}
 
@@ -3395,29 +3897,24 @@ declare global {
 		 *
 		 * Changing the display mode may have side effects: for example, canvases will be cleared. Make sure to save the contents of canvases beforehand or re-draw to them afterward if you need to.
 		 *
-		 * Overload details:
-		 * 1. If fullscreen is enabled and the width or height is not supported (see resize event will be triggered. If the fullscreen type is 'desktop', then the window will be automatically resized to the desktop resolution. Transparent backgrounds are currently not supported.
-		 *
+
 		 * @param settings The settings table with the following optional fields. Any field not filled in will use the current value that would be returned by love.window.getMode.
-		 * @param settings.fullscreen Fullscreen (true), or windowed (false).
-		 * @param settings.fullscreentype The type of fullscreen to use.
-		 * @param settings.vsync True if LÖVE should wait for vsync, false otherwise.
-		 * @param settings.msaa The number of antialiasing samples.
-		 * @param settings.resizable True if the window should be resizable in windowed mode, false otherwise.
-		 * @param settings.borderless True if the window should be borderless in windowed mode, false otherwise.
-		 * @param settings.centered True if the window should be centered in windowed mode, false otherwise.
-		 * @param settings.display The index of the display to show the window in, if multiple monitors are available.
-		 * @param settings.minwidth The minimum width of the window, if it's resizable. Cannot be less than 1.
-		 * @param settings.minheight The minimum height of the window, if it's resizable. Cannot be less than 1.
-		 * @param settings.highdpi True if high-dpi mode should be used on Retina displays in macOS and iOS. Does nothing on non-Retina displays.
-		 * @param settings.x The x-coordinate of the window's position in the specified display.
-		 * @param settings.y The y-coordinate of the window's position in the specified display.
-		 * @param width Window width.
-		 * @param height Window height.
-		 *
 		 * @returns success — True if successful, false otherwise.
 		 */
 		updateMode(this: void, settings: WindowModeSettings): boolean;
+		/**
+		 * Sets the display mode and properties of the window, without modifying unspecified properties.
+		 *
+		 * If width or height is 0, updateMode will use the width and height of the desktop.
+		 *
+		 * Changing the display mode may have side effects: for example, canvases will be cleared. Make sure to save the contents of canvases beforehand or re-draw to them afterward if you need to.
+		 *
+
+		 * @param width Window width.
+		 * @param height Window height.
+		 * @param settings The settings table with the following optional fields. Any field not filled in will use the current value that would be returned by love.window.getMode.
+		 * @returns success — True if successful, false otherwise.
+		 */
 		updateMode(this: void, width: number, height: number, settings?: WindowModeSettings): boolean;
 		/**
 		 * Gets the position of the window on the screen.
@@ -3546,18 +4043,29 @@ declare global {
 		 *
 		 * Most LÖVE functions return values and expect arguments in terms of pixels rather than density-independent units.
 		 *
-		 * Overload details:
-		 * 1. The units of love.graphics.getWidth, love.graphics.getHeight, love.mouse.getPosition, mouse events, love.touch.getPosition, and touch events are always in terms of pixels.
-		 *
+
 		 * @param value A number in density-independent units to convert to pixels.
-		 * @param x The x-axis value of a coordinate in density-independent units to convert to pixels.
-		 * @param y The y-axis value of a coordinate in density-independent units to convert to pixels.
-		 *
 		 * @returns pixelvalue — The converted number, in pixels.
 		 * @returns px — The converted x-axis value of the coordinate, in pixels.
 		 * @returns py — The converted y-axis value of the coordinate, in pixels.
 		 */
 		toPixels(this: void, value: number): number;
+		/**
+		 * Converts a number from density-independent units to pixels.
+		 *
+		 * The pixel density inside the window might be greater (or smaller) than the 'size' of the window. For example on a retina screen in Mac OS X with the highdpi window flag enabled, the window may take up the same physical size as an 800x600 window, but the area inside the window uses 1600x1200 pixels. love.window.toPixels(800) would return 1600 in that case.
+		 *
+		 * This is used to convert coordinates from the size users are expecting them to display at onscreen to pixels. love.window.fromPixels does the opposite. The highdpi window flag must be enabled to use the full pixel density of a Retina screen on Mac OS X and iOS. The flag currently does nothing on Windows and Linux, and on Android it is effectively always enabled.
+		 *
+		 * Most LÖVE functions return values and expect arguments in terms of pixels rather than density-independent units.
+		 *
+
+		 * @param x The x-axis value of a coordinate in density-independent units to convert to pixels.
+		 * @param y The y-axis value of a coordinate in density-independent units to convert to pixels.
+		 * @returns pixelvalue — The converted number, in pixels.
+		 * @returns px — The converted x-axis value of the coordinate, in pixels.
+		 * @returns py — The converted y-axis value of the coordinate, in pixels.
+		 */
 		toPixels(this: void, x: number, y: number): LuaMultiReturn<[number, number]>;
 		/**
 		 * Converts a number from pixels to density-independent units.
@@ -3568,18 +4076,29 @@ declare global {
 		 *
 		 * Most LÖVE functions return values and expect arguments in terms of pixels rather than density-independent units.
 		 *
-		 * Overload details:
-		 * 1. The units of love.graphics.getWidth, love.graphics.getHeight, love.mouse.getPosition, mouse events, love.touch.getPosition, and touch events are always in terms of pixels.
-		 *
+
 		 * @param value A number in pixels to convert to density-independent units.
-		 * @param x The x-axis value of a coordinate in pixels.
-		 * @param y The y-axis value of a coordinate in pixels.
-		 *
 		 * @returns value — The converted number, in density-independent units.
 		 * @returns x — The converted x-axis value of the coordinate, in density-independent units.
 		 * @returns y — The converted y-axis value of the coordinate, in density-independent units.
 		 */
 		fromPixels(this: void, value: number): number;
+		/**
+		 * Converts a number from pixels to density-independent units.
+		 *
+		 * The pixel density inside the window might be greater (or smaller) than the 'size' of the window. For example on a retina screen in Mac OS X with the highdpi window flag enabled, the window may take up the same physical size as an 800x600 window, but the area inside the window uses 1600x1200 pixels. love.window.fromPixels(1600) would return 800 in that case.
+		 *
+		 * This function converts coordinates from pixels to the size users are expecting them to display at onscreen. love.window.toPixels does the opposite. The highdpi window flag must be enabled to use the full pixel density of a Retina screen on Mac OS X and iOS. The flag currently does nothing on Windows and Linux, and on Android it is effectively always enabled.
+		 *
+		 * Most LÖVE functions return values and expect arguments in terms of pixels rather than density-independent units.
+		 *
+
+		 * @param x The x-axis value of a coordinate in pixels.
+		 * @param y The y-axis value of a coordinate in pixels.
+		 * @returns value — The converted number, in density-independent units.
+		 * @returns x — The converted x-axis value of the coordinate, in density-independent units.
+		 * @returns y — The converted y-axis value of the coordinate, in density-independent units.
+		 */
 		fromPixels(this: void, x: number, y: number): LuaMultiReturn<[number, number]>;
 	}
 
@@ -3637,13 +4156,20 @@ declare global {
 		 *
 		 * The quit event is a signal for the event handler to close LÖVE. It's possible to abort the exit process with the love.quit callback.
 		 *
-		 * Overload details:
-		 * 1. Restarts the game without relaunching the executable. This cleanly shuts down the main Lua state instance and creates a brand new one.
-		 *
+
 		 * @param exitStatus The program exit status to use when closing the application. (Default: 0.)
-		 * @param reason The program exit status to use when closing the application. (Default: 0.) Depending on the overload: Tells the default love.run to exit and restart the game without relaunching the executable.
+		 * @returns Always returns true after the quit event is queued.
 		 */
 		quit(this: void, exitStatus?: number): true;
+		/**
+		 * Adds the quit event to the queue.
+		 *
+		 * The quit event is a signal for the event handler to close LÖVE. It's possible to abort the exit process with the love.quit callback.
+		 *
+
+		 * @param reason Tells the default love.run to exit and restart the game without relaunching the executable.
+		 * @returns Always returns true after the restart quit event is queued.
+		 */
 		quit(this: void, reason: "restart"): true;
 	}
 
@@ -3714,20 +4240,32 @@ declare global {
 		 *
 		 * Data:getPointer along with LuaJIT's FFI can be used to manipulate the contents of the ByteData object after it has been created.
 		 *
-		 * Overload details:
-		 * 1. Creates a new ByteData by copying the contents of the specified string.
-		 * 2. Creates a new ByteData by copying from an existing Data object.
-		 * 3. Creates a new empty ByteData with the specific size.
-		 *
-		 * @param size The size in bytes of the new Data object. (Default: data:getSize().) Depending on the overload: The size in bytes of the new Data object.
-		 * @param bytes The byte string to copy. Depending on the overload: The size in bytes of the new Data object.
-		 * @param data The existing Data object to copy.
-		 * @param offset The offset of the subsection to copy, in bytes. (Default: 0.)
-		 *
+
+		 * @param size The size in bytes of the new Data object. (Default: data:getSize().)
 		 * @returns bytedata — The new Data object.
 		 */
 		newByteData(this: void, size: number): ByteData;
+		/**
+		 * Creates a new Data object containing arbitrary bytes.
+		 *
+		 * Data:getPointer along with LuaJIT's FFI can be used to manipulate the contents of the ByteData object after it has been created.
+		 *
+
+		 * @param bytes The size in bytes of the new Data object.
+		 * @returns bytedata — The new Data object.
+		 */
 		newByteData(this: void, bytes: string): ByteData;
+		/**
+		 * Creates a new Data object containing arbitrary bytes.
+		 *
+		 * Data:getPointer along with LuaJIT's FFI can be used to manipulate the contents of the ByteData object after it has been created.
+		 *
+
+		 * @param data The existing Data object to copy.
+		 * @param offset The offset of the subsection to copy, in bytes. (Default: 0.)
+		 * @param size The size in bytes of the new Data object.
+		 * @returns bytedata — The new Data object.
+		 */
 		newByteData(this: void, data: Data, offset?: number, size?: number): ByteData;
 		/**
 		 * Creates a new Data referencing a subsection of an existing Data object.
@@ -3745,85 +4283,157 @@ declare global {
 		/**
 		 * Encode Data or a string to a Data or string in one of the EncodeFormats.
 		 *
+
 		 * @param container What type to return the encoded data as.
 		 * @param format The format of the output data.
 		 * @param source The raw data to encode.
 		 * @param lineLength The maximum line length of the output. Only supported for base64, ignored if 0. (Default: 0.)
-		 *
 		 * @returns encoded — ByteData/string which contains the encoded version of source.
 		 */
 		encode(this: void, container: "string", format: EncodeFormat, source: string | Data, lineLength?: number): string;
+		/**
+		 * Encode Data or a string to a Data or string in one of the EncodeFormats.
+		 *
+
+		 * @param container What type to return the encoded data as.
+		 * @param format The format of the output data.
+		 * @param source The raw data to encode.
+		 * @param lineLength The maximum line length of the output. Only supported for base64, ignored if 0. (Default: 0.)
+		 * @returns encoded — ByteData/string which contains the encoded version of source.
+		 */
 		encode(this: void, container: "data", format: EncodeFormat, source: string | Data, lineLength?: number): ByteData;
 		/**
 		 * Decode Data or a string from any of the EncodeFormats to Data or string.
 		 *
+
 		 * @param container What type to return the decoded data as.
 		 * @param format The format of the input data.
 		 * @param source The raw (encoded) data to decode.
-		 *
 		 * @returns decoded — ByteData/string which contains the decoded version of source.
 		 */
 		decode(this: void, container: "string", format: EncodeFormat, source: string | Data): string;
+		/**
+		 * Decode Data or a string from any of the EncodeFormats to Data or string.
+		 *
+
+		 * @param container What type to return the decoded data as.
+		 * @param format The format of the input data.
+		 * @param source The raw (encoded) data to decode.
+		 * @returns decoded — ByteData/string which contains the decoded version of source.
+		 */
 		decode(this: void, container: "data", format: EncodeFormat, source: string | Data): ByteData;
 		/**
 		 * Compresses a string or data using a specific compression algorithm.
 		 *
+
 		 * @param container What type to return the compressed data as.
-		 * @param format The format to use when compressing the string. Depending on the overload: The format to use when compressing the data.
-		 * @param source The raw (un-compressed) string to compress. Depending on the overload: A Data object containing the raw (un-compressed) data to compress.
+		 * @param format The format to use when compressing the string.
+		 * @param source The raw (un-compressed) string to compress.
 		 * @param level The level of compression to use, between 0 and 9. -1 indicates the default level. The meaning of this argument depends on the compression format being used. (Default: -1.)
-		 *
-		 * @returns compressedData — CompressedData/string which contains the compressed version of rawstring. Depending on the overload: CompressedData/string which contains the compressed version of data.
+		 * @returns compressedData — CompressedData/string which contains the compressed version of rawstring.
 		 */
 		compress(this: void, container: "string", format: CompressionFormat, source: string | Data, level?: number): string;
+		/**
+		 * Compresses a string or data using a specific compression algorithm.
+		 *
+
+		 * @param container What type to return the compressed data as.
+		 * @param format The format to use when compressing the data.
+		 * @param source A Data object containing the raw (un-compressed) data to compress.
+		 * @param level The level of compression to use, between 0 and 9. -1 indicates the default level. The meaning of this argument depends on the compression format being used. (Default: -1.)
+		 * @returns CompressedData/string which contains the compressed version of data.
+		 */
 		compress(this: void, container: "data", format: CompressionFormat, source: string | Data, level?: number): CompressedData;
 		/**
 		 * Decompresses a CompressedData or previously compressed string or Data object.
 		 *
+
 		 * @param container What type to return the decompressed data as.
 		 * @param compressed The compressed data to decompress.
-		 * @param format The format that was used to compress the given string. Depending on the overload: The format that was used to compress the given data.
-		 * @param source A string containing data previously compressed with love.data.compress. Depending on the overload: A Data object containing data previously compressed with love.data.compress.
-		 *
 		 * @returns decompressedData — Data/string containing the raw decompressed data.
 		 */
 		decompress(this: void, container: "string", compressed: CompressedData): string;
+		/**
+		 * Decompresses a CompressedData or previously compressed string or Data object.
+		 *
+
+		 * @param container What type to return the decompressed data as.
+		 * @param compressed The compressed data to decompress.
+		 * @returns decompressedData — Data/string containing the raw decompressed data.
+		 */
 		decompress(this: void, container: "data", compressed: CompressedData): ByteData;
+		/**
+		 * Decompresses a CompressedData or previously compressed string or Data object.
+		 *
+
+		 * @param container What type to return the decompressed data as.
+		 * @param format The format that was used to compress the given data.
+		 * @param source A Data object containing data previously compressed with love.data.compress.
+		 * @returns decompressedData — Data/string containing the raw decompressed data.
+		 */
 		decompress(this: void, container: "string", format: CompressionFormat, source: string | Data): string;
+		/**
+		 * Decompresses a CompressedData or previously compressed string or Data object.
+		 *
+
+		 * @param container What type to return the decompressed data as.
+		 * @param format The format that was used to compress the given data.
+		 * @param source A Data object containing data previously compressed with love.data.compress.
+		 * @returns decompressedData — Data/string containing the raw decompressed data.
+		 */
 		decompress(this: void, container: "data", format: CompressionFormat, source: string | Data): ByteData;
 		/**
 		 * Packs (serializes) simple Lua values.
 		 *
 		 * This function behaves the same as Lua 5.3's string.pack.
 		 *
-		 * Overload details:
-		 * 1. Packing integers with values greater than 2^52 is not supported, as Lua 5.1 cannot represent those values in its number type.
-		 *
+
 		 * @param container What type to return the encoded data as.
 		 * @param format A string determining how the values are packed. Follows the rules of Lua 5.3's string.pack format strings.
 		 * @param values The first value (number, boolean, or string) to serialize.
-		 *
 		 * @returns data — Data/string which contains the serialized data.
 		 */
 		pack(this: void, container: "string", format: string, ...values: any[]): string;
+		/**
+		 * Packs (serializes) simple Lua values.
+		 *
+		 * This function behaves the same as Lua 5.3's string.pack.
+		 *
+
+		 * @param container What type to return the encoded data as.
+		 * @param format A string determining how the values are packed. Follows the rules of Lua 5.3's string.pack format strings.
+		 * @param values The first value (number, boolean, or string) to serialize.
+		 * @returns data — Data/string which contains the serialized data.
+		 */
 		pack(this: void, container: "data", format: string, ...values: any[]): ByteData;
 		/**
 		 * Unpacks (deserializes) a byte-string or Data into simple Lua values.
 		 *
 		 * This function behaves the same as Lua 5.3's string.unpack.
 		 *
-		 * Overload details:
-		 * 1. Unpacking integers with values greater than 2^52 is not supported, as Lua 5.1 cannot represent those values in its number type.
-		 *
+
 		 * @param format A string determining how the values were packed. Follows the rules of Lua 5.3's string.pack format strings.
-		 * @param source A string containing the packed (serialized) data. Depending on the overload: A Data object containing the packed (serialized) data.
-		 * @param position Where to start reading in the string. Negative values can be used to read relative from the end of the string. (Default: 1.) Depending on the overload: 1-based index indicating where to start reading in the Data. Negative values can be used to read relative from the end of the Data object. (Default: 1.)
-		 *
+		 * @param source A string containing the packed (serialized) data.
+		 * @param position Where to start reading in the string. Negative values can be used to read relative from the end of the string. (Default: 1.)
 		 * @returns v1 — The first value (number, boolean, or string) that was unpacked.
 		 * @returns ... — Additional unpacked values.
-		 * @returns index — The index of the first unread byte in the data string. Depending on the overload: The 1-based index of the first unread byte in the Data.
+		 * @returns index — The index of the first unread byte in the data string.
 		 */
-		unpack(this: void, format: string, source: string | Data, position?: number): LuaMultiReturn<any[]>;
+		unpack(this: void, format: string, source: string, position?: number): LuaMultiReturn<any[]>;
+/**
+ * Unpacks (deserializes) a byte-string or Data into simple Lua values.
+ *
+ * This function behaves the same as Lua 5.3's string.unpack.
+ *
+
+ * @param format A string determining how the values were packed. Follows the rules of Lua 5.3's string.pack format strings.
+ * @param source A Data object containing the packed (serialized) data.
+ * @param position 1-based index indicating where to start reading in the Data. Negative values can be used to read relative from the end of the Data object. (Default: 1.)
+ * @returns v1 — The first value (number, boolean, or string) that was unpacked.
+ * @returns ... — Additional unpacked values.
+ * @returns The 1-based index of the first unread byte in the Data.
+ */
+		unpack(this: void, format: string, source: Data, position?: number): LuaMultiReturn<any[]>;
 		/**
 		 * Gets the size in bytes that a given format used with love.data.pack will use.
 		 *
@@ -3840,15 +4450,21 @@ declare global {
 		/**
 		 * Compute the message digest of a string using a specified hash algorithm.
 		 *
-		 * Overload details:
-		 * 1. To return the hex string representation of the hash, use love.data.encode hexDigestString = love.data.encode('string', 'hex', love.data.hash(algo, data))
-		 *
+
 		 * @param hashFunction Hash algorithm to use.
-		 * @param source String to hash. Depending on the overload: Data to hash.
-		 *
+		 * @param source String to hash.
 		 * @returns rawdigest — Raw message digest string.
 		 */
-		hash(this: void, hashFunction: HashFunction, source: string | Data): string;
+		hash(this: void, hashFunction: HashFunction, source: string): string;
+/**
+ * Compute the message digest of a string using a specified hash algorithm.
+ *
+
+ * @param hashFunction Hash algorithm to use.
+ * @param source Data to hash.
+ * @returns rawdigest — Raw message digest string.
+ */
+		hash(this: void, hashFunction: HashFunction, source: Data): string;
 	}
 	/** Data representing the contents of a file.
 	 */
@@ -4030,28 +4646,50 @@ declare global {
 		/**
 		 * Gets the width of the CompressedImageData.
 		 *
-		 * @param mipmap A mipmap level. Must be in the range of CompressedImageData:getMipmapCount().
-		 *
-		 * @returns width — The width of the CompressedImageData. Depending on the overload: The width of a specific mipmap level of the CompressedImageData.
+
+		 * @returns width — The width of the CompressedImageData.
 		 */
-		getWidth(mipmap?: number): number;
+		getWidth(): number;
+/**
+ * Gets the width of the CompressedImageData.
+ *
+
+ * @param mipmap A mipmap level. Must be in the range of CompressedImageData:getMipmapCount().
+ * @returns The width of a specific mipmap level of the CompressedImageData.
+ */
+		getWidth(mipmap: number): number;
 		/**
 		 * Gets the height of the CompressedImageData.
 		 *
-		 * @param mipmap A mipmap level. Must be in the range of CompressedImageData:getMipmapCount().
-		 *
-		 * @returns height — The height of the CompressedImageData. Depending on the overload: The height of a specific mipmap level of the CompressedImageData.
+
+		 * @returns height — The height of the CompressedImageData.
 		 */
-		getHeight(mipmap?: number): number;
+		getHeight(): number;
+/**
+ * Gets the height of the CompressedImageData.
+ *
+
+ * @param mipmap A mipmap level. Must be in the range of CompressedImageData:getMipmapCount().
+ * @returns The height of a specific mipmap level of the CompressedImageData.
+ */
+		getHeight(mipmap: number): number;
 		/**
 		 * Gets the width and height of the CompressedImageData.
 		 *
-		 * @param mipmap A mipmap level. Must be in the range of CompressedImageData:getMipmapCount().
-		 *
-		 * @returns width — The width of the CompressedImageData. Depending on the overload: The width of a specific mipmap level of the CompressedImageData.
-		 * @returns height — The height of the CompressedImageData. Depending on the overload: The height of a specific mipmap level of the CompressedImageData.
+
+		 * @returns width — The width of the CompressedImageData.
+		 * @returns height — The height of the CompressedImageData.
 		 */
-		getDimensions(mipmap?: number): LuaMultiReturn<[number, number]>;
+		getDimensions(): LuaMultiReturn<[number, number]>;
+/**
+ * Gets the width and height of the CompressedImageData.
+ *
+
+ * @param mipmap A mipmap level. Must be in the range of CompressedImageData:getMipmapCount().
+ * @returns The width of a specific mipmap level of the CompressedImageData.
+ * @returns The height of a specific mipmap level of the CompressedImageData.
+ */
+		getDimensions(mipmap: number): LuaMultiReturn<[number, number]>;
 		/**
 		 * Gets the number of mipmap levels in the CompressedImageData. The base mipmap level (original image) is included in the count.
 		 *
@@ -4075,16 +4713,29 @@ declare global {
 		/**
 		 * Creates a new ImageData object.
 		 *
+
 		 * @param width The width of the ImageData.
 		 * @param height The height of the ImageData.
 		 * @param format The pixel format of the ImageData. (Default: 'rgba8'.)
-		 * @param data Optional raw byte data to load into the ImageData, in the format specified by ''format''. (Default: nil.) Depending on the overload: The data to load into the ImageData (RGBA bytes, left to right and top to bottom).
-		 * @param filename The filename of the image file.
-		 *
-		 * @returns imageData — The new blank ImageData object. Each pixel's color values, (including the alpha values!) will be set to zero. Depending on the overload: The new ImageData object.
+		 * @param data Optional raw byte data to load into the ImageData, in the format specified by ''format''. (Default: nil.)
+		 * @returns imageData — The new blank ImageData object. Each pixel's color values, (including the alpha values!) will be set to zero.
 		 */
 		newImageData(this: void, width: number, height: number, format?: ImagePixelFormat, data?: string | FileData): ImageData;
+		/**
+		 * Creates a new ImageData object.
+		 *
+
+		 * @param filename The filename of the image file.
+		 * @returns The new ImageData object.
+		 */
 		newImageData(this: void, filename: string): ImageData;
+		/**
+		 * Creates a new ImageData object.
+		 *
+
+		 * @param data The data to load into the ImageData (RGBA bytes, left to right and top to bottom).
+		 * @returns The new ImageData object.
+		 */
 		newImageData(this: void, data: FileData): ImageData;
 		/**
 		 * Create a new CompressedImageData object from a compressed image file. LÖVE supports several compressed texture formats, enumerated in the CompressedImageFormat page.
@@ -4287,35 +4938,44 @@ declare global {
 		/**
 		 * Creates a new TrueType Rasterizer.
 		 *
-		 * Overload details:
-		 * 1. Create a TrueTypeRasterizer with the default font.
-		 * 2. Create a TrueTypeRasterizer with custom font.
-		 *
+
 		 * @param size The font size. (Default: 12.)
 		 * @param hinting True Type hinting mode. (Default: 'normal'.)
 		 * @param dpiScale The font DPI scale. (Default: love.window.getDPIScale().)
-		 * @param filenameOrData Path to font file. Depending on the overload: File data containing font.
-		 *
 		 * @returns rasterizer — The rasterizer.
 		 */
 		newTrueTypeRasterizer(this: void, size?: number, hinting?: "normal" | "light" | "mono" | "none", dpiScale?: number): Rasterizer;
+		/**
+		 * Creates a new TrueType Rasterizer.
+		 *
+
+		 * @param filenameOrData File data containing font.
+		 * @param size The font size. (Default: 12.)
+		 * @param hinting True Type hinting mode. (Default: 'normal'.)
+		 * @param dpiScale The font DPI scale. (Default: love.window.getDPIScale().)
+		 * @returns rasterizer — The rasterizer.
+		 */
 		newTrueTypeRasterizer(this: void, filenameOrData: string | Data, size?: number, hinting?: "normal" | "light" | "mono" | "none", dpiScale?: number): Rasterizer;
 		/**
 		 * Creates a new Rasterizer.
 		 *
-		 * Overload details:
-		 * 1. Create a TrueTypeRasterizer with the default font.
-		 * 2. Create a TrueTypeRasterizer with custom font.
-		 * 3. Creates a new BMFont Rasterizer.
-		 *
+
 		 * @param size The font size. (Default: 12.)
 		 * @param hinting True Type hinting mode. (Default: 'normal'.)
-		 * @param dpiScale The font DPI scale. (Default: love.window.getDPIScale().) Depending on the overload: DPI scale. (Default: 1.)
-		 * @param filenameOrData Path to font file. Depending on the overload: File data containing font.
-		 *
+		 * @param dpiScale The font DPI scale. (Default: love.window.getDPIScale().)
 		 * @returns rasterizer — The rasterizer.
 		 */
 		newRasterizer(this: void, size?: number, hinting?: "normal" | "light" | "mono" | "none", dpiScale?: number): Rasterizer;
+		/**
+		 * Creates a new Rasterizer.
+		 *
+
+		 * @param filenameOrData File data containing font.
+		 * @param size The font size. (Default: 12.)
+		 * @param hinting True Type hinting mode. (Default: 'normal'.)
+		 * @param dpiScale DPI scale. (Default: 1.)
+		 * @returns rasterizer — The rasterizer.
+		 */
 		newRasterizer(this: void, filenameOrData: string | Data, size?: number, hinting?: "normal" | "light" | "mono" | "none", dpiScale?: number): Rasterizer;
 		/**
 		 * Creates a new GlyphData.
@@ -4381,14 +5041,19 @@ declare global {
 		/**
 		 * Sets the value of the sample-point at the specified position. For stereo SoundData objects, the data from the left and right channels are interleaved in that order.
 		 *
-		 * Overload details:
-		 * 1. Sets the value of a sample using an explicit sample index instead of interleaving them in the sample position parameter.
-		 *
+
 		 * @param index An integer value specifying the position of the sample (starting at 0).
 		 * @param sample The normalized samplepoint (range -1.0 to 1.0).
-		 * @param channel The index of the channel to set within the given sample.
 		 */
 		setSample(index: number, sample: number): void;
+		/**
+		 * Sets the value of the sample-point at the specified position. For stereo SoundData objects, the data from the left and right channels are interleaved in that order.
+		 *
+
+		 * @param index An integer value specifying the position of the sample (starting at 0).
+		 * @param channel The index of the channel to set within the given sample.
+		 * @param sample The normalized samplepoint (range -1.0 to 1.0).
+		 */
 		setSample(index: number, channel: number, sample: number): void;
 	}
 	/** An object which can gradually decode a sound file.
@@ -4448,33 +5113,65 @@ declare global {
 		/**
 		 * Attempts to find a decoder for the encoded sound data in the specified file.
 		 *
+
 		 * @param filename The filename of the file with encoded sound data.
 		 * @param bufferSize The size of each decoded chunk, in bytes. (Default: 2048.)
-		 * @param data The file with encoded sound data. Depending on the overload: The filename of the file with encoded sound data.
-		 *
 		 * @returns decoder — A new Decoder object.
 		 */
 		newDecoder(this: void, filename: string, bufferSize?: number): Decoder;
+		/**
+		 * Attempts to find a decoder for the encoded sound data in the specified file.
+		 *
+
+		 * @param data The filename of the file with encoded sound data.
+		 * @param bufferSize The size of each decoded chunk, in bytes. (Default: 2048.)
+		 * @returns decoder — A new Decoder object.
+		 */
 		newDecoder(this: void, data: FileData, bufferSize?: number): Decoder;
 		/**
 		 * Creates new SoundData from a filepath, File, or Decoder. It's also possible to create SoundData with a custom sample rate, channel and bit depth.
 		 *
 		 * The sound data will be decoded to the memory in a raw format. It is recommended to create only short sounds like effects, as a 3 minute song uses 30 MB of memory this way.
 		 *
+
 		 * @param samples Total number of samples.
 		 * @param sampleRate Number of samples per second (Default: 44100.)
 		 * @param bitDepth Bits per sample (8 or 16). (Default: 16.)
 		 * @param channels Either 1 for mono or 2 for stereo. (Default: 2.)
-		 * @param filename The file name of the file to load.
-		 * @param bufferSize Number of samples per second (Default: 44100.)
-		 * @param data The file name of the file to load. Depending on the overload: A File pointing to an audio file. Depending on the overload: Decode data from this Decoder until EOF.
-		 * @param decoder Decode data from this Decoder until EOF.
-		 *
 		 * @returns soundData — A new SoundData object.
 		 */
 		newSoundData(this: void, samples: number, sampleRate?: number, bitDepth?: 8 | 16, channels?: number): SoundData;
+		/**
+		 * Creates new SoundData from a filepath, File, or Decoder. It's also possible to create SoundData with a custom sample rate, channel and bit depth.
+		 *
+		 * The sound data will be decoded to the memory in a raw format. It is recommended to create only short sounds like effects, as a 3 minute song uses 30 MB of memory this way.
+		 *
+
+		 * @param filename The file name of the file to load.
+		 * @param bufferSize Number of samples per second (Default: 44100.)
+		 * @returns soundData — A new SoundData object.
+		 */
 		newSoundData(this: void, filename: string, bufferSize?: number): SoundData;
+		/**
+		 * Creates new SoundData from a filepath, File, or Decoder. It's also possible to create SoundData with a custom sample rate, channel and bit depth.
+		 *
+		 * The sound data will be decoded to the memory in a raw format. It is recommended to create only short sounds like effects, as a 3 minute song uses 30 MB of memory this way.
+		 *
+
+		 * @param data Decode data from this Decoder until EOF.
+		 * @param bufferSize Number of samples per second (Default: 44100.)
+		 * @returns soundData — A new SoundData object.
+		 */
 		newSoundData(this: void, data: FileData, bufferSize?: number): SoundData;
+		/**
+		 * Creates new SoundData from a filepath, File, or Decoder. It's also possible to create SoundData with a custom sample rate, channel and bit depth.
+		 *
+		 * The sound data will be decoded to the memory in a raw format. It is recommended to create only short sounds like effects, as a 3 minute song uses 30 MB of memory this way.
+		 *
+
+		 * @param decoder Decode data from this Decoder until EOF.
+		 * @returns soundData — A new SoundData object.
+		 */
 		newSoundData(this: void, decoder: Decoder): SoundData;
 	}
 	/** A random number generation object which has its own random state.
@@ -4483,17 +5180,26 @@ declare global {
 		/**
 		 * Generates a pseudo-random number in a platform independent manner.
 		 *
-		 * Overload details:
-		 * 1. Get uniformly distributed pseudo-random number within 1.
-		 * 2. Get uniformly distributed pseudo-random integer number within max.
-		 *
-		 * @param upper The maximum possible value it should return.
-		 * @param lower The minimum possible value it should return.
-		 *
-		 * @returns number — The pseudo-random number. Depending on the overload: The pseudo-random integer number.
+
+		 * @returns number — The pseudo-random number.
 		 */
 		random(): number;
+		/**
+		 * Generates a pseudo-random number in a platform independent manner.
+		 *
+
+		 * @param upper The maximum possible value it should return.
+		 * @returns The pseudo-random integer number.
+		 */
 		random(upper: number): number;
+		/**
+		 * Generates a pseudo-random number in a platform independent manner.
+		 *
+
+		 * @param lower The minimum possible value it should return.
+		 * @param upper The maximum possible value it should return.
+		 * @returns The pseudo-random integer number.
+		 */
 		random(lower: number, upper: number): number;
 		/**
 		 * Get a normally distributed pseudo random number.
@@ -4507,15 +5213,17 @@ declare global {
 		/**
 		 * Sets the seed of the random number generator using the specified integer number.
 		 *
-		 * Overload details:
-		 * 1. Due to Lua's use of double-precision floating point numbers, values above 2^53 cannot be accurately represented. Use the other variant of this function if your seed will have a larger value.
-		 * 2. Combines two 32-bit integer numbers into a 64-bit integer value and sets the seed of the random number generator using the value.
-		 *
+
 		 * @param seed The integer number with which you want to seed the randomization. Must be within the range of 2^53.
+		 */
+		setSeed(seed: number): void;
+		/**
+		 * Sets the seed of the random number generator using the specified integer number.
+		 *
+
 		 * @param low The lower 32 bits of the seed value. Must be within the range of 2^32 - 1.
 		 * @param high The higher 32 bits of the seed value. Must be within the range of 2^32 - 1.
 		 */
-		setSeed(seed: number): void;
 		setSeed(low: number, high: number): void;
 		/**
 		 * Gets the seed of the random number generator object.
@@ -4640,12 +5348,19 @@ declare global {
 		/**
 		 * Directly sets the Transform's internal 4x4 transformation matrix.
 		 *
+
 		 * @param layout How to interpret the matrix element arguments (row-major or column-major).
-		 * @param elements A flat table containing the 16 matrix elements. Depending on the overload: A table of 4 tables, with each sub-table containing 4 matrix elements. Depending on the overload: How to interpret the matrix element arguments (row-major or column-major).
-		 *
+		 * @param elements A flat table containing the 16 matrix elements.
 		 * @returns transform — The Transform object the method was called on. Allows easily chaining Transform methods.
 		 */
 		setMatrix(layout: "row" | "column", elements: number[] | number[][]): Transform;
+		/**
+		 * Directly sets the Transform's internal 4x4 transformation matrix.
+		 *
+
+		 * @param elements A table of 4 tables, with each sub-table containing 4 matrix elements.
+		 * @returns transform — The Transform object the method was called on. Allows easily chaining Transform methods.
+		 */
 		setMatrix(elements: number[] | number[][]): Transform;
 		/**
 		 * Gets the internal 4x4 transformation matrix stored by this Transform. The matrix is returned in row-major order.
@@ -4826,48 +5541,62 @@ declare global {
 		/**
 		 * Creates a new RandomGenerator object which is completely independent of other RandomGenerator objects and random functions.
 		 *
-		 * Overload details:
-		 * 1. See RandomGenerator:setSeed.
-		 *
+
 		 * @param seed The initial seed number to use for this object.
-		 * @param low The lower 32 bits of the seed number to use for this object.
-		 * @param high The higher 32 bits of the seed number to use for this object.
-		 *
 		 * @returns rng — The new Random Number Generator object.
 		 */
 		newRandomGenerator(this: void, seed?: number): RandomGenerator;
+		/**
+		 * Creates a new RandomGenerator object which is completely independent of other RandomGenerator objects and random functions.
+		 *
+
+		 * @param low The lower 32 bits of the seed number to use for this object.
+		 * @param high The higher 32 bits of the seed number to use for this object.
+		 * @returns rng — The new Random Number Generator object.
+		 */
 		newRandomGenerator(this: void, low: number, high: number): RandomGenerator;
 		/**
 		 * Creates a new Transform object.
 		 *
-		 * Overload details:
-		 * 1. Creates a Transform with no transformations applied. Call methods on the returned object to apply transformations.
-		 * 2. Creates a Transform with the specified transformation applied on creation.
-		 *
-		 * @param x The position of the new Transform on the x-axis.
-		 * @param y The position of the new Transform on the y-axis.
-		 * @param angle The orientation of the new Transform in radians. (Default: 0.)
-		 * @param scaleX Scale factor on the x-axis. (Default: 1.)
-		 * @param scaleY Scale factor on the y-axis. (Default: sx.)
-		 * @param originX Origin offset on the x-axis. (Default: 0.)
-		 * @param originY Origin offset on the y-axis. (Default: 0.)
-		 * @param shearX Shearing / skew factor on the x-axis. (Default: 0.)
-		 * @param shearY Shearing / skew factor on the y-axis. (Default: 0.)
-		 *
+
 		 * @returns transform — The new Transform object.
 		 */
-		newTransform(this: void, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): Transform;
+		newTransform(this: void): Transform;
+/**
+ * Creates a new Transform object.
+ *
+
+ * @param x The position of the new Transform on the x-axis.
+ * @param y The position of the new Transform on the y-axis.
+ * @param angle The orientation of the new Transform in radians. (Default: 0.)
+ * @param scaleX Scale factor on the x-axis. (Default: 1.)
+ * @param scaleY Scale factor on the y-axis. (Default: sx.)
+ * @param originX Origin offset on the x-axis. (Default: 0.)
+ * @param originY Origin offset on the y-axis. (Default: 0.)
+ * @param shearX Shearing / skew factor on the x-axis. (Default: 0.)
+ * @param shearY Shearing / skew factor on the y-axis. (Default: 0.)
+ * @returns transform — The new Transform object.
+ */
+		newTransform(this: void, x: number, y: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): Transform;
 		/**
 		 * Creates a new BezierCurve object.
 		 *
 		 * The number of vertices in the control polygon determines the degree of the curve, e.g. three vertices define a quadratic (degree 2) Bézier curve, four vertices define a cubic (degree 3) Bézier curve, etc.
 		 *
+
 		 * @param vertices The vertices of the control polygon as a table in the form of {x1, y1, x2, y2, x3, y3, ...}.
-		 * @param coordinates The vertices of the control polygon as a table in the form of {x1, y1, x2, y2, x3, y3, ...}.
-		 *
 		 * @returns curve — A Bézier curve object.
 		 */
 		newBezierCurve(this: void, vertices: number[]): BezierCurve;
+		/**
+		 * Creates a new BezierCurve object.
+		 *
+		 * The number of vertices in the control polygon determines the degree of the curve, e.g. three vertices define a quadratic (degree 2) Bézier curve, four vertices define a cubic (degree 3) Bézier curve, etc.
+		 *
+
+		 * @param coordinates The vertices of the control polygon as a table in the form of {x1, y1, x2, y2, x3, y3, ...}.
+		 * @returns curve — A Bézier curve object.
+		 */
 		newBezierCurve(this: void, ...coordinates: number[]): BezierCurve;
 		/**
 		 * Generates a Simplex or Perlin noise value in 1-4 dimensions. The return value will always be the same, given the same arguments.
@@ -4876,41 +5605,116 @@ declare global {
 		 *
 		 * There are many webpages which discuss Perlin and Simplex noise in detail.
 		 *
-		 * Overload details:
-		 * 1. Generates Simplex noise from 1 dimension.
-		 * 2. Generates Simplex noise from 2 dimensions.
-		 * 3. Generates Perlin noise (Simplex noise in version 0.9.2 and older) from 3 dimensions.
-		 * 4. Generates Perlin noise (Simplex noise in version 0.9.2 and older) from 4 dimensions.
-		 *
-		 * @param x The number used to generate the noise value. Depending on the overload: The first value of the 2-dimensional vector used to generate the noise value. Depending on the overload: The first value of the 3-dimensional vector used to generate the noise value. Depending on the overload: The first value of the 4-dimensional vector used to generate the noise value.
-		 * @param y The second value of the 2-dimensional vector used to generate the noise value. Depending on the overload: The second value of the 3-dimensional vector used to generate the noise value. Depending on the overload: The second value of the 4-dimensional vector used to generate the noise value.
-		 * @param z The third value of the 3-dimensional vector used to generate the noise value. Depending on the overload: The third value of the 4-dimensional vector used to generate the noise value.
-		 * @param w The fourth value of the 4-dimensional vector used to generate the noise value.
-		 *
+
+		 * @param x The number used to generate the noise value.
 		 * @returns value — The noise value in the range of 1.
 		 */
-		noise(this: void, x: number, y?: number, z?: number, w?: number): number;
-		/** Deprecated alias of love.data.compress. */
+		noise(this: void, x: number): number;
+/**
+ * Generates a Simplex or Perlin noise value in 1-4 dimensions. The return value will always be the same, given the same arguments.
+ *
+ * Simplex noise is closely related to Perlin noise. It is widely used for procedural content generation.
+ *
+ * There are many webpages which discuss Perlin and Simplex noise in detail.
+ *
+
+ * @param x The first value of the 2-dimensional vector used to generate the noise value.
+ * @param y The second value of the 2-dimensional vector used to generate the noise value.
+ * @returns value — The noise value in the range of 1.
+ */
+		noise(this: void, x: number, y: number): number;
+/**
+ * Generates a Simplex or Perlin noise value in 1-4 dimensions. The return value will always be the same, given the same arguments.
+ *
+ * Simplex noise is closely related to Perlin noise. It is widely used for procedural content generation.
+ *
+ * There are many webpages which discuss Perlin and Simplex noise in detail.
+ *
+
+ * @param x The first value of the 3-dimensional vector used to generate the noise value.
+ * @param y The second value of the 3-dimensional vector used to generate the noise value.
+ * @param z The third value of the 3-dimensional vector used to generate the noise value.
+ * @returns value — The noise value in the range of 1.
+ */
+		noise(this: void, x: number, y: number, z: number): number;
+/**
+ * Generates a Simplex or Perlin noise value in 1-4 dimensions. The return value will always be the same, given the same arguments.
+ *
+ * Simplex noise is closely related to Perlin noise. It is widely used for procedural content generation.
+ *
+ * There are many webpages which discuss Perlin and Simplex noise in detail.
+ *
+
+ * @param x The first value of the 4-dimensional vector used to generate the noise value.
+ * @param y The second value of the 4-dimensional vector used to generate the noise value.
+ * @param z The third value of the 4-dimensional vector used to generate the noise value.
+ * @param w The fourth value of the 4-dimensional vector used to generate the noise value.
+ * @returns value — The noise value in the range of 1.
+ */
+		noise(this: void, x: number, y: number, z: number, w: number): number;
+		/**
+		 * Deprecated alias of love.data.compress.
+		 *
+
+		 * @param container The type of value to return.
+		 * @param format The compression format to use.
+		 * @param source The uncompressed source data.
+		 * @param level The compression level, from 0 to 9, or -1 for the default level.
+		 * @returns The compressed data as a string.
+		 */
 		compress(this: void, container: "string", format: CompressionFormat, source: string | Data, level?: number): string;
+		/**
+		 * Deprecated alias of love.data.compress.
+		 *
+
+		 * @param container The type of value to return.
+		 * @param format The compression format to use.
+		 * @param source The uncompressed source data.
+		 * @param level The compression level, from 0 to 9, or -1 for the default level.
+		 * @returns The compressed data as a CompressedData object.
+		 */
 		compress(this: void, container: "data", format: CompressionFormat, source: string | Data, level?: number): CompressedData;
-		/** Deprecated alias of love.data.decompress. */
+		/**
+		 * Deprecated alias of love.data.decompress.
+		 *
+
+		 * @param container The type of value to return.
+		 * @param compressed The compressed data to decompress.
+		 * @returns The decompressed data as a string.
+		 */
 		decompress(this: void, container: "string", compressed: CompressedData): string;
+		/**
+		 * Deprecated alias of love.data.decompress.
+		 *
+
+		 * @param container The type of value to return.
+		 * @param compressed The compressed data to decompress.
+		 * @returns The decompressed data as a ByteData object.
+		 */
 		decompress(this: void, container: "data", compressed: CompressedData): ByteData;
 		/**
 		 * Generates a pseudo-random number in a platform independent manner. The default love.run seeds this function at startup, so you generally don't need to seed it yourself.
 		 *
-		 * Overload details:
-		 * 1. Get uniformly distributed pseudo-random real number within 1.
-		 * 2. Get a uniformly distributed pseudo-random integer within max.
-		 * 3. Get uniformly distributed pseudo-random integer within max.
-		 *
-		 * @param upper The maximum possible value it should return.
-		 * @param lower The minimum possible value it should return.
-		 *
-		 * @returns number — The pseudo-random number. Depending on the overload: The pseudo-random integer number.
+
+		 * @returns number — The pseudo-random number.
 		 */
 		random(this: void): number;
+		/**
+		 * Generates a pseudo-random number in a platform independent manner. The default love.run seeds this function at startup, so you generally don't need to seed it yourself.
+		 *
+
+		 * @param upper The maximum possible value it should return.
+		 * @returns The pseudo-random integer number.
+		 */
 		random(this: void, upper: number): number;
+		/**
+		 * Generates a pseudo-random number in a platform independent manner. The default love.run seeds this function at startup, so you generally don't need to seed it yourself.
+		 *
+
+		 * @param lower The minimum possible value it should return.
+		 * @param upper The maximum possible value it should return.
+		 * @returns The pseudo-random integer number.
+		 */
 		random(this: void, lower: number, upper: number): number;
 		/**
 		 * Get a normally distributed pseudo random number.
@@ -4924,15 +5728,17 @@ declare global {
 		/**
 		 * Sets the seed of the random number generator using the specified integer number. This is called internally at startup, so you generally don't need to call it yourself.
 		 *
-		 * Overload details:
-		 * 1. Due to Lua's use of double-precision floating point numbers, integer values above 2^53 cannot be accurately represented. Use the other variant of the function if you want to use a larger number.
-		 * 2. Combines two 32-bit integer numbers into a 64-bit integer value and sets the seed of the random number generator using the value.
-		 *
+
 		 * @param seed The integer number with which you want to seed the randomization. Must be within the range of 2^53 - 1.
+		 */
+		setRandomSeed(this: void, seed: number): void;
+		/**
+		 * Sets the seed of the random number generator using the specified integer number. This is called internally at startup, so you generally don't need to call it yourself.
+		 *
+
 		 * @param low The lower 32 bits of the seed value. Must be within the range of 2^32 - 1.
 		 * @param high The higher 32 bits of the seed value. Must be within the range of 2^32 - 1.
 		 */
-		setRandomSeed(this: void, seed: number): void;
 		setRandomSeed(this: void, low: number, high: number): void;
 		/**
 		 * Gets the seed of the random number generator.
@@ -4968,40 +5774,52 @@ declare global {
 		/**
 		 * Converts a color from 0..1 to 0..255 range.
 		 *
-		 * Overload details:
-		 * 1. Here's implementation for 11.2 and earlier. function love.math.colorToBytes(r, g, b, a) 	if type(r) == 'table' then 		r, g, b, a = rr[2, rr[4 	end 	r = floor(clamp01(r) * 255 + 0.5) 	g = floor(clamp01(g) * 255 + 0.5) 	b = floor(clamp01(b) * 255 + 0.5) 	a = a ~= nil and floor(clamp01(a) * 255 + 0.5) or nil 	return r, g, b, a end Where clamp01 is defined as follows local function clamp01(x) 	return math.min(math.max(x, 0), 1) end
-		 *
+
 		 * @param red Red color component.
 		 * @param green Green color component.
 		 * @param blue Blue color component.
 		 * @param alpha Alpha color component. (Default: nil.)
-		 * @param color Red color component.
-		 *
 		 * @returns rb — Red color component in 0..255 range.
 		 * @returns gb — Green color component in 0..255 range.
 		 * @returns bb — Blue color component in 0..255 range.
 		 * @returns ab — Alpha color component in 0..255 range or nil if alpha is not specified.
 		 */
 		colorToBytes(this: void, red: number, green: number, blue: number, alpha?: number): LuaMultiReturn<[number, number, number, number?]>;
+		/**
+		 * Converts a color from 0..1 to 0..255 range.
+		 *
+
+		 * @param color Red color component.
+		 * @returns rb — Red color component in 0..255 range.
+		 * @returns gb — Green color component in 0..255 range.
+		 * @returns bb — Blue color component in 0..255 range.
+		 * @returns ab — Alpha color component in 0..255 range or nil if alpha is not specified.
+		 */
 		colorToBytes(this: void, color: number[]): LuaMultiReturn<[number, number, number, number?]>;
 		/**
 		 * Converts a color from 0..255 to 0..1 range.
 		 *
-		 * Overload details:
-		 * 1. Here's implementation for 11.2 and earlier. function love.math.colorFromBytes(r, g, b, a) 	if type(r) == 'table' then 		r, g, b, a = rr[2, rr[4 	end 	r = clamp01(floor(r + 0.5) / 255) 	g = clamp01(floor(g + 0.5) / 255) 	b = clamp01(floor(b + 0.5) / 255) 	a = a ~= nil and clamp01(floor(a + 0.5) / 255) or nil 	return r, g, b, a end Where clamp01 is defined as follows local function clamp01(x) 	return math.min(math.max(x, 0), 1) end
-		 *
+
 		 * @param red Red color component in 0..255 range.
 		 * @param green Green color component in 0..255 range.
 		 * @param blue Blue color component in 0..255 range.
 		 * @param alpha Alpha color component in 0..255 range. (Default: nil.)
-		 * @param color Red color component in 0..255 range.
-		 *
 		 * @returns r — Red color component in 0..1 range.
 		 * @returns g — Green color component in 0..1 range.
 		 * @returns b — Blue color component in 0..1 range.
 		 * @returns a — Alpha color component in 0..1 range or nil if alpha is not specified.
 		 */
 		colorFromBytes(this: void, red: number, green: number, blue: number, alpha?: number): LuaMultiReturn<[number, number, number, number?]>;
+		/**
+		 * Converts a color from 0..255 to 0..1 range.
+		 *
+
+		 * @param color Red color component in 0..255 range.
+		 * @returns r — Red color component in 0..1 range.
+		 * @returns g — Green color component in 0..1 range.
+		 * @returns b — Blue color component in 0..1 range.
+		 * @returns a — Alpha color component in 0..1 range or nil if alpha is not specified.
+		 */
 		colorFromBytes(this: void, color: number[]): LuaMultiReturn<[number, number, number, number?]>;
 		/**
 		 * Converts a color from gamma-space (sRGB) to linear-space (RGB). This is useful when doing gamma-correct rendering and you need to do math in linear RGB in the few cases where LÖVE doesn't handle conversions automatically.
@@ -5010,20 +5828,31 @@ declare global {
 		 *
 		 * In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
 		 *
-		 * Overload details:
-		 * 1. An alpha value can be passed into the function as a fourth argument, but it will be returned unchanged because alpha is always linear.
-		 *
+
 		 * @param red The red channel of the sRGB color to convert.
 		 * @param green The green channel of the sRGB color to convert.
 		 * @param blue The blue channel of the sRGB color to convert.
-		 * @param color An array with the red, green, and blue channels of the sRGB color to convert.
-		 *
+		 * @param alpha The alpha channel, which is returned unchanged. (Default: nil.)
 		 * @returns lr — The red channel of the converted color in linear RGB space.
 		 * @returns lg — The green channel of the converted color in linear RGB space.
 		 * @returns lb — The blue channel of the converted color in linear RGB space.
 		 * @returns lc — The value of the color channel in linear RGB space.
 		 */
 		gammaToLinear(this: void, red: number, green?: number, blue?: number, alpha?: number): LuaMultiReturn<[number, number?, number?, number?]>;
+		/**
+		 * Converts a color from gamma-space (sRGB) to linear-space (RGB). This is useful when doing gamma-correct rendering and you need to do math in linear RGB in the few cases where LÖVE doesn't handle conversions automatically.
+		 *
+		 * Read more about gamma-correct rendering here, here, and here.
+		 *
+		 * In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+		 *
+
+		 * @param color An array with the red, green, and blue channels of the sRGB color to convert.
+		 * @returns lr — The red channel of the converted color in linear RGB space.
+		 * @returns lg — The green channel of the converted color in linear RGB space.
+		 * @returns lb — The blue channel of the converted color in linear RGB space.
+		 * @returns lc — The value of the color channel in linear RGB space.
+		 */
 		gammaToLinear(this: void, color: number[]): LuaMultiReturn<[number, number?, number?, number?]>;
 		/**
 		 * Converts a color from linear-space (RGB) to gamma-space (sRGB). This is useful when storing linear RGB color values in an image, because the linear RGB color space has less precision than sRGB for dark colors, which can result in noticeable color banding when drawing.
@@ -5034,42 +5863,69 @@ declare global {
 		 *
 		 * In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
 		 *
-		 * Overload details:
-		 * 1. An alpha value can be passed into the function as a fourth argument, but it will be returned unchanged because alpha is always linear.
-		 *
+
 		 * @param red The red channel of the linear RGB color to convert.
 		 * @param green The green channel of the linear RGB color to convert.
 		 * @param blue The blue channel of the linear RGB color to convert.
-		 * @param color An array with the red, green, and blue channels of the linear RGB color to convert.
-		 *
+		 * @param alpha The alpha channel, which is returned unchanged. (Default: nil.)
 		 * @returns cr — The red channel of the converted color in gamma sRGB space.
 		 * @returns cg — The green channel of the converted color in gamma sRGB space.
 		 * @returns cb — The blue channel of the converted color in gamma sRGB space.
 		 * @returns c — The value of the color channel in gamma sRGB space.
 		 */
 		linearToGamma(this: void, red: number, green?: number, blue?: number, alpha?: number): LuaMultiReturn<[number, number?, number?, number?]>;
+		/**
+		 * Converts a color from linear-space (RGB) to gamma-space (sRGB). This is useful when storing linear RGB color values in an image, because the linear RGB color space has less precision than sRGB for dark colors, which can result in noticeable color banding when drawing.
+		 *
+		 * In general, colors chosen based on what they look like on-screen are already in gamma-space and should not be double-converted. Colors calculated using math are often in the linear RGB space.
+		 *
+		 * Read more about gamma-correct rendering here, here, and here.
+		 *
+		 * In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
+		 *
+
+		 * @param color An array with the red, green, and blue channels of the linear RGB color to convert.
+		 * @returns cr — The red channel of the converted color in gamma sRGB space.
+		 * @returns cg — The green channel of the converted color in gamma sRGB space.
+		 * @returns cb — The blue channel of the converted color in gamma sRGB space.
+		 * @returns c — The value of the color channel in gamma sRGB space.
+		 */
 		linearToGamma(this: void, color: number[]): LuaMultiReturn<[number, number?, number?, number?]>;
 		/**
 		 * Checks whether a polygon is convex.
 		 *
 		 * PolygonShapes in love.physics, some forms of Meshes, and polygons drawn with love.graphics.polygon must be simple convex polygons.
 		 *
+
 		 * @param vertices The vertices of the polygon as a table in the form of {x1, y1, x2, y2, x3, y3, ...}.
-		 * @param coordinates The vertices of the polygon as a table in the form of {x1, y1, x2, y2, x3, y3, ...}.
-		 *
 		 * @returns convex — Whether the given polygon is convex.
 		 */
 		isConvex(this: void, vertices: number[]): boolean;
+		/**
+		 * Checks whether a polygon is convex.
+		 *
+		 * PolygonShapes in love.physics, some forms of Meshes, and polygons drawn with love.graphics.polygon must be simple convex polygons.
+		 *
+
+		 * @param coordinates The vertices of the polygon as a table in the form of {x1, y1, x2, y2, x3, y3, ...}.
+		 * @returns convex — Whether the given polygon is convex.
+		 */
 		isConvex(this: void, ...coordinates: number[]): boolean;
 		/**
 		 * Decomposes a simple convex or concave polygon into triangles.
 		 *
+
 		 * @param vertices Polygon to triangulate. Must not intersect itself.
-		 * @param coordinates Polygon to triangulate. Must not intersect itself.
-		 *
 		 * @returns triangles — List of triangles the polygon is composed of, in the form of {{x1, y1, x2, y2, x3, y3}, {x1, y1, x2, y2, x3, y3}, ...}.
 		 */
 		triangulate(this: void, vertices: number[]): number[][];
+		/**
+		 * Decomposes a simple convex or concave polygon into triangles.
+		 *
+
+		 * @param coordinates Polygon to triangulate. Must not intersect itself.
+		 * @returns triangles — List of triangles the polygon is composed of, in the form of {{x1, y1, x2, y2, x3, y3}, {x1, y1, x2, y2, x3, y3}, ...}.
+		 */
 		triangulate(this: void, ...coordinates: number[]): number[][];
 	}
 	/** Represents a file on the filesystem. A function that takes a file path can also take a File.
@@ -5108,32 +5964,54 @@ declare global {
 		/**
 		 * Read a number of bytes from a file.
 		 *
-		 * Overload details:
-		 * 1. Reads the contents of a file into either a string or a FileData object.
-		 *
+
 		 * @param size The number of bytes to read. (Default: all.)
-		 * @param container What type to return the file's contents as.
-		 *
-		 * @returns contents — The contents of the read bytes. Depending on the overload: FileData or string containing the read bytes.
+		 * @returns contents — The contents of the read bytes.
 		 * @returns size — How many bytes have been read.
 		 */
 		read(size?: number): LuaMultiReturn<[string | undefined, number | string]>;
+		/**
+		 * Read a number of bytes from a file.
+		 *
+
+		 * @param container What type to return the file's contents as.
+		 * @param size The number of bytes to read. (Default: all.)
+		 * @returns FileData or string containing the read bytes.
+		 * @returns size — How many bytes have been read.
+		 */
 		read(container: "string", size?: number): LuaMultiReturn<[string | undefined, number | string]>;
+		/**
+		 * Read a number of bytes from a file.
+		 *
+
+		 * @param container What type to return the file's contents as.
+		 * @param size The number of bytes to read. (Default: all.)
+		 * @returns FileData or string containing the read bytes.
+		 * @returns size — How many bytes have been read.
+		 */
 		read(container: "data", size?: number): LuaMultiReturn<[FileData | undefined, number | string]>;
 		/**
 		 * Write data to a file.
 		 *
-		 * Overload details:
-		 * 1. '''Writing to multiple lines''': In Windows, some text editors (e.g. Notepad before Windows 10 1809) only treat CRLF ('\r\n') as a new line. --example f = love.filesystem.newFile('note.txt') f:open('w') for i = 1, 10 do  f:write('This is line '..i..'!\r\n') end f:close()
-		 *
-		 * @param data The string data to write. Depending on the overload: The Data object to write.
+
+		 * @param data The string data to write.
 		 * @param size How many bytes to write. (Default: all.)
-		 *
 		 * @returns success — Whether the operation was successful.
 		 * @returns err — The error string if an error occurred.
 		 * @returns errorstr — The error string if an error occurred.
 		 */
-		write(data: string | FileData, size?: number): LuaMultiReturn<[true | undefined, string?]>;
+		write(data: string, size?: number): LuaMultiReturn<[true | undefined, string?]>;
+/**
+ * Write data to a file.
+ *
+
+ * @param data The Data object to write.
+ * @param size How many bytes to write. (Default: all.)
+ * @returns success — Whether the operation was successful.
+ * @returns err — The error string if an error occurred.
+ * @returns errorstr — The error string if an error occurred.
+ */
+		write(data: FileData, size?: number): LuaMultiReturn<[true | undefined, string?]>;
 		/**
 		 * Flushes any buffered written data in the file to the disk.
 		 *
@@ -5312,25 +6190,41 @@ declare global {
 		 *
 		 * It is also possible to mount love.filesystem.getSourceBaseDirectory if the game is in fused mode.
 		 *
-		 * Overload details:
-		 * 1. Mounts the contents of the given FileData in memory. The FileData's data must contain a zipped directory structure.
-		 * 2. Mounts the contents of the given Data object in memory. The data must contain a zipped directory structure.
-		 *
+
 		 * @param archive The folder or zip file in the game's save directory to mount.
 		 * @param mountpoint The new path the archive will be mounted to.
 		 * @param appendToPath Whether the archive will be searched when reading a filepath before or after already-mounted archives. This includes the game's source and save directories. (Default: false.)
-		 *
 		 * @returns success — True if the archive was successfully mounted, false otherwise.
 		 */
-		mount(this: void, archive: string | FileData, mountpoint: string, appendToPath?: boolean): boolean;
+		mount(this: void, archive: string, mountpoint: string, appendToPath?: boolean): boolean;
+/**
+ * Mounts a zip file or folder in the game's save directory for reading.
+ *
+ * It is also possible to mount love.filesystem.getSourceBaseDirectory if the game is in fused mode.
+ *
+
+ * @param archive The folder or zip file in the game's save directory to mount.
+ * @param mountpoint The new path the archive will be mounted to.
+ * @param appendToPath Whether the archive will be searched when reading a filepath before or after already-mounted archives. This includes the game's source and save directories. (Default: false.)
+ * @returns success — True if the archive was successfully mounted, false otherwise.
+ */
+		mount(this: void, archive: FileData, mountpoint: string, appendToPath?: boolean): boolean;
 		/**
 		 * Unmounts a zip file or folder previously mounted for reading with love.filesystem.mount.
 		 *
+
 		 * @param archive The folder or zip file in the game's save directory which is currently mounted.
-		 *
 		 * @returns success — True if the archive was successfully unmounted, false otherwise.
 		 */
-		unmount(this: void, archive: string | FileData): boolean;
+		unmount(this: void, archive: string): boolean;
+/**
+ * Unmounts a zip file or folder previously mounted for reading with love.filesystem.mount.
+ *
+
+ * @param archive The folder or zip file in the game's save directory which is currently mounted.
+ * @returns success — True if the archive was successfully unmounted, false otherwise.
+ */
+		unmount(this: void, archive: FileData): boolean;
 		/**
 		 * Gets whether the game is in fused mode or not.
 		 *
@@ -5346,51 +6240,86 @@ declare global {
 		 *
 		 * It needs to be opened before it can be accessed.
 		 *
-		 * Overload details:
-		 * 1. Please note that this function will not return any error message (e.g. if you use an invalid filename) because it just creates the File Object. You can still check if the file is valid by using File:open which returns a boolean and an error message if something goes wrong while opening the file.
-		 * 2. Creates a File object and opens it for reading, writing, or appending.
-		 *
+
 		 * @param filename The filename of the file.
-		 * @param mode The mode to open the file in.
-		 *
-		 * @returns file — The new File object. Depending on the overload: The new File object, or nil if an error occurred.
+		 * @returns file — The new File object.
 		 * @returns errorstr — The error string if an error occurred.
 		 */
-		newFile(this: void, filename: string, mode?: OpenFileMode): File;
+		newFile(this: void, filename: string): File;
+/**
+ * Creates a new File object.
+ *
+ * It needs to be opened before it can be accessed.
+ *
+
+ * @param filename The filename of the file.
+ * @param mode The mode to open the file in.
+ * @returns The new File object, or nil if an error occurred.
+ * @returns errorstr — The error string if an error occurred.
+ */
+		newFile(this: void, filename: string, mode: OpenFileMode): File;
 		/**
 		 * Creates a new FileData object from a file on disk, or from a string in memory.
 		 *
-		 * Overload details:
-		 * 1. Creates a new FileData object from a string in memory.
-		 * 2. Creates a new FileData object from a Data object in memory.
-		 * 3. Creates a new FileData from a file on the storage device.
-		 *
-		 * @param filename Path to the file. Depending on the overload: The name of the file. The extension may be parsed and used by LÖVE when passing the FileData object into love.audio.newSource.
-		 * @param file Path to the file.
-		 * @param data The contents of the file in memory represented as a string. Depending on the overload: The Data object to copy into the new FileData object.
-		 *
-		 * @returns data — The new FileData. Depending on the overload: The new FileData, or nil if an error occurred.
+
+		 * @param filename Path to the file.
+		 * @returns data — The new FileData.
 		 * @returns err — The error string, if an error occurred.
 		 */
 		newFileData(this: void, filename: string): FileData;
+		/**
+		 * Creates a new FileData object from a file on disk, or from a string in memory.
+		 *
+
+		 * @param file Path to the file.
+		 * @returns The new FileData, or nil if an error occurred.
+		 * @returns err — The error string, if an error occurred.
+		 */
 		newFileData(this: void, file: File): FileData;
+		/**
+		 * Creates a new FileData object from a file on disk, or from a string in memory.
+		 *
+
+		 * @param data The Data object to copy into the new FileData object.
+		 * @param filename The name of the file. The extension may be parsed and used by LÖVE when passing the FileData object into love.audio.newSource.
+		 * @returns The new FileData, or nil if an error occurred.
+		 * @returns err — The error string, if an error occurred.
+		 */
 		newFileData(this: void, data: string, filename: string): FileData;
 		/**
 		 * Read the contents of a file.
 		 *
-		 * Overload details:
-		 * 1. Reads the contents of a file into either a string or a FileData object.
-		 *
-		 * @param filename The name (and path) of the file. Depending on the overload: The name (and path) of the file
-		 * @param size How many bytes to read. (Default: all.) Depending on the overload: How many bytes to read (Default: all.)
-		 * @param container What type to return the file's contents as.
-		 *
-		 * @returns contents — The file contents. Depending on the overload: returns nil as content. Depending on the overload: FileData or string containing the file contents.
+
+		 * @param filename The name (and path) of the file.
+		 * @param size How many bytes to read. (Default: all.)
+		 * @returns contents — The file contents.
 		 * @returns size — How many bytes have been read.
 		 * @returns error — returns an error message.
 		 */
 		read(this: void, filename: string, size?: number): LuaMultiReturn<[string | undefined, number | string]>;
+		/**
+		 * Read the contents of a file.
+		 *
+
+		 * @param container What type to return the file's contents as.
+		 * @param filename The name (and path) of the file
+		 * @param size How many bytes to read (Default: all.)
+		 * @returns returns nil as content.
+		 * @returns size — How many bytes have been read.
+		 * @returns error — returns an error message.
+		 */
 		read(this: void, container: "string", filename: string, size?: number): LuaMultiReturn<[string | undefined, number | string]>;
+		/**
+		 * Read the contents of a file.
+		 *
+
+		 * @param container What type to return the file's contents as.
+		 * @param filename The name (and path) of the file
+		 * @param size How many bytes to read (Default: all.)
+		 * @returns FileData or string containing the file contents.
+		 * @returns size — How many bytes have been read.
+		 * @returns error — returns an error message.
+		 */
 		read(this: void, container: "data", filename: string, size?: number): LuaMultiReturn<[FileData | undefined, number | string]>;
 		/**
 		 * Loads a Lua file (but does not run it).
@@ -5412,44 +6341,70 @@ declare global {
 		/**
 		 * Write data to a file in the save directory. If the file existed already, it will be completely replaced by the new contents.
 		 *
-		 * Overload details:
-		 * 1. If you are getting the error message 'Could not set write directory', try setting the save directory. This is done either with love.filesystem.setIdentity or by setting the identity field in love.conf. '''Writing to multiple lines''': In Windows, some text editors (e.g. Notepad) only treat CRLF ('\r\n') as a new line.
-		 *
+
 		 * @param filename The name (and path) of the file.
-		 * @param data The string data to write to the file. Depending on the overload: The Data object to write to the file.
+		 * @param data The string data to write to the file.
 		 * @param size How many bytes to write. (Default: all.)
-		 *
 		 * @returns success — If the operation was successful.
 		 * @returns message — Error message if operation was unsuccessful.
 		 */
-		write(this: void, filename: string, data: string | FileData, size?: number): LuaMultiReturn<[boolean, string?]>;
+		write(this: void, filename: string, data: string, size?: number): LuaMultiReturn<[boolean, string?]>;
+/**
+ * Write data to a file in the save directory. If the file existed already, it will be completely replaced by the new contents.
+ *
+
+ * @param filename The name (and path) of the file.
+ * @param data The Data object to write to the file.
+ * @param size How many bytes to write. (Default: all.)
+ * @returns success — If the operation was successful.
+ * @returns message — Error message if operation was unsuccessful.
+ */
+		write(this: void, filename: string, data: FileData, size?: number): LuaMultiReturn<[boolean, string?]>;
 		/**
 		 * Append data to an existing file.
 		 *
+
 		 * @param filename The name (and path) of the file.
-		 * @param data The string data to append to the file. Depending on the overload: The Data object to append to the file.
+		 * @param data The string data to append to the file.
 		 * @param size How many bytes to write. (Default: all.)
-		 *
 		 * @returns success — True if the operation was successful, or nil if there was an error.
 		 * @returns errormsg — The error message on failure.
 		 */
-		append(this: void, filename: string, data: string | FileData, size?: number): LuaMultiReturn<[boolean, string?]>;
+		append(this: void, filename: string, data: string, size?: number): LuaMultiReturn<[boolean, string?]>;
+/**
+ * Append data to an existing file.
+ *
+
+ * @param filename The name (and path) of the file.
+ * @param data The Data object to append to the file.
+ * @param size How many bytes to write. (Default: all.)
+ * @returns success — True if the operation was successful, or nil if there was an error.
+ * @returns errormsg — The error message on failure.
+ */
+		append(this: void, filename: string, data: FileData, size?: number): LuaMultiReturn<[boolean, string?]>;
 		/**
 		 * Gets information about the specified file or directory.
 		 *
-		 * Overload details:
-		 * 1. This variant accepts an existing table to fill in, instead of creating a new one.
-		 * 2. This variant only returns info if the item at the given path is the same file type as specified in the filtertype argument, and accepts an existing table to fill in, instead of creating a new one.
-		 *
+
 		 * @param filename The file or directory path to check.
-		 * @param filterType If supplied, this parameter causes getInfo to only return the info table if the item at the given path matches the specified file type. (Default: nil.) Depending on the overload: Causes getInfo to only return the info table if the item at the given path matches the specified file type.
-		 *
-		 * @returns info — A table containing information about the specified path, or nil if nothing exists at the path. The table contains the following fields: Depending on the overload: The table given as an argument, or nil if nothing exists at the path. The table will be filled in with the following fields:
+		 * @returns info — A table containing information about the specified path, or nil if nothing exists at the path. The table contains the following fields:
 		 * @returns info.type — The type of the object at the path (file, directory, symlink, etc.)
 		 * @returns info.size — The size in bytes of the file, or nil if it can't be determined.
 		 * @returns info.modtime — The file's last modification time in seconds since the unix epoch, or nil if it can't be determined.
 		 */
-		getInfo(this: void, filename: string, filterType?: FileType): FileInfo | undefined;
+		getInfo(this: void, filename: string): FileInfo | undefined;
+/**
+ * Gets information about the specified file or directory.
+ *
+
+ * @param filename The file or directory path to check.
+ * @param filterType Causes getInfo to only return the info table if the item at the given path matches the specified file type.
+ * @returns The table given as an argument, or nil if nothing exists at the path. The table will be filled in with the following fields:
+ * @returns info.type — The type of the object at the path (file, directory, symlink, etc.)
+ * @returns info.size — The size in bytes of the file, or nil if it can't be determined.
+ * @returns info.modtime — The file's last modification time in seconds since the unix epoch, or nil if it can't be determined.
+ */
+		getInfo(this: void, filename: string, filterType: FileType): FileInfo | undefined;
 		/** @deprecated Use getInfo instead. */
 		exists(this: void, filename: string): boolean;
 		/** @deprecated Use getInfo instead. */
@@ -5517,23 +6472,40 @@ declare global {
 		/**
 		 * Checks whether a certain key is down. Not to be confused with love.keypressed or love.keyreleased.
 		 *
+
 		 * @param keys A table containing keys to check.
-		 *
 		 * @returns down — True if the key is down, false if not.
-		 * @returns anyDown — True if any supplied key is down, false if not. Depending on the overload: True if any of the keys in the table are down, false if not.
+		 * @returns anyDown — True if any supplied key is down, false if not.
 		 */
 		isDown(this: void, ...keys: string[]): boolean;
+		/**
+		 * Checks whether a certain key is down. Not to be confused with love.keypressed or love.keyreleased.
+		 *
+
+		 * @param keys A table containing keys to check.
+		 * @returns down — True if the key is down, false if not.
+		 * @returns True if any of the keys in the table are down, false if not.
+		 */
 		isDown(this: void, keys: string[]): boolean;
 		/**
 		 * Checks whether the specified Scancodes are pressed. Not to be confused with love.keypressed or love.keyreleased.
 		 *
 		 * Unlike regular KeyConstants, Scancodes are keyboard layout-independent. The scancode 'w' is used if the key in the same place as the 'w' key on an American keyboard is pressed, no matter what the key is labelled or what the user's operating system settings are.
 		 *
+
 		 * @param scancodes A Scancode to check.
-		 *
 		 * @returns down — True if any supplied Scancode is down, false if not.
 		 */
 		isScancodeDown(this: void, ...scancodes: string[]): boolean;
+		/**
+		 * Checks whether the specified Scancodes are pressed. Not to be confused with love.keypressed or love.keyreleased.
+		 *
+		 * Unlike regular KeyConstants, Scancodes are keyboard layout-independent. The scancode 'w' is used if the key in the same place as the 'w' key on an American keyboard is pressed, no matter what the key is labelled or what the user's operating system settings are.
+		 *
+
+		 * @param scancodes A Scancode to check.
+		 * @returns down — True if any supplied Scancode is down, false if not.
+		 */
 		isScancodeDown(this: void, scancodes: string[]): boolean;
 		/**
 		 * Gets the hardware scancode corresponding to the given key.
@@ -5564,16 +6536,22 @@ declare global {
 		 *
 		 * On touch devices, this shows the system's native on-screen keyboard when it's enabled.
 		 *
-		 * Overload details:
-		 * 1. On iOS and Android this variant tells the OS that the specified rectangle is where text will show up in the game, which prevents the system on-screen keyboard from covering the text.
+
+		 * @param enabled Whether text input events should be enabled.
+		 */
+		setTextInput(this: void, enabled: boolean): void;
+		/**
+		 * Enables or disables text input events. It is enabled by default on Windows, Mac, and Linux, and disabled by default on iOS and Android.
 		 *
+		 * On touch devices, this shows the system's native on-screen keyboard when it's enabled.
+		 *
+
 		 * @param enabled Whether text input events should be enabled.
 		 * @param x Text rectangle x position.
 		 * @param y Text rectangle y position.
 		 * @param width Text rectangle width.
 		 * @param height Text rectangle height.
 		 */
-		setTextInput(this: void, enabled: boolean): void;
 		setTextInput(this: void, enabled: boolean, x: number, y: number, width: number, height: number): void;
 		/**
 		 * Gets whether text input events are enabled.
@@ -5666,11 +6644,20 @@ declare global {
 		 *
 		 * This function does not detect mouse wheel scrolling; you must use the love.wheelmoved (or love.mousepressed in version 0.9.2 and older) callback for that.
 		 *
+
 		 * @param buttons The index of a button to check. 1 is the primary mouse button, 2 is the secondary mouse button and 3 is the middle button. Further buttons are mouse dependant.
-		 *
 		 * @returns down — True if any specified button is down.
 		 */
 		isDown(this: void, ...buttons: number[]): boolean;
+		/**
+		 * Checks whether a certain mouse button is down.
+		 *
+		 * This function does not detect mouse wheel scrolling; you must use the love.wheelmoved (or love.mousepressed in version 0.9.2 and older) callback for that.
+		 *
+
+		 * @param buttons The index of a button to check. 1 is the primary mouse button, 2 is the secondary mouse button and 3 is the middle button. Further buttons are mouse dependant.
+		 * @returns down — True if any specified button is down.
+		 */
 		isDown(this: void, buttons: number[]): boolean;
 		/**
 		 * Sets the current visibility of the cursor.
@@ -5746,12 +6733,15 @@ declare global {
 		/**
 		 * Sets the current mouse cursor.
 		 *
-		 * Overload details:
-		 * 1. Resets the current mouse cursor to the default.
-		 *
-		 * @param cursor The Cursor object to use as the current mouse cursor.
 		 */
-		setCursor(this: void, cursor?: Cursor): void;
+		setCursor(this: void): void;
+/**
+ * Sets the current mouse cursor.
+ *
+
+ * @param cursor The Cursor object to use as the current mouse cursor.
+ */
+		setCursor(this: void, cursor: Cursor): void;
 		/**
 		 * Gets the current Cursor.
 		 *
@@ -5960,17 +6950,19 @@ declare global {
 		/**
 		 * Sets the vibration motor speeds on a Joystick with rumble support. Most common gamepads have this functionality, although not all drivers give proper support. Use Joystick:isVibrationSupported to check.
 		 *
-		 * Overload details:
-		 * 1. Disables vibration.
-		 * 2. If the Joystick only has a single vibration motor, it will still work but it will use the largest value of the left and right parameters. The Xbox 360 controller on Mac OS X only has support for vibration if a modified version of the Tattiebogle driver is used. The very first call to this function may take more time than expected because SDL's Haptic / Force Feedback subsystem needs to be initialized.
+
+		 * @returns success — True if the vibration was successfully applied, false if not.
+		 */
+		setVibration(): boolean;
+		/**
+		 * Sets the vibration motor speeds on a Joystick with rumble support. Most common gamepads have this functionality, although not all drivers give proper support. Use Joystick:isVibrationSupported to check.
 		 *
+
 		 * @param left Strength of the left vibration motor on the Joystick. Must be in the range of 1.
 		 * @param right Strength of the right vibration motor on the Joystick. Must be in the range of 1.
 		 * @param duration The duration of the vibration in seconds. A negative value means infinite duration. (Default: -1.)
-		 *
-		 * @returns success — True if the vibration was successfully applied, false if not. Depending on the overload: True if the vibration was successfully disabled, false if not.
+		 * @returns True if the vibration was successfully disabled, false if not.
 		 */
-		setVibration(): boolean;
 		setVibration(left: number, right?: number, duration?: number): boolean;
 		/**
 		 * Gets the current vibration motor strengths on a Joystick with rumble support.
@@ -6004,18 +6996,29 @@ declare global {
 		 *
 		 * The virtual gamepad buttons and axes are designed around the Xbox 360 controller layout.
 		 *
-		 * Overload details:
-		 * 1. The physical locations for the bound gamepad axes and buttons should correspond as closely as possible to the layout of a standard Xbox 360 controller.
-		 *
+
 		 * @param guid The OS-dependent GUID for the type of Joystick the binding will affect.
-		 * @param input The virtual gamepad button to bind. Depending on the overload: The virtual gamepad axis to bind.
-		 * @param type The type of input to bind the virtual gamepad button to. Depending on the overload: The type of input to bind the virtual gamepad axis to.
-		 * @param index The index of the axis, button, or hat to bind the virtual gamepad button to. Depending on the overload: The index of the axis, button, or hat to bind the virtual gamepad axis to.
-		 * @param direction The direction of the hat, if the virtual gamepad button will be bound to a hat. nil otherwise. (Default: nil.) Depending on the overload: The direction of the hat, if the virtual gamepad axis will be bound to a hat. nil otherwise. (Default: nil.)
-		 *
-		 * @returns success — Whether the virtual gamepad button was successfully bound. Depending on the overload: Whether the virtual gamepad axis was successfully bound.
+		 * @param input The virtual gamepad button to bind.
+		 * @param type The type of input to bind the virtual gamepad button to.
+		 * @param index The index of the axis, button, or hat to bind the virtual gamepad button to.
+		 * @returns success — Whether the virtual gamepad button was successfully bound.
 		 */
 		setGamepadMapping(this: void, guid: string, input: GamepadAxis | GamepadButton, type: "axis" | "button", index: number): boolean;
+		/**
+		 * Binds a virtual gamepad input to a button, axis or hat for all Joysticks of a certain type. For example, if this function is used with a GUID returned by a Dualshock 3 controller in OS X, the binding will affect Joystick:getGamepadAxis and Joystick:isGamepadDown for ''all'' Dualshock 3 controllers used with the game when run in OS X.
+		 *
+		 * LÖVE includes built-in gamepad bindings for many common controllers. This function lets you change the bindings or add new ones for types of Joysticks which aren't recognized as gamepads by default.
+		 *
+		 * The virtual gamepad buttons and axes are designed around the Xbox 360 controller layout.
+		 *
+
+		 * @param guid The OS-dependent GUID for the type of Joystick the binding will affect.
+		 * @param input The virtual gamepad axis to bind.
+		 * @param type The type of input to bind the virtual gamepad axis to.
+		 * @param index The index of the axis, button, or hat to bind the virtual gamepad axis to.
+		 * @param direction The direction of the hat, if the virtual gamepad axis will be bound to a hat. nil otherwise. (Default: nil.)
+		 * @returns Whether the virtual gamepad axis was successfully bound.
+		 */
 		setGamepadMapping(this: void, guid: string, input: GamepadAxis | GamepadButton, type: "hat", index: number, direction: JoystickHat): boolean;
 		/**
 		 * Loads a gamepad mappings string or file created with love.joystick.saveGamepadMappings.
@@ -6034,15 +7037,20 @@ declare global {
 		 *
 		 * The mappings are stored as a string for use with love.joystick.loadGamepadMappings.
 		 *
-		 * Overload details:
-		 * 1. Saves the gamepad mappings of all relevant joysticks to a file.
-		 * 2. Returns the mappings string without writing to a file.
-		 *
-		 * @param filename The filename to save the mappings string to.
-		 *
-		 * @returns mappings — The mappings string that was written to the file. Depending on the overload: The mappings string.
+
+		 * @returns mappings — The mappings string that was written to the file.
 		 */
-		saveGamepadMappings(this: void, filename?: string): string;
+		saveGamepadMappings(this: void): string;
+/**
+ * Saves the virtual gamepad mappings of all recognized as gamepads and have either been recently used or their gamepad bindings have been modified.
+ *
+ * The mappings are stored as a string for use with love.joystick.loadGamepadMappings.
+ *
+
+ * @param filename The filename to save the mappings string to.
+ * @returns The mappings string.
+ */
+		saveGamepadMappings(this: void, filename: string): string;
 		/**
 		 * Gets the full gamepad mapping string of the Joysticks which have the given GUID, or nil if the GUID isn't recognized as a gamepad.
 		 *
@@ -6484,11 +7492,23 @@ declare global {
 		 *
 		 * This method requires the Source to be created via love.audio.newQueueableSource.
 		 *
+
 		 * @param data The data to queue. The SoundData's sample rate, bit depth, and channel count must match the Source's.
-		 *
+		 * @param length The number of bytes to queue. (Default: all remaining data.)
 		 * @returns success — True if the data was successfully queued for playback, false if there were no available buffers to use for queueing.
 		 */
 		queue(data: SoundData, length?: number): boolean;
+		/**
+		 * Queues SoundData for playback in a queueable Source.
+		 *
+		 * This method requires the Source to be created via love.audio.newQueueableSource.
+		 *
+
+		 * @param data The data to queue. The SoundData's sample rate, bit depth, and channel count must match the Source's.
+		 * @param offset The byte offset at which to start queueing data.
+		 * @param length The number of bytes to queue.
+		 * @returns success — True if the data was successfully queued for playback, false if there were no available buffers to use for queueing.
+		 */
 		queue(data: SoundData, offset: number, length: number): boolean;
 		/**
 		 * Sets the position of the Source. Please note that this only works for mono (i.e. non-stereo) sound files!
@@ -6641,38 +7661,51 @@ declare global {
 		/**
 		 * Sets a low-pass, high-pass, or band-pass filter to apply when playing the Source.
 		 *
-		 * Overload details:
-		 * 1. Disables filtering on this Source.
-		 *
-		 * @param filter The filter settings to use for this Source, with the following fields:
-		 * @param filter.type The type of filter to use.
-		 * @param filter.volume The overall volume of the audio. Must be between 0 and 1.
-		 * @param filter.highgain Volume of high-frequency audio. Only applies to low-pass and band-pass filters. Must be between 0 and 1.
-		 * @param filter.lowgain Volume of low-frequency audio. Only applies to high-pass and band-pass filters. Must be between 0 and 1.
-		 *
+
 		 * @returns success — Whether the filter was successfully applied to the Source.
 		 */
-		setFilter(filter?: AudioFilterSettings): boolean;
+		setFilter(): boolean;
+/**
+ * Sets a low-pass, high-pass, or band-pass filter to apply when playing the Source.
+ *
+
+ * @param filter The filter settings to use for this Source, with the following fields:
+ * @returns success — Whether the filter was successfully applied to the Source.
+ */
+		setFilter(filter: AudioFilterSettings): boolean;
 		getFilter<T extends AudioFilterSettings>(target?: T): T | AudioFilterSettings | undefined;
 		/**
 		 * Applies an audio effect to the Source.
 		 *
 		 * The effect must have been previously defined using love.audio.setEffect.
 		 *
-		 * Overload details:
-		 * 1. Applies the given previously defined effect to this Source.
-		 * 2. Applies the given previously defined effect to this Source, and applies a filter to the Source which affects the sound fed into the effect. Audio effect functionality is not supported on iOS.
-		 *
+
 		 * @param name The name of the effect previously set up with love.audio.setEffect.
-		 * @param enabled If false and the given effect name was previously enabled on this Source, disables the effect. (Default: true.) Depending on the overload: The filter settings to apply prior to the effect, with the following fields:
-		 * @param enabled.type The type of filter to use.
-		 * @param enabled.volume The overall volume of the audio. Must be between 0 and 1.
-		 * @param enabled.highgain Volume of high-frequency audio. Only applies to low-pass and band-pass filters. Must be between 0 and 1.
-		 * @param enabled.lowgain Volume of low-frequency audio. Only applies to high-pass and band-pass filters. Must be between 0 and 1.
-		 *
-		 * @returns success — Whether the effect was successfully applied to this Source. Depending on the overload: Whether the effect and filter were successfully applied to this Source.
+		 * @returns success — Whether the effect was successfully applied to this Source.
 		 */
-		setEffect(name: string, enabled?: boolean | AudioFilterSettings): boolean;
+		setEffect(name: string): boolean;
+/**
+ * Applies an audio effect to the Source.
+ *
+ * The effect must have been previously defined using love.audio.setEffect.
+ *
+
+ * @param name The name of the effect previously set up with love.audio.setEffect.
+ * @param enabled Whether the effect should be enabled. Pass false to disable an active effect. (Default: true.)
+ * @returns success — Whether the effect was successfully applied to this Source.
+ */
+		setEffect(name: string, enabled: boolean): boolean;
+/**
+ * Applies an audio effect to the Source.
+ *
+ * The effect must have been previously defined using love.audio.setEffect.
+ *
+
+ * @param name The name of the effect previously set up with love.audio.setEffect.
+ * @param enabled The filter settings to apply prior to the effect, with the following fields:
+ * @returns Whether the effect and filter were successfully applied to this Source.
+ */
+		setEffect(name: string, enabled: AudioFilterSettings): boolean;
 		/**
 		 * Gets the filter settings associated to a specific effect.
 		 *
@@ -6779,13 +7812,21 @@ declare global {
 		 *
 		 * Sources created from SoundData are always static.
 		 *
+
 		 * @param filename The filepath to the audio file.
 		 * @param sourceType Streaming or static source.
-		 * @param data The FileData to create a Source from. Depending on the overload: The SoundData to create a Source from.
-		 *
-		 * @returns source — A new Source that can play the specified audio. Depending on the overload: A new Source that can play the specified audio. The SourceType of the returned audio is 'static'.
+		 * @returns source — A new Source that can play the specified audio.
 		 */
 		newSource(this: void, filename: string, sourceType?: "static" | "stream"): Source;
+		/**
+		 * Creates a new Source from a filepath, File, Decoder or SoundData.
+		 *
+		 * Sources created from SoundData are always static.
+		 *
+
+		 * @param data The SoundData to create a Source from.
+		 * @returns A new Source that can play the specified audio. The SourceType of the returned audio is 'static'.
+		 */
 		newSource(this: void, data: SoundData): Source;
 		/**
 		 * Creates a new Source usable for real-time generated sound playback with Source:queue.
@@ -6803,40 +7844,60 @@ declare global {
 		newQueueableSource(sampleRate: number, bitDepth: 8 | 16,
 			channels: 1 | 2, buffers?: number): Source;
 		/**
-		 * Plays the specified Source.
+		 * Starts playing all Sources contained in an array simultaneously.
 		 *
-		 * Overload details:
-		 * 1. Starts playing multiple Sources simultaneously.
-		 *
-		 * @param sources Table containing a list of Sources to play.
+
+		 * @param sources An array containing the Sources to play.
+		 * @returns Whether all specified Sources were successfully started.
 		 */
 		play(this: void, sources: Source[]): boolean;
+		/**
+		 * Starts playing all supplied Sources simultaneously.
+		 *
+
+		 * @param sources The Sources to play.
+		 * @returns Whether all specified Sources were successfully started.
+		 */
 		play(this: void, ...sources: Source[]): boolean;
 		/**
-		 * Pauses specific or all currently played Sources.
+		 * Pauses all currently active Sources and returns them.
 		 *
-		 * Overload details:
-		 * 1. Pauses all currently active Sources and returns them.
-		 * 2. Pauses the given Sources.
-		 *
-		 * @param sources A table containing a list of Sources to pause.
-		 *
+
 		 * @returns Sources — A table containing a list of Sources that were paused by this call.
 		 */
 		pause(this: void): Source[];
+		/**
+		 * Pauses all Sources contained in an array.
+		 *
+
+		 * @param sources An array containing the Sources to pause.
+		 */
 		pause(this: void, sources: Source[]): void;
+		/**
+		 * Pauses all supplied Sources.
+		 *
+
+		 * @param sources The Sources to pause.
+		 */
 		pause(this: void, ...sources: Source[]): void;
 		/**
-		 * Stops currently played sources.
+		 * Stops all currently active Sources.
 		 *
-		 * Overload details:
-		 * 1. This function will stop all currently active sources.
-		 * 2. This function will only stop the specified source.
-		 * 3. Simultaneously stops all given Sources.
+		 */
+		stop(this: void): void;
+		/**
+		 * Stops all Sources contained in an array.
 		 *
-		 * @param sources A table containing a list of Sources to stop.
+
+		 * @param sources An array containing the Sources to stop.
 		 */
 		stop(this: void, sources: Source[]): void;
+		/**
+		 * Stops all supplied Sources simultaneously.
+		 *
+
+		 * @param sources The Sources to stop.
+		 */
 		stop(this: void, ...sources: Source[]): void;
 		/**
 		 * Gets the current number of simultaneously playing sources.
@@ -8007,9 +9068,18 @@ declare global {
 		 *
 		 * All fixture's default category is 1.
 		 *
+
 		 * @param categories The categories.
 		 */
 		setCategory(categories: number[]): void;
+		/**
+		 * Sets the categories the fixture belongs to. There can be up to 16 categories represented as a number from 1 to 16.
+		 *
+		 * All fixture's default category is 1.
+		 *
+
+		 * @param categories The categories.
+		 */
 		setCategory(...categories: number[]): void;
 		/**
 		 * Returns the categories the fixture belongs to.
@@ -8022,9 +9092,18 @@ declare global {
 		 *
 		 * This fixture will '''NOT''' collide with the fixtures that are in the selected categories if the other fixture also has a category of this fixture selected.
 		 *
+
 		 * @param categories The masks.
 		 */
 		setMask(categories: number[]): void;
+		/**
+		 * Sets the category mask of the fixture. There can be up to 16 categories represented as a number from 1 to 16.
+		 *
+		 * This fixture will '''NOT''' collide with the fixtures that are in the selected categories if the other fixture also has a category of this fixture selected.
+		 *
+
+		 * @param categories The masks.
+		 */
 		setMask(...categories: number[]): void;
 		/**
 		 * Returns which categories this fixture should '''NOT''' collide with.
@@ -8829,39 +9908,65 @@ declare global {
 		/**
 		 * Creates a new CircleShape.
 		 *
+
 		 * @param radius The radius of the circle.
-		 * @param x The x position of the circle.
-		 * @param y The y position of the circle.
-		 *
 		 * @returns shape — The new shape.
 		 */
 		newCircleShape(this: void, radius: number): CircleShape;
+		/**
+		 * Creates a new CircleShape.
+		 *
+
+		 * @param x The x position of the circle.
+		 * @param y The y position of the circle.
+		 * @param radius The radius of the circle.
+		 * @returns shape — The new shape.
+		 */
 		newCircleShape(this: void, x: number, y: number, radius: number): CircleShape;
 		/**
 		 * Shorthand for creating rectangular PolygonShapes.
 		 *
 		 * By default, the local origin is located at the '''center''' of the rectangle as opposed to the top left for graphics.
 		 *
+
 		 * @param width The width of the rectangle.
 		 * @param height The height of the rectangle.
-		 * @param x The offset along the x-axis.
-		 * @param y The offset along the y-axis.
-		 * @param angle The initial angle of the rectangle. (Default: 0.)
-		 *
 		 * @returns shape — A new PolygonShape.
 		 */
 		newRectangleShape(this: void, width: number, height: number): PolygonShape;
+		/**
+		 * Shorthand for creating rectangular PolygonShapes.
+		 *
+		 * By default, the local origin is located at the '''center''' of the rectangle as opposed to the top left for graphics.
+		 *
+
+		 * @param x The offset along the x-axis.
+		 * @param y The offset along the y-axis.
+		 * @param width The width of the rectangle.
+		 * @param height The height of the rectangle.
+		 * @param angle The initial angle of the rectangle. (Default: 0.)
+		 * @returns shape — A new PolygonShape.
+		 */
 		newRectangleShape(this: void, x: number, y: number, width: number, height: number, angle?: number): PolygonShape;
 		/**
 		 * Creates a new PolygonShape.
 		 *
 		 * This shape can have 8 vertices at most, and must form a convex shape.
 		 *
+
 		 * @param points A list of vertices to construct the polygon, in the form of {x1, y1, x2, y2, x3, y3, ...}.
-		 *
 		 * @returns shape — A new PolygonShape.
 		 */
 		newPolygonShape(this: void, points: number[]): PolygonShape;
+		/**
+		 * Creates a new PolygonShape.
+		 *
+		 * This shape can have 8 vertices at most, and must form a convex shape.
+		 *
+
+		 * @param points A list of vertices to construct the polygon, in the form of {x1, y1, x2, y2, x3, y3, ...}.
+		 * @returns shape — A new PolygonShape.
+		 */
 		newPolygonShape(this: void, ...points: number[]): PolygonShape;
 		/**
 		 * Creates a new EdgeShape.
@@ -8877,12 +9982,20 @@ declare global {
 		/**
 		 * Creates a new ChainShape.
 		 *
+
 		 * @param loop If the chain should loop back to the first point.
 		 * @param points A list of points to construct the ChainShape, in the form of {x1, y1, x2, y2, ...}.
-		 *
 		 * @returns shape — The new shape.
 		 */
 		newChainShape(this: void, loop: boolean, points: number[]): ChainShape;
+		/**
+		 * Creates a new ChainShape.
+		 *
+
+		 * @param loop If the chain should loop back to the first point.
+		 * @param points A list of points to construct the ChainShape, in the form of {x1, y1, x2, y2, ...}.
+		 * @returns shape — The new shape.
+		 */
 		newChainShape(this: void, loop: boolean, ...points: number[]): ChainShape;
 		/**
 		 * Creates a DistanceJoint between two bodies.
@@ -8905,77 +10018,119 @@ declare global {
 		 *
 		 * This joint connects two bodies to a point around which they can pivot.
 		 *
+
 		 * @param body1 The first body.
 		 * @param body2 The second body.
 		 * @param x The x position of the connecting point.
 		 * @param y The y position of the connecting point.
 		 * @param collideConnected Specifies whether the two bodies should collide with each other. (Default: false.)
+		 * @returns joint — The new revolute joint.
+		 */
+		newRevoluteJoint(this: void, body1: Body, body2: Body, x: number, y: number, collideConnected?: boolean): RevoluteJoint;
+		/**
+		 * Creates a pivot joint between two bodies.
+		 *
+		 * This joint connects two bodies to a point around which they can pivot.
+		 *
+
+		 * @param body1 The first body.
+		 * @param body2 The second body.
 		 * @param x1 The x position of the first connecting point.
 		 * @param y1 The y position of the first connecting point.
 		 * @param x2 The x position of the second connecting point.
 		 * @param y2 The y position of the second connecting point.
+		 * @param collideConnected Specifies whether the two bodies should collide with each other. (Default: false.)
 		 * @param referenceAngle The reference angle between body1 and body2, in radians. (Default: 0.)
-		 *
 		 * @returns joint — The new revolute joint.
 		 */
-		newRevoluteJoint(this: void, body1: Body, body2: Body, x: number, y: number, collideConnected?: boolean): RevoluteJoint;
 		newRevoluteJoint(this: void, body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, collideConnected?: boolean, referenceAngle?: number): RevoluteJoint;
 		/**
 		 * Creates a PrismaticJoint between two bodies.
 		 *
 		 * A prismatic joint constrains two bodies to move relatively to each other on a specified axis. It does not allow for relative rotation. Its definition and operation are similar to a revolute joint, but with translation and force substituted for angle and torque.
 		 *
+
 		 * @param body1 The first body to connect with a prismatic joint.
 		 * @param body2 The second body to connect with a prismatic joint.
 		 * @param x The x coordinate of the anchor point.
 		 * @param y The y coordinate of the anchor point.
-		 * @param axisX The x coordinate of the axis vector. Depending on the overload: The x coordinate of the axis unit vector.
-		 * @param axisY The y coordinate of the axis vector. Depending on the overload: The y coordinate of the axis unit vector.
+		 * @param axisX The x coordinate of the axis vector.
+		 * @param axisY The y coordinate of the axis vector.
 		 * @param collideConnected Specifies whether the two bodies should collide with each other. (Default: false.)
+		 * @returns joint — The new prismatic joint.
+		 */
+		newPrismaticJoint(this: void, body1: Body, body2: Body, x: number, y: number, axisX: number, axisY: number, collideConnected?: boolean): PrismaticJoint;
+		/**
+		 * Creates a PrismaticJoint between two bodies.
+		 *
+		 * A prismatic joint constrains two bodies to move relatively to each other on a specified axis. It does not allow for relative rotation. Its definition and operation are similar to a revolute joint, but with translation and force substituted for angle and torque.
+		 *
+
+		 * @param body1 The first body to connect with a prismatic joint.
+		 * @param body2 The second body to connect with a prismatic joint.
 		 * @param x1 The x coordinate of the first anchor point.
 		 * @param y1 The y coordinate of the first anchor point.
 		 * @param x2 The x coordinate of the second anchor point.
 		 * @param y2 The y coordinate of the second anchor point.
+		 * @param axisX The x coordinate of the axis unit vector.
+		 * @param axisY The y coordinate of the axis unit vector.
+		 * @param collideConnected Specifies whether the two bodies should collide with each other. (Default: false.)
 		 * @param referenceAngle The reference angle between body1 and body2, in radians. (Default: 0.)
-		 *
 		 * @returns joint — The new prismatic joint.
 		 */
-		newPrismaticJoint(this: void, body1: Body, body2: Body, x: number, y: number, axisX: number, axisY: number, collideConnected?: boolean): PrismaticJoint;
 		newPrismaticJoint(this: void, body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, axisX: number, axisY: number, collideConnected?: boolean, referenceAngle?: number): PrismaticJoint;
 		/**
 		 * Creates a constraint joint between two bodies. A WeldJoint essentially glues two bodies together. The constraint is a bit soft, however, due to Box2D's iterative solver.
 		 *
+
 		 * @param body1 The first body to attach to the joint.
 		 * @param body2 The second body to attach to the joint.
 		 * @param x The x position of the anchor point (world space).
 		 * @param y The y position of the anchor point (world space).
 		 * @param collideConnected Specifies whether the two bodies should collide with each other. (Default: false.)
+		 * @returns joint — The new WeldJoint.
+		 */
+		newWeldJoint(this: void, body1: Body, body2: Body, x: number, y: number, collideConnected?: boolean): WeldJoint;
+		/**
+		 * Creates a constraint joint between two bodies. A WeldJoint essentially glues two bodies together. The constraint is a bit soft, however, due to Box2D's iterative solver.
+		 *
+
+		 * @param body1 The first body to attach to the joint.
+		 * @param body2 The second body to attach to the joint.
 		 * @param x1 The x position of the first anchor point (world space).
 		 * @param y1 The y position of the first anchor point (world space).
 		 * @param x2 The x position of the second anchor point (world space).
 		 * @param y2 The y position of the second anchor point (world space).
+		 * @param collideConnected Specifies whether the two bodies should collide with each other. (Default: false.)
 		 * @param referenceAngle The reference angle between body1 and body2, in radians. (Default: 0.)
-		 *
 		 * @returns joint — The new WeldJoint.
 		 */
-		newWeldJoint(this: void, body1: Body, body2: Body, x: number, y: number, collideConnected?: boolean): WeldJoint;
 		newWeldJoint(this: void, body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, collideConnected?: boolean, referenceAngle?: number): WeldJoint;
 		/**
 		 * Create a friction joint between two bodies. A FrictionJoint applies friction to a body.
 		 *
+
 		 * @param body1 The first body to attach to the joint.
 		 * @param body2 The second body to attach to the joint.
 		 * @param x The x position of the anchor point.
 		 * @param y The y position of the anchor point.
 		 * @param collideConnected Specifies whether the two bodies should collide with each other. (Default: false.)
+		 * @returns joint — The new FrictionJoint.
+		 */
+		newFrictionJoint(this: void, body1: Body, body2: Body, x: number, y: number, collideConnected?: boolean): FrictionJoint;
+		/**
+		 * Create a friction joint between two bodies. A FrictionJoint applies friction to a body.
+		 *
+
+		 * @param body1 The first body to attach to the joint.
+		 * @param body2 The second body to attach to the joint.
 		 * @param x1 The x position of the first anchor point.
 		 * @param y1 The y position of the first anchor point.
 		 * @param x2 The x position of the second anchor point.
 		 * @param y2 The y position of the second anchor point.
-		 *
+		 * @param collideConnected Specifies whether the two bodies should collide with each other. (Default: false.)
 		 * @returns joint — The new FrictionJoint.
 		 */
-		newFrictionJoint(this: void, body1: Body, body2: Body, x: number, y: number, collideConnected?: boolean): FrictionJoint;
 		newFrictionJoint(this: void, body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, collideConnected?: boolean): FrictionJoint;
 		/**
 		 * Creates a joint between two bodies. Its only function is enforcing a max distance between these bodies.
@@ -9018,6 +10173,7 @@ declare global {
 		/**
 		 * Creates a wheel joint.
 		 *
+
 		 * @param body1 The first body.
 		 * @param body2 The second body.
 		 * @param x The x position of the anchor point.
@@ -9025,14 +10181,24 @@ declare global {
 		 * @param axisX The x position of the axis unit vector.
 		 * @param axisY The y position of the axis unit vector.
 		 * @param collideConnected Specifies whether the two bodies should collide with each other. (Default: false.)
+		 * @returns joint — The new WheelJoint.
+		 */
+		newWheelJoint(this: void, body1: Body, body2: Body, x: number, y: number, axisX: number, axisY: number, collideConnected?: boolean): WheelJoint;
+		/**
+		 * Creates a wheel joint.
+		 *
+
+		 * @param body1 The first body.
+		 * @param body2 The second body.
 		 * @param x1 The x position of the first anchor point.
 		 * @param y1 The y position of the first anchor point.
 		 * @param x2 The x position of the second anchor point.
 		 * @param y2 The y position of the second anchor point.
-		 *
+		 * @param axisX The x position of the axis unit vector.
+		 * @param axisY The y position of the axis unit vector.
+		 * @param collideConnected Specifies whether the two bodies should collide with each other. (Default: false.)
 		 * @returns joint — The new WheelJoint.
 		 */
-		newWheelJoint(this: void, body1: Body, body2: Body, x: number, y: number, axisX: number, axisY: number, collideConnected?: boolean): WheelJoint;
 		newWheelJoint(this: void, body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, axisX: number, axisY: number, collideConnected?: boolean): WheelJoint;
 		/**
 		 * Create a joint between a body and the mouse.

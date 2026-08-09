@@ -1,0 +1,234 @@
+# Rasterizer
+
+**描述：**
+
+&emsp;&emsp;光栅化器处理字体渲染，包含字体数据（图像或TrueType字体）和可绘制的字形。
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: Rasterizer): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: Rasterizer): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: Rasterizer, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## getHeight
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字体高度。
+
+**签名：**
+```tl
+getHeight: function(self: Rasterizer): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 字体高度 |
+
+## getAdvance
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字体提前。
+
+**签名：**
+```tl
+getAdvance: function(self: Rasterizer): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 字体提前。 |
+
+## getAscent
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取上升高度。
+
+**签名：**
+```tl
+getAscent: function(self: Rasterizer): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 上升高度。 |
+
+## getDescent
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取下降高度。
+
+**签名：**
+```tl
+getDescent: function(self: Rasterizer): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 下降高度。 |
+
+## getLineHeight
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字体的行高。
+
+**签名：**
+```tl
+getLineHeight: function(self: Rasterizer): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 字体的行高。 |
+
+## getGlyphData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取指定字形的字形数据。
+
+**签名：**
+```tl
+getGlyphData: function(self: Rasterizer, glyph: string | integer): GlyphData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| glyph | string or integer | 字形 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| GlyphData | 字形数据 |
+
+## getGlyphCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字体中的字形数量。
+
+**签名：**
+```tl
+getGlyphCount: function(self: Rasterizer): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 字形计数。 |
+
+## hasGlyphs
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查字体是否包含指定的字形。
+
+**签名：**
+```tl
+hasGlyphs: function(self: Rasterizer, glyph: string | integer, ...: string | integer): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| glyph | string or integer | 字形 |
+| ... | string or integer | ... 参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 任何包含指定字形的字体。 |

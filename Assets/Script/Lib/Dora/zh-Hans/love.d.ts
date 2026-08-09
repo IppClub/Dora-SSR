@@ -204,14 +204,22 @@ declare global {
 			 *
 			 * 由于硬件限制和驱动程序错误，在 0.10.0 之前的版本中，未从 CompressedData 加载的图像必须具有二维幂（64x64、512x256 等）才能使用 mipmap。
 			 *
-			 * 重载说明：
-			 * 1. 在移动设备（Android 和 iOS）上，不支持清晰度参数，并且不会执行任何操作。您可以使用自定义压缩，其 CompressedData 包含 mipmap 数据，它将使用该数据。
-			 * 2. 禁用 mipmap 过滤。
-			 *
-			 * @param filter 在 mipmap 级别之间使用的过滤模式。 'nearest' 通常会提供更好的性能。
-			 * @param sharpness 正的锐度值使纹理在绘制时使用更详细的 mipmap 级别，但会牺牲性能。负值则相反。 （默认值：0。）
 			 */
-			setMipmapFilter(filter?: FilterMode, sharpness?: number): void;
+			setMipmapFilter(): void;
+/**
+ * 设置纹理的 mipmap 过滤器模式。在 11.0 之前，此方法仅适用于图像。
+ *
+ * Mipmapping 在以缩小比例绘制纹理时非常有用。它可以提高性能并减少锯齿问题。
+ *
+ * 在创建时启用了 mipmaps 标志，以便 mipmap 过滤器产生任何效果。在 0.10.0 之前的版本中，最好在使用 love.graphics.newImage 创建图像后直接调用此方法，以避免某些图形驱动程序中的错误。
+ *
+ * 由于硬件限制和驱动程序错误，在 0.10.0 之前的版本中，未从 CompressedData 加载的图像必须具有二维幂（64x64、512x256 等）才能使用 mipmap。
+ *
+
+ * @param filter 在 mipmap 级别之间使用的过滤模式。 'nearest' 通常会提供更好的性能。
+ * @param sharpness 正的锐度值使纹理在绘制时使用更详细的 mipmap 级别，但会牺牲性能。负值则相反。 （默认值：0。）
+ */
+			setMipmapFilter(filter: FilterMode, sharpness?: number): void;
 			/**
 			 * 获取纹理的 mipmap 过滤模式。在 11.0 之前，此方法仅适用于图像。
 			 *
@@ -598,14 +606,22 @@ declare global {
 			 *
 			 * 由于硬件限制和驱动程序错误，在 0.10.0 之前的版本中，未从 CompressedData 加载的图像必须具有二维幂（64x64、512x256 等）才能使用 mipmap。
 			 *
-			 * 重载说明：
-			 * 1. 在移动设备（Android 和 iOS）上，不支持清晰度参数，并且不会执行任何操作。您可以使用自定义压缩，其 CompressedData 包含 mipmap 数据，它将使用该数据。
-			 * 2. 禁用 mipmap 过滤。
-			 *
-			 * @param filter 在 mipmap 级别之间使用的过滤模式。 'nearest' 通常会提供更好的性能。
-			 * @param sharpness 正的锐度值使纹理在绘制时使用更详细的 mipmap 级别，但会牺牲性能。负值则相反。 （默认值：0。）
 			 */
-			setMipmapFilter(filter?: FilterMode, sharpness?: number): void;
+			setMipmapFilter(): void;
+/**
+ * 设置纹理的 mipmap 过滤器模式。在 11.0 之前，此方法仅适用于图像。
+ *
+ * Mipmapping 在以缩小比例绘制纹理时非常有用。它可以提高性能并减少锯齿问题。
+ *
+ * 在创建时启用了 mipmaps 标志，以便 mipmap 过滤器产生任何效果。在 0.10.0 之前的版本中，最好在使用 love.graphics.newImage 创建图像后直接调用此方法，以避免某些图形驱动程序中的错误。
+ *
+ * 由于硬件限制和驱动程序错误，在 0.10.0 之前的版本中，未从 CompressedData 加载的图像必须具有二维幂（64x64、512x256 等）才能使用 mipmap。
+ *
+
+ * @param filter 在 mipmap 级别之间使用的过滤模式。 'nearest' 通常会提供更好的性能。
+ * @param sharpness 正的锐度值使纹理在绘制时使用更详细的 mipmap 级别，但会牺牲性能。负值则相反。 （默认值：0。）
+ */
+			setMipmapFilter(filter: FilterMode, sharpness?: number): void;
 			/**
 			 * 获取纹理的 mipmap 过滤模式。在 11.0 之前，此方法仅适用于图像。
 			 *
@@ -892,46 +908,49 @@ declare global {
 			/**
 			 * 用新的未格式化字符串替换 Text 对象的内容。
 			 *
-			 * 重载说明：
-			 * 1. 在绘制文本对象时，love.graphics.setColor 设置的颜色将与文本的颜色组合（相乘）。
-			 *
-			 * @param text 要使用的新文本字符串。取决于重载：包含用作新文本的颜色和字符串的表，格式为 {color1, string1, color2, string2, ...}。
-			 * @param text.color1 包含红色、绿色、蓝色和可选 alpha 分量的表，用作表中下一个字符串的颜色，格式为 {red, green, blue, alpha}。
-			 * @param text.string1 文本字符串，其颜色由前一个颜色指定。
-			 * @param text.color2 包含红色、绿色、蓝色和可选 alpha 分量的表，用作表中下一个字符串的颜色，格式为 {red, green, blue, alpha}。
-			 * @param text.string2 文本字符串，其颜色由前一个颜色指定。
-			 * @param text.... 附加颜色和字符串。
+
+			 * @param text 要使用的新文本字符串。
 			 */
-			set(text: ColoredText): void;
+			set(text: string): void;
+/**
+ * 用新的未格式化字符串替换 Text 对象的内容。
+ *
+
+ * @param text 包含用作新文本的颜色和字符串的表，格式为 {color1, string1, color2, string2, ...}。
+ */
+			set(text: (string | Color)[]): void;
 			/**
 			 * 用新的格式化字符串替换 Text 对象的内容。
 			 *
-			 * 重载说明：
-			 * 1. 在绘制文本对象时，love.graphics.setColor 设置的颜色将与文本的颜色组合（相乘）。
-			 *
-			 * @param text 要使用的新文本字符串。取决于重载：包含用作新文本的颜色和字符串的表，格式为 {color1, string1, color2, string2, ...}。
-			 * @param text.color1 包含红色、绿色、蓝色和可选 alpha 分量的表，用作表中下一个字符串的颜色，格式为 {red, green, blue, alpha}。
-			 * @param text.string1 文本字符串，其颜色由前一个颜色指定。
-			 * @param text.color2 包含红色、绿色、蓝色和可选 alpha 分量的表，用作表中下一个字符串的颜色，格式为 {red, green, blue, alpha}。
-			 * @param text.string2 文本字符串，其颜色由前一个颜色指定。
-			 * @param text.... 附加颜色和字符串。
+
+			 * @param text 要使用的新文本字符串。
 			 * @param wrapLimit 自动换行之前文本的最大宽度（以像素为单位）。
 			 * @param align 文本的对齐方式。
 			 */
-			setf(text: ColoredText, wrapLimit: number, align: AlignMode): void;
+			setf(text: string, wrapLimit: number, align: AlignMode): void;
+/**
+ * 用新的格式化字符串替换 Text 对象的内容。
+ *
+
+ * @param text 包含用作新文本的颜色和字符串的表，格式为 {color1, string1, color2, string2, ...}。
+ * @param wrapLimit 自动换行之前文本的最大宽度（以像素为单位）。
+ * @param align 文本的对齐方式。
+ */
+			setf(text: (string | Color)[], wrapLimit: number, align: AlignMode): void;
 			/**
 			 * 将附加彩色文本添加到 Text 对象的指定位置。
 			 *
-			 * 重载说明：
-			 * 1. 在绘制文本对象时，love.graphics.setColor 设置的颜色将与文本的颜色组合（相乘）。
-			 *
-			 * @param text 要添加到对象的文本。取决于重载：包含要添加到对象的颜色和字符串的表，格式为 {color1, string1, color2, string2, ...}。
-			 * @param text.color1 包含红色、绿色、蓝色和可选 alpha 分量的表，用作表中下一个字符串的颜色，格式为 {red, green, blue, alpha}。
-			 * @param text.string1 文本字符串，其颜色由前一个颜色指定。
-			 * @param text.color2 包含红色、绿色、蓝色和可选 alpha 分量的表，用作表中下一个字符串的颜色，格式为 {red, green, blue, alpha}。
-			 * @param text.string2 文本字符串，其颜色由前一个颜色指定。
-			 * @param text.... 附加颜色和字符串。
+
+			 * @param text 要添加到对象的文本。
 			 * @param transform 新文本在 x 轴上的位置。 （默认值：0。）
+			 * @returns index — 可与 Text:getWidth 或 Text:getHeight 一起使用的索引号。
+			 */
+			add(text: ColoredText, transform: Transform): number;
+			/**
+			 * 将附加彩色文本添加到 Text 对象的指定位置。
+			 *
+
+			 * @param text 包含要添加到对象的颜色和字符串的表，格式为 {color1, string1, color2, string2, ...}。
 			 * @param x 新文本在 x 轴上的位置。 （默认值：0。）
 			 * @param y 新文本在 y 轴上的位置。 （默认值：0。）
 			 * @param angle 新文本的方向（以弧度表示）。 （默认值：0。）
@@ -941,28 +960,31 @@ declare global {
 			 * @param originY y 轴上的原点偏移。 （默认值：0。）
 			 * @param shearX x 轴上的剪切/倾斜因子。 （默认值：0。）
 			 * @param shearY y 轴上的剪切/倾斜因子。 （默认值：0。）
-			 *
 			 * @returns index — 可与 Text:getWidth 或 Text:getHeight 一起使用的索引号。
 			 */
-			add(text: ColoredText, transform: Transform): number;
 			add(text: ColoredText, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): number;
 			/**
 			 * 将附加格式化/彩色文本添加到 Text 对象的指定位置。
 			 *
 			 * 在任何缩放、旋转和其他坐标转换之前应用自动换行限制。因此，即使比例参数发生变化，在给定相同的换行限制的情况下，每行的文本量也保持不变。
 			 *
-			 * 重载说明：
-			 * 1. 在绘制文本对象时，love.graphics.setColor 设置的颜色将与文本的颜色组合（相乘）。
-			 *
-			 * @param text 要添加到对象的文本。取决于重载：包含要添加到对象的颜色和字符串的表，格式为 {color1, string1, color2, string2, ...}。
-			 * @param text.color1 包含红色、绿色、蓝色和可选 alpha 分量的表，用作表中下一个字符串的颜色，格式为 {red, green, blue, alpha}。
-			 * @param text.string1 文本字符串，其颜色由前一个颜色指定。
-			 * @param text.color2 包含红色、绿色、蓝色和可选 alpha 分量的表，用作表中下一个字符串的颜色，格式为 {red, green, blue, alpha}。
-			 * @param text.string2 文本字符串，其颜色由前一个颜色指定。
-			 * @param text.... 附加颜色和字符串。
+
+			 * @param text 要添加到对象的文本。
 			 * @param wrapLimit 自动换行之前文本的最大宽度（以像素为单位）。
 			 * @param align 文本的对齐方式。
 			 * @param transform 新文本的位置（x 轴）。
+			 * @returns index — 可与 Text:getWidth 或 Text:getHeight 一起使用的索引号。
+			 */
+			addf(text: ColoredText, wrapLimit: number, align: AlignMode, transform: Transform): number;
+			/**
+			 * 将附加格式化/彩色文本添加到 Text 对象的指定位置。
+			 *
+			 * 在任何缩放、旋转和其他坐标转换之前应用自动换行限制。因此，即使比例参数发生变化，在给定相同的换行限制的情况下，每行的文本量也保持不变。
+			 *
+
+			 * @param text 包含要添加到对象的颜色和字符串的表，格式为 {color1, string1, color2, string2, ...}。
+			 * @param wrapLimit 自动换行之前文本的最大宽度（以像素为单位）。
+			 * @param align 文本的对齐方式。
 			 * @param x 新文本的位置（x 轴）。
 			 * @param y 新文本的位置（y 轴）。
 			 * @param angle 方向（弧度）。 （默认值：0。）
@@ -972,10 +994,8 @@ declare global {
 			 * @param originY 原点偏移（y 轴）。 （默认值：0。）
 			 * @param shearX 剪切/倾斜因子（x 轴）。 （默认值：0。）
 			 * @param shearY 剪切/倾斜因子（y 轴）。 （默认值：0。）
-			 *
 			 * @returns index — 可与 Text:getWidth 或 Text:getHeight 一起使用的索引号。
 			 */
-			addf(text: ColoredText, wrapLimit: number, align: AlignMode, transform: Transform): number;
 			addf(text: ColoredText, wrapLimit: number, align: AlignMode, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): number;
 			/**
 			 * 清除文本对象的内容。
@@ -996,38 +1016,52 @@ declare global {
 			/**
 			 * 获取文本的宽度（以像素为单位）。
 			 *
-			 * 重载说明：
-			 * 1. 获取先前添加到 Text 对象的特定子字符串的宽度。
-			 *
-			 * @param index Text:add 或 Text:addf 返回的索引号。
-			 *
-			 * @returns width — 文本的宽度。如果使用 Text:add 添加了多个子字符串，则返回最后一个子字符串的宽度。取决于重载：子字符串的宽度（在缩放和其他转换之前）。
+
+			 * @returns width — 文本的宽度。如果使用 Text:add 添加了多个子字符串，则返回最后一个子字符串的宽度。
 			 */
-			getWidth(index?: number): number;
+			getWidth(): number;
+/**
+ * 获取文本的宽度（以像素为单位）。
+ *
+
+ * @param index Text:add 或 Text:addf 返回的索引号。
+ * @returns 子字符串的宽度（在缩放和其他转换之前）。
+ */
+			getWidth(index: number): number;
 			/**
 			 * 获取文本的高度（以像素为单位）。
 			 *
-			 * 重载说明：
-			 * 1. 获取先前添加到 Text 对象的特定子字符串的高度。
-			 *
-			 * @param index Text:add 或 Text:addf 返回的索引号。
-			 *
-			 * @returns  height  — 文本的高度。如果使用 Text:add 添加了多个子字符串，则返回最后一个子字符串的高度。
+
+			 * @returns height  — 文本的高度。如果使用 Text:add 添加了多个子字符串，则返回最后一个子字符串的高度。
 			 * @returns height — 子字符串的高度（在缩放和其他转换之前）。
 			 */
-			getHeight(index?: number): number;
+			getHeight(): number;
+/**
+ * 获取文本的高度（以像素为单位）。
+ *
+
+ * @param index Text:add 或 Text:addf 返回的索引号。
+ * @returns height  — 文本的高度。如果使用 Text:add 添加了多个子字符串，则返回最后一个子字符串的高度。
+ * @returns height — 子字符串的高度（在缩放和其他转换之前）。
+ */
+			getHeight(index: number): number;
 			/**
 			 * 获取文本的宽度和高度（以像素为单位）。
 			 *
-			 * 重载说明：
-			 * 1. 获取先前添加到 Text 对象的特定子字符串的宽度和高度。
-			 *
-			 * @param index Text:add 或 Text:addf 返回的索引号。
-			 *
-			 * @returns width — 文本的宽度。如果使用 Text:add 添加了多个子字符串，则返回最后一个子字符串的宽度。取决于重载：子字符串的宽度（在缩放和其他转换之前）。
-			 * @returns height — 文本的高度。如果使用 Text:add 添加了多个子字符串，则返回最后一个子字符串的高度。取决于过载：子字符串的高度（在缩放和其他转换之前）。
+
+			 * @returns width — 文本的宽度。如果使用 Text:add 添加了多个子字符串，则返回最后一个子字符串的宽度。
+			 * @returns height — 文本的高度。如果使用 Text:add 添加了多个子字符串，则返回最后一个子字符串的高度。
 			 */
-			getDimensions(index?: number): LuaMultiReturn<[number, number]>;
+			getDimensions(): LuaMultiReturn<[number, number]>;
+/**
+ * 获取文本的宽度和高度（以像素为单位）。
+ *
+
+ * @param index Text:add 或 Text:addf 返回的索引号。
+ * @returns 子字符串的宽度（在缩放和其他转换之前）。
+ * @returns 子字符串的高度（在缩放和其他转换之前）。
+ */
+			getDimensions(index: number): LuaMultiReturn<[number, number]>;
 		}
 		/** A quadrilateral (a polygon with four sides and four corners) with texture coordinate information.
 		 */
@@ -1068,63 +1102,40 @@ declare global {
 			/**
 			 * 用新顶点替换网格中的一系列顶点。网格体的顶点总数在创建后就无法更改。这通常比在循环中调用 Mesh:setVertex 更有效。
 			 *
-			 * 重载说明：
-			 * 1. 每个顶点表中的值与网格顶点格式中的顶点属性的顺序相同。不是使用自定义顶点格式创建的标准网格将使用两个位置编号、两个纹理坐标编号以及每个顶点的四个颜色分量：x、y、u、v、r、g、b、a。如果没有为特定顶点属性组件提供值，则如果其数据类型为 'float'，则将设置为默认值 0；如果其数据类型为 'byte'，则设置为 255。
-			 * 2. 通过直接从数据对象的内存复制来设置网格的顶点组件。如果使用 LuaJIT 的 FFI 通过 Data:getPointer 和 ffi.cast 填充数据对象，则此变体比设置网格顶点数据的其他方法要高效得多。
-			 * 3. 设置不是使用自定义顶点格式创建的网格体的顶点组件。
-			 *
-			 * @param vertices 该表填充了每个顶点的顶点信息表，其形式为{vertex, ...}，其中每个顶点是一个形式为{attributecomponent, ...}的表。根据过载情况：表格中每个顶点填充的顶点信息表如下：
-			 * @param vertices.attributecomponent 顶点中第一个顶点属性的第一个组成部分。
-			 * @param vertices.... 顶点中所有顶点属性的附加组件。
-			 * @param vertices.1 顶点在 x 轴上的位置。
-			 * @param vertices.2 顶点在 y 轴上的位置。
-			 * @param vertices.3 纹理坐标的水平分量。纹理坐标通常在 1 范围内，但可以更大或更小（请参阅 WrapMode）。
-			 * @param vertices.4 纹理坐标的垂直分量。纹理坐标通常在 1 范围内，但可以更大或更小（请参阅 WrapMode）。
-			 * @param vertices.5 红色分量。 （默认值：1。）
-			 * @param vertices.6 绿色分量。 （默认值：1。）
-			 * @param vertices.7 蓝色分量。 （默认值：1。）
-			 * @param vertices.8 Alpha 颜色分量。 （默认值：1。）
+
+			 * @param vertices 该表填充了每个顶点的顶点信息表，其形式为{vertex, ...}，其中每个顶点是一个形式为{attributecomponent, ...}的表。
 			 * @param startVertex 要替换的第一个顶点的索引。 （默认值：1。）
 			 * @param vertexCount 要替换的顶点数量。 （默认值：全部。）
-			 * @param data 要复制的数据对象。数据的内容必须与该网格体的顶点格式的布局相匹配。
 			 */
 			setVertices(vertices: MeshVertex[], startVertex?: number, vertexCount?: number): void;
+			/**
+			 * 用新顶点替换网格中的一系列顶点。网格体的顶点总数在创建后就无法更改。这通常比在循环中调用 Mesh:setVertex 更有效。
+			 *
+
+			 * @param data 要复制的数据对象。数据的内容必须与该网格体的顶点格式的布局相匹配。
+			 * @param startVertex 要替换的第一个顶点的索引。 （默认值：1。）
+			 * @param vertexCount 要替换的顶点数量。 （默认值：全部。）
+			 */
 			setVertices(data: Data, startVertex?: number, vertexCount?: number): void;
 			/**
 			 * 设置网格中顶点的属性。
 			 *
 			 * 在11.0之前的版本中，颜色和字节分量值的范围是0到255，而不是0到1。
 			 *
-			 * 重载说明：
-			 * 1. 参数的顺序与网格顶点格式中的顶点属性相同。不是使用自定义顶点格式创建的标准网格将使用两个位置编号、两个纹理坐标编号以及每个顶点的四个颜色分量：x、y、u、v、r、g、b、a。如果没有为特定顶点属性组件提供值，则如果其数据类型为 'float'，则将设置为默认值 0；如果其数据类型为 'byte'，则将设置为 1。
-			 * 2. 表索引的顺序与网格顶点格式中的顶点属性的顺序相同。不是使用自定义顶点格式创建的标准网格将使用两个位置编号、两个纹理坐标编号以及每个顶点的四个颜色分量：x、y、u、v、r、g、b、a。如果没有为特定顶点属性组件提供值，则如果其数据类型为 'float'，则将设置为默认值 0；如果其数据类型为 'byte'，则将设置为 1。
-			 * 3. 设置不是使用自定义顶点格式创建的网格体的顶点组件。
-			 *
+
 			 * @param index 要修改的顶点的索引（从一开始）。
-			 * @param vertex 包含顶点信息的表，格式为{attributecomponent, ...}。取决于过载：带有顶点信息的表。
-			 * @param vertex.attributecomponent 指定顶点中第一个顶点属性的第一个组件。
-			 * @param vertex.... 指定顶点中所有顶点属性的附加组件。
-			 * @param vertex.1 顶点在 x 轴上的位置。
-			 * @param vertex.2 顶点在 y 轴上的位置。
-			 * @param vertex.3 u 纹理坐标。纹理坐标通常在 1 的范围内，但可以更大或更小（请参阅 WrapMode。）
-			 * @param vertex.4 v 纹理坐标。纹理坐标通常在 1 的范围内，但可以更大或更小（请参阅 WrapMode。）
-			 * @param vertex.5 红色分量。 （默认值：1。）
-			 * @param vertex.6 绿色分量。 （默认值：1。）
-			 * @param vertex.7 蓝色分量。 （默认值：1。）
-			 * @param vertex.8 Alpha 颜色分量。 （默认值：1。）
-			 * @param components 包含顶点信息的表，格式为{attributecomponent, ...}。取决于过载：带有顶点信息的表。
-			 * @param components.attributecomponent 指定顶点中第一个顶点属性的第一个组件。
-			 * @param components.... 指定顶点中所有顶点属性的附加组件。
-			 * @param components.1 顶点在 x 轴上的位置。
-			 * @param components.2 顶点在 y 轴上的位置。
-			 * @param components.3 u 纹理坐标。纹理坐标通常在 1 的范围内，但可以更大或更小（请参阅 WrapMode。）
-			 * @param components.4 v 纹理坐标。纹理坐标通常在 1 的范围内，但可以更大或更小（请参阅 WrapMode。）
-			 * @param components.5 红色分量。 （默认值：1。）
-			 * @param components.6 绿色分量。 （默认值：1。）
-			 * @param components.7 蓝色分量。 （默认值：1。）
-			 * @param components.8 Alpha 颜色分量。 （默认值：1。）
+			 * @param vertex 包含顶点信息的表，格式为{attributecomponent, ...}。
 			 */
 			setVertex(index: number, vertex: MeshVertex): void;
+			/**
+			 * 设置网格中顶点的属性。
+			 *
+			 * 在11.0之前的版本中，颜色和字节分量值的范围是0到255，而不是0到1。
+			 *
+
+			 * @param index 要修改的顶点的索引（从一开始）。
+			 * @param components 带有顶点信息的表。
+			 */
 			setVertex(index: number, ...components: number[]): void;
 			/**
 			 * 获取网格中顶点的属性。
@@ -1238,14 +1249,36 @@ declare global {
 			 *
 			 * 顶点贴图允许您在绘制时重新排序或重用顶点，而无需更改实际的顶点参数或复制顶点。当与不同的网格绘制模式结合使用时，它特别有用。
 			 *
+			 */
+			setVertexMap(): void;
+			/**
+			 * 设置网格的顶点贴图。顶点图描述了绘制Mesh时顶点的使用顺序。顶点、顶点贴图和网格绘制模式共同确定屏幕上显示的内容。
+			 *
+			 * 顶点贴图允许您在绘制时重新排序或重用顶点，而无需更改实际的顶点参数或复制顶点。当与不同的网格绘制模式结合使用时，它特别有用。
+			 *
+
 			 * @param indices 包含绘图时使用的顶点索引列表的表。值必须在 Mesh:getVertexCount() 范围内。
+			 */
+			setVertexMap(indices: number[]): void;
+			/**
+			 * 设置网格的顶点贴图。顶点图描述了绘制Mesh时顶点的使用顺序。顶点、顶点贴图和网格绘制模式共同确定屏幕上显示的内容。
+			 *
+			 * 顶点贴图允许您在绘制时重新排序或重用顶点，而无需更改实际的顶点参数或复制顶点。当与不同的网格绘制模式结合使用时，它特别有用。
+			 *
+
+			 * @param indices 包含绘图时使用的顶点索引列表的表。值必须在 Mesh:getVertexCount() 范围内。
+			 */
+			setVertexMap(...indices: number[]): void;
+			/**
+			 * 设置网格的顶点贴图。顶点图描述了绘制Mesh时顶点的使用顺序。顶点、顶点贴图和网格绘制模式共同确定屏幕上显示的内容。
+			 *
+			 * 顶点贴图允许您在绘制时重新排序或重用顶点，而无需更改实际的顶点参数或复制顶点。当与不同的网格绘制模式结合使用时，它特别有用。
+			 *
+
 			 * @param data 绘制时使用的顶点索引数组。值必须在 Mesh:getVertexCount()-1
 			 * @param dataType 上面顶点索引数组的数据类型。
 			 * @param indexCount 绘制时使用的第三个顶点的索引。
 			 */
-			setVertexMap(): void;
-			setVertexMap(indices: number[]): void;
-			setVertexMap(...indices: number[]): void;
 			setVertexMap(data: Data, dataType: IndexDataType, indexCount?: number): void;
 			/**
 			 * 获取网格的顶点贴图。顶点图描述了绘制Mesh时顶点的使用顺序。顶点、顶点贴图和网格绘制模式共同确定屏幕上显示的内容。
@@ -1258,12 +1291,15 @@ declare global {
 			/**
 			 * 设置绘制网格时使用的纹理（图像或画布）。
 			 *
-			 * 重载说明：
-			 * 1. 绘制网格时禁用任何纹理。默认情况下，无纹理的网格具有白色。
-			 *
-			 * @param texture 绘制时用于纹理网格的图像或画布。
 			 */
-			setTexture(texture?: Image | Canvas): void;
+			setTexture(): void;
+/**
+ * 设置绘制网格时使用的纹理（图像或画布）。
+ *
+
+ * @param texture 绘制时用于纹理网格的图像或画布。
+ */
+			setTexture(texture: Image | Canvas): void;
 			/**
 			 * 获取绘制网格时使用的纹理（图像或画布）。
 			 *
@@ -1285,13 +1321,15 @@ declare global {
 			/**
 			 * 将网格的绘制顶点限制为总数的子集。
 			 *
-			 * 重载说明：
-			 * 1. 允许绘制网格中的所有顶点。
+			 */
+			setDrawRange(): void;
+			/**
+			 * 将网格的绘制顶点限制为总数的子集。
 			 *
+
 			 * @param start 绘制时要使用的第一个顶点的索引，或者如果为此网格设置了一个，则要使用的顶点映射中的第一个值的索引。
 			 * @param count 绘制时要使用的顶点数，或者如果为此网格设置了一个，则要使用的顶点映射中的值的数量。
 			 */
-			setDrawRange(): void;
 			setDrawRange(start: number, count: number): void;
 			/**
 			 * 获取绘制Mesh时使用的顶点范围。
@@ -1318,9 +1356,7 @@ declare global {
 			/**
 			 * 将精灵添加到批次中。精灵按照添加的顺序绘制。
 			 *
-			 * 重载说明：
-			 * 1. 将四边形添加到批次中。
-			 *
+
 			 * @param x 绘制对象的位置（x 轴）。
 			 * @param y 绘制对象的位置（y 轴）。
 			 * @param angle 方向（弧度）。 （默认值：0。）
@@ -1330,18 +1366,30 @@ declare global {
 			 * @param originY 原点偏移（y 轴）。 （默认值：0。）
 			 * @param shearX 剪切因子（x 轴）。 （默认值：0。）
 			 * @param shearY 剪切因子（y 轴）。 （默认值：0。）
-			 * @param quad 要添加的四边形。
-			 *
 			 * @returns id — 添加的精灵的标识符。
 			 */
 			add(x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): number;
+			/**
+			 * 将精灵添加到批次中。精灵按照添加的顺序绘制。
+			 *
+
+			 * @param quad 要添加的四边形。
+			 * @param x 绘制对象的位置（x 轴）。
+			 * @param y 绘制对象的位置（y 轴）。
+			 * @param angle 方向（弧度）。 （默认值：0。）
+			 * @param scaleX 比例因子（x 轴）。 （默认值：1。）
+			 * @param scaleY 比例因子（y 轴）。 （默认值：sx。）
+			 * @param originX 原点偏移（x 轴）。 （默认值：0。）
+			 * @param originY 原点偏移（y 轴）。 （默认值：0。）
+			 * @param shearX 剪切因子（x 轴）。 （默认值：0。）
+			 * @param shearY 剪切因子（y 轴）。 （默认值：0。）
+			 * @returns id — 添加的精灵的标识符。
+			 */
 			add(quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): number;
 			/**
 			 * 更改批次中的精灵。这需要 SpriteBatch:add 或 SpriteBatch:addLayer 返回的精灵索引。
 			 *
-			 * 重载说明：
-			 * 1. 批量更改带有四边形的精灵。这需要 SpriteBatch:add 或 SpriteBatch:addLayer 返回的索引。 SpriteBatches 不支持删除单个精灵。可以通过以下方式进行伪删除（而不是清除并重新添加所有内容）： SpriteBatch:set(id, 0, 0, 0, 0, 0) 这使得所有精灵的顶点相等（因为 x 和 y 比例为 0），这会阻止 GPU 在绘制 SpriteBatch 时完全处理精灵。
-			 *
+
 			 * @param index 将要更改的精灵的索引。
 			 * @param x 绘制对象的位置（x 轴）。
 			 * @param y 绘制对象的位置（y 轴）。
@@ -1352,19 +1400,29 @@ declare global {
 			 * @param originY 原点偏移（y 轴）。 （默认值：0。）
 			 * @param shearX 剪切因子（x 轴）。 （默认值：0。）
 			 * @param shearY 剪切因子（y 轴）。 （默认值：0。）
-			 * @param quad 批次图像上使用的 Quad。
 			 */
 			set(index: number, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
+			/**
+			 * 更改批次中的精灵。这需要 SpriteBatch:add 或 SpriteBatch:addLayer 返回的精灵索引。
+			 *
+
+			 * @param index 将要更改的精灵的索引。
+			 * @param quad 批次图像上使用的 Quad。
+			 * @param x 绘制对象的位置（x 轴）。
+			 * @param y 绘制对象的位置（y 轴）。
+			 * @param angle 方向（弧度）。 （默认值：0。）
+			 * @param scaleX 比例因子（x 轴）。 （默认值：1。）
+			 * @param scaleY 比例因子（y 轴）。 （默认值：sx。）
+			 * @param originX 原点偏移（x 轴）。 （默认值：0。）
+			 * @param originY 原点偏移（y 轴）。 （默认值：0。）
+			 * @param shearX 剪切因子（x 轴）。 （默认值：0。）
+			 * @param shearY 剪切因子（y 轴）。 （默认值：0。）
+			 */
 			set(index: number, quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
 			/**
 			 * 将精灵添加到使用数组纹理创建的批次中。
 			 *
-			 * 重载说明：
-			 * 1. 添加 SpriteBatch 的数组纹理层。
-			 * 2. 使用指定的Quad添加SpriteBatch的数组纹理层。指定的图层索引会覆盖通过 Quad:setLayer 在 Quad 上设置的任何图层索引。
-			 * 3. 使用指定的 Transform 添加 SpriteBatch 的数组纹理层。
-			 * 4. 使用指定的 Quad 和 Transform 添加 SpriteBatch 的数组纹理层。为了在自定义 void effect() 变量中使用数组纹理或其他非 2D 纹理类型作为主纹理，必须在像素着色器中使用变体，并且必须将 MainTex 声明为 ArrayImage 或 sampler2DArray，如下所示：uniform ArrayImage MainTex;。
-			 *
+
 			 * @param layer 用于该精灵的图层索引。
 			 * @param x 绘制精灵的位置（x 轴）。 （默认值：0。）
 			 * @param y 绘制精灵的位置（y 轴）。 （默认值：0。）
@@ -1375,23 +1433,15 @@ declare global {
 			 * @param originY 原点偏移（y 轴）。 （默认值：0。）
 			 * @param shearX 剪切因子（x 轴）。 （默认值：0。）
 			 * @param shearY 剪切因子（y 轴）。 （默认值：0。）
-			 * @param quad 绘制精灵时使用的纹理层的分段。
-			 *
 			 * @returns spriteindex — 添加的精灵的索引，与 SpriteBatch:set 或 SpriteBatch:setLayer 一起使用。
 			 */
 			addLayer(layer: number, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): number;
-			addLayer(layer: number, quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): number;
 			/**
-			 * 在使用数组纹理创建的批处理中更改先前使用 add 或 addLayer 添加的精灵。
+			 * 将精灵添加到使用数组纹理创建的批次中。
 			 *
-			 * 重载说明：
-			 * 1. 更改 SpriteBatch 中的精灵。
-			 * 2. 使用指定的Quad添加SpriteBatch的数组纹理层。指定的图层索引会覆盖通过 Quad:setLayer 在 Quad 上设置的任何图层索引。
-			 * 3. 使用指定的 Transform 添加 SpriteBatch 的数组纹理层。
-			 * 4. 使用指定的 Quad 和 Transform 添加 SpriteBatch 的数组纹理层。指定的图层索引会覆盖通过 Quad:setLayer 在 Quad 上设置的任何图层索引。
-			 *
-			 * @param index 要替换的现有精灵的索引。
-			 * @param layer 用于此精灵的阵列纹理中的图层索引。取决于过载：用于此精灵的图层的索引。
+
+			 * @param layer 用于该精灵的图层索引。
+			 * @param quad 绘制精灵时使用的纹理层的分段。
 			 * @param x 绘制精灵的位置（x 轴）。 （默认值：0。）
 			 * @param y 绘制精灵的位置（y 轴）。 （默认值：0。）
 			 * @param angle 方向（弧度）。 （默认值：0。）
@@ -1401,9 +1451,43 @@ declare global {
 			 * @param originY 原点偏移（y 轴）。 （默认值：0。）
 			 * @param shearX 剪切因子（x 轴）。 （默认值：0。）
 			 * @param shearY 剪切因子（y 轴）。 （默认值：0。）
-			 * @param quad 绘制精灵时使用的纹理层的分段。
+			 * @returns spriteindex — 添加的精灵的索引，与 SpriteBatch:set 或 SpriteBatch:setLayer 一起使用。
+			 */
+			addLayer(layer: number, quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): number;
+			/**
+			 * 在使用数组纹理创建的批处理中更改先前使用 add 或 addLayer 添加的精灵。
+			 *
+
+			 * @param index 要替换的现有精灵的索引。
+			 * @param layer 用于此精灵的阵列纹理中的图层索引。
+			 * @param x 绘制精灵的位置（x 轴）。 （默认值：0。）
+			 * @param y 绘制精灵的位置（y 轴）。 （默认值：0。）
+			 * @param angle 方向（弧度）。 （默认值：0。）
+			 * @param scaleX 比例因子（x 轴）。 （默认值：1。）
+			 * @param scaleY 比例因子（y 轴）。 （默认值：sx。）
+			 * @param originX 原点偏移（x 轴）。 （默认值：0。）
+			 * @param originY 原点偏移（y 轴）。 （默认值：0。）
+			 * @param shearX 剪切因子（x 轴）。 （默认值：0。）
+			 * @param shearY 剪切因子（y 轴）。 （默认值：0。）
 			 */
 			setLayer(index: number, layer: number, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
+			/**
+			 * 在使用数组纹理创建的批处理中更改先前使用 add 或 addLayer 添加的精灵。
+			 *
+
+			 * @param index 要替换的现有精灵的索引。
+			 * @param layer 用于此精灵的图层的索引。
+			 * @param quad 绘制精灵时使用的纹理层的分段。
+			 * @param x 绘制精灵的位置（x 轴）。 （默认值：0。）
+			 * @param y 绘制精灵的位置（y 轴）。 （默认值：0。）
+			 * @param angle 方向（弧度）。 （默认值：0。）
+			 * @param scaleX 比例因子（x 轴）。 （默认值：1。）
+			 * @param scaleY 比例因子（y 轴）。 （默认值：sx。）
+			 * @param originX 原点偏移（x 轴）。 （默认值：0。）
+			 * @param originY 原点偏移（y 轴）。 （默认值：0。）
+			 * @param shearX 剪切因子（x 轴）。 （默认值：0。）
+			 * @param shearY 剪切因子（y 轴）。 （默认值：0。）
+			 */
 			setLayer(index: number, layer: number, quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
 			/**
 			 * 从缓冲区中删除所有精灵。
@@ -1436,17 +1520,32 @@ declare global {
 			 *
 			 * 在版本 0.9.2 及更早版本中，如果任何精灵有自己的颜色，则使用 love.graphics.setColor 设置的全局颜色将无法在 SpriteBatch 上工作。
 			 *
-			 * 重载说明：
-			 * 1. 禁用此 SpriteBatch 的所有每个精灵颜色。
+			 */
+			setColor(): void;
+			/**
+			 * 设置将用于下一个添加和设置操作的颜色。调用不带参数的函数将禁用 SpriteBatch 的所有每个精灵颜色。
 			 *
+			 * 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+			 *
+			 * 在版本 0.9.2 及更早版本中，如果任何精灵有自己的颜色，则使用 love.graphics.setColor 设置的全局颜色将无法在 SpriteBatch 上工作。
+			 *
+
 			 * @param red 红色的量。
 			 * @param green 绿色量。
 			 * @param blue 蓝色的量。
 			 * @param alpha 阿尔法的数量。 （默认值：1。）
+			 */
+			setColor(red: number, green: number, blue: number, alpha?: number): void;
+			/**
+			 * 设置将用于下一个添加和设置操作的颜色。调用不带参数的函数将禁用 SpriteBatch 的所有每个精灵颜色。
+			 *
+			 * 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+			 *
+			 * 在版本 0.9.2 及更早版本中，如果任何精灵有自己的颜色，则使用 love.graphics.setColor 设置的全局颜色将无法在 SpriteBatch 上工作。
+			 *
+
 			 * @param color 红色的量。
 			 */
-			setColor(): void;
-			setColor(red: number, green: number, blue: number, alpha?: number): void;
 			setColor(color: Color): void;
 			/**
 			 * 获取将用于下一个添加和设置操作的颜色。
@@ -1488,13 +1587,15 @@ declare global {
 			/**
 			 * 将 SpriteBatch 中绘制的精灵限制为总数的子集。
 			 *
-			 * 重载说明：
-			 * 1. 允许绘制SpriteBatch中的所有精灵。
+			 */
+			setDrawRange(): void;
+			/**
+			 * 将 SpriteBatch 中绘制的精灵限制为总数的子集。
 			 *
+
 			 * @param start 要绘制的第一个精灵的索引。索引 1 对应于添加了 SpriteBatch:add 的第一个精灵。
 			 * @param count 要绘制的精灵数量。
 			 */
-			setDrawRange(): void;
 			setDrawRange(start: number, count: number): void;
 			getDrawRange(): LuaMultiReturn<[number, number]> | undefined;
 		}
@@ -1973,26 +2074,150 @@ declare global {
 			 *
 			 * 统一/外部变量在着色器代码中是只读的，并保持不变，直到被 Shader:send 调用修改。统一变量可以在着色器的顶点和像素组件中访问，只要在每个组件中声明该变量即可。
 			 *
-			 * 重载说明：
-			 * 1. 因为Lua中的所有数字都是浮点型，所以在0.10.2之前的版本中，您必须使用函数Shader:sendInt将值发送到着色器代码中的uniform int变量。
-			 * 2. 将源自数据对象内容的统一值发送到着色器。这直接复制数据的字节。
-			 * 3. 将来自数据对象内容的统一矩阵发送到着色器。这直接复制数据的字节。
-			 *
-			 * @param name 发送到着色器的数字名称。取决于重载：发送到着色器的向量的名称。取决于重载：发送到着色器的矩阵的名称。取决于重载：发送到着色器的纹理的名称。取决于重载：发送到着色器的布尔值的名称。取决于过载：发送到着色器的制服名称。取决于重载：发送到着色器的统一矩阵的名称。
+
+			 * @param name 发送到着色器的数字名称。
 			 * @param texture 纹理（图像或画布）发送到统一变量。
-			 * @param textures 如果统一变量是数组，则要发送的附加数字。根据重载：如果统一变量是数组，则要发送其他向量。所有向量需要具有相同的大小（例如，只有 vec3's). Depending on the overload: Additional matrices of the same type as ''matrix'' 才能存储在统一数组中。取决于重载：如果统一变量是数组，则要发送其他布尔值。
-			 * @param matrixLayout 矩阵的布局（行优先或列优先）。取决于过载：内存中矩阵的布局（行优先或列优先）。
-			 * @param matrices 如果统一变量是数组，则要发送的附加数字。根据重载：如果统一变量是数组，则要发送其他向量。所有向量需要具有相同的大小（例如，只有 vec3's). Depending on the overload: Additional matrices of the same type as ''matrix'' 才能存储在统一数组中。取决于重载：如果统一变量是数组，则要发送其他布尔值。
+			 * @param textures 如果统一变量是数组，则要发送的附加数字。
+			 */
+			send(name: string, texture: Image | Canvas, ...textures: (Image | Canvas)[]): void;
+			/**
+			 * 将一个或多个值发送到特殊的 (''uniform'') variable inside the shader. Uniform variables have to be marked using the ''uniform'' or ''extern'' 关键字，例如
+			 *
+			 * 统一浮动时间； // 'float' 是 GLSL 着色器中使用的典型数字类型。
+			 *
+			 * 统一浮点varsvec2 light_pos；
+			 *
+			 * 统一vec4颜色[4;
+			 *
+			 * 相应的发送调用将是
+			 *
+			 * 着色器：发送('time', t)
+			 *
+			 * 着色器：发送('vars',a,b)
+			 *
+			 * 着色器：发送('light_pos', {light_x, light_y})
+			 *
+			 * 着色器：发送（'colors'，{r1，g1，b1，a1}，{r2，g2，b2，a2}，{r3，g3，b3，a3}，{r4，g4，b4，a4}）
+			 *
+			 * 统一/外部变量在着色器代码中是只读的，并保持不变，直到被 Shader:send 调用修改。统一变量可以在着色器的顶点和像素组件中访问，只要在每个组件中声明该变量即可。
+			 *
+
+			 * @param name 发送到着色器的向量的名称。
+			 * @param matrixLayout 内存中矩阵的布局（行优先或列优先）。
+			 * @param matrices Additional matrices of the same type as ''matrix'' 才能存储在统一数组中。
+			 */
+			send(name: string, matrixLayout: MatrixLayout, ...matrices: (number[] | number[][])[]): void;
+			/**
+			 * 将一个或多个值发送到特殊的 (''uniform'') variable inside the shader. Uniform variables have to be marked using the ''uniform'' or ''extern'' 关键字，例如
+			 *
+			 * 统一浮动时间； // 'float' 是 GLSL 着色器中使用的典型数字类型。
+			 *
+			 * 统一浮点varsvec2 light_pos；
+			 *
+			 * 统一vec4颜色[4;
+			 *
+			 * 相应的发送调用将是
+			 *
+			 * 着色器：发送('time', t)
+			 *
+			 * 着色器：发送('vars',a,b)
+			 *
+			 * 着色器：发送('light_pos', {light_x, light_y})
+			 *
+			 * 着色器：发送（'colors'，{r1，g1，b1，a1}，{r2，g2，b2，a2}，{r3，g3，b3，a3}，{r4，g4，b4，a4}）
+			 *
+			 * 统一/外部变量在着色器代码中是只读的，并保持不变，直到被 Shader:send 调用修改。统一变量可以在着色器的顶点和像素组件中访问，只要在每个组件中声明该变量即可。
+			 *
+
+			 * @param name 发送到着色器的矩阵的名称。
 			 * @param data 包含要发送的值的数据对象。
 			 * @param offset 从数据对象开始处的偏移量（以字节为单位）。 （默认值：0。）
 			 * @param size 要发送的数据的大小（以字节为单位）。如果为零，则将复制与指定的统一用途一样多的字节。 （默认值：全部。）
+			 */
+			send(name: string, data: Data, offset?: number, size?: number): void;
+			/**
+			 * 将一个或多个值发送到特殊的 (''uniform'') variable inside the shader. Uniform variables have to be marked using the ''uniform'' or ''extern'' 关键字，例如
+			 *
+			 * 统一浮动时间； // 'float' 是 GLSL 着色器中使用的典型数字类型。
+			 *
+			 * 统一浮点varsvec2 light_pos；
+			 *
+			 * 统一vec4颜色[4;
+			 *
+			 * 相应的发送调用将是
+			 *
+			 * 着色器：发送('time', t)
+			 *
+			 * 着色器：发送('vars',a,b)
+			 *
+			 * 着色器：发送('light_pos', {light_x, light_y})
+			 *
+			 * 着色器：发送（'colors'，{r1，g1，b1，a1}，{r2，g2，b2，a2}，{r3，g3，b3，a3}，{r4，g4，b4，a4}）
+			 *
+			 * 统一/外部变量在着色器代码中是只读的，并保持不变，直到被 Shader:send 调用修改。统一变量可以在着色器的顶点和像素组件中访问，只要在每个组件中声明该变量即可。
+			 *
+
+			 * @param name 发送到着色器的纹理的名称。
+			 * @param matrixLayout 内存中矩阵的布局（行优先或列优先）。
+			 * @param data 包含要发送的值的数据对象。
+			 * @param offset 从数据对象开始处的偏移量（以字节为单位）。 （默认值：0。）
+			 * @param size 要发送的数据的大小（以字节为单位）。如果为零，则将复制与指定的统一用途一样多的字节。 （默认值：全部。）
+			 */
+			send(name: string, matrixLayout: MatrixLayout, data: Data, offset?: number, size?: number): void;
+			/**
+			 * 将一个或多个值发送到特殊的 (''uniform'') variable inside the shader. Uniform variables have to be marked using the ''uniform'' or ''extern'' 关键字，例如
+			 *
+			 * 统一浮动时间； // 'float' 是 GLSL 着色器中使用的典型数字类型。
+			 *
+			 * 统一浮点varsvec2 light_pos；
+			 *
+			 * 统一vec4颜色[4;
+			 *
+			 * 相应的发送调用将是
+			 *
+			 * 着色器：发送('time', t)
+			 *
+			 * 着色器：发送('vars',a,b)
+			 *
+			 * 着色器：发送('light_pos', {light_x, light_y})
+			 *
+			 * 着色器：发送（'colors'，{r1，g1，b1，a1}，{r2，g2，b2，a2}，{r3，g3，b3，a3}，{r4，g4，b4，a4}）
+			 *
+			 * 统一/外部变量在着色器代码中是只读的，并保持不变，直到被 Shader:send 调用修改。统一变量可以在着色器的顶点和像素组件中访问，只要在每个组件中声明该变量即可。
+			 *
+
+			 * @param name 发送到着色器的制服名称。
+			 * @param data 包含要发送的值的数据对象。
+			 * @param matrixLayout 内存中矩阵的布局（行优先或列优先）。
+			 * @param offset 从数据对象开始处的偏移量（以字节为单位）。 （默认值：0。）
+			 * @param size 要发送的数据的大小（以字节为单位）。如果为零，则将复制与指定的统一用途一样多的字节。 （默认值：全部。）
+			 */
+			send(name: string, data: Data, matrixLayout: MatrixLayout, offset?: number, size?: number): void;
+			/**
+			 * 将一个或多个值发送到特殊的 (''uniform'') variable inside the shader. Uniform variables have to be marked using the ''uniform'' or ''extern'' 关键字，例如
+			 *
+			 * 统一浮动时间； // 'float' 是 GLSL 着色器中使用的典型数字类型。
+			 *
+			 * 统一浮点varsvec2 light_pos；
+			 *
+			 * 统一vec4颜色[4;
+			 *
+			 * 相应的发送调用将是
+			 *
+			 * 着色器：发送('time', t)
+			 *
+			 * 着色器：发送('vars',a,b)
+			 *
+			 * 着色器：发送('light_pos', {light_x, light_y})
+			 *
+			 * 着色器：发送（'colors'，{r1，g1，b1，a1}，{r2，g2，b2，a2}，{r3，g3，b3，a3}，{r4，g4，b4，a4}）
+			 *
+			 * 统一/外部变量在着色器代码中是只读的，并保持不变，直到被 Shader:send 调用修改。统一变量可以在着色器的顶点和像素组件中访问，只要在每个组件中声明该变量即可。
+			 *
+
+			 * @param name 发送到着色器的统一矩阵的名称。
 			 * @param values 纹理（图像或画布）发送到统一变量。
 			 */
-			send(name: string, texture: Image | Canvas, ...textures: (Image | Canvas)[]): void;
-			send(name: string, matrixLayout: MatrixLayout, ...matrices: (number[] | number[][])[]): void;
-			send(name: string, data: Data, offset?: number, size?: number): void;
-			send(name: string, matrixLayout: MatrixLayout, data: Data, offset?: number, size?: number): void;
-			send(name: string, data: Data, matrixLayout: MatrixLayout, offset?: number, size?: number): void;
 			send(name: string, ...values: ShaderValue[]): void;
 			/**
 			 * 将一种或多种颜色发送到着色器内的特殊 (''extern'' / ''uniform'') vec3 或 vec4 变量。颜色分量必须在 1 的范围内。如果启用全局伽玛校正，则对颜色进行伽玛校正。
@@ -2009,12 +2234,32 @@ declare global {
 			 *
 			 * 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
 			 *
+
 			 * @param name 要在着色器中发送到的颜色外部变量的名称。
 			 * @param data 一个表，其中包含红色、绿色、蓝色和 1 范围内的可选 alpha 颜色分量，以向量形式发送到外部。
 			 * @param offset 当 extern 是数组时要发送的附加颜色。所有颜色都必须具有相同的大小（例如仅 vec3）。
-			 * @param values 一个表，其中包含红色、绿色、蓝色和 1 范围内的可选 alpha 颜色分量，以向量形式发送到外部。
+			 * @param size 从 Data 对象读取的字节数。
 			 */
 			sendColor(name: string, data: Data, offset?: number, size?: number): void;
+			/**
+			 * 将一种或多种颜色发送到着色器内的特殊 (''extern'' / ''uniform'') vec3 或 vec4 变量。颜色分量必须在 1 的范围内。如果启用全局伽玛校正，则对颜色进行伽玛校正。
+			 *
+			 * 外部变量必须使用“'extern'”关键字进行标记，例如
+			 *
+			 * 外部 vec4 颜色；
+			 *
+			 * 相应的 sendColor 调用将是
+			 *
+			 * 着色器:sendColor('Color', {r, g, b, a})
+			 *
+			 * 外部变量可以在着色器的顶点和像素阶段访问，只要在每个阶段声明该变量即可。
+			 *
+			 * 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+			 *
+
+			 * @param name 要在着色器中发送到的颜色外部变量的名称。
+			 * @param values 一个表，其中包含红色、绿色、蓝色和 1 范围内的可选 alpha 颜色分量，以向量形式发送到外部。
+			 */
 			sendColor(name: string, ...values: ShaderValue[]): void;
 		}
 
@@ -2033,18 +2278,26 @@ declare global {
 		 *
 		 * 在背景颜色之前的版本中。
 		 *
-		 * 重载说明：
-		 * 1. 在 0.9.2 及更早版本中将屏幕清除为背景颜色，或在 LÖVE 0.10.0 及更高版本中将屏幕清除为透明黑色 (0, 0, 0, 0)。
-		 * 2. 将屏幕或活动画布清除为指定颜色。
-		 * 3. 如果多个画布通过 love.graphics.setCanvas. 同时处于活动状态，则将多个活动画布清除为不同的颜色。使用此函数变体时，必须为每个活动画布指定颜色。
-		 * 4. 清除模板或深度缓冲区，而不必也清除彩色画布。
-		 *
-		 * @param red {r, g, b, a} 形式的表格，包含要清除第一个活动画布的颜色。
-		 * @param green 每个活动画布的附加表。
-		 * @param blue 是否清除活动模板缓冲区（如果存在）。它也可以是 0 到 255 之间的整数，用于将模板缓冲区清除为特定值。 （默认值：true。）
-		 * @param alpha 是否清除活动深度缓冲区（如果存在）。它也可以是 0 到 1 之间的数字，用于将深度缓冲区清除为特定值。 （默认值：true。）
 		 */
-		clear(this: void, red?: number, green?: number, blue?: number, alpha?: number): void;
+		clear(this: void): void;
+/**
+ * 将屏幕或活动画布清除为指定颜色。
+ *
+ * 在默认的 love.run 函数中，该函数在 love.draw 之前自动调用。有关此函数的典型用法，请参阅 love.run 中的示例。
+ *
+ * 请注意，剪刀区域限制了清除区域。
+ *
+ * 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+ *
+ * 在背景颜色之前的版本中。
+ *
+
+ * @param red , g, b, a} 形式的表格，包含要清除第一个活动画布的颜色。
+ * @param green 每个活动画布的附加表。
+ * @param blue 是否清除活动模板缓冲区（如果存在）。它也可以是 0 到 255 之间的整数，用于将模板缓冲区清除为特定值。 （默认值：true。）
+ * @param alpha 是否清除活动深度缓冲区（如果存在）。它也可以是 0 到 1 之间的数字，用于将深度缓冲区清除为特定值。 （默认值：true。）
+ */
+		clear(this: void, red: number, green: number, blue: number, alpha?: number): void;
 		/**
 		 * 丢弃（垃圾）屏幕或活动画布的内容。这是一个具有利基用例的性能优化功能。
 		 *
@@ -2069,13 +2322,19 @@ declare global {
 		/**
 		 * 设置背景颜色。
 		 *
+
 		 * @param red 红色分量 (0-1)。
 		 * @param green 绿色分量 (0-1)。
 		 * @param blue 蓝色分量 (0-1)。
 		 * @param alpha alpha 分量 (0-1)。 （默认值：1。）
-		 * @param color 数字索引表，其中红色、绿色、蓝色和 alpha 值作为数字。 alpha 是可选的，如果省略则默认为 1。
 		 */
 		setBackgroundColor(this: void, red: number, green: number, blue: number, alpha?: number): void;
+		/**
+		 * 设置背景颜色。
+		 *
+
+		 * @param color 数字索引表，其中红色、绿色、蓝色和 alpha 值作为数字。 alpha 是可选的，如果省略则默认为 1。
+		 */
 		setBackgroundColor(this: void, color: Color): void;
 		/**
 		 * 获取当前背景颜色。
@@ -2291,12 +2550,8 @@ declare global {
 		/**
 		 * 获取与性能相关的渲染统计信息。
 		 *
-		 * 重载说明：
-		 * 1. 此变体接受要填充的现有表，而不是创建新表。
-		 *
-		 * @param target 将用下面的统计字段填充的表格。
-		 *
-		 * @returns stats — 包含以下字段的表：取决于重载：上面传入的表，现在包含以下字段：
+
+		 * @returns stats — 包含以下字段的表：
 		 * @returns stats.drawcalls — 当前帧期间迄今为止进行的绘制调用的数量。
 		 * @returns stats.canvasswitches — 当前帧期间活动画布迄今为止已切换的次数。
 		 * @returns stats.texturememory — 所有加载的图像、画布和字体使用的视频内存的估计总大小（以字节为单位）。
@@ -2306,23 +2561,49 @@ declare global {
 		 * @returns stats.shaderswitches — 当前帧期间活动着色器迄今为止已更改的次数。
 		 * @returns stats.drawcallsbatched — 自帧开始以来由 LÖVE 自动批处理保存的绘制调用数。
 		 */
-		getStats(this: void, target?: any): GraphicsStats;
+		getStats(this: void): GraphicsStats;
+/**
+ * 获取与性能相关的渲染统计信息。
+ *
+
+ * @param target 将用下面的统计字段填充的表格。
+ * @returns 上面传入的表，现在包含以下字段：
+ * @returns stats.drawcalls — 当前帧期间迄今为止进行的绘制调用的数量。
+ * @returns stats.canvasswitches — 当前帧期间活动画布迄今为止已切换的次数。
+ * @returns stats.texturememory — 所有加载的图像、画布和字体使用的视频内存的估计总大小（以字节为单位）。
+ * @returns stats.images — 当前加载的 Image 对象的数量。
+ * @returns stats.canvases — 当前加载的 Canvas 对象的数量。
+ * @returns stats.fonts — 当前加载的 Font 对象的数量。
+ * @returns stats.shaderswitches — 当前帧期间活动着色器迄今为止已更改的次数。
+ * @returns stats.drawcallsbatched — 自帧开始以来由 LÖVE 自动批处理保存的绘制调用数。
+ */
+		getStats(this: void, target: any): GraphicsStats;
 		/**
 		 * 当前帧完成后（love.draw 完成后）创建屏幕截图。
 		 *
 		 * 由于此函数将屏幕截图放入队列而不是立即执行它，因此可以从输入回调或 love.update 调用它，并且它仍然会捕获该帧中绘制到屏幕上的所有内容。
 		 *
-		 * 重载说明：
-		 * 1. 捕获屏幕截图并将其保存到当前帧末尾的文件中。
-		 * 2. 捕获屏幕截图并在当前帧末尾使用生成的 ImageData 调用回调。
-		 * 3. 捕获屏幕截图并将生成的ImageData推送到当前帧末尾的Channel。
-		 *
+
 		 * @param filename 保存屏幕截图的文件名。编码图像类型根据文件名的扩展名确定，并且必须是 ImageFormat 之一。
-		 * @param callback 捕获屏幕截图后调用的函数。 ImageData 作为唯一参数传递到函数中。
-		 * @param channel 将生成的 ImageData 推送到的 Channel。
 		 */
 		captureScreenshot(this: void, filename: string): void;
+		/**
+		 * 当前帧完成后（love.draw 完成后）创建屏幕截图。
+		 *
+		 * 由于此函数将屏幕截图放入队列而不是立即执行它，因此可以从输入回调或 love.update 调用它，并且它仍然会捕获该帧中绘制到屏幕上的所有内容。
+		 *
+
+		 * @param callback 捕获屏幕截图后调用的函数。 ImageData 作为唯一参数传递到函数中。
+		 */
 		captureScreenshot(this: void, callback: (imageData: ImageData) => void): void;
+		/**
+		 * 当前帧完成后（love.draw 完成后）创建屏幕截图。
+		 *
+		 * 由于此函数将屏幕截图放入队列而不是立即执行它，因此可以从输入回调或 love.update 调用它，并且它仍然会捕获该帧中绘制到屏幕上的所有内容。
+		 *
+
+		 * @param channel 将生成的 ImageData 推送到的 Channel。
+		 */
 		captureScreenshot(this: void, channel: Channel): void;
 		/**
 		 * 绘制一个矩形。
@@ -2349,9 +2630,7 @@ declare global {
 		/**
 		 * 在位置 (x, y) 处绘制填充或未填充的圆弧。弧线以弧度为单位从角度 1 到角度 2 绘制。段参数确定使用多少段来绘制圆弧。分段越多，边缘越平滑。
 		 *
-		 * 重载说明：
-		 * 1. 使用 'pie' ArcType 绘制圆弧。
-		 *
+
 		 * @param mode 如何绘制圆弧。
 		 * @param x 中心沿 x 轴的位置。
 		 * @param y 中心沿 y 轴的位置。
@@ -2359,9 +2638,21 @@ declare global {
 		 * @param angle1 圆弧开始的角度。
 		 * @param angle2 圆弧终止的角度。
 		 * @param segments 用于绘制圆弧的段数。 （默认值：10。）
-		 * @param arcMode 要绘制的圆弧类型。
 		 */
 		arc(this: void, mode: DrawMode, x: number, y: number, radius: number, angle1: number, angle2: number, segments?: number): void;
+		/**
+		 * 在位置 (x, y) 处绘制填充或未填充的圆弧。弧线以弧度为单位从角度 1 到角度 2 绘制。段参数确定使用多少段来绘制圆弧。分段越多，边缘越平滑。
+		 *
+
+		 * @param mode 如何绘制圆弧。
+		 * @param arcMode 要绘制的圆弧类型。
+		 * @param x 中心沿 x 轴的位置。
+		 * @param y 中心沿 y 轴的位置。
+		 * @param radius 圆弧半径。
+		 * @param angle1 圆弧开始的角度。
+		 * @param angle2 圆弧终止的角度。
+		 * @param segments 用于绘制圆弧的段数。 （默认值：10。）
+		 */
 		arc(this: void, mode: DrawMode, arcMode: ArcMode, x: number, y: number, radius: number, angle1: number, angle2: number, segments?: number): void;
 		/**
 		 * 绘制一个椭圆。
@@ -2418,13 +2709,17 @@ declare global {
 		 *
 		 * 这个函数总是用来为后面相应的出栈操作做准备。它将当前坐标变换状态存储到变换堆栈中并保持其活动状态。稍后对变换所做的更改可以通过使用 pop 操作来撤消，该操作会将坐标变换返回到调用 push 之前的状态。
 		 *
-		 * 重载说明：
-		 * 1. 将当前转换推入转换堆栈。
-		 * 2. 将特定类型的状态推送到堆栈。
-		 *
-		 * @param stackType 要推送的堆栈类型（例如，仅转换状态，或所有 love.graphics 状态）。
 		 */
-		push(this: void, stackType?: "transform" | "all"): void;
+		push(this: void): void;
+/**
+ * 复制当前坐标变换并将其推入变换堆栈。
+ *
+ * 这个函数总是用来为后面相应的出栈操作做准备。它将当前坐标变换状态存储到变换堆栈中并保持其活动状态。稍后对变换所做的更改可以通过使用 pop 操作来撤消，该操作会将坐标变换返回到调用 push 之前的状态。
+ *
+
+ * @param stackType 要推送的堆栈类型（例如，仅转换状态，或所有 love.graphics 状态）。
+ */
+		push(this: void, stackType: "transform" | "all"): void;
 		/**
 		 * 从变换堆栈中弹出当前坐标变换。
 		 *
@@ -2575,16 +2870,21 @@ declare global {
 		 *
 		 * 剪刀的尺寸不受图形变换（平移、缩放……）的影响。
 		 *
-		 * 重载说明：
-		 * 1. 将绘图区域限制为指定的矩形。
-		 * 2. 禁用剪刀。
+		 */
+		setScissor(this: void): void;
+		/**
+		 * 设置或禁用剪刀。
 		 *
+		 * 剪刀将绘图区域限制在指定的矩形内。这会影响所有图形调用，包括 love.graphics.clear.
+		 *
+		 * 剪刀的尺寸不受图形变换（平移、缩放……）的影响。
+		 *
+
 		 * @param x 左上角的x坐标。
 		 * @param y 左上角的y坐标。
 		 * @param width 剪切矩形的宽度。
 		 * @param height 剪切矩形的高度。
 		 */
-		setScissor(this: void): void;
 		setScissor(this: void, x: number, y: number, width: number, height: number): void;
 		/**
 		 * 获取当前剪刀框。
@@ -2611,16 +2911,17 @@ declare global {
 		/**
 		 * 设置颜色遮罩。渲染和清除屏幕时启用或禁用特定颜色组件。例如，如果“'red''' is set to '''false'”，则不会对任何像素的红色分量进行进一步的更改。
 		 *
-		 * 重载说明：
-		 * 1. 启用指定颜色分量的颜色屏蔽。
-		 * 2. 禁用颜色屏蔽。
+		 */
+		setColorMask(this: void): void;
+		/**
+		 * 设置颜色遮罩。渲染和清除屏幕时启用或禁用特定颜色组件。例如，如果“'red''' is set to '''false'”，则不会对任何像素的红色分量进行进一步的更改。
 		 *
+
 		 * @param red 渲染红色分量。
 		 * @param green 渲染绿色组件。
 		 * @param blue 渲染蓝色分量。
 		 * @param alpha 渲染 alpha 分量。
 		 */
-		setColorMask(this: void): void;
 		setColorMask(this: void, red: boolean, green: boolean, blue: boolean, alpha: boolean): void;
 		/**
 		 * 获取绘图时使用的活动颜色分量。通常，除非使用 love.graphics.setColorMask，否则所有 4 个组件均处于活动状态。
@@ -2638,13 +2939,17 @@ declare global {
 		 *
 		 * 这是低级功能，设计用于自定义顶点着色器和具有自定义顶点属性的网格。没有提供更高级别的 API 来设置 2D 图形（例如形状、线条和图像）的深度。
 		 *
-		 * 重载说明：
-		 * 1. 禁用深度测试和深度写入。
+		 */
+		setDepthMode(this: void): void;
+		/**
+		 * 配置深度测试并写入深度缓冲区。
 		 *
+		 * 这是低级功能，设计用于自定义顶点着色器和具有自定义顶点属性的网格。没有提供更高级别的 API 来设置 2D 图形（例如形状、线条和图像）的深度。
+		 *
+
 		 * @param compare 用于深度测试的深度比较模式。
 		 * @param write 渲染时是否将更新/写入值写入深度缓冲区。
 		 */
-		setDepthMode(this: void): void;
 		setDepthMode(this: void, compare: CompareMode, write: boolean): void;
 		/**
 		 * 获取当前深度测试模式以及是否启用写入深度缓冲区。
@@ -2696,27 +3001,43 @@ declare global {
 		 *
 		 * 模板值是 255 范围内的整数。
 		 *
-		 * 重载说明：
-		 * 1. 通过在模板函数中使用 love.graphics.setColorMask 来启用对所有颜色分量的绘制，可以同时绘制到屏幕和像素的模板值。
-		 *
+
 		 * @param draw 绘制几何图形的函数。像素的模板值，而不是每个像素的颜色，将受到几何形状的影响。
 		 * @param action 如何修改模板函数中绘制的内容所涉及的像素的任何模板值。 （默认：'replace'。）
 		 * @param value 如果使用 'replace' 模板操作，则用于像素的新模板值。对其他模板操作没有影响。必须介于 0 到 255 之间。（默认值：1。）
 		 * @param keepValuesOrClearValue 如果为 true，则保留像素的旧模板值；如果为 false，则在执行模板函数之前将每个像素的模板值重置为 0。 love.graphics.clear 还将重置所有模板值。 （默认值：假。）
 		 */
-		stencil(this: void, draw: () => void, action?: StencilAction, value?: number, keepValuesOrClearValue?: boolean | number): void;
+		stencil(this: void, draw: () => void, action?: StencilAction, value?: number, keepValuesOrClearValue?: boolean): void;
+/**
+ * 将几何图形绘制为模板。
+ *
+ * 所提供的函数绘制的几何图形设置像素的不可见模板值，而不是设置像素颜色。模板缓冲区（包含这些模板值）可以像蒙版/模板一样工作 - 随后可以使用 love.graphics.setStencilTest 来确定每个像素中的模板值如何影响进一步的渲染。
+ *
+ * 模板值是 255 范围内的整数。
+ *
+
+ * @param draw 绘制几何图形的函数。像素的模板值，而不是每个像素的颜色，将受到几何形状的影响。
+ * @param action 如何修改模板函数中绘制的内容所涉及的像素的任何模板值。 （默认：'replace'。）
+ * @param value 如果使用 'replace' 模板操作，则用于像素的新模板值。对其他模板操作没有影响。必须介于 0 到 255 之间。（默认值：1。）
+ * @param keepValuesOrClearValue 如果为 true，则保留像素的旧模板值；如果为 false，则在执行模板函数之前将每个像素的模板值重置为 0。 love.graphics.clear 还将重置所有模板值。 （默认值：假。）
+ */
+		stencil(this: void, draw: () => void, action: StencilAction, value: number, keepValuesOrClearValue: number): void;
 		/**
 		 * 配置或禁用模板测试。
 		 *
 		 * 当启用模板测试时，之后绘制的所有内容的几何图形都将根据该函数的参数与几何图形接触的每个像素的模板值之间的比较被剪裁/模板化。像素的模板值受 love.graphics.stencil.
 		 *
-		 * 重载说明：
-		 * 1. 禁用模板测试。
+		 */
+		setStencilTest(this: void): void;
+		/**
+		 * 配置或禁用模板测试。
 		 *
+		 * 当启用模板测试时，之后绘制的所有内容的几何图形都将根据该函数的参数与几何图形接触的每个像素的模板值之间的比较被剪裁/模板化。像素的模板值受 love.graphics.stencil.
+		 *
+
 		 * @param compare 对每个像素进行比较的类型。
 		 * @param value 与每个像素的模板值进行比较时使用的值。必须介于 0 到 255 之间。
 		 */
-		setStencilTest(this: void): void;
 		setStencilTest(this: void, compare: CompareMode, value: number): void;
 		/**
 		 * 获取当前模板测试配置。
@@ -2734,42 +3055,61 @@ declare global {
 		 *
 		 * 所有接受文件名的变体也可以接受数据对象。
 		 *
-		 * 重载说明：
-		 * 1. 创建新的 BMFont 或 TrueType 字体。如果文件是 TrueType 字体，则其大小将为 12。使用下面的变体创建具有自定义大小的 TrueType 字体。
-		 * 2. 创建新的 TrueType 字体。
-		 * 3. 创建一个新的 BMFont。
-		 * 4. 创建具有自定义大小的默认字体 (Vera Sans) 的新实例。
-		 *
-		 * @param size 字体大小（以像素为单位）。取决于过载：字体的大小（以像素为单位）。 （默认值：12。）
-		 * @param filename BMFont 或 TrueType 字体文件的文件路径。取决于重载：TrueType 字体文件的文件路径。取决于重载：BMFont 文件的文件路径。
-		 *
+
+		 * @param size 字体大小（以像素为单位）。
 		 * @returns font — 可用于在屏幕上绘制文本的 Font 对象。
 		 */
 		newFont(this: void, size?: number): Font;
+		/**
+		 * 从 TrueType 字体或 BMFont 文件创建新字体。创建的字体不会被缓存，因为使用相同的参数调用此函数将始终创建一个新的 Font 对象。
+		 *
+		 * 所有接受文件名的变体也可以接受数据对象。
+		 *
+
+		 * @param filename TrueType 字体文件的文件路径。
+		 * @param size 字体的大小（以像素为单位）。 （默认值：12。）
+		 * @returns font — 可用于在屏幕上绘制文本的 Font 对象。
+		 */
 		newFont(this: void, filename: string, size?: number): Font;
 		/**
 		 * 创建并设置新字体。
 		 *
+
 		 * @param size 字体大小。 （默认值：12。）
-		 * @param filename 字体文件的路径和名称。
-		 *
 		 * @returns font — 新字体。
 		 */
 		setNewFont(this: void, size?: number): Font;
+		/**
+		 * 创建并设置新字体。
+		 *
+
+		 * @param filename 字体文件的路径和名称。
+		 * @param size 字体大小。 （默认值：12。）
+		 * @returns font — 新字体。
+		 */
 		setNewFont(this: void, filename: string, size?: number): Font;
 		/**
 		 * 创建一个新的特定格式的图像。
 		 *
 		 * 在 0.9.0 之前的版本中，LÖVE 期望字形字符串采用 ISO 8859-1 编码。
 		 *
-		 * @param source 图像文件的文件路径。取决于重载：用于创建字体的 ImageData 对象。
+
+		 * @param source 图像文件的文件路径。
 		 * @param glyphs 图像中从左到右排列的字符字符串。
 		 * @param extraSpacing 应用于字体中每个字形的附加间距（正或负）。 （默认值：0。）
-		 * @param rasterizer 图像文件的文件路径。取决于重载：用于创建字体的 ImageData 对象。
-		 *
+		 * @param dpiScale 字体的 DPI 缩放系数。（默认值：1。）
 		 * @returns font — 可用于在屏幕上绘制文本的 Font 对象。
 		 */
 		newImageFont(this: void, source: string | FileData | ImageData, glyphs: string, extraSpacing?: number, dpiScale?: number): Font;
+		/**
+		 * 创建一个新的特定格式的图像。
+		 *
+		 * 在 0.9.0 之前的版本中，LÖVE 期望字形字符串采用 ISO 8859-1 编码。
+		 *
+
+		 * @param rasterizer 用于创建字体的 ImageData 对象。
+		 * @returns font — 可用于在屏幕上绘制文本的 Font 对象。
+		 */
 		newImageFont(this: void, rasterizer: Rasterizer): Font;
 		/**
 		 * 创建一个新的可绘制文本对象。
@@ -2854,31 +3194,56 @@ declare global {
 		/**
 		 * 从文件路径、FileData、ImageData 或 CompressedImageData 创建新图像，并可选择生成或指定图像的 mipmap。
 		 *
+
 		 * @param filename 图像文件的文件路径。
 		 * @param settings 包含以下字段的表：（默认值：nil。）
-		 * @param settings.dpiscale 绘制图像和调用 getWidth/getHeight 时使用的 DPI 比例。 （默认值：1。）
-		 * @param settings.linear 如果启用伽玛校正渲染，则将图像像素视为线性而不是 sRGB。大多数图像都是以 sRGB 格式创作的。 （默认值：假。）
-		 * @param settings.mipmaps 如果为 true，将自动生成图像的 mipmap（如果可能，如果图像源自 CompressedImageData，则从图像文件中获取）。 （默认值：假。）
-		 * @param data 图像文件的文件路径。根据重载：包含图像文件的 FileData。取决于重载：包含图像的 ImageData。根据重载：一个 CompressedImageData 对象。当调用 love.window.setMode 时，Image 将使用此 CompressedImageData 重新加载自身。
-		 *
 		 * @returns image — 一个可以在屏幕上绘制的新图像对象。
 		 */
 		newImage(this: void, filename: string, settings?: ImageSettings): Image;
+		/**
+		 * 从文件路径、FileData、ImageData 或 CompressedImageData 创建新图像，并可选择生成或指定图像的 mipmap。
+		 *
+
+		 * @param data 包含图像文件的 FileData。
+		 * @param settings 包含以下字段的表：（默认值：nil。）
+		 * @returns image — 一个可以在屏幕上绘制的新图像对象。
+		 */
 		newImage(this: void, data: FileData, settings?: CompressedImageSettings): Image;
+		/**
+		 * 从文件路径、FileData、ImageData 或 CompressedImageData 创建新图像，并可选择生成或指定图像的 mipmap。
+		 *
+
+		 * @param data 包含图像的 ImageData。
+		 * @param settings 包含以下字段的表：（默认值：nil。）
+		 * @returns image — 一个可以在屏幕上绘制的新图像对象。
+		 */
 		newImage(this: void, data: ImageData, settings?: ImageSettings): Image;
+		/**
+		 * 从文件路径、FileData、ImageData 或 CompressedImageData 创建新图像，并可选择生成或指定图像的 mipmap。
+		 *
+
+		 * @param data 一个 CompressedImageData 对象。当调用 love.window.setMode 时，Image 将使用此 CompressedImageData 重新加载自身。
+		 * @param settings 包含以下字段的表：（默认值：nil。）
+		 * @returns image — 一个可以在屏幕上绘制的新图像对象。
+		 */
 		newImage(this: void, data: CompressedImageData, settings?: CompressedImageSettings): Image;
 		/**
 		 * 创建一个新的可绘制视频。目前仅支持 Ogg Theora 视频文件。
 		 *
-		 * @param filename Ogg Theora 视频文件的文件路径。取决于过载：Ogg Theora 视频文件（或 VideoStream）的文件路径。
+
+		 * @param filename Ogg Theora 视频文件的文件路径。
 		 * @param settings 包含以下字段的表：（默认值：nil。）
-		 * @param settings.audio 是否尝试将视频的音频加载到音频源中。如果未明确设置为 true 或 false，则如果视频没有音频，它将尝试，而不会导致错误。 （默认值：假。）
-		 * @param settings.dpiscale 视频的 DPI 比例因子。 （默认：love.graphics.getDPIScale()。）
-		 * @param stream Ogg Theora 视频文件（或 VideoStream）的文件路径。取决于过载：Ogg Theora 视频文件的文件路径。取决于过载：视频流对象。
-		 *
 		 * @returns video — 一个新视频。
 		 */
 		newVideo(this: void, filename: string, settings?: {audio?: boolean; dpiscale?: number}): Video;
+		/**
+		 * 创建一个新的可绘制视频。目前仅支持 Ogg Theora 视频文件。
+		 *
+
+		 * @param stream Ogg Theora 视频文件的文件路径。
+		 * @param settings 包含以下字段的表：（默认值：nil。）
+		 * @returns video — 一个新视频。
+		 */
 		newVideo(this: void, stream: VideoStream, settings?: {audio?: boolean; dpiscale?: number}): Video;
 		_newVideo(this: void, filenameOrStream: string | VideoStream, dpiScale?: number): Video;
 		/**
@@ -2984,23 +3349,20 @@ declare global {
 		/**
 		 * 创建一个新的 Canvas 对象用于离屏渲染。
 		 *
-		 * 重载说明：
-		 * 1. 使用给定的设置创建 2D 或立方体贴图画布。某些 Canvas 格式的系统要求比默认格式更高。使用 love.graphics.getCanvasFormats 检查支持。
-		 * 2. 创建体积或数组纹理类型画布。
-		 *
-		 * @param width 画布所需的宽度。
-		 * @param height 画布所需的高度。
-		 * @param settings 包含给定字段的表：（默认值：nil。）
-		 * @param settings.type 要创建的画布类型。 （默认值：'2d'。）取决于重载：要创建的画布类型。 （默认：'array'。）
-		 * @param settings.format 画布的格式。 （默认：'normal'。）
-		 * @param settings.readable Canvas 是否可读（可在着色器中绘制和访问）。对于常规格式默认为 true，对于深度/模板格式默认为 false。取决于重载：画布是否可读（可在着色器中绘制和访问）。对于常规格式默认为 true，对于深度/模板格式默认为 false。 （默认值：无。）
-		 * @param settings.msaa 绘制到画布时所需的多重采样抗锯齿 (MSAA) 样本数。 （默认值：0。）
-		 * @param settings.dpiscale Canvas 的 DPI 比例因子，在绘制到 Canvas 以及将 Canvas 绘制到屏幕时使用。 （默认：love.graphics.getDPIScale()。）
-		 * @param settings.mipmaps Canvas是否有mipmap，如果有的话是否自动重新生成它们。 （默认：'none'。）
-		 *
-		 * @returns canvas — 尺寸等于窗口大小（以像素为单位）的新画布。根据过载：具有指定宽度和高度的新画布。
+
+		 * @returns canvas — 尺寸等于窗口大小（以像素为单位）的新画布。
 		 */
-		newCanvas(this: void, width?: number, height?: number, settings?: CanvasSettings): Canvas;
+		newCanvas(this: void): Canvas;
+/**
+ * 创建一个新的 Canvas 对象用于离屏渲染。
+ *
+
+ * @param width 画布所需的宽度。
+ * @param height 画布所需的高度。
+ * @param settings 包含给定字段的表：（默认值：nil。）
+ * @returns 具有指定宽度和高度的新画布。
+ */
+		newCanvas(this: void, width: number, height: number, settings?: CanvasSettings): Canvas;
 		/**
 		 * 获取可用的 Canvas 格式以及是否支持每种格式。
 		 *
@@ -3012,32 +3374,29 @@ declare global {
 		/**
 		 * 将绘图操作捕获到画布上。
 		 *
-		 * 重载说明：
-		 * 1. 将渲染目标设置为指定的模板或使用活动画布进行深度测试，必须通过以下变体在 setCanvas 中显式启用模板缓冲区或深度缓冲区。请注意，当“'love.graphics.present'' is called. ''love.graphics.present'' is called at the end of love.draw in the default love.run, hence if you activate a canvas using this function, you normally need to deactivate it at some point before ''love.draw'”完成时，画布不应处于活动状态。
-		 * 2. 将渲染目标重置为屏幕，即重新启用在屏幕上的绘制。
-		 * 3. 将渲染目标设置为多个同时 2D 画布。直到下一个“'love.graphics.setCanvas'”调用之前的所有绘图操作都将被重定向到指定的画布，并且不会显示在屏幕上。通常，所有绘图操作都只会绘制到传递给该函数的第一个画布，但如果像素着色器与 void 效果函数而不是常规 vec4 效果一起使用，则可以更改这一情况。所有画布参数必须具有相同的宽度和高度以及相同的纹理类型。并非所有支持画布的计算机都支持多个渲染目标。如果 love.graphics.isSupported('multicanvas') 返回 true，则至少支持 4 个同时活动的画布。
-		 * 4. 将渲染目标设置为给定非 2D 画布的指定图层/切片和 mipmap 级别。直到下一个“'love.graphics.setCanvas'”调用之前的所有绘图操作都将被重定向到画布，并且不会显示在屏幕上。
-		 * 5. 根据指定的设置信息设置活动渲染目标以及活动模板和深度缓冲区。直到下一个“'love.graphics.setCanvas'”调用之前的所有绘图操作都将被重定向到指定的画布，并且不会显示在屏幕上。 RenderTargetSetup 参数可以是 Canvas|[1]|用于此活动渲染目标的 Canvas。}} {{param|number|mipmap (1)|要渲染到的 mipmap 级别，对于带有 [[Texture:getMipmapCount|mipmaps 的画布。}} {{param|number|layer (1)|仅用于体积和数组类型画布。对于数组纹理，这是要渲染到的数组层。对于体积纹理，这是深度切片。}} {{param|number|face (1)|仅用于立方体贴图类型画布。要渲染到的立方体面索引（1 到 6 之间）}}
-		 *
-		 * @param canvas 新目标。取决于重载：新的渲染目标。
-		 * @param canvases 对于具有 mipmap 的画布，要渲染到的 mipmap 级别。 （默认值：1。）取决于重载：指定活动画布、其 mipmap 级别和活动图层（如果适用）以及是否使用模板和/或深度缓冲区的表。
-		 * @param canvases.1 要渲染的画布。
-		 * @param canvases.2 如果需要多个同时渲染目标，则需要渲染到的附加画布。 （默认值：无。）
-		 * @param canvases.... 如果需要多个同时渲染目标，则需要渲染到其他画布。
-		 * @param canvases.stencil 如果未设置 heightstencil 字段，是否应使用内部管理的模板缓冲区。 （默认值：假。）
-		 * @param canvases.depth 如果未设置 heightstencil 字段，是否应使用内部管理的深度缓冲区。 （默认值：假。）
-		 * @param canvases.depthstencil 可选的自定义深度/模板格式化画布，用于深度和/或模板缓冲区。 （默认值：无。）
-		 * @param setup 指定活动画布、其 mipmap 级别和活动层（如果适用）以及是否使用模板和/或深度缓冲区的表格。
-		 * @param setup.1 要渲染的画布。
-		 * @param setup.2 如果需要多个同时渲染目标，则需要渲染到的附加画布。 （默认值：无。）
-		 * @param setup.... 如果需要多个同时渲染目标，则需要渲染到其他画布。
-		 * @param setup.stencil 如果未设置 heightstencil 字段，是否应使用内部管理的模板缓冲区。 （默认值：假。）
-		 * @param setup.depth 如果未设置 heightstencil 字段，是否应使用内部管理的深度缓冲区。 （默认值：假。）
-		 * @param setup.depthstencil 可选的自定义深度/模板格式化画布，用于深度和/或模板缓冲区。 （默认值：无。）
 		 */
 		setCanvas(): void;
+		/**
+		 * 将绘图操作捕获到画布上。
+		 *
+
+		 * @param canvas 新的渲染目标。
+		 * @param canvases 指定活动画布、其 mipmap 级别和活动图层（如果适用）以及是否使用模板和/或深度缓冲区的表。
+		 */
 		setCanvas(canvas: Canvas, ...canvases: Canvas[]): void;
+		/**
+		 * 将绘图操作捕获到画布上。
+		 *
+
+		 * @param canvases 指定活动画布、其 mipmap 级别和活动图层（如果适用）以及是否使用模板和/或深度缓冲区的表。
+		 */
 		setCanvas(canvases: Canvas[]): void;
+		/**
+		 * 将绘图操作捕获到画布上。
+		 *
+
+		 * @param setup 指定活动画布、其 mipmap 级别和活动层（如果适用）以及是否使用模板和/或深度缓冲区的表格。
+		 */
 		setCanvas(setup: CanvasSetup): void;
 		/**
 		 * 获取当前目标Canvas。
@@ -3050,17 +3409,29 @@ declare global {
 		 *
 		 * Quad 的目的是使用图像的一部分来绘制对象，而不是绘制整个图像。它对于精灵表和图集最有用：在精灵图集中，多个精灵驻留在同一图像中，四边形用于从该图像中绘制特定的精灵；在所有帧都驻留在同一图像中的动画精灵中，四边形用于从动画中绘制特定帧。
 		 *
+
 		 * @param x 图像中沿 x 轴的左上角位置。
 		 * @param y 图像中沿 y 轴的左上角位置。
 		 * @param width 图像中四边形的宽度。 （必须大于 0。）
 		 * @param height 图像中四边形的高度。 （必须大于 0。）
 		 * @param image 纹理的宽度和高度将用作参考宽度和高度。
-		 * @param textureWidth 参考宽度，Image的宽度。 （必须大于 0。）
-		 * @param textureHeight 参考高度，Image的高度。 （必须大于 0。）
-		 *
 		 * @returns quad — 新的四边形。
 		 */
 		newQuad(x: number, y: number, width: number, height: number, image: Image | Canvas): Quad;
+		/**
+		 * 创建一个新的四边形。
+		 *
+		 * Quad 的目的是使用图像的一部分来绘制对象，而不是绘制整个图像。它对于精灵表和图集最有用：在精灵图集中，多个精灵驻留在同一图像中，四边形用于从该图像中绘制特定的精灵；在所有帧都驻留在同一图像中的动画精灵中，四边形用于从动画中绘制特定帧。
+		 *
+
+		 * @param x 图像中沿 x 轴的左上角位置。
+		 * @param y 图像中沿 y 轴的左上角位置。
+		 * @param width 图像中四边形的宽度。 （必须大于 0。）
+		 * @param height 图像中四边形的高度。 （必须大于 0。）
+		 * @param textureWidth 参考宽度，Image的宽度。 （必须大于 0。）
+		 * @param textureHeight 参考高度，Image的高度。 （必须大于 0。）
+		 * @returns quad — 新的四边形。
+		 */
 		newQuad(x: number, y: number, width: number, height: number, textureWidth: number, textureHeight: number): Quad;
 		/**
 		 * 创建一个新的网格。
@@ -3069,33 +3440,27 @@ declare global {
 		 *
 		 * 在11.0之前的版本中，颜色和字节分量值的范围是0到255，而不是0到1。
 		 *
-		 * 重载说明：
-		 * 1. 创建具有指定顶点的标准网格。
-		 * 2. 创建具有指定顶点数的标准网格。创建网格后，可以使用 Mesh:setVertices 或 Mesh:setVertex 和 Mesh:setDrawRange 指定顶点信息。
-		 * 3. 创建具有自定义顶点属性和指定顶点数据的网格。每个顶点表中的值的顺序与指定顶点格式中的顶点属性的顺序相同。如果没有为特定顶点属性组件提供值，则如果其数据类型为 'float'，则将设置为默认值 0；如果其数据类型为 'byte'，则将设置为 1。如果属性的数据类型为 'float'，则组件的范围可以为 1 到 4，如果数据类型为 'byte'，则必须为 4。如果自定义顶点属性使用名称 'VertexPosition'、'VertexTexCoord' 或 'VertexColor'，则该顶点属性的顶点数据将用于标准顶点位置、纹理坐标或顶点颜色分别在绘制网格时。否则，需要顶点着色器才能在绘制网格时使用顶点属性。网格体“'must'”具有 'VertexPosition' 属性以便绘制，但它可以通过 Mesh:attachAttribute 从不同的网格体附加。要在顶点着色器中使用自定义命名顶点属性，必须将其声明为同名的属性变量。通过创建变量，可以将变量从顶点着色器代码发送到像素着色器代码。例如： ''Vertex Shader code'' attribute vec2 CoolVertexAttribute; varying vec2 CoolVariable; vec4 position(mat4 transform_projection, vec4 vertex_position) {  CoolVariable = CoolVertexAttribute;  return transform_projection * vertex_position; } ''Pixel Shader code'' 变化 vec2 CoolVariable； vec4 效果（vec4 颜色，图像 tex，vec2 texcoord，vec2 pixcoord）{ vec4 texcolor = Texel（tex，texcoord + CoolVariable）; 返回 texcolor * 颜色； }
-		 * 4. 创建具有自定义顶点属性和指定顶点数的网格。如果每个顶点属性组件的数据类型为 'float'，则其初始化为 0；如果其数据类型为 'byte'，则初始化为 1。为了在绘制网格时使用顶点属性，需要顶点着色器。网格体“'must'”具有 'VertexPosition' 属性以便绘制，但它可以通过 Mesh:attachAttribute 从不同的网格体附加。
-		 * 5. Mesh:setVertices 或 Mesh:setVertex 和 Mesh:setDrawRange 可用于在创建网格后指定顶点信息。
-		 *
-		 * @param vertices 该表填充了每个顶点的顶点信息表，如下所示： 取决于重载：该表填充了每个顶点的顶点信息表，其形式为{vertex, ...}，其中每个顶点是一个形式为{attributecomponent, ...}的表。
-		 * @param vertices.1 顶点在 x 轴上的位置。
-		 * @param vertices.2 顶点在 y 轴上的位置。
-		 * @param vertices.3 顶点的u纹理坐标。纹理坐标通常在 1 的范围内，但可以更大或更小（请参阅 WrapMode。）（默认值：0。）
-		 * @param vertices.4 顶点的 v 纹理坐标。纹理坐标通常在 1 的范围内，但可以更大或更小（请参阅 WrapMode。）（默认值：0。）
-		 * @param vertices.5 顶点颜色的红色分量。 （默认值：1。）
-		 * @param vertices.6 顶点颜色的绿色分量。 （默认值：1。）
-		 * @param vertices.7 顶点颜色的蓝色分量。 （默认值：1。）
-		 * @param vertices.8 顶点颜色的 Alpha 分量。 （默认值：1。）
-		 * @param vertices.attributecomponent 顶点中第一个顶点属性的第一个组成部分。
-		 * @param vertices.... 顶点中所有顶点属性的附加组件。
-		 * @param drawMode 绘制时如何使用顶点。默认模式 'fan' 对于简单的凸多边形来说已经足够了。 （默认值：'fan'。）取决于重载：绘制网格时使用的图像或画布。不使用纹理可能为零。 （默认值：无。）
+
+		 * @param vertices 该表填充了每个顶点的顶点信息表，如下所示：
+		 * @param drawMode 绘制时如何使用顶点。默认模式 'fan' 对于简单的凸多边形来说已经足够了。 （默认值：'fan'。）
 		 * @param usage 网格的预期用途。指定的使用模式会影响Mesh的内存使用和性能。 （默认：'dynamic'。）
-		 * @param format {attribute, ...} 形式的表。每个属性都是一个表，其中指定用于每个顶点的自定义顶点属性。
-		 * @param format.attribute 包含属性名称、数据类型以及属性中组件数量的表，格式为{名称、数据类型、组件}。
-		 * @param format.... 附加顶点属性格式表。
-		 *
 		 * @returns mesh — 新网格。
 		 */
 		newMesh(vertices: MeshVertex[] | number, drawMode?: MeshDrawMode, usage?: MeshUsage): Mesh;
+		/**
+		 * 创建一个新的网格。
+		 *
+		 * 如果网格在绘制时应使用图像或画布进行纹理化，请使用 Mesh:setTexture 。
+		 *
+		 * 在11.0之前的版本中，颜色和字节分量值的范围是0到255，而不是0到1。
+		 *
+
+		 * @param format , ...} 形式的表。每个属性都是一个表，其中指定用于每个顶点的自定义顶点属性。
+		 * @param vertices 该表填充了每个顶点的顶点信息表，其形式为{vertex, ...}，其中每个顶点是一个形式为{attributecomponent, ...}的表。
+		 * @param drawMode 绘制网格时使用的图像或画布。不使用纹理可能为零。 （默认值：无。）
+		 * @param usage 网格的预期用途。指定的使用模式会影响Mesh的内存使用和性能。 （默认：'dynamic'。）
+		 * @returns mesh — 新网格。
+		 */
 		newMesh(format: MeshVertexFormat[], vertices: MeshVertex[] | number | Data, drawMode?: MeshDrawMode, usage?: MeshUsage): Mesh;
 		/**
 		 * 创建一个新的 SpriteBatch 对象。
@@ -3141,13 +3506,15 @@ declare global {
 		/**
 		 * 将着色器设置或重置为当前像素效果或顶点着色器。直到下一个“'love.graphics.setShader'”之前的所有绘制操作都将使用指定的 Shader 对象进行绘制。
 		 *
-		 * 重载说明：
-		 * 1. 将当前着色器设置为指定的着色器。直到下一个“'love.graphics.setShader'”之前的所有绘制操作都将使用指定的 Shader 对象进行绘制。
-		 * 2. 禁用着色器，允许未过滤的绘图操作。
-		 *
-		 * @param shader 新的着色器。
 		 */
-		setShader(shader?: Shader): void;
+		setShader(): void;
+/**
+ * 将着色器设置或重置为当前像素效果或顶点着色器。直到下一个“'love.graphics.setShader'”之前的所有绘制操作都将使用指定的 Shader 对象进行绘制。
+ *
+
+ * @param shader 新的着色器。
+ */
+		setShader(shader: Shader): void;
 		/**
 		 * 获取当前的Shader。如果未设置则返回 nil。
 		 *
@@ -3167,42 +3534,117 @@ declare global {
 		 *
 		 * 使用默认着色器时，使用此函数绘制的任何内容都将根据当前选择的颜色进行着色。将其设置为纯白色以保留对象的原始颜色。
 		 *
+
 		 * @param image 可绘制对象。
-		 * @param x 绘制对象的位置（x 轴）。 （默认值：0。）取决于重载：绘制对象的位置（x 轴）。
-		 * @param y 绘制对象的位置（y 轴）。 （默认值：0。）取决于过载：绘制对象的位置（y 轴）。
-		 * @param angle 方向（弧度）。 （默认值：0。）取决于过载：比例因子（x 轴）。 （默认值：1。）
-		 * @param scaleX 比例因子（x 轴）。 （默认值：1。）取决于过载：比例因子（y 轴）。 （默认值：sx。）
-		 * @param scaleY 比例因子（y 轴）。 （默认值：sx。）取决于过载：原点偏移（x 轴）。 （默认值：0。）
-		 * @param originX 原点偏移（x 轴）。 （默认值：0。）取决于过载：原点偏移（y 轴）。 （默认值：0。）
-		 * @param originY 原点偏移（y 轴）。 （默认值：0。）取决于过载：剪切系数（x 轴）。 （默认值：0。）
-		 * @param quad 在屏幕上绘制的四边形。
+		 * @param x 绘制对象的位置（x 轴）。 （默认值：0。）
+		 * @param y 绘制对象的位置（y 轴）。 （默认值：0。）
+		 * @param angle 方向（弧度）。 （默认值：0。）
+		 * @param scaleX 比例因子（x 轴）。 （默认值：1。）
+		 * @param scaleY 比例因子（y 轴）。 （默认值：sx。）
+		 * @param originX 原点偏移（x 轴）。 （默认值：0。）
+		 * @param originY 原点偏移（y 轴）。 （默认值：0。）
 		 */
 		draw(image: Image, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
+		/**
+		 * 在屏幕上绘制可绘制对象（图像、画布、SpriteBatch、粒子系统、网格、文本对象或视频），并可选择旋转、缩放和剪切。
+		 *
+		 * 对象是相对于其局部坐标系绘制的。原点默认位于图像和画布的左上角。所有缩放、剪切和旋转参数都会相对于该点变换对象。另外，还可以在屏幕坐标系上指定原点位置。
+		 *
+		 * 通过将原点偏移到中心，可以绕其中心旋转对象。旋转角度必须以弧度为单位。还可以使用负比例因子来围绕其中心线翻转。
+		 *
+		 * 请注意，偏移是在旋转、缩放或剪切之前应用的；缩放和剪切在旋转之前应用。
+		 *
+		 * 对象的右边缘和底边缘以剪切因子定义的角度移动。
+		 *
+		 * 使用默认着色器时，使用此函数绘制的任何内容都将根据当前选择的颜色进行着色。将其设置为纯白色以保留对象的原始颜色。
+		 *
+
+		 * @param image 可绘制对象。
+		 * @param quad 在屏幕上绘制的四边形。
+		 * @param x 绘制对象的位置（x 轴）。
+		 * @param y 绘制对象的位置（y 轴）。
+		 * @param angle 比例因子（x 轴）。 （默认值：1。）
+		 * @param scaleX 比例因子（y 轴）。 （默认值：sx。）
+		 * @param scaleY 原点偏移（x 轴）。 （默认值：0。）
+		 * @param originX 原点偏移（y 轴）。 （默认值：0。）
+		 * @param originY 剪切系数（x 轴）。 （默认值：0。）
+		 */
 		draw(image: Image, quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
 		/**
 		 * 绘制数组纹理的一层。
 		 *
-		 * 重载说明：
-		 * 1. 绘制数组纹理的一层。
-		 * 2. 使用指定的四边形绘制一层阵列纹理。指定的图层索引会覆盖通过 Quad:setLayer 在 Quad 上设置的任何图层索引。
-		 * 3. 使用指定的变换绘制一层阵列纹理。
-		 * 4. 使用指定的四边形和变换绘制一层阵列纹理。为了在自定义 void effect() 变量中使用数组纹理或其他非 2D 纹理类型作为主纹理，必须在像素着色器中使用变体，并且必须将 MainTex 声明为 ArrayImage 或 sampler2DArray，如下所示：uniform ArrayImage MainTex;。
-		 *
+
 		 * @param image 要绘制的数组纹理。
 		 * @param layer 绘制时使用的图层的索引。
 		 * @param x 绘制纹理的位置（x 轴）。 （默认值：0。）
 		 * @param y 绘制纹理的位置（y 轴）。 （默认值：0。）
-		 * @param angle 方向（弧度）。 （默认值：0。）取决于过载：比例因子（x 轴）。 （默认值：1。）
-		 * @param scaleX 比例因子（x 轴）。 （默认值：1。）取决于过载：比例因子（y 轴）。 （默认值：sx。）
-		 * @param scaleY 比例因子（y 轴）。 （默认值：sx。）取决于过载：原点偏移（x 轴）。 （默认值：0。）
-		 * @param originX 原点偏移（x 轴）。 （默认值：0。）取决于过载：原点偏移（y 轴）。 （默认值：0。）
-		 * @param originY 原点偏移（y 轴）。 （默认值：0。）取决于过载：剪切系数（x 轴）。 （默认值：0。）
-		 * @param quad 绘制时使用的纹理层的分段。
+		 * @param angle 方向（弧度）。 （默认值：0。）
+		 * @param scaleX 比例因子（x 轴）。 （默认值：1。）
+		 * @param scaleY 比例因子（y 轴）。 （默认值：sx。）
+		 * @param originX 原点偏移（x 轴）。 （默认值：0。）
+		 * @param originY 原点偏移（y 轴）。 （默认值：0。）
 		 */
 		drawLayer(image: Image, layer: number, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
+		/**
+		 * 绘制数组纹理的一层。
+		 *
+
+		 * @param image 要绘制的数组纹理。
+		 * @param layer 绘制时使用的图层的索引。
+		 * @param quad 绘制时使用的纹理层的分段。
+		 * @param x 绘制纹理的位置（x 轴）。 （默认值：0。）
+		 * @param y 绘制纹理的位置（y 轴）。 （默认值：0。）
+		 * @param angle 比例因子（x 轴）。 （默认值：1。）
+		 * @param scaleX 比例因子（y 轴）。 （默认值：sx。）
+		 * @param scaleY 原点偏移（x 轴）。 （默认值：0。）
+		 * @param originX 原点偏移（y 轴）。 （默认值：0。）
+		 * @param originY 剪切系数（x 轴）。 （默认值：0。）
+		 */
 		drawLayer(image: Image, layer: number, quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
+		/**
+		 * 在屏幕上绘制 Canvas，并可选择旋转、缩放和剪切。
+		 *
+
+		 * @param canvas 要绘制的 Canvas。
+		 * @param x 对象在 x 轴上的绘制位置。（默认值：0。）
+		 * @param y 对象在 y 轴上的绘制位置。（默认值：0。）
+		 * @param angle 以弧度表示的旋转角度。（默认值：0。）
+		 * @param scaleX x 轴缩放系数。（默认值：1。）
+		 * @param scaleY y 轴缩放系数。（默认值：scaleX。）
+		 * @param originX x 轴原点偏移。（默认值：0。）
+		 * @param originY y 轴原点偏移。（默认值：0。）
+		 */
 		draw(canvas: Canvas, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
+		/**
+		 * 在屏幕上绘制 Canvas，并可选择旋转、缩放和剪切。
+		 *
+
+		 * @param canvas 要绘制的 Canvas。
+		 * @param quad 要绘制的可绘制对象子区域。
+		 * @param x 对象在 x 轴上的绘制位置。（默认值：0。）
+		 * @param y 对象在 y 轴上的绘制位置。（默认值：0。）
+		 * @param angle 以弧度表示的旋转角度。（默认值：0。）
+		 * @param scaleX x 轴缩放系数。（默认值：1。）
+		 * @param scaleY y 轴缩放系数。（默认值：scaleX。）
+		 * @param originX x 轴原点偏移。（默认值：0。）
+		 * @param originY y 轴原点偏移。（默认值：0。）
+		 */
 		draw(canvas: Canvas, quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
+		/**
+		 * 在屏幕上绘制 Mesh，并可选择旋转、缩放和剪切。
+		 *
+
+		 * @param mesh 要绘制的 Mesh。
+		 * @param x 对象在 x 轴上的绘制位置。（默认值：0。）
+		 * @param y 对象在 y 轴上的绘制位置。（默认值：0。）
+		 * @param angle 以弧度表示的旋转角度。（默认值：0。）
+		 * @param scaleX x 轴缩放系数。（默认值：1。）
+		 * @param scaleY y 轴缩放系数。（默认值：scaleX。）
+		 * @param originX x 轴原点偏移。（默认值：0。）
+		 * @param originY y 轴原点偏移。（默认值：0。）
+		 * @param shearX x 轴剪切系数。（默认值：0。）
+		 * @param shearY y 轴剪切系数。（默认值：0。）
+		 */
 		draw(mesh: Mesh, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
 		/**
 		 * 使用硬件几何实例，通过一次绘制调用绘制网格的许多实例。
@@ -3224,9 +3666,69 @@ declare global {
 		 * @param shearY 剪切因子（y 轴）。 （默认值：0。）
 		 */
 		drawInstanced(mesh: Mesh, instanceCount: number, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
+		/**
+		 * 在屏幕上绘制 SpriteBatch，并可选择旋转、缩放和剪切。
+		 *
+
+		 * @param batch 要绘制的 SpriteBatch。
+		 * @param x 对象在 x 轴上的绘制位置。（默认值：0。）
+		 * @param y 对象在 y 轴上的绘制位置。（默认值：0。）
+		 * @param angle 以弧度表示的旋转角度。（默认值：0。）
+		 * @param scaleX x 轴缩放系数。（默认值：1。）
+		 * @param scaleY y 轴缩放系数。（默认值：scaleX。）
+		 * @param originX x 轴原点偏移。（默认值：0。）
+		 * @param originY y 轴原点偏移。（默认值：0。）
+		 * @param shearX x 轴剪切系数。（默认值：0。）
+		 * @param shearY y 轴剪切系数。（默认值：0。）
+		 */
 		draw(batch: SpriteBatch, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
+		/**
+		 * 在屏幕上绘制 ParticleSystem，并可选择旋转、缩放和剪切。
+		 *
+
+		 * @param particles 要绘制的 ParticleSystem。
+		 * @param x 对象在 x 轴上的绘制位置。（默认值：0。）
+		 * @param y 对象在 y 轴上的绘制位置。（默认值：0。）
+		 * @param angle 以弧度表示的旋转角度。（默认值：0。）
+		 * @param scaleX x 轴缩放系数。（默认值：1。）
+		 * @param scaleY y 轴缩放系数。（默认值：scaleX。）
+		 * @param originX x 轴原点偏移。（默认值：0。）
+		 * @param originY y 轴原点偏移。（默认值：0。）
+		 * @param shearX x 轴剪切系数。（默认值：0。）
+		 * @param shearY y 轴剪切系数。（默认值：0。）
+		 */
 		draw(particles: ParticleSystem, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
+		/**
+		 * 在屏幕上绘制 Text，并可选择旋转、缩放和剪切。
+		 *
+
+		 * @param text 要绘制的 Text 对象。
+		 * @param x 对象在 x 轴上的绘制位置。（默认值：0。）
+		 * @param y 对象在 y 轴上的绘制位置。（默认值：0。）
+		 * @param angle 以弧度表示的旋转角度。（默认值：0。）
+		 * @param scaleX x 轴缩放系数。（默认值：1。）
+		 * @param scaleY y 轴缩放系数。（默认值：scaleX。）
+		 * @param originX x 轴原点偏移。（默认值：0。）
+		 * @param originY y 轴原点偏移。（默认值：0。）
+		 * @param shearX x 轴剪切系数。（默认值：0。）
+		 * @param shearY y 轴剪切系数。（默认值：0。）
+		 */
 		draw(text: Text, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
+		/**
+		 * 在屏幕上绘制 Video，并可选择旋转、缩放和剪切。
+		 *
+
+		 * @param video 要绘制的 Video。
+		 * @param x 对象在 x 轴上的绘制位置。（默认值：0。）
+		 * @param y 对象在 y 轴上的绘制位置。（默认值：0。）
+		 * @param angle 以弧度表示的旋转角度。（默认值：0。）
+		 * @param scaleX x 轴缩放系数。（默认值：1。）
+		 * @param scaleY y 轴缩放系数。（默认值：scaleX。）
+		 * @param originX x 轴原点偏移。（默认值：0。）
+		 * @param originY y 轴原点偏移。（默认值：0。）
+		 * @param shearX x 轴剪切系数。（默认值：0。）
+		 * @param shearY y 轴剪切系数。（默认值：0。）
+		 */
 		draw(video: Video, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
 		}
 
@@ -3395,29 +3897,24 @@ declare global {
 		 *
 		 * 更改显示模式可能会产生副作用：例如，画布将被清除。确保事先保存画布的内容，或者如果需要的话，之后重新绘制。
 		 *
-		 * 重载说明：
-		 * 1. 如果启用全屏且不支持宽度或高度（请参阅 resize 事件将被触发。如果全屏类型为 'desktop'，则窗口将自动调整大小到桌面分辨率。目前不支持透明背景。
-		 *
+
 		 * @param settings 具有以下可选字段的设置表。任何未填写的字段都将使用 love.window.getMode.
-		 * @param settings.fullscreen 全屏（true）或窗口化（false）。
-		 * @param settings.fullscreentype 要使用的全屏类型。
-		 * @param settings.vsync 如果 LÖVE 应该等待垂直同步则为 true，否则为 false。
-		 * @param settings.msaa 抗锯齿样本数。
-		 * @param settings.resizable 如果窗口应在窗口模式下调整大小，则为 true，否则为 false。
-		 * @param settings.borderless 如果窗口在窗口模式下应无边框，则为 true，否则为 false。
-		 * @param settings.centered 如果窗口应在窗口模式下居中，则为 true，否则为 false。
-		 * @param settings.display 如果有多个监视器可用，则显示窗口的显示器索引。
-		 * @param settings.minwidth 窗口的最小宽度（如果可以调整大小）。不能小于 1。
-		 * @param settings.minheight 窗口的最小高度（如果可调整大小）。不能小于 1。
-		 * @param settings.highdpi 如果应在 macOS 和 iOS 中的 Retina 显示屏上使用高 dpi 模式，则为 true。在非 Retina 显示器上不执行任何操作。
-		 * @param settings.x 指定显示中窗口位置的 x 坐标。
-		 * @param settings.y 指定显示中窗口位置的 y 坐标。
-		 * @param width 窗口宽度。
-		 * @param height 窗口高度。
-		 *
 		 * @returns success — 如果成功则为 true，否则为 false。
 		 */
 		updateMode(this: void, settings: WindowModeSettings): boolean;
+		/**
+		 * 设置窗口的显示模式和属性，不修改未指定的属性。
+		 *
+		 * 如果宽度或高度为0，updateMode 将使用桌面的宽度和高度。
+		 *
+		 * 更改显示模式可能会产生副作用：例如，画布将被清除。确保事先保存画布的内容，或者如果需要的话，之后重新绘制。
+		 *
+
+		 * @param width 窗口宽度。
+		 * @param height 窗口高度。
+		 * @param settings 具有以下可选字段的设置表。任何未填写的字段都将使用 love.window.getMode.
+		 * @returns success — 如果成功则为 true，否则为 false。
+		 */
 		updateMode(this: void, width: number, height: number, settings?: WindowModeSettings): boolean;
 		/**
 		 * 获取窗口在屏幕上的位置。
@@ -3546,18 +4043,29 @@ declare global {
 		 *
 		 * 大多数 LÖVE 函数返回值并期望参数以像素为单位，而不是与密度无关的单位。
 		 *
-		 * 重载说明：
-		 * 1. love.graphics.getWidth、love.graphics.getHeight、love.mouse.getPosition、鼠标事件、love.touch.getPosition 和触摸事件的单位始终以像素为单位。
-		 *
+
 		 * @param value 与密度无关的单位中要转换为像素的数字。
-		 * @param x 以与密度无关的单位表示的坐标的 x 轴值，以转换为像素。
-		 * @param y 以与密度无关的单位表示的坐标的 y 轴值，以转换为像素。
-		 *
 		 * @returns pixelvalue — 转换后的数字，以像素为单位。
 		 * @returns px — 转换后的 x 轴坐标值，以像素为单位。
 		 * @returns py — 转换后的 y 轴坐标值，以像素为单位。
 		 */
 		toPixels(this: void, value: number): number;
+		/**
+		 * 将数字从与密度无关的单位转换为像素。
+		 *
+		 * 窗口内的像素密度可能大于（或小于）窗口的 'size' 。例如，在启用了 highdpi 窗口标志的 Mac OS X 中的视网膜屏幕上，窗口可能占用与 800x600 窗口相同的物理尺寸，但窗口内的区域使用 1600x1200 像素。在这种情况下，love.window.toPixels(800) 将返回 1600。
+		 *
+		 * 这用于将坐标从用户期望它们在屏幕上显示的尺寸转换为像素。 love.window.fromPixels 则相反。必须启用 highdpi 窗口标志才能在 Mac OS X 和 iOS 上使用 Retina 屏幕的完整像素密度。该标志目前在 Windows 和 Linux 上没有任何作用，而在 Android 上它实际上始终处于启用状态。
+		 *
+		 * 大多数 LÖVE 函数返回值并期望参数以像素为单位，而不是与密度无关的单位。
+		 *
+
+		 * @param x 以与密度无关的单位表示的坐标的 x 轴值，以转换为像素。
+		 * @param y 以与密度无关的单位表示的坐标的 y 轴值，以转换为像素。
+		 * @returns pixelvalue — 转换后的数字，以像素为单位。
+		 * @returns px — 转换后的 x 轴坐标值，以像素为单位。
+		 * @returns py — 转换后的 y 轴坐标值，以像素为单位。
+		 */
 		toPixels(this: void, x: number, y: number): LuaMultiReturn<[number, number]>;
 		/**
 		 * 将数字从像素转换为与密度无关的单位。
@@ -3568,18 +4076,29 @@ declare global {
 		 *
 		 * 大多数 LÖVE 函数返回值并期望参数以像素为单位，而不是与密度无关的单位。
 		 *
-		 * 重载说明：
-		 * 1. love.graphics.getWidth、love.graphics.getHeight、love.mouse.getPosition、鼠标事件、love.touch.getPosition 和触摸事件的单位始终以像素为单位。
-		 *
+
 		 * @param value 以像素为单位的数字，要转换为与密度无关的单位。
-		 * @param x 坐标的 x 轴值（以像素为单位）。
-		 * @param y 坐标的 y 轴值（以像素为单位）。
-		 *
 		 * @returns value — 转换后的数字，采用与密度无关的单位。
 		 * @returns x — 转换后的 x 轴坐标值，采用与密度无关的单位。
 		 * @returns y — 转换后的 y 轴坐标值，采用与密度无关的单位。
 		 */
 		fromPixels(this: void, value: number): number;
+		/**
+		 * 将数字从像素转换为与密度无关的单位。
+		 *
+		 * 窗口内的像素密度可能大于（或小于）窗口的 'size' 。例如，在启用了 highdpi 窗口标志的 Mac OS X 中的视网膜屏幕上，窗口可能占用与 800x600 窗口相同的物理尺寸，但窗口内的区域使用 1600x1200 像素。在这种情况下，love.window.fromPixels(1600) 将返回 800。
+		 *
+		 * 此函数将坐标从像素转换为用户期望它们在屏幕上显示的大小。 love.window.toPixels 则相反。必须启用 highdpi 窗口标志才能在 Mac OS X 和 iOS 上使用 Retina 屏幕的完整像素密度。该标志目前在 Windows 和 Linux 上没有任何作用，而在 Android 上它实际上始终处于启用状态。
+		 *
+		 * 大多数 LÖVE 函数返回值并期望参数以像素为单位，而不是与密度无关的单位。
+		 *
+
+		 * @param x 坐标的 x 轴值（以像素为单位）。
+		 * @param y 坐标的 y 轴值（以像素为单位）。
+		 * @returns value — 转换后的数字，采用与密度无关的单位。
+		 * @returns x — 转换后的 x 轴坐标值，采用与密度无关的单位。
+		 * @returns y — 转换后的 y 轴坐标值，采用与密度无关的单位。
+		 */
 		fromPixels(this: void, x: number, y: number): LuaMultiReturn<[number, number]>;
 	}
 
@@ -3637,13 +4156,20 @@ declare global {
 		 *
 		 * quit 事件是事件处理程序关闭 LÖVE 的信号。可以使用 love.quit 回调中止退出过程。
 		 *
-		 * 重载说明：
-		 * 1. 重新启动游戏而不重新启动可执行文件。这会干净地关闭主 Lua 状态实例并创建一个全新的实例。
-		 *
+
 		 * @param exitStatus 关闭应用程序时使用的程序退出状态。 （默认值：0。）
-		 * @param reason 关闭应用程序时使用的程序退出状态。 （默认值：0。）取决于重载：告诉默认的 love.run 退出并重新启动游戏，而不重新启动可执行文件。
+		 * @returns 退出事件加入队列后始终返回 true。
 		 */
 		quit(this: void, exitStatus?: number): true;
+		/**
+		 * 将退出事件添加到队列中。
+		 *
+		 * quit 事件是事件处理程序关闭 LÖVE 的信号。可以使用 love.quit 回调中止退出过程。
+		 *
+
+		 * @param reason 告诉默认的 love.run 退出并重新启动游戏，而不重新启动可执行文件。
+		 * @returns 重启退出事件加入队列后始终返回 true。
+		 */
 		quit(this: void, reason: "restart"): true;
 	}
 
@@ -3714,20 +4240,32 @@ declare global {
 		 *
 		 * Data:getPointer 与 LuaJIT 的 FFI 一起可用于在创建 ByteData 对象后对其内容进行操作。
 		 *
-		 * 重载说明：
-		 * 1. 通过复制指定字符串的内容来创建新的 ByteData。
-		 * 2. 通过从现有数据对象复制来创建新的 ByteData。
-		 * 3. 创建一个具有特定大小的新空 ByteData。
-		 *
-		 * @param size 新数据对象的大小（以字节为单位）。 （默认值：data:getSize()。）取决于重载：新数据对象的大小（以字节为单位）。
-		 * @param bytes 要复制的字节字符串。取决于重载：新数据对象的大小（以字节为单位）。
-		 * @param data 要复制的现有数据对象。
-		 * @param offset 要复制的子节的偏移量（以字节为单位）。 （默认值：0。）
-		 *
+
+		 * @param size 新数据对象的大小（以字节为单位）。 （默认值：data:getSize()。）
 		 * @returns bytedata — 新的数据对象。
 		 */
 		newByteData(this: void, size: number): ByteData;
+		/**
+		 * 创建一个包含任意字节的新数据对象。
+		 *
+		 * Data:getPointer 与 LuaJIT 的 FFI 一起可用于在创建 ByteData 对象后对其内容进行操作。
+		 *
+
+		 * @param bytes 新数据对象的大小（以字节为单位）。
+		 * @returns bytedata — 新的数据对象。
+		 */
 		newByteData(this: void, bytes: string): ByteData;
+		/**
+		 * 创建一个包含任意字节的新数据对象。
+		 *
+		 * Data:getPointer 与 LuaJIT 的 FFI 一起可用于在创建 ByteData 对象后对其内容进行操作。
+		 *
+
+		 * @param data 要复制的现有数据对象。
+		 * @param offset 要复制的子节的偏移量（以字节为单位）。 （默认值：0。）
+		 * @param size 新数据对象的大小（以字节为单位）。
+		 * @returns bytedata — 新的数据对象。
+		 */
 		newByteData(this: void, data: Data, offset?: number, size?: number): ByteData;
 		/**
 		 * 创建引用现有数据对象的一部分的新数据。
@@ -3745,85 +4283,157 @@ declare global {
 		/**
 		 * 将数据或字符串编码为采用一种编码格式的数据或字符串。
 		 *
+
 		 * @param container 返回编码数据的类型。
 		 * @param format 输出数据的格式。
 		 * @param source 要编码的原始数据。
 		 * @param lineLength 输出的最大行长度。仅支持 base64，如果为 0，则忽略。（默认值：0。）
-		 *
 		 * @returns encoded — ByteData/string，其中包含源的编码版本。
 		 */
 		encode(this: void, container: "string", format: EncodeFormat, source: string | Data, lineLength?: number): string;
+		/**
+		 * 将数据或字符串编码为采用一种编码格式的数据或字符串。
+		 *
+
+		 * @param container 返回编码数据的类型。
+		 * @param format 输出数据的格式。
+		 * @param source 要编码的原始数据。
+		 * @param lineLength 输出的最大行长度。仅支持 base64，如果为 0，则忽略。（默认值：0。）
+		 * @returns encoded — ByteData/string，其中包含源的编码版本。
+		 */
 		encode(this: void, container: "data", format: EncodeFormat, source: string | Data, lineLength?: number): ByteData;
 		/**
 		 * 将数据或字符串从任何 EncodeFormat 解码为数据或字符串。
 		 *
+
 		 * @param container 解码后的数据返回什么类型。
 		 * @param format 输入数据的格式。
 		 * @param source 要解码的原始（编码）数据。
-		 *
 		 * @returns decoded — ByteData/string，其中包含源的解码版本。
 		 */
 		decode(this: void, container: "string", format: EncodeFormat, source: string | Data): string;
+		/**
+		 * 将数据或字符串从任何 EncodeFormat 解码为数据或字符串。
+		 *
+
+		 * @param container 解码后的数据返回什么类型。
+		 * @param format 输入数据的格式。
+		 * @param source 要解码的原始（编码）数据。
+		 * @returns decoded — ByteData/string，其中包含源的解码版本。
+		 */
 		decode(this: void, container: "data", format: EncodeFormat, source: string | Data): ByteData;
 		/**
 		 * 使用特定的压缩算法压缩字符串或数据。
 		 *
+
 		 * @param container 返回压缩数据的类型。
-		 * @param format 压缩字符串时使用的格式。取决于过载：压缩数据时使用的格式。
-		 * @param source 要压缩的原始（未压缩）字符串。取决于重载：包含要压缩的原始（未压缩）数据的数据对象。
+		 * @param format 压缩字符串时使用的格式。
+		 * @param source 要压缩的原始（未压缩）字符串。
 		 * @param level 要使用的压缩级别，介于 0 和 9 之间。-1 表示默认级别。该参数的含义取决于所使用的压缩格式。 （默认值：-1。）
-		 *
-		 * @returns compressedData — 压缩数据/字符串，其中包含原始字符串的压缩版本。取决于重载：压缩数据/字符串，其中包含数据的压缩版本。
+		 * @returns compressedData — 压缩数据/字符串，其中包含原始字符串的压缩版本。
 		 */
 		compress(this: void, container: "string", format: CompressionFormat, source: string | Data, level?: number): string;
+		/**
+		 * 使用特定的压缩算法压缩字符串或数据。
+		 *
+
+		 * @param container 返回压缩数据的类型。
+		 * @param format 压缩数据时使用的格式。
+		 * @param source 包含要压缩的原始（未压缩）数据的数据对象。
+		 * @param level 要使用的压缩级别，介于 0 和 9 之间。-1 表示默认级别。该参数的含义取决于所使用的压缩格式。 （默认值：-1。）
+		 * @returns 压缩数据/字符串，其中包含数据的压缩版本。
+		 */
 		compress(this: void, container: "data", format: CompressionFormat, source: string | Data, level?: number): CompressedData;
 		/**
 		 * 解压缩 CompressedData 或先前压缩的字符串或数据对象。
 		 *
+
 		 * @param container 解压后的数据返回什么类型。
 		 * @param compressed 要解压的压缩数据。
-		 * @param format 用于压缩给定字符串的格式。取决于过载：用于压缩给定数据的格式。
-		 * @param source 包含先前使用 love.data.compress. 压缩的数据的字符串 取决于重载：包含先前使用 love.data.compress. 压缩的数据的数据对象
-		 *
 		 * @returns decompressedData — 包含原始解压缩数据的数据/字符串。
 		 */
 		decompress(this: void, container: "string", compressed: CompressedData): string;
+		/**
+		 * 解压缩 CompressedData 或先前压缩的字符串或数据对象。
+		 *
+
+		 * @param container 解压后的数据返回什么类型。
+		 * @param compressed 要解压的压缩数据。
+		 * @returns decompressedData — 包含原始解压缩数据的数据/字符串。
+		 */
 		decompress(this: void, container: "data", compressed: CompressedData): ByteData;
+		/**
+		 * 解压缩 CompressedData 或先前压缩的字符串或数据对象。
+		 *
+
+		 * @param container 解压后的数据返回什么类型。
+		 * @param format 用于压缩给定数据的格式。
+		 * @param source 包含先前使用 love.data.compress. 压缩的数据的数据对象
+		 * @returns decompressedData — 包含原始解压缩数据的数据/字符串。
+		 */
 		decompress(this: void, container: "string", format: CompressionFormat, source: string | Data): string;
+		/**
+		 * 解压缩 CompressedData 或先前压缩的字符串或数据对象。
+		 *
+
+		 * @param container 解压后的数据返回什么类型。
+		 * @param format 用于压缩给定数据的格式。
+		 * @param source 包含先前使用 love.data.compress. 压缩的数据的数据对象
+		 * @returns decompressedData — 包含原始解压缩数据的数据/字符串。
+		 */
 		decompress(this: void, container: "data", format: CompressionFormat, source: string | Data): ByteData;
 		/**
 		 * 打包（序列化）简单的 Lua 值。
 		 *
 		 * 该函数的行为与 Lua 5.3 的 string.pack 相同。
 		 *
-		 * 重载说明：
-		 * 1. 不支持打包大于 2^52 的整数，因为 Lua 5.1 无法用数字类型表示这些值。
-		 *
+
 		 * @param container 返回编码数据的类型。
 		 * @param format 决定如何打包值的字符串。遵循 Lua 5.3 的 string.pack 格式字符串的规则。
 		 * @param values 要序列化的第一个值（数字、布尔值或字符串）。
-		 *
 		 * @returns data — 包含序列化数据的数据/字符串。
 		 */
 		pack(this: void, container: "string", format: string, ...values: any[]): string;
+		/**
+		 * 打包（序列化）简单的 Lua 值。
+		 *
+		 * 该函数的行为与 Lua 5.3 的 string.pack 相同。
+		 *
+
+		 * @param container 返回编码数据的类型。
+		 * @param format 决定如何打包值的字符串。遵循 Lua 5.3 的 string.pack 格式字符串的规则。
+		 * @param values 要序列化的第一个值（数字、布尔值或字符串）。
+		 * @returns data — 包含序列化数据的数据/字符串。
+		 */
 		pack(this: void, container: "data", format: string, ...values: any[]): ByteData;
 		/**
 		 * 将字节字符串或数据解包（反序列化）为简单的 Lua 值。
 		 *
 		 * 该函数的行为与 Lua 5.3 的 string.unpack 相同。
 		 *
-		 * 重载说明：
-		 * 1. 不支持解包大于 2^52 的整数，因为 Lua 5.1 无法用数字类型表示这些值。
-		 *
+
 		 * @param format 确定值如何打包的字符串。遵循 Lua 5.3 的 string.pack 格式字符串的规则。
-		 * @param source 包含打包（序列化）数据的字符串。根据重载：包含打包（序列化）数据的数据对象。
-		 * @param position 从哪里开始读取字符串。负值可用于从字符串末尾读取相对值。 （默认值：1。）取决于过载：从 1 开始的索引，指示从何处开始读取数据。负值可用于从数据对象末尾读取相对值。 （默认值：1。）
-		 *
+		 * @param source 包含打包（序列化）数据的字符串。
+		 * @param position 从哪里开始读取字符串。负值可用于从字符串末尾读取相对值。 （默认值：1。）
 		 * @returns v1 — 解压的第一个值（数字、布尔值或字符串）。
 		 * @returns ... — 附加解压值。
-		 * @returns index — 数据字符串中第一个未读字节的索引。取决于过载：数据中第一个未读字节的从 1 开始的索引。
+		 * @returns index — 数据字符串中第一个未读字节的索引。
 		 */
-		unpack(this: void, format: string, source: string | Data, position?: number): LuaMultiReturn<any[]>;
+		unpack(this: void, format: string, source: string, position?: number): LuaMultiReturn<any[]>;
+/**
+ * 将字节字符串或数据解包（反序列化）为简单的 Lua 值。
+ *
+ * 该函数的行为与 Lua 5.3 的 string.unpack 相同。
+ *
+
+ * @param format 确定值如何打包的字符串。遵循 Lua 5.3 的 string.pack 格式字符串的规则。
+ * @param source 包含打包（序列化）数据的数据对象。
+ * @param position 从 1 开始的索引，指示从何处开始读取数据。负值可用于从数据对象末尾读取相对值。 （默认值：1。）
+ * @returns v1 — 解压的第一个值（数字、布尔值或字符串）。
+ * @returns ... — 附加解压值。
+ * @returns 数据中第一个未读字节的从 1 开始的索引。
+ */
+		unpack(this: void, format: string, source: Data, position?: number): LuaMultiReturn<any[]>;
 		/**
 		 * 获取与 love.data.pack 一起使用的给定格式将使用的大小（以字节为单位）。
 		 *
@@ -3840,15 +4450,21 @@ declare global {
 		/**
 		 * 使用指定的哈希算法计算字符串的消息摘要。
 		 *
-		 * 重载说明：
-		 * 1. 要返回哈希的十六进制字符串表示形式，请使用 love.data.encode hexDigestString = love.data.encode('string', 'hex', love.data.hash(algo, data))
-		 *
+
 		 * @param hashFunction 要使用的哈希算法。
-		 * @param source 要散列的字符串。根据过载：要散列的数据。
-		 *
+		 * @param source 要散列的字符串。
 		 * @returns rawdigest — 原始消息摘要字符串。
 		 */
-		hash(this: void, hashFunction: HashFunction, source: string | Data): string;
+		hash(this: void, hashFunction: HashFunction, source: string): string;
+/**
+ * 使用指定的哈希算法计算字符串的消息摘要。
+ *
+
+ * @param hashFunction 要使用的哈希算法。
+ * @param source 要散列的数据。
+ * @returns rawdigest — 原始消息摘要字符串。
+ */
+		hash(this: void, hashFunction: HashFunction, source: Data): string;
 	}
 	/** Data representing the contents of a file.
 	 */
@@ -4030,28 +4646,50 @@ declare global {
 		/**
 		 * 获取压缩图像数据的宽度。
 		 *
-		 * @param mipmap mipmap 级别。必须在 CompressedImageData:getMipmapCount() 范围内。
-		 *
-		 * @returns width — 压缩图像数据的宽度。取决于重载： CompressedImageData 的特定 mipmap 级别的宽度。
+
+		 * @returns width — 压缩图像数据的宽度。
 		 */
-		getWidth(mipmap?: number): number;
+		getWidth(): number;
+/**
+ * 获取压缩图像数据的宽度。
+ *
+
+ * @param mipmap mipmap 级别。必须在 CompressedImageData:getMipmapCount() 范围内。
+ * @returns CompressedImageData 的特定 mipmap 级别的宽度。
+ */
+		getWidth(mipmap: number): number;
 		/**
 		 * 获取 CompressedImageData 的高度。
 		 *
-		 * @param mipmap mipmap 级别。必须在 CompressedImageData:getMipmapCount() 范围内。
-		 *
-		 * @returns height — 压缩图像数据的高度。取决于过载：压缩图像数据的特定 mipmap 级别的高度。
+
+		 * @returns height — 压缩图像数据的高度。
 		 */
-		getHeight(mipmap?: number): number;
+		getHeight(): number;
+/**
+ * 获取 CompressedImageData 的高度。
+ *
+
+ * @param mipmap mipmap 级别。必须在 CompressedImageData:getMipmapCount() 范围内。
+ * @returns 压缩图像数据的特定 mipmap 级别的高度。
+ */
+		getHeight(mipmap: number): number;
 		/**
 		 * 获取 CompressedImageData 的宽度和高度。
 		 *
-		 * @param mipmap mipmap 级别。必须在 CompressedImageData:getMipmapCount() 范围内。
-		 *
-		 * @returns width — 压缩图像数据的宽度。取决于重载： CompressedImageData 的特定 mipmap 级别的宽度。
-		 * @returns height — 压缩图像数据的高度。取决于过载：压缩图像数据的特定 mipmap 级别的高度。
+
+		 * @returns width — 压缩图像数据的宽度。
+		 * @returns height — 压缩图像数据的高度。
 		 */
-		getDimensions(mipmap?: number): LuaMultiReturn<[number, number]>;
+		getDimensions(): LuaMultiReturn<[number, number]>;
+/**
+ * 获取 CompressedImageData 的宽度和高度。
+ *
+
+ * @param mipmap mipmap 级别。必须在 CompressedImageData:getMipmapCount() 范围内。
+ * @returns CompressedImageData 的特定 mipmap 级别的宽度。
+ * @returns 压缩图像数据的特定 mipmap 级别的高度。
+ */
+		getDimensions(mipmap: number): LuaMultiReturn<[number, number]>;
 		/**
 		 * 获取 CompressedImageData 中的 mipmap 级别数。基本 mipmap 级别（原始图像）包含在计数中。
 		 *
@@ -4075,16 +4713,29 @@ declare global {
 		/**
 		 * 创建一个新的 ImageData 对象。
 		 *
+
 		 * @param width ImageData 的宽度。
 		 * @param height ImageData 的高度。
 		 * @param format ImageData 的像素格式。 （默认：'rgba8'。）
-		 * @param data 可选的原始字节数据，以“'format'”指定的格式加载到 ImageData 中。 （默认值：nil。）取决于重载：要加载到 ImageData 中的数据（RGBA 字节，从左到右、从上到下）。
-		 * @param filename 图像文件的文件名。
-		 *
-		 * @returns imageData — 新的空白 ImageData 对象。每个像素的颜色值（包括 Alpha 值！）将设置为零。取决于重载：新的 ImageData 对象。
+		 * @param data 可选的原始字节数据，以“'format'”指定的格式加载到 ImageData 中。 （默认值：nil。）
+		 * @returns imageData — 新的空白 ImageData 对象。每个像素的颜色值（包括 Alpha 值！）将设置为零。
 		 */
 		newImageData(this: void, width: number, height: number, format?: ImagePixelFormat, data?: string | FileData): ImageData;
+		/**
+		 * 创建一个新的 ImageData 对象。
+		 *
+
+		 * @param filename 图像文件的文件名。
+		 * @returns 新的 ImageData 对象。
+		 */
 		newImageData(this: void, filename: string): ImageData;
+		/**
+		 * 创建一个新的 ImageData 对象。
+		 *
+
+		 * @param data 要加载到 ImageData 中的数据（RGBA 字节，从左到右、从上到下）。
+		 * @returns 新的 ImageData 对象。
+		 */
 		newImageData(this: void, data: FileData): ImageData;
 		/**
 		 * 从压缩图像文件创建一个新的 CompressedImageData 对象。 LÖVE 支持多种压缩纹理格式，在 CompressedImageFormat 页面中列出。
@@ -4287,35 +4938,44 @@ declare global {
 		/**
 		 * 创建一个新的 TrueType 光栅化器。
 		 *
-		 * 重载说明：
-		 * 1. 使用默认字体创建 TrueTypeRasterizer。
-		 * 2. 使用自定义字体创建 TrueTypeRasterizer。
-		 *
+
 		 * @param size 字体大小。 （默认值：12。）
 		 * @param hinting True Type 提示模式。 （默认：'normal'。）
 		 * @param dpiScale 字体 DPI 比例。 （默认：love.window.getDPIScale()。）
-		 * @param filenameOrData 字体文件的路径。取决于重载：包含字体的文件数据。
-		 *
 		 * @returns rasterizer — 光栅器。
 		 */
 		newTrueTypeRasterizer(this: void, size?: number, hinting?: "normal" | "light" | "mono" | "none", dpiScale?: number): Rasterizer;
+		/**
+		 * 创建一个新的 TrueType 光栅化器。
+		 *
+
+		 * @param filenameOrData 包含字体的文件数据。
+		 * @param size 字体大小。 （默认值：12。）
+		 * @param hinting True Type 提示模式。 （默认：'normal'。）
+		 * @param dpiScale 字体 DPI 比例。 （默认：love.window.getDPIScale()。）
+		 * @returns rasterizer — 光栅器。
+		 */
 		newTrueTypeRasterizer(this: void, filenameOrData: string | Data, size?: number, hinting?: "normal" | "light" | "mono" | "none", dpiScale?: number): Rasterizer;
 		/**
 		 * 创建一个新的光栅化器。
 		 *
-		 * 重载说明：
-		 * 1. 使用默认字体创建 TrueTypeRasterizer。
-		 * 2. 使用自定义字体创建 TrueTypeRasterizer。
-		 * 3. 创建一个新的 BMFont 光栅化器。
-		 *
+
 		 * @param size 字体大小。 （默认值：12。）
 		 * @param hinting True Type 提示模式。 （默认：'normal'。）
-		 * @param dpiScale 字体 DPI 比例。 （默认值：love.window.getDPIScale()。）取决于过载：DPI 比例。 （默认值：1。）
-		 * @param filenameOrData 字体文件的路径。取决于重载：包含字体的文件数据。
-		 *
+		 * @param dpiScale 字体 DPI 比例。 （默认值：love.window.getDPIScale()。）
 		 * @returns rasterizer — 光栅器。
 		 */
 		newRasterizer(this: void, size?: number, hinting?: "normal" | "light" | "mono" | "none", dpiScale?: number): Rasterizer;
+		/**
+		 * 创建一个新的光栅化器。
+		 *
+
+		 * @param filenameOrData 包含字体的文件数据。
+		 * @param size 字体大小。 （默认值：12。）
+		 * @param hinting True Type 提示模式。 （默认：'normal'。）
+		 * @param dpiScale DPI 比例。 （默认值：1。）
+		 * @returns rasterizer — 光栅器。
+		 */
 		newRasterizer(this: void, filenameOrData: string | Data, size?: number, hinting?: "normal" | "light" | "mono" | "none", dpiScale?: number): Rasterizer;
 		/**
 		 * 创建一个新的 GlyphData。
@@ -4381,14 +5041,19 @@ declare global {
 		/**
 		 * 设置指定位置的采样点值。对于立体声 SoundData 对象，来自左声道和右声道的数据按该顺序交错。
 		 *
-		 * 重载说明：
-		 * 1. 使用显式样本索引设置样本值，而不是在样本位置参数中交错它们。
-		 *
+
 		 * @param index 指定样本位置的整数值（从 0 开始）。
 		 * @param sample 归一化采样点（范围 -1.0 到 1.0）。
-		 * @param channel 在给定样本中设置的通道索引。
 		 */
 		setSample(index: number, sample: number): void;
+		/**
+		 * 设置指定位置的采样点值。对于立体声 SoundData 对象，来自左声道和右声道的数据按该顺序交错。
+		 *
+
+		 * @param index 指定样本位置的整数值（从 0 开始）。
+		 * @param channel 在给定样本中设置的通道索引。
+		 * @param sample 归一化采样点（范围 -1.0 到 1.0）。
+		 */
 		setSample(index: number, channel: number, sample: number): void;
 	}
 	/** An object which can gradually decode a sound file.
@@ -4448,33 +5113,65 @@ declare global {
 		/**
 		 * 尝试在指定文件中查找编码声音数据的解码器。
 		 *
+
 		 * @param filename 带有编码声音数据的文件的文件名。
 		 * @param bufferSize 每个解码块的大小（以字节为单位）。 （默认值：2048。）
-		 * @param data 包含编码声音数据的文件。取决于过载：带有编码声音数据的文件的文件名。
-		 *
 		 * @returns decoder — 一个新的解码器对象。
 		 */
 		newDecoder(this: void, filename: string, bufferSize?: number): Decoder;
+		/**
+		 * 尝试在指定文件中查找编码声音数据的解码器。
+		 *
+
+		 * @param data 带有编码声音数据的文件的文件名。
+		 * @param bufferSize 每个解码块的大小（以字节为单位）。 （默认值：2048。）
+		 * @returns decoder — 一个新的解码器对象。
+		 */
 		newDecoder(this: void, data: FileData, bufferSize?: number): Decoder;
 		/**
 		 * 从文件路径、文件或解码器创建新的 SoundData。还可以创建具有自定义采样率、通道和位深度的 SoundData。
 		 *
 		 * 声音数据将以原始格式解码到内存中。建议仅创建简短的声音（例如效果），因为这样 3 分钟的歌曲会使用 30 MB 的内存。
 		 *
+
 		 * @param samples 样本总数。
 		 * @param sampleRate 每秒采样数（默认值：44100。）
 		 * @param bitDepth 每个样本的位数（8 或 16）。 （默认值：16。）
 		 * @param channels 1 表示单声道，2 表示立体声。 （默认值：2。）
-		 * @param filename 要加载的文件的文件名。
-		 * @param bufferSize 每秒采样数（默认值：44100。）
-		 * @param data 要加载的文件的文件名。根据过载：指向音频文件的文件。根据过载：从此解码器解码数据直到 EOF。
-		 * @param decoder 从该解码器解码数据直到 EOF。
-		 *
 		 * @returns soundData — 一个新的 SoundData 对象。
 		 */
 		newSoundData(this: void, samples: number, sampleRate?: number, bitDepth?: 8 | 16, channels?: number): SoundData;
+		/**
+		 * 从文件路径、文件或解码器创建新的 SoundData。还可以创建具有自定义采样率、通道和位深度的 SoundData。
+		 *
+		 * 声音数据将以原始格式解码到内存中。建议仅创建简短的声音（例如效果），因为这样 3 分钟的歌曲会使用 30 MB 的内存。
+		 *
+
+		 * @param filename 要加载的文件的文件名。
+		 * @param bufferSize 每秒采样数（默认值：44100。）
+		 * @returns soundData — 一个新的 SoundData 对象。
+		 */
 		newSoundData(this: void, filename: string, bufferSize?: number): SoundData;
+		/**
+		 * 从文件路径、文件或解码器创建新的 SoundData。还可以创建具有自定义采样率、通道和位深度的 SoundData。
+		 *
+		 * 声音数据将以原始格式解码到内存中。建议仅创建简短的声音（例如效果），因为这样 3 分钟的歌曲会使用 30 MB 的内存。
+		 *
+
+		 * @param data 从此解码器解码数据直到 EOF。
+		 * @param bufferSize 每秒采样数（默认值：44100。）
+		 * @returns soundData — 一个新的 SoundData 对象。
+		 */
 		newSoundData(this: void, data: FileData, bufferSize?: number): SoundData;
+		/**
+		 * 从文件路径、文件或解码器创建新的 SoundData。还可以创建具有自定义采样率、通道和位深度的 SoundData。
+		 *
+		 * 声音数据将以原始格式解码到内存中。建议仅创建简短的声音（例如效果），因为这样 3 分钟的歌曲会使用 30 MB 的内存。
+		 *
+
+		 * @param decoder 从该解码器解码数据直到 EOF。
+		 * @returns soundData — 一个新的 SoundData 对象。
+		 */
 		newSoundData(this: void, decoder: Decoder): SoundData;
 	}
 	/** A random number generation object which has its own random state.
@@ -4483,17 +5180,26 @@ declare global {
 		/**
 		 * 以独立于平台的方式生成伪随机数。
 		 *
-		 * 重载说明：
-		 * 1. 获取1以内均匀分布的伪随机数。
-		 * 2. 获取最大范围内均匀分布的伪随机整数
-		 *
-		 * @param upper 它应该返回的最大可能值。
-		 * @param lower 它应该返回的最小可能值。
-		 *
-		 * @returns number — 伪随机数。取决于过载：伪随机整数。
+
+		 * @returns number — 伪随机数。
 		 */
 		random(): number;
+		/**
+		 * 以独立于平台的方式生成伪随机数。
+		 *
+
+		 * @param upper 它应该返回的最大可能值。
+		 * @returns 伪随机整数。
+		 */
 		random(upper: number): number;
+		/**
+		 * 以独立于平台的方式生成伪随机数。
+		 *
+
+		 * @param lower 它应该返回的最小可能值。
+		 * @param upper 它应该返回的最大可能值。
+		 * @returns 伪随机整数。
+		 */
 		random(lower: number, upper: number): number;
 		/**
 		 * 获取正态分布的伪随机数。
@@ -4507,15 +5213,17 @@ declare global {
 		/**
 		 * 使用指定的整数设置随机数生成器的种子。
 		 *
-		 * 重载说明：
-		 * 1. 由于Lua使用双精度浮点数，无法准确表示2^53以上的值。如果您的种子具有更大的值，请使用此函数的其他变体。
-		 * 2. 将两个 32 位整数组合成一个 64 位整数值，并使用该值设置随机数生成器的种子。
-		 *
+
 		 * @param seed 您想要用于随机化种子的整数。必须在 2^53 范围内。
+		 */
+		setSeed(seed: number): void;
+		/**
+		 * 使用指定的整数设置随机数生成器的种子。
+		 *
+
 		 * @param low 种子值的低 32 位。必须在 2^32 - 1 范围内。
 		 * @param high 种子值的高 32 位。必须在 2^32 - 1 范围内。
 		 */
-		setSeed(seed: number): void;
 		setSeed(low: number, high: number): void;
 		/**
 		 * 获取随机数生成器对象的种子。
@@ -4640,12 +5348,19 @@ declare global {
 		/**
 		 * 直接设置Transform的内部4x4变换矩阵。
 		 *
+
 		 * @param layout 如何解释矩阵元素参数（行优先或列优先）。
-		 * @param elements 包含 16 个矩阵元素的平面表。取决于过载：一个由 4 个表组成的表，每个子表包含 4 个矩阵元素。取决于重载：如何解释矩阵元素参数（行优先或列优先）。
-		 *
+		 * @param elements 包含 16 个矩阵元素的平面表。
 		 * @returns transform — 调用该方法的 Transform 对象。允许轻松链接 Transform 方法。
 		 */
 		setMatrix(layout: "row" | "column", elements: number[] | number[][]): Transform;
+		/**
+		 * 直接设置Transform的内部4x4变换矩阵。
+		 *
+
+		 * @param elements 如何解释矩阵元素参数（行优先或列优先）。
+		 * @returns transform — 调用该方法的 Transform 对象。允许轻松链接 Transform 方法。
+		 */
 		setMatrix(elements: number[] | number[][]): Transform;
 		/**
 		 * 获取此Transform存储的内部4x4变换矩阵。矩阵按行优先顺序返回。
@@ -4826,48 +5541,62 @@ declare global {
 		/**
 		 * 创建一个新的 RandomGenerator 对象，该对象完全独立于其他 RandomGenerator 对象和随机函数。
 		 *
-		 * 重载说明：
-		 * 1. 请参阅RandomGenerator:setSeed。
-		 *
+
 		 * @param seed 用于此对象的初始种子号。
-		 * @param low 用于此对象的种子号的低 32 位。
-		 * @param high 用于此对象的种子号的高 32 位。
-		 *
 		 * @returns rng — 新的随机数生成器对象。
 		 */
 		newRandomGenerator(this: void, seed?: number): RandomGenerator;
+		/**
+		 * 创建一个新的 RandomGenerator 对象，该对象完全独立于其他 RandomGenerator 对象和随机函数。
+		 *
+
+		 * @param low 用于此对象的种子号的低 32 位。
+		 * @param high 用于此对象的种子号的高 32 位。
+		 * @returns rng — 新的随机数生成器对象。
+		 */
 		newRandomGenerator(this: void, low: number, high: number): RandomGenerator;
 		/**
 		 * 创建一个新的 Transform 对象。
 		 *
-		 * 重载说明：
-		 * 1. 创建一个未应用任何变换的变换。对返回的对象调用方法以应用转换。
-		 * 2. 创建一个变换，并在创建时应用指定的变换。
-		 *
-		 * @param x 新变换在 x 轴上的位置。
-		 * @param y 新变换在 y 轴上的位置。
-		 * @param angle 新变换的方向（以弧度为单位）。 （默认值：0。）
-		 * @param scaleX x 轴上的比例因子。 （默认值：1。）
-		 * @param scaleY y 轴的比例因子。 （默认值：sx。）
-		 * @param originX x 轴上的原点偏移。 （默认值：0。）
-		 * @param originY y 轴上的原点偏移。 （默认值：0。）
-		 * @param shearX x 轴上的剪切/倾斜因子。 （默认值：0。）
-		 * @param shearY y 轴上的剪切/倾斜因子。 （默认值：0。）
-		 *
+
 		 * @returns transform — 新的变换对象。
 		 */
-		newTransform(this: void, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): Transform;
+		newTransform(this: void): Transform;
+/**
+ * 创建一个新的 Transform 对象。
+ *
+
+ * @param x 新变换在 x 轴上的位置。
+ * @param y 新变换在 y 轴上的位置。
+ * @param angle 新变换的方向（以弧度为单位）。 （默认值：0。）
+ * @param scaleX x 轴上的比例因子。 （默认值：1。）
+ * @param scaleY y 轴的比例因子。 （默认值：sx。）
+ * @param originX x 轴上的原点偏移。 （默认值：0。）
+ * @param originY y 轴上的原点偏移。 （默认值：0。）
+ * @param shearX x 轴上的剪切/倾斜因子。 （默认值：0。）
+ * @param shearY y 轴上的剪切/倾斜因子。 （默认值：0。）
+ * @returns transform — 新的变换对象。
+ */
+		newTransform(this: void, x: number, y: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): Transform;
 		/**
 		 * 创建一个新的 BezierCurve 对象。
 		 *
 		 * 控制多边形中的顶点数决定了曲线的阶数，例如三个顶点定义二次（2 次）贝塞尔曲线，四个顶点定义三次（3 次）贝塞尔曲线，等等。
 		 *
+
 		 * @param vertices 控制多边形的顶点作为表格，形式为{x1, y1, x2, y2, x3, y3, ...}。
-		 * @param coordinates 控制多边形的顶点作为表格，形式为{x1, y1, x2, y2, x3, y3, ...}。
-		 *
 		 * @returns curve — 贝塞尔曲线对象。
 		 */
 		newBezierCurve(this: void, vertices: number[]): BezierCurve;
+		/**
+		 * 创建一个新的 BezierCurve 对象。
+		 *
+		 * 控制多边形中的顶点数决定了曲线的阶数，例如三个顶点定义二次（2 次）贝塞尔曲线，四个顶点定义三次（3 次）贝塞尔曲线，等等。
+		 *
+
+		 * @param coordinates 控制多边形的顶点作为表格，形式为{x1, y1, x2, y2, x3, y3, ...}。
+		 * @returns curve — 贝塞尔曲线对象。
+		 */
 		newBezierCurve(this: void, ...coordinates: number[]): BezierCurve;
 		/**
 		 * 生成 1-4 维的 Simplex 或 Perlin 噪声值。给定相同的参数，返回值将始终相同。
@@ -4876,41 +5605,116 @@ declare global {
 		 *
 		 * 有很多网页详细讨论了 Perlin 和 Simplex 噪声。
 		 *
-		 * 重载说明：
-		 * 1. 从一维生成单纯形噪声。
-		 * 2. 从二维生成单纯形噪声。
-		 * 3. 从 3 个维度生成 Perlin 噪声（0.9.2 及更早版本中的单纯形噪声）。
-		 * 4. 从 4 个维度生成 Perlin 噪声（0.9.2 及更早版本中的单纯形噪声）。
-		 *
-		 * @param x 用于生成噪声值的数字。取决于过载：用于生成噪声值的二维向量的第一个值。取决于过载：用于生成噪声值的 3 维向量的第一个值。取决于过载：用于生成噪声值的 4 维向量的第一个值。
-		 * @param y 用于生成噪声值的二维向量的第二个值。取决于过载：用于生成噪声值的 3 维向量的第二个值。取决于过载：用于生成噪声值的 4 维向量的第二个值。
-		 * @param z 用于生成噪声值的三维向量的第三个值。取决于过载：用于生成噪声值的 4 维向量的第三个值。
-		 * @param w 用于生成噪声值的 4 维向量的第四个值。
-		 *
+
+		 * @param x 用于生成噪声值的数字。
 		 * @returns value — 1范围内的噪声值。
 		 */
-		noise(this: void, x: number, y?: number, z?: number, w?: number): number;
-		/** Deprecated alias of love.data.compress. */
+		noise(this: void, x: number): number;
+/**
+ * 生成 1-4 维的 Simplex 或 Perlin 噪声值。给定相同的参数，返回值将始终相同。
+ *
+ * 单纯形噪声与 Perlin 噪声密切相关。它广泛用于程序内容生成。
+ *
+ * 有很多网页详细讨论了 Perlin 和 Simplex 噪声。
+ *
+
+ * @param x 用于生成噪声值的二维向量的第一个值。
+ * @param y 用于生成噪声值的二维向量的第二个值。
+ * @returns value — 1范围内的噪声值。
+ */
+		noise(this: void, x: number, y: number): number;
+/**
+ * 生成 1-4 维的 Simplex 或 Perlin 噪声值。给定相同的参数，返回值将始终相同。
+ *
+ * 单纯形噪声与 Perlin 噪声密切相关。它广泛用于程序内容生成。
+ *
+ * 有很多网页详细讨论了 Perlin 和 Simplex 噪声。
+ *
+
+ * @param x 用于生成噪声值的 3 维向量的第一个值。
+ * @param y 用于生成噪声值的三维向量的第二个值。
+ * @param z 用于生成噪声值的三维向量的第三个值。
+ * @returns value — 1范围内的噪声值。
+ */
+		noise(this: void, x: number, y: number, z: number): number;
+/**
+ * 生成 1-4 维的 Simplex 或 Perlin 噪声值。给定相同的参数，返回值将始终相同。
+ *
+ * 单纯形噪声与 Perlin 噪声密切相关。它广泛用于程序内容生成。
+ *
+ * 有很多网页详细讨论了 Perlin 和 Simplex 噪声。
+ *
+
+ * @param x 用于生成噪声值的 4 维向量的第一个值。
+ * @param y 用于生成噪声值的 4 维向量的第二个值。
+ * @param z 用于生成噪声值的 4 维向量的第三个值。
+ * @param w 用于生成噪声值的 4 维向量的第四个值。
+ * @returns value — 1范围内的噪声值。
+ */
+		noise(this: void, x: number, y: number, z: number, w: number): number;
+		/**
+		 * love.data.compress 的弃用别名。
+		 *
+
+		 * @param container 要返回的值类型。
+		 * @param format 使用的压缩格式。
+		 * @param source 未压缩的源数据。
+		 * @param level 压缩级别，范围为 0 到 9；-1 表示使用默认级别。
+		 * @returns 字符串形式的压缩数据。
+		 */
 		compress(this: void, container: "string", format: CompressionFormat, source: string | Data, level?: number): string;
+		/**
+		 * love.data.compress 的弃用别名。
+		 *
+
+		 * @param container 要返回的值类型。
+		 * @param format 使用的压缩格式。
+		 * @param source 未压缩的源数据。
+		 * @param level 压缩级别，范围为 0 到 9；-1 表示使用默认级别。
+		 * @returns CompressedData 对象形式的压缩数据。
+		 */
 		compress(this: void, container: "data", format: CompressionFormat, source: string | Data, level?: number): CompressedData;
-		/** Deprecated alias of love.data.decompress. */
+		/**
+		 * love.data.decompress 的弃用别名。
+		 *
+
+		 * @param container 要返回的值类型。
+		 * @param compressed 要解压的压缩数据。
+		 * @returns 字符串形式的解压缩数据。
+		 */
 		decompress(this: void, container: "string", compressed: CompressedData): string;
+		/**
+		 * love.data.decompress 的弃用别名。
+		 *
+
+		 * @param container 要返回的值类型。
+		 * @param compressed 要解压的压缩数据。
+		 * @returns ByteData 对象形式的解压缩数据。
+		 */
 		decompress(this: void, container: "data", compressed: CompressedData): ByteData;
 		/**
 		 * 以独立于平台的方式生成伪随机数。默认的 love.run 在启动时为该函数设置种子，因此您通常不需要自己为其设置种子。
 		 *
-		 * 重载说明：
-		 * 1. 获取1以内均匀分布的伪随机实数。
-		 * 2. 获取最大范围内均匀分布的伪随机整数。
-		 * 3. 获取最大范围内均匀分布的伪随机整数。
-		 *
-		 * @param upper 它应该返回的最大可能值。
-		 * @param lower 它应该返回的最小可能值。
-		 *
-		 * @returns number — 伪随机数。取决于过载：伪随机整数。
+
+		 * @returns number — 伪随机数。
 		 */
 		random(this: void): number;
+		/**
+		 * 以独立于平台的方式生成伪随机数。默认的 love.run 在启动时为该函数设置种子，因此您通常不需要自己为其设置种子。
+		 *
+
+		 * @param upper 它应该返回的最大可能值。
+		 * @returns 伪随机整数。
+		 */
 		random(this: void, upper: number): number;
+		/**
+		 * 以独立于平台的方式生成伪随机数。默认的 love.run 在启动时为该函数设置种子，因此您通常不需要自己为其设置种子。
+		 *
+
+		 * @param lower 它应该返回的最小可能值。
+		 * @param upper 它应该返回的最大可能值。
+		 * @returns 伪随机整数。
+		 */
 		random(this: void, lower: number, upper: number): number;
 		/**
 		 * 获取正态分布的伪随机数。
@@ -4924,15 +5728,17 @@ declare global {
 		/**
 		 * 使用指定的整数设置随机数生成器的种子。这是在启动时内部调用的，因此您通常不需要自己调用它。
 		 *
-		 * 重载说明：
-		 * 1. 由于Lua使用双精度浮点数，无法准确表示2^53以上的整数值。如果您想使用更大的数字，请使用该函数的其他变体。
-		 * 2. 将两个 32 位整数组合成一个 64 位整数值，并使用该值设置随机数生成器的种子。
-		 *
+
 		 * @param seed 您想要用于随机化种子的整数。必须在 2^53 - 1 范围内。
+		 */
+		setRandomSeed(this: void, seed: number): void;
+		/**
+		 * 使用指定的整数设置随机数生成器的种子。这是在启动时内部调用的，因此您通常不需要自己调用它。
+		 *
+
 		 * @param low 种子值的低 32 位。必须在 2^32 - 1 范围内。
 		 * @param high 种子值的高 32 位。必须在 2^32 - 1 范围内。
 		 */
-		setRandomSeed(this: void, seed: number): void;
 		setRandomSeed(this: void, low: number, high: number): void;
 		/**
 		 * 获取随机数生成器的种子。
@@ -4968,40 +5774,52 @@ declare global {
 		/**
 		 * 将颜色从 0..1 转换到 0..255 范围。
 		 *
-		 * 重载说明：
-		 * 1. 这是 11.2 及更早版本的实现。函数 love.math.colorToBytes(r, g, b, a) if type(r) == 'table' then r, g, b, a = rr[2, rr[4 end r = 地板(clamp01(r) * 255 + 0.5) g = 地板(clamp01(g) * 255 + 0.5) b = 地板(clamp01(b) * 255 + 0.5) a = a ~= nil and Floor(clamp01(a) * 255 + 0.5) or nil return r, g, b, a end 其中clamp01定义如下局部函数clamp01(x) return math.min(math.max(x, 0), 1) end
-		 *
+
 		 * @param red 红色分量。
 		 * @param green 绿色分量。
 		 * @param blue 蓝色分量。
 		 * @param alpha Alpha 颜色分量。 （默认值：无。）
-		 * @param color 红色分量。
-		 *
 		 * @returns rb — 0..255 范围内的红色分量。
 		 * @returns gb — 0..255 范围内的绿色分量。
 		 * @returns bb — 0..255 范围内的蓝色分量。
 		 * @returns ab — 0..255 范围内的 Alpha 颜色分量，如果未指定 alpha，则为零。
 		 */
 		colorToBytes(this: void, red: number, green: number, blue: number, alpha?: number): LuaMultiReturn<[number, number, number, number?]>;
+		/**
+		 * 将颜色从 0..1 转换到 0..255 范围。
+		 *
+
+		 * @param color 红色分量。
+		 * @returns rb — 0..255 范围内的红色分量。
+		 * @returns gb — 0..255 范围内的绿色分量。
+		 * @returns bb — 0..255 范围内的蓝色分量。
+		 * @returns ab — 0..255 范围内的 Alpha 颜色分量，如果未指定 alpha，则为零。
+		 */
 		colorToBytes(this: void, color: number[]): LuaMultiReturn<[number, number, number, number?]>;
 		/**
 		 * 将颜色从 0..255 转换为 0..1 范围。
 		 *
-		 * 重载说明：
-		 * 1. 这是 11.2 及更早版本的实现。函数 love.math.colorFromBytes(r, g, b, a) if type(r) == 'table' then r, g, b, a = rr[2, rr[4 end r = lamp01(floor(r + 0.5) / 255) g =限定器01(floor(g + 0.5) / 255) b =限定器01(floor(b + 0.5) / 255) a = a ~= nil并且clamp01(floor(a + 0.5) / 255) or nil return r, g, b, a end 其中clamp01定义如下局部函数clamp01(x) return math.min(math.max(x, 0), 1) end
-		 *
+
 		 * @param red 0..255 范围内的红色分量。
 		 * @param green 0..255 范围内的绿色分量。
 		 * @param blue 0..255 范围内的蓝色分量。
 		 * @param alpha 0..255 范围内的 Alpha 颜色分量。 （默认值：无。）
-		 * @param color 0..255 范围内的红色分量。
-		 *
 		 * @returns r — 0..1 范围内的红色分量。
 		 * @returns g — 0..1 范围内的绿色分量。
 		 * @returns b — 0..1 范围内的蓝色分量。
 		 * @returns a — 0..1 范围内的 Alpha 颜色分量，如果未指定 alpha，则为零。
 		 */
 		colorFromBytes(this: void, red: number, green: number, blue: number, alpha?: number): LuaMultiReturn<[number, number, number, number?]>;
+		/**
+		 * 将颜色从 0..255 转换为 0..1 范围。
+		 *
+
+		 * @param color 0..255 范围内的红色分量。
+		 * @returns r — 0..1 范围内的红色分量。
+		 * @returns g — 0..1 范围内的绿色分量。
+		 * @returns b — 0..1 范围内的蓝色分量。
+		 * @returns a — 0..1 范围内的 Alpha 颜色分量，如果未指定 alpha，则为零。
+		 */
 		colorFromBytes(this: void, color: number[]): LuaMultiReturn<[number, number, number, number?]>;
 		/**
 		 * 将颜色从伽玛空间 (sRGB) 转换为线性空间 (RGB)。这在进行伽马校正渲染时非常有用，并且在 LÖVE 无法自动处理转换的少数情况下，您需要使用线性 RGB 进行数学计算。
@@ -5010,20 +5828,31 @@ declare global {
 		 *
 		 * 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
 		 *
-		 * 重载说明：
-		 * 1. alpha 值可以作为第四个参数传递到函数中，但它将原封不动地返回，因为 alpha 始终是线性的。
-		 *
+
 		 * @param red 要转换的 sRGB 颜色的红色通道。
 		 * @param green 要转换的 sRGB 颜色的绿色通道。
 		 * @param blue 要转换的 sRGB 颜色的蓝色通道。
-		 * @param color 一个数组，其中包含要转换的 sRGB 颜色的红色、绿色和蓝色通道。
-		 *
+		 * @param alpha Alpha 通道，将保持不变并原样返回。（默认值：nil。）
 		 * @returns lr — 线性 RGB 空间中转换颜色的红色通道。
 		 * @returns lg — 线性 RGB 空间中转换颜色的绿色通道。
 		 * @returns lb — 线性RGB空间中转换颜色的蓝色通道。
 		 * @returns lc — 线性RGB空间中颜色通道的值。
 		 */
 		gammaToLinear(this: void, red: number, green?: number, blue?: number, alpha?: number): LuaMultiReturn<[number, number?, number?, number?]>;
+		/**
+		 * 将颜色从伽玛空间 (sRGB) 转换为线性空间 (RGB)。这在进行伽马校正渲染时非常有用，并且在 LÖVE 无法自动处理转换的少数情况下，您需要使用线性 RGB 进行数学计算。
+		 *
+		 * 在此处、此处和此处阅读有关伽玛校正渲染的更多信息。
+		 *
+		 * 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+		 *
+
+		 * @param color 一个数组，其中包含要转换的 sRGB 颜色的红色、绿色和蓝色通道。
+		 * @returns lr — 线性 RGB 空间中转换颜色的红色通道。
+		 * @returns lg — 线性 RGB 空间中转换颜色的绿色通道。
+		 * @returns lb — 线性RGB空间中转换颜色的蓝色通道。
+		 * @returns lc — 线性RGB空间中颜色通道的值。
+		 */
 		gammaToLinear(this: void, color: number[]): LuaMultiReturn<[number, number?, number?, number?]>;
 		/**
 		 * 将颜色从线性空间 (RGB) 转换为伽玛空间 (sRGB)。这在图像中存储线性 RGB 颜色值时非常有用，因为对于深色，线性 RGB 颜色空间的精度低于 sRGB，这可能会导致绘图时出现明显的色带。
@@ -5034,42 +5863,69 @@ declare global {
 		 *
 		 * 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
 		 *
-		 * 重载说明：
-		 * 1. alpha 值可以作为第四个参数传递到函数中，但它将原封不动地返回，因为 alpha 始终是线性的。
-		 *
+
 		 * @param red 要转换的线性 RGB 颜色的红色通道。
 		 * @param green 要转换的线性 RGB 颜色的绿色通道。
 		 * @param blue 要转换的线性 RGB 颜色的蓝色通道。
-		 * @param color 一个数组，其中包含要转换的线性 RGB 颜色的红色、绿色和蓝色通道。
-		 *
+		 * @param alpha Alpha 通道，将保持不变并原样返回。（默认值：nil。）
 		 * @returns cr — gamma sRGB 空间中转换颜色的红色通道。
 		 * @returns cg — gamma sRGB 空间中转换颜色的绿色通道。
 		 * @returns cb — gamma sRGB 空间中转换颜色的蓝色通道。
 		 * @returns c — gamma sRGB 空间中颜色通道的值。
 		 */
 		linearToGamma(this: void, red: number, green?: number, blue?: number, alpha?: number): LuaMultiReturn<[number, number?, number?, number?]>;
+		/**
+		 * 将颜色从线性空间 (RGB) 转换为伽玛空间 (sRGB)。这在图像中存储线性 RGB 颜色值时非常有用，因为对于深色，线性 RGB 颜色空间的精度低于 sRGB，这可能会导致绘图时出现明显的色带。
+		 *
+		 * 一般来说，根据屏幕上的外观选择的颜色已经在伽马空间中，不应该进行双重转换。使用数学计算的颜色通常位于线性 RGB 空间中。
+		 *
+		 * 在此处、此处和此处阅读有关伽玛校正渲染的更多信息。
+		 *
+		 * 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+		 *
+
+		 * @param color 一个数组，其中包含要转换的线性 RGB 颜色的红色、绿色和蓝色通道。
+		 * @returns cr — gamma sRGB 空间中转换颜色的红色通道。
+		 * @returns cg — gamma sRGB 空间中转换颜色的绿色通道。
+		 * @returns cb — gamma sRGB 空间中转换颜色的蓝色通道。
+		 * @returns c — gamma sRGB 空间中颜色通道的值。
+		 */
 		linearToGamma(this: void, color: number[]): LuaMultiReturn<[number, number?, number?, number?]>;
 		/**
 		 * 检查多边形是否为凸多边形。
 		 *
 		 * love.physics 中的 PolygonShapes、某些形式的网格以及使用 love.graphics.polygon 绘制的多边形必须是简单的凸多边形。
 		 *
+
 		 * @param vertices 多边形的顶点作为表格，形式为{x1, y1, x2, y2, x3, y3, ...}。
-		 * @param coordinates 多边形的顶点作为表格，形式为{x1, y1, x2, y2, x3, y3, ...}。
-		 *
 		 * @returns convex — 给定的多边形是否是凸的。
 		 */
 		isConvex(this: void, vertices: number[]): boolean;
+		/**
+		 * 检查多边形是否为凸多边形。
+		 *
+		 * love.physics 中的 PolygonShapes、某些形式的网格以及使用 love.graphics.polygon 绘制的多边形必须是简单的凸多边形。
+		 *
+
+		 * @param coordinates 多边形的顶点作为表格，形式为{x1, y1, x2, y2, x3, y3, ...}。
+		 * @returns convex — 给定的多边形是否是凸的。
+		 */
 		isConvex(this: void, ...coordinates: number[]): boolean;
 		/**
 		 * 将简单的凸多边形或凹多边形分解为三角形。
 		 *
+
 		 * @param vertices 用于三角测量的多边形。不得与自身相交。
-		 * @param coordinates 用于三角测量的多边形。不得与自身相交。
-		 *
 		 * @returns triangles — 多边形组成的三角形列表，格式为 {{x1, y1, x2, y2, x3, y3}, {x1, y1, x2, y2, x3, y3}, ...}。
 		 */
 		triangulate(this: void, vertices: number[]): number[][];
+		/**
+		 * 将简单的凸多边形或凹多边形分解为三角形。
+		 *
+
+		 * @param coordinates 用于三角测量的多边形。不得与自身相交。
+		 * @returns triangles — 多边形组成的三角形列表，格式为 {{x1, y1, x2, y2, x3, y3}, {x1, y1, x2, y2, x3, y3}, ...}。
+		 */
 		triangulate(this: void, ...coordinates: number[]): number[][];
 	}
 	/** Represents a file on the filesystem. A function that takes a file path can also take a File.
@@ -5108,32 +5964,54 @@ declare global {
 		/**
 		 * 从文件中读取多个字节。
 		 *
-		 * 重载说明：
-		 * 1. 将文件的内容读入字符串或 FileData 对象。
-		 *
+
 		 * @param size 要读取的字节数。 （默认值：全部。）
-		 * @param container 返回文件内容的类型。
-		 *
-		 * @returns contents — 读取字节的内容。取决于重载：FileData 或包含读取字节的字符串。
+		 * @returns contents — 读取字节的内容。
 		 * @returns size — 已读取多少字节。
 		 */
 		read(size?: number): LuaMultiReturn<[string | undefined, number | string]>;
+		/**
+		 * 从文件中读取多个字节。
+		 *
+
+		 * @param container 返回文件内容的类型。
+		 * @param size 要读取的字节数。 （默认值：全部。）
+		 * @returns FileData 或包含读取字节的字符串。
+		 * @returns size — 已读取多少字节。
+		 */
 		read(container: "string", size?: number): LuaMultiReturn<[string | undefined, number | string]>;
+		/**
+		 * 从文件中读取多个字节。
+		 *
+
+		 * @param container 返回文件内容的类型。
+		 * @param size 要读取的字节数。 （默认值：全部。）
+		 * @returns FileData 或包含读取字节的字符串。
+		 * @returns size — 已读取多少字节。
+		 */
 		read(container: "data", size?: number): LuaMultiReturn<[FileData | undefined, number | string]>;
 		/**
 		 * 将数据写入文件。
 		 *
-		 * 重载说明：
-		 * 1. '''Writing to multiple lines''': In Windows, some text editors (e.g. Notepad before Windows 10 1809) only treat CRLF ('\r\n') 作为新行。 --example f = love.filesystem.newFile('note.txt') f:open('w') for i = 1, 10 do f:write('This is line '..i..'!\r\n') end f:close()
-		 *
-		 * @param data 要写入的字符串数据。取决于重载：要写入的数据对象。
+
+		 * @param data 要写入的字符串数据。
 		 * @param size 要写入多少字节。 （默认值：全部。）
-		 *
 		 * @returns success — 操作是否成功。
 		 * @returns err — 发生错误时的错误字符串。
 		 * @returns errorstr — 发生错误时的错误字符串。
 		 */
-		write(data: string | FileData, size?: number): LuaMultiReturn<[true | undefined, string?]>;
+		write(data: string, size?: number): LuaMultiReturn<[true | undefined, string?]>;
+/**
+ * 将数据写入文件。
+ *
+
+ * @param data 要写入的数据对象。
+ * @param size 要写入多少字节。 （默认值：全部。）
+ * @returns success — 操作是否成功。
+ * @returns err — 发生错误时的错误字符串。
+ * @returns errorstr — 发生错误时的错误字符串。
+ */
+		write(data: FileData, size?: number): LuaMultiReturn<[true | undefined, string?]>;
 		/**
 		 * 将文件中所有缓冲的写入数据刷新到磁盘。
 		 *
@@ -5312,25 +6190,41 @@ declare global {
 		 *
 		 * 如果游戏处于融合模式，也可以挂载love.filesystem.getSourceBaseDirectory。
 		 *
-		 * 重载说明：
-		 * 1. 将给定 FileData 的内容装载到内存中。 FileData 的数据必须包含压缩的目录结构。
-		 * 2. 将给定数据对象的内容装载到内存中。数据必须包含压缩目录结构。
-		 *
+
 		 * @param archive 游戏保存目录中要挂载的文件夹或zip文件。
 		 * @param mountpoint 存档将安装到的新路径。
 		 * @param appendToPath 读取已安装存档之前或之后的文件路径时是否搜索存档。这包括游戏的源目录和保存目录。 （默认值：假。）
-		 *
 		 * @returns success — 如果存档已成功安装，则为 true，否则为 false。
 		 */
-		mount(this: void, archive: string | FileData, mountpoint: string, appendToPath?: boolean): boolean;
+		mount(this: void, archive: string, mountpoint: string, appendToPath?: boolean): boolean;
+/**
+ * 在游戏的保存目录中安装zip文件或文件夹以供读取。
+ *
+ * 如果游戏处于融合模式，也可以挂载love.filesystem.getSourceBaseDirectory。
+ *
+
+ * @param archive 游戏保存目录中要挂载的文件夹或zip文件。
+ * @param mountpoint 存档将安装到的新路径。
+ * @param appendToPath 读取已安装存档之前或之后的文件路径时是否搜索存档。这包括游戏的源目录和保存目录。 （默认值：假。）
+ * @returns success — 如果存档已成功安装，则为 true，否则为 false。
+ */
+		mount(this: void, archive: FileData, mountpoint: string, appendToPath?: boolean): boolean;
 		/**
 		 * 卸载之前使用 love.filesystem.mount.
 		 *
+
 		 * @param archive 当前挂载的游戏保存目录中的文件夹或zip文件。
-		 *
 		 * @returns success — 如果存档已成功卸载，则为 true，否则为 false。
 		 */
-		unmount(this: void, archive: string | FileData): boolean;
+		unmount(this: void, archive: string): boolean;
+/**
+ * 卸载之前使用 love.filesystem.mount.
+ *
+
+ * @param archive 当前挂载的游戏保存目录中的文件夹或zip文件。
+ * @returns success — 如果存档已成功卸载，则为 true，否则为 false。
+ */
+		unmount(this: void, archive: FileData): boolean;
 		/**
 		 * 获取游戏是否处于融合模式。
 		 *
@@ -5346,51 +6240,86 @@ declare global {
 		 *
 		 * 需要打开才可以访问。
 		 *
-		 * 重载说明：
-		 * 1. 请注意，此函数不会返回任何错误消息（例如，如果您使用无效的文件名），因为它只是创建文件对象。您仍然可以使用 File:open 检查文件是否有效，如果打开文件时出现问题，它会返回一个布尔值和一条错误消息。
-		 * 2. 创建一个 File 对象并打开它以进行读取、写入或追加。
-		 *
+
 		 * @param filename 文件的文件名。
-		 * @param mode 打开文件的模式。
-		 *
-		 * @returns file — 新的文件对象。取决于重载：新的 File 对象，如果发生错误则为 nil。
+		 * @returns file — 新的文件对象。
 		 * @returns errorstr — 发生错误时的错误字符串。
 		 */
-		newFile(this: void, filename: string, mode?: OpenFileMode): File;
+		newFile(this: void, filename: string): File;
+/**
+ * 创建一个新的文件对象。
+ *
+ * 需要打开才可以访问。
+ *
+
+ * @param filename 文件的文件名。
+ * @param mode 打开文件的模式。
+ * @returns 新的 File 对象，如果发生错误则为 nil。
+ * @returns errorstr — 发生错误时的错误字符串。
+ */
+		newFile(this: void, filename: string, mode: OpenFileMode): File;
 		/**
 		 * 从磁盘上的文件或内存中的字符串创建一个新的 FileData 对象。
 		 *
-		 * 重载说明：
-		 * 1. 从内存中的字符串创建一个新的 FileData 对象。
-		 * 2. 从内存中的 Data 对象创建一个新的 FileData 对象。
-		 * 3. 从存储设备上的文件创建新的 FileData。
-		 *
-		 * @param filename 文件路径。取决于过载：文件的名称。当将 FileData 对象传递到 love.audio.newSource.
-		 * @param file 文件路径。
-		 * @param data 内存中文件的内容表示为字符串。根据重载：要复制到新 FileData 对象中的 Data 对象。
-		 *
-		 * @returns data — 新的文件数据。取决于重载：新的 FileData，如果发生错误则为零。
+
+		 * @param filename 文件路径。
+		 * @returns data — 新的文件数据。
 		 * @returns err — 错误字符串（如果发生错误）。
 		 */
 		newFileData(this: void, filename: string): FileData;
+		/**
+		 * 从磁盘上的文件或内存中的字符串创建一个新的 FileData 对象。
+		 *
+
+		 * @param file 文件路径。
+		 * @returns 新的 FileData，如果发生错误则为零。
+		 * @returns err — 错误字符串（如果发生错误）。
+		 */
 		newFileData(this: void, file: File): FileData;
+		/**
+		 * 从磁盘上的文件或内存中的字符串创建一个新的 FileData 对象。
+		 *
+
+		 * @param data 要复制到新 FileData 对象中的 Data 对象。
+		 * @param filename 文件的名称。当将 FileData 对象传递到 love.audio.newSource.
+		 * @returns 新的 FileData，如果发生错误则为零。
+		 * @returns err — 错误字符串（如果发生错误）。
+		 */
 		newFileData(this: void, data: string, filename: string): FileData;
 		/**
 		 * 读取文件的内容。
 		 *
-		 * 重载说明：
-		 * 1. 将文件的内容读入字符串或 FileData 对象。
-		 *
-		 * @param filename 文件的名称（和路径）。取决于重载：文件的名称（和路径）
-		 * @param size 读取多少字节。 （默认：全部。）取决于过载：读取多少字节（默认：全部。）
-		 * @param container 返回文件内容的类型。
-		 *
-		 * @returns contents — 文件内容。根据重载：返回 nil 作为内容。取决于重载：FileData 或包含文件内容的字符串。
+
+		 * @param filename 文件的名称（和路径）。
+		 * @param size 读取多少字节。 （默认：全部。）
+		 * @returns contents — 文件内容。
 		 * @returns size — 已读取多少字节。
 		 * @returns error — 返回错误消息。
 		 */
 		read(this: void, filename: string, size?: number): LuaMultiReturn<[string | undefined, number | string]>;
+		/**
+		 * 读取文件的内容。
+		 *
+
+		 * @param container 返回文件内容的类型。
+		 * @param filename 文件的名称（和路径）
+		 * @param size 读取多少字节（默认：全部。）
+		 * @returns 返回 nil 作为内容。
+		 * @returns size — 已读取多少字节。
+		 * @returns error — 返回错误消息。
+		 */
 		read(this: void, container: "string", filename: string, size?: number): LuaMultiReturn<[string | undefined, number | string]>;
+		/**
+		 * 读取文件的内容。
+		 *
+
+		 * @param container 返回文件内容的类型。
+		 * @param filename 文件的名称（和路径）
+		 * @param size 读取多少字节（默认：全部。）
+		 * @returns FileData 或包含文件内容的字符串。
+		 * @returns size — 已读取多少字节。
+		 * @returns error — 返回错误消息。
+		 */
 		read(this: void, container: "data", filename: string, size?: number): LuaMultiReturn<[FileData | undefined, number | string]>;
 		/**
 		 * 加载 Lua 文件（但不运行它）。
@@ -5412,44 +6341,70 @@ declare global {
 		/**
 		 * 将数据写入保存目录中的文件。如果该文件已经存在，它将被新内容完全替换。
 		 *
-		 * 重载说明：
-		 * 1. 如果您收到错误消息'Could not set write directory'，请尝试设置保存目录。这可以使用 love.filesystem.setIdentity 或通过将 love.conf. '''Writing to multiple lines''': In Windows, some text editors (e.g. Notepad) only treat CRLF ('\r\n') 中的标识字段设置为新行来完成。
-		 *
+
 		 * @param filename 文件的名称（和路径）。
-		 * @param data 要写入文件的字符串数据。根据重载：要写入文件的数据对象。
+		 * @param data 要写入文件的字符串数据。
 		 * @param size 要写入多少字节。 （默认值：全部。）
-		 *
 		 * @returns success — 如果操作成功。
 		 * @returns message — 如果操作不成功，则会出现错误消息。
 		 */
-		write(this: void, filename: string, data: string | FileData, size?: number): LuaMultiReturn<[boolean, string?]>;
+		write(this: void, filename: string, data: string, size?: number): LuaMultiReturn<[boolean, string?]>;
+/**
+ * 将数据写入保存目录中的文件。如果该文件已经存在，它将被新内容完全替换。
+ *
+
+ * @param filename 文件的名称（和路径）。
+ * @param data 要写入文件的数据对象。
+ * @param size 要写入多少字节。 （默认值：全部。）
+ * @returns success — 如果操作成功。
+ * @returns message — 如果操作不成功，则会出现错误消息。
+ */
+		write(this: void, filename: string, data: FileData, size?: number): LuaMultiReturn<[boolean, string?]>;
 		/**
 		 * 将数据附加到现有文件。
 		 *
+
 		 * @param filename 文件的名称（和路径）。
-		 * @param data 要附加到文件的字符串数据。根据重载：要附加到文件的数据对象。
+		 * @param data 要附加到文件的字符串数据。
 		 * @param size 要写入多少字节。 （默认值：全部。）
-		 *
 		 * @returns success — 如果操作成功则为 True，如果有错误则为 nil。
 		 * @returns errormsg — 失败时的错误消息。
 		 */
-		append(this: void, filename: string, data: string | FileData, size?: number): LuaMultiReturn<[boolean, string?]>;
+		append(this: void, filename: string, data: string, size?: number): LuaMultiReturn<[boolean, string?]>;
+/**
+ * 将数据附加到现有文件。
+ *
+
+ * @param filename 文件的名称（和路径）。
+ * @param data 要附加到文件的数据对象。
+ * @param size 要写入多少字节。 （默认值：全部。）
+ * @returns success — 如果操作成功则为 True，如果有错误则为 nil。
+ * @returns errormsg — 失败时的错误消息。
+ */
+		append(this: void, filename: string, data: FileData, size?: number): LuaMultiReturn<[boolean, string?]>;
 		/**
 		 * 获取有关指定文件或目录的信息。
 		 *
-		 * 重载说明：
-		 * 1. 此变体接受要填充的现有表，而不是创建新表。
-		 * 2. 如果给定路径中的项目与 filtertype 参数中指定的文件类型相同，则此变体仅返回信息，并接受现有表进行填充，而不是创建新表。
-		 *
+
 		 * @param filename 要检查的文件或目录路径。
-		 * @param filterType 如果提供，此参数将导致 getInfo 仅在给定路径中的项目与指定文件类型匹配时返回信息表。 （默认值：nil。）取决于重载：如果给定路径中的项目与指定的文件类型匹配，则导致 getInfo 仅返回信息表。
-		 *
-		 * @returns info — 包含有关指定路径的信息的表，如果路径中不存在任何内容，则为零。该表包含以下字段： 取决于重载：作为参数给出的表，如果路径中不存在任何内容，则为 nil。该表将填写以下字段：
+		 * @returns info — 包含有关指定路径的信息的表，如果路径中不存在任何内容，则为零。该表包含以下字段：
 		 * @returns info.type — 路径处对象的类型（文件、目录、符号链接等）
 		 * @returns info.size — 文件的大小（以字节为单位），如果无法确定则为零。
 		 * @returns info.modtime — 自unix 纪元以来文件的最后修改时间（以秒为单位），如果无法确定则为零。
 		 */
-		getInfo(this: void, filename: string, filterType?: FileType): FileInfo | undefined;
+		getInfo(this: void, filename: string): FileInfo | undefined;
+/**
+ * 获取有关指定文件或目录的信息。
+ *
+
+ * @param filename 要检查的文件或目录路径。
+ * @param filterType 如果给定路径中的项目与指定的文件类型匹配，则导致 getInfo 仅返回信息表。
+ * @returns 作为参数给出的表，如果路径中不存在任何内容，则为 nil。该表将填写以下字段：
+ * @returns info.type — 路径处对象的类型（文件、目录、符号链接等）
+ * @returns info.size — 文件的大小（以字节为单位），如果无法确定则为零。
+ * @returns info.modtime — 自unix 纪元以来文件的最后修改时间（以秒为单位），如果无法确定则为零。
+ */
+		getInfo(this: void, filename: string, filterType: FileType): FileInfo | undefined;
 		/** @deprecated Use getInfo instead. */
 		exists(this: void, filename: string): boolean;
 		/** @deprecated Use getInfo instead. */
@@ -5517,23 +6472,40 @@ declare global {
 		/**
 		 * 检查某个键是否按下。不要与 love.keypressed 或 love.keyreleased.
 		 *
+
 		 * @param keys 包含要检查的键的表。
-		 *
 		 * @returns down — 如果按键按下则为 True，否则为 false。
-		 * @returns anyDown — 如果提供的任何键按下则为 true，否则为 false。取决于过载：如果表中的任何键已关闭，则为 true，否则为 false。
+		 * @returns anyDown — 如果提供的任何键按下则为 true，否则为 false。
 		 */
 		isDown(this: void, ...keys: string[]): boolean;
+		/**
+		 * 检查某个键是否按下。不要与 love.keypressed 或 love.keyreleased.
+		 *
+
+		 * @param keys 包含要检查的键的表。
+		 * @returns down — 如果按键按下则为 True，否则为 false。
+		 * @returns 如果表中的任何键已关闭，则为 true，否则为 false。
+		 */
 		isDown(this: void, keys: string[]): boolean;
 		/**
 		 * 检查指定的扫描码是否被按下。不要与 love.keypressed 或 love.keyreleased.
 		 *
 		 * 与常规的 KeyConstants 不同，扫描码与键盘布局无关。如果按下与美式键盘上的 'w' 键相同位置的键，则使用扫描码 'w'，无论该键的标签是什么或用户的操作系统设置是什么。
 		 *
+
 		 * @param scancodes 要检查的扫描码。
-		 *
 		 * @returns down — 如果提供的任何扫描码已关闭，则为 True，否则为 false。
 		 */
 		isScancodeDown(this: void, ...scancodes: string[]): boolean;
+		/**
+		 * 检查指定的扫描码是否被按下。不要与 love.keypressed 或 love.keyreleased.
+		 *
+		 * 与常规的 KeyConstants 不同，扫描码与键盘布局无关。如果按下与美式键盘上的 'w' 键相同位置的键，则使用扫描码 'w'，无论该键的标签是什么或用户的操作系统设置是什么。
+		 *
+
+		 * @param scancodes 要检查的扫描码。
+		 * @returns down — 如果提供的任何扫描码已关闭，则为 True，否则为 false。
+		 */
 		isScancodeDown(this: void, scancodes: string[]): boolean;
 		/**
 		 * 获取给定按键对应的硬件扫描码。
@@ -5564,16 +6536,22 @@ declare global {
 		 *
 		 * 在触摸设备上，这会在启用时显示系统的本机屏幕键盘。
 		 *
-		 * 重载说明：
-		 * 1. 在 iOS 和 Android 上，此变体告诉操作系统指定的矩形是游戏中显示文本的位置，这会阻止系统屏幕键盘覆盖文本。
+
+		 * @param enabled 是否应启用文本输入事件。
+		 */
+		setTextInput(this: void, enabled: boolean): void;
+		/**
+		 * 启用或禁用文本输入事件。它在 Windows、Mac 和 Linux 上默认启用，在 iOS 和 Android 上默认禁用。
 		 *
+		 * 在触摸设备上，这会在启用时显示系统的本机屏幕键盘。
+		 *
+
 		 * @param enabled 是否应启用文本输入事件。
 		 * @param x 文本矩形 x 位置。
 		 * @param y 文本矩形 y 位置。
 		 * @param width 文本矩形宽度。
 		 * @param height 文本矩形高度。
 		 */
-		setTextInput(this: void, enabled: boolean): void;
 		setTextInput(this: void, enabled: boolean, x: number, y: number, width: number, height: number): void;
 		/**
 		 * 获取是否启用文本输入事件。
@@ -5666,11 +6644,20 @@ declare global {
 		 *
 		 * 该函数不检测鼠标滚轮滚动；您必须使用 love.wheelmoved （或 0.9.2 及更早版本中的 love.mousepressed ）回调。
 		 *
+
 		 * @param buttons 要检查的按钮的索引。 1 是鼠标主按钮，2 是鼠标辅助按钮，3 是中间按钮。其他按钮取决于鼠标。
-		 *
 		 * @returns down — 如果任何指定的按钮被按下，则为真。
 		 */
 		isDown(this: void, ...buttons: number[]): boolean;
+		/**
+		 * 检查某个鼠标按钮是否按下。
+		 *
+		 * 该函数不检测鼠标滚轮滚动；您必须使用 love.wheelmoved （或 0.9.2 及更早版本中的 love.mousepressed ）回调。
+		 *
+
+		 * @param buttons 要检查的按钮的索引。 1 是鼠标主按钮，2 是鼠标辅助按钮，3 是中间按钮。其他按钮取决于鼠标。
+		 * @returns down — 如果任何指定的按钮被按下，则为真。
+		 */
 		isDown(this: void, buttons: number[]): boolean;
 		/**
 		 * 设置光标的当前可见性。
@@ -5746,12 +6733,15 @@ declare global {
 		/**
 		 * 设置当前鼠标光标。
 		 *
-		 * 重载说明：
-		 * 1. 将当前鼠标光标重置为默认值。
-		 *
-		 * @param cursor 用作当前鼠标光标的 Cursor 对象。
 		 */
-		setCursor(this: void, cursor?: Cursor): void;
+		setCursor(this: void): void;
+/**
+ * 设置当前鼠标光标。
+ *
+
+ * @param cursor 用作当前鼠标光标的 Cursor 对象。
+ */
+		setCursor(this: void, cursor: Cursor): void;
 		/**
 		 * 获取当前光标。
 		 *
@@ -5960,17 +6950,19 @@ declare global {
 		/**
 		 * 设置带有震动支持的操纵杆上的振动电机速度。大多数常见的游戏手柄都具有此功能，但并非所有驱动程序都提供适当的支持。使用Joystick:isVibrationSupported进行检查。
 		 *
-		 * 重载说明：
-		 * 1. 禁用振动。
-		 * 2. 如果摇杆只有一个振动电机，它仍然可以工作，但会使用左右参数中的最大值。如果使用 Tattiebogle 驱动程序的修改版本，则 Mac OS X 上的 Xbox 360 控制器仅支持振动。第一次调用此函数可能会比预期花费更多时间，因为需要初始化 SDL 的触觉/力反馈子系统。
+
+		 * @returns success — 如果振动成功应用则为 true，否则为 false。
+		 */
+		setVibration(): boolean;
+		/**
+		 * 设置带有震动支持的操纵杆上的振动电机速度。大多数常见的游戏手柄都具有此功能，但并非所有驱动程序都提供适当的支持。使用Joystick:isVibrationSupported进行检查。
 		 *
+
 		 * @param left 操纵杆上左侧振动电机的强度。必须在 1 范围内。
 		 * @param right 操纵杆上右侧振动电机的强度。必须在 1 范围内。
 		 * @param duration 振动的持续时间（以秒为单位）。负值意味着无限的持续时间。 （默认值：-1。）
-		 *
-		 * @returns success — 如果振动成功应用则为 true，否则为 false。取决于过载：如果振动已成功禁用，则为 true；如果未成功禁用，则为 false。
+		 * @returns 如果振动已成功禁用，则为 true；如果未成功禁用，则为 false。
 		 */
-		setVibration(): boolean;
 		setVibration(left: number, right?: number, duration?: number): boolean;
 		/**
 		 * 获取支持震动的操纵杆上当前的振动电机强度。
@@ -6004,18 +6996,29 @@ declare global {
 		 *
 		 * 虚拟游戏手柄按钮和轴是围绕 Xbox 360 控制器布局设计的。
 		 *
-		 * 重载说明：
-		 * 1. 绑定游戏手柄轴和按钮的物理位置应尽可能与标准 Xbox 360 控制器的布局相对应。
-		 *
+
 		 * @param guid 绑定将影响的操纵杆类型的依赖于操作系统的 GUID。
-		 * @param input 要绑定的虚拟游戏手柄按钮。根据过载：要绑定的虚拟游戏手柄轴。
-		 * @param type 将虚拟游戏手柄按钮绑定到的输入类型。取决于过载：将虚拟游戏手柄轴绑定到的输入类型。
-		 * @param index 将虚拟游戏手柄按钮绑定到的轴、按钮或帽子的索引。取决于过载：将虚拟游戏手柄轴绑定到的轴、按钮或帽子的索引。
-		 * @param direction 帽子的方向，如果虚拟手柄按钮会绑定到帽子上。否则为零。 （默认值：nil。）取决于过载：帽子的方向，如果虚拟游戏手柄轴将绑定到帽子。否则为零。 （默认值：无。）
-		 *
-		 * @returns success — 虚拟手柄按键是否绑定成功。根据过载情况：虚拟手柄轴是否绑定成功。
+		 * @param input 要绑定的虚拟游戏手柄按钮。
+		 * @param type 将虚拟游戏手柄按钮绑定到的输入类型。
+		 * @param index 将虚拟游戏手柄按钮绑定到的轴、按钮或帽子的索引。
+		 * @returns success — 虚拟手柄按键是否绑定成功。
 		 */
 		setGamepadMapping(this: void, guid: string, input: GamepadAxis | GamepadButton, type: "axis" | "button", index: number): boolean;
+		/**
+		 * 将虚拟游戏手柄输入绑定到特定类型的所有操纵杆的按钮、轴或帽子。例如，如果此函数与 OS X 中的 Dualshock 3 控制器返回的 GUID 一起使用，则绑定将影响在 OS X 中运行时与游戏一起使用的“'all'”Dualshock 3 控制器的 Joystick:getGamepadAxis 和 Joystick:isGamepadDown。
+		 *
+		 * LÖVE 包含许多常见控制器的内置游戏手柄绑定。此功能允许您更改默认情况下不被识别为游戏手柄的操纵杆类型的绑定或添加新的绑定。
+		 *
+		 * 虚拟游戏手柄按钮和轴是围绕 Xbox 360 控制器布局设计的。
+		 *
+
+		 * @param guid 绑定将影响的操纵杆类型的依赖于操作系统的 GUID。
+		 * @param input 要绑定的虚拟游戏手柄轴。
+		 * @param type 将虚拟游戏手柄轴绑定到的输入类型。
+		 * @param index 将虚拟游戏手柄轴绑定到的轴、按钮或帽子的索引。
+		 * @param direction 帽子的方向，如果虚拟游戏手柄轴将绑定到帽子。否则为零。 （默认值：无。）
+		 * @returns 情况：虚拟手柄轴是否绑定成功。
+		 */
 		setGamepadMapping(this: void, guid: string, input: GamepadAxis | GamepadButton, type: "hat", index: number, direction: JoystickHat): boolean;
 		/**
 		 * 加载使用 love.joystick.saveGamepadMappings. 创建的游戏手柄映射字符串或文件
@@ -6034,15 +7037,20 @@ declare global {
 		 *
 		 * 映射存储为字符串，以便与 love.joystick.loadGamepadMappings.
 		 *
-		 * 重载说明：
-		 * 1. 将所有相关操纵杆的游戏手柄映射保存到文件中。
-		 * 2. 返回映射字符串而不写入文件。
-		 *
-		 * @param filename 保存映射字符串的文件名。
-		 *
-		 * @returns mappings — 写入文件的映射字符串。取决于重载：映射字符串。
+
+		 * @returns mappings — 写入文件的映射字符串。
 		 */
-		saveGamepadMappings(this: void, filename?: string): string;
+		saveGamepadMappings(this: void): string;
+/**
+ * 保存所有被识别为游戏手柄并且最近使用过或者其游戏手柄绑定已被修改的虚拟游戏手柄映射。
+ *
+ * 映射存储为字符串，以便与 love.joystick.loadGamepadMappings.
+ *
+
+ * @param filename 保存映射字符串的文件名。
+ * @returns 映射字符串。
+ */
+		saveGamepadMappings(this: void, filename: string): string;
 		/**
 		 * 获取具有给定 GUID 的操纵杆的完整游戏手柄映射字符串，如果 GUID 未被识别为游戏手柄，则返回 nil。
 		 *
@@ -6484,11 +7492,23 @@ declare global {
 		 *
 		 * 此方法需要通过 love.audio.newQueueableSource. 创建源
 		 *
+
 		 * @param data 要排队的数据。 SoundData 的采样率、位深度和通道数必须与 Source 相匹配。
-		 *
+		 * @param length 要排队的字节数。（默认值：全部剩余数据。）
 		 * @returns success — 如果数据已成功排队播放，则为 true；如果没有可用于排队的可用缓冲区，则为 false。
 		 */
 		queue(data: SoundData, length?: number): boolean;
+		/**
+		 * 将 SoundData 排队以便在可排队源中播放。
+		 *
+		 * 此方法需要通过 love.audio.newQueueableSource. 创建源
+		 *
+
+		 * @param data 要排队的数据。 SoundData 的采样率、位深度和通道数必须与 Source 相匹配。
+		 * @param offset 开始排队数据的字节偏移量。
+		 * @param length 要排队的字节数。
+		 * @returns success — 如果数据已成功排队播放，则为 true；如果没有可用于排队的可用缓冲区，则为 false。
+		 */
 		queue(data: SoundData, offset: number, length: number): boolean;
 		/**
 		 * 设置源的位置。请注意，这仅适用于单声道（即非立体声）声音文件！
@@ -6641,38 +7661,51 @@ declare global {
 		/**
 		 * 设置播放源时要应用的低通、高通或带通滤波器。
 		 *
-		 * 重载说明：
-		 * 1. 禁用对此源的过滤。
-		 *
-		 * @param filter 用于此源的过滤器设置，具有以下字段：
-		 * @param filter.type 要使用的过滤器类型。
-		 * @param filter.volume 音频的总音量。必须介于 0 和 1 之间。
-		 * @param filter.highgain 高频音频的音量。仅适用于低通和带通滤波器。必须介于 0 和 1 之间。
-		 * @param filter.lowgain 低频音频的音量。仅适用于高通和带通滤波器。必须介于 0 和 1 之间。
-		 *
+
 		 * @returns success — 过滤器是否成功应用于源。
 		 */
-		setFilter(filter?: AudioFilterSettings): boolean;
+		setFilter(): boolean;
+/**
+ * 设置播放源时要应用的低通、高通或带通滤波器。
+ *
+
+ * @param filter 用于此源的过滤器设置，具有以下字段：
+ * @returns success — 过滤器是否成功应用于源。
+ */
+		setFilter(filter: AudioFilterSettings): boolean;
 		getFilter<T extends AudioFilterSettings>(target?: T): T | AudioFilterSettings | undefined;
 		/**
 		 * 将音频效果应用于源。
 		 *
 		 * 该效果必须事先使用 love.audio.setEffect.
 		 *
-		 * 重载说明：
-		 * 1. 将给定的先前定义的效果应用于此源。
-		 * 2. 将给定的先前定义的效果应用于此源，并将过滤器应用于影响馈入效果的声音的源。 iOS 不支持音频效果功能。
-		 *
+
 		 * @param name 之前使用 love.audio.setEffect. 设置的效果名称
-		 * @param enabled 如果为 false 并且给定的效果名称先前已在此源上启用，则禁用该效果。 （默认值：true。）取决于过载：在效果之前应用的过滤器设置，具有以下字段：
-		 * @param enabled.type 要使用的过滤器类型。
-		 * @param enabled.volume 音频的总音量。必须介于 0 和 1 之间。
-		 * @param enabled.highgain 高频音频的音量。仅适用于低通和带通滤波器。必须介于 0 和 1 之间。
-		 * @param enabled.lowgain 低频音频的音量。仅适用于高通和带通滤波器。必须介于 0 和 1 之间。
-		 *
-		 * @returns success — 效果是否成功应用于此源。取决于过载：效果和滤波器是否成功应用于此源。
+		 * @returns success — 效果是否成功应用于此源。
 		 */
-		setEffect(name: string, enabled?: boolean | AudioFilterSettings): boolean;
+		setEffect(name: string): boolean;
+/**
+ * 将音频效果应用于源。
+ *
+ * 该效果必须事先使用 love.audio.setEffect.
+ *
+
+ * @param name 之前使用 love.audio.setEffect. 设置的效果名称
+ * @param enabled 是否启用该效果。传入 false 会禁用已激活的效果。（默认值：true。）
+ * @returns success — 效果是否成功应用于此源。
+ */
+		setEffect(name: string, enabled: boolean): boolean;
+/**
+ * 将音频效果应用于源。
+ *
+ * 该效果必须事先使用 love.audio.setEffect.
+ *
+
+ * @param name 之前使用 love.audio.setEffect. 设置的效果名称
+ * @param enabled 在效果之前应用的过滤器设置，具有以下字段：
+ * @returns 效果和滤波器是否成功应用于此源。
+ */
+		setEffect(name: string, enabled: AudioFilterSettings): boolean;
 		/**
 		 * 获取与特定效果关联的过滤器设置。
 		 *
@@ -6779,13 +7812,21 @@ declare global {
 		 *
 		 * 从 SoundData 创建的源始终是静态的。
 		 *
+
 		 * @param filename 音频文件的文件路径。
 		 * @param sourceType 流式或静态源。
-		 * @param data 用于创建源的 FileData。取决于重载：要从中创建源的 SoundData。
-		 *
-		 * @returns source — 可以播放指定音频的新源。根据过载：可以播放指定音频的新源。返回音频的SourceType是'static'。
+		 * @returns source — 可以播放指定音频的新源。
 		 */
 		newSource(this: void, filename: string, sourceType?: "static" | "stream"): Source;
+		/**
+		 * 从文件路径、文件、解码器或声音数据创建新的源。
+		 *
+		 * 从 SoundData 创建的源始终是静态的。
+		 *
+
+		 * @param data 要从中创建源的 SoundData。
+		 * @returns 可以播放指定音频的新源。返回音频的SourceType是'static'。
+		 */
 		newSource(this: void, data: SoundData): Source;
 		/**
 		 * 创建一个新的源，可用于使用 Source:queue 实时生成的声音播放。
@@ -6803,40 +7844,60 @@ declare global {
 		newQueueableSource(sampleRate: number, bitDepth: 8 | 16,
 			channels: 1 | 2, buffers?: number): Source;
 		/**
-		 * 播放指定的源。
+		 * 同时播放数组中包含的所有源。
 		 *
-		 * 重载说明：
-		 * 1. 开始同时播放多个源。
-		 *
-		 * @param sources 包含要播放的源列表的表。
+
+		 * @param sources 包含要播放的源的数组。
+		 * @returns 是否成功开始播放所有指定的源。
 		 */
 		play(this: void, sources: Source[]): boolean;
+		/**
+		 * 同时播放所有传入的源。
+		 *
+
+		 * @param sources 要播放的源。
+		 * @returns 是否成功开始播放所有指定的源。
+		 */
 		play(this: void, ...sources: Source[]): boolean;
 		/**
-		 * 暂停特定或所有当前播放的源。
+		 * 暂停所有当前活动的源并返回它们。
 		 *
-		 * 重载说明：
-		 * 1. 暂停所有当前活动的源并返回它们。
-		 * 2. 暂停给定的源。
-		 *
-		 * @param sources 包含要暂停的源列表的表。
-		 *
+
 		 * @returns Sources — 包含由此调用暂停的源列表的表。
 		 */
 		pause(this: void): Source[];
+		/**
+		 * 暂停数组中包含的所有源。
+		 *
+
+		 * @param sources 包含要暂停的源的数组。
+		 */
 		pause(this: void, sources: Source[]): void;
+		/**
+		 * 暂停所有传入的源。
+		 *
+
+		 * @param sources 要暂停的源。
+		 */
 		pause(this: void, ...sources: Source[]): void;
 		/**
-		 * 停止当前播放的源。
+		 * 停止所有当前活动的源。
 		 *
-		 * 重载说明：
-		 * 1. 此功能将停止所有当前活动的源。
-		 * 2. 该函数只会停止指定的源。
-		 * 3. 同时停止所有给定的源。
+		 */
+		stop(this: void): void;
+		/**
+		 * 停止数组中包含的所有源。
 		 *
-		 * @param sources 包含要停止的源列表的表。
+
+		 * @param sources 包含要停止的源的数组。
 		 */
 		stop(this: void, sources: Source[]): void;
+		/**
+		 * 同时停止所有传入的源。
+		 *
+
+		 * @param sources 要停止的源。
+		 */
 		stop(this: void, ...sources: Source[]): void;
 		/**
 		 * 获取当前同时播放的音源数量。
@@ -8007,9 +9068,18 @@ declare global {
 		 *
 		 * 所有灯具的默认类别为 1。
 		 *
+
 		 * @param categories 类别。
 		 */
 		setCategory(categories: number[]): void;
+		/**
+		 * 设置灯具所属的类别。最多可以有 16 个类别，以 1 到 16 之间的数字表示。
+		 *
+		 * 所有灯具的默认类别为 1。
+		 *
+
+		 * @param categories 类别。
+		 */
 		setCategory(...categories: number[]): void;
 		/**
 		 * 返回灯具所属的类别。
@@ -8022,9 +9092,18 @@ declare global {
 		 *
 		 * 如果其他灯具也选择了该灯具的类别，则该灯具将与所选类别中的灯具发生“'NOT'”碰撞。
 		 *
+
 		 * @param categories 面具。
 		 */
 		setMask(categories: number[]): void;
+		/**
+		 * 设置灯具的类别掩码。最多可以有 16 个类别，以 1 到 16 之间的数字表示。
+		 *
+		 * 如果其他灯具也选择了该灯具的类别，则该灯具将与所选类别中的灯具发生“'NOT'”碰撞。
+		 *
+
+		 * @param categories 面具。
+		 */
 		setMask(...categories: number[]): void;
 		/**
 		 * 返回该装置应与“'NOT'”碰撞的类别。
@@ -8829,39 +9908,65 @@ declare global {
 		/**
 		 * 创建一个新的 CircleShape。
 		 *
+
 		 * @param radius 圆的半径。
-		 * @param x 圆的 x 位置。
-		 * @param y 圆的 y 位置。
-		 *
 		 * @returns shape — 新形状。
 		 */
 		newCircleShape(this: void, radius: number): CircleShape;
+		/**
+		 * 创建一个新的 CircleShape。
+		 *
+
+		 * @param x 圆的 x 位置。
+		 * @param y 圆的 y 位置。
+		 * @param radius 圆的半径。
+		 * @returns shape — 新形状。
+		 */
 		newCircleShape(this: void, x: number, y: number, radius: number): CircleShape;
 		/**
 		 * 创建矩形 PolygonShapes 的简写。
 		 *
 		 * 默认情况下，本地原点位于矩形的“'center'”，而不是图形的左上角。
 		 *
+
 		 * @param width 矩形的宽度。
 		 * @param height 矩形的高度。
-		 * @param x 沿 x 轴的偏移。
-		 * @param y 沿 y 轴的偏移量。
-		 * @param angle 矩形的初始角度。 （默认值：0。）
-		 *
 		 * @returns shape — 一个新的多边形形状。
 		 */
 		newRectangleShape(this: void, width: number, height: number): PolygonShape;
+		/**
+		 * 创建矩形 PolygonShapes 的简写。
+		 *
+		 * 默认情况下，本地原点位于矩形的“'center'”，而不是图形的左上角。
+		 *
+
+		 * @param x 沿 x 轴的偏移。
+		 * @param y 沿 y 轴的偏移量。
+		 * @param width 矩形的宽度。
+		 * @param height 矩形的高度。
+		 * @param angle 矩形的初始角度。 （默认值：0。）
+		 * @returns shape — 一个新的多边形形状。
+		 */
 		newRectangleShape(this: void, x: number, y: number, width: number, height: number, angle?: number): PolygonShape;
 		/**
 		 * 创建一个新的PolygonShape。
 		 *
 		 * 这个形状最多可以有8个顶点，并且必须形成一个凸形状。
 		 *
+
 		 * @param points 用于构造多边形的顶点列表，格式为{x1, y1, x2, y2, x3, y3, ...}。
-		 *
 		 * @returns shape — 一个新的多边形形状。
 		 */
 		newPolygonShape(this: void, points: number[]): PolygonShape;
+		/**
+		 * 创建一个新的PolygonShape。
+		 *
+		 * 这个形状最多可以有8个顶点，并且必须形成一个凸形状。
+		 *
+
+		 * @param points 用于构造多边形的顶点列表，格式为{x1, y1, x2, y2, x3, y3, ...}。
+		 * @returns shape — 一个新的多边形形状。
+		 */
 		newPolygonShape(this: void, ...points: number[]): PolygonShape;
 		/**
 		 * 创建一个新的 EdgeShape。
@@ -8877,12 +9982,20 @@ declare global {
 		/**
 		 * 创建一个新的 ChainShape。
 		 *
+
 		 * @param loop 如果链应该循环回到第一个点。
 		 * @param points 用于构造 ChainShape 的点列表，格式为 {x1, y1, x2, y2, ...}。
-		 *
 		 * @returns shape — 新形状。
 		 */
 		newChainShape(this: void, loop: boolean, points: number[]): ChainShape;
+		/**
+		 * 创建一个新的 ChainShape。
+		 *
+
+		 * @param loop 如果链应该循环回到第一个点。
+		 * @param points 用于构造 ChainShape 的点列表，格式为 {x1, y1, x2, y2, ...}。
+		 * @returns shape — 新形状。
+		 */
 		newChainShape(this: void, loop: boolean, ...points: number[]): ChainShape;
 		/**
 		 * 在两个实体之间创建一个 DistanceJoint。
@@ -8905,77 +10018,119 @@ declare global {
 		 *
 		 * 这个关节将两个物体连接到一个点，它们可以围绕该点旋转。
 		 *
+
 		 * @param body1 第一具尸体。
 		 * @param body2 第二具尸体。
 		 * @param x 连接点的 x 位置。
 		 * @param y 连接点的 y 位置。
 		 * @param collideConnected 指定两个实体是否应该相互碰撞。 （默认值：假。）
+		 * @returns joint — 新的旋转接头。
+		 */
+		newRevoluteJoint(this: void, body1: Body, body2: Body, x: number, y: number, collideConnected?: boolean): RevoluteJoint;
+		/**
+		 * 在两个实体之间创建枢轴关节。
+		 *
+		 * 这个关节将两个物体连接到一个点，它们可以围绕该点旋转。
+		 *
+
+		 * @param body1 第一具尸体。
+		 * @param body2 第二具尸体。
 		 * @param x1 第一个连接点的 x 位置。
 		 * @param y1 第一个连接点的 y 位置。
 		 * @param x2 第二个连接点的 x 位置。
 		 * @param y2 第二个连接点的 y 位置。
+		 * @param collideConnected 指定两个实体是否应该相互碰撞。 （默认值：假。）
 		 * @param referenceAngle body1 和 body2 之间的参考角度，以弧度为单位。 （默认值：0。）
-		 *
 		 * @returns joint — 新的旋转接头。
 		 */
-		newRevoluteJoint(this: void, body1: Body, body2: Body, x: number, y: number, collideConnected?: boolean): RevoluteJoint;
 		newRevoluteJoint(this: void, body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, collideConnected?: boolean, referenceAngle?: number): RevoluteJoint;
 		/**
 		 * 在两个实体之间创建 PrismaticJoint。
 		 *
 		 * 棱柱关节约束两个实体在指定轴上相对移动。它不允许相对旋转。其定义和操作与旋转关节类似，但用平移和力代替角度和扭矩。
 		 *
+
 		 * @param body1 第一个用棱柱关节连接的主体。
 		 * @param body2 用棱柱关节连接的第二个主体。
 		 * @param x 锚点的 x 坐标。
 		 * @param y 锚点的 y 坐标。
-		 * @param axisX 轴向量的 x 坐标。取决于过载：轴单位矢量的 x 坐标。
-		 * @param axisY 轴向量的 y 坐标。取决于过载：轴单位矢量的 y 坐标。
+		 * @param axisX 轴向量的 x 坐标。
+		 * @param axisY 轴向量的 y 坐标。
 		 * @param collideConnected 指定两个实体是否应该相互碰撞。 （默认值：假。）
+		 * @returns joint — 新的棱柱形关节。
+		 */
+		newPrismaticJoint(this: void, body1: Body, body2: Body, x: number, y: number, axisX: number, axisY: number, collideConnected?: boolean): PrismaticJoint;
+		/**
+		 * 在两个实体之间创建 PrismaticJoint。
+		 *
+		 * 棱柱关节约束两个实体在指定轴上相对移动。它不允许相对旋转。其定义和操作与旋转关节类似，但用平移和力代替角度和扭矩。
+		 *
+
+		 * @param body1 第一个用棱柱关节连接的主体。
+		 * @param body2 用棱柱关节连接的第二个主体。
 		 * @param x1 第一个锚点的 x 坐标。
 		 * @param y1 第一个锚点的 y 坐标。
 		 * @param x2 第二个锚点的 x 坐标。
 		 * @param y2 第二个锚点的 y 坐标。
+		 * @param axisX 轴单位矢量的 x 坐标。
+		 * @param axisY 轴单位矢量的 y 坐标。
+		 * @param collideConnected 指定两个实体是否应该相互碰撞。 （默认值：假。）
 		 * @param referenceAngle body1 和 body2 之间的参考角度，以弧度为单位。 （默认值：0。）
-		 *
 		 * @returns joint — 新的棱柱形关节。
 		 */
-		newPrismaticJoint(this: void, body1: Body, body2: Body, x: number, y: number, axisX: number, axisY: number, collideConnected?: boolean): PrismaticJoint;
 		newPrismaticJoint(this: void, body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, axisX: number, axisY: number, collideConnected?: boolean, referenceAngle?: number): PrismaticJoint;
 		/**
 		 * 在两个实体之间创建约束关节。 WeldJoint 本质上是将两个实体粘合在一起。然而，由于 Box2D 的迭代求解器，约束有点软。
 		 *
+
 		 * @param body1 第一个连接到关节的主体。
 		 * @param body2 连接到关节的第二个主体。
 		 * @param x 锚点的 x 位置（世界空间）。
 		 * @param y 锚点（世界空间）的 y 位置。
 		 * @param collideConnected 指定两个实体是否应该相互碰撞。 （默认值：假。）
+		 * @returns joint — 新的 WeldJoint。
+		 */
+		newWeldJoint(this: void, body1: Body, body2: Body, x: number, y: number, collideConnected?: boolean): WeldJoint;
+		/**
+		 * 在两个实体之间创建约束关节。 WeldJoint 本质上是将两个实体粘合在一起。然而，由于 Box2D 的迭代求解器，约束有点软。
+		 *
+
+		 * @param body1 第一个连接到关节的主体。
+		 * @param body2 连接到关节的第二个主体。
 		 * @param x1 第一个锚点（世界空间）的 x 位置。
 		 * @param y1 第一个锚点（世界空间）的 y 位置。
 		 * @param x2 第二个锚点（世界空间）的 x 位置。
 		 * @param y2 第二个锚点（世界空间）的 y 位置。
+		 * @param collideConnected 指定两个实体是否应该相互碰撞。 （默认值：假。）
 		 * @param referenceAngle body1 和 body2 之间的参考角度，以弧度为单位。 （默认值：0。）
-		 *
 		 * @returns joint — 新的 WeldJoint。
 		 */
-		newWeldJoint(this: void, body1: Body, body2: Body, x: number, y: number, collideConnected?: boolean): WeldJoint;
 		newWeldJoint(this: void, body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, collideConnected?: boolean, referenceAngle?: number): WeldJoint;
 		/**
 		 * 在两个物体之间创建摩擦接头。 FrictionJoint 将摩擦力施加到物体上。
 		 *
+
 		 * @param body1 第一个连接到关节的主体。
 		 * @param body2 连接到关节的第二个主体。
 		 * @param x 锚点的 x 位置。
 		 * @param y 锚点的 y 位置。
 		 * @param collideConnected 指定两个实体是否应该相互碰撞。 （默认值：假。）
+		 * @returns joint — 新的摩擦关节。
+		 */
+		newFrictionJoint(this: void, body1: Body, body2: Body, x: number, y: number, collideConnected?: boolean): FrictionJoint;
+		/**
+		 * 在两个物体之间创建摩擦接头。 FrictionJoint 将摩擦力施加到物体上。
+		 *
+
+		 * @param body1 第一个连接到关节的主体。
+		 * @param body2 连接到关节的第二个主体。
 		 * @param x1 第一个锚点的 x 位置。
 		 * @param y1 第一个锚点的 y 位置。
 		 * @param x2 第二个锚点的 x 位置。
 		 * @param y2 第二个锚点的 y 位置。
-		 *
+		 * @param collideConnected 指定两个实体是否应该相互碰撞。 （默认值：假。）
 		 * @returns joint — 新的摩擦关节。
 		 */
-		newFrictionJoint(this: void, body1: Body, body2: Body, x: number, y: number, collideConnected?: boolean): FrictionJoint;
 		newFrictionJoint(this: void, body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, collideConnected?: boolean): FrictionJoint;
 		/**
 		 * 在两个实体之间创建关节。它的唯一功能是强制这些实体之间的最大距离。
@@ -9018,6 +10173,7 @@ declare global {
 		/**
 		 * 创建车轮接头。
 		 *
+
 		 * @param body1 第一具尸体。
 		 * @param body2 第二具尸体。
 		 * @param x 锚点的 x 位置。
@@ -9025,14 +10181,24 @@ declare global {
 		 * @param axisX 轴单位向量的 x 位置。
 		 * @param axisY 轴单位向量的 y 位置。
 		 * @param collideConnected 指定两个实体是否应该相互碰撞。 （默认值：假。）
+		 * @returns joint — 新的 WheelJoint。
+		 */
+		newWheelJoint(this: void, body1: Body, body2: Body, x: number, y: number, axisX: number, axisY: number, collideConnected?: boolean): WheelJoint;
+		/**
+		 * 创建车轮接头。
+		 *
+
+		 * @param body1 第一具尸体。
+		 * @param body2 第二具尸体。
 		 * @param x1 第一个锚点的 x 位置。
 		 * @param y1 第一个锚点的 y 位置。
 		 * @param x2 第二个锚点的 x 位置。
 		 * @param y2 第二个锚点的 y 位置。
-		 *
+		 * @param axisX 轴单位向量的 x 位置。
+		 * @param axisY 轴单位向量的 y 位置。
+		 * @param collideConnected 指定两个实体是否应该相互碰撞。 （默认值：假。）
 		 * @returns joint — 新的 WheelJoint。
 		 */
-		newWheelJoint(this: void, body1: Body, body2: Body, x: number, y: number, axisX: number, axisY: number, collideConnected?: boolean): WheelJoint;
 		newWheelJoint(this: void, body1: Body, body2: Body, x1: number, y1: number, x2: number, y2: number, axisX: number, axisY: number, collideConnected?: boolean): WheelJoint;
 		/**
 		 * 在身体和鼠标之间创建一个关节。

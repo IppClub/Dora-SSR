@@ -1,0 +1,585 @@
+# DataModule
+
+**描述：**
+
+&emsp;&emsp;提供创建和转换数据的功能。
+
+## newByteData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个包含任意字节的新数据对象。
+
+	-- Data:getPointer 与 LuaJIT 的 FFI 一起可用于在创建 ByteData 对象后对其内容进行操作。
+
+**签名：**
+```tl
+newByteData: function(size: integer): ByteData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| size | integer | 新数据对象的大小（以字节为单位）。 （默认值：data:getSize()。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ByteData | bytedata — 新的数据对象。 |
+
+## newByteData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个包含任意字节的新数据对象。
+
+	-- Data:getPointer 与 LuaJIT 的 FFI 一起可用于在创建 ByteData 对象后对其内容进行操作。
+
+**签名：**
+```tl
+newByteData: function(bytes: string): ByteData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| bytes | string | 新数据对象的大小（以字节为单位）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ByteData | bytedata — 新的数据对象。 |
+
+## newByteData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个包含任意字节的新数据对象。
+
+	-- Data:getPointer 与 LuaJIT 的 FFI 一起可用于在创建 ByteData 对象后对其内容进行操作。
+
+**签名：**
+```tl
+newByteData: function(data: Data, offset?: integer, size?: integer): ByteData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| data | Data | 要复制的现有数据对象。 |
+| offset | integer | 要复制的子节的偏移量（以字节为单位）。 （默认值：0。） |
+| size | integer | 新数据对象的大小（以字节为单位）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ByteData | bytedata — 新的数据对象。 |
+
+## newDataView
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建引用现有数据对象的一部分的新数据。
+重载说明：
+1. Data:getString 和 Data:getPointer 将返回原始数据对象的内容，并应用视图的偏移量和大小。
+
+**签名：**
+```tl
+newDataView: function(data: any, offset: integer, size: integer): DataView
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| data | any | 要引用的数据对象。 |
+| offset | integer | 要引用的子节的偏移量（以字节为单位）。 |
+| size | integer | 要引用的小节的大小（以字节为单位）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| DataView | 新的数据视图。 |
+
+## encode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将数据或字符串编码为采用一种编码格式的数据或字符串。
+
+**签名：**
+```tl
+encode: function(container: string, format: EncodeFormat, source: string | Data, line_length?: integer): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 返回编码数据的类型。 |
+| format | EncodeFormat | 输出数据的格式。 |
+| source | string | Data | 要编码的原始数据。 |
+| line_length | integer | 输出的最大行长度。仅支持 base64，如果为 0，则忽略。（默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | encoded — ByteData/string，其中包含源的编码版本。 |
+
+## encode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将数据或字符串编码为采用一种编码格式的数据或字符串。
+
+**签名：**
+```tl
+encode: function(container: string, format: EncodeFormat, source: string | Data, line_length?: integer): ByteData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 返回编码数据的类型。 |
+| format | EncodeFormat | 输出数据的格式。 |
+| source | string | Data | 要编码的原始数据。 |
+| line_length | integer | 输出的最大行长度。仅支持 base64，如果为 0，则忽略。（默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ByteData | encoded — ByteData/string，其中包含源的编码版本。 |
+
+## decode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将数据或字符串从任何 EncodeFormat 解码为数据或字符串。
+
+**签名：**
+```tl
+decode: function(container: string, format: EncodeFormat, source: string | Data): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 解码后的数据返回什么类型。 |
+| format | EncodeFormat | 输入数据的格式。 |
+| source | string | Data | 要解码的原始（编码）数据。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | decoded — ByteData/string，其中包含源的解码版本。 |
+
+## decode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将数据或字符串从任何 EncodeFormat 解码为数据或字符串。
+
+**签名：**
+```tl
+decode: function(container: string, format: EncodeFormat, source: string | Data): ByteData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 解码后的数据返回什么类型。 |
+| format | EncodeFormat | 输入数据的格式。 |
+| source | string | Data | 要解码的原始（编码）数据。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ByteData | decoded — ByteData/string，其中包含源的解码版本。 |
+
+## compress
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用特定的压缩算法压缩字符串或数据。
+
+**签名：**
+```tl
+compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 返回压缩数据的类型。 |
+| format | CompressionFormat | 压缩字符串时使用的格式。 |
+| source | string | Data | 要压缩的原始（未压缩）字符串。 |
+| level | integer | 要使用的压缩级别，介于 0 和 9 之间。-1 表示默认级别。该参数的含义取决于所使用的压缩格式。 （默认值：-1。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | compressedData — 压缩数据/字符串，其中包含原始字符串的压缩版本。 |
+
+## compress
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用特定的压缩算法压缩字符串或数据。
+
+**签名：**
+```tl
+compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 返回压缩数据的类型。 |
+| format | CompressionFormat | 压缩数据时使用的格式。 |
+| source | string | Data | 包含要压缩的原始（未压缩）数据的数据对象。 |
+| level | integer | 要使用的压缩级别，介于 0 和 9 之间。-1 表示默认级别。该参数的含义取决于所使用的压缩格式。 （默认值：-1。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| CompressedData | 压缩数据/字符串，其中包含数据的压缩版本。 |
+
+## decompress
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;解压缩 CompressedData 或先前压缩的字符串或数据对象。
+
+**签名：**
+```tl
+decompress: function(container: string, compressed: CompressedData): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 解压后的数据返回什么类型。 |
+| compressed | CompressedData | 要解压的压缩数据。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | decompressedData — 包含原始解压缩数据的数据/字符串。 |
+
+## decompress
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;解压缩 CompressedData 或先前压缩的字符串或数据对象。
+
+**签名：**
+```tl
+decompress: function(container: string, compressed: CompressedData): ByteData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 解压后的数据返回什么类型。 |
+| compressed | CompressedData | 要解压的压缩数据。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ByteData | decompressedData — 包含原始解压缩数据的数据/字符串。 |
+
+## decompress
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;解压缩 CompressedData 或先前压缩的字符串或数据对象。
+
+**签名：**
+```tl
+decompress: function(container: string, format: CompressionFormat, source: string | Data): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 解压后的数据返回什么类型。 |
+| format | CompressionFormat | 用于压缩给定数据的格式。 |
+| source | string | Data | 包含先前使用 love.data.compress. 压缩的数据的数据对象 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | decompressedData — 包含原始解压缩数据的数据/字符串。 |
+
+## decompress
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;解压缩 CompressedData 或先前压缩的字符串或数据对象。
+
+**签名：**
+```tl
+decompress: function(container: string, format: CompressionFormat, source: string | Data): ByteData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 解压后的数据返回什么类型。 |
+| format | CompressionFormat | 用于压缩给定数据的格式。 |
+| source | string | Data | 包含先前使用 love.data.compress. 压缩的数据的数据对象 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ByteData | decompressedData — 包含原始解压缩数据的数据/字符串。 |
+
+## pack
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;打包（序列化）简单的 Lua 值。
+
+	-- 该函数的行为与 Lua 5.3 的 string.pack 相同。
+
+**签名：**
+```tl
+pack: function(container: string, format: string, values: any...): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 返回编码数据的类型。 |
+| format | string | 决定如何打包值的字符串。遵循 Lua 5.3 的 string.pack 格式字符串的规则。 |
+| values | any... | 要序列化的第一个值（数字、布尔值或字符串）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | data — 包含序列化数据的数据/字符串。 |
+
+## pack
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;打包（序列化）简单的 Lua 值。
+
+	-- 该函数的行为与 Lua 5.3 的 string.pack 相同。
+
+**签名：**
+```tl
+pack: function(container: string, format: string, values: any...): ByteData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| container | string | 返回编码数据的类型。 |
+| format | string | 决定如何打包值的字符串。遵循 Lua 5.3 的 string.pack 格式字符串的规则。 |
+| values | any... | 要序列化的第一个值（数字、布尔值或字符串）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ByteData | data — 包含序列化数据的数据/字符串。 |
+
+## unpack
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将字节字符串或数据解包（反序列化）为简单的 Lua 值。
+
+	-- 该函数的行为与 Lua 5.3 的 string.unpack 相同。
+
+**签名：**
+```tl
+unpack: function(format: string, source: string, position?: integer): any...
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| format | string | 确定值如何打包的字符串。遵循 Lua 5.3 的 string.pack 格式字符串的规则。 |
+| source | string | 包含打包（序列化）数据的字符串。 |
+| position | integer | 从哪里开始读取字符串。负值可用于从字符串末尾读取相对值。 （默认值：1。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| any... | v1 — 解压的第一个值（数字、布尔值或字符串）。 |
+
+## unpack
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将字节字符串或数据解包（反序列化）为简单的 Lua 值。
+
+	-- 该函数的行为与 Lua 5.3 的 string.unpack 相同。
+
+**签名：**
+```tl
+unpack: function(format: string, source: Data, position?: integer): any...
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| format | string | 确定值如何打包的字符串。遵循 Lua 5.3 的 string.pack 格式字符串的规则。 |
+| source | Data | 包含打包（序列化）数据的数据对象。 |
+| position | integer | 从 1 开始的索引，指示从何处开始读取数据。负值可用于从数据对象末尾读取相对值。 （默认值：1。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| any... | v1 — 解压的第一个值（数字、布尔值或字符串）。 |
+
+## getPackedSize
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取与 love.data.pack 一起使用的给定格式将使用的大小（以字节为单位）。
+该函数的行为与 Lua 5.3 的 string.packsize 相同。
+重载说明：
+1. 格式字符串不能有可变长度选项's' 或'z'。
+
+**签名：**
+```tl
+getPackedSize: function(format: string): integer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| format | string | 确定如何打包值的字符串。遵循 Lua 5.3 的 string.pack 格式字符串的规则。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 打包数据将使用的大小（以字节为单位）。 |
+
+## hash
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用指定的哈希算法计算字符串的消息摘要。
+
+**签名：**
+```tl
+hash: function(hash_function: HashFunction, source: string): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| hash_function | HashFunction | 要使用的哈希算法。 |
+| source | string | 要散列的字符串。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | rawdigest — 原始消息摘要字符串。 |
+
+## hash
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用指定的哈希算法计算字符串的消息摘要。
+
+**签名：**
+```tl
+hash: function(hash_function: HashFunction, source: Data): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| hash_function | HashFunction | 要使用的哈希算法。 |
+| source | Data | 要散列的数据。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | rawdigest — 原始消息摘要字符串。 |

@@ -1,0 +1,192 @@
+# FontModule
+
+**描述：**
+
+&emsp;&emsp;允许您使用字体。
+
+## newImageRasterizer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的图像光栅化器。
+重载说明：
+1. 从图像数据创建一个ImageRasterizer。
+
+**签名：**
+```tl
+newImageRasterizer: function(image_data: ImageData, glyphs: string, extra_spacing?: integer, dpi_scale?: number): Rasterizer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| image_data | ImageData | 字体图像数据。 |
+| glyphs | string | 包含字体字形的字符串。 |
+| extra_spacing | integer | 字体额外间距。 （默认值：0。） |
+| dpi_scale | number | 字体 DPI 比例。 （默认值：1。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Rasterizer | 光栅器。 |
+
+## newBMFontRasterizer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 BMFont 光栅化器。
+
+**签名：**
+```tl
+newBMFontRasterizer: function(filename_or_file_data: string | FileData, images?: ImageData | string | FileData | {ImageData | string | FileData}, dpi_scale?: number): Rasterizer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename_or_file_data | string or FileData | 包含字体字形的可绘制图片的图像数据。取决于重载：包含字体字形的可绘制图片的文件的路径。 |
+| images | ImageData or string or FileData or \{ImageData or string or FileData} | ImageData 中的字形序列。 |
+| dpi_scale | number | DPI 比例。 （默认值：1。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Rasterizer | 光栅器。 |
+
+## newTrueTypeRasterizer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 TrueType 光栅化器。
+
+**签名：**
+```tl
+newTrueTypeRasterizer: function(size?: number, hinting?: string, dpi_scale?: number): Rasterizer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| size | number | 字体大小。 （默认值：12。） |
+| hinting | string | True Type 提示模式。 （默认：'normal'。） |
+| dpi_scale | number | 字体 DPI 比例。 （默认：love.window.getDPIScale()。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Rasterizer | rasterizer — 光栅器。 |
+
+## newTrueTypeRasterizer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 TrueType 光栅化器。
+
+**签名：**
+```tl
+newTrueTypeRasterizer: function(filename_or_data: string | Data, size?: number, hinting?: string, dpi_scale?: number): Rasterizer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename_or_data | string | Data | 包含字体的文件数据。 |
+| size | number | 字体大小。 （默认值：12。） |
+| hinting | string | True Type 提示模式。 （默认：'normal'。） |
+| dpi_scale | number | 字体 DPI 比例。 （默认：love.window.getDPIScale()。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Rasterizer | rasterizer — 光栅器。 |
+
+## newRasterizer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的光栅化器。
+
+**签名：**
+```tl
+newRasterizer: function(size?: number, hinting?: string, dpi_scale?: number): Rasterizer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| size | number | 字体大小。 （默认值：12。） |
+| hinting | string | True Type 提示模式。 （默认：'normal'。） |
+| dpi_scale | number | 字体 DPI 比例。 （默认值：love.window.getDPIScale()。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Rasterizer | rasterizer — 光栅器。 |
+
+## newRasterizer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的光栅化器。
+
+**签名：**
+```tl
+newRasterizer: function(filename_or_data: string | Data, size?: number, hinting?: string, dpi_scale?: number): Rasterizer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename_or_data | string | Data | 包含字体的文件数据。 |
+| size | number | 字体大小。 （默认值：12。） |
+| hinting | string | True Type 提示模式。 （默认：'normal'。） |
+| dpi_scale | number | DPI 比例。 （默认值：1。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Rasterizer | rasterizer — 光栅器。 |
+
+## newGlyphData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 GlyphData。
+
+**签名：**
+```tl
+newGlyphData: function(rasterizer: Rasterizer, glyph: string | integer): GlyphData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| rasterizer | Rasterizer | 包含字体的光栅化器。 |
+| glyph | string or integer | 字形的字符代码。 |

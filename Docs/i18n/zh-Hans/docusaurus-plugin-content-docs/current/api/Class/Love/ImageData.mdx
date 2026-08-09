@@ -1,0 +1,384 @@
+# ImageData
+
+**描述：**
+
+&emsp;&emsp;原始（解码）图像数据。
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: ImageData): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: ImageData): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: ImageData, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## getString
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的完整数据。
+
+**签名：**
+```tl
+getString: function(self: ImageData): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 原始数据。 |
+
+## getSize
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取数据的大小（以字节为单位）。
+
+**签名：**
+```tl
+getSize: function(self: ImageData): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 数据的大小（以字节为单位）。 |
+
+## getPointer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取指向数据的指针。可以与 LuaJIT 的 FFI 等库一起使用。
+
+**签名：**
+```tl
+getPointer: function(self: ImageData): any
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| any | 指向数据的原始指针。 |
+
+## getFFIPointer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取指向数据的 FFI 指针。
+这个函数应该是首选，而不是 Data:getPointer ，因为后者使用轻量用户数据，当使用 LuaJIT 时，它无法在一些新的 ARM64 架构上存储更多所有可能的内存地址。
+
+**签名：**
+```tl
+getFFIPointer: function(self: ImageData): nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| nil | 指向数据的原始 void* 指针，如果 FFI 不可用则为零。 |
+
+## clone
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建数据对象的新副本。
+
+**签名：**
+```tl
+clone: function(self: ImageData): ImageData
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ImageData | 新副本。 |
+
+## getWidth
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取 ImageData 的宽度（以像素为单位）。
+
+**签名：**
+```tl
+getWidth: function(self: ImageData): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | ImageData 的宽度（以像素为单位）。 |
+
+## getHeight
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取 ImageData 的高度（以像素为单位）。
+
+**签名：**
+```tl
+getHeight: function(self: ImageData): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | ImageData 的高度（以像素为单位）。 |
+
+## getDimensions
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取 ImageData 的宽度和高度（以像素为单位）。
+
+**签名：**
+```tl
+getDimensions: function(self: ImageData): integer, integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | ImageData 的宽度（以像素为单位）。 |
+| integer | ImageData 的高度（以像素为单位）。 |
+
+## getFormat
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取ImageData的像素格式。
+
+**签名：**
+```tl
+getFormat: function(self: ImageData): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 创建 ImageData 时使用的像素格式。 |
+
+## getPixel
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取图像中特定位置的像素的颜色。
+有效的 x 和 y 值从 0 开始，直到图像宽度和高度减 1。非整数值将被下限。
+在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+getPixel: function(self: ImageData, x: integer, y: integer): number, number, number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | integer | 像素在 x 轴上的位置。 |
+| y | integer | 像素在 y 轴上的位置。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 红色分量 (0-1)。 |
+| number | 绿色分量 (0-1)。 |
+| number | 蓝色分量 (0-1)。 |
+| number | alpha 分量 (0-1)。 |
+
+## setPixel
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置图像中特定位置的像素颜色。
+有效的 x 和 y 值从 0 开始，直到图像宽度和高度减 1。
+在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+setPixel: function(self: ImageData, x: integer, y: integer, red: number, green: number, blue: number, alpha?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | integer | 像素在 x 轴上的位置。 |
+| y | integer | 像素在 y 轴上的位置。 |
+| red | number | 红色分量 (0-1)。 |
+| green | number | 绿色分量 (0-1)。 |
+| blue | number | 蓝色分量 (0-1)。 |
+| alpha | number | alpha 分量 (0-1)。 |
+
+## mapPixel
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;通过对每个像素应用函数来变换图像。
+该函数是一个高阶函数。它采用另一个函数作为参数，并为 ImageData 中的每个像素调用一次。
+传递的函数被依次调用，每个像素有六个参数。这些参数是代表像素的 x 和 y 坐标及其红色、绿色、蓝色和 alpha 值的数字。该函数应返回该像素的新红色、绿色、蓝色和 alpha 值。
+函数pixelFunction(x,y,r,g,b,a)
+-- 用于定义您自己的像素映射函数的模板
+-- 执行计算，给出 r、g、b 和 a 的新值
+-- ...
+返回r，g，b，a
+结束
+在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+mapPixel: function(self: ImageData, mapper: function(x: integer, y: integer, red: number, green: number, blue: number, alpha: number): (number, number, number, number), x?: integer, y?: integer, width?: integer, height?: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mapper | function | 应用于每个像素的函数。 |
+| x | integer | ImageData 中要应用函数的区域左上角的 x 轴。 （默认值：0。） |
+| y | integer | ImageData 中要应用函数的区域左上角的 y 轴。 （默认值：0。） |
+| width | integer | ImageData 中应用函数的区域的宽度。 （默认：ImageData:getWidth()。） |
+| height | integer | ImageData 中要应用函数的区域的高度。 （默认：ImageData:getHeight()。） |
+
+## paste
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从另一个源 ImageData 粘贴到 ImageData 中。
+重载说明：
+1. 请注意，此函数只是替换目标矩形中的内容；它不进行任何 alpha 混合。
+
+**签名：**
+```tl
+paste: function(self: ImageData, source: ImageData, destination_x: integer, destination_y: integer, source_x?: integer, source_y?: integer, source_width?: integer, source_height?: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| source | ImageData | 要从中复制的源图像数据。 |
+| destination_x | integer | x 轴上的目标左上角位置。 |
+| destination_y | integer | y 轴上的目标左上角位置。 |
+| source_x | integer | x 轴上的源左上角位置。 |
+| source_y | integer | y 轴上的源左上角位置。 |
+| source_width | integer | 源宽度。 |
+| source_height | integer | 源高度。 |
+
+## encode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;对 ImageData 进行编码并可选择将其写入保存目录。
+
+**签名：**
+```tl
+encode: function(self: ImageData, format: string, filename?: string): FileData
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| format | string | 图像编码的格式。取决于重载：对图像进行编码的格式。 |
+| filename | string | 将文件写入的文件名。如果为 nil，则不会写入任何文件，但仍会返回 FileData。 （默认值：无。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| FileData | 作为新 FileData 对象的编码图像。 |

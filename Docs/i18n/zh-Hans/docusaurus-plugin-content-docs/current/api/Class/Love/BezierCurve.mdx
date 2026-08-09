@@ -1,0 +1,385 @@
+# BezierCurve
+
+**描述：**
+
+&emsp;&emsp;一个贝塞尔曲线对象，可以评估和渲染任意阶数的贝塞尔曲线。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: BezierCurve): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: BezierCurve, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: BezierCurve): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## getDegree
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取贝塞尔曲线的阶数。次数等于控制点数 - 1。
+
+**签名：**
+```tl
+getDegree: function(self: BezierCurve): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 贝塞尔曲线的阶数。 |
+
+## getDerivative
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取贝塞尔曲线的导数。
+该函数可用于旋转沿着曲线移动的精灵的运动方向，并在某个参数 t 处计算垂直于曲线的方向。
+
+**签名：**
+```tl
+getDerivative: function(self: BezierCurve): BezierCurve
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| BezierCurve | 导数曲线。 |
+
+## getControlPoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取第i个控制点的坐标。索引从 1 开始。
+
+**签名：**
+```tl
+getControlPoint: function(self: BezierCurve, index: integer): number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 控制点的索引。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 控制点沿 x 轴的位置。 |
+| number | 控制点沿 y 轴的位置。 |
+
+## setControlPoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置第i个控制点的坐标。索引从 1 开始。
+
+**签名：**
+```tl
+setControlPoint: function(self: BezierCurve, index: integer, x: number, y: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 控制点的索引。 |
+| x | number | 控制点沿 x 轴的位置。 |
+| y | number | 控制点沿 y 轴的位置。 |
+
+## insertControlPoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;插入控制点作为新的第 i 个控制点。从 i 开始的现有控制点向后推 1。索引从 1 开始。负索引环绕：-1 是最后一个控制点，-2 是最后一个控制点之前的控制点，等等。
+
+**签名：**
+```tl
+insertControlPoint: function(self: BezierCurve, x: number, y: number, index?: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 控制点沿 x 轴的位置。 |
+| y | number | 控制点沿 y 轴的位置。 |
+| index | integer | 控制点的索引。 （默认值：-1。） |
+
+## removeControlPoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;删除指定的控制点。
+
+**签名：**
+```tl
+removeControlPoint: function(self: BezierCurve, index: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 要删除的控制点的索引。 |
+
+## getControlPointCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取贝塞尔曲线中控制点的数量。
+
+**签名：**
+```tl
+getControlPointCount: function(self: BezierCurve): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 控制点数。 |
+
+## translate
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将贝塞尔曲线移动一个偏移量。
+
+**签名：**
+```tl
+translate: function(self: BezierCurve, x: number, y: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 沿 x 轴的偏移。 |
+| y | number | 沿 y 轴的偏移。 |
+
+## rotate
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将贝塞尔曲线旋转一个角度。
+
+**签名：**
+```tl
+rotate: function(self: BezierCurve, angle: number, origin_x?: number, origin_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| angle | number | 以弧度为单位的旋转角度。 |
+| origin_x | number | 旋转中心的X坐标。 （默认值：0。） |
+| origin_y | number | 旋转中心的Y坐标。 （默认值：0。） |
+
+## scale
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将贝塞尔曲线缩放一个因子。
+
+**签名：**
+```tl
+scale: function(self: BezierCurve, scale: number, origin_x?: number, origin_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| scale | number | 比例因子。 |
+| origin_x | number | 缩放中心的X坐标。 （默认值：0。） |
+| origin_y | number | 缩放中心的Y坐标。 （默认值：0。） |
+
+## evaluate
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在参数 t 处评估贝塞尔曲线。该参数必须介于 0 和 1 之间（包含 0 和 1）。
+此函数可用于沿路径或补间参数移动对象。但是，它不应该用于渲染曲线，为此目的请参阅 BezierCurve:render 。
+
+**签名：**
+```tl
+evaluate: function(self: BezierCurve, time: number): number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| time | number | 在哪里评估曲线。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 参数 t 处曲线的 x 坐标。 |
+| number | 参数 t 处曲线的 y 坐标。 |
+
+## getSegment
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取与此 BezierCurve 的指定段相对应的 BezierCurve。
+
+**签名：**
+```tl
+getSegment: function(self: BezierCurve, start: number, finish: number): BezierCurve
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| start | number | 沿曲线的起点。必须介于 0 和 1 之间。 |
+| finish | number | 段结束。必须介于 0 和 1 之间。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| BezierCurve | 与指定线段相对应的贝塞尔曲线。 |
+
+## render
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取要与love.graphics.line.
+该函数使用递归细分对贝塞尔曲线进行采样。您可以使用深度参数控制递归深度。
+如果您只是想知道给定参数的曲线上的位置，请使用 BezierCurve:evaluate。
+
+**签名：**
+```tl
+render: function(self: BezierCurve, accuracy?: integer): {number}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| accuracy | integer | 递归细分步骤数。 （默认值：5。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{number} | 曲线上 x,y 坐标点对的列表。 |
+
+## renderSegment
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取曲线特定部分的坐标列表，与 love.graphics.line.
+该函数使用递归细分对贝塞尔曲线进行采样。您可以使用深度参数控制递归深度。
+如果您只需要知道给定参数的曲线上的位置，请使用BezierCurve:evaluate。
+
+**签名：**
+```tl
+renderSegment: function(self: BezierCurve, start: number, finish: number, accuracy?: integer): {number}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| start | number | 沿曲线的起点。必须介于 0 和 1 之间。 |
+| finish | number | 要渲染的段的结尾。必须介于 0 和 1 之间。 |
+| accuracy | integer | 递归细分步骤数。 （默认值：5。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{number} | 曲线指定部分上的点的 x,y 坐标对列表。 |

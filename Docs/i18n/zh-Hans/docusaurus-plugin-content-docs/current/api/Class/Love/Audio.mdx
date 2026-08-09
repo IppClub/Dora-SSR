@@ -1,0 +1,696 @@
+# Audio
+
+**描述：**
+
+&emsp;&emsp;提供一个用用户扬声器产生噪音的接口。
+
+## newSource
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从文件路径、文件、解码器或声音数据创建新的源。
+
+	-- 从 SoundData 创建的源始终是静态的。
+
+**签名：**
+```tl
+newSource: function(filename: string, source_type?: string): Source
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 音频文件的文件路径。 |
+| source_type | string | 流式或静态源。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Source | source — 可以播放指定音频的新源。 |
+
+## newSource
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从文件路径、文件、解码器或声音数据创建新的源。
+
+	-- 从 SoundData 创建的源始终是静态的。
+
+**签名：**
+```tl
+newSource: function(data: SoundData): Source
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| data | SoundData | 要从中创建源的 SoundData。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Source | 可以播放指定音频的新源。返回音频的SourceType是'static'。 |
+
+## newQueueableSource
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的源，可用于使用 Source:queue 实时生成的声音播放。
+重载说明：
+1. 与 Source:queue 一起使用的任何 SoundData 的采样率、位深度和通道数必须与提供给此构造函数的参数相匹配。
+
+**签名：**
+```tl
+newQueueableSource: function(sample_rate: integer, bit_depth: integer, channels: integer, buffers?: integer): Source
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| sample_rate | integer | 播放时每秒的采样数。 |
+| bit_depth | integer | 每个样本的位数（8 或 16）。 |
+| channels | integer | 1 用于单声道或 2 用于立体声。 |
+| buffers | integer | 在任何给定时间可以使用 Source:queue 排队的缓冲区数量。不能大于 64。如果未指定值，则选择合理的默认值 (~8)。 （默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Source | 可与 Source:queue 一起使用的新源。 |
+
+## play
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;同时播放表中包含的所有源。
+
+**签名：**
+```tl
+play: function(sources: {Source}): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| sources | \{Source} | 包含要播放的源的表。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 是否成功开始播放所有指定的源。 |
+
+## play
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;同时播放所有传入的源。
+
+**签名：**
+```tl
+play: function(sources: Source...): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| sources | Source... | 要播放的源。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 是否成功开始播放所有指定的源。 |
+
+## pause
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;暂停所有当前活动的源并返回它们。
+
+**签名：**
+```tl
+pause: function(): {Source}
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{Source} | Sources — 包含由此调用暂停的源列表的表。 |
+
+## pause
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;暂停表中包含的所有源。
+
+**签名：**
+```tl
+pause: function(sources: {Source})
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| sources | \{Source} | 包含要暂停的源的表。 |
+
+## pause
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;暂停所有传入的源。
+
+**签名：**
+```tl
+pause: function(sources: Source...)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| sources | Source... | 要暂停的源。 |
+
+## stop
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;停止所有当前活动的源。
+
+**签名：**
+```tl
+stop: function()
+```
+
+## stop
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;停止表中包含的所有源。
+
+**签名：**
+```tl
+stop: function(sources: {Source})
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| sources | \{Source} | 包含要停止的源的表。 |
+
+## stop
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;同时停止所有传入的源。
+
+**签名：**
+```tl
+stop: function(sources: Source...)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| sources | Source... | 要停止的源。 |
+
+## getActiveSourceCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前同时播放的音源数量。
+
+**签名：**
+```tl
+getActiveSourceCount: function(): integer
+	getSourceCount: function(): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 当前同时播放的音源数量。 |
+
+## setVolume
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置主音量。
+
+**签名：**
+```tl
+setVolume: function(volume: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| volume | number | 1.0 为最大值，0.0 为关闭。 |
+
+## getVolume
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回主卷。
+
+**签名：**
+```tl
+getVolume: function(): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 当前主卷 |
+
+## setMixWithSystem
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置系统是否应将音频与系统的音频混合。
+
+**签名：**
+```tl
+setMixWithSystem: function(mix: boolean): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mix | boolean | true 启用混合， false 禁用它。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果更改成功则为 true，否则为 false。 |
+
+## setPosition
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置听者的位置，这决定了声音的播放方式。
+
+**签名：**
+```tl
+setPosition: function(x: number, y: number, z?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 听者的 x 位置。 |
+| y | number | 听者的 y 位置。 |
+| z | number | 听者的 z 位置。 |
+
+## getPosition
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回听者的位置。请注意，位置音频仅适用于单声道（即非立体声）源。
+
+**签名：**
+```tl
+getPosition: function(): number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 听者的 X 位置。 |
+| number | 听者的 Y 位置。 |
+| number | 听者的 Z 位置。 |
+
+## setOrientation
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置听者的方向。
+
+**签名：**
+```tl
+setOrientation: function(forward_x: number, forward_y: number, forward_z: number,
+		up_x: number, up_y: number, up_z: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| forward_x | number | forward_x 参数。 |
+| forward_y | number | forward_y 参数。 |
+| forward_z | number | forward_z 参数。 |
+| up_x | number | up_x 参数。 |
+| up_y | number | up_y 参数。 |
+| up_z | number | up_z 参数。 |
+
+## getOrientation
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回听者的方向。
+
+**签名：**
+```tl
+getOrientation: function(): number, number, number, number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 收听者方向的前向 x。 |
+| number | 向前 y 收听者方向。 |
+| number | 收听者方向的正向 z。 |
+| number | 听者方向的向上 x。 |
+| number | 听者方向的向上 y。 |
+| number | 听者方向的 z 上方向。 |
+
+## setVelocity
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置听者的速度。
+
+**签名：**
+```tl
+setVelocity: function(x: number, y: number, z?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 听者的 X 速度。 |
+| y | number | 听者的 Y 速度。 |
+| z | number | 听者的 Z 速度。 |
+
+## getVelocity
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回听者的速度。
+
+**签名：**
+```tl
+getVelocity: function(): number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 听者的 X 速度。 |
+| number | 听者的 Y 速度。 |
+| number | 听者的 Z 速度。 |
+
+## setDopplerScale
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;为基于速度的多普勒效应设置全局比例因子。默认比例值为 1。
+
+**签名：**
+```tl
+setDopplerScale: function(scale: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| scale | number | 新的多普勒比例因子。小数位数必须大于 0。 |
+
+## getDopplerScale
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取基于速度的多普勒效应的当前全局比例因子。
+
+**签名：**
+```tl
+getDopplerScale: function(): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 当前的多普勒比例因子。 |
+
+## setDistanceModel
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置距离衰减模型。
+
+**签名：**
+```tl
+setDistanceModel: function(model: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| model | string | 新的距离模型。 |
+
+## getDistanceModel
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回距离衰减模型。
+
+**签名：**
+```tl
+getDistanceModel: function(): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 当前距离模型。默认值为 'inverseclamped'。 |
+
+## setEffect
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;定义可以应用于源的效果。
+并非所有系统都支持音频效果。使用love.audio.isEffectsSupported进行检查。
+
+**签名：**
+```tl
+setEffect: function(name: string, settings?: AudioEffectSettings | boolean): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 效果的名称。 |
+| settings | AudioEffectSettings or boolean | 用于此效果的设置，具有以下字段： type: 要使用的效果类型。 volume: 效果的音量。 ...: 特定于效果的设置。请参阅 EffectType 了解可用效果及其相应的设置。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 效果是否创建成功。取决于过载：效果是否成功禁用。 |
+
+## getEffect
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取与效果关联的设置。
+
+**签名：**
+```tl
+getEffect: function(name: string, target?: AudioEffectSettings): AudioEffectSettings | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 效果的名称。 |
+| target | AudioEffectSettings | target 参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| AudioEffectSettings or nil | 与效果相关的设置。 |
+
+## getActiveEffects
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前启用的效果的名称列表。
+
+**签名：**
+```tl
+getActiveEffects: function(): {string}
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{string} | 当前启用的效果名称列表。 |
+
+## getMaxSceneEffects
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取系统支持的最大活动效果数。
+
+**签名：**
+```tl
+getMaxSceneEffects: function(): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 活动效果的最大数量。 |
+
+## getMaxSourceEffects
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取系统可以支持的单个源对象中活动效果的最大数量。
+重载说明：
+1. 对于不支持音效的系统，该函数返回0。
+
+**签名：**
+```tl
+getMaxSourceEffects: function(): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 每个源的活动效果的最大数量。 |
+
+## getRecordingDevices
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取系统上的 RecordingDevices 列表。
+列表中的第一个设备是用户的默认录音设备。如果没有麦克风连接到系统，则该列表可能为空。
+iOS 目前不支持录音。
+重载说明：
+1. Android从11.3开始支持录音。但是，使用 Play Store 中的 APK 时不支持。
+
+**签名：**
+```tl
+getRecordingDevices: function(): {RecordingDevice}
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{RecordingDevice} | 连接的录音设备列表。 |
+
+## isEffectsSupported
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取系统是否支持音效。
+重载说明：
+1. 附带旧版 OpenAL 库的旧版 Linux 发行版可能不支持音频效果。此外，iOS根本不支持音频效果。
+
+**签名：**
+```tl
+isEffectsSupported: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果支持效果则为 true，否则为 false。 |

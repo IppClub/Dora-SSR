@@ -1,0 +1,1253 @@
+# Body
+
+**描述：**
+
+&emsp;&emsp;物体是具有速度和位置的物体。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: Body): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: Body, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: Body): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## destroy
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;显式地破坏身体以及附着在其上的所有固定装置和关节。
+如果您在调用此函数后尝试使用该对象，将会发生错误。在0.7.2中，当你没有时间等待垃圾回收时，可以使用此函数立即释放对象。
+
+**签名：**
+```tl
+destroy: function(self: Body)
+```
+
+## isDestroyed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取Body是否被破坏。被毁坏的尸体无法使用。
+
+**签名：**
+```tl
+isDestroyed: function(self: Body): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 本体是否被破坏。 |
+
+## getPosition
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取身体的位置。
+请注意，这可能不是身体的质心。
+
+**签名：**
+```tl
+getPosition: function(self: Body): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | x 位置。 |
+| number | y 位置。 |
+
+## setPosition
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置主体的位置。
+请注意，这可能不是身体的质心。
+该功能无法唤醒本体。
+
+**签名：**
+```tl
+setPosition: function(self: Body, x: number, y: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | x 位置。 |
+| y | number | y 位置。 |
+
+## getX
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取身体在世界坐标中的 x 位置。
+
+**签名：**
+```tl
+getX: function(self: Body): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 世界坐标中的 x 位置。 |
+
+## setX
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置主体的 x 位置。
+该功能无法唤醒本体。
+
+**签名：**
+```tl
+setX: function(self: Body, x: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | x 位置。 |
+
+## getY
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取身体在世界坐标中的 y 位置。
+
+**签名：**
+```tl
+getY: function(self: Body): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 世界坐标中的 y 位置。 |
+
+## setY
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置主体的 y 位置。
+该功能无法唤醒本体。
+
+**签名：**
+```tl
+setY: function(self: Body, y: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| y | number | y 位置。 |
+
+## getTransform
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取身体的位置和角度。
+请注意，该位置可能不是身体的质心。 0 弧度的角度意味着 'looking to the right'。尽管弧度逆时针增加，但 y 轴指向下方，因此从我们的角度来看它变成顺时针。
+
+**签名：**
+```tl
+getTransform: function(self: Body): number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 位置的 x 分量。 |
+| number | 位置的 y 分量。 |
+| number | 以弧度表示的角度。 |
+
+## setTransform
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置主体的位置和角度。
+请注意，该位置可能不是身体的质心。 0 弧度的角度意味着 'looking to the right'。尽管弧度逆时针增加，但 y 轴指向下方，因此从我们的角度来看它变成顺时针。
+该功能无法唤醒本体。
+
+**签名：**
+```tl
+setTransform: function(self: Body, x: number, y: number, angle: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 位置的 x 分量。 |
+| y | number | 位置的 y 分量。 |
+| angle | number | 以弧度表示的角度。 |
+
+## getAngle
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取身体的角度。
+角度以弧度为单位测量。如果需要将其转换为度数，请使用 math.deg。
+0 弧度值表示 'looking to the right'。尽管弧度逆时针增加，但 y 轴指向下方，因此从我们的角度来看它变成了“'clockwise'”。
+
+**签名：**
+```tl
+getAngle: function(self: Body): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 以弧度表示的角度。 |
+
+## setAngle
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置主体的角度。
+角度以弧度为单位测量。如果您需要将其从度数转换，请使用 math.rad。
+0 弧度值表示 'looking to the right'。尽管弧度逆时针增加，但 y 轴指向下方，因此从我们的角度来看它变成了“'clockwise'”。
+通过改变角度有可能与另一个物体发生碰撞。
+
+**签名：**
+```tl
+setAngle: function(self: Body, angle: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| angle | number | 以弧度表示的角度。 |
+
+## getLinearVelocity
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取 Body 从其质心开始的线速度。
+线速度是“'rate of change of position over time'”。
+如果您需要“'rate of change of angle over time'”，请使用Body:getAngularVelocity。
+如果需要获取与质心不同的点的线速度：
+* Body:getLinearVelocityFromLocalPoint 允许您指定本地坐标中的点。
+* Body:getLinearVelocityFromWorldPoint 允许您指定世界坐标中的点。
+请参阅 'Essential Mathematics for Games and Interactive Applications' 第 136 页了解本地坐标和世界坐标的定义。
+
+**签名：**
+```tl
+getLinearVelocity: function(self: Body): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 速度矢量的 x 分量 |
+| number | 速度矢量的 y 分量 |
+
+## setLinearVelocity
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;为主体设置新的线速度。
+该函数不会累积任何东西；自上次调用 World:update 以来先前应用的任何脉冲都将丢失。
+
+**签名：**
+```tl
+setLinearVelocity: function(self: Body, x: number, y: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 速度矢量的 x 分量。 |
+| y | number | 速度矢量的 y 分量。 |
+
+## getAngularVelocity
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取Body的角速度。
+角速度是“'rate of change of angle over time'”。
+通过施加扭矩、偏心力/脉冲和角阻尼在 World:update 中进行更改。可以直接用Body:setAngularVelocity设置。
+如果您需要“'rate of change of position over time'”，请使用Body:getLinearVelocity。
+
+**签名：**
+```tl
+getAngularVelocity: function(self: Body): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 以弧度/秒为单位的角速度。 |
+
+## setAngularVelocity
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置物体的角速度。
+角速度是“'rate of change of angle over time'”。
+该函数不会累积任何东西；自上次调用 World:update 以来先前应用的任何脉冲都将丢失。
+
+**签名：**
+```tl
+setAngularVelocity: function(self: Body, velocity: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| velocity | number | 新的角速度，以弧度每秒为单位 |
+
+## getLinearDamping
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取Body的线性阻尼。
+线性阻尼是“'rate of decrease of the linear velocity over time'”。没有阻尼且没有外力的运动物体将无限期地继续运动，就像在太空中的情况一样。具有阻尼的运动体会逐渐停止运动。
+阻尼与摩擦不同 - 它们可以一起建模。
+
+**签名：**
+```tl
+getLinearDamping: function(self: Body): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 线性阻尼值。 |
+
+## setLinearDamping
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置主体的线性阻尼
+有关线性阻尼的定义，请参阅Body:getLinearDamping。
+线性阻尼可以取从 0 到无穷大的任何值。不过，建议保持在 0 到 0.1 之间。其他值将使对象看起来 'floaty'（如果启用重力）。
+
+**签名：**
+```tl
+setLinearDamping: function(self: Body, damping: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| damping | number | 新的线性阻尼 |
+
+## getAngularDamping
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取Body的角阻尼
+角度阻尼是“'rate of decrease of the angular velocity over time'”：没有阻尼且没有外力的旋转体将无限期地继续旋转。具有阻尼的旋转体将逐渐停止旋转。
+阻尼与摩擦不同 - 它们可以一起建模。然而，Box2D（和 LOVE）仅提供阻尼。
+阻尼参数应介于 0 和无穷大之间，0 表示无阻尼，无穷大表示完全阻尼。通常您将使用 0 到 0.1 之间的阻尼值。
+
+**签名：**
+```tl
+getAngularDamping: function(self: Body): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 角度阻尼值。 |
+
+## setAngularDamping
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置主体的角度阻尼
+有关角度阻尼的定义，请参阅Body:getAngularDamping。
+角度阻尼可以取从 0 到无穷大的任何值。不过，建议保持在 0 到 0.1 之间。其他值看起来不切实际。
+
+**签名：**
+```tl
+setAngularDamping: function(self: Body, damping: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| damping | number | 新的角度阻尼。 |
+
+## getMass
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取物体的质量。
+静态物体的质量始终为 0。
+
+**签名：**
+```tl
+getMass: function(self: Body): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 身体的质量（以千克为单位）。 |
+
+## setMass
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置新的体重。
+
+**签名：**
+```tl
+setMass: function(self: Body, mass: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mass | number | 质量，以千克为单位。 |
+
+## getInertia
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取物体的转动惯量。
+转动惯量是指使身体旋转的难度。
+
+**签名：**
+```tl
+getInertia: function(self: Body): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 身体的旋转惯性。 |
+
+## setInertia
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置物体的惯性。
+
+**签名：**
+```tl
+setInertia: function(self: Body, inertia: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| inertia | number | 新的转动惯量，单位为千克 * 像素平方。 |
+
+## getMassData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回质量、中心和转动惯量。
+
+**签名：**
+```tl
+getMassData: function(self: Body): number, number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 质心的 x 位置。 |
+| number | 质心的 y 位置。 |
+| number | 身体的质量。 |
+| number | 转动惯量。 |
+
+## setMassData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;覆盖计算的质量数据。
+
+**签名：**
+```tl
+setMassData: function(self: Body, center_x: number, center_y: number, mass: number, inertia: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| center_x | number | 质心的 x 位置。 |
+| center_y | number | 质心的 y 位置。 |
+| mass | number | 身体的质量。 |
+| inertia | number | 转动惯量。 |
+
+## resetMassData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;通过根据夹具的质量属性重新计算来重置主体的质量。
+
+**签名：**
+```tl
+resetMassData: function(self: Body)
+```
+
+## getGravityScale
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回重力比例因子。
+
+**签名：**
+```tl
+getGravityScale: function(self: Body): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 重力比例因子。 |
+
+## setGravityScale
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;为主体设置新的重力比例因子。
+
+**签名：**
+```tl
+setGravityScale: function(self: Body, scale: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| scale | number | 新的重力比例因子。 |
+
+## getLocalCenter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取本地坐标中的质心位置。
+使用 Body:getWorldCenter 获取世界坐标中的质心。
+
+**签名：**
+```tl
+getLocalCenter: function(self: Body): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 质心的 x 坐标。 |
+| number | 质心的 y 坐标。 |
+
+## getWorldCenter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取世界坐标中的质心位置。
+使用 Body:getLocalCenter 获取局部坐标中的质心。
+
+**签名：**
+```tl
+getWorldCenter: function(self: Body): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 质心的 x 坐标。 |
+| number | 质心的 y 坐标。 |
+
+## isFixedRotation
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回主体旋转是否被锁定。
+
+**签名：**
+```tl
+isFixedRotation: function(self: Body): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果身体的旋转被锁定则为 True，否则为 false。 |
+
+## setFixedRotation
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置物体是否有固定旋转。
+具有固定旋转的物体不会改变它们旋转的速度。调用此函数会导致质量重置。
+
+**签名：**
+```tl
+setFixedRotation: function(self: Body, fixed: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| fixed | boolean | 身体是否应该有固定的旋转。 |
+
+## isAwake
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回主体的睡眠状态。
+
+**签名：**
+```tl
+isAwake: function(self: Body): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果身体清醒则为真，否则为假。 |
+
+## setAwake
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;唤醒身体或使其进入睡眠状态。
+
+**签名：**
+```tl
+setAwake: function(self: Body, awake: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| awake | boolean | 身体睡眠状态。 |
+
+## isSleepingAllowed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回主体的睡眠行为。
+
+**签名：**
+```tl
+isSleepingAllowed: function(self: Body): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果允许身体睡眠则为 true，否则为 false。 |
+
+## setSleepingAllowed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置身体的睡眠行为。如果允许睡觉，休息的身体就会自动睡觉。除非与清醒的身体发生碰撞，否则不会模拟睡眠的身体。请注意，如果地板被拆除，人们最终可能会遇到像漂浮的睡着的身体这样的情况。
+
+**签名：**
+```tl
+setSleepingAllowed: function(self: Body, allowed: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| allowed | boolean | 如果允许身体睡眠则为 true，否则为 false。 |
+
+## isActive
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回模拟中是否主动使用主体。
+
+**签名：**
+```tl
+isActive: function(self: Body): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果主体处于活动状态，则为 True，否则为 false。 |
+
+## setActive
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置物体在世界中是否活跃。
+不活跃的物体不参与模拟。它不会移动或造成任何碰撞。
+
+**签名：**
+```tl
+setActive: function(self: Body, active: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| active | boolean | 身体是否活跃。 |
+
+## isBullet
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取主体的子弹状态。
+有两种方法来检查身体碰撞：
+* 世界更新时的位置（默认）
+* 使用连续碰撞检测 (CCD)
+默认方法很有效，但是移动速度非常快的物体有时可能会跳过另一个物体而不会产生碰撞。被设置为子弹的物体将使用 CCD。这样效率较低，但保证快速移动时不会跳跃。
+请注意，静态物体（质量为零）始终使用 CCD，因此您的墙壁不会让快速移动的物体穿过，即使它不是子弹。
+
+**签名：**
+```tl
+isBullet: function(self: Body): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 主体的子弹状态。 |
+
+## setBullet
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置正文的项目符号状态。
+有两种方法来检查身体碰撞：
+* 世界更新时的位置（默认）
+* 使用连续碰撞检测 (CCD)
+默认方法很有效，但是移动速度非常快的物体有时可能会跳过另一个物体而不会产生碰撞。被设置为子弹的物体将使用 CCD。这样效率较低，但保证快速移动时不会跳跃。
+请注意，静态物体（质量为零）始终使用 CCD，因此您的墙壁不会让快速移动的物体穿过，即使它不是子弹。
+
+**签名：**
+```tl
+setBullet: function(self: Body, bullet: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| bullet | boolean | 主体的子弹状态。 |
+
+## applyLinearImpulse
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;对身体施加脉冲。
+这使得身体动量瞬间增加。
+冲动将身体推向一个方向。质量较大的物体反应较小。反应“'not'”取决于时间步长，相当于连续施加一个力 1 秒。脉冲最好用于对身体进行一次推力。对于连续推动身体，最好使用 Body:applyForce。
+如果没有给出施加脉冲的位置，它将作用于身体的质心。未指向质心的部分脉冲将导致身体旋转（并且取决于旋转惯性）。
+请注意，脉冲分量和位置必须在世界坐标中给出。
+
+**签名：**
+```tl
+applyLinearImpulse: function(self: Body, x_impulse: number, y_impulse: number, point_x?: number, point_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x_impulse | number | 脉冲的 x 分量。 |
+| y_impulse | number | 脉冲的 y 分量。 |
+| point_x | number | 应用脉冲的 x 位置。 |
+| point_y | number | 施加脉冲的 y 位置。 |
+
+## applyAngularImpulse
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;对物体施加角冲量。这使得身体动量瞬间增加。
+质量越大的物体反应越小。反应“'not'”取决于时间步长，相当于连续施加一个力 1 秒。脉冲最好用于对身体进行一次推力。对于连续推动身体，最好使用 Body:applyForce。
+
+**签名：**
+```tl
+applyAngularImpulse: function(self: Body, impulse: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| impulse | number | 每秒千克平方米的脉冲。 |
+
+## applyForce
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;对身体施加力。
+力将物体推向一个方向。质量较大的物体反应较小。该反应还取决于施加力的时间长短：由于力在整个时间步长内连续作用，因此短时间步长只会推动身体很短的时间。因此，力最好在多个时间步中使用，以持续推动物体（如重力）。对于与时间步无关的单次推送，最好使用
+Body:applyLinearImpulse。
+如果没有给出施加力的位置，它将作用在身体的质心上。不指向质心的部分力将导致身体旋转（并且取决于旋转惯性）。
+请注意，力的分量和位置必须在世界坐标中给出。
+
+**签名：**
+```tl
+applyForce: function(self: Body, x_force: number, y_force: number, point_x?: number, point_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x_force | number | 要施加的力的 x 分量。 |
+| y_force | number | 要施加的力的 y 分量。 |
+| point_x | number | 施加力的 x 位置。 |
+| point_y | number | 施加力的 y 位置。 |
+
+## applyTorque
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;对主体施加扭矩。
+扭矩就像一种会改变物体角速度（旋转）的力。效果取决于物体的转动惯量。
+
+**签名：**
+```tl
+applyTorque: function(self: Body, torque: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| torque | number | 要施加的扭矩。 |
+
+## getType
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回主体的类型。
+
+**签名：**
+```tl
+getType: function(self: Body): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 体型。 |
+
+## setType
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置新的身体类型。
+
+**签名：**
+```tl
+setType: function(self: Body, body_type: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| body_type | string | 新类型。 |
+
+## getWorldPoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将点从本地坐标转换为世界坐标。
+
+**签名：**
+```tl
+getWorldPoint: function(self: Body, x: number, y: number): number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 本地坐标中的 x 位置。 |
+| y | number | 本地坐标中的 y 位置。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 世界坐标中的 x 位置。 |
+| number | 世界坐标中的 y 位置。 |
+
+## getWorldVector
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将向量从本地坐标转换为世界坐标。
+
+**签名：**
+```tl
+getWorldVector: function(self: Body, x: number, y: number): number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 局部坐标中的向量 x 分量。 |
+| y | number | 局部坐标中的向量 y 分量。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 世界坐标中的向量 x 分量。 |
+| number | 世界坐标中的向量 y 分量。 |
+
+## getWorldPoints
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将多个点从本地坐标转换为世界坐标。
+
+**签名：**
+```tl
+getWorldPoints: function(self: Body, x: number, y: number, coordinates: number...): number...
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 第一个点的 x 位置。 |
+| y | number | 第一个点的 y 位置。 |
+| coordinates | number... | 第二个点的 x 位置。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number... | 第一个点的变换后的 x 位置。 |
+
+## getLocalPoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将点从世界坐标转换为本地坐标。
+
+**签名：**
+```tl
+getLocalPoint: function(self: Body, x: number, y: number): number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 世界坐标中的 x 位置。 |
+| y | number | 世界坐标中的 y 位置。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 本地坐标中的 x 位置。 |
+| number | 本地坐标中的 y 位置。 |
+
+## getLocalVector
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将向量从世界坐标转换为局部坐标。
+
+**签名：**
+```tl
+getLocalVector: function(self: Body, x: number, y: number): number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 世界坐标中的向量 x 分量。 |
+| y | number | 世界坐标中的向量 y 分量。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 局部坐标中的向量 x 分量。 |
+| number | 局部坐标中的向量 y 分量。 |
+
+## getLocalPoints
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将多个点从世界坐标转换为本地坐标。
+
+**签名：**
+```tl
+getLocalPoints: function(self: Body, x: number, y: number, coordinates: number...): number...
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | （参数）第一个点的 x 位置。 |
+| y | number | （参数）第一个点的 y 位置。 |
+| coordinates | number... | （参数）第二个点的 x 位置。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number... | （结果）第一个点的变换后的 x 位置。 |
+
+## getLinearVelocityFromWorldPoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取物体上一点的线速度。
+身体上一点的线速度是身体质心的速度加上该点处身体旋转的速度。
+身体上的点必须以世界坐标给出。使用 Body:getLinearVelocityFromLocalPoint 来指定本地坐标。
+
+**签名：**
+```tl
+getLinearVelocityFromWorldPoint: function(self: Body, x: number, y: number): number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 测量速度的 x 位置。 |
+| y | number | 测量速度的 y 位置。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | (x,y) 点速度的 x 分量。 |
+| number | (x,y) 点速度的 y 分量。 |
+
+## getLinearVelocityFromLocalPoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取物体上一点的线速度。
+身体上一点的线速度是身体质心的速度加上该点处身体旋转的速度。
+物体上的点必须以本地坐标给出。使用 Body:getLinearVelocityFromWorldPoint 来指定世界坐标。
+
+**签名：**
+```tl
+getLinearVelocityFromLocalPoint: function(self: Body, x: number, y: number): number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 测量速度的 x 位置。 |
+| y | number | 测量速度的 y 位置。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | (x,y) 点速度的 x 分量。 |
+| number | (x,y) 点速度的 y 分量。 |

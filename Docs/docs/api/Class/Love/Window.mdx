@@ -1,0 +1,789 @@
+# Window
+
+**Description:**
+
+&emsp;&emsp;Provides an interface for modifying and retrieving information about the program's window.
+
+## getDesktopDimensions
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the width and height of the desktop.
+
+**Signature:**
+```tl
+getDesktopDimensions: function(display?: integer): integer, integer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| display | integer | The index of the display, if multiple monitors are available. (Default: 1.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The width of the desktop. |
+| integer | The height of the desktop. |
+
+## getDisplayCount
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the number of connected monitors.
+
+**Signature:**
+```tl
+getDisplayCount: function(): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The number of currently connected displays. |
+
+## getDisplayName
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the name of a display.
+
+**Signature:**
+```tl
+getDisplayName: function(display: integer): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| display | integer | The index of the display to get the name of. (Default: 1.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The name of the specified display. |
+
+## getDisplayOrientation
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets current device display orientation.
+
+**Signature:**
+```tl
+getDisplayOrientation: function(display?: integer): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| display | integer | Display index to get its display orientation, or nil for default display index. (Default: nil.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | Current device display orientation. |
+
+## getFullscreenModes
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets a list of supported fullscreen modes.
+
+**Signature:**
+```tl
+getFullscreenModes: function(display?: integer): {WindowSize}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| display | integer | The index of the display, if multiple monitors are available. (Default: 1.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{WindowSize} | A table of width/height pairs. (Note that this may not be in order.) |
+
+## setFullscreen
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Enters or exits fullscreen. The display to use when entering fullscreen is chosen based on which display the
+window is currently in, if multiple monitors are connected.
+Overload details:
+1. If fullscreen mode is entered and the window size doesn't match one of the monitor's display modes (in normal
+fullscreen mode) or the window size doesn't match the desktop size (in 'desktop' fullscreen mode), the window
+will be resized appropriately. The window will revert back to its original size again when fullscreen mode is
+exited using this function.
+
+**Signature:**
+```tl
+setFullscreen: function(fullscreen: boolean, fullscreen_type?: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| fullscreen | boolean | Whether to enter or exit fullscreen mode. |
+| fullscreen_type | string | The type of fullscreen mode to use. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if an attempt to enter fullscreen was successful, false otherwise. |
+
+## getFullscreen
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether the window is fullscreen.
+
+**Signature:**
+```tl
+getFullscreen: function(): boolean, string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the window is fullscreen, false otherwise. |
+| string | The type of fullscreen mode used. |
+
+## isOpen
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks if the window is open.
+
+**Signature:**
+```tl
+isOpen: function(): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the window is open, false otherwise. |
+
+## getIcon
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the window icon.
+
+**Signature:**
+```tl
+getIcon: function(): any
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| any | The window icon imagedata, or nil if no icon has been set with love.window.setIcon. |
+
+## setIcon
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the window icon from ImageData.
+Embedded LoveNode surfaces accept this request without changing the Dora host application's icon.
+
+**Signature:**
+```tl
+setIcon: function(imagedata: any): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| imagedata | any | The window icon image data. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True when the icon request was accepted. |
+
+## getMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the display mode and properties of the window.
+
+**Signature:**
+```tl
+getMode: function(): integer, integer, WindowMode
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | Window width. |
+| integer | Window height. |
+| WindowMode | Table with the window properties: |
+
+## setMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the display mode and properties of the window.
+If width or height is 0, setMode will use the width and height of the desktop.
+Changing the display mode may have side effects: for example, canvases will be cleared and values sent to shaders
+with canvases beforehand or re-draw to them afterward if you need to.
+Overload details:
+1. * If fullscreen is enabled and the width or height is not supported (see resize event will be triggered. * If
+the fullscreen type is 'desktop', then the window will be automatically resized to the desktop resolution. *
+If the width and height is bigger than or equal to the desktop dimensions (this includes setting both to 0)
+and fullscreen is set to false, it will appear 'visually' fullscreen, but it's not true fullscreen and
+conf.lua (i.e. t.window = false) and use this function to manually create the window, then you must not call
+any other love.graphics.* function before this one. Doing so will result in undefined behavior and/or crashes
+because OpenGL cannot function properly without a window. * Transparent backgrounds are currently not
+supported.
+
+**Signature:**
+```tl
+setMode: function(width: integer, height: integer, settings?: WindowMode): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| width | integer | Display width. |
+| height | integer | Display height. |
+| settings | WindowMode | The flags table with the options: fullscreen: Fullscreen (true), or windowed (false). (Default: false.) fullscreentype: The type of fullscreen to use. This defaults to 'normal' in 0.9.0 through 0.9.2 and to 'desktop' in 0.10.0 and older. (Default: 'desktop'.) vsync: True if LÖVE should wait for vsync, false otherwise. (Default: true.) msaa: The number of antialiasing samples. (Default: 0.) stencil: Whether a stencil buffer should be allocated. If true, the stencil buffer will have 8 bits. (Default: true.) depth: The number of bits in the depth buffer. (Default: 0.) resizable: True if the window should be resizable in windowed mode, false otherwise. (Default: false.) borderless: True if the window should be borderless in windowed mode, false otherwise. (Default: false.) centered: True if the window should be centered in windowed mode, false otherwise. (Default: true.) display: The index of the display to show the window in, if multiple monitors are available. (Default: 1.) minwidth: The minimum width of the window, if it's resizable. Cannot be less than 1. (Default: 1.) minheight: The minimum height of the window, if it's resizable. Cannot be less than 1. (Default: 1.) highdpi: True if high-dpi mode should be used on Retina displays in macOS and iOS. Does nothing on non-Retina displays. (Default: false.) x: The x-coordinate of the window's position in the specified display. (Default: nil.) y: The y-coordinate of the window's position in the specified display. (Default: nil.) usedpiscale: Disables automatic DPI scaling when false. (Default: true.) srgb: Removed in 0.10.0 (set t.gammacorrect in conf.lua instead). True if sRGB gamma correction should be applied when drawing to the screen. (Default: false.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if successful, false otherwise. |
+
+## updateMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the display mode and properties of the window, without modifying unspecified properties.
+
+	-- If width or height is 0, updateMode will use the width and height of the desktop.
+
+	-- Changing the display mode may have side effects: for example, canvases will be cleared. Make sure to save the contents of canvases beforehand or re-draw to them afterward if you need to.
+
+**Signature:**
+```tl
+updateMode: function(settings: WindowModeSettings): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| settings | WindowModeSettings | The settings table with the following optional fields. Any field not filled in will use the current value that would be returned by love.window.getMode. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | success — True if successful, false otherwise. |
+
+## updateMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the display mode and properties of the window, without modifying unspecified properties.
+
+	-- If width or height is 0, updateMode will use the width and height of the desktop.
+
+	-- Changing the display mode may have side effects: for example, canvases will be cleared. Make sure to save the contents of canvases beforehand or re-draw to them afterward if you need to.
+
+**Signature:**
+```tl
+updateMode: function(width: number, height: integer, settings?: WindowModeSettings): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| width | number | Window width. |
+| height | integer | Window height. |
+| settings | WindowModeSettings | The settings table with the following optional fields. Any field not filled in will use the current value that would be returned by love.window.getMode. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | success — True if successful, false otherwise. |
+
+## getPosition
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the position of the window on the screen.
+The window position is in the coordinate space of the display it is currently in.
+
+**Signature:**
+```tl
+getPosition: function(): integer, integer, integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The x-coordinate of the window's position. |
+| integer | The y-coordinate of the window's position. |
+| integer | The index of the display that the window is in. |
+
+## getSafeArea
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets area inside the window which is known to be unobstructed by a system title bar, the iPhone X notch, etc.
+Useful for making sure UI elements can be seen by the user.
+Overload details:
+1. Values returned are in DPI-scaled units (the same coordinate system as most other window-related APIs), not
+in pixels.
+
+**Signature:**
+```tl
+getSafeArea: function(): number, number, number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | Starting position of safe area (x-axis). |
+| number | Starting position of safe area (y-axis). |
+| number | Width of safe area. |
+| number | Height of safe area. |
+
+## setTitle
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the window title.
+
+**Signature:**
+```tl
+setTitle: function(title: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| title | string | The new window title. |
+
+## getTitle
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the window title.
+
+**Signature:**
+```tl
+getTitle: function(): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The current window title. |
+
+## setVSync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets vertical synchronization mode.
+Overload details:
+1. * Not all graphics drivers support adaptive vsync (-1 value). In that case, it will be automatically set to
+1. * It is recommended to keep vsync activated if you don't know about the possible implications of turning
+it off. * This function doesn't recreate the window, unlike love.window.setMode and love.window.updateMode.
+
+**Signature:**
+```tl
+setVSync: function(vsync: boolean | integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vsync | boolean or integer | VSync number: 1 to enable, 0 to disable, and -1 for adaptive vsync. |
+
+## getVSync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets current vertical synchronization (vsync).
+Overload details:
+1. This can be less expensive alternative to love.window.getMode if you want to get current vsync status.
+
+**Signature:**
+```tl
+getVSync: function(): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | Current vsync status. 1 if enabled, 0 if disabled, and -1 for adaptive vsync. |
+
+## setDisplaySleepEnabled
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets whether the display is allowed to sleep while the program is running.
+Display sleep is disabled by default. Some types of input (e.g. joystick button presses) might not prevent the
+display from sleeping, if display sleep is allowed.
+
+**Signature:**
+```tl
+setDisplaySleepEnabled: function(enabled: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| enabled | boolean | True to enable system display sleep, false to disable it. |
+
+## isDisplaySleepEnabled
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether the display is allowed to sleep while the program is running.
+Display sleep is disabled by default. Some types of input (e.g. joystick button presses) might not prevent the
+display from sleeping, if display sleep is allowed.
+
+**Signature:**
+```tl
+isDisplaySleepEnabled: function(): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if system display sleep is enabled / allowed, false otherwise. |
+
+## hasFocus
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks if the game window has keyboard focus.
+
+**Signature:**
+```tl
+hasFocus: function(): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the window has the focus or false if not. |
+
+## hasMouseFocus
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks if the game window has mouse focus.
+
+**Signature:**
+```tl
+hasMouseFocus: function(): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the window has mouse focus or false if not. |
+
+## isVisible
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks if the game window is visible.
+The window is considered visible if it's not minimized and the program isn't hidden.
+
+**Signature:**
+```tl
+isVisible: function(): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the window is visible or false if not. |
+
+## isMaximized
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether the Window is currently maximized.
+The window can be maximized if it is not fullscreen and is resizable, and either the user has pressed the window's
+Maximize button or love.window.maximize has been called.
+
+**Signature:**
+```tl
+isMaximized: function(): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the window is currently maximized in windowed mode, false otherwise. |
+
+## isMinimized
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether the Window is currently minimized.
+
+**Signature:**
+```tl
+isMinimized: function(): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the window is currently minimized, false otherwise. |
+
+## getDPIScale
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the DPI scale factor associated with the window.
+The pixel density inside the window might be greater (or smaller) than the 'size' of the window. For example on a
+retina screen in Mac OS X with the highdpi window flag enabled, the window may take up the same physical size as
+an 800x600 window, but the area inside the window uses 1600x1200 pixels. love.window.getDPIScale() would return
+2.0 in that case.
+The love.window.fromPixels and love.window.toPixels functions can also be used to convert between units.
+The highdpi window flag must be enabled to use the full pixel density of a Retina screen on Mac OS X and iOS. The
+flag currently does nothing on Windows and Linux, and on Android it is effectively always enabled.
+Overload details:
+1. The units of love.graphics.getWidth, love.graphics.getHeight, love.mouse.getPosition, mouse events,
+love.touch.getPosition, and touch events are always in terms of pixels.
+
+**Signature:**
+```tl
+getDPIScale: function(): number
+	getNativeDPIScale: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The pixel scale factor associated with the window. |
+
+## toPixels
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a number from density-independent units to pixels.
+
+	-- The pixel density inside the window might be greater (or smaller) than the 'size' of the window. For example on a retina screen in Mac OS X with the highdpi window flag enabled, the window may take up the same physical size as an 800x600 window, but the area inside the window uses 1600x1200 pixels. love.window.toPixels(800) would return 1600 in that case.
+
+	-- This is used to convert coordinates from the size users are expecting them to display at onscreen to pixels. love.window.fromPixels does the opposite. The highdpi window flag must be enabled to use the full pixel density of a Retina screen on Mac OS X and iOS. The flag currently does nothing on Windows and Linux, and on Android it is effectively always enabled.
+
+	-- Most LÖVE functions return values and expect arguments in terms of pixels rather than density-independent units.
+
+**Signature:**
+```tl
+toPixels: function(value: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| value | number | A number in density-independent units to convert to pixels. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | pixelvalue — The converted number, in pixels. |
+
+## toPixels
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a number from density-independent units to pixels.
+
+	-- The pixel density inside the window might be greater (or smaller) than the 'size' of the window. For example on a retina screen in Mac OS X with the highdpi window flag enabled, the window may take up the same physical size as an 800x600 window, but the area inside the window uses 1600x1200 pixels. love.window.toPixels(800) would return 1600 in that case.
+
+	-- This is used to convert coordinates from the size users are expecting them to display at onscreen to pixels. love.window.fromPixels does the opposite. The highdpi window flag must be enabled to use the full pixel density of a Retina screen on Mac OS X and iOS. The flag currently does nothing on Windows and Linux, and on Android it is effectively always enabled.
+
+	-- Most LÖVE functions return values and expect arguments in terms of pixels rather than density-independent units.
+
+**Signature:**
+```tl
+toPixels: function(x: number, y: number): number, number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The x-axis value of a coordinate in density-independent units to convert to pixels. |
+| y | number | The y-axis value of a coordinate in density-independent units to convert to pixels. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | pixelvalue — The converted number, in pixels. |
+| number | px — The converted x-axis value of the coordinate, in pixels. |
+
+## fromPixels
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a number from pixels to density-independent units.
+
+	-- The pixel density inside the window might be greater (or smaller) than the 'size' of the window. For example on a retina screen in Mac OS X with the highdpi window flag enabled, the window may take up the same physical size as an 800x600 window, but the area inside the window uses 1600x1200 pixels. love.window.fromPixels(1600) would return 800 in that case.
+
+	-- This function converts coordinates from pixels to the size users are expecting them to display at onscreen. love.window.toPixels does the opposite. The highdpi window flag must be enabled to use the full pixel density of a Retina screen on Mac OS X and iOS. The flag currently does nothing on Windows and Linux, and on Android it is effectively always enabled.
+
+	-- Most LÖVE functions return values and expect arguments in terms of pixels rather than density-independent units.
+
+**Signature:**
+```tl
+fromPixels: function(value: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| value | number | A number in pixels to convert to density-independent units. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | value — The converted number, in density-independent units. |
+
+## fromPixels
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Converts a number from pixels to density-independent units.
+
+	-- The pixel density inside the window might be greater (or smaller) than the 'size' of the window. For example on a retina screen in Mac OS X with the highdpi window flag enabled, the window may take up the same physical size as an 800x600 window, but the area inside the window uses 1600x1200 pixels. love.window.fromPixels(1600) would return 800 in that case.
+
+	-- This function converts coordinates from pixels to the size users are expecting them to display at onscreen. love.window.toPixels does the opposite. The highdpi window flag must be enabled to use the full pixel density of a Retina screen on Mac OS X and iOS. The flag currently does nothing on Windows and Linux, and on Android it is effectively always enabled.
+
+	-- Most LÖVE functions return values and expect arguments in terms of pixels rather than density-independent units.
+
+**Signature:**
+```tl
+fromPixels: function(x: number, y: number): number, number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The x-axis value of a coordinate in pixels. |
+| y | number | The y-axis value of a coordinate in pixels. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | value — The converted number, in density-independent units. |
+| number | x — The converted x-axis value of the coordinate, in density-independent units. |

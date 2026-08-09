@@ -1,0 +1,637 @@
+# Mesh
+
+**描述：**
+
+&emsp;&emsp;用于绘制任意纹理形状的 2D 多边形网格。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: Mesh): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: Mesh, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: Mesh): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## setVertices
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;用新顶点替换网格中的一系列顶点。网格体的顶点总数在创建后就无法更改。这通常比在循环中调用 Mesh:setVertex 更有效。
+
+**签名：**
+```tl
+setVertices: function(self: Mesh, vertices: {MeshVertex}, start_vertex?: integer, vertex_count?: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| vertices | \{MeshVertex} | 该表填充了每个顶点的顶点信息表，其形式为\{vertex, ...}，其中每个顶点是一个形式为\{attributecomponent, ...}的表。 |
+| start_vertex | integer | 要替换的第一个顶点的索引。 （默认值：1。） |
+| vertex_count | integer | 要替换的顶点数量。 （默认值：全部。） |
+
+## setVertices
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;用新顶点替换网格中的一系列顶点。网格体的顶点总数在创建后就无法更改。这通常比在循环中调用 Mesh:setVertex 更有效。
+
+**签名：**
+```tl
+setVertices: function(self: Mesh, data: Data, start_vertex?: integer, vertex_count?: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| data | Data | 要复制的数据对象。数据的内容必须与该网格体的顶点格式的布局相匹配。 |
+| start_vertex | integer | 要替换的第一个顶点的索引。 （默认值：1。） |
+| vertex_count | integer | 要替换的顶点数量。 （默认值：全部。） |
+
+## setVertex
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置网格中顶点的属性。
+
+	-- 在11.0之前的版本中，颜色和字节分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+setVertex: function(self: Mesh, index: integer, vertex: MeshVertex)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 要修改的顶点的索引（从一开始）。 |
+| vertex | MeshVertex | 包含顶点信息的表，格式为\{attributecomponent, ...}。 |
+
+## setVertex
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置网格中顶点的属性。
+
+	-- 在11.0之前的版本中，颜色和字节分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+setVertex: function(self: Mesh, index: integer, components: number...)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 要修改的顶点的索引（从一开始）。 |
+| components | number... | 带有顶点信息的表。 |
+
+## getVertex
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取网格中顶点的属性。
+在11.0之前的版本中，颜色和字节分量值的范围是0到255，而不是0到1。
+重载说明：
+1. 返回值的顺序与网格顶点格式中顶点属性的顺序相同。不是使用自定义顶点格式创建的标准网格将返回两个位置号、两个纹理坐标
+numbers, and four color components: x, y, u, v, r, g, b, a.
+2. 获取不是使用自定义顶点格式创建的网格的顶点组件。
+
+**签名：**
+```tl
+getVertex: function(self: Mesh, index: integer): any
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 要检索其信息的顶点的从一开始的索引。取决于过载：要检索其信息的顶点的索引。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| any | 指定顶点中第一个顶点属性的第一个组件。 |
+
+## setVertexAttribute
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置网格中顶点内特定属性的属性。
+没有在 love.graphics.newMesh 中指定的自定义顶点格式的网格体将位置作为其第一个属性，将纹理坐标作为其第二个属性，将颜色作为其第三个属性。
+重载说明：
+1. 存在于属性中但未指定为参数的属性组件对于浮点数据类型的属性默认为 0，对于字节数据类型默认为 255。
+
+**签名：**
+```tl
+setVertexAttribute: function(self: Mesh, vertex_index: integer, attribute_index: integer, components: number...)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| vertex_index | integer | 要修改的顶点的索引（从一开始）。 |
+| attribute_index | integer | 要修改的顶点中属性的索引（从一开始）。 |
+| components | number... | 属性第一个组件的新值。 |
+
+## getVertexAttribute
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取网格中顶点内特定属性的属性。
+没有在 love.graphics.newMesh 中指定的自定义顶点格式的网格体将位置作为其第一个属性，将纹理坐标作为其第二个属性，将颜色作为其第三个属性。
+
+**签名：**
+```tl
+getVertexAttribute: function(self: Mesh, vertex_index: integer, attribute_index: integer): any
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| vertex_index | integer | 要检索其属性的顶点的索引（从一开始）。 |
+| attribute_index | integer | 要检索的顶点中的属性索引（从一开始）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| any | 属性第一个组成部分的值。 |
+
+## getVertexCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取Mesh中的顶点总数。
+
+**签名：**
+```tl
+getVertexCount: function(self: Mesh): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 网格中的顶点总数。 |
+
+## getVertexFormat
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取创建网格体所用的顶点格式。
+重载说明：
+1. If a Mesh wasn't created with a custom vertex format, it will have the following vertex format: 默认格式
+= \{ \{'VertexPosition', 'float', 2}, -- 每个顶点的 x,y 位置。 \{'VertexTexCoord', 'float', 2}, -- 每个顶点的 u,v 纹理坐标。
+\{'VertexColor', 'byte', 4} -- 每个顶点的 r,g,b,a 颜色。 }
+
+**签名：**
+```tl
+getVertexFormat: function(self: Mesh): {{any}}
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{\{any}} | 网格体的顶点格式，它是一个表，其中包含用于创建网格体的每个顶点属性的表，格式为 \{attribute, ...}。 |
+
+## setAttributeEnabled
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;启用或禁用网格中的特定顶点属性。绘制网格时不使用禁用属性中的顶点数据。
+重载说明：
+1. 如果网格不是使用自定义顶点格式创建的，它将具有 3 个顶点属性，分别名为 VertexPosition、VertexTexCoord 和
+VertexColor。否则，属性名称必须与创建网格体时以顶点格式指定的顶点属性之一匹配，或者必须与通过 Mesh:attachAttribute 连接到此网格体的另一个网格体的顶点属性匹配。
+
+**签名：**
+```tl
+setAttributeEnabled: function(self: Mesh, name: string, enabled: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要启用或禁用的顶点属性的名称。 |
+| enabled | boolean | 绘制此Mesh时是否使用顶点属性。 |
+
+## isAttributeEnabled
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取Mesh中特定顶点属性是否启用。绘制网格时不使用禁用属性中的顶点数据。
+重载说明：
+1. 如果网格不是使用自定义顶点格式创建的，它将具有 3 个顶点属性，分别名为 VertexPosition、VertexTexCoord 和
+VertexColor。否则，属性名称必须与创建网格体时以顶点格式指定的顶点属性之一匹配，或者必须与通过 Mesh:attachAttribute 连接到此网格体的另一个网格体的顶点属性匹配。
+
+**签名：**
+```tl
+isAttributeEnabled: function(self: Mesh, name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要检查的顶点属性的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 绘制此Mesh时是否使用顶点属性。 |
+
+## attachAttribute
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将来自不同网格的顶点属性附加到此网格上，以供绘制时使用。这可用于在多个不同网格之间共享顶点属性数据。
+重载说明：
+1. 如果网格不是使用自定义顶点格式创建的，它将具有 3 个顶点属性，分别名为 VertexPosition、VertexTexCoord 和 VertexColor。可以通过将自定义命名属性声明为属性 vec4
+MyCustomAttributeName 在顶点着色器中访问它们；位于顶点着色器代码的顶层。该名称必须与网格体顶点格式和 Mesh:attachAttribute 的名称参数中指定的名称相匹配。
+
+**签名：**
+```tl
+attachAttribute: function(self: Mesh, name: string, mesh: Mesh, step?: string, attribute_name?: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要附加的顶点属性的名称。 |
+| mesh | Mesh | 要从中获取顶点属性的网格体。 |
+| step | string | 绘制网格时该属性是按顶点还是按实例。 （默认：'pervertex'。） |
+| attribute_name | string | 在着色器代码中使用的属性的名称。默认为给定网格中的属性名称。可用于在渲染时为此属性使用不同的名称。 （默认值：名称。） |
+
+## detachAttribute
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从此网格中删除先前附加的顶点属性。
+
+**签名：**
+```tl
+detachAttribute: function(self: Mesh, name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要分离的附加顶点属性的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 属性是否已成功分离。 |
+
+## setVertexMap
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置网格的顶点贴图。顶点图描述了绘制Mesh时顶点的使用顺序。顶点、顶点贴图和网格绘制模式共同确定屏幕上显示的内容。
+
+	-- 顶点贴图允许您在绘制时重新排序或重用顶点，而无需更改实际的顶点参数或复制顶点。当与不同的网格绘制模式结合使用时，它特别有用。
+
+**签名：**
+```tl
+setVertexMap: function(self: Mesh)
+```
+
+## setVertexMap
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置网格的顶点贴图。顶点图描述了绘制Mesh时顶点的使用顺序。顶点、顶点贴图和网格绘制模式共同确定屏幕上显示的内容。
+
+	-- 顶点贴图允许您在绘制时重新排序或重用顶点，而无需更改实际的顶点参数或复制顶点。当与不同的网格绘制模式结合使用时，它特别有用。
+
+**签名：**
+```tl
+setVertexMap: function(self: Mesh, indices: {number})
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| indices | \{number} | 包含绘图时使用的顶点索引列表的表。值必须在 Mesh:getVertexCount() 范围内。 |
+
+## setVertexMap
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置网格的顶点贴图。顶点图描述了绘制Mesh时顶点的使用顺序。顶点、顶点贴图和网格绘制模式共同确定屏幕上显示的内容。
+
+	-- 顶点贴图允许您在绘制时重新排序或重用顶点，而无需更改实际的顶点参数或复制顶点。当与不同的网格绘制模式结合使用时，它特别有用。
+
+**签名：**
+```tl
+setVertexMap: function(self: Mesh, indices: number...)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| indices | number... | 包含绘图时使用的顶点索引列表的表。值必须在 Mesh:getVertexCount() 范围内。 |
+
+## setVertexMap
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置网格的顶点贴图。顶点图描述了绘制Mesh时顶点的使用顺序。顶点、顶点贴图和网格绘制模式共同确定屏幕上显示的内容。
+
+	-- 顶点贴图允许您在绘制时重新排序或重用顶点，而无需更改实际的顶点参数或复制顶点。当与不同的网格绘制模式结合使用时，它特别有用。
+
+**签名：**
+```tl
+setVertexMap: function(self: Mesh, data: Data, data_type: IndexDataType, index_count?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| data | Data | 绘制时使用的顶点索引表。值必须在 Mesh:getVertexCount()-1 |
+| data_type | IndexDataType | 上面顶点索引表的数据类型。 |
+| index_count | number | 绘制时使用的第三个顶点的索引。 |
+
+## getVertexMap
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取网格的顶点贴图。顶点图描述了绘制Mesh时顶点的使用顺序。顶点、顶点贴图和网格绘制模式共同确定屏幕上显示的内容。
+如果之前没有通过 Mesh:setVertexMap 设置顶点贴图，那么该函数在 LÖVE 0.10.0+ 中将返回 nil，或者在 0.9.2 及更早版本中返回空表。
+
+**签名：**
+```tl
+getVertexMap: function(self: Mesh): {integer} | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{integer} or nil | 包含绘图时使用的顶点索引列表的表。 |
+
+## setTexture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置绘制网格时使用的纹理（图像或画布）。
+
+**签名：**
+```tl
+setTexture: function(self: Mesh)
+```
+
+## setTexture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置绘制网格时使用的纹理（图像或画布）。
+
+**签名：**
+```tl
+setTexture: function(self: Mesh, texture: Image | Canvas)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| texture | Image | Canvas | 绘制时用于纹理网格的图像或画布。 |
+
+## getTexture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取绘制网格时使用的纹理（图像或画布）。
+
+**签名：**
+```tl
+getTexture: function(self: Mesh): Image | Canvas | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Image or Canvas or nil | 绘制时用于纹理网格的图像或画布，如果未设置则为零。 |
+
+## setDrawMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置绘制网格时使用的模式。
+
+**签名：**
+```tl
+setDrawMode: function(self: Mesh, mode: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mode | string | 绘制网格时使用的模式。 |
+
+## getDrawMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取绘制网格时使用的模式。
+
+**签名：**
+```tl
+getDrawMode: function(self: Mesh): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 绘制网格时使用的模式。 |
+
+## setDrawRange
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将网格的绘制顶点限制为总数的子集。
+
+**签名：**
+```tl
+setDrawRange: function(self: Mesh)
+```
+
+## setDrawRange
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将网格的绘制顶点限制为总数的子集。
+
+**签名：**
+```tl
+setDrawRange: function(self: Mesh, start: integer, count: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| start | integer | 绘制时要使用的第一个顶点的索引，或者如果为此网格设置了一个，则要使用的顶点映射中的第一个值的索引。 |
+| count | integer | 绘制时要使用的顶点数，或者如果为此网格设置了一个，则要使用的顶点映射中的值的数量。 |
+
+## getDrawRange
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取绘制Mesh时使用的顶点范围。
+重载说明：
+1. 如果之前没有用Mesh:setDrawRange设置Mesh的绘制范围，该函数将返回nil。
+
+**签名：**
+```tl
+getDrawRange: function(self: Mesh): any
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| any | 绘制时使用的第一个顶点的索引，或者如果为此网格设置了一个，则使用顶点映射中的第一个值的索引。 |
+
+## flush
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;立即将Mesh中所有修改的顶点数据发送到显卡。
+通常不需要调用此方法，因为 love.graphics.draw(mesh, ...) 会在需要时自动执行此操作，但显式使用 **Mesh:flush** 可以更好地控制工作何时发生。
+如果使用此方法，则通常不应在 love.graphics.draw(mesh, ...) 调用之间多次（最多）调用它。
+
+**签名：**
+```tl
+flush: function(self: Mesh)
+```

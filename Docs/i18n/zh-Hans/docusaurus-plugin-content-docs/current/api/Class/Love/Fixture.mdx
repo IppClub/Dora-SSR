@@ -1,0 +1,656 @@
+# Fixture
+
+**描述：**
+
+&emsp;&emsp;夹具将形状附加到主体上。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: Fixture): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: Fixture, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: Fixture): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## destroy
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;摧毁灯具。
+
+**签名：**
+```tl
+destroy: function(self: Fixture)
+```
+
+## isDestroyed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取Fixture是否被破坏。损坏的固定装置不能再使用。
+
+**签名：**
+```tl
+isDestroyed: function(self: Fixture): boolean
+	getType: function(self: Fixture): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean or string | Fixture是否被破坏。 |
+
+## setFriction
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置夹具的摩擦力。
+摩擦力决定了形状沿着其他形状 'slide' 时如何反应。低摩擦力表示光滑的表面，如冰，而高摩擦力表示粗糙的表面，如混凝土。范围：0.0 - 1.0。
+
+**签名：**
+```tl
+setFriction: function(self: Fixture, friction: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| friction | number | 夹具摩擦力。 |
+
+## getFriction
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回夹具的摩擦力。
+
+**签名：**
+```tl
+getFriction: function(self: Fixture): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 夹具摩擦力。 |
+
+## setRestitution
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置灯具的恢复。
+
+**签名：**
+```tl
+setRestitution: function(self: Fixture, restitution: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| restitution | number | 灯具恢复原状。 |
+
+## getRestitution
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回灯具的恢复状态。
+
+**签名：**
+```tl
+getRestitution: function(self: Fixture): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 灯具恢复原状。 |
+
+## setDensity
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置灯具的密度。如果需要立即生效，请调用Body:resetMassData。
+
+**签名：**
+```tl
+setDensity: function(self: Fixture, density: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| density | number | 灯具密度，单位为千克每平方米。 |
+
+## getDensity
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回灯具的密度。
+
+**签名：**
+```tl
+getDensity: function(self: Fixture): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 灯具密度，单位为千克每平方米。 |
+
+## setSensor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置灯具是否应充当传感器。
+传感器不会引起碰撞响应，但该装置仍会调用开始接触和结束接触世界回调。
+
+**签名：**
+```tl
+setSensor: function(self: Fixture, sensor: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| sensor | boolean | 传感器状态。 |
+
+## isSensor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回夹具是否为传感器。
+
+**签名：**
+```tl
+isSensor: function(self: Fixture): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果夹具是传感器。 |
+
+## getBody
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回固定装置所连接的主体。
+
+**签名：**
+```tl
+getBody: function(self: Fixture): Body
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Body | 父体。 |
+
+## getShape
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回夹具的形状。该形状是对模拟中使用的实际数据的参考。可以在时间步之间更改其值。
+
+**签名：**
+```tl
+getShape: function(self: Fixture): Shape
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Shape | 灯具的形状。 |
+
+## testPoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查点是否位于夹具形状内部。
+
+**签名：**
+```tl
+testPoint: function(self: Fixture, x: number, y: number): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 点的 x 位置。 |
+| y | number | 点的 y 位置。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果该点在内部，则为 True；如果在外部，则为 false。 |
+
+## rayCast
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将光线投射到夹具的形状上，并返回表面法线向量和光线击中的线位置。如果光线错过了形状，则返回 nil。
+射线从输入线的第一个点开始，朝向该线的第二个点。第五个参数是光线将行进的最大距离，作为输入线长度的比例因子。
+childIndex 参数用于指定父形状（例如 ChainShape）的哪个子形状将进行光线投射。对于 ChainShapes，索引 1
+是链上的第一条边。射线投射父形状只会测试指定的子形状，因此如果您想测试父形状的每个形状，则必须循环遍历其所有子形状。
+撞击的世界位置可以通过将线向量乘以第三个返回值并将其与线起点相加来计算。
+hitx，hity = x1 + (x2 - x1) * 分数，y1 + (y2 - y1) * 分数
+
+**签名：**
+```tl
+rayCast: function(self: Fixture, x1: number, y1: number, x2: number, y2: number, max_fraction: number, child_index?: integer): number | nil, number | nil, number | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x1 | number | 输入线起点的 x 位置。 |
+| y1 | number | 输入线起点的 y 位置。 |
+| x2 | number | 输入线终点的 x 位置。 |
+| y2 | number | 输入线终点的 y 位置。 |
+| max_fraction | number | 光线长度参数。 |
+| child_index | integer | 光线投射到的子项的索引。 （默认值：1。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number or nil | 光线击中形状的边缘的法线向量的 x 分量。 |
+| number or nil | 光线照射到形状的边缘的法线向量的 y 分量。 |
+| number or nil | 输入线上相交的位置，是线长度的一个因素。 |
+
+## setFilterData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置灯具的滤波器数据。
+组、类别和遮罩可用于定义夹具的碰撞行为。
+如果两个灯具位于同一组中，则它们要么在组为正时总是发生碰撞，要么在组为负时从不发生碰撞。如果该组为零或它们不匹配，则接触过滤器将检查灯具是否选择了具有其掩码的其他灯具的类别。如果不是这种情况，灯具就不会发生碰撞。如果他们确实选择了彼此的类别，则将使用自定义联系人过滤器的返回值。如果没有设置，它们总是会发生碰撞。
+最多可以有 16 个类别。类别和掩码被编码为 16 位整数的位。
+创建后，在调用此函数之前，所有灯具的类别设置为 1，掩码设置为 65535（所有类别），组设置为 0。
+此功能允许一次设置灯具的所有过滤器数据。要仅设置类别、掩码或组，可以分别使用 Fixture:setCategory、Fixture:setMask 或 Fixture:setGroupIndex。
+
+**签名：**
+```tl
+setFilterData: function(self: Fixture, category_bits: integer, mask_bits: integer, group_index: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| category_bits | integer | 类别为 0 到 65535 之间的整数。 |
+| mask_bits | integer | 掩码为 0 到 65535 之间的整数。 |
+| group_index | integer | 组为从 -32768 到 32767 的整数。 |
+
+## getFilterData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回灯具的滤波器数据。
+类别和掩码被编码为 16 位整数的位。
+
+**签名：**
+```tl
+getFilterData: function(self: Fixture): integer, integer, integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 类别为 0 到 65535 之间的整数。 |
+| integer | 掩码为 0 到 65535 之间的整数。 |
+| integer | 组为从 -32768 到 32767 的整数。 |
+
+## setCategory
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置灯具所属的类别。最多可以有 16 个类别，以 1 到 16 之间的数字表示。
+
+	-- 所有灯具的默认类别为 1。
+
+**签名：**
+```tl
+setCategory: function(self: Fixture, categories: {number})
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| categories | \{number} | 类别。 |
+
+## setCategory
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置灯具所属的类别。最多可以有 16 个类别，以 1 到 16 之间的数字表示。
+
+	-- 所有灯具的默认类别为 1。
+
+**签名：**
+```tl
+setCategory: function(self: Fixture, categories: number...)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| categories | number... | 类别。 |
+
+## getCategory
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回灯具所属的类别。
+
+**签名：**
+```tl
+getCategory: function(self: Fixture): integer...
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer... | 类别。 |
+
+## setMask
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置灯具的类别掩码。最多可以有 16 个类别，以 1 到 16 之间的数字表示。
+
+	-- 如果其他灯具也选择了该灯具的类别，则该灯具将与所选类别中的灯具发生“'NOT'”碰撞。
+
+**签名：**
+```tl
+setMask: function(self: Fixture, categories: {number})
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| categories | \{number} | 面具。 |
+
+## setMask
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置灯具的类别掩码。最多可以有 16 个类别，以 1 到 16 之间的数字表示。
+
+	-- 如果其他灯具也选择了该灯具的类别，则该灯具将与所选类别中的灯具发生“'NOT'”碰撞。
+
+**签名：**
+```tl
+setMask: function(self: Fixture, categories: number...)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| categories | number... | 面具。 |
+
+## getMask
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回该装置应与“'NOT'”碰撞的类别。
+
+**签名：**
+```tl
+getMask: function(self: Fixture): integer...
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer... | 面具。 |
+
+## setUserData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将 Lua 值与固定装置相关联。
+要删除引用，请显式传递 nil。
+
+**签名：**
+```tl
+setUserData: function(self: Fixture, value: any)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| value | any | 与装置关联的Lua值。 |
+
+## getUserData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回与该装置关联的Lua值。
+
+**签名：**
+```tl
+getUserData: function(self: Fixture): any
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| any | 与装置关联的Lua值。 |
+
+## getBoundingBox
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回夹具边界框的点。如果灯具有多个子级，则可以指定从 1 开始的索引。例如，一个固定装置将有多个呈链状的子项。
+
+**签名：**
+```tl
+getBoundingBox: function(self: Fixture, child_index?: integer): number, number, number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| child_index | integer | 夹具的边界框。 （默认值：1。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 左上角点的 x 位置。 |
+| number | 左上角点的 y 位置。 |
+| number | 右下点的 x 位置。 |
+| number | 右下点的 y 位置。 |
+
+## getMassData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回质量、中心和转动惯量。
+
+**签名：**
+```tl
+getMassData: function(self: Fixture): number, number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 质心的 x 位置。 |
+| number | 质心的 y 位置。 |
+| number | 夹具的质量。 |
+| number | 转动惯量。 |
+
+## getGroupIndex
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回灯具所属的组。如果该组为正，则具有同一组的灯具将始终发生碰撞；如果该组为负，则永远不会发生碰撞。组零表示没有组。
+组范围从 -32768 到 32767。
+
+**签名：**
+```tl
+getGroupIndex: function(self: Fixture): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 灯具组。 |
+
+## setGroupIndex
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置灯具所属的组。如果该组为正，则具有同一组的灯具将始终发生碰撞；如果该组为负，则永远不会发生碰撞。组零表示没有组。
+组范围从 -32768 到 32767。
+
+**签名：**
+```tl
+setGroupIndex: function(self: Fixture, index: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 组为从 -32768 到 32767 的整数。 |

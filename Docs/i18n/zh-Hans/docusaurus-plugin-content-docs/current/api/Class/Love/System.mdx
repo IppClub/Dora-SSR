@@ -1,0 +1,173 @@
+# System
+
+**描述：**
+
+&emsp;&emsp;提供对有关用户系统的信息的访问。
+
+## getOS
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前操作系统。一般来说，LÖVE 抽象了了解当前操作系统的需要，但在某些情况下它可能很有用（特别是与 os.execute 结合使用。）
+重载说明：
+1. 在LÖVE 0.8.0 版本中，“'love._os'”字符串包含当前操作系统。
+
+**签名：**
+```tl
+getOS: function(): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 当前操作系统。 'OS X'、'Windows'、'Linux'、'Android' 或 'iOS'。 |
+
+## getProcessorCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取系统中逻辑处理器的数量。
+重载说明：
+1. 该数字包括启用英特尔超线程等技术时报告的线程数。例如，在具有超线程的 4 核 CPU 上，此函数将返回 8。
+
+**签名：**
+```tl
+getProcessorCount: function(): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 逻辑处理器的数量。 |
+
+## setClipboardText
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将文本放入剪贴板。
+
+**签名：**
+```tl
+setClipboardText: function(text: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | string | 要保存在系统剪贴板中的新文本。 |
+
+## getClipboardText
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从剪贴板获取文本。
+
+**签名：**
+```tl
+getClipboardText: function(): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 当前保存在系统剪贴板中的文本。 |
+
+## getPowerInfo
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取有关系统电源的信息。
+
+**签名：**
+```tl
+getPowerInfo: function(): string, integer | nil, integer | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 电源的基本状态。 |
+| integer or nil | 剩余电池寿命百分比，介于 0 和 100 之间。如果无法确定该值或没有电池，则为零。 |
+| integer or nil | 电池寿命还剩几秒。如果无法确定该值或没有电池，则为零。 |
+
+## openURL
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用用户的 Web 或文件浏览器打开 URL。
+重载说明：
+1. 在 Android 7.0 (Nougat) 及更高版本中传递 file:// 方案总是会导致失败。在 11.2 之前，这会使 LÖVE 崩溃而不是返回 false。
+
+**签名：**
+```tl
+openURL: function(url: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| url | string | 要打开的 URL。必须格式化为正确的 URL。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | URL是否打开成功。 |
+
+## vibrate
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;如果可能的话，使设备振动。目前，这仅适用于具有内置振动电机的 Android 和 iOS 设备。
+
+**签名：**
+```tl
+vibrate: function(seconds?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| seconds | number | 振动的持续时间。如果在iOS设备上调用，由于iOS系统API的限制，它总是会振动0.5秒。 （默认值：0.5。） |
+
+## hasBackgroundMusic
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取系统上的另一个应用程序是否正在后台播放音乐。
+目前这是在 iOS 和 Android 上实现的，并且在其他操作系统上将始终返回 false。 love.conf 中的 t.audio.mixwithsystem 标志可用于配置 LÖVE
+打开时是否应播放其他应用程序的背景音频/音乐。
+
+**签名：**
+```tl
+hasBackgroundMusic: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果用户通过另一个应用程序在后台播放音乐，则为 true，否则为 false。 |

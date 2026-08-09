@@ -25,7 +25,7 @@ metamethod __call: function(
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| filename | string | 指向 Ogg 容器中 Theora 视频流的 Dora Content 路径，通常使用 `.ogv` 后缀。解码器支持 Theora 4:2:0、4:2:2 和 4:4:4。VideoNode 只渲染视频，不播放其中的音轨。 |
+| filename | string | 视频文件路径，应为包含 Theora 视频流的 Ogg（`.ogv`）文件。VideoNode 通过 Dora Content 读取，仅渲染视频，支持 Theora 4:2:0/4:2:2/4:4:4 并使用软件解码；音频需单独播放。 |
 | looped | boolean | [可选] 是否循环播放，默认为 false。 |
 
 **返回值：**

@@ -1,0 +1,1239 @@
+# ParticleSystem
+
+**描述：**
+
+&emsp;&emsp;粒子系统可用于创建粒子效果，例如火焰或烟雾。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: ParticleSystem): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: ParticleSystem, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: ParticleSystem): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## clone
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建处于停止状态的粒子系统的相同副本。
+重载说明：
+1. 克隆的粒子系统继承原始粒子系统的所有可设置状态，但它们被初始化为停止状态。
+
+**签名：**
+```tl
+clone: function(self: ParticleSystem): ParticleSystem
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ParticleSystem | 此粒子系统的新的相同副本。 |
+
+## setTexture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置用于粒子的纹理（图像或画布）。
+
+**签名：**
+```tl
+setTexture: function(self: ParticleSystem, texture: Image | Canvas)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| texture | Image or Canvas | 用于粒子的图像或画布。 |
+
+## getTexture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取用于粒子的纹理（图像或画布）。
+
+**签名：**
+```tl
+getTexture: function(self: ParticleSystem): Image | Canvas
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Image or Canvas | 用于粒子的图像或画布。 |
+
+## setBufferSize
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置缓冲区的大小（系统中允许的最大粒子量）。
+
+**签名：**
+```tl
+setBufferSize: function(self: ParticleSystem, size: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| size | integer | 缓冲区大小。 |
+
+## getBufferSize
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取粒子系统一次可以拥有的最大粒子数。
+
+**签名：**
+```tl
+getBufferSize: function(self: ParticleSystem): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 最大粒子数。 |
+
+## setInsertMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置粒子系统添加新粒子时使用的模式。
+
+**签名：**
+```tl
+setInsertMode: function(self: ParticleSystem, mode: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mode | string | 粒子系统添加新粒子时使用的模式。 |
+
+## getInsertMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取粒子系统添加新粒子时使用的模式。
+
+**签名：**
+```tl
+getInsertMode: function(self: ParticleSystem): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 粒子系统添加新粒子时使用的模式。 |
+
+## setEmissionRate
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置每秒发射的粒子数量。
+
+**签名：**
+```tl
+setEmissionRate: function(self: ParticleSystem, rate: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| rate | number | 每秒的粒子数。 |
+
+## getEmissionRate
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取每秒发射的粒子数。
+
+**签名：**
+```tl
+getEmissionRate: function(self: ParticleSystem): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 每秒的粒子数。 |
+
+## setEmitterLifetime
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置粒子系统应发射粒子的时间长度（如果为 -1，则它将永远发射粒子）。
+
+**签名：**
+```tl
+setEmitterLifetime: function(self: ParticleSystem, lifetime: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| lifetime | number | 发射器的生命周期（以秒为单位）。 |
+
+## getEmitterLifetime
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取粒子系统将发射粒子的时间（如果为-1则永远发射粒子）。
+
+**签名：**
+```tl
+getEmitterLifetime: function(self: ParticleSystem): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 发射器的生命周期（以秒为单位）。 |
+
+## setParticleLifetime
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置粒子的寿命。
+
+**签名：**
+```tl
+setParticleLifetime: function(self: ParticleSystem, minimum: number, maximum?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| minimum | number | 粒子的最短寿命（以秒为单位）。 |
+| maximum | number | 粒子的最大寿命（以秒为单位）。 （默认值：分钟。） |
+
+## getParticleLifetime
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取粒子的寿命。
+
+**签名：**
+```tl
+getParticleLifetime: function(self: ParticleSystem): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 粒子的最短寿命（以秒为单位）。 |
+| number | 粒子的最大寿命（以秒为单位）。 |
+
+## setPosition
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置发射器的位置。
+
+**签名：**
+```tl
+setPosition: function(self: ParticleSystem, x: number, y: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 沿 x 轴的位置。 |
+| y | number | 沿 y 轴的位置。 |
+
+## getPosition
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取发射器的位置。
+
+**签名：**
+```tl
+getPosition: function(self: ParticleSystem): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 沿 x 轴的位置。 |
+| number | 沿 y 轴的位置。 |
+
+## moveTo
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;移动发射器的位置。与每帧使用 ParticleSystem:setPosition 相比，这会导致更平滑的粒子生成行为。
+
+**签名：**
+```tl
+moveTo: function(self: ParticleSystem, x: number, y: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 沿 x 轴的位置。 |
+| y | number | 沿 y 轴的位置。 |
+
+## setEmissionArea
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置粒子的基于区域的生成参数。新创建的粒子将根据此函数的参数在发射器周围的区域中生成。
+
+**签名：**
+```tl
+setEmissionArea: function(self: ParticleSystem, distribution?: string, x?: number, y?: number, angle?: number, relative?: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| distribution | string | 新粒子的分布类型。 |
+| x | number | 均匀分布时沿 x 轴距发射器的最大生成距离，或正态分布时沿 x 轴的标准偏差。 |
+| y | number | 均匀分布时沿 y 轴距发射器的最大生成距离，或正态分布时沿 y 轴的标准偏差。 |
+| angle | number | 发射区域的角度（以弧度表示）。 （默认值：0。） |
+| relative | boolean | 如果新生成的粒子将相对于发射区域的中心定向，则为 true，否则为 false。 （默认值：假。） |
+
+## getEmissionArea
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取粒子基于区域的生成参数。
+
+**签名：**
+```tl
+getEmissionArea: function(self: ParticleSystem): string, number, number, number, boolean
+	setAreaSpread: function(self: ParticleSystem, distribution?: string, x?: number, y?: number)
+	getAreaSpread: function(self: ParticleSystem): string, number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| distribution | string | distribution 参数。 |
+| x | number | x 参数。 |
+| y | number | y 参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 新粒子的分布类型。 |
+| number | 均匀分布时沿 x 轴距发射器的最大生成距离，或正态分布时沿 x 轴的标准偏差。 |
+| number | 均匀分布时沿 y 轴距发射器的最大生成距离，或正态分布时沿 y 轴的标准偏差。 |
+| number | 发射区域的角度（以弧度表示）。 |
+| boolean | 如果新生成的粒子将相对于发射区域的中心定向，则为 true，否则为 false。 |
+
+## setDirection
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置粒子发射的方向。
+
+**签名：**
+```tl
+setDirection: function(self: ParticleSystem, direction: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| direction | number | 粒子的方向（以弧度为单位）。 |
+
+## getDirection
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取粒子发射器的方向（以弧度为单位）。
+
+**签名：**
+```tl
+getDirection: function(self: ParticleSystem): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 发射器的方向（弧度）。 |
+
+## setSpread
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置系统的传播量。
+
+**签名：**
+```tl
+setSpread: function(self: ParticleSystem, spread: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| spread | number | 传播量（弧度）。 |
+
+## getSpread
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取粒子发射器的方向扩散量（以弧度为单位）。
+
+**签名：**
+```tl
+getSpread: function(self: ParticleSystem): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 发射器的扩散（弧度）。 |
+
+## setSpeed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置粒子的速度。
+
+**签名：**
+```tl
+setSpeed: function(self: ParticleSystem, minimum: number, maximum?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| minimum | number | 粒子的最小线速度。 |
+| maximum | number | 粒子的最大线速度。 （默认值：分钟。） |
+
+## getSpeed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取粒子的速度。
+
+**签名：**
+```tl
+getSpeed: function(self: ParticleSystem): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 粒子的最小线速度。 |
+| number | 粒子的最大线速度。 |
+
+## setLinearAcceleration
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置粒子的线性加速度（沿x轴和y轴的加速度）。
+创建的每个粒子都会沿着 x 轴和 y 轴在 xmin,ymin 和 xmax,ymax 之间加速。
+
+**签名：**
+```tl
+setLinearAcceleration: function(self: ParticleSystem, xmin: number, ymin: number, xmax?: number, ymax?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| xmin | number | 沿 x 轴的最小加速度。 |
+| ymin | number | 沿 y 轴的最小加速度。 |
+| xmax | number | 沿 x 轴的最大加速度。 （默认值：xmin。） |
+| ymax | number | 沿 y 轴的最大加速度。 （默认值：ymin。） |
+
+## getLinearAcceleration
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取粒子的线性加速度（沿x轴和y轴的加速度）。
+创建的每个粒子都会沿着 x 轴和 y 轴在 xmin,ymin 和 xmax,ymax 之间加速。
+
+**签名：**
+```tl
+getLinearAcceleration: function(self: ParticleSystem): number, number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 沿 x 轴的最小加速度。 |
+| number | 沿 y 轴的最小加速度。 |
+| number | 沿 x 轴的最大加速度。 |
+| number | 沿 y 轴的最大加速度。 |
+
+## setRadialAcceleration
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置径向加速度（远离发射器）。
+
+**签名：**
+```tl
+setRadialAcceleration: function(self: ParticleSystem, minimum: number, maximum?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| minimum | number | 最小加速度。 |
+| maximum | number | 最大加速度。 （默认值：分钟。） |
+
+## getRadialAcceleration
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取径向加速度（远离发射器）。
+
+**签名：**
+```tl
+getRadialAcceleration: function(self: ParticleSystem): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 最小加速度。 |
+| number | 最大加速度。 |
+
+## setTangentialAcceleration
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置切向加速度（垂直于粒子方向的加速度）。
+
+**签名：**
+```tl
+setTangentialAcceleration: function(self: ParticleSystem, minimum: number, maximum?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| minimum | number | 最小加速度。 |
+| maximum | number | 最大加速度。 （默认值：分钟。） |
+
+## getTangentialAcceleration
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取切向加速度（垂直于粒子方向的加速度）。
+
+**签名：**
+```tl
+getTangentialAcceleration: function(self: ParticleSystem): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 最小加速度。 |
+| number | 最大加速度。 |
+
+## setLinearDamping
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置粒子的线性阻尼（恒定减速度）量。
+
+**签名：**
+```tl
+setLinearDamping: function(self: ParticleSystem, minimum: number, maximum?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| minimum | number | 应用于粒子的最小线性阻尼量。 |
+| maximum | number | 应用于粒子的最大线性阻尼量。 （默认值：分钟。） |
+
+## getLinearDamping
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取粒子的线性阻尼（恒定减速度）量。
+
+**签名：**
+```tl
+getLinearDamping: function(self: ParticleSystem): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 应用于粒子的最小线性阻尼量。 |
+| number | 应用于粒子的最大线性阻尼量。 |
+
+## setSizes
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置一系列用于缩放粒子精灵的尺寸。 1.0是正常尺寸。粒子系统将在粒子的生命周期内均匀地在每个尺寸之间进行插值。
+必须至少指定一种尺寸。最多可以使用八个。
+
+**签名：**
+```tl
+setSizes: function(self: ParticleSystem, sizes: number...)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| sizes | number... | 第一个尺寸。 |
+
+## getSizes
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取精灵缩放的一系列尺寸。 1.0是正常尺寸。粒子系统将在粒子的生命周期内均匀地在每个尺寸之间进行插值。
+
+**签名：**
+```tl
+getSizes: function(self: ParticleSystem): number...
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number... | 第一个尺寸。 |
+
+## setSizeVariation
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置大小变化量（0 表示没有变化，1 表示开始和结束之间完全变化）。
+
+**签名：**
+```tl
+setSizeVariation: function(self: ParticleSystem, variation: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| variation | number | 变化量（0 表示没有变化，1 表示开始和结束之间完全变化）。 |
+
+## getSizeVariation
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取大小变化量（0 表示没有变化，1 表示开始和结束之间完全变化）。
+
+**签名：**
+```tl
+getSizeVariation: function(self: ParticleSystem): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 变化量（0 表示没有变化，1 表示开始和结束之间完全变化）。 |
+
+## setRotation
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置粒子创建时图像的旋转（以弧度为单位）。
+
+**签名：**
+```tl
+setRotation: function(self: ParticleSystem, minimum: number, maximum?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| minimum | number | 最小初始角度（弧度）。 |
+| maximum | number | 最大初始角度（弧度）。 （默认值：分钟。） |
+
+## getRotation
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取粒子创建时图像的旋转（以弧度为单位）。
+
+**签名：**
+```tl
+getRotation: function(self: ParticleSystem): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 最小初始角度（弧度）。 |
+| number | 最大初始角度（弧度）。 |
+
+## setSpin
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置精灵的旋转。
+
+**签名：**
+```tl
+setSpin: function(self: ParticleSystem, start: number, finish?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| start | number | 最小旋转（弧度每秒）。 |
+| finish | number | 最大旋转（弧度每秒）。 （默认值：分钟。） |
+
+## getSpin
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取精灵的旋转。
+
+**签名：**
+```tl
+getSpin: function(self: ParticleSystem): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 最小旋转（弧度每秒）。 |
+| number | 最大旋转（弧度每秒）。 |
+
+## setSpinVariation
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置旋转变化量（0 表示无变化，1 表示开始和结束之间完全变化）。
+
+**签名：**
+```tl
+setSpinVariation: function(self: ParticleSystem, variation: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| variation | number | 变化量（0 表示没有变化，1 表示开始和结束之间完全变化）。 |
+
+## getSpinVariation
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取旋转变化量（0 表示无变化，1 表示开始和结束之间的完全变化）。
+
+**签名：**
+```tl
+getSpinVariation: function(self: ParticleSystem): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 变化量（0 表示没有变化，1 表示开始和结束之间完全变化）。 |
+
+## setOffset
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置粒子精灵旋转的偏移位置。
+如果不使用此功能，粒子将绕其中心旋转。
+
+**签名：**
+```tl
+setOffset: function(self: ParticleSystem, x: number, y: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 旋转偏移的x坐标。 |
+| y | number | 旋转偏移的 y 坐标。 |
+
+## getOffset
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取粒子图像的绘制偏移量。
+
+**签名：**
+```tl
+getOffset: function(self: ParticleSystem): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 粒子图像绘制偏移的x坐标。 |
+| number | 粒子图像绘制偏移的 y 坐标。 |
+
+## setColors
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置一系列应用于粒子精灵的颜色。粒子系统将在粒子的生命周期内均匀地在每种颜色之间进行插值。
+参数可以以四个为一组传递，代表所需 RGBA 值的分量，或者作为 RGBA 分量值表，如果仅给出三个值，则默认 alpha 值为 1。必须至少指定一种颜色。最多可以使用八个。
+在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+setColors: function(self: ParticleSystem, colors: any...)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| colors | any... | 第一种颜色，一个数字索引表，其中红色、绿色、蓝色和 alpha 值作为数字 (0-1)。 alpha 是可选的，如果省略则默认为 1。 |
+
+## getColors
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取应用于粒子精灵的一系列颜色。
+在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+getColors: function(self: ParticleSystem): {number}...
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{number}... | 第一种颜色，红色分量 (0-1)。 |
+
+## setQuads
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置一系列用于粒子精灵的四边形。粒子将根据粒子当前的生命周期从列表中选择一个四边形，从而允许将动画精灵表与粒子系统一起使用。
+
+**签名：**
+```tl
+setQuads: function(self: ParticleSystem, quads: any...)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| quads | any... | 包含要使用的四边形的表。 |
+
+## getQuads
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取用于粒子精灵的四边形系列。
+
+**签名：**
+```tl
+getQuads: function(self: ParticleSystem): {Quad}
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{Quad} | 包含所使用的四边形的表。 |
+
+## setRelativeRotation
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置粒子角度和旋转是否与其速度相关。如果启用，粒子将与其速度角度对齐并相对于该角度旋转。
+
+**签名：**
+```tl
+setRelativeRotation: function(self: ParticleSystem, enabled: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| enabled | boolean | true 则启用相对粒子旋转， false 则禁用它。 |
+
+## hasRelativeRotation
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取粒子角度和旋转是否与其速度相关。如果启用，粒子将与其速度角度对齐并相对于该角度旋转。
+
+**签名：**
+```tl
+hasRelativeRotation: function(self: ParticleSystem): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果启用相对粒子旋转则为 True，如果禁用则为 false。 |
+
+## getCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前系统中的粒子数。
+
+**签名：**
+```tl
+getCount: function(self: ParticleSystem): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 当前活动粒子的数量。 |
+
+## start
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;启动粒子发射器。
+
+**签名：**
+```tl
+start: function(self: ParticleSystem)
+```
+
+## stop
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;停止粒子发射器，重置生命周期计数器。
+
+**签名：**
+```tl
+stop: function(self: ParticleSystem)
+```
+
+## pause
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;暂停粒子发射器。
+
+**签名：**
+```tl
+pause: function(self: ParticleSystem)
+```
+
+## reset
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;重置粒子发射器，删除任何现有粒子并重置生命周期计数器。
+
+**签名：**
+```tl
+reset: function(self: ParticleSystem)
+```
+
+## emit
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从粒子发射器中发射出一阵粒子。
+
+**签名：**
+```tl
+emit: function(self: ParticleSystem, count: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| count | integer | 要发射的粒子数量。如果达到粒子系统的最大缓冲区大小，发射的粒子数量将被截断。 |
+
+## isActive
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查粒子系统是否正在主动发射粒子。
+
+**签名：**
+```tl
+isActive: function(self: ParticleSystem): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果系统处于活动状态，则为 true，否则为 false。 |
+
+## isPaused
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查粒子系统是否暂停。
+
+**签名：**
+```tl
+isPaused: function(self: ParticleSystem): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果系统暂停则为 true，否则为 false。 |
+
+## isStopped
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查粒子系统是否停止。
+
+**签名：**
+```tl
+isStopped: function(self: ParticleSystem): boolean
+	isEmpty: function(self: ParticleSystem): boolean
+	isFull: function(self: ParticleSystem): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果系统停止则为 true，否则为 false。 |
+
+## update
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;更新粒子系统；移动、产生和杀死粒子。
+
+**签名：**
+```tl
+update: function(self: ParticleSystem, delta_time: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| delta_time | number | 自上一帧以来的时间（秒）。 |

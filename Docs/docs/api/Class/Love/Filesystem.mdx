@@ -1,0 +1,901 @@
+# Filesystem
+
+**Description:**
+
+&emsp;&emsp;Provides an interface to the user's filesystem.
+
+## setIdentity
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the write directory for your game.
+Note that you can only set the name of the folder to store your files in, not the location.
+
+**Signature:**
+```tl
+setIdentity: function(identity: string, append_to_path?: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| identity | string | The new identity that will be used as write directory. |
+| append_to_path | boolean | The append_to_path parameter. |
+
+## getIdentity
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the write directory name for your game.
+Note that this only returns the name of the folder to store your files in, not the full path.
+
+**Signature:**
+```tl
+getIdentity: function(): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The identity that is used as write directory. |
+
+## getSource
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the full path to the the .love file or directory. If the game is fused to the LÖVE executable, then the
+executable is returned.
+
+**Signature:**
+```tl
+getSource: function(): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The full platform-dependent path of the .love file or directory. |
+
+## getSaveDirectory
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the full path to the designated save directory.
+This can be useful if you want to use the standard io library (or something else) to
+read or write in the save directory.
+
+**Signature:**
+```tl
+getSaveDirectory: function(): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The absolute path to the save directory. |
+
+## getWorkingDirectory
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current working directory.
+
+**Signature:**
+```tl
+getWorkingDirectory: function(): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The current working directory. |
+
+## getUserDirectory
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the path of the user's directory
+
+**Signature:**
+```tl
+getUserDirectory: function(): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The path of the user's directory |
+
+## getAppdataDirectory
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the application data directory (could be the same as getUserDirectory)
+
+**Signature:**
+```tl
+getAppdataDirectory: function(): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The path of the application data directory |
+
+## getSourceBaseDirectory
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the full path to the directory containing the .love file. If the game is fused to the LÖVE executable,
+then the directory containing the executable is returned.
+If love.filesystem.isFused is true, the path returned by this function can be passed to love.filesystem.mount,
+which will make the directory containing the main game (e.g. C:\Program Files\coolgame\) readable by
+love.filesystem.
+
+**Signature:**
+```tl
+getSourceBaseDirectory: function(): string
+	getExecutablePath: function(): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The full platform-dependent path of the directory containing the .love file. |
+
+## getRealDirectory
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the platform-specific absolute path of the directory containing a filepath.
+This can be used to determine whether a file is inside the save directory or the game's source .love.
+Overload details:
+1. This function returns the directory containing the given ''file path'', rather than file. For example, if the
+file screenshot1.png exists in a directory called screenshots in the game's save directory,
+love.filesystem.getRealDirectory('screenshots/screenshot1.png') will return the same value as
+love.filesystem.getSaveDirectory.
+
+**Signature:**
+```tl
+getRealDirectory: function(filename: string): string | nil, string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The filepath to get the directory of. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string or nil | The platform-specific full path of the directory containing the filepath. |
+
+## getRequirePath
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the filesystem paths that will be searched when require is called.
+The paths string returned by this function is a sequence of path templates separated by semicolons. The argument
+passed to ''require'' will be inserted in place of any question mark ('?') character in each template (after the
+dot characters in the argument passed to ''require'' are replaced by directory separators.)
+The paths are relative to the game's source and save directories, as well as any paths mounted with
+love.filesystem.mount.
+Overload details:
+1. The default paths string is '?.lua;?/init.lua', which makes require('cool') try to load cool.lua and then try
+cool/init.lua if cool.lua doesn't exist.
+
+**Signature:**
+```tl
+getRequirePath: function(): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The paths that the ''require'' function will check in love's filesystem. |
+
+## setRequirePath
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the filesystem paths that will be searched when require is called.
+The paths string given to this function is a sequence of path templates separated by semicolons. The argument
+passed to ''require'' will be inserted in place of any question mark ('?') character in each template (after the
+dot characters in the argument passed to ''require'' are replaced by directory separators.)
+The paths are relative to the game's source and save directories, as well as any paths mounted with
+love.filesystem.mount.
+Overload details:
+1. The default paths string is '?.lua;?/init.lua', which makes require('cool') try to load cool.lua and then try
+cool/init.lua if cool.lua doesn't exist.
+
+**Signature:**
+```tl
+setRequirePath: function(path: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The paths that the ''require'' function will check in love's filesystem. |
+
+## mount
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Mounts a zip file or folder in the game's save directory for reading.
+
+	-- It is also possible to mount love.filesystem.getSourceBaseDirectory if the game is in fused mode.
+
+**Signature:**
+```tl
+mount: function(archive: string, mountpoint: string, append_to_path?: boolean): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| archive | string | The folder or zip file in the game's save directory to mount. |
+| mountpoint | string | The new path the archive will be mounted to. |
+| append_to_path | boolean | Whether the archive will be searched when reading a filepath before or after already-mounted archives. This includes the game's source and save directories. (Default: false.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | success — True if the archive was successfully mounted, false otherwise. |
+
+## mount
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Mounts a zip file or folder in the game's save directory for reading.
+
+	-- It is also possible to mount love.filesystem.getSourceBaseDirectory if the game is in fused mode.
+
+**Signature:**
+```tl
+mount: function(archive: FileData, mountpoint: string, append_to_path?: boolean): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| archive | FileData | The folder or zip file in the game's save directory to mount. |
+| mountpoint | string | The new path the archive will be mounted to. |
+| append_to_path | boolean | Whether the archive will be searched when reading a filepath before or after already-mounted archives. This includes the game's source and save directories. (Default: false.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | success — True if the archive was successfully mounted, false otherwise. |
+
+## unmount
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Unmounts a zip file or folder previously mounted for reading with love.filesystem.mount.
+
+**Signature:**
+```tl
+unmount: function(archive: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| archive | string | The folder or zip file in the game's save directory which is currently mounted. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | success — True if the archive was successfully unmounted, false otherwise. |
+
+## unmount
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Unmounts a zip file or folder previously mounted for reading with love.filesystem.mount.
+
+**Signature:**
+```tl
+unmount: function(archive: FileData): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| archive | FileData | The folder or zip file in the game's save directory which is currently mounted. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | success — True if the archive was successfully unmounted, false otherwise. |
+
+## isFused
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether the game is in fused mode or not.
+If a game is in fused mode, its save directory will be directly in the Appdata directory instead of Appdata/LOVE/.
+The game will also be able to load C Lua dynamic libraries which are located in the save directory.
+A game is in fused mode if the source .love has been fused to the executable (see Game Distribution), or if
+'--fused' has been given as a command-line argument when starting the game.
+
+**Signature:**
+```tl
+isFused: function(): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the game is in fused mode, false otherwise. |
+
+## newFile
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new File object.
+
+	-- It needs to be opened before it can be accessed.
+
+**Signature:**
+```tl
+newFile: function(filename: string): File
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The filename of the file. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| File | file — The new File object. |
+
+## newFile
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new File object.
+
+	-- It needs to be opened before it can be accessed.
+
+**Signature:**
+```tl
+newFile: function(filename: string, mode: OpenFileMode): File
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The filename of the file. |
+| mode | OpenFileMode | The mode to open the file in. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| File | The new File object, or nil if an error occurred. |
+
+## newFileData
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new FileData object from a file on disk, or from a string in memory.
+
+**Signature:**
+```tl
+newFileData: function(filename: string): FileData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | Path to the file. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| FileData | data — The new FileData. |
+
+## newFileData
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new FileData object from a file on disk, or from a string in memory.
+
+**Signature:**
+```tl
+newFileData: function(file: File): FileData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| file | File | Path to the file. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| FileData | The new FileData, or nil if an error occurred. |
+
+## newFileData
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new FileData object from a file on disk, or from a string in memory.
+
+**Signature:**
+```tl
+newFileData: function(data: string, filename: string): FileData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| data | string | The Data object to copy into the new FileData object. |
+| filename | string | The name of the file. The extension may be parsed and used by LÖVE when passing the FileData object into love.audio.newSource. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| FileData | The new FileData, or nil if an error occurred. |
+
+## read
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Read the contents of a file.
+
+**Signature:**
+```tl
+read: function(filename: string, size?: integer): string | nil, number | string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name (and path) of the file. |
+| size | integer | How many bytes to read. (Default: all.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string \| nil | contents — The file contents. |
+| number \| string | size — How many bytes have been read. |
+
+## read
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Read the contents of a file.
+
+**Signature:**
+```tl
+read: function(container: string, filename: string, size?: integer): string | nil, number | string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| container | string | What type to return the file's contents as. |
+| filename | string | The name (and path) of the file |
+| size | integer | How many bytes to read (Default: all.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string \| nil | returns nil as content. |
+| number \| string | size — How many bytes have been read. |
+
+## read
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Read the contents of a file.
+
+**Signature:**
+```tl
+read: function(container: string, filename: string, size?: integer): FileData | nil, number | string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| container | string | What type to return the file's contents as. |
+| filename | string | The name (and path) of the file |
+| size | integer | How many bytes to read (Default: all.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| FileData \| nil | FileData or string containing the file contents. |
+| number \| string | size — How many bytes have been read. |
+
+## load
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Loads a Lua file (but does not run it).
+
+**Signature:**
+```tl
+load: function(filename: string): function | nil, string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name (and path) of the file. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| function | The loaded chunk. |
+| string or nil | The error message if file could not be opened. |
+
+## lines
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Iterate over the lines in a file.
+
+**Signature:**
+```tl
+lines: function(filename: string): function(): string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name (and path) of the file |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| function or string or nil | A function that iterates over all the lines in the file |
+
+## write
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Write data to a file in the save directory. If the file existed already, it will be completely replaced by the new contents.
+
+**Signature:**
+```tl
+write: function(filename: string, data: string, size?: integer): boolean, string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name (and path) of the file. |
+| data | string | The string data to write to the file. |
+| size | integer | How many bytes to write. (Default: all.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | success — If the operation was successful. |
+| string \| nil | message — Error message if operation was unsuccessful. |
+
+## write
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Write data to a file in the save directory. If the file existed already, it will be completely replaced by the new contents.
+
+**Signature:**
+```tl
+write: function(filename: string, data: FileData, size?: integer): boolean, string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name (and path) of the file. |
+| data | FileData | The Data object to write to the file. |
+| size | integer | How many bytes to write. (Default: all.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | success — If the operation was successful. |
+| string \| nil | message — Error message if operation was unsuccessful. |
+
+## append
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Append data to an existing file.
+
+**Signature:**
+```tl
+append: function(filename: string, data: string, size?: integer): boolean, string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name (and path) of the file. |
+| data | string | The string data to append to the file. |
+| size | integer | How many bytes to write. (Default: all.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | success — True if the operation was successful, or nil if there was an error. |
+| string \| nil | errormsg — The error message on failure. |
+
+## append
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Append data to an existing file.
+
+**Signature:**
+```tl
+append: function(filename: string, data: FileData, size?: integer): boolean, string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name (and path) of the file. |
+| data | FileData | The Data object to append to the file. |
+| size | integer | How many bytes to write. (Default: all.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | success — True if the operation was successful, or nil if there was an error. |
+| string \| nil | errormsg — The error message on failure. |
+
+## getInfo
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets information about the specified file or directory.
+
+**Signature:**
+```tl
+getInfo: function(filename: string): FileInfo | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The file or directory path to check. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| FileInfo \| nil | info — A table containing information about the specified path, or nil if nothing exists at the path. The table contains the following fields: |
+
+## getInfo
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets information about the specified file or directory.
+
+**Signature:**
+```tl
+getInfo: function(filename: string, filter_type: FileType): FileInfo | nil
+	exists: function(filename: string): boolean
+	isDirectory: function(filename: string): boolean
+	isFile: function(filename: string): boolean
+	isSymlink: function(filename: string): boolean
+	getLastModified: function(filename: string): number | nil, string | nil
+	getSize: function(filename: string): number | nil, string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The file or directory path to check. |
+| filter_type | FileType | Causes getInfo to only return the info table if the item at the given path matches the specified file type. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| FileInfo \| nil | The table given as an argument, or nil if nothing exists at the path. The table will be filled in with the following fields: |
+
+## createDirectory
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Recursively creates a directory.
+When called with 'a/b' it creates both 'a' and 'a/b', if they don't exist already.
+
+**Signature:**
+```tl
+createDirectory: function(name: string): boolean, string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The directory to create. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the directory was created, false if not. |
+
+## remove
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes a file or empty directory.
+Overload details:
+1. The directory must be empty before removal or else it will fail. Simply remove all files and folders in the
+directory beforehand. If the file exists in the .love but not in the save directory, it returns false as
+well. An opened File prevents removal of the underlying file. Simply close the File to remove it.
+
+**Signature:**
+```tl
+remove: function(name: string): boolean, string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | The file or directory to remove. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the file/directory was removed, false otherwise. |
+
+## getDirectoryItems
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns a table with the names of files and subdirectories in the specified path. The table is not sorted in any
+way; the order is undefined.
+If the path passed to the function exists in the game and the save directory, it will list the files and
+directories from both places.
+
+**Signature:**
+```tl
+getDirectoryItems: function(directory?: string): {string}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| directory | string | The directory. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{string} | A sequence with the names of all files and subdirectories as strings. |

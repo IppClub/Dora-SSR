@@ -1,0 +1,1040 @@
+# Source
+
+**描述：**
+
+&emsp;&emsp;Source 代表您可以播放的音频。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: Source): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: Source, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: Source): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## clone
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建处于停止状态的源的相同副本。
+静态源将使用显着更少的内存，并且创建它们所需的时间也更少，因此在制作播放相同声音的多个源时应首选此方法。
+重载说明：
+1. 克隆源继承原始源的所有可设置状态，但它们被初始化为停止状态。
+
+**签名：**
+```tl
+clone: function(self: Source): Source
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Source | 此源的新的相同副本。 |
+
+## play
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;开始播放源。
+
+**签名：**
+```tl
+play: function(self: Source): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | Source是否能够成功开始播放。 |
+
+## pause
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;暂停源。
+
+**签名：**
+```tl
+pause: function(self: Source)
+```
+
+## stop
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;停止源。
+
+**签名：**
+```tl
+stop: function(self: Source)
+```
+
+## isPlaying
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回源是否正在播放。
+
+**签名：**
+```tl
+isPlaying: function(self: Source): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果源正在播放则为 true，否则为 false。 |
+
+## isStopped
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回此 Source 是否处于停止状态。此方法是兼容旧版 LÖVE 的废弃接口，仅当 Source 既未播放也未暂停时返回 true。
+
+**签名：**
+```tl
+isStopped: function(self: Source): boolean
+	isPaused: function(self: Source): boolean
+```
+
+## setLooping
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置源是否应循环。
+
+**签名：**
+```tl
+setLooping: function(self: Source, looping: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| looping | boolean | 如果源应该循环则为 true，否则为 false。 |
+
+## isLooping
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回 Source 是否循环。
+
+**签名：**
+```tl
+isLooping: function(self: Source): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果源将循环则为 true，否则为 false。 |
+
+## setVolume
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置源的当前音量。
+
+**签名：**
+```tl
+setVolume: function(self: Source, volume: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| volume | number | 源的音量，其中 1.0 是正常音量。音量不能调高到 1.0 以上。 |
+
+## getVolume
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取源的当前音量。
+
+**签名：**
+```tl
+getVolume: function(self: Source): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 源的音量，其中 1.0 是正常音量。 |
+
+## setPitch
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置源的音高。
+
+**签名：**
+```tl
+setPitch: function(self: Source, pitch: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| pitch | number | 以 1 为基距计算。每降低 50% 就等于音高移动 -12 个半音（降低一个八度）。每次加倍等于音高移动 12 个半音（增加一个八度）。零不是合法值。 |
+
+## getPitch
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取源的当前音高。
+
+**签名：**
+```tl
+getPitch: function(self: Source): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 音高，其中 1.0 为正常值。 |
+
+## seek
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置源的当前播放位置。
+
+**签名：**
+```tl
+seek: function(self: Source, offset: number, unit?: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| offset | number | 要寻求的位置。 |
+| unit | string | 位置值的单位。 （默认：'seconds'。） |
+
+## tell
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取Source 当前的播放位置。
+
+**签名：**
+```tl
+tell: function(self: Source, unit?: string): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| unit | string | 返回值的单位类型。 （默认：'seconds'。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 源的当前播放位置。 |
+
+## getDuration
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取源的持续时间。对于流源，它可能并不总是样本准确的，并且如果根本无法确定持续时间，则可能返回 -1。
+
+**签名：**
+```tl
+getDuration: function(self: Source, unit?: string): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| unit | string | 返回值的时间单位。 （默认：'seconds'。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 源的持续时间，如果无法确定则为 -1。 |
+
+## getChannelCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取源中的通道数。只有 1 通道（单声道）源可以使用方向和位置效果。
+
+**签名：**
+```tl
+getChannelCount: function(self: Source): integer
+	getChannels: function(self: Source): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 1 用于单声道，2 用于立体声。 |
+
+## getFreeBufferCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取可排队源中的空闲缓冲区槽数。如果可排队源正在播放，则该值将增加到创建源时所用的数量。如果可排队源停止，它将首先处理其所有内部缓冲区，在这种情况下，该函数将始终返回其创建时所用的数量。
+
+**签名：**
+```tl
+getFreeBufferCount: function(self: Source): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 还有多少个 SoundData 对象可以排队。 |
+
+## queue
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将 SoundData 排队以便在可排队源中播放。
+
+	-- 此方法需要通过 love.audio.newQueueableSource. 创建源
+
+**签名：**
+```tl
+queue: function(self: Source, data: SoundData, length?: number): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| data | SoundData | 要排队的数据。 SoundData 的采样率、位深度和通道数必须与 Source 相匹配。 |
+| length | number | 要排队的字节数。（默认值：全部剩余数据。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | success — 如果数据已成功排队播放，则为 true；如果没有可用于排队的可用缓冲区，则为 false。 |
+
+## queue
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将 SoundData 排队以便在可排队源中播放。
+
+	-- 此方法需要通过 love.audio.newQueueableSource. 创建源
+
+**签名：**
+```tl
+queue: function(self: Source, data: SoundData, offset: number, length: number): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| data | SoundData | 要排队的数据。 SoundData 的采样率、位深度和通道数必须与 Source 相匹配。 |
+| offset | number | 开始排队数据的字节偏移量。 |
+| length | number | 要排队的字节数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | success — 如果数据已成功排队播放，则为 true；如果没有可用于排队的可用缓冲区，则为 false。 |
+
+## setPosition
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置源的位置。请注意，这仅适用于单声道（即非立体声）声音文件！
+
+**签名：**
+```tl
+setPosition: function(self: Source, x: number, y: number, z?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 源的 X 位置。 |
+| y | number | 源的 Y 位置。 |
+| z | number | 源的 Z 位置。 |
+
+## getPosition
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取源的位置。
+
+**签名：**
+```tl
+getPosition: function(self: Source): number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 源的 X 位置。 |
+| number | 源的 Y 位置。 |
+| number | 源的 Z 位置。 |
+
+## setVelocity
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置源的速度。
+这确实“'not'”改变了源的位置，但让应用程序知道它如何计算多普勒效应。
+
+**签名：**
+```tl
+setVelocity: function(self: Source, x: number, y: number, z?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 速度矢量的 X 部分。 |
+| y | number | 速度矢量的 Y 部分。 |
+| z | number | 速度矢量的 Z 部分。 |
+
+## getVelocity
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取源的速度。
+
+**签名：**
+```tl
+getVelocity: function(self: Source): number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 速度矢量的 X 部分。 |
+| number | 速度矢量的 Y 部分。 |
+| number | 速度矢量的 Z 部分。 |
+
+## setDirection
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置源的方向向量。零矢量使源无方向性。
+
+**签名：**
+```tl
+setDirection: function(self: Source, x: number, y: number, z?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 方向向量的X部分。 |
+| y | number | 方向向量的Y部分。 |
+| z | number | 方向向量的 Z 部分。 |
+
+## getDirection
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取源的方向。
+
+**签名：**
+```tl
+getDirection: function(self: Source): number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 方向向量的X部分。 |
+| number | 方向向量的Y部分。 |
+| number | 方向向量的 Z 部分。 |
+
+## setCone
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置源的定向体积锥体。与 Source:setDirection 一起，锥角允许源的体积根据其方向而变化。
+
+**签名：**
+```tl
+setCone: function(self: Source, inner_angle: number, outer_angle: number, outer_volume?: number, outer_high_gain?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| inner_angle | number | 与源方向的内角，以弧度为单位。如果听者位于此角度定义的圆锥体内，则源将以正常音量播放。 |
+| outer_angle | number | 与源方向的外角，以弧度为单位。如果听者位于由内角和外角定义的锥体之间，则源将以正常音量和外音量之间的音量播放。 |
+| outer_volume | number | 当听者位于内锥角和外锥角之外时源的音量。 （默认值：0。） |
+| outer_high_gain | number | outer_high_gain 参数。 |
+
+## getCone
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取源的定向体积锥体。与 Source:setDirection 一起，锥角允许源的体积根据其方向而变化。
+
+**签名：**
+```tl
+getCone: function(self: Source): number, number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 与源方向的内角，以弧度为单位。如果听者位于此角度定义的圆锥体内，则源将以正常音量播放。 |
+| number | 与源方向的外角，以弧度为单位。如果听者位于由内角和外角定义的锥体之间，则源将以正常音量和外音量之间的音量播放。 |
+| number | 当听者位于内锥角和外锥角之外时源的音量。 |
+
+## setAirAbsorption
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置应用于源的空气吸收量。
+默认情况下，该值设置为 0，这意味着空气吸收效果被禁用。值为 1 将以每米 0.05 dB 的速率对源应用高频衰减。
+空气吸收可以模拟声音在雾气、干燥空气、烟雾气氛等中的传播。它可以用来模拟一个区域内不同地点的不同大气条件。
+重载说明：
+1. iOS 不支持音频空气吸收功能。
+
+**签名：**
+```tl
+setAirAbsorption: function(self: Source, factor: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| factor | number | 应用于源的空气吸收量。必须介于 0 和 10 之间。 |
+
+## getAirAbsorption
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取应用于源的空气吸收量。
+默认情况下，该值设置为 0，这意味着空气吸收效果被禁用。值为 1 将以每米 0.05 dB 的速率对源应用高频衰减。
+重载说明：
+1. iOS 不支持音频空气吸收功能。
+
+**签名：**
+```tl
+getAirAbsorption: function(self: Source): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 应用于源的空气吸收量。 |
+
+## setVolumeLimits
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置源的音量限制。限制必须是 0 到 1 之间的数字。
+
+**签名：**
+```tl
+setVolumeLimits: function(self: Source, min_volume: number, max_volume: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| min_volume | number | 最小音量。 |
+| max_volume | number | 最大音量。 |
+
+## getVolumeLimits
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回源的音量限制。
+
+**签名：**
+```tl
+getVolumeLimits: function(self: Source): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 最小音量。 |
+| number | 最大音量。 |
+
+## setRelative
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置源的位置、速度、方向和锥角是相对于听者的还是绝对的。
+默认情况下，所有源都是绝对源，因此相对于爱的坐标系 0, 0 的原点。只有绝对源才会受到听者位置的影响。请注意，位置音频仅适用于单声道（即非立体声）源。
+
+**签名：**
+```tl
+setRelative: function(self: Source, relative: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| relative | boolean | True 使位置、速度、方向和锥角相对于听者，为 false 使它们绝对。 （默认值：假。） |
+
+## isRelative
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取Source 的位置、速度、方向和锥角是否相对于听者。
+
+**签名：**
+```tl
+isRelative: function(self: Source): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果位置、速度、方向和锥角是相对于听者的，则为 true；如果是绝对的，则为 false。 |
+
+## setAttenuationDistances
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置源的参考距离和最大衰减距离。这些参数与当前的 DistanceModel 相结合，会影响源的音量如何根据距离衰减。
+距离衰减仅适用于基于单声道（而不是立体声）音频的源。
+
+**签名：**
+```tl
+setAttenuationDistances: function(self: Source, reference_distance: number, max_distance: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| reference_distance | number | 新的参考衰减距离。如果当前距离模型被钳位，则这是最小衰减距离。 |
+| max_distance | number | 新的最大衰减距离。 |
+
+## getAttenuationDistances
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取源的参考距离和最大衰减距离。这些值与当前的 DistanceModel 相结合，会影响源的音量如何根据距收听者的距离衰减。
+
+**签名：**
+```tl
+getAttenuationDistances: function(self: Source): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 当前参考衰减距离。如果当前距离模型被钳制，则这是源不再衰减之前的最小距离。 |
+| number | 当前最大衰减距离。 |
+
+## setRolloff
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置影响所用距离衰减强度的滚降系数。
+扩展信息和详细公式可以在OpenAL 1.1规范的'3.4. Attenuation By Distance'章节中找到。
+
+**签名：**
+```tl
+setRolloff: function(self: Source, rolloff: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| rolloff | number | 新的滚降因子。 |
+
+## getRolloff
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回源的滚降系数。
+
+**签名：**
+```tl
+getRolloff: function(self: Source): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 滚降因子。 |
+
+## setFilter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置播放源时要应用的低通、高通或带通滤波器。
+
+**签名：**
+```tl
+setFilter: function(self: Source): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | success — 过滤器是否成功应用于源。 |
+
+## setFilter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置播放源时要应用的低通、高通或带通滤波器。
+
+**签名：**
+```tl
+setFilter: function(self: Source, filter: AudioFilterSettings): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filter | AudioFilterSettings | 用于此源的过滤器设置，具有以下字段： |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | success — 过滤器是否成功应用于源。 |
+
+## getFilter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前应用于源的过滤器设置。
+
+**签名：**
+```tl
+getFilter: function(self: Source, target?: AudioFilterSettings): AudioFilterSettings | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| target | AudioFilterSettings | target 参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| AudioFilterSettings or nil | 用于此源的过滤器设置，如果源没有活动过滤器则为零。该表具有以下字段： |
+
+## setEffect
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将音频效果应用于源。
+
+	-- 该效果必须事先使用 love.audio.setEffect.
+
+**签名：**
+```tl
+setEffect: function(self: Source, name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 之前使用 love.audio.setEffect. 设置的效果名称 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | success — 效果是否成功应用于此源。 |
+
+## setEffect
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将音频效果应用于源。
+
+	-- 该效果必须事先使用 love.audio.setEffect.
+
+**签名：**
+```tl
+setEffect: function(self: Source, name: string, enabled: boolean): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 之前使用 love.audio.setEffect. 设置的效果名称 |
+| enabled | boolean | 是否启用该效果。传入 false 会禁用已激活的效果。（默认值：true。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | success — 效果是否成功应用于此源。 |
+
+## setEffect
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将音频效果应用于源。
+
+	-- 该效果必须事先使用 love.audio.setEffect.
+
+**签名：**
+```tl
+setEffect: function(self: Source, name: string, enabled: AudioFilterSettings): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 之前使用 love.audio.setEffect. 设置的效果名称 |
+| enabled | AudioFilterSettings | 在效果之前应用的过滤器设置，具有以下字段： |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 效果和滤波器是否成功应用于此源。 |
+
+## getEffect
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取与特定效果关联的过滤器设置。
+如果应用效果时没有与其关联的滤镜设置，则此函数返回 nil。
+
+**签名：**
+```tl
+getEffect: function(self: Source, name: string, target?: AudioFilterSettings): boolean, AudioFilterSettings | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 效果的名称。 |
+| target | AudioFilterSettings | 一个可选的空表，将填充过滤器设置。 （默认值：\{}。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 与此效果关联的过滤器的设置，如果此源中不存在该效果或没有关联的过滤器，则为零。该表具有以下字段： |
+
+## getActiveEffects
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取源的活动效果名称列表。
+
+**签名：**
+```tl
+getActiveEffects: function(self: Source): {string}
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{string} | 源的活动效果名称列表。 |
+
+## getType
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取源的类型。
+
+**签名：**
+```tl
+getType: function(self: Source): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 源的类型。 |

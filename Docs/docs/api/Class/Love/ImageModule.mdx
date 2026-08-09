@@ -1,0 +1,134 @@
+# ImageModule
+
+**Description:**
+
+&emsp;&emsp;Provides an interface to decode encoded image data.
+
+## newImageData
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new ImageData object.
+
+**Signature:**
+```tl
+newImageData: function(width: number, height: integer, format?: ImagePixelFormat, data?: string | FileData): ImageData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| width | number | The width of the ImageData. |
+| height | integer | The height of the ImageData. |
+| format | ImagePixelFormat | The pixel format of the ImageData. (Default: 'rgba8'.) |
+| data | string | FileData | Optional raw byte data to load into the ImageData, in the format specified by ''format''. (Default: nil.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ImageData | imageData — The new blank ImageData object. Each pixel's color values, (including the alpha values!) will be set to zero. |
+
+## newImageData
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new ImageData object.
+
+**Signature:**
+```tl
+newImageData: function(filename: string): ImageData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The filename of the image file. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ImageData | The new ImageData object. |
+
+## newImageData
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new ImageData object.
+
+**Signature:**
+```tl
+newImageData: function(data: FileData): ImageData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| data | FileData | The data to load into the ImageData (RGBA bytes, left to right and top to bottom). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ImageData | The new ImageData object. |
+
+## newCompressedData
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a new CompressedImageData object from a compressed image file. LÖVE supports several compressed texture
+formats, enumerated in the CompressedImageFormat page.
+
+**Signature:**
+```tl
+newCompressedData: function(filename_or_data: string | FileData): CompressedImageData
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename_or_data | string or FileData | The filename of the compressed image file. Depending on the overload: A FileData containing a compressed image. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| CompressedImageData | The new CompressedImageData object. |
+
+## isCompressed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Determines whether a file can be loaded as CompressedImageData.
+
+**Signature:**
+```tl
+isCompressed: function(filename_or_data: string | FileData): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename_or_data | string or FileData | The filename of the potentially compressed image file. Depending on the overload: A FileData potentially containing a compressed image. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the file can be loaded as CompressedImageData or not. Depending on the overload: Whether the FileData can be loaded as CompressedImageData or not. |

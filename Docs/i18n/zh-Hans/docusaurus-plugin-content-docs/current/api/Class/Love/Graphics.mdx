@@ -1,0 +1,3196 @@
+# Graphics
+
+**描述：**
+
+&emsp;&emsp;love.graphics 模块的主要职责是将线条、形状、文本、图像和其他可绘制对象绘制到屏幕上。它的次要职责包括将外部文件（包括图像和字体）加载到内存中、创建专用对象（例如粒子系统或画布）以及管理屏幕几何形状。
+
+## clear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将屏幕或活动画布清除为指定颜色。
+
+	-- 在默认的 love.run 函数中，该函数在 love.draw 之前自动调用。有关此函数的典型用法，请参阅 love.run 中的示例。
+
+	-- 请注意，剪刀区域限制了清除区域。
+
+	-- 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+	-- 在背景颜色之前的版本中。
+
+**签名：**
+```tl
+clear: function()
+```
+
+## clear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将屏幕或活动画布清除为指定颜色。
+
+	-- 在默认的 love.run 函数中，该函数在 love.draw 之前自动调用。有关此函数的典型用法，请参阅 love.run 中的示例。
+
+	-- 请注意，剪刀区域限制了清除区域。
+
+	-- 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+	-- 在背景颜色之前的版本中。
+
+**签名：**
+```tl
+clear: function(red: number, green: number, blue: number, alpha?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| red | number | , g, b, a} 形式的表格，包含要清除第一个活动画布的颜色。 |
+| green | number | 每个活动画布的附加表。 |
+| blue | number | 是否清除活动模板缓冲区（如果存在）。它也可以是 0 到 255 之间的整数，用于将模板缓冲区清除为特定值。 （默认值：true。） |
+| alpha | number | 是否清除活动深度缓冲区（如果存在）。它也可以是 0 到 1 之间的数字，用于将深度缓冲区清除为特定值。 （默认值：true。） |
+
+## discard
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;丢弃（垃圾）屏幕或活动画布的内容。这是一个具有利基用例的性能优化功能。
+如果活动画布刚刚更改，并且 'replace' BlendMode 将用于绘制覆盖整个屏幕的内容，则调用 love.graphics.discard 而不是调用 love.graphics.clear
+或不执行任何操作可能会提高移动设备上的性能。
+在某些桌面系统上，此功能可能不执行任何操作。
+
+**签名：**
+```tl
+discard: function(discard_color?: boolean | {boolean}, discard_depth_stencil?: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| discard_color | boolean or \{boolean} | 是否丢弃活动画布的纹理（如果没有活动画布，则丢弃屏幕的内容。）（默认值：true。） |
+| discard_depth_stencil | boolean | 是否丢弃屏幕/活动画布的模板缓冲区的内容。 （默认值：true。） |
+
+## flushBatch
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;立即渲染任何挂起的自动批量绘制。
+LÖVE 在大多数状态发生变化时会根据需要在内部调用此函数，因此无需手动调用它。
+当前批次将由 love.graphics 状态更改（变换堆栈和当前颜色除外）以及 Shader:send 和纹理上更改其状态的方法自动刷新。在连续的 love.graphics.draw
+调用中使用不同的图像也会刷新当前批次。
+SpriteBatches、ParticleSystems、Meshes 和 Text 对象执行自己的批处理，除了在绘制时刷新当前批处理之外，不会影响其他绘制的自动批处理。
+
+**签名：**
+```tl
+flushBatch: function()
+```
+
+## setBackgroundColor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置背景颜色。
+
+**签名：**
+```tl
+setBackgroundColor: function(red: number, green: number, blue: number, alpha?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| red | number | 红色分量 (0-1)。 |
+| green | number | 绿色分量 (0-1)。 |
+| blue | number | 蓝色分量 (0-1)。 |
+| alpha | number | alpha 分量 (0-1)。 （默认值：1。） |
+
+## setBackgroundColor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置背景颜色。
+
+**签名：**
+```tl
+setBackgroundColor: function(color: Color)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| color | Color | 数字索引表，其中红色、绿色、蓝色和 alpha 值作为数字。 alpha 是可选的，如果省略则默认为 1。 |
+
+## getBackgroundColor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前背景颜色。
+在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+getBackgroundColor: function(): number, number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 红色分量 (0-1)。 |
+| number | 绿色分量 (0-1)。 |
+| number | 蓝色分量 (0-1)。 |
+| number | alpha 分量 (0-1)。 |
+
+## setDefaultFilter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置与图像、画布和字体一起使用的默认缩放过滤器。
+重载说明：
+1. 此功能不适用于已加载的图像。
+
+**签名：**
+```tl
+setDefaultFilter: function(min_filter: string, mag_filter?: string, anisotropy?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| min_filter | string | 缩小图像时使用的滤镜模式。 |
+| mag_filter | string | 放大图像时使用的滤镜模式。 （默认值：分钟。） |
+| anisotropy | number | 使用的各向异性过滤的最大数量。 （默认值：1。） |
+
+## getDefaultFilter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回与图像、画布和字体一起使用的默认缩放过滤器。
+
+**签名：**
+```tl
+getDefaultFilter: function(): string, string, number
+	setDefaultMipmapFilter: function(filter?: string, sharpness?: number)
+	getDefaultMipmapFilter: function(): string | nil, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filter | string | filter 参数。 |
+| sharpness | number | sharpness 参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string or string or nil | 缩小图像时使用的滤镜模式。 |
+| string or number | 放大图像时使用的滤镜模式。 |
+| number | 使用的各向异性过滤的最大数量。 |
+
+## setColor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置用于绘图的颜色。
+在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+setColor: function(red: number, green: number, blue: number, alpha?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| red | number | 红色的量。 |
+| green | number | 绿色量。 |
+| blue | number | 蓝色的量。 |
+| alpha | number | Alpha 量。 alpha 值将应用于所有后续的绘制操作，甚至是图像的绘制。 （默认值：1。） |
+
+## getColor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前颜色。
+在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+getColor: function(): number, number, number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 红色分量 (0-1)。 |
+| number | 绿色分量 (0-1)。 |
+| number | 蓝色分量 (0-1)。 |
+| number | alpha 分量 (0-1)。 |
+
+## setLineWidth
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置线宽。
+
+**签名：**
+```tl
+setLineWidth: function(width: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| width | number | 线的宽度。 |
+
+## getLineWidth
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前线宽。
+重载说明：
+1. 该功能在0.8.0版本中不起作用，但在0.9.0版本中已修复。在 0.8.0 中使用以下代码片段来规避此问题； love.graphics._getLineWidth =
+love.graphics.getLineWidth love.graphics._setLineWidth = love.graphics.setLineWidth 函数
+love.graphics.getLineWidth() 返回 love.graphics.varlinewidth 或 1 结束函数 love.graphics.setLineWidth(w)
+love.graphics.varlinewidth = w; 返回love.graphics._setLineWidth(w)结束
+
+**签名：**
+```tl
+getLineWidth: function(): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 当前线宽。 |
+
+## setLineStyle
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置线条样式。
+
+**签名：**
+```tl
+setLineStyle: function(style: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| style | string | 要使用的线条样式。线条样式包括平滑和粗糙。 |
+
+## getLineStyle
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取线条样式。
+
+**签名：**
+```tl
+getLineStyle: function(): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 当前的线条样式。 |
+
+## setLineJoin
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置线连接样式。请参阅 LineJoin 了解可能的选项。
+
+**签名：**
+```tl
+setLineJoin: function(join: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| join | string | 要使用的 LineJoin。 |
+
+## getLineJoin
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取线连接样式。
+
+**签名：**
+```tl
+getLineJoin: function(): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | LineJoin 风格。 |
+
+## setWireframe
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置绘图时是否使用线框线。
+
+**签名：**
+```tl
+setWireframe: function(enable: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| enable | boolean | 如果为 True，则在绘制时启用线框模式；如果为 false，则禁用它。 |
+
+## isWireframe
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取绘制时是否使用线框模式。
+
+**签名：**
+```tl
+isWireframe: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果绘制时使用线框线则为 True，否则为 false。 |
+
+## setPointSize
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置磅值。
+
+**签名：**
+```tl
+setPointSize: function(size: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| size | number | 新的磅值。 |
+
+## getPointSize
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取磅值。
+
+**签名：**
+```tl
+getPointSize: function(): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 当前磅值。 |
+
+## getDimensions
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取窗口的宽度和高度（以像素为单位）。
+
+**签名：**
+```tl
+getDimensions: function(): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 窗口的宽度。 |
+| number | 窗口的高度。 |
+
+## getWidth
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取窗口的宽度（以像素为单位）。
+
+**签名：**
+```tl
+getWidth: function(): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 窗口的宽度。 |
+
+## getHeight
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取窗口的高度（以像素为单位）。
+
+**签名：**
+```tl
+getHeight: function(): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 窗口的高度。 |
+
+## getPixelDimensions
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取窗口的宽度和高度（以像素为单位）。
+love.graphics.getDimensions 获取窗口的尺寸，单位是按屏幕 DPI 比例因子缩放的单位，而不是像素。使用 getDimensions
+进行与绘制到屏幕和使用图形坐标系相关的计算（例如，计算屏幕中心），并且仅在专门处理底层像素时使用 getPixelDimensions（例如，像素着色器中与像素相关的计算）。
+
+**签名：**
+```tl
+getPixelDimensions: function(): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 窗口的宽度（以像素为单位）。 |
+| number | 窗口的高度（以像素为单位）。 |
+
+## getPixelWidth
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取窗口的宽度（以像素为单位）。
+图形坐标系和DPI比例因子，而不是原始像素。使用 getWidth 进行与绘制到屏幕和使用坐标系相关的计算（例如，计算屏幕中心），并且仅在专门处理底层像素时使用
+getPixelWidth（例如，像素着色器中与像素相关的计算）。
+
+**签名：**
+```tl
+getPixelWidth: function(): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 窗口的宽度（以像素为单位）。 |
+
+## getPixelHeight
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取窗口的高度（以像素为单位）。
+图形坐标系和DPI比例因子，而不是原始像素。使用 getHeight 进行与绘制到屏幕和使用坐标系相关的计算（例如，计算屏幕中心），并且仅在专门处理底层像素时使用
+getPixelHeight（例如，像素着色器中与像素相关的计算）。
+
+**签名：**
+```tl
+getPixelHeight: function(): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 窗口的高度（以像素为单位）。 |
+
+## getDPIScale
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取窗口的DPI比例因子。
+DPI 比例因子表示相对像素密度。窗口内的像素密度可能大于（或小于）窗口的 'size' 。例如，在启用了 highdpi 窗口标志的 Mac OS X 中的视网膜屏幕上，窗口可能占用与 800x600
+窗口相同的物理尺寸，但窗口内的区域使用 1600x1200 像素。在这种情况下，love.graphics.getDPIScale() 将返回 2。
+love.window.fromPixels 和 love.window.toPixels 函数也可用于单位之间的转换。
+必须启用 highdpi 窗口标志才能在 Mac OS X 和 iOS 上使用 Retina 屏幕的完整像素密度。该标志目前在 Windows 和 Linux 上没有任何作用，而在 Android
+上它实际上始终处于启用状态。
+重载说明：
+1. love.graphics.getWidth、love.graphics.getHeight、love.mouse.getPosition、鼠标事件、love.touch.getPosition
+和触摸事件的单位始终采用 DPI 缩放单位，而不是像素。在 LÖVE 0.10 及更早版本中，它们以像素为单位。
+
+**签名：**
+```tl
+getDPIScale: function(): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 与窗口关联的像素比例因子。 |
+
+## getSupported
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取可选的图形功能以及系统是否支持它们。
+一些较旧或低端的系统并不总是支持所有图形功能。
+
+**签名：**
+```tl
+getSupported: function(target?: any): GraphicsFeatures
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| target | any | target 参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| GraphicsFeatures | 包含 GraphicsFeature 键和指示是否支持每个功能的布尔值的表。 |
+
+## getTextureTypes
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取可用的纹理类型，以及是否支持每种纹理类型。
+
+**签名：**
+```tl
+getTextureTypes: function(target?: any): {string: boolean}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| target | any | target 参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{string: boolean} | 包含纹理类型作为键的表，以及指示是否支持该类型作为值的布尔值。并非所有系统都支持所有类型。 |
+
+## getImageFormats
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取可用于图像的原始和压缩像素格式，以及是否支持每种格式。
+
+**签名：**
+```tl
+getImageFormats: function(target?: any): {string: boolean}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| target | any | target 参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{string: boolean} | 包含 PixelFormats 作为键的表，以及一个指示是否支持该格式作为值的布尔值。并非所有系统都支持所有格式。 |
+
+## getRendererInfo
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取有关系统显卡和驱动程序的信息。
+
+**签名：**
+```tl
+getRendererInfo: function(): string, string, string, string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 渲染器的名称，例如'OpenGL' 或 'OpenGL ES'。 |
+| string | 渲染器的版本，带有一些额外的依赖于驱动程序的版本信息，例如'2.1 INTEL-8.10.44'。 |
+| string | 显卡供应商的名称，例如'Intel Inc'。 |
+| string | 显卡的名称，例如'Intel HD Graphics 3000 OpenGL Engine'。 |
+
+## getSystemLimits
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取 love.graphics 功能的系统相关最大值。
+
+**签名：**
+```tl
+getSystemLimits: function(target?: any): GraphicsSystemLimits
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| target | any | target 参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| GraphicsSystemLimits | 包含 GraphicsLimit 键和数值的表。 |
+
+## getStats
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取与性能相关的渲染统计信息。
+
+**签名：**
+```tl
+getStats: function(): GraphicsStats
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| GraphicsStats | stats — 包含以下字段的表： |
+
+## getStats
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取与性能相关的渲染统计信息。
+
+**签名：**
+```tl
+getStats: function(target: any): GraphicsStats
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| target | any | 将用下面的统计字段填充的表格。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| GraphicsStats | 上面传入的表，现在包含以下字段： |
+
+## captureScreenshot
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;当前帧完成后（love.draw 完成后）创建屏幕截图。
+
+	-- 由于此函数将屏幕截图放入队列而不是立即执行它，因此可以从输入回调或 love.update 调用它，并且它仍然会捕获该帧中绘制到屏幕上的所有内容。
+
+**签名：**
+```tl
+captureScreenshot: function(filename: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 保存屏幕截图的文件名。编码图像类型根据文件名的扩展名确定，并且必须是 ImageFormat 之一。 |
+
+## captureScreenshot
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;当前帧完成后（love.draw 完成后）创建屏幕截图。
+
+	-- 由于此函数将屏幕截图放入队列而不是立即执行它，因此可以从输入回调或 love.update 调用它，并且它仍然会捕获该帧中绘制到屏幕上的所有内容。
+
+**签名：**
+```tl
+captureScreenshot: function(callback: function(image_data: ImageData))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function(image_data: ImageData | ) 捕获屏幕截图后调用的函数。 ImageData 作为唯一参数传递到函数中。 |
+
+## captureScreenshot
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;当前帧完成后（love.draw 完成后）创建屏幕截图。
+
+	-- 由于此函数将屏幕截图放入队列而不是立即执行它，因此可以从输入回调或 love.update 调用它，并且它仍然会捕获该帧中绘制到屏幕上的所有内容。
+
+**签名：**
+```tl
+captureScreenshot: function(channel: Channel)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| channel | Channel | 将生成的 ImageData 推送到的 Channel。 |
+
+## rectangle
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制一个矩形。
+重载说明：
+1. 绘制一个圆角矩形。
+
+**签名：**
+```tl
+rectangle: function(mode: string, x: number, y: number, width: number, height: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mode | string | 如何绘制矩形。 |
+| x | number | 左上角沿x轴的位置。 |
+| y | number | 左上角沿 y 轴的位置。 |
+| width | number | 矩形的宽度。 |
+| height | number | 矩形的高度。 |
+
+## circle
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;画一个圆。
+
+**签名：**
+```tl
+circle: function(mode: string, x: number, y: number, radius: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mode | string | 如何画圆。 |
+| x | number | 中心沿 x 轴的位置。 |
+| y | number | 中心沿 y 轴的位置。 |
+| radius | number | 圆的半径。 |
+
+## arc
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在位置 (x, y) 处绘制填充或未填充的圆弧。弧线以弧度为单位从角度 1 到角度 2 绘制。段参数确定使用多少段来绘制圆弧。分段越多，边缘越平滑。
+
+**签名：**
+```tl
+arc: function(mode: DrawMode, x: number, y: number, radius: number, angle1: number, angle2: number, segments?: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mode | DrawMode | 如何绘制圆弧。 |
+| x | number | 中心沿 x 轴的位置。 |
+| y | number | 中心沿 y 轴的位置。 |
+| radius | number | 圆弧半径。 |
+| angle1 | number | 圆弧开始的角度。 |
+| angle2 | number | 圆弧终止的角度。 |
+| segments | integer | 用于绘制圆弧的段数。 （默认值：10。） |
+
+## arc
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在位置 (x, y) 处绘制填充或未填充的圆弧。弧线以弧度为单位从角度 1 到角度 2 绘制。段参数确定使用多少段来绘制圆弧。分段越多，边缘越平滑。
+
+**签名：**
+```tl
+arc: function(mode: DrawMode, arc_mode: ArcMode, x: number, y: number, radius: number, angle1: number, angle2: number, segments?: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mode | DrawMode | 如何绘制圆弧。 |
+| arc_mode | ArcMode | 要绘制的圆弧类型。 |
+| x | number | 中心沿 x 轴的位置。 |
+| y | number | 中心沿 y 轴的位置。 |
+| radius | number | 圆弧半径。 |
+| angle1 | number | 圆弧开始的角度。 |
+| angle2 | number | 圆弧终止的角度。 |
+| segments | integer | 用于绘制圆弧的段数。 （默认值：10。） |
+
+## ellipse
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制一个椭圆。
+
+**签名：**
+```tl
+ellipse: function(mode: string, x: number, y: number, radius_x: number, radius_y: number, segments?: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mode | string | 如何绘制椭圆。 |
+| x | number | 中心沿 x 轴的位置。 |
+| y | number | 中心沿 y 轴的位置。 |
+| radius_x | number | 椭圆沿 x 轴的半径（椭圆宽度的一半）。 |
+| radius_y | number | 椭圆沿 y 轴的半径（椭圆高度的一半）。 |
+| segments | integer | 用于绘制椭圆的线段数。 |
+
+## line
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在点之间绘制线。
+
+**签名：**
+```tl
+line: function(x1: number, y1: number, x2: number, y2: number, coordinates: number...)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x1 | number | x 轴上第一个点的位置。 |
+| y1 | number | y 轴上第一个点的位置。 |
+| x2 | number | x 轴上第二个点的位置。 |
+| y2 | number | y 轴上第二个点的位置。 |
+| coordinates | number... | 您可以继续通过点位置来绘制折线。 |
+
+## polygon
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;画一个多边形。
+在模式参数之后，该函数可以接受多个数字参数或单个数字参数表。无论哪种情况，参数都被解释为多边形顶点的交替 x 和 y 坐标。
+
+**签名：**
+```tl
+polygon: function(mode: string, x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, coordinates: number...)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mode | string | 如何绘制多边形。 |
+| x1 | number | 多边形的顶点。取决于重载：将多边形的顶点作为表格。 |
+| y1 | number | y1 参数。 |
+| x2 | number | x2 参数。 |
+| y2 | number | y2 参数。 |
+| x3 | number | x3 参数。 |
+| y3 | number | y3 参数。 |
+| coordinates | number... | coordinates 参数。 |
+
+## points
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制一个或多个点。
+重载说明：
+1. 绘制一个或多个单独着色的点。在 11.0 之前的版本中，颜色分量值的范围是 0 到 255，而不是 0 到 1。像素网格实际上偏移到每个像素的中心。因此，要获得干净的像素绘制，请使用 0.5 +
+整数增量。点不受大小影响，始终以像素为单位。
+
+**签名：**
+```tl
+points: function(x1: number, y1: number, coordinates: number...)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x1 | number | x 轴上第一个点的位置。 |
+| y1 | number | y 轴上第一个点的位置。 |
+| coordinates | number... | 附加点的 x 和 y 坐标。 |
+
+## present
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在屏幕上显示绘图操作的结果。
+在编写自己的 love.run 函数时使用该函数。它在屏幕上显示绘图操作的所有结果。有关此函数的典型用法，请参阅 love.run 中的示例。
+重载说明：
+1. * 如果 love.window.setMode 的 vsync 等于 true，则该函数的运行频率不能高于刷新率（例如 60 Hz），并且将暂停程序直到准备就绪（如有必要）。
+
+**签名：**
+```tl
+present: function()
+```
+
+## push
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;复制当前坐标变换并将其推入变换堆栈。
+
+	-- 这个函数总是用来为后面相应的出栈操作做准备。它将当前坐标变换状态存储到变换堆栈中并保持其活动状态。稍后对变换所做的更改可以通过使用 pop 操作来撤消，该操作会将坐标变换返回到调用 push 之前的状态。
+
+**签名：**
+```tl
+push: function()
+```
+
+## push
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;复制当前坐标变换并将其推入变换堆栈。
+
+	-- 这个函数总是用来为后面相应的出栈操作做准备。它将当前坐标变换状态存储到变换堆栈中并保持其活动状态。稍后对变换所做的更改可以通过使用 pop 操作来撤消，该操作会将坐标变换返回到调用 push 之前的状态。
+
+**签名：**
+```tl
+push: function(stack_type: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| stack_type | string | 要推送的堆栈类型（例如，仅转换状态，或所有 love.graphics 状态）。 |
+
+## pop
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从变换堆栈中弹出当前坐标变换。
+该函数始终用于反转先前的推送操作。它将当前转换状态返回到上次推送之前的状态。
+
+**签名：**
+```tl
+pop: function()
+```
+
+## getStackDepth
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取变换/状态堆栈的当前深度（没有相应弹出的压入次数）。
+
+**签名：**
+```tl
+getStackDepth: function(): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 变换和状态 love.graphics 堆栈的当前深度。 |
+
+## origin
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;重置当前坐标变换。
+此函数始终用于反转任何先前对 love.graphics.rotate、love.graphics.scale、love.graphics.shear 或 love.graphics.translate.
+的调用，它将当前转换状态返回为其默认值。
+
+**签名：**
+```tl
+origin: function()
+```
+
+## translate
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将坐标系转换为二维。
+当使用两个数字 dx 和 dy 调用此函数时，以下所有绘图操作都会生效，就好像它们的 x 和 y 坐标为 x+dx 和 y+dy 一样。
+缩放和平移不是可交换操作，因此，以不同的顺序调用它们将改变结果。
+此更改将持续到 love.draw() 退出，否则 love.graphics.pop 恢复为之前的 love.graphics.push.
+使用整数进行翻译将防止翻译后绘制的图像和字体出现撕裂/模糊。
+
+**签名：**
+```tl
+translate: function(dx: number, dy: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| dx | number | 相对于 x 轴的平移。 |
+| dy | number | 相对于 y 轴的平移。 |
+
+## rotate
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;二维旋转坐标系。
+调用此函数会通过将坐标系围绕原点旋转给定的弧度来影响所有将来的绘图操作。此更改将持续到 love.draw() 退出为止。
+
+**签名：**
+```tl
+rotate: function(angle: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| angle | number | 坐标系的旋转量（以弧度为单位）。 |
+
+## scale
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在二维中缩放坐标系。
+LÖVE中的坐标系默认与水平和垂直方向的显示像素一一对应，x轴向右增大，y轴向下增大。缩放坐标系会改变这种关系。
+经过 sx 和 sy 缩放后，所有坐标都被视为乘以 sx 和 sy。绘图操作的每个结果也会相应地缩放，因此例如缩放 (2, 2) 意味着将所有内容在 x 和 y
+方向上放大两倍。按负值缩放会沿相应方向翻转坐标系，这也意味着所有内容都将被翻转或颠倒或两者都绘制。按零缩放并不是一个有用的操作。
+缩放和平移不是可交换操作，因此，以不同的顺序调用它们将改变结果。
+缩放持续到 love.draw() 退出。
+
+**签名：**
+```tl
+scale: function(sx: number, sy?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| sx | number | x轴方向的缩放。 |
+| sy | number | y轴方向的缩放。如果省略，则默认与参数 sx 相同。 （默认值：sx。） |
+
+## shear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;剪切坐标系。
+
+**签名：**
+```tl
+shear: function(kx: number, ky: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| kx | number | x 轴上的剪切因子。 |
+| ky | number | y 轴上的剪切因子。 |
+
+## applyTransform
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将给定的 Transform 对象应用于当前坐标变换。
+这有效地将现有坐标变换的矩阵与 Transform 对象的内部矩阵相乘以产生新的坐标变换。
+
+**签名：**
+```tl
+applyTransform: function(transform: Transform)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| transform | Transform | 应用于当前图形坐标变换的 Transform 对象。 |
+
+## replaceTransform
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;用给定的 Transform 对象替换当前的坐标变换。
+
+**签名：**
+```tl
+replaceTransform: function(transform: Transform)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| transform | Transform | 用于替换当前图形坐标变换的 Transform 对象。 |
+
+## transformPoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将给定的 2D 位置从全局坐标转换为屏幕空间。
+这有效地将当前图形变换应用于给定位置。 Transform 对象也存在类似的 Transform:transformPoint 方法。
+
+**签名：**
+```tl
+transformPoint: function(x: number, y: number): number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 全局坐标中位置的 x 分量。 |
+| y | number | 全局坐标中位置的 y 分量。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 应用了图形变换的位置的 x 分量。 |
+| number | 应用了图形变换的位置的 y 分量。 |
+
+## inverseTransformPoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将给定的 2D 位置从屏幕空间转换为全局坐标。
+这有效地将当前图形变换的反向应用到给定位置。 Transform 对象也存在类似的 Transform:inverseTransformPoint 方法。
+
+**签名：**
+```tl
+inverseTransformPoint: function(x: number, y: number): number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 屏幕空间位置的 x 分量。 |
+| y | number | 屏幕空间位置的 y 分量。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 全局坐标中位置的 x 分量。 |
+| number | 全局坐标中位置的 y 分量。 |
+
+## isActive
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取图形模块是否可以使用。如果未激活，love.graphics 函数和方法调用将无法正常工作，并可能导致程序崩溃。如果窗口未打开，或者应用程序在 iOS
+上处于后台，则图形模块处于非活动状态。通常，在后一种情况下，应用程序的执行将被系统自动暂停。
+
+**签名：**
+```tl
+isActive: function(): boolean
+	isCreated: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 图形模块是否处于活动状态并且可以使用。 |
+
+## isGammaCorrect
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取是否支持并启用伽玛校正渲染。可以通过在 love.conf.
+并非所有设备都支持伽玛校正渲染，在这种情况下它将自动禁用，并且此函数将返回 false。它在具有能够使用 OpenGL 3 / DirectX 10 的显卡的桌面系统以及可以使用 OpenGL ES 3 的 iOS
+设备上受支持。
+重载说明：
+1. 启用伽马校正渲染后，许多函数和对象会在 sRGB 和线性 RGB 之间执行自动颜色转换，以便混合和着色器数学在数学上正确（如果未启用，则不会。） * 传递的颜色从 sRGB 转换为线性 RGB。 *
+当绘制这些对象时，文本中设置的每个字符颜色、每个点颜色的点、使用 'VertexColor' 属性名称的标准自定义网格将自动从 sRGB 转换为线性 RGB。 * 创建图像。 * 绘制到屏幕上的所有内容都将以线性 RGB
+混合，然后结果将转换为 sRGB 进行显示。 * 使用 'normal' 或 'srgb' CanvasFormat 的画布将其内容以线性 RGB 混合，并且在绘制时结果将以 sRGB
+形式存储在画布中。当画布本身被绘制时，其像素颜色将以与图像相同的方式从 sRGB 转换为线性 RGB。与 'rgba8' 相比，将画布像素数据存储为 sRGB
+可以为较暗的颜色提供更好的精度（更少的条带）。由于大多数转换都是自动处理的，因此当启用伽玛校正渲染时，您自己的代码无需担心 sRGB 和线性 RGB 颜色转换，除非在
+a couple cases: * 如果使用具有自定义顶点属性的网格体，并且其中一个属性应为
+在着色器中用作颜色，并且该属性未命名为 'VertexColor'。 * 如果使用的着色器具有统一/外部变量或其他用作颜色的变量，则不使用 Shader:sendColor
+。在这两种情况下，love.math.gammaToLinear 可用于在 Lua 代码中将颜色值转换为线性 RGB，或者可在着色器代码内部使用 gammaCorrectColor（或
+unGammaCorrectColor，如果需要）着色器函数。如果确实启用了伽玛校正渲染，则这些着色器函数“'only'”会进行转换。如果是这样，将设置 LOVE_GAMMA_CORRECT
+着色器预处理器定义。请在此处、此处和此处阅读有关伽玛校正渲染的更多信息。
+
+**签名：**
+```tl
+isGammaCorrect: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果支持伽玛校正渲染并在 love.conf 中启用，则为 true，否则为 false。 |
+
+## reset
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;重置当前图形设置。
+调用reset使当前绘图颜色为白色，当前背景颜色为黑色，禁用任何活动的颜色组件蒙版，禁用线框模式并将当前图形变换重置为原点。它还将点和线绘制模式设置为平滑，并将它们的大小设置为 1.0。
+
+**签名：**
+```tl
+reset: function()
+```
+
+## setBlendMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置混合模式。
+重载说明：
+1. 通常应首选默认的 'alphamultiply' alpha 模式，除非使用预乘 alpha 绘制内容。如果使用 'alphamultiply' 模式将内容绘制到 Canvas，则 Canvas 纹理随后将具有预乘
+alpha，因此在将 Canvas 绘制到屏幕时通常应使用 'premultiplied' alpha 模式。
+
+**签名：**
+```tl
+setBlendMode: function(mode: string, alpha_mode?: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mode | string | 要使用的混合模式。 |
+| alpha_mode | string | 混合时如何处理绘制对象的 Alpha。 （默认：'alphamultiply'。） |
+
+## getBlendMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取混合模式。
+
+**签名：**
+```tl
+getBlendMode: function(): string, string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 当前的混合模式。 |
+| string | 当前混合 Alpha 模式 – 它确定绘制对象的 Alpha 如何影响混合。 |
+
+## setScissor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置或禁用剪刀。
+
+	-- 剪刀将绘图区域限制在指定的矩形内。这会影响所有图形调用，包括 love.graphics.clear.
+
+	-- 剪刀的尺寸不受图形变换（平移、缩放……）的影响。
+
+**签名：**
+```tl
+setScissor: function()
+```
+
+## setScissor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置或禁用剪刀。
+
+	-- 剪刀将绘图区域限制在指定的矩形内。这会影响所有图形调用，包括 love.graphics.clear.
+
+	-- 剪刀的尺寸不受图形变换（平移、缩放……）的影响。
+
+**签名：**
+```tl
+setScissor: function(x: number, y: number, width: number, height: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 左上角的x坐标。 |
+| y | number | 左上角的y坐标。 |
+| width | number | 剪切矩形的宽度。 |
+| height | number | 剪切矩形的高度。 |
+
+## getScissor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前剪刀框。
+
+**签名：**
+```tl
+getScissor: function(): number | nil, number | nil, number | nil, number | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number or nil | 框左上角点的 x 分量。 |
+| number or nil | 框左上角点的 y 分量。 |
+| number or nil | 框的宽度。 |
+| number or nil | 盒子的高度。 |
+
+## intersectScissor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将剪刀设置为由指定矩形与现有剪刀相交而创建的矩形。如果还没有激活的剪刀，则其行为类似于 love.graphics.setScissor.
+剪刀将绘图区域限制在指定的矩形内。这会影响所有图形调用，包括 love.graphics.clear.
+剪刀的尺寸不受图形变换（平移、缩放……）的影响。
+
+**签名：**
+```tl
+intersectScissor: function(x: number, y: number, width: number, height: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 与现有剪刀矩形相交的矩形左上角的 x 坐标。 |
+| y | number | 与现有剪刀矩形相交的矩形左上角的 y 坐标。 |
+| width | number | 与现有剪刀矩形相交的矩形的宽度。 |
+| height | number | 与现有剪刀矩形相交的矩形的高度。 |
+
+## setColorMask
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置颜色遮罩。渲染和清除屏幕时启用或禁用特定颜色组件。例如，如果“'red''' is set to '''false'”，则不会对任何像素的红色分量进行进一步的更改。
+
+**签名：**
+```tl
+setColorMask: function()
+```
+
+## setColorMask
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置颜色遮罩。渲染和清除屏幕时启用或禁用特定颜色组件。例如，如果“'red''' is set to '''false'”，则不会对任何像素的红色分量进行进一步的更改。
+
+**签名：**
+```tl
+setColorMask: function(red: boolean, green: boolean, blue: boolean, alpha: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| red | boolean | 渲染红色分量。 |
+| green | boolean | 渲染绿色组件。 |
+| blue | boolean | 渲染蓝色分量。 |
+| alpha | boolean | 渲染 alpha 分量。 |
+
+## getColorMask
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取绘图时使用的活动颜色分量。通常，除非使用 love.graphics.setColorMask，否则所有 4 个组件均处于活动状态。
+颜色掩码确定绘制对象的颜色的各个分量是否会影响屏幕的颜色。它们也会影响 love.graphics.clear 和 Canvas:clear 。
+
+**签名：**
+```tl
+getColorMask: function(): boolean, boolean, boolean, boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 渲染时红色分量是否处于活动状态。 |
+| boolean | 渲染时绿色分量是否处于活动状态。 |
+| boolean | 渲染时蓝色分量是否处于活动状态。 |
+| boolean | 渲染时 Alpha 颜色分量是否处于活动状态。 |
+
+## setDepthMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;配置深度测试并写入深度缓冲区。
+
+	-- 这是低级功能，设计用于自定义顶点着色器和具有自定义顶点属性的网格。没有提供更高级别的 API 来设置 2D 图形（例如形状、线条和图像）的深度。
+
+**签名：**
+```tl
+setDepthMode: function()
+```
+
+## setDepthMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;配置深度测试并写入深度缓冲区。
+
+	-- 这是低级功能，设计用于自定义顶点着色器和具有自定义顶点属性的网格。没有提供更高级别的 API 来设置 2D 图形（例如形状、线条和图像）的深度。
+
+**签名：**
+```tl
+setDepthMode: function(compare: CompareMode, write: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| compare | CompareMode | 用于深度测试的深度比较模式。 |
+| write | boolean | 渲染时是否将更新/写入值写入深度缓冲区。 |
+
+## getDepthMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前深度测试模式以及是否启用写入深度缓冲区。
+这是低级功能，设计用于自定义顶点着色器和具有自定义顶点属性的网格。没有提供更高级别的 API 来设置 2D 图形（例如形状、线条和图像）的深度。
+
+**签名：**
+```tl
+getDepthMode: function(): string, boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 用于深度测试的深度比较模式。 |
+| boolean | 渲染时是否将更新/写入值写入深度缓冲区。 |
+
+## setMeshCullMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置是否剔除网格中的背面三角形。
+它设计用于通过网格上的自定义顶点属性、自定义顶点着色器以及使用深度缓冲区进行深度测试来与低级自定义硬件加速 3D 渲染一起使用。
+默认情况下，网格中的正面和背面三角形都会被渲染。
+
+**签名：**
+```tl
+setMeshCullMode: function(mode: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mode | string | 要使用的网格面剔除模式（是否渲染所有内容、剔除背面三角形或剔除正面三角形）。 |
+
+## getMeshCullMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取网格中的背面三角形是否被剔除。
+网格面剔除旨在通过网格上的自定义顶点属性、自定义顶点着色器以及使用深度缓冲区的深度测试与低级自定义硬件加速 3D 渲染一起使用。
+
+**签名：**
+```tl
+getMeshCullMode: function(): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 使用中的网格面剔除模式（是否渲染所有内容、剔除背面三角形或剔除正面三角形）。 |
+
+## setFrontFaceWinding
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置是否将具有顺时针或逆时针顺序顶点的三角形视为正面。
+这是设计用于与网格面剔除结合使用的。其他 love.graphics 形状、线条和精灵不保证其内部顶点具有特定的缠绕顺序。
+
+**签名：**
+```tl
+setFrontFaceWinding: function(winding: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| winding | string | 使用的绕线模式。默认绕线为逆时针方向 ('ccw')。 |
+
+## getFrontFaceWinding
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取具有顺时针或逆时针顺序顶点的三角形是否被视为正面。
+这是设计用于与网格面剔除结合使用的。其他 love.graphics 形状、线条和精灵不保证其内部顶点具有特定的缠绕顺序。
+
+**签名：**
+```tl
+getFrontFaceWinding: function(): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 使用的绕线模式。默认绕线为逆时针方向 ('ccw')。 |
+
+## stencil
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将几何图形绘制为模板。
+
+	-- 所提供的函数绘制的几何图形设置像素的不可见模板值，而不是设置像素颜色。模板缓冲区（包含这些模板值）可以像蒙版/模板一样工作 - 随后可以使用 love.graphics.setStencilTest 来确定每个像素中的模板值如何影响进一步的渲染。
+
+	-- 模板值是 255 范围内的整数。
+
+**签名：**
+```tl
+stencil: function(draw: function(), action?: StencilAction, value?: integer, keep_values_or_clear_value?: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| draw | function( | ) 绘制几何图形的函数。像素的模板值，而不是每个像素的颜色，将受到几何形状的影响。 |
+| action | StencilAction | 如何修改模板函数中绘制的内容所涉及的像素的任何模板值。 （默认：'replace'。） |
+| value | integer | 如果使用 'replace' 模板操作，则用于像素的新模板值。对其他模板操作没有影响。必须介于 0 到 255 之间。（默认值：1。） |
+| keep_values_or_clear_value | boolean | 如果为 true，则保留像素的旧模板值；如果为 false，则在执行模板函数之前将每个像素的模板值重置为 0。 love.graphics.clear 还将重置所有模板值。 （默认值：假。） |
+
+## stencil
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将几何图形绘制为模板。
+
+	-- 所提供的函数绘制的几何图形设置像素的不可见模板值，而不是设置像素颜色。模板缓冲区（包含这些模板值）可以像蒙版/模板一样工作 - 随后可以使用 love.graphics.setStencilTest 来确定每个像素中的模板值如何影响进一步的渲染。
+
+	-- 模板值是 255 范围内的整数。
+
+**签名：**
+```tl
+stencil: function(draw: function(), action: StencilAction, value: integer, keep_values_or_clear_value: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| draw | function( | ) 绘制几何图形的函数。像素的模板值，而不是每个像素的颜色，将受到几何形状的影响。 |
+| action | StencilAction | 如何修改模板函数中绘制的内容所涉及的像素的任何模板值。 （默认：'replace'。） |
+| value | integer | 如果使用 'replace' 模板操作，则用于像素的新模板值。对其他模板操作没有影响。必须介于 0 到 255 之间。（默认值：1。） |
+| keep_values_or_clear_value | number | 如果为 true，则保留像素的旧模板值；如果为 false，则在执行模板函数之前将每个像素的模板值重置为 0。 love.graphics.clear 还将重置所有模板值。 （默认值：假。） |
+
+## setStencilTest
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;配置或禁用模板测试。
+
+	-- 当启用模板测试时，之后绘制的所有内容的几何图形都将根据该函数的参数与几何图形接触的每个像素的模板值之间的比较被剪裁/模板化。像素的模板值受 love.graphics.stencil.
+
+**签名：**
+```tl
+setStencilTest: function()
+```
+
+## setStencilTest
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;配置或禁用模板测试。
+
+	-- 当启用模板测试时，之后绘制的所有内容的几何图形都将根据该函数的参数与几何图形接触的每个像素的模板值之间的比较被剪裁/模板化。像素的模板值受 love.graphics.stencil.
+
+**签名：**
+```tl
+setStencilTest: function(compare: CompareMode, value: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| compare | CompareMode | 对每个像素进行比较的类型。 |
+| value | integer | 与每个像素的模板值进行比较时使用的值。必须介于 0 到 255 之间。 |
+
+## getStencilTest
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前模板测试配置。
+当启用模板测试时，之后绘制的所有内容的几何图形都将根据该函数的参数与几何图形接触的每个像素的模板值之间的比较被剪裁/模板化。像素的模板值受 love.graphics.stencil.
+每个画布都有自己的每像素模板值。
+
+**签名：**
+```tl
+getStencilTest: function(): string, integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 对每个像素进行的比较类型。如果禁用模板测试，则将为 'always'。 |
+| integer | 与每个像素的模板值进行比较时使用的值。 |
+
+## newFont
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从 TrueType 字体或 BMFont 文件创建新字体。创建的字体不会被缓存，因为使用相同的参数调用此函数将始终创建一个新的 Font 对象。
+
+	-- 所有接受文件名的变体也可以接受数据对象。
+
+**签名：**
+```tl
+newFont: function(size?: integer): Font
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| size | integer | 字体大小（以像素为单位）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Font | font — 可用于在屏幕上绘制文本的 Font 对象。 |
+
+## newFont
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从 TrueType 字体或 BMFont 文件创建新字体。创建的字体不会被缓存，因为使用相同的参数调用此函数将始终创建一个新的 Font 对象。
+
+	-- 所有接受文件名的变体也可以接受数据对象。
+
+**签名：**
+```tl
+newFont: function(filename: string, size?: integer): Font
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | TrueType 字体文件的文件路径。 |
+| size | integer | 字体的大小（以像素为单位）。 （默认值：12。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Font | font — 可用于在屏幕上绘制文本的 Font 对象。 |
+
+## setNewFont
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建并设置新字体。
+
+**签名：**
+```tl
+setNewFont: function(size?: integer): Font
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| size | integer | 字体大小。 （默认值：12。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Font | font — 新字体。 |
+
+## setNewFont
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建并设置新字体。
+
+**签名：**
+```tl
+setNewFont: function(filename: string, size?: integer): Font
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 字体文件的路径和名称。 |
+| size | integer | 字体大小。 （默认值：12。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Font | font — 新字体。 |
+
+## newImageFont
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的特定格式的图像。
+
+	-- 在 0.9.0 之前的版本中，LÖVE 期望字形字符串采用 ISO 8859-1 编码。
+
+**签名：**
+```tl
+newImageFont: function(source: string | FileData | ImageData, glyphs: string, extra_spacing?: integer, dpi_scale?: number): Font
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| source | string | FileData | ImageData | 图像文件的文件路径。 |
+| glyphs | string | 图像中从左到右排列的字符字符串。 |
+| extra_spacing | integer | 应用于字体中每个字形的附加间距（正或负）。 （默认值：0。） |
+| dpi_scale | number | 字体的 DPI 缩放系数。（默认值：1。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Font | font — 可用于在屏幕上绘制文本的 Font 对象。 |
+
+## newImageFont
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的特定格式的图像。
+
+	-- 在 0.9.0 之前的版本中，LÖVE 期望字形字符串采用 ISO 8859-1 编码。
+
+**签名：**
+```tl
+newImageFont: function(rasterizer: Rasterizer): Font
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| rasterizer | Rasterizer | 用于创建字体的 ImageData 对象。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Font | font — 可用于在屏幕上绘制文本的 Font 对象。 |
+
+## newText
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的可绘制文本对象。
+
+**签名：**
+```tl
+newText: function(font: Font, text?: any): Text
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| font | Font | 用于文本的字体。 |
+| text | any | 新 Text 对象将包含的初始文本字符串。可能为零。 （默认值：nil。）取决于重载：包含要添加到对象的颜色和字符串的表，格式为 \{color1, string1, color2, string2, ...}。 color1: 包含红色、绿色、蓝色和可选 alpha 分量的表，用作表中下一个字符串的颜色，格式为 \{red, green, blue, alpha}。 string1: 文本字符串，其颜色由前一个颜色指定。 color2: 包含红色、绿色、蓝色和可选 alpha 分量的表，用作表中下一个字符串的颜色，格式为 \{red, green, blue, alpha}。 string2: 文本字符串，其颜色由前一个颜色指定。 ...: 附加颜色和字符串。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Text | 新的可绘制文本对象。 |
+
+## setFont
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将已加载的字体设置为当前字体，或根据文件和大小创建并加载新字体。
+建议在加载阶段使用 love.graphics.newFont 创建 Font 对象，然后在绘图阶段传递给此函数。
+
+**签名：**
+```tl
+setFont: function(font: Font)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| font | Font | 要使用的 Font 对象。 |
+
+## getFont
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前的 Font 对象。
+
+**签名：**
+```tl
+getFont: function(): Font
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Font | 当前字体。自动创建并设置默认字体（如果尚未设置）。 |
+
+## print
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在屏幕上绘制文本。如果未设置字体，则将根据需要创建并设置（一次）字体。
+从 LOVE 0.7.1 开始，当在绘制文本时使用平移和缩放函数时，此函数假设首先发生缩放。如果您在编写脚本时没有考虑到这一点，则文本将不会位于正确的位置，甚至可能不会出现在屏幕上。
+love.graphics.print 和 love.graphics.printf 均支持 UTF-8 编码。您还需要适合特殊字符的字体。
+在11.0之前的版本中，颜色和字节分量值的范围是0到255，而不是0到1。
+重载说明：
+1. love.graphics.setColor 设置的颜色将与文本的颜色组合（相乘）。
+
+**签名：**
+```tl
+print: function(text: string | number, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | string or number | 要绘制的文本。 |
+| x | number | 绘制对象的位置（x 轴）。 （默认值：0。）取决于过载：文本在 x 轴上的位置。 （默认值：0。） |
+| y | number | 绘制对象的位置（y 轴）。 （默认值：0。）取决于过载：文本在 y 轴上的位置。 （默认值：0。） |
+| angle | number | 以弧度表示的文本方向。 （默认值：0。） |
+| scale_x | number | 比例因子（x 轴）。 （默认值：1。）取决于过载：x 轴上的比例因子。 （默认值：1。） |
+| scale_y | number | 比例因子（y 轴）。 （默认值：sx。）取决于过载：y 轴上的比例因子。 （默认值：sx。） |
+| origin_x | number | 原点偏移（x 轴）。 （默认值：0。）取决于过载：x 轴上的原点偏移。 （默认值：0。） |
+| origin_y | number | 原点偏移（y 轴）。 （默认值：0。）取决于过载：y 轴上的原点偏移。 （默认值：0。） |
+| shear_x | number | 剪切因子（x 轴）。 （默认值：0。）取决于过载：x 轴上的剪切/倾斜系数。 （默认值：0。） |
+| shear_y | number | 剪切因子（y 轴）。 （默认值：0。）取决于过载：y 轴上的剪切/倾斜系数。 （默认值：0。） |
+
+## printf
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制格式化文本，并进行自动换行和对齐。
+请参阅 love.graphics.print.
+在任何缩放、旋转和其他坐标转换之前应用自动换行限制。因此，即使比例参数发生变化，在给定相同的换行限制的情况下，每行的文本量也保持不变。
+在版本 0.9.2
+及更早版本中，换行是通过用空格分隔单词并将它们重新组合在一起来实现的，以确保事物在提供的限制内很好地契合。但是，由于这样做的方式，在屏幕上打印时，单词之间的额外空格最终会丢失，并且某些行可能会溢出超过提供的换行限制。在
+0.10.0 及更高版本中，情况不再如此。
+在11.0之前的版本中，颜色和字节分量值的范围是0到255，而不是0到1。
+重载说明：
+1. love.graphics.setColor 设置的颜色将与文本的颜色组合（相乘）。
+
+**签名：**
+```tl
+printf: function(text: string | number, x: number, y: number, limit: number, align?: string, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | string or number | 文本字符串。 |
+| x | number | x 轴上的位置。取决于过载：文本的位置（x 轴）。 |
+| y | number | y 轴上的位置。取决于过载：文本的位置（y 轴）。 |
+| limit | number | 在这么多水平像素之后换行。取决于过载：自动换行之前文本的最大宽度（以像素为单位）。 |
+| align | string | 对齐。 （默认值：'left'。）取决于重载：文本的对齐方式。 |
+| angle | number | 方向（弧度）。 （默认值：0。） |
+| scale_x | number | 比例因子（x 轴）。 （默认值：1。） |
+| scale_y | number | 比例因子（y 轴）。 （默认值：sx。） |
+| origin_x | number | 原点偏移（x 轴）。 （默认值：0。） |
+| origin_y | number | 原点偏移（y 轴）。 （默认值：0。） |
+| shear_x | number | 剪切因子（x 轴）。 （默认值：0。）取决于过载：剪切/倾斜系数（x 轴）。 （默认值：0。） |
+| shear_y | number | 剪切因子（y 轴）。 （默认值：0。）取决于过载：剪切/倾斜系数（y 轴）。 （默认值：0。） |
+
+## newImage
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从文件路径、FileData、ImageData 或 CompressedImageData 创建新图像，并可选择生成或指定图像的 mipmap。
+
+**签名：**
+```tl
+newImage: function(filename: string, settings?: ImageSettings): Image
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 图像文件的文件路径。 |
+| settings | ImageSettings | 包含以下字段的表：（默认值：nil。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Image | image — 一个可以在屏幕上绘制的新图像对象。 |
+
+## newImage
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从文件路径、FileData、ImageData 或 CompressedImageData 创建新图像，并可选择生成或指定图像的 mipmap。
+
+**签名：**
+```tl
+newImage: function(data: FileData, settings?: CompressedImageSettings): Image
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| data | FileData | 包含图像文件的 FileData。 |
+| settings | CompressedImageSettings | 包含以下字段的表：（默认值：nil。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Image | image — 一个可以在屏幕上绘制的新图像对象。 |
+
+## newImage
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从文件路径、FileData、ImageData 或 CompressedImageData 创建新图像，并可选择生成或指定图像的 mipmap。
+
+**签名：**
+```tl
+newImage: function(data: ImageData, settings?: ImageSettings): Image
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| data | ImageData | 包含图像的 ImageData。 |
+| settings | ImageSettings | 包含以下字段的表：（默认值：nil。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Image | image — 一个可以在屏幕上绘制的新图像对象。 |
+
+## newImage
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从文件路径、FileData、ImageData 或 CompressedImageData 创建新图像，并可选择生成或指定图像的 mipmap。
+
+**签名：**
+```tl
+newImage: function(data: CompressedImageData, settings?: CompressedImageSettings): Image
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| data | CompressedImageData | 一个 CompressedImageData 对象。当调用 love.window.setMode 时，Image 将使用此 CompressedImageData 重新加载自身。 |
+| settings | CompressedImageSettings | 包含以下字段的表：（默认值：nil。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Image | image — 一个可以在屏幕上绘制的新图像对象。 |
+
+## newVideo
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的可绘制视频。目前仅支持 Ogg Theora 视频文件。
+
+**签名：**
+```tl
+newVideo: function(filename: string, settings?: any): Video
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | Ogg Theora 视频文件的文件路径。 |
+| settings | any | 包含以下字段的表：（默认值：nil。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Video | video — 一个新视频。 |
+
+## newVideo
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的可绘制视频。目前仅支持 Ogg Theora 视频文件。
+
+**签名：**
+```tl
+newVideo: function(stream: VideoStream, settings?: any): Video
+	_newVideo: function(filename_or_stream: string | VideoStream, dpi_scale?: number): Video
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| stream | VideoStream | Ogg Theora 视频文件的文件路径。 |
+| settings | any | 包含以下字段的表：（默认值：nil。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Video | video — 一个新视频。 |
+
+## newArrayImage
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的数组图像。
+数组图像/数组纹理是包含多个 'layers' 或 'slices' 2D 子图像的单个对象。它可以被认为类似于纹理图集或精灵表，但它不会遭受与纹理图集相同的平铺/四边形渗色伪影的影响 - 尽管每个子图像必须具有相同的尺寸。
+阵列图像的特定层可以使用 love.graphics.drawLayer / SpriteBatch:addLayer 绘制，或者使用 love.graphics.draw 和 Quad:setLayer 的 Quad
+变体，或者通过自定义着色器绘制。
+要在Shader 中使用数组图像，必须将其声明为ArrayImage 或sampler2DArray 类型（而不是Image 或sampler2D）。必须使用 Texel(ArrayImage image,
+vec3texturecoord) 着色器函数从数组图像的切片中获取像素颜色。 vec3 参数包含前两个组件中的纹理坐标，以及第三个组件中从 0 开始的切片索引。
+重载说明：
+1. 创建一个数组图像，为生成的数组图像对象的每个切片指定不同的图像文件。
+Illustration of how an array image works: 外部插图 DPI 比例为 2（正常像素的两倍
+密度）将导致图像在屏幕上占据与 DPI 比例为 1 的像素尺寸一半的图像相同的空间。这允许轻松交换在屏幕上占据相同空间但具有不同像素密度的图像资源，这使得支持高 dpi / 视网膜分辨率需要更少的代码逻辑。为了在自定义
+void effect() 变体中使用数组纹理或其他非 2D 纹理类型作为主纹理，必须在像素着色器中使用变体，并且必须将 MainTex 声明为
+ArrayImage or sampler2DArray like so: 统一ArrayImage MainTex;。
+
+**签名：**
+```tl
+newArrayImage: function(layers: {ImageData}, settings?: LayeredImageSettings): Image
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| layers | \{ImageData} | 一个表，其中包含数组中图像（或 File、FileData、ImageData 或 CompressedImageData 对象）的文件路径。每个子图像必须具有相同的尺寸。还可以给出表的表，其中每个子表包含该子表的切片索引的所有mipmap级别。 |
+| settings | LayeredImageSettings | 用于配置阵列映像的可选设置表，包含以下字段：（默认值：nil。） mipmaps: 如果为 true 则使图像使用 mipmap，为 false 则禁用它们。如果图像不是压缩纹理格式，则会自动生成 Mipmap。 （默认值：假。） linear: 如果启用伽马校正渲染，则将图像像素视为线性而不是 sRGB。大多数图像都是以 sRGB 格式创作的。 （默认值：假。） dpiscale: 绘制数组图像并调用 getWidth/getHeight 时使用的 DPI 比例。 （默认值：1。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Image | 数组图像对象。 |
+
+## newCubeImage
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的立方体贴图图像。
+立方体贴图图像有 6 个面（侧面），代表一个立方体。它们不能直接渲染，只能在着色器代码中使用（并通过 Shader:send 发送到着色器）。
+要在Shader 中使用立方体贴图图像，必须将其声明为CubeImage 或samplerCube 类型（而不是Image 或sampler2D）。必须使用 Texel(CubeImage image, vec3
+Direction) 着色器函数从立方体贴图中获取像素颜色。 vec3 参数是从立方体中心开始的标准化方向，而不是显式的纹理坐标。
+立方体贴图图像中的每个面都必须具有正方形尺寸。
+对于接受包含多个立方体贴图面的单个图像的此函数的变体，它们必须在图像中以以下形式之一布局：
++y
++z +x -z
+-y
+-x
+或：
++y
+-x +z +x -z
+-y
+或：
++x
+-x
++y
+-y
++z
+-z
+或：
++x -x +y -y +z -z
+重载说明：
+1. 在给定包含多个立方体面的单个图像文件的情况下创建立方体贴图图像。 2. 创建立方体贴图图像，并为每个立方体面指定不同的图像文件。
+
+**签名：**
+```tl
+newCubeImage: function(faces: {ImageData}, settings?: LayeredImageSettings): Image
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| faces | \{ImageData} | 包含 6 个图像文件路径（或 File、FileData、ImageData 或 CompressedImageData 对象）的表，位于数组中。每个面部图像必须具有相同的尺寸。还可以给出表的表，其中每个子表包含该子表的立方体面索引的所有mipmap级别。 |
+| settings | LayeredImageSettings | 用于配置立方体贴图图像的可选设置表，包含以下字段：（默认值：nil。） mipmaps: 如果为 true 则使图像使用 mipmap，为 false 则禁用它们。如果图像不是压缩纹理格式，则会自动生成 Mipmap。 （默认值：假。） linear: 如果启用伽马校正渲染，则将图像像素视为线性而不是 sRGB。大多数图像都是以 sRGB 格式创作的。 （默认值：假。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Image | 立方体贴图图像对象。 |
+
+## newVolumeImage
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建新体积 (3D) 图像。
+体积图像是具有宽度、高度和深度的 3D 纹理。它们不能直接渲染，只能在着色器代码中使用（并通过 Shader:send 发送到着色器）。
+要在Shader中使用体积图像，必须将其声明为VolumeImage或sampler3D类型（而不是Image或sampler2D）。必须使用 Texel(VolumeImage image, vec3 texcoords)
+着色器函数从体积图像中获取像素颜色。 vec3 参数是标准化纹理坐标，其中 z 分量表示采样深度（范围从 1 开始）。
+体积图像通常用作着色器中颜色分级的查找表，例如，因为使用两个像素之间的纹理坐标进行采样可以在体积图像中的所有 3 个维度上进行插值，从而即使在使用小尺寸体积图像作为查找表时也会产生平滑的渐变。
+数组图像是比体积图像更好的选择，用于将多个不同的精灵存储在单个数组图像中以便直接绘制它们。
+重载说明：
+1. 在给定多个具有匹配尺寸的图像文件的情况下创建体积图像。某些较旧的移动设备不支持卷映像。使用 love.graphics.getTextureTypes 在运行时检查。
+
+**签名：**
+```tl
+newVolumeImage: function(slices: {ImageData}, settings?: LayeredImageSettings): Image
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| slices | \{ImageData} | 一个表，其中包含数组中图像（或 File、FileData、ImageData 或 CompressedImageData 对象）的文件路径。还可以给出表中的表，其中每个子表代表单个 mipmap 级别并包含该 mipmap 的所有层。 |
+| settings | LayeredImageSettings | 用于配置卷映像的可选设置表，包含以下字段：（默认值：nil。） mipmaps: 如果为 true 则使图像使用 mipmap，为 false 则禁用它们。如果图像不是压缩纹理格式，则会自动生成 Mipmap。 （默认值：假。） linear: 如果启用伽马校正渲染，则将图像像素视为线性而不是 sRGB。大多数图像都是以 sRGB 格式创作的。 （默认值：假。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Image | 体积图像对象。 |
+
+## newCanvas
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 Canvas 对象用于离屏渲染。
+
+**签名：**
+```tl
+newCanvas: function(): Canvas
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Canvas | canvas — 尺寸等于窗口大小（以像素为单位）的新画布。 |
+
+## newCanvas
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 Canvas 对象用于离屏渲染。
+
+**签名：**
+```tl
+newCanvas: function(width: integer, height: integer, settings?: CanvasSettings): Canvas
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| width | integer | 画布所需的宽度。 |
+| height | integer | 画布所需的高度。 |
+| settings | CanvasSettings | 包含给定字段的表：（默认值：nil。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Canvas | 具有指定宽度和高度的新画布。 |
+
+## getCanvasFormats
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取可用的 Canvas 格式以及是否支持每种格式。
+
+**签名：**
+```tl
+getCanvasFormats: function(readable?: boolean, formats?: {string: boolean}): {string: boolean}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| readable | boolean | 如果为 true，则仅当该格式的可读标志设置为 true 时，返回的格式才会被指示为受支持，反之亦然，如果参数为 false。 |
+| formats | \{string: boolean} | formats 参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{string: boolean} | 包含 CanvasFormats 作为键的表，以及一个指示是否支持该格式作为值的布尔值。并非所有系统都支持所有格式。取决于重载：包含 CanvasFormats 作为键的表，以及指示是否支持该格式作为值的布尔值（考虑到可读参数）。并非所有系统都支持所有格式。 |
+
+## setCanvas
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将绘图操作捕获到画布上。
+
+**签名：**
+```tl
+setCanvas: function()
+```
+
+## setCanvas
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将绘图操作捕获到画布上。
+
+**签名：**
+```tl
+setCanvas: function(canvas: Canvas, canvases: Canvas...)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| canvas | Canvas | 新的渲染目标。 |
+| canvases | Canvas... | 指定活动画布、其 mipmap 级别和活动图层（如果适用）以及是否使用模板和/或深度缓冲区的表。 |
+
+## setCanvas
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将绘图操作捕获到画布上。
+
+**签名：**
+```tl
+setCanvas: function(canvases: {Canvas})
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| canvases | \{Canvas} | 指定活动画布、其 mipmap 级别和活动图层（如果适用）以及是否使用模板和/或深度缓冲区的表。 |
+
+## setCanvas
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将绘图操作捕获到画布上。
+
+**签名：**
+```tl
+setCanvas: function(setup: CanvasSetup)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| setup | CanvasSetup | 指定活动画布、其 mipmap 级别和活动层（如果适用）以及是否使用模板和/或深度缓冲区的表格。 |
+
+## getCanvas
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前目标Canvas。
+
+**签名：**
+```tl
+getCanvas: function(): Canvas | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Canvas or nil | setCanvas 设置的 Canvas。如果绘制到真实屏幕则返回 nil。 |
+
+## newQuad
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的四边形。
+
+	-- Quad 的目的是使用图像的一部分来绘制对象，而不是绘制整个图像。它对于精灵表和图集最有用：在精灵图集中，多个精灵驻留在同一图像中，四边形用于从该图像中绘制特定的精灵；在所有帧都驻留在同一图像中的动画精灵中，四边形用于从动画中绘制特定帧。
+
+**签名：**
+```tl
+newQuad: function(x: number, y: number, width: number, height: number, image: Image | Canvas): Quad
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 图像中沿 x 轴的左上角位置。 |
+| y | number | 图像中沿 y 轴的左上角位置。 |
+| width | number | 图像中四边形的宽度。 （必须大于 0。） |
+| height | number | 图像中四边形的高度。 （必须大于 0。） |
+| image | Image | Canvas | 纹理的宽度和高度将用作参考宽度和高度。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Quad | quad — 新的四边形。 |
+
+## newQuad
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的四边形。
+
+	-- Quad 的目的是使用图像的一部分来绘制对象，而不是绘制整个图像。它对于精灵表和图集最有用：在精灵图集中，多个精灵驻留在同一图像中，四边形用于从该图像中绘制特定的精灵；在所有帧都驻留在同一图像中的动画精灵中，四边形用于从动画中绘制特定帧。
+
+**签名：**
+```tl
+newQuad: function(x: number, y: number, width: number, height: number, texture_width: number, texture_height: number): Quad
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 图像中沿 x 轴的左上角位置。 |
+| y | number | 图像中沿 y 轴的左上角位置。 |
+| width | number | 图像中四边形的宽度。 （必须大于 0。） |
+| height | number | 图像中四边形的高度。 （必须大于 0。） |
+| texture_width | number | 参考宽度，Image的宽度。 （必须大于 0。） |
+| texture_height | number | 参考高度，Image的高度。 （必须大于 0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Quad | quad — 新的四边形。 |
+
+## newMesh
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的网格。
+
+	-- 如果网格在绘制时应使用图像或画布进行纹理化，请使用 Mesh:setTexture 。
+
+	-- 在11.0之前的版本中，颜色和字节分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+newMesh: function(vertices: {MeshVertex} | number, draw_mode?: MeshDrawMode, usage?: MeshUsage): Mesh
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| vertices | \{MeshVertex} | number | 该表填充了每个顶点的顶点信息表，如下所示： |
+| draw_mode | MeshDrawMode | 绘制时如何使用顶点。默认模式 'fan' 对于简单的凸多边形来说已经足够了。 （默认值：'fan'。） |
+| usage | MeshUsage | 网格的预期用途。指定的使用模式会影响Mesh的内存使用和性能。 （默认：'dynamic'。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Mesh | mesh — 新网格。 |
+
+## newMesh
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的网格。
+
+	-- 如果网格在绘制时应使用图像或画布进行纹理化，请使用 Mesh:setTexture 。
+
+	-- 在11.0之前的版本中，颜色和字节分量值的范围是0到255，而不是0到1。
+
+**签名：**
+```tl
+newMesh: function(format: {MeshVertexFormat}, vertices: {MeshVertex} | number | Data, draw_mode?: MeshDrawMode, usage?: MeshUsage): Mesh
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| format | \{MeshVertexFormat} | , ...} 形式的表。每个属性都是一个表，其中指定用于每个顶点的自定义顶点属性。 |
+| vertices | \{MeshVertex} | number | Data | 该表填充了每个顶点的顶点信息表，其形式为\{vertex, ...}，其中每个顶点是一个形式为\{attributecomponent, ...}的表。 |
+| draw_mode | MeshDrawMode | 绘制网格时使用的图像或画布。不使用纹理可能为零。 （默认值：无。） |
+| usage | MeshUsage | 网格的预期用途。指定的使用模式会影响Mesh的内存使用和性能。 （默认：'dynamic'。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Mesh | mesh — 新网格。 |
+
+## newSpriteBatch
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 SpriteBatch 对象。
+
+**签名：**
+```tl
+newSpriteBatch: function(texture: Image | Canvas, size?: integer, usage?: string): SpriteBatch
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| texture | Image or Canvas | 用于精灵的图像或画布。 |
+| size | integer | SpriteBatch 在任何给定时间可以包含的精灵的最大数量。自版本 11.0 起，添加超过此数量的额外精灵将自动增加精灵批次。 （默认值：1000。） |
+| usage | string | SpriteBatch 的预期用法。指定的使用模式会影响SpriteBatch的内存使用和性能。 （默认：'dynamic'。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| SpriteBatch | 新的 SpriteBatch。 |
+
+## newParticleSystem
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的粒子系统。
+
+**签名：**
+```tl
+newParticleSystem: function(texture: Image | Canvas, size?: integer): ParticleSystem
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| texture | Image or Canvas | 要使用的纹理（图像或画布）。 |
+| size | integer | 同时最大粒子数。 （默认值：1000。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| ParticleSystem | 一个新的粒子系统。 |
+
+## newShader
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;为硬件加速顶点和像素效果创建一个新的 Shader 对象。着色器包含顶点着色器代码、像素着色器代码或两者。
+着色器是绘图时在显卡上运行的小程序。顶点着色器针对每个顶点运行一次（例如，图像有 4 个顶点 -
+每个角各一个。网格可能有更多。）像素着色器针对绘制对象接触的屏幕上的每个像素运行一次。像素着色器代码在顶点着色器处理完所有对象的顶点后执行。
+
+**签名：**
+```tl
+newShader: function(source: string | FileData, pixel_source?: string | FileData): Shader
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| source | string or FileData | 像素着色器代码，或指向包含该代码的文件的文件名。 |
+| pixel_source | string or FileData | 顶点着色器代码，或指向包含该代码的文件的文件名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Shader | 用于绘图操作的 Shader 对象。 |
+
+## validateShader
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;验证着色器代码。检查指定的着色器代码是否不包含任何错误。
+
+**签名：**
+```tl
+validateShader: function(gles: boolean, source: string | FileData, pixel_source?: string | FileData): boolean, string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| gles | boolean | 验证代码为 GLSL ES 着色器。 |
+| source | string or FileData | 像素着色器代码，或指向包含该代码的文件的文件名。 |
+| pixel_source | string or FileData | 顶点着色器代码，或指向包含该代码的文件的文件名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | true 如果指定的着色器代码不包含任何错误。否则为假。 |
+| string or nil | 着色器代码验证失败的原因（如果验证成功则为零）。 |
+
+## setShader
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将着色器设置或重置为当前像素效果或顶点着色器。直到下一个“'love.graphics.setShader'”之前的所有绘制操作都将使用指定的 Shader 对象进行绘制。
+
+**签名：**
+```tl
+setShader: function()
+```
+
+## setShader
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将着色器设置或重置为当前像素效果或顶点着色器。直到下一个“'love.graphics.setShader'”之前的所有绘制操作都将使用指定的 Shader 对象进行绘制。
+
+**签名：**
+```tl
+setShader: function(shader: Shader)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| shader | Shader | 新的着色器。 |
+
+## getShader
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前的Shader。如果未设置则返回 nil。
+
+**签名：**
+```tl
+getShader: function(): Shader | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Shader or nil | 当前活动的着色器，如果未设置则为零。 |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在屏幕上绘制可绘制对象（图像、画布、SpriteBatch、粒子系统、网格、文本对象或视频），并可选择旋转、缩放和剪切。
+
+	-- 对象是相对于其局部坐标系绘制的。原点默认位于图像和画布的左上角。所有缩放、剪切和旋转参数都会相对于该点变换对象。另外，还可以在屏幕坐标系上指定原点位置。
+
+	-- 通过将原点偏移到中心，可以绕其中心旋转对象。旋转角度必须以弧度为单位。还可以使用负比例因子来围绕其中心线翻转。
+
+	-- 请注意，偏移是在旋转、缩放或剪切之前应用的；缩放和剪切在旋转之前应用。
+
+	-- 对象的右边缘和底边缘以剪切因子定义的角度移动。
+
+	-- 使用默认着色器时，使用此函数绘制的任何内容都将根据当前选择的颜色进行着色。将其设置为纯白色以保留对象的原始颜色。
+
+**签名：**
+```tl
+draw: function(image: Image, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| image | Image | 可绘制对象。 |
+| x | number | 绘制对象的位置（x 轴）。 （默认值：0。） |
+| y | number | 绘制对象的位置（y 轴）。 （默认值：0。） |
+| angle | number | 方向（弧度）。 （默认值：0。） |
+| scale_x | number | 比例因子（x 轴）。 （默认值：1。） |
+| scale_y | number | 比例因子（y 轴）。 （默认值：sx。） |
+| origin_x | number | 原点偏移（x 轴）。 （默认值：0。） |
+| origin_y | number | 原点偏移（y 轴）。 （默认值：0。） |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在屏幕上绘制可绘制对象（图像、画布、SpriteBatch、粒子系统、网格、文本对象或视频），并可选择旋转、缩放和剪切。
+
+	-- 对象是相对于其局部坐标系绘制的。原点默认位于图像和画布的左上角。所有缩放、剪切和旋转参数都会相对于该点变换对象。另外，还可以在屏幕坐标系上指定原点位置。
+
+	-- 通过将原点偏移到中心，可以绕其中心旋转对象。旋转角度必须以弧度为单位。还可以使用负比例因子来围绕其中心线翻转。
+
+	-- 请注意，偏移是在旋转、缩放或剪切之前应用的；缩放和剪切在旋转之前应用。
+
+	-- 对象的右边缘和底边缘以剪切因子定义的角度移动。
+
+	-- 使用默认着色器时，使用此函数绘制的任何内容都将根据当前选择的颜色进行着色。将其设置为纯白色以保留对象的原始颜色。
+
+**签名：**
+```tl
+draw: function(image: Image, quad: Quad, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| image | Image | 可绘制对象。 |
+| quad | Quad | 在屏幕上绘制的四边形。 |
+| x | number | 绘制对象的位置（x 轴）。 |
+| y | number | 绘制对象的位置（y 轴）。 |
+| angle | number | 比例因子（x 轴）。 （默认值：1。） |
+| scale_x | number | 比例因子（y 轴）。 （默认值：sx。） |
+| scale_y | number | 原点偏移（x 轴）。 （默认值：0。） |
+| origin_x | number | 原点偏移（y 轴）。 （默认值：0。） |
+| origin_y | number | 剪切系数（x 轴）。 （默认值：0。） |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在屏幕上绘制 Canvas，并可选择旋转、缩放和剪切。
+
+**签名：**
+```tl
+draw: function(canvas: Canvas, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| canvas | Canvas | 要绘制的 Canvas。 |
+| x | number | 对象在 x 轴上的绘制位置。（默认值：0。） |
+| y | number | 对象在 y 轴上的绘制位置。（默认值：0。） |
+| angle | number | 以弧度表示的旋转角度。（默认值：0。） |
+| scale_x | number | x 轴缩放系数。（默认值：1。） |
+| scale_y | number | y 轴缩放系数。（默认值：scaleX。） |
+| origin_x | number | x 轴原点偏移。（默认值：0。） |
+| origin_y | number | y 轴原点偏移。（默认值：0。） |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在屏幕上绘制 Canvas，并可选择旋转、缩放和剪切。
+
+**签名：**
+```tl
+draw: function(canvas: Canvas, quad: Quad, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| canvas | Canvas | 要绘制的 Canvas。 |
+| quad | Quad | 要绘制的可绘制对象子区域。 |
+| x | number | 对象在 x 轴上的绘制位置。（默认值：0。） |
+| y | number | 对象在 y 轴上的绘制位置。（默认值：0。） |
+| angle | number | 以弧度表示的旋转角度。（默认值：0。） |
+| scale_x | number | x 轴缩放系数。（默认值：1。） |
+| scale_y | number | y 轴缩放系数。（默认值：scaleX。） |
+| origin_x | number | x 轴原点偏移。（默认值：0。） |
+| origin_y | number | y 轴原点偏移。（默认值：0。） |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在屏幕上绘制 Mesh，并可选择旋转、缩放和剪切。
+
+**签名：**
+```tl
+draw: function(mesh: Mesh, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mesh | Mesh | 要绘制的 Mesh。 |
+| x | number | 对象在 x 轴上的绘制位置。（默认值：0。） |
+| y | number | 对象在 y 轴上的绘制位置。（默认值：0。） |
+| angle | number | 以弧度表示的旋转角度。（默认值：0。） |
+| scale_x | number | x 轴缩放系数。（默认值：1。） |
+| scale_y | number | y 轴缩放系数。（默认值：scaleX。） |
+| origin_x | number | x 轴原点偏移。（默认值：0。） |
+| origin_y | number | y 轴原点偏移。（默认值：0。） |
+| shear_x | number | x 轴剪切系数。（默认值：0。） |
+| shear_y | number | y 轴剪切系数。（默认值：0。） |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在屏幕上绘制 SpriteBatch，并可选择旋转、缩放和剪切。
+
+**签名：**
+```tl
+draw: function(batch: SpriteBatch, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| batch | SpriteBatch | 要绘制的 SpriteBatch。 |
+| x | number | 对象在 x 轴上的绘制位置。（默认值：0。） |
+| y | number | 对象在 y 轴上的绘制位置。（默认值：0。） |
+| angle | number | 以弧度表示的旋转角度。（默认值：0。） |
+| scale_x | number | x 轴缩放系数。（默认值：1。） |
+| scale_y | number | y 轴缩放系数。（默认值：scaleX。） |
+| origin_x | number | x 轴原点偏移。（默认值：0。） |
+| origin_y | number | y 轴原点偏移。（默认值：0。） |
+| shear_x | number | x 轴剪切系数。（默认值：0。） |
+| shear_y | number | y 轴剪切系数。（默认值：0。） |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在屏幕上绘制 ParticleSystem，并可选择旋转、缩放和剪切。
+
+**签名：**
+```tl
+draw: function(particles: ParticleSystem, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| particles | ParticleSystem | 要绘制的 ParticleSystem。 |
+| x | number | 对象在 x 轴上的绘制位置。（默认值：0。） |
+| y | number | 对象在 y 轴上的绘制位置。（默认值：0。） |
+| angle | number | 以弧度表示的旋转角度。（默认值：0。） |
+| scale_x | number | x 轴缩放系数。（默认值：1。） |
+| scale_y | number | y 轴缩放系数。（默认值：scaleX。） |
+| origin_x | number | x 轴原点偏移。（默认值：0。） |
+| origin_y | number | y 轴原点偏移。（默认值：0。） |
+| shear_x | number | x 轴剪切系数。（默认值：0。） |
+| shear_y | number | y 轴剪切系数。（默认值：0。） |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在屏幕上绘制 Text，并可选择旋转、缩放和剪切。
+
+**签名：**
+```tl
+draw: function(text: Text, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | Text | 要绘制的 Text 对象。 |
+| x | number | 对象在 x 轴上的绘制位置。（默认值：0。） |
+| y | number | 对象在 y 轴上的绘制位置。（默认值：0。） |
+| angle | number | 以弧度表示的旋转角度。（默认值：0。） |
+| scale_x | number | x 轴缩放系数。（默认值：1。） |
+| scale_y | number | y 轴缩放系数。（默认值：scaleX。） |
+| origin_x | number | x 轴原点偏移。（默认值：0。） |
+| origin_y | number | y 轴原点偏移。（默认值：0。） |
+| shear_x | number | x 轴剪切系数。（默认值：0。） |
+| shear_y | number | y 轴剪切系数。（默认值：0。） |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在屏幕上绘制 Video，并可选择旋转、缩放和剪切。
+
+**签名：**
+```tl
+draw: function(video: Video, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| video | Video | 要绘制的 Video。 |
+| x | number | 对象在 x 轴上的绘制位置。（默认值：0。） |
+| y | number | 对象在 y 轴上的绘制位置。（默认值：0。） |
+| angle | number | 以弧度表示的旋转角度。（默认值：0。） |
+| scale_x | number | x 轴缩放系数。（默认值：1。） |
+| scale_y | number | y 轴缩放系数。（默认值：scaleX。） |
+| origin_x | number | x 轴原点偏移。（默认值：0。） |
+| origin_y | number | y 轴原点偏移。（默认值：0。） |
+| shear_x | number | x 轴剪切系数。（默认值：0。） |
+| shear_y | number | y 轴剪切系数。（默认值：0。） |
+
+## drawLayer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制表纹理的一层。
+
+**签名：**
+```tl
+drawLayer: function(image: Image, layer: integer, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| image | Image | 要绘制的表纹理。 |
+| layer | integer | 绘制时使用的图层的索引。 |
+| x | number | 绘制纹理的位置（x 轴）。 （默认值：0。） |
+| y | number | 绘制纹理的位置（y 轴）。 （默认值：0。） |
+| angle | number | 方向（弧度）。 （默认值：0。） |
+| scale_x | number | 比例因子（x 轴）。 （默认值：1。） |
+| scale_y | number | 比例因子（y 轴）。 （默认值：sx。） |
+| origin_x | number | 原点偏移（x 轴）。 （默认值：0。） |
+| origin_y | number | 原点偏移（y 轴）。 （默认值：0。） |
+
+## drawLayer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;绘制表纹理的一层。
+
+**签名：**
+```tl
+drawLayer: function(image: Image, layer: integer, quad: Quad, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| image | Image | 要绘制的表纹理。 |
+| layer | integer | 绘制时使用的图层的索引。 |
+| quad | Quad | 绘制时使用的纹理层的分段。 |
+| x | number | 绘制纹理的位置（x 轴）。 （默认值：0。） |
+| y | number | 绘制纹理的位置（y 轴）。 （默认值：0。） |
+| angle | number | 比例因子（x 轴）。 （默认值：1。） |
+| scale_x | number | 比例因子（y 轴）。 （默认值：sx。） |
+| scale_y | number | 原点偏移（x 轴）。 （默认值：0。） |
+| origin_x | number | 原点偏移（y 轴）。 （默认值：0。） |
+| origin_y | number | 剪切系数（x 轴）。 （默认值：0。） |
+
+## drawInstanced
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用硬件几何实例，通过一次绘制调用绘制网格的许多实例。
+每个实例都可以具有唯一的属性（位置、颜色等），但默认情况下不会，除非使用自定义的每个实例顶点属性或 love_InstanceID GLSL 3 顶点着色器变量，否则它们将全部渲染在彼此之上的相同位置。
+某些旧版 GPU 不支持实例化，这些 GPU 只能使用 OpenGL ES 2 或 OpenGL 2。使用 love.graphics.getSupported 进行检查。
+
+**签名：**
+```tl
+drawInstanced: function(mesh: Mesh, instance_count: integer, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mesh | Mesh | 要渲染的网格物体。 |
+| instance_count | integer | 要渲染的实例数。 |
+| x | number | 绘制实例的位置（x 轴）。 （默认值：0。） |
+| y | number | 绘制实例的位置（y 轴）。 （默认值：0。） |
+| angle | number | 方向（弧度）。 （默认值：0。） |
+| scale_x | number | 比例因子（x 轴）。 （默认值：1。） |
+| scale_y | number | 比例因子（y 轴）。 （默认值：sx。） |
+| origin_x | number | 原点偏移（x 轴）。 （默认值：0。） |
+| origin_y | number | 原点偏移（y 轴）。 （默认值：0。） |
+| shear_x | number | 剪切因子（x 轴）。 （默认值：0。） |
+| shear_y | number | 剪切因子（y 轴）。 （默认值：0。） |
