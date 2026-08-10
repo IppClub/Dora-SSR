@@ -180,14 +180,15 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 		name: "read_file",
 		roles: ["main", "sub"],
 		workModes: ["code", "plan"],
-		description: "Read a specific line range from a file.",
+		description: "Read a specific line range from a workspace file, built-in document, or virtual engine log.",
 		parameters: [
-			{ name: "path", type: "string", required: true, description: "Workspace-relative file path to read, or an exact @dora-doc/... path returned by search_dora_doc." },
+			{ name: "path", type: "string", required: true, description: "Workspace-relative file path, the virtual @dora_full_logs.txt engine log, or an exact @dora-doc/... path returned by search_dora_doc." },
 			{ name: "startLine", type: "number", description: "Starting line number. Positive values are 1-based; negative values count from the end. Defaults to 1. 0 is invalid." },
 			{ name: "endLine", type: "number", description: "Ending line number. Positive values are 1-based; negative values count from the end. If omitted, defaults to 300 for positive startLine, or -1 for negative startLine. 0 is invalid." },
 		],
 		rules: [
 			"startLine defaults to 1. If endLine is omitted, it defaults to 300 when startLine is positive, or -1 when startLine is negative.",
+			"Read @dora_full_logs.txt to inspect the current Dora engine log snapshot; it is a read-only virtual path, not a workspace file.",
 			"Paths returned by search_dora_doc are authoritative built-in documentation paths and can be read directly without modifying them.",
 		],
 		parallelSafe: true,

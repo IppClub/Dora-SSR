@@ -2459,11 +2459,13 @@ collectTSVirtualFiles = (sourceRoot) ->
 	seen = {}
 	addFile = (file, moduleName = nil, virtualFile = nil) ->
 		targetFile = virtualFile or file
-		return if seen[targetFile]
+		if entry := seen[targetFile]
+			entry.moduleName = moduleName if moduleName and moduleName ~= ""
+			return
 		if content := Content\load file
-			seen[targetFile] = true
 			entry = file: targetFile, :content
 			entry.moduleName = moduleName if moduleName and moduleName ~= ""
+			seen[targetFile] = entry
 			files[] = entry
 	if sourceRoot and Content\exist(sourceRoot) and Content\isdir(sourceRoot)
 		for subFile in *Content\glob sourceRoot, tsSnapshotGlobs
@@ -2509,9 +2511,9 @@ transpileTSFile = do
 		listener\gslot "AppWS", (event) ->
 			if event.type == "Receive"
 				if res := json.decode event.msg
-					if res.name == "TranspileTSReadyV3" and res.id == requestId
+					if res.name == "TranspileTSProbe" and res.id == requestId
 						ready = true
-					elseif res.name == "TranspileTSV3" and res.id == requestId
+					elseif res.name == "TranspileTS" and res.id == requestId
 						listener\removeFromParent!
 						if res.success
 							luaFile = Path\replaceExt file, "lua"
@@ -2520,7 +2522,7 @@ transpileTSFile = do
 						else
 							result = success: false, :file, message: res.message
 						done = true
-		emit "AppWS", "Send", json.encode name: "TranspileTSProbeV3", id: requestId
+		emit "AppWS", "Send", json.encode name: "TranspileTSProbe", id: requestId
 		readyDeadline = App.runningTime + tsReadyTimeout
 		wait -> ready or HttpServer.wsConnectionCount == 0 or App.runningTime >= readyDeadline
 		unless ready
@@ -2528,7 +2530,7 @@ transpileTSFile = do
 			if HttpServer.wsConnectionCount == 0
 				return success: false, :file, message: "Web IDE disconnected"
 			return success: false, :file, message: "TypeScript transpiler is not ready"
-		emit "AppWS", "Send", json.encode name: "TranspileTSV3", id: requestId, :file, :content, projectRoot: sourceRoot, :files
+		emit "AppWS", "Send", json.encode name: "TranspileTS", id: requestId, :file, :content, projectRoot: sourceRoot, :files
 		deadline = App.runningTime + tsBuildTimeout
 		wait -> done or HttpServer.wsConnectionCount == 0 or App.runningTime >= deadline
 		unless done

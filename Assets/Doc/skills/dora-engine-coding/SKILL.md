@@ -273,6 +273,10 @@ Use this as a decision map. It is not a full API reference; exact signatures com
 18. If the model clamps each `step(dt)` to a maximum frame delta, never use one oversized `step(totalTime)` in a fixture to advance timers or trigger spawning unless the test is specifically checking the clamp. Use a bounded fixed-step helper that accumulates time, assert the expected state exists, then inspect it.
 19. For terminal conditions such as filling a board, exhausting lives, reaching a score threshold, or consuming the last target, construct the smallest legal state immediately before the terminal transition and execute one action. Do not simulate the full gameplay history, derive a Hamiltonian route, or retry a long traversal fixture when a direct near-terminal state proves the same rule.
 
+## Engine Log
+
+When diagnosing launch failures, runtime exceptions, engine-service errors, or explicit script `print` output, read the read-only virtual file `@dora_full_logs.txt`. Use a negative line range such as `startLine: -200` to inspect the latest entries. This path is not part of the workspace and must not be edited or enumerated as a project file.
+
 ## Game Runtime Acceptance
 
 For a playable game, `build` success and `running=true` are necessary but not sufficient.

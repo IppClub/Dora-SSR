@@ -1,7 +1,7 @@
 // @preview-file off clear
 
 export const AGENT_DEFAULTS = {
-	maxSteps: 100,
+	maxSteps: 999,
 	llmMaxTry: 5,
 	llmTemperature: 0.1,
 	llmMaxTokens: 8192,

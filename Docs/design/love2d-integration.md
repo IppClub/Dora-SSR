@@ -791,7 +791,7 @@ export {};
 - 原生 `/ts/build` 等待浏览器 WebSocket 回包时，compiler host 不得再调用同步 `/read-sync`；WebServer 在进入等待前统一通过 Dora `Content` 收集项目 `.ts/.tsx`、当前 locale 声明、内建 `lualib_bundle.lua` 和 `lualib/*.lua`，以只读虚拟文件快照随请求发送。单体 helper 只供 TIC-80 既有 inline 模式按需读取，不改变 Love 和普通 Dora TS 的 bundle 输出。
 - TypeScript browser build 必须保留顶层 `ts` 标识符并显式写入 `globalThis.ts`。带内容 hash 的 compiler script 在 Web IDE `index.html` 中先于主 module 加载，不能在已建立编译 WebSocket 后才按需请求。
 - TSTL、output collector 与 source-map `mappings.wasm` 必须在编译 WebSocket 建立前完成加载；WASM 以 ArrayBuffer 初始化，正式转译阶段不得产生嵌套静态请求。
-- 编译协议使用带版本的 `TranspileTSProbeV3 / TranspileTSReadyV3 / TranspileTSV3`。服务端先以 5 秒 probe 确认至少一个完成预热的客户端，再进入 30 秒转译等待；旧标签页可继续使用普通 IDE 功能，但不能抢答不兼容的编译请求。
+- 编译协议只使用 `TranspileTSProbe / TranspileTS`：probe 请求与应答共用前者，转译请求与结果共用后者，并以严格匹配的请求 `id` 关联。服务端先以 5 秒 probe 确认至少一个完成预热的客户端，再进入 30 秒转译等待；协议不保留版本化并行接口。
 - `lualib_bundle` 不是 Love 专属 inline 规则。LoveNode 用 Dora `Content` 读取现有 `Script/Lib/lualib_bundle.lua`，再把 loader 注册到当前隔离 state 的 `package.preload`；注册表随 runtime restart 恢复，各实例的 `package.loaded` 仍完全隔离。
 
 ### Lua、Teal 与 YueScript 定义和生成

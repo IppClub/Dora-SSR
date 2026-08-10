@@ -2556,7 +2556,7 @@ export function continuePrompt(sessionId: number, disabledAgentTools?: unknown, 
 			resumeConversation: true,
 			existingTaskId: taskId,
 			initialStep: math.max(0, getNextStepNumber(session.id, taskId) - 1),
-			initialAgentStepCount: 0,
+			initialAgentStepCount: getAgentStepCount(session.id, taskId),
 			llmConfigId,
 		},
 	);

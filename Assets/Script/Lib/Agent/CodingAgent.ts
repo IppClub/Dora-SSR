@@ -11,6 +11,7 @@ import type { AgentDecisionMode, AgentRole, AgentToolName, AgentWorkMode } from 
 import * as AgentSkills from 'Agent/AgentSkills';
 import * as AgentConfig from 'Agent/AgentConfig';
 import * as AgentRuntimePolicy from 'Agent/AgentRuntimePolicy';
+import { getRemainingAgentWorkSteps, isFinalAgentDecisionTurn } from 'Agent/AgentStepBudget';
 import type {
 	AgentCompletionOutcome,
 	AgentValidationKind,
@@ -2691,7 +2692,7 @@ function getUnconsolidatedMessages(shared: AgentShared): Message[] {
 }
 
 function isFinalDecisionTurn(shared: AgentShared): boolean {
-	return shared.agentStepCount + 1 >= shared.maxSteps;
+	return isFinalAgentDecisionTurn(shared.agentStepCount, shared.maxSteps);
 }
 
 function getFinalDecisionTurnPrompt(shared: AgentShared): string {
@@ -2954,6 +2955,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		let lastStreamReasoning = "";
 		const preExecutedResults = new Map<string, PreExecutedToolResult>();
 		shared.preExecutedResults = preExecutedResults;
+		const remainingWorkSteps = getRemainingAgentWorkSteps(shared.agentStepCount, shared.maxSteps);
 		const res = await AgentUtils.callLLMStreamAggregated(
 			messages,
 			llmOptions,
@@ -2976,6 +2978,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			},
 			(tc) => {
 				if (shared.stopToken.stopped) return;
+				if (preExecutedResults.size >= remainingWorkSteps) return;
 				const action = createPreExecutableActionFromStream(shared, tc);
 				if (!action || preExecutedResults.has(action.toolCallId)) return;
 				AgentUtils.Log("Info", `[CodingAgent] streaming pre-exec tool=${action.tool} id=${action.toolCallId}`);
@@ -3068,6 +3071,17 @@ class MainDecisionAgent extends Node<AgentShared> {
 				success: false,
 				message: "missing tool call",
 				raw: reasoningContent ?? messageContent ?? "",
+			};
+		}
+		if (toolCalls.length > 1 && toolCalls.length > remainingWorkSteps) {
+			AgentUtils.Log("Warn", `[CodingAgent] parallel tool batch exceeds remaining step budget calls=${toolCalls.length} remaining=${remainingWorkSteps}`);
+			const committed = this.commitPreExecutedDecision(shared);
+			if (committed) return committed;
+			clearPreExecutedResults(shared);
+			return {
+				success: false,
+				message: `parallel tool call batch exceeds the remaining task step budget (${remainingWorkSteps})`,
+				raw: messageContent,
 			};
 		}
 		const decisions: DecisionSuccess[] = [];
@@ -3645,18 +3659,19 @@ class DeleteFileAction extends Node<AgentShared> {
 }
 
 class BuildAction extends Node<AgentShared> {
-	async prep(shared: AgentShared): Promise<{ params: Record<string, unknown>; workDir: string }> {
+	async prep(shared: AgentShared): Promise<{ params: Record<string, unknown>; workDir: string; isCancelled: () => boolean }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
 		emitAgentStartEvent(shared, last);
-		return { params: last.params, workDir: shared.workingDir };
+		return { params: last.params, workDir: shared.workingDir, isCancelled: () => shared.stopToken.stopped };
 	}
 
-	async exec(input: { params: Record<string, unknown>; workDir: string }): Promise<Record<string, unknown>> {
+	async exec(input: { params: Record<string, unknown>; workDir: string; isCancelled: () => boolean }): Promise<Record<string, unknown>> {
 		const params = input.params;
 		const result = await Tools.build({
 			workDir: input.workDir,
-			path: (params.path as string) ?? ""
+			path: (params.path as string) ?? "",
+			isCancelled: input.isCancelled,
 		});
 		return result as unknown as Record<string, unknown>;
 	}
@@ -4173,7 +4188,8 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		const buildPath = (params.path as string) ?? "";
 		const result = await Tools.build({
 			workDir: shared.workingDir,
-			path: buildPath
+			path: buildPath,
+			isCancelled: () => shared.stopToken.stopped,
 		});
 		shared.unbuiltEdits = false;
 		shared.editsSinceBuild = 0;

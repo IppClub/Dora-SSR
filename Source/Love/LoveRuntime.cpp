@@ -19,6 +19,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
 #include "Love/LoveRuntime.h"
+#include "Common/Debug.h"
 #include "Lua/BuiltinModules.h"
 #include "3rdParty/Love/src/libraries/lz4/lz4.h"
 #include "3rdParty/Love/src/libraries/lz4/lz4hc.h"
@@ -3847,6 +3848,9 @@ bool LoveRuntime::open(std::string &error)
 	lua_setfield(_state, LUA_REGISTRYINDEX, LoveRuntimeRegistry);
 
 	luaL_openlibs(_state);
+	lua_pushlightuserdata(_state, this);
+	lua_pushcclosure(_state, runtimePrint, 1);
+	lua_setglobal(_state, "print");
 	// LOVE Reference instances (used by compatibility bridges while userdata
 	// types are migrated incrementally) require a pinned thread for unref.
 	::love::luax_insistpinnedthread(_state);
@@ -4211,6 +4215,25 @@ end
 	_lastError.clear();
 	error.clear();
 	return true;
+}
+
+int LoveRuntime::runtimePrint(lua_State *state)
+{
+	auto *runtime = runtimeFromUpvalue(state);
+	const int argumentCount = lua_gettop(state);
+	std::string output;
+	for (int index = 1; index <= argumentCount; ++index)
+	{
+		std::size_t length = 0;
+		const char *text = luaL_tolstring(state, index, &length);
+		if (index > 1) output.push_back('\t');
+		output.append(text, length);
+		lua_pop(state, 1);
+	}
+	const std::string_view identity = runtime && !runtime->_identity.empty()
+		? std::string_view(runtime->_identity) : std::string_view("runtime");
+	LogInfoThreaded("[Love:" + std::string(identity) + "] " + output);
+	return 0;
 }
 
 bool LoveRuntime::installPreloadModule(std::string_view name, std::string_view code,

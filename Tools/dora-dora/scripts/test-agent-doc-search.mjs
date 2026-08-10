@@ -44,11 +44,14 @@ assert.equal(codingAgentLua.match(/main:on\("search_dora_doc", searchDora\)/g)?.
 for (const language of ["en", "zh-Hans"]) {
 	for (const extension of ["ts", "tl"]) {
 		const definition = await read(`Assets/Script/Lib/Dora/${language}/love.d.${extension}`);
-		const links = definition.match(/https:\/\/love2d\.org\/wiki\//g) ?? [];
-		assert.ok(links.length >= 900, `${language}/love.d.${extension} must retain broad official API coverage`);
-		assert.match(definition, /Gets the width of the Texture\./);
-		assert.match(definition, /Draws objects on the screen\.|Draws a Drawable object/);
-		assert.match(definition, /FreeBSD Documentation License/);
+		const parameterDocs = definition.match(/@param/g) ?? [];
+		const returnDocs = definition.match(/@returns?/g) ?? [];
+		assert.ok(parameterDocs.length >= 1400, `${language}/love.d.${extension} must retain broad parameter documentation`);
+		assert.ok(returnDocs.length >= 900, `${language}/love.d.${extension} must retain broad return-value documentation`);
+		for (const api of ["getWidth", "newShader", "setIdentity", "newThread", "newWorld"]) {
+			assert.match(definition, new RegExp(`${api}[:(]`), `${language}/love.d.${extension} must retain ${api}`);
+		}
+		assert.match(definition, /FreeBSD/);
 	}
 }
 

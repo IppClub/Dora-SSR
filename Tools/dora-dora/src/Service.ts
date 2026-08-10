@@ -128,9 +128,7 @@ const enum WsEvent {
 	Log = "Log",
 	Profiler = "Profiler",
 	TranspileTS = "TranspileTS",
-	TranspileTSProbeV3 = "TranspileTSProbeV3",
-	TranspileTSReadyV3 = "TranspileTSReadyV3",
-	TranspileTSV3 = "TranspileTSV3",
+	TranspileTSProbe = "TranspileTSProbe",
 	UpdateFile = "UpdateFile",
 	RefreshTree = "RefreshTree",
 	OpenFile = "OpenFile",
@@ -260,14 +258,14 @@ const handleTranspileTS = async (item: TranspileTSQueueItem) => {
 			item.files,
 		);
 		if (success) {
-			sendTranspileTSResponse(item, { name: WsEvent.TranspileTSV3, success, file: item.file, luaCode, message: "" });
+			sendTranspileTSResponse(item, { name: WsEvent.TranspileTS, success, file: item.file, luaCode, message: "" });
 		} else {
 			const message = await getDiagnosticMessage(item.file, diagnostics);
-			sendTranspileTSResponse(item, { name: WsEvent.TranspileTSV3, success, file: item.file, luaCode: "", message });
+			sendTranspileTSResponse(item, { name: WsEvent.TranspileTS, success, file: item.file, luaCode: "", message });
 		}
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
-		sendTranspileTSResponse(item, { name: WsEvent.TranspileTSV3, success: false, file: item.file, luaCode: "", message });
+		sendTranspileTSResponse(item, { name: WsEvent.TranspileTS, success: false, file: item.file, luaCode: "", message });
 	}
 };
 
@@ -356,11 +354,11 @@ export function openWebSocket() {
 								eventEmitter.emit(result.name, result.url, result.status, result.progress);
 								break;
 							}
-							case WsEvent.TranspileTSProbeV3: {
-								sendWebSocketMessage({ name: WsEvent.TranspileTSReadyV3, id: result.id });
+							case WsEvent.TranspileTSProbe: {
+								sendWebSocketMessage({ name: WsEvent.TranspileTSProbe, id: result.id });
 								break;
 							}
-							case WsEvent.TranspileTSV3: {
+							case WsEvent.TranspileTS: {
 								const { file, content, projectRoot, files } = result;
 								if (typeof file === 'string' && typeof content === 'string') {
 									void handleTranspileTS({

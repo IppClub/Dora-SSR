@@ -1,7 +1,7 @@
 -- [ts]: AgentConfig.ts
 local ____exports = {} -- 1
 ____exports.AGENT_DEFAULTS = { -- 3
-	maxSteps = 100, -- 4
+	maxSteps = 999, -- 4
 	llmMaxTry = 5, -- 5
 	llmTemperature = 0.1, -- 6
 	llmMaxTokens = 8192, -- 7

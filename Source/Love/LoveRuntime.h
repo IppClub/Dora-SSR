@@ -2311,6 +2311,7 @@ private:
 	void pushJoystick(int id);
 	GraphicsBackend::FontHandle ensureDefaultFont(std::string &error);
 	bool callLoveCallback(const char *name, int argumentCount, int resultCount, std::string &error);
+	static int runtimePrint(lua_State *state);
 	bool dispatchQueuedEvents(std::string &error);
 	bool setIdentity(std::string_view identity, std::string &error);
 	bool installPreloadModule(std::string_view name, std::string_view code, std::string &error);
