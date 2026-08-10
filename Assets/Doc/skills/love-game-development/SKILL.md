@@ -1,6 +1,6 @@
 ---
 name: love-game-development
-description: Develop, fix, or review LÖVE 11.5 games hosted by Dora LoveNode, including Love TypeScript or Lua sources, Love API documentation lookup, isolated runtime boundaries, filesystem behavior, and log-based debugging.
+description: Develop, fix, or review LÖVE 11.5 games hosted by Dora LoveNode, including Love TypeScript or Lua sources, Love API documentation lookup, isolated runtime boundaries, full-screen adaptation, filesystem behavior, and log-based debugging.
 ---
 
 # Love Game Development
@@ -40,6 +40,36 @@ Do not guess Love signatures or substitute Dora API documentation for Love APIs.
 - Check the documented return values from `love.filesystem.read`, `write`, `createDirectory`, and related calls. Surface useful failure details with a temporary `print` when diagnosing a runtime issue.
 - Agent file tools still edit and inspect workspace source files. They do not replace `love.filesystem` calls made by the running game.
 
+## Full-Screen Adaptation
+
+For a Love game that fills the Dora scene, keep one fixed Love design surface and adapt it in the Dora host with the 2D camera.
+
+1. Set `t.window.width` and `t.window.height` in the Love source root's `conf.lua` when the game needs a design size other than Love's default. Keep gameplay and `love.draw` coordinates in that fixed space.
+2. Create the `LoveNode` in the Dora host and add it at the default centered position. Its `width` and `height` report the actual Love virtual surface size after `conf.lua` is applied; read these properties instead of duplicating design constants in the host.
+3. For centered contain/letterbox fitting, leave the `LoveNode` dimensions and `scaleX`/`scaleY` unchanged. Set the current `Camera2D.zoom` to `min(View.size.width / game.width, View.size.height / game.height)` and recompute it when `Director.entry.onAppChange` reports `"Size"`.
+4. Do not also translate or scale inside `love.draw`; applying adaptation in both Love and Dora causes double scaling, bad centering, or aspect-ratio errors.
+
+```ts
+import {Director, LoveNode, TypeName, View, tolua} from "Dora";
+
+const game = LoveNode("Game");
+if (game) {
+	game.addTo(Director.entry);
+	const camera = tolua.cast(Director.currentCamera, TypeName.Camera2D);
+	const fit = () => {
+		if (camera && game.width > 0 && game.height > 0) {
+			camera.zoom = Math.min(View.size.width / game.width, View.size.height / game.height);
+		}
+	};
+	fit();
+	Director.entry.onAppChange(settingName => {
+		if (settingName === "Size") fit();
+	});
+}
+```
+
+This camera pattern affects the whole Dora scene and is appropriate when the Love game is the full-screen scene. For an embedded panel or multiple independently sized Love instances, use an explicit host layout instead. Test at both wider and taller aspect ratios; a successful build or stable runtime does not prove centering, aspect ratio, or letterboxing.
+
 ## Debugging With Dora Logs
 
 Love `print(...)`, Love thread prints, `LoveNode` startup/configuration failures, and Love callback errors are written to the Dora engine log. Read the virtual log file when:
@@ -63,5 +93,6 @@ Love prints are prefixed with `[Love:<identity>]`, which distinguishes the insta
 - Love API calls were checked through `love-api` documentation and the returned virtual document was read when details mattered.
 - Authored TypeScript was built and generated Lua was retained.
 - Runtime validation launched the Dora host entry, not the Love entry directly.
+- Full-screen adaptation, when needed, reads the `LoveNode` surface size and is applied once in the Dora host camera.
 - Relevant Dora log entries were checked after runtime failures or explicit probes.
 - Visual and input behavior was tested separately when the task affects gameplay or rendering.
