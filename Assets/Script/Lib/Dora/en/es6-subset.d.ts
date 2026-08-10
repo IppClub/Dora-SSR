@@ -1821,8 +1821,67 @@ interface WeakSetConstructor {
 }
 
 /////////////////////////////
+/// es2016.array.include
+/////////////////////////////
+
+interface Array<T> {
+	/** Determines whether an array includes a certain element. */
+	includes(searchElement: T, fromIndex?: number): boolean;
+}
+
+interface ReadonlyArray<T> {
+	/** Determines whether an array includes a certain element. */
+	includes(searchElement: T, fromIndex?: number): boolean;
+}
+
+/////////////////////////////
+/// es2017.object
+/////////////////////////////
+
+interface ObjectConstructor {
+	/** Returns an array of values of the enumerable own properties of an object. */
+	values<T>(o: { [s: string]: T; } | ArrayLike<T>): T[];
+	values(o: {}): any[];
+
+	/** Returns an array of key/value pairs of the enumerable own properties of an object. */
+	entries<T>(o: { [s: string]: T; } | ArrayLike<T>): [string, T][];
+	entries(o: {}): [string, any][];
+
+	/** Returns an object containing all own property descriptors of an object. */
+	getOwnPropertyDescriptors<T>(o: T): { [P in keyof T]: TypedPropertyDescriptor<T[P]>; } & { [x: string]: PropertyDescriptor; };
+}
+
+/////////////////////////////
+/// es2017.string
+/////////////////////////////
+
+interface String {
+	/** Pads the start of a string until it reaches the specified length. */
+	padStart(maxLength: number, fillString?: string): string;
+
+	/** Pads the end of a string until it reaches the specified length. */
+	padEnd(maxLength: number, fillString?: string): string;
+}
+
+/////////////////////////////
+/// es2018.promise
+/////////////////////////////
+
+interface Promise<T> {
+	/** Attaches a callback that is invoked when the Promise is settled. */
+	finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+}
+
+/////////////////////////////
 /// es2019.array
 /////////////////////////////
+
+type FlatArray<Arr, Depth extends number> = {
+	done: Arr;
+	recur: Arr extends ReadonlyArray<infer InnerArr>
+		? FlatArray<InnerArr, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20][Depth]>
+		: Arr;
+}[Depth extends -1 ? "done" : "recur"];
 
 interface ReadonlyArray<T> {
 	/**
@@ -1833,6 +1892,9 @@ interface ReadonlyArray<T> {
 		callback: (this: This, value: T, index: number, array: T[]) => U | ReadonlyArray<U>,
 		thisArg?: This,
 	): U[];
+
+	/** Returns a new array with sub-array elements concatenated up to the specified depth. */
+	flat<A, D extends number = 1>(this: A, depth?: D): FlatArray<A, D>[];
 }
 
 interface Array<T> {
@@ -1844,6 +1906,127 @@ interface Array<T> {
 		callback: (this: This, value: T, index: number, array: T[]) => U | ReadonlyArray<U>,
 		thisArg?: This,
 	): U[];
+
+	/** Returns a new array with sub-array elements concatenated up to the specified depth. */
+	flat<A, D extends number = 1>(this: A, depth?: D): FlatArray<A, D>[];
+}
+
+/////////////////////////////
+/// es2019.object
+/////////////////////////////
+
+interface ObjectConstructor {
+	/** Creates an object from an iterable of key/value pairs. */
+	fromEntries<T = any>(entries: Iterable<readonly [PropertyKey, T]>): { [k: string]: T; };
+	fromEntries(entries: Iterable<readonly any[]>): any;
+}
+
+/////////////////////////////
+/// es2019.string
+/////////////////////////////
+
+interface String {
+	/** Removes trailing white space and line terminator characters. */
+	trimEnd(): string;
+
+	/** Removes leading white space and line terminator characters. */
+	trimStart(): string;
+
+	/** @deprecated Use `trimStart` instead. */
+	trimLeft(): string;
+
+	/** @deprecated Use `trimEnd` instead. */
+	trimRight(): string;
+}
+
+/////////////////////////////
+/// es2020.promise
+/////////////////////////////
+
+interface PromiseFulfilledResult<T> {
+	status: "fulfilled";
+	value: T;
+}
+
+interface PromiseRejectedResult {
+	status: "rejected";
+	reason: any;
+}
+
+type PromiseSettledResult<T> = PromiseFulfilledResult<T> | PromiseRejectedResult;
+
+interface PromiseConstructor {
+	/** Resolves after all provided Promises have settled. */
+	allSettled<T extends readonly unknown[] | []>(values: T): Promise<{ -readonly [P in keyof T]: PromiseSettledResult<Awaited<T[P]>>; }>;
+	allSettled<T>(values: Iterable<T | PromiseLike<T>>): Promise<PromiseSettledResult<Awaited<T>>[]>;
+}
+
+/////////////////////////////
+/// es2021.promise
+/////////////////////////////
+
+interface PromiseConstructor {
+	/** Resolves with the first fulfilled Promise, or rejects if every Promise rejects. */
+	any<T extends readonly unknown[] | []>(values: T): Promise<Awaited<T[number]>>;
+	any<T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>>;
+}
+
+/////////////////////////////
+/// es2021.string
+/////////////////////////////
+
+interface String {
+	/** Replaces every occurrence of a substring or regular expression match. */
+	replaceAll(searchValue: string | RegExp, replaceValue: string): string;
+	replaceAll(searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string;
+}
+
+/////////////////////////////
+/// es2022.array
+/////////////////////////////
+
+interface Array<T> {
+	/** Returns the item at the specified index. Negative indexes count from the end. */
+	at(index: number): T | undefined;
+}
+
+interface ReadonlyArray<T> {
+	/** Returns the item at the specified index. Negative indexes count from the end. */
+	at(index: number): T | undefined;
+}
+
+/////////////////////////////
+/// es2023.array
+/////////////////////////////
+
+interface Array<T> {
+	/** Returns a reversed copy of the array. */
+	toReversed(): T[];
+
+	/** Returns a sorted copy of the array. */
+	toSorted(compareFn?: (a: T, b: T) => number): T[];
+
+	/** Returns a copy with elements removed and optionally replaced. */
+	toSpliced(start: number, deleteCount: number, ...items: T[]): T[];
+	toSpliced(start: number, deleteCount?: number): T[];
+
+	/** Returns a copy with the value at the specified index replaced. */
+	with(index: number, value: T): T[];
+}
+
+interface ReadonlyArray<T> {
+	/** Returns a reversed copy of the array. */
+	toReversed(): T[];
+
+	/** Returns a sorted copy of the array. */
+	toSorted(compareFn?: (a: T, b: T) => number): T[];
+
+	/** Returns a copy with elements removed and optionally replaced. */
+	toSpliced(start: number, deleteCount: number, ...items: T[]): T[];
+	toSpliced(start: number, deleteCount?: number): T[];
+
+	/** Returns a copy with the value at the specified index replaced. */
+	with(index: number, value: T): T[];
 }
 
 /////////////////////////////

@@ -1794,8 +1794,67 @@ interface WeakSetConstructor {
 }
 
 /////////////////////////////
+/// es2016.array.include
+/////////////////////////////
+
+interface Array<T> {
+	/** 判断数组是否包含指定元素。 */
+	includes(searchElement: T, fromIndex?: number): boolean;
+}
+
+interface ReadonlyArray<T> {
+	/** 判断数组是否包含指定元素。 */
+	includes(searchElement: T, fromIndex?: number): boolean;
+}
+
+/////////////////////////////
+/// es2017.object
+/////////////////////////////
+
+interface ObjectConstructor {
+	/** 返回对象自身可枚举属性值组成的数组。 */
+	values<T>(o: { [s: string]: T; } | ArrayLike<T>): T[];
+	values(o: {}): any[];
+
+	/** 返回对象自身可枚举属性键值对组成的数组。 */
+	entries<T>(o: { [s: string]: T; } | ArrayLike<T>): [string, T][];
+	entries(o: {}): [string, any][];
+
+	/** 返回包含对象全部自有属性描述符的对象。 */
+	getOwnPropertyDescriptors<T>(o: T): { [P in keyof T]: TypedPropertyDescriptor<T[P]>; } & { [x: string]: PropertyDescriptor; };
+}
+
+/////////////////////////////
+/// es2017.string
+/////////////////////////////
+
+interface String {
+	/** 在字符串开头填充内容，直到达到指定长度。 */
+	padStart(maxLength: number, fillString?: string): string;
+
+	/** 在字符串末尾填充内容，直到达到指定长度。 */
+	padEnd(maxLength: number, fillString?: string): string;
+}
+
+/////////////////////////////
+/// es2018.promise
+/////////////////////////////
+
+interface Promise<T> {
+	/** 添加一个在 Promise 完成或拒绝后调用的回调。 */
+	finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+}
+
+/////////////////////////////
 /// es2019.array
 /////////////////////////////
+
+type FlatArray<Arr, Depth extends number> = {
+	done: Arr;
+	recur: Arr extends ReadonlyArray<infer InnerArr>
+		? FlatArray<InnerArr, [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20][Depth]>
+		: Arr;
+}[Depth extends -1 ? "done" : "recur"];
 
 interface ReadonlyArray<T> {
 	/**
@@ -1806,6 +1865,9 @@ interface ReadonlyArray<T> {
 		callback: (this: This, value: T, index: number, array: T[]) => U | ReadonlyArray<U>,
 		thisArg?: This,
 	): U[];
+
+	/** 返回一个新数组，将子数组元素递归展开到指定深度。 */
+	flat<A, D extends number = 1>(this: A, depth?: D): FlatArray<A, D>[];
 }
 
 interface Array<T> {
@@ -1817,6 +1879,127 @@ interface Array<T> {
 		callback: (this: This, value: T, index: number, array: T[]) => U | ReadonlyArray<U>,
 		thisArg?: This,
 	): U[];
+
+	/** 返回一个新数组，将子数组元素递归展开到指定深度。 */
+	flat<A, D extends number = 1>(this: A, depth?: D): FlatArray<A, D>[];
+}
+
+/////////////////////////////
+/// es2019.object
+/////////////////////////////
+
+interface ObjectConstructor {
+	/** 从可迭代的键值对创建对象。 */
+	fromEntries<T = any>(entries: Iterable<readonly [PropertyKey, T]>): { [k: string]: T; };
+	fromEntries(entries: Iterable<readonly any[]>): any;
+}
+
+/////////////////////////////
+/// es2019.string
+/////////////////////////////
+
+interface String {
+	/** 移除字符串末尾的空白符和行终止符。 */
+	trimEnd(): string;
+
+	/** 移除字符串开头的空白符和行终止符。 */
+	trimStart(): string;
+
+	/** @deprecated 请改用 `trimStart`。 */
+	trimLeft(): string;
+
+	/** @deprecated 请改用 `trimEnd`。 */
+	trimRight(): string;
+}
+
+/////////////////////////////
+/// es2020.promise
+/////////////////////////////
+
+interface PromiseFulfilledResult<T> {
+	status: "fulfilled";
+	value: T;
+}
+
+interface PromiseRejectedResult {
+	status: "rejected";
+	reason: any;
+}
+
+type PromiseSettledResult<T> = PromiseFulfilledResult<T> | PromiseRejectedResult;
+
+interface PromiseConstructor {
+	/** 在所有 Promise 均已完成或拒绝后解析。 */
+	allSettled<T extends readonly unknown[] | []>(values: T): Promise<{ -readonly [P in keyof T]: PromiseSettledResult<Awaited<T[P]>>; }>;
+	allSettled<T>(values: Iterable<T | PromiseLike<T>>): Promise<PromiseSettledResult<Awaited<T>>[]>;
+}
+
+/////////////////////////////
+/// es2021.promise
+/////////////////////////////
+
+interface PromiseConstructor {
+	/** 使用第一个完成的 Promise 解析；当全部 Promise 均拒绝时拒绝。 */
+	any<T extends readonly unknown[] | []>(values: T): Promise<Awaited<T[number]>>;
+	any<T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>>;
+}
+
+/////////////////////////////
+/// es2021.string
+/////////////////////////////
+
+interface String {
+	/** 替换子字符串或正则表达式的所有匹配项。 */
+	replaceAll(searchValue: string | RegExp, replaceValue: string): string;
+	replaceAll(searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string;
+}
+
+/////////////////////////////
+/// es2022.array
+/////////////////////////////
+
+interface Array<T> {
+	/** 返回指定索引处的元素；负索引从末尾开始计算。 */
+	at(index: number): T | undefined;
+}
+
+interface ReadonlyArray<T> {
+	/** 返回指定索引处的元素；负索引从末尾开始计算。 */
+	at(index: number): T | undefined;
+}
+
+/////////////////////////////
+/// es2023.array
+/////////////////////////////
+
+interface Array<T> {
+	/** 返回元素顺序反转后的数组副本。 */
+	toReversed(): T[];
+
+	/** 返回排序后的数组副本。 */
+	toSorted(compareFn?: (a: T, b: T) => number): T[];
+
+	/** 返回移除并按需替换元素后的数组副本。 */
+	toSpliced(start: number, deleteCount: number, ...items: T[]): T[];
+	toSpliced(start: number, deleteCount?: number): T[];
+
+	/** 返回将指定索引处元素替换后的数组副本。 */
+	with(index: number, value: T): T[];
+}
+
+interface ReadonlyArray<T> {
+	/** 返回元素顺序反转后的数组副本。 */
+	toReversed(): T[];
+
+	/** 返回排序后的数组副本。 */
+	toSorted(compareFn?: (a: T, b: T) => number): T[];
+
+	/** 返回移除并按需替换元素后的数组副本。 */
+	toSpliced(start: number, deleteCount: number, ...items: T[]): T[];
+	toSpliced(start: number, deleteCount?: number): T[];
+
+	/** 返回将指定索引处元素替换后的数组副本。 */
+	with(index: number, value: T): T[];
 }
 
 /////////////////////////////
