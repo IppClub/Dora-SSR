@@ -630,7 +630,7 @@ export async function transpileTypescript(
 			let modifiedLuaCode: string | undefined;
 			await SourceMapConsumer.with(luaSourceMap, null, consumer => {
 				let lastValidTsLineNumber: number | null = null;
-				modifiedLuaCode = `-- [${Info.path.extname(fileName).substring(1).toLowerCase()}]: ${Info.path.normalize(fileName)}\n` + luaCode.map((line, index) => {
+				modifiedLuaCode = `-- [${Info.path.extname(fileName).substring(1).toLowerCase()}]: ${Info.path.basename(fileName)}\n` + luaCode.map((line, index) => {
 					const firstNonWhitespaceIndex = line.search(/\S|$/);
 					const originalPosition = consumer.originalPositionFor({ line: index + 1, column: firstNonWhitespaceIndex });
 					if (originalPosition.line != null) {

@@ -1821,6 +1821,32 @@ interface WeakSetConstructor {
 }
 
 /////////////////////////////
+/// es2019.array
+/////////////////////////////
+
+interface ReadonlyArray<T> {
+	/**
+	 * Calls a defined callback function on each element of an array, then flattens the result into a new array.
+	 * This is identical to a map followed by flat with depth 1.
+	 */
+	flatMap<U, This = undefined>(
+		callback: (this: This, value: T, index: number, array: T[]) => U | ReadonlyArray<U>,
+		thisArg?: This,
+	): U[];
+}
+
+interface Array<T> {
+	/**
+	 * Calls a defined callback function on each element of an array, then flattens the result into a new array.
+	 * This is identical to a map followed by flat with depth 1.
+	 */
+	flatMap<U, This = undefined>(
+		callback: (this: This, value: T, index: number, array: T[]) => U | ReadonlyArray<U>,
+		thisArg?: This,
+	): U[];
+}
+
+/////////////////////////////
 /// esnext.collection
 /////////////////////////////
 

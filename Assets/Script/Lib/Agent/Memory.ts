@@ -256,7 +256,7 @@ Rules:
 - Use ask_user for product choices, preferences, scope decisions, or external constraints that cannot be discovered from the project.
 - ask_user is an intermediate information-gathering action and has no document-update prerequisite. Incorporate its answers into the living documents before finish.
 - In PLAN.md's Pending Questions section, write every unresolved user decision as an unchecked Markdown item (- [ ] question). After confirmation, mark it - [x] with the decision or replace the whole section with exactly 无. Never leave resolved explanatory prose under an unchecked item.
-- For ask_user, single-choice questions may mark at most one recommended option. Multiple-choice questions may mark a recommended set no larger than maxSelections.
+- For ask_user, single-choice questions may mark at most one recommended option; multiple-choice questions may mark a recommended set.
 - Before finish, materially update both fixed documents. Record even a no-scope-change review in the change/progress log so the completed turn remains auditable.
 - Treat the plan as a living document. The user may switch back to Plan mode after implementation has started; revise affected steps and progress instead of freezing or approving the whole plan.
 - Every implementation step needs a stable ID, dependencies, and observable acceptance criteria.

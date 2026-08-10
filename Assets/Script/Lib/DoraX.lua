@@ -1,4 +1,4 @@
--- [ts]: /Users/Jin/Workspace/Dora-SSR/Assets/Script/Lib/DoraX.ts
+-- [ts]: DoraX.ts
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__Class = ____lualib.__TS__Class -- 1
 local __TS__Spread = ____lualib.__TS__Spread -- 1

@@ -17,10 +17,8 @@ export interface AgentQuestion {
 	type: AgentQuestionType;
 	required: boolean;
 	options?: AgentQuestionOption[];
-	allowOther?: boolean;
+	allowOther: boolean;
 	placeholder?: string;
-	minSelections?: number;
-	maxSelections?: number;
 }
 
 export interface AgentQuestionnaireSchema {
@@ -57,13 +55,6 @@ function cleanString(value: unknown, maxLength: number): string {
 
 function cleanBoolean(value: unknown, fallback = false): boolean {
 	return typeof value === "boolean" ? value : fallback;
-}
-
-function cleanInteger(value: unknown, fallback: number, minValue: number, maxValue: number): number {
-	let result = typeof value === "number" && Number.isFinite(value) ? math.floor(value) : fallback;
-	if (result < minValue) result = minValue;
-	if (result > maxValue) result = maxValue;
-	return result;
 }
 
 function isSafeIdentifier(value: string): boolean {
@@ -109,14 +100,14 @@ export function normalizeQuestionnaire(value: unknown):
 			prompt,
 			type,
 			required: cleanBoolean(raw.required, true),
+			allowOther: type !== "text",
 		};
 		const description = cleanString(raw.description, 1000);
 		if (description !== "") question.description = description;
 		const placeholder = cleanString(raw.placeholder, 200);
 		if (placeholder !== "") question.placeholder = placeholder;
-		question.allowOther = cleanBoolean(raw.allowOther, false);
-		if (type === "text" && (raw.options !== undefined || raw.minSelections !== undefined || raw.maxSelections !== undefined)) {
-			return { success: false, message: `text question ${id} cannot define options or selection bounds` };
+		if (type === "text" && raw.options !== undefined) {
+			return { success: false, message: `text question ${id} cannot define options` };
 		}
 		if (type !== "text") {
 			if (!Array.isArray(raw.options) || raw.options.length < 2 || raw.options.length > 8) {
@@ -142,15 +133,6 @@ export function normalizeQuestionnaire(value: unknown):
 			}
 			if (type === "single_choice" && recommendedCount > 1) {
 				return { success: false, message: `single-choice question ${id} may have at most one recommended option` };
-			}
-			if (type === "multiple_choice") {
-				const choiceCount = question.options.length + (question.allowOther ? 1 : 0);
-				question.minSelections = cleanInteger(raw.minSelections, question.required ? 1 : 0, 0, choiceCount);
-				question.maxSelections = cleanInteger(raw.maxSelections, choiceCount, 1, choiceCount);
-				if (question.minSelections > question.maxSelections) return { success: false, message: `question ${id} has invalid selection bounds` };
-				if (recommendedCount > question.maxSelections) {
-					return { success: false, message: `multiple-choice question ${id} recommends ${recommendedCount} options but maxSelections is ${question.maxSelections}` };
-				}
 			}
 		}
 		questions.push(question);
@@ -208,11 +190,6 @@ export function validateQuestionnaireAnswers(schema: AgentQuestionnaireSchema, v
 		const selectionCount = unique.length + (otherText !== "" ? 1 : 0);
 		if (question.required && selectionCount === 0) return { success: false, message: `question ${question.id} is required` };
 		if (question.type === "single_choice" && selectionCount > 1) return { success: false, message: `question ${question.id} allows one answer` };
-		if (question.type === "multiple_choice") {
-			if (selectionCount < (question.minSelections ?? 0) || selectionCount > (question.maxSelections ?? selectionCount)) {
-				return { success: false, message: `question ${question.id} does not meet the selection bounds` };
-			}
-		}
 		const answer: AgentQuestionnaireAnswer = { questionId: question.id, status: "answered", selectedOptionIds: unique };
 		if (otherText !== "") answer.otherText = otherText;
 		answers.push(answer);

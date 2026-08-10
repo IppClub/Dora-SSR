@@ -56,12 +56,10 @@ export default function AgentQuestionnaire(props: AgentQuestionnaireProps) {
 	const selected = Array.isArray(current) ? current : (typeof current === "string" && current !== "" ? [current] : []);
 	const otherValue = otherText[question.id] ?? "";
 	const isSkipped = skipped[question.id] === true;
-	const minimum = question.type === "multiple_choice" ? (question.minSelections ?? (question.required ? 1 : 0)) : (question.required ? 1 : 0);
-	const maximum = question.type === "multiple_choice" ? (question.maxSelections ?? Number.MAX_SAFE_INTEGER) : 1;
 	const selectionCount = selected.length + (otherValue.trim() !== "" ? 1 : 0);
 	const valid = isSkipped ? !question.required : (question.type === "text"
 		? (!question.required || (typeof current === "string" && current.trim() !== ""))
-		: selectionCount >= minimum && selectionCount <= maximum);
+		: (!question.required || selectionCount > 0));
 	const isLast = index === questions.length - 1;
 
 	const clearSkipped = () => setSkipped(prev => ({ ...prev, [question.id]: false }));
@@ -76,15 +74,10 @@ export default function AgentQuestionnaire(props: AgentQuestionnaireProps) {
 		const next = selected.indexOf(optionId) >= 0
 			? selected.filter(item => item !== optionId)
 			: [...selected, optionId];
-		const nextCount = next.length + (otherValue.trim() !== "" ? 1 : 0);
-		if (nextCount <= (question.maxSelections ?? Number.MAX_SAFE_INTEGER)) {
-			setAnswers(prev => ({ ...prev, [question.id]: next }));
-		}
+		setAnswers(prev => ({ ...prev, [question.id]: next }));
 	};
 
 	const updateOther = (value: string) => {
-		const nextCount = (question.type === "single_choice" ? 0 : selected.length) + (value.trim() === "" ? 0 : 1);
-		if (question.type === "multiple_choice" && nextCount > maximum) return;
 		clearSkipped();
 		setOtherText(prev => ({ ...prev, [question.id]: value }));
 		if (question.type === "single_choice" && value.trim() !== "") {

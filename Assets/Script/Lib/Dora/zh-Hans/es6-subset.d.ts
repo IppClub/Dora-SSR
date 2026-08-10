@@ -1794,6 +1794,32 @@ interface WeakSetConstructor {
 }
 
 /////////////////////////////
+/// es2019.array
+/////////////////////////////
+
+interface ReadonlyArray<T> {
+	/**
+	 * 对数组中的每个元素调用指定的回调函数，然后将结果展平到一个新数组中。
+	 * 这等同于先调用 map，再调用深度为 1 的 flat。
+	 */
+	flatMap<U, This = undefined>(
+		callback: (this: This, value: T, index: number, array: T[]) => U | ReadonlyArray<U>,
+		thisArg?: This,
+	): U[];
+}
+
+interface Array<T> {
+	/**
+	 * 对数组中的每个元素调用指定的回调函数，然后将结果展平到一个新数组中。
+	 * 这等同于先调用 map，再调用深度为 1 的 flat。
+	 */
+	flatMap<U, This = undefined>(
+		callback: (this: This, value: T, index: number, array: T[]) => U | ReadonlyArray<U>,
+		thisArg?: This,
+	): U[];
+}
+
+/////////////////////////////
 /// esnext.collection
 /////////////////////////////
 

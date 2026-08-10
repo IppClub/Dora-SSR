@@ -62,11 +62,11 @@ function ____exports.defineMusic(definition) -- 257
 	return definition -- 258
 end -- 257
 --- Generates the requested WAV or Ogg file and any companion assets.
---
+-- 
 -- Call this function from a yieldable Dora coroutine. Output paths are resolved relative to
 -- `projectDir`. SoundFont filenames are resolved through the engine content search paths.
 -- Inspect `result.success` before using the generated files.
---
+-- 
 -- @param projectDir The project directory where generated files are saved.
 -- @param definition The exact score or procedural composition and its output options.
 -- @param hooks Optional progress reporting callback.

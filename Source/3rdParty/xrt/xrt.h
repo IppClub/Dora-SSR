@@ -33316,6 +33316,16 @@ static xnet_result xrtNetPortCancelTimer(xnetport* pPort, uint64 iTimerId)
 			pWatch->tConnect = *pOp;
 		}
 		pWatch->iMask |= iBit;
+		/* A closed descriptor is removed from kqueue automatically, but the
+		 * userspace watch can outlive it and later be reused for the same fd.
+		 * Force EV_ADD for every newly submitted operation so a reused fd does
+		 * not inherit a stale iKernelMask and silently lose readiness events. */
+		if ( iBit & (__XNET_KQUEUE_W_ACCEPT | __XNET_KQUEUE_W_RECV | __XNET_KQUEUE_W_RECVFROM) ) {
+			pWatch->iKernelMask &= ~__XNET_KQUEUE_READY_READ;
+		}
+		if ( iBit & (__XNET_KQUEUE_W_CONNECT | __XNET_KQUEUE_W_SEND | __XNET_KQUEUE_W_SENDTO) ) {
+			pWatch->iKernelMask &= ~__XNET_KQUEUE_READY_WRITE;
+		}
 		if ( !__xnetPortKqueueRefreshWatch(pCtx, pWatch) ) {
 			pthread_mutex_unlock(&pCtx->tWatchLock);
 			return XRT_NET_ERROR;

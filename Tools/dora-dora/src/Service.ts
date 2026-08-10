@@ -1407,10 +1407,8 @@ export interface AgentQuestion {
 	type: "single_choice" | "multiple_choice" | "text";
 	required: boolean;
 	options?: AgentQuestionOption[];
-	allowOther?: boolean;
+	allowOther: boolean;
 	placeholder?: string;
-	minSelections?: number;
-	maxSelections?: number;
 }
 
 export interface AgentQuestionnaire {
