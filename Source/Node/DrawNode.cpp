@@ -401,13 +401,16 @@ Pass* DrawRenderer::getDefaultPass() const noexcept {
 
 void DrawRenderer::push(DrawNode* node) {
 	uint64_t state = SharedRendererManager.applyState(node->getRenderState());
-	if (state != _lastState) {
+	const auto& verts = node->getVertices();
+	// Indices in DrawNode batches are 16-bit. Flush before rebasing another node
+	// would wrap its indices, which also keeps each transient allocation bounded.
+	if (state != _lastState
+		|| (!_vertices.empty() && _vertices.size() + verts.size() > std::numeric_limits<uint16_t>::max())) {
 		render();
 	}
 	_lastState = state;
 
 	uint16_t start = s_cast<uint16_t>(_vertices.size());
-	const auto& verts = node->getVertices();
 	_vertices.reserve(_vertices.size() + verts.size());
 	_vertices.insert(_vertices.end(), verts.begin(), verts.end());
 

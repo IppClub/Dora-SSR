@@ -817,7 +817,7 @@ private:
 		float &value, std::string &error) const override;
 	virtual bool setGearJointRatio(Love::PhysicsBackend::JointHandle joint,
 		float value, std::string &error) override;
-	DrawNode *ensureDrawNode();
+	DrawNode *ensureDrawNode(std::size_t requiredVertices = 0);
 	std::optional<RendererManager::ScissorState> getCommandScissor() const;
 	void beginCommandSegment();
 	void beginRenderPass(uint16_t clearFlags, Color clearColor, uint8_t stencil = 0,

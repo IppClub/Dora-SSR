@@ -4946,6 +4946,11 @@ bool LoveNode::isRunning() const noexcept
 
 void LoveNode::beginFrame()
 {
+	// The preceding frame has already been submitted by endFrame. Explicitly dispose
+	// its internal command trees before recording the next frame so autoreleased roots
+	// cannot retain large DrawNodes across rapid Love instance/frame transitions.
+	for (auto &pass : _renderPasses)
+		if (pass.root) pass.root->cleanup();
 	_renderPasses.clear();
 	_graphicsStats.drawCalls = 0;
 	_graphicsStats.drawCallsBatched = 0;
@@ -5028,8 +5033,15 @@ void LoveNode::markSpriteRenderCommand(Texture2D *texture,
 	}
 }
 
-DrawNode *LoveNode::ensureDrawNode()
+DrawNode *LoveNode::ensureDrawNode(std::size_t requiredVertices)
 {
+	// DrawNode and DrawRenderer use 16-bit indices. Start a new command node before
+	// the next Love primitive would wrap those indices; DrawRenderer flushes at the
+	// same boundary instead of merging the nodes back into one oversized batch.
+	constexpr std::size_t maxVertices = std::numeric_limits<uint16_t>::max();
+	if (_drawNode && requiredVertices > 0
+		&& _drawNode->getVertices().size() + requiredVertices > maxVertices)
+		_drawNode = nullptr;
 	if (!_drawNode)
 	{
 		markRenderCommand();
@@ -5322,7 +5334,7 @@ bool LoveNode::rectangle(bool fill, float x, float y, float width, float height,
 			static_cast<float>(getActivePixelHeight()));
 	if (_activeShader != 0 || _wireframe)
 		return drawShaderPrimitive(transformed, true, true, lineWidth, color, error);
-	ensureDrawNode()->drawPolygon(transformed.data(), 4,
+	ensureDrawNode(6)->drawPolygon(transformed.data(), 4,
 		color, 0.0f, Color(0x00000000));
 	error.clear();
 	return true;
@@ -5337,7 +5349,7 @@ bool LoveNode::circle(bool fill, float x, float y, float radius,
 	const Vec2 center{x, y};
 	if (fill && _activeShader == 0)
 	{
-		ensureDrawNode()->drawDot(transformLovePoint(center, {},
+		ensureDrawNode(4)->drawDot(transformLovePoint(center, {},
 			static_cast<float>(getActivePixelHeight())), radius, color);
 		error.clear();
 		return true;
@@ -5358,7 +5370,7 @@ bool LoveNode::circle(bool fill, float x, float y, float radius,
 		vertex = transformLovePoint(vertex, {}, static_cast<float>(getActivePixelHeight()));
 	if (_activeShader != 0 || _wireframe)
 		return drawShaderPrimitive(vertices, true, true, lineWidth, color, error);
-	ensureDrawNode()->drawPolygon(vertices, color, 0.0f, Color(0x00000000));
+	ensureDrawNode(3 * (vertices.size() - 2))->drawPolygon(vertices, color, 0.0f, Color(0x00000000));
 	error.clear();
 	return true;
 }
@@ -5394,7 +5406,12 @@ bool LoveNode::polygon(bool fill, const std::vector<float> &points,
 		vertex = transformLovePoint(vertex, transform, static_cast<float>(getActivePixelHeight()));
 	if (_activeShader != 0 || _wireframe)
 		return drawShaderPrimitive(vertices, true, true, lineWidth, color, error);
-	ensureDrawNode()->drawPolygon(vertices,
+	constexpr std::size_t maxDrawNodeVertices = std::numeric_limits<uint16_t>::max();
+	if (vertices.size() > maxDrawNodeVertices / 3 + 2)
+		return drawShaderPrimitive(vertices, true, true, lineWidth, color, error);
+	const std::size_t requiredVertices = vertices.size() >= 3
+		? 3 * (vertices.size() - 2) : 0;
+	ensureDrawNode(requiredVertices)->drawPolygon(vertices,
 		color, 0.0f, Color(0x00000000));
 	error.clear();
 	return true;
@@ -5417,7 +5434,7 @@ bool LoveNode::points(const std::vector<float> &points, float pointSize,
 		// DrawNode rasterizes around pixel boundaries at integer coordinates. Love points use
 		// pixel centers, so the half-pixel offset keeps a size-1 point visible and makes odd
 		// point sizes cover the requested pixel diameter.
-		ensureDrawNode()->drawDot({points[i] + 0.5f, height - points[i + 1] + 0.5f}, pointSize * 0.5f, color);
+		ensureDrawNode(4)->drawDot({points[i] + 0.5f, height - points[i + 1] + 0.5f}, pointSize * 0.5f, color);
 	error.clear();
 	return true;
 }
@@ -7542,7 +7559,7 @@ bool LoveNode::drawMesh(std::span<const Love::GraphicsBackend::MeshVertex> verti
 			for (const auto index : indices)
 			{
 				const auto &vertex = vertices[index];
-				ensureDrawNode()->drawDot({vertex.x + 0.5f, height - vertex.y + 0.5f},
+				ensureDrawNode(4)->drawDot({vertex.x + 0.5f, height - vertex.y + 0.5f},
 					pointSize * 0.5f, Color(Vec4{vertex.red, vertex.green, vertex.blue, vertex.alpha}));
 			}
 			error.clear();
@@ -8664,6 +8681,10 @@ float LoveNode::getFontWidth(Love::GraphicsBackend::FontHandle font, std::string
 				auto *label = Label::create(resource->second.filename,
 					static_cast<std::uint32_t>(resource->second.size), true);
 				if (!label) continue;
+				// This Label is only used for synchronous text measurement. Keep it out
+				// of Director's unmanaged-node adoption pass so repeated getWidth calls
+				// cannot attach invisible measurement Labels to the main scene forever.
+				label->setAsManaged();
 				label->setText({text.data() + begin, end - begin});
 				lineWidth += label->getSize().width;
 			}
@@ -8673,6 +8694,7 @@ float LoveNode::getFontWidth(Love::GraphicsBackend::FontHandle font, std::string
 	auto *label = Label::create(it->second.filename, static_cast<uint32_t>(it->second.size), true);
 	if (!label)
 		return 0.0f;
+	label->setAsManaged();
 	label->setText({text.data(), text.size()});
 	return label->getSize().width;
 }

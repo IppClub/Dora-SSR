@@ -579,6 +579,13 @@ int runCliApplication(int, char*[]) {
 
 bool BGFXDora::init(const bgfx::PlatformData& data) {
 	bgfx::Init init{};
+	// Dora can render the host scene, Web IDE/ImGui, and embedded Love render
+	// targets in the same bgfx frame. The bgfx defaults (6 MiB vertex / 2 MiB
+	// index) are too small for otherwise valid Love workloads once the host UI
+	// has consumed part of the frame-local pool. Keep an explicit fixed budget;
+	// transient buffers are recycled by bgfx and do not grow across frames.
+	init.limits.transientVbSize = 16 << 20;
+	init.limits.transientIbSize = 4 << 20;
 #if BX_PLATFORM_LINUX
 	if (data.context) {
 		init.type = bgfx::RendererType::OpenGLES;
