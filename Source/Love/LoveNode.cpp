@@ -2365,23 +2365,37 @@ std::string loveSingleArgumentConstructorHelpers(const std::set<std::string> &co
 		const std::string scalar = type.starts_with("ivec") ? "int"
 			: type.starts_with("uvec") ? "uint"
 			: type.starts_with("bvec") ? "bool" : "float";
-		helpers += type + " love_" + type + "_ctor(" + scalar + " value) { return "
-			+ type + "(";
-		for (int component = 0; component < dimensions; ++component)
+		static constexpr std::array<std::string_view, 4> scalarTypes = {
+			"float", "int", "uint", "bool"};
+		static constexpr std::array<std::string_view, 4> vectorPrefixes = {
+			"vec", "ivec", "uvec", "bvec"};
+		for (const auto sourceScalar : scalarTypes)
 		{
-			if (component != 0) helpers += ", ";
-			helpers += "value";
+			helpers += type + " love_" + type + "_ctor(" + std::string(sourceScalar)
+				+ " value) { return " + type + "(";
+			for (int component = 0; component < dimensions; ++component)
+			{
+				if (component != 0) helpers += ", ";
+				helpers += scalar + "(value)";
+			}
+			helpers += "); }\n";
 		}
-		helpers += "); }\n";
-		for (int sourceDimensions = dimensions; sourceDimensions <= 4; ++sourceDimensions)
+		for (const auto sourcePrefix : vectorPrefixes)
 		{
-			const std::string sourceType = type.substr(0, type.size() - 1)
-				+ std::to_string(sourceDimensions);
-			helpers += type + " love_" + type + "_ctor(" + sourceType
-				+ " value) { return ";
-			if (sourceDimensions == dimensions) helpers += "value";
-			else helpers += "value." + std::string("xyzw", static_cast<std::size_t>(dimensions));
-			helpers += "; }\n";
+			for (int sourceDimensions = dimensions; sourceDimensions <= 4; ++sourceDimensions)
+			{
+				const std::string sourceType = std::string(sourcePrefix)
+					+ std::to_string(sourceDimensions);
+				helpers += type + " love_" + type + "_ctor(" + sourceType
+					+ " value) { return " + type + "(";
+				for (int component = 0; component < dimensions; ++component)
+				{
+					if (component != 0) helpers += ", ";
+					helpers += scalar + "(value."
+						+ std::string(1, "xyzw"[component]) + ")";
+				}
+				helpers += "); }\n";
+			}
 		}
 	}
 	return helpers;

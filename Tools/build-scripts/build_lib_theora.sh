@@ -28,6 +28,30 @@ copy_library() {
 	cp "$THEORA_DIR/build/$platform/$arch/$BUILD_MODE/libtheoradec.a" "$THEORA_DIR/$output_dir/libtheoradec.a"
 }
 
+find_android_llvm_ar() {
+	local candidates=()
+	[ -n "${ANDROID_NDK_HOME:-}" ] && candidates+=("$ANDROID_NDK_HOME")
+	[ -n "${ANDROID_NDK_ROOT:-}" ] && candidates+=("$ANDROID_NDK_ROOT")
+	[ -n "${NDK_ROOT:-}" ] && candidates+=("$NDK_ROOT")
+	local sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-$HOME/Library/Android/sdk}}"
+	candidates+=("$sdk_root/ndk-bundle")
+	if [ -d "$sdk_root/ndk" ]; then
+		while IFS= read -r ndk_dir; do candidates+=("$ndk_dir"); done \
+			< <(find "$sdk_root/ndk" -mindepth 1 -maxdepth 1 -type d | sort -r)
+	fi
+	local ndk_dir
+	for ndk_dir in "${candidates[@]}"; do
+		[ -d "$ndk_dir" ] || continue
+		local llvm_ar
+		llvm_ar=$(find "$ndk_dir/toolchains/llvm/prebuilt" -path "*/bin/llvm-ar" -type f 2>/dev/null | head -n 1 || true)
+		if [ -n "$llvm_ar" ] && [ -x "$llvm_ar" ]; then
+			echo "$llvm_ar"
+			return 0
+		fi
+	done
+	return 1
+}
+
 build_macos() {
 	if [ "$TARGET_ARCH" = "universal" ]; then
 		build_arch macosx arm64
@@ -52,8 +76,13 @@ build_ios() {
 }
 
 build_android() {
+	local android_ar
+	if ! android_ar=$(find_android_llvm_ar); then
+		echo "Android llvm-ar was not found" >&2
+		exit 1
+	fi
 	for arch in arm64-v8a armeabi-v7a x86_64; do
-		build_arch android "$arch"
+		build_arch android "$arch" "--ar=$android_ar"
 		copy_library android "$arch" "Lib/Android/$arch"
 	done
 }
