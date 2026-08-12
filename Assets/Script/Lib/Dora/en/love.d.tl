@@ -2376,9 +2376,9 @@ local record ImageModule
 	-- @param width (number) The width of the ImageData.
 	-- @param height (integer) The height of the ImageData.
 	-- @param format (ImagePixelFormat) The pixel format of the ImageData. (Default: 'rgba8'.)
-	-- @param data (string | FileData) Optional raw byte data to load into the ImageData, in the format specified by ''format''. (Default: nil.)
+	-- @param data (string | Data) Optional raw byte data to load into the ImageData, in the format specified by ''format''. (Default: nil.)
 	-- @return (ImageData) imageData — The new blank ImageData object. Each pixel's color values, (including the alpha values!) will be set to zero.
-	newImageData: function(width: number, height: integer, format?: ImagePixelFormat, data?: string | FileData): ImageData
+	newImageData: function(width: number, height: integer, format?: ImagePixelFormat, data?: string | Data): ImageData
 
 	-- Creates a new ImageData object.
 	-- @param filename (string) The filename of the image file.
@@ -2386,9 +2386,9 @@ local record ImageModule
 	newImageData: function(filename: string): ImageData
 
 	-- Creates a new ImageData object.
-	-- @param data (FileData) The data to load into the ImageData (RGBA bytes, left to right and top to bottom).
+	-- @param data (Data) Encoded image data to decode into the ImageData.
 	-- @return (ImageData) The new ImageData object.
-	newImageData: function(data: FileData): ImageData
+	newImageData: function(data: Data): ImageData
 
 	-- Create a new CompressedImageData object from a compressed image file. LÖVE supports several compressed texture
 	-- formats, enumerated in the CompressedImageFormat page.

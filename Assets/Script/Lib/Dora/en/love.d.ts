@@ -4720,7 +4720,7 @@ declare global {
 		 * @param data Optional raw byte data to load into the ImageData, in the format specified by ''format''. (Default: nil.)
 		 * @returns imageData — The new blank ImageData object. Each pixel's color values, (including the alpha values!) will be set to zero.
 		 */
-		newImageData(this: void, width: number, height: number, format?: ImagePixelFormat, data?: string | FileData): ImageData;
+		newImageData(this: void, width: number, height: number, format?: ImagePixelFormat, data?: string | Data): ImageData;
 		/**
 		 * Creates a new ImageData object.
 		 *
@@ -4733,10 +4733,10 @@ declare global {
 		 * Creates a new ImageData object.
 		 *
 
-		 * @param data The data to load into the ImageData (RGBA bytes, left to right and top to bottom).
+		 * @param data Encoded image data to decode into the ImageData.
 		 * @returns The new ImageData object.
 		 */
-		newImageData(this: void, data: FileData): ImageData;
+		newImageData(this: void, data: Data): ImageData;
 		/**
 		 * Create a new CompressedImageData object from a compressed image file. LÖVE supports several compressed texture formats, enumerated in the CompressedImageFormat page.
 		 *

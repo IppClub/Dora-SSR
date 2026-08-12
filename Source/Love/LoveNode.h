@@ -884,6 +884,8 @@ private:
 		int samplerSlot = 0;
 		std::vector<Vec4> vectorValues;
 		std::vector<Matrix> matrixValues;
+		std::vector<float> initialValues;
+		bool hasInitialValue = false;
 	};
 	struct ShaderResource
 	{

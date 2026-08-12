@@ -4720,7 +4720,7 @@ declare global {
 		 * @param data 可选的原始字节数据，以“'format'”指定的格式加载到 ImageData 中。 （默认值：nil。）
 		 * @returns imageData — 新的空白 ImageData 对象。每个像素的颜色值（包括 Alpha 值！）将设置为零。
 		 */
-		newImageData(this: void, width: number, height: number, format?: ImagePixelFormat, data?: string | FileData): ImageData;
+		newImageData(this: void, width: number, height: number, format?: ImagePixelFormat, data?: string | Data): ImageData;
 		/**
 		 * 创建一个新的 ImageData 对象。
 		 *
@@ -4733,10 +4733,10 @@ declare global {
 		 * 创建一个新的 ImageData 对象。
 		 *
 
-		 * @param data 要加载到 ImageData 中的数据（RGBA 字节，从左到右、从上到下）。
+		 * @param data 要解码为 ImageData 的编码图像数据。
 		 * @returns 新的 ImageData 对象。
 		 */
-		newImageData(this: void, data: FileData): ImageData;
+		newImageData(this: void, data: Data): ImageData;
 		/**
 		 * 从压缩图像文件创建一个新的 CompressedImageData 对象。 LÖVE 支持多种压缩纹理格式，在 CompressedImageFormat 页面中列出。
 		 *

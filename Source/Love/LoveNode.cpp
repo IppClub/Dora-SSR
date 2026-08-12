@@ -714,6 +714,7 @@ struct LoveShaderUniformInfo
 	int components = 4;
 	int count = 1;
 	int samplerSlot = 0;
+	std::vector<float> initialValues;
 };
 
 struct LoveShaderAttributeInfo
@@ -1223,6 +1224,8 @@ void localizeLoveShaderStageGlobals(std::string &body, bool vertex)
 	body.insert(openBrace + 1, " " + locals);
 }
 
+std::string_view trimShaderText(std::string_view text);
+
 void rewriteLoveShaderVectorConstructorComparisons(std::string &body,
 	std::string_view vectorName)
 {
@@ -1241,11 +1244,23 @@ void rewriteLoveShaderVectorConstructorComparisons(std::string &body,
 	for (const auto &pattern : patterns)
 		for (std::sregex_iterator it(body.begin(), body.end(), pattern), end; it != end; ++it)
 		{
+			const std::size_t position = static_cast<std::size_t>(it->position());
+			const std::string_view prefix(body.data(), position);
+			const std::size_t tokenStart = prefix.find_last_not_of(" \t\r\n");
+			bool insideVectorComparisonReduction = false;
+			if (tokenStart != std::string_view::npos && prefix[tokenStart] == '(')
+			{
+				const std::string_view callPrefix = trimShaderText(prefix.substr(0, tokenStart));
+				insideVectorComparisonReduction = callPrefix.ends_with("any")
+					|| callPrefix.ends_with("all");
+			}
 			const std::string operation = (*it)[2].str();
-			replacements.push_back({static_cast<std::size_t>(it->position()),
+			const std::string comparison = (operation == "==" ? "equal(" : "notEqual(")
+				+ (*it)[1].str() + ", " + (*it)[3].str() + ")";
+			replacements.push_back({position,
 				static_cast<std::size_t>(it->length()),
-				(operation == "==" ? "all(" : "any(") + (*it)[1].str() + " "
-					+ operation + " " + (*it)[3].str() + ")"});
+				insideVectorComparisonReduction ? comparison
+					: (operation == "==" ? "all(" : "any(") + comparison + ")"});
 		}
 	std::sort(replacements.begin(), replacements.end(),
 		[](const auto &left, const auto &right) { return left.position > right.position; });
@@ -2119,6 +2134,105 @@ int shaderUniformComponents(std::string_view type)
 	return 1;
 }
 
+bool parseLoveShaderUniformInitializer(std::string_view sourceType,
+	Love::GraphicsBackend::ShaderUniformType type, int components, int count,
+	std::string_view initializer, std::vector<float> &values, std::string &error)
+{
+	initializer = trimShaderText(initializer);
+	values.clear();
+	if (initializer.empty()) return true;
+	if (count != 1)
+	{
+		error = "Love Shader uniform array initializers are not currently supported";
+		return false;
+	}
+	if (type == Love::GraphicsBackend::ShaderUniformType::Sampler
+		|| type == Love::GraphicsBackend::ShaderUniformType::Matrix)
+	{
+		error = "Love Shader " + std::string(sourceType)
+			+ " uniform initializers are not currently supported";
+		return false;
+	}
+
+	auto parseScalar = [&](std::string_view token, float &value) {
+		token = trimShaderText(token);
+		if (type == Love::GraphicsBackend::ShaderUniformType::Bool)
+		{
+			if (token == "true") { value = 1.0f; return true; }
+			if (token == "false") { value = 0.0f; return true; }
+			return false;
+		}
+		std::string text(token);
+		char *end = nullptr;
+		if (type == Love::GraphicsBackend::ShaderUniformType::Float)
+		{
+			const float parsed = std::strtof(text.c_str(), &end);
+			if (end != text.c_str() + text.size() || !std::isfinite(parsed)) return false;
+			value = parsed;
+			return true;
+		}
+		if (type == Love::GraphicsBackend::ShaderUniformType::UInt)
+		{
+			if (!text.empty() && (text.back() == 'u' || text.back() == 'U')) text.pop_back();
+			std::uint32_t parsed = 0;
+			const auto result = std::from_chars(text.data(), text.data() + text.size(), parsed);
+			if (result.ec != std::errc{} || result.ptr != text.data() + text.size()) return false;
+			value = std::bit_cast<float>(parsed);
+			return true;
+		}
+		std::int32_t parsed = 0;
+		const auto result = std::from_chars(text.data(), text.data() + text.size(), parsed);
+		if (result.ec != std::errc{} || result.ptr != text.data() + text.size()) return false;
+		value = std::bit_cast<float>(parsed);
+		return true;
+	};
+
+	std::vector<std::string_view> arguments;
+	if (components == 1)
+		arguments.push_back(initializer);
+	else
+	{
+		const std::size_t open = initializer.find('(');
+		const std::size_t close = initializer.rfind(')');
+		if (open == std::string_view::npos || close != initializer.size() - 1
+			|| trimShaderText(initializer.substr(0, open)) != sourceType)
+		{
+			error = "Love Shader uniform initializer for '" + std::string(sourceType)
+				+ "' must use a constant " + std::string(sourceType) + " constructor";
+			return false;
+		}
+		std::string_view body = initializer.substr(open + 1, close - open - 1);
+		while (true)
+		{
+			const std::size_t comma = body.find(',');
+			arguments.push_back(body.substr(0, comma));
+			if (comma == std::string_view::npos) break;
+			body.remove_prefix(comma + 1);
+		}
+		if (arguments.size() != 1 && arguments.size() != static_cast<std::size_t>(components))
+		{
+			error = "Love Shader uniform initializer for '" + std::string(sourceType)
+				+ "' must contain one or " + std::to_string(components) + " constants";
+			return false;
+		}
+	}
+	values.reserve(static_cast<std::size_t>(components));
+	for (const auto argument : arguments)
+	{
+		float value = 0.0f;
+		if (!parseScalar(argument, value))
+		{
+			error = "Love Shader uniform initializer contains an unsupported constant: "
+				+ std::string(trimShaderText(argument));
+			return false;
+		}
+		values.push_back(value);
+	}
+	if (values.size() == 1 && components > 1)
+		values.resize(static_cast<std::size_t>(components), values.front());
+	return true;
+}
+
 std::string shaderMatrixValue(std::string_view gpuName, int components,
 	std::string_view index = {})
 {
@@ -2622,7 +2736,7 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 		if (instanced) customInputs += ", i_data0, i_data1, i_data2, i_data3, i_data4";
 	}
 	static const std::regex uniformPattern(
-		R"(\b(?:extern|uniform)\s+(?:(?:lowp|mediump|highp)\s+)?(number|float|vec2|vec3|vec4|mat2|mat3|mat4|int|ivec2|ivec3|ivec4|uint|uvec2|uvec3|uvec4|bool|bvec2|bvec3|bvec4|Image|ArrayImage|CubeImage|VolumeImage)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s*\[\s*([0-9]+)\s*\])?\s*;)");
+		R"(\b(?:extern|uniform)\s+(?:(?:lowp|mediump|highp)\s+)?(number|float|vec2|vec3|vec4|mat2|mat3|mat4|int|ivec2|ivec3|ivec4|uint|uvec2|uvec3|uvec4|bool|bvec2|bvec3|bvec4|Image|ArrayImage|CubeImage|VolumeImage)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s*\[\s*([0-9]+)\s*\])?(?:\s*=\s*([^;]+))?\s*;)");
 	struct ParsedUniform
 	{
 		std::string sourceType;
@@ -2632,6 +2746,7 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 		Love::GraphicsBackend::TextureType textureType;
 		int components = 1;
 		int count = 1;
+		std::vector<float> initialValues;
 	};
 	std::vector<ParsedUniform> uniforms;
 	const std::string uniformSyntax = maskLoveShaderComments(
@@ -2652,8 +2767,17 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 			}
 		}
 		const std::string gpuName = "u_love_" + name;
-		uniforms.push_back({sourceType, name, gpuName, shaderUniformType(sourceType), shaderTextureType(sourceType),
-			shaderUniformComponents(sourceType), count});
+		const auto type = shaderUniformType(sourceType);
+		const int components = shaderUniformComponents(sourceType);
+		std::vector<float> initialValues;
+		if ((*it)[4].matched && !parseLoveShaderUniformInitializer(sourceType, type,
+			components, count, (*it)[4].str(), initialValues, error))
+		{
+			error = "Love Shader uniform '" + name + "' initializer is invalid: " + error;
+			return false;
+		}
+		uniforms.push_back({sourceType, name, gpuName, type, shaderTextureType(sourceType),
+			components, count, std::move(initialValues)});
 	}
 	blankShaderMatchesPreservingLines(body, uniformSyntax, uniformPattern);
 	for (const auto &uniform : uniforms)
@@ -2755,7 +2879,7 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 	int nextSamplerSlot = 1;
 	for (const auto &uniform : uniforms)
 	{
-		const auto &[sourceType, name, gpuName, type, textureType, components, count] = uniform;
+		const auto &[sourceType, name, gpuName, type, textureType, components, count, initialValues] = uniform;
 		if (translated.attributes.contains(name))
 		{
 			error = "Love Shader name '" + name + "' is used by both a vertex attribute and a uniform";
@@ -2808,7 +2932,7 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 			body = std::regex_replace(body, call, sampleFunction + "(" + name);
 			body = std::regex_replace(body, identifier, "s_texColor");
 			translated.uniforms.emplace(name, LoveShaderUniformInfo{
-				"s_texColor", type, textureType, components, 1, 0});
+				"s_texColor", type, textureType, components, 1, 0, {}});
 			continue;
 		}
 		const int samplerSlot = type == Love::GraphicsBackend::ShaderUniformType::Sampler ? nextSamplerSlot : 0;
@@ -2818,7 +2942,8 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 			error = "Love Shader uses more than 15 additional Image uniforms";
 			return false;
 		}
-		if (!translated.uniforms.emplace(name, LoveShaderUniformInfo{gpuName, type, textureType, components, count, samplerSlot}).second)
+		if (!translated.uniforms.emplace(name, LoveShaderUniformInfo{gpuName, type, textureType,
+			components, count, samplerSlot, initialValues}).second)
 		{
 			error = "duplicate Love Shader uniform '" + name + "'";
 			return false;
@@ -7797,12 +7922,18 @@ Love::GraphicsBackend::ShaderHandle LoveNode::newShader(std::string_view vertexS
 		uniform.components = info.components;
 		uniform.count = info.count;
 		uniform.samplerSlot = info.samplerSlot;
+		uniform.initialValues = info.initialValues;
+		uniform.hasInitialValue = !info.initialValues.empty();
 		if (info.type == Love::GraphicsBackend::ShaderUniformType::Matrix && info.components == 16)
 			uniform.matrixValues.resize(static_cast<std::size_t>(info.count));
 		else if (info.type != Love::GraphicsBackend::ShaderUniformType::Sampler)
+		{
 			uniform.vectorValues.resize(static_cast<std::size_t>(info.count)
 				* (info.type == Love::GraphicsBackend::ShaderUniformType::Matrix
 					&& info.components == 9 ? 3 : 1));
+			for (std::size_t component = 0; component < info.initialValues.size(); ++component)
+				(&uniform.vectorValues.front().x)[component] = info.initialValues[component];
+		}
 		return uniform;
 	};
 	const auto maxTextureSamplers = bgfx::getCaps()->limits.maxTextureSamplers;
@@ -7832,8 +7963,37 @@ Love::GraphicsBackend::ShaderHandle LoveNode::newShader(std::string_view vertexS
 				error = "Love Shader uniform '" + name + "' has different stage types";
 				return 0;
 			}
+			const auto sameInitialValues = [](const std::vector<float> &left,
+				const std::vector<float> &right) {
+				return left.size() == right.size() && std::equal(left.begin(), left.end(),
+					right.begin(), [](float a, float b) {
+						return std::bit_cast<std::uint32_t>(a) == std::bit_cast<std::uint32_t>(b);
+					});
+			};
+			if (found->second.hasInitialValue && !info.initialValues.empty()
+				&& !sameInitialValues(found->second.initialValues, info.initialValues))
+			{
+				error = "Love Shader uniform '" + name
+					+ "' has different vertex and pixel initializers";
+				return 0;
+			}
+			if (!found->second.hasInitialValue && !info.initialValues.empty())
+				found->second = makeUniform(info);
 		}
 		else resource.uniforms.emplace(name, makeUniform(info));
+	}
+	for (const auto &[name, uniform] : resource.uniforms)
+	{
+		DORA_UNUSED_PARAM(name);
+		if (!uniform.hasInitialValue) continue;
+		for (SpriteEffect *target : {resource.effect.get(), resource.instancedEffect.get()})
+		{
+			if (!target) continue;
+			if (!uniform.vectorValues.empty())
+				target->get(0)->set(uniform.gpuName, std::span<const Vec4>(uniform.vectorValues));
+			else if (!uniform.matrixValues.empty())
+				target->get(0)->set(uniform.gpuName, std::span<const Matrix>(uniform.matrixValues));
+		}
 	}
 	const auto handle = _nextShaderHandle++;
 	_shaders.emplace(handle, std::move(resource));

@@ -3899,10 +3899,21 @@ local compatibility_type = type
 local compatibility_error = error
 local compatibility_native_randomseed = math.randomseed
 local compatibility_native_random = math.random
+local compatibility_rawget = rawget
 local compatibility_getinfo = debug.getinfo
 local compatibility_getupvalue = debug.getupvalue
 local compatibility_upvaluejoin = debug.upvaluejoin
 local compatibility_noenv = setmetatable({}, {__mode = "k"})
+
+local function compatibility_ipairs_next(value, index)
+	index = index + 1
+	local item = compatibility_rawget(value, index)
+	if item ~= nil then return index, item end
+end
+
+function ipairs(value)
+	return compatibility_ipairs_next, value, 0
+end
 
 -- LuaJIT's math.randomseed accepts any finite number, while Lua 5.5 requires
 -- an exact integer. Existing Love games commonly seed it from getTime(), so
@@ -20028,20 +20039,24 @@ int LoveRuntime::imageNewImageData(lua_State *state)
 		std::vector<std::uint8_t> pixels(byteCount, 0);
 		if (!lua_isnoneornil(state, 4))
 		{
-			const char *bytes = nullptr;
+			const std::uint8_t *bytes = nullptr;
 			std::size_t size = 0;
 			if (lua_type(state, 4) == LUA_TSTRING)
-				bytes = luaL_checklstring(state, 4, &size);
-			else if (auto *fileData = testFileData(state, 4))
 			{
-				bytes = fileData->data.data();
-				size = fileData->data.size();
+				const char *stringBytes = luaL_checklstring(state, 4, &size);
+				bytes = reinterpret_cast<const std::uint8_t *>(stringBytes);
 			}
 			else
-				return luaL_argerror(state, 4, "expected raw string or FileData");
+			{
+				DataSpan span;
+				if (!getDataSpan(state, 4, span))
+					return luaL_argerror(state, 4, "expected raw string or Data");
+				bytes = span.bytes;
+				size = span.size;
+			}
 			luaL_argcheck(state, size == byteCount, 4,
 				"raw data size does not match ImageData dimensions and pixel format");
-			std::copy_n(reinterpret_cast<const std::uint8_t *>(bytes), byteCount, pixels.begin());
+			std::copy_n(bytes, byteCount, pixels.begin());
 		}
 		pushImageData(state, runtime, static_cast<int>(width), static_cast<int>(height),
 			formatInfo->name, std::move(pixels));
@@ -20067,7 +20082,13 @@ int LoveRuntime::imageNewImageData(lua_State *state)
 		description = fileData->filename;
 	}
 	else
-		return luaL_argerror(state, 1, "expected filename, FileData, or width");
+	{
+		DataSpan span;
+		if (!getDataSpan(state, 1, span))
+			return luaL_argerror(state, 1, "expected filename, Data, or width");
+		encoded.assign(reinterpret_cast<const char *>(span.bytes), span.size);
+		description = "Data";
+	}
 	if (!runtime || !runtime->_imageBackend)
 		return luaL_error(state, "love.image is not attached to a Dora image decoder");
 	int width = 0;

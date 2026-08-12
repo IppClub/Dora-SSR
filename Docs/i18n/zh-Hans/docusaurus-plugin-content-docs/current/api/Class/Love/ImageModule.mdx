@@ -14,7 +14,7 @@
 
 **签名：**
 ```tl
-newImageData: function(width: number, height: integer, format?: ImagePixelFormat, data?: string | FileData): ImageData
+newImageData: function(width: number, height: integer, format?: ImagePixelFormat, data?: string | Data): ImageData
 ```
 
 **参数：**
@@ -24,7 +24,7 @@ newImageData: function(width: number, height: integer, format?: ImagePixelFormat
 | width | number | ImageData 的宽度。 |
 | height | integer | ImageData 的高度。 |
 | format | ImagePixelFormat | ImageData 的像素格式。 （默认：'rgba8'。） |
-| data | string | FileData | 可选的原始字节数据，以“'format'”指定的格式加载到 ImageData 中。 （默认值：nil。） |
+| data | string 或 Data | 可选的原始字节数据，以“'format'”指定的格式加载到 ImageData 中。 （默认值：nil。） |
 
 **返回值：**
 
@@ -67,14 +67,14 @@ newImageData: function(filename: string): ImageData
 
 **签名：**
 ```tl
-newImageData: function(data: FileData): ImageData
+newImageData: function(data: Data): ImageData
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| data | FileData | 要加载到 ImageData 中的数据（RGBA 字节，从左到右、从上到下）。 |
+| data | Data | 要解码为 ImageData 的编码图像数据。 |
 
 **返回值：**
 

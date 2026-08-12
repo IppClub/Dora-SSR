@@ -14,7 +14,7 @@
 
 **Signature:**
 ```tl
-newImageData: function(width: number, height: integer, format?: ImagePixelFormat, data?: string | FileData): ImageData
+newImageData: function(width: number, height: integer, format?: ImagePixelFormat, data?: string | Data): ImageData
 ```
 
 **Parameters:**
@@ -24,7 +24,7 @@ newImageData: function(width: number, height: integer, format?: ImagePixelFormat
 | width | number | The width of the ImageData. |
 | height | integer | The height of the ImageData. |
 | format | ImagePixelFormat | The pixel format of the ImageData. (Default: 'rgba8'.) |
-| data | string | FileData | Optional raw byte data to load into the ImageData, in the format specified by ''format''. (Default: nil.) |
+| data | string or Data | Optional raw byte data to load into the ImageData, in the format specified by ''format''. (Default: nil.) |
 
 **Returns:**
 
@@ -67,14 +67,14 @@ newImageData: function(filename: string): ImageData
 
 **Signature:**
 ```tl
-newImageData: function(data: FileData): ImageData
+newImageData: function(data: Data): ImageData
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| data | FileData | The data to load into the ImageData (RGBA bytes, left to right and top to bottom). |
+| data | Data | Encoded image data to decode into the ImageData. |
 
 **Returns:**
 

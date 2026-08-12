@@ -2221,9 +2221,9 @@ local record ImageModule
 	-- @param width (number) ImageData 的宽度。
 	-- @param height (integer) ImageData 的高度。
 	-- @param format (ImagePixelFormat) ImageData 的像素格式。 （默认：'rgba8'。）
-	-- @param data (string | FileData) 可选的原始字节数据，以“'format'”指定的格式加载到 ImageData 中。 （默认值：nil。）
+	-- @param data (string | Data) 可选的原始字节数据，以“'format'”指定的格式加载到 ImageData 中。 （默认值：nil。）
 	-- @return (ImageData) imageData — 新的空白 ImageData 对象。每个像素的颜色值（包括 Alpha 值！）将设置为零。
-	newImageData: function(width: number, height: integer, format?: ImagePixelFormat, data?: string | FileData): ImageData
+	newImageData: function(width: number, height: integer, format?: ImagePixelFormat, data?: string | Data): ImageData
 
 	-- 创建一个新的 ImageData 对象。
 	-- @param filename (string) 图像文件的文件名。
@@ -2231,9 +2231,9 @@ local record ImageModule
 	newImageData: function(filename: string): ImageData
 
 	-- 创建一个新的 ImageData 对象。
-	-- @param data (FileData) 要加载到 ImageData 中的数据（RGBA 字节，从左到右、从上到下）。
+	-- @param data (Data) 要解码为 ImageData 的编码图像数据。
 	-- @return (ImageData) 新的 ImageData 对象。
-	newImageData: function(data: FileData): ImageData
+	newImageData: function(data: Data): ImageData
 
 	-- 从压缩图像文件创建一个新的 CompressedImageData 对象。 LÖVE 支持多种压缩纹理格式，在 CompressedImageFormat 页面中列出。
 	-- @param filename_or_data (string or FileData) 压缩图像文件的文件名。取决于重载：包含压缩图像的 FileData。
