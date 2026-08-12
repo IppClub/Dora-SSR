@@ -1708,6 +1708,10 @@ end
 
 -- 提供用于修改和检索有关程序窗口的信息的接口。
 local record Window
+	-- 当前窗口尺寸的已弃用别名。
+	getWidth: function(): integer
+	getHeight: function(): integer
+	getDimensions: function(): integer, integer
 
 	-- 获取桌面的宽度和高度。
 	-- @param display (integer) 显示的索引（如果有多个监视器可用）。 （默认值：1。）
@@ -5136,6 +5140,10 @@ local record Body
 	-- @return (number) (x,y) 点速度的 x 分量。
 	-- @return (number) (x,y) 点速度的 y 分量。
 	getLinearVelocityFromLocalPoint: function(self: Body, x: number, y: number): number, number
+
+	-- 返回附加到刚体的所有碰撞体。
+	-- @return (Fixture[]) 包含刚体所有碰撞体的表。
+	getFixtures: function(self: Body): {Fixture}
 end
 
 -- 形状是固体二维几何对象，用于处理 love.physics.
@@ -5452,6 +5460,10 @@ local record World
 	-- 获取世界是否被毁灭。被摧毁的世界无法使用。
 	-- @return (boolean) 世界是否毁灭。
 	isDestroyed: function(self: World): boolean
+
+	-- 返回世界中的所有刚体。
+	-- @return (Body[]) 包含世界中所有刚体的表。
+	getBodies: function(self: World): {Body}
 
 	-- 更新世界状况。
 	-- @param delta_time (number) 推进物理模拟的时间（以秒为单位）。

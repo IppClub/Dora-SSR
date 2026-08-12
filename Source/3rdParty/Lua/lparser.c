@@ -1670,11 +1670,19 @@ static void forbody (LexState *ls, int base, int line, int nvars, int isgen,
   enterblock(fs, &bl, 0);  /* scope for declared variables */
   adjustlocalvars(ls, nvars + mutablecontrol);
   luaK_reserveregs(fs, nvars + mutablecontrol);
-  if (mutablecontrol)
-    luaK_codeABC(fs, OP_MOVE, base + 3 + nvars, base + 3, 0);
+  if (mutablecontrol) {
+    if (isgen)
+      luaK_codeABC(fs, OP_MOVE, base + 3 + nvars, base + 3, 0);
+    else
+      luaK_codeABC(fs, OP_MOVE, base + 3, base + 2, 0);
+  }
   block(ls);
-  if (mutablecontrol)
-    luaK_codeABC(fs, OP_MOVE, base + 3, base + 3 + nvars, 0);
+  if (mutablecontrol) {
+    if (isgen)
+      luaK_codeABC(fs, OP_MOVE, base + 3, base + 3 + nvars, 0);
+    else
+      luaK_codeABC(fs, OP_MOVE, base + 2, base + 3, 0);
+  }
   leaveblock(fs);  /* end of scope for declared variables */
   fixforjump(fs, prep, luaK_getlabel(fs), 0);
   if (isgen) {  /* generic for? */
@@ -1700,9 +1708,12 @@ static void fornum (LexState *ls, TString *varname, int line) {
   /* fornum -> NAME = exp,exp[,exp] forbody */
   FuncState *fs = ls->fs;
   int base = fs->freereg;
+  int mutablecontrol = G(ls->L)->loopvarcompat != 0;
   new_localvarliteral(ls, "(for state)");
   new_localvarliteral(ls, "(for state)");
   new_varkind(ls, varname, loopvarkind(ls));  /* control variable */
+  if (mutablecontrol)
+    new_varkind(ls, luaS_newliteral(ls->L, "(for mutable control)"), RDKCONST);
   checknext(ls, '=');
   exp1(ls);  /* initial value */
   checknext(ls, ',');
@@ -1714,7 +1725,7 @@ static void fornum (LexState *ls, TString *varname, int line) {
     luaK_reserveregs(fs, 1);
   }
   adjustlocalvars(ls, 2);  /* start scope for internal variables */
-  forbody(ls, base, line, 1, 0, 0);
+  forbody(ls, base, line, 1, 0, mutablecontrol);
 }
 
 

@@ -1185,7 +1185,7 @@ void localizeLoveShaderStageGlobals(std::string &body, bool vertex)
 	const std::string syntax = maskLoveShaderComments(
 		maskLoveShaderInactiveStage(body, vertex));
 	static const std::regex declarationPattern(
-		R"(\b(?:(?:lowp|mediump|highp)\s+)?(?:float|vec2|vec3|vec4|mat2|mat3|mat4|int|ivec2|ivec3|ivec4|uint|uvec2|uvec3|uvec4|bool|bvec2|bvec3|bvec4)\s+[A-Za-z_][A-Za-z0-9_]*(?:\s*\[\s*[0-9]+\s*\])?(?:\s*=\s*[^;{}]+)?\s*;)");
+		R"(\b(?:const\s+)?(?:(?:lowp|mediump|highp)\s+)?(?:float|vec2|vec3|vec4|mat2|mat3|mat4|int|ivec2|ivec3|ivec4|uint|uvec2|uvec3|uvec4|bool|bvec2|bvec3|bvec4)\s+[A-Za-z_][A-Za-z0-9_]*(?:\s*\[\s*[0-9]+\s*\])?(?:\s*=\s*[^;{}]+)?\s*;)");
 	std::vector<std::pair<std::size_t, std::size_t>> ranges;
 	std::string locals;
 	int braceDepth = 0;
@@ -2109,16 +2109,18 @@ Love::GraphicsBackend::ShaderUniformType shaderUniformType(std::string_view type
 	if (type == "int" || type.starts_with("ivec")) return Love::GraphicsBackend::ShaderUniformType::Int;
 	if (type == "uint" || type.starts_with("uvec")) return Love::GraphicsBackend::ShaderUniformType::UInt;
 	if (type == "bool" || type.starts_with("bvec")) return Love::GraphicsBackend::ShaderUniformType::Bool;
-	if (type == "Image" || type == "ArrayImage" || type == "CubeImage" || type == "VolumeImage")
+	if (type == "Image" || type == "ArrayImage" || type == "CubeImage" || type == "VolumeImage"
+		|| type == "sampler2D" || type == "sampler2DArray"
+		|| type == "samplerCube" || type == "sampler3D")
 		return Love::GraphicsBackend::ShaderUniformType::Sampler;
 	return Love::GraphicsBackend::ShaderUniformType::Float;
 }
 
 Love::GraphicsBackend::TextureType shaderTextureType(std::string_view type)
 {
-	if (type == "ArrayImage") return Love::GraphicsBackend::TextureType::Array;
-	if (type == "CubeImage") return Love::GraphicsBackend::TextureType::Cube;
-	if (type == "VolumeImage") return Love::GraphicsBackend::TextureType::Volume;
+	if (type == "ArrayImage" || type == "sampler2DArray") return Love::GraphicsBackend::TextureType::Array;
+	if (type == "CubeImage" || type == "samplerCube") return Love::GraphicsBackend::TextureType::Cube;
+	if (type == "VolumeImage" || type == "sampler3D") return Love::GraphicsBackend::TextureType::Volume;
 	return Love::GraphicsBackend::TextureType::Texture2D;
 }
 
@@ -2127,7 +2129,9 @@ int shaderUniformComponents(std::string_view type)
 	if (type == "mat2") return 4;
 	if (type == "mat3") return 9;
 	if (type == "mat4") return 16;
-	if (type == "Image" || type == "ArrayImage" || type == "CubeImage" || type == "VolumeImage") return 0;
+	if (type == "Image" || type == "ArrayImage" || type == "CubeImage" || type == "VolumeImage"
+		|| type == "sampler2D" || type == "sampler2DArray"
+		|| type == "samplerCube" || type == "sampler3D") return 0;
 	if (type.ends_with("vec4") || type == "vec4") return 4;
 	if (type.ends_with("vec3") || type == "vec3") return 3;
 	if (type.ends_with("vec2") || type == "vec2") return 2;
@@ -2736,7 +2740,7 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 		if (instanced) customInputs += ", i_data0, i_data1, i_data2, i_data3, i_data4";
 	}
 	static const std::regex uniformPattern(
-		R"(\b(?:extern|uniform)\s+(?:(?:lowp|mediump|highp)\s+)?(number|float|vec2|vec3|vec4|mat2|mat3|mat4|int|ivec2|ivec3|ivec4|uint|uvec2|uvec3|uvec4|bool|bvec2|bvec3|bvec4|Image|ArrayImage|CubeImage|VolumeImage)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s*\[\s*([0-9]+)\s*\])?(?:\s*=\s*([^;]+))?\s*;)");
+		R"(\b(?:extern|uniform)\s+(?:(?:lowp|mediump|highp)\s+)?(number|float|vec2|vec3|vec4|mat2|mat3|mat4|int|ivec2|ivec3|ivec4|uint|uvec2|uvec3|uvec4|bool|bvec2|bvec3|bvec4|Image|ArrayImage|CubeImage|VolumeImage|sampler2D|sampler2DArray|samplerCube|sampler3D)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s*\[\s*([0-9]+)\s*\])?(?:\s*=\s*([^;]+))?\s*;)");
 	struct ParsedUniform
 	{
 		std::string sourceType;

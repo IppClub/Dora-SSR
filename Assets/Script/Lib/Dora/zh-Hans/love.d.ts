@@ -15,7 +15,7 @@ declare global {
 	type ArcMode = "open" | "closed" | "pie";
 	type LineStyle = "rough" | "smooth";
 	type LineJoin = "none" | "miter" | "bevel";
-	type BlendMode = "alpha" | "add" | "subtract" | "multiply" | "replace" | "screen";
+	type BlendMode = "alpha" | "add" | "subtract" | "multiply" | "replace" | "screen" | "premultiplied";
 	type BlendAlphaMode = "alphamultiply" | "premultiplied";
 	type AlignMode = "left" | "center" | "right" | "justify";
 	type FilterMode = "linear" | "nearest";
@@ -3753,6 +3753,12 @@ declare global {
 	/** Provides an interface for modifying and retrieving information about the program's window.
 	 */
 	interface Window {
+		/** 当前窗口宽度的已弃用别名。 */
+		getWidth(this: void): number;
+		/** 当前窗口高度的已弃用别名。 */
+		getHeight(this: void): number;
+		/** 当前窗口尺寸的已弃用别名。 */
+		getDimensions(this: void): LuaMultiReturn<[number, number]>;
 		/**
 		 * 获取桌面的宽度和高度。
 		 *
@@ -8176,6 +8182,8 @@ declare global {
 		 * @returns destroyed — 世界是否毁灭。
 		 */
 		isDestroyed(): boolean;
+		/** 返回世界中的所有刚体。 */
+		getBodies(): Body[];
 		/**
 		 * 更新世界状况。
 		 *
@@ -8781,6 +8789,8 @@ declare global {
 		 * @returns vy — (x,y) 点速度的 y 分量。
 		 */
 		getLinearVelocityFromLocalPoint(x: number, y: number): LuaMultiReturn<[number, number]>;
+		/** 返回附加到刚体的所有碰撞体。 */
+		getFixtures(): Fixture[];
 	}
 	/** Shapes are solid 2d geometrical objects which handle the mass and collision of a Body in love.physics.
 	 */

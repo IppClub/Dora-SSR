@@ -1828,6 +1828,10 @@ end
 
 -- Provides an interface for modifying and retrieving information about the program's window.
 local record Window
+	-- Deprecated aliases for the current window dimensions.
+	getWidth: function(): integer
+	getHeight: function(): integer
+	getDimensions: function(): integer, integer
 
 	-- Gets the width and height of the desktop.
 	-- @param display (integer) The index of the display, if multiple monitors are available. (Default: 1.)
@@ -5473,6 +5477,10 @@ local record Body
 	-- @return (number) The x component of velocity at point (x,y).
 	-- @return (number) The y component of velocity at point (x,y).
 	getLinearVelocityFromLocalPoint: function(self: Body, x: number, y: number): number, number
+
+	-- Returns all fixtures attached to the body.
+	-- @return (Fixture[]) A table containing all fixtures attached to the body.
+	getFixtures: function(self: Body): {Fixture}
 end
 
 -- Shapes are solid 2d geometrical objects which handle the mass and collision of a Body in love.physics.
@@ -5816,6 +5824,10 @@ local record World
 	-- Gets whether the World is destroyed. Destroyed worlds cannot be used.
 	-- @return (boolean) Whether the World is destroyed.
 	isDestroyed: function(self: World): boolean
+
+	-- Returns all bodies in the world.
+	-- @return (Body[]) A table containing all bodies in the world.
+	getBodies: function(self: World): {Body}
 
 	-- Update the state of the world.
 	-- @param delta_time (number) The time (in seconds) to advance the physics simulation.

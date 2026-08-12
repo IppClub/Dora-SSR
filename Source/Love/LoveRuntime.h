@@ -2098,6 +2098,7 @@ private:
 	static int physicsWorldRayCast(lua_State *state);
 	static int physicsWorldSetCallbacks(lua_State *state);
 	static int physicsWorldGetCallbacks(lua_State *state);
+	static int physicsWorldGetBodies(lua_State *state);
 	static int physicsBodyDestroy(lua_State *state);
 	static int physicsBodyIsDestroyed(lua_State *state);
 	static int physicsBodyGetPosition(lua_State *state);
@@ -2153,6 +2154,7 @@ private:
 	static int physicsBodyGetLocalPoints(lua_State *state);
 	static int physicsBodyGetLinearVelocityFromWorldPoint(lua_State *state);
 	static int physicsBodyGetLinearVelocityFromLocalPoint(lua_State *state);
+	static int physicsBodyGetFixtures(lua_State *state);
 	static int physicsShapeGetType(lua_State *state);
 	static int physicsShapeGetRadius(lua_State *state);
 	static int physicsShapeGetPoints(lua_State *state);

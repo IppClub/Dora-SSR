@@ -51,6 +51,7 @@ SOFTWARE. */
 #include <mutex>
 #include <new>
 #include <numbers>
+#include <regex>
 #include <set>
 #include <sstream>
 #include <thread>
@@ -221,6 +222,65 @@ private:
 	FilesystemBackend *_backend = nullptr;
 };
 
+class ThreadImageBackend final : public ImageBackend
+{
+public:
+	ThreadImageBackend(std::shared_ptr<ThreadContext> context, ImageBackend *backend)
+		: _context(std::move(context)), _backend(backend) { }
+
+	bool decodeImage(std::string_view encoded, int &width, int &height,
+		std::vector<std::uint8_t> &rgba8, std::string &error) override
+	{
+		const std::string copy(encoded);
+		return invoke([&]() { return _backend->decodeImage(copy, width, height, rgba8, error); });
+	}
+	bool decodeCompressedImage(std::string_view encoded, CompressedImage &image,
+		std::string &error) override
+	{
+		const std::string copy(encoded);
+		return invoke([&]() { return _backend->decodeCompressedImage(copy, image, error); });
+	}
+	bool encodeImage(std::string_view format, int width, int height,
+		std::span<const std::uint8_t> rgba8, std::vector<std::uint8_t> &encoded,
+		std::string &error) override
+	{
+		const std::string formatCopy(format);
+		const std::vector<std::uint8_t> pixels(rgba8.begin(), rgba8.end());
+		return invoke([&]() {
+			return _backend->encodeImage(formatCopy, width, height, pixels, encoded, error);
+		});
+	}
+
+private:
+	template <class Callback>
+	bool invoke(Callback callback) const
+	{
+		if (!_backend || !_context || _context->stopping.load(std::memory_order_acquire))
+			return false;
+		bool result = false;
+		auto request = std::make_shared<ThreadFilesystemRequest>();
+		request->work = [&]() { result = callback(); };
+		{
+			std::lock_guard lock(_context->filesystemMutex);
+			_context->filesystemRequests.push_back(request);
+		}
+		std::unique_lock lock(request->mutex);
+		request->changed.wait(lock, [&]() {
+			return request->done || _context->stopping.load(std::memory_order_acquire);
+		});
+		if (!request->done)
+		{
+			request->cancelled = true;
+			request->work = {};
+			return false;
+		}
+		return result;
+	}
+
+	std::shared_ptr<ThreadContext> _context;
+	ImageBackend *_backend = nullptr;
+};
+
 struct ThreadWorker
 {
 	~ThreadWorker()
@@ -234,6 +294,7 @@ struct ThreadWorker
 	std::vector<ThreadValue> arguments;
 	std::shared_ptr<ThreadContext> context;
 	FilesystemBackend *filesystem = nullptr;
+	ImageBackend *image = nullptr;
 	std::string sourceRoot;
 	std::string saveBaseRoot;
 	std::string identity;
@@ -482,9 +543,24 @@ int loadLoveChunk(lua_State *state, std::string_view code, const char *chunkName
 }
 constexpr int DefaultWindowWidth = 800;
 constexpr int DefaultWindowHeight = 600;
-constexpr int MaximumWindowDimension = 8192;
+constexpr int MaximumWindowDimension = 16384;
 constexpr std::size_t MaximumSoundDataBytes = 256 * 1024 * 1024;
 constexpr std::size_t MaximumLoveDataBytes = 256 * 1024 * 1024;
+
+lua_Integer checkLoveInteger(lua_State *state, int index)
+{
+	const lua_Number value = luaL_checknumber(state, index);
+	luaL_argcheck(state, std::isfinite(value)
+		&& value >= static_cast<lua_Number>(std::numeric_limits<lua_Integer>::min())
+		&& value <= static_cast<lua_Number>(std::numeric_limits<lua_Integer>::max()),
+		index, "number is outside the integer range");
+	return static_cast<lua_Integer>(value);
+}
+
+lua_Integer optionalLoveInteger(lua_State *state, int index, lua_Integer fallback)
+{
+	return lua_isnoneornil(state, index) ? fallback : checkLoveInteger(state, index);
+}
 
 int totalImageMipmapCount(int width, int height, int depth = 1)
 {
@@ -2163,12 +2239,16 @@ bool loadShaderArgument(lua_State *state, int index, LoveRuntime *runtime,
 bool classifyShaderSources(std::span<const std::string> arguments,
 	std::string &vertex, std::string &pixel, std::string &error)
 {
+	static const std::regex vertexEntry(R"(\bvec4\s+position\s*\()",
+		std::regex_constants::ECMAScript);
+	static const std::regex pixelEntry(R"(\b(?:vec4|void)\s+effect\s*\()",
+		std::regex_constants::ECMAScript);
 	vertex.clear();
 	pixel.clear();
 	for (const auto &source : arguments)
 	{
-		const bool isVertex = source.find("position") != std::string::npos;
-		const bool isPixel = source.find("effect") != std::string::npos;
+		const bool isVertex = std::regex_search(source, vertexEntry);
+		const bool isPixel = std::regex_search(source, pixelEntry);
 		if (isVertex) vertex = source;
 		if (isPixel) pixel = source;
 	}
@@ -3357,6 +3437,10 @@ bool normalizeLoveModulePath(std::string_view moduleName, std::string &modulePat
 {
 	while (moduleName.starts_with("./"))
 		moduleName.remove_prefix(2);
+	// Love's filesystem searcher treats a leading slash as game-root-relative,
+	// which is used by several LuaJIT-era libraries.
+	while (moduleName.starts_with('/'))
+		moduleName.remove_prefix(1);
 	if (moduleName.empty())
 		return false;
 	modulePath.clear();
@@ -3859,17 +3943,41 @@ unpack = table.unpack
 table.getn = table.getn or function(value)
 	return #value
 end
+arg = arg or {}
 math.pow = math.pow or function(base, exponent)
 	return base ^ exponent
 end
 math.atan2 = math.atan2 or function(y, x)
 	return math.atan(y, x)
 end
-local native_require = require
+local compatibility_require_loading = {}
 require = function(name)
-	-- Lua 5.2+ also returns loader data. LuaJIT/Lua 5.1 LÖVE code
-	-- expects one result, especially when require is the final argument.
-	return (native_require(name))
+	local loaded = package.loaded[name]
+	if loaded then return loaded end
+	if compatibility_require_loading[name] then
+		error("loop or previous error loading module '" .. name .. "'", 2)
+	end
+	local messages = {}
+	for _, searcher in ipairs(package.searchers) do
+		local loader, search_data = searcher(name)
+		if type(loader) == "function" then
+			compatibility_require_loading[name] = true
+			-- LuaJIT/Lua 5.1 passes only the module name to its loader. Lua 5.2+
+			-- also passes searcher data (usually a filename), which old modules
+			-- can mistake for a real second vararg.
+			local ok, result = pcall(loader, name)
+			compatibility_require_loading[name] = nil
+			if not ok then error(result, 0) end
+			if result ~= nil then package.loaded[name] = result
+			elseif package.loaded[name] == nil then package.loaded[name] = true end
+			return package.loaded[name]
+		elseif type(loader) == "string" then
+			messages[#messages + 1] = loader
+		elseif type(search_data) == "string" then
+			messages[#messages + 1] = search_data
+		end
+	end
+	error("module '" .. name .. "' not found:" .. table.concat(messages), 2)
 end
 local native_load = load
 load = function(chunk, chunkname, mode, env)
@@ -3899,11 +4007,41 @@ local compatibility_type = type
 local compatibility_error = error
 local compatibility_native_randomseed = math.randomseed
 local compatibility_native_random = math.random
+local compatibility_native_format = string.format
+local compatibility_native_io_open = io.open
+local compatibility_native_io_lines = io.lines
 local compatibility_rawget = rawget
 local compatibility_getinfo = debug.getinfo
 local compatibility_getupvalue = debug.getupvalue
 local compatibility_upvaluejoin = debug.upvaluejoin
 local compatibility_noenv = setmetatable({}, {__mode = "k"})
+
+local function compatibility_io_path(filename, mode)
+	if compatibility_type(filename) ~= "string" or filename:sub(1, 1) == "/" then return filename end
+	local normalized = filename:gsub("^%./+", "")
+	if normalized == "" or normalized:find("\\", 1, true)
+		or normalized:find("..", 1, true) then return filename end
+	local filesystem = compatibility_global.love and compatibility_global.love.filesystem
+	if not filesystem then return filename end
+	if mode:find("[wa+]") then
+		return filesystem.getSaveDirectory() .. "/" .. normalized
+	end
+	local root = filesystem.getRealDirectory(normalized)
+	if root and root ~= "" and root:sub(-5) ~= ".love" then return root .. "/" .. normalized end
+	return filename
+end
+
+io.open = function(filename, mode)
+	mode = mode or "r"
+	return compatibility_native_io_open(compatibility_io_path(filename, mode), mode)
+end
+
+io.lines = function(filename, ...)
+	if filename == nil then return compatibility_native_io_lines() end
+	local file, message = io.open(filename, "r")
+	if not file then compatibility_error(message, 2) end
+	return file:lines(...)
+end
 
 local function compatibility_ipairs_next(value, index)
 	index = index + 1
@@ -3940,7 +4078,41 @@ math.random = function(lower, upper)
 	if compatibility_type(upper) == "number" and math.tointeger(upper) == nil then
 		upper = upper < 0 and math.ceil(upper) or math.floor(upper)
 	end
+	-- LuaJIT accepts reversed integer bounds and produces a value in the same
+	-- inclusive interval. Lua 5.5 rejects the interval as empty.
+	if lower > upper then lower, upper = upper, lower end
 	return compatibility_native_random(lower, upper)
+end
+
+-- LuaJIT's string.format integer conversions accept finite numbers and
+-- truncate them toward zero. Lua 5.5 requires an integer representation.
+string.format = function(format, ...)
+	local arguments = table.pack(...)
+	local argument = 1
+	local offset = 1
+	while true do
+		local percent = format:find("%", offset, true)
+		if percent == nil then break end
+		local nextCharacter = format:sub(percent + 1, percent + 1)
+		if nextCharacter == "%" then
+			offset = percent + 2
+		else
+			local finish = percent + 1
+			while finish <= #format and not format:sub(finish, finish):match("[cdiouxXeEfgGaAsq]") do
+				if format:sub(finish, finish) == "*" then argument = argument + 1 end
+				finish = finish + 1
+			end
+			local conversion = format:sub(finish, finish)
+			if conversion:match("[cdiouxX]") and compatibility_type(arguments[argument]) == "number"
+				and math.tointeger(arguments[argument]) == nil then
+				local value = arguments[argument]
+				arguments[argument] = value < 0 and math.ceil(value) or math.floor(value)
+			end
+			argument = argument + 1
+			offset = finish + 1
+		end
+	end
+	return compatibility_native_format(format, table.unpack(arguments, 1, arguments.n))
 end
 
 local function compatibility_function(selector, api)
@@ -4003,6 +4175,38 @@ setfenv = function(selector, env)
 		compatibility_upvaluejoin(func, index, holder, 1)
 	end
 	return original
+end
+
+-- Lua 5.1's module helper is still used by older Love games and libraries.
+package.seeall = package.seeall or function(target)
+	local meta = getmetatable(target) or {}
+	meta.__index = compatibility_global
+	setmetatable(target, meta)
+end
+
+module = module or function(name, ...)
+	local target = package.loaded[name]
+	if compatibility_type(target) ~= "table" then
+		target = {}
+		package.loaded[name] = target
+	end
+	local parent = _G
+	local leaf = name
+	for component in name:gmatch("([^.]+)%.") do
+		if compatibility_type(parent[component]) ~= "table" then parent[component] = {} end
+		parent = parent[component]
+		leaf = leaf:sub(#component + 2)
+	end
+	parent[leaf] = target
+	target._M = target
+	target._NAME = name
+	target._PACKAGE = name:match("^(.*%.)") or ""
+	setfenv(2, target)
+	for index = 1, select("#", ...) do
+		local option = select(index, ...)
+		if option ~= nil then option(target) end
+	end
+	return target
 end
 
 package.preload.ffi = function()
@@ -5111,10 +5315,11 @@ bool LoveRuntime::setSaveBaseRoot(std::string_view saveBaseRoot, std::string &er
 
 bool LoveRuntime::setIdentity(std::string_view identity, std::string &error)
 {
-	if (identity.empty() || identity.size() > 128 || identity == "." || identity == ".."
-		|| identity.find('/') != std::string_view::npos || identity.find('\\') != std::string_view::npos)
+	std::string normalized;
+	if (identity.empty() || identity.size() > 128
+		|| !normalizeLoveVirtualPath(identity, normalized))
 	{
-		error = "Love filesystem identity must be 1 to 128 characters and cannot contain path separators";
+		error = "Love filesystem identity must be a safe relative path of 1 to 128 characters";
 		return false;
 	}
 	for (const unsigned char character : identity)
@@ -5125,7 +5330,7 @@ bool LoveRuntime::setIdentity(std::string_view identity, std::string &error)
 			return false;
 		}
 	}
-	_identity.assign(identity);
+	_identity = std::move(normalized);
 	return refreshSaveRoot(error);
 }
 
@@ -5145,6 +5350,14 @@ bool LoveRuntime::refreshSaveRoot(std::string &error)
 		return false;
 	}
 	_saveRoot = target.string();
+	std::error_code createError;
+	std::filesystem::create_directories(target, createError);
+	if (createError)
+	{
+		error = "failed to create Love save directory: " + createError.message();
+		_saveRoot.clear();
+		return false;
+	}
 	error.clear();
 	return true;
 }
@@ -5161,6 +5374,21 @@ bool LoveRuntime::resolveReadPath(std::string_view filename, std::string &resolv
 		}
 		return false;
 	};
+	const std::filesystem::path requested(filename);
+	if (requested.is_absolute())
+	{
+		const std::filesystem::path normalized = requested.lexically_normal();
+		const auto inside = [&](const std::string &root) {
+			return !root.empty() && isInsideRoot(std::filesystem::path(root), normalized);
+		};
+		bool confined = inside(_saveRoot) || inside(_sourceRoot);
+		for (const auto &mount : _mountedArchives)
+			confined = confined || inside(mount.root);
+		// A real absolute filename is accepted only when it is already confined
+		// to this runtime. Otherwise keep resolving it as a PhysFS-style path:
+		// LÖVE treats a leading slash as the root of the game's virtual filesystem.
+		if (confined && accept(normalized)) return true;
+	}
 	std::filesystem::path candidate;
 	std::string candidateError;
 	if (resolveEntryWithinRoot(_saveRoot, filename, candidate, false, candidateError) && accept(candidate))
@@ -5546,6 +5774,7 @@ int LoveRuntime::threadNewThread(lua_State *state)
 	worker->chunkName = std::move(chunkName);
 	worker->context = runtime->_threadContext;
 	worker->filesystem = runtime->_filesystemBackend;
+	worker->image = runtime->_imageBackend;
 	worker->sourceRoot = runtime->_sourceRoot;
 	worker->saveBaseRoot = runtime->_saveBaseRoot;
 	worker->identity = runtime->_identity;
@@ -5646,10 +5875,12 @@ int LoveRuntime::threadObjectStart(lua_State *state)
 		{
 			LoveRuntime runtime;
 			ThreadFilesystemBackend filesystem(worker->context, worker->filesystem);
+			ThreadImageBackend image(worker->context, worker->image);
 			runtime._threadContext = worker->context;
 			runtime._ownsThreadContext = false;
 			runtime._preloadModules = worker->preloadModules;
 			runtime.setFilesystemBackend(worker->filesystem ? &filesystem : nullptr);
+			runtime.setImageBackend(worker->image ? &image : nullptr);
 			if (runtime.open(workerError)
 				&& (worker->sourceRoot.empty() || runtime.setSourceRoot(worker->sourceRoot, workerError))
 				&& (worker->saveBaseRoot.empty() || runtime.setSaveBaseRoot(worker->saveBaseRoot, workerError))
@@ -5961,6 +6192,18 @@ int LoveRuntime::physicsNewBody(lua_State *state)
 	auto *body = new PhysicsBodyUserdata(runtime, handle, world->handle, type);
 	body->worldObject.set(world);
 	pushNewDoraHandleObject(state, PhysicsBodyLoveType, body);
+	lua_getiuservalue(state, 1, 1);
+	if (!lua_istable(state, -1))
+	{
+		lua_pop(state, 1);
+		lua_newtable(state);
+		lua_pushvalue(state, -1);
+		lua_setiuservalue(state, 1, 1);
+	}
+	const auto bodyCount = static_cast<lua_Integer>(lua_rawlen(state, -1));
+	lua_pushvalue(state, -2);
+	lua_seti(state, -2, bodyCount + 1);
+	lua_pop(state, 1);
 	lua_pushvalue(state, 1); lua_setiuservalue(state, -2, 1);
 	return 1;
 }
@@ -6913,6 +7156,35 @@ int LoveRuntime::physicsWorldGetCallbacks(lua_State *state)
 	return 4;
 }
 
+int LoveRuntime::physicsWorldGetBodies(lua_State *state)
+{
+	auto *world = checkPhysicsWorld(state, 1);
+	luaL_argcheck(state, world->runtime && world->runtime->_physicsBackend && world->handle,
+		1, "World is destroyed");
+	lua_getiuservalue(state, 1, 1);
+	if (!lua_istable(state, -1))
+	{
+		lua_pop(state, 1);
+		lua_newtable(state);
+		return 1;
+	}
+	lua_newtable(state);
+	int output = 1;
+	const auto count = static_cast<lua_Integer>(lua_rawlen(state, -2));
+	for (lua_Integer index = 1; index <= count; ++index)
+	{
+		lua_geti(state, -2, index);
+		auto *body = luaL_testudata(state, -1, PhysicsBodyLoveType.getName())
+			? ::love::luax_checktype<PhysicsBodyUserdata>(state, -1, PhysicsBodyLoveType) : nullptr;
+		if (body && body->runtime == world->runtime && body->world == world->handle
+			&& body->handle && world->runtime->_physicsBackend->isBodyValid(body->handle))
+			lua_seti(state, -2, output++);
+		else lua_pop(state, 1);
+	}
+	lua_remove(state, -2);
+	return 1;
+}
+
 int LoveRuntime::physicsBodyDestroy(lua_State *state)
 {
 	auto *body = checkPhysicsBody(state, 1);
@@ -7410,6 +7682,25 @@ static int getPhysicsBodyPointVelocity(lua_State *state, PhysicsBodyUserdata *bo
 
 int LoveRuntime::physicsBodyGetLinearVelocityFromWorldPoint(lua_State *state) { auto *body = checkPhysicsBody(state, 1); return getPhysicsBodyPointVelocity(state, body, body->runtime ? body->runtime->_physicsBackend : nullptr, false); }
 int LoveRuntime::physicsBodyGetLinearVelocityFromLocalPoint(lua_State *state) { auto *body = checkPhysicsBody(state, 1); return getPhysicsBodyPointVelocity(state, body, body->runtime ? body->runtime->_physicsBackend : nullptr, true); }
+
+int LoveRuntime::physicsBodyGetFixtures(lua_State *state)
+{
+	auto *body = checkPhysicsBody(state, 1);
+	luaL_argcheck(state, body->runtime && body->runtime->_physicsBackend && body->handle,
+		1, "Body is destroyed");
+	lua_newtable(state);
+	int output = 1;
+	for (const auto &[handle, object] : body->runtime->_physicsFixtureObjects)
+	{
+		auto *fixture = static_cast<PhysicsFixtureUserdata *>(object.get());
+		if (!fixture || fixture->bodyObject.get() != body || !fixture->handle
+			|| !body->runtime->_physicsBackend->isFixtureValid(handle))
+			continue;
+		::love::luax_pushtype(state, PhysicsFixtureLoveType, fixture);
+		lua_seti(state, -2, output++);
+	}
+	return 1;
+}
 
 int LoveRuntime::physicsShapeGetType(lua_State *state) { auto *s = checkPhysicsShape(state, 1); lua_pushlstring(state, s->type.data(), s->type.size()); return 1; }
 int LoveRuntime::physicsShapeGetRadius(lua_State *state) { lua_pushnumber(state, checkPhysicsShape(state, 1)->radius); return 1; }
@@ -11390,7 +11681,9 @@ int LoveRuntime::sourceModuleSearcher(lua_State *state)
 		std::string loadError;
 		if (!runtime->_filesystemBackend->load(resolvedPath, code, loadError))
 			continue;
-		const std::string chunkName = runtime->prepareGeneratedChunk(code, "@" + resolvedPath);
+		// Match official Love: debug.getinfo().source is game-root-relative even
+		// though Dora reads the staged file through an absolute backend path.
+		const std::string chunkName = runtime->prepareGeneratedChunk(code, "@" + virtualPath);
 		if (loadLoveChunk(state, code, chunkName.c_str()) != LUA_OK)
 		{
 			runtime->rewriteGeneratedErrorOnStack(state);
@@ -11619,9 +11912,10 @@ int LoveRuntime::graphicsSetDefaultFilter(lua_State *state)
 	if (min != mag)
 		return luaL_error(state,
 			"embedded Dora textures require matching minification and magnification filters");
-	const float anisotropy = static_cast<float>(luaL_optnumber(state, 3, 1.0));
-	luaL_argcheck(state, std::isfinite(anisotropy) && anisotropy >= 1.0f, 3,
-		"anisotropy must be a finite number greater than or equal to 1");
+	const float requestedAnisotropy = static_cast<float>(luaL_optnumber(state, 3, 1.0));
+	luaL_argcheck(state, std::isfinite(requestedAnisotropy) && requestedAnisotropy >= 0.0f, 3,
+		"anisotropy must be a finite non-negative number");
+	const float anisotropy = std::max(1.0f, requestedAnisotropy);
 	runtime->_graphicsDefaultFilter = min == "nearest" ? GraphicsBackend::TextureFilter::Nearest
 		: anisotropy > 1.0f ? GraphicsBackend::TextureFilter::Anisotropic
 		: GraphicsBackend::TextureFilter::Linear;
@@ -12436,7 +12730,8 @@ int LoveRuntime::keyboardIsScancodeDown(lua_State *state)
 int LoveRuntime::keyboardSetKeyRepeat(lua_State *state)
 {
 	auto *runtime = runtimeFromUpvalue(state);
-	luaL_checktype(state, 1, LUA_TBOOLEAN);
+	// Pre-0.10 Love used delay/interval numbers. Official 11.5's LuaJIT
+	// boolean conversion treats any non-nil value as true.
 	runtime->_keyRepeatEnabled = lua_toboolean(state, 1) != 0;
 	return 0;
 }
@@ -13526,12 +13821,29 @@ int LoveRuntime::graphicsPolygon(lua_State *state)
 {
 	auto *runtime = runtimeFromUpvalue(state);
 	const bool fill = drawMode(state, 1);
-	const int count = lua_gettop(state) - 1;
-	luaL_argcheck(state, count >= 6 && count % 2 == 0, 2, "expected at least three x/y points");
 	std::vector<float> vertices;
-	vertices.reserve(count);
-	for (int i = 2; i <= count + 1; ++i)
-		vertices.push_back(static_cast<float>(luaL_checknumber(state, i)));
+	if (lua_istable(state, 2))
+	{
+		const lua_Integer count = luaL_len(state, 2);
+		luaL_argcheck(state, count >= 6 && count % 2 == 0, 2,
+			"expected at least three x/y points");
+		vertices.reserve(static_cast<std::size_t>(count));
+		for (lua_Integer index = 1; index <= count; ++index)
+		{
+			lua_geti(state, 2, index);
+			vertices.push_back(static_cast<float>(luaL_checknumber(state, -1)));
+			lua_pop(state, 1);
+		}
+	}
+	else
+	{
+		const int count = lua_gettop(state) - 1;
+		luaL_argcheck(state, count >= 6 && count % 2 == 0, 2,
+			"expected at least three x/y points");
+		vertices.reserve(static_cast<std::size_t>(count));
+		for (int index = 2; index <= count + 1; ++index)
+			vertices.push_back(static_cast<float>(luaL_checknumber(state, index)));
+	}
 	if (runtime->_graphicsBackend)
 	{
 		std::string error;
@@ -14539,12 +14851,12 @@ int LoveRuntime::graphicsNewCanvas(lua_State *state)
 		return luaL_error(state, "love.graphics is not attached to a Dora graphics backend");
 	const int defaultWidth = runtime->_graphicsBackend->getPixelWidth();
 	const int defaultHeight = runtime->_graphicsBackend->getPixelHeight();
-	const int width = static_cast<int>(luaL_optinteger(state, 1, defaultWidth));
-	const int height = static_cast<int>(luaL_optinteger(state, 2, defaultHeight));
+	const int width = static_cast<int>(optionalLoveInteger(state, 1, defaultWidth));
+	const int height = static_cast<int>(optionalLoveInteger(state, 2, defaultHeight));
 	luaL_argcheck(state, width > 0 && width <= MaximumWindowDimension, 1,
-		"Canvas width must be between 1 and 8192 pixels");
+		"Canvas width must be between 1 and 16384 pixels");
 	luaL_argcheck(state, height > 0 && height <= MaximumWindowDimension, 2,
-		"Canvas height must be between 1 and 8192 pixels");
+		"Canvas height must be between 1 and 16384 pixels");
 	GraphicsBackend::CanvasSettings settings;
 	const char *formatName = "rgba8";
 	int settingsIndex = 3;
@@ -16616,14 +16928,14 @@ int LoveRuntime::graphicsNewFont(lua_State *state)
 	std::string filename;
 	int size = 12;
 	if (lua_type(state, 1) == LUA_TNUMBER)
-		size = static_cast<int>(luaL_checkinteger(state, 1));
+		size = static_cast<int>(checkLoveInteger(state, 1));
 	else if (!lua_isnoneornil(state, 1))
 	{
 		const std::string requested = luaL_checkstring(state, 1);
 		std::string error;
 		if (!runtime->resolveReadPath(requested, filename, error))
 			return luaL_error(state, "Love Font '%s' resolution failed: %s", requested.c_str(), error.c_str());
-		size = static_cast<int>(luaL_optinteger(state, 2, 12));
+		size = static_cast<int>(optionalLoveInteger(state, 2, 12));
 		const auto extension = std::filesystem::path(filename).extension();
 		if (extension == ".fnt" || extension == ".FNT")
 		{
@@ -16845,18 +17157,28 @@ int LoveRuntime::graphicsPrint(lua_State *state)
 	std::string error;
 	if (!runtime->_graphicsBackend->validateShaderDraw(error))
 		return luaL_error(state, "%s", error.c_str());
-	const auto font = runtime->ensureDefaultFont(error);
+	int argument = 2;
+	GraphicsBackend::FontHandle font = 0;
+	if (luaL_testudata(state, argument, FontUserdata::type.getName()))
+	{
+		auto *requested = checkFont(state, argument++);
+		luaL_argcheck(state, requested->runtime == runtime
+			&& runtime->_fontHandles.contains(requested->handle), argument - 1,
+			"Font belongs to another or closed LoveRuntime");
+		font = requested->handle;
+	}
+	else font = runtime->ensureDefaultFont(error);
 	if (font == 0)
 		return luaL_error(state, "%s", error.c_str());
-	const float x = static_cast<float>(luaL_optnumber(state, 2, 0.0));
-	const float y = static_cast<float>(luaL_optnumber(state, 3, 0.0));
-	const float angle = static_cast<float>(luaL_optnumber(state, 4, 0.0));
-	const float scaleX = static_cast<float>(luaL_optnumber(state, 5, 1.0));
-	const float scaleY = static_cast<float>(luaL_optnumber(state, 6, scaleX));
-	const float originX = static_cast<float>(luaL_optnumber(state, 7, 0.0));
-	const float originY = static_cast<float>(luaL_optnumber(state, 8, 0.0));
-	const float shearX = static_cast<float>(luaL_optnumber(state, 9, 0.0));
-	const float shearY = static_cast<float>(luaL_optnumber(state, 10, 0.0));
+	const float x = static_cast<float>(luaL_optnumber(state, argument++, 0.0));
+	const float y = static_cast<float>(luaL_optnumber(state, argument++, 0.0));
+	const float angle = static_cast<float>(luaL_optnumber(state, argument++, 0.0));
+	const float scaleX = static_cast<float>(luaL_optnumber(state, argument++, 1.0));
+	const float scaleY = static_cast<float>(luaL_optnumber(state, argument++, scaleX));
+	const float originX = static_cast<float>(luaL_optnumber(state, argument++, 0.0));
+	const float originY = static_cast<float>(luaL_optnumber(state, argument++, 0.0));
+	const float shearX = static_cast<float>(luaL_optnumber(state, argument++, 0.0));
+	const float shearY = static_cast<float>(luaL_optnumber(state, argument, 0.0));
 	if (lua_istable(state, 1))
 	{
 		TextEntry entry;
@@ -16895,24 +17217,35 @@ int LoveRuntime::graphicsPrintf(lua_State *state)
 	std::string error;
 	if (!runtime->_graphicsBackend->validateShaderDraw(error))
 		return luaL_error(state, "%s", error.c_str());
-	const auto font = runtime->ensureDefaultFont(error);
+	int argument = 2;
+	GraphicsBackend::FontHandle font = 0;
+	if (luaL_testudata(state, argument, FontUserdata::type.getName()))
+	{
+		auto *requested = checkFont(state, argument++);
+		luaL_argcheck(state, requested->runtime == runtime
+			&& runtime->_fontHandles.contains(requested->handle), argument - 1,
+			"Font belongs to another or closed LoveRuntime");
+		font = requested->handle;
+	}
+	else font = runtime->ensureDefaultFont(error);
 	if (font == 0)
 		return luaL_error(state, "%s", error.c_str());
-	const float x = static_cast<float>(luaL_optnumber(state, 2, 0.0));
-	const float y = static_cast<float>(luaL_optnumber(state, 3, 0.0));
-	const float limit = static_cast<float>(luaL_checknumber(state, 4));
-	const std::string align = luaL_optstring(state, 5, "left");
-	luaL_argcheck(state, limit >= 0.0f, 4, "printf wrap limit cannot be negative");
+	const float x = static_cast<float>(luaL_optnumber(state, argument++, 0.0));
+	const float y = static_cast<float>(luaL_optnumber(state, argument++, 0.0));
+	const int limitArgument = argument;
+	const float limit = static_cast<float>(luaL_checknumber(state, argument++));
+	const std::string align = luaL_optstring(state, argument++, "left");
+	luaL_argcheck(state, limit >= 0.0f, limitArgument, "printf wrap limit cannot be negative");
 	luaL_argcheck(state, align == "left" || align == "center" || align == "right"
-		|| align == "justify", 5,
+		|| align == "justify", argument - 1,
 		"supported alignments are 'left', 'center', 'right', and 'justify'");
-	const float angle = static_cast<float>(luaL_optnumber(state, 6, 0.0));
-	const float scaleX = static_cast<float>(luaL_optnumber(state, 7, 1.0));
-	const float scaleY = static_cast<float>(luaL_optnumber(state, 8, scaleX));
-	const float originX = static_cast<float>(luaL_optnumber(state, 9, 0.0));
-	const float originY = static_cast<float>(luaL_optnumber(state, 10, 0.0));
-	const float shearX = static_cast<float>(luaL_optnumber(state, 11, 0.0));
-	const float shearY = static_cast<float>(luaL_optnumber(state, 12, 0.0));
+	const float angle = static_cast<float>(luaL_optnumber(state, argument++, 0.0));
+	const float scaleX = static_cast<float>(luaL_optnumber(state, argument++, 1.0));
+	const float scaleY = static_cast<float>(luaL_optnumber(state, argument++, scaleX));
+	const float originX = static_cast<float>(luaL_optnumber(state, argument++, 0.0));
+	const float originY = static_cast<float>(luaL_optnumber(state, argument++, 0.0));
+	const float shearX = static_cast<float>(luaL_optnumber(state, argument++, 0.0));
+	const float shearY = static_cast<float>(luaL_optnumber(state, argument, 0.0));
 	if (lua_istable(state, 1))
 	{
 		TextEntry entry;
@@ -16948,8 +17281,13 @@ int LoveRuntime::graphicsPrintf(lua_State *state)
 int LoveRuntime::graphicsSetBlendMode(lua_State *state)
 {
 	auto *runtime = runtimeFromUpvalue(state);
-	const std::string mode = luaL_checkstring(state, 1);
-	const std::string alphaMode = luaL_optstring(state, 2, "alphamultiply");
+	std::string mode = luaL_checkstring(state, 1);
+	std::string alphaMode = luaL_optstring(state, 2, "alphamultiply");
+	if (mode == "premultiplied" && lua_isnoneornil(state, 2))
+	{
+		mode = "alpha";
+		alphaMode = "premultiplied";
+	}
 	if (mode != "alpha" && mode != "add" && mode != "subtract" && mode != "multiply"
 		&& mode != "replace" && mode != "screen")
 		return luaL_argerror(state, 1,
@@ -16977,7 +17315,10 @@ int LoveRuntime::graphicsGetBlendMode(lua_State *state)
 int LoveRuntime::graphicsSetScissor(lua_State *state)
 {
 	auto *runtime = runtimeFromUpvalue(state);
-	if (lua_gettop(state) == 0)
+	// LuaJIT's C binding treats an omitted or nil first argument as the
+	// no-argument overload. Older camera helpers restore a disabled scissor by
+	// passing the four nils returned from getScissor().
+	if (lua_isnoneornil(state, 1))
 	{
 		runtime->_graphicsScissorEnabled = false;
 		std::fill(std::begin(runtime->_graphicsScissor), std::end(runtime->_graphicsScissor), 0.0f);
@@ -19092,9 +19433,10 @@ int LoveRuntime::imageSetFilter(lua_State *state)
 		return luaL_argerror(state, 2, "expected 'linear' or 'nearest'");
 	if (mag != "linear" && mag != "nearest")
 		return luaL_argerror(state, 3, "expected 'linear' or 'nearest'");
-	const float anisotropy = static_cast<float>(luaL_optnumber(state, 4, 1.0));
-	luaL_argcheck(state, std::isfinite(anisotropy) && anisotropy >= 1.0f, 4,
-		"anisotropy must be a finite number greater than or equal to 1");
+	const float requestedAnisotropy = static_cast<float>(luaL_optnumber(state, 4, 1.0));
+	luaL_argcheck(state, std::isfinite(requestedAnisotropy) && requestedAnisotropy >= 0.0f, 4,
+		"anisotropy must be a finite non-negative number");
+	const float anisotropy = std::max(1.0f, requestedAnisotropy);
 	image->filter = min == "nearest" ? GraphicsBackend::TextureFilter::Nearest
 		: anisotropy > 1.0f ? GraphicsBackend::TextureFilter::Anisotropic
 		: GraphicsBackend::TextureFilter::Linear;
@@ -19521,9 +19863,10 @@ int LoveRuntime::canvasSetFilter(lua_State *state)
 		return luaL_argerror(state, 3, "expected 'linear' or 'nearest'");
 	if (min != mag)
 		return luaL_error(state, "embedded Dora Canvases require matching minification and magnification filters");
-	const float anisotropy = static_cast<float>(luaL_optnumber(state, 4, 1.0));
-	luaL_argcheck(state, std::isfinite(anisotropy) && anisotropy >= 1.0f, 4,
-		"anisotropy must be a finite number greater than or equal to 1");
+	const float requestedAnisotropy = static_cast<float>(luaL_optnumber(state, 4, 1.0));
+	luaL_argcheck(state, std::isfinite(requestedAnisotropy) && requestedAnisotropy >= 0.0f, 4,
+		"anisotropy must be a finite non-negative number");
+	const float anisotropy = std::max(1.0f, requestedAnisotropy);
 	canvas->filter = min == "nearest" ? GraphicsBackend::TextureFilter::Nearest
 		: anisotropy > 1.0f ? GraphicsBackend::TextureFilter::Anisotropic
 		: GraphicsBackend::TextureFilter::Linear;
@@ -20027,9 +20370,9 @@ int LoveRuntime::imageNewImageData(lua_State *state)
 		const lua_Integer width = luaL_checkinteger(state, 1);
 		const lua_Integer height = luaL_checkinteger(state, 2);
 		luaL_argcheck(state, width > 0 && width <= MaximumWindowDimension, 1,
-			"ImageData width must be between 1 and 8192");
+			"ImageData width must be between 1 and 16384");
 		luaL_argcheck(state, height > 0 && height <= MaximumWindowDimension, 2,
-			"ImageData height must be between 1 and 8192");
+			"ImageData height must be between 1 and 16384");
 		const std::string_view format = luaL_optstring(state, 3, "rgba8");
 		const auto *formatInfo = imagePixelFormatInfo(format);
 		if (!formatInfo)
@@ -22660,9 +23003,10 @@ int LoveRuntime::videoSetFilter(lua_State *state)
 	const std::string_view mag = luaL_checkstring(state, 3);
 	if ((min != "linear" && min != "nearest") || mag != min)
 		return luaL_error(state, "embedded Dora Videos require matching 'linear' or 'nearest' filters");
-	video->anisotropy = static_cast<float>(luaL_optnumber(state, 4, 1.0));
-	luaL_argcheck(state, std::isfinite(video->anisotropy) && video->anisotropy >= 1.0f,
-		4, "anisotropy must be a finite number greater than or equal to 1");
+	const float requestedAnisotropy = static_cast<float>(luaL_optnumber(state, 4, 1.0));
+	luaL_argcheck(state, std::isfinite(requestedAnisotropy) && requestedAnisotropy >= 0.0f,
+		4, "anisotropy must be a finite non-negative number");
+	video->anisotropy = std::max(1.0f, requestedAnisotropy);
 	video->filter = min == "nearest" ? GraphicsBackend::TextureFilter::Nearest
 		: video->anisotropy > 1.0f ? GraphicsBackend::TextureFilter::Anisotropic
 		: GraphicsBackend::TextureFilter::Linear;
@@ -23023,9 +23367,10 @@ int LoveRuntime::fontSetFilter(lua_State *state)
 	if (min != "linear" && min != "nearest") return luaL_argerror(state, 2, "expected 'linear' or 'nearest'");
 	if (mag != "linear" && mag != "nearest") return luaL_argerror(state, 3, "expected 'linear' or 'nearest'");
 	if (min != mag) return luaL_error(state, "embedded Dora Fonts require matching minification and magnification filters");
-	const float anisotropy = static_cast<float>(luaL_optnumber(state, 4, 1.0));
-	luaL_argcheck(state, std::isfinite(anisotropy) && anisotropy >= 1.0f, 4,
-		"anisotropy must be a finite number greater than or equal to 1");
+	const float requestedAnisotropy = static_cast<float>(luaL_optnumber(state, 4, 1.0));
+	luaL_argcheck(state, std::isfinite(requestedAnisotropy) && requestedAnisotropy >= 0.0f, 4,
+		"anisotropy must be a finite non-negative number");
+	const float anisotropy = std::max(1.0f, requestedAnisotropy);
 	font->filter = min == "nearest" ? GraphicsBackend::TextureFilter::Nearest
 		: anisotropy > 1.0f ? GraphicsBackend::TextureFilter::Anisotropic
 		: GraphicsBackend::TextureFilter::Linear;
@@ -23678,6 +24023,7 @@ void LoveRuntime::registerPhysicsTypes()
 		{"destroy", physicsWorldDestroy}, {"isDestroyed", physicsWorldIsDestroyed},
 		{"update", physicsWorldUpdate}, {"setGravity", physicsWorldSetGravity},
 		{"getGravity", physicsWorldGetGravity},
+		{"getBodies", physicsWorldGetBodies},
 		{"setSleepingAllowed", physicsWorldSetSleepingAllowed},
 		{"isSleepingAllowed", physicsWorldIsSleepingAllowed},
 		{"queryBoundingBox", physicsWorldQueryBoundingBox}, {"rayCast", physicsWorldRayCast},
@@ -23722,6 +24068,7 @@ void LoveRuntime::registerPhysicsTypes()
 		{"getLocalPoints", physicsBodyGetLocalPoints},
 		{"getLinearVelocityFromWorldPoint", physicsBodyGetLinearVelocityFromWorldPoint},
 		{"getLinearVelocityFromLocalPoint", physicsBodyGetLinearVelocityFromLocalPoint},
+		{"getFixtures", physicsBodyGetFixtures},
 	});
 	registerType(&PhysicsShapeLoveType, {
 		{"getType", physicsShapeGetType}, {"getRadius", physicsShapeGetRadius},
@@ -24143,6 +24490,9 @@ void LoveRuntime::registerLoveModule()
 		const char *name;
 		lua_CFunction function;
 	} windowFunctions[] = {
+		{"getWidth", graphicsGetWidth},
+		{"getHeight", graphicsGetHeight},
+		{"getDimensions", graphicsGetDimensions},
 		{"getDesktopDimensions", windowGetDesktopDimensions},
 		{"getDisplayCount", windowGetDisplayCount},
 		{"getDisplayName", windowGetDisplayName},
@@ -24843,16 +25193,27 @@ bool LoveRuntime::configure(std::string &error)
 	};
 	const auto readDimension = [&](const char *field, int &value) {
 		lua_getfield(_state, -1, field);
-		int isInteger = 0;
-		const lua_Integer configuredValue = lua_tointegerx(_state, -1, &isInteger);
+		const bool isNumber = lua_isnumber(_state, -1);
+		const lua_Number configuredNumber = lua_tonumber(_state, -1);
 		lua_pop(_state, 1);
-		if (!isInteger || configuredValue < 1 || configuredValue > MaximumWindowDimension)
+		if (!isNumber || !std::isfinite(configuredNumber)
+			|| configuredNumber < 0 || configuredNumber > MaximumWindowDimension)
 		{
 			error = std::string("love.conf t.window.") + field
-				+ " must be an integer from 1 to " + std::to_string(MaximumWindowDimension);
+				+ " must be a number from 0 to " + std::to_string(MaximumWindowDimension);
 			return false;
 		}
-		value = static_cast<int>(configuredValue);
+		const int configuredValue = static_cast<int>(configuredNumber);
+		if (configuredValue == 0)
+		{
+			value = _graphicsBackend
+				? (std::string_view(field) == "width" ? _graphicsBackend->getPixelWidth()
+					: _graphicsBackend->getPixelHeight())
+				: (std::string_view(field) == "width" ? DefaultWindowWidth : DefaultWindowHeight);
+			if (value <= 0)
+				value = std::string_view(field) == "width" ? DefaultWindowWidth : DefaultWindowHeight;
+		}
+		else value = configuredValue;
 		return true;
 	};
 	int width = DefaultWindowWidth;
@@ -24982,7 +25343,8 @@ bool LoveRuntime::start(std::string &error)
 		_graphicsBackend->beginFrame();
 	_graphicsFrameActive = hasLoadCallback;
 	_graphicsLoadCallbackActive = hasLoadCallback;
-	const bool loaded = callLoveCallback("load", 0, 0, error);
+	lua_getglobal(_state, "arg");
+	const bool loaded = callLoveCallback("load", 1, 0, error);
 	_graphicsLoadCallbackActive = false;
 	_graphicsFrameActive = false;
 	if (_graphicsBackend && hasLoadCallback)

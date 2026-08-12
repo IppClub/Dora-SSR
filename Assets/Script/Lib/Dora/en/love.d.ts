@@ -15,7 +15,7 @@ declare global {
 	type ArcMode = "open" | "closed" | "pie";
 	type LineStyle = "rough" | "smooth";
 	type LineJoin = "none" | "miter" | "bevel";
-	type BlendMode = "alpha" | "add" | "subtract" | "multiply" | "replace" | "screen";
+	type BlendMode = "alpha" | "add" | "subtract" | "multiply" | "replace" | "screen" | "premultiplied";
 	type BlendAlphaMode = "alphamultiply" | "premultiplied";
 	type AlignMode = "left" | "center" | "right" | "justify";
 	type FilterMode = "linear" | "nearest";
@@ -3753,6 +3753,12 @@ declare global {
 	/** Provides an interface for modifying and retrieving information about the program's window.
 	 */
 	interface Window {
+		/** Deprecated alias for the current window width. */
+		getWidth(this: void): number;
+		/** Deprecated alias for the current window height. */
+		getHeight(this: void): number;
+		/** Deprecated alias for the current window dimensions. */
+		getDimensions(this: void): LuaMultiReturn<[number, number]>;
 		/**
 		 * Gets the width and height of the desktop.
 		 *
@@ -8176,6 +8182,8 @@ declare global {
 		 * @returns destroyed — Whether the World is destroyed.
 		 */
 		isDestroyed(): boolean;
+		/** Returns all bodies in the world. */
+		getBodies(): Body[];
 		/**
 		 * Update the state of the world.
 		 *
@@ -8781,6 +8789,8 @@ declare global {
 		 * @returns vy — The y component of velocity at point (x,y).
 		 */
 		getLinearVelocityFromLocalPoint(x: number, y: number): LuaMultiReturn<[number, number]>;
+		/** Returns all fixtures attached to the body. */
+		getFixtures(): Fixture[];
 	}
 	/** Shapes are solid 2d geometrical objects which handle the mass and collision of a Body in love.physics.
 	 */
