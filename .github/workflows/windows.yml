@@ -92,12 +92,14 @@ jobs:
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip gamecontrollerdb.txt && cd ..)
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip LICENSES && cd ..)
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Script && cd ..)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Shader\Love\varying.def.sc && cd ..)
           Push-Location Projects\Windows\build\Release
           if (!(Test-Path Dora.exe)) { throw "Dora.exe was not produced by the Windows build" }
           if (!(Test-Path wa.dll)) { throw "wa.dll was not copied by the Windows build" }
           7z a -tzip ..\..\..\..\dora-ssr-windows-x86.zip Dora.exe
           7z a -tzip ..\..\..\..\dora-ssr-windows-x86.zip wa.dll
           Pop-Location
+          if (!(7z l dora-ssr-windows-x86.zip Shader\Love\varying.def.sc | Select-String -SimpleMatch "varying.def.sc")) { throw "Love shader varying definition is missing from the Windows release package" }
           ren dora-ssr-windows-x86.zip dora-ssr-${{ github.ref_name }}-windows-x86.zip
       - name: Release
         uses: softprops/action-gh-release@v2

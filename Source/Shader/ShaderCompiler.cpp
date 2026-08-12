@@ -23,6 +23,21 @@ struct ShaderCompilerFileContext {
 	std::unordered_map<std::string, std::string> files;
 };
 
+static void normalizeShaderLineEndings(std::string& source) {
+	size_t write = 0;
+	for (size_t read = 0; read < source.size(); ++read) {
+		if (source[read] == '\r') {
+			if (read + 1 < source.size() && source[read + 1] == '\n') {
+				++read;
+			}
+			source[write++] = '\n';
+		} else {
+			source[write++] = source[read];
+		}
+	}
+	source.resize(write);
+}
+
 static bool tryGetEmbeddedShaderSource(String path, std::string& data) {
 #if DORA_HAS_EMBEDDED_BGFX_SHADERS
 	auto file = Path::getFilename(path);
@@ -60,6 +75,7 @@ static const std::string& loadShaderFileData(ShaderCompilerFileContext& context,
 		});
 		waitForLoaded.wait();
 	}
+	normalizeShaderLineEndings(data);
 	auto file = context.files.emplace(std::move(key), std::move(data));
 	return file.first->second;
 }
@@ -200,7 +216,9 @@ static std::string compileShaderSource(String source, ShaderStage stage, bool fr
 			varyingDefPathStr = dir + "/varying.def.sc";
 			options.varyingDefPath = varyingDefPathStr.c_str();
 			if (!varyingDef.empty()) {
-				context.files[varyingDefPathStr] = varyingDef.toString();
+				auto normalizedVaryingDef = varyingDef.toString();
+				normalizeShaderLineEndings(normalizedVaryingDef);
+				context.files[varyingDefPathStr] = std::move(normalizedVaryingDef);
 			}
 		}
 	}
@@ -211,9 +229,14 @@ static std::string compileShaderSource(String source, ShaderStage stage, bool fr
 	options.includeDirCount = s_cast<int>(std::size(includeDirs));
 #endif
 
+	std::string normalizedSource;
+	if (!fromFile) {
+		normalizedSource = source.toString();
+		normalizeShaderLineEndings(normalizedSource);
+	}
 	DoraShadercResult compileResult = fromFile
 		? DoraShadercCompileFromFile(source.c_str(), &options)
-		: DoraShadercCompile(source.rawData(), static_cast<int>(source.size()), &options);
+		: DoraShadercCompile(normalizedSource.data(), static_cast<int>(normalizedSource.size()), &options);
 
 	if (!compileResult.success) {
 		err = compileResult.errorMessage ? compileResult.errorMessage : "shader compilation failed"s;
