@@ -26,6 +26,21 @@ NS_DORA_BEGIN
 
 std::stack<RenderTarget*> RenderTarget::_applyingStack;
 
+static bool needsReadbackStaging(const bgfx::Caps* caps) {
+	switch (caps->rendererType) {
+		case bgfx::RendererType::Direct3D11:
+		case bgfx::RendererType::Direct3D12:
+		case bgfx::RendererType::Metal:
+			return true;
+		case bgfx::RendererType::OpenGLES:
+			// Prefer a read-back staging texture when the active GLES backend advertises
+			// blit support. Backends without blit can still use bgfx's direct FBO readback.
+			return (caps->supported & BGFX_CAPS_TEXTURE_BLIT) != 0;
+		default:
+			return false;
+	}
+}
+
 RenderTarget::RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format,
 	uint64_t textureFlags)
 	: _textureWidth(width)
@@ -167,6 +182,11 @@ bool RenderTarget::init() {
 }
 
 void RenderTarget::renderAfterClear(Node* target, uint16_t clearFlags, Color color, float depth, uint8_t stencil) {
+	submitAfterClear([&]() { renderOnly(target); }, clearFlags, color, depth, stencil);
+}
+
+void RenderTarget::submitAfterClear(const std::function<void()>& commands, uint16_t clearFlags,
+	Color color, float depth, uint8_t stencil) {
 	SharedRendererManager.flush();
 	SharedView.pushFront("RenderTarget"_slice, [&]() {
 		bgfx::ViewId viewId = SharedView.getId();
@@ -209,7 +229,8 @@ void RenderTarget::renderAfterClear(Node* target, uint16_t clearFlags, Color col
 			// resolve operations such as Love Canvas manual mipmap generation.
 			bgfx::touch(viewId);
 			_applyingStack.push(this);
-			renderOnly(target);
+			if (commands) commands();
+			SharedRendererManager.flush();
 			_applyingStack.pop();
 		});
 	});
@@ -227,6 +248,15 @@ void RenderTarget::renderOnly(Node* target) {
 
 void RenderTarget::render(Node* target) {
 	renderAfterClear(target, BGFX_CLEAR_NONE);
+}
+
+void RenderTarget::submit(const std::function<void()>& commands) {
+	submitAfterClear(commands, BGFX_CLEAR_NONE);
+}
+
+void RenderTarget::submitWithClearFlags(const std::function<void()>& commands,
+	uint16_t clearFlags, Color color, float depth, uint8_t stencil) {
+	submitAfterClear(commands, clearFlags, color, depth, stencil);
 }
 
 void RenderTarget::renderWithClear(Color color, float depth, uint8_t stencil) {
@@ -257,20 +287,17 @@ bool RenderTarget::readPixelsAsync(const std::function<void(uint16_t, uint16_t, 
 		Warn("RenderTarget async readback is unavailable for a write-only target.");
 		return false;
 	}
-	if ((bgfx::getCaps()->supported & BGFX_CAPS_TEXTURE_READ_BACK) == 0) {
+	const auto* caps = bgfx::getCaps();
+	if ((caps->supported & BGFX_CAPS_TEXTURE_READ_BACK) == 0) {
 		Warn("RenderTarget async readback is unsupported by renderer {}.",
-			bgfx::getRendererName(bgfx::getCaps()->rendererType));
+			bgfx::getRendererName(caps->rendererType));
 		return false;
 	}
-	uint64_t extraFlags = 0;
-	switch (bgfx::getCaps()->rendererType) {
-		case bgfx::RendererType::Direct3D11:
-		case bgfx::RendererType::Direct3D12:
-		case bgfx::RendererType::Metal:
-			extraFlags = BGFX_TEXTURE_BLIT_DST;
-			break;
-		default:
-			break;
+	const uint64_t extraFlags = needsReadbackStaging(caps) ? BGFX_TEXTURE_BLIT_DST : 0;
+	if (extraFlags && (caps->supported & BGFX_CAPS_TEXTURE_BLIT) == 0) {
+		Warn("RenderTarget async readback requires texture blit support on renderer {}.",
+			bgfx::getRendererName(caps->rendererType));
+		return false;
 	}
 	bgfx::TextureHandle textureHandle;
 	if (extraFlags) {
@@ -326,7 +353,8 @@ RenderTarget::ReadPixelsResult RenderTarget::readPixelsSync(std::vector<uint8_t>
 		return ReadPixelsResult::NoTexture;
 	if ((_textureFlags & BGFX_TEXTURE_RT_WRITE_ONLY) != 0)
 		return ReadPixelsResult::WriteOnly;
-	if ((bgfx::getCaps()->supported & BGFX_CAPS_TEXTURE_READ_BACK) == 0)
+	const auto* caps = bgfx::getCaps();
+	if ((caps->supported & BGFX_CAPS_TEXTURE_READ_BACK) == 0)
 		return ReadPixelsResult::Unsupported;
 	if (SharedView.hasActiveView())
 		return ReadPixelsResult::ActiveView;
@@ -344,21 +372,13 @@ RenderTarget::ReadPixelsResult RenderTarget::readPixelsSync(std::vector<uint8_t>
 
 	bool needsStaging = layer != 0 || mip != 0 || sourceInfo.numMips > 1
 		|| sourceInfo.numLayers > 1 || sourceInfo.depth > 1 || sourceInfo.cubeMap;
-	switch (bgfx::getCaps()->rendererType) {
-		case bgfx::RendererType::Direct3D11:
-		case bgfx::RendererType::Direct3D12:
-		case bgfx::RendererType::Metal:
-			needsStaging = true;
-			break;
-		default:
-			break;
-	}
+	needsStaging = needsStaging || needsReadbackStaging(caps);
 
 	bgfx::TextureHandle textureHandle = _texture->getHandle();
 	if (!bgfx::isValid(textureHandle))
 		return ReadPixelsResult::InvalidTexture;
 	if (needsStaging) {
-		if ((bgfx::getCaps()->supported & BGFX_CAPS_TEXTURE_BLIT) == 0)
+		if ((caps->supported & BGFX_CAPS_TEXTURE_BLIT) == 0)
 			return ReadPixelsResult::Unsupported;
 		const uint64_t flags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP
 			| BGFX_TEXTURE_READ_BACK | BGFX_TEXTURE_BLIT_DST;

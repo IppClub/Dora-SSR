@@ -40,7 +40,6 @@ SOFTWARE. */
 #include "Node/AudioSource.h"
 #include "Node/DrawNode.h"
 #include "lodepng.h"
-#include "Node/Label.h"
 #include "Node/Node.h"
 #include "Node/Sprite.h"
 #include "Physics/Body.h"
@@ -228,66 +227,228 @@ std::optional<LoveArchivePath> resolveLoveArchivePath(
 	return result;
 }
 
-class LoveRenderStateNode final : public Node
+} // namespace
+
+class LoveGpuBufferPool
 {
 public:
-	LoveRenderStateNode(std::optional<RendererManager::ScissorState> scissor,
+	struct BufferPair
+	{
+		bgfx::DynamicVertexBufferHandle vertices = BGFX_INVALID_HANDLE;
+		bgfx::DynamicIndexBufferHandle indices = BGFX_INVALID_HANDLE;
+	};
+
+	~LoveGpuBufferPool()
+	{
+		for (auto& slot : _slots)
+		{
+			if (bgfx::isValid(slot.vertices)) bgfx::destroy(slot.vertices);
+			if (bgfx::isValid(slot.indices)) bgfx::destroy(slot.indices);
+		}
+	}
+
+	void beginFrame() noexcept { _used = 0; }
+
+	BufferPair upload(const bgfx::VertexLayout& layout,
+		const void* vertexData, uint32_t vertexBytes, uint32_t vertexCount,
+		const void* indexData, uint32_t indexBytes, uint32_t indexCount, bool index32)
+	{
+		if (_used == _slots.size()) _slots.emplace_back();
+		auto& slot = _slots[_used++];
+		if (!bgfx::isValid(slot.vertices) || slot.layoutHash != layout.m_hash)
+		{
+			if (bgfx::isValid(slot.vertices)) bgfx::destroy(slot.vertices);
+			slot.vertices = bgfx::createDynamicVertexBuffer(vertexCount, layout,
+				BGFX_BUFFER_ALLOW_RESIZE);
+			slot.layoutHash = layout.m_hash;
+		}
+		if (!bgfx::isValid(slot.indices) || slot.index32 != index32)
+		{
+			if (bgfx::isValid(slot.indices)) bgfx::destroy(slot.indices);
+			slot.indices = bgfx::createDynamicIndexBuffer(indexCount,
+				BGFX_BUFFER_ALLOW_RESIZE | (index32 ? BGFX_BUFFER_INDEX32 : BGFX_BUFFER_NONE));
+			slot.index32 = index32;
+		}
+		if (!bgfx::isValid(slot.vertices) || !bgfx::isValid(slot.indices))
+			return {};
+		bgfx::update(slot.vertices, 0, bgfx::copy(vertexData, vertexBytes));
+		bgfx::update(slot.indices, 0, bgfx::copy(indexData, indexBytes));
+		return {slot.vertices, slot.indices};
+	}
+
+private:
+	struct Slot
+	{
+		bgfx::DynamicVertexBufferHandle vertices = BGFX_INVALID_HANDLE;
+		bgfx::DynamicIndexBufferHandle indices = BGFX_INVALID_HANDLE;
+		uint32_t layoutHash = 0;
+		bool index32 = false;
+	};
+	std::vector<Slot> _slots;
+	std::size_t _used = 0;
+};
+
+class LoveRenderCommand
+{
+public:
+	LoveRenderCommand() = default;
+	LoveRenderCommand(std::optional<RendererManager::ScissorState> scissor,
 		uint32_t stencil, uint64_t renderState)
 		: _scissor(scissor)
 		, _stencil(stencil)
 		, _renderState(renderState)
 	{ }
 
-	virtual void visit() override
+	virtual ~LoveRenderCommand() = default;
+	void setGpuBufferPool(const std::shared_ptr<LoveGpuBufferPool>& pool) { _gpuBufferPool = pool; }
+
+	void setState(std::optional<RendererManager::ScissorState> scissor,
+		uint32_t stencil, uint64_t renderState)
+	{
+		_scissor = scissor;
+		_stencil = stencil;
+		_renderState = renderState;
+	}
+
+	void submit()
 	{
 		SharedRendererManager.flush();
-		auto visitWithRenderState = [&]() {
+		auto submitWithRenderState = [&]() {
 			constexpr uint64_t stateMask = BGFX_STATE_WRITE_R | BGFX_STATE_WRITE_G
 				| BGFX_STATE_WRITE_B | BGFX_STATE_WRITE_A
 					| BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_MASK | BGFX_STATE_CULL_MASK;
 			SharedRendererManager.pushStateOverride(stateMask, _renderState, [&]() {
-				visitInner();
+				bgfx::setStencil(SharedRendererManager.getCurrentStencilState());
+				RendererManager::ScissorState scissor;
+				if (SharedRendererManager.getCurrentScissorState(scissor))
+					bgfx::setScissor(scissor.x, scissor.y, scissor.width, scissor.height);
+				else bgfx::setScissor(UINT16_MAX);
+				submitInner();
 				SharedRendererManager.flush();
 			});
 		};
-		auto visitWithStencil = [&]() {
-			SharedRendererManager.pushStencilState(_stencil, visitWithRenderState);
+		auto submitWithStencil = [&]() {
+			SharedRendererManager.pushStencilState(_stencil, submitWithRenderState);
 		};
 		if (_scissor)
-			SharedRendererManager.pushScissorState(*_scissor, visitWithStencil);
+			SharedRendererManager.pushScissorState(*_scissor, submitWithStencil);
 		else
-			visitWithStencil();
+			submitWithStencil();
 	}
 
-	CREATE_FUNC_NOT_NULL(LoveRenderStateNode);
+protected:
+	virtual void submitInner() = 0;
+	LoveGpuBufferPool* getGpuBufferPool() const noexcept { return _gpuBufferPool.get(); }
 
 private:
 	std::optional<RendererManager::ScissorState> _scissor;
 	uint32_t _stencil = BGFX_STENCIL_NONE;
 	uint64_t _renderState = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
+	std::shared_ptr<LoveGpuBufferPool> _gpuBufferPool;
 };
 
-class LoveWireframeNode final : public Node
+class LovePrimitiveCommand final : public LoveRenderCommand
 {
 public:
-	virtual void visit() override
+	explicit LovePrimitiveCommand(const BlendFunc& blend)
+		: _blend(blend) { }
+
+	std::size_t getVertexCount() const noexcept { return _vertices.size(); }
+
+	void drawDot(const Vec2& position, float radius, Color color)
 	{
-		SharedRendererManager.flush();
-		SharedRendererManager.pushStateOverride(BGFX_STATE_PT_MASK, BGFX_STATE_PT_LINES, [&]() {
-			visitInner();
-			SharedRendererManager.flush();
+		const uint16_t base = static_cast<uint16_t>(_vertices.size());
+		const uint32_t packed = color.toABGR();
+		_vertices.insert(_vertices.end(), {
+			{position.x - radius, position.y - radius, 0.0f, 1.0f, packed, -1.0f, -1.0f},
+			{position.x - radius, position.y + radius, 0.0f, 1.0f, packed, -1.0f, 1.0f},
+			{position.x + radius, position.y + radius, 0.0f, 1.0f, packed, 1.0f, 1.0f},
+			{position.x + radius, position.y - radius, 0.0f, 1.0f, packed, 1.0f, -1.0f},
 		});
+		for (const uint16_t index : {0, 1, 2, 0, 2, 3})
+			_indices.push_back(static_cast<uint16_t>(base + index));
 	}
 
-	CREATE_FUNC_NOT_NULL(LoveWireframeNode);
+	void drawPolygon(const std::vector<Vec2>& vertices, Color color,
+		float, Color)
+	{
+		drawPolygon(vertices.data(), static_cast<uint32_t>(vertices.size()), color, 0.0f, Color{});
+	}
+
+	void drawPolygon(const Vec2* vertices, uint32_t count, Color color,
+		float = 0.0f, Color = Color{})
+	{
+		if (count < 3) return;
+		const uint32_t packed = color.toABGR();
+		for (uint32_t index = 0; index + 2 < count; ++index)
+		{
+			for (const Vec2 point : {vertices[0], vertices[index + 1], vertices[index + 2]})
+			{
+				_indices.push_back(static_cast<uint16_t>(_vertices.size()));
+				_vertices.push_back({point.x, point.y, 0.0f, 1.0f, packed, 0.0f, 0.0f});
+			}
+		}
+	}
+
+	void drawIndexedVertices(const std::vector<DrawVertexInput>& vertices,
+		const std::vector<uint16_t>& indices)
+	{
+		const uint16_t base = static_cast<uint16_t>(_vertices.size());
+		_vertices.reserve(_vertices.size() + vertices.size());
+		for (const auto& vertex : vertices)
+			_vertices.push_back({vertex.position.x, vertex.position.y,
+				vertex.position.z, vertex.position.w, Color(vertex.color).toABGR(),
+				vertex.texCoord.x, vertex.texCoord.y});
+		_indices.reserve(_indices.size() + indices.size());
+		for (const uint16_t index : indices)
+			_indices.push_back(static_cast<uint16_t>(base + index));
+	}
+
+protected:
+	virtual void submitInner() override
+	{
+		auto* pool = getGpuBufferPool();
+		if (!pool || _vertices.empty()) return;
+		auto vertices = _vertices;
+		const Matrix& transform = SharedDirector.getViewProjection();
+		for (auto& vertex : vertices)
+			Matrix::mulVec4(&vertex.x, transform,
+				Vec4{vertex.x, vertex.y, vertex.z, vertex.w});
+		const auto buffers = pool->upload(DrawVertex::ms_layout,
+			vertices.data(), static_cast<uint32_t>(vertices.size() * sizeof(DrawVertex)),
+			static_cast<uint32_t>(vertices.size()),
+			_indices.data(), static_cast<uint32_t>(_indices.size() * sizeof(uint16_t)),
+			static_cast<uint32_t>(_indices.size()), false);
+		if (!bgfx::isValid(buffers.vertices) || !bgfx::isValid(buffers.indices)) return;
+		bgfx::setVertexBuffer(0, buffers.vertices, 0, static_cast<uint32_t>(vertices.size()));
+		bgfx::setIndexBuffer(buffers.indices, 0, static_cast<uint32_t>(_indices.size()));
+		bgfx::setState(SharedRendererManager.applyState(
+			BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | _blend.toValue()));
+		bgfx::submit(SharedView.getId(), SharedDrawRenderer.getDefaultPass()->apply());
+	}
+
+private:
+	BlendFunc _blend;
+	std::vector<DrawVertex> _vertices;
+	std::vector<uint16_t> _indices;
 };
 
-class LoveTexturedMeshNode final : public Node
+namespace
+{
+
+class LoveTexturedMeshCommand final : public LoveRenderCommand
 {
 public:
-	LoveTexturedMeshNode(std::vector<SpriteVertex> vertices, std::vector<uint32_t> indices,
+	template <class... Args>
+	static LoveTexturedMeshCommand* create(Args&&... args)
+	{
+		return new LoveTexturedMeshCommand(std::forward<Args>(args)...);
+	}
+
+	LoveTexturedMeshCommand(std::vector<SpriteVertex> vertices, std::vector<uint32_t> indices,
 		Texture2D *texture, const BlendFunc &blend, uint32_t samplerFlags, SpriteEffect *effect,
-		bool ignoreCull = false, bool wireframe = false)
+		bool ignoreCull = false, bool wireframe = false,
+		std::optional<Vec2> sdfSmooth = std::nullopt)
 		: _vertices(std::move(vertices))
 		, _source(_vertices)
 		, _indices(std::move(indices))
@@ -297,6 +458,7 @@ public:
 		, _effect(effect)
 		, _ignoreCull(ignoreCull)
 		, _wireframe(wireframe)
+		, _sdfSmooth(sdfSmooth)
 	{
 		if (_wireframe)
 		{
@@ -320,76 +482,88 @@ public:
 		}
 	}
 
-	virtual void visit() override
+	bool appendQuad(const std::array<SpriteVertex, 4> &quad)
 	{
-		if (_ignoreCull)
-			SharedRendererManager.pushStateOverride(BGFX_STATE_CULL_MASK, BGFX_STATE_NONE,
-				[this]() { Node::visit(); });
-		else Node::visit();
+		// SpriteRenderer uses 16-bit indices. Keep each recorded Love image batch
+		// within that limit and let the caller begin another lightweight command
+		// node when necessary.
+		if (_vertices.size() > std::numeric_limits<uint16_t>::max() - quad.size())
+			return false;
+		const auto base = static_cast<uint32_t>(_vertices.size());
+		_vertices.insert(_vertices.end(), quad.begin(), quad.end());
+		_source.insert(_source.end(), quad.begin(), quad.end());
+		static constexpr std::array<uint32_t, 6> QuadIndices = {0, 1, 2, 0, 2, 3};
+		for (const auto index : QuadIndices)
+		{
+			_indices.push_back(base + index);
+			_indices16.push_back(static_cast<uint16_t>(base + index));
+		}
+		return true;
 	}
 
-	virtual void render() override
+	virtual void submitInner() override
+	{
+		if (_ignoreCull)
+		{
+			SharedRendererManager.pushStateOverride(BGFX_STATE_CULL_MASK, BGFX_STATE_NONE,
+				[this]() { submitMesh(); });
+			return;
+		}
+		submitMesh();
+	}
+
+private:
+	void submitMesh()
 	{
 		if (!_texture || _vertices.empty() || _indices.empty()) return;
-		Matrix transform;
-		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), getWorld());
+		if (_sdfSmooth && _effect)
+		{
+			// FontCache shares one SDF effect. Submit any preceding batch before
+			// changing its uniforms so differently-scaled Love text cannot observe
+			// a later draw's smoothing values.
+			SharedRendererManager.flush();
+			const auto &passes = _effect->getPasses();
+			if (!passes.empty())
+			{
+				passes.front()->set("u_smooth"sv,
+					_sdfSmooth->x, _sdfSmooth->y, 0.0f, 0.0f);
+				passes.front()->set("u_outlineColor"sv, Color(0x00000000));
+			}
+		}
+		const Matrix& transform = SharedDirector.getViewProjection();
 		for (std::size_t index = 0; index < _vertices.size(); ++index)
 			Matrix::mulVec4(&_vertices[index].x, transform, _source[index].toVec4());
 		const uint64_t state = SharedRendererManager.applyState(
 			BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | _blend.toValue()
 				| (_wireframe ? BGFX_STATE_PT_LINES : BGFX_STATE_NONE));
 		SpriteEffect *effect = _effect ? _effect.get() : SharedSpriteRenderer.getDefaultEffect();
-		if (!_indices16.empty())
+		if (effect->getPasses().empty()) effect = SharedSpriteRenderer.getDefaultEffect();
+		auto* pool = getGpuBufferPool();
+		if (!pool) return;
+		const bool index32 = _indices16.empty();
+		const void* indexData = index32
+			? static_cast<const void*>(_indices.data())
+			: static_cast<const void*>(_indices16.data());
+		const uint32_t indexBytes = static_cast<uint32_t>(_indices.size()
+			* (index32 ? sizeof(uint32_t) : sizeof(uint16_t)));
+		const auto buffers = pool->upload(SpriteVertex::ms_layout,
+			_vertices.data(), static_cast<uint32_t>(_vertices.size() * sizeof(SpriteVertex)),
+			static_cast<uint32_t>(_vertices.size()), indexData, indexBytes,
+			static_cast<uint32_t>(_indices.size()), index32);
+		if (!bgfx::isValid(buffers.vertices) || !bgfx::isValid(buffers.indices))
 		{
-			SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
-			SharedSpriteRenderer.push(_vertices.data(), _vertices.size(), _indices16.data(), _indices16.size(),
-				effect, _texture, state, _samplerFlags);
+			Warn("failed to upload persistent Love textured Mesh buffers");
+			return;
 		}
-		else
-		{
-			SharedRendererManager.flush();
-			bgfx::TransientVertexBuffer vertexBuffer;
-			bgfx::TransientIndexBuffer indexBuffer;
-			const auto vertexCount = static_cast<uint32_t>(_vertices.size());
-			const auto indexCount = static_cast<uint32_t>(_indices.size());
-			if (!bgfx::allocTransientBuffers(&vertexBuffer, SpriteVertex::ms_layout, vertexCount,
-				&indexBuffer, indexCount, true))
-			{
-				Warn("not enough transient buffer for Love 32-bit Mesh: {} vertices, {} indices.",
-					vertexCount, indexCount);
-				return;
-			}
-			std::memcpy(vertexBuffer.data, _vertices.data(), _vertices.size() * sizeof(_vertices[0]));
-			std::memcpy(indexBuffer.data, _indices.data(), _indices.size() * sizeof(_indices[0]));
-			const auto stencil = SharedRendererManager.getCurrentStencilState();
-			bgfx::setStencil(stencil);
-			RendererManager::ScissorState scissor;
-			if (SharedRendererManager.getCurrentScissorState(scissor))
-				bgfx::setScissor(scissor.x, scissor.y, scissor.width, scissor.height);
-			else bgfx::setScissor(UINT16_MAX);
-			bgfx::setVertexBuffer(0, &vertexBuffer);
-			bgfx::setIndexBuffer(&indexBuffer);
-			bgfx::setState(state);
-			bgfx::setTexture(0, effect->getSampler(), _texture->getHandle(), _samplerFlags);
-			if (effect->getPasses().empty()) effect = SharedSpriteRenderer.getDefaultEffect();
-			Pass *lastPass = effect->getPasses().back().get();
-			for (Pass *pass : effect->getPasses())
-				bgfx::submit(SharedView.getId(), pass->apply(), 0,
-					pass == lastPass ? BGFX_DISCARD_ALL : BGFX_DISCARD_NONE);
-		}
-		Node::render();
+		bgfx::setVertexBuffer(0, buffers.vertices, 0, static_cast<uint32_t>(_vertices.size()));
+		bgfx::setIndexBuffer(buffers.indices, 0, static_cast<uint32_t>(_indices.size()));
+		bgfx::setState(state);
+		bgfx::setTexture(0, effect->getSampler(), _texture->getHandle(), _samplerFlags);
+		Pass *lastPass = effect->getPasses().back().get();
+		for (Pass *pass : effect->getPasses())
+			bgfx::submit(SharedView.getId(), pass->apply(), 0,
+				pass == lastPass ? BGFX_DISCARD_ALL : BGFX_DISCARD_NONE);
 	}
-
-	virtual void cleanup() override
-	{
-		Node::cleanup();
-		_texture = nullptr;
-		_effect = nullptr;
-	}
-
-	CREATE_FUNC_NOT_NULL(LoveTexturedMeshNode);
-
-private:
 	std::vector<SpriteVertex> _vertices;
 	std::vector<SpriteVertex> _source;
 	std::vector<uint32_t> _indices;
@@ -400,6 +574,130 @@ private:
 	Ref<SpriteEffect> _effect;
 	bool _ignoreCull = false;
 	bool _wireframe = false;
+	std::optional<Vec2> _sdfSmooth;
+};
+
+struct LoveMeshGpuBuffer
+{
+	~LoveMeshGpuBuffer()
+	{
+		if (bgfx::isValid(vertices)) bgfx::destroy(vertices);
+		if (bgfx::isValid(indices)) bgfx::destroy(indices);
+	}
+
+	bgfx::DynamicVertexBufferHandle vertices = BGFX_INVALID_HANDLE;
+	bgfx::DynamicIndexBufferHandle indices = BGFX_INVALID_HANDLE;
+	std::uint64_t uploadedIndexRevision = std::numeric_limits<std::uint64_t>::max();
+	bool index32 = false;
+};
+
+class LoveBufferedMeshCommand final : public LoveRenderCommand
+{
+public:
+	template <class... Args>
+	static LoveBufferedMeshCommand* create(Args&&... args)
+	{
+		return new LoveBufferedMeshCommand(std::forward<Args>(args)...);
+	}
+
+	LoveBufferedMeshCommand(std::shared_ptr<const Love::GraphicsBackend::MeshBuffer> buffer,
+		Texture2D *texture, const BlendFunc &blend, uint32_t samplerFlags,
+		SpriteEffect *effect, const Love::GraphicsBackend::Transform2D &transform,
+		const std::array<float, 4> &color, float coordinateHeight)
+		: _buffer(std::move(buffer))
+		, _texture(texture)
+		, _blend(blend)
+		, _samplerFlags(samplerFlags)
+		, _effect(effect)
+		, _transform(transform)
+		, _color(color)
+		, _coordinateHeight(coordinateHeight) { }
+
+	virtual void submitInner() override
+	{
+		if (!_buffer || !_texture || _buffer->vertices.empty() || _buffer->indices.empty()) return;
+		const bool index32 = _buffer->vertices.size() > std::numeric_limits<uint16_t>::max()
+			|| std::any_of(_buffer->indices.begin(), _buffer->indices.end(),
+				[](uint32_t index) { return index > std::numeric_limits<uint16_t>::max(); });
+		SharedRendererManager.flush();
+		const auto vertexCount = static_cast<uint32_t>(_buffer->vertices.size());
+		const auto indexCount = static_cast<uint32_t>(_buffer->indices.size());
+		auto gpu = std::static_pointer_cast<LoveMeshGpuBuffer>(_buffer->gpuBuffer);
+		if (!gpu || gpu->index32 != index32)
+		{
+			gpu = std::make_shared<LoveMeshGpuBuffer>();
+			gpu->index32 = index32;
+			gpu->vertices = bgfx::createDynamicVertexBuffer(vertexCount,
+				SpriteVertex::ms_layout, BGFX_BUFFER_ALLOW_RESIZE);
+			gpu->indices = bgfx::createDynamicIndexBuffer(indexCount,
+				BGFX_BUFFER_ALLOW_RESIZE | (index32 ? BGFX_BUFFER_INDEX32 : BGFX_BUFFER_NONE));
+			_buffer->gpuBuffer = gpu;
+		}
+		if (!bgfx::isValid(gpu->vertices) || !bgfx::isValid(gpu->indices))
+		{
+			Warn("failed to create persistent Love Mesh buffers: {} vertices, {} indices.",
+				vertexCount, indexCount);
+			return;
+		}
+		std::vector<SpriteVertex> transformedVertices(vertexCount);
+		const Matrix& worldViewProjection = SharedDirector.getViewProjection();
+		for (std::size_t index = 0; index < _buffer->vertices.size(); ++index)
+		{
+			const auto &source = _buffer->vertices[index];
+			const float loveX = _transform.a * source.x + _transform.c * source.y + _transform.tx;
+			const float loveY = _transform.b * source.x + _transform.d * source.y + _transform.ty;
+			SpriteVertex vertex{loveX, _coordinateHeight - loveY, source.z, source.w,
+				source.u, source.v,
+				Color(Vec4{source.red * _color[0], source.green * _color[1],
+					source.blue * _color[2], source.alpha * _color[3]}).toABGR()};
+			Matrix::mulVec4(&vertex.x, worldViewProjection, vertex.toVec4());
+			transformedVertices[index] = vertex;
+		}
+		bgfx::update(gpu->vertices, 0, bgfx::copy(transformedVertices.data(),
+			static_cast<uint32_t>(transformedVertices.size() * sizeof(SpriteVertex))));
+		if (gpu->uploadedIndexRevision != _buffer->revision)
+		{
+			if (index32)
+				bgfx::update(gpu->indices, 0, bgfx::copy(_buffer->indices.data(),
+					static_cast<uint32_t>(_buffer->indices.size() * sizeof(std::uint32_t))));
+			else
+			{
+				std::vector<std::uint16_t> indices16;
+				indices16.reserve(_buffer->indices.size());
+				for (const auto index : _buffer->indices)
+					indices16.push_back(static_cast<std::uint16_t>(index));
+				bgfx::update(gpu->indices, 0, bgfx::copy(indices16.data(),
+					static_cast<uint32_t>(indices16.size() * sizeof(std::uint16_t))));
+			}
+			gpu->uploadedIndexRevision = _buffer->revision;
+		}
+		const uint64_t state = SharedRendererManager.applyState(
+			BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | _blend.toValue());
+		SpriteEffect *effect = _effect ? _effect.get() : SharedSpriteRenderer.getDefaultEffect();
+		if (effect->getPasses().empty()) effect = SharedSpriteRenderer.getDefaultEffect();
+		const auto stencil = SharedRendererManager.getCurrentStencilState();
+		bgfx::setStencil(stencil);
+		RendererManager::ScissorState scissor;
+		if (SharedRendererManager.getCurrentScissorState(scissor))
+			bgfx::setScissor(scissor.x, scissor.y, scissor.width, scissor.height);
+		else bgfx::setScissor(UINT16_MAX);
+		bgfx::setVertexBuffer(0, gpu->vertices, 0, vertexCount);
+		bgfx::setIndexBuffer(gpu->indices, 0, indexCount);
+		bgfx::setState(state);
+		bgfx::setTexture(0, effect->getSampler(), _texture->getHandle(), _samplerFlags);
+		Pass *lastPass = effect->getPasses().back().get();
+		for (Pass *pass : effect->getPasses())
+			bgfx::submit(SharedView.getId(), pass->apply(), 0,
+				pass == lastPass ? BGFX_DISCARD_ALL : BGFX_DISCARD_NONE);
+	}
+	std::shared_ptr<const Love::GraphicsBackend::MeshBuffer> _buffer;
+	Ref<Texture2D> _texture;
+	BlendFunc _blend;
+	uint32_t _samplerFlags = UINT32_MAX;
+	Ref<SpriteEffect> _effect;
+	Love::GraphicsBackend::Transform2D _transform;
+	std::array<float, 4> _color;
+	float _coordinateHeight = 0.0f;
 };
 
 struct LoveDynamicMeshAttribute
@@ -417,10 +715,16 @@ struct LoveDynamicMeshInstanceAttribute
 	std::vector<float> values;
 };
 
-class LoveDynamicMeshNode final : public Node
+class LoveDynamicMeshCommand final : public LoveRenderCommand
 {
 public:
-	LoveDynamicMeshNode(std::vector<Love::GraphicsBackend::MeshVertex> vertices,
+	template <class... Args>
+	static LoveDynamicMeshCommand* create(Args&&... args)
+	{
+		return new LoveDynamicMeshCommand(std::forward<Args>(args)...);
+	}
+
+	LoveDynamicMeshCommand(std::vector<Love::GraphicsBackend::MeshVertex> vertices,
 		std::vector<uint32_t> indices, std::vector<LoveDynamicMeshAttribute> attributes,
 		std::vector<LoveDynamicMeshInstanceAttribute> instanceAttributes,
 		int instanceCount, std::array<Vec4, 5> instanceSelectors,
@@ -462,33 +766,18 @@ public:
 		_layout.end();
 	}
 
-	virtual void visit() override
+	virtual void submitInner() override
 	{
-		if (_ignoreCull)
-			SharedRendererManager.pushStateOverride(BGFX_STATE_CULL_MASK, BGFX_STATE_NONE,
-				[this]() { Node::visit(); });
-		else Node::visit();
-	}
-
-	virtual void render() override
-	{
-		if (!_texture || !_effect || _vertices.empty() || _indices.empty()) return;
+		auto* pool = getGpuBufferPool();
+		if (!pool || !_texture || !_effect || _vertices.empty() || _indices.empty()) return;
 		SharedRendererManager.flush();
-		bgfx::TransientVertexBuffer vertexBuffer;
-		bgfx::TransientIndexBuffer indexBuffer;
 		bgfx::InstanceDataBuffer instanceBuffer;
 		const auto vertexCount = static_cast<uint32_t>(_vertices.size());
 		const auto indexCount = static_cast<uint32_t>(_indices.size());
 		const bool index32 = _vertices.size() > std::numeric_limits<uint16_t>::max()
 			|| std::any_of(_indices.begin(), _indices.end(),
 				[](uint32_t index) { return index > std::numeric_limits<uint16_t>::max(); });
-		if (!bgfx::allocTransientBuffers(&vertexBuffer, _layout, vertexCount,
-			&indexBuffer, indexCount, index32))
-		{
-			Warn("not enough transient buffer for Love dynamic Mesh: {} vertices, {} indices.",
-				vertexCount, indexCount);
-			return;
-		}
+		std::vector<uint8_t> vertexData(static_cast<std::size_t>(vertexCount) * _layout.getStride());
 		if (_instanceCount > 1)
 		{
 			constexpr uint16_t instanceStride = 5 * sizeof(Vec4);
@@ -519,44 +808,51 @@ public:
 		Matrix loveToDora;
 		bx::mtxSRT(loveToDora.m, 1.0f, -1.0f, 1.0f,
 			0.0f, 0.0f, 0.0f, 0.0f, _coordinateHeight, 0.0f);
-		Matrix world;
-		Matrix::mulMtx(world, getWorld(), loveToDora);
 		Matrix transform;
-		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), world);
+		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), loveToDora);
 		for (uint32_t index = 0; index < vertexCount; ++index)
 		{
 			const auto &vertex = _vertices[index];
 			const Vec4 position{vertex.x, vertex.y, vertex.z, vertex.w};
 			const float texcoord[4] = {vertex.u, vertex.v, 0.0f, 1.0f};
 			const float color[4] = {vertex.red, vertex.green, vertex.blue, vertex.alpha};
-			bgfx::vertexPack(&position.x, false, bgfx::Attrib::Position, _layout, vertexBuffer.data, index);
-			bgfx::vertexPack(texcoord, false, bgfx::Attrib::TexCoord0, _layout, vertexBuffer.data, index);
-			bgfx::vertexPack(color, true, bgfx::Attrib::Color0, _layout, vertexBuffer.data, index);
+			bgfx::vertexPack(&position.x, false, bgfx::Attrib::Position, _layout, vertexData.data(), index);
+			bgfx::vertexPack(texcoord, false, bgfx::Attrib::TexCoord0, _layout, vertexData.data(), index);
+			bgfx::vertexPack(color, true, bgfx::Attrib::Color0, _layout, vertexData.data(), index);
 			for (const auto &attribute : _attributes)
 			{
 				float value[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 				const float *source = attribute.values.data()
 					+ static_cast<std::size_t>(index) * static_cast<std::size_t>(attribute.components);
 				std::copy_n(source, attribute.components, value);
-				bgfx::vertexPack(value, false, attribute.semantic, _layout, vertexBuffer.data, index);
+				bgfx::vertexPack(value, false, attribute.semantic, _layout, vertexData.data(), index);
 			}
 		}
+		std::vector<uint16_t> indices16;
+		const void* indexData = _indices.data();
+		uint32_t indexBytes = static_cast<uint32_t>(_indices.size() * sizeof(uint32_t));
 		if (index32)
-			std::memcpy(indexBuffer.data, _indices.data(), _indices.size() * sizeof(_indices[0]));
+			indexData = _indices.data();
 		else
 		{
-			auto *target = reinterpret_cast<uint16_t *>(indexBuffer.data);
+			indices16.reserve(_indices.size());
 			for (std::size_t index = 0; index < _indices.size(); ++index)
-				target[index] = static_cast<uint16_t>(_indices[index]);
+				indices16.push_back(static_cast<uint16_t>(_indices[index]));
+			indexData = indices16.data();
+			indexBytes = static_cast<uint32_t>(indices16.size() * sizeof(uint16_t));
 		}
+		const auto buffers = pool->upload(_layout, vertexData.data(),
+			static_cast<uint32_t>(vertexData.size()), vertexCount,
+			indexData, indexBytes, indexCount, index32);
+		if (!bgfx::isValid(buffers.vertices) || !bgfx::isValid(buffers.indices)) return;
 		const auto stencil = SharedRendererManager.getCurrentStencilState();
 		bgfx::setStencil(stencil);
 		RendererManager::ScissorState scissor;
 		if (SharedRendererManager.getCurrentScissorState(scissor))
 			bgfx::setScissor(scissor.x, scissor.y, scissor.width, scissor.height);
 		else bgfx::setScissor(UINT16_MAX);
-		bgfx::setVertexBuffer(0, &vertexBuffer);
-		bgfx::setIndexBuffer(&indexBuffer);
+		bgfx::setVertexBuffer(0, buffers.vertices, 0, vertexCount);
+		bgfx::setIndexBuffer(buffers.indices, 0, indexCount);
 		if (_instanceCount > 1) bgfx::setInstanceDataBuffer(&instanceBuffer);
 		auto state = SharedRendererManager.applyState(
 			BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | _blend.toValue()
@@ -575,19 +871,7 @@ public:
 				pass == lastPass ? BGFX_DISCARD_ALL : BGFX_DISCARD_NONE);
 			pass->set("u_loveTransform"_slice, Matrix::Indentity);
 		}
-		Node::render();
 	}
-
-	virtual void cleanup() override
-	{
-		Node::cleanup();
-		_texture = nullptr;
-		_effect = nullptr;
-	}
-
-	CREATE_FUNC_NOT_NULL(LoveDynamicMeshNode);
-
-private:
 	std::vector<Love::GraphicsBackend::MeshVertex> _vertices;
 	std::vector<uint32_t> _indices;
 	std::vector<LoveDynamicMeshAttribute> _attributes;
@@ -3735,8 +4019,7 @@ bool LoveNode::init()
 {
 	if (!Sprite::init())
 		return false;
-	_frameRoot = Node::create();
-	_frameRoot->setAsManaged();
+	_gpuBufferPool = std::make_shared<LoveGpuBufferPool>();
 	if (!loadBoot())
 		return false;
 	setupInputHandlers();
@@ -3969,6 +4252,9 @@ bool LoveNode::setupSurface(int width, int height)
 	if (!_renderTarget)
 		return reportError("graphics", "failed to create the " + std::to_string(width)
 			+ "x" + std::to_string(height) + " main render target");
+	// LoveNode itself is the single Dora scene boundary: its Sprite surface exposes
+	// the completed Love render target to Dora transforms, visibility, input, and
+	// camera composition. Love draw calls never become children of this host.
 	setTexture(_renderTarget->getTexture());
 	setTextureRect({0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)});
 	setSize({static_cast<float>(width), static_cast<float>(height)});
@@ -4166,16 +4452,11 @@ void LoveNode::closeStoppedInstance()
 void LoveNode::clearInstanceResources()
 {
 	setTexture(nullptr);
-	_drawNode = nullptr;
-	_commandRoot = nullptr;
-	// A Love frame can contain several Canvas and main-surface render passes.
-	// Their command roots may outlive the owning vector through Dora's
-	// autorelease/unmanaged-node queues, so explicitly clean every root before
-	// dropping it. This mirrors Sprite::cleanup and releases render-command
-	// textures and Effects immediately when the Love instance stops.
-	for (auto &pass : _renderPasses)
-		if (pass.root) pass.root->cleanup();
-	_frameRoot = nullptr;
+	_primitiveCommand = nullptr;
+	_imageBatchCommand = nullptr;
+	_spriteBatchTexture = nullptr;
+	_spriteBatchCommandSegment = 0;
+	_renderPasses.clear();
 	_images.clear();
 	_fileImages.clear();
 	_whiteTexture = nullptr;
@@ -4950,12 +5231,9 @@ bool LoveNode::isRunning() const noexcept
 
 void LoveNode::beginFrame()
 {
-	// The preceding frame has already been submitted by endFrame. Explicitly dispose
-	// its internal command trees before recording the next frame so autoreleased roots
-	// cannot retain large DrawNodes across rapid Love instance/frame transitions.
-	for (auto &pass : _renderPasses)
-		if (pass.root) pass.root->cleanup();
 	_renderPasses.clear();
+	if (_gpuBufferPool) _gpuBufferPool->beginFrame();
+	_commandSegment = 0;
 	_graphicsStats.drawCalls = 0;
 	_graphicsStats.drawCallsBatched = 0;
 	_graphicsStats.canvasSwitches = 0;
@@ -4980,20 +5258,14 @@ void LoveNode::beginRenderPass(uint16_t clearFlags, Color clearColor, uint8_t st
 	float depth)
 {
 	RenderTarget *target = getActiveRenderTarget();
-	_frameRoot = Node::create();
-	// Render-pass roots are internal command buffers. Mark every newly-created root as
-	// managed before the Director can adopt an unparented node into the host scene.
-	_frameRoot->setAsManaged();
 	RenderPass pass;
 	pass.target = target;
-	pass.root = _frameRoot;
 	pass.clearColor = clearColor;
 	pass.clearFlags = clearFlags;
 	pass.stencil = stencil;
 	pass.depth = depth;
 	_renderPasses.push_back(std::move(pass));
-	_commandRoot = _frameRoot;
-	_drawNode = nullptr;
+	_primitiveCommand = nullptr;
 	beginCommandSegment();
 }
 
@@ -5002,59 +5274,28 @@ void LoveNode::markRenderCommand()
 	if (!_renderPasses.empty())
 		_renderPasses.back().hasCommands = true;
 	++_graphicsStats.drawCalls;
+	_imageBatchCommand = nullptr;
 	_spriteBatchTexture = nullptr;
-	_spriteBatchCommandRoot = nullptr;
+	_spriteBatchCommandSegment = 0;
 }
 
-void LoveNode::markSpriteRenderCommand(Texture2D *texture,
-	Love::GraphicsBackend::TextureFilter filter,
-	Love::GraphicsBackend::TextureWrap wrapU,
-	Love::GraphicsBackend::TextureWrap wrapV)
+LovePrimitiveCommand *LoveNode::ensurePrimitiveCommand(std::size_t requiredVertices)
 {
-	Node *commandRoot = _commandRoot ? _commandRoot.get() : _frameRoot.get();
-	if (_activeShader == 0
-		&& _spriteBatchTexture == texture
-		&& _spriteBatchCommandRoot == commandRoot
-		&& _spriteBatchFilter == filter
-		&& _spriteBatchWrapU == wrapU
-		&& _spriteBatchWrapV == wrapV
-		&& _spriteBatchBlendMode == _blendMode
-		&& _spriteBatchBlendAlphaMode == _blendAlphaMode)
-	{
-		++_graphicsStats.drawCallsBatched;
-		return;
-	}
-	markRenderCommand();
-	if (_activeShader == 0)
-	{
-		_spriteBatchTexture = texture;
-		_spriteBatchCommandRoot = commandRoot;
-		_spriteBatchFilter = filter;
-		_spriteBatchWrapU = wrapU;
-		_spriteBatchWrapV = wrapV;
-		_spriteBatchBlendMode = _blendMode;
-		_spriteBatchBlendAlphaMode = _blendAlphaMode;
-	}
-}
-
-DrawNode *LoveNode::ensureDrawNode(std::size_t requiredVertices)
-{
-	// DrawNode and DrawRenderer use 16-bit indices. Start a new command node before
-	// the next Love primitive would wrap those indices; DrawRenderer flushes at the
-	// same boundary instead of merging the nodes back into one oversized batch.
+	// DrawRenderer uses 16-bit indices. Start a new flat command before the next
+	// Love primitive would wrap them; no Dora scene node is involved.
 	constexpr std::size_t maxVertices = std::numeric_limits<uint16_t>::max();
-	if (_drawNode && requiredVertices > 0
-		&& _drawNode->getVertices().size() + requiredVertices > maxVertices)
-		_drawNode = nullptr;
-	if (!_drawNode)
+	if (_primitiveCommand && requiredVertices > 0
+		&& _primitiveCommand->getVertexCount() + requiredVertices > maxVertices)
+		_primitiveCommand = nullptr;
+	if (!_primitiveCommand)
 	{
 		markRenderCommand();
-		_drawNode = DrawNode::create();
-		_drawNode->setBlendFunc(toDoraBlendFunc(_blendMode, _blendAlphaMode));
-		(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(_drawNode);
+		_primitiveCommand = new LovePrimitiveCommand(
+			toDoraBlendFunc(_blendMode, _blendAlphaMode));
+		recordCommand(_primitiveCommand);
 	}
 	else ++_graphicsStats.drawCallsBatched;
-	return _drawNode;
+	return _primitiveCommand;
 }
 
 std::optional<RendererManager::ScissorState> LoveNode::getCommandScissor() const
@@ -5082,14 +5323,16 @@ std::optional<RendererManager::ScissorState> LoveNode::getCommandScissor() const
 
 void LoveNode::beginCommandSegment()
 {
-	_drawNode = nullptr;
+	_primitiveCommand = nullptr;
+	_imageBatchCommand = nullptr;
 	_spriteBatchTexture = nullptr;
-	_spriteBatchCommandRoot = nullptr;
-	auto scissor = getCommandScissor();
-	uint32_t stencilState = BGFX_STENCIL_NONE;
+	_spriteBatchCommandSegment = 0;
+	++_commandSegment;
+	_commandScissor = getCommandScissor();
+	_commandStencilState = BGFX_STENCIL_NONE;
 	if (_stencilWriting)
 	{
-		stencilState = BGFX_STENCIL_TEST_ALWAYS
+		_commandStencilState = BGFX_STENCIL_TEST_ALWAYS
 			| BGFX_STENCIL_FUNC_REF(static_cast<uint8_t>(_stencilWriteValue))
 			| BGFX_STENCIL_FUNC_RMASK(0xff)
 			| BGFX_STENCIL_OP_FAIL_S_KEEP | BGFX_STENCIL_OP_FAIL_Z_KEEP
@@ -5097,23 +5340,40 @@ void LoveNode::beginCommandSegment()
 	}
 	else if (_stencilCompare != "always")
 	{
-		stencilState = toStencilTest(_stencilCompare)
+		_commandStencilState = toStencilTest(_stencilCompare)
 			| BGFX_STENCIL_FUNC_REF(static_cast<uint8_t>(_stencilTestValue))
 			| BGFX_STENCIL_FUNC_RMASK(0xff)
 			| BGFX_STENCIL_OP_FAIL_S_KEEP | BGFX_STENCIL_OP_FAIL_Z_KEEP
 			| BGFX_STENCIL_OP_PASS_Z_KEEP;
 	}
-	uint64_t renderState = toDepthState(_depthCompare, _depthWrite)
+	_commandRenderState = toDepthState(_depthCompare, _depthWrite)
 		| toCullState(_meshCullMode, _frontFaceWinding);
 	if (!_stencilWriting)
 	{
-		if (_colorMask[0]) renderState |= BGFX_STATE_WRITE_R;
-		if (_colorMask[1]) renderState |= BGFX_STATE_WRITE_G;
-		if (_colorMask[2]) renderState |= BGFX_STATE_WRITE_B;
-		if (_colorMask[3]) renderState |= BGFX_STATE_WRITE_A;
+		if (_colorMask[0]) _commandRenderState |= BGFX_STATE_WRITE_R;
+		if (_colorMask[1]) _commandRenderState |= BGFX_STATE_WRITE_G;
+		if (_colorMask[2]) _commandRenderState |= BGFX_STATE_WRITE_B;
+		if (_colorMask[3]) _commandRenderState |= BGFX_STATE_WRITE_A;
 	}
-	_commandRoot = LoveRenderStateNode::create(scissor, stencilState, renderState);
-	_frameRoot->addChild(_commandRoot);
+}
+
+void LoveNode::recordCommand(LoveRenderCommand* command)
+{
+	recordCommand(command, _commandScissor, _commandStencilState, _commandRenderState);
+}
+
+void LoveNode::recordCommand(LoveRenderCommand* command,
+	std::optional<RendererManager::ScissorState> scissor,
+	uint32_t stencil, uint64_t renderState)
+{
+	if (!command || _renderPasses.empty())
+	{
+		delete command;
+		return;
+	}
+	command->setState(scissor, stencil, renderState);
+	command->setGpuBufferPool(_gpuBufferPool);
+	_renderPasses.back().commands.emplace_back(command);
 }
 
 bool LoveNode::clear(const Love::GraphicsBackend::ClearRequest &request,
@@ -5290,22 +5550,17 @@ bool LoveNode::clear(const Love::GraphicsBackend::ClearRequest &request,
 			{0.0f, 0.0f, z, 1.0f, 0.0f, 0.0f, packedColor},
 		};
 		std::vector<uint32_t> indices = {0, 1, 2, 0, 2, 3};
-		auto *clearNode = LoveTexturedMeshNode::create(std::move(vertices), std::move(indices),
+		auto *clearCommand = LoveTexturedMeshCommand::create(std::move(vertices), std::move(indices),
 			whiteTexture, BlendFunc{BlendFunc::One, BlendFunc::Zero,
 				BlendFunc::One, BlendFunc::Zero},
 			meshSamplerFlags(whiteTexture, Love::GraphicsBackend::TextureFilter::Nearest,
 				Love::GraphicsBackend::TextureWrap::Clamp,
 				Love::GraphicsBackend::TextureWrap::Clamp), nullptr, true);
-		auto *root = Node::create();
-		root->setAsManaged();
-		auto *stateRoot = LoveRenderStateNode::create(scissor, stencilState, renderState);
-		stateRoot->addChild(clearNode);
-		root->addChild(stateRoot);
 		RenderPass pass;
 		pass.target = target;
-		pass.root = root;
 		pass.hasCommands = true;
 		_renderPasses.push_back(std::move(pass));
+		recordCommand(clearCommand, scissor, stencilState, renderState);
 	};
 
 	if (drawDepthStencil)
@@ -5338,7 +5593,7 @@ bool LoveNode::rectangle(bool fill, float x, float y, float width, float height,
 			static_cast<float>(getActivePixelHeight()));
 	if (_activeShader != 0 || _wireframe)
 		return drawShaderPrimitive(transformed, true, true, lineWidth, color, error);
-	ensureDrawNode(6)->drawPolygon(transformed.data(), 4,
+	ensurePrimitiveCommand(6)->drawPolygon(transformed.data(), 4,
 		color, 0.0f, Color(0x00000000));
 	error.clear();
 	return true;
@@ -5353,7 +5608,7 @@ bool LoveNode::circle(bool fill, float x, float y, float radius,
 	const Vec2 center{x, y};
 	if (fill && _activeShader == 0)
 	{
-		ensureDrawNode(4)->drawDot(transformLovePoint(center, {},
+		ensurePrimitiveCommand(4)->drawDot(transformLovePoint(center, {},
 			static_cast<float>(getActivePixelHeight())), radius, color);
 		error.clear();
 		return true;
@@ -5374,7 +5629,7 @@ bool LoveNode::circle(bool fill, float x, float y, float radius,
 		vertex = transformLovePoint(vertex, {}, static_cast<float>(getActivePixelHeight()));
 	if (_activeShader != 0 || _wireframe)
 		return drawShaderPrimitive(vertices, true, true, lineWidth, color, error);
-	ensureDrawNode(3 * (vertices.size() - 2))->drawPolygon(vertices, color, 0.0f, Color(0x00000000));
+	ensurePrimitiveCommand(3 * (vertices.size() - 2))->drawPolygon(vertices, color, 0.0f, Color(0x00000000));
 	error.clear();
 	return true;
 }
@@ -5415,7 +5670,7 @@ bool LoveNode::polygon(bool fill, const std::vector<float> &points,
 		return drawShaderPrimitive(vertices, true, true, lineWidth, color, error);
 	const std::size_t requiredVertices = vertices.size() >= 3
 		? 3 * (vertices.size() - 2) : 0;
-	ensureDrawNode(requiredVertices)->drawPolygon(vertices,
+	ensurePrimitiveCommand(requiredVertices)->drawPolygon(vertices,
 		color, 0.0f, Color(0x00000000));
 	error.clear();
 	return true;
@@ -5438,7 +5693,7 @@ bool LoveNode::points(const std::vector<float> &points, float pointSize,
 		// DrawNode rasterizes around pixel boundaries at integer coordinates. Love points use
 		// pixel centers, so the half-pixel offset keeps a size-1 point visible and makes odd
 		// point sizes cover the requested pixel diameter.
-		ensureDrawNode(4)->drawDot({points[i] + 0.5f, height - points[i + 1] + 0.5f}, pointSize * 0.5f, color);
+		ensurePrimitiveCommand(4)->drawDot({points[i] + 0.5f, height - points[i + 1] + 0.5f}, pointSize * 0.5f, color);
 	error.clear();
 	return true;
 }
@@ -6127,16 +6382,16 @@ bool LoveNode::drawImageLayer(Love::GraphicsBackend::ImageHandle image, int laye
 			std::vector<float>(4, static_cast<float>(layer))});
 		if (shader.usesVertexID)
 			attributes.push_back({shader.vertexIDSemantic, 1, {0.0f, 1.0f, 2.0f, 3.0f}});
-		auto *node = LoveDynamicMeshNode::create(std::move(vertices), std::move(indices),
+		auto *command = LoveDynamicMeshCommand::create(std::move(vertices), std::move(indices),
 			std::move(attributes), std::vector<LoveDynamicMeshInstanceAttribute>{}, 1,
 			std::array<Vec4, 5>{}, it->second.texture,
 			toDoraBlendFunc(_blendMode, _blendAlphaMode),
 			meshSamplerFlags(it->second.texture, filter, wrapU, wrapV,
 				Love::GraphicsBackend::TextureWrap::Clamp), shader.effect.get(),
 			static_cast<float>(getActivePixelHeight()), false, _wireframe);
-		(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(node);
+		recordCommand(command);
 		markRenderCommand();
-		_drawNode = nullptr;
+		_primitiveCommand = nullptr;
 		error.clear();
 		return true;
 	}
@@ -6543,11 +6798,8 @@ bool LoveNode::generateCanvasMipmaps(Love::GraphicsBackend::CanvasHandle canvas,
 			return false;
 		}
 	}
-	auto *root = Node::create();
-	root->setAsManaged();
 	RenderPass pass;
 	pass.target = resource.mipmapTarget;
-	pass.root = root;
 	// RenderTarget::render touches this otherwise-empty pass. Switching away from
 	// its AUTO_GEN_MIPS attachment makes bgfx resolve the complete texture chain.
 	pass.hasCommands = true;
@@ -6821,16 +7073,16 @@ bool LoveNode::drawCanvasLayer(Love::GraphicsBackend::CanvasHandle canvas, int l
 			std::vector<float>(4, static_cast<float>(layer))});
 	if (shader.usesVertexID)
 		attributes.push_back({shader.vertexIDSemantic, 1, {0.0f, 1.0f, 2.0f, 3.0f}});
-	auto *node = LoveDynamicMeshNode::create(std::move(vertices), std::move(indices),
+	auto *command = LoveDynamicMeshCommand::create(std::move(vertices), std::move(indices),
 		std::move(attributes), std::vector<LoveDynamicMeshInstanceAttribute>{}, 1,
 		std::array<Vec4, 5>{}, found->second.texture,
 		toDoraBlendFunc(_blendMode, _blendAlphaMode),
 		meshSamplerFlags(found->second.texture, filter, wrapU, wrapV,
 			Love::GraphicsBackend::TextureWrap::Clamp), shader.effect.get(),
 		static_cast<float>(getActivePixelHeight()), false, _wireframe);
-	(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(node);
+	recordCommand(command);
 	markRenderCommand();
-	_drawNode = nullptr;
+	_primitiveCommand = nullptr;
 	error.clear();
 	return true;
 }
@@ -6966,27 +7218,27 @@ bool LoveNode::drawShaderPrimitive(std::span<const Vec2> vertices, bool fill, bo
 		}
 		std::vector<LoveDynamicMeshAttribute> attributes{{
 			shader.vertexIDSemantic, 1, std::move(vertexIDs)}};
-		auto *node = LoveDynamicMeshNode::create(std::move(dynamicVertices),
+		auto *command = LoveDynamicMeshCommand::create(std::move(dynamicVertices),
 			std::move(primitiveIndices), std::move(attributes),
 			std::vector<LoveDynamicMeshInstanceAttribute>{}, 1, std::array<Vec4, 5>{},
 			texture, toDoraBlendFunc(_blendMode, _blendAlphaMode),
 			meshSamplerFlags(texture, Love::GraphicsBackend::TextureFilter::Nearest,
 				Love::GraphicsBackend::TextureWrap::Clamp, Love::GraphicsBackend::TextureWrap::Clamp),
 			shader.effect.get(), coordinateHeight, true, _wireframe);
-		(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(node);
+		recordCommand(command);
 		markRenderCommand();
-		_drawNode = nullptr;
+		_primitiveCommand = nullptr;
 		error.clear();
 		return true;
 	}
-	auto *node = LoveTexturedMeshNode::create(std::move(primitiveVertices), std::move(primitiveIndices),
+	auto *command = LoveTexturedMeshCommand::create(std::move(primitiveVertices), std::move(primitiveIndices),
 		texture, toDoraBlendFunc(_blendMode, _blendAlphaMode),
 		meshSamplerFlags(texture, Love::GraphicsBackend::TextureFilter::Nearest,
 			Love::GraphicsBackend::TextureWrap::Clamp, Love::GraphicsBackend::TextureWrap::Clamp),
 		shaderFound == _shaders.end() ? nullptr : shaderFound->second.effect.get(), true, _wireframe);
-	(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(node);
+	recordCommand(command);
 	markRenderCommand();
-	_drawNode = nullptr;
+	_primitiveCommand = nullptr;
 	error.clear();
 	return true;
 }
@@ -7239,21 +7491,21 @@ bool LoveNode::drawPolyline(std::span<const Vec2> input, bool closed, float line
 		}
 		std::vector<LoveDynamicMeshAttribute> attributes{{
 			shader.vertexIDSemantic, 1, std::move(vertexIDs)}};
-		auto *node = LoveDynamicMeshNode::create(std::move(dynamicVertices), std::move(indices),
+		auto *command = LoveDynamicMeshCommand::create(std::move(dynamicVertices), std::move(indices),
 			std::move(attributes), std::vector<LoveDynamicMeshInstanceAttribute>{}, 1,
 			std::array<Vec4, 5>{}, texture, toDoraBlendFunc(_blendMode, _blendAlphaMode),
 			sampler, shader.effect.get(), coordinateHeight, true, _wireframe);
-		(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(node);
+		recordCommand(command);
 	}
 	else
 	{
 		SpriteEffect *effect = _activeShader == 0 ? nullptr : _shaders.at(_activeShader).effect.get();
-		auto *node = LoveTexturedMeshNode::create(std::move(meshVertices), std::move(indices),
+		auto *command = LoveTexturedMeshCommand::create(std::move(meshVertices), std::move(indices),
 			texture, toDoraBlendFunc(_blendMode, _blendAlphaMode), sampler, effect, true, _wireframe);
-		(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(node);
+		recordCommand(command);
 	}
 	markRenderCommand();
-	_drawNode = nullptr;
+	_primitiveCommand = nullptr;
 	error.clear();
 	return true;
 }
@@ -7307,27 +7559,27 @@ bool LoveNode::drawShaderPoints(std::span<const Vec2> points, float pointSize,
 		}
 		std::vector<LoveDynamicMeshAttribute> attributes{{
 			shader.vertexIDSemantic, 1, std::move(vertexIDs)}};
-		auto *node = LoveDynamicMeshNode::create(std::move(dynamicVertices),
+		auto *command = LoveDynamicMeshCommand::create(std::move(dynamicVertices),
 			std::move(pointIndices), std::move(attributes),
 			std::vector<LoveDynamicMeshInstanceAttribute>{}, 1, std::array<Vec4, 5>{},
 			texture, toDoraBlendFunc(_blendMode, _blendAlphaMode),
 			meshSamplerFlags(texture, Love::GraphicsBackend::TextureFilter::Nearest,
 				Love::GraphicsBackend::TextureWrap::Clamp, Love::GraphicsBackend::TextureWrap::Clamp),
 			shader.effect.get(), coordinateHeight, true);
-		(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(node);
+		recordCommand(command);
 		markRenderCommand();
-		_drawNode = nullptr;
+		_primitiveCommand = nullptr;
 		error.clear();
 		return true;
 	}
-	auto *node = LoveTexturedMeshNode::create(std::move(pointVertices), std::move(pointIndices), texture,
+	auto *command = LoveTexturedMeshCommand::create(std::move(pointVertices), std::move(pointIndices), texture,
 		toDoraBlendFunc(_blendMode, _blendAlphaMode),
 		meshSamplerFlags(texture, Love::GraphicsBackend::TextureFilter::Nearest,
 			Love::GraphicsBackend::TextureWrap::Clamp, Love::GraphicsBackend::TextureWrap::Clamp),
 		_shaders.at(_activeShader).effect.get(), true);
-	(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(node);
+	recordCommand(command);
 	markRenderCommand();
-	_drawNode = nullptr;
+	_primitiveCommand = nullptr;
 	error.clear();
 	return true;
 }
@@ -7338,13 +7590,101 @@ bool LoveNode::drawMesh(std::span<const Love::GraphicsBackend::MeshVertex> verti
 	Love::GraphicsBackend::ImageHandle image, Love::GraphicsBackend::CanvasHandle canvas,
 	float pointSize, Love::GraphicsBackend::TextureFilter filter,
 	Love::GraphicsBackend::TextureWrap wrapU, Love::GraphicsBackend::TextureWrap wrapV,
-	std::string &error, int instanceCount)
+std::string &error, int instanceCount)
+{
+	return drawMeshTransformed(vertices, attributes, indices, drawMode, image, canvas,
+		pointSize, filter, wrapU, wrapV, Love::GraphicsBackend::Transform2D{},
+		{1.0f, 1.0f, 1.0f, 1.0f}, error, instanceCount);
+}
+
+bool LoveNode::drawMeshBuffer(
+	const std::shared_ptr<const Love::GraphicsBackend::MeshBuffer> &buffer,
+	std::string_view drawMode, Love::GraphicsBackend::ImageHandle image,
+	Love::GraphicsBackend::CanvasHandle canvas, float pointSize,
+	Love::GraphicsBackend::TextureFilter filter,
+	Love::GraphicsBackend::TextureWrap wrapU, Love::GraphicsBackend::TextureWrap wrapV,
+	const Love::GraphicsBackend::Transform2D &transform,
+	const std::array<float, 4> &color, std::string &error, int instanceCount)
+{
+	if (!buffer)
+	{
+		error = "Love Mesh buffer is unavailable";
+		return false;
+	}
+	if (_activeShader == 0 && !_wireframe && buffer->attributes.empty()
+		&& drawMode == "triangles" && instanceCount == 1)
+	{
+		Texture2D *texture = nullptr;
+		if (image != 0)
+		{
+			const auto found = _images.find(image);
+			if (found != _images.end()
+				&& found->second.type == Love::GraphicsBackend::TextureType::Texture2D)
+				texture = found->second.texture;
+		}
+		else if (canvas != 0)
+		{
+			const auto found = _canvases.find(canvas);
+			if (found != _canvases.end()) texture = found->second.texture;
+		}
+		if (texture)
+		{
+			const bool valid = std::all_of(buffer->indices.begin(), buffer->indices.end(),
+				[&](uint32_t index) { return index < buffer->vertices.size(); });
+			const bool index32 = buffer->vertices.size() > std::numeric_limits<uint16_t>::max()
+				|| std::any_of(buffer->indices.begin(), buffer->indices.end(),
+					[](uint32_t index) { return index > std::numeric_limits<uint16_t>::max(); });
+			if (!valid)
+			{
+				error = "Mesh vertex map contains an index outside its vertex data";
+				return false;
+			}
+			if (index32 && (bgfx::getCaps()->supported & BGFX_CAPS_INDEX32) == 0)
+			{
+				error = "32-bit Love Mesh indices are not supported by the active renderer";
+				return false;
+			}
+			auto *command = LoveBufferedMeshCommand::create(buffer, texture,
+				toDoraBlendFunc(_blendMode, _blendAlphaMode),
+				meshSamplerFlags(texture, filter, wrapU, wrapV), nullptr,
+				transform, color, static_cast<float>(getActivePixelHeight()));
+			recordCommand(command);
+			markRenderCommand();
+			_primitiveCommand = nullptr;
+			error.clear();
+			return true;
+		}
+	}
+	return drawMeshTransformed(buffer->vertices, buffer->attributes, buffer->indices,
+		drawMode, image, canvas, pointSize, filter, wrapU, wrapV,
+		transform, color, error, instanceCount);
+}
+
+bool LoveNode::drawMeshTransformed(
+	std::span<const Love::GraphicsBackend::MeshVertex> vertices,
+	std::span<const Love::GraphicsBackend::MeshAttributeData> attributes,
+	std::span<const std::uint32_t> indices, std::string_view drawMode,
+	Love::GraphicsBackend::ImageHandle image, Love::GraphicsBackend::CanvasHandle canvas,
+	float pointSize, Love::GraphicsBackend::TextureFilter filter,
+	Love::GraphicsBackend::TextureWrap wrapU, Love::GraphicsBackend::TextureWrap wrapV,
+	const Love::GraphicsBackend::Transform2D &transform,
+	const std::array<float, 4> &drawColor, std::string &error, int instanceCount)
 {
 	if (instanceCount <= 0)
 	{
 		error.clear();
 		return true;
 	}
+	const auto transformedVertex = [&](const Love::GraphicsBackend::MeshVertex &source) {
+		auto vertex = source;
+		vertex.x = transform.a * source.x + transform.c * source.y + transform.tx;
+		vertex.y = transform.b * source.x + transform.d * source.y + transform.ty;
+		vertex.red *= drawColor[0];
+		vertex.green *= drawColor[1];
+		vertex.blue *= drawColor[2];
+		vertex.alpha *= drawColor[3];
+		return vertex;
+	};
 	const bool hardwareInstanced = instanceCount > 1;
 	if (hardwareInstanced && _activeShader == 0)
 	{
@@ -7562,8 +7902,8 @@ bool LoveNode::drawMesh(std::span<const Love::GraphicsBackend::MeshVertex> verti
 		{
 			for (const auto index : indices)
 			{
-				const auto &vertex = vertices[index];
-				ensureDrawNode(4)->drawDot({vertex.x + 0.5f, height - vertex.y + 0.5f},
+				const auto vertex = transformedVertex(vertices[index]);
+				ensurePrimitiveCommand(4)->drawDot({vertex.x + 0.5f, height - vertex.y + 0.5f},
 					pointSize * 0.5f, Color(Vec4{vertex.red, vertex.green, vertex.blue, vertex.alpha}));
 			}
 			error.clear();
@@ -7599,7 +7939,7 @@ bool LoveNode::drawMesh(std::span<const Love::GraphicsBackend::MeshVertex> verti
 			const float halfSize = pointSize * 0.5f;
 			for (const auto index : indices)
 			{
-				auto vertex = vertices[index];
+				auto vertex = transformedVertex(vertices[index]);
 				const float centerX = vertex.x + 0.5f;
 				const float centerY = vertex.y + 0.5f;
 				const auto base = static_cast<uint32_t>(pointVertices.size());
@@ -7619,15 +7959,15 @@ bool LoveNode::drawMesh(std::span<const Love::GraphicsBackend::MeshVertex> verti
 						target.insert(target.end(), value, value + source.components);
 				}
 			}
-			auto *node = LoveDynamicMeshNode::create(std::move(pointVertices), std::move(pointIndices),
+			auto *command = LoveDynamicMeshCommand::create(std::move(pointVertices), std::move(pointIndices),
 				std::move(pointAttributes), std::move(instanceAttributes), instanceCount,
 				instanceSelectors, texture, toDoraBlendFunc(_blendMode, _blendAlphaMode),
 				meshSamplerFlags(texture, filter, wrapU, wrapV),
 				(hardwareInstanced ? _shaders.at(drawShaderHandle).instancedEffect
 					: _shaders.at(drawShaderHandle).effect).get(), height, true);
-			(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(node);
+			recordCommand(command);
 			markRenderCommand();
-			_drawNode = nullptr;
+			_primitiveCommand = nullptr;
 			error.clear();
 			return true;
 		}
@@ -7638,7 +7978,7 @@ bool LoveNode::drawMesh(std::span<const Love::GraphicsBackend::MeshVertex> verti
 		const float halfSize = pointSize * 0.5f;
 		for (const auto index : indices)
 		{
-			const auto &vertex = vertices[index];
+			const auto vertex = transformedVertex(vertices[index]);
 			const float centerX = vertex.x + 0.5f;
 			const float centerY = height - vertex.y + 0.5f;
 			const uint32_t color = Color(Vec4{vertex.red, vertex.green, vertex.blue, vertex.alpha}).toABGR();
@@ -7654,12 +7994,12 @@ bool LoveNode::drawMesh(std::span<const Love::GraphicsBackend::MeshVertex> verti
 			pointIndices.insert(pointIndices.end(), {base, base + 1,
 				base + 2, base, base + 2, base + 3});
 		}
-		auto *node = LoveTexturedMeshNode::create(std::move(pointVertices), std::move(pointIndices), texture,
+		auto *command = LoveTexturedMeshCommand::create(std::move(pointVertices), std::move(pointIndices), texture,
 			toDoraBlendFunc(_blendMode, _blendAlphaMode), meshSamplerFlags(texture, filter, wrapU, wrapV),
 			drawShaderHandle != 0 ? _shaders.at(drawShaderHandle).effect.get() : nullptr, true);
-		(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(node);
+		recordCommand(command);
 		markRenderCommand();
-		_drawNode = nullptr;
+		_primitiveCommand = nullptr;
 		error.clear();
 		return true;
 	}
@@ -7727,14 +8067,16 @@ bool LoveNode::drawMesh(std::span<const Love::GraphicsBackend::MeshVertex> verti
 
 	if (!dynamicAttributes.empty() || hardwareInstanced)
 	{
-		std::vector<Love::GraphicsBackend::MeshVertex> meshVertices(vertices.begin(), vertices.end());
-		auto *node = LoveDynamicMeshNode::create(std::move(meshVertices), std::move(triangles),
+		std::vector<Love::GraphicsBackend::MeshVertex> meshVertices;
+		meshVertices.reserve(vertices.size());
+		for (const auto &vertex : vertices) meshVertices.push_back(transformedVertex(vertex));
+		auto *command = LoveDynamicMeshCommand::create(std::move(meshVertices), std::move(triangles),
 			std::move(dynamicAttributes), std::move(instanceAttributes), instanceCount,
 			instanceSelectors, texture, toDoraBlendFunc(_blendMode, _blendAlphaMode),
 			meshSamplerFlags(texture, filter, wrapU, wrapV),
 			(hardwareInstanced ? _shaders.at(drawShaderHandle).instancedEffect
 				: _shaders.at(drawShaderHandle).effect).get(), height, true, _wireframe);
-		(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(node);
+		recordCommand(command);
 	}
 	else if (_wireframe || texture || vertices.size() > std::numeric_limits<uint16_t>::max()
 		|| std::any_of(triangles.begin(), triangles.end(),
@@ -7750,16 +8092,17 @@ bool LoveNode::drawMesh(std::span<const Love::GraphicsBackend::MeshVertex> verti
 		}
 		std::vector<SpriteVertex> meshVertices;
 		meshVertices.reserve(vertices.size());
-		for (const auto &vertex : vertices)
+		for (const auto &source : vertices)
 		{
+			const auto vertex = transformedVertex(source);
 			meshVertices.push_back({vertex.x, height - vertex.y, vertex.z, vertex.w,
 				vertex.u, vertex.v, Color(Vec4{vertex.red, vertex.green, vertex.blue, vertex.alpha}).toABGR()});
 		}
-		auto *node = LoveTexturedMeshNode::create(std::move(meshVertices), std::move(triangles), texture,
+		auto *command = LoveTexturedMeshCommand::create(std::move(meshVertices), std::move(triangles), texture,
 			toDoraBlendFunc(_blendMode, _blendAlphaMode), meshSamplerFlags(texture, filter, wrapU, wrapV),
 			drawShaderHandle != 0 ? _shaders.at(drawShaderHandle).effect.get() : nullptr,
 			false, _wireframe);
-		(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(node);
+		recordCommand(command);
 	}
 	else
 	{
@@ -7768,20 +8111,20 @@ bool LoveNode::drawMesh(std::span<const Love::GraphicsBackend::MeshVertex> verti
 		for (const auto index : triangles) drawIndices.push_back(static_cast<uint16_t>(index));
 		std::vector<DrawVertexInput> meshVertices;
 		meshVertices.reserve(vertices.size());
-		for (const auto &vertex : vertices)
+		for (const auto &source : vertices)
 		{
+			const auto vertex = transformedVertex(source);
 			meshVertices.push_back({
 				{vertex.x, height - vertex.y, vertex.z, vertex.w},
 				{vertex.red, vertex.green, vertex.blue, vertex.alpha},
 				{vertex.u, vertex.v}});
 		}
-		auto *node = DrawNode::create();
-		node->setBlendFunc(toDoraBlendFunc(_blendMode, _blendAlphaMode));
-		node->drawIndexedVertices(meshVertices, drawIndices);
-		(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(node);
+		ensurePrimitiveCommand(meshVertices.size())->drawIndexedVertices(meshVertices, drawIndices);
+		error.clear();
+		return true;
 	}
 	markRenderCommand();
-	_drawNode = nullptr;
+	_primitiveCommand = nullptr;
 	error.clear();
 	return true;
 }
@@ -7960,7 +8303,8 @@ Love::GraphicsBackend::ShaderHandle LoveNode::newShader(std::string_view vertexS
 	const auto maxTextureSamplers = bgfx::getCaps()->limits.maxTextureSamplers;
 	for (const auto &[name, info] : vertexTranslation.uniforms)
 	{
-		if (info.samplerSlot != 0 && info.samplerSlot + info.count > maxTextureSamplers)
+		if (info.samplerSlot != 0
+			&& static_cast<uint32_t>(info.samplerSlot + info.count) > maxTextureSamplers)
 		{
 			error = "Love Shader Image uniform count exceeds the renderer sampler limit";
 			return 0;
@@ -7969,7 +8313,8 @@ Love::GraphicsBackend::ShaderHandle LoveNode::newShader(std::string_view vertexS
 	}
 	for (const auto &[name, info] : pixelTranslation.uniforms)
 	{
-		if (info.samplerSlot != 0 && info.samplerSlot + info.count > maxTextureSamplers)
+		if (info.samplerSlot != 0
+			&& static_cast<uint32_t>(info.samplerSlot + info.count) > maxTextureSamplers)
 		{
 			error = "Love Shader Image uniform count exceeds the renderer sampler limit";
 			return 0;
@@ -8391,13 +8736,13 @@ void LoveNode::drawTexture(Texture2D *texture,
 			transform(0.0f, height, left, bottom),
 		};
 		std::vector<uint32_t> indices{0, 1, 2, 0, 2, 3};
-		Node *node = nullptr;
+		LoveRenderCommand *command = nullptr;
 		if (_activeShader != 0 && _shaders.at(_activeShader).usesVertexID)
 		{
 			const auto &shader = _shaders.at(_activeShader);
 			std::vector<LoveDynamicMeshAttribute> attributes{{
 				shader.vertexIDSemantic, 1, {0.0f, 1.0f, 2.0f, 3.0f}}};
-			node = LoveDynamicMeshNode::create(std::move(vertices), std::move(indices),
+			command = LoveDynamicMeshCommand::create(std::move(vertices), std::move(indices),
 				std::move(attributes), std::vector<LoveDynamicMeshInstanceAttribute>{}, 1,
 				std::array<Vec4, 5>{}, texture, toDoraBlendFunc(_blendMode, _blendAlphaMode),
 				meshSamplerFlags(texture, filter, wrapU, wrapV), shader.effect.get(),
@@ -8412,53 +8757,75 @@ void LoveNode::drawTexture(Texture2D *texture,
 				spriteVertices.push_back({vertex.x, coordinateHeight - vertex.y,
 					vertex.z, vertex.w, vertex.u, vertex.v,
 					Color(Vec4{vertex.red, vertex.green, vertex.blue, vertex.alpha}).toABGR()});
-			node = LoveTexturedMeshNode::create(std::move(spriteVertices), std::move(indices),
+			command = LoveTexturedMeshCommand::create(std::move(spriteVertices), std::move(indices),
 				texture, toDoraBlendFunc(_blendMode, _blendAlphaMode),
 				meshSamplerFlags(texture, filter, wrapU, wrapV),
 				_activeShader == 0 ? nullptr : _shaders.at(_activeShader).effect.get(), false, true);
 		}
-		(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(node);
+		recordCommand(command);
 		markRenderCommand();
-		_drawNode = nullptr;
+		_primitiveCommand = nullptr;
 		return;
 	}
-	Sprite *sprite = Sprite::create(texture);
-	if (_activeShader != 0)
-		sprite->setEffect(_shaders.at(_activeShader).effect);
-	switch (filter)
-	{
-		case Love::GraphicsBackend::TextureFilter::Nearest: sprite->setFilter(::Dora::TextureFilter::Point); break;
-		case Love::GraphicsBackend::TextureFilter::Anisotropic: sprite->setFilter(::Dora::TextureFilter::Anisotropic); break;
-		case Love::GraphicsBackend::TextureFilter::Linear: sprite->setFilter(::Dora::TextureFilter::None); break;
-	}
-	auto toDoraWrap = [](Love::GraphicsBackend::TextureWrap wrap) -> ::Dora::TextureWrap {
-		switch (wrap)
-		{
-			case Love::GraphicsBackend::TextureWrap::Repeat: return ::Dora::TextureWrap::None;
-			case Love::GraphicsBackend::TextureWrap::MirroredRepeat: return ::Dora::TextureWrap::Mirror;
-			case Love::GraphicsBackend::TextureWrap::ClampZero: return ::Dora::TextureWrap::Border;
-			case Love::GraphicsBackend::TextureWrap::Clamp: return ::Dora::TextureWrap::Clamp;
-		}
-		return ::Dora::TextureWrap::Clamp;
-	};
-	sprite->setUWrap(toDoraWrap(wrapU));
-	sprite->setVWrap(toDoraWrap(wrapV));
-	sprite->setTextureRect({sourceX, sourceY, sourceWidth, sourceHeight});
 	const float width = std::abs(sourceWidth);
 	const float height = std::abs(sourceHeight);
-	sprite->setSize({width, height});
-	sprite->setAnchor({width > 0.0f ? originX / width : 0.0f, height > 0.0f ? 1.0f - originY / height : 1.0f});
-	sprite->setPosition({tx, static_cast<float>(getActivePixelHeight()) - ty});
-	const float scaleX = std::hypot(a, b);
-	const float determinant = a * d - b * c;
-	sprite->setScaleX(scaleX);
-	sprite->setScaleY(scaleX > 0.0f ? determinant / scaleX : 0.0f);
-	sprite->setAngle(std::atan2(b, a) * 180.0f / std::numbers::pi_v<float>);
-	sprite->setColor(Color(Vec4{red, green, blue, alpha}));
-	sprite->setBlendFunc(toDoraBlendFunc(_blendMode, _blendAlphaMode));
-	(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(sprite);
-	markSpriteRenderCommand(texture, filter, wrapU, wrapV);
-	_drawNode = nullptr;
+	const float textureWidth = static_cast<float>(texture->getWidth());
+	const float textureHeight = static_cast<float>(texture->getHeight());
+	const float left = sourceX / textureWidth;
+	const float top = sourceY / textureHeight;
+	const float right = (sourceX + sourceWidth) / textureWidth;
+	const float bottom = (sourceY + sourceHeight) / textureHeight;
+	const float coordinateHeight = static_cast<float>(getActivePixelHeight());
+	const uint32_t color = Color(Vec4{red, green, blue, alpha}).toABGR();
+	const auto vertex = [&](float localX, float localY, float u, float v) {
+		const float px = localX - originX;
+		const float py = localY - originY;
+		return SpriteVertex{a * px + c * py + tx,
+			coordinateHeight - (b * px + d * py + ty), 0.0f, 1.0f, u, v, color};
+	};
+	const std::array<SpriteVertex, 4> quad = {
+		vertex(0.0f, 0.0f, left, top),
+		vertex(width, 0.0f, right, top),
+		vertex(width, height, right, bottom),
+		vertex(0.0f, height, left, bottom),
+	};
+	auto *batch = _imageBatchCommand
+		? static_cast<LoveTexturedMeshCommand *>(_imageBatchCommand) : nullptr;
+	const bool compatibleBatch = _activeShader == 0 && batch
+		&& _spriteBatchTexture == texture
+		&& _spriteBatchCommandSegment == _commandSegment
+		&& _spriteBatchFilter == filter
+		&& _spriteBatchWrapU == wrapU
+		&& _spriteBatchWrapV == wrapV
+		&& _spriteBatchBlendMode == _blendMode
+		&& _spriteBatchBlendAlphaMode == _blendAlphaMode;
+	if (compatibleBatch && batch->appendQuad(quad))
+	{
+		++_graphicsStats.drawCallsBatched;
+		_primitiveCommand = nullptr;
+		return;
+	}
+
+	std::vector<SpriteVertex> vertices(quad.begin(), quad.end());
+	std::vector<uint32_t> indices{0, 1, 2, 0, 2, 3};
+	auto *command = LoveTexturedMeshCommand::create(std::move(vertices), std::move(indices),
+		texture, toDoraBlendFunc(_blendMode, _blendAlphaMode),
+		meshSamplerFlags(texture, filter, wrapU, wrapV),
+		_activeShader == 0 ? nullptr : _shaders.at(_activeShader).effect.get());
+	recordCommand(command);
+	markRenderCommand();
+	if (_activeShader == 0)
+	{
+		_imageBatchCommand = _renderPasses.back().commands.back().get();
+		_spriteBatchTexture = texture;
+		_spriteBatchCommandSegment = _commandSegment;
+		_spriteBatchFilter = filter;
+		_spriteBatchWrapU = wrapU;
+		_spriteBatchWrapV = wrapV;
+		_spriteBatchBlendMode = _blendMode;
+		_spriteBatchBlendAlphaMode = _blendAlphaMode;
+	}
+	_primitiveCommand = nullptr;
 }
 
 Love::GraphicsBackend::FontHandle LoveNode::newFont(const std::string &filename, int size, std::string &error)
@@ -8641,66 +9008,65 @@ float LoveNode::getFontWidth(Love::GraphicsBackend::FontHandle font, std::string
 		}
 		return std::max(maximum, width);
 	}
-	if (!it->second.fallbacks.empty())
+	std::vector<Utf8Unit> units;
+	if (!decodeUtf8Units(text, units)) return 0.0f;
+	auto selectResource = [this, &it](std::uint32_t codepoint) -> const FontResource * {
+		auto findFont = [this, codepoint](Love::GraphicsBackend::FontHandle handle)
+			-> const FontResource * {
+			const auto resource = _fonts.find(handle);
+			return resource != _fonts.end() && resource->second.font
+				&& SharedFontManager.hasGlyph(resource->second.font->getHandle(), codepoint)
+				? &resource->second : nullptr;
+		};
+		if (const auto *resource = findFont(it->first)) return resource;
+		for (const auto fallback : it->second.fallbacks)
+			if (const auto *resource = findFont(fallback)) return resource;
+		return it->second.font ? &it->second : nullptr;
+	};
+	float width = 0.0f;
+	float maximum = 0.0f;
+	float trailingOverhang = 0.0f;
+	const FontResource *previousResource = nullptr;
+	std::uint32_t previous = 0;
+	auto finishRun = [&]() {
+		width += trailingOverhang;
+		trailingOverhang = 0.0f;
+		previousResource = nullptr;
+		previous = 0;
+	};
+	for (const auto &unit : units)
 	{
-			std::vector<Utf8Unit> units;
-			if (decodeUtf8Units(text, units))
-			{
-				auto selectFont = [this, &it](std::uint32_t codepoint) {
-					if (it->second.font
-						&& SharedFontManager.hasGlyph(it->second.font->getHandle(), codepoint))
-						return it->first;
-					for (const auto handle : it->second.fallbacks)
-				{
-					const auto fallback = _fonts.find(handle);
-					if (fallback != _fonts.end() && fallback->second.font
-						&& SharedFontManager.hasGlyph(fallback->second.font->getHandle(), codepoint))
-						return handle;
-				}
-				return it->first;
-			};
-			float lineWidth = 0.0f;
-			float maximumWidth = 0.0f;
-			for (std::size_t index = 0; index < units.size();)
-			{
-				if (units[index].codepoint == '\n')
-				{
-					maximumWidth = std::max(maximumWidth, lineWidth);
-					lineWidth = 0.0f;
-					++index;
-					continue;
-				}
-				const auto selected = selectFont(units[index].codepoint);
-				const std::size_t begin = units[index].begin;
-				std::size_t end = units[index].end;
-				++index;
-				while (index < units.size() && units[index].codepoint != '\n'
-					&& selectFont(units[index].codepoint) == selected)
-				{
-					end = units[index].end;
-					++index;
-				}
-				const auto resource = _fonts.find(selected);
-				if (resource == _fonts.end()) continue;
-				auto *label = Label::create(resource->second.filename,
-					static_cast<std::uint32_t>(resource->second.size), true);
-				if (!label) continue;
-				// This Label is only used for synchronous text measurement. Keep it out
-				// of Director's unmanaged-node adoption pass so repeated getWidth calls
-				// cannot attach invisible measurement Labels to the main scene forever.
-				label->setAsManaged();
-				label->setText({text.data() + begin, end - begin});
-				lineWidth += label->getSize().width;
-			}
-			return std::max(maximumWidth, lineWidth);
+		if (unit.codepoint == '\n')
+		{
+			finishRun();
+			maximum = std::max(maximum, width);
+			width = 0.0f;
+			continue;
 		}
+		if (unit.codepoint == '\r') continue;
+		const FontResource *resource = selectResource(unit.codepoint);
+		if (!resource || !resource->font) continue;
+		std::uint32_t codepoint = unit.codepoint == '\t' ? ' ' : unit.codepoint;
+		const auto *glyph = SharedFontCache.getGlyphInfo(resource->font, codepoint);
+		if (!glyph && codepoint != '?')
+		{
+			codepoint = '?';
+			glyph = SharedFontCache.getGlyphInfo(resource->font, codepoint);
+		}
+		if (!glyph) continue;
+		if (previousResource && previousResource != resource) finishRun();
+		const float scale = static_cast<float>(resource->size)
+			/ static_cast<float>(DORA_SDF_FONT_BASE_SIZE);
+		const float kerning = previousResource == resource && previous != 0
+			? SharedFontManager.getKerning(resource->font->getHandle(), previous, codepoint) * scale
+			: 0.0f;
+		width += kerning + glyph->advance_x * scale * (unit.codepoint == '\t' ? 2.0f : 1.0f);
+		trailingOverhang = std::max(0.0f, (glyph->width - glyph->advance_x) * scale);
+		previousResource = resource;
+		previous = codepoint;
 	}
-	auto *label = Label::create(it->second.filename, static_cast<uint32_t>(it->second.size), true);
-	if (!label)
-		return 0.0f;
-	label->setAsManaged();
-	label->setText({text.data(), text.size()});
-	return label->getSize().width;
+	finishRun();
+	return std::max(maximum, width);
 }
 
 float LoveNode::getFontHeight(Love::GraphicsBackend::FontHandle font) const
@@ -9014,7 +9380,7 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 				}
 				std::vector<LoveDynamicMeshAttribute> attributes{{
 					shader.vertexIDSemantic, 1, std::move(vertexIDs)}};
-				auto *node = LoveDynamicMeshNode::create(std::move(dynamicVertices),
+				auto *command = LoveDynamicMeshCommand::create(std::move(dynamicVertices),
 					std::move(batch.indices), std::move(attributes),
 					std::vector<LoveDynamicMeshInstanceAttribute>{}, 1, std::array<Vec4, 5>{},
 					batch.resource->imageTextures[static_cast<std::size_t>(batch.page)],
@@ -9022,144 +9388,202 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 					meshSamplerFlags(batch.resource->imageTextures[static_cast<std::size_t>(batch.page)], batch.resource->imageFilter,
 					Love::GraphicsBackend::TextureWrap::Clamp, Love::GraphicsBackend::TextureWrap::Clamp),
 					shader.effect.get(), pixelHeight, false, _wireframe);
-				(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(node);
+				recordCommand(command);
 				markRenderCommand();
 				continue;
 			}
 			SpriteEffect *effect = _activeShader == 0 ? nullptr : _shaders.at(_activeShader).effect.get();
-			auto *node = LoveTexturedMeshNode::create(std::move(batch.vertices),
+			auto *command = LoveTexturedMeshCommand::create(std::move(batch.vertices),
 				std::move(batch.indices), batch.resource->imageTextures[static_cast<std::size_t>(batch.page)],
 				toDoraBlendFunc(_blendMode, _blendAlphaMode),
 				meshSamplerFlags(batch.resource->imageTextures[static_cast<std::size_t>(batch.page)], batch.resource->imageFilter,
 					Love::GraphicsBackend::TextureWrap::Clamp, Love::GraphicsBackend::TextureWrap::Clamp),
 				effect, true, _wireframe);
-			(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(node);
+			recordCommand(command);
 			markRenderCommand();
 		}
-		_drawNode = nullptr;
+		_primitiveCommand = nullptr;
 		return;
 	}
-	if (!it->second.fallbacks.empty() || it->second.lineHeight != 1.0f || align == "justify")
+	std::vector<std::string> lines;
+	if (wrapLimit >= 0.0f) getFontWrap(font, text, wrapLimit, lines);
+	else
 	{
-		std::vector<std::string> lines;
-		if (wrapLimit >= 0.0f)
-			getFontWrap(font, text, wrapLimit, lines);
+		std::size_t start = 0;
+		while (start <= text.size())
+		{
+			const std::size_t newline = text.find('\n', start);
+			const std::size_t end = newline == std::string_view::npos ? text.size() : newline;
+			lines.emplace_back(text.substr(start, end - start));
+			if (newline == std::string_view::npos) break;
+			start = newline + 1;
+		}
+	}
+	struct TrueTypeTextBatch
+	{
+		const FontResource *resource = nullptr;
+		Texture2D *texture = nullptr;
+		std::vector<SpriteVertex> vertices;
+		std::vector<uint32_t> indices;
+	};
+	std::vector<TrueTypeTextBatch> batches;
+	const uint32_t packedColor = Color(Vec4{red, green, blue, alpha}).toABGR();
+	const float lineAdvance = getFontHeight(font) * it->second.lineHeight;
+	const float pixelHeight = static_cast<float>(getActivePixelHeight());
+	auto selectResource = [this, &it](std::uint32_t codepoint) -> const FontResource * {
+		auto findFont = [this, codepoint](Love::GraphicsBackend::FontHandle handle)
+			-> const FontResource * {
+			const auto resource = _fonts.find(handle);
+			return resource != _fonts.end() && resource->second.font
+				&& SharedFontManager.hasGlyph(resource->second.font->getHandle(), codepoint)
+				? &resource->second : nullptr;
+		};
+		if (const auto *resource = findFont(it->first)) return resource;
+		for (const auto fallback : it->second.fallbacks)
+			if (const auto *resource = findFont(fallback)) return resource;
+		return it->second.font ? &it->second : nullptr;
+	};
+	auto appendVertex = [&](TrueTypeTextBatch &batch,
+		float localX, float localY, float u, float v) {
+		const float px = localX - originX;
+		const float py = localY - originY;
+		const float loveX = a * px + c * py + tx;
+		const float loveY = b * px + d * py + ty;
+		batch.vertices.push_back({loveX, pixelHeight - loveY,
+			0.0f, 1.0f, u, v, packedColor});
+	};
+	for (std::size_t lineIndex = 0; lineIndex < lines.size(); ++lineIndex)
+	{
+		const float lineWidth = getFontWidth(font, lines[lineIndex]);
+		float cursor = align == "center"
+			? ((wrapLimit >= 0.0f ? wrapLimit : lineWidth) - lineWidth) * 0.5f
+			: align == "right" ? (wrapLimit >= 0.0f ? wrapLimit : lineWidth) - lineWidth : 0.0f;
+		const std::size_t spaces = align == "justify"
+			? static_cast<std::size_t>(std::count(lines[lineIndex].begin(), lines[lineIndex].end(), ' ')) : 0;
+		const float justify = spaces > 0 && wrapLimit >= 0.0f && lineWidth < wrapLimit
+			? (wrapLimit - lineWidth) / static_cast<float>(spaces) : 0.0f;
+		std::vector<Utf8Unit> units;
+		if (!decodeUtf8Units(lines[lineIndex], units)) continue;
+		const FontResource *previousResource = nullptr;
+		std::uint32_t previous = 0;
+		float trailingOverhang = 0.0f;
+		for (const auto &unit : units)
+		{
+			const FontResource *resource = selectResource(unit.codepoint);
+			if (!resource || !resource->font) continue;
+			if (previousResource && previousResource != resource)
+			{
+				cursor += trailingOverhang;
+				previous = 0;
+			}
+			std::uint32_t codepoint = unit.codepoint == '\t' ? ' ' : unit.codepoint;
+			const auto *glyph = SharedFontCache.getGlyphInfo(resource->font, codepoint);
+			if (!glyph && codepoint != '?')
+			{
+				codepoint = '?';
+				glyph = SharedFontCache.getGlyphInfo(resource->font, codepoint);
+			}
+			if (!glyph) continue;
+			const float scale = static_cast<float>(resource->size)
+				/ static_cast<float>(DORA_SDF_FONT_BASE_SIZE);
+			const float kerning = previousResource == resource && previous != 0
+				? SharedFontManager.getKerning(resource->font->getHandle(), previous, codepoint) * scale
+				: 0.0f;
+			Texture2D *texture = nullptr;
+			Rect rect;
+			std::tie(texture, rect) = SharedFontCache.getCharacterInfo(resource->font, codepoint);
+			if (texture && rect.getWidth() > 0.0f && rect.getHeight() > 0.0f)
+			{
+				if (batches.empty() || batches.back().resource != resource
+					|| batches.back().texture != texture)
+					batches.push_back({resource, texture});
+				auto &batch = batches.back();
+				const auto &textureInfo = texture->getInfo();
+				const float uvLeft = rect.getX() / textureInfo.width;
+				const float uvTop = rect.getY() / textureInfo.height;
+				const float uvRight = (rect.getX() + rect.getWidth()) / textureInfo.width;
+				const float uvBottom = (rect.getY() + rect.getHeight()) / textureInfo.height;
+				const float padding = resource->font->getInfo().pixelSize
+					* SDF_FONT_BUFFER_PADDING_RATIO * scale;
+				const float left = cursor + kerning + glyph->offset_x * scale - padding;
+				const float top = static_cast<float>(lineIndex) * lineAdvance
+					+ resource->font->getInfo().ascender * scale
+					+ glyph->offset_y * scale - padding;
+				const float width = rect.getWidth() * scale;
+				const float height = rect.getHeight() * scale;
+				const auto base = static_cast<uint32_t>(batch.vertices.size());
+				appendVertex(batch, left, top, uvLeft, uvTop);
+				appendVertex(batch, left + width, top, uvRight, uvTop);
+				appendVertex(batch, left + width, top + height, uvRight, uvBottom);
+				appendVertex(batch, left, top + height, uvLeft, uvBottom);
+				batch.indices.insert(batch.indices.end(),
+					{base, base + 1, base + 2, base, base + 2, base + 3});
+			}
+			cursor += kerning + glyph->advance_x * scale
+				* (unit.codepoint == '\t' ? 2.0f : 1.0f);
+			trailingOverhang = std::max(0.0f, (glyph->width - glyph->advance_x) * scale);
+			if (align == "justify" && unit.codepoint == ' ') cursor += justify;
+			previousResource = resource;
+			previous = codepoint;
+		}
+	}
+	if (batches.empty()) return;
+	const float transformScale = std::sqrt(std::abs(a * d - b * c));
+	for (auto &batch : batches)
+	{
+		if (_activeShader != 0 && _shaders.at(_activeShader).usesVertexID)
+		{
+			const auto &shader = _shaders.at(_activeShader);
+			std::vector<Love::GraphicsBackend::MeshVertex> dynamicVertices;
+			dynamicVertices.reserve(batch.vertices.size());
+			std::vector<float> vertexIDs;
+			vertexIDs.reserve(batch.vertices.size());
+			for (std::size_t index = 0; index < batch.vertices.size(); ++index)
+			{
+				const auto &vertex = batch.vertices[index];
+				dynamicVertices.push_back({vertex.x, pixelHeight - vertex.y,
+					vertex.z, vertex.w, vertex.u, vertex.v, red, green, blue, alpha});
+				vertexIDs.push_back(static_cast<float>(index));
+			}
+			std::vector<LoveDynamicMeshAttribute> attributes{{
+				shader.vertexIDSemantic, 1, std::move(vertexIDs)}};
+			auto *command = LoveDynamicMeshCommand::create(std::move(dynamicVertices),
+				std::move(batch.indices), std::move(attributes),
+				std::vector<LoveDynamicMeshInstanceAttribute>{}, 1, std::array<Vec4, 5>{},
+				batch.texture, toDoraBlendFunc(_blendMode, _blendAlphaMode),
+				meshSamplerFlags(batch.texture, Love::GraphicsBackend::TextureFilter::Linear,
+					Love::GraphicsBackend::TextureWrap::Clamp,
+					Love::GraphicsBackend::TextureWrap::Clamp),
+				shader.effect.get(), pixelHeight, false, _wireframe);
+			recordCommand(command);
+		}
 		else
 		{
-			std::size_t start = 0;
-			while (start <= text.size())
+			SpriteEffect *effect = _activeShader == 0
+				? SharedFontCache.getSDFEffect() : _shaders.at(_activeShader).effect.get();
+			std::optional<Vec2> smooth;
+			if (_activeShader == 0)
 			{
-				const std::size_t newline = text.find('\n', start);
-				const std::size_t end = newline == std::string_view::npos ? text.size() : newline;
-				lines.emplace_back(text.substr(start, end - start));
-				if (newline == std::string_view::npos) break;
-				start = newline + 1;
+				const float fontScale = static_cast<float>(batch.resource->size)
+					/ static_cast<float>(DORA_SDF_FONT_BASE_SIZE) * transformScale;
+				constexpr float edge = 0.69f;
+				constexpr float baseSoftness = 0.012f;
+				const float softness = std::clamp(baseSoftness / std::max(fontScale, 0.01f),
+					0.006f, 0.08f);
+				smooth = Vec2{edge - softness, edge + softness};
 			}
+			auto *command = LoveTexturedMeshCommand::create(std::move(batch.vertices),
+				std::move(batch.indices), batch.texture,
+				toDoraBlendFunc(_blendMode, _blendAlphaMode),
+				meshSamplerFlags(batch.texture, Love::GraphicsBackend::TextureFilter::Linear,
+					Love::GraphicsBackend::TextureWrap::Clamp,
+					Love::GraphicsBackend::TextureWrap::Clamp),
+				effect, true, _wireframe, smooth);
+			recordCommand(command);
 		}
-		auto *container = Node::create();
-		container->setPosition({tx, static_cast<float>(getActivePixelHeight()) - ty});
-		const float scaleX = std::hypot(a, b);
-		const float determinant = a * d - b * c;
-		container->setScaleX(scaleX);
-		container->setScaleY(scaleX > 0.0f ? determinant / scaleX : 0.0f);
-		container->setAngle(std::atan2(b, a) * 180.0f / std::numbers::pi_v<float>);
-		const float lineAdvance = getFontHeight(font) * it->second.lineHeight;
-		for (std::size_t lineIndex = 0; lineIndex < lines.size(); ++lineIndex)
-		{
-			const std::string &line = lines[lineIndex];
-			const float lineWidth = getFontWidth(font, line);
-			float cursor = align == "center" ? std::floor(((wrapLimit >= 0.0f ? wrapLimit : lineWidth) - lineWidth) * 0.5f)
-				: align == "right" ? std::floor((wrapLimit >= 0.0f ? wrapLimit : lineWidth) - lineWidth) : 0.0f;
-			const std::size_t spaces = align == "justify"
-				? static_cast<std::size_t>(std::count(line.begin(), line.end(), ' ')) : 0;
-			const float extraSpacing = spaces > 0 && wrapLimit >= 0.0f && lineWidth < wrapLimit
-				? (wrapLimit - lineWidth) / static_cast<float>(spaces) : 0.0f;
-			std::vector<Utf8Unit> units;
-			if (!decodeUtf8Units(line, units)) continue;
-			auto selectFont = [this, &it](std::uint32_t codepoint) {
-				if (it->second.font
-					&& SharedFontManager.hasGlyph(it->second.font->getHandle(), codepoint))
-					return it->first;
-				for (const auto handle : it->second.fallbacks)
-				{
-					const auto fallback = _fonts.find(handle);
-					if (fallback != _fonts.end() && fallback->second.font
-						&& SharedFontManager.hasGlyph(fallback->second.font->getHandle(), codepoint))
-						return handle;
-				}
-				return it->first;
-			};
-			for (std::size_t index = 0; index < units.size();)
-			{
-				const auto selected = selectFont(units[index].codepoint);
-				const std::size_t begin = units[index].begin;
-				std::size_t end = units[index].end;
-				++index;
-				while (index < units.size()
-					&& !(align == "justify" && units[index - 1].codepoint == ' ')
-					&& selectFont(units[index].codepoint) == selected)
-				{
-					end = units[index].end;
-					++index;
-				}
-				const auto resource = _fonts.find(selected);
-				if (resource == _fonts.end()) continue;
-				auto *label = Label::create(resource->second.filename,
-					static_cast<std::uint32_t>(resource->second.size), true);
-				if (!label) continue;
-				label->setText({line.data() + begin, end - begin});
-				const float runWidth = label->getSize().width;
-				label->setAnchor({0.0f, 1.0f});
-				label->setPosition({cursor - originX,
-					originY - static_cast<float>(lineIndex) * lineAdvance});
-				label->setColor(Color(Vec4{red, green, blue, alpha}));
-				label->setBlendFunc(toDoraBlendFunc(_blendMode, _blendAlphaMode));
-				container->addChild(label);
-				cursor += runWidth;
-				if (align == "justify" && units[index - 1].codepoint == ' ')
-					cursor += extraSpacing;
-			}
-		}
-		Node *output = container;
-		if (_wireframe)
-		{
-			auto *wireframe = LoveWireframeNode::create();
-			wireframe->addChild(container);
-			output = wireframe;
-		}
-		(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(output);
 		markRenderCommand();
-		_drawNode = nullptr;
-		return;
 	}
-	auto *label = Label::create(it->second.filename, static_cast<uint32_t>(it->second.size), true);
-	if (!label)
-		return;
-	if (wrapLimit >= 0.0f)
-		label->setTextWidth(wrapLimit);
-	label->setAlignment(align == "center" ? TextAlign::Center : align == "right" ? TextAlign::Right : TextAlign::Left);
-	label->setText({text.data(), text.size()});
-	const Size labelSize = label->getSize();
-	label->setAnchor({labelSize.width > 0.0f ? originX / labelSize.width : 0.0f,
-		labelSize.height > 0.0f ? 1.0f - originY / labelSize.height : 1.0f});
-	label->setPosition({tx, static_cast<float>(getActivePixelHeight()) - ty});
-	const float scaleX = std::hypot(a, b);
-	const float determinant = a * d - b * c;
-	label->setScaleX(scaleX);
-	label->setScaleY(scaleX > 0.0f ? determinant / scaleX : 0.0f);
-	label->setAngle(std::atan2(b, a) * 180.0f / std::numbers::pi_v<float>);
-	label->setColor(Color(Vec4{red, green, blue, alpha}));
-	label->setBlendFunc(toDoraBlendFunc(_blendMode, _blendAlphaMode));
-	Node *output = label;
-	if (_wireframe)
-	{
-		auto *wireframe = LoveWireframeNode::create();
-		wireframe->addChild(label);
-		output = wireframe;
-	}
-	(_commandRoot ? _commandRoot.get() : _frameRoot.get())->addChild(output);
-	markRenderCommand();
-	_drawNode = nullptr;
+	_primitiveCommand = nullptr;
 }
 
 bool LoveNode::setBlendMode(std::string_view mode, std::string_view alphaMode, std::string &error)
@@ -9169,44 +9593,58 @@ bool LoveNode::setBlendMode(std::string_view mode, std::string_view alphaMode, s
 		error = "the 'multiply' blend mode must be used with premultiplied alpha";
 		return false;
 	}
+	if (_blendMode == mode && _blendAlphaMode == alphaMode)
+	{
+		error.clear();
+		return true;
+	}
 	_blendMode.assign(mode);
 	_blendAlphaMode.assign(alphaMode);
-	_drawNode = nullptr;
+	_primitiveCommand = nullptr;
 	error.clear();
 	return true;
 }
 
 void LoveNode::setScissor(bool enabled, float x, float y, float width, float height)
 {
+	if (_scissorEnabled == enabled && (!enabled
+		|| (_scissor.origin.x == x && _scissor.origin.y == y
+			&& _scissor.size.width == width && _scissor.size.height == height)))
+		return;
 	_scissorEnabled = enabled;
 	_scissor.set(x, y, width, height);
-	if (_graphicsFrameActive && _frameRoot)
+	if (_graphicsFrameActive && !_renderPasses.empty())
 		beginCommandSegment();
 }
 
 void LoveNode::setColorMask(bool red, bool green, bool blue, bool alpha)
 {
+	if (_colorMask[0] == red && _colorMask[1] == green
+		&& _colorMask[2] == blue && _colorMask[3] == alpha)
+		return;
 	_colorMask[0] = red;
 	_colorMask[1] = green;
 	_colorMask[2] = blue;
 	_colorMask[3] = alpha;
-	if (_graphicsFrameActive && _frameRoot)
+	if (_graphicsFrameActive && !_renderPasses.empty())
 		beginCommandSegment();
 }
 
 void LoveNode::setDepthMode(std::string_view compare, bool write)
 {
+	if (_depthCompare == compare && _depthWrite == write) return;
 	_depthCompare = compare;
 	_depthWrite = write;
-	if (_graphicsFrameActive && _frameRoot)
+	if (_graphicsFrameActive && !_renderPasses.empty())
 		beginCommandSegment();
 }
 
 void LoveNode::setMeshCullMode(std::string_view mode, std::string_view winding)
 {
+	if (_meshCullMode == mode && _frontFaceWinding == winding) return;
 	_meshCullMode = mode;
 	_frontFaceWinding = winding;
-	if (_graphicsFrameActive && _frameRoot)
+	if (_graphicsFrameActive && !_renderPasses.empty())
 		beginCommandSegment();
 }
 
@@ -9214,7 +9652,7 @@ void LoveNode::setWireframe(bool enabled)
 {
 	if (_wireframe == enabled) return;
 	_wireframe = enabled;
-	if (_graphicsFrameActive && _frameRoot)
+	if (_graphicsFrameActive && !_renderPasses.empty())
 		beginCommandSegment();
 }
 
@@ -9242,7 +9680,7 @@ bool LoveNode::beginStencilWrite(std::string_view action, int value, std::string
 		error = "drawing to a Love Canvas stencil requires setCanvas({canvas, stencil=true})";
 		return false;
 	}
-	if (!_graphicsFrameActive || !_frameRoot)
+	if (!_graphicsFrameActive || _renderPasses.empty())
 	{
 		error = "love.graphics.stencil is only available during the Dora-driven love.draw frame";
 		return false;
@@ -9259,15 +9697,16 @@ void LoveNode::endStencilWrite()
 {
 	if (!_stencilWriting) return;
 	_stencilWriting = false;
-	if (_graphicsFrameActive && _frameRoot)
+	if (_graphicsFrameActive && !_renderPasses.empty())
 		beginCommandSegment();
 }
 
 void LoveNode::setStencilTest(std::string_view compare, int value)
 {
+	if (_stencilCompare == compare && _stencilTestValue == value) return;
 	_stencilCompare.assign(compare);
 	_stencilTestValue = value;
-	if (_graphicsFrameActive && _frameRoot && !_stencilWriting)
+	if (_graphicsFrameActive && !_renderPasses.empty() && !_stencilWriting)
 		beginCommandSegment();
 }
 
@@ -9310,11 +9749,15 @@ void LoveNode::endFrame()
 	{
 		if (!pass->target || (pass->clearFlags == BGFX_CLEAR_NONE && !pass->hasCommands))
 			continue;
+		auto submitCommands = [&]() {
+			for (const auto &command : pass->commands)
+				if (command) command->submit();
+		};
 		if (pass->clearFlags != BGFX_CLEAR_NONE)
-			pass->target->renderWithClearFlags(pass->root, pass->clearFlags,
+			pass->target->submitWithClearFlags(submitCommands, pass->clearFlags,
 				pass->clearColor, pass->depth, pass->stencil);
 		else
-			pass->target->render(pass->root);
+			pass->target->submit(submitCommands);
 	}
 	// Shader userdata can be collected after commands were queued in love.draw.
 	// Retain the Effect through submission, then drop its sampler references so
@@ -9993,6 +10436,8 @@ void LoveNode::unmountArchive(const std::string &mountedRoot)
 Love::AudioBackend::SourceHandle LoveNode::newSource(const std::string &filename,
 	std::string_view sourceType, std::string &error)
 {
+	// AudioSource intentionally remains a Dora child: unlike a draw command, it
+	// needs Dora's scene lifetime and per-frame spatial-audio update semantics.
 	auto data = SharedContent.load(filename);
 	if (!data.first || data.second <= 0)
 	{
@@ -11046,6 +11491,9 @@ void LoveNode::setMeter(float meter)
 Love::PhysicsBackend::WorldHandle LoveNode::newWorld(float gravityX, float gravityY,
 	bool sleep, std::string &error)
 {
+	// PhysicsWorld/Body/Joint wrappers are a semantic integration boundary for
+	// stepping, contacts, and deferred destruction. They are retained resources,
+	// not render children or a substitute for flat Love drawing commands.
 	PhysicsWorld *world = PhysicsWorld::create();
 	if (!world)
 	{

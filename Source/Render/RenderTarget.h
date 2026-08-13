@@ -47,6 +47,9 @@ public:
 	void renderWithClear(Node* target, Color color, float depth = 1.0f, uint8_t stencil = 0);
 	void renderWithClearFlags(Node* target, uint16_t clearFlags, Color color = 0x0,
 		float depth = 1.0f, uint8_t stencil = 0);
+	void submit(const std::function<void()>& commands);
+	void submitWithClearFlags(const std::function<void()>& commands, uint16_t clearFlags,
+		Color color = 0x0, float depth = 1.0f, uint8_t stencil = 0);
 	bool readPixelsAsync(const std::function<void(uint16_t, uint16_t, std::vector<uint8_t>)>& callback);
 	ReadPixelsResult readPixelsSync(std::vector<uint8_t>& pixels);
 	ReadPixelsResult readPixelsSync(std::vector<uint8_t>& pixels, uint16_t layer, uint8_t mip);
@@ -62,6 +65,8 @@ protected:
 		std::optional<Attachment> depthAttachment = std::nullopt);
 	void renderAfterClear(Node* target, uint16_t clearFlags, Color color = 0x0,
 		float depth = 1.0f, uint8_t stencil = 0);
+	void submitAfterClear(const std::function<void()>& commands, uint16_t clearFlags,
+		Color color = 0x0, float depth = 1.0f, uint8_t stencil = 0);
 	void renderOnly(Node* target);
 	void end();
 

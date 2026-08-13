@@ -7414,15 +7414,17 @@ namespace bgfx { namespace gl
 
 	void RendererContextGL::submitBlit(BlitState& _bs, uint16_t _view)
 	{
-		if (m_blitSupported)
+		while (_bs.hasItem(_view) )
 		{
-			while (_bs.hasItem(_view) )
+			const BlitItem& bi = _bs.advance();
+
+			const TextureGL& src = m_textures[bi.m_src.idx];
+			const TextureGL& dst = m_textures[bi.m_dst.idx];
+			const bool emulateReadBackBlit = BX_ENABLED(BGFX_GL_CONFIG_BLIT_EMULATION)
+				&& 0 != (dst.m_flags & BGFX_TEXTURE_READ_BACK);
+
+			if (m_blitSupported && !emulateReadBackBlit)
 			{
-				const BlitItem& bi = _bs.advance();
-
-				const TextureGL& src = m_textures[bi.m_src.idx];
-				const TextureGL& dst = m_textures[bi.m_dst.idx];
-
 				GL_CHECK(glCopyImageSubData(src.m_id
 					, src.m_target
 					, bi.m_srcMip
@@ -7439,18 +7441,10 @@ namespace bgfx { namespace gl
 					, bi.m_height
 					, bx::uint32_imax(bi.m_depth, 1)
 					) );
-				}
-		}
-		else if (BX_ENABLED(BGFX_GL_CONFIG_BLIT_EMULATION) )
-		{
-			while (_bs.hasItem(_view) )
+			}
+			else if (BX_ENABLED(BGFX_GL_CONFIG_BLIT_EMULATION) )
 			{
-				const BlitItem& bi = _bs.advance();
-
-				const TextureGL& src = m_textures[bi.m_src.idx];
-				const TextureGL& dst = m_textures[bi.m_dst.idx];
-
-				BX_ASSERT(0 == bi.m_srcZ && 0 == bi.m_dstZ && 1 >= bi.m_depth
+				BX_ASSERT(GL_TEXTURE_2D == dst.m_target && 0 == bi.m_dstZ && 1 >= bi.m_depth
 					, "Blitting 3D regions is not supported"
 					);
 
@@ -7459,12 +7453,33 @@ namespace bgfx { namespace gl
 
 				GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, fbo) );
 
-				GL_CHECK(glFramebufferTexture2D(GL_FRAMEBUFFER
-					, GL_COLOR_ATTACHMENT0
-					, GL_TEXTURE_2D
-					, src.m_id
-					, bi.m_srcMip
-					) );
+				if (GL_TEXTURE_CUBE_MAP == src.m_target)
+				{
+					GL_CHECK(glFramebufferTexture2D(GL_FRAMEBUFFER
+						, GL_COLOR_ATTACHMENT0
+						, GLenum(GL_TEXTURE_CUBE_MAP_POSITIVE_X + bi.m_srcZ)
+						, src.m_id
+						, bi.m_srcMip
+						) );
+				}
+				else if (GL_TEXTURE_2D == src.m_target)
+				{
+					GL_CHECK(glFramebufferTexture2D(GL_FRAMEBUFFER
+						, GL_COLOR_ATTACHMENT0
+						, GL_TEXTURE_2D
+						, src.m_id
+						, bi.m_srcMip
+						) );
+				}
+				else
+				{
+					GL_CHECK(glFramebufferTextureLayer(GL_FRAMEBUFFER
+						, GL_COLOR_ATTACHMENT0
+						, src.m_id
+						, bi.m_srcMip
+						, bi.m_srcZ
+						) );
+				}
 
 				GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 				BX_ASSERT(GL_FRAMEBUFFER_COMPLETE == status, "glCheckFramebufferStatus failed 0x%08x", status);

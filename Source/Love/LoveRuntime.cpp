@@ -1513,6 +1513,12 @@ struct MeshUserdata final : ::love::Object
 	GraphicsBackend::ImageHandle image = 0;
 	GraphicsBackend::CanvasHandle canvas = 0;
 	::love::StrongRef<::love::Object> textureObject;
+	std::shared_ptr<GraphicsBackend::MeshBuffer> renderBuffer
+		= std::make_shared<GraphicsBackend::MeshBuffer>();
+	std::uint64_t geometryRevision = 1;
+	std::uint64_t preparedRevision = 0;
+	int preparedInstanceCount = 0;
+	std::string preparedDrawMode;
 };
 
 struct SpriteBatchSprite
@@ -1547,6 +1553,9 @@ struct SpriteBatchUserdata final : ::love::Object
 	std::string usage = "dynamic";
 	std::unordered_map<std::string, SpriteBatchAttachment> attachments;
 	std::unordered_map<std::string, ::love::StrongRef<::love::Object>> attachmentObjects;
+	std::shared_ptr<GraphicsBackend::MeshBuffer> renderBuffer
+		= std::make_shared<GraphicsBackend::MeshBuffer>();
+	bool geometryDirty = true;
 };
 
 struct ParticleColor
@@ -1650,6 +1659,10 @@ struct ParticleSystemUserdata final : ::love::Object
 	bool defaultOffset = true;
 	bool relativeRotation = false;
 	std::uint64_t randomState = 0x853c49e6748fea9bULL;
+	std::shared_ptr<GraphicsBackend::MeshBuffer> renderBuffer
+		= std::make_shared<GraphicsBackend::MeshBuffer>();
+	bool geometryDirty = true;
+	std::size_t preparedParticleCount = 0;
 };
 
 struct TextFragment
@@ -13972,6 +13985,20 @@ int LoveRuntime::graphicsPop(lua_State *state)
 	runtime->_graphicsTransform = saved.transform;
 	if (saved.all)
 	{
+		const bool blendChanged = saved.blendMode != runtime->_graphicsBlendMode
+			|| saved.blendAlphaMode != runtime->_graphicsBlendAlphaMode;
+		const bool scissorChanged = saved.scissorEnabled != runtime->_graphicsScissorEnabled
+			|| !std::equal(std::begin(saved.scissor), std::end(saved.scissor),
+				std::begin(runtime->_graphicsScissor));
+		const bool colorMaskChanged = !std::equal(std::begin(saved.colorMask),
+			std::end(saved.colorMask), std::begin(runtime->_graphicsColorMask));
+		const bool depthChanged = saved.depthCompare != runtime->_graphicsDepthCompare
+			|| saved.depthWrite != runtime->_graphicsDepthWrite;
+		const bool cullChanged = saved.meshCullMode != runtime->_graphicsMeshCullMode
+			|| saved.frontFaceWinding != runtime->_graphicsFrontFaceWinding;
+		const bool wireframeChanged = saved.wireframe != runtime->_graphicsWireframe;
+		const bool stencilChanged = saved.stencilCompare != runtime->_graphicsStencilCompare
+			|| saved.stencilValue != runtime->_graphicsStencilValue;
 		std::copy(std::begin(saved.color), std::end(saved.color), runtime->_graphicsColor);
 		std::copy(std::begin(saved.backgroundColor), std::end(saved.backgroundColor),
 			runtime->_graphicsBackgroundColor);
@@ -14002,16 +14029,22 @@ int LoveRuntime::graphicsPop(lua_State *state)
 					saved.canvasDepthStencil != 0 ? &saved.canvasDepthStencilTarget : nullptr,
 					saved.canvasDepth, saved.canvasStencil, error))
 				return luaL_error(state, "%s", error.c_str());
-			if (!runtime->_graphicsBackend->setBlendMode(saved.blendMode, saved.blendAlphaMode, error))
+			if (blendChanged && !runtime->_graphicsBackend->setBlendMode(
+				saved.blendMode, saved.blendAlphaMode, error))
 				return luaL_error(state, "%s", error.c_str());
-			runtime->_graphicsBackend->setScissor(saved.scissorEnabled,
-				saved.scissor[0], saved.scissor[1], saved.scissor[2], saved.scissor[3]);
-			runtime->_graphicsBackend->setColorMask(saved.colorMask[0], saved.colorMask[1],
-				saved.colorMask[2], saved.colorMask[3]);
-			runtime->_graphicsBackend->setDepthMode(saved.depthCompare, saved.depthWrite);
-			runtime->_graphicsBackend->setMeshCullMode(saved.meshCullMode, saved.frontFaceWinding);
-			runtime->_graphicsBackend->setWireframe(saved.wireframe);
-			runtime->_graphicsBackend->setStencilTest(saved.stencilCompare, saved.stencilValue);
+			if (scissorChanged)
+				runtime->_graphicsBackend->setScissor(saved.scissorEnabled,
+					saved.scissor[0], saved.scissor[1], saved.scissor[2], saved.scissor[3]);
+			if (colorMaskChanged)
+				runtime->_graphicsBackend->setColorMask(saved.colorMask[0], saved.colorMask[1],
+					saved.colorMask[2], saved.colorMask[3]);
+			if (depthChanged)
+				runtime->_graphicsBackend->setDepthMode(saved.depthCompare, saved.depthWrite);
+			if (cullChanged)
+				runtime->_graphicsBackend->setMeshCullMode(saved.meshCullMode, saved.frontFaceWinding);
+			if (wireframeChanged) runtime->_graphicsBackend->setWireframe(saved.wireframe);
+			if (stencilChanged)
+				runtime->_graphicsBackend->setStencilTest(saved.stencilCompare, saved.stencilValue);
 			if (saved.shader != runtime->_graphicsShader
 				&& !runtime->_graphicsBackend->setShader(saved.shader, error))
 				return luaL_error(state, "%s", error.c_str());
@@ -16114,55 +16147,74 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 			textureHeight = runtime->_graphicsBackend->getCanvasHeight(texture->handle);
 		}
 		else return luaL_error(state, "ParticleSystem texture reference is missing");
-		std::vector<GraphicsBackend::MeshVertex> vertices;
-		std::vector<std::uint32_t> indices;
-		vertices.reserve(particleSystem->particles.size() * 4);
-		indices.reserve(particleSystem->particles.size() * 6);
-		for (const auto &particle : particleSystem->particles)
+		if (particleSystem->geometryDirty)
 		{
-			float sourceX = 0.0f, sourceY = 0.0f;
-			float sourceWidth = static_cast<float>(textureWidth);
-			float sourceHeight = static_cast<float>(textureHeight);
-			float uvWidth = sourceWidth, uvHeight = sourceHeight;
-			if (!particleSystem->quads.empty())
+			auto &buffer = *particleSystem->renderBuffer;
+			buffer.vertices.clear();
+			buffer.attributes.clear();
+			buffer.vertices.reserve(particleSystem->particles.size() * 4);
+			for (const auto &particle : particleSystem->particles)
 			{
-				const auto &quad = particleSystem->quads[std::min(particle.quadIndex,
-					particleSystem->quads.size() - 1)];
-				sourceX = quad.x; sourceY = quad.y; sourceWidth = quad.width; sourceHeight = quad.height;
-				uvWidth = quad.textureWidth; uvHeight = quad.textureHeight;
+				float sourceX = 0.0f, sourceY = 0.0f;
+				float sourceWidth = static_cast<float>(textureWidth);
+				float sourceHeight = static_cast<float>(textureHeight);
+				float uvWidth = sourceWidth, uvHeight = sourceHeight;
+				if (!particleSystem->quads.empty())
+				{
+					const auto &quad = particleSystem->quads[std::min(particle.quadIndex,
+						particleSystem->quads.size() - 1)];
+					sourceX = quad.x; sourceY = quad.y; sourceWidth = quad.width; sourceHeight = quad.height;
+					uvWidth = quad.textureWidth; uvHeight = quad.textureHeight;
+				}
+				const float pc = std::cos(particle.angle) * particle.size;
+				const float ps = std::sin(particle.angle) * particle.size;
+				const float ptx = particle.x - pc * particleSystem->offsetX + ps * particleSystem->offsetY;
+				const float pty = particle.y - ps * particleSystem->offsetX - pc * particleSystem->offsetY;
+				const float positions[4][2] = {{0.0f, 0.0f}, {sourceWidth, 0.0f},
+					{sourceWidth, sourceHeight}, {0.0f, sourceHeight}};
+				const float texcoords[4][2] = {{sourceX / uvWidth, sourceY / uvHeight},
+					{(sourceX + sourceWidth) / uvWidth, sourceY / uvHeight},
+					{(sourceX + sourceWidth) / uvWidth, (sourceY + sourceHeight) / uvHeight},
+					{sourceX / uvWidth, (sourceY + sourceHeight) / uvHeight}};
+				for (int vertexIndex = 0; vertexIndex < 4; ++vertexIndex)
+				{
+					const float px = positions[vertexIndex][0], py = positions[vertexIndex][1];
+					const float localX = pc * px - ps * py + ptx;
+					const float localY = ps * px + pc * py + pty;
+					GraphicsBackend::MeshVertex vertex;
+					vertex.x = localX;
+					vertex.y = localY;
+					vertex.u = texcoords[vertexIndex][0]; vertex.v = texcoords[vertexIndex][1];
+					vertex.red = particle.color.red;
+					vertex.green = particle.color.green;
+					vertex.blue = particle.color.blue;
+					vertex.alpha = particle.color.alpha;
+					buffer.vertices.push_back(vertex);
+				}
 			}
-			const float pc = std::cos(particle.angle) * particle.size;
-			const float ps = std::sin(particle.angle) * particle.size;
-			const float ptx = particle.x - pc * particleSystem->offsetX + ps * particleSystem->offsetY;
-			const float pty = particle.y - ps * particleSystem->offsetX - pc * particleSystem->offsetY;
-			const float positions[4][2] = {{0.0f, 0.0f}, {sourceWidth, 0.0f},
-				{sourceWidth, sourceHeight}, {0.0f, sourceHeight}};
-			const float texcoords[4][2] = {{sourceX / uvWidth, sourceY / uvHeight},
-				{(sourceX + sourceWidth) / uvWidth, sourceY / uvHeight},
-				{(sourceX + sourceWidth) / uvWidth, (sourceY + sourceHeight) / uvHeight},
-				{sourceX / uvWidth, (sourceY + sourceHeight) / uvHeight}};
-			const std::uint32_t base = static_cast<std::uint32_t>(vertices.size());
-			for (int vertexIndex = 0; vertexIndex < 4; ++vertexIndex)
+			if (particleSystem->preparedParticleCount != particleSystem->particles.size())
 			{
-				const float px = positions[vertexIndex][0], py = positions[vertexIndex][1];
-				const float localX = pc * px - ps * py + ptx;
-				const float localY = ps * px + pc * py + pty;
-				GraphicsBackend::MeshVertex vertex;
-				vertex.x = a * localX + c * localY + tx;
-				vertex.y = b * localX + d * localY + ty;
-				vertex.u = texcoords[vertexIndex][0]; vertex.v = texcoords[vertexIndex][1];
-				vertex.red = particle.color.red * runtime->_graphicsColor[0];
-				vertex.green = particle.color.green * runtime->_graphicsColor[1];
-				vertex.blue = particle.color.blue * runtime->_graphicsColor[2];
-				vertex.alpha = particle.color.alpha * runtime->_graphicsColor[3];
-				vertices.push_back(vertex);
+				buffer.indices.clear();
+				buffer.indices.reserve(particleSystem->particles.size() * 6);
+				for (std::size_t index = 0; index < particleSystem->particles.size(); ++index)
+				{
+					const auto base = static_cast<std::uint32_t>(index * 4);
+					buffer.indices.insert(buffer.indices.end(),
+						{base, base + 1, base + 2, base, base + 2, base + 3});
+				}
+				particleSystem->preparedParticleCount = particleSystem->particles.size();
 			}
-			indices.insert(indices.end(), {base, base + 1, base + 2, base, base + 2, base + 3});
+			++buffer.revision;
+			particleSystem->geometryDirty = false;
 		}
 		std::string error;
-		if (!runtime->_graphicsBackend->drawMesh(vertices, {}, indices, "triangles",
+		const GraphicsBackend::Transform2D transform{a, b, c, d, tx, ty};
+		const std::array<float, 4> color{
+			runtime->_graphicsColor[0], runtime->_graphicsColor[1],
+			runtime->_graphicsColor[2], runtime->_graphicsColor[3]};
+		if (!runtime->_graphicsBackend->drawMeshBuffer(particleSystem->renderBuffer, "triangles",
 			particleSystem->image, particleSystem->canvas, runtime->_graphicsPointSize,
-			filter, wrapU, wrapV, error))
+			filter, wrapU, wrapV, transform, color, error))
 			return luaL_error(state, "%s", error.c_str());
 		return 0;
 	}
@@ -16248,74 +16300,73 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 			luaL_argcheck(state, attribute.components >= 1, 1,
 				"SpriteBatch VertexColor attachment must have at least 1 component");
 		}
-		std::vector<GraphicsBackend::MeshVertex> vertices;
-		std::vector<std::uint32_t> indices;
-		vertices.reserve(count * 4);
-		indices.reserve(count * 6);
-		for (std::size_t spriteIndex = 0; spriteIndex < count; ++spriteIndex)
+		auto &buffer = *batch->renderBuffer;
+		if (batch->geometryDirty || !batch->attachments.empty())
 		{
-			const auto &sprite = batch->sprites[start + spriteIndex];
-			const std::uint32_t base = static_cast<std::uint32_t>(vertices.size());
-			for (std::size_t localVertex = 0; localVertex < 4; ++localVertex)
-			{
-				const auto &source = sprite.vertices[localVertex];
-				auto vertex = source;
-				const std::size_t sourceVertex = (start + spriteIndex) * 4 + localVertex;
-				if (positionAttachment)
-				{
-					const auto &attribute = positionAttachment->mesh->format[positionAttachment->attributeIndex];
-					const float *values = attachmentValues(*positionAttachment, sourceVertex);
-					vertex.x = values[0]; vertex.y = values[1];
-					if (attribute.components >= 3) vertex.z = values[2];
-					if (attribute.components >= 4) vertex.w = values[3];
-				}
-				if (texcoordAttachment)
-				{
-					const auto &attribute = texcoordAttachment->mesh->format[texcoordAttachment->attributeIndex];
-					const float *values = attachmentValues(*texcoordAttachment, sourceVertex);
-					vertex.u = values[0]; vertex.v = values[1];
-					if (batch->textureType == GraphicsBackend::TextureType::Array)
-						vertex.textureLayer = attribute.components >= 3 ? values[2] : 0.0f;
-				}
-				if (colorAttachment)
-				{
-					const auto &attribute = colorAttachment->mesh->format[colorAttachment->attributeIndex];
-					const float *values = attachmentValues(*colorAttachment, sourceVertex);
-					vertex.red = values[0];
-					vertex.green = attribute.components >= 2 ? values[1] : 0.0f;
-					vertex.blue = attribute.components >= 3 ? values[2] : 0.0f;
-					vertex.alpha = attribute.components >= 4 ? values[3] : 1.0f;
-				}
-				const float localX = vertex.x, localY = vertex.y;
-				vertex.x = a * localX + c * localY + tx;
-				vertex.y = b * localX + d * localY + ty;
-				vertex.red *= runtime->_graphicsColor[0];
-				vertex.green *= runtime->_graphicsColor[1];
-				vertex.blue *= runtime->_graphicsColor[2];
-				vertex.alpha *= runtime->_graphicsColor[3];
-				vertices.push_back(vertex);
-			}
-			indices.insert(indices.end(), {base, base + 1, base + 2, base, base + 2, base + 3});
-		}
-		std::vector<GraphicsBackend::MeshAttributeData> customAttributes;
-		customAttributes.reserve(batch->attachments.size());
-		for (const auto &[name, attachment] : batch->attachments)
-		{
-			if (name == "VertexPosition" || name == "VertexTexCoord" || name == "VertexColor")
-				continue;
-			const auto &attribute = attachment.mesh->format[attachment.attributeIndex];
-			GraphicsBackend::MeshAttributeData data;
-			data.name = name;
-			data.components = attribute.components;
-			data.values.reserve(count * 4 * static_cast<std::size_t>(attribute.components));
+			buffer.vertices.clear();
+			buffer.indices.clear();
+			buffer.attributes.clear();
+			buffer.vertices.reserve(count * 4);
+			buffer.indices.reserve(count * 6);
 			for (std::size_t spriteIndex = 0; spriteIndex < count; ++spriteIndex)
-			for (std::size_t localVertex = 0; localVertex < 4; ++localVertex)
 			{
-				const std::size_t sourceVertex = (start + spriteIndex) * 4 + localVertex;
-				const float *values = attachmentValues(attachment, sourceVertex);
-				data.values.insert(data.values.end(), values, values + attribute.components);
+				const auto &sprite = batch->sprites[start + spriteIndex];
+				const std::uint32_t base = static_cast<std::uint32_t>(buffer.vertices.size());
+				for (std::size_t localVertex = 0; localVertex < 4; ++localVertex)
+				{
+					auto vertex = sprite.vertices[localVertex];
+					const std::size_t sourceVertex = (start + spriteIndex) * 4 + localVertex;
+					if (positionAttachment)
+					{
+						const auto &attribute = positionAttachment->mesh->format[positionAttachment->attributeIndex];
+						const float *values = attachmentValues(*positionAttachment, sourceVertex);
+						vertex.x = values[0]; vertex.y = values[1];
+						if (attribute.components >= 3) vertex.z = values[2];
+						if (attribute.components >= 4) vertex.w = values[3];
+					}
+					if (texcoordAttachment)
+					{
+						const auto &attribute = texcoordAttachment->mesh->format[texcoordAttachment->attributeIndex];
+						const float *values = attachmentValues(*texcoordAttachment, sourceVertex);
+						vertex.u = values[0]; vertex.v = values[1];
+						if (batch->textureType == GraphicsBackend::TextureType::Array)
+							vertex.textureLayer = attribute.components >= 3 ? values[2] : 0.0f;
+					}
+					if (colorAttachment)
+					{
+						const auto &attribute = colorAttachment->mesh->format[colorAttachment->attributeIndex];
+						const float *values = attachmentValues(*colorAttachment, sourceVertex);
+						vertex.red = values[0];
+						vertex.green = attribute.components >= 2 ? values[1] : 0.0f;
+						vertex.blue = attribute.components >= 3 ? values[2] : 0.0f;
+						vertex.alpha = attribute.components >= 4 ? values[3] : 1.0f;
+					}
+					buffer.vertices.push_back(vertex);
+				}
+				buffer.indices.insert(buffer.indices.end(),
+					{base, base + 1, base + 2, base, base + 2, base + 3});
 			}
-			customAttributes.push_back(std::move(data));
+			buffer.attributes.reserve(batch->attachments.size());
+			for (const auto &[name, attachment] : batch->attachments)
+			{
+				if (name == "VertexPosition" || name == "VertexTexCoord" || name == "VertexColor")
+					continue;
+				const auto &attribute = attachment.mesh->format[attachment.attributeIndex];
+				GraphicsBackend::MeshAttributeData data;
+				data.name = name;
+				data.components = attribute.components;
+				data.values.reserve(count * 4 * static_cast<std::size_t>(attribute.components));
+				for (std::size_t spriteIndex = 0; spriteIndex < count; ++spriteIndex)
+				for (std::size_t localVertex = 0; localVertex < 4; ++localVertex)
+				{
+					const std::size_t sourceVertex = (start + spriteIndex) * 4 + localVertex;
+					const float *values = attachmentValues(attachment, sourceVertex);
+					data.values.insert(data.values.end(), values, values + attribute.components);
+				}
+				buffer.attributes.push_back(std::move(data));
+			}
+			++buffer.revision;
+			batch->geometryDirty = false;
 		}
 		GraphicsBackend::TextureFilter filter = GraphicsBackend::TextureFilter::Linear;
 		GraphicsBackend::TextureWrap wrapU = GraphicsBackend::TextureWrap::Clamp;
@@ -16344,9 +16395,13 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 		}
 		else return luaL_error(state, "SpriteBatch texture reference is missing");
 		std::string error;
-		if (!runtime->_graphicsBackend->drawMesh(vertices, customAttributes, indices, "triangles",
+		const GraphicsBackend::Transform2D transform{a, b, c, d, tx, ty};
+		const std::array<float, 4> color{
+			runtime->_graphicsColor[0], runtime->_graphicsColor[1],
+			runtime->_graphicsColor[2], runtime->_graphicsColor[3]};
+		if (!runtime->_graphicsBackend->drawMeshBuffer(batch->renderBuffer, "triangles",
 			batch->image, batch->canvas, runtime->_graphicsPointSize,
-			filter, wrapU, wrapV, error))
+			filter, wrapU, wrapV, transform, color, error))
 			return luaL_error(state, "%s", error.c_str());
 		return 0;
 	}
@@ -16406,6 +16461,43 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 			&& runtime->_graphicsBackend->requiresMeshInstancing(runtime->_graphicsShader))
 			return luaL_error(state,
 				"active Shader uses love_InstanceID but hardware Mesh instancing is unavailable");
+		GraphicsBackend::TextureFilter filter = GraphicsBackend::TextureFilter::Linear;
+		GraphicsBackend::TextureWrap wrapU = GraphicsBackend::TextureWrap::Clamp;
+		GraphicsBackend::TextureWrap wrapV = GraphicsBackend::TextureWrap::Clamp;
+		if (mesh->image != 0)
+		{
+			auto *texture = static_cast<ImageUserdata *>(mesh->textureObject.get());
+			filter = texture->filter; wrapU = texture->wrapU; wrapV = texture->wrapV;
+		}
+		else if (mesh->canvas != 0)
+		{
+			auto *texture = static_cast<CanvasUserdata *>(mesh->textureObject.get());
+			luaL_argcheck(state, texture->readable, 1,
+				"cannot draw a Mesh with a non-readable Canvas texture");
+			luaL_argcheck(state, std::find(runtime->_graphicsCanvases.begin(),
+				runtime->_graphicsCanvases.end(), texture->handle)
+					== runtime->_graphicsCanvases.end()
+				&& texture->handle != runtime->_graphicsCanvasDepthStencil, 1,
+				"cannot draw a Canvas to itself");
+			filter = texture->filter; wrapU = texture->wrapU; wrapV = texture->wrapV;
+		}
+		const bool cacheableGeometry = mesh->attachments.empty() && instanceCount == 1
+			&& runtime->_graphicsShader == 0;
+		if (cacheableGeometry && mesh->preparedRevision == mesh->geometryRevision
+			&& mesh->preparedInstanceCount == instanceCount)
+		{
+			std::string error;
+			const GraphicsBackend::Transform2D transform{a, b, c, d, tx, ty};
+			const std::array<float, 4> drawColor{
+				runtime->_graphicsColor[0], runtime->_graphicsColor[1],
+				runtime->_graphicsColor[2], runtime->_graphicsColor[3]};
+			if (!runtime->_graphicsBackend->drawMeshBuffer(mesh->renderBuffer,
+				mesh->preparedDrawMode, mesh->image, mesh->canvas, runtime->_graphicsPointSize,
+				filter, wrapU, wrapV, transform, drawColor, error,
+				hardwareInstancing ? instanceCount : 1))
+				return luaL_error(state, "%s", error.c_str());
+			return 0;
+		}
 		const std::size_t expandedInstances = hardwareInstancing ? 1
 			: static_cast<std::size_t>(instanceCount);
 		luaL_argcheck(state, expandedInstances
@@ -16458,8 +16550,8 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 			const float *positionValues = attributeValues(position, index, instanceIndex);
 			const float px = positionValues[0];
 			const float py = positionValues[1];
-			vertex.x = a * px + c * py + tx;
-			vertex.y = b * px + d * py + ty;
+			vertex.x = px;
+			vertex.y = py;
 			if (position.attribute->components >= 3) vertex.z = positionValues[2];
 			if (position.attribute->components >= 4) vertex.w = positionValues[3];
 			if (texcoord.attribute && texcoord.attribute->components >= 2)
@@ -16476,10 +16568,6 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 				if (color.attribute->components >= 3) vertex.blue = colorValues[2];
 				if (color.attribute->components >= 4) vertex.alpha = colorValues[3];
 			}
-			vertex.red *= runtime->_graphicsColor[0];
-			vertex.green *= runtime->_graphicsColor[1];
-			vertex.blue *= runtime->_graphicsColor[2];
-			vertex.alpha *= runtime->_graphicsColor[3];
 		}
 		std::vector<GraphicsBackend::MeshAttributeData> customAttributes;
 		std::unordered_set<std::string> customNames;
@@ -16567,34 +16655,31 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 			indices = std::vector<std::uint32_t>(indices.begin() + start, indices.begin() + start + count);
 		}
 		std::string submittedDrawMode = mesh->drawMode;
-		if (!hardwareInstancing && instanceCount > 1
-			&& (mesh->drawMode == "fan" || mesh->drawMode == "strip"))
-		{
-			std::vector<std::uint32_t> triangles;
-			if (indices.size() >= 3)
-			{
-				triangles.reserve((indices.size() - 2) * 3);
-				if (mesh->drawMode == "fan")
-				{
-					for (std::size_t index = 1; index + 1 < indices.size(); ++index)
-						triangles.insert(triangles.end(), {indices[0], indices[index], indices[index + 1]});
-				}
-				else
-				{
-					for (std::size_t index = 0; index + 2 < indices.size(); ++index)
-					{
-						if ((index & 1) == 0)
-							triangles.insert(triangles.end(), {indices[index], indices[index + 1], indices[index + 2]});
-						else
-							triangles.insert(triangles.end(), {indices[index + 1], indices[index], indices[index + 2]});
-					}
-				}
-			}
-			indices = std::move(triangles);
-			submittedDrawMode = "triangles";
-		}
 		if (!hardwareInstancing && instanceCount > 1)
 		{
+			if (mesh->drawMode == "fan" || mesh->drawMode == "strip")
+			{
+				std::vector<std::uint32_t> triangles;
+				if (indices.size() >= 3)
+				{
+					triangles.reserve((indices.size() - 2) * 3);
+					if (mesh->drawMode == "fan")
+					{
+						for (std::size_t index = 1; index + 1 < indices.size(); ++index)
+							triangles.insert(triangles.end(),
+								{indices[0], indices[index], indices[index + 1]});
+					}
+					else
+					{
+						for (std::size_t index = 0; index + 2 < indices.size(); ++index)
+							triangles.insert(triangles.end(), (index & 1) == 0
+								? std::initializer_list<std::uint32_t>{indices[index], indices[index + 1], indices[index + 2]}
+								: std::initializer_list<std::uint32_t>{indices[index + 1], indices[index], indices[index + 2]});
+					}
+				}
+				indices = std::move(triangles);
+				submittedDrawMode = "triangles";
+			}
 			const auto baseIndices = indices;
 			luaL_argcheck(state, baseIndices.empty()
 				|| static_cast<std::size_t>(instanceCount)
@@ -16609,28 +16694,22 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 				for (const auto index : baseIndices) indices.push_back(index + offset);
 			}
 		}
-		GraphicsBackend::TextureFilter filter = GraphicsBackend::TextureFilter::Linear;
-		GraphicsBackend::TextureWrap wrapU = GraphicsBackend::TextureWrap::Clamp;
-		GraphicsBackend::TextureWrap wrapV = GraphicsBackend::TextureWrap::Clamp;
-		if (mesh->image != 0)
-		{
-			auto *texture = static_cast<ImageUserdata *>(mesh->textureObject.get());
-			filter = texture->filter; wrapU = texture->wrapU; wrapV = texture->wrapV;
-		}
-		else if (mesh->canvas != 0)
-		{
-			auto *texture = static_cast<CanvasUserdata *>(mesh->textureObject.get());
-			luaL_argcheck(state, texture->readable, 1, "cannot draw a Mesh with a non-readable Canvas texture");
-			luaL_argcheck(state, std::find(runtime->_graphicsCanvases.begin(), runtime->_graphicsCanvases.end(),
-				texture->handle) == runtime->_graphicsCanvases.end()
-				&& texture->handle != runtime->_graphicsCanvasDepthStencil, 1,
-				"cannot draw a Canvas to itself");
-			filter = texture->filter; wrapU = texture->wrapU; wrapV = texture->wrapV;
-		}
+		auto &buffer = *mesh->renderBuffer;
+		buffer.vertices = std::move(vertices);
+		buffer.attributes = std::move(customAttributes);
+		buffer.indices = std::move(indices);
+		++buffer.revision;
+		mesh->preparedRevision = cacheableGeometry ? mesh->geometryRevision : 0;
+		mesh->preparedInstanceCount = cacheableGeometry ? instanceCount : 0;
+		mesh->preparedDrawMode = submittedDrawMode;
 		std::string error;
-		if (!runtime->_graphicsBackend->drawMesh(vertices, customAttributes, indices, submittedDrawMode,
-			mesh->image, mesh->canvas, runtime->_graphicsPointSize, filter, wrapU, wrapV, error,
-			hardwareInstancing ? instanceCount : 1))
+		const GraphicsBackend::Transform2D transform{a, b, c, d, tx, ty};
+		const std::array<float, 4> drawColor{
+			runtime->_graphicsColor[0], runtime->_graphicsColor[1],
+			runtime->_graphicsColor[2], runtime->_graphicsColor[3]};
+		if (!runtime->_graphicsBackend->drawMeshBuffer(mesh->renderBuffer, submittedDrawMode,
+			mesh->image, mesh->canvas, runtime->_graphicsPointSize, filter, wrapU, wrapV,
+			transform, drawColor, error, hardwareInstancing ? instanceCount : 1))
 			return luaL_error(state, "%s", error.c_str());
 		return 0;
 	}
@@ -17862,6 +17941,7 @@ int LoveRuntime::meshSetVertices(lua_State *state)
 			"Mesh Data contains a non-finite float vertex component");
 		mesh->bytes = std::move(bytes);
 		mesh->values = std::move(values);
+		++mesh->geometryRevision;
 		return 0;
 	}
 	luaL_checktype(state, 2, LUA_TTABLE);
@@ -17879,6 +17959,7 @@ int LoveRuntime::meshSetVertices(lua_State *state)
 		lua_pop(state, 1);
 		encodeMeshVertex(*mesh, start + index);
 	}
+	++mesh->geometryRevision;
 	return 0;
 }
 
@@ -17893,6 +17974,7 @@ int LoveRuntime::meshSetVertex(lua_State *state)
 	if (lua_istable(state, 3)) readMeshVertex(state, 3, *mesh, values);
 	else readMeshVertexArguments(state, 3, *mesh, values);
 	encodeMeshVertex(*mesh, static_cast<std::size_t>(indexValue) - 1);
+	++mesh->geometryRevision;
 	return 0;
 }
 
@@ -17929,6 +18011,7 @@ int LoveRuntime::meshSetVertexAttribute(lua_State *state)
 		values[component] = value;
 	}
 	encodeMeshVertex(*mesh, static_cast<std::size_t>(vertexValue) - 1);
+	++mesh->geometryRevision;
 	return 0;
 }
 
@@ -17981,12 +18064,14 @@ int LoveRuntime::meshSetAttributeEnabled(lua_State *state)
 	if (auto found = mesh->attachments.find(name); found != mesh->attachments.end())
 	{
 		found->second.enabled = enabled;
+		++mesh->geometryRevision;
 		return 0;
 	}
 	const std::size_t index = meshAttributeIndex(*mesh, name);
 	luaL_argcheck(state, index < mesh->format.size(), 2,
 		"Mesh does not have an attached vertex attribute with that name");
 	mesh->format[index].enabled = enabled;
+	++mesh->geometryRevision;
 	return 0;
 }
 
@@ -18046,6 +18131,7 @@ int LoveRuntime::meshAttachAttribute(lua_State *state)
 		}
 	}
 	mesh->attachments[name] = {source, sourceIndex, step, enabled};
+	++mesh->geometryRevision;
 	if (source == mesh) mesh->attachmentObjects.erase(name);
 	else mesh->attachmentObjects[name].set(source);
 
@@ -18073,6 +18159,7 @@ int LoveRuntime::meshDetachAttribute(lua_State *state)
 		return 1;
 	}
 	mesh->attachments.erase(found);
+	++mesh->geometryRevision;
 	mesh->attachmentObjects.erase(name);
 	const std::size_t ownIndex = meshAttributeIndex(*mesh, name);
 	if (ownIndex < mesh->format.size()) mesh->format[ownIndex].enabled = true;
@@ -18095,6 +18182,7 @@ int LoveRuntime::meshSetVertexMap(lua_State *state)
 	{
 		mesh->vertexMap.clear();
 		mesh->useVertexMap = false;
+		++mesh->geometryRevision;
 		return 0;
 	}
 	std::vector<std::uint32_t> vertexMap;
@@ -18127,6 +18215,7 @@ int LoveRuntime::meshSetVertexMap(lua_State *state)
 		}
 		mesh->vertexMap = std::move(vertexMap);
 		mesh->useVertexMap = true;
+		++mesh->geometryRevision;
 		return 0;
 	}
 	const bool table = lua_istable(state, 2);
@@ -18143,6 +18232,7 @@ int LoveRuntime::meshSetVertexMap(lua_State *state)
 	}
 	mesh->vertexMap = std::move(vertexMap);
 	mesh->useVertexMap = true;
+	++mesh->geometryRevision;
 	return 0;
 }
 
@@ -18211,6 +18301,7 @@ int LoveRuntime::meshSetDrawMode(lua_State *state)
 	luaL_argcheck(state, isMeshDrawMode(mode), 2,
 		"expected 'fan', 'strip', 'triangles', or 'points'");
 	mesh->drawMode = mode;
+	++mesh->geometryRevision;
 	return 0;
 }
 
@@ -18228,6 +18319,7 @@ int LoveRuntime::meshSetDrawRange(lua_State *state)
 	{
 		mesh->drawStart = -1;
 		mesh->drawCount = 0;
+		++mesh->geometryRevision;
 		return 0;
 	}
 	const lua_Integer start = luaL_checkinteger(state, 2);
@@ -18236,6 +18328,7 @@ int LoveRuntime::meshSetDrawRange(lua_State *state)
 	luaL_argcheck(state, count > 0, 3, "draw range count must be greater than 0");
 	mesh->drawStart = static_cast<int>(start - 1);
 	mesh->drawCount = static_cast<int>(count);
+	++mesh->geometryRevision;
 	return 0;
 }
 
@@ -18362,6 +18455,7 @@ int writeSpriteBatchSprite(lua_State *state, SpriteBatchUserdata &batch,
 		vertex.textureLayer = arrayTexture ? static_cast<float>(layer - 1)
 			: std::numeric_limits<float>::quiet_NaN();
 	}
+	batch.geometryDirty = true;
 	return static_cast<int>(index);
 }
 }
@@ -18410,7 +18504,9 @@ int LoveRuntime::spriteBatchSetLayer(lua_State *state)
 
 int LoveRuntime::spriteBatchClear(lua_State *state)
 {
-	checkSpriteBatch(state, 1)->count = 0;
+	auto *batch = checkSpriteBatch(state, 1);
+	batch->count = 0;
+	batch->geometryDirty = true;
 	return 0;
 }
 
@@ -18529,6 +18625,7 @@ int LoveRuntime::spriteBatchAttachAttribute(lua_State *state)
 		&& mesh->vertexCount >= batch->count * 4, 3,
 		"Mesh has too few vertices to be attached to this SpriteBatch");
 	batch->attachments[name] = {mesh, attributeIndex};
+	batch->geometryDirty = true;
 	batch->attachmentObjects[name].set(mesh);
 	lua_getiuservalue(state, 1, 2);
 	lua_pushvalue(state, 3);
@@ -18544,6 +18641,7 @@ int LoveRuntime::spriteBatchSetDrawRange(lua_State *state)
 	{
 		batch->drawStart = -1;
 		batch->drawCount = 0;
+		batch->geometryDirty = true;
 		return 0;
 	}
 	const lua_Integer start = luaL_checkinteger(state, 2);
@@ -18552,6 +18650,7 @@ int LoveRuntime::spriteBatchSetDrawRange(lua_State *state)
 	luaL_argcheck(state, count > 0, 3, "SpriteBatch draw range count must be positive");
 	batch->drawStart = static_cast<int>(start - 1);
 	batch->drawCount = static_cast<int>(count);
+	batch->geometryDirty = true;
 	return 0;
 }
 
@@ -18705,6 +18804,7 @@ void initializeParticle(ParticleSystemUserdata &system, ParticleState &particle,
 
 void addParticle(ParticleSystemUserdata &system, float time)
 {
+	system.geometryDirty = true;
 	if (system.particles.size() >= system.bufferSize) return;
 	ParticleState particle;
 	initializeParticle(system, particle, time);
@@ -18731,6 +18831,9 @@ int LoveRuntime::particleSystemClone(lua_State *state)
 {
 	auto *source = checkParticleSystem(state, 1);
 	auto *clone = new ParticleSystemUserdata(*source);
+	clone->renderBuffer = std::make_shared<GraphicsBackend::MeshBuffer>();
+	clone->geometryDirty = true;
+	clone->preparedParticleCount = 0;
 	clone->particles.clear();
 	clone->particles.reserve(clone->bufferSize);
 	clone->emitCounter = 0.0f;
@@ -18772,6 +18875,7 @@ int LoveRuntime::particleSystemSetTexture(lua_State *state)
 	}
 	lua_pushvalue(state, 2); lua_setiuservalue(state, 1, 1);
 	resetParticleSystemOffset(*system);
+	system->geometryDirty = true;
 	return 0;
 }
 
@@ -18793,6 +18897,7 @@ int LoveRuntime::particleSystemSetBufferSize(lua_State *state)
 	luaL_argcheck(state, size >= 1 && size <= 1000000, 2,
 		"ParticleSystem buffer size must be between 1 and 1000000");
 	system->particles.clear(); system->particles.shrink_to_fit();
+	system->geometryDirty = true;
 	system->bufferSize = static_cast<std::size_t>(size); system->particles.reserve(system->bufferSize);
 	system->emitterLife = system->emitterLifetime; system->emitCounter = 0.0f;
 	return 0;
@@ -18995,7 +19100,8 @@ int LoveRuntime::particleSystemGetSizes(lua_State *state)
 int LoveRuntime::particleSystemSetOffset(lua_State *state)
 {
 	auto *s = checkParticleSystem(state, 1); s->offsetX = checkedFiniteFloat(state, 2, "offset must be finite");
-	s->offsetY = checkedFiniteFloat(state, 3, "offset must be finite"); s->defaultOffset = false; return 0;
+	s->offsetY = checkedFiniteFloat(state, 3, "offset must be finite"); s->defaultOffset = false;
+	s->geometryDirty = true; return 0;
 }
 int LoveRuntime::particleSystemGetOffset(lua_State *state)
 { auto *s = checkParticleSystem(state, 1); lua_pushnumber(state, s->offsetX); lua_pushnumber(state, s->offsetY); return 2; }
@@ -19084,7 +19190,7 @@ int LoveRuntime::particleSystemSetQuads(lua_State *state)
 	}
 	else for (int index = 2; index < refs; ++index) addQuad(index, index - 1);
 	s->quads = std::move(quads); s->quadObjects = std::move(quadObjects);
-	lua_setiuservalue(state, 1, 2); resetParticleSystemOffset(*s); return 0;
+	lua_setiuservalue(state, 1, 2); resetParticleSystemOffset(*s); s->geometryDirty = true; return 0;
 }
 
 int LoveRuntime::particleSystemGetQuads(lua_State *state)
@@ -19113,7 +19219,7 @@ int LoveRuntime::particleSystemStop(lua_State *state)
 int LoveRuntime::particleSystemPause(lua_State *state)
 { checkParticleSystem(state, 1)->active = false; return 0; }
 int LoveRuntime::particleSystemReset(lua_State *state)
-{ auto *s = checkParticleSystem(state, 1); s->particles.clear(); s->emitterLife = s->emitterLifetime; s->emitCounter = 0.0f; return 0; }
+{ auto *s = checkParticleSystem(state, 1); s->particles.clear(); s->geometryDirty = true; s->emitterLife = s->emitterLifetime; s->emitCounter = 0.0f; return 0; }
 int LoveRuntime::particleSystemEmit(lua_State *state)
 {
 	auto *s = checkParticleSystem(state, 1); const lua_Integer count = luaL_checkinteger(state, 2);
@@ -19137,6 +19243,7 @@ int LoveRuntime::particleSystemUpdate(lua_State *state)
 	auto *s = checkParticleSystem(state, 1); const float dt = checkedFiniteFloat(state, 2, "update time must be finite");
 	luaL_argcheck(state, dt >= 0.0f, 2, "update time must be non-negative");
 	if (dt == 0.0f) return 0;
+	s->geometryDirty = true;
 	for (std::size_t index = 0; index < s->particles.size();)
 	{
 		auto &particle = s->particles[index]; particle.life -= dt;

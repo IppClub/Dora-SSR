@@ -22,6 +22,7 @@ SOFTWARE. */
 
 #include "3rdParty/Love/src/common/Object.h"
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <deque>
@@ -97,6 +98,16 @@ public:
 		int components = 0;
 		std::vector<float> values;
 		bool perInstance = false;
+	};
+	struct MeshBuffer
+	{
+		std::vector<MeshVertex> vertices;
+		std::vector<MeshAttributeData> attributes;
+		std::vector<std::uint32_t> indices;
+		std::uint64_t revision = 0;
+		// Renderer-owned persistent buffers. Kept opaque here so the Love runtime
+		// does not depend on bgfx types; the active graphics backend owns the deleter.
+		mutable std::shared_ptr<void> gpuBuffer;
 	};
 	enum class TextureFilter
 	{
@@ -426,6 +437,32 @@ public:
 		std::string_view drawMode, ImageHandle image, CanvasHandle canvas, float pointSize,
 		TextureFilter filter, TextureWrap wrapU, TextureWrap wrapV, std::string &error,
 		int instanceCount = 1) = 0;
+	virtual bool drawMeshBuffer(const std::shared_ptr<const MeshBuffer> &buffer,
+		std::string_view drawMode, ImageHandle image, CanvasHandle canvas, float pointSize,
+		TextureFilter filter, TextureWrap wrapU, TextureWrap wrapV,
+		const Transform2D &transform, const std::array<float, 4> &color,
+		std::string &error, int instanceCount = 1)
+	{
+		if (!buffer)
+		{
+			error = "Love Mesh buffer is unavailable";
+			return false;
+		}
+		std::vector<MeshVertex> transformed(buffer->vertices);
+		for (auto &vertex : transformed)
+		{
+			const float x = vertex.x;
+			const float y = vertex.y;
+			vertex.x = transform.a * x + transform.c * y + transform.tx;
+			vertex.y = transform.b * x + transform.d * y + transform.ty;
+			vertex.red *= color[0];
+			vertex.green *= color[1];
+			vertex.blue *= color[2];
+			vertex.alpha *= color[3];
+		}
+		return drawMesh(transformed, buffer->attributes, buffer->indices, drawMode,
+			image, canvas, pointSize, filter, wrapU, wrapV, error, instanceCount);
+	}
 	virtual ShaderHandle newShader(std::string_view vertexSource, std::string_view pixelSource,
 		std::string &warnings, std::string &error)
 	{

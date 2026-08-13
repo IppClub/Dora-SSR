@@ -31,13 +31,10 @@ SOFTWARE. */
 
 NS_DORA_BEGIN
 
-class DrawNode;
 class AudioBus;
 class AudioFile;
 class AudioSource;
 class Font;
-class Label;
-class Node;
 class RenderTarget;
 class Shader;
 class SpriteEffect;
@@ -47,6 +44,9 @@ class Body;
 class FixtureDef;
 class Joint;
 struct LoveRecordingResource;
+class LoveRenderCommand;
+class LovePrimitiveCommand;
+class LoveGpuBufferPool;
 
 class LoveNode : public Sprite, private Love::GraphicsBackend, private Love::FilesystemBackend,
 	private Love::ImageBackend,
@@ -188,6 +188,15 @@ private:
 		float pointSize, Love::GraphicsBackend::TextureFilter filter,
 		Love::GraphicsBackend::TextureWrap wrapU, Love::GraphicsBackend::TextureWrap wrapV,
 		std::string &error, int instanceCount = 1) override;
+	virtual bool drawMeshBuffer(
+		const std::shared_ptr<const Love::GraphicsBackend::MeshBuffer> &buffer,
+		std::string_view drawMode, Love::GraphicsBackend::ImageHandle image,
+		Love::GraphicsBackend::CanvasHandle canvas, float pointSize,
+		Love::GraphicsBackend::TextureFilter filter,
+		Love::GraphicsBackend::TextureWrap wrapU, Love::GraphicsBackend::TextureWrap wrapV,
+		const Love::GraphicsBackend::Transform2D &transform,
+		const std::array<float, 4> &color, std::string &error,
+		int instanceCount = 1) override;
 	virtual Love::GraphicsBackend::ShaderHandle newShader(std::string_view vertexSource,
 		std::string_view pixelSource, std::string &warnings, std::string &error) override;
 	virtual void releaseShader(Love::GraphicsBackend::ShaderHandle shader) override;
@@ -817,16 +826,16 @@ private:
 		float &value, std::string &error) const override;
 	virtual bool setGearJointRatio(Love::PhysicsBackend::JointHandle joint,
 		float value, std::string &error) override;
-	DrawNode *ensureDrawNode(std::size_t requiredVertices = 0);
+	LovePrimitiveCommand *ensurePrimitiveCommand(std::size_t requiredVertices = 0);
+	void recordCommand(LoveRenderCommand* command);
+	void recordCommand(LoveRenderCommand* command,
+		std::optional<RendererManager::ScissorState> scissor,
+		uint32_t stencil, uint64_t renderState);
 	std::optional<RendererManager::ScissorState> getCommandScissor() const;
 	void beginCommandSegment();
 	void beginRenderPass(uint16_t clearFlags, Color clearColor, uint8_t stencil = 0,
 		float depth = 1.0f);
 	void markRenderCommand();
-	void markSpriteRenderCommand(Texture2D *texture,
-		Love::GraphicsBackend::TextureFilter filter,
-		Love::GraphicsBackend::TextureWrap wrapU,
-		Love::GraphicsBackend::TextureWrap wrapV);
 	int getActivePixelHeight() const;
 	RenderTarget* getActiveRenderTarget() const;
 	void drawTexture(Texture2D *texture,
@@ -845,6 +854,14 @@ private:
 		const Love::GraphicsBackend::Transform2D &transform, Color color, std::string &error);
 	bool drawShaderPoints(std::span<const Vec2> points, float pointSize,
 		Color color, std::string &error);
+	bool drawMeshTransformed(std::span<const Love::GraphicsBackend::MeshVertex> vertices,
+		std::span<const Love::GraphicsBackend::MeshAttributeData> attributes,
+		std::span<const std::uint32_t> indices, std::string_view drawMode,
+		Love::GraphicsBackend::ImageHandle image, Love::GraphicsBackend::CanvasHandle canvas,
+		float pointSize, Love::GraphicsBackend::TextureFilter filter,
+		Love::GraphicsBackend::TextureWrap wrapU, Love::GraphicsBackend::TextureWrap wrapV,
+		const Love::GraphicsBackend::Transform2D &transform,
+		const std::array<float, 4> &color, std::string &error, int instanceCount);
 
 	std::string _bootFile;
 	std::string _sourceRoot;
@@ -853,9 +870,12 @@ private:
 	std::unordered_set<std::string> _mountedArchiveRoots;
 	Own<Love::LoveRuntime> _runtime;
 	Ref<RenderTarget> _renderTarget;
-	Ref<Node> _frameRoot;
-	Ref<Node> _commandRoot;
-	Ref<DrawNode> _drawNode;
+	std::shared_ptr<LoveGpuBufferPool> _gpuBufferPool;
+	LovePrimitiveCommand *_primitiveCommand = nullptr;
+	std::size_t _commandSegment = 0;
+	std::optional<RendererManager::ScissorState> _commandScissor;
+	uint32_t _commandStencilState = BGFX_STENCIL_NONE;
+	uint64_t _commandRenderState = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
 	struct ImageResource
 	{
 		Ref<Texture2D> texture;
@@ -936,7 +956,7 @@ private:
 	struct RenderPass
 	{
 		Ref<RenderTarget> target;
-		Ref<Node> root;
+		std::vector<std::unique_ptr<LoveRenderCommand>> commands;
 		Color clearColor;
 		uint16_t clearFlags = 0;
 		uint8_t stencil = 0;
@@ -961,8 +981,9 @@ private:
 	int _stencilTestValue = 0;
 	bool _graphicsFrameActive = false;
 	Love::GraphicsBackend::Stats _graphicsStats;
+	LoveRenderCommand *_imageBatchCommand = nullptr;
 	Texture2D *_spriteBatchTexture = nullptr;
-	Node *_spriteBatchCommandRoot = nullptr;
+	std::size_t _spriteBatchCommandSegment = 0;
 	Love::GraphicsBackend::TextureFilter _spriteBatchFilter = Love::GraphicsBackend::TextureFilter::Linear;
 	Love::GraphicsBackend::TextureWrap _spriteBatchWrapU = Love::GraphicsBackend::TextureWrap::Clamp;
 	Love::GraphicsBackend::TextureWrap _spriteBatchWrapV = Love::GraphicsBackend::TextureWrap::Clamp;
