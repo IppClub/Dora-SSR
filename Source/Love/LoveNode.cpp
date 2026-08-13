@@ -233,6 +233,10 @@ std::optional<LoveArchivePath> resolveLoveArchivePath(
 class LoveGpuBufferPool
 {
 public:
+	// Dora's bgfx build allows at most three frames in flight. The fourth arena
+	// prevents a slot from being updated until every backend has retired it.
+	static constexpr std::size_t FrameArenaCount = 4;
+
 	struct BufferPair
 	{
 		bgfx::DynamicVertexBufferHandle vertices = BGFX_INVALID_HANDLE;
@@ -241,34 +245,52 @@ public:
 
 	~LoveGpuBufferPool()
 	{
-		for (auto& slot : _slots)
+		for (auto& arena : _arenas)
 		{
-			if (bgfx::isValid(slot.vertices)) bgfx::destroy(slot.vertices);
-			if (bgfx::isValid(slot.indices)) bgfx::destroy(slot.indices);
+			for (auto& slot : arena.slots)
+			{
+				if (bgfx::isValid(slot.vertices)) bgfx::destroy(slot.vertices);
+				if (bgfx::isValid(slot.indices)) bgfx::destroy(slot.indices);
+			}
 		}
 	}
 
-	void beginFrame() noexcept { _used = 0; }
+	void beginFrame(uint32_t hostFrame) noexcept
+	{
+		// A Love load callback, Canvas readback, and love.draw can all open a
+		// graphics frame before Dora advances bgfx. Keep allocating within the
+		// same arena in that case: resetting it would update buffers that were
+		// already submitted for this host frame. Use one extra arena beyond
+		// bgfx's maximum frame latency before a buffer can be reused.
+		if (_hostFrame == hostFrame) return;
+		_hostFrame = hostFrame;
+		_arenaIndex = hostFrame % FrameArenaCount;
+		_arenas[_arenaIndex].used = 0;
+	}
 
 	BufferPair upload(const bgfx::VertexLayout& layout,
 		const void* vertexData, uint32_t vertexBytes, uint32_t vertexCount,
 		const void* indexData, uint32_t indexBytes, uint32_t indexCount, bool index32)
 	{
-		if (_used == _slots.size()) _slots.emplace_back();
-		auto& slot = _slots[_used++];
-		if (!bgfx::isValid(slot.vertices) || slot.layoutHash != layout.m_hash)
+		auto& arena = _arenas[_arenaIndex];
+		if (arena.used == arena.slots.size()) arena.slots.emplace_back();
+		auto& slot = arena.slots[arena.used++];
+		if (!bgfx::isValid(slot.vertices) || slot.layoutHash != layout.m_hash
+			|| slot.vertexCapacity < vertexCount)
 		{
 			if (bgfx::isValid(slot.vertices)) bgfx::destroy(slot.vertices);
-			slot.vertices = bgfx::createDynamicVertexBuffer(vertexCount, layout,
-				BGFX_BUFFER_ALLOW_RESIZE);
+			slot.vertices = bgfx::createDynamicVertexBuffer(vertexCount, layout);
 			slot.layoutHash = layout.m_hash;
+			slot.vertexCapacity = vertexCount;
 		}
-		if (!bgfx::isValid(slot.indices) || slot.index32 != index32)
+		if (!bgfx::isValid(slot.indices) || slot.index32 != index32
+			|| slot.indexCapacity < indexCount)
 		{
 			if (bgfx::isValid(slot.indices)) bgfx::destroy(slot.indices);
 			slot.indices = bgfx::createDynamicIndexBuffer(indexCount,
-				BGFX_BUFFER_ALLOW_RESIZE | (index32 ? BGFX_BUFFER_INDEX32 : BGFX_BUFFER_NONE));
+				index32 ? BGFX_BUFFER_INDEX32 : BGFX_BUFFER_NONE);
 			slot.index32 = index32;
+			slot.indexCapacity = indexCount;
 		}
 		if (!bgfx::isValid(slot.vertices) || !bgfx::isValid(slot.indices))
 			return {};
@@ -283,10 +305,18 @@ private:
 		bgfx::DynamicVertexBufferHandle vertices = BGFX_INVALID_HANDLE;
 		bgfx::DynamicIndexBufferHandle indices = BGFX_INVALID_HANDLE;
 		uint32_t layoutHash = 0;
+		uint32_t vertexCapacity = 0;
+		uint32_t indexCapacity = 0;
 		bool index32 = false;
 	};
-	std::vector<Slot> _slots;
-	std::size_t _used = 0;
+	struct FrameArena
+	{
+		std::vector<Slot> slots;
+		std::size_t used = 0;
+	};
+	std::array<FrameArena, FrameArenaCount> _arenas;
+	uint32_t _hostFrame = std::numeric_limits<uint32_t>::max();
+	std::size_t _arenaIndex = 0;
 };
 
 class LoveRenderCommand
@@ -304,11 +334,12 @@ public:
 	void setGpuBufferPool(const std::shared_ptr<LoveGpuBufferPool>& pool) { _gpuBufferPool = pool; }
 
 	void setState(std::optional<RendererManager::ScissorState> scissor,
-		uint32_t stencil, uint64_t renderState)
+		uint32_t stencil, uint64_t renderState, std::size_t commandSegment)
 	{
 		_scissor = scissor;
 		_stencil = stencil;
 		_renderState = renderState;
+		_commandSegment = commandSegment;
 	}
 
 	void submit()
@@ -340,11 +371,22 @@ public:
 protected:
 	virtual void submitInner() = 0;
 	LoveGpuBufferPool* getGpuBufferPool() const noexcept { return _gpuBufferPool.get(); }
+	bool hasCompatibleState(std::optional<RendererManager::ScissorState> scissor,
+		uint32_t stencil, uint64_t renderState, std::size_t commandSegment) const noexcept
+	{
+		if (_stencil != stencil || _renderState != renderState
+			|| _commandSegment != commandSegment || _scissor.has_value() != scissor.has_value())
+			return false;
+		if (!_scissor) return true;
+		return _scissor->x == scissor->x && _scissor->y == scissor->y
+			&& _scissor->width == scissor->width && _scissor->height == scissor->height;
+	}
 
 private:
 	std::optional<RendererManager::ScissorState> _scissor;
 	uint32_t _stencil = BGFX_STENCIL_NONE;
 	uint64_t _renderState = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
+	std::size_t _commandSegment = 0;
 	std::shared_ptr<LoveGpuBufferPool> _gpuBufferPool;
 };
 
@@ -485,6 +527,7 @@ public:
 
 	bool appendQuad(const std::array<SpriteVertex, 4> &quad)
 	{
+		if (!_chunks.empty()) return false;
 		// SpriteRenderer uses 16-bit indices. Keep each recorded Love image batch
 		// within that limit and let the caller begin another lightweight command
 		// node when necessary.
@@ -502,6 +545,36 @@ public:
 		return true;
 	}
 
+	bool appendBatch(std::vector<SpriteVertex>& vertices, std::vector<uint32_t>& indices,
+		Texture2D *texture, const BlendFunc& blend, uint32_t samplerFlags,
+		SpriteEffect *effect, bool ignoreCull, bool wireframe, std::optional<Vec2> sdfSmooth,
+		std::optional<RendererManager::ScissorState> scissor, uint32_t stencil,
+		uint64_t renderState, std::size_t commandSegment)
+	{
+		if (!hasCompatibleState(scissor, stencil, renderState, commandSegment)
+			|| _texture.get() != texture || _blend.toValue() != blend.toValue()
+			|| _samplerFlags != samplerFlags || _effect.get() != effect
+			|| _ignoreCull != ignoreCull || _wireframe != wireframe
+			|| _sdfSmooth.has_value() != sdfSmooth.has_value())
+			return false;
+		if ((_effect && !_sdfSmooth) || _wireframe) return false;
+		if (_sdfSmooth && (_sdfSmooth->x != sdfSmooth->x || _sdfSmooth->y != sdfSmooth->y))
+			return false;
+		if ((_chunks.empty() && _indices16.empty()) || _batchedVertexCount + vertices.size()
+			> std::numeric_limits<uint16_t>::max())
+			return false;
+		if (_chunks.empty())
+		{
+			_chunks.push_back({std::move(_source), std::move(_indices)});
+			_vertices.clear();
+			_indices16.clear();
+		}
+		_batchedVertexCount += vertices.size();
+		_batchedIndexCount += indices.size();
+		_chunks.push_back({std::move(vertices), std::move(indices)});
+		return true;
+	}
+
 	virtual void submitInner() override
 	{
 		if (_ignoreCull)
@@ -516,7 +589,7 @@ public:
 private:
 	void submitMesh()
 	{
-		if (!_texture || _vertices.empty() || _indices.empty()) return;
+		if (!_texture || (_chunks.empty() && (_vertices.empty() || _indices.empty()))) return;
 		if (_sdfSmooth && _effect)
 		{
 			// FontCache shares one SDF effect. Submit any preceding batch before
@@ -531,9 +604,35 @@ private:
 				passes.front()->set("u_outlineColor"sv, Color(0x00000000));
 			}
 		}
-		const Matrix& transform = SharedDirector.getViewProjection();
-		for (std::size_t index = 0; index < _vertices.size(); ++index)
-			Matrix::mulVec4(&_vertices[index].x, transform, _source[index].toVec4());
+		std::vector<SpriteVertex> batchedVertices;
+		std::vector<uint16_t> batchedIndices;
+		if (!_chunks.empty())
+		{
+			batchedVertices.resize(_batchedVertexCount);
+			batchedIndices.resize(_batchedIndexCount);
+			const Matrix& transform = SharedDirector.getViewProjection();
+			std::size_t vertexOffset = 0;
+			std::size_t indexOffset = 0;
+			for (const auto &chunk : _chunks)
+			{
+				const auto base = static_cast<uint16_t>(vertexOffset);
+				for (const auto &source : chunk.vertices)
+				{
+					auto &vertex = batchedVertices[vertexOffset++];
+					vertex = source;
+					Matrix::mulVec4(&vertex.x, transform, source.toVec4());
+				}
+				for (const auto index : chunk.indices)
+					batchedIndices[indexOffset++] = static_cast<uint16_t>(base + index);
+			}
+		}
+		else
+		{
+			const Matrix& transform = SharedDirector.getViewProjection();
+			for (std::size_t index = 0; index < _vertices.size(); ++index)
+				Matrix::mulVec4(&_vertices[index].x, transform, _source[index].toVec4());
+		}
+		auto &vertices = _chunks.empty() ? _vertices : batchedVertices;
 		const uint64_t state = SharedRendererManager.applyState(
 			BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | _blend.toValue()
 				| (_wireframe ? BGFX_STATE_PT_LINES : BGFX_STATE_NONE));
@@ -541,23 +640,24 @@ private:
 		if (effect->getPasses().empty()) effect = SharedSpriteRenderer.getDefaultEffect();
 		auto* pool = getGpuBufferPool();
 		if (!pool) return;
-		const bool index32 = _indices16.empty();
-		const void* indexData = index32
-			? static_cast<const void*>(_indices.data())
-			: static_cast<const void*>(_indices16.data());
-		const uint32_t indexBytes = static_cast<uint32_t>(_indices.size()
+		const bool index32 = _chunks.empty() && _indices16.empty();
+		const auto indexCount = _chunks.empty() ? _indices.size() : batchedIndices.size();
+		const void* indexData = index32 ? static_cast<const void*>(_indices.data())
+			: _chunks.empty() ? static_cast<const void*>(_indices16.data())
+			: static_cast<const void*>(batchedIndices.data());
+		const uint32_t indexBytes = static_cast<uint32_t>(indexCount
 			* (index32 ? sizeof(uint32_t) : sizeof(uint16_t)));
 		const auto buffers = pool->upload(SpriteVertex::ms_layout,
-			_vertices.data(), static_cast<uint32_t>(_vertices.size() * sizeof(SpriteVertex)),
-			static_cast<uint32_t>(_vertices.size()), indexData, indexBytes,
-			static_cast<uint32_t>(_indices.size()), index32);
+			vertices.data(), static_cast<uint32_t>(vertices.size() * sizeof(SpriteVertex)),
+			static_cast<uint32_t>(vertices.size()), indexData, indexBytes,
+			static_cast<uint32_t>(indexCount), index32);
 		if (!bgfx::isValid(buffers.vertices) || !bgfx::isValid(buffers.indices))
 		{
 			Warn("failed to upload persistent Love textured Mesh buffers");
 			return;
 		}
-		bgfx::setVertexBuffer(0, buffers.vertices, 0, static_cast<uint32_t>(_vertices.size()));
-		bgfx::setIndexBuffer(buffers.indices, 0, static_cast<uint32_t>(_indices.size()));
+		bgfx::setVertexBuffer(0, buffers.vertices, 0, static_cast<uint32_t>(vertices.size()));
+		bgfx::setIndexBuffer(buffers.indices, 0, static_cast<uint32_t>(indexCount));
 		bgfx::setState(state);
 		bgfx::setTexture(0, effect->getSampler(), _texture->getHandle(), _samplerFlags);
 		Pass *lastPass = effect->getPasses().back().get();
@@ -576,6 +676,14 @@ private:
 	bool _ignoreCull = false;
 	bool _wireframe = false;
 	std::optional<Vec2> _sdfSmooth;
+	struct MeshChunk
+	{
+		std::vector<SpriteVertex> vertices;
+		std::vector<uint32_t> indices;
+	};
+	std::vector<MeshChunk> _chunks;
+	std::size_t _batchedVertexCount = _vertices.size();
+	std::size_t _batchedIndexCount = _indices.size();
 };
 
 struct LoveMeshGpuBuffer
@@ -5233,7 +5341,7 @@ bool LoveNode::isRunning() const noexcept
 void LoveNode::beginFrame()
 {
 	_renderPasses.clear();
-	if (_gpuBufferPool) _gpuBufferPool->beginFrame();
+	if (_gpuBufferPool) _gpuBufferPool->beginFrame(SharedApplication.getFrame());
 	_commandSegment = 0;
 	_graphicsStats.drawCalls = 0;
 	_graphicsStats.drawCallsBatched = 0;
@@ -5270,11 +5378,14 @@ void LoveNode::beginRenderPass(uint16_t clearFlags, Color clearColor, uint8_t st
 	beginCommandSegment();
 }
 
-void LoveNode::markRenderCommand()
+void LoveNode::markRenderCommand(bool batched)
 {
 	if (!_renderPasses.empty())
 		_renderPasses.back().hasCommands = true;
-	++_graphicsStats.drawCalls;
+	if (batched)
+		++_graphicsStats.drawCallsBatched;
+	else
+		++_graphicsStats.drawCalls;
 	_imageBatchCommand = nullptr;
 	_spriteBatchTexture = nullptr;
 	_spriteBatchCommandSegment = 0;
@@ -5372,7 +5483,7 @@ void LoveNode::recordCommand(LoveRenderCommand* command,
 		delete command;
 		return;
 	}
-	command->setState(scissor, stencil, renderState);
+	command->setState(scissor, stencil, renderState, _commandSegment);
 	command->setGpuBufferPool(_gpuBufferPool);
 	_renderPasses.back().commands.emplace_back(command);
 }
@@ -9362,8 +9473,8 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 					meshSamplerFlags(batch.resource->imageTextures[static_cast<std::size_t>(batch.page)], batch.resource->imageFilter,
 					Love::GraphicsBackend::TextureWrap::Clamp, Love::GraphicsBackend::TextureWrap::Clamp),
 					shader.effect.get(), pixelHeight, false, _wireframe);
-				recordCommand(command);
-				markRenderCommand();
+		recordCommand(command);
+		markRenderCommand();
 				continue;
 			}
 			SpriteEffect *effect = _activeShader == 0 ? nullptr : _shaders.at(_activeShader).effect.get();
@@ -9489,6 +9600,7 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 	const float transformScale = std::sqrt(std::abs(a * d - b * c));
 	for (auto &batch : batches)
 	{
+		bool batched = false;
 		if (_activeShader != 0 && _shaders.at(_activeShader).usesVertexID)
 		{
 			const auto &shader = _shaders.at(_activeShader);
@@ -9529,16 +9641,30 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 					0.006f, 0.08f);
 				smooth = Vec2{edge - softness, edge + softness};
 			}
-			auto *command = LoveTexturedMeshCommand::create(std::move(batch.vertices),
-				std::move(batch.indices), batch.texture,
-				toDoraBlendFunc(_blendMode, _blendAlphaMode),
-				meshSamplerFlags(batch.texture, Love::GraphicsBackend::TextureFilter::Linear,
-					Love::GraphicsBackend::TextureWrap::Clamp,
-					Love::GraphicsBackend::TextureWrap::Clamp),
-				effect, true, _wireframe, smooth);
-			recordCommand(command);
+			const auto blend = toDoraBlendFunc(_blendMode, _blendAlphaMode);
+			const auto samplerFlags = meshSamplerFlags(batch.texture,
+				Love::GraphicsBackend::TextureFilter::Linear,
+				Love::GraphicsBackend::TextureWrap::Clamp,
+				Love::GraphicsBackend::TextureWrap::Clamp);
+			if (!_renderPasses.empty() && !_renderPasses.back().commands.empty())
+			{
+				if (auto *previous = dynamic_cast<LoveTexturedMeshCommand *>(
+					_renderPasses.back().commands.back().get()))
+				{
+					batched = previous->appendBatch(batch.vertices, batch.indices,
+						batch.texture, blend, samplerFlags, effect, true, _wireframe, smooth,
+						_commandScissor, _commandStencilState, _commandRenderState, _commandSegment);
+				}
+			}
+			if (!batched)
+			{
+				auto *command = LoveTexturedMeshCommand::create(std::move(batch.vertices),
+					std::move(batch.indices), batch.texture, blend, samplerFlags,
+					effect, true, _wireframe, smooth);
+				recordCommand(command);
+			}
 		}
-		markRenderCommand();
+		markRenderCommand(batched);
 	}
 	_primitiveCommand = nullptr;
 }

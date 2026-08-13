@@ -837,7 +837,7 @@ private:
 	void beginCommandSegment();
 	void beginRenderPass(uint16_t clearFlags, Color clearColor, uint8_t stencil = 0,
 		float depth = 1.0f);
-	void markRenderCommand();
+	void markRenderCommand(bool batched = false);
 	int getActivePixelHeight() const;
 	RenderTarget* getActiveRenderTarget() const;
 	void drawTexture(Texture2D *texture,
