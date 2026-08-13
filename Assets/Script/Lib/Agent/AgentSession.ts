@@ -19,7 +19,7 @@ import {
 	requireAgentStorage,
 } from 'Agent/AgentStorage';
 import { DualLayerStorage } from 'Agent/Memory';
-import { Log, getLLMConfig, normalizeAgentCompletionReport, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
+import { Log, getLLMConfig, normalizeAgentCompletionReport, safeJsonDecode, safeJsonEncode, sanitizeUTF8, validateAgentLLMConfig } from 'Agent/Utils';
 import type { LLMConfig, StopToken } from 'Agent/Utils';
 import type { AgentToolName } from 'Agent/AgentToolRegistry';
 import type { AgentWorkMode } from 'Agent/AgentToolRegistry';
@@ -2029,6 +2029,18 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 			});
 			break;
 		}
+		case "assistant_message_finished": {
+			upsertStep(sessionId, event.taskId, event.step, "message", {
+				status: "DONE",
+				reason: event.content,
+				reasoningContent: event.reasoningContent,
+				result: event.result,
+			});
+			emitAgentSessionPatch(sessionId, {
+				step: getStepItem(sessionId, event.taskId, event.step),
+			});
+			break;
+		}
 		case "task_waiting_for_user": {
 			setSessionStateForTaskEvent(sessionId, event.taskId, "WAITING_USER", "WAITING_USER");
 			delete activeStopTokens[event.taskId];
@@ -2591,6 +2603,10 @@ function startPromptTask(
 		return { success: false, message: llmConfigRes.message };
 	}
 	const llmConfig = llmConfigRes.config;
+	const llmConfigValidation = validateAgentLLMConfig(llmConfig);
+	if (!llmConfigValidation.success) {
+		return llmConfigValidation;
+	}
 	const taskRes = options?.existingTaskId !== undefined
 		? { success: true as const, taskId: options.existingTaskId }
 		: Tools.createTask(normalizedPrompt, taskWorkMode);

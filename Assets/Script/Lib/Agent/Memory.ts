@@ -1,6 +1,6 @@
 // @preview-file off clear
 import { App, Content, Path } from 'Dora';
-import { Message, callLLM, Log, clipTextToTokenBudget, extractLLMTokenUsage, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
+import { Message, applyCustomLLMOptions, callLLM, Log, clipTextToTokenBudget, extractLLMTokenUsage, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import { getActiveLLMConfig } from 'Agent/Utils';
 import type { LLMConfig, LLMTokenUsage, ToolCall } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tools';
@@ -12,7 +12,6 @@ const MEMORY_DEFAULT_CONTEXT_WINDOW = 64000;
 const AGENT_MEMORY_CONTEXT_MIN_TOKENS = 1200;
 const AGENT_MEMORY_CONTEXT_WINDOW_RATIO = 0.08;
 const COMPRESSION_RESERVED_OUTPUT_MIN_TOKENS = 2048;
-const COMPRESSION_RESERVED_OUTPUT_CONTEXT_RATIO = 0.2;
 const COMPRESSION_HISTORY_MIN_TOKENS = 1200;
 const COMPRESSION_HISTORY_AVAILABLE_RATIO = 0.9;
 const COMPRESSION_HISTORY_TRUNCATED_MIN_CHARS = 2000;
@@ -44,6 +43,40 @@ function buildMemoryLLMOptions(llmConfig: LLMConfig, overrides?: Record<string, 
 		merged.reasoning_effort = merged.reasoning_effort.trim();
 	}
 	return merged;
+}
+
+function getAuxiliaryLLMOptions(llmConfig: LLMConfig): Record<string, unknown> {
+	const value = llmConfig.customOptions?.auxiliaryOptions;
+	return isRecord(value) ? value : {};
+}
+
+function getCompressionOutputTokenLimit(llmConfig: LLMConfig): number {
+	const options = getAuxiliaryLLMOptions(llmConfig);
+	const maxTokens = options.max_tokens;
+	if (typeof maxTokens === "number" && maxTokens > 0) return math.floor(maxTokens);
+	const maxCompletionTokens = options.max_completion_tokens;
+	if (typeof maxCompletionTokens === "number" && maxCompletionTokens > 0) {
+		return math.floor(maxCompletionTokens);
+	}
+	return MEMORY_DEFAULT_LLM_MAX_TOKENS;
+}
+
+function buildCompressionLLMConfig(llmConfig: LLMConfig): LLMConfig {
+	const baseCustomOptions: Record<string, unknown> = {};
+	const customOptions = llmConfig.customOptions;
+	if (customOptions) {
+		for (const key in customOptions) {
+			if (key === "auxiliaryOptions") continue;
+			baseCustomOptions[key] = customOptions[key];
+		}
+	}
+	return {
+		...llmConfig,
+		customOptions: {
+			...baseCustomOptions,
+			...getAuxiliaryLLMOptions(llmConfig),
+		},
+	};
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -777,6 +810,15 @@ export interface CompressionResult {
 
 	/** 需要补回 active context 的最后一条 user 消息索引（相对当前 active messages） */
 	carryMessageIndex?: number;
+
+	/** 输出被截断，但已从完整闭合的字段中恢复了可安全提交的结果。 */
+	partialRecovered?: boolean;
+
+	/** 部分恢复实际采用的完整字段。 */
+	recoveredFields?: string[];
+
+	/** 触发部分恢复的模型结束原因。 */
+	finishReason?: "length";
 }
 
 export interface MemoryCompressionDebugContext {
@@ -792,6 +834,132 @@ type CompressionBoundarySelection = {
 	compressedCount: number;
 	carryMessageIndex?: number;
 };
+
+const COMPRESSION_RESULT_FIELD_NAMES = [
+	"history_entry",
+	"memory_update",
+	"project_memory_update",
+	"session_summary_update",
+] as const;
+type CompressionResultFieldName = typeof COMPRESSION_RESULT_FIELD_NAMES[number];
+
+function isCompressionResultFieldName(value: string): value is CompressionResultFieldName {
+	for (let i = 0; i < COMPRESSION_RESULT_FIELD_NAMES.length; i++) {
+		if (COMPRESSION_RESULT_FIELD_NAMES[i] === value) return true;
+	}
+	return false;
+}
+
+function skipJSONWhitespace(text: string, start: number): number {
+	let i = start;
+	while (i < text.length) {
+		const ch = text.charAt(i);
+		if (ch !== " " && ch !== "\n" && ch !== "\r" && ch !== "\t") break;
+		i += 1;
+	}
+	return i;
+}
+
+function parseCompleteJSONString(text: string, start: number): { value: string; end: number } | undefined {
+	if (text.charAt(start) !== '"') return undefined;
+	let escaped = false;
+	for (let i = start + 1; i < text.length; i++) {
+		const ch = text.charAt(i);
+		if (escaped) {
+			escaped = false;
+			continue;
+		}
+		if (ch === "\\") {
+			escaped = true;
+			continue;
+		}
+		if (ch !== '"') continue;
+		const [decoded, err] = safeJsonDecode(text.slice(start, i + 1));
+		if (err === undefined && typeof decoded === "string") {
+			return { value: decoded, end: i + 1 };
+		}
+		return undefined;
+	}
+	return undefined;
+}
+
+/** Recover only top-level string properties whose JSON strings are completely closed. */
+export function recoverCompleteCompressionJSONFields(text: string): {
+	obj: Record<string, unknown>;
+	recoveredFields: string[];
+} {
+	const obj: Record<string, unknown> = {};
+	const recoveredFields: string[] = [];
+	let i = skipJSONWhitespace(text, 0);
+	if (text.charAt(i) !== "{") return { obj, recoveredFields };
+	i += 1;
+	while (i < text.length) {
+		i = skipJSONWhitespace(text, i);
+		if (text.charAt(i) === "}") break;
+		if (text.charAt(i) === ",") {
+			i = skipJSONWhitespace(text, i + 1);
+		}
+		const key = parseCompleteJSONString(text, i);
+		if (!key) break;
+		i = skipJSONWhitespace(text, key.end);
+		if (text.charAt(i) !== ":") break;
+		i = skipJSONWhitespace(text, i + 1);
+		const value = parseCompleteJSONString(text, i);
+		if (!value) break;
+		if (isCompressionResultFieldName(key.value) && obj[key.value] === undefined) {
+			obj[key.value] = value.value;
+			recoveredFields.push(key.value);
+		}
+		i = skipJSONWhitespace(text, value.end);
+		if (text.charAt(i) === "}") break;
+		if (text.charAt(i) !== ",") break;
+	}
+	return { obj, recoveredFields };
+}
+
+function unwrapCompressionXMLText(text: string): string {
+	const trimmed = text.trim();
+	if (trimmed.startsWith("<![CDATA[") && trimmed.endsWith("]]>")) {
+		return trimmed.slice(9, trimmed.length - 3);
+	}
+	return text;
+}
+
+/** Recover only known XML child fields with both a complete opening and closing tag. */
+export function recoverCompleteCompressionXMLFields(text: string): {
+	obj: Record<string, unknown>;
+	recoveredFields: string[];
+} {
+	const obj: Record<string, unknown> = {};
+	const recoveredFields: string[] = [];
+	const rootOpen = "<memory_update_result>";
+	const rootStart = text.indexOf(rootOpen);
+	if (rootStart < 0) return { obj, recoveredFields };
+	const body = text.slice(rootStart + rootOpen.length);
+	let pos = 0;
+	while (pos < body.length) {
+		while (pos < body.length) {
+			const ch = body.charAt(pos);
+			if (ch !== " " && ch !== "\n" && ch !== "\r" && ch !== "\t") break;
+			pos += 1;
+		}
+		if (body.startsWith("</memory_update_result>", pos)) break;
+		if (body.charAt(pos) !== "<") break;
+		const openEnd = body.indexOf(">", pos + 1);
+		if (openEnd < 0) break;
+		const field = body.slice(pos + 1, openEnd).trim();
+		if (!isCompressionResultFieldName(field)) break;
+		const close = `</${field}>`;
+		const end = body.indexOf(close, openEnd + 1);
+		if (end < 0) break;
+		if (obj[field] === undefined) {
+			obj[field] = unwrapCompressionXMLText(body.slice(openEnd + 1, end));
+			recoveredFields.push(field);
+		}
+		pos = end + close.length;
+	}
+	return { obj, recoveredFields };
+}
 
 /**
  * Token 估算器
@@ -1591,15 +1759,10 @@ export class MemoryCompressor {
 		const historyText = this.formatMessagesForCompression(chunk);
 
 		try {
-			// 调用 LLM 压缩。摘要/归纳类操作用低 effort 加速(对齐 codex thread_summary 独立 effort 分档)。
-			// effort 从 LLMConfig.customOptions.auxiliaryReasoningEffort 读:用户在 customOptions JSON 里
-			// 填当前模型的合法低值(如 glm "minimal"、OpenAI "low"),跨模型安全、不依赖 LLM 决策。
-			// 没配则用全局 effort(不动 llmOptions),保持原行为。
-			const auxEffortRaw = this.config.llmConfig.customOptions?.auxiliaryReasoningEffort;
-			const auxEffort = typeof auxEffortRaw === "string" ? auxEffortRaw.trim() : "";
-			const compressionLLMOptions = auxEffort !== ""
-				? { ...llmOptions, reasoning_effort: auxEffort }
-				: llmOptions;
+			// Compression is an auxiliary request with its own output and reasoning
+			// budget. The provider-specific wire fields live in auxiliaryOptions.
+			const auxiliaryOptions = getAuxiliaryLLMOptions(this.config.llmConfig);
+			const compressionLLMOptions = applyCustomLLMOptions(llmOptions, auxiliaryOptions);
 			const result = await this.callLLMForCompression(
 				currentMemory,
 				historyText,
@@ -1879,9 +2042,9 @@ export class MemoryCompressor {
 
 	private getCompressionHistoryTokenBudget(currentMemory: string): number {
 		const contextWindow = this.getContextWindow();
-		const reservedOutputTokens = Math.max(
+		const reservedOutputTokens = math.max(
 			COMPRESSION_RESERVED_OUTPUT_MIN_TOKENS,
-			Math.floor(contextWindow * COMPRESSION_RESERVED_OUTPUT_CONTEXT_RATIO)
+			getCompressionOutputTokenLimit(this.config.llmConfig)
 		);
 		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionStaticPrompt("tool_calling"));
 		const memoryTokens = TokenEstimator.estimate(currentMemory);
@@ -1917,9 +2080,9 @@ export class MemoryCompressor {
 		historyText: string;
 	} {
 		const contextWindow = this.getContextWindow();
-		const reservedOutputTokens = Math.max(
+		const reservedOutputTokens = math.max(
 			COMPRESSION_RESERVED_OUTPUT_MIN_TOKENS,
-			math.floor(contextWindow * COMPRESSION_RESERVED_OUTPUT_CONTEXT_RATIO)
+			getCompressionOutputTokenLimit(this.config.llmConfig)
 		);
 		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionStaticPrompt("tool_calling"));
 		const dynamicBudget = math.max(
@@ -2018,7 +2181,7 @@ export class MemoryCompressor {
 				messages,
 				requestOptions,
 				undefined,
-				this.config.llmConfig
+				buildCompressionLLMConfig(this.config.llmConfig)
 			);
 
 			if (!response.success) {
@@ -2033,6 +2196,9 @@ export class MemoryCompressor {
 
 			const choice = response.response.choices && response.response.choices[0];
 			const message = choice && choice.message;
+			const finishReason = choice && typeof choice.finish_reason === "string"
+				? choice.finish_reason
+				: "";
 			const toolCalls = message && message.tool_calls;
 			const toolCall = toolCalls && toolCalls[0];
 			const fn = toolCall && toolCall.function;
@@ -2053,6 +2219,21 @@ export class MemoryCompressor {
 
 			const [args, err] = safeJsonDecode(argsText);
 			if (err !== undefined || !args || typeof args !== "object") {
+				if (finishReason === "length") {
+					const recovered = recoverCompleteCompressionJSONFields(argsText);
+					const partialResult = this.buildRecoveredCompressionResult(
+						recovered.obj,
+						recovered.recoveredFields,
+						currentMemory
+					);
+					if (partialResult) {
+						Log("Warn", `[Memory] recovered truncated compression tool call fields=${recovered.recoveredFields.join(",")}`);
+						return partialResult;
+					}
+					lastError = `truncated save_memory arguments had no safe recoverable fields: ${tostring(err)}`;
+					Log("Warn", `[Memory] compression tool-calling attempt ${i + 1}/${maxLLMTry} invalid: ${lastError}`);
+					continue;
+				}
 				lastError = `Failed to parse tool arguments JSON: ${tostring(err)}`;
 				Log("Warn", `[Memory] compression tool-calling attempt ${i + 1}/${maxLLMTry} invalid: ${lastError}`);
 				continue;
@@ -2107,7 +2288,7 @@ export class MemoryCompressor {
 				requestMessages,
 				llmOptions,
 				undefined,
-				this.config.llmConfig
+				buildCompressionLLMConfig(this.config.llmConfig)
 			);
 
 			if (!response.success) {
@@ -2124,6 +2305,9 @@ export class MemoryCompressor {
 
 			const choice = response.response.choices && response.response.choices[0];
 			const message = choice && choice.message;
+			const finishReason = choice && typeof choice.finish_reason === "string"
+				? choice.finish_reason
+				: "";
 			const text = message && typeof message.content === "string" ? message.content : "";
 			debugContext?.onOutput?.("memory_compression_xml", text !== "" ? text : encodeCompressionDebugJSON(response.response), { success: true });
 			if (text.trim() === "") {
@@ -2134,6 +2318,20 @@ export class MemoryCompressor {
 			const parsed = this.parseCompressionXMLObject(text, currentMemory);
 			if (parsed.success) {
 				return parsed;
+			}
+			if (finishReason === "length") {
+				const recovered = recoverCompleteCompressionXMLFields(text);
+				const partialResult = this.buildRecoveredCompressionResult(
+					recovered.obj,
+					recovered.recoveredFields,
+					currentMemory
+				);
+				if (partialResult) {
+					Log("Warn", `[Memory] recovered truncated compression XML fields=${recovered.recoveredFields.join(",")}`);
+					return partialResult;
+				}
+				lastError = `truncated compression XML had no safe recoverable fields: ${parsed.error || "invalid xml response"}`;
+				continue;
 			}
 			lastError = parsed.error || "invalid xml response";
 		}
@@ -2205,6 +2403,22 @@ ${this.config.promptPack.memoryCompressionXmlPrompt}`;
 			parsed.obj,
 			currentMemory
 		);
+	}
+
+	private buildRecoveredCompressionResult(
+		obj: Record<string, unknown>,
+		recoveredFields: string[],
+		currentMemory: string
+	): CompressionResult | undefined {
+		if (recoveredFields.length === 0) return undefined;
+		const result = this.buildCompressionResultFromObject(obj, currentMemory);
+		if (!result.success) return undefined;
+		return {
+			...result,
+			partialRecovered: true,
+			recoveredFields,
+			finishReason: "length",
+		};
 	}
 
 	private buildCompressionResultFromObject(

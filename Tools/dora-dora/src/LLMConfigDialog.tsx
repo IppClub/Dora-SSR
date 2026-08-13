@@ -38,6 +38,15 @@ type LLMConfigFormState = Omit<Service.LLMConfigItem, "contextWindow" | "tempera
 const DEFAULT_CONTEXT_WINDOW = 128000;
 const DEFAULT_TEMPERATURE = 0.1;
 const DEFAULT_MAX_TOKENS = 8192;
+const DEFAULT_AUXILIARY_MAX_TOKENS = 8192;
+
+const customOptionsWithAuxiliary = (
+	auxiliaryOptions: Record<string, unknown>,
+	customOptions: Record<string, unknown> = {},
+) => JSON.stringify({
+	...customOptions,
+	auxiliaryOptions,
+}, null, 2);
 
 const emptyForm: LLMConfigFormState = {
 	id: 0,
@@ -78,130 +87,257 @@ const validateCustomOptions = (value: string) => {
 	}
 };
 
+const parseCustomOptionsObject = (value: string): Record<string, unknown> | undefined => {
+	const trimmed = value.trim();
+	if (trimmed === '') return {};
+	try {
+		const parsed = JSON.parse(trimmed);
+		return parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)
+			? parsed as Record<string, unknown>
+			: undefined;
+	} catch {
+		return undefined;
+	}
+};
+
+const hasNonEmptyAuxiliaryOptions = (value: string) => {
+	const parsed = parseCustomOptionsObject(value);
+	if (!parsed) return false;
+	const auxiliaryOptions = parsed.auxiliaryOptions;
+	return auxiliaryOptions !== null
+		&& typeof auxiliaryOptions === 'object'
+		&& !Array.isArray(auxiliaryOptions)
+		&& Object.keys(auxiliaryOptions).length > 0;
+};
+
 const BUILTIN_TEMPLATES: LLMTemplate[] = [
 	{
 		id: 'deepseek',
 		label: 'DeepSeek',
 		url: 'https://api.deepseek.com/v1/chat/completions',
-		model: 'deepseek-v4-pro'
+		model: 'deepseek-v4-pro',
+		customOptions: customOptionsWithAuxiliary({
+			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
+			reasoning_effort: null,
+			thinking: { type: 'disabled' },
+		}),
 	},
 	{
 		id: 'moonshot',
 		label: 'Moonshot',
 		url: 'https://api.moonshot.cn/v1/chat/completions',
-		model: 'kimi-k3'
+		model: 'kimi-k3',
+		// Kimi K3 cannot disable thinking; low is its smallest supported effort.
+		customOptions: customOptionsWithAuxiliary({
+			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
+			reasoning_effort: 'low',
+		}),
 	},
 	{
 		id: 'qwen',
 		label: 'Qwen',
 		url: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
-		model: 'qwen3.7-max'
+		model: 'qwen3.7-max',
+		customOptions: customOptionsWithAuxiliary({
+			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
+			reasoning_effort: null,
+			enable_thinking: false,
+		}),
 	},
 	{
 		id: 'openrouter',
 		label: 'OpenRouter',
 		url: 'https://openrouter.ai/api/v1/chat/completions',
-		model: '~anthropic/claude-sonnet-latest'
+		model: '~anthropic/claude-sonnet-latest',
+		customOptions: customOptionsWithAuxiliary({
+			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
+			reasoning_effort: null,
+			reasoning: { effort: 'none' },
+		}),
 	},
 	{
 		id: 'openai',
 		label: 'OpenAI',
 		url: 'https://api.openai.com/v1/chat/completions',
-		model: 'gpt-5.6'
+		model: 'gpt-5.6',
+		customOptions: customOptionsWithAuxiliary({
+			max_tokens: null,
+			max_completion_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
+			reasoning_effort: 'none',
+		}),
 	},
 	{
 		id: 'aihubmix',
 		label: 'AiHubMix',
 		url: 'https://aihubmix.com/v1/chat/completions',
-		model: 'gpt-5.6-luna'
+		model: 'gpt-5.6-luna',
+		customOptions: customOptionsWithAuxiliary({
+			max_tokens: null,
+			max_completion_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
+			reasoning_effort: 'none',
+		}),
 	},
 	{
 		id: 'siliconflow',
 		label: 'SiliconFlow',
 		url: 'https://api.siliconflow.cn/v1/chat/completions',
-		model: 'deepseek-ai/DeepSeek-V4-Pro'
+		model: 'deepseek-ai/DeepSeek-V4-Pro',
+		customOptions: customOptionsWithAuxiliary({
+			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
+			reasoning_effort: null,
+			enable_thinking: false,
+		}),
 	},
 	{
 		id: 'volcengine',
 		label: 'VolcEngine',
 		url: 'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
-		model: 'doubao-seed-2-0-pro-260215'
+		model: 'doubao-seed-2-0-pro-260215',
+		customOptions: customOptionsWithAuxiliary({
+			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
+			reasoning_effort: null,
+			thinking: { type: 'disabled' },
+		}),
 	},
 	{
 		id: 'volcengine-coding-plan',
 		label: 'VolcEngine Coding Plan',
 		url: 'https://ark.cn-beijing.volces.com/api/coding/v3/chat/completions',
-		model: 'ark-code-latest'
+		model: 'ark-code-latest',
+		customOptions: customOptionsWithAuxiliary({
+			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
+			reasoning_effort: null,
+			thinking: { type: 'disabled' },
+		}),
 	},
 	{
 		id: 'byteplus',
 		label: 'BytePlus',
 		url: 'https://ark.ap-southeast.bytepluses.com/api/v3/chat/completions',
-		model: 'dola-seed-2-1-turbo-260628'
+		model: 'dola-seed-2-1-turbo-260628',
+		customOptions: customOptionsWithAuxiliary({
+			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
+			reasoning_effort: null,
+			thinking: { type: 'disabled' },
+		}),
 	},
 	{
 		id: 'byteplus-coding-plan',
 		label: 'BytePlus Coding Plan',
 		url: 'https://ark.ap-southeast.bytepluses.com/api/coding/v3/chat/completions',
-		model: 'ark-code-latest'
+		model: 'ark-code-latest',
+		customOptions: customOptionsWithAuxiliary({
+			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
+			reasoning_effort: null,
+			thinking: { type: 'disabled' },
+		}),
 	},
 	{
 		id: 'minimax',
 		label: 'MiniMax',
 		url: 'https://api.minimax.io/v1/chat/completions',
-		model: 'MiniMax-M2.7'
+		model: 'MiniMax-M2.7',
+		// MiniMax M2.7 does not expose a supported switch for disabling reasoning.
+		customOptions: customOptionsWithAuxiliary({
+			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
+			reasoning_effort: null,
+		}),
 	},
 	{
 		id: 'minimax-cn',
 		label: 'MiniMax (CN)',
 		url: 'https://api.minimaxi.com/v1/chat/completions',
-		model: 'MiniMax-M2.7'
+		model: 'MiniMax-M2.7',
+		customOptions: customOptionsWithAuxiliary({
+			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
+			reasoning_effort: null,
+		}),
 	},
 	{
 		id: 'mimo',
 		label: 'Xiaomi MiMo',
 		url: 'https://api.xiaomimimo.com/v1/chat/completions',
 		model: 'mimo-v2.5-pro',
-		customOptions: JSON.stringify({
+		customOptions: customOptionsWithAuxiliary({
+			max_tokens: null,
+			max_completion_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
+			reasoning_effort: null,
+			thinking: { type: 'disabled' },
+		}, {
 			max_tokens: null,
 			max_completion_tokens: DEFAULT_MAX_TOKENS,
 			top_p: 0.95,
-			thinking: {
-				type: 'disabled',
-			},
-		}, null, 2)
+		})
 	},
 	{
 		id: 'zai',
 		label: 'ZAI',
 		url: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
 		model: 'glm-5.2',
-		customOptions: JSON.stringify({
-			auxiliaryReasoningEffort: 'minimal',
-		}, null, 2)
+		customOptions: customOptionsWithAuxiliary({
+			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
+			reasoning_effort: null,
+			thinking: { type: 'disabled' },
+		})
 	},
 	{
 		id: 'zai-coding-plan',
 		label: 'ZAI Coding Plan',
 		url: 'https://open.bigmodel.cn/api/coding/paas/v4/chat/completions',
 		model: 'glm-5.2',
-		customOptions: JSON.stringify({
-			auxiliaryReasoningEffort: 'minimal',
-		}, null, 2)
+		customOptions: customOptionsWithAuxiliary({
+			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
+			reasoning_effort: null,
+			thinking: { type: 'disabled' },
+		})
 	},
 	{
 		id: 'ollama',
 		label: 'Ollama',
 		url: 'http://localhost:11434/v1/chat/completions',
-		model: 'llama3.2'
+		model: 'llama3.2',
+		customOptions: customOptionsWithAuxiliary({
+			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
+			reasoning_effort: 'none',
+		}),
 	},
 	{
 		id: 'vllm',
 		label: 'vLLM',
 		url: 'http://localhost:8000/v1/chat/completions',
-		model: 'meta-llama/Llama-3.1-8B-Instruct'
+		model: 'meta-llama/Llama-3.1-8B-Instruct',
+		customOptions: customOptionsWithAuxiliary({
+			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
+			reasoning_effort: 'none',
+			chat_template_kwargs: { enable_thinking: false },
+		}),
 	},
 ];
+
+const getDefaultAuxiliaryOptions = (config?: Pick<Service.LLMConfigItem, 'url'>): Record<string, unknown> => {
+	const template = config
+		? BUILTIN_TEMPLATES.find((item) => item.url === config.url.trim())
+		: undefined;
+	const templateOptions = parseCustomOptionsObject(template?.customOptions ?? '');
+	const auxiliaryOptions = templateOptions?.auxiliaryOptions;
+	if (auxiliaryOptions !== null && typeof auxiliaryOptions === 'object' && !Array.isArray(auxiliaryOptions)) {
+		return auxiliaryOptions as Record<string, unknown>;
+	}
+	return { max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS };
+};
+
+const ensureAuxiliaryOptions = (
+	value: unknown,
+	config?: Pick<Service.LLMConfigItem, 'url'>,
+) => {
+	const normalized = normalizeCustomOptions(value);
+	const parsed = parseCustomOptionsObject(normalized);
+	if (!parsed || Object.prototype.hasOwnProperty.call(parsed, 'auxiliaryOptions')) return normalized;
+	return JSON.stringify({
+		...parsed,
+		auxiliaryOptions: getDefaultAuxiliaryOptions(config),
+	}, null, 2);
+};
 
 const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 	const { t } = useTranslation();
@@ -237,7 +373,7 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 					temperature: normalizeFormNumber(item.temperature, DEFAULT_TEMPERATURE),
 					maxTokens: Number(item.maxTokens) > 0 ? Number(item.maxTokens) : DEFAULT_MAX_TOKENS,
 					reasoningEffort: typeof item.reasoningEffort === 'string' ? item.reasoningEffort : '',
-					customOptions: normalizeCustomOptions(item.customOptions),
+					customOptions: ensureAuxiliaryOptions(item.customOptions, item),
 					supportsFunctionCalling: item.supportsFunctionCalling === undefined ? true : Boolean(item.supportsFunctionCalling),
 				}));
 				setItems(normalized);
@@ -302,7 +438,7 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			temperature: normalizeFormNumber(item.temperature, DEFAULT_TEMPERATURE),
 			maxTokens: Number(item.maxTokens) > 0 ? Number(item.maxTokens) : DEFAULT_MAX_TOKENS,
 			reasoningEffort: typeof item.reasoningEffort === 'string' ? item.reasoningEffort : '',
-			customOptions: normalizeCustomOptions(item.customOptions),
+			customOptions: ensureAuxiliaryOptions(item.customOptions, item),
 			supportsFunctionCalling: item.supportsFunctionCalling === undefined ? true : Boolean(item.supportsFunctionCalling),
 		});
 		setShowApiKey(false);
@@ -338,6 +474,10 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 		}
 		if (!validateCustomOptions(payload.customOptions)) {
 			setError(t('llm.customOptionsInvalid'));
+			return;
+		}
+		if (!hasNonEmptyAuxiliaryOptions(payload.customOptions)) {
+			setError(t('llm.auxiliaryOptionsRequired'));
 			return;
 		}
 		const res = mode === 'create'

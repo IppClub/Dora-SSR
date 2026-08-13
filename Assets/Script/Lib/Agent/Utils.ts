@@ -887,12 +887,16 @@ export function createSSEJSONParser(opts: {
 		}
 	}
 
-	function feed(chunk: string) {
+	function append(chunk: string) {
 		buffer += chunk;
+	}
 
-		while (true) {
+	function drain(maxLines?: number) {
+		let processedLines = 0;
+		while (maxLines === undefined || processedLines < maxLines) {
 			const nl = buffer.indexOf("\n");
 			if (nl < 0) break;
+			processedLines++;
 
 			let line = buffer.slice(0, nl);
 			buffer = buffer.slice(nl + 1);
@@ -914,6 +918,12 @@ export function createSSEJSONParser(opts: {
 				continue;
 			}
 		}
+		return buffer.indexOf("\n") >= 0;
+	}
+
+	function feed(chunk: string) {
+		append(chunk);
+		drain();
 	}
 
 	function end() {
@@ -931,7 +941,58 @@ export function createSSEJSONParser(opts: {
 		flushEventIfAny();
 	}
 
-	return { feed, end };
+	function discard() {
+		buffer = "";
+		eventDataLines = [];
+	}
+
+	return { append, drain, feed, end, discard };
+}
+
+const SSE_PARSE_LINES_PER_FRAME = 256;
+
+function createScheduledSSEJSONParser(
+	opts: Parameters<typeof createSSEJSONParser>[0],
+	isCancelled?: () => boolean
+) {
+	const parser = createSSEJSONParser(opts);
+	let inputFinished = false;
+	let settled = false;
+	let resolveFinished: (() => void) | undefined;
+	const finished = new Promise<void>((resolve) => {
+		resolveFinished = resolve;
+	});
+	const settle = () => {
+		if (settled) return;
+		settled = true;
+		resolveFinished?.();
+	};
+	Director.systemScheduler.schedule(() => {
+		if (settled) return true;
+		if (isCancelled?.()) {
+			parser.discard();
+			settle();
+			return true;
+		}
+		const hasMoreCompleteLines = parser.drain(SSE_PARSE_LINES_PER_FRAME);
+		if (inputFinished && !hasMoreCompleteLines) {
+			parser.end();
+			settle();
+			return true;
+		}
+		return false;
+	});
+	return {
+		append: parser.append,
+		finish: async () => {
+			inputFinished = true;
+			await finished;
+		},
+		cancel: () => {
+			parser.discard();
+			settle();
+		},
+	};
 }
 
 export interface LLMStreamData {
@@ -1089,6 +1150,19 @@ export type LLMConfig = {
 	supportsFunctionCalling: boolean;
 };
 
+export function validateAgentLLMConfig(config: LLMConfig): { success: true } | { success: false; message: string } {
+	const auxiliaryOptions = config.customOptions?.auxiliaryOptions;
+	if (isPlainRecord(auxiliaryOptions)) {
+		for (const _key in auxiliaryOptions) {
+			return { success: true };
+		}
+	}
+	return {
+		success: false,
+		message: "LLM 配置的 customOptions 必须包含非空 auxiliaryOptions，请检查 LLM 配置",
+	};
+}
+
 function normalizeContextWindow(value: unknown): number {
 	if (typeof value === "number" && value > 0) {
 		return math.floor(value);
@@ -1135,6 +1209,9 @@ export function applyCustomLLMOptions(
 	if (!customOptions) return options;
 	const merged: Record<string, unknown> = { ...options };
 	for (const key in customOptions) {
+		// Dora-owned auxiliary request settings are consumed by MemoryCompressor.
+		// They are not provider API fields and must never leak into normal calls.
+		if (key === "auxiliaryOptions") continue;
 		const value = customOptions[key];
 		if (value === json.null) {
 			delete merged[key];
@@ -1245,12 +1322,19 @@ export const callLLMStream = (
 		Log("Warn", `[Agent.Utils] callLLMStream trimmed input tokens=${fitted.originalTokens} budget=${fitted.budgetTokens} fitted=${fitted.fittedTokens}`);
 	}
 	let stopLLM = false;
-	const parser = createSSEJSONParser({
+	const streamStopToken: StopToken = "stopToken" in event && event.stopToken
+		? event.stopToken
+		: { stopped: false };
+	const parser = createScheduledSSEJSONParser({
 		onJSON: (obj) => {
 			const result = onData(obj as LLMStreamData);
-			if (result) stopLLM = result;
+			if (result) {
+				stopLLM = true;
+				streamStopToken.stopped = true;
+				streamStopToken.reason = "LLM Stopped";
+			}
 		}
-	});
+	}, () => streamStopToken.stopped);
 	(async () => {
 		try {
 			const result = await postLLM(fitted.messages, url, apiKey, model, options, true, config.customOptions, (data) => {
@@ -1261,14 +1345,15 @@ export const callLLMStream = (
 					}
 					return true;
 				}
-				parser.feed(data);
+				parser.append(data);
 				return false;
-			}, "stopToken" in event ? event.stopToken : undefined);
-			parser.end();
+			}, streamStopToken);
+			await parser.finish();
 			if (onDone) {
 				onDone(result);
 			}
 		} catch (e) {
+			parser.cancel();
 			stopLLM = true;
 			if (onCancel) {
 				onCancel(tostring(e));
@@ -1447,7 +1532,7 @@ export async function callLLMStreamAggregated(
 		let parseErrorCount = 0;
 		let doneChunkSeen = false;
 		let lastJSONPreview = "";
-		const parser = createSSEJSONParser({
+		const parser = createScheduledSSEJSONParser({
 			onJSON: (obj, raw) => {
 				sseJSONChunkCount++;
 				lastJSONPreview = previewText(raw, 500);
@@ -1507,18 +1592,23 @@ export async function callLLMStreamAggregated(
 				parseErrorCount++;
 				Log("Warn", `[Agent.Utils] callLLMStreamAggregated parse error: ${tostring(err)} raw=${previewText(context?.raw ?? "", 300)}`);
 			},
-		});
-		await postLLM(fitted.messages, url, apiKey, model, options, true, resolvedConfig.customOptions, (data) => {
-			if (stopToken?.stopped) return true;
-			httpChunkCount++;
-			rawStreamBytes += data.length;
-			if (rawStreamPreview.length < LLM_STREAM_RAW_DEBUG_MAX) {
-				rawStreamPreview += data.slice(0, LLM_STREAM_RAW_DEBUG_MAX - rawStreamPreview.length);
-			}
-			parser.feed(data);
-			return false;
-		}, stopToken);
-		parser.end();
+		}, () => stopToken?.stopped === true);
+		try {
+			await postLLM(fitted.messages, url, apiKey, model, options, true, resolvedConfig.customOptions, (data) => {
+				if (stopToken?.stopped) return true;
+				httpChunkCount++;
+				rawStreamBytes += data.length;
+				if (rawStreamPreview.length < LLM_STREAM_RAW_DEBUG_MAX) {
+					rawStreamPreview += data.slice(0, LLM_STREAM_RAW_DEBUG_MAX - rawStreamPreview.length);
+				}
+				parser.append(data);
+				return false;
+			}, stopToken);
+			await parser.finish();
+		} catch (e) {
+			parser.cancel();
+			throw e;
+		}
 		if (sseJSONChunkCount === 0 && rawStreamPreview.trim() !== "") {
 			const [rawResponse] = safeJsonDecode(normalizeLLMJSONResponse(rawStreamPreview));
 			if (rawResponse && type(rawResponse) === "table") {

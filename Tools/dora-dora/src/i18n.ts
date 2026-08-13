@@ -489,6 +489,7 @@ i18n
 						saveFailed: "Failed to save config.",
 						validationFailed: "Please fill in name, URL, model, and key.",
 						customOptionsInvalid: "Custom parameters must be a JSON object.",
+						auxiliaryOptionsRequired: "Custom parameters must include a non-empty auxiliaryOptions object.",
 					},
 					log: {
 						wait: "Wait for logging messages ...",
@@ -1672,6 +1673,7 @@ i18n
 						saveFailed: "保存配置失败",
 						validationFailed: "请填写名称、URL、模型与密钥。",
 						customOptionsInvalid: "自定义参数必须是一个 JSON 对象。",
+						auxiliaryOptionsRequired: "自定义参数必须包含非空的 auxiliaryOptions 对象。",
 					},
 					log: {
 						wait: "接收日志消息中……",

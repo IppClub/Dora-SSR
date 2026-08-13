@@ -283,6 +283,15 @@ export type CodingAgentEvent =
 		reasoningContent?: string;
 	}
 	| {
+		type: "assistant_message_finished";
+		sessionId?: number;
+		taskId: number;
+		step: number;
+		content: string;
+		reasoningContent?: string;
+		result: Record<string, unknown>;
+	}
+	| {
 		type: "task_waiting_for_user";
 		sessionId?: number;
 		taskId: number;
@@ -416,8 +425,8 @@ interface AgentShared {
 	freshProjectBuildPending?: boolean;
 	/** The only short code file found when freshProjectBuildPending was detected. */
 	freshProjectCodeFile?: string;
-	/** Target that received a valid decoded prefix from a truncated whole-file overwrite. */
-	truncatedToolOverwritePath?: string;
+	/** A truncated assistant turn was persisted and the next decision needs a one-shot recovery prompt. */
+	pendingTruncationRecovery?: boolean;
 	/** A successful spawn in this task makes list_sub_agents a discouraged polling path. */
 	hasSpawnedSubAgentThisTask?: boolean;
 	/** Number of foreground tool batches completed after the first successful spawn. */
@@ -580,6 +589,27 @@ function emitAssistantMessageUpdated(shared: AgentShared, content: string, reaso
 		step: shared.step + 1,
 		content,
 		reasoningContent,
+	});
+}
+
+function emitAssistantMessageFinished(
+	shared: AgentShared,
+	step: number,
+	content: string,
+	reasoningContent?: string
+) {
+	emitAgentEvent(shared, {
+		type: "assistant_message_finished",
+		sessionId: shared.sessionId,
+		taskId: shared.taskId,
+		step,
+		content,
+		reasoningContent,
+		result: {
+			success: false,
+			recoverable: true,
+			reason: "max_output_tokens",
+		},
 	});
 }
 
@@ -1658,6 +1688,9 @@ async function maybeCompressHistory(
 				compressedCount: effectiveCompressedCount,
 				coveredThroughIndex: math.min(shared.messages.length, shared.lastConsolidatedIndex + effectiveCompressedCount),
 				historyEntryPreview: summarizeHistoryEntryPreview(result.summary ?? ""),
+				partialRecovered: result.partialRecovered === true,
+				recoveredFields: result.recoveredFields ?? [],
+				finishReason: result.finishReason,
 			},
 		});
 		applyCompressedSessionState(shared, result.compressedCount, result.carryMessageIndex, result.sessionSummaryUpdate);
@@ -1764,6 +1797,9 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 				compressedCount: effectiveCompressedCount,
 				historyEntryPreview: summarizeHistoryEntryPreview(result.summary ?? ""),
 				fullCompaction: true,
+				partialRecovered: result.partialRecovered === true,
+				recoveredFields: result.recoveredFields ?? [],
+				finishReason: result.finishReason,
 			},
 		});
 		applyCompressedSessionState(shared, result.compressedCount, result.carryMessageIndex, result.sessionSummaryUpdate);
@@ -2236,11 +2272,22 @@ type DecisionBatchSuccess = {
 	content?: string;
 	reasoningContent?: string;
 };
-type DecisionResult = DecisionSuccess | DecisionBatchSuccess | DecisionFailure;
+type DecisionTruncated = {
+	success: false;
+	recoverable: true;
+	message: string;
+	content?: string;
+	reasoningContent?: string;
+};
+type DecisionResult = DecisionSuccess | DecisionBatchSuccess | DecisionTruncated | DecisionFailure;
 type DecisionFailure = { success: false; message: string; raw?: string };
 
 function isDecisionBatchSuccess(result: DecisionSuccess | DecisionBatchSuccess): result is DecisionBatchSuccess {
 	return (result as DecisionBatchSuccess).kind === "batch";
+}
+
+function isDecisionTruncated(result: DecisionResult): result is DecisionTruncated {
+	return result.success === false && (result as DecisionTruncated).recoverable === true;
 }
 
 function parseDecisionObject(rawObj: Record<string, unknown>): DecisionSuccess | DecisionFailure {
@@ -2723,10 +2770,13 @@ function buildDecisionMessages(
 			: "";
 		tailSections.push(`Resume after compression: continue from the Session Summary's Active Checkpoint without restarting discovery.${activeUserInstruction}`);
 	}
-	if (shared.truncatedToolOverwritePath !== undefined) {
-		tailSections.push(`Truncated response result: the fully decoded prefix from an empty-old_str whole-file overwrite was saved directly to ${shared.truncatedToolOverwritePath}. Inspect that file next and decide whether it already suffices or needs a bounded continuation. Do not regenerate the preserved prefix.`);
+	if (shared.pendingTruncationRecovery === true) {
+		tailSections.push("The previous assistant response reached the output limit before producing a complete tool call. Its incomplete tool call was discarded. Continue now with exactly one complete tool call using bounded arguments and minimal reasoning. Do not repeat the truncated payload.");
 	}
-	if (consumeResumeCheckpoint) shared.resumeCheckpointPending = false;
+	if (consumeResumeCheckpoint) {
+		shared.resumeCheckpointPending = false;
+		shared.pendingTruncationRecovery = false;
+	}
 	let messages: Message[] = [
 		{ role: "system", content: systemPrompt },
 		...getUnconsolidatedMessages(shared),
@@ -2901,30 +2951,6 @@ class MainDecisionAgent extends Node<AgentShared> {
 		};
 	}
 
-	private preserveTruncatedEditDecision(
-		shared: AgentShared,
-		toolCalls: ToolCall[] | undefined,
-		reasoningContent?: string
-	): DecisionSuccess | undefined {
-		const recovery = Tools.planTruncatedEditRecovery(toolCalls);
-		if (!recovery) return undefined;
-		shared.truncatedToolOverwritePath = recovery.target;
-		AgentUtils.Log("Warn", `[CodingAgent] preserving truncated whole-file overwrite target=${recovery.target}`);
-		return {
-			success: true,
-			tool: "edit_file",
-			params: {
-				path: recovery.target,
-				old_str: "",
-				new_str: recovery.receivedText,
-				partialStreamRecovery: true,
-			},
-			toolCallId: AgentUtils.createLocalToolCallId(),
-			reason: recovery.reason,
-			reasoningContent,
-		};
-	}
-
 	private async callDecisionByToolCalling(
 		shared: AgentShared,
 		lastError?: string,
@@ -2996,13 +3022,6 @@ class MainDecisionAgent extends Node<AgentShared> {
 			AgentUtils.Log("Error", `[CodingAgent] tool-calling request failed: ${res.message}`);
 			const committed = this.commitPreExecutedDecision(shared);
 			if (committed) return committed;
-			const partialChoice = res.response?.choices?.[0];
-			const partialDraft = this.preserveTruncatedEditDecision(
-				shared,
-				partialChoice?.message?.tool_calls,
-				partialChoice?.message?.reasoning_content
-			);
-			if (partialDraft) return partialDraft;
 			clearPreExecutedResults(shared);
 			return { success: false, message: res.message, raw: res.raw };
 		}
@@ -3025,14 +3044,14 @@ class MainDecisionAgent extends Node<AgentShared> {
 		if (finishReason === "length") {
 			const committed = this.commitPreExecutedDecision(shared);
 			if (committed) return committed;
-			const partialDraft = this.preserveTruncatedEditDecision(shared, toolCalls, reasoningContent);
-			if (partialDraft) return partialDraft;
 			AgentUtils.Log("Error", `[CodingAgent] no complete or recoverable tool call in truncated output tool_calls=${toolCalls ? toolCalls.length : 0} reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
 			clearPreExecutedResults(shared);
 			return {
 				success: false,
-				message: "tool-calling output was truncated by max tokens and no safe recovery was available. A truncated edit with non-empty old_str is rejected and its target is unchanged. Do not repeat the same payload. Retry immediately with one complete tool call using bounded arguments and minimal reasoning.",
-				raw: reasoningContent ?? messageContent ?? "",
+				recoverable: true,
+				message: "tool-calling output was truncated by max tokens; the incomplete tool call was discarded",
+				content: messageContent,
+				reasoningContent,
 			};
 		}
 		if (!toolCalls || toolCalls.length === 0) {
@@ -3147,7 +3166,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		originalRaw: string,
 		originalReasoning: string | undefined,
 		initialError: string
-	): Promise<DecisionResult | DecisionFailure> {
+	): Promise<DecisionSuccess | DecisionFailure> {
 		AgentUtils.Log("Info", `[CodingAgent] xml repair flow start step=${shared.step + 1} error=${initialError}`);
 		let lastError = initialError;
 		let candidateRaw = "";
@@ -3196,7 +3215,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		lastError?: string,
 		attempt = 1,
 		lastRaw?: string
-	): Promise<DecisionResult | DecisionFailure> {
+	): Promise<DecisionSuccess | DecisionFailure> {
 		const messages: Message[] = buildDecisionMessages(
 			shared,
 			lastError,
@@ -3250,6 +3269,10 @@ class MainDecisionAgent extends Node<AgentShared> {
 					return { success: false, message: getCancelledReason(shared) };
 				}
 				if (decision.success) {
+					return decision;
+				}
+				if (isDecisionTruncated(decision)) {
+					AgentUtils.Log("Warn", `[CodingAgent] preserving truncated assistant turn as recoverable step=${shared.step + 1}`);
 					return decision;
 				}
 				lastError = decision.message;
@@ -3312,12 +3335,26 @@ class MainDecisionAgent extends Node<AgentShared> {
 	}
 
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
-		const result = execRes as DecisionResult | { success: false; message: string };
+		const result = execRes as DecisionResult;
 		if (!result.success) {
 			if (shared.stopToken.stopped) {
 				shared.error = getCancelledReason(shared);
 				shared.done = true;
 				return "done";
+			}
+			if (isDecisionTruncated(result)) {
+				shared.step += 1;
+				shared.agentStepCount += 1;
+				const content = result.content ?? "";
+				appendConversationMessage(shared, {
+					role: "assistant",
+					content,
+					reasoning_content: result.reasoningContent,
+				});
+				shared.pendingTruncationRecovery = true;
+				emitAssistantMessageFinished(shared, shared.step, content, result.reasoningContent);
+				persistHistoryState(shared);
+				return "main";
 			}
 			shared.error = result.message;
 			shared.response = getFailureSummaryFallback(shared, result.message);
@@ -4403,9 +4440,6 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 			workDir: shared.workingDir,
 		});
 		if (!isInternalDocumentEdit && result.success === true && result.changed !== false) {
-			if (params.partialStreamRecovery !== true) {
-				shared.truncatedToolOverwritePath = undefined;
-			}
 			shared.unbuiltEdits = true;
 			shared.lastBuildSucceeded = false;
 			if (shared.failedTestNeedsBuild === true) shared.failedTestHasSourceEdit = true;
@@ -4748,6 +4782,7 @@ class CodingAgentFlow extends Flow<AgentShared> {
 			main.on("edit_file", edit);
 		}
 		main.on("done", done);
+		main.on("main", main);
 
 		search.on("main", main);
 		searchDora.on("main", main);
