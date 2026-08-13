@@ -32,6 +32,9 @@ struct FontInfo {
 	/// Scale to apply to glyph data.
 	float scale;
 
+	/// Scale which maps the font's EM square to pixelSize pixels.
+	float emScale;
+
 	/// Is SDF font.
 	bool sdf = false;
 };

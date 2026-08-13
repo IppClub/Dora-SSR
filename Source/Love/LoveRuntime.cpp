@@ -19,6 +19,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
 #include "Love/LoveRuntime.h"
+#include "Love/LoveTextLayout.h"
 #include "Common/Debug.h"
 #include "Lua/BuiltinModules.h"
 #include "3rdParty/Love/src/libraries/lz4/lz4.h"
@@ -1685,6 +1686,7 @@ struct TextEntry
 	std::vector<TextLayoutRun> runs;
 	TransformUserdata transform;
 	float wrap = -1.0f;
+	bool formatted = false;
 	std::string align = "left";
 	float width = 0.0f;
 	float height = 0.0f;
@@ -15708,77 +15710,102 @@ void layoutTextEntry(TextEntry &entry, GraphicsBackend &graphics,
 		fragmentRanges.emplace_back(start, flattened.size());
 	}
 	if (flattened.empty()) return;
-	struct LineRange { std::size_t start = 0; std::size_t end = 0; std::string text; };
-	std::vector<LineRange> lines;
-	if (entry.wrap >= 0.0f)
+	std::vector<std::uint32_t> decoded;
+	std::string decodeError;
+	if (!decodeUtf8(flattened, decoded, decodeError)) return;
+	std::vector<LoveTextLayout::Codepoint> codepoints;
+	codepoints.reserve(decoded.size());
+	std::size_t byteOffset = 0;
+	std::size_t fragmentIndex = 0;
+	for (const auto value : decoded)
 	{
-		std::vector<std::string> wrapped;
-		graphics.getFontWrap(font, flattened, entry.wrap, wrapped);
-		std::size_t cursor = 0;
-		for (const auto &line : wrapped)
-		{
-			while (cursor < flattened.size() && (flattened[cursor] == '\n'
-				|| flattened[cursor] == ' ' || flattened[cursor] == '\t')) ++cursor;
-			std::size_t start = line.empty() ? cursor : flattened.find(line, cursor);
-			if (start == std::string::npos) start = cursor;
-			const std::size_t end = std::min(flattened.size(), start + line.size());
-			lines.push_back({start, end, line}); cursor = end;
-		}
+		while (fragmentIndex + 1 < fragmentRanges.size()
+			&& byteOffset >= fragmentRanges[fragmentIndex].second)
+			++fragmentIndex;
+		const std::size_t end = byteOffset + encodeUtf8(value).size();
+		codepoints.push_back({value, byteOffset, end, fragmentIndex});
+		byteOffset = end;
 	}
+	auto spacing = [&graphics, font](std::uint32_t value) {
+		return graphics.getFontGlyphSpacing(font, value);
+	};
+	auto kerning = [&graphics, font](std::uint32_t left, std::uint32_t right) {
+		return graphics.getFontKerning(font, left, right);
+	};
+	std::vector<LoveTextLayout::Line> lines;
+	const float formattedWrap = std::max(entry.wrap, 0.0f);
+	if (entry.formatted)
+		lines = LoveTextLayout::wrap(codepoints, formattedWrap, spacing, kerning);
 	else
 	{
-		std::size_t start = 0;
-		while (start <= flattened.size())
+		LoveTextLayout::Line line;
+		for (const auto &codepoint : codepoints)
 		{
-			const std::size_t newline = flattened.find('\n', start);
-			const std::size_t end = newline == std::string::npos ? flattened.size() : newline;
-			lines.push_back({start, end, flattened.substr(start, end - start)});
-			if (newline == std::string::npos) break;
-			start = newline + 1;
+			if (codepoint.value == '\n')
+			{
+				line.width = LoveTextLayout::measure(line.codepoints, spacing, kerning);
+				lines.push_back(std::move(line));
+				line = {};
+			}
+			else if (codepoint.value != '\r')
+				line.codepoints.push_back(codepoint);
 		}
+		line.width = LoveTextLayout::measure(line.codepoints, spacing, kerning);
+		lines.push_back(std::move(line));
 	}
 	const float lineAdvance = graphics.getFontHeight(font) * graphics.getFontLineHeight(font);
+	const float effectiveLineAdvance = entry.formatted
+		? lineAdvance : std::floor(lineAdvance + 0.5f);
+	float lineY = 0.0f;
 	for (std::size_t lineIndex = 0; lineIndex < lines.size(); ++lineIndex)
 	{
 		const auto &line = lines[lineIndex];
-		const float lineWidth = graphics.getFontWidth(font, line.text);
+		const float lineWidth = line.width;
 		entry.width = std::max(entry.width, lineWidth);
-		const float offsetX = entry.align == "center" ? std::floor((entry.wrap - lineWidth) * 0.5f)
-			: entry.align == "right" ? std::floor(entry.wrap - lineWidth) : 0.0f;
+		const float offsetX = entry.align == "center" ? std::floor((formattedWrap - lineWidth) * 0.5f)
+			: entry.align == "right" ? std::floor(formattedWrap - lineWidth) : 0.0f;
 		const std::size_t spaces = entry.align == "justify"
-			? static_cast<std::size_t>(std::count(line.text.begin(), line.text.end(), ' ')) : 0;
-		const float extraSpacing = spaces > 0 && lineWidth < entry.wrap
-			? (entry.wrap - lineWidth) / static_cast<float>(spaces) : 0.0f;
-		for (std::size_t fragmentIndex = 0; fragmentIndex < entry.fragments.size(); ++fragmentIndex)
+			? static_cast<std::size_t>(std::count_if(line.codepoints.begin(), line.codepoints.end(),
+				[](const auto &codepoint) { return codepoint.value == ' '; })) : 0;
+		const float extraSpacing = spaces > 0 && lineWidth < formattedWrap
+			? (formattedWrap - lineWidth) / static_cast<float>(spaces) : 0.0f;
+		float cursor = offsetX;
+		std::uint32_t previous = 0;
+		for (std::size_t index = 0; index < line.codepoints.size();)
 		{
-			const auto [fragmentStart, fragmentEnd] = fragmentRanges[fragmentIndex];
-			const std::size_t begin = std::max(line.start, fragmentStart);
-			const std::size_t end = std::min(line.end, fragmentEnd);
-			if (begin >= end) continue;
-			std::size_t runStart = begin;
-			do
+			const auto colorIndex = line.codepoints[index].colorIndex;
+			TextLayoutRun run;
+			run.x = cursor + kerning(previous, line.codepoints[index].value);
+			run.y = std::floor(lineY);
+			std::copy(std::begin(entry.fragments[colorIndex].color),
+				std::end(entry.fragments[colorIndex].color), std::begin(run.color));
+			while (index < line.codepoints.size()
+				&& line.codepoints[index].colorIndex == colorIndex)
 			{
-				std::size_t runEnd = end;
-				if (entry.align == "justify")
+				const auto &codepoint = line.codepoints[index];
+				run.text.append(flattened.substr(codepoint.sourceBegin,
+					codepoint.sourceEnd - codepoint.sourceBegin));
+				cursor += kerning(previous, codepoint.value) + spacing(codepoint.value);
+				previous = codepoint.value;
+				++index;
+				if (entry.align == "justify" && codepoint.value == ' ')
 				{
-					const std::size_t space = flattened.find(' ', runStart);
-					if (space < end) runEnd = space + 1;
+					cursor = std::floor(cursor + extraSpacing);
+					break;
 				}
-				TextLayoutRun run;
-				run.text = flattened.substr(runStart, runEnd - runStart);
-				const auto prefix = std::string_view(flattened).substr(line.start, runStart - line.start);
-				run.x = offsetX + graphics.getFontWidth(font, prefix)
-					+ extraSpacing * static_cast<float>(std::count(prefix.begin(), prefix.end(), ' '));
-				run.y = static_cast<float>(lineIndex) * lineAdvance;
-				std::copy(std::begin(entry.fragments[fragmentIndex].color),
-					std::end(entry.fragments[fragmentIndex].color), std::begin(run.color));
-				entry.runs.push_back(std::move(run));
-				runStart = runEnd;
-			} while (runStart < end);
+			}
+			entry.runs.push_back(std::move(run));
 		}
+		lineY += effectiveLineAdvance;
 	}
-	entry.height = lines.empty() ? 0.0f
-		: graphics.getFontHeight(font) + static_cast<float>(lines.size() - 1) * lineAdvance;
+	if (entry.formatted)
+		entry.height = std::floor(lineY);
+	else
+	{
+		entry.height = lines.size() <= 1 ? (lines.front().codepoints.empty() ? 0.0f : effectiveLineAdvance)
+			: static_cast<float>(lines.size() - 1) * effectiveLineAdvance
+				+ (lines.back().codepoints.empty() ? 0.0f : effectiveLineAdvance);
+	}
 }
 
 void drawTextEntry(GraphicsBackend &graphics, GraphicsBackend::FontHandle font,
@@ -17311,10 +17338,8 @@ int LoveRuntime::graphicsPrintf(lua_State *state)
 		return luaL_error(state, "%s", error.c_str());
 	const float x = static_cast<float>(luaL_optnumber(state, argument++, 0.0));
 	const float y = static_cast<float>(luaL_optnumber(state, argument++, 0.0));
-	const int limitArgument = argument;
 	const float limit = static_cast<float>(luaL_checknumber(state, argument++));
 	const std::string align = luaL_optstring(state, argument++, "left");
-	luaL_argcheck(state, limit >= 0.0f, limitArgument, "printf wrap limit cannot be negative");
 	luaL_argcheck(state, align == "left" || align == "center" || align == "right"
 		|| align == "justify", argument - 1,
 		"supported alignments are 'left', 'center', 'right', and 'justify'");
@@ -17330,6 +17355,7 @@ int LoveRuntime::graphicsPrintf(lua_State *state)
 		TextEntry entry;
 		entry.fragments = readTextFragments(state, 1);
 		entry.wrap = limit;
+		entry.formatted = true;
 		entry.align = align;
 		drawTextEntry(*runtime->_graphicsBackend, font, entry,
 			runtime->_graphicsTransform.a, runtime->_graphicsTransform.b,
@@ -17348,7 +17374,7 @@ int LoveRuntime::graphicsPrintf(lua_State *state)
 	const float localC = scaleY * (cosine * shearX - sine);
 	const float localD = scaleY * (sine * shearX + cosine);
 	const GraphicsTransform current = runtime->_graphicsTransform;
-	runtime->_graphicsBackend->drawText(font, {text, textSize}, limit, align,
+	runtime->_graphicsBackend->drawText(font, {text, textSize}, std::max(limit, 0.0f), align,
 		current.a * localA + current.c * localB, current.b * localA + current.d * localB,
 		current.a * localC + current.c * localD, current.b * localC + current.d * localD,
 		current.a * x + current.c * y + current.tx, current.b * x + current.d * y + current.ty,
@@ -19301,13 +19327,14 @@ int LoveRuntime::particleSystemUpdate(lua_State *state)
 namespace
 {
 int addTextEntry(lua_State *state, TextUserdata &text, int textIndex,
-	float wrap, std::string align, int transformIndex, bool replace)
+	float wrap, bool formatted, std::string align, int transformIndex, bool replace)
 {
 	luaL_argcheck(state, text.runtime && text.runtime->getGraphicsBackend()
 		&& text.runtime->getGraphicsBackend()->getFontHeight(text.font) > 0.0f, 1, "closed Text");
 	TextEntry entry;
 	entry.fragments = readTextFragments(state, textIndex);
 	entry.wrap = wrap;
+	entry.formatted = formatted;
 	entry.align = std::move(align);
 	readTextTransform(state, transformIndex, entry.transform);
 	layoutTextEntry(entry, *text.runtime->getGraphicsBackend(), text.font);
@@ -19332,7 +19359,6 @@ int LoveRuntime::textSetf(lua_State *state)
 {
 	auto *text = checkText(state, 1);
 	const float wrap = checkedFiniteFloat(state, 3, "Text wrap limit must be finite");
-	luaL_argcheck(state, wrap >= 0.0f, 3, "Text wrap limit must be non-negative");
 	const std::string align = luaL_checkstring(state, 4);
 	luaL_argcheck(state, align == "left" || align == "center" || align == "right"
 		|| align == "justify", 4,
@@ -19340,7 +19366,8 @@ int LoveRuntime::textSetf(lua_State *state)
 	auto fragments = readTextFragments(state, 2);
 	bool empty = true; for (const auto &fragment : fragments) empty &= fragment.text.empty();
 	if (empty) { text->entries.clear(); return 0; }
-	TextEntry entry; entry.fragments = std::move(fragments); entry.wrap = wrap; entry.align = align;
+	TextEntry entry; entry.fragments = std::move(fragments); entry.wrap = wrap;
+	entry.formatted = true; entry.align = align;
 	setTransformIdentity(entry.transform); layoutTextEntry(entry, *text->runtime->_graphicsBackend, text->font);
 	text->entries.clear(); text->entries.push_back(std::move(entry)); return 0;
 }
@@ -19348,7 +19375,7 @@ int LoveRuntime::textSetf(lua_State *state)
 int LoveRuntime::textAdd(lua_State *state)
 {
 	auto *text = checkText(state, 1);
-	const int index = addTextEntry(state, *text, 2, -1.0f, "left", 3, false);
+	const int index = addTextEntry(state, *text, 2, -1.0f, false, "left", 3, false);
 	lua_pushinteger(state, index + 1); return 1;
 }
 
@@ -19356,12 +19383,11 @@ int LoveRuntime::textAddf(lua_State *state)
 {
 	auto *text = checkText(state, 1);
 	const float wrap = checkedFiniteFloat(state, 3, "Text wrap limit must be finite");
-	luaL_argcheck(state, wrap >= 0.0f, 3, "Text wrap limit must be non-negative");
 	const std::string align = luaL_checkstring(state, 4);
 	luaL_argcheck(state, align == "left" || align == "center" || align == "right"
 		|| align == "justify", 4,
 		"supported Text alignments are 'left', 'center', 'right', and 'justify'");
-	const int index = addTextEntry(state, *text, 2, wrap, align, 5, false);
+	const int index = addTextEntry(state, *text, 2, wrap, true, align, 5, false);
 	lua_pushinteger(state, index + 1); return 1;
 }
 
@@ -23319,7 +23345,6 @@ int LoveRuntime::fontGetWrap(lua_State *state)
 	std::size_t size = 0;
 	const char *text = luaL_checklstring(state, 2, &size);
 	const float limit = static_cast<float>(luaL_checknumber(state, 3));
-	luaL_argcheck(state, limit > 0.0f, 3, "wrap limit must be positive");
 	std::vector<std::string> lines;
 	const float width = font->runtime->_graphicsBackend->getFontWrap(font->handle, {text, size}, limit, lines);
 	lua_pushnumber(state, width);

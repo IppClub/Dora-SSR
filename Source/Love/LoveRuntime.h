@@ -551,6 +551,7 @@ public:
 	}
 	virtual void releaseFont(FontHandle font) = 0;
 	virtual float getFontWidth(FontHandle font, std::string_view text) const = 0;
+	virtual float getFontGlyphSpacing(FontHandle font, std::uint32_t codepoint) const = 0;
 	virtual float getFontHeight(FontHandle font) const = 0;
 	virtual float getFontBaseline(FontHandle font) const = 0;
 	virtual float getFontAscent(FontHandle font) const = 0;

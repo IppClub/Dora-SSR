@@ -232,6 +232,8 @@ private:
 		std::string &error) override;
 	virtual void releaseFont(Love::GraphicsBackend::FontHandle font) override;
 	virtual float getFontWidth(Love::GraphicsBackend::FontHandle font, std::string_view text) const override;
+	virtual float getFontGlyphSpacing(Love::GraphicsBackend::FontHandle font,
+		std::uint32_t codepoint) const override;
 	virtual float getFontHeight(Love::GraphicsBackend::FontHandle font) const override;
 	virtual float getFontBaseline(Love::GraphicsBackend::FontHandle font) const override;
 	virtual float getFontAscent(Love::GraphicsBackend::FontHandle font) const override;
@@ -1015,6 +1017,7 @@ private:
 		std::vector<Love::GraphicsBackend::FontHandle> fallbacks;
 		float lineHeight = 1.0f;
 	};
+	float getLoveFontScale(const FontResource &resource) const;
 	std::unordered_map<Love::GraphicsBackend::FontHandle, FontResource> _fonts;
 	struct AudioResource
 	{

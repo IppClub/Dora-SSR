@@ -21,6 +21,7 @@ SOFTWARE. */
 #include "Const/Header.h"
 
 #include "Love/LoveNode.h"
+#include "Love/LoveTextLayout.h"
 
 #include <charconv>
 #include <climits>
@@ -8965,16 +8966,27 @@ void LoveNode::releaseFont(Love::GraphicsBackend::FontHandle font)
 	_fonts.erase(font);
 }
 
-float LoveNode::getFontWidth(Love::GraphicsBackend::FontHandle font, std::string_view text) const
+float LoveNode::getLoveFontScale(const FontResource &resource) const
+{
+	if (!resource.font) return 0.0f;
+	const auto &info = resource.font->getInfo();
+	if (info.pixelSize == 0 || info.scale == 0.0f) return 0.0f;
+	// LÖVE's TrueType rasterizer uses FreeType's FT_Set_Pixel_Sizes, whose
+	// requested size maps to the font's EM square. Dora's SDF atlas uses
+	// stbtt_ScaleForPixelHeight instead, so compensate for that difference
+	// while retaining Dora's shared fixed-size SDF atlas.
+	return static_cast<float>(resource.size) / static_cast<float>(info.pixelSize)
+		* info.emScale / info.scale;
+}
+
+float LoveNode::getFontGlyphSpacing(Love::GraphicsBackend::FontHandle font,
+	std::uint32_t codepoint) const
 {
 	const auto it = _fonts.find(font);
-	if (it == _fonts.end())
-		return 0.0f;
+	if (it == _fonts.end()) return 0.0f;
 	if (!it->second.imageTextures.empty())
 	{
-		std::vector<Utf8Unit> units;
-		if (!decodeUtf8Units(text, units)) return 0.0f;
-		auto selectGlyph = [this, &it](std::uint32_t codepoint)
+		auto selectGlyph = [this, &it, codepoint]()
 			-> std::pair<const FontResource *, const FontResource::ImageGlyph *> {
 			auto findGlyph = [this, codepoint](Love::GraphicsBackend::FontHandle handle)
 				-> std::pair<const FontResource *, const FontResource::ImageGlyph *> {
@@ -8991,26 +9003,12 @@ float LoveNode::getFontWidth(Love::GraphicsBackend::FontHandle font, std::string
 				if (auto selected = findGlyph(fallback); selected.first) return selected;
 			return {nullptr, nullptr};
 		};
-		float width = 0.0f, maximum = 0.0f;
-		for (const auto &unit : units)
-		{
-			if (unit.codepoint == '\n')
-			{
-				maximum = std::max(maximum, width);
-				width = 0.0f;
-				continue;
-			}
-			if (unit.codepoint == '\r') continue;
-			const auto [resource, glyph] = selectGlyph(unit.codepoint);
-			if (resource && glyph)
-				width += std::floor(static_cast<float>(glyph->advance)
-					/ resource->dpiScale + 0.5f);
-		}
-		return std::max(maximum, width);
+		const auto [resource, glyph] = selectGlyph();
+		return resource && glyph
+			? std::floor(static_cast<float>(glyph->advance) / resource->dpiScale + 0.5f)
+			: 0.0f;
 	}
-	std::vector<Utf8Unit> units;
-	if (!decodeUtf8Units(text, units)) return 0.0f;
-	auto selectResource = [this, &it](std::uint32_t codepoint) -> const FontResource * {
+	auto selectResource = [this, &it, codepoint]() -> const FontResource * {
 		auto findFont = [this, codepoint](Love::GraphicsBackend::FontHandle handle)
 			-> const FontResource * {
 			const auto resource = _fonts.find(handle);
@@ -9023,50 +9021,32 @@ float LoveNode::getFontWidth(Love::GraphicsBackend::FontHandle font, std::string
 			if (const auto *resource = findFont(fallback)) return resource;
 		return it->second.font ? &it->second : nullptr;
 	};
-	float width = 0.0f;
-	float maximum = 0.0f;
-	float trailingOverhang = 0.0f;
-	const FontResource *previousResource = nullptr;
-	std::uint32_t previous = 0;
-	auto finishRun = [&]() {
-		width += trailingOverhang;
-		trailingOverhang = 0.0f;
-		previousResource = nullptr;
-		previous = 0;
-	};
-	for (const auto &unit : units)
+	const FontResource *resource = selectResource();
+	if (!resource || !resource->font) return 0.0f;
+	const auto *glyph = SharedFontCache.getGlyphInfo(resource->font, codepoint);
+	if (!glyph && codepoint != '?')
 	{
-		if (unit.codepoint == '\n')
-		{
-			finishRun();
-			maximum = std::max(maximum, width);
-			width = 0.0f;
-			continue;
-		}
-		if (unit.codepoint == '\r') continue;
-		const FontResource *resource = selectResource(unit.codepoint);
-		if (!resource || !resource->font) continue;
-		std::uint32_t codepoint = unit.codepoint == '\t' ? ' ' : unit.codepoint;
-		const auto *glyph = SharedFontCache.getGlyphInfo(resource->font, codepoint);
-		if (!glyph && codepoint != '?')
-		{
-			codepoint = '?';
-			glyph = SharedFontCache.getGlyphInfo(resource->font, codepoint);
-		}
-		if (!glyph) continue;
-		if (previousResource && previousResource != resource) finishRun();
-		const float scale = static_cast<float>(resource->size)
-			/ static_cast<float>(DORA_SDF_FONT_BASE_SIZE);
-		const float kerning = previousResource == resource && previous != 0
-			? SharedFontManager.getKerning(resource->font->getHandle(), previous, codepoint) * scale
-			: 0.0f;
-		width += kerning + glyph->advance_x * scale * (unit.codepoint == '\t' ? 2.0f : 1.0f);
-		trailingOverhang = std::max(0.0f, (glyph->width - glyph->advance_x) * scale);
-		previousResource = resource;
-		previous = codepoint;
+		codepoint = '?';
+		glyph = SharedFontCache.getGlyphInfo(resource->font, codepoint);
 	}
-	finishRun();
-	return std::max(maximum, width);
+	if (!glyph) return 0.0f;
+	const float scale = getLoveFontScale(*resource);
+	return std::floor(glyph->advance_x * scale + 0.5f);
+}
+
+float LoveNode::getFontWidth(Love::GraphicsBackend::FontHandle font, std::string_view text) const
+{
+	std::vector<Utf8Unit> units;
+	if (!decodeUtf8Units(text, units)) return 0.0f;
+	std::vector<LoveTextLayout::Codepoint> codepoints;
+	codepoints.reserve(units.size());
+	for (const auto &unit : units)
+		codepoints.push_back({unit.codepoint, unit.begin, unit.end, 0});
+	return LoveTextLayout::measure(codepoints,
+		[this, font](std::uint32_t value) { return getFontGlyphSpacing(font, value); },
+		[this, font](std::uint32_t left, std::uint32_t right) {
+			return getFontKerning(font, left, right);
+		});
 }
 
 float LoveNode::getFontHeight(Love::GraphicsBackend::FontHandle font) const
@@ -9078,8 +9058,8 @@ float LoveNode::getFontHeight(Love::GraphicsBackend::FontHandle font) const
 		return std::floor(static_cast<float>(it->second.size) / it->second.dpiScale + 0.5f);
 	if (!it->second.font) return 0.0f;
 	const auto &info = it->second.font->getInfo();
-	const float scale = static_cast<float>(it->second.size) / static_cast<float>(DORA_SDF_FONT_BASE_SIZE);
-	return static_cast<float>(info.ascender - info.descender) * scale;
+	const float scale = getLoveFontScale(it->second);
+	return std::floor((info.ascender - info.descender + info.lineGap) * scale + 0.5f);
 }
 
 float LoveNode::getFontBaseline(Love::GraphicsBackend::FontHandle font) const
@@ -9089,8 +9069,8 @@ float LoveNode::getFontBaseline(Love::GraphicsBackend::FontHandle font) const
 		return static_cast<float>(it->second.baseline) / it->second.dpiScale;
 	if (it == _fonts.end() || !it->second.imageTextures.empty() || !it->second.font)
 		return 0.0f;
-	const float scale = static_cast<float>(it->second.size) / static_cast<float>(DORA_SDF_FONT_BASE_SIZE);
-	return static_cast<float>(it->second.font->getInfo().ascender) * scale;
+	const float scale = getLoveFontScale(it->second);
+	return std::floor(static_cast<float>(it->second.font->getInfo().ascender) * scale + 0.5f);
 }
 
 float LoveNode::getFontAscent(Love::GraphicsBackend::FontHandle font) const
@@ -9103,8 +9083,8 @@ float LoveNode::getFontDescent(Love::GraphicsBackend::FontHandle font) const
 	const auto it = _fonts.find(font);
 	if (it == _fonts.end() || !it->second.imageTextures.empty() || !it->second.font)
 		return 0.0f;
-	const float scale = static_cast<float>(it->second.size) / static_cast<float>(DORA_SDF_FONT_BASE_SIZE);
-	return static_cast<float>(it->second.font->getInfo().descender) * scale;
+	const float scale = getLoveFontScale(it->second);
+	return std::floor(static_cast<float>(it->second.font->getInfo().descender) * scale + 0.5f);
 }
 
 bool LoveNode::hasFontGlyph(Love::GraphicsBackend::FontHandle font, std::uint32_t codepoint) const
@@ -9143,9 +9123,9 @@ float LoveNode::getFontKerning(Love::GraphicsBackend::FontHandle font,
 		if (SharedFontManager.hasGlyph(doraFont->getHandle(), left)
 			&& SharedFontManager.hasGlyph(doraFont->getHandle(), right))
 		{
-			const float scale = static_cast<float>(resource->second.size)
-				/ static_cast<float>(DORA_SDF_FONT_BASE_SIZE);
-			return SharedFontManager.getKerning(doraFont->getHandle(), left, right) * scale;
+			const float scale = getLoveFontScale(resource->second);
+			return std::floor(SharedFontManager.getKerning(
+				doraFont->getHandle(), left, right) * scale + 0.5f);
 		}
 	}
 	return 0.0f;
@@ -9196,63 +9176,28 @@ float LoveNode::getFontLineHeight(Love::GraphicsBackend::FontHandle font) const
 float LoveNode::getFontWrap(Love::GraphicsBackend::FontHandle font, std::string_view text, float limit,
 	std::vector<std::string> &lines) const
 {
-	auto nextCharacter = [](std::string_view value, std::size_t offset) {
-		const unsigned char first = static_cast<unsigned char>(value[offset]);
-		std::size_t length = first < 0x80 ? 1 : first < 0xe0 ? 2 : first < 0xf0 ? 3 : 4;
-		return std::min(value.size(), offset + length);
-	};
-	auto trimRightSpaces = [](std::string value) {
-		while (!value.empty() && (value.back() == ' ' || value.back() == '\t'))
-			value.pop_back();
-		return value;
-	};
 	lines.clear();
+	std::vector<Utf8Unit> units;
+	if (!decodeUtf8Units(text, units)) return 0.0f;
+	std::vector<LoveTextLayout::Codepoint> codepoints;
+	codepoints.reserve(units.size());
+	for (const auto &unit : units)
+		codepoints.push_back({unit.codepoint, unit.begin, unit.end, 0});
+	const auto wrapped = LoveTextLayout::wrap(codepoints, limit,
+		[this, font](std::uint32_t value) { return getFontGlyphSpacing(font, value); },
+		[this, font](std::uint32_t left, std::uint32_t right) {
+			return getFontKerning(font, left, right);
+		});
 	float maximumWidth = 0.0f;
-	std::size_t paragraphStart = 0;
-	while (paragraphStart <= text.size())
+	lines.reserve(wrapped.size());
+	for (const auto &line : wrapped)
 	{
-		const std::size_t newline = text.find('\n', paragraphStart);
-		const std::size_t paragraphEnd = newline == std::string_view::npos ? text.size() : newline;
-		const std::string_view paragraph = text.substr(paragraphStart, paragraphEnd - paragraphStart);
-		if (paragraph.empty())
-			lines.emplace_back();
-		else
-		{
-			std::size_t start = 0;
-			while (start < paragraph.size())
-			{
-				while (start < paragraph.size() && (paragraph[start] == ' ' || paragraph[start] == '\t'))
-					++start;
-				if (start >= paragraph.size())
-					break;
-				std::size_t end = start;
-				std::size_t previousEnd = start;
-				std::size_t lastBreak = start;
-				while (end < paragraph.size())
-				{
-					previousEnd = end;
-					end = nextCharacter(paragraph, end);
-					if (paragraph[end - 1] == ' ' || paragraph[end - 1] == '\t')
-						lastBreak = end;
-					if (getFontWidth(font, paragraph.substr(start, end - start)) > limit)
-					{
-						if (previousEnd == start)
-							previousEnd = end;
-						end = lastBreak > start ? lastBreak : previousEnd;
-						break;
-					}
-				}
-				if (end <= start)
-					end = nextCharacter(paragraph, start);
-				std::string line = trimRightSpaces(std::string(paragraph.substr(start, end - start)));
-				maximumWidth = std::max(maximumWidth, getFontWidth(font, line));
-				lines.push_back(std::move(line));
-				start = end;
-			}
-		}
-		if (newline == std::string_view::npos)
-			break;
-		paragraphStart = newline + 1;
+		std::string value;
+		for (const auto &codepoint : line.codepoints)
+			value.append(text.substr(codepoint.sourceBegin,
+				codepoint.sourceEnd - codepoint.sourceBegin));
+		lines.push_back(std::move(value));
+		maximumWidth = std::max(maximumWidth, line.width);
 	}
 	return maximumWidth;
 }
@@ -9265,22 +9210,48 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 	const auto it = _fonts.find(font);
 	if (it == _fonts.end())
 		return;
+	std::vector<std::string> lines;
+	std::vector<float> lineWidths;
+	if (wrapLimit >= 0.0f)
+	{
+		std::vector<Utf8Unit> units;
+		if (!decodeUtf8Units(text, units)) return;
+		std::vector<LoveTextLayout::Codepoint> codepoints;
+		codepoints.reserve(units.size());
+		for (const auto &unit : units)
+			codepoints.push_back({unit.codepoint, unit.begin, unit.end, 0});
+		const auto wrapped = LoveTextLayout::wrap(codepoints, std::max(wrapLimit, 0.0f),
+			[this, font](std::uint32_t value) { return getFontGlyphSpacing(font, value); },
+			[this, font](std::uint32_t left, std::uint32_t right) {
+				return getFontKerning(font, left, right);
+			});
+		lines.reserve(wrapped.size());
+		lineWidths.reserve(wrapped.size());
+		for (const auto &line : wrapped)
+		{
+			std::string value;
+			for (const auto &codepoint : line.codepoints)
+				value.append(text.substr(codepoint.sourceBegin,
+					codepoint.sourceEnd - codepoint.sourceBegin));
+			lines.push_back(std::move(value));
+			lineWidths.push_back(line.width);
+		}
+	}
+	else
+	{
+		std::size_t start = 0;
+		while (start <= text.size())
+		{
+			const auto newline = text.find('\n', start);
+			const auto end = newline == std::string_view::npos ? text.size() : newline;
+			lines.emplace_back(text.substr(start, end - start));
+			lineWidths.push_back(getFontWidth(font, lines.back()));
+			if (newline == std::string_view::npos) break;
+			start = newline + 1;
+		}
+	}
 	if (!it->second.imageTextures.empty())
 	{
-		std::vector<std::string> lines;
-		if (wrapLimit >= 0.0f) getFontWrap(font, text, wrapLimit, lines);
-		else
-		{
-			std::size_t start = 0;
-			while (start <= text.size())
-			{
-				const auto newline = text.find('\n', start);
-				const auto end = newline == std::string_view::npos ? text.size() : newline;
-				lines.emplace_back(text.substr(start, end - start));
-				if (newline == std::string_view::npos) break;
-				start = newline + 1;
-			}
-		}
 		struct ImageTextBatch
 		{
 			const FontResource *resource = nullptr;
@@ -9292,6 +9263,8 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 		const uint32_t color = Color(Vec4{red, green, blue, alpha}).toABGR();
 		const float glyphHeight = getFontHeight(font);
 		const float lineAdvance = glyphHeight * it->second.lineHeight;
+		const float lineStep = wrapLimit >= 0.0f
+			? lineAdvance : std::floor(lineAdvance + 0.5f);
 		const float pixelHeight = static_cast<float>(getActivePixelHeight());
 		auto appendVertex = [&](ImageTextBatch &batch, float localX, float localY, float u, float v) {
 			const float loveX = a * (localX - originX) + c * (localY - originY) + tx;
@@ -9313,10 +9286,10 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 		};
 		for (std::size_t lineIndex = 0; lineIndex < lines.size(); ++lineIndex)
 		{
-			const float lineWidth = getFontWidth(font, lines[lineIndex]);
+			const float lineWidth = lineWidths[lineIndex];
 			float cursor = align == "center"
-				? ((wrapLimit >= 0.0f ? wrapLimit : lineWidth) - lineWidth) * 0.5f
-				: align == "right" ? (wrapLimit >= 0.0f ? wrapLimit : lineWidth) - lineWidth : 0.0f;
+				? std::floor(((wrapLimit >= 0.0f ? wrapLimit : lineWidth) - lineWidth) * 0.5f)
+				: align == "right" ? std::floor((wrapLimit >= 0.0f ? wrapLimit : lineWidth) - lineWidth) : 0.0f;
 			const std::size_t spaces = align == "justify"
 				? static_cast<std::size_t>(std::count(lines[lineIndex].begin(), lines[lineIndex].end(), ' ')) : 0;
 			const float justify = spaces > 0 && wrapLimit >= 0.0f && lineWidth < wrapLimit
@@ -9338,7 +9311,7 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 					const float right = static_cast<float>(glyph->second.x + glyph->second.width) / textureWidth;
 					const float uvTop = static_cast<float>(glyph->second.y) / textureHeight;
 					const float uvBottom = static_cast<float>(glyph->second.y + glyph->second.height) / textureHeight;
-					const float top = static_cast<float>(lineIndex) * lineAdvance
+					const float top = std::floor(static_cast<float>(lineIndex) * lineStep)
 						- static_cast<float>(glyph->second.bearingY) / resource->dpiScale;
 					const float leftPosition = cursor + static_cast<float>(glyph->second.bearingX) / resource->dpiScale;
 					if (width > 0.0f && height > 0.0f)
@@ -9358,7 +9331,8 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 					cursor += std::floor(static_cast<float>(glyph->second.advance)
 						/ resource->dpiScale + 0.5f);
 				}
-				if (align == "justify" && unit.codepoint == ' ') cursor += justify;
+				if (align == "justify" && unit.codepoint == ' ')
+					cursor = std::floor(cursor + justify);
 			}
 		}
 		if (batches.empty()) return;
@@ -9405,20 +9379,6 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 		_primitiveCommand = nullptr;
 		return;
 	}
-	std::vector<std::string> lines;
-	if (wrapLimit >= 0.0f) getFontWrap(font, text, wrapLimit, lines);
-	else
-	{
-		std::size_t start = 0;
-		while (start <= text.size())
-		{
-			const std::size_t newline = text.find('\n', start);
-			const std::size_t end = newline == std::string_view::npos ? text.size() : newline;
-			lines.emplace_back(text.substr(start, end - start));
-			if (newline == std::string_view::npos) break;
-			start = newline + 1;
-		}
-	}
 	struct TrueTypeTextBatch
 	{
 		const FontResource *resource = nullptr;
@@ -9429,6 +9389,8 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 	std::vector<TrueTypeTextBatch> batches;
 	const uint32_t packedColor = Color(Vec4{red, green, blue, alpha}).toABGR();
 	const float lineAdvance = getFontHeight(font) * it->second.lineHeight;
+	const float lineStep = wrapLimit >= 0.0f
+		? lineAdvance : std::floor(lineAdvance + 0.5f);
 	const float pixelHeight = static_cast<float>(getActivePixelHeight());
 	auto selectResource = [this, &it](std::uint32_t codepoint) -> const FontResource * {
 		auto findFont = [this, codepoint](Love::GraphicsBackend::FontHandle handle)
@@ -9454,10 +9416,10 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 	};
 	for (std::size_t lineIndex = 0; lineIndex < lines.size(); ++lineIndex)
 	{
-		const float lineWidth = getFontWidth(font, lines[lineIndex]);
+		const float lineWidth = lineWidths[lineIndex];
 		float cursor = align == "center"
-			? ((wrapLimit >= 0.0f ? wrapLimit : lineWidth) - lineWidth) * 0.5f
-			: align == "right" ? (wrapLimit >= 0.0f ? wrapLimit : lineWidth) - lineWidth : 0.0f;
+			? std::floor(((wrapLimit >= 0.0f ? wrapLimit : lineWidth) - lineWidth) * 0.5f)
+			: align == "right" ? std::floor((wrapLimit >= 0.0f ? wrapLimit : lineWidth) - lineWidth) : 0.0f;
 		const std::size_t spaces = align == "justify"
 			? static_cast<std::size_t>(std::count(lines[lineIndex].begin(), lines[lineIndex].end(), ' ')) : 0;
 		const float justify = spaces > 0 && wrapLimit >= 0.0f && lineWidth < wrapLimit
@@ -9466,17 +9428,15 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 		if (!decodeUtf8Units(lines[lineIndex], units)) continue;
 		const FontResource *previousResource = nullptr;
 		std::uint32_t previous = 0;
-		float trailingOverhang = 0.0f;
 		for (const auto &unit : units)
 		{
 			const FontResource *resource = selectResource(unit.codepoint);
 			if (!resource || !resource->font) continue;
 			if (previousResource && previousResource != resource)
 			{
-				cursor += trailingOverhang;
 				previous = 0;
 			}
-			std::uint32_t codepoint = unit.codepoint == '\t' ? ' ' : unit.codepoint;
+			std::uint32_t codepoint = unit.codepoint;
 			const auto *glyph = SharedFontCache.getGlyphInfo(resource->font, codepoint);
 			if (!glyph && codepoint != '?')
 			{
@@ -9484,10 +9444,9 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 				glyph = SharedFontCache.getGlyphInfo(resource->font, codepoint);
 			}
 			if (!glyph) continue;
-			const float scale = static_cast<float>(resource->size)
-				/ static_cast<float>(DORA_SDF_FONT_BASE_SIZE);
+			const float scale = getLoveFontScale(*resource);
 			const float kerning = previousResource == resource && previous != 0
-				? SharedFontManager.getKerning(resource->font->getHandle(), previous, codepoint) * scale
+				? getFontKerning(font, previous, codepoint)
 				: 0.0f;
 			Texture2D *texture = nullptr;
 			Rect rect;
@@ -9506,7 +9465,7 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 				const float padding = resource->font->getInfo().pixelSize
 					* SDF_FONT_BUFFER_PADDING_RATIO * scale;
 				const float left = cursor + kerning + glyph->offset_x * scale - padding;
-				const float top = static_cast<float>(lineIndex) * lineAdvance
+				const float top = std::floor(static_cast<float>(lineIndex) * lineStep)
 					+ resource->font->getInfo().ascender * scale
 					+ glyph->offset_y * scale - padding;
 				const float width = rect.getWidth() * scale;
@@ -9519,10 +9478,9 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 				batch.indices.insert(batch.indices.end(),
 					{base, base + 1, base + 2, base, base + 2, base + 3});
 			}
-			cursor += kerning + glyph->advance_x * scale
-				* (unit.codepoint == '\t' ? 2.0f : 1.0f);
-			trailingOverhang = std::max(0.0f, (glyph->width - glyph->advance_x) * scale);
-			if (align == "justify" && unit.codepoint == ' ') cursor += justify;
+			cursor += kerning + getFontGlyphSpacing(font, unit.codepoint);
+			if (align == "justify" && unit.codepoint == ' ')
+				cursor = std::floor(cursor + justify);
 			previousResource = resource;
 			previous = codepoint;
 		}
@@ -9564,8 +9522,7 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 			std::optional<Vec2> smooth;
 			if (_activeShader == 0)
 			{
-				const float fontScale = static_cast<float>(batch.resource->size)
-					/ static_cast<float>(DORA_SDF_FONT_BASE_SIZE) * transformScale;
+				const float fontScale = getLoveFontScale(*batch.resource) * transformScale;
 				constexpr float edge = 0.69f;
 				constexpr float baseSoftness = 0.012f;
 				const float softness = std::clamp(baseSoftness / std::max(fontScale, 0.01f),

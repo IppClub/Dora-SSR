@@ -136,10 +136,12 @@ bool TrueTypeFont::init(const uint8_t* _buffer, uint32_t _bufferSize, uint32_t _
 	}
 
 	float scale = stbtt_ScaleForPixelHeight(&m_fontInfo, s_cast<float>(_pixelHeight));
+	float emScale = stbtt_ScaleForMappingEmToPixels(&m_fontInfo, s_cast<float>(_pixelHeight));
 	int ascent, descent, lineGap;
 	stbtt_GetFontVMetrics(&m_fontInfo, &ascent, &descent, &lineGap);
 	m_info.sdf = _sdf;
 	m_info.scale = scale;
+	m_info.emScale = emScale;
 	m_info.ascender = ascent * scale;
 	m_info.descender = descent * scale;
 	m_info.lineGap = lineGap * scale;
