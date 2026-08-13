@@ -1270,7 +1270,6 @@ function projectToolResultContentForLLM(tool: string, content: string): string {
 	};
 	return toJson(fallback, false);
 }
-
 function projectMessagesForLLMContext(messages: Message[]): Message[] {
 	// Session history remains the source of truth for persistence and UI events.
 	// Tool-call arguments remain byte-for-byte unchanged so the normal Agent loop
@@ -1279,6 +1278,7 @@ function projectMessagesForLLMContext(messages: Message[]): Message[] {
 	for (let i = 0; i < messages.length; i++) {
 		const message = messages[i];
 		const next: Message = { ...message };
+		if (message.role === "assistant" && (!message.tool_calls || message.tool_calls.length === 0)) next.reasoning_content = undefined; // DeepSeek replays reasoning only with its tool calls.
 		if (message.role === "tool" && typeof message.content === "string") {
 			next.content = projectToolResultContentForLLM(message.name ?? "tool", message.content);
 		}

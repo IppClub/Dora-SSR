@@ -26,6 +26,8 @@ type LLMTemplate = {
 	label: string;
 	url: string;
 	model: string;
+	contextWindow?: number;
+	maxTokens?: number;
 	customOptions?: string;
 };
 
@@ -39,6 +41,8 @@ const DEFAULT_CONTEXT_WINDOW = 128000;
 const DEFAULT_TEMPERATURE = 0.1;
 const DEFAULT_MAX_TOKENS = 8192;
 const DEFAULT_AUXILIARY_MAX_TOKENS = 8192;
+const DEEPSEEK_CONTEXT_WINDOW = 1_000_000;
+const DEEPSEEK_MAX_TOKENS = 64_000;
 
 const customOptionsWithAuxiliary = (
 	auxiliaryOptions: Record<string, unknown>,
@@ -116,6 +120,8 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		label: 'DeepSeek',
 		url: 'https://api.deepseek.com/v1/chat/completions',
 		model: 'deepseek-v4-pro',
+		contextWindow: DEEPSEEK_CONTEXT_WINDOW,
+		maxTokens: DEEPSEEK_MAX_TOKENS,
 		customOptions: customOptionsWithAuxiliary({
 			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: null,
@@ -398,9 +404,9 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			model: template.model,
 			key: '',
 			supportsFunctionCalling: true,
-			contextWindow: DEFAULT_CONTEXT_WINDOW,
+			contextWindow: template.contextWindow ?? DEFAULT_CONTEXT_WINDOW,
 			temperature: DEFAULT_TEMPERATURE,
-			maxTokens: DEFAULT_MAX_TOKENS,
+			maxTokens: template.maxTokens ?? DEFAULT_MAX_TOKENS,
 			reasoningEffort: '',
 			customOptions: template.customOptions ?? '',
 		});

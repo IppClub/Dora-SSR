@@ -501,20 +501,23 @@ function projectToolResultContentForLLM(tool, content) -- 1239
 	} -- 1268
 	return toJson(fallback, false) -- 1271
 end -- 1271
-function projectMessagesForLLMContext(messages) -- 1274
-	local projected = {} -- 1278
-	do -- 1278
-		local i = 0 -- 1279
-		while i < #messages do -- 1279
-			local message = messages[i + 1] -- 1280
-			local next = __TS__ObjectAssign({}, message) -- 1281
+function projectMessagesForLLMContext(messages) -- 1273
+	local projected = {} -- 1277
+	do -- 1277
+		local i = 0 -- 1278
+		while i < #messages do -- 1278
+			local message = messages[i + 1] -- 1279
+			local next = __TS__ObjectAssign({}, message) -- 1280
+			if message.role == "assistant" and (not message.tool_calls or #message.tool_calls == 0) then -- 1280
+				next.reasoning_content = nil -- 1281
+			end -- 1281
 			if message.role == "tool" and type(message.content) == "string" then -- 1281
 				next.content = projectToolResultContentForLLM(message.name or "tool", message.content) -- 1283
 			end -- 1283
 			projected[#projected + 1] = next -- 1285
-			i = i + 1 -- 1279
-		end -- 1279
-	end -- 1279
+			i = i + 1 -- 1278
+		end -- 1278
+	end -- 1278
 	return projected -- 1287
 end -- 1287
 function ____exports.getDecisionDisabledAgentTools(shared) -- 1315
@@ -1218,7 +1221,7 @@ function sanitizeMessagesForLLMInput(messages) -- 2676
 					end -- 2684
 					if #requiredIds == 0 then -- 2684
 						sanitized[#sanitized + 1] = message -- 2692
-						goto __continue456 -- 2693
+						goto __continue457 -- 2693
 					end -- 2693
 					local matchedIds = {} -- 2695
 					local matchedTools = {} -- 2696
@@ -1259,15 +1262,15 @@ function sanitizeMessagesForLLMInput(messages) -- 2676
 						droppedToolResults = droppedToolResults + #matchedTools -- 2721
 					end -- 2721
 					i = j - 1 -- 2723
-					goto __continue456 -- 2724
+					goto __continue457 -- 2724
 				end -- 2724
 				if message.role == "tool" then -- 2724
 					droppedToolResults = droppedToolResults + 1 -- 2727
-					goto __continue456 -- 2728
+					goto __continue457 -- 2728
 				end -- 2728
 				sanitized[#sanitized + 1] = message -- 2730
 			end -- 2730
-			::__continue456:: -- 2730
+			::__continue457:: -- 2730
 			i = i + 1 -- 2680
 		end -- 2680
 	end -- 2680
@@ -1932,7 +1935,7 @@ function sanitizeToolActionResultForHistory(action, result) -- 4456
 							if contextLine ~= nil then -- 4527
 								unifiedDiffLines[#unifiedDiffLines + 1] = " " .. contextLine -- 4528
 							end -- 4528
-							goto __continue738 -- 4529
+							goto __continue739 -- 4529
 						end -- 4529
 						if beforeChanged and beforeLine ~= nil then -- 4529
 							unifiedDiffLines[#unifiedDiffLines + 1] = "-" .. beforeLine -- 4531
@@ -1941,7 +1944,7 @@ function sanitizeToolActionResultForHistory(action, result) -- 4456
 							unifiedDiffLines[#unifiedDiffLines + 1] = "+" .. afterLine -- 4532
 						end -- 4532
 					end -- 4532
-					::__continue738:: -- 4532
+					::__continue739:: -- 4532
 					lineIndex = lineIndex + 1 -- 4521
 				end -- 4521
 			end -- 4521
@@ -2492,7 +2495,7 @@ local function projectMessagesForCompression(messages) -- 1290
 			do -- 1292
 				local message = projected[i + 1] -- 1293
 				if message.role ~= "assistant" or not message.tool_calls or #message.tool_calls == 0 then -- 1293
-					goto __continue190 -- 1294
+					goto __continue191 -- 1294
 				end -- 1294
 				local changed = false -- 1295
 				local toolCalls = __TS__ArrayMap( -- 1296
@@ -2525,7 +2528,7 @@ local function projectMessagesForCompression(messages) -- 1290
 					projected[i + 1] = __TS__ObjectAssign({}, message, {tool_calls = toolCalls}) -- 1310
 				end -- 1310
 			end -- 1310
-			::__continue190:: -- 1310
+			::__continue191:: -- 1310
 			i = i + 1 -- 1292
 		end -- 1292
 	end -- 1292
@@ -3676,7 +3679,7 @@ function MainDecisionAgent.prototype.repairDecisionXml(self, shared, originalRaw
 					if not llmRes.success then -- 3187
 						lastError = llmRes.message -- 3190
 						AgentUtils.Log("Error", "[CodingAgent] xml repair attempt failed: " .. lastError) -- 3191
-						goto __continue532 -- 3192
+						goto __continue533 -- 3192
 					end -- 3192
 					candidateRaw = llmRes.text -- 3194
 					candidateReasoning = llmRes.reasoningContent -- 3195
@@ -3689,7 +3692,7 @@ function MainDecisionAgent.prototype.repairDecisionXml(self, shared, originalRaw
 					lastError = decision.message -- 3202
 					AgentUtils.Log("Error", "[CodingAgent] xml repair candidate invalid: " .. lastError) -- 3203
 				end -- 3203
-				::__continue532:: -- 3203
+				::__continue533:: -- 3203
 				attempt = attempt + 1 -- 3174
 			end -- 3174
 		end -- 3174
@@ -4850,7 +4853,7 @@ function BatchToolAction.prototype.exec(self, input) -- 4645
 						for ____, action in ipairs(batch.actions) do -- 4657
 							completeStoppedToolAction(shared, action) -- 4658
 						end -- 4658
-						goto __continue766 -- 4660
+						goto __continue767 -- 4660
 					end -- 4660
 					if batch.isConcurrencySafe and #batch.actions > 1 then -- 4660
 						local preExecCount = #__TS__ArrayFilter( -- 4664
@@ -4931,7 +4934,7 @@ function BatchToolAction.prototype.exec(self, input) -- 4645
 						end -- 4690
 					end -- 4690
 				end -- 4690
-				::__continue766:: -- 4690
+				::__continue767:: -- 4690
 				batchIdx = batchIdx + 1 -- 4654
 			end -- 4654
 		end -- 4654
@@ -4947,13 +4950,13 @@ function BatchToolAction.prototype.exec(self, input) -- 4645
 						if (____opt_175 and ____opt_175.success) == true then -- 4712
 							spawnSeen = true -- 4714
 						end -- 4714
-						goto __continue786 -- 4715
+						goto __continue787 -- 4715
 					end -- 4715
 					if spawnSeen and action.tool ~= "finish" then -- 4715
 						didDelegatedForegroundWork = true -- 4718
 					end -- 4718
 				end -- 4718
-				::__continue786:: -- 4718
+				::__continue787:: -- 4718
 				i = i + 1 -- 4711
 			end -- 4711
 		end -- 4711
