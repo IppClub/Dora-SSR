@@ -673,8 +673,9 @@ interface App {
 	readonly runningTime: number;
 
 	/**
-	 * 基于Mersenne Twister算法生成的随机数。
-	 * 由同一种子生成的随机数在每个平台上会保持一致。
+	 * Mersenne Twister 引擎生成的均匀分布 32 位无符号整数，取值范围为 0 到 4,294,967,295（含两端）。
+	 * 该值不是 [0, 1] 范围的归一化随机数。如需归一化随机值，请将其除以 4,294,967,295。
+	 * 相同的种子会在所有平台上生成相同的随机数序列。
 	 */
 	readonly rand: number;
 
