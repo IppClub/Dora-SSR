@@ -746,7 +746,7 @@ HttpServer\post "/agent/session/mode", (req): invalidArguments ->
 
 HttpServer\post "/agent/session/send", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :prompt}}
-		return AgentSession.sendPrompt sessionId, prompt, false, req.body.disabledAgentTools, req.body.workMode, req.body.llmConfigId
+		return AgentSession.sendPrompt sessionId, prompt, req.body.disabledAgentTools, req.body.workMode, req.body.llmConfigId
 
 HttpServer\post "/agent/session/continue", (req): invalidArguments ->
 	switch req when {body: {:sessionId}}

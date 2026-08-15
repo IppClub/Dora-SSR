@@ -11,6 +11,7 @@ interface SkillMetadata {
 
 interface Skill extends SkillMetadata {
 	location: string;
+	sourcePath: string;
 	body?: string;
 }
 
@@ -242,22 +243,19 @@ export class SkillsLoader {
 		this.skills.clear();
 
 		const builtInDir = Path(Content.assetPath, "Doc", "skills");
-		const builtInParent = Content.assetPath;
-		this.loadSkillsFromDir(builtInDir, builtInParent, SkillPriority.BuiltIn);
+		this.loadSkillsFromDir(builtInDir, SkillPriority.BuiltIn);
 
 		const userDir = Path(Content.writablePath, ".agent", "skills");
-		const userParent = Content.writablePath;
-		this.loadSkillsFromDir(userDir, userParent, SkillPriority.User);
+		this.loadSkillsFromDir(userDir, SkillPriority.User);
 
 		const projectDir = Path(this.config.projectDir, ".agent", "skills");
-		const projectParent = this.config.projectDir;
-		this.loadSkillsFromDir(projectDir, projectParent, SkillPriority.Project);
+		this.loadSkillsFromDir(projectDir, SkillPriority.Project);
 
 		this.loaded = true;
 		Log("Info", `[SkillsLoader] Loaded ${this.skills.size} skills`);
 	}
 
-	private loadSkillsFromDir(dir: string, parent: string, priority: SkillPriority): void {
+	private loadSkillsFromDir(dir: string, priority: SkillPriority): void {
 		if (!Content.exist(dir) || !Content.isdir(dir)) {
 			return;
 		}
@@ -278,7 +276,12 @@ export class SkillsLoader {
 				continue;
 			}
 
-			skill.location = Path.getRelative(skillPath, parent);
+			const relative = Path.getRelative(skillPath, dir).split("\\").join("/");
+			skill.location = priority === SkillPriority.BuiltIn
+				? `@agent-skill/builtin/${relative}`
+				: (priority === SkillPriority.User
+					? `@agent-skill/user/${relative}`
+					: `.agent/skills/${relative}`);
 
 			const existing = this.skills.get(skill.name);
 			if (existing && existing.priority >= priority) {
@@ -312,6 +315,7 @@ export class SkillsLoader {
 		const skill: Skill = {
 			...validated.metadata,
 			location: displayLocation,
+			sourcePath: skillPath,
 			body: parsed.body,
 		};
 
@@ -426,7 +430,7 @@ export class SkillsLoader {
 			return skill.body;
 		}
 
-		const content = Content.load(skill.location);
+		const content = Content.load(skill.sourcePath);
 		if (!content) {
 			return undefined;
 		}

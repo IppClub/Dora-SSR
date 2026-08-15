@@ -68,15 +68,15 @@ function createFunctionToolSchemaFromPrompt(tool, context) -- 141
 		} -- 173
 	} -- 173
 end -- 173
-function ____exports.isKnownToolName(name) -- 537
-	return __TS__ArrayIndexOf(BUILT_IN_AGENT_TOOL_NAMES, name) >= 0 -- 538
-end -- 537
-function ____exports.buildDecisionToolSchemaForTools(tools, context) -- 691
-	return __TS__ArrayMap( -- 692
-		tools, -- 692
-		function(____, tool) return tool.schema and tool:schema(context) or createFunctionToolSchemaFromPrompt(tool, context) end -- 693
-	) -- 693
-end -- 691
+function ____exports.isKnownToolName(name) -- 536
+	return __TS__ArrayIndexOf(BUILT_IN_AGENT_TOOL_NAMES, name) >= 0 -- 537
+end -- 536
+function ____exports.buildDecisionToolSchemaForTools(tools, context) -- 690
+	return __TS__ArrayMap( -- 691
+		tools, -- 691
+		function(____, tool) return tool.schema and tool:schema(context) or createFunctionToolSchemaFromPrompt(tool, context) end -- 692
+	) -- 692
+end -- 690
 BUILT_IN_AGENT_TOOL_NAMES = { -- 22
 	"read_file", -- 23
 	"edit_file", -- 24
@@ -224,379 +224,377 @@ ____exports.AGENT_TOOL_PROMPTS = { -- 178
 			"Use `|` inside pattern to separate alternative content queries; results are merged by union (OR), not AND.", -- 244
 			"Search results are intentionally capped. Refine the pattern or read a specific file next." -- 245
 		}, -- 245
-		preExecutable = true, -- 247
-		parallelSafe = true -- 248
-	}, -- 248
-	{ -- 250
-		name = "glob_files", -- 251
-		roles = {"main", "sub"}, -- 252
-		workModes = {"code", "plan"}, -- 253
-		description = "Enumerate files under a directory.", -- 254
-		parameters = {{name = "path", type = "string", description = "Base directory to enumerate. Defaults to the workspace root when omitted."}, {name = "globs", type = "array", items = {type = "string"}, description = "Optional glob filters for returned paths."}, {name = "maxEntries", type = "number", description = "Maximum number of entries to return."}}, -- 255
-		rules = {"Use this to discover files by path, extension, or glob pattern.", "Directory listings are intentionally capped. Narrow the path before expanding further."}, -- 260
-		preExecutable = true, -- 264
-		parallelSafe = true -- 265
-	}, -- 265
-	{ -- 267
-		name = "search_dora_doc", -- 268
-		roles = {"main", "sub"}, -- 269
-		workModes = {"code", "plan"}, -- 270
-		description = "Search one authoritative Dora, LÖVE, or TIC-80 documentation set.", -- 271
-		parameters = { -- 272
-			{name = "pattern", type = "string", required = true, description = "Query string to search for. Use | to express OR alternatives."}, -- 273
-			{name = "docType", type = "string", enum = {"dora-tutorial", "dora-api", "love-api", "tic80-api"}, description = "Exact documentation set to search. Defaults to dora-api."}, -- 274
-			{name = "programmingLanguage", type = "string", enum = { -- 275
-				"ts", -- 275
-				"tsx", -- 275
-				"lua", -- 275
-				"yue", -- 275
-				"teal", -- 275
-				"tl", -- 275
-				"wa" -- 275
-			}, description = "Preferred language variant to search."}, -- 275
-			{ -- 276
-				name = "limit", -- 276
-				type = "number", -- 276
-				description = function(context) return ("Maximum number of matches to return, up to " .. tostring(context.searchDoraDocLimitMax)) .. "." end -- 276
-			}, -- 276
-			{name = "useRegex", type = "boolean", description = "Set true when pattern is a regular expression."} -- 277
-		}, -- 277
-		rules = { -- 279
-			"`docType` defaults to `dora-api`; select `dora-tutorial`, `love-api`, or `tic80-api` explicitly when needed.", -- 280
-			"Each type searches only its matching files: Dora tutorials, Dora API definitions excluding Love/TIC-80, love.d.*, or tic80.d.*.", -- 281
-			"Every result file uses the @dora-doc/<docType>/... namespace and is readable with read_file.", -- 282
-			"Use `|` inside pattern to separate alternative queries; results are merged by union (OR), not AND.", -- 283
-			"`useRegex` defaults to false whenever supported by a search tool.", -- 284
-			function(context) return ("`limit` restricts each individual pattern search and must be <= " .. tostring(context.searchDoraDocLimitMax)) .. "." end -- 285
-		}, -- 285
-		preExecutable = true, -- 287
-		parallelSafe = true -- 288
-	}, -- 288
-	{ -- 290
-		name = "build", -- 291
-		roles = {"main", "sub"}, -- 292
-		workModes = {"code"}, -- 293
-		description = "Do compiling and static checks for ts/tsx, teal, lua, yue, yarn.", -- 294
-		parameters = {{name = "path", type = "string", description = "Optional workspace-relative file or directory to build."}}, -- 295
-		rules = {"Read the result and then decide whether another action is needed."} -- 298
-	}, -- 298
-	{ -- 302
-		name = "fetch_url", -- 303
-		roles = {"main", "sub"}, -- 304
-		workModes = {"code"}, -- 305
-		description = "Download a single HTTP or HTTPS resource into the project.", -- 306
-		parameters = {{name = "url", type = "string", required = true, description = "HTTP or HTTPS URL to download. Other schemes are rejected."}, {name = "target", type = "string", required = true, description = "Workspace-relative target file path. The target must not already exist."}}, -- 307
-		rules = {"This tool is available only when the user enables fetch_url for the current Agent task.", "Targets must stay inside the current project and existing files or directories are not overwritten.", "This tool writes to a temporary file first, then moves it into place only after the GET succeeds."} -- 311
-	}, -- 311
-	{ -- 317
-		name = "execute_command", -- 318
-		roles = {"main", "sub"}, -- 319
-		workModes = {"code"}, -- 320
-		description = "Execute a controlled engine command.", -- 321
-		parameters = { -- 322
-			{ -- 323
-				name = "mode", -- 323
-				type = "string", -- 323
-				required = true, -- 323
-				enum = {"lua", "git"}, -- 323
-				description = "Use lua for a short Lua snippet inside the Dora engine, or git for a supported Git command handled by the engine Git client." -- 323
-			}, -- 323
-			{name = "code", type = "string", description = "Raw Lua code to execute when mode is lua. YueScript is not supported. Use print(...) for output that should appear in the tool result."}, -- 324
-			{name = "command", type = "string", description = "Git command to execute when mode is git. The command may start with git, but shell syntax, pipes, redirects, and git -C are not supported."}, -- 325
-			{name = "cwd", type = "string", description = "Optional project-relative directory for non-clone git commands. Defaults to the project root. Use this for Git operations inside a cloned sub-repository instead of git -C."}, -- 326
-			{name = "timeoutSeconds", type = "number", description = "Optional total command timeout. Defaults to 30 seconds for Lua and 600 seconds for Git. Lua mode also interrupts a command thread that occupies one game frame for 5 seconds, but cannot interrupt a blocking native call."} -- 327
-		}, -- 327
-		rules = { -- 329
-			"This tool is available only when the user enables command execution for the current Agent task.", -- 330
-			"Lua mode accepts raw Lua code only; do not send YueScript syntax.", -- 331
-			"Lua mode runs with a temporary environment whose global lookups fall back to Dora APIs; global writes stay in that one command and are not shared with later commands.", -- 332
-			"Lua command code is checked every 10,000 VM instructions against App.elapsedTime. A command thread that occupies one game frame for 5 seconds is interrupted; time spent yielded across frames does not accumulate toward this per-frame limit, and blocking native calls remain non-interruptible.", -- 333
-			"Lua mode exposes projectDir, reportProgress(update), refreshTree(path?), getEntryStatus(), enterEntryAsync(entry), and stopEntry(). reportProgress accepts a table with progress from 0 to 1 plus optional stage and message. getEntryStatus() returns a table containing success and running booleans.", -- 334
-			"enterEntryAsync runs a built project-relative Lua entry as an isolated Agent test. The tool automatically stops an entry it started when the command succeeds, fails, is canceled, or times out.", -- 335
-			"An Entry watchdog checks live Dora object and Lua-reference growth every frame and from the Lua instruction hook. Growth of 50,000 C++ objects or 10,000 Lua references stops the test, runs Entry cleanup, and returns the measured growth; replace such tests with bounded entities and fixed simulation steps.", -- 336
-			"After a Lua command finishes, the Web IDE resource tree is refreshed automatically whenever the command accessed Content and did not call refreshTree itself, including commands that later fail, are canceled, or time out. Pure computation commands do not refresh the tree. refreshTree(\"relative/file\") or refreshTree() remains available for explicit updates.", -- 337
-			"Lua mode returns only text printed with print(...). It does not return arbitrary Lua return values.", -- 338
-			"Only one Agent command may own the Dora entry runtime at a time. If it is busy, retry later instead of waiting inside the command.", -- 339
-			"Git mode uses the engine Git client, not a system shell. Supported commands follow Dora Git API support.", -- 340
-			"Git mode accepts cwd for non-clone commands. cwd must be a project-relative existing directory. Do not use git -C.", -- 341
-			"Git clone uses a temporary directory first, then moves into the project only after clone succeeds; existing targets are not overwritten.", -- 342
-			"The Web IDE resource tree is refreshed automatically after every successful Git command." -- 343
-		} -- 343
-	}, -- 343
-	{ -- 346
-		name = "finish", -- 347
-		roles = {"main", "sub"}, -- 348
-		workModes = {"code", "plan"}, -- 349
-		description = "End the task and provide a structured completion handoff.", -- 350
-		parameters = { -- 351
-			{name = "message", type = "string", required = true, description = "Final user-facing answer."}, -- 352
-			{name = "outcome", type = "string", enum = {"completed", "partial", "blocked"}, description = "Work outcome. Sub agents must provide this; defaults to completed for compatibility."}, -- 353
-			{name = "validation", type = "array", items = {type = "object", properties = {kind = {type = "string", enum = {"build", "runtime", "manual"}}, result = {type = "string", enum = {"passed", "failed", "not_run"}}, evidence = {type = "array", items = {type = "string"}}}, required = {"kind", "result"}}, description = "Validation performed. Sub agents must provide an array, using not_run when a relevant check was not run."}, -- 354
-			{name = "knownIssues", type = "array", items = {type = "string"}, description = "Known remaining issues or blockers. Sub agents must provide an array, which may be empty."}, -- 365
-			{name = "assumptions", type = "array", items = {type = "string"}, description = "Material assumptions made during the work. Sub agents must provide an array, which may be empty."}, -- 366
-			{name = "learningCandidates", type = "array", items = {type = "object", properties = {claim = {type = "string"}, scope = {type = "string", enum = {"file", "project", "engine"}}, evidence = {type = "array", items = {type = "string"}}, confidence = {type = "string", enum = {"observed", "inferred"}}}, required = {"claim", "scope", "confidence"}}, description = "Durable, evidence-backed facts worth sharing with later agents. Sub agents must provide an array, which may be empty."} -- 367
-		}, -- 367
-		rules = {"Sub agents must explicitly report outcome, validation, knownIssues, assumptions, and learningCandidates.", "Do not claim validation passed without concrete evidence from the corresponding tool result.", "Use learningCandidates only for durable facts, constraints, or project conventions; omit generic progress narration."} -- 380
-	}, -- 380
-	{ -- 386
-		name = "list_sub_agents", -- 387
-		roles = {"main"}, -- 388
-		workModes = {"code"}, -- 389
-		description = "Query sub-agent state under the current main session.", -- 390
-		parameters = {{name = "status", type = "string", enum = { -- 391
-			"active_or_recent", -- 392
-			"running", -- 392
-			"done", -- 392
-			"failed", -- 392
-			"all" -- 392
-		}, description = "Optional status filter. Defaults to active_or_recent."}, {name = "limit", type = "number", description = "Maximum number of items to return. Defaults to 5."}, {name = "offset", type = "number", description = "Offset for paging older items."}, {name = "query", type = "string", description = "Optional text filter matched against title, goal, or summary."}}, -- 392
-		rules = { -- 397
-			"Use this only when you do not already know the current sub-agent status and need to inspect running delegated work or recent completed results before deciding whether to dispatch more sub agents or read a result file.", -- 398
-			"status defaults to active_or_recent and may also be running, done, failed, or all.", -- 399
-			"limit defaults to a small recent window. Use offset to page older items.", -- 400
-			"query filters by title, goal, or summary text.", -- 401
-			"After any successful spawn_sub_agent in the current task, this tool is unavailable for the rest of that task. Finish the turn instead; completion arrives through an asynchronous handoff." -- 402
-		}, -- 402
-		parallelSafe = true -- 404
-	}, -- 404
-	{ -- 406
-		name = "spawn_sub_agent", -- 407
-		roles = {"main"}, -- 408
-		workModes = {"code"}, -- 409
-		description = "Create and start a sub agent session for delegated implementation work.", -- 410
-		parameters = {{name = "title", type = "string", required = true, description = "Short tab title for the sub agent."}, {name = "prompt", type = "string", required = true, description = "Detailed, self-contained task prompt sent to the sub agent. Describe the concrete work to execute, constraints, expected output, and relevant files when known."}, {name = "expectedOutput", type = "string", description = "Optional expected result summary."}, {name = "filesHint", type = "array", items = {type = "string"}, description = "Optional likely files or directories involved."}}, -- 411
-		rules = { -- 417
-			"Use this for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks.", -- 418
-			"For small focused edits, use edit_file/delete_file/build directly in the current main-agent run.", -- 419
-			"The spawned sub agent inherits the current session tool capabilities.", -- 420
-			"title should be short and specific.", -- 421
-			"prompt should be self-contained and actionable, and should clearly describe the concrete work to execute, constraints, desired output, and any relevant files.", -- 422
-			"Spawn is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.", -- 423
-			"After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.", -- 424
-			"After a successful spawn in the current task, do not call list_sub_agents, wait, join, or poll. Completion is delivered asynchronously as a later handoff.", -- 425
-			"Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit.", -- 426
-			"filesHint is an optional list of likely files or directories." -- 427
-		} -- 427
-	}, -- 427
-	{ -- 430
-		name = "ask_user", -- 431
-		roles = {"main"}, -- 432
-		workModes = {"plan"}, -- 433
-		description = "Present a structured questionnaire and pause the Plan task until the user submits every required answer.", -- 434
-		parameters = {{name = "title", type = "string", required = true, description = "Short questionnaire title."}, {name = "description", type = "string", description = "Optional context shown above the questions."}, { -- 435
-			name = "questions", -- 439
-			type = "array", -- 440
-			required = true, -- 441
-			description = "One to eight questions. Use single_choice, multiple_choice, or text. A single-choice question may recommend at most one option.", -- 442
-			items = {type = "object", properties = { -- 443
-				id = {type = "string"}, -- 446
-				prompt = {type = "string"}, -- 447
-				description = {type = "string"}, -- 448
-				type = {type = "string", enum = {"single_choice", "multiple_choice", "text"}}, -- 449
-				required = {type = "boolean"}, -- 450
-				options = {type = "array", items = {type = "object", properties = {id = {type = "string"}, label = {type = "string"}, description = {type = "string"}, recommended = {type = "boolean", description = "Mark an option as recommended. Use at most one for single_choice; multiple_choice may mark any recommended set."}}, required = {"id", "label"}}}, -- 451
-				placeholder = {type = "string"} -- 464
-			}, required = {"id", "prompt", "type"}} -- 464
-		}}, -- 464
-		rules = { -- 470
-			"Inspect the project before asking; do not ask for facts available through read_file, grep_files, glob_files, or search_dora_doc.", -- 471
-			"ask_user has no document-update prerequisite. Incorporate the answers into .agent/plan/PLAN.md and .agent/plan/PROGRESS.md before finish.", -- 472
-			"For single_choice, mark at most one option recommended. For multiple_choice, recommended options form a suggested set.", -- 473
-			"ask_user must be the only tool call in the response.", -- 474
-			"The task pauses after the questionnaire is published and continues after the user submits answers or dismisses it.", -- 475
-			"An answered or dismissed ask_user tool result contains authoritative user feedback. Apply answers when present; when dismissed, continue with reasonable assumptions and do not mechanically repeat the same questionnaire." -- 476
-		} -- 476
-	} -- 476
-} -- 476
-local DEFAULT_SCHEMA_CONTEXT = {searchDoraDocLimitMax = 20} -- 481
-local function hasRole(tool, role) -- 485
-	return __TS__ArrayIndexOf(tool.roles, role) >= 0 -- 486
-end -- 485
-local function hasWorkMode(tool, workMode) -- 489
-	return __TS__ArrayIndexOf(tool.workModes, workMode) >= 0 -- 490
-end -- 489
-local function getToolPrompt(name) -- 493
-	for ____, tool in ipairs(____exports.AGENT_TOOL_PROMPTS) do -- 494
-		if tool.name == name then -- 494
-			return tool -- 495
-		end -- 495
-	end -- 495
-	return nil -- 497
-end -- 493
-local function isToolCapabilityEnabled(tool, options) -- 500
-	if not ____exports.isKnownToolName(tool.name) then -- 500
-		return false -- 501
-	end -- 501
-	return hasWorkMode(tool, options and options.workMode or "code") and __TS__ArrayIndexOf(options and options.disabledAgentTools or ({}), tool.name) < 0 -- 502
-end -- 500
-local function formatParameterList(tool) -- 506
-	local parameters = tool.parameters or ({}) -- 507
-	if #parameters == 0 then -- 507
-		return "" -- 508
-	end -- 508
-	return table.concat( -- 509
-		__TS__ArrayMap( -- 509
-			parameters, -- 509
-			function(____, parameter) return parameter.required == true and parameter.name or parameter.name .. "(optional)" end -- 510
-		), -- 510
-		", " -- 511
-	) -- 511
-end -- 506
-local function formatToolPrompt(tool, index, context) -- 514
-	local lines = {(((tostring(index + 1) .. ". ") .. tool.name) .. ": ") .. getToolDescription(tool, context)} -- 515
-	local parameterList = formatParameterList(tool) -- 516
-	if parameterList ~= "" then -- 516
-		lines[#lines + 1] = "\t- Parameters: " .. parameterList -- 518
-	end -- 518
-	for ____, parameter in ipairs(tool.parameters or ({})) do -- 520
-		local label = parameter.required == true and parameter.name or parameter.name .. "(optional)" -- 521
-		lines[#lines + 1] = (("\t- " .. label) .. ": ") .. getParameterDescription(parameter, context) -- 522
-	end -- 522
-	for ____, rule in ipairs(getToolRules(tool, context)) do -- 524
-		lines[#lines + 1] = "\t- " .. rule -- 525
-	end -- 525
-	return table.concat(lines, "\n") -- 527
-end -- 514
-local function formatXMLRepairToolReference(tool) -- 530
-	local parameterList = formatParameterList(tool) -- 531
-	local params = parameterList ~= "" and parameterList or "none" -- 532
-	local reason = tool.name == "finish" and "no reason tag" or "reason tag required" -- 533
-	return (((("- " .. tool.name) .. ": params: ") .. params) .. "; ") .. reason -- 534
-end -- 530
-function ____exports.getAllowedToolsForRole(role, options) -- 541
-	return __TS__ArrayMap( -- 542
-		__TS__ArrayFilter( -- 542
-			____exports.AGENT_TOOL_PROMPTS, -- 542
-			function(____, tool) return hasRole(tool, role) and ____exports.isKnownToolName(tool.name) and isToolCapabilityEnabled(tool, options) end -- 543
-		), -- 543
-		function(____, tool) return tool.name end -- 544
-	) -- 544
-end -- 541
-function ____exports.buildCurrentToolAvailabilityGuidance() -- 547
-	return table.concat({"Current tool availability:", "- every tool defined in the current system prompt or exposed in the current tool schema is executable", "- capabilities disabled for this task are omitted from both the definitions and schema"}, "\n") -- 548
-end -- 547
-function ____exports.getToolPromptsForRole(role, options) -- 555
-	return __TS__ArrayFilter( -- 560
-		____exports.AGENT_TOOL_PROMPTS, -- 560
-		function(____, tool) return hasRole(tool, role) and ((options and options.includeFinish) == true or tool.name ~= "finish") and isToolCapabilityEnabled(tool, options) end -- 560
-	) -- 560
-end -- 555
-local SUB_AGENT_REQUIRED_FINISH_PARAMS = { -- 567
-	"message", -- 568
-	"outcome", -- 569
-	"validation", -- 570
-	"knownIssues", -- 571
-	"assumptions", -- 572
-	"learningCandidates" -- 573
-} -- 573
-local function getDecisionToolPromptsForRole(role, options) -- 576
-	local tools = ____exports.getToolPromptsForRole(role, options) -- 581
-	if role ~= "sub" then -- 581
-		return tools -- 582
-	end -- 582
-	return __TS__ArrayMap( -- 583
-		tools, -- 583
-		function(____, tool) return tool.name ~= "finish" and tool or __TS__ObjectAssign( -- 583
-			{}, -- 583
-			tool, -- 584
-			{parameters = __TS__ArrayMap( -- 583
-				tool.parameters or ({}), -- 585
-				function(____, parameter) return __TS__ObjectAssign( -- 585
-					{}, -- 585
-					parameter, -- 586
-					{required = __TS__ArrayIndexOf(SUB_AGENT_REQUIRED_FINISH_PARAMS, parameter.name) >= 0} -- 585
-				) end -- 585
-			)} -- 585
-		) end -- 585
-	) -- 585
-end -- 576
-function ____exports.buildToolDefinitionsDetailed(tools, options) -- 592
-	local title = (options and options.title) ~= nil and options.title or "Available tools:" -- 597
-	local context = options and options.context or DEFAULT_SCHEMA_CONTEXT -- 598
-	local sections = __TS__ArrayMap( -- 599
-		tools, -- 599
-		function(____, tool, index) return formatToolPrompt(tool, index, context) end -- 599
-	) -- 599
-	if (options and options.includeXmlRules) == true then -- 599
-		local reasonTools = table.concat( -- 601
-			__TS__ArrayMap( -- 601
-				__TS__ArrayFilter( -- 601
-					tools, -- 601
-					function(____, tool) return tool.name ~= "finish" end -- 602
-				), -- 602
-				function(____, tool) return tool.name end -- 603
-			), -- 603
-			", " -- 604
-		) -- 604
-		sections[#sections + 1] = ("XML mode object fields:\n- Use a single root tag: <tool_call>.\n- For " .. (reasonTools ~= "" and reasonTools or "tools other than finish")) .. ", include <tool>, <reason>, and <params>.\n- For finish, omit <reason> and include <message> plus every other required parameter shown above inside <params>.\n- Inside <params>, use one child tag per parameter and preserve each tag content as raw text." -- 605
-	end -- 605
-	local body = table.concat(sections, "\n\n") -- 611
-	return title ~= "" and (title .. "\n") .. body or body -- 612
-end -- 592
-function ____exports.buildRoleToolDefinitionsDetailed(role, options) -- 615
-	return ____exports.buildToolDefinitionsDetailed( -- 623
-		getDecisionToolPromptsForRole(role, {includeFinish = options and options.includeFinish, disabledAgentTools = options and options.disabledAgentTools, workMode = options and options.workMode}), -- 624
-		{title = options and options.title, includeXmlRules = options and options.includeXmlRules, context = options and options.context} -- 629
-	) -- 629
-end -- 615
-function ____exports.buildXMLRepairToolReference(role, options) -- 637
-	local tools = ____exports.getToolPromptsForRole(role, {includeFinish = true, disabledAgentTools = options and options.disabledAgentTools, workMode = options and options.workMode}) -- 638
-	local ____array_28 = __TS__SparseArrayNew( -- 638
-		"Allowed tools and XML params:", -- 644
-		table.unpack(__TS__ArrayMap( -- 645
-			tools, -- 645
-			function(____, tool) return formatXMLRepairToolReference(tool) end -- 645
-		)) -- 645
-	) -- 645
-	__TS__SparseArrayPush( -- 645
-		____array_28, -- 645
-		"", -- 646
-		"XML shape:", -- 647
-		"- Wrap the decision in exactly one <tool_call> root.", -- 648
-		"- For tools except finish: include <tool>, <reason>, and <params>.", -- 649
-		"- For finish: include <tool>, omit <reason>, and include <message> plus every other required parameter shown above inside <params>.", -- 650
-		"- Inside <params>, use one child tag per parameter name above." -- 651
-	) -- 651
-	local lines = {__TS__SparseArraySpread(____array_28)} -- 643
-	return table.concat(lines, "\n") -- 653
-end -- 637
-____exports.AGENT_TOOL_DEFINITIONS_DETAILED = ____exports.buildToolDefinitionsDetailed( -- 656
-	____exports.getToolPromptsForRole("sub"), -- 657
-	{title = "Available tools:"} -- 658
-) -- 658
-____exports.MAIN_AGENT_TOOL_DEFINITIONS_DETAILED = "\n" .. ____exports.buildToolDefinitionsDetailed( -- 661
-	__TS__ArrayFilter( -- 662
-		____exports.getToolPromptsForRole("main"), -- 662
-		function(____, tool) return __TS__ArrayIndexOf( -- 663
-			__TS__ArrayMap( -- 663
-				____exports.getToolPromptsForRole("sub"), -- 663
-				function(____, subTool) return subTool.name end -- 663
-			), -- 663
-			tool.name -- 663
-		) < 0 end -- 663
-	), -- 663
-	{title = ""} -- 664
-) -- 664
-____exports.XML_TOOL_DEFINITIONS_DETAILED = "\n\n" .. ____exports.buildToolDefinitionsDetailed( -- 667
-	__TS__ArrayFilter( -- 668
-		____exports.AGENT_TOOL_PROMPTS, -- 668
-		function(____, tool) return tool.name == "finish" end -- 668
-	), -- 668
-	{title = "", includeXmlRules = true} -- 669
-) -- 669
-function ____exports.canPreExecuteTool(tool) -- 672
-	local prompt = getToolPrompt(tool) -- 673
-	return (prompt and prompt.preExecutable) == true -- 674
-end -- 672
-function ____exports.canRunToolInParallel(tool) -- 677
-	local prompt = getToolPrompt(tool) -- 678
-	return (prompt and prompt.parallelSafe) == true -- 679
-end -- 677
-function ____exports.buildDecisionToolSchema(role, searchDoraDocLimitMax, options) -- 682
-	local context = {searchDoraDocLimitMax = searchDoraDocLimitMax} -- 683
-	return ____exports.buildDecisionToolSchemaForTools( -- 684
-		getDecisionToolPromptsForRole(role, {includeFinish = true, disabledAgentTools = options and options.disabledAgentTools, workMode = options and options.workMode}), -- 684
-		context -- 688
-	) -- 688
-end -- 682
-return ____exports -- 682
+		parallelSafe = true -- 247
+	}, -- 247
+	{ -- 249
+		name = "glob_files", -- 250
+		roles = {"main", "sub"}, -- 251
+		workModes = {"code", "plan"}, -- 252
+		description = "Enumerate files under a directory.", -- 253
+		parameters = {{name = "path", type = "string", description = "Base directory to enumerate. Defaults to the workspace root when omitted."}, {name = "globs", type = "array", items = {type = "string"}, description = "Optional glob filters for returned paths."}, {name = "maxEntries", type = "number", description = "Maximum number of entries to return."}}, -- 254
+		rules = {"Use this to discover files by path, extension, or glob pattern.", "Directory listings are intentionally capped. Narrow the path before expanding further."}, -- 259
+		parallelSafe = true -- 263
+	}, -- 263
+	{ -- 265
+		name = "search_dora_doc", -- 266
+		roles = {"main", "sub"}, -- 267
+		workModes = {"code", "plan"}, -- 268
+		description = "Search one authoritative Dora, LÖVE, or TIC-80 documentation set.", -- 269
+		parameters = { -- 270
+			{name = "pattern", type = "string", required = true, description = "Query string to search for. Use | to express OR alternatives."}, -- 271
+			{name = "docType", type = "string", enum = {"dora-tutorial", "dora-api", "love-api", "tic80-api"}, description = "Exact documentation set to search. Defaults to dora-api."}, -- 272
+			{name = "programmingLanguage", type = "string", enum = { -- 273
+				"ts", -- 273
+				"tsx", -- 273
+				"lua", -- 273
+				"yue", -- 273
+				"teal", -- 273
+				"tl", -- 273
+				"wa" -- 273
+			}, description = "Preferred language variant to search."}, -- 273
+			{ -- 274
+				name = "limit", -- 274
+				type = "number", -- 274
+				description = function(context) return ("Maximum number of matches to return, up to " .. tostring(context.searchDoraDocLimitMax)) .. "." end -- 274
+			}, -- 274
+			{name = "useRegex", type = "boolean", description = "Set true when pattern is a regular expression."} -- 275
+		}, -- 275
+		rules = { -- 277
+			"`docType` defaults to `dora-api`; select `dora-tutorial`, `love-api`, or `tic80-api` explicitly when needed.", -- 278
+			"Each type searches only its matching files: Dora tutorials, Dora API definitions excluding Love/TIC-80, love.d.*, or tic80.d.*.", -- 279
+			"Every result file uses the @dora-doc/<docType>/... namespace and is readable with read_file.", -- 280
+			"Use `|` inside pattern to separate alternative queries; results are merged by union (OR), not AND.", -- 281
+			"`useRegex` defaults to false whenever supported by a search tool.", -- 282
+			function(context) return ("`limit` restricts each individual pattern search and must be <= " .. tostring(context.searchDoraDocLimitMax)) .. "." end -- 283
+		}, -- 283
+		parallelSafe = true -- 285
+	}, -- 285
+	{ -- 287
+		name = "build", -- 288
+		roles = {"main", "sub"}, -- 289
+		workModes = {"code"}, -- 290
+		description = "Do compiling and static checks for ts/tsx, teal, lua, yue, yarn.", -- 291
+		parameters = {{name = "path", type = "string", description = "Optional workspace-relative file or directory to build."}}, -- 292
+		rules = {"Read the result and then decide whether another action is needed."} -- 295
+	}, -- 295
+	{ -- 299
+		name = "fetch_url", -- 300
+		roles = {"main", "sub"}, -- 301
+		workModes = {"code"}, -- 302
+		description = "Download a single HTTP or HTTPS resource into the project.", -- 303
+		parameters = {{name = "url", type = "string", required = true, description = "HTTP or HTTPS URL to download. Other schemes are rejected."}, {name = "target", type = "string", required = true, description = "Workspace-relative target file path. The target must not already exist."}}, -- 304
+		rules = {"This tool is available only when the user enables fetch_url for the current Agent task.", "Targets must stay inside the current project and existing files or directories are not overwritten.", "Local, private, metadata, and literal-IP destinations are rejected. Downloads are limited to 32 MiB.", "This tool writes to a temporary file first, then moves it into place only after the GET succeeds."} -- 308
+	}, -- 308
+	{ -- 315
+		name = "execute_command", -- 316
+		roles = {"main", "sub"}, -- 317
+		workModes = {"code"}, -- 318
+		description = "Execute a controlled engine command.", -- 319
+		parameters = { -- 320
+			{ -- 321
+				name = "mode", -- 321
+				type = "string", -- 321
+				required = true, -- 321
+				enum = {"lua", "git"}, -- 321
+				description = "Use lua for a short Lua snippet inside the Dora engine, or git for a supported Git command handled by the engine Git client." -- 321
+			}, -- 321
+			{name = "code", type = "string", description = "Raw Lua code to execute when mode is lua. YueScript is not supported. Use print(...) for output that should appear in the tool result."}, -- 322
+			{name = "command", type = "string", description = "Git command to execute when mode is git. The command may start with git, but shell syntax, pipes, redirects, and git -C are not supported."}, -- 323
+			{name = "cwd", type = "string", description = "Optional project-relative directory for non-clone git commands. Defaults to the project root. Use this for Git operations inside a cloned sub-repository instead of git -C."}, -- 324
+			{name = "timeoutSeconds", type = "number", description = "Optional total command timeout. Defaults to 30 seconds for Lua and 600 seconds for Git. Lua mode also interrupts a command thread that occupies one game frame for 5 seconds, but cannot interrupt a blocking native call."} -- 325
+		}, -- 325
+		rules = { -- 327
+			"This tool is available only when the user enables command execution for the current Agent task.", -- 328
+			"Lua mode accepts raw Lua code only; do not send YueScript syntax.", -- 329
+			"Lua mode runs with a temporary environment whose global writes stay in that one command. DB, HttpClient, HttpServer, and Content write operations are unavailable. Content supports only project-relative exist, isdir, getAttr, and load operations.", -- 330
+			"Lua command code is checked every 10,000 VM instructions against App.elapsedTime. A command thread that occupies one game frame for 5 seconds is interrupted; time spent yielded across frames does not accumulate toward this per-frame limit, and blocking native calls remain non-interruptible.", -- 331
+			"Lua mode exposes projectDir, reportProgress(update), refreshTree(path?), getEntryStatus(), enterEntryAsync(entry), and stopEntry(). reportProgress accepts a table with progress from 0 to 1 plus optional stage and message. getEntryStatus() returns a table containing success and running booleans.", -- 332
+			"enterEntryAsync runs a built project-relative Lua entry as an isolated Agent test. The tool automatically stops an entry it started when the command succeeds, fails, is canceled, or times out.", -- 333
+			"An Entry watchdog checks live Dora object and Lua-reference growth every frame and from the Lua instruction hook. Growth of 50,000 C++ objects or 10,000 Lua references stops the test, runs Entry cleanup, and returns the measured growth; replace such tests with bounded entities and fixed simulation steps.", -- 334
+			"After a Lua command finishes, the Web IDE resource tree is refreshed automatically whenever the command accessed Content and did not call refreshTree itself, including commands that later fail, are canceled, or time out. Pure computation commands do not refresh the tree. refreshTree(\"relative/file\") or refreshTree() remains available for explicit updates.", -- 335
+			"Lua mode returns only text printed with print(...). It does not return arbitrary Lua return values.", -- 336
+			"Only one Agent command may own the Dora entry runtime at a time. If it is busy, retry later instead of waiting inside the command.", -- 337
+			"Git mode uses the engine Git client, not a system shell. Supported commands follow Dora Git API support.", -- 338
+			"Git mode accepts cwd for non-clone commands. cwd must be a project-relative existing directory. Do not use git -C.", -- 339
+			"Git clone uses a temporary directory first, then moves into the project only after clone succeeds; existing targets are not overwritten.", -- 340
+			"Git clone rejects local, private, metadata, and literal-IP destinations and discards repositories larger than 128 MiB.", -- 341
+			"The Web IDE resource tree is refreshed automatically after every successful Git command." -- 342
+		} -- 342
+	}, -- 342
+	{ -- 345
+		name = "finish", -- 346
+		roles = {"main", "sub"}, -- 347
+		workModes = {"code", "plan"}, -- 348
+		description = "End the task and provide a structured completion handoff.", -- 349
+		parameters = { -- 350
+			{name = "message", type = "string", required = true, description = "Final user-facing answer."}, -- 351
+			{name = "outcome", type = "string", enum = {"completed", "partial", "blocked"}, description = "Work outcome. Sub agents must provide this; defaults to completed for compatibility."}, -- 352
+			{name = "validation", type = "array", items = {type = "object", properties = {kind = {type = "string", enum = {"build", "runtime", "manual"}}, result = {type = "string", enum = {"passed", "failed", "not_run"}}, evidence = {type = "array", items = {type = "string"}}}, required = {"kind", "result"}}, description = "Validation performed. Sub agents must provide an array, using not_run when a relevant check was not run."}, -- 353
+			{name = "knownIssues", type = "array", items = {type = "string"}, description = "Known remaining issues or blockers. Sub agents must provide an array, which may be empty."}, -- 364
+			{name = "assumptions", type = "array", items = {type = "string"}, description = "Material assumptions made during the work. Sub agents must provide an array, which may be empty."}, -- 365
+			{name = "learningCandidates", type = "array", items = {type = "object", properties = {claim = {type = "string"}, scope = {type = "string", enum = {"file", "project", "engine"}}, evidence = {type = "array", items = {type = "string"}}, confidence = {type = "string", enum = {"observed", "inferred"}}}, required = {"claim", "scope", "confidence"}}, description = "Durable, evidence-backed facts worth sharing with later agents. Sub agents must provide an array, which may be empty."} -- 366
+		}, -- 366
+		rules = {"Sub agents must explicitly report outcome, validation, knownIssues, assumptions, and learningCandidates.", "Do not claim validation passed without concrete evidence from the corresponding tool result.", "Use learningCandidates only for durable facts, constraints, or project conventions; omit generic progress narration."} -- 379
+	}, -- 379
+	{ -- 385
+		name = "list_sub_agents", -- 386
+		roles = {"main"}, -- 387
+		workModes = {"code"}, -- 388
+		description = "Query sub-agent state under the current main session.", -- 389
+		parameters = {{name = "status", type = "string", enum = { -- 390
+			"active_or_recent", -- 391
+			"running", -- 391
+			"done", -- 391
+			"failed", -- 391
+			"all" -- 391
+		}, description = "Optional status filter. Defaults to active_or_recent."}, {name = "limit", type = "number", description = "Maximum number of items to return. Defaults to 5."}, {name = "offset", type = "number", description = "Offset for paging older items."}, {name = "query", type = "string", description = "Optional text filter matched against title, goal, or summary."}}, -- 391
+		rules = { -- 396
+			"Use this only when you do not already know the current sub-agent status and need to inspect running delegated work or recent completed results before deciding whether to dispatch more sub agents or read a result file.", -- 397
+			"status defaults to active_or_recent and may also be running, done, failed, or all.", -- 398
+			"limit defaults to a small recent window. Use offset to page older items.", -- 399
+			"query filters by title, goal, or summary text.", -- 400
+			"After any successful spawn_sub_agent in the current task, this tool is unavailable for the rest of that task. Finish the turn instead; completion arrives through an asynchronous handoff." -- 401
+		}, -- 401
+		parallelSafe = true -- 403
+	}, -- 403
+	{ -- 405
+		name = "spawn_sub_agent", -- 406
+		roles = {"main"}, -- 407
+		workModes = {"code"}, -- 408
+		description = "Create and start a sub agent session for delegated implementation work.", -- 409
+		parameters = {{name = "title", type = "string", required = true, description = "Short tab title for the sub agent."}, {name = "prompt", type = "string", required = true, description = "Detailed, self-contained task prompt sent to the sub agent. Describe the concrete work to execute, constraints, expected output, and relevant files when known."}, {name = "expectedOutput", type = "string", description = "Optional expected result summary."}, {name = "filesHint", type = "array", items = {type = "string"}, description = "Optional likely files or directories involved."}}, -- 410
+		rules = { -- 416
+			"Use this for large multi-file work, parallel exploration, long-running verification, or isolated execution tasks.", -- 417
+			"For small focused edits, use edit_file/delete_file/build directly in the current main-agent run.", -- 418
+			"The spawned sub agent inherits the current session tool capabilities.", -- 419
+			"title should be short and specific.", -- 420
+			"prompt should be self-contained and actionable, and should clearly describe the concrete work to execute, constraints, desired output, and any relevant files.", -- 421
+			"Spawn is asynchronous and nonblocking. You may dispatch multiple independent sub agents in one response, subject to the concurrency limit.", -- 422
+			"After dispatching all intended independent sub agents, complete at most three bounded foreground tool batches that do not depend on their results. Then finish the current turn and return control to the user while the sub agents keep running.", -- 423
+			"After a successful spawn in the current task, do not call list_sub_agents, wait, join, or poll. Completion is delivered asynchronously as a later handoff.", -- 424
+			"Avoid assigning overlapping files or dependent steps to concurrent sub agents unless the coordination boundary is explicit.", -- 425
+			"filesHint is an optional list of likely files or directories." -- 426
+		} -- 426
+	}, -- 426
+	{ -- 429
+		name = "ask_user", -- 430
+		roles = {"main"}, -- 431
+		workModes = {"plan"}, -- 432
+		description = "Present a structured questionnaire and pause the Plan task until the user submits every required answer.", -- 433
+		parameters = {{name = "title", type = "string", required = true, description = "Short questionnaire title."}, {name = "description", type = "string", description = "Optional context shown above the questions."}, { -- 434
+			name = "questions", -- 438
+			type = "array", -- 439
+			required = true, -- 440
+			description = "One to eight questions. Use single_choice, multiple_choice, or text. A single-choice question may recommend at most one option.", -- 441
+			items = {type = "object", properties = { -- 442
+				id = {type = "string"}, -- 445
+				prompt = {type = "string"}, -- 446
+				description = {type = "string"}, -- 447
+				type = {type = "string", enum = {"single_choice", "multiple_choice", "text"}}, -- 448
+				required = {type = "boolean"}, -- 449
+				options = {type = "array", items = {type = "object", properties = {id = {type = "string"}, label = {type = "string"}, description = {type = "string"}, recommended = {type = "boolean", description = "Mark an option as recommended. Use at most one for single_choice; multiple_choice may mark any recommended set."}}, required = {"id", "label"}}}, -- 450
+				placeholder = {type = "string"} -- 463
+			}, required = {"id", "prompt", "type"}} -- 463
+		}}, -- 463
+		rules = { -- 469
+			"Inspect the project before asking; do not ask for facts available through read_file, grep_files, glob_files, or search_dora_doc.", -- 470
+			"ask_user has no document-update prerequisite. Incorporate the answers into .agent/plan/PLAN.md and .agent/plan/PROGRESS.md before finish.", -- 471
+			"For single_choice, mark at most one option recommended. For multiple_choice, recommended options form a suggested set.", -- 472
+			"ask_user must be the only tool call in the response.", -- 473
+			"The task pauses after the questionnaire is published and continues after the user submits answers or dismisses it.", -- 474
+			"An answered or dismissed ask_user tool result contains authoritative user feedback. Apply answers when present; when dismissed, continue with reasonable assumptions and do not mechanically repeat the same questionnaire." -- 475
+		} -- 475
+	} -- 475
+} -- 475
+local DEFAULT_SCHEMA_CONTEXT = {searchDoraDocLimitMax = 20} -- 480
+local function hasRole(tool, role) -- 484
+	return __TS__ArrayIndexOf(tool.roles, role) >= 0 -- 485
+end -- 484
+local function hasWorkMode(tool, workMode) -- 488
+	return __TS__ArrayIndexOf(tool.workModes, workMode) >= 0 -- 489
+end -- 488
+local function getToolPrompt(name) -- 492
+	for ____, tool in ipairs(____exports.AGENT_TOOL_PROMPTS) do -- 493
+		if tool.name == name then -- 493
+			return tool -- 494
+		end -- 494
+	end -- 494
+	return nil -- 496
+end -- 492
+local function isToolCapabilityEnabled(tool, options) -- 499
+	if not ____exports.isKnownToolName(tool.name) then -- 499
+		return false -- 500
+	end -- 500
+	return hasWorkMode(tool, options and options.workMode or "code") and __TS__ArrayIndexOf(options and options.disabledAgentTools or ({}), tool.name) < 0 -- 501
+end -- 499
+local function formatParameterList(tool) -- 505
+	local parameters = tool.parameters or ({}) -- 506
+	if #parameters == 0 then -- 506
+		return "" -- 507
+	end -- 507
+	return table.concat( -- 508
+		__TS__ArrayMap( -- 508
+			parameters, -- 508
+			function(____, parameter) return parameter.required == true and parameter.name or parameter.name .. "(optional)" end -- 509
+		), -- 509
+		", " -- 510
+	) -- 510
+end -- 505
+local function formatToolPrompt(tool, index, context) -- 513
+	local lines = {(((tostring(index + 1) .. ". ") .. tool.name) .. ": ") .. getToolDescription(tool, context)} -- 514
+	local parameterList = formatParameterList(tool) -- 515
+	if parameterList ~= "" then -- 515
+		lines[#lines + 1] = "\t- Parameters: " .. parameterList -- 517
+	end -- 517
+	for ____, parameter in ipairs(tool.parameters or ({})) do -- 519
+		local label = parameter.required == true and parameter.name or parameter.name .. "(optional)" -- 520
+		lines[#lines + 1] = (("\t- " .. label) .. ": ") .. getParameterDescription(parameter, context) -- 521
+	end -- 521
+	for ____, rule in ipairs(getToolRules(tool, context)) do -- 523
+		lines[#lines + 1] = "\t- " .. rule -- 524
+	end -- 524
+	return table.concat(lines, "\n") -- 526
+end -- 513
+local function formatXMLRepairToolReference(tool) -- 529
+	local parameterList = formatParameterList(tool) -- 530
+	local params = parameterList ~= "" and parameterList or "none" -- 531
+	local reason = tool.name == "finish" and "no reason tag" or "reason tag required" -- 532
+	return (((("- " .. tool.name) .. ": params: ") .. params) .. "; ") .. reason -- 533
+end -- 529
+function ____exports.getAllowedToolsForRole(role, options) -- 540
+	return __TS__ArrayMap( -- 541
+		__TS__ArrayFilter( -- 541
+			____exports.AGENT_TOOL_PROMPTS, -- 541
+			function(____, tool) return hasRole(tool, role) and ____exports.isKnownToolName(tool.name) and isToolCapabilityEnabled(tool, options) end -- 542
+		), -- 542
+		function(____, tool) return tool.name end -- 543
+	) -- 543
+end -- 540
+function ____exports.buildCurrentToolAvailabilityGuidance() -- 546
+	return table.concat({"Current tool availability:", "- every tool defined in the current system prompt or exposed in the current tool schema is executable", "- capabilities disabled for this task are omitted from both the definitions and schema"}, "\n") -- 547
+end -- 546
+function ____exports.getToolPromptsForRole(role, options) -- 554
+	return __TS__ArrayFilter( -- 559
+		____exports.AGENT_TOOL_PROMPTS, -- 559
+		function(____, tool) return hasRole(tool, role) and ((options and options.includeFinish) == true or tool.name ~= "finish") and isToolCapabilityEnabled(tool, options) end -- 559
+	) -- 559
+end -- 554
+local SUB_AGENT_REQUIRED_FINISH_PARAMS = { -- 566
+	"message", -- 567
+	"outcome", -- 568
+	"validation", -- 569
+	"knownIssues", -- 570
+	"assumptions", -- 571
+	"learningCandidates" -- 572
+} -- 572
+local function getDecisionToolPromptsForRole(role, options) -- 575
+	local tools = ____exports.getToolPromptsForRole(role, options) -- 580
+	if role ~= "sub" then -- 580
+		return tools -- 581
+	end -- 581
+	return __TS__ArrayMap( -- 582
+		tools, -- 582
+		function(____, tool) return tool.name ~= "finish" and tool or __TS__ObjectAssign( -- 582
+			{}, -- 582
+			tool, -- 583
+			{parameters = __TS__ArrayMap( -- 582
+				tool.parameters or ({}), -- 584
+				function(____, parameter) return __TS__ObjectAssign( -- 584
+					{}, -- 584
+					parameter, -- 585
+					{required = __TS__ArrayIndexOf(SUB_AGENT_REQUIRED_FINISH_PARAMS, parameter.name) >= 0} -- 584
+				) end -- 584
+			)} -- 584
+		) end -- 584
+	) -- 584
+end -- 575
+function ____exports.buildToolDefinitionsDetailed(tools, options) -- 591
+	local title = (options and options.title) ~= nil and options.title or "Available tools:" -- 596
+	local context = options and options.context or DEFAULT_SCHEMA_CONTEXT -- 597
+	local sections = __TS__ArrayMap( -- 598
+		tools, -- 598
+		function(____, tool, index) return formatToolPrompt(tool, index, context) end -- 598
+	) -- 598
+	if (options and options.includeXmlRules) == true then -- 598
+		local reasonTools = table.concat( -- 600
+			__TS__ArrayMap( -- 600
+				__TS__ArrayFilter( -- 600
+					tools, -- 600
+					function(____, tool) return tool.name ~= "finish" end -- 601
+				), -- 601
+				function(____, tool) return tool.name end -- 602
+			), -- 602
+			", " -- 603
+		) -- 603
+		sections[#sections + 1] = ("XML mode object fields:\n- Use a single root tag: <tool_call>.\n- For " .. (reasonTools ~= "" and reasonTools or "tools other than finish")) .. ", include <tool>, <reason>, and <params>.\n- For finish, omit <reason> and include <message> plus every other required parameter shown above inside <params>.\n- Inside <params>, use one child tag per parameter and preserve each tag content as raw text." -- 604
+	end -- 604
+	local body = table.concat(sections, "\n\n") -- 610
+	return title ~= "" and (title .. "\n") .. body or body -- 611
+end -- 591
+function ____exports.buildRoleToolDefinitionsDetailed(role, options) -- 614
+	return ____exports.buildToolDefinitionsDetailed( -- 622
+		getDecisionToolPromptsForRole(role, {includeFinish = options and options.includeFinish, disabledAgentTools = options and options.disabledAgentTools, workMode = options and options.workMode}), -- 623
+		{title = options and options.title, includeXmlRules = options and options.includeXmlRules, context = options and options.context} -- 628
+	) -- 628
+end -- 614
+function ____exports.buildXMLRepairToolReference(role, options) -- 636
+	local tools = ____exports.getToolPromptsForRole(role, {includeFinish = true, disabledAgentTools = options and options.disabledAgentTools, workMode = options and options.workMode}) -- 637
+	local ____array_28 = __TS__SparseArrayNew( -- 637
+		"Allowed tools and XML params:", -- 643
+		table.unpack(__TS__ArrayMap( -- 644
+			tools, -- 644
+			function(____, tool) return formatXMLRepairToolReference(tool) end -- 644
+		)) -- 644
+	) -- 644
+	__TS__SparseArrayPush( -- 644
+		____array_28, -- 644
+		"", -- 645
+		"XML shape:", -- 646
+		"- Wrap the decision in exactly one <tool_call> root.", -- 647
+		"- For tools except finish: include <tool>, <reason>, and <params>.", -- 648
+		"- For finish: include <tool>, omit <reason>, and include <message> plus every other required parameter shown above inside <params>.", -- 649
+		"- Inside <params>, use one child tag per parameter name above." -- 650
+	) -- 650
+	local lines = {__TS__SparseArraySpread(____array_28)} -- 642
+	return table.concat(lines, "\n") -- 652
+end -- 636
+____exports.AGENT_TOOL_DEFINITIONS_DETAILED = ____exports.buildToolDefinitionsDetailed( -- 655
+	____exports.getToolPromptsForRole("sub"), -- 656
+	{title = "Available tools:"} -- 657
+) -- 657
+____exports.MAIN_AGENT_TOOL_DEFINITIONS_DETAILED = "\n" .. ____exports.buildToolDefinitionsDetailed( -- 660
+	__TS__ArrayFilter( -- 661
+		____exports.getToolPromptsForRole("main"), -- 661
+		function(____, tool) return __TS__ArrayIndexOf( -- 662
+			__TS__ArrayMap( -- 662
+				____exports.getToolPromptsForRole("sub"), -- 662
+				function(____, subTool) return subTool.name end -- 662
+			), -- 662
+			tool.name -- 662
+		) < 0 end -- 662
+	), -- 662
+	{title = ""} -- 663
+) -- 663
+____exports.XML_TOOL_DEFINITIONS_DETAILED = "\n\n" .. ____exports.buildToolDefinitionsDetailed( -- 666
+	__TS__ArrayFilter( -- 667
+		____exports.AGENT_TOOL_PROMPTS, -- 667
+		function(____, tool) return tool.name == "finish" end -- 667
+	), -- 667
+	{title = "", includeXmlRules = true} -- 668
+) -- 668
+function ____exports.canPreExecuteTool(tool) -- 671
+	local prompt = getToolPrompt(tool) -- 672
+	return (prompt and prompt.preExecutable) == true -- 673
+end -- 671
+function ____exports.canRunToolInParallel(tool) -- 676
+	local prompt = getToolPrompt(tool) -- 677
+	return (prompt and prompt.parallelSafe) == true -- 678
+end -- 676
+function ____exports.buildDecisionToolSchema(role, searchDoraDocLimitMax, options) -- 681
+	local context = {searchDoraDocLimitMax = searchDoraDocLimitMax} -- 682
+	return ____exports.buildDecisionToolSchemaForTools( -- 683
+		getDecisionToolPromptsForRole(role, {includeFinish = true, disabledAgentTools = options and options.disabledAgentTools, workMode = options and options.workMode}), -- 683
+		context -- 687
+	) -- 687
+end -- 681
+return ____exports -- 681

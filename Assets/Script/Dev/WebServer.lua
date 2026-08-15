@@ -1781,7 +1781,7 @@ HttpServer:post("/agent/session/send", function(req) -- 747
 				end -- 748
 			end -- 748
 			if sessionId ~= nil and prompt ~= nil then -- 748
-				return AgentSession.sendPrompt(sessionId, prompt, false, req.body.disabledAgentTools, req.body.workMode, req.body.llmConfigId) -- 749
+				return AgentSession.sendPrompt(sessionId, prompt, req.body.disabledAgentTools, req.body.workMode, req.body.llmConfigId) -- 749
 			end -- 748
 		end -- 748
 	end -- 748

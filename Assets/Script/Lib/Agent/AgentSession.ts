@@ -13,7 +13,6 @@ import {
 	TABLE_TASK,
 	TABLE_TASK_REFERENCE,
 	addTaskReference,
-	cleanupOrphanHeavyDataBatch,
 	cleanupTaskHeavyData,
 	getSessionOperableTaskIds,
 	requireAgentStorage,
@@ -324,6 +323,7 @@ interface PendingSubAgentHandoffItem {
 
 const activeStopTokens: Record<number, StopToken> = {};
 const finalizingSubSessionTaskIds: Record<number, boolean> = {};
+const SESSION_SELECT_COLUMNS = "id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json, work_mode";
 const now = () => os.time();
 
 function getDefaultUseChineseResponse(): boolean {
@@ -720,14 +720,24 @@ function savePendingQuestionnaire(projectRoot: string, questionnaire: AgentQuest
 	if (!Content.exist(dir) && !Content.mkdir(dir)) return false;
 	const path = getQuestionnairePath(projectRoot);
 	const tempPath = `${path}.tmp`;
+	const backupPath = `${path}.bak`;
 	Content.remove(tempPath);
+	Content.remove(backupPath);
 	if (!Content.save(tempPath, encodeJson(questionnaire))) return false;
-	if (Content.exist(path)) Content.remove(path);
+	const hadOriginal = Content.exist(path);
+	if (hadOriginal && !Content.move(path, backupPath)) {
+		Content.remove(tempPath);
+		return false;
+	}
 	if (Content.move(tempPath, path)) {
+		Content.remove(backupPath);
 		Tools.sendWebIDEFileUpdate(path, true, encodeJson(questionnaire));
 		return true;
 	}
 	Content.remove(tempPath);
+	if (hadOriginal && Content.exist(backupPath)) {
+		Content.move(backupPath, path);
+	}
 	return false;
 }
 
@@ -826,7 +836,7 @@ function normalizeWorkMode(value: unknown, fallback: AgentWorkMode = "code"): Ag
 
 function getSessionRow(sessionId: number) {
 	return queryOne(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json, work_mode
+		`SELECT ${SESSION_SELECT_COLUMNS}
 		FROM ${TABLE_SESSION}
 		WHERE id = ?`,
 		[sessionId],
@@ -847,7 +857,7 @@ function getTaskPrompt(taskId: number): string | undefined {
 function getLatestMainSessionByProjectRoot(projectRoot: string): AgentSessionItem | undefined {
 	if (!isValidProjectRoot(projectRoot)) return undefined;
 	const row = queryOne(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json, work_mode
+		`SELECT ${SESSION_SELECT_COLUMNS}
 		FROM ${TABLE_SESSION}
 		WHERE project_root = ? AND kind = 'main'
 		ORDER BY updated_at DESC, id DESC
@@ -859,7 +869,7 @@ function getLatestMainSessionByProjectRoot(projectRoot: string): AgentSessionIte
 
 function countRunningSubSessions(rootSessionId: number): number {
 	const rows = queryRows(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json, work_mode
+		`SELECT ${SESSION_SELECT_COLUMNS}
 		FROM ${TABLE_SESSION}
 		WHERE root_session_id = ? AND kind = 'sub'
 		ORDER BY id ASC`,
@@ -888,7 +898,14 @@ function deleteSessionRecords(sessionId: number, preserveArtifacts = false) {
 	const taskIds: number[] = [];
 	for (let i = 0; i < taskRows.length; i++) {
 		const taskId = typeof taskRows[i][0] === "number" ? taskRows[i][0] as number : 0;
-		if (taskId > 0 && taskIds.indexOf(taskId) < 0) taskIds.push(taskId);
+		if (taskId > 0 && taskIds.indexOf(taskId) < 0) {
+			taskIds.push(taskId);
+			const stopToken = activeStopTokens[taskId];
+			if (stopToken !== undefined) {
+				stopToken.stopped = true;
+				stopToken.reason = "session deleted";
+			}
+		}
 	}
 	const children = queryRows(`SELECT id FROM ${TABLE_SESSION} WHERE parent_session_id = ?`, [sessionId]) ?? [];
 	for (let i = 0; i < children.length; i++) {
@@ -928,7 +945,7 @@ function listRelatedSessions(sessionId: number): AgentSessionItem[] {
 	const root = getRootSessionItem(sessionId);
 	if (!root) return [];
 	const rows = queryRows(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json, work_mode
+		`SELECT ${SESSION_SELECT_COLUMNS}
 		FROM ${TABLE_SESSION}
 		WHERE id = ? OR root_session_id = ?
 		ORDER BY
@@ -1913,6 +1930,13 @@ type AgentRuntimeEvent = CodingAgentEvent | {
 };
 
 function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
+	if (!getSessionItem(sessionId)) {
+		if ((event.type === "task_finished" || event.type === "task_waiting_for_user") && event.taskId !== undefined) {
+			delete activeStopTokens[event.taskId];
+			delete finalizingSubSessionTaskIds[event.taskId];
+		}
+		return;
+	}
 	switch (event.type) {
 		case "task_started":
 			setSessionStateForTaskEvent(sessionId, event.taskId, "RUNNING", "RUNNING");
@@ -2101,7 +2125,7 @@ export function createSession(projectRoot: string, title = "") {
 		return { success: false as const, message: "invalid projectRoot" };
 	}
 	const row = queryOne(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json, work_mode
+		`SELECT ${SESSION_SELECT_COLUMNS}
 		FROM ${TABLE_SESSION}
 		WHERE project_root = ? AND kind = 'main'
 		ORDER BY updated_at DESC, id DESC
@@ -2226,7 +2250,7 @@ async function spawnSubAgentSession(request: {
 		finishedAt: "",
 		finishedAtTs: 0,
 	});
-	const sent = sendPrompt(created.session.id, normalizedPrompt, true, request.disabledAgentTools, undefined, undefined, request.llmConfig);
+	const sent = sendPrompt(created.session.id, normalizedPrompt, request.disabledAgentTools, undefined, undefined, request.llmConfig);
 	if (!sent.success) {
 		return { success: false, message: sent.message };
 	}
@@ -2280,7 +2304,6 @@ export function getSession(sessionId: number): AgentSessionDetailResult {
 	}
 	const restored = restorePendingQuestionnaireState(session);
 	const normalizedSession = normalizeSessionRuntimeState(restored.session);
-	cleanupOrphanHeavyDataBatch();
 	const relatedSessions = listRelatedSessions(sessionId);
 	sanitizeStoredSteps(sessionId);
 	const messages = queryRows(
@@ -2501,7 +2524,7 @@ function stopClearedSubSession(session: AgentSessionItem, taskId: number): { suc
 	return { success: true };
 }
 
-export function sendPrompt(sessionId: number, prompt: string, allowSubSessionStart = false, disabledAgentTools?: unknown, workMode?: unknown, llmConfigId?: unknown, llmConfig?: LLMConfig): AgentSessionSendResult {
+export function sendPrompt(sessionId: number, prompt: string, disabledAgentTools?: unknown, workMode?: unknown, llmConfigId?: unknown, llmConfig?: LLMConfig): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
 	if (!session) {
 		return { success: false, message: "session not found" };
@@ -2909,9 +2932,6 @@ function replaceQuestionnaireToolResult(
 		existingResult = row;
 		break;
 	}
-	if (toolResultIndex < 0) {
-		return { success: false, message: "matching ask_user tool result not found" };
-	}
 	const result = buildQuestionnaireAnswerResult(questionnaire, answers, status);
 	const guidance: string[] = [];
 	if (typeof existingResult?.guidance === "string" && existingResult.guidance.trim() !== "") {
@@ -2921,10 +2941,18 @@ function replaceQuestionnaireToolResult(
 		guidance.push(result.guidance);
 	}
 	result.guidance = guidance.join("\n");
-	messages[toolResultIndex] = {
-		...messages[toolResultIndex],
-		content: encodeJson(result),
-	};
+	if (toolResultIndex < 0) {
+		messages.push({
+			role: "user",
+			content: `Questionnaire response recovered after its original tool result was compacted:\n${encodeJson(result)}`,
+		});
+		toolResultIndex = messages.length - 1;
+	} else {
+		messages[toolResultIndex] = {
+			...messages[toolResultIndex],
+			content: encodeJson(result),
+		};
+	}
 
 	let pairStartIndex = toolResultIndex;
 	const toolCallId = messages[toolResultIndex].tool_call_id;
@@ -3104,7 +3132,7 @@ export function validateCheckpointAccess(sessionId: number, checkpointId: number
 
 export function listRunningSessions(): AgentRunningSessionListResult {
 	const rows = queryRows(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json, work_mode
+		`SELECT ${SESSION_SELECT_COLUMNS}
 		FROM ${TABLE_SESSION}
 		WHERE current_task_status = ?
 		ORDER BY updated_at DESC, id DESC`,
@@ -3148,7 +3176,7 @@ export async function listRunningSubAgents(request: {
 	const offset = math.max(0, math.floor(tonumber(request.offset) || 0));
 	const query = sanitizeUTF8(toStr(request.query)).trim();
 	const rows = queryRows(
-		`SELECT id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json, work_mode
+		`SELECT ${SESSION_SELECT_COLUMNS}
 		FROM ${TABLE_SESSION}
 		WHERE root_session_id = ? AND kind = 'sub'
 		ORDER BY id ASC`,

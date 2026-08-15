@@ -441,11 +441,7 @@ export function cleanupTaskHeavyData(taskId: number): boolean {
 				AND NOT EXISTS (
 					SELECT 1 FROM ${TABLE_SESSION} WHERE current_task_id = ${math.floor(taskId)}
 				)
-				AND NOT EXISTS (
-					SELECT 1 FROM ${TABLE_TASK_REFERENCE}
-					WHERE owner_task_id = ${math.floor(taskId)}
-						OR target_task_id = ${math.floor(taskId)}
-				);`,
+				;`,
 	]);
 	if (!success) return false;
 	Log("Info", `[AgentStorage] cleaned heavy data task=${taskId}`);

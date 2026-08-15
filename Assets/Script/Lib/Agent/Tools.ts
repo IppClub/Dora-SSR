@@ -11,6 +11,7 @@ import {
 } from 'Agent/AgentStorage';
 import { Log, safeJsonDecode, safeJsonEncode } from 'Agent/Utils';
 import type { ToolCall } from 'Agent/Utils';
+import { dns } from 'socket';
 
 export interface TruncatedEditRecovery {
 	target: string;
@@ -452,10 +453,18 @@ function toStr(v: unknown): string {
 	return tostring(v);
 }
 
+function isAbsolutePathLike(path: string): boolean {
+	if (Content.isAbsolutePath(path)) return true;
+	if (path.startsWith("/") || path.startsWith("\\")) return true;
+	const [drivePath] = string.match(path, "^%a:[/\\]");
+	return drivePath !== undefined;
+}
+
 function isValidWorkspacePath(path: string): boolean {
 	if (!path || path.length === 0) return false;
-	if (Content.isAbsolutePath(path)) return false;
-	if (path.includes("..")) return false;
+	if (isAbsolutePathLike(path)) return false;
+	const parts = path.split("\\").join("/").split("/");
+	if (parts.indexOf("..") >= 0) return false;
 	return true;
 }
 
@@ -468,9 +477,10 @@ function isValidWorkDir(workDir: string): boolean {
 
 function isValidSearchPath(path: string): boolean {
 	if (path === "") return true;
-	if (Content.isAbsolutePath(path)) return false;
+	if (isAbsolutePathLike(path)) return false;
 	if (!path || path.length === 0) return false;
-	if (path.includes("..")) return false;
+	const parts = path.split("\\").join("/").split("/");
+	if (parts.indexOf("..") >= 0) return false;
 	return true;
 }
 
@@ -608,6 +618,7 @@ function isDoraDocFileInScope(docType: DoraDocSearchType, file: string): boolean
 }
 
 const AGENT_DORA_DOC_PREFIX = "@dora-doc/";
+const AGENT_SKILL_PREFIX = "@agent-skill/";
 
 function toDocRelativePath(baseRoot: string, path: string, docType: DoraDocSearchType): string {
 	if (!path || path.length === 0) return path;
@@ -655,6 +666,31 @@ function resolveAgentDoraDocFilePath(path: string, docLanguage?: DoraDocLanguage
 	return undefined;
 }
 
+function resolveAgentSkillFilePath(workDir: string, path: string): string | undefined {
+	if (!path.startsWith(AGENT_SKILL_PREFIX)) return undefined;
+	const namespaced = path.slice(AGENT_SKILL_PREFIX.length).split("\\").join("/");
+	let root = "";
+	let relative = "";
+	if (namespaced.startsWith("builtin/")) {
+		root = Path(Content.assetPath, "Doc", "skills");
+		relative = namespaced.slice("builtin/".length);
+	} else if (namespaced.startsWith("user/")) {
+		root = Path(Content.writablePath, ".agent", "skills");
+		relative = namespaced.slice("user/".length);
+	} else if (namespaced.startsWith("project/")) {
+		root = Path(workDir, ".agent", "skills");
+		relative = namespaced.slice("project/".length);
+	} else {
+		return undefined;
+	}
+	if (!isValidWorkspacePath(relative) || relative === ".") return undefined;
+	const candidate = Path(root, relative);
+	const checked = Path.getRelative(candidate, root);
+	if (checked === ".." || checked.startsWith("../") || checked.startsWith("..\\")) return undefined;
+	if (!Content.exist(candidate) || Content.isdir(candidate)) return undefined;
+	return candidate;
+}
+
 function ensureDirPath(dir: string): boolean {
 	if (!dir || dir === "." || dir === "") return true;
 	if (Content.exist(dir)) return Content.isdir(dir);
@@ -673,6 +709,82 @@ function ensureDirForFile(path: string): boolean {
 function isHttpUrl(url: string): boolean {
 	const normalized = url.trim().toLowerCase();
 	return normalized.startsWith("http://") || normalized.startsWith("https://");
+}
+
+function getHttpUrlHost(url: string): string | undefined {
+	const schemeEnd = url.indexOf("://");
+	if (schemeEnd < 0) return undefined;
+	let authority = url.slice(schemeEnd + 3);
+	for (const separator of ["/", "?", "#"]) {
+		const index = authority.indexOf(separator);
+		if (index >= 0) authority = authority.slice(0, index);
+	}
+	let at = -1;
+	for (let i = 0; i < authority.length; i++) {
+		if (authority.charAt(i) === "@") at = i;
+	}
+	if (at >= 0) authority = authority.slice(at + 1);
+	if (authority.startsWith("[")) {
+		const end = authority.indexOf("]");
+		return end > 1 ? authority.slice(1, end).toLowerCase() : undefined;
+	}
+	let colon = -1;
+	for (let i = 0; i < authority.length; i++) {
+		if (authority.charAt(i) === ":") colon = i;
+	}
+	if (colon >= 0) authority = authority.slice(0, colon);
+	return authority !== "" ? authority.toLowerCase() : undefined;
+}
+
+function isPrivateNetworkAddress(address: string): boolean {
+	const normalized = address.toLowerCase();
+	if (normalized.includes(":")) {
+		if (normalized === "::" || normalized === "::1") return true;
+		if (normalized.startsWith("fc") || normalized.startsWith("fd")) return true;
+		if (normalized.startsWith("fe8") || normalized.startsWith("fe9") || normalized.startsWith("fea") || normalized.startsWith("feb")) return true;
+		const mappedPrefix = "::ffff:";
+		if (normalized.startsWith(mappedPrefix)) return isPrivateNetworkAddress(normalized.slice(mappedPrefix.length));
+		return false;
+	}
+	const parts = normalized.split(".");
+	if (parts.length !== 4) return true;
+	const octets: number[] = [];
+	for (const part of parts) {
+		const value = Number(part);
+		if (part === "" || value < 0 || value > 255 || math.floor(value) !== value) return true;
+		octets.push(value);
+	}
+	const first = octets[0];
+	const second = octets[1];
+	if (first === 0 || first === 10 || first === 127) return true;
+	if (first === 100 && second >= 64 && second <= 127) return true;
+	if (first === 169 && second === 254) return true;
+	if (first === 172 && second >= 16 && second <= 31) return true;
+	if (first === 192 && (second === 0 || second === 168)) return true;
+	if (first === 198 && (second === 18 || second === 19)) return true;
+	if (first >= 224) return true;
+	return false;
+}
+
+function isSafePublicHttpUrl(url: string): boolean {
+	if (!isHttpUrl(url)) return false;
+	const host = getHttpUrlHost(url);
+	if (!host) return false;
+	if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local")) return false;
+	if (host === "metadata.google.internal" || host.endsWith(".internal")) return false;
+	if (host.includes(":")) return false; // Reject IPv6 literals, including loopback and unique-local ranges.
+	const [numericHost] = string.match(host, "^[%d%.]+$");
+	if (numericHost !== undefined) return false;
+	const ipv4 = host.split(".");
+	if (ipv4.length === 4 && ipv4.every(part => part !== "" && Number(part) >= 0 && Number(part) <= 255)) {
+		return false; // Literal IPs are unnecessary here and are unsafe across alternate/private encodings.
+	}
+	const [addresses] = dns.getaddrinfo(host);
+	if (!addresses || addresses.length === 0) return false;
+	for (const address of addresses) {
+		if (isPrivateNetworkAddress(address.addr)) return false;
+	}
+	return true;
 }
 
 function createOperationId(): string {
@@ -749,25 +861,9 @@ function shellSplit(command: string): string[] {
 
 function normalizeGitCommand(command: string): string {
 	const trimmed = command.trim();
-	const normalized = trimmed.slice(0, 4).toLowerCase() === "git "
+	return trimmed.slice(0, 4).toLowerCase() === "git "
 		? trimmed.slice(4).trim()
 		: trimmed;
-	return normalizeEscapedGitQuotes(normalized);
-}
-
-function normalizeEscapedGitQuotes(command: string): string {
-	let result = "";
-	for (let i = 0; i < command.length; i++) {
-		const ch = command.charAt(i);
-		const next = command.charAt(i + 1);
-		if (ch === "\\" && (next === '"' || next === "'")) {
-			result += next;
-			i += 1;
-			continue;
-		}
-		result += ch;
-	}
-	return result;
 }
 
 function gitDefaultTargetFromUrl(url: string): string {
@@ -834,6 +930,7 @@ function parseGitCloneCommand(command: string): {
 	}
 	if (url === "") return { success: false, message: "git clone requires a URL" };
 	if (!isHttpUrl(url)) return { success: false, message: "git clone only supports http:// and https:// URLs" };
+	if (!isSafePublicHttpUrl(url)) return { success: false, message: "git clone rejects local, private, metadata, and literal-IP destinations" };
 	if (target === "") target = gitDefaultTargetFromUrl(url);
 	return {
 		success: true,
@@ -1692,18 +1789,18 @@ function readWorkspaceFile(workDir: string, path: string, docLanguage?: DoraDocL
 		if (!attr.success) return attr;
 		return { success: true, content: Content.load(docPath), size: attr.size };
 	}
+	const skillPath = resolveAgentSkillFilePath(workDir, path);
+	if (skillPath) {
+		const attr = inspectReadableFile(skillPath);
+		if (!attr.success) return attr;
+		return { success: true, content: Content.load(skillPath), size: attr.size };
+	}
 	if (!fullPath) return { success: false, message: "invalid path or workDir" };
 	return { success: false, message: "file not found" };
 }
 
 export function readFileRaw(workDir: string, path: string, docLanguage?: DoraDocLanguage): ReadFileResult {
-	const result = readWorkspaceFile(workDir, path, docLanguage);
-	if (!result.success && Content.exist(path) && !Content.isdir(path)) {
-		const attr = inspectReadableFile(path);
-		if (!attr.success) return attr;
-		return { success: true, content: Content.load(path), size: attr.size };
-	}
-	return result;
+	return readWorkspaceFile(workDir, path, docLanguage);
 }
 
 function getEngineLogText(): string | undefined {
@@ -2310,6 +2407,17 @@ export function applyFileChanges(taskId: number, workDir: string, changes: FileC
 		if (change.op === "delete" && Content.exist(fullPath) && Content.isdir(fullPath)) {
 			return { success: false, message: `delete_file only supports files, not directories: ${change.path}` };
 		}
+		if (Content.exist(fullPath) && !Content.isdir(fullPath)) {
+			const [, isBinary] = Content.getAttr(fullPath);
+			if (isBinary === true) {
+				return {
+					success: false,
+					message: change.op === "delete"
+						? `binary file deletion must use delete_file: ${change.path}`
+						: `binary files cannot be edited with text checkpoints: ${change.path}`,
+				};
+			}
+		}
 		const before = getFileState(fullPath);
 		const afterExists = change.op !== "delete";
 		const afterContent = afterExists ? (change.content ?? "") : "";
@@ -2763,6 +2871,34 @@ function executeLuaCommand(req: {
 		}
 		return refreshProjectTree(req.workDir, path as string);
 	};
+	const resolveLuaContentPath = (first: unknown, second?: unknown): string => {
+		const value = typeof second === "string" ? second : first;
+		if (typeof value !== "string") {
+			error("Content path must be a project-relative string");
+		}
+		const fullPath = resolveWorkspaceFilePath(req.workDir, value as string);
+		if (!fullPath) {
+			error("Content path must stay inside projectDir");
+		}
+		return fullPath;
+	};
+	const scopedContent = {
+		exist: (first: unknown, second?: unknown) => Content.exist(resolveLuaContentPath(first, second)),
+		isdir: (first: unknown, second?: unknown) => Content.isdir(resolveLuaContentPath(first, second)),
+		getAttr: (first: unknown, second?: unknown) => Content.getAttr(resolveLuaContentPath(first, second)),
+		load: (first: unknown, second?: unknown) => {
+			const fullPath = resolveLuaContentPath(first, second);
+			const inspected = inspectReadableFile(fullPath);
+			if (!inspected.success) error(inspected.message ?? "file is not readable");
+			return Content.load(fullPath);
+		},
+	};
+	const blockedDoraGlobals: Record<string, boolean> = {
+		Content: true,
+		DB: true,
+		HttpClient: true,
+		HttpServer: true,
+	};
 	const env = setmetatable({
 		projectDir: req.workDir,
 		requireProjectModule: (moduleNameValue: unknown, reloadModulesValue?: unknown): unknown => {
@@ -2853,12 +2989,14 @@ function executeLuaCommand(req: {
 		__index: (_table: unknown, key: unknown) => {
 			if (key === "Content") {
 				contentAccessed = true;
-				return Content;
+				return scopedContent;
 			}
 			if (key === "refreshTree") {
 				return refreshTree;
 			}
-			return (Dora as unknown as Record<string, unknown>)[tostring(key)];
+			const name = tostring(key);
+			if (blockedDoraGlobals[name]) return undefined;
+			return (Dora as unknown as Record<string, unknown>)[name];
 		},
 	});
 	const [fn, compileErr] = load(code, "=(agent_command)", "t", env);
@@ -3120,7 +3258,7 @@ async function cloneGitToTarget(req: {
 		tempRoot,
 		command,
 		status => emitGitProgress("git", req.operationId, req.onProgress, status),
-		() => req.isCancelled?.() === true,
+		req.isCancelled,
 		req.timeoutSeconds,
 	);
 	if (!gitRes.success) {
@@ -3199,6 +3337,16 @@ async function executeGitCommand(req: {
 	let command = normalizeGitCommand(req.command ?? "");
 	if (command === "") {
 		return { success: false, mode: "git", output: "", message: "missing command", phase: "validate" };
+	}
+	const commandArgs = shellSplit(command);
+	if (commandArgs.length === 0 || commandArgs[0].startsWith("-")) {
+		return {
+			success: false,
+			mode: "git",
+			output: "",
+			message: "top-level Git options such as -C, --git-dir, and --work-tree are not supported; use the project-relative cwd parameter",
+			phase: "validate",
+		};
 	}
 	const cloneResult = await cloneGitToTarget({
 		workDir: req.workDir,
@@ -3294,6 +3442,9 @@ export async function fetchUrl(req: {
 	const targetRel = (req.target ?? "").trim();
 	if (!isHttpUrl(url)) {
 		return { success: false, state: "failed", mode, target: targetRel, message: "fetch_url only supports http:// and https:// URLs" };
+	}
+	if (!isSafePublicHttpUrl(url)) {
+		return { success: false, state: "failed", mode, target: targetRel, message: "fetch_url rejects local, private, metadata, and literal-IP destinations" };
 	}
 	if (targetRel === "") {
 		return { success: false, state: "failed", mode, message: "missing target" };

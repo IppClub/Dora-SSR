@@ -244,7 +244,6 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			"Use `|` inside pattern to separate alternative content queries; results are merged by union (OR), not AND.",
 			"Search results are intentionally capped. Refine the pattern or read a specific file next.",
 		],
-		preExecutable: true,
 		parallelSafe: true,
 	},
 	{
@@ -261,7 +260,6 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			"Use this to discover files by path, extension, or glob pattern.",
 			"Directory listings are intentionally capped. Narrow the path before expanding further.",
 		],
-		preExecutable: true,
 		parallelSafe: true,
 	},
 	{
@@ -284,7 +282,6 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			"`useRegex` defaults to false whenever supported by a search tool.",
 			context => `\`limit\` restricts each individual pattern search and must be <= ${context.searchDoraDocLimitMax}.`,
 		],
-		preExecutable: true,
 		parallelSafe: true,
 	},
 	{
@@ -311,6 +308,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 		rules: [
 			"This tool is available only when the user enables fetch_url for the current Agent task.",
 			"Targets must stay inside the current project and existing files or directories are not overwritten.",
+			"Local, private, metadata, and literal-IP destinations are rejected. Downloads are limited to 32 MiB.",
 			"This tool writes to a temporary file first, then moves it into place only after the GET succeeds.",
 		],
 	},
@@ -329,7 +327,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 		rules: [
 			"This tool is available only when the user enables command execution for the current Agent task.",
 			"Lua mode accepts raw Lua code only; do not send YueScript syntax.",
-			"Lua mode runs with a temporary environment whose global lookups fall back to Dora APIs; global writes stay in that one command and are not shared with later commands.",
+			"Lua mode runs with a temporary environment whose global writes stay in that one command. DB, HttpClient, HttpServer, and Content write operations are unavailable. Content supports only project-relative exist, isdir, getAttr, and load operations.",
 			"Lua command code is checked every 10,000 VM instructions against App.elapsedTime. A command thread that occupies one game frame for 5 seconds is interrupted; time spent yielded across frames does not accumulate toward this per-frame limit, and blocking native calls remain non-interruptible.",
 			"Lua mode exposes projectDir, reportProgress(update), refreshTree(path?), getEntryStatus(), enterEntryAsync(entry), and stopEntry(). reportProgress accepts a table with progress from 0 to 1 plus optional stage and message. getEntryStatus() returns a table containing success and running booleans.",
 			"enterEntryAsync runs a built project-relative Lua entry as an isolated Agent test. The tool automatically stops an entry it started when the command succeeds, fails, is canceled, or times out.",
@@ -340,6 +338,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			"Git mode uses the engine Git client, not a system shell. Supported commands follow Dora Git API support.",
 			"Git mode accepts cwd for non-clone commands. cwd must be a project-relative existing directory. Do not use git -C.",
 			"Git clone uses a temporary directory first, then moves into the project only after clone succeeds; existing targets are not overwritten.",
+			"Git clone rejects local, private, metadata, and literal-IP destinations and discards repositories larger than 128 MiB.",
 			"The Web IDE resource tree is refreshed automatically after every successful Git command.",
 		],
 	},

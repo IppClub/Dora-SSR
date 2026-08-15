@@ -1,4 +1,4 @@
-import { Log, Director, once, sleep } from 'Dora';
+import { Log, Director, App } from 'Dora';
 type NonIterableObject = Partial<Record<string, unknown>> & { [Symbol.iterator]?: never };
 type Action = string;
 class BaseNode<S = unknown, P extends NonIterableObject = NonIterableObject> {
@@ -69,16 +69,19 @@ class Node<S = unknown, P extends NonIterableObject = NonIterableObject> extends
 		throw error;
 	}
 	async _exec(prepRes: unknown): Promise<unknown> {
-		for (this.currentRetry = 0; this.currentRetry < this.maxRetries; this.currentRetry++) {
+		for (let retry = 0; retry < this.maxRetries; retry++) {
+			this.currentRetry = retry;
 			try {
 				return await this.exec(prepRes);
 			} catch (e) {
-				if (this.currentRetry === this.maxRetries - 1) return await this.execFallback(prepRes, e as Error);
+				if (retry === this.maxRetries - 1) return await this.execFallback(prepRes, e as Error);
 				if (this.wait > 0) await new Promise(resolve => {
-					Director.systemScheduler.schedule(once(() => {
-						sleep(this.wait);
+					const resumeAt = App.runningTime + this.wait;
+					Director.systemScheduler.schedule(() => {
+						if (App.runningTime < resumeAt) return false;
 						resolve(undefined);
-					}));
+						return true;
+					});
 				});
 			}
 		}
@@ -97,8 +100,8 @@ class BatchNode<S = unknown, P extends NonIterableObject = NonIterableObject> ex
 }
 class ParallelBatchNode<S = unknown, P extends NonIterableObject = NonIterableObject> extends Node<S, P> {
 	async _exec(items: unknown[]): Promise<unknown[]> {
-		if (!items || !Array.isArray(items)) return []
-		return Promise.all(items.map((item) => super._exec(item)))
+		if (!items || !Array.isArray(items)) return [];
+		return Promise.all(items.map((item) => super._exec(item)));
 	}
 }
 class Flow<S = unknown, P extends NonIterableObject = NonIterableObject> extends BaseNode<S, P> {
