@@ -226,7 +226,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 		workModes: ["code", "plan"],
 		description: "Search text patterns inside files.",
 		parameters: [
-			{ name: "path", type: "string", description: "Base directory or file path to search within." },
+			{ name: "path", type: "string", description: "Workspace directory, workspace file, or exact @dora-doc/... virtual document path to search within." },
 			{ name: "pattern", type: "string", required: true, description: "Content pattern to search for. Use | to express OR alternatives." },
 			{ name: "globs", type: "array", items: { type: "string" }, description: "Optional file glob filters." },
 			{ name: "useRegex", type: "boolean", description: "Set true when pattern is a regular expression." },
@@ -236,7 +236,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 			{ name: "groupByFile", type: "boolean", description: "Set true to rank candidate files before drilling into one file." },
 		],
 		rules: [
-			"`path` may point to either a directory or a single file.",
+			"`path` may point to a workspace directory, workspace file, or an exact @dora-doc/... virtual document returned by search_dora_doc.",
 			"This is content search (grep), not filename search.",
 			"`pattern` matches file contents. `globs` only restrict which files are searched.",
 			"`useRegex` defaults to false. Set `useRegex=true` when `pattern` is a regular expression such as `^title:`.",
@@ -277,7 +277,7 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 		rules: [
 			"`docType` defaults to `dora-api`; select `dora-tutorial`, `love-api`, or `tic80-api` explicitly when needed.",
 			"Each type searches only its matching files: Dora tutorials, Dora API definitions excluding Love/TIC-80, love.d.*, or tic80.d.*.",
-			"Every result file uses the @dora-doc/<docType>/... namespace and is readable with read_file.",
+			"Every result file uses the @dora-doc/<docType>/... namespace; it is readable with read_file and searchable with grep_files using the exact virtual path.",
 			"Use `|` inside pattern to separate alternative queries; results are merged by union (OR), not AND.",
 			"`useRegex` defaults to false whenever supported by a search tool.",
 			context => `\`limit\` restricts each individual pattern search and must be <= ${context.searchDoraDocLimitMax}.`,

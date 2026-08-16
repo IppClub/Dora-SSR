@@ -3,3 +3,1480 @@
 **描述：**
 
 &emsp;&emsp;喜欢11.5根模块。该文件仅声明当前实现的子集。
+
+## conf
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;如果您的游戏文件夹（或 .love 文件）中存在名为 conf.lua 的文件，则该文件会在加载 LÖVE 模块之前运行。您可以使用此文件覆盖 love.conf 函数，该函数稍后由 LÖVE 'boot' 脚本调用。使用
+love.conf 函数，您可以设置一些配置选项，并更改窗口的默认大小、加载哪些模块等内容。
+
+**签名：**
+```tl
+conf: function(config: Config) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| config | Config | love.conf 函数采用一个参数：一张包含所有默认值的表，您可以根据自己的喜好覆盖这些默认值。例如，如果您想更改默认窗口大小，请执行以下操作： function love.conf(t) t.window.width = 1024 t.window.height = 768 end 如果您不需要物理模块或操纵杆模块，请执行以下操作。 function love.conf(t) t.modules.joystick = false t.modules.physicals = false end 当您发布游戏时，鼓励将未使用的模块设置为 false。它会稍微减少启动时间（特别是在禁用操纵杆模块的情况下）并减少内存使用量（稍微）。请注意，您无法禁用 love.filesystem；这是强制性的。爱情模块本身也是如此。 love.graphics 需要启用 love.window。 identity: 该标志确定游戏的保存目录的名称。请注意，您只能指定名称，而不能指定创建位置： t.identity = "gabe_HL3" -- 正确 t.identity = "c:/Users/gabe/HL3" -- 不正确 或者 love.filesystem.setIdentity 可用于在配置文件之外设置保存目录。 （默认值：无。） appendidentity: 该标志决定是否应先搜索游戏目录然后保存目录（true）或否则（false）（默认值：false。） version: t.version 应该是一个字符串，代表您的游戏所针对的 LÖVE 版本。它的格式应为 "X.Y.Z"，其中 X 是主要版本号，Y 是次要版本号，Z 是补丁级别。它允许 LÖVE 在不兼容时显示警告。它的默认值是运行的 LÖVE 版本。 （默认："11.5"。） console: 确定是否应在游戏窗口旁边打开控制台（仅限 Windows）。 注意：在 OSX 上，您可以通过终端运行 LÖVE 来获取控制台输出。 （默认值：假。） accelerometerjoystick: 设置 iOS 和 Android 上的设备加速计是否应显示为 3 轴操纵杆。不使用时禁用加速计可能会减少 CPU 使用率。 （默认值：true。） externalstorage: 设置文件是保存在 Android 上的外部存储（true）还是内部存储（false）中。 （默认值：假。） gammacorrect: 确定是否启用伽玛校正渲染（当系统支持时）。 （默认值：假。） audio: 音频选项。 audio.mic: 向用户请求麦克风权限。当用户允许时，love.audio.getRecordingDevices 将列出可用的录音设备。否则，love.audio.getRecordingDevices 返回空表，并在调用时显示一条消息以通知用户。 （默认值：假。） audio.mixwithsystem: 设置 LÖVE 打开时是否播放其他应用程序的背景音频/音乐。有关更多详细信息，请参阅 love.system.hasBackgroundMusic。 （默认值：true。） window: 可以推迟窗口创建，直到在代码中首次调用 love.window.setMode 。 为此，请在 love.conf 中设置 t.window = nil （或在旧版本中设置 t.screen = nil。）如果这样做，如果在代码中的第一个 love.window.setMode 之前调用 love.graphics 中的任何函数，LÖVE 可能会崩溃。 t.window 表在 0.9.0 之前的版本中被命名为 t.screen。 0.9.0 中的 love.conf 中不存在 t.screen 表，0.8.0 中的 love.conf 中不存在 t.window 表。这意味着如果不注意为正在使用的 LÖVE 版本使用正确的表，love.conf 将无法执行（因此它将回退到默认值）。 window.title: 设置游戏所在窗口的标题。或者可以使用 love.window.setTitle 在配置文件之外更改窗口标题。 （默认："Untitled"。） window.icon: 用作窗口图标的图像的文件路径。并非所有操作系统都支持非常大的图标图像。也可以使用 love.window.setIcon. 更改图标（默认值：nil。） window.width: 设置窗口的尺寸。如果这些标志设置为 0，LÖVE 会自动使用用户的桌面尺寸。 （默认值：800。） window.height: 设置窗口的尺寸。如果这些标志设置为 0，LÖVE 会自动使用用户的桌面尺寸。 （默认值：600。） window.borderless: 从窗口中删除所有边框视觉效果。请注意，不同操作系统的影响可能会有所不同。 （默认值：假。） window.resizable: 如果设置为 true，则允许用户调整游戏窗口的大小。 （默认值：假。） window.minwidth: 设置游戏窗口的最小宽度和高度（如果用户可以调整其大小）。如果您将 window.width 和 window.height 设置较低的值，LÖVE 将始终支持通过 window.minwidth 和 window.minheight 设置的最小尺寸。 （默认值：1。） window.minheight: 设置游戏窗口的最小宽度和高度（如果用户可以调整其大小）。如果您将 window.width 和 window.height 设置较低的值，LÖVE 将始终支持通过 window.minwidth 和 window.minheight 设置的最小尺寸。 （默认值：1。） window.fullscreen: 是否以全屏（true）或窗口（false）模式运行游戏。也可以通过 love.window.setFullscreen 或 love.window.setMode. 切换全屏（默认： false。） window.fullscreentype: 指定要使用的全屏模式类型（正常或桌面）。通常建议使用桌面，因为它在某些操作系统上比正常模式限制更少。 （默认："desktop"。） window.usedpiscale: 设置是否启用或禁用自动 DPI 缩放。 （默认值：true。） window.vsync: 启用或禁用垂直同步。垂直同步尝试使游戏保持稳定的帧速率，并可以防止屏幕撕裂等问题。如果您不知道关闭垂直同步可能产生的影响，建议保持垂直同步处于激活状态。在 LÖVE 11.0 之前，该值是布尔值（true 或 false）。从 LÖVE 11.0 开始，该值为数字（1 表示启用垂直同步，0 表示禁用垂直同步，-1 表示在支持时使用自适应垂直同步）。请注意，在 iOS 中，垂直同步始终处于启用状态且无法更改。 （默认值：true。） window.depth: 深度缓冲区中每个样本的位数（16/24/32，默认为 nil）（默认：nil。） window.stencil: 然后是深度缓冲区中每个样本的位数（一般为 8，默认为 nil）（默认：nil。） window.msaa: 用于多重采样抗锯齿的样本数。 （默认值：0。） window.display: 如果有多个监视器可用，则显示窗口的显示器索引。 （默认值：1。） window.highdpi: 请参阅 love.window.getPixelScale、love.window.toPixels 和 love.window.fromPixels. 如果您无法在具有 Retina 显示屏的 Mac 或 iOS 系统上测试游戏，建议禁用此选项，因为代码需要调整以确保内容看起来正确。 （默认值：假。） window.x: 确定窗口在用户屏幕上的位置。或者 love.window.setPosition 可用于动态更改位置。 （默认值：无。） window.y: 确定窗口在用户屏幕上的位置。或者 love.window.setPosition 可用于动态更改位置。 （默认值：无。） modules: 模块选项。 modules.audio: 启用音频模块。 （默认值：true。） modules.event: 启用事件模块。 （默认值：true。） modules.graphics: 启用图形模块。 （默认值：true。） modules.image: 启用图像模块。 （默认值：true。） modules.joystick: 启用摇杆模块。 （默认值：true。） modules.keyboard: 启用键盘模块。 （默认值：true。） modules.math: 启用数学模块。 （默认值：true。） modules.mouse: 启用鼠标模块。 （默认值：true。） modules.physics: 启用物理模块。 （默认值：true。） modules.sound: 启用声音模块。 （默认值：true。） modules.system: 启用系统模块。 （默认值：true。） modules.timer: 启用定时器模块。 （默认值：true。） modules.touch: 启用触摸模块。 （默认值：true。） modules.video: 启用视频模块。 （默认值：true。） modules.window: 启用窗口模块。 （默认值：true。） modules.thread: 启用线程模块。 （默认值：true。） |
+
+## load
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;该函数在游戏开始时仅调用一次。
+重载说明：
+1. 在 LÖVE 11.0 中，当从非 fused LÖVE 可执行文件运行时，传递的参数不包括游戏名称和 fused 命令行标志（如果存在）。以前的版本按原样传递参数，不进行任何过滤。
+
+**签名：**
+```tl
+load: function() | nil
+```
+
+## update
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;回调函数用于更新游戏每一帧的状态。
+
+**签名：**
+```tl
+update: function(deltaTime: number) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| deltaTime | number | 自上次更新以来的时间（以秒为单位）。 |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;用于在屏幕上绘制每一帧的回调函数。
+
+**签名：**
+```tl
+draw: function() | nil
+```
+
+## quit
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏关闭时触发的回调函数。
+
+**签名：**
+```tl
+quit: QuitCallback | nil
+```
+
+## keypressed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;按键时触发的回调函数。
+重载说明：
+1. 扫描码与键盘布局无关，因此如果按下与美式键盘上的 'w' 键相同位置的键，无论该键的标签是什么或用户的操作系统设置是什么，都会生成扫描码 'w' 。需要使用 love.keyboard.setKeyRepeat
+启用按键重复才能接收重复按键事件。这不会影响 love.textinput. 2。需要使用 love.keyboard.setKeyRepeat 启用按键重复才能接收重复按键事件。
+
+**签名：**
+```tl
+keypressed: function(key: string, scancode: string, is_repeat: boolean) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| key | string | 按键的字符。取决于过载：按下的按键的字符。 |
+| scancode | string | 代表按下的键的扫描码。 |
+| is_repeat | boolean | 该按键事件是否重复。按键重复之间的延迟取决于用户的系统设置。 |
+
+## keyreleased
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;释放键盘按键时触发的回调函数。
+重载说明：
+1. 扫描码与键盘布局无关，因此如果按下美式键盘上与 'w' 键相同位置的键，将使用扫描码 'w'，无论该键的标签是什么或用户的操作系统设置是什么。
+
+**签名：**
+```tl
+keyreleased: function(key: string, scancode: string) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| key | string | 已释放按键的字符。 |
+| scancode | string | 代表释放密钥的扫描码。 |
+
+## textinput
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;当用户输入文本时调用。例如，如果在美式键盘布局上按下 shift-2，将生成文本 '@'。
+重载说明：
+1. 虽然Lua字符串可以很好地存储UTF-8编码的unicode文本，但是Lua字符串库中的许多函数不会像您期望的那样处理文本。例如，#text（和
+string.len(text)）将给出字符串中“'bytes'”的数量，而不是 unicode 字符的数量。 Lua wiki 和 Lua 创建者之一的演示给出了更深入的解释，并提供了一些技巧。 utf8 库可用于操作
+UTF-8 编码的 unicode 文本（例如此函数中给出的 text 参数）。在 Android 和 iOS 上，默认情况下禁用 textinput；调用 love.keyboard.setTextInput 来启用它。
+
+**签名：**
+```tl
+textinput: function(text: string) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | string | UTF-8 编码的 unicode 文本。 |
+
+## textedited
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;当 IME（输入法编辑器）的候选文本发生更改时调用。
+候选文本并不是用户最终选择的最终文本。为此使用 love.textinput 。
+
+**签名：**
+```tl
+textedited: function(text: string, start: integer, length: integer) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | string | UTF-8 编码的 unicode 候选文本。 |
+| start | integer | 所选候选文本的起始光标。 |
+| length | integer | 所选候选文本的长度。可能是 0。 |
+
+## mousepressed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;按下鼠标按钮时触发的回调函数。
+重载说明：
+1. 使用love.wheelmoved 检测鼠标滚轮运动。在 0.10.0 及更高版本中，它不会注册为按钮按下。
+
+**签名：**
+```tl
+mousepressed: function(x: number, y: number, button: integer, is_touch: boolean, presses: integer) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 鼠标 x 位置，以像素为单位。 |
+| y | number | 鼠标 y 位置（以像素为单位）。 |
+| button | integer | 按下的按钮索引。 1 是鼠标主按钮，2 是鼠标辅助按钮，3 是中间按钮。其他按钮取决于鼠标。 |
+| is_touch | boolean | 如果鼠标按钮按下源自触摸屏触摸，则为 true。 |
+| presses | integer | 短时间、小面积的按下次数，用于模拟双击、三击 |
+
+## mousereleased
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;释放鼠标按钮时触发的回调函数。
+
+**签名：**
+```tl
+mousereleased: function(x: number, y: number, button: integer, is_touch: boolean, presses: integer) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 鼠标 x 位置，以像素为单位。 |
+| y | number | 鼠标 y 位置（以像素为单位）。 |
+| button | integer | 已释放的按钮索引。 1 是鼠标主按钮，2 是鼠标辅助按钮，3 是中间按钮。其他按钮取决于鼠标。 |
+| is_touch | boolean | 如果鼠标按钮释放源自触摸屏触摸释放，则为 true。 |
+| presses | integer | 短时间、小面积的按下次数，用于模拟双击、三击 |
+
+## mousemoved
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;鼠标移动时触发的回调函数。
+重载说明：
+1. 如果鼠标启用了相对模式，则不保证 '''dx''' and '''dy''' arguments of this callback will update but '''x''' and '''y''' 。
+
+**签名：**
+```tl
+mousemoved: function(x: number, y: number, delta_x: number, delta_y: number, is_touch: boolean) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | x 轴上的鼠标位置。 |
+| y | number | y 轴上的鼠标位置。 |
+| delta_x | number | 自上次调用 love.mousemoved 以来沿 x 轴移动的量。 |
+| delta_y | number | 自上次调用 love.mousemoved 以来沿 y 轴移动的量。 |
+| is_touch | boolean | 如果鼠标按钮按下源自触摸屏触摸，则为 true。 |
+
+## wheelmoved
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;鼠标滚轮移动时触发的回调函数。
+
+**签名：**
+```tl
+wheelmoved: function(x: number, y: number) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 水平鼠标滚轮移动量。正值表示向右移动。 |
+| y | number | 垂直鼠标滚轮移动量。正值表示向上移动。 |
+
+## touchpressed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;触摸屏被触摸时触发的回调函数。
+重载说明：
+1. 仅保证特定触摸按压的标识符是唯一的，直到使用该标识符调用 love.touchreleased 为止，此时可以将其重新用于新的触摸按压。 LÖVE 0.9.2 的非官方 Android 和 iOS 端口将触摸位置报告为
+1 范围内的标准化值，而此 API 报告以像素为单位的位置。
+
+**签名：**
+```tl
+touchpressed: function(id: TouchID, x: number, y: number, delta_x: number, delta_y: number, pressure: number) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| id | TouchID | 触摸按键的标识符。 |
+| x | number | 触摸按键在窗口内的 x 轴位置（以像素为单位）。 |
+| y | number | 触摸按键在窗口内的 y 轴位置（以像素为单位）。 |
+| delta_x | number | 触摸按键在窗口内的 x 轴移动（以像素为单位）。这应该始终为零。 |
+| delta_y | number | 触摸按键在窗口内的 y 轴移动（以像素为单位）。这应该始终为零。 |
+| pressure | number | 施加的压力大小。大多数触摸屏对压力不敏感，在这种情况下压力将为 1。 |
+
+## touchreleased
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;触摸屏停止触摸时触发的回调函数。
+重载说明：
+1. 仅保证特定触摸按压的标识符是唯一的，直到使用该标识符调用 love.touchreleased 为止，此时可以将其重新用于新的触摸按压。 LÖVE 0.9.2 的非官方 Android 和 iOS 端口将触摸位置报告为
+1 范围内的标准化值，而此 API 报告以像素为单位的位置。
+
+**签名：**
+```tl
+touchreleased: function(id: TouchID, x: number, y: number, delta_x: number, delta_y: number, pressure: number) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| id | TouchID | 触摸按键的标识符。 |
+| x | number | 窗口内触摸的 x 轴位置（以像素为单位）。 |
+| y | number | 窗口内触摸的 y 轴位置（以像素为单位）。 |
+| delta_x | number | 窗口内触摸的 x 轴移动（以像素为单位）。 |
+| delta_y | number | 窗口内触摸的 y 轴移动（以像素为单位）。 |
+| pressure | number | 施加的压力大小。大多数触摸屏对压力不敏感，在这种情况下压力将为 1。 |
+
+## touchmoved
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;触摸按键在触摸屏内移动时触发的回调函数。
+重载说明：
+1. 仅保证特定触摸按压的标识符是唯一的，直到使用该标识符调用 love.touchreleased 为止，此时可以将其重新用于新的触摸按压。 LÖVE 0.9.2 的非官方 Android 和 iOS 端口将触摸位置报告为
+1 范围内的标准化值，而此 API 报告以像素为单位的位置。
+
+**签名：**
+```tl
+touchmoved: function(id: TouchID, x: number, y: number, delta_x: number, delta_y: number, pressure: number) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| id | TouchID | 触摸按键的标识符。 |
+| x | number | 窗口内触摸的 x 轴位置（以像素为单位）。 |
+| y | number | 窗口内触摸的 y 轴位置（以像素为单位）。 |
+| delta_x | number | 窗口内触摸的 x 轴移动（以像素为单位）。 |
+| delta_y | number | 窗口内触摸的 y 轴移动（以像素为单位）。 |
+| pressure | number | 施加的压力大小。大多数触摸屏对压力不敏感，在这种情况下压力将为 1。 |
+
+## threaderror
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;线程遇到错误时触发的回调函数。
+
+**签名：**
+```tl
+threaderror: function(thread: Thread, error: string) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| thread | Thread | 产生错误的线程。 |
+| error | string | 错误消息。 |
+
+## joystickadded
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;连接操纵杆时调用。
+重载说明：
+1. 对于游戏启动时已连接的每个摇杆，也会在 love.load 之后触发此回调。
+
+**签名：**
+```tl
+joystickadded: function(joystick: Joystick) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| joystick | Joystick | 新连接的操纵杆对象。 |
+
+## joystickremoved
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;当操纵杆断开连接时调用。
+
+**签名：**
+```tl
+joystickremoved: function(joystick: Joystick) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| joystick | Joystick | 现在断开连接的操纵杆对象。 |
+
+## joystickpressed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;当按下操纵杆按钮时调用。
+
+**签名：**
+```tl
+joystickpressed: function(joystick: Joystick, button: integer) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| joystick | Joystick | 操纵杆对象。 |
+| button | integer | 按钮编号。 |
+
+## joystickreleased
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;释放操纵杆按钮时调用。
+
+**签名：**
+```tl
+joystickreleased: function(joystick: Joystick, button: integer) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| joystick | Joystick | 操纵杆对象。 |
+| button | integer | 按钮编号。 |
+
+## joystickaxis
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;当操纵杆轴移动时调用。
+
+**签名：**
+```tl
+joystickaxis: function(joystick: Joystick, axis: integer, value: number) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| joystick | Joystick | 操纵杆对象。 |
+| axis | integer | 轴编号。 |
+| value | number | 新的轴值。 |
+
+## joystickhat
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;当操纵杆帽方向改变时调用。
+
+**签名：**
+```tl
+joystickhat: function(joystick: Joystick, hat: integer, direction: string) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| joystick | Joystick | 操纵杆对象。 |
+| hat | integer | 帽子号码。 |
+| direction | string | 新帽子方向。 |
+
+## gamepadpressed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;当按下操纵杆的虚拟游戏手柄按钮时调用。
+
+**签名：**
+```tl
+gamepadpressed: function(joystick: Joystick, button: string) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| joystick | Joystick | 操纵杆对象。 |
+| button | string | 虚拟游戏手柄按钮。 |
+
+## gamepadreleased
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;当操纵杆的虚拟游戏手柄按钮被释放时调用。
+
+**签名：**
+```tl
+gamepadreleased: function(joystick: Joystick, button: string) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| joystick | Joystick | 操纵杆对象。 |
+| button | string | 虚拟游戏手柄按钮。 |
+
+## gamepadaxis
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;当操纵杆的虚拟游戏手柄轴移动时调用。
+
+**签名：**
+```tl
+gamepadaxis: function(joystick: Joystick, axis: string, value: number) | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| joystick | Joystick | 操纵杆对象。 |
+| axis | string | 虚拟游戏手柄轴。 |
+| value | number | 新的轴值。 |
+
+## run
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;兼容性入口点； Dora 仍然是应用程序循环所有者。 main 函数，包含主循环。省略时使用合理的默认值。
+
+**签名：**
+```tl
+run: function()
+```
+
+## Love.DrawMode
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;DrawMode 的可用值。
+
+**签名：**
+```tl
+enum DrawMode
+	"fill"
+	"line"
+end
+```
+
+## Love.ArcMode
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;ArcMode 的可用值。
+
+**签名：**
+```tl
+enum ArcMode
+	"open"
+	"closed"
+	"pie"
+end
+```
+
+## Love.LineStyle
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;LineStyle 的可用值。
+
+**签名：**
+```tl
+enum LineStyle
+	"rough"
+	"smooth"
+end
+```
+
+## Love.LineJoin
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;LineJoin 的可用值。
+
+**签名：**
+```tl
+enum LineJoin
+	"none"
+	"miter"
+	"bevel"
+end
+```
+
+## Love.BlendMode
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;BlendMode 的可用值。
+
+**签名：**
+```tl
+enum BlendMode
+	"alpha"
+	"add"
+	"subtract"
+	"multiply"
+	"replace"
+	"screen"
+	"premultiplied"
+end
+```
+
+## Love.BlendAlphaMode
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;BlendAlphaMode 的可用值。
+
+**签名：**
+```tl
+enum BlendAlphaMode
+	"alphamultiply"
+	"premultiplied"
+end
+```
+
+## Love.AlignMode
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;AlignMode 的可用值。
+
+**签名：**
+```tl
+enum AlignMode
+	"left"
+	"center"
+	"right"
+	"justify"
+end
+```
+
+## Love.FilterMode
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;FilterMode 的可用值。
+
+**签名：**
+```tl
+enum FilterMode
+	"linear"
+	"nearest"
+end
+```
+
+## Love.WrapMode
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;WrapMode 的可用值。
+
+**签名：**
+```tl
+enum WrapMode
+	"clamp"
+	"clampzero"
+	"repeat"
+	"mirroredrepeat"
+end
+```
+
+## Love.TextureType
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;TextureType 的可用值。
+
+**签名：**
+```tl
+enum TextureType
+	"2d"
+	"array"
+	"cube"
+	"volume"
+end
+```
+
+## Love.StencilAction
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;StencilAction 的可用值。
+
+**签名：**
+```tl
+enum StencilAction
+	"replace"
+	"increment"
+	"decrement"
+	"incrementwrap"
+	"decrementwrap"
+	"invert"
+end
+```
+
+## Love.CompareMode
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;CompareMode 的可用值。
+
+**签名：**
+```tl
+enum CompareMode
+	"less"
+	"lequal"
+	"equal"
+	"gequal"
+	"greater"
+	"notequal"
+	"always"
+	"never"
+end
+```
+
+## Love.MeshDrawMode
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;MeshDrawMode 的可用值。
+
+**签名：**
+```tl
+enum MeshDrawMode
+	"fan"
+	"strip"
+	"triangles"
+	"points"
+end
+```
+
+## Love.MeshUsage
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;MeshUsage 的可用值。
+
+**签名：**
+```tl
+enum MeshUsage
+	"stream"
+	"dynamic"
+	"static"
+end
+```
+
+## Love.VertexDataType
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;VertexDataType 的可用值。
+
+**签名：**
+```tl
+enum VertexDataType
+	"float"
+	"byte"
+	"unorm16"
+end
+```
+
+## Love.AttributeStep
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;AttributeStep 的可用值。
+
+**签名：**
+```tl
+enum AttributeStep
+	"pervertex"
+	"perinstance"
+end
+```
+
+## Love.IndexDataType
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;IndexDataType 的可用值。
+
+**签名：**
+```tl
+enum IndexDataType
+	"uint16"
+	"uint32"
+end
+```
+
+## Love.MeshCullMode
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;MeshCullMode 的可用值。
+
+**签名：**
+```tl
+enum MeshCullMode
+	"none"
+	"back"
+	"front"
+end
+```
+
+## Love.Winding
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;Winding 的可用值。
+
+**签名：**
+```tl
+enum Winding
+	"cw"
+	"ccw"
+end
+```
+
+## Love.ParticleInsertMode
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;ParticleInsertMode 的可用值。
+
+**签名：**
+```tl
+enum ParticleInsertMode
+	"top"
+	"bottom"
+	"random"
+end
+```
+
+## Love.ParticleAreaSpreadDistribution
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;ParticleAreaSpreadDistribution 的可用值。
+
+**签名：**
+```tl
+enum ParticleAreaSpreadDistribution
+	"none"
+	"uniform"
+	"normal"
+	"ellipse"
+	"borderellipse"
+	"borderrectangle"
+end
+```
+
+## Love.CanvasFormat
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;CanvasFormat 的可用值。
+
+**签名：**
+```tl
+enum CanvasFormat
+	"normal"
+	"hdr"
+	"r8"
+	"rg8"
+	"rgba8"
+	"srgba8"
+	"r16"
+	"rg16"
+	"rgba16"
+	"r16f"
+	"rg16f"
+	"rgba16f"
+	"r32f"
+	"rg32f"
+	"rgba32f"
+	"la8"
+	"rgba4"
+	"rgb5a1"
+	"rgb565"
+	"rgb10a2"
+	"rg11b10f"
+	"stencil8"
+	"depth16"
+	"depth24"
+	"depth32f"
+	"depth24stencil8"
+	"depth32fstencil8"
+end
+```
+
+## Love.ImagePixelFormat
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;ImagePixelFormat 的可用值。
+
+**签名：**
+```tl
+enum ImagePixelFormat
+	"r8"
+	"rg8"
+	"rgba8"
+	"r16"
+	"rg16"
+	"rgba16"
+	"r16f"
+	"rg16f"
+	"rgba16f"
+	"r32f"
+	"rg32f"
+	"rgba32f"
+	"rgba4"
+	"rgb5a1"
+	"rgb565"
+	"rgb10a2"
+	"rg11b10f"
+end
+```
+
+## Love.CompressedPixelFormat
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;CompressedPixelFormat 的可用值。
+
+**签名：**
+```tl
+enum CompressedPixelFormat
+	"DXT1"
+	"DXT3"
+	"DXT5"
+	"BC4"
+	"BC4s"
+	"BC5"
+	"BC5s"
+	"BC6h"
+	"BC6hs"
+	"BC7"
+	"PVR1rgb2"
+	"PVR1rgb4"
+	"PVR1rgba2"
+	"PVR1rgba4"
+	"ETC1"
+	"ETC2rgb"
+	"ETC2rgba"
+	"ETC2rgba1"
+	"EACr"
+	"EACrs"
+	"EACrg"
+	"EACrgs"
+	"ASTC4x4"
+	"ASTC5x4"
+	"ASTC5x5"
+	"ASTC6x5"
+	"ASTC6x6"
+	"ASTC8x5"
+	"ASTC8x6"
+	"ASTC8x8"
+	"ASTC10x5"
+	"ASTC10x6"
+	"ASTC10x8"
+	"ASTC10x10"
+	"ASTC12x10"
+	"ASTC12x12"
+end
+```
+
+## Love.MatrixLayout
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;MatrixLayout 的可用值。
+
+**签名：**
+```tl
+enum MatrixLayout
+	"row"
+	"column"
+end
+```
+
+## Love.FileType
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;FileType 的可用值。
+
+**签名：**
+```tl
+enum FileType
+	"file"
+	"directory"
+end
+```
+
+## Love.FileMode
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;FileMode 的可用值。
+
+**签名：**
+```tl
+enum FileMode
+	"c"
+	"r"
+	"w"
+	"a"
+end
+```
+
+## Love.OpenFileMode
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;OpenFileMode 的可用值。
+
+**签名：**
+```tl
+enum OpenFileMode
+	"r"
+	"w"
+	"a"
+end
+```
+
+## Love.BufferMode
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;BufferMode 的可用值。
+
+**签名：**
+```tl
+enum BufferMode
+	"none"
+	"line"
+	"full"
+end
+```
+
+## Love.DataContainer
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;DataContainer 的可用值。
+
+**签名：**
+```tl
+enum DataContainer
+	"data"
+	"string"
+end
+```
+
+## Love.EncodeFormat
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;EncodeFormat 的可用值。
+
+**签名：**
+```tl
+enum EncodeFormat
+	"hex"
+	"base64"
+end
+```
+
+## Love.CompressionFormat
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;CompressionFormat 的可用值。
+
+**签名：**
+```tl
+enum CompressionFormat
+	"zlib"
+	"gzip"
+	"deflate"
+	"lz4"
+end
+```
+
+## Love.HashFunction
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;HashFunction 的可用值。
+
+**签名：**
+```tl
+enum HashFunction
+	"md5"
+	"sha1"
+	"sha224"
+	"sha256"
+	"sha384"
+	"sha512"
+end
+```
+
+## Love.SystemCursor
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;SystemCursor 的可用值。
+
+**签名：**
+```tl
+enum SystemCursor
+	"arrow"
+	"ibeam"
+	"wait"
+	"crosshair"
+	"waitarrow"
+	"sizenwse"
+	"sizenesw"
+	"sizewe"
+	"sizens"
+	"sizeall"
+	"no"
+	"hand"
+end
+```
+
+## Love.GamepadButton
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;GamepadButton 的可用值。
+
+**签名：**
+```tl
+enum GamepadButton
+	"a"
+	"b"
+	"x"
+	"y"
+	"back"
+	"guide"
+	"start"
+	"leftstick"
+	"rightstick"
+	"leftshoulder"
+	"rightshoulder"
+	"dpup"
+	"dpdown"
+	"dpleft"
+	"dpright"
+	"misc1"
+	"paddle1"
+	"paddle2"
+	"paddle3"
+	"paddle4"
+	"touchpad"
+end
+```
+
+## Love.GamepadAxis
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;GamepadAxis 的可用值。
+
+**签名：**
+```tl
+enum GamepadAxis
+	"leftx"
+	"lefty"
+	"rightx"
+	"righty"
+	"triggerleft"
+	"triggerright"
+end
+```
+
+## Love.JoystickHat
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;JoystickHat 的可用值。
+
+**签名：**
+```tl
+enum JoystickHat
+	"c"
+	"u"
+	"r"
+	"d"
+	"l"
+	"ru"
+	"rd"
+	"lu"
+	"ld"
+end
+```
+
+## Love.JoystickInputType
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;JoystickInputType 的可用值。
+
+**签名：**
+```tl
+enum JoystickInputType
+	"axis"
+	"button"
+	"hat"
+end
+```
+
+## Love.OS
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;OS 的可用值。
+
+**签名：**
+```tl
+enum OS
+	"OS X"
+	"Windows"
+	"Linux"
+	"Android"
+	"iOS"
+	"UWP"
+	"Unknown"
+end
+```
+
+## Love.PowerState
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;PowerState 的可用值。
+
+**签名：**
+```tl
+enum PowerState
+	"unknown"
+	"battery"
+	"nobattery"
+	"charging"
+	"charged"
+end
+```
+
+## Love.SourceType
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;SourceType 的可用值。
+
+**签名：**
+```tl
+enum SourceType
+	"static"
+	"stream"
+	"queue"
+end
+```
+
+## Love.TimeUnit
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;TimeUnit 的可用值。
+
+**签名：**
+```tl
+enum TimeUnit
+	"seconds"
+	"samples"
+end
+```
+
+## Love.DistanceModel
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;DistanceModel 的可用值。
+
+**签名：**
+```tl
+enum DistanceModel
+	"none"
+	"inverse"
+	"inverseclamped"
+	"linear"
+	"linearclamped"
+	"exponent"
+	"exponentclamped"
+end
+```
+
+## Love.AudioFilterType
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;AudioFilterType 的可用值。
+
+**签名：**
+```tl
+enum AudioFilterType
+	"lowpass"
+	"highpass"
+	"bandpass"
+end
+```
+
+## Love.AudioEffectType
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;AudioEffectType 的可用值。
+
+**签名：**
+```tl
+enum AudioEffectType
+	"reverb"
+	"chorus"
+	"distortion"
+	"echo"
+	"flanger"
+	"ringmodulator"
+	"compressor"
+	"equalizer"
+end
+```
+
+## Love.BodyType
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;BodyType 的可用值。
+
+**签名：**
+```tl
+enum BodyType
+	"static"
+	"dynamic"
+	"kinematic"
+end
+```

@@ -292,7 +292,7 @@ getPitch: function(self: Source): number
 
 **签名：**
 ```tl
-seek: function(self: Source, offset: number, unit?: string)
+seek: function(self: Source, offset: number, unit?: TimeUnit)
 ```
 
 **参数：**
@@ -300,7 +300,7 @@ seek: function(self: Source, offset: number, unit?: string)
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | offset | number | 要寻求的位置。 |
-| unit | string | 位置值的单位。 （默认：'seconds'。） |
+| unit | TimeUnit | 位置值的单位。 （默认：'seconds'。） |
 
 ## tell
 
@@ -312,14 +312,14 @@ seek: function(self: Source, offset: number, unit?: string)
 
 **签名：**
 ```tl
-tell: function(self: Source, unit?: string): number
+tell: function(self: Source, unit?: TimeUnit): number
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| unit | string | 返回值的单位类型。 （默认：'seconds'。） |
+| unit | TimeUnit | 返回值的单位类型。 （默认：'seconds'。） |
 
 **返回值：**
 
@@ -337,14 +337,14 @@ tell: function(self: Source, unit?: string): number
 
 **签名：**
 ```tl
-getDuration: function(self: Source, unit?: string): number
+getDuration: function(self: Source, unit?: TimeUnit): number
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| unit | string | 返回值的时间单位。 （默认：'seconds'。） |
+| unit | TimeUnit | 返回值的时间单位。 （默认：'seconds'。） |
 
 **返回值：**
 
@@ -1030,11 +1030,11 @@ getActiveEffects: function(self: Source): {string}
 
 **签名：**
 ```tl
-getType: function(self: Source): string
+getType: function(self: Source): SourceType
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 源的类型。 |
+| SourceType | 源的类型。 |

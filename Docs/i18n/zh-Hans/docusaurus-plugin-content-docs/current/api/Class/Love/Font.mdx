@@ -319,15 +319,15 @@ getDPIScale: function(self: Font): number
 
 **签名：**
 ```tl
-getFilter: function(self: Font): string, string, number
+getFilter: function(self: Font): FilterMode, FilterMode, number
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 缩小字体时使用的过滤模式。 |
-| string | 放大字体时使用的过滤模式。 |
+| FilterMode | 缩小字体时使用的过滤模式。 |
+| FilterMode | 放大字体时使用的过滤模式。 |
 | number | 使用的各向异性过滤的最大量。 |
 
 ## setFilter
@@ -340,15 +340,15 @@ getFilter: function(self: Font): string, string, number
 
 **签名：**
 ```tl
-setFilter: function(self: Font, min: string, mag?: string, anisotropy?: number)
+setFilter: function(self: Font, min: FilterMode, mag?: FilterMode, anisotropy?: number)
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| min | string | 如何缩小字体。 |
-| mag | string | 如何放大字体。 |
+| min | FilterMode | 如何缩小字体。 |
+| mag | FilterMode | 如何放大字体。 |
 | anisotropy | number | 使用的各向异性过滤的最大量。 （默认值：1。） |
 
 ## getWrap

@@ -178,14 +178,14 @@ getBufferSize: function(self: ParticleSystem): integer
 
 **Signature:**
 ```tl
-setInsertMode: function(self: ParticleSystem, mode: string)
+setInsertMode: function(self: ParticleSystem, mode: ParticleInsertMode)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| mode | string | The mode to use when the ParticleSystem adds new particles. |
+| mode | ParticleInsertMode | The mode to use when the ParticleSystem adds new particles. |
 
 ## getInsertMode
 
@@ -197,14 +197,14 @@ setInsertMode: function(self: ParticleSystem, mode: string)
 
 **Signature:**
 ```tl
-getInsertMode: function(self: ParticleSystem): string
+getInsertMode: function(self: ParticleSystem): ParticleInsertMode
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | The mode used when the ParticleSystem adds new particles. |
+| ParticleInsertMode | The mode used when the ParticleSystem adds new particles. |
 
 ## setEmissionRate
 
@@ -394,14 +394,14 @@ emitter based on the parameters to this function.
 
 **Signature:**
 ```tl
-setEmissionArea: function(self: ParticleSystem, distribution?: string, x?: number, y?: number, angle?: number, relative?: boolean)
+setEmissionArea: function(self: ParticleSystem, distribution?: ParticleAreaSpreadDistribution, x?: number, y?: number, angle?: number, relative?: boolean)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| distribution | string | The type of distribution for new particles. |
+| distribution | ParticleAreaSpreadDistribution | The type of distribution for new particles. |
 | x | number | The maximum spawn distance from the emitter along the x-axis for uniform distribution, or the standard deviation along the x-axis for normal distribution. |
 | y | number | The maximum spawn distance from the emitter along the y-axis for uniform distribution, or the standard deviation along the y-axis for normal distribution. |
 | angle | number | The angle in radians of the emission area. (Default: 0.) |
@@ -417,9 +417,9 @@ setEmissionArea: function(self: ParticleSystem, distribution?: string, x?: numbe
 
 **Signature:**
 ```tl
-getEmissionArea: function(self: ParticleSystem): string, number, number, number, boolean
-	setAreaSpread: function(self: ParticleSystem, distribution?: string, x?: number, y?: number)
-	getAreaSpread: function(self: ParticleSystem): string, number, number
+getEmissionArea: function(self: ParticleSystem): ParticleAreaSpreadDistribution, number, number, number, boolean
+	setAreaSpread: function(self: ParticleSystem, distribution?: ParticleAreaSpreadDistribution, x?: number, y?: number)
+	getAreaSpread: function(self: ParticleSystem): ParticleAreaSpreadDistribution, number, number
 ```
 
 **Parameters:**
@@ -434,7 +434,7 @@ getEmissionArea: function(self: ParticleSystem): string, number, number, number,
 
 | Return Type | Description |
 | --- | --- |
-| string | The type of distribution for new particles. |
+| ParticleAreaSpreadDistribution | The type of distribution for new particles. |
 | number | The maximum spawn distance from the emitter along the x-axis for uniform distribution, or the standard deviation along the x-axis for normal distribution. |
 | number | The maximum spawn distance from the emitter along the y-axis for uniform distribution, or the standard deviation along the y-axis for normal distribution. |
 | number | The angle in radians of the emission area. |

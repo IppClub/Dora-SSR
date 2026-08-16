@@ -16,14 +16,14 @@
 
 **签名：**
 ```tl
-getOS: function(): string
+getOS: function(): OS
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 当前操作系统。 'OS X'、'Windows'、'Linux'、'Android' 或 'iOS'。 |
+| OS | 当前操作系统。 'OS X'、'Windows'、'Linux'、'Android' 或 'iOS'。 |
 
 ## getProcessorCount
 
@@ -94,14 +94,14 @@ getClipboardText: function(): string
 
 **签名：**
 ```tl
-getPowerInfo: function(): string, integer | nil, integer | nil
+getPowerInfo: function(): PowerState, integer | nil, integer | nil
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 电源的基本状态。 |
+| PowerState | 电源的基本状态。 |
 | integer or nil | 剩余电池寿命百分比，介于 0 和 100 之间。如果无法确定该值或没有电池，则为零。 |
 | integer or nil | 电池寿命还剩几秒。如果无法确定该值或没有电池，则为零。 |
 

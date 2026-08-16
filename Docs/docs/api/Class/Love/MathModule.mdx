@@ -858,14 +858,14 @@ triangulate: function(coordinates: number...): {{number}}
 
 **Signature:**
 ```tl
-compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): string
+compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): string
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| container | string | The type of value to return. |
+| container | DataContainer | The type of value to return. |
 | format | CompressionFormat | The compression format to use. |
 | source | string | Data | The uncompressed source data. |
 | level | integer | The compression level, from 0 to 9, or -1 for the default level. |
@@ -886,14 +886,14 @@ compress: function(container: string, format: CompressionFormat, source: string 
 
 **Signature:**
 ```tl
-compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
+compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| container | string | The type of value to return. |
+| container | DataContainer | The type of value to return. |
 | format | CompressionFormat | The compression format to use. |
 | source | string | Data | The uncompressed source data. |
 | level | integer | The compression level, from 0 to 9, or -1 for the default level. |
@@ -914,14 +914,14 @@ compress: function(container: string, format: CompressionFormat, source: string 
 
 **Signature:**
 ```tl
-decompress: function(container: string, compressed: CompressedData): string
+decompress: function(container: DataContainer, compressed: CompressedData): string
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| container | string | The type of value to return. |
+| container | DataContainer | The type of value to return. |
 | compressed | CompressedData | The compressed data to decompress. |
 
 **Returns:**
@@ -940,14 +940,14 @@ decompress: function(container: string, compressed: CompressedData): string
 
 **Signature:**
 ```tl
-decompress: function(container: string, compressed: CompressedData): ByteData
+decompress: function(container: DataContainer, compressed: CompressedData): ByteData
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| container | string | The type of value to return. |
+| container | DataContainer | The type of value to return. |
 | compressed | CompressedData | The compressed data to decompress. |
 
 **Returns:**

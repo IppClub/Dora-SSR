@@ -1004,14 +1004,14 @@ applyTorque: function(self: Body, torque: number)
 
 **签名：**
 ```tl
-getType: function(self: Body): string
+getType: function(self: Body): BodyType
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 体型。 |
+| BodyType | 体型。 |
 
 ## setType
 
@@ -1023,14 +1023,14 @@ getType: function(self: Body): string
 
 **签名：**
 ```tl
-setType: function(self: Body, body_type: string)
+setType: function(self: Body, body_type: BodyType)
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| body_type | string | 新类型。 |
+| body_type | BodyType | 新类型。 |
 
 ## getWorldPoint
 
@@ -1251,3 +1251,22 @@ getLinearVelocityFromLocalPoint: function(self: Body, x: number, y: number): num
 | --- | --- |
 | number | (x,y) 点速度的 x 分量。 |
 | number | (x,y) 点速度的 y 分量。 |
+
+## getFixtures
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回附加到刚体的所有碰撞体。
+
+**签名：**
+```tl
+getFixtures: function(self: Body): {Fixture}
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Fixture[] | 包含刚体所有碰撞体的表。 |

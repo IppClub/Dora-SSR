@@ -853,14 +853,14 @@ triangulate: function(coordinates: number...): {{number}}
 
 **签名：**
 ```tl
-compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): string
+compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): string
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 要返回的值类型。 |
+| container | DataContainer | 要返回的值类型。 |
 | format | CompressionFormat | 使用的压缩格式。 |
 | source | string | Data | 未压缩的源数据。 |
 | level | integer | 压缩级别，范围为 0 到 9；-1 表示使用默认级别。 |
@@ -881,14 +881,14 @@ compress: function(container: string, format: CompressionFormat, source: string 
 
 **签名：**
 ```tl
-compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
+compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 要返回的值类型。 |
+| container | DataContainer | 要返回的值类型。 |
 | format | CompressionFormat | 使用的压缩格式。 |
 | source | string | Data | 未压缩的源数据。 |
 | level | integer | 压缩级别，范围为 0 到 9；-1 表示使用默认级别。 |
@@ -909,14 +909,14 @@ compress: function(container: string, format: CompressionFormat, source: string 
 
 **签名：**
 ```tl
-decompress: function(container: string, compressed: CompressedData): string
+decompress: function(container: DataContainer, compressed: CompressedData): string
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 要返回的值类型。 |
+| container | DataContainer | 要返回的值类型。 |
 | compressed | CompressedData | 要解压的压缩数据。 |
 
 **返回值：**
@@ -935,14 +935,14 @@ decompress: function(container: string, compressed: CompressedData): string
 
 **签名：**
 ```tl
-decompress: function(container: string, compressed: CompressedData): ByteData
+decompress: function(container: DataContainer, compressed: CompressedData): ByteData
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 要返回的值类型。 |
+| container | DataContainer | 要返回的值类型。 |
 | compressed | CompressedData | 要解压的压缩数据。 |
 
 **返回值：**

@@ -1,3 +1,509 @@
+-- 通过 Love API 根记录导出的枚举类型。
+local record LoveEnums
+	-- DrawMode 的可用值。
+	enum DrawMode
+		"fill"
+		"line"
+	end
+
+	-- ArcMode 的可用值。
+	enum ArcMode
+		"open"
+		"closed"
+		"pie"
+	end
+
+	-- LineStyle 的可用值。
+	enum LineStyle
+		"rough"
+		"smooth"
+	end
+
+	-- LineJoin 的可用值。
+	enum LineJoin
+		"none"
+		"miter"
+		"bevel"
+	end
+
+	-- BlendMode 的可用值。
+	enum BlendMode
+		"alpha"
+		"add"
+		"subtract"
+		"multiply"
+		"replace"
+		"screen"
+		"premultiplied"
+	end
+
+	-- BlendAlphaMode 的可用值。
+	enum BlendAlphaMode
+		"alphamultiply"
+		"premultiplied"
+	end
+
+	-- AlignMode 的可用值。
+	enum AlignMode
+		"left"
+		"center"
+		"right"
+		"justify"
+	end
+
+	-- FilterMode 的可用值。
+	enum FilterMode
+		"linear"
+		"nearest"
+	end
+
+	-- WrapMode 的可用值。
+	enum WrapMode
+		"clamp"
+		"clampzero"
+		"repeat"
+		"mirroredrepeat"
+	end
+
+	-- TextureType 的可用值。
+	enum TextureType
+		"2d"
+		"array"
+		"cube"
+		"volume"
+	end
+
+	-- StencilAction 的可用值。
+	enum StencilAction
+		"replace"
+		"increment"
+		"decrement"
+		"incrementwrap"
+		"decrementwrap"
+		"invert"
+	end
+
+	-- CompareMode 的可用值。
+	enum CompareMode
+		"less"
+		"lequal"
+		"equal"
+		"gequal"
+		"greater"
+		"notequal"
+		"always"
+		"never"
+	end
+
+	-- MeshDrawMode 的可用值。
+	enum MeshDrawMode
+		"fan"
+		"strip"
+		"triangles"
+		"points"
+	end
+
+	-- MeshUsage 的可用值。
+	enum MeshUsage
+		"stream"
+		"dynamic"
+		"static"
+	end
+
+	-- VertexDataType 的可用值。
+	enum VertexDataType
+		"float"
+		"byte"
+		"unorm16"
+	end
+
+	-- AttributeStep 的可用值。
+	enum AttributeStep
+		"pervertex"
+		"perinstance"
+	end
+
+	-- IndexDataType 的可用值。
+	enum IndexDataType
+		"uint16"
+		"uint32"
+	end
+
+	-- MeshCullMode 的可用值。
+	enum MeshCullMode
+		"none"
+		"back"
+		"front"
+	end
+
+	-- Winding 的可用值。
+	enum Winding
+		"cw"
+		"ccw"
+	end
+
+	-- ParticleInsertMode 的可用值。
+	enum ParticleInsertMode
+		"top"
+		"bottom"
+		"random"
+	end
+
+	-- ParticleAreaSpreadDistribution 的可用值。
+	enum ParticleAreaSpreadDistribution
+		"none"
+		"uniform"
+		"normal"
+		"ellipse"
+		"borderellipse"
+		"borderrectangle"
+	end
+
+	-- CanvasFormat 的可用值。
+	enum CanvasFormat
+		"normal"
+		"hdr"
+		"r8"
+		"rg8"
+		"rgba8"
+		"srgba8"
+		"r16"
+		"rg16"
+		"rgba16"
+		"r16f"
+		"rg16f"
+		"rgba16f"
+		"r32f"
+		"rg32f"
+		"rgba32f"
+		"la8"
+		"rgba4"
+		"rgb5a1"
+		"rgb565"
+		"rgb10a2"
+		"rg11b10f"
+		"stencil8"
+		"depth16"
+		"depth24"
+		"depth32f"
+		"depth24stencil8"
+		"depth32fstencil8"
+	end
+
+	-- ImagePixelFormat 的可用值。
+	enum ImagePixelFormat
+		"r8"
+		"rg8"
+		"rgba8"
+		"r16"
+		"rg16"
+		"rgba16"
+		"r16f"
+		"rg16f"
+		"rgba16f"
+		"r32f"
+		"rg32f"
+		"rgba32f"
+		"rgba4"
+		"rgb5a1"
+		"rgb565"
+		"rgb10a2"
+		"rg11b10f"
+	end
+
+	-- CompressedPixelFormat 的可用值。
+	enum CompressedPixelFormat
+		"DXT1"
+		"DXT3"
+		"DXT5"
+		"BC4"
+		"BC4s"
+		"BC5"
+		"BC5s"
+		"BC6h"
+		"BC6hs"
+		"BC7"
+		"PVR1rgb2"
+		"PVR1rgb4"
+		"PVR1rgba2"
+		"PVR1rgba4"
+		"ETC1"
+		"ETC2rgb"
+		"ETC2rgba"
+		"ETC2rgba1"
+		"EACr"
+		"EACrs"
+		"EACrg"
+		"EACrgs"
+		"ASTC4x4"
+		"ASTC5x4"
+		"ASTC5x5"
+		"ASTC6x5"
+		"ASTC6x6"
+		"ASTC8x5"
+		"ASTC8x6"
+		"ASTC8x8"
+		"ASTC10x5"
+		"ASTC10x6"
+		"ASTC10x8"
+		"ASTC10x10"
+		"ASTC12x10"
+		"ASTC12x12"
+	end
+
+	-- MatrixLayout 的可用值。
+	enum MatrixLayout
+		"row"
+		"column"
+	end
+
+	-- FileType 的可用值。
+	enum FileType
+		"file"
+		"directory"
+	end
+
+	-- FileMode 的可用值。
+	enum FileMode
+		"c"
+		"r"
+		"w"
+		"a"
+	end
+
+	-- OpenFileMode 的可用值。
+	enum OpenFileMode
+		"r"
+		"w"
+		"a"
+	end
+
+	-- BufferMode 的可用值。
+	enum BufferMode
+		"none"
+		"line"
+		"full"
+	end
+
+	-- DataContainer 的可用值。
+	enum DataContainer
+		"data"
+		"string"
+	end
+
+	-- EncodeFormat 的可用值。
+	enum EncodeFormat
+		"hex"
+		"base64"
+	end
+
+	-- CompressionFormat 的可用值。
+	enum CompressionFormat
+		"zlib"
+		"gzip"
+		"deflate"
+		"lz4"
+	end
+
+	-- HashFunction 的可用值。
+	enum HashFunction
+		"md5"
+		"sha1"
+		"sha224"
+		"sha256"
+		"sha384"
+		"sha512"
+	end
+
+	-- SystemCursor 的可用值。
+	enum SystemCursor
+		"arrow"
+		"ibeam"
+		"wait"
+		"crosshair"
+		"waitarrow"
+		"sizenwse"
+		"sizenesw"
+		"sizewe"
+		"sizens"
+		"sizeall"
+		"no"
+		"hand"
+	end
+
+	-- GamepadButton 的可用值。
+	enum GamepadButton
+		"a"
+		"b"
+		"x"
+		"y"
+		"back"
+		"guide"
+		"start"
+		"leftstick"
+		"rightstick"
+		"leftshoulder"
+		"rightshoulder"
+		"dpup"
+		"dpdown"
+		"dpleft"
+		"dpright"
+		"misc1"
+		"paddle1"
+		"paddle2"
+		"paddle3"
+		"paddle4"
+		"touchpad"
+	end
+
+	-- GamepadAxis 的可用值。
+	enum GamepadAxis
+		"leftx"
+		"lefty"
+		"rightx"
+		"righty"
+		"triggerleft"
+		"triggerright"
+	end
+
+	-- JoystickHat 的可用值。
+	enum JoystickHat
+		"c"
+		"u"
+		"r"
+		"d"
+		"l"
+		"ru"
+		"rd"
+		"lu"
+		"ld"
+	end
+
+	-- JoystickInputType 的可用值。
+	enum JoystickInputType
+		"axis"
+		"button"
+		"hat"
+	end
+
+	-- OS 的可用值。
+	enum OS
+		"OS X"
+		"Windows"
+		"Linux"
+		"Android"
+		"iOS"
+		"UWP"
+		"Unknown"
+	end
+
+	-- PowerState 的可用值。
+	enum PowerState
+		"unknown"
+		"battery"
+		"nobattery"
+		"charging"
+		"charged"
+	end
+
+	-- SourceType 的可用值。
+	enum SourceType
+		"static"
+		"stream"
+		"queue"
+	end
+
+	-- TimeUnit 的可用值。
+	enum TimeUnit
+		"seconds"
+		"samples"
+	end
+
+	-- DistanceModel 的可用值。
+	enum DistanceModel
+		"none"
+		"inverse"
+		"inverseclamped"
+		"linear"
+		"linearclamped"
+		"exponent"
+		"exponentclamped"
+	end
+
+	-- AudioFilterType 的可用值。
+	enum AudioFilterType
+		"lowpass"
+		"highpass"
+		"bandpass"
+	end
+
+	-- AudioEffectType 的可用值。
+	enum AudioEffectType
+		"reverb"
+		"chorus"
+		"distortion"
+		"echo"
+		"flanger"
+		"ringmodulator"
+		"compressor"
+		"equalizer"
+	end
+
+	-- BodyType 的可用值。
+	enum BodyType
+		"static"
+		"dynamic"
+		"kinematic"
+	end
+end
+
+local type DrawMode = LoveEnums.DrawMode
+local type ArcMode = LoveEnums.ArcMode
+local type LineStyle = LoveEnums.LineStyle
+local type LineJoin = LoveEnums.LineJoin
+local type BlendMode = LoveEnums.BlendMode
+local type BlendAlphaMode = LoveEnums.BlendAlphaMode
+local type AlignMode = LoveEnums.AlignMode
+local type FilterMode = LoveEnums.FilterMode
+local type WrapMode = LoveEnums.WrapMode
+local type TextureType = LoveEnums.TextureType
+local type StencilAction = LoveEnums.StencilAction
+local type CompareMode = LoveEnums.CompareMode
+local type MeshDrawMode = LoveEnums.MeshDrawMode
+local type MeshUsage = LoveEnums.MeshUsage
+local type VertexDataType = LoveEnums.VertexDataType
+local type AttributeStep = LoveEnums.AttributeStep
+local type IndexDataType = LoveEnums.IndexDataType
+local type MeshCullMode = LoveEnums.MeshCullMode
+local type Winding = LoveEnums.Winding
+local type ParticleInsertMode = LoveEnums.ParticleInsertMode
+local type ParticleAreaSpreadDistribution = LoveEnums.ParticleAreaSpreadDistribution
+local type CanvasFormat = LoveEnums.CanvasFormat
+local type ImagePixelFormat = LoveEnums.ImagePixelFormat
+local type CompressedPixelFormat = LoveEnums.CompressedPixelFormat
+local type MatrixLayout = LoveEnums.MatrixLayout
+local type FileType = LoveEnums.FileType
+local type FileMode = LoveEnums.FileMode
+local type OpenFileMode = LoveEnums.OpenFileMode
+local type BufferMode = LoveEnums.BufferMode
+local type DataContainer = LoveEnums.DataContainer
+local type EncodeFormat = LoveEnums.EncodeFormat
+local type CompressionFormat = LoveEnums.CompressionFormat
+local type HashFunction = LoveEnums.HashFunction
+local type SystemCursor = LoveEnums.SystemCursor
+local type GamepadButton = LoveEnums.GamepadButton
+local type GamepadAxis = LoveEnums.GamepadAxis
+local type JoystickHat = LoveEnums.JoystickHat
+local type JoystickInputType = LoveEnums.JoystickInputType
+local type OS = LoveEnums.OS
+local type PowerState = LoveEnums.PowerState
+local type SourceType = LoveEnums.SourceType
+local type TimeUnit = LoveEnums.TimeUnit
+local type DistanceModel = LoveEnums.DistanceModel
+local type AudioFilterType = LoveEnums.AudioFilterType
+local type AudioEffectType = LoveEnums.AudioEffectType
+local type BodyType = LoveEnums.BodyType
+
 -- 可绘制图像类型。
 local record Image
 
@@ -52,8 +558,8 @@ local record Image
 	getDPIScale: function(self: Image): number
 
 	-- 获取纹理的类型。
-	-- @return (string) 纹理的类型。
-	getTextureType: function(self: Image): string
+	-- @return (TextureType) 纹理的类型。
+	getTextureType: function(self: Image): TextureType
 
 	-- 获取体积纹理的深度。对于 2D、立方体贴图和数组纹理返回 1。
 	-- @return (integer) 体积纹理的深度。
@@ -68,9 +574,9 @@ local record Image
 	getMipmapCount: function(self: Image): integer
 
 	-- 获取纹理的 mipmap 过滤模式。在 11.0 之前，此方法仅适用于图像。
-	-- @return (string) 在 mipmap 级别之间使用的过滤模式。如果未启用 mipmap 过滤，则为 nil。
+	-- @return (FilterMode | nil) 在 mipmap 级别之间使用的过滤模式。如果未启用 mipmap 过滤，则为 nil。
 	-- @return (number) 用于确定图像在绘制时是否应使用比正常情况更多或更少详细的 mipmap 级别的值。
-	getMipmapFilter: function(self: Image): string, number
+	getMipmapFilter: function(self: Image): FilterMode | nil, number
 
 	-- 设置纹理的 mipmap 过滤器模式。在 11.0 之前，此方法仅适用于图像。
 	--
@@ -93,8 +599,8 @@ local record Image
 	setMipmapFilter: function(self: Image, filter: FilterMode, sharpness?: number)
 
 	-- 获取纹理的像素格式。
-	-- @return (string) 创建纹理时使用的像素格式。
-	getFormat: function(self: Image): string
+	-- @return (ImagePixelFormat) 创建纹理时使用的像素格式。
+	getFormat: function(self: Image): ImagePixelFormat
 
 	-- 获取图像是否是从压缩数据创建的。
 	-- 压缩图像在 VRAM 中占用的空间更少，并且绘制压缩图像通常比绘制根据原始像素数据创建的图像更有效。
@@ -123,42 +629,42 @@ local record Image
 
 	-- 获取在着色器中从深度纹理采样时使用的比较模式。
 	-- 深度纹理比较模式是高级低级功能，通常与 3D 阴影贴图一起使用。
-	-- @return (string or nil) 在着色器中从此纹理采样时使用的比较模式，如果尚未在此纹理上调用 setDepthSampleMode，则为 nil。 （默认值：无。）
-	getDepthSampleMode: function(self: Image): string | nil
+	-- @return (CompareMode | nil) 在着色器中从此纹理采样时使用的比较模式，如果尚未在此纹理上调用 setDepthSampleMode，则为 nil。 （默认值：无。）
+	getDepthSampleMode: function(self: Image): CompareMode | nil
 
 	-- 设置从着色器中的深度纹理采样时使用的比较模式。深度纹理比较模式是高级低级功能，通常与 3D 阴影贴图一起使用。
 	-- 在着色器中使用具有比较模式设置的深度纹理时，必须将其声明为sampler2DShadow 并在GLSL 3 着色器中使用。在着色器中访问纹理的结果将返回一个介于 0 和 1
 	-- 之间的浮点数，与通过比较操作的测试集的样本数量成正比（如果启用双线性过滤，最多将使用 4 个样本）。
 	-- 深度纹理比较只能与可读的深度格式画布一起使用。
-	-- @param mode (string) 在着色器中从此纹理采样时使用的比较模式。
-	setDepthSampleMode: function(self: Image, mode?: string)
+	-- @param mode (CompareMode) 在着色器中从此纹理采样时使用的比较模式。
+	setDepthSampleMode: function(self: Image, mode?: CompareMode)
 
 	-- 设置纹理的过滤模式。
-	-- @param min_filter (string) 缩小纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。
-	-- @param mag_filter (string) 放大纹理时使用的过滤器模式（在屏幕上以比其像素大小更大的尺寸渲染它）。 （默认值：分钟。）
+	-- @param min_filter (FilterMode) 缩小纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。
+	-- @param mag_filter (FilterMode) 放大纹理时使用的过滤器模式（在屏幕上以比其像素大小更大的尺寸渲染它）。 （默认值：分钟。）
 	-- @param anisotropy (number) 使用的各向异性过滤的最大数量。 （默认值：1。）
-	setFilter: function(self: Image, min_filter: string, mag_filter?: string, anisotropy?: number)
+	setFilter: function(self: Image, min_filter: FilterMode, mag_filter?: FilterMode, anisotropy?: number)
 
 	-- 获取纹理的滤镜模式。
-	-- @return (string) 缩小纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。
-	-- @return (string) 放大纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。
+	-- @return (FilterMode) 缩小纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。
+	-- @return (FilterMode) 放大纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。
 	-- @return (number) 使用的各向异性过滤的最大量。
-	getFilter: function(self: Image): string, string, number
+	getFilter: function(self: Image): FilterMode, FilterMode, number
 
 	-- 设置纹理的环绕属性。
 	-- 当使用大于纹理范围的四边形绘制纹理时，或者使用使用 [0, 1] 之外的纹理坐标的自定义着色器时，此函数设置纹理的重复方式。纹理可以被夹紧或设置为在水平和垂直方向上重复。
 	-- 夹紧的纹理仅出现一次（纹理的边缘拉伸以填充四边形的范围），而重复的纹理则根据四边形中的空间重复多次。
-	-- @param horizontal (string) 纹理的水平环绕模式。
-	-- @param vertical (string) 纹理的垂直环绕模式。 （默认：水平。）
-	-- @param depth (string) 体积纹理 z 轴的包裹模式。 （默认值：水平。）
-	setWrap: function(self: Image, horizontal: string, vertical?: string, depth?: string): boolean
+	-- @param horizontal (WrapMode) 纹理的水平环绕模式。
+	-- @param vertical (WrapMode) 纹理的垂直环绕模式。 （默认：水平。）
+	-- @param depth (WrapMode) 体积纹理 z 轴的包裹模式。 （默认值：水平。）
+	setWrap: function(self: Image, horizontal: WrapMode, vertical?: WrapMode, depth?: WrapMode): boolean
 
 	-- 获取纹理的环绕属性。
 	-- 该函数返回当前设置的纹理水平和垂直环绕模式。
-	-- @return (string) 纹理的水平环绕模式。
-	-- @return (string) 纹理的垂直环绕模式。
-	-- @return (string) 体积纹理 z 轴的包裹模式。
-	getWrap: function(self: Image): string, string, string
+	-- @return (WrapMode) 纹理的水平环绕模式。
+	-- @return (WrapMode) 纹理的垂直环绕模式。
+	-- @return (WrapMode) 体积纹理 z 轴的包裹模式。
+	getWrap: function(self: Image): WrapMode, WrapMode, WrapMode
 end
 
 -- 解码、流式传输和控制视频的对象。
@@ -251,16 +757,16 @@ local record Video
 	getPixelDimensions: function(self: Video): integer, integer
 
 	-- 设置绘制视频时使用的缩放过滤器。
-	-- @param min_filter (string) 缩小视频时使用的过滤模式。
-	-- @param mag_filter (string) 放大视频时使用的过滤模式。
+	-- @param min_filter (FilterMode) 缩小视频时使用的过滤模式。
+	-- @param mag_filter (FilterMode) 放大视频时使用的过滤模式。
 	-- @param anisotropy (number) 使用的各向异性过滤的最大量。 （默认值：1。）
-	setFilter: function(self: Video, min_filter: string, mag_filter?: string, anisotropy?: number)
+	setFilter: function(self: Video, min_filter: FilterMode, mag_filter?: FilterMode, anisotropy?: number)
 
 	-- 获取绘制视频时使用的缩放过滤器。
-	-- @return (string) 缩小视频时使用的过滤模式。
-	-- @return (string) 放大视频时使用的过滤模式。
+	-- @return (FilterMode) 缩小视频时使用的过滤模式。
+	-- @return (FilterMode) 放大视频时使用的过滤模式。
 	-- @return (number) 使用的各向异性过滤的最大量。
-	getFilter: function(self: Video): string, string, number
+	getFilter: function(self: Video): FilterMode, FilterMode, number
 end
 
 -- 该模块负责解码、控制和流式传输视频文件。
@@ -326,8 +832,8 @@ local record Canvas
 	getDPIScale: function(self: Canvas): number
 
 	-- 获取纹理的像素格式。
-	-- @return (string) 创建纹理时使用的像素格式。
-	getFormat: function(self: Canvas): string
+	-- @return (CanvasFormat) 创建纹理时使用的像素格式。
+	getFormat: function(self: Canvas): CanvasFormat
 
 	-- 获取绘制到画布时使用的多重采样抗锯齿 (MSAA) 样本数。
 	-- 如果运行 LÖVE 的系统不支持该数字，则该数字可能与用作 love.graphics.newCanvas 参数的数字不同。
@@ -335,8 +841,8 @@ local record Canvas
 	getMSAA: function(self: Canvas): integer
 
 	-- 获取纹理的类型。
-	-- @return (string) 纹理的类型。
-	getTextureType: function(self: Canvas): string
+	-- @return (TextureType) 纹理的类型。
+	getTextureType: function(self: Canvas): TextureType
 
 	-- 获取体积纹理的深度。对于 2D、立方体贴图和数组纹理返回 1。
 	-- @return (integer) 体积纹理的深度。
@@ -355,9 +861,9 @@ local record Canvas
 	getMipmapMode: function(self: Canvas): string
 
 	-- 获取纹理的 mipmap 过滤模式。在 11.0 之前，此方法仅适用于图像。
-	-- @return (string) 在 mipmap 级别之间使用的过滤模式。如果未启用 mipmap 过滤，则为 nil。
+	-- @return (FilterMode | nil) 在 mipmap 级别之间使用的过滤模式。如果未启用 mipmap 过滤，则为 nil。
 	-- @return (number) 用于确定图像在绘制时是否应使用比正常情况更多或更少详细的 mipmap 级别的值。
-	getMipmapFilter: function(self: Canvas): string, number
+	getMipmapFilter: function(self: Canvas): FilterMode | nil, number
 
 	-- 设置纹理的 mipmap 过滤器模式。在 11.0 之前，此方法仅适用于图像。
 	--
@@ -381,15 +887,15 @@ local record Canvas
 
 	-- 获取在着色器中从深度纹理采样时使用的比较模式。
 	-- 深度纹理比较模式是高级低级功能，通常与 3D 阴影贴图一起使用。
-	-- @return (string or nil) 在着色器中从此纹理采样时使用的比较模式，如果尚未在此纹理上调用 setDepthSampleMode，则为 nil。 （默认值：无。）
-	getDepthSampleMode: function(self: Canvas): string | nil
+	-- @return (CompareMode | nil) 在着色器中从此纹理采样时使用的比较模式，如果尚未在此纹理上调用 setDepthSampleMode，则为 nil。 （默认值：无。）
+	getDepthSampleMode: function(self: Canvas): CompareMode | nil
 
 	-- 设置从着色器中的深度纹理采样时使用的比较模式。深度纹理比较模式是高级低级功能，通常与 3D 阴影贴图一起使用。
 	-- 在着色器中使用具有比较模式设置的深度纹理时，必须将其声明为sampler2DShadow 并在GLSL 3 着色器中使用。在着色器中访问纹理的结果将返回一个介于 0 和 1
 	-- 之间的浮点数，与通过比较操作的测试集的样本数量成正比（如果启用双线性过滤，最多将使用 4 个样本）。
 	-- 深度纹理比较只能与可读的深度格式画布一起使用。
-	-- @param mode (string) 在着色器中从此纹理采样时使用的比较模式。
-	setDepthSampleMode: function(self: Canvas, mode?: string)
+	-- @param mode (CompareMode) 在着色器中从此纹理采样时使用的比较模式。
+	setDepthSampleMode: function(self: Canvas, mode?: CompareMode)
 
 	-- 根据最高分辨率 mipmap 级别的内容为画布生成 mipmap。
 	-- 创建画布时必须将 mipmap 设置为除 'none' 之外的 MipmapMode，此函数才能正常工作。仅当 Canvas 不是活动渲染目标时才应调用它。
@@ -423,31 +929,31 @@ local record Canvas
 	newImageData: function(self: Canvas, slice?: integer, mipmap?: integer, x?: integer, y?: integer, width?: integer, height?: integer): any
 
 	-- 设置纹理的过滤模式。
-	-- @param min_filter (string) 缩小纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。
-	-- @param mag_filter (string) 放大纹理时使用的过滤器模式（在屏幕上以比其像素大小更大的尺寸渲染它）。 （默认值：分钟。）
+	-- @param min_filter (FilterMode) 缩小纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。
+	-- @param mag_filter (FilterMode) 放大纹理时使用的过滤器模式（在屏幕上以比其像素大小更大的尺寸渲染它）。 （默认值：分钟。）
 	-- @param anisotropy (number) 使用的各向异性过滤的最大数量。 （默认值：1。）
-	setFilter: function(self: Canvas, min_filter: string, mag_filter?: string, anisotropy?: number)
+	setFilter: function(self: Canvas, min_filter: FilterMode, mag_filter?: FilterMode, anisotropy?: number)
 
 	-- 获取纹理的滤镜模式。
-	-- @return (string) 缩小纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。
-	-- @return (string) 放大纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。
+	-- @return (FilterMode) 缩小纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。
+	-- @return (FilterMode) 放大纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。
 	-- @return (number) 使用的各向异性过滤的最大量。
-	getFilter: function(self: Canvas): string, string, number
+	getFilter: function(self: Canvas): FilterMode, FilterMode, number
 
 	-- 设置纹理的环绕属性。
 	-- 当使用大于纹理范围的四边形绘制纹理时，或者使用使用 [0, 1] 之外的纹理坐标的自定义着色器时，此函数设置纹理的重复方式。纹理可以被夹紧或设置为在水平和垂直方向上重复。
 	-- 夹紧的纹理仅出现一次（纹理的边缘拉伸以填充四边形的范围），而重复的纹理则根据四边形中的空间重复多次。
-	-- @param horizontal (string) 纹理的水平环绕模式。
-	-- @param vertical (string) 纹理的垂直环绕模式。 （默认：水平。）
-	-- @param depth (string) 体积纹理 z 轴的包裹模式。 （默认值：水平。）
-	setWrap: function(self: Canvas, horizontal: string, vertical?: string, depth?: string): boolean
+	-- @param horizontal (WrapMode) 纹理的水平环绕模式。
+	-- @param vertical (WrapMode) 纹理的垂直环绕模式。 （默认：水平。）
+	-- @param depth (WrapMode) 体积纹理 z 轴的包裹模式。 （默认值：水平。）
+	setWrap: function(self: Canvas, horizontal: WrapMode, vertical?: WrapMode, depth?: WrapMode): boolean
 
 	-- 获取纹理的环绕属性。
 	-- 该函数返回当前设置的纹理水平和垂直环绕模式。
-	-- @return (string) 纹理的水平环绕模式。
-	-- @return (string) 纹理的垂直环绕模式。
-	-- @return (string) 体积纹理 z 轴的包裹模式。
-	getWrap: function(self: Canvas): string, string, string
+	-- @return (WrapMode) 纹理的水平环绕模式。
+	-- @return (WrapMode) 纹理的垂直环绕模式。
+	-- @return (WrapMode) 体积纹理 z 轴的包裹模式。
+	getWrap: function(self: Canvas): WrapMode, WrapMode, WrapMode
 end
 
 local record CanvasSettings
@@ -595,16 +1101,16 @@ local record Font
 	getDPIScale: function(self: Font): number
 
 	-- 获取字体的过滤模式。
-	-- @return (string) 缩小字体时使用的过滤模式。
-	-- @return (string) 放大字体时使用的过滤模式。
+	-- @return (FilterMode) 缩小字体时使用的过滤模式。
+	-- @return (FilterMode) 放大字体时使用的过滤模式。
 	-- @return (number) 使用的各向异性过滤的最大量。
-	getFilter: function(self: Font): string, string, number
+	getFilter: function(self: Font): FilterMode, FilterMode, number
 
 	-- 设置字体的过滤模式。
-	-- @param min (string) 如何缩小字体。
-	-- @param mag (string) 如何放大字体。
+	-- @param min (FilterMode) 如何缩小字体。
+	-- @param mag (FilterMode) 如何放大字体。
 	-- @param anisotropy (number) 使用的各向异性过滤的最大量。 （默认值：1。）
-	setFilter: function(self: Font, min: string, mag?: string, anisotropy?: number)
+	setFilter: function(self: Font, min: FilterMode, mag?: FilterMode, anisotropy?: number)
 
 	-- 获取文本的格式信息（给定换行限制）。
 	-- 此函数正确解释换行符（即 '\n'）。
@@ -886,9 +1392,9 @@ local record Mesh
 	-- MyCustomAttributeName 在顶点着色器中访问它们；位于顶点着色器代码的顶层。该名称必须与网格体顶点格式和 Mesh:attachAttribute 的名称参数中指定的名称相匹配。
 	-- @param name (string) 要附加的顶点属性的名称。
 	-- @param mesh (Mesh) 要从中获取顶点属性的网格体。
-	-- @param step (string) 绘制网格时该属性是按顶点还是按实例。 （默认：'pervertex'。）
+	-- @param step (AttributeStep) 绘制网格时该属性是按顶点还是按实例。 （默认：'pervertex'。）
 	-- @param attribute_name (string) 在着色器代码中使用的属性的名称。默认为给定网格中的属性名称。可用于在渲染时为此属性使用不同的名称。 （默认值：名称。）
-	attachAttribute: function(self: Mesh, name: string, mesh: Mesh, step?: string, attribute_name?: string)
+	attachAttribute: function(self: Mesh, name: string, mesh: Mesh, step?: AttributeStep, attribute_name?: string)
 
 	-- 从此网格中删除先前附加的顶点属性。
 	-- @param name (string) 要分离的附加顶点属性的名称。
@@ -937,12 +1443,12 @@ local record Mesh
 	getTexture: function(self: Mesh): Image | Canvas | nil
 
 	-- 设置绘制网格时使用的模式。
-	-- @param mode (string) 绘制网格时使用的模式。
-	setDrawMode: function(self: Mesh, mode: string)
+	-- @param mode (MeshDrawMode) 绘制网格时使用的模式。
+	setDrawMode: function(self: Mesh, mode: MeshDrawMode)
 
 	-- 获取绘制网格时使用的模式。
-	-- @return (string) 绘制网格时使用的模式。
-	getDrawMode: function(self: Mesh): string
+	-- @return (MeshDrawMode) 绘制网格时使用的模式。
+	getDrawMode: function(self: Mesh): MeshDrawMode
 
 	-- 将网格的绘制顶点限制为总数的子集。
 	setDrawRange: function(self: Mesh)
@@ -1214,12 +1720,12 @@ local record ParticleSystem
 	getBufferSize: function(self: ParticleSystem): integer
 
 	-- 设置粒子系统添加新粒子时使用的模式。
-	-- @param mode (string) 粒子系统添加新粒子时使用的模式。
-	setInsertMode: function(self: ParticleSystem, mode: string)
+	-- @param mode (ParticleInsertMode) 粒子系统添加新粒子时使用的模式。
+	setInsertMode: function(self: ParticleSystem, mode: ParticleInsertMode)
 
 	-- 获取粒子系统添加新粒子时使用的模式。
-	-- @return (string) 粒子系统添加新粒子时使用的模式。
-	getInsertMode: function(self: ParticleSystem): string
+	-- @return (ParticleInsertMode) 粒子系统添加新粒子时使用的模式。
+	getInsertMode: function(self: ParticleSystem): ParticleInsertMode
 
 	-- 设置每秒发射的粒子数量。
 	-- @param rate (number) 每秒的粒子数。
@@ -1263,25 +1769,25 @@ local record ParticleSystem
 	moveTo: function(self: ParticleSystem, x: number, y: number)
 
 	-- 设置粒子的基于区域的生成参数。新创建的粒子将根据此函数的参数在发射器周围的区域中生成。
-	-- @param distribution (string) 新粒子的分布类型。
+	-- @param distribution (ParticleAreaSpreadDistribution) 新粒子的分布类型。
 	-- @param x (number) 均匀分布时沿 x 轴距发射器的最大生成距离，或正态分布时沿 x 轴的标准偏差。
 	-- @param y (number) 均匀分布时沿 y 轴距发射器的最大生成距离，或正态分布时沿 y 轴的标准偏差。
 	-- @param angle (number) 发射区域的角度（以弧度表示）。 （默认值：0。）
 	-- @param relative (boolean) 如果新生成的粒子将相对于发射区域的中心定向，则为 true，否则为 false。 （默认值：假。）
-	setEmissionArea: function(self: ParticleSystem, distribution?: string, x?: number, y?: number, angle?: number, relative?: boolean)
+	setEmissionArea: function(self: ParticleSystem, distribution?: ParticleAreaSpreadDistribution, x?: number, y?: number, angle?: number, relative?: boolean)
 
 	-- 获取粒子基于区域的生成参数。
 	-- @param distribution (string) distribution 参数。
 	-- @param x (number) x 参数。
 	-- @param y (number) y 参数。
-	-- @return (string) 新粒子的分布类型。
+	-- @return (ParticleAreaSpreadDistribution) 新粒子的分布类型。
 	-- @return (number) 均匀分布时沿 x 轴距发射器的最大生成距离，或正态分布时沿 x 轴的标准偏差。
 	-- @return (number) 均匀分布时沿 y 轴距发射器的最大生成距离，或正态分布时沿 y 轴的标准偏差。
 	-- @return (number) 发射区域的角度（以弧度表示）。
 	-- @return (boolean) 如果新生成的粒子将相对于发射区域的中心定向，则为 true，否则为 false。
-	getEmissionArea: function(self: ParticleSystem): string, number, number, number, boolean
-	setAreaSpread: function(self: ParticleSystem, distribution?: string, x?: number, y?: number)
-	getAreaSpread: function(self: ParticleSystem): string, number, number
+	getEmissionArea: function(self: ParticleSystem): ParticleAreaSpreadDistribution, number, number, number, boolean
+	setAreaSpread: function(self: ParticleSystem, distribution?: ParticleAreaSpreadDistribution, x?: number, y?: number)
+	getAreaSpread: function(self: ParticleSystem): ParticleAreaSpreadDistribution, number, number
 
 	-- 设置粒子发射的方向。
 	-- @param direction (number) 粒子的方向（以弧度为单位）。
@@ -1976,10 +2482,6 @@ local record Event
 	quit: function(reason: string): boolean
 end
 
-local type FileType = string
-local type FileMode = string
-local type BufferMode = string
-
 -- 表示文件内容的数据。
 local record FileData
 
@@ -2079,8 +2581,8 @@ local record ImageData
 	getDimensions: function(self: ImageData): integer, integer
 
 	-- 获取ImageData的像素格式。
-	-- @return (string) 创建 ImageData 时使用的像素格式。
-	getFormat: function(self: ImageData): string
+	-- @return (ImagePixelFormat) 创建 ImageData 时使用的像素格式。
+	getFormat: function(self: ImageData): ImagePixelFormat
 
 	-- 获取图像中特定位置的像素的颜色。
 	-- 有效的 x 和 y 值从 0 开始，直到图像宽度和高度减 1。非整数值将被下限。
@@ -2214,8 +2716,8 @@ local record CompressedImageData
 	getMipmapCount: function(self: CompressedImageData): integer
 
 	-- 获取压缩图像数据的格式。
-	-- @return (string) 压缩图像数据的格式。
-	getFormat: function(self: CompressedImageData): string
+	-- @return (CompressedPixelFormat) 压缩图像数据的格式。
+	getFormat: function(self: CompressedImageData): CompressedPixelFormat
 end
 
 -- 提供解码编码图像数据的接口。
@@ -2699,8 +3201,8 @@ local record CompressedData
 	clone: function(self: CompressedData): CompressedData
 
 	-- 获取CompressedData的压缩格式。
-	-- @return (string) 压缩数据的格式。
-	getFormat: function(self: CompressedData): string
+	-- @return (CompressionFormat) 压缩数据的格式。
+	getFormat: function(self: CompressedData): CompressionFormat
 end
 
 -- 提供创建和转换数据的功能。
@@ -2739,94 +3241,94 @@ local record DataModule
 	newDataView: function(data: any, offset: integer, size: integer): DataView
 
 	-- 将数据或字符串编码为采用一种编码格式的数据或字符串。
-	-- @param container (string) 返回编码数据的类型。
+	-- @param container (DataContainer) 返回编码数据的类型。
 	-- @param format (EncodeFormat) 输出数据的格式。
 	-- @param source (string | Data) 要编码的原始数据。
 	-- @param line_length (integer) 输出的最大行长度。仅支持 base64，如果为 0，则忽略。（默认值：0。）
 	-- @return (string) encoded — ByteData/string，其中包含源的编码版本。
-	encode: function(container: string, format: EncodeFormat, source: string | Data, line_length?: integer): string
+	encode: function(container: DataContainer, format: EncodeFormat, source: string | Data, line_length?: integer): string
 
 	-- 将数据或字符串编码为采用一种编码格式的数据或字符串。
-	-- @param container (string) 返回编码数据的类型。
+	-- @param container (DataContainer) 返回编码数据的类型。
 	-- @param format (EncodeFormat) 输出数据的格式。
 	-- @param source (string | Data) 要编码的原始数据。
 	-- @param line_length (integer) 输出的最大行长度。仅支持 base64，如果为 0，则忽略。（默认值：0。）
 	-- @return (ByteData) encoded — ByteData/string，其中包含源的编码版本。
-	encode: function(container: string, format: EncodeFormat, source: string | Data, line_length?: integer): ByteData
+	encode: function(container: DataContainer, format: EncodeFormat, source: string | Data, line_length?: integer): ByteData
 
 	-- 将数据或字符串从任何 EncodeFormat 解码为数据或字符串。
-	-- @param container (string) 解码后的数据返回什么类型。
+	-- @param container (DataContainer) 解码后的数据返回什么类型。
 	-- @param format (EncodeFormat) 输入数据的格式。
 	-- @param source (string | Data) 要解码的原始（编码）数据。
 	-- @return (string) decoded — ByteData/string，其中包含源的解码版本。
-	decode: function(container: string, format: EncodeFormat, source: string | Data): string
+	decode: function(container: DataContainer, format: EncodeFormat, source: string | Data): string
 
 	-- 将数据或字符串从任何 EncodeFormat 解码为数据或字符串。
-	-- @param container (string) 解码后的数据返回什么类型。
+	-- @param container (DataContainer) 解码后的数据返回什么类型。
 	-- @param format (EncodeFormat) 输入数据的格式。
 	-- @param source (string | Data) 要解码的原始（编码）数据。
 	-- @return (ByteData) decoded — ByteData/string，其中包含源的解码版本。
-	decode: function(container: string, format: EncodeFormat, source: string | Data): ByteData
+	decode: function(container: DataContainer, format: EncodeFormat, source: string | Data): ByteData
 
 	-- 使用特定的压缩算法压缩字符串或数据。
-	-- @param container (string) 返回压缩数据的类型。
+	-- @param container (DataContainer) 返回压缩数据的类型。
 	-- @param format (CompressionFormat) 压缩字符串时使用的格式。
 	-- @param source (string | Data) 要压缩的原始（未压缩）字符串。
 	-- @param level (integer) 要使用的压缩级别，介于 0 和 9 之间。-1 表示默认级别。该参数的含义取决于所使用的压缩格式。 （默认值：-1。）
 	-- @return (string) compressedData — 压缩数据/字符串，其中包含原始字符串的压缩版本。
-	compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): string
+	compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): string
 
 	-- 使用特定的压缩算法压缩字符串或数据。
-	-- @param container (string) 返回压缩数据的类型。
+	-- @param container (DataContainer) 返回压缩数据的类型。
 	-- @param format (CompressionFormat) 压缩数据时使用的格式。
 	-- @param source (string | Data) 包含要压缩的原始（未压缩）数据的数据对象。
 	-- @param level (integer) 要使用的压缩级别，介于 0 和 9 之间。-1 表示默认级别。该参数的含义取决于所使用的压缩格式。 （默认值：-1。）
 	-- @return (CompressedData) 压缩数据/字符串，其中包含数据的压缩版本。
-	compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
+	compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
 
 	-- 解压缩 CompressedData 或先前压缩的字符串或数据对象。
-	-- @param container (string) 解压后的数据返回什么类型。
+	-- @param container (DataContainer) 解压后的数据返回什么类型。
 	-- @param compressed (CompressedData) 要解压的压缩数据。
 	-- @return (string) decompressedData — 包含原始解压缩数据的数据/字符串。
-	decompress: function(container: string, compressed: CompressedData): string
+	decompress: function(container: DataContainer, compressed: CompressedData): string
 
 	-- 解压缩 CompressedData 或先前压缩的字符串或数据对象。
-	-- @param container (string) 解压后的数据返回什么类型。
+	-- @param container (DataContainer) 解压后的数据返回什么类型。
 	-- @param compressed (CompressedData) 要解压的压缩数据。
 	-- @return (ByteData) decompressedData — 包含原始解压缩数据的数据/字符串。
-	decompress: function(container: string, compressed: CompressedData): ByteData
+	decompress: function(container: DataContainer, compressed: CompressedData): ByteData
 
 	-- 解压缩 CompressedData 或先前压缩的字符串或数据对象。
-	-- @param container (string) 解压后的数据返回什么类型。
+	-- @param container (DataContainer) 解压后的数据返回什么类型。
 	-- @param format (CompressionFormat) 用于压缩给定数据的格式。
 	-- @param source (string | Data) 包含先前使用 love.data.compress. 压缩的数据的数据对象
 	-- @return (string) decompressedData — 包含原始解压缩数据的数据/字符串。
-	decompress: function(container: string, format: CompressionFormat, source: string | Data): string
+	decompress: function(container: DataContainer, format: CompressionFormat, source: string | Data): string
 
 	-- 解压缩 CompressedData 或先前压缩的字符串或数据对象。
-	-- @param container (string) 解压后的数据返回什么类型。
+	-- @param container (DataContainer) 解压后的数据返回什么类型。
 	-- @param format (CompressionFormat) 用于压缩给定数据的格式。
 	-- @param source (string | Data) 包含先前使用 love.data.compress. 压缩的数据的数据对象
 	-- @return (ByteData) decompressedData — 包含原始解压缩数据的数据/字符串。
-	decompress: function(container: string, format: CompressionFormat, source: string | Data): ByteData
+	decompress: function(container: DataContainer, format: CompressionFormat, source: string | Data): ByteData
 
 	-- 打包（序列化）简单的 Lua 值。
 	--
 	-- 该函数的行为与 Lua 5.3 的 string.pack 相同。
-	-- @param container (string) 返回编码数据的类型。
+	-- @param container (DataContainer) 返回编码数据的类型。
 	-- @param format (string) 决定如何打包值的字符串。遵循 Lua 5.3 的 string.pack 格式字符串的规则。
 	-- @param values (any...) 要序列化的第一个值（数字、布尔值或字符串）。
 	-- @return (string) data — 包含序列化数据的数据/字符串。
-	pack: function(container: string, format: string, values: any...): string
+	pack: function(container: DataContainer, format: string, values: any...): string
 
 	-- 打包（序列化）简单的 Lua 值。
 	--
 	-- 该函数的行为与 Lua 5.3 的 string.pack 相同。
-	-- @param container (string) 返回编码数据的类型。
+	-- @param container (DataContainer) 返回编码数据的类型。
 	-- @param format (string) 决定如何打包值的字符串。遵循 Lua 5.3 的 string.pack 格式字符串的规则。
 	-- @param values (any...) 要序列化的第一个值（数字、布尔值或字符串）。
 	-- @return (ByteData) data — 包含序列化数据的数据/字符串。
-	pack: function(container: string, format: string, values: any...): ByteData
+	pack: function(container: DataContainer, format: string, values: any...): ByteData
 
 	-- 将字节字符串或数据解包（反序列化）为简单的 Lua 值。
 	--
@@ -3415,32 +3917,32 @@ local record MathModule
 	triangulate: function(coordinates: number...): {{number}}
 
 	-- love.data.compress 的弃用别名。
-	-- @param container (string) 要返回的值类型。
+	-- @param container (DataContainer) 要返回的值类型。
 	-- @param format (CompressionFormat) 使用的压缩格式。
 	-- @param source (string | Data) 未压缩的源数据。
 	-- @param level (integer) 压缩级别，范围为 0 到 9；-1 表示使用默认级别。
 	-- @return (string) 字符串形式的压缩数据。
-	compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): string
+	compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): string
 
 	-- love.data.compress 的弃用别名。
-	-- @param container (string) 要返回的值类型。
+	-- @param container (DataContainer) 要返回的值类型。
 	-- @param format (CompressionFormat) 使用的压缩格式。
 	-- @param source (string | Data) 未压缩的源数据。
 	-- @param level (integer) 压缩级别，范围为 0 到 9；-1 表示使用默认级别。
 	-- @return (CompressedData) CompressedData 对象形式的压缩数据。
-	compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
+	compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
 
 	-- love.data.decompress 的弃用别名。
-	-- @param container (string) 要返回的值类型。
+	-- @param container (DataContainer) 要返回的值类型。
 	-- @param compressed (CompressedData) 要解压的压缩数据。
 	-- @return (string) 字符串形式的解压缩数据。
-	decompress: function(container: string, compressed: CompressedData): string
+	decompress: function(container: DataContainer, compressed: CompressedData): string
 
 	-- love.data.decompress 的弃用别名。
-	-- @param container (string) 要返回的值类型。
+	-- @param container (DataContainer) 要返回的值类型。
 	-- @param compressed (CompressedData) 要解压的压缩数据。
 	-- @return (ByteData) ByteData 对象形式的解压缩数据。
-	decompress: function(container: string, compressed: CompressedData): ByteData
+	decompress: function(container: DataContainer, compressed: CompressedData): ByteData
 end
 
 -- 表示文件系统上的一个文件。接受文件路径的函数也可以接受文件。
@@ -3488,18 +3990,18 @@ local record File
 	read: function(self: File, size?: integer): string | nil, number | string
 
 	-- 从文件中读取多个字节。
-	-- @param container (string) 返回文件内容的类型。
+	-- @param container (DataContainer) 返回文件内容的类型。
 	-- @param size (integer) 要读取的字节数。 （默认值：全部。）
 	-- @return (string | nil) FileData 或包含读取字节的字符串。
 	-- @return (number | string) size — 已读取多少字节。
-	read: function(self: File, container: string, size?: integer): string | nil, number | string
+	read: function(self: File, container: DataContainer, size?: integer): string | nil, number | string
 
 	-- 从文件中读取多个字节。
-	-- @param container (string) 返回文件内容的类型。
+	-- @param container (DataContainer) 返回文件内容的类型。
 	-- @param size (integer) 要读取的字节数。 （默认值：全部。）
 	-- @return (FileData | nil) FileData 或包含读取字节的字符串。
 	-- @return (number | string) size — 已读取多少字节。
-	read: function(self: File, container: string, size?: integer): FileData | nil, number | string
+	read: function(self: File, container: DataContainer, size?: integer): FileData | nil, number | string
 
 	-- 将数据写入文件。
 	-- @param data (string) 要写入的字符串数据。
@@ -3707,20 +4209,20 @@ local record Filesystem
 	read: function(filename: string, size?: integer): string | nil, number | string
 
 	-- 读取文件的内容。
-	-- @param container (string) 返回文件内容的类型。
+	-- @param container (DataContainer) 返回文件内容的类型。
 	-- @param filename (string) 文件的名称（和路径）
 	-- @param size (integer) 读取多少字节（默认：全部。）
 	-- @return (string | nil) 返回 nil 作为内容。
 	-- @return (number | string) size — 已读取多少字节。
-	read: function(container: string, filename: string, size?: integer): string | nil, number | string
+	read: function(container: DataContainer, filename: string, size?: integer): string | nil, number | string
 
 	-- 读取文件的内容。
-	-- @param container (string) 返回文件内容的类型。
+	-- @param container (DataContainer) 返回文件内容的类型。
 	-- @param filename (string) 文件的名称（和路径）
 	-- @param size (integer) 读取多少字节（默认：全部。）
 	-- @return (FileData | nil) FileData 或包含文件内容的字符串。
 	-- @return (number | string) size — 已读取多少字节。
-	read: function(container: string, filename: string, size?: integer): FileData | nil, number | string
+	read: function(container: DataContainer, filename: string, size?: integer): FileData | nil, number | string
 
 	-- 加载 Lua 文件（但不运行它）。
 	-- @param filename (string) 文件的名称（和路径）。
@@ -3878,21 +4380,6 @@ local record Keyboard
 	-- 获取是否支持屏幕键盘。
 	-- @return (boolean) 是否支持屏幕键盘。
 	hasScreenKeyboard: function(): boolean
-end
-
-local enum SystemCursor
-	"arrow"
-	"ibeam"
-	"wait"
-	"crosshair"
-	"waitarrow"
-	"sizenwse"
-	"sizenesw"
-	"sizewe"
-	"sizens"
-	"sizeall"
-	"no"
-	"hand"
 end
 
 local enum CursorType
@@ -4076,8 +4563,8 @@ local record System
 	-- 获取当前操作系统。一般来说，LÖVE 抽象了了解当前操作系统的需要，但在某些情况下它可能很有用（特别是与 os.execute 结合使用。）
 	-- 重载说明：
 	-- 1. 在LÖVE 0.8.0 版本中，“'love._os'”字符串包含当前操作系统。
-	-- @return (string) 当前操作系统。 'OS X'、'Windows'、'Linux'、'Android' 或 'iOS'。
-	getOS: function(): string
+	-- @return (OS) 当前操作系统。 'OS X'、'Windows'、'Linux'、'Android' 或 'iOS'。
+	getOS: function(): OS
 
 	-- 获取系统中逻辑处理器的数量。
 	-- 重载说明：
@@ -4094,10 +4581,10 @@ local record System
 	getClipboardText: function(): string
 
 	-- 获取有关系统电源的信息。
-	-- @return (string) 电源的基本状态。
+	-- @return (PowerState) 电源的基本状态。
 	-- @return (integer or nil) 剩余电池寿命百分比，介于 0 和 100 之间。如果无法确定该值或没有电池，则为零。
 	-- @return (integer or nil) 电池寿命还剩几秒。如果无法确定该值或没有电池，则为零。
-	getPowerInfo: function(): string, integer | nil, integer | nil
+	getPowerInfo: function(): PowerState, integer | nil, integer | nil
 
 	-- 使用用户的 Web 或文件浏览器打开 URL。
 	-- 重载说明：
@@ -4242,14 +4729,14 @@ local record ThreadModule
 end
 
 local record AudioFilterSettings
-	type: string
+	type: AudioFilterType
 	volume: number
 	lowgain: number
 	highgain: number
 end
 
 local record AudioEffectSettings
-	type: string
+	type: AudioEffectType
 	volume: number
 	gain: number
 	highgain: number
@@ -4357,18 +4844,18 @@ local record Source
 
 	-- 设置源的当前播放位置。
 	-- @param offset (number) 要寻求的位置。
-	-- @param unit (string) 位置值的单位。 （默认：'seconds'。）
-	seek: function(self: Source, offset: number, unit?: string)
+	-- @param unit (TimeUnit) 位置值的单位。 （默认：'seconds'。）
+	seek: function(self: Source, offset: number, unit?: TimeUnit)
 
 	-- 获取Source 当前的播放位置。
-	-- @param unit (string) 返回值的单位类型。 （默认：'seconds'。）
+	-- @param unit (TimeUnit) 返回值的单位类型。 （默认：'seconds'。）
 	-- @return (number) 源的当前播放位置。
-	tell: function(self: Source, unit?: string): number
+	tell: function(self: Source, unit?: TimeUnit): number
 
 	-- 获取源的持续时间。对于流源，它可能并不总是样本准确的，并且如果根本无法确定持续时间，则可能返回 -1。
-	-- @param unit (string) 返回值的时间单位。 （默认：'seconds'。）
+	-- @param unit (TimeUnit) 返回值的时间单位。 （默认：'seconds'。）
 	-- @return (number) 源的持续时间，如果无法确定则为 -1。
-	getDuration: function(self: Source, unit?: string): number
+	getDuration: function(self: Source, unit?: TimeUnit): number
 
 	-- 获取源中的通道数。只有 1 通道（单声道）源可以使用方向和位置效果。
 	-- @return (integer) 1 用于单声道，2 用于立体声。
@@ -4549,8 +5036,8 @@ local record Source
 	getActiveEffects: function(self: Source): {string}
 
 	-- 获取源的类型。
-	-- @return (string) 源的类型。
-	getType: function(self: Source): string
+	-- @return (SourceType) 源的类型。
+	getType: function(self: Source): SourceType
 end
 
 -- 表示能够录制声音的音频输入设备。
@@ -4746,12 +5233,12 @@ local record Audio
 	getDopplerScale: function(): number
 
 	-- 设置距离衰减模型。
-	-- @param model (string) 新的距离模型。
-	setDistanceModel: function(model: string)
+	-- @param model (DistanceModel) 新的距离模型。
+	setDistanceModel: function(model: DistanceModel)
 
 	-- 返回距离衰减模型。
-	-- @return (string) 当前距离模型。默认值为 'inverseclamped'。
-	getDistanceModel: function(): string
+	-- @return (DistanceModel) 当前距离模型。默认值为 'inverseclamped'。
+	getDistanceModel: function(): DistanceModel
 
 	-- 定义可以应用于源的效果。
 	-- 并非所有系统都支持音频效果。使用love.audio.isEffectsSupported进行检查。
@@ -5074,12 +5561,12 @@ local record Body
 	applyTorque: function(self: Body, torque: number)
 
 	-- 返回主体的类型。
-	-- @return (string) 体型。
-	getType: function(self: Body): string
+	-- @return (BodyType) 体型。
+	getType: function(self: Body): BodyType
 
 	-- 设置新的身体类型。
-	-- @param body_type (string) 新类型。
-	setType: function(self: Body, body_type: string)
+	-- @param body_type (BodyType) 新类型。
+	setType: function(self: Body, body_type: BodyType)
 
 	-- 将点从本地坐标转换为世界坐标。
 	-- @param x (number) 本地坐标中的 x 位置。
@@ -5692,9 +6179,9 @@ local record Physics
 	-- @param world (World) 创造身体的世界。
 	-- @param x (number) 主体的 x 位置。 （默认值：0。）
 	-- @param y (number) 主体的 y 位置。 （默认值：0。）
-	-- @param body_type (string) 主体的类型。 （默认：'static'。）
+	-- @param body_type (BodyType) 主体的类型。 （默认：'static'。）
 	-- @return (Body) 一个新的身体。
-	newBody: function(world: World, x?: number, y?: number, body_type?: string): Body
+	newBody: function(world: World, x?: number, y?: number, body_type?: BodyType): Body
 
 	-- 创建夹具并将其附加到主体。
 	-- 请注意，在创建 Fixture 时，Shape 对象被复制而不是保留为引用。要获取 Fixture 拥有的 Shape 对象，请使用 Fixture:getShape。
@@ -6025,20 +6512,20 @@ local record Graphics
 	-- 设置与图像、画布和字体一起使用的默认缩放过滤器。
 	-- 重载说明：
 	-- 1. 此功能不适用于已加载的图像。
-	-- @param min_filter (string) 缩小图像时使用的滤镜模式。
-	-- @param mag_filter (string) 放大图像时使用的滤镜模式。 （默认值：分钟。）
+	-- @param min_filter (FilterMode) 缩小图像时使用的滤镜模式。
+	-- @param mag_filter (FilterMode) 放大图像时使用的滤镜模式。 （默认值：分钟。）
 	-- @param anisotropy (number) 使用的各向异性过滤的最大数量。 （默认值：1。）
-	setDefaultFilter: function(min_filter: string, mag_filter?: string, anisotropy?: number)
+	setDefaultFilter: function(min_filter: FilterMode, mag_filter?: FilterMode, anisotropy?: number)
 
 	-- 返回与图像、画布和字体一起使用的默认缩放过滤器。
 	-- @param filter (string) filter 参数。
 	-- @param sharpness (number) sharpness 参数。
-	-- @return (string or string or nil) 缩小图像时使用的滤镜模式。
-	-- @return (string or number) 放大图像时使用的滤镜模式。
+	-- @return (FilterMode) 缩小图像时使用的滤镜模式。
+	-- @return (FilterMode) 放大图像时使用的滤镜模式。
 	-- @return (number) 使用的各向异性过滤的最大数量。
-	getDefaultFilter: function(): string, string, number
-	setDefaultMipmapFilter: function(filter?: string, sharpness?: number)
-	getDefaultMipmapFilter: function(): string | nil, number
+	getDefaultFilter: function(): FilterMode, FilterMode, number
+	setDefaultMipmapFilter: function(filter?: FilterMode, sharpness?: number)
+	getDefaultMipmapFilter: function(): FilterMode | nil, number
 
 	-- 设置用于绘图的颜色。
 	-- 在11.0之前的版本中，颜色分量值的范围是0到255，而不是0到1。
@@ -6070,20 +6557,20 @@ local record Graphics
 	getLineWidth: function(): number
 
 	-- 设置线条样式。
-	-- @param style (string) 要使用的线条样式。线条样式包括平滑和粗糙。
-	setLineStyle: function(style: string)
+	-- @param style (LineStyle) 要使用的线条样式。线条样式包括平滑和粗糙。
+	setLineStyle: function(style: LineStyle)
 
 	-- 获取线条样式。
-	-- @return (string) 当前的线条样式。
-	getLineStyle: function(): string
+	-- @return (LineStyle) 当前的线条样式。
+	getLineStyle: function(): LineStyle
 
 	-- 设置线连接样式。请参阅 LineJoin 了解可能的选项。
-	-- @param join (string) 要使用的 LineJoin。
-	setLineJoin: function(join: string)
+	-- @param join (LineJoin) 要使用的 LineJoin。
+	setLineJoin: function(join: LineJoin)
 
 	-- 获取线连接样式。
-	-- @return (string) LineJoin 风格。
-	getLineJoin: function(): string
+	-- @return (LineJoin) LineJoin 风格。
+	getLineJoin: function(): LineJoin
 
 	-- 设置绘图时是否使用线框线。
 	-- @param enable (boolean) 如果为 True，则在绘制时启用线框模式；如果为 false，则禁用它。
@@ -6203,19 +6690,19 @@ local record Graphics
 	-- 绘制一个矩形。
 	-- 重载说明：
 	-- 1. 绘制一个圆角矩形。
-	-- @param mode (string) 如何绘制矩形。
+	-- @param mode (DrawMode) 如何绘制矩形。
 	-- @param x (number) 左上角沿x轴的位置。
 	-- @param y (number) 左上角沿 y 轴的位置。
 	-- @param width (number) 矩形的宽度。
 	-- @param height (number) 矩形的高度。
-	rectangle: function(mode: string, x: number, y: number, width: number, height: number)
+	rectangle: function(mode: DrawMode, x: number, y: number, width: number, height: number)
 
 	-- 画一个圆。
-	-- @param mode (string) 如何画圆。
+	-- @param mode (DrawMode) 如何画圆。
 	-- @param x (number) 中心沿 x 轴的位置。
 	-- @param y (number) 中心沿 y 轴的位置。
 	-- @param radius (number) 圆的半径。
-	circle: function(mode: string, x: number, y: number, radius: number)
+	circle: function(mode: DrawMode, x: number, y: number, radius: number)
 
 	-- 在位置 (x, y) 处绘制填充或未填充的圆弧。弧线以弧度为单位从角度 1 到角度 2 绘制。段参数确定使用多少段来绘制圆弧。分段越多，边缘越平滑。
 	-- @param mode (DrawMode) 如何绘制圆弧。
@@ -6239,13 +6726,13 @@ local record Graphics
 	arc: function(mode: DrawMode, arc_mode: ArcMode, x: number, y: number, radius: number, angle1: number, angle2: number, segments?: integer)
 
 	-- 绘制一个椭圆。
-	-- @param mode (string) 如何绘制椭圆。
+	-- @param mode (DrawMode) 如何绘制椭圆。
 	-- @param x (number) 中心沿 x 轴的位置。
 	-- @param y (number) 中心沿 y 轴的位置。
 	-- @param radius_x (number) 椭圆沿 x 轴的半径（椭圆宽度的一半）。
 	-- @param radius_y (number) 椭圆沿 y 轴的半径（椭圆高度的一半）。
 	-- @param segments (integer) 用于绘制椭圆的线段数。
-	ellipse: function(mode: string, x: number, y: number, radius_x: number, radius_y: number, segments?: integer)
+	ellipse: function(mode: DrawMode, x: number, y: number, radius_x: number, radius_y: number, segments?: integer)
 
 	-- 在点之间绘制线。
 	-- @param x1 (number) x 轴上第一个点的位置。
@@ -6257,7 +6744,7 @@ local record Graphics
 
 	-- 画一个多边形。
 	-- 在模式参数之后，该函数可以接受多个数字参数或单个数字参数表。无论哪种情况，参数都被解释为多边形顶点的交替 x 和 y 坐标。
-	-- @param mode (string) 如何绘制多边形。
+	-- @param mode (DrawMode) 如何绘制多边形。
 	-- @param x1 (number) 多边形的顶点。取决于重载：将多边形的顶点作为表格。
 	-- @param y1 (number) y1 参数。
 	-- @param x2 (number) x2 参数。
@@ -6265,7 +6752,7 @@ local record Graphics
 	-- @param x3 (number) x3 参数。
 	-- @param y3 (number) y3 参数。
 	-- @param coordinates (number...) coordinates 参数。
-	polygon: function(mode: string, x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, coordinates: number...)
+	polygon: function(mode: DrawMode, x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, coordinates: number...)
 
 	-- 绘制一个或多个点。
 	-- 重载说明：
@@ -6391,14 +6878,14 @@ local record Graphics
 	-- 重载说明：
 	-- 1. 通常应首选默认的 'alphamultiply' alpha 模式，除非使用预乘 alpha 绘制内容。如果使用 'alphamultiply' 模式将内容绘制到 Canvas，则 Canvas 纹理随后将具有预乘
 	-- alpha，因此在将 Canvas 绘制到屏幕时通常应使用 'premultiplied' alpha 模式。
-	-- @param mode (string) 要使用的混合模式。
-	-- @param alpha_mode (string) 混合时如何处理绘制对象的 Alpha。 （默认：'alphamultiply'。）
-	setBlendMode: function(mode: string, alpha_mode?: string)
+	-- @param mode (BlendMode) 要使用的混合模式。
+	-- @param alpha_mode (BlendAlphaMode) 混合时如何处理绘制对象的 Alpha。 （默认：'alphamultiply'。）
+	setBlendMode: function(mode: BlendMode, alpha_mode?: BlendAlphaMode)
 
 	-- 获取混合模式。
-	-- @return (string) 当前的混合模式。
-	-- @return (string) 当前混合 Alpha 模式 – 它确定绘制对象的 Alpha 如何影响混合。
-	getBlendMode: function(): string, string
+	-- @return (BlendMode) 当前的混合模式。
+	-- @return (BlendAlphaMode) 当前混合 Alpha 模式 – 它确定绘制对象的 Alpha 如何影响混合。
+	getBlendMode: function(): BlendMode, BlendAlphaMode
 
 	-- 设置或禁用剪刀。
 	--
@@ -6466,30 +6953,30 @@ local record Graphics
 
 	-- 获取当前深度测试模式以及是否启用写入深度缓冲区。
 	-- 这是低级功能，设计用于自定义顶点着色器和具有自定义顶点属性的网格。没有提供更高级别的 API 来设置 2D 图形（例如形状、线条和图像）的深度。
-	-- @return (string) 用于深度测试的深度比较模式。
+	-- @return (CompareMode) 用于深度测试的深度比较模式。
 	-- @return (boolean) 渲染时是否将更新/写入值写入深度缓冲区。
-	getDepthMode: function(): string, boolean
+	getDepthMode: function(): CompareMode, boolean
 
 	-- 设置是否剔除网格中的背面三角形。
 	-- 它设计用于通过网格上的自定义顶点属性、自定义顶点着色器以及使用深度缓冲区进行深度测试来与低级自定义硬件加速 3D 渲染一起使用。
 	-- 默认情况下，网格中的正面和背面三角形都会被渲染。
-	-- @param mode (string) 要使用的网格面剔除模式（是否渲染所有内容、剔除背面三角形或剔除正面三角形）。
-	setMeshCullMode: function(mode: string)
+	-- @param mode (MeshCullMode) 要使用的网格面剔除模式（是否渲染所有内容、剔除背面三角形或剔除正面三角形）。
+	setMeshCullMode: function(mode: MeshCullMode)
 
 	-- 获取网格中的背面三角形是否被剔除。
 	-- 网格面剔除旨在通过网格上的自定义顶点属性、自定义顶点着色器以及使用深度缓冲区的深度测试与低级自定义硬件加速 3D 渲染一起使用。
-	-- @return (string) 使用中的网格面剔除模式（是否渲染所有内容、剔除背面三角形或剔除正面三角形）。
-	getMeshCullMode: function(): string
+	-- @return (MeshCullMode) 使用中的网格面剔除模式（是否渲染所有内容、剔除背面三角形或剔除正面三角形）。
+	getMeshCullMode: function(): MeshCullMode
 
 	-- 设置是否将具有顺时针或逆时针顺序顶点的三角形视为正面。
 	-- 这是设计用于与网格面剔除结合使用的。其他 love.graphics 形状、线条和精灵不保证其内部顶点具有特定的缠绕顺序。
-	-- @param winding (string) 使用的绕线模式。默认绕线为逆时针方向 ('ccw')。
-	setFrontFaceWinding: function(winding: string)
+	-- @param winding (Winding) 使用的绕线模式。默认绕线为逆时针方向 ('ccw')。
+	setFrontFaceWinding: function(winding: Winding)
 
 	-- 获取具有顺时针或逆时针顺序顶点的三角形是否被视为正面。
 	-- 这是设计用于与网格面剔除结合使用的。其他 love.graphics 形状、线条和精灵不保证其内部顶点具有特定的缠绕顺序。
-	-- @return (string) 使用的绕线模式。默认绕线为逆时针方向 ('ccw')。
-	getFrontFaceWinding: function(): string
+	-- @return (Winding) 使用的绕线模式。默认绕线为逆时针方向 ('ccw')。
+	getFrontFaceWinding: function(): Winding
 
 	-- 将几何图形绘制为模板。
 	--
@@ -6528,9 +7015,9 @@ local record Graphics
 	-- 获取当前模板测试配置。
 	-- 当启用模板测试时，之后绘制的所有内容的几何图形都将根据该函数的参数与几何图形接触的每个像素的模板值之间的比较被剪裁/模板化。像素的模板值受 love.graphics.stencil.
 	-- 每个画布都有自己的每像素模板值。
-	-- @return (string) 对每个像素进行的比较类型。如果禁用模板测试，则将为 'always'。
+	-- @return (CompareMode) 对每个像素进行的比较类型。如果禁用模板测试，则将为 'always'。
 	-- @return (integer) 与每个像素的模板值进行比较时使用的值。
-	getStencilTest: function(): string, integer
+	getStencilTest: function(): CompareMode, integer
 
 	-- 从 TrueType 字体或 BMFont 文件创建新字体。创建的字体不会被缓存，因为使用相同的参数调用此函数将始终创建一个新的 Font 对象。
 	--
@@ -6621,7 +7108,7 @@ local record Graphics
 	-- @param x (number) x 轴上的位置。取决于过载：文本的位置（x 轴）。
 	-- @param y (number) y 轴上的位置。取决于过载：文本的位置（y 轴）。
 	-- @param limit (number) 在这么多水平像素之后换行。取决于过载：自动换行之前文本的最大宽度（以像素为单位）。
-	-- @param align (string) 对齐。 （默认值：'left'。）取决于重载：文本的对齐方式。
+	-- @param align (AlignMode) 对齐。 （默认值：'left'。）取决于重载：文本的对齐方式。
 	-- @param angle (number) 方向（弧度）。 （默认值：0。）
 	-- @param scale_x (number) 比例因子（x 轴）。 （默认值：1。）
 	-- @param scale_y (number) 比例因子（y 轴）。 （默认值：sx。）
@@ -6629,7 +7116,7 @@ local record Graphics
 	-- @param origin_y (number) 原点偏移（y 轴）。 （默认值：0。）
 	-- @param shear_x (number) 剪切因子（x 轴）。 （默认值：0。）取决于过载：剪切/倾斜系数（x 轴）。 （默认值：0。）
 	-- @param shear_y (number) 剪切因子（y 轴）。 （默认值：0。）取决于过载：剪切/倾斜系数（y 轴）。 （默认值：0。）
-	printf: function(text: string | number, x: number, y: number, limit: number, align?: string, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+	printf: function(text: string | number, x: number, y: number, limit: number, align?: AlignMode, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
 
 	-- 从文件路径、FileData、ImageData 或 CompressedImageData 创建新图像，并可选择生成或指定图像的 mipmap。
 	-- @param filename (string) 图像文件的文件路径。
@@ -6814,9 +7301,9 @@ local record Graphics
 	-- 创建一个新的 SpriteBatch 对象。
 	-- @param texture (Image or Canvas) 用于精灵的图像或画布。
 	-- @param size (integer) SpriteBatch 在任何给定时间可以包含的精灵的最大数量。自版本 11.0 起，添加超过此数量的额外精灵将自动增加精灵批次。 （默认值：1000。）
-	-- @param usage (string) SpriteBatch 的预期用法。指定的使用模式会影响SpriteBatch的内存使用和性能。 （默认：'dynamic'。）
+	-- @param usage (MeshUsage) SpriteBatch 的预期用法。指定的使用模式会影响SpriteBatch的内存使用和性能。 （默认：'dynamic'。）
 	-- @return (SpriteBatch) 新的 SpriteBatch。
-	newSpriteBatch: function(texture: Image | Canvas, size?: integer, usage?: string): SpriteBatch
+	newSpriteBatch: function(texture: Image | Canvas, size?: integer, usage?: MeshUsage): SpriteBatch
 
 	-- 创建一个新的粒子系统。
 	-- @param texture (Image or Canvas) 要使用的纹理（图像或画布）。
@@ -7026,6 +7513,8 @@ end
 
 -- 喜欢11.5根模块。该文件仅声明当前实现的子集。
 local record Love
+	embed LoveEnums
+
 	record TouchID
 		userdata
 	end
@@ -7120,8 +7609,8 @@ local record Love
 
 		-- 获取操纵杆帽子的方向。
 		-- @param hat (integer) 要检查的帽子的索引。
-		-- @return (string) 帽子被推的方向。
-		getHat: function(self: Joystick, hat: integer): string
+		-- @return (JoystickHat) 帽子被推的方向。
+		getHat: function(self: Joystick, hat: integer): JoystickHat
 
 		-- 检查操纵杆上的按钮是否被按下。
 		-- LÖVE 0.9.0 有一个错误，要求传递给 Joystick:isDown 的按钮索引是基于 0 的而不是基于 1 的，例如对于此功能，按钮 1 将为 0。它在 0.9.1 中被修复。
@@ -7138,23 +7627,23 @@ local record Love
 		isGamepad: function(self: Joystick): boolean
 
 		-- 检查是否按下了操纵杆上的虚拟游戏手柄按钮。如果操纵杆未被识别为游戏手柄或未连接，则此函数将始终返回 false。
-		-- @param buttons (string...) 要检查的游戏手柄按钮。
+		-- @param buttons (GamepadButton...) 要检查的游戏手柄按钮。
 		-- @return (boolean) 如果任何提供的按钮被按下，则为 True，否则为 false。
-		isGamepadDown: function(self: Joystick, buttons: string...): boolean
+		isGamepadDown: function(self: Joystick, buttons: GamepadButton...): boolean
 
 		-- 获取虚拟游戏手柄轴的方向。如果操纵杆未被识别为游戏手柄或未连接，此函数将始终返回 0。
-		-- @param axis (string) 要检查的虚拟轴。
+		-- @param axis (GamepadAxis) 要检查的虚拟轴。
 		-- @return (number) 轴的当前值。
-		getGamepadAxis: function(self: Joystick, axis: string): number
+		getGamepadAxis: function(self: Joystick, axis: GamepadAxis): number
 
 		-- 获取虚拟游戏手柄输入绑定的按钮、轴或帽子。
 		-- 重载说明：
 		-- 1. 如果操纵杆未被识别为游戏手柄或虚拟游戏手柄轴未绑定到操纵杆输入，则返回 nil。 2. 虚拟游戏手柄轴和按钮的物理位置尽可能与标准 Xbox 360 控制器的布局相对应。
-		-- @param input (string) 要获取绑定的虚拟游戏手柄轴。根据过载：要获取绑定的虚拟游戏手柄按钮。
-		-- @return (string or nil) 虚拟游戏手柄轴绑定的输入类型。取决于过载：虚拟游戏手柄按钮绑定的输入类型。
+		-- @param input (GamepadAxis | GamepadButton) 要获取绑定的虚拟游戏手柄轴。根据过载：要获取绑定的虚拟游戏手柄按钮。
+		-- @return (JoystickInputType | nil) 虚拟游戏手柄轴绑定的输入类型。取决于过载：虚拟游戏手柄按钮绑定的输入类型。
 		-- @return (integer or nil) 虚拟游戏手柄轴绑定到的操纵杆按钮、轴或帽子的索引。 取决于过载：虚拟游戏手柄按钮绑定到的操纵杆按钮、轴或帽子的索引。
-		-- @return (string or nil) 帽子的方向（如果虚拟游戏手柄轴绑定到帽子）。否则为零。取决于过载：帽子的方向（如果虚拟游戏手柄按钮绑定到帽子）。否则为零。
-		getGamepadMapping: function(self: Joystick, input: string): string | nil, integer | nil, string | nil
+		-- @return (JoystickHat | nil) 帽子的方向（如果虚拟游戏手柄轴绑定到帽子）。否则为零。取决于过载：帽子的方向（如果虚拟游戏手柄按钮绑定到帽子）。否则为零。
+		getGamepadMapping: function(self: Joystick, input: GamepadAxis | GamepadButton): JoystickInputType | nil, integer | nil, JoystickHat | nil
 
 		-- 获取此操纵杆的完整游戏手柄映射字符串，如果未将其识别为游戏手柄，则返回 nil。
 		-- 映射字符串包含用于将操纵杆的按钮和轴映射到标准游戏手柄布局的绑定信息，并且可以在以后与 love.joystick.loadGamepadMappings.
@@ -7203,10 +7692,10 @@ local record Love
 	-- 虚拟游戏手柄按钮和轴是围绕 Xbox 360 控制器布局设计的。
 	-- @param guid (string) 绑定将影响的操纵杆类型的依赖于操作系统的 GUID。
 	-- @param input (GamepadAxis | GamepadButton) 要绑定的虚拟游戏手柄按钮。
-	-- @param type (string) 将虚拟游戏手柄按钮绑定到的输入类型。
+	-- @param type (JoystickInputType) 将虚拟游戏手柄按钮绑定到的输入类型。
 	-- @param index (integer) 将虚拟游戏手柄按钮绑定到的轴、按钮或帽子的索引。
 	-- @return (boolean) success — 虚拟手柄按键是否绑定成功。
-	setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, type: string, index: integer): boolean
+	setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, type: JoystickInputType, index: integer): boolean
 
 	-- 将虚拟游戏手柄输入绑定到特定类型的所有操纵杆的按钮、轴或帽子。例如，如果此函数与 OS X 中的 Dualshock 3 控制器返回的 GUID 一起使用，则绑定将影响在 OS X 中运行时与游戏一起使用的“'all'”Dualshock 3 控制器的 Joystick:getGamepadAxis 和 Joystick:isGamepadDown。
 	--
@@ -7215,11 +7704,11 @@ local record Love
 	-- 虚拟游戏手柄按钮和轴是围绕 Xbox 360 控制器布局设计的。
 	-- @param guid (string) 绑定将影响的操纵杆类型的依赖于操作系统的 GUID。
 	-- @param input (GamepadAxis | GamepadButton) 要绑定的虚拟游戏手柄轴。
-	-- @param type (string) 将虚拟游戏手柄轴绑定到的输入类型。
+	-- @param type (JoystickInputType) 将虚拟游戏手柄轴绑定到的输入类型。
 	-- @param index (integer) 将虚拟游戏手柄轴绑定到的轴、按钮或帽子的索引。
 	-- @param direction (JoystickHat) 帽子的方向，如果虚拟游戏手柄轴将绑定到帽子。否则为零。 （默认值：无。）
 	-- @return (boolean) 情况：虚拟手柄轴是否绑定成功。
-	setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, type: string, index: integer, direction: JoystickHat): boolean
+	setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, type: JoystickInputType, index: integer, direction: JoystickHat): boolean
 
 		-- 加载使用 love.joystick.saveGamepadMappings. 创建的游戏手柄映射字符串或文件
 		-- 它还可以识别任何 SDL 游戏控制器映射字符串，例如使用 Steam 的 Big Picture 控制器配置界面或这个漂亮的数据库创建的字符串。如果为已知的控制器 GUID 加载新映射，则更高版本将覆盖当前加载的映射。

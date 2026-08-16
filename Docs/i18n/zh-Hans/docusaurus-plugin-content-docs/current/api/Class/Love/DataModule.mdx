@@ -126,14 +126,14 @@ newDataView: function(data: any, offset: integer, size: integer): DataView
 
 **签名：**
 ```tl
-encode: function(container: string, format: EncodeFormat, source: string | Data, line_length?: integer): string
+encode: function(container: DataContainer, format: EncodeFormat, source: string | Data, line_length?: integer): string
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 返回编码数据的类型。 |
+| container | DataContainer | 返回编码数据的类型。 |
 | format | EncodeFormat | 输出数据的格式。 |
 | source | string | Data | 要编码的原始数据。 |
 | line_length | integer | 输出的最大行长度。仅支持 base64，如果为 0，则忽略。（默认值：0。） |
@@ -154,14 +154,14 @@ encode: function(container: string, format: EncodeFormat, source: string | Data,
 
 **签名：**
 ```tl
-encode: function(container: string, format: EncodeFormat, source: string | Data, line_length?: integer): ByteData
+encode: function(container: DataContainer, format: EncodeFormat, source: string | Data, line_length?: integer): ByteData
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 返回编码数据的类型。 |
+| container | DataContainer | 返回编码数据的类型。 |
 | format | EncodeFormat | 输出数据的格式。 |
 | source | string | Data | 要编码的原始数据。 |
 | line_length | integer | 输出的最大行长度。仅支持 base64，如果为 0，则忽略。（默认值：0。） |
@@ -182,14 +182,14 @@ encode: function(container: string, format: EncodeFormat, source: string | Data,
 
 **签名：**
 ```tl
-decode: function(container: string, format: EncodeFormat, source: string | Data): string
+decode: function(container: DataContainer, format: EncodeFormat, source: string | Data): string
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 解码后的数据返回什么类型。 |
+| container | DataContainer | 解码后的数据返回什么类型。 |
 | format | EncodeFormat | 输入数据的格式。 |
 | source | string | Data | 要解码的原始（编码）数据。 |
 
@@ -209,14 +209,14 @@ decode: function(container: string, format: EncodeFormat, source: string | Data)
 
 **签名：**
 ```tl
-decode: function(container: string, format: EncodeFormat, source: string | Data): ByteData
+decode: function(container: DataContainer, format: EncodeFormat, source: string | Data): ByteData
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 解码后的数据返回什么类型。 |
+| container | DataContainer | 解码后的数据返回什么类型。 |
 | format | EncodeFormat | 输入数据的格式。 |
 | source | string | Data | 要解码的原始（编码）数据。 |
 
@@ -236,14 +236,14 @@ decode: function(container: string, format: EncodeFormat, source: string | Data)
 
 **签名：**
 ```tl
-compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): string
+compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): string
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 返回压缩数据的类型。 |
+| container | DataContainer | 返回压缩数据的类型。 |
 | format | CompressionFormat | 压缩字符串时使用的格式。 |
 | source | string | Data | 要压缩的原始（未压缩）字符串。 |
 | level | integer | 要使用的压缩级别，介于 0 和 9 之间。-1 表示默认级别。该参数的含义取决于所使用的压缩格式。 （默认值：-1。） |
@@ -264,14 +264,14 @@ compress: function(container: string, format: CompressionFormat, source: string 
 
 **签名：**
 ```tl
-compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
+compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 返回压缩数据的类型。 |
+| container | DataContainer | 返回压缩数据的类型。 |
 | format | CompressionFormat | 压缩数据时使用的格式。 |
 | source | string | Data | 包含要压缩的原始（未压缩）数据的数据对象。 |
 | level | integer | 要使用的压缩级别，介于 0 和 9 之间。-1 表示默认级别。该参数的含义取决于所使用的压缩格式。 （默认值：-1。） |
@@ -292,14 +292,14 @@ compress: function(container: string, format: CompressionFormat, source: string 
 
 **签名：**
 ```tl
-decompress: function(container: string, compressed: CompressedData): string
+decompress: function(container: DataContainer, compressed: CompressedData): string
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 解压后的数据返回什么类型。 |
+| container | DataContainer | 解压后的数据返回什么类型。 |
 | compressed | CompressedData | 要解压的压缩数据。 |
 
 **返回值：**
@@ -318,14 +318,14 @@ decompress: function(container: string, compressed: CompressedData): string
 
 **签名：**
 ```tl
-decompress: function(container: string, compressed: CompressedData): ByteData
+decompress: function(container: DataContainer, compressed: CompressedData): ByteData
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 解压后的数据返回什么类型。 |
+| container | DataContainer | 解压后的数据返回什么类型。 |
 | compressed | CompressedData | 要解压的压缩数据。 |
 
 **返回值：**
@@ -344,14 +344,14 @@ decompress: function(container: string, compressed: CompressedData): ByteData
 
 **签名：**
 ```tl
-decompress: function(container: string, format: CompressionFormat, source: string | Data): string
+decompress: function(container: DataContainer, format: CompressionFormat, source: string | Data): string
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 解压后的数据返回什么类型。 |
+| container | DataContainer | 解压后的数据返回什么类型。 |
 | format | CompressionFormat | 用于压缩给定数据的格式。 |
 | source | string | Data | 包含先前使用 love.data.compress. 压缩的数据的数据对象 |
 
@@ -371,14 +371,14 @@ decompress: function(container: string, format: CompressionFormat, source: strin
 
 **签名：**
 ```tl
-decompress: function(container: string, format: CompressionFormat, source: string | Data): ByteData
+decompress: function(container: DataContainer, format: CompressionFormat, source: string | Data): ByteData
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 解压后的数据返回什么类型。 |
+| container | DataContainer | 解压后的数据返回什么类型。 |
 | format | CompressionFormat | 用于压缩给定数据的格式。 |
 | source | string | Data | 包含先前使用 love.data.compress. 压缩的数据的数据对象 |
 
@@ -400,14 +400,14 @@ decompress: function(container: string, format: CompressionFormat, source: strin
 
 **签名：**
 ```tl
-pack: function(container: string, format: string, values: any...): string
+pack: function(container: DataContainer, format: string, values: any...): string
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 返回编码数据的类型。 |
+| container | DataContainer | 返回编码数据的类型。 |
 | format | string | 决定如何打包值的字符串。遵循 Lua 5.3 的 string.pack 格式字符串的规则。 |
 | values | any... | 要序列化的第一个值（数字、布尔值或字符串）。 |
 
@@ -429,14 +429,14 @@ pack: function(container: string, format: string, values: any...): string
 
 **签名：**
 ```tl
-pack: function(container: string, format: string, values: any...): ByteData
+pack: function(container: DataContainer, format: string, values: any...): ByteData
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 返回编码数据的类型。 |
+| container | DataContainer | 返回编码数据的类型。 |
 | format | string | 决定如何打包值的字符串。遵循 Lua 5.3 的 string.pack 格式字符串的规则。 |
 | values | any... | 要序列化的第一个值（数字、布尔值或字符串）。 |
 

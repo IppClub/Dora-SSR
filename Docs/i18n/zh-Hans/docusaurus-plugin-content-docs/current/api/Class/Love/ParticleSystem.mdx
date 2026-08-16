@@ -175,14 +175,14 @@ getBufferSize: function(self: ParticleSystem): integer
 
 **签名：**
 ```tl
-setInsertMode: function(self: ParticleSystem, mode: string)
+setInsertMode: function(self: ParticleSystem, mode: ParticleInsertMode)
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| mode | string | 粒子系统添加新粒子时使用的模式。 |
+| mode | ParticleInsertMode | 粒子系统添加新粒子时使用的模式。 |
 
 ## getInsertMode
 
@@ -194,14 +194,14 @@ setInsertMode: function(self: ParticleSystem, mode: string)
 
 **签名：**
 ```tl
-getInsertMode: function(self: ParticleSystem): string
+getInsertMode: function(self: ParticleSystem): ParticleInsertMode
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 粒子系统添加新粒子时使用的模式。 |
+| ParticleInsertMode | 粒子系统添加新粒子时使用的模式。 |
 
 ## setEmissionRate
 
@@ -389,14 +389,14 @@ moveTo: function(self: ParticleSystem, x: number, y: number)
 
 **签名：**
 ```tl
-setEmissionArea: function(self: ParticleSystem, distribution?: string, x?: number, y?: number, angle?: number, relative?: boolean)
+setEmissionArea: function(self: ParticleSystem, distribution?: ParticleAreaSpreadDistribution, x?: number, y?: number, angle?: number, relative?: boolean)
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| distribution | string | 新粒子的分布类型。 |
+| distribution | ParticleAreaSpreadDistribution | 新粒子的分布类型。 |
 | x | number | 均匀分布时沿 x 轴距发射器的最大生成距离，或正态分布时沿 x 轴的标准偏差。 |
 | y | number | 均匀分布时沿 y 轴距发射器的最大生成距离，或正态分布时沿 y 轴的标准偏差。 |
 | angle | number | 发射区域的角度（以弧度表示）。 （默认值：0。） |
@@ -412,9 +412,9 @@ setEmissionArea: function(self: ParticleSystem, distribution?: string, x?: numbe
 
 **签名：**
 ```tl
-getEmissionArea: function(self: ParticleSystem): string, number, number, number, boolean
-	setAreaSpread: function(self: ParticleSystem, distribution?: string, x?: number, y?: number)
-	getAreaSpread: function(self: ParticleSystem): string, number, number
+getEmissionArea: function(self: ParticleSystem): ParticleAreaSpreadDistribution, number, number, number, boolean
+	setAreaSpread: function(self: ParticleSystem, distribution?: ParticleAreaSpreadDistribution, x?: number, y?: number)
+	getAreaSpread: function(self: ParticleSystem): ParticleAreaSpreadDistribution, number, number
 ```
 
 **参数：**
@@ -429,7 +429,7 @@ getEmissionArea: function(self: ParticleSystem): string, number, number, number,
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 新粒子的分布类型。 |
+| ParticleAreaSpreadDistribution | 新粒子的分布类型。 |
 | number | 均匀分布时沿 x 轴距发射器的最大生成距离，或正态分布时沿 x 轴的标准偏差。 |
 | number | 均匀分布时沿 y 轴距发射器的最大生成距离，或正态分布时沿 y 轴的标准偏差。 |
 | number | 发射区域的角度（以弧度表示）。 |

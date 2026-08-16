@@ -219,14 +219,14 @@ getDPIScale: function(self: Canvas): number
 
 **签名：**
 ```tl
-getFormat: function(self: Canvas): string
+getFormat: function(self: Canvas): CanvasFormat
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 创建纹理时使用的像素格式。 |
+| CanvasFormat | 创建纹理时使用的像素格式。 |
 
 ## getMSAA
 
@@ -258,14 +258,14 @@ getMSAA: function(self: Canvas): integer
 
 **签名：**
 ```tl
-getTextureType: function(self: Canvas): string
+getTextureType: function(self: Canvas): TextureType
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 纹理的类型。 |
+| TextureType | 纹理的类型。 |
 
 ## getDepth
 
@@ -353,14 +353,14 @@ getMipmapMode: function(self: Canvas): string
 
 **签名：**
 ```tl
-getMipmapFilter: function(self: Canvas): string, number
+getMipmapFilter: function(self: Canvas): FilterMode | nil, number
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 在 mipmap 级别之间使用的过滤模式。如果未启用 mipmap 过滤，则为 nil。 |
+| FilterMode \| nil | 在 mipmap 级别之间使用的过滤模式。如果未启用 mipmap 过滤，则为 nil。 |
 | number | 用于确定图像在绘制时是否应使用比正常情况更多或更少详细的 mipmap 级别的值。 |
 
 ## setMipmapFilter
@@ -419,14 +419,14 @@ setMipmapFilter: function(self: Canvas, filter: FilterMode, sharpness?: number)
 
 **签名：**
 ```tl
-getDepthSampleMode: function(self: Canvas): string | nil
+getDepthSampleMode: function(self: Canvas): CompareMode | nil
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string or nil | 在着色器中从此纹理采样时使用的比较模式，如果尚未在此纹理上调用 setDepthSampleMode，则为 nil。 （默认值：无。） |
+| CompareMode \| nil | 在着色器中从此纹理采样时使用的比较模式，如果尚未在此纹理上调用 setDepthSampleMode，则为 nil。 （默认值：无。） |
 
 ## setDepthSampleMode
 
@@ -441,14 +441,14 @@ getDepthSampleMode: function(self: Canvas): string | nil
 
 **签名：**
 ```tl
-setDepthSampleMode: function(self: Canvas, mode?: string)
+setDepthSampleMode: function(self: Canvas, mode?: CompareMode)
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| mode | string | 在着色器中从此纹理采样时使用的比较模式。 |
+| mode | CompareMode | 在着色器中从此纹理采样时使用的比较模式。 |
 
 ## generateMipmaps
 
@@ -551,15 +551,15 @@ newImageData: function(self: Canvas, slice?: integer, mipmap?: integer, x?: inte
 
 **签名：**
 ```tl
-setFilter: function(self: Canvas, min_filter: string, mag_filter?: string, anisotropy?: number)
+setFilter: function(self: Canvas, min_filter: FilterMode, mag_filter?: FilterMode, anisotropy?: number)
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| min_filter | string | 缩小纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。 |
-| mag_filter | string | 放大纹理时使用的过滤器模式（在屏幕上以比其像素大小更大的尺寸渲染它）。 （默认值：分钟。） |
+| min_filter | FilterMode | 缩小纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。 |
+| mag_filter | FilterMode | 放大纹理时使用的过滤器模式（在屏幕上以比其像素大小更大的尺寸渲染它）。 （默认值：分钟。） |
 | anisotropy | number | 使用的各向异性过滤的最大数量。 （默认值：1。） |
 
 ## getFilter
@@ -572,15 +572,15 @@ setFilter: function(self: Canvas, min_filter: string, mag_filter?: string, aniso
 
 **签名：**
 ```tl
-getFilter: function(self: Canvas): string, string, number
+getFilter: function(self: Canvas): FilterMode, FilterMode, number
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 缩小纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。 |
-| string | 放大纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。 |
+| FilterMode | 缩小纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。 |
+| FilterMode | 放大纹理时使用的过滤器模式（在屏幕上以比其像素大小更小的尺寸渲染它）。 |
 | number | 使用的各向异性过滤的最大量。 |
 
 ## setWrap
@@ -595,16 +595,16 @@ getFilter: function(self: Canvas): string, string, number
 
 **签名：**
 ```tl
-setWrap: function(self: Canvas, horizontal: string, vertical?: string, depth?: string): boolean
+setWrap: function(self: Canvas, horizontal: WrapMode, vertical?: WrapMode, depth?: WrapMode): boolean
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| horizontal | string | 纹理的水平环绕模式。 |
-| vertical | string | 纹理的垂直环绕模式。 （默认：水平。） |
-| depth | string | 体积纹理 z 轴的包裹模式。 （默认值：水平。） |
+| horizontal | WrapMode | 纹理的水平环绕模式。 |
+| vertical | WrapMode | 纹理的垂直环绕模式。 （默认：水平。） |
+| depth | WrapMode | 体积纹理 z 轴的包裹模式。 （默认值：水平。） |
 
 ## getWrap
 
@@ -617,13 +617,13 @@ setWrap: function(self: Canvas, horizontal: string, vertical?: string, depth?: s
 
 **签名：**
 ```tl
-getWrap: function(self: Canvas): string, string, string
+getWrap: function(self: Canvas): WrapMode, WrapMode, WrapMode
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 纹理的水平环绕模式。 |
-| string | 纹理的垂直环绕模式。 |
-| string | 体积纹理 z 轴的包裹模式。 |
+| WrapMode | 纹理的水平环绕模式。 |
+| WrapMode | 纹理的垂直环绕模式。 |
+| WrapMode | 体积纹理 z 轴的包裹模式。 |

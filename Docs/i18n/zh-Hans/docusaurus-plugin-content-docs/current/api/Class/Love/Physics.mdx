@@ -88,7 +88,7 @@ newWorld: function(x_gravity?: number, y_gravity?: number, sleep?: boolean): Wor
 
 **签名：**
 ```tl
-newBody: function(world: World, x?: number, y?: number, body_type?: string): Body
+newBody: function(world: World, x?: number, y?: number, body_type?: BodyType): Body
 ```
 
 **参数：**
@@ -98,7 +98,7 @@ newBody: function(world: World, x?: number, y?: number, body_type?: string): Bod
 | world | World | 创造身体的世界。 |
 | x | number | 主体的 x 位置。 （默认值：0。） |
 | y | number | 主体的 y 位置。 （默认值：0。） |
-| body_type | string | 主体的类型。 （默认：'static'。） |
+| body_type | BodyType | 主体的类型。 （默认：'static'。） |
 
 **返回值：**
 

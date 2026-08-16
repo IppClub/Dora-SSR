@@ -193,14 +193,14 @@ read: function(self: File, size?: integer): string | nil, number | string
 
 **Signature:**
 ```tl
-read: function(self: File, container: string, size?: integer): string | nil, number | string
+read: function(self: File, container: DataContainer, size?: integer): string | nil, number | string
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| container | string | What type to return the file's contents as. |
+| container | DataContainer | What type to return the file's contents as. |
 | size | integer | The number of bytes to read. (Default: all.) |
 
 **Returns:**
@@ -220,14 +220,14 @@ read: function(self: File, container: string, size?: integer): string | nil, num
 
 **Signature:**
 ```tl
-read: function(self: File, container: string, size?: integer): FileData | nil, number | string
+read: function(self: File, container: DataContainer, size?: integer): FileData | nil, number | string
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| container | string | What type to return the file's contents as. |
+| container | DataContainer | What type to return the file's contents as. |
 | size | integer | The number of bytes to read. (Default: all.) |
 
 **Returns:**

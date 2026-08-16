@@ -331,15 +331,15 @@ getDPIScale: function(self: Font): number
 
 **Signature:**
 ```tl
-getFilter: function(self: Font): string, string, number
+getFilter: function(self: Font): FilterMode, FilterMode, number
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | Filter mode used when minifying the font. |
-| string | Filter mode used when magnifying the font. |
+| FilterMode | Filter mode used when minifying the font. |
+| FilterMode | Filter mode used when magnifying the font. |
 | number | Maximum amount of anisotropic filtering used. |
 
 ## setFilter
@@ -352,15 +352,15 @@ getFilter: function(self: Font): string, string, number
 
 **Signature:**
 ```tl
-setFilter: function(self: Font, min: string, mag?: string, anisotropy?: number)
+setFilter: function(self: Font, min: FilterMode, mag?: FilterMode, anisotropy?: number)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| min | string | How to scale a font down. |
-| mag | string | How to scale a font up. |
+| min | FilterMode | How to scale a font down. |
+| mag | FilterMode | How to scale a font up. |
 | anisotropy | number | Maximum amount of anisotropic filtering used. (Default: 1.) |
 
 ## getWrap

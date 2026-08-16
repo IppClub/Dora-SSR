@@ -341,7 +341,7 @@ MyCustomAttributeName 在顶点着色器中访问它们；位于顶点着色器�
 
 **签名：**
 ```tl
-attachAttribute: function(self: Mesh, name: string, mesh: Mesh, step?: string, attribute_name?: string)
+attachAttribute: function(self: Mesh, name: string, mesh: Mesh, step?: AttributeStep, attribute_name?: string)
 ```
 
 **参数：**
@@ -350,7 +350,7 @@ attachAttribute: function(self: Mesh, name: string, mesh: Mesh, step?: string, a
 | --- | --- | --- |
 | name | string | 要附加的顶点属性的名称。 |
 | mesh | Mesh | 要从中获取顶点属性的网格体。 |
-| step | string | 绘制网格时该属性是按顶点还是按实例。 （默认：'pervertex'。） |
+| step | AttributeStep | 绘制网格时该属性是按顶点还是按实例。 （默认：'pervertex'。） |
 | attribute_name | string | 在着色器代码中使用的属性的名称。默认为给定网格中的属性名称。可用于在渲染时为此属性使用不同的名称。 （默认值：名称。） |
 
 ## detachAttribute
@@ -539,14 +539,14 @@ getTexture: function(self: Mesh): Image | Canvas | nil
 
 **签名：**
 ```tl
-setDrawMode: function(self: Mesh, mode: string)
+setDrawMode: function(self: Mesh, mode: MeshDrawMode)
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| mode | string | 绘制网格时使用的模式。 |
+| mode | MeshDrawMode | 绘制网格时使用的模式。 |
 
 ## getDrawMode
 
@@ -558,14 +558,14 @@ setDrawMode: function(self: Mesh, mode: string)
 
 **签名：**
 ```tl
-getDrawMode: function(self: Mesh): string
+getDrawMode: function(self: Mesh): MeshDrawMode
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 绘制网格时使用的模式。 |
+| MeshDrawMode | 绘制网格时使用的模式。 |
 
 ## setDrawRange
 

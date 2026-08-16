@@ -3,3 +3,1502 @@
 **Description:**
 
 &emsp;&emsp;Love 11.5 root module. This file only declares the currently implemented subset.
+
+## conf
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;If a file called conf.lua is present in your game folder (or .love file), it is run before the LÖVE modules are
+loaded. You can use this file to overwrite the love.conf function, which is later called by the LÖVE 'boot'
+script. Using the love.conf function, you can set some configuration options, and change things like the default
+size of the window, which modules are loaded, and other stuff.
+
+**Signature:**
+```tl
+conf: function(config: Config) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| config | Config | The love.conf function takes one argument: a table filled with all the default values which you can overwrite to your liking. If you want to change the default window size, for instance, do: function love.conf(t) t.window.width = 1024 t.window.height = 768 end If you don't need the physics module or joystick module, do the following. function love.conf(t) t.modules.joystick = false t.modules.physics = false end Setting unused modules to false is encouraged when you release your game. It reduces startup time slightly (especially if the joystick module is disabled) and reduces memory usage (slightly). Note that you can't disable love.filesystem; it's mandatory. The same goes for the love module itself. love.graphics needs love.window to be enabled. identity: This flag determines the name of the save directory for your game. Note that you can only specify the name, not the location where it will be created: t.identity = "gabe_HL3" -- Correct t.identity = "c:/Users/gabe/HL3" -- Incorrect Alternatively love.filesystem.setIdentity can be used to set the save directory outside of the config file. (Default: nil.) appendidentity: This flag determines if game directory should be searched first then save directory (true) or otherwise (false) (Default: false.) version: t.version should be a string, representing the version of LÖVE for which your game was made. It should be formatted as "X.Y.Z" where X is the major release number, Y the minor, and Z the patch level. It allows LÖVE to display a warning if it isn't compatible. Its default is the version of LÖVE running. (Default: "11.5".) console: Determines whether a console should be opened alongside the game window (Windows only) or not. accelerometerjoystick: Sets whether the device accelerometer on iOS and Android should be exposed as a 3-axis Joystick. Disabling the accelerometer when it's not used may reduce CPU usage. (Default: true.) externalstorage: Sets whether files are saved in external storage (true) or internal storage (false) on Android. (Default: false.) gammacorrect: Determines whether gamma-correct rendering is enabled, when the system supports it. (Default: false.) audio: Audio options. audio.mic: Request microphone permission from the user. When user allows it, love.audio.getRecordingDevices will lists recording devices available. Otherwise, love.audio.getRecordingDevices returns empty table and a message is shown to inform user when called. (Default: false.) audio.mixwithsystem: Sets whether background audio / music from other apps should play while LÖVE is open. See love.system.hasBackgroundMusic for more details. (Default: true.) window: It is possible to defer window creation until love.window.setMode is first called in your code. To do so, set t.window = nil in love.conf (or t.screen = nil in older versions.) If this is done, LÖVE may crash if any function from love.graphics is called before the first love.window.setMode in your code. The t.window table was named t.screen in versions prior to 0.9.0. The t.screen table doesn't exist in love.conf in 0.9.0, and the t.window table doesn't exist in love.conf in 0.8.0. This means love.conf will fail to execute (therefore it will fall back to default values) if care is not taken to use the correct table for the LÖVE version being used. window.title: Sets the title of the window the game is in. Alternatively love.window.setTitle can be used to change the window title outside of the config file. (Default: "Untitled".) window.icon: A filepath to an image to use as the window's icon. Not all operating systems support very large icon images. The icon can also be changed with love.window.setIcon. (Default: nil.) window.width: Sets the window's dimensions. If these flags are set to 0 LÖVE automatically uses the user's desktop dimensions. (Default: 800.) window.height: Sets the window's dimensions. If these flags are set to 0 LÖVE automatically uses the user's desktop dimensions. (Default: 600.) window.borderless: Removes all border visuals from the window. Note that the effects may wary between operating systems. (Default: false.) window.resizable: If set to true this allows the user to resize the game's window. (Default: false.) window.minwidth: Sets the minimum width and height for the game's window if it can be resized by the user. If you set lower values to window.width and window.height LÖVE will always favor the minimum dimensions set via window.minwidth and window.minheight. (Default: 1.) window.minheight: Sets the minimum width and height for the game's window if it can be resized by the user. If you set lower values to window.width and window.height LÖVE will always favor the minimum dimensions set via window.minwidth and window.minheight. (Default: 1.) window.fullscreen: Whether to run the game in fullscreen (true) or windowed (false) mode. The fullscreen can also be toggled via love.window.setFullscreen or love.window.setMode. (Default: false.) window.fullscreentype: Specifies the type of fullscreen mode to use (normal or desktop). Generally the desktop is recommended, as it is less restrictive than normal mode on some operating systems. (Default: "desktop".) window.usedpiscale: Sets whetever to enable or disable automatic DPI scaling. (Default: true.) window.vsync: Enables or deactivates vertical synchronization. Vsync tries to keep the game at a steady framerate and can prevent issues like screen tearing. It is recommended to keep vsync activated if you don't know about the possible implications of turning it off. Before LÖVE 11.0, this value was boolean (true or false). Since LÖVE 11.0, this value is number (1 to enable vsync, 0 to disable vsync, -1 to use adaptive vsync when supported). Note that in iOS, vertical synchronization is always enabled and cannot be changed. (Default: true.) window.depth: The number of bits per sample in the depth buffer (16/24/32, default nil) (Default: nil.) window.stencil: Then number of bits per sample in the depth buffer (generally 8, default nil) (Default: nil.) window.msaa: The number of samples to use with multi-sampled antialiasing. (Default: 0.) window.display: The index of the display to show the window in, if multiple monitors are available. (Default: 1.) window.highdpi: See love.window.getPixelScale, love.window.toPixels, and love.window.fromPixels. It is recommended to keep this option disabled if you can't test your game on a Mac or iOS system with a Retina display, because code will need tweaking to make sure things look correct. (Default: false.) window.x: Determines the position of the window on the user's screen. Alternatively love.window.setPosition can be used to change the position on the fly. (Default: nil.) window.y: Determines the position of the window on the user's screen. Alternatively love.window.setPosition can be used to change the position on the fly. (Default: nil.) modules: Module options. modules.audio: Enable the audio module. (Default: true.) modules.event: Enable the event module. (Default: true.) modules.graphics: Enable the graphics module. (Default: true.) modules.image: Enable the image module. (Default: true.) modules.joystick: Enable the joystick module. (Default: true.) modules.keyboard: Enable the keyboard module. (Default: true.) modules.math: Enable the math module. (Default: true.) modules.mouse: Enable the mouse module. (Default: true.) modules.physics: Enable the physics module. (Default: true.) modules.sound: Enable the sound module. (Default: true.) modules.system: Enable the system module. (Default: true.) modules.timer: Enable the timer module. (Default: true.) modules.touch: Enable the touch module. (Default: true.) modules.video: Enable the video module. (Default: true.) modules.window: Enable the window module. (Default: true.) modules.thread: Enable the thread module. (Default: true.) |
+
+## load
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;This function is called exactly once at the beginning of the game.
+Overload details:
+1. In LÖVE 11.0, the passed arguments excludes the game name and the fused command-line flag (if exist) when
+runs from non-fused LÖVE executable. Previous version pass the argument as-is without any filtering.
+
+**Signature:**
+```tl
+load: function() | nil
+```
+
+## update
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Callback function used to update the state of the game every frame.
+
+**Signature:**
+```tl
+update: function(deltaTime: number) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| deltaTime | number | Time since the last update in seconds. |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Callback function used to draw on the screen every frame.
+
+**Signature:**
+```tl
+draw: function() | nil
+```
+
+## quit
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Callback function triggered when the game is closed.
+
+**Signature:**
+```tl
+quit: QuitCallback | nil
+```
+
+## keypressed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Callback function triggered when a key is pressed.
+Overload details:
+1. Scancodes are keyboard layout-independent, so the scancode 'w' will be generated if the key in the same place
+as the 'w' key on an American keyboard is pressed, no matter what the key is labelled or what the user's
+operating system settings are. Key repeat needs to be enabled with love.keyboard.setKeyRepeat for repeat
+keypress events to be received. This does not affect love.textinput.
+2. Key repeat needs to be enabled with love.keyboard.setKeyRepeat for repeat keypress events to be received.
+
+**Signature:**
+```tl
+keypressed: function(key: string, scancode: string, is_repeat: boolean) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| key | string | Character of the pressed key. Depending on the overload: Character of the key pressed. |
+| scancode | string | The scancode representing the pressed key. |
+| is_repeat | boolean | Whether this keypress event is a repeat. The delay between key repeats depends on the user's system settings. |
+
+## keyreleased
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Callback function triggered when a keyboard key is released.
+Overload details:
+1. Scancodes are keyboard layout-independent, so the scancode 'w' will be used if the key in the same place as
+the 'w' key on an American keyboard is pressed, no matter what the key is labelled or what the user's
+operating system settings are.
+
+**Signature:**
+```tl
+keyreleased: function(key: string, scancode: string) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| key | string | Character of the released key. |
+| scancode | string | The scancode representing the released key. |
+
+## textinput
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Called when text has been entered by the user. For example if shift-2 is pressed on an American keyboard layout,
+the text '@' will be generated.
+Overload details:
+1. Although Lua strings can store UTF-8 encoded unicode text just fine, many functions in Lua's string library
+will not treat the text as you might expect. For example, #text (and string.len(text)) will give the number
+of ''bytes'' in the string, rather than the number of unicode characters. The Lua wiki and a presentation by
+one of Lua's creators give more in-depth explanations, with some tips. The utf8 library can be used to
+operate on UTF-8 encoded unicode text (such as the text argument given in this function.) On Android and iOS,
+textinput is disabled by default; call love.keyboard.setTextInput to enable it.
+
+**Signature:**
+```tl
+textinput: function(text: string) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| text | string | The UTF-8 encoded unicode text. |
+
+## textedited
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Called when the candidate text for an IME (Input Method Editor) has changed.
+The candidate text is not the final text that the user will eventually choose. Use love.textinput for that.
+
+**Signature:**
+```tl
+textedited: function(text: string, start: integer, length: integer) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| text | string | The UTF-8 encoded unicode candidate text. |
+| start | integer | The start cursor of the selected candidate text. |
+| length | integer | The length of the selected candidate text. May be 0. |
+
+## mousepressed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Callback function triggered when a mouse button is pressed.
+Overload details:
+1. Use love.wheelmoved to detect mouse wheel motion. It will not register as a button press in version 0.10.0
+and newer.
+
+**Signature:**
+```tl
+mousepressed: function(x: number, y: number, button: integer, is_touch: boolean, presses: integer) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | Mouse x position, in pixels. |
+| y | number | Mouse y position, in pixels. |
+| button | integer | The button index that was pressed. 1 is the primary mouse button, 2 is the secondary mouse button and 3 is the middle button. Further buttons are mouse dependent. |
+| is_touch | boolean | True if the mouse button press originated from a touchscreen touch-press. |
+| presses | integer | The number of presses in a short time frame and small area, used to simulate double, triple clicks |
+
+## mousereleased
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Callback function triggered when a mouse button is released.
+
+**Signature:**
+```tl
+mousereleased: function(x: number, y: number, button: integer, is_touch: boolean, presses: integer) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | Mouse x position, in pixels. |
+| y | number | Mouse y position, in pixels. |
+| button | integer | The button index that was released. 1 is the primary mouse button, 2 is the secondary mouse button and 3 is the middle button. Further buttons are mouse dependent. |
+| is_touch | boolean | True if the mouse button release originated from a touchscreen touch-release. |
+| presses | integer | The number of presses in a short time frame and small area, used to simulate double, triple clicks |
+
+## mousemoved
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Callback function triggered when the mouse is moved.
+Overload details:
+1. If Relative Mode is enabled for the mouse, the '''dx''' and '''dy''' arguments of this callback will update
+but '''x''' and '''y''' are not guaranteed to.
+
+**Signature:**
+```tl
+mousemoved: function(x: number, y: number, delta_x: number, delta_y: number, is_touch: boolean) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The mouse position on the x-axis. |
+| y | number | The mouse position on the y-axis. |
+| delta_x | number | The amount moved along the x-axis since the last time love.mousemoved was called. |
+| delta_y | number | The amount moved along the y-axis since the last time love.mousemoved was called. |
+| is_touch | boolean | True if the mouse button press originated from a touchscreen touch-press. |
+
+## wheelmoved
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Callback function triggered when the mouse wheel is moved.
+
+**Signature:**
+```tl
+wheelmoved: function(x: number, y: number) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | Amount of horizontal mouse wheel movement. Positive values indicate movement to the right. |
+| y | number | Amount of vertical mouse wheel movement. Positive values indicate upward movement. |
+
+## touchpressed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Callback function triggered when the touch screen is touched.
+Overload details:
+1. The identifier is only guaranteed to be unique for the specific touch press until love.touchreleased is
+called with that identifier, at which point it may be reused for new touch presses. The unofficial Android
+and iOS ports of LÖVE 0.9.2 reported touch positions as normalized values in the range of 1, whereas this API
+reports positions in pixels.
+
+**Signature:**
+```tl
+touchpressed: function(id: TouchID, x: number, y: number, delta_x: number, delta_y: number, pressure: number) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| id | TouchID | The identifier for the touch press. |
+| x | number | The x-axis position of the touch press inside the window, in pixels. |
+| y | number | The y-axis position of the touch press inside the window, in pixels. |
+| delta_x | number | The x-axis movement of the touch press inside the window, in pixels. This should always be zero. |
+| delta_y | number | The y-axis movement of the touch press inside the window, in pixels. This should always be zero. |
+| pressure | number | The amount of pressure being applied. Most touch screens aren't pressure sensitive, in which case the pressure will be 1. |
+
+## touchreleased
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Callback function triggered when the touch screen stops being touched.
+Overload details:
+1. The identifier is only guaranteed to be unique for the specific touch press until love.touchreleased is
+called with that identifier, at which point it may be reused for new touch presses. The unofficial Android
+and iOS ports of LÖVE 0.9.2 reported touch positions as normalized values in the range of 1, whereas this API
+reports positions in pixels.
+
+**Signature:**
+```tl
+touchreleased: function(id: TouchID, x: number, y: number, delta_x: number, delta_y: number, pressure: number) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| id | TouchID | The identifier for the touch press. |
+| x | number | The x-axis position of the touch inside the window, in pixels. |
+| y | number | The y-axis position of the touch inside the window, in pixels. |
+| delta_x | number | The x-axis movement of the touch inside the window, in pixels. |
+| delta_y | number | The y-axis movement of the touch inside the window, in pixels. |
+| pressure | number | The amount of pressure being applied. Most touch screens aren't pressure sensitive, in which case the pressure will be 1. |
+
+## touchmoved
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Callback function triggered when a touch press moves inside the touch screen.
+Overload details:
+1. The identifier is only guaranteed to be unique for the specific touch press until love.touchreleased is
+called with that identifier, at which point it may be reused for new touch presses. The unofficial Android
+and iOS ports of LÖVE 0.9.2 reported touch positions as normalized values in the range of 1, whereas this API
+reports positions in pixels.
+
+**Signature:**
+```tl
+touchmoved: function(id: TouchID, x: number, y: number, delta_x: number, delta_y: number, pressure: number) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| id | TouchID | The identifier for the touch press. |
+| x | number | The x-axis position of the touch inside the window, in pixels. |
+| y | number | The y-axis position of the touch inside the window, in pixels. |
+| delta_x | number | The x-axis movement of the touch inside the window, in pixels. |
+| delta_y | number | The y-axis movement of the touch inside the window, in pixels. |
+| pressure | number | The amount of pressure being applied. Most touch screens aren't pressure sensitive, in which case the pressure will be 1. |
+
+## threaderror
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Callback function triggered when a Thread encounters an error.
+
+**Signature:**
+```tl
+threaderror: function(thread: Thread, error: string) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| thread | Thread | The thread which produced the error. |
+| error | string | The error message. |
+
+## joystickadded
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Called when a Joystick is connected.
+Overload details:
+1. This callback is also triggered after love.load for every Joystick which was already connected when the game
+started up.
+
+**Signature:**
+```tl
+joystickadded: function(joystick: Joystick) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| joystick | Joystick | The newly connected Joystick object. |
+
+## joystickremoved
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Called when a Joystick is disconnected.
+
+**Signature:**
+```tl
+joystickremoved: function(joystick: Joystick) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| joystick | Joystick | The now-disconnected Joystick object. |
+
+## joystickpressed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Called when a joystick button is pressed.
+
+**Signature:**
+```tl
+joystickpressed: function(joystick: Joystick, button: integer) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| joystick | Joystick | The joystick object. |
+| button | integer | The button number. |
+
+## joystickreleased
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Called when a joystick button is released.
+
+**Signature:**
+```tl
+joystickreleased: function(joystick: Joystick, button: integer) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| joystick | Joystick | The joystick object. |
+| button | integer | The button number. |
+
+## joystickaxis
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Called when a joystick axis moves.
+
+**Signature:**
+```tl
+joystickaxis: function(joystick: Joystick, axis: integer, value: number) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| joystick | Joystick | The joystick object. |
+| axis | integer | The axis number. |
+| value | number | The new axis value. |
+
+## joystickhat
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Called when a joystick hat direction changes.
+
+**Signature:**
+```tl
+joystickhat: function(joystick: Joystick, hat: integer, direction: string) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| joystick | Joystick | The joystick object. |
+| hat | integer | The hat number. |
+| direction | string | The new hat direction. |
+
+## gamepadpressed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Called when a Joystick's virtual gamepad button is pressed.
+
+**Signature:**
+```tl
+gamepadpressed: function(joystick: Joystick, button: string) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| joystick | Joystick | The joystick object. |
+| button | string | The virtual gamepad button. |
+
+## gamepadreleased
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Called when a Joystick's virtual gamepad button is released.
+
+**Signature:**
+```tl
+gamepadreleased: function(joystick: Joystick, button: string) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| joystick | Joystick | The joystick object. |
+| button | string | The virtual gamepad button. |
+
+## gamepadaxis
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Called when a Joystick's virtual gamepad axis is moved.
+
+**Signature:**
+```tl
+gamepadaxis: function(joystick: Joystick, axis: string, value: number) | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| joystick | Joystick | The joystick object. |
+| axis | string | The virtual gamepad axis. |
+| value | number | The new axis value. |
+
+## run
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Compatibility entry point; Dora remains the application loop owner.
+The main function, containing the main loop. A sensible default is used when left out.
+
+**Signature:**
+```tl
+run: function()
+```
+
+## Love.DrawMode
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for DrawMode.
+
+**Signature:**
+```tl
+enum DrawMode
+	"fill"
+	"line"
+end
+```
+
+## Love.ArcMode
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for ArcMode.
+
+**Signature:**
+```tl
+enum ArcMode
+	"open"
+	"closed"
+	"pie"
+end
+```
+
+## Love.LineStyle
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for LineStyle.
+
+**Signature:**
+```tl
+enum LineStyle
+	"rough"
+	"smooth"
+end
+```
+
+## Love.LineJoin
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for LineJoin.
+
+**Signature:**
+```tl
+enum LineJoin
+	"none"
+	"miter"
+	"bevel"
+end
+```
+
+## Love.BlendMode
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for BlendMode.
+
+**Signature:**
+```tl
+enum BlendMode
+	"alpha"
+	"add"
+	"subtract"
+	"multiply"
+	"replace"
+	"screen"
+	"premultiplied"
+end
+```
+
+## Love.BlendAlphaMode
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for BlendAlphaMode.
+
+**Signature:**
+```tl
+enum BlendAlphaMode
+	"alphamultiply"
+	"premultiplied"
+end
+```
+
+## Love.AlignMode
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for AlignMode.
+
+**Signature:**
+```tl
+enum AlignMode
+	"left"
+	"center"
+	"right"
+	"justify"
+end
+```
+
+## Love.FilterMode
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for FilterMode.
+
+**Signature:**
+```tl
+enum FilterMode
+	"linear"
+	"nearest"
+end
+```
+
+## Love.WrapMode
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for WrapMode.
+
+**Signature:**
+```tl
+enum WrapMode
+	"clamp"
+	"clampzero"
+	"repeat"
+	"mirroredrepeat"
+end
+```
+
+## Love.TextureType
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for TextureType.
+
+**Signature:**
+```tl
+enum TextureType
+	"2d"
+	"array"
+	"cube"
+	"volume"
+end
+```
+
+## Love.StencilAction
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for StencilAction.
+
+**Signature:**
+```tl
+enum StencilAction
+	"replace"
+	"increment"
+	"decrement"
+	"incrementwrap"
+	"decrementwrap"
+	"invert"
+end
+```
+
+## Love.CompareMode
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for CompareMode.
+
+**Signature:**
+```tl
+enum CompareMode
+	"less"
+	"lequal"
+	"equal"
+	"gequal"
+	"greater"
+	"notequal"
+	"always"
+	"never"
+end
+```
+
+## Love.MeshDrawMode
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for MeshDrawMode.
+
+**Signature:**
+```tl
+enum MeshDrawMode
+	"fan"
+	"strip"
+	"triangles"
+	"points"
+end
+```
+
+## Love.MeshUsage
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for MeshUsage.
+
+**Signature:**
+```tl
+enum MeshUsage
+	"stream"
+	"dynamic"
+	"static"
+end
+```
+
+## Love.VertexDataType
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for VertexDataType.
+
+**Signature:**
+```tl
+enum VertexDataType
+	"float"
+	"byte"
+	"unorm16"
+end
+```
+
+## Love.AttributeStep
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for AttributeStep.
+
+**Signature:**
+```tl
+enum AttributeStep
+	"pervertex"
+	"perinstance"
+end
+```
+
+## Love.IndexDataType
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for IndexDataType.
+
+**Signature:**
+```tl
+enum IndexDataType
+	"uint16"
+	"uint32"
+end
+```
+
+## Love.MeshCullMode
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for MeshCullMode.
+
+**Signature:**
+```tl
+enum MeshCullMode
+	"none"
+	"back"
+	"front"
+end
+```
+
+## Love.Winding
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for Winding.
+
+**Signature:**
+```tl
+enum Winding
+	"cw"
+	"ccw"
+end
+```
+
+## Love.ParticleInsertMode
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for ParticleInsertMode.
+
+**Signature:**
+```tl
+enum ParticleInsertMode
+	"top"
+	"bottom"
+	"random"
+end
+```
+
+## Love.ParticleAreaSpreadDistribution
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for ParticleAreaSpreadDistribution.
+
+**Signature:**
+```tl
+enum ParticleAreaSpreadDistribution
+	"none"
+	"uniform"
+	"normal"
+	"ellipse"
+	"borderellipse"
+	"borderrectangle"
+end
+```
+
+## Love.CanvasFormat
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for CanvasFormat.
+
+**Signature:**
+```tl
+enum CanvasFormat
+	"normal"
+	"hdr"
+	"r8"
+	"rg8"
+	"rgba8"
+	"srgba8"
+	"r16"
+	"rg16"
+	"rgba16"
+	"r16f"
+	"rg16f"
+	"rgba16f"
+	"r32f"
+	"rg32f"
+	"rgba32f"
+	"la8"
+	"rgba4"
+	"rgb5a1"
+	"rgb565"
+	"rgb10a2"
+	"rg11b10f"
+	"stencil8"
+	"depth16"
+	"depth24"
+	"depth32f"
+	"depth24stencil8"
+	"depth32fstencil8"
+end
+```
+
+## Love.ImagePixelFormat
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for ImagePixelFormat.
+
+**Signature:**
+```tl
+enum ImagePixelFormat
+	"r8"
+	"rg8"
+	"rgba8"
+	"r16"
+	"rg16"
+	"rgba16"
+	"r16f"
+	"rg16f"
+	"rgba16f"
+	"r32f"
+	"rg32f"
+	"rgba32f"
+	"rgba4"
+	"rgb5a1"
+	"rgb565"
+	"rgb10a2"
+	"rg11b10f"
+end
+```
+
+## Love.CompressedPixelFormat
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for CompressedPixelFormat.
+
+**Signature:**
+```tl
+enum CompressedPixelFormat
+	"DXT1"
+	"DXT3"
+	"DXT5"
+	"BC4"
+	"BC4s"
+	"BC5"
+	"BC5s"
+	"BC6h"
+	"BC6hs"
+	"BC7"
+	"PVR1rgb2"
+	"PVR1rgb4"
+	"PVR1rgba2"
+	"PVR1rgba4"
+	"ETC1"
+	"ETC2rgb"
+	"ETC2rgba"
+	"ETC2rgba1"
+	"EACr"
+	"EACrs"
+	"EACrg"
+	"EACrgs"
+	"ASTC4x4"
+	"ASTC5x4"
+	"ASTC5x5"
+	"ASTC6x5"
+	"ASTC6x6"
+	"ASTC8x5"
+	"ASTC8x6"
+	"ASTC8x8"
+	"ASTC10x5"
+	"ASTC10x6"
+	"ASTC10x8"
+	"ASTC10x10"
+	"ASTC12x10"
+	"ASTC12x12"
+end
+```
+
+## Love.MatrixLayout
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for MatrixLayout.
+
+**Signature:**
+```tl
+enum MatrixLayout
+	"row"
+	"column"
+end
+```
+
+## Love.FileType
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for FileType.
+
+**Signature:**
+```tl
+enum FileType
+	"file"
+	"directory"
+end
+```
+
+## Love.FileMode
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for FileMode.
+
+**Signature:**
+```tl
+enum FileMode
+	"c"
+	"r"
+	"w"
+	"a"
+end
+```
+
+## Love.OpenFileMode
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for OpenFileMode.
+
+**Signature:**
+```tl
+enum OpenFileMode
+	"r"
+	"w"
+	"a"
+end
+```
+
+## Love.BufferMode
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for BufferMode.
+
+**Signature:**
+```tl
+enum BufferMode
+	"none"
+	"line"
+	"full"
+end
+```
+
+## Love.DataContainer
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for DataContainer.
+
+**Signature:**
+```tl
+enum DataContainer
+	"data"
+	"string"
+end
+```
+
+## Love.EncodeFormat
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for EncodeFormat.
+
+**Signature:**
+```tl
+enum EncodeFormat
+	"hex"
+	"base64"
+end
+```
+
+## Love.CompressionFormat
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for CompressionFormat.
+
+**Signature:**
+```tl
+enum CompressionFormat
+	"zlib"
+	"gzip"
+	"deflate"
+	"lz4"
+end
+```
+
+## Love.HashFunction
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for HashFunction.
+
+**Signature:**
+```tl
+enum HashFunction
+	"md5"
+	"sha1"
+	"sha224"
+	"sha256"
+	"sha384"
+	"sha512"
+end
+```
+
+## Love.SystemCursor
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for SystemCursor.
+
+**Signature:**
+```tl
+enum SystemCursor
+	"arrow"
+	"ibeam"
+	"wait"
+	"crosshair"
+	"waitarrow"
+	"sizenwse"
+	"sizenesw"
+	"sizewe"
+	"sizens"
+	"sizeall"
+	"no"
+	"hand"
+end
+```
+
+## Love.GamepadButton
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for GamepadButton.
+
+**Signature:**
+```tl
+enum GamepadButton
+	"a"
+	"b"
+	"x"
+	"y"
+	"back"
+	"guide"
+	"start"
+	"leftstick"
+	"rightstick"
+	"leftshoulder"
+	"rightshoulder"
+	"dpup"
+	"dpdown"
+	"dpleft"
+	"dpright"
+	"misc1"
+	"paddle1"
+	"paddle2"
+	"paddle3"
+	"paddle4"
+	"touchpad"
+end
+```
+
+## Love.GamepadAxis
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for GamepadAxis.
+
+**Signature:**
+```tl
+enum GamepadAxis
+	"leftx"
+	"lefty"
+	"rightx"
+	"righty"
+	"triggerleft"
+	"triggerright"
+end
+```
+
+## Love.JoystickHat
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for JoystickHat.
+
+**Signature:**
+```tl
+enum JoystickHat
+	"c"
+	"u"
+	"r"
+	"d"
+	"l"
+	"ru"
+	"rd"
+	"lu"
+	"ld"
+end
+```
+
+## Love.JoystickInputType
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for JoystickInputType.
+
+**Signature:**
+```tl
+enum JoystickInputType
+	"axis"
+	"button"
+	"hat"
+end
+```
+
+## Love.OS
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for OS.
+
+**Signature:**
+```tl
+enum OS
+	"OS X"
+	"Windows"
+	"Linux"
+	"Android"
+	"iOS"
+	"UWP"
+	"Unknown"
+end
+```
+
+## Love.PowerState
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for PowerState.
+
+**Signature:**
+```tl
+enum PowerState
+	"unknown"
+	"battery"
+	"nobattery"
+	"charging"
+	"charged"
+end
+```
+
+## Love.SourceType
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for SourceType.
+
+**Signature:**
+```tl
+enum SourceType
+	"static"
+	"stream"
+	"queue"
+end
+```
+
+## Love.TimeUnit
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for TimeUnit.
+
+**Signature:**
+```tl
+enum TimeUnit
+	"seconds"
+	"samples"
+end
+```
+
+## Love.DistanceModel
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for DistanceModel.
+
+**Signature:**
+```tl
+enum DistanceModel
+	"none"
+	"inverse"
+	"inverseclamped"
+	"linear"
+	"linearclamped"
+	"exponent"
+	"exponentclamped"
+end
+```
+
+## Love.AudioFilterType
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for AudioFilterType.
+
+**Signature:**
+```tl
+enum AudioFilterType
+	"lowpass"
+	"highpass"
+	"bandpass"
+end
+```
+
+## Love.AudioEffectType
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for AudioEffectType.
+
+**Signature:**
+```tl
+enum AudioEffectType
+	"reverb"
+	"chorus"
+	"distortion"
+	"echo"
+	"flanger"
+	"ringmodulator"
+	"compressor"
+	"equalizer"
+end
+```
+
+## Love.BodyType
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Available values for BodyType.
+
+**Signature:**
+```tl
+enum BodyType
+	"static"
+	"dynamic"
+	"kinematic"
+end
+```

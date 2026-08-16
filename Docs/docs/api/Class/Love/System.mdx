@@ -17,14 +17,14 @@ Overload details:
 
 **Signature:**
 ```tl
-getOS: function(): string
+getOS: function(): OS
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | The current operating system. 'OS X', 'Windows', 'Linux', 'Android' or 'iOS'. |
+| OS | The current operating system. 'OS X', 'Windows', 'Linux', 'Android' or 'iOS'. |
 
 ## getProcessorCount
 
@@ -96,14 +96,14 @@ getClipboardText: function(): string
 
 **Signature:**
 ```tl
-getPowerInfo: function(): string, integer | nil, integer | nil
+getPowerInfo: function(): PowerState, integer | nil, integer | nil
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | The basic state of the power supply. |
+| PowerState | The basic state of the power supply. |
 | integer or nil | Percentage of battery life left, between 0 and 100. nil if the value can't be determined or there's no battery. |
 | integer or nil | Seconds of battery life left. nil if the value can't be determined or there's no battery. |
 

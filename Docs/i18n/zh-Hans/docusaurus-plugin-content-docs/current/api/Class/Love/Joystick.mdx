@@ -280,7 +280,7 @@ getAxes: function(self: Joystick): number...
 
 **签名：**
 ```tl
-getHat: function(self: Joystick, hat: integer): string
+getHat: function(self: Joystick, hat: integer): JoystickHat
 ```
 
 **参数：**
@@ -293,7 +293,7 @@ getHat: function(self: Joystick, hat: integer): string
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 帽子被推的方向。 |
+| JoystickHat | 帽子被推的方向。 |
 
 ## isDown
 
@@ -354,14 +354,14 @@ isGamepad: function(self: Joystick): boolean
 
 **签名：**
 ```tl
-isGamepadDown: function(self: Joystick, buttons: string...): boolean
+isGamepadDown: function(self: Joystick, buttons: GamepadButton...): boolean
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| buttons | string... | 要检查的游戏手柄按钮。 |
+| buttons | GamepadButton... | 要检查的游戏手柄按钮。 |
 
 **返回值：**
 
@@ -379,14 +379,14 @@ isGamepadDown: function(self: Joystick, buttons: string...): boolean
 
 **签名：**
 ```tl
-getGamepadAxis: function(self: Joystick, axis: string): number
+getGamepadAxis: function(self: Joystick, axis: GamepadAxis): number
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| axis | string | 要检查的虚拟轴。 |
+| axis | GamepadAxis | 要检查的虚拟轴。 |
 
 **返回值：**
 
@@ -406,22 +406,22 @@ getGamepadAxis: function(self: Joystick, axis: string): number
 
 **签名：**
 ```tl
-getGamepadMapping: function(self: Joystick, input: string): string | nil, integer | nil, string | nil
+getGamepadMapping: function(self: Joystick, input: GamepadAxis | GamepadButton): JoystickInputType | nil, integer | nil, JoystickHat | nil
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| input | string | 要获取绑定的虚拟游戏手柄轴。根据过载：要获取绑定的虚拟游戏手柄按钮。 |
+| input | GamepadAxis | GamepadButton | 要获取绑定的虚拟游戏手柄轴。根据过载：要获取绑定的虚拟游戏手柄按钮。 |
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string or nil | 虚拟游戏手柄轴绑定的输入类型。取决于过载：虚拟游戏手柄按钮绑定的输入类型。 |
+| JoystickInputType \| nil | 虚拟游戏手柄轴绑定的输入类型。取决于过载：虚拟游戏手柄按钮绑定的输入类型。 |
 | integer or nil | 虚拟游戏手柄轴绑定到的操纵杆按钮、轴或帽子的索引。 取决于过载：虚拟游戏手柄按钮绑定到的操纵杆按钮、轴或帽子的索引。 |
-| string or nil | 帽子的方向（如果虚拟游戏手柄轴绑定到帽子）。否则为零。取决于过载：帽子的方向（如果虚拟游戏手柄按钮绑定到帽子）。否则为零。 |
+| JoystickHat \| nil | 帽子的方向（如果虚拟游戏手柄轴绑定到帽子）。否则为零。取决于过载：帽子的方向（如果虚拟游戏手柄按钮绑定到帽子）。否则为零。 |
 
 ## getGamepadMappingString
 

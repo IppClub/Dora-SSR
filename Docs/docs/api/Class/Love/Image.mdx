@@ -231,14 +231,14 @@ getDPIScale: function(self: Image): number
 
 **Signature:**
 ```tl
-getTextureType: function(self: Image): string
+getTextureType: function(self: Image): TextureType
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | The type of the Texture. |
+| TextureType | The type of the Texture. |
 
 ## getDepth
 
@@ -308,14 +308,14 @@ getMipmapCount: function(self: Image): integer
 
 **Signature:**
 ```tl
-getMipmapFilter: function(self: Image): string, number
+getMipmapFilter: function(self: Image): FilterMode | nil, number
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | The filter mode used in between mipmap levels. nil if mipmap filtering is not enabled. |
+| FilterMode \| nil | The filter mode used in between mipmap levels. nil if mipmap filtering is not enabled. |
 | number | Value used to determine whether the image should use more or less detailed mipmap levels than normal when drawing. |
 
 ## setMipmapFilter
@@ -373,14 +373,14 @@ setMipmapFilter: function(self: Image, filter: FilterMode, sharpness?: number)
 
 **Signature:**
 ```tl
-getFormat: function(self: Image): string
+getFormat: function(self: Image): ImagePixelFormat
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | The pixel format the Texture was created with. |
+| ImagePixelFormat | The pixel format the Texture was created with. |
 
 ## isCompressed
 
@@ -480,14 +480,14 @@ Depth texture comparison modes are advanced low-level functionality typically us
 
 **Signature:**
 ```tl
-getDepthSampleMode: function(self: Image): string | nil
+getDepthSampleMode: function(self: Image): CompareMode | nil
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string or nil | The comparison mode used when sampling from this texture in a shader, or nil if setDepthSampleMode has not been called on this Texture. (Default: nil.) |
+| CompareMode \| nil | The comparison mode used when sampling from this texture in a shader, or nil if setDepthSampleMode has not been called on this Texture. (Default: nil.) |
 
 ## setDepthSampleMode
 
@@ -505,14 +505,14 @@ Depth texture comparison can only be used with readable depth-formatted Canvases
 
 **Signature:**
 ```tl
-setDepthSampleMode: function(self: Image, mode?: string)
+setDepthSampleMode: function(self: Image, mode?: CompareMode)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| mode | string | The comparison mode used when sampling from this texture in a shader. |
+| mode | CompareMode | The comparison mode used when sampling from this texture in a shader. |
 
 ## setFilter
 
@@ -524,15 +524,15 @@ setDepthSampleMode: function(self: Image, mode?: string)
 
 **Signature:**
 ```tl
-setFilter: function(self: Image, min_filter: string, mag_filter?: string, anisotropy?: number)
+setFilter: function(self: Image, min_filter: FilterMode, mag_filter?: FilterMode, anisotropy?: number)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| min_filter | string | Filter mode to use when minifying the texture (rendering it at a smaller size on-screen than its size in pixels). |
-| mag_filter | string | Filter mode to use when magnifying the texture (rendering it at a larger size on-screen than its size in pixels). (Default: min.) |
+| min_filter | FilterMode | Filter mode to use when minifying the texture (rendering it at a smaller size on-screen than its size in pixels). |
+| mag_filter | FilterMode | Filter mode to use when magnifying the texture (rendering it at a larger size on-screen than its size in pixels). (Default: min.) |
 | anisotropy | number | Maximum amount of anisotropic filtering to use. (Default: 1.) |
 
 ## getFilter
@@ -545,15 +545,15 @@ setFilter: function(self: Image, min_filter: string, mag_filter?: string, anisot
 
 **Signature:**
 ```tl
-getFilter: function(self: Image): string, string, number
+getFilter: function(self: Image): FilterMode, FilterMode, number
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | Filter mode to use when minifying the texture (rendering it at a smaller size on-screen than its size in pixels). |
-| string | Filter mode to use when magnifying the texture (rendering it at a smaller size on-screen than its size in pixels). |
+| FilterMode | Filter mode to use when minifying the texture (rendering it at a smaller size on-screen than its size in pixels). |
+| FilterMode | Filter mode to use when magnifying the texture (rendering it at a smaller size on-screen than its size in pixels). |
 | number | Maximum amount of anisotropic filtering used. |
 
 ## setWrap
@@ -571,16 +571,16 @@ whereas repeated ones repeat as many times as there is room in the Quad.
 
 **Signature:**
 ```tl
-setWrap: function(self: Image, horizontal: string, vertical?: string, depth?: string): boolean
+setWrap: function(self: Image, horizontal: WrapMode, vertical?: WrapMode, depth?: WrapMode): boolean
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| horizontal | string | Horizontal wrapping mode of the texture. |
-| vertical | string | Vertical wrapping mode of the texture. (Default: horiz.) |
-| depth | string | Wrapping mode for the z-axis of a Volume texture. (Default: horiz.) |
+| horizontal | WrapMode | Horizontal wrapping mode of the texture. |
+| vertical | WrapMode | Vertical wrapping mode of the texture. (Default: horiz.) |
+| depth | WrapMode | Wrapping mode for the z-axis of a Volume texture. (Default: horiz.) |
 
 ## getWrap
 
@@ -593,13 +593,13 @@ This function returns the currently set horizontal and vertical wrapping modes f
 
 **Signature:**
 ```tl
-getWrap: function(self: Image): string, string, string
+getWrap: function(self: Image): WrapMode, WrapMode, WrapMode
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | Horizontal wrapping mode of the texture. |
-| string | Vertical wrapping mode of the texture. |
-| string | Wrapping mode for the z-axis of a Volume texture. |
+| WrapMode | Horizontal wrapping mode of the texture. |
+| WrapMode | Vertical wrapping mode of the texture. |
+| WrapMode | Wrapping mode for the z-axis of a Volume texture. |

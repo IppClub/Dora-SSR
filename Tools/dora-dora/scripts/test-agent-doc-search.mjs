@@ -37,6 +37,13 @@ assert.match(tools, /docType === "love-api"\) return normalized === "love\.d\.ts
 assert.match(tools, /docType === "tic80-api"\) return normalized === "tic80\.d\.ts" \|\| normalized === "tic80\.d\.tl"/);
 assert.match(tools, /document is outside the requested search type/);
 assert.match(tools, /export async function searchDoraDoc/);
+assert.match(tools, /const virtualDocPath = isVirtualDoc/);
+assert.match(tools, /resolveAgentDoraDocFilePath\(requestedPath, req\.docLanguage \?\? "en"\)/);
+assert.match(tools, /paged\.map\(row => \(\{ \.\.\.row, file: requestedPath \}\)\)/);
+assert.match(tools, /grep_files with that exact @dora-doc path/);
+assert.match(codingAgent, /docLanguage: shared\.useChineseResponse \? "zh" : "en"/);
+assert.match(registry, /exact @dora-doc\/\.\.\. virtual document/);
+assert.match(registry, /searchable with grep_files using the exact virtual path/);
 for (const source of [tools, toolsLua, agentConfig, agentConfigLua]) {
 	assert.doesNotMatch(source, /fetchUrlMaxBytes/);
 	assert.doesNotMatch(source, /gitCloneMaxBytes/);
@@ -73,6 +80,57 @@ assert.match(codingAgentLua, /main:on\("batch_tools", batch\)/);
 assert.doesNotMatch(codingAgentLua, /main:on\("search_dora_doc", searchDora\)/);
 
 for (const language of ["en", "zh-Hans"]) {
+	const tsDefinition = await read(`Assets/Script/Lib/Dora/${language}/love.d.ts`);
+	const tealDefinition = await read(`Assets/Script/Lib/Dora/${language}/love.d.tl`);
+	const stringEnums = [...tsDefinition.matchAll(/^\s*type\s+(\w+)\s*=\s*((?:"[^"]+"\s*\|\s*)*"[^"]+");$/gm)];
+	assert.equal(stringEnums.length, 46, `${language}/love.d.ts string enum inventory changed unexpectedly`);
+	const enumNames = stringEnums.map(([, name]) => name);
+	const containsEnum = type => enumNames.some(name => new RegExp(`\\b${name}\\b`).test(type));
+	assert.match(tealDefinition, /^local record LoveEnums$/m);
+	assert.match(tealDefinition, /^local record Love\n\tembed LoveEnums$/m);
+	for (const [, name, valuesSource] of stringEnums) {
+		const expectedValues = [...valuesSource.matchAll(/"([^"]+)"/g)].map(match => match[1]);
+		const enumMatches = [...tealDefinition.matchAll(new RegExp(`^\\tenum ${name}\\n((?:\\t\\t[^\\n]+\\n)+)`, "gm"))];
+		assert.equal(enumMatches.length, 1, `${language}/love.d.tl must declare ${name} exactly once`);
+		const actualValues = enumMatches[0][1].trim().split("\n").map(line => line.trim().replace(/^"|"$/g, ""));
+		assert.deepEqual(actualValues, expectedValues, `${language}/love.d.tl ${name} values must match TypeScript`);
+		assert.match(tealDefinition, new RegExp(`^local type ${name} = LoveEnums\\.${name}$`, "m"), `${language}/love.d.tl must retain the short alias for Love.${name}`);
+	}
+	assert.match(tealDefinition, /circle: function\(mode: DrawMode,/);
+	assert.match(tealDefinition, /setFilter: function\(self: Image, min_filter: FilterMode, mag_filter\?: FilterMode,/);
+	assert.match(tealDefinition, /getGamepadMapping: function\(self: Joystick, input: GamepadAxis \| GamepadButton\): JoystickInputType \| nil,/);
+	assert.match(tealDefinition, /getOS: function\(\): OS/);
+	assert.match(tealDefinition, /newBody: function\(world: World, x\?: number, y\?: number, body_type\?: BodyType\)/);
+	assert.doesNotMatch(tealDefinition, /(rectangle|circle|ellipse|polygon): function\(mode: string,/);
+	const tealLines = tealDefinition.split("\n");
+	let checkedEnumParamDocs = 0;
+	let checkedEnumReturnDocs = 0;
+	for (let lineIndex = 0; lineIndex < tealLines.length; lineIndex++) {
+		const signature = tealLines[lineIndex].match(/^\s*\w+: function\((.*)\)(?::\s*(.+))?$/);
+		if (!signature) continue;
+		const commentLines = [];
+		for (let index = lineIndex - 1; index >= 0 && /^\s*--/.test(tealLines[index]); index--) commentLines.unshift(tealLines[index]);
+		for (const parameter of signature[1].split(/,\s*/)) {
+			const parameterMatch = parameter.match(/^(\w+)(?:\?)?:\s*(.+)$/);
+			if (!parameterMatch || !containsEnum(parameterMatch[2])) continue;
+			const documented = commentLines
+				.map(line => line.match(/@param\s+(\w+)\s+\(([^)]+)\)/))
+				.find(match => match?.[1] === parameterMatch[1]);
+			if (!documented) continue;
+			assert.equal(documented[2], parameterMatch[2], `${language}/love.d.tl ${parameterMatch[1]} documentation must use its enum type`);
+			checkedEnumParamDocs++;
+		}
+		if (!signature[2]) continue;
+		const documentedReturns = commentLines.map(line => line.match(/@return\s+\(([^)]+)\)/)).filter(Boolean);
+		for (const [index, returnType] of signature[2].split(/,\s*/).entries()) {
+			if (!containsEnum(returnType) || !documentedReturns[index]) continue;
+			assert.equal(documentedReturns[index][1], returnType, `${language}/love.d.tl return documentation must use ${returnType}`);
+			checkedEnumReturnDocs++;
+		}
+	}
+	assert.ok(checkedEnumParamDocs >= 60, `${language}/love.d.tl must retain enum parameter documentation coverage`);
+	assert.ok(checkedEnumReturnDocs >= 40, `${language}/love.d.tl must retain enum return documentation coverage`);
+
 	for (const extension of ["ts", "tl"]) {
 		const definition = await read(`Assets/Script/Lib/Dora/${language}/love.d.${extension}`);
 		const parameterDocs = definition.match(/@param/g) ?? [];
@@ -83,6 +141,22 @@ for (const language of ["en", "zh-Hans"]) {
 			assert.match(definition, new RegExp(`${api}[:(]`), `${language}/love.d.${extension} must retain ${api}`);
 		}
 		assert.match(definition, /FreeBSD/);
+	}
+}
+
+for (const [language, enumDocPath] of [
+	["en", "Docs/docs/api/Class/Love.mdx"],
+	["zh-Hans", "Docs/i18n/zh-Hans/docusaurus-plugin-content-docs/current/api/Class/Love.mdx"],
+]) {
+	const enumDoc = await read(enumDocPath);
+	const tsDefinition = await read(`Assets/Script/Lib/Dora/${language}/love.d.ts`);
+	const expectedEnumNames = [...tsDefinition.matchAll(/^\s*type\s+(\w+)\s*=\s*(?:"[^"]+"\s*\|\s*)*"[^"]+";$/gm)].map(match => match[1]);
+	assert.equal(expectedEnumNames.length, 46, `${language} Love enum inventory changed unexpectedly`);
+	const enumerationLabel = language === "en" ? "\\*\\*Type:\\*\\* Enumeration\\." : "\\*\\*类型：\\*\\* 枚举。";
+	assert.equal((enumDoc.match(new RegExp(enumerationLabel, "g")) ?? []).length, expectedEnumNames.length, `${language} Love page must document every enumeration`);
+	for (const enumName of expectedEnumNames) {
+		assert.match(enumDoc, new RegExp(`^## Love\\.${enumName}\\n\\n${enumerationLabel}`, "m"));
+		assert.match(enumDoc, new RegExp(`\\nenum ${enumName}\\n`));
 	}
 }
 

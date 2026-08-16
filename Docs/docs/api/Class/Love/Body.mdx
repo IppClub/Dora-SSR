@@ -1045,14 +1045,14 @@ applyTorque: function(self: Body, torque: number)
 
 **Signature:**
 ```tl
-getType: function(self: Body): string
+getType: function(self: Body): BodyType
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | The body type. |
+| BodyType | The body type. |
 
 ## setType
 
@@ -1064,14 +1064,14 @@ getType: function(self: Body): string
 
 **Signature:**
 ```tl
-setType: function(self: Body, body_type: string)
+setType: function(self: Body, body_type: BodyType)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| body_type | string | The new type. |
+| body_type | BodyType | The new type. |
 
 ## getWorldPoint
 
@@ -1296,3 +1296,22 @@ getLinearVelocityFromLocalPoint: function(self: Body, x: number, y: number): num
 | --- | --- |
 | number | The x component of velocity at point (x,y). |
 | number | The y component of velocity at point (x,y). |
+
+## getFixtures
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns all fixtures attached to the body.
+
+**Signature:**
+```tl
+getFixtures: function(self: Body): {Fixture}
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Fixture[] | A table containing all fixtures attached to the body. |

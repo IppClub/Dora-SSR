@@ -179,15 +179,15 @@ Overload details:
 
 **Signature:**
 ```tl
-setDefaultFilter: function(min_filter: string, mag_filter?: string, anisotropy?: number)
+setDefaultFilter: function(min_filter: FilterMode, mag_filter?: FilterMode, anisotropy?: number)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| min_filter | string | Filter mode used when scaling the image down. |
-| mag_filter | string | Filter mode used when scaling the image up. (Default: min.) |
+| min_filter | FilterMode | Filter mode used when scaling the image down. |
+| mag_filter | FilterMode | Filter mode used when scaling the image up. (Default: min.) |
 | anisotropy | number | Maximum amount of Anisotropic Filtering used. (Default: 1.) |
 
 ## getDefaultFilter
@@ -200,9 +200,9 @@ setDefaultFilter: function(min_filter: string, mag_filter?: string, anisotropy?:
 
 **Signature:**
 ```tl
-getDefaultFilter: function(): string, string, number
-	setDefaultMipmapFilter: function(filter?: string, sharpness?: number)
-	getDefaultMipmapFilter: function(): string | nil, number
+getDefaultFilter: function(): FilterMode, FilterMode, number
+	setDefaultMipmapFilter: function(filter?: FilterMode, sharpness?: number)
+	getDefaultMipmapFilter: function(): FilterMode | nil, number
 ```
 
 **Parameters:**
@@ -216,8 +216,8 @@ getDefaultFilter: function(): string, string, number
 
 | Return Type | Description |
 | --- | --- |
-| string or string or nil | Filter mode used when scaling the image down. |
-| string or number | Filter mode used when scaling the image up. |
+| FilterMode | Filter mode used when scaling the image down. |
+| FilterMode | Filter mode used when scaling the image up. |
 | number | Maximum amount of Anisotropic Filtering used. |
 
 ## setColor
@@ -320,14 +320,14 @@ getLineWidth: function(): number
 
 **Signature:**
 ```tl
-setLineStyle: function(style: string)
+setLineStyle: function(style: LineStyle)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| style | string | The LineStyle to use. Line styles include smooth and rough. |
+| style | LineStyle | The LineStyle to use. Line styles include smooth and rough. |
 
 ## getLineStyle
 
@@ -339,14 +339,14 @@ setLineStyle: function(style: string)
 
 **Signature:**
 ```tl
-getLineStyle: function(): string
+getLineStyle: function(): LineStyle
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | The current line style. |
+| LineStyle | The current line style. |
 
 ## setLineJoin
 
@@ -358,14 +358,14 @@ getLineStyle: function(): string
 
 **Signature:**
 ```tl
-setLineJoin: function(join: string)
+setLineJoin: function(join: LineJoin)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| join | string | The LineJoin to use. |
+| join | LineJoin | The LineJoin to use. |
 
 ## getLineJoin
 
@@ -377,14 +377,14 @@ setLineJoin: function(join: string)
 
 **Signature:**
 ```tl
-getLineJoin: function(): string
+getLineJoin: function(): LineJoin
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | The LineJoin style. |
+| LineJoin | The LineJoin style. |
 
 ## setWireframe
 
@@ -862,14 +862,14 @@ Overload details:
 
 **Signature:**
 ```tl
-rectangle: function(mode: string, x: number, y: number, width: number, height: number)
+rectangle: function(mode: DrawMode, x: number, y: number, width: number, height: number)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| mode | string | How to draw the rectangle. |
+| mode | DrawMode | How to draw the rectangle. |
 | x | number | The position of top-left corner along the x-axis. |
 | y | number | The position of top-left corner along the y-axis. |
 | width | number | Width of the rectangle. |
@@ -885,14 +885,14 @@ rectangle: function(mode: string, x: number, y: number, width: number, height: n
 
 **Signature:**
 ```tl
-circle: function(mode: string, x: number, y: number, radius: number)
+circle: function(mode: DrawMode, x: number, y: number, radius: number)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| mode | string | How to draw the circle. |
+| mode | DrawMode | How to draw the circle. |
 | x | number | The position of the center along x-axis. |
 | y | number | The position of the center along y-axis. |
 | radius | number | The radius of the circle. |
@@ -958,14 +958,14 @@ arc: function(mode: DrawMode, arc_mode: ArcMode, x: number, y: number, radius: n
 
 **Signature:**
 ```tl
-ellipse: function(mode: string, x: number, y: number, radius_x: number, radius_y: number, segments?: integer)
+ellipse: function(mode: DrawMode, x: number, y: number, radius_x: number, radius_y: number, segments?: integer)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| mode | string | How to draw the ellipse. |
+| mode | DrawMode | How to draw the ellipse. |
 | x | number | The position of the center along x-axis. |
 | y | number | The position of the center along y-axis. |
 | radius_x | number | The radius of the ellipse along the x-axis (half the ellipse's width). |
@@ -1008,14 +1008,14 @@ vertices.
 
 **Signature:**
 ```tl
-polygon: function(mode: string, x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, coordinates: number...)
+polygon: function(mode: DrawMode, x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, coordinates: number...)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| mode | string | How to draw the polygon. |
+| mode | DrawMode | How to draw the polygon. |
 | x1 | number | The vertices of the polygon. Depending on the overload: The vertices of the polygon as a table. |
 | y1 | number | The y1 parameter. |
 | x2 | number | The x2 parameter. |
@@ -1446,15 +1446,15 @@ a Canvas to the screen.
 
 **Signature:**
 ```tl
-setBlendMode: function(mode: string, alpha_mode?: string)
+setBlendMode: function(mode: BlendMode, alpha_mode?: BlendAlphaMode)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| mode | string | The blend mode to use. |
-| alpha_mode | string | What to do with the alpha of drawn objects when blending. (Default: 'alphamultiply'.) |
+| mode | BlendMode | The blend mode to use. |
+| alpha_mode | BlendAlphaMode | What to do with the alpha of drawn objects when blending. (Default: 'alphamultiply'.) |
 
 ## getBlendMode
 
@@ -1466,15 +1466,15 @@ setBlendMode: function(mode: string, alpha_mode?: string)
 
 **Signature:**
 ```tl
-getBlendMode: function(): string, string
+getBlendMode: function(): BlendMode, BlendAlphaMode
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | The current blend mode. |
-| string | The current blend alpha mode – it determines how the alpha of drawn objects affects blending. |
+| BlendMode | The current blend mode. |
+| BlendAlphaMode | The current blend alpha mode – it determines how the alpha of drawn objects affects blending. |
 
 ## setScissor
 
@@ -1676,14 +1676,14 @@ attributes. No higher level APIs are provided to set the depth of 2D graphics su
 
 **Signature:**
 ```tl
-getDepthMode: function(): string, boolean
+getDepthMode: function(): CompareMode, boolean
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | Depth comparison mode used for depth testing. |
+| CompareMode | Depth comparison mode used for depth testing. |
 | boolean | Whether to write update / write values to the depth buffer when rendering. |
 
 ## setMeshCullMode
@@ -1699,14 +1699,14 @@ By default, both front- and back-facing triangles in Meshes are rendered.
 
 **Signature:**
 ```tl
-setMeshCullMode: function(mode: string)
+setMeshCullMode: function(mode: MeshCullMode)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| mode | string | The Mesh face culling mode to use (whether to render everything, cull back-facing triangles, or cull front-facing triangles). |
+| mode | MeshCullMode | The Mesh face culling mode to use (whether to render everything, cull back-facing triangles, or cull front-facing triangles). |
 
 ## getMeshCullMode
 
@@ -1720,14 +1720,14 @@ attributes on Meshes, custom vertex shaders, and depth testing with a depth buff
 
 **Signature:**
 ```tl
-getMeshCullMode: function(): string
+getMeshCullMode: function(): MeshCullMode
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | The Mesh face culling mode in use (whether to render everything, cull back-facing triangles, or cull front-facing triangles). |
+| MeshCullMode | The Mesh face culling mode in use (whether to render everything, cull back-facing triangles, or cull front-facing triangles). |
 
 ## setFrontFaceWinding
 
@@ -1741,14 +1741,14 @@ not guaranteed to have a specific winding order to their internal vertices.
 
 **Signature:**
 ```tl
-setFrontFaceWinding: function(winding: string)
+setFrontFaceWinding: function(winding: Winding)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| winding | string | The winding mode to use. The default winding is counterclockwise ('ccw'). |
+| winding | Winding | The winding mode to use. The default winding is counterclockwise ('ccw'). |
 
 ## getFrontFaceWinding
 
@@ -1762,14 +1762,14 @@ not guaranteed to have a specific winding order to their internal vertices.
 
 **Signature:**
 ```tl
-getFrontFaceWinding: function(): string
+getFrontFaceWinding: function(): Winding
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | The winding mode being used. The default winding is counterclockwise ('ccw'). |
+| Winding | The winding mode being used. The default winding is counterclockwise ('ccw'). |
 
 ## stencil
 
@@ -1874,14 +1874,14 @@ Each Canvas has its own per-pixel stencil values.
 
 **Signature:**
 ```tl
-getStencilTest: function(): string, integer
+getStencilTest: function(): CompareMode, integer
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | The type of comparison that is made for each pixel. Will be 'always' if stencil testing is disabled. |
+| CompareMode | The type of comparison that is made for each pixel. Will be 'always' if stencil testing is disabled. |
 | integer | The value used when comparing with the stencil value of each pixel. |
 
 ## newFont
@@ -2169,7 +2169,7 @@ Overload details:
 
 **Signature:**
 ```tl
-printf: function(text: string | number, x: number, y: number, limit: number, align?: string, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+printf: function(text: string | number, x: number, y: number, limit: number, align?: AlignMode, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
 ```
 
 **Parameters:**
@@ -2180,7 +2180,7 @@ printf: function(text: string | number, x: number, y: number, limit: number, ali
 | x | number | The position on the x-axis. Depending on the overload: The position of the text (x-axis). |
 | y | number | The position on the y-axis. Depending on the overload: The position of the text (y-axis). |
 | limit | number | Wrap the line after this many horizontal pixels. Depending on the overload: The maximum width in pixels of the text before it gets automatically wrapped to a new line. |
-| align | string | The alignment. (Default: 'left'.) Depending on the overload: The alignment of the text. |
+| align | AlignMode | The alignment. (Default: 'left'.) Depending on the overload: The alignment of the text. |
 | angle | number | Orientation (radians). (Default: 0.) |
 | scale_x | number | Scale factor (x-axis). (Default: 1.) |
 | scale_y | number | Scale factor (y-axis). (Default: sx.) |
@@ -2783,7 +2783,7 @@ newMesh: function(format: {MeshVertexFormat}, vertices: {MeshVertex} | number | 
 
 **Signature:**
 ```tl
-newSpriteBatch: function(texture: Image | Canvas, size?: integer, usage?: string): SpriteBatch
+newSpriteBatch: function(texture: Image | Canvas, size?: integer, usage?: MeshUsage): SpriteBatch
 ```
 
 **Parameters:**
@@ -2792,7 +2792,7 @@ newSpriteBatch: function(texture: Image | Canvas, size?: integer, usage?: string
 | --- | --- | --- |
 | texture | Image or Canvas | The Image or Canvas to use for the sprites. |
 | size | integer | The maximum number of sprites that the SpriteBatch can contain at any given time. Since version 11.0, additional sprites added past this number will automatically grow the spritebatch. (Default: 1000.) |
-| usage | string | The expected usage of the SpriteBatch. The specified usage mode affects the SpriteBatch's memory usage and performance. (Default: 'dynamic'.) |
+| usage | MeshUsage | The expected usage of the SpriteBatch. The specified usage mode affects the SpriteBatch's memory usage and performance. (Default: 'dynamic'.) |
 
 **Returns:**
 

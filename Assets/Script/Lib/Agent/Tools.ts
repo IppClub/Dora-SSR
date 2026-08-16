@@ -2101,6 +2101,7 @@ function sortDoraDocSearchHits(
 export async function searchFiles(req: {
 	workDir: string;
 	path: string;
+	docLanguage?: DoraDocLanguage;
 	globs?: string[];
 	pattern: string;
 	useRegex?: boolean;
@@ -2111,7 +2112,15 @@ export async function searchFiles(req: {
 	offset?: number;
 	groupByFile?: boolean;
 }): Promise<SearchFilesToolResult> {
-	const resolvedPath = resolveWorkspaceSearchPath(req.workDir, req.path);
+	const requestedPath = (req.path ?? "").trim();
+	const isVirtualDoc = requestedPath.startsWith(AGENT_DORA_DOC_PREFIX);
+	const virtualDocPath = isVirtualDoc
+		? resolveAgentDoraDocFilePath(requestedPath, req.docLanguage ?? "en")
+		: undefined;
+	if (isVirtualDoc && !virtualDocPath) {
+		return { success: false, message: "virtual document not found or outside its documentation scope" };
+	}
+	const resolvedPath = virtualDocPath ?? resolveWorkspaceSearchPath(req.workDir, requestedPath);
 	if (!resolvedPath) {
 		return { success: false, message: "invalid path or workDir" as string };
 	}
@@ -2155,7 +2164,9 @@ export async function searchFiles(req: {
 				const nextOffset = offset + paged.length;
 				const hasMore = nextOffset < totalResults;
 				const truncated = offset > 0 || hasMore;
-				const relativeResults = toWorkspaceRelativeSearchResults(req.workDir, paged);
+				const relativeResults = virtualDocPath
+					? paged.map(row => ({ ...row, file: requestedPath }))
+					: toWorkspaceRelativeSearchResults(req.workDir, paged);
 				const groupByFile = req.groupByFile === true;
 				resolve({
 					success: true,
@@ -2277,7 +2288,7 @@ export async function searchDoraDoc(req: {
 					programmingLanguage: req.programmingLanguage,
 					exts,
 					results: hits,
-					hint: "Use read_file directly with the namespaced file value from a search result to view the complete authoritative document.",
+				hint: "Use read_file with a namespaced result to view it, or grep_files with that exact @dora-doc path to search within the document.",
 					totalResults: hits.length,
 					truncated: false,
 					limit,

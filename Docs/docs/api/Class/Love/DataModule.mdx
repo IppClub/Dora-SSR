@@ -127,14 +127,14 @@ newDataView: function(data: any, offset: integer, size: integer): DataView
 
 **Signature:**
 ```tl
-encode: function(container: string, format: EncodeFormat, source: string | Data, line_length?: integer): string
+encode: function(container: DataContainer, format: EncodeFormat, source: string | Data, line_length?: integer): string
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| container | string | What type to return the encoded data as. |
+| container | DataContainer | What type to return the encoded data as. |
 | format | EncodeFormat | The format of the output data. |
 | source | string | Data | The raw data to encode. |
 | line_length | integer | The maximum line length of the output. Only supported for base64, ignored if 0. (Default: 0.) |
@@ -155,14 +155,14 @@ encode: function(container: string, format: EncodeFormat, source: string | Data,
 
 **Signature:**
 ```tl
-encode: function(container: string, format: EncodeFormat, source: string | Data, line_length?: integer): ByteData
+encode: function(container: DataContainer, format: EncodeFormat, source: string | Data, line_length?: integer): ByteData
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| container | string | What type to return the encoded data as. |
+| container | DataContainer | What type to return the encoded data as. |
 | format | EncodeFormat | The format of the output data. |
 | source | string | Data | The raw data to encode. |
 | line_length | integer | The maximum line length of the output. Only supported for base64, ignored if 0. (Default: 0.) |
@@ -183,14 +183,14 @@ encode: function(container: string, format: EncodeFormat, source: string | Data,
 
 **Signature:**
 ```tl
-decode: function(container: string, format: EncodeFormat, source: string | Data): string
+decode: function(container: DataContainer, format: EncodeFormat, source: string | Data): string
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| container | string | What type to return the decoded data as. |
+| container | DataContainer | What type to return the decoded data as. |
 | format | EncodeFormat | The format of the input data. |
 | source | string | Data | The raw (encoded) data to decode. |
 
@@ -210,14 +210,14 @@ decode: function(container: string, format: EncodeFormat, source: string | Data)
 
 **Signature:**
 ```tl
-decode: function(container: string, format: EncodeFormat, source: string | Data): ByteData
+decode: function(container: DataContainer, format: EncodeFormat, source: string | Data): ByteData
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| container | string | What type to return the decoded data as. |
+| container | DataContainer | What type to return the decoded data as. |
 | format | EncodeFormat | The format of the input data. |
 | source | string | Data | The raw (encoded) data to decode. |
 
@@ -237,14 +237,14 @@ decode: function(container: string, format: EncodeFormat, source: string | Data)
 
 **Signature:**
 ```tl
-compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): string
+compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): string
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| container | string | What type to return the compressed data as. |
+| container | DataContainer | What type to return the compressed data as. |
 | format | CompressionFormat | The format to use when compressing the string. |
 | source | string | Data | The raw (un-compressed) string to compress. |
 | level | integer | The level of compression to use, between 0 and 9. -1 indicates the default level. The meaning of this argument depends on the compression format being used. (Default: -1.) |
@@ -265,14 +265,14 @@ compress: function(container: string, format: CompressionFormat, source: string 
 
 **Signature:**
 ```tl
-compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
+compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| container | string | What type to return the compressed data as. |
+| container | DataContainer | What type to return the compressed data as. |
 | format | CompressionFormat | The format to use when compressing the data. |
 | source | string | Data | A Data object containing the raw (un-compressed) data to compress. |
 | level | integer | The level of compression to use, between 0 and 9. -1 indicates the default level. The meaning of this argument depends on the compression format being used. (Default: -1.) |
@@ -293,14 +293,14 @@ compress: function(container: string, format: CompressionFormat, source: string 
 
 **Signature:**
 ```tl
-decompress: function(container: string, compressed: CompressedData): string
+decompress: function(container: DataContainer, compressed: CompressedData): string
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| container | string | What type to return the decompressed data as. |
+| container | DataContainer | What type to return the decompressed data as. |
 | compressed | CompressedData | The compressed data to decompress. |
 
 **Returns:**
@@ -319,14 +319,14 @@ decompress: function(container: string, compressed: CompressedData): string
 
 **Signature:**
 ```tl
-decompress: function(container: string, compressed: CompressedData): ByteData
+decompress: function(container: DataContainer, compressed: CompressedData): ByteData
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| container | string | What type to return the decompressed data as. |
+| container | DataContainer | What type to return the decompressed data as. |
 | compressed | CompressedData | The compressed data to decompress. |
 
 **Returns:**
@@ -345,14 +345,14 @@ decompress: function(container: string, compressed: CompressedData): ByteData
 
 **Signature:**
 ```tl
-decompress: function(container: string, format: CompressionFormat, source: string | Data): string
+decompress: function(container: DataContainer, format: CompressionFormat, source: string | Data): string
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| container | string | What type to return the decompressed data as. |
+| container | DataContainer | What type to return the decompressed data as. |
 | format | CompressionFormat | The format that was used to compress the given data. |
 | source | string | Data | A Data object containing data previously compressed with love.data.compress. |
 
@@ -372,14 +372,14 @@ decompress: function(container: string, format: CompressionFormat, source: strin
 
 **Signature:**
 ```tl
-decompress: function(container: string, format: CompressionFormat, source: string | Data): ByteData
+decompress: function(container: DataContainer, format: CompressionFormat, source: string | Data): ByteData
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| container | string | What type to return the decompressed data as. |
+| container | DataContainer | What type to return the decompressed data as. |
 | format | CompressionFormat | The format that was used to compress the given data. |
 | source | string | Data | A Data object containing data previously compressed with love.data.compress. |
 
@@ -401,14 +401,14 @@ decompress: function(container: string, format: CompressionFormat, source: strin
 
 **Signature:**
 ```tl
-pack: function(container: string, format: string, values: any...): string
+pack: function(container: DataContainer, format: string, values: any...): string
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| container | string | What type to return the encoded data as. |
+| container | DataContainer | What type to return the encoded data as. |
 | format | string | A string determining how the values are packed. Follows the rules of Lua 5.3's string.pack format strings. |
 | values | any... | The first value (number, boolean, or string) to serialize. |
 
@@ -430,14 +430,14 @@ pack: function(container: string, format: string, values: any...): string
 
 **Signature:**
 ```tl
-pack: function(container: string, format: string, values: any...): ByteData
+pack: function(container: DataContainer, format: string, values: any...): ByteData
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| container | string | What type to return the encoded data as. |
+| container | DataContainer | What type to return the encoded data as. |
 | format | string | A string determining how the values are packed. Follows the rules of Lua 5.3's string.pack format strings. |
 | values | any... | The first value (number, boolean, or string) to serialize. |
 

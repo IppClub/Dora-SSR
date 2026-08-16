@@ -538,14 +538,14 @@ read: function(filename: string, size?: integer): string | nil, number | string
 
 **签名：**
 ```tl
-read: function(container: string, filename: string, size?: integer): string | nil, number | string
+read: function(container: DataContainer, filename: string, size?: integer): string | nil, number | string
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 返回文件内容的类型。 |
+| container | DataContainer | 返回文件内容的类型。 |
 | filename | string | 文件的名称（和路径） |
 | size | integer | 读取多少字节（默认：全部。） |
 
@@ -566,14 +566,14 @@ read: function(container: string, filename: string, size?: integer): string | ni
 
 **签名：**
 ```tl
-read: function(container: string, filename: string, size?: integer): FileData | nil, number | string
+read: function(container: DataContainer, filename: string, size?: integer): FileData | nil, number | string
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 返回文件内容的类型。 |
+| container | DataContainer | 返回文件内容的类型。 |
 | filename | string | 文件的名称（和路径） |
 | size | integer | 读取多少字节（默认：全部。） |
 

@@ -286,7 +286,7 @@ getAxes: function(self: Joystick): number...
 
 **Signature:**
 ```tl
-getHat: function(self: Joystick, hat: integer): string
+getHat: function(self: Joystick, hat: integer): JoystickHat
 ```
 
 **Parameters:**
@@ -299,7 +299,7 @@ getHat: function(self: Joystick, hat: integer): string
 
 | Return Type | Description |
 | --- | --- |
-| string | The direction the hat is pushed. |
+| JoystickHat | The direction the hat is pushed. |
 
 ## isDown
 
@@ -365,14 +365,14 @@ isn't connected, then this function will always return false.
 
 **Signature:**
 ```tl
-isGamepadDown: function(self: Joystick, buttons: string...): boolean
+isGamepadDown: function(self: Joystick, buttons: GamepadButton...): boolean
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| buttons | string... | The gamepad button to check. |
+| buttons | GamepadButton... | The gamepad button to check. |
 
 **Returns:**
 
@@ -391,14 +391,14 @@ this function will always return 0.
 
 **Signature:**
 ```tl
-getGamepadAxis: function(self: Joystick, axis: string): number
+getGamepadAxis: function(self: Joystick, axis: GamepadAxis): number
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| axis | string | The virtual axis to be checked. |
+| axis | GamepadAxis | The virtual axis to be checked. |
 
 **Returns:**
 
@@ -421,22 +421,22 @@ layout of a standard Xbox 360 controller.
 
 **Signature:**
 ```tl
-getGamepadMapping: function(self: Joystick, input: string): string | nil, integer | nil, string | nil
+getGamepadMapping: function(self: Joystick, input: GamepadAxis | GamepadButton): JoystickInputType | nil, integer | nil, JoystickHat | nil
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| input | string | The virtual gamepad axis to get the binding for. Depending on the overload: The virtual gamepad button to get the binding for. |
+| input | GamepadAxis | GamepadButton | The virtual gamepad axis to get the binding for. Depending on the overload: The virtual gamepad button to get the binding for. |
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string or nil | The type of input the virtual gamepad axis is bound to. Depending on the overload: The type of input the virtual gamepad button is bound to. |
+| JoystickInputType \| nil | The type of input the virtual gamepad axis is bound to. Depending on the overload: The type of input the virtual gamepad button is bound to. |
 | integer or nil | The index of the Joystick's button, axis or hat that the virtual gamepad axis is bound to. Depending on the overload: The index of the Joystick's button, axis or hat that the virtual gamepad button is bound to. |
-| string or nil | The direction of the hat, if the virtual gamepad axis is bound to a hat. nil otherwise. Depending on the overload: The direction of the hat, if the virtual gamepad button is bound to a hat. nil otherwise. |
+| JoystickHat \| nil | The direction of the hat, if the virtual gamepad axis is bound to a hat. nil otherwise. Depending on the overload: The direction of the hat, if the virtual gamepad button is bound to a hat. nil otherwise. |
 
 ## getGamepadMappingString
 

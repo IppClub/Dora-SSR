@@ -10,6 +10,7 @@ _ENV = Dora
 
 if path := Path\getScriptPath ...
 	Content\insertSearchPath 1, path
+	Content\insertSearchPath 1, Path path, "..", "WasmGen"
 
 import "lulpeg" as :Cmt, :P, :S, :C, :Ct, :B, :match
 
@@ -81,6 +82,7 @@ generate = (path, file, cn)->
 		mods = {}
 		docs = {}
 		currentType = nil
+		insideLoveEnums = false
 		transformDocs = (doc, group, start, stop, funcName)->
 			startParam = false
 			startReturn = false
@@ -146,10 +148,15 @@ generate = (path, file, cn)->
 		for group in *res
 			if not group[#]
 				if group[# - 1] == "end"
-					mods[#] = nil
-					docs[#] = nil
+					unless insideLoveEnums
+						mods[#] = nil
+						docs[#] = nil
 				else
 					name = group[# - 1]
+					if modName == "love" and insideLoveEnums and name == "Love"
+						mods = {}
+						docs = {}
+						insideLoveEnums = false
 					docs[] = {}
 					doc = docs[#]
 					prefix = path == "" and "" or path .. "."
@@ -171,6 +178,7 @@ generate = (path, file, cn)->
 							classes[] = [prefix .. className, doc]
 						else
 							mods[] = name
+							insideLoveEnums = true if modName == "love" and name == "LoveEnums"
 							currentType = "Record"
 							recordName = table.concat mods, '.'
 							if modName == "love" and recordName != "Love" and not recordName\match "^Love%."
@@ -251,6 +259,33 @@ generate = (path, file, cn)->
 					doc[] = "&emsp;&emsp;" .. group[1]
 					doc[] = "**#{cn and '签名：' or 'Signature:'}**\n```tl\n#{last}\n```"
 				transformDocs doc, group, 2, #group - 1
+
+	if modName == "love"
+		loveDoc = nil
+		enumDoc = nil
+		enumRecordIndex = nil
+		for i, [recordName, recordDoc] in ipairs records
+			loveDoc = recordDoc if recordName == "Love"
+			if recordName == "Love.LoveEnums"
+				enumDoc = recordDoc
+				enumRecordIndex = i
+		if loveDoc and enumDoc and enumRecordIndex
+			for i = #loveDoc, 1, -1
+				if loveDoc[i]\match "Class/LoveEnums"
+					table.remove loveDoc, i
+			firstEnumDescription, firstEnumSignature, firstEnumName = codes\match "local%s+record%s+LoveEnums%s+%-%- ([^\n]+)%s+(enum%s+([%w_]+).-\n%s*end)"
+			if firstEnumName
+				firstEnumSignature = firstEnumSignature |> string.gsub("[ \t]+%-%-", "\t--") |> string.gsub("\n[ \t]+\"", "\n\t\"") |> string.gsub("[ \t]*end", "end")
+				loveDoc[] = "## Love.#{firstEnumName}"
+				loveDoc[] = cn and '**类型：** 枚举。' or '**Type:** Enumeration.'
+				loveDoc[] = "**#{cn and '描述：' or 'Description:'}**"
+				loveDoc[] = "&emsp;&emsp;" .. firstEnumDescription
+				loveDoc[] = "**#{cn and '签名：' or 'Signature:'}**\n```tl\n#{firstEnumSignature}\n```"
+			copyEnums = false
+			for line in *enumDoc
+				copyEnums = true if line\match "^## "
+				loveDoc[] = line\gsub "LoveEnums%.", "Love." if copyEnums
+			table.remove records, enumRecordIndex
 
 assertUnique = (items, category)->
 	seen = {}

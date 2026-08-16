@@ -1,3 +1,509 @@
+-- Enumeration types exported through the root Love API record.
+local record LoveEnums
+	-- Available values for DrawMode.
+	enum DrawMode
+		"fill"
+		"line"
+	end
+
+	-- Available values for ArcMode.
+	enum ArcMode
+		"open"
+		"closed"
+		"pie"
+	end
+
+	-- Available values for LineStyle.
+	enum LineStyle
+		"rough"
+		"smooth"
+	end
+
+	-- Available values for LineJoin.
+	enum LineJoin
+		"none"
+		"miter"
+		"bevel"
+	end
+
+	-- Available values for BlendMode.
+	enum BlendMode
+		"alpha"
+		"add"
+		"subtract"
+		"multiply"
+		"replace"
+		"screen"
+		"premultiplied"
+	end
+
+	-- Available values for BlendAlphaMode.
+	enum BlendAlphaMode
+		"alphamultiply"
+		"premultiplied"
+	end
+
+	-- Available values for AlignMode.
+	enum AlignMode
+		"left"
+		"center"
+		"right"
+		"justify"
+	end
+
+	-- Available values for FilterMode.
+	enum FilterMode
+		"linear"
+		"nearest"
+	end
+
+	-- Available values for WrapMode.
+	enum WrapMode
+		"clamp"
+		"clampzero"
+		"repeat"
+		"mirroredrepeat"
+	end
+
+	-- Available values for TextureType.
+	enum TextureType
+		"2d"
+		"array"
+		"cube"
+		"volume"
+	end
+
+	-- Available values for StencilAction.
+	enum StencilAction
+		"replace"
+		"increment"
+		"decrement"
+		"incrementwrap"
+		"decrementwrap"
+		"invert"
+	end
+
+	-- Available values for CompareMode.
+	enum CompareMode
+		"less"
+		"lequal"
+		"equal"
+		"gequal"
+		"greater"
+		"notequal"
+		"always"
+		"never"
+	end
+
+	-- Available values for MeshDrawMode.
+	enum MeshDrawMode
+		"fan"
+		"strip"
+		"triangles"
+		"points"
+	end
+
+	-- Available values for MeshUsage.
+	enum MeshUsage
+		"stream"
+		"dynamic"
+		"static"
+	end
+
+	-- Available values for VertexDataType.
+	enum VertexDataType
+		"float"
+		"byte"
+		"unorm16"
+	end
+
+	-- Available values for AttributeStep.
+	enum AttributeStep
+		"pervertex"
+		"perinstance"
+	end
+
+	-- Available values for IndexDataType.
+	enum IndexDataType
+		"uint16"
+		"uint32"
+	end
+
+	-- Available values for MeshCullMode.
+	enum MeshCullMode
+		"none"
+		"back"
+		"front"
+	end
+
+	-- Available values for Winding.
+	enum Winding
+		"cw"
+		"ccw"
+	end
+
+	-- Available values for ParticleInsertMode.
+	enum ParticleInsertMode
+		"top"
+		"bottom"
+		"random"
+	end
+
+	-- Available values for ParticleAreaSpreadDistribution.
+	enum ParticleAreaSpreadDistribution
+		"none"
+		"uniform"
+		"normal"
+		"ellipse"
+		"borderellipse"
+		"borderrectangle"
+	end
+
+	-- Available values for CanvasFormat.
+	enum CanvasFormat
+		"normal"
+		"hdr"
+		"r8"
+		"rg8"
+		"rgba8"
+		"srgba8"
+		"r16"
+		"rg16"
+		"rgba16"
+		"r16f"
+		"rg16f"
+		"rgba16f"
+		"r32f"
+		"rg32f"
+		"rgba32f"
+		"la8"
+		"rgba4"
+		"rgb5a1"
+		"rgb565"
+		"rgb10a2"
+		"rg11b10f"
+		"stencil8"
+		"depth16"
+		"depth24"
+		"depth32f"
+		"depth24stencil8"
+		"depth32fstencil8"
+	end
+
+	-- Available values for ImagePixelFormat.
+	enum ImagePixelFormat
+		"r8"
+		"rg8"
+		"rgba8"
+		"r16"
+		"rg16"
+		"rgba16"
+		"r16f"
+		"rg16f"
+		"rgba16f"
+		"r32f"
+		"rg32f"
+		"rgba32f"
+		"rgba4"
+		"rgb5a1"
+		"rgb565"
+		"rgb10a2"
+		"rg11b10f"
+	end
+
+	-- Available values for CompressedPixelFormat.
+	enum CompressedPixelFormat
+		"DXT1"
+		"DXT3"
+		"DXT5"
+		"BC4"
+		"BC4s"
+		"BC5"
+		"BC5s"
+		"BC6h"
+		"BC6hs"
+		"BC7"
+		"PVR1rgb2"
+		"PVR1rgb4"
+		"PVR1rgba2"
+		"PVR1rgba4"
+		"ETC1"
+		"ETC2rgb"
+		"ETC2rgba"
+		"ETC2rgba1"
+		"EACr"
+		"EACrs"
+		"EACrg"
+		"EACrgs"
+		"ASTC4x4"
+		"ASTC5x4"
+		"ASTC5x5"
+		"ASTC6x5"
+		"ASTC6x6"
+		"ASTC8x5"
+		"ASTC8x6"
+		"ASTC8x8"
+		"ASTC10x5"
+		"ASTC10x6"
+		"ASTC10x8"
+		"ASTC10x10"
+		"ASTC12x10"
+		"ASTC12x12"
+	end
+
+	-- Available values for MatrixLayout.
+	enum MatrixLayout
+		"row"
+		"column"
+	end
+
+	-- Available values for FileType.
+	enum FileType
+		"file"
+		"directory"
+	end
+
+	-- Available values for FileMode.
+	enum FileMode
+		"c"
+		"r"
+		"w"
+		"a"
+	end
+
+	-- Available values for OpenFileMode.
+	enum OpenFileMode
+		"r"
+		"w"
+		"a"
+	end
+
+	-- Available values for BufferMode.
+	enum BufferMode
+		"none"
+		"line"
+		"full"
+	end
+
+	-- Available values for DataContainer.
+	enum DataContainer
+		"data"
+		"string"
+	end
+
+	-- Available values for EncodeFormat.
+	enum EncodeFormat
+		"hex"
+		"base64"
+	end
+
+	-- Available values for CompressionFormat.
+	enum CompressionFormat
+		"zlib"
+		"gzip"
+		"deflate"
+		"lz4"
+	end
+
+	-- Available values for HashFunction.
+	enum HashFunction
+		"md5"
+		"sha1"
+		"sha224"
+		"sha256"
+		"sha384"
+		"sha512"
+	end
+
+	-- Available values for SystemCursor.
+	enum SystemCursor
+		"arrow"
+		"ibeam"
+		"wait"
+		"crosshair"
+		"waitarrow"
+		"sizenwse"
+		"sizenesw"
+		"sizewe"
+		"sizens"
+		"sizeall"
+		"no"
+		"hand"
+	end
+
+	-- Available values for GamepadButton.
+	enum GamepadButton
+		"a"
+		"b"
+		"x"
+		"y"
+		"back"
+		"guide"
+		"start"
+		"leftstick"
+		"rightstick"
+		"leftshoulder"
+		"rightshoulder"
+		"dpup"
+		"dpdown"
+		"dpleft"
+		"dpright"
+		"misc1"
+		"paddle1"
+		"paddle2"
+		"paddle3"
+		"paddle4"
+		"touchpad"
+	end
+
+	-- Available values for GamepadAxis.
+	enum GamepadAxis
+		"leftx"
+		"lefty"
+		"rightx"
+		"righty"
+		"triggerleft"
+		"triggerright"
+	end
+
+	-- Available values for JoystickHat.
+	enum JoystickHat
+		"c"
+		"u"
+		"r"
+		"d"
+		"l"
+		"ru"
+		"rd"
+		"lu"
+		"ld"
+	end
+
+	-- Available values for JoystickInputType.
+	enum JoystickInputType
+		"axis"
+		"button"
+		"hat"
+	end
+
+	-- Available values for OS.
+	enum OS
+		"OS X"
+		"Windows"
+		"Linux"
+		"Android"
+		"iOS"
+		"UWP"
+		"Unknown"
+	end
+
+	-- Available values for PowerState.
+	enum PowerState
+		"unknown"
+		"battery"
+		"nobattery"
+		"charging"
+		"charged"
+	end
+
+	-- Available values for SourceType.
+	enum SourceType
+		"static"
+		"stream"
+		"queue"
+	end
+
+	-- Available values for TimeUnit.
+	enum TimeUnit
+		"seconds"
+		"samples"
+	end
+
+	-- Available values for DistanceModel.
+	enum DistanceModel
+		"none"
+		"inverse"
+		"inverseclamped"
+		"linear"
+		"linearclamped"
+		"exponent"
+		"exponentclamped"
+	end
+
+	-- Available values for AudioFilterType.
+	enum AudioFilterType
+		"lowpass"
+		"highpass"
+		"bandpass"
+	end
+
+	-- Available values for AudioEffectType.
+	enum AudioEffectType
+		"reverb"
+		"chorus"
+		"distortion"
+		"echo"
+		"flanger"
+		"ringmodulator"
+		"compressor"
+		"equalizer"
+	end
+
+	-- Available values for BodyType.
+	enum BodyType
+		"static"
+		"dynamic"
+		"kinematic"
+	end
+end
+
+local type DrawMode = LoveEnums.DrawMode
+local type ArcMode = LoveEnums.ArcMode
+local type LineStyle = LoveEnums.LineStyle
+local type LineJoin = LoveEnums.LineJoin
+local type BlendMode = LoveEnums.BlendMode
+local type BlendAlphaMode = LoveEnums.BlendAlphaMode
+local type AlignMode = LoveEnums.AlignMode
+local type FilterMode = LoveEnums.FilterMode
+local type WrapMode = LoveEnums.WrapMode
+local type TextureType = LoveEnums.TextureType
+local type StencilAction = LoveEnums.StencilAction
+local type CompareMode = LoveEnums.CompareMode
+local type MeshDrawMode = LoveEnums.MeshDrawMode
+local type MeshUsage = LoveEnums.MeshUsage
+local type VertexDataType = LoveEnums.VertexDataType
+local type AttributeStep = LoveEnums.AttributeStep
+local type IndexDataType = LoveEnums.IndexDataType
+local type MeshCullMode = LoveEnums.MeshCullMode
+local type Winding = LoveEnums.Winding
+local type ParticleInsertMode = LoveEnums.ParticleInsertMode
+local type ParticleAreaSpreadDistribution = LoveEnums.ParticleAreaSpreadDistribution
+local type CanvasFormat = LoveEnums.CanvasFormat
+local type ImagePixelFormat = LoveEnums.ImagePixelFormat
+local type CompressedPixelFormat = LoveEnums.CompressedPixelFormat
+local type MatrixLayout = LoveEnums.MatrixLayout
+local type FileType = LoveEnums.FileType
+local type FileMode = LoveEnums.FileMode
+local type OpenFileMode = LoveEnums.OpenFileMode
+local type BufferMode = LoveEnums.BufferMode
+local type DataContainer = LoveEnums.DataContainer
+local type EncodeFormat = LoveEnums.EncodeFormat
+local type CompressionFormat = LoveEnums.CompressionFormat
+local type HashFunction = LoveEnums.HashFunction
+local type SystemCursor = LoveEnums.SystemCursor
+local type GamepadButton = LoveEnums.GamepadButton
+local type GamepadAxis = LoveEnums.GamepadAxis
+local type JoystickHat = LoveEnums.JoystickHat
+local type JoystickInputType = LoveEnums.JoystickInputType
+local type OS = LoveEnums.OS
+local type PowerState = LoveEnums.PowerState
+local type SourceType = LoveEnums.SourceType
+local type TimeUnit = LoveEnums.TimeUnit
+local type DistanceModel = LoveEnums.DistanceModel
+local type AudioFilterType = LoveEnums.AudioFilterType
+local type AudioEffectType = LoveEnums.AudioEffectType
+local type BodyType = LoveEnums.BodyType
+
 -- Drawable image type.
 local record Image
 
@@ -64,8 +570,8 @@ local record Image
 	getDPIScale: function(self: Image): number
 
 	-- Gets the type of the Texture.
-	-- @return (string) The type of the Texture.
-	getTextureType: function(self: Image): string
+	-- @return (TextureType) The type of the Texture.
+	getTextureType: function(self: Image): TextureType
 
 	-- Gets the depth of a Volume Texture. Returns 1 for 2D, Cubemap, and Array textures.
 	-- @return (integer) The depth of the volume Texture.
@@ -81,9 +587,9 @@ local record Image
 	getMipmapCount: function(self: Image): integer
 
 	-- Gets the mipmap filter mode for a Texture. Prior to 11.0 this method only worked on Images.
-	-- @return (string) The filter mode used in between mipmap levels. nil if mipmap filtering is not enabled.
+	-- @return (FilterMode | nil) The filter mode used in between mipmap levels. nil if mipmap filtering is not enabled.
 	-- @return (number) Value used to determine whether the image should use more or less detailed mipmap levels than normal when drawing.
-	getMipmapFilter: function(self: Image): string, number
+	getMipmapFilter: function(self: Image): FilterMode | nil, number
 
 	-- Sets the mipmap filter mode for a Texture. Prior to 11.0 this method only worked on Images.
 	--
@@ -106,8 +612,8 @@ local record Image
 	setMipmapFilter: function(self: Image, filter: FilterMode, sharpness?: number)
 
 	-- Gets the pixel format of the Texture.
-	-- @return (string) The pixel format the Texture was created with.
-	getFormat: function(self: Image): string
+	-- @return (ImagePixelFormat) The pixel format the Texture was created with.
+	getFormat: function(self: Image): ImagePixelFormat
 
 	-- Gets whether the Image was created from CompressedData.
 	-- Compressed images take up less space in VRAM, and drawing a compressed image will generally be more efficient than
@@ -138,8 +644,8 @@ local record Image
 
 	-- Gets the comparison mode used when sampling from a depth texture in a shader.
 	-- Depth texture comparison modes are advanced low-level functionality typically used with shadow mapping in 3D.
-	-- @return (string or nil) The comparison mode used when sampling from this texture in a shader, or nil if setDepthSampleMode has not been called on this Texture. (Default: nil.)
-	getDepthSampleMode: function(self: Image): string | nil
+	-- @return (CompareMode | nil) The comparison mode used when sampling from this texture in a shader, or nil if setDepthSampleMode has not been called on this Texture. (Default: nil.)
+	getDepthSampleMode: function(self: Image): CompareMode | nil
 
 	-- Sets the comparison mode used when sampling from a depth texture in a shader. Depth texture comparison modes are
 	-- advanced low-level functionality typically used with shadow mapping in 3D.
@@ -148,20 +654,20 @@ local record Image
 	-- proportional to the number of samples (up to 4 samples will be used if bilinear filtering is enabled) that passed
 	-- the test set by the comparison operation.
 	-- Depth texture comparison can only be used with readable depth-formatted Canvases.
-	-- @param mode (string) The comparison mode used when sampling from this texture in a shader.
-	setDepthSampleMode: function(self: Image, mode?: string)
+	-- @param mode (CompareMode) The comparison mode used when sampling from this texture in a shader.
+	setDepthSampleMode: function(self: Image, mode?: CompareMode)
 
 	-- Sets the filter mode of the Texture.
-	-- @param min_filter (string) Filter mode to use when minifying the texture (rendering it at a smaller size on-screen than its size in pixels).
-	-- @param mag_filter (string) Filter mode to use when magnifying the texture (rendering it at a larger size on-screen than its size in pixels). (Default: min.)
+	-- @param min_filter (FilterMode) Filter mode to use when minifying the texture (rendering it at a smaller size on-screen than its size in pixels).
+	-- @param mag_filter (FilterMode) Filter mode to use when magnifying the texture (rendering it at a larger size on-screen than its size in pixels). (Default: min.)
 	-- @param anisotropy (number) Maximum amount of anisotropic filtering to use. (Default: 1.)
-	setFilter: function(self: Image, min_filter: string, mag_filter?: string, anisotropy?: number)
+	setFilter: function(self: Image, min_filter: FilterMode, mag_filter?: FilterMode, anisotropy?: number)
 
 	-- Gets the filter mode of the Texture.
-	-- @return (string) Filter mode to use when minifying the texture (rendering it at a smaller size on-screen than its size in pixels).
-	-- @return (string) Filter mode to use when magnifying the texture (rendering it at a smaller size on-screen than its size in pixels).
+	-- @return (FilterMode) Filter mode to use when minifying the texture (rendering it at a smaller size on-screen than its size in pixels).
+	-- @return (FilterMode) Filter mode to use when magnifying the texture (rendering it at a smaller size on-screen than its size in pixels).
 	-- @return (number) Maximum amount of anisotropic filtering used.
-	getFilter: function(self: Image): string, string, number
+	getFilter: function(self: Image): FilterMode, FilterMode, number
 
 	-- Sets the wrapping properties of a Texture.
 	-- This function sets the way a Texture is repeated when it is drawn with a Quad that is larger than the texture's
@@ -169,17 +675,17 @@ local record Image
 	-- or set to repeat in both horizontal and vertical directions.
 	-- Clamped textures appear only once (with the edges of the texture stretching to fill the extent of the Quad),
 	-- whereas repeated ones repeat as many times as there is room in the Quad.
-	-- @param horizontal (string) Horizontal wrapping mode of the texture.
-	-- @param vertical (string) Vertical wrapping mode of the texture. (Default: horiz.)
-	-- @param depth (string) Wrapping mode for the z-axis of a Volume texture. (Default: horiz.)
-	setWrap: function(self: Image, horizontal: string, vertical?: string, depth?: string): boolean
+	-- @param horizontal (WrapMode) Horizontal wrapping mode of the texture.
+	-- @param vertical (WrapMode) Vertical wrapping mode of the texture. (Default: horiz.)
+	-- @param depth (WrapMode) Wrapping mode for the z-axis of a Volume texture. (Default: horiz.)
+	setWrap: function(self: Image, horizontal: WrapMode, vertical?: WrapMode, depth?: WrapMode): boolean
 
 	-- Gets the wrapping properties of a Texture.
 	-- This function returns the currently set horizontal and vertical wrapping modes for the texture.
-	-- @return (string) Horizontal wrapping mode of the texture.
-	-- @return (string) Vertical wrapping mode of the texture.
-	-- @return (string) Wrapping mode for the z-axis of a Volume texture.
-	getWrap: function(self: Image): string, string, string
+	-- @return (WrapMode) Horizontal wrapping mode of the texture.
+	-- @return (WrapMode) Vertical wrapping mode of the texture.
+	-- @return (WrapMode) Wrapping mode for the z-axis of a Volume texture.
+	getWrap: function(self: Image): WrapMode, WrapMode, WrapMode
 end
 
 -- An object which decodes, streams, and controls Videos.
@@ -278,16 +784,16 @@ local record Video
 	getPixelDimensions: function(self: Video): integer, integer
 
 	-- Sets the scaling filters used when drawing the Video.
-	-- @param min_filter (string) The filter mode used when scaling the Video down.
-	-- @param mag_filter (string) The filter mode used when scaling the Video up.
+	-- @param min_filter (FilterMode) The filter mode used when scaling the Video down.
+	-- @param mag_filter (FilterMode) The filter mode used when scaling the Video up.
 	-- @param anisotropy (number) Maximum amount of anisotropic filtering used. (Default: 1.)
-	setFilter: function(self: Video, min_filter: string, mag_filter?: string, anisotropy?: number)
+	setFilter: function(self: Video, min_filter: FilterMode, mag_filter?: FilterMode, anisotropy?: number)
 
 	-- Gets the scaling filters used when drawing the Video.
-	-- @return (string) The filter mode used when scaling the Video down.
-	-- @return (string) The filter mode used when scaling the Video up.
+	-- @return (FilterMode) The filter mode used when scaling the Video down.
+	-- @return (FilterMode) The filter mode used when scaling the Video up.
 	-- @return (number) Maximum amount of anisotropic filtering used.
-	getFilter: function(self: Video): string, string, number
+	getFilter: function(self: Video): FilterMode, FilterMode, number
 end
 
 -- This module is responsible for decoding, controlling, and streaming video files.
@@ -368,8 +874,8 @@ local record Canvas
 	getDPIScale: function(self: Canvas): number
 
 	-- Gets the pixel format of the Texture.
-	-- @return (string) The pixel format the Texture was created with.
-	getFormat: function(self: Canvas): string
+	-- @return (CanvasFormat) The pixel format the Texture was created with.
+	getFormat: function(self: Canvas): CanvasFormat
 
 	-- Gets the number of multisample antialiasing (MSAA) samples used when drawing to the Canvas.
 	-- This may be different than the number used as an argument to love.graphics.newCanvas if the system running LÖVE
@@ -378,8 +884,8 @@ local record Canvas
 	getMSAA: function(self: Canvas): integer
 
 	-- Gets the type of the Texture.
-	-- @return (string) The type of the Texture.
-	getTextureType: function(self: Canvas): string
+	-- @return (TextureType) The type of the Texture.
+	getTextureType: function(self: Canvas): TextureType
 
 	-- Gets the depth of a Volume Texture. Returns 1 for 2D, Cubemap, and Array textures.
 	-- @return (integer) The depth of the volume Texture.
@@ -399,9 +905,9 @@ local record Canvas
 	getMipmapMode: function(self: Canvas): string
 
 	-- Gets the mipmap filter mode for a Texture. Prior to 11.0 this method only worked on Images.
-	-- @return (string) The filter mode used in between mipmap levels. nil if mipmap filtering is not enabled.
+	-- @return (FilterMode | nil) The filter mode used in between mipmap levels. nil if mipmap filtering is not enabled.
 	-- @return (number) Value used to determine whether the image should use more or less detailed mipmap levels than normal when drawing.
-	getMipmapFilter: function(self: Canvas): string, number
+	getMipmapFilter: function(self: Canvas): FilterMode | nil, number
 
 	-- Sets the mipmap filter mode for a Texture. Prior to 11.0 this method only worked on Images.
 	--
@@ -425,8 +931,8 @@ local record Canvas
 
 	-- Gets the comparison mode used when sampling from a depth texture in a shader.
 	-- Depth texture comparison modes are advanced low-level functionality typically used with shadow mapping in 3D.
-	-- @return (string or nil) The comparison mode used when sampling from this texture in a shader, or nil if setDepthSampleMode has not been called on this Texture. (Default: nil.)
-	getDepthSampleMode: function(self: Canvas): string | nil
+	-- @return (CompareMode | nil) The comparison mode used when sampling from this texture in a shader, or nil if setDepthSampleMode has not been called on this Texture. (Default: nil.)
+	getDepthSampleMode: function(self: Canvas): CompareMode | nil
 
 	-- Sets the comparison mode used when sampling from a depth texture in a shader. Depth texture comparison modes are
 	-- advanced low-level functionality typically used with shadow mapping in 3D.
@@ -435,8 +941,8 @@ local record Canvas
 	-- proportional to the number of samples (up to 4 samples will be used if bilinear filtering is enabled) that passed
 	-- the test set by the comparison operation.
 	-- Depth texture comparison can only be used with readable depth-formatted Canvases.
-	-- @param mode (string) The comparison mode used when sampling from this texture in a shader.
-	setDepthSampleMode: function(self: Canvas, mode?: string)
+	-- @param mode (CompareMode) The comparison mode used when sampling from this texture in a shader.
+	setDepthSampleMode: function(self: Canvas, mode?: CompareMode)
 
 	-- Generates mipmaps for the Canvas, based on the contents of the highest-resolution mipmap level.
 	-- The Canvas must be created with mipmaps set to a MipmapMode other than 'none' for this function to work. It should
@@ -473,16 +979,16 @@ local record Canvas
 	newImageData: function(self: Canvas, slice?: integer, mipmap?: integer, x?: integer, y?: integer, width?: integer, height?: integer): any
 
 	-- Sets the filter mode of the Texture.
-	-- @param min_filter (string) Filter mode to use when minifying the texture (rendering it at a smaller size on-screen than its size in pixels).
-	-- @param mag_filter (string) Filter mode to use when magnifying the texture (rendering it at a larger size on-screen than its size in pixels). (Default: min.)
+	-- @param min_filter (FilterMode) Filter mode to use when minifying the texture (rendering it at a smaller size on-screen than its size in pixels).
+	-- @param mag_filter (FilterMode) Filter mode to use when magnifying the texture (rendering it at a larger size on-screen than its size in pixels). (Default: min.)
 	-- @param anisotropy (number) Maximum amount of anisotropic filtering to use. (Default: 1.)
-	setFilter: function(self: Canvas, min_filter: string, mag_filter?: string, anisotropy?: number)
+	setFilter: function(self: Canvas, min_filter: FilterMode, mag_filter?: FilterMode, anisotropy?: number)
 
 	-- Gets the filter mode of the Texture.
-	-- @return (string) Filter mode to use when minifying the texture (rendering it at a smaller size on-screen than its size in pixels).
-	-- @return (string) Filter mode to use when magnifying the texture (rendering it at a smaller size on-screen than its size in pixels).
+	-- @return (FilterMode) Filter mode to use when minifying the texture (rendering it at a smaller size on-screen than its size in pixels).
+	-- @return (FilterMode) Filter mode to use when magnifying the texture (rendering it at a smaller size on-screen than its size in pixels).
 	-- @return (number) Maximum amount of anisotropic filtering used.
-	getFilter: function(self: Canvas): string, string, number
+	getFilter: function(self: Canvas): FilterMode, FilterMode, number
 
 	-- Sets the wrapping properties of a Texture.
 	-- This function sets the way a Texture is repeated when it is drawn with a Quad that is larger than the texture's
@@ -490,17 +996,17 @@ local record Canvas
 	-- or set to repeat in both horizontal and vertical directions.
 	-- Clamped textures appear only once (with the edges of the texture stretching to fill the extent of the Quad),
 	-- whereas repeated ones repeat as many times as there is room in the Quad.
-	-- @param horizontal (string) Horizontal wrapping mode of the texture.
-	-- @param vertical (string) Vertical wrapping mode of the texture. (Default: horiz.)
-	-- @param depth (string) Wrapping mode for the z-axis of a Volume texture. (Default: horiz.)
-	setWrap: function(self: Canvas, horizontal: string, vertical?: string, depth?: string): boolean
+	-- @param horizontal (WrapMode) Horizontal wrapping mode of the texture.
+	-- @param vertical (WrapMode) Vertical wrapping mode of the texture. (Default: horiz.)
+	-- @param depth (WrapMode) Wrapping mode for the z-axis of a Volume texture. (Default: horiz.)
+	setWrap: function(self: Canvas, horizontal: WrapMode, vertical?: WrapMode, depth?: WrapMode): boolean
 
 	-- Gets the wrapping properties of a Texture.
 	-- This function returns the currently set horizontal and vertical wrapping modes for the texture.
-	-- @return (string) Horizontal wrapping mode of the texture.
-	-- @return (string) Vertical wrapping mode of the texture.
-	-- @return (string) Wrapping mode for the z-axis of a Volume texture.
-	getWrap: function(self: Canvas): string, string, string
+	-- @return (WrapMode) Horizontal wrapping mode of the texture.
+	-- @return (WrapMode) Vertical wrapping mode of the texture.
+	-- @return (WrapMode) Wrapping mode for the z-axis of a Volume texture.
+	getWrap: function(self: Canvas): WrapMode, WrapMode, WrapMode
 end
 
 local record CanvasSettings
@@ -660,16 +1166,16 @@ local record Font
 	getDPIScale: function(self: Font): number
 
 	-- Gets the filter mode for a font.
-	-- @return (string) Filter mode used when minifying the font.
-	-- @return (string) Filter mode used when magnifying the font.
+	-- @return (FilterMode) Filter mode used when minifying the font.
+	-- @return (FilterMode) Filter mode used when magnifying the font.
 	-- @return (number) Maximum amount of anisotropic filtering used.
-	getFilter: function(self: Font): string, string, number
+	getFilter: function(self: Font): FilterMode, FilterMode, number
 
 	-- Sets the filter mode for a font.
-	-- @param min (string) How to scale a font down.
-	-- @param mag (string) How to scale a font up.
+	-- @param min (FilterMode) How to scale a font down.
+	-- @param mag (FilterMode) How to scale a font up.
 	-- @param anisotropy (number) Maximum amount of anisotropic filtering used. (Default: 1.)
-	setFilter: function(self: Font, min: string, mag?: string, anisotropy?: number)
+	setFilter: function(self: Font, min: FilterMode, mag?: FilterMode, anisotropy?: number)
 
 	-- Gets formatting information for text, given a wrap limit.
 	-- This function accounts for newlines correctly (i.e. '\n').
@@ -970,9 +1476,9 @@ local record Mesh
 	--      was specified in the Mesh's vertex format and in the name argument of Mesh:attachAttribute.
 	-- @param name (string) The name of the vertex attribute to attach.
 	-- @param mesh (Mesh) The Mesh to get the vertex attribute from.
-	-- @param step (string) Whether the attribute will be per-vertex or per-instance when the mesh is drawn. (Default: 'pervertex'.)
+	-- @param step (AttributeStep) Whether the attribute will be per-vertex or per-instance when the mesh is drawn. (Default: 'pervertex'.)
 	-- @param attribute_name (string) The name of the attribute to use in shader code. Defaults to the name of the attribute in the given mesh. Can be used to use a different name for this attribute when rendering. (Default: name.)
-	attachAttribute: function(self: Mesh, name: string, mesh: Mesh, step?: string, attribute_name?: string)
+	attachAttribute: function(self: Mesh, name: string, mesh: Mesh, step?: AttributeStep, attribute_name?: string)
 
 	-- Removes a previously attached vertex attribute from this Mesh.
 	-- @param name (string) The name of the attached vertex attribute to detach.
@@ -1024,12 +1530,12 @@ local record Mesh
 	getTexture: function(self: Mesh): Image | Canvas | nil
 
 	-- Sets the mode used when drawing the Mesh.
-	-- @param mode (string) The mode to use when drawing the Mesh.
-	setDrawMode: function(self: Mesh, mode: string)
+	-- @param mode (MeshDrawMode) The mode to use when drawing the Mesh.
+	setDrawMode: function(self: Mesh, mode: MeshDrawMode)
 
 	-- Gets the mode used when drawing the Mesh.
-	-- @return (string) The mode used when drawing the Mesh.
-	getDrawMode: function(self: Mesh): string
+	-- @return (MeshDrawMode) The mode used when drawing the Mesh.
+	getDrawMode: function(self: Mesh): MeshDrawMode
 
 	-- Restricts the drawn vertices of the Mesh to a subset of the total.
 	setDrawRange: function(self: Mesh)
@@ -1319,12 +1825,12 @@ local record ParticleSystem
 	getBufferSize: function(self: ParticleSystem): integer
 
 	-- Sets the mode to use when the ParticleSystem adds new particles.
-	-- @param mode (string) The mode to use when the ParticleSystem adds new particles.
-	setInsertMode: function(self: ParticleSystem, mode: string)
+	-- @param mode (ParticleInsertMode) The mode to use when the ParticleSystem adds new particles.
+	setInsertMode: function(self: ParticleSystem, mode: ParticleInsertMode)
 
 	-- Gets the mode used when the ParticleSystem adds new particles.
-	-- @return (string) The mode used when the ParticleSystem adds new particles.
-	getInsertMode: function(self: ParticleSystem): string
+	-- @return (ParticleInsertMode) The mode used when the ParticleSystem adds new particles.
+	getInsertMode: function(self: ParticleSystem): ParticleInsertMode
 
 	-- Sets the amount of particles emitted per second.
 	-- @param rate (number) The amount of particles per second.
@@ -1370,25 +1876,25 @@ local record ParticleSystem
 
 	-- Sets area-based spawn parameters for the particles. Newly created particles will spawn in an area around the
 	-- emitter based on the parameters to this function.
-	-- @param distribution (string) The type of distribution for new particles.
+	-- @param distribution (ParticleAreaSpreadDistribution) The type of distribution for new particles.
 	-- @param x (number) The maximum spawn distance from the emitter along the x-axis for uniform distribution, or the standard deviation along the x-axis for normal distribution.
 	-- @param y (number) The maximum spawn distance from the emitter along the y-axis for uniform distribution, or the standard deviation along the y-axis for normal distribution.
 	-- @param angle (number) The angle in radians of the emission area. (Default: 0.)
 	-- @param relative (boolean) True if newly spawned particles will be oriented relative to the center of the emission area, false otherwise. (Default: false.)
-	setEmissionArea: function(self: ParticleSystem, distribution?: string, x?: number, y?: number, angle?: number, relative?: boolean)
+	setEmissionArea: function(self: ParticleSystem, distribution?: ParticleAreaSpreadDistribution, x?: number, y?: number, angle?: number, relative?: boolean)
 
 	-- Gets the area-based spawn parameters for the particles.
 	-- @param distribution (string) The distribution parameter.
 	-- @param x (number) The x parameter.
 	-- @param y (number) The y parameter.
-	-- @return (string) The type of distribution for new particles.
+	-- @return (ParticleAreaSpreadDistribution) The type of distribution for new particles.
 	-- @return (number) The maximum spawn distance from the emitter along the x-axis for uniform distribution, or the standard deviation along the x-axis for normal distribution.
 	-- @return (number) The maximum spawn distance from the emitter along the y-axis for uniform distribution, or the standard deviation along the y-axis for normal distribution.
 	-- @return (number) The angle in radians of the emission area.
 	-- @return (boolean) True if newly spawned particles will be oriented relative to the center of the emission area, false otherwise.
-	getEmissionArea: function(self: ParticleSystem): string, number, number, number, boolean
-	setAreaSpread: function(self: ParticleSystem, distribution?: string, x?: number, y?: number)
-	getAreaSpread: function(self: ParticleSystem): string, number, number
+	getEmissionArea: function(self: ParticleSystem): ParticleAreaSpreadDistribution, number, number, number, boolean
+	setAreaSpread: function(self: ParticleSystem, distribution?: ParticleAreaSpreadDistribution, x?: number, y?: number)
+	getAreaSpread: function(self: ParticleSystem): ParticleAreaSpreadDistribution, number, number
 
 	-- Sets the direction the particles will be emitted in.
 	-- @param direction (number) The direction of the particles (in radians).
@@ -2116,10 +2622,6 @@ local record Event
 	quit: function(reason: string): boolean
 end
 
-local type FileType = string
-local type FileMode = string
-local type BufferMode = string
-
 -- Data representing the contents of a file.
 local record FileData
 
@@ -2225,8 +2727,8 @@ local record ImageData
 	getDimensions: function(self: ImageData): integer, integer
 
 	-- Gets the pixel format of the ImageData.
-	-- @return (string) The pixel format the ImageData was created with.
-	getFormat: function(self: ImageData): string
+	-- @return (ImagePixelFormat) The pixel format the ImageData was created with.
+	getFormat: function(self: ImageData): ImagePixelFormat
 
 	-- Gets the color of a pixel at a specific position in the image.
 	-- Valid x and y values start at 0 and go up to image width and height minus 1. Non-integer values are floored.
@@ -2369,8 +2871,8 @@ local record CompressedImageData
 	getMipmapCount: function(self: CompressedImageData): integer
 
 	-- Gets the format of the CompressedImageData.
-	-- @return (string) The format of the CompressedImageData.
-	getFormat: function(self: CompressedImageData): string
+	-- @return (CompressedPixelFormat) The format of the CompressedImageData.
+	getFormat: function(self: CompressedImageData): CompressedPixelFormat
 end
 
 -- Provides an interface to decode encoded image data.
@@ -2872,8 +3374,8 @@ local record CompressedData
 	clone: function(self: CompressedData): CompressedData
 
 	-- Gets the compression format of the CompressedData.
-	-- @return (string) The format of the CompressedData.
-	getFormat: function(self: CompressedData): string
+	-- @return (CompressionFormat) The format of the CompressedData.
+	getFormat: function(self: CompressedData): CompressionFormat
 end
 
 -- Provides functionality for creating and transforming data.
@@ -2913,94 +3415,94 @@ local record DataModule
 	newDataView: function(data: any, offset: integer, size: integer): DataView
 
 	-- Encode Data or a string to a Data or string in one of the EncodeFormats.
-	-- @param container (string) What type to return the encoded data as.
+	-- @param container (DataContainer) What type to return the encoded data as.
 	-- @param format (EncodeFormat) The format of the output data.
 	-- @param source (string | Data) The raw data to encode.
 	-- @param line_length (integer) The maximum line length of the output. Only supported for base64, ignored if 0. (Default: 0.)
 	-- @return (string) encoded — ByteData/string which contains the encoded version of source.
-	encode: function(container: string, format: EncodeFormat, source: string | Data, line_length?: integer): string
+	encode: function(container: DataContainer, format: EncodeFormat, source: string | Data, line_length?: integer): string
 
 	-- Encode Data or a string to a Data or string in one of the EncodeFormats.
-	-- @param container (string) What type to return the encoded data as.
+	-- @param container (DataContainer) What type to return the encoded data as.
 	-- @param format (EncodeFormat) The format of the output data.
 	-- @param source (string | Data) The raw data to encode.
 	-- @param line_length (integer) The maximum line length of the output. Only supported for base64, ignored if 0. (Default: 0.)
 	-- @return (ByteData) encoded — ByteData/string which contains the encoded version of source.
-	encode: function(container: string, format: EncodeFormat, source: string | Data, line_length?: integer): ByteData
+	encode: function(container: DataContainer, format: EncodeFormat, source: string | Data, line_length?: integer): ByteData
 
 	-- Decode Data or a string from any of the EncodeFormats to Data or string.
-	-- @param container (string) What type to return the decoded data as.
+	-- @param container (DataContainer) What type to return the decoded data as.
 	-- @param format (EncodeFormat) The format of the input data.
 	-- @param source (string | Data) The raw (encoded) data to decode.
 	-- @return (string) decoded — ByteData/string which contains the decoded version of source.
-	decode: function(container: string, format: EncodeFormat, source: string | Data): string
+	decode: function(container: DataContainer, format: EncodeFormat, source: string | Data): string
 
 	-- Decode Data or a string from any of the EncodeFormats to Data or string.
-	-- @param container (string) What type to return the decoded data as.
+	-- @param container (DataContainer) What type to return the decoded data as.
 	-- @param format (EncodeFormat) The format of the input data.
 	-- @param source (string | Data) The raw (encoded) data to decode.
 	-- @return (ByteData) decoded — ByteData/string which contains the decoded version of source.
-	decode: function(container: string, format: EncodeFormat, source: string | Data): ByteData
+	decode: function(container: DataContainer, format: EncodeFormat, source: string | Data): ByteData
 
 	-- Compresses a string or data using a specific compression algorithm.
-	-- @param container (string) What type to return the compressed data as.
+	-- @param container (DataContainer) What type to return the compressed data as.
 	-- @param format (CompressionFormat) The format to use when compressing the string.
 	-- @param source (string | Data) The raw (un-compressed) string to compress.
 	-- @param level (integer) The level of compression to use, between 0 and 9. -1 indicates the default level. The meaning of this argument depends on the compression format being used. (Default: -1.)
 	-- @return (string) compressedData — CompressedData/string which contains the compressed version of rawstring.
-	compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): string
+	compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): string
 
 	-- Compresses a string or data using a specific compression algorithm.
-	-- @param container (string) What type to return the compressed data as.
+	-- @param container (DataContainer) What type to return the compressed data as.
 	-- @param format (CompressionFormat) The format to use when compressing the data.
 	-- @param source (string | Data) A Data object containing the raw (un-compressed) data to compress.
 	-- @param level (integer) The level of compression to use, between 0 and 9. -1 indicates the default level. The meaning of this argument depends on the compression format being used. (Default: -1.)
 	-- @return (CompressedData) CompressedData/string which contains the compressed version of data.
-	compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
+	compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
 
 	-- Decompresses a CompressedData or previously compressed string or Data object.
-	-- @param container (string) What type to return the decompressed data as.
+	-- @param container (DataContainer) What type to return the decompressed data as.
 	-- @param compressed (CompressedData) The compressed data to decompress.
 	-- @return (string) decompressedData — Data/string containing the raw decompressed data.
-	decompress: function(container: string, compressed: CompressedData): string
+	decompress: function(container: DataContainer, compressed: CompressedData): string
 
 	-- Decompresses a CompressedData or previously compressed string or Data object.
-	-- @param container (string) What type to return the decompressed data as.
+	-- @param container (DataContainer) What type to return the decompressed data as.
 	-- @param compressed (CompressedData) The compressed data to decompress.
 	-- @return (ByteData) decompressedData — Data/string containing the raw decompressed data.
-	decompress: function(container: string, compressed: CompressedData): ByteData
+	decompress: function(container: DataContainer, compressed: CompressedData): ByteData
 
 	-- Decompresses a CompressedData or previously compressed string or Data object.
-	-- @param container (string) What type to return the decompressed data as.
+	-- @param container (DataContainer) What type to return the decompressed data as.
 	-- @param format (CompressionFormat) The format that was used to compress the given data.
 	-- @param source (string | Data) A Data object containing data previously compressed with love.data.compress.
 	-- @return (string) decompressedData — Data/string containing the raw decompressed data.
-	decompress: function(container: string, format: CompressionFormat, source: string | Data): string
+	decompress: function(container: DataContainer, format: CompressionFormat, source: string | Data): string
 
 	-- Decompresses a CompressedData or previously compressed string or Data object.
-	-- @param container (string) What type to return the decompressed data as.
+	-- @param container (DataContainer) What type to return the decompressed data as.
 	-- @param format (CompressionFormat) The format that was used to compress the given data.
 	-- @param source (string | Data) A Data object containing data previously compressed with love.data.compress.
 	-- @return (ByteData) decompressedData — Data/string containing the raw decompressed data.
-	decompress: function(container: string, format: CompressionFormat, source: string | Data): ByteData
+	decompress: function(container: DataContainer, format: CompressionFormat, source: string | Data): ByteData
 
 	-- Packs (serializes) simple Lua values.
 	--
 	-- This function behaves the same as Lua 5.3's string.pack.
-	-- @param container (string) What type to return the encoded data as.
+	-- @param container (DataContainer) What type to return the encoded data as.
 	-- @param format (string) A string determining how the values are packed. Follows the rules of Lua 5.3's string.pack format strings.
 	-- @param values (any...) The first value (number, boolean, or string) to serialize.
 	-- @return (string) data — Data/string which contains the serialized data.
-	pack: function(container: string, format: string, values: any...): string
+	pack: function(container: DataContainer, format: string, values: any...): string
 
 	-- Packs (serializes) simple Lua values.
 	--
 	-- This function behaves the same as Lua 5.3's string.pack.
-	-- @param container (string) What type to return the encoded data as.
+	-- @param container (DataContainer) What type to return the encoded data as.
 	-- @param format (string) A string determining how the values are packed. Follows the rules of Lua 5.3's string.pack format strings.
 	-- @param values (any...) The first value (number, boolean, or string) to serialize.
 	-- @return (ByteData) data — Data/string which contains the serialized data.
-	pack: function(container: string, format: string, values: any...): ByteData
+	pack: function(container: DataContainer, format: string, values: any...): ByteData
 
 	-- Unpacks (deserializes) a byte-string or Data into simple Lua values.
 	--
@@ -3618,32 +4120,32 @@ local record MathModule
 	triangulate: function(coordinates: number...): {{number}}
 
 	-- Deprecated alias of love.data.compress.
-	-- @param container (string) The type of value to return.
+	-- @param container (DataContainer) The type of value to return.
 	-- @param format (CompressionFormat) The compression format to use.
 	-- @param source (string | Data) The uncompressed source data.
 	-- @param level (integer) The compression level, from 0 to 9, or -1 for the default level.
 	-- @return (string) The compressed data as a string.
-	compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): string
+	compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): string
 
 	-- Deprecated alias of love.data.compress.
-	-- @param container (string) The type of value to return.
+	-- @param container (DataContainer) The type of value to return.
 	-- @param format (CompressionFormat) The compression format to use.
 	-- @param source (string | Data) The uncompressed source data.
 	-- @param level (integer) The compression level, from 0 to 9, or -1 for the default level.
 	-- @return (CompressedData) The compressed data as a CompressedData object.
-	compress: function(container: string, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
+	compress: function(container: DataContainer, format: CompressionFormat, source: string | Data, level?: integer): CompressedData
 
 	-- Deprecated alias of love.data.decompress.
-	-- @param container (string) The type of value to return.
+	-- @param container (DataContainer) The type of value to return.
 	-- @param compressed (CompressedData) The compressed data to decompress.
 	-- @return (string) The decompressed data as a string.
-	decompress: function(container: string, compressed: CompressedData): string
+	decompress: function(container: DataContainer, compressed: CompressedData): string
 
 	-- Deprecated alias of love.data.decompress.
-	-- @param container (string) The type of value to return.
+	-- @param container (DataContainer) The type of value to return.
 	-- @param compressed (CompressedData) The compressed data to decompress.
 	-- @return (ByteData) The decompressed data as a ByteData object.
-	decompress: function(container: string, compressed: CompressedData): ByteData
+	decompress: function(container: DataContainer, compressed: CompressedData): ByteData
 end
 
 -- Represents a file on the filesystem. A function that takes a file path can also take a File.
@@ -3694,18 +4196,18 @@ local record File
 	read: function(self: File, size?: integer): string | nil, number | string
 
 	-- Read a number of bytes from a file.
-	-- @param container (string) What type to return the file's contents as.
+	-- @param container (DataContainer) What type to return the file's contents as.
 	-- @param size (integer) The number of bytes to read. (Default: all.)
 	-- @return (string | nil) FileData or string containing the read bytes.
 	-- @return (number | string) size — How many bytes have been read.
-	read: function(self: File, container: string, size?: integer): string | nil, number | string
+	read: function(self: File, container: DataContainer, size?: integer): string | nil, number | string
 
 	-- Read a number of bytes from a file.
-	-- @param container (string) What type to return the file's contents as.
+	-- @param container (DataContainer) What type to return the file's contents as.
 	-- @param size (integer) The number of bytes to read. (Default: all.)
 	-- @return (FileData | nil) FileData or string containing the read bytes.
 	-- @return (number | string) size — How many bytes have been read.
-	read: function(self: File, container: string, size?: integer): FileData | nil, number | string
+	read: function(self: File, container: DataContainer, size?: integer): FileData | nil, number | string
 
 	-- Write data to a file.
 	-- @param data (string) The string data to write.
@@ -3928,20 +4430,20 @@ local record Filesystem
 	read: function(filename: string, size?: integer): string | nil, number | string
 
 	-- Read the contents of a file.
-	-- @param container (string) What type to return the file's contents as.
+	-- @param container (DataContainer) What type to return the file's contents as.
 	-- @param filename (string) The name (and path) of the file
 	-- @param size (integer) How many bytes to read (Default: all.)
 	-- @return (string | nil) returns nil as content.
 	-- @return (number | string) size — How many bytes have been read.
-	read: function(container: string, filename: string, size?: integer): string | nil, number | string
+	read: function(container: DataContainer, filename: string, size?: integer): string | nil, number | string
 
 	-- Read the contents of a file.
-	-- @param container (string) What type to return the file's contents as.
+	-- @param container (DataContainer) What type to return the file's contents as.
 	-- @param filename (string) The name (and path) of the file
 	-- @param size (integer) How many bytes to read (Default: all.)
 	-- @return (FileData | nil) FileData or string containing the file contents.
 	-- @return (number | string) size — How many bytes have been read.
-	read: function(container: string, filename: string, size?: integer): FileData | nil, number | string
+	read: function(container: DataContainer, filename: string, size?: integer): FileData | nil, number | string
 
 	-- Loads a Lua file (but does not run it).
 	-- @param filename (string) The name (and path) of the file.
@@ -4108,21 +4610,6 @@ local record Keyboard
 	-- Gets whether screen keyboard is supported.
 	-- @return (boolean) Whether screen keyboard is supported.
 	hasScreenKeyboard: function(): boolean
-end
-
-local enum SystemCursor
-	"arrow"
-	"ibeam"
-	"wait"
-	"crosshair"
-	"waitarrow"
-	"sizenwse"
-	"sizenesw"
-	"sizewe"
-	"sizens"
-	"sizeall"
-	"no"
-	"hand"
 end
 
 local enum CursorType
@@ -4324,8 +4811,8 @@ local record System
 	-- but there are a few cases where it can be useful (especially in combination with os.execute.)
 	-- Overload details:
 	--   1. In LÖVE version 0.8.0, the '''love._os''' string contains the current operating system.
-	-- @return (string) The current operating system. 'OS X', 'Windows', 'Linux', 'Android' or 'iOS'.
-	getOS: function(): string
+	-- @return (OS) The current operating system. 'OS X', 'Windows', 'Linux', 'Android' or 'iOS'.
+	getOS: function(): OS
 
 	-- Gets the amount of logical processor in the system.
 	-- Overload details:
@@ -4343,10 +4830,10 @@ local record System
 	getClipboardText: function(): string
 
 	-- Gets information about the system's power supply.
-	-- @return (string) The basic state of the power supply.
+	-- @return (PowerState) The basic state of the power supply.
 	-- @return (integer or nil) Percentage of battery life left, between 0 and 100. nil if the value can't be determined or there's no battery.
 	-- @return (integer or nil) Seconds of battery life left. nil if the value can't be determined or there's no battery.
-	getPowerInfo: function(): string, integer | nil, integer | nil
+	getPowerInfo: function(): PowerState, integer | nil, integer | nil
 
 	-- Opens a URL with the user's web or file browser.
 	-- Overload details:
@@ -4503,14 +4990,14 @@ local record ThreadModule
 end
 
 local record AudioFilterSettings
-	type: string
+	type: AudioFilterType
 	volume: number
 	lowgain: number
 	highgain: number
 end
 
 local record AudioEffectSettings
-	type: string
+	type: AudioEffectType
 	volume: number
 	gain: number
 	highgain: number
@@ -4623,19 +5110,19 @@ local record Source
 
 	-- Sets the currently playing position of the Source.
 	-- @param offset (number) The position to seek to.
-	-- @param unit (string) The unit of the position value. (Default: 'seconds'.)
-	seek: function(self: Source, offset: number, unit?: string)
+	-- @param unit (TimeUnit) The unit of the position value. (Default: 'seconds'.)
+	seek: function(self: Source, offset: number, unit?: TimeUnit)
 
 	-- Gets the currently playing position of the Source.
-	-- @param unit (string) The type of unit for the return value. (Default: 'seconds'.)
+	-- @param unit (TimeUnit) The type of unit for the return value. (Default: 'seconds'.)
 	-- @return (number) The currently playing position of the Source.
-	tell: function(self: Source, unit?: string): number
+	tell: function(self: Source, unit?: TimeUnit): number
 
 	-- Gets the duration of the Source. For streaming Sources it may not always be sample-accurate, and may return -1 if
 	-- the duration cannot be determined at all.
-	-- @param unit (string) The time unit for the return value. (Default: 'seconds'.)
+	-- @param unit (TimeUnit) The time unit for the return value. (Default: 'seconds'.)
 	-- @return (number) The duration of the Source, or -1 if it cannot be determined.
-	getDuration: function(self: Source, unit?: string): number
+	getDuration: function(self: Source, unit?: TimeUnit): number
 
 	-- Gets the number of channels in the Source. Only 1-channel (mono) Sources can use directional and positional
 	-- effects.
@@ -4831,8 +5318,8 @@ local record Source
 	getActiveEffects: function(self: Source): {string}
 
 	-- Gets the type of the Source.
-	-- @return (string) The type of the source.
-	getType: function(self: Source): string
+	-- @return (SourceType) The type of the source.
+	getType: function(self: Source): SourceType
 end
 
 -- Represents an audio input device capable of recording sounds.
@@ -5035,12 +5522,12 @@ local record Audio
 	getDopplerScale: function(): number
 
 	-- Sets the distance attenuation model.
-	-- @param model (string) The new distance model.
-	setDistanceModel: function(model: string)
+	-- @param model (DistanceModel) The new distance model.
+	setDistanceModel: function(model: DistanceModel)
 
 	-- Returns the distance attenuation model.
-	-- @return (string) The current distance model. The default is 'inverseclamped'.
-	getDistanceModel: function(): string
+	-- @return (DistanceModel) The current distance model. The default is 'inverseclamped'.
+	getDistanceModel: function(): DistanceModel
 
 	-- Defines an effect that can be applied to a Source.
 	-- Not all system supports audio effects. Use love.audio.isEffectsSupported to check.
@@ -5407,12 +5894,12 @@ local record Body
 	applyTorque: function(self: Body, torque: number)
 
 	-- Returns the type of the body.
-	-- @return (string) The body type.
-	getType: function(self: Body): string
+	-- @return (BodyType) The body type.
+	getType: function(self: Body): BodyType
 
 	-- Sets a new body type.
-	-- @param body_type (string) The new type.
-	setType: function(self: Body, body_type: string)
+	-- @param body_type (BodyType) The new type.
+	setType: function(self: Body, body_type: BodyType)
 
 	-- Transform a point from local coordinates to world coordinates.
 	-- @param x (number) The x position in local coordinates.
@@ -6068,9 +6555,9 @@ local record Physics
 	-- @param world (World) The world to create the body in.
 	-- @param x (number) The x position of the body. (Default: 0.)
 	-- @param y (number) The y position of the body. (Default: 0.)
-	-- @param body_type (string) The type of the body. (Default: 'static'.)
+	-- @param body_type (BodyType) The type of the body. (Default: 'static'.)
 	-- @return (Body) A new body.
-	newBody: function(world: World, x?: number, y?: number, body_type?: string): Body
+	newBody: function(world: World, x?: number, y?: number, body_type?: BodyType): Body
 
 	-- Creates and attaches a Fixture to a body.
 	-- Note that the Shape object is copied rather than kept as a reference when the Fixture is created. To get the Shape
@@ -6424,20 +6911,20 @@ local record Graphics
 	-- Sets the default scaling filters used with Images, Canvases, and Fonts.
 	-- Overload details:
 	--   1. This function does not apply retroactively to loaded images.
-	-- @param min_filter (string) Filter mode used when scaling the image down.
-	-- @param mag_filter (string) Filter mode used when scaling the image up. (Default: min.)
+	-- @param min_filter (FilterMode) Filter mode used when scaling the image down.
+	-- @param mag_filter (FilterMode) Filter mode used when scaling the image up. (Default: min.)
 	-- @param anisotropy (number) Maximum amount of Anisotropic Filtering used. (Default: 1.)
-	setDefaultFilter: function(min_filter: string, mag_filter?: string, anisotropy?: number)
+	setDefaultFilter: function(min_filter: FilterMode, mag_filter?: FilterMode, anisotropy?: number)
 
 	-- Returns the default scaling filters used with Images, Canvases, and Fonts.
 	-- @param filter (string) The filter parameter.
 	-- @param sharpness (number) The sharpness parameter.
-	-- @return (string or string or nil) Filter mode used when scaling the image down.
-	-- @return (string or number) Filter mode used when scaling the image up.
+	-- @return (FilterMode) Filter mode used when scaling the image down.
+	-- @return (FilterMode) Filter mode used when scaling the image up.
 	-- @return (number) Maximum amount of Anisotropic Filtering used.
-	getDefaultFilter: function(): string, string, number
-	setDefaultMipmapFilter: function(filter?: string, sharpness?: number)
-	getDefaultMipmapFilter: function(): string | nil, number
+	getDefaultFilter: function(): FilterMode, FilterMode, number
+	setDefaultMipmapFilter: function(filter?: FilterMode, sharpness?: number)
+	getDefaultMipmapFilter: function(): FilterMode | nil, number
 
 	-- Sets the color used for drawing.
 	-- In versions prior to 11.0, color component values were within the range of 0 to 255 instead of 0 to 1.
@@ -6470,20 +6957,20 @@ local record Graphics
 	getLineWidth: function(): number
 
 	-- Sets the line style.
-	-- @param style (string) The LineStyle to use. Line styles include smooth and rough.
-	setLineStyle: function(style: string)
+	-- @param style (LineStyle) The LineStyle to use. Line styles include smooth and rough.
+	setLineStyle: function(style: LineStyle)
 
 	-- Gets the line style.
-	-- @return (string) The current line style.
-	getLineStyle: function(): string
+	-- @return (LineStyle) The current line style.
+	getLineStyle: function(): LineStyle
 
 	-- Sets the line join style. See LineJoin for the possible options.
-	-- @param join (string) The LineJoin to use.
-	setLineJoin: function(join: string)
+	-- @param join (LineJoin) The LineJoin to use.
+	setLineJoin: function(join: LineJoin)
 
 	-- Gets the line join style.
-	-- @return (string) The LineJoin style.
-	getLineJoin: function(): string
+	-- @return (LineJoin) The LineJoin style.
+	getLineJoin: function(): LineJoin
 
 	-- Sets whether wireframe lines will be used when drawing.
 	-- @param enable (boolean) True to enable wireframe mode when drawing, false to disable it.
@@ -6612,19 +7099,19 @@ local record Graphics
 	-- Draws a rectangle.
 	-- Overload details:
 	--   1. Draws a rectangle with rounded corners.
-	-- @param mode (string) How to draw the rectangle.
+	-- @param mode (DrawMode) How to draw the rectangle.
 	-- @param x (number) The position of top-left corner along the x-axis.
 	-- @param y (number) The position of top-left corner along the y-axis.
 	-- @param width (number) Width of the rectangle.
 	-- @param height (number) Height of the rectangle.
-	rectangle: function(mode: string, x: number, y: number, width: number, height: number)
+	rectangle: function(mode: DrawMode, x: number, y: number, width: number, height: number)
 
 	-- Draws a circle.
-	-- @param mode (string) How to draw the circle.
+	-- @param mode (DrawMode) How to draw the circle.
 	-- @param x (number) The position of the center along x-axis.
 	-- @param y (number) The position of the center along y-axis.
 	-- @param radius (number) The radius of the circle.
-	circle: function(mode: string, x: number, y: number, radius: number)
+	circle: function(mode: DrawMode, x: number, y: number, radius: number)
 
 	-- Draws a filled or unfilled arc at position (x, y). The arc is drawn from angle1 to angle2 in radians. The segments parameter determines how many segments are used to draw the arc. The more segments, the smoother the edge.
 	-- @param mode (DrawMode) How to draw the arc.
@@ -6648,13 +7135,13 @@ local record Graphics
 	arc: function(mode: DrawMode, arc_mode: ArcMode, x: number, y: number, radius: number, angle1: number, angle2: number, segments?: integer)
 
 	-- Draws an ellipse.
-	-- @param mode (string) How to draw the ellipse.
+	-- @param mode (DrawMode) How to draw the ellipse.
 	-- @param x (number) The position of the center along x-axis.
 	-- @param y (number) The position of the center along y-axis.
 	-- @param radius_x (number) The radius of the ellipse along the x-axis (half the ellipse's width).
 	-- @param radius_y (number) The radius of the ellipse along the y-axis (half the ellipse's height).
 	-- @param segments (integer) The number of segments used for drawing the ellipse.
-	ellipse: function(mode: string, x: number, y: number, radius_x: number, radius_y: number, segments?: integer)
+	ellipse: function(mode: DrawMode, x: number, y: number, radius_x: number, radius_y: number, segments?: integer)
 
 	-- Draws lines between points.
 	-- @param x1 (number) The position of first point on the x-axis.
@@ -6668,7 +7155,7 @@ local record Graphics
 	-- Following the mode argument, this function can accept multiple numeric arguments or a single table of numeric
 	-- arguments. In either case the arguments are interpreted as alternating x and y coordinates of the polygon's
 	-- vertices.
-	-- @param mode (string) How to draw the polygon.
+	-- @param mode (DrawMode) How to draw the polygon.
 	-- @param x1 (number) The vertices of the polygon. Depending on the overload: The vertices of the polygon as a table.
 	-- @param y1 (number) The y1 parameter.
 	-- @param x2 (number) The x2 parameter.
@@ -6676,7 +7163,7 @@ local record Graphics
 	-- @param x3 (number) The x3 parameter.
 	-- @param y3 (number) The y3 parameter.
 	-- @param coordinates (number...) The coordinates parameter.
-	polygon: function(mode: string, x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, coordinates: number...)
+	polygon: function(mode: DrawMode, x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, coordinates: number...)
 
 	-- Draws one or more points.
 	-- Overload details:
@@ -6836,14 +7323,14 @@ local record Graphics
 	--      pre-multiplied alpha. If content is drawn to a Canvas using the 'alphamultiply' mode, the Canvas texture will
 	--      have pre-multiplied alpha afterwards, so the 'premultiplied' alpha mode should generally be used when drawing
 	--      a Canvas to the screen.
-	-- @param mode (string) The blend mode to use.
-	-- @param alpha_mode (string) What to do with the alpha of drawn objects when blending. (Default: 'alphamultiply'.)
-	setBlendMode: function(mode: string, alpha_mode?: string)
+	-- @param mode (BlendMode) The blend mode to use.
+	-- @param alpha_mode (BlendAlphaMode) What to do with the alpha of drawn objects when blending. (Default: 'alphamultiply'.)
+	setBlendMode: function(mode: BlendMode, alpha_mode?: BlendAlphaMode)
 
 	-- Gets the blending mode.
-	-- @return (string) The current blend mode.
-	-- @return (string) The current blend alpha mode – it determines how the alpha of drawn objects affects blending.
-	getBlendMode: function(): string, string
+	-- @return (BlendMode) The current blend mode.
+	-- @return (BlendAlphaMode) The current blend alpha mode – it determines how the alpha of drawn objects affects blending.
+	getBlendMode: function(): BlendMode, BlendAlphaMode
 
 	-- Sets or disables scissor.
 	--
@@ -6916,34 +7403,34 @@ local record Graphics
 	-- Gets the current depth test mode and whether writing to the depth buffer is enabled.
 	-- This is low-level functionality designed for use with custom vertex shaders and Meshes with custom vertex
 	-- attributes. No higher level APIs are provided to set the depth of 2D graphics such as shapes, lines, and Images.
-	-- @return (string) Depth comparison mode used for depth testing.
+	-- @return (CompareMode) Depth comparison mode used for depth testing.
 	-- @return (boolean) Whether to write update / write values to the depth buffer when rendering.
-	getDepthMode: function(): string, boolean
+	getDepthMode: function(): CompareMode, boolean
 
 	-- Sets whether back-facing triangles in a Mesh are culled.
 	-- This is designed for use with low level custom hardware-accelerated 3D rendering via custom vertex attributes on
 	-- Meshes, custom vertex shaders, and depth testing with a depth buffer.
 	-- By default, both front- and back-facing triangles in Meshes are rendered.
-	-- @param mode (string) The Mesh face culling mode to use (whether to render everything, cull back-facing triangles, or cull front-facing triangles).
-	setMeshCullMode: function(mode: string)
+	-- @param mode (MeshCullMode) The Mesh face culling mode to use (whether to render everything, cull back-facing triangles, or cull front-facing triangles).
+	setMeshCullMode: function(mode: MeshCullMode)
 
 	-- Gets whether back-facing triangles in a Mesh are culled.
 	-- Mesh face culling is designed for use with low level custom hardware-accelerated 3D rendering via custom vertex
 	-- attributes on Meshes, custom vertex shaders, and depth testing with a depth buffer.
-	-- @return (string) The Mesh face culling mode in use (whether to render everything, cull back-facing triangles, or cull front-facing triangles).
-	getMeshCullMode: function(): string
+	-- @return (MeshCullMode) The Mesh face culling mode in use (whether to render everything, cull back-facing triangles, or cull front-facing triangles).
+	getMeshCullMode: function(): MeshCullMode
 
 	-- Sets whether triangles with clockwise- or counterclockwise-ordered vertices are considered front-facing.
 	-- This is designed for use in combination with Mesh face culling. Other love.graphics shapes, lines, and sprites are
 	-- not guaranteed to have a specific winding order to their internal vertices.
-	-- @param winding (string) The winding mode to use. The default winding is counterclockwise ('ccw').
-	setFrontFaceWinding: function(winding: string)
+	-- @param winding (Winding) The winding mode to use. The default winding is counterclockwise ('ccw').
+	setFrontFaceWinding: function(winding: Winding)
 
 	-- Gets whether triangles with clockwise- or counterclockwise-ordered vertices are considered front-facing.
 	-- This is designed for use in combination with Mesh face culling. Other love.graphics shapes, lines, and sprites are
 	-- not guaranteed to have a specific winding order to their internal vertices.
-	-- @return (string) The winding mode being used. The default winding is counterclockwise ('ccw').
-	getFrontFaceWinding: function(): string
+	-- @return (Winding) The winding mode being used. The default winding is counterclockwise ('ccw').
+	getFrontFaceWinding: function(): Winding
 
 	-- Draws geometry as a stencil.
 	--
@@ -6984,9 +7471,9 @@ local record Graphics
 	-- out based on a comparison between the arguments of this function and the stencil value of each pixel that the
 	-- geometry touches. The stencil values of pixels are affected via love.graphics.stencil.
 	-- Each Canvas has its own per-pixel stencil values.
-	-- @return (string) The type of comparison that is made for each pixel. Will be 'always' if stencil testing is disabled.
+	-- @return (CompareMode) The type of comparison that is made for each pixel. Will be 'always' if stencil testing is disabled.
 	-- @return (integer) The value used when comparing with the stencil value of each pixel.
-	getStencilTest: function(): string, integer
+	getStencilTest: function(): CompareMode, integer
 
 	-- Creates a new Font from a TrueType Font or BMFont file. Created fonts are not cached, in that calling this function with the same arguments will always create a new Font object.
 	--
@@ -7083,7 +7570,7 @@ local record Graphics
 	-- @param x (number) The position on the x-axis. Depending on the overload: The position of the text (x-axis).
 	-- @param y (number) The position on the y-axis. Depending on the overload: The position of the text (y-axis).
 	-- @param limit (number) Wrap the line after this many horizontal pixels. Depending on the overload: The maximum width in pixels of the text before it gets automatically wrapped to a new line.
-	-- @param align (string) The alignment. (Default: 'left'.) Depending on the overload: The alignment of the text.
+	-- @param align (AlignMode) The alignment. (Default: 'left'.) Depending on the overload: The alignment of the text.
 	-- @param angle (number) Orientation (radians). (Default: 0.)
 	-- @param scale_x (number) Scale factor (x-axis). (Default: 1.)
 	-- @param scale_y (number) Scale factor (y-axis). (Default: sx.)
@@ -7091,7 +7578,7 @@ local record Graphics
 	-- @param origin_y (number) Origin offset (y-axis). (Default: 0.)
 	-- @param shear_x (number) Shearing factor (x-axis). (Default: 0.) Depending on the overload: Shearing / skew factor (x-axis). (Default: 0.)
 	-- @param shear_y (number) Shearing factor (y-axis). (Default: 0.) Depending on the overload: Shearing / skew factor (y-axis). (Default: 0.)
-	printf: function(text: string | number, x: number, y: number, limit: number, align?: string, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+	printf: function(text: string | number, x: number, y: number, limit: number, align?: AlignMode, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
 
 	-- Creates a new Image from a filepath, FileData, an ImageData, or a CompressedImageData, and optionally generates or specifies mipmaps for the image.
 	-- @param filename (string) The filepath to the image file.
@@ -7295,9 +7782,9 @@ local record Graphics
 	-- Creates a new SpriteBatch object.
 	-- @param texture (Image or Canvas) The Image or Canvas to use for the sprites.
 	-- @param size (integer) The maximum number of sprites that the SpriteBatch can contain at any given time. Since version 11.0, additional sprites added past this number will automatically grow the spritebatch. (Default: 1000.)
-	-- @param usage (string) The expected usage of the SpriteBatch. The specified usage mode affects the SpriteBatch's memory usage and performance. (Default: 'dynamic'.)
+	-- @param usage (MeshUsage) The expected usage of the SpriteBatch. The specified usage mode affects the SpriteBatch's memory usage and performance. (Default: 'dynamic'.)
 	-- @return (SpriteBatch) The new SpriteBatch.
-	newSpriteBatch: function(texture: Image | Canvas, size?: integer, usage?: string): SpriteBatch
+	newSpriteBatch: function(texture: Image | Canvas, size?: integer, usage?: MeshUsage): SpriteBatch
 
 	-- Creates a new ParticleSystem.
 	-- @param texture (Image or Canvas) The texture (Image or Canvas) to use.
@@ -7513,6 +8000,8 @@ end
 
 -- Love 11.5 root module. This file only declares the currently implemented subset.
 local record Love
+	embed LoveEnums
+
 	record TouchID
 		userdata
 	end
@@ -7616,8 +8105,8 @@ local record Love
 
 		-- Gets the direction of the Joystick's hat.
 		-- @param hat (integer) The index of the hat to be checked.
-		-- @return (string) The direction the hat is pushed.
-		getHat: function(self: Joystick, hat: integer): string
+		-- @return (JoystickHat) The direction the hat is pushed.
+		getHat: function(self: Joystick, hat: integer): JoystickHat
 
 		-- Checks if a button on the Joystick is pressed.
 		-- LÖVE 0.9.0 had a bug which required the button indices passed to Joystick:isDown to be 0-based instead of
@@ -7639,15 +8128,15 @@ local record Love
 
 		-- Checks if a virtual gamepad button on the Joystick is pressed. If the Joystick is not recognized as a Gamepad or
 		-- isn't connected, then this function will always return false.
-		-- @param buttons (string...) The gamepad button to check.
+		-- @param buttons (GamepadButton...) The gamepad button to check.
 		-- @return (boolean) True if any supplied button is down, false if not.
-		isGamepadDown: function(self: Joystick, buttons: string...): boolean
+		isGamepadDown: function(self: Joystick, buttons: GamepadButton...): boolean
 
 		-- Gets the direction of a virtual gamepad axis. If the Joystick isn't recognized as a gamepad or isn't connected,
 		-- this function will always return 0.
-		-- @param axis (string) The virtual axis to be checked.
+		-- @param axis (GamepadAxis) The virtual axis to be checked.
 		-- @return (number) Current value of the axis.
-		getGamepadAxis: function(self: Joystick, axis: string): number
+		getGamepadAxis: function(self: Joystick, axis: GamepadAxis): number
 
 		-- Gets the button, axis or hat that a virtual gamepad input is bound to.
 		-- Overload details:
@@ -7655,11 +8144,11 @@ local record Love
 		--      Joystick input.
 		--   2. The physical locations for the virtual gamepad axes and buttons correspond as closely as possible to the
 		--      layout of a standard Xbox 360 controller.
-		-- @param input (string) The virtual gamepad axis to get the binding for. Depending on the overload: The virtual gamepad button to get the binding for.
-		-- @return (string or nil) The type of input the virtual gamepad axis is bound to. Depending on the overload: The type of input the virtual gamepad button is bound to.
+		-- @param input (GamepadAxis | GamepadButton) The virtual gamepad axis to get the binding for. Depending on the overload: The virtual gamepad button to get the binding for.
+		-- @return (JoystickInputType | nil) The type of input the virtual gamepad axis is bound to. Depending on the overload: The type of input the virtual gamepad button is bound to.
 		-- @return (integer or nil) The index of the Joystick's button, axis or hat that the virtual gamepad axis is bound to. Depending on the overload: The index of the Joystick's button, axis or hat that the virtual gamepad button is bound to.
-		-- @return (string or nil) The direction of the hat, if the virtual gamepad axis is bound to a hat. nil otherwise. Depending on the overload: The direction of the hat, if the virtual gamepad button is bound to a hat. nil otherwise.
-		getGamepadMapping: function(self: Joystick, input: string): string | nil, integer | nil, string | nil
+		-- @return (JoystickHat | nil) The direction of the hat, if the virtual gamepad axis is bound to a hat. nil otherwise. Depending on the overload: The direction of the hat, if the virtual gamepad button is bound to a hat. nil otherwise.
+		getGamepadMapping: function(self: Joystick, input: GamepadAxis | GamepadButton): JoystickInputType | nil, integer | nil, JoystickHat | nil
 
 		-- Gets the full gamepad mapping string of this Joystick, or nil if it's not recognized as a gamepad.
 		-- The mapping string contains binding information used to map the Joystick's buttons an axes to the standard
@@ -7710,10 +8199,10 @@ local record Love
 	-- The virtual gamepad buttons and axes are designed around the Xbox 360 controller layout.
 	-- @param guid (string) The OS-dependent GUID for the type of Joystick the binding will affect.
 	-- @param input (GamepadAxis | GamepadButton) The virtual gamepad button to bind.
-	-- @param type (string) The type of input to bind the virtual gamepad button to.
+	-- @param type (JoystickInputType) The type of input to bind the virtual gamepad button to.
 	-- @param index (integer) The index of the axis, button, or hat to bind the virtual gamepad button to.
 	-- @return (boolean) success — Whether the virtual gamepad button was successfully bound.
-	setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, type: string, index: integer): boolean
+	setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, type: JoystickInputType, index: integer): boolean
 
 	-- Binds a virtual gamepad input to a button, axis or hat for all Joysticks of a certain type. For example, if this function is used with a GUID returned by a Dualshock 3 controller in OS X, the binding will affect Joystick:getGamepadAxis and Joystick:isGamepadDown for ''all'' Dualshock 3 controllers used with the game when run in OS X.
 	--
@@ -7722,11 +8211,11 @@ local record Love
 	-- The virtual gamepad buttons and axes are designed around the Xbox 360 controller layout.
 	-- @param guid (string) The OS-dependent GUID for the type of Joystick the binding will affect.
 	-- @param input (GamepadAxis | GamepadButton) The virtual gamepad axis to bind.
-	-- @param type (string) The type of input to bind the virtual gamepad axis to.
+	-- @param type (JoystickInputType) The type of input to bind the virtual gamepad axis to.
 	-- @param index (integer) The index of the axis, button, or hat to bind the virtual gamepad axis to.
 	-- @param direction (JoystickHat) The direction of the hat, if the virtual gamepad axis will be bound to a hat. nil otherwise. (Default: nil.)
 	-- @return (boolean) Whether the virtual gamepad axis was successfully bound.
-	setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, type: string, index: integer, direction: JoystickHat): boolean
+	setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, type: JoystickInputType, index: integer, direction: JoystickHat): boolean
 
 		-- Loads a gamepad mappings string or file created with love.joystick.saveGamepadMappings.
 		-- It also recognizes any SDL gamecontroller mapping string, such as those created with Steam's Big Picture

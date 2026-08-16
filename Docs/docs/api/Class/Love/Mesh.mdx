@@ -356,7 +356,7 @@ was specified in the Mesh's vertex format and in the name argument of Mesh:attac
 
 **Signature:**
 ```tl
-attachAttribute: function(self: Mesh, name: string, mesh: Mesh, step?: string, attribute_name?: string)
+attachAttribute: function(self: Mesh, name: string, mesh: Mesh, step?: AttributeStep, attribute_name?: string)
 ```
 
 **Parameters:**
@@ -365,7 +365,7 @@ attachAttribute: function(self: Mesh, name: string, mesh: Mesh, step?: string, a
 | --- | --- | --- |
 | name | string | The name of the vertex attribute to attach. |
 | mesh | Mesh | The Mesh to get the vertex attribute from. |
-| step | string | Whether the attribute will be per-vertex or per-instance when the mesh is drawn. (Default: 'pervertex'.) |
+| step | AttributeStep | Whether the attribute will be per-vertex or per-instance when the mesh is drawn. (Default: 'pervertex'.) |
 | attribute_name | string | The name of the attribute to use in shader code. Defaults to the name of the attribute in the given mesh. Can be used to use a different name for this attribute when rendering. (Default: name.) |
 
 ## detachAttribute
@@ -557,14 +557,14 @@ getTexture: function(self: Mesh): Image | Canvas | nil
 
 **Signature:**
 ```tl
-setDrawMode: function(self: Mesh, mode: string)
+setDrawMode: function(self: Mesh, mode: MeshDrawMode)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| mode | string | The mode to use when drawing the Mesh. |
+| mode | MeshDrawMode | The mode to use when drawing the Mesh. |
 
 ## getDrawMode
 
@@ -576,14 +576,14 @@ setDrawMode: function(self: Mesh, mode: string)
 
 **Signature:**
 ```tl
-getDrawMode: function(self: Mesh): string
+getDrawMode: function(self: Mesh): MeshDrawMode
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | The mode used when drawing the Mesh. |
+| MeshDrawMode | The mode used when drawing the Mesh. |
 
 ## setDrawRange
 

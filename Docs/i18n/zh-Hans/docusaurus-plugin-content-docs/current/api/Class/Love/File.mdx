@@ -190,14 +190,14 @@ read: function(self: File, size?: integer): string | nil, number | string
 
 **签名：**
 ```tl
-read: function(self: File, container: string, size?: integer): string | nil, number | string
+read: function(self: File, container: DataContainer, size?: integer): string | nil, number | string
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 返回文件内容的类型。 |
+| container | DataContainer | 返回文件内容的类型。 |
 | size | integer | 要读取的字节数。 （默认值：全部。） |
 
 **返回值：**
@@ -217,14 +217,14 @@ read: function(self: File, container: string, size?: integer): string | nil, num
 
 **签名：**
 ```tl
-read: function(self: File, container: string, size?: integer): FileData | nil, number | string
+read: function(self: File, container: DataContainer, size?: integer): FileData | nil, number | string
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| container | string | 返回文件内容的类型。 |
+| container | DataContainer | 返回文件内容的类型。 |
 | size | integer | 要读取的字节数。 （默认值：全部。） |
 
 **返回值：**

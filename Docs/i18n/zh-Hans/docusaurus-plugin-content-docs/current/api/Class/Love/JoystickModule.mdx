@@ -56,7 +56,7 @@ getJoystickCount: function(): integer
 
 **签名：**
 ```tl
-setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, type: string, index: integer): boolean
+setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, type: JoystickInputType, index: integer): boolean
 ```
 
 **参数：**
@@ -65,7 +65,7 @@ setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, ty
 | --- | --- | --- |
 | guid | string | 绑定将影响的操纵杆类型的依赖于操作系统的 GUID。 |
 | input | GamepadAxis | GamepadButton | 要绑定的虚拟游戏手柄按钮。 |
-| type | string | 将虚拟游戏手柄按钮绑定到的输入类型。 |
+| type | JoystickInputType | 将虚拟游戏手柄按钮绑定到的输入类型。 |
 | index | integer | 将虚拟游戏手柄按钮绑定到的轴、按钮或帽子的索引。 |
 
 **返回值：**
@@ -88,7 +88,7 @@ setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, ty
 
 **签名：**
 ```tl
-setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, type: string, index: integer, direction: JoystickHat): boolean
+setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, type: JoystickInputType, index: integer, direction: JoystickHat): boolean
 ```
 
 **参数：**
@@ -97,7 +97,7 @@ setGamepadMapping: function(guid: string, input: GamepadAxis | GamepadButton, ty
 | --- | --- | --- |
 | guid | string | 绑定将影响的操纵杆类型的依赖于操作系统的 GUID。 |
 | input | GamepadAxis | GamepadButton | 要绑定的虚拟游戏手柄轴。 |
-| type | string | 将虚拟游戏手柄轴绑定到的输入类型。 |
+| type | JoystickInputType | 将虚拟游戏手柄轴绑定到的输入类型。 |
 | index | integer | 将虚拟游戏手柄轴绑定到的轴、按钮或帽子的索引。 |
 | direction | JoystickHat | 帽子的方向，如果虚拟游戏手柄轴将绑定到帽子。否则为零。 （默认值：无。） |
 

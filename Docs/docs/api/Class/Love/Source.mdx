@@ -297,7 +297,7 @@ getPitch: function(self: Source): number
 
 **Signature:**
 ```tl
-seek: function(self: Source, offset: number, unit?: string)
+seek: function(self: Source, offset: number, unit?: TimeUnit)
 ```
 
 **Parameters:**
@@ -305,7 +305,7 @@ seek: function(self: Source, offset: number, unit?: string)
 | Parameter | Type | Description |
 | --- | --- | --- |
 | offset | number | The position to seek to. |
-| unit | string | The unit of the position value. (Default: 'seconds'.) |
+| unit | TimeUnit | The unit of the position value. (Default: 'seconds'.) |
 
 ## tell
 
@@ -317,14 +317,14 @@ seek: function(self: Source, offset: number, unit?: string)
 
 **Signature:**
 ```tl
-tell: function(self: Source, unit?: string): number
+tell: function(self: Source, unit?: TimeUnit): number
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| unit | string | The type of unit for the return value. (Default: 'seconds'.) |
+| unit | TimeUnit | The type of unit for the return value. (Default: 'seconds'.) |
 
 **Returns:**
 
@@ -343,14 +343,14 @@ the duration cannot be determined at all.
 
 **Signature:**
 ```tl
-getDuration: function(self: Source, unit?: string): number
+getDuration: function(self: Source, unit?: TimeUnit): number
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| unit | string | The time unit for the return value. (Default: 'seconds'.) |
+| unit | TimeUnit | The time unit for the return value. (Default: 'seconds'.) |
 
 **Returns:**
 
@@ -1051,11 +1051,11 @@ getActiveEffects: function(self: Source): {string}
 
 **Signature:**
 ```tl
-getType: function(self: Source): string
+getType: function(self: Source): SourceType
 ```
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| string | The type of the source. |
+| SourceType | The type of the source. |

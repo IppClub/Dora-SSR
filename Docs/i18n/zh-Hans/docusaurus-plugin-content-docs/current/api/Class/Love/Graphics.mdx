@@ -171,15 +171,15 @@ getBackgroundColor: function(): number, number, number, number
 
 **签名：**
 ```tl
-setDefaultFilter: function(min_filter: string, mag_filter?: string, anisotropy?: number)
+setDefaultFilter: function(min_filter: FilterMode, mag_filter?: FilterMode, anisotropy?: number)
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| min_filter | string | 缩小图像时使用的滤镜模式。 |
-| mag_filter | string | 放大图像时使用的滤镜模式。 （默认值：分钟。） |
+| min_filter | FilterMode | 缩小图像时使用的滤镜模式。 |
+| mag_filter | FilterMode | 放大图像时使用的滤镜模式。 （默认值：分钟。） |
 | anisotropy | number | 使用的各向异性过滤的最大数量。 （默认值：1。） |
 
 ## getDefaultFilter
@@ -192,9 +192,9 @@ setDefaultFilter: function(min_filter: string, mag_filter?: string, anisotropy?:
 
 **签名：**
 ```tl
-getDefaultFilter: function(): string, string, number
-	setDefaultMipmapFilter: function(filter?: string, sharpness?: number)
-	getDefaultMipmapFilter: function(): string | nil, number
+getDefaultFilter: function(): FilterMode, FilterMode, number
+	setDefaultMipmapFilter: function(filter?: FilterMode, sharpness?: number)
+	getDefaultMipmapFilter: function(): FilterMode | nil, number
 ```
 
 **参数：**
@@ -208,8 +208,8 @@ getDefaultFilter: function(): string, string, number
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string or string or nil | 缩小图像时使用的滤镜模式。 |
-| string or number | 放大图像时使用的滤镜模式。 |
+| FilterMode | 缩小图像时使用的滤镜模式。 |
+| FilterMode | 放大图像时使用的滤镜模式。 |
 | number | 使用的各向异性过滤的最大数量。 |
 
 ## setColor
@@ -311,14 +311,14 @@ getLineWidth: function(): number
 
 **签名：**
 ```tl
-setLineStyle: function(style: string)
+setLineStyle: function(style: LineStyle)
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| style | string | 要使用的线条样式。线条样式包括平滑和粗糙。 |
+| style | LineStyle | 要使用的线条样式。线条样式包括平滑和粗糙。 |
 
 ## getLineStyle
 
@@ -330,14 +330,14 @@ setLineStyle: function(style: string)
 
 **签名：**
 ```tl
-getLineStyle: function(): string
+getLineStyle: function(): LineStyle
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 当前的线条样式。 |
+| LineStyle | 当前的线条样式。 |
 
 ## setLineJoin
 
@@ -349,14 +349,14 @@ getLineStyle: function(): string
 
 **签名：**
 ```tl
-setLineJoin: function(join: string)
+setLineJoin: function(join: LineJoin)
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| join | string | 要使用的 LineJoin。 |
+| join | LineJoin | 要使用的 LineJoin。 |
 
 ## getLineJoin
 
@@ -368,14 +368,14 @@ setLineJoin: function(join: string)
 
 **签名：**
 ```tl
-getLineJoin: function(): string
+getLineJoin: function(): LineJoin
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | LineJoin 风格。 |
+| LineJoin | LineJoin 风格。 |
 
 ## setWireframe
 
@@ -844,14 +844,14 @@ captureScreenshot: function(channel: Channel)
 
 **签名：**
 ```tl
-rectangle: function(mode: string, x: number, y: number, width: number, height: number)
+rectangle: function(mode: DrawMode, x: number, y: number, width: number, height: number)
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| mode | string | 如何绘制矩形。 |
+| mode | DrawMode | 如何绘制矩形。 |
 | x | number | 左上角沿x轴的位置。 |
 | y | number | 左上角沿 y 轴的位置。 |
 | width | number | 矩形的宽度。 |
@@ -867,14 +867,14 @@ rectangle: function(mode: string, x: number, y: number, width: number, height: n
 
 **签名：**
 ```tl
-circle: function(mode: string, x: number, y: number, radius: number)
+circle: function(mode: DrawMode, x: number, y: number, radius: number)
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| mode | string | 如何画圆。 |
+| mode | DrawMode | 如何画圆。 |
 | x | number | 中心沿 x 轴的位置。 |
 | y | number | 中心沿 y 轴的位置。 |
 | radius | number | 圆的半径。 |
@@ -940,14 +940,14 @@ arc: function(mode: DrawMode, arc_mode: ArcMode, x: number, y: number, radius: n
 
 **签名：**
 ```tl
-ellipse: function(mode: string, x: number, y: number, radius_x: number, radius_y: number, segments?: integer)
+ellipse: function(mode: DrawMode, x: number, y: number, radius_x: number, radius_y: number, segments?: integer)
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| mode | string | 如何绘制椭圆。 |
+| mode | DrawMode | 如何绘制椭圆。 |
 | x | number | 中心沿 x 轴的位置。 |
 | y | number | 中心沿 y 轴的位置。 |
 | radius_x | number | 椭圆沿 x 轴的半径（椭圆宽度的一半）。 |
@@ -988,14 +988,14 @@ line: function(x1: number, y1: number, x2: number, y2: number, coordinates: numb
 
 **签名：**
 ```tl
-polygon: function(mode: string, x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, coordinates: number...)
+polygon: function(mode: DrawMode, x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, coordinates: number...)
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| mode | string | 如何绘制多边形。 |
+| mode | DrawMode | 如何绘制多边形。 |
 | x1 | number | 多边形的顶点。取决于重载：将多边形的顶点作为表格。 |
 | y1 | number | y1 参数。 |
 | x2 | number | x2 参数。 |
@@ -1392,15 +1392,15 @@ alpha，因此在将 Canvas 绘制到屏幕时通常应使用 'premultiplied' al
 
 **签名：**
 ```tl
-setBlendMode: function(mode: string, alpha_mode?: string)
+setBlendMode: function(mode: BlendMode, alpha_mode?: BlendAlphaMode)
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| mode | string | 要使用的混合模式。 |
-| alpha_mode | string | 混合时如何处理绘制对象的 Alpha。 （默认：'alphamultiply'。） |
+| mode | BlendMode | 要使用的混合模式。 |
+| alpha_mode | BlendAlphaMode | 混合时如何处理绘制对象的 Alpha。 （默认：'alphamultiply'。） |
 
 ## getBlendMode
 
@@ -1412,15 +1412,15 @@ setBlendMode: function(mode: string, alpha_mode?: string)
 
 **签名：**
 ```tl
-getBlendMode: function(): string, string
+getBlendMode: function(): BlendMode, BlendAlphaMode
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 当前的混合模式。 |
-| string | 当前混合 Alpha 模式 – 它确定绘制对象的 Alpha 如何影响混合。 |
+| BlendMode | 当前的混合模式。 |
+| BlendAlphaMode | 当前混合 Alpha 模式 – 它确定绘制对象的 Alpha 如何影响混合。 |
 
 ## setScissor
 
@@ -1617,14 +1617,14 @@ setDepthMode: function(compare: CompareMode, write: boolean)
 
 **签名：**
 ```tl
-getDepthMode: function(): string, boolean
+getDepthMode: function(): CompareMode, boolean
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 用于深度测试的深度比较模式。 |
+| CompareMode | 用于深度测试的深度比较模式。 |
 | boolean | 渲染时是否将更新/写入值写入深度缓冲区。 |
 
 ## setMeshCullMode
@@ -1639,14 +1639,14 @@ getDepthMode: function(): string, boolean
 
 **签名：**
 ```tl
-setMeshCullMode: function(mode: string)
+setMeshCullMode: function(mode: MeshCullMode)
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| mode | string | 要使用的网格面剔除模式（是否渲染所有内容、剔除背面三角形或剔除正面三角形）。 |
+| mode | MeshCullMode | 要使用的网格面剔除模式（是否渲染所有内容、剔除背面三角形或剔除正面三角形）。 |
 
 ## getMeshCullMode
 
@@ -1659,14 +1659,14 @@ setMeshCullMode: function(mode: string)
 
 **签名：**
 ```tl
-getMeshCullMode: function(): string
+getMeshCullMode: function(): MeshCullMode
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 使用中的网格面剔除模式（是否渲染所有内容、剔除背面三角形或剔除正面三角形）。 |
+| MeshCullMode | 使用中的网格面剔除模式（是否渲染所有内容、剔除背面三角形或剔除正面三角形）。 |
 
 ## setFrontFaceWinding
 
@@ -1679,14 +1679,14 @@ getMeshCullMode: function(): string
 
 **签名：**
 ```tl
-setFrontFaceWinding: function(winding: string)
+setFrontFaceWinding: function(winding: Winding)
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| winding | string | 使用的绕线模式。默认绕线为逆时针方向 ('ccw')。 |
+| winding | Winding | 使用的绕线模式。默认绕线为逆时针方向 ('ccw')。 |
 
 ## getFrontFaceWinding
 
@@ -1699,14 +1699,14 @@ setFrontFaceWinding: function(winding: string)
 
 **签名：**
 ```tl
-getFrontFaceWinding: function(): string
+getFrontFaceWinding: function(): Winding
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 使用的绕线模式。默认绕线为逆时针方向 ('ccw')。 |
+| Winding | 使用的绕线模式。默认绕线为逆时针方向 ('ccw')。 |
 
 ## stencil
 
@@ -1809,14 +1809,14 @@ setStencilTest: function(compare: CompareMode, value: integer)
 
 **签名：**
 ```tl
-getStencilTest: function(): string, integer
+getStencilTest: function(): CompareMode, integer
 ```
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 对每个像素进行的比较类型。如果禁用模板测试，则将为 'always'。 |
+| CompareMode | 对每个像素进行的比较类型。如果禁用模板测试，则将为 'always'。 |
 | integer | 与每个像素的模板值进行比较时使用的值。 |
 
 ## newFont
@@ -2098,7 +2098,7 @@ print: function(text: string | number, x?: number, y?: number, angle?: number, s
 
 **签名：**
 ```tl
-printf: function(text: string | number, x: number, y: number, limit: number, align?: string, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+printf: function(text: string | number, x: number, y: number, limit: number, align?: AlignMode, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
 ```
 
 **参数：**
@@ -2109,7 +2109,7 @@ printf: function(text: string | number, x: number, y: number, limit: number, ali
 | x | number | x 轴上的位置。取决于过载：文本的位置（x 轴）。 |
 | y | number | y 轴上的位置。取决于过载：文本的位置（y 轴）。 |
 | limit | number | 在这么多水平像素之后换行。取决于过载：自动换行之前文本的最大宽度（以像素为单位）。 |
-| align | string | 对齐。 （默认值：'left'。）取决于重载：文本的对齐方式。 |
+| align | AlignMode | 对齐。 （默认值：'left'。）取决于重载：文本的对齐方式。 |
 | angle | number | 方向（弧度）。 （默认值：0。） |
 | scale_x | number | 比例因子（x 轴）。 （默认值：1。） |
 | scale_y | number | 比例因子（y 轴）。 （默认值：sx。） |
@@ -2693,7 +2693,7 @@ newMesh: function(format: {MeshVertexFormat}, vertices: {MeshVertex} | number | 
 
 **签名：**
 ```tl
-newSpriteBatch: function(texture: Image | Canvas, size?: integer, usage?: string): SpriteBatch
+newSpriteBatch: function(texture: Image | Canvas, size?: integer, usage?: MeshUsage): SpriteBatch
 ```
 
 **参数：**
@@ -2702,7 +2702,7 @@ newSpriteBatch: function(texture: Image | Canvas, size?: integer, usage?: string
 | --- | --- | --- |
 | texture | Image or Canvas | 用于精灵的图像或画布。 |
 | size | integer | SpriteBatch 在任何给定时间可以包含的精灵的最大数量。自版本 11.0 起，添加超过此数量的额外精灵将自动增加精灵批次。 （默认值：1000。） |
-| usage | string | SpriteBatch 的预期用法。指定的使用模式会影响SpriteBatch的内存使用和性能。 （默认：'dynamic'。） |
+| usage | MeshUsage | SpriteBatch 的预期用法。指定的使用模式会影响SpriteBatch的内存使用和性能。 （默认：'dynamic'。） |
 
 **返回值：**
 

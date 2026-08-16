@@ -206,7 +206,7 @@ ____exports.AGENT_TOOL_PROMPTS = { -- 178
 		workModes = {"code", "plan"}, -- 226
 		description = "Search text patterns inside files.", -- 227
 		parameters = { -- 228
-			{name = "path", type = "string", description = "Base directory or file path to search within."}, -- 229
+			{name = "path", type = "string", description = "Workspace directory, workspace file, or exact @dora-doc/... virtual document path to search within."}, -- 229
 			{name = "pattern", type = "string", required = true, description = "Content pattern to search for. Use | to express OR alternatives."}, -- 230
 			{name = "globs", type = "array", items = {type = "string"}, description = "Optional file glob filters."}, -- 231
 			{name = "useRegex", type = "boolean", description = "Set true when pattern is a regular expression."}, -- 232
@@ -216,7 +216,7 @@ ____exports.AGENT_TOOL_PROMPTS = { -- 178
 			{name = "groupByFile", type = "boolean", description = "Set true to rank candidate files before drilling into one file."} -- 236
 		}, -- 236
 		rules = { -- 238
-			"`path` may point to either a directory or a single file.", -- 239
+			"`path` may point to a workspace directory, workspace file, or an exact @dora-doc/... virtual document returned by search_dora_doc.", -- 239
 			"This is content search (grep), not filename search.", -- 240
 			"`pattern` matches file contents. `globs` only restrict which files are searched.", -- 241
 			"`useRegex` defaults to false. Set `useRegex=true` when `pattern` is a regular expression such as `^title:`.", -- 242
@@ -262,7 +262,7 @@ ____exports.AGENT_TOOL_PROMPTS = { -- 178
 		rules = { -- 277
 			"`docType` defaults to `dora-api`; select `dora-tutorial`, `love-api`, or `tic80-api` explicitly when needed.", -- 278
 			"Each type searches only its matching files: Dora tutorials, Dora API definitions excluding Love/TIC-80, love.d.*, or tic80.d.*.", -- 279
-			"Every result file uses the @dora-doc/<docType>/... namespace and is readable with read_file.", -- 280
+			"Every result file uses the @dora-doc/<docType>/... namespace; it is readable with read_file and searchable with grep_files using the exact virtual path.", -- 280
 			"Use `|` inside pattern to separate alternative queries; results are merged by union (OR), not AND.", -- 281
 			"`useRegex` defaults to false whenever supported by a search tool.", -- 282
 			function(context) return ("`limit` restricts each individual pattern search and must be <= " .. tostring(context.searchDoraDocLimitMax)) .. "." end -- 283

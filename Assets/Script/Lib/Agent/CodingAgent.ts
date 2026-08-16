@@ -3530,18 +3530,23 @@ class ReadFileAction extends Node<AgentShared> {
 }
 
 class SearchFilesAction extends Node<AgentShared> {
-	async prep(shared: AgentShared): Promise<{ params: Record<string, unknown>; workDir: string }> {
+	async prep(shared: AgentShared): Promise<{ params: Record<string, unknown>; workDir: string; docLanguage: Tools.DoraDocLanguage }> {
 		const last = shared.history[shared.history.length - 1];
 		if (!last) throw new Error("no history");
 		emitAgentStartEvent(shared, last);
-		return { params: last.params, workDir: shared.workingDir };
+		return {
+			params: last.params,
+			workDir: shared.workingDir,
+			docLanguage: shared.useChineseResponse ? "zh" : "en",
+		};
 	}
 
-	async exec(input: { params: Record<string, unknown>; workDir: string }): Promise<Record<string, unknown>> {
+	async exec(input: { params: Record<string, unknown>; workDir: string; docLanguage: Tools.DoraDocLanguage }): Promise<Record<string, unknown>> {
 		const params = input.params;
 		const result = await Tools.searchFiles({
 			workDir: input.workDir,
 			path: (params.path as string) ?? "",
+			docLanguage: input.docLanguage,
 			pattern: (params.pattern as string) ?? "",
 			globs: params.globs as string[] | undefined,
 			useRegex: params.useRegex as boolean | undefined,
@@ -4146,6 +4151,7 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		const result = await Tools.searchFiles({
 			workDir: shared.workingDir,
 			path: searchPath,
+			docLanguage: shared.useChineseResponse ? "zh" : "en",
 			pattern: (params.pattern as string) ?? "",
 			globs: params.globs as string[] | undefined,
 			useRegex: params.useRegex as boolean | undefined,
