@@ -7,11 +7,11 @@ tags: [Dora SSR, Web IDE, Performance]
 
 In July 2026, we performed a systematic performance pass on Dora Web IDE. The trigger was not one dramatic freeze. The workbench had gradually accumulated an editor, resource tools, Git, logs, visual editors, and a Coding Agent. Each feature worked in isolation, while hidden costs began to overlap.
 
-<!-- truncate -->
-
 This article is a technical record rather than a dramatic story.
 
 A hidden panel might still listen for data. Every few Agent characters might rerender the entire history. Search might display a few dozen matches only after scanning forty thousand files, while a Git title list might calculate every changed file in advance.
+
+<!-- truncate -->
 
 The audit therefore asked three questions: which work occurs too frequently, which invisible content continues calculating, and which data is loaded before anyone asks for it?
 
