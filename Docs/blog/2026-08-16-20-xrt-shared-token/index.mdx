@@ -79,6 +79,8 @@ flowchart LR
 
 The C wrapper keeps xrt types and implementation details in a small boundary. Structural tests check that server code does not include xrt directly and that the implementation is enabled only where intended. Sharing a library is the beginning; making it a maintainable resident is separate work.
 
+The upper-level `HttpServer` sees only interfaces defined by Dora. The boundary is compiled with both C and C++ compilers so third-party implementation details cannot quietly spread back through the server layer.
+
 ## More generated code makes human judgment more visible
 
 “Sharing tokens” does not mean sharing an account or API key, nor publishing unchecked generated code.

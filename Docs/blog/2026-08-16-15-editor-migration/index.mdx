@@ -29,6 +29,8 @@ ActionEditor reads the compressed XML inside a `.model` file and turns it into a
 
 Saving still writes a `.model` Dora can load. Users are not forced to convert every historical character because the editor moved to the browser.
 
+## “It opens” is not enough to call the migration complete
+
 “The file opens” is only the first gate. A reliable round trip checks parsing, editing the intended object, writing without losing untouched meaning, reopening, previewing, and loading through the real engine runtime.
 
 ![An ActionEditor open-edit-save-reopen round trip](./assets/02-action-roundtrip-en.webp)

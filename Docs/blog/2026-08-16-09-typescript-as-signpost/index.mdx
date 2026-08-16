@@ -13,15 +13,37 @@ Then code gained a new reader. Agents do not experience syntax culture exactly a
 
 <!-- truncate -->
 
-## Language diversity came from human labor
+## Programming once carried the joy of assembling blocks
+
+When I first learned programming, choosing a language was also choosing a way of thinking. Syntax, libraries, editors, and communities shaped the feeling of fitting small pieces into a working whole. Dora inherited that pleasure and kept several entrances open rather than treating one syntax as the only respectable way to create.
+
+## Lua shortened the road, but a short road is not always easy to navigate
+
+Lua made embedding, experimentation, and direct engine scripting light. YueScript added expressive syntax, Teal added gradual typing, TypeScript added a broader typed tooling ecosystem, and Rust and Wa opened paths toward WebAssembly and lower-level extensions.
+
+Every entrance solved a real problem. Over time, however, each also needed declarations, bindings, documentation, examples, editor support, compiler behavior, and synchronization with the engine API. A shorter first path can still become difficult to maintain across many paths.
+
+## The languages look numerous, but they do not travel the same road
+
+Lua is Dora's direct runtime language. YueScript and Teal compile within the Lua family. TypeScript passes through TSTL into Lua. Rust and Wa take a WebAssembly route. Their surface syntax may all create the same node, but their type systems, compilers, runtime assumptions, and failure messages are different.
+
+Keeping several languages is therefore not the same as placing several labels on one implementation. Each path needs its own reliable bridge.
+
+## Opening a door is romantic; repairing every door forever is engineering labor
 
 A memorable comment in the Dora community put it this way: creating many languages for different mental habits belongs partly to the age of manual programming labor. Programming culture can resemble the songs workers invent to coordinate difficult physical work—valuable, expressive, and shaped by how human bodies and minds endure the task.
 
 That does not make languages obsolete. It explains why their human ergonomics mattered so much.
 
-When an Agent writes most of the first draft, another property becomes more important: how clearly can the toolchain reject a wrong interpretation?
+When an Agent writes most of the first draft, another property becomes more important: how clearly can the toolchain reject a wrong interpretation? The old craft cultures remain meaningful, but the maintenance cost of every additional entrance becomes more visible.
 
-## TypeScript is a shared checkpoint
+## Then code gained a new reader
+
+Agents have absorbed far more examples of some languages and libraries than others. They do not necessarily share a human creator's attachment to a compact syntax or a community idiom. They benefit from familiar structures, explicit types, editor diagnostics, and a compiler that rejects semantic drift before runtime.
+
+That does not make the Agent the only reader. It changes which language can serve as the clearest meeting point among a person, model, editor, compiler, and Lua runtime.
+
+## Instead of reminding the Agent repeatedly, let the compiler remember
 
 TypeScript is not Dora's only language and not always the final runtime language. It is a useful signpost because people, editors, compilers, and models all have strong ways to reason about it.
 
@@ -31,8 +53,6 @@ Types make API expectations visible before a program reaches the engine. Monaco 
 
 ![Monaco showing a Dora TypeScript diagnostic for an uncontrolled any value](./assets/02-typescript-monaco-any-hover-v3.webp)
 
-## Put recurring Agent mistakes into the compiler
-
 During long Agent experiments, several mistakes appeared repeatedly: uncontrolled `any`, `null` assumptions, sparse arrays, and comparisons whose coercion rules differed between JavaScript and Lua.
 
 Writing a longer prompt for every task would only rent the same lesson again. We moved those constraints into the TSTL compiler and its diagnostics. Now a person or Agent receives the rule at the moment the code violates it.
@@ -41,9 +61,24 @@ This is an important form of Agent tooling: convert experience into a determinis
 
 TypeScript source then compiles to Lua and runs through Dora's existing runtime. Other languages remain valuable: YueScript offers expressive Lua-family syntax, Teal brings gradual typing, Rust and Wa can reach WebAssembly, and Lua remains the direct language of the engine.
 
+For Dora Agent, TypeScript is now the clearest primary path. The built-in development guidance prefers editing TS/TSX source, begins small prototypes from `init.ts`, and uses types and compilable deterministic checks where possible. The compiler also prevents an array from silently acquiring a `nil` hole whose meaning differs from an ordinary JavaScript sparse array.
+
+## The doors may remain many, but the signposts need to be clearer
+
 The point is not to force every creator through one door. It is to place a well-lit signpost where people and Agents can establish a shared, checkable understanding before the program moves deeper into the engine.
 
 Open Dora Web IDE and create the same minimal scene in the language you prefer. Then try one TypeScript version and deliberately violate a Dora-specific rule. The most interesting part is not which syntax is prettier, but which layer gives you a useful correction soonest.
+
+---
+
+Sources:
+
+- [Dora SSR: Choose Your Game Programming Language](https://dora-ssr.net/docs/tutorial/language-select)
+- [The Story of Rewriting a Compiler for MoonScript](https://dora-ssr.net/blog/2024/4/17/a-moon-script-tale/)
+- [Build Cross-platform Games with Rust](https://dora-ssr.net/blog/2024/4/15/rusty-game-dev/)
+- [Commit that first added TypeScript support](https://github.com/IppClub/Dora-SSR/commit/f28bf34b804881d570d779586be4bed5ce96d496)
+- [Stricter diagnostics added to Dora TSTL](https://github.com/IppClub/Dora-SSR/commit/695bf3376ccf92999b1af17d5f12efa62eb632a4)
+- [Stricter array diagnostics added to Dora TSTL](https://github.com/IppClub/Dora-SSR/commit/770ef70688bd5a672cb8886c2aafd22fcc2f7e)
 
 ---
 

@@ -1,60 +1,122 @@
 ---
 authors: [lijin]
-tags: [Dora SSR, Linux Handheld, Cross-platform]
+tags: [Dora SSR, Open-source Handheld, Cross-platform]
 ---
 
-# Running Dora on the A10mini: The Last Mile of an Open-source Engine
+# Running on the A10mini: The Last Mile of an Open-source Game Engine
 
-![Cover illustration for the A10mini story](./assets/cover.webp)
+![Cover for Running on the A10mini: The Last Mile of an Open-source Game Engine](./assets/cover.webp)
 
-For a few days, I had been tinkering with an A10mini together with a good buddy.
+For several days, my good buddy and I tinkered with an A10mini together.
 
-The handheld stayed in my hands. I pressed the buttons, watched the screen, and described what happened. My buddy investigated the system, prepared another change, and asked me to try again. Eventually, Dora appeared in the Ports menu and launched from a device small enough to disappear inside a coat pocket.
+The handheld stayed in my hands. I pressed the buttons, watched the screen, and told him what had just happened. He helped analyze the cause, searched for information, and prepared another version for me to test.
 
-That should have been the end of the story. It was only the beginning.
+After several rounds of ordinary pair debugging, Dora finally appeared in the A10mini's Ports menu one day.
+
+I selected it and pressed A. The menu disappeared, and the engine started.
+
+It looked as though we had merely added a menu entry. Before that moment, however, Dora could only be launched by typing commands on another computer; when I operated a tool window, the A and B buttons still controlled the game behind it; and after sending a new executable to the handheld, we could not be certain that this was the version actually running.
+
+That was the last mile an open-source game engine had to travel before truly arriving on a handheld.
 
 <!-- truncate -->
 
-## A binary can run without belonging on the device
+## The toy was already in my hands, so why not try?
 
-“ARM64 executable runs” sounds like a complete result. On a real handheld, it proves only the first layer.
+I did not buy the A10mini specifically to test Dora. It simply happened to be close at hand.
 
-The engine still needs an entrance that belongs to the operating system. It needs a launch script in the menu users already understand. It needs controls that do not leak from a tool window into the game behind it. And when a copy operation ends strangely, we need to know which exact binary the device executed rather than trusting a progress bar.
+The handheld runs Linux, and Dora can build a program for its processor. On a platform-support table, copying the file over can look like completion.
 
-The last mile therefore had three parts: entrance, interaction, and evidence.
+The real problems appear only when you pick up the device. A handheld has no convenient keyboard and mouse. Users will not connect another computer every time they want to launch a program. And only a physical button press reveals whether it controls the tool or the game.
 
-## My buddy slips inside
+So I raised the questions from outside the machine:
 
-At first, our collaboration looked perfectly ordinary. I reported what I could see; my buddy replied with another diagnosis.
+“Where do I open it?”
 
-Then the work began to feel slightly magical. He seemed to vanish into the machine, inspect a startup script, crawl through input handling, and return with a new build. If this were an old adventure story, a puff of smoke would have escaped from the vents each time he entered the handheld.
+“Why does the game move when I press a tool button?”
 
-The “buddy” was Codex.
+“You say it is fixed, but am I really running the new build?”
 
-It could inspect code and system evidence without holding the device. I supplied the part it could not obtain on its own: the real screen, the physical buttons, and the answer to the most important question—did the change actually feel correct in my hands?
+My buddy searched for answers inside the machine.
 
-## The bug that survived the first fix
+At “inside the machine,” the story suddenly became a little unusual.
 
-One problem appeared when an ImGui tool window had focus. Pressing A or B still controlled the game scene behind the tool.
+I expected him to open a terminal and continue reading code. Instead, his shape flickered, turned into a wisp of smoke, slid past my fingertip, and disappeared into the palm-sized game console.
 
-The first change improved how the interface captured controller events, but my next device test produced the same report: the game still reacted. That sentence was more valuable than a green build. It forced us to distinguish “the UI received the event” from “the game was prevented from receiving it.”
+I looked down. The handheld was still there, but my buddy was already moving among its system, scripts, and code.
 
-The second change closed the remaining path. It was not an A10mini-specific button map; it improved the general boundary between a focused tool window and the scene underneath it.
+It is time to reveal who he was. He was not another programmer sitting beside me, but Codex. It did not literally turn into smoke, of course. It could remotely inspect systems, files, and code, but it could not touch the handheld in my hands. From my perspective, it really did resemble a cyber ghost investigating the inside of the machine.
 
-## Do not trust the last line of `scp`
+So I played outside, while it investigated inside.
 
-File transfer added another small mystery. An `scp` session could end awkwardly after apparently reaching the end. Instead of deciding from the progress display, we checked independent facts: SHA-256, ELF BuildID, target architecture, installation path, and the command used by the Ports entry.
+## Round one: bring Dora out through the menu
 
-Those checks answer different questions. A file can be executable but be the wrong build. A menu entry can exist but point at an older path. A checksum can match while the input behavior is still wrong.
+Dora could already run on the A10mini, but each launch required another computer to connect to the handheld and enter a command.
 
-![A real A10mini running a game build during the device investigation](./assets/02-dora-running-photo.webp)
+That proved the program could execute, but it was not truly usable. I told the buddy inside the machine, “Running is not enough. I need to open it directly on the handheld.”
 
-The available photo shows a real game result on the handheld, but it is not by itself proof that this exact session launched from the Ports menu. Before this post is used as a complete device acceptance record, the system version, menu entry, launch path, build identity, and input behavior should be captured together.
+Codex examined dArkOS's application entry. Third-party programs appear in the Ports menu, so we needed to tell the menu where Dora was and how to start it.
 
-That boundary is part of the story. An open-source engine reaches a handheld only when people can enter it normally, control it without surprises, and identify what they are actually running.
+The handheld had trouble reaching the package source during installation. Rather than spending the whole session on the network, we first transferred the test program from the development computer and prepared a Ports launch script.
 
-If you bring Dora to another open Linux handheld, please share three things together: the launch entry, the input result, and the version identity. That is how one successful experiment becomes a path the next person can trust.
+A wisp of smoke came back out of the handheld, and the new script was ready.
+
+I refreshed the menu. Dora appeared. I pressed A, and it launched directly.
+
+![A game genuinely running on the handheld, with Dora's runtime and performance interface on the computer behind it](./assets/02-dora-running-photo.webp)
+
+Round one was complete: Dora was no longer hidden behind the command line.
+
+## Round two: press A, and two places move
+
+I opened a Dora development tool window and pressed A.
+
+The tool button responded, but the game character behind it moved too. One button press had entered two places.
+
+Codex followed the input path through the engine and made a first change. We rebuilt, transferred, launched, and I pressed A again.
+
+The tool moved. The game moved too.
+
+“It still triggers.”
+
+The buddy who had just emerged from the handheld had to turn around and dive back in.
+
+The first change had stopped only the “button was just pressed” event. The game could still read the “button is currently held” state. Codex continued tracing the path and, in the second change, established a direct rule: while a tool window is being operated, the game scene must not read those controls.
+
+Another build arrived. I pressed A and B. The tools responded normally, and the game stayed quiet.
+
+Round two was complete. The fix entered Dora's general input handling; it was not a special A10mini button map.
+
+## Round three: is the file inside really the new build?
+
+After the second change, we sent another executable to the handheld. The progress indicator reached the end, but the connection failed awkwardly while finishing.
+
+The file appeared to have arrived. But if the transfer was incomplete, or if the Ports entry still launched a program at an old path, the next button test would prove nothing.
+
+This time, Codex stayed inside as the inspector.
+
+It first compared the SHA-256 of the files on the development computer and handheld—you can think of it as a file fingerprint. It then checked the BuildID, the identifier left by this particular build, and finally followed the Ports script to confirm the actual executable path launched by the menu.
+
+The fingerprints matched, the build identifier was correct, and the launch path pointed to the expected file.
+
+Codex confirmed from inside that we had not picked up the wrong program. From outside, I launched Dora again and pressed A and B. The build was correct, and so was the interaction.
+
+Round three was complete.
+
+## Inside and outside, completing the last mile
+
+Now return to the simple image at the beginning: I select Dora from the Ports menu, press A, and the engine starts in one attempt.
+
+Behind it are three solved problems. Dora opens directly from the handheld menu; operating a tool no longer sends the same button to the game; and we can confirm that the handheld is running the build we just fixed.
+
+Outside the machine, I pressed buttons, watched the result, and supplied feedback available only from real hardware. Inside, Codex followed scripts, controls, and files like a cyber ghost. My sentence “it still triggers” called it back from an incomplete answer; each clue it found became the basis for my next button press.
+
+One A10mini test does not prove that Dora supports every open-source Linux handheld. Different devices have different systems, menus, and controllers, and somebody still has to pick each one up and try it.
+
+If you have such a handheld nearby, you are welcome to let Dora slip inside and look around. Tell us how it launches from the menu, whether the buttons behave correctly, which system it uses, and how you confirmed the exact running version.
+
+When more people reach in from outside the machine, perhaps these cyber ghosts investigating within it can help turn the last mile into a path.
 
 ---
 
-<p align="center"><img src={require('./assets/sticker.webp').default} alt="A10mini last-mile sticker" width="240" /></p>
+<p align="center"><img src={require('./assets/sticker.webp').default} alt="A10mini topic sticker" width="240" /></p>
