@@ -5,11 +5,9 @@ tags: [Dora SSR, Software Updates, Supply-chain Security]
 
 # How Dora Avoids Installing the Wrong Update
 
-A safe self-update cannot stop at comparing versions and replacing files. Dora verifies publisher identity, content hashes, platform builds, and recovery so “the intended release” and “the correct file” remain separate claims.
+Self-update sounds like three operations: compare versions, download an archive, and replace the old files.
 
 <!-- truncate -->
-
-Self-update sounds like three operations: compare versions, download an archive, and replace the old files.
 
 In practice, a version number says only what release we intend to install. It does not prove who published the download, whether its bytes are correct, or whether the previous application will survive an interrupted update. Dora SSR separates those questions into explicit verification gates.
 
