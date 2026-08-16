@@ -1,0 +1,46 @@
+---
+authors: [lijin]
+tags: [Dora SSR, Web IDE, On-device Development]
+---
+
+# Why Dora Put Its Development Environment in the Browser—and How Agents Changed the Answer
+
+![Cover illustration for Dora Web IDE as a cross-device workbench](./assets/cover.webp)
+
+I have worked on embedded systems and Android applications. Both taught me a familiar ritual: before testing a small idea, spend a long time arranging SDKs, dependencies, drivers, cables, and device connections.
+
+Years later, I picked up a small open-source Android retro handheld and wanted a simpler answer: could the device run Dora and also host the tools needed to change the game?
+
+<!-- truncate -->
+
+## The device becomes the workshop
+
+Dora runs an HTTP service and Web IDE from the same engine process. A phone or handheld can display its local address, while a laptop or tablet on the same network opens the editor in an ordinary browser.
+
+![A real handheld displaying the Dora Web IDE address](./assets/01-device-address.webp)
+
+The code remains on the target device. The browser supplies the larger keyboard, screen, and editing surface. There is no attempt to reproduce the engine renderer inside the browser; the actual Dora runtime still owns rendering, physics, audio, and input.
+
+This choice has a cost. Browser tools cannot offer the same experience as every native visual editor, especially for large art assets. Dora therefore focuses the Web IDE on code, project configuration, lightweight resources, and specialized visual tools that can provide useful previews.
+
+![The browser-to-device development path and its evidence boundaries](./assets/02-browser-workflow.webp)
+
+## The Agent made the old limitation valuable
+
+Before Coding Agents, a browser-based code workbench was mainly a portability decision. Once an Agent could read files, edit code, build, inspect logs, and keep project plans, the same constraints became an advantage.
+
+Code, configuration, documentation, Git state, runtime status, and Agent conversation all lived in one inspectable place. The Agent did not need to operate a large native editor by imitating mouse gestures; it could work through project files and explicit tools.
+
+![An Agent reading project files, building successfully, and reporting the missing visual check](./assets/05-agent-workbench-evidence.webp)
+
+The distinction between evidence layers remains important. A browser edit and successful build prove that the source changed and compiled. They do not prove that a particular remote device displayed the new result. That final on-device image still needs to be captured from the same test session.
+
+The broader goal is a closed loop on devices with more resources as well: start Dora and Web IDE on a phone, edit from its own browser or another screen, run the real engine, and inspect the result without rebuilding a conventional desktop toolchain.
+
+Dora's Web IDE is therefore not “the engine recreated in a web page.” It is a portable control surface attached to the real engine. Agents made that control surface useful in a way we did not fully anticipate when the browser architecture first appeared.
+
+Try it on one device on your local network. Open a minimal project from another browser, change one visible value, build it, and keep the device result separate from the browser's build evidence.
+
+---
+
+<p align="center"><img src={require('./assets/sticker.webp').default} alt="Web IDE workbench sticker" width="240" /></p>

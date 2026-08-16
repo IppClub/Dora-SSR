@@ -1,0 +1,78 @@
+---
+authors: [lijin]
+tags: [Dora SSR, LÖVE, AI Game Creation]
+---
+
+# When Dora Learned LÖVE: Giving Models a Familiar Game Language
+
+![Cover illustration for Dora and LÖVE](./assets/cover.webp)
+
+Models writing wrong code is not unusual. The frustrating part is simpler: when a model does not know something, it can only guess through hallucination.
+
+When I asked Agents to make Dora games, they often invented APIs that looked perfectly plausible. Dora is a small, comparatively young engine; public examples and discussions are scarce beside older ecosystems.
+
+I had been considering a reverse question before the community discussion began: instead of teaching every model all of Dora from scratch, could Dora learn a game language models already knew?
+
+<!-- truncate -->
+
+## A mature common language
+
+LÖVE has years of games, tutorials, source code, and community practice behind it. YueScript users have also long enjoyed writing LÖVE games. We cannot inspect a model's complete training set, but in practice many models recall `love.*` conventions more reliably than Dora's APIs.
+
+Community conversation became the trigger to turn the idea into implementation.
+
+## Not an engine inside an engine
+
+Dora does not embed a second complete LÖVE runtime. LÖVE-style calls for graphics, audio, input, and files are implemented on top of Dora's existing renderer, audio system, input, filesystem, and main loop.
+
+One engine foundation exposes two creation languages: Dora's node APIs and the familiar `love.*` surface.
+
+The compatibility problem is deeper than function names. Old projects depend on coordinate conventions, paths, callback timing, resource lifetimes, Lua habits, and combinations of calls that tiny examples never exercise.
+
+## Why LÖVE became a node
+
+Each `LoveNode` owns an isolated Lua state, virtual window, event queue, and resource lifetime. It can be positioned and composed like another Dora scene node. Two LoveNodes can run together without sharing game globals or taking each other down on restart.
+
+![Two isolated LoveNodes running inside one Dora scene](./assets/03-two-love-nodes.webp)
+
+The node also keeps Dora's workbench. A project may use Lua, TypeScript, YueScript, or Teal; Dora compiles the source into Lua 5.5, then LoveNode runs it. Web IDE, diagnostics, build, and Agent workflows remain available.
+
+## Neon Pulse: an Agent uses familiar patterns
+
+To test the AI-coding value, Dora Agent created a LÖVE-style arcade game called *Neon Pulse*. The game logic uses TypeScript and LÖVE APIs; Dora compiles it to Lua, and LoveNode runs it inside a host scene.
+
+The Agent first maintained a plan and progress file, then added combo multipliers, enemy types, power-ups, difficulty phases, a high score, and synthesized effects.
+
+![The plan, TypeScript source, current build, and LoveNode runtime path for Neon Pulse](./assets/01-neon-pulse-workflow-en.webp)
+
+![A real Neon Pulse game frame](./assets/02-neon-pulse-game-v2.webp)
+
+Current records prove the build and sustained runtime. They do not replace a complete human review of feel, sound, persistence, and every screen ratio.
+
+## Twenty real games expose real semantics
+
+We fixed twenty open-source LÖVE games at known versions and ran them as compatibility samples. Under the August 12, 2026 macOS Metal Debug test, 17 remained running for the 120-frame sample and three failed initialization. This is a dated corpus result, not “LÖVE ecosystem compatibility.”
+
+SNKRX requires `luasteam`; DoomCar carries a serializer that depends on LuaJIT FFI. Flash Blip moved past its earlier LuaSocket dependency after Dora added networking support, then exposed a `newImageData` semantic difference.
+
+![Six real corpus games rendered as separate LoveNodes](./assets/05-real-games-grid.webp)
+
+## Translating shaders across modern backends
+
+Original LÖVE rendering is built around OpenGL. Dora translates LÖVE Shader syntax into a bgfx-compatible shader, then bgfx targets the active backend—OpenGL, Metal, Direct3D 11, or Vulkan.
+
+![LÖVE Shader translation through bgfx to multiple rendering backends](./assets/04-love-shader-pipeline.webp)
+
+That requires semantic translation, not text replacement. A local function parameter named `time`, for example, must not be replaced as if it were the external `time` uniform. Real games also pushed support for screen size, pixel coordinates, and vertex-component defaults.
+
+One old game contributed a musical surprise. Shmonkey uses an S3M tracker module, where samples, score data, and effect commands must be performed rather than decoded as one finished waveform. Dora integrated upstream SoLoud OpenMPT support and libopenmpt so the track could play again.
+
+![Tracker module structure, OpenMPT path, and isolated playback evidence](./assets/06-tracker-audio-en.webp)
+
+LÖVE does not replace Dora, and Dora is not claiming official cooperation with the LÖVE project. The two ecosystems contribute different strengths: a mature shared language on one side, and Dora's scene composition, Web IDE, multi-language tools, Agents, and multi-backend renderer on the other.
+
+Open Dora Web IDE and ask the Agent for one minimal LÖVE game with one scene, one control, and one win condition. Then build and run it through LoveNode—and report separately what was built, what ran, and what you actually played.
+
+---
+
+<p align="center"><img src={require('./assets/sticker.webp').default} alt="Dora learns LÖVE sticker" width="240" /></p>

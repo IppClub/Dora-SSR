@@ -1,0 +1,50 @@
+---
+authors: [lijin]
+tags: [Dora SSR, Web IDE, Git]
+---
+
+# What Dora Web IDE's Git Panel Does—and Deliberately Does Not Do
+
+![Cover illustration for Dora Web IDE's Git panel](./assets/cover.webp)
+
+Dora Web IDE now has a Git panel, and its scope is intentionally modest.
+
+It is not a complete Git reimplementation in the browser, nor an attempt to pull experienced users away from their terminals. It answers a narrower question: while a project is already open, can the common loop of reviewing changes, selecting a commit, writing it, and synchronizing with a remote stay inside the same workspace?
+
+<!-- truncate -->
+
+## The everyday loop
+
+The panel can initialize or clone a repository. Inside a working tree, it separates unstaged and staged changes.
+
+![Reviewing real project changes and a diff in Dora Web IDE](./assets/01-working-tree.webp)
+
+The staging area is the set of changes prepared for the next commit. A user can inspect a diff, stage selected files, write a message, and create the commit. Discarding uncommitted work requires an explicit confirmation instead of hiding a destructive action behind a small icon.
+
+History first loads summaries. File lists and detailed diffs are fetched only when a commit is selected. Showing a list of titles should not require computing and transferring every historical patch.
+
+The current panel also covers branches, tags, remotes, fetch, pull, and push. When credentials, a remote, or an ordinary branch are missing, it asks the user to choose rather than inventing a target.
+
+## The browser does not execute arbitrary Git commands
+
+Repository operations happen in the Dora engine through its Go-backed `Git.run` capability. The browser calls structured endpoints such as `/git/summary`, `/git/history`, and `/git/run`; it does not forward arbitrary shell text or depend on a separately installed Git executable.
+
+Long operations return a job ID. The panel can reconnect to the job and display queued, running, completed, failed, or cancelled states even after the user visits another panel. That matters for clone, fetch, pull, and push: a slow network should look like visible work, not a frozen browser.
+
+## Secrets stay out of browser storage
+
+Dora can save credential records by host. When the browser reloads the list, it receives metadata such as host, label, type, username, and last-used time—not the full token. Secrets are not copied into `localStorage`.
+
+This reduces exposure in front-end state, but it is not evidence of an operating-system keychain or a separate encrypted vault. The device running Dora remains the security boundary, and repository tokens should receive only the permissions they need.
+
+## The gaps are deliberate
+
+Git becomes hardest when branches diverge and files conflict. The panel does not currently offer a complete merge, rebase, stash, conflict-resolution, or partial-hunk staging environment. Complex history surgery still belongs in a command-line or desktop Git tool whose behavior the user understands.
+
+That is not merely a backlog of missing buttons. A game-development workspace should first make frequent, confirmable actions clear. Hiding dangerous repository states behind an apparently simple interface would reduce rather than increase control.
+
+Think of the panel as a daily workbench, not a full Git repair shop. Try the local loop—review, stage, commit, and read history—in a minimal Dora project. When the repository needs surgery, move to the tool designed for it.
+
+---
+
+<p align="center"><img src={require('./assets/sticker.webp').default} alt="Web IDE Git panel sticker" width="240" /></p>

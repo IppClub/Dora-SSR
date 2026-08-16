@@ -1,0 +1,52 @@
+---
+authors: [lijin]
+tags: [Dora SSR, 3D, Indie Game Development]
+---
+
+# Why Dora SSR Is Only Now Stepping into 3D
+
+![Cover illustration for Dora SSR's first 3D workflow](./assets/cover.webp)
+
+For years, Dora SSR deliberately stayed away from 3D. It was not because a camera, a light, or a model loader was beyond reach. The harder question was what kind of work 3D invites people to make.
+
+A 3D feature is never only an API. It usually brings modeling, materials, rigging, animation, lighting, environments, and a much larger production budget with it. Dora is primarily the work of an individual creator, built for other small teams and individual creators. I did not want to add an impressive checklist that quietly pushed users toward projects they could not afford to finish.
+
+<!-- truncate -->
+
+## AI changed the cost of trying, not the cost of art
+
+AI coding has not made 3D art free. A polished 3D game still needs good models, animation, composition, and an enormous amount of taste and labor.
+
+What changed was the cost of testing an idea. An Agent can now help read unfamiliar rendering code, build a minimum path through the engine, run experiments, inspect errors, and keep a record of what worked. A small creator can ask, “Could this engine render one model correctly?” without first committing to a full 3D production.
+
+That was the threshold that mattered to me. Dora did not suddenly become a studio-sized engine. It became cheap enough for us to investigate the road.
+
+## Start with a duck
+
+The first useful lesson in 3D is not how to make a beautiful scene. It is how to separate the responsibilities of a scene.
+
+First, load a glTF model. If the result looks flat or strangely framed, that does not immediately mean the model is broken. A model describes geometry and materials; it does not decide where the viewer stands.
+
+Second, add a camera. The camera gives the scene a point of view, but it does not create light.
+
+Third, add a directional light. Only then do the shape, material response, and depth become easy to read.
+
+![The same duck model shown in three stages: model only, camera added, and directional light added](./assets/00-three-stage-comparison.webp)
+
+This three-step image is intentionally modest. It gives a beginner a way to diagnose the screen instead of facing an opaque “3D works / 3D does not work” result.
+
+## What the first 3D path contains
+
+Dora SSR v1.9.0 introduced the foundation required to keep walking: `View3D`, `Node3D`, `Model3D`, cameras, materials, lights, 3D physics, character control, and a way to place 2D content in a 3D world.
+
+These pieces share one design goal: 3D should join Dora's existing scene workflow instead of becoming a separate engine hidden inside the engine. A creator can still use the Web IDE, TypeScript, the Agent workflow, and familiar Dora nodes while gradually introducing 3D content.
+
+The current result is a beginning, not a claim that every 3D production problem has been solved. Asset production remains expensive. Performance and visual quality still need to be checked on real target devices. More advanced workflows will only become valuable when real projects demand them.
+
+But the first path is now visible. Load a small model, give it a camera, give it light, and understand every step before adding the next one.
+
+If you want to try Dora's 3D workflow, start with one small glTF model of your own. Make it visible, frame it, light it, and keep the experiment small enough that you can still explain why every pixel appeared.
+
+---
+
+<p align="center"><img src={require('./assets/sticker.webp').default} alt="Dora SSR 3D sticker" width="240" /></p>

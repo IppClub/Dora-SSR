@@ -1,0 +1,50 @@
+---
+authors: [lijin]
+tags: [Dora SSR, TypeScript, Programming Languages]
+---
+
+# Dora Has Many Language Doors—Why Did TypeScript Become the Signpost?
+
+![Cover illustration for Dora's language ecosystem](./assets/cover.webp)
+
+Programming used to give me the pleasure of building with blocks. Different languages had different rhythms, shortcuts, and communities. Dora still keeps many of those doors open: Lua, YueScript, Teal, TypeScript, Rust, and Wa all serve different kinds of creators and extensions.
+
+Then code gained a new reader. Agents do not experience syntax culture exactly as people do. That changed the role of the language placed at the entrance.
+
+<!-- truncate -->
+
+## Language diversity came from human labor
+
+A memorable comment in the Dora community put it this way: creating many languages for different mental habits belongs partly to the age of manual programming labor. Programming culture can resemble the songs workers invent to coordinate difficult physical work—valuable, expressive, and shaped by how human bodies and minds endure the task.
+
+That does not make languages obsolete. It explains why their human ergonomics mattered so much.
+
+When an Agent writes most of the first draft, another property becomes more important: how clearly can the toolchain reject a wrong interpretation?
+
+## TypeScript is a shared checkpoint
+
+TypeScript is not Dora's only language and not always the final runtime language. It is a useful signpost because people, editors, compilers, and models all have strong ways to reason about it.
+
+![The real language entries available from Dora Web IDE](./assets/01-new-file-languages-v2.webp)
+
+Types make API expectations visible before a program reaches the engine. Monaco can point at an invalid value while the author is still editing. The TypeScript-to-Lua compiler can reject constructs whose JavaScript meaning would not survive correctly in Lua.
+
+![Monaco showing a Dora TypeScript diagnostic for an uncontrolled any value](./assets/02-typescript-monaco-any-hover-v3.webp)
+
+## Put recurring Agent mistakes into the compiler
+
+During long Agent experiments, several mistakes appeared repeatedly: uncontrolled `any`, `null` assumptions, sparse arrays, and comparisons whose coercion rules differed between JavaScript and Lua.
+
+Writing a longer prompt for every task would only rent the same lesson again. We moved those constraints into the TSTL compiler and its diagnostics. Now a person or Agent receives the rule at the moment the code violates it.
+
+This is an important form of Agent tooling: convert experience into a deterministic boundary. A prompt is advice. A compiler diagnostic is a reusable objection.
+
+TypeScript source then compiles to Lua and runs through Dora's existing runtime. Other languages remain valuable: YueScript offers expressive Lua-family syntax, Teal brings gradual typing, Rust and Wa can reach WebAssembly, and Lua remains the direct language of the engine.
+
+The point is not to force every creator through one door. It is to place a well-lit signpost where people and Agents can establish a shared, checkable understanding before the program moves deeper into the engine.
+
+Open Dora Web IDE and create the same minimal scene in the language you prefer. Then try one TypeScript version and deliberately violate a Dora-specific rule. The most interesting part is not which syntax is prettier, but which layer gives you a useful correction soonest.
+
+---
+
+<p align="center"><img src={require('./assets/sticker.webp').default} alt="Dora language ecosystem sticker" width="240" /></p>

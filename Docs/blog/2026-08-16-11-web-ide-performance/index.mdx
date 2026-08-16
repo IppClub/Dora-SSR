@@ -1,0 +1,52 @@
+---
+authors: [lijin]
+tags: [Dora SSR, Web IDE, Performance]
+---
+
+# How Dora Web IDE Handles Long Agent Runs, 40,000 Files, and Continuous Logs
+
+![Cover illustration for the Web IDE performance audit](./assets/cover.webp)
+
+In July 2026, we performed a systematic performance pass on Dora Web IDE. The trigger was not one dramatic freeze. The workbench had gradually accumulated an editor, resource tools, Git, logs, visual editors, and a Coding Agent. Each feature worked in isolation, while hidden costs began to overlap.
+
+This article is a technical record rather than a dramatic story.
+
+<!-- truncate -->
+
+## Batch Agent updates
+
+An Agent can emit hundreds of small patches and status messages. Rebuilding and sorting the entire history for every fragment wastes work. Dora now batches updates before applying them to the visible conversation.
+
+Historical content is also mounted only for the current visible window. Hidden panels stop listening, scrolling, and refreshing instead of continuing to behave like foreground tools.
+
+In a controlled 30-second test containing 1,201 Agent patches, the recorded frame P95 was 9.0 ms with no Long Task. This is a dated local sample, not a guarantee for every browser and machine.
+
+## Bound the log
+
+An unlimited log eventually turns yesterday's output into today's memory problem. The Web IDE uses a capacity-limited buffer, keeps the latest lines, and tells the user when older content has been truncated.
+
+Under a 12,000-line stream at roughly 400 lines per second, the input remained usable and the newest output and truncation notice stayed visible in the historical test.
+
+## Move file search away from the input thread
+
+Searching a large project should not make typing wait for directory traversal. File indexing moved into a background Worker. The interface returns the first 100 matches and incrementally maintains its index as files change.
+
+In a 41,752-file test, browser input P95 was measured at 0.7–0.8 ms under the recorded conditions.
+
+## Read summaries before details
+
+Git history originally calculated details for every commit even when the list only needed titles and timestamps. The new path reads summaries first and loads file details on demand. A 100-entry history dropped from approximately 1.3–1.8 seconds to 52–69 ms in the dated local benchmark.
+
+Large optional modules follow the same rule: download and initialize them only when the user actually opens the feature.
+
+![Four controlled performance samples from the July 26, 2026 audit](./assets/performance-evidence-en.webp)
+
+The shared principle is simple: invisible work should stop, historical work should be bounded, and detailed work should wait until someone asks for it.
+
+An Agent can help improve the software that houses it, but a person still initiates the audit, decides what behavior must not be sacrificed, and approves the acceptance criteria. Before presenting these figures as current results, we should rerun the same scenarios on the current public build or preserve the historical date explicitly.
+
+If Dora Web IDE becomes slow in your project, report the project scale, reproduction steps, and an observable measurement. “It feels slow” begins the investigation; a repeatable case lets us improve the workbench.
+
+---
+
+<p align="center"><img src={require('./assets/sticker.webp').default} alt="Web IDE performance sticker" width="240" /></p>

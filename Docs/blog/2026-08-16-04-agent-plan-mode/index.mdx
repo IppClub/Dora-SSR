@@ -1,0 +1,72 @@
+---
+authors: [lijin]
+tags: [Dora SSR, AI Coding, Plan Mode]
+---
+
+# The Faster AI Writes, the More I Want to Talk First
+
+![Cover illustration for Dora Agent Plan mode](./assets/cover.webp)
+
+Before I give an Agent a long development task, I have a habit: I ask it to spend some time as a product manager.
+
+We discuss the rough need, split requirements, compare implementation choices, and decide what evidence would count as completion. The resulting code may still need work, but the product and technical direction remain inside a range I understand.
+
+This matters more as coding becomes faster. An Agent can spend thousands of tokens implementing the wrong interpretation with impressive efficiency.
+
+<!-- truncate -->
+
+## Coding ability is not product judgment
+
+Building software that matches human expectations depends on how well people understand their own needs, how architecture divides responsibilities, and whether the chosen technology fits the problem.
+
+A powerful model can propose options, but it cannot discover an unwritten preference by force. If the task begins with an ambiguous sentence, it may choose a locally reasonable design that creates unnecessary complexity, drifts from the intended experience, or wastes the rest of the session repairing an avoidable decision.
+
+The answer is not to make every small edit ceremonial. It is to separate investigation, decision, and execution when the task is long, ambiguous, or expensive to reverse.
+
+## What Plan mode actually changes
+
+Dora Agent's Plan mode is not simply an instruction to “think harder.” It is a workflow with four responsibilities:
+
+1. Inspect the project before proposing changes.
+2. Ask only about choices that cannot be learned from code or documents.
+3. Maintain a written plan, including scope, trade-offs, steps, and acceptance criteria.
+4. Wait for explicit authorization before switching back to implementation.
+
+A prompt can tell a model what it should do. The server decides what it can do. In Plan mode, build, command execution, network access, and sub-Agent creation are not projected into the model's tool set. File editing is restricted to `.agent/plan`, where the planning documents live.
+
+![Plan mode blocks project modification while preserving the planning workspace](./assets/04-plan-boundary-v2.webp)
+
+This is not described as a universal security sandbox. The verified purpose is narrower: planning should not modify the project, and implementation should wait for human authorization.
+
+## A questionnaire is already a design contribution
+
+“Ask the user first” can also become lazy. An Agent can return ten open questions and quietly hand product analysis back to the person who asked for help.
+
+A useful questionnaire requires the Agent to investigate first. It should identify the real decision, propose mutually understandable options, explain the consequences, and recommend a direction.
+
+![A real Plan mode questionnaire with recommendations and impact descriptions](./assets/01-questionnaire-v2.webp)
+
+This format improves feedback in two ways. The user can select, combine, or correct concrete options instead of reconstructing the whole problem from a blank page. At the same time, a bad recommendation exposes the Agent's assumptions before code is written.
+
+Questionnaire state is saved in the project. While a response is pending, the task enters `WAITING_USER`; normal continuation paths are blocked. The Agent cannot ask for a decision and then slip away to implement something before the answer arrives.
+
+## Conversation needs durable records
+
+Important decisions should not remain scattered through a long chat. Dora Agent keeps two living documents:
+
+- `.agent/plan/PLAN.md` records what we decided, what is out of scope, which alternatives were considered, and how the result will be accepted.
+- `.agent/plan/PROGRESS.md` records what has actually changed, which checks passed, what remains uncertain, and the next action.
+
+![Questionnaire decisions, the implementation plan, and progress handoff](./assets/02-plan-progress-html-en.webp)
+
+The distinction matters. A plan explains why; progress explains where the work really is. After context compression, a restart, or a handoff to another Agent, both people and software can recover the same direction without replaying the entire conversation.
+
+When the user selects “start development,” the Agent returns to code mode, reads the current plan, and begins with the first unfinished step. It updates progress after meaningful source or validation milestones.
+
+Plan mode does not make the Agent less capable. It makes speed accountable to a shared decision.
+
+Before your next long AI coding task, try asking the Agent to investigate and return a short questionnaire with recommendations. Do not approve implementation until the plan states what will not be done and how the result will be tested.
+
+---
+
+<p align="center"><img src={require('./assets/sticker.webp').default} alt="Agent Plan mode sticker" width="240" /></p>

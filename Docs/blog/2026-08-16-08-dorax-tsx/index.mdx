@@ -1,0 +1,54 @@
+---
+authors: [lijin]
+tags: [Dora SSR, DoraX, TSX]
+---
+
+# UI Development Came Full Circle—Why Does Dora Describe Scenes in Code Again?
+
+![Cover illustration for DoraX and TSX](./assets/cover.webp)
+
+In the ancient age of UI development, general-purpose code created controls one by one, assigned properties, attached children, and connected events.
+
+The industry gradually extracted interface structure into XML-shaped domain languages. Data synchronization moved through MVC and MVVM. Later, JSX and React made a different compromise mainstream: keep a declarative tree, but place it back inside a programming language with components and data-driven rendering.
+
+Dora carries a small record of the same cultural journey.
+
+<!-- truncate -->
+
+## Dora had an XML period too
+
+Dora XML described scene structure outside ordinary source code and compiled it into a form the engine could load. It separated hierarchy from imperative construction and made a scene easier to scan.
+
+![A representative Dora XML structure, its build path, and a current runtime result](./assets/04-xml-history.webp)
+
+XML was useful, but structure alone eventually wanted the rest of the language back: types, autocomplete, functions, conditions, loops, and reusable components.
+
+## Put the declarative tree back into TypeScript
+
+Dora introduced TSX in 2024. It looks familiar to frontend developers, but the tags create engine objects rather than DOM elements. A `body` is a physics body, `rect-fixture` is a collision shape, and `scale` is an engine action.
+
+![DoraX source describing physics, drawing, text, and action nodes in one typed structure](./assets/01-tsx-source-v2.webp)
+
+A function component can package a complete game concept: a HUD section, a menu, an enemy, a physics box, or a scene object with animation. Components are not merely a way to save lines; they give a reusable boundary to a group of objects and behavior.
+
+![The same DoraX structure rendered as a real game interface](./assets/02-runtime-ui-v2.webp)
+
+## A tree is not automatically reactive
+
+The original `toNode()` converts a TSX tree into Dora nodes once. That is ideal when the engine's animation, physics, events, and normal game logic take over afterward.
+
+But writing TSX does not make an existing label notice that the score changed. In 2026, DoraX added `createRoot()` and `signal()` for interfaces whose structure truly follows data.
+
+A dynamic root remembers the previous element tree. When a signal changes, it renders again, compares the two structures, updates properties, and adds or removes nodes. Keys preserve object identity when a list is inserted, removed, or reordered. `unmount()` removes nodes, subscriptions, and component cleanup when the interface is no longer needed.
+
+![A signal update changing the rendered DoraX interface](./assets/03-state-update-v2.webp)
+
+This does not mean every scene should continuously diff. Use `toNode()` for one-time construction; use a dynamic root when data-driven insertion, removal, or updates genuinely simplify the design.
+
+Dora XML also still exists. Software evolution does not require announcing that one expression has defeated every earlier one.
+
+DoraX is the result of a long UI culture entering a game engine: declarative structure, programming-language power, reusable components, and optional reactivity. Try it with one small HUD whose data changes at runtime, then decide whether a one-time node tree or a dynamic root better matches the problem.
+
+---
+
+<p align="center"><img src={require('./assets/sticker.webp').default} alt="DoraX sticker" width="240" /></p>
