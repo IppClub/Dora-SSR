@@ -220,22 +220,22 @@ Confirm that `DirectionalLight3D` was created and given enough intensity. Some m
 
 Different models have different scales and origins. Adjust the camera position and target in `lookAt()` first, then consider the model's `position` and `scale`.
 
-## Continue learning from the first scene
+## Next, try it with your own model
 
-Dora SSR v1.9.0's first 3D tutorial sequence continues from this foundation:
+At this point, you understand how to make the duck appear clearly by completing three steps: loading the model, positioning the camera, and adding light. The best next step is not to build a complex scene immediately. Replace `Duck.glb` with one of your own models and check the same three things again:
 
-> model → camera → lighting and materials → animation → physics and characters → 2D UI → measurement and debugging
+1. Does the model load successfully?
+2. Can the camera see it from a suitable position?
+3. After lighting is added, are the material and volume easy to read?
 
-Model, camera, and lighting are the starting point. Once you understand each responsibility, you can first decide whether a visual problem belongs to asset loading, observation, or surface illumination instead of changing every parameter at once.
+If the scene becomes empty again after you replace the model, do not change every parameter at once. Confirm that the asset loaded, adjust the camera, and then check the lighting. Different models use different scales and origins, so a change in composition is normal.
 
-The three-stage image in this article was produced by a script that launched the real Dora SSR engine. The same scene added the model, camera, and directional light in sequence, and the final check reported `PASS`. This proves only that the example ran successfully in the current local environment; it does not guarantee identical visual results for every model and device.
+Once this smallest scene works, you can make the model move, add collision and character control, and place a game interface on top. The later tutorials also introduce measurement and debugging techniques, helping you decide whether a problem comes from the asset, camera, material, animation, or physics instead of relying on repeated parameter guessing.
 
-You can now open the complete tutorial, run the first step yourself, and observe how your model changes across the three stages:
+The three-stage image in this article comes from an actual Dora SSR engine run. You can now open the complete tutorial, run the scene yourself, and replace the duck with your own model:
 
-**Start “Creating Your First 3D Scene”:**
-
-https://dora-ssr.net/docs/tutorial/Three%20D%20Game%20Development/first-3d-scene/
+**[Start “Creating Your First 3D Scene”](/docs/tutorial/Three%20D%20Game%20Development/first-3d-scene/)**
 
 ---
 
-<p align="center"><img src={require('./assets/sticker.webp').default} alt="3D topic sticker" width="320" /></p>
+<p align="center"><img src={require('./assets/sticker.webp').default} alt="3D topic sticker" height="320" /></p>
