@@ -5,25 +5,25 @@ import path from "node:path";
 const root = path.resolve(import.meta.dirname, "../../..");
 const read = relativePath => readFile(path.join(root, relativePath), "utf8");
 
-const [tools, registry, toolsLua, registryLua, engineSkill, loveSkill] = await Promise.all([
-	read("Assets/Script/Lib/Agent/Tools.ts"),
+const [workspaceTools, registry, workspaceToolsLua, registryLua, engineSkill, loveSkill] = await Promise.all([
+	read("Assets/Script/Lib/Agent/Tool/Workspace.ts"),
 	read("Assets/Script/Lib/Agent/AgentToolRegistry.ts"),
-	read("Assets/Script/Lib/Agent/Tools.lua"),
+	read("Assets/Script/Lib/Agent/Tool/Workspace.lua"),
 	read("Assets/Script/Lib/Agent/AgentToolRegistry.lua"),
 	read("Assets/Doc/skills/dora-engine-coding/SKILL.md"),
 	read("Assets/Doc/skills/love-game-development/SKILL.md"),
 ]);
 
-assert.match(tools, /const ENGINE_LOG_FILE = "dora_full_logs\.txt";/);
-assert.match(tools, /const ENGINE_LOG_VIRTUAL_FILE = "@dora_full_logs\.txt";/);
-assert.match(tools, /return path === ENGINE_LOG_VIRTUAL_FILE;/);
-assert.match(registry, /virtual @dora_full_logs\.txt engine log/);
+assert.match(workspaceTools, /const ENGINE_LOG_FILE = "dora_full_logs\.txt";/);
+assert.match(workspaceTools, /const ENGINE_LOG_VIRTUAL_FILE = "@dora_full_logs\.txt";/);
+assert.match(workspaceTools, /return path === ENGINE_LOG_VIRTUAL_FILE;/);
+assert.match(registry, /current Dora engine log snapshot/);
 assert.match(registry, /read-only virtual path, not a workspace file/);
 
-assert.match(toolsLua, /ENGINE_LOG_FILE = "dora_full_logs\.txt"/);
-assert.match(toolsLua, /ENGINE_LOG_VIRTUAL_FILE = "@dora_full_logs\.txt"/);
-assert.match(toolsLua, /return path == ENGINE_LOG_VIRTUAL_FILE/);
-assert.match(registryLua, /virtual @dora_full_logs\.txt engine log/);
+assert.match(workspaceToolsLua, /ENGINE_LOG_FILE = "dora_full_logs\.txt"/);
+assert.match(workspaceToolsLua, /ENGINE_LOG_VIRTUAL_FILE = "@dora_full_logs\.txt"/);
+assert.match(workspaceToolsLua, /return path == ENGINE_LOG_VIRTUAL_FILE/);
+assert.match(registryLua, /current Dora engine log snapshot/);
 
 assert.match(engineSkill, /read-only virtual file `@dora_full_logs\.txt`/);
 assert.match(loveSkill, /docType: "love-api"/);

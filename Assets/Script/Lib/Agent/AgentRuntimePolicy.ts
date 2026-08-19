@@ -2,6 +2,7 @@
 import { Content, Path } from "Dora";
 import type { Message } from "Agent/Utils";
 import { sanitizeUTF8 } from "Agent/Utils";
+import { sendWebIDEFileUpdate } from "Agent/Tool/WebIDESync";
 import * as Tools from "Agent/Tools";
 
 export const AGENT_PLAN_DIR = ".agent/plan";
@@ -69,6 +70,12 @@ export function normalizeAgentPath(path: string): string {
 	return normalized;
 }
 
+export function getAgentDecisionPath(input: Record<string, unknown>): string {
+	if (typeof input.path === "string") return input.path.trim();
+	if (typeof input.target_file === "string") return input.target_file.trim();
+	return "";
+}
+
 export function isMainAgentMemoryPath(path: string): boolean {
 	const normalized = normalizeAgentPath(path);
 	return normalized === ".agent/main" || normalized.startsWith(".agent/main/");
@@ -103,7 +110,7 @@ export function ensureAgentPlanDocuments(workDir: string): { success: true; crea
 		const path = Path(workDir, relative);
 		if (Content.exist(path)) continue;
 		if (!Content.save(path, content)) return { success: false, message: `failed to create ${relative}` };
-		Tools.sendWebIDEFileUpdate(path, true, content);
+		sendWebIDEFileUpdate(path, true, content);
 		created.push(relative);
 	}
 	return { success: true, created };

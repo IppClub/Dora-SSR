@@ -102,13 +102,18 @@ function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: 
 	};
 	switch (step.tool) {
 		case "read_file": {
-			const path = typeof params.path === "string" ? params.path : "";
-			const startLine = typeof params.startLine === "number" ? params.startLine : 1;
-			const endLine = typeof params.endLine === "number"
-				? params.endLine
-				: (startLine < 0 ? -1 : 300);
-			push(t("agent.paramLabels.file"), path);
-			push(t("agent.paramLabels.lines"), formatLineRange(startLine, endLine, t));
+			const reads = Array.isArray(params.reads)
+				? (params.reads as unknown[]).filter((item): item is Record<string, unknown> => item !== null && typeof item === "object")
+				: [];
+			for (const read of reads) {
+				const path = typeof read.path === "string" ? read.path : "";
+				const startLine = typeof read.startLine === "number" ? read.startLine : 1;
+				const endLine = typeof read.endLine === "number"
+					? read.endLine
+					: (startLine < 0 ? -1 : 300);
+				push(t("agent.paramLabels.file"), path);
+				push(t("agent.paramLabels.lines"), formatLineRange(startLine, endLine, t));
+			}
 			return items;
 		}
 		case "glob_files": {
@@ -167,8 +172,12 @@ function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: 
 			return items;
 		}
 		case "build": {
-			const path = typeof params.path === "string" ? params.path : "";
-			push(t("agent.paramLabels.buildTarget"), path !== "" ? path : t("agent.workspace"));
+			const paths = Array.isArray(params.paths)
+				? (params.paths as unknown[]).filter((path): path is string => typeof path === "string")
+				: [];
+			for (const path of paths) {
+				push(t("agent.paramLabels.buildTarget"), path === "." ? t("agent.workspace") : path);
+			}
 			return items;
 		}
 		case "fetch_url": {
@@ -278,23 +287,32 @@ function getStatusChipColor(status: string) {
 
 function getBuildItems(step: AgentSessionStep): { file: string; message: string; success: boolean }[] {
 	const result = step.result;
-	if (!result || typeof result !== "object" || !Array.isArray((result as { messages?: unknown[] }).messages)) {
-		return [];
+	if (!result || typeof result !== "object" || !Array.isArray((result as { results?: unknown[] }).results)) return [];
+	const items: { file: string; message: string; success: boolean }[] = [];
+	for (const value of (result as { results: unknown[] }).results) {
+		if (!value || typeof value !== "object") continue;
+		const buildResult = value as Record<string, unknown>;
+		const path = typeof buildResult.path === "string" ? buildResult.path : "";
+		const messages = Array.isArray(buildResult.messages) ? buildResult.messages : [];
+		if (messages.length === 0) {
+			items.push({
+				file: path,
+				message: typeof buildResult.message === "string" ? buildResult.message : "",
+				success: buildResult.success === true,
+			});
+			continue;
+		}
+		for (const value of messages) {
+			if (!value || typeof value !== "object") continue;
+			const message = value as Record<string, unknown>;
+			items.push({
+				file: typeof message.file === "string" ? message.file : path,
+				message: typeof message.message === "string" ? message.message : "",
+				success: message.success === true,
+			});
+		}
 	}
-	return ((result as { messages: Array<Record<string, unknown>> }).messages ?? [])
-		.filter(message => message && typeof message.file === "string")
-		.map(message => ({
-			file: message.file as string,
-			message: typeof message.message === "string" ? message.message as string : "",
-			success: message.success === true,
-		}));
-}
-
-function getBuildTotal(step: AgentSessionStep, shownCount: number): number {
-	const result = step.result;
-	if (!result || typeof result !== "object") return shownCount;
-	const total = (result as { total?: unknown }).total;
-	return typeof total === "number" && total > shownCount ? total : shownCount;
+	return items;
 }
 
 function getExecuteCommandDetails(step: AgentSessionStep): ExecuteCommandDetails | null {
@@ -491,7 +509,7 @@ function AgentStepListBody(props: AgentStepListProps) {
 				const paramItems = summarizeToolParams(step, t);
 				const canViewDiff = step.tool !== "delete_file";
 				const buildItems = step.tool === "build" ? getBuildItems(step) : [];
-				const buildTotal = step.tool === "build" ? getBuildTotal(step, buildItems.length) : buildItems.length;
+				const buildTotal = buildItems.length;
 				const buildResultsTruncated = buildTotal > buildItems.length;
 				const showBuildResults = buildItems.length > 0;
 				const buildErrorsOpened = openedBuildErrors[step.id] === true;

@@ -1,39 +1,29 @@
 // @preview-file off clear
+import { compileJsonSchema } from 'Agent/JsonSchema';
+import { AGENT_TOOL_HANDLERS } from 'Agent/AgentToolHandlers';
+import { AGENT_TOOL_VALIDATORS } from 'Agent/AgentToolValidation';
+import type { JsonSchema, JsonSchemaObject, JsonSchemaType } from 'Agent/JsonSchema';
+import type {
+	AgentDecisionMode,
+	AgentRole,
+	AgentToolCapabilityOptions,
+	AgentToolDefinition,
+	AgentToolName,
+	AgentToolParameterDefinition,
+	AgentToolSchemaContext,
+	AgentWorkMode,
+} from 'Agent/AgentToolTypes';
 
-export type AgentDecisionMode = "tool_calling" | "xml";
-export type AgentRole = "main" | "sub";
-export type AgentWorkMode = "code" | "plan";
-
-export type AgentToolName =
-	| "read_file"
-	| "edit_file"
-	| "delete_file"
-	| "grep_files"
-	| "search_dora_doc"
-	| "glob_files"
-	| "build"
-	| "fetch_url"
-	| "execute_command"
-	| "list_sub_agents"
-	| "spawn_sub_agent"
-	| "ask_user"
-	| "finish";
-
-const BUILT_IN_AGENT_TOOL_NAMES: AgentToolName[] = [
-	"read_file",
-	"edit_file",
-	"delete_file",
-	"grep_files",
-	"search_dora_doc",
-	"glob_files",
-	"build",
-	"fetch_url",
-	"execute_command",
-	"list_sub_agents",
-	"spawn_sub_agent",
-	"ask_user",
-	"finish",
-];
+export type {
+	AgentDecisionMode,
+	AgentRole,
+	AgentToolCapabilityOptions,
+	AgentToolDefinition,
+	AgentToolName,
+	AgentToolParameterDefinition,
+	AgentToolSchemaContext,
+	AgentWorkMode,
+} from 'Agent/AgentToolTypes';
 
 export type AgentFunctionToolSchema = {
 	type: "function";
@@ -44,106 +34,47 @@ export type AgentFunctionToolSchema = {
 	};
 };
 
-export interface AgentToolSchemaContext {
-	searchDoraDocLimitMax: number;
-}
+type AgentToolDefinitionSource = Omit<AgentToolDefinition, "inputSchema" | "outputSchema"> & {
+	parameters?: AgentToolParameterDefinition[];
+};
 
-export interface AgentToolCapabilityOptions {
-	disabledAgentTools?: AgentToolName[];
-	workMode?: AgentWorkMode;
-}
+const DEFAULT_SCHEMA_CONTEXT: AgentToolSchemaContext = {
+	searchDoraDocLimitMax: 20,
+};
 
-export interface ToolParameterPrompt {
-	name: string;
-	type: string;
-	description: string | ((context: AgentToolSchemaContext) => string);
-	required?: boolean;
-	enum?: string[];
-	items?: Record<string, unknown>;
-}
-
-export interface ToolPrompt {
-	name: string;
-	roles: AgentRole[];
-	workModes: AgentWorkMode[];
-	description: string | ((context: AgentToolSchemaContext) => string);
-	parameters?: ToolParameterPrompt[];
-	rules?: (string | ((context: AgentToolSchemaContext) => string))[];
-	schema?: (context: AgentToolSchemaContext) => AgentFunctionToolSchema;
-	preExecutable?: boolean;
-	parallelSafe?: boolean;
-}
-
-export function findUnsupportedDoraTsEdit(path: string, newStr: string): string | undefined {
-	const normalized = path.toLowerCase();
-	if (!(normalized.endsWith(".ts") || normalized.endsWith(".tsx")) || normalized.endsWith(".d.ts")) return undefined;
-	const isTestFile = normalized.endsWith("test.ts") || normalized.endsWith("test.tsx");
-	const checks: Array<[string, string]> = [
-		["Math.random", "inject a deterministic RNG or use supported bounded arithmetic"],
-		["Math.hypot", "use Math.sqrt(x * x + y * y)"],
-		["Math.imul", "use ordinary bounded multiplication"],
-		["KeyName.Enter", "use a declared Dora KeyName such as Space, Up, A, D, Left, or Right"],
-		["ReturnType<typeof", "annotate Dora factory instances with X.Type"],
-	];
-	const lines = newStr.split("\n");
-	for (let i = 0; i < lines.length; i++) {
-		const trimmed = lines[i].trim();
-		if (trimmed.startsWith("//") || trimmed.startsWith("/*") || trimmed.startsWith("*")) continue;
-		const uncommented = lines[i].split("//")[0] ?? "";
-		let code = "";
-		let quote = "";
-		let escaped = false;
-		for (let j = 0; j < uncommented.length; j++) {
-			const char = uncommented[j];
-			if (quote !== "") {
-				if (escaped) escaped = false;
-				else if (char === "\\") escaped = true;
-				else if (char === quote) quote = "";
-				code += " ";
-			} else if (char === "\"" || char === "'" || char === "`") {
-				quote = char;
-				code += " ";
-			} else {
-				code += char;
-			}
-		}
-		for (const [token, replacement] of checks) {
-			if (code.indexOf(token) >= 0) {
-				return `${token} is unsupported in Dora TypeScript; ${replacement}. The edit was not applied. Correct this replacement before continuing.`;
-			}
-		}
-		if (isTestFile) {
-			const compactCode = code.split(" ").join("").split("\t").join("");
-			if (compactCode.indexOf("||true") >= 0 || compactCode.indexOf("check(true") >= 0 || compactCode.indexOf("assert(true") >= 0) {
-				return "Vacuous always-true assertions are not allowed in authored test files. Replace the tautology with a deterministic observable condition that can fail. The edit was not applied.";
-			}
-		}
-	}
-	return undefined;
-}
+const DEFAULT_TOOL_OUTPUT_SCHEMA: JsonSchema = {
+	type: "object",
+	properties: {
+		success: { type: "boolean" },
+	},
+	required: ["success"],
+};
 
 function resolveText(value: string | ((context: AgentToolSchemaContext) => string), context: AgentToolSchemaContext): string {
 	return typeof value === "string" ? value : value(context);
 }
 
-function getToolDescription(tool: ToolPrompt, context: AgentToolSchemaContext): string {
+function getToolDescription(tool: AgentToolDefinition, context: AgentToolSchemaContext): string {
 	return resolveText(tool.description, context);
 }
 
-function getToolRules(tool: ToolPrompt, context: AgentToolSchemaContext): string[] {
+function getToolRules(tool: AgentToolDefinition, context: AgentToolSchemaContext): string[] {
 	return (tool.rules ?? []).map(rule => resolveText(rule, context));
 }
 
-function getParameterDescription(parameter: ToolParameterPrompt, context: AgentToolSchemaContext): string {
+function getParameterDescription(parameter: AgentToolParameterDefinition, context: AgentToolSchemaContext): string {
 	return resolveText(parameter.description, context);
 }
 
-function createFunctionToolSchemaFromPrompt(tool: ToolPrompt, context: AgentToolSchemaContext): AgentFunctionToolSchema {
-	const properties: Record<string, unknown> = {};
+function createInputSchemaFromParameters(
+	parameters: AgentToolParameterDefinition[] | undefined,
+	context: AgentToolSchemaContext
+): JsonSchemaObject {
+	const properties: Record<string, JsonSchema> = {};
 	const required: string[] = [];
-	for (const parameter of tool.parameters ?? []) {
-		const property: Record<string, unknown> = {
-			type: parameter.type,
+	for (const parameter of parameters ?? []) {
+		const property: JsonSchemaObject = {
+			type: parameter.type as JsonSchemaType,
 			description: getParameterDescription(parameter, context),
 		};
 		if (parameter.enum !== undefined) {
@@ -152,18 +83,24 @@ function createFunctionToolSchemaFromPrompt(tool: ToolPrompt, context: AgentTool
 		if (parameter.items !== undefined) {
 			property.items = parameter.items;
 		}
+		if (parameter.minItems !== undefined) property.minItems = parameter.minItems;
 		properties[parameter.name] = property;
 		if (parameter.required === true) {
 			required.push(parameter.name);
 		}
 	}
-	const parameters: Record<string, unknown> = {
+	const schema: JsonSchemaObject = {
 		type: "object",
 		properties,
 	};
 	if (required.length > 0) {
-		parameters.required = required;
+		schema.required = required;
 	}
+	return schema;
+}
+
+function createFunctionToolSchemaFromDefinition(tool: AgentToolDefinition, context: AgentToolSchemaContext): AgentFunctionToolSchema {
+	const parameters = tool.inputSchema(context);
 	const rules = getToolRules(tool, context);
 	return {
 		type: "function",
@@ -175,18 +112,30 @@ function createFunctionToolSchemaFromPrompt(tool: ToolPrompt, context: AgentTool
 	};
 }
 
-export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
+const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 	{
 		name: "read_file",
 		roles: ["main", "sub"],
 		workModes: ["code", "plan"],
-		description: "Read a specific line range from a workspace file, built-in document, or virtual engine log.",
+		description: "Read one or more independent file ranges in one call.",
 		parameters: [
-			{ name: "path", type: "string", required: true, description: "Workspace-relative file path, the virtual @dora_full_logs.txt engine log, or an exact @dora-doc/... path returned by search_dora_doc." },
-			{ name: "startLine", type: "number", description: "Starting line number. Positive values are 1-based; negative values count from the end. Defaults to 1. 0 is invalid." },
-			{ name: "endLine", type: "number", description: "Ending line number. Positive values are 1-based; negative values count from the end. If omitted, defaults to 300 for positive startLine, or -1 for negative startLine. 0 is invalid." },
+			{
+				name: "reads", type: "array", required: true, minItems: 1,
+				description: "Non-empty independent file ranges. Use one item for a single read. No artificial item limit; keep ranges narrow enough to remain useful in context.",
+				items: {
+					type: "object",
+					properties: {
+						path: { type: "string", description: "Workspace or virtual path to read." },
+						startLine: { type: "number", description: "Starting line; defaults to 1." },
+						endLine: { type: "number", description: "Ending line; default follows startLine." },
+					},
+					required: ["path"], additionalProperties: false,
+				},
+			},
 		],
 		rules: [
+			"Always use reads, including for a single range. When several known files or ranges are needed before the next decision, put them in the same array.",
+			"Batch ranges are independent and ordered. A failed read remains in results and does not discard successful reads.",
 			"startLine defaults to 1. If endLine is omitted, it defaults to 300 when startLine is positive, or -1 when startLine is negative.",
 			"Read @dora_full_logs.txt to inspect the current Dora engine log snapshot; it is a read-only virtual path, not a workspace file.",
 			"Paths returned by search_dora_doc are authoritative built-in documentation paths and can be read directly without modifying them.",
@@ -197,18 +146,37 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 		name: "edit_file",
 		roles: ["main", "sub"],
 		workModes: ["code", "plan"],
-		description: "Make changes to a file.",
+		description: "Make one file edit, or apply an ordered best-effort batch of file edits in one call. A batch may use a shared top-level path.",
 		parameters: [
-			{ name: "path", type: "string", required: true, description: "Workspace-relative file path to edit." },
-			{ name: "old_str", type: "string", required: true, description: "Existing text to replace. If empty, edit_file rewrites the whole file, or creates it when missing." },
-			{ name: "new_str", type: "string", required: true, description: "Replacement text or the full file content when rewriting or creating." },
+			{ name: "path", type: "string", description: "Workspace-relative file path for the legacy single-edit form, or the default path for batch entries that omit path." },
+			{ name: "old_str", type: "string", description: "Legacy single-edit form: existing text to replace. If empty, rewrite the whole file or create it when missing." },
+			{ name: "new_str", type: "string", description: "Legacy single-edit form: replacement text or complete file content." },
+			{
+				name: "edits",
+				type: "array",
+				minItems: 1,
+				description: "Best-effort batch form: a non-empty array of ordered edit objects. May target multiple files or the same file repeatedly; a same-file edit sees the staged result of earlier successful entries.",
+				items: {
+					type: "object",
+					properties: {
+						path: { type: "string", description: "Workspace-relative file path to edit. May be omitted when the batch supplies a top-level default path." },
+						old_str: { type: "string", description: "Existing staged text to replace; empty rewrites or creates." },
+						new_str: { type: "string", description: "Replacement or complete file content." },
+					},
+					required: ["old_str", "new_str"],
+					additionalProperties: false,
+				},
+			},
 		],
 		rules: [
+			"Use path + old_str + new_str for one edit; edits for a batch with per-entry paths; or path + edits when all or some batch entries share a default path. Do not combine edits with top-level old_str/new_str.",
+			"Prefer one batch when several independent files or several known replacements can be changed coherently before the next build.",
+			"Each batch entry succeeds or fails independently. Failed entries are reported and skipped; all successful staged results are committed together in one checkpoint.",
+			"Repeated paths are allowed and execute in array order against content from earlier successful entries; the final successful content for each unique path is written once.",
 			"old_str and new_str MUST be different.",
 			"old_str must match existing text exactly when it is non-empty.",
 			"If old_str is empty, create the file when it doesn't exist, or clear and rewrite the whole file with new_str when it already exists.",
 			"Files under .agent/main are writable persistent memory for deliberate proactive updates. Record only durable project knowledge, user decisions, or a precise active checkpoint; these memory-only edits do not require a project build.",
-			"For Dora .ts/.tsx source, the engine rejects known unsupported constructs before writing: Math.random, Math.hypot, Math.imul, KeyName.Enter, and ReturnType<typeof DoraFactory>. Inject or implement a bounded RNG, use supported arithmetic/key names, and annotate Dora instances with X.Type.",
 		],
 	},
 	{
@@ -290,9 +258,12 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 		workModes: ["code"],
 		description: "Do compiling and static checks for ts/tsx, teal, lua, yue, yarn.",
 		parameters: [
-			{ name: "path", type: "string", description: "Optional workspace-relative file or directory to build." },
+			{ name: "paths", type: "array", required: true, minItems: 1, items: { type: "string" }, description: "Independent files or directories to build sequentially in one call. Use one item for a single target and '.' for the project root." },
 		],
 		rules: [
+			"Always use paths, including for a single target. Use paths: ['.'] to build the project root.",
+			"Prefer one directory target when edited files share a root. Otherwise put all targets in one paths array.",
+			"Batch targets build sequentially and best-effort. A failed target does not discard earlier successful build results.",
 			"Read the result and then decide whether another action is needed.",
 		],
 	},
@@ -477,32 +448,53 @@ export const AGENT_TOOL_PROMPTS: ToolPrompt[] = [
 	},
 ];
 
-const DEFAULT_SCHEMA_CONTEXT: AgentToolSchemaContext = {
-	searchDoraDocLimitMax: 20,
-};
+function formatSchemaErrors(errors: { schemaPath: string; message: string }[]): string {
+	return errors.map(item => `${item.schemaPath !== "" ? item.schemaPath : "/"}: ${item.message}`).join("; ");
+}
 
-function hasRole(tool: ToolPrompt, role: AgentRole): boolean {
+function createToolDefinition(source: AgentToolDefinitionSource): AgentToolDefinition {
+	const definition: AgentToolDefinition = {
+		...source,
+		inputSchema: context => createInputSchemaFromParameters(source.parameters, context),
+		outputSchema: DEFAULT_TOOL_OUTPUT_SCHEMA,
+		handler: AGENT_TOOL_HANDLERS[source.name],
+		validateInput: AGENT_TOOL_VALIDATORS[source.name],
+	};
+	const inputResult = compileJsonSchema(definition.inputSchema(DEFAULT_SCHEMA_CONTEXT));
+	if (!inputResult.success) {
+		throw new Error(`Invalid input schema for ${definition.name}: ${formatSchemaErrors(inputResult.errors)}`);
+	}
+	const outputResult = compileJsonSchema(definition.outputSchema);
+	if (!outputResult.success) {
+		throw new Error(`Invalid output schema for ${definition.name}: ${formatSchemaErrors(outputResult.errors)}`);
+	}
+	return definition;
+}
+
+export const AGENT_TOOL_DEFINITIONS: AgentToolDefinition[] = AGENT_TOOL_DEFINITION_SOURCES.map(source => createToolDefinition(source));
+
+function hasRole(tool: AgentToolDefinition, role: AgentRole): boolean {
 	return tool.roles.indexOf(role) >= 0;
 }
 
-function hasWorkMode(tool: ToolPrompt, workMode: AgentWorkMode): boolean {
+function hasWorkMode(tool: AgentToolDefinition, workMode: AgentWorkMode): boolean {
 	return tool.workModes.indexOf(workMode) >= 0;
 }
 
-function getToolPrompt(name: string): ToolPrompt | undefined {
-	for (const tool of AGENT_TOOL_PROMPTS) {
+export function getToolDefinition(name: string): AgentToolDefinition | undefined {
+	for (const tool of AGENT_TOOL_DEFINITIONS) {
 		if (tool.name === name) return tool;
 	}
 	return undefined;
 }
 
-function isToolCapabilityEnabled(tool: ToolPrompt, options?: AgentToolCapabilityOptions): boolean {
+function isToolCapabilityEnabled(tool: AgentToolDefinition, options?: AgentToolCapabilityOptions): boolean {
 	if (!isKnownToolName(tool.name)) return false;
 	return hasWorkMode(tool, options?.workMode ?? "code")
 		&& (options?.disabledAgentTools ?? []).indexOf(tool.name as AgentToolName) < 0;
 }
 
-function formatParameterList(tool: ToolPrompt): string {
+function formatParameterList(tool: AgentToolDefinition): string {
 	const parameters = tool.parameters ?? [];
 	if (parameters.length === 0) return "";
 	return parameters
@@ -510,7 +502,7 @@ function formatParameterList(tool: ToolPrompt): string {
 		.join(", ");
 }
 
-function formatToolPrompt(tool: ToolPrompt, index: number, context: AgentToolSchemaContext): string {
+function formatToolPrompt(tool: AgentToolDefinition, index: number, context: AgentToolSchemaContext): string {
 	const lines = [`${index + 1}. ${tool.name}: ${getToolDescription(tool, context)}`];
 	const parameterList = formatParameterList(tool);
 	if (parameterList !== "") {
@@ -526,7 +518,7 @@ function formatToolPrompt(tool: ToolPrompt, index: number, context: AgentToolSch
 	return lines.join("\n");
 }
 
-function formatXMLRepairToolReference(tool: ToolPrompt): string {
+function formatXMLRepairToolReference(tool: AgentToolDefinition): string {
 	const parameterList = formatParameterList(tool);
 	const params = parameterList !== "" ? parameterList : "none";
 	const reason = tool.name === "finish" ? "no reason tag" : "reason tag required";
@@ -534,11 +526,11 @@ function formatXMLRepairToolReference(tool: ToolPrompt): string {
 }
 
 export function isKnownToolName(name: string): name is AgentToolName {
-	return BUILT_IN_AGENT_TOOL_NAMES.indexOf(name as AgentToolName) >= 0;
+	return getToolDefinition(name) !== undefined;
 }
 
 export function getAllowedToolsForRole(role: AgentRole, options?: AgentToolCapabilityOptions): AgentToolName[] {
-	return AGENT_TOOL_PROMPTS
+	return AGENT_TOOL_DEFINITIONS
 		.filter(tool => hasRole(tool, role) && isKnownToolName(tool.name) && isToolCapabilityEnabled(tool, options))
 		.map(tool => tool.name as AgentToolName);
 }
@@ -551,12 +543,12 @@ export function buildCurrentToolAvailabilityGuidance(): string {
 	].join("\n");
 }
 
-export function getToolPromptsForRole(role: AgentRole, options?: {
+export function getToolDefinitionsForRole(role: AgentRole, options?: {
 	includeFinish?: boolean;
 	disabledAgentTools?: AgentToolName[];
 	workMode?: AgentWorkMode;
-}): ToolPrompt[] {
-	return AGENT_TOOL_PROMPTS.filter(tool =>
+}): AgentToolDefinition[] {
+	return AGENT_TOOL_DEFINITIONS.filter(tool =>
 		hasRole(tool, role)
 		&& (options?.includeFinish === true || tool.name !== "finish")
 		&& isToolCapabilityEnabled(tool, options)
@@ -572,23 +564,28 @@ const SUB_AGENT_REQUIRED_FINISH_PARAMS = [
 	"learningCandidates",
 ];
 
-function getDecisionToolPromptsForRole(role: AgentRole, options?: {
+function getDecisionToolDefinitionsForRole(role: AgentRole, options?: {
 	includeFinish?: boolean;
 	disabledAgentTools?: AgentToolName[];
 	workMode?: AgentWorkMode;
-}): ToolPrompt[] {
-	const tools = getToolPromptsForRole(role, options);
+}): AgentToolDefinition[] {
+	const tools = getToolDefinitionsForRole(role, options);
 	if (role !== "sub") return tools;
-	return tools.map(tool => tool.name !== "finish" ? tool : {
-		...tool,
-		parameters: (tool.parameters ?? []).map(parameter => ({
+	return tools.map(tool => {
+		if (tool.name !== "finish") return tool;
+		const parameters = (tool.parameters ?? []).map(parameter => ({
 			...parameter,
 			required: SUB_AGENT_REQUIRED_FINISH_PARAMS.indexOf(parameter.name) >= 0,
-		})),
+		}));
+		return {
+			...tool,
+			parameters,
+			inputSchema: context => createInputSchemaFromParameters(parameters, context),
+		};
 	});
 }
 
-export function buildToolDefinitionsDetailed(tools: ToolPrompt[], options?: {
+export function buildToolDefinitionsDetailed(tools: AgentToolDefinition[], options?: {
 	title?: string;
 	includeXmlRules?: boolean;
 	context?: AgentToolSchemaContext;
@@ -620,7 +617,7 @@ export function buildRoleToolDefinitionsDetailed(role: AgentRole, options?: {
 	workMode?: AgentWorkMode;
 }): string {
 	return buildToolDefinitionsDetailed(
-		getDecisionToolPromptsForRole(role, {
+		getDecisionToolDefinitionsForRole(role, {
 			includeFinish: options?.includeFinish,
 			disabledAgentTools: options?.disabledAgentTools,
 			workMode: options?.workMode,
@@ -634,7 +631,7 @@ export function buildRoleToolDefinitionsDetailed(role: AgentRole, options?: {
 }
 
 export function buildXMLRepairToolReference(role: AgentRole, options?: AgentToolCapabilityOptions): string {
-	const tools = getToolPromptsForRole(role, {
+	const tools = getToolDefinitionsForRole(role, {
 		includeFinish: true,
 		disabledAgentTools: options?.disabledAgentTools,
 		workMode: options?.workMode,
@@ -653,41 +650,41 @@ export function buildXMLRepairToolReference(role: AgentRole, options?: AgentTool
 }
 
 export const AGENT_TOOL_DEFINITIONS_DETAILED = buildToolDefinitionsDetailed(
-	getToolPromptsForRole("sub"),
+	getToolDefinitionsForRole("sub"),
 	{ title: "Available tools:" }
 );
 
 export const MAIN_AGENT_TOOL_DEFINITIONS_DETAILED = "\n" + buildToolDefinitionsDetailed(
-	getToolPromptsForRole("main")
-		.filter(tool => getToolPromptsForRole("sub").map(subTool => subTool.name).indexOf(tool.name) < 0),
+	getToolDefinitionsForRole("main")
+		.filter(tool => getToolDefinitionsForRole("sub").map(subTool => subTool.name).indexOf(tool.name) < 0),
 	{ title: "" }
 );
 
 export const XML_TOOL_DEFINITIONS_DETAILED = "\n\n" + buildToolDefinitionsDetailed(
-	AGENT_TOOL_PROMPTS.filter(tool => tool.name === "finish"),
+	AGENT_TOOL_DEFINITIONS.filter(tool => tool.name === "finish"),
 	{ title: "", includeXmlRules: true }
 );
 
 export function canPreExecuteTool(tool: AgentToolName): boolean {
-	const prompt = getToolPrompt(tool);
-	return prompt?.preExecutable === true;
+	const definition = getToolDefinition(tool);
+	return definition?.preExecutable === true;
 }
 
 export function canRunToolInParallel(tool: AgentToolName): boolean {
-	const prompt = getToolPrompt(tool);
-	return prompt?.parallelSafe === true;
+	const definition = getToolDefinition(tool);
+	return definition?.parallelSafe === true;
 }
 
 export function buildDecisionToolSchema(role: AgentRole, searchDoraDocLimitMax: number, options?: AgentToolCapabilityOptions) {
 	const context = { searchDoraDocLimitMax };
-	return buildDecisionToolSchemaForTools(getDecisionToolPromptsForRole(role, {
+	return buildDecisionToolSchemaForTools(getDecisionToolDefinitionsForRole(role, {
 		includeFinish: true,
 		disabledAgentTools: options?.disabledAgentTools,
 		workMode: options?.workMode,
 	}), context);
 }
 
-export function buildDecisionToolSchemaForTools(tools: ToolPrompt[], context: AgentToolSchemaContext) {
+export function buildDecisionToolSchemaForTools(tools: AgentToolDefinition[], context: AgentToolSchemaContext) {
 	return tools
-		.map(tool => tool.schema ? tool.schema(context) : createFunctionToolSchemaFromPrompt(tool, context));
+		.map(tool => createFunctionToolSchemaFromDefinition(tool, context));
 }

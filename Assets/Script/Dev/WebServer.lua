@@ -4435,7 +4435,7 @@ HttpServer:postSchedule("/read", function(req) -- 1783
 			if path ~= nil then -- 1784
 				local readFile -- 1785
 				readFile = function() -- 1785
-					if Content:exist(path) then -- 1786
+					if Content:exist(path) and not Content:isdir(path) then -- 1786
 						local content = Content:loadAsync(path) -- 1787
 						if content then -- 1787
 							return { -- 1788

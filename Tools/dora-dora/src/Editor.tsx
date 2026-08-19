@@ -73,7 +73,7 @@ monacoTypescript.typescriptDefaults.setModeConfiguration({
 	hovers: false,
 });
 
-monaco.editor.defineTheme("dora-dark", {
+const editorThemeData: Monaco.editor.IStandaloneThemeData = {
 	base: "vs-dark",
 	inherit: true,
 	rules: [
@@ -235,7 +235,13 @@ monaco.editor.defineTheme("dora-dark", {
 		"welcomePage.tileBackground": "#2b2b2b",
 		"widget.border": "#313131",
 	},
-})
+};
+
+export function registerEditorTheme(target: typeof monaco) {
+	target.editor.defineTheme(EditorTheme, editorThemeData);
+}
+
+registerEditorTheme(monaco);
 
 type CompleteLang = "tl" | "lua" | "yue" | "xml";
 const completionItemProvider = (triggerCharacters: string[], lang: CompleteLang) => {

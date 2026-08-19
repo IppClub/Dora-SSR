@@ -1783,7 +1783,7 @@ HttpServer\post "/exist", (req): success: false ->
 HttpServer\postSchedule "/read", (req): success: false ->
 	switch req when {body: {:path}}
 		readFile = (): nil ->
-			if Content\exist path
+			if Content\exist(path) and not Content\isdir(path)
 				if content := Content\loadAsync path
 					return :content, success: true, fullPath: Content\getFullPath path
 		return result if result := withProjectSearchPaths req.body.projectRoot, req.body.projFile, readFile

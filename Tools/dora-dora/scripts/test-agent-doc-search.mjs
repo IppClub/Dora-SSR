@@ -6,15 +6,25 @@ const repo = path.resolve("../..");
 const read = relative => readFile(path.join(repo, relative), "utf8");
 
 const tools = await read("Assets/Script/Lib/Agent/Tools.ts");
+const workspaceTools = await read("Assets/Script/Lib/Agent/Tool/Workspace.ts");
+const doraDocSearch = await read("Assets/Script/Lib/Agent/Tool/DoraDocSearch.ts");
+const fetchTool = await read("Assets/Script/Lib/Agent/Tool/Fetch.ts");
+const gitCommand = await read("Assets/Script/Lib/Agent/Tool/GitCommand.ts");
 const agentConfig = await read("Assets/Script/Lib/Agent/AgentConfig.ts");
 const registry = await read("Assets/Script/Lib/Agent/AgentToolRegistry.ts");
 const codingAgent = await read("Assets/Script/Lib/Agent/CodingAgent.ts");
+const toolHandlers = await read("Assets/Script/Lib/Agent/AgentToolHandlers.ts");
 const memory = await read("Assets/Script/Lib/Agent/Memory.ts");
 const utils = await read("Assets/Script/Lib/Agent/Utils.ts");
 const toolsLua = await read("Assets/Script/Lib/Agent/Tools.lua");
+const workspaceToolsLua = await read("Assets/Script/Lib/Agent/Tool/Workspace.lua");
+const doraDocSearchLua = await read("Assets/Script/Lib/Agent/Tool/DoraDocSearch.lua");
+const fetchToolLua = await read("Assets/Script/Lib/Agent/Tool/Fetch.lua");
+const gitCommandLua = await read("Assets/Script/Lib/Agent/Tool/GitCommand.lua");
 const agentConfigLua = await read("Assets/Script/Lib/Agent/AgentConfig.lua");
 const registryLua = await read("Assets/Script/Lib/Agent/AgentToolRegistry.lua");
 const codingAgentLua = await read("Assets/Script/Lib/Agent/CodingAgent.lua");
+const toolHandlersLua = await read("Assets/Script/Lib/Agent/AgentToolHandlers.lua");
 const memoryLua = await read("Assets/Script/Lib/Agent/Memory.lua");
 const utilsLua = await read("Assets/Script/Lib/Agent/Utils.lua");
 const webServer = await read("Assets/Script/Dev/WebServer.yue");
@@ -22,35 +32,35 @@ const llmConfigDialog = await read("Tools/dora-dora/src/LLMConfigDialog.tsx");
 const legacyToolName = ["search", "dora", "api"].join("_");
 const legacyRequestField = ["doc", "Source"].join("");
 
-for (const source of [tools, registry, codingAgent, toolsLua, registryLua, codingAgentLua, webServer]) {
+for (const source of [tools, workspaceTools, doraDocSearch, registry, codingAgent, toolHandlers, toolsLua, workspaceToolsLua, doraDocSearchLua, registryLua, codingAgentLua, toolHandlersLua, webServer]) {
 	assert.ok(!source.includes(legacyToolName), "legacy documentation tool name must be removed");
 	assert.ok(!source.includes(legacyRequestField), "legacy documentation request field must be removed");
 }
 
-assert.match(tools, /DoraDocSearchType = "dora-tutorial" \| "dora-api" \| "love-api" \| "tic80-api"/);
-assert.match(tools, /docType === "love-api" \? "love" : "tic80"/);
-assert.match(tools, /globs: exts\.map\(ext => `\$\{name\}\.d\.\$\{ext\}`\)/);
-assert.match(tools, /`!\*\*\/love\.d\.\$\{ext\}`/);
-assert.match(tools, /`!\*\*\/tic80\.d\.\$\{ext\}`/);
-assert.match(tools, /`\$\{AGENT_DORA_DOC_PREFIX\}\$\{docType\}\/\$\{relative\}`/);
-assert.match(tools, /docType === "love-api"\) return normalized === "love\.d\.ts" \|\| normalized === "love\.d\.tl"/);
-assert.match(tools, /docType === "tic80-api"\) return normalized === "tic80\.d\.ts" \|\| normalized === "tic80\.d\.tl"/);
-assert.match(tools, /document is outside the requested search type/);
-assert.match(tools, /export async function searchDoraDoc/);
-assert.match(tools, /const virtualDocPath = isVirtualDoc/);
-assert.match(tools, /resolveAgentDoraDocFilePath\(requestedPath, req\.docLanguage \?\? "en"\)/);
-assert.match(tools, /paged\.map\(row => \(\{ \.\.\.row, file: requestedPath \}\)\)/);
-assert.match(tools, /grep_files with that exact @dora-doc path/);
-assert.match(codingAgent, /docLanguage: shared\.useChineseResponse \? "zh" : "en"/);
+assert.match(workspaceTools, /DoraDocSearchType = "dora-tutorial" \| "dora-api" \| "love-api" \| "tic80-api"/);
+assert.match(workspaceTools, /docType === "love-api" \? "love" : "tic80"/);
+assert.match(workspaceTools, /globs: exts\.map\(ext => `\$\{name\}\.d\.\$\{ext\}`\)/);
+assert.match(workspaceTools, /`!\*\*\/love\.d\.\$\{ext\}`/);
+assert.match(workspaceTools, /`!\*\*\/tic80\.d\.\$\{ext\}`/);
+assert.match(workspaceTools, /`\$\{AGENT_DORA_DOC_PREFIX\}\$\{docType\}\/\$\{relative\}`/);
+assert.match(workspaceTools, /docType === "love-api"\) return normalized === "love\.d\.ts" \|\| normalized === "love\.d\.tl"/);
+assert.match(workspaceTools, /docType === "tic80-api"\) return normalized === "tic80\.d\.ts" \|\| normalized === "tic80\.d\.tl"/);
+assert.match(doraDocSearch, /document is outside the requested search type/);
+assert.match(doraDocSearch, /export async function searchDoraDoc/);
+assert.match(workspaceTools, /const virtualDocPath = isVirtualDoc/);
+assert.match(workspaceTools, /resolveAgentDoraDocFilePath\(requestedPath, req\.docLanguage \?\? "en"\)/);
+assert.match(workspaceTools, /paged\.map\(row => \(\{ \.\.\.row, file: requestedPath \}\)\)/);
+assert.match(doraDocSearch, /grep_files with that exact @dora-doc path/);
+assert.match(toolHandlers, /docLanguage: context\.useChineseResponse \? "zh" : "en"/);
 assert.match(registry, /exact @dora-doc\/\.\.\. virtual document/);
 assert.match(registry, /searchable with grep_files using the exact virtual path/);
-for (const source of [tools, toolsLua, agentConfig, agentConfigLua]) {
+for (const source of [tools, fetchTool, gitCommand, toolsLua, fetchToolLua, gitCommandLua, agentConfig, agentConfigLua]) {
 	assert.doesNotMatch(source, /fetchUrlMaxBytes/);
 	assert.doesNotMatch(source, /gitCloneMaxBytes/);
 	assert.doesNotMatch(source, /download exceeds .* byte limit/);
 	assert.doesNotMatch(source, /cloned repository exceeds .* byte limit/);
 }
-assert.doesNotMatch(tools, /function getDirectorySizeUpTo/);
+assert.doesNotMatch(gitCommand, /function getDirectorySizeUpTo/);
 assert.match(registry, /name: "search_dora_doc"/);
 assert.match(registry, /enum: \["dora-tutorial", "dora-api", "love-api", "tic80-api"\]/);
 assert.match(codingAgent, /action\.tool === "search_dora_doc"/);
@@ -71,11 +81,12 @@ const deepSeekTemplate = llmConfigDialog.slice(
 );
 assert.equal((deepSeekTemplate.match(/thinking: \{ type: 'disabled' \}/g) ?? []).length, 1,
 	"DeepSeek should disable thinking only for auxiliary memory-compression calls");
-assert.match(toolsLua, /function ____exports\.searchDoraDoc\(req\)/);
-assert.match(toolsLua, /"!\*\*\/love\.d\." \.\. ext/);
-assert.match(toolsLua, /"!\*\*\/tic80\.d\." \.\. ext/);
+assert.match(doraDocSearchLua, /function ____exports\.searchDoraDoc\(req\)/);
+assert.match(workspaceToolsLua, /"!\*\*\/love\.d\." \.\. ext/);
+assert.match(workspaceToolsLua, /"!\*\*\/tic80\.d\." \.\. ext/);
 assert.match(registryLua, /name = "search_dora_doc"/);
 assert.match(codingAgentLua, /action\.tool == "search_dora_doc"/);
+assert.match(toolHandlersLua, /context\.useChineseResponse and "zh" or "en"/);
 assert.match(codingAgentLua, /main:on\("batch_tools", batch\)/);
 assert.doesNotMatch(codingAgentLua, /main:on\("search_dora_doc", searchDora\)/);
 

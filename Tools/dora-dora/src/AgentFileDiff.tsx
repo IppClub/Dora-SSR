@@ -7,7 +7,7 @@ import type { IDisposable } from 'monaco-editor';
 import type { editor as MonacoEditor } from 'monaco-editor';
 import type { AgentCheckpointDiffFile } from './Service';
 import { Color } from './Theme';
-import { EditorTheme } from './Editor';
+import { EditorTheme, registerEditorTheme } from './Editor';
 
 interface AgentFileDiffProps {
 	file: AgentCheckpointDiffFile;
@@ -106,6 +106,7 @@ export default function AgentFileDiff(props: AgentFileDiffProps) {
 			</Box>
 			<DiffEditor
 				height={height}
+				beforeMount={registerEditorTheme}
 				onMount={handleMount}
 				keepCurrentOriginalModel
 				keepCurrentModifiedModel

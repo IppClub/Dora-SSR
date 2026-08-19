@@ -1,5 +1,5 @@
 // @preview-file off clear
-import { App, Path, Content } from 'Dora';
+import { Path, Content } from 'Dora';
 import { Flow, Node } from 'Agent/flow';
 import * as AgentUtils from 'Agent/Utils';
 import type { LLMConfig, LLMTokenUsage, Message, StopToken, ToolCall } from 'Agent/Utils';
@@ -11,7 +11,10 @@ import type { AgentDecisionMode, AgentRole, AgentToolName, AgentWorkMode } from 
 import * as AgentSkills from 'Agent/AgentSkills';
 import * as AgentConfig from 'Agent/AgentConfig';
 import * as AgentRuntimePolicy from 'Agent/AgentRuntimePolicy';
+import { executeRegisteredAgentTool } from 'Agent/AgentToolExecutor';
+import type { AgentToolControl, AgentToolExecutionContext, AgentToolWorkflowState } from 'Agent/AgentToolTypes';
 import { getRemainingAgentWorkSteps, isFinalAgentDecisionTurn } from 'Agent/AgentStepBudget';
+import { areAgentToolParamsEqual, cloneAgentToolParams, coalesceCompatibleAgentToolCalls, partitionAgentToolCalls } from 'Agent/AgentToolBatch';
 import type {
 	AgentCompletionOutcome,
 	AgentValidationKind,
@@ -20,8 +23,39 @@ import type {
 	AgentLearningCandidateItem,
 	AgentCompletionReport,
 } from 'Agent/Utils';
-import { normalizeQuestionnaire } from 'Agent/AgentQuestionnaire';
 import type { AgentQuestionnaireSchema } from 'Agent/AgentQuestionnaire';
+import { encodeDebugJSON, saveStepLLMDebugInput, saveStepLLMDebugOutput } from 'Agent/AgentStepDebugLog';
+import {
+	toJson,
+	truncateText,
+	sanitizeReadResultForHistory,
+	sanitizeSearchResultForHistory,
+	sanitizeListFilesResultForHistory,
+	sanitizeBuildResultForHistory,
+	sanitizeActionParamsForHistory,
+	projectMessagesForLLMContext,
+	projectMessagesForCompression,
+	sanitizeMessagesForLLMInput,
+} from 'Agent/AgentHistoryProjection';
+import {
+	parseXMLToolCallObjectFromText,
+	parseDecisionObject,
+	parseDecisionToolCall,
+	parseToolCallArguments,
+	getDecisionPath,
+	validateDecision,
+	validateCompletionForRole,
+	isDecisionBatchSuccess,
+	isDecisionLoopContinue,
+	isDecisionPlainTextCompletion,
+	classifyToolCallingTurnWithoutCalls,
+} from 'Agent/AgentDecisionParsing';
+import type {
+	DecisionSuccess,
+	DecisionBatchSuccess,
+	DecisionResult,
+	DecisionFailure,
+} from 'Agent/AgentDecisionParsing';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object";
@@ -339,7 +373,9 @@ export interface AgentActionRecord {
 	reason: string;
 	reasoningContent?: string;
 	params: Record<string, unknown>;
+	truncatedEditRecovery?: Tools.TruncatedEditRecoveryNotice;
 	result?: Record<string, unknown>;
+	control?: AgentToolControl;
 	timestamp: string;
 }
 
@@ -397,40 +433,12 @@ interface AgentShared {
 	messages: AgentConversationMessage[];
 	lastConsolidatedIndex: number;
 	carryMessageIndex?: number;
+	/** Cross-tool workflow state has a single owner shared with tool execution contexts. */
+	workflow: AgentToolWorkflowState;
 	/** Compression produced a checkpoint that should guide the next decision. */
 	resumeCheckpointPending?: boolean;
-	/** Recommended next tool extracted from the compressed Active Checkpoint. */
-	resumeRequiredTool?: AgentToolName;
-	/** After compression, prevent broad rereads until the agent resumes real work. */
-	resumeNarrowReadMode?: boolean;
-	/** Successful source edits have not yet been checked by the project build. */
-	unbuiltEdits?: boolean;
-	/** Successful edit/delete actions since the most recent build attempt. */
-	editsSinceBuild?: number;
-	/** Distinct authored source paths edited since the most recent build attempt. */
-	editedPathsSinceBuild?: string[];
-	/** Whether this task has attempted at least one project build. */
-	hasBuilt?: boolean;
-	/** Whether the latest build passed and no authored edits have happened since it. */
-	lastBuildSucceeded?: boolean;
-	/** Track API lookups so later tool results can recommend an early build. */
-	apiSearchesSinceBuild?: number;
-	/** A deterministic test reported `failed`; later results should recommend fixing and building. */
-	failedTestNeedsBuild?: boolean;
-	/** An authored source/test file changed after the latest deterministic test failure. */
-	failedTestHasSourceEdit?: boolean;
-	/** A build returned concrete authored-file diagnostics that should guide the next repair. */
-	buildRepairPending?: boolean;
-	/** A project with zero buildable code files, or one buildable code file of at most 3 lines, should prefer an early implementation and build. */
-	freshProjectBuildPending?: boolean;
-	/** The only short code file found when freshProjectBuildPending was detected. */
-	freshProjectCodeFile?: string;
 	/** A truncated assistant turn was persisted and the next decision needs a one-shot recovery prompt. */
 	pendingTruncationRecovery?: boolean;
-	/** A successful spawn in this task makes list_sub_agents a discouraged polling path. */
-	hasSpawnedSubAgentThisTask?: boolean;
-	/** Number of foreground tool batches completed after the first successful spawn. */
-	delegatedForegroundBatches?: number;
 	/** Provider-reported token usage accumulated for this task. */
 	tokenUsage?: AgentTokenUsageMetric;
 	// Memory 相关字段
@@ -446,7 +454,6 @@ interface AgentShared {
 	spawnSubAgent?: CodingAgentRunOptions["spawnSubAgent"];
 	listSubAgents?: CodingAgentRunOptions["listSubAgents"];
 	publishQuestionnaire?: CodingAgentRunOptions["publishQuestionnaire"];
-	waitingQuestionnaireId?: number;
 	disabledAgentTools: AgentToolName[];
 }
 
@@ -677,29 +684,6 @@ export function truncateAgentUserPrompt(prompt: string): string {
 	return string.sub(prompt, 1, offset - 1);
 }
 
-function canWriteStepLLMDebug(shared: AgentShared, stepId = shared.step + 1): boolean {
-	return App.debugging === true
-		&& shared.sessionId !== undefined
-		&& shared.sessionId > 0
-		&& shared.taskId > 0
-		&& stepId > 0;
-}
-
-function ensureDirRecursive(dir: string): boolean {
-	if (!dir) return false;
-	if (Content.exist(dir)) return Content.isdir(dir);
-	const parent = Path.getPath(dir);
-	if (parent !== "" && parent !== dir && !Content.exist(parent) && !ensureDirRecursive(parent)) {
-		return false;
-	}
-	return Content.mkdir(dir);
-}
-
-function encodeDebugJSON(value: unknown): string {
-	const [text, err] = AgentUtils.safeJsonEncode(value as object);
-	return text ?? `{ "error": "json_encode_failed", "message": "${tostring(err)}" }`;
-}
-
 export function normalizePolicyPath(path: string): string {
 	return AgentRuntimePolicy.normalizeAgentPath(path);
 }
@@ -739,162 +723,7 @@ function inspectFreshProject(workDir: string): { fresh: boolean; codeFile?: stri
 	return lineCount <= 3 ? { fresh: true, codeFile: path } : { fresh: false };
 }
 
-function getStepLLMDebugDir(shared: AgentShared): string {
-	return Path(
-		shared.workingDir,
-		".agent",
-		tostring(shared.sessionId as number),
-		tostring(shared.taskId),
-	);
-}
 
-function getStepLLMDebugPath(shared: AgentShared, stepId: number, seq: number, kind: "in" | "out"): string {
-	return Path(getStepLLMDebugDir(shared), `${tostring(stepId)}_${tostring(seq)}_${kind}.md`);
-}
-
-function getLatestStepLLMDebugSeq(shared: AgentShared, stepId: number): number {
-	if (!canWriteStepLLMDebug(shared, stepId)) return 0;
-	const dir = getStepLLMDebugDir(shared);
-	if (!Content.exist(dir) || !Content.isdir(dir)) return 0;
-	let latest = 0;
-	for (const file of Content.getFiles(dir)) {
-		const name = Path.getFilename(file);
-		const [seqText] = string.match(name, `^${tostring(stepId)}_(%d+)_in%.md$`);
-		if (seqText !== undefined) {
-			latest = math.max(latest, tonumber(seqText) as number);
-			continue;
-		}
-		const [legacyMatch] = string.match(name, `^${tostring(stepId)}_in%.md$`);
-		if (legacyMatch !== undefined) {
-			latest = math.max(latest, 1);
-		}
-	}
-	return latest;
-}
-
-function writeStepLLMDebugFile(path: string, content: string): boolean {
-	if (!Content.save(path, content)) {
-		AgentUtils.Log("Warn", `[CodingAgent] failed to save LLM debug file: ${path}`);
-		return false;
-	}
-	Tools.sendWebIDEFileUpdate(path, true, content);
-	return true;
-}
-
-function createStepLLMDebugPair(shared: AgentShared, stepId: number, inContent: string): number {
-	if (!canWriteStepLLMDebug(shared, stepId)) return 0;
-	const dir = getStepLLMDebugDir(shared);
-	if (!ensureDirRecursive(dir)) {
-		AgentUtils.Log("Warn", `[CodingAgent] failed to create LLM debug dir: ${dir}`);
-		return 0;
-	}
-	const seq = getLatestStepLLMDebugSeq(shared, stepId) + 1;
-	const inPath = getStepLLMDebugPath(shared, stepId, seq, "in");
-	const outPath = getStepLLMDebugPath(shared, stepId, seq, "out");
-	if (!writeStepLLMDebugFile(inPath, inContent)) {
-		return 0;
-	}
-	writeStepLLMDebugFile(outPath, "");
-	return seq;
-}
-
-function updateLatestStepLLMDebugOutput(shared: AgentShared, stepId: number, content: string): void {
-	if (!canWriteStepLLMDebug(shared, stepId)) return;
-	const dir = getStepLLMDebugDir(shared);
-	if (!ensureDirRecursive(dir)) {
-		AgentUtils.Log("Warn", `[CodingAgent] failed to create LLM debug dir: ${dir}`);
-		return;
-	}
-	const latestSeq = getLatestStepLLMDebugSeq(shared, stepId);
-	if (latestSeq <= 0) {
-		const outPath = getStepLLMDebugPath(shared, stepId, 1, "out");
-		writeStepLLMDebugFile(outPath, content);
-		return;
-	}
-	const outPath = getStepLLMDebugPath(shared, stepId, latestSeq, "out");
-	writeStepLLMDebugFile(outPath, content);
-}
-
-function saveStepLLMDebugInput(shared: AgentShared, stepId: number, phase: string, messages: Message[], options: Record<string, unknown>): void {
-	if (!canWriteStepLLMDebug(shared, stepId)) return;
-	const sections: string[] = [
-		"# LLM Input",
-		`session_id: ${tostring(shared.sessionId as number)}`,
-		`task_id: ${tostring(shared.taskId)}`,
-		`step_id: ${tostring(stepId)}`,
-		`phase: ${phase}`,
-		`timestamp: ${os.date("!%Y-%m-%dT%H:%M:%SZ")}`,
-		"## Options",
-		"```json",
-		encodeDebugJSON(options),
-		"```",
-	];
-	const firstMessage = messages.length > 0 ? messages[0] : undefined;
-	if (firstMessage && firstMessage.role === "system" && typeof firstMessage.content === "string") {
-		sections.push("# System Prompt");
-		sections.push(firstMessage.content);
-	}
-	for (let i = 0; i < messages.length; i++) {
-		const message = messages[i];
-		sections.push(`## Message ${i + 1}`);
-		sections.push(encodeDebugJSON(message));
-	}
-	createStepLLMDebugPair(shared, stepId, sections.join("\n"));
-}
-
-function saveStepLLMDebugOutput(shared: AgentShared, stepId: number, phase: string, text: string, meta?: Record<string, unknown>): void {
-	if (!canWriteStepLLMDebug(shared, stepId)) return;
-	const sections = [
-		"# LLM Output",
-		`session_id: ${tostring(shared.sessionId as number)}`,
-		`task_id: ${tostring(shared.taskId)}`,
-		`step_id: ${tostring(stepId)}`,
-		`phase: ${phase}`,
-		`timestamp: ${os.date("!%Y-%m-%dT%H:%M:%SZ")}`,
-		...(meta ? ["## Meta", "```json", encodeDebugJSON(meta), "```"] : []),
-		"## Content",
-		text,
-	];
-	updateLatestStepLLMDebugOutput(shared, stepId, sections.join("\n"));
-}
-
-function toJson(value: unknown, emptyAsArray: boolean): string {
-	const [text, err] = AgentUtils.safeJsonEncode(value as object, false, emptyAsArray);
-	if (text !== undefined) return text;
-	return `{ "error": "json_encode_failed", "message": "${tostring(err)}" }`;
-}
-
-function truncateText(text: string, maxLen: number): string {
-	const nextPos = utf8.offset(text, maxLen + 1);
-	if (nextPos === undefined) return text;
-	return `${string.sub(text, 1, nextPos - 1)}...`;
-}
-
-function utf8TakeHead(text: string, maxChars: number): string {
-	if (maxChars <= 0 || text === "") return "";
-	const nextPos = utf8.offset(text, maxChars + 1);
-	if (nextPos === undefined) return text;
-	return string.sub(text, 1, nextPos - 1);
-}
-
-function utf8TakeTail(text: string, maxChars: number): string {
-	if (maxChars <= 0 || text === "") return "";
-	const [charLength] = utf8.len(text);
-	if (charLength === undefined || charLength <= maxChars) return text;
-	const startPos = utf8.offset(text, math.max(1, charLength - maxChars + 1));
-	if (startPos === undefined) return text;
-	return string.sub(text, startPos);
-}
-
-function truncateHistoryText(text: string, maxChars: number, label: string): string {
-	if (maxChars <= 0 || text === "") return "";
-	if (text.length <= maxChars) return text;
-	const marker = `\n...[${label} truncated; ${text.length} chars total]...\n`;
-	const remaining = math.max(0, maxChars - marker.length);
-	const headChars = math.floor(remaining * 0.6);
-	const tailChars = remaining - headChars;
-	return `${utf8TakeHead(text, headChars)}${marker}${utf8TakeTail(text, tailChars)}`;
-}
 
 function getReplyLanguageDirective(shared: AgentShared): string {
 	return shared.useChineseResponse
@@ -910,405 +739,6 @@ function replacePromptVars(template: string, vars: Record<string, string>): stri
 	return output;
 }
 
-function limitReadContentForHistory(
-	content: string,
-	startLine: number,
-	endLine: number,
-	totalLines: number,
-	maxChars: number,
-	maxLines: number,
-	label: string
-): {
-	content: string;
-	truncated: boolean;
-	retainedStartLine: number;
-	retainedEndLine: number;
-	nextStartLine?: number;
-	partialLine?: number;
-} {
-	const sourceLineCount = endLine >= startLine ? endLine - startLine + 1 : 0;
-	const contentLines = content.split("\n");
-	const availableSourceLines = math.min(sourceLineCount, contentLines.length);
-	if (content.length <= maxChars && availableSourceLines <= maxLines) {
-		return {
-			content,
-			truncated: false,
-			retainedStartLine: startLine,
-			retainedEndLine: endLine,
-		};
-	}
-
-	// Reserve room for an explicit continuation marker, then retain only whole
-	// source lines. The read_file footer is intentionally excluded from the
-	// source-line count and replaced with an accurate history marker.
-	const contentBudget = math.max(0, maxChars - 240);
-	const candidateLines = math.min(availableSourceLines, maxLines);
-	const retainedLines: string[] = [];
-	let retainedChars = 0;
-	for (let i = 0; i < candidateLines; i++) {
-		const line = contentLines[i];
-		const nextChars = retainedChars + line.length + (retainedLines.length > 0 ? 1 : 0);
-		if (nextChars > contentBudget) break;
-		retainedLines.push(line);
-		retainedChars = nextChars;
-	}
-
-	let retainedEndLine = startLine + retainedLines.length - 1;
-	let partialLine: number | undefined;
-	let retainedContent = retainedLines.join("\n");
-	if (retainedLines.length === 0 && candidateLines > 0) {
-		partialLine = startLine;
-		retainedEndLine = startLine - 1;
-		retainedContent = utf8TakeHead(contentLines[0], contentBudget);
-	}
-	const nextStartLine = retainedEndLine < endLine ? retainedEndLine + 1 : undefined;
-	const retainedRange = retainedLines.length > 0
-		? `complete lines ${startLine}-${retainedEndLine}`
-		: partialLine !== undefined
-			? `a partial preview of overlong line ${partialLine}`
-			: "no source lines";
-	const continuation = nextStartLine !== undefined
-		? ` Use read_file with startLine=${nextStartLine} and a narrower endLine to continue.`
-		: "";
-	const marker = `[${label} retained ${retainedRange} of requested lines ${startLine}-${endLine} (${totalLines} lines total).${continuation}]`;
-	return {
-		content: retainedContent === "" ? marker : `${retainedContent}\n\n${marker}`,
-		truncated: true,
-		retainedStartLine: startLine,
-		retainedEndLine,
-		nextStartLine,
-		partialLine,
-	};
-}
-
-function summarizeEditTextParamForHistory(value: unknown, key: "old_str" | "new_str"): Record<string, unknown> | undefined {
-	if (typeof value !== "string") return undefined;
-	const text = value;
-	const lineCount = text === "" ? 0 : text.split("\n").length;
-	return {
-		charCount: text.length,
-		lineCount,
-		isMultiline: lineCount > 1,
-		summaryType: `${key}_summary`,
-	};
-}
-
-function sanitizeReadResultForHistory(tool: AgentToolName, result: Record<string, unknown>): Record<string, unknown> {
-	if (tool !== "read_file" || result.success !== true || typeof result.content !== "string") {
-		return result;
-	}
-	const clone: Record<string, unknown> = {};
-	for (const key in result) {
-		clone[key] = result[key];
-	}
-	const startLine = typeof result.startLine === "number" ? result.startLine : 1;
-	const endLine = typeof result.endLine === "number" ? result.endLine : startLine;
-	const totalLines = typeof result.totalLines === "number" ? result.totalLines : endLine;
-	const limited = limitReadContentForHistory(
-		result.content,
-		startLine,
-		endLine,
-		totalLines,
-		AgentConfig.AGENT_LIMITS.historyReadFileMaxChars,
-		AgentConfig.AGENT_LIMITS.historyReadFileMaxLines,
-		"read_file history"
-	);
-	clone.content = limited.content;
-	if (limited.truncated) {
-		clone.historyContentTruncated = true;
-		clone.historyRetainedStartLine = limited.retainedStartLine;
-		clone.historyRetainedEndLine = limited.retainedEndLine;
-		if (limited.nextStartLine !== undefined) clone.historyNextStartLine = limited.nextStartLine;
-		if (limited.partialLine !== undefined) clone.historyPartialLine = limited.partialLine;
-	}
-	return clone;
-}
-
-function sanitizeSearchMatchesForHistory(
-	items: Record<string, unknown>[],
-	maxItems: number
-): Record<string, unknown>[] {
-	const shown = math.min(items.length, maxItems);
-	const out: Record<string, unknown>[] = [];
-	for (let i = 0; i < shown; i++) {
-		const row = items[i];
-		out.push({
-			file: row.file,
-			line: row.line,
-			content: typeof row.content === "string"
-				? truncateText(row.content, 240)
-				: row.content,
-		});
-	}
-	return out;
-}
-
-function sanitizeSearchResultForHistory(
-	tool: AgentToolName,
-	result: Record<string, unknown>
-): Record<string, unknown> {
-	if (result.success !== true || !isArray(result.results)) return result;
-	if (tool !== "grep_files" && tool !== "search_dora_doc") return result;
-	const clone: Record<string, unknown> = {};
-	for (const key in result) {
-		clone[key] = result[key];
-	}
-	const maxItems = tool === "grep_files" ? AgentConfig.AGENT_LIMITS.historySearchFilesMaxMatches : AgentConfig.AGENT_LIMITS.historySearchDoraApiMaxMatches;
-	clone.results = sanitizeSearchMatchesForHistory(
-		result.results as Record<string, unknown>[],
-		maxItems
-	);
-	if (tool === "grep_files" && isArray(result.groupedResults)) {
-		const grouped = result.groupedResults;
-		const shown = math.min(grouped.length, AgentConfig.AGENT_LIMITS.historySearchFilesMaxMatches);
-		const sanitizedGroups: Record<string, unknown>[] = [];
-		for (let i = 0; i < shown; i++) {
-			const row = grouped[i] as AnyTable;
-			sanitizedGroups.push({
-				file: row.file,
-				totalMatches: row.totalMatches,
-				matches: isArray(row.matches)
-					? sanitizeSearchMatchesForHistory(row.matches as Record<string, unknown>[], 3)
-					: [],
-			});
-		}
-		clone.groupedResults = sanitizedGroups;
-	}
-	return clone;
-}
-
-function sanitizeListFilesResultForHistory(result: Record<string, unknown>): Record<string, unknown> {
-	if (result.success !== true || !isArray(result.files)) return result;
-	const clone: Record<string, unknown> = {};
-	for (const key in result) {
-		clone[key] = result[key];
-	}
-	clone.files = result.files.slice(0, AgentConfig.AGENT_LIMITS.historyListFilesMaxEntries);
-	return clone;
-}
-
-function sanitizeBuildResultForHistory(result: Record<string, unknown>): Record<string, unknown> {
-	if (!isArray(result.messages)) return result;
-	const clone: Record<string, unknown> = {};
-	for (const key in result) {
-		clone[key] = result[key];
-	}
-	const messages = result.messages as Record<string, unknown>[];
-	const ordered = messages.slice().sort((a, b) => {
-		const aFailed = a.success !== true;
-		const bFailed = b.success !== true;
-		if (aFailed === bFailed) return 0;
-		return aFailed ? -1 : 1;
-	});
-	const shown = math.min(ordered.length, AgentConfig.AGENT_LIMITS.historyBuildMaxMessages);
-	const sanitized: Record<string, unknown>[] = [];
-	for (let i = 0; i < shown; i++) {
-		const item = ordered[i];
-		const next: Record<string, unknown> = {};
-		for (const key in item) {
-			const value = item[key];
-			next[key] = key === "message" && typeof value === "string"
-				? truncateText(value, AgentConfig.AGENT_LIMITS.historyBuildMessageMaxChars)
-				: value;
-		}
-		sanitized.push(next);
-	}
-	clone.messages = sanitized;
-	if (ordered.length > shown) {
-		clone.truncatedMessages = ordered.length - shown;
-	}
-	return clone;
-}
-
-function sanitizeActionParamsForHistory(tool: AgentToolName, params: Record<string, unknown>): Record<string, unknown> {
-	if (tool !== "edit_file") return params;
-	const clone: Record<string, unknown> = {};
-	for (const key in params) {
-		if (key === "old_str") {
-			clone.old_str_stats = summarizeEditTextParamForHistory(params[key], "old_str");
-		} else if (key === "new_str") {
-			clone.new_str_stats = summarizeEditTextParamForHistory(params[key], "new_str");
-		} else {
-			clone[key] = params[key];
-		}
-	}
-	return clone;
-}
-
-function projectEditResultForLLM(result: Record<string, unknown>): Record<string, unknown> {
-	if (result.success !== true) {
-		const failed: Record<string, unknown> = {};
-		for (const key in result) {
-			const value = result[key];
-			failed[key] = typeof value === "string"
-				? truncateHistoryText(value, AgentConfig.AGENT_LIMITS.llmHistoryEditResultMessageMaxChars, key)
-				: value;
-		}
-		return failed;
-	}
-	const projected: Record<string, unknown> = {};
-	const scalarKeys = [
-		"success", "changed", "mode", "checkpointId", "checkpointSeq",
-		"checkpointed", "reversible", "binary",
-		"actualSaved", "actualSavedCharacters", "currentFileExists", "currentCharacters", "currentState",
-	];
-	for (let i = 0; i < scalarKeys.length; i++) {
-		const key = scalarKeys[i];
-		if (result[key] !== undefined) projected[key] = result[key];
-	}
-	if (isArray(result.files)) projected.files = result.files;
-	if (typeof result.message === "string") {
-		projected.message = truncateHistoryText(
-			result.message,
-			AgentConfig.AGENT_LIMITS.llmHistoryEditResultMessageMaxChars,
-			"message"
-		);
-	}
-	if (typeof result.guidance === "string") {
-		projected.guidance = truncateHistoryText(
-			result.guidance,
-			AgentConfig.AGENT_LIMITS.llmHistoryEditResultMessageMaxChars,
-			"guidance"
-		);
-	}
-	if (isArray(result.fileContext)) {
-		const summaries: Record<string, unknown>[] = [];
-		for (let i = 0; i < result.fileContext.length; i++) {
-			const item = result.fileContext[i];
-			if (!isRecord(item) || isArray(item)) continue;
-			const summary: Record<string, unknown> = {};
-			const keys = [
-				"path", "op", "beforeExists", "afterExists", "beforeBytes", "afterBytes",
-				"lineCount", "contentTruncated", "fileListTruncated",
-			];
-			for (let j = 0; j < keys.length; j++) {
-				const key = keys[j];
-				if (item[key] !== undefined) summary[key] = item[key];
-			}
-			summaries.push(summary);
-		}
-		if (summaries.length > 0) projected.fileSummary = summaries;
-	}
-	if (typeof result.truncatedFileContextItems === "number") {
-		projected.truncatedFileContextItems = result.truncatedFileContextItems;
-	}
-	projected.contextNote = "Full file content and diff are omitted from LLM history. Use read_file when exact current content is needed.";
-	return projected;
-}
-
-function projectBuildResultForLLM(result: Record<string, unknown>): Record<string, unknown> {
-	if (!isArray(result.messages)) return result;
-	const projected: Record<string, unknown> = {};
-	for (const key in result) {
-		if (key !== "messages") projected[key] = result[key];
-	}
-	const maxMessages = AgentConfig.AGENT_LIMITS.llmHistoryBuildMaxMessages;
-	const shown = math.min(result.messages.length, maxMessages);
-	projected.messages = result.messages.slice(0, shown);
-	if (result.messages.length > shown) {
-		projected.llmHistoryTruncatedMessages = result.messages.length - shown;
-	}
-	return projected;
-}
-
-function projectCommandResultForLLM(result: Record<string, unknown>): Record<string, unknown> {
-	const projected: Record<string, unknown> = {};
-	for (const key in result) {
-		const value = result[key];
-		if (key === "output" && typeof value === "string") {
-			projected[key] = truncateHistoryText(
-				value,
-				AgentConfig.AGENT_LIMITS.llmHistoryCommandOutputMaxChars,
-				"command output"
-			);
-		} else if (key === "message" && typeof value === "string") {
-			projected[key] = truncateHistoryText(
-				value,
-				AgentConfig.AGENT_LIMITS.llmHistoryCommandOutputMaxChars,
-				"command message"
-			);
-		} else {
-			projected[key] = value;
-		}
-	}
-	return projected;
-}
-
-function projectToolResultContentForLLM(tool: string, content: string): string {
-	const [decoded] = AgentUtils.safeJsonDecode(content);
-	if (!isRecord(decoded) || isArray(decoded)) {
-		return truncateHistoryText(
-			content,
-			AgentConfig.AGENT_LIMITS.llmHistoryToolResultMaxChars,
-			`${tool} result`
-		);
-	}
-	let projected = decoded;
-	if (tool === "edit_file" || tool === "delete_file") {
-		projected = projectEditResultForLLM(decoded);
-	} else if (tool === "build") {
-		projected = projectBuildResultForLLM(decoded);
-	} else if (tool === "execute_command") {
-		projected = projectCommandResultForLLM(decoded);
-	}
-	const encoded = toJson(projected, false);
-	// read_file is already normalized once, before it enters session history.
-	// Keep that representation stable across later requests for prompt caching.
-	if (tool === "read_file") return encoded;
-	if (encoded.length <= AgentConfig.AGENT_LIMITS.llmHistoryToolResultMaxChars) return encoded;
-	const fallback: Record<string, unknown> = {
-		success: projected.success,
-		llmHistoryTruncated: true,
-		originalChars: encoded.length,
-		preview: truncateHistoryText(
-			encoded,
-			math.floor(AgentConfig.AGENT_LIMITS.llmHistoryToolResultMaxChars * 0.45),
-			`${tool} result`
-		),
-	};
-	return toJson(fallback, false);
-}
-function projectMessagesForLLMContext(messages: Message[]): Message[] {
-	// Session history remains the source of truth for persistence and UI events.
-	// Tool-call arguments remain byte-for-byte unchanged so the normal Agent loop
-	// sees the exact calls that were originally stored and preserves cache prefixes.
-	const projected: Message[] = [];
-	for (let i = 0; i < messages.length; i++) {
-		const message = messages[i];
-		const next: Message = { ...message };
-		if (message.role === "assistant" && (!message.tool_calls || message.tool_calls.length === 0)) next.reasoning_content = undefined; // DeepSeek replays reasoning only with its tool calls.
-		if (message.role === "tool" && typeof message.content === "string") {
-			next.content = projectToolResultContentForLLM(message.name ?? "tool", message.content);
-		}
-		projected.push(next);
-	}
-	return projected;
-}
-
-function projectMessagesForCompression(messages: Message[]): Message[] {
-	const projected = projectMessagesForLLMContext(messages);
-	for (let i = 0; i < projected.length; i++) {
-		const message = projected[i];
-		if (message.role !== "assistant" || !message.tool_calls || message.tool_calls.length === 0) continue;
-		let changed = false;
-		const toolCalls = message.tool_calls.map(toolCall => {
-			const fn = toolCall.function;
-			if (fn?.name !== "edit_file" || typeof fn.arguments !== "string") return toolCall;
-			const [decoded] = AgentUtils.safeJsonDecode(fn.arguments);
-			if (!isRecord(decoded) || isArray(decoded)) return toolCall;
-			changed = true;
-			return {
-				...toolCall,
-				function: {
-					...fn,
-					arguments: toJson(sanitizeActionParamsForHistory("edit_file", decoded), false),
-				},
-			};
-		});
-		if (changed) projected[i] = { ...message, tool_calls: toolCalls };
-	}
-	return projected;
-}
 
 export function getDecisionDisabledAgentTools(shared: AgentShared): AgentToolName[] {
 	// Capability is stable for the whole task. Runtime workflow state may add
@@ -1374,66 +804,23 @@ async function startPreExecutedToolAction(shared: AgentShared, action: AgentActi
 	} catch (err) {
 		const message = tostring(err);
 		AgentUtils.Log("Error", `[CodingAgent] streaming pre-exec failed tool=${action.tool} id=${action.toolCallId}: ${message}`);
-		return { success: false, message };
+		return { success: false, code: "TOOL_EXECUTION_FAILED", message };
 	}
 }
 
 function createPreExecutedToolResult(shared: AgentShared, action: AgentActionRecord): PreExecutedToolResult {
-	const cloneParamValue = (value: unknown): unknown => {
-		if (value === undefined) return value;
-		if (isArray(value)) {
-			return value.map(item => cloneParamValue(item));
-		}
-		if (typeof value === "object") {
-			const clone: Record<string, unknown> = {};
-			for (const key in value as Record<string, unknown>) {
-				clone[key] = cloneParamValue((value as Record<string, unknown>)[key]);
-			}
-			return clone;
-		}
-		return value;
-	};
-	const params = cloneParamValue(action.params) as Record<string, unknown>;
-	const areParamValuesEqual = (left: unknown, right: unknown): boolean => {
-		if (left === right) return true;
-		if (left === undefined || right === undefined) return false;
-		if (isArray(left) || isArray(right)) {
-			if (!isArray(left) || !isArray(right) || left.length !== right.length) return false;
-			for (let i = 0; i < left.length; i++) {
-				if (!areParamValuesEqual(left[i], right[i])) return false;
-			}
-			return true;
-		}
-		if (typeof left === "object" && typeof right === "object") {
-			let leftCount = 0;
-			for (const key in left as Record<string, unknown>) {
-				leftCount++;
-				if (!areParamValuesEqual(
-					(left as Record<string, unknown>)[key],
-					(right as Record<string, unknown>)[key]
-				)) {
-					return false;
-				}
-			}
-			let rightCount = 0;
-			for (const key in right as Record<string, unknown>) {
-				rightCount++;
-			}
-			return leftCount === rightCount;
-		}
-		return false;
-	};
+	const params = cloneAgentToolParams(action.params);
 	return {
 		action,
 		matches(nextAction: AgentActionRecord): boolean {
-			return action.tool === nextAction.tool && areParamValuesEqual(params, nextAction.params);
+			return action.tool === nextAction.tool && areAgentToolParamsEqual(params, nextAction.params);
 		},
 		promise: startPreExecutedToolAction(shared, action),
 	};
 }
 
 async function executeToolActionWithPreExecution(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
-	const wasResumeNarrowReadMode = shared.resumeNarrowReadMode === true;
+	const wasResumeNarrowReadMode = shared.workflow.resumeNarrowReadMode === true;
 	const preResult = shared.preExecutedResults?.get(action.toolCallId);
 	let result: Record<string, unknown>;
 	if (preResult) {
@@ -1449,23 +836,40 @@ async function executeToolActionWithPreExecution(shared: AgentShared, action: Ag
 		result = await executeToolAction(shared, action);
 	}
 	const guidance: string[] = [];
+	if (action.truncatedEditRecovery !== undefined) {
+		const recovery = action.truncatedEditRecovery;
+		const recoveryHint = `The edit_file arguments ended at max_output_tokens. Only ${recovery.operationCount} safely decoded operation(s) for ${recovery.targets.join(", ")} were submitted (${recovery.recoveredNewStrCharacters} new_str characters recovered). The saved content may end mid-file or mid-construct. Immediately read every affected file, inspect what was actually saved, complete or correct it with a bounded edit, and build before relying on this result.`;
+		result = {
+			...result,
+			truncatedInput: true,
+			needsInspection: true,
+			recovery: {
+				targets: recovery.targets,
+				operationCount: recovery.operationCount,
+				recoveredNewStrCharacters: recovery.recoveredNewStrCharacters,
+				incompleteStringCount: recovery.incompleteStringCount,
+			},
+			recoveryHint,
+		};
+		guidance.push(recoveryHint);
+	}
 	if (typeof result.guidance === "string" && result.guidance.trim() !== "") {
 		guidance.push(result.guidance);
 	}
 	guidance.push(AgentToolRegistry.buildCurrentToolAvailabilityGuidance());
 	if (
-		shared.hasSpawnedSubAgentThisTask === true
-		&& (shared.delegatedForegroundBatches ?? 0) + 1 >= AgentConfig.AGENT_DEFAULTS.delegatedForegroundBatchLimit
+		shared.workflow.hasSpawnedSubAgentThisTask === true
+		&& (shared.workflow.delegatedForegroundBatches ?? 0) + 1 >= AgentConfig.AGENT_DEFAULTS.delegatedForegroundBatchLimit
 		&& action.tool !== "spawn_sub_agent"
 		&& action.tool !== "finish"
 	) {
 		guidance.push("Foreground work after delegation has reached the recommended bound. Prefer dispatching another independent sub-agent or finishing this turn so the user can continue interacting.");
 	}
-	if (shared.resumeRequiredTool !== undefined && action.tool !== shared.resumeRequiredTool) {
-		guidance.push(`The compression checkpoint recommends ${shared.resumeRequiredTool} next. Avoid restarting broad discovery unless this result shows it is necessary.`);
+	if (shared.workflow.resumeRequiredTool !== undefined && action.tool !== shared.workflow.resumeRequiredTool) {
+		guidance.push(`The compression checkpoint recommends ${shared.workflow.resumeRequiredTool} next. Avoid restarting broad discovery unless this result shows it is necessary.`);
 	}
-	if (shared.failedTestNeedsBuild === true) {
-		if (action.tool === "build" && result.success === true && shared.failedTestHasSourceEdit !== true) {
+	if (shared.workflow.failedTestNeedsBuild === true) {
+		if (action.tool === "build" && result.success === true && shared.workflow.failedTestHasSourceEdit !== true) {
 			guidance.push("The build passed, but no authored source change has addressed the deterministic test failure. Make a narrow source fix before rebuilding or retesting.");
 		} else if (
 			(action.tool === "edit_file" || action.tool === "delete_file")
@@ -1478,35 +882,38 @@ async function executeToolActionWithPreExecution(shared: AgentShared, action: Ag
 		}
 	}
 	if (action.tool === "search_dora_doc") {
-		if (shared.unbuiltEdits === true) {
+		if (shared.workflow.unbuiltEdits === true) {
 			guidance.push("There are unbuilt authored changes. Apply only relevant API evidence from this result, then prefer building before more discovery.");
 		}
-		if ((shared.apiSearchesSinceBuild ?? 0) >= 2) {
+		if ((shared.workflow.apiSearchesSinceBuild ?? 0) >= 2) {
 			guidance.push("Dora API documentation has already been searched since the last build. Prefer applying the evidence and building before another lookup.");
 		}
 	}
 	if (
 		(action.tool === "edit_file" || action.tool === "delete_file")
 		&& !AgentRuntimePolicy.isAgentInternalDocumentPath(getDecisionPath(action.params))
-		&& AgentRuntimePolicy.isEditBudgetExhausted(shared)
+		&& AgentRuntimePolicy.isEditBudgetExhausted(shared.workflow)
 	) {
 		guidance.push("Several source files have changed since the last build. Prefer compiling now to obtain concrete diagnostics before broadening the edit set.");
 	}
 	if (action.tool === "edit_file" && wasResumeNarrowReadMode) {
-		const oldStr = typeof action.params.old_str === "string" ? action.params.old_str : "";
-		if (oldStr === "") {
+		let containsWholeFileWrite = typeof action.params.old_str === "string" && action.params.old_str === "";
+		if (isArray(action.params.edits)) {
+			containsWholeFileWrite = action.params.edits.some(item => isRecord(item) && item.old_str === "");
+		}
+		if (containsWholeFileWrite) {
 			guidance.push("After compression, prefer a targeted old_str replacement or an early build over rewriting a complete existing file.");
 		}
 	}
-	if (action.tool === "list_sub_agents" && shared.hasSpawnedSubAgentThisTask === true) {
+	if (action.tool === "list_sub_agents" && shared.workflow.hasSpawnedSubAgentThisTask === true) {
 		guidance.push("Sub-agent results arrive asynchronously. Avoid polling repeatedly; finish the current turn when no independent foreground work remains.");
 	}
-	if (shared.freshProjectBuildPending === true && action.tool !== "build") {
-		guidance.push(shared.unbuiltEdits === true
+	if (shared.workflow.freshProjectBuildPending === true && action.tool !== "build") {
+		guidance.push(shared.workflow.unbuiltEdits === true
 			? "A fresh project now has an authored implementation. Prefer an early build so later work uses compiler feedback."
 			: "This is a fresh project. Prefer creating a compilable first implementation, then build early.");
 	}
-	if (shared.buildRepairPending === true) {
+	if (shared.workflow.buildRepairPending === true) {
 		if (action.tool === "build") {
 			guidance.push("This build reported authored-file diagnostics. Make a narrow source repair before building again.");
 		} else if (
@@ -1521,9 +928,9 @@ async function executeToolActionWithPreExecution(shared: AgentShared, action: Ag
 	}
 	if (
 		action.tool === "build"
-		&& shared.lastBuildSucceeded === true
-		&& shared.unbuiltEdits !== true
-		&& shared.failedTestNeedsBuild !== true
+		&& shared.workflow.lastBuildSucceeded === true
+		&& shared.workflow.unbuiltEdits !== true
+		&& shared.workflow.failedTestNeedsBuild !== true
 	) {
 		guidance.push("The latest build passed with no pending source edits. If the user's acceptance criteria are satisfied, prefer finishing instead of inventing extra probes.");
 	}
@@ -1532,7 +939,7 @@ async function executeToolActionWithPreExecution(shared: AgentShared, action: Ag
 	// compression checkpoint. Any other real action ends the narrow-resume phase,
 	// but only after its result has received the relevant recovery guidance.
 	if (action.tool !== "build" && action.tool !== "read_file") {
-		shared.resumeNarrowReadMode = false;
+		shared.workflow.resumeNarrowReadMode = false;
 	}
 	return result;
 }
@@ -1922,16 +1329,16 @@ function applyCompressedSessionState(
 	// must not silently turn resume into restart.
 	const hasUncompressedTail = shared.lastConsolidatedIndex < shared.messages.length;
 	shared.resumeCheckpointPending = true;
-	shared.resumeRequiredTool = undefined;
-	shared.resumeNarrowReadMode = true;
+	shared.workflow.resumeRequiredTool = undefined;
+	shared.workflow.resumeNarrowReadMode = true;
 	// Runtime state is more authoritative than an LLM-written checkpoint. If
 	// authored edits are still unbuilt, every compression path must resume at
 	// the build boundary. A compression can leave bookkeeping messages in the
 	// active tail even when there is no newer user instruction; gating this on
 	// `hasUncompressedTail` allowed a stale checkpoint to overwrite authored
 	// source before the pending build.
-	if (shared.unbuiltEdits === true) {
-		shared.resumeRequiredTool = "build";
+	if (shared.workflow.unbuiltEdits === true) {
+		shared.workflow.resumeRequiredTool = "build";
 	}
 	// A carry created before the current task has taken a decision is the newly
 	// submitted user instruction. The compressor deliberately leaves that message
@@ -1948,7 +1355,7 @@ function applyCompressedSessionState(
 	if (
 		!hasUncompressedTail
 		&& !carryStartsNewTask
-		&& shared.resumeRequiredTool === undefined
+		&& shared.workflow.resumeRequiredTool === undefined
 		&& typeof sessionSummary === "string"
 	) {
 		const marker = "**Next tool**:";
@@ -1963,17 +1370,17 @@ function applyCompressedSessionState(
 			for (let i = 0; i < toolNames.length; i++) {
 				const tool = toolNames[i];
 				if (nextToolLine.indexOf(`\`${tool}\``) >= 0) {
-					shared.resumeRequiredTool = tool;
+					shared.workflow.resumeRequiredTool = tool;
 					break;
 				}
 			}
 		}
 	}
-	if (shared.hasSpawnedSubAgentThisTask === true && shared.resumeRequiredTool === "list_sub_agents") {
-		shared.resumeRequiredTool = undefined;
+	if (shared.workflow.hasSpawnedSubAgentThisTask === true && shared.workflow.resumeRequiredTool === "list_sub_agents") {
+		shared.workflow.resumeRequiredTool = undefined;
 	}
-	if (shared.resumeRequiredTool !== undefined && !isToolAllowedForRole(shared, shared.resumeRequiredTool)) {
-		shared.resumeRequiredTool = undefined;
+	if (shared.workflow.resumeRequiredTool !== undefined && !isToolAllowedForRole(shared, shared.workflow.resumeRequiredTool)) {
+		shared.workflow.resumeRequiredTool = undefined;
 	}
 }
 
@@ -2023,173 +1430,6 @@ function appendAssistantToolCallsMessage(
 	});
 }
 
-function hasXMLParam(params: Record<string, unknown>, name: string): boolean {
-	return params[name] !== undefined;
-}
-
-function inferToolNameFromXMLParams(params: Record<string, unknown>): AgentToolName | undefined {
-	if (hasXMLParam(params, "old_str") || hasXMLParam(params, "new_str")) {
-		return "edit_file";
-	}
-	if (hasXMLParam(params, "target_file")) {
-		return "delete_file";
-	}
-	if (hasXMLParam(params, "startLine") || hasXMLParam(params, "endLine")) {
-		if (hasXMLParam(params, "path")) return "read_file";
-		return undefined;
-	}
-	if (hasXMLParam(params, "docType") || hasXMLParam(params, "programmingLanguage")) {
-		if (hasXMLParam(params, "pattern")) return "search_dora_doc";
-		return undefined;
-	}
-	if (hasXMLParam(params, "groupByFile") || hasXMLParam(params, "caseSensitive")) {
-		if (hasXMLParam(params, "pattern")) return "grep_files";
-		return undefined;
-	}
-	if (hasXMLParam(params, "globs")) {
-		if (hasXMLParam(params, "pattern")) return "grep_files";
-		return "glob_files";
-	}
-	if (hasXMLParam(params, "maxEntries")) {
-		return "glob_files";
-	}
-	if (hasXMLParam(params, "message") || hasXMLParam(params, "response") || hasXMLParam(params, "summary")) {
-		return "finish";
-	}
-	if (hasXMLParam(params, "title") || hasXMLParam(params, "prompt") || hasXMLParam(params, "expectedOutput") || hasXMLParam(params, "filesHint")) {
-		return "spawn_sub_agent";
-	}
-	if (hasXMLParam(params, "status") || hasXMLParam(params, "query")) {
-		return "list_sub_agents";
-	}
-	return undefined;
-}
-
-function parseDSMLAttribute(source: string, offset: number, name: string): { success: true; value: string; next: number } | { success: false; message: string } {
-	const attrOpen = `${name}="`;
-	const attrStart = source.indexOf(attrOpen, offset);
-	if (attrStart < 0) return { success: false, message: `missing ${name} attribute` };
-	const valueStart = attrStart + attrOpen.length;
-	const valueEnd = source.indexOf('"', valueStart);
-	if (valueEnd < 0) return { success: false, message: `unterminated ${name} attribute` };
-	return {
-		success: true,
-		value: source.slice(valueStart, valueEnd),
-		next: valueEnd + 1,
-	};
-}
-
-function extractDSMLReason(text: string, invokeStart: number, tool: AgentToolName): string {
-	const toolCallsStart = text.indexOf("<｜｜DSML｜｜tool_calls>");
-	const before = toolCallsStart >= 0 && toolCallsStart < invokeStart
-		? text.slice(0, toolCallsStart).trim()
-		: text.slice(0, invokeStart).trim();
-	if (before !== "" && before.indexOf("<｜｜DSML") < 0) return before;
-	if (tool === "finish") return "";
-	return "Converted provider-native tool call syntax to XML.";
-}
-
-function parseDSMLToolCallObjectFromText(text: string): { success: true; obj: Record<string, unknown> } | { success: false; message: string } {
-	const invokeOpen = '<｜｜DSML｜｜invoke name="';
-	const invokeStart = text.indexOf(invokeOpen);
-	if (invokeStart < 0) return { success: false, message: "missing DSML invoke" };
-	const nameStart = invokeStart + invokeOpen.length;
-	const nameEnd = text.indexOf('"', nameStart);
-	if (nameEnd < 0) return { success: false, message: "unterminated DSML invoke name" };
-	const toolName = text.slice(nameStart, nameEnd);
-	if (!AgentToolRegistry.isKnownToolName(toolName)) {
-		return { success: false, message: `unknown DSML tool: ${toolName}` };
-	}
-	const invokeOpenEnd = text.indexOf(">", nameEnd);
-	if (invokeOpenEnd < 0) return { success: false, message: "unterminated DSML invoke open tag" };
-	const invokeClose = "</｜｜DSML｜｜invoke>";
-	const invokeEnd = text.indexOf(invokeClose, invokeOpenEnd + 1);
-	if (invokeEnd < 0) return { success: false, message: "missing DSML invoke close tag" };
-
-	const body = text.slice(invokeOpenEnd + 1, invokeEnd);
-	const params: Record<string, unknown> = {};
-	const paramOpen = "<｜｜DSML｜｜parameter";
-	const paramClose = "</｜｜DSML｜｜parameter>";
-	let pos = 0;
-	while (pos < body.length) {
-		const start = body.indexOf(paramOpen, pos);
-		if (start < 0) break;
-		const openEnd = body.indexOf(">", start + paramOpen.length);
-		if (openEnd < 0) return { success: false, message: "unterminated DSML parameter open tag" };
-		const name = parseDSMLAttribute(body, start + paramOpen.length, "name");
-		if (!name.success) return name;
-		const close = body.indexOf(paramClose, openEnd + 1);
-		if (close < 0) return { success: false, message: "missing DSML parameter close tag" };
-		params[name.value] = body.slice(openEnd + 1, close);
-		pos = close + paramClose.length;
-	}
-	return {
-		success: true,
-		obj: {
-			tool: toolName,
-			reason: extractDSMLReason(text, invokeStart, toolName),
-			params,
-		},
-	};
-}
-
-function parseXMLToolCallObjectFromText(text: string): { success: true; obj: Record<string, unknown> } | { success: false; message: string } {
-	const children = AgentUtils.parseXMLObjectFromText(text, "tool_call");
-	let rawObj: Record<string, unknown> | undefined;
-	if (children.success) {
-		rawObj = children.obj;
-	} else {
-		const dsml = parseDSMLToolCallObjectFromText(text);
-		if (dsml.success) return dsml;
-		const toolStart = text.indexOf("<tool>");
-		const paramsCloseToken = "</params>";
-		if (toolStart >= 0) {
-			const paramsClose = text.indexOf(paramsCloseToken, toolStart);
-			if (paramsClose >= toolStart) {
-				const bareCandidate = text.slice(toolStart, paramsClose + paramsCloseToken.length).trim();
-				const bare = AgentUtils.parseSimpleXMLChildren(bareCandidate);
-				if (bare.success && typeof bare.obj.tool === "string" && typeof bare.obj.params === "string") {
-					rawObj = bare.obj;
-				}
-			}
-		}
-		if (rawObj === undefined) {
-			const paramsOpen = text.indexOf("<params>");
-			if (paramsOpen < 0) return children;
-			const paramsCloseOnly = text.indexOf(paramsCloseToken, paramsOpen);
-			if (paramsCloseOnly < paramsOpen) return children;
-			const paramsTextOnly = text.slice(paramsOpen + "<params>".length, paramsCloseOnly);
-			const paramsOnly = AgentUtils.parseSimpleXMLChildren(paramsTextOnly);
-			if (!paramsOnly.success) return children;
-			const inferredTool = inferToolNameFromXMLParams(paramsOnly.obj);
-			if (inferredTool === undefined) return children;
-			return {
-				success: true,
-				obj: {
-					tool: inferredTool,
-					reason: inferredTool === "finish" ? undefined : "Inferred tool from XML params.",
-					params: paramsOnly.obj,
-				},
-			};
-		}
-	}
-	if (rawObj === undefined) return children;
-	const paramsText = typeof rawObj.params === "string" ? rawObj.params as string : "";
-	const params = paramsText !== ""
-		? AgentUtils.parseSimpleXMLChildren(paramsText)
-		: { success: true as const, obj: {} as Record<string, unknown> };
-	if (!params.success) {
-		return { success: false, message: params.message };
-	}
-	return {
-		success: true,
-		obj: {
-			tool: rawObj.tool,
-			reason: rawObj.reason,
-			params: params.obj,
-		},
-	};
-}
 
 type LLMResult = {
 	success: true;
@@ -2254,101 +1494,7 @@ async function llm(
 	}
 }
 
-type DecisionSuccess = {
-	success: true;
-	tool: AgentToolName;
-	params: Record<string, unknown>;
-	toolCallId?: string;
-	reason?: string;
-	reasoningContent?: string;
-	directSummary?: string;
-};
-type DecisionBatchSuccess = {
-	success: true;
-	kind: "batch";
-	decisions: DecisionSuccess[];
-	content?: string;
-	reasoningContent?: string;
-};
-type DecisionTruncated = {
-	success: false;
-	recoverable: true;
-	message: string;
-	content?: string;
-	reasoningContent?: string;
-};
-type DecisionResult = DecisionSuccess | DecisionBatchSuccess | DecisionTruncated | DecisionFailure;
-type DecisionFailure = { success: false; message: string; raw?: string };
 
-function isDecisionBatchSuccess(result: DecisionSuccess | DecisionBatchSuccess): result is DecisionBatchSuccess {
-	return (result as DecisionBatchSuccess).kind === "batch";
-}
-
-function isDecisionTruncated(result: DecisionResult): result is DecisionTruncated {
-	return result.success === false && (result as DecisionTruncated).recoverable === true;
-}
-
-function parseDecisionObject(rawObj: Record<string, unknown>): DecisionSuccess | DecisionFailure {
-	if (typeof rawObj.tool !== "string") return { success: false, message: "missing tool" };
-	const tool = rawObj.tool;
-	if (!AgentToolRegistry.isKnownToolName(tool)) {
-		return { success: false, message: `unknown tool: ${tool}` };
-	}
-	const reason = typeof rawObj.reason === "string"
-		? rawObj.reason.trim()
-		: undefined;
-	if (tool !== "finish" && (!reason || reason === "")) {
-		return { success: false, message: `${tool} requires top-level reason` };
-	}
-	const params = isRecord(rawObj.params) ? rawObj.params : {};
-	return {
-		success: true,
-		tool,
-		params,
-		reason,
-	};
-}
-
-function parseDecisionToolCall(functionName: string, rawObj: unknown): DecisionSuccess | DecisionFailure {
-	if (!AgentToolRegistry.isKnownToolName(functionName)) {
-		return { success: false, message: `unknown tool: ${functionName}` };
-	}
-	if (rawObj === undefined) {
-		return { success: true, tool: functionName, params: {} };
-	}
-	if (!isRecord(rawObj)) {
-		return { success: false, message: `invalid ${functionName} arguments` };
-	}
-	return {
-		success: true,
-		tool: functionName,
-		params: rawObj,
-	};
-}
-
-function parseToolCallArguments(functionName: string, argsText: string): Record<string, unknown> | DecisionFailure {
-	const trimmedArgs = argsText.trim();
-	if (trimmedArgs === "") {
-		return {};
-	}
-	const [rawObj, err] = AgentUtils.safeJsonDecode(trimmedArgs);
-	if (err !== undefined || rawObj === undefined) {
-		return {
-			success: false,
-			message: `invalid ${functionName} arguments: ${tostring(err)}`,
-			raw: argsText,
-		};
-	}
-	const [encodedRaw] = AgentUtils.safeJsonEncode(rawObj as object);
-	if (encodedRaw === "null" || !isRecord(rawObj) || trimmedArgs[0] === "[") {
-		return {
-			success: false,
-			message: `invalid ${functionName} arguments`,
-			raw: argsText,
-		};
-	}
-	return rawObj;
-}
 
 function parseAndValidateToolCallDecision(
 	shared: AgentShared,
@@ -2423,16 +1569,11 @@ function createPreExecutableActionFromStream(shared: AgentShared, toolCall: Tool
 	};
 }
 
-function getDecisionPath(params: Record<string, unknown>): string {
-	if (typeof params.path === "string") return params.path.trim();
-	if (typeof params.target_file === "string") return params.target_file.trim();
-	return "";
-}
 
 function validateDecisionForShared(
 	shared: AgentShared,
 	tool: AgentToolName,
-	params: Record<string, unknown>,
+	_params: Record<string, unknown>,
 	enforceFinalTurn = false
 ): { success: true } | { success: false; message: string } {
 	if (enforceFinalTurn && isFinalDecisionTurn(shared) && tool !== "finish") {
@@ -2441,216 +1582,9 @@ function validateDecisionForShared(
 	if (!isToolAllowedForRole(shared, tool)) {
 		return { success: false, message: `${tool} is not allowed in ${shared.workMode} mode for role ${shared.role}` };
 	}
-	if (shared.workMode === "plan" && (tool === "edit_file" || tool === "delete_file")) {
-		const path = getDecisionPath(params);
-		if (!AgentRuntimePolicy.isAgentPlanPath(path)) {
-			return { success: false, message: `${tool} in Plan mode may only write under ${AgentRuntimePolicy.AGENT_PLAN_DIR}` };
-		}
-	}
-	if (tool === "delete_file") {
-		const path = AgentRuntimePolicy.normalizeAgentPath(getDecisionPath(params));
-		if (path === AgentRuntimePolicy.AGENT_PLAN_FILE || path === AgentRuntimePolicy.AGENT_PROGRESS_FILE) {
-			return { success: false, message: `${path} is a fixed living document and cannot be deleted` };
-		}
-	}
 	return { success: true };
 }
 
-function clampIntegerParam(value: unknown, fallback: number, minValue: number, maxValue?: number): number {
-	let num = Number(value);
-	if (!Number.isFinite(num)) num = fallback;
-	num = math.floor(num);
-	if (num < minValue) num = minValue;
-	if (maxValue !== undefined && num > maxValue) num = maxValue;
-	return num;
-}
-
-function parseReadLineParam(
-	value: unknown,
-	fallback: number,
-	paramName: "startLine" | "endLine"
-): { success: true; value: number } | { success: false; message: string } {
-	let num = Number(value);
-	if (!Number.isFinite(num)) num = fallback;
-	num = math.floor(num);
-	if (num === 0) {
-		return { success: false, message: `${paramName} cannot be 0` };
-	}
-	return { success: true, value: num };
-}
-
-function validateDecision(
-	tool: AgentToolName,
-	params: Record<string, unknown>
-): { success: true; params: Record<string, unknown> } | { success: false; message: string } {
-	if (tool === "finish") {
-		const message = getFinishMessage(params);
-		if (message === "") return { success: false, message: "finish requires params.message" };
-		params.message = message;
-		const completion = getCompletionReport(params);
-		params.outcome = completion.outcome;
-		params.validation = completion.validation;
-		params.knownIssues = completion.knownIssues;
-		params.assumptions = completion.assumptions;
-		params.learningCandidates = completion.learningCandidates;
-		return { success: true, params };
-	}
-
-	if (tool === "ask_user") {
-		const normalized = normalizeQuestionnaire(params);
-		if (!normalized.success) return normalized;
-		return { success: true, params: normalized.schema as unknown as Record<string, unknown> };
-	}
-
-	if (tool === "read_file") {
-		const path = getDecisionPath(params);
-		if (path === "") return { success: false, message: "read_file requires path" };
-		params.path = path;
-		const startLineRes = parseReadLineParam(params.startLine, 1, "startLine");
-		if (!startLineRes.success) return startLineRes;
-		const endLineDefault = startLineRes.value < 0 ? -1 : AgentConfig.AGENT_LIMITS.readFileDefaultLimit;
-		const endLineRes = parseReadLineParam(params.endLine, endLineDefault, "endLine");
-		if (!endLineRes.success) return endLineRes;
-		params.startLine = startLineRes.value;
-		params.endLine = endLineRes.value;
-		return { success: true, params };
-	}
-
-	if (tool === "edit_file") {
-		const path = getDecisionPath(params);
-		if (path === "") return { success: false, message: "edit_file requires path" };
-		const oldStr = typeof params.old_str === "string" ? params.old_str : "";
-		const newStr = typeof params.new_str === "string" ? params.new_str : "";
-		params.path = path;
-		params.old_str = oldStr;
-		params.new_str = newStr;
-		return { success: true, params };
-	}
-
-	if (tool === "delete_file") {
-		const targetFile = getDecisionPath(params);
-		if (targetFile === "") return { success: false, message: "delete_file requires target_file" };
-		params.target_file = targetFile;
-		return { success: true, params };
-	}
-
-	if (tool === "grep_files") {
-		const pattern = typeof params.pattern === "string" ? params.pattern.trim() : "";
-		if (pattern === "") return { success: false, message: "grep_files requires pattern" };
-		params.pattern = pattern;
-		params.limit = clampIntegerParam(params.limit, AgentConfig.AGENT_LIMITS.searchFilesLimitDefault, 1);
-		params.offset = clampIntegerParam(params.offset, 0, 0);
-		return { success: true, params };
-	}
-
-	if (tool === "search_dora_doc") {
-		const pattern = typeof params.pattern === "string" ? params.pattern.trim() : "";
-		if (pattern === "") return { success: false, message: "search_dora_doc requires pattern" };
-		const docType = typeof params.docType === "string" ? params.docType : "dora-api";
-		if (docType !== "dora-api" && docType !== "dora-tutorial" && docType !== "love-api" && docType !== "tic80-api") {
-			return { success: false, message: "search_dora_doc requires docType: dora-tutorial, dora-api, love-api, or tic80-api" };
-		}
-		params.pattern = pattern;
-		params.docType = docType;
-		params.limit = clampIntegerParam(params.limit, 8, 1, AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax);
-		return { success: true, params };
-	}
-
-	if (tool === "glob_files") {
-		params.maxEntries = clampIntegerParam(params.maxEntries, AgentConfig.AGENT_LIMITS.listFilesMaxEntriesDefault, 1);
-		return { success: true, params };
-	}
-
-	if (tool === "build") {
-		const path = getDecisionPath(params);
-		if (path !== "") {
-			params.path = path;
-		}
-		return { success: true, params };
-	}
-
-	if (tool === "fetch_url") {
-		const url = typeof params.url === "string" ? params.url.trim() : "";
-		const target = typeof params.target === "string" ? params.target.trim() : "";
-		if (url === "") return { success: false, message: "fetch_url requires url" };
-		if (target === "") return { success: false, message: "fetch_url requires target" };
-		params.url = url;
-		params.target = target;
-		return { success: true, params };
-	}
-
-	if (tool === "execute_command") {
-		const mode = typeof params.mode === "string" ? params.mode.trim() : "";
-		if (mode !== "lua" && mode !== "git") {
-			return { success: false, message: "execute_command requires mode: lua or git" };
-		}
-		params.mode = mode;
-		if (mode === "lua") {
-			const code = typeof params.code === "string" ? params.code : "";
-			if (code.trim() === "") return { success: false, message: "execute_command lua mode requires code" };
-			params.code = code;
-		} else {
-			const command = typeof params.command === "string" ? params.command.trim() : "";
-			if (command === "") return { success: false, message: "execute_command git mode requires command" };
-			params.command = command;
-			if (typeof params.cwd === "string") params.cwd = params.cwd.trim();
-		}
-		params.timeoutSeconds = clampIntegerParam(params.timeoutSeconds, mode === "lua" ? 30 : 600, 1, mode === "lua" ? 120 : 1800);
-		return { success: true, params };
-	}
-
-	if (tool === "list_sub_agents") {
-		const status = typeof params.status === "string" ? params.status.trim() : "";
-		if (status !== "") {
-			params.status = status;
-		}
-		params.limit = clampIntegerParam(params.limit, 5, 1);
-		params.offset = clampIntegerParam(params.offset, 0, 0);
-		if (typeof params.query === "string") {
-			params.query = params.query.trim();
-		}
-		return { success: true, params };
-	}
-
-	if (tool === "spawn_sub_agent") {
-		const prompt = typeof params.prompt === "string" ? params.prompt.trim() : "";
-		const title = typeof params.title === "string" ? params.title.trim() : "";
-		if (prompt === "") return { success: false, message: "spawn_sub_agent requires prompt" };
-		if (title === "") return { success: false, message: "spawn_sub_agent requires title" };
-		params.prompt = prompt;
-		params.title = title;
-		if (typeof params.expectedOutput === "string") {
-			params.expectedOutput = params.expectedOutput.trim();
-		}
-		if (isArray(params.filesHint)) {
-			params.filesHint = params.filesHint
-				.filter(item => typeof item === "string")
-				.map(item => AgentUtils.sanitizeUTF8(item));
-		}
-		return { success: true, params };
-	}
-
-	return { success: true, params };
-}
-
-function validateCompletionForRole(
-	role: AgentRole,
-	tool: AgentToolName,
-	params: Record<string, unknown>
-): { success: true } | { success: false; message: string } {
-	if (role !== "sub" || tool !== "finish") return { success: true };
-	if (params.outcome !== "completed" && params.outcome !== "partial" && params.outcome !== "blocked") {
-		return { success: false, message: "sub-agent finish requires params.outcome" };
-	}
-	const requiredArrays = ["validation", "knownIssues", "assumptions", "learningCandidates"];
-	for (let i = 0; i < requiredArrays.length; i++) {
-		const name = requiredArrays[i];
-		if (!isArray(params[name])) {
-			return { success: false, message: `sub-agent finish requires params.${name} as an array` };
-		}
-	}
-	return { success: true };
-}
 
 function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = false): string {
 	const rolePrompt = shared.workMode === "plan"
@@ -2703,64 +1637,6 @@ function buildSkillsSection(shared: AgentShared): string {
 	return shared.skills.loader.buildSkillsPromptSection();
 }
 
-function sanitizeMessagesForLLMInput(messages: Message[]): Message[] {
-	const sanitized: Message[] = [];
-	let droppedAssistantToolCalls = 0;
-	let droppedToolResults = 0;
-	for (let i = 0; i < messages.length; i++) {
-		const message = messages[i];
-		if (message.role === "assistant" && message.tool_calls && message.tool_calls.length > 0) {
-			const requiredIds: string[] = [];
-			for (let j = 0; j < message.tool_calls.length; j++) {
-				const toolCall = message.tool_calls[j];
-				const id = typeof toolCall?.id === "string" ? toolCall.id : "";
-				if (id !== "" && requiredIds.indexOf(id) < 0) {
-					requiredIds.push(id);
-				}
-			}
-			if (requiredIds.length === 0) {
-				sanitized.push(message);
-				continue;
-			}
-			const matchedIds: Record<string, boolean> = {};
-			const matchedTools: Message[] = [];
-			let j = i + 1;
-			while (j < messages.length) {
-				const toolMessage = messages[j];
-				if (toolMessage.role !== "tool") break;
-				const toolCallId = typeof toolMessage.tool_call_id === "string" ? toolMessage.tool_call_id : "";
-				if (toolCallId !== "" && requiredIds.indexOf(toolCallId) >= 0 && matchedIds[toolCallId] !== true) {
-					matchedIds[toolCallId] = true;
-					matchedTools.push(toolMessage);
-				} else {
-					droppedToolResults += 1;
-				}
-				j += 1;
-			}
-			let complete = true;
-			for (let j = 0; j < requiredIds.length; j++) {
-				if (matchedIds[requiredIds[j]] !== true) {
-					complete = false;
-					break;
-				}
-			}
-			if (complete) {
-				sanitized.push(message, ...matchedTools);
-			} else {
-				droppedAssistantToolCalls += 1;
-				droppedToolResults += matchedTools.length;
-			}
-			i = j - 1;
-			continue;
-		}
-		if (message.role === "tool") {
-			droppedToolResults += 1;
-			continue;
-		}
-		sanitized.push(message);
-	}
-	return sanitized;
-}
 
 function getUnconsolidatedMessages(shared: AgentShared): Message[] {
 	return projectMessagesForLLMContext(
@@ -3072,32 +1948,13 @@ class MainDecisionAgent extends Node<AgentShared> {
 			: undefined;
 		AgentUtils.Log("Info", `[CodingAgent] tool-calling response finish_reason=${finishReason !== "" ? finishReason : "unknown"} tool_calls=${toolCalls ? toolCalls.length : 0} content_len=${messageContent ? messageContent.length : 0} reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
 		if (!toolCalls || toolCalls.length === 0) {
-			if (finishReason === "length") {
-				clearPreExecutedResults(shared);
-				return {
-					success: false,
-					recoverable: true,
-					message: "tool-calling output was truncated before a complete tool call was produced",
-					content: messageContent,
-					reasoningContent,
-				};
-			}
-			if (messageContent && messageContent !== "") {
-				if (isFinalDecisionTurn(shared)) {
-					clearPreExecutedResults(shared);
-					return {
-						success: false,
-						message: "the final task turn requires a structured finish call; use completed only with full evidence, otherwise use partial with validation, knownIssues, and a next action in message",
-						raw: messageContent,
-					};
+			const terminalDecision = classifyToolCallingTurnWithoutCalls(finishReason, messageContent, reasoningContent);
+			if (terminalDecision) {
+				if (isDecisionPlainTextCompletion(terminalDecision)) {
+				AgentUtils.Log("Info", `[CodingAgent] ${shared.role} agent completed with plain text`);
 				}
-				AgentUtils.Log("Warn", `[CodingAgent] ${shared.role} agent returned plain text instead of structured finish`);
 				clearPreExecutedResults(shared);
-				return {
-					success: false,
-					message: `${shared.role} agents must call finish with structured completion metadata; plain-text completion is not accepted`,
-					raw: messageContent,
-				};
+				return terminalDecision;
 			}
 			AgentUtils.Log("Error", `[CodingAgent] missing tool call and plain-text fallback`);
 			clearPreExecutedResults(shared);
@@ -3107,22 +1964,15 @@ class MainDecisionAgent extends Node<AgentShared> {
 				raw: reasoningContent ?? messageContent ?? "",
 			};
 		}
-		if (toolCalls.length > 1 && toolCalls.length > remainingWorkSteps) {
-			AgentUtils.Log("Warn", `[CodingAgent] parallel tool batch exceeds remaining step budget calls=${toolCalls.length} remaining=${remainingWorkSteps}`);
-			const committed = this.commitPreExecutedDecision(shared);
-			if (committed) return committed;
-			clearPreExecutedResults(shared);
-			return {
-				success: false,
-				message: `parallel tool call batch exceeds the remaining task step budget (${remainingWorkSteps})`,
-				raw: messageContent,
-			};
-		}
-		const decisions: DecisionSuccess[] = [];
+		let decisions: DecisionSuccess[] = [];
 		for (let i = 0; i < toolCalls.length; i++) {
 			const toolCall = toolCalls[i];
 			const fn = toolCall != undefined && toolCall.function;
 			if (!fn || typeof fn.name !== "string" || fn.name === "") {
+				if (finishReason === "length") {
+					clearPreExecutedResults(shared);
+					return classifyToolCallingTurnWithoutCalls(finishReason, messageContent, reasoningContent)!;
+				}
 				AgentUtils.Log("Error", `[CodingAgent] missing function name for tool call index=${i + 1}`);
 				clearPreExecutedResults(shared);
 				return {
@@ -3146,11 +1996,57 @@ class MainDecisionAgent extends Node<AgentShared> {
 				reasoningContent
 			);
 			if (!decision.success) {
+				const recovery = finishReason === "length" && functionName === "edit_file"
+					? Tools.planTruncatedEditRecovery([toolCall])
+					: undefined;
+				if (recovery !== undefined) {
+					const [recoveredArgs] = AgentUtils.safeJsonEncode(recovery.params);
+					const recoveredDecision = recoveredArgs !== undefined ? parseAndValidateToolCallDecision(
+						shared,
+						functionName,
+						recoveredArgs,
+						toolCallId,
+						messageContent,
+						reasoningContent
+					) : { success: false as const, message: "failed to encode recovered edit_file arguments" };
+					if (recoveredDecision.success) {
+						recoveredDecision.truncatedEditRecovery = {
+							targets: recovery.targets,
+							operationCount: recovery.operationCount,
+							recoveredNewStrCharacters: recovery.recoveredNewStrCharacters,
+							incompleteStringCount: recovery.incompleteStringCount,
+						};
+						AgentUtils.Log("Warn", `[CodingAgent] recovered truncated edit_file operations=${recovery.operationCount} targets=${recovery.targets.length} characters=${recovery.recoveredNewStrCharacters}`);
+						decisions.push(recoveredDecision);
+						continue;
+					}
+				}
+				if (finishReason === "length") {
+					AgentUtils.Log("Info", `[CodingAgent] incomplete tool call at finish_reason=length index=${i + 1}; continuing next loop`);
+					clearPreExecutedResults(shared);
+					return classifyToolCallingTurnWithoutCalls(finishReason, messageContent, reasoningContent)!;
+				}
 				AgentUtils.Log("Error", `[CodingAgent] invalid tool call index=${i + 1}: ${decision.message}`);
 				clearPreExecutedResults(shared);
 				return decision;
 			}
 			decisions.push(decision);
+		}
+		const rawDecisionCount = decisions.length;
+		decisions = coalesceCompatibleAgentToolCalls(decisions);
+		if (decisions.length < rawDecisionCount) {
+			AgentUtils.Log("Info", `[CodingAgent] coalesced compatible tool calls raw=${rawDecisionCount} normalized=${decisions.length} tools=${decisions.map(decision => decision.tool).join(",")}`);
+		}
+		if (decisions.length > remainingWorkSteps) {
+			AgentUtils.Log("Warn", `[CodingAgent] tool batch exceeds remaining step budget raw_calls=${rawDecisionCount} normalized_calls=${decisions.length} remaining=${remainingWorkSteps}`);
+			const committed = this.commitPreExecutedDecision(shared);
+			if (committed) return committed;
+			clearPreExecutedResults(shared);
+			return {
+				success: false,
+				message: `tool call batch exceeds the remaining task step budget (${remainingWorkSteps})`,
+				raw: messageContent,
+			};
 		}
 		if (decisions.length === 1) {
 			AgentUtils.Log("Info", `[CodingAgent] tool-calling selected tool=${decisions[0].tool}`);
@@ -3286,10 +2182,6 @@ class MainDecisionAgent extends Node<AgentShared> {
 				if (decision.success) {
 					return decision;
 				}
-				if (isDecisionTruncated(decision)) {
-					AgentUtils.Log("Warn", `[CodingAgent] preserving truncated assistant turn as recoverable step=${shared.step + 1}`);
-					return decision;
-				}
 				lastError = decision.message;
 				lastRaw = decision.raw ?? "";
 				AgentUtils.Log("Error", `[CodingAgent] tool-calling attempt failed: ${lastError}`);
@@ -3357,26 +2249,39 @@ class MainDecisionAgent extends Node<AgentShared> {
 				shared.done = true;
 				return "done";
 			}
-			if (isDecisionTruncated(result)) {
-				shared.step += 1;
-				shared.agentStepCount += 1;
-				const content = result.content ?? "";
-				appendConversationMessage(shared, {
-					role: "assistant",
-					content,
-					reasoning_content: result.reasoningContent,
-				});
-				shared.pendingTruncationRecovery = true;
-				emitAssistantMessageFinished(shared, shared.step, content, result.reasoningContent);
-				persistHistoryState(shared);
-				return "main";
-			}
 			shared.error = result.message;
 			shared.response = getFailureSummaryFallback(shared, result.message);
 			shared.done = true;
 			appendConversationMessage(shared, {
 				role: "assistant",
 				content: shared.response,
+			});
+			persistHistoryState(shared);
+			return "done";
+		}
+		if (isDecisionLoopContinue(result)) {
+			shared.step += 1;
+			shared.agentStepCount += 1;
+			const content = result.content ?? "";
+			appendConversationMessage(shared, {
+				role: "assistant",
+				content,
+				reasoning_content: result.reasoningContent,
+			});
+			shared.pendingTruncationRecovery = true;
+			AgentUtils.Log("Info", `[CodingAgent] finish_reason=length completed loop step=${shared.step}; continuing`);
+			emitAssistantMessageFinished(shared, shared.step, content, result.reasoningContent);
+			persistHistoryState(shared);
+			return "main";
+		}
+		if (isDecisionPlainTextCompletion(result)) {
+			shared.response = result.content;
+			shared.completion = AgentUtils.normalizeAgentCompletionReport({ outcome: "completed" });
+			shared.done = true;
+			appendConversationMessage(shared, {
+				role: "assistant",
+				content: result.content,
+				reasoning_content: result.reasoningContent,
 			});
 			persistHistoryState(shared);
 			return "done";
@@ -3407,6 +2312,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 					reason: actionReason ?? "",
 					reasoningContent: actionReasoningContent,
 					params: decision.params,
+					truncatedEditRecovery: decision.truncatedEditRecovery,
 					timestamp: os.date("!%Y-%m-%dT%H:%M:%SZ"),
 				};
 				shared.history.push(action);
@@ -3424,25 +2330,28 @@ class MainDecisionAgent extends Node<AgentShared> {
 			persistHistoryState(shared);
 			return "batch_tools";
 		}
-		if (result.directSummary && result.directSummary !== "") {
-			shared.response = result.directSummary;
-			shared.completion = AgentUtils.normalizeAgentCompletionReport({
-				outcome: "partial",
-				knownIssues: [`${shared.role === "sub" ? "Sub agent" : "Main agent"} returned a plain-text response without structured completion metadata.`],
-			});
-			shared.done = true;
-			appendConversationMessage(shared, {
-				role: "assistant",
-				content: result.directSummary,
-				reasoning_content: result.reasoningContent,
-			});
-			persistHistoryState(shared);
-			return "done";
-		}
 		if (result.tool === "finish") {
-			const finalMessage = getFinishMessage(result.params, result.reason ?? "");
+			const action: AgentActionRecord = {
+				step: shared.step,
+				toolCallId: ensureToolCallId(result.toolCallId),
+				tool: "finish",
+				reason: result.reason ?? "",
+				reasoningContent: result.reasoningContent,
+				params: result.params,
+				timestamp: os.date("!%Y-%m-%dT%H:%M:%SZ"),
+			};
+			const output = await executeToolAction(shared, action);
+			if (output.success !== true || action.control?.concludeTask !== true) {
+				shared.error = typeof output.message === "string" ? output.message : "finish execution failed";
+				shared.response = getFailureSummaryFallback(shared, shared.error);
+				shared.done = true;
+				appendConversationMessage(shared, { role: "assistant", content: shared.response });
+				persistHistoryState(shared);
+				return "done";
+			}
+			const finalMessage = action.control.finalMessage ?? getFinishMessage(result.params, result.reason ?? "");
 			shared.response = finalMessage;
-			shared.completion = getCompletionReport(result.params);
+			shared.completion = action.control.completion ?? getCompletionReport(result.params);
 			shared.done = true;
 			appendConversationMessage(shared, {
 				role: "assistant",
@@ -3473,6 +2382,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			reason: result.reason ?? "",
 			reasoningContent: result.reasoningContent,
 			params: result.params,
+			truncatedEditRecovery: result.truncatedEditRecovery,
 			timestamp: os.date("!%Y-%m-%dT%H:%M:%SZ"),
 		});
 		const action = shared.history[shared.history.length - 1];
@@ -3482,600 +2392,6 @@ class MainDecisionAgent extends Node<AgentShared> {
 		shared.pendingToolActions = [action];
 		persistHistoryState(shared);
 		return "batch_tools";
-	}
-}
-
-class ReadFileAction extends Node<AgentShared> {
-	async prep(shared: AgentShared): Promise<{ path: string; startLine: number; endLine: number; tool: "read_file"; workDir: string; docLanguage: Tools.DoraDocLanguage }> {
-		const last = shared.history[shared.history.length - 1];
-		if (!last) throw new Error("no history");
-		emitAgentStartEvent(shared, last);
-		const path = typeof last.params.path === "string"
-			? last.params.path
-			: (typeof last.params.target_file === "string" ? last.params.target_file : "");
-		if (path.trim() === "") throw new Error("missing path");
-		return {
-			path,
-			tool: "read_file",
-			workDir: shared.workingDir,
-			docLanguage: shared.useChineseResponse ? "zh" : "en",
-			startLine: Number(last.params.startLine ?? 1),
-			endLine: Number(last.params.endLine ?? AgentConfig.AGENT_LIMITS.readFileDefaultLimit),
-		};
-	}
-
-	async exec(input: { path: string; startLine: number; endLine: number; tool: "read_file"; workDir: string; docLanguage: Tools.DoraDocLanguage }): Promise<Record<string, unknown>> {
-		return Tools.readFile(
-			input.workDir,
-			input.path,
-			Number(input.startLine ?? 1),
-			Number(input.endLine ?? AgentConfig.AGENT_LIMITS.readFileDefaultLimit),
-			input.docLanguage
-		) as unknown as Record<string, unknown>;
-	}
-
-	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
-		const result = execRes as Record<string, unknown>;
-		const last = shared.history[shared.history.length - 1];
-		if (last !== undefined) {
-			last.result = sanitizeReadResultForHistory(last.tool, result);
-			appendToolResultMessage(shared, last);
-			emitAgentFinishEvent(shared, last);
-		}
-		persistHistoryState(shared);
-		await maybeCompressHistory(shared);
-		persistHistoryState(shared);
-		return "main";
-	}
-}
-
-class SearchFilesAction extends Node<AgentShared> {
-	async prep(shared: AgentShared): Promise<{ params: Record<string, unknown>; workDir: string; docLanguage: Tools.DoraDocLanguage }> {
-		const last = shared.history[shared.history.length - 1];
-		if (!last) throw new Error("no history");
-		emitAgentStartEvent(shared, last);
-		return {
-			params: last.params,
-			workDir: shared.workingDir,
-			docLanguage: shared.useChineseResponse ? "zh" : "en",
-		};
-	}
-
-	async exec(input: { params: Record<string, unknown>; workDir: string; docLanguage: Tools.DoraDocLanguage }): Promise<Record<string, unknown>> {
-		const params = input.params;
-		const result = await Tools.searchFiles({
-			workDir: input.workDir,
-			path: (params.path as string) ?? "",
-			docLanguage: input.docLanguage,
-			pattern: (params.pattern as string) ?? "",
-			globs: params.globs as string[] | undefined,
-			useRegex: params.useRegex as boolean | undefined,
-			caseSensitive: params.caseSensitive as boolean | undefined,
-			includeContent: true,
-			contentWindow: AgentConfig.AGENT_LIMITS.searchPreviewContext,
-			limit: math.max(1, math.floor(Number(params.limit ?? AgentConfig.AGENT_LIMITS.searchFilesLimitDefault))),
-			offset: math.max(0, math.floor(Number(params.offset ?? 0))),
-			groupByFile: params.groupByFile === true,
-		});
-		return result as unknown as Record<string, unknown>;
-	}
-
-	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
-		const last = shared.history[shared.history.length - 1];
-		if (last !== undefined) {
-			const result = execRes as Record<string, unknown>;
-			last.result = sanitizeSearchResultForHistory(last.tool, result);
-			appendToolResultMessage(shared, last);
-			emitAgentFinishEvent(shared, last);
-		}
-		persistHistoryState(shared);
-		await maybeCompressHistory(shared);
-		persistHistoryState(shared);
-		return "main";
-	}
-}
-
-class SearchDoraDocAction extends Node<AgentShared> {
-	async prep(shared: AgentShared): Promise<{ params: Record<string, unknown>; useChineseResponse: boolean }> {
-		const last = shared.history[shared.history.length - 1];
-		if (!last) throw new Error("no history");
-		emitAgentStartEvent(shared, last);
-		return { params: last.params, useChineseResponse: shared.useChineseResponse };
-	}
-
-	async exec(input: { params: Record<string, unknown>; useChineseResponse: boolean }): Promise<Record<string, unknown>> {
-		const params = input.params;
-		const result = await Tools.searchDoraDoc({
-			pattern: (params.pattern as string) ?? "",
-			docType: ((params.docType as string) ?? "dora-api") as Tools.DoraDocSearchType,
-			docLanguage: (input.useChineseResponse ? "zh" : "en") as Tools.DoraDocLanguage,
-			programmingLanguage: ((params.programmingLanguage as string) ?? "ts") as Tools.DoraDocProgrammingLanguage,
-			limit: math.min(AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, math.max(1, Number(params.limit ?? 8))),
-			useRegex: params.useRegex as boolean | undefined,
-			caseSensitive: false,
-			includeContent: true,
-			contentWindow: AgentConfig.AGENT_LIMITS.searchPreviewContext,
-		});
-		return result as unknown as Record<string, unknown>;
-	}
-
-	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
-		const last = shared.history[shared.history.length - 1];
-		if (last !== undefined) {
-			const result = execRes as Record<string, unknown>;
-			last.result = sanitizeSearchResultForHistory(last.tool, result);
-			appendToolResultMessage(shared, last);
-			emitAgentFinishEvent(shared, last);
-		}
-		persistHistoryState(shared);
-		await maybeCompressHistory(shared);
-		persistHistoryState(shared);
-		return "main";
-	}
-}
-
-class ListFilesAction extends Node<AgentShared> {
-	async prep(shared: AgentShared): Promise<{ params: Record<string, unknown>; workDir: string }> {
-		const last = shared.history[shared.history.length - 1];
-		if (!last) throw new Error("no history");
-		emitAgentStartEvent(shared, last);
-		return { params: last.params, workDir: shared.workingDir };
-	}
-
-	async exec(input: { params: Record<string, unknown>; workDir: string }): Promise<Record<string, unknown>> {
-		const params = input.params;
-		const result = Tools.listFiles({
-			workDir: input.workDir,
-			path: (params.path as string) ?? "",
-			globs: params.globs as string[] | undefined,
-			maxEntries: math.max(1, math.floor(Number(params.maxEntries ?? AgentConfig.AGENT_LIMITS.listFilesMaxEntriesDefault))),
-		});
-		return result as unknown as Record<string, unknown>;
-	}
-
-	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
-		const last = shared.history[shared.history.length - 1];
-		if (last !== undefined) {
-			last.result = sanitizeListFilesResultForHistory(execRes as Record<string, unknown>);
-			appendToolResultMessage(shared, last);
-			emitAgentFinishEvent(shared, last);
-		}
-		persistHistoryState(shared);
-		await maybeCompressHistory(shared);
-		persistHistoryState(shared);
-		return "main";
-	}
-}
-
-class DeleteFileAction extends Node<AgentShared> {
-	async prep(shared: AgentShared): Promise<{ targetFile: string; taskId: number; workDir: string }> {
-		const last = shared.history[shared.history.length - 1];
-		if (!last) throw new Error("no history");
-		emitAgentStartEvent(shared, last);
-		const targetFile = typeof last.params.target_file === "string"
-			? last.params.target_file
-			: (typeof last.params.path === "string" ? last.params.path : "");
-		if (targetFile.trim() === "") throw new Error("missing target_file");
-		return { targetFile, taskId: shared.taskId, workDir: shared.workingDir };
-	}
-
-	async exec(input: { targetFile: string; taskId: number; workDir: string }): Promise<Record<string, unknown>> {
-		const result = Tools.deleteFile(input.taskId, input.workDir, input.targetFile, {
-			summary: `delete_file: ${input.targetFile}`,
-			toolName: "delete_file",
-		});
-		if (!result.success) {
-			return result as unknown as Record<string, unknown>;
-		}
-		return {
-			success: true,
-			changed: true,
-			mode: "delete",
-			checkpointed: result.checkpointed,
-			reversible: result.reversible,
-			binary: result.binary,
-			checkpointId: result.checkpointed ? result.checkpointId : undefined,
-			checkpointSeq: result.checkpointed ? result.checkpointSeq : undefined,
-			message: result.checkpointed ? undefined : result.message,
-			files: [{ path: input.targetFile, op: "delete" as const }],
-		};
-	}
-
-	async post(shared: AgentShared, _prepRes: unknown, execRes: Record<string, unknown>): Promise<string | undefined> {
-		const last = shared.history[shared.history.length - 1];
-		if (last !== undefined) {
-			last.params = sanitizeActionParamsForHistory(last.tool, last.params);
-			last.result = sanitizeToolActionResultForHistory(last, execRes);
-			appendToolResultMessage(shared, last);
-			emitAgentFinishEvent(shared, last);
-			const result = last.result;
-			if (last.tool === "delete_file"
-				&& typeof result.checkpointId === "number"
-				&& typeof result.checkpointSeq === "number"
-				&& isArray(result.files)) {
-				emitAgentEvent(shared, {
-					type: "checkpoint_created",
-					sessionId: shared.sessionId,
-					taskId: shared.taskId,
-					step: last.step,
-					tool: "delete_file",
-					checkpointId: result.checkpointId,
-					checkpointSeq: result.checkpointSeq,
-					files: result.files as {
-						path: string;
-						op: "write" | "create" | "delete";
-					}[],
-				});
-			}
-		}
-		persistHistoryState(shared);
-		await maybeCompressHistory(shared);
-		persistHistoryState(shared);
-		return "main";
-	}
-}
-
-class BuildAction extends Node<AgentShared> {
-	async prep(shared: AgentShared): Promise<{ params: Record<string, unknown>; workDir: string; isCancelled: () => boolean }> {
-		const last = shared.history[shared.history.length - 1];
-		if (!last) throw new Error("no history");
-		emitAgentStartEvent(shared, last);
-		return { params: last.params, workDir: shared.workingDir, isCancelled: () => shared.stopToken.stopped };
-	}
-
-	async exec(input: { params: Record<string, unknown>; workDir: string; isCancelled: () => boolean }): Promise<Record<string, unknown>> {
-		const params = input.params;
-		const result = await Tools.build({
-			workDir: input.workDir,
-			path: (params.path as string) ?? "",
-			isCancelled: input.isCancelled,
-		});
-		return result as unknown as Record<string, unknown>;
-	}
-
-	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
-		const last = shared.history[shared.history.length - 1];
-		if (last !== undefined) {
-			last.result = sanitizeBuildResultForHistory(execRes as Record<string, unknown>);
-			appendToolResultMessage(shared, last);
-			emitAgentFinishEvent(shared, last);
-		}
-		persistHistoryState(shared);
-		await maybeCompressHistory(shared);
-		persistHistoryState(shared);
-		return "main";
-	}
-}
-
-class SpawnSubAgentAction extends Node<AgentShared> {
-	async prep(shared: AgentShared): Promise<{
-		title: string;
-		prompt: string;
-		expectedOutput?: string;
-		filesHint?: string[];
-		sessionId?: number;
-		projectRoot: string;
-		spawnSubAgent?: CodingAgentRunOptions["spawnSubAgent"];
-		disabledAgentTools: AgentToolName[];
-	}> {
-		const last = shared.history[shared.history.length - 1];
-		if (!last) throw new Error("no history");
-		emitAgentStartEvent(shared, last);
-		const filesHint = isArray(last.params.filesHint)
-			? (last.params.filesHint as unknown[]).filter(item => typeof item === "string") as string[]
-			: undefined;
-		return {
-			title: typeof last.params.title === "string" ? last.params.title : "Sub",
-			prompt: typeof last.params.prompt === "string" ? last.params.prompt : "",
-			expectedOutput: typeof last.params.expectedOutput === "string" ? last.params.expectedOutput : undefined,
-			filesHint,
-			sessionId: shared.sessionId,
-			projectRoot: shared.workingDir,
-			spawnSubAgent: shared.spawnSubAgent,
-			disabledAgentTools: shared.disabledAgentTools,
-		};
-	}
-
-	async exec(input: {
-		title: string;
-		prompt: string;
-		expectedOutput?: string;
-		filesHint?: string[];
-		sessionId?: number;
-		projectRoot: string;
-		spawnSubAgent?: CodingAgentRunOptions["spawnSubAgent"];
-		disabledAgentTools: AgentToolName[];
-	}): Promise<Record<string, unknown>> {
-		if (!input.spawnSubAgent) {
-			return { success: false, message: "spawn_sub_agent is not available in this runtime" };
-		}
-		if (input.sessionId === undefined || input.sessionId <= 0) {
-			return { success: false, message: "spawn_sub_agent requires a parent session" };
-		}
-		AgentUtils.Log("Info", `[CodingAgent] spawn_sub_agent exec title_len=${input.title.length} prompt_len=${input.prompt.length} expected_len=${typeof input.expectedOutput === "string" ? input.expectedOutput.length : 0} files_hint_count=${input.filesHint?.length ?? 0}`);
-		const result = await input.spawnSubAgent({
-			parentSessionId: input.sessionId,
-			projectRoot: input.projectRoot,
-			title: input.title,
-			prompt: input.prompt,
-			expectedOutput: input.expectedOutput,
-			filesHint: input.filesHint,
-			disabledAgentTools: input.disabledAgentTools,
-		});
-		if (!result.success) {
-			return result as unknown as Record<string, unknown>;
-		}
-		return {
-			success: true,
-			sessionId: result.sessionId,
-			taskId: result.taskId,
-			title: result.title,
-			hint: "Dispatch any other intended independent sub-agents, do only bounded foreground work that does not depend on them, then finish this turn. Do not call list_sub_agents; results arrive as asynchronous handoffs.",
-		};
-	}
-
-	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
-		const last = shared.history[shared.history.length - 1];
-		if (last !== undefined) {
-			last.result = execRes as Record<string, unknown>;
-			if ((execRes as Record<string, unknown>).success === true) {
-				shared.hasSpawnedSubAgentThisTask = true;
-			}
-			appendToolResultMessage(shared, last);
-			emitAgentFinishEvent(shared, last);
-		}
-		persistHistoryState(shared);
-		await maybeCompressHistory(shared);
-		persistHistoryState(shared);
-		return "main";
-	}
-}
-
-class ListSubAgentsAction extends Node<AgentShared> {
-	async prep(shared: AgentShared): Promise<{
-		sessionId?: number;
-		projectRoot: string;
-		status?: string;
-		limit?: number;
-		offset?: number;
-		query?: string;
-		listSubAgents?: CodingAgentRunOptions["listSubAgents"];
-		shouldDiscouragePolling: boolean;
-	}> {
-		const last = shared.history[shared.history.length - 1];
-		if (!last) throw new Error("no history");
-		emitAgentStartEvent(shared, last);
-		return {
-			sessionId: shared.sessionId,
-			projectRoot: shared.workingDir,
-			status: typeof last.params.status === "string" ? last.params.status : undefined,
-			limit: typeof last.params.limit === "number" ? last.params.limit : undefined,
-			offset: typeof last.params.offset === "number" ? last.params.offset : undefined,
-			query: typeof last.params.query === "string" ? last.params.query : undefined,
-			listSubAgents: shared.listSubAgents,
-			shouldDiscouragePolling: shared.hasSpawnedSubAgentThisTask === true,
-		};
-	}
-
-	async exec(input: {
-		sessionId?: number;
-		projectRoot: string;
-		status?: string;
-		limit?: number;
-		offset?: number;
-		query?: string;
-		listSubAgents?: CodingAgentRunOptions["listSubAgents"];
-		shouldDiscouragePolling: boolean;
-	}): Promise<Record<string, unknown>> {
-		if (!input.listSubAgents) {
-			return { success: false, message: "list_sub_agents is not available in this runtime" };
-		}
-		if (input.sessionId === undefined || input.sessionId <= 0) {
-			return { success: false, message: "list_sub_agents requires a current session" };
-		}
-		const result = await input.listSubAgents({
-			sessionId: input.sessionId,
-			projectRoot: input.projectRoot,
-			status: input.status,
-			limit: input.limit,
-			offset: input.offset,
-			query: input.query,
-		});
-		return {
-			...(result as unknown as Record<string, unknown>),
-			...(input.shouldDiscouragePolling
-				? { guidance: "Sub-agent results arrive asynchronously. Avoid polling repeatedly; finish the current turn when no independent foreground work remains." }
-				: {}),
-		};
-	}
-
-	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
-		const last = shared.history[shared.history.length - 1];
-		if (last !== undefined) {
-			last.result = execRes as Record<string, unknown>;
-			appendToolResultMessage(shared, last);
-			emitAgentFinishEvent(shared, last);
-		}
-		persistHistoryState(shared);
-		await maybeCompressHistory(shared);
-		persistHistoryState(shared);
-		return "main";
-	}
-}
-
-class EditFileAction extends Node<AgentShared> {
-	async prep(shared: AgentShared): Promise<{ path: string; oldStr: string; newStr: string; taskId: number; workDir: string }> {
-		const last = shared.history[shared.history.length - 1];
-		if (!last) throw new Error("no history");
-		emitAgentStartEvent(shared, last);
-		const path = typeof last.params.path === "string"
-			? last.params.path
-			: (typeof last.params.target_file === "string" ? last.params.target_file : "");
-		const oldStr = typeof last.params.old_str === "string" ? last.params.old_str : "";
-		const newStr = typeof last.params.new_str === "string" ? last.params.new_str : "";
-		if (path.trim() === "") throw new Error("missing path");
-		return { path, oldStr, newStr, taskId: shared.taskId, workDir: shared.workingDir };
-	}
-
-	async exec(input: { path: string; oldStr: string; newStr: string; taskId: number; workDir: string }): Promise<Record<string, unknown>> {
-		const readRes = Tools.readFileRaw(input.workDir, input.path);
-		if (!readRes.success) {
-			if (input.oldStr !== "") {
-				return { success: false, message: `read file failed: ${readRes.message}` };
-			}
-			const createRes = Tools.applyFileChanges(input.taskId, input.workDir, [{ path: input.path, op: "create", content: input.newStr }], {
-				summary: `create file ${input.path} via edit_file`,
-				toolName: "edit_file",
-			});
-			if (!createRes.success) {
-				return { success: false, message: `create file failed: ${createRes.message}` };
-			}
-			return AgentRuntimePolicy.successfulEditResult(input.workDir, input.path, {
-				success: true,
-				changed: true,
-				mode: "create",
-				checkpointId: createRes.checkpointId,
-				checkpointSeq: createRes.checkpointSeq,
-				files: [{ path: input.path, op: "create" as const }],
-			});
-		}
-		if (input.oldStr === "") {
-			if (AgentRuntimePolicy.containsWholeFileDuplicate(readRes.content, input.newStr)) {
-				return {
-					success: false,
-					message: `rewrite rejected: the complete current file appears more than once in the replacement for ${input.path}. The existing file is unchanged; submit one coherent full-file replacement.`,
-					actualSaved: false,
-					actualSavedCharacters: 0,
-					currentFileExists: true,
-					currentCharacters: readRes.content.length,
-					currentState: `unchanged ${input.path} (${readRes.content.length} characters)`,
-				};
-			}
-			const overwriteRes = Tools.applyFileChanges(input.taskId, input.workDir, [{ path: input.path, op: "write", content: input.newStr }], {
-				summary: `overwrite file ${input.path} via edit_file`,
-				toolName: "edit_file",
-			});
-			if (!overwriteRes.success) {
-				return { success: false, message: `write file failed: ${overwriteRes.message}` };
-			}
-			return AgentRuntimePolicy.successfulEditResult(input.workDir, input.path, {
-				success: true,
-				changed: true,
-				mode: "overwrite",
-				checkpointId: overwriteRes.checkpointId,
-				checkpointSeq: overwriteRes.checkpointSeq,
-				files: [{ path: input.path, op: "write" as const }],
-			});
-		}
-
-		// Normalize line endings for consistent matching
-		const normalizedContent = AgentRuntimePolicy.normalizeLineEndings(readRes.content);
-		const normalizedOldStr = AgentRuntimePolicy.normalizeLineEndings(input.oldStr);
-		const normalizedNewStr = AgentRuntimePolicy.normalizeLineEndings(input.newStr);
-
-		// Check how many times old_str appears
-		const occurrences = AgentRuntimePolicy.countOccurrences(normalizedContent, normalizedOldStr);
-		if (occurrences === 0) {
-			const indentTolerant = AgentUtils.findIndentTolerantReplacement(normalizedContent, normalizedOldStr, normalizedNewStr);
-			if (!indentTolerant.success) {
-				return { success: false, message: indentTolerant.message };
-			}
-			const applyRes = Tools.applyFileChanges(input.taskId, input.workDir, [{ path: input.path, op: "write", content: indentTolerant.content }], {
-				summary: `replace text in ${input.path} via edit_file (indent-tolerant)`,
-				toolName: "edit_file",
-			});
-			if (!applyRes.success) {
-				return { success: false, message: `write file failed: ${applyRes.message}` };
-			}
-			return AgentRuntimePolicy.successfulEditResult(input.workDir, input.path, {
-				success: true,
-				changed: true,
-				mode: "replace_indent_tolerant",
-				checkpointId: applyRes.checkpointId,
-				checkpointSeq: applyRes.checkpointSeq,
-				files: [{ path: input.path, op: "write" as const }],
-			});
-		}
-		if (occurrences > 1) {
-			return { success: false, message: `old_str appears ${occurrences} times in file. Please provide more context to uniquely identify the target location.` };
-		}
-
-		// Perform the replacement (we know it appears exactly once)
-		const newContent = AgentUtils.replaceFirst(normalizedContent, normalizedOldStr, normalizedNewStr);
-		const applyRes = Tools.applyFileChanges(input.taskId, input.workDir, [{ path: input.path, op: "write", content: newContent }], {
-			summary: `replace text in ${input.path} via edit_file`,
-			toolName: "edit_file",
-		});
-		if (!applyRes.success) {
-			return { success: false, message: `write file failed: ${applyRes.message}` };
-		}
-		return AgentRuntimePolicy.successfulEditResult(input.workDir, input.path, {
-			success: true,
-			changed: true,
-			mode: "replace",
-			checkpointId: applyRes.checkpointId,
-			checkpointSeq: applyRes.checkpointSeq,
-			files: [{ path: input.path, op: "write" as const }],
-		});
-	}
-
-	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
-		const last = shared.history[shared.history.length - 1];
-		if (last !== undefined) {
-			last.params = sanitizeActionParamsForHistory(last.tool, last.params);
-			last.result = sanitizeToolActionResultForHistory(last, execRes as Record<string, unknown>);
-			appendToolResultMessage(shared, last);
-			emitAgentFinishEvent(shared, last);
-			const result = last.result;
-			if ((last.tool === "edit_file" || last.tool === "delete_file")
-				&& typeof result.checkpointId === "number"
-				&& typeof result.checkpointSeq === "number"
-				&& isArray(result.files)) {
-				emitAgentEvent(shared, {
-					type: "checkpoint_created",
-					sessionId: shared.sessionId,
-					taskId: shared.taskId,
-					step: last.step,
-					tool: last.tool,
-					checkpointId: result.checkpointId,
-					checkpointSeq: result.checkpointSeq,
-					files: result.files as {
-						path: string;
-						op: "write" | "create" | "delete";
-					}[],
-				});
-			}
-		}
-		persistHistoryState(shared);
-		await maybeCompressHistory(shared);
-		persistHistoryState(shared);
-		return "main";
-	}
-}
-
-class FetchUrlAction extends Node<AgentShared> {
-	async prep(shared: AgentShared): Promise<{ shared: AgentShared; action: AgentActionRecord }> {
-		const last = shared.history[shared.history.length - 1];
-		if (!last) throw new Error("no history");
-		emitAgentStartEvent(shared, last);
-		return { shared, action: last };
-	}
-
-	async exec(input: { shared: AgentShared; action: AgentActionRecord }): Promise<Record<string, unknown>> {
-		return executeToolAction(input.shared, input.action);
-	}
-
-	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
-		const last = shared.history[shared.history.length - 1];
-		if (last !== undefined) {
-			last.result = execRes as Record<string, unknown>;
-			appendToolResultMessage(shared, last);
-			emitAgentFinishEvent(shared, last);
-		}
-		persistHistoryState(shared);
-		await maybeCompressHistory(shared);
-		persistHistoryState(shared);
-		return "main";
 	}
 }
 
@@ -4102,376 +2418,63 @@ function emitCheckpointEventForAction(shared: AgentShared, action: AgentActionRe
 	}
 }
 
+function createAgentToolExecutionContext(
+	shared: AgentShared,
+	action: AgentActionRecord,
+): AgentToolExecutionContext {
+	return {
+		sessionId: shared.sessionId,
+		taskId: shared.taskId,
+		step: action.step,
+		workingDir: shared.workingDir,
+		role: shared.role,
+		workMode: shared.workMode,
+		useChineseResponse: shared.useChineseResponse,
+		disabledAgentTools: shared.disabledAgentTools,
+		cancellation: {
+			stopToken: shared.stopToken,
+			isCancelled: () => shared.stopToken.stopped,
+			reason: () => shared.stopToken.stopped ? getCancelledReason(shared) : undefined,
+		},
+		emitProgress: result => {
+			emitAgentEvent(shared, {
+				type: "tool_progress",
+				sessionId: shared.sessionId,
+				taskId: shared.taskId,
+				step: action.step,
+				tool: action.tool,
+				result,
+			});
+		},
+		services: {
+			spawnSubAgent: shared.spawnSubAgent,
+			listSubAgents: shared.listSubAgents,
+			publishQuestionnaire: shared.publishQuestionnaire !== undefined
+				? request => shared.publishQuestionnaire!({
+					sessionId: request.sessionId,
+					taskId: request.taskId,
+					step: request.step,
+					schema: request.schema as unknown as AgentQuestionnaireSchema,
+				})
+				: undefined,
+		},
+		workflow: shared.workflow,
+	};
+}
+
 async function executeToolAction(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
-	if (shared.stopToken.stopped) {
-		return { success: false, message: getCancelledReason(shared) };
-	}
-	if (shared.resumeRequiredTool !== undefined && action.tool === shared.resumeRequiredTool) {
-		shared.resumeRequiredTool = undefined;
+	if (shared.workflow.resumeRequiredTool !== undefined && action.tool === shared.workflow.resumeRequiredTool) {
+		shared.workflow.resumeRequiredTool = undefined;
 		shared.resumeCheckpointPending = false;
 	}
-	const params = action.params;
-	const sharedValidation = validateDecisionForShared(shared, action.tool, params);
-	if (!sharedValidation.success) return sharedValidation;
-	if (action.tool === "read_file") {
-		const startLine = Number(params.startLine ?? 1);
-		let endLine = Number(params.endLine ?? AgentConfig.AGENT_LIMITS.readFileDefaultLimit);
-		let clippedAfterCompression = false;
-		if (
-			shared.resumeNarrowReadMode === true
-			&& startLine > 0
-			&& endLine >= startLine
-			&& endLine - startLine + 1 > 160
-		) {
-			endLine = startLine + 159;
-			clippedAfterCompression = true;
-		}
-		const path = typeof params.path === "string"
-			? params.path
-			: (typeof params.target_file === "string" ? params.target_file : "");
-		if (path.trim() === "") return { success: false, message: "missing path" };
-		const result = Tools.readFile(
-			shared.workingDir,
-			path,
-			startLine,
-			endLine,
-			shared.useChineseResponse ? "zh" : "en"
-		) as unknown as Record<string, unknown>;
-		if (clippedAfterCompression && result.success === true) {
-			result.clipped = true;
-			result.message = shared.useChineseResponse
-				? `压缩恢复阶段已自动截取为第 ${startLine}-${endLine} 行（最多 160 行）。如仍需后续内容，请从第 ${endLine + 1} 行继续窄读。`
-				: `The post-compression read was clipped to lines ${startLine}-${endLine} (160 lines maximum). Continue narrowly from line ${endLine + 1} only if needed.`;
-		}
-		return result;
-	}
-	if (action.tool === "grep_files") {
-		const searchPath = (params.path as string) ?? "";
-		const searchGlobs = params.globs as string[] | undefined;
-		const result = await Tools.searchFiles({
-			workDir: shared.workingDir,
-			path: searchPath,
-			docLanguage: shared.useChineseResponse ? "zh" : "en",
-			pattern: (params.pattern as string) ?? "",
-			globs: params.globs as string[] | undefined,
-			useRegex: params.useRegex as boolean | undefined,
-			caseSensitive: params.caseSensitive as boolean | undefined,
-			includeContent: true,
-			contentWindow: AgentConfig.AGENT_LIMITS.searchPreviewContext,
-			limit: math.max(1, math.floor(Number(params.limit ?? AgentConfig.AGENT_LIMITS.searchFilesLimitDefault))),
-			offset: math.max(0, math.floor(Number(params.offset ?? 0))),
-			groupByFile: params.groupByFile === true,
-		});
-		return result as unknown as Record<string, unknown>;
-	}
-	if (action.tool === "search_dora_doc") {
-		shared.apiSearchesSinceBuild = (shared.apiSearchesSinceBuild ?? 0) + 1;
-		const result = await Tools.searchDoraDoc({
-			pattern: (params.pattern as string) ?? "",
-			docType: ((params.docType as string) ?? "dora-api") as Tools.DoraDocSearchType,
-			docLanguage: (shared.useChineseResponse ? "zh" : "en") as Tools.DoraDocLanguage,
-			programmingLanguage: ((params.programmingLanguage as string) ?? "ts") as Tools.DoraDocProgrammingLanguage,
-			limit: math.min(AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax, math.max(1, Number(params.limit ?? 8))),
-			useRegex: params.useRegex as boolean | undefined,
-			caseSensitive: false,
-			includeContent: true,
-			contentWindow: AgentConfig.AGENT_LIMITS.searchPreviewContext,
-		});
-		return result as unknown as Record<string, unknown>;
-	}
-	if (action.tool === "glob_files") {
-		const result = Tools.listFiles({
-			workDir: shared.workingDir,
-			path: (params.path as string) ?? "",
-			globs: params.globs as string[] | undefined,
-			maxEntries: math.max(1, math.floor(Number(params.maxEntries ?? AgentConfig.AGENT_LIMITS.listFilesMaxEntriesDefault))),
-		});
-		return result as unknown as Record<string, unknown>;
-	}
-	if (action.tool === "ask_user") {
-		if (!shared.publishQuestionnaire) return { success: false, message: "ask_user is not available in this runtime" };
-		if (shared.sessionId === undefined || shared.sessionId <= 0) return { success: false, message: "ask_user requires a session" };
-		const normalized = normalizeQuestionnaire(params);
-		if (!normalized.success) return normalized;
-		const result = await shared.publishQuestionnaire({
-			sessionId: shared.sessionId,
-			taskId: shared.taskId,
-			step: action.step,
-			schema: normalized.schema,
-		});
-		if (!result.success) return result;
-		shared.waitingQuestionnaireId = result.questionnaireId;
-		return { success: true, waitingForUser: true, questionnaireId: result.questionnaireId };
-	}
-	if (action.tool === "delete_file") {
-		const targetFile = typeof params.target_file === "string"
-			? params.target_file
-			: (typeof params.path === "string" ? params.path : "");
-		if (targetFile.trim() === "") return { success: false, message: "missing target_file" };
-		const normalizedTargetFile = normalizePolicyPath(targetFile);
-		const editedPaths = shared.editedPathsSinceBuild ?? [];
-		if (isMainAgentMemoryPath(normalizedTargetFile)) {
-			return { success: false, message: "This .agent/main file is managed automatically and cannot be deleted with delete_file." };
-		}
-		const isInternalDocumentEdit = AgentRuntimePolicy.isAgentInternalDocumentPath(normalizedTargetFile);
-		const result = Tools.deleteFile(shared.taskId, shared.workingDir, targetFile, {
-			summary: `delete_file: ${targetFile}`,
-			toolName: "delete_file",
-		});
-		if (!result.success) {
-			return result as unknown as Record<string, unknown>;
-		}
-		if (!isInternalDocumentEdit) {
-			shared.unbuiltEdits = true;
-			shared.lastBuildSucceeded = false;
-			if (shared.failedTestNeedsBuild === true) shared.failedTestHasSourceEdit = true;
-			if (editedPaths.indexOf(normalizedTargetFile) < 0) editedPaths.push(normalizedTargetFile);
-			shared.editedPathsSinceBuild = editedPaths;
-			shared.editsSinceBuild = (shared.editsSinceBuild ?? 0) + 1;
-		}
-		return {
-			success: true,
-			changed: true,
-			mode: "delete",
-			checkpointed: result.checkpointed,
-			reversible: result.reversible,
-			binary: result.binary,
-			checkpointId: result.checkpointed ? result.checkpointId : undefined,
-			checkpointSeq: result.checkpointed ? result.checkpointSeq : undefined,
-			message: result.checkpointed ? undefined : result.message,
-			files: [{ path: targetFile, op: "delete" as const }],
-		};
-	}
-	if (action.tool === "build") {
-		const buildPath = (params.path as string) ?? "";
-		const result = await Tools.build({
-			workDir: shared.workingDir,
-			path: buildPath,
-			isCancelled: () => shared.stopToken.stopped,
-		});
-		shared.unbuiltEdits = false;
-		shared.editsSinceBuild = 0;
-		shared.editedPathsSinceBuild = [];
-		shared.hasBuilt = true;
-		shared.lastBuildSucceeded = result.success;
-		// The fresh-project gate promises to last only until the first successful
-		// build. A normal coding turn usually builds init.ts directly, so requiring
-		// an empty path here left read/discovery tools hidden for the entire task
-		// even though the authored entry had already compiled successfully.
-		if (result.success && shared.freshProjectBuildPending === true) {
-			shared.freshProjectBuildPending = false;
-		}
-		shared.apiSearchesSinceBuild = 0;
-		shared.buildRepairPending = false;
-		if (!result.success && result.messages !== undefined) {
-			for (let i = 0; i < result.messages.length; i++) {
-				if (result.messages[i].success === false && result.messages[i].file !== "") {
-					shared.buildRepairPending = true;
-					break;
-				}
-			}
-		}
-		if (result.success && shared.failedTestNeedsBuild === true && shared.failedTestHasSourceEdit === true) {
-			shared.failedTestNeedsBuild = false;
-			shared.failedTestHasSourceEdit = false;
-		}
-		return result as unknown as Record<string, unknown>;
-	}
-	if (action.tool === "fetch_url") {
-		const result = await Tools.fetchUrl({
-			workDir: shared.workingDir,
-			url: typeof params.url === "string" ? params.url : "",
-			target: typeof params.target === "string" ? params.target : "",
-			isCancelled: () => shared.stopToken.stopped === true,
-			onProgress: progress => {
-				emitAgentEvent(shared, {
-					type: "tool_progress",
-					sessionId: shared.sessionId,
-					taskId: shared.taskId,
-					step: action.step,
-					tool: action.tool,
-					result: {
-						success: false,
-						...progress,
-					},
-				});
-			},
-		});
-		return result as unknown as Record<string, unknown>;
-	}
-	if (action.tool === "execute_command") {
-		const mode = typeof params.mode === "string" ? params.mode : "";
-		const result = await Tools.executeCommand({
-			workDir: shared.workingDir,
-			mode: mode as Tools.ExecuteCommandMode,
-			code: typeof params.code === "string" ? params.code : undefined,
-			command: typeof params.command === "string" ? params.command : undefined,
-			cwd: typeof params.cwd === "string" ? params.cwd : undefined,
-			timeoutSeconds: typeof params.timeoutSeconds === "number" ? params.timeoutSeconds : undefined,
-			isCancelled: () => shared.stopToken.stopped === true,
-			onProgress: progress => {
-				emitAgentEvent(shared, {
-					type: "tool_progress",
-					sessionId: shared.sessionId,
-					taskId: shared.taskId,
-					step: action.step,
-					tool: action.tool,
-					result: {
-						success: false,
-						...progress,
-					},
-				});
-			},
-		});
-		if (result.success && mode === "lua") {
-			let deterministicFailure = false;
-			let deterministicPass = false;
-			const outputLines = result.output.split("\n");
-			for (let i = 0; i < outputLines.length && !deterministicFailure; i++) {
-				const line = outputLines[i].trim().toLowerCase();
-				if (line === "passed") deterministicPass = true;
-				if (line === "failed") {
-					deterministicFailure = true;
-					break;
-				}
-				let searchFrom = 0;
-				while (searchFrom < line.length) {
-					const failedIndex = line.indexOf("failed", searchFrom);
-					if (failedIndex < 0) break;
-					let after = failedIndex + "failed".length;
-					while (after < line.length) {
-						const ch = line.slice(after, after + 1);
-						if (ch !== " " && ch !== "\t" && ch !== ":" && ch !== "=") break;
-						after++;
-					}
-					let afterEnd = after;
-					while (afterEnd < line.length) {
-						const ch = line.slice(afterEnd, afterEnd + 1);
-						if (ch < "0" || ch > "9") break;
-						afterEnd++;
-					}
-					let count: number | undefined;
-					if (afterEnd > after) {
-						count = Number(line.slice(after, afterEnd));
-					} else {
-						let before = failedIndex - 1;
-						while (before >= 0) {
-							const ch = line.slice(before, before + 1);
-							if (ch !== " " && ch !== "\t" && ch !== ":" && ch !== "=") break;
-							before--;
-						}
-						const beforeEnd = before + 1;
-						while (before >= 0) {
-							const ch = line.slice(before, before + 1);
-							if (ch < "0" || ch > "9") break;
-							before--;
-						}
-						if (beforeEnd > before + 1) count = Number(line.slice(before + 1, beforeEnd));
-					}
-					if (count !== undefined && count > 0) {
-						deterministicFailure = true;
-						break;
-					}
-					searchFrom = failedIndex + "failed".length;
-				}
-			}
-			if (deterministicFailure) {
-				shared.failedTestNeedsBuild = true;
-				shared.failedTestHasSourceEdit = false;
-			} else if (deterministicPass) {
-				shared.failedTestNeedsBuild = false;
-				shared.failedTestHasSourceEdit = false;
-			}
-		}
-		return result as unknown as Record<string, unknown>;
-	}
-	if (action.tool === "spawn_sub_agent") {
-		if (!shared.spawnSubAgent) {
-			return { success: false, message: "spawn_sub_agent is not available in this runtime" };
-		}
-		if (shared.sessionId === undefined || shared.sessionId <= 0) {
-			return { success: false, message: "spawn_sub_agent requires a parent session" };
-		}
-		const filesHint = isArray(params.filesHint)
-			? (params.filesHint as unknown[]).filter(item => typeof item === "string") as string[]
-			: undefined;
-		const result = await shared.spawnSubAgent({
-			parentSessionId: shared.sessionId,
-			projectRoot: shared.workingDir,
-			title: typeof params.title === "string" ? params.title : "Sub",
-			prompt: typeof params.prompt === "string" ? params.prompt : "",
-			expectedOutput: typeof params.expectedOutput === "string" ? params.expectedOutput : undefined,
-			filesHint,
-			disabledAgentTools: shared.disabledAgentTools,
-		});
-		if (!result.success) {
-			return result as unknown as Record<string, unknown>;
-		}
-		shared.hasSpawnedSubAgentThisTask = true;
-		return {
-			success: true,
-			sessionId: result.sessionId,
-			taskId: result.taskId,
-			title: result.title,
-			hint: "Dispatch any other intended independent sub-agents, do only bounded foreground work that does not depend on them, then finish this turn. Do not call list_sub_agents; results arrive as asynchronous handoffs.",
-		};
-	}
-	if (action.tool === "list_sub_agents") {
-		if (!shared.listSubAgents) {
-			return { success: false, message: "list_sub_agents is not available in this runtime" };
-		}
-		if (shared.sessionId === undefined || shared.sessionId <= 0) {
-			return { success: false, message: "list_sub_agents requires a current session" };
-		}
-		const result = await shared.listSubAgents({
-			sessionId: shared.sessionId,
-			projectRoot: shared.workingDir,
-			status: typeof params.status === "string" ? params.status : undefined,
-			limit: typeof params.limit === "number" ? params.limit : undefined,
-			offset: typeof params.offset === "number" ? params.offset : undefined,
-			query: typeof params.query === "string" ? params.query : undefined,
-		});
-		return result as unknown as Record<string, unknown>;
-	}
-	if (action.tool === "edit_file") {
-		const path = typeof params.path === "string"
-			? params.path
-			: (typeof params.target_file === "string" ? params.target_file : "");
-		const oldStr = typeof params.old_str === "string" ? params.old_str : "";
-		const newStr = typeof params.new_str === "string" ? params.new_str : "";
-		if (path.trim() === "") return { success: false, message: "missing path" };
-		const normalizedPath = normalizePolicyPath(path);
-		const isInternalDocumentEdit = AgentRuntimePolicy.isAgentInternalDocumentPath(normalizedPath);
-		if (!isInternalDocumentEdit) {
-			const preflightIssue = AgentToolRegistry.findUnsupportedDoraTsEdit(normalizedPath, newStr);
-			if (preflightIssue !== undefined) {
-				const targetExists = Content.exist(Path(shared.workingDir, normalizedPath));
-				const recovery = oldStr === "" && !targetExists
-					? " This was a rejected new-file create, so the file does not exist. Reissue the complete file content with the unsupported construct replaced; do not attempt a partial patch."
-					: " Reissue the corrected coherent replacement; do not patch text that was never written.";
-				return { success: false, message: preflightIssue + recovery };
-			}
-		}
-		const actionNode = new EditFileAction(1, 0);
-		const result = await actionNode.exec({
-			path,
-			oldStr,
-			newStr,
-			taskId: shared.taskId,
-			workDir: shared.workingDir,
-		});
-		if (!isInternalDocumentEdit && result.success === true && result.changed !== false) {
-			shared.unbuiltEdits = true;
-			shared.lastBuildSucceeded = false;
-			if (shared.failedTestNeedsBuild === true) shared.failedTestHasSourceEdit = true;
-			const editedPaths = shared.editedPathsSinceBuild ?? [];
-			if (editedPaths.indexOf(normalizedPath) < 0) editedPaths.push(normalizedPath);
-			shared.editedPathsSinceBuild = editedPaths;
-			shared.editsSinceBuild = (shared.editsSinceBuild ?? 0) + 1;
-		}
-		return result;
-	}
-	return { success: false, message: `${action.tool} cannot be executed as a batched tool` };
+	const execution = await executeRegisteredAgentTool({
+		tool: action.tool,
+		input: action.params,
+		context: createAgentToolExecutionContext(shared, action),
+		schemaContext: { searchDoraDocLimitMax: AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax },
+	});
+	action.control = execution.control;
+	return execution.output;
 }
 
 function sanitizeToolActionResultForHistory(action: AgentActionRecord, result: Record<string, unknown>): Record<string, unknown> {
@@ -4624,34 +2627,10 @@ function sanitizeToolActionResultForHistory(action: AgentActionRecord, result: R
 	return result;
 }
 
-function canRunBatchActionInParallel(this: unknown, action: AgentActionRecord): boolean {
-	return AgentToolRegistry.canRunToolInParallel(action.tool);
-}
-
-interface ToolBatch {
-	isConcurrencySafe: boolean;
-	actions: AgentActionRecord[];
-}
-
-function partitionToolCalls(actions: AgentActionRecord[]): ToolBatch[] {
-	const batches: ToolBatch[] = [];
-	for (let i = 0; i < actions.length; i++) {
-		const action = actions[i];
-		const isSafe = canRunBatchActionInParallel(action);
-		const lastBatch = batches.length > 0 ? batches[batches.length - 1] : undefined;
-		if (isSafe && lastBatch && lastBatch.isConcurrencySafe) {
-			lastBatch.actions.push(action);
-		} else {
-			batches.push({ isConcurrencySafe: isSafe, actions: [action] });
-		}
-	}
-	return batches;
-}
-
 function completeStoppedToolAction(shared: AgentShared, action: AgentActionRecord): void {
 	action.params = sanitizeActionParamsForHistory(action.tool, action.params);
 	if (!action.result) {
-		action.result = { success: false, message: getCancelledReason(shared) };
+		action.result = { success: false, code: "TOOL_CANCELLED", message: getCancelledReason(shared) };
 	}
 	appendToolResultMessage(shared, action);
 	emitAgentFinishEvent(shared, action);
@@ -4665,9 +2644,9 @@ class BatchToolAction extends Node<AgentShared> {
 
 	async exec(input: { shared: AgentShared; actions: AgentActionRecord[] }): Promise<AgentActionRecord[]> {
 		const shared = input.shared;
-		const spawnedBeforeBatch = shared.hasSpawnedSubAgentThisTask === true;
+		const spawnedBeforeBatch = shared.workflow.hasSpawnedSubAgentThisTask === true;
 		const preExecuted = shared.preExecutedResults;
-		const batches = partitionToolCalls(input.actions);
+		const batches = partitionAgentToolCalls(input.actions, AgentToolRegistry.canRunToolInParallel);
 		const parallelBatchCount = batches.filter(b => b.isConcurrencySafe).length;
 		const serialBatchCount = batches.filter(b => !b.isConcurrencySafe).length;
 		AgentUtils.Log("Info", `[CodingAgent] smart batch partition total=${input.actions.length} parallel_batches=${parallelBatchCount} serial_batches=${serialBatchCount}`);
@@ -4689,7 +2668,7 @@ class BatchToolAction extends Node<AgentShared> {
 				}
 				await Promise.all(batch.actions.map(async action => {
 					if (shared.stopToken.stopped) {
-						action.result = { success: false, message: getCancelledReason(shared) };
+						action.result = { success: false, code: "TOOL_CANCELLED", message: getCancelledReason(shared) };
 						return action;
 					}
 					const result = await executeToolActionWithPreExecution(shared, action);
@@ -4740,7 +2719,7 @@ class BatchToolAction extends Node<AgentShared> {
 			}
 		}
 		if (didDelegatedForegroundWork) {
-			shared.delegatedForegroundBatches = (shared.delegatedForegroundBatches ?? 0) + 1;
+			shared.workflow.delegatedForegroundBatches = (shared.workflow.delegatedForegroundBatches ?? 0) + 1;
 		}
 		persistHistoryState(shared);
 		return input.actions;
@@ -4752,11 +2731,11 @@ class BatchToolAction extends Node<AgentShared> {
 		persistHistoryState(shared);
 		// Keep the ask_user call/result pair active so the submitted answer can
 		// replace the waiting result before any memory summary covers it.
-		if (shared.waitingQuestionnaireId === undefined) {
+		if (shared.workflow.waitingQuestionnaireId === undefined) {
 			await maybeCompressHistory(shared);
 			persistHistoryState(shared);
 		}
-		return shared.waitingQuestionnaireId !== undefined ? "done" : "main";
+		return shared.workflow.waitingQuestionnaireId !== undefined ? "done" : "main";
 	}
 }
 
@@ -4884,6 +2863,12 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		messages: persistedSession.messages,
 		lastConsolidatedIndex: persistedSession.lastConsolidatedIndex,
 		carryMessageIndex: persistedSession.carryMessageIndex,
+		workflow: {
+			freshProjectBuildPending,
+			freshProjectCodeFile,
+			hasSpawnedSubAgentThisTask: false,
+			delegatedForegroundBatches: 0,
+		},
 		// Memory 状态
 		memory: {
 			compressor,
@@ -4903,10 +2888,6 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		listSubAgents: options.listSubAgents,
 		publishQuestionnaire: options.publishQuestionnaire,
 		disabledAgentTools: options.disabledAgentTools ?? [],
-		freshProjectBuildPending,
-		freshProjectCodeFile,
-		hasSpawnedSubAgentThisTask: false,
-		delegatedForegroundBatches: 0,
 		tokenUsage: options.initialTokenUsage,
 	};
 
@@ -4971,14 +2952,14 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 			return finalizeAgentFailure(shared,
 				shared.response && shared.response !== "" ? shared.response : shared.error);
 		}
-		if (shared.waitingQuestionnaireId !== undefined) {
+		if (shared.workflow.waitingQuestionnaireId !== undefined) {
 			Tools.setTaskStatus(shared.taskId, "WAITING_USER");
 			emitAgentEvent(shared, {
 				type: "task_waiting_for_user",
 				sessionId: shared.sessionId,
 				taskId: shared.taskId,
 				step: shared.step,
-				questionnaireId: shared.waitingQuestionnaireId,
+				questionnaireId: shared.workflow.waitingQuestionnaireId,
 			});
 			return {
 				success: true,
@@ -4986,7 +2967,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 				message: shared.useChineseResponse ? "等待用户填写调查问卷。" : "Waiting for questionnaire feedback.",
 				steps: shared.step,
 				waitingForUser: true,
-				questionnaireId: shared.waitingQuestionnaireId,
+				questionnaireId: shared.workflow.waitingQuestionnaireId,
 			};
 		}
 		if (isFinalDecisionTurn(shared) && shared.completion?.outcome === "partial") {

@@ -3,7 +3,7 @@ import { App, Content, Path } from 'Dora';
 import { Message, applyCustomLLMOptions, callLLM, Log, clipTextToTokenBudget, extractLLMTokenUsage, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import { getActiveLLMConfig } from 'Agent/Utils';
 import type { LLMConfig, LLMTokenUsage, ToolCall } from 'Agent/Utils';
-import { sendWebIDEFileUpdate } from 'Agent/Tools';
+import { sendWebIDEFileUpdate } from 'Agent/Tool/WebIDESync';
 import { AGENT_TOOL_DEFINITIONS_DETAILED, MAIN_AGENT_TOOL_DEFINITIONS_DETAILED, XML_TOOL_DEFINITIONS_DETAILED } from 'Agent/AgentToolRegistry';
 
 const MEMORY_DEFAULT_LLM_TEMPERATURE = 0.1;

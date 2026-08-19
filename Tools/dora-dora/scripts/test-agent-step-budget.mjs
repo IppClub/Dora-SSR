@@ -49,8 +49,8 @@ assert.match(
 );
 assert.match(
 	codingAgentSource,
-	/toolCalls\.length\s*>\s*1\s*&&\s*toolCalls\.length\s*>\s*remainingWorkSteps/,
-	"parallel tool batches must not cross the remaining task budget",
+	/decisions\.length\s*>\s*remainingWorkSteps/,
+	"normalized tool decisions must not cross the remaining task budget",
 );
 
 console.log("Agent step budget tests passed.");
