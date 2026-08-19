@@ -1,4 +1,4 @@
--- [ts]: AgentToolRegistry.ts
+-- [ts]: Registry.ts
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
 local __TS__ObjectAssign = ____lualib.__TS__ObjectAssign -- 1
@@ -18,10 +18,10 @@ local ____exports = {} -- 1
 local resolveText, getToolDescription, getToolRules, createFunctionToolSchemaFromDefinition -- 1
 local ____JsonSchema = require("Agent.JsonSchema") -- 2
 local compileJsonSchema = ____JsonSchema.compileJsonSchema -- 2
-local ____AgentToolHandlers = require("Agent.AgentToolHandlers") -- 3
-local AGENT_TOOL_HANDLERS = ____AgentToolHandlers.AGENT_TOOL_HANDLERS -- 3
-local ____AgentToolValidation = require("Agent.AgentToolValidation") -- 4
-local AGENT_TOOL_VALIDATORS = ____AgentToolValidation.AGENT_TOOL_VALIDATORS -- 4
+local ____Handlers = require("Agent.Tool.Handlers") -- 3
+local AGENT_TOOL_HANDLERS = ____Handlers.AGENT_TOOL_HANDLERS -- 3
+local ____Validation = require("Agent.Tool.Validation") -- 4
+local AGENT_TOOL_VALIDATORS = ____Validation.AGENT_TOOL_VALIDATORS -- 4
 function resolveText(value, context) -- 53
 	return type(value) == "string" and value or value(context) -- 54
 end -- 54

@@ -10,11 +10,11 @@ local ____Dora = require("Dora") -- 2
 local Content = ____Dora.Content -- 2
 local DB = ____Dora.DB -- 2
 local Path = ____Dora.Path -- 2
-local ____AgentStorage = require("Agent.AgentStorage") -- 4
-local TABLE_TASK = ____AgentStorage.TABLE_TASK -- 5
-local TABLE_CP = ____AgentStorage.TABLE_CHECKPOINT -- 6
-local TABLE_ENTRY = ____AgentStorage.TABLE_CHECKPOINT_ENTRY -- 7
-local requireAgentStorage = ____AgentStorage.requireAgentStorage -- 8
+local ____Database = require("Agent.Storage.Database") -- 4
+local TABLE_TASK = ____Database.TABLE_TASK -- 5
+local TABLE_CP = ____Database.TABLE_CHECKPOINT -- 6
+local TABLE_ENTRY = ____Database.TABLE_CHECKPOINT_ENTRY -- 7
+local requireAgentStorage = ____Database.requireAgentStorage -- 8
 local ____Utils = require("Agent.Utils") -- 10
 local Log = ____Utils.Log -- 10
 local ____Workspace = require("Agent.Tool.Workspace") -- 11
@@ -27,10 +27,10 @@ local getFileState = ____Workspace.getFileState -- 17
 local ____WebIDESync = require("Agent.Tool.WebIDESync") -- 19
 local sendWebIDEFileUpdate = ____WebIDESync.sendWebIDEFileUpdate -- 19
 local sendWebIDERefreshTree = ____WebIDESync.sendWebIDERefreshTree -- 19
-local ____AgentStorageSupport = require("Agent.AgentStorageSupport") -- 20
-local getLastInsertRowId = ____AgentStorageSupport.getLastInsertRowId -- 20
-local queryOne = ____AgentStorageSupport.queryOne -- 20
-local toStr = ____AgentStorageSupport.toStr -- 20
+local ____Support = require("Agent.Storage.Support") -- 20
+local getLastInsertRowId = ____Support.getLastInsertRowId -- 20
+local queryOne = ____Support.queryOne -- 20
+local toStr = ____Support.toStr -- 20
 local function now() -- 163
 	return os.time() -- 163
 end -- 163

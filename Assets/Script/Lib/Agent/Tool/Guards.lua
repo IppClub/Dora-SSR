@@ -1,12 +1,12 @@
--- [ts]: AgentToolGuards.ts
+-- [ts]: Guards.ts
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf -- 1
 local __TS__ArrayIsArray = ____lualib.__TS__ArrayIsArray -- 1
 local ____exports = {} -- 1
 local deny -- 1
-local AgentRuntimePolicy = require("Agent.AgentRuntimePolicy") -- 2
-local ____AgentToolValidation = require("Agent.AgentToolValidation") -- 3
-local getAgentFileEditInputs = ____AgentToolValidation.getAgentFileEditInputs -- 3
+local AgentRuntimePolicy = require("Agent.Runtime.Policy") -- 2
+local ____Validation = require("Agent.Tool.Validation") -- 3
+local getAgentFileEditInputs = ____Validation.getAgentFileEditInputs -- 3
 function deny(code, message) -- 22
 	return {denied = true, code = code, message = message} -- 23
 end -- 23

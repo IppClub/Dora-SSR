@@ -7,15 +7,17 @@ const read = relative => readFile(path.join(repo, relative), "utf8");
 
 const service = await read("Tools/dora-dora/src/Service.ts");
 const webServer = await read("Assets/Script/Dev/WebServer.yue");
-const tools = await read("Assets/Script/Lib/Agent/Tools.ts");
-const codingAgent = await read("Assets/Script/Lib/Agent/CodingAgent.ts");
+const buildTool = await read("Assets/Script/Lib/Agent/Tool/Build.ts");
+const toolHandlers = await read("Assets/Script/Lib/Agent/Tool/Handlers.ts");
+const doraAgent = await read("Assets/Script/Lib/Agent/DoraAgent.ts");
 const generated = await Promise.all([
 	read("Assets/Script/Dev/WebServer.lua"),
-	read("Assets/Script/Lib/Agent/Tools.lua"),
-	read("Assets/Script/Lib/Agent/CodingAgent.lua"),
+	read("Assets/Script/Lib/Agent/Tool/Build.lua"),
+	read("Assets/Script/Lib/Agent/Tool/Handlers.lua"),
+	read("Assets/Script/Lib/Agent/DoraAgent.lua"),
 ]);
 
-const authoritative = [service, webServer, tools, codingAgent];
+const authoritative = [service, webServer, buildTool, toolHandlers, doraAgent];
 for (const source of [...authoritative, ...generated]) {
 	assert.ok(!source.includes("TranspileTSProbeV3"), "legacy probe name must be removed");
 	assert.ok(!source.includes("TranspileTSReadyV3"), "legacy ready name must be removed");
@@ -34,16 +36,17 @@ assert.match(webServer, /seen\[targetFile\] = entry/);
 assert.match(webServer, /App\.runningTime >= readyDeadline/);
 assert.match(webServer, /App\.runningTime >= deadline/);
 
-assert.match(tools, /payload\.id !== requestId/);
-assert.match(tools, /payload\.name === "TranspileTSProbe"/);
-assert.match(tools, /payload\.name !== "TranspileTS"/);
-assert.match(tools, /App\.runningTime >= readyDeadline/);
-assert.match(tools, /App\.runningTime >= buildDeadline/);
-assert.match(tools, /isCancelled\?\.\(\) === true/);
-assert.match(tools, /interrupted: true/);
-assert.doesNotMatch(tools, /wait\(\(\) => done\);/);
+assert.match(buildTool, /payload\.id !== requestId/);
+assert.match(buildTool, /payload\.name === "TranspileTSProbe"/);
+assert.match(buildTool, /payload\.name !== "TranspileTS"/);
+assert.match(buildTool, /App\.runningTime >= readyDeadline/);
+assert.match(buildTool, /App\.runningTime >= buildDeadline/);
+assert.match(buildTool, /isCancelled\?\.\(\) === true/);
+assert.match(buildTool, /interrupted: true/);
+assert.doesNotMatch(buildTool, /wait\(\(\) => done\);/);
 
-assert.match(codingAgent, /isCancelled: \(\) => shared\.stopToken\.stopped/);
-assert.match(codingAgent, /isCancelled: input\.isCancelled/);
+assert.match(doraAgent, /isCancelled: \(\) => shared\.stopToken\.stopped/);
+assert.match(toolHandlers, /isCancelled: \(\) => context\.cancellation\.isCancelled\(\)/);
+assert.match(buildTool, /runSingleTsTranspile\(target, content, req\.workDir, req\.isCancelled\)/);
 
 console.log("TypeScript transpile protocol tests passed.");

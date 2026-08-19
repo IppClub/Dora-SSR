@@ -1,7 +1,7 @@
 import * as AgentUtils from 'Agent/Utils';
 import type { Message } from 'Agent/Utils';
-import * as AgentConfig from 'Agent/AgentConfig';
-import type { AgentToolName } from 'Agent/AgentToolRegistry';
+import * as AgentConfig from 'Agent/Config';
+import type { AgentToolName } from 'Agent/Tool/Registry';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object";

@@ -1,4 +1,4 @@
--- [ts]: AgentStorage.ts
+-- [ts]: Database.ts
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__SparseArrayNew = ____lualib.__TS__SparseArrayNew -- 1
 local __TS__SparseArrayPush = ____lualib.__TS__SparseArrayPush -- 1
@@ -11,8 +11,8 @@ local DB = ____Dora.DB -- 2
 local Path = ____Dora.Path -- 2
 local ____Utils = require("Agent.Utils") -- 3
 local Log = ____Utils.Log -- 3
-local ____AgentStorageSupport = require("Agent.AgentStorageSupport") -- 4
-local toStr = ____AgentStorageSupport.toStr -- 4
+local ____Support = require("Agent.Storage.Support") -- 4
+local toStr = ____Support.toStr -- 4
 ____exports.AGENT_SCHEMA_VERSION = 1 -- 6
 ____exports.AGENT_SCHEMA = "agent" -- 7
 ____exports.TABLE_SESSION = "agent.AgentSession" -- 8

@@ -600,8 +600,8 @@ export allClear = ->
 
 clearTempFiles = ->
 	:writablePath = Content
-	Content\remove Path writablePath, ".upload"
-	Content\remove Path writablePath, ".download"
+	Content\remove Path writablePath, ".upload" if Content\exist Path writablePath, ".upload"
+	Content\remove Path writablePath, ".download" if Content\exist Path writablePath, ".download"
 
 waitForWebStart = true
 thread ->

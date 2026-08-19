@@ -1,7 +1,7 @@
 // @preview-file off clear
 import { Content, DB, Path } from 'Dora';
 import { Log } from 'Agent/Utils';
-import { toStr } from 'Agent/AgentStorageSupport';
+import { toStr } from 'Agent/Storage/Support';
 
 export const AGENT_SCHEMA_VERSION = 1;
 export const AGENT_SCHEMA = "agent";

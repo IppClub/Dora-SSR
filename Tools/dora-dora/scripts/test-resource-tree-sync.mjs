@@ -79,25 +79,29 @@ assert.match(appSource, /updateFileReconcileGenerationRef\.current !== reconcile
 assert.match(appSource, /Incremental search updates cannot model[\s\S]*invalidateFileSearchIndex\(\)/);
 assert.match(appSource, /Resolve canonical refresh targets before optimistic insertion[\s\S]*const reconcileDirectories[\s\S]*for \(let i = 0; i < events\.length/);
 
-const toolsSource = await readFile(path.resolve("../../Assets/Script/Lib/Agent/Tools.ts"), "utf8");
-assert.match(toolsSource, /failed to refresh Web IDE tree after Lua command/);
-assert.match(toolsSource, /failed to refresh Web IDE tree after Git command/);
-assert.match(toolsSource, /if \(key === "Content"\)[\s\S]*contentAccessed = true/);
-assert.match(toolsSource, /if \(key === "refreshTree"\)[\s\S]*return refreshTree/);
-assert.match(toolsSource, /refreshTreeCalled = true/);
-assert.match(toolsSource, /contentAccessed && !refreshTreeCalled && !refreshProjectTree/);
-assert.doesNotMatch(toolsSource, /result\.success && contentAccessed && !refreshTreeCalled/);
-assert.match(toolsSource, /sendWebIDEFileUpdate\(fullPath, entry\.afterExists, entry\.afterContent\)/);
-assert.match(toolsSource, /sendWebIDEFileUpdate\(fullPath, false, ""\)/);
+const commandSource = await readFile(path.resolve("../../Assets/Script/Lib/Agent/Tool/Command.ts"), "utf8");
+assert.match(commandSource, /failed to refresh Web IDE tree after Lua command/);
+assert.match(commandSource, /if \(key === "Content"\)[\s\S]*contentAccessed = true/);
+assert.match(commandSource, /if \(key === "refreshTree"\)[\s\S]*return refreshTree/);
+assert.match(commandSource, /refreshTreeCalled = true/);
+assert.match(commandSource, /contentAccessed && !refreshTreeCalled && !refreshWorkspaceTree/);
+assert.doesNotMatch(commandSource, /result\.success && contentAccessed && !refreshTreeCalled/);
 
-const sessionSource = await readFile(path.resolve("../../Assets/Script/Lib/Agent/AgentSession.ts"), "utf8");
+const gitCommandSource = await readFile(path.resolve("../../Assets/Script/Lib/Agent/Tool/GitCommand.ts"), "utf8");
+assert.match(gitCommandSource, /failed to refresh Web IDE tree after Git command/);
+
+const checkpointSource = await readFile(path.resolve("../../Assets/Script/Lib/Agent/Tool/Checkpoint.ts"), "utf8");
+assert.match(checkpointSource, /sendWebIDEFileUpdate\(fullPath, entry\.afterExists, entry\.afterContent\)/);
+assert.match(checkpointSource, /sendWebIDEFileUpdate\(fullPath, false, ""\)/);
+
+const sessionSource = await readFile(path.resolve("../../Assets/Script/Lib/Agent/Session.ts"), "utf8");
 assert.match(sessionSource, /sendWebIDEFileUpdate\(path, false, ""\)/);
 assert.match(sessionSource, /sendWebIDERefreshTree\(\)/);
 
-const codingAgentSource = await readFile(path.resolve("../../Assets/Script/Lib/Agent/CodingAgent.ts"), "utf8");
-assert.match(codingAgentSource, /writeStepLLMDebugFile[\s\S]*sendWebIDEFileUpdate\(path, true, content\)/);
+const stepDebugSource = await readFile(path.resolve("../../Assets/Script/Lib/Agent/Runtime/StepDebugLog.ts"), "utf8");
+assert.match(stepDebugSource, /writeStepLLMDebugFile[\s\S]*sendWebIDEFileUpdate\(path, true, content\)/);
 
-const runtimePolicySource = await readFile(path.resolve("../../Assets/Script/Lib/Agent/AgentRuntimePolicy.ts"), "utf8");
+const runtimePolicySource = await readFile(path.resolve("../../Assets/Script/Lib/Agent/Runtime/Policy.ts"), "utf8");
 assert.match(runtimePolicySource, /Content\.save\(path, content\)[\s\S]*sendWebIDEFileUpdate\(path, true, content\)/);
 
 const memorySource = await readFile(path.resolve("../../Assets/Script/Lib/Agent/Memory.ts"), "utf8");
@@ -107,14 +111,16 @@ assert.equal(
 	"every Agent memory artifact save must have a matching Web IDE update",
 );
 
-const toolsLua = await readFile(path.resolve("../../Assets/Script/Lib/Agent/Tools.lua"), "utf8");
-assert.match(toolsLua, /failed to refresh Web IDE tree after Lua command/);
-assert.match(toolsLua, /failed to refresh Web IDE tree after Git command/);
-assert.match(toolsLua, /if key == "Content" then[\s\S]*contentAccessed = true/);
-assert.match(toolsLua, /if key == "refreshTree" then[\s\S]*return refreshTree/);
-assert.match(toolsLua, /contentAccessed and not refreshTreeCalled and not refreshProjectTree/);
-assert.doesNotMatch(toolsLua, /result\.success and contentAccessed and not refreshTreeCalled/);
-const sessionLua = await readFile(path.resolve("../../Assets/Script/Lib/Agent/AgentSession.lua"), "utf8");
+const commandLua = await readFile(path.resolve("../../Assets/Script/Lib/Agent/Tool/Command.lua"), "utf8");
+assert.match(commandLua, /failed to refresh Web IDE tree after Lua command/);
+assert.match(commandLua, /if key == "Content" then[\s\S]*contentAccessed = true/);
+assert.match(commandLua, /if key == "refreshTree" then[\s\S]*return refreshTree/);
+assert.match(commandLua, /contentAccessed and not refreshTreeCalled and not refreshWorkspaceTree/);
+assert.doesNotMatch(commandLua, /result\.success and contentAccessed and not refreshTreeCalled/);
+
+const gitCommandLua = await readFile(path.resolve("../../Assets/Script/Lib/Agent/Tool/GitCommand.lua"), "utf8");
+assert.match(gitCommandLua, /failed to refresh Web IDE tree after Git command/);
+const sessionLua = await readFile(path.resolve("../../Assets/Script/Lib/Agent/Session.lua"), "utf8");
 assert.match(sessionLua, /Tools\.sendWebIDEFileUpdate\(path, false, ""\)/);
 assert.match(sessionLua, /Tools\.sendWebIDERefreshTree\(\)/);
 

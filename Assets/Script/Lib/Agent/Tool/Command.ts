@@ -1,7 +1,7 @@
 // @preview-file off clear
 import * as Dora from 'Dora';
 import { Content, Path, Director, once, App } from 'Dora';
-import * as AgentConfig from 'Agent/AgentConfig';
+import * as AgentConfig from 'Agent/Config';
 import { Log } from 'Agent/Utils';
 import type { ExecuteCommandMode, ExecuteCommandProgress, ExecuteCommandResult } from 'Agent/Tool/CommandTypes';
 export type { ExecuteCommandMode, ExecuteCommandProgress, ExecuteCommandResult } from 'Agent/Tool/CommandTypes';

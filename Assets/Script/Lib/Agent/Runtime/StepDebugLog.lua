@@ -1,4 +1,4 @@
--- [ts]: AgentStepDebugLog.ts
+-- [ts]: StepDebugLog.ts
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__SparseArrayNew = ____lualib.__TS__SparseArrayNew -- 1
 local __TS__SparseArrayPush = ____lualib.__TS__SparseArrayPush -- 1

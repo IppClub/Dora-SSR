@@ -341,7 +341,7 @@ HttpServer:post("/agent/project-root", function(req) -- 133
 	return invalidArguments -- 133
 end) -- 133
 local AgentTools = require("Agent.Tools") -- 140
-local AgentSession = require("Agent.AgentSession") -- 141
+local AgentSession = require("Agent.Session") -- 141
 local GitJobs = { } -- 143
 local gitTerminalState -- 145
 gitTerminalState = function(status) -- 145

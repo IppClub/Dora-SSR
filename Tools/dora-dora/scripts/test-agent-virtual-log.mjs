@@ -7,9 +7,9 @@ const read = relativePath => readFile(path.join(root, relativePath), "utf8");
 
 const [workspaceTools, registry, workspaceToolsLua, registryLua, engineSkill, loveSkill] = await Promise.all([
 	read("Assets/Script/Lib/Agent/Tool/Workspace.ts"),
-	read("Assets/Script/Lib/Agent/AgentToolRegistry.ts"),
+	read("Assets/Script/Lib/Agent/Tool/Registry.ts"),
 	read("Assets/Script/Lib/Agent/Tool/Workspace.lua"),
-	read("Assets/Script/Lib/Agent/AgentToolRegistry.lua"),
+	read("Assets/Script/Lib/Agent/Tool/Registry.lua"),
 	read("Assets/Doc/skills/dora-engine-coding/SKILL.md"),
 	read("Assets/Doc/skills/love-game-development/SKILL.md"),
 ]);

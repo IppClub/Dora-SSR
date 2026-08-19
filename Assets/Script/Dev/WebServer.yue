@@ -138,7 +138,7 @@ HttpServer\post "/agent/project-root", (req): invalidArguments ->
 			return success: true, found: false, message: err
 
 import "Agent.Tools" as AgentTools
-import "Agent.AgentSession"
+import "Agent.Session" as AgentSession
 
 GitJobs = []
 

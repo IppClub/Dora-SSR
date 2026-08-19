@@ -1,4 +1,4 @@
--- [ts]: AgentToolValidation.ts
+-- [ts]: Validation.ts
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__StringTrim = ____lualib.__TS__StringTrim -- 1
 local __TS__ArrayIsArray = ____lualib.__TS__ArrayIsArray -- 1
@@ -9,9 +9,9 @@ local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
 local __TS__ArraySome = ____lualib.__TS__ArraySome -- 1
 local __TS__ArrayFilter = ____lualib.__TS__ArrayFilter -- 1
 local ____exports = {} -- 1
-local AgentConfig = require("Agent.AgentConfig") -- 2
-local ____AgentQuestionnaire = require("Agent.AgentQuestionnaire") -- 3
-local normalizeQuestionnaire = ____AgentQuestionnaire.normalizeQuestionnaire -- 3
+local AgentConfig = require("Agent.Config") -- 2
+local ____Questionnaire = require("Agent.Questionnaire") -- 3
+local normalizeQuestionnaire = ____Questionnaire.normalizeQuestionnaire -- 3
 local AgentUtils = require("Agent.Utils") -- 4
 local function getDecisionPath(input) -- 7
 	if type(input.path) == "string" then -- 7

@@ -1,4 +1,4 @@
--- [ts]: AgentSkills.ts
+-- [ts]: Skills.ts
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__StringTrim = ____lualib.__TS__StringTrim -- 1
 local __TS__StringSplit = ____lualib.__TS__StringSplit -- 1

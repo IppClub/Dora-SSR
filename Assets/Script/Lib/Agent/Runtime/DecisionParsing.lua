@@ -1,4 +1,4 @@
--- [ts]: AgentDecisionParsing.ts
+-- [ts]: DecisionParsing.ts
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__ArrayIsArray = ____lualib.__TS__ArrayIsArray -- 1
 local __TS__StringSlice = ____lualib.__TS__StringSlice -- 1
@@ -6,9 +6,9 @@ local __TS__StringTrim = ____lualib.__TS__StringTrim -- 1
 local __TS__StringAccess = ____lualib.__TS__StringAccess -- 1
 local ____exports = {} -- 1
 local AgentUtils = require("Agent.Utils") -- 1
-local AgentToolRegistry = require("Agent.AgentToolRegistry") -- 3
-local ____AgentRuntimePolicy = require("Agent.AgentRuntimePolicy") -- 5
-local getAgentDecisionPath = ____AgentRuntimePolicy.getAgentDecisionPath -- 5
+local AgentToolRegistry = require("Agent.Tool.Registry") -- 3
+local ____Policy = require("Agent.Runtime.Policy") -- 5
+local getAgentDecisionPath = ____Policy.getAgentDecisionPath -- 5
 local function isRecord(value) -- 7
 	return type(value) == "table" -- 8
 end -- 7

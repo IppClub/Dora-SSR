@@ -41,7 +41,7 @@ local DoraLog = ____Dora.Log -- 2
 local Director = ____Dora.Director -- 2
 local once = ____Dora.once -- 2
 local App = ____Dora.App -- 2
-local AgentConfig = require("Agent.AgentConfig") -- 3
+local AgentConfig = require("Agent.Config") -- 3
 function ____exports.sanitizeUTF8(text) -- 343
 	if not text then -- 343
 		return "" -- 344

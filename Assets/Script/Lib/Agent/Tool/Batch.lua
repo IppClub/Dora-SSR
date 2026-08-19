@@ -1,4 +1,4 @@
--- [ts]: AgentToolBatch.ts
+-- [ts]: Batch.ts
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__ArrayIsArray = ____lualib.__TS__ArrayIsArray -- 1
 local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1

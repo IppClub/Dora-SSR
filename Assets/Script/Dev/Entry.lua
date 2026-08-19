@@ -1078,8 +1078,12 @@ _module_0["allClear"] = allClear -- 568
 local clearTempFiles -- 601
 clearTempFiles = function() -- 601
 	local writablePath = Content.writablePath -- 602
-	Content:remove(Path(writablePath, ".upload")) -- 603
-	return Content:remove(Path(writablePath, ".download")) -- 604
+	if Content:exist(Path(writablePath, ".upload")) then -- 603
+		Content:remove(Path(writablePath, ".upload")) -- 603
+	end -- 603
+	if Content:exist(Path(writablePath, ".download")) then -- 604
+		return Content:remove(Path(writablePath, ".download")) -- 604
+	end -- 604
 end -- 601
 local waitForWebStart = true -- 606
 thread(function() -- 607

@@ -4,7 +4,7 @@ import { Message, applyCustomLLMOptions, callLLM, Log, clipTextToTokenBudget, ex
 import { getActiveLLMConfig } from 'Agent/Utils';
 import type { LLMConfig, LLMTokenUsage, ToolCall } from 'Agent/Utils';
 import { sendWebIDEFileUpdate } from 'Agent/Tool/WebIDESync';
-import { AGENT_TOOL_DEFINITIONS_DETAILED, MAIN_AGENT_TOOL_DEFINITIONS_DETAILED, XML_TOOL_DEFINITIONS_DETAILED } from 'Agent/AgentToolRegistry';
+import { AGENT_TOOL_DEFINITIONS_DETAILED, MAIN_AGENT_TOOL_DEFINITIONS_DETAILED, XML_TOOL_DEFINITIONS_DETAILED } from 'Agent/Tool/Registry';
 
 const MEMORY_DEFAULT_LLM_TEMPERATURE = 0.1;
 const MEMORY_DEFAULT_LLM_MAX_TOKENS = 8192;

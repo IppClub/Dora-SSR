@@ -1,4 +1,4 @@
--- [ts]: AgentToolExecutor.ts
+-- [ts]: Executor.ts
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
 local __TS__AsyncAwaiter = ____lualib.__TS__AsyncAwaiter -- 1
@@ -6,10 +6,10 @@ local __TS__Await = ____lualib.__TS__Await -- 1
 local ____exports = {} -- 1
 local ____JsonSchema = require("Agent.JsonSchema") -- 2
 local compileJsonSchema = ____JsonSchema.compileJsonSchema -- 2
-local ____AgentToolRegistry = require("Agent.AgentToolRegistry") -- 3
-local getToolDefinition = ____AgentToolRegistry.getToolDefinition -- 3
-local ____AgentToolGuards = require("Agent.AgentToolGuards") -- 4
-local runAgentToolGuards = ____AgentToolGuards.runAgentToolGuards -- 4
+local ____Registry = require("Agent.Tool.Registry") -- 3
+local getToolDefinition = ____Registry.getToolDefinition -- 3
+local ____Guards = require("Agent.Tool.Guards") -- 4
+local runAgentToolGuards = ____Guards.runAgentToolGuards -- 4
 local function failure(code, message) -- 20
 	return {output = {success = false, code = code, message = message}} -- 21
 end -- 20

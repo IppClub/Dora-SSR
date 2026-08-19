@@ -1,4 +1,4 @@
--- [ts]: AgentStepBudget.ts
+-- [ts]: StepBudget.ts
 local ____exports = {} -- 1
 function ____exports.isFinalAgentDecisionTurn(agentStepCount, maxSteps) -- 3
 	return agentStepCount + 1 >= maxSteps -- 4

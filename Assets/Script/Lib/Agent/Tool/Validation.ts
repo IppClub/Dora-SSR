@@ -1,8 +1,8 @@
 // @preview-file off clear
-import * as AgentConfig from 'Agent/AgentConfig';
-import { normalizeQuestionnaire } from 'Agent/AgentQuestionnaire';
+import * as AgentConfig from 'Agent/Config';
+import { normalizeQuestionnaire } from 'Agent/Questionnaire';
 import * as AgentUtils from 'Agent/Utils';
-import type { AgentToolInputValidator, AgentToolName, AgentToolSemanticValidationResult } from 'Agent/AgentToolTypes';
+import type { AgentToolInputValidator, AgentToolName, AgentToolSemanticValidationResult } from 'Agent/Tool/Types';
 
 function getDecisionPath(input: Record<string, unknown>): string {
 	if (typeof input.path === "string") return input.path.trim();

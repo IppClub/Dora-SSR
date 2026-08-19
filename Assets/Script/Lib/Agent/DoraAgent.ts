@@ -6,15 +6,15 @@ import type { LLMConfig, LLMTokenUsage, Message, StopToken, ToolCall } from 'Age
 import * as Tools from 'Agent/Tools';
 import { MemoryCompressor } from 'Agent/Memory';
 import type { AgentPromptPack, AgentConversationMessage } from 'Agent/Memory';
-import * as AgentToolRegistry from 'Agent/AgentToolRegistry';
-import type { AgentDecisionMode, AgentRole, AgentToolName, AgentWorkMode } from 'Agent/AgentToolRegistry';
-import * as AgentSkills from 'Agent/AgentSkills';
-import * as AgentConfig from 'Agent/AgentConfig';
-import * as AgentRuntimePolicy from 'Agent/AgentRuntimePolicy';
-import { executeRegisteredAgentTool } from 'Agent/AgentToolExecutor';
-import type { AgentToolControl, AgentToolExecutionContext, AgentToolWorkflowState } from 'Agent/AgentToolTypes';
-import { getPlainTextCompletionBudgetState, getRemainingAgentWorkSteps, isFinalAgentDecisionTurn } from 'Agent/AgentStepBudget';
-import { areAgentToolParamsEqual, cloneAgentToolParams, coalesceCompatibleAgentToolCalls, partitionAgentToolCalls } from 'Agent/AgentToolBatch';
+import * as AgentToolRegistry from 'Agent/Tool/Registry';
+import type { AgentDecisionMode, AgentRole, AgentToolName, AgentWorkMode } from 'Agent/Tool/Registry';
+import * as AgentSkills from 'Agent/Skills';
+import * as AgentConfig from 'Agent/Config';
+import * as AgentRuntimePolicy from 'Agent/Runtime/Policy';
+import { executeRegisteredAgentTool } from 'Agent/Tool/Executor';
+import type { AgentToolControl, AgentToolExecutionContext, AgentToolWorkflowState } from 'Agent/Tool/Types';
+import { getPlainTextCompletionBudgetState, getRemainingAgentWorkSteps, isFinalAgentDecisionTurn } from 'Agent/Runtime/StepBudget';
+import { areAgentToolParamsEqual, cloneAgentToolParams, coalesceCompatibleAgentToolCalls, partitionAgentToolCalls } from 'Agent/Tool/Batch';
 import type {
 	AgentCompletionOutcome,
 	AgentValidationKind,
@@ -23,8 +23,8 @@ import type {
 	AgentLearningCandidateItem,
 	AgentCompletionReport,
 } from 'Agent/Utils';
-import type { AgentQuestionnaireSchema } from 'Agent/AgentQuestionnaire';
-import { encodeDebugJSON, saveStepLLMDebugInput, saveStepLLMDebugOutput } from 'Agent/AgentStepDebugLog';
+import type { AgentQuestionnaireSchema } from 'Agent/Questionnaire';
+import { encodeDebugJSON, saveStepLLMDebugInput, saveStepLLMDebugOutput } from 'Agent/Runtime/StepDebugLog';
 import {
 	toJson,
 	truncateText,
@@ -36,7 +36,7 @@ import {
 	projectMessagesForLLMContext,
 	projectMessagesForCompression,
 	sanitizeMessagesForLLMInput,
-} from 'Agent/AgentHistoryProjection';
+} from 'Agent/Runtime/HistoryProjection';
 import {
 	parseXMLToolCallObjectFromText,
 	parseDecisionObject,
@@ -49,13 +49,13 @@ import {
 	isDecisionLoopContinue,
 	isDecisionPlainTextCompletion,
 	classifyToolCallingTurnWithoutCalls,
-} from 'Agent/AgentDecisionParsing';
+} from 'Agent/Runtime/DecisionParsing';
 import type {
 	DecisionSuccess,
 	DecisionBatchSuccess,
 	DecisionResult,
 	DecisionFailure,
-} from 'Agent/AgentDecisionParsing';
+} from 'Agent/Runtime/DecisionParsing';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object";

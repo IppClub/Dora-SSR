@@ -47,10 +47,10 @@ local ____Utils = require("Agent.Utils") -- 4
 local getActiveLLMConfig = ____Utils.getActiveLLMConfig -- 4
 local ____WebIDESync = require("Agent.Tool.WebIDESync") -- 6
 local sendWebIDEFileUpdate = ____WebIDESync.sendWebIDEFileUpdate -- 6
-local ____AgentToolRegistry = require("Agent.AgentToolRegistry") -- 7
-local AGENT_TOOL_DEFINITIONS_DETAILED = ____AgentToolRegistry.AGENT_TOOL_DEFINITIONS_DETAILED -- 7
-local MAIN_AGENT_TOOL_DEFINITIONS_DETAILED = ____AgentToolRegistry.MAIN_AGENT_TOOL_DEFINITIONS_DETAILED -- 7
-local XML_TOOL_DEFINITIONS_DETAILED = ____AgentToolRegistry.XML_TOOL_DEFINITIONS_DETAILED -- 7
+local ____Registry = require("Agent.Tool.Registry") -- 7
+local AGENT_TOOL_DEFINITIONS_DETAILED = ____Registry.AGENT_TOOL_DEFINITIONS_DETAILED -- 7
+local MAIN_AGENT_TOOL_DEFINITIONS_DETAILED = ____Registry.MAIN_AGENT_TOOL_DEFINITIONS_DETAILED -- 7
+local XML_TOOL_DEFINITIONS_DETAILED = ____Registry.XML_TOOL_DEFINITIONS_DETAILED -- 7
 function isRecord(value) -- 82
 	return type(value) == "table" -- 83
 end -- 83

@@ -6,7 +6,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 const repoRoot = path.resolve("../..");
-const budgetSource = path.join(repoRoot, "Assets/Script/Lib/Agent/AgentStepBudget.ts");
+const budgetSource = path.join(repoRoot, "Assets/Script/Lib/Agent/Runtime/StepBudget.ts");
 const outputDir = await mkdtemp(path.join(tmpdir(), "dora-agent-step-budget-"));
 const outputFile = path.join(outputDir, "AgentStepBudget.mjs");
 
@@ -40,17 +40,17 @@ assert.deepEqual(getPlainTextCompletionBudgetState(998, 999), {
 	budgetExhausted: true,
 });
 
-const sessionSource = await readFile(path.join(repoRoot, "Assets/Script/Lib/Agent/AgentSession.ts"), "utf8");
+const sessionSource = await readFile(path.join(repoRoot, "Assets/Script/Lib/Agent/Session.ts"), "utf8");
 assert.match(
 	sessionSource,
 	/initialAgentStepCount:\s*getAgentStepCount\(session\.id, taskId\)/,
 	"continuing an interrupted task must restore its cumulative agent step count",
 );
 
-const configSource = await readFile(path.join(repoRoot, "Assets/Script/Lib/Agent/AgentConfig.ts"), "utf8");
+const configSource = await readFile(path.join(repoRoot, "Assets/Script/Lib/Agent/Config.ts"), "utf8");
 assert.match(configSource, /maxSteps:\s*999\b/, "the default long-running task limit must be 999");
 
-const codingAgentSource = await readFile(path.join(repoRoot, "Assets/Script/Lib/Agent/CodingAgent.ts"), "utf8");
+const codingAgentSource = await readFile(path.join(repoRoot, "Assets/Script/Lib/Agent/DoraAgent.ts"), "utf8");
 assert.match(
 	codingAgentSource,
 	/preExecutedResults\.size\s*>=\s*remainingWorkSteps/,

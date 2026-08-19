@@ -1,14 +1,14 @@
 // @preview-file off clear
 import { compileJsonSchema } from 'Agent/JsonSchema';
-import { getToolDefinition } from 'Agent/AgentToolRegistry';
-import { runAgentToolGuards } from 'Agent/AgentToolGuards';
-import type { AgentToolGuard } from 'Agent/AgentToolGuards';
+import { getToolDefinition } from 'Agent/Tool/Registry';
+import { runAgentToolGuards } from 'Agent/Tool/Guards';
+import type { AgentToolGuard } from 'Agent/Tool/Guards';
 import type {
 	AgentToolDefinition,
 	AgentToolExecutionContext,
 	AgentToolHandlerResult,
 	AgentToolSchemaContext,
-} from 'Agent/AgentToolTypes';
+} from 'Agent/Tool/Types';
 
 export interface AgentToolExecutionRequest {
 	tool: string;

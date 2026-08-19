@@ -60,12 +60,12 @@ const getSystemPrompt = () => {
 
 DSL 框架模块的 API 定义和用法示例如下：
 
-${Content.load(Path(Content.assetPath, 'Script', 'Lib', 'Agent', 'BlocklyGen.d.ts'))}
+${Content.load(Path(Content.assetPath, 'Script', 'Lib', 'Agent', 'Gen', 'BlocklyGen.d.ts'))}
 
 编写出的 Blockly 积木代码需遵守以下事项：
 - 数组下标从1开始
 - 对变量名对大小写不敏感，勿用大小写区分变量
-- 导入 DSL 模块请使用代码 \`import Gen from 'Agent/BlocklyGen';\`
+- 导入 DSL 模块请使用代码 \`import Gen from 'Agent/Gen/BlocklyGen';\`
 - 确保最后给我的回答只包含纯粹的 TypeScript 代码，不要包含任何非代码的说明
 - 坐标计算均使用左手系坐标，包括所有绘图 API 中的坐标
 - 程序块请放在\`const root\`变量中，函数定义放在\`const funcs\`变量中

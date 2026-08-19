@@ -1,4 +1,4 @@
--- [ts]: AgentToolHandlers.ts
+-- [ts]: Handlers.ts
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__Number = ____lualib.__TS__Number -- 1
 local __TS__StringTrim = ____lualib.__TS__StringTrim -- 1
@@ -12,14 +12,14 @@ local __TS__ArrayFilter = ____lualib.__TS__ArrayFilter -- 1
 local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
 local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf -- 1
 local ____exports = {} -- 1
-local AgentConfig = require("Agent.AgentConfig") -- 2
-local ____AgentQuestionnaire = require("Agent.AgentQuestionnaire") -- 3
-local normalizeQuestionnaire = ____AgentQuestionnaire.normalizeQuestionnaire -- 3
-local AgentRuntimePolicy = require("Agent.AgentRuntimePolicy") -- 4
-local ____AgentToolGuards = require("Agent.AgentToolGuards") -- 5
-local getAgentFileEditPlanGuardDenial = ____AgentToolGuards.getAgentFileEditPlanGuardDenial -- 5
-local ____AgentToolValidation = require("Agent.AgentToolValidation") -- 6
-local getAgentFileEditInputs = ____AgentToolValidation.getAgentFileEditInputs -- 6
+local AgentConfig = require("Agent.Config") -- 2
+local ____Questionnaire = require("Agent.Questionnaire") -- 3
+local normalizeQuestionnaire = ____Questionnaire.normalizeQuestionnaire -- 3
+local AgentRuntimePolicy = require("Agent.Runtime.Policy") -- 4
+local ____Guards = require("Agent.Tool.Guards") -- 5
+local getAgentFileEditPlanGuardDenial = ____Guards.getAgentFileEditPlanGuardDenial -- 5
+local ____Validation = require("Agent.Tool.Validation") -- 6
+local getAgentFileEditInputs = ____Validation.getAgentFileEditInputs -- 6
 local AgentUtils = require("Agent.Utils") -- 7
 local Tools = require("Agent.Tools") -- 8
 local function readOneFile(context, input) -- 11

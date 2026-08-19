@@ -1,5 +1,5 @@
 // @preview-file off clear
-import type { AgentToolName } from 'Agent/AgentToolTypes';
+import type { AgentToolName } from 'Agent/Tool/Types';
 
 export interface AgentToolBatchItem {
 	tool: AgentToolName;

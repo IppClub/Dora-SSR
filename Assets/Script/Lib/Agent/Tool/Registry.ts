@@ -1,7 +1,7 @@
 // @preview-file off clear
 import { compileJsonSchema } from 'Agent/JsonSchema';
-import { AGENT_TOOL_HANDLERS } from 'Agent/AgentToolHandlers';
-import { AGENT_TOOL_VALIDATORS } from 'Agent/AgentToolValidation';
+import { AGENT_TOOL_HANDLERS } from 'Agent/Tool/Handlers';
+import { AGENT_TOOL_VALIDATORS } from 'Agent/Tool/Validation';
 import type { JsonSchema, JsonSchemaObject, JsonSchemaType } from 'Agent/JsonSchema';
 import type {
 	AgentDecisionMode,
@@ -12,7 +12,7 @@ import type {
 	AgentToolParameterDefinition,
 	AgentToolSchemaContext,
 	AgentWorkMode,
-} from 'Agent/AgentToolTypes';
+} from 'Agent/Tool/Types';
 
 export type {
 	AgentDecisionMode,
@@ -23,7 +23,7 @@ export type {
 	AgentToolParameterDefinition,
 	AgentToolSchemaContext,
 	AgentWorkMode,
-} from 'Agent/AgentToolTypes';
+} from 'Agent/Tool/Types';
 
 export type AgentFunctionToolSchema = {
 	type: "function";

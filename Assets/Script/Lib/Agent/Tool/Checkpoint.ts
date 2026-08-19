@@ -6,7 +6,7 @@ import {
 	TABLE_CHECKPOINT as TABLE_CP,
 	TABLE_CHECKPOINT_ENTRY as TABLE_ENTRY,
 	requireAgentStorage,
-} from 'Agent/AgentStorage';
+} from 'Agent/Storage/Database';
 import { Log } from 'Agent/Utils';
 import {
 	isValidWorkDir,
@@ -17,7 +17,7 @@ import {
 	getFileState,
 } from 'Agent/Tool/Workspace';
 import { sendWebIDEFileUpdate, sendWebIDERefreshTree } from 'Agent/Tool/WebIDESync';
-import { getLastInsertRowId, queryOne, toStr } from 'Agent/AgentStorageSupport';
+import { getLastInsertRowId, queryOne, toStr } from 'Agent/Storage/Support';
 
 export type AgentTaskStatus = "RUNNING" | "WAITING_USER" | "DONE" | "FAILED" | "STOPPED";
 export type AgentTaskWorkMode = "code" | "plan";

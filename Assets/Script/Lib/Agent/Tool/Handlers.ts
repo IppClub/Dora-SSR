@@ -1,12 +1,12 @@
 // @preview-file off clear
-import * as AgentConfig from 'Agent/AgentConfig';
-import { normalizeQuestionnaire } from 'Agent/AgentQuestionnaire';
-import * as AgentRuntimePolicy from 'Agent/AgentRuntimePolicy';
-import { getAgentFileEditPlanGuardDenial } from 'Agent/AgentToolGuards';
-import { getAgentFileEditInputs } from 'Agent/AgentToolValidation';
+import * as AgentConfig from 'Agent/Config';
+import { normalizeQuestionnaire } from 'Agent/Questionnaire';
+import * as AgentRuntimePolicy from 'Agent/Runtime/Policy';
+import { getAgentFileEditPlanGuardDenial } from 'Agent/Tool/Guards';
+import { getAgentFileEditInputs } from 'Agent/Tool/Validation';
 import * as AgentUtils from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
-import type { AgentToolHandler, AgentToolName } from 'Agent/AgentToolTypes';
+import type { AgentToolHandler, AgentToolName } from 'Agent/Tool/Types';
 
 function readOneFile(context: Parameters<AgentToolHandler>[0], input: Record<string, unknown>): Record<string, unknown> {
 	const startLine = Number(input.startLine ?? 1);

@@ -1,4 +1,4 @@
--- [ts]: AgentQuestionnaire.ts
+-- [ts]: Questionnaire.ts
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__ArrayIsArray = ____lualib.__TS__ArrayIsArray -- 1
 local __TS__StringCharCodeAt = ____lualib.__TS__StringCharCodeAt -- 1

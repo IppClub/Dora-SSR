@@ -1,4 +1,4 @@
--- [ts]: AgentHistoryProjection.ts
+-- [ts]: HistoryProjection.ts
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__ArrayIsArray = ____lualib.__TS__ArrayIsArray -- 1
 local __TS__StringSplit = ____lualib.__TS__StringSplit -- 1
@@ -10,7 +10,7 @@ local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf -- 1
 local __TS__ArrayPush = ____lualib.__TS__ArrayPush -- 1
 local ____exports = {} -- 1
 local AgentUtils = require("Agent.Utils") -- 1
-local AgentConfig = require("Agent.AgentConfig") -- 3
+local AgentConfig = require("Agent.Config") -- 3
 local function isRecord(value) -- 6
 	return type(value) == "table" -- 7
 end -- 6

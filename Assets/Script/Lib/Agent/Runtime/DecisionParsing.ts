@@ -1,8 +1,8 @@
 import * as AgentUtils from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
-import * as AgentToolRegistry from 'Agent/AgentToolRegistry';
-import type { AgentRole, AgentToolName } from 'Agent/AgentToolRegistry';
-import { getAgentDecisionPath } from 'Agent/AgentRuntimePolicy';
+import * as AgentToolRegistry from 'Agent/Tool/Registry';
+import type { AgentRole, AgentToolName } from 'Agent/Tool/Registry';
+import { getAgentDecisionPath } from 'Agent/Runtime/Policy';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object";

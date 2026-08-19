@@ -1,8 +1,8 @@
 // @preview-file off clear
-import * as AgentRuntimePolicy from 'Agent/AgentRuntimePolicy';
-import { getAgentFileEditInputs } from 'Agent/AgentToolValidation';
-import type { AgentFileEditInput } from 'Agent/AgentToolValidation';
-import type { AgentToolDefinition, AgentToolExecutionContext } from 'Agent/AgentToolTypes';
+import * as AgentRuntimePolicy from 'Agent/Runtime/Policy';
+import { getAgentFileEditInputs } from 'Agent/Tool/Validation';
+import type { AgentFileEditInput } from 'Agent/Tool/Validation';
+import type { AgentToolDefinition, AgentToolExecutionContext } from 'Agent/Tool/Types';
 
 export interface AgentToolGuardRequest {
 	definition: AgentToolDefinition;

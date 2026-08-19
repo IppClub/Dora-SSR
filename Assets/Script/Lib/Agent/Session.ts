@@ -1,10 +1,10 @@
 // @preview-file off clear
 import { App, Content, DB, Path, HttpServer, emit } from 'Dora';
 import type { SQL } from 'Dora';
-import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult, truncateAgentUserPrompt } from 'Agent/CodingAgent';
-import type { AgentCompletionReport, AgentTokenUsageMetric } from 'Agent/CodingAgent';
-import * as AgentToolRegistry from 'Agent/AgentToolRegistry';
-import * as AgentRuntimePolicy from 'Agent/AgentRuntimePolicy';
+import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult, truncateAgentUserPrompt } from 'Agent/DoraAgent';
+import type { AgentCompletionReport, AgentTokenUsageMetric } from 'Agent/DoraAgent';
+import * as AgentToolRegistry from 'Agent/Tool/Registry';
+import * as AgentRuntimePolicy from 'Agent/Runtime/Policy';
 import * as Tools from 'Agent/Tools';
 import {
 	TABLE_SESSION,
@@ -16,15 +16,15 @@ import {
 	cleanupTaskHeavyData,
 	getSessionOperableTaskIds,
 	requireAgentStorage,
-} from 'Agent/AgentStorage';
+} from 'Agent/Storage/Database';
 import { DualLayerStorage } from 'Agent/Memory';
 import { Log, getLLMConfig, normalizeAgentCompletionReport, safeJsonDecode, safeJsonEncode, sanitizeUTF8, validateAgentLLMConfig } from 'Agent/Utils';
 import type { LLMConfig, StopToken } from 'Agent/Utils';
-import type { AgentToolName } from 'Agent/AgentToolRegistry';
-import type { AgentWorkMode } from 'Agent/AgentToolRegistry';
-import { validateQuestionnaireAnswers } from 'Agent/AgentQuestionnaire';
-import type { AgentQuestionnaireAnswers, AgentQuestionnaireSchema } from 'Agent/AgentQuestionnaire';
-import { getLastInsertRowId, queryOne, queryRows, toStr } from 'Agent/AgentStorageSupport';
+import type { AgentToolName } from 'Agent/Tool/Registry';
+import type { AgentWorkMode } from 'Agent/Tool/Registry';
+import { validateQuestionnaireAnswers } from 'Agent/Questionnaire';
+import type { AgentQuestionnaireAnswers, AgentQuestionnaireSchema } from 'Agent/Questionnaire';
+import { getLastInsertRowId, queryOne, queryRows, toStr } from 'Agent/Storage/Support';
 
 export type AgentSessionStatus = "IDLE" | "RUNNING" | "WAITING_USER" | "DONE" | "FAILED" | "STOPPED";
 export type AgentSessionKind = "main" | "sub";
