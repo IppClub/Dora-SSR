@@ -1,6 +1,7 @@
 // @preview-file off clear
 import { Content, DB, Path } from 'Dora';
 import { Log } from 'Agent/Utils';
+import { toStr } from 'Agent/AgentStorageSupport';
 
 export const AGENT_SCHEMA_VERSION = 1;
 export const AGENT_SCHEMA = "agent";
@@ -200,11 +201,6 @@ const DROP_LEGACY_AGENT_SQL = [
 
 let storageError: string | undefined;
 let storageReady = false;
-
-function toStr(value: unknown): string {
-	if (value === false || value === undefined) return "";
-	return tostring(value);
-}
 
 function getSchemaVersion(): number | undefined {
 	const rows = DB.query("PRAGMA agent.user_version");

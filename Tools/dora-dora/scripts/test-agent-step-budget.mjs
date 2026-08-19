@@ -19,6 +19,7 @@ await build({
 });
 
 const {
+	getPlainTextCompletionBudgetState,
 	getRemainingAgentWorkSteps,
 	isFinalAgentDecisionTurn,
 } = await import(pathToFileURL(outputFile).href);
@@ -30,6 +31,14 @@ assert.equal(getRemainingAgentWorkSteps(0, 999), 998);
 assert.equal(getRemainingAgentWorkSteps(997, 999), 1);
 assert.equal(getRemainingAgentWorkSteps(998, 999), 0);
 assert.equal(getRemainingAgentWorkSteps(999, 999), 0);
+assert.deepEqual(getPlainTextCompletionBudgetState(997, 999), {
+	outcome: "completed",
+	budgetExhausted: false,
+});
+assert.deepEqual(getPlainTextCompletionBudgetState(998, 999), {
+	outcome: "partial",
+	budgetExhausted: true,
+});
 
 const sessionSource = await readFile(path.join(repoRoot, "Assets/Script/Lib/Agent/AgentSession.ts"), "utf8");
 assert.match(
@@ -51,6 +60,11 @@ assert.match(
 	codingAgentSource,
 	/decisions\.length\s*>\s*remainingWorkSteps/,
 	"normalized tool decisions must not cross the remaining task budget",
+);
+assert.match(
+	codingAgentSource,
+	/budgetExhausted:\s*completion\.budgetExhausted/,
+	"task_finished events must expose whether the step budget ended the task",
 );
 
 console.log("Agent step budget tests passed.");

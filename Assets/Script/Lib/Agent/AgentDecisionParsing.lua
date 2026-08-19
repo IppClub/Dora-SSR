@@ -267,100 +267,106 @@ end -- 219
 function ____exports.isDecisionPlainTextCompletion(result) -- 223
 	return result.success == true and result.kind == "plain_text_completion" -- 224
 end -- 223
-function ____exports.classifyToolCallingTurnWithoutCalls(finishReason, messageContent, reasoningContent) -- 227
+function ____exports.classifyToolCallingTurnWithoutCalls(role, finishReason, messageContent, reasoningContent) -- 227
 	if finishReason == "length" then -- 227
-		return { -- 233
-			success = true, -- 234
-			kind = "continue", -- 235
-			reason = "length", -- 236
-			content = messageContent, -- 237
-			reasoningContent = reasoningContent -- 238
-		} -- 238
-	end -- 238
-	local ____opt_1 = messageContent -- 238
-	local content = ____opt_1 and __TS__StringTrim(messageContent) or "" -- 241
-	if content == "" then -- 241
-		return nil -- 242
-	end -- 242
-	return {success = true, kind = "plain_text_completion", content = content, reasoningContent = reasoningContent} -- 243
+		return { -- 234
+			success = true, -- 235
+			kind = "continue", -- 236
+			reason = "length", -- 237
+			content = messageContent, -- 238
+			reasoningContent = reasoningContent -- 239
+		} -- 239
+	end -- 239
+	local ____opt_1 = messageContent -- 239
+	local content = ____opt_1 and __TS__StringTrim(messageContent) or "" -- 242
+	if content == "" then -- 242
+		return nil -- 243
+	end -- 243
+	if role == "sub" then -- 243
+		return {success = false, message = "sub agents must call finish with structured completion metadata; plain-text completion is not accepted", raw = content} -- 245
+	end -- 245
+	return {success = true, kind = "plain_text_completion", content = content, reasoningContent = reasoningContent} -- 251
 end -- 227
-function ____exports.parseDecisionObject(rawObj) -- 251
-	if type(rawObj.tool) ~= "string" then -- 251
-		return {success = false, message = "missing tool"} -- 252
-	end -- 252
-	local tool = rawObj.tool -- 253
-	if not AgentToolRegistry.isKnownToolName(tool) then -- 253
-		return {success = false, message = "unknown tool: " .. tool} -- 255
-	end -- 255
-	local reason = type(rawObj.reason) == "string" and __TS__StringTrim(rawObj.reason) or nil -- 257
-	if tool ~= "finish" and (not reason or reason == "") then -- 257
-		return {success = false, message = tool .. " requires top-level reason"} -- 261
-	end -- 261
-	local params = isRecord(rawObj.params) and rawObj.params or ({}) -- 263
-	return {success = true, tool = tool, params = params, reason = reason} -- 264
-end -- 251
-function ____exports.parseDecisionToolCall(functionName, rawObj) -- 272
-	if not AgentToolRegistry.isKnownToolName(functionName) then -- 272
-		return {success = false, message = "unknown tool: " .. functionName} -- 274
-	end -- 274
-	if rawObj == nil then -- 274
-		return {success = true, tool = functionName, params = {}} -- 277
-	end -- 277
-	if not isRecord(rawObj) then -- 277
-		return {success = false, message = ("invalid " .. functionName) .. " arguments"} -- 280
-	end -- 280
-	return {success = true, tool = functionName, params = rawObj} -- 282
-end -- 272
-function ____exports.parseToolCallArguments(functionName, argsText) -- 289
-	local trimmedArgs = __TS__StringTrim(argsText) -- 290
-	if trimmedArgs == "" then -- 290
-		return {} -- 292
-	end -- 292
-	local rawObj, err = AgentUtils.safeJsonDecode(trimmedArgs) -- 294
-	if err ~= nil or rawObj == nil then -- 294
-		return { -- 296
-			success = false, -- 297
-			message = (("invalid " .. functionName) .. " arguments: ") .. tostring(err), -- 298
-			raw = argsText -- 299
-		} -- 299
-	end -- 299
-	local encodedRaw = AgentUtils.safeJsonEncode(rawObj) -- 302
-	if encodedRaw == "null" or not isRecord(rawObj) or __TS__StringAccess(trimmedArgs, 0) == "[" then -- 302
-		return {success = false, message = ("invalid " .. functionName) .. " arguments", raw = argsText} -- 304
-	end -- 304
-	return rawObj -- 310
-end -- 289
-____exports.getDecisionPath = getAgentDecisionPath -- 313
-function ____exports.validateDecision(tool, params) -- 315
-	local definition = AgentToolRegistry.getToolDefinition(tool) -- 319
-	if definition == nil then -- 319
-		return {success = false, message = "unknown tool: " .. tool} -- 320
-	end -- 320
-	local validateInput = definition.validateInput -- 321
-	local validation = validateInput and validateInput(params) -- 322
-	if validation == nil then -- 322
-		return {success = true, params = params} -- 323
-	end -- 323
-	return validation.success and ({success = true, params = validation.value}) or validation -- 324
-end -- 315
-function ____exports.validateCompletionForRole(role, tool, params) -- 329
-	if role ~= "sub" or tool ~= "finish" then -- 329
-		return {success = true} -- 334
-	end -- 334
-	if params.outcome ~= "completed" and params.outcome ~= "partial" and params.outcome ~= "blocked" then -- 334
-		return {success = false, message = "sub-agent finish requires params.outcome"} -- 336
-	end -- 336
-	local requiredArrays = {"validation", "knownIssues", "assumptions", "learningCandidates"} -- 338
-	do -- 338
-		local i = 0 -- 339
-		while i < #requiredArrays do -- 339
-			local name = requiredArrays[i + 1] -- 340
-			if not isArray(params[name]) then -- 340
-				return {success = false, message = ("sub-agent finish requires params." .. name) .. " as an array"} -- 342
-			end -- 342
-			i = i + 1 -- 339
-		end -- 339
-	end -- 339
-	return {success = true} -- 345
-end -- 329
-return ____exports -- 329
+function ____exports.parseDecisionObject(rawObj) -- 259
+	if type(rawObj.tool) ~= "string" then -- 259
+		return {success = false, message = "missing tool"} -- 260
+	end -- 260
+	local tool = rawObj.tool -- 261
+	if not AgentToolRegistry.isKnownToolName(tool) then -- 261
+		return {success = false, message = "unknown tool: " .. tool} -- 263
+	end -- 263
+	local reason = type(rawObj.reason) == "string" and __TS__StringTrim(rawObj.reason) or nil -- 265
+	if tool ~= "finish" and (not reason or reason == "") then -- 265
+		return {success = false, message = tool .. " requires top-level reason"} -- 269
+	end -- 269
+	local params = isRecord(rawObj.params) and rawObj.params or ({}) -- 271
+	return {success = true, tool = tool, params = params, reason = reason} -- 272
+end -- 259
+function ____exports.parseDecisionToolCall(functionName, rawObj) -- 280
+	if not AgentToolRegistry.isKnownToolName(functionName) then -- 280
+		return {success = false, message = "unknown tool: " .. functionName} -- 282
+	end -- 282
+	if rawObj == nil then -- 282
+		return {success = true, tool = functionName, params = {}} -- 285
+	end -- 285
+	if not isRecord(rawObj) then -- 285
+		return {success = false, message = ("invalid " .. functionName) .. " arguments"} -- 288
+	end -- 288
+	return {success = true, tool = functionName, params = rawObj} -- 290
+end -- 280
+function ____exports.parseToolCallArguments(functionName, argsText) -- 297
+	local trimmedArgs = __TS__StringTrim(argsText) -- 298
+	if trimmedArgs == "" then -- 298
+		return {} -- 300
+	end -- 300
+	local rawObj, err = AgentUtils.safeJsonDecode(trimmedArgs) -- 302
+	if err ~= nil or rawObj == nil then -- 302
+		return { -- 304
+			success = false, -- 305
+			message = (("invalid " .. functionName) .. " arguments: ") .. tostring(err), -- 306
+			raw = argsText -- 307
+		} -- 307
+	end -- 307
+	local encodedRaw = AgentUtils.safeJsonEncode(rawObj) -- 310
+	if encodedRaw == "null" or not isRecord(rawObj) or __TS__StringAccess(trimmedArgs, 0) == "[" then -- 310
+		return {success = false, message = ("invalid " .. functionName) .. " arguments", raw = argsText} -- 312
+	end -- 312
+	return rawObj -- 318
+end -- 297
+____exports.getDecisionPath = getAgentDecisionPath -- 321
+function ____exports.validateDecision(tool, params) -- 323
+	local definition = AgentToolRegistry.getToolDefinition(tool) -- 327
+	if definition == nil then -- 327
+		return {success = false, message = "unknown tool: " .. tool} -- 328
+	end -- 328
+	local validateInput = definition.validateInput -- 329
+	local validation = validateInput and validateInput(params) -- 330
+	if validation == nil then -- 330
+		return {success = true, params = params} -- 331
+	end -- 331
+	return validation.success and ({success = true, params = validation.value}) or validation -- 332
+end -- 323
+function ____exports.validateCompletionForRole(role, tool, params) -- 337
+	if tool ~= "finish" then -- 337
+		return {success = true} -- 342
+	end -- 342
+	if role ~= "sub" then -- 342
+		return {success = false, message = "finish is reserved for sub agents"} -- 343
+	end -- 343
+	if params.outcome ~= "completed" and params.outcome ~= "partial" and params.outcome ~= "blocked" then -- 343
+		return {success = false, message = "sub-agent finish requires params.outcome"} -- 345
+	end -- 345
+	local requiredArrays = {"validation", "knownIssues", "assumptions", "learningCandidates"} -- 347
+	do -- 347
+		local i = 0 -- 348
+		while i < #requiredArrays do -- 348
+			local name = requiredArrays[i + 1] -- 349
+			if not isArray(params[name]) then -- 349
+				return {success = false, message = ("sub-agent finish requires params." .. name) .. " as an array"} -- 351
+			end -- 351
+			i = i + 1 -- 348
+		end -- 348
+	end -- 348
+	return {success = true} -- 354
+end -- 337
+return ____exports -- 337

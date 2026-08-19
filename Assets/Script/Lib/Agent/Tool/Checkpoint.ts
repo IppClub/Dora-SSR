@@ -17,6 +17,7 @@ import {
 	getFileState,
 } from 'Agent/Tool/Workspace';
 import { sendWebIDEFileUpdate, sendWebIDERefreshTree } from 'Agent/Tool/WebIDESync';
+import { getLastInsertRowId, queryOne, toStr } from 'Agent/AgentStorageSupport';
 
 export type AgentTaskStatus = "RUNNING" | "WAITING_USER" | "DONE" | "FAILED" | "STOPPED";
 export type AgentTaskWorkMode = "code" | "plan";
@@ -165,17 +166,6 @@ function toBool(v: unknown): boolean {
 	return v !== 0 && v !== false && v !== undefined;
 }
 
-function toStr(v: unknown): string {
-	if (v === false || v === undefined) return "";
-	return tostring(v);
-}
-
-function queryOne(sql: string, args?: (number | string | boolean)[]) {
-	const rows = args ? DB.query(sql, args) : DB.query(sql);
-	if (!rows || rows.length === 0) return undefined;
-	return rows[0];
-}
-
 function getTaskHeadSeq(taskId: number): number | undefined {
 	const row = queryOne(`SELECT head_seq FROM ${TABLE_TASK} WHERE id = ?`, [taskId]);
 	if (!row) return undefined;
@@ -186,11 +176,6 @@ function getTaskStatus(taskId: number): string | undefined {
 	const row = queryOne(`SELECT status FROM ${TABLE_TASK} WHERE id = ?`, [taskId]);
 	if (!row) return undefined;
 	return toStr(row[0]);
-}
-
-function getLastInsertRowId(): number {
-	const row = queryOne("SELECT last_insert_rowid()");
-	return row ? ((row[0] as number | undefined) || 0) : 0;
 }
 
 function insertCheckpoint(taskId: number, seq: number, summary: string, toolName: string, status: CheckpointStatus): number {

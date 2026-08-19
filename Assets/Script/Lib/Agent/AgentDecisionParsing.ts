@@ -225,10 +225,11 @@ export function isDecisionPlainTextCompletion(result: DecisionResult): result is
 }
 
 export function classifyToolCallingTurnWithoutCalls(
+	role: AgentRole,
 	finishReason: string,
 	messageContent?: string,
 	reasoningContent?: string,
-): DecisionLoopContinue | DecisionPlainTextCompletion | undefined {
+): DecisionLoopContinue | DecisionPlainTextCompletion | DecisionFailure | undefined {
 	if (finishReason === "length") {
 		return {
 			success: true,
@@ -240,6 +241,13 @@ export function classifyToolCallingTurnWithoutCalls(
 	}
 	const content = messageContent?.trim() ?? "";
 	if (content === "") return undefined;
+	if (role === "sub") {
+		return {
+			success: false,
+			message: "sub agents must call finish with structured completion metadata; plain-text completion is not accepted",
+			raw: content,
+		};
+	}
 	return {
 		success: true,
 		kind: "plain_text_completion",
@@ -331,7 +339,8 @@ export function validateCompletionForRole(
 	tool: AgentToolName,
 	params: Record<string, unknown>
 ): { success: true } | { success: false; message: string } {
-	if (role !== "sub" || tool !== "finish") return { success: true };
+	if (tool !== "finish") return { success: true };
+	if (role !== "sub") return { success: false, message: "finish is reserved for sub agents" };
 	if (params.outcome !== "completed" && params.outcome !== "partial" && params.outcome !== "blocked") {
 		return { success: false, message: "sub-agent finish requires params.outcome" };
 	}

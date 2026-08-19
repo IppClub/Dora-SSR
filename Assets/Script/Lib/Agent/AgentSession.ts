@@ -24,6 +24,7 @@ import type { AgentToolName } from 'Agent/AgentToolRegistry';
 import type { AgentWorkMode } from 'Agent/AgentToolRegistry';
 import { validateQuestionnaireAnswers } from 'Agent/AgentQuestionnaire';
 import type { AgentQuestionnaireAnswers, AgentQuestionnaireSchema } from 'Agent/AgentQuestionnaire';
+import { getLastInsertRowId, queryOne, queryRows, toStr } from 'Agent/AgentStorageSupport';
 
 export type AgentSessionStatus = "IDLE" | "RUNNING" | "WAITING_USER" | "DONE" | "FAILED" | "STOPPED";
 export type AgentSessionKind = "main" | "sub";
@@ -331,11 +332,6 @@ function getDefaultUseChineseResponse(): boolean {
 	return zh !== undefined;
 }
 
-function toStr(v: unknown): string {
-	if (v === false || v === undefined) return "";
-	return tostring(v);
-}
-
 function encodeJson(value: unknown): string {
 	const [text] = safeJsonEncode(value as object);
 	return text ?? "";
@@ -494,16 +490,6 @@ function getTaskChangeSetSummary(taskId: number): AgentChangeSetSummaryItem | un
 	return summary.success ? summary : undefined;
 }
 
-function queryRows(sql: string, args?: (string | number | boolean)[]) {
-	return args ? DB.query(sql, args) : DB.query(sql);
-}
-
-function queryOne(sql: string, args?: (string | number | boolean)[]) {
-	const rows = queryRows(sql, args);
-	if (!rows || rows.length === 0) return undefined;
-	return rows[0];
-}
-
 function summarizeHandoffResult(result: Record<string, unknown>): string {
 	const candidates = [result.output, result.message, result.state, result.phase];
 	for (let i = 0; i < candidates.length; i++) {
@@ -598,11 +584,6 @@ function reconcileCompletionWithHandoffEvidence(
 		validation,
 		knownIssues,
 	};
-}
-
-function getLastInsertRowId(): number {
-	const row = queryOne("SELECT last_insert_rowid()");
-	return row ? (row[0] as number | undefined) || 0 : 0;
 }
 
 function isValidProjectRoot(path: string): boolean {

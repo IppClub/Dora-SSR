@@ -8,3 +8,14 @@ export function getRemainingAgentWorkSteps(agentStepCount: number, maxSteps: num
 	const remaining = maxSteps - agentStepCount - 1;
 	return remaining > 0 ? remaining : 0;
 }
+
+export function getPlainTextCompletionBudgetState(agentStepCount: number, maxSteps: number): {
+	outcome: "completed" | "partial";
+	budgetExhausted: boolean;
+} {
+	const budgetExhausted = isFinalAgentDecisionTurn(agentStepCount, maxSteps);
+	return {
+		outcome: budgetExhausted ? "partial" : "completed",
+		budgetExhausted,
+	};
+}

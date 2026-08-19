@@ -285,12 +285,18 @@ local AGENT_TOOL_DEFINITION_SOURCES = { -- 115
 	}, -- 313
 	{ -- 316
 		name = "finish", -- 317
-		roles = {"main", "sub"}, -- 318
+		roles = {"sub"}, -- 318
 		workModes = {"code", "plan"}, -- 319
-		description = "End the task and provide a structured completion handoff.", -- 320
+		description = "Conclude a sub-agent task and provide a structured completion handoff to its parent.", -- 320
 		parameters = { -- 321
-			{name = "message", type = "string", required = true, description = "Final user-facing answer."}, -- 322
-			{name = "outcome", type = "string", enum = {"completed", "partial", "blocked"}, description = "Work outcome. Sub agents must provide this; defaults to completed for compatibility."}, -- 323
+			{name = "message", type = "string", required = true, description = "Concise handoff summary for the parent agent."}, -- 322
+			{ -- 323
+				name = "outcome", -- 323
+				type = "string", -- 323
+				required = true, -- 323
+				enum = {"completed", "partial", "blocked"}, -- 323
+				description = "Sub-agent work outcome." -- 323
+			}, -- 323
 			{name = "validation", type = "array", items = {type = "object", properties = {kind = {type = "string", enum = {"build", "runtime", "manual"}}, result = {type = "string", enum = {"passed", "failed", "not_run"}}, evidence = {type = "array", items = {type = "string"}}}, required = {"kind", "result"}}, description = "Validation performed. Sub agents must provide an array, using not_run when a relevant check was not run."}, -- 324
 			{name = "knownIssues", type = "array", items = {type = "string"}, description = "Known remaining issues or blockers. Sub agents must provide an array, which may be empty."}, -- 335
 			{name = "assumptions", type = "array", items = {type = "string"}, description = "Material assumptions made during the work. Sub agents must provide an array, which may be empty."}, -- 336

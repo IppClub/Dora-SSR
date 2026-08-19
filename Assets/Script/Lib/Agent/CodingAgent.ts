@@ -13,7 +13,7 @@ import * as AgentConfig from 'Agent/AgentConfig';
 import * as AgentRuntimePolicy from 'Agent/AgentRuntimePolicy';
 import { executeRegisteredAgentTool } from 'Agent/AgentToolExecutor';
 import type { AgentToolControl, AgentToolExecutionContext, AgentToolWorkflowState } from 'Agent/AgentToolTypes';
-import { getRemainingAgentWorkSteps, isFinalAgentDecisionTurn } from 'Agent/AgentStepBudget';
+import { getPlainTextCompletionBudgetState, getRemainingAgentWorkSteps, isFinalAgentDecisionTurn } from 'Agent/AgentStepBudget';
 import { areAgentToolParamsEqual, cloneAgentToolParams, coalesceCompatibleAgentToolCalls, partitionAgentToolCalls } from 'Agent/AgentToolBatch';
 import type {
 	AgentCompletionOutcome,
@@ -340,6 +340,7 @@ export type CodingAgentEvent =
 		message: string;
 		steps?: number;
 		completion?: AgentCompletionReport;
+		budgetExhausted?: boolean;
 	};
 
 function buildLLMOptions(llmConfig: LLMConfig, overrides?: Record<string, unknown>): Record<string, unknown> {
@@ -1577,7 +1578,9 @@ function validateDecisionForShared(
 	enforceFinalTurn = false
 ): { success: true } | { success: false; message: string } {
 	if (enforceFinalTurn && isFinalDecisionTurn(shared) && tool !== "finish") {
-		return { success: false, message: "the final task turn must call finish; use completed only when all acceptance criteria have evidence, otherwise use partial with unverified items and the next action" };
+		return shared.role === "sub"
+			? { success: false, message: "the final sub-agent turn must call finish with structured completion metadata" }
+			: { success: false, message: "the final main-agent turn must return a plain-text completion instead of calling another tool" };
 	}
 	if (!isToolAllowedForRole(shared, tool)) {
 		return { success: false, message: `${tool} is not allowed in ${shared.workMode} mode for role ${shared.role}` };
@@ -1649,9 +1652,14 @@ function isFinalDecisionTurn(shared: AgentShared): boolean {
 }
 
 function getFinalDecisionTurnPrompt(shared: AgentShared): string {
+	if (shared.role === "sub") {
+		return shared.useChineseResponse
+			? "当前已到达本子任务的最后处理轮次。不要再调用其它工具，请调用 finish 提交结构化交接；如实填写 outcome、validation、knownIssues、assumptions 和 learningCandidates，不要把部分或未验证工作描述为全部完成。"
+			: "This is the final processing turn for the sub task. Do not call another work tool; call finish with a structured handoff. Report outcome, validation, knownIssues, assumptions, and learningCandidates truthfully, and do not describe partial or unverified work as complete.";
+	}
 	return shared.useChineseResponse
-		? "当前已到达本 task 的最后处理轮次。不要再调用其它工具，请调用 finish 收束本轮。只有实施和验收条件确实全部完成时才将 outcome 设为 completed；否则设为 partial，且 message 必须明确分为：已有直接证据的已完成内容、尚未验证或未完成的项目、继续执行时的下一步。validation 对未执行的相关检查使用 not_run，knownIssues 记录剩余问题。不要把部分结果描述为全部完成。"
-		: "This is the final processing turn for the current task. Do not call another work tool; call finish to close the turn. Set outcome to completed only when implementation and every acceptance criterion are actually complete. Otherwise use partial, and clearly separate work completed with direct evidence, unverified or unfinished items, and the next action for continuation in message. Use not_run for relevant validation that was not performed and record remaining issues in knownIssues. Do not describe partial work as fully completed.";
+		? "当前已到达本 task 的最后处理轮次。不要再调用工具，请直接用 plain text 向用户给出最终答复；如实区分已完成且有证据的内容、未验证或未完成的项目以及建议的下一步，不要把部分结果描述为全部完成。"
+		: "This is the final processing turn for the task. Do not call another tool; return the final user-facing answer as plain text. Clearly distinguish completed work with evidence, unverified or unfinished items, and the recommended next action. Do not describe partial work as fully complete.";
 }
 
 function buildDecisionMessages(
@@ -1948,8 +1956,12 @@ class MainDecisionAgent extends Node<AgentShared> {
 			: undefined;
 		AgentUtils.Log("Info", `[CodingAgent] tool-calling response finish_reason=${finishReason !== "" ? finishReason : "unknown"} tool_calls=${toolCalls ? toolCalls.length : 0} content_len=${messageContent ? messageContent.length : 0} reasoning_len=${reasoningContent ? reasoningContent.length : 0}`);
 		if (!toolCalls || toolCalls.length === 0) {
-			const terminalDecision = classifyToolCallingTurnWithoutCalls(finishReason, messageContent, reasoningContent);
+			const terminalDecision = classifyToolCallingTurnWithoutCalls(shared.role, finishReason, messageContent, reasoningContent);
 			if (terminalDecision) {
+				if (!terminalDecision.success) {
+					clearPreExecutedResults(shared);
+					return terminalDecision;
+				}
 				if (isDecisionPlainTextCompletion(terminalDecision)) {
 				AgentUtils.Log("Info", `[CodingAgent] ${shared.role} agent completed with plain text`);
 				}
@@ -1971,7 +1983,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			if (!fn || typeof fn.name !== "string" || fn.name === "") {
 				if (finishReason === "length") {
 					clearPreExecutedResults(shared);
-					return classifyToolCallingTurnWithoutCalls(finishReason, messageContent, reasoningContent)!;
+					return classifyToolCallingTurnWithoutCalls(shared.role, finishReason, messageContent, reasoningContent)!;
 				}
 				AgentUtils.Log("Error", `[CodingAgent] missing function name for tool call index=${i + 1}`);
 				clearPreExecutedResults(shared);
@@ -2024,7 +2036,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				if (finishReason === "length") {
 					AgentUtils.Log("Info", `[CodingAgent] incomplete tool call at finish_reason=length index=${i + 1}; continuing next loop`);
 					clearPreExecutedResults(shared);
-					return classifyToolCallingTurnWithoutCalls(finishReason, messageContent, reasoningContent)!;
+					return classifyToolCallingTurnWithoutCalls(shared.role, finishReason, messageContent, reasoningContent)!;
 				}
 				AgentUtils.Log("Error", `[CodingAgent] invalid tool call index=${i + 1}: ${decision.message}`);
 				clearPreExecutedResults(shared);
@@ -2126,7 +2138,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 		lastError?: string,
 		attempt = 1,
 		lastRaw?: string
-	): Promise<DecisionSuccess | DecisionFailure> {
+	): Promise<DecisionResult | DecisionFailure> {
 		const messages: Message[] = buildDecisionMessages(
 			shared,
 			lastError,
@@ -2144,6 +2156,20 @@ class MainDecisionAgent extends Node<AgentShared> {
 				message: llmRes.message,
 				raw: llmRes.text ?? "",
 			};
+		}
+		if (llmRes.text.indexOf("<tool_call") < 0) {
+			const terminalDecision = classifyToolCallingTurnWithoutCalls(
+				shared.role,
+				"stop",
+				llmRes.text,
+				llmRes.reasoningContent
+			);
+			if (terminalDecision) {
+				if (terminalDecision.success && isDecisionPlainTextCompletion(terminalDecision)) {
+					AgentUtils.Log("Info", `[CodingAgent] ${shared.role} agent completed with plain text in XML mode`);
+				}
+				return terminalDecision;
+			}
 		}
 		const decision = tryParseAndValidateDecision(llmRes.text, shared);
 		if (decision.success) {
@@ -2276,7 +2302,11 @@ class MainDecisionAgent extends Node<AgentShared> {
 		}
 		if (isDecisionPlainTextCompletion(result)) {
 			shared.response = result.content;
-			shared.completion = AgentUtils.normalizeAgentCompletionReport({ outcome: "completed" });
+			const budgetState = getPlainTextCompletionBudgetState(shared.agentStepCount, shared.maxSteps);
+			shared.completion = AgentUtils.normalizeAgentCompletionReport({
+				...budgetState,
+				knownIssues: budgetState.budgetExhausted ? [getMaxStepsReachedReason(shared)] : [],
+			});
 			shared.done = true;
 			appendConversationMessage(shared, {
 				role: "assistant",
@@ -2790,6 +2820,7 @@ function emitAgentTaskFinishEvent(shared: AgentShared, success: boolean, message
 		message: result.message,
 		steps: result.steps,
 		completion: result.completion,
+		budgetExhausted: completion.budgetExhausted,
 	});
 	return result;
 }

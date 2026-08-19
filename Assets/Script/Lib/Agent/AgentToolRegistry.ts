@@ -315,12 +315,12 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 	},
 	{
 		name: "finish",
-		roles: ["main", "sub"],
+		roles: ["sub"],
 		workModes: ["code", "plan"],
-		description: "End the task and provide a structured completion handoff.",
+		description: "Conclude a sub-agent task and provide a structured completion handoff to its parent.",
 		parameters: [
-			{ name: "message", type: "string", required: true, description: "Final user-facing answer." },
-			{ name: "outcome", type: "string", enum: ["completed", "partial", "blocked"], description: "Work outcome. Sub agents must provide this; defaults to completed for compatibility." },
+			{ name: "message", type: "string", required: true, description: "Concise handoff summary for the parent agent." },
+			{ name: "outcome", type: "string", required: true, enum: ["completed", "partial", "blocked"], description: "Sub-agent work outcome." },
 			{
 				name: "validation", type: "array", items: {
 					type: "object",

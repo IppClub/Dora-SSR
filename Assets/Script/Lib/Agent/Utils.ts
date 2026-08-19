@@ -89,6 +89,7 @@ export interface AgentLearningCandidateItem {
 
 export interface AgentCompletionReport {
 	outcome: AgentCompletionOutcome;
+	budgetExhausted: boolean;
 	validation: AgentValidationReportItem[];
 	knownIssues: string[];
 	assumptions: string[];
@@ -154,6 +155,7 @@ export function normalizeAgentCompletionReport(value: unknown): AgentCompletionR
 	}
 	return {
 		outcome,
+		budgetExhausted: row.budgetExhausted === true,
 		validation,
 		knownIssues: normalizeCompletionTextList(row.knownIssues),
 		assumptions: normalizeCompletionTextList(row.assumptions),
