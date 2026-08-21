@@ -39,6 +39,7 @@ interface AgentStepListProps {
 type ParamItem = {
 	label: string;
 	value?: string;
+	newLine?: boolean;
 };
 
 type SubAgentListItem = {
@@ -92,9 +93,9 @@ function formatLineRange(
 function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: Record<string, unknown>) => string): ParamItem[] {
 	const params = step.params ?? {};
 	const items: ParamItem[] = [];
-	const push = (label: string, value?: string) => {
+	const push = (label: string, value?: string, newLine = false) => {
 		if (value === undefined || value === "") return;
-		items.push({ label, value });
+		items.push({ label, value, newLine });
 	};
 	const pushFlag = (label: string, enabled: boolean) => {
 		if (!enabled) return;
@@ -102,16 +103,21 @@ function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: 
 	};
 	switch (step.tool) {
 		case "read_file": {
-			const reads = Array.isArray(params.reads)
-				? (params.reads as unknown[]).filter((item): item is Record<string, unknown> => item !== null && typeof item === "object")
-				: [];
-			for (const read of reads) {
+			const reads: Record<string, unknown>[] = [];
+			if (typeof params.path === "string") reads.push(params);
+			if (Array.isArray(params.reads)) {
+				reads.push(...(params.reads as unknown[]).filter(
+					(item): item is Record<string, unknown> => item !== null && typeof item === "object"
+				));
+			}
+			for (let i = 0; i < reads.length; i++) {
+				const read = reads[i];
 				const path = typeof read.path === "string" ? read.path : "";
 				const startLine = typeof read.startLine === "number" ? read.startLine : 1;
 				const endLine = typeof read.endLine === "number"
 					? read.endLine
 					: (startLine < 0 ? -1 : 300);
-				push(t("agent.paramLabels.file"), path);
+				push(t("agent.paramLabels.file"), path, i > 0);
 				push(t("agent.paramLabels.lines"), formatLineRange(startLine, endLine, t));
 			}
 			return items;
@@ -172,11 +178,14 @@ function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: 
 			return items;
 		}
 		case "build": {
-			const paths = Array.isArray(params.paths)
-				? (params.paths as unknown[]).filter((path): path is string => typeof path === "string")
-				: [];
-			for (const path of paths) {
-				push(t("agent.paramLabels.buildTarget"), path === "." ? t("agent.workspace") : path);
+			const paths: string[] = [];
+			if (typeof params.path === "string") paths.push(params.path);
+			if (Array.isArray(params.paths)) {
+				paths.push(...(params.paths as unknown[]).filter((path): path is string => typeof path === "string"));
+			}
+			for (let i = 0; i < paths.length; i++) {
+				const path = paths[i];
+				push(t("agent.paramLabels.buildTarget"), path === "." ? t("agent.workspace") : path, i > 0);
 			}
 			return items;
 		}
@@ -528,6 +537,9 @@ function AgentStepListBody(props: AgentStepListProps) {
 					&& !isSystemStep
 					&& step.result?.success === false
 					&& step.result?.interrupted !== true;
+				const toolFailureMessage = hasCompletedToolOutcome && typeof step.result?.message === "string"
+					? step.result.message.trim()
+					: "";
 				return (
 					<Box key={step.id} data-agent-step-id={step.id} sx={{
 						borderLeft: `2px solid ${isSystemStep ? "rgba(255,196,110,0.32)" : Color.Line}`,
@@ -720,12 +732,17 @@ function AgentStepListBody(props: AgentStepListProps) {
 								overflowWrap: "anywhere",
 								wordBreak: "break-word",
 							}}>
-								{paramItems.map((item, index) => (
-									<React.Fragment key={`${item.label}:${item.value ?? ""}:${index}`}>
-										{index > 0 ? " · " : null}
+							{paramItems.map((item, index) => (
+								<React.Fragment key={`${item.label}:${item.value ?? ""}:${index}`}>
+									{index > 0 ? (item.newLine ? <br /> : " · ") : null}
 										{item.value !== undefined ? `${item.label}: ${item.value}` : item.label}
 									</React.Fragment>
 								))}
+							</Typography>
+						) : null}
+						{toolFailureMessage !== "" ? (
+							<Typography variant="body2" sx={{ color: "rgb(255,170,170)", whiteSpace: "pre-wrap", lineHeight: 1.6, mt: 0.75 }}>
+								{toolFailureMessage}
 							</Typography>
 						) : null}
 						{questionnaireSummary ? (

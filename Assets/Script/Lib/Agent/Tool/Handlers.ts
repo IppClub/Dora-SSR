@@ -42,24 +42,27 @@ function readOneFile(context: Parameters<AgentToolHandler>[0], input: Record<str
 }
 
 const readFile: AgentToolHandler = async (context, input) => {
-	const reads = input.reads as Record<string, unknown>[];
-	const results: Record<string, unknown>[] = [];
-	let succeeded = 0;
-	for (let i = 0; i < reads.length; i++) {
-		const item = reads[i];
-		const output = readOneFile(context, item);
-		if (output.success === true) succeeded++;
-		results.push({ index: i, path: item.path, ...output });
+	if (Array.isArray(input.reads)) {
+		const reads = input.reads as Record<string, unknown>[];
+		const results: Record<string, unknown>[] = [];
+		let succeeded = 0;
+		for (let i = 0; i < reads.length; i++) {
+			const item = reads[i];
+			const output = readOneFile(context, item);
+			if (output.success === true) succeeded++;
+			results.push({ index: i, path: item.path, ...output });
+		}
+		return { output: {
+			success: succeeded === results.length,
+			partial: succeeded > 0 && succeeded < results.length,
+			mode: "batch",
+			readCount: results.length,
+			succeededReadCount: succeeded,
+			failedReadCount: results.length - succeeded,
+			results,
+		} };
 	}
-	return { output: {
-		success: succeeded === results.length,
-		partial: succeeded > 0 && succeeded < results.length,
-		mode: "batch",
-		readCount: results.length,
-		succeededReadCount: succeeded,
-		failedReadCount: results.length - succeeded,
-		results,
-	} };
+	return { output: readOneFile(context, input) };
 };
 
 const grepFiles: AgentToolHandler = async (context, input) => {

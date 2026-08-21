@@ -7,12 +7,6 @@ export interface AgentToolBatchItem {
 	params: Record<string, unknown>;
 }
 
-export interface AgentToolDecisionItem {
-	tool: AgentToolName;
-	toolCallId?: string;
-	params: Record<string, unknown>;
-}
-
 export interface AgentToolBatch<T extends AgentToolBatchItem> {
 	isConcurrencySafe: boolean;
 	actions: T[];
@@ -53,71 +47,6 @@ export function areAgentToolParamsEqual(left: unknown, right: unknown): boolean 
 		return leftCount === rightCount;
 	}
 	return false;
-}
-
-function getReadBatchItems(params: Record<string, unknown>): Record<string, unknown>[] | undefined {
-	if (!Array.isArray(params.reads)) return undefined;
-	return params.reads.map(item => cloneAgentToolParams(item as Record<string, unknown>));
-}
-
-function getBuildBatchPaths(params: Record<string, unknown>): string[] | undefined {
-	return Array.isArray(params.paths) ? (params.paths as string[]).slice() : undefined;
-}
-
-/**
- * Normalize consecutive compatible calls from one model response into the
- * existing batch form. The first call id is retained because history records
- * the normalized assistant message, while the raw provider response remains
- * available in the per-step debug output.
- */
-export function coalesceCompatibleAgentToolCalls<T extends AgentToolDecisionItem>(actions: T[]): T[] {
-	const output: T[] = [];
-	let index = 0;
-	while (index < actions.length) {
-		const first = actions[index];
-		if (first.tool !== "read_file" && first.tool !== "build") {
-			output.push(first);
-			index++;
-			continue;
-		}
-		let end = index;
-		while (end + 1 < actions.length && actions[end + 1].tool === first.tool) end++;
-		if (end === index) {
-			output.push(first);
-			index++;
-			continue;
-		}
-		if (first.tool === "read_file") {
-			const reads: Record<string, unknown>[] = [];
-			let compatible = true;
-			for (let i = index; i <= end; i++) {
-				const items = getReadBatchItems(actions[i].params);
-				if (items === undefined) { compatible = false; break; }
-				reads.push(...items);
-			}
-			if (compatible) {
-				output.push({ ...first, params: { reads } });
-				index = end + 1;
-				continue;
-			}
-		} else {
-			const paths: string[] = [];
-			let compatible = true;
-			for (let i = index; i <= end; i++) {
-				const items = getBuildBatchPaths(actions[i].params);
-				if (items === undefined) { compatible = false; break; }
-				paths.push(...items);
-			}
-			if (compatible) {
-				output.push({ ...first, params: { paths } });
-				index = end + 1;
-				continue;
-			}
-		}
-		for (let i = index; i <= end; i++) output.push(actions[i]);
-		index = end + 1;
-	}
-	return output;
 }
 
 export function partitionAgentToolCalls<T extends AgentToolBatchItem>(

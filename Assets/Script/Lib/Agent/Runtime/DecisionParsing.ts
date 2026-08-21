@@ -185,6 +185,9 @@ export type DecisionSuccess = {
 	tool: AgentToolName;
 	params: Record<string, unknown>;
 	toolCallId?: string;
+	providerToolName?: string;
+	providerArguments?: string;
+	preExecutionFailure?: { code: string; message: string };
 	reason?: string;
 	reasoningContent?: string;
 	truncatedEditRecovery?: Tools.TruncatedEditRecoveryNotice;

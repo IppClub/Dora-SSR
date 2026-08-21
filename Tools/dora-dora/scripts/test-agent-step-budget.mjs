@@ -59,7 +59,27 @@ assert.match(
 assert.match(
 	codingAgentSource,
 	/decisions\.length\s*>\s*remainingWorkSteps/,
-	"normalized tool decisions must not cross the remaining task budget",
+	"oversized tool batches must be detected for diagnostics",
+);
+assert.match(
+	codingAgentSource,
+	/executing complete tool batch beyond remaining step budget/,
+	"every tool call already returned by the model must be retained at the budget boundary",
+);
+assert.doesNotMatch(
+	codingAgentSource,
+	/tool call batch exceeds the remaining task step budget/,
+	"an oversized tool batch must not reject and retry the current decision turn",
+);
+assert.match(
+	codingAgentSource,
+	/preExecutionFailure:\s*\{ code, message \}/,
+	"invalid tool calls must become per-call failure results",
+);
+assert.match(
+	codingAgentSource,
+	/executeToolActionSafely/,
+	"unexpected execution failures must be isolated to their individual tool calls",
 );
 assert.match(
 	codingAgentSource,

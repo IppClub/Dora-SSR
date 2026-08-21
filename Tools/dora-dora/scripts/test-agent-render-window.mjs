@@ -45,6 +45,13 @@ for (const sourceFile of ["AgentStepList.tsx", "AgentChangeSetSummary.tsx"]) {
 	assert.match(source, /React\.lazy\(\(\) => import\(['"]\.\/AgentFileDiff['"]\)\)/);
 	assert.match(source, /<React\.Suspense/);
 }
+const stepListSource = await readFile(path.resolve("src/AgentStepList.tsx"), "utf8");
+assert.match(stepListSource, /typeof params\.path === "string"\) reads\.push\(params\)/, "single and mixed read_file params should include the top-level path");
+assert.match(stepListSource, /Array\.isArray\(params\.reads\)/, "batch read_file params should remain visible");
+assert.match(stepListSource, /Array\.isArray\(params\.paths\)/, "ordered build targets should remain visible");
+assert.match(stepListSource, /typeof params\.path === "string"\) paths\.push\(params\.path\)/, "single and mixed build params should include the top-level path");
+assert.match(stepListSource, /item\.newLine \? <br \/>/, "multi-target params should render one target per line");
+assert.match(stepListSource, /toolFailureMessage/, "completed tool failures should show their recorded message");
 const appSource = await readFile(path.resolve("src/App.tsx"), "utf8");
 assert.match(appSource, /if \(language && \(active \|\| file\.editor !== undefined\)\)/);
 

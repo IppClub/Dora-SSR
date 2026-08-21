@@ -132,10 +132,8 @@ function summarizeEditTextParamForHistory(value: unknown, key: "old_str" | "new_
 	};
 }
 
-export function sanitizeReadResultForHistory(tool: AgentToolName, result: Record<string, unknown>): Record<string, unknown> {
-	if (tool !== "read_file" || result.success !== true || typeof result.content !== "string") {
-		return result;
-	}
+function sanitizeOneReadResultForHistory(result: Record<string, unknown>): Record<string, unknown> {
+	if (result.success !== true || typeof result.content !== "string") return result;
 	const clone: Record<string, unknown> = {};
 	for (const key in result) {
 		clone[key] = result[key];
@@ -160,6 +158,17 @@ export function sanitizeReadResultForHistory(tool: AgentToolName, result: Record
 		if (limited.nextStartLine !== undefined) clone.historyNextStartLine = limited.nextStartLine;
 		if (limited.partialLine !== undefined) clone.historyPartialLine = limited.partialLine;
 	}
+	return clone;
+}
+
+export function sanitizeReadResultForHistory(tool: AgentToolName, result: Record<string, unknown>): Record<string, unknown> {
+	if (tool !== "read_file") return result;
+	if (!Array.isArray(result.results)) return sanitizeOneReadResultForHistory(result);
+	const clone: Record<string, unknown> = {};
+	for (const key in result) clone[key] = result[key];
+	clone.results = result.results.map(item => isRecord(item) && !isArray(item)
+		? sanitizeOneReadResultForHistory(item)
+		: item);
 	return clone;
 }
 
@@ -344,7 +353,7 @@ function projectEditResultForLLM(result: Record<string, unknown>): Record<string
 	return projected;
 }
 
-function projectBuildResultForLLM(result: Record<string, unknown>): Record<string, unknown> {
+function projectOneBuildResultForLLM(result: Record<string, unknown>): Record<string, unknown> {
 	if (!isArray(result.messages)) return result;
 	const projected: Record<string, unknown> = {};
 	for (const key in result) {
@@ -356,6 +365,18 @@ function projectBuildResultForLLM(result: Record<string, unknown>): Record<strin
 	if (result.messages.length > shown) {
 		projected.llmHistoryTruncatedMessages = result.messages.length - shown;
 	}
+	return projected;
+}
+
+function projectBuildResultForLLM(result: Record<string, unknown>): Record<string, unknown> {
+	if (!isArray(result.results)) return projectOneBuildResultForLLM(result);
+	const projected: Record<string, unknown> = {};
+	for (const key in result) {
+		if (key !== "results") projected[key] = result[key];
+	}
+	projected.results = result.results.map(item => isRecord(item) && !isArray(item)
+		? projectOneBuildResultForLLM(item)
+		: item);
 	return projected;
 }
 

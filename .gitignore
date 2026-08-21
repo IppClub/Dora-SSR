@@ -107,3 +107,6 @@ Source/3rdParty/Wa/Source/.build/
 !Source/3rdParty/Wa/Source/waroot/src/debug/**
 .omo
 .agent
+/.claude
+/.agents
+Docs/kanban

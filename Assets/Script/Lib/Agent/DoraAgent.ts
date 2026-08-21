@@ -14,7 +14,7 @@ import * as AgentRuntimePolicy from 'Agent/Runtime/Policy';
 import { executeRegisteredAgentTool } from 'Agent/Tool/Executor';
 import type { AgentToolControl, AgentToolExecutionContext, AgentToolWorkflowState } from 'Agent/Tool/Types';
 import { getPlainTextCompletionBudgetState, getRemainingAgentWorkSteps, isFinalAgentDecisionTurn } from 'Agent/Runtime/StepBudget';
-import { areAgentToolParamsEqual, cloneAgentToolParams, coalesceCompatibleAgentToolCalls, partitionAgentToolCalls } from 'Agent/Tool/Batch';
+import { areAgentToolParamsEqual, cloneAgentToolParams, partitionAgentToolCalls } from 'Agent/Tool/Batch';
 import type {
 	AgentCompletionOutcome,
 	AgentValidationKind,
@@ -371,6 +371,9 @@ export interface AgentActionRecord {
 	step: number;
 	toolCallId: string;
 	tool: AgentToolName;
+	providerToolName?: string;
+	providerArguments?: string;
+	preExecutionFailure?: { code: string; message: string };
 	reason: string;
 	reasoningContent?: string;
 	params: Record<string, unknown>;
@@ -939,7 +942,7 @@ async function executeToolActionWithPreExecution(shared: AgentShared, action: Ag
 	// A build or a bounded read can still be part of resuming directly from the
 	// compression checkpoint. Any other real action ends the narrow-resume phase,
 	// but only after its result has received the relevant recovery guidance.
-	if (action.tool !== "build" && action.tool !== "read_file") {
+	if (action.preExecutionFailure === undefined && action.tool !== "build" && action.tool !== "read_file") {
 		shared.workflow.resumeNarrowReadMode = false;
 	}
 	return result;
@@ -1405,7 +1408,7 @@ function appendToolResultMessage(shared: AgentShared, action: AgentActionRecord)
 	appendConversationMessage(shared, {
 		role: "tool",
 		tool_call_id: action.toolCallId,
-		name: action.tool,
+		name: action.providerToolName ?? action.tool,
 		content: action.result ? toJson(action.result, false) : "",
 	});
 }
@@ -1424,8 +1427,8 @@ function appendAssistantToolCallsMessage(
 			id: action.toolCallId,
 			type: "function",
 			function: {
-				name: action.tool,
-				arguments: toJson(action.params, false),
+				name: action.providerToolName ?? action.tool,
+				arguments: action.providerArguments ?? toJson(action.params, false),
 			},
 		})),
 	});
@@ -1504,47 +1507,52 @@ function parseAndValidateToolCallDecision(
 	toolCallId?: string,
 	reason?: string,
 	reasoningContent?: string
-): DecisionSuccess | DecisionFailure {
+): DecisionSuccess {
+	const rejected = (
+		message: string,
+		code: string,
+		params: Record<string, unknown> = {},
+	): DecisionSuccess => ({
+		success: true,
+		tool: (AgentToolRegistry.isKnownToolName(functionName) ? functionName : (functionName !== "" ? functionName : "invalid_tool_call")) as AgentToolName,
+		params,
+		toolCallId: ensureToolCallId(toolCallId),
+		providerToolName: functionName !== "" ? functionName : "invalid_tool_call",
+		providerArguments: argsText,
+		preExecutionFailure: { code, message },
+		reason,
+		reasoningContent,
+	});
 	const rawArgs = parseToolCallArguments(functionName, argsText);
 	if (isRecord(rawArgs) && rawArgs.success === false) {
-		return rawArgs as DecisionFailure;
+		return rejected((rawArgs as DecisionFailure).message, "INVALID_TOOL_ARGUMENTS");
 	}
 	const decision = parseDecisionToolCall(functionName, rawArgs);
 	if (!decision.success) {
-		return {
-			success: false,
-			message: decision.message,
-			raw: argsText,
-		};
+		return rejected(decision.message, AgentToolRegistry.isKnownToolName(functionName) ? "INVALID_TOOL_INPUT" : "UNKNOWN_TOOL", isRecord(rawArgs) ? rawArgs : {});
 	}
+	decision.toolCallId = ensureToolCallId(toolCallId);
+	decision.providerToolName = functionName;
+	decision.providerArguments = argsText;
+	decision.reason = reason;
+	decision.reasoningContent = reasoningContent;
 	const completionValidation = validateCompletionForRole(shared.role, decision.tool, decision.params);
 	if (!completionValidation.success) {
-		return {
-			success: false,
-			message: completionValidation.message,
-			raw: argsText,
-		};
+		decision.preExecutionFailure = { code: "INVALID_TOOL_INPUT", message: completionValidation.message };
+		return decision;
 	}
 	const validation = validateDecision(decision.tool, decision.params);
 	if (!validation.success) {
-		return {
-			success: false,
-			message: validation.message,
-			raw: argsText,
-		};
+		decision.preExecutionFailure = { code: "INVALID_TOOL_INPUT", message: validation.message };
+		return decision;
 	}
 	const sharedValidation = validateDecisionForShared(shared, decision.tool, validation.params, true);
 	if (!sharedValidation.success) {
-		return {
-			success: false,
-			message: sharedValidation.message,
-			raw: argsText,
-		};
+		decision.params = validation.params;
+		decision.preExecutionFailure = { code: "TOOL_NOT_ALLOWED", message: sharedValidation.message };
+		return decision;
 	}
 	decision.params = validation.params;
-	decision.toolCallId = ensureToolCallId(toolCallId);
-	decision.reason = reason;
-	decision.reasoningContent = reasoningContent;
 	return decision;
 }
 
@@ -1981,17 +1989,20 @@ class MainDecisionAgent extends Node<AgentShared> {
 			const toolCall = toolCalls[i];
 			const fn = toolCall != undefined && toolCall.function;
 			if (!fn || typeof fn.name !== "string" || fn.name === "") {
-				if (finishReason === "length") {
-					clearPreExecutedResults(shared);
-					return classifyToolCallingTurnWithoutCalls(shared.role, finishReason, messageContent, reasoningContent)!;
-				}
 				AgentUtils.Log("Error", `[CodingAgent] missing function name for tool call index=${i + 1}`);
-				clearPreExecutedResults(shared);
-				return {
-					success: false,
+				decisions.push(parseAndValidateToolCallDecision(
+					shared,
+					"invalid_tool_call",
+					"",
+					toolCall != undefined && typeof toolCall.id === "string" ? toolCall.id : undefined,
+					messageContent,
+					reasoningContent,
+				));
+				decisions[decisions.length - 1].preExecutionFailure = {
+					code: "INVALID_TOOL_CALL",
 					message: `missing function name for tool call ${i + 1}`,
-					raw: messageContent,
 				};
+				continue;
 			}
 			const functionName = fn.name;
 			const argsText = typeof fn.arguments === "string" ? fn.arguments : "";
@@ -2007,7 +2018,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				messageContent,
 				reasoningContent
 			);
-			if (!decision.success) {
+			if (decision.preExecutionFailure !== undefined) {
 				const recovery = finishReason === "length" && functionName === "edit_file"
 					? Tools.planTruncatedEditRecovery([toolCall])
 					: undefined;
@@ -2020,8 +2031,8 @@ class MainDecisionAgent extends Node<AgentShared> {
 						toolCallId,
 						messageContent,
 						reasoningContent
-					) : { success: false as const, message: "failed to encode recovered edit_file arguments" };
-					if (recoveredDecision.success) {
+					) : undefined;
+					if (recoveredDecision !== undefined && recoveredDecision.preExecutionFailure === undefined) {
 						recoveredDecision.truncatedEditRecovery = {
 							targets: recovery.targets,
 							operationCount: recovery.operationCount,
@@ -2033,44 +2044,23 @@ class MainDecisionAgent extends Node<AgentShared> {
 						continue;
 					}
 				}
-				if (finishReason === "length") {
-					AgentUtils.Log("Info", `[CodingAgent] incomplete tool call at finish_reason=length index=${i + 1}; continuing next loop`);
-					clearPreExecutedResults(shared);
-					return classifyToolCallingTurnWithoutCalls(shared.role, finishReason, messageContent, reasoningContent)!;
-				}
-				AgentUtils.Log("Error", `[CodingAgent] invalid tool call index=${i + 1}: ${decision.message}`);
-				clearPreExecutedResults(shared);
-				return decision;
+				AgentUtils.Log("Error", `[CodingAgent] rejected tool call index=${i + 1}: ${decision.preExecutionFailure.message}`);
 			}
 			decisions.push(decision);
 		}
-		const rawDecisionCount = decisions.length;
-		decisions = coalesceCompatibleAgentToolCalls(decisions);
-		if (decisions.length < rawDecisionCount) {
-			AgentUtils.Log("Info", `[CodingAgent] coalesced compatible tool calls raw=${rawDecisionCount} normalized=${decisions.length} tools=${decisions.map(decision => decision.tool).join(",")}`);
-		}
 		if (decisions.length > remainingWorkSteps) {
-			AgentUtils.Log("Warn", `[CodingAgent] tool batch exceeds remaining step budget raw_calls=${rawDecisionCount} normalized_calls=${decisions.length} remaining=${remainingWorkSteps}`);
-			const committed = this.commitPreExecutedDecision(shared);
-			if (committed) return committed;
-			clearPreExecutedResults(shared);
-			return {
-				success: false,
-				message: `tool call batch exceeds the remaining task step budget (${remainingWorkSteps})`,
-				raw: messageContent,
-			};
+			AgentUtils.Log("Warn", `[CodingAgent] executing complete tool batch beyond remaining step budget calls=${decisions.length} remaining=${remainingWorkSteps}`);
 		}
-		if (decisions.length === 1) {
+		if (decisions.length === 1 && decisions[0].preExecutionFailure === undefined) {
 			AgentUtils.Log("Info", `[CodingAgent] tool-calling selected tool=${decisions[0].tool}`);
 			return decisions[0];
 		}
 		for (let i = 0; i < decisions.length; i++) {
-			if (decisions[i].tool === "finish" || decisions[i].tool === "ask_user") {
-				clearPreExecutedResults(shared);
-				return {
-					success: false,
+			if ((decisions[i].tool === "finish" || decisions[i].tool === "ask_user")
+				&& decisions[i].preExecutionFailure === undefined) {
+				decisions[i].preExecutionFailure = {
+					code: "INVALID_TOOL_COMBINATION",
 					message: `${decisions[i].tool} cannot be mixed with other tool calls`,
-					raw: messageContent,
 				};
 			}
 		}
@@ -2339,6 +2329,9 @@ class MainDecisionAgent extends Node<AgentShared> {
 					step,
 					toolCallId,
 					tool: decision.tool,
+					providerToolName: decision.providerToolName,
+					providerArguments: decision.providerArguments,
+					preExecutionFailure: decision.preExecutionFailure,
 					reason: actionReason ?? "",
 					reasoningContent: actionReasoningContent,
 					params: decision.params,
@@ -2409,6 +2402,9 @@ class MainDecisionAgent extends Node<AgentShared> {
 			step,
 			toolCallId,
 			tool: result.tool,
+			providerToolName: result.providerToolName,
+			providerArguments: result.providerArguments,
+			preExecutionFailure: result.preExecutionFailure,
 			reason: result.reason ?? "",
 			reasoningContent: result.reasoningContent,
 			params: result.params,
@@ -2493,6 +2489,13 @@ function createAgentToolExecutionContext(
 }
 
 async function executeToolAction(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
+	if (action.preExecutionFailure !== undefined) {
+		return {
+			success: false,
+			code: action.preExecutionFailure.code,
+			message: action.preExecutionFailure.message,
+		};
+	}
 	if (shared.workflow.resumeRequiredTool !== undefined && action.tool === shared.workflow.resumeRequiredTool) {
 		shared.workflow.resumeRequiredTool = undefined;
 		shared.resumeCheckpointPending = false;
@@ -2505,6 +2508,16 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 	});
 	action.control = execution.control;
 	return execution.output;
+}
+
+async function executeToolActionSafely(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
+	try {
+		return await executeToolActionWithPreExecution(shared, action);
+	} catch (err) {
+		const message = tostring(err);
+		AgentUtils.Log("Error", `[CodingAgent] tool action failed unexpectedly tool=${action.providerToolName ?? action.tool} id=${action.toolCallId}: ${message}`);
+		return { success: false, code: "TOOL_EXECUTION_FAILED", message };
+	}
 }
 
 function sanitizeToolActionResultForHistory(action: AgentActionRecord, result: Record<string, unknown>): Record<string, unknown> {
@@ -2701,7 +2714,7 @@ class BatchToolAction extends Node<AgentShared> {
 						action.result = { success: false, code: "TOOL_CANCELLED", message: getCancelledReason(shared) };
 						return action;
 					}
-					const result = await executeToolActionWithPreExecution(shared, action);
+					const result = await executeToolActionSafely(shared, action);
 					action.params = sanitizeActionParamsForHistory(action.tool, action.params);
 					action.result = sanitizeToolActionResultForHistory(action, result);
 					return action;
@@ -2720,7 +2733,7 @@ class BatchToolAction extends Node<AgentShared> {
 				for (let i = 0; i < batch.actions.length; i++) {
 					const action = batch.actions[i];
 					emitAgentStartEvent(shared, action);
-					const result = await executeToolActionWithPreExecution(shared, action);
+					const result = await executeToolActionSafely(shared, action);
 					action.params = sanitizeActionParamsForHistory(action.tool, action.params);
 					action.result = sanitizeToolActionResultForHistory(action, result);
 					appendToolResultMessage(shared, action);

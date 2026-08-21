@@ -36,6 +36,7 @@ export type AgentFunctionToolSchema = {
 
 type AgentToolDefinitionSource = Omit<AgentToolDefinition, "inputSchema" | "outputSchema"> & {
 	parameters?: AgentToolParameterDefinition[];
+	inputSchema?: (context: AgentToolSchemaContext) => JsonSchemaObject;
 };
 
 const DEFAULT_SCHEMA_CONTEXT: AgentToolSchemaContext = {
@@ -112,29 +113,55 @@ function createFunctionToolSchemaFromDefinition(tool: AgentToolDefinition, conte
 	};
 }
 
+const READ_FILE_PARAMETERS: AgentToolParameterDefinition[] = [
+	{ name: "path", type: "string", description: "Single-read form: workspace-relative file path, the virtual @dora_full_logs.txt engine log, or an exact @dora-doc/... path returned by search_dora_doc." },
+	{ name: "startLine", type: "number", description: "Single-read starting line number. Positive values are 1-based; negative values count from the end. Defaults to 1. 0 is invalid." },
+	{ name: "endLine", type: "number", description: "Single-read ending line number. Positive values are 1-based; negative values count from the end. If omitted, defaults to 300 for positive startLine, or -1 for negative startLine. 0 is invalid." },
+	{
+		name: "reads", type: "array", minItems: 1,
+		description: "Batch-read form: a non-empty ordered list of independent file ranges. There is no artificial item limit.",
+		items: {
+			type: "object",
+			properties: {
+				path: { type: "string", description: "Workspace or virtual path to read." },
+				startLine: { type: "number", description: "Starting line; defaults to 1." },
+				endLine: { type: "number", description: "Ending line; default follows startLine." },
+			},
+			required: ["path"],
+			additionalProperties: false,
+		},
+	},
+];
+
+const BUILD_PARAMETERS: AgentToolParameterDefinition[] = [
+	{ name: "paths", type: "array", minItems: 1, items: { type: "string" }, description: "Preferred form: a non-empty ordered list of files or directories to build sequentially. Use '.' for the project root. There is no artificial item limit." },
+	{ name: "path", type: "string", description: "Single-target compatibility form for existing sessions. New calls should prefer paths." },
+];
+
 const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 	{
 		name: "read_file",
 		roles: ["main", "sub"],
 		workModes: ["code", "plan"],
-		description: "Read one or more independent file ranges in one call.",
-		parameters: [
-			{
-				name: "reads", type: "array", required: true, minItems: 1,
-				description: "Non-empty independent file ranges. Use one item for a single read. No artificial item limit; keep ranges narrow enough to remain useful in context.",
-				items: {
-					type: "object",
-					properties: {
-						path: { type: "string", description: "Workspace or virtual path to read." },
-						startLine: { type: "number", description: "Starting line; defaults to 1." },
-						endLine: { type: "number", description: "Ending line; default follows startLine." },
-					},
-					required: ["path"], additionalProperties: false,
-				},
-			},
-		],
+		description: "Read one file range or an ordered batch of independent file ranges from the workspace, built-in documents, or the virtual engine log.",
+		parameters: READ_FILE_PARAMETERS,
+		inputSchema: context => {
+			const generated = createInputSchemaFromParameters(READ_FILE_PARAMETERS, context);
+			const properties = generated.properties as Record<string, JsonSchema>;
+			const schema: JsonSchemaObject = {
+				type: "object",
+				properties,
+				additionalProperties: false,
+				anyOf: [
+					{ required: ["path"] },
+					{ required: ["reads"] },
+				],
+			};
+			return schema;
+		},
 		rules: [
-			"Always use reads, including for a single range. When several known files or ranges are needed before the next decision, put them in the same array.",
+			"Use path/startLine/endLine for one range, reads for a batch, or combine both forms. When combined, the top-level path range is read first, followed by reads in array order.",
+			"When several independent files or ranges are already known, either use reads or return multiple read_file tool calls in the same response.",
 			"Batch ranges are independent and ordered. A failed read remains in results and does not discard successful reads.",
 			"startLine defaults to 1. If endLine is omitted, it defaults to 300 when startLine is positive, or -1 when startLine is negative.",
 			"Read @dora_full_logs.txt to inspect the current Dora engine log snapshot; it is a read-only virtual path, not a workspace file.",
@@ -257,13 +284,26 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 		roles: ["main", "sub"],
 		workModes: ["code"],
 		description: "Do compiling and static checks for ts/tsx, teal, lua, yue, yarn.",
-		parameters: [
-			{ name: "paths", type: "array", required: true, minItems: 1, items: { type: "string" }, description: "Independent files or directories to build sequentially in one call. Use one item for a single target and '.' for the project root." },
-		],
+		parameters: BUILD_PARAMETERS,
+		inputSchema: context => {
+			const generated = createInputSchemaFromParameters(BUILD_PARAMETERS, context);
+			const properties = generated.properties as Record<string, JsonSchema>;
+			const schema: JsonSchemaObject = {
+				type: "object",
+				properties,
+				additionalProperties: false,
+				anyOf: [
+					{ required: ["paths"] },
+					{ required: ["path"] },
+				],
+			};
+			return schema;
+		},
 		rules: [
-			"Always use paths, including for a single target. Use paths: ['.'] to build the project root.",
-			"Prefer one directory target when edited files share a root. Otherwise put all targets in one paths array.",
-			"Batch targets build sequentially and best-effort. A failed target does not discard earlier successful build results.",
+			"Prefer paths for all new calls, including one target. Use paths: ['.'] to build the project root.",
+			"The single path form remains accepted for existing sessions and may be combined with paths. When combined, path builds first, followed by paths in array order.",
+			"Prefer one common directory target when edited files share a root; otherwise include the required targets in order.",
+			"Targets build sequentially and best-effort. A failed target does not discard earlier successful results.",
 			"Read the result and then decide whether another action is needed.",
 		],
 	},
@@ -455,7 +495,7 @@ function formatSchemaErrors(errors: { schemaPath: string; message: string }[]): 
 function createToolDefinition(source: AgentToolDefinitionSource): AgentToolDefinition {
 	const definition: AgentToolDefinition = {
 		...source,
-		inputSchema: context => createInputSchemaFromParameters(source.parameters, context),
+		inputSchema: source.inputSchema ?? (context => createInputSchemaFromParameters(source.parameters, context)),
 		outputSchema: DEFAULT_TOOL_OUTPUT_SCHEMA,
 		handler: AGENT_TOOL_HANDLERS[source.name],
 		validateInput: AGENT_TOOL_VALIDATORS[source.name],

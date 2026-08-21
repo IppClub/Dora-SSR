@@ -59,6 +59,21 @@ function parseReadLine(value: unknown, fallback: number, name: "startLine" | "en
 	return { success: true, value: num };
 }
 
+function normalizeReadRange(value: unknown, index?: number): AgentToolSemanticValidationResult {
+	const suffix = index === undefined ? "" : ` at index ${index}`;
+	if (typeof value !== "object" || value === undefined || Array.isArray(value)) {
+		return { success: false, message: `read_file requires an object${suffix}` };
+	}
+	const input = value as Record<string, unknown>;
+	const path = typeof input.path === "string" ? input.path.trim() : "";
+	if (path === "") return { success: false, message: `read_file requires path${suffix}` };
+	const start = parseReadLine(input.startLine, 1, "startLine");
+	if (start.success === false) return { success: false, message: `${start.message}${suffix}` };
+	const end = parseReadLine(input.endLine, start.value < 0 ? -1 : AgentConfig.AGENT_LIMITS.readFileDefaultLimit, "endLine");
+	if (end.success === false) return { success: false, message: `${end.message}${suffix}` };
+	return { success: true, value: { path, startLine: start.value, endLine: end.value } };
+}
+
 function getFinishMessage(input: Record<string, unknown>): string {
 	const candidates = [input.message, input.response, input.summary];
 	for (let i = 0; i < candidates.length; i++) {
@@ -90,19 +105,39 @@ export function validateAgentToolInput(tool: AgentToolName, input: Record<string
 			: normalized;
 	}
 	if (tool === "read_file") {
-		if (!Array.isArray(value.reads) || value.reads.length < 1) return { success: false, message: "read_file requires a non-empty reads array" };
-		const source = value.reads as Record<string, unknown>[];
-		const reads: Record<string, unknown>[] = [];
-		for (let i = 0; i < source.length; i++) {
-			const item = source[i];
-			const path = typeof item.path === "string" ? item.path.trim() : "";
-			if (path === "") return { success: false, message: `read_file requires path at index ${i}` };
-			const start = parseReadLine(item.startLine, 1, "startLine");
-			if (start.success === false) return { success: false, message: `${start.message} at index ${i}` };
-			const end = parseReadLine(item.endLine, start.value < 0 ? -1 : AgentConfig.AGENT_LIMITS.readFileDefaultLimit, "endLine");
-			if (end.success === false) return { success: false, message: `${end.message} at index ${i}` };
-			reads.push({ path, startLine: start.value, endLine: end.value });
+		const hasReads = value.reads !== undefined;
+		const hasPath = value.path !== undefined;
+		if (!hasReads && !hasPath) {
+			return { success: false, message: "read_file requires path or reads" };
 		}
+		if (!hasPath && (value.startLine !== undefined || value.endLine !== undefined)) {
+			return { success: false, message: "read_file startLine/endLine require a top-level path" };
+		}
+		const reads: Record<string, unknown>[] = [];
+		if (hasPath) {
+			const normalized = normalizeReadRange(value);
+			if (normalized.success === false) return normalized;
+			reads.push(normalized.value);
+		}
+		if (hasReads) {
+			if (!Array.isArray(value.reads) || value.reads.length < 1) {
+				return { success: false, message: "read_file reads must be a non-empty array" };
+			}
+			for (let i = 0; i < value.reads.length; i++) {
+				const normalized = normalizeReadRange(value.reads[i], i);
+				if (normalized.success === false) return normalized;
+				reads.push(normalized.value);
+			}
+		}
+		if (!hasReads) {
+			value.path = reads[0].path;
+			value.startLine = reads[0].startLine;
+			value.endLine = reads[0].endLine;
+			return { success: true, value };
+		}
+		value.path = undefined;
+		value.startLine = undefined;
+		value.endLine = undefined;
 		value.reads = reads;
 		return { success: true, value };
 	}
@@ -157,9 +192,24 @@ export function validateAgentToolInput(tool: AgentToolName, input: Record<string
 		return { success: true, value };
 	}
 	if (tool === "build") {
-		if (!Array.isArray(value.paths)) return { success: false, message: "build requires a non-empty paths array" };
-		const paths = (value.paths as unknown[]).map(item => typeof item === "string" ? item.trim() : "");
-		if (paths.length < 1 || paths.some(path => path === "")) return { success: false, message: "build paths must contain non-empty paths" };
+		const hasPaths = value.paths !== undefined;
+		const hasPath = value.path !== undefined;
+		if (!hasPaths && !hasPath) return { success: false, message: "build requires paths or path" };
+		const paths: string[] = [];
+		if (hasPath) {
+			const path = typeof value.path === "string" ? value.path.trim() : "";
+			if (path === "") return { success: false, message: "build path must be non-empty" };
+			paths.push(path);
+		}
+		if (hasPaths) {
+			if (!Array.isArray(value.paths)) return { success: false, message: "build paths must be a non-empty array" };
+			const arrayPaths = (value.paths as unknown[]).map(item => typeof item === "string" ? item.trim() : "");
+			if (arrayPaths.length < 1 || arrayPaths.some(path => path === "")) {
+				return { success: false, message: "build paths must contain non-empty paths" };
+			}
+			for (let i = 0; i < arrayPaths.length; i++) paths.push(arrayPaths[i]);
+		}
+		value.path = undefined;
 		value.paths = paths;
 		return { success: true, value };
 	}
