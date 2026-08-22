@@ -129,6 +129,7 @@ local record ImGui
 		"AutoResizeY"
 		"AlwaysAutoResize"
 		"FrameStyle"
+		"NavFlattened"
 	end
 	enum SetCond
 		""

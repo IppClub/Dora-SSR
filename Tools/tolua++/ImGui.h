@@ -21,8 +21,10 @@ namespace ImGui
 	bool Binding::Begin @ Begin(CString name, bool* p_open);
 	bool Binding::Begin @ Begin(CString name, bool* p_open, String windowsFlags[tolua_len]);
 	bool Binding::BeginChild @ BeginChild(CString str_id, Vec2 size = Vec2::zero);
+	bool Binding::BeginChild @ BeginChild(CString str_id, Vec2 size, String childFlags[tolua_len]);
 	bool Binding::BeginChild @ BeginChild(CString str_id, Vec2 size, String childFlags[tolua_len], String windowFlags[tolua_len_1]);
 	bool Binding::BeginChild @ BeginChild(ImGuiID id, Vec2 size = Vec2::zero);
+	bool Binding::BeginChild @ BeginChild(ImGuiID id, Vec2 size, String childFlags[tolua_len]);
 	bool Binding::BeginChild @ BeginChild(ImGuiID id, Vec2 size, String childFlags[tolua_len], String windowFlags[tolua_len_1]);
 	void Binding::SetNextWindowPos @ SetNextWindowPos(Vec2 pos, String setCond = nullptr, Vec2 pivot = Vec2::zero);
 	void Binding::SetNextWindowPosCenter @ SetNextWindowPosCenter(String setCond = nullptr, Vec2 pivot = Vec2::zero);

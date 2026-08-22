@@ -144,7 +144,8 @@ export const enum ChildFlag {
 	AutoResizeX = "AutoResizeX",
 	AutoResizeY = "AutoResizeY",
 	AlwaysAutoResize = "AlwaysAutoResize",
-	FrameStyle = "FrameStyle"
+	FrameStyle = "FrameStyle",
+	NavFlattened = "NavFlattened"
 }
 
 export const enum SetCond {

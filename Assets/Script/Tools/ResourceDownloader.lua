@@ -490,6 +490,7 @@ function ResourceDownloader.prototype.drawResourceCard(self, resource, itemWidth
 	ImGui.BeginChild( -- 409
 		"card-" .. resource.id, -- 409
 		Vec2(itemWidth, cardHeight), -- 409
+		{"NavFlattened"}, -- 409
 		function() -- 409
 			ImGui.TextColored( -- 410
 				themeColor, -- 410

@@ -145,6 +145,7 @@ static ImGuiChildFlags_ getChildFlag(String style) {
 		case "AutoResizeY"_hash: return ImGuiChildFlags_AutoResizeY;
 		case "AlwaysAutoResize"_hash: return ImGuiChildFlags_AlwaysAutoResize;
 		case "FrameStyle"_hash: return ImGuiChildFlags_FrameStyle;
+		case "NavFlattened"_hash: return ImGuiChildFlags_NavFlattened;
 		case ""_hash: return ImGuiChildFlags_None;
 		default:
 			Issue("ImGui child flag named \"{}\" is invalid.", style.toString());

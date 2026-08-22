@@ -123,6 +123,7 @@ export macro ChildFlag = $Enum(
 	"AutoResizeY"
 	"AlwaysAutoResize"
 	"FrameStyle"
+	"NavFlattened"
 )
 export macro SetCond = $Enum(
 	"Always"

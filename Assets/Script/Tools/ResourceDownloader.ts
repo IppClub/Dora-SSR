@@ -1,6 +1,6 @@
 // @preview-file on clear
 import { App, Buffer, Cache, Color, Content, Director, Node, Path, Texture2D, thread, Vec2 } from "Dora";
-import { SetCond, TabBarFlag, WindowFlag } from "ImGui";
+import { ChildFlag, SetCond, TabBarFlag, WindowFlag } from "ImGui";
 import * as ImGui from "ImGui";
 import {
 	filterResources,
@@ -406,7 +406,7 @@ class ResourceDownloader {
 		const version = this.selectedVersion(resource);
 		const source = version.sources[0];
 		const installed = isResourceInstalled(resource.id);
-		ImGui.BeginChild(`card-${resource.id}`, Vec2(itemWidth, cardHeight), () => {
+		ImGui.BeginChild(`card-${resource.id}`, Vec2(itemWidth, cardHeight), [ChildFlag.NavFlattened], () => {
 			ImGui.TextColored(themeColor, displayText(title, 46));
 			if (isMinigame(resource)) {
 				ImGui.SameLine();
