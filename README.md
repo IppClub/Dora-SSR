@@ -14,188 +14,175 @@
 </tr>
 </table>
 
-
 #### English | [中文](README.zh-CN.md)
 
-[![IppClub](https://img.shields.io/badge/IppClub-Certified-11A7E2?logo=data%3Aimage%2Fsvg%2Bxml%3Bcharset%3Dutf-8%3Bbase64%2CPHN2ZyB2aWV3Qm94PSIwIDAgMjg4IDI3NCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWw6c3BhY2U9InByZXNlcnZlIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjIiPjxwYXRoIGQ9Im0xNDYgMzEgNzIgNTVWMzFoLTcyWiIgc3R5bGU9ImZpbGw6I2Y2YTgwNjtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Im0xNjkgODYtMjMtNTUgNzIgNTVoLTQ5WiIgc3R5bGU9ImZpbGw6I2VmN2EwMDtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Ik0yNiAzMXY1NWg4MEw4MSAzMUgyNloiIHN0eWxlPSJmaWxsOiMwN2ExN2M7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJNMTA4IDkydjExMmwzMS00OC0zMS02NFoiIHN0eWxlPSJmaWxsOiNkZTAwNWQ7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJNMCAyNzR2LTUyaDk3bC0zMyA1MkgwWiIgc3R5bGU9ImZpbGw6I2Y2YTgwNjtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Im03NyAyNzQgNjctMTA3djEwN0g3N1oiIHN0eWxlPSJmaWxsOiNkZjI0MzM7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJNMTUyIDI3NGgyOWwtMjktNTN2NTNaIiBzdHlsZT0iZmlsbDojMzM0ODVkO2ZpbGwtcnVsZTpub256ZXJvIi8%2BPHBhdGggZD0iTTE5MSAyNzRoNzl2LTUySDE2N2wyNCA1MloiIHN0eWxlPSJmaWxsOiM0ZTI3NWE7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJNMjg4IDEwMGgtMTdWODVoLTEzdjE1aC0xN3YxM2gxN3YxNmgxM3YtMTZoMTd2LTEzWiIgc3R5bGU9ImZpbGw6I2M1MTgxZjtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Im0yNiA4NiA1Ni01NUgyNnY1NVoiIHN0eWxlPSJmaWxsOiMzMzQ4NWQ7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJNOTMgMzFoNDJsLTMwIDI5LTEyLTI5WiIgc3R5bGU9ImZpbGw6IzExYTdlMjtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Ik0xNTggMTc2Vjg2bC0zNCAxNCAzNCA3NloiIHN0eWxlPSJmaWxsOiMwMDU5OGU7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJtMTA2IDU5IDQxLTEtMTItMjgtMjkgMjlaIiBzdHlsZT0iZmlsbDojMDU3Y2I3O2ZpbGwtcnVsZTpub256ZXJvIi8%2BPHBhdGggZD0ibTEyNCAxMDAgMjItNDEgMTIgMjctMzQgMTRaIiBzdHlsZT0iZmlsbDojNGUyNzVhO2ZpbGwtcnVsZTpub256ZXJvIi8%2BPHBhdGggZD0ibTEwNiA2MCA0MS0xLTIzIDQxLTE4LTQwWiIgc3R5bGU9ImZpbGw6IzdiMTI4NTtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Im0xMDggMjA0IDMxLTQ4aC0zMXY0OFoiIHN0eWxlPSJmaWxsOiNiYTAwNzc7ZmlsbC1ydWxlOm5vbnplcm8iLz48cGF0aCBkPSJtNjUgMjc0IDMzLTUySDBsNjUgNTJaIiBzdHlsZT0iZmlsbDojZWY3YTAwO2ZpbGwtcnVsZTpub256ZXJvIi8%2BPHBhdGggZD0iTTc3IDI3NGg2N2wtNDAtNDUtMjcgNDVaIiBzdHlsZT0iZmlsbDojYTgxZTI0O2ZpbGwtcnVsZTpub256ZXJvIi8%2BPHBhdGggZD0iTTE2NyAyMjJoNThsLTM0IDUyLTI0LTUyWiIgc3R5bGU9ImZpbGw6IzExYTdlMjtmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Im0yNzAgMjc0LTQ0LTUyLTM1IDUyaDc5WiIgc3R5bGU9ImZpbGw6IzA1N2NiNztmaWxsLXJ1bGU6bm9uemVybyIvPjxwYXRoIGQ9Ik0yNzUgNTVoLTU3VjBoMjV2MzFoMzJ2MjRaIiBzdHlsZT0iZmlsbDojZGUwMDVkO2ZpbGwtcnVsZTpub256ZXJvIi8%2BPHBhdGggZD0iTTE4NSAzMWg1N3Y1NWgtMjVWNTVoLTMyVjMxWiIgc3R5bGU9ImZpbGw6I2M1MTgxZjtmaWxsLXJ1bGU6bm9uemVybyIvPjwvc3ZnPg%3D%3D&labelColor=fff)](https://ippclub.org) [![Static Badge](https://img.shields.io/badge/Open_Atom_Foundation-Incubation-blue)](https://openatom.org/project/RJHufNnSKtDZ) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/IppClub/Dora-SSR) [![QQ Group](https://img.shields.io/badge/QQ_Group-512620381-blue?style=flat&logo=qq&logoColor=white)](https://qm.qq.com/q/VnzYhvCDgy) [![Discord Badge](https://img.shields.io/discord/1105021755426353152?color=5865F2&label=Discord&logo=discord&logoColor=white&style=flat-square)](https://discord.gg/ZfNBSKXnf9)
+[![Release](https://img.shields.io/github/v/release/IppClub/Dora-SSR?color=blue)](https://github.com/IppClub/Dora-SSR/releases/latest)
+[![Discord](https://img.shields.io/discord/1105021755426353152?color=5865F2&label=Discord&logo=discord&logoColor=white&style=flat)](https://discord.gg/ZfNBSKXnf9)
+[![QQ Group](https://img.shields.io/badge/QQ_Group-512620381-blue?style=flat&logo=qq&logoColor=white)](https://qm.qq.com/q/VnzYhvCDgy)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/IppClub/Dora-SSR)
+[![Open Atom Foundation](https://img.shields.io/badge/Open_Atom_Foundation-Incubation-blue)](https://openatom.org/project/RJHufNnSKtDZ)
 
-Dora SSR is a cross-platform game engine for building games directly on the device that runs them. Keep the engine on a phone, handheld, desktop, or another target device; then use its built-in Web IDE from a browser to code, inspect, run, and iterate against the real runtime.
-
-<br/>
-
-## Start Here
-
-- [Quick Start](https://dora-ssr.net/docs/tutorial/quick-start)
-- [Feature Examples](https://github.com/IppClub/Dora-Example/tree/master/Example)
-- [Complete Demo Projects](https://github.com/IppClub/Dora-Demo)
-- [Latest Releases](https://github.com/ippclub/Dora-SSR/releases/latest)
-
-## Tech Overview
-
-|Area|Contents|
-|-|-|
-|Development Flow|Target-device engine + `Web IDE` + `Coding Agent` for a connected edit, run, inspect, and iterate loop|
-|Language Ecosystem|`Lua` / `TypeScript` / `TSX` / `Teal` / `YueScript` / `Wa` / `Rust` / `C#`|
-|Runtime|2D and 3D scenes, physics, animation, audio, video, UI, and asynchronous asset workflows|
-|Target Platforms|`Android` / `Windows` / `Linux` / `macOS` / `iOS` / [HarmonyOS](https://github.com/IppClub/ohos_dora_ssr)|
+Dora SSR is a cross-platform game engine that lives on the device your game runs on — a phone, a handheld, or a desktop. Its built-in Web IDE opens in any browser on the same network, so you code, inspect, and iterate against the real runtime instead of a detached preview, with an AI coding agent built in. The engine runs natively on `Android`, `iOS`, `Windows`, `macOS`, `Linux`, and [HarmonyOS](https://github.com/IppClub/ohos_dora_ssr).
 
 <div align='center'>
 
-![Android](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml/badge.svg)
-![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg)
-![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg)
-![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg)
-![iOS](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml/badge.svg)
+<img src='Docs/static/img/article/detail.svg' alt='How Dora SSR works: the engine runs on the target device and the Web IDE connects from a browser over the local network' width='880px'/>
 
 </div>
 
-<div align='center'><img src='Docs/static/img/art/casual/3.png' alt='Playground' width='500px'/></div>
+<div align='center'>
 
-## Key Features
+<img src='Docs/static/img/showcase/web-ide-retina.jpg' alt='Dora SSR Web IDE editing a TypeScript project, connected to the engine running on the device'/>
 
-### Developer Experience
+<sub>The Web IDE in a browser, editing code that runs on the device in real time.</sub>
 
-- Web IDE: a browser-based workspace with project files, typed code editing, completion, diagnostics, and jump-to-definition—connected directly to the running engine.
-- Coding Agent: the built-in [coding agent](Assets/Script/Lib/Agent/CodingAgent.ts) brings LLM-assisted development into the engine with project skills, persistent memory, API lookup, safe edits, build checks, runtime validation, and sub-agent delegation.
-- Live device workflow: keep the engine on the target phone, handheld, or desktop and iterate in a browser against the real runtime, not a detached preview.
+</div>
 
-<div align='center'><img src='Docs/static/img/article/dora-on-android.jpg' alt='dora on android' width='500px'/></div>
+## Why Dora SSR
 
-### Languages and Extensibility
+- **Develop against the real runtime.** The engine runs on the target device and the browser is just a window onto it. What you edit is what runs — no emulator, no export step, no detached preview.
+- **A complete toolchain in the browser.** The Web IDE covers project files, typed editing, completion, diagnostics, and jump-to-definition, plus built-in editors for animation, particles, physics, story scripts, Git, and more.
+- **An AI agent built into the engine.** The [Coding Agent](Assets/Script/Lib/Agent) brings LLM-assisted development into the Web IDE — with project skills, persistent memory, API lookup, safe edits, build checks, runtime validation, and sub-agent delegation.
 
-- Lua: upgraded bindings that can inherit from and extend low-level C++ objects.
-- TypeScript / TSX: typed game code and declarative scenes or responsive UI with supported ReactJS-style APIs, compiled with [TSTL](https://typescripttolua.github.io).
-- Teal / YueScript: Lua-friendly language choices for teams with different coding styles.
-- Wa / Rust / C#: extend or integrate the engine through its WASM runtime and native dynamic-library interfaces.
-- Blockly: Scratch-like visual scripting for teaching, prototypes, and beginner-friendly onboarding.
+<div align='center'>
 
-<div align='center'><img src='Docs/static/img/showcase/blockly.jpg' alt='Blockly' width='500px'/></div>
+<img src='Docs/static/img/showcase/dev-everywhere.jpg' alt='Dora SSR running on handhelds and desktops while being edited from a laptop' width='640px'/>
 
-### Runtime and Presentation
+<sub>The engine on the device, the IDE wherever you are.</sub>
 
-- Cross-platform runtime: runs natively on `Android`, `Windows`, `Linux`, `iOS`, `macOS`, and `HarmonyOS`.
-- Scene system: tree-based 2D and 3D scenes, an approachable [ECS](https://dora-ssr.net/docs/tutorial/using-ecs) module, cameras, materials, lighting, models, animation, and 3D physics.
-- 2D production: supports Spine2D, DragonBones, built-in skeletal animation, [PlayRho](https://github.com/louis-langholtz/PlayRho) physics, tile maps, particles, and retro TIC-80 content.
-- Media and graphics: asynchronous asset loading, Ogg/Theora playback, multi-format audio with spatial effects, runtime shader compilation, Effekseer, NanoVG, ImGui, and TrueType rendering.
-- Game patterns: includes reusable logic and AI support for [2D platformer](https://dora-ssr.net/docs/example/Platformer%20Tutorial/start) development.
+</div>
 
-### Content and Tooling
+### Built-in Coding Agent
 
-- Data and configuration: asynchronous [SQLite](https://www.sqlite.org) access plus Excel-to-database workflows.
-- Built-in tools: animation, particle, physics, visual-script, Yarn, Spine, tile-map, Git, profiler, and TIC-80 editors keep common game-production tasks in the Web IDE.
-- Scene and narrative: CSS Flex layout, Tiled TMX maps, [Yarn Spinner](https://www.yarnspinner.dev) story scripting, and responsive TSX UI.
-- Creative extensions: a machine-learning gameplay framework, open art resources, and the ["Luv Sense Digital"](https://luv-sense-digital.readthedocs.io) IP.
+Ask it to analyze a project, look up APIs, make safe edits, and validate the result at runtime. The agent works inside the engine, with persistent memory, project skills, and sub-agent delegation.
 
-<div align='center'><img src='Docs/static/img/showcase/LSD.jpg' alt='Luv Sense Digital' width='300px'/></div>
+<div align='center'>
 
-<br>
+<img src='Docs/static/img/showcase/dora-agent-retina.jpg' alt='The Coding Agent completing a project analysis task inside Dora SSR'/>
 
-## Start Building
+</div>
 
-- Feature examples: use [Dora-Example](https://github.com/IppClub/Dora-Example/tree/master/Example) to learn individual APIs and engine features.
-- Full projects: use [Dora-Demo](https://github.com/IppClub/Dora-Demo) to see how real projects organize assets, scripts, and gameplay logic.
+## Built-in Editors
 
-### Featured Projects
+Common game-production tasks stay inside the Web IDE:
 
-- [Sample Project - Loli War](https://github.com/IppClub/Dora-Demo/tree/main/Loli%20War)
+<table>
+<tr>
+<td width='50%' align='center' valign='top'>
+<img src='Docs/static/img/showcase/dora-animation-editor.jpg' alt='Animation editor' width='100%'/>
+<sub><b>Animation editor</b> — skeletal animation timelines</sub>
+</td>
+<td width='50%' align='center' valign='top'>
+<img src='Docs/static/img/showcase/dora-particle-editor.jpg' alt='Particle editor' width='100%'/>
+<sub><b>Particle editor</b> — effects with live preview</sub>
+</td>
+</tr>
+<tr>
+<td width='50%' align='center' valign='top'>
+<img src='Docs/static/img/showcase/dora-physics-editor.jpg' alt='Physics body editor' width='100%'/>
+<sub><b>Physics editor</b> — shaping bodies and fixtures</sub>
+</td>
+<td width='50%' align='center' valign='top'>
+<img src='Docs/static/img/showcase/dora-yarn-editor.jpg' alt='Yarn story editor' width='100%'/>
+<sub><b>Yarn editor</b> — story scripts and node graphs</sub>
+</td>
+</tr>
+<tr>
+<td width='50%' align='center' valign='top'>
+<img src='Docs/static/img/showcase/dora-visual-script-editor.jpg' alt='Visual script editor' width='100%'/>
+<sub><b>Visual script editor</b> — logic as connected nodes</sub>
+</td>
+<td width='50%' align='center' valign='top'>
+<img src='Docs/static/img/showcase/dora-spine-animation.jpg' alt='Spine animation preview' width='100%'/>
+<sub><b>Spine preview</b> — inspecting skeletal animation data</sub>
+</td>
+</tr>
+<tr>
+<td width='50%' align='center' valign='top'>
+<img src='Docs/static/img/showcase/dora-git-client.jpg' alt='Git client' width='100%'/>
+<sub><b>Git client</b> — history, remotes, and changes</sub>
+</td>
+<td width='50%' align='center' valign='top'>
+<img src='Docs/static/img/showcase/dora-3d-debugging.jpg' alt='Runtime profiler and debug console' width='100%'/>
+<sub><b>Profiler</b> — runtime performance and debugging</sub>
+</td>
+</tr>
+</table>
 
-<div align='center'><img src='Docs/static/img/showcase/LoliWar.gif' alt='Loli War' width='400px'/></div>
+Also built in: a TIC-80 editor, tile-map support, an Excel-to-database workflow, and Blockly for Scratch-style visual scripting.
 
-<br>
+## Runtime Capabilities
 
-- [Sample Project - Zombie Escape](https://github.com/IppClub/Dora-Demo/tree/main/Zombie%20Escape)
+- **Scenes & 3D** — tree-based 2D and 3D scenes, an approachable [ECS](https://dora-ssr.net/docs/tutorial/using-ecs) module, cameras, materials, lighting, models, animation, and 3D physics.
+- **2D production** — Spine2D, DragonBones, built-in skeletal animation, [PlayRho](https://github.com/louis-langholtz/PlayRho) physics, tile maps, particles, and retro TIC-80 content.
+- **Graphics & media** — asynchronous asset loading, Ogg/Theora video, multi-format spatial audio, runtime shader compilation, Effekseer, NanoVG, ImGui, and TrueType rendering.
+- **UI & narrative** — CSS Flex layout, responsive TSX interfaces, and [Yarn Spinner](https://www.yarnspinner.dev) story scripting.
+- **Data** — asynchronous [SQLite](https://www.sqlite.org) access plus Excel-to-database workflows.
+- **Game patterns** — reusable logic and AI support for [2D platformers](https://dora-ssr.net/docs/example/Platformer%20Tutorial/start), and a machine-learning gameplay framework.
 
-<div align='center'><img src='Docs/static/img/showcase/ZombieEscape.jpg' alt='Zombie Escape' width='800px'/></div>
+<div align='center'>
 
-<br>
+<img src='Docs/static/img/showcase/dora-3d-model.jpg' alt='3D helmet model and asynchronous loading diagnostics in Dora SSR' width='640px'/>
 
-- [Example Project - Dismentalism](https://github.com/IppClub/Dora-Demo/tree/main/Dismantlism)
+</div>
 
-<div align='center'><img src='Docs/static/img/showcase/Dismentalism.png' alt='Dismentalism' width='800px'/></div>
+## Languages
 
-<br>
+Write game code in the language your team already knows — they all drive the same engine APIs:
 
-- [Example Project - Luv Sense Digital](https://github.com/IppClub/LSD)
+![Lua](https://img.shields.io/badge/Lua-2C2D72?logo=lua&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![TSX](https://img.shields.io/badge/TSX-3178C6)
+![Teal](https://img.shields.io/badge/Teal-00757A)
+![YueScript](https://img.shields.io/badge/YueScript-7C5CBF)
+![Wa](https://img.shields.io/badge/Wa-00A97F)
+![Rust](https://img.shields.io/badge/Rust-CE422B?logo=rust&logoColor=white)
+![C#](https://img.shields.io/badge/C%23-68217A)
 
-<div align='center'><img src='Docs/static/img/showcase/LuvSenseDigital.jpg' alt='Luv Sense Digital' width='800px'/></div>
+Prefer blocks over text? Blockly provides Scratch-style visual scripting for teaching and prototyping.
 
-<br>
+<div align='center'>
 
-## Installation
+<img src='Docs/static/img/showcase/blockly.jpg' alt='Blockly visual scripting in Dora SSR' width='480px'/>
 
-### Android
+</div>
 
-- Get: install the [APK](https://github.com/ippclub/Dora-SSR/releases/latest) on the target device.
-- Run: launch the app and open the displayed address from a browser on a PC, tablet, or another device on the same LAN.
-- Start: enter the Web IDE and begin development.
+A taste of TSX — declarative scenes with React-style APIs, compiled with [TSTL](https://typescripttolua.github.io):
 
-### Windows
+```tsx
+import { React, toNode } from 'DoraX';
+import { Ease } from 'Dora';
 
-- Dependency: install the X86 Visual C++ Redistributable for Visual Studio 2022 from the [Microsoft website](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170).
-- Get: download and extract the [release](https://github.com/ippclub/Dora-SSR/releases/latest).
-- Run: launch the app and open the displayed address in a browser.
-- Start: enter the Web IDE and begin development.
+toNode(
+  <sprite file='Image/logo.png'>
+    <sequence>
+      <event name="Count" param="3"/>
+      <delay time={1}/>
+      <event name="Count" param="2"/>
+      <delay time={1}/>
+      <event name="Count" param="1"/>
+      <delay time={1}/>
+      <scale time={0.1} start={1} stop={0.5}/>
+      <scale time={0.5} start={0.5} stop={1} easing={Ease.OutBack}/>
+    </sequence>
+  </sprite>
+)?.slot("Count", (_, param) => print(param));
+```
 
-### macOS
+<div align='center'>
 
-- Get: download and extract the [release](https://github.com/ippclub/Dora-SSR/releases/latest), or install with [Homebrew](https://brew.sh):
-	```sh
-	brew install --cask ippclub/tap/dora-ssr
-	```
-- Run: launch the app and open the displayed address in a browser.
-- Start: enter the Web IDE and begin development.
+<img src='Docs/static/img/showcase/dora-tsx-reactive-ui.jpg' alt='Dora SSR TSX code alongside its reactive UI running in the native runtime' width='640px'/>
 
-### Linux
+<sub>TSX code and the responsive UI it renders, live in the runtime.</sub>
 
-- Get: install from the matching package source.
-	- Ubuntu Jammy
-	```sh
-	sudo add-apt-repository ppa:ippclub/dora-ssr
-	sudo apt update
-	sudo apt install dora-ssr
-	```
-	- Debian Bookworm
-	```sh
-	sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
-	sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
-	sudo apt update
-	sudo apt install dora-ssr
-	```
-- Run: launch the app and open the displayed address in a browser.
-- Start: enter the Web IDE and begin development.
+</div>
 
-### Linux Package Source
+<details>
+<summary><b>Hello World in every supported language</b></summary>
 
-- Ubuntu Jammy:
-	```sh
-	sudo add-apt-repository ppa:ippclub/dora-ssr
-	sudo apt update
-	sudo apt install dora-ssr
-	```
-- Debian Bookworm:
-	```sh
-	sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
-	sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
-	sudo apt update
-	sudo apt install dora-ssr
-	```
+<br/>
 
-### Build Game Engine
-
-- For building Dora SSR from source, see the [official guide](https://dora-ssr.net/docs/tutorial/dev-configuration).
-
-<br>
-
-## Quick Start
-
-- Step One: Create a new project
-	- In the browser, open the right-click menu of the `Workspace` on the left side of the Dora Dora editor.
-	- Click on the menu item `New` and choose to create a new folder.
-- Step Two: Write game code
-	- Create a new game entry code file of Lua (YueScript, Teal, TypeScript or TSX) under the project folder, named `init`.
-	- Write Hello World code:
-
-- **Lua**
+**Lua**
 
 ```lua
 local _ENV = Dora
@@ -214,7 +201,7 @@ sprite:once(function()
 end)
 ```
 
-- **Teal**
+**Teal**
 
 ```lua
 local sleep <const> = require("sleep")
@@ -239,9 +226,7 @@ if not sprite is nil then
 end
 ```
 
-- **YueScript**
-
-	The story of YueScript, a niche language supported by Dora SSR, can be found [here](https://dora-ssr.net/blog/2024/4/17/a-moon-script-tale).
+**YueScript** — the story of this niche language supported by Dora SSR can be found [here](https://dora-ssr.net/blog/2024/4/17/a-moon-script-tale).
 
 ```moonscript
 _ENV = Dora
@@ -258,7 +243,7 @@ with Sprite "Image/logo.png"
      )
 ```
 
-- **TypeScript**
+**TypeScript**
 
 ```typescript
 import { Sprite, Ease, Scale, Sequence, sleep } from 'Dora';
@@ -279,29 +264,7 @@ if (sprite) {
 }
 ```
 
-- **TSX**
-
-	A much easier approach for building a game scene in Dora SSR. Use `toNode()` for one-shot scene construction, or `createRoot()` with `signal()` when a TSX tree should update by diffing changed data. Take the tutorials [here](https://dora-ssr.net/blog/2024/4/25/tsx-dev-intro).
-
-```tsx
-import { React, toNode } from 'DoraX';
-import { Ease } from 'Dora';
-
-toNode(
-  <sprite file='Image/logo.png'>
-    <sequence>
-      <event name="Count" param="3"/>
-      <delay time={1}/>
-      <event name="Count" param="2"/>
-      <delay time={1}/>
-      <event name="Count" param="1"/>
-      <delay time={1}/>
-      <scale time={0.1} start={1} stop={0.5}/>
-      <scale time={0.5} start={0.5} stop={1} easing={Ease.OutBack}/>
-    </sequence>
-  </sprite>
-)?.slot("Count", (_, param) => print(param));
-```
+**TSX, reactive style** — use `toNode()` for one-shot scene construction, or `createRoot()` with `signal()` when the TSX tree should update by diffing changed data. Take the tutorials [here](https://dora-ssr.net/blog/2024/4/25/tsx-dev-intro).
 
 ```tsx
 import { React, createRoot, signal } from 'DoraX';
@@ -319,9 +282,7 @@ root.render(() => (
 count.value += 1;
 ```
 
-- **Wa**
-
-	You can use Wa as a scripting language that runs on the built-in WASM runtime with hot reloading dev experience.
+**Wa** — runs as a scripting language on the built-in WASM runtime, with hot-reloading dev experience.
 
 ```go
 import "dora"
@@ -349,9 +310,7 @@ func init {
 }
 ```
 
-- **Rust**
-
-	You can write code in Rust, build it into WASM file named `init.wasm`, upload it to engine to run. View details [here](https://dora-ssr.net/blog/2024/4/15/rusty-game-dev).
+**Rust** — build your code into a WASM file named `init.wasm` and upload it to the engine to run. Details [here](https://dora-ssr.net/blog/2024/4/15/rusty-game-dev).
 
 ```rust
 use dora_ssr::*;
@@ -376,53 +335,131 @@ fn main () {
 }
 ```
 
-- Step Three: Run the game
+</details>
 
-	Click the `🎮` icon in the lower right corner of the editor, then click the menu item `Run`. Or press the key combination `Ctrl + r`.
+## Games Built with Dora
 
-- Step Four: Publish the game
-	- Open the right-click menu of the project folder just created through the game resource tree on the left side of the editor and click the `Download` option.
-	- Wait for the browser to pop up a download prompt for the packaged project file.
+<table>
+<tr>
+<td width='50%' align='center' valign='top'>
+<a href="https://github.com/IppClub/Dora-Demo/tree/main/Loli%20War"><b>Loli War</b></a>
+<img src='Docs/static/img/showcase/LoliWar.gif' alt='Loli War gameplay' width='100%'/>
+</td>
+<td width='50%' align='center' valign='top'>
+<a href="https://github.com/IppClub/Dora-Demo/tree/main/Zombie%20Escape"><b>Zombie Escape</b></a>
+<img src='Docs/static/img/showcase/ZombieEscape.jpg' alt='Zombie Escape gameplay' width='100%'/>
+</td>
+</tr>
+<tr>
+<td width='50%' align='center' valign='top'>
+<a href="https://github.com/IppClub/Dora-Demo/tree/main/Dismantlism"><b>Dismantlism</b></a>
+<img src='Docs/static/img/showcase/Dismentalism.png' alt='Dismantlism gameplay' width='100%'/>
+</td>
+<td width='50%' align='center' valign='top'>
+<a href="https://github.com/IppClub/LSD"><b>Luv Sense Digital</b></a>
+<img src='Docs/static/img/showcase/LuvSenseDigital.jpg' alt='Luv Sense Digital' width='100%'/>
+</td>
+</tr>
+</table>
 
-For more detailed tutorials, please check [official documents](https://Dora-ssr.net/docs/tutorial/quick-start).
+- Learn individual APIs and engine features with [Dora-Example](https://github.com/IppClub/Dora-Example/tree/master/Example).
+- See how real projects organize assets, scripts, and gameplay with [Dora-Demo](https://github.com/IppClub/Dora-Demo).
 
-<br>
+## Installation
 
-## Documentation
+### Android
 
-- [API Reference](https://Dora-ssr.net/docs/api/intro)
-- [Tutorial](https://Dora-ssr.net/docs/tutorial/quick-start)
+1. Install the [APK](https://github.com/IppClub/Dora-SSR/releases/latest) on the target device.
+2. Launch the app — it displays an address to open from a browser on any device on the same network.
+3. Open the address in a browser, and the Web IDE is ready.
 
-<br>
+### Windows
 
-## Community
+> [!IMPORTANT]
+> Install the x86 [Visual C++ Redistributable for Visual Studio 2022](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170) first.
 
-- [Discord](https://discord.gg/ZfNBSKXnf9)
-- [QQ Group: 512620381](https://qm.qq.com/cgi-bin/qm/qr?k=7siAhjlLaSMGLHIbNctO-9AJQ0bn0G7i&jump_from=webapi&authKey=Kb6tXlvcJ2LgyTzHQzKwkMxdsQ7sjERXMJ3g10t6b+716pdKClnXqC9bAfrFUEWa)
+Download and extract the [release](https://github.com/IppClub/Dora-SSR/releases/latest), launch the app, and open the displayed address in a browser.
 
-<br>
+### macOS
+
+Download and extract the [release](https://github.com/IppClub/Dora-SSR/releases/latest), or install with [Homebrew](https://brew.sh):
+
+```sh
+brew install --cask ippclub/tap/dora-ssr
+```
+
+Launch the app and open the displayed address in a browser.
+
+### Linux
+
+**Ubuntu Jammy**
+
+```sh
+sudo add-apt-repository ppa:ippclub/dora-ssr
+sudo apt update
+sudo apt install dora-ssr
+```
+
+**Debian Bookworm**
+
+```sh
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
+sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
+sudo apt update
+sudo apt install dora-ssr
+```
+
+Launch the app and open the displayed address in a browser.
+
+### Build from Source
+
+See the [official guide](https://dora-ssr.net/docs/tutorial/dev-configuration).
+
+<div align='center'>
+
+![Android](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml/badge.svg)
+![iOS](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml/badge.svg)
+![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg)
+![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg)
+![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg)
+
+</div>
+
+### From Install to First Game
+
+1. In the Web IDE, right-click `Workspace` in the left panel and create a new folder for your project.
+2. Add an entry file named `init` — Lua, YueScript, Teal, TypeScript, or TSX (see [Languages](#languages)).
+3. Press `Ctrl + R`, or click the `🎮` icon in the lower-right corner and choose `Run` — the game runs on the device.
+4. Right-click the project folder and choose `Download` to export the packaged project.
+
+> [!TIP]
+> The [Quick Start tutorial](https://dora-ssr.net/docs/tutorial/quick-start) walks through all of this in detail.
+
+## Documentation & Community
+
+- **Learn** — [Quick Start](https://dora-ssr.net/docs/tutorial/quick-start) · [API Reference](https://dora-ssr.net/docs/api/intro) · [Ask DeepWiki](https://deepwiki.com/IppClub/Dora-SSR)
+- **Community** — [Discord](https://discord.gg/ZfNBSKXnf9) · [QQ Group 512620381](https://qm.qq.com/q/VnzYhvCDgy)
+- **Examples** — [Dora-Example](https://github.com/IppClub/Dora-Example) · [Dora-Demo](https://github.com/IppClub/Dora-Demo)
+
+Dora SSR is developed by [IppClub](https://ippclub.org) — come build with us!
 
 ## Contribute
 
-Welcome to participate in the development and maintenance of Dora SSR. Please see [Contributing Guidelines](CONTRIBUTING.md) to learn how to submit Issues and Pull Requests.
+Issues and pull requests are welcome! Please read the [Contributing Guidelines](CONTRIBUTING.md) first.
 
-<br>
+## Open Atom Foundation
 
-## Dora SSR Joins the Open Atom Foundation
+Dora SSR is a donation and incubation project of the [Open Atom Foundation](https://openatom.org/project/RJHufNnSKtDZ), a non-profit foundation supporting open-source technologies. We are committed to building a more open and collaborative game-development environment.
 
-We are delighted to announce that the Dora SSR project has officially become a donation and incubation project under the Open Atom Foundation. This new stage of development signifies our steadfast commitment to building a more open and collaborative gaming development environment.
+<div align='center'>
 
-### About the Open Atom Foundation
+<img src='Docs/static/img/art/casual/cheer.png' alt='Dora and Toto cheering' width='480px'/>
 
-The Open Atom Foundation is a non-profit organization dedicated to supporting and promoting the development of open-source technologies. Within this foundation's community, Dora SSR will utilize broader resources and community support to propel the project's development and innovation. For more information, please visit the [foundation's official website](https://openatom.org/).
-
-<div align='center'><img src='Docs/static/img/art/casual/cheer.png' alt='Playground' width='500px'/></div>
-
-<br>
+</div>
 
 ## License
 
-Dora SSR uses the [MIT License](LICENSE).
+Dora SSR is released under the [MIT License](LICENSE.txt).
 
 > [!NOTE]
 > Please note that Dora SSR integrates the Spine Runtime library, which is a **commercial software**. The use of Spine Runtime in your projects requires a valid commercial license from Esoteric Software. For more details on obtaining the license, please visit the [official Spine website](http://esotericsoftware.com/).<br>
