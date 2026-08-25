@@ -7359,6 +7359,11 @@ local record Graphics
 	-- @param origin_y (number) 原点偏移（y 轴）。 （默认值：0。）
 	draw: function(image: Image, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
 
+	-- 使用 Transform 对象在屏幕上绘制 Image。
+	-- @param image (Image) 要绘制的 Image。
+	-- @param transform (Transform) 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。
+	draw: function(image: Image, transform: Transform)
+
 	-- 在屏幕上绘制可绘制对象（图像、画布、SpriteBatch、粒子系统、网格、文本对象或视频），并可选择旋转、缩放和剪切。
 	--
 	-- 对象是相对于其局部坐标系绘制的。原点默认位于图像和画布的左上角。所有缩放、剪切和旋转参数都会相对于该点变换对象。另外，还可以在屏幕坐标系上指定原点位置。
@@ -7381,6 +7386,12 @@ local record Graphics
 	-- @param origin_y (number) 剪切系数（x 轴）。 （默认值：0。）
 	draw: function(image: Image, quad: Quad, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
 
+	-- 使用 Transform 对象在屏幕上绘制 Image 的 Quad 子区域。
+	-- @param image (Image) 要绘制的 Image。
+	-- @param quad (Quad) 要绘制的 Image 子区域。
+	-- @param transform (Transform) 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。
+	draw: function(image: Image, quad: Quad, transform: Transform)
+
 	-- 在屏幕上绘制 Canvas，并可选择旋转、缩放和剪切。
 	-- @param canvas (Canvas) 要绘制的 Canvas。
 	-- @param x (number) 对象在 x 轴上的绘制位置。（默认值：0。）
@@ -7391,6 +7402,11 @@ local record Graphics
 	-- @param origin_x (number) x 轴原点偏移。（默认值：0。）
 	-- @param origin_y (number) y 轴原点偏移。（默认值：0。）
 	draw: function(canvas: Canvas, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
+
+	-- 使用 Transform 对象在屏幕上绘制 Canvas。
+	-- @param canvas (Canvas) 要绘制的 Canvas。
+	-- @param transform (Transform) 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。
+	draw: function(canvas: Canvas, transform: Transform)
 
 	-- 在屏幕上绘制 Canvas，并可选择旋转、缩放和剪切。
 	-- @param canvas (Canvas) 要绘制的 Canvas。
@@ -7403,6 +7419,12 @@ local record Graphics
 	-- @param origin_x (number) x 轴原点偏移。（默认值：0。）
 	-- @param origin_y (number) y 轴原点偏移。（默认值：0。）
 	draw: function(canvas: Canvas, quad: Quad, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
+
+	-- 使用 Transform 对象在屏幕上绘制 Canvas 的 Quad 子区域。
+	-- @param canvas (Canvas) 要绘制的 Canvas。
+	-- @param quad (Quad) 要绘制的 Canvas 子区域。
+	-- @param transform (Transform) 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。
+	draw: function(canvas: Canvas, quad: Quad, transform: Transform)
 
 	-- 在屏幕上绘制 Mesh，并可选择旋转、缩放和剪切。
 	-- @param mesh (Mesh) 要绘制的 Mesh。
@@ -7417,6 +7439,11 @@ local record Graphics
 	-- @param shear_y (number) y 轴剪切系数。（默认值：0。）
 	draw: function(mesh: Mesh, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
 
+	-- 使用 Transform 对象在屏幕上绘制 Mesh。
+	-- @param mesh (Mesh) 要绘制的 Mesh。
+	-- @param transform (Transform) 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。
+	draw: function(mesh: Mesh, transform: Transform)
+
 	-- 在屏幕上绘制 SpriteBatch，并可选择旋转、缩放和剪切。
 	-- @param batch (SpriteBatch) 要绘制的 SpriteBatch。
 	-- @param x (number) 对象在 x 轴上的绘制位置。（默认值：0。）
@@ -7429,6 +7456,11 @@ local record Graphics
 	-- @param shear_x (number) x 轴剪切系数。（默认值：0。）
 	-- @param shear_y (number) y 轴剪切系数。（默认值：0。）
 	draw: function(batch: SpriteBatch, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+
+	-- 使用 Transform 对象在屏幕上绘制 SpriteBatch。
+	-- @param batch (SpriteBatch) 要绘制的 SpriteBatch。
+	-- @param transform (Transform) 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。
+	draw: function(batch: SpriteBatch, transform: Transform)
 
 	-- 在屏幕上绘制 ParticleSystem，并可选择旋转、缩放和剪切。
 	-- @param particles (ParticleSystem) 要绘制的 ParticleSystem。
@@ -7443,6 +7475,11 @@ local record Graphics
 	-- @param shear_y (number) y 轴剪切系数。（默认值：0。）
 	draw: function(particles: ParticleSystem, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
 
+	-- 使用 Transform 对象在屏幕上绘制 ParticleSystem。
+	-- @param particles (ParticleSystem) 要绘制的 ParticleSystem。
+	-- @param transform (Transform) 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。
+	draw: function(particles: ParticleSystem, transform: Transform)
+
 	-- 在屏幕上绘制 Text，并可选择旋转、缩放和剪切。
 	-- @param text (Text) 要绘制的 Text 对象。
 	-- @param x (number) 对象在 x 轴上的绘制位置。（默认值：0。）
@@ -7456,6 +7493,11 @@ local record Graphics
 	-- @param shear_y (number) y 轴剪切系数。（默认值：0。）
 	draw: function(text: Text, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
 
+	-- 使用 Transform 对象在屏幕上绘制 Text 对象。
+	-- @param text (Text) 要绘制的 Text 对象。
+	-- @param transform (Transform) 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。
+	draw: function(text: Text, transform: Transform)
+
 	-- 在屏幕上绘制 Video，并可选择旋转、缩放和剪切。
 	-- @param video (Video) 要绘制的 Video。
 	-- @param x (number) 对象在 x 轴上的绘制位置。（默认值：0。）
@@ -7468,6 +7510,11 @@ local record Graphics
 	-- @param shear_x (number) x 轴剪切系数。（默认值：0。）
 	-- @param shear_y (number) y 轴剪切系数。（默认值：0。）
 	draw: function(video: Video, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+
+	-- 使用 Transform 对象在屏幕上绘制 Video。
+	-- @param video (Video) 要绘制的 Video。
+	-- @param transform (Transform) 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。
+	draw: function(video: Video, transform: Transform)
 
 	-- 绘制表纹理的一层。
 	-- @param image (Image) 要绘制的表纹理。
@@ -7509,6 +7556,12 @@ local record Graphics
 	-- @param shear_x (number) 剪切因子（x 轴）。 （默认值：0。）
 	-- @param shear_y (number) 剪切因子（y 轴）。 （默认值：0。）
 	drawInstanced: function(mesh: Mesh, instance_count: integer, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+
+	-- 使用 Transform 对象，通过一次绘制调用绘制 Mesh 的多个实例。
+	-- @param mesh (Mesh) 要绘制的 Mesh。
+	-- @param instance_count (integer) 要绘制的实例数量。
+	-- @param transform (Transform) 应用于每个实例的 Transform 对象。
+	drawInstanced: function(mesh: Mesh, instance_count: integer, transform: Transform)
 end
 
 -- 喜欢11.5根模块。该文件仅声明当前实现的子集。

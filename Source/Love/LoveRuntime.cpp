@@ -15841,7 +15841,8 @@ void drawTextEntry(GraphicsBackend &graphics, GraphicsBackend::FontHandle font,
 	}
 }
 
-void readTextTransform(lua_State *state, int index, TransformUserdata &transform)
+void readStandardTransform(lua_State *state, int index, TransformUserdata &transform,
+	const char *errorMessage)
 {
 	if (auto *provided = luaL_testudata(state, index, TransformLoveType.getName())
 		? ::love::luax_checktype<TransformUserdata>(state, index, TransformLoveType) : nullptr)
@@ -15860,8 +15861,38 @@ void readTextTransform(lua_State *state, int index, TransformUserdata &transform
 	const float ky = static_cast<float>(luaL_optnumber(state, index + 8, 0.0));
 	const float values[] = {x, y, angle, sx, sy, ox, oy, kx, ky};
 	for (const float value : values)
-		luaL_argcheck(state, std::isfinite(value), index, "Text transform values must be finite");
+		luaL_argcheck(state, std::isfinite(value), index, errorMessage);
 	setTransform(transform, x, y, angle, sx, sy, ox, oy, kx, ky);
+}
+
+GraphicsBackend::Transform2D readDrawTransform(lua_State *state, int index,
+	const GraphicsBackend::Transform2D &current, const char *errorMessage,
+	float *originX = nullptr, float *originY = nullptr)
+{
+	const bool providedTransform = luaL_testudata(state, index, TransformLoveType.getName()) != nullptr;
+	TransformUserdata local;
+	readStandardTransform(state, index, local, errorMessage);
+	luaL_argcheck(state, isAffine2DTransform(local), index,
+		"embedded Dora graphics currently requires an affine 2D Transform");
+	if (originX && originY)
+	{
+		*originX = providedTransform ? 0.0f
+			: static_cast<float>(luaL_optnumber(state, index + 5, 0.0));
+		*originY = providedTransform ? 0.0f
+			: static_cast<float>(luaL_optnumber(state, index + 6, 0.0));
+		// Image backends retain the historic split representation: x/y stay in
+		// the matrix and the origin is applied separately by drawTexture.
+		local.elements[12] += *originX * local.elements[0] + *originY * local.elements[4];
+		local.elements[13] += *originX * local.elements[1] + *originY * local.elements[5];
+	}
+	GraphicsBackend::Transform2D result;
+	result.a = current.a * local.elements[0] + current.c * local.elements[1];
+	result.b = current.b * local.elements[0] + current.d * local.elements[1];
+	result.c = current.a * local.elements[4] + current.c * local.elements[5];
+	result.d = current.b * local.elements[4] + current.d * local.elements[5];
+	result.tx = current.a * local.elements[12] + current.c * local.elements[13] + current.tx;
+	result.ty = current.b * local.elements[12] + current.d * local.elements[13] + current.ty;
+	return result;
 }
 }
 
@@ -16023,34 +16054,14 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 		std::string shaderError;
 		if (!runtime->_graphicsBackend->validateShaderDraw(shaderError))
 			return luaL_error(state, "%s", shaderError.c_str());
-		const float x = static_cast<float>(luaL_optnumber(state, 2, 0.0));
-		const float y = static_cast<float>(luaL_optnumber(state, 3, 0.0));
-		const float angle = static_cast<float>(luaL_optnumber(state, 4, 0.0));
-		const float scaleX = static_cast<float>(luaL_optnumber(state, 5, 1.0));
-		const float scaleY = static_cast<float>(luaL_optnumber(state, 6, scaleX));
-		const float originX = static_cast<float>(luaL_optnumber(state, 7, 0.0));
-		const float originY = static_cast<float>(luaL_optnumber(state, 8, 0.0));
-		const float shearX = static_cast<float>(luaL_optnumber(state, 9, 0.0));
-		const float shearY = static_cast<float>(luaL_optnumber(state, 10, 0.0));
-		const float values[] = {x, y, angle, scaleX, scaleY, originX, originY, shearX, shearY};
-		for (const float value : values)
-			luaL_argcheck(state, std::isfinite(value), 2, "Video draw transform values must be finite");
-		const float cosine = std::cos(angle), sine = std::sin(angle);
-		const float localA = cosine * scaleX - sine * scaleY * shearY;
-		const float localB = sine * scaleX + cosine * scaleY * shearY;
-		const float localC = cosine * scaleX * shearX - sine * scaleY;
-		const float localD = sine * scaleX * shearX + cosine * scaleY;
-		const GraphicsTransform current = runtime->_graphicsTransform;
-		const float a = current.a * localA + current.c * localB;
-		const float b = current.b * localA + current.d * localB;
-		const float c = current.a * localC + current.c * localD;
-		const float d = current.b * localC + current.d * localD;
-		const float tx = current.a * x + current.c * y + current.tx;
-		const float ty = current.b * x + current.d * y + current.ty;
+		float originX = 0.0f, originY = 0.0f;
+		const auto transform = readDrawTransform(state, 2, runtime->_graphicsTransform,
+			"Video draw transform values must be finite", &originX, &originY);
 		const float width = static_cast<float>(video->state->stream->getWidth());
 		const float height = static_cast<float>(video->state->stream->getHeight());
 		runtime->_graphicsBackend->drawImage(video->handle, 0.0f, 0.0f, width, height,
-			a, b, c, d, tx, ty, originX, originY,
+			transform.a, transform.b, transform.c, transform.d,
+			transform.tx, transform.ty, originX, originY,
 			runtime->_graphicsColor[0], runtime->_graphicsColor[1],
 			runtime->_graphicsColor[2], runtime->_graphicsColor[3],
 			video->filter, GraphicsBackend::TextureWrap::Clamp,
@@ -16069,31 +16080,18 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 		auto *font = static_cast<FontUserdata *>(text->fontObject.get());
 		luaL_argcheck(state, font && font->runtime == runtime && font->handle == text->font, 1,
 			"Text Font reference is missing or closed");
-		const float x = static_cast<float>(luaL_optnumber(state, 2, 0.0));
-		const float y = static_cast<float>(luaL_optnumber(state, 3, 0.0));
-		const float angle = static_cast<float>(luaL_optnumber(state, 4, 0.0));
-		const float scaleX = static_cast<float>(luaL_optnumber(state, 5, 1.0));
-		const float scaleY = static_cast<float>(luaL_optnumber(state, 6, scaleX));
-		const float originX = static_cast<float>(luaL_optnumber(state, 7, 0.0));
-		const float originY = static_cast<float>(luaL_optnumber(state, 8, 0.0));
-		const float shearX = static_cast<float>(luaL_optnumber(state, 9, 0.0));
-		const float shearY = static_cast<float>(luaL_optnumber(state, 10, 0.0));
-		const float parameters[] = {x, y, angle, scaleX, scaleY, originX, originY, shearX, shearY};
-		for (const float value : parameters)
-			luaL_argcheck(state, std::isfinite(value), 2, "Text draw transform values must be finite");
-		TransformUserdata local; setTransform(local, x, y, angle,
-			scaleX, scaleY, originX, originY, shearX, shearY);
-		TransformUserdata current; setTransformIdentity(current);
-		current.elements[0] = runtime->_graphicsTransform.a;
-		current.elements[1] = runtime->_graphicsTransform.b;
-		current.elements[4] = runtime->_graphicsTransform.c;
-		current.elements[5] = runtime->_graphicsTransform.d;
-		current.elements[12] = runtime->_graphicsTransform.tx;
-		current.elements[13] = runtime->_graphicsTransform.ty;
-		TransformUserdata outer; multiplyTransforms(current, local, outer);
+		const auto outer = readDrawTransform(state, 2, runtime->_graphicsTransform,
+			"Text draw transform values must be finite");
+		TransformUserdata outerTransform; setTransformIdentity(outerTransform);
+		outerTransform.elements[0] = outer.a;
+		outerTransform.elements[1] = outer.b;
+		outerTransform.elements[4] = outer.c;
+		outerTransform.elements[5] = outer.d;
+		outerTransform.elements[12] = outer.tx;
+		outerTransform.elements[13] = outer.ty;
 		for (const auto &entry : text->entries)
 		{
-			TransformUserdata combined; multiplyTransforms(outer, entry.transform, combined);
+			TransformUserdata combined; multiplyTransforms(outerTransform, entry.transform, combined);
 			for (const auto &run : entry.runs)
 			{
 				const float tx = combined.elements[12] + combined.elements[0] * run.x
@@ -16119,31 +16117,8 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 		std::string shaderError;
 		if (!runtime->_graphicsBackend->validateShaderDraw(shaderError))
 			return luaL_error(state, "%s", shaderError.c_str());
-		const float x = static_cast<float>(luaL_optnumber(state, 2, 0.0));
-		const float y = static_cast<float>(luaL_optnumber(state, 3, 0.0));
-		const float angle = static_cast<float>(luaL_optnumber(state, 4, 0.0));
-		const float scaleX = static_cast<float>(luaL_optnumber(state, 5, 1.0));
-		const float scaleY = static_cast<float>(luaL_optnumber(state, 6, scaleX));
-		const float originX = static_cast<float>(luaL_optnumber(state, 7, 0.0));
-		const float originY = static_cast<float>(luaL_optnumber(state, 8, 0.0));
-		const float shearX = static_cast<float>(luaL_optnumber(state, 9, 0.0));
-		const float shearY = static_cast<float>(luaL_optnumber(state, 10, 0.0));
-		const float parameters[] = {x, y, angle, scaleX, scaleY, originX, originY, shearX, shearY};
-		for (const float value : parameters)
-			luaL_argcheck(state, std::isfinite(value), 2,
-				"ParticleSystem draw transform values must be finite");
-		const float cosine = std::cos(angle), sine = std::sin(angle);
-		const float localA = cosine * scaleX - sine * scaleY * shearY;
-		const float localB = sine * scaleX + cosine * scaleY * shearY;
-		const float localC = cosine * scaleX * shearX - sine * scaleY;
-		const float localD = sine * scaleX * shearX + cosine * scaleY;
-		const GraphicsTransform current = runtime->_graphicsTransform;
-		const float a = current.a * localA + current.c * localB;
-		const float b = current.b * localA + current.d * localB;
-		const float c = current.a * localC + current.c * localD;
-		const float d = current.b * localC + current.d * localD;
-		const float tx = current.a * x + current.c * y + current.tx - a * originX - c * originY;
-		const float ty = current.b * x + current.d * y + current.ty - b * originX - d * originY;
+		const auto drawTransform = readDrawTransform(state, 2, runtime->_graphicsTransform,
+			"ParticleSystem draw transform values must be finite");
 		GraphicsBackend::TextureFilter filter = GraphicsBackend::TextureFilter::Linear;
 		GraphicsBackend::TextureWrap wrapU = GraphicsBackend::TextureWrap::Clamp;
 		GraphicsBackend::TextureWrap wrapV = GraphicsBackend::TextureWrap::Clamp;
@@ -16235,13 +16210,12 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 			particleSystem->geometryDirty = false;
 		}
 		std::string error;
-		const GraphicsBackend::Transform2D transform{a, b, c, d, tx, ty};
 		const std::array<float, 4> color{
 			runtime->_graphicsColor[0], runtime->_graphicsColor[1],
 			runtime->_graphicsColor[2], runtime->_graphicsColor[3]};
 		if (!runtime->_graphicsBackend->drawMeshBuffer(particleSystem->renderBuffer, "triangles",
 			particleSystem->image, particleSystem->canvas, runtime->_graphicsPointSize,
-			filter, wrapU, wrapV, transform, color, error))
+			filter, wrapU, wrapV, drawTransform, color, error))
 			return luaL_error(state, "%s", error.c_str());
 		return 0;
 	}
@@ -16255,32 +16229,8 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 		std::string shaderError;
 		if (!runtime->_graphicsBackend->validateShaderDraw(shaderError, batch->textureType))
 			return luaL_error(state, "%s", shaderError.c_str());
-		const float x = static_cast<float>(luaL_optnumber(state, 2, 0.0));
-		const float y = static_cast<float>(luaL_optnumber(state, 3, 0.0));
-		const float angle = static_cast<float>(luaL_optnumber(state, 4, 0.0));
-		const float scaleX = static_cast<float>(luaL_optnumber(state, 5, 1.0));
-		const float scaleY = static_cast<float>(luaL_optnumber(state, 6, scaleX));
-		const float originX = static_cast<float>(luaL_optnumber(state, 7, 0.0));
-		const float originY = static_cast<float>(luaL_optnumber(state, 8, 0.0));
-		const float shearX = static_cast<float>(luaL_optnumber(state, 9, 0.0));
-		const float shearY = static_cast<float>(luaL_optnumber(state, 10, 0.0));
-		const float parameters[] = {x, y, angle, scaleX, scaleY, originX, originY, shearX, shearY};
-		for (const float value : parameters)
-			luaL_argcheck(state, std::isfinite(value), 2,
-				"SpriteBatch draw transform values must be finite");
-		const float cosine = std::cos(angle);
-		const float sine = std::sin(angle);
-		const float localA = cosine * scaleX - sine * scaleY * shearY;
-		const float localB = sine * scaleX + cosine * scaleY * shearY;
-		const float localC = cosine * scaleX * shearX - sine * scaleY;
-		const float localD = sine * scaleX * shearX + cosine * scaleY;
-		const GraphicsTransform current = runtime->_graphicsTransform;
-		const float a = current.a * localA + current.c * localB;
-		const float b = current.b * localA + current.d * localB;
-		const float c = current.a * localC + current.c * localD;
-		const float d = current.b * localC + current.d * localD;
-		const float tx = current.a * x + current.c * y + current.tx - a * originX - c * originY;
-		const float ty = current.b * x + current.d * y + current.ty - b * originX - d * originY;
+		const auto drawTransform = readDrawTransform(state, 2, runtime->_graphicsTransform,
+			"SpriteBatch draw transform values must be finite");
 		const std::size_t start = batch->drawStart < 0 ? 0
 			: std::min(static_cast<std::size_t>(batch->drawStart), batch->count - 1);
 		const std::size_t requested = batch->drawCount > 0
@@ -16422,13 +16372,12 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 		}
 		else return luaL_error(state, "SpriteBatch texture reference is missing");
 		std::string error;
-		const GraphicsBackend::Transform2D transform{a, b, c, d, tx, ty};
 		const std::array<float, 4> color{
 			runtime->_graphicsColor[0], runtime->_graphicsColor[1],
 			runtime->_graphicsColor[2], runtime->_graphicsColor[3]};
 		if (!runtime->_graphicsBackend->drawMeshBuffer(batch->renderBuffer, "triangles",
 			batch->image, batch->canvas, runtime->_graphicsPointSize,
-			filter, wrapU, wrapV, transform, color, error))
+			filter, wrapU, wrapV, drawTransform, color, error))
 			return luaL_error(state, "%s", error.c_str());
 		return 0;
 	}
@@ -16439,36 +16388,12 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 		luaL_argcheck(state, mesh->runtime == runtime, 1, "Mesh belongs to another LoveRuntime");
 		const int instanceCount = instanced ? static_cast<int>(luaL_checkinteger(state, 2)) : 1;
 		const int transformStart = instanced ? 3 : 2;
-		const float x = static_cast<float>(luaL_optnumber(state, transformStart, 0.0));
-		const float y = static_cast<float>(luaL_optnumber(state, transformStart + 1, 0.0));
-		const float angle = static_cast<float>(luaL_optnumber(state, transformStart + 2, 0.0));
-		const float scaleX = static_cast<float>(luaL_optnumber(state, transformStart + 3, 1.0));
-		const float scaleY = static_cast<float>(luaL_optnumber(state, transformStart + 4, scaleX));
-		const float originX = static_cast<float>(luaL_optnumber(state, transformStart + 5, 0.0));
-		const float originY = static_cast<float>(luaL_optnumber(state, transformStart + 6, 0.0));
-		const float shearX = static_cast<float>(luaL_optnumber(state, transformStart + 7, 0.0));
-		const float shearY = static_cast<float>(luaL_optnumber(state, transformStart + 8, 0.0));
-		const float parameters[] = {x, y, angle, scaleX, scaleY, originX, originY, shearX, shearY};
-		for (const float value : parameters)
-			luaL_argcheck(state, std::isfinite(value), transformStart,
-				"Mesh draw transform values must be finite");
+		const auto drawTransform = readDrawTransform(state, transformStart,
+			runtime->_graphicsTransform, "Mesh draw transform values must be finite");
 		if (instanceCount <= 0) return 0;
 		std::string shaderError;
 		if (!runtime->_graphicsBackend->validateShaderDraw(shaderError))
 			return luaL_error(state, "%s", shaderError.c_str());
-		const float cosine = std::cos(angle);
-		const float sine = std::sin(angle);
-		const float localA = cosine * scaleX - sine * scaleY * shearY;
-		const float localB = sine * scaleX + cosine * scaleY * shearY;
-		const float localC = cosine * scaleX * shearX - sine * scaleY;
-		const float localD = sine * scaleX * shearX + cosine * scaleY;
-		const GraphicsTransform current = runtime->_graphicsTransform;
-		const float a = current.a * localA + current.c * localB;
-		const float b = current.b * localA + current.d * localB;
-		const float c = current.a * localC + current.c * localD;
-		const float d = current.b * localC + current.d * localD;
-		const float tx = current.a * x + current.c * y + current.tx - a * originX - c * originY;
-		const float ty = current.b * x + current.d * y + current.ty - b * originX - d * originY;
 		std::size_t perInstanceAttributeCount = 0;
 		if (instanced && instanceCount > 1 && runtime->_graphicsShader != 0)
 		{
@@ -16514,13 +16439,12 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 			&& mesh->preparedInstanceCount == instanceCount)
 		{
 			std::string error;
-			const GraphicsBackend::Transform2D transform{a, b, c, d, tx, ty};
 			const std::array<float, 4> drawColor{
 				runtime->_graphicsColor[0], runtime->_graphicsColor[1],
 				runtime->_graphicsColor[2], runtime->_graphicsColor[3]};
 			if (!runtime->_graphicsBackend->drawMeshBuffer(mesh->renderBuffer,
 				mesh->preparedDrawMode, mesh->image, mesh->canvas, runtime->_graphicsPointSize,
-				filter, wrapU, wrapV, transform, drawColor, error,
+				filter, wrapU, wrapV, drawTransform, drawColor, error,
 				hardwareInstancing ? instanceCount : 1))
 				return luaL_error(state, "%s", error.c_str());
 			return 0;
@@ -16730,13 +16654,12 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 		mesh->preparedInstanceCount = cacheableGeometry ? instanceCount : 0;
 		mesh->preparedDrawMode = submittedDrawMode;
 		std::string error;
-		const GraphicsBackend::Transform2D transform{a, b, c, d, tx, ty};
 		const std::array<float, 4> drawColor{
 			runtime->_graphicsColor[0], runtime->_graphicsColor[1],
 			runtime->_graphicsColor[2], runtime->_graphicsColor[3]};
 		if (!runtime->_graphicsBackend->drawMeshBuffer(mesh->renderBuffer, submittedDrawMode,
 			mesh->image, mesh->canvas, runtime->_graphicsPointSize, filter, wrapU, wrapV,
-			transform, drawColor, error, hardwareInstancing ? instanceCount : 1))
+			drawTransform, drawColor, error, hardwareInstancing ? instanceCount : 1))
 			return luaL_error(state, "%s", error.c_str());
 		return 0;
 	}
@@ -16795,31 +16718,16 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 		sourceHeight = quad->height * imageHeight / quad->textureHeight;
 		startIndex = 3;
 	}
-	const float x = static_cast<float>(luaL_optnumber(state, startIndex, 0.0));
-	const float y = static_cast<float>(luaL_optnumber(state, startIndex + 1, 0.0));
-	const float angle = static_cast<float>(luaL_optnumber(state, startIndex + 2, 0.0));
-	const float scaleX = static_cast<float>(luaL_optnumber(state, startIndex + 3, 1.0));
-	const float scaleY = static_cast<float>(luaL_optnumber(state, startIndex + 4, scaleX));
-	const float originX = static_cast<float>(luaL_optnumber(state, startIndex + 5, 0.0));
-	const float originY = static_cast<float>(luaL_optnumber(state, startIndex + 6, 0.0));
-	const float cosine = std::cos(angle);
-	const float sine = std::sin(angle);
-	const GraphicsTransform current = runtime->_graphicsTransform;
-	const float localA = cosine * scaleX;
-	const float localB = sine * scaleX;
-	const float localC = -sine * scaleY;
-	const float localD = cosine * scaleY;
-	const float a = current.a * localA + current.c * localB;
-	const float b = current.b * localA + current.d * localB;
-	const float c = current.a * localC + current.c * localD;
-	const float d = current.b * localC + current.d * localD;
-	const float tx = current.a * x + current.c * y + current.tx;
-	const float ty = current.b * x + current.d * y + current.ty;
+	float originX = 0.0f, originY = 0.0f;
+	const auto transform = readDrawTransform(state, startIndex, runtime->_graphicsTransform,
+		"Texture draw transform values must be finite", &originX, &originY);
 	if (image && image->textureType == GraphicsBackend::TextureType::Array)
 	{
 		std::string error;
 		if (!runtime->_graphicsBackend->drawImageLayer(image->handle, imageLayer,
-			sourceX, sourceY, sourceWidth, sourceHeight, a, b, c, d, tx, ty, originX, originY,
+			sourceX, sourceY, sourceWidth, sourceHeight,
+			transform.a, transform.b, transform.c, transform.d,
+			transform.tx, transform.ty, originX, originY,
 			runtime->_graphicsColor[0], runtime->_graphicsColor[1],
 			runtime->_graphicsColor[2], runtime->_graphicsColor[3],
 			image->filter, image->wrapU, image->wrapV, error))
@@ -16827,13 +16735,17 @@ int LoveRuntime::graphicsDraw(lua_State *state)
 	}
 	else if (image)
 		runtime->_graphicsBackend->drawImage(image->handle,
-			sourceX, sourceY, sourceWidth, sourceHeight, a, b, c, d, tx, ty, originX, originY,
+			sourceX, sourceY, sourceWidth, sourceHeight,
+			transform.a, transform.b, transform.c, transform.d,
+			transform.tx, transform.ty, originX, originY,
 			runtime->_graphicsColor[0], runtime->_graphicsColor[1],
 			runtime->_graphicsColor[2], runtime->_graphicsColor[3],
 			image->filter, image->wrapU, image->wrapV);
 	else
 		runtime->_graphicsBackend->drawCanvas(canvas->handle,
-			sourceX, sourceY, sourceWidth, sourceHeight, a, b, c, d, tx, ty, originX, originY,
+			sourceX, sourceY, sourceWidth, sourceHeight,
+			transform.a, transform.b, transform.c, transform.d,
+			transform.tx, transform.ty, originX, originY,
 			runtime->_graphicsColor[0], runtime->_graphicsColor[1],
 			runtime->_graphicsColor[2], runtime->_graphicsColor[3],
 			canvas->filter, canvas->wrapU, canvas->wrapV);
@@ -19336,7 +19248,8 @@ int addTextEntry(lua_State *state, TextUserdata &text, int textIndex,
 	entry.wrap = wrap;
 	entry.formatted = formatted;
 	entry.align = std::move(align);
-	readTextTransform(state, transformIndex, entry.transform);
+	readStandardTransform(state, transformIndex, entry.transform,
+		"Text transform values must be finite");
 	layoutTextEntry(entry, *text.runtime->getGraphicsBackend(), text.font);
 	if (replace) text.entries.clear();
 	text.entries.push_back(std::move(entry));

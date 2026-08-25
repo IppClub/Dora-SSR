@@ -3546,6 +3546,13 @@ declare global {
 		 */
 		draw(image: Image, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
 		/**
+		 * Draws an Image on the screen using a Transform object.
+		 *
+		 * @param image The Image to draw.
+		 * @param transform The Transform object containing the draw position, rotation, scale, shear, and origin.
+		 */
+		draw(image: Image, transform: Transform): void;
+		/**
 		 * Draws a Drawable object (an Image, Canvas, SpriteBatch, ParticleSystem, Mesh, Text object, or Video) on the screen with optional rotation, scaling and shearing.
 		 *
 		 * Objects are drawn relative to their local coordinate system. The origin is by default located at the top left corner of Image and Canvas. All scaling, shearing, and rotation arguments transform the object relative to that point. Also, the position of the origin can be specified on the screen coordinate system.
@@ -3570,6 +3577,14 @@ declare global {
 		 * @param originY Shearing factor (x-axis). (Default: 0.)
 		 */
 		draw(image: Image, quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
+		/**
+		 * Draws a Quad subsection of an Image on the screen using a Transform object.
+		 *
+		 * @param image The Image to draw.
+		 * @param quad The subsection of the Image to draw.
+		 * @param transform The Transform object containing the draw position, rotation, scale, shear, and origin.
+		 */
+		draw(image: Image, quad: Quad, transform: Transform): void;
 		/**
 		 * Draws a layer of an Array Texture.
 		 *
@@ -3616,6 +3631,13 @@ declare global {
 		 */
 		draw(canvas: Canvas, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
 		/**
+		 * Draws a Canvas on the screen using a Transform object.
+		 *
+		 * @param canvas The Canvas to draw.
+		 * @param transform The Transform object containing the draw position, rotation, scale, shear, and origin.
+		 */
+		draw(canvas: Canvas, transform: Transform): void;
+		/**
 		 * Draws a Canvas on the screen with optional rotation, scaling, and shearing.
 		 *
 
@@ -3630,6 +3652,14 @@ declare global {
 		 * @param originY The origin offset on the y-axis. (Default: 0.)
 		 */
 		draw(canvas: Canvas, quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
+		/**
+		 * Draws a Quad subsection of a Canvas on the screen using a Transform object.
+		 *
+		 * @param canvas The Canvas to draw.
+		 * @param quad The subsection of the Canvas to draw.
+		 * @param transform The Transform object containing the draw position, rotation, scale, shear, and origin.
+		 */
+		draw(canvas: Canvas, quad: Quad, transform: Transform): void;
 		/**
 		 * Draws a Mesh on the screen with optional rotation, scaling, and shearing.
 		 *
@@ -3646,6 +3676,13 @@ declare global {
 		 * @param shearY The shearing factor on the y-axis. (Default: 0.)
 		 */
 		draw(mesh: Mesh, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
+		/**
+		 * Draws a Mesh on the screen using a Transform object.
+		 *
+		 * @param mesh The Mesh to draw.
+		 * @param transform The Transform object containing the draw position, rotation, scale, shear, and origin.
+		 */
+		draw(mesh: Mesh, transform: Transform): void;
 		/**
 		 * Draws many instances of a Mesh with a single draw call, using hardware geometry instancing.
 		 *
@@ -3667,6 +3704,14 @@ declare global {
 		 */
 		drawInstanced(mesh: Mesh, instanceCount: number, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
 		/**
+		 * Draws many instances of a Mesh with a single draw call using a Transform object.
+		 *
+		 * @param mesh The Mesh to draw.
+		 * @param instanceCount The number of instances to draw.
+		 * @param transform The Transform object applied to every instance.
+		 */
+		drawInstanced(mesh: Mesh, instanceCount: number, transform: Transform): void;
+		/**
 		 * Draws a SpriteBatch on the screen with optional rotation, scaling, and shearing.
 		 *
 
@@ -3682,6 +3727,13 @@ declare global {
 		 * @param shearY The shearing factor on the y-axis. (Default: 0.)
 		 */
 		draw(batch: SpriteBatch, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
+		/**
+		 * Draws a SpriteBatch on the screen using a Transform object.
+		 *
+		 * @param batch The SpriteBatch to draw.
+		 * @param transform The Transform object containing the draw position, rotation, scale, shear, and origin.
+		 */
+		draw(batch: SpriteBatch, transform: Transform): void;
 		/**
 		 * Draws a ParticleSystem on the screen with optional rotation, scaling, and shearing.
 		 *
@@ -3699,6 +3751,13 @@ declare global {
 		 */
 		draw(particles: ParticleSystem, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
 		/**
+		 * Draws a ParticleSystem on the screen using a Transform object.
+		 *
+		 * @param particles The ParticleSystem to draw.
+		 * @param transform The Transform object containing the draw position, rotation, scale, shear, and origin.
+		 */
+		draw(particles: ParticleSystem, transform: Transform): void;
+		/**
 		 * Draws a Text on the screen with optional rotation, scaling, and shearing.
 		 *
 
@@ -3715,6 +3774,13 @@ declare global {
 		 */
 		draw(text: Text, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
 		/**
+		 * Draws a Text object on the screen using a Transform object.
+		 *
+		 * @param text The Text object to draw.
+		 * @param transform The Transform object containing the draw position, rotation, scale, shear, and origin.
+		 */
+		draw(text: Text, transform: Transform): void;
+		/**
 		 * Draws a Video on the screen with optional rotation, scaling, and shearing.
 		 *
 
@@ -3730,6 +3796,13 @@ declare global {
 		 * @param shearY The shearing factor on the y-axis. (Default: 0.)
 		 */
 		draw(video: Video, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
+		/**
+		 * Draws a Video on the screen using a Transform object.
+		 *
+		 * @param video The Video to draw.
+		 * @param transform The Transform object containing the draw position, rotation, scale, shear, and origin.
+		 */
+		draw(video: Video, transform: Transform): void;
 		}
 
 	interface WindowMode {

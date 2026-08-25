@@ -7843,6 +7843,11 @@ local record Graphics
 	-- @param origin_y (number) Origin offset (y-axis). (Default: 0.)
 	draw: function(image: Image, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
 
+	-- Draws an Image on the screen using a Transform object.
+	-- @param image (Image) The Image to draw.
+	-- @param transform (Transform) The Transform object containing the draw position, rotation, scale, shear, and origin.
+	draw: function(image: Image, transform: Transform)
+
 	-- Draws a Drawable object (an Image, Canvas, SpriteBatch, ParticleSystem, Mesh, Text object, or Video) on the screen with optional rotation, scaling and shearing.
 	--
 	-- Objects are drawn relative to their local coordinate system. The origin is by default located at the top left corner of Image and Canvas. All scaling, shearing, and rotation arguments transform the object relative to that point. Also, the position of the origin can be specified on the screen coordinate system.
@@ -7865,6 +7870,12 @@ local record Graphics
 	-- @param origin_y (number) Shearing factor (x-axis). (Default: 0.)
 	draw: function(image: Image, quad: Quad, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
 
+	-- Draws a Quad subsection of an Image on the screen using a Transform object.
+	-- @param image (Image) The Image to draw.
+	-- @param quad (Quad) The subsection of the Image to draw.
+	-- @param transform (Transform) The Transform object containing the draw position, rotation, scale, shear, and origin.
+	draw: function(image: Image, quad: Quad, transform: Transform)
+
 	-- Draws a Canvas on the screen with optional rotation, scaling, and shearing.
 	-- @param canvas (Canvas) The Canvas to draw.
 	-- @param x (number) The position to draw the object on the x-axis. (Default: 0.)
@@ -7875,6 +7886,11 @@ local record Graphics
 	-- @param origin_x (number) The origin offset on the x-axis. (Default: 0.)
 	-- @param origin_y (number) The origin offset on the y-axis. (Default: 0.)
 	draw: function(canvas: Canvas, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
+
+	-- Draws a Canvas on the screen using a Transform object.
+	-- @param canvas (Canvas) The Canvas to draw.
+	-- @param transform (Transform) The Transform object containing the draw position, rotation, scale, shear, and origin.
+	draw: function(canvas: Canvas, transform: Transform)
 
 	-- Draws a Canvas on the screen with optional rotation, scaling, and shearing.
 	-- @param canvas (Canvas) The Canvas to draw.
@@ -7887,6 +7903,12 @@ local record Graphics
 	-- @param origin_x (number) The origin offset on the x-axis. (Default: 0.)
 	-- @param origin_y (number) The origin offset on the y-axis. (Default: 0.)
 	draw: function(canvas: Canvas, quad: Quad, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number)
+
+	-- Draws a Quad subsection of a Canvas on the screen using a Transform object.
+	-- @param canvas (Canvas) The Canvas to draw.
+	-- @param quad (Quad) The subsection of the Canvas to draw.
+	-- @param transform (Transform) The Transform object containing the draw position, rotation, scale, shear, and origin.
+	draw: function(canvas: Canvas, quad: Quad, transform: Transform)
 
 	-- Draws a Mesh on the screen with optional rotation, scaling, and shearing.
 	-- @param mesh (Mesh) The Mesh to draw.
@@ -7901,6 +7923,11 @@ local record Graphics
 	-- @param shear_y (number) The shearing factor on the y-axis. (Default: 0.)
 	draw: function(mesh: Mesh, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
 
+	-- Draws a Mesh on the screen using a Transform object.
+	-- @param mesh (Mesh) The Mesh to draw.
+	-- @param transform (Transform) The Transform object containing the draw position, rotation, scale, shear, and origin.
+	draw: function(mesh: Mesh, transform: Transform)
+
 	-- Draws a SpriteBatch on the screen with optional rotation, scaling, and shearing.
 	-- @param batch (SpriteBatch) The SpriteBatch to draw.
 	-- @param x (number) The position to draw the object on the x-axis. (Default: 0.)
@@ -7913,6 +7940,11 @@ local record Graphics
 	-- @param shear_x (number) The shearing factor on the x-axis. (Default: 0.)
 	-- @param shear_y (number) The shearing factor on the y-axis. (Default: 0.)
 	draw: function(batch: SpriteBatch, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+
+	-- Draws a SpriteBatch on the screen using a Transform object.
+	-- @param batch (SpriteBatch) The SpriteBatch to draw.
+	-- @param transform (Transform) The Transform object containing the draw position, rotation, scale, shear, and origin.
+	draw: function(batch: SpriteBatch, transform: Transform)
 
 	-- Draws a ParticleSystem on the screen with optional rotation, scaling, and shearing.
 	-- @param particles (ParticleSystem) The ParticleSystem to draw.
@@ -7927,6 +7959,11 @@ local record Graphics
 	-- @param shear_y (number) The shearing factor on the y-axis. (Default: 0.)
 	draw: function(particles: ParticleSystem, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
 
+	-- Draws a ParticleSystem on the screen using a Transform object.
+	-- @param particles (ParticleSystem) The ParticleSystem to draw.
+	-- @param transform (Transform) The Transform object containing the draw position, rotation, scale, shear, and origin.
+	draw: function(particles: ParticleSystem, transform: Transform)
+
 	-- Draws a Text on the screen with optional rotation, scaling, and shearing.
 	-- @param text (Text) The Text object to draw.
 	-- @param x (number) The position to draw the object on the x-axis. (Default: 0.)
@@ -7940,6 +7977,11 @@ local record Graphics
 	-- @param shear_y (number) The shearing factor on the y-axis. (Default: 0.)
 	draw: function(text: Text, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
 
+	-- Draws a Text object on the screen using a Transform object.
+	-- @param text (Text) The Text object to draw.
+	-- @param transform (Transform) The Transform object containing the draw position, rotation, scale, shear, and origin.
+	draw: function(text: Text, transform: Transform)
+
 	-- Draws a Video on the screen with optional rotation, scaling, and shearing.
 	-- @param video (Video) The Video to draw.
 	-- @param x (number) The position to draw the object on the x-axis. (Default: 0.)
@@ -7952,6 +7994,11 @@ local record Graphics
 	-- @param shear_x (number) The shearing factor on the x-axis. (Default: 0.)
 	-- @param shear_y (number) The shearing factor on the y-axis. (Default: 0.)
 	draw: function(video: Video, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+
+	-- Draws a Video on the screen using a Transform object.
+	-- @param video (Video) The Video to draw.
+	-- @param transform (Transform) The Transform object containing the draw position, rotation, scale, shear, and origin.
+	draw: function(video: Video, transform: Transform)
 
 	-- Draws a layer of an Table Texture.
 	-- @param image (Image) The Table Texture to draw.
@@ -7996,6 +8043,12 @@ local record Graphics
 	-- @param shear_x (number) Shearing factor (x-axis). (Default: 0.)
 	-- @param shear_y (number) Shearing factor (y-axis). (Default: 0.)
 	drawInstanced: function(mesh: Mesh, instance_count: integer, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number)
+
+	-- Draws many instances of a Mesh with a single draw call using a Transform object.
+	-- @param mesh (Mesh) The Mesh to draw.
+	-- @param instance_count (integer) The number of instances to draw.
+	-- @param transform (Transform) The Transform object applied to every instance.
+	drawInstanced: function(mesh: Mesh, instance_count: integer, transform: Transform)
 end
 
 -- Love 11.5 root module. This file only declares the currently implemented subset.

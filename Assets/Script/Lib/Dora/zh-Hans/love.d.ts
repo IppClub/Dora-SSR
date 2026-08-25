@@ -3546,6 +3546,13 @@ declare global {
 		 */
 		draw(image: Image, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
 		/**
+		 * 使用 Transform 对象在屏幕上绘制 Image。
+		 *
+		 * @param image 要绘制的 Image。
+		 * @param transform 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。
+		 */
+		draw(image: Image, transform: Transform): void;
+		/**
 		 * 在屏幕上绘制可绘制对象（图像、画布、SpriteBatch、粒子系统、网格、文本对象或视频），并可选择旋转、缩放和剪切。
 		 *
 		 * 对象是相对于其局部坐标系绘制的。原点默认位于图像和画布的左上角。所有缩放、剪切和旋转参数都会相对于该点变换对象。另外，还可以在屏幕坐标系上指定原点位置。
@@ -3570,6 +3577,14 @@ declare global {
 		 * @param originY 剪切系数（x 轴）。 （默认值：0。）
 		 */
 		draw(image: Image, quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
+		/**
+		 * 使用 Transform 对象在屏幕上绘制 Image 的 Quad 子区域。
+		 *
+		 * @param image 要绘制的 Image。
+		 * @param quad 要绘制的 Image 子区域。
+		 * @param transform 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。
+		 */
+		draw(image: Image, quad: Quad, transform: Transform): void;
 		/**
 		 * 绘制数组纹理的一层。
 		 *
@@ -3616,6 +3631,13 @@ declare global {
 		 */
 		draw(canvas: Canvas, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
 		/**
+		 * 使用 Transform 对象在屏幕上绘制 Canvas。
+		 *
+		 * @param canvas 要绘制的 Canvas。
+		 * @param transform 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。
+		 */
+		draw(canvas: Canvas, transform: Transform): void;
+		/**
 		 * 在屏幕上绘制 Canvas，并可选择旋转、缩放和剪切。
 		 *
 
@@ -3630,6 +3652,14 @@ declare global {
 		 * @param originY y 轴原点偏移。（默认值：0。）
 		 */
 		draw(canvas: Canvas, quad: Quad, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number): void;
+		/**
+		 * 使用 Transform 对象在屏幕上绘制 Canvas 的 Quad 子区域。
+		 *
+		 * @param canvas 要绘制的 Canvas。
+		 * @param quad 要绘制的 Canvas 子区域。
+		 * @param transform 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。
+		 */
+		draw(canvas: Canvas, quad: Quad, transform: Transform): void;
 		/**
 		 * 在屏幕上绘制 Mesh，并可选择旋转、缩放和剪切。
 		 *
@@ -3646,6 +3676,13 @@ declare global {
 		 * @param shearY y 轴剪切系数。（默认值：0。）
 		 */
 		draw(mesh: Mesh, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
+		/**
+		 * 使用 Transform 对象在屏幕上绘制 Mesh。
+		 *
+		 * @param mesh 要绘制的 Mesh。
+		 * @param transform 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。
+		 */
+		draw(mesh: Mesh, transform: Transform): void;
 		/**
 		 * 使用硬件几何实例，通过一次绘制调用绘制网格的许多实例。
 		 *
@@ -3667,6 +3704,14 @@ declare global {
 		 */
 		drawInstanced(mesh: Mesh, instanceCount: number, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
 		/**
+		 * 使用 Transform 对象，通过一次绘制调用绘制 Mesh 的多个实例。
+		 *
+		 * @param mesh 要绘制的 Mesh。
+		 * @param instanceCount 要绘制的实例数量。
+		 * @param transform 应用于每个实例的 Transform 对象。
+		 */
+		drawInstanced(mesh: Mesh, instanceCount: number, transform: Transform): void;
+		/**
 		 * 在屏幕上绘制 SpriteBatch，并可选择旋转、缩放和剪切。
 		 *
 
@@ -3682,6 +3727,13 @@ declare global {
 		 * @param shearY y 轴剪切系数。（默认值：0。）
 		 */
 		draw(batch: SpriteBatch, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
+		/**
+		 * 使用 Transform 对象在屏幕上绘制 SpriteBatch。
+		 *
+		 * @param batch 要绘制的 SpriteBatch。
+		 * @param transform 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。
+		 */
+		draw(batch: SpriteBatch, transform: Transform): void;
 		/**
 		 * 在屏幕上绘制 ParticleSystem，并可选择旋转、缩放和剪切。
 		 *
@@ -3699,6 +3751,13 @@ declare global {
 		 */
 		draw(particles: ParticleSystem, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
 		/**
+		 * 使用 Transform 对象在屏幕上绘制 ParticleSystem。
+		 *
+		 * @param particles 要绘制的 ParticleSystem。
+		 * @param transform 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。
+		 */
+		draw(particles: ParticleSystem, transform: Transform): void;
+		/**
 		 * 在屏幕上绘制 Text，并可选择旋转、缩放和剪切。
 		 *
 
@@ -3715,6 +3774,13 @@ declare global {
 		 */
 		draw(text: Text, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
 		/**
+		 * 使用 Transform 对象在屏幕上绘制 Text 对象。
+		 *
+		 * @param text 要绘制的 Text 对象。
+		 * @param transform 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。
+		 */
+		draw(text: Text, transform: Transform): void;
+		/**
 		 * 在屏幕上绘制 Video，并可选择旋转、缩放和剪切。
 		 *
 
@@ -3730,6 +3796,13 @@ declare global {
 		 * @param shearY y 轴剪切系数。（默认值：0。）
 		 */
 		draw(video: Video, x?: number, y?: number, angle?: number, scaleX?: number, scaleY?: number, originX?: number, originY?: number, shearX?: number, shearY?: number): void;
+		/**
+		 * 使用 Transform 对象在屏幕上绘制 Video。
+		 *
+		 * @param video 要绘制的 Video。
+		 * @param transform 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。
+		 */
+		draw(video: Video, transform: Transform): void;
 		}
 
 	interface WindowMode {
