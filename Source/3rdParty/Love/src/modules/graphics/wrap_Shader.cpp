@@ -20,9 +20,9 @@
 
 #include "wrap_Shader.h"
 #include "wrap_Texture.h"
+#include "common/Data.h"
 #include "math/MathModule.h"
 #include "math/Transform.h"
-#include "Graphics.h"
 
 #include <string>
 #include <algorithm>
@@ -88,26 +88,40 @@ int w_Shader_sendFloats(lua_State *L, int startidx, Shader *shader, const Shader
 	else
 		_updateNumbers<float, lua_Number, luaL_checknumber>(L, startidx, values, components, count);
 
-	if (colors && graphics::isGammaCorrect())
-	{
-		// alpha is always linear (when present).
-		int gammacomponents = std::min(components, 3);
-
-		for (int i = 0; i < count; i++)
-		{
-			for (int j = 0; j < gammacomponents; j++)
-				values[i * components + j] = math::gammaToLinear(values[i * components + j]);
-		}
-	}
-
-	luax_catchexcept(L, [&]() { shader->updateUniform(info, count); });
+	// Dora's embedded graphics state is not gamma-correct, matching
+	// love.graphics.isGammaCorrect() in this runtime.
+	luax_catchexcept(L, [&]() { shader->updateUniform(info, count, colors); });
 	return 0;
 }
 
 int w_Shader_sendInts(lua_State *L, int startidx, Shader *shader, const Shader::UniformInfo *info)
 {
 	int count = _getCount(L, startidx, info);
-	_updateNumbers<int, lua_Integer, luaL_checkinteger>(L, startidx, info->ints, info->components, count);
+	auto checkint32 = [](lua_State *state, int index) -> lua_Integer {
+		lua_Integer value = luaL_checkinteger(state, index);
+		luaL_argcheck(state, value >= std::numeric_limits<int>::min()
+			&& value <= std::numeric_limits<int>::max(), index,
+			"Shader int must fit in 32 bits");
+		return value;
+	};
+	if (info->components == 1)
+	{
+		for (int i = 0; i < count; ++i)
+			info->ints[i] = (int) checkint32(L, startidx + i);
+	}
+	else
+	{
+		for (int i = 0; i < count; ++i)
+		{
+			luaL_checktype(L, startidx + i, LUA_TTABLE);
+			for (int k = 1; k <= info->components; ++k)
+			{
+				lua_rawgeti(L, startidx + i, k);
+				info->ints[i * info->components + k - 1] = (int) checkint32(L, -1);
+				lua_pop(L, 1);
+			}
+		}
+	}
 	luax_catchexcept(L, [&]() { shader->updateUniform(info, count); });
 	return 0;
 }
@@ -115,7 +129,33 @@ int w_Shader_sendInts(lua_State *L, int startidx, Shader *shader, const Shader::
 int w_Shader_sendUnsignedInts(lua_State *L, int startidx, Shader *shader, const Shader::UniformInfo *info)
 {
 	int count = _getCount(L, startidx, info);
-	_updateNumbers<unsigned int, lua_Integer, luaL_checkinteger>(L, startidx, info->uints, info->components, count);
+	auto checkuint32 = [](lua_State *state, int index) -> lua_Integer {
+		lua_Integer value = luaL_checkinteger(state, index);
+		luaL_argcheck(state, value >= 0
+			&& static_cast<unsigned long long>(value)
+				<= std::numeric_limits<unsigned int>::max(), index,
+			"Shader uint must fit in 32 bits");
+		return value;
+	};
+	if (info->components == 1)
+	{
+		for (int i = 0; i < count; ++i)
+			info->uints[i] = (unsigned int) checkuint32(L, startidx + i);
+	}
+	else
+	{
+		for (int i = 0; i < count; ++i)
+		{
+			luaL_checktype(L, startidx + i, LUA_TTABLE);
+			for (int k = 1; k <= info->components; ++k)
+			{
+				lua_rawgeti(L, startidx + i, k);
+				info->uints[i * info->components + k - 1]
+					= (unsigned int) checkuint32(L, -1);
+				lua_pop(L, 1);
+			}
+		}
+	}
 	luax_catchexcept(L, [&]() { shader->updateUniform(info, count); });
 	return 0;
 }
@@ -264,7 +304,7 @@ int w_Shader_sendMatrices(lua_State *L, int startidx, Shader *shader, const Shad
 		}
 	}
 
-	shader->updateUniform(info, count);
+	luax_catchexcept(L, [&]() { shader->updateUniform(info, count); });
 	return 0;
 }
 
@@ -402,21 +442,8 @@ static int w_Shader_sendData(lua_State *L, int startidx, Shader *shader, const S
 		}
 	}
 
-	if (colors && graphics::isGammaCorrect())
-	{
-		// alpha is always linear (when present).
-		int components = info->components;
-		int gammacomponents = std::min(components, 3);
-		float *values = info->floats;
-
-		for (int i = 0; i < count; i++)
-		{
-			for (int j = 0; j < gammacomponents; j++)
-				values[i * components + j] = math::gammaToLinear(values[i * components + j]);
-		}
-	}
-
-	shader->updateUniform(info, count);
+	// Dora's embedded graphics state is not gamma-correct.
+	luax_catchexcept(L, [&]() { shader->updateUniform(info, count, colors); });
 	return 0;
 }
 
@@ -468,6 +495,7 @@ static const luaL_Reg w_Shader_functions[] =
 	{ "getWarnings", w_Shader_getWarnings },
 	{ "send",        w_Shader_send },
 	{ "sendColor",   w_Shader_sendColors },
+	{ "getExternVariable", w_Shader_hasUniform },
 	{ "hasUniform",  w_Shader_hasUniform },
 	{ 0, 0 }
 };
@@ -479,4 +507,3 @@ extern "C" int luaopen_shader(lua_State *L)
 
 } // graphics
 } // love
-

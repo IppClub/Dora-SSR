@@ -20,14 +20,13 @@
 
 // LOVE
 #include "wrap_System.h"
-#include "sdl/System.h"
 
 namespace love
 {
 namespace system
 {
 
-#define instance() (Module::getInstance<System>(Module::M_SYSTEM))
+#define instance() (luax_getmodule<System>(L, Module::M_SYSTEM))
 
 int w_getOS(lua_State *L)
 {
@@ -91,7 +90,7 @@ int w_openURL(lua_State *L)
 int w_vibrate(lua_State *L)
 {
 	double seconds = luaL_optnumber(L, 1, 0.5);
-	instance()->vibrate(seconds);
+	luax_catchexcept(L, [&]() { instance()->vibrate(seconds); });
 	return 0;
 }
 
@@ -119,7 +118,7 @@ extern "C" int luaopen_love_system(lua_State *L)
 	System *instance = instance();
 	if (instance == nullptr)
 	{
-		instance = new love::system::sdl::System();
+		luax_catchexcept(L, [&](){ instance = newDoraSystem(L); });
 	}
 	else
 		instance->retain();

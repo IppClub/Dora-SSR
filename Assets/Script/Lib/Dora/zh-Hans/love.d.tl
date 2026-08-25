@@ -740,6 +740,27 @@ local record Video
 	-- @param source (Source) 用于音频播放的音频源，或 nil 以禁用音频同步。 （默认值：无。）
 	setSource: function(self: Video, source?: Source)
 
+	-- 播放视频及其同步的音频源（如果存在）。
+	play: function(self: Video)
+
+	-- 暂停视频及其同步的音频源（如果存在）。
+	pause: function(self: Video)
+
+	-- 设置视频的播放位置。
+	-- @param seconds (number) 从视频开始处计算的秒数。
+	seek: function(self: Video, seconds: number)
+
+	-- 将视频倒回开头。
+	rewind: function(self: Video)
+
+	-- 获取视频当前的播放位置。
+	-- @return (number) 从视频开始处计算的秒数。
+	tell: function(self: Video): number
+
+	-- 获取视频当前是否正在播放。
+	-- @return (boolean) 视频正在播放时为 true。
+	isPlaying: function(self: Video): boolean
+
 	-- 获取视频的宽度（以像素为单位）。
 	-- @return (integer) 视频的宽度。
 	getWidth: function(self: Video): integer
@@ -2369,6 +2390,23 @@ local record Window
 	-- 如果窗口未最小化且程序未隐藏，则窗口被视为可见。
 	-- @return (boolean) 如果窗口可见则为 true，如果不可见则为 false。
 	isVisible: function(): boolean
+
+	-- 关闭虚拟 Love 窗口，但不会关闭 Dora 宿主应用。
+	close: function()
+
+	-- 设置虚拟窗口的位置元数据。
+	setPosition: function(x: number, y: number, display?: integer)
+
+	-- 改变虚拟窗口的最小化或最大化状态。
+	minimize: function()
+	maximize: function()
+	restore: function()
+
+	-- 在宿主支持时显示消息框；自定义按钮形式返回从 1 开始的索引。
+	showMessageBox: function(title: string, message: string, options?: any, message_type?: string, attach_to_window?: boolean): boolean | integer
+
+	-- 在宿主窗口支持时请求用户注意。
+	requestAttention: function(continuous?: boolean)
 
 	-- 获取Window当前是否最大化。
 	-- 如果窗口不是全屏且可调整大小，并且用户已按下窗口的最大化按钮或已调用 love.window.maximize ，则窗口可以最大化。
@@ -5631,6 +5669,38 @@ local record Body
 	-- 返回附加到刚体的所有碰撞体。
 	-- @return (Fixture[]) 包含刚体所有碰撞体的表。
 	getFixtures: function(self: Body): {Fixture}
+
+	-- 返回附加到物体的所有关节。
+	-- @return (Joint[]) 所有关节组成的表。
+	getJoints: function(self: Body): {Joint}
+
+	-- 返回与物体有关的所有当前接触。
+	-- @return (Contact[]) 所有接触组成的表。
+	getContacts: function(self: Body): {Contact}
+
+	-- 返回拥有此物体的 World。
+	-- @return (World) 所属的 World。
+	getWorld: function(self: Body): World
+
+	-- 返回此物体是否正在接触另一个物体。
+	-- @param other (Body) 另一个物体。
+	-- @return (boolean) 两个物体正在接触时为 true。
+	isTouching: function(self: Body, other: Body): boolean
+
+	-- 为物体关联任意 Lua 值。
+	setUserData: function(self: Body, value: any)
+
+	-- 返回与物体关联的任意 Lua 值。
+	getUserData: function(self: Body): any
+
+	-- getFixtures 的已弃用别名。
+	getFixtureList: function(self: Body): {Fixture}
+
+	-- getJoints 的已弃用别名。
+	getJointList: function(self: Body): {Joint}
+
+	-- getContacts 的已弃用别名。
+	getContactList: function(self: Body): {Contact}
 end
 
 -- 形状是固体二维几何对象，用于处理 love.physics.
@@ -5655,16 +5725,33 @@ local record Shape
 	-- @return (string) 形状的类型。
 	getType: function(self: Shape): string
 
-	-- 获取形状的半径。
-	-- @param index (integer) index 参数。
-	-- @param x (number) x 参数。
-	-- @param y (number) y 参数。
-	-- @return (number or number... or boolean or integer or Shape or number or nil) 形状的半径。
+	-- 获取形状圆角外皮的半径。
+	-- @return (number) 像素半径。
 	getRadius: function(self: Shape): number
+
+	-- 设置 CircleShape 的半径。
+	setRadius: function(self: Shape, radius: number)
+
+	-- 返回子形状数量。
+	getChildCount: function(self: Shape): integer
+
+	-- 检查点是否位于变换后的形状内部。
+	testPoint: function(self: Shape, x: number, y: number, angle: number, point_x: number, point_y: number): boolean
+
+	-- 对变换后的形状作射线检测；未命中时返回 nil。
+	rayCast: function(self: Shape, x1: number, y1: number, x2: number, y2: number, maximum_fraction: number, x: number, y: number, angle: number, child_index?: integer): number | nil, number | nil, number | nil
+
+	-- 计算变换后的轴对齐包围盒。
+	computeAABB: function(self: Shape, x: number, y: number, angle: number, child_index?: integer): number, number, number, number
+
+	-- 按密度计算质心、质量和转动惯量。
+	computeMass: function(self: Shape, density: number): number, number, number, number
+
 	getPoints: function(self: Shape): number...
 	validate: function(self: Shape): boolean
 	getVertexCount: function(self: Shape): integer
-	getPoint: function(self: Shape, index: integer): number, number
+	getPoint: function(self: Shape, index?: integer): number, number
+	setPoint: function(self: Shape, x: number, y: number)
 	getChildEdge: function(self: Shape, index: integer): Shape
 	getPreviousVertex: function(self: Shape): number | nil, number | nil
 	getNextVertex: function(self: Shape): number | nil, number | nil
@@ -5863,7 +5950,9 @@ local record Contact
 	-- 这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
 	-- @return (boolean) 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。
 	release: function(self: Contact): boolean
-	isValid: function(self: Contact): boolean
+	-- 检查 Contact 是否已被销毁。
+	-- @return (boolean) Contact 已失效时为 true。
+	isDestroyed: function(self: Contact): boolean
 
 	-- 获取保持接触形状的两个夹具。
 	-- @return (Fixture) 第一个装置。
@@ -5951,6 +6040,32 @@ local record World
 	-- 返回世界中的所有刚体。
 	-- @return (Body[]) 包含世界中所有刚体的表。
 	getBodies: function(self: World): {Body}
+
+	-- 返回世界中的所有关节。
+	getJoints: function(self: World): {Joint}
+
+	-- 返回世界中的所有当前接触。
+	getContacts: function(self: World): {Contact}
+
+	-- 返回世界中的刚体、关节和当前接触数量。
+	getBodyCount: function(self: World): integer
+
+	getJointCount: function(self: World): integer
+
+	getContactCount: function(self: World): integer
+
+	-- 返回世界当前是否正在执行更新。
+	isLocked: function(self: World): boolean
+
+	-- 按指定偏移量平移世界原点。
+	translateOrigin: function(self: World, x: number, y: number)
+
+	-- 对应 get 方法的已弃用别名。
+	getBodyList: function(self: World): {Body}
+
+	getJointList: function(self: World): {Joint}
+
+	getContactList: function(self: World): {Contact}
 
 	-- 更新世界状况。
 	-- @param delta_time (number) 推进物理模拟的时间（以秒为单位）。

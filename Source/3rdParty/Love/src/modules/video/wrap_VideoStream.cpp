@@ -20,6 +20,8 @@
 
 #include "wrap_VideoStream.h"
 
+#include <cmath>
+
 namespace love
 {
 namespace video
@@ -84,7 +86,9 @@ int w_VideoStream_seek(lua_State *L)
 {
 	auto stream = luax_checkvideostream(L, 1);
 	double offset = luaL_checknumber(L, 2);
-	stream->seek(offset);
+	if (!std::isfinite(offset) || offset < 0.0)
+		return luaL_argerror(L, 2, "seek offset must be a finite non-negative number");
+	luax_catchexcept(L, [&](){ stream->seek(offset); });
 	return 0;
 }
 

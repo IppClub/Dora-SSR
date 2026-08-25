@@ -1,0 +1,58 @@
+diff --git a/src/modules/graphics/wrap_GraphicsDraw.h b/src/modules/graphics/wrap_GraphicsDraw.h
+index 3236b0f1d..8762887f1 100644
+--- a/src/modules/graphics/wrap_GraphicsDraw.h
++++ b/src/modules/graphics/wrap_GraphicsDraw.h
+@@ -23,6 +23,7 @@
+ #include "common/runtime.h"
+ #include "common/Module.h"
+ #include "Drawable.h"
++#include "Mesh.h"
+ #include "Quad.h"
+ #include "Texture.h"
+ 
+@@ -44,10 +45,13 @@ class GraphicsDrawCommand
+ 		Quad *quad, const Matrix4 &transform) = 0;
+ 	virtual void drawLayer(lua_State *L, Texture *texture, int layer,
+ 		Quad *quad, const Matrix4 &transform) = 0;
++	virtual void drawInstanced(lua_State *L, Mesh *mesh, int instanceCount,
++		const Matrix4 &transform) = 0;
+ };
+ 
+ int w_draw(lua_State *L);
+ int w_drawLayer(lua_State *L);
++int w_drawInstanced(lua_State *L);
+ 
+ } // graphics
+ } // love
+diff --git a/src/modules/graphics/wrap_GraphicsDraw.cpp b/src/modules/graphics/wrap_GraphicsDraw.cpp
+index 6b62e9a00..eb831bdd6 100644
+--- a/src/modules/graphics/wrap_GraphicsDraw.cpp
++++ b/src/modules/graphics/wrap_GraphicsDraw.cpp
+@@ -20,6 +20,7 @@
+ 
+ #include "wrap_GraphicsDraw.h"
+ #include "wrap_GraphicsTransform.h"
++#include "wrap_Mesh.h"
+ #include "wrap_Quad.h"
+ #include "wrap_Texture.h"
+ 
+@@ -100,5 +101,19 @@ int w_drawLayer(lua_State *L)
+ 	return 0;
+ }
+ 
++int w_drawInstanced(lua_State *L)
++{
++	Mesh *mesh = luax_checkmesh(L, 1);
++	const int instanceCount = static_cast<int>(luaL_checkinteger(L, 2));
++	luax_checkstandardtransform(L, 3, [&](const Matrix4 &m)
++	{
++		luax_catchexcept(L, [&]()
++		{
++			drawCommand(L)->drawInstanced(L, mesh, instanceCount, m);
++		});
++	});
++	return 0;
++}
++
+ } // graphics
+ } // love

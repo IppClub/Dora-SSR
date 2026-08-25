@@ -3,6 +3,8 @@
 *.cmd text eol=crlf
 
 Source/3rdParty/** linguist-vendored
+Source/3rdParty/Love/** -whitespace
+Source/Love/Patches/*.patch -whitespace
 Site/** linguist-vendored
 Tools/dora-dora/3rdParty/** linguist-vendored
 Tools/dora-dora/public/code-wire/** linguist-vendored

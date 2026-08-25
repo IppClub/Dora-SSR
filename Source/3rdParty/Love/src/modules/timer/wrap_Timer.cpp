@@ -28,7 +28,7 @@ namespace love
 namespace timer
 {
 
-#define instance() (Module::getInstance<Timer>(Module::M_TIMER))
+#define instance() (luax_getmodule<Timer>(L, Module::M_TIMER))
 
 int w_step(lua_State *L)
 {
@@ -56,7 +56,8 @@ int w_getAverageDelta(lua_State *L)
 
 int w_sleep(lua_State *L)
 {
-	instance()->sleep(luaL_checknumber(L, 1));
+	const double seconds = luaL_checknumber(L, 1);
+	luax_catchexcept(L, [&]() { instance()->sleep(seconds); });
 	return 0;
 }
 
@@ -84,7 +85,7 @@ extern "C" int luaopen_love_timer(lua_State *L)
 	Timer *instance = instance();
 	if (instance == nullptr)
 	{
-		luax_catchexcept(L, [&](){ instance = new love::timer::Timer(); });
+		luax_catchexcept(L, [&](){ instance = newDoraTimer(L); });
 	}
 	else
 		instance->retain();

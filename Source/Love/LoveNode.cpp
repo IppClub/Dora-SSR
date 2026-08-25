@@ -3903,10 +3903,19 @@ BlendFunc toDoraBlendFunc(std::string_view mode, std::string_view alphaMode)
 	}
 	if (mode == "multiply")
 		return {BlendFunc::DstColor, BlendFunc::Zero, BlendFunc::DstColor, BlendFunc::Zero};
+	if (mode == "lighten" || mode == "darken")
+	{
+		const uint64_t equation = mode == "lighten"
+			? BGFX_STATE_BLEND_EQUATION_MAX : BGFX_STATE_BLEND_EQUATION_MIN;
+		return BlendFunc{BlendFunc::One, BlendFunc::One,
+			BlendFunc::One, BlendFunc::One}.toValue() | equation;
+	}
 	if (mode == "screen")
 		return premultiplied
 			? BlendFunc{BlendFunc::One, BlendFunc::InvSrcColor, BlendFunc::One, BlendFunc::InvSrcColor}
 			: BlendFunc{BlendFunc::SrcAlpha, BlendFunc::InvSrcColor, BlendFunc::One, BlendFunc::InvSrcColor};
+	if (mode == "none")
+		return {BlendFunc::One, BlendFunc::Zero, BlendFunc::One, BlendFunc::Zero};
 	return premultiplied
 		? BlendFunc{BlendFunc::One, BlendFunc::Zero, BlendFunc::One, BlendFunc::Zero}
 		: BlendFunc{BlendFunc::SrcAlpha, BlendFunc::Zero, BlendFunc::One, BlendFunc::Zero};
@@ -8957,6 +8966,56 @@ Love::GraphicsBackend::FontHandle LoveNode::newFont(const std::string &filename,
 	return handle;
 }
 
+Love::GraphicsBackend::FontHandle LoveNode::newFont(
+	std::span<const std::uint8_t> bytes, int size, float dpiScale, std::string &error)
+{
+	if (bytes.empty() || bytes.size() > UINT32_MAX || size <= 0
+		|| !std::isfinite(dpiScale) || dpiScale <= 0.0f)
+	{
+		error = "Love in-memory Font has invalid data, size, or DPI scale";
+		return 0;
+	}
+	auto owned = MakeOwnArray(new std::uint8_t[bytes.size()]);
+	std::memcpy(owned.get(), bytes.data(), bytes.size());
+	const auto trueTypeHandle = SharedFontManager.createTtf(
+		std::move(owned), static_cast<std::uint32_t>(bytes.size()));
+	if (!bgfx::isValid(trueTypeHandle))
+	{
+		error = "Dora/bgfx failed to parse the Love in-memory Font";
+		return 0;
+	}
+	Ref<TrueTypeFile> file(TrueTypeFile::create(trueTypeHandle));
+	if (!file)
+	{
+		SharedFontManager.destroyTtf(trueTypeHandle);
+		error = "Dora failed to retain the Love in-memory Font data";
+		return 0;
+	}
+	const auto fontHandle = SharedFontManager.createFontByPixelSize(
+		trueTypeHandle, DORA_SDF_FONT_BASE_SIZE, true);
+	if (!bgfx::isValid(fontHandle))
+	{
+		error = "Dora/bgfx failed to create the Love in-memory Font face";
+		return 0;
+	}
+	Ref<Font> font(Font::create(file.get(), fontHandle));
+	if (!font)
+	{
+		SharedFontManager.destroyFont(fontHandle);
+		error = "Dora failed to wrap the Love in-memory Font face";
+		return 0;
+	}
+	const auto handle = _nextFontHandle++;
+	FontResource resource;
+	resource.filename = "<memory>";
+	resource.size = size;
+	resource.dpiScale = dpiScale;
+	resource.font = font;
+	_fonts.emplace(handle, std::move(resource));
+	error.clear();
+	return handle;
+}
+
 Love::GraphicsBackend::FontHandle LoveNode::newImageFont(int width, int height,
 	std::span<const std::uint8_t> rgba8,
 	std::span<const Love::GraphicsBackend::ImageFontGlyph> glyphs, float dpiScale,
@@ -9860,12 +9919,13 @@ void LoveNode::endFrame()
 	for (const std::uint64_t requestId : requests)
 	{
 		WRef<LoveNode> self(this);
-		if (!_renderTarget->readPixelsAsync([self, generation, requestId](uint16_t width, uint16_t height,
-			std::vector<uint8_t> pixels) mutable {
+		if (!_renderTarget->readPixelsAsync([self, generation, requestId](uint16_t width,
+			uint16_t height, std::vector<uint8_t> pixels) mutable {
 			if (!self || self->_runtimeGeneration != generation || !self->_runtime)
 				return;
 			std::string error;
-			if (!self->_runtime->completeScreenshot(requestId, width, height, std::move(pixels), error))
+			if (!self->_runtime->completeScreenshot(requestId, width, height,
+				std::move(pixels), error))
 				self->reportError("screenshot"_slice, error);
 		}))
 		{
@@ -12268,6 +12328,112 @@ bool LoveNode::setShapeNextVertex(Love::PhysicsBackend::ShapeHandle shape,
 		nativeShape = pd::Shape{std::move(conf)};
 	}
 	else { error = "expected Love EdgeShape or ChainShape"; return false; }
+	error.clear(); return true;
+}
+
+bool LoveNode::setCircleShape(Love::PhysicsBackend::ShapeHandle shape,
+	float x, float y, float radius, std::string &error)
+{
+	auto found = _physicsShapes.find(shape);
+	if (found == _physicsShapes.end() || found->second.type != "circle")
+	{ error = "expected an open Love CircleShape"; return false; }
+	const float scale = PhysicsWorld::scaleFactor / _physicsMeter;
+	FixtureDef *fixture = BodyDef::disk(Vec2{x * scale, y * scale}, radius * scale, 1.0f);
+	if (!fixture) { error = "failed to update Love CircleShape"; return false; }
+	found->second.fixture = Ref<FixtureDef>(fixture); error.clear(); return true;
+}
+
+bool LoveNode::getShapeChildCount(Love::PhysicsBackend::ShapeHandle shape,
+	int &count, std::string &error) const
+{
+	const auto found = _physicsShapes.find(shape);
+	if (found == _physicsShapes.end() || !found->second.fixture)
+	{ error = "Shape is closed"; return false; }
+	count = static_cast<int>(pd::GetChildCount(found->second.fixture->shape));
+	error.clear(); return true;
+}
+
+bool LoveNode::testShapePoint(Love::PhysicsBackend::ShapeHandle shape,
+	float x, float y, float angle, float px, float py, bool &value,
+	std::string &error) const
+{
+	const auto found = _physicsShapes.find(shape);
+	if (found == _physicsShapes.end() || !found->second.fixture)
+	{ error = "Shape is closed"; return false; }
+	const pd::Transformation transform{
+		pr::Length2{x / _physicsMeter * pr::Meter, y / _physicsMeter * pr::Meter},
+		pd::UnitVec::Get(angle * pr::Radian)};
+	value = pd::TestPoint(found->second.fixture->shape,
+		pd::InverseTransform(pr::Length2{px / _physicsMeter * pr::Meter,
+			py / _physicsMeter * pr::Meter}, transform));
+	error.clear(); return true;
+}
+
+bool LoveNode::rayCastShape(Love::PhysicsBackend::ShapeHandle shape,
+	float x1, float y1, float x2, float y2, float maxFraction,
+	float x, float y, float angle, std::uint16_t childIndex, bool &hit,
+	float &normalX, float &normalY, float &fraction, std::string &error) const
+{
+	const auto found = _physicsShapes.find(shape);
+	if (found == _physicsShapes.end() || !found->second.fixture)
+	{ error = "Shape is closed"; return false; }
+	const auto &native = found->second.fixture->shape;
+	if (childIndex >= pd::GetChildCount(native))
+	{ error = "Shape child index is out of range"; return false; }
+	const pd::RayCastInput input{
+		pr::Length2{x1 / _physicsMeter * pr::Meter, y1 / _physicsMeter * pr::Meter},
+		pr::Length2{x2 / _physicsMeter * pr::Meter, y2 / _physicsMeter * pr::Meter},
+		pr::UnitInterval<pr::Real>{maxFraction}};
+	const pd::Transformation transform{
+		pr::Length2{x / _physicsMeter * pr::Meter, y / _physicsMeter * pr::Meter},
+		pd::UnitVec::Get(angle * pr::Radian)};
+	const auto result = pd::RayCast(native, static_cast<pr::ChildCounter>(childIndex), input, transform);
+	hit = result.has_value();
+	if (hit)
+	{
+		normalX = static_cast<float>(pr::Real{result->normal.GetX()});
+		normalY = static_cast<float>(pr::Real{result->normal.GetY()});
+		fraction = static_cast<float>(pr::Real{result->fraction});
+	}
+	error.clear(); return true;
+}
+
+bool LoveNode::getShapeBoundingBox(Love::PhysicsBackend::ShapeHandle shape,
+	float x, float y, float angle, std::uint16_t childIndex,
+	float &x1, float &y1, float &x2, float &y2, std::string &error) const
+{
+	const auto found = _physicsShapes.find(shape);
+	if (found == _physicsShapes.end() || !found->second.fixture)
+	{ error = "Shape is closed"; return false; }
+	const auto &native = found->second.fixture->shape;
+	if (childIndex >= pd::GetChildCount(native))
+	{ error = "Shape child index is out of range"; return false; }
+	const pd::Transformation transform{
+		pr::Length2{x / _physicsMeter * pr::Meter, y / _physicsMeter * pr::Meter},
+		pd::UnitVec::Get(angle * pr::Radian)};
+	const auto box = pd::ComputeAABB(pd::GetChild(native,
+		static_cast<pr::ChildCounter>(childIndex)), transform);
+	x1 = static_cast<float>(pr::Real{box.ranges[0].GetMin() / pr::Meter}) * _physicsMeter;
+	y1 = static_cast<float>(pr::Real{box.ranges[1].GetMin() / pr::Meter}) * _physicsMeter;
+	x2 = static_cast<float>(pr::Real{box.ranges[0].GetMax() / pr::Meter}) * _physicsMeter;
+	y2 = static_cast<float>(pr::Real{box.ranges[1].GetMax() / pr::Meter}) * _physicsMeter;
+	error.clear(); return true;
+}
+
+bool LoveNode::getShapeMassData(Love::PhysicsBackend::ShapeHandle shape, float density,
+	float &x, float &y, float &mass, float &inertia, std::string &error) const
+{
+	const auto found = _physicsShapes.find(shape);
+	if (found == _physicsShapes.end() || !found->second.fixture)
+	{ error = "Shape is closed"; return false; }
+	auto native = found->second.fixture->shape;
+	pd::SetDensity(native, pr::NonNegative<pr::AreaDensity>{density * pr::KilogramPerSquareMeter});
+	const auto data = pd::GetMassData(native);
+	x = static_cast<float>(pr::Real{pr::GetX(data.center) / pr::Meter}) * _physicsMeter;
+	y = static_cast<float>(pr::Real{pr::GetY(data.center) / pr::Meter}) * _physicsMeter;
+	mass = static_cast<float>(pr::Real{data.mass / pr::Kilogram});
+	inertia = static_cast<float>(pr::Real{data.I /
+		(pr::Kilogram * pr::SquareMeter / pr::SquareRadian)}) * _physicsMeter * _physicsMeter;
 	error.clear(); return true;
 }
 

@@ -1,0 +1,13 @@
+diff --git a/src/modules/math/wrap_Transform.cpp b/src/modules/math/wrap_Transform.cpp
+index 2c19e21fe..5bd1b8452 100644
+--- a/src/modules/math/wrap_Transform.cpp
++++ b/src/modules/math/wrap_Transform.cpp
+@@ -138,7 +138,7 @@ int w_Transform_setMatrix(lua_State *L)
+ 	if (lua_type(L, idx) == LUA_TSTRING)
+ 	{
+ 		const char *layoutstr = lua_tostring(L, idx);
+-		Transform::MatrixLayout layout;
++		Transform::MatrixLayout layout = Transform::MATRIX_ROW_MAJOR;
+ 		if (!Transform::getConstant(layoutstr, layout))
+ 			return luax_enumerror(L, "matrix layout", Transform::getConstants(layout), layoutstr);
+ 

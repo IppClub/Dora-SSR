@@ -22,14 +22,13 @@
 
 #include "wrap_Keyboard.h"
 
-#include "sdl/Keyboard.h"
 
 namespace love
 {
 namespace keyboard
 {
 
-#define instance() (Module::getInstance<Keyboard>(Module::M_KEYBOARD))
+#define instance() (luax_getmodule<Keyboard>(L, Module::M_KEYBOARD))
 
 int w_setKeyRepeat(lua_State *L)
 {
@@ -169,7 +168,7 @@ int w_setTextInput(lua_State *L)
 		double y = luaL_checknumber(L, 3);
 		double w = luaL_checknumber(L, 4);
 		double h = luaL_checknumber(L, 5);
-		instance()->setTextInput(enable, x, y, w, h);
+		luax_catchexcept(L, [&]() { instance()->setTextInput(enable, x, y, w, h); });
 	}
 
 	return 0;
@@ -207,7 +206,7 @@ extern "C" int luaopen_love_keyboard(lua_State *L)
 	Keyboard *instance = instance();
 	if (instance == nullptr)
 	{
-		luax_catchexcept(L, [&](){ instance = new love::keyboard::sdl::Keyboard(); });
+		luax_catchexcept(L, [&](){ instance = newDoraKeyboard(L); });
 	}
 	else
 		instance->retain();

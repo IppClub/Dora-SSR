@@ -20,12 +20,35 @@
 
 #include "wrap_Text.h"
 #include "wrap_Font.h"
+#include "common/Module.h"
 #include "math/wrap_Transform.h"
 
 namespace love
 {
 namespace graphics
 {
+
+static GraphicsTextCommand *textCommand(lua_State *L)
+{
+	auto *module = luax_getmodule(L, Module::M_GRAPHICS);
+	auto *command = dynamic_cast<GraphicsTextCommand *>(module);
+	if (command == nullptr)
+		luaL_error(L, "love.graphics has no state-local Text command adapter");
+	return command;
+}
+
+int w_newText(lua_State *L)
+{
+	Font *font = luax_checkfont(L, 1);
+	std::vector<Font::ColoredString> text;
+	if (!lua_isnoneornil(L, 2))
+		luax_checkcoloredstring(L, 2, text);
+	Text *value = nullptr;
+	luax_catchexcept(L, [&](){ value = textCommand(L)->newText(font, text); });
+	luax_pushtype(L, value);
+	value->release();
+	return 1;
+}
 
 Text *luax_checktext(lua_State *L, int idx)
 {

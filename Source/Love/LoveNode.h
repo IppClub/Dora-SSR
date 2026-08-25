@@ -221,6 +221,8 @@ private:
 	virtual bool requiresMeshVertexID(
 		Love::GraphicsBackend::ShaderHandle shader) const override;
 	virtual Love::GraphicsBackend::FontHandle newFont(const std::string &filename, int size, std::string &error) override;
+	virtual Love::GraphicsBackend::FontHandle newFont(std::span<const std::uint8_t> bytes,
+		int size, float dpiScale, std::string &error) override;
 	virtual Love::GraphicsBackend::FontHandle newImageFont(int width, int height,
 		std::span<const std::uint8_t> rgba8,
 		std::span<const Love::GraphicsBackend::ImageFontGlyph> glyphs, float dpiScale,
@@ -492,6 +494,22 @@ private:
 		bool hasVertex, float x, float y, std::string &error) override;
 	virtual bool setShapeNextVertex(Love::PhysicsBackend::ShapeHandle shape,
 		bool hasVertex, float x, float y, std::string &error) override;
+	virtual bool setCircleShape(Love::PhysicsBackend::ShapeHandle shape,
+		float x, float y, float radius, std::string &error) override;
+	virtual bool getShapeChildCount(Love::PhysicsBackend::ShapeHandle shape,
+		int &count, std::string &error) const override;
+	virtual bool testShapePoint(Love::PhysicsBackend::ShapeHandle shape,
+		float x, float y, float angle, float px, float py, bool &value,
+		std::string &error) const override;
+	virtual bool rayCastShape(Love::PhysicsBackend::ShapeHandle shape,
+		float x1, float y1, float x2, float y2, float maxFraction,
+		float x, float y, float angle, std::uint16_t childIndex, bool &hit,
+		float &normalX, float &normalY, float &fraction, std::string &error) const override;
+	virtual bool getShapeBoundingBox(Love::PhysicsBackend::ShapeHandle shape,
+		float x, float y, float angle, std::uint16_t childIndex,
+		float &x1, float &y1, float &x2, float &y2, std::string &error) const override;
+	virtual bool getShapeMassData(Love::PhysicsBackend::ShapeHandle shape, float density,
+		float &x, float &y, float &mass, float &inertia, std::string &error) const override;
 	virtual void releaseShape(Love::PhysicsBackend::ShapeHandle shape) override;
 	virtual Love::PhysicsBackend::BodyHandle newBody(Love::PhysicsBackend::WorldHandle world,
 		float x, float y, std::string_view type, std::string &error) override;

@@ -1,0 +1,426 @@
+diff --git a/src/modules/graphics/Video.h b/src/modules/graphics/Video.h
+index cb4c7ea84..1a2a0cade 100644
+--- a/src/modules/graphics/Video.h
++++ b/src/modules/graphics/Video.h
+@@ -20,64 +20,34 @@
+ 
+ #pragma once
+ 
+-// LOVE
+-#include "common/math.h"
+ #include "Drawable.h"
+-#include "Image.h"
+-#include "vertex.h"
+-#include "video/VideoStream.h"
++#include "Texture.h"
+ #include "audio/Source.h"
++#include "video/VideoStream.h"
+ 
+ namespace love
+ {
+ namespace graphics
+ {
+ 
+-class Graphics;
+-
++// Public Love Video object contract. Embedded renderer backends implement
++// storage, frame upload and draw submission without importing native GL state.
+ class Video : public Drawable
+ {
+ public:
+-
+ 	static love::Type type;
+-
+-	Video(Graphics *gfx, love::video::VideoStream *stream, float dpiscale = 1.0f);
+-	virtual ~Video();
+-
+-	// Drawable
+-	void draw(Graphics *gfx, const Matrix4 &m) override;
+-
+-	love::video::VideoStream *getStream();
+-
+-	love::audio::Source *getSource();
+-	void setSource(love::audio::Source *source);
+-
+-	int getWidth() const;
+-	int getHeight() const;
+-
+-	int getPixelWidth() const;
+-	int getPixelHeight() const;
+-
+-	void setFilter(const Texture::Filter &f);
+-	const Texture::Filter &getFilter() const;
+-
+-private:
+-
+-	void update();
+-
+-	StrongRef<love::video::VideoStream> stream;
+-
+-	int width;
+-	int height;
+-
+-	Texture::Filter filter;
+-
+-	Vertex vertices[4];
+-
+-	StrongRef<Image> images[3];
+-	StrongRef<love::audio::Source> source;
+-	
+-}; // Video
++	virtual ~Video() = default;
++
++	virtual love::video::VideoStream *getStream() = 0;
++	virtual love::audio::Source *getSource() = 0;
++	virtual void setSource(love::audio::Source *source) = 0;
++	virtual int getWidth() const = 0;
++	virtual int getHeight() const = 0;
++	virtual int getPixelWidth() const = 0;
++	virtual int getPixelHeight() const = 0;
++	virtual void setFilter(const Texture::Filter &filter) = 0;
++	virtual const Texture::Filter &getFilter() const = 0;
++};
+ 
+ } // graphics
+ } // love
+diff --git a/src/modules/graphics/Video.cpp b/src/modules/graphics/Video.cpp
+index beb60706a..9fdcb6c33 100644
+--- a/src/modules/graphics/Video.cpp
++++ b/src/modules/graphics/Video.cpp
+@@ -20,10 +20,6 @@
+ 
+ #include "Video.h"
+ 
+-// LOVE
+-#include "Shader.h"
+-#include "Graphics.h"
+-
+ namespace love
+ {
+ namespace graphics
+@@ -31,187 +27,5 @@ namespace graphics
+ 
+ love::Type Video::type("Video", &Drawable::type);
+ 
+-Video::Video(Graphics *gfx, love::video::VideoStream *stream, float dpiscale)
+-	: stream(stream)
+-	, width(stream->getWidth() / dpiscale)
+-	, height(stream->getHeight() / dpiscale)
+-	, filter(Texture::defaultFilter)
+-{
+-	filter.mipmap = Texture::FILTER_NONE;
+-
+-	stream->fillBackBuffer();
+-
+-	for (int i = 0; i < 4; i++)
+-		vertices[i].color = Color32(255, 255, 255, 255);
+-
+-	// Vertices are ordered for use with triangle strips:
+-	// 0---2
+-	// | / |
+-	// 1---3
+-	vertices[0].x = 0.0f;
+-	vertices[0].y = 0.0f;
+-	vertices[1].x = 0.0f;
+-	vertices[1].y = (float) height;
+-	vertices[2].x = (float) width;
+-	vertices[2].y = 0.0f;
+-	vertices[3].x = (float) width;
+-	vertices[3].y = (float) height;
+-
+-	vertices[0].s = 0.0f;
+-	vertices[0].t = 0.0f;
+-	vertices[1].s = 0.0f;
+-	vertices[1].t = 1.0f;
+-	vertices[2].s = 1.0f;
+-	vertices[2].t = 0.0f;
+-	vertices[3].s = 1.0f;
+-	vertices[3].t = 1.0f;
+-
+-	// Create the textures using the initial frame data.
+-	auto frame = (const love::video::VideoStream::Frame*) stream->getFrontBuffer();
+-
+-	int widths[3]  = {frame->yw, frame->cw, frame->cw};
+-	int heights[3] = {frame->yh, frame->ch, frame->ch};
+-
+-	const unsigned char *data[3] = {frame->yplane, frame->cbplane, frame->crplane};
+-
+-	Texture::Wrap wrap; // Clamp wrap mode.
+-	Image::Settings settings;
+-
+-	for (int i = 0; i < 3; i++)
+-	{
+-		Image *img = gfx->newImage(TEXTURE_2D, PIXELFORMAT_R8, widths[i], heights[i], 1, settings);
+-
+-		img->setFilter(filter);
+-		img->setWrap(wrap);
+-
+-		size_t bpp = getPixelFormatSize(PIXELFORMAT_R8);
+-		size_t size = bpp * widths[i] * heights[i];
+-
+-		Rect rect = {0, 0, widths[i], heights[i]};
+-		img->replacePixels(data[i], size, 0, 0, rect, false);
+-
+-		images[i].set(img, Acquire::NORETAIN);
+-	}
+-}
+-
+-Video::~Video()
+-{
+-	if (source)
+-		source->stop();
+-}
+-
+-love::video::VideoStream *Video::getStream()
+-{
+-	return stream;
+-}
+-
+-void Video::draw(Graphics *gfx, const Matrix4 &m)
+-{
+-	update();
+-
+-	const Matrix4 &tm = gfx->getTransform();
+-	bool is2D = tm.isAffine2DTransform();
+-
+-	Matrix4 t(tm, m);
+-
+-	Graphics::StreamDrawCommand cmd;
+-	cmd.formats[0] = vertex::getSinglePositionFormat(is2D);
+-	cmd.formats[1] = vertex::CommonFormat::STf_RGBAub;
+-	cmd.indexMode = vertex::TriangleIndexMode::QUADS;
+-	cmd.vertexCount = 4;
+-	cmd.standardShaderType = Shader::STANDARD_VIDEO;
+-
+-	Graphics::StreamVertexData data = gfx->requestStreamDraw(cmd);
+-
+-	if (is2D)
+-		t.transformXY((Vector2 *) data.stream[0], vertices, 4);
+-	else
+-		t.transformXY0((Vector3 *) data.stream[0], vertices, 4);
+-
+-	vertex::STf_RGBAub *verts = (vertex::STf_RGBAub *) data.stream[1];
+-
+-	Color32 c = toColor32(gfx->getColor());
+-
+-	for (int i = 0; i < 4; i++)
+-	{
+-		verts[i].s = vertices[i].s;
+-		verts[i].t = vertices[i].t;
+-		verts[i].color = c;
+-	}
+-
+-	if (Shader::current != nullptr)
+-		Shader::current->setVideoTextures(images[0], images[1], images[2]);
+-
+-	gfx->flushStreamDraws();
+-}
+-
+-void Video::update()
+-{
+-	bool bufferschanged = stream->swapBuffers();
+-	stream->fillBackBuffer();
+-
+-	if (bufferschanged)
+-	{
+-		auto frame = (const love::video::VideoStream::Frame*) stream->getFrontBuffer();
+-
+-		int widths[3]  = {frame->yw, frame->cw, frame->cw};
+-		int heights[3] = {frame->yh, frame->ch, frame->ch};
+-
+-		const unsigned char *data[3] = {frame->yplane, frame->cbplane, frame->crplane};
+-
+-		for (int i = 0; i < 3; i++)
+-		{
+-			size_t bpp = getPixelFormatSize(PIXELFORMAT_R8);
+-			size_t size = bpp * widths[i] * heights[i];
+-
+-			Rect rect = {0, 0, widths[i], heights[i]};
+-			images[i]->replacePixels(data[i], size, 0, 0, rect, false);
+-		}
+-	}
+-}
+-
+-love::audio::Source *Video::getSource()
+-{
+-	return source;
+-}
+-
+-void Video::setSource(love::audio::Source *source)
+-{
+-	this->source = source;
+-}
+-
+-int Video::getWidth() const
+-{
+-	return width;
+-}
+-
+-int Video::getHeight() const
+-{
+-	return height;
+-}
+-
+-int Video::getPixelWidth() const
+-{
+-	return stream->getWidth();
+-}
+-
+-int Video::getPixelHeight() const
+-{
+-	return stream->getHeight();
+-}
+-
+-void Video::setFilter(const Texture::Filter &f)
+-{
+-	for (const auto &image : images)
+-		image->setFilter(f);
+-
+-	filter = f;
+-}
+-
+-const Texture::Filter &Video::getFilter() const
+-{
+-	return filter;
+-}
+-
+ } // graphics
+ } // love
+diff --git a/src/modules/graphics/wrap_Video.h b/src/modules/graphics/wrap_Video.h
+index 39f6e5e45..f85f53d81 100644
+--- a/src/modules/graphics/wrap_Video.h
++++ b/src/modules/graphics/wrap_Video.h
+@@ -29,6 +29,15 @@ namespace love
+ namespace graphics
+ {
+ 
++class GraphicsVideoCommand
++{
++public:
++	virtual ~GraphicsVideoCommand() = default;
++	virtual Video *newVideo(love::video::VideoStream *stream, float dpiScale) = 0;
++};
++
++LOVE_EXPORT int w_newVideo(lua_State *L);
++LOVE_EXPORT void installVideoConstructorWrapper(lua_State *L);
+ int luaopen_video(lua_State *L);
+ 
+ } // graphics
+diff --git a/src/modules/graphics/wrap_Video.cpp b/src/modules/graphics/wrap_Video.cpp
+index d97b97eaa..8b84dc8fe 100644
+--- a/src/modules/graphics/wrap_Video.cpp
++++ b/src/modules/graphics/wrap_Video.cpp
+@@ -19,6 +19,9 @@
+  **/
+ 
+ #include "wrap_Video.h"
++#include "common/Module.h"
++
++#include <cmath>
+ 
+ // Shove the wrap_Video.lua code directly into a raw string literal.
+ static const char video_lua[] =
+@@ -30,6 +33,65 @@ namespace love
+ namespace graphics
+ {
+ 
++static GraphicsVideoCommand *videoCommand(lua_State *L)
++{
++	auto *module = luax_getmodule(L, Module::M_GRAPHICS);
++	auto *command = dynamic_cast<GraphicsVideoCommand *>(module);
++	if (command == nullptr)
++		luaL_error(L, "love.graphics has no state-local Video command adapter");
++	return command;
++}
++
++int w_newVideo(lua_State *L)
++{
++	if (!luax_istype(L, 1, love::video::VideoStream::type))
++		luax_convobj(L, 1, "video", "newVideoStream");
++	auto *stream = luax_checktype<love::video::VideoStream>(L, 1);
++	const float dpiScale = static_cast<float>(luaL_optnumber(L, 2, 1.0));
++	if (!std::isfinite(dpiScale) || dpiScale <= 0.0f)
++		return luaL_argerror(L, 2, "dpiscale must be a positive finite number");
++	Video *video = nullptr;
++	luax_catchexcept(L, [&](){ video = videoCommand(L)->newVideo(stream, dpiScale); });
++	luax_pushtype(L, video);
++	video->release();
++	return 1;
++}
++
++static const char video_constructor_lua[] = R"luastring(
++function love.graphics.newVideo(file, settings)
++	settings = settings == nil and {} or settings
++	if type(settings) ~= "table" then error("bad argument #2 to newVideo (expected table)", 2) end
++
++	local video = love.graphics._newVideo(file, settings.dpiscale)
++	local source, success
++
++	if settings.audio ~= false and love.audio then
++		success, source = pcall(love.audio.newSource, video:getStream():getFilename(), "stream")
++	end
++	if success then
++		video:setSource(source)
++	elseif settings.audio == true then
++		if love.audio then
++			error("Video had no audio track", 2)
++		else
++			error("love.audio was not loaded", 2)
++		end
++	else
++		video:getStream():setSync()
++	end
++
++	return video
++end
++)luastring";
++
++void installVideoConstructorWrapper(lua_State *L)
++{
++	if (luaL_loadbuffer(L, video_constructor_lua, sizeof(video_constructor_lua) - 1,
++		"=[love \"wrap_Graphics.lua:newVideo\"]") != LUA_OK)
++		lua_error(L);
++	lua_call(L, 0, 0);
++}
++
+ Video *luax_checkvideo(lua_State *L, int idx)
+ {
+ 	return luax_checktype<Video>(L, idx);
+@@ -57,11 +119,11 @@ int w_Video_setSource(lua_State *L)
+ {
+ 	Video *video = luax_checkvideo(L, 1);
+ 	if (lua_isnoneornil(L, 2))
+-		video->setSource(nullptr);
++		luax_catchexcept(L, [&](){ video->setSource(nullptr); });
+ 	else
+ 	{
+ 		auto source = luax_checktype<love::audio::Source>(L, 2);
+-		video->setSource(source);
++		luax_catchexcept(L, [&](){ video->setSource(source); });
+ 	}
+ 	return 0;
+ }
+diff --git a/src/modules/video/wrap_VideoStream.cpp b/src/modules/video/wrap_VideoStream.cpp
+index 34f1ae3c2..ed70780d4 100644
+--- a/src/modules/video/wrap_VideoStream.cpp
++++ b/src/modules/video/wrap_VideoStream.cpp
+@@ -20,6 +20,8 @@
+ 
+ #include "wrap_VideoStream.h"
+ 
++#include <cmath>
++
+ namespace love
+ {
+ namespace video
+@@ -84,7 +86,9 @@ int w_VideoStream_seek(lua_State *L)
+ {
+ 	auto stream = luax_checkvideostream(L, 1);
+ 	double offset = luaL_checknumber(L, 2);
+-	stream->seek(offset);
++	if (!std::isfinite(offset) || offset < 0.0)
++		return luaL_argerror(L, 2, "seek offset must be a finite non-negative number");
++	luax_catchexcept(L, [&](){ stream->seek(offset); });
+ 	return 0;
+ }
+ 

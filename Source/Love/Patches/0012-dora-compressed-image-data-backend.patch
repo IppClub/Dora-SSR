@@ -1,0 +1,31 @@
+diff --git a/src/modules/image/CompressedImageData.cpp b/src/modules/image/CompressedImageData.cpp
+index f263318..53c5a61 100644
+--- a/src/modules/image/CompressedImageData.cpp
++++ b/src/modules/image/CompressedImageData.cpp
+@@ -27,6 +27,12 @@ namespace image
+ 
+ love::Type CompressedImageData::type("CompressedImageData", &Data::type);
+ 
++CompressedImageData::CompressedImageData()
++	: format(PIXELFORMAT_UNKNOWN)
++	, sRGB(false)
++{
++}
++
+ CompressedImageData::CompressedImageData(const std::list<FormatHandler *> &formats, Data *filedata)
+ 	: format(PIXELFORMAT_UNKNOWN)
+ 	, sRGB(false)
+diff --git a/src/modules/image/CompressedImageData.h b/src/modules/image/CompressedImageData.h
+index 8625550..489019c 100644
+--- a/src/modules/image/CompressedImageData.h
++++ b/src/modules/image/CompressedImageData.h
+@@ -98,6 +98,9 @@ class CompressedImageData : public Data
+ 	CompressedSlice *getSlice(int slice, int miplevel) const;
+ 
+ protected:
++	// Embedded backends may populate parsed compressed levels without routing
++	// through one of Love's native file-format handlers.
++	CompressedImageData();
+ 
+ 	PixelFormat format;
+ 	bool sRGB;

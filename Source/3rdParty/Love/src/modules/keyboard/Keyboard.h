@@ -28,6 +28,8 @@
 // C++
 #include <vector>
 
+struct lua_State;
+
 namespace love
 {
 namespace keyboard
@@ -248,7 +250,7 @@ public:
 		KEY_SLEEP,
 
 		KEY_MAX_ENUM
-	};
+};
 
 	/**
 	 * Scancodes represent physical keys independent of the current layout.
@@ -601,6 +603,8 @@ private:
 	static StringMap<Scancode, SCANCODE_MAX_ENUM> scancodes;
 
 }; // Keyboard
+
+Keyboard *newDoraKeyboard(lua_State *L);
 
 } // keyboard
 } // love

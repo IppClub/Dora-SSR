@@ -1,0 +1,137 @@
+--- a/src/modules/graphics/wrap_Graphics.cpp
++++ b/src/modules/graphics/wrap_Graphics.cpp
+@@ -551,45 +551,7 @@
+ 		[&]() { instance()->captureScreenshot(info); },
+ 		[&](bool except) { if (except) info.callback(&info, nullptr, nullptr); }
+ 	);
+-
+-	return 0;
+-}
+-
+-int w_stencil(lua_State *L)
+-{
+-	luaL_checktype(L, 1, LUA_TFUNCTION);
+-
+-	StencilAction action = STENCIL_REPLACE;
+-
+-	if (!lua_isnoneornil(L, 2))
+-	{
+-		const char *actionstr = luaL_checkstring(L, 2);
+-		if (!getConstant(actionstr, action))
+-			return luax_enumerror(L, "stencil draw action", getConstants(action), actionstr);
+-	}
+-
+-	int stencilvalue = (int) luaL_optinteger(L, 3, 1);
+-
+-	// Fourth argument: whether to keep the contents of the stencil buffer.
+-	OptionalInt stencilclear;
+-	int argtype = lua_type(L, 4);
+-	if (argtype == LUA_TNONE || argtype == LUA_TNIL || (argtype == LUA_TBOOLEAN && luax_toboolean(L, 4) == false))
+-		stencilclear.set(0);
+-	else if (argtype == LUA_TNUMBER)
+-		stencilclear.set((int) luaL_checkinteger(L, 4));
+-	else if (argtype != LUA_TBOOLEAN)
+-		luaL_checktype(L, 4, LUA_TBOOLEAN);
+-
+-	if (stencilclear.hasValue)
+-		instance()->clear(OptionalColorf(), stencilclear, OptionalDouble());
+-
+-	luax_catchexcept(L, [&](){ instance()->drawToStencilBuffer(action, stencilvalue); });
+-
+-	// Call stencilfunc()
+-	lua_pushvalue(L, 1);
+-	lua_call(L, 0, 0);
+ 
+-	luax_catchexcept(L, [&](){ instance()->stopDrawToStencilBuffer(); });
+ 	return 0;
+ }
+ 
+--- a/src/modules/graphics/wrap_GraphicsDisplayState.h
++++ b/src/modules/graphics/wrap_GraphicsDisplayState.h
+@@ -88,6 +88,15 @@
+ 	};
+ 	enum CullMode { CULL_NONE, CULL_BACK, CULL_FRONT };
+ 	enum Winding { WINDING_CW, WINDING_CCW };
++	enum StencilAction
++	{
++		STENCIL_REPLACE,
++		STENCIL_INCREMENT,
++		STENCIL_DECREMENT,
++		STENCIL_INCREMENT_WRAP,
++		STENCIL_DECREMENT_WRAP,
++		STENCIL_INVERT,
++	};
+ 	struct Filter
+ 	{
+ 		FilterMode min = FILTER_LINEAR;
+@@ -131,6 +140,9 @@
+ 	virtual Winding getFrontFaceWinding() const = 0;
+ 	virtual void setStencilTest(CompareMode compare, int value) = 0;
+ 	virtual CompareMode getStencilTest(int &value) const = 0;
++	virtual bool beginStencilWrite(StencilAction action, int value,
++		bool shouldClear, int clearValue, std::string &error) = 0;
++	virtual void endStencilWrite() = 0;
+ };
+ 
+ int w_setColor(lua_State *L);
+@@ -166,6 +178,7 @@
+ int w_getFrontFaceWinding(lua_State *L);
+ int w_setStencilTest(lua_State *L);
+ int w_getStencilTest(lua_State *L);
++int w_stencil(lua_State *L);
+ 
+ } // graphics
+ } // love
+--- a/src/modules/graphics/wrap_GraphicsDisplayState.cpp
++++ b/src/modules/graphics/wrap_GraphicsDisplayState.cpp
+@@ -525,6 +525,50 @@
+ 	lua_pushstring(L, str);
+ 	lua_pushnumber(L, value);
+ 	return 2;
++}
++
++int w_stencil(lua_State *L)
++{
++	luaL_checktype(L, 1, LUA_TFUNCTION);
++	auto action = GraphicsDisplayStateCommand::STENCIL_REPLACE;
++	if (!lua_isnoneornil(L, 2))
++	{
++		const char *str = luaL_checkstring(L, 2);
++		static constexpr const char *names[] = {"replace", "increment", "decrement",
++			"incrementwrap", "decrementwrap", "invert"};
++		bool found = false;
++		for (int index = 0; index < 6; ++index)
++			if (strcmp(str, names[index]) == 0)
++			{
++				action = (GraphicsDisplayStateCommand::StencilAction) index;
++				found = true;
++				break;
++			}
++		if (!found)
++			return luax_enumerror(L, "stencil draw action",
++				std::vector<std::string>{"replace", "increment", "decrement",
++					"incrementwrap", "decrementwrap", "invert"}, str);
++	}
++	const int value = (int) luaL_optinteger(L, 3, 1);
++	bool shouldClear = true;
++	int clearValue = 0;
++	const int type = lua_type(L, 4);
++	if (type == LUA_TBOOLEAN)
++		shouldClear = !luax_toboolean(L, 4);
++	else if (type == LUA_TNUMBER)
++		clearValue = (int) luaL_checkinteger(L, 4);
++	else if (type != LUA_TNONE && type != LUA_TNIL)
++		luaL_checktype(L, 4, LUA_TBOOLEAN);
++	std::string error;
++	auto *command = displayStateCommand(L);
++	if (!command->beginStencilWrite(action, value, shouldClear, clearValue, error))
++		return luaL_error(L, "%s", error.c_str());
++	lua_pushvalue(L, 1);
++	const int status = lua_pcall(L, 0, 0, 0);
++	command->endStencilWrite();
++	if (status != LUA_OK)
++		return lua_error(L);
++	return 0;
+ }
+ 
+ } // graphics

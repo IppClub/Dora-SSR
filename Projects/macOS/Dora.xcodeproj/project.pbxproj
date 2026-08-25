@@ -109,9 +109,6 @@
 		A10E00000000000000000027 /* liblove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A10E00000000000000000026 /* liblove.a */; };
 		A10E00000000000000000022 /* LoveVideoSources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E00000000000000000023 /* LoveVideoSources.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include"; }; };
 		A10E00000000000000000005 /* LoveNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E00000000000000000007 /* LoveNode.cpp */; };
-		A10E0000000000000000000B /* LoveDataAlgorithms.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E00000000000000000008 /* LoveDataAlgorithms.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty/Love/src"; }; };
-		A10E0000000000000000000C /* LoveLZ4.c in Sources */ = {isa = PBXBuildFile; fileRef = A10E00000000000000000009 /* LoveLZ4.c */; };
-		A10E0000000000000000000D /* LoveLZ4HC.c in Sources */ = {isa = PBXBuildFile; fileRef = A10E0000000000000000000A /* LoveLZ4HC.c */; };
 		3C592A722CA4EEF000CAF224 /* LuaManual.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A6A2CA4EEF000CAF224 /* LuaManual.cpp */; };
 		3C592A752CA4EF1000CAF224 /* WasmRuntime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A742CA4EF1000CAF224 /* WasmRuntime.cpp */; };
 		3C592A782CA4EFAB00CAF224 /* ML.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A772CA4EFAB00CAF224 /* ML.cpp */; };
@@ -862,9 +859,6 @@
 		A10E00000000000000000023 /* LoveVideoSources.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LoveVideoSources.cpp; sourceTree = "<group>"; };
 		A10E00000000000000000006 /* LoveNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoveNode.h; sourceTree = "<group>"; };
 		A10E00000000000000000007 /* LoveNode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LoveNode.cpp; sourceTree = "<group>"; };
-		A10E00000000000000000008 /* LoveDataAlgorithms.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LoveDataAlgorithms.cpp; sourceTree = "<group>"; };
-		A10E00000000000000000009 /* LoveLZ4.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = LoveLZ4.c; sourceTree = "<group>"; };
-		A10E0000000000000000000A /* LoveLZ4HC.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = LoveLZ4HC.c; sourceTree = "<group>"; };
 		3C592A732CA4EF1000CAF224 /* WasmRuntime.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WasmRuntime.h; sourceTree = "<group>"; };
 		3C592A742CA4EF1000CAF224 /* WasmRuntime.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WasmRuntime.cpp; sourceTree = "<group>"; };
 		3C592A762CA4EFAB00CAF224 /* ML.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ML.h; sourceTree = "<group>"; };
@@ -4505,9 +4499,6 @@
 				A10E00000000000000000023 /* LoveVideoSources.cpp */,
 				A10E00000000000000000006 /* LoveNode.h */,
 				A10E00000000000000000007 /* LoveNode.cpp */,
-				A10E00000000000000000008 /* LoveDataAlgorithms.cpp */,
-				A10E00000000000000000009 /* LoveLZ4.c */,
-				A10E0000000000000000000A /* LoveLZ4HC.c */,
 			);
 			path = Love;
 			sourceTree = "<group>";
@@ -5196,9 +5187,6 @@
 				A10E00000000000000000001 /* LoveRuntime.cpp in Sources */,
 				A10E00000000000000000022 /* LoveVideoSources.cpp in Sources */,
 				A10E00000000000000000005 /* LoveNode.cpp in Sources */,
-				A10E0000000000000000000B /* LoveDataAlgorithms.cpp in Sources */,
-				A10E0000000000000000000C /* LoveLZ4.c in Sources */,
-				A10E0000000000000000000D /* LoveLZ4HC.c in Sources */,
 				3C592A722CA4EEF000CAF224 /* LuaManual.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

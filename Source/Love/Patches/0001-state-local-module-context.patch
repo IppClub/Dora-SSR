@@ -1,0 +1,114 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Dora SSR <dora@ippclub.org>
+Date: Tue, 25 Aug 2026 10:00:00 +0800
+Subject: [PATCH] Make LOVE module lookup local to each Lua state
+
+LOVE 11.5 stores module instances in a process-global array. Dora runs more
+than one isolated LoveNode Lua state in the same process, so register the
+module proxy by ModuleType in the existing state-local registry and resolve
+wrappers through that registry instead.
+
+Upstream: LOVE 11.5, commit 6eb8d546736d5915a8b5af30b2cf33456dfdcb1a
+Compatibility: removes the process-global registration side effect; module
+lifetime remains owned by the single proxy userdata stored under both keys.
+---
+ src/common/runtime.cpp | 44 ++++++++++++++++++++++++++++++++++++++++----
+ src/common/runtime.h   | 17 +++++++++++++++++
+ 2 files changed, 57 insertions(+), 4 deletions(-)
+
+diff --git a/src/common/runtime.h b/src/common/runtime.h
+index d1980f0..ffde064 100644
+--- a/src/common/runtime.h
++++ b/src/common/runtime.h
+@@ -279,6 +279,23 @@ int luax_require(lua_State *L, const char *name);
+  **/
+ int luax_register_module(lua_State *L, const WrappedModule &m);
+ 
++/**
++ * Gets a module registered in this Lua state's Love module registry.
++ * Unlike Module::getInstance, this never reads process-global module state.
++ **/
++Module *luax_getmodule(lua_State *L, int moduleType);
++
++/**
++ * Gets a module registered in this Lua state's Love module registry by name.
++ **/
++Module *luax_getmodule(lua_State *L, const char *name);
++
++template <typename T>
++T *luax_getmodule(lua_State *L, int moduleType)
++{
++	return (T *) luax_getmodule(L, moduleType);
++}
++
+ /**
+  * Inserts a module with 'name' into the package.preloaded table.
+  * @param f The function to be called when the module is opened.
+diff --git a/src/common/runtime.cpp b/src/common/runtime.cpp
+index 3fca57b..640cc6d 100644
+--- a/src/common/runtime.cpp
++++ b/src/common/runtime.cpp
+@@ -439,8 +439,6 @@ int luax_register_module(lua_State *L, const WrappedModule &m)
+ 	lua_setfield(L, -2, "__gc");
+ 
+ 	lua_setmetatable(L, -2);
+-	lua_setfield(L, -2, m.name); // _modules[name] = proxy
+-	lua_pop(L, 1);
+ 
+ 	// Gets the love table.
+ 	luax_insistglobal(L, "love");
+@@ -463,12 +461,50 @@ int luax_register_module(lua_State *L, const WrappedModule &m)
+ 	lua_setfield(L, -3, m.name); // love.graphics = table
+ 	lua_remove(L, -2); // love
+ 
+-	// Register module instance
+-	Module::registerInstance(m.module);
++	// Publish the module Proxy only after its functions and types have been
++	// registered successfully. If a type opener raises a Lua error, the
++	// unpublished userdata can be collected without leaving a partial module
++	// in this state's registry.
++	lua_pushvalue(L, -2);
++	lua_rawseti(L, -4, (int) m.module->getModuleType()); // _modules[moduleType] = proxy
++	lua_pushvalue(L, -2);
++	lua_setfield(L, -4, m.name); // _modules[name] = proxy
++	lua_remove(L, -3); // _modules
++	lua_remove(L, -2); // proxy
+ 
+ 	return 1;
+ }
+ 
++Module *luax_getmodule(lua_State *L, int moduleType)
++{
++	luax_getregistry(L, REGISTRY_MODULES);
++	if (!lua_istable(L, -1))
++	{
++		lua_pop(L, 1);
++		return nullptr;
++	}
++	lua_rawgeti(L, -1, moduleType);
++	Proxy *proxy = (Proxy *) lua_touserdata(L, -1);
++	Module *module = proxy == nullptr ? nullptr : (Module *) proxy->object;
++	lua_pop(L, 2);
++	return module;
++}
++
++Module *luax_getmodule(lua_State *L, const char *name)
++{
++	luax_getregistry(L, REGISTRY_MODULES);
++	if (!lua_istable(L, -1))
++	{
++		lua_pop(L, 1);
++		return nullptr;
++	}
++	lua_getfield(L, -1, name);
++	Proxy *proxy = (Proxy *) lua_touserdata(L, -1);
++	Module *module = proxy == nullptr ? nullptr : (Module *) proxy->object;
++	lua_pop(L, 2);
++	return module;
++}
++
+ int luax_preload(lua_State *L, lua_CFunction f, const char *name)
+ {
+ 	lua_getglobal(L, "package");
+-- 
+2.50.1

@@ -439,8 +439,6 @@ int luax_register_module(lua_State *L, const WrappedModule &m)
 	lua_setfield(L, -2, "__gc");
 
 	lua_setmetatable(L, -2);
-	lua_setfield(L, -2, m.name); // _modules[name] = proxy
-	lua_pop(L, 1);
 
 	// Gets the love table.
 	luax_insistglobal(L, "love");
@@ -463,10 +461,48 @@ int luax_register_module(lua_State *L, const WrappedModule &m)
 	lua_setfield(L, -3, m.name); // love.graphics = table
 	lua_remove(L, -2); // love
 
-	// Register module instance
-	Module::registerInstance(m.module);
+	// Publish the module Proxy only after its functions and types have been
+	// registered successfully. If a type opener raises a Lua error, the
+	// unpublished userdata can be collected without leaving a partial module
+	// in this state's registry.
+	lua_pushvalue(L, -2);
+	lua_rawseti(L, -4, (int) m.module->getModuleType()); // _modules[moduleType] = proxy
+	lua_pushvalue(L, -2);
+	lua_setfield(L, -4, m.name); // _modules[name] = proxy
+	lua_remove(L, -3); // _modules
+	lua_remove(L, -2); // proxy
 
 	return 1;
+}
+
+Module *luax_getmodule(lua_State *L, int moduleType)
+{
+	luax_getregistry(L, REGISTRY_MODULES);
+	if (!lua_istable(L, -1))
+	{
+		lua_pop(L, 1);
+		return nullptr;
+	}
+	lua_rawgeti(L, -1, moduleType);
+	Proxy *proxy = (Proxy *) lua_touserdata(L, -1);
+	Module *module = proxy == nullptr ? nullptr : (Module *) proxy->object;
+	lua_pop(L, 2);
+	return module;
+}
+
+Module *luax_getmodule(lua_State *L, const char *name)
+{
+	luax_getregistry(L, REGISTRY_MODULES);
+	if (!lua_istable(L, -1))
+	{
+		lua_pop(L, 1);
+		return nullptr;
+	}
+	lua_getfield(L, -1, name);
+	Proxy *proxy = (Proxy *) lua_touserdata(L, -1);
+	Module *module = proxy == nullptr ? nullptr : (Module *) proxy->object;
+	lua_pop(L, 2);
+	return module;
 }
 
 int luax_preload(lua_State *L, lua_CFunction f, const char *name)

@@ -22,7 +22,7 @@ local function configure_luasocket_target()
     add_includedirs("src", "../Lua", {public = true})
     add_defines("LUASOCKET_NODEBUG")
 
-    if is_plat("windows") then
+    if is_plat("windows", "mingw") then
         add_files("src/wsocket.c")
         add_defines("_CRT_SECURE_NO_WARNINGS", "_WIN32_WINNT=0x0601")
         if is_mode("debug") then

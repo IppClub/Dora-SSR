@@ -35,7 +35,7 @@ namespace love
 namespace thread
 {
 
-#define instance() (Module::getInstance<ThreadModule>(Module::M_THREAD))
+#define instance() (luax_getmodule<ThreadModule>(L, Module::M_THREAD))
 
 int w_newThread(lua_State *L)
 {
@@ -117,7 +117,7 @@ extern "C" int luaopen_love_thread(lua_State *L)
 	ThreadModule *instance = instance();
 	if (instance == nullptr)
 	{
-		luax_catchexcept(L, [&](){ instance = new love::thread::ThreadModule(); });
+		luax_catchexcept(L, [&](){ instance = newDoraThreadModule(L); });
 	}
 	else
 		instance->retain();

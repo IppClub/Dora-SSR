@@ -44,7 +44,7 @@ namespace love
 namespace math
 {
 
-#define instance() (Module::getInstance<Math>(Module::M_MATH))
+#define instance() (luax_getmodule<Math>(L, Module::M_MATH))
 
 int w__getRandomGenerator(lua_State *L)
 {

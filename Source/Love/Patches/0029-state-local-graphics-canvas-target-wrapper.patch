@@ -1,0 +1,425 @@
+--- a/src/modules/graphics/wrap_Graphics.cpp
++++ b/src/modules/graphics/wrap_Graphics.cpp
+@@ -248,194 +248,7 @@
+ 	lua_pushnumber(L, instance()->getScreenDPIScale());
+ 	return 1;
+ }
+-
+-static Graphics::RenderTarget checkRenderTarget(lua_State *L, int idx)
+-{
+-	lua_rawgeti(L, idx, 1);
+-	Graphics::RenderTarget target(luax_checkcanvas(L, -1), 0);
+-	lua_pop(L, 1);
+-
+-	TextureType type = target.canvas->getTextureType();
+-	if (type == TEXTURE_2D_ARRAY || type == TEXTURE_VOLUME)
+-		target.slice = luax_checkintflag(L, idx, "layer") - 1;
+-	else if (type == TEXTURE_CUBE)
+-		target.slice = luax_checkintflag(L, idx, "face") - 1;
+-
+-	target.mipmap = luax_intflag(L, idx, "mipmap", 1) - 1;
+-
+-	return target;
+-}
+-
+-int w_setCanvas(lua_State *L)
+-{
+-	// Disable stencil writes.
+-	luax_catchexcept(L, [](){ instance()->stopDrawToStencilBuffer(); });
+-
+-	// called with none -> reset to default buffer
+-	if (lua_isnoneornil(L, 1))
+-	{
+-		instance()->setCanvas();
+-		return 0;
+-	}
+ 
+-	bool is_table = lua_istable(L, 1);
+-	Graphics::RenderTargets targets;
+-
+-	if (is_table)
+-	{
+-		lua_rawgeti(L, 1, 1);
+-		bool table_of_tables = lua_istable(L, -1);
+-		lua_pop(L, 1);
+-
+-		for (int i = 1; i <= (int) luax_objlen(L, 1); i++)
+-		{
+-			lua_rawgeti(L, 1, i);
+-
+-			if (table_of_tables)
+-				targets.colors.push_back(checkRenderTarget(L, -1));
+-			else
+-			{
+-				targets.colors.emplace_back(luax_checkcanvas(L, -1), 0);
+-
+-				if (targets.colors.back().canvas->getTextureType() != TEXTURE_2D)
+-					return luaL_error(L, "Non-2D canvases must use the table-of-tables variant of setCanvas.");
+-			}
+-
+-			lua_pop(L, 1);
+-		}
+-
+-		uint32 tempdepthflag   = Graphics::TEMPORARY_RT_DEPTH;
+-		uint32 tempstencilflag = Graphics::TEMPORARY_RT_STENCIL;
+-
+-		lua_getfield(L, 1, "depthstencil");
+-		int dstype = lua_type(L, -1);
+-		if (dstype == LUA_TTABLE)
+-			targets.depthStencil = checkRenderTarget(L, -1);
+-		else if (dstype == LUA_TBOOLEAN)
+-			targets.temporaryRTFlags |= luax_toboolean(L, -1) ? (tempdepthflag | tempstencilflag) : 0;
+-		else if (dstype != LUA_TNONE && dstype != LUA_TNIL)
+-			targets.depthStencil.canvas = luax_checkcanvas(L, -1);
+-		lua_pop(L, 1);
+-
+-		if (targets.depthStencil.canvas == nullptr && (targets.temporaryRTFlags & tempdepthflag) == 0)
+-			targets.temporaryRTFlags |= luax_boolflag(L, 1, "depth", false) ? tempdepthflag : 0;
+-
+-		if (targets.depthStencil.canvas == nullptr && (targets.temporaryRTFlags & tempstencilflag) == 0)
+-			targets.temporaryRTFlags |= luax_boolflag(L, 1, "stencil", false) ? tempstencilflag : 0;
+-	}
+-	else
+-	{
+-		for (int i = 1; i <= lua_gettop(L); i++)
+-		{
+-			Graphics::RenderTarget target(luax_checkcanvas(L, i), 0);
+-			TextureType type = target.canvas->getTextureType();
+-
+-			if (i == 1 && type != TEXTURE_2D)
+-			{
+-				target.slice = (int) luaL_checkinteger(L, i + 1) - 1;
+-				target.mipmap = (int) luaL_optinteger(L, i + 2, 1) - 1;
+-				targets.colors.push_back(target);
+-				break;
+-			}
+-			else if (type == TEXTURE_2D && lua_isnumber(L, i + 1))
+-			{
+-				target.mipmap = (int) luaL_optinteger(L, i + 1, 1) - 1;
+-				i++;
+-			}
+-
+-			if (i > 1 && type != TEXTURE_2D)
+-				return luaL_error(L, "This variant of setCanvas only supports 2D texture types.");
+-
+-			targets.colors.push_back(target);
+-		}
+-	}
+-
+-	luax_catchexcept(L, [&]() {
+-		if (targets.getFirstTarget().canvas != nullptr)
+-			instance()->setCanvas(targets);
+-		else
+-			instance()->setCanvas();
+-	});
+-	
+-	return 0;
+-}
+-
+-static void pushRenderTarget(lua_State *L, const Graphics::RenderTarget &rt)
+-{
+-	lua_createtable(L, 1, 2);
+-
+-	luax_pushtype(L, rt.canvas);
+-	lua_rawseti(L, -2, 1);
+-
+-	TextureType type = rt.canvas->getTextureType();
+-
+-	if (type == TEXTURE_2D_ARRAY || type == TEXTURE_VOLUME)
+-	{
+-		lua_pushnumber(L, rt.slice + 1);
+-		lua_setfield(L, -2, "layer");
+-	}
+-	else if (type == TEXTURE_CUBE)
+-	{
+-		lua_pushnumber(L, rt.slice + 1);
+-		lua_setfield(L, -2, "face");
+-	}
+-
+-	lua_pushnumber(L, rt.mipmap + 1);
+-	lua_setfield(L, -2, "mipmap");
+-}
+-
+-int w_getCanvas(lua_State *L)
+-{
+-	Graphics::RenderTargets targets = instance()->getCanvas();
+-	int ntargets = (int) targets.colors.size();
+-
+-	if (ntargets == 0)
+-	{
+-		lua_pushnil(L);
+-		return 1;
+-	}
+-
+-	bool shouldUseTablesVariant = targets.depthStencil.canvas != nullptr;
+-
+-	if (!shouldUseTablesVariant)
+-	{
+-		for (const auto &rt : targets.colors)
+-		{
+-			if (rt.mipmap != 0 || rt.canvas->getTextureType() != TEXTURE_2D)
+-			{
+-				shouldUseTablesVariant = true;
+-				break;
+-			}
+-		}
+-	}
+-
+-	if (shouldUseTablesVariant)
+-	{
+-		lua_createtable(L, ntargets, 0);
+-
+-		for (int i = 0; i < ntargets; i++)
+-		{
+-			pushRenderTarget(L, targets.colors[i]);
+-			lua_rawseti(L, -2, i + 1);
+-		}
+-
+-		if (targets.depthStencil.canvas != nullptr)
+-		{
+-			pushRenderTarget(L, targets.depthStencil);
+-			lua_setfield(L, -2, "depthstencil");
+-		}
+-
+-		return 1;
+-	}
+-	else
+-	{
+-		for (const auto &rt : targets.colors)
+-			luax_pushtype(L, rt.canvas);
+-
+-		return ntargets;
+-	}
+-}
+-
+ static void screenshotFunctionCallback(const Graphics::ScreenshotInfo *info, love::image::ImageData *i, void *gd)
+ {
+ 	if (info == nullptr)
+--- a/src/modules/graphics/wrap_Canvas.h
++++ b/src/modules/graphics/wrap_Canvas.h
+@@ -36,11 +36,40 @@
+ class GraphicsCanvasCommand
+ {
+ public:
++	enum TemporaryRenderTargetFlags
++	{
++		TEMPORARY_RT_DEPTH = 1 << 0,
++		TEMPORARY_RT_STENCIL = 1 << 1,
++	};
++	struct RenderTarget
++	{
++		Canvas *canvas = nullptr;
++		int slice = 0;
++		int mipmap = 0;
++		RenderTarget() = default;
++		RenderTarget(Canvas *canvas, int slice) : canvas(canvas), slice(slice) { }
++	};
++	struct RenderTargets
++	{
++		std::vector<RenderTarget> colors;
++		RenderTarget depthStencil;
++		uint32 temporaryRTFlags = 0;
++		const RenderTarget &getFirstTarget() const
++		{
++			return colors.empty() ? depthStencil : colors.front();
++		}
++	};
+ 	virtual ~GraphicsCanvasCommand() = default;
+ 	virtual void renderTo(lua_State *L, Canvas *canvas, int slice,
+ 		int functionIndex) = 0;
++	virtual void stopStencilWrite() = 0;
++	virtual void setCanvas(lua_State *L, const RenderTargets &targets) = 0;
++	virtual RenderTargets getCanvas() const = 0;
+ };
+ 
++int w_setCanvas(lua_State *L);
++int w_getCanvas(lua_State *L);
++
+ extern "C" int luaopen_canvas(lua_State *L);
+ 
+ } // graphics
+--- a/src/modules/graphics/wrap_Canvas.cpp
++++ b/src/modules/graphics/wrap_Canvas.cpp
+@@ -30,6 +30,182 @@
+ 	return luax_checktype<Canvas>(L, idx);
+ }
+ 
++static GraphicsCanvasCommand *canvasCommand(lua_State *L)
++{
++	auto *module = luax_getmodule(L, Module::M_GRAPHICS);
++	auto *command = dynamic_cast<GraphicsCanvasCommand *>(module);
++	if (command == nullptr)
++		luaL_error(L, "love.graphics has no state-local Canvas command adapter");
++	return command;
++}
++
++static GraphicsCanvasCommand::RenderTarget checkRenderTarget(lua_State *L, int idx)
++{
++	lua_rawgeti(L, idx, 1);
++	GraphicsCanvasCommand::RenderTarget target(luax_checkcanvas(L, -1), 0);
++	lua_pop(L, 1);
++
++	TextureType type = target.canvas->getTextureType();
++	if (type == TEXTURE_2D_ARRAY || type == TEXTURE_VOLUME)
++		target.slice = luax_checkintflag(L, idx, "layer") - 1;
++	else if (type == TEXTURE_CUBE)
++		target.slice = luax_checkintflag(L, idx, "face") - 1;
++
++	target.mipmap = luax_intflag(L, idx, "mipmap", 1) - 1;
++	return target;
++}
++
++int w_setCanvas(lua_State *L)
++{
++	auto *command = canvasCommand(L);
++	command->stopStencilWrite();
++
++	if (lua_isnoneornil(L, 1))
++	{
++		command->setCanvas(L, {});
++		return 0;
++	}
++
++	const bool isTable = lua_istable(L, 1);
++	GraphicsCanvasCommand::RenderTargets targets;
++	if (isTable)
++	{
++		lua_rawgeti(L, 1, 1);
++		const bool tableOfTables = lua_istable(L, -1);
++		lua_pop(L, 1);
++
++		for (int index = 1; index <= (int) luax_objlen(L, 1); ++index)
++		{
++			lua_rawgeti(L, 1, index);
++			if (tableOfTables)
++				targets.colors.push_back(checkRenderTarget(L, -1));
++			else
++			{
++				targets.colors.emplace_back(luax_checkcanvas(L, -1), 0);
++				if (targets.colors.back().canvas->getTextureType() != TEXTURE_2D)
++					return luaL_error(L,
++						"Non-2D canvases must use the table-of-tables variant of setCanvas.");
++			}
++			lua_pop(L, 1);
++		}
++
++		lua_getfield(L, 1, "depthstencil");
++		const int depthStencilType = lua_type(L, -1);
++		if (depthStencilType == LUA_TTABLE)
++			targets.depthStencil = checkRenderTarget(L, -1);
++		else if (depthStencilType == LUA_TBOOLEAN)
++			targets.temporaryRTFlags |= luax_toboolean(L, -1)
++				? (GraphicsCanvasCommand::TEMPORARY_RT_DEPTH
++					| GraphicsCanvasCommand::TEMPORARY_RT_STENCIL) : 0;
++		else if (depthStencilType != LUA_TNONE && depthStencilType != LUA_TNIL)
++			targets.depthStencil.canvas = luax_checkcanvas(L, -1);
++		lua_pop(L, 1);
++
++		if (targets.depthStencil.canvas == nullptr
++			&& (targets.temporaryRTFlags & GraphicsCanvasCommand::TEMPORARY_RT_DEPTH) == 0)
++			targets.temporaryRTFlags |= luax_boolflag(L, 1, "depth", false)
++				? GraphicsCanvasCommand::TEMPORARY_RT_DEPTH : 0;
++		if (targets.depthStencil.canvas == nullptr
++			&& (targets.temporaryRTFlags & GraphicsCanvasCommand::TEMPORARY_RT_STENCIL) == 0)
++			targets.temporaryRTFlags |= luax_boolflag(L, 1, "stencil", false)
++				? GraphicsCanvasCommand::TEMPORARY_RT_STENCIL : 0;
++	}
++	else
++	{
++		for (int index = 1; index <= lua_gettop(L); ++index)
++		{
++			GraphicsCanvasCommand::RenderTarget target(luax_checkcanvas(L, index), 0);
++			const TextureType type = target.canvas->getTextureType();
++			if (index == 1 && type != TEXTURE_2D)
++			{
++				target.slice = (int) luaL_checkinteger(L, index + 1) - 1;
++				target.mipmap = (int) luaL_optinteger(L, index + 2, 1) - 1;
++				targets.colors.push_back(target);
++				break;
++			}
++			else if (type == TEXTURE_2D && lua_isnumber(L, index + 1))
++			{
++				target.mipmap = (int) luaL_optinteger(L, index + 1, 1) - 1;
++				++index;
++			}
++			if (index > 1 && type != TEXTURE_2D)
++				return luaL_error(L,
++					"This variant of setCanvas only supports 2D texture types.");
++			targets.colors.push_back(target);
++		}
++	}
++
++	luax_catchexcept(L, [&]()
++	{
++		if (targets.getFirstTarget().canvas != nullptr)
++			command->setCanvas(L, targets);
++		else
++			command->setCanvas(L, {});
++	});
++	return 0;
++}
++
++static void pushRenderTarget(lua_State *L,
++	const GraphicsCanvasCommand::RenderTarget &target)
++{
++	lua_createtable(L, 1, 2);
++	luax_pushtype(L, target.canvas);
++	lua_rawseti(L, -2, 1);
++	const TextureType type = target.canvas->getTextureType();
++	if (type == TEXTURE_2D_ARRAY || type == TEXTURE_VOLUME)
++	{
++		lua_pushnumber(L, target.slice + 1);
++		lua_setfield(L, -2, "layer");
++	}
++	else if (type == TEXTURE_CUBE)
++	{
++		lua_pushnumber(L, target.slice + 1);
++		lua_setfield(L, -2, "face");
++	}
++	lua_pushnumber(L, target.mipmap + 1);
++	lua_setfield(L, -2, "mipmap");
++}
++
++int w_getCanvas(lua_State *L)
++{
++	auto targets = canvasCommand(L)->getCanvas();
++	const int count = (int) targets.colors.size();
++	if (count == 0)
++	{
++		lua_pushnil(L);
++		return 1;
++	}
++
++	bool tableVariant = targets.depthStencil.canvas != nullptr;
++	if (!tableVariant)
++		for (const auto &target : targets.colors)
++			if (target.mipmap != 0 || target.canvas->getTextureType() != TEXTURE_2D)
++			{
++				tableVariant = true;
++				break;
++			}
++
++	if (tableVariant)
++	{
++		lua_createtable(L, count, 0);
++		for (int index = 0; index < count; ++index)
++		{
++			pushRenderTarget(L, targets.colors[index]);
++			lua_rawseti(L, -2, index + 1);
++		}
++		if (targets.depthStencil.canvas != nullptr)
++		{
++			pushRenderTarget(L, targets.depthStencil);
++			lua_setfield(L, -2, "depthstencil");
++		}
++		return 1;
++	}
++
++	for (const auto &target : targets.colors)
++		luax_pushtype(L, target.canvas);
++	return count;
++}
++
+ int w_Canvas_getMSAA(lua_State *L)
+ {
+ 	Canvas *canvas = luax_checkcanvas(L, 1);

@@ -124,7 +124,7 @@ int w_Font_setLineHeight(lua_State *L)
 {
 	Font *t = luax_checkfont(L, 1);
 	float h = (float)luaL_checknumber(L, 2);
-	t->setLineHeight(h);
+	luax_catchexcept(L, [&](){ t->setLineHeight(h); });
 	return 0;
 }
 

@@ -138,7 +138,7 @@ int w_Transform_setMatrix(lua_State *L)
 	if (lua_type(L, idx) == LUA_TSTRING)
 	{
 		const char *layoutstr = lua_tostring(L, idx);
-		Transform::MatrixLayout layout;
+		Transform::MatrixLayout layout = Transform::MATRIX_ROW_MAJOR;
 		if (!Transform::getConstant(layoutstr, layout))
 			return luax_enumerror(L, "matrix layout", Transform::getConstants(layout), layoutstr);
 

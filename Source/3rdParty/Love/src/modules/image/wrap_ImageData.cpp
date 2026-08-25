@@ -24,6 +24,8 @@
 #include "filesystem/File.h"
 #include "filesystem/Filesystem.h"
 
+#include <limits>
+
 // Shove the wrap_ImageData.lua code directly into a raw string literal.
 static const char imagedata_lua[] =
 #include "wrap_ImageData.lua"
@@ -42,6 +44,19 @@ namespace image
 ImageData *luax_checkimagedata(lua_State *L, int idx)
 {
 	return luax_checktype<ImageData>(L, idx);
+}
+
+static int luax_checkimageint(lua_State *L, int idx)
+{
+	lua_Integer value = luaL_checkinteger(L, idx);
+	if (value < std::numeric_limits<int>::min() || value > std::numeric_limits<int>::max())
+		luaL_argerror(L, idx, "integer is outside the supported range");
+	return (int) value;
+}
+
+static int luax_optimageint(lua_State *L, int idx, int fallback)
+{
+	return lua_isnoneornil(L, idx) ? fallback : luax_checkimageint(L, idx);
 }
 
 int w_ImageData_clone(lua_State *L)
@@ -91,8 +106,8 @@ int w_ImageData_getDimensions(lua_State *L)
 int w_ImageData_getPixel(lua_State *L)
 {
 	ImageData *t = luax_checkimagedata(L, 1);
-	int x = (int) luaL_checkinteger(L, 2);
-	int y = (int) luaL_checkinteger(L, 3);
+	int x = luax_checkimageint(L, 2);
+	int y = luax_checkimageint(L, 3);
 
 	Colorf c;
 	luax_catchexcept(L, [&](){ t->getPixel(x, y, c); });
@@ -107,8 +122,8 @@ int w_ImageData_getPixel(lua_State *L)
 int w_ImageData_setPixel(lua_State *L)
 {
 	ImageData *t = luax_checkimagedata(L, 1);
-	int x = (int) luaL_checkinteger(L, 2);
-	int y = (int) luaL_checkinteger(L, 3);
+	int x = luax_checkimageint(L, 2);
+	int y = luax_checkimageint(L, 3);
 
 	int components = getPixelFormatColorComponents(t->getFormat());
 
@@ -117,7 +132,7 @@ int w_ImageData_setPixel(lua_State *L)
 	if (lua_istable(L, 4))
 	{
 		for (int i = 1; i <= components; i++)
-			lua_rawgeti(L, components, i);
+			lua_rawgeti(L, 4, i);
 
 		c.r = (float) luaL_checknumber(L, -components);
 		if (components > 1)
@@ -213,12 +228,12 @@ int w_ImageData_paste(lua_State *L)
 {
 	ImageData *t = luax_checkimagedata(L, 1);
 	ImageData *src = luax_checkimagedata(L, 2);
-	int dx = (int) luaL_checkinteger(L, 3);
-	int dy = (int) luaL_checkinteger(L, 4);
-	int sx = (int) luaL_optinteger(L, 5, 0);
-	int sy = (int) luaL_optinteger(L, 6, 0);
-	int sw = (int) luaL_optinteger(L, 7, src->getWidth());
-	int sh = (int) luaL_optinteger(L, 8, src->getHeight());
+	int dx = luax_checkimageint(L, 3);
+	int dy = luax_checkimageint(L, 4);
+	int sx = luax_optimageint(L, 5, 0);
+	int sy = luax_optimageint(L, 6, 0);
+	int sw = luax_optimageint(L, 7, src->getWidth());
+	int sh = luax_optimageint(L, 8, src->getHeight());
 	t->paste((love::image::ImageData *)src, dx, dy, sx, sy, sw, sh);
 	return 0;
 }
@@ -227,7 +242,7 @@ int w_ImageData_encode(lua_State *L)
 {
 	ImageData *t = luax_checkimagedata(L, 1);
 
-	FormatHandler::EncodedFormat format;
+	FormatHandler::EncodedFormat format = FormatHandler::ENCODED_TGA;
 	const char *fmt = luaL_checkstring(L, 2);
 	if (!ImageData::getConstant(fmt, format))
 		return luax_enumerror(L, "encoded image format", ImageData::getConstants(format), fmt);

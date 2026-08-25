@@ -401,6 +401,20 @@ declare global {
 			 * @param source 用于音频播放的音频源，或 nil 以禁用音频同步。 （默认值：无。）
 			 */
 			setSource(source?: Source): void;
+			/** 播放视频及其同步的音频源（如果存在）。 */
+			play(): void;
+			/** 暂停视频及其同步的音频源（如果存在）。 */
+			pause(): void;
+			/** 设置视频的播放位置。
+			 * @param seconds 从视频开始处计算的秒数。
+			 */
+			seek(seconds: number): void;
+			/** 将视频倒回开头。 */
+			rewind(): void;
+			/** 获取视频当前的播放位置（秒）。 */
+			tell(): number;
+			/** 获取视频当前是否正在播放。 */
+			isPlaying(): boolean;
 			/**
 			 * 获取视频的宽度（以像素为单位）。
 			 *
@@ -4083,6 +4097,22 @@ declare global {
 		 * @returns visible — 如果窗口可见则为 true，如果不可见则为 false。
 		 */
 		isVisible(this: void): boolean;
+		/** 关闭虚拟 Love 窗口，但不会关闭 Dora 宿主应用。 */
+		close(this: void): void;
+		/** 设置虚拟窗口的位置元数据。 */
+		setPosition(this: void, x: number, y: number, display?: number): void;
+		/** 将虚拟窗口标记为最小化。 */
+		minimize(this: void): void;
+		/** 将虚拟窗口标记为最大化。 */
+		maximize(this: void): void;
+		/** 从最小化或最大化状态恢复虚拟窗口。 */
+		restore(this: void): void;
+		/** 在宿主后端支持时显示消息框。 */
+		showMessageBox(this: void, title: string, message: string, type?: "error" | "warning" | "info", attachToWindow?: boolean): boolean;
+		/** 显示带自定义按钮的消息框，并返回从 1 开始的按钮索引。 */
+		showMessageBox(this: void, title: string, message: string, buttons: string[], type?: "error" | "warning" | "info", attachToWindow?: boolean): number;
+		/** 在宿主窗口支持时请求用户注意。 */
+		requestAttention(this: void, continuous?: boolean): void;
 		/**
 		 * 获取Window当前是否最大化。
 		 *
@@ -8153,7 +8183,10 @@ declare global {
 	/** Contacts are objects created to manage collisions in worlds.
 	 */
 	interface Contact extends Object {
-		isValid(): boolean;
+		/** 检查 Contact 是否已被销毁。
+		 * @returns destroyed — Contact 已失效时为 true。
+		 */
+		isDestroyed(this: void): boolean;
 		/**
 		 * 获取保持接触形状的两个夹具。
 		 *
@@ -8257,6 +8290,26 @@ declare global {
 		isDestroyed(): boolean;
 		/** 返回世界中的所有刚体。 */
 		getBodies(): Body[];
+		/** 返回世界中的所有关节。 */
+		getJoints(): Joint[];
+		/** 返回世界中的所有当前接触。 */
+		getContacts(): Contact[];
+		/** 返回世界中的刚体数量。 */
+		getBodyCount(): number;
+		/** 返回世界中的关节数量。 */
+		getJointCount(): number;
+		/** 返回世界中的当前接触数量。 */
+		getContactCount(): number;
+		/** 返回世界当前是否正在执行更新。 */
+		isLocked(): boolean;
+		/** 按指定偏移量平移世界原点。 */
+		translateOrigin(x: number, y: number): void;
+		/** @deprecated 请改用 getBodies。 */
+		getBodyList(): Body[];
+		/** @deprecated 请改用 getJoints。 */
+		getJointList(): Joint[];
+		/** @deprecated 请改用 getContacts。 */
+		getContactList(): Contact[];
 		/**
 		 * 更新世界状况。
 		 *
@@ -8864,13 +8917,58 @@ declare global {
 		getLinearVelocityFromLocalPoint(x: number, y: number): LuaMultiReturn<[number, number]>;
 		/** 返回附加到刚体的所有碰撞体。 */
 		getFixtures(): Fixture[];
+		/** 返回附加到物体的所有关节。 */
+		getJoints(): Joint[];
+		/** 返回与物体有关的所有接触。 */
+		getContacts(): Contact[];
+		/** 返回拥有此物体的 World。 */
+		getWorld(): World;
+		/** 返回此物体是否正在接触另一个物体。 */
+		isTouching(other: Body): boolean;
+		/** 为物体关联任意 Lua 值。 */
+		setUserData(value: unknown): void;
+		/** 返回与物体关联的任意 Lua 值。 */
+		getUserData(): unknown;
+		/** @deprecated 请改用 getFixtures。 */
+		getFixtureList(): Fixture[];
+		/** @deprecated 请改用 getJoints。 */
+		getJointList(): Joint[];
+		/** @deprecated 请改用 getContacts。 */
+		getContactList(): Contact[];
 	}
 	/** Shapes are solid 2d geometrical objects which handle the mass and collision of a Body in love.physics.
 	 */
-	interface Shape extends Object { getType(): "circle" | "polygon" | "edge" | "chain"; }
+	interface Shape extends Object {
+		/** 返回具体的形状类型。 */
+		getType(this: void): "circle" | "polygon" | "edge" | "chain";
+		/** 返回形状圆角外皮的像素半径。 */
+		getRadius(this: void): number;
+		/** 返回子形状数量。 */
+		getChildCount(this: void): number;
+		/** 检查世界坐标点是否位于变换后的形状内部。 */
+		testPoint(this: void, x: number, y: number, angle: number,
+			pointX: number, pointY: number): boolean;
+		/** 对变换后的形状作射线检测；未命中时不返回值。 */
+		rayCast(this: void, x1: number, y1: number, x2: number, y2: number,
+			maximumFraction: number, x: number, y: number, angle: number,
+			childIndex?: number): LuaMultiReturn<[number, number, number] | []>;
+		/** 计算变换后的轴对齐包围盒。 */
+		computeAABB(this: void, x: number, y: number, angle: number,
+			childIndex?: number): LuaMultiReturn<[number, number, number, number]>;
+		/** 按给定密度计算质心、质量和转动惯量。 */
+		computeMass(this: void, density: number): LuaMultiReturn<[number, number, number, number]>;
+	}
 	/** Circle extends Shape and adds a radius and a local position.
 	 */
-	interface CircleShape extends Shape { getRadius(): number; }
+	interface CircleShape extends Shape {
+		getRadius(this: void): number;
+		/** 修改圆形的像素半径。 */
+		setRadius(this: void, radius: number): void;
+		/** 返回圆形的局部中心。 */
+		getPoint(this: void): LuaMultiReturn<[number, number]>;
+		/** 修改圆形的局部中心。 */
+		setPoint(this: void, x: number, y: number): void;
+	}
 	/** A PolygonShape is a convex polygon with up to 8 vertices.
 	 */
 	interface PolygonShape extends Shape {

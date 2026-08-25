@@ -1,0 +1,91 @@
+diff --git a/src/modules/graphics/Canvas.cpp b/src/modules/graphics/Canvas.cpp
+index 6d62ad6..4ef6b8c 100644
+--- a/src/modules/graphics/Canvas.cpp
++++ b/src/modules/graphics/Canvas.cpp
+@@ -19,7 +19,6 @@
+  **/
+ 
+ #include "Canvas.h"
+-#include "Graphics.h"
+ 
+ namespace love
+ {
+@@ -38,6 +37,7 @@ Canvas::Canvas(const Settings &settings)
+ 	height = settings.height;
+ 	pixelWidth = (int) ((width * settings.dpiScale) + 0.5);
+ 	pixelHeight = (int) ((height * settings.dpiScale) + 0.5);
++	dpiScale = settings.dpiScale;
+ 
+ 	format = settings.format;
+ 
+@@ -72,34 +72,11 @@ Canvas::Canvas(const Settings &settings)
+ 	if (settings.mipmaps == MIPMAPS_AUTO && isPixelFormatDepthStencil(format))
+ 		throw love::Exception("Automatic mipmap generation cannot be used for depth/stencil Canvases.");
+ 
+-	auto gfx = Module::getInstance<Graphics>(Module::M_GRAPHICS);
+-	const Graphics::Capabilities &caps = gfx->getCapabilities();
+-
+-	if (!gfx->isCanvasFormatSupported(format, readable))
+-	{
+-		const char *fstr = "rgba8";
+-		const char *readablestr = "";
+-		if (readable != !isPixelFormatDepthStencil(format))
+-			readablestr = readable ? " readable" : " non-readable";
+-		love::getConstant(format, fstr);
+-		throw love::Exception("The %s%s canvas format is not supported by your graphics drivers.", fstr, readablestr);
+-	}
+-
+-	if (getRequestedMSAA() > 1 && texType != TEXTURE_2D)
+-		throw love::Exception("MSAA is only supported for 2D texture types.");
+-
+ 	if (!readable && texType != TEXTURE_2D)
+ 		throw love::Exception("Non-readable pixel formats are only supported for 2D texture types.");
+ 
+-	if (!caps.textureTypes[texType])
+-	{
+-		const char *textypestr = "unknown";
+-		Texture::getConstant(texType, textypestr);
+-		throw love::Exception("%s textures are not supported on this system!", textypestr);
+-	}
+-
+-	validateDimensions(true);
+-
++	// Driver capability checks and backend dimension validation are performed
++	// by Dora's state-local graphics adapter after its RenderTarget is created.
+ 	canvasCount++;
+ }
+ 
+@@ -136,10 +113,6 @@ love::image::ImageData *Canvas::newImageData(love::image::Image *module, int sli
+ 		throw love::Exception("Invalid slice index.");
+ 	}
+ 
+-	Graphics *gfx = Module::getInstance<Graphics>(Module::M_GRAPHICS);
+-	if (gfx != nullptr && gfx->isCanvasActive(this))
+-		throw love::Exception("Canvas:newImageData cannot be called while that Canvas is currently active.");
+-
+ 	PixelFormat dataformat = getPixelFormat();
+ 	if (dataformat == PIXELFORMAT_sRGBA8)
+ 		dataformat = PIXELFORMAT_RGBA8;
+@@ -156,17 +129,11 @@ love::image::ImageData *Canvas::newImageData(love::image::Image *module, int sli
+ 
+ void Canvas::draw(Graphics *gfx, Quad *q, const Matrix4 &t)
+ {
+-	if (gfx->isCanvasActive(this))
+-		throw love::Exception("Cannot render a Canvas to itself!");
+-
+ 	Texture::draw(gfx, q, t);
+ }
+ 
+ void Canvas::drawLayer(Graphics *gfx, int layer, Quad *quad, const Matrix4 &m)
+ {
+-	if (gfx->isCanvasActive(this, layer))
+-		throw love::Exception("Cannot render a Canvas to itself!");
+-
+ 	Texture::drawLayer(gfx, layer, quad, m);
+ }
+ 
+@@ -232,4 +199,3 @@ StringMap<Canvas::SettingType, Canvas::SETTING_MAX_ENUM> Canvas::settingTypes(Ca
+ 
+ } // graphics
+ } // love
+-

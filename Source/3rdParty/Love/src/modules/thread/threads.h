@@ -82,7 +82,7 @@ class Threadable : public love::Object
 public:
 	static love::Type type;
 
-	Threadable();
+	explicit Threadable(bool createOwner = true);
 	virtual ~Threadable();
 
 	virtual void threadFunction() = 0;

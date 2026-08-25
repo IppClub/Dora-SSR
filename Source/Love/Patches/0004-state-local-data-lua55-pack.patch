@@ -1,0 +1,129 @@
+diff --git a/src/modules/data/wrap_DataModule.cpp b/src/modules/data/wrap_DataModule.cpp
+index 572b9b862..1a14fc99d 100644
+--- a/src/modules/data/wrap_DataModule.cpp
++++ b/src/modules/data/wrap_DataModule.cpp
+@@ -27,9 +27,6 @@
+ #include "DataModule.h"
+ #include "common/b64.h"
+ 
+-// Lua 5.3
+-#include "libraries/lua53/lstrlib.h"
+-
+ // C
+ #include <cmath>
+ #include <iostream>
+@@ -41,7 +38,7 @@ namespace love
+ namespace data
+ {
+ 
+-#define instance() (Module::getInstance<DataModule>(Module::M_DATA))
++#define instance() (luax_getmodule<DataModule>(L, Module::M_DATA))
+ 
+ ContainerType luax_checkcontainertype(lua_State *L, int idx)
+ {
+@@ -205,7 +202,7 @@ int w_encode(lua_State *L)
+ 	ContainerType ctype = luax_checkcontainertype(L, 1);
+ 
+ 	const char *formatstr = luaL_checkstring(L, 2);
+-	EncodeFormat format;
++	EncodeFormat format = ENCODE_BASE64;
+ 	if (!getConstant(formatstr, format))
+ 		return luax_enumerror(L, "encode format", getConstants(format), formatstr);
+ 
+@@ -256,7 +253,7 @@ int w_decode(lua_State *L)
+ 	ContainerType ctype = luax_checkcontainertype(L, 1);
+ 
+ 	const char *formatstr = luaL_checkstring(L, 2);
+-	EncodeFormat format;
++	EncodeFormat format = ENCODE_BASE64;
+ 	if (!getConstant(formatstr, format))
+ 		return luax_enumerror(L, "decode format", getConstants(format), formatstr);
+ 
+@@ -303,7 +300,7 @@ int w_decode(lua_State *L)
+ int w_hash(lua_State *L)
+ {
+ 	const char *fstr = luaL_checkstring(L, 1);
+-	HashFunction::Function function;
++	HashFunction::Function function = HashFunction::FUNCTION_MD5;
+ 	if (!HashFunction::getConstant(fstr, function))
+ 		return luax_enumerror(L, "hash function", HashFunction::getConstants(function), fstr);
+ 
+@@ -327,29 +324,31 @@ int w_hash(lua_State *L)
+ int w_pack(lua_State *L)
+ {
+ 	ContainerType ctype = luax_checkcontainertype(L, 1);
+-	const char *fmt = luaL_checkstring(L, 2);
+-	luaL_Buffer_53 b;
+-	lua53_str_pack(L, fmt, 3, &b);
++	lua_remove(L, 1);
++	int nargs = lua_gettop(L);
++	lua_getglobal(L, "string");
++	lua_getfield(L, -1, "pack");
++	lua_remove(L, -2);
++	lua_insert(L, 1);
++	lua_call(L, nargs, 1);
+ 
+ 	if (ctype == CONTAINER_DATA)
+ 	{
++		size_t size = 0;
++		const char *bytes = lua_tolstring(L, -1, &size);
+ 		Data *d = nullptr;
+-		luax_catchexcept(L, [&]() { d = instance()->newByteData(b.nelems); });
+-		memcpy(d->getData(), b.ptr, d->getSize());
+-
+-		lua53_cleanupbuffer(&b);
++		luax_catchexcept(L, [&]() { d = instance()->newByteData(bytes, size); });
++		lua_pop(L, 1);
+ 		luax_pushtype(L, Data::type, d);
+ 		d->release();
+ 	}
+-	else
+-		lua53_pushresult(&b);
+ 
+ 	return 1;
+ }
+ 
+ int w_unpack(lua_State *L)
+ {
+-	const char *fmt = luaL_checkstring(L, 1);
++	luaL_checkstring(L, 1);
+ 
+ 	const char *data = nullptr;
+ 	size_t datasize = 0;
+@@ -363,7 +362,26 @@ int w_unpack(lua_State *L)
+ 	else
+ 		data = luaL_checklstring(L, 2, &datasize);
+ 
+-	return lua53_str_unpack(L, fmt, data, datasize, 2, 3);
++	lua_pushlstring(L, data, datasize);
++	lua_replace(L, 2);
++	int nargs = lua_gettop(L);
++	lua_getglobal(L, "string");
++	lua_getfield(L, -1, "unpack");
++	lua_remove(L, -2);
++	lua_insert(L, 1);
++	lua_call(L, nargs, LUA_MULTRET);
++	return lua_gettop(L);
++}
++
++int w_getPackedSize(lua_State *L)
++{
++	int nargs = lua_gettop(L);
++	lua_getglobal(L, "string");
++	lua_getfield(L, -1, "packsize");
++	lua_remove(L, -2);
++	lua_insert(L, 1);
++	lua_call(L, nargs, 1);
++	return 1;
+ }
+ 
+ // List of functions to wrap.
+@@ -379,7 +397,7 @@ static const luaL_Reg functions[] =
+ 
+ 	{ "pack", w_pack },
+ 	{ "unpack", w_unpack },
+-	{ "getPackedSize", lua53_str_packsize },
++	{ "getPackedSize", w_getPackedSize },
+ 
+ 	{ 0, 0 }
+ };

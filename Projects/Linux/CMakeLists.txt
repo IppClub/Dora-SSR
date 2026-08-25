@@ -207,9 +207,6 @@ add_executable(dora-ssr
 	../../Source/Lua/LuaEngine.cpp
 	../../Source/Love/LoveRuntime.cpp
 	../../Source/Love/LoveVideoSources.cpp
-	../../Source/Love/LoveDataAlgorithms.cpp
-	../../Source/Love/LoveLZ4.c
-	../../Source/Love/LoveLZ4HC.c
 	../../Source/Love/LoveNode.cpp
 	../../Source/Http/HttpServer.cpp
 	../../Source/Http/XrtNetwork.c

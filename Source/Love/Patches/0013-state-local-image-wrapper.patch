@@ -1,0 +1,157 @@
+diff --git a/src/modules/image/Image.h b/src/modules/image/Image.h
+index 894e7a208..c820afdfe 100644
+--- a/src/modules/image/Image.h
++++ b/src/modules/image/Image.h
+@@ -61,7 +61,7 @@ class Image : public Module
+ 	 * @param data The FileData containing the encoded image data.
+ 	 * @return The new ImageData.
+ 	 **/
+-	ImageData *newImageData(Data *data);
++	virtual ImageData *newImageData(Data *data) = 0;
+ 
+ 	/**
+ 	 * Creates empty ImageData with the given size.
+@@ -69,7 +69,7 @@ class Image : public Module
+ 	 * @param height The height of the ImageData.
+ 	 * @return The new ImageData.
+ 	 **/
+-	ImageData *newImageData(int width, int height, PixelFormat format = PIXELFORMAT_RGBA8);
++	virtual ImageData *newImageData(int width, int height, PixelFormat format = PIXELFORMAT_RGBA8) = 0;
+ 
+ 	/**
+ 	 * Creates empty ImageData with the given size.
+@@ -80,20 +80,20 @@ class Image : public Module
+ 	 *        copy it.
+ 	 * @return The new ImageData.
+ 	 **/
+-	ImageData *newImageData(int width, int height, PixelFormat format, void *data, bool own = false);
++	virtual ImageData *newImageData(int width, int height, PixelFormat format, void *data, bool own = false) = 0;
+ 
+ 	/**
+ 	 * Creates new CompressedImageData from FileData.
+ 	 * @param data The FileData containing the compressed image data.
+ 	 * @return The new CompressedImageData.
+ 	 **/
+-	CompressedImageData *newCompressedData(Data *data);
++	virtual CompressedImageData *newCompressedData(Data *data) = 0;
+ 
+ 	/**
+ 	 * Determines whether a FileData is Compressed image data or not.
+ 	 * @param data The FileData to test.
+ 	 **/
+-	bool isCompressed(Data *data);
++	virtual bool isCompressed(Data *data) = 0;
+ 
+ 	std::vector<StrongRef<ImageData>> newCubeFaces(ImageData *src);
+ 	std::vector<StrongRef<ImageData>> newVolumeLayers(ImageData *src);
+diff --git a/src/modules/image/Image.cpp b/src/modules/image/Image.cpp
+index d5f58e997..4a60d7e28 100644
+--- a/src/modules/image/Image.cpp
++++ b/src/modules/image/Image.cpp
+@@ -22,16 +22,6 @@
+ #include "Image.h"
+ #include "common/config.h"
+ 
+-#include "magpie/PNGHandler.h"
+-#include "magpie/STBHandler.h"
+-#include "magpie/EXRHandler.h"
+-
+-#include "magpie/ddsHandler.h"
+-#include "magpie/PVRHandler.h"
+-#include "magpie/KTXHandler.h"
+-#include "magpie/PKMHandler.h"
+-#include "magpie/ASTCHandler.h"
+-
+ namespace love
+ {
+ namespace image
+@@ -41,20 +31,7 @@ love::Type Image::type("image", &Module::type);
+ 
+ Image::Image()
+ {
+-	using namespace magpie;
+-
+ 	float16Init(); // Makes sure half-float conversions can be used.
+-
+-	formatHandlers = {
+-		new PNGHandler,
+-		new STBHandler,
+-		new EXRHandler,
+-		new DDSHandler,
+-		new PVRHandler,
+-		new KTXHandler,
+-		new PKMHandler,
+-		new ASTCHandler,
+-	};
+ }
+ 
+ Image::~Image()
+@@ -70,37 +47,6 @@ const char *Image::getName() const
+ 	return "love.image.magpie";
+ }
+ 
+-love::image::ImageData *Image::newImageData(Data *data)
+-{
+-	return new ImageData(data);
+-}
+-
+-love::image::ImageData *Image::newImageData(int width, int height, PixelFormat format)
+-{
+-	return new ImageData(width, height, format);
+-}
+-
+-love::image::ImageData *Image::newImageData(int width, int height, PixelFormat format, void *data, bool own)
+-{
+-	return new ImageData(width, height, format, data, own);
+-}
+-
+-love::image::CompressedImageData *Image::newCompressedData(Data *data)
+-{
+-	return new CompressedImageData(formatHandlers, data);
+-}
+-
+-bool Image::isCompressed(Data *data)
+-{
+-	for (FormatHandler *handler : formatHandlers)
+-	{
+-		if (handler->canParseCompressed(data))
+-			return true;
+-	}
+-
+-	return false;
+-}
+-
+ const std::list<FormatHandler *> &Image::getFormatHandlers() const
+ {
+ 	return formatHandlers;
+diff --git a/src/modules/image/wrap_Image.cpp b/src/modules/image/wrap_Image.cpp
+index 15b4409e7..327e8b698 100644
+--- a/src/modules/image/wrap_Image.cpp
++++ b/src/modules/image/wrap_Image.cpp
+@@ -32,7 +32,9 @@ namespace love
+ namespace image
+ {
+ 
+-#define instance() (Module::getInstance<Image>(Module::M_IMAGE))
++Image *newDoraImage(lua_State *L);
++
++#define instance() (luax_getmodule<Image>(L, Image::type))
+ 
+ int w_newImageData(lua_State *L)
+ {
+@@ -157,13 +159,8 @@ static const lua_CFunction types[] =
+ 
+ extern "C" int luaopen_love_image(lua_State *L)
+ {
+-	Image *instance = instance();
+-	if (instance == nullptr)
+-	{
+-		luax_catchexcept(L, [&](){ instance = new love::image::Image(); });
+-	}
+-	else
+-		instance->retain();
++	Image *instance = nullptr;
++	luax_catchexcept(L, [&](){ instance = newDoraImage(L); });
+ 
+ 	WrappedModule w;
+ 	w.module = instance;

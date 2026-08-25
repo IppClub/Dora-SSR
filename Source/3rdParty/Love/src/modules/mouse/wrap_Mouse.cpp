@@ -23,7 +23,6 @@
 #include "wrap_Cursor.h"
 #include "common/config.h"
 
-#include "sdl/Mouse.h"
 #include "filesystem/File.h"
 
 namespace love
@@ -31,7 +30,7 @@ namespace love
 namespace mouse
 {
 
-#define instance() (Module::getInstance<Mouse>(Module::M_MOUSE))
+#define instance() (luax_getmodule<Mouse>(L, Module::M_MOUSE))
 
 int w_newCursor(lua_State *L)
 {
@@ -76,7 +75,7 @@ int w_setCursor(lua_State *L)
 	}
 
 	Cursor *cursor = luax_checkcursor(L, 1);
-	instance()->setCursor(cursor);
+	luax_catchexcept(L, [&]() { instance()->setCursor(cursor); });
 	return 0;
 }
 
@@ -122,14 +121,14 @@ int w_getPosition(lua_State *L)
 int w_setX(lua_State *L)
 {
 	double x = luaL_checknumber(L, 1);
-	instance()->setX(x);
+	luax_catchexcept(L, [&]() { instance()->setX(x); });
 	return 0;
 }
 
 int w_setY(lua_State *L)
 {
 	double y = luaL_checknumber(L, 1);
-	instance()->setY(y);
+	luax_catchexcept(L, [&]() { instance()->setY(y); });
 	return 0;
 }
 
@@ -137,7 +136,7 @@ int w_setPosition(lua_State *L)
 {
 	double x = luaL_checknumber(L, 1);
 	double y = luaL_checknumber(L, 2);
-	instance()->setPosition(x, y);
+	luax_catchexcept(L, [&]() { instance()->setPosition(x, y); });
 	return 0;
 }
 
@@ -243,7 +242,7 @@ extern "C" int luaopen_love_mouse(lua_State *L)
 	Mouse *instance = instance();
 	if (instance == nullptr)
 	{
-		luax_catchexcept(L, [&](){ instance = new love::mouse::sdl::Mouse(); });
+		luax_catchexcept(L, [&](){ instance = newDoraMouse(L); });
 	}
 	else
 		instance->retain();

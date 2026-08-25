@@ -28,7 +28,10 @@ class StdMutex final : public Mutex
 public:
 	void lock() override { mutex.lock(); }
 	void unlock() override { mutex.unlock(); }
-	std::mutex mutex;
+	// SDL mutexes used by upstream Love are recursive. ImageData::paste, among
+	// other paths, relies on locking the source and destination even when they
+	// are the same object.
+	std::recursive_mutex mutex;
 };
 
 class StdConditional final : public Conditional
@@ -48,7 +51,7 @@ public:
 		lock.release();
 		return result;
 	}
-	std::condition_variable condition;
+	std::condition_variable_any condition;
 };
 
 class StdThread final : public Thread

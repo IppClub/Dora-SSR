@@ -87,9 +87,9 @@ void EmptyLock::setLock(Mutex &m)
 
 love::Type Threadable::type("Threadable", &Object::type);
 
-Threadable::Threadable()
+Threadable::Threadable(bool createOwner)
+	: owner(createOwner ? newThread(this) : nullptr)
 {
-	owner = newThread(this);
 }
 
 Threadable::~Threadable()
@@ -99,17 +99,17 @@ Threadable::~Threadable()
 
 bool Threadable::start()
 {
-	return owner->start();
+	return owner != nullptr && owner->start();
 }
 
 void Threadable::wait()
 {
-	owner->wait();
+	if (owner) owner->wait();
 }
 
 bool Threadable::isRunning() const
 {
-	return owner->isRunning();
+	return owner != nullptr && owner->isRunning();
 }
 
 const char *Threadable::getThreadName() const

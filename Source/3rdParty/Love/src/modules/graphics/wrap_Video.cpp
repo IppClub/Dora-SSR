@@ -19,6 +19,9 @@
  **/
 
 #include "wrap_Video.h"
+#include "common/Module.h"
+
+#include <cmath>
 
 // Shove the wrap_Video.lua code directly into a raw string literal.
 static const char video_lua[] =
@@ -29,6 +32,65 @@ namespace love
 {
 namespace graphics
 {
+
+static GraphicsVideoCommand *videoCommand(lua_State *L)
+{
+	auto *module = luax_getmodule(L, Module::M_GRAPHICS);
+	auto *command = dynamic_cast<GraphicsVideoCommand *>(module);
+	if (command == nullptr)
+		luaL_error(L, "love.graphics has no state-local Video command adapter");
+	return command;
+}
+
+int w_newVideo(lua_State *L)
+{
+	if (!luax_istype(L, 1, love::video::VideoStream::type))
+		luax_convobj(L, 1, "video", "newVideoStream");
+	auto *stream = luax_checktype<love::video::VideoStream>(L, 1);
+	const float dpiScale = static_cast<float>(luaL_optnumber(L, 2, 1.0));
+	if (!std::isfinite(dpiScale) || dpiScale <= 0.0f)
+		return luaL_argerror(L, 2, "dpiscale must be a positive finite number");
+	Video *video = nullptr;
+	luax_catchexcept(L, [&](){ video = videoCommand(L)->newVideo(stream, dpiScale); });
+	luax_pushtype(L, video);
+	video->release();
+	return 1;
+}
+
+static const char video_constructor_lua[] = R"luastring(
+function love.graphics.newVideo(file, settings)
+	settings = settings == nil and {} or settings
+	if type(settings) ~= "table" then error("bad argument #2 to newVideo (expected table)", 2) end
+
+	local video = love.graphics._newVideo(file, settings.dpiscale)
+	local source, success
+
+	if settings.audio ~= false and love.audio then
+		success, source = pcall(love.audio.newSource, video:getStream():getFilename(), "stream")
+	end
+	if success then
+		video:setSource(source)
+	elseif settings.audio == true then
+		if love.audio then
+			error("Video had no audio track", 2)
+		else
+			error("love.audio was not loaded", 2)
+		end
+	else
+		video:getStream():setSync()
+	end
+
+	return video
+end
+)luastring";
+
+void installVideoConstructorWrapper(lua_State *L)
+{
+	if (luaL_loadbuffer(L, video_constructor_lua, sizeof(video_constructor_lua) - 1,
+		"=[love \"wrap_Graphics.lua:newVideo\"]") != LUA_OK)
+		lua_error(L);
+	lua_call(L, 0, 0);
+}
 
 Video *luax_checkvideo(lua_State *L, int idx)
 {
@@ -57,11 +119,11 @@ int w_Video_setSource(lua_State *L)
 {
 	Video *video = luax_checkvideo(L, 1);
 	if (lua_isnoneornil(L, 2))
-		video->setSource(nullptr);
+		luax_catchexcept(L, [&](){ video->setSource(nullptr); });
 	else
 	{
 		auto source = luax_checktype<love::audio::Source>(L, 2);
-		video->setSource(source);
+		luax_catchexcept(L, [&](){ video->setSource(source); });
 	}
 	return 0;
 }

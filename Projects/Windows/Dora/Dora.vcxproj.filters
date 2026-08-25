@@ -375,15 +375,6 @@
     <ClCompile Include="..\..\..\Source\Love\LoveVideoSources.cpp">
       <Filter>Love</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\Love\LoveDataAlgorithms.cpp">
-      <Filter>Love</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\Love\LoveLZ4.c">
-      <Filter>Love</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\Love\LoveLZ4HC.c">
-      <Filter>Love</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Love\LoveNode.cpp">
       <Filter>Love</Filter>
     </ClCompile>

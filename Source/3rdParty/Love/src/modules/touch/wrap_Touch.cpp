@@ -23,14 +23,12 @@
 // LOVE
 #include "wrap_Touch.h"
 
-#include "sdl/Touch.h"
-
 namespace love
 {
 namespace touch
 {
 
-#define instance() (Module::getInstance<Touch>(Module::M_TOUCH))
+#define instance() (luax_getmodule<Touch>(L, Module::M_TOUCH))
 
 int64 luax_checktouchid(lua_State *L, int idx)
 {
@@ -97,7 +95,7 @@ extern "C" int luaopen_love_touch(lua_State *L)
 	Touch *instance = instance();
 	if (instance == nullptr)
 	{
-		luax_catchexcept(L, [&](){ instance = new love::touch::sdl::Touch(); });
+		luax_catchexcept(L, [&](){ instance = newDoraTouch(L); });
 	}
 	else
 		instance->retain();

@@ -22,15 +22,17 @@
 
 #include "filesystem/wrap_Filesystem.h"
 
-// Implementations.
-#include "lullaby/Sound.h"
+#include <cmath>
+#include <limits>
 
 namespace love
 {
 namespace sound
 {
 
-#define instance() (Module::getInstance<Sound>(Module::M_SOUND))
+#define instance() (luax_getmodule<Sound>(L, Module::M_SOUND))
+
+Sound *newDoraSound(lua_State *L);
 
 int w_newDecoder(lua_State *L)
 {
@@ -57,10 +59,20 @@ int w_newSoundData(lua_State *L)
 
 	if (lua_isnumber(L, 1))
 	{
-		int samples = (int) luaL_checkinteger(L, 1);
-		int sampleRate = (int) luaL_optinteger(L, 2, Decoder::DEFAULT_SAMPLE_RATE);
-		int bitDepth = (int) luaL_optinteger(L, 3, Decoder::DEFAULT_BIT_DEPTH);
-		int channels = (int) luaL_optinteger(L, 4, Decoder::DEFAULT_CHANNELS);
+		// Love 11.5 uses LuaJIT, whose integer checks truncate numeric values.
+		// Preserve that public behavior on Lua 5.5, which otherwise rejects
+		// finite non-integral numbers before SoundData can validate them.
+		auto checkInteger = [L](int index, double fallback, bool optional) {
+			double value = optional ? luaL_optnumber(L, index, fallback) : luaL_checknumber(L, index);
+			if (!std::isfinite(value) || value < std::numeric_limits<int>::min()
+				|| value > std::numeric_limits<int>::max())
+				luaL_argerror(L, index, "number is outside the supported integer range");
+			return (int) value;
+		};
+		int samples = checkInteger(1, 0.0, false);
+		int sampleRate = checkInteger(2, Decoder::DEFAULT_SAMPLE_RATE, true);
+		int bitDepth = checkInteger(3, Decoder::DEFAULT_BIT_DEPTH, true);
+		int channels = checkInteger(4, Decoder::DEFAULT_CHANNELS, true);
 
 		luax_catchexcept(L, [&](){ t = instance()->newSoundData(samples, sampleRate, bitDepth, channels); });
 	}
@@ -102,7 +114,7 @@ extern "C" int luaopen_love_sound(lua_State *L)
 	Sound *instance = instance();
 	if (instance == nullptr)
 	{
-		luax_catchexcept(L, [&](){ instance = new lullaby::Sound(); });
+		luax_catchexcept(L, [&](){ instance = newDoraSound(L); });
 	}
 	else
 		instance->retain();

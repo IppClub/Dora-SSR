@@ -42,6 +42,7 @@ int w_Source_clone(lua_State *L)
 	Source *clone = nullptr;
 	luax_catchexcept(L, [&](){ clone = t->clone(); });
 	luax_pushtype(L, clone);
+	clone->onProxyCreated(L, -1);
 	clone->release();
 	return 1;
 }
@@ -91,7 +92,9 @@ int w_Source_setVolume(lua_State *L)
 {
 	Source *t = luax_checksource(L, 1);
 	float p = (float)luaL_checknumber(L, 2);
-	t->setVolume(p);
+	if (!std::isfinite(p) || p < 0.0f || p > 1.0f)
+		return luaL_argerror(L, 2, "volume must be between 0 and 1");
+	luax_catchexcept(L, [&](){ t->setVolume(p); });
 	return 0;
 }
 
@@ -106,15 +109,15 @@ int w_Source_seek(lua_State *L)
 {
 	Source *t = luax_checksource(L, 1);
 	double offset = luaL_checknumber(L, 2);
-	if (offset < 0)
-		return luaL_argerror(L, 2, "can't seek to a negative position");
+	if (!std::isfinite(offset) || offset < 0)
+		return luaL_argerror(L, 2, "seek offset must be non-negative and finite");
 
 	Source::Unit u = Source::UNIT_SECONDS;
 	const char *unit = lua_isnoneornil(L, 3) ? 0 : lua_tostring(L, 3);
 	if (unit && !t->getConstant(unit, u))
-		return luax_enumerror(L, "time unit", Source::getConstants(u), unit);
+		return luaL_argerror(L, 3, "time unit must be 'seconds' or 'samples'");
 
-	t->seek(offset, u);
+	luax_catchexcept(L, [&](){ t->seek(offset, u); });
 	return 0;
 }
 
@@ -125,7 +128,7 @@ int w_Source_tell(lua_State *L)
 	Source::Unit u = Source::UNIT_SECONDS;
 	const char *unit = lua_isnoneornil(L, 2) ? 0 : lua_tostring(L, 2);
 	if (unit && !t->getConstant(unit, u))
-		return luax_enumerror(L, "time unit", Source::getConstants(u), unit);
+		return luaL_argerror(L, 2, "time unit must be 'seconds' or 'samples'");
 
 	lua_pushnumber(L, t->tell(u));
 	return 1;
@@ -138,7 +141,7 @@ int w_Source_getDuration(lua_State *L)
 	Source::Unit u = Source::UNIT_SECONDS;
 	const char *unit = lua_isnoneornil(L, 2) ? 0 : lua_tostring(L, 2);
 	if (unit && !t->getConstant(unit, u))
-		return luax_enumerror(L, "time unit", Source::getConstants(u), unit);
+		return luaL_argerror(L, 2, "time unit must be 'seconds' or 'samples'");
 
 	lua_pushnumber(L, t->getDuration(u));
 	return 1;
@@ -268,13 +271,28 @@ int w_Source_isPlaying(lua_State *L)
 	return 1;
 }
 
+int w_Source_isStopped(lua_State *L)
+{
+	Source *t = luax_checksource(L, 1);
+	luax_pushboolean(L, t->isFinished());
+	return 1;
+}
+
+int w_Source_isPaused(lua_State *L)
+{
+	Source *t = luax_checksource(L, 1);
+	luax_pushboolean(L, !t->isPlaying() && !t->isFinished());
+	return 1;
+}
+
 int w_Source_setVolumeLimits(lua_State *L)
 {
 	Source *t = luax_checksource(L, 1);
 	float vmin = (float)luaL_checknumber(L, 2);
 	float vmax = (float)luaL_checknumber(L, 3);
-	if (vmin < .0f || vmin > 1.f || vmax < .0f || vmax > 1.f)
-		return luaL_error(L, "Invalid volume limits: [%f:%f]. Must be in [0:1]", vmin, vmax);
+	if (!std::isfinite(vmin) || !std::isfinite(vmax)
+		|| vmin < .0f || vmin > 1.f || vmax < .0f || vmax > 1.f)
+		return luaL_error(L, "minimum and maximum volume must be between 0 and 1");
 	t->setMinVolume(vmin);
 	t->setMaxVolume(vmax);
 	return 0;
@@ -293,8 +311,8 @@ int w_Source_setAttenuationDistances(lua_State *L)
 	Source *t = luax_checksource(L, 1);
 	float dref = (float)luaL_checknumber(L, 2);
 	float dmax = (float)luaL_checknumber(L, 3);
-	if (dref < .0f || dmax < .0f)
-		return luaL_error(L, "Invalid distances: %f, %f. Must be > 0", dref, dmax);
+	if (!std::isfinite(dref) || !std::isfinite(dmax) || dref < .0f || dmax < .0f)
+		return luaL_error(L, "reference and maximum distances must be finite and non-negative");
 	luax_catchexcept(L, [&]() {
 		t->setReferenceDistance(dref);
 		t->setMaxDistance(dmax);
@@ -316,8 +334,8 @@ int w_Source_setRolloff(lua_State *L)
 {
 	Source *t = luax_checksource(L, 1);
 	float rolloff = (float)luaL_checknumber(L, 2);
-	if (rolloff < .0f)
-		return luaL_error(L, "Invalid rolloff: %f. Must be > 0.", rolloff);
+	if (!std::isfinite(rolloff) || rolloff < .0f)
+		return luaL_error(L, "rolloff must be finite and non-negative");
 	luax_catchexcept(L, [&](){ t->setRolloffFactor(rolloff); });
 	return 0;
 }
@@ -333,8 +351,8 @@ int w_Source_setAirAbsorption(lua_State *L)
 {
 	Source *t = luax_checksource(L, 1);
 	float factor = (float)luaL_checknumber(L, 2);
-	if (factor < 0.0f)
-		return luaL_error(L, "Invalid air absorption factor: %f. Must be > 0.", factor);
+	if (!std::isfinite(factor) || factor < 0.0f)
+		return luaL_error(L, "air absorption factor must be finite and non-negative");
 	luax_catchexcept(L, [&](){ t->setAirAbsorptionFactor(factor); });
 	return 0;
 }
@@ -349,7 +367,7 @@ int w_Source_getAirAbsorption(lua_State *L)
 int w_Source_getChannelCount(lua_State *L)
 {
 	Source *t = luax_checksource(L, 1);
-	lua_pushinteger(L, t->getChannelCount());
+	luax_catchexcept(L, [&](){ lua_pushinteger(L, t->getChannelCount()); });
 	return 1;
 }
 
@@ -547,18 +565,31 @@ int w_Source_queue(lua_State *L)
 	{
 		auto s = luax_totype<love::sound::SoundData>(L, 2);
 
-		int offset = 0;
+		size_t offset = 0;
 		size_t length = s->getSize();
 
 		if (lua_gettop(L) == 4)
 		{
-			offset = luaL_checknumber(L, 3);
-			length = luaL_checknumber(L, 4);
+			lua_Number offsetValue = luaL_checknumber(L, 3);
+			lua_Number lengthValue = luaL_checknumber(L, 4);
+			if (!std::isfinite(offsetValue) || offsetValue < 0
+				|| offsetValue > static_cast<lua_Number>(std::numeric_limits<size_t>::max())
+				|| !std::isfinite(lengthValue) || lengthValue < 0
+				|| lengthValue > static_cast<lua_Number>(std::numeric_limits<size_t>::max()))
+				return luaL_error(L, "Data region out of bounds.");
+			offset = static_cast<size_t>(offsetValue);
+			length = static_cast<size_t>(lengthValue);
 		}
 		else if (lua_gettop(L) == 3)
-			length = luaL_checknumber(L, 3);
+		{
+			lua_Number lengthValue = luaL_checknumber(L, 3);
+			if (!std::isfinite(lengthValue) || lengthValue < 0
+				|| lengthValue > static_cast<lua_Number>(std::numeric_limits<size_t>::max()))
+				return luaL_error(L, "Data region out of bounds.");
+			length = static_cast<size_t>(lengthValue);
+		}
 
-		if (offset < 0 || length > s->getSize() - offset)
+		if (offset > s->getSize() || length > s->getSize() - offset)
 			return luaL_error(L, "Data region out of bounds.");
 
 		luax_catchexcept(L, [&]() {
@@ -568,17 +599,19 @@ int w_Source_queue(lua_State *L)
 	}
 	else if (lua_islightuserdata(L, 2))
 	{
-		int offset = luaL_checknumber(L, 3);
-		int length = luaL_checknumber(L, 4);
+		lua_Integer offset = luaL_checkinteger(L, 3);
+		lua_Integer length = luaL_checkinteger(L, 4);
 		int sampleRate = luaL_checknumber(L, 5);
 		int bitDepth = luaL_checknumber(L, 6);
 		int channels = luaL_checknumber(L, 7);
 
-		if (length < 0 || offset < 0)
+		if (length < 0 || offset < 0
+			|| static_cast<lua_Unsigned>(length) > std::numeric_limits<size_t>::max())
 			return luaL_error(L, "Data region out of bounds.");
 
 		luax_catchexcept(L, [&]() {
-			success = t->queue((void*)((uintptr_t)lua_touserdata(L, 2) + (uintptr_t)offset), length, sampleRate, bitDepth, channels);
+			success = t->queue((void*)((uintptr_t)lua_touserdata(L, 2) + (uintptr_t)offset),
+				static_cast<size_t>(length), sampleRate, bitDepth, channels);
 		});
 	}
 	else
@@ -639,6 +672,8 @@ static const luaL_Reg w_Source_functions[] =
 	{ "setLooping", w_Source_setLooping },
 	{ "isLooping", w_Source_isLooping },
 	{ "isPlaying", w_Source_isPlaying },
+	{ "isStopped", w_Source_isStopped },
+	{ "isPaused", w_Source_isPaused },
 
 	{ "setVolumeLimits", w_Source_setVolumeLimits },
 	{ "getVolumeLimits", w_Source_getVolumeLimits },

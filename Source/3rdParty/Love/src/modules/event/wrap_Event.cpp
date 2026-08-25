@@ -23,7 +23,8 @@
 // LOVE
 #include "common/runtime.h"
 
-#include "sdl/Event.h"
+#include <string_view>
+
 
 // Shove the wrap_Event.lua code directly into a raw string literal.
 static const char event_lua[] =
@@ -35,7 +36,7 @@ namespace love
 namespace event
 {
 
-#define instance() (Module::getInstance<Event>(Module::M_EVENT))
+#define instance() (luax_getmodule<Event>(L, Module::M_EVENT))
 
 static int w_poll_i(lua_State *L)
 {
@@ -94,6 +95,9 @@ int w_clear(lua_State *L)
 
 int w_quit(lua_State *L)
 {
+	if (lua_type(L, 1) == LUA_TSTRING
+		&& std::string_view(luax_checkstring(L, 1)) != "restart")
+		return luaL_argerror(L, 1, "expected 'restart'");
 	luax_catchexcept(L, [&]() {
 		std::vector<Variant> args = {Variant::fromLua(L, 1)};
 
@@ -122,7 +126,7 @@ extern "C" int luaopen_love_event(lua_State *L)
 	Event *instance = instance();
 	if (instance == nullptr)
 	{
-		luax_catchexcept(L, [&](){ instance = new love::event::sdl::Event(); });
+		luax_catchexcept(L, [&](){ instance = newDoraEvent(L); });
 	}
 	else
 		instance->retain();

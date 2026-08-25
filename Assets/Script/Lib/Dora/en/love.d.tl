@@ -767,6 +767,27 @@ local record Video
 	-- @param source (Source) The audio Source used for audio playback, or nil to disable audio synchronization. (Default: nil.)
 	setSource: function(self: Video, source?: Source)
 
+	-- Plays the Video and its synchronized audio Source, if present.
+	play: function(self: Video)
+
+	-- Pauses the Video and its synchronized audio Source, if present.
+	pause: function(self: Video)
+
+	-- Sets the Video playback position.
+	-- @param seconds (number) The time in seconds since the beginning of the Video.
+	seek: function(self: Video, seconds: number)
+
+	-- Rewinds the Video to the beginning.
+	rewind: function(self: Video)
+
+	-- Gets the current Video playback position.
+	-- @return (number) The time in seconds since the beginning of the Video.
+	tell: function(self: Video): number
+
+	-- Gets whether the Video is playing.
+	-- @return (boolean) True when the Video is playing.
+	isPlaying: function(self: Video): boolean
+
 	-- Gets the width of the Video in pixels.
 	-- @return (integer) The width of the Video.
 	getWidth: function(self: Video): integer
@@ -2504,6 +2525,23 @@ local record Window
 	-- The window is considered visible if it's not minimized and the program isn't hidden.
 	-- @return (boolean) True if the window is visible or false if not.
 	isVisible: function(): boolean
+
+	-- Closes the virtual Love window without closing the Dora host application.
+	close: function()
+
+	-- Sets the virtual window position metadata.
+	setPosition: function(x: number, y: number, display?: integer)
+
+	-- Changes the virtual minimized/maximized state.
+	minimize: function()
+	maximize: function()
+	restore: function()
+
+	-- Shows a host message box when supported. The custom-button form returns a 1-based index.
+	showMessageBox: function(title: string, message: string, options?: any, message_type?: string, attach_to_window?: boolean): boolean | integer
+
+	-- Requests user attention from the host window when supported.
+	requestAttention: function(continuous?: boolean)
 
 	-- Gets whether the Window is currently maximized.
 	-- The window can be maximized if it is not fullscreen and is resizable, and either the user has pressed the window's
@@ -5968,6 +6006,38 @@ local record Body
 	-- Returns all fixtures attached to the body.
 	-- @return (Fixture[]) A table containing all fixtures attached to the body.
 	getFixtures: function(self: Body): {Fixture}
+
+	-- Returns all joints attached to the body.
+	-- @return (Joint[]) A table containing all attached joints.
+	getJoints: function(self: Body): {Joint}
+
+	-- Returns all contacts involving the body.
+	-- @return (Contact[]) A table containing all current contacts.
+	getContacts: function(self: Body): {Contact}
+
+	-- Returns the World which owns this body.
+	-- @return (World) The owning World.
+	getWorld: function(self: Body): World
+
+	-- Returns whether this body is touching another body.
+	-- @param other (Body) The other body.
+	-- @return (boolean) True when the bodies are touching.
+	isTouching: function(self: Body, other: Body): boolean
+
+	-- Associates an arbitrary Lua value with the body.
+	setUserData: function(self: Body, value: any)
+
+	-- Returns the arbitrary Lua value associated with the body.
+	getUserData: function(self: Body): any
+
+	-- Deprecated alias of getFixtures.
+	getFixtureList: function(self: Body): {Fixture}
+
+	-- Deprecated alias of getJoints.
+	getJointList: function(self: Body): {Joint}
+
+	-- Deprecated alias of getContacts.
+	getContactList: function(self: Body): {Contact}
 end
 
 -- Shapes are solid 2d geometrical objects which handle the mass and collision of a Body in love.physics.
@@ -5994,16 +6064,33 @@ local record Shape
 	-- @return (string) The type of the Shape.
 	getType: function(self: Shape): string
 
-	-- Gets the radius of the shape.
-	-- @param index (integer) The index parameter.
-	-- @param x (number) The x parameter.
-	-- @param y (number) The y parameter.
-	-- @return (number or number... or boolean or integer or Shape or number or nil) The radius of the shape.
+	-- Gets the radius of the shape's rounded skin.
+	-- @return (number) The radius in pixels.
 	getRadius: function(self: Shape): number
+
+	-- Sets the radius of a CircleShape.
+	setRadius: function(self: Shape, radius: number)
+
+	-- Returns the number of child shapes.
+	getChildCount: function(self: Shape): integer
+
+	-- Tests whether a point lies inside the transformed shape.
+	testPoint: function(self: Shape, x: number, y: number, angle: number, point_x: number, point_y: number): boolean
+
+	-- Casts a ray against the transformed shape. Returns nil values on a miss.
+	rayCast: function(self: Shape, x1: number, y1: number, x2: number, y2: number, maximum_fraction: number, x: number, y: number, angle: number, child_index?: integer): number | nil, number | nil, number | nil
+
+	-- Computes the transformed axis-aligned bounding box.
+	computeAABB: function(self: Shape, x: number, y: number, angle: number, child_index?: integer): number, number, number, number
+
+	-- Computes center, mass, and rotational inertia for a density.
+	computeMass: function(self: Shape, density: number): number, number, number, number
+
 	getPoints: function(self: Shape): number...
 	validate: function(self: Shape): boolean
 	getVertexCount: function(self: Shape): integer
-	getPoint: function(self: Shape, index: integer): number, number
+	getPoint: function(self: Shape, index?: integer): number, number
+	setPoint: function(self: Shape, x: number, y: number)
 	getChildEdge: function(self: Shape, index: integer): Shape
 	getPreviousVertex: function(self: Shape): number | nil, number | nil
 	getNextVertex: function(self: Shape): number | nil, number | nil
@@ -6222,7 +6309,9 @@ local record Contact
 	-- This method can be used to immediately clean up resources without waiting for Lua's garbage collector.
 	-- @return (boolean) True if the object was released by this call, false if it had been previously released.
 	release: function(self: Contact): boolean
-	isValid: function(self: Contact): boolean
+	-- Checks whether the Contact has been destroyed.
+	-- @return (boolean) True if the Contact is no longer valid.
+	isDestroyed: function(self: Contact): boolean
 
 	-- Gets the two Fixtures that hold the shapes that are in contact.
 	-- @return (Fixture) The first Fixture.
@@ -6315,6 +6404,32 @@ local record World
 	-- Returns all bodies in the world.
 	-- @return (Body[]) A table containing all bodies in the world.
 	getBodies: function(self: World): {Body}
+
+	-- Returns all joints in the world.
+	getJoints: function(self: World): {Joint}
+
+	-- Returns all active contacts in the world.
+	getContacts: function(self: World): {Contact}
+
+	-- Returns the number of bodies, joints, and active contacts.
+	getBodyCount: function(self: World): integer
+
+	getJointCount: function(self: World): integer
+
+	getContactCount: function(self: World): integer
+
+	-- Returns whether the world is currently executing an update.
+	isLocked: function(self: World): boolean
+
+	-- Shifts the world's origin by the specified offset.
+	translateOrigin: function(self: World, x: number, y: number)
+
+	-- Deprecated aliases of the corresponding get methods.
+	getBodyList: function(self: World): {Body}
+
+	getJointList: function(self: World): {Joint}
+
+	getContactList: function(self: World): {Contact}
 
 	-- Update the state of the world.
 	-- @param delta_time (number) The time (in seconds) to advance the physics simulation.

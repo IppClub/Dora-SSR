@@ -19,14 +19,13 @@
  **/
 
 #include "wrap_Window.h"
-#include "sdl/Window.h"
 
 namespace love
 {
 namespace window
 {
 
-#define instance() (Module::getInstance<Window>(Module::M_WINDOW))
+#define instance() (luax_getmodule<Window>(L, Module::M_WINDOW))
 
 int w_getDisplayCount(lua_State *L)
 {
@@ -230,8 +229,10 @@ int w_getDisplayOrientation(lua_State *L)
 		instance()->getPosition(x, y, displayindex);
 	}
 
+	Window::DisplayOrientation orientation = Window::ORIENTATION_UNKNOWN;
+	luax_catchexcept(L, [&]() { orientation = instance()->getDisplayOrientation(displayindex); });
 	const char *orientationstr = nullptr;
-	if (!Window::getConstant(instance()->getDisplayOrientation(displayindex), orientationstr))
+	if (!Window::getConstant(orientation, orientationstr))
 		return luaL_error(L, "Unknown display orientation type.");
 
 	lua_pushstring(L, orientationstr);
@@ -249,7 +250,8 @@ int w_getFullscreenModes(lua_State *L)
 		instance()->getPosition(x, y, displayindex);
 	}
 
-	std::vector<Window::WindowSize> modes = instance()->getFullscreenSizes(displayindex);
+	std::vector<Window::WindowSize> modes;
+	luax_catchexcept(L, [&]() { modes = instance()->getFullscreenSizes(displayindex); });
 
 	lua_createtable(L, (int) modes.size(), 0);
 
@@ -333,7 +335,7 @@ int w_getDesktopDimensions(lua_State *L)
 		int x, y;
 		instance()->getPosition(x, y, displayindex);
 	}
-	instance()->getDesktopDimensions(displayindex, width, height);
+	luax_catchexcept(L, [&]() { instance()->getDesktopDimensions(displayindex, width, height); });
 	lua_pushinteger(L, width);
 	lua_pushinteger(L, height);
 	return 2;
@@ -353,7 +355,7 @@ int w_setPosition(lua_State *L)
 		instance()->getPosition(x_unused, y_unused, displayindex);
 	}
 
-	instance()->setPosition(x, y, displayindex);
+	luax_catchexcept(L, [&]() { instance()->setPosition(x, y, displayindex); });
 	return 0;
 }
 
@@ -402,7 +404,7 @@ int w_setVSync(lua_State *L)
 		vsync = lua_toboolean(L, 1);
 	else
 		vsync = (int)luaL_checkinteger(L, 1);
-	instance()->setVSync(vsync);
+	luax_catchexcept(L, [&]() { instance()->setVSync(vsync); });
 	return 0;
 }
 
@@ -509,19 +511,19 @@ int w_fromPixels(lua_State *L)
 	return 2;
 }
 
-int w_minimize(lua_State* /*L*/)
+int w_minimize(lua_State *L)
 {
 	instance()->minimize();
 	return 0;
 }
 
-int w_maximize(lua_State *)
+int w_maximize(lua_State *L)
 {
 	instance()->maximize();
 	return 0;
 }
 
-int w_restore(lua_State *)
+int w_restore(lua_State *L)
 {
 	instance()->restore();
 	return 0;
@@ -657,7 +659,7 @@ extern "C" int luaopen_love_window(lua_State *L)
 {
 	Window *instance = instance();
 	if (instance == nullptr)
-		luax_catchexcept(L, [&](){ instance = new love::window::sdl::Window(); });
+		luax_catchexcept(L, [&](){ instance = newDoraWindow(L); });
 	else
 		instance->retain();
 

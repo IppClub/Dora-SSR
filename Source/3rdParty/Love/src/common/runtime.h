@@ -281,6 +281,23 @@ int luax_require(lua_State *L, const char *name);
 int luax_register_module(lua_State *L, const WrappedModule &m);
 
 /**
+ * Gets a module registered in this Lua state's Love module registry.
+ * Unlike Module::getInstance, this never reads process-global module state.
+ **/
+Module *luax_getmodule(lua_State *L, int moduleType);
+
+/**
+ * Gets a module registered in this Lua state's Love module registry by name.
+ **/
+Module *luax_getmodule(lua_State *L, const char *name);
+
+template <typename T>
+T *luax_getmodule(lua_State *L, int moduleType)
+{
+	return (T *) luax_getmodule(L, moduleType);
+}
+
+/**
  * Inserts a module with 'name' into the package.preloaded table.
  * @param f The function to be called when the module is opened.
  * @param name The name of the module, with 'love'-prefix, for instance 'love.graphics'.

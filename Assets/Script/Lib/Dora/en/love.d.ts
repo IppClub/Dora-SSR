@@ -401,6 +401,20 @@ declare global {
 			 * @param source The audio Source used for audio playback, or nil to disable audio synchronization. (Default: nil.)
 			 */
 			setSource(source?: Source): void;
+			/** Plays the Video and its synchronized audio Source, if present. */
+			play(): void;
+			/** Pauses the Video and its synchronized audio Source, if present. */
+			pause(): void;
+			/** Sets the Video playback position.
+			 * @param seconds The time in seconds since the beginning of the Video.
+			 */
+			seek(seconds: number): void;
+			/** Rewinds the Video to the beginning. */
+			rewind(): void;
+			/** Gets the current Video playback position in seconds. */
+			tell(): number;
+			/** Gets whether the Video is playing. */
+			isPlaying(): boolean;
 			/**
 			 * Gets the width of the Video in pixels.
 			 *
@@ -4083,6 +4097,22 @@ declare global {
 		 * @returns visible — True if the window is visible or false if not.
 		 */
 		isVisible(this: void): boolean;
+		/** Closes the virtual Love window without closing the Dora host application. */
+		close(this: void): void;
+		/** Sets the virtual window position metadata. */
+		setPosition(this: void, x: number, y: number, display?: number): void;
+		/** Marks the virtual window as minimized. */
+		minimize(this: void): void;
+		/** Marks the virtual window as maximized. */
+		maximize(this: void): void;
+		/** Restores the virtual window from minimized or maximized state. */
+		restore(this: void): void;
+		/** Shows a message box when supported by the host backend. */
+		showMessageBox(this: void, title: string, message: string, type?: "error" | "warning" | "info", attachToWindow?: boolean): boolean;
+		/** Shows a message box with custom buttons and returns the selected 1-based index. */
+		showMessageBox(this: void, title: string, message: string, buttons: string[], type?: "error" | "warning" | "info", attachToWindow?: boolean): number;
+		/** Requests user attention from the host window when supported. */
+		requestAttention(this: void, continuous?: boolean): void;
 		/**
 		 * Gets whether the Window is currently maximized.
 		 *
@@ -8153,7 +8183,10 @@ declare global {
 	/** Contacts are objects created to manage collisions in worlds.
 	 */
 	interface Contact extends Object {
-		isValid(): boolean;
+		/** Checks whether the Contact has been destroyed.
+		 * @returns destroyed — True if the Contact is no longer valid.
+		 */
+		isDestroyed(this: void): boolean;
 		/**
 		 * Gets the two Fixtures that hold the shapes that are in contact.
 		 *
@@ -8257,6 +8290,26 @@ declare global {
 		isDestroyed(): boolean;
 		/** Returns all bodies in the world. */
 		getBodies(): Body[];
+		/** Returns all joints in the world. */
+		getJoints(): Joint[];
+		/** Returns all active contacts in the world. */
+		getContacts(): Contact[];
+		/** Returns the number of bodies in the world. */
+		getBodyCount(): number;
+		/** Returns the number of joints in the world. */
+		getJointCount(): number;
+		/** Returns the number of active contacts in the world. */
+		getContactCount(): number;
+		/** Returns whether the world is currently executing an update. */
+		isLocked(): boolean;
+		/** Shifts the world's origin by the specified offset. */
+		translateOrigin(x: number, y: number): void;
+		/** @deprecated Use getBodies instead. */
+		getBodyList(): Body[];
+		/** @deprecated Use getJoints instead. */
+		getJointList(): Joint[];
+		/** @deprecated Use getContacts instead. */
+		getContactList(): Contact[];
 		/**
 		 * Update the state of the world.
 		 *
@@ -8864,13 +8917,58 @@ declare global {
 		getLinearVelocityFromLocalPoint(x: number, y: number): LuaMultiReturn<[number, number]>;
 		/** Returns all fixtures attached to the body. */
 		getFixtures(): Fixture[];
+		/** Returns all joints attached to the body. */
+		getJoints(): Joint[];
+		/** Returns all contacts involving the body. */
+		getContacts(): Contact[];
+		/** Returns the World which owns this body. */
+		getWorld(): World;
+		/** Returns whether this body is touching another body. */
+		isTouching(other: Body): boolean;
+		/** Associates an arbitrary Lua value with the body. */
+		setUserData(value: unknown): void;
+		/** Returns the arbitrary Lua value associated with the body. */
+		getUserData(): unknown;
+		/** @deprecated Use getFixtures instead. */
+		getFixtureList(): Fixture[];
+		/** @deprecated Use getJoints instead. */
+		getJointList(): Joint[];
+		/** @deprecated Use getContacts instead. */
+		getContactList(): Contact[];
 	}
 	/** Shapes are solid 2d geometrical objects which handle the mass and collision of a Body in love.physics.
 	 */
-	interface Shape extends Object { getType(): "circle" | "polygon" | "edge" | "chain"; }
+	interface Shape extends Object {
+		/** Returns the concrete shape type. */
+		getType(this: void): "circle" | "polygon" | "edge" | "chain";
+		/** Returns the radius of the shape's rounded skin in pixels. */
+		getRadius(this: void): number;
+		/** Returns the number of child shapes. */
+		getChildCount(this: void): number;
+		/** Tests whether a world-space point lies inside the transformed shape. */
+		testPoint(this: void, x: number, y: number, angle: number,
+			pointX: number, pointY: number): boolean;
+		/** Casts a ray against the transformed shape. Returns no values when it misses. */
+		rayCast(this: void, x1: number, y1: number, x2: number, y2: number,
+			maximumFraction: number, x: number, y: number, angle: number,
+			childIndex?: number): LuaMultiReturn<[number, number, number] | []>;
+		/** Computes the transformed axis-aligned bounding box. */
+		computeAABB(this: void, x: number, y: number, angle: number,
+			childIndex?: number): LuaMultiReturn<[number, number, number, number]>;
+		/** Computes center, mass, and rotational inertia for the given density. */
+		computeMass(this: void, density: number): LuaMultiReturn<[number, number, number, number]>;
+	}
 	/** Circle extends Shape and adds a radius and a local position.
 	 */
-	interface CircleShape extends Shape { getRadius(): number; }
+	interface CircleShape extends Shape {
+		getRadius(this: void): number;
+		/** Changes the circle radius in pixels. */
+		setRadius(this: void, radius: number): void;
+		/** Returns the circle's local center. */
+		getPoint(this: void): LuaMultiReturn<[number, number]>;
+		/** Changes the circle's local center. */
+		setPoint(this: void, x: number, y: number): void;
+	}
 	/** A PolygonShape is a convex polygon with up to 8 vertices.
 	 */
 	interface PolygonShape extends Shape {

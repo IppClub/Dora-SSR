@@ -1,0 +1,13 @@
+diff --git a/src/modules/math/wrap_Math.cpp b/src/modules/math/wrap_Math.cpp
+index 90ee5e909..fbb48193a 100644
+--- a/src/modules/math/wrap_Math.cpp
++++ b/src/modules/math/wrap_Math.cpp
+@@ -44,7 +44,7 @@ namespace love
+ namespace math
+ {
+ 
+-#define instance() (Module::getInstance<Math>(Module::M_MATH))
++#define instance() (luax_getmodule<Math>(L, Module::M_MATH))
+ 
+ int w__getRandomGenerator(lua_State *L)
+ {

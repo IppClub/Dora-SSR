@@ -32,7 +32,9 @@ namespace love
 namespace image
 {
 
-#define instance() (Module::getInstance<Image>(Module::M_IMAGE))
+Image *newDoraImage(lua_State *L);
+
+#define instance() (luax_getmodule<Image>(L, Image::type))
 
 int w_newImageData(lua_State *L)
 {
@@ -157,13 +159,8 @@ static const lua_CFunction types[] =
 
 extern "C" int luaopen_love_image(lua_State *L)
 {
-	Image *instance = instance();
-	if (instance == nullptr)
-	{
-		luax_catchexcept(L, [&](){ instance = new love::image::Image(); });
-	}
-	else
-		instance->retain();
+	Image *instance = nullptr;
+	luax_catchexcept(L, [&](){ instance = newDoraImage(L); });
 
 	WrappedModule w;
 	w.module = instance;

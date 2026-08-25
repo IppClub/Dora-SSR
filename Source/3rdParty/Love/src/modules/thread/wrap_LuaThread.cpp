@@ -49,7 +49,9 @@ int w_Thread_start(lua_State *L)
 		}
 	}
 
-	luax_pushboolean(L, t->start(args));
+	bool started = false;
+	luax_catchexcept(L, [&]() { started = t->start(args); });
+	luax_pushboolean(L, started);
 	return 1;
 }
 

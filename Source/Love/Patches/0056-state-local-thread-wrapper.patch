@@ -1,0 +1,670 @@
+--- a/Source/3rdParty/Love/src/modules/thread/Channel.h
++++ b/Source/3rdParty/Love/src/modules/thread/Channel.h
+@@ -2,32 +2,19 @@
+  * Copyright (c) 2006-2023 LOVE Development Team
+  *
+  * This software is provided 'as-is', without any express or implied
+- * warranty.  In no event will the authors be held liable for any damages
+- * arising from the use of this software.
++ * warranty. See the LOVE license for the complete terms.
+  *
+- * Permission is granted to anyone to use this software for any purpose,
+- * including commercial applications, and to alter it and redistribute it
+- * freely, subject to the following restrictions:
+- *
+- * 1. The origin of this software must not be misrepresented; you must not
+- *    claim that you wrote the original software. If you use this software
+- *    in a product, an acknowledgment in the product documentation would be
+- *    appreciated but is not required.
+- * 2. Altered source versions must be plainly marked as such, and must not be
+- *    misrepresented as being the original software.
+- * 3. This notice may not be removed or altered from any source distribution.
+- **/
++ * Altered for Dora: the public LOVE Channel contract is retained while the
++ * queue and synchronization implementation is supplied by the owning Dora
++ * LoveRuntime.
++ */
+ 
+ #ifndef LOVE_THREAD_CHANNEL_H
+ #define LOVE_THREAD_CHANNEL_H
+ 
+-// STL
+-#include <queue>
+-
+-// LOVE
++#include "common/Object.h"
+ #include "common/Variant.h"
+ #include "common/int.h"
+-#include "threads.h"
+ 
+ namespace love
+ {
+@@ -36,41 +23,28 @@
+ 
+ class Channel : public love::Object
+ {
+-// FOR WRAPPER USE ONLY
+ friend int w_Channel_performAtomic(lua_State *);
+ 
+ public:
+-
+ 	static love::Type type;
++	~Channel() override = default;
+ 
+-	Channel();
+-	~Channel();
++	virtual uint64 push(const Variant &var) = 0;
++	virtual bool supply(const Variant &var) = 0;
++	virtual bool supply(const Variant &var, double timeout) = 0;
++	virtual bool pop(Variant *var) = 0;
++	virtual bool demand(Variant *var) = 0;
++	virtual bool demand(Variant *var, double timeout) = 0;
++	virtual bool peek(Variant *var) = 0;
++	virtual int getCount() const = 0;
++	virtual bool hasRead(uint64 id) const = 0;
++	virtual void clear() = 0;
+ 
+-	uint64 push(const Variant &var);
+-	bool supply(const Variant &var); // blocking push
+-	bool supply(const Variant &var, double timeout);
+-	bool pop(Variant *var);
+-	bool demand(Variant *var); // blocking pop
+-	bool demand(Variant *var, double timeout); // blocking pop
+-	bool peek(Variant *var);
+-	int getCount() const;
+-	bool hasRead(uint64 id) const;
+-	void clear();
+-
+ private:
++	virtual void lockMutex() = 0;
++	virtual void unlockMutex() = 0;
++};
+ 
+-	void lockMutex();
+-	void unlockMutex();
+-
+-	MutexRef mutex;
+-	ConditionalRef cond;
+-	std::queue<Variant> queue;
+-
+-	uint64 sent;
+-	uint64 received;
+-
+-}; // Channel
+-
+ } // thread
+ } // love
+ 
+--- a/Source/3rdParty/Love/src/modules/thread/Channel.cpp
++++ b/Source/3rdParty/Love/src/modules/thread/Channel.cpp
+@@ -1,27 +1,5 @@
+-/**
+- * Copyright (c) 2006-2023 LOVE Development Team
+- *
+- * This software is provided 'as-is', without any express or implied
+- * warranty.  In no event will the authors be held liable for any damages
+- * arising from the use of this software.
+- *
+- * Permission is granted to anyone to use this software for any purpose,
+- * including commercial applications, and to alter it and redistribute it
+- * freely, subject to the following restrictions:
+- *
+- * 1. The origin of this software must not be misrepresented; you must not
+- *    claim that you wrote the original software. If you use this software
+- *    in a product, an acknowledgment in the product documentation would be
+- *    appreciated but is not required.
+- * 2. Altered source versions must be plainly marked as such, and must not be
+- *    misrepresented as being the original software.
+- * 3. This notice may not be removed or altered from any source distribution.
+- **/
+-
+ #include "Channel.h"
+ 
+-#include <timer/Timer.h>
+-
+ namespace love
+ {
+ namespace thread
+@@ -29,150 +7,5 @@
+ 
+ love::Type Channel::type("Channel", &Object::type);
+ 
+-Channel::Channel()
+-	: sent(0)
+-	, received(0)
+-{
+-}
+-
+-Channel::~Channel()
+-{
+-}
+-
+-uint64 Channel::push(const Variant &var)
+-{
+-	Lock l(mutex);
+-
+-	queue.push(var);
+-	cond->broadcast();
+-
+-	return ++sent;
+-}
+-
+-bool Channel::supply(const Variant &var)
+-{
+-	Lock l(mutex);
+-	uint64 id = push(var);
+-
+-	while (received < id)
+-		cond->wait(mutex);
+-
+-	return true;
+-}
+-
+-bool Channel::supply(const Variant &var, double timeout)
+-{
+-	Lock l(mutex);
+-	uint64 id = push(var);
+-
+-	while (timeout >= 0)
+-	{
+-		if (received >= id)
+-			return true;
+-
+-		double start = love::timer::Timer::getTime();
+-		cond->wait(mutex, timeout*1000);
+-		double stop = love::timer::Timer::getTime();
+-
+-		timeout -= (stop-start);
+-	}
+-
+-	return false;
+-}
+-
+-bool Channel::pop(Variant *var)
+-{
+-	Lock l(mutex);
+-
+-	if (queue.empty())
+-		return false;
+-
+-	*var = queue.front();
+-	queue.pop();
+-
+-	received++;
+-	cond->broadcast();
+-
+-	return true;
+-}
+-
+-bool Channel::demand(Variant *var)
+-{
+-	Lock l(mutex);
+-
+-	while (!pop(var))
+-		cond->wait(mutex);
+-
+-	return true;
+-}
+-
+-bool Channel::demand(Variant *var, double timeout)
+-{
+-	Lock l(mutex);
+-
+-	while (timeout >= 0)
+-	{
+-		if (pop(var))
+-			return true;
+-
+-		double start = love::timer::Timer::getTime();
+-		cond->wait(mutex, timeout*1000);
+-		double stop = love::timer::Timer::getTime();
+-
+-		timeout -= (stop-start);
+-	}
+-
+-	return false;
+-}
+-
+-bool Channel::peek(Variant *var)
+-{
+-	Lock l(mutex);
+-
+-	if (queue.empty())
+-		return false;
+-
+-	*var = queue.front();
+-	return true;
+-}
+-
+-int Channel::getCount() const
+-{
+-	Lock l(mutex);
+-	return (int) queue.size();
+-}
+-
+-bool Channel::hasRead(uint64 id) const
+-{
+-	Lock l(mutex);
+-	return received >= id;
+-}
+-
+-void Channel::clear()
+-{
+-	Lock l(mutex);
+-
+-	// We're already empty.
+-	if (queue.empty())
+-		return;
+-
+-	while (!queue.empty())
+-		queue.pop();
+-
+-	// Finish all the supply waits
+-	received = sent;
+-	cond->broadcast();
+-}
+-
+-void Channel::lockMutex()
+-{
+-	mutex->lock();
+-}
+-
+-void Channel::unlockMutex()
+-{
+-	mutex->unlock();
+-}
+-
+ } // thread
+ } // love
+--- a/Source/3rdParty/Love/src/modules/thread/LuaThread.h
++++ b/Source/3rdParty/Love/src/modules/thread/LuaThread.h
+@@ -1,36 +1,21 @@
+ /**
+  * Copyright (c) 2006-2023 LOVE Development Team
+  *
+- * This software is provided 'as-is', without any express or implied
+- * warranty.  In no event will the authors be held liable for any damages
+- * arising from the use of this software.
+- *
+- * Permission is granted to anyone to use this software for any purpose,
+- * including commercial applications, and to alter it and redistribute it
+- * freely, subject to the following restrictions:
+- *
+- * 1. The origin of this software must not be misrepresented; you must not
+- *    claim that you wrote the original software. If you use this software
+- *    in a product, an acknowledgment in the product documentation would be
+- *    appreciated but is not required.
+- * 2. Altered source versions must be plainly marked as such, and must not be
+- *    misrepresented as being the original software.
+- * 3. This notice may not be removed or altered from any source distribution.
+- **/
++ * Altered for Dora: LOVE's public Threadable/LuaThread object contract is
++ * retained, while Dora owns thread creation and the Lua 5.5 worker state.
++ */
+ 
+ #ifndef LOVE_THREAD_LUATHREAD_H
+ #define LOVE_THREAD_LUATHREAD_H
+ 
+-// STL
+-#include <string>
+-#include <vector>
+-
+-// LOVE
+ #include "common/Data.h"
+ #include "common/Object.h"
+ #include "common/Variant.h"
+ #include "threads.h"
+ 
++#include <string>
++#include <vector>
++
+ namespace love
+ {
+ namespace thread
+@@ -39,30 +24,20 @@
+ class LuaThread : public Threadable
+ {
+ public:
+-
+ 	static love::Type type;
++	~LuaThread() override = default;
+ 
+-	LuaThread(const std::string &name, love::Data *code);
+-	virtual ~LuaThread();
+-	void threadFunction();
+-	const std::string &getError() const;
+-	bool hasError() const { return haserror; }
++	void threadFunction() override { }
++	virtual void wait() = 0;
++	virtual bool isRunning() const = 0;
++	virtual const std::string &getError() const = 0;
++	virtual bool hasError() const = 0;
++	virtual bool start(const std::vector<Variant> &args) = 0;
+ 
+-	bool start(const std::vector<Variant> &args);
++protected:
++	LuaThread() : Threadable(false) { }
++};
+ 
+-private:
+-
+-	void onError();
+-
+-	StrongRef<love::Data> code;
+-	std::string name;
+-	std::string error;
+-	bool haserror;
+-
+-	std::vector<Variant> args;
+-
+-}; // LuaThread
+-
+ } // thread
+ } // love
+ 
+--- a/Source/3rdParty/Love/src/modules/thread/LuaThread.cpp
++++ b/Source/3rdParty/Love/src/modules/thread/LuaThread.cpp
+@@ -1,32 +1,5 @@
+-/**
+- * Copyright (c) 2006-2023 LOVE Development Team
+- *
+- * This software is provided 'as-is', without any express or implied
+- * warranty.  In no event will the authors be held liable for any damages
+- * arising from the use of this software.
+- *
+- * Permission is granted to anyone to use this software for any purpose,
+- * including commercial applications, and to alter it and redistribute it
+- * freely, subject to the following restrictions:
+- *
+- * 1. The origin of this software must not be misrepresented; you must not
+- *    claim that you wrote the original software. If you use this software
+- *    in a product, an acknowledgment in the product documentation would be
+- *    appreciated but is not required.
+- * 2. Altered source versions must be plainly marked as such, and must not be
+- *    misrepresented as being the original software.
+- * 3. This notice may not be removed or altered from any source distribution.
+- **/
+-
+ #include "LuaThread.h"
+-#include "event/Event.h"
+-#include "common/config.h"
+ 
+-#ifdef LOVE_BUILD_STANDALONE
+-extern "C" int luaopen_love(lua_State * L);
+-extern "C" int luaopen_love_jitsetup(lua_State * L);
+-#endif // LOVE_BUILD_STANDALONE
+-
+ namespace love
+ {
+ namespace thread
+@@ -34,109 +7,5 @@
+ 
+ love::Type LuaThread::type("Thread", &Threadable::type);
+ 
+-LuaThread::LuaThread(const std::string &name, love::Data *code)
+-	: code(code)
+-	, name(name)
+-	, haserror(false)
+-{
+-	threadName = name;
+-}
+-
+-LuaThread::~LuaThread()
+-{
+-}
+-
+-void LuaThread::threadFunction()
+-{
+-	error.clear();
+-	haserror = false;
+-
+-	lua_State *L = luaL_newstate();
+-	luaL_openlibs(L);
+-
+-#ifdef LOVE_BUILD_STANDALONE
+-	// Call LuaJIT-specific setup again. While it's quite late to call it at
+-	// this point, it still needed to turn off JIT compilation (if necessary)
+-	// for this thread.
+-	luax_preload(L, luaopen_love_jitsetup, "love.jitsetup");
+-	luax_require(L, "love.jitsetup");
+-	lua_pop(L, 1);
+-
+-	luax_preload(L, luaopen_love, "love");
+-	luax_require(L, "love");
+-	lua_pop(L, 1);
+-#endif // LOVE_BUILD_STANDALONE
+-
+-	luax_require(L, "love.thread");
+-	lua_pop(L, 1);
+-
+-	// We load love.filesystem by default, since require still exists without it
+-	// but won't load files from the proper paths. love.filesystem also must be
+-	// loaded before using any love function that can take a filepath argument.
+-	luax_require(L, "love.filesystem");
+-	lua_pop(L, 1);
+-
+-	lua_pushcfunction(L, luax_traceback);
+-	int tracebackidx = lua_gettop(L);
+-
+-	if (luaL_loadbuffer(L, (const char *) code->getData(), code->getSize(), name.c_str()) != 0)
+-	{
+-		error = luax_tostring(L, -1);
+-		haserror = true;
+-	}
+-	else
+-	{
+-		int pushedargs = (int) args.size();
+-
+-		for (int i = 0; i < pushedargs; i++)
+-			args[i].toLua(L);
+-
+-		args.clear();
+-
+-		if (lua_pcall(L, pushedargs, 0, tracebackidx) != 0)
+-		{
+-			error = luax_tostring(L, -1);
+-			haserror = true;
+-		}
+-	}
+-
+-	lua_close(L);
+-
+-	if (haserror)
+-		onError();
+-}
+-
+-bool LuaThread::start(const std::vector<Variant> &args)
+-{
+-	if (isRunning())
+-		return false;
+-
+-	this->args = args;
+-	error.clear();
+-	haserror = false;
+-	
+-	return Threadable::start();
+-}
+-
+-const std::string &LuaThread::getError() const
+-{
+-	return error;
+-}
+-
+-void LuaThread::onError()
+-{
+-	auto eventmodule = Module::getInstance<event::Event>(Module::M_EVENT);
+-	if (!eventmodule)
+-		return;
+-
+-	std::vector<Variant> vargs = {
+-		Variant(&LuaThread::type, this),
+-		Variant(error.c_str(), error.length())
+-	};
+-
+-	StrongRef<event::Message> msg(new event::Message("threaderror", vargs), Acquire::NORETAIN);
+-	eventmodule->push(msg);
+-}
+-
+ } // thread
+ } // love
+--- a/Source/3rdParty/Love/src/modules/thread/ThreadModule.h
++++ b/Source/3rdParty/Love/src/modules/thread/ThreadModule.h
+@@ -1,64 +1,38 @@
+ /**
+  * Copyright (c) 2006-2023 LOVE Development Team
+  *
+- * This software is provided 'as-is', without any express or implied
+- * warranty.  In no event will the authors be held liable for any damages
+- * arising from the use of this software.
+- *
+- * Permission is granted to anyone to use this software for any purpose,
+- * including commercial applications, and to alter it and redistribute it
+- * freely, subject to the following restrictions:
+- *
+- * 1. The origin of this software must not be misrepresented; you must not
+- *    claim that you wrote the original software. If you use this software
+- *    in a product, an acknowledgment in the product documentation would be
+- *    appreciated but is not required.
+- * 2. Altered source versions must be plainly marked as such, and must not be
+- *    misrepresented as being the original software.
+- * 3. This notice may not be removed or altered from any source distribution.
+- **/
++ * Altered for Dora: module factories are abstract so the state-local Dora
++ * adapter can preserve Content and Lua 5.5 worker ownership.
++ */
+ 
+ #ifndef LOVE_THREAD_THREADMODULE_H
+ #define LOVE_THREAD_THREADMODULE_H
+ 
+-// STL
+-#include <string>
+-#include <map>
+-
+-// LOVE
+ #include "common/Data.h"
+ #include "common/Module.h"
+-#include "common/StringMap.h"
+-
+-#include "Thread.h"
+ #include "Channel.h"
+ #include "LuaThread.h"
+-#include "threads.h"
+ 
++#include <string>
++
+ namespace love
+ {
+ namespace thread
+ {
++
+ class ThreadModule : public love::Module
+ {
+ public:
++	~ThreadModule() override = default;
++	virtual LuaThread *newThread(const std::string &name, love::Data *data) = 0;
++	virtual Channel *newChannel() = 0;
++	virtual Channel *getChannel(const std::string &name) = 0;
++	const char *getName() const override { return "love.thread.dora"; }
++	ModuleType getModuleType() const override { return M_THREAD; }
++};
+ 
+-	virtual ~ThreadModule() {}
+-	virtual LuaThread *newThread(const std::string &name, love::Data *data);
+-	virtual Channel *newChannel();
+-	virtual Channel *getChannel(const std::string &name);
++ThreadModule *newDoraThreadModule(lua_State *L);
+ 
+-	// Implements Module.
+-	virtual const char *getName() const;
+-	virtual ModuleType getModuleType() const { return M_THREAD; }
+-
+-private:
+-
+-	std::map<std::string, StrongRef<Channel>> namedChannels;
+-	MutexRef namedChannelMutex;
+-
+-}; // ThreadModule
+-
+ } // thread
+ } // love
+ 
+--- a/Source/3rdParty/Love/src/modules/thread/threads.h
++++ b/Source/3rdParty/Love/src/modules/thread/threads.h
+@@ -82,7 +82,7 @@
+ public:
+ 	static love::Type type;
+ 
+-	Threadable();
++	explicit Threadable(bool createOwner = true);
+ 	virtual ~Threadable();
+ 
+ 	virtual void threadFunction() = 0;
+--- a/Source/3rdParty/Love/src/modules/thread/threads.cpp
++++ b/Source/3rdParty/Love/src/modules/thread/threads.cpp
+@@ -87,9 +87,9 @@
+ 
+ love::Type Threadable::type("Threadable", &Object::type);
+ 
+-Threadable::Threadable()
++Threadable::Threadable(bool createOwner)
++	: owner(createOwner ? newThread(this) : nullptr)
+ {
+-	owner = newThread(this);
+ }
+ 
+ Threadable::~Threadable()
+@@ -99,17 +99,17 @@
+ 
+ bool Threadable::start()
+ {
+-	return owner->start();
++	return owner != nullptr && owner->start();
+ }
+ 
+ void Threadable::wait()
+ {
+-	owner->wait();
++	if (owner) owner->wait();
+ }
+ 
+ bool Threadable::isRunning() const
+ {
+-	return owner->isRunning();
++	return owner != nullptr && owner->isRunning();
+ }
+ 
+ const char *Threadable::getThreadName() const
+--- a/Source/3rdParty/Love/src/modules/thread/wrap_LuaThread.cpp
++++ b/Source/3rdParty/Love/src/modules/thread/wrap_LuaThread.cpp
+@@ -49,7 +49,9 @@
+ 		}
+ 	}
+ 
+-	luax_pushboolean(L, t->start(args));
++	bool started = false;
++	luax_catchexcept(L, [&]() { started = t->start(args); });
++	luax_pushboolean(L, started);
+ 	return 1;
+ }
+ 
+--- a/Source/3rdParty/Love/src/modules/thread/wrap_ThreadModule.cpp
++++ b/Source/3rdParty/Love/src/modules/thread/wrap_ThreadModule.cpp
+@@ -35,7 +35,7 @@
+ namespace thread
+ {
+ 
+-#define instance() (Module::getInstance<ThreadModule>(Module::M_THREAD))
++#define instance() (luax_getmodule<ThreadModule>(L, Module::M_THREAD))
+ 
+ int w_newThread(lua_State *L)
+ {
+@@ -117,7 +117,7 @@
+ 	ThreadModule *instance = instance();
+ 	if (instance == nullptr)
+ 	{
+-		luax_catchexcept(L, [&](){ instance = new love::thread::ThreadModule(); });
++		luax_catchexcept(L, [&](){ instance = newDoraThreadModule(L); });
+ 	}
+ 	else
+ 		instance->retain();
+

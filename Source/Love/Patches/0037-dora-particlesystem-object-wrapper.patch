@@ -1,0 +1,1986 @@
+diff --git a/src/modules/graphics/ParticleSystem.h b/src/modules/graphics/ParticleSystem.h
+index 643cff5a6..1811aafe6 100644
+--- a/src/modules/graphics/ParticleSystem.h
++++ b/src/modules/graphics/ParticleSystem.h
+@@ -18,42 +18,28 @@
+  * 3. This notice may not be removed or altered from any source distribution.
+  **/
+ 
+-#ifndef LOVE_GRAPHICS_PARTICLE_SYSTEM_H
+-#define LOVE_GRAPHICS_PARTICLE_SYSTEM_H
++// Altered for Dora: the public LOVE 11.5 object contract is retained while
++// simulation storage and rendering are supplied by the embedded backend.
++
++#pragma once
+ 
+-// LOVE
+-#include "common/int.h"
+-#include "common/math.h"
+-#include "common/Vector.h"
+ #include "common/Color.h"
++#include "common/Vector.h"
++#include "common/int.h"
+ #include "Drawable.h"
+ #include "Quad.h"
+ #include "Texture.h"
+-#include "Buffer.h"
+ 
+-// STL
+ #include <vector>
+ 
+-namespace love
++namespace love::graphics
+ {
+-namespace graphics
+-{
+-
+-class Graphics;
+ 
+-/**
+- * A class for creating, moving and drawing particles.
+- * A big thanks to bobthebloke.org
+- **/
+ class ParticleSystem : public Drawable
+ {
+ public:
+-
+ 	static love::Type type;
+ 
+-	/**
+-	 * Type of distribution new particles are drawn from: None, uniform, normal, ellipse, borderellipse, borderrectangle.
+-	 */
+ 	enum AreaSpreadDistribution
+ 	{
+ 		DISTRIBUTION_NONE,
+@@ -65,9 +51,6 @@ class ParticleSystem : public Drawable
+ 		DISTRIBUTION_MAX_ENUM
+ 	};
+ 
+-	/**
+-	 * Insertion modes of new particles in the list: top, bottom, random.
+-	 */
+ 	enum InsertMode
+ 	{
+ 		INSERT_MODE_TOP,
+@@ -76,614 +59,95 @@ class ParticleSystem : public Drawable
+ 		INSERT_MODE_MAX_ENUM
+ 	};
+ 
+-	/**
+-	 * Maximum numbers of particles in a ParticleSystem.
+-	 * This limit comes from the fact that a quad requires four vertices and the
+-	 * OpenGL API where GLsizei is a signed int.
+-	 **/
+-	static const uint32 MAX_PARTICLES = LOVE_INT32_MAX / 4;
+-
+-	/**
+-	 * Creates a particle system with the specified buffer size and texture.
+-	 **/
+-	ParticleSystem(Texture *texture, uint32 buffer);
+-	ParticleSystem(const ParticleSystem &p);
+-
+-	/**
+-	 * Deletes any allocated memory.
+-	 **/
+-	virtual ~ParticleSystem();
+-
+-	/**
+-	 * Creates an identical copy of this ParticleSystem. The clone does not
+-	 * duplicate any existing particles from this ParticleSystem, just the
+-	 * settable parameters.
+-	 **/
+-	ParticleSystem *clone();
+-
+-	/**
+-	 * Sets the texture used in the particle system.
+-	 * @param texture The new texture.
+-	 **/
+-	void setTexture(Texture *texture);
+-
+-	/**
+-	 * Returns the texture used when drawing the particle system.
+-	 **/
+-	Texture *getTexture() const;
+-
+-	/**
+-	 * Clears the current buffer and allocates the appropriate amount of space for the buffer.
+-	 * @param size The new buffer size.
+-	 **/
+-	void setBufferSize(uint32 size);
+-
+-	/**
+-	 * Returns the total amount of particles this ParticleSystem can have active
+-	 * at any given point in time.
+-	 **/
+-	uint32 getBufferSize() const;
+-
+-	/**
+-	 * Sets the insert mode for new particles.
+-	 * @param mode The new insert mode.
+-	 */
+-	void setInsertMode(InsertMode mode);
+-
+-	/**
+-	 * Returns the current insert mode.
+-	 */
+-	InsertMode getInsertMode() const;
+-
+-	/**
+-	 * Sets the emission rate.
+-	 * @param rate The amount of particles per second.
+-	 **/
+-	void setEmissionRate(float rate);
+-
+-	/**
+-	 * Returns the number of particles created per second.
+-	 **/
+-	float getEmissionRate() const;
+-
+-	/**
+-	 * Sets the lifetime of the particle emitter (-1 means eternal)
+-	 * @param life The lifetime (in seconds).
+-	 **/
+-	void setEmitterLifetime(float life);
+-
+-	/**
+-	 * Returns the lifetime of the particle emitter.
+-	 **/
+-	float getEmitterLifetime() const;
+-
+-	/**
+-	 * Sets the life range of the particles.
+-	 * @param min The minimum life.
+-	 * @param max The maximum life (if 0, then becomes the same as minimum life).
+-	 **/
+-	void setParticleLifetime(float min, float max = 0);
+-
+-	/**
+-	 * Gets the lifetime of a particle.
+-	 * @param[out] min The minimum life.
+-	 * @param[out] max The maximum life.
+-	 **/
+-	void getParticleLifetime(float &min, float &max) const;
+-
+-	/**
+-	 * Sets the position of the center of the emitter.
+-	 * Used to move the emitter without changing the position of already existing particles.
+-	 * @param x The x-coordinate.
+-	 * @param y The y-coordinate.
+-	 **/
+-	void setPosition(float x, float y);
+-
+-	/**
+-	 * Returns the position of the emitter.
+-	 **/
+-	const love::Vector2 &getPosition() const;
+-
+-	/**
+-	 * Moves the position of the center of the emitter.
+-	 * When update is called, newly spawned particles will appear in a line
+-	 * between the old emitter position and where the emitter was moved to,
+-	 * resulting in a smoother-feeling particle system if moveTo is called
+-	 * repeatedly.
+-	 **/
+-	void moveTo(float x, float y);
+-
+-	/**
+-	 * Sets the emission area spread parameters and distribution type. The interpretation of
+-	 * the parameters depends on the distribution type:
+-	 *
+-	 * * None: Parameters are ignored. No area spread.
+-	 * * Uniform: Parameters denote maximal (symmetric) displacement from emitter position.
+-	 * * Normal: Parameters denote the standard deviation in x and y direction. x and y are assumed to be uncorrelated.
+-	 * * borderellipse: Parameter causes particle distribution around outside of ellipse
+-	 * * borderrectangle: Parameter causes particle distribution around outside of rectangle
+-	 * @param distribution Distribution type
+-	 * @param x First parameter. Interpretation depends on distribution type.
+-	 * @param y Second parameter. Interpretation depends on distribution type.
+-	 * @param angle The angle of the emission area (in radians).
+-	 * @param directionRelativeToCenter whether the initial direction of
+-	 *        particles points away from the center of the emission area.
+-	 **/
+-	void setEmissionArea(AreaSpreadDistribution distribution, float x, float y, float angle, bool directionRelativeToCenter);
+-
+-	/**
+-	 * Returns area spread parameters.
+-	 **/
+-	AreaSpreadDistribution getEmissionArea(love::Vector2 &params, float &angle, bool &directionRelativeToCenter) const;
+-
+-	/**
+-	 * Sets the direction of the particle emitter.
+-	 * @param direction The direction (in degrees).
+-	 **/
+-	void setDirection(float direction);
+-
+-	/**
+-	 * Returns the direction of the particle emitter (in radians).
+-	 **/
+-	float getDirection() const;
+-
+-	/**
+-	 * Sets the spread of the particle emitter.
+-	 * @param spread The spread (in radians).
+-	 **/
+-	void setSpread(float spread);
+-
+-	/**
+-	 * Returns the directional spread of the emitter (in radians).
+-	 **/
+-	float getSpread() const;
+-
+-	/**
+-	 * Sets the speed of the particles.
+-	 * @param speed The speed.
+-	 **/
+-	void setSpeed(float speed);
+-
+-	/**
+-	 * Sets the speed of the particles.
+-	 * @param min The minimum speed.
+-	 * @param max The maximum speed.
+-	 **/
+-	void setSpeed(float min, float max);
+-
+-	/**
+-	 * Gets the speed of the particles.
+-	 * @param[out] min The minimum speed.
+-	 * @param[out] max The maximum speed.
+-	 **/
+-	void getSpeed(float &min, float &max) const;
+-
+-	/**
+-	 * Sets the linear acceleration (the acceleration along the x and y axes).
+-	 * @param x The acceleration along the x-axis.
+-	 * @param y The acceleration along the y-axis.
+-	 **/
+-	void setLinearAcceleration(float x, float y);
+-
+-	/**
+-	 * Sets the linear acceleration (the acceleration along the x and y axes).
+-	 * @param xmin The minimum amount of acceleration along the x-axis.
+-	 * @param ymin The minimum amount of acceleration along the y-axis.
+-	 * @param xmax The maximum amount of acceleration along the x-axis.
+-	 * @param ymax The maximum amount of acceleration along the y-axis.
+-	 **/
+-	void setLinearAcceleration(float xmin, float ymin, float xmax, float ymax);
+-
+-	/**
+-	 * Gets the linear acceleration of the particles.
+-	 * @param[out] min The minimum acceleration.
+-	 * @param[out] max The maximum acceleration.
+-	 **/
+-	void getLinearAcceleration(love::Vector2 &min, love::Vector2 &max) const;
+-
+-	/**
+-	 * Sets the radial acceleration (the acceleration towards the particle emitter).
+-	 * @param acceleration The amount of acceleration.
+-	 **/
+-	void setRadialAcceleration(float acceleration);
+-
+-	/**
+-	 * Sets the radial acceleration (the acceleration towards the particle emitter).
+-	 * @param min The minimum acceleration.
+-	 * @param max The maximum acceleration.
+-	 **/
+-	void setRadialAcceleration(float min, float max);
+-
+-	/**
+-	 * Gets the radial acceleration.
+-	 * @param[out] min The minimum amount of radial acceleration.
+-	 * @param[out] max The maximum amount of radial acceleration.
+-	 **/
+-	void getRadialAcceleration(float &min, float &max) const;
+-
+-	/**
+-	 * Sets the tangential acceleration (the acceleration perpendicular to the particle's direction).
+-	 * @param acceleration The amount of acceleration.
+-	 **/
+-	void setTangentialAcceleration(float acceleration);
+-
+-	/**
+-	 * Sets the tangential acceleration (the acceleration perpendicular to the particle's direction).
+-	 * @param min The minimum acceleration.
+-	 * @param max The maximum acceleration.
+-	 **/
+-	void setTangentialAcceleration(float min, float max);
+-
+-	/**
+-	 * Gets the tangential acceleration.
+-	 * @param[out] min The minimum tangential acceleration.
+-	 * @param[out] max The maximum tangential acceleration.
+-	 **/
+-	void getTangentialAcceleration(float &min, float &max) const;
+-
+-	/**
+-	 * Sets the amount of linear damping. Damping reduces the velocity of
+-	 * particles over time. A value of 0 corresponds to no damping.
+-	 **/
+-	void setLinearDamping(float min, float max);
+-
+-	/**
+-	 * Gets the current amount of linear damping.
+-	 **/
+-	void getLinearDamping(float &min, float &max) const;
+-
+-	/**
+-	 * Sets the size of the sprite (1.0 being the default size).
+-	 * @param size The size of the sprite.
+-	 **/
+-	void setSize(float size);
+-
+-	/**
+-	 * Sets the sizes of the sprite upon creation and upon death (1.0 being the default size).
+-	 * @param newSizes Array of sizes
+-	 **/
+-	void setSizes(const std::vector<float> &newSizes);
+-
+-	/**
+-	 * Returns the sizes of the particle sprites.
+-	 **/
+-	const std::vector<float> &getSizes() const;
+-
+-	/**
+-	 * Sets the amount of variation to the sprite's beginning size (0 being no variation and 1.0 a random size between start and end).
+-	 * @param variation The amount of variation.
+-	 **/
+-	void setSizeVariation(float variation);
+-
+-	/**
+-	 * Returns the amount of initial size variation between particles.
+-	 **/
+-	float getSizeVariation() const;
+-
+-	/**
+-	 * Sets the amount of rotation a sprite starts out with.
+-	 * @param rotation The amount of rotation.
+-	 **/
+-	void setRotation(float rotation);
+-
+-	/**
+-	 * Sets the amount of rotation a sprite starts out with (a random value between min and max).
+-	 * @param min The minimum amount of rotation.
+-	 * @param max The maximum amount of rotation.
+-	 **/
+-	void setRotation(float min, float max);
+-
+-	/**
+-	 * Gets the initial amount of rotation of a particle, in radians.
+-	 * @param[out] min The minimum initial rotation.
+-	 * @param[out] max The maximum initial rotation.
+-	 **/
+-	void getRotation(float &min, float &max) const;
+-
+-	/**
+-	 * Sets the spin of the sprite.
+-	 * @param spin The spin of the sprite (in degrees).
+-	 **/
+-	void setSpin(float spin);
+-
+-	/**
+-	 * Sets the spin of the sprite upon particle creation and death.
+-	 * @param start The spin of the sprite upon creation (in radians / second).
+-	 * @param end The spin of the sprite upon death (in radians / second).
+-	 **/
+-	void setSpin(float start, float end);
+-
+-	/**
+-	 * Gets the amount of spin of a particle during its lifetime.
+-	 * @param[out] start The initial spin, in radians / s.
+-	 * @param[out] end The final spin, in radians / s.
+-	 **/
+-	void getSpin(float &start, float &end) const;
+-
+-	/**
+-	 * Sets the variation of the start spin (0 being no variation and 1 being a random spin between start and end).
+-	 * @param variation The variation.
+-	 **/
+-	void setSpinVariation(float variation);
+-
+-	/**
+-	 * Returns the amount of variation of the start spin of a particle.
+-	 **/
+-	float getSpinVariation() const;
+-
+-	/**
+-	 * Sets the particles' offsets for rotation.
+-	 * @param x The x offset.
+-	 * @param y The y offset.
+-	 **/
+-	void setOffset(float x, float y);
+-
+-	/**
+-	 * Returns of the particle offset.
+-	 **/
+-	love::Vector2 getOffset() const;
+-
+-	/**
+-	 * Sets the color of the particles.
+-	 * @param newColors Array of colors
+-	 **/
+-	void setColor(const std::vector<Colorf> &newColors);
+-
+-	/**
+-	 * Returns the color of the particles.
+-	 **/
+-	std::vector<Colorf> getColor() const;
+-
+-	/**
+-	 * Sets a list of Quads to use for particles over their lifetime.
+-	 **/
+-	void setQuads(const std::vector<Quad *> &newQuads);
+-	void setQuads();
+-
+-	/**
+-	 * Gets the Quads used when drawing the particles.
+-	 **/
+-	std::vector<Quad *> getQuads() const;
+-
+-	/**
+-	 * sets whether particle angles & rotations are relative to their velocities.
+-	 **/
+-	void setRelativeRotation(bool enable);
+-	bool hasRelativeRotation() const;
+-
+-	/**
+-	 * Returns the amount of particles that are currently active in the system.
+-	 **/
+-	uint32 getCount() const;
+-
+-	/**
+-	 * Starts/resumes the particle emitter.
+-	 **/
+-	void start();
+-
+-	/**
+-	 * Stops the particle emitter and resets.
+-	 **/
+-	void stop();
+-
+-	/**
+-	 * Pauses the particle emitter.
+-	 **/
+-	void pause();
+-
+-	/**
+-	 * Resets the particle emitter.
+-	 **/
+-	void reset();
+-
+-	/**
+-	 * Instantly emits a number of particles.
+-	 * @param num The number of particles to emit.
+-	 **/
+-	void emit(uint32 num);
+-
+-	/**
+-	 * Returns whether the particle emitter is active.
+-	 **/
+-	bool isActive() const;
+-
+-	/**
+-	 * Returns whether the particle emitter is paused.
+-	 **/
+-	bool isPaused() const;
+-
+-	bool isStopped() const;
+-
+-	/**
+-	 * Returns whether the particle system is empty of particles or not.
+-	 **/
+-	bool isEmpty() const;
+-
+-	/**
+-	 * Returns whether the amount of particles has reached the buffer limit or not.
+-	 **/
+-	bool isFull() const;
+-
+-	/**
+-	 * Updates the particle system.
+-	 * @param dt Time since last update.
+-	 **/
+-	void update(float dt);
+-
+-	// Implements Drawable.
+-	void draw(Graphics *gfx, const Matrix4 &m) override;
++	static constexpr uint32 MAX_PARTICLES = LOVE_INT32_MAX / 4;
++
++	~ParticleSystem() override = default;
++
++	virtual ParticleSystem *clone() = 0;
++	virtual void setTexture(Texture *texture) = 0;
++	virtual Texture *getTexture() const = 0;
++	virtual void setBufferSize(uint32 size) = 0;
++	virtual uint32 getBufferSize() const = 0;
++	virtual void setInsertMode(InsertMode mode) = 0;
++	virtual InsertMode getInsertMode() const = 0;
++	virtual void setEmissionRate(float rate) = 0;
++	virtual float getEmissionRate() const = 0;
++	virtual void setEmitterLifetime(float life) = 0;
++	virtual float getEmitterLifetime() const = 0;
++	virtual void setParticleLifetime(float min, float max = 0) = 0;
++	virtual void getParticleLifetime(float &min, float &max) const = 0;
++	virtual void setPosition(float x, float y) = 0;
++	virtual const love::Vector2 &getPosition() const = 0;
++	virtual void moveTo(float x, float y) = 0;
++	virtual void setEmissionArea(AreaSpreadDistribution distribution, float x, float y,
++		float angle, bool directionRelativeToCenter) = 0;
++	virtual AreaSpreadDistribution getEmissionArea(love::Vector2 &params, float &angle,
++		bool &directionRelativeToCenter) const = 0;
++	virtual void setDirection(float direction) = 0;
++	virtual float getDirection() const = 0;
++	virtual void setSpread(float spread) = 0;
++	virtual float getSpread() const = 0;
++	virtual void setSpeed(float speed) = 0;
++	virtual void setSpeed(float min, float max) = 0;
++	virtual void getSpeed(float &min, float &max) const = 0;
++	virtual void setLinearAcceleration(float x, float y) = 0;
++	virtual void setLinearAcceleration(float xmin, float ymin, float xmax, float ymax) = 0;
++	virtual void getLinearAcceleration(love::Vector2 &min, love::Vector2 &max) const = 0;
++	virtual void setRadialAcceleration(float acceleration) = 0;
++	virtual void setRadialAcceleration(float min, float max) = 0;
++	virtual void getRadialAcceleration(float &min, float &max) const = 0;
++	virtual void setTangentialAcceleration(float acceleration) = 0;
++	virtual void setTangentialAcceleration(float min, float max) = 0;
++	virtual void getTangentialAcceleration(float &min, float &max) const = 0;
++	virtual void setLinearDamping(float min, float max) = 0;
++	virtual void getLinearDamping(float &min, float &max) const = 0;
++	virtual void setSize(float size) = 0;
++	virtual void setSizes(const std::vector<float> &sizes) = 0;
++	virtual const std::vector<float> &getSizes() const = 0;
++	virtual void setSizeVariation(float variation) = 0;
++	virtual float getSizeVariation() const = 0;
++	virtual void setRotation(float rotation) = 0;
++	virtual void setRotation(float min, float max) = 0;
++	virtual void getRotation(float &min, float &max) const = 0;
++	virtual void setSpin(float spin) = 0;
++	virtual void setSpin(float start, float end) = 0;
++	virtual void getSpin(float &start, float &end) const = 0;
++	virtual void setSpinVariation(float variation) = 0;
++	virtual float getSpinVariation() const = 0;
++	virtual void setOffset(float x, float y) = 0;
++	virtual love::Vector2 getOffset() const = 0;
++	virtual void setColor(const std::vector<Colorf> &colors) = 0;
++	virtual std::vector<Colorf> getColor() const = 0;
++	virtual void setQuads(const std::vector<Quad *> &quads) = 0;
++	virtual void setQuads() = 0;
++	virtual std::vector<Quad *> getQuads() const = 0;
++	virtual void setRelativeRotation(bool enable) = 0;
++	virtual bool hasRelativeRotation() const = 0;
++	virtual uint32 getCount() const = 0;
++	virtual void start() = 0;
++	virtual void stop() = 0;
++	virtual void pause() = 0;
++	virtual void reset() = 0;
++	virtual void emit(uint32 count) = 0;
++	virtual bool isActive() const = 0;
++	virtual bool isPaused() const = 0;
++	virtual bool isStopped() const = 0;
++	virtual bool isEmpty() const = 0;
++	virtual bool isFull() const = 0;
++	virtual void update(float dt) = 0;
+ 
+ 	static bool getConstant(const char *in, AreaSpreadDistribution &out);
+ 	static bool getConstant(AreaSpreadDistribution in, const char *&out);
+ 	static std::vector<std::string> getConstants(AreaSpreadDistribution);
+-
+ 	static bool getConstant(const char *in, InsertMode &out);
+ 	static bool getConstant(InsertMode in, const char *&out);
+ 	static std::vector<std::string> getConstants(InsertMode);
+ 
+ private:
+-
+-	// Represents a single particle.
+-	struct Particle
+-	{
+-		Particle *prev;
+-		Particle *next;
+-
+-		float lifetime;
+-		float life;
+-
+-		love::Vector2 position;
+-
+-		// Particles gravitate towards this point.
+-		love::Vector2 origin;
+-
+-		love::Vector2 velocity;
+-		love::Vector2 linearAcceleration;
+-		float radialAcceleration;
+-		float tangentialAcceleration;
+-
+-		float linearDamping;
+-
+-		float size;
+-		float sizeOffset;
+-		float sizeIntervalSize;
+-
+-		float rotation; // Amount of rotation applied to the final angle.
+-		float angle;
+-		float spinStart;
+-		float spinEnd;
+-
+-		Colorf color;
+-
+-		int quadIndex;
+-	};
+-
+-	void resetOffset();
+-
+-	void createBuffers(size_t size);
+-	void deleteBuffers();
+-
+-	void addParticle(float t);
+-	Particle *removeParticle(Particle *p);
+-
+-	// Called by addParticle.
+-	void initParticle(Particle *p, float t);
+-	void insertTop(Particle *p);
+-	void insertBottom(Particle *p);
+-	void insertRandom(Particle *p);
+-
+-	// Pointer to the beginning of the allocated memory.
+-	Particle *pMem;
+-
+-	// Pointer to a free particle.
+-	Particle *pFree;
+-
+-	// Pointer to the start of the linked list.
+-	Particle *pHead;
+-
+-	// Pointer to the end of the linked list.
+-	Particle *pTail;
+-
+-	// The texture to be drawn.
+-	StrongRef<Texture> texture;
+-
+-	// Whether the particle emitter is active.
+-	bool active;
+-
+-	// Insert mode of new particles.
+-	InsertMode insertMode;
+-
+-	// The maximum number of particles.
+-	uint32 maxParticles;
+-
+-	// The number of active particles.
+-	uint32 activeParticles;
+-
+-	// The emission rate (particles/sec).
+-	float emissionRate;
+-
+-	// Used to determine when a particle should be emitted.
+-	float emitCounter;
+-
+-	// The relative position of the particle emitter.
+-	love::Vector2 position;
+-	love::Vector2 prevPosition;
+-
+-	// Emission area spread.
+-	AreaSpreadDistribution emissionAreaDistribution;
+-	love::Vector2 emissionArea;
+-	float emissionAreaAngle;
+-	bool directionRelativeToEmissionCenter;
+-
+-	// The lifetime of the particle emitter (-1 means infinite) and the life it has left.
+-	float lifetime;
+-	float life;
+-
+-	// The particle life.
+-	float particleLifeMin;
+-	float particleLifeMax;
+-
+-	// The direction (and spread) the particles will be emitted in. Measured in radians.
+-	float direction;
+-	float spread;
+-
+-	// The speed.
+-	float speedMin;
+-	float speedMax;
+-
+-	// Acceleration along the x and y axes.
+-	love::Vector2 linearAccelerationMin;
+-	love::Vector2 linearAccelerationMax;
+-
+-	// Acceleration towards the emitter's center
+-	float radialAccelerationMin;
+-	float radialAccelerationMax;
+-
+-	// Acceleration perpendicular to the particle's direction.
+-	float tangentialAccelerationMin;
+-	float tangentialAccelerationMax;
+-
+-	float linearDampingMin;
+-	float linearDampingMax;
+-
+-	// Size.
+-	std::vector<float> sizes;
+-	float sizeVariation;
+-
+-	// Rotation
+-	float rotationMin;
+-	float rotationMax;
+-
+-	// Spin.
+-	float spinStart;
+-	float spinEnd;
+-	float spinVariation;
+-
+-	// Offsets
+-	love::Vector2 offset;
+-
+-	// Is the ParticleSystem using a default offset?
+-	bool defaultOffset;
+-
+-	// Color.
+-	std::vector<Colorf> colors;
+-
+-	// Quads.
+-	std::vector<StrongRef<Quad>> quads;
+-
+-	bool relativeRotation;
+-
+-	const vertex::Attributes vertexAttributes;
+-	Buffer *buffer;
+-
+-	static StringMap<AreaSpreadDistribution, DISTRIBUTION_MAX_ENUM>::Entry distributionsEntries[];
++	static StringMap<AreaSpreadDistribution, DISTRIBUTION_MAX_ENUM>::Entry distributionEntries[];
+ 	static StringMap<AreaSpreadDistribution, DISTRIBUTION_MAX_ENUM> distributions;
+-
+-	static StringMap<InsertMode, INSERT_MODE_MAX_ENUM>::Entry insertModesEntries[];
++	static StringMap<InsertMode, INSERT_MODE_MAX_ENUM>::Entry insertModeEntries[];
+ 	static StringMap<InsertMode, INSERT_MODE_MAX_ENUM> insertModes;
+ };
+ 
+-} // graphics
+-} // love
+-
+-#endif // LOVE_GRAPHICS_PARTICLE_SYSTEM_H
++} // namespace love::graphics
+diff --git a/src/modules/graphics/ParticleSystem.cpp b/src/modules/graphics/ParticleSystem.cpp
+index f42c97f95..c77635e29 100644
+--- a/src/modules/graphics/ParticleSystem.cpp
++++ b/src/modules/graphics/ParticleSystem.cpp
+@@ -18,1073 +18,40 @@
+  * 3. This notice may not be removed or altered from any source distribution.
+  **/
+ 
+-//LOVE
+-#include "common/config.h"
+-#include "ParticleSystem.h"
+-#include "Graphics.h"
+-
+-#include "common/math.h"
+-#include "modules/math/RandomGenerator.h"
+-
+-// STD
+-#include <algorithm>
+-#include <cmath>
+-#include <cstdlib>
+-
+-namespace love
+-{
+-namespace graphics
+-{
++// Altered for Dora: this unit retains LOVE 11.5's Type and enum maps; the
++// concrete simulation and renderer storage live in Dora's state-local object.
+ 
+-namespace
+-{
+-
+-love::math::RandomGenerator rng;
++#include "ParticleSystem.h"
+ 
+-float calculate_variation(float inner, float outer, float var)
++namespace love::graphics
+ {
+-	float low = inner - (outer/2.0f)*var;
+-	float high = inner + (outer/2.0f)*var;
+-	float r = (float) rng.random();
+-	return low*(1-r)+high*r;
+-}
+-
+-} // anonymous namespace
+ 
+ love::Type ParticleSystem::type("ParticleSystem", &Drawable::type);
+ 
+-ParticleSystem::ParticleSystem(Texture *texture, uint32 size)
+-	: pMem(nullptr)
+-	, pFree(nullptr)
+-	, pHead(nullptr)
+-	, pTail(nullptr)
+-	, texture(texture)
+-	, active(true)
+-	, insertMode(INSERT_MODE_TOP)
+-	, maxParticles(0)
+-	, activeParticles(0)
+-	, emissionRate(0)
+-	, emitCounter(0)
+-	, emissionAreaDistribution(DISTRIBUTION_NONE)
+-	, emissionAreaAngle(0)
+-	, directionRelativeToEmissionCenter(false)
+-	, lifetime(-1)
+-	, life(0)
+-	, particleLifeMin(0)
+-	, particleLifeMax(0)
+-	, direction(0)
+-	, spread(0)
+-	, speedMin(0)
+-	, speedMax(0)
+-	, linearAccelerationMin(0, 0)
+-	, linearAccelerationMax(0, 0)
+-	, radialAccelerationMin(0)
+-	, radialAccelerationMax(0)
+-	, tangentialAccelerationMin(0)
+-	, tangentialAccelerationMax(0)
+-	, linearDampingMin(0.0f)
+-	, linearDampingMax(0.0f)
+-	, sizeVariation(0)
+-	, rotationMin(0)
+-	, rotationMax(0)
+-	, spinStart(0)
+-	, spinEnd(0)
+-	, spinVariation(0)
+-	, offset(float(texture->getWidth())*0.5f, float(texture->getHeight())*0.5f)
+-	, defaultOffset(true)
+-	, relativeRotation(false)
+-	, vertexAttributes(vertex::CommonFormat::XYf_STf_RGBAub, 0)
+-	, buffer(nullptr)
+-{
+-	if (size == 0 || size > MAX_PARTICLES)
+-		throw love::Exception("Invalid ParticleSystem size.");
+-
+-	if (texture->getTextureType() != TEXTURE_2D)
+-		throw love::Exception("Only 2D textures can be used with ParticleSystems.");
+-
+-	sizes.push_back(1.0f);
+-	colors.push_back(Colorf(1.0f, 1.0f, 1.0f, 1.0f));
+-
+-	setBufferSize(size);
+-}
+-
+-ParticleSystem::ParticleSystem(const ParticleSystem &p)
+-	: pMem(nullptr)
+-	, pFree(nullptr)
+-	, pHead(nullptr)
+-	, pTail(nullptr)
+-	, texture(p.texture)
+-	, active(p.active)
+-	, insertMode(p.insertMode)
+-	, maxParticles(p.maxParticles)
+-	, activeParticles(0)
+-	, emissionRate(p.emissionRate)
+-	, emitCounter(0.0f)
+-	, position(p.position)
+-	, prevPosition(p.prevPosition)
+-	, emissionAreaDistribution(p.emissionAreaDistribution)
+-	, emissionArea(p.emissionArea)
+-	, emissionAreaAngle(p.emissionAreaAngle)
+-	, directionRelativeToEmissionCenter(p.directionRelativeToEmissionCenter)
+-	, lifetime(p.lifetime)
+-	, life(p.lifetime) // Initialize with the maximum life time.
+-	, particleLifeMin(p.particleLifeMin)
+-	, particleLifeMax(p.particleLifeMax)
+-	, direction(p.direction)
+-	, spread(p.spread)
+-	, speedMin(p.speedMin)
+-	, speedMax(p.speedMax)
+-	, linearAccelerationMin(p.linearAccelerationMin)
+-	, linearAccelerationMax(p.linearAccelerationMax)
+-	, radialAccelerationMin(p.radialAccelerationMin)
+-	, radialAccelerationMax(p.radialAccelerationMax)
+-	, tangentialAccelerationMin(p.tangentialAccelerationMin)
+-	, tangentialAccelerationMax(p.tangentialAccelerationMax)
+-	, linearDampingMin(p.linearDampingMin)
+-	, linearDampingMax(p.linearDampingMax)
+-	, sizes(p.sizes)
+-	, sizeVariation(p.sizeVariation)
+-	, rotationMin(p.rotationMin)
+-	, rotationMax(p.rotationMax)
+-	, spinStart(p.spinStart)
+-	, spinEnd(p.spinEnd)
+-	, spinVariation(p.spinVariation)
+-	, offset(p.offset)
+-	, defaultOffset(p.defaultOffset)
+-	, colors(p.colors)
+-	, quads(p.quads)
+-	, relativeRotation(p.relativeRotation)
+-	, vertexAttributes(p.vertexAttributes)
+-	, buffer(nullptr)
+-{
+-	setBufferSize(maxParticles);
+-}
+-
+-ParticleSystem::~ParticleSystem()
+-{
+-	deleteBuffers();
+-}
+-
+-ParticleSystem *ParticleSystem::clone()
+-{
+-	return new ParticleSystem(*this);
+-}
+-
+-void ParticleSystem::resetOffset()
+-{
+-	if (quads.empty())
+-		offset = love::Vector2(float(texture->getWidth())*0.5f, float(texture->getHeight())*0.5f);
+-	else
+-	{
+-		Quad::Viewport v = quads[0]->getViewport();
+-		offset = love::Vector2(v.w*0.5f, v.h*0.5f);
+-	}
+-}
+-
+-void ParticleSystem::createBuffers(size_t size)
+-{
+-	try
+-	{
+-		pFree = pMem = new Particle[size];
+-		maxParticles = (uint32) size;
+-
+-		auto gfx = Module::getInstance<Graphics>(Module::M_GRAPHICS);
+-
+-		size_t bytes = sizeof(Vertex) * size * 4;
+-		buffer = gfx->newBuffer(bytes, nullptr, BUFFER_VERTEX, vertex::USAGE_STREAM, 0);
+-	}
+-	catch (std::bad_alloc &)
+-	{
+-		deleteBuffers();
+-		throw love::Exception("Out of memory");
+-	}
+-}
+-
+-void ParticleSystem::deleteBuffers()
+-{
+-	delete[] pMem;
+-	delete buffer;
+-
+-	pMem = nullptr;
+-	buffer = nullptr;
+-	maxParticles = 0;
+-	activeParticles = 0;
+-}
+-
+-void ParticleSystem::setBufferSize(uint32 size)
+-{
+-	if (size == 0 || size > MAX_PARTICLES)
+-		throw love::Exception("Invalid buffer size");
+-	deleteBuffers();
+-	createBuffers(size);
+-	reset();
+-}
+-
+-uint32 ParticleSystem::getBufferSize() const
+-{
+-	return maxParticles;
+-}
+-
+-void ParticleSystem::addParticle(float t)
+-{
+-	if (isFull())
+-		return;
+-
+-	// Gets a free particle and updates the allocation pointer.
+-	Particle *p = pFree++;
+-	initParticle(p, t);
+-
+-	switch (insertMode)
+-	{
+-	default:
+-	case INSERT_MODE_TOP:
+-		insertTop(p);
+-		break;
+-	case INSERT_MODE_BOTTOM:
+-		insertBottom(p);
+-		break;
+-	case INSERT_MODE_RANDOM:
+-		insertRandom(p);
+-		break;
+-	}
+-
+-	activeParticles++;
+-}
+-
+-void ParticleSystem::initParticle(Particle *p, float t)
+-{
+-	float min,max;
+-
+-	// Linearly interpolate between the previous and current emitter position.
+-	love::Vector2 pos = prevPosition + (position - prevPosition) * t;
+-
+-	min = particleLifeMin;
+-	max = particleLifeMax;
+-	if (min == max)
+-		p->life = min;
+-	else
+-		p->life = (float) rng.random(min, max);
+-	p->lifetime = p->life;
+-
+-	p->position = pos;
+-
+-	min = direction - spread/2.0f;
+-	max = direction + spread/2.0f;
+-	float dir = (float) rng.random(min, max);
+-
+-	// In this switch statement, variables 'rand_y', 'min', and 'max'
+-	// are sometimes reused as data stores for performance reasons
+-	float rand_x, rand_y;
+-	float c, s;
+-	switch (emissionAreaDistribution)
+-	{
+-	case DISTRIBUTION_UNIFORM:
+-		c = cosf(emissionAreaAngle); s = sinf(emissionAreaAngle);
+-		rand_x = (float) rng.random(-emissionArea.x, emissionArea.x);
+-		rand_y = (float) rng.random(-emissionArea.y, emissionArea.y);
+-		p->position.x += c * rand_x - s * rand_y;
+-		p->position.y += s * rand_x + c * rand_y;
+-		break;
+-	case DISTRIBUTION_NORMAL:
+-		c = cosf(emissionAreaAngle); s = sinf(emissionAreaAngle);
+-		rand_x = (float) rng.randomNormal(emissionArea.x);
+-		rand_y = (float) rng.randomNormal(emissionArea.y);
+-		p->position.x += c * rand_x - s * rand_y;
+-		p->position.y += s * rand_x + c * rand_y;
+-		break;
+-	case DISTRIBUTION_ELLIPSE:
+-		c = cosf(emissionAreaAngle); s = sinf(emissionAreaAngle);
+-		rand_x = (float) rng.random(-1, 1);
+-		rand_y = (float) rng.random(-1, 1);
+-		min = emissionArea.x * (rand_x * sqrt(1 - 0.5f*pow(rand_y, 2)));
+-		max = emissionArea.y * (rand_y * sqrt(1 - 0.5f*pow(rand_x, 2)));
+-		p->position.x += c * min - s * max;
+-		p->position.y += s * min + c * max;
+-		break;
+-	case DISTRIBUTION_BORDER_ELLIPSE:
+-		c = cosf(emissionAreaAngle); s = sinf(emissionAreaAngle);
+-		rand_x = (float) rng.random(0, LOVE_M_PI * 2);
+-		min = cosf(rand_x) * emissionArea.x;
+-		max = sinf(rand_x) * emissionArea.y;
+-		p->position.x += c * min - s * max;
+-		p->position.y += s * min + c * max;
+-		break;
+-	case DISTRIBUTION_BORDER_RECTANGLE:
+-		c = cosf(emissionAreaAngle); s = sinf(emissionAreaAngle);
+-		rand_x = (float) rng.random((emissionArea.x + emissionArea.y) * -2, (emissionArea.x + emissionArea.y) * 2);
+-		rand_y = emissionArea.y * 2;
+-		if (rand_x < -rand_y)
+-		{
+-			min = rand_x + rand_y + emissionArea.x;
+-			p->position.x += c * min - s * -emissionArea.y;
+-			p->position.y += s * min + c * -emissionArea.y;
+-		}
+-		else if (rand_x < 0)
+-		{
+-			max = rand_x + emissionArea.y;
+-			p->position.x += c * -emissionArea.x - s * max;
+-			p->position.y += s * -emissionArea.x + c * max;
+-		}
+-		else if (rand_x < rand_y)
+-		{
+-			max = rand_x - emissionArea.y;
+-			p->position.x += c * emissionArea.x - s * max;
+-			p->position.y += s * emissionArea.x + c * max;
+-		}
+-		else
+-		{
+-			min = rand_x - rand_y - emissionArea.x;
+-			p->position.x += c * min - s * emissionArea.y;
+-			p->position.y += s * min + c * emissionArea.y;
+-		}
+-		break;
+-	case DISTRIBUTION_NONE:
+-	default:
+-		break;
+-	}
+-
+-	// Determine if the origin of each particle is the center of the area
+-	if (directionRelativeToEmissionCenter)
+-		dir += atan2(p->position.y - pos.y, p->position.x - pos.x);
+-
+-	p->origin = pos;
+-
+-	min = speedMin;
+-	max = speedMax;
+-	float speed = (float) rng.random(min, max);
+-
+-	p->velocity = love::Vector2(cosf(dir), sinf(dir)) * speed;
+-
+-	p->linearAcceleration.x = (float) rng.random(linearAccelerationMin.x, linearAccelerationMax.x);
+-	p->linearAcceleration.y = (float) rng.random(linearAccelerationMin.y, linearAccelerationMax.y);
+-
+-	min = radialAccelerationMin;
+-	max = radialAccelerationMax;
+-	p->radialAcceleration = (float) rng.random(min, max);
+-
+-	min = tangentialAccelerationMin;
+-	max = tangentialAccelerationMax;
+-	p->tangentialAcceleration = (float) rng.random(min, max);
+-
+-	min = linearDampingMin;
+-	max = linearDampingMax;
+-	p->linearDamping = (float) rng.random(min, max);
+-
+-	p->sizeOffset       = (float) rng.random(sizeVariation); // time offset for size change
+-	p->sizeIntervalSize = (1.0f - (float) rng.random(sizeVariation)) - p->sizeOffset;
+-	p->size = sizes[(size_t)(p->sizeOffset - .5f) * (sizes.size() - 1)];
+-
+-	min = rotationMin;
+-	max = rotationMax;
+-	p->spinStart = calculate_variation(spinStart, spinEnd, spinVariation);
+-	p->spinEnd = calculate_variation(spinEnd, spinStart, spinVariation);
+-	p->rotation = (float) rng.random(min, max);
+-
+-	p->angle = p->rotation;
+-	if (relativeRotation)
+-		p->angle += atan2f(p->velocity.y, p->velocity.x);
+-
+-	p->color = colors[0];
+-
+-	p->quadIndex = 0;
+-}
+-
+-void ParticleSystem::insertTop(Particle *p)
+-{
+-	if (pHead == nullptr)
+-	{
+-		pHead = p;
+-		p->prev = nullptr;
+-	}
+-	else
+-	{
+-		pTail->next = p;
+-		p->prev = pTail;
+-	}
+-	p->next = nullptr;
+-	pTail = p;
+-}
+-
+-void ParticleSystem::insertBottom(Particle *p)
+-{
+-	if (pTail == nullptr)
+-	{
+-		pTail = p;
+-		p->next = nullptr;
+-	}
+-	else
+-	{
+-		pHead->prev = p;
+-		p->next = pHead;
+-	}
+-	p->prev = nullptr;
+-	pHead = p;
+-}
+-
+-void ParticleSystem::insertRandom(Particle *p)
+-{
+-	// Nonuniform, but 64-bit is so large nobody will notice. Hopefully.
+-	uint64 pos = rng.rand() % ((int64) activeParticles + 1);
+-
+-	// Special case where the particle gets inserted before the head.
+-	if (pos == activeParticles)
+-	{
+-		Particle *pA = pHead;
+-		if (pA)
+-			pA->prev = p;
+-		p->prev = nullptr;
+-		p->next = pA;
+-		pHead = p;
+-		return;
+-	}
+-
+-	// Inserts the particle after the randomly selected particle.
+-	Particle *pA = pMem + pos;
+-	Particle *pB = pA->next;
+-	pA->next = p;
+-	if (pB)
+-		pB->prev = p;
+-	else
+-		pTail = p;
+-	p->prev = pA;
+-	p->next = pB;
+-}
+-
+-ParticleSystem::Particle *ParticleSystem::removeParticle(Particle *p)
+-{
+-	// The linked list is updated in this function and old pointers may be
+-	// invalidated. The returned pointer will inform the caller of the new
+-	// pointer to the next particle.
+-	Particle *pNext = nullptr;
+-
+-	// Removes the particle from the linked list.
+-	if (p->prev)
+-		p->prev->next = p->next;
+-	else
+-		pHead = p->next;
+-
+-	if (p->next)
+-	{
+-		p->next->prev = p->prev;
+-		pNext = p->next;
+-	}
+-	else
+-		pTail = p->prev;
+-
+-	// The (in memory) last particle can now be moved into the free slot.
+-	// It will skip the moving if it happens to be the removed particle.
+-	pFree--;
+-	if (p != pFree)
+-	{
+-		*p = *pFree;
+-		if (pNext == pFree)
+-			pNext = p;
+-
+-		if (p->prev)
+-			p->prev->next = p;
+-		else
+-			pHead = p;
+-
+-		if (p->next)
+-			p->next->prev = p;
+-		else
+-			pTail = p;
+-	}
+-
+-	activeParticles--;
+-	return pNext;
+-}
+-
+-void ParticleSystem::setTexture(Texture *tex)
+-{
+-	if (texture->getTextureType() != TEXTURE_2D)
+-		throw love::Exception("Only 2D textures can be used with ParticleSystems.");
+-
+-	texture.set(tex);
+-
+-	if (defaultOffset)
+-		resetOffset();
+-}
+-
+-Texture *ParticleSystem::getTexture() const
+-{
+-	return texture.get();
+-}
+-
+-void ParticleSystem::setInsertMode(InsertMode mode)
+-{
+-	insertMode = mode;
+-}
+-
+-ParticleSystem::InsertMode ParticleSystem::getInsertMode() const
+-{
+-	return insertMode;
+-}
+-
+-void ParticleSystem::setEmissionRate(float rate)
+-{
+-	if (rate < 0.0f)
+-		throw love::Exception("Invalid emission rate");
+-	emissionRate = rate;
+-
+-	// Prevent an explosion when dramatically increasing the rate
+-	emitCounter = std::min(emitCounter, 1.0f/rate);
+-}
+-
+-float ParticleSystem::getEmissionRate() const
+-{
+-	return emissionRate;
+-}
+-
+-void ParticleSystem::setEmitterLifetime(float life)
+-{
+-	this->life = lifetime = life;
+-}
+-
+-float ParticleSystem::getEmitterLifetime() const
+-{
+-	return lifetime;
+-}
+-
+-void ParticleSystem::setParticleLifetime(float min, float max)
+-{
+-	particleLifeMin = min;
+-	if (max == 0)
+-		particleLifeMax = min;
+-	else
+-		particleLifeMax = max;
+-}
+-
+-void ParticleSystem::getParticleLifetime(float &min, float &max) const
+-{
+-	min = particleLifeMin;
+-	max = particleLifeMax;
+-}
+-
+-void ParticleSystem::setPosition(float x, float y)
+-{
+-	position = love::Vector2(x, y);
+-	prevPosition = position;
+-}
+-
+-const love::Vector2 &ParticleSystem::getPosition() const
+-{
+-	return position;
+-}
+-
+-void ParticleSystem::moveTo(float x, float y)
+-{
+-	position = love::Vector2(x, y);
+-}
+-
+-void ParticleSystem::setEmissionArea(AreaSpreadDistribution distribution, float x, float y, float angle, bool directionRelativeToCenter)
+-{
+-	emissionArea = love::Vector2(x, y);
+-	emissionAreaDistribution = distribution;
+-	emissionAreaAngle = angle;
+-	directionRelativeToEmissionCenter = directionRelativeToCenter;
+-}
+-
+-ParticleSystem::AreaSpreadDistribution ParticleSystem::getEmissionArea(love::Vector2 &params, float &angle, bool &directionRelativeToCenter) const
+-{
+-	params = emissionArea;
+-	angle = emissionAreaAngle;
+-	directionRelativeToCenter = directionRelativeToEmissionCenter;
+-	return emissionAreaDistribution;
+-}
+-
+-void ParticleSystem::setDirection(float direction)
+-{
+-	this->direction = direction;
+-}
+-
+-float ParticleSystem::getDirection() const
+-{
+-	return direction;
+-}
+-
+-void ParticleSystem::setSpread(float spread)
+-{
+-	this->spread = spread;
+-}
+-
+-float ParticleSystem::getSpread() const
+-{
+-	return spread;
+-}
+-
+-void ParticleSystem::setSpeed(float speed)
+-{
+-	speedMin = speedMax = speed;
+-}
+-
+-void ParticleSystem::setSpeed(float min, float max)
+-{
+-	speedMin = min;
+-	speedMax = max;
+-}
+-
+-void ParticleSystem::getSpeed(float &min, float &max) const
+-{
+-	min = speedMin;
+-	max = speedMax;
+-}
+-
+-void ParticleSystem::setLinearAcceleration(float x, float y)
+-{
+-	linearAccelerationMin.x = linearAccelerationMax.x = x;
+-	linearAccelerationMin.y = linearAccelerationMax.y = y;
+-}
+-
+-void ParticleSystem::setLinearAcceleration(float xmin, float ymin, float xmax, float ymax)
+-{
+-	linearAccelerationMin = love::Vector2(xmin, ymin);
+-	linearAccelerationMax = love::Vector2(xmax, ymax);
+-}
+-
+-void ParticleSystem::getLinearAcceleration(love::Vector2 &min, love::Vector2 &max) const
+-{
+-	min = linearAccelerationMin;
+-	max = linearAccelerationMax;
+-}
+-
+-void ParticleSystem::setRadialAcceleration(float acceleration)
+-{
+-	radialAccelerationMin = radialAccelerationMax = acceleration;
+-}
+-
+-void ParticleSystem::setRadialAcceleration(float min, float max)
+-{
+-	radialAccelerationMin = min;
+-	radialAccelerationMax = max;
+-}
+-
+-void ParticleSystem::getRadialAcceleration(float &min, float &max) const
+-{
+-	min = radialAccelerationMin;
+-	max = radialAccelerationMax;
+-}
+-
+-void ParticleSystem::setTangentialAcceleration(float acceleration)
+-{
+-	tangentialAccelerationMin = tangentialAccelerationMax = acceleration;
+-}
+-
+-void ParticleSystem::setTangentialAcceleration(float min, float max)
+-{
+-	tangentialAccelerationMin = min;
+-	tangentialAccelerationMax = max;
+-}
+-
+-void ParticleSystem::getTangentialAcceleration(float &min, float &max) const
+-{
+-	min = tangentialAccelerationMin;
+-	max = tangentialAccelerationMax;
+-}
+-
+-void ParticleSystem::setLinearDamping(float min, float max)
+-{
+-	linearDampingMin = min;
+-	linearDampingMax = max;
+-}
+-
+-void ParticleSystem::getLinearDamping(float &min, float &max) const
+-{
+-	min = linearDampingMin;
+-	max = linearDampingMax;
+-}
+-
+-void ParticleSystem::setSize(float size)
+-{
+-	sizes.resize(1);
+-	sizes[0] = size;
+-}
+-
+-void ParticleSystem::setSizes(const std::vector<float> &newSizes)
+-{
+-	sizes = newSizes;
+-}
+-
+-const std::vector<float> &ParticleSystem::getSizes() const
+-{
+-	return sizes;
+-}
+-
+-void ParticleSystem::setSizeVariation(float variation)
+-{
+-	sizeVariation = variation;
+-}
+-
+-float ParticleSystem::getSizeVariation() const
+-{
+-	return sizeVariation;
+-}
+-
+-void ParticleSystem::setRotation(float rotation)
+-{
+-	rotationMin = rotationMax = rotation;
+-}
+-
+-void ParticleSystem::setRotation(float min, float max)
+-{
+-	rotationMin = min;
+-	rotationMax = max;
+-}
+-
+-void ParticleSystem::getRotation(float &min, float &max) const
+-{
+-	min = rotationMin;
+-	max = rotationMax;
+-}
+-
+-void ParticleSystem::setSpin(float spin)
+-{
+-	spinStart = spin;
+-	spinEnd = spin;
+-}
+-
+-void ParticleSystem::setSpin(float start, float end)
+-{
+-	spinStart = start;
+-	spinEnd = end;
+-}
+-
+-void ParticleSystem::getSpin(float &start, float &end) const
+-{
+-	start = spinStart;
+-	end = spinEnd;
+-}
+-
+-void ParticleSystem::setSpinVariation(float variation)
+-{
+-	spinVariation = variation;
+-}
+-
+-float ParticleSystem::getSpinVariation() const
+-{
+-	return spinVariation;
+-}
+-
+-void ParticleSystem::setOffset(float x, float y)
+-{
+-	offset = love::Vector2(x, y);
+-	defaultOffset = false;
+-}
+-
+-love::Vector2 ParticleSystem::getOffset() const
+-{
+-	return offset;
+-}
+-
+-void ParticleSystem::setColor(const std::vector<Colorf> &newColors)
+-{
+-	colors = newColors;
+-
+-	// We don't support colors outside of [0,1] when drawing the ParticleSystem.
+-	for (auto &c : colors)
+-	{
+-		c.r = std::min(std::max(c.r, 0.0f), 1.0f);
+-		c.g = std::min(std::max(c.g, 0.0f), 1.0f);
+-		c.b = std::min(std::max(c.b, 0.0f), 1.0f);
+-		c.a = std::min(std::max(c.a, 0.0f), 1.0f);
+-	}
+-}
+-
+-std::vector<Colorf> ParticleSystem::getColor() const
+-{
+-	return colors;
+-}
+-
+-void ParticleSystem::setQuads(const std::vector<Quad *> &newQuads)
+-{
+-	std::vector<StrongRef<Quad>> quadlist;
+-	quadlist.reserve(newQuads.size());
+-
+-	for (Quad *q : newQuads)
+-		quadlist.push_back(q);
+-
+-	quads = quadlist;
+-
+-	if (defaultOffset)
+-		resetOffset();
+-}
+-
+-void ParticleSystem::setQuads()
+-{
+-	quads.clear();
+-}
+-
+-std::vector<Quad *> ParticleSystem::getQuads() const
+-{
+-	std::vector<Quad *> quadlist;
+-	quadlist.reserve(quads.size());
+-
+-	for (const StrongRef<Quad> &q : quads)
+-		quadlist.push_back(q.get());
+-
+-	return quadlist;
+-}
+-
+-void ParticleSystem::setRelativeRotation(bool enable)
+-{
+-	relativeRotation = enable;
+-}
+-
+-bool ParticleSystem::hasRelativeRotation() const
+-{
+-	return relativeRotation;
+-}
+-
+-uint32 ParticleSystem::getCount() const
+-{
+-	return activeParticles;
+-}
+-
+-void ParticleSystem::start()
+-{
+-	active = true;
+-}
+-
+-void ParticleSystem::stop()
+-{
+-	active = false;
+-	life = lifetime;
+-	emitCounter = 0;
+-}
+-
+-void ParticleSystem::pause()
+-{
+-	active = false;
+-}
+-
+-void ParticleSystem::reset()
+-{
+-	if (pMem == nullptr)
+-		return;
+-
+-	pFree = pMem;
+-	pHead = nullptr;
+-	pTail = nullptr;
+-	activeParticles = 0;
+-	life = lifetime;
+-	emitCounter = 0;
+-}
+-
+-void ParticleSystem::emit(uint32 num)
+-{
+-	if (!active)
+-		return;
+-
+-	num = std::min(num, maxParticles - activeParticles);
+-
+-	while (num--)
+-		addParticle(1.0f);
+-}
+-
+-bool ParticleSystem::isActive() const
+-{
+-	return active;
+-}
+-
+-bool ParticleSystem::isPaused() const
+-{
+-	return !active && life < lifetime;
+-}
+-
+-bool ParticleSystem::isStopped() const
+-{
+-	return !active && life >= lifetime;
+-}
+-
+-bool ParticleSystem::isEmpty() const
+-{
+-	return activeParticles == 0;
+-}
+-
+-bool ParticleSystem::isFull() const
+-{
+-	return activeParticles == maxParticles;
+-}
+-
+-void ParticleSystem::update(float dt)
+-{
+-	if (pMem == nullptr || dt == 0.0f)
+-		return;
+-
+-	// Traverse all particles and update.
+-	Particle *p = pHead;
+-
+-	while (p)
+-	{
+-		// Decrease lifespan.
+-		p->life -= dt;
+-
+-		if (p->life <= 0)
+-			p = removeParticle(p);
+-		else
+-		{
+-			// Temp variables.
+-			love::Vector2 radial, tangential;
+-			love::Vector2 ppos = p->position;
+-
+-			// Get vector from particle center to particle.
+-			radial = ppos - p->origin;
+-			radial.normalize();
+-			tangential = radial;
+-
+-			// Resize radial acceleration.
+-			radial *= p->radialAcceleration;
+-
+-			// Calculate tangential acceleration.
+-			{
+-				float a = tangential.x;
+-				tangential.x = -tangential.y;
+-				tangential.y = a;
+-			}
+-
+-			// Resize tangential.
+-			tangential *= p->tangentialAcceleration;
+-
+-			// Update velocity.
+-			p->velocity += (radial + tangential + p->linearAcceleration) * dt;
+-
+-			// Apply damping.
+-			p->velocity *= 1.0f / (1.0f + p->linearDamping * dt);
+-
+-			// Modify position.
+-			ppos += p->velocity * dt;
+-
+-			p->position = ppos;
+-
+-			const float t = 1.0f - p->life / p->lifetime;
+-
+-			// Rotate.
+-			p->rotation += (p->spinStart * (1.0f - t) + p->spinEnd * t) * dt;
+-
+-			p->angle = p->rotation;
+-
+-			if (relativeRotation)
+-				p->angle += atan2f(p->velocity.y, p->velocity.x);
+-
+-			// Change size according to given intervals:
+-			// i = 0       1       2      3          n-1
+-			//     |-------|-------|------|--- ... ---|
+-			// t = 0    1/(n-1)        3/(n-1)        1
+-			//
+-			// `s' is the interpolation variable scaled to the current
+-			// interval width, e.g. if n = 5 and t = 0.3, then the current
+-			// indices are 1,2 and s = 0.3 - 0.25 = 0.05
+-			float s = p->sizeOffset + t * p->sizeIntervalSize; // size variation
+-			s *= (float)(sizes.size() - 1); // 0 <= s < sizes.size()
+-			size_t i = (size_t)s;
+-			size_t k = (i == sizes.size() - 1) ? i : i + 1; // boundary check (prevents failing on t = 1.0f)
+-			s -= (float)i; // transpose s to be in interval [0:1]: i <= s < i + 1 ~> 0 <= s < 1
+-			p->size = sizes[i] * (1.0f - s) + sizes[k] * s;
+-
+-			// Update color according to given intervals (as above)
+-			s = t * (float)(colors.size() - 1);
+-			i = (size_t)s;
+-			k = (i == colors.size() - 1) ? i : i + 1;
+-			s -= (float)i;                            // 0 <= s <= 1
+-			p->color = colors[i] * (1.0f - s) + colors[k] * s;
+-
+-			// Update the quad index.
+-			k = quads.size();
+-			if (k > 0)
+-			{
+-				s = t * (float) k; // [0:numquads-1] (clamped below)
+-				i = (s > 0.0f) ? (size_t) s : 0;
+-				p->quadIndex = (int) ((i < k) ? i : k - 1);
+-			}
+-
+-			// Next particle.
+-			p = p->next;
+-		}
+-	}
+-
+-	// Make some more particles.
+-	if (active)
+-	{
+-		float rate = 1.0f / emissionRate; // the amount of time between each particle emit
+-		emitCounter += dt;
+-		float total = emitCounter - rate;
+-		while (emitCounter > rate)
+-		{
+-			addParticle(1.0f - (emitCounter - rate) / total);
+-			emitCounter -= rate;
+-		}
+-
+-		life -= dt;
+-		if (lifetime != -1 && life < 0)
+-			stop();
+-	}
+-
+-	prevPosition = position;
+-}
+-
+-void ParticleSystem::draw(Graphics *gfx, const Matrix4 &m)
+-{
+-	uint32 pCount = getCount();
+-
+-	if (pCount == 0 || texture.get() == nullptr || pMem == nullptr || buffer == nullptr)
+-		return;
+-
+-	gfx->flushStreamDraws();
+-
+-	if (Shader::isDefaultActive())
+-		Shader::attachDefault(Shader::STANDARD_DEFAULT);
+-
+-	if (Shader::current && texture.get())
+-		Shader::current->checkMainTexture(texture);
+-
+-	const Vector2 *positions = texture->getQuad()->getVertexPositions();
+-	const Vector2 *texcoords = texture->getQuad()->getVertexTexCoords();
+-
+-	Vertex *pVerts = (Vertex *) buffer->map();
+-	Particle *p = pHead;
+-
+-	bool useQuads = !quads.empty();
+-
+-	Matrix3 t;
+-
+-	// set the vertex data for each particle (transformation, texcoords, color)
+-	while (p)
+-	{
+-		if (useQuads)
+-		{
+-			positions = quads[p->quadIndex]->getVertexPositions();
+-			texcoords = quads[p->quadIndex]->getVertexTexCoords();
+-		}
+-
+-		// particle vertices are image vertices transformed by particle info
+-		t.setTransformation(p->position.x, p->position.y, p->angle, p->size, p->size, offset.x, offset.y, 0.0f, 0.0f);
+-		t.transformXY(pVerts, positions, 4);
+-
+-		// Particle colors are stored as floats (0-1) but vertex colors are
+-		// unsigned bytes (0-255).
+-		Color32 c = toColor32(p->color);
+-
+-		// set the texture coordinate and color data for particle vertices
+-		for (int v = 0; v < 4; v++)
+-		{
+-			pVerts[v].s = texcoords[v].x;
+-			pVerts[v].t = texcoords[v].y;
+-			pVerts[v].color = c;
+-		}
+-
+-		pVerts += 4;
+-		p = p->next;
+-	}
+-
+-	buffer->unmap();
++StringMap<ParticleSystem::AreaSpreadDistribution,
++	ParticleSystem::DISTRIBUTION_MAX_ENUM>::Entry ParticleSystem::distributionEntries[] = {
++	{"none", DISTRIBUTION_NONE},
++	{"uniform", DISTRIBUTION_UNIFORM},
++	{"normal", DISTRIBUTION_NORMAL},
++	{"ellipse", DISTRIBUTION_ELLIPSE},
++	{"borderellipse", DISTRIBUTION_BORDER_ELLIPSE},
++	{"borderrectangle", DISTRIBUTION_BORDER_RECTANGLE},
++};
+ 
+-	Graphics::TempTransform transform(gfx, m);
++StringMap<ParticleSystem::AreaSpreadDistribution,
++	ParticleSystem::DISTRIBUTION_MAX_ENUM> ParticleSystem::distributions(
++	ParticleSystem::distributionEntries, sizeof(ParticleSystem::distributionEntries));
+ 
+-	vertex::BufferBindings vertexbuffers;
+-	vertexbuffers.set(0, buffer, 0);
++StringMap<ParticleSystem::InsertMode,
++	ParticleSystem::INSERT_MODE_MAX_ENUM>::Entry ParticleSystem::insertModeEntries[] = {
++	{"top", INSERT_MODE_TOP},
++	{"bottom", INSERT_MODE_BOTTOM},
++	{"random", INSERT_MODE_RANDOM},
++};
+ 
+-	gfx->drawQuads(0, pCount, vertexAttributes, vertexbuffers, texture);
+-}
++StringMap<ParticleSystem::InsertMode,
++	ParticleSystem::INSERT_MODE_MAX_ENUM> ParticleSystem::insertModes(
++	ParticleSystem::insertModeEntries, sizeof(ParticleSystem::insertModeEntries));
+ 
+ bool ParticleSystem::getConstant(const char *in, AreaSpreadDistribution &out)
+ {
+@@ -1116,26 +83,4 @@ std::vector<std::string> ParticleSystem::getConstants(InsertMode)
+ 	return insertModes.getNames();
+ }
+ 
+-StringMap<ParticleSystem::AreaSpreadDistribution, ParticleSystem::DISTRIBUTION_MAX_ENUM>::Entry ParticleSystem::distributionsEntries[] =
+-{
+-	{ "none",    DISTRIBUTION_NONE },
+-	{ "uniform", DISTRIBUTION_UNIFORM },
+-	{ "normal",  DISTRIBUTION_NORMAL },
+-	{ "ellipse",  DISTRIBUTION_ELLIPSE },
+-	{ "borderellipse",  DISTRIBUTION_BORDER_ELLIPSE },
+-	{ "borderrectangle",  DISTRIBUTION_BORDER_RECTANGLE }
+-};
+-
+-StringMap<ParticleSystem::AreaSpreadDistribution, ParticleSystem::DISTRIBUTION_MAX_ENUM> ParticleSystem::distributions(ParticleSystem::distributionsEntries, sizeof(ParticleSystem::distributionsEntries));
+-
+-StringMap<ParticleSystem::InsertMode, ParticleSystem::INSERT_MODE_MAX_ENUM>::Entry ParticleSystem::insertModesEntries[] =
+-{
+-	{ "top",    INSERT_MODE_TOP },
+-	{ "bottom", INSERT_MODE_BOTTOM },
+-	{ "random", INSERT_MODE_RANDOM },
+-};
+-
+-StringMap<ParticleSystem::InsertMode, ParticleSystem::INSERT_MODE_MAX_ENUM> ParticleSystem::insertModes(ParticleSystem::insertModesEntries, sizeof(ParticleSystem::insertModesEntries));
+-
+-} // graphics
+-} // love
++} // namespace love::graphics
+diff --git a/src/modules/graphics/wrap_ParticleSystem.h b/src/modules/graphics/wrap_ParticleSystem.h
+index dff5c5024..f132574fa 100644
+--- a/src/modules/graphics/wrap_ParticleSystem.h
++++ b/src/modules/graphics/wrap_ParticleSystem.h
+@@ -20,17 +20,21 @@
+ 
+ #pragma once
+ 
+-// LOVE
+ #include "common/runtime.h"
+ #include "ParticleSystem.h"
+ 
+-namespace love
++namespace love::graphics
+ {
+-namespace graphics
++
++class GraphicsParticleSystemCommand
+ {
++public:
++	virtual ~GraphicsParticleSystemCommand() = default;
++	virtual ParticleSystem *newParticleSystem(Texture *texture, int size) = 0;
++};
+ 
+ ParticleSystem *luax_checkparticlesystem(lua_State *L, int idx);
++int w_newParticleSystem(lua_State *L);
+ extern "C" int luaopen_particlesystem(lua_State *L);
+ 
+-} // graphics
+-} // love
++} // namespace love::graphics
+diff --git a/src/modules/graphics/wrap_ParticleSystem.cpp b/src/modules/graphics/wrap_ParticleSystem.cpp
+index cffdc47d9..6d4f2c3f6 100644
+--- a/src/modules/graphics/wrap_ParticleSystem.cpp
++++ b/src/modules/graphics/wrap_ParticleSystem.cpp
+@@ -34,6 +34,31 @@ namespace love
+ namespace graphics
+ {
+ 
++static GraphicsParticleSystemCommand *particleSystemCommand(lua_State *L)
++{
++	auto *module = luax_getmodule(L, Module::M_GRAPHICS);
++	auto *command = dynamic_cast<GraphicsParticleSystemCommand *>(module);
++	if (command == nullptr)
++		luaL_error(L, "love.graphics has no state-local ParticleSystem command adapter");
++	return command;
++}
++
++int w_newParticleSystem(lua_State *L)
++{
++	particleSystemCommand(L);
++	Texture *texture = luax_checktexture(L, 1);
++	lua_Number size = luaL_optnumber(L, 2, 1000);
++	if (size < 1.0 || size > ParticleSystem::MAX_PARTICLES)
++		return luaL_error(L, "Invalid ParticleSystem size");
++
++	ParticleSystem *system = nullptr;
++	luax_catchexcept(L,
++		[&](){ system = particleSystemCommand(L)->newParticleSystem(texture, int(size)); });
++	luax_pushtype(L, system);
++	system->release();
++	return 1;
++}
++
+ ParticleSystem *luax_checkparticlesystem(lua_State *L, int idx)
+ {
+ 	return luax_checktype<ParticleSystem>(L, idx);
+@@ -705,6 +730,20 @@ int w_ParticleSystem_isStopped(lua_State *L)
+ 	return 1;
+ }
+ 
++int w_ParticleSystem_isEmpty(lua_State *L)
++{
++	ParticleSystem *t = luax_checkparticlesystem(L, 1);
++	luax_pushboolean(L, t->isEmpty());
++	return 1;
++}
++
++int w_ParticleSystem_isFull(lua_State *L)
++{
++	ParticleSystem *t = luax_checkparticlesystem(L, 1);
++	luax_pushboolean(L, t->isFull());
++	return 1;
++}
++
+ int w_ParticleSystem_update(lua_State *L)
+ {
+ 	ParticleSystem *t = luax_checkparticlesystem(L, 1);
+@@ -820,6 +859,8 @@ static const luaL_Reg w_ParticleSystem_functions[] =
+ 	{ "isActive", w_ParticleSystem_isActive },
+ 	{ "isPaused", w_ParticleSystem_isPaused },
+ 	{ "isStopped", w_ParticleSystem_isStopped },
++	{ "isEmpty", w_ParticleSystem_isEmpty },
++	{ "isFull", w_ParticleSystem_isFull },
+ 	{ "update", w_ParticleSystem_update },
+ 
+ 	// Deprecated.

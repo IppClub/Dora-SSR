@@ -681,9 +681,6 @@
 		A10E1000000000000000002C /* liblove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000002A /* liblove.a */; };
 		A10E10000000000000000023 /* LoveVideoSources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000025 /* LoveVideoSources.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include"; }; };
 		A10E10000000000000000006 /* LoveNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000008 /* LoveNode.cpp */; };
-		A10E1000000000000000000D /* LoveDataAlgorithms.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000000A /* LoveDataAlgorithms.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty/Love/src"; }; };
-		A10E1000000000000000000E /* LoveLZ4.c in Sources */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000000B /* LoveLZ4.c */; };
-		A10E1000000000000000000F /* LoveLZ4HC.c in Sources */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000000C /* LoveLZ4HC.c */; };
 		3C5931A92CA4F67300CAF224 /* Array.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930DF2CA4F67300CAF224 /* Array.cpp */; };
 		3C5931AA2CA4F67300CAF224 /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FB42CA4F67300CAF224 /* Object.cpp */; };
 		3C5931AB2CA4F67300CAF224 /* DebugDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930542CA4F67300CAF224 /* DebugDraw.cpp */; };
@@ -800,9 +797,6 @@
 		A10E1000000000000000002B /* liblove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000029 /* liblove.a */; };
 		A10E10000000000000000024 /* LoveVideoSources.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000025 /* LoveVideoSources.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty -I../../Source/3rdParty/Love/src -I../../Source/3rdParty/Love/src/modules -I../../Source/3rdParty/theora/include"; }; };
 		A10E10000000000000000007 /* LoveNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E10000000000000000008 /* LoveNode.cpp */; };
-		A10E10000000000000000010 /* LoveDataAlgorithms.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000000A /* LoveDataAlgorithms.cpp */; settings = {COMPILER_FLAGS = "-I../../Source/3rdParty/Love/src"; }; };
-		A10E10000000000000000011 /* LoveLZ4.c in Sources */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000000B /* LoveLZ4.c */; };
-		A10E10000000000000000012 /* LoveLZ4HC.c in Sources */ = {isa = PBXBuildFile; fileRef = A10E1000000000000000000C /* LoveLZ4HC.c */; };
 		3C5932862CA4F67300CAF224 /* Array.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930DF2CA4F67300CAF224 /* Array.cpp */; };
 		3C5932872CA4F67300CAF224 /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FB42CA4F67300CAF224 /* Object.cpp */; };
 		3C5932882CA4F67300CAF224 /* DebugDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930542CA4F67300CAF224 /* DebugDraw.cpp */; };
@@ -2086,9 +2080,6 @@
 		A10E10000000000000000004 /* LoveRuntime.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoveRuntime.h; sourceTree = "<group>"; };
 		A10E10000000000000000008 /* LoveNode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LoveNode.cpp; sourceTree = "<group>"; };
 		A10E10000000000000000009 /* LoveNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoveNode.h; sourceTree = "<group>"; };
-		A10E1000000000000000000A /* LoveDataAlgorithms.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LoveDataAlgorithms.cpp; sourceTree = "<group>"; };
-		A10E1000000000000000000B /* LoveLZ4.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = LoveLZ4.c; sourceTree = "<group>"; };
-		A10E1000000000000000000C /* LoveLZ4HC.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = LoveLZ4HC.c; sourceTree = "<group>"; };
 		3C59302B2CA4F67300CAF224 /* ML.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ML.h; sourceTree = "<group>"; };
 		3C59302C2CA4F67300CAF224 /* ML.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ML.cpp; sourceTree = "<group>"; };
 		3C59302E2CA4F67300CAF224 /* AlignNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AlignNode.h; sourceTree = "<group>"; };
@@ -4382,9 +4373,6 @@
 				A10E10000000000000000025 /* LoveVideoSources.cpp */,
 				A10E10000000000000000009 /* LoveNode.h */,
 				A10E10000000000000000008 /* LoveNode.cpp */,
-				A10E1000000000000000000A /* LoveDataAlgorithms.cpp */,
-				A10E1000000000000000000B /* LoveLZ4.c */,
-				A10E1000000000000000000C /* LoveLZ4HC.c */,
 			);
 			path = Love;
 			sourceTree = "<group>";
@@ -5734,9 +5722,6 @@
 				A10E10000000000000000002 /* LoveRuntime.cpp in Sources */,
 				A10E10000000000000000024 /* LoveVideoSources.cpp in Sources */,
 				A10E10000000000000000007 /* LoveNode.cpp in Sources */,
-				A10E10000000000000000010 /* LoveDataAlgorithms.cpp in Sources */,
-				A10E10000000000000000011 /* LoveLZ4.c in Sources */,
-				A10E10000000000000000012 /* LoveLZ4HC.c in Sources */,
 				3C5932862CA4F67300CAF224 /* Array.cpp in Sources */,
 				3C5932872CA4F67300CAF224 /* Object.cpp in Sources */,
 				3C5932882CA4F67300CAF224 /* DebugDraw.cpp in Sources */,
@@ -6323,9 +6308,6 @@
 				A10E10000000000000000001 /* LoveRuntime.cpp in Sources */,
 				A10E10000000000000000023 /* LoveVideoSources.cpp in Sources */,
 				A10E10000000000000000006 /* LoveNode.cpp in Sources */,
-				A10E1000000000000000000D /* LoveDataAlgorithms.cpp in Sources */,
-				A10E1000000000000000000E /* LoveLZ4.c in Sources */,
-				A10E1000000000000000000F /* LoveLZ4HC.c in Sources */,
 				3C5931A92CA4F67300CAF224 /* Array.cpp in Sources */,
 				3C5931AA2CA4F67300CAF224 /* Object.cpp in Sources */,
 				3C5931AB2CA4F67300CAF224 /* DebugDraw.cpp in Sources */,

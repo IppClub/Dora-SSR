@@ -154,9 +154,6 @@ add_library(main SHARED
 	src/main/cpp/Lua/LuaEngine.cpp
 	src/main/cpp/Love/LoveRuntime.cpp
 	src/main/cpp/Love/LoveVideoSources.cpp
-	src/main/cpp/Love/LoveDataAlgorithms.cpp
-	src/main/cpp/Love/LoveLZ4.c
-	src/main/cpp/Love/LoveLZ4HC.c
 	src/main/cpp/Love/LoveNode.cpp
 	src/main/cpp/Http/HttpServer.cpp
 	src/main/cpp/Http/XrtNetwork.c

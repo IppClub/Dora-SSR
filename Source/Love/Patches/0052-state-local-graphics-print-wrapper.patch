@@ -1,0 +1,112 @@
+diff --git a/src/modules/graphics/wrap_GraphicsPrint.h b/src/modules/graphics/wrap_GraphicsPrint.h
+new file mode 100644
+index 000000000..8fbba3c27
+--- /dev/null
++++ b/src/modules/graphics/wrap_GraphicsPrint.h
+@@ -0,0 +1,24 @@
++/** Copyright (c) 2006-2023 LOVE Development Team. */
++#pragma once
++
++#include "Font.h"
++#include "common/Matrix.h"
++#include "common/runtime.h"
++
++namespace love::graphics
++{
++
++class GraphicsPrintCommand
++{
++public:
++	virtual ~GraphicsPrintCommand() = default;
++	virtual void print(const std::vector<Font::ColoredString> &text, Font *font,
++		const Matrix4 &transform) = 0;
++	virtual void printf(const std::vector<Font::ColoredString> &text, Font *font,
++		float wrap, Font::AlignMode align, const Matrix4 &transform) = 0;
++};
++
++LOVE_EXPORT int w_print(lua_State *L);
++LOVE_EXPORT int w_printf(lua_State *L);
++
++}
+diff --git a/src/modules/graphics/wrap_GraphicsPrint.cpp b/src/modules/graphics/wrap_GraphicsPrint.cpp
+new file mode 100644
+index 000000000..d6b49dde4
+--- /dev/null
++++ b/src/modules/graphics/wrap_GraphicsPrint.cpp
+@@ -0,0 +1,76 @@
++/** Copyright (c) 2006-2023 LOVE Development Team. */
++#include "wrap_GraphicsPrint.h"
++
++#include "common/Module.h"
++#include "math/Transform.h"
++#include "wrap_Font.h"
++#include "wrap_GraphicsTransform.h"
++
++namespace love::graphics
++{
++
++static GraphicsPrintCommand *printCommand(lua_State *L)
++{
++	auto *module = luax_getmodule(L, Module::M_GRAPHICS);
++	auto *command = dynamic_cast<GraphicsPrintCommand *>(module);
++	if (!command) luaL_error(L, "love.graphics has no state-local print command adapter");
++	return command;
++}
++
++int w_print(lua_State *L)
++{
++	std::vector<Font::ColoredString> text;
++	luax_checkcoloredstring(L, 1, text);
++	Font *font = nullptr;
++	int startIndex = 2;
++	if (luax_istype(L, 2, Font::type))
++	{
++		font = luax_checkfont(L, 2);
++		startIndex = 3;
++	}
++	luax_checkstandardtransform(L, startIndex, [&](const Matrix4 &matrix)
++	{
++		luax_catchexcept(L, [&](){ printCommand(L)->print(text, font, matrix); });
++	});
++	return 0;
++}
++
++int w_printf(lua_State *L)
++{
++	std::vector<Font::ColoredString> text;
++	luax_checkcoloredstring(L, 1, text);
++	Font *font = nullptr;
++	int startIndex = 2;
++	if (luax_istype(L, startIndex, Font::type)) font = luax_checkfont(L, startIndex++);
++
++	Font::AlignMode align = Font::ALIGN_LEFT;
++	int formatIndex = startIndex + 2;
++	Matrix4 matrix;
++	if (luax_istype(L, startIndex, math::Transform::type))
++	{
++		matrix = luax_totype<math::Transform>(L, startIndex)->getMatrix();
++		formatIndex = startIndex + 1;
++	}
++	else
++	{
++		const float x = static_cast<float>(luaL_checknumber(L, startIndex));
++		const float y = static_cast<float>(luaL_checknumber(L, startIndex + 1));
++		const float angle = static_cast<float>(luaL_optnumber(L, startIndex + 4, 0));
++		const float sx = static_cast<float>(luaL_optnumber(L, startIndex + 5, 1));
++		const float sy = static_cast<float>(luaL_optnumber(L, startIndex + 6, sx));
++		const float ox = static_cast<float>(luaL_optnumber(L, startIndex + 7, 0));
++		const float oy = static_cast<float>(luaL_optnumber(L, startIndex + 8, 0));
++		const float kx = static_cast<float>(luaL_optnumber(L, startIndex + 9, 0));
++		const float ky = static_cast<float>(luaL_optnumber(L, startIndex + 10, 0));
++		matrix = Matrix4(x, y, angle, sx, sy, ox, oy, kx, ky);
++	}
++	const float wrap = static_cast<float>(luaL_checknumber(L, formatIndex));
++	const char *value = lua_isnoneornil(L, formatIndex + 1)
++		? nullptr : luaL_checkstring(L, formatIndex + 1);
++	if (value && !Font::getConstant(value, align))
++		return luax_enumerror(L, "alignment", Font::getConstants(align), value);
++	luax_catchexcept(L, [&](){ printCommand(L)->printf(text, font, wrap, align, matrix); });
++	return 0;
++}
++
++}

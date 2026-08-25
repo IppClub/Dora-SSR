@@ -34,6 +34,31 @@ namespace love
 namespace graphics
 {
 
+static GraphicsParticleSystemCommand *particleSystemCommand(lua_State *L)
+{
+	auto *module = luax_getmodule(L, Module::M_GRAPHICS);
+	auto *command = dynamic_cast<GraphicsParticleSystemCommand *>(module);
+	if (command == nullptr)
+		luaL_error(L, "love.graphics has no state-local ParticleSystem command adapter");
+	return command;
+}
+
+int w_newParticleSystem(lua_State *L)
+{
+	particleSystemCommand(L);
+	Texture *texture = luax_checktexture(L, 1);
+	lua_Number size = luaL_optnumber(L, 2, 1000);
+	if (size < 1.0 || size > ParticleSystem::MAX_PARTICLES)
+		return luaL_error(L, "Invalid ParticleSystem size");
+
+	ParticleSystem *system = nullptr;
+	luax_catchexcept(L,
+		[&](){ system = particleSystemCommand(L)->newParticleSystem(texture, int(size)); });
+	luax_pushtype(L, system);
+	system->release();
+	return 1;
+}
+
 ParticleSystem *luax_checkparticlesystem(lua_State *L, int idx)
 {
 	return luax_checktype<ParticleSystem>(L, idx);
@@ -705,6 +730,20 @@ int w_ParticleSystem_isStopped(lua_State *L)
 	return 1;
 }
 
+int w_ParticleSystem_isEmpty(lua_State *L)
+{
+	ParticleSystem *t = luax_checkparticlesystem(L, 1);
+	luax_pushboolean(L, t->isEmpty());
+	return 1;
+}
+
+int w_ParticleSystem_isFull(lua_State *L)
+{
+	ParticleSystem *t = luax_checkparticlesystem(L, 1);
+	luax_pushboolean(L, t->isFull());
+	return 1;
+}
+
 int w_ParticleSystem_update(lua_State *L)
 {
 	ParticleSystem *t = luax_checkparticlesystem(L, 1);
@@ -820,6 +859,8 @@ static const luaL_Reg w_ParticleSystem_functions[] =
 	{ "isActive", w_ParticleSystem_isActive },
 	{ "isPaused", w_ParticleSystem_isPaused },
 	{ "isStopped", w_ParticleSystem_isStopped },
+	{ "isEmpty", w_ParticleSystem_isEmpty },
+	{ "isFull", w_ParticleSystem_isFull },
 	{ "update", w_ParticleSystem_update },
 
 	// Deprecated.

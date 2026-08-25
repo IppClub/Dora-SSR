@@ -28,6 +28,8 @@
 
 #include <vector>
 
+struct lua_State;
+
 namespace love
 {
 namespace audio
@@ -123,6 +125,10 @@ public:
 	virtual bool queue(void *data, size_t length, int dataSampleRate, int dataBitDepth, int dataChannels) = 0;
 
 	virtual Type getType() const;
+
+	// Embedded backends may need to index the newly created Lua proxy without
+	// keeping it alive. Native LOVE implementations leave this as a no-op.
+	virtual void onProxyCreated(lua_State *, int) { }
 
 	static bool getConstant(const char *in, Type &out);
 	static bool getConstant(Type in, const char  *&out);

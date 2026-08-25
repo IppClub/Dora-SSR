@@ -1,0 +1,28 @@
+diff --git a/src/modules/sound/SoundData.cpp b/src/modules/sound/SoundData.cpp
+--- a/src/modules/sound/SoundData.cpp
++++ b/src/modules/sound/SoundData.cpp
+@@ -149,16 +149,18 @@
+ 		data = 0;
+ 	}
+ 
+-	size = samples * (bitDepth / 8) * channels;
++	const size_t bytesPerFrame = (size_t) (bitDepth / 8) * (size_t) channels;
++	if ((size_t) samples > std::numeric_limits<size_t>::max() / bytesPerFrame)
++		throw love::Exception("Data is too big!");
++	static constexpr size_t MAX_SOUND_DATA_BYTES = 256 * 1024 * 1024;
++	if ((size_t) samples > MAX_SOUND_DATA_BYTES / bytesPerFrame)
++		throw love::Exception("SoundData storage cannot exceed 256 MiB.");
++
++	size = (size_t) samples * bytesPerFrame;
+ 	this->sampleRate = sampleRate;
+ 	this->bitDepth = bitDepth;
+ 	this->channels = channels;
+ 
+-	double realsize = samples;
+-	realsize *= (bitDepth / 8) * channels;
+-	if (realsize > std::numeric_limits<size_t>::max())
+-		throw love::Exception("Data is too big!");
+-
+ 	data = (uint8 *) malloc(size);
+ 	if (!data)
+ 		throw love::Exception("Not enough memory.");

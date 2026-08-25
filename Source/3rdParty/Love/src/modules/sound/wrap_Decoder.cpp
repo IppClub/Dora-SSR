@@ -22,12 +22,14 @@
 #include "SoundData.h"
 #include "Sound.h"
 
-#define instance() (Module::getInstance<Sound>(Module::M_SOUND))
+#include <cmath>
 
 namespace love
 {
 namespace sound
 {
+
+#define instance() (luax_getmodule<Sound>(L, Module::M_SOUND))
 
 Decoder *luax_checkdecoder(lua_State *L, int idx)
 {
@@ -97,8 +99,8 @@ int w_Decoder_seek(lua_State *L)
 {
 	Decoder *t = luax_checkdecoder(L, 1);
 	double offset = luaL_checknumber(L, 2);
-	if (offset < 0)
-		return luaL_argerror(L, 2, "can't seek to a negative position");
+	if (!std::isfinite(offset) || offset < 0)
+		return luaL_argerror(L, 2, "can't seek to a negative or non-finite position");
 	else if (offset == 0)
 		t->rewind();
 	else

@@ -1,0 +1,132 @@
+diff --git a/src/modules/font/Font.h b/src/modules/font/Font.h
+index fde060f..ebd1752 100644
+--- a/src/modules/font/Font.h
++++ b/src/modules/font/Font.h
+@@ -47,18 +47,18 @@ class Font : public Module
+ 
+ 	virtual Rasterizer *newRasterizer(love::filesystem::FileData *data) = 0;
+ 
+-	virtual Rasterizer *newTrueTypeRasterizer(int size, TrueTypeRasterizer::Hinting hinting);
+-	virtual Rasterizer *newTrueTypeRasterizer(int size, float dpiscale, TrueTypeRasterizer::Hinting hinting);
++	virtual Rasterizer *newTrueTypeRasterizer(int size, TrueTypeRasterizer::Hinting hinting) = 0;
++	virtual Rasterizer *newTrueTypeRasterizer(int size, float dpiscale, TrueTypeRasterizer::Hinting hinting) = 0;
+ 	virtual Rasterizer *newTrueTypeRasterizer(love::Data *data, int size, TrueTypeRasterizer::Hinting hinting) = 0;
+ 	virtual Rasterizer *newTrueTypeRasterizer(love::Data *data, int size, float dpiscale, TrueTypeRasterizer::Hinting hinting) = 0;
+ 
+-	virtual Rasterizer *newBMFontRasterizer(love::filesystem::FileData *fontdef, const std::vector<image::ImageData *> &images, float dpiscale);
++	virtual Rasterizer *newBMFontRasterizer(love::filesystem::FileData *fontdef, const std::vector<image::ImageData *> &images, float dpiscale) = 0;
+ 
+-	virtual Rasterizer *newImageRasterizer(love::image::ImageData *data, const std::string &glyphs, int extraspacing, float dpiscale);
+-	virtual Rasterizer *newImageRasterizer(love::image::ImageData *data, uint32 *glyphs, int length, int extraspacing, float dpiscale);
++	virtual Rasterizer *newImageRasterizer(love::image::ImageData *data, const std::string &glyphs, int extraspacing, float dpiscale) = 0;
++	virtual Rasterizer *newImageRasterizer(love::image::ImageData *data, uint32 *glyphs, int length, int extraspacing, float dpiscale) = 0;
+ 
+-	virtual GlyphData *newGlyphData(Rasterizer *r, const std::string &glyph);
+-	virtual GlyphData *newGlyphData(Rasterizer *r, uint32 glyph);
++	virtual GlyphData *newGlyphData(Rasterizer *r, const std::string &glyph) = 0;
++	virtual GlyphData *newGlyphData(Rasterizer *r, uint32 glyph) = 0;
+ 
+ 	// Implement Module.
+ 	virtual ModuleType getModuleType() const { return M_FONT; }
+diff --git a/src/modules/font/wrap_Font.cpp b/src/modules/font/wrap_Font.cpp
+index ffbb720..cda5b45 100644
+--- a/src/modules/font/wrap_Font.cpp
++++ b/src/modules/font/wrap_Font.cpp
+@@ -21,19 +21,37 @@
+ #include "wrap_Font.h"
+ 
+ #include "Font.h"
+-#include "freetype/Font.h"
+ 
+ #include "wrap_GlyphData.h"
+ #include "wrap_Rasterizer.h"
+ 
+ #include "filesystem/wrap_Filesystem.h"
+ 
++#include <cmath>
++#include <limits>
++
+ namespace love
+ {
+ namespace font
+ {
+ 
+-#define instance() (Module::getInstance<Font>(Module::M_FONT))
++#define instance() (luax_getmodule<Font>(L, Module::M_FONT))
++
++Font *newDoraFont(lua_State *L);
++
++static int luax_checkfontint(lua_State *L, int index)
++{
++	double value = luaL_checknumber(L, index);
++	if (!std::isfinite(value) || value < std::numeric_limits<int>::min()
++		|| value > std::numeric_limits<int>::max())
++		luaL_argerror(L, index, "number is outside the supported integer range");
++	return (int) value;
++}
++
++static int luax_optfontint(lua_State *L, int index, int fallback)
++{
++	return lua_isnoneornil(L, index) ? fallback : luax_checkfontint(L, index);
++}
+ 
+ int w_newRasterizer(lua_State *L)
+ {
+@@ -72,7 +90,7 @@ int w_newTrueTypeRasterizer(lua_State *L)
+ 	if (lua_type(L, 1) == LUA_TNUMBER || lua_isnone(L, 1))
+ 	{
+ 		// First argument is a number: use the default TrueType font.
+-		int size = (int) luaL_optinteger(L, 1, 12);
++		int size = luax_optfontint(L, 1, 12);
+ 
+ 		const char *hintstr = lua_isnoneornil(L, 2) ? nullptr : luaL_checkstring(L, 2);
+ 		if (hintstr && !TrueTypeRasterizer::getConstant(hintstr, hinting))
+@@ -98,7 +116,7 @@ int w_newTrueTypeRasterizer(lua_State *L)
+ 		else
+ 			d = filesystem::luax_getfiledata(L, 1);
+ 
+-		int size = (int) luaL_optinteger(L, 2, 12);
++		int size = luax_optfontint(L, 2, 12);
+ 
+ 		const char *hintstr = lua_isnoneornil(L, 3) ? nullptr : luaL_checkstring(L, 3);
+ 		if (hintstr && !TrueTypeRasterizer::getConstant(hintstr, hinting))
+@@ -128,7 +146,7 @@ int w_newTrueTypeRasterizer(lua_State *L)
+ 
+ static void convimagedata(lua_State *L, int idx)
+ {
+-	if (lua_type(L, 1) == LUA_TSTRING || luax_istype(L, idx, love::filesystem::File::type) || luax_istype(L, idx, love::filesystem::FileData::type))
++	if (lua_type(L, idx) == LUA_TSTRING || luax_istype(L, idx, love::filesystem::File::type) || luax_istype(L, idx, love::filesystem::FileData::type))
+ 		luax_convobj(L, idx, "image", "newImageData");
+ }
+ 
+@@ -180,7 +198,7 @@ int w_newImageRasterizer(lua_State *L)
+ 
+ 	image::ImageData *d = luax_checktype<image::ImageData>(L, 1);
+ 	std::string glyphs = luax_checkstring(L, 2);
+-	int extraspacing = (int) luaL_optinteger(L, 3, 0);
++	int extraspacing = luax_optfontint(L, 3, 0);
+ 	float dpiscale = (float) luaL_optnumber(L, 4, 1.0);
+ 
+ 	luax_catchexcept(L, [&](){ t = instance()->newImageRasterizer(d, glyphs, extraspacing, dpiscale); });
+@@ -203,7 +221,11 @@ int w_newGlyphData(lua_State *L)
+ 	}
+ 	else
+ 	{
+-		uint32 g = (uint32) luaL_checknumber(L, 2);
++		double value = luaL_checknumber(L, 2);
++		if (!std::isfinite(value) || value < 0.0
++			|| value > std::numeric_limits<uint32>::max())
++			return luaL_argerror(L, 2, "codepoint is outside the supported range");
++		uint32 g = (uint32) value;
+ 		t = instance()->newGlyphData(r, g);
+ 	}
+ 
+@@ -235,7 +257,7 @@ extern "C" int luaopen_love_font(lua_State *L)
+ 	Font *instance = instance();
+ 	if (instance == nullptr)
+ 	{
+-		luax_catchexcept(L, [&](){ instance = new freetype::Font(); });
++		luax_catchexcept(L, [&](){ instance = newDoraFont(L); });
+ 	}
+ 	else
+ 		instance->retain();

@@ -1,0 +1,358 @@
+--- /dev/null
++++ b/Source/3rdParty/Love/src/modules/mouse/Cursor.cpp
+@@ -0,0 +1,81 @@
++/**
++ * Copyright (c) 2006-2023 LOVE Development Team
++ *
++ * This software is provided 'as-is', without any express or implied
++ * warranty.  In no event will the authors be held liable for any damages
++ * arising from the use of this software.
++ *
++ * Permission is granted to anyone to use this software for any purpose,
++ * including commercial applications, and to alter it and redistribute it
++ * freely, subject to the following restrictions:
++ *
++ * 1. The origin of this software must not be misrepresented; you must not
++ *    claim that you wrote the original software. If you use this software
++ *    in a product, an acknowledgment in the product documentation would be
++ *    appreciated but is not required.
++ * 2. Altered source versions must be plainly marked as such, and must not be
++ *    misrepresented as being the original software.
++ * 3. This notice may not be removed or altered from any source distribution.
++ **/
++
++#include "Cursor.h"
++
++namespace love
++{
++namespace mouse
++{
++
++love::Type Cursor::type("Cursor", &Object::type);
++
++Cursor::~Cursor()
++{
++}
++
++bool Cursor::getConstant(const char *in, SystemCursor &out)
++{
++	return systemCursors.find(in, out);
++}
++
++bool Cursor::getConstant(SystemCursor in, const char *&out)
++{
++	return systemCursors.find(in, out);
++}
++
++bool Cursor::getConstant(const char *in, CursorType &out)
++{
++	return types.find(in, out);
++}
++
++bool Cursor::getConstant(CursorType in, const char *&out)
++{
++	return types.find(in, out);
++}
++
++StringMap<Cursor::SystemCursor, Cursor::CURSOR_MAX_ENUM>::Entry Cursor::systemCursorEntries[] =
++{
++	{"arrow", Cursor::CURSOR_ARROW},
++	{"ibeam", Cursor::CURSOR_IBEAM},
++	{"wait", Cursor::CURSOR_WAIT},
++	{"crosshair", Cursor::CURSOR_CROSSHAIR},
++	{"waitarrow", Cursor::CURSOR_WAITARROW},
++	{"sizenwse", Cursor::CURSOR_SIZENWSE},
++	{"sizenesw", Cursor::CURSOR_SIZENESW},
++	{"sizewe", Cursor::CURSOR_SIZEWE},
++	{"sizens", Cursor::CURSOR_SIZENS},
++	{"sizeall", Cursor::CURSOR_SIZEALL},
++	{"no", Cursor::CURSOR_NO},
++	{"hand", Cursor::CURSOR_HAND},
++};
++
++StringMap<Cursor::SystemCursor, Cursor::CURSOR_MAX_ENUM> Cursor::systemCursors(Cursor::systemCursorEntries, sizeof(Cursor::systemCursorEntries));
++
++StringMap<Cursor::CursorType, Cursor::CURSORTYPE_MAX_ENUM>::Entry Cursor::typeEntries[] =
++{
++	{"system", Cursor::CURSORTYPE_SYSTEM},
++	{"image", Cursor::CURSORTYPE_IMAGE},
++};
++
++StringMap<Cursor::CursorType, Cursor::CURSORTYPE_MAX_ENUM> Cursor::types(Cursor::typeEntries, sizeof(Cursor::typeEntries));
++
++} // mouse
++} // love
+--- /dev/null
++++ b/Source/3rdParty/Love/src/modules/mouse/Cursor.h
+@@ -0,0 +1,102 @@
++/**
++ * Copyright (c) 2006-2023 LOVE Development Team
++ *
++ * This software is provided 'as-is', without any express or implied
++ * warranty.  In no event will the authors be held liable for any damages
++ * arising from the use of this software.
++ *
++ * Permission is granted to anyone to use this software for any purpose,
++ * including commercial applications, and to alter it and redistribute it
++ * freely, subject to the following restrictions:
++ *
++ * 1. The origin of this software must not be misrepresented; you must not
++ *    claim that you wrote the original software. If you use this software
++ *    in a product, an acknowledgment in the product documentation would be
++ *    appreciated but is not required.
++ * 2. Altered source versions must be plainly marked as such, and must not be
++ *    misrepresented as being the original software.
++ * 3. This notice may not be removed or altered from any source distribution.
++ **/
++
++#ifndef LOVE_MOUSE_CURSOR_H
++#define LOVE_MOUSE_CURSOR_H
++
++// LOVE
++#include "image/ImageData.h"
++#include "common/Object.h"
++#include "common/StringMap.h"
++
++namespace love
++{
++namespace mouse
++{
++
++class Cursor : public Object
++{
++public:
++
++	static love::Type type;
++
++	// Types of system cursors.
++	enum SystemCursor
++	{
++		CURSOR_ARROW,
++		CURSOR_IBEAM,
++		CURSOR_WAIT,
++		CURSOR_CROSSHAIR,
++		CURSOR_WAITARROW,
++		CURSOR_SIZENWSE,
++		CURSOR_SIZENESW,
++		CURSOR_SIZEWE,
++		CURSOR_SIZENS,
++		CURSOR_SIZEALL,
++		CURSOR_NO,
++		CURSOR_HAND,
++		CURSOR_MAX_ENUM
++	};
++
++	enum CursorType
++	{
++		CURSORTYPE_SYSTEM,
++		CURSORTYPE_IMAGE,
++		CURSORTYPE_MAX_ENUM
++	};
++
++	virtual ~Cursor();
++
++	/**
++	 * Returns a pointer to the implementation-dependent handle of this Cursor.
++	 **/
++	virtual void *getHandle() const = 0;
++
++	/**
++	 * Returns whether this Cursor is system-defined or a custom image.
++	 **/
++	virtual CursorType getType() const = 0;
++
++	/**
++	 * Returns the type type of system cursor used, if this Cursor is using a
++	 * system-defined image.
++	 **/
++	virtual SystemCursor getSystemType() const = 0;
++
++	static bool getConstant(const char *in, SystemCursor &out);
++	static bool getConstant(SystemCursor in, const char *&out);
++
++	static bool getConstant(const char *in, CursorType &out);
++	static bool getConstant(CursorType in, const char *&out);
++
++private:
++
++	static StringMap<SystemCursor, CURSOR_MAX_ENUM>::Entry systemCursorEntries[];
++	static StringMap<SystemCursor, CURSOR_MAX_ENUM> systemCursors;
++
++	static StringMap<CursorType, CURSORTYPE_MAX_ENUM>::Entry typeEntries[];
++	static StringMap<CursorType, CURSORTYPE_MAX_ENUM> types;
++
++};
++
++} // mouse
++} // love
++
++#endif // LOVE_MOUSE_CURSOR_H
+--- a/Source/3rdParty/Love/src/modules/mouse/Mouse.h
++++ b/Source/3rdParty/Love/src/modules/mouse/Mouse.h
+@@ -29,6 +29,8 @@
+ // C++
+ #include <vector>
+ 
++struct lua_State;
++
+ namespace love
+ {
+ namespace mouse
+@@ -69,6 +71,8 @@
+ 
+ }; // Mouse
+ 
++Mouse *newDoraMouse(lua_State *L);
++
+ } // mouse
+ } // love
+ 
+--- /dev/null
++++ b/Source/3rdParty/Love/src/modules/mouse/wrap_Cursor.h
+@@ -0,0 +1,40 @@
++/**
++ * Copyright (c) 2006-2023 LOVE Development Team
++ *
++ * This software is provided 'as-is', without any express or implied
++ * warranty.  In no event will the authors be held liable for any damages
++ * arising from the use of this software.
++ *
++ * Permission is granted to anyone to use this software for any purpose,
++ * including commercial applications, and to alter it and redistribute it
++ * freely, subject to the following restrictions:
++ *
++ * 1. The origin of this software must not be misrepresented; you must not
++ *    claim that you wrote the original software. If you use this software
++ *    in a product, an acknowledgment in the product documentation would be
++ *    appreciated but is not required.
++ * 2. Altered source versions must be plainly marked as such, and must not be
++ *    misrepresented as being the original software.
++ * 3. This notice may not be removed or altered from any source distribution.
++ **/
++
++#ifndef LOVE_MOUSE_WRAP_CURSOR_H
++#define LOVE_MOUSE_WRAP_CURSOR_H
++
++// LOVE
++#include "common/runtime.h"
++#include "Cursor.h"
++
++namespace love
++{
++namespace mouse
++{
++
++Cursor *luax_checkcursor(lua_State *L, int idx);
++extern "C" int luaopen_cursor(lua_State *L);
++
++} // mouse
++} // love
++
++
++#endif // LOVE_MOUSE_WRAP_CURSOR_H
+--- /dev/null
++++ b/Source/3rdParty/Love/src/modules/mouse/wrap_Mouse.h
+@@ -0,0 +1,39 @@
++/**
++ * Copyright (c) 2006-2023 LOVE Development Team
++ *
++ * This software is provided 'as-is', without any express or implied
++ * warranty.  In no event will the authors be held liable for any damages
++ * arising from the use of this software.
++ *
++ * Permission is granted to anyone to use this software for any purpose,
++ * including commercial applications, and to alter it and redistribute it
++ * freely, subject to the following restrictions:
++ *
++ * 1. The origin of this software must not be misrepresented; you must not
++ *    claim that you wrote the original software. If you use this software
++ *    in a product, an acknowledgment in the product documentation would be
++ *    appreciated but is not required.
++ * 2. Altered source versions must be plainly marked as such, and must not be
++ *    misrepresented as being the original software.
++ * 3. This notice may not be removed or altered from any source distribution.
++ **/
++
++#ifndef LOVE_MOUSE_WRAP_MOUSE_H
++#define LOVE_MOUSE_WRAP_MOUSE_H
++
++// LOVE
++#include "common/runtime.h"
++#include "Mouse.h"
++#include "common/config.h"
++
++namespace love
++{
++namespace mouse
++{
++
++extern "C" LOVE_EXPORT int luaopen_love_mouse(lua_State *L);
++
++} // mouse
++} // love
++
++#endif // LOVE_MOUSE_WRAP_MOUSE_H
+--- a/Source/3rdParty/Love/src/modules/mouse/wrap_Mouse.cpp
++++ b/Source/3rdParty/Love/src/modules/mouse/wrap_Mouse.cpp
+@@ -23,7 +23,6 @@
+ #include "wrap_Cursor.h"
+ #include "common/config.h"
+ 
+-#include "sdl/Mouse.h"
+ #include "filesystem/File.h"
+ 
+ namespace love
+@@ -31,7 +30,7 @@
+ namespace mouse
+ {
+ 
+-#define instance() (Module::getInstance<Mouse>(Module::M_MOUSE))
++#define instance() (luax_getmodule<Mouse>(L, Module::M_MOUSE))
+ 
+ int w_newCursor(lua_State *L)
+ {
+@@ -76,7 +75,7 @@
+ 	}
+ 
+ 	Cursor *cursor = luax_checkcursor(L, 1);
+-	instance()->setCursor(cursor);
++	luax_catchexcept(L, [&]() { instance()->setCursor(cursor); });
+ 	return 0;
+ }
+ 
+@@ -122,14 +121,14 @@
+ int w_setX(lua_State *L)
+ {
+ 	double x = luaL_checknumber(L, 1);
+-	instance()->setX(x);
++	luax_catchexcept(L, [&]() { instance()->setX(x); });
+ 	return 0;
+ }
+ 
+ int w_setY(lua_State *L)
+ {
+ 	double y = luaL_checknumber(L, 1);
+-	instance()->setY(y);
++	luax_catchexcept(L, [&]() { instance()->setY(y); });
+ 	return 0;
+ }
+ 
+@@ -137,7 +136,7 @@
+ {
+ 	double x = luaL_checknumber(L, 1);
+ 	double y = luaL_checknumber(L, 2);
+-	instance()->setPosition(x, y);
++	luax_catchexcept(L, [&]() { instance()->setPosition(x, y); });
+ 	return 0;
+ }
+ 
+@@ -243,7 +242,7 @@
+ 	Mouse *instance = instance();
+ 	if (instance == nullptr)
+ 	{
+-		luax_catchexcept(L, [&](){ instance = new love::mouse::sdl::Mouse(); });
++		luax_catchexcept(L, [&](){ instance = newDoraMouse(L); });
+ 	}
+ 	else
+ 		instance->retain();
+

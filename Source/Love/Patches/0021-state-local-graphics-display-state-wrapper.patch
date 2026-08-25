@@ -1,0 +1,426 @@
+--- a/src/modules/graphics/wrap_Graphics.cpp
++++ b/src/modules/graphics/wrap_Graphics.cpp
+@@ -21,6 +21,7 @@
+ #include "common/config.h"
+ #include "wrap_Graphics.h"
+ #include "wrap_GraphicsDraw.h"
++#include "wrap_GraphicsDisplayState.h"
+ #include "wrap_GraphicsState.h"
+ #include "Texture.h"
+ #include "image/ImageData.h"
+@@ -1679,80 +1680,8 @@
+ 	luax_pushtype(L, video);
+ 	video->release();
+ 	return 1;
+-}
+-
+-int w_setColor(lua_State *L)
+-{
+-	Colorf c;
+-	if (lua_istable(L, 1))
+-	{
+-		for (int i = 1; i <= 4; i++)
+-			lua_rawgeti(L, 1, i);
+-
+-		c.r = (float) luaL_checknumber(L, -4);
+-		c.g = (float) luaL_checknumber(L, -3);
+-		c.b = (float) luaL_checknumber(L, -2);
+-		c.a = (float) luaL_optnumber(L, -1, 1.0);
+-
+-		lua_pop(L, 4);
+-	}
+-	else
+-	{
+-		c.r = (float) luaL_checknumber(L, 1);
+-		c.g = (float) luaL_checknumber(L, 2);
+-		c.b = (float) luaL_checknumber(L, 3);
+-		c.a = (float) luaL_optnumber(L, 4, 1.0);
+-	}
+-	instance()->setColor(c);
+-	return 0;
+-}
+-
+-int w_getColor(lua_State *L)
+-{
+-	Colorf c = instance()->getColor();
+-	lua_pushnumber(L, c.r);
+-	lua_pushnumber(L, c.g);
+-	lua_pushnumber(L, c.b);
+-	lua_pushnumber(L, c.a);
+-	return 4;
+ }
+ 
+-int w_setBackgroundColor(lua_State *L)
+-{
+-	Colorf c;
+-	if (lua_istable(L, 1))
+-	{
+-		for (int i = 1; i <= 4; i++)
+-			lua_rawgeti(L, 1, i);
+-
+-		c.r = (float) luaL_checknumber(L, -4);
+-		c.g = (float) luaL_checknumber(L, -3);
+-		c.b = (float) luaL_checknumber(L, -2);
+-		c.a = (float) luaL_optnumber(L, -1, 1.0);
+-
+-		lua_pop(L, 4);
+-	}
+-	else
+-	{
+-		c.r = (float) luaL_checknumber(L, 1);
+-		c.g = (float) luaL_checknumber(L, 2);
+-		c.b = (float) luaL_checknumber(L, 3);
+-		c.a = (float) luaL_optnumber(L, 4, 1.0);
+-	}
+-	instance()->setBackgroundColor(c);
+-	return 0;
+-}
+-
+-int w_getBackgroundColor(lua_State *L)
+-{
+-	Colorf c = instance()->getBackgroundColor();
+-	lua_pushnumber(L, c.r);
+-	lua_pushnumber(L, c.g);
+-	lua_pushnumber(L, c.b);
+-	lua_pushnumber(L, c.a);
+-	return 4;
+-}
+-
+ int w_setNewFont(lua_State *L)
+ {
+ 	int ret = w_newFont(L);
+@@ -1916,76 +1845,8 @@
+ 	lua_pushnumber(L, sharpness);
+ 
+ 	return 2;
+-}
+-
+-int w_setLineWidth(lua_State *L)
+-{
+-	float width = (float)luaL_checknumber(L, 1);
+-	instance()->setLineWidth(width);
+-	return 0;
+-}
+-
+-int w_setLineStyle(lua_State *L)
+-{
+-	Graphics::LineStyle style;
+-	const char *str = luaL_checkstring(L, 1);
+-	if (!Graphics::getConstant(str, style))
+-		return luax_enumerror(L, "line style", Graphics::getConstants(style), str);
+-
+-	instance()->setLineStyle(style);
+-	return 0;
+-}
+-
+-int w_setLineJoin(lua_State *L)
+-{
+-	Graphics::LineJoin join;
+-	const char *str = luaL_checkstring(L, 1);
+-	if (!Graphics::getConstant(str, join))
+-		return luax_enumerror(L, "line join", Graphics::getConstants(join), str);
+-
+-	instance()->setLineJoin(join);
+-	return 0;
+-}
+-
+-int w_getLineWidth(lua_State *L)
+-{
+-	lua_pushnumber(L, instance()->getLineWidth());
+-	return 1;
+-}
+-
+-int w_getLineStyle(lua_State *L)
+-{
+-	Graphics::LineStyle style = instance()->getLineStyle();
+-	const char *str;
+-	if (!Graphics::getConstant(style, str))
+-		return luaL_error(L, "Unknown line style");
+-	lua_pushstring(L, str);
+-	return 1;
+-}
+-
+-int w_getLineJoin(lua_State *L)
+-{
+-	Graphics::LineJoin join = instance()->getLineJoin();
+-	const char *str;
+-	if (!Graphics::getConstant(join, str))
+-		return luaL_error(L, "Unknown line join");
+-	lua_pushstring(L, str);
+-	return 1;
+-}
+-
+-int w_setPointSize(lua_State *L)
+-{
+-	float size = (float)luaL_checknumber(L, 1);
+-	instance()->setPointSize(size);
+-	return 0;
+ }
+ 
+-int w_getPointSize(lua_State *L)
+-{
+-	lua_pushnumber(L, instance()->getPointSize());
+-	return 1;
+-}
+-
+ int w_setDepthMode(lua_State *L)
+ {
+ 	if (lua_isnoneornil(L, 1) && lua_isnoneornil(L, 2))
+--- a/src/modules/graphics/wrap_GraphicsDisplayState.h
++++ b/src/modules/graphics/wrap_GraphicsDisplayState.h
+@@ -0,0 +1,74 @@
++/**
++ * Copyright (c) 2006-2023 LOVE Development Team
++ *
++ * This software is provided 'as-is', without any express or implied
++ * warranty.  In no event will the authors be held liable for any damages
++ * arising from the use of this software.
++ *
++ * Permission is granted to anyone to use this software for any purpose,
++ * including commercial applications, and to alter it and redistribute it
++ * freely, subject to the following restrictions:
++ *
++ * 1. The origin of this software must not be misrepresented; you must not
++ *    claim that you wrote the original software. If you use this software
++ *    in a product, an acknowledgment in the product documentation would be
++ *    appreciated but is not required.
++ * 2. Altered source versions must be plainly marked as such, and must not be
++ *    misrepresented as being the original software.
++ * 3. This notice may not be removed or altered from any source distribution.
++ **/
++
++#pragma once
++
++#include "common/Color.h"
++#include "common/runtime.h"
++
++namespace love
++{
++namespace graphics
++{
++
++class GraphicsDisplayStateCommand
++{
++public:
++	enum LineStyle
++	{
++		LINE_ROUGH,
++		LINE_SMOOTH,
++	};
++	enum LineJoin
++	{
++		LINE_JOIN_NONE,
++		LINE_JOIN_MITER,
++		LINE_JOIN_BEVEL,
++	};
++	virtual ~GraphicsDisplayStateCommand() = default;
++	virtual void setColor(Colorf color) = 0;
++	virtual Colorf getColor() const = 0;
++	virtual void setBackgroundColor(Colorf color) = 0;
++	virtual Colorf getBackgroundColor() const = 0;
++	virtual void setLineWidth(float width) = 0;
++	virtual float getLineWidth() const = 0;
++	virtual void setLineStyle(LineStyle style) = 0;
++	virtual LineStyle getLineStyle() const = 0;
++	virtual void setLineJoin(LineJoin join) = 0;
++	virtual LineJoin getLineJoin() const = 0;
++	virtual void setPointSize(float size) = 0;
++	virtual float getPointSize() const = 0;
++};
++
++int w_setColor(lua_State *L);
++int w_getColor(lua_State *L);
++int w_setBackgroundColor(lua_State *L);
++int w_getBackgroundColor(lua_State *L);
++int w_setLineWidth(lua_State *L);
++int w_setLineStyle(lua_State *L);
++int w_setLineJoin(lua_State *L);
++int w_getLineWidth(lua_State *L);
++int w_getLineStyle(lua_State *L);
++int w_getLineJoin(lua_State *L);
++int w_setPointSize(lua_State *L);
++int w_getPointSize(lua_State *L);
++
++} // graphics
++} // love
+--- a/src/modules/graphics/wrap_GraphicsDisplayState.cpp
++++ b/src/modules/graphics/wrap_GraphicsDisplayState.cpp
+@@ -0,0 +1,177 @@
++/**
++ * Copyright (c) 2006-2023 LOVE Development Team
++ *
++ * This software is provided 'as-is', without any express or implied
++ * warranty.  In no event will the authors be held liable for any damages
++ * arising from the use of this software.
++ *
++ * Permission is granted to anyone to use this software for any purpose,
++ * including commercial applications, and to alter it and redistribute it
++ * freely, subject to the following restrictions:
++ *
++ * 1. The origin of this software must not be misrepresented; you must not
++ *    claim that you wrote the original software. If you use this software
++ *    in a product, an acknowledgment in the product documentation would be
++ *    appreciated but is not required.
++ * 2. Altered source versions must be plainly marked as such, and must not be
++ *    misrepresented as being the original software.
++ * 3. This notice may not be removed or altered from any source distribution.
++ **/
++
++#include "wrap_GraphicsDisplayState.h"
++
++#include "common/Module.h"
++
++#include <cmath>
++#include <cstring>
++#include <string>
++#include <vector>
++
++namespace love
++{
++namespace graphics
++{
++
++static GraphicsDisplayStateCommand *displayStateCommand(lua_State *L)
++{
++	auto *module = luax_getmodule(L, Module::M_GRAPHICS);
++	auto *command = dynamic_cast<GraphicsDisplayStateCommand *>(module);
++	if (command == nullptr)
++		luaL_error(L, "love.graphics has no state-local display state command adapter");
++	return command;
++}
++
++static Colorf checkColor(lua_State *L)
++{
++	Colorf c;
++	if (lua_istable(L, 1))
++	{
++		for (int i = 1; i <= 4; i++)
++			lua_rawgeti(L, 1, i);
++		c.r = (float) luaL_checknumber(L, -4);
++		c.g = (float) luaL_checknumber(L, -3);
++		c.b = (float) luaL_checknumber(L, -2);
++		c.a = (float) luaL_optnumber(L, -1, 1.0);
++		lua_pop(L, 4);
++	}
++	else
++	{
++		c.r = (float) luaL_checknumber(L, 1);
++		c.g = (float) luaL_checknumber(L, 2);
++		c.b = (float) luaL_checknumber(L, 3);
++		c.a = (float) luaL_optnumber(L, 4, 1.0);
++	}
++	return c;
++}
++
++static int pushColor(lua_State *L, Colorf c)
++{
++	lua_pushnumber(L, c.r);
++	lua_pushnumber(L, c.g);
++	lua_pushnumber(L, c.b);
++	lua_pushnumber(L, c.a);
++	return 4;
++}
++
++int w_setColor(lua_State *L)
++{
++	displayStateCommand(L)->setColor(checkColor(L));
++	return 0;
++}
++
++int w_getColor(lua_State *L)
++{
++	return pushColor(L, displayStateCommand(L)->getColor());
++}
++
++int w_setBackgroundColor(lua_State *L)
++{
++	displayStateCommand(L)->setBackgroundColor(checkColor(L));
++	return 0;
++}
++
++int w_getBackgroundColor(lua_State *L)
++{
++	return pushColor(L, displayStateCommand(L)->getBackgroundColor());
++}
++
++int w_setLineWidth(lua_State *L)
++{
++	displayStateCommand(L)->setLineWidth((float) luaL_checknumber(L, 1));
++	return 0;
++}
++
++int w_setLineStyle(lua_State *L)
++{
++	const char *str = luaL_checkstring(L, 1);
++	GraphicsDisplayStateCommand::LineStyle style;
++	if (strcmp(str, "rough") == 0)
++		style = GraphicsDisplayStateCommand::LINE_ROUGH;
++	else if (strcmp(str, "smooth") == 0)
++		style = GraphicsDisplayStateCommand::LINE_SMOOTH;
++	else
++		return luax_enumerror(L, "line style", std::vector<std::string>{"rough", "smooth"}, str);
++	displayStateCommand(L)->setLineStyle(style);
++	return 0;
++}
++
++int w_setLineJoin(lua_State *L)
++{
++	const char *str = luaL_checkstring(L, 1);
++	GraphicsDisplayStateCommand::LineJoin join;
++	if (strcmp(str, "none") == 0)
++		join = GraphicsDisplayStateCommand::LINE_JOIN_NONE;
++	else if (strcmp(str, "miter") == 0)
++		join = GraphicsDisplayStateCommand::LINE_JOIN_MITER;
++	else if (strcmp(str, "bevel") == 0)
++		join = GraphicsDisplayStateCommand::LINE_JOIN_BEVEL;
++	else
++		return luax_enumerror(L, "line join", std::vector<std::string>{"none", "miter", "bevel"}, str);
++	displayStateCommand(L)->setLineJoin(join);
++	return 0;
++}
++
++int w_getLineWidth(lua_State *L)
++{
++	lua_pushnumber(L, displayStateCommand(L)->getLineWidth());
++	return 1;
++}
++
++int w_getLineStyle(lua_State *L)
++{
++	const char *str = displayStateCommand(L)->getLineStyle()
++		== GraphicsDisplayStateCommand::LINE_ROUGH ? "rough" : "smooth";
++	lua_pushstring(L, str);
++	return 1;
++}
++
++int w_getLineJoin(lua_State *L)
++{
++	const char *str = nullptr;
++	switch (displayStateCommand(L)->getLineJoin())
++	{
++	case GraphicsDisplayStateCommand::LINE_JOIN_NONE: str = "none"; break;
++	case GraphicsDisplayStateCommand::LINE_JOIN_MITER: str = "miter"; break;
++	case GraphicsDisplayStateCommand::LINE_JOIN_BEVEL: str = "bevel"; break;
++	}
++	lua_pushstring(L, str);
++	return 1;
++}
++
++int w_setPointSize(lua_State *L)
++{
++	const float size = (float) luaL_checknumber(L, 1);
++	luaL_argcheck(L, std::isfinite(size) && size > 0.0f, 1,
++		"point size must be a finite number greater than zero");
++	displayStateCommand(L)->setPointSize(size);
++	return 0;
++}
++
++int w_getPointSize(lua_State *L)
++{
++	lua_pushnumber(L, displayStateCommand(L)->getPointSize());
++	return 1;
++}
++
++} // graphics
++} // love
+

@@ -34,6 +34,39 @@ SpriteBatch *luax_checkspritebatch(lua_State *L, int idx)
 	return luax_checktype<SpriteBatch>(L, idx);
 }
 
+static GraphicsSpriteBatchCommand *spriteBatchCommand(lua_State *L)
+{
+	auto *module = luax_getmodule(L, Module::M_GRAPHICS);
+	auto *command = dynamic_cast<GraphicsSpriteBatchCommand *>(module);
+	if (command == nullptr)
+		luaL_error(L, "love.graphics has no state-local SpriteBatch command adapter");
+	return command;
+}
+
+int w_newSpriteBatch(lua_State *L)
+{
+	spriteBatchCommand(L);
+
+	Texture *texture = luax_checktexture(L, 1);
+	int size = (int) luaL_optinteger(L, 2, 1000);
+	vertex::Usage usage = vertex::USAGE_DYNAMIC;
+	if (lua_gettop(L) > 2)
+	{
+		const char *usagestr = luaL_checkstring(L, 3);
+		if (!vertex::getConstant(usagestr, usage))
+			return luax_enumerror(L, "usage hint", vertex::getConstants(usage), usagestr);
+	}
+
+	SpriteBatch *t = nullptr;
+	luax_catchexcept(L,
+		[&](){ t = spriteBatchCommand(L)->newSpriteBatch(texture, size, usage); }
+	);
+
+	luax_pushtype(L, t);
+	t->release();
+	return 1;
+}
+
 static inline int w_SpriteBatch_add_or_set(lua_State *L, SpriteBatch *t, int startidx, int index)
 {
 	Quad *quad = nullptr;

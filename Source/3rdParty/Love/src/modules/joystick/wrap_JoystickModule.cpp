@@ -24,14 +24,12 @@
 #include "filesystem/Filesystem.h"
 #include "filesystem/wrap_Filesystem.h"
 
-#include "sdl/JoystickModule.h"
-
 namespace love
 {
 namespace joystick
 {
 
-#define instance() (Module::getInstance<JoystickModule>(Module::M_JOYSTICK))
+#define instance() (luax_getmodule<JoystickModule>(L, Module::M_JOYSTICK))
 
 int w_getJoysticks(lua_State *L)
 {
@@ -120,7 +118,7 @@ int w_loadGamepadMappings(lua_State *L)
 	bool isfile = false;
 	std::string mappings = luax_checkstring(L, 1);
 
-	auto fs = Module::getInstance<love::filesystem::Filesystem>(Module::M_FILESYSTEM);
+	auto fs = luax_getmodule<love::filesystem::Filesystem>(L, Module::M_FILESYSTEM);
 	if (fs)
 	{
 		love::filesystem::Filesystem::Info info = {};
@@ -194,7 +192,7 @@ extern "C" int luaopen_love_joystick(lua_State *L)
 	JoystickModule *instance = instance();
 	if (instance == nullptr)
 	{
-		luax_catchexcept(L, [&](){ instance = new sdl::JoystickModule(); });
+		luax_catchexcept(L, [&](){ instance = newDoraJoystickModule(L); });
 	}
 	else
 		instance->retain();

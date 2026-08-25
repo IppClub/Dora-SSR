@@ -1,0 +1,142 @@
+--- /dev/null
++++ b/Source/3rdParty/Love/src/modules/event/Event.h
+@@ -0,0 +1,39 @@
++/** Copyright (c) 2006-2023 LOVE Development Team.
++ * Altered for Dora: queue and platform pumping are state-local backend operations. */
++#pragma once
++
++#include "common/Module.h"
++#include "common/Variant.h"
++
++#include <string>
++#include <vector>
++
++namespace love::event
++{
++
++class Message : public Object
++{
++public:
++	Message(const std::string &name, const std::vector<Variant> &args = {});
++	int toLua(lua_State *L);
++	static Message *fromLua(lua_State *L, int index);
++	const std::string name;
++	const std::vector<Variant> args;
++};
++
++class Event : public Module
++{
++public:
++	~Event() override = default;
++	ModuleType getModuleType() const override { return M_EVENT; }
++	const char *getName() const override { return "love.event"; }
++	virtual void push(Message *message) = 0;
++	virtual bool poll(Message *&message) = 0;
++	virtual void clear() = 0;
++	virtual void pump() = 0;
++	virtual Message *wait() = 0;
++};
++
++Event *newDoraEvent(lua_State *L);
++
++}
+--- /dev/null
++++ b/Source/3rdParty/Love/src/modules/event/Event.cpp
+@@ -0,0 +1,39 @@
++#include "Event.h"
++
++namespace love::event
++{
++
++Message::Message(const std::string &name, const std::vector<Variant> &args)
++	: name(name), args(args) { }
++
++int Message::toLua(lua_State *L)
++{
++	luax_pushstring(L, name);
++	for (const Variant &value : args) value.toLua(L);
++	return (int) args.size() + 1;
++}
++
++Message *Message::fromLua(lua_State *L, int index)
++{
++	std::string name = luax_checkstring(L, index);
++	std::vector<Variant> args;
++	const int count = lua_gettop(L) - index;
++	for (int i = 0; i < count; ++i)
++	{
++		if (lua_isnoneornil(L, index + 1 + i)) break;
++		const int luaType = lua_type(L, index + 1 + i);
++		if (luaType != LUA_TBOOLEAN && luaType != LUA_TNUMBER
++			&& luaType != LUA_TSTRING && luaType != LUA_TUSERDATA
++			&& luaType != LUA_TLIGHTUSERDATA)
++			throw Exception("event arguments must be boolean, number, string, userdata, or nil (argument %d)",
++				index + 1 + i);
++		Variant value = Variant::fromLua(L, index + 1 + i);
++		if (value.getType() == Variant::UNKNOWN)
++			throw Exception("event arguments must be boolean, number, string, userdata, or nil (argument %d)",
++				index + 1 + i);
++		args.push_back(std::move(value));
++	}
++	return new Message(name, args);
++}
++
++}
+--- /dev/null
++++ b/Source/3rdParty/Love/src/modules/event/wrap_Event.h
+@@ -0,0 +1,5 @@
++/** Copyright (c) 2006-2023 LOVE Development Team. */
++#pragma once
++#include "common/config.h"
++#include "Event.h"
++namespace love::event { extern "C" LOVE_EXPORT int luaopen_love_event(lua_State *L); }
+--- /dev/null
++++ b/Source/3rdParty/Love/src/modules/event/wrap_Event.lua
+@@ -0,0 +1,5 @@
++R"luastring"--(
++function love.event.poll()
++	return love.event.poll_i
++end
++--)luastring"--"
+--- a/Source/3rdParty/Love/src/modules/event/wrap_Event.cpp
++++ b/Source/3rdParty/Love/src/modules/event/wrap_Event.cpp
+@@ -23,8 +23,9 @@
+ // LOVE
+ #include "common/runtime.h"
+ 
+-#include "sdl/Event.h"
++#include <string_view>
+ 
++
+ // Shove the wrap_Event.lua code directly into a raw string literal.
+ static const char event_lua[] =
+ #include "wrap_Event.lua"
+@@ -35,7 +36,7 @@
+ namespace event
+ {
+ 
+-#define instance() (Module::getInstance<Event>(Module::M_EVENT))
++#define instance() (luax_getmodule<Event>(L, Module::M_EVENT))
+ 
+ static int w_poll_i(lua_State *L)
+ {
+@@ -94,6 +95,9 @@
+ 
+ int w_quit(lua_State *L)
+ {
++	if (lua_type(L, 1) == LUA_TSTRING
++		&& std::string_view(luax_checkstring(L, 1)) != "restart")
++		return luaL_argerror(L, 1, "expected 'restart'");
+ 	luax_catchexcept(L, [&]() {
+ 		std::vector<Variant> args = {Variant::fromLua(L, 1)};
+ 
+@@ -122,7 +126,7 @@
+ 	Event *instance = instance();
+ 	if (instance == nullptr)
+ 	{
+-		luax_catchexcept(L, [&](){ instance = new love::event::sdl::Event(); });
++		luax_catchexcept(L, [&](){ instance = newDoraEvent(L); });
+ 	}
+ 	else
+ 		instance->retain();
+

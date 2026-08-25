@@ -21,20 +21,11 @@
 // LOVE
 #include "common/config.h"
 #include "wrap_Filesystem.h"
+#include "Filesystem.h"
 #include "wrap_File.h"
-#include "wrap_DroppedFile.h"
 #include "wrap_FileData.h"
 #include "data/wrap_Data.h"
 #include "data/wrap_DataModule.h"
-
-#include "physfs/Filesystem.h"
-
-#ifdef LOVE_ANDROID
-#include "common/android.h"
-#endif
-
-// SDL
-#include <SDL_loadso.h>
 
 // STL
 #include <vector>
@@ -47,12 +38,14 @@ namespace love
 namespace filesystem
 {
 
-#define instance() (Module::getInstance<Filesystem>(Module::M_FILESYSTEM))
+#define instance() (luax_getmodule<Filesystem>(L, Module::M_FILESYSTEM))
+
+Filesystem *newDoraFilesystem(lua_State *L);
 
 bool hack_setupWriteDirectory()
 {
-	if (instance() != 0)
-		return instance()->setupWriteDirectory();
+	// Dora initializes each Filesystem from its owning Lua state. There is no
+	// process-global Filesystem instance for this legacy no-state helper.
 	return false;
 }
 
@@ -144,11 +137,6 @@ int w_mount(lua_State *L)
 		luax_pushboolean(L, instance()->mount(data, archive.c_str(), mountpoint, append));
 		return 1;
 	}
-	else if (luax_istype(L, 1, DroppedFile::type))
-	{
-		DroppedFile *file = luax_totype<DroppedFile>(L, 1);
-		archive = file->getFilename();
-	}
 	else
 		archive = luax_checkstring(L, 1);
 
@@ -188,7 +176,8 @@ int w_newFile(lua_State *L)
 			return luax_enumerror(L, "file open mode", File::getConstants(mode), str);
 	}
 
-	File *t = instance()->newFile(filename);
+	File *t = nullptr;
+	luax_catchexcept(L, [&](){ t = instance()->newFile(filename); });
 
 	if (mode != File::MODE_CLOSED)
 	{
@@ -567,7 +556,7 @@ int w_append(lua_State *L)
 
 int w_getDirectoryItems(lua_State *L)
 {
-	const char *dir = luaL_checkstring(L, 1);
+	const char *dir = luaL_optstring(L, 1, "");
 	std::vector<std::string> items;
 
 	instance()->getDirectoryItems(dir, items);
@@ -765,108 +754,10 @@ int loader(lua_State *L)
 	return 1;
 }
 
-static const char *library_extensions[] =
-{
-#ifdef LOVE_WINDOWS
-	".dll"
-#elif defined(LOVE_MACOSX) || defined(LOVE_IOS)
-	".dylib", ".so"
-#else
-	".so"
-#endif
-};
-
 int extloader(lua_State *L)
 {
-	std::string filename = luax_checkstring(L, 1);
-	std::string tokenized_name(filename);
-	std::string tokenized_function(filename);
-
-	// We need both the tokenized filename (dots replaced with slashes)
-	// and the tokenized function name (dots replaced with underscores)
-	// NOTE: Lua's loader queries more names than this one.
-	for (unsigned int i = 0; i < tokenized_name.size(); i++)
-	{
-		if (tokenized_name[i] == '.')
-		{
-			tokenized_name[i] = '/';
-			tokenized_function[i] = '_';
-		}
-	}
-
-	void *handle = nullptr;
-	auto *inst = instance();
-
-#ifdef LOVE_ANDROID
-	// Specifically Android, look the library path based on getCRequirePath first
-	std::string androidPath(love::android::getCRequirePath());
-
-	if (!androidPath.empty())
-	{
-		// Replace ? with just the dotted filename (not tokenized_name)
-		replaceAll(androidPath, "?", filename);
-
-		// Load directly, don't check for existence.
-		handle = SDL_LoadObject(androidPath.c_str());
-	}
-
-	if (!handle)
-	{
-#endif // LOVE_ANDROID
-
-	for (const std::string &el : inst->getCRequirePath())
-	{
-		for (const char *ext : library_extensions)
-		{
-			std::string element = el;
-
-			// Replace ?? with the filename and extension
-			replaceAll(element, "??", tokenized_name + ext);
-
-			// And ? with just the filename
-			replaceAll(element, "?", tokenized_name);
-
-			Filesystem::Info info = {};
-			if (!inst->getInfo(element.c_str(), info) || info.type == Filesystem::FILETYPE_DIRECTORY)
-				continue;
-
-			// Now resolve the full path, as we're bypassing physfs for the next part.
-			std::string filepath = inst->getRealDirectory(element.c_str()) + LOVE_PATH_SEPARATOR + element;
-
-			handle = SDL_LoadObject(filepath.c_str());
-			// Can fail, for instance if it turned out the source was a zip
-			if (handle)
-				break;
-		}
-
-		if (handle)
-			break;
-	}
-
-#ifdef LOVE_ANDROID
-	} // if (!handle)
-#endif
-
-	if (!handle)
-	{
-		lua_pushfstring(L, "\n\tno file '%s' in LOVE paths.", tokenized_name.c_str());
-		return 1;
-	}
-
-	// We look for both loveopen_ and luaopen_, so libraries with specific love support
-	// can tell when they've been loaded by love.
-	void *func = SDL_LoadFunction(handle, ("loveopen_" + tokenized_function).c_str());
-	if (!func)
-		func = SDL_LoadFunction(handle, ("luaopen_" + tokenized_function).c_str());
-
-	if (!func)
-	{
-		SDL_UnloadObject(handle);
-		lua_pushfstring(L, "\n\tC library '%s' is incompatible.", tokenized_name.c_str());
-		return 1;
-	}
-
-	lua_pushcfunction(L, (lua_CFunction) func);
+	const char *module = luaL_checkstring(L, 1);
+	lua_pushfstring(L, "\n\tDora Love disables native C module '%s'; use a Lua source module loaded through Content.", module);
 	return 1;
 }
 
@@ -939,7 +830,7 @@ int w_getSize(lua_State *L)
 	bool exists = instance()->getInfo(filename, info);
 
 	if (!exists)
-		luax_ioError(L, "File does not exist");
+		return luax_ioError(L, "File does not exist");
 	else if (info.size == -1)
 		return luax_ioError(L, "Could not determine file size.");
 	else if (info.size >= 0x20000000000000LL)
@@ -1001,7 +892,6 @@ static const luaL_Reg functions[] =
 static const lua_CFunction types[] =
 {
 	luaopen_file,
-	luaopen_droppedfile,
 	luaopen_filedata,
 	0
 };
@@ -1011,14 +901,10 @@ extern "C" int luaopen_love_filesystem(lua_State *L)
 	Filesystem *instance = instance();
 	if (instance == nullptr)
 	{
-		luax_catchexcept(L, [&](){ instance = new physfs::Filesystem(); });
+		luax_catchexcept(L, [&](){ instance = newDoraFilesystem(L); });
 	}
 	else
 		instance->retain();
-
-	// The love loaders should be tried after package.preload.
-	love::luax_register_searcher(L, loader, 2);
-	love::luax_register_searcher(L, extloader, 3);
 
 	WrappedModule w;
 	w.module = instance;

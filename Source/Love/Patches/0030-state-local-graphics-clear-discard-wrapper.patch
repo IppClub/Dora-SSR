@@ -1,0 +1,258 @@
+--- a/src/modules/graphics/wrap_Graphics.cpp
++++ b/src/modules/graphics/wrap_Graphics.cpp
+@@ -70,114 +70,6 @@
+ int w_reset(lua_State *)
+ {
+ 	instance()->reset();
+-	return 0;
+-}
+-
+-int w_clear(lua_State *L)
+-{
+-	OptionalColorf color(Colorf(0.0f, 0.0f, 0.0f, 0.0f));
+-	std::vector<OptionalColorf> colors;
+-
+-	OptionalInt stencil(0);
+-	OptionalDouble depth(1.0);
+-
+-	int argtype = lua_type(L, 1);
+-	int startidx = -1;
+-
+-	if (argtype == LUA_TTABLE)
+-	{
+-		int maxn = lua_gettop(L);
+-		colors.reserve(maxn);
+-
+-		for (int i = 0; i < maxn; i++)
+-		{
+-			argtype = lua_type(L, i + 1);
+-
+-			if (argtype == LUA_TNUMBER || argtype == LUA_TBOOLEAN)
+-			{
+-				startidx = i + 1;
+-				break;
+-			}
+-			else if (argtype == LUA_TNIL || argtype == LUA_TNONE || luax_objlen(L, i + 1) == 0)
+-			{
+-				colors.push_back(OptionalColorf());
+-				continue;
+-			}
+-
+-			for (int j = 1; j <= 4; j++)
+-				lua_rawgeti(L, i + 1, j);
+-
+-			OptionalColorf c;
+-			c.hasValue = true;
+-			c.value.r = (float) luaL_checknumber(L, -4);
+-			c.value.g = (float) luaL_checknumber(L, -3);
+-			c.value.b = (float) luaL_checknumber(L, -2);
+-			c.value.a = (float) luaL_optnumber(L, -1, 1.0);
+-			colors.push_back(c);
+-
+-			lua_pop(L, 4);
+-		}
+-	}
+-	else if (argtype == LUA_TBOOLEAN)
+-	{
+-		color.hasValue = luax_toboolean(L, 1);
+-		startidx = 2;
+-	}
+-	else if (argtype != LUA_TNONE && argtype != LUA_TNIL)
+-	{
+-		color.hasValue = true;
+-		color.value.r = (float) luaL_checknumber(L, 1);
+-		color.value.g = (float) luaL_checknumber(L, 2);
+-		color.value.b = (float) luaL_checknumber(L, 3);
+-		color.value.a = (float) luaL_optnumber(L, 4, 1.0);
+-		startidx = 5;
+-	}
+-
+-	if (startidx >= 0)
+-	{
+-		argtype = lua_type(L, startidx);
+-		if (argtype == LUA_TBOOLEAN)
+-			stencil.hasValue = luax_toboolean(L, startidx);
+-		else if (argtype == LUA_TNUMBER)
+-			stencil.value = (int) luaL_checkinteger(L, startidx);
+-
+-		argtype = lua_type(L, startidx + 1);
+-		if (argtype == LUA_TBOOLEAN)
+-			depth.hasValue = luax_toboolean(L, startidx + 1);
+-		else if (argtype == LUA_TNUMBER)
+-			depth.value = luaL_checknumber(L, startidx + 1);
+-	}
+-
+-	if (colors.empty())
+-		luax_catchexcept(L, [&]() { instance()->clear(color, stencil, depth); });
+-	else
+-		luax_catchexcept(L, [&]() { instance()->clear(colors, stencil, depth); });
+-
+-	return 0;
+-}
+-
+-int w_discard(lua_State *L)
+-{
+-	std::vector<bool> colorbuffers;
+-
+-	if (lua_istable(L, 1))
+-	{
+-		for (size_t i = 1; i <= luax_objlen(L, 1); i++)
+-		{
+-			lua_rawgeti(L, 1, i);
+-			colorbuffers.push_back(luax_optboolean(L, -1, true));
+-			lua_pop(L, 1);
+-		}
+-	}
+-	else
+-	{
+-		bool discardcolor = luax_optboolean(L, 1, true);
+-		size_t numbuffers = std::max((size_t) 1, instance()->getCanvas().colors.size());
+-		colorbuffers = std::vector<bool>(numbuffers, discardcolor);
+-	}
+-
+-	bool depthstencil = luax_optboolean(L, 2, true);
+-	instance()->discard(colorbuffers, depthstencil);
+ 	return 0;
+ }
+ 
+--- a/src/modules/graphics/wrap_Canvas.h
++++ b/src/modules/graphics/wrap_Canvas.h
+@@ -22,6 +22,7 @@
+ 
+ // LOVE
+ #include "common/runtime.h"
++#include "common/Optional.h"
+ #include "Canvas.h"
+ #include "wrap_Texture.h"
+ 
+@@ -65,10 +66,18 @@
+ 	virtual void stopStencilWrite() = 0;
+ 	virtual void setCanvas(lua_State *L, const RenderTargets &targets) = 0;
+ 	virtual RenderTargets getCanvas() const = 0;
++	virtual void clear(Optional<Colorf> color, OptionalInt stencil,
++		OptionalDouble depth) = 0;
++	virtual void clear(const std::vector<Optional<Colorf>> &colors,
++		OptionalInt stencil, OptionalDouble depth) = 0;
++	virtual void discard(const std::vector<bool> &colorBuffers,
++		bool depthStencil) = 0;
+ };
+ 
+ int w_setCanvas(lua_State *L);
+ int w_getCanvas(lua_State *L);
++int w_clear(lua_State *L);
++int w_discard(lua_State *L);
+ 
+ extern "C" int luaopen_canvas(lua_State *L);
+ 
+--- a/src/modules/graphics/wrap_Canvas.cpp
++++ b/src/modules/graphics/wrap_Canvas.cpp
+@@ -206,6 +206,109 @@
+ 	return count;
+ }
+ 
++int w_clear(lua_State *L)
++{
++	Optional<Colorf> color(Colorf(0.0f, 0.0f, 0.0f, 0.0f));
++	std::vector<Optional<Colorf>> colors;
++	OptionalInt stencil(0);
++	OptionalDouble depth(1.0);
++
++	int argumentType = lua_type(L, 1);
++	int startIndex = -1;
++	if (argumentType == LUA_TTABLE)
++	{
++		const int maximum = lua_gettop(L);
++		colors.reserve(maximum);
++		for (int index = 0; index < maximum; ++index)
++		{
++			argumentType = lua_type(L, index + 1);
++			if (argumentType == LUA_TNUMBER || argumentType == LUA_TBOOLEAN)
++			{
++				startIndex = index + 1;
++				break;
++			}
++			else if (argumentType == LUA_TNIL || argumentType == LUA_TNONE
++				|| luax_objlen(L, index + 1) == 0)
++			{
++				colors.push_back(Optional<Colorf>());
++				continue;
++			}
++			for (int component = 1; component <= 4; ++component)
++				lua_rawgeti(L, index + 1, component);
++			Optional<Colorf> attachmentColor;
++			attachmentColor.hasValue = true;
++			attachmentColor.value.r = (float) luaL_checknumber(L, -4);
++			attachmentColor.value.g = (float) luaL_checknumber(L, -3);
++			attachmentColor.value.b = (float) luaL_checknumber(L, -2);
++			attachmentColor.value.a = (float) luaL_optnumber(L, -1, 1.0);
++			colors.push_back(attachmentColor);
++			lua_pop(L, 4);
++		}
++	}
++	else if (argumentType == LUA_TBOOLEAN)
++	{
++		color.hasValue = luax_toboolean(L, 1);
++		startIndex = 2;
++	}
++	else if (argumentType != LUA_TNONE && argumentType != LUA_TNIL)
++	{
++		color.hasValue = true;
++		color.value.r = (float) luaL_checknumber(L, 1);
++		color.value.g = (float) luaL_checknumber(L, 2);
++		color.value.b = (float) luaL_checknumber(L, 3);
++		color.value.a = (float) luaL_optnumber(L, 4, 1.0);
++		startIndex = 5;
++	}
++
++	if (startIndex >= 0)
++	{
++		argumentType = lua_type(L, startIndex);
++		if (argumentType == LUA_TBOOLEAN)
++			stencil.hasValue = luax_toboolean(L, startIndex);
++		else if (argumentType == LUA_TNUMBER)
++			stencil.value = (int) luaL_checkinteger(L, startIndex);
++		argumentType = lua_type(L, startIndex + 1);
++		if (argumentType == LUA_TBOOLEAN)
++			depth.hasValue = luax_toboolean(L, startIndex + 1);
++		else if (argumentType == LUA_TNUMBER)
++			depth.value = luaL_checknumber(L, startIndex + 1);
++	}
++
++	auto *command = canvasCommand(L);
++	luax_catchexcept(L, [&]()
++	{
++		if (colors.empty())
++			command->clear(color, stencil, depth);
++		else
++			command->clear(colors, stencil, depth);
++	});
++	return 0;
++}
++
++int w_discard(lua_State *L)
++{
++	std::vector<bool> colorBuffers;
++	if (lua_istable(L, 1))
++	{
++		for (size_t index = 1; index <= luax_objlen(L, 1); ++index)
++		{
++			lua_rawgeti(L, 1, index);
++			colorBuffers.push_back(luax_optboolean(L, -1, true));
++			lua_pop(L, 1);
++		}
++	}
++	else
++	{
++		const bool discardColor = luax_optboolean(L, 1, true);
++		const size_t count = std::max((size_t) 1,
++			canvasCommand(L)->getCanvas().colors.size());
++		colorBuffers = std::vector<bool>(count, discardColor);
++	}
++	const bool depthStencil = luax_optboolean(L, 2, true);
++	canvasCommand(L)->discard(colorBuffers, depthStencil);
++	return 0;
++}
++
+ int w_Canvas_getMSAA(lua_State *L)
+ {
+ 	Canvas *canvas = luax_checkcanvas(L, 1);
