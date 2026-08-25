@@ -324,6 +324,7 @@
 | P5-103 | Wrapper 迁移五平台当前源码构建 | 编译已完成，待运行验收 | Codex | 当前 wrapper、Dora adapter 和三方依赖在五个平台的发布工具链中可编译 | macOS arm64、iOS arm64+模拟器双架构、Android NDK 21 三 ABI、Linux x86_64 Zig、Windows x86_64 Zig/MinGW 均通过 xmake；Windows 完整 CMake 交叉测试目标和 Dora macOS Xcode Debug 亦通过。MinGW 构建分支修正后 LuaSocket 使用 `wsocket.c`。此项只记录编译，不替代非 macOS 平台运行、物理设备或人工游戏验收。 |
 | P5-104 | Runtime 收尾拆分与唯一 binding 审计 | 已完成 | Codex | 主 Runtime 只保留 state/boot/调度/错误/装配，已迁移 API 不存在 old/new 双路径 | `LoveRuntime.cpp` 从 17,924 行缩减到约 1,172 行，adapter 实现机械拆入 `LoveRuntimeAdapters.inc` 并继续作为同一编译单元；删除 12 个已失去调用者的旧 helper。API parity 同时读取两个文件，断言主文件行数/职责边界、原版 wrapper 唯一注册和英中 TS/Teal 4,324 项方法对账；普通与 ASan+UBSan CTest 均 12/12。 |
 | P5-105 | macOS 完整 workflow 与 Physics 关闭期回归 | 已完成 | Codex | 最终 Dora Debug 进程连续完成 36 项工作流，LoveRuntime 关闭不再允许 contact callback 观察半清理 Fixture registry | Metal 视觉证据 3/3、macOS 集成 workflow 36/36；修正 TS 源映射、上游 Canvas/Image truthy parser 的陈旧测试假设。关闭前解除 World callback，query/raycast/contact 同时验证 reference/object；Physics 与 Dora 既有回归均已分别在新进程中通过并干净退出，重建后完整 36 项长序列再次通过并无引用计数告警。最终普通/ASan+UBSan CTest 12/12、xmake、Xcode arm64 与规范补丁 324 文件重放通过。 |
+| P5-106 | Windows MSVC 匿名命名空间类名歧义 | 已修复，待 CI 复验 | Codex | `DoraImageData` 只保留匿名命名空间内的唯一定义，不再由无需的 friend 声明在 `Dora::Love` 中引入第二个同名类 | 首轮 Windows CI 的 MSVC C2872 证明 Clang/MinGW 无歧义的查找在 MSVC 上会与 `friend class DoraImageData` 冲突；删除无用 friend 后 xmake、普通 CTest 12/12 与 ASan+UBSan CTest 12/12 通过，等待 Windows CI 重跑确认。 |
 
 ### Love 11.5 Graphics 缺口审计
 

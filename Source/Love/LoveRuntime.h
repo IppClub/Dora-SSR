@@ -1277,7 +1277,6 @@ class LoveRuntime final
 	friend class DoraLoveFilesystem;
 	friend class DoraLoveSound;
 	friend class DoraLoveFont;
-	friend class DoraImageData;
 	friend class DoraLoveGraphics;
 	friend class DoraLoveChannel;
 	friend class DoraLoveLuaThread;
