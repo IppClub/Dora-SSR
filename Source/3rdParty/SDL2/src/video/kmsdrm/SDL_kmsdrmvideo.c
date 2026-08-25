@@ -1603,13 +1603,15 @@ int KMSDRM_CreateWindow(_THIS, SDL_Window *window)
             _this->gl_config.driver_loaded = 1;
         }
 
-        /* Create the cursor BO for the display of this window,
-           now that we know this is not a VK window. */
-        KMSDRM_CreateCursorBO(display);
+        if (!SDL_GetHintBoolean(SDL_HINT_KMSDRM_DISABLE_CURSOR, SDL_FALSE)) {
+            /* Create the cursor BO for the display of this window,
+               now that we know this is not a VK window. */
+            KMSDRM_CreateCursorBO(display);
 
-        /* Create and set the default cursor for the display
-           of this window, now that we know this is not a VK window. */
-        KMSDRM_InitMouse(_this, display);
+            /* Create and set the default cursor for the display
+               of this window, now that we know this is not a VK window. */
+            KMSDRM_InitMouse(_this, display);
+        }
 
         /* The FULLSCREEN flags are cut out from window->flags at this point,
            so we can't know if a window is fullscreen or not, hence all windows

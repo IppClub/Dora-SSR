@@ -110,3 +110,4 @@ Source/3rdParty/Wa/Source/.build/
 /.claude
 /.agents
 Docs/kanban
+.codex*

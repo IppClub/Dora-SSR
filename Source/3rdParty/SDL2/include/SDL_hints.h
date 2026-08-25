@@ -1417,6 +1417,19 @@ extern "C" {
 #define SDL_HINT_KMSDRM_REQUIRE_DRM_MASTER      "SDL_KMSDRM_REQUIRE_DRM_MASTER"
 
 /**
+ * A variable controlling whether the KMSDRM backend creates a hardware
+ * cursor plane.
+ *
+ * This hint must be set before creating a KMSDRM window.
+ *
+ * This variable can be set to the following values:
+ *
+ * - "0": Create and manage the KMSDRM hardware cursor (default)
+ * - "1": Do not create a KMSDRM cursor buffer or default cursor
+ */
+#define SDL_HINT_KMSDRM_DISABLE_CURSOR          "SDL_KMSDRM_DISABLE_CURSOR"
+
+/**
  * A comma separated list of devices to open as joysticks
  *
  * This variable is currently only used by the Linux joystick driver.
