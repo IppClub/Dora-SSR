@@ -305,7 +305,7 @@ state-local DoraLoveThreadModule + DoraLoveLuaThread + DoraLoveChannel
 | W7-01 | 已完成 | 删除 old binding 测试开关和失效实现 | 发布构建没有 old/new binding 开关；API parity 持续断言原版 wrapper 唯一注册且旧 parser 不得回流 |
 | W7-02 | 已完成 | 拆分或缩减 `LoveRuntime.cpp` | `LoveRuntime.cpp` 由 17,924 行缩减为约 1,172 行，只呈现 state、boot、调度、错误和模块装配；adapter 与 backend-neutral 对象实现移入 `LoveRuntimeAdapters.inc`，保持单一编译单元和内部类型可见性 |
 | W7-03 | 已完成 | 更新 TS/Teal 文档生成和 API 对账 | API parity 直接读取 Love 11.5 wrapper method table，并对英中 TypeScript/Teal 四份声明执行 4,324 项方法对账 |
-| W7-04 | 进行中 | 五平台 CI、Sanitizer 和游戏语料验收 | 五平台当前源码构建及核心运行 workflow、macOS 普通/ASan+UBSan CTest 12/12 与 36/36 集成 workflow、官方兼容快照 231 pass/0 fail/60 skip 已通过；待当前迁移变更推送后跑过 CI。物理设备输入、麦克风和可听输出按约定留给人工验收，不由模拟器/注入事件替代 |
+| W7-04 | 已完成 | 五平台 CI、Sanitizer 和游戏语料验收 | 五平台当前源码构建及核心运行 workflow、macOS 普通/ASan+UBSan CTest 12/12 与 36/36 集成 workflow、官方兼容快照 231 pass/0 fail/60 skip 已通过；Android `32886811734`、iOS `32886815756`、Linux `32886819237`、macOS `32886823057` 及修复 MSVC 类名歧义后的 Windows `32888321145` 五套 CI 全部成功。物理设备输入、麦克风和可听输出按约定留给人工验收，不由模拟器/注入事件替代 |
 | W7-05 | 已完成 | 更新公开教程和兼容说明 | LoveNode 英中教程以 API 数量比和兼容专项展示实际边界；已迁移 API 不再统称为 Dora 手写近似 binding，仅 SoLoud 等 backend 语义差异保留明确说明 |
 
 阶段门槛：移除双路径，源码、构建、文档和发布包均无旧 binding 残留。
