@@ -3938,6 +3938,8 @@ declare global {
 		 * @param type The type of fullscreen mode to use.
 		 *
 		 * @returns success — True if an attempt to enter fullscreen was successful, false otherwise.
+		 *
+		 * Embedded LoveNode does not own the Dora host window. Entering fullscreen is unsupported and returns false; leaving fullscreen keeps the virtual surface windowed and returns true.
 		 */
 		setFullscreen(this: void, fullscreen: boolean, type?: "desktop" | "exclusive"): boolean;
 		/**
@@ -4073,7 +4075,7 @@ declare global {
 		 */
 		getSafeArea(this: void): LuaMultiReturn<[number, number, number, number]>;
 		/**
-		 * Sets the window title.
+		 * Sets the virtual LoveNode window title. This does not change the Dora host application's OS window title.
 		 *
 		 * @param title The new window title.
 		 */
@@ -4085,7 +4087,7 @@ declare global {
 		 */
 		getTitle(this: void): string;
 		/**
-		 * Sets vertical synchronization mode.
+		 * Sets the LoveNode-local virtual vertical synchronization value. This does not change the Dora host swap chain.
 		 *
 		 * Overload details:
 		 * 1. * Not all graphics drivers support adaptive vsync (-1 value). In that case, it will be automatically set to 1. * It is recommended to keep vsync activated if you don't know about the possible implications of turning it off. * This function doesn't recreate the window, unlike love.window.setMode and love.window.updateMode.
@@ -4103,7 +4105,7 @@ declare global {
 		 */
 		getVSync(this: void): number;
 		/**
-		 * Sets whether the display is allowed to sleep while the program is running.
+		 * Sets the LoveNode-local display-sleep request value. This does not change the Dora host application's system sleep policy.
 		 *
 		 * Display sleep is disabled by default. Some types of input (e.g. joystick button presses) might not prevent the display from sleeping, if display sleep is allowed.
 		 *
@@ -4148,11 +4150,11 @@ declare global {
 		maximize(this: void): void;
 		/** Restores the virtual window from minimized or maximized state. */
 		restore(this: void): void;
-		/** Shows a message box when supported by the host backend. */
+		/** Compatibility placeholder: no host dialog is shown and the current Dora backend returns false. */
 		showMessageBox(this: void, title: string, message: string, type?: "error" | "warning" | "info", attachToWindow?: boolean): boolean;
-		/** Shows a message box with custom buttons and returns the selected 1-based index. */
+		/** Compatibility placeholder: no host dialog is shown; returns the configured escape button's 1-based index, or the last button when none is configured. */
 		showMessageBox(this: void, title: string, message: string, buttons: string[], type?: "error" | "warning" | "info", attachToWindow?: boolean): number;
-		/** Requests user attention from the host window when supported. */
+		/** Compatibility placeholder: currently performs no host operation. */
 		requestAttention(this: void, continuous?: boolean): void;
 		/**
 		 * Gets whether the Window is currently maximized.

@@ -154,7 +154,7 @@ setFullscreen: function(fullscreen: boolean, fullscreen_type?: string): boolean
 
 | Return Type | Description |
 | --- | --- |
-| boolean | True if an attempt to enter fullscreen was successful, false otherwise. |
+| boolean | True if an attempt to enter fullscreen was successful, false otherwise.<br/>Embedded LoveNode does not own the Dora host window. Entering fullscreen is unsupported and returns false;<br/>leaving fullscreen keeps the virtual surface windowed and returns true. |
 
 ## getFullscreen
 
@@ -414,7 +414,7 @@ getSafeArea: function(): number, number, number, number
 
 **Description:**
 
-&emsp;&emsp;Sets the window title.
+&emsp;&emsp;Sets the virtual LoveNode window title. This does not change the Dora host application's OS window title.
 
 **Signature:**
 ```tl
@@ -452,7 +452,7 @@ getTitle: function(): string
 
 **Description:**
 
-&emsp;&emsp;Sets vertical synchronization mode.
+&emsp;&emsp;Sets the LoveNode-local virtual vertical synchronization value. This does not change the Dora host swap chain.
 Overload details:
 1. * Not all graphics drivers support adaptive vsync (-1 value). In that case, it will be automatically set to
 1. * It is recommended to keep vsync activated if you don't know about the possible implications of turning
@@ -496,7 +496,8 @@ getVSync: function(): integer
 
 **Description:**
 
-&emsp;&emsp;Sets whether the display is allowed to sleep while the program is running.
+&emsp;&emsp;Sets the LoveNode-local display-sleep request value. This does not change the Dora host application's system
+sleep policy.
 Display sleep is disabled by default. Some types of input (e.g. joystick button presses) might not prevent the
 display from sleeping, if display sleep is allowed.
 
@@ -637,7 +638,8 @@ minimize: function()
 
 **Description:**
 
-&emsp;&emsp;Shows a host message box when supported. The custom-button form returns a 1-based index.
+&emsp;&emsp;Compatibility placeholder: no host dialog is shown. The simple form returns false; the custom-button form
+returns the configured escape button's 1-based index, or the last button when none is configured.
 
 **Signature:**
 ```tl
@@ -650,7 +652,7 @@ showMessageBox: function(title: string, message: string, options?: any, message_
 
 **Description:**
 
-&emsp;&emsp;Requests user attention from the host window when supported.
+&emsp;&emsp;Compatibility placeholder: currently performs no host operation.
 
 **Signature:**
 ```tl

@@ -3938,6 +3938,8 @@ declare global {
 		 * @param type 要使用的全屏模式类型。
 		 *
 		 * @returns success — 如果尝试进入全屏成功则为 true，否则为 false。
+		 *
+		 * 嵌入式 LoveNode 不拥有 Dora 宿主窗口。进入全屏尚不支持并返回 false；退出全屏会保持虚拟表面为窗口模式并返回 true。
 		 */
 		setFullscreen(this: void, fullscreen: boolean, type?: "desktop" | "exclusive"): boolean;
 		/**
@@ -4073,7 +4075,7 @@ declare global {
 		 */
 		getSafeArea(this: void): LuaMultiReturn<[number, number, number, number]>;
 		/**
-		 * 设置窗口标题。
+		 * 设置 LoveNode 的虚拟窗口标题，不会修改 Dora 宿主应用的系统窗口标题。
 		 *
 		 * @param title 新窗口标题。
 		 */
@@ -4085,7 +4087,7 @@ declare global {
 		 */
 		getTitle(this: void): string;
 		/**
-		 * 设置垂直同步模式。
+		 * 设置 LoveNode 实例局部的虚拟垂直同步值，不会修改 Dora 宿主交换链。
 		 *
 		 * 重载说明：
 		 * 1. * 并非所有图形驱动程序都支持自适应垂直同步（-1 值）。在这种情况下，它将自动设置为 1。 * 如果您不知道关闭垂直同步可能产生的影响，建议保持垂直同步处于激活状态。 * 与 love.window.setMode 和 love.window.updateMode. 不同，该函数不会重新创建窗口
@@ -4103,7 +4105,7 @@ declare global {
 		 */
 		getVSync(this: void): number;
 		/**
-		 * 设置程序运行时是否允许显示器休眠。
+		 * 设置 LoveNode 实例局部的显示器休眠请求值，不会修改 Dora 宿主应用的系统休眠策略。
 		 *
 		 * 默认情况下禁用显示睡眠。如果允许显示器休眠，某些类型的输入（例如按下操纵杆按钮）可能不会阻止显示器休眠。
 		 *
@@ -4148,11 +4150,11 @@ declare global {
 		maximize(this: void): void;
 		/** 从最小化或最大化状态恢复虚拟窗口。 */
 		restore(this: void): void;
-		/** 在宿主后端支持时显示消息框。 */
+		/** 兼容占位：不会显示宿主消息框，当前 Dora 后端固定返回 false。 */
 		showMessageBox(this: void, title: string, message: string, type?: "error" | "warning" | "info", attachToWindow?: boolean): boolean;
-		/** 显示带自定义按钮的消息框，并返回从 1 开始的按钮索引。 */
+		/** 兼容占位：不会显示宿主消息框；返回所配置 escape 按钮的 1-based 索引，未配置时返回最后一个按钮。 */
 		showMessageBox(this: void, title: string, message: string, buttons: string[], type?: "error" | "warning" | "info", attachToWindow?: boolean): number;
-		/** 在宿主窗口支持时请求用户注意。 */
+		/** 兼容占位：当前不会执行任何宿主操作。 */
 		requestAttention(this: void, continuous?: boolean): void;
 		/**
 		 * 获取Window当前是否最大化。

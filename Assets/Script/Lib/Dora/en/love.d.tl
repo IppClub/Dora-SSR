@@ -2416,6 +2416,8 @@ local record Window
 	-- @param fullscreen (boolean) Whether to enter or exit fullscreen mode.
 	-- @param fullscreen_type (string) The type of fullscreen mode to use.
 	-- @return (boolean) True if an attempt to enter fullscreen was successful, false otherwise.
+	-- Embedded LoveNode does not own the Dora host window. Entering fullscreen is unsupported and returns false;
+	-- leaving fullscreen keeps the virtual surface windowed and returns true.
 	setFullscreen: function(fullscreen: boolean, fullscreen_type?: string): boolean
 
 	-- Gets whether the window is fullscreen.
@@ -2500,7 +2502,7 @@ local record Window
 	-- @return (number) Height of safe area.
 	getSafeArea: function(): number, number, number, number
 
-	-- Sets the window title.
+	-- Sets the virtual LoveNode window title. This does not change the Dora host application's OS window title.
 	-- @param title (string) The new window title.
 	setTitle: function(title: string)
 
@@ -2508,7 +2510,7 @@ local record Window
 	-- @return (string) The current window title.
 	getTitle: function(): string
 
-	-- Sets vertical synchronization mode.
+	-- Sets the LoveNode-local virtual vertical synchronization value. This does not change the Dora host swap chain.
 	-- Overload details:
 	--   1. * Not all graphics drivers support adaptive vsync (-1 value). In that case, it will be automatically set to
 	--      1. * It is recommended to keep vsync activated if you don't know about the possible implications of turning
@@ -2522,7 +2524,8 @@ local record Window
 	-- @return (integer) Current vsync status. 1 if enabled, 0 if disabled, and -1 for adaptive vsync.
 	getVSync: function(): integer
 
-	-- Sets whether the display is allowed to sleep while the program is running.
+	-- Sets the LoveNode-local display-sleep request value. This does not change the Dora host application's system
+	-- sleep policy.
 	-- Display sleep is disabled by default. Some types of input (e.g. joystick button presses) might not prevent the
 	-- display from sleeping, if display sleep is allowed.
 	-- @param enabled (boolean) True to enable system display sleep, false to disable it.
@@ -2558,10 +2561,11 @@ local record Window
 	maximize: function()
 	restore: function()
 
-	-- Shows a host message box when supported. The custom-button form returns a 1-based index.
+	-- Compatibility placeholder: no host dialog is shown. The simple form returns false; the custom-button form
+	-- returns the configured escape button's 1-based index, or the last button when none is configured.
 	showMessageBox: function(title: string, message: string, options?: any, message_type?: string, attach_to_window?: boolean): boolean | integer
 
-	-- Requests user attention from the host window when supported.
+	-- Compatibility placeholder: currently performs no host operation.
 	requestAttention: function(continuous?: boolean)
 
 	-- Gets whether the Window is currently maximized.

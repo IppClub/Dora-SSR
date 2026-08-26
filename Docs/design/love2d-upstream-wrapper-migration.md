@@ -703,7 +703,7 @@ Graphics 还必须包含像素读回、Canvas pass 顺序、Shader、Stencil、B
 ### Window wrapper
 
 - `0060` 恢复 Window 常量、WindowSettings 和完整原版 wrapper；`DoraLoveWindow` 只实现虚拟 surface 的尺寸、状态、位置、图标引用与宿主能力边界。Dora 仍唯一拥有宿主窗口、RenderTarget、swapchain 和 present，未引入 SDL Window backend。
-- 旧 30 个 Window Lua parser/closure 已删除，`getWidth/getHeight/getDimensions` 仅作为 Love 11.5 兼容别名追加到原版模块表。`close/minimize/maximize/restore/setPosition/showMessageBox/requestAttention` 现有真实 API 入口，不再作为声明缺口；无宿主能力的操作保持虚拟状态或返回不支持。
+- 旧 30 个 Window Lua parser/closure 已删除，`getWidth/getHeight/getDimensions` 仅作为 Love 11.5 兼容别名追加到原版模块表。`close/minimize/maximize/restore/setPosition/showMessageBox/requestAttention` 保留原版 API 入口，不再作为声明缺口；前五项只维护虚拟表面状态，`showMessageBox` 不显示对话框并返回明确占位结果，`requestAttention` 为无操作占位，均不得记作宿主能力已实现。
 - 原版 settings 使用 Lua truthy boolean 规则，定向回归已替换旧手写 binding 的强 boolean 限制。当前源码审计为 291 文件/117 hash/58 wrapper/119 个 xmake 源，60 个 patch；API parity 为 303 Graphics + 427 core，四份声明 4220 项，Runtime/source/platform manifest 已通过。W6-02 下一切片为 Input。
 
 ### Keyboard wrapper

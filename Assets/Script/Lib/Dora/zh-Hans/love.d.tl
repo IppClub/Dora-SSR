@@ -2292,6 +2292,7 @@ local record Window
 	-- @param fullscreen (boolean) 是否进入或退出全屏模式。
 	-- @param fullscreen_type (string) 要使用的全屏模式类型。
 	-- @return (boolean) 如果尝试进入全屏成功则为 true，否则为 false。
+	-- 嵌入式 LoveNode 不拥有 Dora 宿主窗口。进入全屏尚不支持并返回 false；退出全屏会保持虚拟表面为窗口模式并返回 true。
 	setFullscreen: function(fullscreen: boolean, fullscreen_type?: string): boolean
 
 	-- 获取窗口是否全屏。
@@ -2368,7 +2369,7 @@ local record Window
 	-- @return (number) 安全区域的高度。
 	getSafeArea: function(): number, number, number, number
 
-	-- 设置窗口标题。
+	-- 设置 LoveNode 的虚拟窗口标题，不会修改 Dora 宿主应用的系统窗口标题。
 	-- @param title (string) 新窗口标题。
 	setTitle: function(title: string)
 
@@ -2376,7 +2377,7 @@ local record Window
 	-- @return (string) 当前窗口标题。
 	getTitle: function(): string
 
-	-- 设置垂直同步模式。
+	-- 设置 LoveNode 实例局部的虚拟垂直同步值，不会修改 Dora 宿主交换链。
 	-- 重载说明：
 	-- 1. * 并非所有图形驱动程序都支持自适应垂直同步（-1 值）。在这种情况下，它将自动设置为 1。 * 如果您不知道关闭垂直同步可能产生的影响，建议保持垂直同步处于激活状态。 * 与 love.window.setMode
 	-- 和 love.window.updateMode. 不同，该函数不会重新创建窗口
@@ -2389,7 +2390,7 @@ local record Window
 	-- @return (integer) 当前垂直同步状态。如果启用，则为 1；如果禁用，则为 0；如果为自适应垂直同步，则为 -1。
 	getVSync: function(): integer
 
-	-- 设置程序运行时是否允许显示器休眠。
+	-- 设置 LoveNode 实例局部的显示器休眠请求值，不会修改 Dora 宿主应用的系统休眠策略。
 	-- 默认情况下禁用显示睡眠。如果允许显示器休眠，某些类型的输入（例如按下操纵杆按钮）可能不会阻止显示器休眠。
 	-- @param enabled (boolean) true 则启用系统显示睡眠， false 则禁用它。
 	setDisplaySleepEnabled: function(enabled: boolean)
@@ -2423,10 +2424,10 @@ local record Window
 	maximize: function()
 	restore: function()
 
-	-- 在宿主支持时显示消息框；自定义按钮形式返回从 1 开始的索引。
+	-- 兼容占位：不会显示宿主消息框。简单形式返回 false；自定义按钮形式返回所配置 escape 按钮的 1-based 索引，未配置时返回最后一个按钮。
 	showMessageBox: function(title: string, message: string, options?: any, message_type?: string, attach_to_window?: boolean): boolean | integer
 
-	-- 在宿主窗口支持时请求用户注意。
+	-- 兼容占位：当前不会执行任何宿主操作。
 	requestAttention: function(continuous?: boolean)
 
 	-- 获取Window当前是否最大化。

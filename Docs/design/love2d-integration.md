@@ -471,7 +471,7 @@ fullscreen、highdpi 和非 1 的 display 会影响宿主窗口或物理显示�
 
 其余查询按“虚拟表面”而不是宿主 OS 窗口解释。每个 LoveNode 看见一个名为 `Dora LoveNode` 的虚拟 display；desktop/safe-area 尺寸等于当前 RenderTarget，orientation 由宽高推导，位置固定为 `(0, 0, 1)`，没有 icon 或 fullscreen mode。`isOpen` 反映 Runtime 与 graphics backend 是否存活，`isVisible` 反映节点 visibility，`hasFocus/hasMouseFocus` 只反映 Dora 当前输入焦点；焦点在 `love.load` 返回后才由宿主授予，因此 load 阶段可为 false，后续 update 为 true。`isMaximized/isMinimized` 固定为 false。
 
-`t.title` 是 Love 11.5 的标准配置位置；TypeScript 的 `WindowConfig.title` 只保留为既有社区声明兼容别名，不改变 Runtime 读取规则。`setTitle/getTitle`、`setVSync/getVSync` 和 `setDisplaySleepEnabled/isDisplaySleepEnabled` 是 LoveRuntime 实例局部的请求状态，不修改 Dora 应用窗口、交换链或系统睡眠策略；默认值分别为 `Untitled`、`1` 和 `false`。真正需要宿主窗口所有权的 `close`、`maximize`、`minimize`、`requestAttention`、`restore`、`setIcon`、`setPosition`、`showMessageBox` 继续不注册，不能用无效成功或跨实例全局副作用伪装兼容。
+`t.title` 是 Love 11.5 的标准配置位置；TypeScript 的 `WindowConfig.title` 只保留为既有社区声明兼容别名，不改变 Runtime 读取规则。`setTitle/getTitle`、`setVSync/getVSync` 和 `setDisplaySleepEnabled/isDisplaySleepEnabled` 是 LoveRuntime 实例局部的请求状态，不修改 Dora 应用窗口、交换链或系统睡眠策略；默认值分别为 `Untitled`、`1` 和 `false`。为保持原版 method table，宿主动作入口仍会注册，但语义必须明确：`close` 只关闭虚拟 Love 窗口；`maximize/minimize/restore` 只维护实例状态；`setIcon` 只保存可由 `getIcon` 取回的 ImageData；`setPosition` 只保存单虚拟 display 的位置元数据；`showMessageBox` 是兼容占位，简单形式返回 `false`，按钮形式返回 escape/末尾按钮索引且不会显示对话框；`requestAttention` 是无操作占位。进入 fullscreen 明确返回 `false`，不能把这些行为描述为已经操作 Dora 宿主窗口。
 
 ## 输入与事件
 
@@ -530,7 +530,7 @@ LoveNode 将 Love 的窗口概念虚拟化：
 - `love.window.setMode()` 重建或调整该实例主 RenderTarget。
 - `love.window.updateMode(settings)` 或 `updateMode(width, height, settings)` 保留未指定的当前设置，并经同一事务式 resize backend 提交。
 - display、desktop、orientation、safe area、position、visibility、focus、open、icon、fullscreen/maximize/minimize 状态查询返回可验证的实例虚拟表面语义。
-- title、vsync 与 display-sleep 只保存实例局部请求值，不修改宿主；close、maximize、minimize、requestAttention、restore、setIcon、setPosition、showMessageBox 不提供虚假成功。
+- title、vsync 与 display-sleep 只保存实例局部请求值，不修改宿主；close、maximize、minimize、restore、setIcon、setPosition 仅提供虚拟表面状态。showMessageBox 和 requestAttention 仅为兼容占位，分别返回明确的占位结果或不执行操作，不声称触发宿主行为。
 - 嵌入式表面固定为 1 logical unit = 1 RenderTarget pixel；Dora device pixel ratio 只属于宿主最终合成，不能隐式改变 Love 实例尺寸。
 - Fullscreen 不得让任意嵌入 LoveNode 抢占宿主窗口。
 
