@@ -71,6 +71,38 @@ int w_getCanvasFormats(lua_State *L)
 	return 1;
 }
 
+int w_getTextureFormats(lua_State *L)
+{
+	luaL_checktype(L, 1, LUA_TTABLE);
+	lua_getfield(L, 1, "canvas");
+	const bool canvas = luax_checkboolean(L, -1);
+	lua_pop(L, 1);
+
+	lua_getfield(L, 1, "computewrite");
+	const bool computeWrite = lua_isnoneornil(L, -1) ? false : luax_checkboolean(L, -1);
+	lua_pop(L, 1);
+	lua_getfield(L, 1, "shaderatomics");
+	const bool shaderAtomics = lua_isnoneornil(L, -1) ? false : luax_checkboolean(L, -1);
+	lua_pop(L, 1);
+	lua_getfield(L, 1, "readable");
+	const int readable = lua_isnoneornil(L, -1) ? -1 : (luax_checkboolean(L, -1) ? 1 : 0);
+	lua_pop(L, 1);
+
+	GraphicsCapabilitiesCommand::BoolFields fields;
+	luax_catchexcept(L, [&]() {
+		fields = capabilitiesCommand(L)->getTextureFormats(
+			canvas, readable, computeWrite, shaderAtomics);
+	});
+	if (lua_istable(L, 2)) lua_pushvalue(L, 2);
+	else lua_createtable(L, 0, static_cast<int>(fields.size()));
+	for (const auto &[name, value] : fields)
+	{
+		luax_pushboolean(L, value);
+		lua_setfield(L, -2, name.c_str());
+	}
+	return 1;
+}
+
 int w_getRendererInfo(lua_State *L)
 {
 	GraphicsCapabilitiesCommand::RendererInfo info;

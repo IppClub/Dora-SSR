@@ -263,6 +263,7 @@ private:
 	virtual bool beginStencilWrite(std::string_view action, int value, std::string &error) override;
 	virtual void endStencilWrite() override;
 	virtual void setStencilTest(std::string_view compare, int value) override;
+	virtual bool setStencilMode(std::string_view mode, int value, std::string &error) override;
 	virtual bool setMode(int width, int height, std::string &error) override;
 	virtual bool hasWindowFocus() const override;
 	virtual bool hasWindowMouseFocus() const override;
@@ -597,6 +598,10 @@ private:
 		float torque, std::string &error) override;
 	virtual Love::PhysicsBackend::FixtureHandle newFixture(Love::PhysicsBackend::BodyHandle body,
 		Love::PhysicsBackend::ShapeHandle shape, float density, std::string &error) override;
+	virtual bool getFixtureDistance(Love::PhysicsBackend::FixtureHandle fixtureA,
+		Love::PhysicsBackend::FixtureHandle fixtureB, float &distance,
+		float &pointAX, float &pointAY, float &pointBX, float &pointBY,
+		std::string &error) const override;
 	virtual void releaseFixture(Love::PhysicsBackend::FixtureHandle fixture) override;
 	virtual bool isFixtureValid(Love::PhysicsBackend::FixtureHandle fixture) const override;
 	virtual bool setFixtureFriction(Love::PhysicsBackend::FixtureHandle fixture,

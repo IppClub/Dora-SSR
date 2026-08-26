@@ -22,6 +22,7 @@ declare global {
 	type WrapMode = "clamp" | "clampzero" | "repeat" | "mirroredrepeat";
 	type TextureType = "2d" | "array" | "cube" | "volume";
 	type StencilAction = "replace" | "increment" | "decrement" | "incrementwrap" | "decrementwrap" | "invert";
+	type StencilMode = "off" | "draw" | "test" | "custom";
 	type CompareMode = "less" | "lequal" | "equal" | "gequal" | "greater" | "notequal" | "always" | "never";
 	type MeshDrawMode = "fan" | "strip" | "triangles" | "points";
 	type MeshUsage = "stream" | "dynamic" | "static";
@@ -762,6 +763,16 @@ declare global {
 			shaderderivatives: boolean;
 			glsl3: boolean;
 			instancing: boolean;
+		}
+		interface TextureFormatSettings {
+			/** Whether the format will be used for render-target textures. */
+			canvas: boolean;
+			/** Whether the format must support compute-shader writes. */
+			computewrite?: boolean;
+			/** Whether the format must support shader atomic operations. */
+			shaderatomics?: boolean;
+			/** Whether textures in the format must be CPU-readable. */
+			readable?: boolean;
 		}
 		interface TextureTypes {
 			"2d": boolean;
@@ -3065,6 +3076,20 @@ declare global {
 		 */
 		getStencilTest(this: void): LuaMultiReturn<[CompareMode, number]>;
 		/**
+		 * Selects a high-level stencil state. "draw" writes the supplied stencil value without writing colors, "test" draws only where the stencil value equals the supplied value, "custom" preserves the state configured by the lower-level stencil APIs, and "off" disables stencil operations.
+		 *
+		 * @param mode The stencil mode. Defaults to "off" when omitted.
+		 * @param value The stencil reference value used by "draw" and "test". Defaults to 1.
+		 */
+		setStencilMode(this: void, mode?: StencilMode, value?: number): void;
+		/**
+		 * Gets the current high-level stencil mode and reference value.
+		 *
+		 * @returns mode — The current stencil mode.
+		 * @returns value — The current stencil reference value.
+		 */
+		getStencilMode(this: void): LuaMultiReturn<[StencilMode, number]>;
+		/**
 		 * Creates a new Font from a TrueType Font or BMFont file. Created fonts are not cached, in that calling this function with the same arguments will always create a new Font object.
 		 *
 		 * All variants which accept a filename can also accept a Data object instead.
@@ -3139,6 +3164,14 @@ declare global {
 		 * @returns text — The new drawable Text object.
 		 */
 		newText(this: void, font: Font, text?: ColoredText): Text;
+		/**
+		 * Creates a drawable batch of text. This is the LÖVE 12 name for the object exposed as Text in LÖVE 11.
+		 *
+		 * @param font The font used by the text batch.
+		 * @param text Optional initial colored text.
+		 * @returns textBatch — The new drawable text batch.
+		 */
+		newTextBatch(this: void, font: Font, text?: ColoredText): Text;
 		/**
 		 * Set an already-loaded Font as the current font or create and load a new one from the file and size.
 		 *
@@ -3385,6 +3418,14 @@ declare global {
 		 * @returns formats — A table containing CanvasFormats as keys, and a boolean indicating whether the format is supported as values. Not all systems support all formats. Depending on the overload: A table containing CanvasFormats as keys, and a boolean indicating whether the format is supported as values (taking into account the readable parameter). Not all systems support all formats.
 		 */
 		getCanvasFormats(this: void, readable?: boolean, formats?: CanvasFormats): CanvasFormats;
+		/**
+		 * Gets texture formats supported for a requested usage. The required canvas flag selects render-target formats; other flags further restrict reported support.
+		 *
+		 * @param settings Usage requirements for the queried texture formats.
+		 * @param target Optional table to fill and return.
+		 * @returns formats — Format names mapped to whether the requested usage is supported.
+		 */
+		getTextureFormats(this: void, settings: TextureFormatSettings, target?: CanvasFormats): CanvasFormats;
 		/**
 		 * Captures drawing operations to a Canvas.
 		 *
@@ -5762,6 +5803,32 @@ declare global {
  */
 		noise(this: void, x: number, y: number, z: number, w: number): number;
 		/**
+		 * Generates classic Perlin noise in one to four dimensions. Equal inputs always produce the same value in the range 0 through 1.
+		 *
+		 * @param x The first coordinate.
+		 * @param y The optional second coordinate.
+		 * @param z The optional third coordinate.
+		 * @param w The optional fourth coordinate.
+		 * @returns value — The generated Perlin noise value.
+		 */
+		perlinNoise(this: void, x: number): number;
+		perlinNoise(this: void, x: number, y: number): number;
+		perlinNoise(this: void, x: number, y: number, z: number): number;
+		perlinNoise(this: void, x: number, y: number, z: number, w: number): number;
+		/**
+		 * Generates simplex noise in one to four dimensions. Equal inputs always produce the same value in the range 0 through 1.
+		 *
+		 * @param x The first coordinate.
+		 * @param y The optional second coordinate.
+		 * @param z The optional third coordinate.
+		 * @param w The optional fourth coordinate.
+		 * @returns value — The generated simplex noise value.
+		 */
+		simplexNoise(this: void, x: number): number;
+		simplexNoise(this: void, x: number, y: number): number;
+		simplexNoise(this: void, x: number, y: number, z: number): number;
+		simplexNoise(this: void, x: number, y: number, z: number, w: number): number;
+		/**
 		 * Deprecated alias of love.data.compress.
 		 *
 
@@ -6367,6 +6434,15 @@ declare global {
  * @returns errorstr — The error string if an error occurred.
  */
 		newFile(this: void, filename: string, mode: OpenFileMode): File;
+		/**
+		 * Creates a File and immediately opens it in the requested mode.
+		 *
+		 * @param filename The virtual filesystem path of the file.
+		 * @param mode The mode used to open the file.
+		 * @returns file — The opened File, or undefined if opening failed.
+		 * @returns error — The error message when opening failed.
+		 */
+		openFile(this: void, filename: string, mode: OpenFileMode): LuaMultiReturn<[File | undefined, string?]>;
 		/**
 		 * Creates a new FileData object from a file on disk, or from a string in memory.
 		 *
@@ -10043,6 +10119,18 @@ declare global {
 		 * @returns scale — The scale factor as an integer.
 		 */
 		getMeter(this: void): number;
+		/**
+		 * Computes the shortest distance between two fixtures and the closest point on each fixture. Both fixtures must belong to the same World.
+		 *
+		 * @param fixture1 The first fixture.
+		 * @param fixture2 The second fixture.
+		 * @returns distance — The shortest distance in pixels.
+		 * @returns point1X — X coordinate of the closest point on the first fixture.
+		 * @returns point1Y — Y coordinate of the closest point on the first fixture.
+		 * @returns point2X — X coordinate of the closest point on the second fixture.
+		 * @returns point2Y — Y coordinate of the closest point on the second fixture.
+		 */
+		getDistance(this: void, fixture1: Fixture, fixture2: Fixture): LuaMultiReturn<[number, number, number, number, number]>;
 		/**
 		 * Creates a new World.
 		 *

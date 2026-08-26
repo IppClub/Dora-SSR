@@ -604,6 +604,7 @@ public:
 	virtual bool beginStencilWrite(std::string_view action, int value, std::string &error) = 0;
 	virtual void endStencilWrite() = 0;
 	virtual void setStencilTest(std::string_view compare, int value) = 0;
+	virtual bool setStencilMode(std::string_view mode, int value, std::string &error) = 0;
 	virtual bool setMode(int width, int height, std::string &error) = 0;
 	virtual bool hasWindowFocus() const { return true; }
 	virtual bool hasWindowMouseFocus() const { return hasWindowFocus(); }
@@ -1040,6 +1041,9 @@ public:
 	virtual bool applyBodyTorque(BodyHandle body, float torque, std::string &error) = 0;
 	virtual FixtureHandle newFixture(BodyHandle body, ShapeHandle shape, float density,
 		std::string &error) = 0;
+	virtual bool getFixtureDistance(FixtureHandle fixtureA, FixtureHandle fixtureB,
+		float &distance, float &pointAX, float &pointAY,
+		float &pointBX, float &pointBY, std::string &error) const = 0;
 	virtual void releaseFixture(FixtureHandle fixture) = 0;
 	virtual bool isFixtureValid(FixtureHandle fixture) const = 0;
 	virtual bool setFixtureFriction(FixtureHandle fixture, float friction, std::string &error) = 0;
@@ -1529,6 +1533,7 @@ private:
 	static int audioSourceEqual(lua_State *state);
 	static int physicsSetMeter(lua_State *state);
 	static int physicsGetMeter(lua_State *state);
+	static int physicsGetDistance(lua_State *state);
 	static int physicsNewWorld(lua_State *state);
 	static int physicsNewBody(lua_State *state);
 	static int physicsNewFixture(lua_State *state);
@@ -1713,6 +1718,7 @@ private:
 		bool stencilTestEnabled = false;
 		std::string stencilCompare = "always";
 		int stencilValue = 0;
+		std::string stencilMode = "off";
 		GraphicsBackend::ShaderHandle shader = 0;
 		::love::StrongRef<::love::Object> shaderObject;
 		GraphicsBackend::FontHandle font = 0;
@@ -1733,6 +1739,7 @@ private:
 	bool _graphicsStencilTestEnabled = false;
 	std::string _graphicsStencilCompare = "always";
 	int _graphicsStencilValue = 0;
+	std::string _graphicsStencilMode = "off";
 	bool _graphicsStencilWriting = false;
 	std::vector<GraphicsState> _graphicsStateStack;
 	std::vector<GraphicsBackend::CanvasHandle> _graphicsCanvases;

@@ -350,6 +350,42 @@ int w_noise(lua_State *L)
 	return 1;
 }
 
+int w_perlinNoise(lua_State *L)
+{
+	int nargs = std::min(std::max(lua_gettop(L), 1), 4);
+	float args[4];
+
+	for (int i = 0; i < nargs; i++)
+		args[i] = (float) luaL_checknumber(L, i + 1);
+
+	float val = 0.0f;
+	if (nargs == 1) val = perlinNoise1(args[0]);
+	else if (nargs == 2) val = perlinNoise2(args[0], args[1]);
+	else if (nargs == 3) val = perlinNoise3(args[0], args[1], args[2]);
+	else val = perlinNoise4(args[0], args[1], args[2], args[3]);
+
+	lua_pushnumber(L, (lua_Number) val);
+	return 1;
+}
+
+int w_simplexNoise(lua_State *L)
+{
+	int nargs = std::min(std::max(lua_gettop(L), 1), 4);
+	float args[4];
+
+	for (int i = 0; i < nargs; i++)
+		args[i] = (float) luaL_checknumber(L, i + 1);
+
+	float val = 0.0f;
+	if (nargs == 1) val = simplexNoise1(args[0]);
+	else if (nargs == 2) val = simplexNoise2(args[0], args[1]);
+	else if (nargs == 3) val = simplexNoise3(args[0], args[1], args[2]);
+	else val = simplexNoise4(args[0], args[1], args[2], args[3]);
+
+	lua_pushnumber(L, (lua_Number) val);
+	return 1;
+}
+
 int w_compress(lua_State *L)
 {
 	using namespace love::data;
@@ -462,6 +498,8 @@ static const luaL_Reg functions[] =
 	{ "gammaToLinear", w_gammaToLinear },
 	{ "linearToGamma", w_linearToGamma },
 	{ "noise", w_noise },
+	{ "perlinNoise", w_perlinNoise },
+	{ "simplexNoise", w_simplexNoise },
 
 	// Deprecated.
 	{ "compress", w_compress },

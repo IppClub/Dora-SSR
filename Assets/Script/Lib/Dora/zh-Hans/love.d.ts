@@ -22,6 +22,7 @@ declare global {
 	type WrapMode = "clamp" | "clampzero" | "repeat" | "mirroredrepeat";
 	type TextureType = "2d" | "array" | "cube" | "volume";
 	type StencilAction = "replace" | "increment" | "decrement" | "incrementwrap" | "decrementwrap" | "invert";
+	type StencilMode = "off" | "draw" | "test" | "custom";
 	type CompareMode = "less" | "lequal" | "equal" | "gequal" | "greater" | "notequal" | "always" | "never";
 	type MeshDrawMode = "fan" | "strip" | "triangles" | "points";
 	type MeshUsage = "stream" | "dynamic" | "static";
@@ -762,6 +763,16 @@ declare global {
 			shaderderivatives: boolean;
 			glsl3: boolean;
 			instancing: boolean;
+		}
+		interface TextureFormatSettings {
+			/** 是否将格式用于渲染目标纹理。 */
+			canvas: boolean;
+			/** 是否要求格式支持计算着色器写入。 */
+			computewrite?: boolean;
+			/** 是否要求格式支持着色器原子操作。 */
+			shaderatomics?: boolean;
+			/** 是否要求该格式的纹理可由 CPU 读取。 */
+			readable?: boolean;
 		}
 		interface TextureTypes {
 			"2d": boolean;
@@ -3065,6 +3076,20 @@ declare global {
 		 */
 		getStencilTest(this: void): LuaMultiReturn<[CompareMode, number]>;
 		/**
+		 * 选择高级模板模式。"draw" 写入模板值但不写入颜色，"test" 仅在模板值等于给定值时绘制，"custom" 保留底层模板 API 配置的状态，"off" 则关闭模板操作。
+		 *
+		 * @param mode 模板模式。省略时默认为 "off"。
+		 * @param value "draw" 和 "test" 使用的模板参考值。默认为 1。
+		 */
+		setStencilMode(this: void, mode?: StencilMode, value?: number): void;
+		/**
+		 * 获取当前高级模板模式和参考值。
+		 *
+		 * @returns mode — 当前模板模式。
+		 * @returns value — 当前模板参考值。
+		 */
+		getStencilMode(this: void): LuaMultiReturn<[StencilMode, number]>;
+		/**
 		 * 从 TrueType 字体或 BMFont 文件创建新字体。创建的字体不会被缓存，因为使用相同的参数调用此函数将始终创建一个新的 Font 对象。
 		 *
 		 * 所有接受文件名的变体也可以接受数据对象。
@@ -3139,6 +3164,14 @@ declare global {
 		 * @returns text — 新的可绘制文本对象。
 		 */
 		newText(this: void, font: Font, text?: ColoredText): Text;
+		/**
+		 * 创建可绘制的文字批次。这是 LÖVE 12 对 LÖVE 11 中 Text 对象采用的新名称。
+		 *
+		 * @param font 文字批次使用的字体。
+		 * @param text 可选的初始彩色文字。
+		 * @returns textBatch — 新建的可绘制文字批次。
+		 */
+		newTextBatch(this: void, font: Font, text?: ColoredText): Text;
 		/**
 		 * 将已加载的字体设置为当前字体，或根据文件和大小创建并加载新字体。
 		 *
@@ -3385,6 +3418,14 @@ declare global {
 		 * @returns formats — 包含 CanvasFormats 作为键的表，以及一个指示是否支持该格式作为值的布尔值。并非所有系统都支持所有格式。取决于重载：包含 CanvasFormats 作为键的表，以及指示是否支持该格式作为值的布尔值（考虑到可读参数）。并非所有系统都支持所有格式。
 		 */
 		getCanvasFormats(this: void, readable?: boolean, formats?: CanvasFormats): CanvasFormats;
+		/**
+		 * 获取指定用途支持的纹理格式。必填的 canvas 字段选择渲染目标格式，其它字段会进一步限制报告的支持能力。
+		 *
+		 * @param settings 要查询的纹理格式用途要求。
+		 * @param target 可选的接收并返回结果的表。
+		 * @returns formats — 格式名称到是否支持指定用途的映射。
+		 */
+		getTextureFormats(this: void, settings: TextureFormatSettings, target?: CanvasFormats): CanvasFormats;
 		/**
 		 * 将绘图操作捕获到画布上。
 		 *
@@ -5762,6 +5803,32 @@ declare global {
  */
 		noise(this: void, x: number, y: number, z: number, w: number): number;
 		/**
+		 * 生成一至四维经典 Perlin 噪声。相同输入总会得到相同的 0 到 1 范围结果。
+		 *
+		 * @param x 第一维坐标。
+		 * @param y 可选的第二维坐标。
+		 * @param z 可选的第三维坐标。
+		 * @param w 可选的第四维坐标。
+		 * @returns value — 生成的 Perlin 噪声值。
+		 */
+		perlinNoise(this: void, x: number): number;
+		perlinNoise(this: void, x: number, y: number): number;
+		perlinNoise(this: void, x: number, y: number, z: number): number;
+		perlinNoise(this: void, x: number, y: number, z: number, w: number): number;
+		/**
+		 * 生成一至四维 Simplex 噪声。相同输入总会得到相同的 0 到 1 范围结果。
+		 *
+		 * @param x 第一维坐标。
+		 * @param y 可选的第二维坐标。
+		 * @param z 可选的第三维坐标。
+		 * @param w 可选的第四维坐标。
+		 * @returns value — 生成的 Simplex 噪声值。
+		 */
+		simplexNoise(this: void, x: number): number;
+		simplexNoise(this: void, x: number, y: number): number;
+		simplexNoise(this: void, x: number, y: number, z: number): number;
+		simplexNoise(this: void, x: number, y: number, z: number, w: number): number;
+		/**
 		 * love.data.compress 的弃用别名。
 		 *
 
@@ -6367,6 +6434,15 @@ declare global {
  * @returns errorstr — 发生错误时的错误字符串。
  */
 		newFile(this: void, filename: string, mode: OpenFileMode): File;
+		/**
+		 * 创建 File 并立即按指定模式打开。
+		 *
+		 * @param filename 虚拟文件系统中的文件路径。
+		 * @param mode 打开文件时使用的模式。
+		 * @returns file — 已打开的 File；打开失败时为 undefined。
+		 * @returns error — 打开失败时的错误信息。
+		 */
+		openFile(this: void, filename: string, mode: OpenFileMode): LuaMultiReturn<[File | undefined, string?]>;
 		/**
 		 * 从磁盘上的文件或内存中的字符串创建一个新的 FileData 对象。
 		 *
@@ -10043,6 +10119,18 @@ declare global {
 		 * @returns scale — 整数比例因子。
 		 */
 		getMeter(this: void): number;
+		/**
+		 * 计算两个夹具之间的最短距离，并返回每个夹具上的最近点。两个夹具必须属于同一个 World。
+		 *
+		 * @param fixture1 第一个夹具。
+		 * @param fixture2 第二个夹具。
+		 * @returns distance — 以像素为单位的最短距离。
+		 * @returns point1X — 第一个夹具最近点的 X 坐标。
+		 * @returns point1Y — 第一个夹具最近点的 Y 坐标。
+		 * @returns point2X — 第二个夹具最近点的 X 坐标。
+		 * @returns point2Y — 第二个夹具最近点的 Y 坐标。
+		 */
+		getDistance(this: void, fixture1: Fixture, fixture2: Fixture): LuaMultiReturn<[number, number, number, number, number]>;
 		/**
 		 * 创造一个新世界。
 		 *

@@ -87,6 +87,14 @@ static float noise1(float x);
 static float noise2(float x, float y);
 static float noise3(float x, float y, float z);
 static float noise4(float x, float y, float z, float w);
+static float perlinNoise1(float x);
+static float perlinNoise2(float x, float y);
+static float perlinNoise3(float x, float y, float z);
+static float perlinNoise4(float x, float y, float z, float w);
+static float simplexNoise1(float x);
+static float simplexNoise2(float x, float y);
+static float simplexNoise3(float x, float y, float z);
+static float simplexNoise4(float x, float y, float z, float w);
 
 
 class Math : public Module
@@ -153,6 +161,46 @@ static inline float noise3(float x, float y, float z)
 static inline float noise4(float x, float y, float z, float w)
 {
 	return Noise1234::noise(x, y, z, w) * 0.5f + 0.5f;
+}
+
+static inline float perlinNoise1(float x)
+{
+	return Noise1234::noise(x) * 0.5f + 0.5f;
+}
+
+static inline float perlinNoise2(float x, float y)
+{
+	return Noise1234::noise(x, y) * 0.5f + 0.5f;
+}
+
+static inline float perlinNoise3(float x, float y, float z)
+{
+	return Noise1234::noise(x, y, z) * 0.5f + 0.5f;
+}
+
+static inline float perlinNoise4(float x, float y, float z, float w)
+{
+	return Noise1234::noise(x, y, z, w) * 0.5f + 0.5f;
+}
+
+static inline float simplexNoise1(float x)
+{
+	return SimplexNoise1234::noise(x) * 0.5f + 0.5f;
+}
+
+static inline float simplexNoise2(float x, float y)
+{
+	return SimplexNoise1234::noise(x, y) * 0.5f + 0.5f;
+}
+
+static inline float simplexNoise3(float x, float y, float z)
+{
+	return SimplexNoise1234::noise(x, y, z) * 0.5f + 0.5f;
+}
+
+static inline float simplexNoise4(float x, float y, float z, float w)
+{
+	return SimplexNoise1234::noise(x, y, z, w) * 0.5f + 0.5f;
 }
 
 } // math

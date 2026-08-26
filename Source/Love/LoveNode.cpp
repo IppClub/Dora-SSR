@@ -72,6 +72,7 @@ SOFTWARE. */
 #include "playrho/d2/AABB.hpp"
 #include "playrho/d2/ContactImpulsesList.hpp"
 #include "playrho/d2/DistanceJointConf.hpp"
+#include "playrho/d2/Distance.hpp"
 #include "playrho/d2/DynamicTree.hpp"
 #include "playrho/d2/RayCastOutput.hpp"
 #include "playrho/d2/RevoluteJointConf.hpp"
@@ -9845,11 +9846,45 @@ void LoveNode::endStencilWrite()
 
 void LoveNode::setStencilTest(std::string_view compare, int value)
 {
-	if (_stencilCompare == compare && _stencilTestValue == value) return;
+	if (_stencilCompare == compare && _stencilTestValue == value && !_stencilWriting) return;
+	_stencilWriting = false;
 	_stencilCompare.assign(compare);
 	_stencilTestValue = value;
-	if (_graphicsFrameActive && !_renderPasses.empty() && !_stencilWriting)
+	if (_graphicsFrameActive && !_renderPasses.empty())
 		beginCommandSegment();
+}
+
+bool LoveNode::setStencilMode(std::string_view mode, int value, std::string &error)
+{
+	if (mode != "off" && mode != "draw" && mode != "test" && mode != "custom")
+	{
+		error = "unknown Love stencil mode";
+		return false;
+	}
+	if (mode == "custom")
+		mode = "off";
+	if (mode == "draw" && _activeCanvas != 0 && !_activeCanvasStencil)
+	{
+		error = "drawing to a Love Canvas stencil requires setCanvas({canvas, stencil=true})";
+		return false;
+	}
+	const bool writing = mode == "draw";
+	const std::string_view compare = mode == "test" ? "equal" : "always";
+	if (_stencilWriting == writing && _stencilCompare == compare
+		&& _stencilWriteValue == value && _stencilTestValue == value)
+	{
+		error.clear();
+		return true;
+	}
+	_stencilWriting = writing;
+	_stencilAction = "replace";
+	_stencilWriteValue = value;
+	_stencilCompare.assign(compare);
+	_stencilTestValue = value;
+	if (_graphicsFrameActive && !_renderPasses.empty())
+		beginCommandSegment();
+	error.clear();
+	return true;
 }
 
 bool LoveNode::setMode(int width, int height, std::string &error)
@@ -13048,6 +13083,73 @@ Love::PhysicsBackend::FixtureHandle LoveNode::newFixture(Love::PhysicsBackend::B
 	_physicsFixtures.emplace(handle, PhysicsFixtureResource{
 		bodyFound->second.world, body, fixtureId.get(), Love::PhysicsFilter{}});
 	error.clear(); return handle;
+}
+
+bool LoveNode::getFixtureDistance(Love::PhysicsBackend::FixtureHandle fixtureA,
+	Love::PhysicsBackend::FixtureHandle fixtureB, float &distance,
+	float &pointAX, float &pointAY, float &pointBX, float &pointBY,
+	std::string &error) const
+{
+	const auto foundA = _physicsFixtures.find(fixtureA);
+	const auto foundB = _physicsFixtures.find(fixtureB);
+	if (foundA == _physicsFixtures.end() || foundB == _physicsFixtures.end())
+	{
+		error = "cannot measure distance from a closed Love Fixture";
+		return false;
+	}
+	if (foundA->second.world != foundB->second.world)
+	{
+		error = "Love Fixtures must belong to the same World";
+		return false;
+	}
+	const auto worldFound = _physicsWorlds.find(foundA->second.world);
+	const auto bodyA = _physicsBodies.find(foundA->second.body);
+	const auto bodyB = _physicsBodies.find(foundB->second.body);
+	if (worldFound == _physicsWorlds.end() || !worldFound->second.world
+		|| !worldFound->second.world->getPrWorld()
+		|| bodyA == _physicsBodies.end() || !bodyA->second.body
+		|| bodyB == _physicsBodies.end() || !bodyB->second.body)
+	{
+		error = "Love Fixture World or Body is closed";
+		return false;
+	}
+	const auto &world = *worldFound->second.world->getPrWorld();
+	const auto shapeA = pd::GetShape(world, pr::ShapeID{foundA->second.shape});
+	const auto shapeB = pd::GetShape(world, pr::ShapeID{foundB->second.shape});
+	if (pd::GetChildCount(shapeA) == 0 || pd::GetChildCount(shapeB) == 0)
+	{
+		error = "Love Fixture has no measurable shape child";
+		return false;
+	}
+	const auto proxyA = pd::GetChild(shapeA, pr::ChildCounter{0});
+	const auto proxyB = pd::GetChild(shapeB, pr::ChildCounter{0});
+	const auto output = pd::Distance(proxyA,
+		pd::GetTransformation(world, bodyA->second.body->getPrBody()), proxyB,
+		pd::GetTransformation(world, bodyB->second.body->getPrBody()));
+	auto points = pd::GetWitnessPoints(output.simplex);
+	const auto delta = points.second - points.first;
+	const auto coreDistance = pr::GetMagnitude(delta);
+	const auto totalRadius = proxyA.GetVertexRadius() + proxyB.GetVertexRadius();
+	if (coreDistance > totalRadius && coreDistance > pr::Length{0})
+	{
+		points.first += delta * (proxyA.GetVertexRadius() / coreDistance);
+		points.second -= delta * (proxyB.GetVertexRadius() / coreDistance);
+		distance = static_cast<float>(pr::Real{(coreDistance - totalRadius) / pr::Meter})
+			* _physicsMeter;
+	}
+	else
+	{
+		const auto midpoint = (points.first + points.second) / pr::Real{2};
+		points.first = midpoint;
+		points.second = midpoint;
+		distance = 0.0f;
+	}
+	pointAX = static_cast<float>(pr::Real{pr::GetX(points.first) / pr::Meter}) * _physicsMeter;
+	pointAY = static_cast<float>(pr::Real{pr::GetY(points.first) / pr::Meter}) * _physicsMeter;
+	pointBX = static_cast<float>(pr::Real{pr::GetX(points.second) / pr::Meter}) * _physicsMeter;
+	pointBY = static_cast<float>(pr::Real{pr::GetY(points.second) / pr::Meter}) * _physicsMeter;
+	error.clear();
+	return true;
 }
 
 void LoveNode::releaseFixture(Love::PhysicsBackend::FixtureHandle fixture)

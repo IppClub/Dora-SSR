@@ -138,12 +138,12 @@ wrapper 中的模块获取必须显式使用当前 `lua_State`。不能用 `thre
 
 兼容迁移期可以保留原版全局 registry 供未迁移代码使用，但已迁移 wrapper 的测试必须证明不会访问它。最终应删除或编译期禁止 LoveNode 路径使用全局模块实例。
 
-### 上游源码与 Patch 边界
+### 上游源码与 Vendor 边界
 
 - `Source/3rdParty/Love/` 保存固定到 Love 11.5 tag/commit 的上游文件。
 - 能通过 Dora adapter 解决的问题不得修改上游文件。
-- 必须修改上游 wrapper/common runtime 时，以最小 patch 记录在 `Source/Love/Patches/`。
-- `DORA_SOURCE.md` 记录恢复的文件清单、上游哈希、patch 顺序和刷新命令。
+- 必须修改上游 wrapper/common runtime 时，直接修改 vendored tree，并以独立、可审阅的 Git 提交记录原因和兼容影响。
+- `DORA_SOURCE.md` 记录固定上游版本、恢复的文件边界和刷新命令，不再维护重复 patch 快照。
 - `UpstreamSourceSubsetAudit.mjs` 更新为验证“所选完整模块子树”，而不是继续假设只保留 wrapper 文件。
 - 不把生成产物、测试结果或平台二进制提交进上游源码目录。
 
@@ -190,17 +190,17 @@ wrapper 中的模块获取必须显式使用当前 `lua_State`。不能用 `thre
 | --- | --- | --- | --- |
 | W0-01 | 已完成 | 固定当前自写 binding API 与行为快照 | Runtime、API parity、声明和固定 Love 游戏语料结果归档 |
 | W0-02 | 已完成 | 统计每个模块当前自写函数、userdata 和 backend 方法 | API parity 直接从上游 method table 抽取方法面，并对已迁移模块断言原版 wrapper 唯一注册、旧 parser 不得回流 |
-| W0-03 | 已完成 | 标记上游 wrapper 依赖的源码闭包 | 当前目标模块闭包已进入固定源码清单、xmake 源列表、上游 hash/补丁与五平台构建审计 |
-| W0-04 | 不适用 | 建立 old/new binding 测试构建开关 | 实施改为每个模块一组独立有序 patch，以 patch/提交回退取代长期双路径，发布构建始终只有一套注册 |
+| W0-03 | 已完成 | 标记上游 wrapper 依赖的源码闭包 | 当前目标模块闭包已进入固定源码清单、xmake 源列表、上游 hash 与五平台构建审计 |
+| W0-04 | 不适用 | 建立 old/new binding 测试构建开关 | 实施以独立 Git 提交回退取代长期双路径，发布构建始终只有一套注册 |
 
-阶段门槛：没有基线回归、文件闭包和模块级可回退 patch/提交时，不开始替换运行路径。
+阶段门槛：没有基线回归、文件闭包和模块级可回退提交时，不开始替换运行路径。
 
 ### W1：按 Lua State 隔离 Module Context
 
 | ID | 状态 | 任务 | 验收标准 |
 | --- | --- | --- | --- |
 | W1-01 | 已完成 | 以 Lua registry 实现 state-local 模块上下文 | 一个 state 只能取得自己的模块实例 |
-| W1-02 | 已完成 | 为上游 wrapper 提供 state-local `luax_getmodule` | helper 不读取 `Module::instances[]`，统一 patch 可从 11.5 干净源码应用 |
+| W1-02 | 已完成 | 为上游 wrapper 提供 state-local `luax_getmodule` | helper 不读取 `Module::instances[]`，与固定 Love 11.5 来源差异可由 Git 审阅 |
 | W1-03 | 已完成 | 调整模块注册、关闭和异常回滚 | registry 延迟发布；构造后 type 注册失败不会留下模块或 Proxy 引用 |
 | W1-04 | 已完成 | 双 LoveNode 交叉隔离和重启压力测试 | 关闭一个 state 后另一个继续调用，关闭 state 可重新打开 |
 | W1-05 | 已完成 | Thread worker 模块上下文验证 | worker state 独立取得并释放模块且不污染全局 singleton |
@@ -211,10 +211,10 @@ wrapper 中的模块获取必须显式使用当前 `lua_State`。不能用 `thre
 
 | ID | 状态 | 任务 | 验收标准 |
 | --- | --- | --- | --- |
-| W2-01 | 已完成 | 按模块恢复 Love 11.5 上游源码 | math/data、Filesystem/File/FileData、Sound/Decoder/SoundData、Image/ImageData/CompressedImageData、Font/Rasterizer/GlyphData、Graphics、Audio Source、Video、Thread/Channel、平台输入，以及 Physics 的 backend-neutral 基类和全部对象 wrapper 已恢复；当前 328 文件、117 个未修改文件 SHA-256、58 个未修改 wrapper 和 71 个切片 patch 通过审计 |
+| W2-01 | 已完成 | 按模块恢复 Love 11.5 上游源码 | math/data、Filesystem/File/FileData、Sound/Decoder/SoundData、Image/ImageData/CompressedImageData、Font/Rasterizer/GlyphData、Graphics、Audio Source、Video、Thread/Channel、平台输入，以及 Physics 的 backend-neutral 基类和全部对象 wrapper 已恢复；当前 328 文件、117 个未修改文件 SHA-256 和 58 个未修改 wrapper 通过审计 |
 | W2-02 | 已完成 | 更新 xmake 独立构建单元 | macOS arm64、iOS arm64/模拟器双架构、Android 三 ABI、Linux x86_64 Zig、Windows x86_64 Zig/MinGW 均由当前 xmake 源码构建通过；standalone CMake、Windows 完整交叉测试目标和 Dora Xcode Debug 亦通过 |
 | W2-03 | 已完成 | 更新源码子集和许可证审计 | 当前全部目标模块闭包、许可证、五平台构建清单与 Box2D/原生平台实现排除规则均已纳入自动审计 |
-| W2-04 | 已完成 | 建立 patch 应用和刷新流程 | 71 个编号 patch 保留模块切片的细粒度审阅与反向校验记录；因部分切片会刷新同一文件，它们不作为串行发布补丁。规范恢复入口为 `dora-love-11.5-consolidated.patch.gz`，`verify_love_upstream_replay.sh` 已从固定 Love 11.5 commit 干净应用并逐一比对 324 个 vendored 源文件/构建文件 |
+| W2-04 | 已完成 | 建立 vendor 刷新流程 | `DORA_SOURCE.md` 固定 Love 11.5 来源和 curated subset 边界；源码审计锁定保留文件及未修改文件哈希，Dora 差异直接通过 Git 提交审阅，不维护重复 patch 快照 |
 
 阶段门槛：恢复源码不改变默认运行路径，五平台至少完成编译清单审计。
 
@@ -266,7 +266,7 @@ wrapper 中的模块获取必须显式使用当前 `lua_State`。不能用 `thre
 | W6-01 | 已完成 | Audio/Source/Queueable wrapper 迁移 | Source 使用原版 Type/对象契约和 wrapper；SoLoud 仍是唯一输出设备，queue/effects/filter/voice budget 回归与多平台 SoLoud 生命周期 workflow 通过；物理设备可听输出归人工验收 |
 | W6-02 | 已完成 | Event/Window/Input/System/Timer wrapper 迁移 | System、Timer、Event、Window、Keyboard、Mouse/Cursor、Touch、Joystick 已切换为原版 wrapper 与 state-local Dora backend。虚拟窗口和 Dora 事件路由不被上游 SDL module 接管；macOS、Windows、Linux、Android AVD 与 iOS Simulator 运行 workflow 已通过，物理输入/触觉/麦克风体验归人工验收 |
 | W6-03 | 已完成 | Thread/Channel wrapper 迁移 | 原版 Thread/Channel Type、对象契约和 wrapper 已接管公开 API；Dora 保留 Lua 5.5 worker、Content 请求泵、runtime-scoped Channel、取消和 join。普通/sanitizer Runtime 与 macOS、Windows、Linux、Android AVD、iOS Simulator 两代 Thread restart/isolation workflow 已通过 |
-| W6-04 | 已完成 | Physics wrapper 和对象层迁移 | backend-neutral Type 以及 Body、World、Fixture、Contact、Shape、Joint wrapper 已由 Dora PlayRho 对象实现；Dora filter、contact callback、ghost/one-sided edge、全部 Joint 子类型、完整 sanitizer、五平台当前源码运行 workflow 和规范补丁重放已通过 |
+| W6-04 | 已完成 | Physics wrapper 和对象层迁移 | backend-neutral Type 以及 Body、World、Fixture、Contact、Shape、Joint wrapper 已由 Dora PlayRho 对象实现；Dora filter、contact callback、ghost/one-sided edge、全部 Joint 子类型、完整 sanitizer、五平台当前源码运行 workflow 和源码审计已通过 |
 | W6-05 | 已完成 | Video wrapper 迁移 | Video/VideoStream 使用原版 Type、对象与 wrapper；Theora、Video drawable、音视频同步和 VideoNode 共用依赖通过，五平台 Ogg/Theora Content/RenderTarget 解码 workflow 已通过 |
 
 阶段门槛：所有模块保持 Dora 平台设施唯一所有权，多 LoveNode 和应用级共享状态符合既有设计。
@@ -305,7 +305,7 @@ state-local DoraLoveThreadModule + DoraLoveLuaThread + DoraLoveChannel
 | W7-01 | 已完成 | 删除 old binding 测试开关和失效实现 | 发布构建没有 old/new binding 开关；API parity 持续断言原版 wrapper 唯一注册且旧 parser 不得回流 |
 | W7-02 | 已完成 | 拆分或缩减 `LoveRuntime.cpp` | `LoveRuntime.cpp` 由 17,924 行缩减为约 1,172 行，只呈现 state、boot、调度、错误和模块装配；adapter 与 backend-neutral 对象实现移入 `LoveRuntimeAdapters.inc`，保持单一编译单元和内部类型可见性 |
 | W7-03 | 已完成 | 更新 TS/Teal 文档生成和 API 对账 | API parity 直接读取 Love 11.5 wrapper method table，并对英中 TypeScript/Teal 四份声明执行 4,324 项方法对账 |
-| W7-04 | 已完成 | 五平台 CI、Sanitizer 和游戏语料验收 | 五平台当前源码构建及核心运行 workflow、macOS 普通/ASan+UBSan CTest 12/12 与 36/36 集成 workflow、官方兼容快照 231 pass/0 fail/60 skip 已通过；Android `32886811734`、iOS `32886815756`、Linux `32886819237`、macOS `32886823057` 及修复 MSVC 类名歧义后的 Windows `32888321145` 五套 CI 全部成功。物理设备输入、麦克风和可听输出按约定留给人工验收，不由模拟器/注入事件替代 |
+| W7-04 | 已完成 | 五平台 CI、Sanitizer 和游戏语料验收 | 五平台当前源码构建及核心运行 workflow、macOS 普通/ASan+UBSan CTest 与集成 workflow、官方兼容快照 238 pass/0 fail/53 skip 已通过；Android `32886811734`、iOS `32886815756`、Linux `32886819237`、macOS `32886823057` 及修复 MSVC 类名歧义后的 Windows `32888321145` 五套既有 CI 全部成功。物理设备输入、麦克风和可听输出按约定留给人工验收，不由模拟器/注入事件替代 |
 | W7-05 | 已完成 | 更新公开教程和兼容说明 | LoveNode 英中教程以 API 数量比和兼容专项展示实际边界；已迁移 API 不再统称为 Dora 手写近似 binding，仅 SoLoud 等 backend 语义差异保留明确说明 |
 
 阶段门槛：移除双路径，源码、构建、文档和发布包均无旧 binding 残留。
@@ -316,13 +316,13 @@ state-local DoraLoveThreadModule + DoraLoveLuaThread + DoraLoveChannel
 
 1. **依赖闭包盘点**：列出 wrapper、对象类型、模块基类、Lua helper、平台依赖和三方库；明确哪些恢复、哪些裁剪。
 2. **基线固定**：为当前 Dora binding 建立 API parity、错误路径、生命周期和真实 LoveNode 回归；未验证行为不能在迁移后被声称兼容。
-3. **恢复上游对象层**：优先原样复制 Love 11.5 文件并固定 SHA-256；需要修改的文件从 hash 清单移入有序 patch。
+3. **恢复上游对象层**：优先原样复制 Love 11.5 文件并固定 SHA-256；需要修改的文件退出未修改 hash 清单，并以独立 Git 提交记录。
 4. **建立 state-local factory**：`luaopen_love_*` 只创建或获取当前 `lua_State` 的模块；模块对象保存所属 `LoveRuntime`/backend，不读取进程级 singleton。
 5. **实现 Dora adapter**：只实现抽象 factory、资源上传、I/O 或设备调用，不复制公开 Lua 参数解析。
 6. **切换运行注册**：由 `luaopen_love_*` 注册模块和对象，旧表仅在短期测试分支用于对照。
 7. **删除重复实现**：删除旧函数、userdata、metatable、枚举转换和生命周期包装；检查 `LoveRuntime.cpp` 不再保留同名 API。
 8. **四层验收**：依次通过 Binding、对象生命周期、LoveNode workflow、平台/游戏语料验证。
-9. **更新审计和文档**：同步源码清单、固定 hash、patch 顺序、五平台构建清单、TS/Teal API 对账和本进度表。
+9. **更新审计和文档**：同步源码清单、固定 hash、五平台构建清单、TS/Teal API 对账和本进度表。
 
 一个任务只有在第 1～9 项全部完成后才能标记“已完成”。仅通过编译应标记“实现中”，通过 Runtime 单测但未完成 sanitizer/平台构建应标记“待完整验收”。
 
@@ -331,7 +331,7 @@ state-local DoraLoveThreadModule + DoraLoveLuaThread + DoraLoveChannel
 | 范围 | 当前状态 | 下一门槛 |
 | --- | --- | --- |
 | Module context | 已完成 | 持续以双 LoveNode、restart 和 worker 隔离测试守护 |
-| Math / Data | 已完成 | 保持原版 wrapper 和 Lua 5.5 patch 审计 |
+| Math / Data | 已完成 | 保持原版 wrapper，并由源码 hash 与 Git 历史审计 Lua 5.5 差异 |
 | Filesystem / File / FileData | 已完成 | 保持 Content-only、路径安全和 archive 回归 |
 | Sound / Decoder / SoundData | 已完成 | 已由 Audio/Source 原版对象层直接复用 |
 | Font / Rasterizer / GlyphData | 已完成 | 后续 Graphics Text/Font 迁移不得重建平行 userdata |
@@ -345,9 +345,9 @@ state-local DoraLoveThreadModule + DoraLoveLuaThread + DoraLoveChannel
 | Video | 已完成 | 原版 Video/VideoStream Type、对象方法及 `newVideo` Lua constructor 负责 API 语义；Dora 保持 Content/Theora/纹理上传/SoLoud backend，五平台运行 workflow 通过 |
 | Thread / Channel | 已完成 | 上游对象契约与 wrapper 已接管公开 API，Dora Lua 5.5 worker/backend 保持唯一所有权；`captureScreenshot(Channel)` 使用同一上游 Channel Type，五平台 restart/isolation workflow 通过 |
 | 平台模块 | 已完成 | System、Timer、Event、Window、Keyboard、Mouse/Cursor、Touch、Joystick 均已迁移；完整 sanitizer 与五平台当前源码运行矩阵通过，物理 I/O 归人工验收 |
-| Physics | 已完成 | Body、World、Fixture、Contact、Shape、Joint 已使用原版或按原版 method table 适配的 wrapper；PlayRho 继续作为唯一 backend，并保留 Dora filter、contact callback、ghost/one-sided edge 规则；standalone、sanitizer、五平台运行 workflow 与规范补丁重放通过 |
+| Physics | 已完成 | Body、World、Fixture、Contact、Shape、Joint 已使用原版或按原版 method table 适配的 wrapper；PlayRho 继续作为唯一 backend，并保留 Dora filter、contact callback、ghost/one-sided edge 规则；standalone、sanitizer、五平台运行 workflow 与源码审计通过 |
 
-实施结果：Graphics、Audio Source、Video、Thread/Channel、截图、System、Timer、Event、Window、Input 与 Physics 全对象族已完成原版 wrapper 收敛；完整补丁重放、sanitizer、五平台当前源码构建和核心运行矩阵已通过。`draw(texture, transform)`、`draw(texture, quad, transform)` 以及已迁移高层 Drawable 的 Transform 重载均由原版 parser 和 state-local command adapter 统一处理，不再在 Dora binding 中逐个补重载。发布前剩余门槛是当前变更提交后的 CI；物理设备 I/O 依照约定由人工验收。
+实施结果：Graphics、Audio Source、Video、Thread/Channel、截图、System、Timer、Event、Window、Input 与 Physics 全对象族已完成原版 wrapper 收敛；源码审计、sanitizer、五平台当前源码构建和核心运行矩阵已通过。`draw(texture, transform)`、`draw(texture, quad, transform)` 以及已迁移高层 Drawable 的 Transform 重载均由原版 parser 和 state-local command adapter 统一处理，不再在 Dora binding 中逐个补重载。发布前剩余门槛是当前变更提交后的 CI；物理设备 I/O 依照约定由人工验收。
 
 ## 测试与验收矩阵
 
@@ -363,6 +363,8 @@ state-local DoraLoveThreadModule + DoraLoveLuaThread + DoraLoveChannel
 Graphics 还必须包含像素读回、Canvas pass 顺序、Shader、Stencil、Blend、Transform 和高 DPI；Audio 必须包含 PCM/状态回归与人工听感边界；Input、Recording 和设备能力继续区分自动化与物理设备人工验证。
 
 ## 实施进度记录
+
+以下条目按实施当时的验证方式保留历史记录，其中出现的编号 patch 或“重放”仅表示当时的迁移切片证据，不再对应仓库中的维护文件。当前维护以 vendored 源码、固定上游信息、源码审计和 Git 历史为准。
 
 ### 2026-08-25：state-local 基础与完整 `love.math` 上游 wrapper
 
@@ -506,7 +508,7 @@ Graphics 还必须包含像素读回、Canvas pass 顺序、Shader、Stencil、B
 - 从 Love 11.5 `wrap_Graphics.cpp` 拆出保持原逻辑的 `wrap_GraphicsDraw.cpp/.h`：`w_draw/w_drawLayer` 继续负责 Drawable/Texture/Quad 重载选择、nil Quad 错误和标准 Matrix4 解析，只把最终 native Graphics 调用替换为当前 Lua State 的 `GraphicsDrawCommand`。`0018` 完整记录这一依赖裁剪与 state-local 接入修改。
 - `love.graphics.draw` 和 `drawLayer` 的注册已切到原版 wrapper；平行 `LoveRuntime::graphicsDrawLayer` 已删除并由 API audit 禁止回归。Image/Canvas 的 command adapter 直接消费 wrapper 传入的对象与 Matrix4，覆盖 `draw(texture, Transform)`、`draw(texture, Quad, Transform)`、ArrayImage/array Canvas 的 `drawLayer` 及错误边界，不再重新解析 Lua 参数。
 - Mesh、SpriteBatch、ParticleSystem、Text 和 Video 已经过原版公开 `w_draw` 选择 Drawable，但其 Dora backend 命令体仍暂时消费现有 Lua stack；这些实现分别归 W5-04/W5-05/W6-05 删除，不能据此宣称整个 Graphics binding 已完成迁移。
-- 本切片完整 standalone CTest 12/12、ASan+UBSan Runtime 1/1、macOS universal Debug `liblove.a`、xmake `love` target 与 Dora Xcode Debug arm64 主目标通过。源码审计为 213 文件/111 hash/18 patch/72 个 xmake 源；18 个 patch 在干净 Love 11.5 tree 顺序重放后覆盖 30 个文件，和 vendored tree 比较 mismatch=0。P5-50 与 W5-02 已关闭，下一门槛是 W5-03 Canvas wrapper 和 Graphics 状态栈。
+- 本切片完整 standalone CTest 12/12、ASan+UBSan Runtime 1/1、macOS universal Debug `liblove.a`、xmake `love` target 与 Dora Xcode Debug arm64 主目标通过。源码审计为 213 文件/111 hash/72 个 xmake 源；迁移差异与 vendored tree 核对一致。P5-50 与 W5-02 已关闭，下一门槛是 W5-03 Canvas wrapper 和 Graphics 状态栈。
 
 ### Graphics Canvas 原版 Lua wrapper
 
@@ -763,7 +765,7 @@ Graphics 还必须包含像素读回、Canvas pass 顺序、Shader、Stencil、B
 
 - `0070` 恢复 Joint 公共接口以及 Distance、Revolute、Prismatic、Weld、Friction、Rope、Pulley、Wheel、Mouse、Motor、Gear 十一个子类型的方法表与参数解析；Dora 的单一 Joint userdata 继承 backend-neutral `Joint`，具体约束操作仍转交 state-local PlayRho backend。
 - wrapper 保留 Love 的 subtype `type/typeOf`、deprecated alias、关系对象和任意 Lua user data 语义；销毁统一进入 `destroyPhysicsJointObject`，释放 Dora handle、对象索引和关联引用，重复销毁按 Love 语义报错。
-- 旧 `LoveRuntime::physics*Joint*` parser 和手写方法表已删除；当前源码审计为 328 文件/117 hash/58 个未修改 wrapper/139 个 xmake 源，71 个切片 patch，API parity 303+427、声明 4324。standalone CTest 12/12、ASan CTest 12/12、源码/API/平台清单、macOS arm64 xmake、Dora Xcode Debug 和 `0070` 定向重放均通过；`0071` 补齐 Android NDK 21 `<cmath>` 依赖。规范总补丁另从固定 Love 11.5 commit 干净应用并逐一比对 324 个文件；五平台 Physics 运行 workflow 后续已完成。
+- 旧 `LoveRuntime::physics*Joint*` parser 和手写方法表已删除；当前源码审计为 328 文件/117 hash/58 个未修改 wrapper/139 个 xmake 源，API parity 303+427、声明 4324。standalone CTest 12/12、ASan CTest 12/12、源码/API/平台清单、macOS arm64 xmake 与 Dora Xcode Debug 均通过；Android NDK 21 `<cmath>` 依赖已补齐，五平台 Physics 运行 workflow 后续已完成。
 
 ### 五平台当前源码构建
 
@@ -780,7 +782,7 @@ Graphics 还必须包含像素读回、Canvas pass 顺序、Shader、Stencil、B
 - Ubuntu 26.04 ARM64 VM 以 Xvfb/Mesa llvmpipe OpenGL ES 3.0 从标准 `Script.Dev.Entry` 启动当前 ELF，通过 Thread/Video、Mouse/Cursor、Canvas readback、PlayRho Physics 与十三场景 Graphics workflow。Xvfb 与 dummy audio 不计作真实 GPU、物理输入或可听音频证据。
 - Android 14 / API 34 arm64 AVD 从 APK assets 冷启动，通过双实例、十三场景 OpenGL ES Graphics、完整 Physics、两代 Thread、Ogg/Theora VideoNode、系统单触/双触点、键盘与 IME workflow；真机手势、物理键盘/手柄、触觉、麦克风和可听输出仍属人工验收。
 - iPhone 17 / iOS 26.5 Simulator 以 arm64/x86_64 universal 产物安装运行，通过双实例、十三场景 Metal Graphics、完整 Physics、两代 Thread、Ogg/Theora VideoNode、Canvas/readback、MSAA、CompressedImage、SoLoud 和 AVAudioSession workflow；真机物理 I/O 仍属人工验收。
-- 固定官方兼容快照为 231 pass/0 fail/60 skip。上述非 macOS 证据是当前源码的虚拟机/模拟器运行证据，不将注入输入、dummy audio 或软件渲染扩大为真实设备体验。
+- 固定官方兼容快照现为 238 pass/0 fail/53 skip。上述非 macOS 证据是虚拟机/模拟器运行证据，不将注入输入、dummy audio 或软件渲染扩大为真实设备体验。
 
 ### macOS 完整运行验收与关闭期物理生命周期
 
@@ -790,6 +792,13 @@ Graphics 还必须包含像素读回、Canvas pass 顺序、Shader、Stencil、B
 - Physics workflow 首次完整退出暴露关闭期 EndContact 回调访问正在清空的 Fixture 对象表。Runtime 现在在对象 teardown 前解除每个 World 的 callback，并在 query/raycast/contact 路径同时检查 registry reference 与 concrete object；修复后 Physics workflow 通过且 Dora 进程继续运行。
 - 分别以新进程运行 Physics workflow 和 Dora 既有功能回归后发送 `SIGINT`，两者均干净退出。重建 Dora 后再次连续运行全部 36 项 workflow 并退出，同样无 `Object` 引用计数告警；此前单次不可复现的长序列告警由该复测关闭。
 - 最终 standalone 普通 CTest 12/12、ASan+UBSan CTest 12/12、xmake `love`、Xcode Debug arm64、规范总补丁从固定 Love 11.5 commit 重放并逐一比对 324 个文件全部通过。
+
+### 选定 Love 12 API 的前向兼容切片
+
+- `0072` 在固定 Love 11.5 子集上增加 `perlinNoise/simplexNoise`、`openFile`、`getTextureFormats` 和高层 stencil mode wrapper；Simplex 1D～4D 与双精度实现固定取自 Love main commit `48b5e130…`。这不是整体切换到未发布 Love 12，也不导入其 SDL、renderer、filesystem 或 Lua 环境。
+- `newTextBatch` 直接注册到已经迁移的上游 `w_newText`，继续返回现有 Text 对象；`getDistance` 则纠正此前分类，它是 Love 11.5 既有 API，Lua parser 进入 state-local PlayRho Fixture backend 并返回距离及两个 witness point。
+- Dora-owned adapter 继续负责 Content I/O、bgfx texture capability、stencil render state 和 PlayRho 距离计算。`openFile` 不开放宿主文件旁路；compute-write/shader-atomic 格式在 Dora 无对应能力时明确为 false；stencil mode 纳入 `push("all")/pop/reset`。
+- 当前 parity 为 303 Graphics + 430 core，英中 TypeScript/Teal 为 4356 method checks；官方固定子集新增七个用例组后为 238 pass/0 fail/53 skip。源码审计为 328 文件、116 个未修改上游 hash 和 58 个 wrapper；修改后的 vendored 文件由 Git 历史维护，不再同步生成 patch 快照。
 
 ## 回退策略
 

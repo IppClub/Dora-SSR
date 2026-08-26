@@ -3828,6 +3828,11 @@ PhysicsShapeUserdata *checkPhysicsShape(lua_State *state, int index)
 	return ::love::luax_checktype<PhysicsShapeUserdata>(state, index, ::love::physics::Shape::type);
 }
 
+PhysicsFixtureUserdata *checkPhysicsFixture(lua_State *state, int index)
+{
+	return ::love::luax_checktype<PhysicsFixtureUserdata>(state, index, ::love::physics::Fixture::type);
+}
+
 PhysicsJointUserdata *checkPhysicsJoint(lua_State *state, int index)
 {
 	return ::love::luax_checktype<PhysicsJointUserdata>(state, index, ::love::physics::Joint::type);
@@ -5930,6 +5935,7 @@ end
 	_graphicsStencilTestEnabled = false;
 	_graphicsStencilCompare = "always";
 	_graphicsStencilValue = 0;
+	_graphicsStencilMode = "off";
 	_graphicsStencilWriting = false;
 	_graphicsCanvasDepthStencil = 0;
 	_graphicsCanvasDepthStencilTarget = {};
@@ -7807,6 +7813,31 @@ int LoveRuntime::physicsGetMeter(lua_State *state)
 	auto *runtime = runtimeFromUpvalue(state);
 	lua_pushnumber(state, runtime->_physicsMeter);
 	return 1;
+}
+
+int LoveRuntime::physicsGetDistance(lua_State *state)
+{
+	auto *runtime = runtimeFromUpvalue(state);
+	auto *fixtureA = checkPhysicsFixture(state, 1);
+	auto *fixtureB = checkPhysicsFixture(state, 2);
+	luaL_argcheck(state, runtime && runtime->_physicsBackend, 1,
+		"Love physics backend is unavailable");
+	luaL_argcheck(state, fixtureA->runtime == runtime && fixtureA->handle != 0,
+		1, "Fixture is destroyed or belongs to another Love state");
+	luaL_argcheck(state, fixtureB->runtime == runtime && fixtureB->handle != 0,
+		2, "Fixture is destroyed or belongs to another Love state");
+	float distance = 0.0f;
+	float pointAX = 0.0f, pointAY = 0.0f, pointBX = 0.0f, pointBY = 0.0f;
+	std::string error;
+	if (!runtime->_physicsBackend->getFixtureDistance(fixtureA->handle, fixtureB->handle,
+		distance, pointAX, pointAY, pointBX, pointBY, error))
+		return luaL_error(state, "%s", error.c_str());
+	lua_pushnumber(state, distance);
+	lua_pushnumber(state, pointAX);
+	lua_pushnumber(state, pointAY);
+	lua_pushnumber(state, pointBX);
+	lua_pushnumber(state, pointBY);
+	return 5;
 }
 
 int LoveRuntime::physicsNewWorld(lua_State *state)
@@ -11876,6 +11907,38 @@ DoraLoveGraphics::BoolFields DoraLoveGraphics::getCanvasFormats(bool readable) c
 	return result;
 }
 
+DoraLoveGraphics::BoolFields DoraLoveGraphics::getTextureFormats(bool canvas,
+	int readable, bool computeWrite, bool shaderAtomics) const
+{
+	if (!_runtime->_graphicsBackend)
+		throw ::love::Exception("love.graphics is not attached to a Dora graphics backend");
+	if (!canvas)
+	{
+		auto result = getImageFormats();
+		if (computeWrite || shaderAtomics)
+			for (auto &entry : result) entry.second = false;
+		return result;
+	}
+
+	static constexpr std::string_view formats[] = {
+		"normal", "hdr", "r8", "rg8", "rgba8", "srgba8", "r16", "rg16",
+		"rgba16", "r16f", "rg16f", "rgba16f", "r32f", "rg32f", "rgba32f",
+		"la8", "rgba4", "rgb5a1", "rgb565", "rgb10a2", "rg11b10f",
+		"stencil8", "depth16", "depth24", "depth32f", "depth24stencil8",
+		"depth32fstencil8"};
+	BoolFields result;
+	result.reserve(std::size(formats));
+	for (const auto format : formats)
+	{
+		const bool depthStencil = format.starts_with("depth") || format == "stencil8";
+		const bool formatReadable = readable < 0 ? !depthStencil : readable != 0;
+		const bool supported = !computeWrite && !shaderAtomics
+			&& _runtime->_graphicsBackend->isCanvasFormatSupported(format, formatReadable);
+		result.emplace_back(format, supported);
+	}
+	return result;
+}
+
 DoraLoveGraphics::RendererInfo DoraLoveGraphics::getRendererInfo() const
 {
 	if (!_runtime->_graphicsBackend)
@@ -12427,6 +12490,7 @@ int LoveRuntime::pushGraphicsState(lua_State *state, bool saveAll)
 		saved.stencilTestEnabled = runtime->_graphicsStencilTestEnabled;
 		saved.stencilCompare = runtime->_graphicsStencilCompare;
 		saved.stencilValue = runtime->_graphicsStencilValue;
+		saved.stencilMode = runtime->_graphicsStencilMode;
 		saved.shader = runtime->_graphicsShader;
 		saved.shaderObject = runtime->_graphicsShaderObject;
 		saved.font = runtime->_currentFont;
@@ -12470,7 +12534,8 @@ int LoveRuntime::popGraphicsState(lua_State *state)
 			|| saved.frontFaceWinding != runtime->_graphicsFrontFaceWinding;
 		const bool wireframeChanged = saved.wireframe != runtime->_graphicsWireframe;
 		const bool stencilChanged = saved.stencilCompare != runtime->_graphicsStencilCompare
-			|| saved.stencilValue != runtime->_graphicsStencilValue;
+			|| saved.stencilValue != runtime->_graphicsStencilValue
+			|| saved.stencilMode != runtime->_graphicsStencilMode;
 		std::copy(std::begin(saved.color), std::end(saved.color), runtime->_graphicsColor);
 		std::copy(std::begin(saved.backgroundColor), std::end(saved.backgroundColor),
 			runtime->_graphicsBackgroundColor);
@@ -12516,7 +12581,15 @@ int LoveRuntime::popGraphicsState(lua_State *state)
 				runtime->_graphicsBackend->setMeshCullMode(saved.meshCullMode, saved.frontFaceWinding);
 			if (wireframeChanged) runtime->_graphicsBackend->setWireframe(saved.wireframe);
 			if (stencilChanged)
-				runtime->_graphicsBackend->setStencilTest(saved.stencilCompare, saved.stencilValue);
+			{
+				std::string error;
+				if (!runtime->_graphicsBackend->setStencilMode(
+					saved.stencilMode, saved.stencilValue, error))
+					return luaL_error(state, "%s", error.c_str());
+				if (saved.stencilMode == "custom")
+					runtime->_graphicsBackend->setStencilTest(
+						saved.stencilCompare, saved.stencilValue);
+			}
 			if (saved.shader != runtime->_graphicsShader
 				&& !runtime->_graphicsBackend->setShader(saved.shader, error))
 				return luaL_error(state, "%s", error.c_str());
@@ -12539,6 +12612,8 @@ int LoveRuntime::popGraphicsState(lua_State *state)
 		runtime->_graphicsStencilTestEnabled = saved.stencilTestEnabled;
 		runtime->_graphicsStencilCompare = std::move(saved.stencilCompare);
 		runtime->_graphicsStencilValue = saved.stencilValue;
+		runtime->_graphicsStencilMode = std::move(saved.stencilMode);
+		runtime->_graphicsStencilWriting = runtime->_graphicsStencilMode == "draw";
 		runtime->_graphicsShader = saved.shader;
 		runtime->_graphicsShaderObject = std::move(saved.shaderObject);
 		runtime->_currentFont = saved.font;
@@ -12589,6 +12664,7 @@ void DoraLoveGraphics::reset(lua_State *state)
 	runtime->_graphicsStencilTestEnabled = false;
 	runtime->_graphicsStencilCompare = "always";
 	runtime->_graphicsStencilValue = 0;
+	runtime->_graphicsStencilMode = "off";
 	runtime->_graphicsColor[0] = runtime->_graphicsColor[1]
 		= runtime->_graphicsColor[2] = runtime->_graphicsColor[3] = 1.0f;
 	runtime->_graphicsBackgroundColor[0] = runtime->_graphicsBackgroundColor[1]
@@ -14146,6 +14222,9 @@ void DoraLoveGraphics::setStencilTest(CompareMode compare, int value)
 	_runtime->_graphicsStencilCompare.assign(names[(int) compare]);
 	_runtime->_graphicsStencilValue = value;
 	_runtime->_graphicsStencilTestEnabled = compare != COMPARE_ALWAYS;
+	_runtime->_graphicsStencilWriting = false;
+	_runtime->_graphicsStencilMode = compare == COMPARE_ALWAYS ? "off"
+		: compare == COMPARE_EQUAL ? "test" : "custom";
 	if (_runtime->_graphicsBackend)
 		_runtime->_graphicsBackend->setStencilTest(_runtime->_graphicsStencilCompare, value);
 }
@@ -14159,6 +14238,36 @@ DoraLoveGraphics::CompareMode DoraLoveGraphics::getStencilTest(int &value) const
 		if (_runtime->_graphicsStencilCompare == names[index])
 			return (CompareMode) index;
 	return COMPARE_ALWAYS;
+}
+
+void DoraLoveGraphics::setStencilMode(StencilMode mode, int value)
+{
+	static constexpr std::string_view names[] = {"off", "draw", "test", "custom"};
+	const StencilMode effectiveMode = mode == STENCIL_MODE_CUSTOM ? STENCIL_MODE_OFF : mode;
+	std::string error;
+	if (_runtime->_graphicsBackend
+		&& !_runtime->_graphicsBackend->setStencilMode(names[(int) effectiveMode], value, error))
+		throw ::love::Exception("%s", error.c_str());
+	_runtime->_graphicsStencilMode.assign(names[(int) effectiveMode]);
+	_runtime->_graphicsStencilValue = value;
+	_runtime->_graphicsStencilWriting = effectiveMode == STENCIL_MODE_DRAW;
+	_runtime->_graphicsStencilCompare = effectiveMode == STENCIL_MODE_TEST ? "equal" : "always";
+	_runtime->_graphicsStencilTestEnabled = effectiveMode == STENCIL_MODE_TEST;
+	const bool colorEnabled = effectiveMode != STENCIL_MODE_DRAW;
+	std::fill(std::begin(_runtime->_graphicsColorMask),
+		std::end(_runtime->_graphicsColorMask), colorEnabled);
+	if (_runtime->_graphicsBackend)
+		_runtime->_graphicsBackend->setColorMask(
+			colorEnabled, colorEnabled, colorEnabled, colorEnabled);
+}
+
+DoraLoveGraphics::StencilMode DoraLoveGraphics::getStencilMode(int &value) const
+{
+	value = _runtime->_graphicsStencilValue;
+	if (_runtime->_graphicsStencilMode == "draw") return STENCIL_MODE_DRAW;
+	if (_runtime->_graphicsStencilMode == "test") return STENCIL_MODE_TEST;
+	if (_runtime->_graphicsStencilMode == "custom") return STENCIL_MODE_CUSTOM;
+	return STENCIL_MODE_OFF;
 }
 
 bool DoraLoveGraphics::beginStencilWrite(StencilAction action, int value,
@@ -16417,6 +16526,7 @@ void LoveRuntime::registerLoveModule()
 		{"getSupported", ::love::graphics::w_getSupported},
 		{"getTextureTypes", ::love::graphics::w_getTextureTypes},
 		{"getImageFormats", ::love::graphics::w_getImageFormats},
+		{"getTextureFormats", ::love::graphics::w_getTextureFormats},
 		{"getRendererInfo", ::love::graphics::w_getRendererInfo},
 		{"getSystemLimits", ::love::graphics::w_getSystemLimits},
 		{"getStats", ::love::graphics::w_getStats},
@@ -16459,6 +16569,7 @@ void LoveRuntime::registerLoveModule()
 		{"newSpriteBatch", ::love::graphics::w_newSpriteBatch},
 		{"newParticleSystem", ::love::graphics::w_newParticleSystem},
 		{"newText", ::love::graphics::w_newText},
+		{"newTextBatch", ::love::graphics::w_newText},
 		{"newShader", ::love::graphics::w_newShader},
 		{"validateShader", ::love::graphics::w_validateShader},
 		{"setShader", ::love::graphics::w_setShader},
@@ -16488,6 +16599,8 @@ void LoveRuntime::registerLoveModule()
 		{"stencil", ::love::graphics::w_stencil},
 		{"setStencilTest", ::love::graphics::w_setStencilTest},
 		{"getStencilTest", ::love::graphics::w_getStencilTest},
+		{"setStencilMode", ::love::graphics::w_setStencilMode},
+		{"getStencilMode", ::love::graphics::w_getStencilMode},
 		{"drawInstanced", ::love::graphics::w_drawInstanced},
 	};
 	for (const auto &entry : graphicsFunctions)
@@ -16626,6 +16739,7 @@ void LoveRuntime::registerLoveModule()
 	lua_newtable(_state);
 	const struct { const char *name; lua_CFunction function; } physicsFunctions[] = {
 		{"setMeter", physicsSetMeter}, {"getMeter", physicsGetMeter},
+		{"getDistance", physicsGetDistance},
 		{"newWorld", physicsNewWorld}, {"newBody", physicsNewBody},
 		{"newFixture", physicsNewFixture}, {"newCircleShape", physicsNewCircleShape},
 		{"newRectangleShape", physicsNewRectangleShape}, {"newPolygonShape", physicsNewPolygonShape},

@@ -83,6 +83,14 @@ local record LoveEnums
 		"invert"
 	end
 
+	-- Available high-level stencil states.
+	enum StencilMode
+		"off"
+		"draw"
+		"test"
+		"custom"
+	end
+
 	-- Available values for CompareMode.
 	enum CompareMode
 		"less"
@@ -468,6 +476,7 @@ local type FilterMode = LoveEnums.FilterMode
 local type WrapMode = LoveEnums.WrapMode
 local type TextureType = LoveEnums.TextureType
 local type StencilAction = LoveEnums.StencilAction
+local type StencilMode = LoveEnums.StencilMode
 local type CompareMode = LoveEnums.CompareMode
 local type MeshDrawMode = LoveEnums.MeshDrawMode
 local type MeshUsage = LoveEnums.MeshUsage
@@ -1088,6 +1097,18 @@ local record GraphicsFeatures
 	shaderderivatives: boolean
 	glsl3: boolean
 	instancing: boolean
+end
+
+-- Texture usage requirements passed to love.graphics.getTextureFormats.
+local record TextureFormatSettings
+	-- Whether formats are queried for render-target textures.
+	canvas: boolean
+	-- Whether compute-shader writes are required.
+	computewrite: boolean
+	-- Whether shader atomic operations are required.
+	shaderatomics: boolean
+	-- Whether CPU-readable textures are required.
+	readable: boolean
 end
 
 local record LayeredImageSettings
@@ -3982,6 +4003,22 @@ local record MathModule
 	-- @return (number) value — The noise value in the range of 1.
 	noise: function(x: number, y: number, z: number, w: number): number
 
+	-- Generates classic Perlin noise in one to four dimensions. Equal inputs always produce the same value in the range 0 through 1.
+	-- @param x (number) The first coordinate.
+	-- @param y (number) The optional second coordinate.
+	-- @param z (number) The optional third coordinate.
+	-- @param w (number) The optional fourth coordinate.
+	-- @return (number) The generated Perlin noise value.
+	perlinNoise: function(x: number, y?: number, z?: number, w?: number): number
+
+	-- Generates simplex noise in one to four dimensions. Equal inputs always produce the same value in the range 0 through 1.
+	-- @param x (number) The first coordinate.
+	-- @param y (number) The optional second coordinate.
+	-- @param z (number) The optional third coordinate.
+	-- @param w (number) The optional fourth coordinate.
+	-- @return (number) The generated simplex noise value.
+	simplexNoise: function(x: number, y?: number, z?: number, w?: number): number
+
 	-- Generates a pseudo-random number in a platform independent manner. The default love.run seeds this function at startup, so you generally don't need to seed it yourself.
 	-- @return (number) number — The pseudo-random number.
 	random: function(): number
@@ -4443,6 +4480,13 @@ local record Filesystem
 	-- @param mode (OpenFileMode) The mode to open the file in.
 	-- @return (File) The new File object, or nil if an error occurred.
 	newFile: function(filename: string, mode: OpenFileMode): File
+
+	-- Creates a File and immediately opens it in the requested mode.
+	-- @param filename (string) The virtual filesystem path of the file.
+	-- @param mode (OpenFileMode) The mode used to open the file.
+	-- @return (File or nil) The opened File, or nil if opening failed.
+	-- @return (string or nil) The error message when opening failed.
+	openFile: function(filename: string, mode: OpenFileMode): File | nil, string | nil
 
 	-- Creates a new FileData object from a file on disk, or from a string in memory.
 	-- @param filename (string) Path to the file.
@@ -6653,6 +6697,16 @@ local record Physics
 	-- @return (number) The scale factor as an integer.
 	getMeter: function(): number
 
+	-- Computes the shortest distance between two fixtures and the closest point on each fixture. Both fixtures must belong to the same World.
+	-- @param fixture1 (Fixture) The first fixture.
+	-- @param fixture2 (Fixture) The second fixture.
+	-- @return (number) The shortest distance in pixels.
+	-- @return (number) X coordinate of the closest point on the first fixture.
+	-- @return (number) Y coordinate of the closest point on the first fixture.
+	-- @return (number) X coordinate of the closest point on the second fixture.
+	-- @return (number) Y coordinate of the closest point on the second fixture.
+	getDistance: function(fixture1: Fixture, fixture2: Fixture): number, number, number, number, number
+
 	-- Creates a new World.
 	-- @param x_gravity (number) The x component of gravity. (Default: 0.)
 	-- @param y_gravity (number) The y component of gravity. (Default: 0.)
@@ -7590,6 +7644,16 @@ local record Graphics
 	-- @return (integer) The value used when comparing with the stencil value of each pixel.
 	getStencilTest: function(): CompareMode, integer
 
+	-- Selects a high-level stencil state. "draw" writes stencil values without colors, "test" draws only where values match, "custom" preserves lower-level state, and "off" disables stencil operations.
+	-- @param mode (StencilMode) The stencil mode. Defaults to "off" when omitted.
+	-- @param value (integer) The stencil reference value used by "draw" and "test". Defaults to 1.
+	setStencilMode: function(mode?: StencilMode, value?: integer)
+
+	-- Gets the current high-level stencil mode and reference value.
+	-- @return (StencilMode) The current stencil mode.
+	-- @return (integer) The current stencil reference value.
+	getStencilMode: function(): StencilMode, integer
+
 	-- Creates a new Font from a TrueType Font or BMFont file. Created fonts are not cached, in that calling this function with the same arguments will always create a new Font object.
 	--
 	-- All variants which accept a filename can also accept a Data object instead.
@@ -7638,6 +7702,12 @@ local record Graphics
 	-- @param text (any) The initial string of text that the new Text object will contain. May be nil. (Default: nil.) Depending on the overload: A table containing colors and strings to add to the object, in the form of {color1, string1, color2, string2, ...}. color1: A table containing red, green, blue, and optional alpha components to use as a color for the next string in the table, in the form of {red, green, blue, alpha}. string1: A string of text which has a color specified by the previous color. color2: A table containing red, green, blue, and optional alpha components to use as a color for the next string in the table, in the form of {red, green, blue, alpha}. string2: A string of text which has a color specified by the previous color. ...: Additional colors and strings.
 	-- @return (Text) The new drawable Text object.
 	newText: function(font: Font, text?: any): Text
+
+	-- Creates a drawable text batch. This is the LÖVE 12 name for the object exposed as Text in LÖVE 11.
+	-- @param font (Font) The font used by the text batch.
+	-- @param text (any) Optional initial colored text.
+	-- @return (Text) The new drawable text batch.
+	newTextBatch: function(font: Font, text?: any): Text
 
 	-- Set an already-loaded Font as the current font or create and load a new one from the file and size.
 	-- It's recommended that Font objects are created with love.graphics.newFont in the loading stage and then passed to
@@ -7827,6 +7897,12 @@ local record Graphics
 	-- @param formats ({string: boolean}) The formats parameter.
 	-- @return ({string: boolean}) A table containing CanvasFormats as keys, and a boolean indicating whether the format is supported as values. Not all systems support all formats. Depending on the overload: A table containing CanvasFormats as keys, and a boolean indicating whether the format is supported as values (taking into account the readable parameter). Not all systems support all formats.
 	getCanvasFormats: function(readable?: boolean, formats?: {string: boolean}): {string: boolean}
+
+	-- Gets texture formats supported for a requested usage. The required canvas field selects render-target formats; other fields further restrict reported support.
+	-- @param settings (TextureFormatSettings) Usage requirements for the queried texture formats.
+	-- @param target ({string: boolean}) Optional table to fill and return.
+	-- @return ({string: boolean}) Format names mapped to whether the requested usage is supported.
+	getTextureFormats: function(settings: TextureFormatSettings, target?: {string: boolean}): {string: boolean}
 
 	-- Captures drawing operations to a Canvas.
 	setCanvas: function()

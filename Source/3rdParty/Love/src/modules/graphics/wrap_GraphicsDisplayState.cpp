@@ -527,6 +527,43 @@ int w_getStencilTest(lua_State *L)
 	return 2;
 }
 
+int w_setStencilMode(lua_State *L)
+{
+	auto mode = GraphicsDisplayStateCommand::STENCIL_MODE_OFF;
+	int value = 0;
+	if (!lua_isnoneornil(L, 1))
+	{
+		const char *str = luaL_checkstring(L, 1);
+		static constexpr const char *names[] = {"off", "draw", "test"};
+		bool found = false;
+		for (int index = 0; index < 3; ++index)
+			if (strcmp(str, names[index]) == 0)
+			{
+				mode = (GraphicsDisplayStateCommand::StencilMode) index;
+				found = true;
+				break;
+			}
+		if (!found)
+			return luax_enumerror(L, "stencil mode",
+				std::vector<std::string>{"off", "draw", "test"}, str);
+		value = (int) luaL_optinteger(L, 2, 1);
+	}
+	displayStateCommand(L)->setStencilMode(mode, value);
+	return 0;
+}
+
+int w_getStencilMode(lua_State *L)
+{
+	int value = 0;
+	const auto mode = displayStateCommand(L)->getStencilMode(value);
+	static constexpr const char *names[] = {"off", "draw", "test", "custom"};
+	if ((int) mode < 0 || (int) mode >= 4)
+		return luaL_error(L, "Unknown stencil mode.");
+	lua_pushstring(L, names[(int) mode]);
+	lua_pushinteger(L, value);
+	return 2;
+}
+
 int w_stencil(lua_State *L)
 {
 	luaL_checktype(L, 1, LUA_TFUNCTION);

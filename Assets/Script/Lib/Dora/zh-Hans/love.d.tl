@@ -83,6 +83,14 @@ local record LoveEnums
 		"invert"
 	end
 
+	-- 可用的高级模板状态。
+	enum StencilMode
+		"off"
+		"draw"
+		"test"
+		"custom"
+	end
+
 	-- CompareMode 的可用值。
 	enum CompareMode
 		"less"
@@ -468,6 +476,7 @@ local type FilterMode = LoveEnums.FilterMode
 local type WrapMode = LoveEnums.WrapMode
 local type TextureType = LoveEnums.TextureType
 local type StencilAction = LoveEnums.StencilAction
+local type StencilMode = LoveEnums.StencilMode
 local type CompareMode = LoveEnums.CompareMode
 local type MeshDrawMode = LoveEnums.MeshDrawMode
 local type MeshUsage = LoveEnums.MeshUsage
@@ -1035,6 +1044,18 @@ local record GraphicsFeatures
 	shaderderivatives: boolean
 	glsl3: boolean
 	instancing: boolean
+end
+
+-- 传给 love.graphics.getTextureFormats 的纹理用途要求。
+local record TextureFormatSettings
+	-- 是否查询渲染目标纹理格式。
+	canvas: boolean
+	-- 是否要求支持计算着色器写入。
+	computewrite: boolean
+	-- 是否要求支持着色器原子操作。
+	shaderatomics: boolean
+	-- 是否要求纹理可由 CPU 读取。
+	readable: boolean
 end
 
 local record LayeredImageSettings
@@ -3784,6 +3805,22 @@ local record MathModule
 	-- @return (number) value — 1范围内的噪声值。
 	noise: function(x: number, y: number, z: number, w: number): number
 
+	-- 生成一至四维经典 Perlin 噪声。相同输入总会得到相同的 0 到 1 范围结果。
+	-- @param x (number) 第一维坐标。
+	-- @param y (number) 可选的第二维坐标。
+	-- @param z (number) 可选的第三维坐标。
+	-- @param w (number) 可选的第四维坐标。
+	-- @return (number) 生成的 Perlin 噪声值。
+	perlinNoise: function(x: number, y?: number, z?: number, w?: number): number
+
+	-- 生成一至四维 Simplex 噪声。相同输入总会得到相同的 0 到 1 范围结果。
+	-- @param x (number) 第一维坐标。
+	-- @param y (number) 可选的第二维坐标。
+	-- @param z (number) 可选的第三维坐标。
+	-- @param w (number) 可选的第四维坐标。
+	-- @return (number) 生成的 Simplex 噪声值。
+	simplexNoise: function(x: number, y?: number, z?: number, w?: number): number
+
 	-- 以独立于平台的方式生成伪随机数。默认的 love.run 在启动时为该函数设置种子，因此您通常不需要自己为其设置种子。
 	-- @return (number) number — 伪随机数。
 	random: function(): number
@@ -4222,6 +4259,13 @@ local record Filesystem
 	-- @param mode (OpenFileMode) 打开文件的模式。
 	-- @return (File) 新的 File 对象，如果发生错误则为 nil。
 	newFile: function(filename: string, mode: OpenFileMode): File
+
+	-- 创建 File 并立即按指定模式打开。
+	-- @param filename (string) 虚拟文件系统中的文件路径。
+	-- @param mode (OpenFileMode) 打开文件时使用的模式。
+	-- @return (File or nil) 已打开的 File；打开失败时为 nil。
+	-- @return (string or nil) 打开失败时的错误信息。
+	openFile: function(filename: string, mode: OpenFileMode): File | nil, string | nil
 
 	-- 从磁盘上的文件或内存中的字符串创建一个新的 FileData 对象。
 	-- @param filename (string) 文件路径。
@@ -6278,6 +6322,16 @@ local record Physics
 	-- @return (number) 整数比例因子。
 	getMeter: function(): number
 
+	-- 计算两个夹具之间的最短距离，并返回每个夹具上的最近点。两个夹具必须属于同一个 World。
+	-- @param fixture1 (Fixture) 第一个夹具。
+	-- @param fixture2 (Fixture) 第二个夹具。
+	-- @return (number) 以像素为单位的最短距离。
+	-- @return (number) 第一个夹具最近点的 X 坐标。
+	-- @return (number) 第一个夹具最近点的 Y 坐标。
+	-- @return (number) 第二个夹具最近点的 X 坐标。
+	-- @return (number) 第二个夹具最近点的 Y 坐标。
+	getDistance: function(fixture1: Fixture, fixture2: Fixture): number, number, number, number, number
+
 	-- 创造一个新世界。
 	-- @param x_gravity (number) 重力的 x 分量。 （默认值：0。）
 	-- @param y_gravity (number) 重力的 y 分量。 （默认值：0。）
@@ -7134,6 +7188,16 @@ local record Graphics
 	-- @return (integer) 与每个像素的模板值进行比较时使用的值。
 	getStencilTest: function(): CompareMode, integer
 
+	-- 选择高级模板模式。"draw" 写入模板值但不写颜色，"test" 仅在值匹配时绘制，"custom" 保留底层状态，"off" 关闭模板操作。
+	-- @param mode (StencilMode) 模板模式。省略时默认为 "off"。
+	-- @param value (integer) "draw" 和 "test" 使用的模板参考值。默认为 1。
+	setStencilMode: function(mode?: StencilMode, value?: integer)
+
+	-- 获取当前高级模板模式和参考值。
+	-- @return (StencilMode) 当前模板模式。
+	-- @return (integer) 当前模板参考值。
+	getStencilMode: function(): StencilMode, integer
+
 	-- 从 TrueType 字体或 BMFont 文件创建新字体。创建的字体不会被缓存，因为使用相同的参数调用此函数将始终创建一个新的 Font 对象。
 	--
 	-- 所有接受文件名的变体也可以接受数据对象。
@@ -7182,6 +7246,12 @@ local record Graphics
 	-- @param text (any) 新 Text 对象将包含的初始文本字符串。可能为零。 （默认值：nil。）取决于重载：包含要添加到对象的颜色和字符串的表，格式为 {color1, string1, color2, string2, ...}。 color1: 包含红色、绿色、蓝色和可选 alpha 分量的表，用作表中下一个字符串的颜色，格式为 {red, green, blue, alpha}。 string1: 文本字符串，其颜色由前一个颜色指定。 color2: 包含红色、绿色、蓝色和可选 alpha 分量的表，用作表中下一个字符串的颜色，格式为 {red, green, blue, alpha}。 string2: 文本字符串，其颜色由前一个颜色指定。 ...: 附加颜色和字符串。
 	-- @return (Text) 新的可绘制文本对象。
 	newText: function(font: Font, text?: any): Text
+
+	-- 创建可绘制的文字批次。这是 LÖVE 12 对 LÖVE 11 中 Text 对象采用的新名称。
+	-- @param font (Font) 文字批次使用的字体。
+	-- @param text (any) 可选的初始彩色文字。
+	-- @return (Text) 新建的可绘制文字批次。
+	newTextBatch: function(font: Font, text?: any): Text
 
 	-- 将已加载的字体设置为当前字体，或根据文件和大小创建并加载新字体。
 	-- 建议在加载阶段使用 love.graphics.newFont 创建 Font 对象，然后在绘图阶段传递给此函数。
@@ -7346,6 +7416,12 @@ local record Graphics
 	-- @param formats ({string: boolean}) formats 参数。
 	-- @return ({string: boolean}) 包含 CanvasFormats 作为键的表，以及一个指示是否支持该格式作为值的布尔值。并非所有系统都支持所有格式。取决于重载：包含 CanvasFormats 作为键的表，以及指示是否支持该格式作为值的布尔值（考虑到可读参数）。并非所有系统都支持所有格式。
 	getCanvasFormats: function(readable?: boolean, formats?: {string: boolean}): {string: boolean}
+
+	-- 获取指定用途支持的纹理格式。必填的 canvas 字段选择渲染目标格式，其它字段会进一步限制报告的支持能力。
+	-- @param settings (TextureFormatSettings) 要查询的纹理格式用途要求。
+	-- @param target ({string: boolean}) 可选的接收并返回结果的表。
+	-- @return ({string: boolean}) 格式名称到是否支持指定用途的映射。
+	getTextureFormats: function(settings: TextureFormatSettings, target?: {string: boolean}): {string: boolean}
 
 	-- 将绘图操作捕获到画布上。
 	setCanvas: function()

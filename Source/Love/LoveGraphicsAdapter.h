@@ -95,6 +95,8 @@ public:
 	BoolFields getTextureTypes() const override;
 	BoolFields getImageFormats() const override;
 	BoolFields getCanvasFormats(bool readable) const override;
+	BoolFields getTextureFormats(bool canvas, int readable,
+		bool computeWrite, bool shaderAtomics) const override;
 	RendererInfo getRendererInfo() const override;
 	NumberFields getSystemLimits() const override;
 	Stats getStats() const override;
@@ -221,6 +223,8 @@ public:
 	Winding getFrontFaceWinding() const override;
 	void setStencilTest(CompareMode compare, int value) override;
 	CompareMode getStencilTest(int &value) const override;
+	void setStencilMode(StencilMode mode, int value) override;
+	StencilMode getStencilMode(int &value) const override;
 	bool beginStencilWrite(StencilAction action, int value,
 		bool shouldClear, int clearValue, std::string &error) override;
 	void endStencilWrite() override;

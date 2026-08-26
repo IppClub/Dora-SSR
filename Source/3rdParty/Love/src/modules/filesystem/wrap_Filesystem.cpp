@@ -198,6 +198,33 @@ int w_newFile(lua_State *L)
 	return 1;
 }
 
+int w_openFile(lua_State *L)
+{
+	const char *filename = luaL_checkstring(L, 1);
+	const char *str = luaL_checkstring(L, 2);
+	File::Mode mode = File::MODE_CLOSED;
+	if (!File::getConstant(str, mode))
+		return luax_enumerror(L, "file open mode", File::getConstants(mode), str);
+
+	File *file = nullptr;
+	try
+	{
+		file = instance()->newFile(filename);
+		if (!file->open(mode))
+			throw love::Exception("Could not open file.");
+	}
+	catch (love::Exception &e)
+	{
+		if (file != nullptr)
+			file->release();
+		return luax_ioError(L, "%s", e.what());
+	}
+
+	luax_pushtype(L, file);
+	file->release();
+	return 1;
+}
+
 File *luax_getfile(lua_State *L, int idx)
 {
 	File *file = nullptr;
@@ -853,6 +880,7 @@ static const luaL_Reg functions[] =
 	{ "getSource", w_getSource },
 	{ "mount", w_mount },
 	{ "unmount", w_unmount },
+	{ "openFile", w_openFile },
 	{ "newFile", w_newFile },
 	{ "getWorkingDirectory", w_getWorkingDirectory },
 	{ "getUserDirectory", w_getUserDirectory },

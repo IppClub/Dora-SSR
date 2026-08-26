@@ -88,6 +88,13 @@ public:
 	};
 	enum CullMode { CULL_NONE, CULL_BACK, CULL_FRONT };
 	enum Winding { WINDING_CW, WINDING_CCW };
+	enum StencilMode
+	{
+		STENCIL_MODE_OFF,
+		STENCIL_MODE_DRAW,
+		STENCIL_MODE_TEST,
+		STENCIL_MODE_CUSTOM,
+	};
 	enum StencilAction
 	{
 		STENCIL_REPLACE,
@@ -140,6 +147,8 @@ public:
 	virtual Winding getFrontFaceWinding() const = 0;
 	virtual void setStencilTest(CompareMode compare, int value) = 0;
 	virtual CompareMode getStencilTest(int &value) const = 0;
+	virtual void setStencilMode(StencilMode mode, int value) = 0;
+	virtual StencilMode getStencilMode(int &value) const = 0;
 	virtual bool beginStencilWrite(StencilAction action, int value,
 		bool shouldClear, int clearValue, std::string &error) = 0;
 	virtual void endStencilWrite() = 0;
@@ -178,6 +187,8 @@ int w_setFrontFaceWinding(lua_State *L);
 int w_getFrontFaceWinding(lua_State *L);
 int w_setStencilTest(lua_State *L);
 int w_getStencilTest(lua_State *L);
+int w_setStencilMode(lua_State *L);
+int w_getStencilMode(lua_State *L);
 int w_stencil(lua_State *L);
 
 } // graphics
