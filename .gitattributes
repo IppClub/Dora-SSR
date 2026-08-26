@@ -2,6 +2,23 @@
 *.bat text eol=crlf
 *.cmd text eol=crlf
 
+# Visual Studio-managed files are stored as LF and checked out as CRLF.
+*.sln text eol=crlf
+*.vcproj text eol=crlf
+*.vcxproj text eol=crlf
+*.vcxproj.filters text eol=crlf
+*.vcxproj.user text eol=crlf
+*.csproj text eol=crlf
+*.rc text eol=crlf
+Projects/Windows/**/*.h text eol=crlf
+Tools/dora-cs/**/*.cs text eol=crlf
+Tools/dora-cs/**/*.h text eol=crlf
+Tools/dora-cs/**/*.json text eol=crlf
+Tools/dora-cs/**/*.manifest text eol=crlf
+
+# Preserve vendored SDL files byte-for-byte.
+Source/3rdParty/SDL2/** -text !eol
+
 Source/3rdParty/** linguist-vendored
 Source/3rdParty/Love/** -whitespace
 Source/Love/Patches/*.patch -whitespace
