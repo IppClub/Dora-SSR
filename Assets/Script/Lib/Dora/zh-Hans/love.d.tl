@@ -6171,6 +6171,15 @@ local record World
 	-- @return (function) 在冲突解决之前被调用。
 	-- @return (function) 冲突解决后被调用。
 	getCallbacks: function(self: World): function(any, any, any) | nil, function(any, any, any) | nil, function(any, any, any) | nil, function(any, any, any, ...: number) | nil
+
+	-- 设置用于决定两个 Fixture 是否应发生碰撞的函数。
+	-- Box2D 检查一对新的 Fixture 时会调用此函数。返回 true 允许生成接触，返回 false 拒绝接触；传入 nil 会移除自定义过滤器。
+	-- @param filter (function) 接触过滤函数；传入 nil 恢复默认过滤行为。
+	setContactFilter: function(self: World, filter?: function(Fixture, Fixture): boolean)
+
+	-- 返回当前分配给 World 的自定义接触过滤函数。
+	-- @return (function) 当前过滤函数；未设置时返回 nil。
+	getContactFilter: function(self: World): function(Fixture, Fixture): boolean | nil
 end
 
 -- 将多个物体连接在一起以独特的方式进行交互。

@@ -25,6 +25,7 @@ THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL
 - [implot](https://github.com/epezent/implot): [MIT License](Source/3rdParty/implot/LICENSE)
 - [lodepng](https://github.com/lvandeve/lodepng): [zlib License](Source/3rdParty/lodepng/LICENSE)
 - [LOVE](https://github.com/love2d/love): [zlib and bundled third-party licenses](Source/3rdParty/Love/license.txt)
+- [Box2D 2.3.2, LOVE-modified](https://github.com/love2d/love/tree/11.5/src/libraries/Box2D): [zlib License](Source/3rdParty/Love/src/libraries/Box2D/Common/b2Settings.h)
 - [Lua](https://github.com/lua/lua): [MIT License](Source/3rdParty/Lua/LICENSE)
 - [LuaSocket](https://github.com/lunarmodules/luasocket): [MIT License](Source/3rdParty/LuaSocket/LICENSE)
 - ml ([MachineLearning-DecisionTree](https://github.com/PiggyGaGa/MachineLearning-DecisionTree)): [BSD-2 License](Source/3rdParty/ml/LICENSE)

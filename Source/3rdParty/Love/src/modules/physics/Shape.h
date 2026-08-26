@@ -25,8 +25,6 @@
 #include "common/Object.h"
 #include "common/StringMap.h"
 
-struct lua_State;
-
 namespace love
 {
 namespace physics
@@ -49,27 +47,6 @@ public:
 	};
 
 	virtual ~Shape();
-	virtual Type getType() const = 0;
-	virtual float getRadius() const = 0;
-	virtual void setRadius(float radius) = 0;
-	virtual void getPoint(float &x, float &y) const = 0;
-	virtual void setPoint(float x, float y) = 0;
-	virtual int getPoints(lua_State *L) const = 0;
-	virtual bool validate() const = 0;
-	virtual int getChildCount() const = 0;
-	virtual int getVertexCount() const = 0;
-	virtual void getPoint(int index, float &x, float &y) const = 0;
-	virtual Shape *getChildEdge(int index) const = 0;
-	virtual void setNextVertex() = 0;
-	virtual void setNextVertex(float x, float y) = 0;
-	virtual void setPreviousVertex() = 0;
-	virtual void setPreviousVertex(float x, float y) = 0;
-	virtual bool getNextVertex(float &x, float &y) const = 0;
-	virtual bool getPreviousVertex(float &x, float &y) const = 0;
-	virtual bool testPoint(float x, float y, float angle, float px, float py) const = 0;
-	virtual int rayCast(lua_State *L) const = 0;
-	virtual int computeAABB(lua_State *L) const = 0;
-	virtual int computeMass(lua_State *L) const = 0;
 
 	static bool getConstant(const char *in, Type &out);
 	static bool getConstant(Type in, const char  *&out);

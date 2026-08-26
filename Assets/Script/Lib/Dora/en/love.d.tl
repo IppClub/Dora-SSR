@@ -6542,6 +6542,15 @@ local record World
 	-- @return (function) Gets called before a collision gets resolved.
 	-- @return (function) Gets called after the collision has been resolved.
 	getCallbacks: function(self: World): function(any, any, any) | nil, function(any, any, any) | nil, function(any, any, any) | nil, function(any, any, any, ...: number) | nil
+
+	-- Sets the function that decides whether two Fixtures should collide.
+	-- Box2D calls the function for a new Fixture pair. Return true to allow the contact or false to reject it. Passing nil removes the custom filter.
+	-- @param filter (function) The contact filter function, or nil to restore the default filtering behavior.
+	setContactFilter: function(self: World, filter?: function(Fixture, Fixture): boolean)
+
+	-- Returns the custom contact filter function currently assigned to the World.
+	-- @return (function) The current filter function, or nil when no custom filter is set.
+	getContactFilter: function(self: World): function(Fixture, Fixture): boolean | nil
 end
 
 -- Attach multiple bodies together to interact in unique ways.

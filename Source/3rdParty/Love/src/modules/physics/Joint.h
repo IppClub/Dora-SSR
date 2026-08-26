@@ -25,8 +25,6 @@
 #include "common/Object.h"
 #include "common/StringMap.h"
 
-struct lua_State;
-
 namespace love
 {
 namespace physics
@@ -55,48 +53,8 @@ public:
 		JOINT_MAX_ENUM
 	};
 
-	enum class ScalarProperty
-	{
-		Length, Frequency, DampingRatio, JointAngle, JointSpeed,
-		MaxMotorTorque, MotorSpeed, MotorTorque, LowerLimit, UpperLimit,
-		ReferenceAngle, JointTranslation, MaxMotorForce, MotorForce,
-		MaxForce, MaxTorque, MaxLength, LengthA, LengthB, Ratio,
-		SpringFrequency, SpringDampingRatio, AngularOffset, CorrectionFactor,
-	};
-
-	enum class BooleanProperty
-	{
-		MotorEnabled, LimitsEnabled,
-	};
-
-	enum class VectorProperty
-	{
-		Axis, Target, LinearOffset,
-	};
-
 
 	virtual ~Joint();
-	virtual Type getType() const = 0;
-	virtual bool isValid() const = 0;
-	virtual class Body *getBodyA() const = 0;
-	virtual class Body *getBodyB() const = 0;
-	virtual int getAnchors(lua_State *L) const = 0;
-	virtual int getReactionForce(lua_State *L) const = 0;
-	virtual float getReactionTorque(float inverseDeltaTime) const = 0;
-	virtual bool getCollideConnected() const = 0;
-	virtual int setUserData(lua_State *L) = 0;
-	virtual int getUserData(lua_State *L) = 0;
-	virtual void destroyJoint() = 0;
-	virtual float getScalar(ScalarProperty property, float argument = 0.0f) const = 0;
-	virtual void setScalar(ScalarProperty property, float value) = 0;
-	virtual bool getBoolean(BooleanProperty property) const = 0;
-	virtual void setBoolean(BooleanProperty property, bool value) = 0;
-	virtual void getVector(VectorProperty property, float &x, float &y) const = 0;
-	virtual void setVector(VectorProperty property, float x, float y) = 0;
-	virtual void getLimits(float &lower, float &upper) const = 0;
-	virtual void setLimits(float lower, float upper) = 0;
-	virtual int getGroundAnchors(lua_State *L) const = 0;
-	virtual void getJoints(Joint *&jointA, Joint *&jointB) const = 0;
 
 	static bool getConstant(const char *in, Type &out);
 	static bool getConstant(Type in, const char  *&out);

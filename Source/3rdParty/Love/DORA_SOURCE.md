@@ -26,17 +26,19 @@ platform stack:
 - Drawable, Texture, Image, Canvas, Mesh, SpriteBatch, ParticleSystem, Font,
   Text, Shader, Video and VideoStream public object contracts and wrappers;
 - Thread/Channel, System, Timer, Event, Window and input module contracts;
-- backend-neutral Physics object types and wrappers;
+- the complete LOVE 11.5 Physics module, its Box2D object implementations and
+  Lua wrappers, plus LOVE's modified Box2D 2.3.2 source;
 - Theora video-stream code and the selected headers or small libraries needed
   by the retained sources.
 
 Dora supplies the concrete rendering, audio, filesystem, image decoding,
-window, input, threading and PlayRho physics backends. Public wrapper parsing,
-object identity and Love-visible lifetime behavior remain in the retained LOVE
-layer wherever practical.
+window, input and threading backends. `love.physics` uses LOVE's own Box2D
+implementation; Dora's separate native Physics API continues to use PlayRho.
+Public wrapper parsing, object identity and Love-visible lifetime behavior
+remain in the retained LOVE layer wherever practical.
 
 LOVE's main loop, platform projects, SDL backends, native renderer, audio
-mixer, PhysFS backend, bundled Lua, Box2D and unused bundled libraries are
+mixer, PhysFS backend, bundled Lua and unrelated bundled libraries are
 intentionally omitted.
 
 ## Maintenance
@@ -50,19 +52,10 @@ To refresh the subset:
 
 1. Check out the peeled upstream commit in a temporary directory.
 2. Compare it with this directory and copy only the selected source files.
-3. Run:
-
-   ```sh
-   DORA_SSR_ROOT=/path/to/Dora-SSR \
-     node /path/to/Dora-Example/Test/Love/UpstreamSourceSubsetAudit.mjs --prune
-   ```
-
-4. Rerun the audit without `--prune`, followed by API parity, runtime,
-   sanitizer and platform build checks.
-
-`Dora-Example/Test/Love/UpstreamSourceSubsetAudit.mjs` locks the retained file
-set and the hashes of files that are expected to remain byte-identical to the
-pinned upstream release. Git history is the source of truth for modified
-vendored files.
+3. Compare `src/modules/physics` and `src/libraries/Box2D` against the pinned
+   checkout. Physics differences should be limited to the documented
+   state-local Module and meter activation changes.
+4. Run API parity, runtime, sanitizer and platform build checks. Git history is
+   the source of truth for the retained file set and modified vendored files.
 
 The complete upstream licensing notice is retained in `license.txt`.

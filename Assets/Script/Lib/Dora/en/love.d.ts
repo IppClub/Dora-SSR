@@ -8258,6 +8258,7 @@ declare global {
 	type ContactCallback = (fixtureA: Fixture, fixtureB: Fixture, contact: Contact) => void;
 	type PostSolveCallback = (fixtureA: Fixture, fixtureB: Fixture, contact: Contact,
 		...impulses: number[]) => void;
+	type ContactFilter = (fixtureA: Fixture, fixtureB: Fixture) => boolean;
 	/** Contacts are objects created to manage collisions in worlds.
 	 */
 	interface Contact extends Object {
@@ -8474,6 +8475,20 @@ declare global {
 		 */
 		getCallbacks(): LuaMultiReturn<[ContactCallback | undefined, ContactCallback | undefined,
 			ContactCallback | undefined, PostSolveCallback | undefined]>;
+		/**
+		 * Sets the function that decides whether two Fixtures should collide.
+		 *
+		 * Box2D calls the function when it considers a new Fixture pair. Return true to allow the contact or false to reject it. Passing nil removes the custom filter.
+		 *
+		 * @param filter The contact filter function, or nil to restore the default filtering behavior.
+		 */
+		setContactFilter(this: void, filter?: ContactFilter): void;
+		/**
+		 * Returns the custom contact filter function currently assigned to the World.
+		 *
+		 * @returns filter — The current filter function, or nil when no custom filter is set.
+		 */
+		getContactFilter(this: void): ContactFilter | undefined;
 	}
 	/** Bodies are objects with velocity and position.
 	 */

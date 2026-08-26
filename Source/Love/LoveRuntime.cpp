@@ -137,24 +137,16 @@ SOFTWARE. */
 #include "3rdParty/Love/src/modules/touch/wrap_Touch.h"
 #include "3rdParty/Love/src/modules/joystick/wrap_Joystick.h"
 #include "3rdParty/Love/src/modules/joystick/wrap_JoystickModule.h"
-#include "3rdParty/Love/src/modules/physics/Body.h"
-#include "3rdParty/Love/src/modules/physics/Contact.h"
-#include "3rdParty/Love/src/modules/physics/Fixture.h"
-#include "3rdParty/Love/src/modules/physics/Shape.h"
-#include "3rdParty/Love/src/modules/physics/Joint.h"
-#include "3rdParty/Love/src/modules/physics/World.h"
-#include "3rdParty/Love/src/modules/physics/wrap_Body.h"
-#include "3rdParty/Love/src/modules/physics/wrap_Contact.h"
-#include "3rdParty/Love/src/modules/physics/wrap_Fixture.h"
-#include "3rdParty/Love/src/modules/physics/wrap_Joint.h"
-#include "3rdParty/Love/src/modules/physics/wrap_Shape.h"
-#include "3rdParty/Love/src/modules/physics/wrap_World.h"
-
 extern "C"
 {
 #include "lauxlib.h"
 #include "lua.h"
 #include "lualib.h"
+}
+
+namespace love::physics::box2d
+{
+extern "C" int luaopen_love_physics(lua_State *state);
 }
 
 namespace Dora::Love

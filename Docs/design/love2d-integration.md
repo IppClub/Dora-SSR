@@ -178,7 +178,7 @@ LoveRuntime 必须先停止所有可能回调 Lua 的原生对象，再调用 `l
 
 公共实现直接编译 Love 11.5 原有的 `Object`、`Type`、`StrongRef`、Lua `Proxy`、弱对象 registry、`Reference`、`Module` 与 common runtime，不在 Dora 侧复制一套释放状态表。每个隔离 Lua state 在注册对象前建立 Love pinned thread；Lua proxy 持有一个原生 intrusive reference，`release()` 与 `__gc` 都进入上游 `Object::release()`，同一原生对象重复 push 时由 state-local 弱 registry 复用 proxy。
 
-全部公开 userdata 已完成该模型。CPU Data 家族的 `DataView` 以 `StrongRef<Data>` 持有父对象；Image/Canvas/Font/Shader/Source/Cursor/Video/RecordingDevice 以及 Physics 的 World/Body/Shape/Fixture/Joint 统一继承 `DoraHandleObject`。该原生 Love Object 基类保存 Runtime 与 backend handle，并统一提供 release、外部级联销毁后的 invalidate、录音重启等资源 replace 三条路径；每条路径都先清空自身 handle，再恰好调用一次对应 Runtime release。由 Dora 旧 binding 直接创建并 push 的 handle wrapper 统一通过 `pushNewDoraHandleObject` 移交构造时的初始 intrusive reference；由已迁移原版 wrapper 创建的对象（例如 Video）则保留上游 `luax_pushtype + release` 所有权交接，不在 Dora Runtime 再包装一次；默认 Font 不进入 Lua 时由 `StrongRef(..., Acquire::NORETAIN)` 明确接管该引用。显式 Physics `destroy()`、RecordingDevice `stop/start()`、ChainShape 子 Edge 构造失败及 Runtime close 的遗留 handle 清理全部经过这套入口，后续 `release()`/GC 不会重复释放。Graphics/Audio/Mouse/Physics backend 的实际 `release*`/`stopRecording` 调用只允许存在于每类 handle 唯一的 Runtime release 函数中，并由源码审计门禁保持。Graphics 当前 Canvas/Shader/Font 状态、sampler、Mesh/SpriteBatch/ParticleSystem/Text、Video sync 与 Cursor cache 都持有原生 `StrongRef`。Physics 的 Fixture/Joint/Contact 分别持有 Body、Shape、源 Joint 或 Fixture，`release()` 只释放当前 Love 引用，而显式 `destroy()` 继续负责拓扑销毁。File、Thread、Channel、Joystick、Rasterizer、Decoder、Math 对象及所有 Drawable 也都通过 `luax_register_type/luax_pushtype` 注册和创建；Dora 自定义 released-object 表、placement userdata、逐类型 `*GC` 回调、手动 userdata 析构和手写公开 metatable 路径已经移除。为兼容现有 Lua uservalue 数据槽，Dora 的 common runtime 构建单元把 Proxy uservalue 容量设为 5，但对象身份、类型检查、弱 registry 与 refcount 语义仍完全复用 Love 实现。
+全部公开 userdata 已完成该模型。CPU Data 家族的 `DataView` 以 `StrongRef<Data>` 持有父对象；对接 Dora 渲染、音频和输入资源的 Image/Canvas/Font/Shader/Source/Cursor/Video/RecordingDevice 使用 `DoraHandleObject`，由唯一 Runtime release 入口管理 backend handle。由 Dora binding 创建的对象通过 `pushNewDoraHandleObject` 交接初始引用；由原版 wrapper 创建的对象保留 `luax_pushtype + release` 的上游所有权交接。Physics 是明确例外：World/Body/Shape/Fixture/Joint/Contact 直接使用 Love 11.5 Box2D 具体对象、`StrongRef`/`Reference` 与 Proxy，不持有 Dora handle；`destroy()` 的拓扑释放和 GC 继续由上游 Physics 代码负责。File、Thread、Channel、Joystick、Rasterizer、Decoder、Math 对象及所有 Drawable 也都通过 `luax_register_type/luax_pushtype` 注册和创建。Dora 自定义 released-object 表、placement userdata、逐类型 `*GC` 回调、手动 userdata 析构和手写公开 metatable 路径已经移除；common runtime 仍把 Proxy uservalue 容量设为 5，但对象身份、类型检查、弱 registry 与 refcount 语义复用 Love 实现。
 
 ## Love 启动和主循环
 
@@ -621,6 +621,18 @@ Texture 和 Font 可以命中 Dora 全局不可变缓存，但 Love Image/Font u
 资源 soak 判断必须使用 live object/resource 计数而不是只看进程 RSS。LoveNode 退出或 restart 时要立即清空自己的 Texture/Font/Audio handle、AudioSource 子节点、RenderTarget 引用和 Lua allocator；Dora RenderTarget/Object 随后可能在全局自动释放池中暂存到周期回收点，系统 allocator 也可能保留 RSS high-water。验收应证明多个回收周期后 Object/Texture 回到同一基线、Font/AudioFile 不累计，并同时检查实例 stopped 时 texture 与 children 已归零。
 
 ## 物理
+
+### 当前实现：Love 原版 Box2D 封装
+
+`love.physics` 直接编译 Love 11.5 随附并修改过的 Box2D 2.3.2，以及 `modules/physics/box2d` 下的原版对象实现和 Lua wrapper。World、Body、Fixture、Shape、Contact 与十一类 Joint 的创建、过滤、回调、显式销毁、拓扑所有权和 Lua Proxy 生命周期都沿用 Love 原版代码；`World:update` 直接且只调用一次 Box2D `Step`，不创建 Dora `PhysicsWorld`、Dora `Node` 或 PlayRho handle 中间层。
+
+Dora 原生 `Body`/`PhysicsWorld` API 仍使用 PlayRho。两套物理引擎在产品边界上彼此独立：Dora 项目继续获得现有 PlayRho 行为，Love 项目获得与 Love 11.5 相同的 Box2D 行为，任何一边的过滤、单位或求解规则都不再改写另一边。
+
+为适配 Dora 的多 LoveNode 独立 Lua state，只保留两项宿主化修改：Physics Module 按 `lua_State` 从 Love registry 查找，而不是使用进程级 singleton；meter 的存储也归属各 Physics Module，进入任一物理 wrapper 时激活该 state 的 meter。Box2D 算法、对象关系、公开 wrapper 和参数规则不改写。双 LoveNode 交错测试已验证 `meter=30` 与 `meter=60` 分别得到 30 与 60 的位移，状态不串扰。
+
+### 已废弃的 PlayRho 适配方案（历史记录）
+
+以下内容记录此前的 Dora/PlayRho 适配实现及其验证依据，已被上面的原版 Box2D 接入取代，不代表当前源码架构。
 
 vendored Love 11.5 physics 基于旧版 Box2D，并把 meter 和 Module 生命周期放在进程静态状态；Dora 2D physics 则基于 PlayRho，固定采用 `PhysicsWorld::scaleFactor = 100`。直接把上游 Lua binding 注册进多个独立 Love state 会让 `setMeter` 和对象所有权跨 LoveNode 泄漏，因此首批不直接复用上游 Module singleton。
 

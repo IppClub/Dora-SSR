@@ -47,14 +47,45 @@ target("openmpt")
         add_cxxflags("-fvisibility=hidden", "-fPIC", {force = true})
     end
 
+-- LOVE 11.5 ships a locally modified Box2D 2.3.2. Keep it as a separate
+-- object target so love.physics uses the exact upstream implementation while
+-- Dora's native physics API continues to use PlayRho.
+target("love-box2d")
+    set_kind("object")
+    set_languages("cxx11")
+    add_files("src/libraries/Box2D/**/*.cpp")
+    add_includedirs("src", "src/libraries")
+
+    if is_plat("macosx") then
+        set_toolchains("xcode", {target_minver = "11.3"})
+    elseif is_plat("iphoneos") then
+        set_toolchains("xcode", {target_minver = "13.0"})
+    end
+
+    if is_plat("windows") then
+        add_defines("_CRT_SECURE_NO_WARNINGS", "NOMINMAX")
+        add_cxxflags("/utf-8", {tools = "cl"})
+        if is_mode("debug") then
+            set_runtimes("MTd")
+            add_defines("_ITERATOR_DEBUG_LEVEL=0")
+        else
+            set_runtimes("MT")
+        end
+    elseif is_plat("android") then
+        add_cxxflags("-fPIC", {force = true})
+    else
+        add_cxxflags("-fvisibility=hidden", "-fPIC", {force = true})
+    end
+
 -- Dora reuses LOVE's cross-C++/Lua Object and Proxy runtime. Platform modules,
--- the main loop, Box2D, SDL backends, and LOVE's bundled libraries are
--- deliberately not part of this target.
+-- the main loop, SDL backends, and unrelated LOVE bundled libraries are
+-- deliberately not part of this target. love.physics is the exception: it
+-- uses LOVE's original Box2D implementation and wrappers for API fidelity.
 target("love")
     set_kind("static")
     set_basename("love")
     set_languages("c99", "cxx20")
-    add_deps("openmpt", "luasocket-objects")
+    add_deps("openmpt", "luasocket-objects", "love-box2d")
     add_files(
         "src/common/Object.cpp",
         "src/common/types.cpp",
@@ -109,17 +140,9 @@ target("love")
 		"src/modules/joystick/wrap_Joystick.cpp",
 		"src/modules/joystick/wrap_JoystickModule.cpp",
 		"src/modules/physics/Body.cpp",
-		"src/modules/physics/Contact.cpp",
-		"src/modules/physics/Fixture.cpp",
 		"src/modules/physics/Shape.cpp",
 		"src/modules/physics/Joint.cpp",
-		"src/modules/physics/World.cpp",
-		"src/modules/physics/wrap_Body.cpp",
-		"src/modules/physics/wrap_Contact.cpp",
-		"src/modules/physics/wrap_Fixture.cpp",
-		"src/modules/physics/wrap_Joint.cpp",
-		"src/modules/physics/wrap_Shape.cpp",
-		"src/modules/physics/wrap_World.cpp",
+		"src/modules/physics/box2d/*.cpp",
         "src/modules/filesystem/File.cpp",
         "src/modules/filesystem/FileData.cpp",
         "src/modules/filesystem/Filesystem.cpp",
@@ -198,7 +221,7 @@ target("love")
 		"src/modules/video/wrap_VideoStream.cpp"
     )
     add_files("../soloud/audiosource/openmpt/soloud_openmpt.cpp")
-    add_includedirs("src", "src/modules", "../Lua", "../Zip/zlib", {public = true})
+    add_includedirs("src", "src/modules", "src/libraries", "../Lua", "../Zip/zlib", {public = true})
     add_includedirs("../soloud")
     add_defines("LOVE_PROXY_USERVALUES=5")
 

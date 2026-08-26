@@ -168,7 +168,7 @@ wrapper 中的模块获取必须显式使用当前 `lua_State`。不能用 `thre
 | Filesystem | `Content`、mount、实例写目录 | File/FileData 接口和 wrapper |
 | Image/Font/Sound data | Dora 现有 decoder 或已选三方库 | Data 类型、参数语义和 wrapper |
 | Window/Event/Input | Dora/SDL 宿主事件和虚拟窗口 | Love 枚举、事件名和 wrapper |
-| Physics | Dora 当前物理 backend | Love 对象层、回调和参数语义 |
+| Physics | Love 11.5 随附的 Box2D 2.3.2 | Love 原版对象层、Lua wrapper、回调和参数语义；Dora 原生 Physics 仍独立使用 PlayRho |
 | Thread | Dora 线程设施、独立 Lua 5.5 worker | Channel/Thread wrapper 和对象语义 |
 
 ## 迁移原则
@@ -266,7 +266,7 @@ wrapper 中的模块获取必须显式使用当前 `lua_State`。不能用 `thre
 | W6-01 | 已完成 | Audio/Source/Queueable wrapper 迁移 | Source 使用原版 Type/对象契约和 wrapper；SoLoud 仍是唯一输出设备，queue/effects/filter/voice budget 回归与多平台 SoLoud 生命周期 workflow 通过；物理设备可听输出归人工验收 |
 | W6-02 | 已完成 | Event/Window/Input/System/Timer wrapper 迁移 | System、Timer、Event、Window、Keyboard、Mouse/Cursor、Touch、Joystick 已切换为原版 wrapper 与 state-local Dora backend。虚拟窗口和 Dora 事件路由不被上游 SDL module 接管；macOS、Windows、Linux、Android AVD 与 iOS Simulator 运行 workflow 已通过，物理输入/触觉/麦克风体验归人工验收 |
 | W6-03 | 已完成 | Thread/Channel wrapper 迁移 | 原版 Thread/Channel Type、对象契约和 wrapper 已接管公开 API；Dora 保留 Lua 5.5 worker、Content 请求泵、runtime-scoped Channel、取消和 join。普通/sanitizer Runtime 与 macOS、Windows、Linux、Android AVD、iOS Simulator 两代 Thread restart/isolation workflow 已通过 |
-| W6-04 | 已完成 | Physics wrapper 和对象层迁移 | backend-neutral Type 以及 Body、World、Fixture、Contact、Shape、Joint wrapper 已由 Dora PlayRho 对象实现；Dora filter、contact callback、ghost/one-sided edge、全部 Joint 子类型、完整 sanitizer、五平台当前源码运行 workflow 和源码审计已通过 |
+| W6-04 | 已完成并由最终方案取代 | Physics wrapper 和对象层迁移 | 最终恢复 Love 11.5 随附 Box2D 2.3.2、全部 Physics 对象及原版 wrapper；旧 Dora PlayRho adapter 已删除，Dora 原生 Physics 仍独立使用 PlayRho |
 | W6-05 | 已完成 | Video wrapper 迁移 | Video/VideoStream 使用原版 Type、对象与 wrapper；Theora、Video drawable、音视频同步和 VideoNode 共用依赖通过，五平台 Ogg/Theora Content/RenderTarget 解码 workflow 已通过 |
 
 阶段门槛：所有模块保持 Dora 平台设施唯一所有权，多 LoveNode 和应用级共享状态符合既有设计。
@@ -727,7 +727,17 @@ Graphics 还必须包含像素读回、Canvas pass 顺序、Shader、Stencil、B
 
 - `0064` 恢复 Joystick Type/Object、常量表与模块/对象原版 wrapper；`DoraLoveJoystick` 和 `DoraLoveJoystickModule` 只适配所属 Runtime 的控制器状态、mapping 与振动 backend，不引入 SDL Joystick singleton。
 - 旧模块六方法、对象二十方法、手写 Type/`__eq` 和 parser 已删除。对象由 Runtime 连接表持有，原版 Proxy 保证重复查询、事件参数和断连对象 identity；mapping 文件输入继续经 state-local Filesystem/Content。
-- 当前源码审计为 304 文件/117 hash/58 wrapper/128 个 xmake 源，64 个 patch；Runtime/API/source/platform manifest 与 `0064` 干净正向重放已通过。W6-02 实现切片完成，下一步进入 W6-04 Physics。
+- 当前源码审计为 304 文件/117 hash/58 wrapper/128 个 xmake 源，64 个 patch；Runtime/API/source/platform manifest 与 `0064` 干净正向重放已通过。该记录之后曾进入 W6-04 PlayRho 迁移，现已由下述完整 Box2D 恢复方案取代。
+
+### Physics 当前实现：完整恢复原版 Box2D 模块
+
+- Physics 最终不再沿用 W6-04 的 backend-neutral/PlayRho 路线，而是恢复 Love 11.5 随附的 Box2D 2.3.2、`modules/physics/box2d` 全部对象实现及官方 Lua wrapper。
+- Dora 原生物理仍使用 PlayRho；Love World 不创建 Dora PhysicsWorld 或 Node，也不经过 Dora handle。Love 的对象关系、接触回调、过滤、十一类 Joint、Edge/Chain topology、显式 destroy 与 Proxy 生命周期均由上游实现负责。
+- Dora 适配仅包含 xmake 独立构建、按 Lua state 查找 Physics Module，以及按 state 激活 meter，避免多个 LoveNode 共享上游静态状态。其它 Box2D/Physics 代码保持上游结构。
+
+### 已废弃的 Physics PlayRho 迁移切片（历史记录）
+
+下面 `0065`～`0070` 记录的是中间迁移过程，已经由完整原版 Box2D 接入取代，不再描述当前实现。
 
 ### Physics backend-neutral 基类
 
