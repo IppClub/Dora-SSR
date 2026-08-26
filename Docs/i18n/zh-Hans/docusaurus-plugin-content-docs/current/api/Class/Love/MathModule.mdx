@@ -283,6 +283,62 @@ noise: function(x: number, y: number, z: number, w: number): number
 | --- | --- |
 | number | value — 1范围内的噪声值。 |
 
+## perlinNoise
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;生成一至四维经典 Perlin 噪声。相同输入总会得到相同的 0 到 1 范围结果。
+
+**签名：**
+```tl
+perlinNoise: function(x: number, y?: number, z?: number, w?: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 第一维坐标。 |
+| y | number | 可选的第二维坐标。 |
+| z | number | 可选的第三维坐标。 |
+| w | number | 可选的第四维坐标。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 生成的 Perlin 噪声值。 |
+
+## simplexNoise
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;生成一至四维 Simplex 噪声。相同输入总会得到相同的 0 到 1 范围结果。
+
+**签名：**
+```tl
+simplexNoise: function(x: number, y?: number, z?: number, w?: number): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 第一维坐标。 |
+| y | number | 可选的第二维坐标。 |
+| z | number | 可选的第三维坐标。 |
+| w | number | 可选的第四维坐标。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 生成的 Simplex 噪声值。 |
+
 ## random
 
 **类型：** 函数。

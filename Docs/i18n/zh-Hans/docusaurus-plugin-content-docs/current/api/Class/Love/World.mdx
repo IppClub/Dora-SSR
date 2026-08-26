@@ -120,6 +120,84 @@ getBodies: function(self: World): {Body}
 | --- | --- |
 | Body[] | 包含世界中所有刚体的表。 |
 
+## getJoints
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回世界中的所有关节。
+
+**签名：**
+```tl
+getJoints: function(self: World): {Joint}
+```
+
+## getContacts
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回世界中的所有当前接触。
+
+**签名：**
+```tl
+getContacts: function(self: World): {Contact}
+```
+
+## getBodyCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回世界中的刚体、关节和当前接触数量。
+
+**签名：**
+```tl
+getBodyCount: function(self: World): integer
+```
+
+## isLocked
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回世界当前是否正在执行更新。
+
+**签名：**
+```tl
+isLocked: function(self: World): boolean
+```
+
+## translateOrigin
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;按指定偏移量平移世界原点。
+
+**签名：**
+```tl
+translateOrigin: function(self: World, x: number, y: number)
+```
+
+## getBodyList
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;对应 get 方法的已弃用别名。
+
+**签名：**
+```tl
+getBodyList: function(self: World): {Body}
+```
+
 ## update
 
 **类型：** 函数。

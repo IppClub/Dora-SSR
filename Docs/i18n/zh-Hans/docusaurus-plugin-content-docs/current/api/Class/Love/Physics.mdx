@@ -46,6 +46,36 @@ getMeter: function(): number
 | --- | --- |
 | number | 整数比例因子。 |
 
+## getDistance
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;计算两个夹具之间的最短距离，并返回每个夹具上的最近点。两个夹具必须属于同一个 World。
+
+**签名：**
+```tl
+getDistance: function(fixture1: Fixture, fixture2: Fixture): number, number, number, number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| fixture1 | Fixture | 第一个夹具。 |
+| fixture2 | Fixture | 第二个夹具。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 以像素为单位的最短距离。 |
+| number | 第一个夹具最近点的 X 坐标。 |
+| number | 第一个夹具最近点的 Y 坐标。 |
+| number | 第二个夹具最近点的 X 坐标。 |
+| number | 第二个夹具最近点的 Y 坐标。 |
+
 ## newWorld
 
 **类型：** 函数。

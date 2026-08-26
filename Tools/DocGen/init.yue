@@ -45,6 +45,7 @@ generate = (path, file, cn)->
 	modName = file\gsub("%.d%.tl", "")\gsub "[\\//]", "."
 	path = Path\getPath(file)\gsub "[\\//]", "."
 	if res := match Doc, codes
+		topLevelGroups = {}
 		for x = 1, #res
 			group = res[x]
 			newGroup = []
@@ -60,9 +61,10 @@ generate = (path, file, cn)->
 					newGroup[] = group[i]
 				lastComment = comment
 			last = newGroup[#]
-			className = last\match "^%s*local%s+record%s*([%w_]+)"
-			className or= last\match "^%s*record%s*([%w_]+)"
+			localRecordName = last\match "^%s*local%s+record%s*([%w_]+)"
+			className = localRecordName or last\match "^%s*record%s*([%w_]+)"
 			if className
+				topLevelGroups[newGroup] = true if localRecordName
 				newGroup[#] = className
 				newGroup[] = false
 			elseif #newGroup == 1 and newGroup[1] == "end"
@@ -153,10 +155,10 @@ generate = (path, file, cn)->
 						docs[#] = nil
 				else
 					name = group[# - 1]
-					if modName == "love" and insideLoveEnums and name == "Love"
+					if topLevelGroups[group]
 						mods = {}
 						docs = {}
-						insideLoveEnums = false
+						insideLoveEnums = false if modName == "love"
 					docs[] = {}
 					doc = docs[#]
 					prefix = path == "" and "" or path .. "."

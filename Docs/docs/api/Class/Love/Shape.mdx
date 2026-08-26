@@ -96,32 +96,93 @@ getType: function(self: Shape): string
 
 **Description:**
 
-&emsp;&emsp;Gets the radius of the shape.
+&emsp;&emsp;Gets the radius of the shape's rounded skin.
 
 **Signature:**
 ```tl
 getRadius: function(self: Shape): number
-	getPoints: function(self: Shape): number...
-	validate: function(self: Shape): boolean
-	getVertexCount: function(self: Shape): integer
-	getPoint: function(self: Shape, index: integer): number, number
-	getChildEdge: function(self: Shape, index: integer): Shape
-	getPreviousVertex: function(self: Shape): number | nil, number | nil
-	getNextVertex: function(self: Shape): number | nil, number | nil
-	setPreviousVertex: function(self: Shape, x?: number, y?: number)
-	setNextVertex: function(self: Shape, x?: number, y?: number)
 ```
-
-**Parameters:**
-
-| Parameter | Type | Description |
-| --- | --- | --- |
-| index | integer | The index parameter. |
-| x | number | The x parameter. |
-| y | number | The y parameter. |
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
-| number or number... or boolean or integer or Shape or number or nil | The radius of the shape. |
+| number | The radius in pixels. |
+
+## setRadius
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the radius of a CircleShape.
+
+**Signature:**
+```tl
+setRadius: function(self: Shape, radius: number)
+```
+
+## getChildCount
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the number of child shapes.
+
+**Signature:**
+```tl
+getChildCount: function(self: Shape): integer
+```
+
+## testPoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Tests whether a point lies inside the transformed shape.
+
+**Signature:**
+```tl
+testPoint: function(self: Shape, x: number, y: number, angle: number, point_x: number, point_y: number): boolean
+```
+
+## rayCast
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Casts a ray against the transformed shape. Returns nil values on a miss.
+
+**Signature:**
+```tl
+rayCast: function(self: Shape, x1: number, y1: number, x2: number, y2: number, maximum_fraction: number, x: number, y: number, angle: number, child_index?: integer): number | nil, number | nil, number | nil
+```
+
+## computeAABB
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Computes the transformed axis-aligned bounding box.
+
+**Signature:**
+```tl
+computeAABB: function(self: Shape, x: number, y: number, angle: number, child_index?: integer): number, number, number, number
+```
+
+## computeMass
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Computes center, mass, and rotational inertia for a density.
+
+**Signature:**
+```tl
+computeMass: function(self: Shape, density: number): number, number, number, number
+```

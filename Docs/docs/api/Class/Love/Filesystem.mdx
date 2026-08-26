@@ -438,6 +438,33 @@ newFile: function(filename: string, mode: OpenFileMode): File
 | --- | --- |
 | File | The new File object, or nil if an error occurred. |
 
+## openFile
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a File and immediately opens it in the requested mode.
+
+**Signature:**
+```tl
+openFile: function(filename: string, mode: OpenFileMode): File | nil, string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The virtual filesystem path of the file. |
+| mode | OpenFileMode | The mode used to open the file. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| File or nil | The opened File, or nil if opening failed. |
+| string or nil | The error message when opening failed. |
+
 ## newFileData
 
 **Type:** Function.

@@ -283,6 +283,62 @@ noise: function(x: number, y: number, z: number, w: number): number
 | --- | --- |
 | number | value — The noise value in the range of 1. |
 
+## perlinNoise
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Generates classic Perlin noise in one to four dimensions. Equal inputs always produce the same value in the range 0 through 1.
+
+**Signature:**
+```tl
+perlinNoise: function(x: number, y?: number, z?: number, w?: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The first coordinate. |
+| y | number | The optional second coordinate. |
+| z | number | The optional third coordinate. |
+| w | number | The optional fourth coordinate. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The generated Perlin noise value. |
+
+## simplexNoise
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Generates simplex noise in one to four dimensions. Equal inputs always produce the same value in the range 0 through 1.
+
+**Signature:**
+```tl
+simplexNoise: function(x: number, y?: number, z?: number, w?: number): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The first coordinate. |
+| y | number | The optional second coordinate. |
+| z | number | The optional third coordinate. |
+| w | number | The optional fourth coordinate. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The generated simplex noise value. |
+
 ## random
 
 **Type:** Function.

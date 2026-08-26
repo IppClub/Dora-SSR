@@ -122,6 +122,84 @@ getBodies: function(self: World): {Body}
 | --- | --- |
 | Body[] | A table containing all bodies in the world. |
 
+## getJoints
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns all joints in the world.
+
+**Signature:**
+```tl
+getJoints: function(self: World): {Joint}
+```
+
+## getContacts
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns all active contacts in the world.
+
+**Signature:**
+```tl
+getContacts: function(self: World): {Contact}
+```
+
+## getBodyCount
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the number of bodies, joints, and active contacts.
+
+**Signature:**
+```tl
+getBodyCount: function(self: World): integer
+```
+
+## isLocked
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns whether the world is currently executing an update.
+
+**Signature:**
+```tl
+isLocked: function(self: World): boolean
+```
+
+## translateOrigin
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Shifts the world's origin by the specified offset.
+
+**Signature:**
+```tl
+translateOrigin: function(self: World, x: number, y: number)
+```
+
+## getBodyList
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Deprecated aliases of the corresponding get methods.
+
+**Signature:**
+```tl
+getBodyList: function(self: World): {Body}
+```
+
 ## update
 
 **Type:** Function.

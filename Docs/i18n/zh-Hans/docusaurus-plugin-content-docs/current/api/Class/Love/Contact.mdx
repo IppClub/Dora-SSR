@@ -60,6 +60,8 @@ typeOf: function(self: Contact, type_name: string): boolean
 **签名：**
 ```tl
 release: function(self: Contact): boolean
+	-- 检查 Contact 是否已被销毁。
+	-- @return (boolean) Contact 已失效时为 true。
 	isDestroyed: function(self: Contact): boolean
 ```
 

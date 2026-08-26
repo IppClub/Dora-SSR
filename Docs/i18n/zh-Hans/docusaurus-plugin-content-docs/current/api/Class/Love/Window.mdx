@@ -575,6 +575,73 @@ isVisible: function(): boolean
 | --- | --- |
 | boolean | 如果窗口可见则为 true，如果不可见则为 false。 |
 
+## close
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;关闭虚拟 Love 窗口，但不会关闭 Dora 宿主应用。
+
+**签名：**
+```tl
+close: function()
+```
+
+## setPosition
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置虚拟窗口的位置元数据。
+
+**签名：**
+```tl
+setPosition: function(x: number, y: number, display?: integer)
+```
+
+## minimize
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;改变虚拟窗口的最小化或最大化状态。
+
+**签名：**
+```tl
+minimize: function()
+	maximize: function()
+	restore: function()
+```
+
+## showMessageBox
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在宿主支持时显示消息框；自定义按钮形式返回从 1 开始的索引。
+
+**签名：**
+```tl
+showMessageBox: function(title: string, message: string, options?: any, message_type?: string, attach_to_window?: boolean): boolean | integer
+```
+
+## requestAttention
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在宿主窗口支持时请求用户注意。
+
+**签名：**
+```tl
+requestAttention: function(continuous?: boolean)
+```
+
 ## isMaximized
 
 **类型：** 函数。

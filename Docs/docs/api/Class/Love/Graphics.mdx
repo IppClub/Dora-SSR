@@ -1884,6 +1884,46 @@ getStencilTest: function(): CompareMode, integer
 | CompareMode | The type of comparison that is made for each pixel. Will be 'always' if stencil testing is disabled. |
 | integer | The value used when comparing with the stencil value of each pixel. |
 
+## setStencilMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Selects a high-level stencil state. "draw" writes stencil values without colors, "test" draws only where values match, "custom" preserves lower-level state, and "off" disables stencil operations.
+
+**Signature:**
+```tl
+setStencilMode: function(mode?: StencilMode, value?: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| mode | StencilMode | The stencil mode. Defaults to "off" when omitted. |
+| value | integer | The stencil reference value used by "draw" and "test". Defaults to 1. |
+
+## getStencilMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current high-level stencil mode and reference value.
+
+**Signature:**
+```tl
+getStencilMode: function(): StencilMode, integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| StencilMode | The current stencil mode. |
+| integer | The current stencil reference value. |
+
 ## newFont
 
 **Type:** Function.
@@ -2072,6 +2112,32 @@ newText: function(font: Font, text?: any): Text
 | Return Type | Description |
 | --- | --- |
 | Text | The new drawable Text object. |
+
+## newTextBatch
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a drawable text batch. This is the LÖVE 12 name for the object exposed as Text in LÖVE 11.
+
+**Signature:**
+```tl
+newTextBatch: function(font: Font, text?: any): Text
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| font | Font | The font used by the text batch. |
+| text | any | Optional initial colored text. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Text | The new drawable text batch. |
 
 ## setFont
 
@@ -2557,6 +2623,32 @@ getCanvasFormats: function(readable?: boolean, formats?: {string: boolean}): {st
 | --- | --- |
 | \{string: boolean} | A table containing CanvasFormats as keys, and a boolean indicating whether the format is supported as values. Not all systems support all formats. Depending on the overload: A table containing CanvasFormats as keys, and a boolean indicating whether the format is supported as values (taking into account the readable parameter). Not all systems support all formats. |
 
+## getTextureFormats
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets texture formats supported for a requested usage. The required canvas field selects render-target formats; other fields further restrict reported support.
+
+**Signature:**
+```tl
+getTextureFormats: function(settings: TextureFormatSettings, target?: {string: boolean}): {string: boolean}
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| settings | TextureFormatSettings | Usage requirements for the queried texture formats. |
+| target | \{string: boolean} | Optional table to fill and return. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{string: boolean} | Format names mapped to whether the requested usage is supported. |
+
 ## setCanvas
 
 **Type:** Function.
@@ -2978,6 +3070,26 @@ draw: function(image: Image, x?: number, y?: number, angle?: number, scale_x?: n
 
 **Description:**
 
+&emsp;&emsp;Draws an Image on the screen using a Transform object.
+
+**Signature:**
+```tl
+draw: function(image: Image, transform: Transform)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| image | Image | The Image to draw. |
+| transform | Transform | The Transform object containing the draw position, rotation, scale, shear, and origin. |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
 &emsp;&emsp;Draws a Drawable object (an Image, Canvas, SpriteBatch, ParticleSystem, Mesh, Text object, or Video) on the screen with optional rotation, scaling and shearing.
 
 	-- Objects are drawn relative to their local coordinate system. The origin is by default located at the top left corner of Image and Canvas. All scaling, shearing, and rotation arguments transform the object relative to that point. Also, the position of the origin can be specified on the screen coordinate system.
@@ -3015,6 +3127,27 @@ draw: function(image: Image, quad: Quad, x?: number, y?: number, angle?: number,
 
 **Description:**
 
+&emsp;&emsp;Draws a Quad subsection of an Image on the screen using a Transform object.
+
+**Signature:**
+```tl
+draw: function(image: Image, quad: Quad, transform: Transform)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| image | Image | The Image to draw. |
+| quad | Quad | The subsection of the Image to draw. |
+| transform | Transform | The Transform object containing the draw position, rotation, scale, shear, and origin. |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
 &emsp;&emsp;Draws a Canvas on the screen with optional rotation, scaling, and shearing.
 
 **Signature:**
@@ -3034,6 +3167,26 @@ draw: function(canvas: Canvas, x?: number, y?: number, angle?: number, scale_x?:
 | scale_y | number | The scale factor on the y-axis. (Default: scaleX.) |
 | origin_x | number | The origin offset on the x-axis. (Default: 0.) |
 | origin_y | number | The origin offset on the y-axis. (Default: 0.) |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a Canvas on the screen using a Transform object.
+
+**Signature:**
+```tl
+draw: function(canvas: Canvas, transform: Transform)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| canvas | Canvas | The Canvas to draw. |
+| transform | Transform | The Transform object containing the draw position, rotation, scale, shear, and origin. |
 
 ## draw
 
@@ -3061,6 +3214,27 @@ draw: function(canvas: Canvas, quad: Quad, x?: number, y?: number, angle?: numbe
 | scale_y | number | The scale factor on the y-axis. (Default: scaleX.) |
 | origin_x | number | The origin offset on the x-axis. (Default: 0.) |
 | origin_y | number | The origin offset on the y-axis. (Default: 0.) |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a Quad subsection of a Canvas on the screen using a Transform object.
+
+**Signature:**
+```tl
+draw: function(canvas: Canvas, quad: Quad, transform: Transform)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| canvas | Canvas | The Canvas to draw. |
+| quad | Quad | The subsection of the Canvas to draw. |
+| transform | Transform | The Transform object containing the draw position, rotation, scale, shear, and origin. |
 
 ## draw
 
@@ -3096,6 +3270,26 @@ draw: function(mesh: Mesh, x?: number, y?: number, angle?: number, scale_x?: num
 
 **Description:**
 
+&emsp;&emsp;Draws a Mesh on the screen using a Transform object.
+
+**Signature:**
+```tl
+draw: function(mesh: Mesh, transform: Transform)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| mesh | Mesh | The Mesh to draw. |
+| transform | Transform | The Transform object containing the draw position, rotation, scale, shear, and origin. |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
 &emsp;&emsp;Draws a SpriteBatch on the screen with optional rotation, scaling, and shearing.
 
 **Signature:**
@@ -3117,6 +3311,26 @@ draw: function(batch: SpriteBatch, x?: number, y?: number, angle?: number, scale
 | origin_y | number | The origin offset on the y-axis. (Default: 0.) |
 | shear_x | number | The shearing factor on the x-axis. (Default: 0.) |
 | shear_y | number | The shearing factor on the y-axis. (Default: 0.) |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a SpriteBatch on the screen using a Transform object.
+
+**Signature:**
+```tl
+draw: function(batch: SpriteBatch, transform: Transform)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| batch | SpriteBatch | The SpriteBatch to draw. |
+| transform | Transform | The Transform object containing the draw position, rotation, scale, shear, and origin. |
 
 ## draw
 
@@ -3152,6 +3366,26 @@ draw: function(particles: ParticleSystem, x?: number, y?: number, angle?: number
 
 **Description:**
 
+&emsp;&emsp;Draws a ParticleSystem on the screen using a Transform object.
+
+**Signature:**
+```tl
+draw: function(particles: ParticleSystem, transform: Transform)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| particles | ParticleSystem | The ParticleSystem to draw. |
+| transform | Transform | The Transform object containing the draw position, rotation, scale, shear, and origin. |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
 &emsp;&emsp;Draws a Text on the screen with optional rotation, scaling, and shearing.
 
 **Signature:**
@@ -3180,6 +3414,26 @@ draw: function(text: Text, x?: number, y?: number, angle?: number, scale_x?: num
 
 **Description:**
 
+&emsp;&emsp;Draws a Text object on the screen using a Transform object.
+
+**Signature:**
+```tl
+draw: function(text: Text, transform: Transform)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| text | Text | The Text object to draw. |
+| transform | Transform | The Transform object containing the draw position, rotation, scale, shear, and origin. |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
 &emsp;&emsp;Draws a Video on the screen with optional rotation, scaling, and shearing.
 
 **Signature:**
@@ -3201,6 +3455,26 @@ draw: function(video: Video, x?: number, y?: number, angle?: number, scale_x?: n
 | origin_y | number | The origin offset on the y-axis. (Default: 0.) |
 | shear_x | number | The shearing factor on the x-axis. (Default: 0.) |
 | shear_y | number | The shearing factor on the y-axis. (Default: 0.) |
+
+## draw
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws a Video on the screen using a Transform object.
+
+**Signature:**
+```tl
+draw: function(video: Video, transform: Transform)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| video | Video | The Video to draw. |
+| transform | Transform | The Transform object containing the draw position, rotation, scale, shear, and origin. |
 
 ## drawLayer
 
@@ -3290,3 +3564,24 @@ drawInstanced: function(mesh: Mesh, instance_count: integer, x?: number, y?: num
 | origin_y | number | Origin offset (y-axis). (Default: 0.) |
 | shear_x | number | Shearing factor (x-axis). (Default: 0.) |
 | shear_y | number | Shearing factor (y-axis). (Default: 0.) |
+
+## drawInstanced
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Draws many instances of a Mesh with a single draw call using a Transform object.
+
+**Signature:**
+```tl
+drawInstanced: function(mesh: Mesh, instance_count: integer, transform: Transform)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| mesh | Mesh | The Mesh to draw. |
+| instance_count | integer | The number of instances to draw. |
+| transform | Transform | The Transform object applied to every instance. |

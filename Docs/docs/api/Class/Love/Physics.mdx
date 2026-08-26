@@ -51,6 +51,36 @@ getMeter: function(): number
 | --- | --- |
 | number | The scale factor as an integer. |
 
+## getDistance
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Computes the shortest distance between two fixtures and the closest point on each fixture. Both fixtures must belong to the same World.
+
+**Signature:**
+```tl
+getDistance: function(fixture1: Fixture, fixture2: Fixture): number, number, number, number, number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| fixture1 | Fixture | The first fixture. |
+| fixture2 | Fixture | The second fixture. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The shortest distance in pixels. |
+| number | X coordinate of the closest point on the first fixture. |
+| number | Y coordinate of the closest point on the first fixture. |
+| number | X coordinate of the closest point on the second fixture. |
+| number | Y coordinate of the closest point on the second fixture. |
+
 ## newWorld
 
 **Type:** Function.

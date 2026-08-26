@@ -425,6 +425,33 @@ newFile: function(filename: string, mode: OpenFileMode): File
 | --- | --- |
 | File | 新的 File 对象，如果发生错误则为 nil。 |
 
+## openFile
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建 File 并立即按指定模式打开。
+
+**签名：**
+```tl
+openFile: function(filename: string, mode: OpenFileMode): File | nil, string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 虚拟文件系统中的文件路径。 |
+| mode | OpenFileMode | 打开文件时使用的模式。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| File or nil | 已打开的 File；打开失败时为 nil。 |
+| string or nil | 打开失败时的错误信息。 |
+
 ## newFileData
 
 **类型：** 函数。

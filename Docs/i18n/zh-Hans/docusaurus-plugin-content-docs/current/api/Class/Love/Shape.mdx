@@ -94,32 +94,93 @@ getType: function(self: Shape): string
 
 **描述：**
 
-&emsp;&emsp;获取形状的半径。
+&emsp;&emsp;获取形状圆角外皮的半径。
 
 **签名：**
 ```tl
 getRadius: function(self: Shape): number
-	getPoints: function(self: Shape): number...
-	validate: function(self: Shape): boolean
-	getVertexCount: function(self: Shape): integer
-	getPoint: function(self: Shape, index: integer): number, number
-	getChildEdge: function(self: Shape, index: integer): Shape
-	getPreviousVertex: function(self: Shape): number | nil, number | nil
-	getNextVertex: function(self: Shape): number | nil, number | nil
-	setPreviousVertex: function(self: Shape, x?: number, y?: number)
-	setNextVertex: function(self: Shape, x?: number, y?: number)
 ```
-
-**参数：**
-
-| 参数名 | 类型 | 描述 |
-| --- | --- | --- |
-| index | integer | index 参数。 |
-| x | number | x 参数。 |
-| y | number | y 参数。 |
 
 **返回值：**
 
 | 返回类型 | 描述 |
 | --- | --- |
-| number or number... or boolean or integer or Shape or number or nil | 形状的半径。 |
+| number | 像素半径。 |
+
+## setRadius
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置 CircleShape 的半径。
+
+**签名：**
+```tl
+setRadius: function(self: Shape, radius: number)
+```
+
+## getChildCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回子形状数量。
+
+**签名：**
+```tl
+getChildCount: function(self: Shape): integer
+```
+
+## testPoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查点是否位于变换后的形状内部。
+
+**签名：**
+```tl
+testPoint: function(self: Shape, x: number, y: number, angle: number, point_x: number, point_y: number): boolean
+```
+
+## rayCast
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;对变换后的形状作射线检测；未命中时返回 nil。
+
+**签名：**
+```tl
+rayCast: function(self: Shape, x1: number, y1: number, x2: number, y2: number, maximum_fraction: number, x: number, y: number, angle: number, child_index?: integer): number | nil, number | nil, number | nil
+```
+
+## computeAABB
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;计算变换后的轴对齐包围盒。
+
+**签名：**
+```tl
+computeAABB: function(self: Shape, x: number, y: number, angle: number, child_index?: integer): number, number, number, number
+```
+
+## computeMass
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;按密度计算质心、质量和转动惯量。
+
+**签名：**
+```tl
+computeMass: function(self: Shape, density: number): number, number, number, number
+```

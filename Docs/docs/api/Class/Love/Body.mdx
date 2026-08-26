@@ -1315,3 +1315,150 @@ getFixtures: function(self: Body): {Fixture}
 | Return Type | Description |
 | --- | --- |
 | Fixture[] | A table containing all fixtures attached to the body. |
+
+## getJoints
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns all joints attached to the body.
+
+**Signature:**
+```tl
+getJoints: function(self: Body): {Joint}
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Joint[] | A table containing all attached joints. |
+
+## getContacts
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns all contacts involving the body.
+
+**Signature:**
+```tl
+getContacts: function(self: Body): {Contact}
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Contact[] | A table containing all current contacts. |
+
+## getWorld
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the World which owns this body.
+
+**Signature:**
+```tl
+getWorld: function(self: Body): World
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| World | The owning World. |
+
+## isTouching
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns whether this body is touching another body.
+
+**Signature:**
+```tl
+isTouching: function(self: Body, other: Body): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Body | The other body. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True when the bodies are touching. |
+
+## setUserData
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Associates an arbitrary Lua value with the body.
+
+**Signature:**
+```tl
+setUserData: function(self: Body, value: any)
+```
+
+## getUserData
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the arbitrary Lua value associated with the body.
+
+**Signature:**
+```tl
+getUserData: function(self: Body): any
+```
+
+## getFixtureList
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Deprecated alias of getFixtures.
+
+**Signature:**
+```tl
+getFixtureList: function(self: Body): {Fixture}
+```
+
+## getJointList
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Deprecated alias of getJoints.
+
+**Signature:**
+```tl
+getJointList: function(self: Body): {Joint}
+```
+
+## getContactList
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Deprecated alias of getContacts.
+
+**Signature:**
+```tl
+getContactList: function(self: Body): {Contact}
+```

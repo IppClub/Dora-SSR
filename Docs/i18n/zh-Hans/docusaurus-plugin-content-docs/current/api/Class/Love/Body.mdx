@@ -1270,3 +1270,150 @@ getFixtures: function(self: Body): {Fixture}
 | 返回类型 | 描述 |
 | --- | --- |
 | Fixture[] | 包含刚体所有碰撞体的表。 |
+
+## getJoints
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回附加到物体的所有关节。
+
+**签名：**
+```tl
+getJoints: function(self: Body): {Joint}
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Joint[] | 所有关节组成的表。 |
+
+## getContacts
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回与物体有关的所有当前接触。
+
+**签名：**
+```tl
+getContacts: function(self: Body): {Contact}
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Contact[] | 所有接触组成的表。 |
+
+## getWorld
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回拥有此物体的 World。
+
+**签名：**
+```tl
+getWorld: function(self: Body): World
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| World | 所属的 World。 |
+
+## isTouching
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回此物体是否正在接触另一个物体。
+
+**签名：**
+```tl
+isTouching: function(self: Body, other: Body): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| other | Body | 另一个物体。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 两个物体正在接触时为 true。 |
+
+## setUserData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;为物体关联任意 Lua 值。
+
+**签名：**
+```tl
+setUserData: function(self: Body, value: any)
+```
+
+## getUserData
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回与物体关联的任意 Lua 值。
+
+**签名：**
+```tl
+getUserData: function(self: Body): any
+```
+
+## getFixtureList
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;getFixtures 的已弃用别名。
+
+**签名：**
+```tl
+getFixtureList: function(self: Body): {Fixture}
+```
+
+## getJointList
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;getJoints 的已弃用别名。
+
+**签名：**
+```tl
+getJointList: function(self: Body): {Joint}
+```
+
+## getContactList
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;getContacts 的已弃用别名。
+
+**签名：**
+```tl
+getContactList: function(self: Body): {Contact}
+```

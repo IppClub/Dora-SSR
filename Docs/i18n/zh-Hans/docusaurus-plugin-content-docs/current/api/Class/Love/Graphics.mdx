@@ -1819,6 +1819,46 @@ getStencilTest: function(): CompareMode, integer
 | CompareMode | 对每个像素进行的比较类型。如果禁用模板测试，则将为 'always'。 |
 | integer | 与每个像素的模板值进行比较时使用的值。 |
 
+## setStencilMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;选择高级模板模式。"draw" 写入模板值但不写颜色，"test" 仅在值匹配时绘制，"custom" 保留底层状态，"off" 关闭模板操作。
+
+**签名：**
+```tl
+setStencilMode: function(mode?: StencilMode, value?: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mode | StencilMode | 模板模式。省略时默认为 "off"。 |
+| value | integer | "draw" 和 "test" 使用的模板参考值。默认为 1。 |
+
+## getStencilMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前高级模板模式和参考值。
+
+**签名：**
+```tl
+getStencilMode: function(): StencilMode, integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| StencilMode | 当前模板模式。 |
+| integer | 当前模板参考值。 |
+
 ## newFont
 
 **类型：** 函数。
@@ -2007,6 +2047,32 @@ newText: function(font: Font, text?: any): Text
 | 返回类型 | 描述 |
 | --- | --- |
 | Text | 新的可绘制文本对象。 |
+
+## newTextBatch
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建可绘制的文字批次。这是 LÖVE 12 对 LÖVE 11 中 Text 对象采用的新名称。
+
+**签名：**
+```tl
+newTextBatch: function(font: Font, text?: any): Text
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| font | Font | 文字批次使用的字体。 |
+| text | any | 可选的初始彩色文字。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Text | 新建的可绘制文字批次。 |
 
 ## setFont
 
@@ -2467,6 +2533,32 @@ getCanvasFormats: function(readable?: boolean, formats?: {string: boolean}): {st
 | --- | --- |
 | \{string: boolean} | 包含 CanvasFormats 作为键的表，以及一个指示是否支持该格式作为值的布尔值。并非所有系统都支持所有格式。取决于重载：包含 CanvasFormats 作为键的表，以及指示是否支持该格式作为值的布尔值（考虑到可读参数）。并非所有系统都支持所有格式。 |
 
+## getTextureFormats
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取指定用途支持的纹理格式。必填的 canvas 字段选择渲染目标格式，其它字段会进一步限制报告的支持能力。
+
+**签名：**
+```tl
+getTextureFormats: function(settings: TextureFormatSettings, target?: {string: boolean}): {string: boolean}
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| settings | TextureFormatSettings | 要查询的纹理格式用途要求。 |
+| target | \{string: boolean} | 可选的接收并返回结果的表。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{string: boolean} | 格式名称到是否支持指定用途的映射。 |
+
 ## setCanvas
 
 **类型：** 函数。
@@ -2885,6 +2977,26 @@ draw: function(image: Image, x?: number, y?: number, angle?: number, scale_x?: n
 
 **描述：**
 
+&emsp;&emsp;使用 Transform 对象在屏幕上绘制 Image。
+
+**签名：**
+```tl
+draw: function(image: Image, transform: Transform)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| image | Image | 要绘制的 Image。 |
+| transform | Transform | 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。 |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
 &emsp;&emsp;在屏幕上绘制可绘制对象（图像、画布、SpriteBatch、粒子系统、网格、文本对象或视频），并可选择旋转、缩放和剪切。
 
 	-- 对象是相对于其局部坐标系绘制的。原点默认位于图像和画布的左上角。所有缩放、剪切和旋转参数都会相对于该点变换对象。另外，还可以在屏幕坐标系上指定原点位置。
@@ -2922,6 +3034,27 @@ draw: function(image: Image, quad: Quad, x?: number, y?: number, angle?: number,
 
 **描述：**
 
+&emsp;&emsp;使用 Transform 对象在屏幕上绘制 Image 的 Quad 子区域。
+
+**签名：**
+```tl
+draw: function(image: Image, quad: Quad, transform: Transform)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| image | Image | 要绘制的 Image。 |
+| quad | Quad | 要绘制的 Image 子区域。 |
+| transform | Transform | 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。 |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
 &emsp;&emsp;在屏幕上绘制 Canvas，并可选择旋转、缩放和剪切。
 
 **签名：**
@@ -2941,6 +3074,26 @@ draw: function(canvas: Canvas, x?: number, y?: number, angle?: number, scale_x?:
 | scale_y | number | y 轴缩放系数。（默认值：scaleX。） |
 | origin_x | number | x 轴原点偏移。（默认值：0。） |
 | origin_y | number | y 轴原点偏移。（默认值：0。） |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用 Transform 对象在屏幕上绘制 Canvas。
+
+**签名：**
+```tl
+draw: function(canvas: Canvas, transform: Transform)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| canvas | Canvas | 要绘制的 Canvas。 |
+| transform | Transform | 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。 |
 
 ## draw
 
@@ -2968,6 +3121,27 @@ draw: function(canvas: Canvas, quad: Quad, x?: number, y?: number, angle?: numbe
 | scale_y | number | y 轴缩放系数。（默认值：scaleX。） |
 | origin_x | number | x 轴原点偏移。（默认值：0。） |
 | origin_y | number | y 轴原点偏移。（默认值：0。） |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用 Transform 对象在屏幕上绘制 Canvas 的 Quad 子区域。
+
+**签名：**
+```tl
+draw: function(canvas: Canvas, quad: Quad, transform: Transform)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| canvas | Canvas | 要绘制的 Canvas。 |
+| quad | Quad | 要绘制的 Canvas 子区域。 |
+| transform | Transform | 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。 |
 
 ## draw
 
@@ -3003,6 +3177,26 @@ draw: function(mesh: Mesh, x?: number, y?: number, angle?: number, scale_x?: num
 
 **描述：**
 
+&emsp;&emsp;使用 Transform 对象在屏幕上绘制 Mesh。
+
+**签名：**
+```tl
+draw: function(mesh: Mesh, transform: Transform)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mesh | Mesh | 要绘制的 Mesh。 |
+| transform | Transform | 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。 |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
 &emsp;&emsp;在屏幕上绘制 SpriteBatch，并可选择旋转、缩放和剪切。
 
 **签名：**
@@ -3024,6 +3218,26 @@ draw: function(batch: SpriteBatch, x?: number, y?: number, angle?: number, scale
 | origin_y | number | y 轴原点偏移。（默认值：0。） |
 | shear_x | number | x 轴剪切系数。（默认值：0。） |
 | shear_y | number | y 轴剪切系数。（默认值：0。） |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用 Transform 对象在屏幕上绘制 SpriteBatch。
+
+**签名：**
+```tl
+draw: function(batch: SpriteBatch, transform: Transform)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| batch | SpriteBatch | 要绘制的 SpriteBatch。 |
+| transform | Transform | 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。 |
 
 ## draw
 
@@ -3059,6 +3273,26 @@ draw: function(particles: ParticleSystem, x?: number, y?: number, angle?: number
 
 **描述：**
 
+&emsp;&emsp;使用 Transform 对象在屏幕上绘制 ParticleSystem。
+
+**签名：**
+```tl
+draw: function(particles: ParticleSystem, transform: Transform)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| particles | ParticleSystem | 要绘制的 ParticleSystem。 |
+| transform | Transform | 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。 |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
 &emsp;&emsp;在屏幕上绘制 Text，并可选择旋转、缩放和剪切。
 
 **签名：**
@@ -3087,6 +3321,26 @@ draw: function(text: Text, x?: number, y?: number, angle?: number, scale_x?: num
 
 **描述：**
 
+&emsp;&emsp;使用 Transform 对象在屏幕上绘制 Text 对象。
+
+**签名：**
+```tl
+draw: function(text: Text, transform: Transform)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | Text | 要绘制的 Text 对象。 |
+| transform | Transform | 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。 |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
 &emsp;&emsp;在屏幕上绘制 Video，并可选择旋转、缩放和剪切。
 
 **签名：**
@@ -3108,6 +3362,26 @@ draw: function(video: Video, x?: number, y?: number, angle?: number, scale_x?: n
 | origin_y | number | y 轴原点偏移。（默认值：0。） |
 | shear_x | number | x 轴剪切系数。（默认值：0。） |
 | shear_y | number | y 轴剪切系数。（默认值：0。） |
+
+## draw
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用 Transform 对象在屏幕上绘制 Video。
+
+**签名：**
+```tl
+draw: function(video: Video, transform: Transform)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| video | Video | 要绘制的 Video。 |
+| transform | Transform | 包含绘制位置、旋转、缩放、剪切和原点的 Transform 对象。 |
 
 ## drawLayer
 
@@ -3194,3 +3468,24 @@ drawInstanced: function(mesh: Mesh, instance_count: integer, x?: number, y?: num
 | origin_y | number | 原点偏移（y 轴）。 （默认值：0。） |
 | shear_x | number | 剪切因子（x 轴）。 （默认值：0。） |
 | shear_y | number | 剪切因子（y 轴）。 （默认值：0。） |
+
+## drawInstanced
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用 Transform 对象，通过一次绘制调用绘制 Mesh 的多个实例。
+
+**签名：**
+```tl
+drawInstanced: function(mesh: Mesh, instance_count: integer, transform: Transform)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| mesh | Mesh | 要绘制的 Mesh。 |
+| instance_count | integer | 要绘制的实例数量。 |
+| transform | Transform | 应用于每个实例的 Transform 对象。 |

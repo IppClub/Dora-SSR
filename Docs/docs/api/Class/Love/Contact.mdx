@@ -62,6 +62,8 @@ This method can be used to immediately clean up resources without waiting for Lu
 **Signature:**
 ```tl
 release: function(self: Contact): boolean
+	-- Checks whether the Contact has been destroyed.
+	-- @return (boolean) True if the Contact is no longer valid.
 	isDestroyed: function(self: Contact): boolean
 ```
 

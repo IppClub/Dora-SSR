@@ -590,6 +590,73 @@ isVisible: function(): boolean
 | --- | --- |
 | boolean | True if the window is visible or false if not. |
 
+## close
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Closes the virtual Love window without closing the Dora host application.
+
+**Signature:**
+```tl
+close: function()
+```
+
+## setPosition
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the virtual window position metadata.
+
+**Signature:**
+```tl
+setPosition: function(x: number, y: number, display?: integer)
+```
+
+## minimize
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Changes the virtual minimized/maximized state.
+
+**Signature:**
+```tl
+minimize: function()
+	maximize: function()
+	restore: function()
+```
+
+## showMessageBox
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Shows a host message box when supported. The custom-button form returns a 1-based index.
+
+**Signature:**
+```tl
+showMessageBox: function(title: string, message: string, options?: any, message_type?: string, attach_to_window?: boolean): boolean | integer
+```
+
+## requestAttention
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Requests user attention from the host window when supported.
+
+**Signature:**
+```tl
+requestAttention: function(continuous?: boolean)
+```
+
 ## isMaximized
 
 **Type:** Function.
