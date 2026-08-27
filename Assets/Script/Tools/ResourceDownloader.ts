@@ -440,13 +440,13 @@ class ResourceDownloader {
 				this.detailsPopupShow = true;
 			}
 			ImGui.TextDisabled(
-				`${version.name} · ${version.commit.substring(0, 8)} · ${
+				`${version.name} · ${
 					resource.license.status === "pending"
 						? (zh ? "许可待完善" : "license pending")
 						: resource.license.spdx
 				}`,
 			);
-			const versionNames = resource.versions.map(item => `${item.name} (${item.commit.substring(0, 7)})`);
+			const versionNames = resource.versions.map(item => item.name);
 			if (versionNames.length > 1 && !installed) {
 				ImGui.SetNextItemWidth(-1);
 				const [changed, selected] = ImGui.Combo(`##version-${resource.id}`, resource.selectedVersion, versionNames);
@@ -541,7 +541,6 @@ class ResourceDownloader {
 				detailLine(zh ? "状态" : "Status", status);
 				detailLine(zh ? "版本" : "Version", version.name);
 				detailLine(zh ? "发布时间" : "Published", version.publishedAt);
-				detailLine("Commit", version.commit);
 				detailLine(zh ? "许可证" : "License", license);
 				ImGui.ScrollWhenDraggingOnVoid();
 			});

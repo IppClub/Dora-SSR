@@ -39,7 +39,6 @@ export interface ResourceSource {
 export interface ResourceVersion {
 	name: string;
 	tag?: string;
-	commit: string;
 	publishedAt: string;
 	sources: ResourceSource[];
 }
@@ -104,12 +103,6 @@ const hasOnlyTagChars = (value: string) => {
 	const [invalid] = string.match(value, "[^a-z0-9-]");
 	const [first] = string.match(value, "^[a-z0-9]");
 	return invalid === undefined && first !== undefined;
-};
-
-const isCommit = (value: unknown): value is string => {
-	if (typeof value !== "string" || value.length !== 40) return false;
-	const [invalid] = string.match(value, "[^0-9a-f]");
-	return invalid === undefined;
 };
 
 export const isSafeHttpsGitUrl = (value: string) => {
@@ -249,9 +242,8 @@ const parseVersions = (value: unknown, errors: string[]): ResourceVersion[] | un
 	for (const item of value) {
 		if (!isRecord(item)
 			|| !isNonEmptyString(item.name, 100)
-			|| !isCommit(item.commit)
 			|| !isNonEmptyString(item.publishedAt, 100)) {
-			errors.push("versions contains invalid name, commit, or publishedAt");
+			errors.push("versions contains invalid name or publishedAt");
 			return undefined;
 		}
 		if (item.tag !== undefined && !isNonEmptyString(item.tag, 200)) {
@@ -260,15 +252,14 @@ const parseVersions = (value: unknown, errors: string[]): ResourceVersion[] | un
 		}
 		const sources = parseSources(item.sources, errors);
 		if (!sources) return undefined;
-		if (seen.has(item.commit)) {
-			errors.push(`versions contains duplicate commit ${item.commit}`);
+		if (seen.has(item.name)) {
+			errors.push(`versions contains duplicate name ${item.name}`);
 			return undefined;
 		}
-		seen.add(item.commit);
+		seen.add(item.name);
 		result.push({
 			name: item.name,
 			tag: item.tag as string | undefined,
-			commit: item.commit,
 			publishedAt: item.publishedAt,
 			sources,
 		});

@@ -9142,7 +9142,7 @@ interface Git {
 	 * - `tag`、`tag <name>`、`tag -a <name> -m <msg>`、`tag -d <name>`
 	 * - `remote`、`remote -v`、`remote add <name> <url>`、`remote set-url <name> <url>`、`remote remove <name>`
 	 * - `mv <from> <to>`（仅支持单文件）
-	 * - `verify-resource <40位提交哈希>`
+	 * - `verify-resource [40位提交哈希]`（省略哈希时检查 HEAD）
 	 * - `verify-update <40位提交哈希> [上次可信提交哈希]`
 	 * - `verify-update-package <路径> <sha256> <文件大小>`
 	 *

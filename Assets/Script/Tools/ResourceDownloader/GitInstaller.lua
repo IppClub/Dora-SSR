@@ -3,7 +3,6 @@ local ____lualib = require("lualib_bundle") -- 1
 local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
 local __TS__AsyncAwaiter = ____lualib.__TS__AsyncAwaiter -- 1
 local __TS__Await = ____lualib.__TS__Await -- 1
-local __TS__ArrayFind = ____lualib.__TS__ArrayFind -- 1
 local ____exports = {} -- 1
 local ____Dora = require("Dora") -- 2
 local Content = ____Dora.Content -- 2
@@ -11,7 +10,6 @@ local Director = ____Dora.Director -- 2
 local json = ____Dora.json -- 2
 local Path = ____Dora.Path -- 2
 local ____Git = require("Script.Tools.ResourceDownloader.Git") -- 4
-local gitHeadFromStatus = ____Git.gitHeadFromStatus -- 4
 local quoteGitArgument = ____Git.quoteGitArgument -- 4
 local runGit = ____Git.runGit -- 4
 local function emitProgress(options, progress, message, source) -- 26
@@ -19,7 +17,7 @@ local function emitProgress(options, progress, message, source) -- 26
 		options:onProgress({progress = progress, message = message, source = source}) -- 32
 	end -- 32
 end -- 26
-local function installMetadata(resource, version, catalogCommit, source, tempPath) -- 35
+local function installMetadata(resource, version, installedCommit, catalogCommit, source, tempPath) -- 35
 	local doraPath = Path(tempPath, ".dora") -- 42
 	if not Content:mkdir(doraPath) and not Content:isdir(doraPath) then -- 42
 		return "failed to create .dora directory" -- 44
@@ -28,7 +26,7 @@ local function installMetadata(resource, version, catalogCommit, source, tempPat
 		schemaVersion = 1, -- 47
 		resourceId = resource.id, -- 48
 		version = version.name, -- 49
-		commit = version.commit, -- 50
+		commit = installedCommit, -- 50
 		source = source, -- 51
 		catalogCommit = catalogCommit, -- 52
 		installedAt = os.date("!%Y-%m-%dT%H:%M:%SZ") -- 53
@@ -139,16 +137,10 @@ ____exports.installResource = function(resource, version, options) -- 92
 						end -- 145
 						goto __continue17 -- 149
 					end -- 149
-					emitProgress(options, 0.86, "Verifying the installed commit", source.url) -- 151
-					local actualHead = gitHeadFromStatus(cloneResult.status) -- 152
-					if actualHead ~= version.commit then -- 152
-						Content:remove(tempPath) -- 154
-						lastMessage = actualHead and (("source HEAD " .. actualHead) .. " does not match catalog commit ") .. version.commit or "Git clone did not return a commit hash" -- 155
-						goto __continue17 -- 158
-					end -- 158
+					emitProgress(options, 0.86, "Checking resource structure", source.url) -- 154
 					local verifyResult = __TS__Await(runGit( -- 160
 						tempPath, -- 161
-						"verify-resource " .. quoteGitArgument(version.commit), -- 162
+						"verify-resource", -- 162
 						{timeout = 60, isCanceled = options.isCanceled} -- 163
 					)) -- 163
 					if not verifyResult.success then -- 163
@@ -156,19 +148,17 @@ ____exports.installResource = function(resource, version, options) -- 92
 						lastMessage = verifyResult.message or "resource repository safety verification failed" -- 167
 						goto __continue17 -- 168
 					end -- 168
-					local missingEntrypoint = __TS__ArrayFind( -- 170
-						resource.entrypoints, -- 170
-						function(____, entry) return not Content:exist(Path(tempPath, entry.path)) end -- 171
-					) -- 171
-					if missingEntrypoint then -- 171
-						Content:remove(tempPath) -- 174
-						lastMessage = "resource entrypoint does not exist: " .. missingEntrypoint.path -- 175
-						goto __continue17 -- 176
-					end -- 176
+					local installedCommit = verifyResult.status and verifyResult.status.data and verifyResult.status.data.commit -- 169
+					if type(installedCommit) ~= "string" then -- 169
+						Content:remove(tempPath) -- 170
+						lastMessage = "resource repository safety verification did not return HEAD" -- 171
+						goto __continue17 -- 172
+					end -- 172
 					emitProgress(options, 0.92, "Writing Dora resource metadata", source.url) -- 178
 					local metadataError = installMetadata( -- 179
 						resource, -- 179
 						version, -- 179
+						installedCommit, -- 179
 						options.catalogCommit, -- 179
 						source.url, -- 179
 						tempPath -- 179
@@ -182,10 +172,10 @@ ____exports.installResource = function(resource, version, options) -- 92
 						Content:remove(tempPath) -- 186
 						return ____awaiter_resolve(nil, {success = false, message = "target directory was created while the resource was installing"}) -- 186
 					end -- 186
-					emitProgress(options, 0.97, "Installing the verified project", source.url) -- 192
+					emitProgress(options, 0.97, "Installing project", source.url) -- 192
 					if not Content:move(tempPath, targetPath) then -- 192
 						Content:remove(tempPath) -- 194
-						lastMessage = "failed to move the verified project into Download" -- 195
+						lastMessage = "failed to move the project into Download" -- 195
 						goto __continue17 -- 196
 					end -- 196
 					Director.postNode:emit("UpdateEntries") -- 198

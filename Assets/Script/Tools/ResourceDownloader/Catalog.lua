@@ -36,13 +36,6 @@ local function hasOnlyTagChars(value) -- 103
 	local first = string.match(value, "^[a-z0-9]") -- 105
 	return invalid == nil and first ~= nil -- 106
 end -- 103
-local function isCommit(value) -- 109
-	if type(value) ~= "string" or #value ~= 40 then -- 109
-		return false -- 110
-	end -- 110
-	local invalid = string.match(value, "[^0-9a-f]") -- 111
-	return invalid == nil -- 112
-end -- 109
 ____exports.isSafeHttpsGitUrl = function(value) -- 115
 	if not __TS__StringStartsWith(value, "https://") or #value > 2048 then -- 115
 		return false -- 116
@@ -164,8 +157,8 @@ local function parseVersions(value, errors) -- 242
 	local result = {} -- 247
 	local seen = __TS__New(Set) -- 248
 	for ____, item in ipairs(value) do -- 249
-		if not isRecord(item) or not isNonEmptyString(item.name, 100) or not isCommit(item.commit) or not isNonEmptyString(item.publishedAt, 100) then -- 249
-			errors[#errors + 1] = "versions contains invalid name, commit, or publishedAt" -- 254
+		if not isRecord(item) or not isNonEmptyString(item.name, 100) or not isNonEmptyString(item.publishedAt, 100) then -- 249
+			errors[#errors + 1] = "versions contains invalid name or publishedAt" -- 254
 			return nil -- 255
 		end -- 255
 		if item.tag ~= nil and not isNonEmptyString(item.tag, 200) then -- 255
@@ -176,15 +169,14 @@ local function parseVersions(value, errors) -- 242
 		if not sources then -- 261
 			return nil -- 262
 		end -- 262
-		if seen:has(item.commit) then -- 262
-			errors[#errors + 1] = "versions contains duplicate commit " .. item.commit -- 264
+		if seen:has(item.name) then -- 262
+			errors[#errors + 1] = "versions contains duplicate name " .. item.name -- 264
 			return nil -- 265
 		end -- 265
-		seen:add(item.commit) -- 267
+		seen:add(item.name) -- 267
 		result[#result + 1] = { -- 268
 			name = item.name, -- 269
 			tag = item.tag, -- 270
-			commit = item.commit, -- 271
 			publishedAt = item.publishedAt, -- 272
 			sources = sources -- 273
 		} -- 273

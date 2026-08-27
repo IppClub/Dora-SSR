@@ -9151,7 +9151,7 @@ interface Git {
 	 * - `tag`, `tag <name>`, `tag -a <name> -m <msg>`, `tag -d <name>`
 	 * - `remote`, `remote -v`, `remote add <name> <url>`, `remote set-url <name> <url>`, `remote remove <name>`
 	 * - `mv <from> <to>` (single files only)
-	 * - `verify-resource <40-character-commit-hash>`
+	 * - `verify-resource [40-character-commit-hash]` (omitting the hash checks HEAD)
 	 * - `verify-update <40-character-commit-hash> [last-known-good-hash]`
 	 * - `verify-update-package <path> <sha256> <size>`
 	 *

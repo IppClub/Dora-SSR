@@ -768,8 +768,11 @@ func parseVerifyUpdatePackage(args []string) (gitCommand, error) {
 }
 
 func parseVerifyResource(args []string) (gitCommand, error) {
+	if len(args) == 0 {
+		return gitCommand{op: "verify-resource"}, nil
+	}
 	if len(args) != 1 || !plumbing.IsHash(args[0]) {
-		return gitCommand{}, errors.New("verify-resource requires one full 40-character commit hash")
+		return gitCommand{}, errors.New("verify-resource accepts an optional full 40-character commit hash")
 	}
 	return gitCommand{op: "verify-resource", commitHash: args[0]}, nil
 }

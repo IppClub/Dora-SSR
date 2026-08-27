@@ -1,7 +1,7 @@
 // @preview-file off
 import { Content, Director, json, Path } from "Dora";
 import type { ResourceInfo, ResourceVersion } from "Script/Tools/ResourceDownloader/Catalog";
-import { gitHeadFromStatus, quoteGitArgument, runGit, type GitOperationStatus } from "Script/Tools/ResourceDownloader/Git";
+import { quoteGitArgument, runGit, type GitOperationStatus } from "Script/Tools/ResourceDownloader/Git";
 
 export interface ResourceInstallProgress {
 	progress: number;
@@ -35,6 +35,7 @@ const emitProgress = (
 const installMetadata = (
 	resource: ResourceInfo,
 	version: ResourceVersion,
+	installedCommit: string,
 	catalogCommit: string,
 	source: string,
 	tempPath: string,
@@ -47,7 +48,7 @@ const installMetadata = (
 		schemaVersion: 1,
 		resourceId: resource.id,
 		version: version.name,
-		commit: version.commit,
+		commit: installedCommit,
 		source,
 		catalogCommit,
 		installedAt: os.date("!%Y-%m-%dT%H:%M:%SZ"),
@@ -148,18 +149,10 @@ export const installResource = async (
 			}
 			continue;
 		}
-		emitProgress(options, 0.86, "Verifying the installed commit", source.url);
-		const actualHead = gitHeadFromStatus(cloneResult.status);
-		if (actualHead !== version.commit) {
-			Content.remove(tempPath);
-			lastMessage = actualHead
-				? `source HEAD ${actualHead} does not match catalog commit ${version.commit}`
-				: "Git clone did not return a commit hash";
-			continue;
-		}
+		emitProgress(options, 0.86, "Checking resource structure", source.url);
 		const verifyResult = await runGit(
 			tempPath,
-			`verify-resource ${quoteGitArgument(version.commit)}`,
+			"verify-resource",
 			{ timeout: 60, isCanceled: options.isCanceled },
 		);
 		if (!verifyResult.success) {
@@ -167,16 +160,21 @@ export const installResource = async (
 			lastMessage = verifyResult.message ?? "resource repository safety verification failed";
 			continue;
 		}
-		const missingEntrypoint = resource.entrypoints.find(
-			entry => !Content.exist(Path(tempPath, entry.path)),
-		);
-		if (missingEntrypoint) {
+		const installedCommit = verifyResult.status?.data?.commit;
+		if (typeof installedCommit !== "string") {
 			Content.remove(tempPath);
-			lastMessage = `resource entrypoint does not exist: ${missingEntrypoint.path}`;
+			lastMessage = "resource repository safety verification did not return HEAD";
 			continue;
 		}
 		emitProgress(options, 0.92, "Writing Dora resource metadata", source.url);
-		const metadataError = installMetadata(resource, version, options.catalogCommit, source.url, tempPath);
+		const metadataError = installMetadata(
+			resource,
+			version,
+			installedCommit,
+			options.catalogCommit,
+			source.url,
+			tempPath,
+		);
 		if (metadataError) {
 			Content.remove(tempPath);
 			lastMessage = metadataError;
@@ -189,10 +187,10 @@ export const installResource = async (
 				message: "target directory was created while the resource was installing",
 			};
 		}
-		emitProgress(options, 0.97, "Installing the verified project", source.url);
+		emitProgress(options, 0.97, "Installing project", source.url);
 		if (!Content.move(tempPath, targetPath)) {
 			Content.remove(tempPath);
-			lastMessage = "failed to move the verified project into Download";
+			lastMessage = "failed to move the project into Download";
 			continue;
 		}
 		Director.postNode.emit("UpdateEntries");

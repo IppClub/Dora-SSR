@@ -532,10 +532,10 @@ function ResourceDownloader.prototype.drawResourceCard(self, resource, itemWidth
 				self.detailsResource = resource -- 439
 				self.detailsPopupShow = true -- 440
 			end -- 440
-			ImGui.TextDisabled((((version.name .. " · ") .. __TS__StringSubstring(version.commit, 0, 8)) .. " · ") .. (resource.license.status == "pending" and (zh and "许可待完善" or "license pending") or resource.license.spdx)) -- 442
+			ImGui.TextDisabled(((version.name .. " · ") .. (resource.license.status == "pending" and (zh and "许可待完善" or "license pending") or resource.license.spdx))) -- 442
 			local versionNames = __TS__ArrayMap( -- 449
 				resource.versions, -- 449
-				function(____, item) return ((item.name .. " (") .. __TS__StringSubstring(item.commit, 0, 7)) .. ")" end -- 449
+				function(____, item) return item.name end -- 449
 			) -- 449
 			if #versionNames > 1 and not installed then -- 449
 				ImGui.SetNextItemWidth(-1) -- 451
@@ -639,7 +639,6 @@ function ResourceDownloader.prototype.drawDetailsPopup(self) -- 487
 					detailLine(zh and "状态" or "Status", status) -- 541
 					detailLine(zh and "版本" or "Version", version.name) -- 542
 					detailLine(zh and "发布时间" or "Published", version.publishedAt) -- 543
-					detailLine("Commit", version.commit) -- 544
 					detailLine(zh and "许可证" or "License", license) -- 545
 					ImGui.ScrollWhenDraggingOnVoid() -- 546
 				end -- 525

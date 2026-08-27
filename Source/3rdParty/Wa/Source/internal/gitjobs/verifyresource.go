@@ -17,7 +17,15 @@ func execVerifyResource(repoPath string, cmd gitCommand) (map[string]any, error)
 	if err != nil {
 		return nil, fmt.Errorf("open resource repository: %w", err)
 	}
-	commit, err := repo.CommitObject(plumbing.NewHash(cmd.commitHash))
+	commitHash := cmd.commitHash
+	if commitHash == "" {
+		head, err := repo.Head()
+		if err != nil {
+			return nil, fmt.Errorf("read resource HEAD: %w", err)
+		}
+		commitHash = head.Hash().String()
+	}
+	commit, err := repo.CommitObject(plumbing.NewHash(commitHash))
 	if err != nil {
 		return nil, fmt.Errorf("read resource commit: %w", err)
 	}
@@ -48,7 +56,7 @@ func execVerifyResource(repoPath string, cmd gitCommand) (map[string]any, error)
 		return nil, err
 	}
 	return map[string]any{
-		"commit": cmd.commitHash,
+		"commit": commitHash,
 		"files":  count,
 	}, nil
 }

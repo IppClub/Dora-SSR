@@ -47,7 +47,7 @@ func commitResourceFixture(t *testing.T, symlink bool) (string, string) {
 
 func TestVerifyResourceAcceptsRegularFiles(t *testing.T) {
 	repoPath, head := commitResourceFixture(t, false)
-	data, err := execVerifyResource(repoPath, gitCommand{commitHash: head})
+	data, err := execVerifyResource(repoPath, gitCommand{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +65,14 @@ func TestVerifyResourceRejectsSymbolicLinks(t *testing.T) {
 
 func TestParseVerifyResource(t *testing.T) {
 	head := "0123456789abcdef0123456789abcdef01234567"
-	cmd, err := parseGitCommand("/tmp/repo", "verify-resource "+head)
+	cmd, err := parseGitCommand("/tmp/repo", "verify-resource")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cmd.op != "verify-resource" || cmd.commitHash != "" {
+		t.Fatalf("unexpected HEAD verification command: %+v", cmd)
+	}
+	cmd, err = parseGitCommand("/tmp/repo", "verify-resource "+head)
 	if err != nil {
 		t.Fatal(err)
 	}
