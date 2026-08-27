@@ -721,7 +721,16 @@ private:
     ///   return true for this world.
     /// @pre @p island contains at least one body, contact, or joint identifier.
     /// @return Island solver results.
-    IslandStats SolveRegIslandViaGS(const StepConf& conf, const Island& island);
+    struct RegIslandSolveData;
+
+    /// @brief Builds an island-local immutable solver input snapshot on the stepping thread.
+    RegIslandSolveData GetRegIslandSolveData(const StepConf& conf, const Island& island);
+
+    /// @brief Solves an island using worker-local scratch and only writes to @p data.
+    static void SolveRegIslandViaGS(const StepConf& conf, RegIslandSolveData& data);
+
+    /// @brief Applies one solved island to world state on the stepping thread.
+    IslandStats ApplyRegIslandSolveData(const StepConf& conf, const RegIslandSolveData& data);
 
     /// @brief Adds to the island based off of a given "seed" body.
     /// @post Contacts are listed in the island in the order that bodies provide those contacts.
@@ -929,8 +938,6 @@ private:
     ///   - The fixtures bodies' transformations.
     ///   - The <code>maxCirclesRatio</code> per-step configuration state *OR* the
     ///     <code>maxDistanceIters</code> per-step configuration state.
-    /// @param id Identifies the contact to update.
-    /// @param conf Per-step configuration information.
     /// @pre <code>IsLocked(const AabbTreeWorld&)</code> returns true for this world.
     /// @pre The identified contact needs updating.
     /// @post The identified contact does not need updating.
@@ -1005,6 +1012,34 @@ private:
 
     /// @brief Listeners.
     Listeners m_listeners;
+
+    /// @brief Blocking executor for independent regular-island solver jobs.
+    IslandTaskExecutor m_islandTaskExecutor;
+
+    /// @brief Maximum number of adaptively balanced island batches.
+    std::size_t m_islandTaskConcurrency = 1;
+
+    /// @brief Minimum estimated work before island batches are dispatched.
+    std::size_t m_minParallelIslandCost = 4096;
+
+    /// @brief Blocking executor for read-only broad-phase tree query jobs.
+    BroadPhaseTaskExecutor m_broadPhaseTaskExecutor;
+
+    /// @brief Maximum number of broad-phase query batches.
+    std::size_t m_broadPhaseTaskConcurrency = 1;
+
+    /// @brief Minimum moved-proxy count before broad-phase batches are dispatched.
+    std::size_t m_minParallelBroadPhaseProxies =
+        WorldConf::DefaultMinParallelBroadPhaseProxies;
+
+    /// @brief Target minimum moved proxies assigned to one broad-phase task.
+    std::size_t m_broadPhaseProxiesPerTask = WorldConf::DefaultBroadPhaseProxiesPerTask;
+
+    /// @brief Optional stepping-thread diagnostics for broad-phase sub-stages.
+    BroadPhaseProfiler m_broadPhaseProfiler;
+
+    /// @brief Per-lane broad-phase candidate storage reused after blocking worker completion.
+    std::vector<std::vector<ProxyKey>> m_broadPhaseTaskKeys;
 
     FlagsType m_flags = e_stepComplete; ///< Flags.
 

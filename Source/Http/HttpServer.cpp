@@ -1075,6 +1075,14 @@ DORA_TEST_ENTRY(HttpCompressionCpp) {
 	passed &= check(!preparedBinary.gzipEncoded, "binary dynamic responses should not be gzip encoded"_slice);
 	return passed;
 }
+
+DORA_TEST_ENTRY(HttpStreamAbortCloseCpp) {
+	const auto passed = DoraXrtHttpAbortCloseFallbackTest() != 0;
+	if (!passed) {
+		LogError("HttpStreamAbortCloseCpp: abort close did not resolve the request future");
+	}
+	return passed;
+}
 #endif // DORA_TEST
 
 enum class RangeParseResult {

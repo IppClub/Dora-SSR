@@ -573,10 +573,45 @@ static void DoraXrtHttpStreamCloseWith(DoraXrtHttpStreamContext* ctx, xnet_resul
 	if (__xnetAtomicCompareExchange32(&ctx->closeRequested, 1, 0) == 0) {
 		if (ctx->stream) {
 			xrtNetStreamClose(ctx->stream, XNET_CLOSE_F_ABORT);
+			/* Abort close normally emits OnClose synchronously, but cancellation
+			 * must not depend on that callback. In particular, a stalled network
+			 * worker used to leave the request future unresolved and block engine
+			 * shutdown forever. Resolving here is idempotent with OnClose, and a
+			 * later deferred stream destroy clears its callbacks and user data. */
+			DoraXrtHttpStreamResolve(ctx, ctx->finalStatus);
 		} else {
 			DoraXrtHttpStreamResolve(ctx, ctx->finalStatus);
 		}
 	}
+}
+
+int DoraXrtHttpAbortCloseFallbackTest(void) {
+	DoraXrtHttpStreamContext ctx;
+	xnetengine* engine;
+	xnet_result status;
+	int passed = 0;
+
+	if (!DoraXrtHttpAttachRuntimeThread()) {
+		return 0;
+	}
+	memset(&ctx, 0, sizeof(ctx));
+	ctx.finalStatus = XRT_NET_AGAIN;
+	ctx.future = xrtNetFutureCreate();
+	engine = xrtNetSyncGetHiddenEngine();
+	ctx.stream = engine ? xrtNetStreamCreate(engine, NULL, NULL) : NULL;
+	if (ctx.future && ctx.stream) {
+		DoraXrtHttpStreamCloseWith(&ctx, XRT_NET_CANCELLED);
+		status = xrtNetFutureWait(ctx.future, 0u);
+		passed = status == XRT_NET_CANCELLED;
+	}
+	if (ctx.stream) {
+		xrtNetStreamDestroy(ctx.stream);
+	}
+	if (ctx.future) {
+		xrtNetFutureDestroy(ctx.future);
+	}
+	xrtThreadDetachCurrent();
+	return passed;
 }
 
 static int DoraXrtHttpStreamAppend(DoraXrtHttpStreamContext* ctx, const char* data, size_t len) {

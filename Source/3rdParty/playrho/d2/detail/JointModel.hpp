@@ -24,9 +24,11 @@
 /// @file
 /// @brief Definition of the internal @c JointModel class.
 
-#include <utility> // for std::move, std::forward
+#include <stdexcept>
 #include <type_traits> // for std::is_nothrow_constructible_v
+#include <utility> // for std::move, std::forward
 
+#include "playrho/to_underlying.hpp"
 #include "playrho/d2/detail/JointConcept.hpp"
 
 namespace playrho::d2::detail {
@@ -98,6 +100,27 @@ struct JointModel final : JointConcept {
     bool GetCollideConnected_() const noexcept override
     {
         return GetCollideConnected(data);
+    }
+
+    /// @copydoc JointConcept::RemapBodyIDs_
+    void RemapBodyIDs_(const Span<const BodyID>& mapping) override
+    {
+        const auto remap = [&mapping](BodyID id) {
+            if (id == InvalidBodyID) {
+                return id;
+            }
+            const auto index = to_underlying(id);
+            if (index >= mapping.size() || mapping[index] == InvalidBodyID) {
+                throw std::out_of_range{"joint body is not present in island-local mapping"};
+            }
+            return mapping[index];
+        };
+        data.bodyA = remap(data.bodyA);
+        data.bodyB = remap(data.bodyB);
+        if constexpr (requires { data.bodyC; data.bodyD; }) {
+            data.bodyC = remap(data.bodyC);
+            data.bodyD = remap(data.bodyD);
+        }
     }
 
     /// @copydoc JointConcept::ShiftOrigin_

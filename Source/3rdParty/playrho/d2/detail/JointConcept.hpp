@@ -76,6 +76,9 @@ struct JointConcept {
     /// @brief Gets whether collision handling should be done for connected bodies.
     virtual bool GetCollideConnected_() const noexcept = 0;
 
+    /// @brief Remaps every body identifier stored by this joint.
+    virtual void RemapBodyIDs_(const Span<const BodyID>& mapping) = 0;
+
     /// @brief Call to notify joint of a shift in the world origin.
     virtual bool ShiftOrigin_(const Length2& value) noexcept = 0;
 

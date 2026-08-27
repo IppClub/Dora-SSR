@@ -140,6 +140,10 @@ int DoraXrtHttpExecuteStream(
 	void* streamUserData,
 	int* statusCode);
 
+#if defined(DORA_TEST) && DORA_TEST
+int DoraXrtHttpAbortCloseFallbackTest(void);
+#endif
+
 int DoraXrtSha256Hex(const void* data, size_t dataLen, char outHex[65]);
 int DoraXrtHmacSha256Hex(const void* key, size_t keyLen, const void* data, size_t dataLen, char outHex[65]);
 

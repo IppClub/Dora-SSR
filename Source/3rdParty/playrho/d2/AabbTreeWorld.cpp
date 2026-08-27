@@ -21,27 +21,21 @@
 
 #include <algorithm>
 #include <cassert> // for assert
+#include <chrono>
 #include <cstddef> // for std::size_t
 #include <exception> // for std::throw_with_nested
 #include <functional>
 #include <iterator> // for std::next
 #include <limits> // for std::numeric_limits
 #include <map>
+#include <numeric>
 #include <optional>
+#include <queue>
 #include <set>
 #include <stdexcept> // for std::out_of_range
 #include <tuple>
 #include <utility> // for std::pair
 #include <vector>
-
-#ifdef DO_PAR_UNSEQ
-#include <atomic>
-#endif
-
-//#define DO_THREADED
-#if defined(DO_THREADED)
-#include <future>
-#endif
 
 #include "playrho/BodyID.hpp"
 #include "playrho/BodyType.hpp"
@@ -142,11 +136,30 @@ using PositionConstraints = std::vector<PositionConstraint, pmr::polymorphic_all
 /// @brief Collection of velocity constraints.
 using VelocityConstraints = std::vector<VelocityConstraint, pmr::polymorphic_allocator<VelocityConstraint>>;
 
+/// @brief Collection of island-local joint copies.
+using JointConstraints = std::vector<Joint, pmr::polymorphic_allocator<Joint>>;
+
 /// @brief The contact updating configuration.
 struct AabbTreeWorld::ContactUpdateConf
 {
     DistanceConf distance; ///< Distance configuration data.
     Manifold::Conf manifold; ///< Manifold configuration data.
+};
+
+struct AabbTreeWorld::RegIslandSolveData
+{
+    IslandStats stats;
+    std::vector<BodyID> bodyIDs;
+    std::vector<bool> writableBodies;
+    std::vector<BodyConstraint> bodyConstraints;
+    std::vector<ContactID> contactIDs;
+    std::vector<Manifold> manifolds;
+    std::vector<PositionConstraint> positionConstraints;
+    std::vector<VelocityConstraint> velocityConstraints;
+    std::vector<JointID> jointIDs;
+    std::vector<Joint> joints;
+    std::vector<ContactImpulsesList> contactImpulses;
+    StepConf::iteration_type postSolveIteration = StepConf::InvalidIteration;
 };
 
 namespace {
@@ -185,6 +198,16 @@ inline void IntegratePositions(const Span<const BodyID>& bodies,
         const auto rotation = h * velocity.angular;
         bc.SetPosition(bc.GetPosition() + Position{translation, rotation});
     });
+}
+
+inline void IntegrateDensePositions(const Span<BodyConstraint>& constraints, Time h)
+{
+    assert(IsValid(h));
+    for (auto& constraint: constraints) {
+        const auto velocity = constraint.GetVelocity();
+        constraint.SetPosition(constraint.GetPosition() +
+                               Position{h * velocity.linear, h * velocity.angular});
+    }
 }
 
 /// Reports the given constraints to the listener.
@@ -706,22 +729,17 @@ RemoveUnspeedablesFromIslanded(const Span<const BodyID>& bodies,
     return numRemoved;
 }
 
-auto FindContacts(pmr::memory_resource& resource,
-                  const DynamicTree& tree,
-                  const ProxyIDs& proxies)
-    -> std::vector<AabbTreeWorld::ProxyKey, pmr::polymorphic_allocator<AabbTreeWorld::ProxyKey>>
+template <class Output>
+void AppendContactCandidates(const DynamicTree& tree,
+                             ProxyIDs::const_iterator first,
+                             ProxyIDs::const_iterator last,
+                             Output& proxyKeys)
 {
-    std::vector<AabbTreeWorld::ProxyKey, pmr::polymorphic_allocator<AabbTreeWorld::ProxyKey>>
-        proxyKeys{&resource};
-    // Never need more than tree.GetLeafCount(), but in case big, use smaller default...
-    static constexpr auto DefaultReserveSize = 256u;
-    proxyKeys.reserve(std::min(tree.GetLeafCount(), DefaultReserveSize));
-
     // Accumalate contact keys for pairs of nodes that are overlapping and aren't identical.
     // Note that if the dynamic tree node provides the body index, it's assumed to be faster
     // to eliminate any node pairs that have the same body here before the key pairs are
     // sorted.
-    for_each(cbegin(proxies), cend(proxies), [&](DynamicTree::Size pid) {
+    for_each(first, last, [&](DynamicTree::Size pid) {
         const auto &node = tree.GetNode(pid);
         const auto aabb = node.GetAABB();
         const auto leaf0 = node.AsLeaf();
@@ -740,13 +758,140 @@ auto FindContacts(pmr::memory_resource& resource,
             return DynamicTreeOpcode::Continue;
         });
     });
+}
 
-    // Sort and eliminate any duplicate contact keys.
-    sort(begin(proxyKeys), end(proxyKeys),
-         [](const AabbTreeWorld::ProxyKey& a, const AabbTreeWorld::ProxyKey& b) {
-        return std::get<0>(a) < std::get<0>(b);
-    });
-    proxyKeys.erase(unique(begin(proxyKeys), end(proxyKeys)), end(proxyKeys));
+auto FindContacts(pmr::memory_resource& resource,
+                  const DynamicTree& tree,
+                  const ProxyIDs& proxies,
+                  const BroadPhaseTaskExecutor& executor,
+                  std::size_t concurrency,
+                  std::size_t minParallelProxies,
+                  std::size_t proxiesPerTask,
+                  std::vector<std::vector<AabbTreeWorld::ProxyKey>>& taskKeys,
+                  BroadPhaseProfileStats* profile)
+    -> std::vector<AabbTreeWorld::ProxyKey, pmr::polymorphic_allocator<AabbTreeWorld::ProxyKey>>
+{
+    using ProxyKey = AabbTreeWorld::ProxyKey;
+    std::vector<ProxyKey, pmr::polymorphic_allocator<ProxyKey>> proxyKeys{&resource};
+    // Never need more than tree.GetLeafCount(), but in case big, use smaller default...
+    static constexpr auto DefaultReserveSize = 256u;
+    proxyKeys.reserve(std::min(tree.GetLeafCount(), DefaultReserveSize));
+
+    const auto targetTaskSize = std::max(proxiesPerTask, std::size_t{1});
+    const auto usefulTaskCount = (proxies.size() + targetTaskSize - 1) / targetTaskSize;
+    const auto taskCount = std::min({concurrency, proxies.size(), usefulTaskCount});
+    const auto useParallel = executor && taskCount > 1 && proxies.size() >= minParallelProxies;
+    using Clock = std::chrono::steady_clock;
+    if (profile) {
+        *profile = BroadPhaseProfileStats{};
+        profile->proxyCount = proxies.size();
+        profile->taskCount = useParallel ? taskCount : std::size_t{1};
+        profile->parallel = useParallel;
+    }
+    const auto queryStarted = profile ? Clock::now() : Clock::time_point{};
+    if (useParallel) {
+        // Worker outputs deliberately use independent default allocators. The world's PMR pool is
+        // main-thread-owned and is touched only while merging after the blocking executor returns.
+        taskKeys.resize(taskCount);
+        for (auto& keys: taskKeys) keys.clear();
+        auto rawCandidateCounts = profile
+            ? std::vector<std::size_t>(taskCount) : std::vector<std::size_t>{};
+        executor(taskCount, [&](const auto taskIndex) {
+            const auto firstIndex = proxies.size() * taskIndex / taskCount;
+            const auto lastIndex = proxies.size() * (taskIndex + 1) / taskCount;
+            auto& output = taskKeys[taskIndex];
+            output.reserve(std::min<std::size_t>(lastIndex - firstIndex, DefaultReserveSize));
+            AppendContactCandidates(tree,
+                                    cbegin(proxies) + ToSigned(firstIndex),
+                                    cbegin(proxies) + ToSigned(lastIndex),
+                                    output);
+            if (profile) rawCandidateCounts[taskIndex] = output.size();
+            sort(begin(output), end(output),
+                 [](const ProxyKey& a, const ProxyKey& b) {
+                     return std::get<0>(a) < std::get<0>(b);
+                 });
+            output.erase(unique(begin(output), end(output)), end(output));
+        });
+        if (profile) {
+            profile->queryMilliseconds = std::chrono::duration<double, std::milli>(
+                Clock::now() - queryStarted).count();
+            profile->candidateCount = std::accumulate(
+                cbegin(rawCandidateCounts), cend(rawCandidateCounts), std::size_t{0});
+        }
+        const auto mergeStarted = profile ? Clock::now() : Clock::time_point{};
+        const auto candidateCount = std::accumulate(
+            cbegin(taskKeys), cbegin(taskKeys) + ToSigned(taskCount), std::size_t{0},
+            [](const auto total, const auto& keys) { return total + keys.size(); });
+        proxyKeys.reserve(candidateCount);
+        struct Cursor {
+            ContactKey key;
+            std::size_t taskIndex;
+            std::size_t itemIndex;
+        };
+        const auto cursorAfter = [](const Cursor& lhs, const Cursor& rhs) {
+            if (lhs.key != rhs.key) return rhs.key < lhs.key;
+            return lhs.taskIndex > rhs.taskIndex;
+        };
+        std::priority_queue<Cursor, std::vector<Cursor>, decltype(cursorAfter)> pending(cursorAfter);
+        for (auto taskIndex = std::size_t{0}; taskIndex < taskCount; ++taskIndex) {
+            if (!taskKeys[taskIndex].empty()) {
+                pending.push(Cursor{std::get<0>(taskKeys[taskIndex].front()), taskIndex, 0});
+            }
+        }
+        auto previous = std::optional<ContactKey>{};
+        while (!pending.empty()) {
+            const auto cursor = pending.top();
+            pending.pop();
+            auto& keys = taskKeys[cursor.taskIndex];
+            if (!previous || *previous != cursor.key) {
+                proxyKeys.emplace_back(std::move(keys[cursor.itemIndex]));
+                previous = cursor.key;
+            }
+            const auto nextIndex = cursor.itemIndex + 1;
+            if (nextIndex < keys.size()) {
+                pending.push(Cursor{
+                    std::get<0>(keys[nextIndex]), cursor.taskIndex, nextIndex});
+            }
+        }
+        static constexpr auto MaxRetainedCandidatesPerTask = std::size_t{65536};
+        for (auto taskIndex = std::size_t{0}; taskIndex < taskCount; ++taskIndex) {
+            auto& keys = taskKeys[taskIndex];
+            keys.clear();
+            if (keys.capacity() > MaxRetainedCandidatesPerTask) {
+                auto replacement = std::vector<ProxyKey>{};
+                replacement.reserve(DefaultReserveSize);
+                keys.swap(replacement);
+            }
+        }
+        if (profile) {
+            profile->mergeMilliseconds = std::chrono::duration<double, std::milli>(
+                Clock::now() - mergeStarted).count();
+        }
+    }
+    else {
+        AppendContactCandidates(tree, cbegin(proxies), cend(proxies), proxyKeys);
+        if (profile) {
+            profile->queryMilliseconds = std::chrono::duration<double, std::milli>(
+                Clock::now() - queryStarted).count();
+        }
+    }
+
+    if (profile && !useParallel) profile->candidateCount = proxyKeys.size();
+    const auto sortStarted = profile ? Clock::now() : Clock::time_point{};
+    if (!useParallel) {
+        // The parallel path already produced a stable globally ordered unique sequence by
+        // sorting per lane and merging those lanes above.
+        sort(begin(proxyKeys), end(proxyKeys),
+             [](const AabbTreeWorld::ProxyKey& a, const AabbTreeWorld::ProxyKey& b) {
+            return std::get<0>(a) < std::get<0>(b);
+        });
+        proxyKeys.erase(unique(begin(proxyKeys), end(proxyKeys)), end(proxyKeys));
+    }
+    if (profile) {
+        profile->uniqueCandidateCount = proxyKeys.size();
+        profile->sortMilliseconds = std::chrono::duration<double, std::milli>(
+            Clock::now() - sortStarted).count();
+    }
     return proxyKeys;
 }
 
@@ -830,6 +975,14 @@ AabbTreeWorld::AabbTreeWorld(const WorldConf& conf):
     m_proxyKeysResource(GetProxyKeysOpts(conf), conf.doStats? &m_statsResource: conf.upstream),
     m_islandResource({conf.reserveBuffers}, conf.doStats? &m_statsResource: conf.upstream),
     m_tree(conf.treeCapacity),
+    m_islandTaskExecutor(conf.islandTaskExecutor),
+    m_islandTaskConcurrency(conf.islandTaskConcurrency),
+    m_minParallelIslandCost(conf.minParallelIslandCost),
+    m_broadPhaseTaskExecutor(conf.broadPhaseTaskExecutor),
+    m_broadPhaseTaskConcurrency(conf.broadPhaseTaskConcurrency),
+    m_minParallelBroadPhaseProxies(conf.minParallelBroadPhaseProxies),
+    m_broadPhaseProxiesPerTask(conf.broadPhaseProxiesPerTask),
+    m_broadPhaseProfiler(conf.broadPhaseProfiler),
     m_vertexRadius{conf.vertexRadius}
 {
     m_proxiesForContacts.reserve(conf.proxyCapacity);
@@ -873,6 +1026,14 @@ AabbTreeWorld::AabbTreeWorld(const AabbTreeWorld& other):
     m_contacts(other.m_contacts),
     m_islanded(other.m_islanded),
     m_listeners(other.m_listeners),
+    m_islandTaskExecutor(other.m_islandTaskExecutor),
+    m_islandTaskConcurrency(other.m_islandTaskConcurrency),
+    m_minParallelIslandCost(other.m_minParallelIslandCost),
+    m_broadPhaseTaskExecutor(other.m_broadPhaseTaskExecutor),
+    m_broadPhaseTaskConcurrency(other.m_broadPhaseTaskConcurrency),
+    m_minParallelBroadPhaseProxies(other.m_minParallelBroadPhaseProxies),
+    m_broadPhaseProxiesPerTask(other.m_broadPhaseProxiesPerTask),
+    m_broadPhaseProfiler(other.m_broadPhaseProfiler),
     m_flags(other.m_flags),
     m_inv_dt0(other.m_inv_dt0),
     m_vertexRadius(other.m_vertexRadius)
@@ -913,6 +1074,15 @@ AabbTreeWorld::AabbTreeWorld(AabbTreeWorld&& other) noexcept:
     m_contacts(std::move(other.m_contacts)),
     m_islanded(std::move(other.m_islanded)),
     m_listeners(std::move(other.m_listeners)),
+    m_islandTaskExecutor(std::move(other.m_islandTaskExecutor)),
+    m_islandTaskConcurrency(other.m_islandTaskConcurrency),
+    m_minParallelIslandCost(other.m_minParallelIslandCost),
+    m_broadPhaseTaskExecutor(std::move(other.m_broadPhaseTaskExecutor)),
+    m_broadPhaseTaskConcurrency(other.m_broadPhaseTaskConcurrency),
+    m_minParallelBroadPhaseProxies(other.m_minParallelBroadPhaseProxies),
+    m_broadPhaseProxiesPerTask(other.m_broadPhaseProxiesPerTask),
+    m_broadPhaseProfiler(std::move(other.m_broadPhaseProfiler)),
+    m_broadPhaseTaskKeys(std::move(other.m_broadPhaseTaskKeys)),
     m_flags(other.m_flags),
     m_inv_dt0(other.m_inv_dt0),
     m_vertexRadius(other.m_vertexRadius)
@@ -1487,11 +1657,10 @@ RegStepStats AabbTreeWorld::SolveReg(const StepConf& conf)
     ResizeAndReset(m_islanded.contacts, size(m_contactBuffer), false);
     ResizeAndReset(m_islanded.joints, size(m_jointBuffer), false);
 
-#if defined(DO_THREADED)
-    std::vector<std::future<IslandStats>> futures;
-    futures.reserve(remNumBodies);
-#endif
-    // Build and simulate all awake islands.
+    // Build every awake island before any solver worker is dispatched. This keeps island graph
+    // construction and all m_islanded writes strictly on the stepping thread.
+    std::vector<Island> islands;
+    islands.reserve(remNumBodies);
     for (const auto& bodyId: m_bodies) {
         if (!m_islanded.bodies[to_underlying(bodyId)]) {
             auto& body = m_bodyBuffer[to_underlying(bodyId)];
@@ -1511,23 +1680,94 @@ RegStepStats AabbTreeWorld::SolveReg(const StepConf& conf)
                                                  static_cast<BodyCounter>(size(island.bodies)));
                 const auto numRemoved = RemoveUnspeedablesFromIslanded(island.bodies, m_bodyBuffer, m_islanded.bodies);
                 remNumBodies += static_cast<BodyCounter>(numRemoved);
-#if defined(DO_THREADED)
-                // Updates bodies' sweep.pos0 to current sweep.pos1 and bodies' sweep.pos1 to new positions
-                futures.push_back(std::async(std::launch::async, &AabbTreeWorld::SolveRegIslandViaGS,
-                                             this, conf, island));
-#else
-                ::playrho::Update(stats, SolveRegIslandViaGS(conf, island));
-#endif
+                islands.emplace_back(std::move(island));
             }
         }
     }
 
-#if defined(DO_THREADED)
-    for (auto&& future: futures) {
-        const auto solverResults = future.get();
-        ::playrho::Update(stats, solverResults);
+    // Snapshot all solver inputs before dispatch. Workers only mutate their own data element.
+    std::vector<RegIslandSolveData> solveData;
+    solveData.reserve(islands.size());
+    for (const auto& island: islands) {
+        solveData.emplace_back(GetRegIslandSolveData(conf, island));
     }
-#endif
+
+    const auto constraintIterations = std::size_t{conf.regVelocityIters} +
+                                      std::size_t{conf.regPositionIters};
+    auto islandCosts = std::vector<std::size_t>{};
+    islandCosts.reserve(solveData.size());
+    auto totalIslandCost = std::size_t{0};
+    for (const auto& data: solveData) {
+        // Contacts are visited in both velocity and position iterations. Joint virtual dispatch
+        // and solver state are somewhat heavier, so count joints twice. This intentionally
+        // estimates solver work rather than raw body count.
+        const auto cost = data.bodyIDs.size() +
+                          data.contactIDs.size() * constraintIterations +
+                          data.jointIDs.size() * constraintIterations * 2;
+        islandCosts.push_back(cost);
+        totalIslandCost += cost;
+    }
+
+    const auto taskCount = std::min(m_islandTaskConcurrency, solveData.size());
+    const auto useParallel = m_islandTaskExecutor && taskCount > 1 &&
+                             totalIslandCost >= m_minParallelIslandCost;
+    if (useParallel) {
+        struct Batch {
+            std::size_t cost = 0;
+            std::vector<RegIslandSolveData*> islands;
+        };
+        auto order = std::vector<std::size_t>(solveData.size());
+        for (auto i = std::size_t{0}; i < order.size(); ++i) {
+            order[i] = i;
+        }
+        std::stable_sort(order.begin(), order.end(), [&](const auto lhs, const auto rhs) {
+            return islandCosts[lhs] > islandCosts[rhs];
+        });
+
+        // Longest-processing-time assignment gives deterministic, approximately balanced
+        // batches while limiting submission and wakeup overhead to the fixed execution-lane count.
+        auto batches = std::vector<Batch>(taskCount);
+        for (const auto index: order) {
+            auto batch = std::min_element(batches.begin(), batches.end(),
+                                          [](const auto& lhs, const auto& rhs) {
+                                              return lhs.cost < rhs.cost;
+                                          });
+            batch->islands.push_back(&solveData[index]);
+            batch->cost += islandCosts[index];
+        }
+
+        // The executor keeps the first batch on the stepping thread. Put the heaviest batch first
+        // so that lane remains useful until the worker batches are close to completion.
+        std::stable_sort(batches.begin(), batches.end(), [](const auto& lhs, const auto& rhs) {
+            return lhs.cost > rhs.cost;
+        });
+
+        m_islandTaskExecutor(batches.size(), [&](const auto taskIndex) {
+            for (auto data: batches[taskIndex].islands) {
+                SolveRegIslandViaGS(conf, *data);
+            }
+        });
+    }
+    else {
+        for (auto& data: solveData) {
+            SolveRegIslandViaGS(conf, data);
+        }
+    }
+
+    // Commit in island construction order. No worker is running beyond the blocking executor.
+    for (const auto& data: solveData) {
+        ::playrho::Update(stats, ApplyRegIslandSolveData(conf, data));
+    }
+
+    // Listener delivery is also stable: island order, then contact order within each island.
+    if (m_listeners.postSolveContact) {
+        for (const auto& data: solveData) {
+            for (auto i = std::size_t{0}; i < data.contactIDs.size(); ++i) {
+                m_listeners.postSolveContact(data.contactIDs[i], data.contactImpulses[i],
+                                             data.postSolveIteration);
+            }
+        }
+    }
 
     for (const auto& bodyId: m_bodies) {
         if (m_islanded.bodies[to_underlying(bodyId)]) {
@@ -1552,60 +1792,126 @@ RegStepStats AabbTreeWorld::SolveReg(const StepConf& conf)
     stats.contactsSkipped += updateStats.skipped;
 
     // Look for new contacts.
-    stats.contactsAdded = AddContacts(
-        FindContacts(m_proxyKeysResource, m_tree, std::exchange(m_proxiesForContacts, {})),
-        conf);
+    auto broadPhaseProfile = BroadPhaseProfileStats{};
+    auto proxyKeys = FindContacts(
+        m_proxyKeysResource, m_tree, std::exchange(m_proxiesForContacts, {}),
+        m_broadPhaseTaskExecutor, m_broadPhaseTaskConcurrency,
+        m_minParallelBroadPhaseProxies, m_broadPhaseProxiesPerTask,
+        m_broadPhaseTaskKeys, m_broadPhaseProfiler ? &broadPhaseProfile : nullptr);
+    const auto addContactsStarted = m_broadPhaseProfiler
+        ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
+    stats.contactsAdded = AddContacts(std::move(proxyKeys), conf);
+    if (m_broadPhaseProfiler) {
+        broadPhaseProfile.addContactsMilliseconds = std::chrono::duration<double, std::milli>(
+            std::chrono::steady_clock::now() - addContactsStarted).count();
+        m_broadPhaseProfiler(broadPhaseProfile);
+    }
 
     assert(!NeedsUpdating(m_contactBuffer));
     return stats;
 }
 
-IslandStats AabbTreeWorld::SolveRegIslandViaGS(const StepConf& conf, const Island& island)
+AabbTreeWorld::RegIslandSolveData
+AabbTreeWorld::GetRegIslandSolveData(const StepConf& conf, const Island& island)
 {
     assert(!empty(island.bodies) || !empty(island.contacts) || !empty(island.joints));
     assert(IsStepComplete(*this));
     assert(IsLocked(*this));
 
+    auto data = RegIslandSolveData{};
+    data.bodyIDs.assign(cbegin(island.bodies), cend(island.bodies));
+    data.contactIDs.assign(cbegin(island.contacts), cend(island.contacts));
+    data.jointIDs.assign(cbegin(island.joints), cend(island.joints));
+    data.writableBodies.reserve(data.bodyIDs.size());
+    data.bodyConstraints.reserve(data.bodyIDs.size());
+
+    auto globalToLocal = std::vector<BodyID>(size(m_bodyBuffer), InvalidBodyID);
+    for (auto i = std::size_t{0}; i < data.bodyIDs.size(); ++i) {
+        const auto globalID = data.bodyIDs[i];
+        const auto localID = BodyID{static_cast<BodyID::underlying_type>(i)};
+        globalToLocal[to_underlying(globalID)] = localID;
+        auto& body = m_bodyBuffer[to_underlying(globalID)];
+        const auto writable = IsSpeedable(body);
+        data.writableBodies.push_back(writable);
+        if (writable) {
+            SetPosition0(body, GetPosition1(body));
+        }
+        data.bodyConstraints.emplace_back(
+            GetBodyConstraint(body, conf.deltaTime, GetMovementConf(conf)));
+    }
+
+    data.manifolds.reserve(data.contactIDs.size());
+    data.positionConstraints.reserve(data.contactIDs.size());
+    data.velocityConstraints.reserve(data.contactIDs.size());
+    for (const auto contactID: data.contactIDs) {
+        const auto& contact = m_contactBuffer[to_underlying(contactID)];
+        const auto globalBodyA = GetBodyA(contact);
+        const auto globalBodyB = GetBodyB(contact);
+        const auto bodyA = globalToLocal[to_underlying(globalBodyA)];
+        const auto bodyB = globalToLocal[to_underlying(globalBodyB)];
+        if ((bodyA == InvalidBodyID) || (bodyB == InvalidBodyID)) {
+            throw std::out_of_range{"contact body is not present in island-local mapping"};
+        }
+        const auto shapeA = GetShapeA(contact);
+        const auto shapeB = GetShapeB(contact);
+        const auto indexA = GetChildIndexA(contact);
+        const auto indexB = GetChildIndexB(contact);
+        const auto radiusA = GetVertexRadius(m_shapeBuffer[to_underlying(shapeA)], indexA);
+        const auto radiusB = GetVertexRadius(m_shapeBuffer[to_underlying(shapeB)], indexB);
+        const auto manifold = m_manifoldBuffer[to_underlying(contactID)];
+        data.manifolds.push_back(manifold);
+        data.positionConstraints.push_back(
+            PositionConstraint{manifold, bodyA, bodyB, radiusA + radiusB});
+
+        const auto& constraintA = data.bodyConstraints[to_underlying(bodyA)];
+        const auto& constraintB = data.bodyConstraints[to_underlying(bodyB)];
+        const auto xfA = GetTransformation(constraintA.GetPosition(), constraintA.GetLocalCenter());
+        const auto xfB = GetTransformation(constraintB.GetPosition(), constraintB.GetLocalCenter());
+        data.velocityConstraints.emplace_back(
+            GetFriction(contact), GetRestitution(contact), GetTangentSpeed(contact),
+            GetWorldManifold(manifold, xfA, radiusA, xfB, radiusB), bodyA, bodyB,
+            data.bodyConstraints, GetRegVelocityConstraintConf(conf));
+    }
+
+    data.joints.reserve(data.jointIDs.size());
+    for (const auto jointID: data.jointIDs) {
+        data.joints.push_back(m_jointBuffer[to_underlying(jointID)]);
+        RemapBodyIDs(data.joints.back(), globalToLocal);
+    }
+    return data;
+}
+
+void AabbTreeWorld::SolveRegIslandViaGS(const StepConf& conf, RegIslandSolveData& data)
+{
+    // The fixed Dora workers each get a distinct, reusable scratch allocator.
+    static thread_local pmr::PoolMemoryResource scratch;
+    auto bodyConstraints = BodyConstraints{&scratch};
+    auto posConstraints = PositionConstraints{&scratch};
+    auto velConstraints = VelocityConstraints{&scratch};
+    auto joints = JointConstraints{&scratch};
+    bodyConstraints.assign(data.bodyConstraints.begin(), data.bodyConstraints.end());
+    posConstraints.assign(data.positionConstraints.begin(), data.positionConstraints.end());
+    velConstraints.assign(data.velocityConstraints.begin(), data.velocityConstraints.end());
+    joints.assign(data.joints.begin(), data.joints.end());
+
     auto results = IslandStats{};
     results.positionIters = conf.regPositionIters;
-    const auto h = conf.deltaTime; ///< Time step.
-
-    // Update bodies' pos0 values.
-    for_each(cbegin(island.bodies), cend(island.bodies), [&](const auto& bodyID) {
-        auto& body = m_bodyBuffer[to_underlying(bodyID)];
-        SetPosition0(body, GetPosition1(body));
-        // XXX/TODO figure out why the following causes Gears Test to stutter!!!
-        // SetSweep(body, GetNormalized(GetSweep(body)));
-        // SetSweep(body, Sweep{GetNormalized(GetPosition0(body)), GetLocalCenter(body)});
-    });
-
-    // Copy bodies' pos1 and velocity data into local arrays.
-    auto bodyConstraints = GetBodyConstraints(m_bodyConstraintsResource,
-                                              island.bodies, m_bodyBuffer, h, GetMovementConf(conf));
-    auto posConstraints = GetPositionConstraints(m_positionConstraintsResource, island.contacts,
-                                                 m_contactBuffer, m_manifoldBuffer, m_shapeBuffer);
-    auto velConstraints = GetVelocityConstraints(m_velocityConstraintsResource, island.contacts,
-                                                 m_contactBuffer, m_manifoldBuffer, m_shapeBuffer,
-                                                 bodyConstraints,
-                                                 GetRegVelocityConstraintConf(conf));
     if (conf.doWarmStart) {
         WarmStartVelocities(velConstraints, bodyConstraints);
     }
 
     const auto psConf = GetRegConstraintSolverConf(conf);
 
-    for_each(cbegin(island.joints), cend(island.joints), [&](const auto& id) {
-        auto& joint = m_jointBuffer[to_underlying(id)];
+    for (auto& joint: joints) {
         InitVelocity(joint, bodyConstraints, conf, psConf);
-    });
+    }
 
     results.velocityIters = conf.regVelocityIters;
     for (auto i = decltype(conf.regVelocityIters){0}; i < conf.regVelocityIters; ++i) {
         auto jointsOkay = true;
-        for_each(cbegin(island.joints), cend(island.joints), [&](const auto& id) {
-            auto& joint = m_jointBuffer[to_underlying(id)];
+        for (auto& joint: joints) {
             jointsOkay &= SolveVelocity(joint, bodyConstraints, conf);
-        });
+        }
         // Note that the new incremental impulse can potentially be orders of magnitude
         // greater than the last incremental impulse used in this loop.
         const auto newIncImpulse = SolveVelocityConstraintsViaGS(velConstraints, bodyConstraints);
@@ -1622,7 +1928,7 @@ IslandStats AabbTreeWorld::SolveRegIslandViaGS(const StepConf& conf, const Islan
     }
 
     // updates array of tentative new body positions per the velocities as if there were no obstacles...
-    IntegratePositions(island.bodies, bodyConstraints, h);
+    IntegrateDensePositions(bodyConstraints, conf.deltaTime);
 
     // Solve position constraints
     for (auto i = decltype(conf.regPositionIters){0}; i < conf.regPositionIters; ++i) {
@@ -1631,10 +1937,9 @@ IslandStats AabbTreeWorld::SolveRegIslandViaGS(const StepConf& conf, const Islan
         results.minSeparation = std::min(results.minSeparation, minSeparation);
         const auto contactsOkay = (minSeparation >= conf.regMinSeparation);
         auto jointsOkay = true;
-        for_each(cbegin(island.joints), cend(island.joints), [&](const auto& id) {
-            auto& joint = m_jointBuffer[to_underlying(id)];
+        for (const auto& joint: joints) {
             jointsOkay &= SolvePosition(joint, bodyConstraints, psConf);
-        });
+        }
         if (contactsOkay && jointsOkay) {
             // Reached tolerance, early out...
             results.positionIters = i + 1;
@@ -1643,41 +1948,51 @@ IslandStats AabbTreeWorld::SolveRegIslandViaGS(const StepConf& conf, const Islan
         }
     }
 
-    // Update normal and tangent impulses of contacts' manifold points
-    for_each(cbegin(velConstraints), cend(velConstraints), [&](const VelocityConstraint& vc) {
-        const auto i = static_cast<VelocityConstraints::size_type>(&vc - data(velConstraints));
-        AssignImpulses(m_manifoldBuffer[to_underlying(island.contacts[i])], vc);
-    });
+    data.contactImpulses.clear();
+    data.contactImpulses.reserve(velConstraints.size());
+    for (auto i = std::size_t{0}; i < velConstraints.size(); ++i) {
+        AssignImpulses(data.manifolds[i], velConstraints[i]);
+        data.contactImpulses.push_back(GetContactImpulses(velConstraints[i]));
+    }
+    data.bodyConstraints.assign(bodyConstraints.begin(), bodyConstraints.end());
+    data.joints.assign(joints.begin(), joints.end());
+    for (auto& joint: data.joints) {
+        RemapBodyIDs(joint, data.bodyIDs);
+    }
+    data.postSolveIteration = results.solved
+        ? results.positionIters - 1
+        : StepConf::InvalidIteration;
+    data.stats = results;
+}
 
-    for (const auto& id: island.bodies) {
-        const auto i = to_underlying(id);
-        const auto& bc = bodyConstraints[i];
-        auto& body = m_bodyBuffer[i];
-        // Could normalize position here to avoid unbounded angles but angular
-        // normalization isn't handled correctly by joints that constrain rotation.
-        body.JustSetVelocity(bc.GetVelocity());
-        // XXX/TODO figure out why calling GetNormalized here causes Gears Test to stutter!!!
-        if (const auto pos = /*GetNormalized*/(bc.GetPosition()); GetPosition1(body) != pos) {
-            SetPosition1(body, pos);
-            FlagForUpdating(m_contactBuffer, m_bodyContacts[i]);
+IslandStats AabbTreeWorld::ApplyRegIslandSolveData(const StepConf& conf,
+                                                   const RegIslandSolveData& data)
+{
+    auto results = data.stats;
+    for (auto i = std::size_t{0}; i < data.contactIDs.size(); ++i) {
+        m_manifoldBuffer[to_underlying(data.contactIDs[i])] = data.manifolds[i];
+    }
+    for (auto i = std::size_t{0}; i < data.jointIDs.size(); ++i) {
+        m_jointBuffer[to_underlying(data.jointIDs[i])] = data.joints[i];
+    }
+    for (auto i = std::size_t{0}; i < data.bodyIDs.size(); ++i) {
+        if (!data.writableBodies[i]) {
+            continue; // Static bodies are immutable solver inputs.
+        }
+        const auto globalIndex = to_underlying(data.bodyIDs[i]);
+        const auto& constraint = data.bodyConstraints[i];
+        auto& body = m_bodyBuffer[globalIndex];
+        body.JustSetVelocity(constraint.GetVelocity());
+        if (const auto position = constraint.GetPosition(); GetPosition1(body) != position) {
+            SetPosition1(body, position);
+            FlagForUpdating(m_contactBuffer, m_bodyContacts[globalIndex]);
         }
     }
 
-    // XXX: Should contacts needing updating be updated now??
-    //const auto updateStats = UpdateContacts(conf);
-    //results.contactsUpdated += updateStats.updated;
-    //results.contactsSkipped += updateStats.skipped;
-
-    if (m_listeners.postSolveContact) {
-        Report(m_listeners.postSolveContact, island.contacts, velConstraints,
-               results.solved? results.positionIters - 1: StepConf::InvalidIteration);
-    }
-
-    const auto minUnderActiveTime = UpdateUnderActiveTimes(island.bodies, m_bodyBuffer, conf);
+    const auto minUnderActiveTime = UpdateUnderActiveTimes(data.bodyIDs, m_bodyBuffer, conf);
     if ((minUnderActiveTime >= conf.minStillTimeToSleep) && results.solved) {
-        results.bodiesSlept = Sleepem(island.bodies, m_bodyBuffer);
+        results.bodiesSlept = Sleepem(data.bodyIDs, m_bodyBuffer);
     }
-
     return results;
 }
 
@@ -1812,9 +2127,20 @@ ToiStepStats AabbTreeWorld::SolveToi(const StepConf& conf)
 
         // Commit fixture proxy movements to the broad-phase so that new contacts are created.
         // Also, some contacts can be destroyed.
-        stats.contactsAdded += AddContacts(
-            FindContacts(m_proxyKeysResource, m_tree, std::exchange(m_proxiesForContacts, {})),
-            conf);
+        auto broadPhaseProfile = BroadPhaseProfileStats{};
+        auto proxyKeys = FindContacts(
+            m_proxyKeysResource, m_tree, std::exchange(m_proxiesForContacts, {}),
+            m_broadPhaseTaskExecutor, m_broadPhaseTaskConcurrency,
+            m_minParallelBroadPhaseProxies, m_broadPhaseProxiesPerTask,
+            m_broadPhaseTaskKeys, m_broadPhaseProfiler ? &broadPhaseProfile : nullptr);
+        const auto addContactsStarted = m_broadPhaseProfiler
+            ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
+        stats.contactsAdded += AddContacts(std::move(proxyKeys), conf);
+        if (m_broadPhaseProfiler) {
+            broadPhaseProfile.addContactsMilliseconds = std::chrono::duration<double, std::milli>(
+                std::chrono::steady_clock::now() - addContactsStarted).count();
+            m_broadPhaseProfiler(broadPhaseProfile);
+        }
 
         if (subStepping) {
             m_flags &= ~e_stepComplete;
@@ -2196,9 +2522,22 @@ StepStats Step(AabbTreeWorld& world, const StepConf& conf)
 
         // For any new fixtures added: need to find and create the new contacts.
         // Note: this may update bodies (in addition to the contacts container).
-        stepStats.pre.contactsAdded = world.AddContacts(
-            FindContacts(world.m_proxyKeysResource, world.m_tree, std::exchange(world.m_proxiesForContacts, {})),
-            conf);
+        auto broadPhaseProfile = BroadPhaseProfileStats{};
+        auto proxyKeys = FindContacts(
+            world.m_proxyKeysResource, world.m_tree,
+            std::exchange(world.m_proxiesForContacts, {}),
+            world.m_broadPhaseTaskExecutor, world.m_broadPhaseTaskConcurrency,
+            world.m_minParallelBroadPhaseProxies,
+            world.m_broadPhaseProxiesPerTask, world.m_broadPhaseTaskKeys,
+            world.m_broadPhaseProfiler ? &broadPhaseProfile : nullptr);
+        const auto addContactsStarted = world.m_broadPhaseProfiler
+            ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
+        stepStats.pre.contactsAdded = world.AddContacts(std::move(proxyKeys), conf);
+        if (world.m_broadPhaseProfiler) {
+            broadPhaseProfile.addContactsMilliseconds = std::chrono::duration<double, std::milli>(
+                std::chrono::steady_clock::now() - addContactsStarted).count();
+            world.m_broadPhaseProfiler(broadPhaseProfile);
+        }
 
         assert(!NeedsUpdating(world.m_contactBuffer));
 

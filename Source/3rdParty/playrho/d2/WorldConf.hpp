@@ -25,6 +25,9 @@
 /// @brief Declarations of the @c WorldConf class.
 
 #include <cstdint> // for std::uint8_t
+#include <cstddef>
+#include <functional>
+#include <vector>
 
 // IWYU pragma: begin_exports
 
@@ -38,6 +41,32 @@
 // IWYU pragma: end_exports
 
 namespace playrho::d2 {
+
+using ParallelTask = std::function<void(std::size_t)>;
+
+/// @brief Blocking executor used for independent regular-island solve tasks.
+/// @details The callback must not return before every task has completed.
+using IslandTaskExecutor = std::function<void(std::size_t, const ParallelTask&)>;
+
+/// @brief Blocking executor used for independent broad-phase tree query tasks.
+/// @details The callback must not return before every task has completed.
+using BroadPhaseTaskExecutor = IslandTaskExecutor;
+
+/// @brief Optional diagnostics emitted for one broad-phase candidate search.
+/// @details Timings are collected only when a profiler is configured on the world.
+struct BroadPhaseProfileStats {
+    std::size_t proxyCount = 0;
+    std::size_t taskCount = 0;
+    std::size_t candidateCount = 0;
+    std::size_t uniqueCandidateCount = 0;
+    bool parallel = false;
+    double queryMilliseconds = 0.0;
+    double mergeMilliseconds = 0.0;
+    double sortMilliseconds = 0.0;
+    double addContactsMilliseconds = 0.0;
+};
+
+using BroadPhaseProfiler = std::function<void(const BroadPhaseProfileStats&)>;
 
 /// @brief World configuration data.
 struct WorldConf {
@@ -78,6 +107,12 @@ struct WorldConf {
 
     /// @brief Default do-stats value.
     static constexpr auto DefaultDoStats = false;
+
+    /// @brief Default minimum moved-proxy count for parallel broad-phase queries.
+    static constexpr auto DefaultMinParallelBroadPhaseProxies = std::size_t{512};
+
+    /// @brief Default target minimum moved proxies assigned to one broad-phase task.
+    static constexpr auto DefaultBroadPhaseProxiesPerTask = std::size_t{128};
 
     /// @brief Uses the given min vertex radius value.
     constexpr WorldConf& UseUpstream(pmr::memory_resource *value) noexcept;
@@ -147,6 +182,42 @@ struct WorldConf {
     ///    getting those data members tweaked to your needs.
     /// @see GetResourceStats(const World&).
     bool doStats = DefaultDoStats;
+
+    /// @brief Optional blocking executor for regular-island solving.
+    /// @details Contact updating, TOI solving, world write-back, and listeners remain on the
+    /// stepping thread.
+    IslandTaskExecutor islandTaskExecutor;
+
+    /// @brief Maximum number of island batches passed to @c islandTaskExecutor.
+    /// @details Values below two keep regular-island solving serial.
+    std::size_t islandTaskConcurrency = 1;
+
+    /// @brief Minimum estimated solver work required before parallel dispatch.
+    /// @details Work is estimated from bodies and constraint iterations. Set to zero to force
+    /// parallel dispatch when at least two islands are present.
+    std::size_t minParallelIslandCost = 4096;
+
+    /// @brief Optional blocking executor for read-only broad-phase tree queries.
+    /// @details Workers generate, locally sort, and locally deduplicate candidate proxy pairs.
+    /// Stable global merging, contact creation, and listeners remain on the stepping thread.
+    BroadPhaseTaskExecutor broadPhaseTaskExecutor;
+
+    /// @brief Maximum number of broad-phase query batches.
+    /// @details Values below two keep candidate generation serial.
+    std::size_t broadPhaseTaskConcurrency = 1;
+
+    /// @brief Minimum number of moved proxies required before parallel broad-phase queries.
+    /// @details Set to zero to force parallel dispatch when at least two proxies are queued.
+    std::size_t minParallelBroadPhaseProxies = DefaultMinParallelBroadPhaseProxies;
+
+    /// @brief Target minimum moved proxies assigned to one broad-phase query task.
+    /// @details Larger values reduce scheduling overhead. Values are clamped to at least one.
+    std::size_t broadPhaseProxiesPerTask = DefaultBroadPhaseProxiesPerTask;
+
+    /// @brief Optional broad-phase diagnostics callback invoked on the stepping thread.
+    /// @details Leaving this empty keeps clock reads out of the production hot path.
+    BroadPhaseProfiler broadPhaseProfiler;
+
 };
 
 constexpr WorldConf& WorldConf::UseUpstream(pmr::memory_resource *value) noexcept

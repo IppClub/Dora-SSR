@@ -101,6 +101,10 @@ BodyID GetBodyB(const Joint& object) noexcept;
 ///   the flag is only checked when fixture AABBs begin to overlap.
 bool GetCollideConnected(const Joint& object) noexcept;
 
+/// @brief Remaps every body identifier stored by this joint using an old-to-new ID table.
+/// @throws std::out_of_range if a valid stored identifier has no mapping.
+void RemapBodyIDs(Joint& object, const Span<const BodyID>& mapping);
+
 /// @brief Shifts the origin for any points stored in world coordinates.
 /// @return <code>true</code> if shift done, <code>false</code> otherwise.
 bool ShiftOrigin(Joint& object, const Length2& value) noexcept;
@@ -300,6 +304,13 @@ public:
     friend bool GetCollideConnected(const Joint& object) noexcept
     {
         return object.m_impl ? object.m_impl->GetCollideConnected_() : false;
+    }
+
+    friend void RemapBodyIDs(Joint& object, const Span<const BodyID>& mapping)
+    {
+        if (object.m_impl) {
+            object.m_impl->RemapBodyIDs_(mapping);
+        }
     }
 
     friend bool ShiftOrigin(Joint& object, const Length2& value) noexcept

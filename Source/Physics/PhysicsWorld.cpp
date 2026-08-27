@@ -1150,7 +1150,16 @@ void PhysicsWorld::setupEndContact() {
 
 bool PhysicsWorld::init() {
 	if (!Node::init()) return false;
-	_world = New<pd::World>();
+	pd::WorldConf worldConf;
+	const auto workerCount = SharedAsyncThread.getWorkerCount();
+	worldConf.islandTaskConcurrency = workerCount + 1; // Pool workers plus the stepping thread.
+	auto frameTaskExecutor = [](size_t taskCount, const pd::ParallelTask& task) {
+		SharedAsyncThread.runFrameTasks(taskCount, task);
+	};
+	worldConf.islandTaskExecutor = frameTaskExecutor;
+	worldConf.broadPhaseTaskConcurrency = workerCount + 1;
+	worldConf.broadPhaseTaskExecutor = std::move(frameTaskExecutor);
+	_world = New<pd::World>(worldConf);
 	setupBeginContact();
 	setupEndContact();
 	for (int i = 0; i < TotalGroups; i++) {
