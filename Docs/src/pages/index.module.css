@@ -4,6 +4,7 @@
  */
 
 .heroBanner {
+	--hero-fade-color: #fff9ee;
 	padding: 12rem 0 10rem;
 	text-align: center;
 	position: relative;
@@ -16,17 +17,63 @@
 	background-color: var(--ifm-color-hero-background);
 }
 
+[data-theme='dark'] .heroBanner {
+	--hero-fade-color: #1b1b1d;
+}
+
+.heroBanner::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 180px;
+	background: linear-gradient(
+		180deg,
+		transparent 0%,
+		color-mix(in srgb, var(--hero-fade-color) 42%, transparent) 46%,
+		var(--hero-fade-color) 100%
+	);
+	pointer-events: none;
+}
+
 .heroTitle {
-	font-size: 5rem;
+	font-size: clamp(3rem, 9vw, 5rem);
+	letter-spacing: -0.02em;
 	color: var(--ifm-color-title);
 	padding-bottom: 1rem;
 	text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55), 0 1px 4px rgba(0, 0, 0, 0.4);
+	animation: heroIn var(--motion-enter) var(--motion-ease) both;
 }
 
 .heroSubtitle {
 	padding-bottom: 2.5rem;
 	color: var(--ifm-color-subtitle);
 	text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
+	animation: heroIn var(--motion-enter) var(--motion-ease) 110ms both;
+}
+
+.buttons {
+	animation: heroIn var(--motion-enter) var(--motion-ease) 220ms both;
+}
+
+@keyframes heroIn {
+	from {
+		opacity: 0;
+		transform: translateY(14px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.heroTitle,
+	.heroSubtitle,
+	.buttons {
+		animation: none;
+	}
 }
 
 .buttons {
@@ -52,6 +99,10 @@
 @media screen and (max-width: 996px) {
 	.heroBanner {
 		padding: 8rem 0 6.5rem;
+	}
+
+	.heroBanner::after {
+		height: 140px;
 	}
 
 	.heroTitle {

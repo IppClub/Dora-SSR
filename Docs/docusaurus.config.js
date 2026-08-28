@@ -5,6 +5,7 @@ import { themes } from 'prism-react-renderer';
 const { getVersionLabel } = require('./src/version');
 
 const github = process.env.GITEE === undefined;
+const baseUrl = github ? '/' : '/Dora-SSR/';
 
 const darkCodeTheme = {
 	plain: {
@@ -178,12 +179,16 @@ const config = {
 	title: 'Dora SSR',
 	tagline: 'The Dora project, Special Super Rare edition.',
 	favicon: 'img/site/favicon.ico',
+	headTags: [
+		{tagName: 'link', attributes: {rel: 'icon', type: 'image/svg+xml', href: `${baseUrl}img/site/logo.svg`}},
+		{tagName: 'link', attributes: {rel: 'apple-touch-icon', sizes: '180x180', href: `${baseUrl}img/site/apple-touch-icon.png`}},
+	],
 
 	// Set the production url of your site here
 	url: github ? 'https://dora-ssr.net' : 'https://ippclub.gitee.io',
-	// Set the /<baseUrl>/ pathname under which your site is served
-	// For GitHub pages deployment, it is often '/<projectName>/'
-	baseUrl: github ? '/' : '/Dora-SSR/',
+		// Set the /<baseUrl>/ pathname under which your site is served
+		// For GitHub pages deployment, it is often '/<projectName>/'
+		baseUrl: baseUrl,
 
 	// GitHub pages deployment config.
 	// If you aren't using GitHub pages, you don't need these.
@@ -314,10 +319,6 @@ const config = {
 					items: [
 						{
 							html: '<div><a href="https://openatom.org/" class="footer-openatom" target="_blank"></a></div>',
-						},
-						{
-							label: '  ',
-							to: 'javascript:void(0)',
 						}
 					]
 				},

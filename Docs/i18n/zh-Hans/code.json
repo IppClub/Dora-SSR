@@ -606,11 +606,32 @@
   "tool_feature_section_title": {
     "message": "为真实项目准备的内置工具"
   },
+  "tool_group_editors_title": {
+    "message": "可视化编辑器"
+  },
+  "tool_group_runtime_title": {
+    "message": "引擎与运行时"
+  },
+  "tool_group_workflow_title": {
+    "message": "工作流与生态"
+  },
   "language_feature_section_title": {
     "message": "选择适合项目的语言"
   },
   "language_feature_section_description": {
     "message": "无论是轻量的 Lua 语言家族、带类型的 TypeScript 与 TSX、WebAssembly 语言，还是接近原生体验的 C# 绑定，都可以留在同一个 Dora 生态中。"
+  },
+  "not_found_title": {
+    "message": "页面走丢了",
+    "description": "The title of the 404 page"
+  },
+  "not_found_description": {
+    "message": "Dora 和 Toto 没能找到这个页面——它可能被移动或删除了。",
+    "description": "The description of the 404 page"
+  },
+  "not_found_back_home": {
+    "message": "回到首页",
+    "description": "The back-to-home button of the 404 page"
   },
   "theme.colorToggle.ariaLabel.mode.system": {
     "message": "系统模式",

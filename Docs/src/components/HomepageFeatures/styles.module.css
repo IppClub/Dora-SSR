@@ -1,9 +1,15 @@
 .features {
-	--card-bg: rgba(255, 255, 255, 0.9);
-	--card-border: rgba(33, 39, 55, 0.12);
-	--card-shadow: rgba(26, 31, 44, 0.1);
+	--card-bg: rgba(255, 255, 255, 0.92);
+	--card-border: rgba(154, 106, 0, 0.16);
+	--card-shadow: rgba(124, 90, 10, 0.12);
 	--muted-text: #596273;
-	padding: 0 0 4rem;
+	--frame-bg: #f4f1e8;
+	--placeholder-grad: linear-gradient(110deg, #ebe9df 20%, #f7f5ee 38%, #ebe9df 58%);
+	padding: 0 0 var(--space-section-end);
+}
+
+[data-theme='light'] .features {
+	background: linear-gradient(180deg, rgba(250, 192, 61, 0.09), rgba(250, 192, 61, 0) 360px) no-repeat top / 100% 360px;
 }
 
 [data-theme='dark'] .features {
@@ -11,10 +17,12 @@
 	--card-border: rgba(255, 255, 255, 0.12);
 	--card-shadow: rgba(0, 0, 0, 0.28);
 	--muted-text: #c4c9d3;
+	--frame-bg: #17191f;
+	--placeholder-grad: linear-gradient(110deg, #252832 20%, #343844 38%, #252832 58%);
 }
 
 .featureSection {
-	padding: 4.25rem 0 3.5rem;
+	padding: var(--space-section) 0 var(--space-section-end);
 	border-bottom: 1px solid var(--card-border);
 }
 
@@ -46,6 +54,22 @@
 	margin-bottom: 2.4rem;
 }
 
+.toolGroup + .toolGroup {
+	margin-top: var(--space-block);
+}
+
+.subHeading {
+	display: flex;
+	align-items: baseline;
+	gap: 0.55rem;
+	margin: 0.6rem 0 1.3rem;
+	color: var(--muted-text);
+	font-size: 1rem;
+	font-weight: 650;
+	letter-spacing: 0.09em;
+	text-transform: uppercase;
+}
+
 .pixImg {
 	width: 52px;
 	height: 52px;
@@ -57,8 +81,6 @@
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 	gap: 1.15rem;
-	max-width: 1120px;
-	margin: 0 auto;
 }
 
 .promotionFeature {
@@ -68,7 +90,7 @@
 	border-radius: 16px;
 	background: linear-gradient(160deg, color-mix(in srgb, var(--card-bg) 96%, white 4%), var(--card-bg));
 	box-shadow: 0 8px 24px var(--card-shadow);
-	transition: transform 180ms ease, box-shadow 180ms ease;
+	transition: transform var(--motion-fast) var(--motion-ease), box-shadow var(--motion-fast) var(--motion-ease);
 }
 
 .promotionFeature:hover,
@@ -83,11 +105,21 @@
 
 .cardText h3 {
 	margin-bottom: 0.35rem;
-	font-size: 1.08rem;
+	font-size: 1.15rem;
+	transition: color var(--motion-fast) ease;
 }
 
 .featureCardBody h3 {
 	margin-bottom: 0.55rem;
+	font-size: 1.15rem;
+	transition: color var(--motion-fast) ease;
+}
+
+@media (hover: hover) {
+	.featureCard:hover .featureCardBody h3,
+	.promotionFeature:hover .cardText h3 {
+		color: var(--ifm-color-primary);
+	}
 }
 
 .cardText p {
@@ -95,16 +127,24 @@
 	color: var(--muted-text);
 	font-size: 0.93rem;
 	line-height: 1.55;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 3;
+	overflow: hidden;
 }
 
 .featureCardBody p {
 	margin: 0;
 	color: var(--muted-text);
 	line-height: 1.65;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 4;
+	overflow: hidden;
 }
 
 .cardColumn {
-	margin-bottom: 1.6rem;
+	margin-bottom: var(--space-block);
 }
 
 .featureCard {
@@ -113,14 +153,14 @@
 	height: 100%;
 	overflow: hidden;
 	border: 1px solid var(--card-border);
-	border-radius: 18px;
+	border-radius: 16px;
 	background: var(--card-bg);
 	box-shadow: 0 10px 28px var(--card-shadow);
-	transition: transform 180ms ease, box-shadow 180ms ease;
+	transition: transform var(--motion-fast) var(--motion-ease), box-shadow var(--motion-fast) var(--motion-ease);
 }
 
 .featureCardLarge {
-	border-radius: 22px;
+	border-radius: 18px;
 }
 
 .featureCardBody {
@@ -142,14 +182,27 @@
 	width: 100%;
 	aspect-ratio: 16 / 10;
 	overflow: hidden;
-	background: #17191f;
+	background: var(--frame-bg);
 }
 
 .imageFrame img {
+	position: relative;
 	display: block;
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
+	transition: opacity var(--motion-enter) ease, transform 300ms var(--motion-ease);
+}
+
+.imagePending {
+	opacity: 0;
+}
+
+@media (hover: hover) {
+	.featureCard:hover .imageFrame img,
+	.promotionFeature:hover .imageFrame img {
+		transform: scale(1.02);
+	}
 }
 
 .featureCardLarge .imageFrame {
@@ -168,20 +221,69 @@
 }
 
 .imagePlaceholder {
+	position: absolute;
+	inset: 0;
 	display: block;
-	width: 100%;
-	height: 100%;
-	background: linear-gradient(110deg, #252832 20%, #343844 38%, #252832 58%);
-	background-size: 200% 100%;
+	overflow: hidden;
+}
+
+.imagePlaceholder::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: -100%;
+	width: 300%;
+	background: var(--placeholder-grad);
 	animation: shimmer 1.4s linear infinite;
 }
 
 @keyframes shimmer {
-	to { background-position-x: -200%; }
+	from { transform: translateX(0); }
+	to { transform: translateX(33.33%); }
+}
+
+@media (hover: hover) {
+	.sectionHeading:hover .pixImg {
+		animation: pixWiggle 420ms var(--motion-ease);
+	}
+}
+
+@keyframes pixWiggle {
+	0%, 100% { transform: rotate(0deg); }
+	35% { transform: rotate(-5deg); }
+	70% { transform: rotate(4deg); }
+}
+
+@supports (animation-timeline: view()) {
+	.revealItem {
+		animation: revealUp var(--motion-enter) var(--motion-ease) both;
+		animation-timeline: view();
+		animation-range: entry 0% entry 60%;
+	}
+
+	.revealItem:nth-child(3n+2) {
+		animation-range: entry 4% entry 64%;
+	}
+
+	.revealItem:nth-child(3n) {
+		animation-range: entry 8% entry 68%;
+	}
+}
+
+@keyframes revealUp {
+	from {
+		opacity: 0;
+		transform: translateY(16px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
 }
 
 .languageSection {
-	padding: 4.25rem 0 1rem;
+	padding: var(--space-section) 0 1rem;
 }
 
 .languageGrid {
@@ -202,7 +304,7 @@
 	background: var(--card-bg);
 	box-shadow: 0 8px 20px var(--card-shadow);
 	font-weight: 650;
-	transition: transform 180ms ease;
+	transition: transform var(--motion-fast) var(--motion-ease);
 }
 
 .languageItem:hover {
@@ -283,7 +385,9 @@
 	.promotionFeature,
 	.featureCard,
 	.languageItem,
-	.imagePlaceholder {
+	.imagePlaceholder::before,
+	.revealItem,
+	.sectionHeading .pixImg {
 		transition: none;
 		animation: none;
 	}

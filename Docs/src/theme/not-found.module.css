@@ -1,0 +1,52 @@
+.notFound {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 62vh;
+	padding: 5rem 1rem;
+	text-align: center;
+}
+
+.mascots {
+	display: flex;
+	align-items: flex-end;
+	gap: 1.2rem;
+	margin-bottom: 1.6rem;
+}
+
+.pix {
+	width: 84px;
+	height: 84px;
+	object-fit: contain;
+	image-rendering: pixelated;
+}
+
+.mascots .pix:first-child {
+	transform: rotate(-6deg);
+}
+
+.mascots .pix:last-child {
+	transform: rotate(6deg);
+}
+
+.title {
+	margin-bottom: 0.8rem;
+	font-size: clamp(2rem, 5vw, 3rem);
+	letter-spacing: -0.02em;
+}
+
+.description {
+	max-width: 460px;
+	margin: 0 0 2.2rem;
+	color: var(--ifm-color-emphasis-700);
+	font-size: 1.08rem;
+	line-height: 1.7;
+}
+
+@media (max-width: 600px) {
+	.pix {
+		width: 60px;
+		height: 60px;
+	}
+}
