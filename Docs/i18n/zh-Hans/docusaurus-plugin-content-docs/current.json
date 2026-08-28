@@ -15,9 +15,9 @@
     "message": "基础功能",
     "description": "The label for category Basic Functionality in sidebar apiSidebar"
   },
-  "sidebar.apiSidebar.category.Audio Menagement": {
+  "sidebar.apiSidebar.category.Audio Management": {
     "message": "音频管理",
-    "description": "The label for category Audio Menagement in sidebar apiSidebar"
+    "description": "The label for category Audio Management in sidebar apiSidebar"
   },
   "sidebar.apiSidebar.category.Assets Management": {
     "message": "资产管理",

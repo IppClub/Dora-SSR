@@ -4,7 +4,7 @@ import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import styles from './index.module.css';
-import Translate from '@docusaurus/Translate';
+import Translate, {translate} from '@docusaurus/Translate';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
 
 function HomepageHeader() {
@@ -22,14 +22,23 @@ function HomepageHeader() {
 					id='hero_subtitle'
 					description='The subtitle in front page'>
 					Game Engine
-				</Translate></strong><br/><strong><Link
-					to="/docs/tutorial/quick-start">
-					<Translate
-						id='dora_enter_tutorial_button'
-						description='The tutorial button in front page'>
-						[Start &lt;]
-					</Translate>
-				</Link></strong></p>
+				</Translate></strong></p>
+				<div className={styles.buttons}>
+					<Link
+						className='button button--primary button--lg'
+						to='/docs/tutorial/quick-start'>
+						<Translate
+							id='dora_enter_tutorial_button'
+							description='The tutorial button in front page'>
+							Get Started
+						</Translate>
+					</Link>
+					<Link
+						className={clsx('button button--lg', styles.githubButton)}
+						to='https://github.com/ippclub/Dora-SSR'>
+						GitHub
+					</Link>
+				</div>
 			</div>
 		</header>
 	);
@@ -41,7 +50,11 @@ export default function Home(): JSX.Element {
 	return (
 		<Layout
 			title={`${siteConfig.title}`}
-			description="A game engine for rapid development across devices, featuring a built-in Web IDE with intuitive toolchain.">
+			description={translate({
+				id: 'home_meta_description',
+				message: 'A game engine for rapid development across devices, featuring a built-in Web IDE with intuitive toolchain.',
+				description: 'The meta description of the front page',
+			})}>
 			<HomepageHeader />
 			<main>
 				<HomepageFeatures />

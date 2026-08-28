@@ -52,7 +52,7 @@ const sidebars = {
 				},
 				{
 					type: 'category',
-					label: 'Audio Menagement',
+					label: 'Audio Management',
 					items: [
 						{
 							type: 'doc',

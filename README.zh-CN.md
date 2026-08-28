@@ -9,7 +9,7 @@
 <sub>真机开发游戏引擎</sub>
 </td>
 <td width="80%" valign="middle" align="center">
-<img src='Docs/static/img/art/derivative/dora-toto.jpg' alt='Dora SSR hero' width='100%'/>
+<img src='Docs/static/img/art/derivative/dora-toto.webp' alt='Dora SSR hero' width='100%'/>
 </td>
 </tr>
 </table>
@@ -32,7 +32,7 @@ Dora SSR 是一款跨平台游戏引擎，直接运行在游戏的目标设备�
 
 <div align='center'>
 
-<img src='Docs/static/img/showcase/web-ide-retina.jpg' alt='Dora SSR Web IDE 编辑 TypeScript 项目，与设备上运行的引擎实时相连'/>
+<img src='Docs/static/img/showcase/web-ide-retina.webp' alt='Dora SSR Web IDE 编辑 TypeScript 项目，与设备上运行的引擎实时相连'/>
 
 <sub>浏览器中的 Web IDE，实时编辑运行在设备上的代码。</sub>
 
@@ -46,7 +46,7 @@ Dora SSR 是一款跨平台游戏引擎，直接运行在游戏的目标设备�
 
 <div align='center'>
 
-<img src='Docs/static/img/showcase/dev-everywhere.jpg' alt='Dora SSR 运行在掌机和桌面设备上，由笔记本电脑进行编辑' width='640px'/>
+<img src='Docs/static/img/showcase/dev-everywhere.webp' alt='Dora SSR 运行在掌机和桌面设备上，由笔记本电脑进行编辑' width='640px'/>
 
 <sub>引擎在设备上，开发随时随地。</sub>
 
@@ -58,7 +58,7 @@ Dora SSR 是一款跨平台游戏引擎，直接运行在游戏的目标设备�
 
 <div align='center'>
 
-<img src='Docs/static/img/showcase/dora-agent-retina.jpg' alt='编程智能体在 Dora SSR 内完成项目分析任务'/>
+<img src='Docs/static/img/showcase/dora-agent-retina.webp' alt='编程智能体在 Dora SSR 内完成项目分析任务'/>
 
 </div>
 
@@ -69,41 +69,41 @@ Dora SSR 是一款跨平台游戏引擎，直接运行在游戏的目标设备�
 <table>
 <tr>
 <td width='50%' align='center' valign='top'>
-<img src='Docs/static/img/showcase/dora-animation-editor.jpg' alt='动画编辑器' width='100%'/>
+<img src='Docs/static/img/showcase/dora-animation-editor.webp' alt='动画编辑器' width='100%'/>
 <sub><b>动画编辑器</b> —— 骨骼动画时间线</sub>
 </td>
 <td width='50%' align='center' valign='top'>
-<img src='Docs/static/img/showcase/dora-particle-editor.jpg' alt='粒子编辑器' width='100%'/>
+<img src='Docs/static/img/showcase/dora-particle-editor.webp' alt='粒子编辑器' width='100%'/>
 <sub><b>粒子编辑器</b> —— 实时预览特效</sub>
 </td>
 </tr>
 <tr>
 <td width='50%' align='center' valign='top'>
-<img src='Docs/static/img/showcase/dora-physics-editor.jpg' alt='物理编辑器' width='100%'/>
+<img src='Docs/static/img/showcase/dora-physics-editor.webp' alt='物理编辑器' width='100%'/>
 <sub><b>物理编辑器</b> —— 编辑碰撞体</sub>
 </td>
 <td width='50%' align='center' valign='top'>
-<img src='Docs/static/img/showcase/dora-yarn-editor.jpg' alt='Yarn 剧本编辑器' width='100%'/>
+<img src='Docs/static/img/showcase/dora-yarn-editor.webp' alt='Yarn 剧本编辑器' width='100%'/>
 <sub><b>Yarn 编辑器</b> —— 剧本与节点图</sub>
 </td>
 </tr>
 <tr>
 <td width='50%' align='center' valign='top'>
-<img src='Docs/static/img/showcase/dora-visual-script-editor.jpg' alt='可视化脚本编辑器' width='100%'/>
+<img src='Docs/static/img/showcase/dora-visual-script-editor.webp' alt='可视化脚本编辑器' width='100%'/>
 <sub><b>可视化脚本编辑器</b> —— 用节点搭建逻辑</sub>
 </td>
 <td width='50%' align='center' valign='top'>
-<img src='Docs/static/img/showcase/dora-spine-animation.jpg' alt='Spine 动画预览' width='100%'/>
+<img src='Docs/static/img/showcase/dora-spine-animation.webp' alt='Spine 动画预览' width='100%'/>
 <sub><b>Spine 预览</b> —— 检查骨骼动画数据</sub>
 </td>
 </tr>
 <tr>
 <td width='50%' align='center' valign='top'>
-<img src='Docs/static/img/showcase/dora-git-client.jpg' alt='Git 客户端' width='100%'/>
+<img src='Docs/static/img/showcase/dora-git-client.webp' alt='Git 客户端' width='100%'/>
 <sub><b>Git 客户端</b> —— 提交历史与变更</sub>
 </td>
 <td width='50%' align='center' valign='top'>
-<img src='Docs/static/img/showcase/dora-3d-debugging.jpg' alt='运行时性能分析与调试控制台' width='100%'/>
+<img src='Docs/static/img/showcase/dora-3d-debugging.webp' alt='运行时性能分析与调试控制台' width='100%'/>
 <sub><b>性能分析器</b> —— 运行时调试与剖析</sub>
 </td>
 </tr>
@@ -122,7 +122,7 @@ Dora SSR 是一款跨平台游戏引擎，直接运行在游戏的目标设备�
 
 <div align='center'>
 
-<img src='Docs/static/img/showcase/dora-3d-model.jpg' alt='Dora SSR 中的 3D 头盔模型与异步加载诊断信息' width='640px'/>
+<img src='Docs/static/img/showcase/dora-3d-model.webp' alt='Dora SSR 中的 3D 头盔模型与异步加载诊断信息' width='640px'/>
 
 </div>
 
@@ -143,7 +143,7 @@ Dora SSR 是一款跨平台游戏引擎，直接运行在游戏的目标设备�
 
 <div align='center'>
 
-<img src='Docs/static/img/showcase/blockly-zh.jpg' alt='Dora SSR 中的 Blockly 可视化编程' width='480px'/>
+<img src='Docs/static/img/showcase/blockly-zh.webp' alt='Dora SSR 中的 Blockly 可视化编程' width='480px'/>
 
 </div>
 
@@ -171,7 +171,7 @@ toNode(
 
 <div align='center'>
 
-<img src='Docs/static/img/showcase/dora-tsx-reactive-ui.jpg' alt='Dora SSR 的 TSX 代码与原生运行时中渲染的响应式 UI' width='640px'/>
+<img src='Docs/static/img/showcase/dora-tsx-reactive-ui.webp' alt='Dora SSR 的 TSX 代码与原生运行时中渲染的响应式 UI' width='640px'/>
 
 <sub>TSX 代码与其渲染出的响应式界面，实时运行在原生运行时中。</sub>
 
@@ -343,21 +343,21 @@ fn main () {
 <tr>
 <td width='50%' align='center' valign='top'>
 <a href="https://github.com/IppClub/Dora-Demo/tree/main/Loli%20War"><b>Loli War</b></a>
-<img src='Docs/static/img/showcase/LoliWar.gif' alt='Loli War 游戏画面' width='100%'/>
+<img src='Docs/static/img/showcase/LoliWar.webp' alt='Loli War 游戏画面' width='100%'/>
 </td>
 <td width='50%' align='center' valign='top'>
 <a href="https://github.com/IppClub/Dora-Demo/tree/main/Zombie%20Escape"><b>Zombie Escape</b></a>
-<img src='Docs/static/img/showcase/ZombieEscape.jpg' alt='Zombie Escape 游戏画面' width='100%'/>
+<img src='Docs/static/img/showcase/ZombieEscape.webp' alt='Zombie Escape 游戏画面' width='100%'/>
 </td>
 </tr>
 <tr>
 <td width='50%' align='center' valign='top'>
 <a href="https://github.com/IppClub/Dora-Demo/tree/main/Dismantlism"><b>Dismantlism</b></a>
-<img src='Docs/static/img/showcase/Dismentalism.png' alt='Dismantlism 游戏画面' width='100%'/>
+<img src='Docs/static/img/showcase/Dismentalism.webp' alt='Dismantlism 游戏画面' width='100%'/>
 </td>
 <td width='50%' align='center' valign='top'>
 <a href="https://github.com/IppClub/LSD"><b>Luv Sense Digital</b></a>
-<img src='Docs/static/img/showcase/LuvSenseDigital.jpg' alt='Luv Sense Digital' width='100%'/>
+<img src='Docs/static/img/showcase/LuvSenseDigital.webp' alt='Luv Sense Digital' width='100%'/>
 </td>
 </tr>
 </table>
@@ -453,7 +453,7 @@ Dora SSR 现为[开放原子开源基金会](https://openatom.org/project/RJHufN
 
 <div align='center'>
 
-<img src='Docs/static/img/art/casual/cheer.png' alt='Dora 与 Toto 欢呼' width='480px'/>
+<img src='Docs/static/img/art/casual/cheer.webp' alt='Dora 与 Toto 欢呼' width='480px'/>
 
 </div>
 

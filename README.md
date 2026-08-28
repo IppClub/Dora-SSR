@@ -9,7 +9,7 @@
 <sub>Target-device live game engine</sub>
 </td>
 <td width="80%" valign="middle" align="center">
-<img src='Docs/static/img/art/derivative/dora-toto.jpg' alt='Dora SSR hero' width='100%'/>
+<img src='Docs/static/img/art/derivative/dora-toto.webp' alt='Dora SSR hero' width='100%'/>
 </td>
 </tr>
 </table>
@@ -32,7 +32,7 @@ Dora SSR is a cross-platform game engine that lives on the device your game runs
 
 <div align='center'>
 
-<img src='Docs/static/img/showcase/web-ide-retina.jpg' alt='Dora SSR Web IDE editing a TypeScript project, connected to the engine running on the device'/>
+<img src='Docs/static/img/showcase/web-ide-retina.webp' alt='Dora SSR Web IDE editing a TypeScript project, connected to the engine running on the device'/>
 
 <sub>The Web IDE in a browser, editing code that runs on the device in real time.</sub>
 
@@ -46,7 +46,7 @@ Dora SSR is a cross-platform game engine that lives on the device your game runs
 
 <div align='center'>
 
-<img src='Docs/static/img/showcase/dev-everywhere.jpg' alt='Dora SSR running on handhelds and desktops while being edited from a laptop' width='640px'/>
+<img src='Docs/static/img/showcase/dev-everywhere.webp' alt='Dora SSR running on handhelds and desktops while being edited from a laptop' width='640px'/>
 
 <sub>The engine on the device, the IDE wherever you are.</sub>
 
@@ -58,7 +58,7 @@ Ask it to analyze a project, look up APIs, make safe edits, and validate the res
 
 <div align='center'>
 
-<img src='Docs/static/img/showcase/dora-agent-retina.jpg' alt='The Coding Agent completing a project analysis task inside Dora SSR'/>
+<img src='Docs/static/img/showcase/dora-agent-retina.webp' alt='The Coding Agent completing a project analysis task inside Dora SSR'/>
 
 </div>
 
@@ -69,41 +69,41 @@ Common game-production tasks stay inside the Web IDE:
 <table>
 <tr>
 <td width='50%' align='center' valign='top'>
-<img src='Docs/static/img/showcase/dora-animation-editor.jpg' alt='Animation editor' width='100%'/>
+<img src='Docs/static/img/showcase/dora-animation-editor.webp' alt='Animation editor' width='100%'/>
 <sub><b>Animation editor</b> — skeletal animation timelines</sub>
 </td>
 <td width='50%' align='center' valign='top'>
-<img src='Docs/static/img/showcase/dora-particle-editor.jpg' alt='Particle editor' width='100%'/>
+<img src='Docs/static/img/showcase/dora-particle-editor.webp' alt='Particle editor' width='100%'/>
 <sub><b>Particle editor</b> — effects with live preview</sub>
 </td>
 </tr>
 <tr>
 <td width='50%' align='center' valign='top'>
-<img src='Docs/static/img/showcase/dora-physics-editor.jpg' alt='Physics body editor' width='100%'/>
+<img src='Docs/static/img/showcase/dora-physics-editor.webp' alt='Physics body editor' width='100%'/>
 <sub><b>Physics editor</b> — shaping bodies and fixtures</sub>
 </td>
 <td width='50%' align='center' valign='top'>
-<img src='Docs/static/img/showcase/dora-yarn-editor.jpg' alt='Yarn story editor' width='100%'/>
+<img src='Docs/static/img/showcase/dora-yarn-editor.webp' alt='Yarn story editor' width='100%'/>
 <sub><b>Yarn editor</b> — story scripts and node graphs</sub>
 </td>
 </tr>
 <tr>
 <td width='50%' align='center' valign='top'>
-<img src='Docs/static/img/showcase/dora-visual-script-editor.jpg' alt='Visual script editor' width='100%'/>
+<img src='Docs/static/img/showcase/dora-visual-script-editor.webp' alt='Visual script editor' width='100%'/>
 <sub><b>Visual script editor</b> — logic as connected nodes</sub>
 </td>
 <td width='50%' align='center' valign='top'>
-<img src='Docs/static/img/showcase/dora-spine-animation.jpg' alt='Spine animation preview' width='100%'/>
+<img src='Docs/static/img/showcase/dora-spine-animation.webp' alt='Spine animation preview' width='100%'/>
 <sub><b>Spine preview</b> — inspecting skeletal animation data</sub>
 </td>
 </tr>
 <tr>
 <td width='50%' align='center' valign='top'>
-<img src='Docs/static/img/showcase/dora-git-client.jpg' alt='Git client' width='100%'/>
+<img src='Docs/static/img/showcase/dora-git-client.webp' alt='Git client' width='100%'/>
 <sub><b>Git client</b> — history, remotes, and changes</sub>
 </td>
 <td width='50%' align='center' valign='top'>
-<img src='Docs/static/img/showcase/dora-3d-debugging.jpg' alt='Runtime profiler and debug console' width='100%'/>
+<img src='Docs/static/img/showcase/dora-3d-debugging.webp' alt='Runtime profiler and debug console' width='100%'/>
 <sub><b>Profiler</b> — runtime performance and debugging</sub>
 </td>
 </tr>
@@ -122,7 +122,7 @@ Also built in: a TIC-80 editor, tile-map support, an Excel-to-database workflow,
 
 <div align='center'>
 
-<img src='Docs/static/img/showcase/dora-3d-model.jpg' alt='3D helmet model and asynchronous loading diagnostics in Dora SSR' width='640px'/>
+<img src='Docs/static/img/showcase/dora-3d-model.webp' alt='3D helmet model and asynchronous loading diagnostics in Dora SSR' width='640px'/>
 
 </div>
 
@@ -143,7 +143,7 @@ Prefer blocks over text? Blockly provides Scratch-style visual scripting for tea
 
 <div align='center'>
 
-<img src='Docs/static/img/showcase/blockly.jpg' alt='Blockly visual scripting in Dora SSR' width='480px'/>
+<img src='Docs/static/img/showcase/blockly.webp' alt='Blockly visual scripting in Dora SSR' width='480px'/>
 
 </div>
 
@@ -171,7 +171,7 @@ toNode(
 
 <div align='center'>
 
-<img src='Docs/static/img/showcase/dora-tsx-reactive-ui.jpg' alt='Dora SSR TSX code alongside its reactive UI running in the native runtime' width='640px'/>
+<img src='Docs/static/img/showcase/dora-tsx-reactive-ui.webp' alt='Dora SSR TSX code alongside its reactive UI running in the native runtime' width='640px'/>
 
 <sub>TSX code and the responsive UI it renders, live in the runtime.</sub>
 
@@ -343,21 +343,21 @@ fn main () {
 <tr>
 <td width='50%' align='center' valign='top'>
 <a href="https://github.com/IppClub/Dora-Demo/tree/main/Loli%20War"><b>Loli War</b></a>
-<img src='Docs/static/img/showcase/LoliWar.gif' alt='Loli War gameplay' width='100%'/>
+<img src='Docs/static/img/showcase/LoliWar.webp' alt='Loli War gameplay' width='100%'/>
 </td>
 <td width='50%' align='center' valign='top'>
 <a href="https://github.com/IppClub/Dora-Demo/tree/main/Zombie%20Escape"><b>Zombie Escape</b></a>
-<img src='Docs/static/img/showcase/ZombieEscape.jpg' alt='Zombie Escape gameplay' width='100%'/>
+<img src='Docs/static/img/showcase/ZombieEscape.webp' alt='Zombie Escape gameplay' width='100%'/>
 </td>
 </tr>
 <tr>
 <td width='50%' align='center' valign='top'>
 <a href="https://github.com/IppClub/Dora-Demo/tree/main/Dismantlism"><b>Dismantlism</b></a>
-<img src='Docs/static/img/showcase/Dismentalism.png' alt='Dismantlism gameplay' width='100%'/>
+<img src='Docs/static/img/showcase/Dismentalism.webp' alt='Dismantlism gameplay' width='100%'/>
 </td>
 <td width='50%' align='center' valign='top'>
 <a href="https://github.com/IppClub/LSD"><b>Luv Sense Digital</b></a>
-<img src='Docs/static/img/showcase/LuvSenseDigital.jpg' alt='Luv Sense Digital' width='100%'/>
+<img src='Docs/static/img/showcase/LuvSenseDigital.webp' alt='Luv Sense Digital' width='100%'/>
 </td>
 </tr>
 </table>
@@ -453,7 +453,7 @@ Dora SSR is a donation and incubation project of the [Open Atom Foundation](http
 
 <div align='center'>
 
-<img src='Docs/static/img/art/casual/cheer.png' alt='Dora and Toto cheering' width='480px'/>
+<img src='Docs/static/img/art/casual/cheer.webp' alt='Dora and Toto cheering' width='480px'/>
 
 </div>
 

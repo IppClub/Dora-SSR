@@ -15,7 +15,7 @@ This category provides general functions and services of the engine.
 * [Profiler](/docs/api/Class%20Object/Profiler)
 * [Object](/docs/api/Class/Object)
 
-### Audio Menagement
+### Audio Management
 
 This category provides features for managing and playing game music and sound effects.
 

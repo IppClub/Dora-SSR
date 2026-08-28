@@ -4,14 +4,13 @@
  */
 
 .heroBanner {
-	padding: 14rem 0;
+	padding: 12rem 0 10rem;
 	text-align: center;
 	position: relative;
 	overflow: hidden;
-	background-image: url('/static/img/art/derivative/dora-toto.jpg');
+	background-image: url('/static/img/art/derivative/dora-toto.webp');
 	background-size: cover;
-	background-position: center;
-	background-position-y: calc(0% + 15%);
+	background-position: center 15%;
 	background-repeat: no-repeat;
 	background-blend-mode: darken;
 	background-color: var(--ifm-color-hero-background);
@@ -21,22 +20,47 @@
 	font-size: 5rem;
 	color: var(--ifm-color-title);
 	padding-bottom: 1rem;
+	text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55), 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
 .heroSubtitle {
-	padding-bottom: 2rem;
+	padding-bottom: 2.5rem;
 	color: var(--ifm-color-subtitle);
-}
-
-@media screen and (max-width: 996px) {
-	.heroBanner {
-		padding: 8rem 0;
-	}
+	text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
 }
 
 .buttons {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding-bottom: 2rem;
+	flex-wrap: wrap;
+	gap: 1rem;
+}
+
+.githubButton {
+	border: 2px solid rgba(255, 255, 255, 0.85);
+	background: rgba(0, 0, 0, 0.25);
+	color: #fff;
+}
+
+.githubButton:hover {
+	border-color: #fff;
+	background: rgba(0, 0, 0, 0.45);
+	color: #fff;
+}
+
+@media screen and (max-width: 996px) {
+	.heroBanner {
+		padding: 8rem 0 6.5rem;
+	}
+
+	.heroTitle {
+		font-size: 3rem;
+	}
+}
+
+@media screen and (max-width: 480px) {
+	.heroTitle {
+		font-size: 2.5rem;
+	}
 }

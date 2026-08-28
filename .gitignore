@@ -44,6 +44,7 @@ ipch/
 xcschememanagement.plist
 build/
 .DS_Store
+Thumbs.db
 ._.*
 xcuserdata/
 DerivedData/

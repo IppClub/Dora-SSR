@@ -367,7 +367,7 @@ const config = {
 			],
 			logo: {
 				alt: 'Dora SSR Logo',
-				src: 'img/art/casual/cheer.png',
+				src: 'img/art/casual/cheer.webp',
 				height: 200,
 				className: 'footer-logo',
 			},

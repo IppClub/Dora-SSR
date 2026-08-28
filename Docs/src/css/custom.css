@@ -13,19 +13,19 @@
 	'Segoe UI Emoji', 'Segoe UI Symbol';
 	--ifm-font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas,
 	'Liberation Mono', 'Courier New', monospace;
-	--ifm-color-primary: #e1ad03;
-	--ifm-color-primary-dark: #d5a64c;
-	--ifm-color-primary-darker: #c89c48;
-	--ifm-color-primary-darkest: #af893b;
-	--ifm-color-primary-light: #c89c48;
-	--ifm-color-primary-lighter: #d5a64c;
-	--ifm-color-primary-lightest: #e1b000;
+	--ifm-color-primary: #8a6f00;
+	--ifm-color-primary-dark: #7c6400;
+	--ifm-color-primary-darker: #745d00;
+	--ifm-color-primary-darkest: #5f4c00;
+	--ifm-color-primary-light: #977a00;
+	--ifm-color-primary-lighter: #9e8000;
+	--ifm-color-primary-lightest: #bd9800;
 	--ifm-color-title: #fac03d;
 	--ifm-color-subtitle: #eee;
 	--ifm-font-size-base: 95%;
 	--ifm-code-font-size: 95%;
 	--ifm-line-height-base: 1.85;
-	--ifm-color-hero-background: rgba(0, 0, 0, 0.5);
+	--ifm-color-hero-background: rgba(0, 0, 0, 0.35);
 	--docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 	--navbar-bg: #ffffff1a;
 	--navbar-item-color: #ffffff;
@@ -109,13 +109,13 @@
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
 	--ifm-color-primary: #fac03d;
-	--ifm-color-primary-dark: #f5c000;
-	--ifm-color-primary-darker: #e0b000;
-	--ifm-color-primary-darkest: #cca000;
+	--ifm-color-primary-dark: #e3af00;
+	--ifm-color-primary-darker: #d6a300;
+	--ifm-color-primary-darkest: #bd9200;
 	--ifm-color-primary-light: #d5a64c;
 	--ifm-color-primary-lighter: #e1b000;
 	--ifm-color-primary-lightest: #fac03d;
-	--ifm-color-hero-background: rgba(0, 0, 0, 0.6);
+	--ifm-color-hero-background: rgba(0, 0, 0, 0.5);
 	--docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 	--navbar-bg: #0000003a;
 	--navbar-item-color: #1a1a1a;

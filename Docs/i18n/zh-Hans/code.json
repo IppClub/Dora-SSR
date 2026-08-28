@@ -287,7 +287,7 @@
     "description": "The title of the tag list page"
   },
   "dora_enter_tutorial_button": {
-    "message": "[启动 <]",
+    "message": "快速上手",
     "description": "The tutorial button in front page"
   },
   "theme.SearchPage.existingResultsTitle": {
@@ -526,12 +526,16 @@
     "description": "The engine feature description Wa Scripting Support in front page"
   },
   "hero_title": {
-    "message": "多萝珍奇",
+    "message": "Dora SSR",
     "description": "The title in front page"
   },
   "hero_subtitle": {
     "message": "游戏引擎",
     "description": "The subtitle in front page"
+  },
+  "home_meta_description": {
+    "message": "一款支持跨设备快速开发的游戏引擎，内置 Web IDE 与直观的工具链。",
+    "description": "The meta description of the front page"
   },
   "engine_feature_title_blockly": {
     "message": "积木脚本系统",
