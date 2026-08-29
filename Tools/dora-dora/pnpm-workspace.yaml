@@ -1,5 +1,6 @@
-onlyBuiltDependencies:
-  - esbuild
+allowBuilds:
+  '@fortawesome/fontawesome-free': true
+  esbuild: true
 
 patchedDependencies:
   mac-scrollbar@0.13.8: patches/mac-scrollbar@0.13.8.patch

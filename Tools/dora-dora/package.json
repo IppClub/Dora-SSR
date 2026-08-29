@@ -2,7 +2,7 @@
 	"name": "dora-dora",
 	"version": "0.1.0",
 	"private": true,
-	"packageManager": "pnpm@10.13.0",
+	"packageManager": "pnpm@11.24.0",
 	"dependencies": {
 		"@ant-design/icons": "^6.2.5",
 		"@ant-design/plots": "^2.6.8",
