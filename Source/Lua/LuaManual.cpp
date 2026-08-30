@@ -863,9 +863,9 @@ int Sprite_GetTextureFilter(lua_State* L) {
 	if (!self) tolua_error(L, "invalid 'self' in accessing variable 'Sprite_GetTextureFilter'", nullptr);
 #endif
 	switch (self->getFilter()) {
-		case TextureFilter::None: tolua_pushslice(L, "None"_slice);
-		case TextureFilter::Point: tolua_pushslice(L, "Point"_slice);
-		case TextureFilter::Anisotropic: tolua_pushslice(L, "Anisotropic"_slice);
+		case TextureFilter::None: tolua_pushslice(L, "None"_slice); break;
+		case TextureFilter::Point: tolua_pushslice(L, "Point"_slice); break;
+		case TextureFilter::Anisotropic: tolua_pushslice(L, "Anisotropic"_slice); break;
 		default: tolua_pushslice(L, "None"_slice);
 	}
 	return 1;

@@ -148,7 +148,9 @@ class Application
 	tolua_readonly tolua_property__common uint32_t frame;
 	tolua_readonly tolua_property__common Size bufferSize;
 	tolua_readonly tolua_property__common Size visualSize;
+	tolua_readonly tolua_property__common Rect safeArea;
 	tolua_readonly tolua_property__common float devicePixelRatio;
+	tolua_readonly tolua_property__bool bool reducedMotion;
 	tolua_readonly tolua_property__common String platform;
 	tolua_readonly tolua_property__common String version;
 	tolua_readonly tolua_property__common String deps;
@@ -171,6 +173,9 @@ class Application
 	tolua_property__bool bool alwaysOnTop;
 	tolua_property__bool bool devMode;
 	void openURL(String url);
+	void vibrate(double seconds);
+	void setClipboardText(String text);
+	string getClipboardText();
 	void install(String path);
 	bool saveLog(String filename);
 	string saveScreenshot(String filename);
@@ -333,6 +338,7 @@ class Director
 	tolua_property__common Scheduler* scheduler;
 	tolua_readonly tolua_property__common Node* uI @ ui;
 	tolua_readonly tolua_property__common Node* uI3D @ ui3D;
+	tolua_readonly tolua_property__common Node* systemUI;
 	tolua_readonly tolua_property__common View3D* entry;
 	tolua_readonly tolua_property__common Node* postNode;
 	tolua_readonly tolua_property__common Scheduler* systemScheduler;
@@ -344,6 +350,7 @@ class Director
 	bool removeCamera(Camera* camera);
 	void clearCamera();
 	void cleanup();
+	void clearSystemUI();
 	static tolua_outside Director* Director_shared @ create();
 };
 

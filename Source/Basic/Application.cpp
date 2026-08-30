@@ -653,6 +653,16 @@ Size Application::getVisualSize() const noexcept {
 	return Size{s_cast<float>(_visualWidth), s_cast<float>(_visualHeight)};
 }
 
+#if !BX_PLATFORM_ANDROID && !BX_PLATFORM_IOS
+Rect Application::getSafeArea() {
+	return Rect{0.0f, 0.0f, s_cast<float>(_visualWidth), s_cast<float>(_visualHeight)};
+}
+
+bool Application::isReducedMotion() const noexcept {
+	return false;
+}
+#endif
+
 float Application::getDevicePixelRatio() const noexcept {
 	return s_cast<float>(_bufferWidth) / _visualWidth;
 }
@@ -849,7 +859,7 @@ int Application::run(MainFunc mainFunc) {
 	SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
 	SDL_SetHint(SDL_HINT_VIDEO_EXTERNAL_CONTEXT, "1");
 	SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
-	SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
+	SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight Portrait PortraitUpsideDown");
 
 	uint32_t windowFlags = SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE;
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX
@@ -1366,7 +1376,74 @@ void Application::openURL(String url) {
 	});
 }
 
+void Application::setClipboardText(String text) {
+	auto value = text.toString();
+	invokeInRender([value = std::move(value)]() {
+		if (SDL_SetClipboardText(value.c_str()) != 0) {
+			Error("failed to set clipboard text due to: {}", SDL_GetError());
+		}
+	});
+}
+
+std::string Application::getClipboardText() const {
+	char* value = SDL_GetClipboardText();
+	if (!value) {
+		return {};
+	}
+	std::string result{value};
+	SDL_free(value);
+	return result;
+}
+
 #if BX_PLATFORM_ANDROID
+Rect Application::getSafeArea() {
+	JNIEnv* env = Android_JNI_GetEnv();
+	jobject activity = r_cast<jobject>(SDL_AndroidGetActivity());
+	if (!env || !activity) {
+		return Rect{0.0f, 0.0f, s_cast<float>(_visualWidth), s_cast<float>(_visualHeight)};
+	}
+	jclass clazz = env->GetObjectClass(activity);
+	jmethodID method = clazz ? env->GetMethodID(clazz, "getSafeAreaInsets", "()[F") : nullptr;
+	float insets[4]{};
+	if (method) {
+		jfloatArray values = r_cast<jfloatArray>(env->CallObjectMethod(activity, method));
+		if (values && env->GetArrayLength(values) >= 4) {
+			env->GetFloatArrayRegion(values, 0, 4, insets);
+		}
+		if (values) env->DeleteLocalRef(values);
+	}
+	if (env->ExceptionCheck()) {
+		env->ExceptionClear();
+		Error("failed to query Android safe area");
+	}
+	if (clazz) env->DeleteLocalRef(clazz);
+	env->DeleteLocalRef(activity);
+	float density = std::max(g_androidScreenDensity, 1.0f);
+	float left = std::max(insets[0] / density, 0.0f);
+	float top = std::max(insets[1] / density, 0.0f);
+	float right = std::max(insets[2] / density, 0.0f);
+	float bottom = std::max(insets[3] / density, 0.0f);
+	return Rect{left, bottom,
+		std::max(s_cast<float>(_visualWidth) - left - right, 0.0f),
+		std::max(s_cast<float>(_visualHeight) - top - bottom, 0.0f)};
+}
+
+bool Application::isReducedMotion() const noexcept {
+	JNIEnv* env = Android_JNI_GetEnv();
+	jobject activity = r_cast<jobject>(SDL_AndroidGetActivity());
+	if (!env || !activity) return false;
+	jclass clazz = env->GetObjectClass(activity);
+	jmethodID method = clazz ? env->GetMethodID(clazz, "isReducedMotion", "()Z") : nullptr;
+	bool reduced = method && env->CallBooleanMethod(activity, method) == JNI_TRUE;
+	if (env->ExceptionCheck()) {
+		env->ExceptionClear();
+		reduced = false;
+	}
+	if (clazz) env->DeleteLocalRef(clazz);
+	env->DeleteLocalRef(activity);
+	return reduced;
+}
+
 void Application::vibrate(double seconds) {
 	JNIEnv* env = Android_JNI_GetEnv();
 	jobject activity = r_cast<jobject>(SDL_AndroidGetActivity());

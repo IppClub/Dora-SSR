@@ -2028,7 +2028,7 @@ do -- 552
 	end -- 554
 	getLabel = function(enode) -- 571
 		local label = enode.props -- 572
-		local node = Dora.Label(label.fontName, label.fontSize, label.sdf) -- 573
+		local node = Dora.Label(label.fontName, label.fontSize, label.sdf ~= false) -- 573
 		if node ~= nil then -- 573
 			if label.smoothLower ~= nil or label.smoothUpper ~= nil then -- 573
 				local ____node_smooth_12 = node.smooth -- 576

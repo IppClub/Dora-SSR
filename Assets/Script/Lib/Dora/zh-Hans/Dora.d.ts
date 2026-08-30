@@ -636,6 +636,9 @@ interface App {
 	 */
 	readonly visualSize: Size;
 
+	/** 不受系统栏、屏幕挖孔和圆角遮挡的可绘制安全区域。 */
+	readonly safeArea: Rect;
+
 	/**
 	 * 设备显示的像素密度比。
 	 * 等于渲染缓冲纹理的像素大小除以应用程序窗口的大小。
@@ -687,6 +690,9 @@ interface App {
 
 	/** 游戏引擎是否运行在调试模式下。 */
 	readonly debugging: boolean;
+
+	/** 操作系统是否因无障碍设置而要求减少动态效果。 */
+	readonly reducedMotion: boolean;
 
 	/** 引擎内置的C++测试的测试名称（用于辅助引擎本身开发）。 */
 	readonly testNames: string[];
@@ -764,6 +770,15 @@ interface App {
 	 * @param url 要打开的URL地址。
 	 */
 	openURL(url: string): void;
+
+	/** 在设备支持时触发指定秒数的振动。 */
+	vibrate(seconds: number): void;
+
+	/** 将文本复制到系统剪贴板。 */
+	setClipboardText(text: string): void;
+
+	/** 获取系统剪贴板文本；不可用时返回空字符串。 */
+	getClipboardText(): string;
 
 	/**
 	 * 用于自更新游戏引擎。
@@ -2959,7 +2974,7 @@ const enum GlobalEvent {
 
 export {GlobalEvent as GSlot};
 
-type AppEventType = "Quit" | "LowMemory" | "WillEnterBackground" | "DidEnterBackground" | "WillEnterForeground" | "DidEnterForeground";
+type AppEventType = "Quit" | "LowMemory" | "WillEnterBackground" | "DidEnterBackground" | "WillEnterForeground" | "DidEnterForeground" | "Shutdown" | "BackButton";
 type AppSettingName = "Locale" | "Theme" | "FullScreen" | "Position" | "Size";
 type AppWSEventType = "Open" | "Close" | "Send" | "Receive";
 type AppWSMessage = {
@@ -2968,6 +2983,9 @@ type AppWSMessage = {
 };
 
 type GlobalEventHandlerMap = {
+	/** 异步脚本回调抛出未处理错误后触发。 */
+	ScriptError(this: void, message: string): void;
+
 	/** 应用接收到各种系统事件时触发。 */
 	AppEvent(this: void, eventType: AppEventType): void;
 
@@ -4835,6 +4853,12 @@ class Director {
 	readonly ui: Node;
 
 	/**
+	 * 引擎自有移动端界面的持久根节点。
+	 * 它不会被 `cleanup()` 清理，并始终渲染在普通场景与 ImGui 之上。
+	 */
+	readonly systemUI: Node;
+
+	/**
 	 * 具有3D投影效果的3D用户界面元素的根节点。
 	 */
 	readonly ui3D: Node;
@@ -4896,6 +4920,9 @@ class Director {
 	 * 清理Director管理的所有资源，包括场景树和摄像机。
 	 */
 	cleanup(): void;
+
+	/** 清理持久系统界面根节点；下次访问时会重新创建。 */
+	clearSystemUI(): void;
 }
 
 const director: Director;

@@ -1,7 +1,7 @@
 // @preview-file off
 import { Content, Director, json, Path } from "Dora";
-import type { ResourceInfo, ResourceVersion } from "Script/Tools/ResourceDownloader/Catalog";
-import { quoteGitArgument, runGit, type GitOperationStatus } from "Script/Tools/ResourceDownloader/Git";
+import type { ResourceInfo, ResourceVersion } from "Tools/ResourceDownloader/Catalog";
+import { quoteGitArgument, runGit, type GitOperationStatus } from "Tools/ResourceDownloader/Git";
 
 export interface ResourceInstallProgress {
 	progress: number;
@@ -95,6 +95,10 @@ export const installResource = async (
 	version: ResourceVersion,
 	options: ResourceInstallOptions,
 ): Promise<ResourceInstallResult> => {
+	const downloadPath = Path(Content.writablePath, "Download");
+	if (!Content.mkdir(downloadPath) && !Content.isdir(downloadPath)) {
+		return { success: false, message: "failed to create Download directory" };
+	}
 	const targetPath = getResourceInstallPath(resource.id);
 	if (Content.exist(targetPath)) {
 		return {

@@ -202,6 +202,8 @@ export type AgentSessionDetailResult = {
 	relatedSessions: AgentSessionItem[];
 	spawnInfo?: AgentSessionSpawnInfo;
 	messages: AgentSessionMessageItem[];
+	/** Older messages omitted from this presentation view, not deleted. */
+	hasEarlierMessages?: boolean;
 	steps: AgentSessionStepItem[];
 	checkpoints: Tools.CheckpointItem[];
 	pendingQuestionnaire?: AgentQuestionnaireItem;
@@ -2118,8 +2120,8 @@ export function createSession(projectRoot: string, title = "") {
 	}
 	const t = now();
 	DB.exec(
-		`INSERT INTO ${TABLE_SESSION}(project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_status, created_at, updated_at)
-		VALUES(?, ?, 'main', 0, 0, 'main', 'IDLE', 'IDLE', ?, ?)`,
+		`INSERT INTO ${TABLE_SESSION}(project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_status, created_at, updated_at, work_mode)
+		VALUES(?, ?, 'main', 0, 0, 'main', 'IDLE', 'IDLE', ?, ?, 'code')`,
 		[projectRoot, title !== "" ? title : Path.getFilename(projectRoot), t, t],
 	);
 	const sessionId = getLastInsertRowId();
@@ -2278,7 +2280,7 @@ export function renameSessionsByProjectRoot(oldRoot: string, newRoot: string) {
 	return { success: true as const, renamed };
 }
 
-export function getSession(sessionId: number): AgentSessionDetailResult {
+export function getSession(sessionId: number, view?: { recentRounds: number; currentTaskStepsOnly?: boolean }): AgentSessionDetailResult {
 	const session = getSessionItem(sessionId);
 	if (!session) {
 		return { success: false, message: "session not found" };
@@ -2287,20 +2289,34 @@ export function getSession(sessionId: number): AgentSessionDetailResult {
 	const normalizedSession = normalizeSessionRuntimeState(restored.session);
 	const relatedSessions = listRelatedSessions(sessionId);
 	sanitizeStoredSteps(sessionId);
+	let firstMessageId = 0;
+	let hasEarlierMessages = false;
+	if (view) {
+		const limit = math.max(1, math.min(1000, math.floor(view.recentRounds)));
+		const requests = queryRows(
+			`SELECT id FROM ${TABLE_MESSAGE} WHERE session_id = ? AND role = 'user'
+			ORDER BY id DESC LIMIT ?`, [sessionId, limit + 1],
+		) ?? [];
+		if (requests.length > limit) {
+			firstMessageId = requests[limit - 1][0] as number;
+			hasEarlierMessages = true;
+		}
+	}
 	const messages = queryRows(
 		`SELECT id, session_id, task_id, role, content, display_content, created_at, updated_at
 		FROM ${TABLE_MESSAGE}
-		WHERE session_id = ?
+		WHERE session_id = ? AND id >= ?
 		ORDER BY id ASC`,
-		[sessionId],
+		[sessionId, firstMessageId],
 	) ?? [];
 	const steps = queryRows(
 		`SELECT id, session_id, task_id, step, tool, status, reason, reasoning_content, params_json, result_json, checkpoint_id, checkpoint_seq, files_json, created_at, updated_at
 		FROM ${TABLE_STEP}
 		WHERE session_id = ?
+			${view?.currentTaskStepsOnly ? "AND task_id = ?" : ""}
 			AND NOT (status IN ('FAILED', 'STOPPED') AND result_json = '')
 		ORDER BY task_id DESC, step ASC`,
-		[sessionId],
+		view?.currentTaskStepsOnly ? [sessionId, normalizedSession.currentTaskId ?? 0] : [sessionId],
 	) ?? [];
 	return {
 		success: true,
@@ -2308,6 +2324,7 @@ export function getSession(sessionId: number): AgentSessionDetailResult {
 		relatedSessions,
 		spawnInfo: normalizedSession.kind === "sub" ? getSessionSpawnInfo(normalizedSession) : undefined,
 		messages: messages.map(row => rowToMessage(row)),
+		hasEarlierMessages,
 		steps: steps.map(row => rowToStep(row)),
 		checkpoints: listCurrentTaskCheckpoints(sessionId),
 		pendingQuestionnaire: restored.questionnaire,

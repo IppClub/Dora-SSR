@@ -22,7 +22,11 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t application_get_visual_size();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t application_get_safe_area();
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern float application_get_device_pixel_ratio();
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t application_is_reduced_motion();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t application_get_platform();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -84,6 +88,12 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t application_is_always_on_top();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void application_vibrate(double seconds);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void application_set_clipboard_text(int64_t text);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t application_get_clipboard_text();
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t application_save_screenshot(int64_t filename);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void application_shutdown();
@@ -120,6 +130,11 @@ namespace Dora
 		{
 			get => Size.From(Native.application_get_visual_size());
 		}
+		/// <summary>The safe area in visual coordinates, excluding display cutouts and system gesture regions.</summary>
+		public static Rect SafeArea
+		{
+			get => Dora.Rect.From(Native.application_get_safe_area());
+		}
 		/// <summary>
 		/// The ratio of the pixel density displayed by the device
 		/// Can be calculated as the size of the rendering buffer divided by the size of the application window.
@@ -127,6 +142,11 @@ namespace Dora
 		public static float DevicePixelRatio
 		{
 			get => Native.application_get_device_pixel_ratio();
+		}
+		/// <summary>Whether the operating system requests reduced motion.</summary>
+		public static bool IsReducedMotion
+		{
+			get => Native.application_is_reduced_motion() != 0;
 		}
 		/// <summary>
 		/// The platform the game engine is running on.
@@ -292,6 +312,21 @@ namespace Dora
 		{
 			set => Native.application_set_always_on_top(value ? 1 : 0);
 			get => Native.application_is_always_on_top() != 0;
+		}
+		/// <summary>Vibrates the device for the requested duration when supported.</summary>
+		public static void Vibrate(double seconds)
+		{
+			Native.application_vibrate(seconds);
+		}
+		/// <summary>Copies text to the system clipboard.</summary>
+		public static void SetClipboardText(string text)
+		{
+			Native.application_set_clipboard_text(Bridge.FromString(text));
+		}
+		/// <summary>Returns the current system clipboard text, or an empty string when unavailable.</summary>
+		public static string GetClipboardText()
+		{
+			return Bridge.ToString(Native.application_get_clipboard_text());
 		}
 		/// <summary>
 		/// Requests a screenshot of the main backbuffer and returns the output TGA path.

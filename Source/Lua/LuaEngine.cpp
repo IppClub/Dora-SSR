@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 
+#include "Basic/Application.h"
 #include "Lua/BuiltinModules.h"
 #include "Lua/LuaEngine.h"
 
@@ -93,7 +94,13 @@ static int dora_trace_back(lua_State* L) {
 	lua_pushvalue(L, -3); // err debug traceback err
 	lua_pushinteger(L, 1); // err debug traceback err 1
 	lua_call(L, 2, 1); // traceback(err, 1), err debug msg
-	LogErrorThreaded(tolua_toslice(L, -1, nullptr).toString());
+	auto message = tolua_toslice(L, -1, nullptr).toString();
+	LogErrorThreaded(message);
+	// Lua callbacks can fail after an entrypoint has already returned successfully.
+	// Defer the notification so system UI can recover after the error stack unwinds.
+	SharedApplication.invokeInLogic([message = std::move(message)]() {
+		Event::send("ScriptError"_slice, message);
+	});
 	lua_pop(L, 3); // empty
 	return 0;
 }

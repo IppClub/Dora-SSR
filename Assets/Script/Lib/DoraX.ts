@@ -570,7 +570,7 @@ let getLabel: (this: void, enode: React.Element) => Dora.Label.Type | undefined;
 	}
 	getLabel = (enode: React.Element) => {
 		const label = enode.props as JSX.Label;
-		const node = Dora.Label(label.fontName, label.fontSize, label.sdf);
+		const node = Dora.Label(label.fontName, label.fontSize, label.sdf !== false); // Explicit nil disables SDF in Lua; only false should opt out.
 		if (node !== undefined) {
 			if (label.smoothLower !== undefined || label.smoothUpper != undefined) {
 				const { x, y } = node.smooth;

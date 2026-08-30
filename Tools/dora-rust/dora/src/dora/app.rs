@@ -10,7 +10,9 @@ extern "C" {
 	fn application_get_frame() -> i32;
 	fn application_get_buffer_size() -> i64;
 	fn application_get_visual_size() -> i64;
+	fn application_get_safe_area() -> i64;
 	fn application_get_device_pixel_ratio() -> f32;
+	fn application_is_reduced_motion() -> i32;
 	fn application_get_platform() -> i64;
 	fn application_get_version() -> i64;
 	fn application_get_deps() -> i64;
@@ -41,6 +43,9 @@ extern "C" {
 	fn application_is_full_screen() -> i32;
 	fn application_set_always_on_top(val: i32);
 	fn application_is_always_on_top() -> i32;
+	fn application_vibrate(seconds: f64);
+	fn application_set_clipboard_text(text: i64);
+	fn application_get_clipboard_text() -> i64;
 	fn application_save_screenshot(filename: i64) -> i64;
 	fn application_shutdown();
 }
@@ -61,10 +66,18 @@ impl App {
 	pub fn get_visual_size() -> crate::dora::Size {
 		return unsafe { crate::dora::Size::from(application_get_visual_size()) };
 	}
+	/// Gets the safe area in visual coordinates, excluding display cutouts and system gesture regions.
+	pub fn get_safe_area() -> crate::dora::Rect {
+		return unsafe { crate::dora::Rect::from(application_get_safe_area()) };
+	}
 	/// Gets the ratio of the pixel density displayed by the device
 	/// Can be calculated as the size of the rendering buffer divided by the size of the application window.
 	pub fn get_device_pixel_ratio() -> f32 {
 		return unsafe { application_get_device_pixel_ratio() };
+	}
+	/// Gets whether the operating system requests reduced motion.
+	pub fn is_reduced_motion() -> bool {
+		return unsafe { application_is_reduced_motion() != 0 };
 	}
 	/// Gets the platform the game engine is running on.
 	pub fn get_platform() -> String {
@@ -209,6 +222,18 @@ impl App {
 	/// It is not available to set this property on platform Android and iOS.
 	pub fn is_always_on_top() -> bool {
 		return unsafe { application_is_always_on_top() != 0 };
+	}
+	/// Vibrates the device for the requested duration when supported.
+	pub fn vibrate(seconds: f64) {
+		unsafe { application_vibrate(seconds); }
+	}
+	/// Copies text to the system clipboard.
+	pub fn set_clipboard_text(text: &str) {
+		unsafe { application_set_clipboard_text(crate::dora::from_string(text)); }
+	}
+	/// Returns the current system clipboard text, or an empty string when unavailable.
+	pub fn get_clipboard_text() -> String {
+		unsafe { return crate::dora::to_string(application_get_clipboard_text()); }
 	}
 	/// Requests a screenshot of the main backbuffer and returns the output TGA path.
 	pub fn save_screenshot(filename: &str) -> String {

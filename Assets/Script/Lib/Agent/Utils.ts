@@ -1239,7 +1239,24 @@ function getLLMConfigRecords(): Record<string, unknown>[] {
 	return records;
 }
 
-function parseLLMConfig(config: Record<string, unknown> | undefined): { success: true; config: LLMConfig } | { success: false; message: string } {
+export interface LLMConfigSummary {
+	id: number;
+	name: string;
+	model: string;
+	active: boolean;
+}
+
+export function getLLMConfigSummaries(): LLMConfigSummary[] {
+	return getLLMConfigRecords().flatMap(record => {
+		const id = record["id"];
+		const name = record["name"];
+		const model = record["model"];
+		if (typeof id !== "number" || typeof name !== "string" || typeof model !== "string") return [];
+		return [{ id, name, model, active: record["active"] !== 0 }];
+	});
+}
+
+function parseLLMConfig(config: Record<string, unknown> | undefined): { success: true; id: number; config: LLMConfig } | { success: false; message: string } {
 	if (!config) {
 		return { success: false, message: "LLM config not found" };
 	}
@@ -1249,6 +1266,7 @@ function parseLLMConfig(config: Record<string, unknown> | undefined): { success:
 	}
 	return {
 		success: true,
+		id,
 		config: {
 			url,
 			model,
@@ -1263,7 +1281,7 @@ function parseLLMConfig(config: Record<string, unknown> | undefined): { success:
 	};
 }
 
-export function getLLMConfig(configId: unknown): { success: true; config: LLMConfig } | { success: false; message: string } {
+export function getLLMConfig(configId: unknown): { success: true; id: number; config: LLMConfig } | { success: false; message: string } {
 	const normalizedId = typeof configId === "number" ? math.floor(configId) : tonumber(configId);
 	if (normalizedId === undefined || normalizedId <= 0) {
 		return { success: false, message: "LLM config is not selected" };
@@ -1271,7 +1289,7 @@ export function getLLMConfig(configId: unknown): { success: true; config: LLMCon
 	return parseLLMConfig(getLLMConfigRecords().find(record => record["id"] === normalizedId));
 }
 
-export function getActiveLLMConfig(): { success: true; config: LLMConfig } | { success: false; message: string } {
+export function getActiveLLMConfig(): { success: true; id: number; config: LLMConfig } | { success: false; message: string } {
 	const records = getLLMConfigRecords();
 	const config = records.find(r => r["active"] !== 0);
 	if (!config) {

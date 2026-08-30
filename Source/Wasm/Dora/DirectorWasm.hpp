@@ -20,6 +20,9 @@ DORA_EXPORT int64_t director_get_ui() {
 DORA_EXPORT int64_t director_get_ui_3d() {
 	return Object_From(SharedDirector.getUI3D());
 }
+DORA_EXPORT int64_t director_get_system_ui() {
+	return Object_From(SharedDirector.getSystemUI());
+}
 DORA_EXPORT int64_t director_get_entry() {
 	return Object_From(SharedDirector.getEntry());
 }
@@ -68,6 +71,9 @@ DORA_EXPORT void director_clear_camera() {
 DORA_EXPORT void director_cleanup() {
 	Director_Cleanup();
 }
+DORA_EXPORT void director_clear_system_ui() {
+	SharedDirector.clearSystemUI();
+}
 } // extern "C"
 
 static void linkDirector(wasm3::module3& mod) {
@@ -75,6 +81,7 @@ static void linkDirector(wasm3::module3& mod) {
 	mod.link_optional("*", "director_get_clear_color", director_get_clear_color);
 	mod.link_optional("*", "director_get_ui", director_get_ui);
 	mod.link_optional("*", "director_get_ui_3d", director_get_ui_3d);
+	mod.link_optional("*", "director_get_system_ui", director_get_system_ui);
 	mod.link_optional("*", "director_get_entry", director_get_entry);
 	mod.link_optional("*", "director_get_post_node", director_get_post_node);
 	mod.link_optional("*", "director_get_current_camera", director_get_current_camera);
@@ -85,4 +92,5 @@ static void linkDirector(wasm3::module3& mod) {
 	mod.link_optional("*", "director_remove_camera", director_remove_camera);
 	mod.link_optional("*", "director_clear_camera", director_clear_camera);
 	mod.link_optional("*", "director_cleanup", director_cleanup);
+	mod.link_optional("*", "director_clear_system_ui", director_clear_system_ui);
 }

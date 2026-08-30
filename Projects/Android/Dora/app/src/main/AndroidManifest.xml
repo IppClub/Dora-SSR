@@ -20,9 +20,9 @@
 		android:theme="@style/AppTheme"
 		android:usesCleartextTraffic="true">
 		<activity android:name=".MainActivity"
+			android:windowSoftInputMode="adjustPan"
 			android:exported="true"
 			android:theme="@style/AppTheme"
-			android:screenOrientation="landscape"
 			android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale"
 			android:launchMode="singleTask">
 			<intent-filter>

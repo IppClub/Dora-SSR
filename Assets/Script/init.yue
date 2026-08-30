@@ -11,6 +11,7 @@ import global
 
 with Content
 	.searchPaths =
+		* Path .assetPath, "Script"
 		* Path .assetPath, "Script", "Lib"
 		* Path .assetPath, "Script", "Lib", "Dora", App.locale\match("^zh") and "zh-Hans" or "en"
 

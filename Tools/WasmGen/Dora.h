@@ -216,9 +216,13 @@ singleton class Application @ App
 	/// The visual size only changes when application window size changes.
 	/// And it won't be affacted by the view buffer scaling factor.
 	readonly common Size visualSize;
+	/// the safe area in visual coordinates, excluding display cutouts and system gesture regions.
+	readonly common Rect safeArea @ safe_area;
 	/// the ratio of the pixel density displayed by the device
 	/// Can be calculated as the size of the rendering buffer divided by the size of the application window.
 	readonly common float devicePixelRatio;
+	/// whether the operating system requests reduced motion.
+	readonly boolean bool reducedMotion @ reduced_motion;
 	/// the platform the game engine is running on.
 	readonly common string platform;
 	/// the version string of the game engine.
@@ -274,6 +278,12 @@ singleton class Application @ App
 	/// whether the game engine window is always on top. Default is true.
 	/// It is not available to set this property on platform Android and iOS.
 	boolean bool alwaysOnTop;
+	/// Vibrates the device for the requested duration when supported.
+	void vibrate(double seconds);
+	/// Copies text to the system clipboard.
+	void setClipboardText(string text);
+	/// Returns the current system clipboard text, or an empty string when unavailable.
+	string getClipboardText();
 	/// Requests a screenshot of the main backbuffer and returns the output TGA path.
 	string saveScreenshot(string filename);
 	/// Shuts down and exits the game engine.
@@ -964,6 +974,8 @@ singleton class Director
 	readonly common Node* uI @ ui;
 	/// the root node for 3D user interface elements with 3D projection effect.
 	readonly common Node* uI3D @ ui_3d;
+	/// the persistent root node for system UI that survives regular scene cleanup.
+	readonly common Node* systemUI @ system_ui;
 	/// the root node for the starting point of a game.
 	readonly common View3D* entry;
 	/// the root node for post-rendering scene tree.
@@ -1004,6 +1016,8 @@ singleton class Director
 	void clearCamera();
 	/// Cleans up all resources managed by the Director, including scene trees and cameras.
 	outside void Director_Cleanup @ cleanup();
+	/// Clears the persistent system UI explicitly.
+	void clearSystemUI @ clear_system_ui();
 };
 
 /// A struct that provides access to the 3D graphic view.

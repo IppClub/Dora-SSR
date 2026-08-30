@@ -266,11 +266,15 @@ singleton class Application @ App
 	/// And it won't be affacted by the view buffer scaling factor.
 	/// </summary>
 	readonly common Size visualSize;
+	/// <summary>The safe area in visual coordinates, excluding display cutouts and system gesture regions.</summary>
+	readonly common Rect safeArea;
 	/// <summary>
 	/// The ratio of the pixel density displayed by the device
 	/// Can be calculated as the size of the rendering buffer divided by the size of the application window.
 	/// </summary>
 	readonly common float devicePixelRatio;
+	/// <summary>Whether the operating system requests reduced motion.</summary>
+	readonly boolean bool reducedMotion;
 	/// <summary>
 	/// The platform the game engine is running on.
 	/// </summary>
@@ -366,6 +370,12 @@ singleton class Application @ App
 	/// It is not available to set this property on platform Android and iOS.
 	/// </summary>
 	boolean bool alwaysOnTop;
+	/// <summary>Vibrates the device for the requested duration when supported.</summary>
+	void vibrate(double seconds);
+	/// <summary>Copies text to the system clipboard.</summary>
+	void setClipboardText(string text);
+	/// <summary>Returns the current system clipboard text, or an empty string when unavailable.</summary>
+	string getClipboardText();
 	/// <summary>
 	/// Requests a screenshot of the main backbuffer and returns the output TGA path.
 	/// </summary>
@@ -969,6 +979,8 @@ singleton class Director
 	/// The root node for 3D user interface elements with 3D projection effect.
 	/// </summary>
 	readonly common Node* uI3D @ ui_3d;
+	/// <summary>The persistent root node for system UI that survives regular scene cleanup.</summary>
+	readonly common Node* systemUI;
 	/// <summary>
 	/// The root node for the starting point of a game.
 	/// </summary>
@@ -1014,6 +1026,8 @@ singleton class Director
 	/// Cleans up all resources managed by the Director, including scene trees and cameras.
 	/// </summary>
 	outside void Director_Cleanup @ cleanup();
+	/// <summary>Clears the persistent system UI explicitly.</summary>
+	void clearSystemUI();
 };
 
 /// <summary>

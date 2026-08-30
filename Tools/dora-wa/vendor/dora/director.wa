@@ -18,6 +18,9 @@ func director_get_ui() => i64
 #wa:import dora director_get_ui_3d
 func director_get_ui_3d() => i64
 
+#wa:import dora director_get_system_ui
+func director_get_system_ui() => i64
+
 #wa:import dora director_get_entry
 func director_get_entry() => i64
 
@@ -48,6 +51,9 @@ func director_clear_camera()
 #wa:import dora director_cleanup
 func director_cleanup()
 
+#wa:import dora director_clear_system_ui
+func director_clear_system_ui()
+
 type _Director :struct{}
 
 global Director = _Director{}
@@ -70,6 +76,11 @@ func _Director.GetUI() => Node {
 /// Gets the root node for 3D user interface elements with 3D projection effect.
 func _Director.GetUI3D() => Node {
 	return *NodeFrom(director_get_ui_3d())
+}
+
+/// Gets the persistent root node for system UI that survives regular scene cleanup.
+func _Director.GetSystemUI() => Node {
+	return *NodeFrom(director_get_system_ui())
 }
 
 /// Gets the root node for the starting point of a game.
@@ -118,4 +129,7 @@ func _Director.ClearCamera() {
 }
 func _Director.Cleanup() {
 	director_cleanup()
+}
+func _Director.ClearSystemUI() {
+	director_clear_system_ui()
 }

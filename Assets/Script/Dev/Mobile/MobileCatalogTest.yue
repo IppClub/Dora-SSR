@@ -1,0 +1,41 @@
+Content = Dora.Content
+resultPath = "/tmp/dora-mobile-catalog-sync.result"
+expect = (condition, message) -> error message unless condition
+
+run = ->
+	Content\save resultPath, "stage: success"
+	progressMessage = ""
+	successDone = false
+	successOperation = (options) ->
+		options\onStatus progress: 0.5, message: "Validating Catalog"
+		addCallbacks: (self, onSuccess, onFailure) -> onSuccess nil, success: true
+	mobileCatalog = require "Dev.Mobile.MobileCatalog"
+	mobileCatalog.syncMobileCatalog ((message) -> progressMessage = message), ((success, message) ->
+		expect success and message == nil, "successful Catalog sync result mismatch"
+		successDone = true
+	), successOperation
+	expect successDone, "successful Catalog sync callback did not complete"
+	expect progressMessage == "Validating Catalog", "Catalog progress forwarding mismatch"
+
+	Content\save resultPath, "stage: failure"
+	failureDone = false
+	failureOperation = (options) ->
+		addCallbacks: (self, onSuccess, onFailure) -> onSuccess nil, success: false, message: "offline"
+	mobileCatalog.syncMobileCatalog (->), ((success, message) ->
+		expect not success and message == "offline", "failed Catalog sync result mismatch"
+		failureDone = true
+	), failureOperation
+	expect failureDone, "failed Catalog sync callback did not complete"
+
+	Content\save resultPath, "stage: rejection"
+	rejectedDone = false
+	rejectedOperation = (options) ->
+		addCallbacks: (self, onSuccess, onFailure) -> onFailure nil, "network exception"
+	mobileCatalog.syncMobileCatalog (->), ((success, message) ->
+		expect not success and message\match("network exception")?, "rejected Catalog sync result mismatch"
+		rejectedDone = true
+	), rejectedOperation
+	expect rejectedDone, "rejected Catalog sync callback did not complete"
+
+success, err = pcall run
+Content\save resultPath, if success then "passed" else "failed: #{err}"

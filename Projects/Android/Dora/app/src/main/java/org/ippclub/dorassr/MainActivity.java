@@ -3,6 +3,7 @@ package org.ippclub.dorassr;
 import org.libsdl.app.SDLActivity;
 
 import android.app.DownloadManager;
+import android.animation.ValueAnimator;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
@@ -11,6 +12,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Insets;
 import android.graphics.drawable.GradientDrawable;
 import android.media.AudioManager;
 import android.media.MediaScannerConnection;
@@ -31,6 +33,8 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.webkit.ConsoleMessage;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
@@ -104,6 +108,10 @@ public class MainActivity extends SDLActivity {
 	private final Handler uiHandler = new Handler(Looper.getMainLooper());
 	private final Runnable autoHideSideMenu = this::collapseSideMenu;
 	private Vibrator vibrator;
+	private volatile float safeInsetLeft;
+	private volatile float safeInsetTop;
+	private volatile float safeInsetRight;
+	private volatile float safeInsetBottom;
 	public static String waBuild(String path) { return Wa.waBuild(path); }
 	public static String waFormat(String path) { return Wa.waFormat(path); }
 	public static long waGitStartClone(String url, String path, String branch, String token, long depth) { return Wa.waGitStartClone(url, path, branch, token, depth); }
@@ -136,6 +144,40 @@ public class MainActivity extends SDLActivity {
 		} else {
 			getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
 		}
+		View decorView = getWindow().getDecorView();
+		decorView.setOnApplyWindowInsetsListener((view, windowInsets) -> {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+				Insets bars = windowInsets.getInsets(
+					WindowInsets.Type.systemBars()
+						| WindowInsets.Type.displayCutout()
+						| WindowInsets.Type.mandatorySystemGestures());
+				safeInsetLeft = bars.left;
+				safeInsetTop = bars.top;
+				safeInsetRight = bars.right;
+				safeInsetBottom = bars.bottom;
+			} else {
+				safeInsetLeft = windowInsets.getSystemWindowInsetLeft();
+				safeInsetTop = windowInsets.getSystemWindowInsetTop();
+				safeInsetRight = windowInsets.getSystemWindowInsetRight();
+				safeInsetBottom = windowInsets.getSystemWindowInsetBottom();
+			}
+			return windowInsets;
+		});
+		decorView.requestApplyInsets();
+	}
+
+	@Keep
+	public float[] getSafeAreaInsets() {
+		return new float[] {safeInsetLeft, safeInsetTop, safeInsetRight, safeInsetBottom};
+	}
+
+	@Keep
+	public boolean isReducedMotion() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			return !ValueAnimator.areAnimatorsEnabled();
+		}
+		return Settings.Global.getFloat(
+			getContentResolver(), Settings.Global.ANIMATOR_DURATION_SCALE, 1.0f) == 0.0f;
 	}
 
 	@Override
@@ -206,9 +248,15 @@ public class MainActivity extends SDLActivity {
 	}
 
 	private void hideSystemUI() {
-		// Enables regular immersive mode.
-		// For "lean back" mode, remove SYSTEM_UI_FLAG_IMMERSIVE.
-		// Or for "sticky immersive," replace it with SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+			WindowInsetsController controller = getWindow().getInsetsController();
+			if (controller != null) {
+				controller.hide(WindowInsets.Type.systemBars());
+				controller.setSystemBarsBehavior(
+					WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+			}
+			return;
+		}
 		View decorView = getWindow().getDecorView();
 		decorView.setSystemUiVisibility(
 			View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY

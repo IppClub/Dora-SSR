@@ -58,6 +58,7 @@ export interface ResourceInfo {
 	projectPath: string;
 	bannerPath?: string;
 	selectedVersion: number;
+	mobileOrder?: number;
 }
 
 export interface CatalogIssue {
@@ -330,6 +331,7 @@ export const parseResourceJSON = (
 		projectPath,
 		bannerPath,
 		selectedVersion: 1,
+		mobileOrder: typeof decoded.mobileOrder === "number" ? decoded.mobileOrder : undefined,
 	}, []);
 };
 
@@ -399,6 +401,25 @@ export const loadCatalog = (catalogRoot: string): CatalogLoadResult => {
 };
 
 export const isMinigame = (resource: ResourceInfo) => resource.tags.indexOf("minigame") >= 0;
+
+export const isMobileFeedResource = (resource: ResourceInfo) =>
+	resource.status === "active"
+	&& resource.runnable
+	&& resource.entrypoints.length > 0
+	&& resource.tags.indexOf("mobile-feed") >= 0;
+
+export const getMobileFeedResources = (resources: ResourceInfo[]) =>
+	(() => {
+		const tagged = resources.filter(resource => isMobileFeedResource(resource));
+		return tagged.length > 0 ? tagged : resources.filter(resource =>
+			resource.status === "active" && resource.runnable && resource.entrypoints.length > 0,
+		);
+	})().sort((a, b) => {
+		const orderA = a.mobileOrder ?? 1000000;
+		const orderB = b.mobileOrder ?? 1000000;
+		if (orderA !== orderB) return orderA - orderB;
+		return a.id < b.id ? -1 : (a.id > b.id ? 1 : 0);
+	});
 
 export const filterResources = (resources: ResourceInfo[], filter: ResourceFilter) => {
 	const query = (filter.query ?? "").trim().toLowerCase();

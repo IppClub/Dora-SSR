@@ -27,7 +27,7 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
 	]}/>
 
-2. Run the software and access the server address displayed by the software through the browser of the PC (tablet or other development device) in the LAN.
+2. Run the software. If Mobile UI is shown, tap **Classic UI** at the top left of the Feed. Access the server address shown in the traditional UI from a browser on your PC (tablet or other development device) in the LAN.
 3. Start game development.
 
 </TabItem>
@@ -101,6 +101,36 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 
 </TabItem>
 </Tabs>
+
+### Switch between Mobile and traditional UI
+
+Both interfaces are available on Android, iOS, Windows, macOS, and Linux. On first launch, Android/iOS default to Mobile UI and desktop platforms default to the traditional UI. Your selection is remembered in the application's settings on the current device, including when you change workspaces.
+
+- In the traditional home screen, select **Mobile UI** at the top to browse the game Feed.
+- Connecting Web IDE takes priority over both local UI modes. When no game is running, the engine shows the same fixed **Web IDE connected** screen, with no mode switch. Local Feed, Remix and playtesting controls are suspended, including text input. Web IDE can still run and stop games normally. After the last Web IDE connection closes, the previous local UI returns without changing your saved preference; if a remote run replaced the scene, Mobile returns to its Feed when the game stops.
+- In the Mobile Feed, select **Classic UI** at the top left to return to the traditional project/tool list and Web IDE connection information.
+- Switching takes effect without restarting the application or Web service. It does not change the workspace, projects, or model configuration.
+- Return from Remix or exit playtesting before switching. During installation, wait for the operation to finish; the switch is temporarily disabled.
+
+Mobile UI adapts to the current window or device orientation; selecting it on a desktop does not force a portrait window.
+
+Mobile UI always uses the larger text size; there is no font-size toggle. The Feed opens **Local** when runnable local projects exist, otherwise **Discover**. Returning from Remix or playtesting restores that project's card and its original tab, even when the list has been reordered or the Catalog refreshes. If the original Catalog entry is no longer available, its installed local project is used when present.
+
+### Following Remix progress
+
+Use **Back** at the top right, or swipe left across the conversation area, to return to the Feed. The whole Remix page follows your drag with the same resistance as Feed cards; releasing a short swipe springs it back, while a completed swipe switches directly to the Feed without an extra slide-out animation. Input editing, buttons, and vertical scrolling do not trigger this gesture. The existing safety rule still applies: stop a running Agent before leaving Remix.
+
+The multiline input shows a blinking caret while focused and hides its placeholder. Tap to position the caret, use arrow keys to move, and press Enter for a new line; Ctrl/Cmd+Enter sends. Long text wraps and scrolls inside the input without covering other controls. You can scroll within it with a drag or mouse wheel; editing brings the caret back into view.
+
+Tap outside the input or press Esc to dismiss the keyboard and caret without losing your committed draft. An empty input shows its placeholder again; tap it to resume editing. Backgrounding the app or connecting the Web IDE also releases input focus. If a tap cancels unfinished IME composition, it does not send the draft at the same time.
+
+Use **Plan** or **Code** above the input to manually select the Agent's working mode, just as in Web IDE. New sessions default to Code; existing sessions keep their saved mode, shared with Web IDE. The setting belongs to each project's main session and survives app restarts; having plan files does not enable Plan mode. Sending or reopening Remix does not reset the mode. Switching modes preserves your draft and does not send a request; there is no mandatory Plan → Start Remix sequence. Mode switching and sending are disabled while a task is running, awaiting an answer, or finalizing.
+
+Remix shows conversation history and compact work cards in a scrollable area between the fixed header and input controls. Card text and status update while the Agent works. When you are at the bottom, new content stays in view; if you scroll up to read earlier messages, your reading position is preserved. Select **New activity · Latest** to resume following the latest content.
+
+The lightweight view loads only the latest **10 conversation rounds**, including the current round. A round starts with your request and includes its replies, rather than being a single message. Only the current task shows work cards; earlier rounds show requests and replies. When older rounds are omitted, a notice at the top directs you to Web IDE. There is no “load more” action in Remix. This display limit does not delete history or change the Agent’s context strategy.
+
+The button beside the input switches between **Send** when idle and **Stop** while the Agent is working. It stays disabled while stopping or finalizing, then returns to Send; stopping preserves your next draft. Local Agent run/stop checks keep the Remix conversation and input available. Completed Code work stays visible with **Play now**; after a Plan reply, you can continue discussing or manually switch to Code. Web IDE still takes control when connected; open the same project’s **Dora** tab there to see its shared conversation and detailed execution results.
 
 ## 3. Write the Game
 

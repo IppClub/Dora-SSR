@@ -33,6 +33,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Render/View.h"
 #include "Support/Dictionary.h"
 #include "Support/Value.h"
+#include "Test/Test.h"
 
 #include "bx/timer.h"
 
@@ -67,6 +68,7 @@ Director::Director()
 
 Director::~Director() {
 	cleanup();
+	clearSystemUI();
 }
 
 void Director::setScheduler(Scheduler* scheduler) {
@@ -93,6 +95,18 @@ Node* Director::getUI3D() {
 		_ui3DCamera = CameraUI3D::create("UI3D"_slice);
 	}
 	return _ui3D;
+}
+
+Node* Director::getSystemUI() {
+	if (!_systemUI) {
+		_systemUI = Node::create(false);
+		_systemUI->onEnter();
+		_systemUICamera = CameraUI::create("SystemUI"_slice);
+#if BX_PLATFORM_ANDROID
+		SDL_SetHint(SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1");
+#endif
+	}
+	return _systemUI;
 }
 
 View3D* Director::getEntry() {
@@ -234,23 +248,43 @@ bool Director::init() {
 		return false;
 	}
 #endif // DORA_NO_RUST
-	if (!SharedContent.visitDir(SharedContent.getAssetPath(), [](String file, String path) {
-			switch (Switch::hash(file.toLower())) {
+	bool entryFound = false;
+	const auto scriptPath = Path::concat({SharedContent.getAssetPath(), "Script"_slice});
+	for (const auto& entry : {"init.lua"_slice, "init.yue"_slice, "init.tl"_slice, "init.wasm"_slice}) {
+		auto file = Path::concat({scriptPath, entry});
+		if (SharedContent.exist(file)) {
+			SharedLuaEngine.executeModule(file);
+			entryFound = true;
+			break;
+		}
+	}
+	if (!entryFound) {
+		entryFound = SharedContent.visitDir(SharedContent.getAssetPath(), [](String file, String path) {
+		switch (Switch::hash(file.toLower())) {
 				case "init.yue"_hash:
 				case "init.tl"_hash:
 				case "init.lua"_hash:
 				case "init.wasm"_hash:
 					SharedLuaEngine.executeModule(Path::concat({path, Path::getName(file.toString())}));
 					return true;
-			}
-			return false;
-		})) {
+		}
+		return false;
+		});
+	}
+	if (!entryFound) {
 		Info("Dora SSR started without script entry.");
 	}
 	return true;
 }
 
 void Director::handleTouchEvents() {
+	/* handle system ui touch before every other layer */
+	if (registerTouchHandler(_systemUI)) {
+		pushViewProjection(_systemUICamera->getView(), []() {
+			SharedTouchDispatcher.dispatch();
+		});
+	}
+
 	/* handle ImGui touch */
 	SharedTouchDispatcher.add(SharedImGui.getTarget()->getTouchHandler()->ref());
 	SharedTouchDispatcher.dispatch();
@@ -465,6 +499,18 @@ void Director::doRender() {
 		/* render imgui */
 		SharedImGui.render();
 
+		/* render the persistent system ui above every regular layer */
+		if (_systemUI) {
+			SharedView.pushBack("SystemUI"_slice, [&]() {
+				bgfx::ViewId viewId = SharedView.getId();
+				pushViewProjection(_systemUICamera->getView(), [&]() {
+					bgfx::setViewTransform(viewId, nullptr, getViewProjection().m);
+					_systemUI->visit();
+					SharedRendererManager.flush();
+				});
+			});
+		}
+
 		/* remap view orders */
 		auto [remap, num] = SharedView.getOrders();
 		bgfx::setViewOrder(0, num, remap);
@@ -490,6 +536,14 @@ void Director::popViewProjection() {
 void Director::cleanup() {
 	if (!_unmanagedNodes.empty()) {
 		for (Node* node : _unmanagedNodes) {
+			bool belongsToSystemUI = false;
+			for (Node* current = node; current; current = current->getParent()) {
+				if (current == _systemUI) {
+					belongsToSystemUI = true;
+					break;
+				}
+			}
+			if (belongsToSystemUI) continue;
 			node->cleanup();
 		}
 	}
@@ -543,6 +597,19 @@ void Director::cleanup() {
 	_camStack->clear();
 }
 
+void Director::clearSystemUI() {
+	if (_systemUI) {
+		_systemUI->removeAllChildren();
+		_systemUI->onExit();
+		_systemUI->cleanup();
+		_systemUI = nullptr;
+		_systemUICamera = nullptr;
+	}
+#if BX_PLATFORM_ANDROID
+	SDL_SetHint(SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "0");
+#endif
+}
+
 void Director::addUnManagedNode(Node* node) {
 	_unmanagedNodes.push_back(node);
 }
@@ -570,6 +637,7 @@ bool Director::isInFrustum(const AABB& aabb) const {
 
 void Director::markDirty() {
 	if (_ui) _ui->markDirty();
+	if (_systemUI) _systemUI->markDirty();
 	if (_entry) {
 		auto viewSize = SharedView.getSize();
 		_root->setSize(viewSize);
@@ -598,6 +666,7 @@ void Director::handleSDLEvent(const SDL_Event& event) {
 			_stoped = true;
 			Event::send("AppEvent"_slice, "Quit"s);
 			cleanup();
+			clearSystemUI();
 			if (Singleton<HttpServer>::isInitialized()) {
 				SharedHttpServer.stop();
 			}
@@ -673,6 +742,10 @@ void Director::handleSDLEvent(const SDL_Event& event) {
 			SharedTouchDispatcher.add(event);
 			break;
 		case SDL_KEYDOWN:
+			if (event.key.keysym.scancode == SDL_SCANCODE_AC_BACK && event.key.repeat == 0) {
+				Event::send("AppEvent"_slice, "BackButton"s);
+			}
+			[[fallthrough]];
 		case SDL_KEYUP:
 		case SDL_TEXTINPUT:
 		case SDL_TEXTEDITING:
@@ -978,3 +1051,30 @@ bool Director::isProfilerSending() const noexcept {
 }
 
 NS_DORA_END
+
+#if DORA_TEST
+using namespace Dora;
+
+DORA_TEST_ENTRY(SystemUICpp) {
+	Ref<Node> systemUI{SharedDirector.getSystemUI()};
+	Ref<Node> marker{Node::create()};
+	marker->setTag("SystemUITest"_slice);
+	systemUI->addChild(marker);
+
+	Ref<Node> regularUI{SharedDirector.getUI()};
+	regularUI->addChild(Node::create());
+	SharedDirector.cleanup();
+
+	if (SharedDirector.getSystemUI() != systemUI) return false;
+	if (systemUI->getChildByTag("SystemUITest"_slice) != marker) return false;
+	if (SharedDirector.getUI() == regularUI) return false;
+
+	auto safeArea = SharedApplication.getSafeArea();
+	auto visualSize = SharedApplication.getVisualSize();
+	if (safeArea.getLeft() < 0.0f || safeArea.getBottom() < 0.0f) return false;
+	if (safeArea.getRight() > visualSize.width || safeArea.getTop() > visualSize.height) return false;
+
+	systemUI->removeChild(marker, true);
+	return true;
+}
+#endif // DORA_TEST

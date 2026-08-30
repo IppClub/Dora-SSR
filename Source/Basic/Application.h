@@ -32,7 +32,9 @@ public:
 	PROPERTY_READONLY(uint32_t, Frame);
 	PROPERTY_READONLY(Size, BufferSize);
 	PROPERTY_READONLY(Size, VisualSize);
+	PROPERTY_READONLY_CALL(Rect, SafeArea);
 	PROPERTY_READONLY(float, DevicePixelRatio);
+	PROPERTY_READONLY_BOOL(ReducedMotion);
 	PROPERTY_READONLY(double, LastTime);
 	PROPERTY_READONLY(double, DeltaTime);
 	PROPERTY_READONLY(double, ElapsedTime);
@@ -74,6 +76,8 @@ public:
 	void invokeInLogic(const std::function<void()>& func);
 	void openURL(String url);
 	void vibrate(double seconds);
+	void setClipboardText(String text);
+	std::string getClipboardText() const;
 	bool hasBackgroundMusic() const;
 	bool setAudioMixWithSystem(bool mix);
 	void openFileDialog(bool folderOnly, const std::function<void(std::string)>& callback);

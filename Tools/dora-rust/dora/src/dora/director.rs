@@ -11,6 +11,7 @@ extern "C" {
 	fn director_get_clear_color() -> i32;
 	fn director_get_ui() -> i64;
 	fn director_get_ui_3d() -> i64;
+	fn director_get_system_ui() -> i64;
 	fn director_get_entry() -> i64;
 	fn director_get_post_node() -> i64;
 	fn director_get_current_camera() -> i64;
@@ -21,6 +22,7 @@ extern "C" {
 	fn director_remove_camera(camera: i64) -> i32;
 	fn director_clear_camera();
 	fn director_cleanup();
+	fn director_clear_system_ui();
 }
 /// A struct manages the game scene trees and provides access to root scene nodes for different game uses.
 pub struct Director { }
@@ -40,6 +42,10 @@ impl Director {
 	/// Gets the root node for 3D user interface elements with 3D projection effect.
 	pub fn get_ui_3d() -> crate::dora::Node {
 		return unsafe { crate::dora::Node::from(director_get_ui_3d()).unwrap() };
+	}
+	/// Gets the persistent root node for system UI that survives regular scene cleanup.
+	pub fn get_system_ui() -> crate::dora::Node {
+		return unsafe { crate::dora::Node::from(director_get_system_ui()).unwrap() };
 	}
 	/// Gets the root node for the starting point of a game.
 	pub fn get_entry() -> crate::dora::View3D {
@@ -112,5 +118,9 @@ impl Director {
 	/// Cleans up all resources managed by the Director, including scene trees and cameras.
 	pub fn cleanup() {
 		unsafe { director_cleanup(); }
+	}
+	/// Clears the persistent system UI explicitly.
+	pub fn clear_system_ui() {
+		unsafe { director_clear_system_ui(); }
 	}
 }

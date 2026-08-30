@@ -637,6 +637,9 @@ interface App {
 	 */
 	readonly visualSize: Size;
 
+	/** The drawable area that is not covered by system bars, display cutouts, or rounded corners. */
+	readonly safeArea: Rect;
+
 	/**
 	 * The ratio of the pixel density displayed by the device.
 	 * Can be calculated as the size of the rendering buffer divided by the size of the application window.
@@ -683,6 +686,9 @@ interface App {
 
 	/** Whether the game engine is running in debug mode. */
 	readonly debugging: boolean;
+
+	/** Whether the operating system requests reduced motion for accessibility. */
+	readonly reducedMotion: boolean;
 
 	/** An array of test names of engine included C++ tests. */
 	readonly testNames: string[];
@@ -761,6 +767,15 @@ interface App {
 	 * @param url The URL to open.
 	 */
 	openURL(url: string): void;
+
+	/** Triggers device vibration for the requested duration in seconds, when supported. */
+	vibrate(seconds: number): void;
+
+	/** Copies text to the system clipboard. */
+	setClipboardText(text: string): void;
+
+	/** Returns text from the system clipboard, or an empty string when unavailable. */
+	getClipboardText(): string;
 
 	/**
 	 * A function used for self updating the game engine.
@@ -2964,7 +2979,7 @@ const enum GlobalEvent {
 
 export {GlobalEvent as GSlot};
 
-type AppEventType = "Quit" | "LowMemory" | "WillEnterBackground" | "DidEnterBackground" | "WillEnterForeground" | "DidEnterForeground" | "Shutdown";
+type AppEventType = "Quit" | "LowMemory" | "WillEnterBackground" | "DidEnterBackground" | "WillEnterForeground" | "DidEnterForeground" | "Shutdown" | "BackButton";
 type AppSettingName = "Locale" | "Theme" | "FullScreen" | "Position" | "Size";
 type AppWSEventType = "Open" | "Close" | "Send" | "Receive";
 type AppWSMessage = {
@@ -2973,6 +2988,9 @@ type AppWSMessage = {
 };
 
 type GlobalEventHandlerMap = {
+	/** Triggers after an asynchronous script callback raises an unhandled error. */
+	ScriptError(this: void, message: string): void;
+
 	/** Triggers when the application receives an event. */
 	AppEvent(this: void, eventType: AppEventType): void;
 
@@ -4841,6 +4859,12 @@ class Director {
 	readonly ui: Node;
 
 	/**
+	 * The persistent root node for engine-owned mobile UI.
+	 * It survives `cleanup()` and is rendered above regular scenes and ImGui.
+	 */
+	readonly systemUI: Node;
+
+	/**
 	 * The root node for 3D user interface elements with 3D projection effect.
 	 */
 	readonly ui3D: Node;
@@ -4902,6 +4926,9 @@ class Director {
 	 * Cleans up all resources managed by the Director, including scene trees and cameras.
 	 */
 	cleanup(): void;
+
+	/** Clears and recreates the persistent system UI root on its next access. */
+	clearSystemUI(): void;
 }
 
 const director: Director;

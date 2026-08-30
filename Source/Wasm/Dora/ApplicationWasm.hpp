@@ -17,8 +17,14 @@ DORA_EXPORT int64_t application_get_buffer_size() {
 DORA_EXPORT int64_t application_get_visual_size() {
 	return Size_Retain(SharedApplication.getVisualSize());
 }
+DORA_EXPORT int64_t application_get_safe_area() {
+	return r_cast<int64_t>(new Rect{SharedApplication.getSafeArea()});
+}
 DORA_EXPORT float application_get_device_pixel_ratio() {
 	return SharedApplication.getDevicePixelRatio();
+}
+DORA_EXPORT int32_t application_is_reduced_motion() {
+	return SharedApplication.isReducedMotion() ? 1 : 0;
 }
 DORA_EXPORT int64_t application_get_platform() {
 	return Str_Retain(SharedApplication.getPlatform());
@@ -110,6 +116,15 @@ DORA_EXPORT void application_set_always_on_top(int32_t val) {
 DORA_EXPORT int32_t application_is_always_on_top() {
 	return SharedApplication.isAlwaysOnTop() ? 1 : 0;
 }
+DORA_EXPORT void application_vibrate(double seconds) {
+	SharedApplication.vibrate(seconds);
+}
+DORA_EXPORT void application_set_clipboard_text(int64_t text) {
+	SharedApplication.setClipboardText(*Str_From(text));
+}
+DORA_EXPORT int64_t application_get_clipboard_text() {
+	return Str_Retain(SharedApplication.getClipboardText());
+}
 DORA_EXPORT int64_t application_save_screenshot(int64_t filename) {
 	return Str_Retain(SharedApplication.saveScreenshot(*Str_From(filename)));
 }
@@ -122,7 +137,9 @@ static void linkApplication(wasm3::module3& mod) {
 	mod.link_optional("*", "application_get_frame", application_get_frame);
 	mod.link_optional("*", "application_get_buffer_size", application_get_buffer_size);
 	mod.link_optional("*", "application_get_visual_size", application_get_visual_size);
+	mod.link_optional("*", "application_get_safe_area", application_get_safe_area);
 	mod.link_optional("*", "application_get_device_pixel_ratio", application_get_device_pixel_ratio);
+	mod.link_optional("*", "application_is_reduced_motion", application_is_reduced_motion);
 	mod.link_optional("*", "application_get_platform", application_get_platform);
 	mod.link_optional("*", "application_get_version", application_get_version);
 	mod.link_optional("*", "application_get_deps", application_get_deps);
@@ -153,6 +170,9 @@ static void linkApplication(wasm3::module3& mod) {
 	mod.link_optional("*", "application_is_full_screen", application_is_full_screen);
 	mod.link_optional("*", "application_set_always_on_top", application_set_always_on_top);
 	mod.link_optional("*", "application_is_always_on_top", application_is_always_on_top);
+	mod.link_optional("*", "application_vibrate", application_vibrate);
+	mod.link_optional("*", "application_set_clipboard_text", application_set_clipboard_text);
+	mod.link_optional("*", "application_get_clipboard_text", application_get_clipboard_text);
 	mod.link_optional("*", "application_save_screenshot", application_save_screenshot);
 	mod.link_optional("*", "application_shutdown", application_shutdown);
 }

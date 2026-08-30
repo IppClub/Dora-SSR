@@ -75,6 +75,9 @@ config = Config(
 	"webIDEConnected"
 	"webIDETourCompleted"
 	"showPreview"
+	"mobileFeed"
+	"mobileRemixLLMConfigId"
+	"mobileLargeText"
 	"authRequired"
 )
 config\load!
@@ -107,6 +110,9 @@ else
 
 unless config.showPreview?
 	config.showPreview = true
+
+unless config.mobileFeed?
+	config.mobileFeed = App.platform in ["Android", "iOS"]
 
 unless config.webIDETourCompleted?
 	config.webIDETourCompleted = false
@@ -385,6 +391,21 @@ export getLaunchEntries = (refresh = false) ->
 	tools = [toInfo tool, "tool" for tool in *doraTools]
 	:games, :tools
 
+export getMobileFeedEntries = (refresh = false) ->
+	updateEntries! if refresh
+	items = []
+	for entry in *gamesInDev
+		items[] = {
+			id: entry.entryName
+			title: getEntryTitle entry
+			description: entry.repo?.description?[useChinese and "zh" or "en"] or (useChinese and "本地 Dora 游戏作品" or "Local Dora game")
+			fileName: entry.fileName
+			workDir: Path\getPath entry.fileName
+			bannerFile: entry.bannerFile
+			kind: "local"
+		}
+	items
+
 doCompile = (minify) ->
 	return if building
 	building = true
@@ -562,10 +583,96 @@ currentEntry = nil
 footerWindow = nil
 entryWindow = nil
 testingThread = nil
+mobileMode = config.mobileFeed
+pendingUIMode = nil
+feedHost = nil
+remixHost = nil
+startMobileUI = nil
+webControlled = false
+mobileHosts = []
+suspendedMobileHosts = {}
+
+trackMobileHost = (host) ->
+	mobileHosts = [item for item in *mobileHosts when item.parent]
+	mobileHosts[] = host
+	host
+
+clearMobileUI = ->
+	for host in *mobileHosts
+		host\removeFromParent true if host.parent
+	mobileHosts = []
+	suspendedMobileHosts = {}
+	feedHost = nil
+	remixHost = nil
+
+syncWebIDEControl = ->
+	connected = HttpServer.wsConnectionCount > 0
+	if connected
+		pendingUIMode = nil
+		for host in *mobileHosts
+			continue unless host.parent
+			unless suspendedMobileHosts[host]?
+				suspendedMobileHosts[host] = host.visible
+				host\emit "SuspendLocalUI"
+			host.visible = false
+	elseif webControlled
+		for host, visible in pairs suspendedMobileHosts
+			if host.parent
+				host.visible = visible
+				host\emit "ResumeLocalUI"
+		suspendedMobileHosts = {}
+	webControlled = connected
+	connected
+
+export getUIMode = -> mobileMode and "mobile" or "traditional"
+export setUIMode = (mode) ->
+	return false unless mode in ["mobile", "traditional"]
+	return false if HttpServer.wsConnectionCount > 0
+	return false if pendingUIMode? or not isInEntry or testingThread
+	wantsMobile = mode == "mobile"
+	return true if wantsMobile == mobileMode
+	if mobileMode
+		return false unless feedHost and feedHost.visible
+		-- Let Feed reject a switch while an installation or card transition is active.
+		feedHost\emit "SwitchUIMode"
+		return pendingUIMode == false
+	pendingUIMode = true
+	true
+
+applyUIMode = (enabled) ->
+	-- Web IDE may connect after the local switch was queued.
+	return false if HttpServer.wsConnectionCount > 0
+	if enabled
+		ok, err = pcall startMobileUI
+		unless ok
+			feedHost\removeFromParent true if feedHost
+			feedHost = nil
+			mobileMode = false
+			Log "Error", "Failed to start Mobile UI: #{err}"
+			return false
+	else
+		clearMobileUI!
+		updateEntries!
+	mobileMode = enabled
+	config.mobileFeed = enabled
+	true
 
 setupEventHandlers = nil
 
 export allClear = ->
+	-- Remote runs own the scene: do not retain stale local HUDs across run/stop.
+	clearMobileUI! if webControlled or HttpServer.wsConnectionCount > 0
+	-- Mirror Director.cleanup's system UI boundary in the Lua userdata sweep.
+	-- Clip stencils are owned nodes but are not children, so include them explicitly.
+	systemNodes = {}
+	preserveSystemNode = (node) ->
+		return if systemNodes[node]
+		systemNodes[node] = true
+		if clip := tolua.cast node, "ClipNode"
+			preserveSystemNode clip.stencil if clip.stencil
+		node\eachChild (child) ->
+			preserveSystemNode child
+			false
 	for routine in *Routine
 		switch routine
 			when footerWindow, entryWindow, testingThread
@@ -586,8 +693,12 @@ export allClear = ->
 	Director.clearColor = Color 0xff1a1a1a
 	teal.clear!
 	yue.clear!
+	-- Resetting View.scale can synchronously rebuild UI in AppChange("Size").
+	-- Capture the current tree after those callbacks, not before scene cleanup.
+	preserveSystemNode Director.systemUI
 	for _, item in pairs ubox!
-		node\cleanup! if node := tolua.cast item, "Node"
+		if node := tolua.cast item, "Node"
+			node\cleanup! unless systemNodes[node]
 	collectgarbage!
 	collectgarbage!
 	Wasm\clear!
@@ -1018,6 +1129,7 @@ gamepadInputWindowFlags = $WindowFlag(
 initFooter = true
 gamepadInputFocused = false
 footerWindow = threadLoop ->
+	return if mobileMode
 	zh = useChinese
 	authCodeTTL = math.max 0, authCodeTTL - App.deltaTime
 	if authCodeTTL <= 0
@@ -1242,6 +1354,15 @@ sep = -> SeparatorText ""
 thinSep = -> PushStyleVar "SeparatorTextBorderSize", 1, sep
 
 entryWindow = threadLoop ->
+	connected = syncWebIDEControl!
+	-- Apply outside ImGui and touch callbacks; keep the server and Agent services alive.
+	if pendingUIMode?
+		nextMode = pendingUIMode
+		pendingUIMode = nil
+		applyUIMode nextMode
+	if mobileMode and not connected
+		applyUIMode true if isInEntry and not feedHost
+		return
 	if App.fpsLimited ~= config.fpsLimited
 		config.fpsLimited = App.fpsLimited
 	if App.targetFPS ~= config.targetFPS
@@ -1257,11 +1378,10 @@ entryWindow = threadLoop ->
 		if result
 			coroutine.close urlClicked
 			urlClicked = nil
-	return unless showEntry
 	return unless isInEntry
 	zh = useChinese
 	:themeColor = App
-	if HttpServer.wsConnectionCount > 0
+	if connected
 		:width, :height = App.visualSize
 		SetNextWindowBgAlpha 0.5
 		SetNextWindowPos Vec2(width / 2, height / 2), $SetCond(Always), Vec2 0.5, 0.5
@@ -1275,6 +1395,7 @@ entryWindow = threadLoop ->
 			TextColored descColor, slogon
 			Separator!
 		return
+	return unless showEntry
 
 	width: fullWidth, :height = App.visualSize
 	width = math.min MaxWidth, fullWidth
@@ -1288,9 +1409,12 @@ entryWindow = threadLoop ->
 		<- Begin "Dora Dev", windowFlags
 		Dummy Vec2 fullWidth - 20, 0
 		TextColored themeColor, "Dora SSR #{zh and '开发' or 'Dev'}"
-		if fullWidth >= 400
+		SameLine!
+		if Button zh and "Mobile 模式" or "Mobile UI"
+			setUIMode "mobile"
+		if fullWidth >= 540
 			SameLine!
-			Dummy Vec2 fullWidth - 400, 0
+			Dummy Vec2 fullWidth - 540, 0
 			SameLine!
 			SetNextItemWidth zh and -95 or -140
 			if InputText zh and '筛选' or 'Filter', filterBuf, ["AutoSelectAll",]
@@ -1463,5 +1587,99 @@ entryWindow = threadLoop ->
 		Dummy Vec2 100, 80
 		ScrollWhenDraggingOnVoid!
 
--- Keep the Web IDE server outside moduleCache so allClear won't unload and restart it.
+-- Keep the server and its dependencies in the same persistent module lifetime.
+-- Unloading Agent.Session while the server retains it creates two task registries:
+-- the stale one interprets the other's running task as interrupted.
+sceneModuleCache = moduleCache
+moduleCache = []
 webStatus = oldRequire "Script.Dev.WebServer"
+moduleCache = sceneModuleCache
+
+startMobileUI = ->
+	mobileFeed = oldRequire "Script.Dev.Mobile.Feed"
+	mobileCatalog = oldRequire "Script.Dev.Mobile.MobileCatalog"
+	from "Script.Tools.ResourceDownloader.Catalog" import getMobileFeedResources
+	from "Script.Tools.ResourceDownloader.CatalogSync" import loadCachedCatalog
+	from "Script.Tools.ResourceDownloader.GitInstaller" import getResourceInstallPath
+	lifecycle = oldRequire "Script.Dev.Mobile.Lifecycle"
+	playOverlay = oldRequire "Script.Dev.Mobile.PlayOverlay"
+	feedOptions = nil
+	mobileLaunchErrors = {}
+	withMobileLaunchErrors = (items) ->
+		for item in *items
+			item.launchError = mobileLaunchErrors[item.id]
+		items
+	restartMobileFeed = (entry) ->
+		feedHost\removeFromParent true if feedHost
+		feedOptions.initialEntry = entry
+		feedHost = trackMobileHost mobileFeed.startMobileFeed feedOptions
+	startMobilePlay = (entry) ->
+		return if HttpServer.wsConnectionCount > 0
+		remixHost\removeFromParent true if remixHost
+		remixHost = nil
+		feedHost.visible = false
+		mobileLaunchErrors[entry.id] = nil
+		entry.launchError = nil
+		restoreMobileFeed = ->
+			allClear!
+			isInEntry = true
+			currentEntry = nil
+			restartMobileFeed entry
+		trackMobileHost playOverlay.startMobilePlayOverlay {
+			onExit: -> restoreMobileFeed!
+			onRuntimeError: ->
+				mobileLaunchErrors[entry.id] = useChinese and "作品运行异常，已安全返回作品卡，请修改后重试。" or "The game stopped after a runtime error. Fix it and try again."
+				restoreMobileFeed!
+		}
+		thread ->
+			success, err = enterEntryAsync lifecycle.resolveMobileLaunchEntry entry
+			return if success
+			mobileLaunchErrors[entry.id] = useChinese and "作品启动失败，已返回作品卡，请修改后重试。" or "The game failed to start. Fix it and try again."
+			restoreMobileFeed!
+	feedOptions = {
+		onSwitchMode: -> pendingUIMode = false if HttpServer.wsConnectionCount == 0
+		getLocalEntries: -> withMobileLaunchErrors getMobileFeedEntries true
+		syncDiscover: (onProgress, onDone) -> mobileCatalog.syncMobileCatalog onProgress, onDone
+		getDiscoverEntries: ->
+			cached = loadCachedCatalog!
+			return [] unless cached.success and cached.snapshot
+			items = []
+			for resource in *getMobileFeedResources cached.snapshot.catalog.resources
+				installed = lifecycle.isMobileResourceReady resource
+				installPath = getResourceInstallPath resource.id
+				items[] = {
+					id: resource.id
+					title: resource.title[useChinese and "zh-Hans" or "en"]
+					description: resource.description[useChinese and "zh-Hans" or "en"]
+					kind: "discover"
+					bannerFile: resource.bannerPath
+					workDir: installed and installPath or nil
+					fileName: installed and Path(installPath, Path\replaceExt(resource.entrypoints[1].path, "")) or nil
+					:installed
+					:resource
+					catalogCommit: cached.snapshot.commit
+					launchError: mobileLaunchErrors[resource.id]
+				}
+			items
+		prepare: (entry, repairIncomplete, onProgress, onDone) ->
+			lifecycle.prepareMobileResource entry.resource, entry.catalogCommit, onProgress, ((result) ->
+				onDone result.success, result.entry, result.message, result.repairable
+			), repairIncomplete
+		onPlay: (entry) -> startMobilePlay entry
+		onRemix: (entry) ->
+			return if HttpServer.wsConnectionCount > 0
+			remix = oldRequire "Script.Dev.Mobile.Remix"
+			originFeed = feedHost
+			feedHost.visible = false
+			remixHost = trackMobileHost remix.startMobileRemix {
+				:entry
+				onBack: ->
+					if mobileMode and feedHost == originFeed and originFeed.parent
+						originFeed\emit "RestoreFeedEntry", entry
+						originFeed.visible = true
+				onPlay: (current) -> startMobilePlay current
+			}
+	}
+	restartMobileFeed!
+
+applyUIMode true if mobileMode

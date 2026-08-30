@@ -35,6 +35,7 @@ public:
 	PROPERTY(Color, ClearColor);
 	PROPERTY_READONLY_CALL(Node*, UI);
 	PROPERTY_READONLY_CALL(Node*, UI3D);
+	PROPERTY_READONLY_CALL(Node*, SystemUI);
 	PROPERTY_READONLY_CALL(View3D*, Entry);
 	PROPERTY_READONLY_CALL(Node*, PostNode);
 	PROPERTY_READONLY_CALL(UITouchHandler*, UITouchHandler);
@@ -59,6 +60,7 @@ public:
 	NVGcontext* markNVGDirty();
 
 	void cleanup();
+	void clearSystemUI();
 
 	template <typename Func>
 	void pushViewProjection(const Matrix& viewProj, const Func& workHere) {
@@ -157,8 +159,10 @@ private:
 	Color _clearColor;
 	Ref<Node> _ui;
 	Ref<Node> _ui3D;
+	Ref<Node> _systemUI;
 	Ref<Camera> _uiCamera;
 	Ref<Camera> _ui3DCamera;
+	Ref<Camera> _systemUICamera;
 	Ref<Node> _postNode;
 	Ref<View3D> _entry;
 	Ref<Node> _root;

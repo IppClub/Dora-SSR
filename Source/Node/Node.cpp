@@ -1556,7 +1556,9 @@ static bool project(float objx, float objy, float objz,
 	Matrix::mulVec4(out, model, in);
 	Matrix::mulVec4(in, proj, out);
 	/* d’ou le resultat normalise entre -1 et 1 */
-	if (in.z == 0.0) return false;
+	// A point at z=0 is valid for an orthographic UI (notably OpenGL ES).
+	// Perspective division is undefined only when the homogeneous w is zero.
+	if (in.w == 0.0) return false;
 	in.x /= in.w;
 	in.y /= in.w;
 	in.z /= in.w;

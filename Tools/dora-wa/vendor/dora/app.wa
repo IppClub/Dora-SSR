@@ -15,8 +15,14 @@ func application_get_buffer_size() => i64
 #wa:import dora application_get_visual_size
 func application_get_visual_size() => i64
 
+#wa:import dora application_get_safe_area
+func application_get_safe_area() => i64
+
 #wa:import dora application_get_device_pixel_ratio
 func application_get_device_pixel_ratio() => f32
+
+#wa:import dora application_is_reduced_motion
+func application_is_reduced_motion() => i32
 
 #wa:import dora application_get_platform
 func application_get_platform() => i64
@@ -108,6 +114,15 @@ func application_set_always_on_top(val: i32)
 #wa:import dora application_is_always_on_top
 func application_is_always_on_top() => i32
 
+#wa:import dora application_vibrate
+func application_vibrate(seconds: f64)
+
+#wa:import dora application_set_clipboard_text
+func application_set_clipboard_text(text: i64)
+
+#wa:import dora application_get_clipboard_text
+func application_get_clipboard_text() => i64
+
 #wa:import dora application_save_screenshot
 func application_save_screenshot(filename: i64) => i64
 
@@ -135,10 +150,20 @@ func _App.GetVisualSize() => Size {
 	return SizeFromValue(application_get_visual_size())
 }
 
+/// Gets the safe area in visual coordinates, excluding display cutouts and system gesture regions.
+func _App.GetSafeArea() => Rect {
+	return *RectFrom(application_get_safe_area())
+}
+
 /// Gets the ratio of the pixel density displayed by the device
 /// Can be calculated as the size of the rendering buffer divided by the size of the application window.
 func _App.GetDevicePixelRatio() => f32 {
 	return application_get_device_pixel_ratio()
+}
+
+/// Gets whether the operating system requests reduced motion.
+func _App.IsReducedMotion() => bool {
+	return application_is_reduced_motion() != 0
 }
 
 /// Gets the platform the game engine is running on.
@@ -313,6 +338,15 @@ func _App.SetAlwaysOnTop(val: bool) {
 /// It is not available to set this property on platform Android and iOS.
 func _App.IsAlwaysOnTop() => bool {
 	return application_is_always_on_top() != 0
+}
+func _App.Vibrate(seconds: f64) {
+	application_vibrate(seconds)
+}
+func _App.SetClipboardText(text: string) {
+	application_set_clipboard_text(ToDoraString(text))
+}
+func _App.GetClipboardText() => string {
+	return FromDoraString(application_get_clipboard_text())
 }
 func _App.SaveScreenshot(filename: string) => string {
 	return FromDoraString(application_save_screenshot(ToDoraString(filename)))

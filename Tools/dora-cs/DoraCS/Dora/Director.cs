@@ -24,6 +24,8 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t director_get_ui_3d();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t director_get_system_u_i();
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t director_get_entry();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t director_get_post_node();
@@ -43,6 +45,8 @@ namespace Dora
 		public static extern void director_clear_camera();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void director_cleanup();
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void director_clear_system_u_i();
 	}
 } // namespace Dora
 
@@ -74,6 +78,11 @@ namespace Dora
 		public static Node UI3D
 		{
 			get => Node.From(Native.director_get_ui_3d());
+		}
+		/// <summary>The persistent root node for system UI that survives regular scene cleanup.</summary>
+		public static Node SystemUI
+		{
+			get => Node.From(Native.director_get_system_u_i());
 		}
 		/// <summary>
 		/// The root node for the starting point of a game.
@@ -163,6 +172,11 @@ namespace Dora
 		public static void Cleanup()
 		{
 			Native.director_cleanup();
+		}
+		/// <summary>Clears the persistent system UI explicitly.</summary>
+		public static void ClearSystemUI()
+		{
+			Native.director_clear_system_u_i();
 		}
 	}
 } // namespace Dora

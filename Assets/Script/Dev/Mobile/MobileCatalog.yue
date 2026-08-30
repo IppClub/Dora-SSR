@@ -1,0 +1,7 @@
+catalogSync = require "Script.Tools.ResourceDownloader.CatalogSync"
+
+export syncMobileCatalog = (onProgress, onDone, operation = catalogSync.syncCatalog) ->
+	success, err = pcall ->
+		promise = operation onStatus: (self, status) -> onProgress status.message
+		promise\addCallbacks ((_, result) -> onDone result.success, result.message), ((_, err) -> onDone false, tostring err)
+	onDone false, tostring err unless success

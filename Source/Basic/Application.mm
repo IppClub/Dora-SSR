@@ -33,8 +33,28 @@ NS_DORA_END
 #import <AVFoundation/AVFoundation.h>
 #import <AudioToolbox/AudioServices.h>
 #import <QuartzCore/CAMetalLayer.h>
+#import <UIKit/UIKit.h>
 
 NS_DORA_BEGIN
+Rect Application::getSafeArea() {
+	@autoreleasepool {
+		SDL_SysWMinfo wmi;
+		SDL_VERSION(&wmi.version);
+		if (!SDL_GetWindowWMInfo(_sdlWindow, &wmi)) {
+			return Rect{0.0f, 0.0f, s_cast<float>(_visualWidth), s_cast<float>(_visualHeight)};
+		}
+		UIView* view = wmi.info.uikit.window.rootViewController.view;
+		UIEdgeInsets insets = view.safeAreaInsets;
+		return Rect{s_cast<float>(insets.left), s_cast<float>(insets.bottom),
+			std::max(s_cast<float>(_visualWidth - insets.left - insets.right), 0.0f),
+			std::max(s_cast<float>(_visualHeight - insets.top - insets.bottom), 0.0f)};
+	}
+}
+
+bool Application::isReducedMotion() const noexcept {
+	return UIAccessibilityIsReduceMotionEnabled();
+}
+
 void Application::vibrate(double seconds) {
 	DORA_UNUSED_PARAM(seconds);
 	@autoreleasepool {
