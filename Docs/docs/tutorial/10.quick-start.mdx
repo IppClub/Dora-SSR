@@ -116,6 +116,14 @@ Mobile UI adapts to the current window or device orientation; selecting it on a 
 
 Mobile UI always uses the larger text size; there is no font-size toggle. The Feed opens **Local** when runnable local projects exist, otherwise **Discover**. Returning from Remix or playtesting restores that project's card and its original tab, even when the list has been reordered or the Catalog refreshes. If the original Catalog entry is no longer available, its installed local project is used when present.
 
+### Create a project from Mobile Feed
+
+Open **Local** and select **+ New** at the top. Enter one folder name in the bottom sheet, then select **Create and Remix**. Mobile creates a runnable TypeScript project with `init.ts` and its initial runnable output in the current workspace, refreshes Local, selects the new project, and opens its Remix conversation. The entry remains available when Local is empty.
+
+If the name is empty, contains a path separator, or conflicts with an existing file or folder ignoring letter case, the sheet stays open so you can change it. A folder or `init.ts` write failure also leaves a retryable message; an incomplete folder created by that attempt is rolled back without removing existing content. Select **Cancel** or use the system Back action to return to the Feed without creating anything.
+
+Project names use a single-line input with horizontal scrolling. It shares its input component with the multiline Remix prompt: the border turns gold when focused and gray when focus is lost.
+
 ### Following Remix progress
 
 Use **Back** at the top right, or swipe left across the conversation area, to return to the Feed. The whole Remix page follows your drag with the same resistance as Feed cards; releasing a short swipe springs it back, while a completed swipe switches directly to the Feed without an extra slide-out animation. Input editing, buttons, and vertical scrolling do not trigger this gesture. The existing safety rule still applies: stop a running Agent before leaving Remix.

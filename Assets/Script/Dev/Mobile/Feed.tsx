@@ -3,6 +3,7 @@ import { App, Director, Ease, HttpServer, Move, Node, sleep, Sprite, TextAlign, 
 import { DoraMascot } from "Dev/Mobile/Mascot";
 import { mobileFontScale } from "Dev/Mobile/Accessibility";
 import { getCoverScales, getReusableCardIndices, normalizeFeedIndex, resolveDiscoverRefreshTab, resolveFeedGesture, resolveFeedLocation, stableCoverColor, type FeedAction, type FeedEntry as ModelFeedEntry, type FeedTab } from "Dev/Mobile/FeedModel";
+import { createTextInput } from "Dev/Mobile/TextInput";
 
 interface FeedEntry extends ModelFeedEntry {
 	resource?: unknown;
@@ -17,6 +18,7 @@ interface MobileFeedOptions {
 	syncDiscover?: (this: void, onProgress: (this: void, message: string) => void, onDone: (this: void, success: boolean, message?: string) => void) => void;
 	onPlay: (this: void, entry: FeedEntry) => void;
 	onRemix: (this: void, entry: FeedEntry) => void;
+	createProject?: (this: void, name: string) => { success: true; entry: FeedEntry } | { success: false; error: string };
 	onSwitchMode?: (this: void) => void;
 	prepare: (this: void, entry: FeedEntry, repairIncomplete: boolean, onProgress: (this: void, progress: number, message: string) => void, onDone: (this: void, success: boolean, ready?: { fileName: string; workDir: string }, message?: string, repairable?: boolean) => void) => void;
 }
@@ -33,6 +35,9 @@ const colors = {
 };
 
 const fontName = "sarasa-mono-sc-regular";
+const createSheetHeight = 260;
+const createInputHeight = 44;
+const createInputTop = 96;
 
 function Button(props: {
 	tag?: string;
@@ -145,8 +150,14 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	let userSelectedTab = false;
 	let active = true;
 	let leaving = false;
+	let createOpen = false;
+	let creating = false;
+	let createName = "";
+	let dismissedCreateComposition = false;
+	let createError = "";
 	let returnEntry = options.initialEntry;
 	const cardRef = reference<Node.Type>();
+	let createInputRef = reference<Node.Type>();
 	let discover = getDiscoverEntries();
 	let local = getLocalEntries();
 
@@ -167,12 +178,73 @@ export function startMobileFeed(options: MobileFeedOptions) {
 
 	const entries = () => tab === "discover" ? discover : local;
 	const current = () => entries()[normalizeFeedIndex(index, entries().length)];
+	const canEditCreate = () => createOpen && !creating && isActive() && host.visible && HttpServer.wsConnectionCount === 0;
+	const createInput = createTextInput({
+		fontSize: math.floor(16 * mobileFontScale),
+		singleLine: true,
+		background: colors.background,
+		getText: () => createName,
+		setText: text => { createName = text; },
+		getPlaceholder: () => zh ? "例如：星际花园" : "For example: Star Garden",
+		isEnabled: canEditCreate,
+		onReturn: () => { submitCreate(); return true; },
+	});
+	const blurCreateInput = createInput.blur;
+	const closeCreate = () => {
+		if (creating) return;
+		blurCreateInput();
+		createOpen = false;
+		createName = "";
+		createError = "";
+		render();
+	};
+	const createErrorText = (error: string) => {
+		switch (error) {
+			case "invalid-name": return zh ? "请输入不含路径分隔符的项目名称" : "Enter a project name without path separators";
+			case "target-existed": return zh ? "已有同名项目，请换一个名称" : "A project with that name already exists";
+			case "create-folder-failed": return zh ? "无法创建项目目录，请检查工作目录后重试" : "Could not create the project folder; check the workspace and retry";
+			case "create-entry-failed": return zh ? "无法写入项目入口，未完成项目已回滚" : "Could not write the project entry; the incomplete project was rolled back";
+			case "created-project-not-found": return zh ? "项目已创建，但本地列表未能找到它，请返回后重试" : "The project was created but could not be found in Local; return and retry";
+			default: return zh ? "创建失败，请重试" : "Project creation failed; try again";
+		}
+	};
+	const submitCreate = () => {
+		if (!options.createProject || creating || !createOpen || !isActive() || !host.visible || HttpServer.wsConnectionCount > 0) return;
+		if (createInput.isComposing()) return;
+		creating = true;
+		createError = "";
+		blurCreateInput();
+		render();
+		const result = options.createProject(createName);
+		if (!isActive()) return;
+		creating = false;
+		if (!result.success) {
+			createError = createErrorText(result.error);
+			render();
+			return;
+		}
+		createOpen = false;
+		createName = "";
+		local = getLocalEntries();
+		returnEntry = result.entry;
+		const location = resolveFeedLocation(local, discover, result.entry);
+		tab = location.tab;
+		index = location.index;
+		render();
+		onRemix(result.entry);
+	};
 
 	const setTab = (next: FeedTab) => {
-		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || preparing) return;
+		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || preparing || creating) return;
 		userSelectedTab = true;
 		returnEntry = undefined;
 		if (tab === next) return;
+		if (createOpen) {
+			blurCreateInput();
+			createOpen = false;
+			createName = "";
+			createError = "";
+		}
 		tab = next;
 		index = 0;
 		detailsOpen = false;
@@ -251,13 +323,22 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	};
 
 	const switchMode = () => {
-		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || preparing || transitioning || !options.onSwitchMode) return;
+		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || preparing || creating || createOpen || transitioning || !options.onSwitchMode) return;
 		leaving = true;
 		options.onSwitchMode();
 	};
 	host.slot("SwitchUIMode", switchMode);
 	const render = () => {
 		if (!isActive()) return;
+		// Catalog updates must not replace an active IME target or discard its preedit.
+		const keptInput = createOpen && createInputRef.current?.width === App.safeArea.width - 40 ? createInputRef.current : undefined;
+		const restoreFocus = createInput.isFocused();
+		keptInput?.removeFromParent(false);
+		if (!keptInput) {
+			createInput.unmount();
+			createInputRef = reference<Node.Type>();
+		}
+		const createPanelRef = reference<Node.Type>();
 		host.removeAllChildren();
 		host.scaleX = App.devicePixelRatio;
 		host.scaleY = App.devicePixelRatio;
@@ -327,6 +408,19 @@ export function startMobileFeed(options: MobileFeedOptions) {
 			<label tag="mobile-feed-local-tab" x={left + usableWidth / 2 + (options.onSwitchMode ? 56 : 70)} y={bottom + usableHeight - 34} fontName={fontName} fontSize={math.floor(18 * fontScale)}
 				text={zh ? "本地" : "Local"} color3={tab === "local" ? 0xffcc33 : 0xa8afbd}
 				touchEnabled={true} swallowTouches={true} onTapped={() => { local = getLocalEntries(); setTab("local"); }} />
+			{tab === "local" && options.createProject ? <node tag="mobile-feed-create" x={left + usableWidth - 82} y={bottom + usableHeight - 56} width={70} height={44}
+				anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={() => {
+					if (preparing || transitioning || creating || createOpen || HttpServer.wsConnectionCount > 0) return;
+					createOpen = true;
+					createName = "";
+					dismissedCreateComposition = false;
+					createError = "";
+					render();
+					createInput.deferFocus();
+				}}>
+				<draw-node x={35} y={22}><rect-shape width={70} height={44} fillColor={colors.background} borderWidth={1} borderColor={colors.brand} /></draw-node>
+				<label x={35} y={22} fontName={fontName} fontSize={14} text={zh ? "+ 新建" : "+ New"} color3={0xffcc33} />
+			</node> : undefined}
 				{item !== undefined ? <node tag={`mobile-feed-card-${item.id}`} ref={cardRef} key={`${tab}-${item.id}`}>
 					{cardIndices.map(cardIndex => <Cover
 						key={`${tab}-${data[cardIndex].id}`}
@@ -368,20 +462,62 @@ export function startMobileFeed(options: MobileFeedOptions) {
 					text={tab === "discover" && discoverError !== "" ? discoverError : (zh ? "切换标签或稍后重试" : "Switch tabs or retry later")}
 					textWidth={usableWidth - 48} color3={tab === "discover" && discoverError !== "" ? 0xff6b6b : 0xa8afbd} />
 			</node>}
+			{createOpen ? (() => {
+				const sheetHeight = math.min(createSheetHeight, usableHeight - 64);
+				const sheetWidth = usableWidth;
+				const inputWidth = sheetWidth - 40;
+				const actionGap = 12;
+				const cancelWidth = math.floor((inputWidth - actionGap) * 0.38);
+				return <node tag="mobile-project-create-sheet" width={width} height={height} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true}>
+					<node tag="mobile-project-create-focus-observer" order={1000} width={width} height={height} anchorX={0} anchorY={0}
+						touchEnabled={true} swallowTouches={false} swallowMouseWheel={false} onTapFilter={touch => {
+							touch.enabled = false;
+							if (!canEditCreate()) return;
+							const input = createInputRef.current;
+							const point = input?.convertToNodeSpace(touch.worldLocation);
+							const inside = input && point && point.x >= 0 && point.y >= 0 && point.x <= input.width && point.y <= input.height;
+							dismissedCreateComposition = !inside && createInput.isComposing();
+							if (!inside) blurCreateInput();
+						}} />
+					<draw-node x={width / 2} y={height / 2}><rect-shape width={width} height={height} fillColor={0x8c000000} /></draw-node>
+					<node ref={createPanelRef} x={left} y={bottom} width={sheetWidth} height={sheetHeight} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true}>
+						<draw-node x={sheetWidth / 2} y={sheetHeight / 2}><rect-shape width={sheetWidth} height={sheetHeight} fillColor={colors.panel} borderWidth={1} borderColor={colors.border} /></draw-node>
+						<label x={20} y={sheetHeight - 24} anchorX={0} anchorY={1} fontName={fontName} fontSize={22} text={zh ? "新建项目" : "New project"} color3={0xf4f1e8} />
+						<label x={20} y={sheetHeight - 66} anchorX={0} anchorY={1} fontName={fontName} fontSize={14} text={zh ? "项目名称" : "Project name"} color3={0xa8afbd} />
+						{keptInput ? undefined : <node tag="mobile-project-create-input" ref={createInputRef} x={20} y={sheetHeight - createInputTop - createInputHeight} width={inputWidth} height={createInputHeight} anchorX={0} anchorY={0}
+							onMount={createInput.mount} />}
+						<label tag="mobile-project-create-error" x={20} y={sheetHeight - createInputTop - createInputHeight - 12} anchorX={0} anchorY={1} fontName={fontName} fontSize={12}
+							text={createError !== "" ? createError : (zh ? "将创建可运行的 TypeScript 起始项目" : "Creates a runnable TypeScript starter project")}
+							textWidth={inputWidth} alignment={TextAlign.Left} color3={createError !== "" ? 0xff6b6b : 0xa8afbd} />
+						<Button tag="mobile-project-create-cancel" x={20} y={20} width={cancelWidth} text={zh ? "取消" : "Cancel"} onTapped={closeCreate} />
+						<Button tag="mobile-project-create-submit" x={20 + cancelWidth + actionGap} y={20} width={inputWidth - cancelWidth - actionGap}
+							text={creating ? (zh ? "创建中…" : "Creating…") : (zh ? "创建并进入 Remix" : "Create and Remix")} primary={true} onTapped={() => { if (!dismissedCreateComposition) submitCreate(); dismissedCreateComposition = false; }} />
+					</node>
+				</node>;
+			})() : undefined}
 		</node>);
 		if (scene !== undefined) host.addChild(scene);
+		if (keptInput && createPanelRef.current) {
+			keptInput.position = Vec2(20, math.min(createSheetHeight, usableHeight - 64) - createInputTop - createInputHeight);
+			createPanelRef.current.addChild(keptInput);
+		}
+		createInput.refresh();
+		if (restoreFocus && !keptInput && createOpen) createInput.focus(false);
 	};
 
 	host.onAppChange(setting => {
 		if (setting === "Size" || setting === "Locale") render();
 	});
 	host.onAppEvent(event => {
-		if (event === "BackButton" && detailsOpen) {
-			detailsOpen = false;
-			render();
-		}
+		if (event === "BackButton") {
+			if (createOpen && !creating) closeCreate();
+			else if (detailsOpen) {
+				detailsOpen = false;
+				render();
+			}
+		} else if (event === "WillEnterBackground" || event === "DidEnterBackground") blurCreateInput();
 	});
-	host.onCleanup(() => { active = false; });
+	host.onCleanup(() => { blurCreateInput(); active = false; });
 	host.slot("RestoreFeedEntry", (entry: FeedEntry) => {
 		if (!isActive() || HttpServer.wsConnectionCount > 0) return;
 		returnEntry = entry;
@@ -393,6 +529,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		detailsOpen = false;
 		render();
 	});
+	host.slot("SuspendLocalUI", blurCreateInput);
 	host.slot("ResumeLocalUI", () => { leaving = false; render(); });
 	render();
 	if (syncDiscover) {

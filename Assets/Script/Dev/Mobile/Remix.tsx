@@ -1,5 +1,5 @@
 import { React, reference, toNode } from "DoraX";
-import { App, DB, Director, Ease, HttpServer, Keyboard, KeyName, Label, Move, Node, sleep, TextAlign, thread, Vec2 } from "Dora";
+import { App, DB, Director, Ease, HttpServer, Label, Move, Node, sleep, TextAlign, thread, Vec2 } from "Dora";
 import * as AgentSession from "Agent/Session";
 import { getActiveLLMConfig, getLLMConfig, getLLMConfigSummaries, safeJsonEncode } from "Agent/Utils";
 import type { LLMConfig, LLMConfigSummary } from "Agent/Utils";
@@ -10,7 +10,7 @@ import { mobileFontScale } from "Dev/Mobile/Accessibility";
 import { resolveFeedGesture } from "Dev/Mobile/FeedModel";
 import { createRemixTranscript, remixDisplayRevision } from "Dev/Mobile/RemixTranscript";
 import { REMIX_HISTORY_ROUNDS } from "Dev/Mobile/RemixHistory";
-import { createRemixInputView, inputLength, inputSlice, insertInputText } from "Dev/Mobile/RemixInput";
+import { createTextInput } from "Dev/Mobile/TextInput";
 
 interface RemixEntry {
 	id: string;
@@ -103,50 +103,24 @@ export function startMobileRemix(options: RemixOptions) {
 	const questionnaireSelections: Record<string, string[]> = {};
 	const questionnaireTexts: Record<string, string> = {};
 	let inputRef = reference<Node.Type>();
-	let inputLabel: Label.Type | undefined;
-	let inputFocused = false;
-	let focusRevision = 0;
 	let disposed = false;
-	let refreshInputDisplay = () => {};
 	let dismissedComposition = false;
 	let swipeBackPending = false;
 	let swipeDragging = false;
 	let swipeRevision = 0;
-	let composingText = "";
-	let inputCursor = 0;
-	let compositionCursor = 0;
-	let inputView: ReturnType<typeof createRemixInputView> | undefined;
-	const clearInputFocus = () => {
-		focusRevision++;
-		inputFocused = false;
-		composingText = "";
-		compositionCursor = 0;
-		if (inputRef.current) inputRef.current.keyboardEnabled = false;
-		refreshInputDisplay();
-	};
-	const blurInput = () => {
-		if (inputFocused) inputRef.current?.detachIME();
-		// Also cancel a pending attach, for which DetachIME is not emitted yet.
-		clearInputFocus();
-	};
-	const updateIMEPos = (next?: (this: void) => void) => {
-		const input = inputRef.current;
-		const label = inputLabel;
-		if (!input || !label) return;
-		const revision = focusRevision;
-		const caret = inputView?.caretPosition() ?? Vec2(12, 8);
-		input.convertToWindowSpace(Vec2(math.max(12, math.min(input.width - 12, caret.x)), math.max(8, math.min(input.height - 8, caret.y))), pos => {
-			if (disposed || revision !== focusRevision || inputRef.current !== input) return;
-			Keyboard.updateIMEPosHint(pos);
-			next?.();
-		});
-	};
-	const updateInputLabel = (text: string, placeholder: string) => {
-		const label = inputLabel;
-		if (!label) return;
-		inputView?.update(text, placeholder, inputFocused, inputCursor + compositionCursor);
-		if (inputFocused) updateIMEPos();
-	};
+	const currentQuestion = () => detail.success ? detail.pendingQuestionnaire?.schema.questions[questionIndex] : undefined;
+	const promptInput = createTextInput({
+		fontSize: math.floor(16 * mobileFontScale),
+		getText: () => { const question = currentQuestion(); return question ? (questionnaireTexts[question.id] ?? "") : draft; },
+		setText: text => { const question = currentQuestion(); if (question) questionnaireTexts[question.id] = text; else draft = text; },
+		getPlaceholder: () => {
+			const question = currentQuestion();
+			return question?.placeholder ?? (question ? (zh ? "输入回答…" : "Type an answer…") : (zh ? "输入修改要求…" : "Describe a change…"));
+		},
+		isEnabled: () => !disposed && host.parent !== undefined && host.visible && HttpServer.wsConnectionCount === 0,
+		onReturn: modified => { if (modified && !currentQuestion()) { send(); return true; } return false; },
+	});
+	const blurInput = promptInput.blur;
 	const rememberedRows = DB.query("select value_num from Config where name = 'mobileRemixLLMConfigId' limit 1") as unknown[][] | undefined;
 	const rememberedId = rememberedRows && rememberedRows.length > 0 ? tonumber(rememberedRows[0][0]) : undefined;
 	if (rememberedId && llmConfigs.some(item => item.id === rememberedId)) selectedLLMConfigId = rememberedId;
@@ -205,7 +179,7 @@ export function startMobileRemix(options: RemixOptions) {
 	const send = () => {
 		if (!host.visible || HttpServer.wsConnectionCount > 0) return;
 		refresh();
-		if (!canSubmit() || !detail.success || composingText !== "") return;
+		if (!canSubmit() || !detail.success || promptInput.isComposing()) return;
 		const workMode = resolveRemixWorkMode(detail.session);
 		// Lua's generated JS trim includes multibyte whitespace in a byte character
 		// class and can strip trailing Chinese bytes. Trim ASCII whitespace only.
@@ -220,7 +194,7 @@ export function startMobileRemix(options: RemixOptions) {
 		selectedLLMConfigId = config.id;
 		const result = services.sendPrompt(sessionId, text, undefined, workMode, config.id, config.config);
 		if (!result.success) error = result.message;
-		else { draft = ""; inputCursor = 0; error = ""; }
+		else { draft = ""; error = ""; }
 		refresh();
 		render();
 	};
@@ -299,12 +273,10 @@ export function startMobileRemix(options: RemixOptions) {
 			&& inputRef.current?.tag === "remix-input" ? inputRef.current : undefined;
 		keptInput?.removeFromParent(false);
 		transcript.node.removeFromParent(false);
-		const restoreInputFocus = inputFocused;
+		const restoreInputFocus = promptInput.isFocused();
 		if (!keptInput) {
-			blurInput();
+			promptInput.unmount();
 			inputRef = reference<Node.Type>();
-			inputLabel = undefined;
-			inputView = undefined;
 		}
 		host.removeAllChildren();
 		inputLayout = layout;
@@ -324,80 +296,7 @@ export function startMobileRemix(options: RemixOptions) {
 		const phase = state ? resolveRemixPhase({ status: state.status, workMode, hasActivePlan }) : "failed";
 		const questionnaire = detail.success ? detail.pendingQuestionnaire : undefined;
 		const question = questionnaire?.schema.questions[questionIndex];
-		const focusInput = (reopen = true) => {
-			if (disposed || !host.visible || HttpServer.wsConnectionCount > 0) return;
-			focusRevision++;
-			// Follow Dora-Example/TextInput: transform the actual node, then reconnect.
-			updateIMEPos(() => {
-				if (!host.visible || HttpServer.wsConnectionCount > 0) return;
-				if (reopen) inputRef.current?.detachIME();
-				inputRef.current?.attachIME();
-				updateIMEPos();
-			});
-		};
-		const inputPlaceholder = question?.placeholder ?? (question ? (zh ? "输入回答…" : "Type an answer…") : (zh ? "输入修改要求…" : "Describe a change…"));
-		const getInputText = () => question ? (questionnaireTexts[question.id] ?? "") : draft;
-		refreshInputDisplay = () => updateInputLabel(getInputText(), inputPlaceholder);
-		const setInputText = (text: string, cursor = inputLength(text)) => {
-			if (question) questionnaireTexts[question.id] = text;
-			else draft = text;
-			inputCursor = cursor;
-			updateInputLabel(text, inputPlaceholder);
-		};
-		const attachInput = () => {
-			inputFocused = true;
-			composingText = "";
-			compositionCursor = 0;
-			if (inputRef.current) inputRef.current.keyboardEnabled = true;
-			updateInputLabel(getInputText(), inputPlaceholder);
-		};
-		const detachInput = clearInputFocus;
-		const textInput = (text: string) => {
-			if (!host.visible || HttpServer.wsConnectionCount > 0) return;
-			composingText = "";
-			compositionCursor = 0;
-			const normalized = string.gsub(string.gsub(text, "\r\n", "\n")[0], "\r", "\n")[0];
-			setInputText(insertInputText(getInputText(), inputCursor, normalized), inputCursor + inputLength(normalized));
-		};
-		const textEditing = (text: string, start?: number) => {
-			if (!host.visible || HttpServer.wsConnectionCount > 0) return;
-			composingText = text;
-			compositionCursor = math.max(0, math.min(inputLength(text), start ?? inputLength(text)));
-			updateInputLabel(insertInputText(getInputText(), inputCursor, text), inputPlaceholder);
-		};
-		const keyInput = (key: KeyName) => {
-			if (!host.visible || HttpServer.wsConnectionCount > 0) return;
-			if (key === KeyName.Escape) { blurInput(); return; }
-			// Composition belongs to the IME; do not delete committed text underneath it.
-			if (composingText !== "") return;
-			const value = getInputText();
-			if (key === KeyName.BackSpace && inputCursor > 0) setInputText(inputSlice(value, 0, inputCursor - 1) + inputSlice(value, inputCursor), inputCursor - 1);
-			else if (key === KeyName.Delete && inputCursor < inputLength(value)) setInputText(inputSlice(value, 0, inputCursor) + inputSlice(value, inputCursor + 1), inputCursor);
-			else if (key === KeyName.Left || key === KeyName.Right || key === KeyName.Home || key === KeyName.End || key === KeyName.Up || key === KeyName.Down) {
-				inputCursor = key === KeyName.Home ? 0 : key === KeyName.End ? inputLength(value)
-					: key === KeyName.Up || key === KeyName.Down ? inputView?.verticalIndex(inputCursor, key === KeyName.Up ? -1 : 1) ?? inputCursor
-					: math.max(0, math.min(inputLength(value), inputCursor + (key === KeyName.Left ? -1 : 1)));
-				updateInputLabel(value, inputPlaceholder);
-			}
-			else if (key === KeyName.Return) {
-				if (!question && (Keyboard.isKeyPressed(KeyName.LCtrl) || Keyboard.isKeyPressed(KeyName.RCtrl) || Keyboard.isKeyPressed(KeyName.LGui) || Keyboard.isKeyPressed(KeyName.RGui))) send();
-				else textInput("\n");
-			}
-		};
 		const fontScale = mobileFontScale;
-		const mountInput = (node: Node.Type) => {
-			inputView = createRemixInputView(node, math.floor(16 * fontScale));
-			inputLabel = inputView.label;
-			inputCursor = math.min(inputCursor, inputLength(getInputText()));
-			updateInputLabel(insertInputText(getInputText(), inputCursor, composingText), inputPlaceholder);
-		};
-		let dragDistance = 0;
-		const tapInput = (touch?: { location: Vec2.Type }) => {
-			if (dragDistance > 5 || !host.visible || HttpServer.wsConnectionCount > 0) return;
-			if (touch && composingText === "") inputCursor = inputView?.indexAt(touch.location) ?? inputCursor;
-			updateInputLabel(insertInputText(getInputText(), inputCursor, composingText), inputPlaceholder);
-			if (!inputFocused) focusInput();
-		};
 		const pickerHeight = math.min(420, safe.height - 280);
 		const statusText = phase === "planning" ? (zh ? "Dora 正在整理方案…" : "Dora is planning…")
 			: phase === "working" ? (zh ? "Dora 正在 Remix…" : "Dora is remixing…")
@@ -435,7 +334,7 @@ export function startMobileRemix(options: RemixOptions) {
 					const input = inputRef.current;
 					const point = input?.convertToNodeSpace(touch.worldLocation);
 					const inside = input && point && point.x >= 0 && point.y >= 0 && point.x <= input.width && point.y <= input.height;
-					dismissedComposition = !inside && composingText !== "";
+					dismissedComposition = !inside && promptInput.isComposing();
 					if (!inside) blurInput();
 					// Do not turn input editing, header/button taps, or questionnaires into navigation.
 					if (!inside && !questionnaire && !modelPickerOpen && touch.first !== false
@@ -507,14 +406,8 @@ export function startMobileRemix(options: RemixOptions) {
 							: selected.indexOf(option.id) >= 0 ? selected.filter(id => id !== option.id) : [...selected, option.id];
 						render();
 					}}
-				/>) : <node ref={inputRef} x={16} y={safe.height - 510} width={contentWidth - 32} height={92} anchorX={0} anchorY={0}
-					touchEnabled={true} swallowTouches={true} onTapped={tapInput} onMount={mountInput}
-					onTapBegan={() => { dragDistance = 0; }} onTapMoved={touch => { dragDistance += math.abs(touch.delta.y); inputView?.scroll(touch.delta.y); }}
-					onMouseWheel={delta => inputView?.scroll(-delta.y * 20)}
-					onAttachIME={attachInput} onDetachIME={detachInput}
-					onTextInput={textInput} onTextEditing={textEditing} onKeyDown={keyInput}>
-					<draw-node x={(contentWidth - 32) / 2} y={46}><rect-shape width={contentWidth - 32} height={92} fillColor={colors.background} borderWidth={1} borderColor={colors.border} /></draw-node>
-				</node>}
+				/>) : <node tag="remix-question-input" ref={inputRef} x={16} y={safe.height - 510} width={contentWidth - 32} height={92} anchorX={0} anchorY={0}
+					onMount={promptInput.mount} />}
 				{questionIndex > 0 ? <ActionButton x={16} y={12} width={92} text={zh ? "上一步" : "Back"} onTapped={() => { questionIndex--; render(); }} /> : undefined}
 				<ActionButton tag="remix-question-submit" x={questionIndex > 0 ? 120 : 16} y={12} width={contentWidth - (questionIndex > 0 ? 136 : 32)}
 					text={questionIndex + 1 === questionnaire.schema.questions.length ? (zh ? "提交回答" : "Submit") : (zh ? "下一步" : "Next")}
@@ -531,14 +424,8 @@ export function startMobileRemix(options: RemixOptions) {
 				<ChoiceButton tag="remix-mode-plan" x={left + 16} y={bottom + modeBottom} width={modeWidth} text={zh ? "计划" : "Plan"} selected={workMode === "plan"} disabled={!canSubmit()} onTapped={() => changeWorkMode("plan")} />
 				<ChoiceButton tag="remix-mode-code" x={left + 16 + modeWidth + composerGap} y={bottom + modeBottom} width={contentWidth - modeWidth - composerGap} text={zh ? "执行" : "Code"} selected={workMode === "code"} disabled={!canSubmit()} onTapped={() => changeWorkMode("code")} />
 			</node> : undefined}
-			{questionnaire === undefined && !modelPickerOpen && !keptInput ? <node tag="remix-input" ref={inputRef} x={left + 16} y={bottom + composerBottom} width={inputWidth} height={composerHeight} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true}
-				onTapped={tapInput} onMount={mountInput}
-				onTapBegan={() => { dragDistance = 0; }} onTapMoved={touch => { dragDistance += math.abs(touch.delta.y); inputView?.scroll(touch.delta.y); }}
-				onMouseWheel={delta => inputView?.scroll(-delta.y * 20)}
-				onAttachIME={attachInput} onDetachIME={detachInput}
-				onTextInput={textInput} onTextEditing={textEditing} onKeyDown={keyInput}>
-				<draw-node x={inputWidth / 2} y={composerHeight / 2}><rect-shape width={inputWidth} height={composerHeight} fillColor={colors.panel} borderWidth={1} borderColor={colors.border} /></draw-node>
-			</node> : undefined}
+			{questionnaire === undefined && !modelPickerOpen && !keptInput ? <node tag="remix-input" ref={inputRef} x={left + 16} y={bottom + composerBottom} width={inputWidth} height={composerHeight} anchorX={0} anchorY={0}
+				onMount={promptInput.mount} /> : undefined}
 			{stopping || (questionnaire === undefined && !modelPickerOpen) ? <ActionButton tag={stopping ? "remix-stop" : "remix-send"}
 				x={left + 16 + inputWidth + composerGap} y={bottom + composerBottom} width={composerActionWidth} height={composerHeight}
 				text={stopping ? (state?.currentTaskFinalizing ? (zh ? "收尾中" : "Finishing") : stopRequested ? (zh ? "停止中" : "Stopping") : (zh ? "停止" : "Stop")) : (zh ? "发送" : "Send")}
@@ -556,8 +443,8 @@ export function startMobileRemix(options: RemixOptions) {
 				updateTranscript();
 			}
 		}
-		if (restoreInputFocus && inputRef.current && !keptInput) focusInput(false);
-		if (keptInput) updateInputLabel(insertInputText(draft, inputCursor, composingText), inputPlaceholder);
+		if (restoreInputFocus && inputRef.current && !keptInput) promptInput.focus(false);
+		if (keptInput) promptInput.refresh();
 		shellRevision = getShellRevision();
 		displayRevision = remixDisplayRevision(detail);
 	};
@@ -575,7 +462,7 @@ export function startMobileRemix(options: RemixOptions) {
 	});
 	host.onAppChange(setting => { if (setting === "Size" || setting === "Locale") render(); });
 	host.onAppEvent(event => {
-		if (event === "BackButton") { if (inputFocused) blurInput(); else goBack(); }
+		if (event === "BackButton") { if (promptInput.isFocused()) blurInput(); else goBack(); }
 		else if (event === "WillEnterBackground" || event === "DidEnterBackground") blurInput();
 	});
 	host.onCleanup(() => { disposed = true; blurInput(); });

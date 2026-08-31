@@ -1410,7 +1410,7 @@ entryWindow = threadLoop ->
 		Dummy Vec2 fullWidth - 20, 0
 		TextColored themeColor, "Dora SSR #{zh and '开发' or 'Dev'}"
 		SameLine!
-		if Button zh and "Mobile 模式" or "Mobile UI"
+		if Button zh and "Go 模式" or "Go Mode"
 			setUIMode "mobile"
 		if fullWidth >= 540
 			SameLine!
@@ -1598,6 +1598,7 @@ moduleCache = sceneModuleCache
 startMobileUI = ->
 	mobileFeed = oldRequire "Script.Dev.Mobile.Feed"
 	mobileCatalog = oldRequire "Script.Dev.Mobile.MobileCatalog"
+	projectCreate = oldRequire "Script.Dev.Mobile.ProjectCreate"
 	from "Script.Tools.ResourceDownloader.Catalog" import getMobileFeedResources
 	from "Script.Tools.ResourceDownloader.CatalogSync" import loadCachedCatalog
 	from "Script.Tools.ResourceDownloader.GitInstaller" import getResourceInstallPath
@@ -1665,6 +1666,13 @@ startMobileUI = ->
 			lifecycle.prepareMobileResource entry.resource, entry.catalogCommit, onProgress, ((result) ->
 				onDone result.success, result.entry, result.message, result.repairable
 			), repairIncomplete
+		createProject: (name) ->
+			result = projectCreate.createMobileTypeScriptProject name
+			return result unless result.success
+			for entry in *getMobileFeedEntries true
+				if entry.workDir == result.workDir
+					return success: true, :entry
+			success: false, error: "created-project-not-found"
 		onPlay: (entry) -> startMobilePlay entry
 		onRemix: (entry) ->
 			return if HttpServer.wsConnectionCount > 0
