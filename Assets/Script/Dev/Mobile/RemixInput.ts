@@ -41,7 +41,11 @@ export function createRemixInputView(input: Node.Type, fontSize: number) {
 		label.alignment = TextAlign.Left; label.anchor = Vec2(0, 1); label.textWidth = -1;
 		return label;
 	};
-	const measure = makeLabel(); measure.batched = false; measure.text = "M";
+	// Unparented Dora nodes are auto-attached to Director.entry on the next frame.
+	// Own the metrics probe under the input so it never renders or outlives the UI.
+	const measure = makeLabel(); measure.tag = "remix-input-measure"; measure.visible = false;
+	input.addChild(measure);
+	measure.batched = false; measure.text = "M";
 	// Lua-facing getCharacter is 1-based (the C++ method itself is 0-based).
 	const markerX = measure.getCharacter(1)?.x ?? 0;
 	const singleHeight = measure.height;
