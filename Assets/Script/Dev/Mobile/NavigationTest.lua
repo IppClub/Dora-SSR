@@ -35,10 +35,11 @@ D.thread(function()
 	local hidden={}
 	D.Director.systemUI:eachChild(function(n) if n.visible then hidden[#hidden+1]=n;n.visible=false end;return false end)
 	D.App.winSize=D.Size(390,844);D.sleep(0.2)
-	local feed,remix,synced,selected,played
-	local function start(initial)
-		return F.startMobileFeed({initialEntry=initial,getLocalEntries=function() return localItems end,getDiscoverEntries=function() return discoverItems end,
+	local feed,remix,synced,selected,played,remembered
+	local function start(initial,initialEntries)
+		return F.startMobileFeed({initialEntry=initial,initialEntries=initialEntries,getLocalEntries=function() return localItems end,getDiscoverEntries=function() return discoverItems end,
 			syncDiscover=function(_,done) synced=done end,prepare=function() error("Unexpected install") end,
+			onCurrentEntryChanged=function(entry) remembered=entry end,
 			onPlay=function(entry) played=entry end,
 			onRemix=function(entry)
 				selected=entry;feed.visible=false
@@ -93,9 +94,9 @@ D.thread(function()
 	end
 	local ok,err=xpcall(function()
 		A.setMobileLargeText(false);assert(A.getMobileLargeText() and A.mobileFontScale==1.16,"Legacy setting restored small text")
-		feed=start();title("A");noAa(feed)
+		feed=start();title("A");assert(remembered==a,"Initial Feed card was not remembered");noAa(feed)
 		synced(true);title("A")
-		feed:emit("RestoreFeedEntry",b);title("B")
+		feed:emit("RestoreFeedEntry",b);title("B");assert(remembered==b,"Restored Feed card was not remembered")
 		find(feed,"mobile-feed-remix"):emit("Tapped");assert(selected==b and not feed.visible)
 		noAa(remix)
 		local back=assert(find(remix,"remix-back"));assert(back.x>D.App.safeArea.width/2 and back.width>=44 and back.height>=44,"Back is not top-right/touch-sized")
@@ -116,7 +117,10 @@ D.thread(function()
 		find(feed,"mobile-feed-play"):emit("Tapped");assert(played.fileName==b.fileName,"Play selected wrong project")
 		feed:removeFromParent(true);feed=start(played);title("B renamed")
 		find(feed,"mobile-feed-remix"):emit("Tapped");find(remix,"remix-back"):emit("Tapped");assert(feed.visible and not remix.parent);title("B renamed")
-		feed:removeFromParent(true);feed=start(x);title("X")
+		feed:removeFromParent(true);feed=start(b,{["local"]=b,["discover"]=y});title("B renamed")
+		find(feed,"mobile-feed-discover-tab"):emit("Tapped");title("Y")
+		find(feed,"mobile-feed-local-tab"):emit("Tapped");title("B renamed")
+		feed:removeFromParent(true);feed=start(x);title("X");assert(remembered==x,"Discover Feed card was not remembered")
 		discoverItems={x,y};synced(true);title("X")
 		feed:removeFromParent(true);localItems={};feed=start();title("X")
 		feed:removeFromParent(true);discoverItems={};feed=start();assert(not find(feed,"mobile-feed-current-title"),"Empty Feed should not invent card")
@@ -126,5 +130,5 @@ D.thread(function()
 	if feed and feed.parent then feed:removeFromParent(true) end
 	D.App.winSize=previousSize
 	for _,n in ipairs(hidden) do n.visible=true end
-	D.Content:save("/tmp/dora-navigation.result",ok and "passed largeOnly=1 noAa=1 backTopRight=1 leftSwipe=1 wholePageDrag=1 stationaryObserver=1 springBack=1 pollingDuringDrag=1 verticalLock=1 inputGuard=1 busyGuard=1 localDefault=1 emptyFallback=1 restoreRenamedReordered=1 remixBack=1 playRecreate=1 catalogSyncPin=1 discoverOrigin=1 noLLM=1\n" or "failed "..tostring(err))
+	D.Content:save("/tmp/dora-navigation.result",ok and "passed largeOnly=1 noAa=1 backTopRight=1 leftSwipe=1 wholePageDrag=1 stationaryObserver=1 springBack=1 pollingDuringDrag=1 verticalLock=1 inputGuard=1 busyGuard=1 localDefault=1 emptyFallback=1 restoreRenamedReordered=1 remixBack=1 playRecreate=1 catalogSyncPin=1 discoverOrigin=1 perTabRestore=1 rememberedCard=1 noLLM=1\n" or "failed "..tostring(err))
 end)

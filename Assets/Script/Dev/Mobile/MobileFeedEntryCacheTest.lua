@@ -27,14 +27,20 @@ end
 
 return function()
 	local original = D.Content.writablePath
+	local config = Entry.getConfig()
+	local previousShowPreview = config.showPreview
 	local root = D.Path(original, "mobile-feed-cache-test-" .. tostring(D.App.runningTime))
 	D.Content:mkdir(root)
 	local a = writeProject(root, "A", "A1")
 	local b = writeProject(root, "B", "B1")
+	local banner = D.Path(a, ".dora", "banner.jpg")
+	D.Content:copy(D.Path(D.Content.assetPath, "Image", "banner.jpg"), banner)
 	local ok, err = xpcall(function()
+		rawset(config, getmetatable(config).showPreview, true)
 		D.Content.writablePath = root
 		local initial = Entry.getMobileFeedEntries(true)
 		expect(byId(initial, "A").title == "A1" and byId(initial, "B").title == "B1", "cold full scan did not load both projects")
+		expect(byId(initial, "A").bannerFile == banner, "cold full scan did not publish the banner path")
 
 		D.Content:save(D.Path(a, ".dora", "repo.json"), '{"title":{"en":"A2","zh":"A2"}}')
 		D.Content:save(D.Path(b, ".dora", "repo.json"), '{"title":{"en":"B2","zh":"B2"}}')
@@ -52,11 +58,12 @@ return function()
 		expect(byId(Entry.getMobileFeedEntries(false, c), "C") ~= nil, "new project was not inserted incrementally")
 	end, debug.traceback)
 	D.Content.writablePath = original
+	rawset(config, getmetatable(config).showPreview, previousShowPreview)
 	Entry.getMobileFeedEntries(true)
 	D.Content:remove(root)
 	if not ok then
 		D.Content:save(resultPath, "failed " .. tostring(err) .. "\n")
 		error(err)
 	end
-	D.Content:save(resultPath, "passed coldFull=1 dirtyOne=1 cleanStable=1 remove=1 insert=1\n")
+	D.Content:save(resultPath, "passed coldFull=1 initialBanner=1 dirtyOne=1 cleanStable=1 remove=1 insert=1\n")
 end

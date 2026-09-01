@@ -11,12 +11,13 @@ local session = {id=91999, projectRoot=D.Content.assetPath, title="Button test",
 	memoryScope="main", workMode="code", status="IDLE", currentTaskStatus="IDLE", currentTaskId=92999, createdAt=1, updatedAt=1}
 local sends, stops, continues, rejectStop = 0, 0, 0, true
 local messages = {}
+local steps = {}
 local hasActivePlan = false
 local lastPrompt, lastMode = "", ""
 local config = {url="https://example.invalid", model="test", apiKey="test", contextWindow=64000, temperature=0, maxTokens=1000, supportsFunctionCalling=true}
 local services = {
 	createSession=function() return {success=true, session=session} end,
-	getSession=function() return {success=true, session=session, relatedSessions={}, messages=messages, steps={}, checkpoints={}, hasActivePlan=hasActivePlan} end,
+	getSession=function() return {success=true, session=session, relatedSessions={}, messages=messages, steps=steps, checkpoints={}, hasActivePlan=hasActivePlan} end,
 	setWorkMode=function(_, mode) session.workMode=mode; return {success=true} end,
 	sendPrompt=function(_, prompt, _, mode) sends=sends+1; lastPrompt=prompt; lastMode=mode; session.status="RUNNING"; session.currentTaskStatus="RUNNING"; return {success=true,sessionId=session.id,taskId=session.currentTaskId} end,
 	continuePrompt=function() continues=continues+1; session.status="RUNNING"; session.currentTaskStatus="RUNNING"; return {success=true,sessionId=session.id,taskId=session.currentTaskId} end,
@@ -71,8 +72,11 @@ D.thread(function()
 			local transcript=assert(find(host,"remix-transcript"))
 			local status=assert(find(host,"remix-status"))
 			local statusText=assert(find(host,"remix-status-text"))
-			local hasTranscriptRows=find(host,"message-93999")~=nil
-			if not shortLandscape then equal(statusText.y,status.height/2+(hasTranscriptRows and 26 or 14),"Portrait status visual lift") end
+			local hasTranscriptRows=find(host,"message-93999")~=nil or #steps>0
+			if not shortLandscape then
+				local statusClip=assert(find(host,"remix-status-clip"))
+				equal(statusClip.y+statusText.y,status.height/2+(hasTranscriptRows and 26 or 14),"Portrait status visual lift")
+			end
 			local errorLabel=find(host,"remix-error")
 			local lower=errorLabel or plan
 			equal(transcript.y-lower.y-lower.height,12,"Transcript bottom gap")
@@ -113,6 +117,30 @@ D.thread(function()
 		input:emit("TextEditing","")
 		D.sleep(0.2); D.App:saveScreenshot("/tmp/dora-remix-primary-send"); D.sleep(0.2)
 		send:emit("Tapped"); assert(sends==1)
+		local regularStatusY=assert(find(host,"remix-status-text")).y
+		steps={{id=93001,taskId=session.currentTaskId,step=1,tool="message",status="RUNNING",reason="",reasoningContent="先分析界面\n核对状态栏最后一行\n"}}
+		D.sleep(0.35)
+		local thinkingStatus=assert(find(host,"remix-status-text"),"Thinking status label missing")
+		local thinkingText=assert(find(host,"remix-thinking-text"),"Thinking detail label missing")
+		assert(find(host,"mascot-working") and not find(host,"mascot-thinking"),"Thinking text replaced the Remix mascot animation")
+		assert(thinkingStatus.text=="正在思考","Thinking status title mismatch: "..tostring(thinkingStatus.text))
+		assert(thinkingStatus.y==regularStatusY,"Thinking status title moved vertically")
+		assert(thinkingStatus.color3:toRGB()==0xffcc33,"Thinking status title is not gold")
+		assert(thinkingText.text=="核对状态栏最后一行","Thinking detail did not use the latest reasoning line: "..tostring(thinkingText.text))
+		assert(thinkingText.textWidth==-1,"Thinking detail wrapped instead of staying on one line")
+		assert(thinkingText.color3:toRGB()==0xa8afbd,"Thinking detail is not muted gray")
+		steps[1].reasoningContent="先分析界面\n这是一段用于验证中英文 mixed content 在有限宽度内能够按照真实字形宽度安全截断而不是直接被裁掉的很长思考文本"
+		D.sleep(0.35)
+		local ellipsizedThinking=assert(find(host,"remix-thinking-text"))
+		assert(string.match(ellipsizedThinking.text,"…$")~=nil,"Overflowing thinking detail has no ellipsis: "..tostring(ellipsizedThinking.text))
+		assert(ellipsizedThinking.width<=assert(find(host,"remix-status-clip")).width-20.0,"Thinking ellipsis did not preserve right padding")
+		D.App:saveScreenshot("/tmp/dora-remix-thinking"); D.sleep(0.2)
+		steps[1].reason="开始输出正文"
+		D.sleep(0.35)
+		assert(find(host,"remix-status-text").text=="Dora 正在 Remix…","Content output did not restore Remix status")
+		steps={steps[1],{id=93002,taskId=session.currentTaskId,step=2,tool="message",status="RUNNING",reason="",reasoningContent=""}}
+		D.sleep(0.35)
+		assert(find(host,"remix-status-text").text=="Dora 正在 Remix…","Next loop reused stale reasoning status")
 		local stop=action("stop")
 		assert(stop.x==x and stop.y==y and stop.width==w and stop.height==h,"Action slot moved")
 		assert(find(host,"remix-input")==input,"Send/Stop transition replaced IME node")

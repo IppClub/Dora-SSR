@@ -14,11 +14,13 @@ interface FeedEntry extends ModelFeedEntry {
 
 interface MobileFeedOptions {
 	initialEntry?: FeedEntry;
+	initialEntries?: { local?: FeedEntry; discover?: FeedEntry };
 	getLocalEntries: (this: void) => FeedEntry[];
 	getDiscoverEntries: (this: void) => FeedEntry[];
 	syncDiscover?: (this: void, onProgress: (this: void, message: string) => void, onDone: (this: void, success: boolean, message?: string) => void) => void;
 	onPlay: (this: void, entry: FeedEntry) => void;
 	onRemix: (this: void, entry: FeedEntry) => void;
+	onCurrentEntryChanged?: (this: void, entry: FeedEntry) => void;
 	createProject?: (this: void, name: string) => { success: true; entry: FeedEntry } | { success: false; error: string };
 	onSwitchMode?: (this: void) => void;
 	prepare: (this: void, entry: FeedEntry, repairIncomplete: boolean, onProgress: (this: void, progress: number, message: string) => void, onDone: (this: void, success: boolean, ready?: { fileName: string; workDir: string }, message?: string, repairable?: boolean) => void) => void;
@@ -152,6 +154,10 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	let dismissedCreateComposition = false;
 	let createError = "";
 	let returnEntry = options.initialEntry;
+	const rememberedEntries: { local?: FeedEntry; discover?: FeedEntry } = {
+		local: options.initialEntries?.local,
+		discover: options.initialEntries?.discover,
+	};
 	const cardRef = reference<Node.Type>();
 	const indexRef = reference<Node.Type>();
 	let createInputRef = reference<Node.Type>();
@@ -175,6 +181,16 @@ export function startMobileFeed(options: MobileFeedOptions) {
 
 	const entries = () => tab === "discover" ? discover : local;
 	const current = () => entries()[normalizeFeedIndex(index, entries().length)];
+	let rememberedEntryKey = "";
+	const rememberCurrent = () => {
+		const item = current();
+		if (!item || !options.onCurrentEntryChanged) return;
+		const key = `${item.kind}\n${item.id}\n${item.workDir ?? ""}\n${item.fileName ?? ""}`;
+		if (key === rememberedEntryKey) return;
+		rememberedEntryKey = key;
+		rememberedEntries[item.kind] = item;
+		options.onCurrentEntryChanged(item);
+	};
 	const canEditCreate = () => createOpen && !creating && isActive() && host.visible && HttpServer.wsConnectionCount === 0;
 	const createInput = createTextInput({
 		fontSize: math.floor(16 * mobileFontScale),
@@ -243,7 +259,9 @@ export function startMobileFeed(options: MobileFeedOptions) {
 			createError = "";
 		}
 		tab = next;
-		index = 0;
+		const target = rememberedEntries[next];
+		const location = target === undefined ? undefined : resolveFeedLocation(local, discover, target);
+		index = location?.tab === next ? location.index : 0;
 		render();
 	};
 	const activate = (action: "play" | "remix") => {
@@ -353,6 +371,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		const data = entries();
 		index = normalizeFeedIndex(index, data.length);
 		const item = current();
+		rememberCurrent();
 		const coverWidth = wide ? math.min(usableWidth * 0.54, 680) : usableWidth - 32;
 		const coverHeight = wide
 			? math.min(usableHeight - 118, coverWidth * 0.72)
@@ -562,7 +581,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 			render();
 		}, (success, message) => {
 			if (!isActive()) return;
-			const selected = returnEntry ?? current();
+			const selected = returnEntry ?? rememberedEntries[tab] ?? current();
 			const previousCount = discover.length;
 			discover = getDiscoverEntries();
 			discoverError = success

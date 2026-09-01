@@ -76,6 +76,7 @@ config = Config(
 	"webIDETourCompleted"
 	"showPreview"
 	"mobileFeed"
+	"mobileFeedCurrentCard"
 	"mobileRemixLLMConfigId"
 	"mobileLargeText"
 	"authRequired"
@@ -327,11 +328,14 @@ allEntries.scanDir = (path, dir, noPreview = false) ->
 					f = Path Content.assetPath, "Image", "banner.jpg"
 					break f if Content\exist f
 				until true
-				if bannerFile then thread ->
-					if Cache\loadAsync bannerFile
-						if bannerTex := Texture2D bannerFile
-							entry.bannerFile = bannerFile
-							entry.bannerTex = bannerTex
+				if bannerFile
+					-- Publish the path with the first scan so Mobile Feed can render it immediately.
+					-- The async texture remains an optimization for the traditional preview UI.
+					entry.bannerFile = bannerFile
+					thread ->
+						if Cache\loadAsync bannerFile
+							if bannerTex := Texture2D bannerFile
+								entry.bannerTex = bannerTex
 				entries[] = entry
 	entries
 
@@ -1496,7 +1500,7 @@ entryWindow = threadLoop ->
 					SameLine!
 					TextWrapped displayName
 					if columns > 1
-						if bannerFile
+						if bannerFile and bannerTex
 							width: texWidth, height: texHeight = bannerTex
 							const displayWidth = realViewWidth
 							texHeight = displayWidth * texHeight / texWidth
@@ -1507,7 +1511,7 @@ entryWindow = threadLoop ->
 						if Button "#{zh and "开始测试" or "Game Test"}###{fileName}", Vec2 -1, 40
 							enterDemoEntry game
 					else
-						if bannerFile
+						if bannerFile and bannerTex
 							width: texWidth, height: texHeight = bannerTex
 							displayWidth = (fullWidth / 2 - paddingX) * 2 - 35
 							sizing = 0.8
@@ -1646,9 +1650,40 @@ startMobileUI = ->
 		for item in *items
 			item.launchError = mobileLaunchErrors[item.id]
 		items
+	rememberedMobileFeedData = config.mobileFeedCurrentCard
+	loadRememberedMobileFeedState = ->
+		raw = rememberedMobileFeedData
+		return unless type(raw) == "string" and raw ~= ""
+		ok, saved = pcall json.decode, raw
+		return unless ok and type(saved) == "table"
+		if type(saved.id) == "string" and saved.kind in ["local", "discover"]
+			state = activeTab: saved.kind
+			state[saved.kind] = saved
+			return state
+		state = activeTab: saved.activeTab in ["local", "discover"] and saved.activeTab or "local"
+		for kind in *["local", "discover"]
+			entry = saved[kind]
+			state[kind] = entry if type(entry) == "table" and type(entry.id) == "string" and entry.kind == kind
+		state
+	rememberedMobileFeedState = loadRememberedMobileFeedState! or {activeTab: "local"}
+	rememberMobileFeedEntry = (entry) ->
+		rememberedMobileFeedState.activeTab = entry.kind
+		rememberedMobileFeedState[entry.kind] = {
+			id: entry.id
+			kind: entry.kind
+			workDir: entry.workDir
+			fileName: entry.fileName
+		}
+		rememberedMobileFeedData = json.encode rememberedMobileFeedState
+		rawset config, getmetatable(config).mobileFeedCurrentCard, rememberedMobileFeedData
+		DB\exec "insert or replace into Config(name, value_num, value_str, value_bool) values('mobileFeedCurrentCard', NULL, ?, NULL)", [rememberedMobileFeedData,]
 	restartMobileFeed = (entry) ->
 		feedHost\removeFromParent true if feedHost
-		feedOptions.initialEntry = entry
+		feedOptions.initialEntry = entry or rememberedMobileFeedState[rememberedMobileFeedState.activeTab]
+		initialEntries = {}
+		initialEntries["local"] = rememberedMobileFeedState["local"]
+		initialEntries["discover"] = rememberedMobileFeedState["discover"]
+		feedOptions.initialEntries = initialEntries
 		feedHost = trackMobileHost mobileFeed.startMobileFeed feedOptions
 	startMobilePlay = (entry) ->
 		return if HttpServer.wsConnectionCount > 0
@@ -1675,6 +1710,7 @@ startMobileUI = ->
 			restoreMobileFeed!
 	feedOptions = {
 		onSwitchMode: -> pendingUIMode = false if HttpServer.wsConnectionCount == 0
+		onCurrentEntryChanged: rememberMobileFeedEntry
 		getLocalEntries: ->
 			dirtyProjectPath = feedOptions.dirtyProjectPath
 			feedOptions.dirtyProjectPath = nil

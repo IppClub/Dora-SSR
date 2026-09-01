@@ -6,6 +6,7 @@ import {
 	compactAgentActivity,
 	isQuestionAnswered,
 	resolveRemixPhase,
+	resolveRemixThinkingStatus,
 	resolveRemixWorkMode,
 } from "Dev/Mobile/RemixModel";
 import type { AgentQuestion } from "Agent/Questionnaire";
@@ -63,6 +64,13 @@ try {
 	expect(compactAgentActivity("build", "", false) === "Validating game", "build activity label mismatch");
 	expect(compactAgentActivity("unknown", "", false) === "Working", "fallback activity label mismatch");
 	expect(compactAgentActivity("read_file", "x".repeat(100), false).length === "Reading project · ".length + 72, "activity reason must be truncated");
+	const thinkingStep = { id: 1, taskId: 7, step: 3, tool: "message", status: "RUNNING" as const,
+		reason: "", reasoningContent: "先分析布局\r\n再核对状态栏\n" };
+	expect(resolveRemixThinkingStatus([thinkingStep], 7) === "再核对状态栏", "thinking status must use the last non-empty line");
+	expect(resolveRemixThinkingStatus([{ ...thinkingStep, reason: "开始输出正文" }], 7) === undefined, "content output must restore the regular status");
+	expect(resolveRemixThinkingStatus([{ ...thinkingStep, status: "DONE" }], 7) === undefined, "completed step must restore the regular status");
+	expect(resolveRemixThinkingStatus([thinkingStep, { ...thinkingStep, id: 2, step: 4, reasoningContent: "" }], 7) === undefined, "next loop must replace stale reasoning");
+	expect(resolveRemixThinkingStatus([thinkingStep], 8) === undefined, "other task reasoning must be ignored");
 	Content.save(resultPath, "passed");
 } catch (error) {
 	Content.save(resultPath, `failed: ${error}`);

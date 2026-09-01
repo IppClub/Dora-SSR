@@ -27,13 +27,15 @@ const stateRow = (state: DoraMascotState) => state === "waiting" ? 1
 
 const frameRect = (state: DoraMascotState, frame: number) => Rect(frame * MASCOT_CELL_SIZE, stateRow(state) * MASCOT_CELL_SIZE, MASCOT_CELL_SIZE, MASCOT_CELL_SIZE);
 
-export function DoraMascot(props: { state: DoraMascotState; x: number; y: number; size?: number }) {
+export function DoraMascot(props: { state: DoraMascotState; x: number; y: number; size?: number; animationStartedAt?: number }) {
 	const size = props.size ?? 48;
 	const layout = mascotLayout(size);
 	const snap = (value: number) => math.floor(value * App.devicePixelRatio + 0.5) / App.devicePixelRatio;
 	const spriteRef = reference<Sprite.Type>();
-	let frame = 0;
-	let elapsed = 0;
+	let elapsed = props.animationStartedAt !== undefined && !App.reducedMotion
+		? math.max(0, App.runningTime - props.animationStartedAt)
+		: 0;
+	let frame = mascotFrameAt(elapsed, props.state === "idle" ? 0.34 : 0.2);
 	return <node tag={`mascot-${props.state}`} x={snap(props.x)} y={snap(props.y)} onMount={node => node.schedule(dt => {
 		elapsed = mascotAnimationTime(elapsed, dt, App.reducedMotion);
 		const nextFrame = mascotFrameAt(elapsed, props.state === "idle" ? 0.34 : 0.2);
@@ -46,8 +48,8 @@ export function DoraMascot(props: { state: DoraMascotState; x: number; y: number
 		}
 		return false;
 	})}>
-		<sprite tag="mascot-sprite" ref={spriteRef} file="Image/Mobile/dora-remix-states.png" textureRect={frameRect(props.state, 0)}
-			anchorX={mascotFramePivotX(stateRow(props.state), 0) / MASCOT_CELL_SIZE} anchorY={1 - MASCOT_PIVOT_Y / MASCOT_CELL_SIZE} y={layout.feetY}
+		<sprite tag="mascot-sprite" ref={spriteRef} file="Image/Mobile/dora-remix-states.png" textureRect={frameRect(props.state, frame)}
+			anchorX={mascotFramePivotX(stateRow(props.state), frame) / MASCOT_CELL_SIZE} anchorY={1 - MASCOT_PIVOT_Y / MASCOT_CELL_SIZE} y={layout.feetY}
 			scaleX={layout.scale} scaleY={layout.scale} filter={TextureFilter.Point}
 			onMount={sprite => { sprite.width = MASCOT_CELL_SIZE; sprite.height = MASCOT_CELL_SIZE; }} />
 		{props.state !== "idle" ? <draw-node>

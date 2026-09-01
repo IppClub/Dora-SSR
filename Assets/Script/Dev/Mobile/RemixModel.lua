@@ -53,4 +53,32 @@ ____exports.compactAgentActivity = function(tool, reason, zh) -- 51
 	local clean = __TS__StringTrim(reason) -- 61
 	return clean == "" and label or (label .. " · ") .. string.sub(clean, 1, 72) -- 62
 end -- 51
-return ____exports -- 51
+____exports.resolveRemixThinkingStatus = function(steps, currentTaskId) -- 68
+	if currentTaskId == nil then -- 73
+		return nil -- 73
+	end -- 73
+	local current -- 74
+	for ____, step in ipairs(steps) do -- 75
+		do -- 75
+			if step.taskId ~= currentTaskId then -- 76
+				goto __continue75 -- 76
+			end -- 76
+			if not current or step.step > current.step or step.step == current.step and step.id > current.id then -- 77
+				current = step -- 77
+			end -- 77
+		end -- 77
+		::__continue75:: -- 75
+	end -- 75
+	if not current or current.tool ~= "message" or current.status ~= "RUNNING" or string.match(current.reason, "^%s*$") == nil then -- 79
+		return nil -- 80
+	end -- 80
+	local reasoning = string.gsub(current.reasoningContent, "\r\n", "\n") -- 81
+	reasoning = string.gsub(reasoning, "\r", "\n") -- 82
+	reasoning = string.gsub(reasoning, "[ \t\n]+$", "") -- 83
+	local lastLine = string.match(reasoning, "([^\n]+)$") or "" -- 84
+	if lastLine == "" then -- 85
+		return nil -- 85
+	end -- 85
+	return lastLine -- 86
+end -- 68
+return ____exports -- 68

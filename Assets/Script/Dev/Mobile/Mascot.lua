@@ -38,8 +38,8 @@ function ____exports.DoraMascot(props) -- 30
 		return math.floor(value * App.devicePixelRatio + 0.5) / App.devicePixelRatio -- 33
 	end -- 33
 	local spriteRef = reference() -- 34
-	local frame = 0 -- 35
-	local elapsed = 0 -- 36
+	local elapsed = props.animationStartedAt ~= nil and not App.reducedMotion and math.max(0, App.runningTime - props.animationStartedAt) or 0 -- 35
+	local frame = mascotFrameAt(elapsed, props.state == "idle" and 0.34 or 0.2) -- 36
 	local ____React_createElement_4 = React.createElement -- 36
 	local ____temp_2 = { -- 36
 		tag = "mascot-" .. props.state, -- 36
@@ -72,10 +72,10 @@ function ____exports.DoraMascot(props) -- 30
 			tag = "mascot-sprite", -- 37
 			ref = spriteRef, -- 37
 			file = "Image/Mobile/dora-remix-states.png", -- 37
-			textureRect = frameRect(props.state, 0), -- 37
+			textureRect = frameRect(props.state, frame), -- 37
 			anchorX = mascotFramePivotX( -- 37
 				stateRow(props.state), -- 50
-				0 -- 50
+				frame -- 50
 			) / MASCOT_CELL_SIZE, -- 50
 			anchorY = 1 - MASCOT_PIVOT_Y / MASCOT_CELL_SIZE, -- 50
 			y = layout.feetY, -- 50

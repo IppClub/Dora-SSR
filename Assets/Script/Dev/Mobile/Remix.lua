@@ -21,6 +21,7 @@ local DB = ____Dora.DB
 local Director = ____Dora.Director
 local Ease = ____Dora.Ease
 local HttpServer = ____Dora.HttpServer
+local Label = ____Dora.Label
 local Move = ____Dora.Move
 local Node = ____Dora.Node
 local sleep = ____Dora.sleep
@@ -37,6 +38,7 @@ local buildQuestionnaireAnswers = ____RemixModel.buildQuestionnaireAnswers
 local canLeaveRemix = ____RemixModel.canLeaveRemix
 local isQuestionAnswered = ____RemixModel.isQuestionAnswered
 local resolveRemixPhase = ____RemixModel.resolveRemixPhase
+local resolveRemixThinkingStatus = ____RemixModel.resolveRemixThinkingStatus
 local resolveRemixWorkMode = ____RemixModel.resolveRemixWorkMode
 local ____Mascot = require("Dev.Mobile.Mascot")
 local DoraMascot = ____Mascot.DoraMascot
@@ -51,6 +53,8 @@ local ____RemixHistory = require("Dev.Mobile.RemixHistory")
 local REMIX_HISTORY_ROUNDS = ____RemixHistory.REMIX_HISTORY_ROUNDS
 local ____TextInput = require("Dev.Mobile.TextInput")
 local createTextInput = ____TextInput.createTextInput
+local inputLength = ____TextInput.inputLength
+local inputSlice = ____TextInput.inputSlice
 local ____Visual = require("Dev.Mobile.Visual")
 local RoundedSurface = ____Visual.RoundedSurface
 local VerticalGradient = ____Visual.VerticalGradient
@@ -72,6 +76,37 @@ local modeBottom = composerBottom + composerHeight + composerGap
 local composerTop = modeBottom + 40
 local transcriptBottom = composerTop + composerGap
 local statusHeight = 64
+local function ellipsizeSingleLine(text, width, fontSize)
+    if text == "" then
+        return ""
+    end
+    local measure = Label(fontName, fontSize, true)
+    if not measure then
+        return text
+    end
+    measure.visible = false
+    measure.textWidth = -1
+    local function fits(value)
+        measure.text = value
+        return measure.width <= width
+    end
+    if fits(text) then
+        measure:cleanup()
+        return text
+    end
+    local low, high = 0, inputLength(text)
+    while low < high do
+        local middle = math.floor((low + high + 1) / 2)
+        if fits(inputSlice(text, 0, middle) .. "…") then
+            low = middle
+        else
+            high = middle - 1
+        end
+    end
+    local result = inputSlice(text, 0, low) .. "…"
+    measure:cleanup()
+    return result
+end
 local function ActionButton(props)
     local height = props.height or 46
     return React.createElement(
@@ -278,6 +313,8 @@ function ____exports.startMobileRemix(options)
     local displayRevision = ""
     local shellRevision = ""
     local inputLayout = ""
+    local mascotAnimationState
+    local mascotAnimationStartedAt = App.runningTime
     local compactHeaderStatusActive = false
     local errorLabel
     local layoutTranscriptBottom = transcriptBottom
@@ -327,7 +364,8 @@ function ____exports.startMobileRemix(options)
                 ____array_13,
                 ____detail_session_currentTaskFinalizing_12,
                 stopRequested,
-                hasTranscriptContent()
+                hasTranscriptContent(),
+                resolveRemixThinkingStatus(detail.steps, detail.session.currentTaskId) or ""
             )
             ____detail_success_15 = (____safeJsonEncode_14({__TS__SparseArraySpread(____array_13)})) or ""
         else
@@ -669,8 +707,13 @@ function ____exports.startMobileRemix(options)
         local headerStatusWidth = 168
         local headerTitleWidth = compactHeaderStatus and math.max(120, safe.width - 124 - headerStatusWidth - composerGap) or safe.width - 124
         local headerStatusX = left + 16 + headerTitleWidth + composerGap
-        local statusText = phase == "planning" and (zh and "Dora 正在整理方案…" or "Dora is planning…") or (phase == "working" and (zh and "Dora 正在 Remix…" or "Dora is remixing…") or (phase == "plan-ready" and (zh and "计划对话已完成" or "Planning conversation complete") or (phase == "waiting" and (zh and "需要你的确认" or "Waiting for you") or (phase == "done" and (zh and "Remix 已完成" or "Remix complete") or (phase == "failed" and (zh and "执行失败，可以修改要求后重试" or "Failed; revise and retry") or (zh and "告诉 Dora 你想怎样改这个游戏" or "Tell Dora how to change this game"))))))
+        local thinkingText = resolveRemixThinkingStatus(detail.success and detail.steps or ({}), state and state.currentTaskId)
+        local statusText = thinkingText ~= nil and (zh and "正在思考" or "Thinking") or (phase == "planning" and (zh and "Dora 正在整理方案…" or "Dora is planning…") or (phase == "working" and (zh and "Dora 正在 Remix…" or "Dora is remixing…") or (phase == "plan-ready" and (zh and "计划对话已完成" or "Planning conversation complete") or (phase == "waiting" and (zh and "需要你的确认" or "Waiting for you") or (phase == "done" and (zh and "Remix 已完成" or "Remix complete") or (phase == "failed" and (zh and "执行失败，可以修改要求后重试" or "Failed; revise and retry") or (zh and "告诉 Dora 你想怎样改这个游戏" or "Tell Dora how to change this game")))))))
         local mascotState = phase == "planning" and "thinking" or (phase == "working" and "working" or (phase == "waiting" and "waiting" or ((phase == "done" or phase == "plan-ready") and "success" or (phase == "failed" and "failed" or "idle"))))
+        if mascotAnimationState ~= mascotState then
+            mascotAnimationState = mascotState
+            mascotAnimationStartedAt = App.runningTime
+        end
         local emptyLandscape = shortLandscape and not hasTranscriptContent()
         local emptyStatusBottom = bottom + layoutModeBottom + 40 + composerGap
         local emptyStatusTop = headerY - composerGap - statusHeight
@@ -681,6 +724,12 @@ function ____exports.startMobileRemix(options)
         local mascotX = shortLandscape and left + 40 or left + 66
         local statusTextX = shortLandscape and left + 76 or left + 104
         local statusTextWidth = shortLandscape and math.max(120, left + 16 + contentWidth - statusTextX) or contentWidth - 84
+        local renderedStatusX = compactHeaderStatus and 36 or statusTextX
+        local renderedStatusY = compactHeaderStatus and 22 or statusHeight / 2 + standaloneStatusContentLift
+        local renderedStatusWidth = compactHeaderStatus and headerStatusWidth - 36 or statusTextWidth
+        local thinkingFontSize = compactHeaderStatus and math.floor(10 * fontScale) or math.floor(12 * fontScale)
+        local thinkingRightPadding = compactHeaderStatus and 8 or 20
+        local renderedThinkingText = thinkingText == nil and "" or ellipsizeSingleLine(thinkingText, renderedStatusWidth - thinkingRightPadding, thinkingFontSize)
         local swipeStart = Vec2.zero
         local swipeAxis = "none"
         local pageRef = reference()
@@ -702,9 +751,9 @@ function ____exports.startMobileRemix(options)
             end)
             return hit
         end
-        local ____toNode_62 = toNode
-        local ____React_createElement_61 = React.createElement
-        local ____array_60 = __TS__SparseArrayNew(
+        local ____toNode_64 = toNode
+        local ____React_createElement_63 = React.createElement
+        local ____array_62 = __TS__SparseArrayNew(
             "node",
             {
                 tag = "remix-scene",
@@ -747,9 +796,9 @@ function ____exports.startMobileRemix(options)
                         swipeStart = touch.location
                         swipeAxis = "none"
                         swipeDragging = true
-                        local ____opt_30 = pageRef.current
-                        if ____opt_30 ~= nil then
-                            ____opt_30:stopAllActions()
+                        local ____opt_32 = pageRef.current
+                        if ____opt_32 ~= nil then
+                            ____opt_32:stopAllActions()
                         end
                     end,
                     onTapMoved = function(touch)
@@ -800,8 +849,8 @@ function ____exports.startMobileRemix(options)
             ),
             React.createElement(VerticalGradient, {width = width, height = height, topColor = 4279310117, bottomColor = 4278716943})
         )
-        local ____React_createElement_59 = React.createElement
-        local ____array_58 = __TS__SparseArrayNew(
+        local ____React_createElement_61 = React.createElement
+        local ____array_60 = __TS__SparseArrayNew(
             "node",
             {tag = "remix-page", ref = pageRef},
             React.createElement(
@@ -865,28 +914,60 @@ function ____exports.startMobileRemix(options)
                     anchorX = 0,
                     anchorY = 0
                 },
-                React.createElement(DoraMascot, {state = mascotState, x = compactHeaderStatus and 16 or mascotX, y = compactHeaderStatus and 20 or statusHeight / 2 - 2 + standaloneStatusContentLift, size = compactHeaderStatus and 30 or mascotSize}),
+                React.createElement(DoraMascot, {state = mascotState, x = compactHeaderStatus and 16 or mascotX, y = compactHeaderStatus and 20 or statusHeight / 2 - 2 + standaloneStatusContentLift, size = compactHeaderStatus and 30 or mascotSize, animationStartedAt = mascotAnimationStartedAt}),
                 React.createElement(
-                    "label",
+                    "clip-node",
                     {
-                        tag = "remix-status-text",
-                        x = compactHeaderStatus and 36 or statusTextX,
-                        y = compactHeaderStatus and 22 or statusHeight / 2 + standaloneStatusContentLift,
+                        tag = "remix-status-clip",
+                        x = renderedStatusX,
+                        y = renderedStatusY - 22,
+                        width = renderedStatusWidth,
+                        height = 44,
                         anchorX = 0,
-                        fontName = fontName,
-                        fontSize = compactHeaderStatus and math.floor(13 * fontScale) or math.floor(15 * fontScale),
-                        text = statusText,
-                        textWidth = compactHeaderStatus and headerStatusWidth - 36 or statusTextWidth,
-                        alignment = "Left",
-                        color3 = phase == "failed" and 16739179 or 16763955
-                    }
+                        anchorY = 0,
+                        stencil = React.createElement(
+                            "draw-node",
+                            {x = renderedStatusWidth / 2, y = 22},
+                            React.createElement("rect-shape", {width = renderedStatusWidth, height = 44, fillColor = 4294967295})
+                        )
+                    },
+                    React.createElement(
+                        "label",
+                        {
+                            tag = "remix-status-text",
+                            x = 0,
+                            y = 22,
+                            anchorX = 0,
+                            fontName = fontName,
+                            fontSize = compactHeaderStatus and math.floor(13 * fontScale) or math.floor(15 * fontScale),
+                            text = statusText,
+                            textWidth = -1,
+                            alignment = "Left",
+                            color3 = phase == "failed" and 16739179 or 16763955
+                        }
+                    ),
+                    React.createElement(
+                        "label",
+                        {
+                            tag = "remix-thinking-text",
+                            x = 0,
+                            y = 6,
+                            anchorX = 0,
+                            fontName = fontName,
+                            fontSize = thinkingFontSize,
+                            text = renderedThinkingText,
+                            textWidth = -1,
+                            alignment = "Left",
+                            color3 = colors.muted
+                        }
+                    )
                 )
             )
         )
-        local ____temp_39
+        local ____temp_41
         if questionnaire and question then
-            local ____React_createElement_38 = React.createElement
-            local ____array_37 = __TS__SparseArrayNew(
+            local ____React_createElement_40 = React.createElement
+            local ____array_39 = __TS__SparseArrayNew(
                 "node",
                 {
                     tag = "remix-questionnaire",
@@ -945,25 +1026,25 @@ function ____exports.startMobileRemix(options)
                             selected = __TS__ArrayIndexOf(questionnaireSelections[question.id] or ({}), option.id) >= 0,
                             onTapped = function()
                                 local selected = questionnaireSelections[question.id] or ({})
-                                local ____question_id_35 = question.id
-                                local ____temp_34
+                                local ____question_id_37 = question.id
+                                local ____temp_36
                                 if question.type == "single_choice" then
-                                    ____temp_34 = {option.id}
+                                    ____temp_36 = {option.id}
                                 else
-                                    local ____temp_33
+                                    local ____temp_35
                                     if __TS__ArrayIndexOf(selected, option.id) >= 0 then
-                                        ____temp_33 = __TS__ArrayFilter(
+                                        ____temp_35 = __TS__ArrayFilter(
                                             selected,
                                             function(____, id) return id ~= option.id end
                                         )
                                     else
-                                        local ____array_32 = __TS__SparseArrayNew(table.unpack(selected))
-                                        __TS__SparseArrayPush(____array_32, option.id)
-                                        ____temp_33 = {__TS__SparseArraySpread(____array_32)}
+                                        local ____array_34 = __TS__SparseArrayNew(table.unpack(selected))
+                                        __TS__SparseArrayPush(____array_34, option.id)
+                                        ____temp_35 = {__TS__SparseArraySpread(____array_34)}
                                     end
-                                    ____temp_34 = ____temp_33
+                                    ____temp_36 = ____temp_35
                                 end
-                                questionnaireSelections[____question_id_35] = ____temp_34
+                                questionnaireSelections[____question_id_37] = ____temp_36
                                 render()
                             end
                         }
@@ -980,9 +1061,9 @@ function ____exports.startMobileRemix(options)
                     onMount = promptInput.mount
                 })
             )
-            local ____temp_36
+            local ____temp_38
             if questionIndex > 0 then
-                ____temp_36 = React.createElement(
+                ____temp_38 = React.createElement(
                     ActionButton,
                     {
                         x = 16,
@@ -996,11 +1077,11 @@ function ____exports.startMobileRemix(options)
                     }
                 )
             else
-                ____temp_36 = nil
+                ____temp_38 = nil
             end
             __TS__SparseArrayPush(
-                ____array_37,
-                ____temp_36,
+                ____array_39,
+                ____temp_38,
                 React.createElement(
                     ActionButton,
                     {
@@ -1019,14 +1100,14 @@ function ____exports.startMobileRemix(options)
                     }
                 )
             )
-            ____temp_39 = ____React_createElement_38(__TS__SparseArraySpread(____array_37))
+            ____temp_41 = ____React_createElement_40(__TS__SparseArraySpread(____array_39))
         else
-            ____temp_39 = nil
+            ____temp_41 = nil
         end
-        __TS__SparseArrayPush(____array_58, ____temp_39)
-        local ____modelPickerOpen_40
+        __TS__SparseArrayPush(____array_60, ____temp_41)
+        local ____modelPickerOpen_42
         if modelPickerOpen then
-            ____modelPickerOpen_40 = React.createElement(
+            ____modelPickerOpen_42 = React.createElement(
                 "node",
                 {
                     x = left + 16,
@@ -1075,12 +1156,12 @@ function ____exports.startMobileRemix(options)
                 )
             )
         else
-            ____modelPickerOpen_40 = nil
+            ____modelPickerOpen_42 = nil
         end
-        __TS__SparseArrayPush(____array_58, ____modelPickerOpen_40)
-        local ____temp_41
+        __TS__SparseArrayPush(____array_60, ____modelPickerOpen_42)
+        local ____temp_43
         if ____error ~= "" then
-            ____temp_41 = React.createElement(
+            ____temp_43 = React.createElement(
                 "label",
                 {
                     tag = "remix-error",
@@ -1100,12 +1181,12 @@ function ____exports.startMobileRemix(options)
                 }
             )
         else
-            ____temp_41 = nil
+            ____temp_43 = nil
         end
-        __TS__SparseArrayPush(____array_58, ____temp_41)
-        local ____temp_42
+        __TS__SparseArrayPush(____array_60, ____temp_43)
+        local ____temp_44
         if questionnaire == nil and not modelPickerOpen then
-            ____temp_42 = React.createElement(
+            ____temp_44 = React.createElement(
                 "node",
                 nil,
                 React.createElement(
@@ -1136,12 +1217,12 @@ function ____exports.startMobileRemix(options)
                 )
             )
         else
-            ____temp_42 = nil
+            ____temp_44 = nil
         end
-        __TS__SparseArrayPush(____array_58, ____temp_42)
-        local ____temp_43
+        __TS__SparseArrayPush(____array_60, ____temp_44)
+        local ____temp_45
         if questionnaire == nil and not modelPickerOpen and not keptInput then
-            ____temp_43 = React.createElement("node", {
+            ____temp_45 = React.createElement("node", {
                 tag = "remix-input",
                 ref = inputRef,
                 x = left + 16,
@@ -1153,36 +1234,36 @@ function ____exports.startMobileRemix(options)
                 onMount = promptInput.mount
             })
         else
-            ____temp_43 = nil
+            ____temp_45 = nil
         end
-        __TS__SparseArrayPush(____array_58, ____temp_43)
-        local ____temp_56
+        __TS__SparseArrayPush(____array_60, ____temp_45)
+        local ____temp_58
         if stopping or questionnaire == nil and not modelPickerOpen then
-            local ____React_createElement_55 = React.createElement
-            local ____ActionButton_54 = ActionButton
-            local ____temp_49 = stopping and "remix-stop" or "remix-send"
-            local ____temp_50 = left + 16 + inputWidth + composerGap
-            local ____temp_51 = bottom + layoutComposerBottom
-            local ____temp_52 = stopping and (state and state.currentTaskFinalizing and (zh and "收尾中" or "Finishing") or (stopRequested and (zh and "停止中" or "Stopping") or (zh and "停止" or "Stop"))) or (zh and "发送" or "Send")
-            local ____temp_53 = not stopping
-            local ____stopping_48
+            local ____React_createElement_57 = React.createElement
+            local ____ActionButton_56 = ActionButton
+            local ____temp_51 = stopping and "remix-stop" or "remix-send"
+            local ____temp_52 = left + 16 + inputWidth + composerGap
+            local ____temp_53 = bottom + layoutComposerBottom
+            local ____temp_54 = stopping and (state and state.currentTaskFinalizing and (zh and "收尾中" or "Finishing") or (stopRequested and (zh and "停止中" or "Stopping") or (zh and "停止" or "Stop"))) or (zh and "发送" or "Send")
+            local ____temp_55 = not stopping
+            local ____stopping_50
             if stopping then
-                ____stopping_48 = stopRequested or (state and state.currentTaskFinalizing) == true
+                ____stopping_50 = stopRequested or (state and state.currentTaskFinalizing) == true
             else
-                ____stopping_48 = not canSubmit()
+                ____stopping_50 = not canSubmit()
             end
-            ____temp_56 = ____React_createElement_55(
-                ____ActionButton_54,
+            ____temp_58 = ____React_createElement_57(
+                ____ActionButton_56,
                 {
-                    tag = ____temp_49,
-                    x = ____temp_50,
-                    y = ____temp_51,
+                    tag = ____temp_51,
+                    x = ____temp_52,
+                    y = ____temp_53,
                     width = composerActionWidth,
                     height = layoutComposerHeight,
-                    text = ____temp_52,
-                    primary = ____temp_53,
+                    text = ____temp_54,
+                    primary = ____temp_55,
                     danger = stopping,
-                    disabled = ____stopping_48,
+                    disabled = ____stopping_50,
                     onTapped = function()
                         if stopping then
                             stop()
@@ -1194,12 +1275,12 @@ function ____exports.startMobileRemix(options)
                 }
             )
         else
-            ____temp_56 = nil
+            ____temp_58 = nil
         end
-        __TS__SparseArrayPush(____array_58, ____temp_56)
-        local ____temp_57
+        __TS__SparseArrayPush(____array_60, ____temp_58)
+        local ____temp_59
         if phase == "done" then
-            ____temp_57 = React.createElement(
+            ____temp_59 = React.createElement(
                 ActionButton,
                 {
                     tag = "remix-play",
@@ -1221,23 +1302,23 @@ function ____exports.startMobileRemix(options)
                 }
             )
         else
-            ____temp_57 = nil
+            ____temp_59 = nil
         end
-        __TS__SparseArrayPush(____array_58, ____temp_57)
+        __TS__SparseArrayPush(____array_60, ____temp_59)
         __TS__SparseArrayPush(
-            ____array_60,
-            ____React_createElement_59(__TS__SparseArraySpread(____array_58))
+            ____array_62,
+            ____React_createElement_61(__TS__SparseArraySpread(____array_60))
         )
-        local scene = ____toNode_62(____React_createElement_61(__TS__SparseArraySpread(____array_60)))
+        local scene = ____toNode_64(____React_createElement_63(__TS__SparseArraySpread(____array_62)))
         if scene then
             host:addChild(scene)
             if keptInput then
                 keptInput.position = Vec2(left + 16, bottom + layoutComposerBottom)
                 keptInput.width = inputWidth
                 keptInput.height = layoutComposerHeight
-                local ____opt_63 = pageRef.current
-                if ____opt_63 ~= nil then
-                    ____opt_63:addChild(keptInput)
+                local ____opt_65 = pageRef.current
+                if ____opt_65 ~= nil then
+                    ____opt_65:addChild(keptInput)
                 end
             end
             if not questionnaire and not modelPickerOpen then
@@ -1245,9 +1326,9 @@ function ____exports.startMobileRemix(options)
                     left + 16,
                     bottom + getTranscriptBottom()
                 )
-                local ____opt_65 = pageRef.current
-                if ____opt_65 ~= nil then
-                    ____opt_65:addChild(transcript.node)
+                local ____opt_67 = pageRef.current
+                if ____opt_67 ~= nil then
+                    ____opt_67:addChild(transcript.node)
                 end
                 updateTranscript()
             end

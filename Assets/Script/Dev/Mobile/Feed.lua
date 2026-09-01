@@ -259,6 +259,10 @@ function ____exports.startMobileFeed(options) -- 129
 	local dismissedCreateComposition = false -- 152
 	local createError = "" -- 153
 	local returnEntry = options.initialEntry -- 154
+	local rememberedEntries = {
+		["local"] = options.initialEntries and options.initialEntries["local"],
+		["discover"] = options.initialEntries and options.initialEntries["discover"]
+	}
 	local cardRef = reference() -- 155
 	local indexRef = reference() -- 156
 	local createInputRef = reference() -- 157
@@ -287,6 +291,20 @@ function ____exports.startMobileFeed(options) -- 129
 			#entries() -- 177
 		) + 1] -- 177
 	end -- 177
+	local rememberedEntryKey = ""
+	local function rememberCurrent()
+		local item = current()
+		if not item or not options.onCurrentEntryChanged then
+			return
+		end
+		local key = (((((item.kind .. "\n") .. item.id) .. "\n") .. (item.workDir or "")) .. "\n") .. (item.fileName or "")
+		if key == rememberedEntryKey then
+			return
+		end
+		rememberedEntryKey = key
+		rememberedEntries[item.kind] = item
+		options.onCurrentEntryChanged(item)
+	end
 	local function canEditCreate() -- 178
 		return createOpen and not creating and isActive() and host.visible and HttpServer.wsConnectionCount == 0 -- 178
 	end -- 178
@@ -391,7 +409,9 @@ function ____exports.startMobileFeed(options) -- 129
 			createError = "" -- 243
 		end -- 243
 		tab = next -- 245
-		index = 0 -- 246
+		local target = rememberedEntries[next]
+		local location = target and resolveFeedLocation(____local, discover, target)
+		index = location and location.tab == next and location.index or 0 -- 246
 		render() -- 247
 	end -- 234
 	local function activate(action) -- 249
@@ -571,6 +591,7 @@ function ____exports.startMobileFeed(options) -- 129
 		local data = entries() -- 348
 		index = normalizeFeedIndex(index, #data) -- 349
 		local item = current() -- 350
+		rememberCurrent()
 		local coverWidth = wide and math.min(usableWidth * 0.54, 680) or usableWidth - 32 -- 351
 		local coverHeight = wide and math.min(usableHeight - 118, coverWidth * 0.72) or (compact and math.min(usableHeight * 0.49, coverWidth * 0.72) or math.min(usableHeight * 0.54, coverWidth * 1.12)) -- 352
 		local coverX = left + 16 -- 357
@@ -1231,7 +1252,7 @@ function ____exports.startMobileFeed(options) -- 129
 				if not isActive() then -- 552
 					return -- 553
 				end -- 553
-				local selected = returnEntry or current() -- 554
+				local selected = returnEntry or rememberedEntries[tab] or current() -- 554
 				local previousCount = #discover -- 555
 				discover = getDiscoverEntries() -- 556
 				discoverError = success and (#discover == 0 and (zh and "目录中暂无可运行作品" or "No runnable Catalog games") or "") or (message or (zh and "资源目录同步失败" or "Catalog sync failed")) -- 557

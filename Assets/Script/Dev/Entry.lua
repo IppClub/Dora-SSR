@@ -168,7 +168,7 @@ if DB:exist("Config") then -- 38
 	end -- 43
 end -- 38
 local Config = require("Config") -- 48
-local config = Config("", "fpsLimited", "targetFPS", "fixedFPS", "vsync", "fullScreen", "alwaysOnTop", "winX", "winY", "winWidth", "winHeight", "themeColor", "locale", "editingInfo", "showStats", "showConsole", "showFooter", "filter", "engineDev", "webProfiler", "drawerWidth", "lastUpdateCheck", "updateNotification", "writablePath", "webIDEConnected", "webIDETourCompleted", "showPreview", "mobileFeed", "mobileRemixLLMConfigId", "mobileLargeText", "authRequired") -- 50
+local config = Config("", "fpsLimited", "targetFPS", "fixedFPS", "vsync", "fullScreen", "alwaysOnTop", "winX", "winY", "winWidth", "winHeight", "themeColor", "locale", "editingInfo", "showStats", "showConsole", "showFooter", "filter", "engineDev", "webProfiler", "drawerWidth", "lastUpdateCheck", "updateNotification", "writablePath", "webIDEConnected", "webIDETourCompleted", "showPreview", "mobileFeed", "mobileFeedCurrentCard", "mobileRemixLLMConfigId", "mobileLargeText", "authRequired") -- 50
 config:load() -- 83
 if not (config.writablePath ~= nil) then -- 85
 	config.writablePath = Content.appPath -- 86
@@ -576,11 +576,11 @@ allEntries.scanDir = function(path, dir, noPreview) -- 278
 					bannerFile = _val_0 -- 316
 				end -- 316
 				if bannerFile then -- 330
-					thread(function() -- 330
+					entry.bannerFile = bannerFile
+					thread(function() -- 334
 						if Cache:loadAsync(bannerFile) then -- 331
 							local bannerTex = Texture2D(bannerFile) -- 332
 							if bannerTex then -- 332
-								entry.bannerFile = bannerFile -- 333
 								entry.bannerTex = bannerTex -- 334
 							end -- 332
 						end -- 331
@@ -2506,7 +2506,7 @@ entryWindow = threadLoop(function() -- 1392
 									SameLine() -- 1496
 									TextWrapped(displayName) -- 1497
 									if columns > 1 then -- 1498
-										if bannerFile then -- 1499
+									if bannerFile and bannerTex then -- 1499
 											local texWidth, texHeight = bannerTex.width, bannerTex.height -- 1500
 											local displayWidth <const> = realViewWidth -- 1501
 											texHeight = displayWidth * texHeight / texWidth -- 1502
@@ -2519,7 +2519,7 @@ entryWindow = threadLoop(function() -- 1392
 											enterDemoEntry(game) -- 1508
 										end -- 1507
 									else -- 1510
-										if bannerFile then -- 1510
+									if bannerFile and bannerTex then -- 1510
 											local texWidth, texHeight = bannerTex.width, bannerTex.height -- 1511
 											local displayWidth = (fullWidth / 2 - paddingX) * 2 - 35 -- 1512
 											local sizing = 0.8 -- 1513
@@ -2773,12 +2773,48 @@ startMobileUI = function() -- 1634
 		end -- 1646
 		return items -- 1648
 	end -- 1645
+	local rememberedMobileFeedData = config.mobileFeedCurrentCard
+	local function loadRememberedMobileFeedState()
+		local raw = rememberedMobileFeedData
+		if type(raw) ~= "string" or raw == "" then
+			return nil
+		end
+		local ok, saved = pcall(json.decode, raw)
+		if not ok or type(saved) ~= "table" then
+			return nil
+		end
+		if type(saved.id) == "string" and (saved.kind == "local" or saved.kind == "discover") then
+			local state = {activeTab = saved.kind}
+			state[saved.kind] = saved
+			return state
+		end
+		local state = {activeTab = (saved.activeTab == "local" or saved.activeTab == "discover") and saved.activeTab or "local"}
+		for _, kind in ipairs({"local", "discover"}) do
+			local entry = saved[kind]
+			if type(entry) == "table" and type(entry.id) == "string" and entry.kind == kind then
+				state[kind] = entry
+			end
+		end
+		return state
+	end
+	local rememberedMobileFeedState = loadRememberedMobileFeedState() or {activeTab = "local"}
+	local function rememberMobileFeedEntry(entry)
+		rememberedMobileFeedState.activeTab = entry.kind
+		rememberedMobileFeedState[entry.kind] = {id = entry.id, kind = entry.kind, workDir = entry.workDir, fileName = entry.fileName}
+		rememberedMobileFeedData = json.encode(rememberedMobileFeedState)
+		rawset(config, getmetatable(config).mobileFeedCurrentCard, rememberedMobileFeedData)
+		DB:exec("insert or replace into Config(name, value_num, value_str, value_bool) values('mobileFeedCurrentCard', NULL, ?, NULL)", {rememberedMobileFeedData})
+	end
 	local restartMobileFeed -- 1649
 	restartMobileFeed = function(entry) -- 1649
 		if feedHost then -- 1650
 			feedHost:removeFromParent(true) -- 1650
 		end -- 1650
-		feedOptions.initialEntry = entry -- 1651
+		feedOptions.initialEntry = entry or rememberedMobileFeedState[rememberedMobileFeedState.activeTab] -- 1651
+		local initialEntries = {}
+		initialEntries["local"] = rememberedMobileFeedState["local"]
+		initialEntries["discover"] = rememberedMobileFeedState["discover"]
+		feedOptions.initialEntries = initialEntries
 		feedHost = trackMobileHost(mobileFeed.startMobileFeed(feedOptions)) -- 1652
 	end -- 1649
 	local startMobilePlay -- 1653
@@ -2824,6 +2860,7 @@ startMobileUI = function() -- 1634
 				pendingUIMode = false -- 1677
 			end -- 1677
 		end, -- 1677
+		onCurrentEntryChanged = rememberMobileFeedEntry,
 		getLocalEntries = function() -- 1678
 			local dirtyProjectPath = feedOptions.dirtyProjectPath -- 1679
 			feedOptions.dirtyProjectPath = nil -- 1680

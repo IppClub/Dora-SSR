@@ -1,4 +1,5 @@
 import type { AgentQuestion, AgentQuestionnaireAnswers } from "Agent/Questionnaire";
+import type { AgentSessionStepItem } from "Agent/Session";
 
 export type RemixPhase = "idle" | "planning" | "plan-ready" | "working" | "waiting" | "done" | "failed" | "stopped";
 
@@ -60,4 +61,26 @@ export const compactAgentActivity = (tool: string, reason: string, zh: boolean) 
 					: (zh ? "正在处理" : "Working");
 	const clean = reason.trim();
 	return clean === "" ? label : `${label} · ${clean.slice(0, 72)}`;
+};
+
+type RemixThinkingStep = Pick<AgentSessionStepItem, "id" | "taskId" | "step" | "tool" | "status" | "reason" | "reasoningContent">;
+
+export const resolveRemixThinkingStatus = (
+	steps: RemixThinkingStep[],
+	currentTaskId: number | undefined,
+): string | undefined => {
+	if (currentTaskId === undefined) return undefined;
+	let current: RemixThinkingStep | undefined;
+	for (const step of steps) {
+		if (step.taskId !== currentTaskId) continue;
+		if (!current || step.step > current.step || (step.step === current.step && step.id > current.id)) current = step;
+	}
+	if (!current || current.tool !== "message" || current.status !== "RUNNING"
+		|| string.match(current.reason, "^%s*$")[0] === undefined) return undefined;
+	let reasoning = string.gsub(current.reasoningContent, "\r\n", "\n")[0];
+	reasoning = string.gsub(reasoning, "\r", "\n")[0];
+	reasoning = string.gsub(reasoning, "[ \t\n]+$", "")[0];
+	const lastLine = string.match(reasoning, "([^\n]+)$")[0] ?? "";
+	if (lastLine === "") return undefined;
+	return lastLine;
 };

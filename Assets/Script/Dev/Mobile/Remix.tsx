@@ -4,13 +4,13 @@ import * as AgentSession from "Agent/Session";
 import { getActiveLLMConfig, getLLMConfig, getLLMConfigSummaries, safeJsonEncode } from "Agent/Utils";
 import type { LLMConfig, LLMConfigSummary } from "Agent/Utils";
 import type { AgentQuestionnaireAnswers } from "Agent/Questionnaire";
-import { buildQuestionnaireAnswers, canLeaveRemix, isQuestionAnswered, resolveRemixPhase, resolveRemixWorkMode } from "Dev/Mobile/RemixModel";
+import { buildQuestionnaireAnswers, canLeaveRemix, isQuestionAnswered, resolveRemixPhase, resolveRemixThinkingStatus, resolveRemixWorkMode } from "Dev/Mobile/RemixModel";
 import { DoraMascot, type DoraMascotState } from "Dev/Mobile/Mascot";
 import { mobileFontScale } from "Dev/Mobile/Accessibility";
 import { resolveFeedGesture } from "Dev/Mobile/FeedModel";
 import { createRemixTranscript, remixDisplayRevision, type RemixTranscriptAction } from "Dev/Mobile/RemixTranscript";
 import { REMIX_HISTORY_ROUNDS } from "Dev/Mobile/RemixHistory";
-import { createTextInput } from "Dev/Mobile/TextInput";
+import { createTextInput, inputLength, inputSlice } from "Dev/Mobile/TextInput";
 import { RoundedSurface, VerticalGradient } from "Dev/Mobile/Visual";
 
 interface RemixEntry {
@@ -54,6 +54,25 @@ const modeBottom = composerBottom + composerHeight + composerGap;
 const composerTop = modeBottom + 40;
 const transcriptBottom = composerTop + composerGap;
 const statusHeight = 64;
+
+const ellipsizeSingleLine = (text: string, width: number, fontSize: number) => {
+	if (text === "") return "";
+	const measure = Label(fontName, fontSize, true);
+	if (!measure) return text;
+	measure.visible = false;
+	measure.textWidth = -1;
+	const fits = (value: string) => { measure.text = value; return measure.width <= width; };
+	if (fits(text)) { measure.cleanup(); return text; }
+	let low = 0, high = inputLength(text);
+	while (low < high) {
+		const middle = math.floor((low + high + 1) / 2);
+		if (fits(`${inputSlice(text, 0, middle)}…`)) low = middle;
+		else high = middle - 1;
+	}
+	const result = `${inputSlice(text, 0, low)}…`;
+	measure.cleanup();
+	return result;
+};
 
 function ActionButton(props: { x: number; y: number; width: number; height?: number; text: string; tag?: string; primary?: boolean; danger?: boolean; disabled?: boolean; onTapped(): void }) {
 	const height = props.height ?? 46;
@@ -153,6 +172,8 @@ export function startMobileRemix(options: RemixOptions) {
 	let displayRevision = "";
 	let shellRevision = "";
 	let inputLayout = "";
+	let mascotAnimationState: DoraMascotState | undefined;
+	let mascotAnimationStartedAt = App.runningTime;
 	let compactHeaderStatusActive = false;
 	let errorLabel: Label.Type | undefined;
 	let layoutTranscriptBottom = transcriptBottom;
@@ -174,6 +195,7 @@ export function startMobileRemix(options: RemixOptions) {
 	const getShellRevision = () => detail.success ? safeJsonEncode([
 		detail.session.status, detail.session.workMode, detail.hasActivePlan, detail.pendingQuestionnaire ?? false,
 		detail.session.currentTaskStatus ?? "", detail.session.currentTaskFinalizing ?? false, stopRequested, hasTranscriptContent(),
+		resolveRemixThinkingStatus(detail.steps, detail.session.currentTaskId) ?? "",
 	])[0] ?? "" : detail.message;
 	const updateTranscript = () => {
 		const safe = getLayoutArea();
@@ -414,19 +436,24 @@ export function startMobileRemix(options: RemixOptions) {
 		const headerStatusWidth = 168;
 		const headerTitleWidth = compactHeaderStatus ? math.max(120, safe.width - 124 - headerStatusWidth - composerGap) : safe.width - 124;
 		const headerStatusX = left + 16 + headerTitleWidth + composerGap;
-		const statusText = phase === "planning" ? (zh ? "Dora 正在整理方案…" : "Dora is planning…")
+		const thinkingText = resolveRemixThinkingStatus(detail.success ? detail.steps : [], state?.currentTaskId);
+		const statusText = thinkingText !== undefined ? (zh ? "正在思考" : "Thinking") : (phase === "planning" ? (zh ? "Dora 正在整理方案…" : "Dora is planning…")
 			: phase === "working" ? (zh ? "Dora 正在 Remix…" : "Dora is remixing…")
 			: phase === "plan-ready" ? (zh ? "计划对话已完成" : "Planning conversation complete")
 			: phase === "waiting" ? (zh ? "需要你的确认" : "Waiting for you")
 			: phase === "done" ? (zh ? "Remix 已完成" : "Remix complete")
 			: phase === "failed" ? (zh ? "执行失败，可以修改要求后重试" : "Failed; revise and retry")
-			: (zh ? "告诉 Dora 你想怎样改这个游戏" : "Tell Dora how to change this game");
+			: (zh ? "告诉 Dora 你想怎样改这个游戏" : "Tell Dora how to change this game"));
 		const mascotState: DoraMascotState = phase === "planning" ? "thinking"
 			: phase === "working" ? "working"
 			: phase === "waiting" ? "waiting"
 			: phase === "done" || phase === "plan-ready" ? "success"
 			: phase === "failed" ? "failed"
 			: "idle";
+		if (mascotAnimationState !== mascotState) {
+			mascotAnimationState = mascotState;
+			mascotAnimationStartedAt = App.runningTime;
+		}
 		const emptyLandscape = shortLandscape && !hasTranscriptContent();
 		const emptyStatusBottom = bottom + layoutModeBottom + 40 + composerGap;
 		const emptyStatusTop = headerY - composerGap - statusHeight;
@@ -439,6 +466,12 @@ export function startMobileRemix(options: RemixOptions) {
 		const mascotX = shortLandscape ? left + 40 : left + 66;
 		const statusTextX = shortLandscape ? left + 76 : left + 104;
 		const statusTextWidth = shortLandscape ? math.max(120, left + 16 + contentWidth - statusTextX) : contentWidth - 84;
+		const renderedStatusX = compactHeaderStatus ? 36 : statusTextX;
+		const renderedStatusY = compactHeaderStatus ? 22 : statusHeight / 2 + standaloneStatusContentLift;
+		const renderedStatusWidth = compactHeaderStatus ? headerStatusWidth - 36 : statusTextWidth;
+		const thinkingFontSize = compactHeaderStatus ? math.floor(10 * fontScale) : math.floor(12 * fontScale);
+		const thinkingRightPadding = compactHeaderStatus ? 8 : 20;
+		const renderedThinkingText = thinkingText === undefined ? "" : ellipsizeSingleLine(thinkingText, renderedStatusWidth - thinkingRightPadding, thinkingFontSize);
 		let swipeStart = Vec2.zero;
 		let swipeAxis: "none" | "horizontal" | "vertical" = "none";
 		const pageRef = reference<Node.Type>();
@@ -515,10 +548,17 @@ export function startMobileRemix(options: RemixOptions) {
 			</node>
 			<node tag="remix-status" x={compactHeaderStatus ? headerStatusX : 0} y={compactHeaderStatus ? headerY : messageTop - statusHeight / 2}
 				width={compactHeaderStatus ? headerStatusWidth : width} height={compactHeaderStatus ? 44 : statusHeight} anchorX={0} anchorY={0}>
-				<DoraMascot state={mascotState} x={compactHeaderStatus ? 16 : mascotX} y={compactHeaderStatus ? 20 : statusHeight / 2 - 2 + standaloneStatusContentLift} size={compactHeaderStatus ? 30 : mascotSize} />
-				<label tag="remix-status-text" x={compactHeaderStatus ? 36 : statusTextX} y={compactHeaderStatus ? 22 : statusHeight / 2 + standaloneStatusContentLift} anchorX={0} fontName={fontName}
-					fontSize={compactHeaderStatus ? math.floor(13 * fontScale) : math.floor(15 * fontScale)} text={statusText}
-					textWidth={compactHeaderStatus ? headerStatusWidth - 36 : statusTextWidth} alignment={TextAlign.Left} color3={phase === "failed" ? 0xff6b6b : 0xffcc33} />
+				<DoraMascot state={mascotState} x={compactHeaderStatus ? 16 : mascotX} y={compactHeaderStatus ? 20 : statusHeight / 2 - 2 + standaloneStatusContentLift}
+					size={compactHeaderStatus ? 30 : mascotSize} animationStartedAt={mascotAnimationStartedAt} />
+				<clip-node tag="remix-status-clip" x={renderedStatusX} y={renderedStatusY - 22} width={renderedStatusWidth} height={44} anchorX={0} anchorY={0}
+					stencil={<draw-node x={renderedStatusWidth / 2} y={22}><rect-shape width={renderedStatusWidth} height={44} fillColor={0xffffffff} /></draw-node>}>
+					<label tag="remix-status-text" x={0} y={22} anchorX={0} fontName={fontName}
+						fontSize={compactHeaderStatus ? math.floor(13 * fontScale) : math.floor(15 * fontScale)} text={statusText}
+						textWidth={-1} alignment={TextAlign.Left} color3={phase === "failed" ? 0xff6b6b : 0xffcc33} />
+					<label tag="remix-thinking-text" x={0} y={6} anchorX={0} fontName={fontName}
+						fontSize={thinkingFontSize} text={renderedThinkingText}
+						textWidth={-1} alignment={TextAlign.Left} color3={colors.muted} />
+				</clip-node>
 			</node>
 			{questionnaire && question ? <node tag="remix-questionnaire" x={left + 16} y={bottom + 164} width={contentWidth} height={safe.height - 330} anchorX={0} anchorY={0}>
 				<RoundedSurface width={contentWidth} height={safe.height - 330} radius={20} topColor={0xff222b3a} bottomColor={0xff121720} borderWidth={1} borderColor={0xff414b5d} shadow={true} />

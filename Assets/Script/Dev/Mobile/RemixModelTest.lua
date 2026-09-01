@@ -17,6 +17,7 @@ local canPlayRemix = ____RemixModel.canPlayRemix -- 5
 local compactAgentActivity = ____RemixModel.compactAgentActivity -- 6
 local isQuestionAnswered = ____RemixModel.isQuestionAnswered -- 7
 local resolveRemixPhase = ____RemixModel.resolveRemixPhase -- 8
+local resolveRemixThinkingStatus = ____RemixModel.resolveRemixThinkingStatus
 local resolveRemixWorkMode = ____RemixModel.resolveRemixWorkMode -- 9
 local resultPath = "/tmp/dora-mobile-remix-model.result" -- 13
 local function expect(condition, message) -- 14
@@ -190,6 +191,44 @@ do -- 14
 			) == #"Reading project · " + 72, -- 65
 			"activity reason must be truncated" -- 65
 		) -- 65
+		local thinkingStep = {
+			id = 1,
+			taskId = 7,
+			step = 3,
+			tool = "message",
+			status = "RUNNING",
+			reason = "",
+			reasoningContent = "先分析布局\r\n再核对状态栏\n"
+		}
+		expect(
+			resolveRemixThinkingStatus({thinkingStep}, 7) == "再核对状态栏",
+			"thinking status must use the last non-empty line"
+		)
+		expect(
+			resolveRemixThinkingStatus({{
+				id = 1, taskId = 7, step = 3, tool = "message", status = "RUNNING",
+				reason = "开始输出正文", reasoningContent = thinkingStep.reasoningContent
+			}}, 7) == nil,
+			"content output must restore the regular status"
+		)
+		expect(
+			resolveRemixThinkingStatus({{
+				id = 1, taskId = 7, step = 3, tool = "message", status = "DONE",
+				reason = "", reasoningContent = thinkingStep.reasoningContent
+			}}, 7) == nil,
+			"completed step must restore the regular status"
+		)
+		expect(
+			resolveRemixThinkingStatus({thinkingStep, {
+				id = 2, taskId = 7, step = 4, tool = "message", status = "RUNNING",
+				reason = "", reasoningContent = ""
+			}}, 7) == nil,
+			"next loop must replace stale reasoning"
+		)
+		expect(
+			resolveRemixThinkingStatus({thinkingStep}, 8) == nil,
+			"other task reasoning must be ignored"
+		)
 		Content:save(resultPath, "passed") -- 66
 	end) -- 66
 	if not ____try then -- 66
