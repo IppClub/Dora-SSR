@@ -24,10 +24,13 @@ thread(function() -- 10
 	App.winSize = Size(1024, 768) -- 22
 	sleep(0.8) -- 23
 	local tablet = App:saveScreenshot("/tmp/dora-mobile-feed-tablet") -- 24
-	sleep(0.3) -- 25
-	Content:save( -- 26
-		"/tmp/dora-mobile-layout-preview.result", -- 26
-		(((((("passed\nlandscape=" .. landscape) .. "\ntablet=") .. tablet) .. "\nhostScale=") .. tostring(host.scaleX)) .. ",") .. tostring(host.scaleY) -- 26
-	) -- 26
+	App.winSize = Size(390, 640) -- 25
+	sleep(0.8) -- 26
+	local shortPortrait = App:saveScreenshot("/tmp/dora-mobile-feed-short") -- 27
+	sleep(0.3) -- 28
+	Content:save( -- 29
+		"/tmp/dora-mobile-layout-preview.result", -- 29
+		(((((((("passed\nlandscape=" .. landscape) .. "\ntablet=") .. tablet) .. "\nshort=") .. shortPortrait) .. "\nhostScale=") .. tostring(host.scaleX)) .. ",") .. tostring(host.scaleY) -- 29
+	) -- 29
 end) -- 10
 return ____exports -- 10

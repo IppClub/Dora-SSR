@@ -4,6 +4,7 @@ import { DoraMascot } from "Dev/Mobile/Mascot";
 import { mobileFontScale } from "Dev/Mobile/Accessibility";
 import { getCoverScales, getReusableCardIndices, normalizeFeedIndex, resolveDiscoverRefreshTab, resolveFeedGesture, resolveFeedLocation, stableCoverColor, type FeedAction, type FeedEntry as ModelFeedEntry, type FeedTab } from "Dev/Mobile/FeedModel";
 import { createTextInput } from "Dev/Mobile/TextInput";
+import { RoundedStencil, RoundedSurface, VerticalGradient } from "Dev/Mobile/Visual";
 
 interface FeedEntry extends ModelFeedEntry {
 	resource?: unknown;
@@ -39,6 +40,13 @@ const createSheetHeight = 260;
 const createInputHeight = 44;
 const createInputTop = 96;
 
+function conciseDescription(text: string, limit: number) {
+	const length = utf8.len(text)[0] ?? 0;
+	if (length <= limit) return text;
+	const stop = utf8.offset(text, limit + 1) ?? text.length + 1;
+	return string.sub(text, 1, stop - 1) + "…";
+}
+
 function Button(props: {
 	tag?: string;
 	x: number;
@@ -47,6 +55,7 @@ function Button(props: {
 	text: string;
 	fontSize?: number;
 	primary?: boolean;
+	renderOrder?: number;
 	onTapped(): void;
 }) {
 	return <node
@@ -57,19 +66,15 @@ function Button(props: {
 		anchorY={0}
 		width={props.width}
 		height={48}
+		renderOrder={props.renderOrder}
 		touchEnabled={true}
 		swallowTouches={true}
 		onTapped={props.onTapped}
 	>
-		<draw-node x={props.width / 2} y={24}>
-			<rect-shape
-				width={props.width}
-				height={48}
-				fillColor={props.primary ? colors.brand : colors.panelRaised}
-				borderWidth={1}
-				borderColor={props.primary ? colors.brand : colors.border}
-			/>
-		</draw-node>
+		<RoundedSurface width={props.width} height={48} radius={14} renderOrder={props.renderOrder}
+			topColor={props.primary ? 0xffffdf6b : 0xff293140}
+			bottomColor={props.primary ? 0xffffbd2e : 0xff1b202b}
+			borderWidth={1} borderColor={props.primary ? 0xffffdd63 : colors.border} shadow={props.primary} />
 		<label
 			x={props.width / 2}
 			y={24}
@@ -89,18 +94,9 @@ function Cover(props: { key?: string; entry: FeedEntry; x: number; y: number; wi
 		sprite.scaleY = scales[mode];
 	};
 	return <node x={props.x} y={props.y} width={props.width} height={props.height} anchorX={0} anchorY={0}>
-		<draw-node x={props.width / 2} y={props.height / 2}>
-			<rect-shape
-				width={props.width}
-				height={props.height}
-				fillColor={stableCoverColor(props.entry.id)}
-				borderWidth={1}
-				borderColor={colors.border}
-			/>
-		</draw-node>
-		{file ? <clip-node width={props.width} height={props.height} anchorX={0} anchorY={0} stencil={<draw-node x={props.width / 2} y={props.height / 2}>
-			<rect-shape width={props.width} height={props.height} fillColor={0xffffffff} />
-		</draw-node>}>
+		<RoundedSurface width={props.width} height={props.height} radius={22}
+			topColor={stableCoverColor(props.entry.id)} bottomColor={0xff111723} shadow={true} />
+		{file ? <clip-node width={props.width} height={props.height} anchorX={0} anchorY={0} stencil={<RoundedStencil width={props.width} height={props.height} radius={22} />}>
 			<sprite file={file} x={props.width / 2 - 5} y={props.height / 2} opacity={0.08} onMount={sprite => scaleSprite(sprite, "cover")} />
 			<sprite file={file} x={props.width / 2 + 5} y={props.height / 2} opacity={0.08} onMount={sprite => scaleSprite(sprite, "cover")} />
 			<sprite file={file} x={props.width / 2} y={props.height / 2 - 5} opacity={0.08} onMount={sprite => scaleSprite(sprite, "cover")} />
@@ -126,6 +122,7 @@ function Cover(props: { key?: string; entry: FeedEntry; x: number; y: number; wi
 			color3={0xffcc33}
 		/>}
 		{file ? undefined : <DoraMascot state="idle" x={props.width - 46} y={64} size={42} />}
+		<RoundedSurface width={props.width} height={props.height} radius={22} fillColor={0x00000000} borderWidth={1} borderColor={0xff3b4556} />
 	</node>;
 }
 
@@ -139,7 +136,6 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	const zh = string.match(App.locale, "^zh")[0] !== undefined;
 	let tab: FeedTab = "local";
 	let index = 0;
-	let detailsOpen = false;
 	let drag = Vec2.zero;
 	let dragAxis: "none" | "horizontal" | "vertical" = "none";
 	let discoverError = "";
@@ -157,6 +153,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	let createError = "";
 	let returnEntry = options.initialEntry;
 	const cardRef = reference<Node.Type>();
+	const indexRef = reference<Node.Type>();
 	let createInputRef = reference<Node.Type>();
 	let discover = getDiscoverEntries();
 	let local = getLocalEntries();
@@ -247,7 +244,6 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		}
 		tab = next;
 		index = 0;
-		detailsOpen = false;
 		render();
 	};
 	const activate = (action: "play" | "remix") => {
@@ -305,7 +301,6 @@ export function startMobileFeed(options: MobileFeedOptions) {
 					index = target;
 					transitioning = false;
 					App.vibrate(0.012);
-					detailsOpen = false;
 					render();
 				};
 				const card = cardRef.current;
@@ -331,7 +326,10 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	const render = () => {
 		if (!isActive()) return;
 		// Catalog updates must not replace an active IME target or discard its preedit.
-		const keptInput = createOpen && createInputRef.current?.width === App.safeArea.width - 40 ? createInputRef.current : undefined;
+		const safeContentWidth = App.safeArea.width - 40;
+		const shortLandscapeInputWidth = safeContentWidth - 12 - math.min(300, math.floor(safeContentWidth * 0.42));
+		const expectedInputWidth = App.safeArea.width >= 760 && App.safeArea.height < 500 ? shortLandscapeInputWidth : safeContentWidth;
+		const keptInput = createOpen && createInputRef.current?.width === expectedInputWidth ? createInputRef.current : undefined;
 		const restoreFocus = createInput.isFocused();
 		keptInput?.removeFromParent(false);
 		if (!keptInput) {
@@ -349,19 +347,27 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		const usableWidth = safe.width;
 		const usableHeight = safe.height;
 		const wide = usableWidth >= 760;
+		const shortLandscape = wide && usableHeight < 500;
+		const compact = !wide && usableHeight < 700;
+		const landscapeTopLift = shortLandscape ? 28 : 0;
 		const data = entries();
 		index = normalizeFeedIndex(index, data.length);
 		const item = current();
 		const coverWidth = wide ? math.min(usableWidth * 0.54, 680) : usableWidth - 32;
-		const coverHeight = wide ? math.min(usableHeight - 118, coverWidth * 0.72) : math.min(usableHeight * 0.49, coverWidth * 0.72);
+		const coverHeight = wide
+			? math.min(usableHeight - 118, coverWidth * 0.72)
+			: compact
+				? math.min(usableHeight * 0.49, coverWidth * 0.72)
+				: math.min(usableHeight * 0.54, coverWidth * 1.12);
 		const coverX = left + 16;
-		const coverY = wide ? bottom + (usableHeight - coverHeight) / 2 - 12 : bottom + usableHeight - coverHeight - 82;
+		const coverY = wide ? bottom + (usableHeight - coverHeight) / 2 - 12 + landscapeTopLift : bottom + usableHeight - coverHeight - 82;
 		const infoX = wide ? coverX + coverWidth + 28 : left + 20;
 		const infoWidth = wide ? usableWidth - coverWidth - 72 : usableWidth - 40;
-		const infoTop = wide ? bottom + usableHeight - 122 : coverY - 30;
+		const infoTop = wide ? bottom + usableHeight - 122 + landscapeTopLift : coverY - 30;
 		const buttonWidth = wide ? math.min(190, (infoWidth - 12) / 2) : (infoWidth - 12) / 2;
 		const fontScale = mobileFontScale;
 		const cardIndices = getReusableCardIndices(index, data.length);
+		const headerRenderOrder = 1000;
 
 		const scene = toNode(<node
 			tag="mobile-feed-scene"
@@ -372,20 +378,34 @@ export function startMobileFeed(options: MobileFeedOptions) {
 				anchorX={0}
 				anchorY={0}
 			touchEnabled={true}
-			onTapBegan={() => { drag = Vec2.zero; dragAxis = "none"; cardRef.current?.stopAllActions(); }}
+			onTapBegan={() => {
+				drag = Vec2.zero;
+				dragAxis = "none";
+				cardRef.current?.stopAllActions();
+				if (indexRef.current) indexRef.current.opacity = 1;
+			}}
 			onTapMoved={touch => {
 				drag = drag.add(touch.delta);
 				if (dragAxis === "none" && math.max(math.abs(drag.x), math.abs(drag.y)) >= 12) {
 					dragAxis = math.abs(drag.x) > math.abs(drag.y) * 1.2 ? "horizontal" : "vertical";
 				}
 				if (cardRef.current) {
-					cardRef.current.position = dragAxis === "horizontal" ? Vec2(drag.x * 0.18, 0) : dragAxis === "vertical" ? Vec2(0, drag.y * 0.12) : Vec2.zero;
+					const offset = dragAxis === "horizontal" ? Vec2(drag.x * 0.18, 0) : dragAxis === "vertical" ? Vec2(0, drag.y * 0.12) : Vec2.zero;
+					cardRef.current.position = offset;
+					if (indexRef.current) {
+						const headerBottom = bottom + usableHeight - 72;
+						const indexTop = coverY + coverHeight - 14 + offset.y;
+						indexRef.current.opacity = dragAxis === "vertical"
+							? math.max(0, math.min(1, (headerBottom - indexTop) / 16))
+							: 1;
+					}
 				}
 			}}
 			onTapEnded={() => {
 				const action = resolveFeedGesture(drag.x, drag.y, usableWidth, usableHeight);
 				drag = Vec2.zero;
 				dragAxis = "none";
+				if (indexRef.current) indexRef.current.opacity = 1;
 				if (action === "none" && cardRef.current) {
 					const card = cardRef.current;
 					card.perform(Move(App.reducedMotion ? 0 : 0.16, card.position, Vec2.zero, Ease.OutQuad));
@@ -394,34 +414,8 @@ export function startMobileFeed(options: MobileFeedOptions) {
 			}}
 			onMouseWheel={delta => commit(delta.y > 0 ? "previous" : "next")}
 		>
-			<draw-node x={width / 2} y={height / 2}>
-				<rect-shape width={width} height={height} fillColor={colors.background} />
-			</draw-node>
-			{options.onSwitchMode ? <node tag="mobile-ui-mode-switch" x={left + 12} y={bottom + usableHeight - 56} width={72} height={44}
-				anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={switchMode}>
-				<draw-node x={36} y={22}><rect-shape width={72} height={44} fillColor={colors.panelRaised} borderWidth={1} borderColor={colors.border} /></draw-node>
-				<label x={36} y={22} fontName={fontName} fontSize={13} text={zh ? "传统模式" : "Classic UI"} color3={preparing ? 0x777e8c : 0xf4f1e8} />
-			</node> : undefined}
-			<label tag="mobile-feed-discover-tab" x={left + usableWidth / 2 - (options.onSwitchMode ? 40 : 70)} y={bottom + usableHeight - 34} fontName={fontName} fontSize={math.floor(18 * fontScale)}
-				text={zh ? "发现" : "Discover"} color3={tab === "discover" ? 0xffcc33 : 0xa8afbd}
-				touchEnabled={true} swallowTouches={true} onTapped={() => setTab("discover")} />
-			<label tag="mobile-feed-local-tab" x={left + usableWidth / 2 + (options.onSwitchMode ? 56 : 70)} y={bottom + usableHeight - 34} fontName={fontName} fontSize={math.floor(18 * fontScale)}
-				text={zh ? "本地" : "Local"} color3={tab === "local" ? 0xffcc33 : 0xa8afbd}
-				touchEnabled={true} swallowTouches={true} onTapped={() => { local = getLocalEntries(); setTab("local"); }} />
-			{tab === "local" && options.createProject ? <node tag="mobile-feed-create" x={left + usableWidth - 82} y={bottom + usableHeight - 56} width={70} height={44}
-				anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={() => {
-					if (preparing || transitioning || creating || createOpen || HttpServer.wsConnectionCount > 0) return;
-					createOpen = true;
-					createName = "";
-					dismissedCreateComposition = false;
-					createError = "";
-					render();
-					createInput.deferFocus();
-				}}>
-				<draw-node x={35} y={22}><rect-shape width={70} height={44} fillColor={colors.background} borderWidth={1} borderColor={colors.brand} /></draw-node>
-				<label x={35} y={22} fontName={fontName} fontSize={14} text={zh ? "+ 新建" : "+ New"} color3={0xffcc33} />
-			</node> : undefined}
-				{item !== undefined ? <node tag={`mobile-feed-card-${item.id}`} ref={cardRef} key={`${tab}-${item.id}`}>
+			<VerticalGradient width={width} height={height} topColor={0xff111725} bottomColor={0xff080a0f} />
+				{createOpen ? undefined : item !== undefined ? <node tag={`mobile-feed-card-${item.id}`} ref={cardRef} key={`${tab}-${item.id}`}>
 					{cardIndices.map(cardIndex => <Cover
 						key={`${tab}-${data[cardIndex].id}`}
 						entry={data[cardIndex]}
@@ -430,30 +424,27 @@ export function startMobileFeed(options: MobileFeedOptions) {
 						width={coverWidth}
 						height={coverHeight}
 					/>)}
+					<node tag="mobile-feed-index" ref={indexRef} x={coverX + coverWidth - 62} y={coverY + coverHeight - 40} width={48} height={26} anchorX={0} anchorY={0}>
+						<RoundedSurface width={48} height={26} radius={13} topColor={0xe028303d} bottomColor={0xe012161e} borderWidth={1} borderColor={0x88505a6c} />
+						<label x={24} y={13} fontName={fontName} fontSize={11} text={`${index + 1} / ${data.length}`} color3={0xd7dbe3} />
+					</node>
 					<label tag="mobile-feed-current-title" x={infoX} y={infoTop} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={math.floor((wide ? 30 : 25) * fontScale)}
 						text={item.title} textWidth={infoWidth} alignment={TextAlign.Left} color3={0xf4f1e8} />
 					<label x={infoX} y={infoTop - 58} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={math.floor(15 * fontScale)}
-						text={item.description} textWidth={infoWidth} alignment={TextAlign.Left} color3={0xa8afbd} />
-				<Button tag="mobile-feed-remix" x={infoX} y={bottom + 24} width={buttonWidth} text={zh ? "Remix" : "Remix"} fontSize={math.floor(17 * fontScale)}
+						text={conciseDescription(item.description, wide ? 80 : compact ? 28 : 42)} textWidth={infoWidth} alignment={TextAlign.Left} color3={0xa8afbd} />
+					{compact || shortLandscape ? undefined : <node x={infoX} y={infoTop - 118} width={wide ? 176 : 164} height={28} anchorX={0} anchorY={0}>
+						<RoundedSurface width={wide ? 176 : 164} height={28} radius={14} topColor={0x66303a4b} bottomColor={0x6618202b} borderWidth={1} borderColor={0x88606b7d} />
+						<label x={12} y={14} anchorX={0} fontName={fontName} fontSize={12}
+							text={item.kind === "local" ? (zh ? "本地作品  ·  可 Remix" : "Local  ·  Remixable") : item.installed ? (zh ? "发现  ·  已安装" : "Discover  ·  Installed") : (zh ? "发现  ·  可安装" : "Discover  ·  Installable")}
+							textWidth={(wide ? 176 : 164) - 24} alignment={TextAlign.Left} color3={0xdce1ea} />
+					</node>}
+				<Button tag="mobile-feed-remix" x={infoX} y={bottom + 24} width={buttonWidth} text={zh ? "Remix 作品" : "Remix game"} fontSize={math.floor(16 * fontScale)}
 					primary={true} onTapped={() => activate("remix")} />
 				<Button tag="mobile-feed-play" x={infoX + buttonWidth + 12} y={bottom + 24} width={buttonWidth} text={zh ? "试玩" : "Play"} fontSize={math.floor(17 * fontScale)}
 					onTapped={() => activate("play")} />
 					<label x={infoX} y={bottom + 92} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={14}
-					text={prepareStatus !== "" ? prepareStatus : item.launchError !== undefined ? item.launchError : `${index + 1} / ${data.length}  ·  ${zh ? "上滑下一项 · 右滑 Remix · 左滑试玩" : "Swipe up next · right Remix · left Play"}`}
+					text={prepareStatus !== "" ? prepareStatus : item.launchError !== undefined ? item.launchError : (zh ? "上滑浏览  ·  右滑 Remix  ·  左滑试玩" : "Swipe up  ·  right Remix  ·  left Play")}
 						textWidth={infoWidth} alignment={TextAlign.Left} color3={item.launchError !== undefined ? 0xff6b6b : 0xa8afbd} />
-					<label x={infoX + infoWidth} y={infoTop} anchorX={1} anchorY={0.5} fontName={fontName} fontSize={14}
-					text={zh ? "详情" : "Details"} color3={0xffcc33} touchEnabled={true} swallowTouches={true}
-					onTapped={() => { detailsOpen = !detailsOpen; render(); }} />
-				{detailsOpen ? <node x={left + 12} y={bottom + 10} width={usableWidth - 24} height={math.min(usableHeight * 0.48, 360)} anchorX={0} anchorY={0}
-					touchEnabled={true} swallowTouches={true}>
-					<draw-node x={(usableWidth - 24) / 2} y={math.min(usableHeight * 0.48, 360) / 2}>
-						<rect-shape width={usableWidth - 24} height={math.min(usableHeight * 0.48, 360)} fillColor={colors.panelRaised} borderWidth={1} borderColor={colors.border} />
-					</draw-node>
-						<label x={20} y={math.min(usableHeight * 0.48, 360) - 36} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={18}
-							text={item.title} textWidth={usableWidth - 64} alignment={TextAlign.Left} color3={0xf4f1e8} />
-						<label x={20} y={math.min(usableHeight * 0.48, 360) - 88} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={15}
-							text={item.description} textWidth={usableWidth - 64} alignment={TextAlign.Left} color3={0xa8afbd} />
-				</node> : undefined}
 			</node> : <node>
 				<label x={left + usableWidth / 2} y={bottom + usableHeight / 2 + 20} fontName={fontName} fontSize={22}
 					text={tab === "discover" ? (zh ? "暂无移动作品" : "No mobile games yet") : (zh ? "没有可运行的本地作品" : "No runnable local games")}
@@ -462,13 +453,44 @@ export function startMobileFeed(options: MobileFeedOptions) {
 					text={tab === "discover" && discoverError !== "" ? discoverError : (zh ? "切换标签或稍后重试" : "Switch tabs or retry later")}
 					textWidth={usableWidth - 48} color3={tab === "discover" && discoverError !== "" ? 0xff6b6b : 0xa8afbd} />
 			</node>}
+			<node tag="mobile-feed-header" order={headerRenderOrder}>
+				{options.onSwitchMode ? <node tag="mobile-ui-mode-switch" x={left + 12} y={bottom + usableHeight - 58 + landscapeTopLift} width={72} height={48}
+					anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={switchMode}>
+					<label x={0} y={30} anchorX={0} fontName={fontName} fontSize={16} text="DORA" color3={preparing ? 0x777e8c : 0xffcc33} />
+					<label x={0} y={10} anchorX={0} fontName={fontName} fontSize={10} text={zh ? "切换传统界面" : "Classic UI"} color3={0x777e8c} />
+				</node> : undefined}
+				<label tag="mobile-feed-discover-tab" x={left + usableWidth / 2 - 44} y={bottom + usableHeight - 34 + landscapeTopLift} fontName={fontName} fontSize={math.floor(17 * fontScale)}
+					text={zh ? "发现" : "Discover"} color3={tab === "discover" ? 0xffcc33 : 0xa8afbd}
+					touchEnabled={true} swallowTouches={true} onTapped={() => setTab("discover")} />
+				<label tag="mobile-feed-local-tab" x={left + usableWidth / 2 + 44} y={bottom + usableHeight - 34 + landscapeTopLift} fontName={fontName} fontSize={math.floor(17 * fontScale)}
+					text={zh ? "本地" : "Local"} color3={tab === "local" ? 0xffcc33 : 0xa8afbd}
+					touchEnabled={true} swallowTouches={true} onTapped={() => { local = getLocalEntries(); setTab("local"); }} />
+				<RoundedSurface x={left + usableWidth / 2 + (tab === "discover" ? -58 : 30)} y={bottom + usableHeight - 56 + landscapeTopLift} width={28} height={3} radius={1.5} fillColor={colors.brand} renderOrder={headerRenderOrder + 1} />
+				{tab === "local" && options.createProject ? <node tag="mobile-feed-create" x={left + usableWidth - 82} y={bottom + usableHeight - 56 + landscapeTopLift} width={70} height={44}
+					anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={() => {
+						if (preparing || transitioning || creating || createOpen || HttpServer.wsConnectionCount > 0) return;
+						createOpen = true;
+						createName = "";
+						dismissedCreateComposition = false;
+						createError = "";
+						render();
+						createInput.deferFocus();
+					}}>
+					<RoundedSurface width={70} height={44} radius={22} topColor={0x332c3442} bottomColor={0x33121921} borderWidth={1} borderColor={colors.brand} renderOrder={headerRenderOrder + 1} />
+					<label x={35} y={22} fontName={fontName} fontSize={14} text={zh ? "+ 新建" : "+ New"} color3={0xffcc33} />
+				</node> : undefined}
+			</node>
 			{createOpen ? (() => {
 				const sheetHeight = math.min(createSheetHeight, usableHeight - 64);
 				const sheetWidth = usableWidth;
-				const inputWidth = sheetWidth - 40;
+				const contentWidth = sheetWidth - 40;
 				const actionGap = 12;
-				const cancelWidth = math.floor((inputWidth - actionGap) * 0.38);
-				return <node tag="mobile-project-create-sheet" width={width} height={height} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true}>
+				const actionsWidth = shortLandscape ? math.min(300, math.floor(contentWidth * 0.42)) : contentWidth;
+				const inputWidth = shortLandscape ? contentWidth - actionGap - actionsWidth : contentWidth;
+				const actionX = shortLandscape ? 20 + inputWidth + actionGap : 20;
+				const actionY = shortLandscape ? sheetHeight - createInputTop - createInputHeight : 20;
+				const cancelWidth = math.floor((actionsWidth - actionGap) * (shortLandscape ? 0.34 : 0.38));
+					return <node tag="mobile-project-create-sheet" order={10000} width={width} height={height} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true}>
 					<node tag="mobile-project-create-focus-observer" order={1000} width={width} height={height} anchorX={0} anchorY={0}
 						touchEnabled={true} swallowTouches={false} swallowMouseWheel={false} onTapFilter={touch => {
 							touch.enabled = false;
@@ -479,19 +501,21 @@ export function startMobileFeed(options: MobileFeedOptions) {
 							dismissedCreateComposition = !inside && createInput.isComposing();
 							if (!inside) blurCreateInput();
 						}} />
-					<draw-node x={width / 2} y={height / 2}><rect-shape width={width} height={height} fillColor={0x8c000000} /></draw-node>
-					<node ref={createPanelRef} x={left} y={bottom} width={sheetWidth} height={sheetHeight} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true}>
-						<draw-node x={sheetWidth / 2} y={sheetHeight / 2}><rect-shape width={sheetWidth} height={sheetHeight} fillColor={colors.panel} borderWidth={1} borderColor={colors.border} /></draw-node>
+					<draw-node tag="mobile-project-create-backdrop" order={0} renderOrder={0} x={width / 2} y={bottom + sheetHeight + (height - bottom - sheetHeight) / 2}>
+						<rect-shape width={width} height={height - bottom - sheetHeight} fillColor={0x8c000000} />
+					</draw-node>
+					<node ref={createPanelRef} order={10} renderOrder={10} x={left} y={bottom} width={sheetWidth} height={sheetHeight} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true}>
+						<RoundedSurface width={sheetWidth} height={sheetHeight} radius={24} topColor={0xff242d3c} bottomColor={0xff111620} borderWidth={1} borderColor={0xff4a5568} shadow={true} renderOrder={10} />
 						<label x={20} y={sheetHeight - 24} anchorX={0} anchorY={1} fontName={fontName} fontSize={22} text={zh ? "新建项目" : "New project"} color3={0xf4f1e8} />
 						<label x={20} y={sheetHeight - 66} anchorX={0} anchorY={1} fontName={fontName} fontSize={14} text={zh ? "项目名称" : "Project name"} color3={0xa8afbd} />
-						{keptInput ? undefined : <node tag="mobile-project-create-input" ref={createInputRef} x={20} y={sheetHeight - createInputTop - createInputHeight} width={inputWidth} height={createInputHeight} anchorX={0} anchorY={0}
+							{keptInput ? undefined : <node tag="mobile-project-create-input" ref={createInputRef} renderOrder={10} x={20} y={sheetHeight - createInputTop - createInputHeight} width={inputWidth} height={createInputHeight} anchorX={0} anchorY={0}
 							onMount={createInput.mount} />}
-						<label tag="mobile-project-create-error" x={20} y={sheetHeight - createInputTop - createInputHeight - 12} anchorX={0} anchorY={1} fontName={fontName} fontSize={12}
+						<label tag="mobile-project-create-error" x={20} y={shortLandscape ? sheetHeight - createInputTop + 12 : sheetHeight - createInputTop - createInputHeight - 12} anchorX={0} anchorY={1} fontName={fontName} fontSize={12}
 							text={createError !== "" ? createError : (zh ? "将创建可运行的 TypeScript 起始项目" : "Creates a runnable TypeScript starter project")}
 							textWidth={inputWidth} alignment={TextAlign.Left} color3={createError !== "" ? 0xff6b6b : 0xa8afbd} />
-						<Button tag="mobile-project-create-cancel" x={20} y={20} width={cancelWidth} text={zh ? "取消" : "Cancel"} onTapped={closeCreate} />
-						<Button tag="mobile-project-create-submit" x={20 + cancelWidth + actionGap} y={20} width={inputWidth - cancelWidth - actionGap}
-							text={creating ? (zh ? "创建中…" : "Creating…") : (zh ? "创建并进入 Remix" : "Create and Remix")} primary={true} onTapped={() => { if (!dismissedCreateComposition) submitCreate(); dismissedCreateComposition = false; }} />
+							<Button tag="mobile-project-create-cancel" x={actionX} y={actionY} width={cancelWidth} text={zh ? "取消" : "Cancel"} renderOrder={10} onTapped={closeCreate} />
+							<Button tag="mobile-project-create-submit" x={actionX + cancelWidth + actionGap} y={actionY} width={actionsWidth - cancelWidth - actionGap}
+								text={creating ? (zh ? "创建中…" : "Creating…") : (zh ? "创建并进入 Remix" : "Create and Remix")} primary={true} renderOrder={10} onTapped={() => { if (!dismissedCreateComposition) submitCreate(); dismissedCreateComposition = false; }} />
 					</node>
 				</node>;
 			})() : undefined}
@@ -511,10 +535,6 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	host.onAppEvent(event => {
 		if (event === "BackButton") {
 			if (createOpen && !creating) closeCreate();
-			else if (detailsOpen) {
-				detailsOpen = false;
-				render();
-			}
 		} else if (event === "WillEnterBackground" || event === "DidEnterBackground") blurCreateInput();
 	});
 	host.onCleanup(() => { blurCreateInput(); active = false; });
@@ -526,7 +546,6 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		const location = resolveFeedLocation(local, discover, entry);
 		tab = location.tab;
 		index = location.index;
-		detailsOpen = false;
 		render();
 	});
 	host.slot("SuspendLocalUI", blurCreateInput);

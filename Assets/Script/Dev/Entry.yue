@@ -273,10 +273,11 @@ getFileEntries = (path, recursive = true, excludeFiles = nil) ->
 	table.sort entries, (a, b) -> a.entryName < b.entryName
 	entries
 
-export getProjectEntries = (path, noPreview = false) ->
+local allEntries = {dirty: {}, hasDirty: false}
+
+allEntries.scanDir = (path, dir, noPreview = false) ->
 	entries = []
-	for dir in *Content\getDirs path
-		continue if dir\match "^%."
+	unless dir\match "^%."
 		for file in *getAllFiles Path(path, dir), ["lua", "xml", yueext, "tl", "wasm"]
 			if "init" == Path\getName(file)\lower!
 				fileName = Path\replaceExt file, ""
@@ -311,7 +312,7 @@ export getProjectEntries = (path, noPreview = false) ->
 							workDir: projectPath
 						}
 						tests[] = entry
-				entry = :entryName, :fileName, :examples, :tests, :repo
+				entry = :entryName, :fileName, :projectPath, :examples, :tests, :repo
 				bannerFile = repeat
 					break nil if noPreview
 					break nil unless config.showPreview
@@ -332,12 +333,18 @@ export getProjectEntries = (path, noPreview = false) ->
 							entry.bannerFile = bannerFile
 							entry.bannerTex = bannerTex
 				entries[] = entry
+	entries
+
+export getProjectEntries = (path, noPreview = false) ->
+	entries = []
+	for dir in *Content\getDirs path
+		for entry in *allEntries.scanDir path, dir, noPreview
+			entries[] = entry
 	table.sort entries, (a, b) -> a.entryName < b.entryName
 	entries
 
 local gamesInDev
 local doraTools
-local allEntries
 
 isToolEntry = (entry): false ->
 	switch entry when repo: :categories
@@ -351,21 +358,18 @@ getEntryTitle = (entry) ->
 			if useChinese then repo.title.zh else repo.title.en
 	title ?? entry.entryName
 
-updateEntries = ->
-	projectEntries = getProjectEntries Content.writablePath
+allEntries.rebuildEntries = ->
 	gamesInDev = []
-	doraTools = getFileEntries Path(Content.assetPath, "Script", "Tools"), false
-	for tool in *doraTools
-		tool.kind = "tool"
-		tool.builtin = true
-	for entry in *projectEntries
+	doraTools = [tool for tool in *allEntries.builtinTools]
+	for entry in *allEntries.projectEntries
 		if isToolEntry entry
 			entry.kind = "tool"
 			doraTools[] = entry
 		else
 			entry.kind = "game"
 			gamesInDev[] = entry
-	allEntries = []
+	for i = #allEntries, 1, -1
+		allEntries[i] = nil
 	for game in *gamesInDev
 		allEntries[] = game
 		:examples, :tests = game
@@ -373,6 +377,30 @@ updateEntries = ->
 			allEntries[] = example
 		for test in *tests
 			allEntries[] = test
+
+updateEntries = ->
+	allEntries.projectEntries = getProjectEntries Content.writablePath
+	allEntries.builtinTools = getFileEntries Path(Content.assetPath, "Script", "Tools"), false
+	for tool in *allEntries.builtinTools
+		tool.kind = "tool"
+		tool.builtin = true
+	allEntries.rebuildEntries!
+
+allEntries.refreshDirtyProjects = ->
+	return unless allEntries.hasDirty
+	dirty = allEntries.dirty
+	allEntries.dirty = {}
+	allEntries.hasDirty = false
+	for projectPath in pairs dirty
+		allEntries.projectEntries = [entry for entry in *allEntries.projectEntries when entry.projectPath ~= projectPath]
+		parentPath = Path\getPath projectPath
+		dir = Path\getFilename projectPath
+		for entry in *allEntries.scanDir parentPath, dir
+			if entry.projectPath == projectPath
+				allEntries.projectEntries[] = entry
+				break
+	table.sort allEntries.projectEntries, (a, b) -> a.entryName < b.entryName
+	allEntries.rebuildEntries!
 
 updateEntries!
 
@@ -391,8 +419,16 @@ export getLaunchEntries = (refresh = false) ->
 	tools = [toInfo tool, "tool" for tool in *doraTools]
 	:games, :tools
 
-export getMobileFeedEntries = (refresh = false) ->
-	updateEntries! if refresh
+export getMobileFeedEntries = (refresh = false, dirtyProjectPath = nil) ->
+	if dirtyProjectPath and dirtyProjectPath ~= ""
+		allEntries.dirty[dirtyProjectPath] = true
+		allEntries.hasDirty = true
+	if refresh
+		allEntries.dirty = {}
+		allEntries.hasDirty = false
+		updateEntries!
+	else
+		allEntries.refreshDirtyProjects!
 	items = []
 	for entry in *gamesInDev
 		items[] = {
@@ -1639,7 +1675,10 @@ startMobileUI = ->
 			restoreMobileFeed!
 	feedOptions = {
 		onSwitchMode: -> pendingUIMode = false if HttpServer.wsConnectionCount == 0
-		getLocalEntries: -> withMobileLaunchErrors getMobileFeedEntries true
+		getLocalEntries: ->
+			dirtyProjectPath = feedOptions.dirtyProjectPath
+			feedOptions.dirtyProjectPath = nil
+			withMobileLaunchErrors getMobileFeedEntries false, dirtyProjectPath
 		syncDiscover: (onProgress, onDone) -> mobileCatalog.syncMobileCatalog onProgress, onDone
 		getDiscoverEntries: ->
 			cached = loadCachedCatalog!
@@ -1669,7 +1708,7 @@ startMobileUI = ->
 		createProject: (name) ->
 			result = projectCreate.createMobileTypeScriptProject name
 			return result unless result.success
-			for entry in *getMobileFeedEntries true
+			for entry in *getMobileFeedEntries false, result.workDir
 				if entry.workDir == result.workDir
 					return success: true, :entry
 			success: false, error: "created-project-not-found"
@@ -1681,6 +1720,7 @@ startMobileUI = ->
 			feedHost.visible = false
 			remixHost = trackMobileHost remix.startMobileRemix {
 				:entry
+				onProjectChanged: (current) -> feedOptions.dirtyProjectPath = current.workDir
 				onBack: ->
 					if mobileMode and feedHost == originFeed and originFeed.parent
 						originFeed\emit "RestoreFeedEntry", entry

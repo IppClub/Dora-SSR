@@ -23,6 +23,8 @@ extern "C" typedef int (*MainFunc)();
 
 NS_DORA_BEGIN
 
+class Listener;
+
 typedef Acf::Delegate<void(const SDL_Event&)> SDLEventHandler;
 typedef Acf::Delegate<void()> QuitHandler;
 
@@ -143,6 +145,9 @@ private:
 	std::mt19937 _randomEngine;
 	bgfx::PlatformData _platformData;
 	MainFunc _mainFunc;
+#if BX_PLATFORM_ANDROID
+	Ref<Listener> _appWebViewListener;
+#endif // BX_PLATFORM_ANDROID
 	SINGLETON_REF(Application, Logger, AsyncLogThread);
 };
 

@@ -2497,7 +2497,7 @@ collectTSVirtualFiles = (sourceRoot) ->
 				files[] = file: Path("lualib", file), :content
 	files
 
-transpileTSFile = do
+transpileTSFileWithWebIDE = do
 	const tsReadyTimeout = 5
 	const tsBuildTimeout = 30
 	tsBuildRequestId = 0
@@ -2540,9 +2540,110 @@ transpileTSFile = do
 			return success: false, :file, message: "TypeScript transpile timed out"
 		result
 
+const compilerReadyTimeout = 15
+const compilerBuildTimeout = 30
+const compilerIdleCloseSeconds = 8
+compilerReady = false
+compilerRequested = false
+compilerUsers = 0
+compilerCloseGeneration = 0
+compilerJobId = 0
+compilerJobs = {}
+compilerResults = {}
+compilerInFlight = {}
+
+HttpServer\post "/compiler/ready", ->
+	compilerReady = true
+	success: true
+
+HttpServer\post "/compiler/poll", ->
+	compilerReady = true
+	job = table.remove compilerJobs, 1
+	if job
+		compilerInFlight[job.id] = true
+	success: true, :job
+
+HttpServer\post "/compiler/result", (req): success: false ->
+	switch req when {body: body}
+		id = body.id
+		return success: false, message: "invalid compiler job" unless id and compilerInFlight[id]
+		compilerInFlight[id] = nil
+		compilerResults[id] = body
+		return success: true
+
+acquireCompiler = ->
+	compilerUsers += 1
+	compilerCloseGeneration += 1
+	unless compilerRequested
+		compilerRequested = true
+		compilerReady = false
+		emit "AppWebView", "/compiler.html", true
+
+releaseCompiler = ->
+	compilerUsers = math.max compilerUsers - 1, 0
+	compilerCloseGeneration += 1
+	return unless compilerUsers == 0
+	closeGeneration = compilerCloseGeneration
+	thread ->
+		closeDeadline = App.runningTime + compilerIdleCloseSeconds
+		wait ->
+			compilerUsers > 0 or
+			compilerCloseGeneration ~= closeGeneration or
+			HttpServer.wsConnectionCount > 0 or
+			App.runningTime >= closeDeadline
+		if compilerUsers == 0 and compilerCloseGeneration == closeGeneration and compilerRequested
+			compilerRequested = false
+			compilerReady = false
+			emit "AppWebView", "/compiler.html", false
+
+removeCompilerJob = (id) ->
+	for index = #compilerJobs, 1, -1
+		if compilerJobs[index].id == id
+			table.remove compilerJobs, index
+	compilerInFlight[id] = nil
+	compilerResults[id] = nil
+
+transpileTSFileWithCompiler = (file, content, sourceRoot, files, isCancelled) ->
+	acquireCompiler!
+	readyDeadline = App.runningTime + compilerReadyTimeout
+	wait -> compilerReady or App.runningTime >= readyDeadline or (isCancelled and isCancelled!)
+	unless compilerReady
+		releaseCompiler!
+		if isCancelled and isCancelled!
+			return success: false, :file, message: "build canceled", interrupted: true
+		return success: false, :file, message: "TypeScript compiler WebView is not ready"
+	compilerJobId += 1
+	jobId = compilerJobId
+	compilerJobs[] =
+		id: jobId
+		:file
+		:content
+		projectRoot: sourceRoot
+		:files
+	deadline = App.runningTime + compilerBuildTimeout
+	wait -> compilerResults[jobId] or App.runningTime >= deadline or (isCancelled and isCancelled!)
+	response = compilerResults[jobId]
+	removeCompilerJob jobId
+	releaseCompiler!
+	unless response
+		if isCancelled and isCancelled!
+			return success: false, :file, message: "build canceled", interrupted: true
+		return success: false, :file, message: "TypeScript transpile timed out"
+	if response.success
+		luaFile = Path\replaceExt file, "lua"
+		if Content\save luaFile, response.luaCode
+			return success: true, :file
+		return success: false, :file, message: "failed to save #{luaFile}"
+	success: false, :file, message: response.message or "TypeScript transpile failed"
+
+transpileTSFile = (file, content, sourceRoot, files, isCancelled) ->
+	if App.platform == "Android" and HttpServer.wsConnectionCount == 0
+		return transpileTSFileWithCompiler file, content, sourceRoot, files, isCancelled
+	transpileTSFileWithWebIDE file, content, sourceRoot, files
+
 HttpServer\postSchedule "/ts/build", (req): success: false ->
 	switch req when {body: {:path}}
-		if HttpServer.wsConnectionCount == 0
+		if App.platform ~= "Android" and HttpServer.wsConnectionCount == 0
 			return success: false, message: "Web IDE not connected"
 		projectRoot = req.body.projectRoot
 		sourceRoot = getProjectSourceRoot projectRoot
@@ -2633,6 +2734,8 @@ HttpServer\postSchedule "/doctor/fix", (req): success: false, message: "invalid 
 
 status = {}
 export default status
+
+status.transpileTSFile = transpileTSFile
 
 status.buildAsync = (path) ->
 	if not Content\exist path

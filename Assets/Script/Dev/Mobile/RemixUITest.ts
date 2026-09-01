@@ -37,6 +37,9 @@ let questionnairePending = true;
 let respondedAnswers: AgentQuestionnaireAnswers | undefined;
 let stopCount = 0;
 let playCount = 0;
+let projectChangedCount = 0;
+let backCount = 0;
+let projectFilesChanged = false;
 
 const session = (): AgentSessionItem => ({
 	id: 91001,
@@ -58,7 +61,19 @@ const detail = (): AgentSessionDetailResult => ({
 	session: session(),
 	relatedSessions: [],
 	messages: [],
-	steps: [],
+	steps: projectFilesChanged ? [{
+		id: 95001,
+		sessionId: 91001,
+		taskId: 92001,
+		step: 1,
+		tool: "edit_file",
+		status: "DONE",
+		reason: "updated game",
+		reasoningContent: "",
+		files: [{ path: "init.ts", op: "write" }],
+		createdAt: 1,
+		updatedAt: 2,
+	}] : [],
 	checkpoints: [],
 	pendingQuestionnaire: questionnairePending ? {
 		id: 93001,
@@ -113,6 +128,7 @@ thread(() => {
 		entry: { id: "remix-ui-test", title: "轨道花园", workDir: Content.assetPath },
 		onBack: () => undefined,
 		onPlay: () => { playCount++; },
+		onProjectChanged: () => { projectChangedCount++; },
 		services,
 	});
 	sleep(0.5);
@@ -138,6 +154,7 @@ thread(() => {
 	stop?.emit("Tapped");
 	expect(stopCount === 1 && status === "STOPPED", "Stop action did not stop the Agent");
 
+	projectFilesChanged = true;
 	status = "DONE";
 	sleep(0.35);
 	const play = findTagged(host, "remix-play");
@@ -146,8 +163,23 @@ thread(() => {
 	sleep(0.25);
 	play?.emit("Tapped");
 	expect(playCount === 1, "Play now did not invoke the game callback");
+	expect(projectChangedCount === 1, "Play now did not report changed project files exactly once");
 	expect(!host.visible, "Remix host must hide before game launch");
 
-	Content.save(resultPath, "passed questionnaire=1 stop=1 play=1\n");
+	projectFilesChanged = false;
+	status = "STOPPED";
+	const unchangedHost = startMobileRemix({
+		entry: { id: "remix-ui-unchanged", title: "未修改项目", workDir: Content.assetPath },
+		onBack: () => { backCount++; },
+		onPlay: () => undefined,
+		onProjectChanged: () => { projectChangedCount++; },
+		services,
+	});
+	sleep(0.2);
+	findTagged(unchangedHost, "remix-back")?.emit("Tapped");
+	expect(backCount === 1, "Back did not close the unchanged Remix session");
+	expect(projectChangedCount === 1, "Unchanged Remix incorrectly reported project changes");
+
+	Content.save(resultPath, "passed questionnaire=1 stop=1 play=1 unchangedBack=1\n");
 	host.removeFromParent(true);
 });

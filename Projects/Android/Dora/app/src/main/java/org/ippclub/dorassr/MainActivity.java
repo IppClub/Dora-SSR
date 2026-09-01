@@ -32,6 +32,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.WindowManager;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
@@ -85,6 +86,8 @@ public class MainActivity extends SDLActivity {
 	private Button reloadButton;
 	private FrameLayout ideContainer;
 	private WebView ideWebView;
+	private WebView compilerWebView;
+	private String compilerWebViewPath;
 	private TextView ideStatusView;
 	private boolean ideLoaded = false;
 	private boolean ideVisible = false;
@@ -139,6 +142,12 @@ public class MainActivity extends SDLActivity {
 	}
 
 	private void configureEdgeToEdgeWindow() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+			WindowManager.LayoutParams attributes = getWindow().getAttributes();
+			attributes.layoutInDisplayCutoutMode =
+				WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+			getWindow().setAttributes(attributes);
+		}
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 			getWindow().setDecorFitsSystemWindows(false);
 		} else {
@@ -180,6 +189,102 @@ public class MainActivity extends SDLActivity {
 			getContentResolver(), Settings.Global.ANIMATOR_DURATION_SCALE, 1.0f) == 0.0f;
 	}
 
+	@Keep
+	public void setAppWebView(String path, boolean visible) {
+		runOnUiThread(() -> {
+			if (!"/compiler.html".equals(path)) {
+				Log.w(TAG, "ignored unsupported AppWebView path: " + path);
+				return;
+			}
+			if (!visible) {
+				if (path.equals(compilerWebViewPath)) {
+					destroyCompilerWebView();
+				}
+				return;
+			}
+			if (compilerWebView != null && path.equals(compilerWebViewPath)) {
+				return;
+			}
+			destroyCompilerWebView();
+			View content = SDLActivity.getContentView();
+			if (!(content instanceof RelativeLayout)) {
+				Log.e(TAG, "failed to attach compiler WebView: SDL content is not a RelativeLayout");
+				return;
+			}
+			WebView webView = new WebView(this);
+			WebSettings settings = webView.getSettings();
+			settings.setJavaScriptEnabled(true);
+			settings.setDomStorageEnabled(true);
+			settings.setAllowFileAccess(false);
+			settings.setAllowContentAccess(false);
+			webView.setBackgroundColor(Color.TRANSPARENT);
+			webView.setAlpha(0.0f);
+			webView.setClickable(false);
+			webView.setFocusable(false);
+			webView.setFocusableInTouchMode(false);
+			webView.setWebChromeClient(new WebChromeClient() {
+				@Override
+				public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+					Log.d(TAG, "compiler: " + consoleMessage.message()
+						+ " @" + consoleMessage.lineNumber());
+					return true;
+				}
+			});
+			webView.setWebViewClient(new WebViewClient() {
+				private boolean isCompilerUrl(String url) {
+					return url != null && (url.equals(WEB_IDE_URL + "/compiler.html")
+						|| url.startsWith(WEB_IDE_URL + "/compiler/"));
+				}
+
+				@Override
+				public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+					return !isCompilerUrl(request.getUrl().toString());
+				}
+
+				@Override
+				@SuppressWarnings("deprecation")
+				public boolean shouldOverrideUrlLoading(WebView view, String url) {
+					return !isCompilerUrl(url);
+				}
+
+				@Override
+				public void onPageFinished(WebView view, String url) {
+					Log.d(TAG, "compiler page finished: " + url);
+				}
+
+				@Override
+				public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+					Log.e(TAG, "compiler load failed: " + request.getUrl() + ": " + error);
+				}
+			});
+			RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(1, 1);
+			params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+			params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+			((RelativeLayout) content).addView(webView, params);
+			compilerWebView = webView;
+			compilerWebViewPath = path;
+			Log.d(TAG, "loading compiler WebView: " + WEB_IDE_URL + path);
+			webView.loadUrl(WEB_IDE_URL + path);
+		});
+	}
+
+	private void destroyCompilerWebView() {
+		if (compilerWebView == null) {
+			compilerWebViewPath = null;
+			return;
+		}
+		Log.d(TAG, "destroying compiler WebView: " + compilerWebViewPath);
+		compilerWebView.stopLoading();
+		compilerWebView.loadUrl("about:blank");
+		ViewParent parent = compilerWebView.getParent();
+		if (parent instanceof ViewGroup) {
+			((ViewGroup) parent).removeView(compilerWebView);
+		}
+		compilerWebView.destroy();
+		compilerWebView = null;
+		compilerWebViewPath = null;
+	}
+
 	@Override
 	public void onWindowFocusChanged(boolean hasFocus) {
 		super.onWindowFocusChanged(hasFocus);
@@ -194,6 +299,9 @@ public class MainActivity extends SDLActivity {
 		if (ideWebView != null) {
 			ideWebView.onResume();
 		}
+		if (compilerWebView != null) {
+			compilerWebView.onResume();
+		}
 		hideSystemUI();
 	}
 
@@ -204,6 +312,9 @@ public class MainActivity extends SDLActivity {
 		}
 		if (ideWebView != null) {
 			ideWebView.onPause();
+		}
+		if (compilerWebView != null) {
+			compilerWebView.onPause();
 		}
 		super.onPause();
 	}
@@ -217,6 +328,7 @@ public class MainActivity extends SDLActivity {
 			ideWebView.destroy();
 			ideWebView = null;
 		}
+		destroyCompilerWebView();
 		try {
 			unregisterReceiver(downloadCompleteReceiver);
 		} catch (IllegalArgumentException ignored) {

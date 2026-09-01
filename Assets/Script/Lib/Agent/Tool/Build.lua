@@ -101,6 +101,30 @@ local TRANSPILE_READY_TIMEOUT_SECONDS = 5 -- 78
 local TRANSPILE_BUILD_TIMEOUT_SECONDS = 30 -- 79
 function ____exports.runSingleTsTranspile(file, content, projectRoot, isCancelled) -- 81
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 81
+		if App.platform == "Android" then -- 87
+			return ____awaiter_resolve( -- 87
+				nil, -- 87
+				__TS__New( -- 88
+					__TS__Promise, -- 88
+					function(____, resolve) -- 88
+						local moduleName = "Script.Dev.WebServer" -- 89
+						local webServer = require(moduleName) -- 90
+						Director.systemScheduler:schedule(once(function() -- 98
+							resolve( -- 99
+								nil, -- 99
+								webServer.transpileTSFile( -- 99
+									file, -- 99
+									content, -- 99
+									projectRoot, -- 99
+									nil, -- 99
+									isCancelled -- 99
+								) -- 99
+							) -- 99
+						end)) -- 98
+					end -- 88
+				) -- 88
+			) -- 87
+		end -- 87
 		local done = false -- 87
 		local ready = false -- 88
 		transpileRequestSeq = transpileRequestSeq + 1 -- 89

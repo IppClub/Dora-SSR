@@ -468,6 +468,7 @@ export default defineConfig(async ({ command, mode }) => {
 			rollupOptions: {
 				input: {
 					main: path.join(rootDir, 'index.html'),
+					compiler: path.join(rootDir, 'compiler.html'),
 					yarnEditor: yarnEditorIndexHtml,
 					codeWire: codeWireIndexHtml,
 				},

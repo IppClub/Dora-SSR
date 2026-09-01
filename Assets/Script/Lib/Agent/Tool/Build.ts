@@ -84,6 +84,23 @@ export async function runSingleTsTranspile(
 	projectRoot?: string,
 	isCancelled?: () => boolean,
 ): Promise<BuildMessage> {
+	if (App.platform === "Android") {
+		return new Promise<BuildMessage>((resolve) => {
+			const moduleName = "Script.Dev.WebServer";
+			const webServer = require(moduleName) as {
+				transpileTSFile: (
+					file: string,
+					content: string,
+					projectRoot?: string,
+					files?: unknown,
+					isCancelled?: () => boolean,
+				) => BuildMessage;
+			};
+			Director.systemScheduler.schedule(once(() => {
+				resolve(webServer.transpileTSFile(file, content, projectRoot, undefined, isCancelled));
+			}));
+		});
+	}
 	let done = false;
 	let ready = false;
 	transpileRequestSeq += 1;

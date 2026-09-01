@@ -10,6 +10,7 @@ local __TS__New = ____lualib.__TS__New -- 1
 local __TS__ArrayForEach = ____lualib.__TS__ArrayForEach -- 1
 local ____exports = {} -- 1
 local ____Dora = require("Dora") -- 1
+local App = ____Dora.App -- 1
 local Content = ____Dora.Content -- 1
 local Director = ____Dora.Director -- 1
 local emit = ____Dora.emit -- 1
@@ -137,48 +138,64 @@ thread(function() -- 21
 		"new local project was not selected before Remix" -- 62
 	) -- 62
 	host:emit("RestoreFeedEntry", remixed) -- 64
-	expect( -- 65
-		find(host, "mobile-feed-card-new-game") ~= nil, -- 65
-		"return from Remix lost the new project card" -- 65
-	) -- 65
-	local ____opt_18 = find(host, "mobile-feed-create") -- 65
-	if ____opt_18 ~= nil then -- 65
-		____opt_18:emit("Tapped") -- 67
-	end -- 67
-	local muted = {} -- 70
-	local muteOtherBackHandlers -- 71
-	muteOtherBackHandlers = function(node) -- 71
-		if node ~= host then -- 71
-			__TS__ArrayForEach( -- 72
-				node:gslot("AppEvent") or ({}), -- 72
-				function(____, slot) -- 72
-					if slot.enabled then -- 72
-						slot.enabled = false -- 73
-						muted[#muted + 1] = slot -- 73
-					end -- 73
-				end -- 72
-			) -- 72
-		end -- 72
-		node:eachChild(function(child) -- 75
-			muteOtherBackHandlers(child) -- 75
-			return false -- 75
-		end) -- 75
-	end -- 71
-	muteOtherBackHandlers(Director.systemUI) -- 77
-	muteOtherBackHandlers(Director.entry) -- 78
-	emit("AppEvent", "BackButton") -- 79
-	__TS__ArrayForEach( -- 80
-		muted, -- 80
-		function(____, slot) -- 80
-			slot.enabled = true -- 80
-		end -- 80
-	) -- 80
-	expect( -- 81
-		find(host, "mobile-project-create-sheet") == nil, -- 81
-		"Back did not close create sheet" -- 81
-	) -- 81
-	host:removeFromParent(true) -- 83
-	sleep(0.05) -- 84
-	Content:save(resultPath, "passed empty=1 cancel=1 reentry=1 recovery=1 success=1 restore=1 back=1\n") -- 85
+	host.visible = true -- 65
+	host:emit("ResumeLocalUI") -- 66
+	expect( -- 67
+		find(host, "mobile-feed-card-new-game") ~= nil, -- 67
+		"return from Remix lost the new project card" -- 67
+	) -- 67
+	expect( -- 68
+		find(host, "mobile-feed-index") ~= nil, -- 68
+		"refined Feed card has no compact index badge" -- 68
+	) -- 68
+	local ____opt_18 = find(host, "mobile-feed-create") -- 68
+	if ____opt_18 ~= nil then -- 68
+		____opt_18:emit("Tapped") -- 70
+	end -- 70
+	expect( -- 71
+		find(host, "mobile-project-create-sheet") ~= nil, -- 71
+		"create sheet did not reopen over an existing project" -- 71
+	) -- 71
+	sleep(0.35) -- 72
+	expect( -- 73
+		App:saveScreenshot("/tmp/dora-mobile-feed-create-sheet") ~= "", -- 73
+		"create sheet screenshot failed" -- 73
+	) -- 73
+	sleep(0.3) -- 74
+	local muted = {} -- 77
+	local muteOtherBackHandlers -- 78
+	muteOtherBackHandlers = function(node) -- 78
+		if node ~= host then -- 78
+			__TS__ArrayForEach( -- 79
+				node:gslot("AppEvent") or ({}), -- 79
+				function(____, slot) -- 79
+					if slot.enabled then -- 79
+						slot.enabled = false -- 80
+						muted[#muted + 1] = slot -- 80
+					end -- 80
+				end -- 79
+			) -- 79
+		end -- 79
+		node:eachChild(function(child) -- 82
+			muteOtherBackHandlers(child) -- 82
+			return false -- 82
+		end) -- 82
+	end -- 78
+	muteOtherBackHandlers(Director.systemUI) -- 84
+	muteOtherBackHandlers(Director.entry) -- 85
+	emit("AppEvent", "BackButton") -- 86
+	__TS__ArrayForEach( -- 87
+		muted, -- 87
+		function(____, slot) -- 87
+			slot.enabled = true -- 87
+		end -- 87
+	) -- 87
+	expect( -- 88
+		find(host, "mobile-project-create-sheet") == nil, -- 88
+		"Back did not close create sheet" -- 88
+	) -- 88
+	host:removeFromParent(true) -- 90
+	sleep(0.05) -- 91
+	Content:save(resultPath, "passed empty=1 cancel=1 reentry=1 recovery=1 success=1 restore=1 back=1\n") -- 92
 end) -- 21
 return ____exports -- 21

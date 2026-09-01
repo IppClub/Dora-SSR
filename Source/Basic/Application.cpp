@@ -16,6 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "Common/Async.h"
 #include "Event/Event.h"
+#include "Event/Listener.h"
 #include "GUI/ImGuiDora.h"
 #include "Http/XrtNetwork.h"
 #include "Input/Controller.h"
@@ -75,6 +76,27 @@ JNIEXPORT jstring JNICALL Java_org_ippclub_dorassr_MainActivity_nativeGetInstall
 extern "C" ANativeWindow* Android_JNI_GetNativeWindow();
 extern "C" int Android_JNI_SendMessage(int command, int param);
 extern "C" JNIEnv* Android_JNI_GetEnv();
+
+static void setAndroidAppWebView(const std::string& path, bool visible) {
+	JNIEnv* env = Android_JNI_GetEnv();
+	jobject activity = r_cast<jobject>(SDL_AndroidGetActivity());
+	if (!env || !activity) return;
+	jclass clazz = env->GetObjectClass(activity);
+	jmethodID method = clazz ? env->GetMethodID(clazz, "setAppWebView", "(Ljava/lang/String;Z)V") : nullptr;
+	if (method) {
+		jstring jpath = env->NewStringUTF(path.c_str());
+		if (jpath) {
+			env->CallVoidMethod(activity, method, jpath, visible ? JNI_TRUE : JNI_FALSE);
+			env->DeleteLocalRef(jpath);
+		}
+	}
+	if (env->ExceptionCheck()) {
+		env->ExceptionClear();
+		Error("failed to update Android AppWebView");
+	}
+	if (clazz) env->DeleteLocalRef(clazz);
+	env->DeleteLocalRef(activity);
+}
 #endif // BX_PLATFORM_ANDROID
 
 #if BX_PLATFORM_WINDOWS
@@ -1160,6 +1182,15 @@ int Application::mainLogic(Application* app) {
 	}
 
 	SharedPoolManager.push();
+#if BX_PLATFORM_ANDROID
+	app->_appWebViewListener = Listener::create("AppWebView"s, [](Event* event) {
+		std::string path;
+		bool visible = false;
+		if (event->get(path, visible)) {
+			setAndroidAppWebView(path, visible);
+		}
+	});
+#endif // BX_PLATFORM_ANDROID
 	if (!SharedDirector.init()) {
 		Error("Director failed to initialize!");
 		return 1;

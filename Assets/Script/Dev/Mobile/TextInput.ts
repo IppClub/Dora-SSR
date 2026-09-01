@@ -1,4 +1,5 @@
 import { App, ClipNode, Color, Color3, DrawNode, Keyboard, KeyName, Label, Node, Size, sleep, TextAlign, thread, Vec2 } from "Dora";
+import * as nvg from "nvg";
 
 export const inputLength = (text: string) => utf8.len(text)[0] ?? 0;
 export const inputSlice = (text: string, start: number, end = inputLength(text)) => {
@@ -31,11 +32,17 @@ export function layoutInput(text: string, width: number, advance: (this: void, c
 }
 
 export function createTextInputView(input: Node.Type, fontSize: number, singleLine = false, background = 0xff171c26) {
-	const bounds = [Vec2.zero, Vec2(input.width, 0), Vec2(input.width, input.height), Vec2(0, input.height)];
-	const fill = DrawNode(); fill.drawPolygon(bounds, Color(background)); input.addChild(fill, -2);
-	const border = DrawNode(); border.tag = `${input.tag}-border`;
-	border.drawPolygon(bounds, Color(0x00000000), 1, Color(0xffffffff));
+	const border = Node(); border.tag = `${input.tag}-border`;
 	border.color3 = Color3(0x343b48); input.addChild(border, -1);
+	input.onRender(() => {
+		nvg.Save(); nvg.ApplyTransform(input);
+		nvg.BeginPath(); nvg.RoundedRect(0, 0, input.width, input.height, 12);
+		nvg.FillPaint(nvg.LinearGradient(0, input.height, 0, 0, Color(0xff242d3b), Color(background)));
+		nvg.Fill();
+		nvg.BeginPath(); nvg.RoundedRect(0.75, 0.75, input.width - 1.5, input.height - 1.5, 11.25);
+		nvg.StrokeWidth(1.5); nvg.StrokeColor(Color(border.color3)); nvg.Stroke(); nvg.Restore();
+		return false;
+	});
 	const insetX = 12, insetY = 8;
 	const width = math.max(1, input.width - insetX * 2 - 2);
 	const height = math.max(1, input.height - insetY * 2);

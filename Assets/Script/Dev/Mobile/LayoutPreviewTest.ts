@@ -22,6 +22,9 @@ thread(() => {
 	App.winSize = Size(1024, 768);
 	sleep(0.8);
 	const tablet = App.saveScreenshot("/tmp/dora-mobile-feed-tablet");
+	App.winSize = Size(390, 640);
+	sleep(0.8);
+	const shortPortrait = App.saveScreenshot("/tmp/dora-mobile-feed-short");
 	sleep(0.3);
-	Content.save("/tmp/dora-mobile-layout-preview.result", `passed\nlandscape=${landscape}\ntablet=${tablet}\nhostScale=${host.scaleX},${host.scaleY}`);
+	Content.save("/tmp/dora-mobile-layout-preview.result", `passed\nlandscape=${landscape}\ntablet=${tablet}\nshort=${shortPortrait}\nhostScale=${host.scaleX},${host.scaleY}`);
 });

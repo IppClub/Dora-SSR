@@ -6,7 +6,14 @@ import { compactAgentActivity } from "Dev/Mobile/RemixModel";
 import { parseLightMarkdown } from "Dev/Mobile/LightMarkdown";
 import { remixHistory, REMIX_HISTORY_ROUNDS } from "Dev/Mobile/RemixHistory";
 
-interface Item { id: string; title: string; text: string; user: boolean; activity: boolean; }
+export interface RemixTranscriptAction {
+	id: "continue" | "start-development";
+	text: string;
+	primary?: boolean;
+	onTapped(this: void): void;
+}
+
+interface Item { id: string; title: string; text: string; user: boolean; activity: boolean; actions?: RemixTranscriptAction[]; }
 type Scroll = ReturnType<typeof ScrollArea> & {
 	offset: Vec2.Type;
 	resetSize(this: Scroll, width: number, height: number, viewWidth: number, viewHeight: number): void;
@@ -20,13 +27,14 @@ export function remixDisplayRevision(detail: AgentSessionDetailResult): string {
 	return safeJsonEncode({
 		status: detail.session.status, mode: detail.session.workMode, plan: detail.hasActivePlan,
 		finalizing: detail.session.currentTaskFinalizing, questionnaire: detail.pendingQuestionnaire,
-		currentTaskId: detail.session.currentTaskId, hasEarlierMessages: history.hasEarlierMessages,
+		currentTaskId: detail.session.currentTaskId, currentTaskStatus: detail.session.currentTaskStatus,
+		hasEarlierMessages: history.hasEarlierMessages,
 		messages: history.messages.map(m => [m.id, m.taskId ?? 0, m.role, m.displayContent ?? m.content]),
 		steps: history.steps.map(s => [s.id, s.tool, s.status, s.reason, s.result?.progress, s.result?.stage, s.result?.message]),
 	})[0] ?? "";
 }
 
-function itemsFor(detail: AgentSessionDetailResult, zh: boolean): Item[] {
+function itemsFor(detail: AgentSessionDetailResult, zh: boolean, actions: RemixTranscriptAction[]): Item[] {
 	if (!detail.success) return [];
 	const items: Item[] = [];
 	const history = remixHistory(detail);
@@ -55,10 +63,58 @@ function itemsFor(detail: AgentSessionDetailResult, zh: boolean): Item[] {
 			text: m.displayContent ?? m.content, user: m.role === "user", activity: false });
 	}
 	if (!inserted) items.push(...activities);
+	if (actions.length > 0) items.push({ id: "remix-terminal-actions", title: "", text: "", user: false, activity: true, actions });
 	return items;
 }
 
+function drawCapsule(target: DrawNode.Type, width: number, height: number, color: number, inset = 0) {
+	const radius = height / 2 - inset;
+	const left = height / 2;
+	const right = width - height / 2;
+	target.drawPolygon([Vec2(left, inset), Vec2(right, inset), Vec2(right, height - inset), Vec2(left, height - inset)], Color(color));
+	target.drawDot(Vec2(left, height / 2), radius, Color(color));
+	target.drawDot(Vec2(right, height / 2), radius, Color(color));
+}
+
+function makeActionRow(actions: RemixTranscriptAction[], width: number, scale: number): Node.Type {
+	const card = Node();
+	card.tag = "remix-terminal-actions";
+	card.anchor = Vec2(0, 1);
+	card.width = width;
+	card.height = 44;
+	const gap = 10;
+	const buttonWidth = actions.length > 1 ? math.min((width - gap) / 2, 184) : math.min(width, 184);
+	for (let i = 0; i < actions.length; i++) {
+		const action = actions[i];
+		const button = Node();
+		button.tag = `remix-action-${action.id}`;
+		button.anchor = Vec2.zero;
+		button.position = Vec2(i * (buttonWidth + gap), 3);
+		button.size = Size(buttonWidth, 38);
+		button.touchEnabled = true;
+		button.swallowTouches = true;
+		button.onTapped(action.onTapped);
+		const bg = DrawNode();
+		if (action.primary) drawCapsule(bg, buttonWidth, 38, 0xffffcc33);
+		else {
+			drawCapsule(bg, buttonWidth, 38, 0xff465064);
+			drawCapsule(bg, buttonWidth, 38, 0xff171c26, 1);
+		}
+		button.addChild(bg);
+		const label = Label(font, math.floor(14 * scale), true);
+		if (label) {
+			label.position = Vec2(buttonWidth / 2, 19);
+			label.color3 = Color3(action.primary ? 0x17130a : 0xf4f1e8);
+			label.text = action.text;
+			button.addChild(label);
+		}
+		card.addChild(button);
+	}
+	return card;
+}
+
 function makeCard(item: Item, width: number, scale: number, zh: boolean): Node.Type {
+	if (item.actions) return makeActionRow(item.actions, width, scale);
 	const card = Node();
 	card.tag = item.id;
 	card.anchor = Vec2(0, 1);
@@ -126,7 +182,7 @@ export function createRemixTranscript() {
 	});
 	return {
 		node,
-		update(detail: AgentSessionDetailResult, w: number, h: number, fontScale: number, chinese: boolean) {
+		update(detail: AgentSessionDetailResult, w: number, h: number, fontScale: number, chinese: boolean, actions: RemixTranscriptAction[] = []) {
 			const anchor = rows.find(row => row.node.y > 0 && row.node.y - row.node.height < height);
 			const anchorY = anchor?.node.y;
 			const oldOffset = scroll.offset.y;
@@ -136,8 +192,9 @@ export function createRemixTranscript() {
 			latest.position = Vec2(width / 2, 14);
 			const previous = rows;
 			let changed = layoutChanged;
-			rows = itemsFor(detail, zh).map(item => {
-				const signature = safeJsonEncode(item)[0] ?? "";
+			rows = itemsFor(detail, zh, actions).map(item => {
+				const signature = safeJsonEncode({ id: item.id, title: item.title, text: item.text, user: item.user,
+					activity: item.activity, actions: item.actions?.map(action => [action.id, action.text, action.primary === true]) })[0] ?? "";
 				const existing = previous.find(row => row.id === item.id);
 				if (!layoutChanged && existing?.signature === signature) return existing;
 				changed = true;

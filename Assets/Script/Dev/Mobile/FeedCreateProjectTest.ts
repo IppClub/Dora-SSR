@@ -1,4 +1,4 @@
-import { Content, Director, emit, Node, Path, sleep, thread } from "Dora";
+import { App, Content, Director, emit, Node, Path, sleep, thread } from "Dora";
 import { startMobileFeed } from "Dev/Mobile/Feed";
 import type { FeedEntry } from "Dev/Mobile/FeedModel";
 
@@ -62,9 +62,16 @@ thread(() => {
 	expect(find(host, "mobile-feed-card-new-game") !== undefined, "new local project was not selected before Remix");
 
 	host.emit("RestoreFeedEntry", remixed);
+	host.visible = true;
+	host.emit("ResumeLocalUI");
 	expect(find(host, "mobile-feed-card-new-game") !== undefined, "return from Remix lost the new project card");
+	expect(find(host, "mobile-feed-index") !== undefined, "refined Feed card has no compact index badge");
 
 	find(host, "mobile-feed-create")?.emit("Tapped");
+	expect(find(host, "mobile-project-create-sheet") !== undefined, "create sheet did not reopen over an existing project");
+	sleep(0.35);
+	expect(App.saveScreenshot("/tmp/dora-mobile-feed-create-sheet") !== "", "create sheet screenshot failed");
+	sleep(0.3);
 	// Back is a global AppEvent, not a node-local signal. Isolate the fixture
 	// from the user's shell so this test cannot navigate another open screen.
 	const muted: { enabled: boolean }[] = [];

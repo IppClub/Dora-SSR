@@ -8,9 +8,10 @@ import { buildQuestionnaireAnswers, canLeaveRemix, isQuestionAnswered, resolveRe
 import { DoraMascot, type DoraMascotState } from "Dev/Mobile/Mascot";
 import { mobileFontScale } from "Dev/Mobile/Accessibility";
 import { resolveFeedGesture } from "Dev/Mobile/FeedModel";
-import { createRemixTranscript, remixDisplayRevision } from "Dev/Mobile/RemixTranscript";
+import { createRemixTranscript, remixDisplayRevision, type RemixTranscriptAction } from "Dev/Mobile/RemixTranscript";
 import { REMIX_HISTORY_ROUNDS } from "Dev/Mobile/RemixHistory";
 import { createTextInput } from "Dev/Mobile/TextInput";
+import { RoundedSurface, VerticalGradient } from "Dev/Mobile/Visual";
 
 interface RemixEntry {
 	id: string;
@@ -28,6 +29,7 @@ export interface MobileRemixServices {
 	sendPrompt(this: void, sessionId: number, prompt: string, disabledAgentTools: undefined, workMode: "plan" | "code", llmConfigId: number, llmConfig: LLMConfig): AgentSession.AgentSessionSendResult;
 	respondQuestionnaire(this: void, sessionId: number, questionnaireId: number, answers: AgentQuestionnaireAnswers, llmConfigId: number): AgentSession.AgentSessionSendResult;
 	stopSessionTask(this: void, sessionId: number): unknown;
+	continuePrompt?(this: void, sessionId: number, disabledAgentTools?: unknown, llmConfigId?: number): AgentSession.AgentSessionSendResult;
 	getActiveLLMConfig(this: void): MobileLLMConfigResult;
 	getLLMConfig(this: void, configId: number): MobileLLMConfigResult;
 	getLLMConfigSummaries(this: void): LLMConfigSummary[];
@@ -37,6 +39,7 @@ export interface RemixOptions {
 	entry: RemixEntry;
 	onBack: (this: void) => void;
 	onPlay: (this: void, entry: RemixEntry) => void;
+	onProjectChanged?: (this: void, entry: RemixEntry) => void;
 	services?: MobileRemixServices;
 }
 
@@ -50,23 +53,31 @@ const composerActionWidth = 82;
 const modeBottom = composerBottom + composerHeight + composerGap;
 const composerTop = modeBottom + 40;
 const transcriptBottom = composerTop + composerGap;
-const statusTopInset = 56 + composerGap;
 const statusHeight = 64;
-const transcriptTopInset = statusTopInset + statusHeight + composerGap;
 
 function ActionButton(props: { x: number; y: number; width: number; height?: number; text: string; tag?: string; primary?: boolean; danger?: boolean; disabled?: boolean; onTapped(): void }) {
-	const color = props.danger ? colors.danger : props.primary ? colors.brand : colors.panel;
 	const height = props.height ?? 46;
 	return <node tag={props.tag} x={props.x} y={props.y} width={props.width} height={height} anchorX={0} anchorY={0} opacity={props.disabled ? 0.45 : 1} touchEnabled={!props.disabled} swallowTouches={true} onTapped={props.onTapped}>
-		<draw-node x={props.width / 2} y={height / 2}><rect-shape width={props.width} height={height} fillColor={color} borderWidth={1} borderColor={props.primary || props.danger ? color : colors.border} /></draw-node>
+		<RoundedSurface width={props.width} height={height} radius={14}
+			topColor={props.danger ? 0xffff8585 : props.primary ? 0xffffdf6b : 0xff293140}
+			bottomColor={props.danger ? 0xffdf4e56 : props.primary ? 0xffffbd2e : 0xff171d27}
+			borderWidth={1} borderColor={props.danger ? colors.danger : props.primary ? 0xffffdd63 : colors.border} shadow={props.primary || props.danger} />
 		<label x={props.width / 2} y={height / 2} fontName={fontName} fontSize={15} text={props.text} color3={props.primary ? 0x17130a : 0xf4f1e8} />
 	</node>;
 }
 
 function ChoiceButton(props: { x: number; y: number; width: number; text: string; tag?: string; selected: boolean; disabled?: boolean; onTapped(): void }) {
 	return <node tag={props.tag} x={props.x} y={props.y} width={props.width} height={40} anchorX={0} anchorY={0} opacity={props.disabled ? 0.45 : 1} touchEnabled={!props.disabled} swallowTouches={true} onTapped={props.onTapped}>
-		<draw-node x={props.width / 2} y={20}><rect-shape width={props.width} height={40} fillColor={props.selected ? colors.brand : colors.background} borderWidth={1} borderColor={props.selected ? colors.brand : colors.border} /></draw-node>
-		<label x={12} y={20} anchorX={0} fontName={fontName} fontSize={14} text={props.text} textWidth={props.width - 24} alignment={TextAlign.Left} color3={props.selected ? 0x17130a : 0xf4f1e8} />
+		<RoundedSurface width={props.width} height={40} radius={12}
+			topColor={props.selected ? 0xffffdf6b : 0xff202836}
+			bottomColor={props.selected ? 0xffffbd2e : 0xff10151d}
+			borderWidth={1} borderColor={props.selected ? 0xffffdd63 : colors.border} />
+		<draw-node tag={props.tag ? `${props.tag}-radio` : undefined} x={17} y={20}>
+			<dot-shape radius={7} color={props.selected ? 0xff17130a : 0xffa8afbd} />
+			<dot-shape radius={5} color={props.selected ? 0xffffcf48 : 0xff171c26} />
+			{props.selected ? <draw-node tag={props.tag ? `${props.tag}-radio-dot` : undefined}><dot-shape radius={2.5} color={0xff17130a} /></draw-node> : undefined}
+		</draw-node>
+		<label x={32} y={20} anchorX={0} fontName={fontName} fontSize={14} text={props.text} textWidth={props.width - 44} alignment={TextAlign.Left} color3={props.selected ? 0x17130a : 0xf4f1e8} />
 	</node>;
 }
 
@@ -80,6 +91,7 @@ export function startMobileRemix(options: RemixOptions) {
 		sendPrompt: AgentSession.sendPrompt,
 		respondQuestionnaire: AgentSession.respondQuestionnaire,
 		stopSessionTask: AgentSession.stopSessionTask,
+		continuePrompt: AgentSession.continuePrompt,
 		getActiveLLMConfig,
 		getLLMConfig,
 		getLLMConfigSummaries,
@@ -108,6 +120,7 @@ export function startMobileRemix(options: RemixOptions) {
 	let swipeBackPending = false;
 	let swipeDragging = false;
 	let swipeRevision = 0;
+	let projectChangeNotified = false;
 	const currentQuestion = () => detail.success ? detail.pendingQuestionnaire?.schema.questions[questionIndex] : undefined;
 	const promptInput = createTextInput({
 		fontSize: math.floor(16 * mobileFontScale),
@@ -140,21 +153,43 @@ export function startMobileRemix(options: RemixOptions) {
 	let displayRevision = "";
 	let shellRevision = "";
 	let inputLayout = "";
+	let compactHeaderStatusActive = false;
 	let errorLabel: Label.Type | undefined;
-	const getTranscriptBottom = () => transcriptBottom + (errorLabel ? errorLabel.height + composerGap : 0);
+	let layoutTranscriptBottom = transcriptBottom;
+	const getLayoutArea = () => App.safeArea;
+	const getTranscriptBottom = () => layoutTranscriptBottom + (errorLabel ? errorLabel.height + composerGap : 0);
+	const hasTranscriptContent = () => detail.success && (detail.messages.length > 0 || detail.steps.length > 0);
+	const getHeaderY = (safe: { x: number; y: number; width: number; height: number }) => {
+		const landscapeTopLift = safe.width >= 760 && safe.height < 500 ? 28 : 0;
+		return safe.y + safe.height - 56 + landscapeTopLift;
+	};
+	const useCompactHeaderStatus = (safe: { width: number; height: number }) => safe.width >= 760 && safe.height < 500 && hasTranscriptContent();
+	const useCompactStandaloneStatus = (safe: { height: number }) => safe.height >= 500 && hasTranscriptContent();
+	const getTranscriptHeight = (safe: { x: number; y: number; width: number; height: number }) => {
+		const statusInset = useCompactHeaderStatus(safe) ? composerGap
+			: statusHeight + composerGap * 2 - (useCompactStandaloneStatus(safe) ? 24 : 0);
+		const available = math.max(40, getHeaderY(safe) - safe.y - getTranscriptBottom() - statusInset);
+		return safe.width >= 760 && safe.height < 500 && !hasTranscriptContent() ? 8 : available;
+	};
 	const getShellRevision = () => detail.success ? safeJsonEncode([
 		detail.session.status, detail.session.workMode, detail.hasActivePlan, detail.pendingQuestionnaire ?? false,
-		detail.session.currentTaskStatus ?? "", detail.session.currentTaskFinalizing ?? false, stopRequested,
+		detail.session.currentTaskStatus ?? "", detail.session.currentTaskFinalizing ?? false, stopRequested, hasTranscriptContent(),
 	])[0] ?? "" : detail.message;
 	const updateTranscript = () => {
-		const safe = App.safeArea;
-		transcript.update(detail, math.max(60, safe.width - 32), math.max(40, safe.height - getTranscriptBottom() - transcriptTopInset), mobileFontScale, zh);
+		const safe = getLayoutArea();
+		transcript.update(detail, math.max(60, safe.width - 32), getTranscriptHeight(safe), mobileFontScale, zh, getTranscriptActions());
 		displayRevision = remixDisplayRevision(detail);
 	};
 
 	const hasActiveTask = () => detail.success && (detail.session.status === "RUNNING" || detail.session.status === "WAITING_USER"
 		|| detail.session.currentTaskStatus === "RUNNING" || detail.session.currentTaskStatus === "WAITING_USER"
 		|| detail.session.currentTaskFinalizing === true || detail.pendingQuestionnaire !== undefined);
+	const notifyProjectChanged = () => {
+		if (projectChangeNotified || !detail.success || !options.onProjectChanged) return;
+		if (!detail.steps.some(step => step.files !== undefined && step.files.length > 0)) return;
+		projectChangeNotified = true;
+		options.onProjectChanged(options.entry);
+	};
 	const refresh = () => {
 		if (sessionId > 0) detail = services.getSession(sessionId);
 		if (detail.success && !hasActiveTask()) stopRequested = false;
@@ -166,6 +201,7 @@ export function startMobileRemix(options: RemixOptions) {
 	const canSubmit = () => detail.success && canLeaveRemix(detail.session.status)
 		&& detail.session.currentTaskStatus !== "RUNNING" && detail.session.currentTaskStatus !== "WAITING_USER"
 		&& !detail.session.currentTaskFinalizing && !detail.pendingQuestionnaire;
+	const resolveLLMConfig = () => selectedLLMConfigId > 0 ? services.getLLMConfig(selectedLLMConfigId) : services.getActiveLLMConfig();
 	const changeWorkMode = (workMode: "plan" | "code") => {
 		if (!host.visible || HttpServer.wsConnectionCount > 0) return;
 		refresh();
@@ -185,7 +221,7 @@ export function startMobileRemix(options: RemixOptions) {
 		// class and can strip trailing Chinese bytes. Trim ASCII whitespace only.
 		const text = string.match(draft, "^%s*(.-)%s*$")[0] ?? "";
 		if (sessionId <= 0 || text === "") return;
-		const config = selectedLLMConfigId > 0 ? services.getLLMConfig(selectedLLMConfigId) : services.getActiveLLMConfig();
+		const config = resolveLLMConfig();
 		if (!config.success) {
 			error = zh ? "请先在桌面 Web IDE 中配置并启用一个模型" : "Configure and activate a model in Web IDE first";
 			render();
@@ -197,6 +233,64 @@ export function startMobileRemix(options: RemixOptions) {
 		else { draft = ""; error = ""; }
 		refresh();
 		render();
+	};
+	const continueTask = () => {
+		if (!host.visible || HttpServer.wsConnectionCount > 0) return;
+		refresh();
+		if (!detail.success || hasActiveTask() || (detail.session.currentTaskStatus !== "FAILED" && detail.session.currentTaskStatus !== "STOPPED")
+			|| detail.session.currentTaskId === undefined) return;
+		const config = resolveLLMConfig();
+		if (!config.success) {
+			error = zh ? "请先在桌面 Web IDE 中配置并启用一个模型" : "Configure and activate a model in Web IDE first";
+			render();
+			return;
+		}
+		if (!services.continuePrompt) {
+			error = zh ? "当前版本不支持继续会话" : "Continuing this session is unavailable";
+			render();
+			return;
+		}
+		selectedLLMConfigId = config.id;
+		const result = services.continuePrompt(sessionId, undefined, config.id);
+		error = result.success ? "" : result.message;
+		if (result.success) stopRequested = false;
+		refresh();
+		render();
+	};
+	const startDevelopment = () => {
+		if (!host.visible || HttpServer.wsConnectionCount > 0) return;
+		refresh();
+		if (!detail.success || hasActiveTask() || detail.session.workMode !== "plan" || !detail.hasActivePlan) return;
+		const modeResult = services.setWorkMode(sessionId, "code");
+		if (!modeResult.success) {
+			error = modeResult.message ?? (zh ? "切换执行模式失败" : "Could not switch to Code mode");
+			render();
+			return;
+		}
+		const config = resolveLLMConfig();
+		if (!config.success) {
+			error = zh ? "请先在桌面 Web IDE 中配置并启用一个模型" : "Configure and activate a model in Web IDE first";
+			refresh();
+			render();
+			return;
+		}
+		selectedLLMConfigId = config.id;
+		const prompt = zh
+			? "请读取 .agent/plan/PLAN.md 和 PROGRESS.md，从当前方案的下一未完成步骤开始开发，并持续更新进度文档。"
+			: "Read .agent/plan/PLAN.md and PROGRESS.md, start from the next unfinished step in the current plan, and keep the progress document updated.";
+		const result = services.sendPrompt(sessionId, prompt, undefined, "code", config.id, config.config);
+		error = result.success ? "" : result.message;
+		refresh();
+		render();
+	};
+	const getTranscriptActions = (): RemixTranscriptAction[] => {
+		if (!detail.success || !hasTranscriptContent() || hasActiveTask() || detail.messages.every(message => message.role !== "assistant")) return [];
+		const actions: RemixTranscriptAction[] = [];
+		if ((detail.session.currentTaskStatus === "FAILED" || detail.session.currentTaskStatus === "STOPPED") && detail.session.currentTaskId !== undefined)
+			actions.push({ id: "continue", text: zh ? "继续" : "Continue", onTapped: continueTask });
+		if (detail.session.kind === "main" && detail.session.workMode === "plan" && detail.hasActivePlan)
+			actions.push({ id: "start-development", text: zh ? "开始开发" : "Start development", primary: true, onTapped: startDevelopment });
+		return actions;
 	};
 	const stop = () => {
 		if (!host.visible || HttpServer.wsConnectionCount > 0) return;
@@ -256,6 +350,7 @@ export function startMobileRemix(options: RemixOptions) {
 			return;
 		}
 		blurInput();
+		notifyProjectChanged();
 		host.visible = false;
 		host.removeFromParent(true);
 		onBack();
@@ -283,21 +378,42 @@ export function startMobileRemix(options: RemixOptions) {
 		host.scaleX = App.devicePixelRatio;
 		host.scaleY = App.devicePixelRatio;
 		const { width, height } = App.visualSize;
-		const safe = App.safeArea;
+		const safe = getLayoutArea();
 		const left = safe.x;
 		const bottom = safe.y;
-		const contentWidth = safe.width - 32;
-		const inputWidth = contentWidth - composerActionWidth - composerGap;
-		const modeWidth = math.floor((contentWidth - composerGap) / 2);
+		const shortLandscape = safe.width >= 760 && safe.height < 500;
 		const state = detail.success ? detail.session : undefined;
 		const workMode = resolveRemixWorkMode(state);
 		const stopping = hasActiveTask();
 		const hasActivePlan = detail.success ? detail.hasActivePlan : false;
 		const phase = state ? resolveRemixPhase({ status: state.status, workMode, hasActivePlan }) : "failed";
+		const layoutComposerBottom = 24;
+		const layoutComposerHeight = composerHeight;
+		const layoutModeBottom = layoutComposerBottom + layoutComposerHeight + composerGap;
+		const layoutComposerTop = layoutModeBottom + 40;
+		layoutTranscriptBottom = layoutComposerTop + composerGap;
+		const contentWidth = safe.width - 32;
+		const inputWidth = contentWidth - composerActionWidth - composerGap;
+		const inlinePlay = phase === "done";
+		const modeWidth = inlinePlay
+			? shortLandscape ? math.min(170, math.floor((contentWidth - composerGap * 2 - 120) / 2)) : math.floor((contentWidth - composerGap * 2) / 3)
+			: math.floor((contentWidth - composerGap) / 2);
+		const modeStartX = left + 16;
+		const modeCodeWidth = inlinePlay && shortLandscape ? modeWidth
+			: inlinePlay ? math.floor((contentWidth - composerGap * 2) / 3)
+			: contentWidth - modeWidth - composerGap;
+		const playWidth = inlinePlay ? contentWidth - modeWidth - modeCodeWidth - composerGap * 2 : 0;
+		const playX = modeStartX + modeWidth + composerGap + modeCodeWidth + composerGap;
 		const questionnaire = detail.success ? detail.pendingQuestionnaire : undefined;
 		const question = questionnaire?.schema.questions[questionIndex];
 		const fontScale = mobileFontScale;
 		const pickerHeight = math.min(420, safe.height - 280);
+		const headerY = getHeaderY(safe);
+		const compactHeaderStatus = useCompactHeaderStatus(safe);
+		compactHeaderStatusActive = compactHeaderStatus;
+		const headerStatusWidth = 168;
+		const headerTitleWidth = compactHeaderStatus ? math.max(120, safe.width - 124 - headerStatusWidth - composerGap) : safe.width - 124;
+		const headerStatusX = left + 16 + headerTitleWidth + composerGap;
 		const statusText = phase === "planning" ? (zh ? "Dora 正在整理方案…" : "Dora is planning…")
 			: phase === "working" ? (zh ? "Dora 正在 Remix…" : "Dora is remixing…")
 			: phase === "plan-ready" ? (zh ? "计划对话已完成" : "Planning conversation complete")
@@ -311,13 +427,24 @@ export function startMobileRemix(options: RemixOptions) {
 			: phase === "done" || phase === "plan-ready" ? "success"
 			: phase === "failed" ? "failed"
 			: "idle";
-		const messageTop = bottom + safe.height - statusTopInset - statusHeight / 2;
+		const emptyLandscape = shortLandscape && !hasTranscriptContent();
+		const emptyStatusBottom = bottom + layoutModeBottom + 40 + composerGap;
+		const emptyStatusTop = headerY - composerGap - statusHeight;
+		const messageTop = emptyLandscape
+			? (emptyStatusBottom + emptyStatusTop) / 2 + statusHeight / 2
+			: headerY - composerGap - statusHeight / 2;
+		const mascotSize = shortLandscape ? 42 : 52;
+		const compactStandaloneStatus = useCompactStandaloneStatus(safe);
+		const standaloneStatusContentLift = shortLandscape ? 0 : compactStandaloneStatus ? 26 : 14;
+		const mascotX = shortLandscape ? left + 40 : left + 66;
+		const statusTextX = shortLandscape ? left + 76 : left + 104;
+		const statusTextWidth = shortLandscape ? math.max(120, left + 16 + contentWidth - statusTextX) : contentWidth - 84;
 		let swipeStart = Vec2.zero;
 		let swipeAxis: "none" | "horizontal" | "vertical" = "none";
 		const pageRef = reference<Node.Type>();
 		const hitsTranscriptButton = (node: Node.Type, world: Vec2.Type): boolean => {
 			if (!node.visible) return false;
-			if (node.tag === "remix-copy" || node.tag === "remix-latest") {
+			if (node.tag === "remix-copy" || node.tag === "remix-latest" || node.tag === "remix-action-continue" || node.tag === "remix-action-start-development") {
 				const p = node.convertToNodeSpace(world);
 				if (p.x >= 0 && p.y >= 0 && p.x <= node.width && p.y <= node.height) return true;
 			}
@@ -338,7 +465,7 @@ export function startMobileRemix(options: RemixOptions) {
 					if (!inside) blurInput();
 					// Do not turn input editing, header/button taps, or questionnaires into navigation.
 					if (!inside && !questionnaire && !modelPickerOpen && touch.first !== false
-						&& touch.location.y >= bottom + transcriptBottom && touch.location.y < bottom + safe.height - 64
+						&& touch.location.y >= bottom + layoutTranscriptBottom && touch.location.y < bottom + safe.height - 64
 						&& !hitsTranscriptButton(transcript.node, touch.worldLocation)) {
 						touch.enabled = true;
 					}
@@ -376,22 +503,25 @@ export function startMobileRemix(options: RemixOptions) {
 						else page.position = Vec2.zero;
 					});
 				}} />
-			<draw-node x={width / 2} y={height / 2}><rect-shape width={width} height={height} fillColor={colors.background} /></draw-node>
+			<VerticalGradient width={width} height={height} topColor={0xff111725} bottomColor={0xff080a0f} />
 			<node tag="remix-page" ref={pageRef}>
-			<clip-node x={left + 16} y={bottom + safe.height - 56} width={safe.width - 124} height={44} anchorX={0} anchorY={0}
-				stencil={<draw-node x={(safe.width - 124) / 2} y={22}><rect-shape width={safe.width - 124} height={44} fillColor={0xffffffff} /></draw-node>}>
+			<clip-node x={left + 16} y={headerY} width={headerTitleWidth} height={44} anchorX={0} anchorY={0}
+				stencil={<draw-node x={headerTitleWidth / 2} y={22}><rect-shape width={headerTitleWidth} height={44} fillColor={0xffffffff} /></draw-node>}>
 				<label tag="remix-title" x={0} y={22} anchorX={0} fontName={fontName} fontSize={20} text={`REMIX · ${options.entry.title}`} color3={0xf4f1e8} />
 			</clip-node>
-			<node tag="remix-back" x={left + safe.width - 96} y={bottom + safe.height - 56} width={80} height={44}
+			<node tag="remix-back" x={left + safe.width - 96} y={headerY} width={80} height={44}
 				anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={goBack}>
 				<label x={80} y={22} anchorX={1} fontName={fontName} fontSize={18} text={zh ? "返回 ›" : "Back ›"} color3={0xffcc33} />
 			</node>
-			<node tag="remix-status" y={messageTop - statusHeight / 2} width={width} height={statusHeight} anchorX={0} anchorY={0}>
-				<DoraMascot state={mascotState} x={left + 66} y={statusHeight / 2 - 2} size={52} />
-				<label x={left + 104} y={statusHeight / 2} anchorX={0} fontName={fontName} fontSize={math.floor(15 * fontScale)} text={statusText} textWidth={contentWidth - 84} alignment={TextAlign.Left} color3={phase === "failed" ? 0xff6b6b : 0xffcc33} />
+			<node tag="remix-status" x={compactHeaderStatus ? headerStatusX : 0} y={compactHeaderStatus ? headerY : messageTop - statusHeight / 2}
+				width={compactHeaderStatus ? headerStatusWidth : width} height={compactHeaderStatus ? 44 : statusHeight} anchorX={0} anchorY={0}>
+				<DoraMascot state={mascotState} x={compactHeaderStatus ? 16 : mascotX} y={compactHeaderStatus ? 20 : statusHeight / 2 - 2 + standaloneStatusContentLift} size={compactHeaderStatus ? 30 : mascotSize} />
+				<label tag="remix-status-text" x={compactHeaderStatus ? 36 : statusTextX} y={compactHeaderStatus ? 22 : statusHeight / 2 + standaloneStatusContentLift} anchorX={0} fontName={fontName}
+					fontSize={compactHeaderStatus ? math.floor(13 * fontScale) : math.floor(15 * fontScale)} text={statusText}
+					textWidth={compactHeaderStatus ? headerStatusWidth - 36 : statusTextWidth} alignment={TextAlign.Left} color3={phase === "failed" ? 0xff6b6b : 0xffcc33} />
 			</node>
 			{questionnaire && question ? <node tag="remix-questionnaire" x={left + 16} y={bottom + 164} width={contentWidth} height={safe.height - 330} anchorX={0} anchorY={0}>
-				<draw-node x={contentWidth / 2} y={(safe.height - 330) / 2}><rect-shape width={contentWidth} height={safe.height - 330} fillColor={colors.panel} borderWidth={1} borderColor={colors.border} /></draw-node>
+				<RoundedSurface width={contentWidth} height={safe.height - 330} radius={20} topColor={0xff222b3a} bottomColor={0xff121720} borderWidth={1} borderColor={0xff414b5d} shadow={true} />
 				<label x={16} y={safe.height - 360} anchorX={0} fontName={fontName} fontSize={13} text={`${questionIndex + 1} / ${questionnaire.schema.questions.length} · ${questionnaire.schema.title}`} textWidth={contentWidth - 32} alignment={TextAlign.Left} color3={0xffcc33} />
 				<label x={16} y={safe.height - 405} anchorX={0} fontName={fontName} fontSize={16} text={question.prompt} textWidth={contentWidth - 32} alignment={TextAlign.Left} color3={0xf4f1e8} />
 				{question.type !== "text" ? (question.options ?? []).slice(0, 8).map((option, optionIndex) => <ChoiceButton
@@ -414,29 +544,34 @@ export function startMobileRemix(options: RemixOptions) {
 					primary={true} onTapped={() => { if (!dismissedComposition) advanceQuestionnaire(); dismissedComposition = false; }} />
 			</node> : undefined}
 			{modelPickerOpen ? <node x={left + 16} y={bottom + 164} width={contentWidth} height={pickerHeight} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true}>
-				<draw-node x={contentWidth / 2} y={pickerHeight / 2}><rect-shape width={contentWidth} height={pickerHeight} fillColor={colors.panel} borderWidth={1} borderColor={colors.border} /></draw-node>
+				<RoundedSurface width={contentWidth} height={pickerHeight} radius={20} topColor={0xff222b3a} bottomColor={0xff121720} borderWidth={1} borderColor={0xff414b5d} shadow={true} />
 				<label x={16} y={pickerHeight - 34} anchorX={0} fontName={fontName} fontSize={17} text={zh ? "选择 Remix 使用的模型" : "Choose a model for Remix"} textWidth={contentWidth - 32} alignment={TextAlign.Left} color3={0xf4f1e8} />
 				{llmConfigs.slice(0, 8).map((item, i) => <ChoiceButton x={16} y={pickerHeight - 90 - i * 43} width={contentWidth - 32}
 					text={`${item.name} · ${item.model}`} selected={item.id === selectedLLMConfigId} onTapped={() => selectModel(item.id)} />)}
 			</node> : undefined}
-			{error !== "" ? <label tag="remix-error" x={left + 20} y={bottom + (questionnaire || modelPickerOpen ? 144 : composerTop + composerGap)} anchorX={0} anchorY={0} fontName={fontName} fontSize={13} text={error} textWidth={contentWidth} alignment={TextAlign.Left} color3={0xff6b6b} onMount={label => { errorLabel = label; }} /> : undefined}
+			{error !== "" ? <label tag="remix-error" x={left + 20} y={bottom + (questionnaire || modelPickerOpen ? 144 : layoutComposerTop + composerGap)} anchorX={0} anchorY={0} fontName={fontName} fontSize={13} text={error} textWidth={contentWidth} alignment={TextAlign.Left} color3={0xff6b6b} onMount={label => { errorLabel = label; }} /> : undefined}
 			{questionnaire === undefined && !modelPickerOpen ? <node>
-				<ChoiceButton tag="remix-mode-plan" x={left + 16} y={bottom + modeBottom} width={modeWidth} text={zh ? "计划" : "Plan"} selected={workMode === "plan"} disabled={!canSubmit()} onTapped={() => changeWorkMode("plan")} />
-				<ChoiceButton tag="remix-mode-code" x={left + 16 + modeWidth + composerGap} y={bottom + modeBottom} width={contentWidth - modeWidth - composerGap} text={zh ? "执行" : "Code"} selected={workMode === "code"} disabled={!canSubmit()} onTapped={() => changeWorkMode("code")} />
+				<ChoiceButton tag="remix-mode-plan" x={modeStartX} y={bottom + layoutModeBottom} width={modeWidth} text={zh ? "计划" : "Plan"} selected={workMode === "plan"} disabled={!canSubmit()} onTapped={() => changeWorkMode("plan")} />
+				<ChoiceButton tag="remix-mode-code" x={modeStartX + modeWidth + composerGap} y={bottom + layoutModeBottom} width={modeCodeWidth} text={zh ? "执行" : "Code"} selected={workMode === "code"} disabled={!canSubmit()} onTapped={() => changeWorkMode("code")} />
 			</node> : undefined}
-			{questionnaire === undefined && !modelPickerOpen && !keptInput ? <node tag="remix-input" ref={inputRef} x={left + 16} y={bottom + composerBottom} width={inputWidth} height={composerHeight} anchorX={0} anchorY={0}
+			{questionnaire === undefined && !modelPickerOpen && !keptInput ? <node tag="remix-input" ref={inputRef} x={left + 16} y={bottom + layoutComposerBottom} width={inputWidth} height={layoutComposerHeight} anchorX={0} anchorY={0}
 				onMount={promptInput.mount} /> : undefined}
 			{stopping || (questionnaire === undefined && !modelPickerOpen) ? <ActionButton tag={stopping ? "remix-stop" : "remix-send"}
-				x={left + 16 + inputWidth + composerGap} y={bottom + composerBottom} width={composerActionWidth} height={composerHeight}
+				x={left + 16 + inputWidth + composerGap} y={bottom + layoutComposerBottom} width={composerActionWidth} height={layoutComposerHeight}
 				text={stopping ? (state?.currentTaskFinalizing ? (zh ? "收尾中" : "Finishing") : stopRequested ? (zh ? "停止中" : "Stopping") : (zh ? "停止" : "Stop")) : (zh ? "发送" : "Send")}
 				primary={!stopping} danger={stopping} disabled={stopping ? stopRequested || state?.currentTaskFinalizing === true : !canSubmit()}
 				onTapped={() => { if (stopping) stop(); else if (!dismissedComposition) send(); dismissedComposition = false; }} /> : undefined}
-			{phase === "done" ? <ActionButton tag="remix-play" x={left + 16} y={bottom + 18} width={contentWidth} text={zh ? "立即试玩" : "Play now"} primary={true} onTapped={() => { if (!host.visible || HttpServer.wsConnectionCount > 0) return; blurInput(); host.visible = false; onPlay(options.entry); }} /> : undefined}
+			{phase === "done" ? <ActionButton tag="remix-play" x={playX} y={bottom + layoutModeBottom} width={playWidth} height={40} text={zh ? "立即试玩" : "Play now"} primary={true} onTapped={() => { if (!host.visible || HttpServer.wsConnectionCount > 0) return; blurInput(); notifyProjectChanged(); host.visible = false; onPlay(options.entry); }} /> : undefined}
 			</node>
 		</node>);
 		if (scene) {
 			host.addChild(scene);
-			if (keptInput) pageRef.current?.addChild(keptInput);
+			if (keptInput) {
+				keptInput.position = Vec2(left + 16, bottom + layoutComposerBottom);
+				keptInput.width = inputWidth;
+				keptInput.height = layoutComposerHeight;
+				pageRef.current?.addChild(keptInput);
+			}
 			if (!questionnaire && !modelPickerOpen) {
 				transcript.node.position = Vec2(left + 16, bottom + getTranscriptBottom());
 				pageRef.current?.addChild(transcript.node);
@@ -456,7 +591,7 @@ export function startMobileRemix(options: RemixOptions) {
 		refresh();
 		if (swipeDragging || swipeBackPending) return false;
 		const next = remixDisplayRevision(detail);
-		if (shellRevision !== getShellRevision()) render();
+		if (shellRevision !== getShellRevision() || compactHeaderStatusActive !== useCompactHeaderStatus(getLayoutArea())) render();
 		else if (displayRevision !== next) updateTranscript();
 		return false;
 	});
