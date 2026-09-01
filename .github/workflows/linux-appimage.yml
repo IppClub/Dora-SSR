@@ -55,7 +55,9 @@ jobs:
           sudo luarocks install luafilesystem
 
       - name: Generate Lua bindings
-        run: lua Tools/tolua++/tolua++.lua
+        run: |
+          cd Tools/tolua++
+          lua tolua++.lua
 
       - uses: actions/setup-go@v5
         with:
