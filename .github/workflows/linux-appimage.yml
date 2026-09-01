@@ -70,7 +70,7 @@ jobs:
 
       - uses: xmake-io/github-action-setup-xmake@v1
         with:
-          xmake-version: v2.9.4
+          xmake-version: latest
 
       - uses: pnpm/action-setup@v6
         if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
