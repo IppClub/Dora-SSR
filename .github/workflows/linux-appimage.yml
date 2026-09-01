@@ -1,0 +1,90 @@
+name: Linux AppImage
+
+on:
+  push:
+    branches:
+      - main
+      - 'ci/**'
+    paths:
+      - '.github/workflows/linux-appimage.yml'
+      - 'Source/**'
+      - 'Tools/tolua++/**'
+      - 'Tools/build-scripts/**'
+      - 'Tools/dora-rust/**'
+      - 'Tools/dora-dora/**'
+      - 'Assets/**'
+      - 'Projects/Linux/**'
+      - 'packaging/appimage/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/linux-appimage.yml'
+      - 'Source/**'
+      - 'Tools/tolua++/**'
+      - 'Tools/build-scripts/**'
+      - 'Tools/dora-rust/**'
+      - 'Tools/dora-dora/**'
+      - 'Assets/**'
+      - 'Projects/Linux/**'
+      - 'packaging/appimage/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake pkg-config patchelf pax-utils curl \
+            libgl1-mesa-dev libssl-dev libdbus-1-dev libasound2-dev \
+            libjack-jackd2-dev libpulse-dev libpipewire-0.3-dev \
+            libsamplerate0-dev libsndio-dev libibus-1.0-dev libudev-dev \
+            libusb-1.0-0-dev libx11-dev libxext-dev libxcursor-dev libxi-dev \
+            libxfixes-dev libxrandr-dev libxrender-dev libxss-dev libdrm-dev \
+            libgbm-dev libegl1-mesa-dev libwayland-dev libwayland-bin \
+            wayland-protocols libxkbcommon-dev libdecor-0-dev lua5.1 luarocks
+          sudo luarocks install luafilesystem
+
+      - name: Generate Lua bindings
+        run: lua Tools/tolua++/tolua++.lua
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.3'
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: v2.9.4
+
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: 'Tools/dora-dora/package.json'
+
+      - name: Build Web IDE assets
+        run: |
+          cd Tools/dora-dora
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      - name: Build Linux release
+        run: Tools/build-scripts/build_linux.sh release
+
+      - name: Package AppImage
+        run: Tools/build-scripts/package_appimage.sh "$GITHUB_WORKSPACE/dora-ssr-linux-$(uname -m).AppImage"
+
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dora-ssr-linux-appimage
+          path: dora-ssr-linux-*.AppImage
