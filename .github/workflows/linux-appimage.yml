@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - 'ci/**'
+    tags: 'v*.*.*'
     paths:
       - '.github/workflows/linux-appimage.yml'
       - 'Source/**'
@@ -12,6 +13,7 @@ on:
       - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
       - 'Tools/dora-dora/**'
+      - 'Tools/dora-wa/**'
       - 'Assets/**'
       - 'Projects/Linux/**'
       - 'packaging/appimage/**'
@@ -24,6 +26,7 @@ on:
       - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
       - 'Tools/dora-dora/**'
+      - 'Tools/dora-wa/**'
       - 'Assets/**'
       - 'Projects/Linux/**'
       - 'packaging/appimage/**'
@@ -70,22 +73,31 @@ jobs:
           xmake-version: v2.9.4
 
       - uses: pnpm/action-setup@v6
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
         with:
           package_json_file: 'Tools/dora-dora/package.json'
 
       - name: Build Web IDE assets
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
         run: |
           cd Tools/dora-dora
           pnpm install --frozen-lockfile
           pnpm build
 
+      - name: Build Linux debug
+        if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && !startsWith(github.ref, 'refs/tags/') && !startsWith(github.ref, 'refs/heads/ci/'))
+        run: Tools/build-scripts/build_linux.sh debug
+
       - name: Build Linux release
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
         run: Tools/build-scripts/build_linux.sh release
 
       - name: Package AppImage
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
         run: Tools/build-scripts/package_appimage.sh "$GITHUB_WORKSPACE/dora-ssr-linux-$(uname -m).AppImage"
 
       - name: Upload AppImage artifact
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
         uses: actions/upload-artifact@v4
         with:
           name: dora-ssr-linux-appimage
