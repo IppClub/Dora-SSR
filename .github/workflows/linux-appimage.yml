@@ -8,7 +8,7 @@ on:
     paths:
       - '.github/workflows/linux-appimage.yml'
       - 'Source/**'
-      - 'Tools/tolua++/**'
+      - 'Tools/tolua\+\+/**'
       - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
       - 'Tools/dora-dora/**'
@@ -20,7 +20,7 @@ on:
     paths:
       - '.github/workflows/linux-appimage.yml'
       - 'Source/**'
-      - 'Tools/tolua++/**'
+      - 'Tools/tolua\+\+/**'
       - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
       - 'Tools/dora-dora/**'
