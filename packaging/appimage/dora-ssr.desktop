@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Dora SSR
+Comment=Dora SSR game engine and development environment
+Exec=dora-ssr %U
+Icon=dora-ssr
+Categories=Development;Game;
+Terminal=false
