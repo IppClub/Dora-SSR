@@ -28,10 +28,16 @@ View::View()
 #if BX_PLATFORM_WINDOWS
 	_flag(BGFX_RESET_HIDPI)
 	,
-#else // BX_PLATFORM_WINDOWS
+#elif BX_PLATFORM_ANDROID
+	// Android replaces its native window when the app returns to the foreground.
+	// Present only after the submitted frame has applied the corresponding reset,
+	// otherwise bgfx may swap the stale EGL surface before processing that reset.
+	_flag(BGFX_RESET_VSYNC | BGFX_RESET_FLIP_AFTER_RENDER)
+	,
+#else
 	_flag(BGFX_RESET_HIDPI | BGFX_RESET_VSYNC)
 	,
-#endif // BX_PLATFORM_WINDOWS
+#endif
 	_size(SharedApplication.getBufferSize())
 	, _scale(1.0f)
 	, _projection(Matrix::Indentity) {

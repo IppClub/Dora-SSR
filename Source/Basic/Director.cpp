@@ -694,7 +694,9 @@ void Director::handleSDLEvent(const SDL_Event& event) {
 			Event::send("AppEvent"_slice, "WillEnterBackground"s);
 			break;
 		case SDL_APP_DIDENTERBACKGROUND:
+#if !BX_PLATFORM_ANDROID
 			bgfx::reset(0, 0);
+#endif
 			Event::send("AppEvent"_slice, "DidEnterBackground"s);
 			break;
 		case SDL_APP_WILLENTERFOREGROUND:

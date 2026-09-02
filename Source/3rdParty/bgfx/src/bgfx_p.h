@@ -3190,8 +3190,13 @@ namespace bgfx
 				);
 
 			const TextureFormat::Enum format = TextureFormat::Count != _format ? _format : m_init.resolution.format;
+			// A second reset can arrive before frame() consumes the platform-data
+			// change. Keep the forced reset pending so the renderer recreates its
+			// surface instead of presenting to the previous native window.
+			const bool forceReset = g_platformDataChangedSinceReset
+				|| 0 != (m_init.resolution.reset & BGFX_RESET_INTERNAL_FORCE);
 
-			if (!g_platformDataChangedSinceReset
+			if (!forceReset
 			&&  m_init.resolution.format == format
 			&&  m_init.resolution.width  == _width
 			&&  m_init.resolution.height == _height
@@ -3232,7 +3237,7 @@ namespace bgfx
 			m_init.resolution.height = bx::clamp(_height, 1u, g_caps.limits.maxTextureSize);
 			m_init.resolution.reset  = 0
 				| _flags
-				| (g_platformDataChangedSinceReset ? BGFX_RESET_INTERNAL_FORCE : 0)
+				| (forceReset ? BGFX_RESET_INTERNAL_FORCE : 0)
 				;
 			dump(m_init.resolution);
 			g_platformDataChangedSinceReset = false;

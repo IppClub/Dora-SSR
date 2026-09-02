@@ -73,7 +73,6 @@ JNIEXPORT jstring JNICALL Java_org_ippclub_dorassr_MainActivity_nativeGetInstall
 	return jstr;
 }
 }
-extern "C" ANativeWindow* Android_JNI_GetNativeWindow();
 extern "C" int Android_JNI_SendMessage(int command, int param);
 extern "C" JNIEnv* Android_JNI_GetEnv();
 
@@ -960,9 +959,12 @@ int Application::run(MainFunc mainFunc) {
 					break;
 #if BX_PLATFORM_ANDROID
 				case SDL_APP_DIDENTERFOREGROUND: {
+					SDL_SysWMinfo wmi;
+					SDL_VERSION(&wmi.version);
 					bgfx::PlatformData pd{};
-					pd.nwh = Android_JNI_GetNativeWindow();
-					if (pd.nwh) {
+					if (SDL_GetWindowWMInfo(_sdlWindow, &wmi) == SDL_TRUE
+						&& wmi.info.android.window) {
+						pd.nwh = wmi.info.android.window;
 						bgfx::setPlatformData(pd);
 					}
 					break;
@@ -972,13 +974,6 @@ int Application::run(MainFunc mainFunc) {
 					switch (event.window.event) {
 						case SDL_WINDOWEVENT_RESIZED:
 						case SDL_WINDOWEVENT_SIZE_CHANGED: {
-#if BX_PLATFORM_ANDROID
-							bgfx::PlatformData pd{};
-							pd.nwh = Android_JNI_GetNativeWindow();
-							if (pd.nwh) {
-								bgfx::setPlatformData(pd);
-							}
-#endif // BX_PLATFORM_ANDROID
 							updateWindowSize();
 							break;
 						}
