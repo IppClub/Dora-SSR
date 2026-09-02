@@ -11,6 +11,7 @@ import { resolveFeedGesture } from "Dev/Mobile/FeedModel";
 import { createRemixTranscript, remixDisplayRevision, type RemixTranscriptAction } from "Dev/Mobile/RemixTranscript";
 import { REMIX_HISTORY_ROUNDS } from "Dev/Mobile/RemixHistory";
 import { createTextInput, inputLength, inputSlice } from "Dev/Mobile/TextInput";
+import { startMobileLLMManager } from "Dev/Mobile/LLMSetup";
 import { RoundedSurface, VerticalGradient } from "Dev/Mobile/Visual";
 
 interface RemixEntry {
@@ -129,8 +130,9 @@ export function startMobileRemix(options: RemixOptions) {
 	let selectedLLMConfigId = 0;
 	let questionnaireId = 0;
 	let questionIndex = 0;
-	const llmConfigs = services.getLLMConfigSummaries();
-	let modelPickerOpen = false;
+	let llmConfigs = services.getLLMConfigSummaries();
+	let taskLLMConfigId = 0;
+	let needsLLMSetup = false;
 	const questionnaireSelections: Record<string, string[]> = {};
 	const questionnaireTexts: Record<string, string> = {};
 	let inputRef = reference<Node.Type>();
@@ -156,11 +158,11 @@ export function startMobileRemix(options: RemixOptions) {
 	const rememberedRows = DB.query("select value_num from Config where name = 'mobileRemixLLMConfigId' limit 1") as unknown[][] | undefined;
 	const rememberedId = rememberedRows && rememberedRows.length > 0 ? tonumber(rememberedRows[0][0]) : undefined;
 	if (rememberedId && llmConfigs.some(item => item.id === rememberedId)) selectedLLMConfigId = rememberedId;
-	else if (llmConfigs.length === 1) selectedLLMConfigId = llmConfigs[0].id;
-	else if (llmConfigs.length > 1) modelPickerOpen = true;
+	else if (llmConfigs.length > 0) selectedLLMConfigId = llmConfigs[0].id;
 	else {
 		const activeConfig = services.getActiveLLMConfig();
 		if (activeConfig.success) selectedLLMConfigId = activeConfig.id;
+		else needsLLMSetup = true;
 	}
 
 	const host = Node();
@@ -224,6 +226,25 @@ export function startMobileRemix(options: RemixOptions) {
 		&& detail.session.currentTaskStatus !== "RUNNING" && detail.session.currentTaskStatus !== "WAITING_USER"
 		&& !detail.session.currentTaskFinalizing && !detail.pendingQuestionnaire;
 	const resolveLLMConfig = () => selectedLLMConfigId > 0 ? services.getLLMConfig(selectedLLMConfigId) : services.getActiveLLMConfig();
+	const configureLLM = () => {
+		if (!host.visible || HttpServer.wsConnectionCount > 0) return;
+		blurInput();
+		startMobileLLMManager({
+			coveredNode: host,
+			selectedId: selectedLLMConfigId,
+			taskRunning: hasActiveTask(),
+			runningId: taskLLMConfigId,
+			onSelected: id => {
+				if (disposed || !host.parent) return;
+				llmConfigs = services.getLLMConfigSummaries();
+				selectedLLMConfigId = id;
+				needsLLMSetup = llmConfigs.length === 0;
+				error = "";
+				render();
+			},
+			onClose: () => { if (!disposed && host.parent) render(); },
+		});
+	};
 	const changeWorkMode = (workMode: "plan" | "code") => {
 		if (!host.visible || HttpServer.wsConnectionCount > 0) return;
 		refresh();
@@ -245,14 +266,15 @@ export function startMobileRemix(options: RemixOptions) {
 		if (sessionId <= 0 || text === "") return;
 		const config = resolveLLMConfig();
 		if (!config.success) {
-			error = zh ? "请先在桌面 Web IDE 中配置并启用一个模型" : "Configure and activate a model in Web IDE first";
+			error = zh ? "请先完成 AI 快速配置" : "Complete the quick AI setup first";
 			render();
+			configureLLM();
 			return;
 		}
 		selectedLLMConfigId = config.id;
 		const result = services.sendPrompt(sessionId, text, undefined, workMode, config.id, config.config);
 		if (!result.success) error = result.message;
-		else { draft = ""; error = ""; }
+		else { taskLLMConfigId = config.id; draft = ""; error = ""; }
 		refresh();
 		render();
 	};
@@ -263,8 +285,9 @@ export function startMobileRemix(options: RemixOptions) {
 			|| detail.session.currentTaskId === undefined) return;
 		const config = resolveLLMConfig();
 		if (!config.success) {
-			error = zh ? "请先在桌面 Web IDE 中配置并启用一个模型" : "Configure and activate a model in Web IDE first";
+			error = zh ? "请先完成 AI 快速配置" : "Complete the quick AI setup first";
 			render();
+			configureLLM();
 			return;
 		}
 		if (!services.continuePrompt) {
@@ -275,7 +298,7 @@ export function startMobileRemix(options: RemixOptions) {
 		selectedLLMConfigId = config.id;
 		const result = services.continuePrompt(sessionId, undefined, config.id);
 		error = result.success ? "" : result.message;
-		if (result.success) stopRequested = false;
+		if (result.success) { taskLLMConfigId = config.id; stopRequested = false; }
 		refresh();
 		render();
 	};
@@ -291,9 +314,10 @@ export function startMobileRemix(options: RemixOptions) {
 		}
 		const config = resolveLLMConfig();
 		if (!config.success) {
-			error = zh ? "请先在桌面 Web IDE 中配置并启用一个模型" : "Configure and activate a model in Web IDE first";
+			error = zh ? "请先完成 AI 快速配置" : "Complete the quick AI setup first";
 			refresh();
 			render();
+			configureLLM();
 			return;
 		}
 		selectedLLMConfigId = config.id;
@@ -302,6 +326,7 @@ export function startMobileRemix(options: RemixOptions) {
 			: "Read .agent/plan/PLAN.md and PROGRESS.md, start from the next unfinished step in the current plan, and keep the progress document updated.";
 		const result = services.sendPrompt(sessionId, prompt, undefined, "code", config.id, config.config);
 		error = result.success ? "" : result.message;
+		if (result.success) taskLLMConfigId = config.id;
 		refresh();
 		render();
 	};
@@ -323,13 +348,6 @@ export function startMobileRemix(options: RemixOptions) {
 		if (result?.success === false) error = result.message ?? (zh ? "停止失败" : "Could not stop");
 		else { stopRequested = true; error = ""; }
 		refresh();
-		render();
-	};
-	const selectModel = (id: number) => {
-		selectedLLMConfigId = id;
-		modelPickerOpen = false;
-		DB.exec("insert or replace into Config(name, value_num, value_str, value_bool) values('mobileRemixLLMConfigId', ?, NULL, NULL)", [id]);
-		error = "";
 		render();
 	};
 	const advanceQuestionnaire = () => {
@@ -360,7 +378,7 @@ export function startMobileRemix(options: RemixOptions) {
 		}
 		const result = services.respondQuestionnaire(sessionId, pending.id, answers, selectedLLMConfigId);
 		if (!result.success) error = result.message;
-		else error = "";
+		else { taskLLMConfigId = selectedLLMConfigId; error = ""; }
 		refresh();
 		render();
 	};
@@ -386,7 +404,7 @@ export function startMobileRemix(options: RemixOptions) {
 		swipeBackPending = false;
 		const layout = `${App.safeArea.width}:${App.safeArea.height}`;
 		// Work/status updates must not detach the active IME node or discard composition.
-		const keptInput = layout === inputLayout && !modelPickerOpen && !(detail.success && detail.pendingQuestionnaire)
+		const keptInput = layout === inputLayout && !(detail.success && detail.pendingQuestionnaire)
 			&& inputRef.current?.tag === "remix-input" ? inputRef.current : undefined;
 		keptInput?.removeFromParent(false);
 		transcript.node.removeFromParent(false);
@@ -429,13 +447,22 @@ export function startMobileRemix(options: RemixOptions) {
 		const questionnaire = detail.success ? detail.pendingQuestionnaire : undefined;
 		const question = questionnaire?.schema.questions[questionIndex];
 		const fontScale = mobileFontScale;
-		const pickerHeight = math.min(420, safe.height - 280);
 		const headerY = getHeaderY(safe);
 		const compactHeaderStatus = useCompactHeaderStatus(safe);
 		compactHeaderStatusActive = compactHeaderStatus;
 		const headerStatusWidth = 168;
-		const headerTitleWidth = compactHeaderStatus ? math.max(120, safe.width - 124 - headerStatusWidth - composerGap) : safe.width - 124;
-		const headerStatusX = left + 16 + headerTitleWidth + composerGap;
+		const modelButtonWidth = shortLandscape ? 92 : 72;
+		const headerSettingsX = left + safe.width - 104 - modelButtonWidth;
+		const headerStatusX = headerSettingsX - 8 - headerStatusWidth;
+		const headerTitleWidth = compactHeaderStatus
+			? math.max(120, headerStatusX - (left + 16) - composerGap)
+			: math.max(120, headerSettingsX - (left + 16) - composerGap);
+		const selectedConfig = llmConfigs.find(item => item.id === selectedLLMConfigId);
+		const switchPending = hasActiveTask() && taskLLMConfigId > 0 && taskLLMConfigId !== selectedLLMConfigId;
+		const modelName = selectedConfig?.name ?? (zh ? "配置 AI" : "Set up AI");
+		const modelNameLimit = shortLandscape ? 10 : 6;
+		const shortModelName = inputLength(modelName) > modelNameLimit ? `${inputSlice(modelName, 0, modelNameLimit)}…` : modelName;
+		const modelLabel = ellipsizeSingleLine(`${switchPending ? (zh ? "下一轮·" : "Next·") : ""}${shortModelName}`, modelButtonWidth - 14, 11);
 		const thinkingText = resolveRemixThinkingStatus(detail.success ? detail.steps : [], state?.currentTaskId);
 		const statusText = thinkingText !== undefined ? (zh ? "正在思考" : "Thinking") : (phase === "planning" ? (zh ? "Dora 正在整理方案…" : "Dora is planning…")
 			: phase === "working" ? (zh ? "Dora 正在 Remix…" : "Dora is remixing…")
@@ -497,7 +524,7 @@ export function startMobileRemix(options: RemixOptions) {
 					dismissedComposition = !inside && promptInput.isComposing();
 					if (!inside) blurInput();
 					// Do not turn input editing, header/button taps, or questionnaires into navigation.
-					if (!inside && !questionnaire && !modelPickerOpen && touch.first !== false
+					if (!inside && !questionnaire && touch.first !== false
 						&& touch.location.y >= bottom + layoutTranscriptBottom && touch.location.y < bottom + safe.height - 64
 						&& !hitsTranscriptButton(transcript.node, touch.worldLocation)) {
 						touch.enabled = true;
@@ -546,6 +573,13 @@ export function startMobileRemix(options: RemixOptions) {
 				anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={goBack}>
 				<label x={80} y={22} anchorX={1} fontName={fontName} fontSize={18} text={zh ? "返回 ›" : "Back ›"} color3={0xffcc33} />
 			</node>
+			<node tag="remix-model-config" x={headerSettingsX} y={headerY + 6} width={modelButtonWidth} height={32}
+				anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={configureLLM}>
+				<RoundedSurface width={modelButtonWidth} height={32} radius={16} topColor={0x332c3442} bottomColor={0x33121921}
+					borderWidth={1} borderColor={needsLLMSetup ? colors.brand : colors.border} />
+				<label x={modelButtonWidth / 2} y={16} fontName={fontName} fontSize={11} text={modelLabel} color3={needsLLMSetup || switchPending ? 0xffcc33 : 0xa8afbd} />
+				{needsLLMSetup ? <draw-node x={modelButtonWidth - 4} y={28}><dot-shape radius={3} color={0xffffcc33} /></draw-node> : undefined}
+			</node>
 			<node tag="remix-status" x={compactHeaderStatus ? headerStatusX : 0} y={compactHeaderStatus ? headerY : messageTop - statusHeight / 2}
 				width={compactHeaderStatus ? headerStatusWidth : width} height={compactHeaderStatus ? 44 : statusHeight} anchorX={0} anchorY={0}>
 				<DoraMascot state={mascotState} x={compactHeaderStatus ? 16 : mascotX} y={compactHeaderStatus ? 20 : statusHeight / 2 - 2 + standaloneStatusContentLift}
@@ -583,20 +617,14 @@ export function startMobileRemix(options: RemixOptions) {
 					text={questionIndex + 1 === questionnaire.schema.questions.length ? (zh ? "提交回答" : "Submit") : (zh ? "下一步" : "Next")}
 					primary={true} onTapped={() => { if (!dismissedComposition) advanceQuestionnaire(); dismissedComposition = false; }} />
 			</node> : undefined}
-			{modelPickerOpen ? <node x={left + 16} y={bottom + 164} width={contentWidth} height={pickerHeight} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true}>
-				<RoundedSurface width={contentWidth} height={pickerHeight} radius={20} topColor={0xff222b3a} bottomColor={0xff121720} borderWidth={1} borderColor={0xff414b5d} shadow={true} />
-				<label x={16} y={pickerHeight - 34} anchorX={0} fontName={fontName} fontSize={17} text={zh ? "选择 Remix 使用的模型" : "Choose a model for Remix"} textWidth={contentWidth - 32} alignment={TextAlign.Left} color3={0xf4f1e8} />
-				{llmConfigs.slice(0, 8).map((item, i) => <ChoiceButton x={16} y={pickerHeight - 90 - i * 43} width={contentWidth - 32}
-					text={`${item.name} · ${item.model}`} selected={item.id === selectedLLMConfigId} onTapped={() => selectModel(item.id)} />)}
-			</node> : undefined}
-			{error !== "" ? <label tag="remix-error" x={left + 20} y={bottom + (questionnaire || modelPickerOpen ? 144 : layoutComposerTop + composerGap)} anchorX={0} anchorY={0} fontName={fontName} fontSize={13} text={error} textWidth={contentWidth} alignment={TextAlign.Left} color3={0xff6b6b} onMount={label => { errorLabel = label; }} /> : undefined}
-			{questionnaire === undefined && !modelPickerOpen ? <node>
+			{error !== "" ? <label tag="remix-error" x={left + 20} y={bottom + (questionnaire ? 144 : layoutComposerTop + composerGap)} anchorX={0} anchorY={0} fontName={fontName} fontSize={13} text={error} textWidth={contentWidth} alignment={TextAlign.Left} color3={0xff6b6b} onMount={label => { errorLabel = label; }} /> : undefined}
+			{questionnaire === undefined ? <node>
 				<ChoiceButton tag="remix-mode-plan" x={modeStartX} y={bottom + layoutModeBottom} width={modeWidth} text={zh ? "计划" : "Plan"} selected={workMode === "plan"} disabled={!canSubmit()} onTapped={() => changeWorkMode("plan")} />
 				<ChoiceButton tag="remix-mode-code" x={modeStartX + modeWidth + composerGap} y={bottom + layoutModeBottom} width={modeCodeWidth} text={zh ? "执行" : "Code"} selected={workMode === "code"} disabled={!canSubmit()} onTapped={() => changeWorkMode("code")} />
 			</node> : undefined}
-			{questionnaire === undefined && !modelPickerOpen && !keptInput ? <node tag="remix-input" ref={inputRef} x={left + 16} y={bottom + layoutComposerBottom} width={inputWidth} height={layoutComposerHeight} anchorX={0} anchorY={0}
+			{questionnaire === undefined && !keptInput ? <node tag="remix-input" ref={inputRef} x={left + 16} y={bottom + layoutComposerBottom} width={inputWidth} height={layoutComposerHeight} anchorX={0} anchorY={0}
 				onMount={promptInput.mount} /> : undefined}
-			{stopping || (questionnaire === undefined && !modelPickerOpen) ? <ActionButton tag={stopping ? "remix-stop" : "remix-send"}
+			{stopping || questionnaire === undefined ? <ActionButton tag={stopping ? "remix-stop" : "remix-send"}
 				x={left + 16 + inputWidth + composerGap} y={bottom + layoutComposerBottom} width={composerActionWidth} height={layoutComposerHeight}
 				text={stopping ? (state?.currentTaskFinalizing ? (zh ? "收尾中" : "Finishing") : stopRequested ? (zh ? "停止中" : "Stopping") : (zh ? "停止" : "Stop")) : (zh ? "发送" : "Send")}
 				primary={!stopping} danger={stopping} disabled={stopping ? stopRequested || state?.currentTaskFinalizing === true : !canSubmit()}
@@ -612,7 +640,7 @@ export function startMobileRemix(options: RemixOptions) {
 				keptInput.height = layoutComposerHeight;
 				pageRef.current?.addChild(keptInput);
 			}
-			if (!questionnaire && !modelPickerOpen) {
+			if (!questionnaire) {
 				transcript.node.position = Vec2(left + 16, bottom + getTranscriptBottom());
 				pageRef.current?.addChild(transcript.node);
 				updateTranscript();
@@ -644,5 +672,6 @@ export function startMobileRemix(options: RemixOptions) {
 	host.slot("SuspendLocalUI", blurInput);
 	host.slot("ResumeLocalUI", () => { refresh(); render(); });
 	render();
+	if (needsLLMSetup) thread(() => { sleep(0); if (!disposed && host.parent) configureLLM(); });
 	return host;
 }

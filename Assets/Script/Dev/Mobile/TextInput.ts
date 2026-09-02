@@ -135,6 +135,7 @@ export interface TextInputOptions {
 	fontSize: number;
 	singleLine?: boolean;
 	background?: number;
+	isSecure?(): boolean;
 	getText(this: void): string;
 	setText(this: void, text: string): void;
 	getPlaceholder(this: void): string;
@@ -161,8 +162,11 @@ export function createTextInput(options: TextInputOptions) {
 		});
 	};
 	const refresh = () => {
-		cursor = math.min(cursor, inputLength(options.getText()));
-		view?.update(insertInputText(options.getText(), cursor, composition), options.getPlaceholder(), focused, cursor + compositionCursor);
+		const text = options.getText();
+		cursor = math.min(cursor, inputLength(text));
+		const editing = insertInputText(text, cursor, composition);
+		const display = options.isSecure?.() ? string.rep("•", inputLength(editing)) : editing;
+		view?.update(display, options.getPlaceholder(), focused, cursor + compositionCursor);
 		if (focused) updateIMEPos();
 	};
 	const clearFocus = () => {
@@ -206,6 +210,14 @@ export function createTextInput(options: TextInputOptions) {
 	const unmount = () => { blur(); node = undefined; view = undefined; };
 	return {
 		refresh, focus, blur, unmount,
+		pasteFromClipboard: (replace = false) => {
+			if (!options.isEnabled()) return false;
+			const value = normalize(App.getClipboardText());
+			if (value === "") return false;
+			if (replace) setValue(value, inputLength(value));
+			else textInput(value);
+			return true;
+		},
 		isFocused: () => focused,
 		isComposing: () => composition !== "",
 		deferFocus: () => {

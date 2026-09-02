@@ -4,6 +4,7 @@ import { DoraMascot } from "Dev/Mobile/Mascot";
 import { mobileFontScale } from "Dev/Mobile/Accessibility";
 import { getCoverScales, getReusableCardIndices, normalizeFeedIndex, resolveDiscoverRefreshTab, resolveFeedGesture, resolveFeedLocation, stableCoverColor, type FeedAction, type FeedEntry as ModelFeedEntry, type FeedTab } from "Dev/Mobile/FeedModel";
 import { createTextInput } from "Dev/Mobile/TextInput";
+import { MobileButton, MobilePanelSurface } from "Dev/Mobile/Controls";
 import { RoundedStencil, RoundedSurface, VerticalGradient } from "Dev/Mobile/Visual";
 
 interface FeedEntry extends ModelFeedEntry {
@@ -47,45 +48,6 @@ function conciseDescription(text: string, limit: number) {
 	if (length <= limit) return text;
 	const stop = utf8.offset(text, limit + 1) ?? text.length + 1;
 	return string.sub(text, 1, stop - 1) + "…";
-}
-
-function Button(props: {
-	tag?: string;
-	x: number;
-	y: number;
-	width: number;
-	text: string;
-	fontSize?: number;
-	primary?: boolean;
-	renderOrder?: number;
-	onTapped(): void;
-}) {
-	return <node
-		tag={props.tag}
-		x={props.x}
-		y={props.y}
-		anchorX={0}
-		anchorY={0}
-		width={props.width}
-		height={48}
-		renderOrder={props.renderOrder}
-		touchEnabled={true}
-		swallowTouches={true}
-		onTapped={props.onTapped}
-	>
-		<RoundedSurface width={props.width} height={48} radius={14} renderOrder={props.renderOrder}
-			topColor={props.primary ? 0xffffdf6b : 0xff293140}
-			bottomColor={props.primary ? 0xffffbd2e : 0xff1b202b}
-			borderWidth={1} borderColor={props.primary ? 0xffffdd63 : colors.border} shadow={props.primary} />
-		<label
-			x={props.width / 2}
-			y={24}
-			fontName={fontName}
-			fontSize={props.fontSize ?? 17}
-			text={props.text}
-			color3={props.primary ? 0x17130a : 0xf4f1e8}
-		/>
-	</node>;
 }
 
 function Cover(props: { key?: string; entry: FeedEntry; x: number; y: number; width: number; height: number }) {
@@ -457,9 +419,9 @@ export function startMobileFeed(options: MobileFeedOptions) {
 							text={item.kind === "local" ? (zh ? "本地作品  ·  可 Remix" : "Local  ·  Remixable") : item.installed ? (zh ? "发现  ·  已安装" : "Discover  ·  Installed") : (zh ? "发现  ·  可安装" : "Discover  ·  Installable")}
 							textWidth={(wide ? 176 : 164) - 24} alignment={TextAlign.Left} color3={0xdce1ea} />
 					</node>}
-				<Button tag="mobile-feed-remix" x={infoX} y={bottom + 24} width={buttonWidth} text={zh ? "Remix 作品" : "Remix game"} fontSize={math.floor(16 * fontScale)}
+				<MobileButton tag="mobile-feed-remix" x={infoX} y={bottom + 24} width={buttonWidth} text={zh ? "Remix 作品" : "Remix game"} fontSize={math.floor(16 * fontScale)}
 					primary={true} onTapped={() => activate("remix")} />
-				<Button tag="mobile-feed-play" x={infoX + buttonWidth + 12} y={bottom + 24} width={buttonWidth} text={zh ? "试玩" : "Play"} fontSize={math.floor(17 * fontScale)}
+				<MobileButton tag="mobile-feed-play" x={infoX + buttonWidth + 12} y={bottom + 24} width={buttonWidth} text={zh ? "试玩" : "Play"} fontSize={math.floor(17 * fontScale)}
 					onTapped={() => activate("play")} />
 					<label x={infoX} y={bottom + 92} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={14}
 					text={prepareStatus !== "" ? prepareStatus : item.launchError !== undefined ? item.launchError : (zh ? "上滑浏览  ·  右滑 Remix  ·  左滑试玩" : "Swipe up  ·  right Remix  ·  left Play")}
@@ -524,7 +486,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 						<rect-shape width={width} height={height - bottom - sheetHeight} fillColor={0x8c000000} />
 					</draw-node>
 					<node ref={createPanelRef} order={10} renderOrder={10} x={left} y={bottom} width={sheetWidth} height={sheetHeight} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true}>
-						<RoundedSurface width={sheetWidth} height={sheetHeight} radius={24} topColor={0xff242d3c} bottomColor={0xff111620} borderWidth={1} borderColor={0xff4a5568} shadow={true} renderOrder={10} />
+						<MobilePanelSurface width={sheetWidth} height={sheetHeight} renderOrder={10} />
 						<label x={20} y={sheetHeight - 24} anchorX={0} anchorY={1} fontName={fontName} fontSize={22} text={zh ? "新建项目" : "New project"} color3={0xf4f1e8} />
 						<label x={20} y={sheetHeight - 66} anchorX={0} anchorY={1} fontName={fontName} fontSize={14} text={zh ? "项目名称" : "Project name"} color3={0xa8afbd} />
 							{keptInput ? undefined : <node tag="mobile-project-create-input" ref={createInputRef} renderOrder={10} x={20} y={sheetHeight - createInputTop - createInputHeight} width={inputWidth} height={createInputHeight} anchorX={0} anchorY={0}
@@ -532,8 +494,8 @@ export function startMobileFeed(options: MobileFeedOptions) {
 						<label tag="mobile-project-create-error" x={20} y={shortLandscape ? sheetHeight - createInputTop + 12 : sheetHeight - createInputTop - createInputHeight - 12} anchorX={0} anchorY={1} fontName={fontName} fontSize={12}
 							text={createError !== "" ? createError : (zh ? "将创建可运行的 TypeScript 起始项目" : "Creates a runnable TypeScript starter project")}
 							textWidth={inputWidth} alignment={TextAlign.Left} color3={createError !== "" ? 0xff6b6b : 0xa8afbd} />
-							<Button tag="mobile-project-create-cancel" x={actionX} y={actionY} width={cancelWidth} text={zh ? "取消" : "Cancel"} renderOrder={10} onTapped={closeCreate} />
-							<Button tag="mobile-project-create-submit" x={actionX + cancelWidth + actionGap} y={actionY} width={actionsWidth - cancelWidth - actionGap}
+							<MobileButton tag="mobile-project-create-cancel" x={actionX} y={actionY} width={cancelWidth} text={zh ? "取消" : "Cancel"} renderOrder={10} onTapped={closeCreate} />
+							<MobileButton tag="mobile-project-create-submit" x={actionX + cancelWidth + actionGap} y={actionY} width={actionsWidth - cancelWidth - actionGap}
 								text={creating ? (zh ? "创建中…" : "Creating…") : (zh ? "创建并进入 Remix" : "Create and Remix")} primary={true} renderOrder={10} onTapped={() => { if (!dismissedCreateComposition) submitCreate(); dismissedCreateComposition = false; }} />
 					</node>
 				</node>;

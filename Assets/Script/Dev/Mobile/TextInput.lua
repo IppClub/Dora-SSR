@@ -310,263 +310,289 @@ function ____exports.createTextInputView(input, fontSize, singleLine, background
 		end -- 130
 	} -- 130
 end -- 34
-function ____exports.createTextInput(options) -- 147
-	local node -- 148
-	local view -- 149
-	local focused = false -- 150
-	local composition = "" -- 150
-	local compositionCursor = 0 -- 150
-	local cursor = 0 -- 150
-	local revision = 0 -- 150
-	local dragDistance = 0 -- 150
-	local function normalize(text) -- 151
-		return options.singleLine and (string.gsub(text, "[\r\n]", "")) or (string.gsub((string.gsub(text, "\r\n", "\n")), "\r", "\n")) -- 151
-	end -- 151
-	local function updateIMEPos(next) -- 153
-		local target = node -- 154
-		if not target or not view then -- 154
-			return -- 155
-		end -- 155
-		local captured = revision -- 156
-		local caret = view.caretPosition() -- 157
-		target:convertToWindowSpace( -- 158
-			Vec2( -- 158
-				math.max( -- 158
-					12, -- 158
-					math.min(target.width - 12, caret.x) -- 158
-				), -- 158
-				math.max( -- 158
-					8, -- 158
-					math.min(target.height - 8, caret.y) -- 158
-				) -- 158
-			), -- 158
-			function(pos) -- 158
-				if node ~= target or captured ~= revision or not options.isEnabled() then -- 158
-					return -- 159
-				end -- 159
-				Keyboard:updateIMEPosHint(pos) -- 160
-				if next ~= nil then -- 160
-					next() -- 160
+function ____exports.createTextInput(options) -- 148
+	local node -- 149
+	local view -- 150
+	local focused = false -- 151
+	local composition = "" -- 151
+	local compositionCursor = 0 -- 151
+	local cursor = 0 -- 151
+	local revision = 0 -- 151
+	local dragDistance = 0 -- 151
+	local function normalize(text) -- 152
+		return options.singleLine and (string.gsub(text, "[\r\n]", "")) or (string.gsub((string.gsub(text, "\r\n", "\n")), "\r", "\n")) -- 152
+	end -- 152
+	local function updateIMEPos(next) -- 154
+		local target = node -- 155
+		if not target or not view then -- 155
+			return -- 156
+		end -- 156
+		local captured = revision -- 157
+		local caret = view.caretPosition() -- 158
+		target:convertToWindowSpace( -- 159
+			Vec2( -- 159
+				math.max( -- 159
+					12, -- 159
+					math.min(target.width - 12, caret.x) -- 159
+				), -- 159
+				math.max( -- 159
+					8, -- 159
+					math.min(target.height - 8, caret.y) -- 159
+				) -- 159
+			), -- 159
+			function(pos) -- 159
+				if node ~= target or captured ~= revision or not options.isEnabled() then -- 159
+					return -- 160
 				end -- 160
-			end -- 158
-		) -- 158
-	end -- 153
-	local function refresh() -- 163
-		cursor = math.min( -- 164
-			cursor, -- 164
-			____exports.inputLength(options.getText()) -- 164
-		) -- 164
-		if view ~= nil then -- 164
-			view.update( -- 165
-				____exports.insertInputText( -- 165
-					options.getText(), -- 165
-					cursor, -- 165
-					composition -- 165
-				), -- 165
-				options.getPlaceholder(), -- 165
-				focused, -- 165
-				cursor + compositionCursor -- 165
-			) -- 165
-		end -- 165
-		if focused then -- 165
-			updateIMEPos() -- 166
-		end -- 166
-	end -- 163
-	local function clearFocus() -- 168
-		revision = revision + 1 -- 169
-		focused = false -- 169
-		composition = "" -- 169
-		compositionCursor = 0 -- 169
-		if node then -- 169
-			node.keyboardEnabled = false -- 170
+				Keyboard:updateIMEPosHint(pos) -- 161
+				if next ~= nil then -- 161
+					next() -- 161
+				end -- 161
+			end -- 159
+		) -- 159
+	end -- 154
+	local function refresh() -- 164
+		local text = options.getText() -- 165
+		cursor = math.min( -- 166
+			cursor, -- 166
+			____exports.inputLength(text) -- 166
+		) -- 166
+		local editing = ____exports.insertInputText(text, cursor, composition) -- 167
+		local ____this_8 -- 167
+		____this_8 = options -- 168
+		local ____opt_7 = ____this_8.isSecure -- 168
+		local display = ____opt_7 and ____opt_7(____this_8) and string.rep( -- 168
+			"•", -- 168
+			____exports.inputLength(editing) -- 168
+		) or editing -- 168
+		if view ~= nil then -- 168
+			view.update( -- 169
+				display, -- 169
+				options.getPlaceholder(), -- 169
+				focused, -- 169
+				cursor + compositionCursor -- 169
+			) -- 169
+		end -- 169
+		if focused then -- 169
+			updateIMEPos() -- 170
 		end -- 170
-		refresh() -- 171
-	end -- 168
-	local function blur() -- 173
-		if focused then -- 173
-			if node ~= nil then -- 173
-				node:detachIME() -- 173
-			end -- 173
-		end -- 173
-		clearFocus() -- 173
-	end -- 173
-	local function focus(reopen) -- 174
-		if reopen == nil then -- 174
-			reopen = true -- 174
+	end -- 164
+	local function clearFocus() -- 172
+		revision = revision + 1 -- 173
+		focused = false -- 173
+		composition = "" -- 173
+		compositionCursor = 0 -- 173
+		if node then -- 173
+			node.keyboardEnabled = false -- 174
 		end -- 174
-		if not options.isEnabled() then -- 174
-			return -- 175
-		end -- 175
-		revision = revision + 1 -- 176
-		updateIMEPos(function() -- 177
-			if reopen then -- 177
-				if node ~= nil then -- 177
-					node:detachIME() -- 178
-				end -- 178
-			end -- 178
-			if node ~= nil then -- 178
-				node:attachIME() -- 179
-			end -- 179
-			updateIMEPos() -- 179
-		end) -- 177
-	end -- 174
-	local function setValue(text, at) -- 182
-		options.setText(text) -- 182
-		cursor = at -- 182
-		refresh() -- 182
-	end -- 182
-	local function textInput(text) -- 183
-		if not options.isEnabled() then -- 183
-			return -- 184
-		end -- 184
-		composition = "" -- 185
-		compositionCursor = 0 -- 185
-		local value = normalize(text) -- 186
-		setValue( -- 187
-			____exports.insertInputText( -- 187
-				options.getText(), -- 187
-				cursor, -- 187
-				value -- 187
-			), -- 187
-			cursor + ____exports.inputLength(value) -- 187
-		) -- 187
-	end -- 183
-	local function keyInput(key) -- 189
-		if not options.isEnabled() then -- 189
-			return -- 190
-		end -- 190
-		if key == "Escape" then -- 190
-			blur() -- 191
-			return -- 191
-		end -- 191
-		if composition ~= "" then -- 191
-			return -- 192
-		end -- 192
-		local value = options.getText() -- 193
-		if key == "BackSpace" and cursor > 0 then -- 193
-			setValue( -- 194
-				____exports.inputSlice(value, 0, cursor - 1) .. ____exports.inputSlice(value, cursor), -- 194
-				cursor - 1 -- 194
-			) -- 194
-		elseif key == "Delete" and cursor < ____exports.inputLength(value) then -- 194
-			setValue( -- 195
-				____exports.inputSlice(value, 0, cursor) .. ____exports.inputSlice(value, cursor + 1), -- 195
-				cursor -- 195
-			) -- 195
-		elseif key == "Home" or key == "End" or key == "Left" or key == "Right" or key == "Up" or key == "Down" then -- 195
-			cursor = key == "Home" and 0 or (key == "End" and ____exports.inputLength(value) or ((key == "Up" or key == "Down") and (view and view.verticalIndex(cursor, key == "Up" and -1 or 1) or cursor) or math.max( -- 197
-				0, -- 199
-				math.min( -- 199
-					____exports.inputLength(value), -- 199
-					cursor + (key == "Left" and -1 or 1) -- 199
-				) -- 199
-			))) -- 199
-			refresh() -- 200
-		elseif key == "Return" then -- 200
-			local modified = Keyboard:isKeyPressed("LCtrl") or Keyboard:isKeyPressed("RCtrl") or Keyboard:isKeyPressed("LGui") or Keyboard:isKeyPressed("RGui") -- 202
-			local ____opt_17 = options.onReturn -- 202
-			if not (____opt_17 and ____opt_17(modified)) and not options.singleLine then -- 202
-				textInput("\n") -- 203
-			end -- 203
-		end -- 203
-	end -- 189
-	local function unmount() -- 206
-		blur() -- 206
-		node = nil -- 206
-		view = nil -- 206
-	end -- 206
-	return { -- 207
-		refresh = refresh, -- 208
-		focus = focus, -- 208
-		blur = blur, -- 208
-		unmount = unmount, -- 208
-		isFocused = function() return focused end, -- 209
-		isComposing = function() return composition ~= "" end, -- 210
-		deferFocus = function() -- 211
-			local captured = revision -- 212
-			thread(function() -- 213
-				sleep(0) -- 213
-				if captured == revision then -- 213
-					focus() -- 213
-				end -- 213
-			end) -- 213
-		end, -- 211
-		mount = function(target) -- 215
-			unmount() -- 216
-			node = target -- 216
-			view = ____exports.createTextInputView(target, options.fontSize, options.singleLine, options.background) -- 217
-			target.touchEnabled = true -- 218
-			target.swallowTouches = true -- 218
-			target:onAttachIME(function() -- 219
-				focused = true -- 219
-				composition = "" -- 219
-				compositionCursor = 0 -- 219
-				target.keyboardEnabled = true -- 219
-				refresh() -- 219
-			end) -- 219
-			target:onDetachIME(clearFocus) -- 220
-			target:onTextInput(textInput) -- 221
-			target:onTextEditing(function(text, start) -- 222
-				if not options.isEnabled() then -- 222
-					return -- 223
-				end -- 223
-				composition = normalize(text) -- 224
-				compositionCursor = math.max( -- 224
-					0, -- 224
-					math.min( -- 224
-						____exports.inputLength(composition), -- 224
-						start or ____exports.inputLength(composition) -- 224
-					) -- 224
-				) -- 224
-				refresh() -- 224
-			end) -- 222
-			target:onKeyDown(keyInput) -- 226
-			target.keyboardEnabled = false -- 226
-			target:onTapBegan(function() -- 227
-				dragDistance = 0 -- 227
-			end) -- 227
-			target:onTapMoved(function(touch) -- 228
-				if not options.isEnabled() then -- 228
-					return -- 229
-				end -- 229
-				dragDistance = dragDistance + (math.abs(touch.delta.x) + math.abs(touch.delta.y)) -- 230
-				if view ~= nil then -- 230
-					view.scroll(options.singleLine and -touch.delta.x or touch.delta.y) -- 231
-				end -- 231
-				if focused then -- 231
-					updateIMEPos() -- 231
-				end -- 231
-			end) -- 228
-			target:onMouseWheel(function(delta) -- 233
-				if not options.isEnabled() then -- 233
-					return -- 233
-				end -- 233
-				if view ~= nil then -- 233
-					view.scroll(-delta.y * 20) -- 233
-				end -- 233
-				if focused then -- 233
-					updateIMEPos() -- 233
-				end -- 233
-			end) -- 233
-			target:onTapped(function(touch) -- 234
-				if dragDistance > 5 or not options.isEnabled() then -- 234
+		refresh() -- 175
+	end -- 172
+	local function blur() -- 177
+		if focused then -- 177
+			if node ~= nil then -- 177
+				node:detachIME() -- 177
+			end -- 177
+		end -- 177
+		clearFocus() -- 177
+	end -- 177
+	local function focus(reopen) -- 178
+		if reopen == nil then -- 178
+			reopen = true -- 178
+		end -- 178
+		if not options.isEnabled() then -- 178
+			return -- 179
+		end -- 179
+		revision = revision + 1 -- 180
+		updateIMEPos(function() -- 181
+			if reopen then -- 181
+				if node ~= nil then -- 181
+					node:detachIME() -- 182
+				end -- 182
+			end -- 182
+			if node ~= nil then -- 182
+				node:attachIME() -- 183
+			end -- 183
+			updateIMEPos() -- 183
+		end) -- 181
+	end -- 178
+	local function setValue(text, at) -- 186
+		options.setText(text) -- 186
+		cursor = at -- 186
+		refresh() -- 186
+	end -- 186
+	local function textInput(text) -- 187
+		if not options.isEnabled() then -- 187
+			return -- 188
+		end -- 188
+		composition = "" -- 189
+		compositionCursor = 0 -- 189
+		local value = normalize(text) -- 190
+		setValue( -- 191
+			____exports.insertInputText( -- 191
+				options.getText(), -- 191
+				cursor, -- 191
+				value -- 191
+			), -- 191
+			cursor + ____exports.inputLength(value) -- 191
+		) -- 191
+	end -- 187
+	local function keyInput(key) -- 193
+		if not options.isEnabled() then -- 193
+			return -- 194
+		end -- 194
+		if key == "Escape" then -- 194
+			blur() -- 195
+			return -- 195
+		end -- 195
+		if composition ~= "" then -- 195
+			return -- 196
+		end -- 196
+		local value = options.getText() -- 197
+		if key == "BackSpace" and cursor > 0 then -- 197
+			setValue( -- 198
+				____exports.inputSlice(value, 0, cursor - 1) .. ____exports.inputSlice(value, cursor), -- 198
+				cursor - 1 -- 198
+			) -- 198
+		elseif key == "Delete" and cursor < ____exports.inputLength(value) then -- 198
+			setValue( -- 199
+				____exports.inputSlice(value, 0, cursor) .. ____exports.inputSlice(value, cursor + 1), -- 199
+				cursor -- 199
+			) -- 199
+		elseif key == "Home" or key == "End" or key == "Left" or key == "Right" or key == "Up" or key == "Down" then -- 199
+			cursor = key == "Home" and 0 or (key == "End" and ____exports.inputLength(value) or ((key == "Up" or key == "Down") and (view and view.verticalIndex(cursor, key == "Up" and -1 or 1) or cursor) or math.max( -- 201
+				0, -- 203
+				math.min( -- 203
+					____exports.inputLength(value), -- 203
+					cursor + (key == "Left" and -1 or 1) -- 203
+				) -- 203
+			))) -- 203
+			refresh() -- 204
+		elseif key == "Return" then -- 204
+			local modified = Keyboard:isKeyPressed("LCtrl") or Keyboard:isKeyPressed("RCtrl") or Keyboard:isKeyPressed("LGui") or Keyboard:isKeyPressed("RGui") -- 206
+			local ____opt_19 = options.onReturn -- 206
+			if not (____opt_19 and ____opt_19(modified)) and not options.singleLine then -- 206
+				textInput("\n") -- 207
+			end -- 207
+		end -- 207
+	end -- 193
+	local function unmount() -- 210
+		blur() -- 210
+		node = nil -- 210
+		view = nil -- 210
+	end -- 210
+	return { -- 211
+		refresh = refresh, -- 212
+		focus = focus, -- 212
+		blur = blur, -- 212
+		unmount = unmount, -- 212
+		pasteFromClipboard = function(replace) -- 213
+			if replace == nil then -- 213
+				replace = false -- 213
+			end -- 213
+			if not options.isEnabled() then -- 213
+				return false -- 214
+			end -- 214
+			local value = normalize(App:getClipboardText()) -- 215
+			if value == "" then -- 215
+				return false -- 216
+			end -- 216
+			if replace then -- 216
+				setValue( -- 217
+					value, -- 217
+					____exports.inputLength(value) -- 217
+				) -- 217
+			else -- 217
+				textInput(value) -- 218
+			end -- 218
+			return true -- 219
+		end, -- 213
+		isFocused = function() return focused end, -- 221
+		isComposing = function() return composition ~= "" end, -- 222
+		deferFocus = function() -- 223
+			local captured = revision -- 224
+			thread(function() -- 225
+				sleep(0) -- 225
+				if captured == revision then -- 225
+					focus() -- 225
+				end -- 225
+			end) -- 225
+		end, -- 223
+		mount = function(target) -- 227
+			unmount() -- 228
+			node = target -- 228
+			view = ____exports.createTextInputView(target, options.fontSize, options.singleLine, options.background) -- 229
+			target.touchEnabled = true -- 230
+			target.swallowTouches = true -- 230
+			target:onAttachIME(function() -- 231
+				focused = true -- 231
+				composition = "" -- 231
+				compositionCursor = 0 -- 231
+				target.keyboardEnabled = true -- 231
+				refresh() -- 231
+			end) -- 231
+			target:onDetachIME(clearFocus) -- 232
+			target:onTextInput(textInput) -- 233
+			target:onTextEditing(function(text, start) -- 234
+				if not options.isEnabled() then -- 234
 					return -- 235
 				end -- 235
-				if touch ~= nil and composition == "" then -- 235
-					cursor = view and view.indexAt(touch.location) or cursor -- 236
-				end -- 236
-				refresh() -- 237
-				if not focused then -- 237
-					focus() -- 237
-				end -- 237
+				composition = normalize(text) -- 236
+				compositionCursor = math.max( -- 236
+					0, -- 236
+					math.min( -- 236
+						____exports.inputLength(composition), -- 236
+						start or ____exports.inputLength(composition) -- 236
+					) -- 236
+				) -- 236
+				refresh() -- 236
 			end) -- 234
-			target:onCleanup(function() -- 239
-				if node == target then -- 239
-					unmount() -- 239
-				end -- 239
+			target:onKeyDown(keyInput) -- 238
+			target.keyboardEnabled = false -- 238
+			target:onTapBegan(function() -- 239
+				dragDistance = 0 -- 239
 			end) -- 239
-			refresh() -- 240
-		end -- 215
-	} -- 215
-end -- 147
-return ____exports -- 147
+			target:onTapMoved(function(touch) -- 240
+				if not options.isEnabled() then -- 240
+					return -- 241
+				end -- 241
+				dragDistance = dragDistance + (math.abs(touch.delta.x) + math.abs(touch.delta.y)) -- 242
+				if view ~= nil then -- 242
+					view.scroll(options.singleLine and -touch.delta.x or touch.delta.y) -- 243
+				end -- 243
+				if focused then -- 243
+					updateIMEPos() -- 243
+				end -- 243
+			end) -- 240
+			target:onMouseWheel(function(delta) -- 245
+				if not options.isEnabled() then -- 245
+					return -- 245
+				end -- 245
+				if view ~= nil then -- 245
+					view.scroll(-delta.y * 20) -- 245
+				end -- 245
+				if focused then -- 245
+					updateIMEPos() -- 245
+				end -- 245
+			end) -- 245
+			target:onTapped(function(touch) -- 246
+				if dragDistance > 5 or not options.isEnabled() then -- 246
+					return -- 247
+				end -- 247
+				if touch ~= nil and composition == "" then -- 247
+					cursor = view and view.indexAt(touch.location) or cursor -- 248
+				end -- 248
+				refresh() -- 249
+				if not focused then -- 249
+					focus() -- 249
+				end -- 249
+			end) -- 246
+			target:onCleanup(function() -- 251
+				if node == target then -- 251
+					unmount() -- 251
+				end -- 251
+			end) -- 251
+			refresh() -- 252
+		end -- 227
+	} -- 227
+end -- 148
+return ____exports -- 148
