@@ -240,6 +240,9 @@ function ____exports.startMobilePlayOverlay(options) -- 35
 		return false -- 139
 	end) -- 131
 	host:onAppChange(function(setting) -- 141
+		if setting == "Locale" then -- 142
+			zh = (string.match(App.locale, "^zh")) ~= nil -- 142
+		end -- 142
 		if setting == "Size" or setting == "Locale" then -- 141
 			render() -- 141
 		end -- 141

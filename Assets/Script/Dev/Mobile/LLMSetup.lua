@@ -585,6 +585,9 @@ function ____exports.startMobileLLMSetup(options) -- 85
 		end -- 204
 	end -- 154
 	host:onAppChange(function(setting) -- 206
+		if setting == "Locale" then -- 207
+			zh = (string.match(App.locale, "^zh")) ~= nil -- 207
+		end -- 207
 		if setting == "Size" or setting == "Locale" then -- 206
 			render() -- 206
 		end -- 206
@@ -1478,6 +1481,9 @@ function ____exports.startMobileLLMManager(options) -- 247
 		end -- 452
 	end -- 357
 	host:onAppChange(function(setting) -- 454
+		if setting == "Locale" then -- 455
+			zh = (string.match(App.locale, "^zh")) ~= nil -- 455
+		end -- 455
 		if setting == "Size" or setting == "Locale" then -- 454
 			render() -- 454
 		end -- 454

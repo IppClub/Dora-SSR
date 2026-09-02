@@ -97,7 +97,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	const onRemix = options.onRemix;
 	const prepare = options.prepare;
 	const syncDiscover = options.syncDiscover;
-	const zh = string.match(App.locale, "^zh")[0] !== undefined;
+	let zh = string.match(App.locale, "^zh")[0] !== undefined;
 	let tab: FeedTab = "local";
 	let index = 0;
 	let drag = Vec2.zero;
@@ -329,6 +329,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		const wide = usableWidth >= 760;
 		const shortLandscape = wide && usableHeight < 500;
 		const compact = !wide && usableHeight < 700;
+		const compactLandscape = compact && usableWidth > usableHeight && usableHeight < 520;
 		const landscapeTopLift = shortLandscape ? 28 : 0;
 		const data = entries();
 		index = normalizeFeedIndex(index, data.length);
@@ -338,13 +339,16 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		const coverHeight = wide
 			? math.min(usableHeight - 118, coverWidth * 0.72)
 			: compact
-				? math.min(usableHeight * 0.49, coverWidth * 0.72)
+				? math.min(usableHeight * (compactLandscape ? 0.43 : 0.49), coverWidth * 0.72)
 				: math.min(usableHeight * 0.54, coverWidth * 1.12);
 		const coverX = left + 16;
 		const coverY = wide ? bottom + (usableHeight - coverHeight) / 2 - 12 + landscapeTopLift : bottom + usableHeight - coverHeight - 82;
 		const infoX = wide ? coverX + coverWidth + 28 : left + 20;
 		const infoWidth = wide ? usableWidth - coverWidth - 72 : usableWidth - 40;
-		const infoTop = wide ? bottom + usableHeight - 122 + landscapeTopLift : coverY - 30;
+		const infoTop = wide ? bottom + usableHeight - 122 + landscapeTopLift : coverY - (compactLandscape ? 28 : 30);
+		const descriptionY = infoTop - (compactLandscape ? 38 : 58);
+		const actionsY = bottom + (compactLandscape ? 18 : 24);
+		const gestureHintY = bottom + (compactLandscape ? 88 : 92);
 		const buttonWidth = wide ? math.min(190, (infoWidth - 12) / 2) : (infoWidth - 12) / 2;
 		const fontScale = mobileFontScale;
 		const cardIndices = getReusableCardIndices(index, data.length);
@@ -411,7 +415,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 					</node>
 					<label tag="mobile-feed-current-title" x={infoX} y={infoTop} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={math.floor((wide ? 30 : 25) * fontScale)}
 						text={item.title} textWidth={infoWidth} alignment={TextAlign.Left} color3={0xf4f1e8} />
-					<label x={infoX} y={infoTop - 58} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={math.floor(15 * fontScale)}
+					<label tag="mobile-feed-description" x={infoX} y={descriptionY} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={math.floor(15 * fontScale)}
 						text={conciseDescription(item.description, wide ? 80 : compact ? 28 : 42)} textWidth={infoWidth} alignment={TextAlign.Left} color3={0xa8afbd} />
 					{compact || shortLandscape ? undefined : <node x={infoX} y={infoTop - 118} width={wide ? 176 : 164} height={28} anchorX={0} anchorY={0}>
 						<RoundedSurface width={wide ? 176 : 164} height={28} radius={14} topColor={0x66303a4b} bottomColor={0x6618202b} borderWidth={1} borderColor={0x88606b7d} />
@@ -419,11 +423,11 @@ export function startMobileFeed(options: MobileFeedOptions) {
 							text={item.kind === "local" ? (zh ? "本地作品  ·  可 Remix" : "Local  ·  Remixable") : item.installed ? (zh ? "发现  ·  已安装" : "Discover  ·  Installed") : (zh ? "发现  ·  可安装" : "Discover  ·  Installable")}
 							textWidth={(wide ? 176 : 164) - 24} alignment={TextAlign.Left} color3={0xdce1ea} />
 					</node>}
-				<MobileButton tag="mobile-feed-remix" x={infoX} y={bottom + 24} width={buttonWidth} text={zh ? "Remix 作品" : "Remix game"} fontSize={math.floor(16 * fontScale)}
+				<MobileButton tag="mobile-feed-remix" x={infoX} y={actionsY} width={buttonWidth} text={zh ? "Remix 作品" : "Remix game"} fontSize={math.floor(16 * fontScale)}
 					primary={true} onTapped={() => activate("remix")} />
-				<MobileButton tag="mobile-feed-play" x={infoX + buttonWidth + 12} y={bottom + 24} width={buttonWidth} text={zh ? "试玩" : "Play"} fontSize={math.floor(17 * fontScale)}
+				<MobileButton tag="mobile-feed-play" x={infoX + buttonWidth + 12} y={actionsY} width={buttonWidth} text={zh ? "试玩" : "Play"} fontSize={math.floor(17 * fontScale)}
 					onTapped={() => activate("play")} />
-					<label x={infoX} y={bottom + 92} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={14}
+					<label tag="mobile-feed-gesture-hint" x={infoX} y={gestureHintY} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={14}
 					text={prepareStatus !== "" ? prepareStatus : item.launchError !== undefined ? item.launchError : (zh ? "上滑浏览  ·  右滑 Remix  ·  左滑试玩" : "Swipe up  ·  right Remix  ·  left Play")}
 						textWidth={infoWidth} alignment={TextAlign.Left} color3={item.launchError !== undefined ? 0xff6b6b : 0xa8afbd} />
 			</node> : <node>
@@ -511,7 +515,16 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	};
 
 	host.onAppChange(setting => {
-		if (setting === "Size" || setting === "Locale") render();
+		if (setting === "Locale") {
+			const activeEntry = current();
+			zh = string.match(App.locale, "^zh")[0] !== undefined;
+			local = getLocalEntries();
+			discover = getDiscoverEntries();
+			const location = resolveFeedLocation(local, discover, activeEntry);
+			tab = location.tab;
+			index = location.index;
+			render();
+		} else if (setting === "Size") render();
 	});
 	host.onAppEvent(event => {
 		if (event === "BackButton") {

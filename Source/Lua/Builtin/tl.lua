@@ -10738,13 +10738,17 @@ tl.dora_to_lua = function(input, filename, search_path)
 		end
 		return nil, table.concat(info, "\n")
 	end
-	local gen_target = tl.package_loader_env.gen_target
+	-- A top-level compilation must not reuse user modules loaded by an earlier
+	-- compilation. Keep dependency caching local to this compilation while
+	-- retaining the preloaded Dora and Lua definitions.
+	local env = tl.dora_new_env()
+	local gen_target = env.gen_target
 	local res = tl.type_check(program, {
 		lax = false,
 		filename = filename,
 		gen_compat = "off",
 		gen_target = gen_target,
-		env = tl.package_loader_env,
+		env = env,
 		run_internal_compiler_checks = false,
 	})
 	if res.syntax_errors and #res.syntax_errors > 0 then

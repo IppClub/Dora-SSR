@@ -116,7 +116,7 @@ export function startMobileRemix(options: RemixOptions) {
 		getLLMConfig,
 		getLLMConfigSummaries,
 	};
-	const zh = string.match(App.locale, "^zh")[0] !== undefined;
+	let zh = string.match(App.locale, "^zh")[0] !== undefined;
 	const projectRoot = options.entry.workDir ?? "";
 	const created = services.createSession(projectRoot, options.entry.title);
 	let sessionId = created.success ? created.session.id : 0;
@@ -663,7 +663,10 @@ export function startMobileRemix(options: RemixOptions) {
 		else if (displayRevision !== next) updateTranscript();
 		return false;
 	});
-	host.onAppChange(setting => { if (setting === "Size" || setting === "Locale") render(); });
+	host.onAppChange(setting => {
+		if (setting === "Locale") zh = string.match(App.locale, "^zh")[0] !== undefined;
+		if (setting === "Size" || setting === "Locale") render();
+	});
 	host.onAppEvent(event => {
 		if (event === "BackButton") { if (promptInput.isFocused()) blurInput(); else goBack(); }
 		else if (event === "WillEnterBackground" || event === "DidEnterBackground") blurInput();

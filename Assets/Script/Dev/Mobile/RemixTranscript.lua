@@ -92,8 +92,7 @@ local function itemsFor(detail, zh, actions)
                 ____temp_12 = type(____opt_10 and ____opt_10.message) == "string"
             end
             local message = ____temp_12 and s.result.message or ""
-            local activity = compactAgentActivity(s.tool, "", zh)
-            local title = s.status == "RUNNING" and activity or (string.gsub(activity, "正在", ""))
+            local title = compactAgentActivity(s.tool, "", zh, s.status == "RUNNING")
             return {
                 id = "step-" .. tostring(s.id),
                 title = ((state .. progress) .. " · ") .. title,

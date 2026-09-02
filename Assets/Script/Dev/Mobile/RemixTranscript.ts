@@ -48,8 +48,7 @@ function itemsFor(detail: AgentSessionDetailResult, zh: boolean, actions: RemixT
 			: s.status === "PENDING" ? (zh ? "等待中" : "Pending") : (zh ? "进行中" : "Working");
 		const progress = s.status === "RUNNING" && typeof s.result?.progress === "number" ? ` · ${math.floor(s.result.progress * 100)}%` : "";
 		const message = s.status === "RUNNING" && typeof s.result?.message === "string" ? s.result.message : "";
-		const activity = compactAgentActivity(s.tool, "", zh);
-		const title = s.status === "RUNNING" ? activity : string.gsub(activity, "正在", "")[0];
+		const title = compactAgentActivity(s.tool, "", zh, s.status === "RUNNING");
 		return { id: `step-${s.id}`, title: `${state}${progress} · ${title}`,
 			text: s.reason + (message !== "" ? `\n${message}` : ""), user: false, activity: true };
 	});

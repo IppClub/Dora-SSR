@@ -562,18 +562,22 @@ function ____exports.startMobileFeed(options) -- 93
 		local wide = usableWidth >= 760 -- 329
 		local shortLandscape = wide and usableHeight < 500 -- 330
 		local compact = not wide and usableHeight < 700 -- 331
+		local compactLandscape = compact and usableWidth > usableHeight and usableHeight < 520
 		local landscapeTopLift = shortLandscape and 28 or 0 -- 332
 		local data = entries() -- 333
 		index = normalizeFeedIndex(index, #data) -- 334
 		local item = current() -- 335
 		rememberCurrent() -- 336
 		local coverWidth = wide and math.min(usableWidth * 0.54, 680) or usableWidth - 32 -- 337
-		local coverHeight = wide and math.min(usableHeight - 118, coverWidth * 0.72) or (compact and math.min(usableHeight * 0.49, coverWidth * 0.72) or math.min(usableHeight * 0.54, coverWidth * 1.12)) -- 338
+		local coverHeight = wide and math.min(usableHeight - 118, coverWidth * 0.72) or (compact and math.min(usableHeight * (compactLandscape and 0.43 or 0.49), coverWidth * 0.72) or math.min(usableHeight * 0.54, coverWidth * 1.12)) -- 338
 		local coverX = left + 16 -- 343
 		local coverY = wide and bottom + (usableHeight - coverHeight) / 2 - 12 + landscapeTopLift or bottom + usableHeight - coverHeight - 82 -- 344
 		local infoX = wide and coverX + coverWidth + 28 or left + 20 -- 345
 		local infoWidth = wide and usableWidth - coverWidth - 72 or usableWidth - 40 -- 346
-		local infoTop = wide and bottom + usableHeight - 122 + landscapeTopLift or coverY - 30 -- 347
+		local infoTop = wide and bottom + usableHeight - 122 + landscapeTopLift or coverY - (compactLandscape and 28 or 30) -- 347
+		local descriptionY = infoTop - (compactLandscape and 38 or 58)
+		local actionsY = bottom + (compactLandscape and 18 or 24)
+		local gestureHintY = bottom + (compactLandscape and 88 or 92)
 		local buttonWidth = wide and math.min(190, (infoWidth - 12) / 2) or (infoWidth - 12) / 2 -- 348
 		local fontScale = mobileFontScale -- 349
 		local cardIndices = getReusableCardIndices(index, #data) -- 350
@@ -713,8 +717,9 @@ function ____exports.startMobileFeed(options) -- 93
 					React.createElement( -- 400
 						"label", -- 400
 						{ -- 400
+							tag = "mobile-feed-description",
 							x = infoX, -- 400
-							y = infoTop - 58, -- 400
+							y = descriptionY, -- 400
 							anchorX = 0, -- 400
 							anchorY = 0.5, -- 400
 							fontName = fontName, -- 400
@@ -770,7 +775,7 @@ function ____exports.startMobileFeed(options) -- 93
 						{ -- 422
 							tag = "mobile-feed-remix", -- 422
 							x = infoX, -- 422
-							y = bottom + 24, -- 422
+							y = actionsY, -- 422
 							width = buttonWidth, -- 422
 							text = zh and "Remix 作品" or "Remix game", -- 422
 							fontSize = math.floor(16 * fontScale), -- 422
@@ -783,7 +788,7 @@ function ____exports.startMobileFeed(options) -- 93
 						{ -- 424
 							tag = "mobile-feed-play", -- 424
 							x = infoX + buttonWidth + 12, -- 424
-							y = bottom + 24, -- 424
+							y = actionsY, -- 424
 							width = buttonWidth, -- 424
 							text = zh and "试玩" or "Play", -- 424
 							fontSize = math.floor(17 * fontScale), -- 424
@@ -791,8 +796,9 @@ function ____exports.startMobileFeed(options) -- 93
 						} -- 424
 					), -- 424
 					React.createElement("label", { -- 424
+						tag = "mobile-feed-gesture-hint",
 						x = infoX, -- 424
-						y = bottom + 92, -- 424
+						y = gestureHintY, -- 424
 						anchorX = 0, -- 424
 						anchorY = 0.5, -- 424
 						fontName = fontName, -- 424
@@ -1162,9 +1168,18 @@ function ____exports.startMobileFeed(options) -- 93
 		end -- 510
 	end -- 306
 	host:onAppChange(function(setting) -- 513
-		if setting == "Size" or setting == "Locale" then -- 513
-			render() -- 514
-		end -- 514
+		if setting == "Locale" then -- 514
+			local activeEntry = current() -- 515
+			zh = (string.match(App.locale, "^zh")) ~= nil -- 516
+			____local = getLocalEntries() -- 517
+			discover = getDiscoverEntries() -- 518
+			local location = resolveFeedLocation(____local, discover, activeEntry) -- 519
+			tab = location.tab -- 520
+			index = location.index -- 521
+			render() -- 522
+		elseif setting == "Size" then -- 522
+			render() -- 522
+		end -- 522
 	end) -- 513
 	host:onAppEvent(function(event) -- 516
 		if event == "BackButton" then -- 516

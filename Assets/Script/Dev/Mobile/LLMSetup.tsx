@@ -92,7 +92,7 @@ export function startMobileLLMSetup(options: MobileLLMSetupOptions) {
 		coveredRestored = true;
 		if (coveredNode?.parent) coveredNode.visible = true;
 	};
-	const zh = string.match(App.locale, "^zh")[0] !== undefined;
+	let zh = string.match(App.locale, "^zh")[0] !== undefined;
 	const host = Node();
 	host.tag = "mobile-llm-setup";
 	host.order = 10000;
@@ -203,7 +203,10 @@ export function startMobileLLMSetup(options: MobileLLMSetupOptions) {
 		</node>);
 		if (scene) host.addChild(scene);
 	};
-	host.onAppChange(setting => { if (setting === "Size" || setting === "Locale") render(); });
+	host.onAppChange(setting => {
+		if (setting === "Locale") zh = string.match(App.locale, "^zh")[0] !== undefined;
+		if (setting === "Size" || setting === "Locale") render();
+	});
 	host.onAppEvent(event => { if (event === "BackButton") close(); });
 	host.onCleanup(() => { disposed = true; restoreCovered(); if (activeSetup === host) activeSetup = undefined; });
 	render();
@@ -262,7 +265,7 @@ export function startMobileLLMManager(options: MobileLLMManagerOptions) {
 		coveredRestored = true;
 		if (coveredNode?.parent) coveredNode.visible = true;
 	};
-	const zh = string.match(App.locale, "^zh")[0] !== undefined;
+	let zh = string.match(App.locale, "^zh")[0] !== undefined;
 	const host = Node();
 	host.tag = "mobile-llm-manager";
 	host.order = 10000;
@@ -451,7 +454,10 @@ export function startMobileLLMManager(options: MobileLLMManagerOptions) {
 		</node>);
 		if (scene) host.addChild(scene);
 	};
-	host.onAppChange(setting => { if (setting === "Size" || setting === "Locale") render(); });
+	host.onAppChange(setting => {
+		if (setting === "Locale") zh = string.match(App.locale, "^zh")[0] !== undefined;
+		if (setting === "Size" || setting === "Locale") render();
+	});
 	host.onAppEvent(event => { if (event === "BackButton") { if (detailId > 0) { detailId = 0; render(); } else close(); } });
 	host.onCleanup(() => { disposed = true; restoreCovered(); if (activeSetup === host) activeSetup = undefined; });
 	render();

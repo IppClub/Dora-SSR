@@ -34,7 +34,7 @@ function saveHandleRatio(portrait: boolean, ratio: number) {
 
 export function startMobilePlayOverlay(options: PlayOverlayOptions) {
 	const onExit = options.onExit;
-	const zh = string.match(App.locale, "^zh")[0] !== undefined;
+	let zh = string.match(App.locale, "^zh")[0] !== undefined;
 	const host = Node();
 	host.tag = "mobile-play-overlay";
 	host.order = 10000;
@@ -138,7 +138,10 @@ export function startMobilePlayOverlay(options: PlayOverlayOptions) {
 		}
 		return false;
 	});
-	host.onAppChange(setting => { if (setting === "Size" || setting === "Locale") render(); });
+	host.onAppChange(setting => {
+		if (setting === "Locale") zh = string.match(App.locale, "^zh")[0] !== undefined;
+		if (setting === "Size" || setting === "Locale") render();
+	});
 	host.onAppEvent(event => { if (event === "BackButton") exit(); });
 	host.gslot("ScriptError", fail);
 	render();

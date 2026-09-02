@@ -1687,12 +1687,15 @@ startMobileUI = ->
 		feedHost = trackMobileHost mobileFeed.startMobileFeed feedOptions
 	startMobilePlay = (entry) ->
 		return if HttpServer.wsConnectionCount > 0
+		originFeed = feedHost
 		remixHost\removeFromParent true if remixHost
 		remixHost = nil
-		feedHost.visible = false
 		mobileLaunchErrors[entry.id] = nil
 		entry.launchError = nil
+		playActive = true
 		restoreMobileFeed = ->
+			return unless playActive
+			playActive = false
 			allClear!
 			isInEntry = true
 			currentEntry = nil
@@ -1704,8 +1707,14 @@ startMobileUI = ->
 				restoreMobileFeed!
 		}
 		thread ->
+			-- enterEntryAsync yields once before constructing the game. Keep the
+			-- complete Feed visible through that boundary, then hide it only when
+			-- the replacement scene is ready to render as a whole.
 			success, err = enterEntryAsync lifecycle.resolveMobileLaunchEntry entry
-			return if success
+			return unless playActive
+			if success
+				originFeed.visible = false if originFeed and originFeed.parent
+				return
 			mobileLaunchErrors[entry.id] = useChinese and "作品启动失败，已返回作品卡，请修改后重试。" or "The game failed to start. Fix it and try again."
 			restoreMobileFeed!
 	feedOptions = {

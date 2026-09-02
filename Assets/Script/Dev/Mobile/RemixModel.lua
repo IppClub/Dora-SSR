@@ -48,8 +48,11 @@ ____exports.buildQuestionnaireAnswers = function(questions, selections, texts) r
 		return question.type == "text" and ({questionId = question.id, status = "answered", text = text}) or ({questionId = question.id, status = "answered", selectedOptionIds = selectedOptionIds}) -- 46
 	end -- 40
 ) end -- 40
-____exports.compactAgentActivity = function(tool, reason, zh) -- 51
-	local label = (tool == "search_files" or tool == "search_dora_doc") and (zh and "正在查找资料" or "Searching") or (tool == "read_file" and (zh and "正在阅读项目" or "Reading project") or ((tool == "edit_file" or tool == "write_file") and (zh and "正在修改作品" or "Editing game") or (tool == "build" and (zh and "正在验证作品" or "Validating game") or (zh and "正在处理" or "Working")))) -- 52
+____exports.compactAgentActivity = function(tool, reason, zh, active) -- 51
+	if active == nil then -- 51
+		active = true -- 51
+	end -- 51
+	local label = (tool == "search_files" or tool == "search_dora_doc") and (zh and (active and "正在查找资料" or "查找资料") or (active and "Searching" or "Search")) or (tool == "read_file" and (zh and (active and "正在阅读项目" or "阅读项目") or (active and "Reading project" or "Read project")) or ((tool == "edit_file" or tool == "write_file") and (zh and (active and "正在修改作品" or "修改作品") or (active and "Editing game" or "Edit game")) or (tool == "build" and (zh and (active and "正在验证作品" or "验证作品") or (active and "Validating game" or "Validate game")) or (zh and (active and "正在处理" or "处理") or (active and "Working" or "Process"))))) -- 52
 	local clean = __TS__StringTrim(reason) -- 61
 	return clean == "" and label or (label .. " · ") .. string.sub(clean, 1, 72) -- 62
 end -- 51

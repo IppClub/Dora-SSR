@@ -63,6 +63,8 @@ try {
 	expect(compactAgentActivity("search_files", "", true) === "正在查找资料", "search activity label mismatch");
 	expect(compactAgentActivity("build", "", false) === "Validating game", "build activity label mismatch");
 	expect(compactAgentActivity("unknown", "", false) === "Working", "fallback activity label mismatch");
+	expect(compactAgentActivity("build", "", false, false) === "Validate game", "completed English activity label mismatch");
+	expect(compactAgentActivity("search_files", "", true, false) === "查找资料", "completed Chinese activity label mismatch");
 	expect(compactAgentActivity("read_file", "x".repeat(100), false).length === "Reading project · ".length + 72, "activity reason must be truncated");
 	const thinkingStep = { id: 1, taskId: 7, step: 3, tool: "message", status: "RUNNING" as const,
 		reason: "", reasoningContent: "先分析布局\r\n再核对状态栏\n" };

@@ -2822,15 +2822,20 @@ startMobileUI = function() -- 1634
 		if HttpServer.wsConnectionCount > 0 then -- 1654
 			return -- 1654
 		end -- 1654
+		local originFeed = feedHost
 		if remixHost then -- 1655
 			remixHost:removeFromParent(true) -- 1655
 		end -- 1655
 		remixHost = nil -- 1656
-		feedHost.visible = false -- 1657
 		mobileLaunchErrors[entry.id] = nil -- 1658
 		entry.launchError = nil -- 1659
+		local playActive = true
 		local restoreMobileFeed -- 1660
 		restoreMobileFeed = function() -- 1660
+			if not playActive then
+				return
+			end
+			playActive = false
 			allClear() -- 1661
 			isInEntry = true -- 1662
 			currentEntry = nil -- 1663
@@ -2847,7 +2852,13 @@ startMobileUI = function() -- 1634
 		})) -- 1665
 		return thread(function() -- 1671
 			local success, err = enterEntryAsync(lifecycle.resolveMobileLaunchEntry(entry)) -- 1672
+			if not playActive then
+				return
+			end
 			if success then -- 1673
+				if originFeed and originFeed.parent then
+					originFeed.visible = false
+				end
 				return -- 1673
 			end -- 1673
 			mobileLaunchErrors[entry.id] = useChinese and "作品启动失败，已返回作品卡，请修改后重试。" or "The game failed to start. Fix it and try again." -- 1674

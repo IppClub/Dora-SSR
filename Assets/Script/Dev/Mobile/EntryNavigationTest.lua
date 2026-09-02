@@ -31,7 +31,9 @@ return function(projectId,directPlay)
 				assert(feed and feed.visible,"Feed not visible")
 				feed:emit("RestoreFeedEntry",target)
 				assert(find(feed,"mobile-feed-card-"..target.id),"Target not selected")
-				if directPlay then step=3;find(feed,"mobile-feed-play"):emit("Tapped")
+				if directPlay then
+					step=3;find(feed,"mobile-feed-play"):emit("Tapped")
+					assert(feed.visible,"Feed was hidden before the replacement scene was ready")
 				else step=1;find(feed,"mobile-feed-remix"):emit("Tapped") end
 			elseif step==1 then
 				local remix=assert(find(D.Director.systemUI,"mobile-remix"))
@@ -39,10 +41,12 @@ return function(projectId,directPlay)
 			elseif step==2 then
 				assert(feed.visible and find(feed,"mobile-feed-card-"..target.id),"Real Remix return lost target")
 				step=3;find(feed,"mobile-feed-play"):emit("Tapped")
+				assert(feed.visible,"Feed was hidden before the replacement scene was ready")
 			elseif step==3 then
 				local status=E.getCurrentEntryStatus()
 				if not status.running then return end
 				assert(status.fileName==target.fileName,"Wrong project is running")
+				assert(not feed.visible,"Feed remained visible after the game became ready")
 				local leaked={}
 				local function inspect(node)
 					local label=D.tolua.cast(node,"Label")
@@ -56,7 +60,9 @@ return function(projectId,directPlay)
 				step=31
 			elseif step==31 then
 				local overlay=assert(find(D.Director.systemUI,"mobile-play-overlay"))
-				step=4;find(overlay,"mobile-play-exit"):emit("Tapped")
+				local handle=find(overlay,"mobile-play-handle")
+				if handle then handle:emit("Tapped") end
+				step=4;assert(find(overlay,"mobile-play-exit"),"Play exit handle did not expand"):emit("Tapped")
 			elseif step==4 then
 				assert(not E.getCurrentEntryStatus().running,"Play did not stop")
 				assert(feed.visible and find(feed,"mobile-feed-card-"..target.id),"Real Play restart lost target")

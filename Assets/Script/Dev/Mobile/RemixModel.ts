@@ -49,16 +49,16 @@ export const buildQuestionnaireAnswers = (
 		: { questionId: question.id, status: "answered", selectedOptionIds };
 });
 
-export const compactAgentActivity = (tool: string, reason: string, zh: boolean) => {
+export const compactAgentActivity = (tool: string, reason: string, zh: boolean, active = true) => {
 	const label = tool === "search_files" || tool === "search_dora_doc"
-		? (zh ? "正在查找资料" : "Searching")
+		? (zh ? (active ? "正在查找资料" : "查找资料") : (active ? "Searching" : "Search"))
 		: tool === "read_file"
-			? (zh ? "正在阅读项目" : "Reading project")
+			? (zh ? (active ? "正在阅读项目" : "阅读项目") : (active ? "Reading project" : "Read project"))
 			: tool === "edit_file" || tool === "write_file"
-				? (zh ? "正在修改作品" : "Editing game")
+				? (zh ? (active ? "正在修改作品" : "修改作品") : (active ? "Editing game" : "Edit game"))
 				: tool === "build"
-					? (zh ? "正在验证作品" : "Validating game")
-					: (zh ? "正在处理" : "Working");
+					? (zh ? (active ? "正在验证作品" : "验证作品") : (active ? "Validating game" : "Validate game"))
+					: (zh ? (active ? "正在处理" : "处理") : (active ? "Working" : "Process"));
 	const clean = reason.trim();
 	return clean === "" ? label : `${label} · ${clean.slice(0, 72)}`;
 };

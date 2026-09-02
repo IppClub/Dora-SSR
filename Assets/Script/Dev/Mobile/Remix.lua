@@ -1402,6 +1402,9 @@ function ____exports.startMobileRemix(options) -- 104
 		return false -- 664
 	end) -- 655
 	host:onAppChange(function(setting) -- 666
+		if setting == "Locale" then -- 667
+			zh = (string.match(App.locale, "^zh")) ~= nil -- 667
+		end -- 667
 		if setting == "Size" or setting == "Locale" then -- 666
 			render() -- 666
 		end -- 666

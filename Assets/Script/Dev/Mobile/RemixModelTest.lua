@@ -180,6 +180,8 @@ do -- 14
 			compactAgentActivity("unknown", "", false) == "Working", -- 64
 			"fallback activity label mismatch" -- 64
 		) -- 64
+		expect(compactAgentActivity("build", "", false, false) == "Validate game", "completed English activity label mismatch")
+		expect(compactAgentActivity("search_files", "", true, false) == "查找资料", "completed Chinese activity label mismatch")
 		expect( -- 65
 			#compactAgentActivity( -- 65
 				"read_file", -- 65
