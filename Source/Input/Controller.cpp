@@ -196,7 +196,7 @@ bool Controller::initInRender() {
 #endif
 		if (_devVirtualDeviceIndex >= 0) {
 			addControllerInRender(_devVirtualDeviceIndex);
-			Info("enabled Dora dev virtual controller. Keyboard mapping: Arrow keys/WASD=D-pad, J=A, K=B, U=X, I=Y/context, Tab=Back, Q=L1, E=R1, Enter=Start.");
+			Info("enabled Dora dev virtual controller. Keyboard mapping: Arrow keys/WASD=D-pad, J=A, K=B, U=X, I=Y/context, Tab/Ctrl=Back, Q=L1, E=R1, Enter=Start.");
 		} else {
 			Warn("failed to attach Dora dev virtual controller! {}", SDL_GetError());
 		}
@@ -606,6 +606,8 @@ void Controller::handleDevVirtualControllerEventInRender(const SDL_Event& event)
 			SDL_JoystickSetVirtualButton(s_cast<SDL_Joystick*>(_devVirtualJoystick), SDL_CONTROLLER_BUTTON_Y, pressed);
 			break;
 		case SDL_SCANCODE_TAB:
+		case SDL_SCANCODE_LCTRL:
+		case SDL_SCANCODE_RCTRL:
 			SDL_JoystickSetVirtualButton(s_cast<SDL_Joystick*>(_devVirtualJoystick), SDL_CONTROLLER_BUTTON_BACK, pressed);
 			break;
 		case SDL_SCANCODE_Q:
@@ -619,8 +621,11 @@ void Controller::handleDevVirtualControllerEventInRender(const SDL_Event& event)
 			SDL_JoystickSetVirtualButton(s_cast<SDL_Joystick*>(_devVirtualJoystick), SDL_CONTROLLER_BUTTON_START, pressed);
 			break;
 		default:
-			break;
+			return;
 	}
+	// Publish each edge before another key event overwrites the virtual state.
+	// A short press can otherwise disappear entirely within one SDL event pump.
+	SDL_JoystickUpdate();
 #else
 	DORA_UNUSED_PARAM(event);
 #endif // DORA_DEV_VIRTUAL_CONTROLLER
@@ -674,18 +679,15 @@ void Controller::handleEventInRender(const SDL_Event& event, bool emitEvents) {
 						it->second->buttonMap[buttonName] = Device::ButtonState{.oldState = false, .newState = false};
 						return;
 					}
-					Device::ButtonState state{.oldState = false, .newState = false};
-					if (auto bit = it->second->buttonMap.find(buttonName); bit != it->second->buttonMap.end()) {
-						bit->second.newState = isDown;
-						state = bit->second;
-					} else {
-						state.newState = isDown;
-						it->second->buttonMap[buttonName] = state;
-					}
-					if (!state.oldState && state.newState) {
+					auto bit = it->second->buttonMap.try_emplace(buttonName, Device::ButtonState{.oldState = false, .newState = false}).first;
+					const bool wasDown = bit->second.newState;
+					bit->second.newState = isDown;
+					// Events compare consecutive edges, not the previous frame's
+					// polling snapshot: down+up in one frame must deliver both.
+					if (!wasDown && isDown) {
 						EventArgs<int, Slice> button("ButtonDown"_slice, it->second->id, buttonName);
 						handler(&button);
-					} else if (state.oldState && !state.newState) {
+					} else if (wasDown && !isDown) {
 						EventArgs<int, Slice> button("ButtonUp"_slice, it->second->id, buttonName);
 						handler(&button);
 					}

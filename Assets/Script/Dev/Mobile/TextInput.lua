@@ -522,6 +522,7 @@ function ____exports.createTextInput(options) -- 148
 			node = target -- 228
 			view = ____exports.createTextInputView(target, options.fontSize, options.singleLine, options.background) -- 229
 			target.touchEnabled = true -- 230
+			target:slot("GamepadActivate", function() if options.isEnabled() then focus() end end)
 			target.swallowTouches = true -- 230
 			target:onAttachIME(function() -- 231
 				focused = true -- 231

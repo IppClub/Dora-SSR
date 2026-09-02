@@ -1,4 +1,5 @@
 -- [tsx]: Remix.tsx
+local Gamepad = require("Dev.Mobile.Gamepad")
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__SparseArrayNew = ____lualib.__TS__SparseArrayNew -- 1
 local __TS__SparseArrayPush = ____lualib.__TS__SparseArrayPush -- 1
@@ -1161,6 +1162,7 @@ function ____exports.startMobileRemix(options) -- 104
 				____temp_43 = React.createElement( -- 615
 					ActionButton, -- 615
 					{ -- 615
+						tag = "remix-question-back",
 						x = 16, -- 615
 						y = 12, -- 615
 						width = 92, -- 615
@@ -1383,6 +1385,20 @@ function ____exports.startMobileRemix(options) -- 104
 		shellRevision = getShellRevision() -- 651
 		displayRevision = remixDisplayRevision(detail) -- 652
 	end -- 399
+	Gamepad.attachGamepad(host, {
+		initialTag = "remix-input",
+		onBack = function() if promptInput.isFocused() then blurInput() else goBack() end end,
+		onScroll = function(amount) transcript:scrollBy(amount) end,
+		onActivate = function(target)
+			if target.tag == "remix-input" or target.tag == "remix-question-input" then target:emit("GamepadActivate")
+			else
+				if promptInput.isComposing() then blurInput(); return end
+				blurInput()
+				dismissedComposition = false
+				target:emit("Tapped")
+			end
+		end,
+	})
 	host:schedule(function(dt) -- 655
 		pollElapsed = pollElapsed + dt -- 656
 		if pollElapsed < 0.25 then -- 656

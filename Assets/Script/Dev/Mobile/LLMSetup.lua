@@ -1,4 +1,5 @@
 -- [tsx]: LLMSetup.tsx
+local Gamepad = require("Dev.Mobile.Gamepad")
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
 local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf -- 1
@@ -584,6 +585,10 @@ function ____exports.startMobileLLMSetup(options) -- 85
 			host:addChild(scene) -- 204
 		end -- 204
 	end -- 154
+	Gamepad.attachGamepad(host, {
+		initialTag = "mobile-llm-provider",
+		onBack = function() if keyInput.isFocused() then keyInput.blur() else close() end end,
+	})
 	host:onAppChange(function(setting) -- 206
 		if setting == "Locale" then -- 207
 			zh = (string.match(App.locale, "^zh")) ~= nil -- 207
@@ -1480,6 +1485,18 @@ function ____exports.startMobileLLMManager(options) -- 247
 			host:addChild(scene) -- 452
 		end -- 452
 	end -- 357
+	-- Reuse the list's numeric representation (DB integers vs persisted floats).
+	local initialConfigId = selectedId
+	for _, config in ipairs(configs) do if config.id == selectedId then initialConfigId = config.id; break end end
+	Gamepad.attachGamepad(host, {
+		initialTag = "mobile-llm-config-" .. tostring(initialConfigId),
+		onBack = function()
+			if detailKeyInput.isFocused() then detailKeyInput.blur()
+			elseif detailMode ~= "view" then detailMode = "view"; detailKey = ""; detailError = ""; render()
+			elseif detailId > 0 then detailId = 0; render()
+			else close() end
+		end,
+	})
 	host:onAppChange(function(setting) -- 454
 		if setting == "Locale" then -- 455
 			zh = (string.match(App.locale, "^zh")) ~= nil -- 455

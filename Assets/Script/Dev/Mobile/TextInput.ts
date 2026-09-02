@@ -228,6 +228,7 @@ export function createTextInput(options: TextInputOptions) {
 			unmount(); node = target;
 			view = createTextInputView(target, options.fontSize, options.singleLine, options.background);
 			target.touchEnabled = true; target.swallowTouches = true;
+			target.slot("GamepadActivate", () => { if (options.isEnabled()) focus(); });
 			target.onAttachIME(() => { focused = true; composition = ""; compositionCursor = 0; target.keyboardEnabled = true; refresh(); });
 			target.onDetachIME(clearFocus);
 			target.onTextInput(textInput);

@@ -1,4 +1,5 @@
 -- [tsx]: PlayOverlay.tsx
+local Gamepad = require("Dev.Mobile.Gamepad")
 local ____exports = {} -- 1
 local ____DoraX = require("DoraX") -- 1
 local React = ____DoraX.React -- 1
@@ -62,6 +63,7 @@ function ____exports.startMobilePlayOverlay(options) -- 35
 	host:addTo(Director.systemUI) -- 44
 	local exiting = false -- 45
 	local expanded = false -- 46
+	local gamepadExit = false
 	local expandedTime = 0 -- 47
 	local dragDistance = 0 -- 48
 	local pointerDown = false -- 49
@@ -176,6 +178,7 @@ function ____exports.startMobilePlayOverlay(options) -- 35
 					exit() -- 115
 				else -- 115
 					expanded = true -- 116
+					gamepadExit = false
 					expandedTime = 0 -- 116
 					render() -- 116
 				end -- 116
@@ -200,13 +203,17 @@ function ____exports.startMobilePlayOverlay(options) -- 35
 					"label", -- 118
 					{ -- 118
 						x = controlWidth / 2, -- 118
-						y = controlHeight / 2, -- 118
+						y = gamepadExit and 29 or controlHeight / 2, -- 118
 						fontName = fontName, -- 118
 						fontSize = math.floor(14 * mobileFontScale), -- 118
 						text = zh and "退出试玩" or "Exit", -- 118
 						color3 = 16052712 -- 118
 					} -- 118
-				) -- 118
+				), -- 118
+				gamepadExit and React.createElement("label", {
+					x = controlWidth / 2, y = 11, fontName = fontName,
+					fontSize = 10, text = "Back + Start", color3 = 0xffcc33
+				}) or nil
 			) -- 118
 		else -- 118
 			____expanded_8 = React.createElement(RoundedSurface, { -- 118
@@ -227,6 +234,16 @@ function ____exports.startMobilePlayOverlay(options) -- 35
 			host:addChild(scene) -- 128
 		end -- 128
 	end -- 75
+	Gamepad.attachGamepad(host, {
+		onBack = function() end,
+		onButton = function(button, id)
+			if (button == "start" and ____Dora.Controller:isButtonPressed(id, "back")) or
+				(button == "back" and ____Dora.Controller:isButtonPressed(id, "start")) then
+				if expanded then exit() else expanded = true; gamepadExit = true; expandedTime = 0; render() end
+			elseif button == "b" and expanded then expanded = false; render() end
+			return true
+		end,
+	})
 	host:schedule(function(dt) -- 131
 		if not expanded or exiting or pointerDown then -- 131
 			return false -- 132

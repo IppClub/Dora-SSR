@@ -1,4 +1,5 @@
 -- [tsx]: Feed.tsx
+local Gamepad = require("Dev.Mobile.Gamepad")
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
 local __TS__SparseArrayNew = ____lualib.__TS__SparseArrayNew -- 1
@@ -224,6 +225,7 @@ function ____exports.startMobileFeed(options) -- 93
 	local createName = "" -- 115
 	local dismissedCreateComposition = false -- 116
 	local createError = "" -- 117
+	local gamepadUsed = false
 	local returnEntry = options.initialEntry -- 118
 	local ____opt_6 = options.initialEntries -- 118
 	local ____temp_10 = ____opt_6 and ____opt_6["local"] -- 120
@@ -802,8 +804,8 @@ function ____exports.startMobileFeed(options) -- 93
 						anchorX = 0, -- 424
 						anchorY = 0.5, -- 424
 						fontName = fontName, -- 424
-						fontSize = 14, -- 424
-						text = prepareStatus ~= "" and prepareStatus or (item.launchError ~= nil and item.launchError or (zh and "上滑浏览  ·  右滑 Remix  ·  左滑试玩" or "Swipe up  ·  right Remix  ·  left Play")), -- 424
+						fontSize = gamepadUsed and 11 or 14, -- 424
+						text = prepareStatus ~= "" and prepareStatus or (item.launchError ~= nil and item.launchError or (gamepadUsed and (zh and "↑↓ 浏览 · A 确认 · X Remix · LB/RB 标签 · Y 新建" or "↑↓ Browse · A Select · X Remix · LB/RB Tabs · Y New") or (zh and "上滑浏览  ·  右滑 Remix  ·  左滑试玩" or "Swipe up  ·  right Remix  ·  left Play"))), -- 424
 						textWidth = infoWidth, -- 424
 						alignment = "Left", -- 424
 						color3 = item.launchError ~= nil and 16739179 or 11055037 -- 424
@@ -1167,6 +1169,34 @@ function ____exports.startMobileFeed(options) -- 93
 			createInput.focus(false) -- 510
 		end -- 510
 	end -- 306
+	Gamepad.attachGamepad(host, {
+		initialTag = "mobile-feed-play",
+		isEnabled = function() return isActive() and not preparing and not transitioning and not creating end,
+		onActive = function() gamepadUsed = true; render() end,
+		onBack = function() if createInput.isFocused() then blurCreateInput() elseif createOpen then closeCreate() else switchMode() end end,
+		onActivate = function(target)
+			if target.tag == "mobile-project-create-input" then target:emit("GamepadActivate")
+			else
+				if createInput.isComposing() then blurCreateInput(); return end
+				blurCreateInput()
+				dismissedCreateComposition = false
+				target:emit("Tapped")
+			end
+		end,
+		onButton = function(button)
+			if createOpen then return false end
+			if button == "dpup" then commit("previous")
+			elseif button == "dpdown" then commit("next")
+			elseif button == "leftshoulder" then setTab("discover")
+			elseif button == "rightshoulder" then setTab("local")
+			elseif button == "x" then commit("remix")
+			elseif button == "y" then
+				local target = Gamepad.findGamepadNode(host, "mobile-feed-create")
+				if target then target:emit("Tapped") end
+			else return false end
+			return true
+		end,
+	})
 	host:onAppChange(function(setting) -- 513
 		if setting == "Locale" then -- 514
 			local activeEntry = current() -- 515

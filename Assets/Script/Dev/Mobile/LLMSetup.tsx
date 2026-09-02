@@ -1,4 +1,5 @@
 import { React, reference, toNode } from "DoraX";
+import { attachGamepad } from "Dev/Mobile/Gamepad";
 import { App, DB, Director, HttpServer, Node, TextAlign } from "Dora";
 import { mobileFontScale } from "Dev/Mobile/Accessibility";
 import { MobileButton, MobilePanelSurface } from "Dev/Mobile/Controls";
@@ -203,6 +204,10 @@ export function startMobileLLMSetup(options: MobileLLMSetupOptions) {
 		</node>);
 		if (scene) host.addChild(scene);
 	};
+	attachGamepad(host, {
+		initialTag: "mobile-llm-provider",
+		onBack: () => { if (keyInput.isFocused()) keyInput.blur(); else close(); },
+	});
 	host.onAppChange(setting => {
 		if (setting === "Locale") zh = string.match(App.locale, "^zh")[0] !== undefined;
 		if (setting === "Size" || setting === "Locale") render();
@@ -454,6 +459,15 @@ export function startMobileLLMManager(options: MobileLLMManagerOptions) {
 		</node>);
 		if (scene) host.addChild(scene);
 	};
+	attachGamepad(host, {
+		initialTag: `mobile-llm-config-${configs.find(item => item.id === selectedId)?.id ?? selectedId}`,
+		onBack: () => {
+			if (detailKeyInput.isFocused()) detailKeyInput.blur();
+			else if (detailMode !== "view") { detailMode = "view"; detailKey = ""; detailError = ""; render(); }
+			else if (detailId > 0) { detailId = 0; render(); }
+			else close();
+		},
+	});
 	host.onAppChange(setting => {
 		if (setting === "Locale") zh = string.match(App.locale, "^zh")[0] !== undefined;
 		if (setting === "Size" || setting === "Locale") render();

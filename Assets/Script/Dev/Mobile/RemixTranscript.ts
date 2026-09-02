@@ -181,6 +181,15 @@ export function createRemixTranscript() {
 	});
 	return {
 		node,
+		scrollBy(amount: number) {
+			scroll.unschedule();
+			following = false;
+			scroll.offset = Vec2(0, math.max(0, math.min(maxOffset(), scroll.offset.y + amount)));
+			scroll.view.moveAndCullItems(Vec2.zero);
+			following = maxOffset() - scroll.offset.y <= 24;
+			if (following) unread = false;
+			updateHint();
+		},
 		update(detail: AgentSessionDetailResult, w: number, h: number, fontScale: number, chinese: boolean, actions: RemixTranscriptAction[] = []) {
 			const anchor = rows.find(row => row.node.y > 0 && row.node.y - row.node.height < height);
 			const anchorY = anchor?.node.y;

@@ -1,6 +1,7 @@
 import { React, reference, toNode } from "DoraX";
 import { App, Director, Ease, HttpServer, Move, Node, sleep, Sprite, TextAlign, thread, Vec2 } from "Dora";
 import { DoraMascot } from "Dev/Mobile/Mascot";
+import { attachGamepad, findGamepadNode } from "Dev/Mobile/Gamepad";
 import { mobileFontScale } from "Dev/Mobile/Accessibility";
 import { getCoverScales, getReusableCardIndices, normalizeFeedIndex, resolveDiscoverRefreshTab, resolveFeedGesture, resolveFeedLocation, stableCoverColor, type FeedAction, type FeedEntry as ModelFeedEntry, type FeedTab } from "Dev/Mobile/FeedModel";
 import { createTextInput } from "Dev/Mobile/TextInput";
@@ -115,6 +116,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	let createName = "";
 	let dismissedCreateComposition = false;
 	let createError = "";
+	let gamepadUsed = false;
 	let returnEntry = options.initialEntry;
 	const rememberedEntries: { local?: FeedEntry; discover?: FeedEntry } = {
 		local: options.initialEntries?.local,
@@ -427,8 +429,8 @@ export function startMobileFeed(options: MobileFeedOptions) {
 					primary={true} onTapped={() => activate("remix")} />
 				<MobileButton tag="mobile-feed-play" x={infoX + buttonWidth + 12} y={actionsY} width={buttonWidth} text={zh ? "试玩" : "Play"} fontSize={math.floor(17 * fontScale)}
 					onTapped={() => activate("play")} />
-					<label tag="mobile-feed-gesture-hint" x={infoX} y={gestureHintY} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={14}
-					text={prepareStatus !== "" ? prepareStatus : item.launchError !== undefined ? item.launchError : (zh ? "上滑浏览  ·  右滑 Remix  ·  左滑试玩" : "Swipe up  ·  right Remix  ·  left Play")}
+					<label tag="mobile-feed-gesture-hint" x={infoX} y={gestureHintY} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={gamepadUsed ? 11 : 14}
+					text={prepareStatus !== "" ? prepareStatus : item.launchError !== undefined ? item.launchError : gamepadUsed ? (zh ? "↑↓ 浏览 · A 确认 · X Remix · LB/RB 标签 · Y 新建" : "↑↓ Browse · A Select · X Remix · LB/RB Tabs · Y New") : (zh ? "上滑浏览  ·  右滑 Remix  ·  左滑试玩" : "Swipe up  ·  right Remix  ·  left Play")}
 						textWidth={infoWidth} alignment={TextAlign.Left} color3={item.launchError !== undefined ? 0xff6b6b : 0xa8afbd} />
 			</node> : <node>
 				<label x={left + usableWidth / 2} y={bottom + usableHeight / 2 + 20} fontName={fontName} fontSize={22}
@@ -514,6 +516,33 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		if (restoreFocus && !keptInput && createOpen) createInput.focus(false);
 	};
 
+	attachGamepad(host, {
+		initialTag: "mobile-feed-play",
+		isEnabled: () => isActive() && !preparing && !transitioning && !creating,
+		onActive: () => { gamepadUsed = true; render(); },
+		onBack: () => { if (createInput.isFocused()) blurCreateInput(); else if (createOpen) closeCreate(); else switchMode(); },
+		onActivate: target => {
+			if (target.tag === "mobile-project-create-input") target.emit("GamepadActivate");
+			else {
+				if (createInput.isComposing()) { blurCreateInput(); return; }
+				blurCreateInput();
+				dismissedCreateComposition = false;
+				target.emit("Tapped");
+			}
+		},
+		onButton: button => {
+			if (createOpen) return false;
+			switch (button) {
+				case "dpup": commit("previous"); return true;
+				case "dpdown": commit("next"); return true;
+				case "leftshoulder": setTab("discover"); return true;
+				case "rightshoulder": setTab("local"); return true;
+				case "x": commit("remix"); return true;
+				case "y": findGamepadNode(host, "mobile-feed-create")?.emit("Tapped"); return true;
+				default: return false;
+			}
+		},
+	});
 	host.onAppChange(setting => {
 		if (setting === "Locale") {
 			const activeEntry = current();

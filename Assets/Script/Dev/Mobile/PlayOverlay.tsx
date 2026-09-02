@@ -1,5 +1,6 @@
 import { React, reference, toNode } from "DoraX";
-import { App, DB, Director, HttpServer, Node, Vec2 } from "Dora";
+import { App, ButtonName, Controller, DB, Director, HttpServer, Node, Vec2 } from "Dora";
+import { attachGamepad } from "Dev/Mobile/Gamepad";
 import { mobileFontScale } from "Dev/Mobile/Accessibility";
 import { RoundedSurface } from "Dev/Mobile/Visual";
 
@@ -44,6 +45,7 @@ export function startMobilePlayOverlay(options: PlayOverlayOptions) {
 	host.addTo(Director.systemUI);
 	let exiting = false;
 	let expanded = false;
+	let gamepadExit = false;
 	let expandedTime = 0;
 	let dragDistance = 0;
 	let pointerDown = false;
@@ -113,14 +115,15 @@ export function startMobilePlayOverlay(options: PlayOverlayOptions) {
 				onTapped={() => {
 					if (dragDistance > dragThreshold) return;
 					if (expanded) exit();
-					else { expanded = true; expandedTime = 0; render(); }
+					else { expanded = true; gamepadExit = false; expandedTime = 0; render(); }
 				}}>
 				{expanded ? <node>
 					<RoundedSurface width={controlWidth} height={controlHeight} radius={12}
 						topColor={0xe82b3442} bottomColor={0xe811151d}
 						borderWidth={1} borderColor={0x88ffffff} shadow={true} />
-					<label x={controlWidth / 2} y={controlHeight / 2} fontName={fontName}
+					<label x={controlWidth / 2} y={gamepadExit ? 29 : controlHeight / 2} fontName={fontName}
 						fontSize={math.floor(14 * mobileFontScale)} text={zh ? "退出试玩" : "Exit"} color3={0xf4f1e8} />
+					{gamepadExit ? <label x={controlWidth / 2} y={11} fontName={fontName} fontSize={10} text="Back + Start" color3={0xffcc33} /> : undefined}
 				</node> : <RoundedSurface x={collapsedTouchWidth - handleWidth} y={5} width={handleWidth} height={controlHeight - 10}
 					radius={3} fillColor={0x99ffffff} />}
 			</node>
@@ -128,6 +131,18 @@ export function startMobilePlayOverlay(options: PlayOverlayOptions) {
 		if (scene) host.addChild(scene);
 	};
 
+	attachGamepad(host, {
+		onBack: () => undefined,
+		onButton: (button, id) => {
+			// Ordinary game buttons must never activate the shell's exit control.
+			if ((button === "start" && Controller.isButtonPressed(id, ButtonName.Back)) ||
+				(button === "back" && Controller.isButtonPressed(id, ButtonName.Start))) {
+				if (expanded) exit();
+				else { expanded = true; gamepadExit = true; expandedTime = 0; render(); }
+			} else if (button === "b" && expanded) { expanded = false; render(); }
+			return true;
+		},
+	});
 	host.schedule(dt => {
 		if (!expanded || exiting || pointerDown) return false;
 		expandedTime += dt;

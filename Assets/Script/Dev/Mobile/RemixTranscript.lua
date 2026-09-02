@@ -363,6 +363,15 @@ function ____exports.createRemixTranscript()
     end)
     return {
         node = node,
+        scrollBy = function(self, amount)
+            scroll:unschedule()
+            following = false
+            scroll.offset = Vec2(0, math.max(0, math.min(maxOffset(), scroll.offset.y + amount)))
+            scroll.view:moveAndCullItems(Vec2.zero)
+            following = maxOffset() - scroll.offset.y <= 24
+            if following then unread = false end
+            updateHint()
+        end,
         update = function(self, detail, w, h, fontScale, chinese, actions)
             if actions == nil then
                 actions = {}

@@ -1,4 +1,5 @@
 import { React, reference, toNode } from "DoraX";
+import { attachGamepad } from "Dev/Mobile/Gamepad";
 import { App, DB, Director, Ease, HttpServer, Label, Move, Node, sleep, TextAlign, thread, Vec2 } from "Dora";
 import * as AgentSession from "Agent/Session";
 import { getActiveLLMConfig, getLLMConfig, getLLMConfigSummaries, safeJsonEncode } from "Agent/Utils";
@@ -612,7 +613,7 @@ export function startMobileRemix(options: RemixOptions) {
 					}}
 				/>) : <node tag="remix-question-input" ref={inputRef} x={16} y={safe.height - 510} width={contentWidth - 32} height={92} anchorX={0} anchorY={0}
 					onMount={promptInput.mount} />}
-				{questionIndex > 0 ? <ActionButton x={16} y={12} width={92} text={zh ? "上一步" : "Back"} onTapped={() => { questionIndex--; render(); }} /> : undefined}
+				{questionIndex > 0 ? <ActionButton tag="remix-question-back" x={16} y={12} width={92} text={zh ? "上一步" : "Back"} onTapped={() => { questionIndex--; render(); }} /> : undefined}
 				<ActionButton tag="remix-question-submit" x={questionIndex > 0 ? 120 : 16} y={12} width={contentWidth - (questionIndex > 0 ? 136 : 32)}
 					text={questionIndex + 1 === questionnaire.schema.questions.length ? (zh ? "提交回答" : "Submit") : (zh ? "下一步" : "Next")}
 					primary={true} onTapped={() => { if (!dismissedComposition) advanceQuestionnaire(); dismissedComposition = false; }} />
@@ -652,6 +653,20 @@ export function startMobileRemix(options: RemixOptions) {
 		displayRevision = remixDisplayRevision(detail);
 	};
 
+	attachGamepad(host, {
+		initialTag: "remix-input",
+		onBack: () => { if (promptInput.isFocused()) blurInput(); else goBack(); },
+		onScroll: amount => transcript.scrollBy(amount),
+		onActivate: target => {
+			if (target.tag === "remix-input" || target.tag === "remix-question-input") target.emit("GamepadActivate");
+			else {
+				if (promptInput.isComposing()) { blurInput(); return; }
+				blurInput();
+				dismissedComposition = false;
+				target.emit("Tapped");
+			}
+		},
+	});
 	host.schedule(dt => {
 		pollElapsed += dt;
 		if (pollElapsed < 0.25) return false;
