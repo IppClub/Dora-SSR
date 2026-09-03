@@ -24,15 +24,16 @@ if [ ! -x "$BINARY" ]; then
 	echo "Missing executable: $BINARY" >&2
 	exit 1
 fi
+if [ ! -f "$ROOT_DIR/Assets/www/index.html" ]; then
+	echo "Missing Web IDE assets: run pnpm build in Tools/dora-dora first" >&2
+	exit 1
+fi
 
 mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/lib" "$APPDIR/usr/share/dora-ssr"
 install -Dm755 "$BINARY" "$APPDIR/usr/bin/dora-ssr"
+# pnpm build already synchronizes the Web IDE into Assets/www.
 cp -a "$ROOT_DIR/Assets" "$APPDIR/usr/share/dora-ssr/Assets"
 
-# Release builds generate the Web IDE separately from the engine assets.
-if [ -d "$ROOT_DIR/Tools/dora-dora/build" ]; then
-	cp -a "$ROOT_DIR/Tools/dora-dora/build" "$APPDIR/usr/share/dora-ssr/Assets/www"
-fi
 if [ -f "$ROOT_DIR/Tools/dora-wa/wa.mod" ]; then
 	mkdir -p "$APPDIR/usr/share/dora-ssr/Assets/dora-wa"
 	cp "$ROOT_DIR/Tools/dora-wa/wa.mod" "$APPDIR/usr/share/dora-ssr/Assets/dora-wa/"
@@ -40,15 +41,23 @@ if [ -f "$ROOT_DIR/Tools/dora-wa/wa.mod" ]; then
 fi
 
 # Bundle application libraries, but leave the host graphics stack and glibc alone.
+# Check the scanner separately: process substitution hides its exit status.
+lddtree -l "$APPDIR/usr/bin/dora-ssr" > "$TOOLS_DIR/dependencies"
 while IFS= read -r dependency; do
-	[ -f "$dependency" ] || continue
+	case "$dependency" in
+		"$APPDIR/usr/bin/dora-ssr"|linux-vdso*) continue ;;
+	esac
+	if [ ! -f "$dependency" ]; then
+		echo "Unresolved runtime dependency: $dependency" >&2
+		exit 1
+	fi
 	name="$(basename "$dependency")"
 	case "$name" in
 		linux-vdso*|ld-linux*|libc.so*|libm.so*|libpthread*|librt.so*|libdl.so*|libresolv.so*|libutil.so*|libnss_*) continue ;;
-		libGL*|libEGL*|libGLES*|libGLX*|libdrm*|libgbm*|libvulkan*) continue ;;
+		libGL*|libEGL*|libdrm*|libgbm*|libvulkan*) continue ;;
 	esac
 	cp -L "$dependency" "$APPDIR/usr/lib/$name"
-done < <(lddtree -l "$APPDIR/usr/bin/dora-ssr")
+done < "$TOOLS_DIR/dependencies"
 
 patchelf --set-rpath '$ORIGIN/../lib' "$APPDIR/usr/bin/dora-ssr"
 
