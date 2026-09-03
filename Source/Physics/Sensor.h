@@ -60,7 +60,7 @@ private:
 	void executeEnterHandler();
 	void executeLeaveHandler();
 	void add(Body* body);
-	void remove(Body* body);
+	void remove(Body* body, bool notify);
 	void clear();
 	bool _enabled;
 	Ref<Array> _sensedBodies;

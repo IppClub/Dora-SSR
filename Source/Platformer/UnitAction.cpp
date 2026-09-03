@@ -228,6 +228,7 @@ bool Jump::isAvailable() {
 }
 
 void Jump::run() {
+	if (!_owner->isOnSurface()) return;
 	Playable* playable = _owner->getPlayable();
 	auto moveSpeed = _owner->getEntity()->get(ActionSetting::MoveSpeed, 1.0f);
 	auto jump = _owner->getEntity()->get(ActionSetting::Jump, 0.0f);
@@ -237,13 +238,20 @@ void Jump::run() {
 	_duration = playable->play(ActionSetting::AnimationJump, false);
 	playable->slot("AnimationEnd"_slice, std::make_pair(this, &Jump::onAnimationEnd));
 	_owner->setVelocityY(jump);
-	Sensor* sensor = _owner->getGroundSensor();
-	if (_owner->getPhysicsWorld()) {
+	// Animation callbacks and other frame work may have removed the old support.
+	// Select a live one instead of trusting the first retained sensor member.
+	if (auto support = _owner->getGroundBody()) {
 		auto& world = *_owner->getPhysicsWorld()->getPrWorld();
 		pr::BodyID self = _owner->getPrBody();
-		pr::BodyID target = sensor->getSensedBodies()->get(0)->to<Body>()->getPrBody();
-		const auto shapeA = pd::GetShape(world, *pr::begin(pd::GetShapes(world, self)));
-		const auto shapeB = pd::GetShape(world, *pr::begin(pd::GetShapes(world, target)));
+		pr::BodyID target = support->getPrBody();
+		const auto shapesA = pd::GetShapes(world, self);
+		const auto shapesB = pd::GetShapes(world, target);
+		if (shapesA.empty() || shapesB.empty()) {
+			UnitAction::run();
+			return;
+		}
+		const auto shapeA = pd::GetShape(world, shapesA.front());
+		const auto shapeB = pd::GetShape(world, shapesB.front());
 		const auto proxyA = pd::GetChild(shapeA, 0);
 		const auto proxyB = pd::GetChild(shapeB, 0);
 		const auto transformA = pd::GetTransformation(world, self);

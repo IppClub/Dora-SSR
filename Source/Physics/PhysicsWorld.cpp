@@ -1121,15 +1121,17 @@ void PhysicsWorld::setupEndContact() {
 		Body* bodyB = _bodyData[pd::GetBodyB(world, contact).get()];
 		if (pd::IsSensor(world, fixtureA)) {
 			Sensor* sensor = _fixtureData[fixtureA.get()];
-			if (sensor && bodyB && sensor->isEnabled() && !pd::IsSensor(world, fixtureB) && sensor->getOwner()) {
-				SensorPair pair{MakeWRef(sensor->getOwner()), MakeWRef(sensor), MakeWRef(bodyB)};
-				_sensorLeaves.push_back(pair);
+			// A zero-ref body is already being destructed and cannot be retained.
+			// Actual sensor members are held alive by the sensor's sensedBodies array.
+			if (sensor && bodyB && bodyB->getRefCount() > 0 && sensor->isEnabled() && !pd::IsSensor(world, fixtureB) && sensor->getOwner()) {
+				SensorPair pair{MakeWRef(sensor->getOwner()), MakeWRef(sensor), MakeWRef(bodyB), Ref<Body>{bodyB}};
+				_sensorLeaves.push_back(std::move(pair));
 			}
 		} else if (pd::IsSensor(world, fixtureB)) {
 			Sensor* sensor = _fixtureData[fixtureB.get()];
-			if (sensor && bodyA && sensor->isEnabled() && sensor->getOwner()) {
-				SensorPair pair{MakeWRef(sensor->getOwner()), MakeWRef(sensor), MakeWRef(bodyA)};
-				_sensorLeaves.push_back(pair);
+			if (sensor && bodyA && bodyA->getRefCount() > 0 && sensor->isEnabled() && sensor->getOwner()) {
+				SensorPair pair{MakeWRef(sensor->getOwner()), MakeWRef(sensor), MakeWRef(bodyA), Ref<Body>{bodyA}};
+				_sensorLeaves.push_back(std::move(pair));
 			}
 		} else if ((bodyA && bodyB) && (bodyA->isReceivingContact() || bodyB->isReceivingContact())) {
 			pd::WorldManifold worldManifold = pd::GetWorldManifold(world, contact);
@@ -1190,6 +1192,10 @@ void PhysicsWorld::clearPhysics() {
 			b->clearPhysics();
 		}
 		_world = nullptr;
+		_contactStarts.clear();
+		_contactEnds.clear();
+		_sensorEnters.clear();
+		_sensorLeaves.clear(); // Release bookkeeping references; this world cannot dispatch again.
 	}
 }
 
@@ -1416,7 +1422,8 @@ const pr::Filter& PhysicsWorld::getFilter(uint8_t group) const {
 
 void PhysicsWorld::solveContacts() {
 	if (!_contactStarts.empty()) {
-		for (ContactPair& pair : _contactStarts) {
+		for (size_t i = 0; i < _contactStarts.size(); ++i) {
+			auto pair = _contactStarts[i];
 			if (pair.bodyA && pair.bodyB) {
 				pair.bodyA->contactStart(pair.bodyB, pair.point, pair.normal, pair.enabled);
 			}
@@ -1424,7 +1431,8 @@ void PhysicsWorld::solveContacts() {
 		_contactStarts.clear();
 	}
 	if (!_contactEnds.empty()) {
-		for (ContactPair& pair : _contactEnds) {
+		for (size_t i = 0; i < _contactEnds.size(); ++i) {
+			auto pair = _contactEnds[i];
 			if (pair.bodyA && pair.bodyB) {
 				pair.bodyA->contactEnd(pair.bodyB, pair.point, pair.normal);
 			}
@@ -1432,7 +1440,8 @@ void PhysicsWorld::solveContacts() {
 		_contactEnds.clear();
 	}
 	if (!_sensorEnters.empty()) {
-		for (SensorPair& pair : _sensorEnters) {
+		for (size_t i = 0; i < _sensorEnters.size(); ++i) {
+			auto pair = _sensorEnters[i];
 			if (pair.owner && pair.sensor && pair.body && pair.sensor->isEnabled()) {
 				pair.sensor->add(pair.body);
 			}
@@ -1440,9 +1449,13 @@ void PhysicsWorld::solveContacts() {
 		_sensorEnters.clear();
 	}
 	if (!_sensorLeaves.empty()) {
-		for (SensorPair& pair : _sensorLeaves) {
-			if (pair.owner && pair.sensor && pair.body && pair.sensor->isEnabled()) {
-				pair.sensor->remove(pair.body);
+		// Callbacks can destroy more bodies and append leaves. Copy each record before
+		// dispatch so vector reallocation cannot invalidate an active record/iterator.
+		for (size_t i = 0; i < _sensorLeaves.size(); ++i) {
+			auto pair = _sensorLeaves[i];
+			if (pair.owner && pair.sensor && pair.removalBody && pair.sensor->isEnabled()) {
+				const bool notify = pair.body && pr::IsValid(pair.body->getPrBody());
+				pair.sensor->remove(pair.removalBody, notify);
 			}
 		}
 		_sensorLeaves.clear();

@@ -37,21 +37,20 @@ void Sensor::add(Body* body) {
 	}
 }
 
-void Sensor::remove(Body* body) {
+void Sensor::remove(Body* body, bool notify) {
 	auto value = Value::alloc(body);
 	_sensedBodies->fastRemove(value.get());
-	if (_uniqueBodies.erase(body) > 0 && bodyLeave) {
+	if (_uniqueBodies.erase(body) > 0 && notify && bodyLeave) {
 		bodyLeave(body, _tag);
 	}
 }
 
 bool Sensor::contains(Body* body) {
-	ARRAY_START(Body, item, _sensedBodies) {
-		if (item == body) {
+	for (const auto& item : _sensedBodies->data()) {
+		if (item->to<Body>() == body) {
 			return true;
 		}
 	}
-	ARRAY_END
 	return false;
 }
 

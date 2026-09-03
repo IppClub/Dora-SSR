@@ -7,6 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Dora.h"
+#include "Animation/Animation.h"
 using namespace Dora;
 
 #include "imgui/imgui.h"
@@ -72,6 +73,143 @@ DORA_TEST_ENTRY(HelloWorldCpp) {
 		ImGui::End();
 		return false;
 	});
+	return true;
+}
+
+DORA_TEST_ENTRY(PhysicsSensorLifecycleCpp) {
+	auto check = [](bool condition, const char* message) {
+		if (!condition) throw std::runtime_error(message);
+	};
+	// No external model/game assets are needed, including for the real Jump action.
+	const auto modelName = "__sensor_lifecycle_test.model"sv;
+	SharedModelCache.update(modelName, ModelDef::create());
+	DEFER(SharedModelCache.unload(modelName));
+	auto step = [](PhysicsWorld* world) {
+		// A zero-dt step creates broad-phase contacts; the next updates their manifolds.
+		world->doUpdate(0);
+		world->doUpdate(0);
+	};
+
+	auto makeTarget = [](PhysicsWorld* world, Vec2 position, bool compound = false) {
+		auto def = BodyDef::create();
+		def->setType(pr::BodyType::Dynamic);
+		def->attachDisk(5, 1, 0, 0);
+		if (compound) def->attachDisk(4, 1, 0, 0);
+		auto body = Body::create(def, world, position);
+		world->addChild(body);
+		pd::SetEnabled(*world->getPrWorld(), body->getPrBody(), true);
+		return body;
+	};
+
+	{
+		Ref<PhysicsWorld> world(PhysicsWorld::create());
+		DEFER(world->cleanup());
+		auto def = BodyDef::create();
+		def->attachDiskSensor(0, 100);
+		auto owner = Body::create(def, world.get());
+		world->addChild(owner);
+		pd::SetEnabled(*world->getPrWorld(), owner->getPrBody(), true);
+		Ref<Sensor> sensor(owner->getSensorByTag(0));
+		int enters = 0, leaves = 0;
+		sensor->bodyEnter += [&](Body*, int) { ++enters; };
+		sensor->bodyLeave += [&](Body*, int) { ++leaves; };
+		Ref<Body> target(makeTarget(world.get(), Vec2::zero));
+		step(world.get());
+		check(enters == 1 && sensor->contains(target), "sensor did not enter normally");
+		target->setPosition(Vec2{1000, 0});
+		step(world.get());
+		check(leaves == 1 && !sensor->isSensed(), "normal leave semantics changed");
+		target->setPosition(Vec2::zero);
+		step(world.get());
+		check(enters == 2, "sensor did not re-enter normally");
+		target->removeFromParent(true);
+		check(!pr::IsValid(target->getPrBody()), "test target was not cleaned up");
+		step(world.get());
+		check(!sensor->isSensed() && !sensor->contains(target), "destroyed body retained in sensor");
+		check(leaves == 1, "cleanup must not deliver a leave to an invalid body");
+
+		Ref<Body> compound(makeTarget(world.get(), Vec2::zero, true));
+		step(world.get());
+		check(sensor->getSensedBodies()->getCount() == 2, "compound contact fixture setup failed");
+		compound->removeFromParent(true);
+		step(world.get());
+		check(sensor->getSensedBodies()->isEmpty(), "compound body left a sensor membership behind");
+		check(leaves == 1, "compound cleanup emitted a user leave");
+
+		// Destroying bodies from a leave callback grows the queue being dispatched.
+		RefVector<Body> targets;
+		for (int i = 0; i < 64; ++i) targets.push_back(makeTarget(world.get(), Vec2{float(i), 0}));
+		step(world.get());
+		sensor->bodyLeave = [&](Body*, int) {
+			++leaves;
+			for (auto body : targets) body->removeFromParent(true);
+		};
+		targets.front()->setPosition(Vec2{1000, 0});
+		step(world.get());
+		check(leaves == 2 && !sensor->isSensed(), "reentrant leave cleanup did not drain safely");
+		sensor->bodyEnter.Clear();
+		sensor->bodyLeave.Clear();
+
+		// A body can be cleaned before its queued enter is delivered. Neither the
+		// stale enter nor its matching leave may deliver a user event afterwards.
+		WRef<Body> expired;
+		SharedPoolManager.push();
+		{
+			DEFER(SharedPoolManager.pop());
+			auto temporaryDef = BodyDef::create();
+			temporaryDef->setType(pr::BodyType::Dynamic);
+			temporaryDef->attachDisk(5, 1, 0, 0);
+			auto temporary = Body::create(temporaryDef, world.get());
+			expired = temporary;
+			pd::SetEnabled(*world->getPrWorld(), temporary->getPrBody(), true);
+			pd::Step(*world->getPrWorld(), pr::StepConf{});
+			temporary->cleanup();
+		}
+		check(!expired, "pending-enter body was not cleaned up");
+		step(world.get());
+		check(!sensor->isSensed(), "a destroyed pending enter reached the sensor");
+	}
+
+	{
+		using namespace Dora::Platformer;
+		Ref<PhysicsWorld> world(PhysicsWorld::create());
+		DEFER(world->cleanup());
+		auto def = Dictionary::create();
+		def->set(Unit::Def::Size, Value::alloc(Size{20, 20}));
+		def->set(Unit::Def::BodyType, Value::alloc("Dynamic"s));
+		def->set(Unit::Def::Density, Value::alloc(1.0));
+		def->set(Unit::Def::Playable, Value::alloc("model:__sensor_lifecycle_test.model"s));
+		auto actions = Array::create();
+		actions->add(Value::alloc("jump"s));
+		def->set(Unit::Def::Actions, Value::alloc(actions));
+		Ref<Entity> entity(Entity::create());
+		entity->set("jump"sv, 100.0);
+		Ref<Unit> unit(Unit::create(def, world.get(), entity.get(), Vec2{0, 10}, 0.0f));
+		check(unit != nullptr, "failed to create asset-free test unit");
+		world->addChild(unit);
+		pd::SetEnabled(*world->getPrWorld(), unit->getPrBody(), true);
+		Ref<Body> support(makeTarget(world.get(), Vec2{0, -4}));
+		step(world.get());
+		check(unit->isOnSurface(), "test unit has no initial support");
+		support->removeFromParent(true);
+		// In particular, test before the next physics/event flush.
+		check(!unit->isOnSurface(), "destroyed support still counted as ground before leave dispatch");
+		check(!unit->start("jump"sv), "jump accepted destroyed support");
+		step(world.get());
+		check(!unit->getGroundSensor()->isSensed(), "ground membership was not cleared");
+
+		Ref<Body> first(makeTarget(world.get(), Vec2{-4, -4}));
+		Ref<Body> second(makeTarget(world.get(), Vec2{4, -4}));
+		step(world.get());
+		auto ground = unit->getGroundSensor()->getSensedBodies();
+		check(ground->getCount() >= 2, "multiple-support fixture setup failed");
+		ground->get(0)->to<Body>()->removeFromParent(true);
+		check(unit->isOnSurface(), "live secondary support was ignored");
+		check(unit->start("jump"sv), "jump did not fall back to live secondary support");
+		check(unit->getVelocityY() == 100.0f, "valid jump velocity changed");
+		step(world.get());
+	}
+	Println("[PhysicsSensorLifecycleCpp] normal/compound/reentrant leaves and invalid-support jump: PASS");
 	return true;
 }
 

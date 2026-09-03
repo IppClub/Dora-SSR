@@ -102,6 +102,8 @@ protected:
 	Unit(String defName, String worldName, NotNull<Entity, 3> entity, const Vec2& pos, float rot);
 
 private:
+	Body* getGroundBody() const;
+	friend class Jump;
 	BodyDef* getBodyDef(Dictionary* def) const;
 	WRef<Entity> _entity;
 	float _detectDistance;

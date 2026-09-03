@@ -369,7 +369,22 @@ bool Unit::isDoing(String name) {
 }
 
 bool Unit::isOnSurface() const {
-	return _groundSensor && _groundSensor->isSensed();
+	return getGroundBody() != nullptr;
+}
+
+Body* Unit::getGroundBody() const {
+	if (!_groundSensor || !_pWorld || !_pWorld->getPrWorld() || !pr::IsValid(_prBody)) {
+		return nullptr;
+	}
+	// Leaves are dispatched later. A retained sensor member may already have had
+	// its physics destroyed in this frame; it must no longer count as support.
+	for (const auto& item : _groundSensor->getSensedBodies()->data()) {
+		auto body = item->to<Body>();
+		if (body && body->getPhysicsWorld() == _pWorld.get() && pr::IsValid(body->getPrBody())) {
+			return body;
+		}
+	}
+	return nullptr;
 }
 
 void Unit::setDetectDistance(float var) {

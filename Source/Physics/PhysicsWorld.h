@@ -355,6 +355,9 @@ private:
 		WRef<Body> owner;
 		WRef<Sensor> sensor;
 		WRef<Body> body;
+		// Leave records must still remove membership after cleanup invalidates body.
+		// This reference is for bookkeeping only, never for delivering user events.
+		Ref<Body> removalBody;
 	};
 	struct ContactPair {
 		WRef<Body> bodyA;
