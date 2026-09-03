@@ -501,13 +501,24 @@ void Director::doRender() {
 
 		/* render the persistent system ui above every regular layer */
 		if (_systemUI) {
-			SharedView.pushBack("SystemUI"_slice, [&]() {
-				bgfx::ViewId viewId = SharedView.getId();
-				pushViewProjection(_systemUICamera->getView(), [&]() {
-					bgfx::setViewTransform(viewId, nullptr, getViewProjection().m);
-					_systemUI->visit();
-					SharedRendererManager.flush();
+			// Reserve the background view before SystemUI, but submit NanoVG after
+			// visiting its nodes. Their onRender callbacks generate this frame's
+			// paths; leaving them pending here would display last frame's geometry.
+			SharedView.pushBack("SystemUI-NanoVG"_slice, [&]() {
+				const auto nvgViewId = SharedView.getId();
+				SharedView.pushBack("SystemUI"_slice, [&]() {
+					bgfx::ViewId viewId = SharedView.getId();
+					pushViewProjection(_systemUICamera->getView(), [&]() {
+						bgfx::setViewTransform(viewId, nullptr, getViewProjection().m);
+						_systemUI->visit();
+						SharedRendererManager.flush();
+					});
 				});
+				if (_nvgContext && _nvgDirty) {
+					_nvgDirty = false;
+					nvgSetViewId(_nvgContext, nvgViewId);
+					nvgEndFrame(_nvgContext);
+				}
 			});
 		}
 
