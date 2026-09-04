@@ -231,6 +231,198 @@ private:
 
 // AsyncTaskGroup
 
+#if BX_PLATFORM_EMSCRIPTEN
+
+AsyncTaskGroup::AsyncTaskGroup(AsyncThread* pool, std::shared_ptr<AsyncTaskGroupState> state)
+	: _pool(pool)
+	, _state(std::move(state)) { }
+
+AsyncTaskGroup::AsyncTaskGroup(AsyncTaskGroup&& other) noexcept
+	: _pool(std::exchange(other._pool, nullptr))
+	, _state(std::move(other._state)) { }
+
+AsyncTaskGroup& AsyncTaskGroup::operator=(AsyncTaskGroup&& other) noexcept {
+	if (this != &other) {
+		_pool = std::exchange(other._pool, nullptr);
+		_state = std::move(other._state);
+	}
+	return *this;
+}
+
+AsyncTaskGroup::~AsyncTaskGroup() { }
+
+bool AsyncTaskGroup::run(const std::function<void()>& worker) {
+	return _pool && _state && _pool->run(*this, nullptr, worker);
+}
+
+void AsyncTaskGroup::wait() {
+	if (_state) _state->wait();
+}
+
+size_t AsyncTaskGroup::getPendingCount() const {
+	return _state ? _state->getPendingCount() : 0;
+}
+
+// Async
+
+Async::Async()
+	: _scheduled(false)
+	, _finisherState(std::make_shared<AsyncFinisherState>())
+	, _standaloneTaskState(std::make_shared<AsyncTaskGroupState>(true))
+	, _stopped(false)
+	, _pool(nullptr)
+	, _poolIndex(0) { }
+
+Async::~Async() {
+	_stopped.store(true, std::memory_order_release);
+	_finisherState->active.store(false, std::memory_order_release);
+}
+
+void Async::run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher) {
+	if (_stopped.load(std::memory_order_acquire)) return;
+	try {
+		finisher(worker());
+	} catch (...) {
+		reportAsyncException(std::current_exception(), "synchronous Async task");
+	}
+}
+
+void Async::run(const std::function<void()>& worker) {
+	if (_stopped.load(std::memory_order_acquire)) return;
+	try {
+		worker();
+	} catch (...) {
+		reportAsyncException(std::current_exception(), "synchronous Async task");
+	}
+}
+
+void Async::runInMainSync(const std::function<void()>& worker) {
+	if (_stopped.load(std::memory_order_acquire)) return;
+	worker();
+}
+
+void Async::cancel() { }
+
+void Async::stop() {
+	_stopped.store(true, std::memory_order_release);
+	_finisherState->active.store(false, std::memory_order_release);
+}
+
+bool Async::isPoolWorker() const {
+	return _pool != nullptr;
+}
+
+void Async::bindPool(AsyncThread* pool, size_t index) {
+	_pool = pool;
+	_poolIndex = index;
+}
+
+// AsyncThread
+
+AsyncThread::AsyncThread()
+	: _stopping(false)
+	, _defaultGroup(new TaskGroup(this, std::make_shared<AsyncTaskGroupState>(true))) { }
+
+AsyncThread::~AsyncThread() {
+	cancel();
+}
+
+Async& AsyncThread::getProcess(int index) {
+	DORA_UNUSED_PARAM(index);
+	throw std::out_of_range("AsyncThread has no worker threads on Emscripten");
+}
+
+Async* AsyncThread::newThread() {
+	if (_stopping.load(std::memory_order_acquire)) {
+		throw std::runtime_error("cannot create an Async worker after AsyncThread has stopped");
+	}
+	_dedicatedThreads.push_back(New<Async>());
+	return _dedicatedThreads.back().get();
+}
+
+AsyncThread::TaskGroup AsyncThread::createTaskGroup() {
+	return TaskGroup(this, std::make_shared<AsyncTaskGroupState>());
+}
+
+void AsyncThread::runFrameTasks(const std::vector<std::function<void()>>& tasks) {
+	for (const auto& task : tasks) task();
+}
+
+void AsyncThread::runFrameTasks(size_t taskCount, const std::function<void(size_t)>& task,
+	FrameTaskDispatchStats* stats) {
+	if (stats) {
+		*stats = FrameTaskDispatchStats{};
+		stats->taskCount = taskCount;
+	}
+	for (size_t index = 0; index < taskCount; index++) task(index);
+}
+
+size_t AsyncThread::getWorkerCount() const {
+	return 0;
+}
+
+AsyncThread::TaskGroup& AsyncThread::getDefaultGroup() {
+	return *_defaultGroup;
+}
+
+void AsyncThread::run(const std::function<Own<Values>()>& worker,
+	const std::function<void(Own<Values>)>& finisher) {
+	if (_stopping.load(std::memory_order_acquire)) return;
+	try {
+		finisher(worker());
+	} catch (...) {
+		reportAsyncException(std::current_exception(), "synchronous AsyncThread task");
+	}
+}
+
+void AsyncThread::run(const std::function<void()>& worker) {
+	if (_stopping.load(std::memory_order_acquire)) return;
+	try {
+		worker();
+	} catch (...) {
+		reportAsyncException(std::current_exception(), "synchronous AsyncThread task");
+	}
+}
+
+void AsyncThread::cancel() {
+	if (_stopping.exchange(true, std::memory_order_acq_rel)) return;
+	for (auto& thread : _dedicatedThreads) {
+		thread->stop();
+	}
+}
+
+bool AsyncThread::run(TaskGroup& group, Async* target,
+	const std::function<Own<Values>()>& worker,
+	const std::function<void(Own<Values>)>& finisher) {
+	DORA_UNUSED_PARAM(target);
+	if (_stopping.load(std::memory_order_acquire) || !group._state) return false;
+	group._state->add();
+	try {
+		finisher(worker());
+		group._state->complete();
+	} catch (...) {
+		group._state->complete(std::current_exception());
+		throw;
+	}
+	return true;
+}
+
+bool AsyncThread::run(TaskGroup& group, Async* target, const std::function<void()>& worker) {
+	DORA_UNUSED_PARAM(target);
+	if (_stopping.load(std::memory_order_acquire) || !group._state) return false;
+	group._state->add();
+	try {
+		worker();
+		group._state->complete();
+	} catch (...) {
+		group._state->complete(std::current_exception());
+		throw;
+	}
+	return true;
+}
+
+#else
+
 AsyncTaskGroup::AsyncTaskGroup(AsyncThread* pool, std::shared_ptr<AsyncTaskGroupState> state)
 	: _pool(pool)
 	, _state(std::move(state)) { }
@@ -956,5 +1148,7 @@ void AsyncThread::notifyAllWorkers() {
 		_workSemaphore.post();
 	}
 }
+
+#endif // BX_PLATFORM_EMSCRIPTEN
 
 NS_DORA_END

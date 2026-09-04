@@ -139,8 +139,8 @@ struct Ident {
 		if (p.AtEnd()) {
 			return false;
 		}
-		if (IdentFirstChar::template Match(p)) {
-			while (IdentNextChar::template Match(p)) { }
+		if (IdentFirstChar::template Match<>(p)) {
+			while (IdentNextChar::template Match<>(p)) { }
 			return true;
 		}
 		return false;

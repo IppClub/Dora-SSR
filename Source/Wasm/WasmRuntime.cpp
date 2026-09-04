@@ -16,7 +16,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Other/xlsxtext.hpp"
 
 #ifndef DORA_NO_WA
-#if BX_PLATFORM_WINDOWS
+#if BX_PLATFORM_EMSCRIPTEN
+#include "Wasm/WasmRuntimeEmscripten.h"
+#elif BX_PLATFORM_WINDOWS
 using WaBuildFunc = char* (*)(char* input);
 using WaFormatFunc = char* (*)(char* input);
 using WaFreeCStringFunc = void (*)(char* str);
@@ -2754,6 +2756,9 @@ void WasmRuntime::buildWaAsync(String fullPath, const std::function<void(String)
 	Error("Wa build not supported");
 	callback("Wa build not supported"s);
 #else // !DORA_NO_WA
+#if BX_PLATFORM_EMSCRIPTEN
+	buildWaAsyncEmscripten(fullPath.toString(), callback);
+#else
 #if BX_PLATFORM_ANDROID
 	if (!_thread) {
 		_thread = SharedAsyncThread.newThread();
@@ -2789,6 +2794,7 @@ void WasmRuntime::buildWaAsync(String fullPath, const std::function<void(String)
 			callback(data);
 		});
 #endif // BX_PLATFORM_ANDROID
+#endif // BX_PLATFORM_EMSCRIPTEN
 #endif // !DORA_NO_WA
 }
 
@@ -2798,6 +2804,9 @@ void WasmRuntime::formatWaAsync(String fullPath, const std::function<void(String
 	Error("Wa format not supported");
 	callback(Slice::Empty);
 #else // !DORA_NO_WA
+#if BX_PLATFORM_EMSCRIPTEN
+	formatWaAsyncEmscripten(fullPath.toString(), callback);
+#else
 #if BX_PLATFORM_ANDROID
 	if (!_thread) {
 		_thread = SharedAsyncThread.newThread();
@@ -2833,6 +2842,7 @@ void WasmRuntime::formatWaAsync(String fullPath, const std::function<void(String
 			callback(data);
 		});
 #endif // BX_PLATFORM_ANDROID
+#endif // BX_PLATFORM_EMSCRIPTEN
 #endif // !DORA_NO_WA
 }
 
@@ -2915,7 +2925,7 @@ int64_t Git::runJob(int64_t jobId, String path, String kind, const std::function
 }
 
 int64_t Git::run(String repoPath, String command, const std::function<void(String)>& callback, String optionsJSON) {
-#ifdef DORA_NO_WA
+#if defined(DORA_NO_WA) || BX_PLATFORM_EMSCRIPTEN
 	DORA_UNUSED_PARAM(repoPath);
 	DORA_UNUSED_PARAM(command);
 	DORA_UNUSED_PARAM(optionsJSON);
@@ -2936,7 +2946,7 @@ int64_t Git::run(String repoPath, String command, const std::function<void(Strin
 }
 
 int64_t WasmRuntime::gitStartClone(String url, String path, String branch, String token, int depth) {
-#ifdef DORA_NO_WA
+#if defined(DORA_NO_WA) || BX_PLATFORM_EMSCRIPTEN
 	DORA_UNUSED_PARAM(url);
 	DORA_UNUSED_PARAM(path);
 	DORA_UNUSED_PARAM(branch);
@@ -2961,7 +2971,7 @@ int64_t WasmRuntime::gitStartClone(String url, String path, String branch, Strin
 }
 
 int64_t WasmRuntime::gitStartPull(String path, String branch, String token, bool force) {
-#ifdef DORA_NO_WA
+#if defined(DORA_NO_WA) || BX_PLATFORM_EMSCRIPTEN
 	DORA_UNUSED_PARAM(path);
 	DORA_UNUSED_PARAM(branch);
 	DORA_UNUSED_PARAM(token);
@@ -2980,7 +2990,7 @@ int64_t WasmRuntime::gitStartPull(String path, String branch, String token, bool
 }
 
 std::string Git::poll(int64_t jobId) {
-#ifdef DORA_NO_WA
+#if defined(DORA_NO_WA) || BX_PLATFORM_EMSCRIPTEN
 	DORA_UNUSED_PARAM(jobId);
 	return "{\"state\":\"error\",\"error\":\"Wa Git not supported\"}"s;
 #else // !DORA_NO_WA
@@ -2994,7 +3004,7 @@ std::string Git::poll(int64_t jobId) {
 }
 
 bool Git::cancel(int64_t jobId) {
-#ifdef DORA_NO_WA
+#if defined(DORA_NO_WA) || BX_PLATFORM_EMSCRIPTEN
 	DORA_UNUSED_PARAM(jobId);
 	return false;
 #else // !DORA_NO_WA
@@ -3021,7 +3031,7 @@ bool Git::cancel(int64_t jobId) {
 }
 
 bool Git::dispose(int64_t jobId) {
-#ifdef DORA_NO_WA
+#if defined(DORA_NO_WA) || BX_PLATFORM_EMSCRIPTEN
 	DORA_UNUSED_PARAM(jobId);
 	return false;
 #else // !DORA_NO_WA

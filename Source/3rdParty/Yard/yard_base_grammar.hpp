@@ -31,7 +31,7 @@ struct Store {
 		bool b = false;
 
 		try {
-			b = Rule_T::template Match(p);
+			b = Rule_T::template Match<>(p);
 		} catch (...) {
 			p.AbandonNode();
 			throw;
@@ -54,7 +54,7 @@ template <typename Rule_T>
 struct Finao {
 	template <typename ParserState_T>
 	static bool Match(ParserState_T& p) {
-		if (!Rule_T::template Match(p)) {
+		if (!Rule_T::template Match<>(p)) {
 			printf("Ill formed input, expected rule %s failed to match\n",
 				typeid(Rule_T).name());
 			p.template OutputLocation<Rule_T>();
@@ -104,7 +104,7 @@ struct At {
 	template <typename ParserState_T>
 	static bool Match(ParserState_T& p) {
 		typename ParserState_T::Iterator pos = p.GetPos();
-		if (Rule_T::template Match(p)) {
+		if (Rule_T::template Match<>(p)) {
 			p.SetPos(pos);
 			return true;
 		}
@@ -119,7 +119,7 @@ struct NotAt {
 	template <typename ParserState_T>
 	static bool Match(ParserState_T& p) {
 		typename ParserState_T::Iterator pos = p.GetPos();
-		if (Rule_T::template Match(p)) {
+		if (Rule_T::template Match<>(p)) {
 			p.SetPos(pos);
 			return false;
 		}
@@ -134,16 +134,16 @@ template <
 struct Or {
 	template <typename ParserState_T>
 	static bool Match(ParserState_T& p) {
-		return T0::template Match(p)
-			|| T1::template Match(p)
-			|| T2::template Match(p)
-			|| T3::template Match(p)
-			|| T4::template Match(p)
-			|| T5::template Match(p)
-			|| T6::template Match(p)
-			|| T7::template Match(p)
-			|| T8::template Match(p)
-			|| T9::template Match(p);
+		return T0::template Match<>(p)
+			|| T1::template Match<>(p)
+			|| T2::template Match<>(p)
+			|| T3::template Match<>(p)
+			|| T4::template Match<>(p)
+			|| T5::template Match<>(p)
+			|| T6::template Match<>(p)
+			|| T7::template Match<>(p)
+			|| T8::template Match<>(p)
+			|| T9::template Match<>(p);
 	}
 };
 
@@ -156,16 +156,16 @@ struct Seq {
 	static bool Match(ParserState_T& p) {
 		typename ParserState_T::Iterator pos = p.GetPos();
 		if (
-			T0::template Match(p)
-			&& T1::template Match(p)
-			&& T2::template Match(p)
-			&& T3::template Match(p)
-			&& T4::template Match(p)
-			&& T5::template Match(p)
-			&& T6::template Match(p)
-			&& T7::template Match(p)
-			&& T8::template Match(p)
-			&& T9::template Match(p)) {
+			T0::template Match<>(p)
+			&& T1::template Match<>(p)
+			&& T2::template Match<>(p)
+			&& T3::template Match<>(p)
+			&& T4::template Match<>(p)
+			&& T5::template Match<>(p)
+			&& T6::template Match<>(p)
+			&& T7::template Match<>(p)
+			&& T8::template Match<>(p)
+			&& T9::template Match<>(p)) {
 			return true;
 		} else {
 			p.SetPos(pos);
@@ -183,7 +183,7 @@ struct Star {
 	template <typename ParserState_T>
 	static bool Match(ParserState_T& p) {
 		if (!p.AtEnd()) {
-			while (Rule_T::template Match(p)) { }
+			while (Rule_T::template Match<>(p)) { }
 		}
 		return true;
 	}
@@ -197,10 +197,10 @@ template <typename Rule_T>
 struct Plus {
 	template <typename ParserState_T>
 	static bool Match(ParserState_T& p) {
-		if (!Rule_T::template Match(p)) {
+		if (!Rule_T::template Match<>(p)) {
 			return false;
 		}
-		Star<Rule_T>::template Match(p);
+		Star<Rule_T>::template Match<>(p);
 		return true;
 	}
 };
@@ -212,7 +212,7 @@ struct Opt {
 	template <typename ParserState_T>
 	static bool Match(ParserState_T& p) {
 		if (!p.AtEnd())
-			Rule_T::template Match(p);
+			Rule_T::template Match<>(p);
 		return true;
 	}
 };
@@ -224,7 +224,7 @@ struct Repeat {
 	static bool Match(ParserState_T& p) {
 		typename ParserState_T::Iterator pos = p.GetPos();
 		for (int i = 0; i < N; ++i) {
-			if (!Rule_T::template Match(p)) {
+			if (!Rule_T::template Match<>(p)) {
 				p.SetPos(pos);
 				return false;
 			}
@@ -242,7 +242,7 @@ struct UntilPast {
 	static bool Match(ParserState_T& p) {
 		typename ParserState_T::Iterator pos = p.GetPos();
 		while (true) {
-			if (Rule_T::template Match(p)) {
+			if (Rule_T::template Match<>(p)) {
 				return true;
 			}
 			p.GotoNext();
@@ -308,7 +308,7 @@ struct Log {
 		int nCurLogMsg = nUniqueLogMsg++;
 		printf("#%d : matching parse rule %s\n", nCurLogMsg, typeid(T).name());
 		p.template OutputLocation<T>();
-		bool b = T::template Match(p);
+		bool b = T::template Match<>(p);
 		if (b) {
 			printf("#%d : succeeded for rule %s\n", nCurLogMsg, typeid(T).name());
 		} else {

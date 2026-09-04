@@ -173,7 +173,11 @@ void registerTextCodecs(SQLite::Database& database) {
 
 DB::DB()
 	: _thread(SharedAsyncThread.newThread()) {
+#if BX_PLATFORM_EMSCRIPTEN
+	auto dbFile = "/idbfs/dora.db"s;
+#else
 	auto dbFile = Path::concat({SharedContent.getAppPath(), "dora.db"_slice});
+#endif // BX_PLATFORM_EMSCRIPTEN
 	try {
 		_database = New<SQLite::Database>(dbFile,
 			SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE | SQLite::OPEN_NOMUTEX);

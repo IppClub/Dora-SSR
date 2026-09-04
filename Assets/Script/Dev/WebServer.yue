@@ -2824,6 +2824,9 @@ thread ->
 			)
 			Content\save doraReady, readyContent
 			print "Dora Dora is ready!"
+	if App.platform == "Emscripten"
+		status.url = nil
+		return print "HttpServer is unavailable in the browser; use the hosting web server."
 	HttpServer\clearStaticCacheControls!
 	HttpServer\setStaticCacheControl "no-cache"
 	HttpServer\addStaticCacheControl(

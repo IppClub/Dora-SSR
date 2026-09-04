@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dora SSR</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; }
+        canvas { display: block; width: 100vw; height: 100vh; outline: none; }
+        #loading {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: white; font-family: sans-serif; text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">Loading...<br><small id="loading-detail"></small></div>
+    <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+    <script>
+        var Module = (function() {
+            const canvas = document.getElementById('canvas');
+            const loading = document.getElementById('loading');
+            const detail = document.getElementById('loading-detail');
+            let resolveReady;
+            const ready = new Promise(resolve => { resolveReady = resolve; });
+
+            function resizeCanvas() {
+                const ratio = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+                const width = Math.max(1, Math.floor(canvas.clientWidth * ratio));
+                const height = Math.max(1, Math.floor(canvas.clientHeight * ratio));
+                if (canvas.width !== width || canvas.height !== height) {
+                    canvas.width = width;
+                    canvas.height = height;
+                }
+                return { width, height, ratio };
+            }
+
+            function syncFileSystem() {
+                if (typeof FS !== 'undefined' && typeof FS.syncfs === 'function') {
+                    FS.syncfs(false, error => {
+                        if (error) console.error('DoraWeb: failed to persist dropped file', error);
+                    });
+                }
+            }
+
+            const module = {
+                canvas,
+                print: text => console.log(text),
+                printErr: text => console.error(text),
+                setStatus: text => {
+                    if (loading) loading.firstChild.textContent = text || 'Loading...';
+                },
+                monitorRunDependencies: remaining => {
+                    if (detail) detail.textContent = remaining ? ('Preparing runtime (' + remaining + ')') : '';
+                },
+                onRuntimeInitialized: function() {
+                    resizeCanvas();
+                    loading.style.display = 'none';
+                    resolveReady(module);
+                },
+                onAbort: reason => console.error('DoraWeb runtime aborted:', reason)
+            };
+
+            let resolveWaReady;
+            let rejectWaReady;
+            const waReady = new Promise((resolve, reject) => {
+                resolveWaReady = resolve;
+                rejectWaReady = reject;
+            });
+            window.DoraWa = { ready: waReady };
+
+            window.DoraWeb = {
+                ready,
+                canvas,
+                module,
+                resize: resizeCanvas,
+                fullscreen: () => canvas.requestFullscreen ? canvas.requestFullscreen() : Promise.reject(new Error('Fullscreen is unavailable')),
+                waReady,
+                openWebSocket: (url, protocols) => {
+                    const socket = new WebSocket(url, protocols);
+                    socket.binaryType = 'arraybuffer';
+                    return socket;
+                },
+                call: (name, returnType, argTypes, args) => ready.then(() => module.ccall(name, returnType, argTypes, args)),
+                syncFileSystem,
+                dropFile: (file, bytes) => {
+                    if (!module.FS_createPath || !module.FS_createDataFile) throw new Error('Emscripten filesystem API is unavailable');
+                    try { module.FS_createPath('/', 'idbfs', true, true); } catch (_) {}
+                    try { module.FS_createPath('/idbfs', 'dora', true, true); } catch (_) {}
+                    module.FS_createDataFile('/idbfs/dora', file.name, bytes, true, true);
+                    syncFileSystem();
+                }
+            };
+
+            window.addEventListener('resize', resizeCanvas);
+            window.addEventListener('orientationchange', resizeCanvas);
+            window.addEventListener('dragover', event => event.preventDefault());
+            window.addEventListener('drop', event => {
+                event.preventDefault();
+                for (const file of event.dataTransfer.files) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        try { window.DoraWeb.dropFile(file, new Uint8Array(reader.result)); }
+                        catch (error) { console.error('DoraWeb: failed to import file', error); }
+                    };
+                    reader.readAsArrayBuffer(file);
+                }
+            });
+            resizeCanvas();
+
+            window.DoraWeb.startWaRuntime = async function() {
+                try {
+                    const go = new Go();
+                    const response = await fetch('dora-wa.wasm');
+                    if (!response.ok) throw new Error('failed to load dora-wa.wasm (' + response.status + ')');
+                    let instance;
+                    if (WebAssembly.instantiateStreaming && response.headers.get('Content-Type') === 'application/wasm') {
+                        ({ instance } = await WebAssembly.instantiateStreaming(response, go.importObject));
+                    } else {
+                        ({ instance } = await WebAssembly.instantiate(await response.arrayBuffer(), go.importObject));
+                    }
+                    go.run(instance).catch(error => rejectWaReady(error));
+                    const deadline = Date.now() + 30000;
+                    const waitForExports = () => {
+                        if (typeof window.DoraWa.build === 'function' && typeof window.DoraWa.format === 'function') {
+                            resolveWaReady(window.DoraWa);
+                        } else if (Date.now() < deadline) {
+                            window.setTimeout(waitForExports, 10);
+                        } else {
+                            rejectWaReady(new Error('dora-wa.wasm did not publish its API'));
+                        }
+                    };
+                    waitForExports();
+                } catch (error) {
+                    rejectWaReady(error);
+                }
+            };
+            return module;
+        })();
+    </script>
+    <script src="wasm_exec.js"></script>
+    <script>
+        window.DoraWeb.startWaRuntime().catch(error => {
+            console.error('DoraWeb: failed to start browser Wa module', error);
+        });
+    </script>
+    {{{ SCRIPT }}}
+</body>
+</html>

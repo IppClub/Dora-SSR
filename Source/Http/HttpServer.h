@@ -13,7 +13,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <memory>
 #include <mutex>
 #include <regex>
+#if !BX_PLATFORM_EMSCRIPTEN
 #include <thread>
+#endif
 #include <unordered_map>
 #include <vector>
 
@@ -148,6 +150,7 @@ protected:
 	HttpClient();
 
 private:
+#if !BX_PLATFORM_EMSCRIPTEN
 	struct DownloadWorker {
 		std::thread thread;
 		std::shared_ptr<std::atomic_bool> completed;
@@ -155,6 +158,7 @@ private:
 	void reapDownloadWorkers(bool all);
 	std::mutex _downloadWorkersMutex;
 	std::vector<DownloadWorker> _downloadWorkers;
+#endif
 	std::atomic_bool _stopped;
 	SINGLETON_REF(HttpClient, AsyncThread, Director);
 };

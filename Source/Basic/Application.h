@@ -11,7 +11,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Event/EventQueue.h"
 #include "Support/Geometry.h"
 
+#if !BX_PLATFORM_EMSCRIPTEN
 #include "bx/thread.h"
+#endif // !BX_PLATFORM_EMSCRIPTEN
 
 #include <random>
 #include <thread>
@@ -91,7 +93,9 @@ public:
 	void install(String path);
 	bool saveLog(String filename);
 	std::string saveScreenshot(String filename);
+#if !BX_PLATFORM_EMSCRIPTEN
 	static int mainLogic(bx::Thread* thread, void* userData);
+#endif // !BX_PLATFORM_EMSCRIPTEN
 	static int mainLogic(Application* app);
 #if BX_PLATFORM_WINDOWS
 	inline void* operator new(size_t i) {
@@ -109,6 +113,10 @@ protected:
 	void updateWindowSize();
 	void makeTimeNow();
 	void setupSdlWindow();
+#if BX_PLATFORM_EMSCRIPTEN
+	static void emscriptenMainLoop(void* userData);
+	void runEmscriptenFrame();
+#endif // BX_PLATFORM_EMSCRIPTEN
 
 private:
 	bool _idled;
@@ -140,7 +148,9 @@ private:
 	Vec2 _winPosition;
 	std::string _locale;
 	std::string _orientation;
+#if !BX_PLATFORM_EMSCRIPTEN
 	bx::Thread _logicThread;
+#endif // !BX_PLATFORM_EMSCRIPTEN
 	EventQueue _logicEvent;
 	EventQueue _renderEvent;
 	std::thread::id _logicThreadID;
@@ -163,6 +173,9 @@ public:
 	bool init(const bgfx::PlatformData& data);
 	virtual ~BGFXDora();
 	SINGLETON_REF(BGFXDora, Application);
+
+private:
+	bool _initialized = false;
 };
 
 #define SharedBGFX \
