@@ -646,6 +646,22 @@ int runCliApplication(int, char*[]) {
 
 } // namespace
 
+#if BX_PLATFORM_EMSCRIPTEN
+namespace {
+
+std::function<void(std::string)> webFileDialogCallback;
+
+} // namespace
+
+extern "C" EMSCRIPTEN_KEEPALIVE void dora_web_file_dialog_result(const char* path) {
+	if (!webFileDialogCallback) return;
+	auto callback = std::move(webFileDialogCallback);
+	SharedApplication.invokeInLogic([callback = std::move(callback), path = std::string(path ? path : "")]() mutable {
+		callback(std::move(path));
+	});
+}
+#endif // BX_PLATFORM_EMSCRIPTEN
+
 bool BGFXDora::init(const bgfx::PlatformData& data) {
 	bgfx::Init init{};
 	// Dora can render the host scene, Web IDE/ImGui, and embedded Love render
@@ -2121,7 +2137,24 @@ void Application::openFileDialog(bool folderOnly, const std::function<void(std::
 		callback("");
 	}
 #else
+	#if BX_PLATFORM_EMSCRIPTEN
+	webFileDialogCallback = callback;
+	EM_ASM({
+		if (!window.DoraWeb || !window.DoraWeb.pickProject) {
+			console.error("DoraWeb project picker is unavailable");
+			Module.ccall("dora_web_file_dialog_result", null, ["string"], [""]);
+			return;
+		}
+		window.DoraWeb.pickProject($0).then(function(root) {
+			Module.ccall("dora_web_file_dialog_result", null, ["string"], [root]);
+		}).catch(function(error) {
+			console.warn("DoraWeb project picker was cancelled or failed", error);
+			Module.ccall("dora_web_file_dialog_result", null, ["string"], [""]);
+		});
+	}, folderOnly ? 1 : 0);
+	#else
 	callback("");
+	#endif
 #endif
 }
 #endif
