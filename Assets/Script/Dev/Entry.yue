@@ -55,6 +55,7 @@ config = Config(
 	"vsync"
 	"fullScreen"
 	"alwaysOnTop"
+	"virtualGamepadEnabled"
 	"winX"
 	"winY"
 	"winWidth"
@@ -147,6 +148,10 @@ if App.platform in ["Linux", "Windows", "macOS"]
 		App.alwaysOnTop = config.alwaysOnTop
 	else
 		config.alwaysOnTop = false
+	if config.virtualGamepadEnabled?
+		Controller.virtualGamepadEnabled = config.virtualGamepadEnabled
+	else
+		config.virtualGamepadEnabled = Controller.virtualGamepadEnabled
 
 if config.themeColor?
 	App.themeColor = Color config.themeColor
@@ -973,6 +978,30 @@ extraOperations = do
 			if changed, alwaysOnTop := Checkbox zh and "窗口置顶" or "Always On Top", alwaysOnTop
 				App.alwaysOnTop = alwaysOnTop
 				config.alwaysOnTop = alwaysOnTop
+			:virtualGamepadEnabled = Controller
+			if changed, virtualGamepadEnabled := Checkbox zh and "键盘模拟手柄" or "Keyboard as Gamepad", virtualGamepadEnabled
+				Controller.virtualGamepadEnabled = virtualGamepadEnabled
+				config.virtualGamepadEnabled = virtualGamepadEnabled
+			SameLine!
+			TextColored descColor, "(?)"
+			if IsItemHovered!
+				<- BeginTooltip
+				<- PushTextWrapPos 360
+				Text zh and [[键盘映射：
+方向键 / WASD → 十字键
+J / K / U / I → A / B / X / Y
+Tab / Ctrl → Back
+Q / E → LB / RB
+Enter → Start
+
+启用后，普通按键和文本输入事件都会被屏蔽；以上映射键仅作为虚拟手柄输入。]] or [[Keyboard mapping:
+Arrow keys / WASD → D-pad
+J / K / U / I → A / B / X / Y
+Tab / Ctrl → Back
+Q / E → LB / RB
+Enter → Start
+
+When enabled, regular key and text input events are suppressed; mapped keys are delivered only as virtual gamepad input.]]
 		{
 			:showPreview
 			:authRequired

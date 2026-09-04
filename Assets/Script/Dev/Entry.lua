@@ -168,7 +168,7 @@ if DB:exist("Config") then -- 38
 	end -- 43
 end -- 38
 local Config = require("Config") -- 48
-local config = Config("", "fpsLimited", "targetFPS", "fixedFPS", "vsync", "fullScreen", "alwaysOnTop", "winX", "winY", "winWidth", "winHeight", "themeColor", "locale", "editingInfo", "showStats", "showConsole", "showFooter", "filter", "engineDev", "webProfiler", "drawerWidth", "lastUpdateCheck", "updateNotification", "writablePath", "webIDEConnected", "webIDETourCompleted", "showPreview", "mobileFeed", "mobileFeedCurrentCard", "mobileRemixLLMConfigId", "mobileLargeText", "authRequired") -- 50
+local config = Config("", "fpsLimited", "targetFPS", "fixedFPS", "vsync", "fullScreen", "alwaysOnTop", "virtualGamepadEnabled", "winX", "winY", "winWidth", "winHeight", "themeColor", "locale", "editingInfo", "showStats", "showConsole", "showFooter", "filter", "engineDev", "webProfiler", "drawerWidth", "lastUpdateCheck", "updateNotification", "writablePath", "webIDEConnected", "webIDETourCompleted", "showPreview", "mobileFeed", "mobileFeedCurrentCard", "mobileRemixLLMConfigId", "mobileLargeText", "authRequired") -- 50
 config:load() -- 83
 if not (config.writablePath ~= nil) then -- 85
 	config.writablePath = Content.appPath -- 86
@@ -247,6 +247,11 @@ end)() then -- 127
 	else -- 148
 		config.alwaysOnTop = false -- 148
 	end -- 145
+	if (config.virtualGamepadEnabled ~= nil) then
+		Controller.virtualGamepadEnabled = config.virtualGamepadEnabled
+	else
+		config.virtualGamepadEnabled = Controller.virtualGamepadEnabled
+	end
 end -- 127
 if (config.themeColor ~= nil) then -- 150
 	App.themeColor = Color(config.themeColor) -- 151
@@ -1702,6 +1707,21 @@ do -- 953
 				App.alwaysOnTop = alwaysOnTop -- 970
 				config.alwaysOnTop = alwaysOnTop -- 971
 			end -- 969
+			local virtualGamepadEnabled = Controller.virtualGamepadEnabled
+			changed, virtualGamepadEnabled = Checkbox(zh and "键盘模拟手柄" or "Keyboard as Gamepad", virtualGamepadEnabled)
+			if changed then
+				Controller.virtualGamepadEnabled = virtualGamepadEnabled
+				config.virtualGamepadEnabled = virtualGamepadEnabled
+			end
+			SameLine()
+			TextColored(descColor, "(?)")
+			if IsItemHovered() then
+				BeginTooltip(function()
+					return PushTextWrapPos(360, function()
+						return Text(zh and "键盘映射：\n方向键 / WASD → 十字键\nJ / K / U / I → A / B / X / Y\nTab / Ctrl → Back\nQ / E → LB / RB\nEnter → Start\n\n启用后，普通按键和文本输入事件都会被屏蔽；以上映射键仅作为虚拟手柄输入。" or "Keyboard mapping:\nArrow keys / WASD → D-pad\nJ / K / U / I → A / B / X / Y\nTab / Ctrl → Back\nQ / E → LB / RB\nEnter → Start\n\nWhen enabled, regular key and text input events are suppressed; mapped keys are delivered only as virtual gamepad input.")
+					end)
+				end)
+			end
 		end -- 967
 		local showPreview, authRequired, webIDETourCompleted = config.showPreview, config.authRequired, config.webIDETourCompleted -- 972
 		do -- 977
