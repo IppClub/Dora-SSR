@@ -31,6 +31,7 @@ public:
 	bool isKeyPressed(String name) const;
 	KeyboardHandler handler;
 	void clearChanges();
+	void clearStates();
 	void handleEvent(const SDL_Event& event);
 
 protected:

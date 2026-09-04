@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include <atomic>
 #include <set>
 
 union SDL_Event;
@@ -42,6 +43,8 @@ public:
 	bool isButtonUp(int controllerId, String name) const;
 	bool isButtonPressed(int controllerId, String name) const;
 	float getAxis(int controllerId, String name) const;
+	bool isVirtualGamepadEnabled() const;
+	void setVirtualGamepadEnabled(bool enabled);
 	std::vector<int> getControllerIds() const;
 	String getControllerName(int controllerId) const;
 	DeviceInfo getControllerInfo(int controllerId) const;
@@ -60,11 +63,12 @@ public:
 	ControllerHandler handler;
 	void clearChanges();
 	void handleEventInRender(const SDL_Event& event, bool emitEvents = true);
-	void handleDevVirtualControllerEventInRender(const SDL_Event& event);
+	void handleVirtualGamepadEventInRender(const SDL_Event& event);
 
 protected:
 	Controller();
 	void addControllerInRender(int deviceIndex);
+	void setVirtualGamepadEnabledInRender(bool enabled);
 
 private:
 	using DeviceID = int32_t;
@@ -89,6 +93,8 @@ private:
 	void* _devVirtualController = nullptr;
 	void* _devVirtualJoystick = nullptr;
 	int _devVirtualDeviceIndex = -1;
+	std::atomic_bool _virtualGamepadEnabled{false};
+	std::atomic_bool _virtualGamepadRequested{false};
 	SINGLETON_REF(Controller, Director);
 };
 

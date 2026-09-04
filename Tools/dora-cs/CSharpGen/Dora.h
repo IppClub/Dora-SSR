@@ -1493,9 +1493,9 @@ object class Constraint3D
 	optional readonly common Body3D* secondBody;
 	/// <summary>Removes this constraint from its physics world.</summary>
 	void destroy();
-	static Constraint3D* createFixed(Body3D* firstBody, Body3D* secondBody, Vec3 anchor);
-	static Constraint3D* createDistance(Body3D* firstBody, Body3D* secondBody, Vec3 firstAnchor, Vec3 secondAnchor, float minDistance, float maxDistance);
-	static Constraint3D* createHinge(Body3D* firstBody, Body3D* secondBody, Vec3 anchor, Vec3 axis, float minAngle, float maxAngle);
+	static Constraint3D* createFixed @ fixed(Body3D* firstBody, Body3D* secondBody, Vec3 anchor);
+	static Constraint3D* createDistance @ distance(Body3D* firstBody, Body3D* secondBody, Vec3 firstAnchor, Vec3 secondAnchor, float minDistance, float maxDistance);
+	static Constraint3D* createHinge @ hinge(Body3D* firstBody, Body3D* secondBody, Vec3 anchor, Vec3 axis, float minAngle, float maxAngle);
 };
 
 /// <summary>
@@ -4490,6 +4490,11 @@ singleton class Mouse {
 /// </summary>
 singleton class Controller
 {
+	/// <summary>
+	/// Whether keyboard input is exclusively routed to a virtual gamepad.
+	/// When enabled on desktop platforms, regular key and text input events are suppressed.
+	/// </summary>
+	boolean bool virtualGamepadEnabled @ virtual_gamepad_enabled;
 	/// <summary>
 	/// Checks whether a button on the controller is currently pressed.
 	/// </summary>

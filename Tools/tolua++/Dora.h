@@ -1488,6 +1488,7 @@ class Mouse
 
 class Controller
 {
+	tolua_property__bool bool virtualGamepadEnabled;
 	bool isButtonDown(int controllerId, String name);
 	bool isButtonUp(int controllerId, String name);
 	bool isButtonPressed(int controllerId, String name);

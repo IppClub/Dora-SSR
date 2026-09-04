@@ -2607,6 +2607,12 @@ export const enum ButtonName {
  */
 interface Controller {
 	/**
+	 * Whether keyboard input is exclusively routed to a virtual gamepad.
+	 * When enabled on desktop platforms, regular key and text input events are suppressed.
+	 */
+	virtualGamepadEnabled: boolean;
+
+	/**
 	 * Check whether a button is pressed down in current frame.
 	 * @param controllerId The controller id, incrementing from 0 when multiple controllers are connected.
 	 * @param name The name of the button to check.

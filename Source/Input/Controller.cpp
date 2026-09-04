@@ -13,6 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Application.h"
 #include "Basic/Content.h"
 #include "Event/Event.h"
+#include "Input/Keyboard.h"
 
 #include "SDL.h"
 
@@ -20,7 +21,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
-#define DORA_DEV_VIRTUAL_CONTROLLER (DORA_DEBUG && (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX))
+#define DORA_VIRTUAL_GAMEPAD_SUPPORTED (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX)
 
 static SDL_GameControllerAxis gamepadAxisFromLove(std::string_view name) {
 	if (name == "leftx") return SDL_CONTROLLER_AXIS_LEFTX;
@@ -100,8 +101,8 @@ static void removeControllerBind(std::string& mapping, const std::string& bind) 
 	mapping.replace(start, end - start + 1, "");
 }
 
-#if DORA_DEV_VIRTUAL_CONTROLLER
-static bool isDevVirtualControllerEnabled() {
+#if DORA_VIRTUAL_GAMEPAD_SUPPORTED
+static bool isVirtualGamepadEnabledFromEnvironment() {
 	auto value = SDL_getenv("DORA_VIRTUAL_CONTROLLER");
 	return value && SDL_strcasecmp(value, "0") != 0 && SDL_strcasecmp(value, "false") != 0;
 }
@@ -121,7 +122,7 @@ static Uint32 makeControllerAxisMask() {
 	}
 	return mask;
 }
-#endif // DORA_DEV_VIRTUAL_CONTROLLER
+#endif // DORA_VIRTUAL_GAMEPAD_SUPPORTED
 
 Controller::Controller() {
 	static_assert(sizeof(SDL_JoystickID) <= sizeof(DeviceID), "can not hold SDL_JoystickID in DeviceID");
@@ -178,8 +179,39 @@ bool Controller::initInRender() {
 	for (int i = 0; i < SDL_NumJoysticks(); ++i) {
 		addControllerInRender(i);
 	}
-#if DORA_DEV_VIRTUAL_CONTROLLER
-	if (isDevVirtualControllerEnabled()) {
+#if DORA_VIRTUAL_GAMEPAD_SUPPORTED
+	if (isVirtualGamepadEnabledFromEnvironment()) {
+		_virtualGamepadRequested.store(true, std::memory_order_relaxed);
+		setVirtualGamepadEnabledInRender(true);
+	}
+#endif // DORA_VIRTUAL_GAMEPAD_SUPPORTED
+	return true;
+}
+
+bool Controller::isVirtualGamepadEnabled() const {
+	return _virtualGamepadEnabled.load(std::memory_order_relaxed);
+}
+
+void Controller::setVirtualGamepadEnabled(bool enabled) {
+#if DORA_VIRTUAL_GAMEPAD_SUPPORTED
+	if (_virtualGamepadRequested.exchange(enabled, std::memory_order_relaxed) == enabled) return;
+	if (enabled) {
+		// Key-up events are intentionally blocked in virtual gamepad mode, so
+		// discard any keyboard state accumulated before the switch.
+		SharedKeyboard.clearStates();
+	}
+	SharedApplication.invokeInRender([this, enabled]() {
+		setVirtualGamepadEnabledInRender(enabled);
+	});
+#else
+	DORA_UNUSED_PARAM(enabled);
+#endif // DORA_VIRTUAL_GAMEPAD_SUPPORTED
+}
+
+void Controller::setVirtualGamepadEnabledInRender(bool enabled) {
+#if DORA_VIRTUAL_GAMEPAD_SUPPORTED
+	if (enabled == isVirtualGamepadEnabled()) return;
+	if (enabled && !_devVirtualJoystick) {
 #if SDL_VERSION_ATLEAST(2, 24, 0)
 		SDL_VirtualJoystickDesc desc;
 		SDL_zero(desc);
@@ -189,20 +221,30 @@ bool Controller::initInRender() {
 		desc.nbuttons = SDL_CONTROLLER_BUTTON_MAX;
 		desc.button_mask = makeControllerButtonMask();
 		desc.axis_mask = makeControllerAxisMask();
-		desc.name = "Dora Dev Virtual Controller";
+		desc.name = "Dora Virtual Gamepad";
 		_devVirtualDeviceIndex = SDL_JoystickAttachVirtualEx(&desc);
 #else
 		_devVirtualDeviceIndex = SDL_JoystickAttachVirtual(SDL_JOYSTICK_TYPE_GAMECONTROLLER, SDL_CONTROLLER_AXIS_MAX, SDL_CONTROLLER_BUTTON_MAX, 0);
 #endif
 		if (_devVirtualDeviceIndex >= 0) {
 			addControllerInRender(_devVirtualDeviceIndex);
-			Info("enabled Dora dev virtual controller. Keyboard mapping: Arrow keys/WASD=D-pad, J=A, K=B, U=X, I=Y/context, Tab/Ctrl=Back, Q=L1, E=R1, Enter=Start.");
+			Info("enabled Dora virtual gamepad. Keyboard mapping: Arrow keys/WASD=D-pad, J=A, K=B, U=X, I=Y/context, Tab/Ctrl=Back, Q=L1, E=R1, Enter=Start.");
 		} else {
-			Warn("failed to attach Dora dev virtual controller! {}", SDL_GetError());
+			Warn("failed to attach Dora virtual gamepad! {}", SDL_GetError());
+			_virtualGamepadRequested.store(false, std::memory_order_relaxed);
+			return;
 		}
 	}
-#endif // DORA_DEV_VIRTUAL_CONTROLLER
-	return true;
+	if (!enabled && _devVirtualJoystick) {
+		for (int i = 0; i < SDL_CONTROLLER_BUTTON_MAX; ++i) {
+			SDL_JoystickSetVirtualButton(s_cast<SDL_Joystick*>(_devVirtualJoystick), i, 0);
+		}
+		SDL_JoystickUpdate();
+	}
+	_virtualGamepadEnabled.store(enabled, std::memory_order_relaxed);
+#else
+	DORA_UNUSED_PARAM(enabled);
+#endif // DORA_VIRTUAL_GAMEPAD_SUPPORTED
 }
 
 bool Controller::isButtonDown(int controllerId, String name) const {
@@ -533,9 +575,9 @@ void Controller::clearChanges() {
 }
 
 void Controller::addControllerInRender(int deviceIndex) {
-#if DORA_DEV_VIRTUAL_CONTROLLER
+#if DORA_VIRTUAL_GAMEPAD_SUPPORTED
 	if (deviceIndex == _devVirtualDeviceIndex && _devVirtualController) return;
-#endif // DORA_DEV_VIRTUAL_CONTROLLER
+#endif // DORA_VIRTUAL_GAMEPAD_SUPPORTED
 	auto joystickId = s_cast<DeviceID>(SDL_JoystickGetDeviceInstanceID(deviceIndex));
 	if (joystickId < 0) return;
 	auto controller = SDL_GameControllerOpen(deviceIndex);
@@ -545,12 +587,12 @@ void Controller::addControllerInRender(int deviceIndex) {
 		SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(SDL_GameControllerGetJoystick(controller)),
 			controllerGuidBuffer, sizeof(controllerGuidBuffer));
 		const std::string controllerGuid = controllerGuidBuffer;
-#if DORA_DEV_VIRTUAL_CONTROLLER
+#if DORA_VIRTUAL_GAMEPAD_SUPPORTED
 		if (deviceIndex == _devVirtualDeviceIndex) {
 			_devVirtualController = controller;
 			_devVirtualJoystick = SDL_GameControllerGetJoystick(controller);
 		}
-#endif // DORA_DEV_VIRTUAL_CONTROLLER
+#endif // DORA_VIRTUAL_GAMEPAD_SUPPORTED
 		SharedApplication.invokeInLogic([controller, joystickId, controllerName, controllerGuid, this]() {
 			if (_deviceMap.contains(joystickId)) return;
 			int deviceId = -1;
@@ -570,9 +612,9 @@ void Controller::addControllerInRender(int deviceIndex) {
 	}
 }
 
-void Controller::handleDevVirtualControllerEventInRender(const SDL_Event& event) {
-#if DORA_DEV_VIRTUAL_CONTROLLER
-	if (!_devVirtualJoystick) return;
+void Controller::handleVirtualGamepadEventInRender(const SDL_Event& event) {
+#if DORA_VIRTUAL_GAMEPAD_SUPPORTED
+	if (!isVirtualGamepadEnabled() || !_devVirtualJoystick) return;
 	if (event.type != SDL_KEYDOWN && event.type != SDL_KEYUP) return;
 	if (event.type == SDL_KEYDOWN && event.key.repeat) return;
 	auto pressed = event.key.state == SDL_PRESSED ? 1 : 0;
@@ -628,7 +670,7 @@ void Controller::handleDevVirtualControllerEventInRender(const SDL_Event& event)
 	SDL_JoystickUpdate();
 #else
 	DORA_UNUSED_PARAM(event);
-#endif // DORA_DEV_VIRTUAL_CONTROLLER
+#endif // DORA_VIRTUAL_GAMEPAD_SUPPORTED
 }
 
 void Controller::handleEventInRender(const SDL_Event& event, bool emitEvents) {

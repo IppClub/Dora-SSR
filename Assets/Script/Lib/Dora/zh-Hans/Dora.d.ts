@@ -2603,6 +2603,12 @@ export const enum ButtonName {
  */
 interface Controller {
 	/**
+	 * 键盘输入是否专用于模拟虚拟手柄。
+	 * 在桌面平台启用后，普通按键与文本输入事件会被屏蔽。
+	 */
+	virtualGamepadEnabled: boolean;
+
+	/**
 	 * 检查在当前帧中是否按下了按钮。
 	 * @param controllerId 控制器id，当连接多个控制器时从0开始递增。
 	 * @param name 要检查的按钮的名称。

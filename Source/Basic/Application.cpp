@@ -946,6 +946,7 @@ int Application::run(MainFunc mainFunc) {
 
 		// handle SDL event in this main thread only
 		while (SDL_PollEvent(&event)) {
+			bool suppressKeyboardEvent = false;
 			switch (event.type) {
 				case SDL_QUIT:
 					if (Singleton<DB>::isInitialized()) {
@@ -991,7 +992,12 @@ int Application::run(MainFunc mainFunc) {
 #endif // BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
 				case SDL_KEYDOWN:
 				case SDL_KEYUP:
-					SharedController.handleDevVirtualControllerEventInRender(event);
+					SharedController.handleVirtualGamepadEventInRender(event);
+					suppressKeyboardEvent = SharedController.isVirtualGamepadEnabled();
+					break;
+				case SDL_TEXTINPUT:
+				case SDL_TEXTEDITING:
+					suppressKeyboardEvent = SharedController.isVirtualGamepadEnabled();
 					break;
 				case SDL_CONTROLLERDEVICEADDED:
 				case SDL_CONTROLLERDEVICEREMOVED:
@@ -1011,7 +1017,9 @@ int Application::run(MainFunc mainFunc) {
 				default:
 					break;
 			}
-			_logicEvent.post("SDLEvent"_slice, event);
+			if (!suppressKeyboardEvent) {
+				_logicEvent.post("SDLEvent"_slice, event);
+			}
 		}
 
 		// poll events from logic thread

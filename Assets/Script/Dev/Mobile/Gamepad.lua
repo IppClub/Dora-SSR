@@ -8,6 +8,7 @@ local claimedButton = ""
 local targets = {
 	["mobile-feed-play"] = true, ["mobile-feed-remix"] = true,
 	["mobile-feed-create"] = true,
+	["mobile-project-index-back"] = true,
 	["mobile-project-create-input"] = true, ["mobile-project-create-cancel"] = true,
 	["mobile-project-create-submit"] = true,
 	["remix-back"] = true, ["remix-model-config"] = true,
@@ -35,6 +36,16 @@ function exports.findGamepadNode(host, tag)
 	end)
 	return found
 end
+function exports.selectGamepadNode(host, tag)
+	for i = #screens, 1, -1 do
+		local state = screens[i]
+		if state.select and (state.host == host or exports.findGamepadNode(state.host, tag)) then
+			state.select(tag)
+			return true
+		end
+	end
+	return false
+end
 local function collect(host)
 	local result = {}
 	local sheet = exports.findGamepadNode(host, "mobile-project-create-sheet")
@@ -42,7 +53,8 @@ local function collect(host)
 		if not node.visible then return end
 		local tag = node.tag
 		if node.touchEnabled and node.width > 0 and node.height > 0 and
-			(targets[tag] or tag:match("^remix%-question%-.+%-option%-") or
+			(targets[tag] or tag:match("^mobile%-project%-index%-entry%-%d+$") or
+			tag:match("^remix%-question%-.+%-option%-") or
 			(tag:match("^mobile%-llm%-") and not tag:match("backdrop$"))) then
 			local center = node:convertToWorldSpace(Vec2(node.width / 2, node.height / 2))
 			-- Do not focus transcript actions outside their scrolling viewport.
@@ -127,6 +139,7 @@ function exports.attachGamepad(host, options)
 		end
 		ring:drawPolygon(corners, Color(0x00000000), 2, Color(0xffffcc33))
 	end
+	state.select = function(tag) selectedTag = tag; draw() end
 	local function move(button)
 		local current, items = selection()
 		if not current then return end

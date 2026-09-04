@@ -5,8 +5,9 @@ import { attachGamepad, findGamepadNode } from "Dev/Mobile/Gamepad";
 import { mobileFontScale } from "Dev/Mobile/Accessibility";
 import { getCoverScales, getReusableCardIndices, normalizeFeedIndex, resolveDiscoverRefreshTab, resolveFeedGesture, resolveFeedLocation, stableCoverColor, type FeedAction, type FeedEntry as ModelFeedEntry, type FeedTab } from "Dev/Mobile/FeedModel";
 import { createTextInput } from "Dev/Mobile/TextInput";
-import { MobileButton, MobilePanelSurface } from "Dev/Mobile/Controls";
+import { MobileButton, MobileNewButton, MobilePanelSurface } from "Dev/Mobile/Controls";
 import { RoundedStencil, RoundedSurface, VerticalGradient } from "Dev/Mobile/Visual";
+import { ProjectIndex } from "Dev/Mobile/ProjectIndex";
 
 interface FeedEntry extends ModelFeedEntry {
 	resource?: unknown;
@@ -112,6 +113,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	let active = true;
 	let leaving = false;
 	let createOpen = false;
+	let projectIndexOpen = false;
 	let creating = false;
 	let createName = "";
 	let dismissedCreateComposition = false;
@@ -173,6 +175,22 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		createOpen = false;
 		createName = "";
 		createError = "";
+		render();
+	};
+	const openCreate = () => {
+		if (!options.createProject || preparing || transitioning || creating || createOpen || HttpServer.wsConnectionCount > 0) return;
+		projectIndexOpen = false;
+		createOpen = true;
+		createName = "";
+		dismissedCreateComposition = false;
+		createError = "";
+		render();
+		createInput.deferFocus();
+	};
+	const openProjectIndex = () => {
+		if (tab !== "local" || preparing || transitioning || creating || createOpen || HttpServer.wsConnectionCount > 0) return;
+		local = getLocalEntries();
+		projectIndexOpen = true;
 		render();
 	};
 	const createErrorText = (error: string) => {
@@ -411,8 +429,11 @@ export function startMobileFeed(options: MobileFeedOptions) {
 						width={coverWidth}
 						height={coverHeight}
 					/>)}
-					<node tag="mobile-feed-index" ref={indexRef} x={coverX + coverWidth - 62} y={coverY + coverHeight - 40} width={48} height={26} anchorX={0} anchorY={0}>
-						<RoundedSurface width={48} height={26} radius={13} topColor={0xe028303d} bottomColor={0xe012161e} borderWidth={1} borderColor={0x88505a6c} />
+					<node tag="mobile-feed-index" ref={indexRef} x={coverX + coverWidth - 62} y={coverY + coverHeight - 40} width={48} height={26} anchorX={0} anchorY={0}
+						touchEnabled={tab === "local"} swallowTouches={tab === "local"} onTapped={tab === "local" ? openProjectIndex : undefined}>
+						<RoundedSurface width={48} height={26} radius={13} topColor={0xe028303d} bottomColor={0xe012161e}
+							borderWidth={1} borderColor={0x88505a6c} />
+						{tab === "local" ? <RoundedSurface x={18} y={2} width={12} height={2} radius={1} fillColor={colors.brand} /> : undefined}
 						<label x={24} y={13} fontName={fontName} fontSize={11} text={`${index + 1} / ${data.length}`} color3={0xd7dbe3} />
 					</node>
 					<label tag="mobile-feed-current-title" x={infoX} y={infoTop} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={math.floor((wide ? 30 : 25) * fontScale)}
@@ -430,7 +451,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 				<MobileButton tag="mobile-feed-play" x={infoX + buttonWidth + 12} y={actionsY} width={buttonWidth} text={zh ? "试玩" : "Play"} fontSize={math.floor(17 * fontScale)}
 					onTapped={() => activate("play")} />
 					<label tag="mobile-feed-gesture-hint" x={infoX} y={gestureHintY} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={gamepadUsed ? 11 : 14}
-					text={prepareStatus !== "" ? prepareStatus : item.launchError !== undefined ? item.launchError : gamepadUsed ? (zh ? "↑↓ 浏览 · A 确认 · X Remix · LB/RB 标签 · Y 新建" : "↑↓ Browse · A Select · X Remix · LB/RB Tabs · Y New") : (zh ? "上滑浏览  ·  右滑 Remix  ·  左滑试玩" : "Swipe up  ·  right Remix  ·  left Play")}
+					text={prepareStatus !== "" ? prepareStatus : item.launchError !== undefined ? item.launchError : gamepadUsed ? (zh ? "↑↓ 浏览 · A 确认 · X Remix · Start 列表 · Y 新建" : "↑↓ Browse · A Select · X Remix · Start List · Y New") : (zh ? "上滑浏览  ·  右滑 Remix  ·  左滑试玩" : "Swipe up  ·  right Remix  ·  left Play")}
 						textWidth={infoWidth} alignment={TextAlign.Left} color3={item.launchError !== undefined ? 0xff6b6b : 0xa8afbd} />
 			</node> : <node>
 				<label x={left + usableWidth / 2} y={bottom + usableHeight / 2 + 20} fontName={fontName} fontSize={22}
@@ -453,19 +474,9 @@ export function startMobileFeed(options: MobileFeedOptions) {
 					text={zh ? "本地" : "Local"} color3={tab === "local" ? 0xffcc33 : 0xa8afbd}
 					touchEnabled={true} swallowTouches={true} onTapped={() => { local = getLocalEntries(); setTab("local"); }} />
 				<RoundedSurface x={left + usableWidth / 2 + (tab === "discover" ? -58 : 30)} y={bottom + usableHeight - 56 + landscapeTopLift} width={28} height={3} radius={1.5} fillColor={colors.brand} renderOrder={headerRenderOrder + 1} />
-				{tab === "local" && options.createProject ? <node tag="mobile-feed-create" x={left + usableWidth - 82} y={bottom + usableHeight - 56 + landscapeTopLift} width={70} height={44}
-					anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={() => {
-						if (preparing || transitioning || creating || createOpen || HttpServer.wsConnectionCount > 0) return;
-						createOpen = true;
-						createName = "";
-						dismissedCreateComposition = false;
-						createError = "";
-						render();
-						createInput.deferFocus();
-					}}>
-					<RoundedSurface width={70} height={44} radius={22} topColor={0x332c3442} bottomColor={0x33121921} borderWidth={1} borderColor={colors.brand} renderOrder={headerRenderOrder + 1} />
-					<label x={35} y={22} fontName={fontName} fontSize={14} text={zh ? "+ 新建" : "+ New"} color3={0xffcc33} />
-				</node> : undefined}
+				{tab === "local" && options.createProject ? <MobileNewButton tag="mobile-feed-create"
+					x={left + usableWidth - 82} y={bottom + usableHeight - 56 + landscapeTopLift}
+					text={zh ? "+ 新建" : "+ New"} renderOrder={headerRenderOrder + 1} onTapped={openCreate} /> : undefined}
 			</node>
 			{createOpen ? (() => {
 				const sheetHeight = math.min(createSheetHeight, usableHeight - 64);
@@ -506,6 +517,14 @@ export function startMobileFeed(options: MobileFeedOptions) {
 					</node>
 				</node>;
 			})() : undefined}
+			{projectIndexOpen ? <ProjectIndex entries={local} current={current()} x={left} y={bottom} width={usableWidth} height={usableHeight} zh={zh}
+				onClose={() => { projectIndexOpen = false; render(); }}
+				onSelect={entry => {
+					projectIndexOpen = false;
+					const location = resolveFeedLocation(local, discover, entry);
+					tab = "local"; index = location.tab === "local" ? location.index : 0;
+					render();
+				}} /> : undefined}
 		</node>);
 		if (scene !== undefined) host.addChild(scene);
 		if (keptInput && createPanelRef.current) {
@@ -539,6 +558,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 				case "rightshoulder": setTab("local"); return true;
 				case "x": commit("remix"); return true;
 				case "y": findGamepadNode(host, "mobile-feed-create")?.emit("Tapped"); return true;
+				case "start": openProjectIndex(); return true;
 				default: return false;
 			}
 		},
@@ -557,7 +577,8 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	});
 	host.onAppEvent(event => {
 		if (event === "BackButton") {
-			if (createOpen && !creating) closeCreate();
+			if (projectIndexOpen) { projectIndexOpen = false; render(); }
+			else if (createOpen && !creating) closeCreate();
 		} else if (event === "WillEnterBackground" || event === "DidEnterBackground") blurCreateInput();
 	});
 	host.onCleanup(() => { blurCreateInput(); active = false; });

@@ -12,6 +12,44 @@ export interface FeedEntry {
 	installed?: boolean;
 }
 
+export interface FeedProjectGroup {
+	key: string;
+	entries: FeedEntry[];
+}
+
+/** ASCII project names use A-Z; Chinese and every other leading character use #. */
+export const getFeedProjectGroup = (title: string) => {
+	const initial = string.match(title, "^%s*([A-Za-z])")[0];
+	return initial === undefined ? "#" : string.upper(initial);
+};
+
+export const groupFeedProjects = (entries: FeedEntry[]): FeedProjectGroup[] => {
+	const sorted = [...entries];
+	sorted.sort((a, b) => {
+		const aGroup = getFeedProjectGroup(a.title);
+		const bGroup = getFeedProjectGroup(b.title);
+		if (aGroup !== bGroup) {
+			if (aGroup === "#") return 1;
+			if (bGroup === "#") return -1;
+			return aGroup < bGroup ? -1 : 1;
+		}
+		const aTitle = string.lower(a.title);
+		const bTitle = string.lower(b.title);
+		return aTitle === bTitle ? 0 : aTitle < bTitle ? -1 : 1;
+	});
+	const groups: FeedProjectGroup[] = [];
+	for (const entry of sorted) {
+		const key = getFeedProjectGroup(entry.title);
+		let group = groups[groups.length - 1];
+		if (group?.key !== key) {
+			group = { key, entries: [] };
+			groups.push(group);
+		}
+		group.entries.push(entry);
+	}
+	return groups;
+};
+
 export const normalizeFeedIndex = (index: number, count: number) => {
 	if (count <= 0) return 0;
 	return math.max(0, math.min(math.floor(index), count - 1));

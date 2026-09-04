@@ -8,6 +8,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
+DORA_EXPORT void controller_set_virtual_gamepad_enabled(int32_t val) {
+	SharedController.setVirtualGamepadEnabled(val != 0);
+}
+DORA_EXPORT int32_t controller_is_virtual_gamepad_enabled() {
+	return SharedController.isVirtualGamepadEnabled() ? 1 : 0;
+}
 DORA_EXPORT int32_t controller__is_button_down(int32_t controller_id, int64_t name) {
 	return SharedController.isButtonDown(s_cast<int>(controller_id), *Str_From(name)) ? 1 : 0;
 }
@@ -23,6 +29,8 @@ DORA_EXPORT float controller__get_axis(int32_t controller_id, int64_t name) {
 } // extern "C"
 
 static void linkController(wasm3::module3& mod) {
+	mod.link_optional("*", "controller_set_virtual_gamepad_enabled", controller_set_virtual_gamepad_enabled);
+	mod.link_optional("*", "controller_is_virtual_gamepad_enabled", controller_is_virtual_gamepad_enabled);
 	mod.link_optional("*", "controller__is_button_down", controller__is_button_down);
 	mod.link_optional("*", "controller__is_button_up", controller__is_button_up);
 	mod.link_optional("*", "controller__is_button_pressed", controller__is_button_pressed);

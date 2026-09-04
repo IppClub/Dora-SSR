@@ -2,6 +2,10 @@
 local record Controller
 	userdata
 
+	-- Whether keyboard input is exclusively routed to a virtual gamepad.
+	-- When enabled on desktop platforms, regular key and text input events are suppressed.
+	virtualGamepadEnabled: boolean
+
 	-- Enumeration for defining the controller axis names.
 	enum AxisName
 		"leftx"

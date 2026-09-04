@@ -7,6 +7,8 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 extern "C" {
+	fn controller_set_virtual_gamepad_enabled(val: i32);
+	fn controller_is_virtual_gamepad_enabled() -> i32;
 	fn controller__is_button_down(controller_id: i32, name: i64) -> i32;
 	fn controller__is_button_up(controller_id: i32, name: i64) -> i32;
 	fn controller__is_button_pressed(controller_id: i32, name: i64) -> i32;
@@ -15,6 +17,16 @@ extern "C" {
 /// An interface for handling game controller inputs.
 pub struct Controller { }
 impl Controller {
+	/// Whether keyboard input is exclusively routed to a virtual gamepad.
+	/// When enabled on desktop platforms, regular key and text input events are suppressed.
+	pub fn set_virtual_gamepad_enabled(val: bool) {
+		unsafe { controller_set_virtual_gamepad_enabled(if val { 1 } else { 0 }) };
+	}
+	/// Whether keyboard input is exclusively routed to a virtual gamepad.
+	/// When enabled on desktop platforms, regular key and text input events are suppressed.
+	pub fn is_virtual_gamepad_enabled() -> bool {
+		return unsafe { controller_is_virtual_gamepad_enabled() != 0 };
+	}
 	/// Checks whether a button on the controller is currently pressed.
 	///
 	/// # Arguments

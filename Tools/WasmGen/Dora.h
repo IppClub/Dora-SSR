@@ -4640,6 +4640,9 @@ singleton class Mouse {
 /// An interface for handling game controller inputs.
 singleton class Controller
 {
+	/// Whether keyboard input is exclusively routed to a virtual gamepad.
+	/// When enabled on desktop platforms, regular key and text input events are suppressed.
+	boolean bool virtualGamepadEnabled @ virtual_gamepad_enabled;
 	/// Checks whether a button on the controller is currently pressed.
 	///
 	/// # Arguments

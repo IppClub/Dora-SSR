@@ -6,6 +6,12 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#wa:import dora controller_set_virtual_gamepad_enabled
+func controller_set_virtual_gamepad_enabled(val: i32)
+
+#wa:import dora controller_is_virtual_gamepad_enabled
+func controller_is_virtual_gamepad_enabled() => i32
+
 #wa:import dora controller__is_button_down
 func controller__is_button_down(controller_id: i32, name: i64) => i32
 
@@ -21,6 +27,17 @@ func controller__get_axis(controller_id: i32, name: i64) => f32
 type _Controller :struct{}
 
 global Controller = _Controller{}
+
+// Whether keyboard input is exclusively routed to a virtual gamepad.
+// When enabled on desktop platforms, regular key and text input events are suppressed.
+func _Controller.SetVirtualGamepadEnabled(val: bool) {
+	controller_set_virtual_gamepad_enabled(ToDoraBool(val))
+}
+// Whether keyboard input is exclusively routed to a virtual gamepad.
+// When enabled on desktop platforms, regular key and text input events are suppressed.
+func _Controller.IsVirtualGamepadEnabled() => bool {
+	return controller_is_virtual_gamepad_enabled() != 0
+}
 
 func _Controller._IsButtonDown(controller_id: i32, name: string) => bool {
 	return controller__is_button_down(controller_id, ToDoraString(name)) != 0

@@ -16,6 +16,10 @@ namespace Dora
 	internal static partial class Native
 	{
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void controller_set_virtual_gamepad_enabled(int32_t val);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t controller_is_virtual_gamepad_enabled();
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t controller__is_button_down(int32_t controllerId, int64_t name);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t controller__is_button_up(int32_t controllerId, int64_t name);
@@ -33,6 +37,15 @@ namespace Dora
 	/// </summary>
 	public static partial class Controller
 	{
+		/// <summary>
+		/// Whether keyboard input is exclusively routed to a virtual gamepad.
+		/// When enabled on desktop platforms, regular key and text input events are suppressed.
+		/// </summary>
+		public static bool IsVirtualGamepadEnabled
+		{
+			set => Native.controller_set_virtual_gamepad_enabled(value ? 1 : 0);
+			get => Native.controller_is_virtual_gamepad_enabled() != 0;
+		}
 		/// <summary>
 		/// Checks whether a button on the controller is currently pressed.
 		/// </summary>

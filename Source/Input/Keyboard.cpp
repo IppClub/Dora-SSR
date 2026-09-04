@@ -191,6 +191,24 @@ void Keyboard::clearChanges() {
 	}
 }
 
+void Keyboard::clearStates() {
+	for (int key = 0; key < SDL_NUM_SCANCODES; ++key) {
+		if (_newCodeStates[key] && !_codeNames[key].empty()) {
+			EventArgs<Slice> keyUp("KeyUp"_slice, _codeNames[key]);
+			handler(&keyUp);
+		}
+		if (_newKeyStates[key] && !_keyNames[key].empty()) {
+			EventArgs<Slice> keyUp("KeyUp"_slice, _keyNames[key]);
+			handler(&keyUp);
+		}
+	}
+	std::fill(_oldKeyStates.begin(), _oldKeyStates.end(), false);
+	std::fill(_newKeyStates.begin(), _newKeyStates.end(), false);
+	std::fill(_oldCodeStates.begin(), _oldCodeStates.end(), false);
+	std::fill(_newCodeStates.begin(), _newCodeStates.end(), false);
+	_changedKeys.clear();
+}
+
 void Keyboard::attachIME(const KeyboardHandler& handler, bool showScreenKeyboard) {
 	if (_imeHandler) {
 		Event detachEvent("DetachIME"_slice);

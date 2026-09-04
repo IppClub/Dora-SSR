@@ -1,6 +1,7 @@
 import type { ButtonName, Node } from "Dora";
 
 export function findGamepadNode(this: void, host: Node.Type, tag: string): Node.Type | undefined;
+export function selectGamepadNode(this: void, host: Node.Type, tag: string): boolean;
 
 /** Go UI focus routing. The last visible attached screen owns controller input. */
 export function attachGamepad(this: void, host: Node.Type, options: {
