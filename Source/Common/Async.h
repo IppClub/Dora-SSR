@@ -15,7 +15,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Event/EventQueue.h"
 #include "Support/Value.h"
 
+#if !BX_PLATFORM_EMSCRIPTEN
 #include "bx/thread.h"
+#endif // !BX_PLATFORM_EMSCRIPTEN
 
 NS_DORA_BEGIN
 
@@ -79,7 +81,9 @@ public:
 	/** @brief Requests this worker to stop and joins it from an external thread.
 	 Individual workers owned by an AsyncThread pool must be stopped through AsyncThread::cancel(). */
 	void stop();
+#if !BX_PLATFORM_EMSCRIPTEN
 	static int work(bx::Thread* thread, void* userData);
+#endif // !BX_PLATFORM_EMSCRIPTEN
 
 private:
 	bool run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher, const std::shared_ptr<AsyncTaskGroupState>& group);
@@ -92,9 +96,11 @@ private:
 	void initThreadOnce();
 	bool isPoolWorker() const;
 	bool _scheduled;
+#if !BX_PLATFORM_EMSCRIPTEN
 	bx::Thread _thread;
 	bx::Semaphore _workerSemaphore;
 	std::once_flag _initThreadFlag;
+#endif // !BX_PLATFORM_EMSCRIPTEN
 	EventQueue _workerEvent;
 	std::shared_ptr<AsyncFinisherState> _finisherState;
 	// Tracks standalone-thread tasks so uncaught exceptions can be reported safely.
@@ -167,6 +173,11 @@ private:
 	void waitForTask();
 	size_t processCount() const;
 	void notifyAllWorkers();
+#if BX_PLATFORM_EMSCRIPTEN
+	std::atomic_bool _stopping;
+	OwnVector<Async> _dedicatedThreads;
+	Own<TaskGroup> _defaultGroup;
+	#else
 	std::atomic<size_t> _nextProcess;
 	std::atomic<size_t> _nextStealFrom;
 	std::atomic_bool _stopping;
@@ -178,6 +189,7 @@ private:
 	std::mutex _frameTaskMutex;
 	Own<AsyncFrameTaskState> _frameTaskState;
 	moodycamel::ConcurrentQueue<FrameTaskItem> _frameTasks;
+	#endif // BX_PLATFORM_EMSCRIPTEN
 	SINGLETON_REF(AsyncThread, Director);
 };
 

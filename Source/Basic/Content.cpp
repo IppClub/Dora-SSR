@@ -40,6 +40,10 @@ namespace fs = std::filesystem;
 
 #include "SDL.h"
 
+#if BX_PLATFORM_EMSCRIPTEN
+#include <emscripten.h>
+#endif // BX_PLATFORM_EMSCRIPTEN
+
 #include <atomic>
 #include <cstring>
 #include <thread>
@@ -89,7 +93,7 @@ static void trimTrailingSlashes(std::string& str) {
 }
 
 void Content::setAssetPath(String assetPath) {
-#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX || BX_PLATFORM_EMSCRIPTEN
 	std::error_code err;
 	std::string fullPath = fs::absolute(assetPath.toString(), err).lexically_normal().string();
 	if (err) {
@@ -115,7 +119,7 @@ const std::string& Content::getAppPath() const noexcept {
 }
 
 void Content::setWritablePath(String writablePath) {
-#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX || BX_PLATFORM_ANDROID
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX || BX_PLATFORM_ANDROID || BX_PLATFORM_EMSCRIPTEN
 	if (_writablePath == writablePath) {
 		return;
 	}
@@ -752,17 +756,24 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, std
 			}
 		};
 
+#if BX_PLATFORM_EMSCRIPTEN
+		size_t workerCount = 1;
+#else
 		std::atomic<size_t> nextIndex{0};
 		size_t maxThreads = s_cast<size_t>(std::thread::hardware_concurrency());
 		if (maxThreads == 0) maxThreads = 1;
 		size_t workerCount = std::min(maxThreads, files.size());
 		std::vector<std::thread> workers;
 		workers.reserve(workerCount);
+#endif // BX_PLATFORM_EMSCRIPTEN
 
 		auto worker = [&]() {
 			while (true) {
 				if (stoped()) break;
-				size_t idx = nextIndex.fetch_add(1);
+				size_t idx = 0;
+#if !BX_PLATFORM_EMSCRIPTEN
+				idx = nextIndex.fetch_add(1);
+#endif // !BX_PLATFORM_EMSCRIPTEN
 				if (idx >= files.size()) break;
 				if (stoped()) break;
 
@@ -772,13 +783,17 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, std
 				segments.emplace_back(file);
 				auto relativePath = Path::concat(segments);
 				auto fullPath = Content::getFullPath(relativePath);
-				bx::Semaphore waitForLoaded;
 				std::string content;
+#if BX_PLATFORM_EMSCRIPTEN
+				content = SharedContent.loadUnsafe(fullPath);
+#else
+				bx::Semaphore waitForLoaded;
 				SharedContent.getThread()->run([&]() {
 					content = SharedContent.loadUnsafe(fullPath);
 					waitForLoaded.post();
 				});
 				waitForLoaded.wait();
+#endif // BX_PLATFORM_EMSCRIPTEN
 				if (stoped()) break;
 				if (content.empty()) continue;
 
@@ -882,12 +897,16 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, std
 			}
 		};
 
+#if BX_PLATFORM_EMSCRIPTEN
+		worker();
+#else
 		for (size_t i = 0; i < workerCount; ++i) {
 			workers.emplace_back(worker);
 		}
 		for (auto& t : workers) {
 			t.join();
 		}
+#endif // BX_PLATFORM_EMSCRIPTEN
 		SharedApplication.invokeInLogic([callbackPtr]() {
 			SearchResult done;
 			(*callbackPtr)(std::move(done));
@@ -1692,12 +1711,12 @@ bool Content::isPathFolder(String path) {
 }
 #endif // BX_PLATFORM_ANDROID
 
-#if BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX || BX_PLATFORM_OSX || BX_PLATFORM_IOS
+#if BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX || BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_EMSCRIPTEN
 bool Content::isAbsolutePath(String strPath) {
 	if (strPath.empty()) return false;
 	return strPath.front() == '/';
 }
-#endif // BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX || BX_PLATFORM_OSX || BX_PLATFORM_IOS
+#endif // BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX || BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_EMSCRIPTEN
 
 #if BX_PLATFORM_WINDOWS
 bool Content::isAbsolutePath(String strPath) {
@@ -1710,13 +1729,32 @@ bool Content::isAbsolutePath(String strPath) {
 }
 #endif // BX_PLATFORM_WINDOWS
 
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX || BX_PLATFORM_EMSCRIPTEN
 Content::Content()
 	: _thread(SharedAsyncThread.newThread())
 	, _appPath(getPrefPath()) {
+#if BX_PLATFORM_EMSCRIPTEN
+	EM_ASM({
+		if (typeof FS !== "undefined" && typeof IDBFS !== "undefined") {
+			try { FS.mkdir("/idbfs"); } catch (e) { }
+			try { FS.mount(IDBFS, {}, "/idbfs"); } catch (e) { }
+			FS.syncfs(true, function(error) {
+				if (error) console.error("Dora IDBFS sync failed", error);
+			});
+		}
+	});
+	_assetPath = "/Assets";
+	_writablePath = "/idbfs/dora";
+	std::error_code writableError;
+	fs::create_directories(_writablePath, writableError);
+	if (writableError) {
+		_writablePath = _appPath;
+	}
+#else
 	_assetPath = fs::current_path().string();
 	trimTrailingSlashes(_assetPath);
 	_writablePath = _appPath;
+#endif // BX_PLATFORM_EMSCRIPTEN
 }
 
 bool Content::isFileExist(String filePath) {
@@ -1727,7 +1765,7 @@ bool Content::isFileExist(String filePath) {
 	std::error_code err;
 	return fs::exists(strPath, err);
 }
-#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
+#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX || BX_PLATFORM_EMSCRIPTEN
 
 #if BX_PLATFORM_OSX || BX_PLATFORM_IOS
 Content::Content()
@@ -1741,7 +1779,7 @@ Content::Content()
 }
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_IOS
 
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_LINUX || BX_PLATFORM_EMSCRIPTEN
 uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
 	if (filename.empty()) return nullptr;
 	auto fullPathAndPackage = Content::getFullPathAndPackage(filename);
@@ -1817,9 +1855,9 @@ bool Content::loadByChunks(String filename, const std::function<bool(uint8_t*, i
 bool Content::isPathFolder(String path) {
 	return fs::is_directory(path.toString());
 }
-#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
+#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_LINUX || BX_PLATFORM_EMSCRIPTEN
 
-#if BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX || BX_PLATFORM_EMSCRIPTEN
 std::string Content::getFullPathForDirectoryAndFilename(String directory, String filename) {
 	auto rootPath = fs::path(Content::isAbsolutePath(directory) ? Slice::Empty : _assetPath);
 	std::string fullPath = (rootPath / directory.toString() / filename.toString()).string();
@@ -1828,6 +1866,6 @@ std::string Content::getFullPathForDirectoryAndFilename(String directory, String
 	}
 	return fullPath;
 }
-#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
+#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX || BX_PLATFORM_EMSCRIPTEN
 
 NS_DORA_END

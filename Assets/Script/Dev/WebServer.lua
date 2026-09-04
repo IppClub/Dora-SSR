@@ -6838,6 +6838,10 @@ thread(function()
 			print("Dora Dora is ready!")
 		end
 	end
+	if App.platform == "Emscripten" then
+		status.url = nil
+		return print("HttpServer is unavailable in the browser; use the hosting web server.")
+	end
 	HttpServer:clearStaticCacheControls()
 	HttpServer:setStaticCacheControl("no-cache")
 	HttpServer:addStaticCacheControl("^/((assets|monacoeditorwork)/.*|typescript)-[A-Za-z0-9_-]{8,}[.][^/]+$", "public, max-age=31536000, immutable")

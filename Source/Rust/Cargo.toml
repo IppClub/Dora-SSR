@@ -36,3 +36,4 @@ urlencoding = "2.1"
 debug = false
 lto = true
 opt-level = 3
+panic = "abort"

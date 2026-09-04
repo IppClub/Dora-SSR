@@ -65,6 +65,9 @@ static const std::string& loadShaderFileData(ShaderCompilerFileContext& context,
 
 	std::string data;
 	if (!tryGetEmbeddedShaderSource(path, data)) {
+#if BX_PLATFORM_EMSCRIPTEN
+		data = SharedContent.loadUnsafe(key);
+#else
 		bx::Semaphore waitForLoaded;
 		SharedContent.getThread()->run([path = key, &data, &waitForLoaded]() {
 			auto content = SharedContent.loadUnsafe(path);
@@ -74,6 +77,7 @@ static const std::string& loadShaderFileData(ShaderCompilerFileContext& context,
 			waitForLoaded.post();
 		});
 		waitForLoaded.wait();
+#endif // BX_PLATFORM_EMSCRIPTEN
 	}
 	normalizeShaderLineEndings(data);
 	auto file = context.files.emplace(std::move(key), std::move(data));

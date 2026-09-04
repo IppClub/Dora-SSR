@@ -29,8 +29,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 extern "C" {
 int luaopen_yue(lua_State* L);
 int luaopen_colibc_json(lua_State* L);
+#if !BX_PLATFORM_EMSCRIPTEN
 int luaopen_socket_core(lua_State* L);
 int luaopen_mime_core(lua_State* L);
+#endif
 } // extern "C"
 
 NS_DORA_BEGIN
@@ -326,10 +328,12 @@ return bit32
 )lua";
 
 static int dora_register_builtin_modules(lua_State* L) {
+#if !BX_PLATFORM_EMSCRIPTEN
 	luaL_requiref(L, "socket.core", luaopen_socket_core, 0);
 	lua_pop(L, 1);
 	luaL_requiref(L, "mime.core", luaopen_mime_core, 0);
 	lua_pop(L, 1);
+#endif
 	luaL_requiref(L, "dora.https", luaopen_dora_https, 0);
 	lua_pop(L, 1);
 	for (const auto& script : DoraLuaSocketScripts::scripts) {
@@ -862,6 +866,13 @@ static int dora_threaded_read_file(lua_State* L) {
 	size_t size = 0;
 	auto fileStr = luaL_checklstring(L, 1, &size);
 	Slice filename{fileStr, size};
+#if BX_PLATFORM_EMSCRIPTEN
+	int64_t loadedSize = 0;
+	auto loadedData = SharedContent.loadUnsafe(filename, loadedSize);
+	Slice codes{r_cast<char*>(loadedData), s_cast<size_t>(std::max<int64_t>(loadedSize, 0))};
+	tolua_pushslice(L, codes);
+	return 1;
+#else
 	OwnArray<uint8_t> codeData;
 	size_t codeSize = 0;
 	bx::Semaphore waitForLoaded;
@@ -876,6 +887,7 @@ static int dora_threaded_read_file(lua_State* L) {
 	Slice codes{r_cast<char*>(codeData.get()), codeSize};
 	tolua_pushslice(L, codes);
 	return 1;
+#endif // BX_PLATFORM_EMSCRIPTEN
 }
 
 static int dora_load_base(lua_State* L) {

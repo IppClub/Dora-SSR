@@ -15,7 +15,9 @@
 
 #include <condition_variable>
 #include <mutex>
+#if !BX_PLATFORM_EMSCRIPTEN
 #include <thread>
+#endif // !BX_PLATFORM_EMSCRIPTEN
 
 namespace love::thread
 {
@@ -63,19 +65,30 @@ public:
 	bool start() override
 	{
 		if (running.exchange(true)) return false;
+#if BX_PLATFORM_EMSCRIPTEN
+		// Browser builds run the video worker synchronously on the main loop.
+		// This keeps LOVE's thread abstraction intact without requiring pthreads.
+		owner->threadFunction();
+		running.store(false);
+#else
 		worker = std::thread([this]() {
 			owner->threadFunction();
 			running.store(false);
 		});
+#endif // BX_PLATFORM_EMSCRIPTEN
 		return true;
 	}
 	void wait() override
 	{
+#if !BX_PLATFORM_EMSCRIPTEN
 		if (worker.joinable()) worker.join();
+#endif // !BX_PLATFORM_EMSCRIPTEN
 	}
 	bool isRunning() override { return running.load(); }
 	Threadable *owner;
+#if !BX_PLATFORM_EMSCRIPTEN
 	std::thread worker;
+#endif // !BX_PLATFORM_EMSCRIPTEN
 	std::atomic<bool> running = false;
 };
 
