@@ -33,5 +33,23 @@ node --check "$OUTPUT_DIR/wasm_exec.js"
 node "$SCRIPT_DIR/check_wa_web.mjs" "$OUTPUT_DIR"
 grep -q '<script' "$OUTPUT_DIR/index.html"
 grep -q 'dora-ssr.js' "$OUTPUT_DIR/index.html"
+grep -q 'Import Project' "$OUTPUT_DIR/index.html"
+grep -q 'FS.syncfs' "$OUTPUT_DIR/index.html"
+grep -q "addRunDependency('dora-idbfs')" "$OUTPUT_DIR/index.html"
+grep -q 'persistentFileSystemReady' "$OUTPUT_DIR/index.html"
+grep -q 'project root must contain init.lua' "$OUTPUT_DIR/index.html"
+grep -q 'resumeAudio' "$OUTPUT_DIR/index.html"
+grep -q 'App.platform == "Emscripten"' "$OUTPUT_DIR/dora-ssr.data"
+grep -q 'dora_web_run_project' "$OUTPUT_DIR/dora-ssr.js"
+grep -q 'Script/Dev/WebRunner' "$OUTPUT_DIR/dora-ssr.js"
+if ! rg -a -q 'Dora\.Path' "$OUTPUT_DIR/dora-ssr.js" "$OUTPUT_DIR/dora-ssr.data"; then
+	echo "[ERROR] WebRunner does not bind Dora.Path" >&2
+	exit 1
+fi
+
+if rg -a -q '/Game/init\.lua' "$OUTPUT_DIR/dora-ssr.data" "$OUTPUT_DIR/dora-ssr.js" "$OUTPUT_DIR/dora-ssr.wasm"; then
+	echo "[ERROR] Generic Web package unexpectedly contains static /Game/init.lua" >&2
+	exit 1
+fi
 
 echo "[INFO] Emscripten package verified: $OUTPUT_DIR"

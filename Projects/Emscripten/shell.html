@@ -12,18 +12,47 @@
             transform: translate(-50%, -50%);
             color: white; font-family: sans-serif; text-align: center;
         }
+        #web-toolbar {
+            position: fixed; top: 12px; right: 12px; z-index: 2;
+            display: flex; align-items: center; gap: 8px;
+            color: #ddd; font: 13px sans-serif;
+        }
+        #web-toolbar button {
+            border: 1px solid #666; border-radius: 4px; padding: 6px 10px;
+            color: #fff; background: rgba(35, 35, 35, .9); cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <div id="loading">Loading...<br><small id="loading-detail"></small></div>
+    <div id="web-toolbar">
+        <button id="import-project" type="button">Import Project</button>
+        <span id="import-status" aria-live="polite"></span>
+    </div>
+    <input id="project-input" type="file" webkitdirectory directory multiple hidden>
     <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
     <script>
         var Module = (function() {
             const canvas = document.getElementById('canvas');
             const loading = document.getElementById('loading');
             const detail = document.getElementById('loading-detail');
+            const projectInput = document.getElementById('project-input');
+            const importButton = document.getElementById('import-project');
+            const importStatus = document.getElementById('import-status');
             let resolveReady;
             const ready = new Promise(resolve => { resolveReady = resolve; });
+            let resolvePersistentFileSystem;
+            const persistentFileSystemReady = new Promise(resolve => {
+                resolvePersistentFileSystem = resolve;
+            });
+
+            function resumeAudio() {
+                const context = module.SDL2 && module.SDL2.audioContext;
+                if (!context || context.state !== 'suspended') return Promise.resolve();
+                return context.resume().catch(error => {
+                    console.warn('DoraWeb: failed to resume Web Audio', error);
+                });
+            }
 
             function resizeCanvas() {
                 const ratio = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
@@ -36,16 +65,125 @@
                 return { width, height, ratio };
             }
 
-            function syncFileSystem() {
-                if (typeof FS !== 'undefined' && typeof FS.syncfs === 'function') {
-                    FS.syncfs(false, error => {
-                        if (error) console.error('DoraWeb: failed to persist dropped file', error);
+            function syncFileSystem(populate) {
+                return new Promise((resolve, reject) => {
+                    if (typeof FS === 'undefined' || typeof FS.syncfs !== 'function') {
+                        resolve();
+                        return;
+                    }
+                    FS.syncfs(Boolean(populate), error => {
+                        if (error) {
+                            console.error('DoraWeb: failed to persist project files', error);
+                            reject(error);
+                        } else {
+                            resolve();
+                        }
                     });
+                });
+            }
+
+            function restorePersistentFileSystem() {
+                if (typeof FS === 'undefined' || typeof IDBFS === 'undefined') {
+                    resolvePersistentFileSystem();
+                    return;
                 }
+                try { FS.mkdir('/idbfs'); } catch (_) {}
+                try { FS.mount(IDBFS, {}, '/idbfs'); } catch (_) {}
+                addRunDependency('dora-idbfs');
+                FS.syncfs(true, error => {
+                    if (error) console.warn('DoraWeb: failed to restore persistent filesystem', error);
+                    resolvePersistentFileSystem();
+                    removeRunDependency('dora-idbfs');
+                });
+            }
+
+            function normalizeRelativePath(path) {
+                const normalized = String(path || '').replaceAll('\\', '/').replace(/^\/+/, '');
+                const parts = normalized.split('/').filter(part => part && part !== '.');
+                if (!parts.length || parts.includes('..') || parts.some(part => part.includes('\0'))) {
+                    throw new Error('invalid project file path: ' + path);
+                }
+                return parts.join('/');
+            }
+
+            function normalizeProjectId(id) {
+                const normalized = String(id || 'project').trim();
+                if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(normalized)) {
+                    throw new Error('invalid project id: ' + id);
+                }
+                return normalized;
+            }
+
+            function inferProjectId(path) {
+                const candidate = String(path || '').split('/')[0]
+                    .replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^[^A-Za-z0-9]+/, '').slice(0, 64);
+                return candidate || 'project';
+            }
+
+            function ensureDirectory(path) {
+                const parts = path.split('/').filter(Boolean);
+                let current = '';
+                for (const part of parts) {
+                    const parent = current || '/';
+                    try { module.FS_createPath(parent, part, true, true); } catch (_) {}
+                    current += '/' + part;
+                }
+            }
+
+            function writeProjectFile(projectId, relativePath, bytes) {
+                if (!module.FS_createPath || !module.FS_createDataFile) {
+                    throw new Error('Emscripten filesystem API is unavailable');
+                }
+                const id = normalizeProjectId(projectId);
+                const path = normalizeRelativePath(relativePath);
+                const root = '/idbfs/dora/projects/' + id;
+                const parts = path.split('/');
+                const fileName = parts.pop();
+                const parent = root + (parts.length ? '/' + parts.join('/') : '');
+                ensureDirectory(parent);
+                const fullPath = parent + '/' + fileName;
+                try { module.FS_unlink(fullPath); } catch (_) {}
+                module.FS_createDataFile(parent, fileName, bytes, true, true);
+                return fullPath;
+            }
+
+            function getProjectFiles(files) {
+                const list = Array.from(files || []);
+                if (!list.length) throw new Error('no project files selected');
+                const paths = list.map(file => normalizeRelativePath(file.webkitRelativePath || file.name));
+                const firstPart = paths[0].split('/')[0];
+                const hasRootEntry = paths.some(path => {
+                    const relative = path.startsWith(firstPart + '/') ? path.slice(firstPart.length + 1) : path;
+                    return /^(init\.(lua|yue|tl|wasm))$/.test(relative);
+                });
+                const prefix = hasRootEntry && paths.every(path => path === firstPart || path.startsWith(firstPart + '/'))
+                    ? firstPart + '/' : '';
+                const entries = list.map((file, index) => ({
+                    file,
+                    path: prefix && paths[index].startsWith(prefix) ? paths[index].slice(prefix.length) : paths[index]
+                }));
+                if (!entries.some(entry => /^(init\.(lua|yue|tl|wasm))$/.test(entry.path))) {
+                    throw new Error('project root must contain init.lua, init.yue, init.tl, or init.wasm');
+                }
+                return entries;
+            }
+
+            async function importProject(files, projectId) {
+                await ready;
+                const entries = getProjectFiles(files);
+                const inferredId = projectId || inferProjectId(files[0].webkitRelativePath || files[0].name);
+                const id = normalizeProjectId(inferredId);
+                ensureDirectory('/idbfs/dora/projects/' + id);
+                for (const entry of entries) {
+                    writeProjectFile(id, entry.path, new Uint8Array(await entry.file.arrayBuffer()));
+                }
+                await syncFileSystem();
+                return '/idbfs/dora/projects/' + id;
             }
 
             const module = {
                 canvas,
+                preRun: [restorePersistentFileSystem],
                 print: text => console.log(text),
                 printErr: text => console.error(text),
                 setStatus: text => {
@@ -56,8 +194,13 @@
                 },
                 onRuntimeInitialized: function() {
                     resizeCanvas();
-                    loading.style.display = 'none';
-                    resolveReady(module);
+                    // preRun holds Emscripten main until IDBFS has been
+                    // restored. Keep the explicit promise as a guard for
+                    // embedders that observe runtime initialization directly.
+                    persistentFileSystemReady.then(() => {
+                        loading.style.display = 'none';
+                        resolveReady(module);
+                    });
                 },
                 onAbort: reason => console.error('DoraWeb runtime aborted:', reason)
             };
@@ -84,28 +227,57 @@
                 },
                 call: (name, returnType, argTypes, args) => ready.then(() => module.ccall(name, returnType, argTypes, args)),
                 syncFileSystem,
-                dropFile: (file, bytes) => {
-                    if (!module.FS_createPath || !module.FS_createDataFile) throw new Error('Emscripten filesystem API is unavailable');
-                    try { module.FS_createPath('/', 'idbfs', true, true); } catch (_) {}
-                    try { module.FS_createPath('/idbfs', 'dora', true, true); } catch (_) {}
-                    module.FS_createDataFile('/idbfs/dora', file.name, bytes, true, true);
-                    syncFileSystem();
+                resumeAudio,
+                writeProjectFile,
+                importProject,
+                runProject: async root => {
+                    await ready;
+                    const projectRoot = String(root || '');
+                    const result = module.ccall('dora_web_run_project', 'number', ['string'], [projectRoot]);
+                    if (!result) throw new Error('Dora rejected project: ' + projectRoot);
+                    return projectRoot;
                 }
             };
 
             window.addEventListener('resize', resizeCanvas);
             window.addEventListener('orientationchange', resizeCanvas);
+            window.addEventListener('pointerdown', resumeAudio, { passive: true });
+            window.addEventListener('keydown', resumeAudio, { passive: true });
+            window.addEventListener('touchstart', resumeAudio, { passive: true });
             window.addEventListener('dragover', event => event.preventDefault());
+            async function importAndRun(files) {
+                // FileList can be a live browser object. Snapshot it before any
+                // async work or input reset changes its contents.
+                const selectedFiles = Array.from(files || []);
+                importStatus.textContent = 'Importing...';
+                let root;
+                try {
+                    root = await window.DoraWeb.importProject(selectedFiles);
+                } catch (error) {
+                    importStatus.textContent = 'Import failed';
+                    console.error('DoraWeb: failed to import project', error);
+                    return;
+                }
+                try {
+                    importStatus.textContent = 'Starting...';
+                    await window.DoraWeb.runProject(root);
+                    importStatus.textContent = 'Running';
+                } catch (error) {
+                    importStatus.textContent = 'Run failed';
+                    console.error('DoraWeb: failed to run project', error);
+                }
+            }
+            importButton.addEventListener('click', () => {
+                resumeAudio();
+                projectInput.click();
+            });
+            projectInput.addEventListener('change', () => {
+                importAndRun(projectInput.files);
+                projectInput.value = '';
+            });
             window.addEventListener('drop', event => {
                 event.preventDefault();
-                for (const file of event.dataTransfer.files) {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        try { window.DoraWeb.dropFile(file, new Uint8Array(reader.result)); }
-                        catch (error) { console.error('DoraWeb: failed to import file', error); }
-                    };
-                    reader.readAsArrayBuffer(file);
-                }
+                importAndRun(event.dataTransfer.files);
             });
             resizeCanvas();
 
