@@ -47,6 +47,8 @@ if DB\exist "Config"
 
 import "Config"
 
+Dora.globals.webProjects = oldRequire "Script.Dev.WebProjects" if App.platform == "Emscripten"
+
 config = Config(
 	""
 	"fpsLimited"
@@ -1518,6 +1520,9 @@ entryWindow = threadLoop ->
 		const DemoViewWidth = 220
 		filterText = filterBuf.text\match "[^%%%.%[]+"
 		filterText = filterText\lower! if filterText
+		if App.platform == "Emscripten"
+			Dora.globals.webProjects.draw zh, themeColor
+			anyEntryMatched = true
 		if #gamesInDev > 0
 			columns = math.max math.floor(width / DemoViewWidth), 1
 			Columns columns, false

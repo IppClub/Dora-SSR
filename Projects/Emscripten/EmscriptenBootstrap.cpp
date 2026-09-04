@@ -59,6 +59,32 @@ extern "C" EMSCRIPTEN_KEEPALIVE int dora_web_run_project(const char* root) {
 	}
 }
 
+extern "C" EMSCRIPTEN_KEEPALIVE int dora_web_stop_project() {
+	try {
+		SharedApplication.invokeInLogic([]() {
+			try {
+				const auto code =
+					"local entry = require(\"Script.Dev.Entry\"); "
+					"return entry.stop() == true";
+				if (!SharedLuaEngine.executeString(code)) {
+					LogError("Web project stop request failed.");
+				}
+			} catch (const std::exception& e) {
+				LogError(std::string("Web project stop failed: ") + e.what());
+			} catch (...) {
+				LogError("Web project stop failed with an unknown exception.");
+			}
+		});
+		return 1;
+	} catch (const std::exception& e) {
+		LogError(std::string("Web project stop failed: ") + e.what());
+		return 0;
+	} catch (...) {
+		LogError("Web project stop failed with an unknown exception.");
+		return 0;
+	}
+}
+
 NS_DORA_END
 
 namespace {

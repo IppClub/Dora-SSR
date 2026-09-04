@@ -171,6 +171,9 @@ if DB:exist("Config") then -- 38
 	end -- 43
 end -- 38
 local Config = require("Config") -- 48
+if App.platform == "Emscripten" then -- 50
+	Dora.globals.webProjects = oldRequire("Script.Dev.WebProjects") -- 50
+end -- 50
 local config = Config("", "fpsLimited", "targetFPS", "fixedFPS", "vsync", "fullScreen", "alwaysOnTop", "virtualGamepadEnabled", "winX", "winY", "winWidth", "winHeight", "themeColor", "locale", "editingInfo", "showStats", "showConsole", "showFooter", "filter", "engineDev", "webProfiler", "drawerWidth", "lastUpdateCheck", "updateNotification", "writablePath", "webIDEConnected", "webIDETourCompleted", "showPreview", "mobileFeed", "mobileFeedCurrentCard", "mobileRemixLLMConfigId", "mobileLargeText", "authRequired") -- 50
 config:load() -- 85
 if not (config.writablePath ~= nil) then -- 87
@@ -2541,6 +2544,10 @@ entryWindow = threadLoop(function() -- 1426
 						if filterText then -- 1516
 							filterText = filterText:lower() -- 1516
 						end -- 1516
+						if App.platform == "Emscripten" then
+							Dora.globals.webProjects.draw(zh, themeColor)
+							anyEntryMatched = true
+						end
 						if #gamesInDev > 0 then -- 1517
 							local columns = math.max(math.floor(width / DemoViewWidth), 1) -- 1518
 							Columns(columns, false) -- 1519

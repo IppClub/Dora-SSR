@@ -26,7 +26,7 @@ return function(schema: string, ...: string): DoraConfig
 	local tableName: string
 	if schemaPart == nil then
 		tableName = schema == "" and "Config" or schema .. ".Config"
-		schemaPart = ""
+		schemaPart = schema == "" and "" or schema
 		tablePart = "Config"
 	else
 		if tablePart == "" then tablePart = "Config" end
@@ -179,5 +179,4 @@ return function(schema: string, ...: string): DoraConfig
 
 	return conf as DoraConfig
 end
-
 

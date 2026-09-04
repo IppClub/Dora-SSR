@@ -12,23 +12,11 @@
             transform: translate(-50%, -50%);
             color: white; font-family: sans-serif; text-align: center;
         }
-        #web-toolbar {
-            position: fixed; top: 12px; right: 12px; z-index: 2;
-            display: flex; align-items: center; gap: 8px;
-            color: #ddd; font: 13px sans-serif;
-        }
-        #web-toolbar button {
-            border: 1px solid #666; border-radius: 4px; padding: 6px 10px;
-            color: #fff; background: rgba(35, 35, 35, .9); cursor: pointer;
-        }
     </style>
 </head>
 <body>
     <div id="loading">Loading...<br><small id="loading-detail"></small></div>
-    <div id="web-toolbar">
-        <button id="import-project" type="button">Import Project</button>
-        <span id="import-status" aria-live="polite"></span>
-    </div>
+    <!-- The input is only a fallback for browsers without showDirectoryPicker. -->
     <input id="project-input" type="file" webkitdirectory directory multiple hidden>
     <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
     <script>
@@ -37,8 +25,7 @@
             const loading = document.getElementById('loading');
             const detail = document.getElementById('loading-detail');
             const projectInput = document.getElementById('project-input');
-            const importButton = document.getElementById('import-project');
-            const importStatus = document.getElementById('import-status');
+            let pendingProjectPicker = null;
             let resolveReady;
             const ready = new Promise(resolve => { resolveReady = resolve; });
             let resolvePersistentFileSystem;
@@ -130,6 +117,27 @@
                 }
             }
 
+            function removeTree(path) {
+                if (typeof FS === 'undefined') return;
+                let entries;
+                try { entries = FS.readdir(path); } catch (_) { return; }
+                for (const name of entries) {
+                    if (name === '.' || name === '..') continue;
+                    const child = path + '/' + name;
+                    try {
+                        const stat = FS.stat(child);
+                        if (FS.isDir(stat.mode)) {
+                            removeTree(child);
+                            FS.rmdir(child);
+                        } else {
+                            FS.unlink(child);
+                        }
+                    } catch (error) {
+                        console.warn('DoraWeb: failed to replace project file', child, error);
+                    }
+                }
+            }
+
             function writeProjectFile(projectId, relativePath, bytes) {
                 if (!module.FS_createPath || !module.FS_createDataFile) {
                     throw new Error('Emscripten filesystem API is unavailable');
@@ -150,7 +158,8 @@
             function getProjectFiles(files) {
                 const list = Array.from(files || []);
                 if (!list.length) throw new Error('no project files selected');
-                const paths = list.map(file => normalizeRelativePath(file.webkitRelativePath || file.name));
+                const paths = list.map(file => normalizeRelativePath(
+                    file.webkitRelativePath || file.doraRelativePath || file.name));
                 const firstPart = paths[0].split('/')[0];
                 const hasRootEntry = paths.some(path => {
                     const relative = path.startsWith(firstPart + '/') ? path.slice(firstPart.length + 1) : path;
@@ -168,17 +177,92 @@
                 return entries;
             }
 
-            async function importProject(files, projectId) {
+            async function storeProjectEntries(id, entries) {
+                const root = '/idbfs/dora/projects/' + id;
+                removeTree(root);
+                ensureDirectory(root);
+                for (const entry of entries) writeProjectFile(id, entry.path, entry.bytes);
+                await syncFileSystem();
+                return root;
+            }
+
+            async function importProject(files, projectId, projectName) {
                 await ready;
                 const entries = getProjectFiles(files);
-                const inferredId = projectId || inferProjectId(files[0].webkitRelativePath || files[0].name);
+                const firstPath = entries[0].path;
+                const inferredId = projectId || inferProjectId(
+                    projectName || files[0].webkitRelativePath || files[0].doraRelativePath || firstPath);
                 const id = normalizeProjectId(inferredId);
-                ensureDirectory('/idbfs/dora/projects/' + id);
+                const storedEntries = [];
                 for (const entry of entries) {
-                    writeProjectFile(id, entry.path, new Uint8Array(await entry.file.arrayBuffer()));
+                    storedEntries.push({
+                        path: entry.path,
+                        bytes: new Uint8Array(await entry.file.arrayBuffer())
+                    });
                 }
-                await syncFileSystem();
-                return '/idbfs/dora/projects/' + id;
+                return storeProjectEntries(id, storedEntries);
+            }
+
+            async function importManifest(manifest) {
+                await ready;
+                const project = manifest && manifest.project;
+                if (!project || manifest.version !== 1 || !Array.isArray(project.files)) {
+                    throw new Error('invalid Dora Web package manifest');
+                }
+                const id = normalizeProjectId(project.id || inferProjectId(project.name));
+                const entries = [];
+                for (const file of project.files) {
+                    const path = normalizeRelativePath(file.path);
+                    const url = new URL(file.url, window.location.href);
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('failed to load packaged file: ' + path);
+                    entries.push({ path, bytes: new Uint8Array(await response.arrayBuffer()) });
+                }
+                return storeProjectEntries(id, entries);
+            }
+
+            async function collectDirectoryFiles(directory, prefix, files) {
+                for await (const [name, handle] of directory.entries()) {
+                    const relativePath = prefix ? prefix + '/' + name : name;
+                    if (handle.kind === 'directory') {
+                        await collectDirectoryFiles(handle, relativePath, files);
+                    } else {
+                        const file = await handle.getFile();
+                        Object.defineProperty(file, 'doraRelativePath', { value: relativePath });
+                        files.push(file);
+                    }
+                }
+            }
+
+            async function pickProject(folderOnly) {
+                await ready;
+                if (!folderOnly) throw new Error('Web project picker only supports folders');
+                if (window.showDirectoryPicker) {
+                    const directory = await window.showDirectoryPicker({ mode: 'read' });
+                    const files = [];
+                    await collectDirectoryFiles(directory, '', files);
+                    return importProject(files, undefined, directory.name);
+                }
+                return new Promise((resolve, reject) => {
+                    pendingProjectPicker = { resolve, reject };
+                    projectInput.click();
+                });
+            }
+
+            async function runProject(root) {
+                await ready;
+                const projectRoot = String(root || '');
+                const result = module.ccall('dora_web_run_project', 'number', ['string'], [projectRoot]);
+                if (!result) throw new Error('Dora rejected project: ' + projectRoot);
+                return projectRoot;
+            }
+
+            async function stopProject() {
+                await ready;
+                const result = module.ccall('dora_web_stop_project', 'number', [], []);
+                if (!result) throw new Error('Dora rejected project stop request');
+                await new Promise(resolve => window.setTimeout(resolve, 0));
+                await new Promise(resolve => window.setTimeout(resolve, 0));
             }
 
             const module = {
@@ -194,9 +278,6 @@
                 },
                 onRuntimeInitialized: function() {
                     resizeCanvas();
-                    // preRun holds Emscripten main until IDBFS has been
-                    // restored. Keep the explicit promise as a guard for
-                    // embedders that observe runtime initialization directly.
                     persistentFileSystemReady.then(() => {
                         loading.style.display = 'none';
                         resolveReady(module);
@@ -228,58 +309,42 @@
                 call: (name, returnType, argTypes, args) => ready.then(() => module.ccall(name, returnType, argTypes, args)),
                 syncFileSystem,
                 resumeAudio,
+                pickProject,
                 writeProjectFile,
                 importProject,
-                runProject: async root => {
-                    await ready;
-                    const projectRoot = String(root || '');
-                    const result = module.ccall('dora_web_run_project', 'number', ['string'], [projectRoot]);
-                    if (!result) throw new Error('Dora rejected project: ' + projectRoot);
-                    return projectRoot;
-                }
+                importManifest,
+                runProject,
+                stopProject
             };
 
+            projectInput.addEventListener('change', () => {
+                const request = pendingProjectPicker;
+                pendingProjectPicker = null;
+                if (!request) return;
+                importProject(projectInput.files).then(request.resolve, request.reject);
+                projectInput.value = '';
+            });
+            projectInput.addEventListener('cancel', () => {
+                const request = pendingProjectPicker;
+                pendingProjectPicker = null;
+                if (request) request.resolve('');
+            });
             window.addEventListener('resize', resizeCanvas);
             window.addEventListener('orientationchange', resizeCanvas);
             window.addEventListener('pointerdown', resumeAudio, { passive: true });
             window.addEventListener('keydown', resumeAudio, { passive: true });
             window.addEventListener('touchstart', resumeAudio, { passive: true });
-            window.addEventListener('dragover', event => event.preventDefault());
-            async function importAndRun(files) {
-                // FileList can be a live browser object. Snapshot it before any
-                // async work or input reset changes its contents.
-                const selectedFiles = Array.from(files || []);
-                importStatus.textContent = 'Importing...';
-                let root;
-                try {
-                    root = await window.DoraWeb.importProject(selectedFiles);
-                } catch (error) {
-                    importStatus.textContent = 'Import failed';
-                    console.error('DoraWeb: failed to import project', error);
-                    return;
-                }
-                try {
-                    importStatus.textContent = 'Starting...';
-                    await window.DoraWeb.runProject(root);
-                    importStatus.textContent = 'Running';
-                } catch (error) {
-                    importStatus.textContent = 'Run failed';
-                    console.error('DoraWeb: failed to run project', error);
-                }
-            }
-            importButton.addEventListener('click', () => {
-                resumeAudio();
-                projectInput.click();
-            });
-            projectInput.addEventListener('change', () => {
-                importAndRun(projectInput.files);
-                projectInput.value = '';
-            });
-            window.addEventListener('drop', event => {
-                event.preventDefault();
-                importAndRun(event.dataTransfer.files);
-            });
             resizeCanvas();
+
+            window.DoraWeb.startSharedPackage = async function() {
+                await ready;
+                const response = await fetch('dora-web-manifest.json', { cache: 'no-store' });
+                if (response.status === 404) return false;
+                if (!response.ok) throw new Error('failed to load Dora Web package manifest (' + response.status + ')');
+                const root = await importManifest(await response.json());
+                await runProject(root);
+                return true;
+            };
 
             window.DoraWeb.startWaRuntime = async function() {
                 try {
@@ -315,6 +380,9 @@
     <script>
         window.DoraWeb.startWaRuntime().catch(error => {
             console.error('DoraWeb: failed to start browser Wa module', error);
+        });
+        window.DoraWeb.startSharedPackage().catch(error => {
+            console.error('DoraWeb: failed to start shared package', error);
         });
     </script>
     {{{ SCRIPT }}}
