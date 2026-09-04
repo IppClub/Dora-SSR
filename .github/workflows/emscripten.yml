@@ -11,6 +11,7 @@ on:
       - 'Tools/build-scripts/check_emscripten_output.sh'
       - 'Source/Rust/**'
       - 'Tools/dora-rust/**'
+      - 'Assets/Script/**'
   pull_request:
     branches: [ main ]
     paths:
@@ -21,6 +22,7 @@ on:
       - 'Tools/build-scripts/check_emscripten_output.sh'
       - 'Source/Rust/**'
       - 'Tools/dora-rust/**'
+      - 'Assets/Script/**'
   workflow_dispatch:
 
 jobs:

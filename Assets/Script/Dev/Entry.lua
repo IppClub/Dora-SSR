@@ -2067,10 +2067,15 @@ footerWindow = threadLoop(function() -- 1202
 	if HttpServer.wsConnectionCount > 0 then -- 1209
 		return -- 1210
 	end -- 1209
-	if Keyboard:isKeyDown("Escape") then -- 1211
-		allClear() -- 1212
-		App.devMode = false -- 1213
-		App:shutdown() -- 1214
+	if isInEntry and Keyboard:isKeyDown("Escape") then -- 1211
+		if App.platform == "Emscripten" then
+			-- With no project running, keep the browser runtime alive.
+			stop()
+		else
+			allClear() -- 1212
+			App.devMode = false -- 1213
+			App:shutdown() -- 1214
+		end
 	end -- 1211
 	do -- 1215
 		local ctrl = Keyboard:isKeyPressed("LCtrl") -- 1216
@@ -2791,7 +2796,7 @@ entryWindow = threadLoop(function() -- 1426
 		end) -- 1510
 	end -- 1509
 end) -- 1426
-do -- 1669
+if App.platform ~= "Emscripten" then
 	local sceneModuleCache = moduleCache -- 1670
 	moduleCache = { } -- 1671
 	webStatus = oldRequire("Script.Dev.WebServer") -- 1672

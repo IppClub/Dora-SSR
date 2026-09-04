@@ -1,5 +1,5 @@
 // @preview-file off clear
-import { dns } from 'socket';
+import { App } from 'Dora';
 
 export function isHttpUrl(url: string): boolean {
 	const normalized = url.trim().toLowerCase();
@@ -74,6 +74,14 @@ export function isSafePublicHttpUrl(url: string): boolean {
 	if (ipv4.length === 4 && ipv4.every(part => part !== "" && Number(part) >= 0 && Number(part) <= 255)) {
 		return false; // Literal IPs are unnecessary here and are unsafe across alternate/private encodings.
 	}
+	// Browsers do not expose synchronous DNS resolution to the embedded Lua
+	// runtime. Fetch is already subject to the browser's origin/CORS policy, so
+	// retain the URL and literal-address checks above and leave hostname
+	// resolution to the browser network stack.
+	if (App.platform === "Emscripten") return true;
+
+	// Native builds retain the DNS rebinding protection.
+	const { dns } = require('socket') as any;
 	const [addresses] = dns.getaddrinfo(host);
 	if (!addresses || addresses.length === 0) return false;
 	for (const address of addresses) {

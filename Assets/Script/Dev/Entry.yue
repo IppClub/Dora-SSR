@@ -1208,10 +1208,14 @@ footerWindow = threadLoop ->
 		authCode = string.format "%06d", math.random 0, 999999
 	if HttpServer.wsConnectionCount > 0
 		return
-	if Keyboard\isKeyDown "Escape"
-		allClear!
-		App.devMode = false
-		App\shutdown!
+	if isInEntry and Keyboard\isKeyDown "Escape"
+		if App.platform == "Emscripten"
+			-- With no project running, keep the browser runtime alive.
+			stop!
+		else
+			allClear!
+			App.devMode = false
+			App\shutdown!
 	do
 		ctrl = Keyboard\isKeyPressed "LCtrl"
 		if ctrl and Keyboard\isKeyDown "Q"
@@ -1666,7 +1670,7 @@ entryWindow = threadLoop ->
 -- Keep the server and its dependencies in the same persistent module lifetime.
 -- Unloading Agent.Session while the server retains it creates two task registries:
 -- the stale one interprets the other's running task as interrupted.
-do
+unless App.platform == "Emscripten"
 	sceneModuleCache = moduleCache
 	moduleCache = []
 	webStatus = oldRequire "Script.Dev.WebServer"

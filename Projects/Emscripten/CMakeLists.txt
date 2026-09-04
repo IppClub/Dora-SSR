@@ -198,6 +198,7 @@ add_library(dora-bimg OBJECT
 	${DORA_BIMG_WASM_SOURCES}
 	${DORA_ASTC_WASM_SOURCES})
 add_executable(dora-ssr
+	"${DORA_ROOT}/Projects/Emscripten/EmscriptenBootstrap.cpp"
 	$<TARGET_OBJECTS:dora-engine>
 	$<TARGET_OBJECTS:dora-bimg>)
 target_compile_definitions(dora-ssr PRIVATE
@@ -243,6 +244,7 @@ target_include_directories(dora-ssr PRIVATE
 	"${DORA_SDL2_ROOT}/include")
 
 target_compile_options(dora-ssr PRIVATE
+	-fexceptions
 	-Wno-deprecated-declarations
 	-Wno-deprecated-pragma
 	-Wno-macro-redefined)
@@ -270,6 +272,7 @@ target_compile_definitions(dora-bimg PRIVATE
 	BX_CONFIG_DEBUG=0
 	DORA_EMSCRIPTEN)
 target_compile_options(dora-engine PRIVATE
+	-fexceptions
 	-Wno-deprecated-declarations
 	-Wno-deprecated-pragma
 	-Wno-macro-redefined)
@@ -327,6 +330,8 @@ target_include_directories(dora-bimg PRIVATE
 
 target_link_options(dora-ssr PRIVATE
 	"--ignore-dynamic-linking"
+	"-fexceptions"
+	"-sNO_DISABLE_EXCEPTION_CATCHING"
 	"-sUSE_SDL=2"
 	"-sUSE_WEBGL2=1"
 	"-sFULL_ES3=1"

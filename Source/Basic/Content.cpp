@@ -1738,9 +1738,6 @@ Content::Content()
 		if (typeof FS !== "undefined" && typeof IDBFS !== "undefined") {
 			try { FS.mkdir("/idbfs"); } catch (e) { }
 			try { FS.mount(IDBFS, {}, "/idbfs"); } catch (e) { }
-			FS.syncfs(true, function(error) {
-				if (error) console.error("Dora IDBFS sync failed", error);
-			});
 		}
 	});
 	_assetPath = "/Assets";

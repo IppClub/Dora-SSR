@@ -10,8 +10,8 @@ local __TS__Number = ____lualib.__TS__Number -- 1
 local __TS__StringEndsWith = ____lualib.__TS__StringEndsWith -- 1
 local __TS__ArrayEvery = ____lualib.__TS__ArrayEvery -- 1
 local ____exports = {} -- 1
-local ____socket = require("socket") -- 2
-local dns = ____socket.dns -- 2
+local ____Dora = require("Dora") -- 2
+local App = ____Dora.App -- 2
 function ____exports.isHttpUrl(url) -- 4
 	local normalized = string.lower(__TS__StringTrim(url)) -- 5
 	return __TS__StringStartsWith(normalized, "http://") or __TS__StringStartsWith(normalized, "https://") -- 6
@@ -143,7 +143,16 @@ function ____exports.isSafePublicHttpUrl(url) -- 64
 	) then -- 74
 		return false -- 75
 	end -- 75
-	local addresses = dns.getaddrinfo(host) -- 77
+	-- Browsers do not expose synchronous DNS resolution to the embedded Lua -- 77
+	-- runtime. Fetch is already subject to the browser's origin/CORS policy, so -- 77
+	-- retain the URL and literal-address checks above and leave hostname -- 77
+	-- resolution to the browser network stack. -- 77
+	if App.platform == "Emscripten" then -- 77
+		return true -- 77
+	end -- 77
+	local ____socket = require("socket") -- 78
+	local dns = ____socket.dns -- 78
+	local addresses = dns.getaddrinfo(host) -- 79
 	if not addresses or #addresses == 0 then -- 77
 		return false -- 78
 	end -- 78
