@@ -47,7 +47,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_ANDROID
 
 #define DORA_VERSION "1.9.2"_slice
-#define DORA_REVISION "15"_slice
+#define DORA_REVISION "16"_slice
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -984,12 +984,6 @@ int Application::run(MainFunc mainFunc) {
 					}
 					break;
 				}
-#if BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
-				case SDL_TEXTEDITING: {
-					event.edit.start = CodeCvt::utf8_count_characters(event.edit.text);
-					break;
-				}
-#endif // BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
 				case SDL_KEYDOWN:
 				case SDL_KEYUP:
 					SharedController.handleVirtualGamepadEventInRender(event);
@@ -997,6 +991,11 @@ int Application::run(MainFunc mainFunc) {
 					break;
 				case SDL_TEXTINPUT:
 				case SDL_TEXTEDITING:
+#if BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
+					if (event.type == SDL_TEXTEDITING) {
+						event.edit.start = CodeCvt::utf8_count_characters(event.edit.text);
+					}
+#endif // BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
 					suppressKeyboardEvent = SharedController.isVirtualGamepadEnabled();
 					break;
 				case SDL_CONTROLLERDEVICEADDED:
