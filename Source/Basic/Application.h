@@ -83,6 +83,10 @@ public:
 	bool hasBackgroundMusic() const;
 	bool setAudioMixWithSystem(bool mix);
 	void openFileDialog(bool folderOnly, const std::function<void(std::string)>& callback);
+	bool shareFile(String path);
+	bool saveFileDialog(String path);
+	std::string takeReceivedFile();
+	static void queueReceivedFile(std::string path);
 	std::string getExecutablePath() const;
 	void install(String path);
 	bool saveLog(String filename);

@@ -136,10 +136,18 @@ local record App
 	-- @return (string) The actual TGA output path, or an empty string on failure.
 	saveScreenshot: function(self: App, filename: string): string
 
-	-- A function that opens a file dialog. Only works on Windows, macOS and Linux.
+	-- Opens a file dialog. Mobile supports ZIP files only; folder selection is desktop-only.
 	-- @param folderOnly (boolean) Whether the file dialog is only for selecting folders.
 	-- @param callback (function) The callback function to be called when the file dialog is closed. The callback function should accept a string parameter which is the path of the selected file or folder. Get empty string if the user canceled the dialog.
 	openFileDialog: function(self: App, folderOnly: boolean, callback: function(path: string))
+
+	-- Dispatch a system share sheet (desktop: reveal containing folder), not a delivery receipt.
+	shareFile: function(self: App, path: string): boolean
+	-- Dispatch an export picker (desktop: reveal containing folder), not a save receipt.
+	saveFileDialog: function(self: App, path: string): boolean
+	-- Take the next externally opened path, or an empty string. Validate before use.
+	takeReceivedFile: function(self: App): string
+
 
 	-- A function that estimates how many LLM tokens a text will roughly consume.
 	-- By default, ASCII characters are counted at roughly 0.4 token each, and non-ASCII characters are counted at 2 tokens each.

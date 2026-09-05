@@ -142,7 +142,8 @@ local record Content
 	-- @param folderPath (string) The path of the folder to decompress to, should be under the asset writable path.
 	-- @param filter (function) [optional] A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
 	-- @return (boolean) `true` if the folder was decompressed successfully, `false` otherwise.
-	unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean): boolean
+	-- Optional archive byte and file count limits; 0 means unlimited. Unsafe paths are rejected.
+	unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean, maxBytes?: integer, maxFiles?: integer): boolean
 
 	-- Gets the names of all files in the specified directory and its subdirectories.
 	-- @param path (string) The path of the directory to search.

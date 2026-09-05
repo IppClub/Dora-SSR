@@ -141,7 +141,8 @@ local record Content
 	-- @param folderPath (string) 要解压缩到的文件夹的路径，应在可写资源路径下。
 	-- @param filter (function, 可选) 用于过滤要做解压的 ZIP 归档包中的文件的函数。该函数以文件名作为输入，并返回一个布尔值，表示是否解压文件。如果未提供，则解压所有文件。
 	-- @return (boolean) 如果成功解压缩了文件，则为 `true`，否则为 `false`。
-	unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean): boolean
+	-- 可选总字节数与文件数上限，0 表示不限。不安全路径始终被拒绝。
+	unzipAsync: function(self: Content, zipFile: string, folderPath: string, filter?: function(string): boolean, maxBytes?: integer, maxFiles?: integer): boolean
 
 	-- 获取指定目录及其子目录中所有文件的名称。
 	-- @param path (string) 要搜索的目录的路径。

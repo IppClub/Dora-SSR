@@ -76,54 +76,55 @@ function ____exports.MobileNewButton(props) -- 45
 	) -- 53
 end -- 45
 function ____exports.MobileButton(props) -- 57
-	local surfaceRenderOrder = (props.renderOrder or 0) + 1 -- 71
-	return React.createElement( -- 72
-		"node", -- 72
-		{ -- 72
-			tag = props.tag, -- 72
-			x = props.x, -- 72
-			y = props.y, -- 72
-			anchorX = 0, -- 72
-			anchorY = 0, -- 72
-			width = props.width, -- 72
-			height = 48, -- 72
-			renderOrder = props.renderOrder, -- 72
-			touchEnabled = true, -- 72
-			swallowTouches = true, -- 72
-			onTapped = props.onTapped -- 72
-		}, -- 72
-		React.createElement(RoundedSurface, { -- 72
-			width = props.width, -- 72
-			height = 48, -- 72
-			radius = 14, -- 72
-			renderOrder = surfaceRenderOrder, -- 72
-			topColor = props.danger and 4294935941 or (props.primary and 4294958955 or 4280889664), -- 72
-			bottomColor = props.danger and 4292824662 or (props.primary and 4294950190 or 4279967787), -- 72
-			borderWidth = 1, -- 72
-			borderColor = props.danger and 4294929259 or (props.primary and 4294958435 or 4281613128), -- 72
-			shadow = props.primary or props.danger -- 72
-		}), -- 72
-		React.createElement("label", { -- 72
-			x = props.width / 2, -- 72
-			y = 24, -- 72
-			fontName = fontName, -- 72
-			fontSize = props.fontSize or 17, -- 72
-			text = props.text, -- 72
-			color3 = props.primary and 1512202 or 16052712 -- 72
-		}) -- 72
-	) -- 72
+	local height = props.height or 48 -- 72
+	local surfaceRenderOrder = (props.renderOrder or 0) + 1 -- 73
+	return React.createElement( -- 74
+		"node", -- 74
+		{ -- 74
+			tag = props.tag, -- 74
+			x = props.x, -- 74
+			y = props.y, -- 74
+			anchorX = 0, -- 74
+			anchorY = 0, -- 74
+			width = props.width, -- 74
+			height = height, -- 74
+			renderOrder = props.renderOrder, -- 74
+			touchEnabled = true, -- 74
+			swallowTouches = true, -- 74
+			onTapped = props.onTapped -- 74
+		}, -- 74
+		React.createElement(RoundedSurface, { -- 74
+			width = props.width, -- 74
+			height = height, -- 74
+			radius = 14, -- 74
+			renderOrder = surfaceRenderOrder, -- 74
+			topColor = props.danger and 4294935941 or (props.primary and 4294958955 or 4280889664), -- 74
+			bottomColor = props.danger and 4292824662 or (props.primary and 4294950190 or 4279967787), -- 74
+			borderWidth = 1, -- 74
+			borderColor = props.danger and 4294929259 or (props.primary and 4294958435 or 4281613128), -- 74
+			shadow = props.primary or props.danger -- 74
+		}), -- 74
+		React.createElement("label", { -- 74
+			x = props.width / 2, -- 74
+			y = height / 2, -- 74
+			fontName = fontName, -- 74
+			fontSize = props.fontSize or 17, -- 74
+			text = props.text, -- 74
+			color3 = props.primary and 1512202 or 16052712 -- 74
+		}) -- 74
+	) -- 74
 end -- 57
-function ____exports.MobilePanelSurface(props) -- 85
-	return React.createElement(RoundedSurface, { -- 86
-		width = props.width, -- 86
-		height = props.height, -- 86
-		radius = 24, -- 86
-		topColor = 4280560956, -- 86
-		bottomColor = 4279309856, -- 86
-		borderWidth = 1, -- 86
-		borderColor = 4283061608, -- 86
-		shadow = true, -- 86
-		renderOrder = props.renderOrder -- 86
-	}) -- 86
-end -- 85
-return ____exports -- 85
+function ____exports.MobilePanelSurface(props) -- 87
+	return React.createElement(RoundedSurface, { -- 88
+		width = props.width, -- 88
+		height = props.height, -- 88
+		radius = 24, -- 88
+		topColor = 4280560956, -- 88
+		bottomColor = 4279309856, -- 88
+		borderWidth = 1, -- 88
+		borderColor = 4283061608, -- 88
+		shadow = true, -- 88
+		renderOrder = props.renderOrder -- 88
+	}) -- 88
+end -- 87
+return ____exports -- 87

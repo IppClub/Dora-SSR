@@ -138,10 +138,18 @@ local record App
 	-- @return (string) 实际TGA输出路径，失败时返回空字符串。
 	saveScreenshot: function(self: App, filename: string): string
 
-	-- 打开一个文件对话框。仅在Windows、macOS和Linux平台上有效。
+	-- 打开文件对话框。移动端支持选择 ZIP 文件；文件夹选择仅限桌面端。
 	-- @param folderOnly (boolean) 是否仅允许选择文件夹。
 	-- @param callback (function) 当文件对话框关闭时调用的回调函数。回调函数应接受一个字符串参数，该参数为选中的文件或文件夹的路径。如果用户取消对话框，则返回空字符串。
 	openFileDialog: function(self: App, folderOnly: boolean, callback: function(path: string))
+
+	-- 发起系统分享，桌面端打开所在目录。返回值不代表已送达。
+	shareFile: function(self: App, path: string): boolean
+	-- 发起文件导出，桌面端打开所在目录。返回值不代表已保存。
+	saveFileDialog: function(self: App, path: string): boolean
+	-- 取出下一个外部文件路径，无文件时返回空字符串。使用前应验证文件。
+	takeReceivedFile: function(self: App): string
+
 
 	-- 估算一段文本大致会消耗多少 LLM token。
 	-- 默认情况下，ASCII 字符按约 0.4 token/字符估算，非 ASCII 字符按 2 token/字符估算。

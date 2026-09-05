@@ -64,7 +64,7 @@ public:
 	void saveAsync(String filename, String content, const std::function<void(bool)>& callback);
 	void saveAsync(String filename, OwnArray<uint8_t> content, size_t size, const std::function<void(bool)>& callback);
 	void zipAsync(String folderPath, String zipFile, const std::function<bool(String)>& filter, const std::function<void(bool)>& callback);
-	void unzipAsync(String zipFile, String folderPath, const std::function<bool(String)>& filter, const std::function<void(bool)>& callback);
+	void unzipAsync(String zipFile, String folderPath, const std::function<bool(String)>& filter, const std::function<void(bool)>& callback, uint64_t maxBytes = 0, uint32_t maxFiles = 0);
 	void clearPathCache();
 
 public:

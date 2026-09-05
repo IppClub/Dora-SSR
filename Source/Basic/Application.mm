@@ -29,11 +29,141 @@ NS_DORA_END
 
 #include "SDL.h"
 #include "SDL_syswm.h"
+#import "3rdParty/SDL2/src/video/uikit/SDL_uikitappdelegate.h"
 
 #import <AVFoundation/AVFoundation.h>
 #import <AudioToolbox/AudioServices.h>
 #import <QuartzCore/CAMetalLayer.h>
 #import <UIKit/UIKit.h>
+
+
+@interface DoraGameDocumentPicker : NSObject <UIDocumentPickerDelegate>
+@property(nonatomic, copy) void (^completion)(NSString*);
+- (void)copyURL:(NSURL*)url;
+@end
+
+@implementation DoraGameDocumentPicker
+- (void)documentPickerWasCancelled:(UIDocumentPickerViewController*)controller {
+	if (self.completion) self.completion(@"");
+	self.completion = nil;
+}
+- (void)documentPicker:(UIDocumentPickerViewController*)controller didPickDocumentsAtURLs:(NSArray<NSURL*>*)urls {
+	NSURL* url = urls.firstObject;
+	if (!url) { [self documentPickerWasCancelled:controller]; return; }
+	[self copyURL:url];
+}
+- (void)copyURL:(NSURL*)url {
+	BOOL scoped = [url startAccessingSecurityScopedResource];
+	// Copy while access is granted, before the picker relinquishes the source URL.
+	dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+		NSString* directory = [NSTemporaryDirectory() stringByAppendingPathComponent:@"game-inbox"];
+		NSFileManager* manager = [NSFileManager defaultManager];
+		[manager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:nil];
+		for (NSString* name in [manager contentsOfDirectoryAtPath:directory error:nil]) {
+			NSString* old = [directory stringByAppendingPathComponent:name];
+			NSDate* date = [[manager attributesOfItemAtPath:old error:nil] fileModificationDate];
+			if (date && [date timeIntervalSinceNow] < -7 * 86400) [manager removeItemAtPath:old error:nil];
+		}
+		directory = [directory stringByAppendingPathComponent:NSUUID.UUID.UUIDString];
+		[manager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:nil];
+		NSString* target = [directory stringByAppendingPathComponent:url.lastPathComponent];
+		__block BOOL copied = NO;
+		NSFileCoordinator* coordinator = [[NSFileCoordinator alloc] initWithFilePresenter:nil];
+		[coordinator coordinateReadingItemAtURL:url options:0 error:nil byAccessor:^(NSURL* readable) {
+			NSDictionary* attrs = [manager attributesOfItemAtPath:readable.path error:nil];
+			if (attrs && [attrs fileSize] <= 256ULL * 1024 * 1024) {
+				copied = [manager copyItemAtPath:readable.path toPath:target error:nil];
+			}
+		}];
+		if (scoped) [url stopAccessingSecurityScopedResource];
+		dispatch_async(dispatch_get_main_queue(), ^{
+			if (self.completion) self.completion(copied ? target : @"");
+			self.completion = nil;
+		});
+	});
+}
+@end
+
+// UIKit can deliver a document before SDL_main initializes its event queue.
+// Own that delivery at the application delegate and copy the granted URL before
+// queuing it for Go, which also avoids relying on an external provider's lifetime.
+@interface DoraGameAppDelegate : SDLUIKitDelegate
+@end
+@implementation DoraGameAppDelegate
+- (BOOL)application:(UIApplication*)application openURL:(NSURL*)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id>*)options {
+	if (!url.isFileURL) return [super application:application openURL:url options:options];
+	DoraGameDocumentPicker* receiver = [[DoraGameDocumentPicker alloc] init];
+	receiver.completion = ^(NSString* path) {
+		if (path.length) Dora::Application::queueReceivedFile(std::string(path.UTF8String));
+	};
+	[receiver copyURL:url];
+	return YES;
+}
+@end
+
+// SDL explicitly supports selecting a delegate subclass through this category.
+@interface SDLUIKitDelegate (DoraGameDelegate)
+@end
+@implementation SDLUIKitDelegate (DoraGameDelegate)
++ (NSString*)getAppDelegateClassName { return @"DoraGameAppDelegate"; }
+@end
+
+static DoraGameDocumentPicker* gameDocumentPicker;
+static UIViewController* gamePresenter(SDL_Window* window) {
+	SDL_SysWMinfo info;
+	SDL_VERSION(&info.version);
+	if (!SDL_GetWindowWMInfo(window, &info)) return nil;
+	UIViewController* controller = info.info.uikit.window.rootViewController;
+	while (controller.presentedViewController) controller = controller.presentedViewController;
+	return controller;
+}
+
+NS_DORA_BEGIN
+void Application::openFileDialog(bool folderOnly, const std::function<void(std::string)>& callback) {
+	invokeInRender([this, folderOnly, callback]() {
+		UIViewController* presenter = gamePresenter(_sdlWindow);
+		if (folderOnly || !presenter || gameDocumentPicker.completion) {
+			invokeInLogic([callback]() { callback(""); });
+			return;
+		}
+		gameDocumentPicker = [[DoraGameDocumentPicker alloc] init];
+		gameDocumentPicker.completion = ^(NSString* path) {
+			std::string selected(path.UTF8String);
+			invokeInLogic([callback, selected]() { callback(selected); });
+		};
+		UIDocumentPickerViewController* picker = [[UIDocumentPickerViewController alloc] initWithDocumentTypes:@[@"public.zip-archive"] inMode:UIDocumentPickerModeImport];
+		picker.delegate = gameDocumentPicker;
+		[presenter presentViewController:picker animated:YES completion:nil];
+	});
+}
+
+bool Application::shareFile(String path) {
+	std::string filename = path.toString();
+	if (![[NSFileManager defaultManager] fileExistsAtPath:@(filename.c_str())]) return false;
+	invokeInRender([this, filename]() {
+		UIViewController* presenter = gamePresenter(_sdlWindow);
+		if (!presenter) return;
+		NSURL* url = [NSURL fileURLWithPath:@(filename.c_str())];
+		UIActivityViewController* activity = [[UIActivityViewController alloc] initWithActivityItems:@[url] applicationActivities:nil];
+		activity.popoverPresentationController.sourceView = presenter.view;
+		activity.popoverPresentationController.sourceRect = CGRectMake(CGRectGetMidX(presenter.view.bounds), CGRectGetMidY(presenter.view.bounds), 1, 1);
+		[presenter presentViewController:activity animated:YES completion:nil];
+	});
+	return true;
+}
+
+bool Application::saveFileDialog(String path) {
+	std::string filename = path.toString();
+	if (![[NSFileManager defaultManager] fileExistsAtPath:@(filename.c_str())]) return false;
+	invokeInRender([this, filename]() {
+		UIViewController* presenter = gamePresenter(_sdlWindow);
+		if (!presenter) return;
+		UIDocumentPickerViewController* picker = [[UIDocumentPickerViewController alloc] initWithURL:[NSURL fileURLWithPath:@(filename.c_str())] inMode:UIDocumentPickerModeExportToService];
+		[presenter presentViewController:picker animated:YES completion:nil];
+	});
+	return true;
+}
+NS_DORA_END
 
 NS_DORA_BEGIN
 Rect Application::getSafeArea() {

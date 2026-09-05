@@ -1283,9 +1283,9 @@ void Content::zipAsync(String folderPath, String zipFile, const std::function<bo
 					return Values::alloc(false);
 				}
 			}
-			mz_zip_writer_finalize_archive(&archive);
+			bool success = mz_zip_writer_finalize_archive(&archive) != 0;
 			mz_zip_writer_end(&archive);
-			return Values::alloc(true);
+			return Values::alloc(success);
 		} else {
 			Error("failed to init zip file \"{}\", due to: {}", zipFile, mz_zip_get_error_string(mz_zip_get_last_error(&archive)));
 			mz_zip_writer_end(&archive);
@@ -1299,7 +1299,7 @@ void Content::zipAsync(String folderPath, String zipFile, const std::function<bo
 		});
 }
 
-void Content::unzipAsync(String zipFile, String folderPath, const std::function<bool(String)>& filter, const std::function<void(bool)>& callback) {
+void Content::unzipAsync(String zipFile, String folderPath, const std::function<bool(String)>& filter, const std::function<void(bool)>& callback, uint64_t maxBytes, uint32_t maxFiles) {
 	std::error_code err;
 	auto fullZipPath = getFullPath(zipFile);
 	if (!fs::exists(fullZipPath, err)) {
@@ -1323,14 +1323,36 @@ void Content::unzipAsync(String zipFile, String folderPath, const std::function<
 		callback(false);
 		return;
 	}
+	// Validate before writing anything. ZIP names are untrusted on every platform.
+	const uint64_t maxUnpackedBytes = maxBytes ? maxBytes : UINT64_MAX;
+	uint64_t unpackedBytes = 0;
+	auto archiveFiles = zip->getAllFiles();
+	if (maxFiles && archiveFiles.size() > maxFiles) { callback(false); return; }
+	for (const auto& file : archiveFiles) {
+		bool safe = !file.empty() && file.front() != '/' && file.find('\\') == std::string::npos
+			&& file.find(':') == std::string::npos && file.find('\0') == std::string::npos;
+		for (const auto& part : fs::path(file)) {
+			if (part == ".." || part == ".") safe = false;
+		}
+		auto size = zip->getFileSize(file);
+		if (!safe || !size || *size > maxUnpackedBytes - unpackedBytes) {
+			Error("unsafe or oversized zip entry in {}", zipFile.toString());
+			callback(false);
+			return;
+		}
+		unpackedBytes += *size;
+	}
 	std::string rootDir;
 	BLOCK_START
 	auto entries = zip->getDirEntries(""s, false);
+	bool hasRootFiles = false;
 	for (const auto& file : entries) {
 		if (filter(file)) {
+			hasRootFiles = true;
 			break;
 		}
 	}
+	BREAK_IF(hasRootFiles);
 	auto dirs = zip->getDirEntries(""s, true);
 	std::list<std::string> rootDirs;
 	for (const auto& dir : dirs) {

@@ -408,7 +408,7 @@ do
 	end
 
 	local Content_unzipAsync = Content.unzipAsync
-	Content.unzipAsync = function(self, zipFile, folderPath, filter)
+	Content.unzipAsync = function(self, zipFile, folderPath, filter, maxBytes, maxFiles)
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "Content.unzipAsync should be run in a thread")
 		filter = filter or function() return true end
@@ -417,7 +417,7 @@ do
 		Content_unzipAsync(self, zipFile, folderPath, filter, function(success)
 			result = success
 			done = true
-		end)
+		end, maxBytes or 0, maxFiles or 0)
 		wait(function()
 			return done
 		end)

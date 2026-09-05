@@ -24,6 +24,8 @@ import android.os.Looper;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
+import android.database.Cursor;
 import android.provider.Settings;
 import android.os.Build;
 import android.util.Base64;
@@ -59,6 +61,11 @@ import androidx.core.content.FileProvider;
 import androidx.annotation.Keep;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.FileInputStream;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import android.content.ClipData;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -75,6 +82,13 @@ public class MainActivity extends SDLActivity {
 	private static final String WEB_IDE_URL = "http://127.0.0.1:8866";
 	private static final long SIDE_PANEL_AUTO_HIDE_MS = 3500L;
 	private static final int REQUEST_FILE_CHOOSER = 2001;
+	private static final int REQUEST_GAME_FILE = 2002;
+	private static final int REQUEST_SAVE_GAME = 2003;
+	private static final long MAX_GAME_BYTES = 256L * 1024 * 1024;
+	private static final ExecutorService gameFileWorker = Executors.newSingleThreadExecutor();
+	private static native void nativeReceiveFile(String path, boolean picked);
+	private String pendingGameExport;
+
 	private static native void nativeSetPath(String path);
 	private static native void nativeSetScreenDensity(float density);
 	private static native String nativeGetInstallFile();
@@ -139,6 +153,125 @@ public class MainActivity extends SDLActivity {
 		MainActivity.nativeSetMainActivityClass(MainActivity.class);
 		installIdeSwitcher();
 		hideSystemUI();
+		receiveGameIntent(getIntent());
+	}
+
+	@Override
+	protected void onNewIntent(Intent intent) {
+		super.onNewIntent(intent);
+		setIntent(intent);
+		receiveGameIntent(intent);
+	}
+
+	private void receiveGameIntent(Intent intent) {
+		if (intent == null) return;
+		Uri uri = null;
+		if (Intent.ACTION_VIEW.equals(intent.getAction())) uri = intent.getData();
+		else if (Intent.ACTION_SEND.equals(intent.getAction())) uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+		if (uri != null && ("content".equals(uri.getScheme()) || "file".equals(uri.getScheme()))) {
+			copyGameFile(uri, false);
+			// Do not replay the original delivery after activity recreation.
+			setIntent(new Intent(this, MainActivity.class));
+		}
+	}
+
+	private String gameText(String zh, String en) {
+		return Locale.getDefault().getLanguage().equals("zh") ? zh : en;
+	}
+
+	private void copyGameFile(Uri uri, boolean picked) {
+		gameFileWorker.execute(() -> {
+			File target = null;
+			try {
+				File directory = new File(getCacheDir(), "game-inbox");
+				if (!directory.isDirectory() && !directory.mkdirs()) throw new IOException("inbox");
+				File[] oldDeliveries = directory.listFiles();
+				if (oldDeliveries != null) for (File old : oldDeliveries) {
+					if (old.lastModified() < System.currentTimeMillis() - 7L * 86400000L) {
+						File[] children = old.listFiles();
+						if (children != null) for (File child : children) child.delete();
+						old.delete();
+					}
+				}
+				String name = uri.getLastPathSegment();
+				try (Cursor cursor = getContentResolver().query(uri, new String[] {OpenableColumns.DISPLAY_NAME}, null, null, null)) {
+					if (cursor != null && cursor.moveToFirst()) name = cursor.getString(0);
+				} catch (Exception ignored) { /* A provider may not expose a display name. */ }
+				if (name == null || name.isEmpty()) name = "Game.zip";
+				name = name.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "_");
+				File delivery = new File(directory, java.util.UUID.randomUUID().toString());
+				if (!delivery.mkdir()) throw new IOException("delivery");
+				target = new File(delivery, name);
+				try (InputStream input = getContentResolver().openInputStream(uri);
+					 OutputStream output = new FileOutputStream(target)) {
+					if (input == null) throw new IOException("empty input");
+					byte[] buffer = new byte[65536];
+					long total = 0;
+					int count;
+					while ((count = input.read(buffer)) != -1) {
+						total += count;
+						if (total > MAX_GAME_BYTES) throw new IOException("package too large");
+						output.write(buffer, 0, count);
+					}
+				}
+				nativeReceiveFile(target.getAbsolutePath(), picked);
+			} catch (Exception error) {
+				if (target != null) target.delete();
+				if (picked) nativeReceiveFile("", true);
+				showToast(gameText("无法读取作品包（最大 256 MB）", "Could not read game package (maximum 256 MB)"));
+			}
+		});
+	}
+
+	@Keep
+	public void pickGameFile(String unused) {
+		runOnUiThread(() -> {
+			try {
+				Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+				intent.addCategory(Intent.CATEGORY_OPENABLE);
+				intent.setType("application/zip");
+				intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[] {"application/zip", "application/x-zip-compressed", "application/octet-stream"});
+				startActivityForResult(intent, REQUEST_GAME_FILE);
+			} catch (ActivityNotFoundException error) {
+				nativeReceiveFile("", true);
+				showToast(gameText("无法打开文件选择器", "Could not open file picker"));
+			}
+		});
+	}
+
+	@Keep
+	public void shareGameFile(String path) {
+		runOnUiThread(() -> {
+			try {
+				Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".FileProvider", new File(path));
+				Intent intent = new Intent(Intent.ACTION_SEND);
+				intent.setType("application/zip");
+				intent.putExtra(Intent.EXTRA_STREAM, uri);
+				intent.setClipData(ClipData.newRawUri("Game package", uri));
+				intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+				startActivity(Intent.createChooser(intent, gameText("分享作品", "Share game")));
+			} catch (Exception error) {
+				showToast(gameText("无法打开分享面板，请尝试保存作品包", "Could not share; try saving the package"));
+			}
+		});
+	}
+
+	@Keep
+	public void saveGameFile(String path) {
+		runOnUiThread(() -> {
+			if (pendingGameExport != null) return;
+			try {
+				pendingGameExport = path;
+				Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+				intent.addCategory(Intent.CATEGORY_OPENABLE);
+				intent.setType("application/zip");
+				intent.putExtra(Intent.EXTRA_TITLE, new File(path).getName());
+				startActivityForResult(intent, REQUEST_SAVE_GAME);
+			} catch (ActivityNotFoundException error) {
+				pendingGameExport = null;
+				showToast(gameText("无法打开保存面板", "Could not open save dialog"));
+			}
+		});
 	}
 
 	private void configureEdgeToEdgeWindow() {
@@ -961,6 +1094,31 @@ public class MainActivity extends SDLActivity {
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (requestCode == REQUEST_GAME_FILE) {
+			if (resultCode == RESULT_OK && data != null && data.getData() != null) copyGameFile(data.getData(), true);
+			else nativeReceiveFile("", true);
+			return;
+		}
+		if (requestCode == REQUEST_SAVE_GAME) {
+			String source = pendingGameExport;
+			pendingGameExport = null;
+			if (resultCode == RESULT_OK && source != null && data != null && data.getData() != null) {
+				Uri destination = data.getData();
+				gameFileWorker.execute(() -> {
+					try (InputStream input = new FileInputStream(source);
+						 OutputStream output = getContentResolver().openOutputStream(destination, "wt")) {
+						if (output == null) throw new IOException("empty output");
+						byte[] buffer = new byte[65536];
+						int count;
+						while ((count = input.read(buffer)) != -1) output.write(buffer, 0, count);
+						showToast(gameText("作品包已保存", "Game package saved"));
+					} catch (Exception error) {
+						showToast(gameText("作品包保存失败", "Could not save game package"));
+					}
+				});
+			}
+			return;
+		}
 		if (requestCode == REQUEST_FILE_CHOOSER) {
 			if (fileChooserCallback != null) {
 				fileChooserCallback.onReceiveValue(

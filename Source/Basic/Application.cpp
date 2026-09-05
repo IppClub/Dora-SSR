@@ -34,6 +34,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "bx/timer.h"
 
 #include <chrono>
+#include <deque>
+#include <mutex>
 #include <cstring>
 #include <cstdlib>
 #include <ctime>
@@ -48,6 +50,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #define DORA_VERSION "1.9.2"_slice
 #define DORA_REVISION "16"_slice
+
+namespace {
+std::mutex receivedFileMutex;
+std::deque<std::string> receivedFiles;
+#if BX_PLATFORM_ANDROID
+std::function<void(std::string)> filePickerCallback;
+#endif
+}
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -75,6 +85,40 @@ JNIEXPORT jstring JNICALL Java_org_ippclub_dorassr_MainActivity_nativeGetInstall
 }
 extern "C" int Android_JNI_SendMessage(int command, int param);
 extern "C" JNIEnv* Android_JNI_GetEnv();
+
+extern "C" JNIEXPORT void JNICALL Java_org_ippclub_dorassr_MainActivity_nativeReceiveFile(JNIEnv* env, jclass, jstring value, jboolean picked) {
+	const jchar* text = env->GetStringChars(value, nullptr);
+	std::string path = text ? CodeCvt::utf16to8(std::u16string(r_cast<const char16_t*>(text), env->GetStringLength(value))) : "";
+	if (text) env->ReleaseStringChars(value, text);
+	if (!picked) {
+		Dora::Application::queueReceivedFile(std::move(path));
+		return;
+	}
+	Dora::Singleton<Dora::Application>::shared().invokeInLogic([path = std::move(path)]() {
+		auto callback = std::move(filePickerCallback);
+		filePickerCallback = nullptr;
+		if (callback) callback(path);
+	});
+}
+
+static bool androidFileAction(const char* name, const std::string& path) {
+	JNIEnv* env = Android_JNI_GetEnv();
+	jobject activity = r_cast<jobject>(SDL_AndroidGetActivity());
+	if (!env || !activity) return false;
+	jclass clazz = env->GetObjectClass(activity);
+	jmethodID method = clazz ? env->GetMethodID(clazz, name, "(Ljava/lang/String;)V") : nullptr;
+	if (method) {
+		auto utf16 = CodeCvt::utf8to16(path);
+		jstring value = env->NewString(r_cast<const jchar*>(utf16.data()), s_cast<jsize>(utf16.size()));
+		env->CallVoidMethod(activity, method, value);
+		env->DeleteLocalRef(value);
+	}
+	bool success = method && !env->ExceptionCheck();
+	if (env->ExceptionCheck()) env->ExceptionClear();
+	if (clazz) env->DeleteLocalRef(clazz);
+	env->DeleteLocalRef(activity);
+	return success;
+}
 
 static void setAndroidAppWebView(const std::string& path, bool visible) {
 	JNIEnv* env = Android_JNI_GetEnv();
@@ -948,6 +992,11 @@ int Application::run(MainFunc mainFunc) {
 		while (SDL_PollEvent(&event)) {
 			bool suppressKeyboardEvent = false;
 			switch (event.type) {
+				case SDL_DROPFILE:
+					queueReceivedFile(event.drop.file ? event.drop.file : "");
+					SDL_free(event.drop.file);
+					continue;
+
 				case SDL_QUIT:
 					if (Singleton<DB>::isInitialized()) {
 						SharedDB.stop();
@@ -1803,6 +1852,7 @@ std::string Application::saveScreenshot(String filename) {
 	return path + ".tga";
 }
 
+#if !BX_PLATFORM_IOS
 void Application::openFileDialog(bool folderOnly, const std::function<void(std::string)>& callback) {
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX
 	invokeInRender([this, folderOnly, callback]() {
@@ -1832,10 +1882,55 @@ void Application::openFileDialog(bool folderOnly, const std::function<void(std::
 			callback(std::move(path));
 		});
 	});
+#elif BX_PLATFORM_ANDROID
+	if (folderOnly || filePickerCallback) { callback(""); return; }
+	filePickerCallback = callback;
+	if (!androidFileAction("pickGameFile", "")) {
+		filePickerCallback = nullptr;
+		callback("");
+	}
 #else
-	Issue("Application.openFileDialog() is not unsupported on this platform");
+	callback("");
 #endif
 }
+#endif
+
+void Application::queueReceivedFile(std::string path) {
+	if (path.empty()) return;
+	std::lock_guard<std::mutex> lock(receivedFileMutex);
+	// Bound unsolicited deliveries; the Go UI drains one package at a time.
+	if (receivedFiles.size() < 16) receivedFiles.push_back(std::move(path));
+}
+
+std::string Application::takeReceivedFile() {
+	std::lock_guard<std::mutex> lock(receivedFileMutex);
+	if (receivedFiles.empty()) return "";
+	auto path = std::move(receivedFiles.front());
+	receivedFiles.pop_front();
+	return path;
+}
+
+#if !BX_PLATFORM_IOS
+bool Application::shareFile(String path) {
+	if (!SharedContent.exist(path) || SharedContent.isFolder(path)) return false;
+#if BX_PLATFORM_ANDROID
+	return androidFileAction("shareGameFile", path.toString());
+#else
+	openURL(Path::getPath(path));
+	return true;
+#endif
+}
+
+bool Application::saveFileDialog(String path) {
+	if (!SharedContent.exist(path) || SharedContent.isFolder(path)) return false;
+#if BX_PLATFORM_ANDROID
+	return androidFileAction("saveGameFile", path.toString());
+#else
+	openURL(Path::getPath(path));
+	return true;
+#endif
+}
+#endif
 
 NS_DORA_END
 

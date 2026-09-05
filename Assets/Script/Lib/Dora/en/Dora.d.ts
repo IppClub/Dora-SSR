@@ -794,11 +794,19 @@ interface App {
 	saveScreenshot(filename: string): string;
 
 	/**
-	 * A function that opens a file dialog. Only works on Windows, macOS and Linux.
+	 * Opens a file dialog. Mobile supports ZIP files only; folder selection is desktop-only.
 	 * @param folderOnly Whether the file dialog is only for selecting folders.
 	 * @param callback The callback function to be called when the file dialog is closed. The callback function should accept a string parameter which is the path of the selected file or folder. Get empty string if the user canceled the dialog.
 	 */
 	openFileDialog(folderOnly: boolean, callback: (this: void, path: string) => void): void;
+
+	/** Opens the system share sheet on mobile (desktop: reveals the containing folder). True means dispatched, not delivered. */
+	shareFile(path: string): boolean;
+	/** Opens a mobile export picker (desktop: reveals the containing folder). True means dispatched, not saved. */
+	saveFileDialog(path: string): boolean;
+	/** Takes the next externally opened file path, or an empty string. The caller must validate it before use. */
+	takeReceivedFile(): string;
+
 
 	/**
 	 * A function that estimates how many LLM tokens a text will roughly consume.
@@ -4544,7 +4552,8 @@ class Content {
 	 * @param filter A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
 	 * @returns `true` if the folder was decompressed successfully, `false` otherwise.
 	 */
-	unzipAsync(zipFile: string, folderPath: string, filter?: (this: void, filename: string) => boolean): boolean;
+	/** Optional limits reject oversized archives before extraction; zero means unlimited. Unsafe paths are always rejected. */
+	unzipAsync(zipFile: string, folderPath: string, filter?: (this: void, filename: string) => boolean, maxBytes?: number, maxFiles?: number): boolean;
 
 	/**
 	 * Gets the names of all files in the specified directory and its subdirectories.

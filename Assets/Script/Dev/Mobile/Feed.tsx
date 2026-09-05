@@ -7,6 +7,7 @@ import { getCoverScales, getReusableCardIndices, normalizeFeedIndex, resolveDisc
 import { createTextInput } from "Dev/Mobile/TextInput";
 import { MobileButton, MobileNewButton, MobilePanelSurface } from "Dev/Mobile/Controls";
 import { RoundedStencil, RoundedSurface, VerticalGradient } from "Dev/Mobile/Visual";
+import { startPackagePanel } from "Dev/Mobile/PackagePanel";
 import { ProjectIndex } from "Dev/Mobile/ProjectIndex";
 
 interface FeedEntry extends ModelFeedEntry {
@@ -18,7 +19,8 @@ interface FeedEntry extends ModelFeedEntry {
 interface MobileFeedOptions {
 	initialEntry?: FeedEntry;
 	initialEntries?: { local?: FeedEntry; discover?: FeedEntry };
-	getLocalEntries: (this: void) => FeedEntry[];
+	getLocalEntries: (this: void, dirtyProjectPath?: string) => FeedEntry[];
+	takeReceivedFile?: (this: void) => string;
 	getDiscoverEntries: (this: void) => FeedEntry[];
 	syncDiscover?: (this: void, onProgress: (this: void, message: string) => void, onDone: (this: void, success: boolean, message?: string) => void) => void;
 	onPlay: (this: void, entry: FeedEntry) => void;
@@ -112,6 +114,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	let userSelectedTab = false;
 	let active = true;
 	let leaving = false;
+	let packagePanel: Node.Type | undefined;
 	let createOpen = false;
 	let projectIndexOpen = false;
 	let creating = false;
@@ -229,6 +232,37 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		onRemix(result.entry);
 	};
 
+	const openPackage = (mode: "add" | "share" | "receive", path?: string) => {
+		if (!isActive() || !host.visible || packagePanel || preparing || transitioning || creating || createOpen || HttpServer.wsConnectionCount > 0) return;
+		projectIndexOpen = false;
+		packagePanel = startPackagePanel({
+			mode, path, entry: current(),
+			onNew: openCreate,
+			onClosed: () => { packagePanel = undefined; },
+			onImported: (entry, play) => {
+				if (!isActive()) return;
+				local = getLocalEntries(entry.workDir);
+				const imported = local.find(item => item.workDir === entry.workDir) ?? entry;
+				returnEntry = imported;
+				const location = resolveFeedLocation(local, discover, imported);
+				tab = "local"; index = location.index;
+				render();
+				if (play) onPlay(imported);
+			},
+		});
+	};
+	let receiveElapsed = 0;
+	host.schedule(dt => {
+		receiveElapsed += dt;
+		if (receiveElapsed < 0.5) return false;
+		receiveElapsed = 0;
+		if (isActive() && host.visible && !packagePanel && !createOpen && !projectIndexOpen && !preparing && !transitioning && HttpServer.wsConnectionCount === 0) {
+			const path = options.takeReceivedFile ? options.takeReceivedFile() : App.takeReceivedFile();
+			if (path !== "") openPackage("receive", path);
+		}
+		return false;
+	});
+
 	const setTab = (next: FeedTab) => {
 		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || preparing || creating) return;
 		userSelectedTab = true;
@@ -318,7 +352,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	};
 
 	const switchMode = () => {
-		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || preparing || creating || createOpen || transitioning || !options.onSwitchMode) return;
+		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || preparing || creating || createOpen || packagePanel || transitioning || !options.onSwitchMode) return;
 		leaving = true;
 		options.onSwitchMode();
 	};
@@ -437,7 +471,8 @@ export function startMobileFeed(options: MobileFeedOptions) {
 						<label x={24} y={13} fontName={fontName} fontSize={11} text={`${index + 1} / ${data.length}`} color3={0xd7dbe3} />
 					</node>
 					<label tag="mobile-feed-current-title" x={infoX} y={infoTop} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={math.floor((wide ? 30 : 25) * fontScale)}
-						text={item.title} textWidth={infoWidth} alignment={TextAlign.Left} color3={0xf4f1e8} />
+						text={item.title} textWidth={infoWidth - (item.kind === "local" ? 92 : 0)} alignment={TextAlign.Left} color3={0xf4f1e8} />
+					{item.kind === "local" ? <MobileButton tag="mobile-feed-share" x={infoX + infoWidth - 84} y={infoTop - 18} width={84} height={36} text={zh ? "分享作品" : "Share"} fontSize={13} onTapped={() => openPackage("share")} /> : undefined}
 					<label tag="mobile-feed-description" x={infoX} y={descriptionY} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={math.floor(15 * fontScale)}
 						text={conciseDescription(item.description, wide ? 80 : compact ? 28 : 42)} textWidth={infoWidth} alignment={TextAlign.Left} color3={0xa8afbd} />
 					{compact || shortLandscape ? undefined : <node x={infoX} y={infoTop - 118} width={wide ? 176 : 164} height={28} anchorX={0} anchorY={0}>
@@ -461,6 +496,10 @@ export function startMobileFeed(options: MobileFeedOptions) {
 					text={tab === "discover" && discoverError !== "" ? discoverError : (zh ? "切换标签或稍后重试" : "Switch tabs or retry later")}
 					textWidth={usableWidth - 48} color3={tab === "discover" && discoverError !== "" ? 0xff6b6b : 0xa8afbd} />
 			</node>}
+			{!item && tab === "local" ? <node>
+				<MobileButton tag="mobile-empty-new" x={left + 20} y={bottom + 24} width={(usableWidth - 52) / 2} text={zh ? "新建作品" : "New game"} onTapped={openCreate} />
+				<MobileButton tag="mobile-empty-import" x={left + 32 + (usableWidth - 52) / 2} y={bottom + 24} width={(usableWidth - 52) / 2} text={zh ? "导入作品包" : "Import package"} fontSize={15} primary={true} onTapped={() => openPackage("add")} />
+			</node> : undefined}
 			<node tag="mobile-feed-header" order={headerRenderOrder}>
 				{options.onSwitchMode ? <node tag="mobile-ui-mode-switch" x={left + 12} y={bottom + usableHeight - 58 + landscapeTopLift} width={72} height={48}
 					anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={switchMode}>
@@ -476,7 +515,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 				<RoundedSurface x={left + usableWidth / 2 + (tab === "discover" ? -58 : 30)} y={bottom + usableHeight - 56 + landscapeTopLift} width={28} height={3} radius={1.5} fillColor={colors.brand} renderOrder={headerRenderOrder + 1} />
 				{tab === "local" && options.createProject ? <MobileNewButton tag="mobile-feed-create"
 					x={left + usableWidth - 82} y={bottom + usableHeight - 56 + landscapeTopLift}
-					text={zh ? "+ 新建" : "+ New"} renderOrder={headerRenderOrder + 1} onTapped={openCreate} /> : undefined}
+					text={zh ? "+ 新建" : "+ New"} renderOrder={headerRenderOrder + 1} onTapped={() => openPackage("add")} /> : undefined}
 			</node>
 			{createOpen ? (() => {
 				const sheetHeight = math.min(createSheetHeight, usableHeight - 64);
@@ -537,7 +576,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 
 	attachGamepad(host, {
 		initialTag: "mobile-feed-play",
-		isEnabled: () => isActive() && !preparing && !transitioning && !creating,
+		isEnabled: () => isActive() && !packagePanel && !preparing && !transitioning && !creating,
 		onActive: () => { gamepadUsed = true; render(); },
 		onBack: () => { if (createInput.isFocused()) blurCreateInput(); else if (createOpen) closeCreate(); else switchMode(); },
 		onActivate: target => {
@@ -581,7 +620,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 			else if (createOpen && !creating) closeCreate();
 		} else if (event === "WillEnterBackground" || event === "DidEnterBackground") blurCreateInput();
 	});
-	host.onCleanup(() => { blurCreateInput(); active = false; });
+	host.onCleanup(() => { blurCreateInput(); active = false; packagePanel?.removeFromParent(true); packagePanel = undefined; });
 	host.slot("RestoreFeedEntry", (entry: FeedEntry) => {
 		if (!isActive() || HttpServer.wsConnectionCount > 0) return;
 		returnEntry = entry;

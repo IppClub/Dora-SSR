@@ -200,7 +200,7 @@ std::optional<size_t> ZipFile::getFileSize(const std::string& filename) const {
 	if (!_file || filename.empty()) return std::nullopt;
 	std::string searchName = getSearchName(filename);
 	auto it = _file->fileList.find(searchName);
-	if (it == _file->fileList.end()) return std::nullopt;
+	if (it == _file->fileList.end() || it->second.size > SIZE_MAX) return std::nullopt;
 	return s_cast<size_t>(it->second.size);
 }
 

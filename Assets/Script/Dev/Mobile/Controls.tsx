@@ -59,6 +59,7 @@ export function MobileButton(props: {
 	x: number;
 	y: number;
 	width: number;
+	height?: number;
 	text: string;
 	fontSize?: number;
 	primary?: boolean;
@@ -68,15 +69,16 @@ export function MobileButton(props: {
 }) {
 	// Keep the NanoVG surface above the panel surface even when callers use the
 	// panel's render order for the button container.
+	const height = props.height ?? 48;
 	const surfaceRenderOrder = (props.renderOrder ?? 0) + 1;
 	return <node tag={props.tag} x={props.x} y={props.y} anchorX={0} anchorY={0}
-		width={props.width} height={48} renderOrder={props.renderOrder}
+		width={props.width} height={height} renderOrder={props.renderOrder}
 		touchEnabled={true} swallowTouches={true} onTapped={props.onTapped}>
-		<RoundedSurface width={props.width} height={48} radius={14} renderOrder={surfaceRenderOrder}
+		<RoundedSurface width={props.width} height={height} radius={14} renderOrder={surfaceRenderOrder}
 			topColor={props.danger ? 0xffff8585 : props.primary ? 0xffffdf6b : 0xff293140}
 			bottomColor={props.danger ? 0xffdf4e56 : props.primary ? 0xffffbd2e : 0xff1b202b}
 			borderWidth={1} borderColor={props.danger ? 0xffff6b6b : props.primary ? 0xffffdd63 : 0xff343b48} shadow={props.primary || props.danger} />
-		<label x={props.width / 2} y={24} fontName={fontName}
+		<label x={props.width / 2} y={height / 2} fontName={fontName}
 			fontSize={props.fontSize ?? 17} text={props.text}
 			color3={props.primary ? 0x17130a : 0xf4f1e8} />
 	</node>;

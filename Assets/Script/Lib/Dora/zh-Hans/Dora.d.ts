@@ -797,11 +797,19 @@ interface App {
 	saveScreenshot(filename: string): string;
 
 	/**
-	 * 打开一个文件对话框。仅在Windows、macOS和Linux平台上有效。
+	 * 打开文件对话框。移动端支持选择 ZIP 文件；文件夹选择仅限桌面端。
 	 * @param folderOnly 是否仅允许选择文件夹。
 	 * @param callback 当文件对话框关闭时调用的回调函数。回调函数应接受一个字符串参数，该参数为选中的文件或文件夹的路径。如果用户取消对话框，则返回空字符串。
 	 */
 	openFileDialog(folderOnly: boolean, callback: (this: void, path: string) => void): void;
+
+	/** 在移动端打开系统分享面板，桌面端打开所在目录。返回 true 表示已发起操作，不代表已送达。 */
+	shareFile(path: string): boolean;
+	/** 在移动端打开导出文件选择器，桌面端打开所在目录。返回 true 表示已发起操作，不代表已保存。 */
+	saveFileDialog(path: string): boolean;
+	/** 取出下一个外部打开的文件路径，无文件时返回空字符串。使用前必须验证文件。 */
+	takeReceivedFile(): string;
+
 
 	/**
 	 * 估算一段文本大致会消耗多少 LLM token。
@@ -4549,7 +4557,8 @@ class Content {
 	 * @param filter 过滤器函数，用于过滤包含在存档中的文件。该函数接受文件名作为输入，并返回布尔值，表示是否包含该文件。如果未提供，将包含所有文件。
 	 * @returns 如果文件夹成功解压缩，则返回`true`，否则返回`false`。
 	 */
-	unzipAsync(zipFile: string, folderPath: string, filter?: (this: void, filename: string) => boolean): boolean;
+	/** 可选上限在解包前检查总字节数和文件数，0 表示不限。不安全的路径始终被拒绝。 */
+	unzipAsync(zipFile: string, folderPath: string, filter?: (this: void, filename: string) => boolean, maxBytes?: number, maxFiles?: number): boolean;
 
 	/**
 	 * 异步搜索文件并返回匹配结果，应在协程线程中调用。

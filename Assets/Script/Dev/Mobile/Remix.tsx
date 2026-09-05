@@ -13,6 +13,7 @@ import { createRemixTranscript, remixDisplayRevision, type RemixTranscriptAction
 import { REMIX_HISTORY_ROUNDS } from "Dev/Mobile/RemixHistory";
 import { createTextInput, inputLength, inputSlice } from "Dev/Mobile/TextInput";
 import { startMobileLLMManager } from "Dev/Mobile/LLMSetup";
+import { startPackagePanel } from "Dev/Mobile/PackagePanel";
 import { RoundedSurface, VerticalGradient } from "Dev/Mobile/Visual";
 
 interface RemixEntry {
@@ -105,6 +106,7 @@ function ChoiceButton(props: { x: number; y: number; width: number; text: string
 export function startMobileRemix(options: RemixOptions) {
 	const onBack = options.onBack;
 	const onPlay = options.onPlay;
+	let packagePanel: Node.Type | undefined;
 	const services: MobileRemixServices = options.services ?? {
 		createSession: AgentSession.createSession,
 		getSession: id => AgentSession.getSession(id, { recentRounds: REMIX_HISTORY_ROUNDS, currentTaskStepsOnly: true }),
@@ -152,7 +154,7 @@ export function startMobileRemix(options: RemixOptions) {
 			const question = currentQuestion();
 			return question?.placeholder ?? (question ? (zh ? "输入回答…" : "Type an answer…") : (zh ? "输入修改要求…" : "Describe a change…"));
 		},
-		isEnabled: () => !disposed && host.parent !== undefined && host.visible && HttpServer.wsConnectionCount === 0,
+		isEnabled: () => !packagePanel && !disposed && host.parent !== undefined && host.visible && HttpServer.wsConnectionCount === 0,
 		onReturn: modified => { if (modified && !currentQuestion()) { send(); return true; } return false; },
 	});
 	const blurInput = promptInput.blur;
@@ -384,7 +386,7 @@ export function startMobileRemix(options: RemixOptions) {
 		render();
 	};
 	const goBack = () => {
-		if (swipeBackPending || !host.visible || HttpServer.wsConnectionCount > 0) return;
+		if (packagePanel || swipeBackPending || !host.visible || HttpServer.wsConnectionCount > 0) return;
 		if (detail.success && !canLeaveRemix(detail.session.status)) {
 			error = zh ? "Agent 工作中，请先停止再返回" : "Stop the Agent before going back";
 			render();
@@ -432,19 +434,14 @@ export function startMobileRemix(options: RemixOptions) {
 		const layoutComposerHeight = composerHeight;
 		const layoutModeBottom = layoutComposerBottom + layoutComposerHeight + composerGap;
 		const layoutComposerTop = layoutModeBottom + 40;
-		layoutTranscriptBottom = layoutComposerTop + composerGap;
+		layoutTranscriptBottom = layoutComposerTop + composerGap + (phase === "done" ? 48 : 0);
 		const contentWidth = safe.width - 32;
 		const inputWidth = contentWidth - composerActionWidth - composerGap;
-		const inlinePlay = phase === "done";
-		const modeWidth = inlinePlay
-			? shortLandscape ? math.min(170, math.floor((contentWidth - composerGap * 2 - 120) / 2)) : math.floor((contentWidth - composerGap * 2) / 3)
-			: math.floor((contentWidth - composerGap) / 2);
+		const modeWidth = math.floor((contentWidth - composerGap) / 2);
 		const modeStartX = left + 16;
-		const modeCodeWidth = inlinePlay && shortLandscape ? modeWidth
-			: inlinePlay ? math.floor((contentWidth - composerGap * 2) / 3)
-			: contentWidth - modeWidth - composerGap;
-		const playWidth = inlinePlay ? contentWidth - modeWidth - modeCodeWidth - composerGap * 2 : 0;
-		const playX = modeStartX + modeWidth + composerGap + modeCodeWidth + composerGap;
+		const modeCodeWidth = contentWidth - modeWidth - composerGap;
+		const playWidth = (contentWidth - composerGap) / 2;
+		const playX = modeStartX + playWidth + composerGap;
 		const questionnaire = detail.success ? detail.pendingQuestionnaire : undefined;
 		const question = questionnaire?.schema.questions[questionIndex];
 		const fontScale = mobileFontScale;
@@ -483,7 +480,7 @@ export function startMobileRemix(options: RemixOptions) {
 			mascotAnimationStartedAt = App.runningTime;
 		}
 		const emptyLandscape = shortLandscape && !hasTranscriptContent();
-		const emptyStatusBottom = bottom + layoutModeBottom + 40 + composerGap;
+		const emptyStatusBottom = bottom + layoutTranscriptBottom;
 		const emptyStatusTop = headerY - composerGap - statusHeight;
 		const messageTop = emptyLandscape
 			? (emptyStatusBottom + emptyStatusTop) / 2 + statusHeight / 2
@@ -518,7 +515,7 @@ export function startMobileRemix(options: RemixOptions) {
 			<node tag="remix-focus-observer" order={1000} width={width} height={height} anchorX={0} anchorY={0}
 				touchEnabled={true} swallowTouches={false} swallowMouseWheel={false} onTapFilter={touch => {
 					touch.enabled = false;
-					if (swipeBackPending || !host.visible || HttpServer.wsConnectionCount > 0) return;
+					if (packagePanel || swipeBackPending || !host.visible || HttpServer.wsConnectionCount > 0) return;
 					const input = inputRef.current;
 					const point = input?.convertToNodeSpace(touch.worldLocation);
 					const inside = input && point && point.x >= 0 && point.y >= 0 && point.x <= input.width && point.y <= input.height;
@@ -630,7 +627,12 @@ export function startMobileRemix(options: RemixOptions) {
 				text={stopping ? (state?.currentTaskFinalizing ? (zh ? "收尾中" : "Finishing") : stopRequested ? (zh ? "停止中" : "Stopping") : (zh ? "停止" : "Stop")) : (zh ? "发送" : "Send")}
 				primary={!stopping} danger={stopping} disabled={stopping ? stopRequested || state?.currentTaskFinalizing === true : !canSubmit()}
 				onTapped={() => { if (stopping) stop(); else if (!dismissedComposition) send(); dismissedComposition = false; }} /> : undefined}
-			{phase === "done" ? <ActionButton tag="remix-play" x={playX} y={bottom + layoutModeBottom} width={playWidth} height={40} text={zh ? "立即试玩" : "Play now"} primary={true} onTapped={() => { if (!host.visible || HttpServer.wsConnectionCount > 0) return; blurInput(); notifyProjectChanged(); host.visible = false; onPlay(options.entry); }} /> : undefined}
+			{phase === "done" ? <ActionButton tag="remix-share" x={left + 16} y={bottom + layoutModeBottom + 48} width={playWidth} height={40} text={zh ? "分享作品" : "Share game"} onTapped={() => {
+				if (!host.visible || packagePanel || HttpServer.wsConnectionCount > 0) return;
+				blurInput(); notifyProjectChanged();
+				packagePanel = startPackagePanel({ mode: "share", entry: options.entry, onClosed: () => { packagePanel = undefined; } });
+			}} /> : undefined}
+			{phase === "done" ? <ActionButton tag="remix-play" x={playX} y={bottom + layoutModeBottom + 48} width={playWidth} height={40} text={zh ? "立即试玩" : "Play now"} primary={true} onTapped={() => { if (!host.visible || HttpServer.wsConnectionCount > 0) return; blurInput(); notifyProjectChanged(); host.visible = false; onPlay(options.entry); }} /> : undefined}
 			</node>
 		</node>);
 		if (scene) {
@@ -686,7 +688,11 @@ export function startMobileRemix(options: RemixOptions) {
 		if (event === "BackButton") { if (promptInput.isFocused()) blurInput(); else goBack(); }
 		else if (event === "WillEnterBackground" || event === "DidEnterBackground") blurInput();
 	});
-	host.onCleanup(() => { disposed = true; blurInput(); });
+	host.onCleanup(() => {
+		packagePanel?.removeFromParent(true);
+		packagePanel = undefined;
+		disposed = true; blurInput();
+	});
 	host.slot("SuspendLocalUI", blurInput);
 	host.slot("ResumeLocalUI", () => { refresh(); render(); });
 	render();

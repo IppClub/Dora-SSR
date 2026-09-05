@@ -180,6 +180,9 @@ class Application
 	bool saveLog(String filename);
 	string saveScreenshot(String filename);
 	void openFileDialog(bool folderOnly, tolua_function_void callback);
+	bool shareFile(String path);
+	bool saveFileDialog(String path);
+	string takeReceivedFile();
 	void shutdown();
 	tolua_outside int Application_estimateTokens @ estimateTokens(String text, double asciiTokensPerChar = 0.4, double nonAsciiTokensPerChar = 2.0);
 	static tolua_outside Application* Application_shared @ create();
@@ -277,7 +280,7 @@ class Content
 	void saveAsync(String filename, String content, tolua_function_void handler);
 	void copyAsync(String src, String dst, tolua_function_void handler);
 	void zipAsync(String folderPath, String zipFile, tolua_function_bool filter, tolua_function_void callback);
-	void unzipAsync(String zipFile, String folderPath, tolua_function_bool filter, tolua_function_void callback);
+	void unzipAsync(String zipFile, String folderPath, tolua_function_bool filter, tolua_function_void callback, uint64_t maxBytes = 0, uint32_t maxFiles = 0);
 	void clearPathCache();
 	tolua_outside void Content_getDirs @ getDirs(String path);
 	tolua_outside void Content_getFiles @ getFiles(String path);
