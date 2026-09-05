@@ -236,14 +236,15 @@ function ____exports.startMobilePlayOverlay(options) -- 35
 	end -- 75
 	Gamepad.attachGamepad(host, {
 		onBack = function() end,
-		onButton = function(button, id)
-			if (button == "start" and ____Dora.Controller:isButtonPressed(id, "back")) or
-				(button == "back" and ____Dora.Controller:isButtonPressed(id, "start")) then
-				if expanded then exit() else expanded = true; gamepadExit = true; expandedTime = 0; render() end
-			elseif button == "b" and expanded then expanded = false; render() end
+		onButton = function(button)
+			if button == "b" and expanded then expanded = false; render() end
 			return true
 		end,
 	})
+	host:gslot("ControllerShortcut", function(id, shortcut)
+		if shortcut ~= "back+start" or exiting or not host.visible or HttpServer.wsConnectionCount > 0 then return end
+		if expanded then exit() else expanded = true; gamepadExit = true; expandedTime = 0; render() end
+	end)
 	host:schedule(function(dt) -- 131
 		if not expanded or exiting or pointerDown then -- 131
 			return false -- 132

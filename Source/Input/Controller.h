@@ -63,6 +63,7 @@ public:
 	ControllerHandler handler;
 	void clearChanges();
 	void handleEventInRender(const SDL_Event& event, bool emitEvents = true);
+	void handleShortcutsInRender(const SDL_Event& event);
 	void handleVirtualGamepadEventInRender(const SDL_Event& event);
 
 protected:
@@ -86,6 +87,7 @@ private:
 			bool newState;
 		};
 		StringMap<ButtonState> buttonMap;
+		uint8_t shortcutButtons = 0;
 	};
 	std::unordered_map<DeviceID, Own<Device>> _deviceMap;
 	std::set<std::string> _recentGamepadGuids;

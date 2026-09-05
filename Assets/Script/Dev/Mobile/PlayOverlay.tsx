@@ -1,5 +1,5 @@
 import { React, reference, toNode } from "DoraX";
-import { App, ButtonName, Controller, DB, Director, HttpServer, Node, Vec2 } from "Dora";
+import { App, DB, Director, HttpServer, Node, Vec2 } from "Dora";
 import { attachGamepad } from "Dev/Mobile/Gamepad";
 import { mobileFontScale } from "Dev/Mobile/Accessibility";
 import { RoundedSurface } from "Dev/Mobile/Visual";
@@ -133,15 +133,16 @@ export function startMobilePlayOverlay(options: PlayOverlayOptions) {
 
 	attachGamepad(host, {
 		onBack: () => undefined,
-		onButton: (button, id) => {
+		onButton: button => {
 			// Ordinary game buttons must never activate the shell's exit control.
-			if ((button === "start" && Controller.isButtonPressed(id, ButtonName.Back)) ||
-				(button === "back" && Controller.isButtonPressed(id, ButtonName.Start))) {
-				if (expanded) exit();
-				else { expanded = true; gamepadExit = true; expandedTime = 0; render(); }
-			} else if (button === "b" && expanded) { expanded = false; render(); }
+			if (button === "b" && expanded) { expanded = false; render(); }
 			return true;
 		},
+	});
+	host.gslot("ControllerShortcut", (_id: number, shortcut: string) => {
+		if (shortcut !== "back+start" || exiting || !host.visible || HttpServer.wsConnectionCount > 0) return;
+		if (expanded) exit();
+		else { expanded = true; gamepadExit = true; expandedTime = 0; render(); }
 	});
 	host.schedule(dt => {
 		if (!expanded || exiting || pointerDown) return false;

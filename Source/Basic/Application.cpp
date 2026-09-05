@@ -1068,6 +1068,9 @@ int Application::run(MainFunc mainFunc) {
 					} else {
 						SharedController.handleEventInRender(event);
 					}
+					// Queue the shell shortcut after ordinary dispatch so an exit
+					// cannot send this same button to the newly restored screen.
+					SharedController.handleShortcutsInRender(event);
 					break;
 				}
 				default:

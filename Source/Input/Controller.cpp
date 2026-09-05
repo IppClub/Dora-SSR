@@ -673,6 +673,28 @@ void Controller::handleVirtualGamepadEventInRender(const SDL_Event& event) {
 #endif // DORA_VIRTUAL_GAMEPAD_SUPPORTED
 }
 
+void Controller::handleShortcutsInRender(const SDL_Event& event) {
+	if (event.type != SDL_CONTROLLERBUTTONDOWN && event.type != SDL_CONTROLLERBUTTONUP) return;
+	uint8_t mask = 0;
+	if (event.cbutton.button == SDL_CONTROLLER_BUTTON_BACK) mask = 1;
+	else if (event.cbutton.button == SDL_CONTROLLER_BUTTON_START) mask = 2;
+	else return;
+	const auto joystickId = s_cast<DeviceID>(event.cbutton.which);
+	const bool down = event.type == SDL_CONTROLLERBUTTONDOWN;
+	// Shell shortcuts must retain their own edges even when ImGui captures
+	// ordinary controller input. Track each controller independently.
+	SharedApplication.invokeInLogic([joystickId, mask, down, this]() {
+		if (auto it = _deviceMap.find(joystickId); it != _deviceMap.end()) {
+			auto& buttons = it->second->shortcutButtons;
+			const auto previous = buttons;
+			buttons = down ? (buttons | mask) : (buttons & ~mask);
+			if (buttons == 3 && previous != 3) {
+				Event::send("ControllerShortcut"sv, it->second->id, "back+start"s);
+			}
+		}
+	});
+}
+
 void Controller::handleEventInRender(const SDL_Event& event, bool emitEvents) {
 	switch (event.type) {
 		case SDL_CONTROLLERDEVICEADDED:
