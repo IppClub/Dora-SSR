@@ -19,7 +19,7 @@ Android accepts ZIP `ACTION_VIEW` and `ACTION_SEND` deliveries, including cold s
 
 ## Regression checks
 
-Generate disposable fixtures with `python3 Tools/tests/mobile_package_fixtures.py <Dora appPath>`, compile `Assets/Script/Dev/Mobile/PackageTest.ts`, then run its generated Lua in Dora. Read `<appPath>/mobile-package-test.result`. The test covers source/asset retention, private-state exclusion, Unicode naming, immutable snapshots, runnable installed entries, collision copies, cancellation, malformed/oversized/unsafe archives, and legacy ZIP layouts. Test projects are removed in `finally`.
+In Dora-Example, generate disposable fixtures with `python3 Test/Mobile/mobile_package_fixtures.py <Dora appPath>`, compile `Test/Mobile/PackageTest.ts`, then run its generated Lua in Dora with Dora-Example on the search path. Read `<appPath>/mobile-package-test.result`. The test covers source/asset retention, private-state exclusion, Unicode naming, immutable snapshots, runnable installed entries, collision copies, cancellation, malformed/oversized/unsafe archives, and legacy ZIP layouts. Test projects are removed in `finally`.
 
 Build Android and iOS with the repository platform wrappers. Device acceptance additionally requires native picker cancel/retry, saving and reopening a ZIP, incoming cold/warm starts, import-and-play followed by exit to the card, rotation/safe-area layout, and repeating the cycle with another recipient. A successful build alone does not establish cross-app delivery on a physical device.
 

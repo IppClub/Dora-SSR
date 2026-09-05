@@ -38,6 +38,7 @@ export function startPackagePanel(options: {
 	mode: "add" | "share" | "receive";
 	entry?: Pick<FeedEntry, "title" | "workDir" | "fileName">;
 	path?: string;
+	pickOnOpen?: boolean;
 	onNew?: (this: void) => void;
 	onImported?: (this: void, entry: FeedEntry, play: boolean) => void;
 	onClosed: (this: void) => void;
@@ -45,6 +46,7 @@ export function startPackagePanel(options: {
 	const host = Node();
 	host.tag = "mobile-package-panel";
 	host.order = 20000;
+	host.renderGroup = true;
 	host.addTo(Director.systemUI);
 	let active = true;
 	let busy = options.mode === "share" && options.entry !== undefined;
@@ -158,6 +160,7 @@ export function startPackagePanel(options: {
 	host.onCleanup(() => { active = false; if (preview) discardPackage(preview); preview = undefined; });
 	host.schedule(() => { host.visible = HttpServer.wsConnectionCount === 0; return false; });
 	render();
+	if (options.mode === "add" && options.pickOnOpen) pick();
 	if (options.mode === "receive" && options.path) receive(options.path);
 	if (options.mode === "share" && options.entry) {
 		thread(() => {

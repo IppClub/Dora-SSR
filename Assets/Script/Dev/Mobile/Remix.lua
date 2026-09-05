@@ -115,1396 +115,1461 @@ local function ellipsizeSingleLine(text, width, fontSize) -- 61
 	measure:cleanup() -- 76
 	return result -- 77
 end -- 61
-local function ActionButton(props) -- 80
-	local height = props.height or 46 -- 81
-	return React.createElement( -- 82
-		"node", -- 82
-		{ -- 82
-			tag = props.tag, -- 82
-			x = props.x, -- 82
-			y = props.y, -- 82
-			width = props.width, -- 82
-			height = height, -- 82
-			anchorX = 0, -- 82
-			anchorY = 0, -- 82
-			opacity = props.disabled and 0.45 or 1, -- 82
-			touchEnabled = not props.disabled, -- 82
-			swallowTouches = true, -- 82
-			onTapped = props.onTapped -- 82
-		}, -- 82
-		React.createElement(RoundedSurface, { -- 82
-			width = props.width, -- 82
-			height = height, -- 82
-			radius = 14, -- 82
-			topColor = props.danger and 4294935941 or (props.primary and 4294958955 or 4280889664), -- 82
-			bottomColor = props.danger and 4292824662 or (props.primary and 4294950190 or 4279704871), -- 82
-			borderWidth = 1, -- 82
-			borderColor = props.danger and colors.danger or (props.primary and 4294958435 or colors.border), -- 82
-			shadow = props.primary or props.danger -- 82
-		}), -- 82
-		React.createElement("label", { -- 82
-			x = props.width / 2, -- 82
-			y = height / 2, -- 82
-			fontName = fontName, -- 82
-			fontSize = 15, -- 82
-			text = props.text, -- 82
-			color3 = props.primary and 1512202 or 16052712 -- 82
-		}) -- 82
-	) -- 82
+local function measureWrappedTextHeight(text, width, fontSize) -- 80
+	local measure = Label(fontName, fontSize, true) -- 81
+	if not measure then -- 81
+		return fontSize -- 82
+	end -- 82
+	measure.visible = false -- 83
+	measure.textWidth = width -- 84
+	measure.alignment = "Left" -- 85
+	measure.text = text -- 86
+	local height = measure.height -- 87
+	measure:cleanup() -- 88
+	return height -- 89
 end -- 80
-local function ChoiceButton(props) -- 91
-	local ____React_createElement_5 = React.createElement -- 91
-	local ____temp_3 = { -- 91
-		tag = props.tag, -- 91
-		x = props.x, -- 91
-		y = props.y, -- 91
-		width = props.width, -- 91
-		height = 40, -- 91
-		anchorX = 0, -- 91
-		anchorY = 0, -- 91
-		opacity = props.disabled and 0.45 or 1, -- 91
-		touchEnabled = not props.disabled, -- 91
-		swallowTouches = true, -- 91
-		onTapped = props.onTapped -- 91
-	} -- 91
-	local ____React_createElement_result_4 = React.createElement(RoundedSurface, { -- 91
-		width = props.width, -- 91
-		height = 40, -- 91
-		radius = 12, -- 91
-		topColor = props.selected and 4294958955 or 4280297526, -- 91
-		bottomColor = props.selected and 4294950190 or 4279244061, -- 91
-		borderWidth = 1, -- 91
-		borderColor = props.selected and 4294958435 or colors.border -- 91
-	}) -- 91
-	local ____React_createElement_2 = React.createElement -- 91
-	local ____array_1 = __TS__SparseArrayNew( -- 91
-		"draw-node", -- 91
-		{tag = props.tag and props.tag .. "-radio" or nil, x = 17, y = 20}, -- 91
-		React.createElement("dot-shape", {radius = 7, color = props.selected and 4279702282 or 4289245117}), -- 91
-		React.createElement("dot-shape", {radius = 5, color = props.selected and 4294954824 or 4279704614}) -- 91
-	) -- 91
-	local ____props_selected_0 -- 100
-	if props.selected then -- 100
-		____props_selected_0 = React.createElement( -- 100
-			"draw-node", -- 100
-			{tag = props.tag and props.tag .. "-radio-dot" or nil}, -- 100
-			React.createElement("dot-shape", {radius = 2.5, color = 4279702282}) -- 100
-		) -- 100
-	else -- 100
-		____props_selected_0 = nil -- 100
-	end -- 100
-	__TS__SparseArrayPush(____array_1, ____props_selected_0) -- 100
-	return ____React_createElement_5( -- 92
-		"node", -- 92
-		____temp_3, -- 92
-		____React_createElement_result_4, -- 92
-		____React_createElement_2(__TS__SparseArraySpread(____array_1)), -- 92
-		React.createElement("label", { -- 92
-			x = 32, -- 92
-			y = 20, -- 92
-			anchorX = 0, -- 92
-			fontName = fontName, -- 92
-			fontSize = 14, -- 92
-			text = props.text, -- 92
-			textWidth = props.width - 44, -- 92
-			alignment = "Left", -- 92
-			color3 = props.selected and 1512202 or 16052712 -- 92
-		}) -- 92
-	) -- 92
-end -- 91
-function ____exports.startMobileRemix(options) -- 106
-	local host, send, getTranscriptActions, render -- 106
-	local onBack = options.onBack -- 107
-	local onPlay = options.onPlay -- 108
-	local packagePanel -- 109
-	local services = options.services or ({ -- 110
-		createSession = AgentSession.createSession, -- 111
-		getSession = function(id) return AgentSession.getSession(id, {recentRounds = REMIX_HISTORY_ROUNDS, currentTaskStepsOnly = true}) end, -- 112
-		setWorkMode = AgentSession.setWorkMode, -- 113
-		sendPrompt = AgentSession.sendPrompt, -- 114
-		respondQuestionnaire = AgentSession.respondQuestionnaire, -- 115
-		stopSessionTask = AgentSession.stopSessionTask, -- 116
-		continuePrompt = AgentSession.continuePrompt, -- 117
-		getActiveLLMConfig = getActiveLLMConfig, -- 118
-		getLLMConfig = getLLMConfig, -- 119
-		getLLMConfigSummaries = getLLMConfigSummaries -- 120
-	}) -- 120
-	local zh = (string.match(App.locale, "^zh")) ~= nil -- 122
-	local projectRoot = options.entry.workDir or "" -- 123
-	local created = services.createSession(projectRoot, options.entry.title) -- 124
-	local sessionId = created.success and created.session.id or 0 -- 125
-	local detail = sessionId > 0 and services.getSession(sessionId) or ({success = false, message = created.success and "session unavailable" or created.message}) -- 126
-	local draft = "" -- 129
-	local ____error = created.success and "" or created.message -- 130
-	local pollElapsed = 0 -- 131
-	local stopRequested = false -- 132
-	local selectedLLMConfigId = 0 -- 133
-	local questionnaireId = 0 -- 134
-	local questionIndex = 0 -- 135
-	local llmConfigs = services.getLLMConfigSummaries() -- 136
-	local taskLLMConfigId = 0 -- 137
-	local needsLLMSetup = false -- 138
-	local questionnaireSelections = {} -- 139
-	local questionnaireTexts = {} -- 140
-	local inputRef = reference() -- 141
-	local disposed = false -- 142
-	local dismissedComposition = false -- 143
-	local swipeBackPending = false -- 144
-	local swipeDragging = false -- 145
-	local swipeRevision = 0 -- 146
-	local projectChangeNotified = false -- 147
-	local function currentQuestion() -- 148
-		local ____detail_success_8 -- 148
-		if detail.success then -- 148
-			local ____opt_6 = detail.pendingQuestionnaire -- 148
-			____detail_success_8 = ____opt_6 and ____opt_6.schema.questions[questionIndex + 1] -- 148
-		else -- 148
-			____detail_success_8 = nil -- 148
-		end -- 148
-		return ____detail_success_8 -- 148
-	end -- 148
-	local promptInput = createTextInput({ -- 149
-		fontSize = math.floor(16 * mobileFontScale), -- 150
-		getText = function() -- 151
-			local question = currentQuestion() -- 151
-			return question and (questionnaireTexts[question.id] or "") or draft -- 151
-		end, -- 151
-		setText = function(text) -- 152
-			local question = currentQuestion() -- 152
-			if question then -- 152
-				questionnaireTexts[question.id] = text -- 152
-			else -- 152
-				draft = text -- 152
-			end -- 152
-		end, -- 152
-		getPlaceholder = function() -- 153
-			local question = currentQuestion() -- 154
-			return question and question.placeholder or (question and (zh and "输入回答…" or "Type an answer…") or (zh and "输入修改要求…" or "Describe a change…")) -- 155
-		end, -- 153
-		isEnabled = function() return not packagePanel and not disposed and host.parent ~= nil and host.visible and HttpServer.wsConnectionCount == 0 end, -- 157
-		onReturn = function(modified) -- 158
-			if modified and not currentQuestion() then -- 158
-				send() -- 158
-				return true -- 158
-			end -- 158
-			return false -- 158
-		end -- 158
-	}) -- 158
-	local blurInput = promptInput.blur -- 160
-	local rememberedRows = DB:query("select value_num from Config where name = 'mobileRemixLLMConfigId' limit 1") -- 161
-	local ____temp_11 -- 162
-	if rememberedRows and #rememberedRows > 0 then -- 162
-		____temp_11 = tonumber(rememberedRows[1][1]) -- 162
-	else -- 162
-		____temp_11 = nil -- 162
+local function ActionButton(props) -- 92
+	local height = props.height or 46 -- 93
+	return React.createElement( -- 94
+		"node", -- 94
+		{ -- 94
+			tag = props.tag, -- 94
+			x = props.x, -- 94
+			y = props.y, -- 94
+			width = props.width, -- 94
+			height = height, -- 94
+			anchorX = 0, -- 94
+			anchorY = 0, -- 94
+			opacity = props.disabled and 0.45 or 1, -- 94
+			touchEnabled = not props.disabled, -- 94
+			swallowTouches = true, -- 94
+			onTapped = props.onTapped -- 94
+		}, -- 94
+		React.createElement(RoundedSurface, { -- 94
+			width = props.width, -- 94
+			height = height, -- 94
+			radius = 14, -- 94
+			topColor = props.danger and 4294935941 or (props.primary and 4294958955 or 4280889664), -- 94
+			bottomColor = props.danger and 4292824662 or (props.primary and 4294950190 or 4279704871), -- 94
+			borderWidth = 1, -- 94
+			borderColor = props.danger and colors.danger or (props.primary and 4294958435 or colors.border), -- 94
+			shadow = props.primary or props.danger -- 94
+		}), -- 94
+		React.createElement("label", { -- 94
+			x = props.width / 2, -- 94
+			y = height / 2, -- 94
+			fontName = fontName, -- 94
+			fontSize = 15, -- 94
+			text = props.text, -- 94
+			color3 = props.primary and 1512202 or 16052712 -- 94
+		}) -- 94
+	) -- 94
+end -- 92
+local function ChoiceButton(props) -- 103
+	local ____React_createElement_5 = React.createElement -- 103
+	local ____temp_3 = { -- 103
+		tag = props.tag, -- 103
+		x = props.x, -- 103
+		y = props.y, -- 103
+		width = props.width, -- 103
+		height = 40, -- 103
+		anchorX = 0, -- 103
+		anchorY = 0, -- 103
+		opacity = props.disabled and 0.45 or 1, -- 103
+		touchEnabled = not props.disabled, -- 103
+		swallowTouches = true, -- 103
+		onTapped = props.onTapped -- 103
+	} -- 103
+	local ____React_createElement_result_4 = React.createElement(RoundedSurface, { -- 103
+		width = props.width, -- 103
+		height = 40, -- 103
+		radius = 12, -- 103
+		topColor = props.selected and 4294958955 or 4280297526, -- 103
+		bottomColor = props.selected and 4294950190 or 4279244061, -- 103
+		borderWidth = 1, -- 103
+		borderColor = props.selected and 4294958435 or colors.border -- 103
+	}) -- 103
+	local ____React_createElement_2 = React.createElement -- 103
+	local ____array_1 = __TS__SparseArrayNew( -- 103
+		"draw-node", -- 103
+		{tag = props.tag and props.tag .. "-radio" or nil, x = 17, y = 20}, -- 103
+		React.createElement("dot-shape", {radius = 7, color = props.selected and 4279702282 or 4289245117}), -- 103
+		React.createElement("dot-shape", {radius = 5, color = props.selected and 4294954824 or 4279704614}) -- 103
+	) -- 103
+	local ____props_selected_0 -- 112
+	if props.selected then -- 112
+		____props_selected_0 = React.createElement( -- 112
+			"draw-node", -- 112
+			{tag = props.tag and props.tag .. "-radio-dot" or nil}, -- 112
+			React.createElement("dot-shape", {radius = 2.5, color = 4279702282}) -- 112
+		) -- 112
+	else -- 112
+		____props_selected_0 = nil -- 112
+	end -- 112
+	__TS__SparseArrayPush(____array_1, ____props_selected_0) -- 112
+	return ____React_createElement_5( -- 104
+		"node", -- 104
+		____temp_3, -- 104
+		____React_createElement_result_4, -- 104
+		____React_createElement_2(__TS__SparseArraySpread(____array_1)), -- 104
+		React.createElement("label", { -- 104
+			x = 32, -- 104
+			y = 20, -- 104
+			anchorX = 0, -- 104
+			fontName = fontName, -- 104
+			fontSize = 14, -- 104
+			text = props.text, -- 104
+			textWidth = props.width - 44, -- 104
+			alignment = "Left", -- 104
+			color3 = props.selected and 1512202 or 16052712 -- 104
+		}) -- 104
+	) -- 104
+end -- 103
+function ____exports.startMobileRemix(options) -- 118
+	local host, send, getTranscriptActions, render -- 118
+	local canShare = App.platform == "Android" or App.platform == "iOS" -- 119
+	local onBack = options.onBack -- 120
+	local onPlay = options.onPlay -- 121
+	local packagePanel -- 122
+	local services = options.services or ({ -- 123
+		createSession = AgentSession.createSession, -- 124
+		getSession = function(id) return AgentSession.getSession(id, {recentRounds = REMIX_HISTORY_ROUNDS, currentTaskStepsOnly = true}) end, -- 125
+		setWorkMode = AgentSession.setWorkMode, -- 126
+		sendPrompt = AgentSession.sendPrompt, -- 127
+		respondQuestionnaire = AgentSession.respondQuestionnaire, -- 128
+		stopSessionTask = AgentSession.stopSessionTask, -- 129
+		continuePrompt = AgentSession.continuePrompt, -- 130
+		getActiveLLMConfig = getActiveLLMConfig, -- 131
+		getLLMConfig = getLLMConfig, -- 132
+		getLLMConfigSummaries = getLLMConfigSummaries -- 133
+	}) -- 133
+	local zh = (string.match(App.locale, "^zh")) ~= nil -- 135
+	local projectRoot = options.entry.workDir or "" -- 136
+	local created = services.createSession(projectRoot, options.entry.title) -- 137
+	local sessionId = created.success and created.session.id or 0 -- 138
+	local detail = sessionId > 0 and services.getSession(sessionId) or ({success = false, message = created.success and "session unavailable" or created.message}) -- 139
+	local draft = "" -- 142
+	local ____error = created.success and "" or created.message -- 143
+	local backNoticeUntil = 0 -- 144
+	local pollElapsed = 0 -- 145
+	local stopRequested = false -- 146
+	local selectedLLMConfigId = 0 -- 147
+	local questionnaireId = 0 -- 148
+	local questionIndex = 0 -- 149
+	local llmConfigs = services.getLLMConfigSummaries() -- 150
+	local taskLLMConfigId = 0 -- 151
+	local needsLLMSetup = false -- 152
+	local questionnaireSelections = {} -- 153
+	local questionnaireTexts = {} -- 154
+	local inputRef = reference() -- 155
+	local disposed = false -- 156
+	local dismissedComposition = false -- 157
+	local swipeBackPending = false -- 158
+	local swipeDragging = false -- 159
+	local swipeRevision = 0 -- 160
+	local projectChangeNotified = false -- 161
+	local function currentQuestion() -- 162
+		local ____detail_success_8 -- 162
+		if detail.success then -- 162
+			local ____opt_6 = detail.pendingQuestionnaire -- 162
+			____detail_success_8 = ____opt_6 and ____opt_6.schema.questions[questionIndex + 1] -- 162
+		else -- 162
+			____detail_success_8 = nil -- 162
+		end -- 162
+		return ____detail_success_8 -- 162
 	end -- 162
-	local rememberedId = ____temp_11 -- 162
-	if rememberedId and __TS__ArraySome( -- 162
-		llmConfigs, -- 163
-		function(____, item) return item.id == rememberedId end -- 163
-	) then -- 163
-		selectedLLMConfigId = rememberedId -- 163
-	elseif #llmConfigs > 0 then -- 163
-		selectedLLMConfigId = llmConfigs[1].id -- 164
-	else -- 164
-		local activeConfig = services.getActiveLLMConfig() -- 166
-		if activeConfig.success then -- 166
-			selectedLLMConfigId = activeConfig.id -- 167
-		else -- 167
-			needsLLMSetup = true -- 168
-		end -- 168
-	end -- 168
-	host = Node() -- 171
-	host.tag = "mobile-remix" -- 172
-	host.scaleX = App.devicePixelRatio -- 173
-	host.scaleY = App.devicePixelRatio -- 174
-	host:addTo(Director.systemUI) -- 175
-	local transcript = createRemixTranscript() -- 176
-	local displayRevision = "" -- 177
-	local shellRevision = "" -- 178
-	local inputLayout = "" -- 179
-	local mascotAnimationState -- 180
-	local mascotAnimationStartedAt = App.runningTime -- 181
-	local compactHeaderStatusActive = false -- 182
-	local errorLabel -- 183
-	local layoutTranscriptBottom = transcriptBottom -- 184
-	local function getLayoutArea() -- 185
-		return App.safeArea -- 185
-	end -- 185
-	local function getTranscriptBottom() -- 186
-		return layoutTranscriptBottom + (errorLabel and errorLabel.height + composerGap or 0) -- 186
-	end -- 186
-	local function hasTranscriptContent() -- 187
-		return detail.success and (#detail.messages > 0 or #detail.steps > 0) -- 187
-	end -- 187
-	local function getHeaderY(safe) -- 188
-		local landscapeTopLift = safe.width >= 760 and safe.height < 500 and 28 or 0 -- 189
-		return safe.y + safe.height - 56 + landscapeTopLift -- 190
-	end -- 188
-	local function useCompactHeaderStatus(safe) -- 192
-		return safe.width >= 760 and safe.height < 500 and hasTranscriptContent() -- 192
-	end -- 192
-	local function useCompactStandaloneStatus(safe) -- 193
-		return safe.height >= 500 and hasTranscriptContent() -- 193
-	end -- 193
-	local function getTranscriptHeight(safe) -- 194
-		local statusInset = useCompactHeaderStatus(safe) and composerGap or statusHeight + composerGap * 2 - (useCompactStandaloneStatus(safe) and 24 or 0) -- 195
-		local available = math.max( -- 197
-			40, -- 197
-			getHeaderY(safe) - safe.y - getTranscriptBottom() - statusInset -- 197
-		) -- 197
-		return safe.width >= 760 and safe.height < 500 and not hasTranscriptContent() and 8 or available -- 198
-	end -- 194
-	local function getShellRevision() -- 200
-		local ____detail_success_15 -- 200
-		if detail.success then -- 200
-			local ____safeJsonEncode_14 = safeJsonEncode -- 200
-			local ____array_13 = __TS__SparseArrayNew( -- 200
-				detail.session.status, -- 201
-				detail.session.workMode, -- 201
-				detail.hasActivePlan, -- 201
-				detail.pendingQuestionnaire or false, -- 201
-				detail.session.currentTaskStatus or "" -- 202
-			) -- 202
-			local ____detail_session_currentTaskFinalizing_12 = detail.session.currentTaskFinalizing -- 202
-			if ____detail_session_currentTaskFinalizing_12 == nil then -- 202
-				____detail_session_currentTaskFinalizing_12 = false -- 202
-			end -- 202
-			__TS__SparseArrayPush( -- 202
-				____array_13, -- 202
-				____detail_session_currentTaskFinalizing_12, -- 202
-				stopRequested, -- 202
-				hasTranscriptContent(), -- 202
-				resolveRemixThinkingStatus(detail.steps, detail.session.currentTaskId) or "" -- 203
-			) -- 203
-			____detail_success_15 = (____safeJsonEncode_14({__TS__SparseArraySpread(____array_13)})) or "" -- 200
-		else -- 200
-			____detail_success_15 = detail.message -- 204
-		end -- 204
-		return ____detail_success_15 -- 200
+	local promptInput = createTextInput({ -- 163
+		fontSize = math.floor(16 * mobileFontScale), -- 164
+		getText = function() -- 165
+			local question = currentQuestion() -- 165
+			return question and (questionnaireTexts[question.id] or "") or draft -- 165
+		end, -- 165
+		setText = function(text) -- 166
+			local question = currentQuestion() -- 166
+			if question then -- 166
+				questionnaireTexts[question.id] = text -- 166
+			else -- 166
+				draft = text -- 166
+			end -- 166
+		end, -- 166
+		getPlaceholder = function() -- 167
+			local question = currentQuestion() -- 168
+			return question and question.placeholder or (question and (zh and "输入回答…" or "Type an answer…") or (zh and "输入修改要求…" or "Describe a change…")) -- 169
+		end, -- 167
+		isEnabled = function() return not packagePanel and not disposed and host.parent ~= nil and host.visible and HttpServer.wsConnectionCount == 0 end, -- 171
+		onReturn = function(modified) -- 172
+			if modified and not currentQuestion() then -- 172
+				send() -- 172
+				return true -- 172
+			end -- 172
+			return false -- 172
+		end -- 172
+	}) -- 172
+	local blurInput = promptInput.blur -- 174
+	local rememberedRows = DB:query("select value_num from Config where name = 'mobileRemixLLMConfigId' limit 1") -- 175
+	local ____temp_11 -- 176
+	if rememberedRows and #rememberedRows > 0 then -- 176
+		____temp_11 = tonumber(rememberedRows[1][1]) -- 176
+	else -- 176
+		____temp_11 = nil -- 176
+	end -- 176
+	local rememberedId = ____temp_11 -- 176
+	if rememberedId and __TS__ArraySome( -- 176
+		llmConfigs, -- 177
+		function(____, item) return item.id == rememberedId end -- 177
+	) then -- 177
+		selectedLLMConfigId = rememberedId -- 177
+	elseif #llmConfigs > 0 then -- 177
+		selectedLLMConfigId = llmConfigs[1].id -- 178
+	else -- 178
+		local activeConfig = services.getActiveLLMConfig() -- 180
+		if activeConfig.success then -- 180
+			selectedLLMConfigId = activeConfig.id -- 181
+		else -- 181
+			needsLLMSetup = true -- 182
+		end -- 182
+	end -- 182
+	host = Node() -- 185
+	host.tag = "mobile-remix" -- 186
+	host.scaleX = App.devicePixelRatio -- 187
+	host.scaleY = App.devicePixelRatio -- 188
+	host:addTo(Director.systemUI) -- 189
+	local transcript = createRemixTranscript() -- 190
+	local displayRevision = "" -- 191
+	local shellRevision = "" -- 192
+	local inputLayout = "" -- 193
+	local mascotAnimationState -- 194
+	local mascotAnimationStartedAt = App.runningTime -- 195
+	local compactHeaderStatusActive = false -- 196
+	local errorLabel -- 197
+	local layoutTranscriptBottom = transcriptBottom -- 198
+	local function getLayoutArea() -- 199
+		return App.safeArea -- 199
+	end -- 199
+	local function getTranscriptBottom() -- 200
+		return layoutTranscriptBottom + (errorLabel and errorLabel.height + composerGap or 0) -- 200
 	end -- 200
-	local function updateTranscript() -- 205
-		local safe = getLayoutArea() -- 206
-		transcript:update( -- 207
-			detail, -- 207
-			math.max(60, safe.width - 32), -- 207
-			getTranscriptHeight(safe), -- 207
-			mobileFontScale, -- 207
-			zh, -- 207
-			getTranscriptActions() -- 207
-		) -- 207
-		displayRevision = remixDisplayRevision(detail) -- 208
-	end -- 205
-	local function hasActiveTask() -- 211
-		return detail.success and (detail.session.status == "RUNNING" or detail.session.status == "WAITING_USER" or detail.session.currentTaskStatus == "RUNNING" or detail.session.currentTaskStatus == "WAITING_USER" or detail.session.currentTaskFinalizing == true or detail.pendingQuestionnaire ~= nil) -- 211
-	end -- 211
-	local function notifyProjectChanged() -- 214
-		if projectChangeNotified or not detail.success or not options.onProjectChanged then -- 214
-			return -- 215
-		end -- 215
-		if not __TS__ArraySome( -- 215
-			detail.steps, -- 216
-			function(____, step) return step.files ~= nil and #step.files > 0 end -- 216
-		) then -- 216
-			return -- 216
-		end -- 216
-		projectChangeNotified = true -- 217
-		options.onProjectChanged(options.entry) -- 218
+	local function hasTranscriptContent() -- 201
+		return detail.success and (#detail.messages > 0 or #detail.steps > 0) -- 201
+	end -- 201
+	local function getHeaderY(safe) -- 202
+		local landscapeTopLift = safe.width >= 760 and safe.height < 500 and 28 or 0 -- 203
+		return safe.y + safe.height - 56 + landscapeTopLift -- 204
+	end -- 202
+	local function useCompactHeaderStatus(safe) -- 206
+		return safe.width >= 760 and safe.height < 500 and hasTranscriptContent() -- 206
+	end -- 206
+	local function useCompactStandaloneStatus(safe) -- 207
+		return safe.height >= 500 and hasTranscriptContent() -- 207
+	end -- 207
+	local function getTranscriptHeight(safe) -- 208
+		local statusInset = useCompactHeaderStatus(safe) and composerGap or statusHeight + composerGap * 2 - (useCompactStandaloneStatus(safe) and 24 or 0) -- 209
+		local available = math.max( -- 211
+			40, -- 211
+			getHeaderY(safe) - safe.y - getTranscriptBottom() - statusInset -- 211
+		) -- 211
+		return safe.width >= 760 and safe.height < 500 and not hasTranscriptContent() and 8 or available -- 212
+	end -- 208
+	local function getShellRevision() -- 214
+		local ____detail_success_15 -- 214
+		if detail.success then -- 214
+			local ____safeJsonEncode_14 = safeJsonEncode -- 214
+			local ____array_13 = __TS__SparseArrayNew( -- 214
+				detail.session.status, -- 215
+				detail.session.workMode, -- 215
+				detail.hasActivePlan, -- 215
+				detail.pendingQuestionnaire or false, -- 215
+				detail.session.currentTaskStatus or "" -- 216
+			) -- 216
+			local ____detail_session_currentTaskFinalizing_12 = detail.session.currentTaskFinalizing -- 216
+			if ____detail_session_currentTaskFinalizing_12 == nil then -- 216
+				____detail_session_currentTaskFinalizing_12 = false -- 216
+			end -- 216
+			__TS__SparseArrayPush( -- 216
+				____array_13, -- 216
+				____detail_session_currentTaskFinalizing_12, -- 216
+				stopRequested, -- 216
+				hasTranscriptContent(), -- 216
+				resolveRemixThinkingStatus(detail.steps, detail.session.currentTaskId) or "" -- 217
+			) -- 217
+			____detail_success_15 = (____safeJsonEncode_14({__TS__SparseArraySpread(____array_13)})) or "" -- 214
+		else -- 214
+			____detail_success_15 = detail.message -- 218
+		end -- 218
+		return ____detail_success_15 -- 214
 	end -- 214
-	local function refresh() -- 220
-		if sessionId > 0 then -- 220
-			detail = services.getSession(sessionId) -- 221
-		end -- 221
-		if detail.success and not hasActiveTask() then -- 221
-			stopRequested = false -- 222
-		end -- 222
-		if detail.success and detail.pendingQuestionnaire and detail.pendingQuestionnaire.id ~= questionnaireId then -- 222
-			questionnaireId = detail.pendingQuestionnaire.id -- 224
-			questionIndex = 0 -- 225
-		end -- 225
-	end -- 220
-	local function canSubmit() -- 228
-		return detail.success and canLeaveRemix(detail.session.status) and detail.session.currentTaskStatus ~= "RUNNING" and detail.session.currentTaskStatus ~= "WAITING_USER" and not detail.session.currentTaskFinalizing and not detail.pendingQuestionnaire -- 228
+	local function updateTranscript() -- 219
+		local safe = getLayoutArea() -- 220
+		transcript:update( -- 221
+			detail, -- 221
+			math.max(60, safe.width - 32), -- 221
+			getTranscriptHeight(safe), -- 221
+			mobileFontScale, -- 221
+			zh, -- 221
+			getTranscriptActions() -- 221
+		) -- 221
+		displayRevision = remixDisplayRevision(detail) -- 222
+	end -- 219
+	local function hasActiveTask() -- 225
+		return detail.success and (detail.session.status == "RUNNING" or detail.session.status == "WAITING_USER" or detail.session.currentTaskStatus == "RUNNING" or detail.session.currentTaskStatus == "WAITING_USER" or detail.session.currentTaskFinalizing == true or detail.pendingQuestionnaire ~= nil) -- 225
+	end -- 225
+	local function notifyProjectChanged() -- 228
+		if projectChangeNotified or not detail.success or not options.onProjectChanged then -- 228
+			return -- 229
+		end -- 229
+		if not __TS__ArraySome( -- 229
+			detail.steps, -- 230
+			function(____, step) return step.files ~= nil and #step.files > 0 end -- 230
+		) then -- 230
+			return -- 230
+		end -- 230
+		projectChangeNotified = true -- 231
+		options.onProjectChanged(options.entry) -- 232
 	end -- 228
-	local function resolveLLMConfig() -- 231
-		return selectedLLMConfigId > 0 and services.getLLMConfig(selectedLLMConfigId) or services.getActiveLLMConfig() -- 231
-	end -- 231
-	local function configureLLM() -- 232
-		if not host.visible or HttpServer.wsConnectionCount > 0 then -- 232
-			return -- 233
-		end -- 233
-		blurInput() -- 234
-		startMobileLLMManager({ -- 235
-			coveredNode = host, -- 236
-			selectedId = selectedLLMConfigId, -- 237
-			taskRunning = hasActiveTask(), -- 238
-			runningId = taskLLMConfigId, -- 239
-			onSelected = function(id) -- 240
-				if disposed or not host.parent then -- 240
-					return -- 241
-				end -- 241
-				llmConfigs = services.getLLMConfigSummaries() -- 242
-				selectedLLMConfigId = id -- 243
-				needsLLMSetup = #llmConfigs == 0 -- 244
-				____error = "" -- 245
-				render() -- 246
-			end, -- 240
-			onClose = function() -- 248
-				if not disposed and host.parent then -- 248
-					render() -- 248
-				end -- 248
-			end -- 248
-		}) -- 248
-	end -- 232
-	local function changeWorkMode(workMode) -- 251
-		if not host.visible or HttpServer.wsConnectionCount > 0 then -- 251
-			return -- 252
-		end -- 252
-		refresh() -- 253
-		if not canSubmit() or not detail.success then -- 253
-			return -- 254
-		end -- 254
-		if resolveRemixWorkMode(detail.session) == workMode then -- 254
-			return -- 255
-		end -- 255
-		local result = services.setWorkMode(sessionId, workMode) -- 256
-		____error = result.success and "" or (result.message or (zh and "切换模式失败" or "Could not change mode")) -- 257
-		refresh() -- 258
-		render() -- 259
-	end -- 251
-	send = function() -- 261
-		if not host.visible or HttpServer.wsConnectionCount > 0 then -- 261
-			return -- 262
-		end -- 262
-		refresh() -- 263
-		if not canSubmit() or not detail.success or promptInput.isComposing() then -- 263
-			return -- 264
-		end -- 264
-		local workMode = resolveRemixWorkMode(detail.session) -- 265
-		local text = (string.match(draft, "^%s*(.-)%s*$")) or "" -- 268
-		if sessionId <= 0 or text == "" then -- 268
+	local function refresh() -- 234
+		if sessionId > 0 then -- 234
+			detail = services.getSession(sessionId) -- 235
+		end -- 235
+		if detail.success and not hasActiveTask() then -- 235
+			stopRequested = false -- 236
+		end -- 236
+		if detail.success and detail.pendingQuestionnaire and detail.pendingQuestionnaire.id ~= questionnaireId then -- 236
+			questionnaireId = detail.pendingQuestionnaire.id -- 238
+			questionIndex = 0 -- 239
+		end -- 239
+	end -- 234
+	local function canSubmit() -- 242
+		return detail.success and canLeaveRemix(detail.session.status) and detail.session.currentTaskStatus ~= "RUNNING" and detail.session.currentTaskStatus ~= "WAITING_USER" and not detail.session.currentTaskFinalizing and not detail.pendingQuestionnaire -- 242
+	end -- 242
+	local function resolveLLMConfig() -- 245
+		return selectedLLMConfigId > 0 and services.getLLMConfig(selectedLLMConfigId) or services.getActiveLLMConfig() -- 245
+	end -- 245
+	local function configureLLM() -- 246
+		if not host.visible or HttpServer.wsConnectionCount > 0 then -- 246
+			return -- 247
+		end -- 247
+		blurInput() -- 248
+		startMobileLLMManager({ -- 249
+			coveredNode = host, -- 250
+			selectedId = selectedLLMConfigId, -- 251
+			taskRunning = hasActiveTask(), -- 252
+			runningId = taskLLMConfigId, -- 253
+			onSelected = function(id) -- 254
+				if disposed or not host.parent then -- 254
+					return -- 255
+				end -- 255
+				llmConfigs = services.getLLMConfigSummaries() -- 256
+				selectedLLMConfigId = id -- 257
+				needsLLMSetup = #llmConfigs == 0 -- 258
+				____error = "" -- 259
+				render() -- 260
+			end, -- 254
+			onClose = function() -- 262
+				if not disposed and host.parent then -- 262
+					render() -- 262
+				end -- 262
+			end -- 262
+		}) -- 262
+	end -- 246
+	local function changeWorkMode(workMode) -- 265
+		if not host.visible or HttpServer.wsConnectionCount > 0 then -- 265
+			return -- 266
+		end -- 266
+		refresh() -- 267
+		if not canSubmit() or not detail.success then -- 267
+			return -- 268
+		end -- 268
+		if resolveRemixWorkMode(detail.session) == workMode then -- 268
 			return -- 269
 		end -- 269
-		local config = resolveLLMConfig() -- 270
-		if not config.success then -- 270
-			____error = zh and "请先完成 AI 快速配置" or "Complete the quick AI setup first" -- 272
-			render() -- 273
-			configureLLM() -- 274
-			return -- 275
-		end -- 275
-		selectedLLMConfigId = config.id -- 277
-		local result = services.sendPrompt( -- 278
-			sessionId, -- 278
-			text, -- 278
-			nil, -- 278
-			workMode, -- 278
-			config.id, -- 278
-			config.config -- 278
-		) -- 278
-		if not result.success then -- 278
-			____error = result.message -- 279
-		else -- 279
-			taskLLMConfigId = config.id -- 280
-			draft = "" -- 280
-			____error = "" -- 280
-		end -- 280
-		refresh() -- 281
-		render() -- 282
-	end -- 261
-	local function continueTask() -- 284
-		if not host.visible or HttpServer.wsConnectionCount > 0 then -- 284
-			return -- 285
-		end -- 285
-		refresh() -- 286
-		if not detail.success or hasActiveTask() or detail.session.currentTaskStatus ~= "FAILED" and detail.session.currentTaskStatus ~= "STOPPED" or detail.session.currentTaskId == nil then -- 286
-			return -- 288
-		end -- 288
-		local config = resolveLLMConfig() -- 289
-		if not config.success then -- 289
-			____error = zh and "请先完成 AI 快速配置" or "Complete the quick AI setup first" -- 291
-			render() -- 292
-			configureLLM() -- 293
-			return -- 294
+		local result = services.setWorkMode(sessionId, workMode) -- 270
+		____error = result.success and "" or (result.message or (zh and "切换模式失败" or "Could not change mode")) -- 271
+		refresh() -- 272
+		render() -- 273
+	end -- 265
+	send = function() -- 275
+		if not host.visible or HttpServer.wsConnectionCount > 0 then -- 275
+			return -- 276
+		end -- 276
+		refresh() -- 277
+		if not canSubmit() or not detail.success or promptInput.isComposing() then -- 277
+			return -- 278
+		end -- 278
+		local workMode = resolveRemixWorkMode(detail.session) -- 279
+		local text = (string.match(draft, "^%s*(.-)%s*$")) or "" -- 282
+		if sessionId <= 0 or text == "" then -- 282
+			return -- 283
+		end -- 283
+		local config = resolveLLMConfig() -- 284
+		if not config.success then -- 284
+			____error = zh and "请先完成 AI 快速配置" or "Complete the quick AI setup first" -- 286
+			render() -- 287
+			configureLLM() -- 288
+			return -- 289
+		end -- 289
+		selectedLLMConfigId = config.id -- 291
+		local result = services.sendPrompt( -- 292
+			sessionId, -- 292
+			text, -- 292
+			nil, -- 292
+			workMode, -- 292
+			config.id, -- 292
+			config.config -- 292
+		) -- 292
+		if not result.success then -- 292
+			____error = result.message -- 293
+		else -- 293
+			taskLLMConfigId = config.id -- 294
+			draft = "" -- 294
+			____error = "" -- 294
 		end -- 294
-		if not services.continuePrompt then -- 294
-			____error = zh and "当前版本不支持继续会话" or "Continuing this session is unavailable" -- 297
-			render() -- 298
+		refresh() -- 295
+		render() -- 296
+	end -- 275
+	local function continueTask() -- 298
+		if not host.visible or HttpServer.wsConnectionCount > 0 then -- 298
 			return -- 299
 		end -- 299
-		selectedLLMConfigId = config.id -- 301
-		local result = services.continuePrompt(sessionId, nil, config.id) -- 302
-		____error = result.success and "" or result.message -- 303
-		if result.success then -- 303
-			taskLLMConfigId = config.id -- 304
-			stopRequested = false -- 304
-		end -- 304
-		refresh() -- 305
-		render() -- 306
-	end -- 284
-	local function startDevelopment() -- 308
-		if not host.visible or HttpServer.wsConnectionCount > 0 then -- 308
-			return -- 309
-		end -- 309
-		refresh() -- 310
-		if not detail.success or hasActiveTask() or detail.session.workMode ~= "plan" or not detail.hasActivePlan then -- 310
-			return -- 311
-		end -- 311
-		local modeResult = services.setWorkMode(sessionId, "code") -- 312
-		if not modeResult.success then -- 312
-			____error = modeResult.message or (zh and "切换执行模式失败" or "Could not switch to Code mode") -- 314
-			render() -- 315
-			return -- 316
-		end -- 316
-		local config = resolveLLMConfig() -- 318
-		if not config.success then -- 318
-			____error = zh and "请先完成 AI 快速配置" or "Complete the quick AI setup first" -- 320
-			refresh() -- 321
-			render() -- 322
-			configureLLM() -- 323
-			return -- 324
-		end -- 324
-		selectedLLMConfigId = config.id -- 326
-		local prompt = zh and "请读取 .agent/plan/PLAN.md 和 PROGRESS.md，从当前方案的下一未完成步骤开始开发，并持续更新进度文档。" or "Read .agent/plan/PLAN.md and PROGRESS.md, start from the next unfinished step in the current plan, and keep the progress document updated." -- 327
-		local result = services.sendPrompt( -- 330
-			sessionId, -- 330
-			prompt, -- 330
-			nil, -- 330
-			"code", -- 330
-			config.id, -- 330
-			config.config -- 330
-		) -- 330
-		____error = result.success and "" or result.message -- 331
-		if result.success then -- 331
-			taskLLMConfigId = config.id -- 332
-		end -- 332
-		refresh() -- 333
-		render() -- 334
-	end -- 308
-	getTranscriptActions = function() -- 336
-		if not detail.success or not hasTranscriptContent() or hasActiveTask() or __TS__ArrayEvery( -- 336
-			detail.messages, -- 337
-			function(____, message) return message.role ~= "assistant" end -- 337
-		) then -- 337
-			return {} -- 337
-		end -- 337
-		local actions = {} -- 338
-		if (detail.session.currentTaskStatus == "FAILED" or detail.session.currentTaskStatus == "STOPPED") and detail.session.currentTaskId ~= nil then -- 338
-			actions[#actions + 1] = {id = "continue", text = zh and "继续" or "Continue", onTapped = continueTask} -- 340
-		end -- 340
-		if detail.session.kind == "main" and detail.session.workMode == "plan" and detail.hasActivePlan then -- 340
-			actions[#actions + 1] = {id = "start-development", text = zh and "开始开发" or "Start development", primary = true, onTapped = startDevelopment} -- 342
-		end -- 342
-		return actions -- 343
-	end -- 336
-	local function stop() -- 345
-		if not host.visible or HttpServer.wsConnectionCount > 0 then -- 345
-			return -- 346
+		refresh() -- 300
+		if not detail.success or hasActiveTask() or detail.session.currentTaskStatus ~= "FAILED" and detail.session.currentTaskStatus ~= "STOPPED" or detail.session.currentTaskId == nil then -- 300
+			return -- 302
+		end -- 302
+		local config = resolveLLMConfig() -- 303
+		if not config.success then -- 303
+			____error = zh and "请先完成 AI 快速配置" or "Complete the quick AI setup first" -- 305
+			render() -- 306
+			configureLLM() -- 307
+			return -- 308
+		end -- 308
+		if not services.continuePrompt then -- 308
+			____error = zh and "当前版本不支持继续会话" or "Continuing this session is unavailable" -- 311
+			render() -- 312
+			return -- 313
+		end -- 313
+		selectedLLMConfigId = config.id -- 315
+		local result = services.continuePrompt(sessionId, nil, config.id) -- 316
+		____error = result.success and "" or result.message -- 317
+		if result.success then -- 317
+			taskLLMConfigId = config.id -- 318
+			stopRequested = false -- 318
+		end -- 318
+		refresh() -- 319
+		render() -- 320
+	end -- 298
+	local function startDevelopment() -- 322
+		if not host.visible or HttpServer.wsConnectionCount > 0 then -- 322
+			return -- 323
+		end -- 323
+		refresh() -- 324
+		if not detail.success or hasActiveTask() or detail.session.workMode ~= "plan" or not detail.hasActivePlan then -- 324
+			return -- 325
+		end -- 325
+		local modeResult = services.setWorkMode(sessionId, "code") -- 326
+		if not modeResult.success then -- 326
+			____error = modeResult.message or (zh and "切换执行模式失败" or "Could not switch to Code mode") -- 328
+			render() -- 329
+			return -- 330
+		end -- 330
+		local config = resolveLLMConfig() -- 332
+		if not config.success then -- 332
+			____error = zh and "请先完成 AI 快速配置" or "Complete the quick AI setup first" -- 334
+			refresh() -- 335
+			render() -- 336
+			configureLLM() -- 337
+			return -- 338
+		end -- 338
+		selectedLLMConfigId = config.id -- 340
+		local prompt = zh and "请读取 .agent/plan/PLAN.md 和 PROGRESS.md，从当前方案的下一未完成步骤开始开发，并持续更新进度文档。" or "Read .agent/plan/PLAN.md and PROGRESS.md, start from the next unfinished step in the current plan, and keep the progress document updated." -- 341
+		local result = services.sendPrompt( -- 344
+			sessionId, -- 344
+			prompt, -- 344
+			nil, -- 344
+			"code", -- 344
+			config.id, -- 344
+			config.config -- 344
+		) -- 344
+		____error = result.success and "" or result.message -- 345
+		if result.success then -- 345
+			taskLLMConfigId = config.id -- 346
 		end -- 346
 		refresh() -- 347
-		if not hasActiveTask() or not detail.success or detail.session.currentTaskFinalizing or stopRequested then -- 347
-			return -- 349
-		end -- 349
-		local result = services.stopSessionTask(sessionId) -- 350
-		if (result and result.success) == false then -- 350
-			____error = result.message or (zh and "停止失败" or "Could not stop") -- 351
-		else -- 351
-			stopRequested = true -- 352
-			____error = "" -- 352
-		end -- 352
-		refresh() -- 353
-		render() -- 354
-	end -- 345
-	local function advanceQuestionnaire() -- 356
-		if not host.visible or HttpServer.wsConnectionCount > 0 then -- 356
-			return -- 357
-		end -- 357
-		if not detail.success or not detail.pendingQuestionnaire then -- 357
-			return -- 358
-		end -- 358
-		local pending = detail.pendingQuestionnaire -- 359
-		local questions = pending.schema.questions -- 360
-		local question = questions[questionIndex + 1] -- 361
-		if not question then -- 361
-			return -- 362
-		end -- 362
-		local selected = questionnaireSelections[question.id] or ({}) -- 363
-		local text = __TS__StringTrim(questionnaireTexts[question.id] or "") -- 364
-		if not isQuestionAnswered(question, selected, text) then -- 364
-			____error = zh and "请先完成当前必答问题" or "Answer the required question first" -- 366
-			render() -- 367
-			return -- 368
-		end -- 368
-		if questionIndex + 1 < #questions then -- 368
-			questionIndex = questionIndex + 1 -- 371
-			____error = "" -- 372
-			render() -- 373
-			return -- 374
-		end -- 374
-		local answers = buildQuestionnaireAnswers(questions, questionnaireSelections, questionnaireTexts) -- 376
-		if selectedLLMConfigId <= 0 then -- 376
-			____error = zh and "没有可用的模型配置" or "No model configuration is available" -- 378
-			render() -- 379
-			return -- 380
-		end -- 380
-		local result = services.respondQuestionnaire(sessionId, pending.id, answers, selectedLLMConfigId) -- 382
-		if not result.success then -- 382
-			____error = result.message -- 383
-		else -- 383
-			taskLLMConfigId = selectedLLMConfigId -- 384
-			____error = "" -- 384
-		end -- 384
-		refresh() -- 385
-		render() -- 386
-	end -- 356
-	local function goBack() -- 388
-		if packagePanel or swipeBackPending or not host.visible or HttpServer.wsConnectionCount > 0 then -- 388
-			return -- 389
-		end -- 389
-		if detail.success and not canLeaveRemix(detail.session.status) then -- 389
-			____error = zh and "Agent 工作中，请先停止再返回" or "Stop the Agent before going back" -- 391
-			render() -- 392
-			return -- 393
-		end -- 393
-		blurInput() -- 395
-		notifyProjectChanged() -- 396
-		host.visible = false -- 397
-		host:removeFromParent(true) -- 398
-		onBack() -- 399
-	end -- 388
-	render = function() -- 402
-		errorLabel = nil -- 403
-		swipeRevision = swipeRevision + 1 -- 405
-		swipeDragging = false -- 406
-		swipeBackPending = false -- 407
-		local layout = (tostring(App.safeArea.width) .. ":") .. tostring(App.safeArea.height) -- 408
-		local ____temp_20 = layout == inputLayout and not (detail.success and detail.pendingQuestionnaire) -- 410
-		if ____temp_20 then -- 410
-			local ____opt_18 = inputRef.current -- 410
-			____temp_20 = (____opt_18 and ____opt_18.tag) == "remix-input" -- 410
-		end -- 410
-		local keptInput = ____temp_20 and inputRef.current or nil -- 410
-		if keptInput ~= nil then -- 410
-			keptInput:removeFromParent(false) -- 412
+		render() -- 348
+	end -- 322
+	getTranscriptActions = function() -- 350
+		if not detail.success or not hasTranscriptContent() or hasActiveTask() or __TS__ArrayEvery( -- 350
+			detail.messages, -- 351
+			function(____, message) return message.role ~= "assistant" end -- 351
+		) then -- 351
+			return {} -- 351
+		end -- 351
+		local actions = {} -- 352
+		if (detail.session.currentTaskStatus == "FAILED" or detail.session.currentTaskStatus == "STOPPED") and detail.session.currentTaskId ~= nil then -- 352
+			actions[#actions + 1] = {id = "continue", text = zh and "继续" or "Continue", onTapped = continueTask} -- 354
+		end -- 354
+		if detail.session.kind == "main" and detail.session.workMode == "plan" and detail.hasActivePlan then -- 354
+			actions[#actions + 1] = {id = "start-development", text = zh and "开始开发" or "Start development", primary = true, onTapped = startDevelopment} -- 356
+		end -- 356
+		return actions -- 357
+	end -- 350
+	local function stop() -- 359
+		if not host.visible or HttpServer.wsConnectionCount > 0 then -- 359
+			return -- 360
+		end -- 360
+		refresh() -- 361
+		if not hasActiveTask() or not detail.success or detail.session.currentTaskFinalizing or stopRequested then -- 361
+			return -- 363
+		end -- 363
+		local result = services.stopSessionTask(sessionId) -- 364
+		if (result and result.success) == false then -- 364
+			____error = result.message or (zh and "停止失败" or "Could not stop") -- 365
+		else -- 365
+			stopRequested = true -- 366
+			____error = "" -- 366
+		end -- 366
+		refresh() -- 367
+		render() -- 368
+	end -- 359
+	local function advanceQuestionnaire(skipCurrent) -- 370
+		if skipCurrent == nil then -- 370
+			skipCurrent = false -- 370
+		end -- 370
+		if not host.visible or HttpServer.wsConnectionCount > 0 then -- 370
+			return -- 371
+		end -- 371
+		if not detail.success or not detail.pendingQuestionnaire then -- 371
+			return -- 372
+		end -- 372
+		local pending = detail.pendingQuestionnaire -- 373
+		local questions = pending.schema.questions -- 374
+		local question = questions[questionIndex + 1] -- 375
+		if not question then -- 375
+			return -- 376
+		end -- 376
+		local selected = questionnaireSelections[question.id] or ({}) -- 377
+		local text = __TS__StringTrim(questionnaireTexts[question.id] or "") -- 378
+		if skipCurrent then -- 378
+			if question.required then -- 378
+				return -- 380
+			end -- 380
+			questionnaireSelections[question.id] = {} -- 381
+			questionnaireTexts[question.id] = "" -- 382
+		elseif not isQuestionAnswered(question, selected, text) then -- 382
+			____error = zh and "请先完成当前必答问题" or "Answer the required question first" -- 384
+			render() -- 385
+			return -- 386
+		end -- 386
+		if questionIndex + 1 < #questions then -- 386
+			questionIndex = questionIndex + 1 -- 389
+			____error = "" -- 390
+			render() -- 391
+			return -- 392
+		end -- 392
+		local answers = buildQuestionnaireAnswers(questions, questionnaireSelections, questionnaireTexts) -- 394
+		if selectedLLMConfigId <= 0 then -- 394
+			____error = zh and "没有可用的模型配置" or "No model configuration is available" -- 396
+			render() -- 397
+			return -- 398
+		end -- 398
+		local result = services.respondQuestionnaire(sessionId, pending.id, answers, selectedLLMConfigId) -- 400
+		if not result.success then -- 400
+			____error = result.message -- 401
+		else -- 401
+			taskLLMConfigId = selectedLLMConfigId -- 402
+			____error = "" -- 402
+		end -- 402
+		refresh() -- 403
+		render() -- 404
+	end -- 370
+	local function goBack() -- 406
+		if packagePanel or swipeBackPending or not host.visible or HttpServer.wsConnectionCount > 0 then -- 406
+			return -- 407
+		end -- 407
+		if detail.success and not canLeaveRemix(detail.session.status) then -- 407
+			____error = "" -- 409
+			backNoticeUntil = App.runningTime + 3 -- 410
+			render() -- 411
+			return -- 412
 		end -- 412
-		transcript.node:removeFromParent(false) -- 413
-		local restoreInputFocus = promptInput.isFocused() -- 414
-		if not keptInput then -- 414
-			promptInput.unmount() -- 416
-			inputRef = reference() -- 417
-		end -- 417
-		host:removeAllChildren() -- 419
-		inputLayout = layout -- 420
-		host.scaleX = App.devicePixelRatio -- 421
-		host.scaleY = App.devicePixelRatio -- 422
-		local ____App_visualSize_23 = App.visualSize -- 423
-		local width = ____App_visualSize_23.width -- 423
-		local height = ____App_visualSize_23.height -- 423
-		local safe = getLayoutArea() -- 424
-		local left = safe.x -- 425
-		local bottom = safe.y -- 426
-		local shortLandscape = safe.width >= 760 and safe.height < 500 -- 427
-		local state = detail.success and detail.session or nil -- 428
-		local workMode = resolveRemixWorkMode(state) -- 429
-		local stopping = hasActiveTask() -- 430
-		local ____detail_success_24 -- 431
-		if detail.success then -- 431
-			____detail_success_24 = detail.hasActivePlan -- 431
-		else -- 431
-			____detail_success_24 = false -- 431
+		blurInput() -- 414
+		notifyProjectChanged() -- 415
+		host.visible = false -- 416
+		host:removeFromParent(true) -- 417
+		onBack() -- 418
+	end -- 406
+	render = function() -- 421
+		local visibleError = ____error ~= "" and ____error or (backNoticeUntil > App.runningTime and (zh and "Agent 工作中，请先停止再返回" or "Stop the Agent before going back") or "") -- 422
+		errorLabel = nil -- 424
+		swipeRevision = swipeRevision + 1 -- 426
+		swipeDragging = false -- 427
+		swipeBackPending = false -- 428
+		local layout = (tostring(App.safeArea.width) .. ":") .. tostring(App.safeArea.height) -- 429
+		local ____temp_20 = layout == inputLayout and not (detail.success and detail.pendingQuestionnaire) -- 431
+		if ____temp_20 then -- 431
+			local ____opt_18 = inputRef.current -- 431
+			____temp_20 = (____opt_18 and ____opt_18.tag) == "remix-input" -- 431
 		end -- 431
-		local hasActivePlan = ____detail_success_24 -- 431
-		local phase = state and resolveRemixPhase({status = state.status, workMode = workMode, hasActivePlan = hasActivePlan}) or "failed" -- 432
-		local layoutComposerBottom = 24 -- 433
-		local layoutComposerHeight = composerHeight -- 434
-		local layoutModeBottom = layoutComposerBottom + layoutComposerHeight + composerGap -- 435
-		local layoutComposerTop = layoutModeBottom + 40 -- 436
-		layoutTranscriptBottom = layoutComposerTop + composerGap + (phase == "done" and 48 or 0) -- 437
-		local contentWidth = safe.width - 32 -- 438
-		local inputWidth = contentWidth - composerActionWidth - composerGap -- 439
-		local modeWidth = math.floor((contentWidth - composerGap) / 2) -- 440
-		local modeStartX = left + 16 -- 441
-		local modeCodeWidth = contentWidth - modeWidth - composerGap -- 442
-		local playWidth = (contentWidth - composerGap) / 2 -- 443
-		local playX = modeStartX + playWidth + composerGap -- 444
-		local ____detail_success_25 -- 445
-		if detail.success then -- 445
-			____detail_success_25 = detail.pendingQuestionnaire -- 445
-		else -- 445
-			____detail_success_25 = nil -- 445
-		end -- 445
-		local questionnaire = ____detail_success_25 -- 445
-		local question = questionnaire and questionnaire.schema.questions[questionIndex + 1] -- 446
-		local fontScale = mobileFontScale -- 447
-		local headerY = getHeaderY(safe) -- 448
-		local compactHeaderStatus = useCompactHeaderStatus(safe) -- 449
-		compactHeaderStatusActive = compactHeaderStatus -- 450
-		local headerStatusWidth = 168 -- 451
-		local modelButtonWidth = shortLandscape and 92 or 72 -- 452
-		local headerSettingsX = left + safe.width - 104 - modelButtonWidth -- 453
-		local headerStatusX = headerSettingsX - 8 - headerStatusWidth -- 454
-		local headerTitleWidth = compactHeaderStatus and math.max(120, headerStatusX - (left + 16) - composerGap) or math.max(120, headerSettingsX - (left + 16) - composerGap) -- 455
-		local selectedConfig = __TS__ArrayFind( -- 458
-			llmConfigs, -- 458
-			function(____, item) return item.id == selectedLLMConfigId end -- 458
-		) -- 458
-		local switchPending = hasActiveTask() and taskLLMConfigId > 0 and taskLLMConfigId ~= selectedLLMConfigId -- 459
-		local modelName = selectedConfig and selectedConfig.name or (zh and "配置 AI" or "Set up AI") -- 460
-		local modelNameLimit = shortLandscape and 10 or 6 -- 461
-		local shortModelName = inputLength(modelName) > modelNameLimit and inputSlice(modelName, 0, modelNameLimit) .. "…" or modelName -- 462
-		local modelLabel = ellipsizeSingleLine((switchPending and (zh and "下一轮·" or "Next·") or "") .. shortModelName, modelButtonWidth - 14, 11) -- 463
-		local thinkingText = resolveRemixThinkingStatus(detail.success and detail.steps or ({}), state and state.currentTaskId) -- 464
-		local statusText = thinkingText ~= nil and (zh and "正在思考" or "Thinking") or (phase == "planning" and (zh and "Dora 正在整理方案…" or "Dora is planning…") or (phase == "working" and (zh and "Dora 正在 Remix…" or "Dora is remixing…") or (phase == "plan-ready" and (zh and "计划对话已完成" or "Planning conversation complete") or (phase == "waiting" and (zh and "需要你的确认" or "Waiting for you") or (phase == "done" and (zh and "Remix 已完成" or "Remix complete") or (phase == "failed" and (zh and "执行失败，可以修改要求后重试" or "Failed; revise and retry") or (zh and "告诉 Dora 你想怎样改这个游戏" or "Tell Dora how to change this game"))))))) -- 465
-		local mascotState = phase == "planning" and "thinking" or (phase == "working" and "working" or (phase == "waiting" and "waiting" or ((phase == "done" or phase == "plan-ready") and "success" or (phase == "failed" and "failed" or "idle")))) -- 472
-		if mascotAnimationState ~= mascotState then -- 472
-			mascotAnimationState = mascotState -- 479
-			mascotAnimationStartedAt = App.runningTime -- 480
-		end -- 480
-		local emptyLandscape = shortLandscape and not hasTranscriptContent() -- 482
-		local emptyStatusBottom = bottom + layoutTranscriptBottom -- 483
-		local emptyStatusTop = headerY - composerGap - statusHeight -- 484
-		local messageTop = emptyLandscape and (emptyStatusBottom + emptyStatusTop) / 2 + statusHeight / 2 or headerY - composerGap - statusHeight / 2 -- 485
-		local mascotSize = shortLandscape and 42 or 52 -- 488
-		local compactStandaloneStatus = useCompactStandaloneStatus(safe) -- 489
-		local standaloneStatusContentLift = shortLandscape and 0 or (compactStandaloneStatus and 26 or 14) -- 490
-		local mascotX = shortLandscape and left + 40 or left + 66 -- 491
-		local statusTextX = shortLandscape and left + 76 or left + 104 -- 492
-		local statusTextWidth = shortLandscape and math.max(120, left + 16 + contentWidth - statusTextX) or contentWidth - 84 -- 493
-		local renderedStatusX = compactHeaderStatus and 36 or statusTextX -- 494
-		local renderedStatusY = compactHeaderStatus and 22 or statusHeight / 2 + standaloneStatusContentLift -- 495
-		local renderedStatusWidth = compactHeaderStatus and headerStatusWidth - 36 or statusTextWidth -- 496
-		local thinkingFontSize = compactHeaderStatus and math.floor(10 * fontScale) or math.floor(12 * fontScale) -- 497
-		local thinkingRightPadding = compactHeaderStatus and 8 or 20 -- 498
-		local renderedThinkingText = thinkingText == nil and "" or ellipsizeSingleLine(thinkingText, renderedStatusWidth - thinkingRightPadding, thinkingFontSize) -- 499
-		local swipeStart = Vec2.zero -- 500
-		local swipeAxis = "none" -- 501
-		local pageRef = reference() -- 502
-		local hitsTranscriptButton -- 503
-		hitsTranscriptButton = function(node, world) -- 503
-			if not node.visible then -- 503
-				return false -- 504
-			end -- 504
-			if node.tag == "remix-copy" or node.tag == "remix-latest" or node.tag == "remix-action-continue" or node.tag == "remix-action-start-development" then -- 504
-				local p = node:convertToNodeSpace(world) -- 506
-				if p.x >= 0 and p.y >= 0 and p.x <= node.width and p.y <= node.height then -- 506
-					return true -- 507
-				end -- 507
-			end -- 507
-			local hit = false -- 509
-			node:eachChild(function(child) -- 510
-				hit = hitsTranscriptButton(child, world) -- 510
-				return hit -- 510
-			end) -- 510
-			return hit -- 511
-		end -- 503
-		local ____toNode_69 = toNode -- 513
-		local ____React_createElement_68 = React.createElement -- 513
-		local ____array_67 = __TS__SparseArrayNew( -- 513
-			"node", -- 513
-			{ -- 513
-				tag = "remix-scene", -- 513
-				x = -width / 2, -- 513
-				y = -height / 2, -- 513
-				width = width, -- 513
-				height = height, -- 513
-				anchorX = 0, -- 513
-				anchorY = 0 -- 513
-			}, -- 513
-			React.createElement( -- 513
-				"node", -- 513
-				{ -- 513
-					tag = "remix-focus-observer", -- 513
-					order = 1000, -- 513
-					width = width, -- 513
-					height = height, -- 513
-					anchorX = 0, -- 513
-					anchorY = 0, -- 513
-					touchEnabled = true, -- 513
-					swallowTouches = false, -- 513
-					swallowMouseWheel = false, -- 513
-					onTapFilter = function(touch) -- 513
-						touch.enabled = false -- 517
-						if packagePanel or swipeBackPending or not host.visible or HttpServer.wsConnectionCount > 0 then -- 517
-							return -- 518
-						end -- 518
-						local input = inputRef.current -- 519
-						local point = input and input:convertToNodeSpace(touch.worldLocation) -- 520
-						local inside = input and point and point.x >= 0 and point.y >= 0 and point.x <= input.width and point.y <= input.height -- 521
-						dismissedComposition = not inside and promptInput.isComposing() -- 522
-						if not inside then -- 522
-							blurInput() -- 523
-						end -- 523
-						if not inside and not questionnaire and touch.first ~= false and touch.location.y >= bottom + layoutTranscriptBottom and touch.location.y < bottom + safe.height - 64 and not hitsTranscriptButton(transcript.node, touch.worldLocation) then -- 523
-							touch.enabled = true -- 528
-						end -- 528
-					end, -- 516
-					onTapBegan = function(touch) -- 516
-						swipeStart = touch.location -- 532
-						swipeAxis = "none" -- 532
-						swipeDragging = true -- 532
-						local ____opt_34 = pageRef.current -- 532
-						if ____opt_34 ~= nil then -- 532
-							____opt_34:stopAllActions() -- 533
-						end -- 533
-					end, -- 531
-					onTapMoved = function(touch) -- 531
-						local delta = touch.location:sub(swipeStart) -- 536
-						if swipeAxis == "none" and math.max( -- 536
-							math.abs(delta.x), -- 537
-							math.abs(delta.y) -- 537
-						) >= 12 then -- 537
-							swipeAxis = math.abs(delta.x) > math.abs(delta.y) * 1.2 and "horizontal" or "vertical" -- 538
-						end -- 538
-						if pageRef.current then -- 538
-							pageRef.current.x = swipeAxis == "horizontal" and math.min(0, delta.x) * 0.18 or 0 -- 540
-						end -- 540
-					end, -- 535
-					onTapEnded = function(touch) -- 535
-						local delta = touch.location:sub(swipeStart) -- 543
-						swipeDragging = false -- 544
-						if swipeBackPending then -- 544
-							return -- 545
-						end -- 545
-						local requested = swipeAxis ~= "vertical" and resolveFeedGesture(delta.x, delta.y, safe.width, safe.height) == "play" -- 546
-						local leaving = requested and (not detail.success or canLeaveRemix(detail.session.status)) -- 547
-						local page = pageRef.current -- 548
-						if not page or not requested and page.x == 0 then -- 548
-							return -- 549
-						end -- 549
-						local duration = (leaving or App.reducedMotion) and 0 or 0.16 -- 550
-						local revision = swipeRevision -- 551
-						swipeBackPending = true -- 552
-						if not leaving then -- 552
-							page:perform(Move(duration, page.position, Vec2.zero, Ease.OutQuad)) -- 554
-						end -- 554
-						thread(function() -- 556
-							sleep(duration) -- 557
-							if disposed or revision ~= swipeRevision or not host.parent then -- 557
-								return -- 558
-							end -- 558
-							swipeBackPending = false -- 559
-							if requested and host.visible and HttpServer.wsConnectionCount == 0 then -- 559
-								refresh() -- 560
-								goBack() -- 560
-							else -- 560
-								page.position = Vec2.zero -- 561
-							end -- 561
-						end) -- 556
-					end -- 542
-				} -- 542
-			), -- 542
-			React.createElement(VerticalGradient, {width = width, height = height, topColor = 4279310117, bottomColor = 4278716943}) -- 542
-		) -- 542
-		local ____React_createElement_66 = React.createElement -- 542
-		local ____array_65 = __TS__SparseArrayNew( -- 542
-			"node", -- 542
-			{tag = "remix-page", ref = pageRef}, -- 542
-			React.createElement( -- 542
-				"clip-node", -- 542
-				{ -- 542
-					x = left + 16, -- 542
-					y = headerY, -- 542
-					width = headerTitleWidth, -- 542
-					height = 44, -- 542
-					anchorX = 0, -- 542
-					anchorY = 0, -- 542
-					stencil = React.createElement( -- 542
-						"draw-node", -- 542
-						{x = headerTitleWidth / 2, y = 22}, -- 542
-						React.createElement("rect-shape", {width = headerTitleWidth, height = 44, fillColor = 4294967295}) -- 542
-					) -- 542
-				}, -- 542
-				React.createElement("label", { -- 542
-					tag = "remix-title", -- 542
-					x = 0, -- 542
-					y = 22, -- 542
-					anchorX = 0, -- 542
-					fontName = fontName, -- 542
-					fontSize = 20, -- 542
-					text = "REMIX · " .. options.entry.title, -- 542
-					color3 = 16052712 -- 542
-				}) -- 542
-			), -- 542
-			React.createElement( -- 542
-				"node", -- 542
-				{ -- 542
-					tag = "remix-back", -- 542
-					x = left + safe.width - 96, -- 542
-					y = headerY, -- 542
-					width = 80, -- 542
-					height = 44, -- 542
-					anchorX = 0, -- 542
-					anchorY = 0, -- 542
-					touchEnabled = true, -- 542
-					swallowTouches = true, -- 542
-					onTapped = goBack -- 542
-				}, -- 542
-				React.createElement("label", { -- 542
-					x = 80, -- 542
-					y = 22, -- 542
-					anchorX = 1, -- 542
-					fontName = fontName, -- 542
-					fontSize = 18, -- 542
-					text = zh and "返回 ›" or "Back ›", -- 542
-					color3 = 16763955 -- 542
-				}) -- 542
-			) -- 542
-		) -- 542
-		local ____React_createElement_38 = React.createElement -- 542
-		local ____array_37 = __TS__SparseArrayNew( -- 542
-			"node", -- 542
-			{ -- 542
-				tag = "remix-model-config", -- 542
-				x = headerSettingsX, -- 542
-				y = headerY + 6, -- 542
-				width = modelButtonWidth, -- 542
-				height = 32, -- 542
-				anchorX = 0, -- 542
-				anchorY = 0, -- 542
-				touchEnabled = true, -- 542
-				swallowTouches = true, -- 542
-				onTapped = configureLLM -- 542
-			}, -- 542
-			React.createElement(RoundedSurface, { -- 542
-				width = modelButtonWidth, -- 542
-				height = 32, -- 542
-				radius = 16, -- 542
-				topColor = 858534978, -- 542
-				bottomColor = 856824097, -- 542
-				borderWidth = 1, -- 542
-				borderColor = needsLLMSetup and colors.brand or colors.border -- 542
-			}), -- 542
-			React.createElement("label", { -- 542
-				x = modelButtonWidth / 2, -- 542
-				y = 16, -- 542
-				fontName = fontName, -- 542
-				fontSize = 11, -- 542
-				text = modelLabel, -- 542
-				color3 = (needsLLMSetup or switchPending) and 16763955 or 11055037 -- 542
-			}) -- 542
-		) -- 542
-		local ____needsLLMSetup_36 -- 579
-		if needsLLMSetup then -- 579
-			____needsLLMSetup_36 = React.createElement( -- 579
-				"draw-node", -- 579
-				{x = modelButtonWidth - 4, y = 28}, -- 579
-				React.createElement("dot-shape", {radius = 3, color = 4294954035}) -- 579
-			) -- 579
-		else -- 579
-			____needsLLMSetup_36 = nil -- 579
-		end -- 579
-		__TS__SparseArrayPush(____array_37, ____needsLLMSetup_36) -- 579
-		__TS__SparseArrayPush( -- 579
-			____array_65, -- 579
-			____React_createElement_38(__TS__SparseArraySpread(____array_37)), -- 579
+		local keptInput = ____temp_20 and inputRef.current or nil -- 431
+		if keptInput ~= nil then -- 431
+			keptInput:removeFromParent(false) -- 433
+		end -- 433
+		transcript.node:removeFromParent(false) -- 434
+		local restoreInputFocus = promptInput.isFocused() -- 435
+		if not keptInput then -- 435
+			promptInput.unmount() -- 437
+			inputRef = reference() -- 438
+		end -- 438
+		host:removeAllChildren() -- 440
+		inputLayout = layout -- 441
+		host.scaleX = App.devicePixelRatio -- 442
+		host.scaleY = App.devicePixelRatio -- 443
+		local ____App_visualSize_23 = App.visualSize -- 444
+		local width = ____App_visualSize_23.width -- 444
+		local height = ____App_visualSize_23.height -- 444
+		local safe = getLayoutArea() -- 445
+		local left = safe.x -- 446
+		local bottom = safe.y -- 447
+		local shortLandscape = safe.width >= 760 and safe.height < 500 -- 448
+		local state = detail.success and detail.session or nil -- 449
+		local workMode = resolveRemixWorkMode(state) -- 450
+		local stopping = hasActiveTask() -- 451
+		local ____detail_success_24 -- 452
+		if detail.success then -- 452
+			____detail_success_24 = detail.hasActivePlan -- 452
+		else -- 452
+			____detail_success_24 = false -- 452
+		end -- 452
+		local hasActivePlan = ____detail_success_24 -- 452
+		local phase = state and resolveRemixPhase({status = state.status, workMode = workMode, hasActivePlan = hasActivePlan}) or "failed" -- 453
+		local layoutComposerBottom = 24 -- 454
+		local layoutComposerHeight = composerHeight -- 455
+		local layoutModeBottom = layoutComposerBottom + layoutComposerHeight + composerGap -- 456
+		local layoutComposerTop = layoutModeBottom + 40 -- 457
+		layoutTranscriptBottom = layoutComposerTop + composerGap + (phase == "done" and 48 or 0) -- 458
+		local contentWidth = safe.width - 32 -- 459
+		local inputWidth = contentWidth - composerActionWidth - composerGap -- 460
+		local modeWidth = math.floor((contentWidth - composerGap) / 2) -- 461
+		local modeStartX = left + 16 -- 462
+		local modeCodeWidth = contentWidth - modeWidth - composerGap -- 463
+		local playWidth = canShare and (contentWidth - composerGap) / 2 or contentWidth -- 464
+		local playX = canShare and modeStartX + playWidth + composerGap or modeStartX -- 465
+		local ____detail_success_25 -- 466
+		if detail.success then -- 466
+			____detail_success_25 = detail.pendingQuestionnaire -- 466
+		else -- 466
+			____detail_success_25 = nil -- 466
+		end -- 466
+		local questionnaire = ____detail_success_25 -- 466
+		local question = questionnaire and questionnaire.schema.questions[questionIndex + 1] -- 467
+		local questionPromptWidth = contentWidth - 32 -- 468
+		local questionPromptHeight = question and measureWrappedTextHeight(question.prompt, questionPromptWidth, 16) or 0 -- 469
+		local questionAnswerTop = safe.height - 405 - questionPromptHeight / 2 - 14 -- 470
+		local questionHasBack = questionIndex > 0 -- 471
+		local questionCanSkip = question ~= nil and not question.required -- 472
+		local questionActionGap = 8 -- 473
+		local questionBackWidth = 76 -- 474
+		local questionSkipWidth = 64 -- 475
+		local questionSkipX = 16 + (questionHasBack and questionBackWidth + questionActionGap or 0) -- 476
+		local questionSubmitX = questionSkipX + (questionCanSkip and questionSkipWidth + questionActionGap or 0) -- 477
+		local fontScale = mobileFontScale -- 478
+		local headerY = getHeaderY(safe) -- 479
+		local compactHeaderStatus = useCompactHeaderStatus(safe) -- 480
+		compactHeaderStatusActive = compactHeaderStatus -- 481
+		local headerStatusWidth = 168 -- 482
+		local modelButtonWidth = shortLandscape and 92 or 72 -- 483
+		local backText = zh and "返回 ›" or "Back ›" -- 484
+		local backMeasure = Label(fontName, 18, true) -- 485
+		backMeasure.text = backText -- 486
+		local backWidth = math.max(44, backMeasure.width) -- 487
+		backMeasure:cleanup() -- 488
+		local headerBackX = left + safe.width - 16 - backWidth -- 489
+		local headerSettingsX = headerBackX - composerGap - modelButtonWidth -- 490
+		local headerStatusX = headerSettingsX - 8 - headerStatusWidth -- 491
+		local headerTitleWidth = compactHeaderStatus and math.max(120, headerStatusX - (left + 16) - composerGap) or math.max(120, headerSettingsX - (left + 16) - composerGap) -- 492
+		local selectedConfig = __TS__ArrayFind( -- 495
+			llmConfigs, -- 495
+			function(____, item) return item.id == selectedLLMConfigId end -- 495
+		) -- 495
+		local switchPending = hasActiveTask() and taskLLMConfigId > 0 and taskLLMConfigId ~= selectedLLMConfigId -- 496
+		local modelName = selectedConfig and selectedConfig.name or (zh and "配置 AI" or "Set up AI") -- 497
+		local modelNameLimit = shortLandscape and 10 or 6 -- 498
+		local shortModelName = inputLength(modelName) > modelNameLimit and inputSlice(modelName, 0, modelNameLimit) .. "…" or modelName -- 499
+		local modelLabel = ellipsizeSingleLine((switchPending and (zh and "下一轮·" or "Next·") or "") .. shortModelName, modelButtonWidth - 14, 11) -- 500
+		local thinkingText = resolveRemixThinkingStatus(detail.success and detail.steps or ({}), state and state.currentTaskId) -- 501
+		local statusText = thinkingText ~= nil and (zh and "正在思考" or "Thinking") or (phase == "planning" and (zh and "Dora 正在整理方案…" or "Dora is planning…") or (phase == "working" and (zh and "Dora 正在 Remix…" or "Dora is remixing…") or (phase == "plan-ready" and (zh and "计划对话已完成" or "Planning conversation complete") or (phase == "waiting" and (zh and "需要你的确认" or "Waiting for you") or (phase == "done" and (zh and "Remix 已完成" or "Remix complete") or (phase == "failed" and (zh and "执行失败，可以修改要求后重试" or "Failed; revise and retry") or (zh and "告诉 Dora 你想怎样改这个游戏" or "Tell Dora how to change this game"))))))) -- 502
+		local mascotState = phase == "planning" and "thinking" or (phase == "working" and "working" or (phase == "waiting" and "waiting" or ((phase == "done" or phase == "plan-ready") and "success" or (phase == "failed" and "failed" or "idle")))) -- 509
+		if mascotAnimationState ~= mascotState then -- 509
+			mascotAnimationState = mascotState -- 516
+			mascotAnimationStartedAt = App.runningTime -- 517
+		end -- 517
+		local emptyLandscape = shortLandscape and not hasTranscriptContent() -- 519
+		local emptyStatusBottom = bottom + layoutTranscriptBottom -- 520
+		local emptyStatusTop = headerY - composerGap - statusHeight -- 521
+		local messageTop = emptyLandscape and (emptyStatusBottom + emptyStatusTop) / 2 + statusHeight / 2 or headerY - composerGap - statusHeight / 2 -- 522
+		local mascotSize = shortLandscape and 42 or 52 -- 525
+		local compactStandaloneStatus = useCompactStandaloneStatus(safe) -- 526
+		local standaloneStatusContentLift = shortLandscape and 0 or (compactStandaloneStatus and 26 or 14) -- 527
+		local mascotX = shortLandscape and left + 40 or left + 66 -- 528
+		local statusTextX = shortLandscape and left + 76 or left + 104 -- 529
+		local statusTextWidth = shortLandscape and math.max(120, left + 16 + contentWidth - statusTextX) or contentWidth - 84 -- 530
+		local renderedStatusX = compactHeaderStatus and 36 or statusTextX -- 531
+		local renderedStatusY = compactHeaderStatus and 22 or statusHeight / 2 + standaloneStatusContentLift -- 532
+		local renderedStatusWidth = compactHeaderStatus and headerStatusWidth - 36 or statusTextWidth -- 533
+		local thinkingFontSize = compactHeaderStatus and math.floor(10 * fontScale) or math.floor(12 * fontScale) -- 534
+		local thinkingRightPadding = compactHeaderStatus and 8 or 20 -- 535
+		local renderedThinkingText = thinkingText == nil and "" or ellipsizeSingleLine(thinkingText, renderedStatusWidth - thinkingRightPadding, thinkingFontSize) -- 536
+		local swipeStart = Vec2.zero -- 537
+		local swipeAxis = "none" -- 538
+		local pageRef = reference() -- 539
+		local hitsTranscriptButton -- 540
+		hitsTranscriptButton = function(node, world) -- 540
+			if not node.visible then -- 540
+				return false -- 541
+			end -- 541
+			if node.tag == "remix-copy" or node.tag == "remix-latest" or node.tag == "remix-action-continue" or node.tag == "remix-action-start-development" then -- 541
+				local p = node:convertToNodeSpace(world) -- 543
+				if p.x >= 0 and p.y >= 0 and p.x <= node.width and p.y <= node.height then -- 543
+					return true -- 544
+				end -- 544
+			end -- 544
+			local hit = false -- 546
+			node:eachChild(function(child) -- 547
+				hit = hitsTranscriptButton(child, world) -- 547
+				return hit -- 547
+			end) -- 547
+			return hit -- 548
+		end -- 540
+		local ____toNode_70 = toNode -- 550
+		local ____React_createElement_69 = React.createElement -- 550
+		local ____array_68 = __TS__SparseArrayNew( -- 550
+			"node", -- 550
+			{ -- 550
+				tag = "remix-scene", -- 550
+				x = -width / 2, -- 550
+				y = -height / 2, -- 550
+				width = width, -- 550
+				height = height, -- 550
+				anchorX = 0, -- 550
+				anchorY = 0 -- 550
+			}, -- 550
+			React.createElement( -- 550
+				"node", -- 550
+				{ -- 550
+					tag = "remix-focus-observer", -- 550
+					order = 1000, -- 550
+					width = width, -- 550
+					height = height, -- 550
+					anchorX = 0, -- 550
+					anchorY = 0, -- 550
+					touchEnabled = true, -- 550
+					swallowTouches = false, -- 550
+					swallowMouseWheel = false, -- 550
+					onTapFilter = function(touch) -- 550
+						touch.enabled = false -- 554
+						if packagePanel or swipeBackPending or not host.visible or HttpServer.wsConnectionCount > 0 then -- 554
+							return -- 555
+						end -- 555
+						local input = inputRef.current -- 556
+						local point = input and input:convertToNodeSpace(touch.worldLocation) -- 557
+						local inside = input and point and point.x >= 0 and point.y >= 0 and point.x <= input.width and point.y <= input.height -- 558
+						dismissedComposition = not inside and promptInput.isComposing() -- 559
+						if not inside then -- 559
+							blurInput() -- 560
+						end -- 560
+						if not inside and not questionnaire and touch.first ~= false and touch.location.y >= bottom + layoutTranscriptBottom and touch.location.y < bottom + safe.height - 64 and not hitsTranscriptButton(transcript.node, touch.worldLocation) then -- 560
+							touch.enabled = true -- 565
+						end -- 565
+					end, -- 553
+					onTapBegan = function(touch) -- 553
+						swipeStart = touch.location -- 569
+						swipeAxis = "none" -- 569
+						swipeDragging = true -- 569
+						local ____opt_34 = pageRef.current -- 569
+						if ____opt_34 ~= nil then -- 569
+							____opt_34:stopAllActions() -- 570
+						end -- 570
+					end, -- 568
+					onTapMoved = function(touch) -- 568
+						local delta = touch.location:sub(swipeStart) -- 573
+						if swipeAxis == "none" and math.max( -- 573
+							math.abs(delta.x), -- 574
+							math.abs(delta.y) -- 574
+						) >= 12 then -- 574
+							swipeAxis = math.abs(delta.x) > math.abs(delta.y) * 1.2 and "horizontal" or "vertical" -- 575
+						end -- 575
+						if pageRef.current then -- 575
+							pageRef.current.x = swipeAxis == "horizontal" and math.min(0, delta.x) * 0.18 or 0 -- 577
+						end -- 577
+					end, -- 572
+					onTapEnded = function(touch) -- 572
+						local delta = touch.location:sub(swipeStart) -- 580
+						swipeDragging = false -- 581
+						if swipeBackPending then -- 581
+							return -- 582
+						end -- 582
+						local requested = swipeAxis ~= "vertical" and resolveFeedGesture(delta.x, delta.y, safe.width, safe.height) == "play" -- 583
+						local leaving = requested and (not detail.success or canLeaveRemix(detail.session.status)) -- 584
+						local page = pageRef.current -- 585
+						if not page or not requested and page.x == 0 then -- 585
+							return -- 586
+						end -- 586
+						local duration = (leaving or App.reducedMotion) and 0 or 0.16 -- 587
+						local revision = swipeRevision -- 588
+						swipeBackPending = true -- 589
+						if not leaving then -- 589
+							page:perform(Move(duration, page.position, Vec2.zero, Ease.OutQuad)) -- 591
+						end -- 591
+						thread(function() -- 593
+							sleep(duration) -- 594
+							if disposed or revision ~= swipeRevision or not host.parent then -- 594
+								return -- 595
+							end -- 595
+							swipeBackPending = false -- 596
+							if requested and host.visible and HttpServer.wsConnectionCount == 0 then -- 596
+								refresh() -- 597
+								goBack() -- 597
+							else -- 597
+								page.position = Vec2.zero -- 598
+							end -- 598
+						end) -- 593
+					end -- 579
+				} -- 579
+			), -- 579
+			React.createElement(VerticalGradient, {width = width, height = height, topColor = 4279310117, bottomColor = 4278716943}) -- 579
+		) -- 579
+		local ____React_createElement_67 = React.createElement -- 579
+		local ____array_66 = __TS__SparseArrayNew( -- 579
+			"node", -- 579
+			{tag = "remix-page", ref = pageRef}, -- 579
+			React.createElement( -- 579
+				"clip-node", -- 579
+				{ -- 579
+					x = left + 16, -- 579
+					y = headerY, -- 579
+					width = headerTitleWidth, -- 579
+					height = 44, -- 579
+					anchorX = 0, -- 579
+					anchorY = 0, -- 579
+					stencil = React.createElement( -- 579
+						"draw-node", -- 579
+						{x = headerTitleWidth / 2, y = 22}, -- 579
+						React.createElement("rect-shape", {width = headerTitleWidth, height = 44, fillColor = 4294967295}) -- 579
+					) -- 579
+				}, -- 579
+				React.createElement("label", { -- 579
+					tag = "remix-title", -- 579
+					x = 0, -- 579
+					y = 22, -- 579
+					anchorX = 0, -- 579
+					fontName = fontName, -- 579
+					fontSize = 20, -- 579
+					text = "REMIX · " .. options.entry.title, -- 579
+					color3 = 16052712 -- 579
+				}) -- 579
+			), -- 579
 			React.createElement( -- 579
 				"node", -- 579
 				{ -- 579
-					tag = "remix-status", -- 579
-					x = compactHeaderStatus and headerStatusX or 0, -- 579
-					y = compactHeaderStatus and headerY or messageTop - statusHeight / 2, -- 579
-					width = compactHeaderStatus and headerStatusWidth or width, -- 579
-					height = compactHeaderStatus and 44 or statusHeight, -- 579
+					tag = "remix-back", -- 579
+					x = headerBackX, -- 579
+					y = headerY, -- 579
+					width = backWidth, -- 579
+					height = 44, -- 579
 					anchorX = 0, -- 579
-					anchorY = 0 -- 579
+					anchorY = 0, -- 579
+					touchEnabled = true, -- 579
+					swallowTouches = true, -- 579
+					onTapped = goBack -- 579
 				}, -- 579
-				React.createElement(DoraMascot, { -- 579
-					state = mascotState, -- 579
-					x = compactHeaderStatus and 16 or mascotX, -- 579
-					y = compactHeaderStatus and 20 or statusHeight / 2 - 2 + standaloneStatusContentLift, -- 579
-					size = compactHeaderStatus and 30 or mascotSize, -- 579
-					animationStartedAt = mascotAnimationStartedAt -- 579
-				}), -- 579
-				React.createElement( -- 579
-					"clip-node", -- 579
-					{ -- 579
-						tag = "remix-status-clip", -- 579
-						x = renderedStatusX, -- 579
-						y = renderedStatusY - 22, -- 579
-						width = renderedStatusWidth, -- 579
-						height = 44, -- 579
-						anchorX = 0, -- 579
-						anchorY = 0, -- 579
-						stencil = React.createElement( -- 579
-							"draw-node", -- 579
-							{x = renderedStatusWidth / 2, y = 22}, -- 579
-							React.createElement("rect-shape", {width = renderedStatusWidth, height = 44, fillColor = 4294967295}) -- 579
-						) -- 579
-					}, -- 579
-					React.createElement( -- 579
-						"label", -- 579
-						{ -- 579
-							tag = "remix-status-text", -- 579
-							x = 0, -- 579
-							y = 22, -- 579
-							anchorX = 0, -- 579
-							fontName = fontName, -- 579
-							fontSize = compactHeaderStatus and math.floor(13 * fontScale) or math.floor(15 * fontScale), -- 579
-							text = statusText, -- 579
-							textWidth = -1, -- 579
-							alignment = "Left", -- 579
-							color3 = phase == "failed" and 16739179 or 16763955 -- 579
-						} -- 579
-					), -- 579
-					React.createElement("label", { -- 579
-						tag = "remix-thinking-text", -- 579
-						x = 0, -- 579
-						y = 6, -- 579
-						anchorX = 0, -- 579
-						fontName = fontName, -- 579
-						fontSize = thinkingFontSize, -- 579
-						text = renderedThinkingText, -- 579
-						textWidth = -1, -- 579
-						alignment = "Left", -- 579
-						color3 = colors.muted -- 579
-					}) -- 579
-				) -- 579
+				React.createElement("label", { -- 579
+					x = backWidth, -- 579
+					y = 22, -- 579
+					anchorX = 1, -- 579
+					fontName = fontName, -- 579
+					fontSize = 18, -- 579
+					text = backText, -- 579
+					color3 = 16763955 -- 579
+				}) -- 579
 			) -- 579
 		) -- 579
-		local ____temp_46 -- 595
-		if questionnaire and question then -- 595
-			local ____React_createElement_45 = React.createElement -- 595
-			local ____array_44 = __TS__SparseArrayNew( -- 595
-				"node", -- 595
-				{ -- 595
-					tag = "remix-questionnaire", -- 595
-					x = left + 16, -- 595
-					y = bottom + 164, -- 595
-					width = contentWidth, -- 595
-					height = safe.height - 330, -- 595
-					anchorX = 0, -- 595
-					anchorY = 0 -- 595
-				}, -- 595
-				React.createElement(RoundedSurface, { -- 595
-					width = contentWidth, -- 595
-					height = safe.height - 330, -- 595
-					radius = 20, -- 595
-					topColor = 4280429370, -- 595
-					bottomColor = 4279375648, -- 595
-					borderWidth = 1, -- 595
-					borderColor = 4282469213, -- 595
-					shadow = true -- 595
-				}), -- 595
-				React.createElement( -- 595
-					"label", -- 595
-					{ -- 595
-						x = 16, -- 595
-						y = safe.height - 360, -- 595
-						anchorX = 0, -- 595
-						fontName = fontName, -- 595
-						fontSize = 13, -- 595
-						text = (((tostring(questionIndex + 1) .. " / ") .. tostring(#questionnaire.schema.questions)) .. " · ") .. questionnaire.schema.title, -- 595
-						textWidth = contentWidth - 32, -- 595
-						alignment = "Left", -- 595
-						color3 = 16763955 -- 595
-					} -- 595
-				), -- 595
-				React.createElement("label", { -- 595
-					x = 16, -- 595
-					y = safe.height - 405, -- 595
-					anchorX = 0, -- 595
-					fontName = fontName, -- 595
-					fontSize = 16, -- 595
-					text = question.prompt, -- 595
-					textWidth = contentWidth - 32, -- 595
-					alignment = "Left", -- 595
-					color3 = 16052712 -- 595
-				}), -- 595
-				question.type ~= "text" and __TS__ArrayMap( -- 599
-					__TS__ArraySlice(question.options or ({}), 0, 8), -- 599
-					function(____, option, optionIndex) return React.createElement( -- 599
-						ChoiceButton, -- 599
-						{ -- 599
-							tag = (("remix-question-" .. question.id) .. "-option-") .. option.id, -- 599
-							x = 16, -- 599
-							y = safe.height - 460 - optionIndex * 43, -- 599
-							width = contentWidth - 32, -- 599
-							text = (((__TS__ArrayIndexOf(questionnaireSelections[question.id] or ({}), option.id) >= 0 and "●" or "○") .. " ") .. option.label) .. (option.recommended and (zh and "（推荐）" or " (recommended)") or ""), -- 599
-							selected = __TS__ArrayIndexOf(questionnaireSelections[question.id] or ({}), option.id) >= 0, -- 599
-							onTapped = function() -- 599
-								local selected = questionnaireSelections[question.id] or ({}) -- 605
-								local ____question_id_42 = question.id -- 606
-								local ____temp_41 -- 606
-								if question.type == "single_choice" then -- 606
-									____temp_41 = {option.id} -- 607
-								else -- 607
-									local ____temp_40 -- 608
-									if __TS__ArrayIndexOf(selected, option.id) >= 0 then -- 608
-										____temp_40 = __TS__ArrayFilter( -- 608
-											selected, -- 608
-											function(____, id) return id ~= option.id end -- 608
-										) -- 608
-									else -- 608
-										local ____array_39 = __TS__SparseArrayNew(table.unpack(selected)) -- 608
-										__TS__SparseArrayPush(____array_39, option.id) -- 608
-										____temp_40 = {__TS__SparseArraySpread(____array_39)} -- 608
-									end -- 608
-									____temp_41 = ____temp_40 -- 608
-								end -- 608
-								questionnaireSelections[____question_id_42] = ____temp_41 -- 606
-								render() -- 609
-							end -- 604
-						} -- 604
-					) end -- 604
-				) or React.createElement("node", { -- 604
-					tag = "remix-question-input", -- 604
-					ref = inputRef, -- 604
-					x = 16, -- 604
-					y = safe.height - 510, -- 604
-					width = contentWidth - 32, -- 604
-					height = 92, -- 604
-					anchorX = 0, -- 604
-					anchorY = 0, -- 604
-					onMount = promptInput.mount -- 604
-				}) -- 604
-			) -- 604
-			local ____temp_43 -- 613
-			if questionIndex > 0 then -- 613
-				____temp_43 = React.createElement( -- 613
-					ActionButton, -- 613
-					{ -- 613
-						tag = "remix-question-back", -- 613
-						x = 16, -- 613
-						y = 12, -- 613
-						width = 92, -- 613
-						text = zh and "上一步" or "Back", -- 613
-						onTapped = function() -- 613
-							questionIndex = questionIndex - 1 -- 613
-							render() -- 613
-						end -- 613
-					} -- 613
-				) -- 613
-			else -- 613
-				____temp_43 = nil -- 613
-			end -- 613
-			__TS__SparseArrayPush( -- 613
-				____array_44, -- 613
-				____temp_43, -- 613
-				React.createElement( -- 613
-					ActionButton, -- 614
-					{ -- 614
-						tag = "remix-question-submit", -- 614
-						x = questionIndex > 0 and 120 or 16, -- 614
-						y = 12, -- 614
-						width = contentWidth - (questionIndex > 0 and 136 or 32), -- 614
-						text = questionIndex + 1 == #questionnaire.schema.questions and (zh and "提交回答" or "Submit") or (zh and "下一步" or "Next"), -- 614
-						primary = true, -- 614
-						onTapped = function() -- 614
-							if not dismissedComposition then -- 614
-								advanceQuestionnaire() -- 616
-							end -- 616
-							dismissedComposition = false -- 616
-						end -- 616
-					} -- 616
+		local ____React_createElement_38 = React.createElement -- 579
+		local ____array_37 = __TS__SparseArrayNew( -- 579
+			"node", -- 579
+			{ -- 579
+				tag = "remix-model-config", -- 579
+				x = headerSettingsX, -- 579
+				y = headerY + 6, -- 579
+				width = modelButtonWidth, -- 579
+				height = 32, -- 579
+				anchorX = 0, -- 579
+				anchorY = 0, -- 579
+				touchEnabled = true, -- 579
+				swallowTouches = true, -- 579
+				onTapped = configureLLM -- 579
+			}, -- 579
+			React.createElement(RoundedSurface, { -- 579
+				width = modelButtonWidth, -- 579
+				height = 32, -- 579
+				radius = 16, -- 579
+				topColor = 858534978, -- 579
+				bottomColor = 856824097, -- 579
+				borderWidth = 1, -- 579
+				borderColor = needsLLMSetup and colors.brand or colors.border -- 579
+			}), -- 579
+			React.createElement("label", { -- 579
+				x = modelButtonWidth / 2, -- 579
+				y = 16, -- 579
+				fontName = fontName, -- 579
+				fontSize = 11, -- 579
+				text = modelLabel, -- 579
+				color3 = (needsLLMSetup or switchPending) and 16763955 or 11055037 -- 579
+			}) -- 579
+		) -- 579
+		local ____needsLLMSetup_36 -- 616
+		if needsLLMSetup then -- 616
+			____needsLLMSetup_36 = React.createElement( -- 616
+				"draw-node", -- 616
+				{x = modelButtonWidth - 4, y = 28}, -- 616
+				React.createElement("dot-shape", {radius = 3, color = 4294954035}) -- 616
+			) -- 616
+		else -- 616
+			____needsLLMSetup_36 = nil -- 616
+		end -- 616
+		__TS__SparseArrayPush(____array_37, ____needsLLMSetup_36) -- 616
+		__TS__SparseArrayPush( -- 616
+			____array_66, -- 616
+			____React_createElement_38(__TS__SparseArraySpread(____array_37)), -- 616
+			React.createElement( -- 616
+				"node", -- 616
+				{ -- 616
+					tag = "remix-status", -- 616
+					x = compactHeaderStatus and headerStatusX or 0, -- 616
+					y = compactHeaderStatus and headerY or messageTop - statusHeight / 2, -- 616
+					width = compactHeaderStatus and headerStatusWidth or width, -- 616
+					height = compactHeaderStatus and 44 or statusHeight, -- 616
+					anchorX = 0, -- 616
+					anchorY = 0 -- 616
+				}, -- 616
+				React.createElement(DoraMascot, { -- 616
+					state = mascotState, -- 616
+					x = compactHeaderStatus and 16 or mascotX, -- 616
+					y = compactHeaderStatus and 20 or statusHeight / 2 - 2 + standaloneStatusContentLift, -- 616
+					size = compactHeaderStatus and 30 or mascotSize, -- 616
+					animationStartedAt = mascotAnimationStartedAt -- 616
+				}), -- 616
+				React.createElement( -- 616
+					"clip-node", -- 616
+					{ -- 616
+						tag = "remix-status-clip", -- 616
+						x = renderedStatusX, -- 616
+						y = renderedStatusY - 22, -- 616
+						width = renderedStatusWidth, -- 616
+						height = 44, -- 616
+						anchorX = 0, -- 616
+						anchorY = 0, -- 616
+						stencil = React.createElement( -- 616
+							"draw-node", -- 616
+							{x = renderedStatusWidth / 2, y = 22}, -- 616
+							React.createElement("rect-shape", {width = renderedStatusWidth, height = 44, fillColor = 4294967295}) -- 616
+						) -- 616
+					}, -- 616
+					React.createElement( -- 616
+						"label", -- 616
+						{ -- 616
+							tag = "remix-status-text", -- 616
+							x = 0, -- 616
+							y = 22, -- 616
+							anchorX = 0, -- 616
+							fontName = fontName, -- 616
+							fontSize = compactHeaderStatus and math.floor(13 * fontScale) or math.floor(15 * fontScale), -- 616
+							text = statusText, -- 616
+							textWidth = -1, -- 616
+							alignment = "Left", -- 616
+							color3 = phase == "failed" and 16739179 or 16763955 -- 616
+						} -- 616
+					), -- 616
+					React.createElement("label", { -- 616
+						tag = "remix-thinking-text", -- 616
+						x = 0, -- 616
+						y = 6, -- 616
+						anchorX = 0, -- 616
+						fontName = fontName, -- 616
+						fontSize = thinkingFontSize, -- 616
+						text = renderedThinkingText, -- 616
+						textWidth = -1, -- 616
+						alignment = "Left", -- 616
+						color3 = colors.muted -- 616
+					}) -- 616
 				) -- 616
 			) -- 616
-			____temp_46 = ____React_createElement_45(__TS__SparseArraySpread(____array_44)) -- 616
-		else -- 616
-			____temp_46 = nil -- 617
-		end -- 617
-		__TS__SparseArrayPush(____array_65, ____temp_46) -- 617
-		local ____temp_47 -- 618
-		if ____error ~= "" then -- 618
-			____temp_47 = React.createElement( -- 618
-				"label", -- 618
-				{ -- 618
-					tag = "remix-error", -- 618
-					x = left + 20, -- 618
-					y = bottom + (questionnaire and 144 or layoutComposerTop + composerGap), -- 618
-					anchorX = 0, -- 618
-					anchorY = 0, -- 618
-					fontName = fontName, -- 618
-					fontSize = 13, -- 618
-					text = ____error, -- 618
-					textWidth = contentWidth, -- 618
-					alignment = "Left", -- 618
-					color3 = 16739179, -- 618
-					onMount = function(label) -- 618
-						errorLabel = label -- 618
-					end -- 618
-				} -- 618
-			) -- 618
-		else -- 618
-			____temp_47 = nil -- 618
-		end -- 618
-		__TS__SparseArrayPush(____array_65, ____temp_47) -- 618
-		local ____temp_48 -- 619
-		if questionnaire == nil then -- 619
-			____temp_48 = React.createElement( -- 619
-				"node", -- 619
-				nil, -- 619
-				React.createElement( -- 619
-					ChoiceButton, -- 620
-					{ -- 620
-						tag = "remix-mode-plan", -- 620
-						x = modeStartX, -- 620
-						y = bottom + layoutModeBottom, -- 620
-						width = modeWidth, -- 620
-						text = zh and "计划" or "Plan", -- 620
-						selected = workMode == "plan", -- 620
-						disabled = not canSubmit(), -- 620
-						onTapped = function() return changeWorkMode("plan") end -- 620
-					} -- 620
-				), -- 620
-				React.createElement( -- 620
-					ChoiceButton, -- 621
-					{ -- 621
-						tag = "remix-mode-code", -- 621
-						x = modeStartX + modeWidth + composerGap, -- 621
-						y = bottom + layoutModeBottom, -- 621
-						width = modeCodeWidth, -- 621
-						text = zh and "执行" or "Code", -- 621
-						selected = workMode == "code", -- 621
-						disabled = not canSubmit(), -- 621
-						onTapped = function() return changeWorkMode("code") end -- 621
-					} -- 621
-				) -- 621
-			) -- 621
-		else -- 621
-			____temp_48 = nil -- 622
-		end -- 622
-		__TS__SparseArrayPush(____array_65, ____temp_48) -- 622
-		local ____temp_49 -- 623
-		if questionnaire == nil and not keptInput then -- 623
-			____temp_49 = React.createElement("node", { -- 623
-				tag = "remix-input", -- 623
-				ref = inputRef, -- 623
-				x = left + 16, -- 623
-				y = bottom + layoutComposerBottom, -- 623
-				width = inputWidth, -- 623
-				height = layoutComposerHeight, -- 623
-				anchorX = 0, -- 623
-				anchorY = 0, -- 623
-				onMount = promptInput.mount -- 623
-			}) -- 623
-		else -- 623
-			____temp_49 = nil -- 624
-		end -- 624
-		__TS__SparseArrayPush(____array_65, ____temp_49) -- 624
-		local ____temp_62 -- 625
-		if stopping or questionnaire == nil then -- 625
-			local ____React_createElement_61 = React.createElement -- 625
-			local ____ActionButton_60 = ActionButton -- 625
-			local ____temp_55 = stopping and "remix-stop" or "remix-send" -- 625
-			local ____temp_56 = left + 16 + inputWidth + composerGap -- 626
-			local ____temp_57 = bottom + layoutComposerBottom -- 626
-			local ____temp_58 = stopping and (state and state.currentTaskFinalizing and (zh and "收尾中" or "Finishing") or (stopRequested and (zh and "停止中" or "Stopping") or (zh and "停止" or "Stop"))) or (zh and "发送" or "Send") -- 627
-			local ____temp_59 = not stopping -- 628
-			local ____stopping_54 -- 628
-			if stopping then -- 628
-				____stopping_54 = stopRequested or (state and state.currentTaskFinalizing) == true -- 628
-			else -- 628
-				____stopping_54 = not canSubmit() -- 628
-			end -- 628
-			____temp_62 = ____React_createElement_61( -- 628
-				____ActionButton_60, -- 625
-				{ -- 625
-					tag = ____temp_55, -- 625
-					x = ____temp_56, -- 625
-					y = ____temp_57, -- 625
-					width = composerActionWidth, -- 625
-					height = layoutComposerHeight, -- 625
-					text = ____temp_58, -- 625
-					primary = ____temp_59, -- 625
-					danger = stopping, -- 625
-					disabled = ____stopping_54, -- 625
-					onTapped = function() -- 625
-						if stopping then -- 625
-							stop() -- 629
-						elseif not dismissedComposition then -- 629
-							send() -- 629
-						end -- 629
-						dismissedComposition = false -- 629
-					end -- 629
-				} -- 629
-			) -- 629
-		else -- 629
-			____temp_62 = nil -- 629
-		end -- 629
-		__TS__SparseArrayPush(____array_65, ____temp_62) -- 629
-		local ____temp_63 -- 630
-		if phase == "done" then -- 630
-			____temp_63 = React.createElement( -- 630
-				ActionButton, -- 630
-				{ -- 630
-					tag = "remix-share", -- 630
-					x = left + 16, -- 630
-					y = bottom + layoutModeBottom + 48, -- 630
-					width = playWidth, -- 630
-					height = 40, -- 630
-					text = zh and "分享作品" or "Share game", -- 630
-					onTapped = function() -- 630
-						if not host.visible or packagePanel or HttpServer.wsConnectionCount > 0 then -- 630
-							return -- 631
-						end -- 631
-						blurInput() -- 632
-						notifyProjectChanged() -- 632
-						packagePanel = startPackagePanel({ -- 633
-							mode = "share", -- 633
-							entry = options.entry, -- 633
-							onClosed = function() -- 633
-								packagePanel = nil -- 633
-							end -- 633
-						}) -- 633
-					end -- 630
-				} -- 630
-			) -- 630
-		else -- 630
-			____temp_63 = nil -- 634
-		end -- 634
-		__TS__SparseArrayPush(____array_65, ____temp_63) -- 634
-		local ____temp_64 -- 635
-		if phase == "done" then -- 635
-			____temp_64 = React.createElement( -- 635
-				ActionButton, -- 635
-				{ -- 635
-					tag = "remix-play", -- 635
-					x = playX, -- 635
-					y = bottom + layoutModeBottom + 48, -- 635
-					width = playWidth, -- 635
-					height = 40, -- 635
-					text = zh and "立即试玩" or "Play now", -- 635
-					primary = true, -- 635
-					onTapped = function() -- 635
-						if not host.visible or HttpServer.wsConnectionCount > 0 then -- 635
-							return -- 635
-						end -- 635
-						blurInput() -- 635
-						notifyProjectChanged() -- 635
-						host.visible = false -- 635
-						onPlay(options.entry) -- 635
-					end -- 635
-				} -- 635
-			) -- 635
-		else -- 635
-			____temp_64 = nil -- 635
-		end -- 635
-		__TS__SparseArrayPush(____array_65, ____temp_64) -- 635
-		__TS__SparseArrayPush( -- 635
-			____array_67, -- 635
-			____React_createElement_66(__TS__SparseArraySpread(____array_65)) -- 635
-		) -- 635
-		local scene = ____toNode_69(____React_createElement_68(__TS__SparseArraySpread(____array_67))) -- 513
-		if scene then -- 513
-			host:addChild(scene) -- 639
-			if keptInput then -- 639
-				keptInput.position = Vec2(left + 16, bottom + layoutComposerBottom) -- 641
-				keptInput.width = inputWidth -- 642
-				keptInput.height = layoutComposerHeight -- 643
-				local ____opt_70 = pageRef.current -- 643
-				if ____opt_70 ~= nil then -- 643
-					____opt_70:addChild(keptInput) -- 644
-				end -- 644
-			end -- 644
-			if not questionnaire then -- 644
-				transcript.node.position = Vec2( -- 647
-					left + 16, -- 647
-					bottom + getTranscriptBottom() -- 647
-				) -- 647
-				local ____opt_72 = pageRef.current -- 647
-				if ____opt_72 ~= nil then -- 647
-					____opt_72:addChild(transcript.node) -- 648
-				end -- 648
-				updateTranscript() -- 649
-			end -- 649
-		end -- 649
-		if restoreInputFocus and inputRef.current and not keptInput then -- 649
-			promptInput.focus(false) -- 652
-		end -- 652
-		if keptInput then -- 652
-			promptInput.refresh() -- 653
-		end -- 653
-		shellRevision = getShellRevision() -- 654
-		displayRevision = remixDisplayRevision(detail) -- 655
-	end -- 402
-	attachGamepad( -- 658
-		host, -- 658
-		{ -- 658
-			initialTag = "remix-input", -- 659
-			onBack = function() -- 660
-				if promptInput.isFocused() then -- 660
-					blurInput() -- 660
-				else -- 660
-					goBack() -- 660
-				end -- 660
-			end, -- 660
-			onScroll = function(amount) return transcript:scrollBy(amount) end, -- 661
-			onActivate = function(target) -- 662
-				if target.tag == "remix-input" or target.tag == "remix-question-input" then -- 662
-					target:emit("GamepadActivate") -- 663
-				else -- 663
-					if promptInput.isComposing() then -- 663
-						blurInput() -- 665
-						return -- 665
-					end -- 665
-					blurInput() -- 666
-					dismissedComposition = false -- 667
-					target:emit("Tapped") -- 668
-				end -- 668
-			end -- 662
-		} -- 662
-	) -- 662
-	host:schedule(function(dt) -- 672
-		pollElapsed = pollElapsed + dt -- 673
-		if pollElapsed < 0.25 then -- 673
-			return false -- 674
-		end -- 674
-		pollElapsed = 0 -- 675
-		refresh() -- 676
-		if swipeDragging or swipeBackPending then -- 676
-			return false -- 677
-		end -- 677
-		local next = remixDisplayRevision(detail) -- 678
-		if shellRevision ~= getShellRevision() or compactHeaderStatusActive ~= useCompactHeaderStatus(getLayoutArea()) then -- 678
-			render() -- 679
-		elseif displayRevision ~= next then -- 679
-			updateTranscript() -- 680
-		end -- 680
-		return false -- 681
-	end) -- 672
-	host:onAppChange(function(setting) -- 683
-		if setting == "Locale" then -- 683
-			zh = (string.match(App.locale, "^zh")) ~= nil -- 684
-		end -- 684
-		if setting == "Size" or setting == "Locale" then -- 684
-			render() -- 685
-		end -- 685
-	end) -- 683
-	host:onAppEvent(function(event) -- 687
-		if event == "BackButton" then -- 687
-			if promptInput.isFocused() then -- 687
-				blurInput() -- 688
-			else -- 688
-				goBack() -- 688
-			end -- 688
-		elseif event == "WillEnterBackground" or event == "DidEnterBackground" then -- 688
-			blurInput() -- 689
-		end -- 689
-	end) -- 687
-	host:onCleanup(function() -- 691
-		if packagePanel ~= nil then -- 691
-			packagePanel:removeFromParent(true) -- 692
-		end -- 692
-		packagePanel = nil -- 693
-		disposed = true -- 694
-		blurInput() -- 694
-	end) -- 691
-	host:slot("SuspendLocalUI", blurInput) -- 696
-	host:slot( -- 697
-		"ResumeLocalUI", -- 697
-		function() -- 697
-			refresh() -- 697
-			render() -- 697
-		end -- 697
-	) -- 697
-	render() -- 698
-	if needsLLMSetup then -- 698
-		thread(function() -- 699
-			sleep(0) -- 699
-			if not disposed and host.parent then -- 699
-				configureLLM() -- 699
-			end -- 699
-		end) -- 699
-	end -- 699
-	return host -- 700
-end -- 106
-return ____exports -- 106
+		) -- 616
+		local ____temp_47 -- 632
+		if questionnaire and question then -- 632
+			local ____React_createElement_46 = React.createElement -- 632
+			local ____array_45 = __TS__SparseArrayNew( -- 632
+				"node", -- 632
+				{ -- 632
+					tag = "remix-questionnaire", -- 632
+					x = left + 16, -- 632
+					y = bottom + 164, -- 632
+					width = contentWidth, -- 632
+					height = safe.height - 330, -- 632
+					anchorX = 0, -- 632
+					anchorY = 0 -- 632
+				}, -- 632
+				React.createElement(RoundedSurface, { -- 632
+					width = contentWidth, -- 632
+					height = safe.height - 330, -- 632
+					radius = 20, -- 632
+					topColor = 4280429370, -- 632
+					bottomColor = 4279375648, -- 632
+					borderWidth = 1, -- 632
+					borderColor = 4282469213, -- 632
+					shadow = true -- 632
+				}), -- 632
+				React.createElement( -- 632
+					"label", -- 632
+					{ -- 632
+						x = 16, -- 632
+						y = safe.height - 360, -- 632
+						anchorX = 0, -- 632
+						fontName = fontName, -- 632
+						fontSize = 13, -- 632
+						text = (((tostring(questionIndex + 1) .. " / ") .. tostring(#questionnaire.schema.questions)) .. " · ") .. questionnaire.schema.title, -- 632
+						textWidth = contentWidth - 32, -- 632
+						alignment = "Left", -- 632
+						color3 = 16763955 -- 632
+					} -- 632
+				), -- 632
+				React.createElement("label", { -- 632
+					tag = "remix-question-prompt", -- 632
+					x = 16, -- 632
+					y = safe.height - 405, -- 632
+					anchorX = 0, -- 632
+					fontName = fontName, -- 632
+					fontSize = 16, -- 632
+					text = question.prompt, -- 632
+					textWidth = questionPromptWidth, -- 632
+					alignment = "Left", -- 632
+					color3 = 16052712 -- 632
+				}), -- 632
+				question.type ~= "text" and __TS__ArrayMap( -- 636
+					__TS__ArraySlice(question.options or ({}), 0, 8), -- 636
+					function(____, option, optionIndex) return React.createElement( -- 636
+						ChoiceButton, -- 636
+						{ -- 636
+							tag = (("remix-question-" .. question.id) .. "-option-") .. option.id, -- 636
+							x = 16, -- 636
+							y = questionAnswerTop - 40 - optionIndex * 43, -- 636
+							width = contentWidth - 32, -- 636
+							text = (((__TS__ArrayIndexOf(questionnaireSelections[question.id] or ({}), option.id) >= 0 and "●" or "○") .. " ") .. option.label) .. (option.recommended and (zh and "（推荐）" or " (recommended)") or ""), -- 636
+							selected = __TS__ArrayIndexOf(questionnaireSelections[question.id] or ({}), option.id) >= 0, -- 636
+							onTapped = function() -- 636
+								local selected = questionnaireSelections[question.id] or ({}) -- 642
+								local ____question_id_42 = question.id -- 643
+								local ____temp_41 -- 643
+								if question.type == "single_choice" then -- 643
+									____temp_41 = {option.id} -- 644
+								else -- 644
+									local ____temp_40 -- 645
+									if __TS__ArrayIndexOf(selected, option.id) >= 0 then -- 645
+										____temp_40 = __TS__ArrayFilter( -- 645
+											selected, -- 645
+											function(____, id) return id ~= option.id end -- 645
+										) -- 645
+									else -- 645
+										local ____array_39 = __TS__SparseArrayNew(table.unpack(selected)) -- 645
+										__TS__SparseArrayPush(____array_39, option.id) -- 645
+										____temp_40 = {__TS__SparseArraySpread(____array_39)} -- 645
+									end -- 645
+									____temp_41 = ____temp_40 -- 645
+								end -- 645
+								questionnaireSelections[____question_id_42] = ____temp_41 -- 643
+								render() -- 646
+							end -- 641
+						} -- 641
+					) end -- 641
+				) or React.createElement("node", { -- 641
+					tag = "remix-question-input", -- 641
+					ref = inputRef, -- 641
+					x = 16, -- 641
+					y = questionAnswerTop - 92, -- 641
+					width = contentWidth - 32, -- 641
+					height = 92, -- 641
+					anchorX = 0, -- 641
+					anchorY = 0, -- 641
+					onMount = promptInput.mount -- 641
+				}) -- 641
+			) -- 641
+			local ____questionHasBack_43 -- 650
+			if questionHasBack then -- 650
+				____questionHasBack_43 = React.createElement( -- 650
+					ActionButton, -- 650
+					{ -- 650
+						tag = "remix-question-back", -- 650
+						x = 16, -- 650
+						y = 12, -- 650
+						width = questionBackWidth, -- 650
+						text = zh and "上一步" or "Back", -- 650
+						onTapped = function() -- 650
+							questionIndex = questionIndex - 1 -- 650
+							render() -- 650
+						end -- 650
+					} -- 650
+				) -- 650
+			else -- 650
+				____questionHasBack_43 = nil -- 650
+			end -- 650
+			__TS__SparseArrayPush(____array_45, ____questionHasBack_43) -- 650
+			local ____questionCanSkip_44 -- 651
+			if questionCanSkip then -- 651
+				____questionCanSkip_44 = React.createElement( -- 651
+					ActionButton, -- 651
+					{ -- 651
+						tag = "remix-question-skip", -- 651
+						x = questionSkipX, -- 651
+						y = 12, -- 651
+						width = questionSkipWidth, -- 651
+						text = zh and "跳过" or "Skip", -- 651
+						onTapped = function() return advanceQuestionnaire(true) end -- 651
+					} -- 651
+				) -- 651
+			else -- 651
+				____questionCanSkip_44 = nil -- 651
+			end -- 651
+			__TS__SparseArrayPush( -- 651
+				____array_45, -- 651
+				____questionCanSkip_44, -- 651
+				React.createElement( -- 651
+					ActionButton, -- 652
+					{ -- 652
+						tag = "remix-question-submit", -- 652
+						x = questionSubmitX, -- 652
+						y = 12, -- 652
+						width = contentWidth - questionSubmitX - 16, -- 652
+						text = questionIndex + 1 == #questionnaire.schema.questions and (zh and "提交回答" or "Submit") or (zh and "下一步" or "Next"), -- 652
+						primary = true, -- 652
+						onTapped = function() -- 652
+							if not dismissedComposition then -- 652
+								advanceQuestionnaire() -- 654
+							end -- 654
+							dismissedComposition = false -- 654
+						end -- 654
+					} -- 654
+				) -- 654
+			) -- 654
+			____temp_47 = ____React_createElement_46(__TS__SparseArraySpread(____array_45)) -- 654
+		else -- 654
+			____temp_47 = nil -- 655
+		end -- 655
+		__TS__SparseArrayPush(____array_66, ____temp_47) -- 655
+		local ____temp_48 -- 656
+		if visibleError ~= "" then -- 656
+			____temp_48 = React.createElement( -- 656
+				"label", -- 656
+				{ -- 656
+					tag = "remix-error", -- 656
+					x = left + 20, -- 656
+					y = bottom + (questionnaire and 144 or layoutComposerTop + composerGap), -- 656
+					anchorX = 0, -- 656
+					anchorY = 0, -- 656
+					fontName = fontName, -- 656
+					fontSize = 13, -- 656
+					text = visibleError, -- 656
+					textWidth = contentWidth, -- 656
+					alignment = "Left", -- 656
+					color3 = 16739179, -- 656
+					onMount = function(label) -- 656
+						errorLabel = label -- 656
+					end -- 656
+				} -- 656
+			) -- 656
+		else -- 656
+			____temp_48 = nil -- 656
+		end -- 656
+		__TS__SparseArrayPush(____array_66, ____temp_48) -- 656
+		local ____temp_49 -- 657
+		if questionnaire == nil then -- 657
+			____temp_49 = React.createElement( -- 657
+				"node", -- 657
+				nil, -- 657
+				React.createElement( -- 657
+					ChoiceButton, -- 658
+					{ -- 658
+						tag = "remix-mode-plan", -- 658
+						x = modeStartX, -- 658
+						y = bottom + layoutModeBottom, -- 658
+						width = modeWidth, -- 658
+						text = zh and "计划" or "Plan", -- 658
+						selected = workMode == "plan", -- 658
+						disabled = not canSubmit(), -- 658
+						onTapped = function() return changeWorkMode("plan") end -- 658
+					} -- 658
+				), -- 658
+				React.createElement( -- 658
+					ChoiceButton, -- 659
+					{ -- 659
+						tag = "remix-mode-code", -- 659
+						x = modeStartX + modeWidth + composerGap, -- 659
+						y = bottom + layoutModeBottom, -- 659
+						width = modeCodeWidth, -- 659
+						text = zh and "执行" or "Code", -- 659
+						selected = workMode == "code", -- 659
+						disabled = not canSubmit(), -- 659
+						onTapped = function() return changeWorkMode("code") end -- 659
+					} -- 659
+				) -- 659
+			) -- 659
+		else -- 659
+			____temp_49 = nil -- 660
+		end -- 660
+		__TS__SparseArrayPush(____array_66, ____temp_49) -- 660
+		local ____temp_50 -- 661
+		if questionnaire == nil and not keptInput then -- 661
+			____temp_50 = React.createElement("node", { -- 661
+				tag = "remix-input", -- 661
+				ref = inputRef, -- 661
+				x = left + 16, -- 661
+				y = bottom + layoutComposerBottom, -- 661
+				width = inputWidth, -- 661
+				height = layoutComposerHeight, -- 661
+				anchorX = 0, -- 661
+				anchorY = 0, -- 661
+				onMount = promptInput.mount -- 661
+			}) -- 661
+		else -- 661
+			____temp_50 = nil -- 662
+		end -- 662
+		__TS__SparseArrayPush(____array_66, ____temp_50) -- 662
+		local ____temp_63 -- 663
+		if stopping or questionnaire == nil then -- 663
+			local ____React_createElement_62 = React.createElement -- 663
+			local ____ActionButton_61 = ActionButton -- 663
+			local ____temp_56 = stopping and "remix-stop" or "remix-send" -- 663
+			local ____temp_57 = left + 16 + inputWidth + composerGap -- 664
+			local ____temp_58 = bottom + layoutComposerBottom -- 664
+			local ____temp_59 = stopping and (state and state.currentTaskFinalizing and (zh and "收尾中" or "Finishing") or (stopRequested and (zh and "停止中" or "Stopping") or (zh and "停止" or "Stop"))) or (zh and "发送" or "Send") -- 665
+			local ____temp_60 = not stopping -- 666
+			local ____stopping_55 -- 666
+			if stopping then -- 666
+				____stopping_55 = stopRequested or (state and state.currentTaskFinalizing) == true -- 666
+			else -- 666
+				____stopping_55 = not canSubmit() -- 666
+			end -- 666
+			____temp_63 = ____React_createElement_62( -- 666
+				____ActionButton_61, -- 663
+				{ -- 663
+					tag = ____temp_56, -- 663
+					x = ____temp_57, -- 663
+					y = ____temp_58, -- 663
+					width = composerActionWidth, -- 663
+					height = layoutComposerHeight, -- 663
+					text = ____temp_59, -- 663
+					primary = ____temp_60, -- 663
+					danger = stopping, -- 663
+					disabled = ____stopping_55, -- 663
+					onTapped = function() -- 663
+						if stopping then -- 663
+							stop() -- 667
+						elseif not dismissedComposition then -- 667
+							send() -- 667
+						end -- 667
+						dismissedComposition = false -- 667
+					end -- 667
+				} -- 667
+			) -- 667
+		else -- 667
+			____temp_63 = nil -- 667
+		end -- 667
+		__TS__SparseArrayPush(____array_66, ____temp_63) -- 667
+		local ____temp_64 -- 668
+		if phase == "done" and canShare then -- 668
+			____temp_64 = React.createElement( -- 668
+				ActionButton, -- 668
+				{ -- 668
+					tag = "remix-share", -- 668
+					x = left + 16, -- 668
+					y = bottom + layoutModeBottom + 48, -- 668
+					width = playWidth, -- 668
+					height = 40, -- 668
+					text = zh and "分享作品" or "Share game", -- 668
+					onTapped = function() -- 668
+						if not host.visible or packagePanel or HttpServer.wsConnectionCount > 0 then -- 668
+							return -- 669
+						end -- 669
+						blurInput() -- 670
+						notifyProjectChanged() -- 670
+						packagePanel = startPackagePanel({ -- 671
+							mode = "share", -- 671
+							entry = options.entry, -- 671
+							onClosed = function() -- 671
+								packagePanel = nil -- 671
+							end -- 671
+						}) -- 671
+					end -- 668
+				} -- 668
+			) -- 668
+		else -- 668
+			____temp_64 = nil -- 672
+		end -- 672
+		__TS__SparseArrayPush(____array_66, ____temp_64) -- 672
+		local ____temp_65 -- 673
+		if phase == "done" then -- 673
+			____temp_65 = React.createElement( -- 673
+				ActionButton, -- 673
+				{ -- 673
+					tag = "remix-play", -- 673
+					x = playX, -- 673
+					y = bottom + layoutModeBottom + 48, -- 673
+					width = playWidth, -- 673
+					height = 40, -- 673
+					text = zh and "立即试玩" or "Play now", -- 673
+					primary = true, -- 673
+					onTapped = function() -- 673
+						if not host.visible or HttpServer.wsConnectionCount > 0 then -- 673
+							return -- 673
+						end -- 673
+						blurInput() -- 673
+						notifyProjectChanged() -- 673
+						host.visible = false -- 673
+						onPlay(options.entry) -- 673
+					end -- 673
+				} -- 673
+			) -- 673
+		else -- 673
+			____temp_65 = nil -- 673
+		end -- 673
+		__TS__SparseArrayPush(____array_66, ____temp_65) -- 673
+		__TS__SparseArrayPush( -- 673
+			____array_68, -- 673
+			____React_createElement_67(__TS__SparseArraySpread(____array_66)) -- 673
+		) -- 673
+		local scene = ____toNode_70(____React_createElement_69(__TS__SparseArraySpread(____array_68))) -- 550
+		if scene then -- 550
+			host:addChild(scene) -- 677
+			if keptInput then -- 677
+				keptInput.position = Vec2(left + 16, bottom + layoutComposerBottom) -- 679
+				keptInput.width = inputWidth -- 680
+				keptInput.height = layoutComposerHeight -- 681
+				local ____opt_71 = pageRef.current -- 681
+				if ____opt_71 ~= nil then -- 681
+					____opt_71:addChild(keptInput) -- 682
+				end -- 682
+			end -- 682
+			if not questionnaire then -- 682
+				transcript.node.position = Vec2( -- 685
+					left + 16, -- 685
+					bottom + getTranscriptBottom() -- 685
+				) -- 685
+				local ____opt_73 = pageRef.current -- 685
+				if ____opt_73 ~= nil then -- 685
+					____opt_73:addChild(transcript.node) -- 686
+				end -- 686
+				updateTranscript() -- 687
+			end -- 687
+		end -- 687
+		if restoreInputFocus and inputRef.current and not keptInput then -- 687
+			promptInput.focus(false) -- 690
+		end -- 690
+		if keptInput then -- 690
+			promptInput.refresh() -- 691
+		end -- 691
+		shellRevision = getShellRevision() -- 692
+		displayRevision = remixDisplayRevision(detail) -- 693
+	end -- 421
+	attachGamepad( -- 696
+		host, -- 696
+		{ -- 696
+			initialTag = "remix-input", -- 697
+			onBack = function() -- 698
+				if promptInput.isFocused() then -- 698
+					blurInput() -- 698
+				else -- 698
+					goBack() -- 698
+				end -- 698
+			end, -- 698
+			onScroll = function(amount) return transcript:scrollBy(amount) end, -- 699
+			onActivate = function(target) -- 700
+				if target.tag == "remix-input" or target.tag == "remix-question-input" then -- 700
+					target:emit("GamepadActivate") -- 701
+				else -- 701
+					if promptInput.isComposing() then -- 701
+						blurInput() -- 703
+						return -- 703
+					end -- 703
+					blurInput() -- 704
+					dismissedComposition = false -- 705
+					target:emit("Tapped") -- 706
+				end -- 706
+			end -- 700
+		} -- 700
+	) -- 700
+	host:schedule(function(dt) -- 710
+		pollElapsed = pollElapsed + dt -- 711
+		if pollElapsed < 0.25 then -- 711
+			return false -- 712
+		end -- 712
+		pollElapsed = 0 -- 713
+		refresh() -- 714
+		if swipeDragging or swipeBackPending then -- 714
+			return false -- 715
+		end -- 715
+		if backNoticeUntil > 0 and App.runningTime >= backNoticeUntil then -- 715
+			backNoticeUntil = 0 -- 717
+			render() -- 718
+			return false -- 719
+		end -- 719
+		local next = remixDisplayRevision(detail) -- 721
+		if shellRevision ~= getShellRevision() or compactHeaderStatusActive ~= useCompactHeaderStatus(getLayoutArea()) then -- 721
+			render() -- 722
+		elseif displayRevision ~= next then -- 722
+			updateTranscript() -- 723
+		end -- 723
+		return false -- 724
+	end) -- 710
+	host:onAppChange(function(setting) -- 726
+		if setting == "Locale" then -- 726
+			zh = (string.match(App.locale, "^zh")) ~= nil -- 727
+		end -- 727
+		if setting == "Size" or setting == "Locale" then -- 727
+			render() -- 728
+		end -- 728
+	end) -- 726
+	host:onAppEvent(function(event) -- 730
+		if event == "BackButton" then -- 730
+			if promptInput.isFocused() then -- 730
+				blurInput() -- 731
+			else -- 731
+				goBack() -- 731
+			end -- 731
+		elseif event == "WillEnterBackground" or event == "DidEnterBackground" then -- 731
+			blurInput() -- 732
+		end -- 732
+	end) -- 730
+	host:onCleanup(function() -- 734
+		if packagePanel ~= nil then -- 734
+			packagePanel:removeFromParent(true) -- 735
+		end -- 735
+		packagePanel = nil -- 736
+		disposed = true -- 737
+		blurInput() -- 737
+	end) -- 734
+	host:slot("SuspendLocalUI", blurInput) -- 739
+	host:slot( -- 740
+		"ResumeLocalUI", -- 740
+		function() -- 740
+			refresh() -- 740
+			render() -- 740
+		end -- 740
+	) -- 740
+	render() -- 741
+	if needsLLMSetup then -- 741
+		thread(function() -- 742
+			sleep(0) -- 742
+			if not disposed and host.parent then -- 742
+				configureLLM() -- 742
+			end -- 742
+		end) -- 742
+	end -- 742
+	return host -- 743
+end -- 118
+return ____exports -- 118

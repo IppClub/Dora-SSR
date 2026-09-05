@@ -49,7 +49,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_ANDROID
 
 #define DORA_VERSION "1.9.2"_slice
-#define DORA_REVISION "17"_slice
+#define DORA_REVISION "18"_slice
 
 namespace {
 std::mutex receivedFileMutex;

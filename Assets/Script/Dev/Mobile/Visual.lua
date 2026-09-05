@@ -115,7 +115,7 @@ function ____exports.VerticalGradient(props) -- 61
 		onCreate = onCreate -- 78
 	}) -- 78
 end -- 61
-local function roundedRectVerts(width, height, radius) -- 81
+function ____exports.roundedRectVerts(width, height, radius) -- 81
 	local r = math.max( -- 82
 		0, -- 82
 		math.min(radius, width / 2, height / 2) -- 82
@@ -145,7 +145,7 @@ function ____exports.RoundedStencil(props) -- 100
 		React.createElement( -- 101
 			"polygon-shape", -- 101
 			{ -- 101
-				verts = roundedRectVerts(props.width, props.height, props.radius), -- 101
+				verts = ____exports.roundedRectVerts(props.width, props.height, props.radius), -- 101
 				fillColor = 4294967295 -- 101
 			} -- 101
 		) -- 101

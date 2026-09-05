@@ -78,7 +78,7 @@ export function VerticalGradient(props: { x?: number; y?: number; width: number;
 	return <custom-node x={props.x ?? 0} y={props.y ?? 0} width={props.width} height={props.height} onCreate={onCreate} />;
 }
 
-function roundedRectVerts(width: number, height: number, radius: number) {
+export function roundedRectVerts(width: number, height: number, radius: number) {
 	const r = math.max(0, math.min(radius, width / 2, height / 2));
 	const verts: Vec2.Type[] = [];
 	const corners = [

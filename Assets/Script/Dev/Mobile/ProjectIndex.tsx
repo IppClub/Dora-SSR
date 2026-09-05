@@ -69,10 +69,6 @@ export function ProjectIndex(props: {
 		root.renderOrder = 15000;
 		root.touchEnabled = true;
 		root.swallowTouches = true;
-		const base = DrawNode();
-		base.drawPolygon([Vec2.zero, Vec2(props.width, 0), Vec2(props.width, props.height), Vec2(0, props.height)],
-			Color(0xff080a0f), 0, Color(0xff080a0f));
-		base.addTo(root);
 		addLabel(root, `${props.zh ? "本地作品" : "LOCAL"} · ${props.entries.length}`, 18, 0xfff4f1e8,
 			16, props.height - 34);
 		const back = Node(); back.tag = "mobile-project-index-back"; back.anchor = Vec2.zero;

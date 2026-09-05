@@ -1,6 +1,6 @@
 import { React, reference, toNode } from "DoraX";
 import { attachGamepad } from "Dev/Mobile/Gamepad";
-import { App, DB, Director, Ease, HttpServer, Label, Move, Node, sleep, TextAlign, thread, Vec2 } from "Dora";
+import { App, DB, Director, Ease, HttpServer, Label, Move, Node, PlatformType, sleep, TextAlign, thread, Vec2 } from "Dora";
 import * as AgentSession from "Agent/Session";
 import { getActiveLLMConfig, getLLMConfig, getLLMConfigSummaries, safeJsonEncode } from "Agent/Utils";
 import type { LLMConfig, LLMConfigSummary } from "Agent/Utils";
@@ -77,6 +77,18 @@ const ellipsizeSingleLine = (text: string, width: number, fontSize: number) => {
 	return result;
 };
 
+const measureWrappedTextHeight = (text: string, width: number, fontSize: number) => {
+	const measure = Label(fontName, fontSize, true);
+	if (!measure) return fontSize;
+	measure.visible = false;
+	measure.textWidth = width;
+	measure.alignment = TextAlign.Left;
+	measure.text = text;
+	const height = measure.height;
+	measure.cleanup();
+	return height;
+};
+
 function ActionButton(props: { x: number; y: number; width: number; height?: number; text: string; tag?: string; primary?: boolean; danger?: boolean; disabled?: boolean; onTapped(): void }) {
 	const height = props.height ?? 46;
 	return <node tag={props.tag} x={props.x} y={props.y} width={props.width} height={height} anchorX={0} anchorY={0} opacity={props.disabled ? 0.45 : 1} touchEnabled={!props.disabled} swallowTouches={true} onTapped={props.onTapped}>
@@ -104,6 +116,7 @@ function ChoiceButton(props: { x: number; y: number; width: number; text: string
 }
 
 export function startMobileRemix(options: RemixOptions) {
+	const canShare = App.platform === PlatformType.Android || App.platform === PlatformType.iOS;
 	const onBack = options.onBack;
 	const onPlay = options.onPlay;
 	let packagePanel: Node.Type | undefined;
@@ -128,6 +141,7 @@ export function startMobileRemix(options: RemixOptions) {
 		: { success: false, message: created.success ? "session unavailable" : created.message };
 	let draft = "";
 	let error = created.success ? "" : created.message;
+	let backNoticeUntil = 0;
 	let pollElapsed = 0;
 	let stopRequested = false;
 	let selectedLLMConfigId = 0;
@@ -353,7 +367,7 @@ export function startMobileRemix(options: RemixOptions) {
 		refresh();
 		render();
 	};
-	const advanceQuestionnaire = () => {
+	const advanceQuestionnaire = (skipCurrent = false) => {
 		if (!host.visible || HttpServer.wsConnectionCount > 0) return;
 		if (!detail.success || !detail.pendingQuestionnaire) return;
 		const pending = detail.pendingQuestionnaire;
@@ -362,7 +376,11 @@ export function startMobileRemix(options: RemixOptions) {
 		if (!question) return;
 		const selected = questionnaireSelections[question.id] ?? [];
 		const text = (questionnaireTexts[question.id] ?? "").trim();
-		if (!isQuestionAnswered(question, selected, text)) {
+		if (skipCurrent) {
+			if (question.required) return;
+			questionnaireSelections[question.id] = [];
+			questionnaireTexts[question.id] = "";
+		} else if (!isQuestionAnswered(question, selected, text)) {
 			error = zh ? "请先完成当前必答问题" : "Answer the required question first";
 			render();
 			return;
@@ -388,7 +406,8 @@ export function startMobileRemix(options: RemixOptions) {
 	const goBack = () => {
 		if (packagePanel || swipeBackPending || !host.visible || HttpServer.wsConnectionCount > 0) return;
 		if (detail.success && !canLeaveRemix(detail.session.status)) {
-			error = zh ? "Agent 工作中，请先停止再返回" : "Stop the Agent before going back";
+			error = "";
+			backNoticeUntil = App.runningTime + 3;
 			render();
 			return;
 		}
@@ -400,6 +419,8 @@ export function startMobileRemix(options: RemixOptions) {
 	};
 
 	const render = () => {
+		const visibleError = error !== "" ? error : (backNoticeUntil > App.runningTime
+			? (zh ? "Agent 工作中，请先停止再返回" : "Stop the Agent before going back") : "");
 		errorLabel = undefined;
 		// Resizing/rebuilding cancels any old gesture and its delayed completion.
 		swipeRevision++;
@@ -440,17 +461,33 @@ export function startMobileRemix(options: RemixOptions) {
 		const modeWidth = math.floor((contentWidth - composerGap) / 2);
 		const modeStartX = left + 16;
 		const modeCodeWidth = contentWidth - modeWidth - composerGap;
-		const playWidth = (contentWidth - composerGap) / 2;
-		const playX = modeStartX + playWidth + composerGap;
+		const playWidth = canShare ? (contentWidth - composerGap) / 2 : contentWidth;
+		const playX = canShare ? modeStartX + playWidth + composerGap : modeStartX;
 		const questionnaire = detail.success ? detail.pendingQuestionnaire : undefined;
 		const question = questionnaire?.schema.questions[questionIndex];
+		const questionPromptWidth = contentWidth - 32;
+		const questionPromptHeight = question ? measureWrappedTextHeight(question.prompt, questionPromptWidth, 16) : 0;
+		const questionAnswerTop = safe.height - 405 - questionPromptHeight / 2 - 14;
+		const questionHasBack = questionIndex > 0;
+		const questionCanSkip = question !== undefined && !question.required;
+		const questionActionGap = 8;
+		const questionBackWidth = 76;
+		const questionSkipWidth = 64;
+		const questionSkipX = 16 + (questionHasBack ? questionBackWidth + questionActionGap : 0);
+		const questionSubmitX = questionSkipX + (questionCanSkip ? questionSkipWidth + questionActionGap : 0);
 		const fontScale = mobileFontScale;
 		const headerY = getHeaderY(safe);
 		const compactHeaderStatus = useCompactHeaderStatus(safe);
 		compactHeaderStatusActive = compactHeaderStatus;
 		const headerStatusWidth = 168;
 		const modelButtonWidth = shortLandscape ? 92 : 72;
-		const headerSettingsX = left + safe.width - 104 - modelButtonWidth;
+		const backText = zh ? "返回 ›" : "Back ›";
+		const backMeasure = Label(fontName, 18, true)!;
+		backMeasure.text = backText;
+		const backWidth = math.max(44, backMeasure.width);
+		backMeasure.cleanup();
+		const headerBackX = left + safe.width - 16 - backWidth;
+		const headerSettingsX = headerBackX - composerGap - modelButtonWidth;
 		const headerStatusX = headerSettingsX - 8 - headerStatusWidth;
 		const headerTitleWidth = compactHeaderStatus
 			? math.max(120, headerStatusX - (left + 16) - composerGap)
@@ -567,9 +604,9 @@ export function startMobileRemix(options: RemixOptions) {
 				stencil={<draw-node x={headerTitleWidth / 2} y={22}><rect-shape width={headerTitleWidth} height={44} fillColor={0xffffffff} /></draw-node>}>
 				<label tag="remix-title" x={0} y={22} anchorX={0} fontName={fontName} fontSize={20} text={`REMIX · ${options.entry.title}`} color3={0xf4f1e8} />
 			</clip-node>
-			<node tag="remix-back" x={left + safe.width - 96} y={headerY} width={80} height={44}
+			<node tag="remix-back" x={headerBackX} y={headerY} width={backWidth} height={44}
 				anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={goBack}>
-				<label x={80} y={22} anchorX={1} fontName={fontName} fontSize={18} text={zh ? "返回 ›" : "Back ›"} color3={0xffcc33} />
+				<label x={backWidth} y={22} anchorX={1} fontName={fontName} fontSize={18} text={backText} color3={0xffcc33} />
 			</node>
 			<node tag="remix-model-config" x={headerSettingsX} y={headerY + 6} width={modelButtonWidth} height={32}
 				anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={configureLLM}>
@@ -595,10 +632,10 @@ export function startMobileRemix(options: RemixOptions) {
 			{questionnaire && question ? <node tag="remix-questionnaire" x={left + 16} y={bottom + 164} width={contentWidth} height={safe.height - 330} anchorX={0} anchorY={0}>
 				<RoundedSurface width={contentWidth} height={safe.height - 330} radius={20} topColor={0xff222b3a} bottomColor={0xff121720} borderWidth={1} borderColor={0xff414b5d} shadow={true} />
 				<label x={16} y={safe.height - 360} anchorX={0} fontName={fontName} fontSize={13} text={`${questionIndex + 1} / ${questionnaire.schema.questions.length} · ${questionnaire.schema.title}`} textWidth={contentWidth - 32} alignment={TextAlign.Left} color3={0xffcc33} />
-				<label x={16} y={safe.height - 405} anchorX={0} fontName={fontName} fontSize={16} text={question.prompt} textWidth={contentWidth - 32} alignment={TextAlign.Left} color3={0xf4f1e8} />
+				<label tag="remix-question-prompt" x={16} y={safe.height - 405} anchorX={0} fontName={fontName} fontSize={16} text={question.prompt} textWidth={questionPromptWidth} alignment={TextAlign.Left} color3={0xf4f1e8} />
 				{question.type !== "text" ? (question.options ?? []).slice(0, 8).map((option, optionIndex) => <ChoiceButton
 					tag={`remix-question-${question.id}-option-${option.id}`}
-					x={16} y={safe.height - 460 - optionIndex * 43} width={contentWidth - 32}
+					x={16} y={questionAnswerTop - 40 - optionIndex * 43} width={contentWidth - 32}
 					text={`${(questionnaireSelections[question.id] ?? []).indexOf(option.id) >= 0 ? "●" : "○"} ${option.label}${option.recommended ? (zh ? "（推荐）" : " (recommended)") : ""}`}
 					selected={(questionnaireSelections[question.id] ?? []).indexOf(option.id) >= 0}
 					onTapped={() => {
@@ -608,14 +645,15 @@ export function startMobileRemix(options: RemixOptions) {
 							: selected.indexOf(option.id) >= 0 ? selected.filter(id => id !== option.id) : [...selected, option.id];
 						render();
 					}}
-				/>) : <node tag="remix-question-input" ref={inputRef} x={16} y={safe.height - 510} width={contentWidth - 32} height={92} anchorX={0} anchorY={0}
+				/>) : <node tag="remix-question-input" ref={inputRef} x={16} y={questionAnswerTop - 92} width={contentWidth - 32} height={92} anchorX={0} anchorY={0}
 					onMount={promptInput.mount} />}
-				{questionIndex > 0 ? <ActionButton tag="remix-question-back" x={16} y={12} width={92} text={zh ? "上一步" : "Back"} onTapped={() => { questionIndex--; render(); }} /> : undefined}
-				<ActionButton tag="remix-question-submit" x={questionIndex > 0 ? 120 : 16} y={12} width={contentWidth - (questionIndex > 0 ? 136 : 32)}
+				{questionHasBack ? <ActionButton tag="remix-question-back" x={16} y={12} width={questionBackWidth} text={zh ? "上一步" : "Back"} onTapped={() => { questionIndex--; render(); }} /> : undefined}
+				{questionCanSkip ? <ActionButton tag="remix-question-skip" x={questionSkipX} y={12} width={questionSkipWidth} text={zh ? "跳过" : "Skip"} onTapped={() => advanceQuestionnaire(true)} /> : undefined}
+				<ActionButton tag="remix-question-submit" x={questionSubmitX} y={12} width={contentWidth - questionSubmitX - 16}
 					text={questionIndex + 1 === questionnaire.schema.questions.length ? (zh ? "提交回答" : "Submit") : (zh ? "下一步" : "Next")}
 					primary={true} onTapped={() => { if (!dismissedComposition) advanceQuestionnaire(); dismissedComposition = false; }} />
 			</node> : undefined}
-			{error !== "" ? <label tag="remix-error" x={left + 20} y={bottom + (questionnaire ? 144 : layoutComposerTop + composerGap)} anchorX={0} anchorY={0} fontName={fontName} fontSize={13} text={error} textWidth={contentWidth} alignment={TextAlign.Left} color3={0xff6b6b} onMount={label => { errorLabel = label; }} /> : undefined}
+			{visibleError !== "" ? <label tag="remix-error" x={left + 20} y={bottom + (questionnaire ? 144 : layoutComposerTop + composerGap)} anchorX={0} anchorY={0} fontName={fontName} fontSize={13} text={visibleError} textWidth={contentWidth} alignment={TextAlign.Left} color3={0xff6b6b} onMount={label => { errorLabel = label; }} /> : undefined}
 			{questionnaire === undefined ? <node>
 				<ChoiceButton tag="remix-mode-plan" x={modeStartX} y={bottom + layoutModeBottom} width={modeWidth} text={zh ? "计划" : "Plan"} selected={workMode === "plan"} disabled={!canSubmit()} onTapped={() => changeWorkMode("plan")} />
 				<ChoiceButton tag="remix-mode-code" x={modeStartX + modeWidth + composerGap} y={bottom + layoutModeBottom} width={modeCodeWidth} text={zh ? "执行" : "Code"} selected={workMode === "code"} disabled={!canSubmit()} onTapped={() => changeWorkMode("code")} />
@@ -627,7 +665,7 @@ export function startMobileRemix(options: RemixOptions) {
 				text={stopping ? (state?.currentTaskFinalizing ? (zh ? "收尾中" : "Finishing") : stopRequested ? (zh ? "停止中" : "Stopping") : (zh ? "停止" : "Stop")) : (zh ? "发送" : "Send")}
 				primary={!stopping} danger={stopping} disabled={stopping ? stopRequested || state?.currentTaskFinalizing === true : !canSubmit()}
 				onTapped={() => { if (stopping) stop(); else if (!dismissedComposition) send(); dismissedComposition = false; }} /> : undefined}
-			{phase === "done" ? <ActionButton tag="remix-share" x={left + 16} y={bottom + layoutModeBottom + 48} width={playWidth} height={40} text={zh ? "分享作品" : "Share game"} onTapped={() => {
+			{phase === "done" && canShare ? <ActionButton tag="remix-share" x={left + 16} y={bottom + layoutModeBottom + 48} width={playWidth} height={40} text={zh ? "分享作品" : "Share game"} onTapped={() => {
 				if (!host.visible || packagePanel || HttpServer.wsConnectionCount > 0) return;
 				blurInput(); notifyProjectChanged();
 				packagePanel = startPackagePanel({ mode: "share", entry: options.entry, onClosed: () => { packagePanel = undefined; } });
@@ -675,6 +713,11 @@ export function startMobileRemix(options: RemixOptions) {
 		pollElapsed = 0;
 		refresh();
 		if (swipeDragging || swipeBackPending) return false;
+		if (backNoticeUntil > 0 && App.runningTime >= backNoticeUntil) {
+			backNoticeUntil = 0;
+			render();
+			return false;
+		}
 		const next = remixDisplayRevision(detail);
 		if (shellRevision !== getShellRevision() || compactHeaderStatusActive !== useCompactHeaderStatus(getLayoutArea())) render();
 		else if (displayRevision !== next) updateTranscript();

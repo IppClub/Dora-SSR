@@ -1,12 +1,12 @@
 import { React, reference, toNode } from "DoraX";
-import { App, Director, Ease, HttpServer, Move, Node, sleep, Sprite, TextAlign, thread, Vec2 } from "Dora";
+import { App, Director, Ease, HttpServer, Move, Node, PlatformType, sleep, Sprite, TextAlign, thread, Vec2 } from "Dora";
 import { DoraMascot } from "Dev/Mobile/Mascot";
 import { attachGamepad, findGamepadNode } from "Dev/Mobile/Gamepad";
 import { mobileFontScale } from "Dev/Mobile/Accessibility";
 import { getCoverScales, getReusableCardIndices, normalizeFeedIndex, resolveDiscoverRefreshTab, resolveFeedGesture, resolveFeedLocation, stableCoverColor, type FeedAction, type FeedEntry as ModelFeedEntry, type FeedTab } from "Dev/Mobile/FeedModel";
 import { createTextInput } from "Dev/Mobile/TextInput";
 import { MobileButton, MobileNewButton, MobilePanelSurface } from "Dev/Mobile/Controls";
-import { RoundedStencil, RoundedSurface, VerticalGradient } from "Dev/Mobile/Visual";
+import { roundedRectVerts, RoundedStencil, RoundedSurface, VerticalGradient } from "Dev/Mobile/Visual";
 import { startPackagePanel } from "Dev/Mobile/PackagePanel";
 import { ProjectIndex } from "Dev/Mobile/ProjectIndex";
 
@@ -101,6 +101,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	const onRemix = options.onRemix;
 	const prepare = options.prepare;
 	const syncDiscover = options.syncDiscover;
+	const canShare = App.platform === PlatformType.Android || App.platform === PlatformType.iOS;
 	let zh = string.match(App.locale, "^zh")[0] !== undefined;
 	let tab: FeedTab = "local";
 	let index = 0;
@@ -232,11 +233,11 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		onRemix(result.entry);
 	};
 
-	const openPackage = (mode: "add" | "share" | "receive", path?: string) => {
+	const openPackage = (mode: "add" | "share" | "receive", path?: string, pickOnOpen = false) => {
 		if (!isActive() || !host.visible || packagePanel || preparing || transitioning || creating || createOpen || HttpServer.wsConnectionCount > 0) return;
 		projectIndexOpen = false;
 		packagePanel = startPackagePanel({
-			mode, path, entry: current(),
+			mode, path, pickOnOpen, entry: current(),
 			onNew: openCreate,
 			onClosed: () => { packagePanel = undefined; },
 			onImported: (entry, play) => {
@@ -454,6 +455,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 			onMouseWheel={delta => commit(delta.y > 0 ? "previous" : "next")}
 		>
 			<VerticalGradient width={width} height={height} topColor={0xff111725} bottomColor={0xff080a0f} />
+			<node visible={!projectIndexOpen}>
 				{createOpen ? undefined : item !== undefined ? <node tag={`mobile-feed-card-${item.id}`} ref={cardRef} key={`${tab}-${item.id}`}>
 					{cardIndices.map(cardIndex => <Cover
 						key={`${tab}-${data[cardIndex].id}`}
@@ -463,16 +465,22 @@ export function startMobileFeed(options: MobileFeedOptions) {
 						width={coverWidth}
 						height={coverHeight}
 					/>)}
-					<node tag="mobile-feed-index" ref={indexRef} x={coverX + coverWidth - 62} y={coverY + coverHeight - 40} width={48} height={26} anchorX={0} anchorY={0}
+					<node tag="mobile-feed-index" ref={indexRef} order={10} renderGroup={true} x={coverX + coverWidth - 62} y={coverY + coverHeight - 40} width={48} height={26} anchorX={0} anchorY={0}
 						touchEnabled={tab === "local"} swallowTouches={tab === "local"} onTapped={tab === "local" ? openProjectIndex : undefined}>
-						<RoundedSurface width={48} height={26} radius={13} topColor={0xe028303d} bottomColor={0xe012161e}
-							borderWidth={1} borderColor={0x88505a6c} />
-						{tab === "local" ? <RoundedSurface x={18} y={2} width={12} height={2} radius={1} fillColor={colors.brand} /> : undefined}
+						{/* Scene geometry keeps the entire badge above Sprite covers; NanoVG surfaces render before them. */}
+						<clip-node width={48} height={26} anchorX={0} anchorY={0} stencil={<RoundedStencil width={48} height={26} radius={13} />}>
+							<draw-node><verts-shape verts={[
+								[Vec2(0, 0), 0xe012161e], [Vec2(48, 0), 0xe012161e], [Vec2(48, 26), 0xe028303d],
+								[Vec2(0, 0), 0xe012161e], [Vec2(48, 26), 0xe028303d], [Vec2(0, 26), 0xe028303d],
+							]} /></draw-node>
+						</clip-node>
+						<draw-node x={0.5} y={0.5}><polygon-shape verts={roundedRectVerts(47, 25, 12.5)} fillColor={0x00000000} borderWidth={0.5} borderColor={0x88505a6c} /></draw-node>
+						{tab === "local" ? <draw-node x={18} y={2}><polygon-shape verts={roundedRectVerts(12, 2, 1)} fillColor={colors.brand} /></draw-node> : undefined}
 						<label x={24} y={13} fontName={fontName} fontSize={11} text={`${index + 1} / ${data.length}`} color3={0xd7dbe3} />
 					</node>
 					<label tag="mobile-feed-current-title" x={infoX} y={infoTop} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={math.floor((wide ? 30 : 25) * fontScale)}
-						text={item.title} textWidth={infoWidth - (item.kind === "local" ? 92 : 0)} alignment={TextAlign.Left} color3={0xf4f1e8} />
-					{item.kind === "local" ? <MobileButton tag="mobile-feed-share" x={infoX + infoWidth - 84} y={infoTop - 18} width={84} height={36} text={zh ? "分享作品" : "Share"} fontSize={13} onTapped={() => openPackage("share")} /> : undefined}
+						text={item.title} textWidth={infoWidth - (item.kind === "local" && canShare ? 92 : 0)} alignment={TextAlign.Left} color3={0xf4f1e8} />
+					{item.kind === "local" && canShare ? <MobileButton tag="mobile-feed-share" x={infoX + infoWidth - 84} y={infoTop - 18} width={84} height={36} text={zh ? "分享作品" : "Share"} fontSize={13} onTapped={() => openPackage("share")} /> : undefined}
 					<label tag="mobile-feed-description" x={infoX} y={descriptionY} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={math.floor(15 * fontScale)}
 						text={conciseDescription(item.description, wide ? 80 : compact ? 28 : 42)} textWidth={infoWidth} alignment={TextAlign.Left} color3={0xa8afbd} />
 					{compact || shortLandscape ? undefined : <node x={infoX} y={infoTop - 118} width={wide ? 176 : 164} height={28} anchorX={0} anchorY={0}>
@@ -496,9 +504,9 @@ export function startMobileFeed(options: MobileFeedOptions) {
 					text={tab === "discover" && discoverError !== "" ? discoverError : (zh ? "切换标签或稍后重试" : "Switch tabs or retry later")}
 					textWidth={usableWidth - 48} color3={tab === "discover" && discoverError !== "" ? 0xff6b6b : 0xa8afbd} />
 			</node>}
-			{!item && tab === "local" ? <node>
+			{!createOpen && !item && tab === "local" ? <node>
 				<MobileButton tag="mobile-empty-new" x={left + 20} y={bottom + 24} width={(usableWidth - 52) / 2} text={zh ? "新建作品" : "New game"} onTapped={openCreate} />
-				<MobileButton tag="mobile-empty-import" x={left + 32 + (usableWidth - 52) / 2} y={bottom + 24} width={(usableWidth - 52) / 2} text={zh ? "导入作品包" : "Import package"} fontSize={15} primary={true} onTapped={() => openPackage("add")} />
+				<MobileButton tag="mobile-empty-import" x={left + 32 + (usableWidth - 52) / 2} y={bottom + 24} width={(usableWidth - 52) / 2} text={zh ? "导入作品包" : "Import package"} fontSize={15} primary={true} onTapped={() => openPackage("add", undefined, true)} />
 			</node> : undefined}
 			<node tag="mobile-feed-header" order={headerRenderOrder}>
 				{options.onSwitchMode ? <node tag="mobile-ui-mode-switch" x={left + 12} y={bottom + usableHeight - 58 + landscapeTopLift} width={72} height={48}
@@ -556,6 +564,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 					</node>
 				</node>;
 			})() : undefined}
+			</node>
 			{projectIndexOpen ? <ProjectIndex entries={local} current={current()} x={left} y={bottom} width={usableWidth} height={usableHeight} zh={zh}
 				onClose={() => { projectIndexOpen = false; render(); }}
 				onSelect={entry => {
