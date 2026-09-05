@@ -930,6 +930,12 @@ int Application::run(MainFunc mainFunc) {
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX
 	windowFlags |= SDL_WINDOW_HIDDEN;
 #if BX_PLATFORM_LINUX
+	// SDL_CreateWindow initializes video lazily, but KMSDRM GL attributes
+	// must be set before that window (and its EGL surface) is created.
+	if (SDL_InitSubSystem(SDL_INIT_VIDEO) != 0) {
+		Error("SDL failed to initialize video! {}", SDL_GetError());
+		return 1;
+	}
 	const char* videoDriver = SDL_GetCurrentVideoDriver();
 	const bool useKmsdrmGL = videoDriver && std::strcmp(videoDriver, "KMSDRM") == 0;
 	if (useKmsdrmGL) {
@@ -941,6 +947,8 @@ int Application::run(MainFunc mainFunc) {
 		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+		// ClipNode needs stencil storage in the SDL-owned default framebuffer.
+		SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 		windowFlags |= SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS;
 		_fullScreen = true;
@@ -1422,6 +1430,15 @@ void Application::setupSdlWindow() {
 			return;
 		}
 		_platformData.context = _sdlGLContext;
+		int stencilBits = 0;
+		if (SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencilBits) != 0) {
+			Warn("SDL failed to query KMSDRM stencil buffer! {}", SDL_GetError());
+		} else {
+			Println("KMSDRM stencil buffer: {} bits", stencilBits);
+			if (stencilBits < 8) {
+				Warn("KMSDRM framebuffer has fewer than 8 stencil bits; ClipNode clipping may fail.");
+			}
+		}
 		_platformData.type = bgfx::NativeWindowHandleType::Default;
 	} else {
 		_platformData.ndt = wmi.info.x11.display;

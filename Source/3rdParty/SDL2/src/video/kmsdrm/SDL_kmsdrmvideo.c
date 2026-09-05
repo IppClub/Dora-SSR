@@ -1241,6 +1241,7 @@ int KMSDRM_CreateSurfaces(_THIS, SDL_Window *window)
             EGL_GREEN_SIZE, 8,
             EGL_BLUE_SIZE, 8,
             EGL_DEPTH_SIZE, 24,
+            EGL_STENCIL_SIZE, _this->gl_config.stencil_size,
             EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
             EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
             EGL_NONE
