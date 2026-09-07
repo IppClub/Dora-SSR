@@ -89,6 +89,8 @@ namespace
 LoveNode *FocusedLoveNode = nullptr;
 std::atomic<std::uint64_t> LovePackageSequence = 1;
 std::atomic<std::uint64_t> LoveMountSequence = 1;
+std::atomic<std::uint64_t> LoveShaderTraceSequence = 1;
+std::atomic_bool LoveShaderTraceClaimed = false;
 
 void SDLCALL loveRecordingCallback(void *userdata, Uint8 *stream, int length)
 {
@@ -296,6 +298,56 @@ private:
 	std::size_t _arenaIndex = 0;
 };
 
+struct LoveShaderUniformSnapshot
+{
+	struct Uniform
+	{
+		std::string gpuName;
+		Love::GraphicsBackend::ShaderUniformType type
+			= Love::GraphicsBackend::ShaderUniformType::Float;
+		int components = 4;
+		int samplerSlot = 0;
+		std::vector<Vec4> vectorValues;
+		std::vector<Matrix> matrixValues;
+		std::vector<Ref<Texture2D>> textureValues;
+		std::vector<uint32_t> textureFlags;
+	};
+
+	std::vector<Uniform> uniforms;
+
+	void apply(SpriteEffect *effect) const
+	{
+		if (!effect) return;
+		for (Pass *pass : effect->getPasses())
+		{
+			for (const auto &uniform : uniforms)
+			{
+				if (uniform.type == Love::GraphicsBackend::ShaderUniformType::Sampler)
+				{
+					for (std::size_t index = 0; index < uniform.textureValues.size(); ++index)
+					{
+						const uint32_t flags = index < uniform.textureFlags.size()
+							? uniform.textureFlags[index] : UINT32_MAX;
+						pass->set(uniform.gpuName, uniform.textureValues[index].get(),
+							static_cast<uint8_t>(uniform.samplerSlot + index), flags);
+					}
+				}
+				else if (uniform.type == Love::GraphicsBackend::ShaderUniformType::Matrix
+					&& !uniform.matrixValues.empty())
+				{
+					pass->set(uniform.gpuName,
+						std::span<const Matrix>(uniform.matrixValues));
+				}
+				else if (!uniform.vectorValues.empty())
+				{
+					pass->set(uniform.gpuName,
+						std::span<const Vec4>(uniform.vectorValues));
+				}
+			}
+		}
+	}
+};
+
 class LoveRenderCommand
 {
 public:
@@ -309,6 +361,12 @@ public:
 
 	virtual ~LoveRenderCommand() = default;
 	void setGpuBufferPool(const std::shared_ptr<LoveGpuBufferPool>& pool) { _gpuBufferPool = pool; }
+	void setShaderSnapshot(const std::shared_ptr<LoveShaderUniformSnapshot>& snapshot)
+	{
+		_shaderSnapshot = snapshot;
+	}
+	void setTraceId(std::uint64_t traceId) noexcept { _traceId = traceId; }
+	std::uint64_t getTraceId() const noexcept { return _traceId; }
 
 	void setState(std::optional<RendererManager::ScissorState> scissor,
 		uint32_t stencil, uint64_t renderState, std::size_t commandSegment)
@@ -332,8 +390,17 @@ public:
 				if (SharedRendererManager.getCurrentScissorState(scissor))
 					bgfx::setScissor(scissor.x, scissor.y, scissor.width, scissor.height);
 				else bgfx::setScissor(UINT16_MAX);
+				if (_traceId != 0)
+				{
+					const std::string marker = "DORA_LOVE_TRACE " + std::to_string(_traceId);
+					bgfx::setMarker(marker.c_str());
+					Info("[LoveTrace {}] command submit begin: scissor={} stencil={} state={} segment={}",
+						_traceId, _scissor.has_value(), _stencil, _renderState, _commandSegment);
+				}
 				submitInner();
 				SharedRendererManager.flush();
+				if (_traceId != 0)
+					Info("[LoveTrace {}] command submit end: bgfx commands flushed", _traceId);
 			});
 		};
 		auto submitWithStencil = [&]() {
@@ -347,6 +414,10 @@ public:
 
 protected:
 	virtual void submitInner() = 0;
+	void applyShaderSnapshot(SpriteEffect *effect) const
+	{
+		if (_shaderSnapshot) _shaderSnapshot->apply(effect);
+	}
 	LoveGpuBufferPool* getGpuBufferPool() const noexcept { return _gpuBufferPool.get(); }
 	bool hasCompatibleState(std::optional<RendererManager::ScissorState> scissor,
 		uint32_t stencil, uint64_t renderState, std::size_t commandSegment) const noexcept
@@ -364,7 +435,9 @@ private:
 	uint32_t _stencil = BGFX_STENCIL_NONE;
 	uint64_t _renderState = BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
 	std::size_t _commandSegment = 0;
+	std::uint64_t _traceId = 0;
 	std::shared_ptr<LoveGpuBufferPool> _gpuBufferPool;
+	std::shared_ptr<LoveShaderUniformSnapshot> _shaderSnapshot;
 };
 
 class LovePrimitiveCommand final : public LoveRenderCommand
@@ -468,7 +541,8 @@ public:
 	LoveTexturedMeshCommand(std::vector<SpriteVertex> vertices, std::vector<uint32_t> indices,
 		Texture2D *texture, const BlendFunc &blend, uint32_t samplerFlags, SpriteEffect *effect,
 		bool ignoreCull = false, bool wireframe = false,
-		std::optional<Vec2> sdfSmooth = std::nullopt)
+		std::optional<Vec2> sdfSmooth = std::nullopt,
+		bool loveShader = false, float loveCoordinateHeight = 0.0f)
 		: _vertices(std::move(vertices))
 		, _source(_vertices)
 		, _indices(std::move(indices))
@@ -479,6 +553,8 @@ public:
 		, _ignoreCull(ignoreCull)
 		, _wireframe(wireframe)
 		, _sdfSmooth(sdfSmooth)
+		, _loveShader(loveShader)
+		, _loveCoordinateHeight(loveCoordinateHeight)
 	{
 		if (_wireframe)
 		{
@@ -554,6 +630,14 @@ public:
 
 	virtual void submitInner() override
 	{
+		if (getTraceId() != 0)
+		{
+			const auto passCount = _effect ? _effect->getPasses().size() : 0;
+			Info("[LoveTrace {}] textured submit begin: vertices={} indices={} chunks={} texture={} effect={} passes={} loveShader={} ignoreCull={}",
+				getTraceId(), _vertices.size(), _indices.size(), _chunks.size(),
+				_texture ? _texture->getHandle().idx : bgfx::kInvalidHandle,
+				_effect ? 1 : 0, passCount, _loveShader, _ignoreCull);
+		}
 		if (_ignoreCull)
 		{
 			SharedRendererManager.pushStateOverride(BGFX_STATE_CULL_MASK, BGFX_STATE_NONE,
@@ -566,7 +650,29 @@ public:
 private:
 	void submitMesh()
 	{
-		if (!_texture || (_chunks.empty() && (_vertices.empty() || _indices.empty()))) return;
+		if (!_texture || (_chunks.empty() && (_vertices.empty() || _indices.empty())))
+		{
+			if (getTraceId() != 0)
+				Info("[LoveTrace {}] textured submit stopped: missing texture or geometry", getTraceId());
+			return;
+		}
+		SpriteEffect *effect = _effect ? _effect.get() : SharedSpriteRenderer.getDefaultEffect();
+		if (effect->getPasses().empty()) effect = SharedSpriteRenderer.getDefaultEffect();
+		const bool useLoveCoordinates = _loveShader && _effect
+			&& !_effect->getPasses().empty();
+		Matrix loveTransform;
+		if (useLoveCoordinates)
+		{
+			// Love vertex position() receives Love's top-left-origin pixel
+			// coordinates. The recorded SpriteVertex is already in Dora's
+			// render-space convention (its Y was flipped while recording), so
+			// restore that coordinate before uploading it below and perform the
+			// Love-to-Dora conversion exactly once in u_loveTransform.
+			Matrix loveToDora;
+			bx::mtxSRT(loveToDora.m, 1.0f, -1.0f, 1.0f,
+				0.0f, 0.0f, 0.0f, 0.0f, _loveCoordinateHeight, 0.0f);
+			Matrix::mulMtx(loveTransform, SharedDirector.getViewProjection(), loveToDora);
+		}
 		if (_sdfSmooth && _effect)
 		{
 			// FontCache shares one SDF effect. Submit any preceding batch before
@@ -587,7 +693,6 @@ private:
 		{
 			batchedVertices.resize(_batchedVertexCount);
 			batchedIndices.resize(_batchedIndexCount);
-			const Matrix& transform = SharedDirector.getViewProjection();
 			std::size_t vertexOffset = 0;
 			std::size_t indexOffset = 0;
 			for (const auto &chunk : _chunks)
@@ -597,7 +702,10 @@ private:
 				{
 					auto &vertex = batchedVertices[vertexOffset++];
 					vertex = source;
-					Matrix::mulVec4(&vertex.x, transform, source.toVec4());
+					if (useLoveCoordinates)
+						vertex.y = _loveCoordinateHeight - source.y;
+					else
+						Matrix::mulVec4(&vertex.x, SharedDirector.getViewProjection(), source.toVec4());
 				}
 				for (const auto index : chunk.indices)
 					batchedIndices[indexOffset++] = static_cast<uint16_t>(base + index);
@@ -605,20 +713,48 @@ private:
 		}
 		else
 		{
-			const Matrix& transform = SharedDirector.getViewProjection();
 			for (std::size_t index = 0; index < _vertices.size(); ++index)
-				Matrix::mulVec4(&_vertices[index].x, transform, _source[index].toVec4());
+			{
+				if (!useLoveCoordinates)
+					Matrix::mulVec4(&_vertices[index].x,
+						SharedDirector.getViewProjection(), _source[index].toVec4());
+				else
+				{
+					_vertices[index] = _source[index];
+					_vertices[index].y = _loveCoordinateHeight - _source[index].y;
+				}
+			}
 		}
+		const auto indexCount = _chunks.empty() ? _indices.size() : batchedIndices.size();
 		auto &vertices = _chunks.empty() ? _vertices : batchedVertices;
+		if (getTraceId() != 0 && !vertices.empty())
+		{
+			float minX = vertices.front().x;
+			float minY = vertices.front().y;
+			float minZ = vertices.front().z;
+			float maxX = minX;
+			float maxY = minY;
+			float maxZ = minZ;
+			for (const auto &vertex : vertices)
+			{
+				minX = std::min(minX, vertex.x);
+				minY = std::min(minY, vertex.y);
+				minZ = std::min(minZ, vertex.z);
+				maxX = std::max(maxX, vertex.x);
+				maxY = std::max(maxY, vertex.y);
+				maxZ = std::max(maxZ, vertex.z);
+			}
+			Info("[LoveTrace {}] final geometry: vertices={} indices={} clipBounds=({}, {}, {})..({}, {}, {}) first=({}, {}, {}, {}) last=({}, {}, {}, {})",
+				getTraceId(), vertices.size(), indexCount, minX, minY, minZ, maxX, maxY, maxZ,
+				vertices.front().x, vertices.front().y, vertices.front().z, vertices.front().w,
+				vertices.back().x, vertices.back().y, vertices.back().z, vertices.back().w);
+		}
 		const uint64_t state = SharedRendererManager.applyState(
 			BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | _blend.toValue()
 				| (_wireframe ? BGFX_STATE_PT_LINES : BGFX_STATE_NONE));
-		SpriteEffect *effect = _effect ? _effect.get() : SharedSpriteRenderer.getDefaultEffect();
-		if (effect->getPasses().empty()) effect = SharedSpriteRenderer.getDefaultEffect();
 		auto* pool = getGpuBufferPool();
 		if (!pool) return;
 		const bool index32 = _chunks.empty() && _indices16.empty();
-		const auto indexCount = _chunks.empty() ? _indices.size() : batchedIndices.size();
 		const void* indexData = index32 ? static_cast<const void*>(_indices.data())
 			: _chunks.empty() ? static_cast<const void*>(_indices16.data())
 			: static_cast<const void*>(batchedIndices.data());
@@ -630,17 +766,45 @@ private:
 			static_cast<uint32_t>(indexCount), index32);
 		if (!bgfx::isValid(buffers.vertices) || !bgfx::isValid(buffers.indices))
 		{
+			if (getTraceId() != 0)
+				Info("[LoveTrace {}] textured upload failed: vertexBuffer={} indexBuffer={}",
+					getTraceId(), buffers.vertices.idx, buffers.indices.idx);
 			Warn("failed to upload persistent Love textured Mesh buffers");
 			return;
 		}
+		if (getTraceId() != 0)
+			Info("[LoveTrace {}] textured upload ok: vertices={} indices={} vertexBuffer={} indexBuffer={} texture={}",
+				getTraceId(), vertices.size(), indexCount, buffers.vertices.idx, buffers.indices.idx,
+				_texture->getHandle().idx);
 		bgfx::setVertexBuffer(0, buffers.vertices, 0, static_cast<uint32_t>(vertices.size()));
 		bgfx::setIndexBuffer(buffers.indices, 0, static_cast<uint32_t>(indexCount));
 		bgfx::setState(state);
 		bgfx::setTexture(0, effect->getSampler(), _texture->getHandle(), _samplerFlags);
+		applyShaderSnapshot(effect);
 		Pass *lastPass = effect->getPasses().back().get();
 		for (Pass *pass : effect->getPasses())
-			bgfx::submit(SharedView.getId(), pass->apply(), 0,
+		{
+			// Love vertex shaders always contain the internal transform uniform.
+			// Re-apply it immediately before every WebGL submit: bgfx resource
+			// creation is deferred there, so the value installed when the effect
+			// was created may not have reached the linked GL program yet.
+			pass->set("u_loveTransform"_slice,
+				useLoveCoordinates ? loveTransform : Matrix::Indentity);
+			const auto program = pass->apply();
+			if (getTraceId() != 0)
+				Info("[LoveTrace {}] pass apply: program={} valid={} view={} useLoveCoordinates={}",
+					getTraceId(), program.idx, bgfx::isValid(program), SharedView.getId(), useLoveCoordinates);
+			if (getTraceId() != 0)
+				Info("[LoveTrace {}] bgfx submit begin: view={} program={} discard={}",
+					getTraceId(), SharedView.getId(), program.idx,
+					pass == lastPass ? BGFX_DISCARD_ALL : BGFX_DISCARD_NONE);
+			bgfx::submit(SharedView.getId(), program, 0,
 				pass == lastPass ? BGFX_DISCARD_ALL : BGFX_DISCARD_NONE);
+			if (getTraceId() != 0)
+				Info("[LoveTrace {}] bgfx submit returned: view={} program={}",
+					getTraceId(), SharedView.getId(), program.idx);
+			pass->set("u_loveTransform"_slice, Matrix::Indentity);
+		}
 	}
 	std::vector<SpriteVertex> _vertices;
 	std::vector<SpriteVertex> _source;
@@ -653,6 +817,8 @@ private:
 	bool _ignoreCull = false;
 	bool _wireframe = false;
 	std::optional<Vec2> _sdfSmooth;
+	bool _loveShader = false;
+	float _loveCoordinateHeight = 0.0f;
 	struct MeshChunk
 	{
 		std::vector<SpriteVertex> vertices;
@@ -771,6 +937,7 @@ public:
 		bgfx::setIndexBuffer(gpu->indices, 0, indexCount);
 		bgfx::setState(state);
 		bgfx::setTexture(0, effect->getSampler(), _texture->getHandle(), _samplerFlags);
+		applyShaderSnapshot(effect);
 		Pass *lastPass = effect->getPasses().back().get();
 		for (Pass *pass : effect->getPasses())
 			bgfx::submit(SharedView.getId(), pass->apply(), 0,
@@ -854,8 +1021,19 @@ public:
 
 	virtual void submitInner() override
 	{
+		if (getTraceId() != 0)
+			Info("[LoveTrace {}] dynamic submit begin: vertices={} indices={} attributes={} instanceAttributes={} instances={} texture={} effect={} passes={}",
+				getTraceId(), _vertices.size(), _indices.size(), _attributes.size(),
+				_instanceAttributes.size(), _instanceCount,
+				_texture ? _texture->getHandle().idx : bgfx::kInvalidHandle,
+				_effect ? 1 : 0, _effect ? _effect->getPasses().size() : 0);
 		auto* pool = getGpuBufferPool();
-		if (!pool || !_texture || !_effect || _vertices.empty() || _indices.empty()) return;
+		if (!pool || !_texture || !_effect || _vertices.empty() || _indices.empty())
+		{
+			if (getTraceId() != 0)
+				Info("[LoveTrace {}] dynamic submit stopped: missing pool/texture/effect/geometry", getTraceId());
+			return;
+		}
 		SharedRendererManager.flush();
 		bgfx::InstanceDataBuffer instanceBuffer;
 		const auto vertexCount = static_cast<uint32_t>(_vertices.size());
@@ -930,7 +1108,16 @@ public:
 		const auto buffers = pool->upload(_layout, vertexData.data(),
 			static_cast<uint32_t>(vertexData.size()), vertexCount,
 			indexData, indexBytes, indexCount, index32);
-		if (!bgfx::isValid(buffers.vertices) || !bgfx::isValid(buffers.indices)) return;
+		if (!bgfx::isValid(buffers.vertices) || !bgfx::isValid(buffers.indices))
+		{
+			if (getTraceId() != 0)
+				Info("[LoveTrace {}] dynamic upload failed: vertexBuffer={} indexBuffer={}",
+					getTraceId(), buffers.vertices.idx, buffers.indices.idx);
+			return;
+		}
+		if (getTraceId() != 0)
+			Info("[LoveTrace {}] dynamic upload ok: vertexBuffer={} indexBuffer={} stride={}",
+				getTraceId(), buffers.vertices.idx, buffers.indices.idx, _layout.getStride());
 		const auto stencil = SharedRendererManager.getCurrentStencilState();
 		bgfx::setStencil(stencil);
 		RendererManager::ScissorState scissor;
@@ -945,7 +1132,11 @@ public:
 				| (_wireframe ? BGFX_STATE_PT_LINES : BGFX_STATE_NONE));
 		if (_ignoreCull) state &= ~BGFX_STATE_CULL_MASK;
 		bgfx::setState(state);
+		if (getTraceId() != 0)
+			Info("[LoveTrace {}] dynamic state prepared: state={} transformHeight={} sampler={} texture={}",
+				getTraceId(), state, _coordinateHeight, _effect->getSampler().idx, _texture->getHandle().idx);
 		bgfx::setTexture(0, _effect->getSampler(), _texture->getHandle(), _samplerFlags);
+		applyShaderSnapshot(_effect.get());
 		Pass *lastPass = _effect->getPasses().back().get();
 		for (Pass *pass : _effect->getPasses())
 		{
@@ -953,8 +1144,19 @@ public:
 			if (_instanceCount > 1)
 				pass->set("u_loveInstanceSelectors"_slice,
 					std::span<const Vec4>(_instanceSelectors));
-			bgfx::submit(SharedView.getId(), pass->apply(), 0,
+			const auto program = pass->apply();
+			if (getTraceId() != 0)
+				Info("[LoveTrace {}] dynamic pass apply: program={} valid={} view={}",
+					getTraceId(), program.idx, bgfx::isValid(program), SharedView.getId());
+			if (getTraceId() != 0)
+				Info("[LoveTrace {}] bgfx submit begin: view={} program={} discard={}",
+					getTraceId(), SharedView.getId(), program.idx,
+					pass == lastPass ? BGFX_DISCARD_ALL : BGFX_DISCARD_NONE);
+			bgfx::submit(SharedView.getId(), program, 0,
 				pass == lastPass ? BGFX_DISCARD_ALL : BGFX_DISCARD_NONE);
+			if (getTraceId() != 0)
+				Info("[LoveTrace {}] bgfx submit returned: view={} program={}",
+					getTraceId(), SharedView.getId(), program.idx);
 			pass->set("u_loveTransform"_slice, Matrix::Indentity);
 		}
 	}
@@ -3109,8 +3311,12 @@ bool translateLoveShaderStage(std::string_view source, bool vertex,
 		}
 		if (instanced) customInputs += ", i_data0, i_data1, i_data2, i_data3, i_data4";
 	}
+	// LÖVE shaders may put a preprocessor-defined precision qualifier between
+	// `extern`/`uniform` and the type, for example
+	// `extern MY_HIGHP_OR_MEDIUMP vec2 distortion_fac;`. Keep accepting the
+	// built-in qualifiers while also allowing an identifier used as a macro.
 	static const std::regex uniformPattern(
-		R"(\b(?:extern|uniform)\s+(?:(?:lowp|mediump|highp)\s+)?(number|float|vec2|vec3|vec4|mat2|mat3|mat4|int|ivec2|ivec3|ivec4|uint|uvec2|uvec3|uvec4|bool|bvec2|bvec3|bvec4|Image|ArrayImage|CubeImage|VolumeImage|sampler2D|sampler2DArray|samplerCube|sampler3D)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s*\[\s*([0-9]+)\s*\])?(?:\s*=\s*([^;]+))?\s*;)");
+		R"(\b(?:extern|uniform)\s+(?:(?:(?:lowp|mediump|highp)|[A-Za-z_][A-Za-z0-9_]*)\s+)*(number|float|vec2|vec3|vec4|mat2|mat3|mat4|int|ivec2|ivec3|ivec4|uint|uvec2|uvec3|uvec4|bool|bvec2|bvec3|bvec4|Image|ArrayImage|CubeImage|VolumeImage|sampler2D|sampler2DArray|samplerCube|sampler3D)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s*\[\s*([0-9]+)\s*\])?(?:\s*=\s*([^;]+))?\s*;)");
 	struct ParsedUniform
 	{
 		std::string sourceType;
@@ -3538,6 +3744,51 @@ vec4 loveInstanceAttribute(vec4 vertexValue, float selector,
 				return false;
 			}
 			pixelCoordName = screenMatch[1].str();
+
+			// Sampler types are opaque in GLSL and cannot be passed through a
+			// user-defined function on all shaderc backends. LÖVE exposes the
+			// drawable as an Image parameter, so bind that parameter directly to
+			// Dora's generated s_texColor sampler instead of passing a sampler to
+			// the translated effect function. Accept the GLSL sampler spellings as
+			// well: a preprocessing pass may already have expanded Image into
+			// sampler2D before this translation stage sees the effect signature.
+			static const std::regex imageParameter(
+				R"(^\s*(?:(?:lowp|mediump|highp)\s+)?(?:Image|ArrayImage|CubeImage|VolumeImage|sampler2D|sampler2DArray|samplerCube|sampler3D)\s+([A-Za-z_][A-Za-z0-9_]*)\s*$)");
+			std::string textureParameterName;
+			std::string rewrittenParameters;
+			std::size_t parameterStart = 0;
+			while (parameterStart <= parameters.size())
+			{
+				const std::size_t comma = parameters.find(',', parameterStart);
+				const std::string parameter(trimShaderText(std::string_view(parameters).substr(
+					parameterStart, comma == std::string::npos ? std::string::npos : comma - parameterStart)));
+				std::smatch imageMatch;
+				if (std::regex_match(parameter, imageMatch, imageParameter))
+				{
+					if (!textureParameterName.empty())
+					{
+						error = "Love pixel Shader effect has multiple Image parameters";
+						return false;
+					}
+					textureParameterName = imageMatch[1].str();
+				}
+				else
+				{
+					if (!rewrittenParameters.empty()) rewrittenParameters += ", ";
+					rewrittenParameters += parameter;
+				}
+				if (comma == std::string::npos) break;
+				parameterStart = comma + 1;
+			}
+			if (textureParameterName.empty())
+			{
+				error = "Love pixel Shader effect must have an Image parameter";
+				return false;
+			}
+			body = std::regex_replace(body,
+				std::regex("\\b" + regexEscape(textureParameterName) + "\\b"), "s_texColor");
+			body = std::regex_replace(body, standardEffect,
+				"$1" + rewrittenParameters + "$3", std::regex_constants::format_first_only);
 		}
 		if (!custom && !customVaryingParameters.empty())
 			body = std::regex_replace(body, standardEffect,
@@ -3641,7 +3892,7 @@ vec4 loveInstanceAttribute(vec4 vertexValue, float selector,
 			+ (custom
 				? "\n#line 100000\n" + customMain
 				: "\n#line 100000\nvoid main() { " + customVaryingLocals
-					+ "gl_FragColor = effect(v_color0, s_texColor, v_texcoord0, gl_FragCoord.xy"
+					+ "gl_FragColor = effect(v_color0, v_texcoord0, gl_FragCoord.xy"
 					+ customVaryingArguments + "); }\n");
 	}
 	if (!source.empty())
@@ -3740,6 +3991,8 @@ Shader *compileLoveShader(const LoveShaderTranslation &translation, ShaderStage 
 		stage == ShaderStage::Vertex ? "runtime-vs.sc"_slice : "runtime-fs.sc"_slice});
 	const std::string bytecode = SharedShaderCompiler.compile(translation.source, stage, false, error,
 		virtualSource, &warnings, varyingDefinition);
+	Info("Love shaderc compile end: {} ({} bytes, error={})",
+		stageName, bytecode.size(), error.empty() ? "none" : error);
 	if (!error.empty() || bytecode.empty())
 	{
 		annotateLoveShaderDiagnostic(stageName, translation, error);
@@ -4161,6 +4414,7 @@ bool LoveNode::loadBoot()
 	const bool package = resolvedExtension == "love" || resolvedExtension == "zip";
 	if (package)
 	{
+		Info("LoveNode [{}] opening Love package: {}", _bootFile, resolvedBootFile);
 		if (!extractLovePackage(effectiveBootFile, error))
 			return reportError("Love package", error);
 		fullPath = effectiveBootFile;
@@ -4171,6 +4425,8 @@ bool LoveNode::loadBoot()
 		fullPath = SharedContent.getFullPath(effectiveBootFile);
 		_sourceRoot = Path::getPath(fullPath.empty() ? effectiveBootFile : fullPath);
 	}
+	Info("LoveNode [{}] resolved boot: {} (source root: {})",
+		_bootFile, effectiveBootFile, _sourceRoot);
 	_audioBus = SharedAudio.getSoLoud() ? AudioBus::create() : nullptr;
 
 	_runtime = New<Love::LoveRuntime>();
@@ -4227,7 +4483,7 @@ bool LoveNode::loadBoot()
 			return reportError("main.lua", error);
 	}
 
-	if (!_runtime->start(error))
+	if (!_runtime->startAsync(error))
 		return reportError("love.load", error);
 	return true;
 }
@@ -4263,6 +4519,7 @@ bool LoveNode::extractLovePackage(std::string &mainFile, std::string &error)
 		return false;
 	}
 	std::size_t expandedSize = 0;
+	Info("LoveNode [{}] validating package: {} files", _bootFile, files.size());
 	std::vector<LoveArchivePath> resolvedFiles;
 	resolvedFiles.reserve(files.size());
 	std::unordered_set<std::string> stagedPaths;
@@ -4328,6 +4585,8 @@ bool LoveNode::extractLovePackage(std::string &mainFile, std::string &error)
 			Warn("LoveNode [{}] staged a non-UTF-8 ZIP filename as {}",
 				_bootFile, file.stagedPath);
 	}
+	Info("LoveNode [{}] staged package: {} files, {} bytes -> {}",
+		_bootFile, resolvedFiles.size(), expandedSize, _packageRoot);
 	mainFile = Path::concat({_packageRoot, "main.lua"_slice});
 	error.clear();
 	return true;
@@ -4364,7 +4623,20 @@ bool LoveNode::reportError(String phase, const std::string &error)
 
 bool LoveNode::update(double deltaTime)
 {
-	if (!_runtime || _runtime->getStatus() != Love::LoveRuntime::Status::Running)
+	if (!_runtime)
+		return true;
+	if (_runtime->getStatus() == Love::LoveRuntime::Status::Loading)
+	{
+		std::string error;
+		if (!_runtime->continueStart(error))
+		{
+			reportError("love.load", error);
+			return true;
+		}
+		if (_runtime->getStatus() != Love::LoveRuntime::Status::Running)
+			return Sprite::update(deltaTime);
+	}
+	if (_runtime->getStatus() != Love::LoveRuntime::Status::Running)
 		return true;
 
 	std::string error;
@@ -4919,6 +5191,9 @@ std::string LoveNode::getJoystickGamepadMappingString(int id) const
 std::string LoveNode::getOS() const
 {
 	const auto platform = SharedApplication.getPlatform();
+	#if BX_PLATFORM_EMSCRIPTEN
+	if (platform == "Emscripten"_slice) return "Web";
+	#endif
 	if (platform == "macOS"_slice) return "OS X";
 	if (platform == "iOS"_slice) return "iOS";
 	if (platform == "Windows"_slice) return "Windows";
@@ -5443,6 +5718,30 @@ void LoveNode::beginCommandSegment()
 	}
 }
 
+std::shared_ptr<LoveShaderUniformSnapshot> LoveNode::captureLoveShaderSnapshot() const
+{
+	if (_activeShader == 0) return nullptr;
+	const auto found = _shaders.find(_activeShader);
+	if (found == _shaders.end()) return nullptr;
+	const auto &resource = found->second;
+	auto snapshot = std::make_shared<LoveShaderUniformSnapshot>();
+	snapshot->uniforms.reserve(resource.uniforms.size());
+	for (const auto &[name, source] : resource.uniforms)
+	{
+		LoveShaderUniformSnapshot::Uniform target;
+		target.gpuName = source.gpuName;
+		target.type = source.type;
+		target.components = source.components;
+		target.samplerSlot = source.samplerSlot;
+		target.vectorValues = source.vectorValues;
+		target.matrixValues = source.matrixValues;
+		target.textureValues = source.textureValues;
+		target.textureFlags = source.textureFlags;
+		snapshot->uniforms.push_back(std::move(target));
+	}
+	return snapshot;
+}
+
 void LoveNode::recordCommand(LoveRenderCommand* command)
 {
 	recordCommand(command, _commandScissor, _commandStencilState, _commandRenderState);
@@ -5459,6 +5758,12 @@ void LoveNode::recordCommand(LoveRenderCommand* command,
 	}
 	command->setState(scissor, stencil, renderState, _commandSegment);
 	command->setGpuBufferPool(_gpuBufferPool);
+	if (_activeShader != 0)
+		command->setShaderSnapshot(captureLoveShaderSnapshot());
+	if (command->getTraceId() != 0)
+		Info("[LoveTrace {}] command recorded: pass={} commandsBefore={} activeShader={} snapshot={}",
+			command->getTraceId(), _renderPasses.size(), _renderPasses.back().commands.size(),
+			_activeShader, _activeShader != 0);
 	_renderPasses.back().commands.emplace_back(command);
 }
 
@@ -5791,11 +6096,13 @@ Love::GraphicsBackend::ImageHandle LoveNode::newImage(const std::string &filenam
 		return 0;
 	if (const auto cached = _fileImages.find(fullPath); cached != _fileImages.end())
 	{
+		cached->second.lastUse = ++_fileImageUseCounter;
 		const auto handle = _nextImageHandle++;
 		ImageResource resource;
 		resource.texture = cached->second.texture;
 		resource.sharedFilePixels = cached->second.pixels;
 		resource.copyOnWrite = true;
+		resource.fileCacheKey = fullPath;
 		_images.emplace(handle, std::move(resource));
 		error.clear();
 		return handle;
@@ -5820,7 +6127,13 @@ Love::GraphicsBackend::ImageHandle LoveNode::newImage(const std::string &filenam
 	auto image = _images.find(handle);
 	image->second.sharedFilePixels = pixels;
 	image->second.copyOnWrite = true;
-	_fileImages.emplace(fullPath, CachedFileImage{image->second.texture, std::move(pixels)});
+	image->second.fileCacheKey = fullPath;
+	const std::size_t pixelBytes = pixels ? pixels->size() : 0;
+	const std::size_t textureBytes = image->second.texture
+		? image->second.texture->getInfo().storageSize : 0;
+	_fileImages.emplace(fullPath, CachedFileImage{
+		image->second.texture, std::move(pixels), pixelBytes + textureBytes,
+		++_fileImageUseCounter});
 	return handle;
 }
 
@@ -6226,7 +6539,53 @@ Love::GraphicsBackend::ImageHandle LoveNode::newCompressedImage(
 
 void LoveNode::releaseImage(Love::GraphicsBackend::ImageHandle image)
 {
-	_images.erase(image);
+	const auto found = _images.find(image);
+	if (found == _images.end()) return;
+
+	// File-backed Images share the decoded CPU pixels and the GPU texture through
+	// _fileImages. Keep that cache alive while another Love Image handle still
+	// refers to the same file, but drop it after the last handle is released.
+	// Track the path instead of the current texture/pixel pointers because
+	// replacePixels may detach an Image through copy-on-write first.
+	const auto fileCacheKey = found->second.fileCacheKey;
+	_images.erase(found);
+	if (!fileCacheKey.empty()) trimFileImageCache();
+}
+
+void LoveNode::trimFileImageCache()
+{
+	// Keep the cache warm during normal gameplay, but do not let repeated
+	// load/release cycles retain every decoded image forever. The active Image
+	// handles remain authoritative; cached entries can only be evicted when no
+	// handle in this LoveNode refers to their path.
+	static constexpr std::size_t cacheBudget = 256u * 1024u * 1024u;
+	std::size_t totalBytes = 0;
+	for (const auto &[path, cached] : _fileImages)
+	{
+		DORA_UNUSED_PARAM(path);
+		totalBytes += cached.memoryBytes;
+	}
+	std::unordered_set<std::string> activeKeys;
+	activeKeys.reserve(_images.size());
+	for (const auto &[handle, image] : _images)
+	{
+		DORA_UNUSED_PARAM(handle);
+		if (!image.fileCacheKey.empty()) activeKeys.insert(image.fileCacheKey);
+	}
+	while (totalBytes > cacheBudget)
+	{
+		const auto victim = std::min_element(_fileImages.begin(), _fileImages.end(),
+			[&activeKeys](const auto &left, const auto &right) {
+				const bool leftActive = activeKeys.contains(left.first);
+				const bool rightActive = activeKeys.contains(right.first);
+				if (leftActive != rightActive) return !leftActive;
+				return left.second.lastUse < right.second.lastUse;
+			});
+		if (victim == _fileImages.end()) break;
+		if (activeKeys.contains(victim->first)) break;
+		totalBytes -= std::min(totalBytes, victim->second.memoryBytes);
+		_fileImages.erase(victim);
+	}
 }
 
 bool LoveNode::updateImage(Love::GraphicsBackend::ImageHandle image, int width, int height,
@@ -7066,7 +7425,20 @@ bool LoveNode::setCanvasTargets(
 			return false;
 		}
 		target = combined;
-		_canvasTargets.emplace(std::move(key), combined);
+			_canvasTargets.emplace(std::move(key), combined);
+			// Love allows arbitrary Canvas attachment combinations. Balatro only
+			// needs a small working set, but a long-running session can otherwise
+			// retain one RenderTarget per historical combination forever. Existing
+			// RenderPass objects keep their targets alive for the current frame, so
+			// it is safe to discard old cache entries here.
+			if (_canvasTargets.size() > 64)
+			{
+				for (auto cached = _canvasTargets.begin(); cached != _canvasTargets.end();)
+				{
+					if (cached->second.get() != target.get()) cached = _canvasTargets.erase(cached);
+					else ++cached;
+				}
+			}
 		}
 	}
 	++_graphicsStats.canvasSwitches;
@@ -7216,6 +7588,17 @@ void effect() {
 bool LoveNode::drawShaderPrimitive(std::span<const Vec2> vertices, bool fill, bool closed,
 	float lineWidth, Color color, std::string &error)
 {
+	const auto shaderFound = _shaders.find(_activeShader);
+	std::uint64_t traceId = 0;
+	if (_activeShader != 0 && !LoveShaderTraceClaimed.exchange(true))
+	{
+		traceId = LoveShaderTraceSequence.fetch_add(1);
+		const auto *resource = shaderFound == _shaders.end() ? nullptr : &shaderFound->second;
+		Info("[LoveTrace {}] primitive begin: shader={} found={} fill={} closed={} inputVertices={} lineWidth={} canvas={} renderPasses={} effect={} instancedEffect={} usesVertexID={}",
+			traceId, _activeShader, resource != nullptr, fill, closed, vertices.size(), lineWidth,
+			_activeCanvas, _renderPasses.size(), resource && resource->effect ? 1 : 0,
+			resource && resource->instancedEffect ? 1 : 0, resource && resource->usesVertexID);
+	}
 	std::vector<SpriteVertex> primitiveVertices;
 	std::vector<uint32_t> primitiveIndices;
 	const uint32_t packedColor = color.toABGR();
@@ -7285,8 +7668,13 @@ bool LoveNode::drawShaderPrimitive(std::span<const Vec2> vertices, bool fill, bo
 	}
 	Texture2D *texture = ensureWhiteTexture(error);
 	if (!texture) return false;
-	const auto shaderFound = _shaders.find(_activeShader);
-	if (shaderFound != _shaders.end() && shaderFound->second.usesVertexID)
+	// Ordinary Love primitives use the textured-sprite submission path. The
+	// dynamic mesh path is needed for love_VertexID / custom mesh attributes,
+	// but using it for every primitive shader changes the vertex coordinate and
+	// render-state path and can make a full-screen rectangle disappear on WebGL.
+	if (shaderFound != _shaders.end() && shaderFound->second.usesVertexID
+		&& shaderFound->second.effect
+		&& !shaderFound->second.effect->getPasses().empty())
 	{
 		const auto &shader = shaderFound->second;
 		const Vec4 rgba = color.toVec4();
@@ -7294,16 +7682,19 @@ bool LoveNode::drawShaderPrimitive(std::span<const Vec2> vertices, bool fill, bo
 		std::vector<Love::GraphicsBackend::MeshVertex> dynamicVertices;
 		dynamicVertices.reserve(primitiveVertices.size());
 		std::vector<float> vertexIDs;
-		vertexIDs.reserve(primitiveVertices.size());
+		if (shader.usesVertexID) vertexIDs.reserve(primitiveVertices.size());
 		for (std::size_t index = 0; index < primitiveVertices.size(); ++index)
 		{
 			const auto &vertex = primitiveVertices[index];
 			dynamicVertices.push_back({vertex.x, coordinateHeight - vertex.y,
 				vertex.z, vertex.w, vertex.u, vertex.v, rgba.x, rgba.y, rgba.z, rgba.w});
-			vertexIDs.push_back(static_cast<float>(index));
+			if (shader.usesVertexID) vertexIDs.push_back(static_cast<float>(index));
 		}
-		std::vector<LoveDynamicMeshAttribute> attributes{{
-			shader.vertexIDSemantic, 1, std::move(vertexIDs)}};
+		std::vector<LoveDynamicMeshAttribute> attributes;
+		if (shader.usesVertexID)
+			attributes.push_back({shader.vertexIDSemantic, 1, std::move(vertexIDs)});
+		const auto routeVertexCount = dynamicVertices.size();
+		const auto routeIndexCount = primitiveIndices.size();
 		auto *command = LoveDynamicMeshCommand::create(std::move(dynamicVertices),
 			std::move(primitiveIndices), std::move(attributes),
 			std::vector<LoveDynamicMeshInstanceAttribute>{}, 1, std::array<Vec4, 5>{},
@@ -7311,17 +7702,28 @@ bool LoveNode::drawShaderPrimitive(std::span<const Vec2> vertices, bool fill, bo
 			meshSamplerFlags(texture, Love::GraphicsBackend::TextureFilter::Nearest,
 				Love::GraphicsBackend::TextureWrap::Clamp, Love::GraphicsBackend::TextureWrap::Clamp),
 			shader.effect.get(), coordinateHeight, true, _wireframe);
+		command->setTraceId(traceId);
+		if (traceId != 0)
+			Info("[LoveTrace {}] primitive route: dynamic mesh (usesVertexID=true) vertices={} indices={}",
+				traceId, routeVertexCount, routeIndexCount);
 		recordCommand(command);
 		markRenderCommand();
 		_primitiveCommand = nullptr;
 		error.clear();
 		return true;
 	}
+	const auto routeVertexCount = primitiveVertices.size();
+	const auto routeIndexCount = primitiveIndices.size();
 	auto *command = LoveTexturedMeshCommand::create(std::move(primitiveVertices), std::move(primitiveIndices),
 		texture, toDoraBlendFunc(_blendMode, _blendAlphaMode),
 		meshSamplerFlags(texture, Love::GraphicsBackend::TextureFilter::Nearest,
 			Love::GraphicsBackend::TextureWrap::Clamp, Love::GraphicsBackend::TextureWrap::Clamp),
-		shaderFound == _shaders.end() ? nullptr : shaderFound->second.effect.get(), true, _wireframe);
+		shaderFound == _shaders.end() ? nullptr : shaderFound->second.effect.get(), true, _wireframe,
+		std::nullopt, false, static_cast<float>(getActivePixelHeight()));
+	command->setTraceId(traceId);
+	if (traceId != 0)
+		Info("[LoveTrace {}] primitive route: textured mesh vertices={} indices={} effect={} loveShader=false",
+			traceId, routeVertexCount, routeIndexCount, shaderFound != _shaders.end());
 	recordCommand(command);
 	markRenderCommand();
 	_primitiveCommand = nullptr;
@@ -7587,7 +7989,8 @@ bool LoveNode::drawPolyline(std::span<const Vec2> input, bool closed, float line
 	{
 		SpriteEffect *effect = _activeShader == 0 ? nullptr : _shaders.at(_activeShader).effect.get();
 		auto *command = LoveTexturedMeshCommand::create(std::move(meshVertices), std::move(indices),
-			texture, toDoraBlendFunc(_blendMode, _blendAlphaMode), sampler, effect, true, _wireframe);
+			texture, toDoraBlendFunc(_blendMode, _blendAlphaMode), sampler, effect, true, _wireframe,
+			std::nullopt, _activeShader != 0, static_cast<float>(getActivePixelHeight()));
 		recordCommand(command);
 	}
 	markRenderCommand();
@@ -7662,7 +8065,8 @@ bool LoveNode::drawShaderPoints(std::span<const Vec2> points, float pointSize,
 		toDoraBlendFunc(_blendMode, _blendAlphaMode),
 		meshSamplerFlags(texture, Love::GraphicsBackend::TextureFilter::Nearest,
 			Love::GraphicsBackend::TextureWrap::Clamp, Love::GraphicsBackend::TextureWrap::Clamp),
-		_shaders.at(_activeShader).effect.get(), true);
+		_shaders.at(_activeShader).effect.get(), true, false, std::nullopt, true,
+		static_cast<float>(getActivePixelHeight()));
 	recordCommand(command);
 	markRenderCommand();
 	_primitiveCommand = nullptr;
@@ -8082,7 +8486,8 @@ bool LoveNode::drawMeshTransformed(
 		}
 		auto *command = LoveTexturedMeshCommand::create(std::move(pointVertices), std::move(pointIndices), texture,
 			toDoraBlendFunc(_blendMode, _blendAlphaMode), meshSamplerFlags(texture, filter, wrapU, wrapV),
-			drawShaderHandle != 0 ? _shaders.at(drawShaderHandle).effect.get() : nullptr, true);
+			drawShaderHandle != 0 ? _shaders.at(drawShaderHandle).effect.get() : nullptr, true,
+			false, std::nullopt, drawShaderHandle != 0, height);
 		recordCommand(command);
 		markRenderCommand();
 		_primitiveCommand = nullptr;
@@ -8187,7 +8592,7 @@ bool LoveNode::drawMeshTransformed(
 		auto *command = LoveTexturedMeshCommand::create(std::move(meshVertices), std::move(triangles), texture,
 			toDoraBlendFunc(_blendMode, _blendAlphaMode), meshSamplerFlags(texture, filter, wrapU, wrapV),
 			drawShaderHandle != 0 ? _shaders.at(drawShaderHandle).effect.get() : nullptr,
-			false, _wireframe);
+			false, _wireframe, std::nullopt, drawShaderHandle != 0, height);
 		recordCommand(command);
 	}
 	else
@@ -8287,19 +8692,137 @@ Love::GraphicsBackend::ShaderHandle LoveNode::newShader(std::string_view vertexS
 		|| !translateLoveShaderStage(vertexBody, true, language, varyingMap, vertexTranslation,
 			error, false, pixelTranslation.mainTextureType))
 		return 0;
+	// Keep the differential probe focused. Do not dump the translated sources:
+	// on WebGL a multiline source dump can truncate the browser console before
+	// the resource creation and draw diagnostics are emitted.
+	const bool shaderProbe = pixelBody.find("1.0, 0.0, 0.0, 1.0") != std::string::npos;
+	if (shaderProbe)
+	{
+		const bool customPixelEntry = pixelBody.find("void effect(") != std::string::npos;
+		const bool hasFragmentOutput = pixelTranslation.source.find("gl_FragColor") != std::string::npos
+			|| pixelTranslation.source.find("bgfx_FragColor") != std::string::npos;
+		const bool hasTextureSampler = pixelTranslation.source.find("s_texColor") != std::string::npos;
+		Info("Love shader probe translation: language={} vertexBytes={} pixelBytes={} "
+			"pixelEntry={} mainTexture={} colorOutputs={} fragmentOutput={} textureSampler={} "
+			"vertexUsesVertexID={} instancedBytes={}",
+			language == LoveShaderLanguage::GLSL3 ? "glsl3" : "glsl1",
+			vertexTranslation.source.size(), pixelTranslation.source.size(),
+			customPixelEntry ? "custom" : "standard",
+			pixelTranslation.mainTextureType.has_value()
+				? (pixelTranslation.mainTextureType == Love::GraphicsBackend::TextureType::Texture2D
+					? "2d" : "non-2d") : "none",
+			pixelTranslation.colorOutputs, hasFragmentOutput, hasTextureSampler,
+			vertexTranslation.usesVertexID,
+			instancedVertexTranslation.source.size());
+	}
 	if (pixelTranslation.colorOutputs + 1 > static_cast<int>(bgfx::getCaps()->limits.maxFBAttachments))
 	{
 		error = "Love Shader color output count exceeds the renderer framebuffer attachment limit";
 		return 0;
 	}
+
+#if defined(DORA_EMSCRIPTEN) || defined(__EMSCRIPTEN__)
+	// A shaderc failure is local to this Love shader. Keep its uniform metadata
+	// alive and let the render command use Dora's known-good sprite path. This
+	// is deliberately restricted to Emscripten; native LoveNode keeps the
+	// reference behavior and reports the failure to the caller.
+	auto installWebFallback = [&]() -> Love::GraphicsBackend::ShaderHandle {
+		ShaderResource fallbackResource;
+		// Leave the effects empty. Render commands interpret an empty effect as
+		// the ordinary Dora sprite path. Attaching the default effect here would
+		// make the command look like a Love shader command and skip the normal
+		// ViewProjection transform, even though the default effect does not define
+		// u_loveTransform.
+		fallbackResource.colorOutputs = 1;
+		fallbackResource.hasMainTexture = false;
+		auto makeFallbackUniform = [](const LoveShaderUniformInfo &info) {
+			ShaderUniform uniform;
+			uniform.gpuName = info.gpuName;
+			uniform.type = info.type;
+			uniform.textureType = info.textureType;
+			uniform.components = info.components;
+			uniform.count = info.count;
+			uniform.samplerSlot = info.samplerSlot;
+			uniform.initialValues = info.initialValues;
+			uniform.hasInitialValue = !info.initialValues.empty();
+			if (info.type == Love::GraphicsBackend::ShaderUniformType::Matrix && info.components == 16)
+				uniform.matrixValues.resize(static_cast<std::size_t>(info.count));
+			else if (info.type != Love::GraphicsBackend::ShaderUniformType::Sampler)
+			{
+				uniform.vectorValues.resize(static_cast<std::size_t>(info.count)
+					* (info.type == Love::GraphicsBackend::ShaderUniformType::Matrix
+						&& info.components == 9 ? 3 : 1));
+				for (std::size_t component = 0; component < info.initialValues.size(); ++component)
+					(&uniform.vectorValues.front().x)[component] = info.initialValues[component];
+			}
+			return uniform;
+		};
+		const auto fallbackMaxTextureSamplers = bgfx::getCaps()->limits.maxTextureSamplers;
+		for (const auto &[name, info] : vertexTranslation.uniforms)
+		{
+			if (info.samplerSlot != 0
+				&& static_cast<uint32_t>(info.samplerSlot + info.count) > fallbackMaxTextureSamplers)
+			{
+				error = "Love Shader Image uniform count exceeds the renderer sampler limit";
+				return 0;
+			}
+			fallbackResource.uniforms.emplace(name, makeFallbackUniform(info));
+		}
+		for (const auto &[name, info] : pixelTranslation.uniforms)
+		{
+			if (info.samplerSlot != 0
+				&& static_cast<uint32_t>(info.samplerSlot + info.count) > fallbackMaxTextureSamplers)
+			{
+				error = "Love Shader Image uniform count exceeds the renderer sampler limit";
+				return 0;
+			}
+			if (const auto found = fallbackResource.uniforms.find(name);
+				found != fallbackResource.uniforms.end())
+			{
+				if (found->second.type != info.type || found->second.textureType != info.textureType
+					|| found->second.components != info.components
+					|| found->second.count != info.count
+					|| found->second.samplerSlot != info.samplerSlot)
+				{
+					error = "Love Shader uniform '" + name + "' has different stage types";
+					return 0;
+				}
+			}
+			else fallbackResource.uniforms.emplace(name, makeFallbackUniform(info));
+		}
+		const auto fallbackHandle = _nextShaderHandle++;
+		_shaders.emplace(fallbackHandle, std::move(fallbackResource));
+		warnings = "Web Love Shader rendering is using the Dora sprite fallback; "
+			"custom shader effects are unavailable for this shader";
+		Info("Love Web shader fallback installed: handle={} uniforms={}", fallbackHandle,
+			_shaders.at(fallbackHandle).uniforms.size());
+		error.clear();
+		return fallbackHandle;
+	};
+#endif
+
 	std::string vertexWarnings;
 	std::string fragmentWarnings;
 	Ref<Shader> vertex(compileLoveShader(vertexTranslation, ShaderStage::Vertex,
 		"vertex", varyingPath, varyingDefinition, vertexWarnings, error));
-	if (!vertex) return 0;
+	if (!vertex)
+	{
+#if defined(DORA_EMSCRIPTEN) || defined(__EMSCRIPTEN__)
+		return installWebFallback();
+#else
+		return 0;
+#endif
+	}
 	Ref<Shader> fragment(compileLoveShader(pixelTranslation, ShaderStage::Fragment,
 		"pixel", varyingPath, varyingDefinition, fragmentWarnings, error));
-	if (!fragment) return 0;
+	if (!fragment)
+	{
+#if defined(DORA_EMSCRIPTEN) || defined(__EMSCRIPTEN__)
+		return installWebFallback();
+#else
+		return 0;
+#endif
+	}
 	auto appendWarnings = [&](std::string_view source, const std::string &message) {
 		if (message.empty()) return;
 		if (!warnings.empty() && warnings.back() != '\n') warnings.push_back('\n');
@@ -8312,11 +8835,53 @@ Love::GraphicsBackend::ShaderHandle LoveNode::newShader(std::string_view vertexS
 	appendWarnings("pixel Shader translator", pixelTranslation.warnings);
 	appendWarnings("vertex Shader compiler", vertexWarnings);
 	appendWarnings("pixel Shader compiler", fragmentWarnings);
+	// bgfx resolves user uniform handles while creating the GL program.  The
+	// generic Pass class normally creates a uniform from Pass::set(), which is
+	// too late for Love's generated uniforms because the Effect constructor
+	// creates the program before the Love resource defaults are installed.
+	// Pre-register every generated Love uniform, then attach a zero/default
+	// value to the Pass so its handle stays alive after these temporary refs are
+	// released.  Without this, WebGL leaves u_loveTransform at its GLSL default
+	// (the all-zero matrix), collapsing the full-screen quad to a point.
+	std::vector<bgfx::UniformHandle> preRegisteredUniforms;
+	std::set<std::string> preRegisteredNames;
+	auto preRegisterUniforms = [&](const std::unordered_map<std::string, LoveShaderUniformInfo> &uniforms) {
+		for (const auto &[name, info] : uniforms)
+		{
+			DORA_UNUSED_PARAM(name);
+			if (info.gpuName == "s_texColor" || !preRegisteredNames.insert(info.gpuName).second)
+				continue;
+			bgfx::UniformType::Enum type = bgfx::UniformType::Vec4;
+			uint16_t count = static_cast<uint16_t>(std::max(1, info.count));
+			if (info.type == Love::GraphicsBackend::ShaderUniformType::Sampler)
+				type = bgfx::UniformType::Sampler;
+			else if (info.type == Love::GraphicsBackend::ShaderUniformType::Matrix
+				&& info.components == 16)
+				type = bgfx::UniformType::Mat4;
+			else if (info.type == Love::GraphicsBackend::ShaderUniformType::Matrix
+				&& info.components == 9)
+				count = static_cast<uint16_t>(count * 3);
+			const auto handle = bgfx::createUniform(info.gpuName.c_str(), type, count);
+			if (bgfx::isValid(handle)) preRegisteredUniforms.push_back(handle);
+		}
+	};
+	preRegisterUniforms(vertexTranslation.uniforms);
+	preRegisterUniforms(pixelTranslation.uniforms);
+	const auto loveTransformUniform = bgfx::createUniform("u_loveTransform", bgfx::UniformType::Mat4);
+	if (bgfx::isValid(loveTransformUniform)) preRegisteredUniforms.push_back(loveTransformUniform);
 	Ref<SpriteEffect> effect(SpriteEffect::create(vertex.get(), fragment.get()));
+	Info("Love shaderc bgfx program link: vertexHandle={} fragmentHandle={} effect={} passes={}",
+		vertex ? vertex->getHandle().idx : bgfx::kInvalidHandle,
+		fragment ? fragment->getHandle().idx : bgfx::kInvalidHandle,
+		effect ? 1 : 0, effect ? effect->getPasses().size() : 0);
 	if (!effect || effect->getPasses().empty())
 	{
 		error = "bgfx could not link the translated Love vertex and pixel Shader stages";
+#if defined(DORA_EMSCRIPTEN) || defined(__EMSCRIPTEN__)
+		return installWebFallback();
+#else
 		return 0;
+#endif
 	}
 	Ref<Shader> instancedVertex;
 	Ref<SpriteEffect> instancedEffect;
@@ -8324,6 +8889,9 @@ Love::GraphicsBackend::ShaderHandle LoveNode::newShader(std::string_view vertexS
 	if (translateLoveShaderStage(vertexBody, true, language, varyingMap,
 		instancedVertexTranslation, instancingError, true, pixelTranslation.mainTextureType))
 	{
+		const auto instanceSelectorsUniform = bgfx::createUniform("u_loveInstanceSelectors",
+			bgfx::UniformType::Vec4, 5);
+		if (bgfx::isValid(instanceSelectorsUniform)) preRegisteredUniforms.push_back(instanceSelectorsUniform);
 		std::string instancedWarnings;
 		instancedVertex = compileLoveShader(instancedVertexTranslation, ShaderStage::Vertex,
 			"instanced vertex", varyingPath, varyingDefinition, instancedWarnings, instancingError);
@@ -8334,14 +8902,48 @@ Love::GraphicsBackend::ShaderHandle LoveNode::newShader(std::string_view vertexS
 			if (candidate && !candidate->getPasses().empty()) instancedEffect = candidate;
 		}
 	}
-	for (Pass *pass : effect->getPasses())
-		pass->set("u_loveTransform"_slice, Matrix::Indentity);
-	if (instancedEffect) for (Pass *pass : instancedEffect->getPasses())
-	{
-		pass->set("u_loveTransform"_slice, Matrix::Indentity);
-		const std::array<Vec4, 5> selectors{};
-		pass->set("u_loveInstanceSelectors"_slice, std::span<const Vec4>(selectors));
-	}
+	auto initializeGeneratedUniforms = [&](SpriteEffect *target, bool instanced) {
+		if (!target) return;
+		for (Pass *pass : target->getPasses())
+		{
+			pass->set("u_loveTransform"_slice, Matrix::Indentity);
+			if (instanced)
+			{
+				const std::array<Vec4, 5> selectors{};
+				pass->set("u_loveInstanceSelectors"_slice, std::span<const Vec4>(selectors));
+			}
+			auto initialize = [&](const std::unordered_map<std::string, LoveShaderUniformInfo> &uniforms) {
+				for (const auto &[name, info] : uniforms)
+				{
+					DORA_UNUSED_PARAM(name);
+					if (info.gpuName == "s_texColor") continue;
+					if (info.type == Love::GraphicsBackend::ShaderUniformType::Sampler)
+					{
+						pass->set(info.gpuName, nullptr, static_cast<uint8_t>(info.samplerSlot));
+					}
+					else if (info.type == Love::GraphicsBackend::ShaderUniformType::Matrix
+						&& info.components == 16)
+					{
+						std::vector<Matrix> values(static_cast<std::size_t>(std::max(1, info.count)));
+						pass->set(info.gpuName, std::span<const Matrix>(values));
+					}
+					else
+					{
+						const int vectorCount = info.type == Love::GraphicsBackend::ShaderUniformType::Matrix
+							&& info.components == 9 ? std::max(1, info.count) * 3 : std::max(1, info.count);
+						std::vector<Vec4> values(static_cast<std::size_t>(vectorCount));
+						pass->set(info.gpuName, std::span<const Vec4>(values));
+					}
+				}
+			};
+			initialize(vertexTranslation.uniforms);
+			initialize(pixelTranslation.uniforms);
+		}
+	};
+	initializeGeneratedUniforms(effect.get(), false);
+	initializeGeneratedUniforms(instancedEffect.get(), true);
+	for (const auto handle : preRegisteredUniforms)
+		bgfx::destroy(handle);
 	ShaderResource resource;
 	resource.vertex = vertex;
 	resource.fragment = fragment;
@@ -8352,8 +8954,24 @@ Love::GraphicsBackend::ShaderHandle LoveNode::newShader(std::string_view vertexS
 	resource.hasMainTexture = pixelTranslation.mainTextureType.has_value();
 	if (pixelTranslation.mainTextureType)
 		resource.mainTextureType = *pixelTranslation.mainTextureType;
+	if (shaderProbe)
+	{
+		Info("Love shader probe resource: effectSampler={} hasMainTexture={} colorOutputs={} "
+			"instancedEffect={} mainTextureSemantic={}",
+			effect ? effect->getSampler().idx : bgfx::kInvalidHandle,
+			resource.hasMainTexture, resource.colorOutputs,
+			instancedEffect ? 1 : 0,
+			static_cast<int>(resource.mainTextureLayerSemantic));
+	}
 	resource.mainTextureLayerSemantic = vertexTranslation.mainTextureLayerSemantic;
 	resource.usesInstanceID = vertexTranslation.usesInstanceID;
+	if (shaderProbe)
+	{
+		Info("Love shader probe resource finalized: mainTextureSemantic={} usesInstanceID={} "
+			"uniforms={} colorOutputs={} hasMainTexture={}",
+			static_cast<int>(resource.mainTextureLayerSemantic), resource.usesInstanceID,
+			resource.uniforms.size(), resource.colorOutputs, resource.hasMainTexture);
+	}
 	resource.usesVertexID = vertexTranslation.usesVertexID;
 	resource.vertexIDSemantic = vertexTranslation.vertexIDSemantic;
 	resource.instancedVertexIDSemantic = instancedVertexTranslation.vertexIDSemantic;
@@ -8440,11 +9058,13 @@ Love::GraphicsBackend::ShaderHandle LoveNode::newShader(std::string_view vertexS
 		if (!uniform.hasInitialValue) continue;
 		for (SpriteEffect *target : {resource.effect.get(), resource.instancedEffect.get()})
 		{
-			if (!target) continue;
+			if (!target || target->getPasses().empty()) continue;
 			if (!uniform.vectorValues.empty())
-				target->get(0)->set(uniform.gpuName, std::span<const Vec4>(uniform.vectorValues));
+				target->getPasses().front()->set(uniform.gpuName,
+					std::span<const Vec4>(uniform.vectorValues));
 			else if (!uniform.matrixValues.empty())
-				target->get(0)->set(uniform.gpuName, std::span<const Matrix>(uniform.matrixValues));
+				target->getPasses().front()->set(uniform.gpuName,
+					std::span<const Matrix>(uniform.matrixValues));
 		}
 	}
 	const auto handle = _nextShaderHandle++;
@@ -8465,7 +9085,8 @@ void LoveNode::clearShaderSamplerBindings(ShaderResource &shader)
 			const std::string gpuName = uniform.count == 1 ? uniform.gpuName
 				: uniform.gpuName + "_" + std::to_string(index);
 			for (SpriteEffect *effect : {shader.effect.get(), shader.instancedEffect.get()})
-				if (effect) effect->get(0)->remove(gpuName);
+				if (effect && !effect->getPasses().empty())
+					effect->getPasses().front()->remove(gpuName);
 		}
 	}
 	shader.samplerCanvases.clear();
@@ -8532,9 +9153,9 @@ bool LoveNode::sendShaderFloats(Love::GraphicsBackend::ShaderHandle shader,
 		return false;
 	}
 	const auto setBothEffects = [&](const auto &setter) {
-		setter(found->second.effect->get(0));
-		if (found->second.instancedEffect)
-			setter(found->second.instancedEffect->get(0));
+		for (SpriteEffect *effect : {found->second.effect.get(), found->second.instancedEffect.get()})
+			if (effect && !effect->getPasses().empty())
+				setter(effect->getPasses().front().get());
 	};
 	const std::size_t sentCount = values.size() / components;
 	if (uniform->second.type == Love::GraphicsBackend::ShaderUniformType::Matrix
@@ -8676,8 +9297,8 @@ bool LoveNode::sendShaderTextures(Love::GraphicsBackend::ShaderHandle shader,
 		pending.push_back({texture, binding.canvas,
 			meshSamplerFlags(texture, binding.filter, binding.wrapU, binding.wrapV, binding.wrapW)});
 	}
-	for (std::size_t index = 0; index < pending.size(); ++index)
-	{
+		for (std::size_t index = 0; index < pending.size(); ++index)
+		{
 		const std::string elementName = uniform->second.count == 1 ? std::string(name)
 			: std::string(name) + "[" + std::to_string(index + 1) + "]";
 		const std::string gpuName = uniform->second.count == 1 ? uniform->second.gpuName
@@ -8685,9 +9306,17 @@ bool LoveNode::sendShaderTextures(Love::GraphicsBackend::ShaderHandle shader,
 		if (pending[index].canvas == 0)
 			found->second.samplerCanvases.erase(elementName);
 		else found->second.samplerCanvases[elementName] = pending[index].canvas;
+		if (index == 0)
+		{
+			uniform->second.textureValues.resize(pending.size());
+			uniform->second.textureFlags.resize(pending.size());
+		}
+		uniform->second.textureValues[index] = pending[index].texture;
+		uniform->second.textureFlags[index] = pending[index].flags;
 		for (SpriteEffect *effect : {found->second.effect.get(), found->second.instancedEffect.get()})
-			if (effect) effect->get(0)->set(gpuName, pending[index].texture,
-				static_cast<uint8_t>(uniform->second.samplerSlot + index), pending[index].flags);
+			if (effect && !effect->getPasses().empty())
+				effect->getPasses().front()->set(gpuName, pending[index].texture,
+					static_cast<uint8_t>(uniform->second.samplerSlot + index), pending[index].flags);
 	}
 	error.clear();
 	return true;
@@ -8713,9 +9342,10 @@ bool LoveNode::setShader(Love::GraphicsBackend::ShaderHandle shader, std::string
 			}
 		}
 	}
-	if (_activeShader != shader)
+	Love::GraphicsBackend::ShaderHandle renderShader = shader;
+	if (_activeShader != renderShader)
 	{
-		_activeShader = shader;
+		_activeShader = renderShader;
 		++_graphicsStats.shaderSwitches;
 	}
 	error.clear();
@@ -8840,13 +9470,17 @@ void LoveNode::drawTexture(Texture2D *texture,
 			std::vector<SpriteVertex> spriteVertices;
 			spriteVertices.reserve(vertices.size());
 			for (const auto &vertex : vertices)
+				// LoveTexturedMeshCommand submits through Dora's regular sprite
+				// pipeline and only applies the view-projection matrix. Convert
+				// Love's top-left-origin Y coordinate before recording it.
 				spriteVertices.push_back({vertex.x, coordinateHeight - vertex.y,
 					vertex.z, vertex.w, vertex.u, vertex.v,
 					Color(Vec4{vertex.red, vertex.green, vertex.blue, vertex.alpha}).toABGR()});
 			command = LoveTexturedMeshCommand::create(std::move(spriteVertices), std::move(indices),
 				texture, toDoraBlendFunc(_blendMode, _blendAlphaMode),
 				meshSamplerFlags(texture, filter, wrapU, wrapV),
-				_activeShader == 0 ? nullptr : _shaders.at(_activeShader).effect.get(), false, true);
+				_activeShader == 0 ? nullptr : _shaders.at(_activeShader).effect.get(), false, true,
+				std::nullopt, _activeShader != 0, coordinateHeight);
 		}
 		recordCommand(command);
 		markRenderCommand();
@@ -8861,8 +9495,8 @@ void LoveNode::drawTexture(Texture2D *texture,
 	const float top = sourceY / textureHeight;
 	const float right = (sourceX + sourceWidth) / textureWidth;
 	const float bottom = (sourceY + sourceHeight) / textureHeight;
-	const float coordinateHeight = static_cast<float>(getActivePixelHeight());
 	const uint32_t color = Color(Vec4{red, green, blue, alpha}).toABGR();
+	const float coordinateHeight = static_cast<float>(getActivePixelHeight());
 	const auto vertex = [&](float localX, float localY, float u, float v) {
 		const float px = localX - originX;
 		const float py = localY - originY;
@@ -8897,7 +9531,8 @@ void LoveNode::drawTexture(Texture2D *texture,
 	auto *command = LoveTexturedMeshCommand::create(std::move(vertices), std::move(indices),
 		texture, toDoraBlendFunc(_blendMode, _blendAlphaMode),
 		meshSamplerFlags(texture, filter, wrapU, wrapV),
-		_activeShader == 0 ? nullptr : _shaders.at(_activeShader).effect.get());
+		_activeShader == 0 ? nullptr : _shaders.at(_activeShader).effect.get(), false, false,
+		std::nullopt, _activeShader != 0, coordinateHeight);
 	recordCommand(command);
 	markRenderCommand();
 	if (_activeShader == 0)
@@ -9507,7 +10142,7 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 				toDoraBlendFunc(_blendMode, _blendAlphaMode),
 				meshSamplerFlags(batch.resource->imageTextures[static_cast<std::size_t>(batch.page)], batch.resource->imageFilter,
 					Love::GraphicsBackend::TextureWrap::Clamp, Love::GraphicsBackend::TextureWrap::Clamp),
-				effect, true, _wireframe);
+				effect, true, _wireframe, std::nullopt, _activeShader != 0, pixelHeight);
 			recordCommand(command);
 			markRenderCommand();
 		}
@@ -9684,7 +10319,7 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 			{
 				auto *command = LoveTexturedMeshCommand::create(std::move(batch.vertices),
 					std::move(batch.indices), batch.texture, blend, samplerFlags,
-					effect, true, _wireframe, smooth);
+					effect, true, _wireframe, smooth, _activeShader != 0, pixelHeight);
 				recordCommand(command);
 			}
 		}
@@ -9900,16 +10535,27 @@ void LoveNode::endFrame()
 		else
 			pass->target->submit(submitCommands);
 	}
+	if (!_loggedFirstRenderSubmission)
+	{
+		std::size_t commandCount = 0;
+		for (const auto &pass : _renderPasses)
+			commandCount += pass.commands.size();
+		if (commandCount > 0 || _graphicsStats.drawCalls > 0 || _graphicsStats.drawCallsBatched > 0)
+		{
+			Info("LoveNode [{}] first render submitted: passes={} commands={} drawCalls={} "
+				"batched={} canvasSwitches={} shaderSwitches={} target={}x{} activeShader={}",
+				_bootFile, _renderPasses.size(), commandCount, _graphicsStats.drawCalls,
+				_graphicsStats.drawCallsBatched, _graphicsStats.canvasSwitches,
+				_graphicsStats.shaderSwitches, getPixelWidth(), getPixelHeight(), _activeShader);
+			_loggedFirstRenderSubmission = true;
+		}
+	}
 	// Shader userdata can be collected after commands were queued in love.draw.
 	// Retain the Effect through submission, then drop its sampler references so
 	// retired Shaders cannot keep Canvas textures alive across stop/restart.
 	for (auto &shader : _retiredShaders)
 		clearShaderSamplerBindings(shader);
 	_retiredShaders.clear();
-	_graphicsStats.drawCalls = 0;
-	_graphicsStats.drawCallsBatched = 0;
-	_graphicsStats.canvasSwitches = 0;
-	_graphicsStats.shaderSwitches = 0;
 	if (_pendingScreenshotRequests.empty() || !_renderTarget || !_runtime)
 		return;
 	const auto requests = std::move(_pendingScreenshotRequests);
@@ -10869,7 +11515,11 @@ void LoveNode::releaseSource(Love::AudioBackend::SourceHandle source)
 {
 	const auto found = _audioSources.find(source);
 	if (found == _audioSources.end())
+	{
+		Warn("[LoveAudioTrace] LoveNode source release missing: handle={} audioSources={}",
+			source, _audioSources.size());
 		return;
+	}
 	if (found->second.node)
 	{
 		found->second.node->stop();
@@ -10913,7 +11563,11 @@ void LoveNode::stopSource(Love::AudioBackend::SourceHandle source)
 {
 	const auto found = _audioSources.find(source);
 	if (found == _audioSources.end())
+	{
+		Warn("[LoveAudioTrace] LoveNode source stop missing: handle={} audioSources={}",
+			source, _audioSources.size());
 		return;
+	}
 	if (found->second.node)
 		found->second.node->stop();
 	if (found->second.queueable)

@@ -905,6 +905,7 @@ public:
 	{
 		Closed,
 		Ready,
+		Loading,
 		Running,
 		RestartRequested,
 		Faulted,
@@ -928,6 +929,8 @@ public:
 	bool execute(std::string_view code, std::string_view chunkName, std::string &error);
 	bool configure(std::string &error);
 	bool start(std::string &error);
+	bool startAsync(std::string &error);
+	bool continueStart(std::string &error);
 	bool boot(std::string_view code, std::string_view chunkName, std::string &error);
 	bool update(double deltaTime, std::string &error);
 	bool draw(std::string &error);
@@ -1122,6 +1125,7 @@ private:
 	void pushJoystick(int id);
 	GraphicsBackend::FontHandle ensureDefaultFont(std::string &error);
 	bool callLoveCallback(const char *name, int argumentCount, int resultCount, std::string &error);
+	static int bootYield(lua_State *state);
 	static int runtimePrint(lua_State *state);
 	bool dispatchQueuedEvents(std::string &error);
 	bool setIdentity(std::string_view identity, std::string &error);
@@ -1134,6 +1138,9 @@ private:
 	bool fail(std::string message, std::string &error);
 
 	lua_State *_state = nullptr;
+	lua_State *_loadThread = nullptr;
+	int _loadThreadReference = -2; // LUA_NOREF without exposing Lua headers here.
+	bool _loadThreadStarted = false;
 	Status _status = Status::Closed;
 	std::string _lastError;
 	std::string _bootCode;

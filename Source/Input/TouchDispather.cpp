@@ -21,12 +21,11 @@ NS_DORA_BEGIN
 
 /* Touch */
 
-uint32_t Touch::_source =
-#if BX_PLATFORM_OSX
-	Touch::FromMouse;
-#else
-	Touch::FromTouch;
-#endif
+// Desktop input is delivered as SDL mouse events, while mobile and browser
+// input may be delivered as SDL touch events. Accept both by default. The
+// NodeTouchHandler filters SDL's synthetic mouse events generated for touch
+// input when both sources are enabled, so this does not double-dispatch taps.
+uint32_t Touch::_source = Touch::FromMouseAndTouch;
 
 Touch::Touch(int id)
 	: _location{Vec2::zero}

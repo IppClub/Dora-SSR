@@ -42,6 +42,7 @@ struct LoveRecordingResource;
 class LoveRenderCommand;
 class LovePrimitiveCommand;
 class LoveGpuBufferPool;
+struct LoveShaderUniformSnapshot;
 
 class LoveNode : public Sprite, private Love::GraphicsBackend, private Love::FilesystemBackend,
 	private Love::ImageBackend,
@@ -428,11 +429,13 @@ private:
 	void recordCommand(LoveRenderCommand* command,
 		std::optional<RendererManager::ScissorState> scissor,
 		uint32_t stencil, uint64_t renderState);
+	std::shared_ptr<LoveShaderUniformSnapshot> captureLoveShaderSnapshot() const;
 	std::optional<RendererManager::ScissorState> getCommandScissor() const;
 	void beginCommandSegment();
 	void beginRenderPass(uint16_t clearFlags, Color clearColor, uint8_t stencil = 0,
 		float depth = 1.0f);
 	void markRenderCommand(bool batched = false);
+	void trimFileImageCache();
 	int getActivePixelHeight() const;
 	RenderTarget* getActiveRenderTarget() const;
 	void drawTexture(Texture2D *texture,
@@ -481,14 +484,18 @@ private:
 		std::vector<Ref<Texture2D>> layerTextures;
 		std::shared_ptr<std::vector<std::uint8_t>> sharedFilePixels;
 		bool copyOnWrite = false;
+		std::string fileCacheKey;
 	};
 	std::unordered_map<Love::GraphicsBackend::ImageHandle, ImageResource> _images;
 	struct CachedFileImage
 	{
 		Ref<Texture2D> texture;
 		std::shared_ptr<std::vector<std::uint8_t>> pixels;
+		std::size_t memoryBytes = 0;
+		std::uint64_t lastUse = 0;
 	};
 	std::unordered_map<std::string, CachedFileImage> _fileImages;
+	std::uint64_t _fileImageUseCounter = 0;
 	Ref<Texture2D> _whiteTexture;
 	Love::GraphicsBackend::ShaderHandle _arrayTextureShader = 0;
 	struct ShaderUniform
@@ -501,6 +508,8 @@ private:
 		int samplerSlot = 0;
 		std::vector<Vec4> vectorValues;
 		std::vector<Matrix> matrixValues;
+		std::vector<Ref<Texture2D>> textureValues;
+		std::vector<uint32_t> textureFlags;
 		std::vector<float> initialValues;
 		bool hasInitialValue = false;
 	};
@@ -577,6 +586,7 @@ private:
 	std::string _stencilCompare = "always";
 	int _stencilTestValue = 0;
 	bool _graphicsFrameActive = false;
+	bool _loggedFirstRenderSubmission = false;
 	Love::GraphicsBackend::Stats _graphicsStats;
 	LoveRenderCommand *_imageBatchCommand = nullptr;
 	Texture2D *_spriteBatchTexture = nullptr;
