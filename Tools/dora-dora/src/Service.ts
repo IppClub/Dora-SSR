@@ -1496,17 +1496,8 @@ export interface AgentSessionStep {
 	updatedAt: number;
 };
 
-export interface AgentVisionAsset {
-	assetId: string;
-	width: number;
-	height: number;
-	elapsedSeconds: number;
-	entry: string;
-}
-
 export interface AgentVisionImageResult {
 	success: boolean;
-	asset?: AgentVisionAsset;
 	path?: string;
 	format?: string;
 	width?: number;
@@ -1517,11 +1508,6 @@ export interface AgentVisionImageResult {
 
 export function getAgentVisionImageByPath(sessionId: number, path: string) {
 	return post<AgentVisionImageResult>("/agent/vision/asset", {sessionId, path});
-}
-
-export function getAgentVisionImage(sessionId: number, assetId: string) {
-	return post<AgentVisionImageResult>(
-		"/agent/vision/asset", {sessionId, assetId});
 }
 
 export interface AgentChangeSetFileItem {

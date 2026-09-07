@@ -1734,7 +1734,6 @@ HttpServer:post("/agent/vision/asset", function(req)
 	do
 		local _type_0 = type(req)
 		local _tab_0 = "table" == _type_0 or "userdata" == _type_0
-		local _match_0 = false
 		if _tab_0 then
 			local sessionId
 			do
@@ -1753,31 +1752,7 @@ HttpServer:post("/agent/vision/asset", function(req)
 				end
 			end
 			if sessionId ~= nil and path ~= nil then
-				_match_0 = true
 				return (require("Agent.Tool.VisionAssets")).getSessionVisionImageFromPath(sessionId, path)
-			end
-		end
-		if not _match_0 then
-			if _tab_0 then
-				local sessionId
-				do
-					local _obj_0 = req.body
-					local _type_1 = type(_obj_0)
-					if "table" == _type_1 or "userdata" == _type_1 then
-						sessionId = _obj_0.sessionId
-					end
-				end
-				local assetId
-				do
-					local _obj_0 = req.body
-					local _type_1 = type(_obj_0)
-					if "table" == _type_1 or "userdata" == _type_1 then
-						assetId = _obj_0.assetId
-					end
-				end
-				if sessionId ~= nil and assetId ~= nil then
-					return (require("Agent.Tool.VisionAssets")).getSessionVisionImage(sessionId, assetId)
-				end
 			end
 		end
 	end

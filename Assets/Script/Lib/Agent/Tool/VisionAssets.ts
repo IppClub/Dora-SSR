@@ -1,6 +1,5 @@
 // @preview-file off clear
 import { Content, DB, Path } from 'Dora';
-import { safeJsonDecode } from 'Agent/Utils';
 import { resolveWorkspaceFilePath } from 'Agent/Tool/Workspace';
 
 export const VISION_MAX_IMAGE_BYTES = 4 * 1024 * 1024;
@@ -73,49 +72,3 @@ export function getSessionVisionImageFromPath(sessionId: number, path: string): 
 	}
 }
 
-// Legacy asset-store reads keep historical preview_game steps displayable.
-interface LegacyVisionAsset {
-	assetId: string;
-	projectRoot: string;
-	owner: string;
-	width: number;
-	height: number;
-	bytes: number;
-	checksum: string;
-}
-const verifiedAssets: Record<string, {data: string; checksum: string; width: number; height: number; bytes: number}> = {};
-
-function legacyAssetPath(id: string, suffix = "png"): string {
-	if (string.match(id, "^%d+%-%d+$")[0] === undefined) error("invalid vision asset ID");
-	return Path(Content.appPath, "agent-vision", `${id}.${suffix}`);
-}
-
-function readLegacyVisionAsset(req: {workingDir: string; sessionId?: number}, id: string): {asset: LegacyVisionAsset; data: string} {
-	const text = Content.load(legacyAssetPath(id, "json"));
-	const [decoded] = safeJsonDecode(text ?? "");
-	if (type(decoded) !== "table") error("vision asset metadata is invalid");
-	const asset = decoded as LegacyVisionAsset | undefined;
-	if (!asset || asset.assetId !== id || asset.projectRoot !== req.workingDir) error("vision asset is unavailable or belongs to another session");
-	const [size] = Content.getAttr(legacyAssetPath(id));
-	if (size !== asset.bytes || size > VISION_MAX_IMAGE_BYTES) error("vision asset is missing or damaged");
-	const data = Content.load(legacyAssetPath(id));
-	if (!data) error("vision asset is missing");
-	const cached = verifiedAssets[id];
-	if (cached === undefined || cached.data !== data || cached.checksum !== asset.checksum || cached.width !== asset.width || cached.height !== asset.height || cached.bytes !== asset.bytes) {
-		let a = 1, b = 0;
-		for (let i = 1; i <= data.length; i++) { a = (a + string.byte(data, i)) % 65521; b = (b + a) % 65521; }
-		if (`${b}-${a}` !== asset.checksum) error("vision asset checksum mismatch");
-		verifiedAssets[id] = {data, checksum: asset.checksum, width: asset.width, height: asset.height, bytes: data.length};
-	}
-	return {asset, data};
-}
-
-export function getSessionVisionImage(sessionId: number, assetId: string): Record<string, unknown> {
-	try {
-		const projectRoot = sessionProjectRoot(sessionId);
-		const {asset, data} = readLegacyVisionAsset({workingDir: projectRoot, sessionId}, assetId);
-		return {success: true, asset, dataUrl: encodeDataUrl(data)};
-	} catch (_) {
-		return {success: false, message: "Vision image is unavailable, damaged, or belongs to another session"};
-	}
-}

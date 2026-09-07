@@ -741,11 +741,8 @@ HttpServer\post "/agent/session/get", (req): invalidArguments ->
 		return AgentSession.getSession sessionId
 
 HttpServer\post "/agent/vision/asset", (req): invalidArguments ->
-	switch req
-		when {body: {sessionId: sessionId, path: path}}
-			return (require "Agent.Tool.VisionAssets").getSessionVisionImageFromPath sessionId, path
-		when {body: {:sessionId, :assetId}}
-			return (require "Agent.Tool.VisionAssets").getSessionVisionImage sessionId, assetId
+	switch req when {body: {sessionId: sessionId, path: path}}
+		return (require "Agent.Tool.VisionAssets").getSessionVisionImageFromPath sessionId, path
 
 HttpServer\post "/agent/session/mode", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :workMode}}

@@ -92,7 +92,7 @@ local function itemsFor(detail, zh, actions) -- 37
 				____temp_15 = type(____opt_13 and ____opt_13.progress) == "number" -- 49
 			end -- 49
 			local progress = ____temp_15 and (" · " .. tostring(math.floor(s.result.progress * 100))) .. "%" or "" -- 49
-			local vision = s.tool == "preview_game" or s.tool == "analyze_image" -- 50
+			local vision = s.tool == "analyze_image" -- 50
 			local ____temp_18 = s.status == "RUNNING" or vision -- 51
 			if ____temp_18 then -- 51
 				local ____opt_16 = s.result -- 51

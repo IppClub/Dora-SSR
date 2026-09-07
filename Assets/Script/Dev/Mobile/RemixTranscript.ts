@@ -47,7 +47,7 @@ function itemsFor(detail: AgentSessionDetailResult, zh: boolean, actions: RemixT
 			: s.status === "STOPPED" ? (zh ? "已停止" : "Stopped")
 			: s.status === "PENDING" ? (zh ? "等待中" : "Pending") : (zh ? "进行中" : "Working");
 		const progress = s.status === "RUNNING" && typeof s.result?.progress === "number" ? ` · ${math.floor(s.result.progress * 100)}%` : "";
-		const vision = s.tool === "preview_game" || s.tool === "analyze_image";
+		const vision = s.tool === "analyze_image";
 		const message = (s.status === "RUNNING" || vision) && typeof s.result?.message === "string" ? s.result.message : "";
 		const report = vision && typeof s.result?.report === "string" ? s.result.report : "";
 		const model = vision && typeof s.result?.model === "string" ? s.result.model : "";
