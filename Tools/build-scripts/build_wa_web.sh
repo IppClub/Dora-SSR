@@ -29,7 +29,7 @@ mkdir -p "$GO_CACHE_DIR"
 	cd "$STAGE_DIR"
 	GOOS=js GOARCH=wasm CGO_ENABLED=0 \
 		GOCACHE="$GO_CACHE_DIR" GOFLAGS=-mod=mod \
-		go build -trimpath -ldflags="-s -w" -o "$OUTPUT_DIR/dora-wa.wasm" ./web
+		go build -buildvcs=false -trimpath -ldflags="-s -w" -o "$OUTPUT_DIR/dora-wa.wasm" ./web
 )
 
 GO_ROOT="$(go env GOROOT)"

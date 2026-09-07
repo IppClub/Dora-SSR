@@ -51,6 +51,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 namespace {
 
+std::atomic<std::uint64_t> DoraAudioTraceSequence = 1;
+
+bool shouldTraceDoraAudio(std::uint64_t sequence)
+{
+	return sequence <= 3 || (sequence % 1024) == 0;
+}
+
 uint16_t readLE16(const uint8_t* data) {
 	return static_cast<uint16_t>(static_cast<uint16_t>(data[0]) | (static_cast<uint16_t>(data[1]) << 8));
 }
@@ -249,6 +256,11 @@ extern "C" int32_t dora_audio_encode_wav_to_ogg(
 }
 
 void soloud_stop_voice(uint32_t handle) {
+	const auto trace = DoraAudioTraceSequence.fetch_add(1, std::memory_order_relaxed);
+	if (shouldTraceDoraAudio(trace))
+		std::fprintf(stderr,
+			"[DoraAudioTrace %llu] SoLoud voice ended: handle=%u posting logic cleanup\n",
+			static_cast<unsigned long long>(trace), handle);
 	SharedApplication.invokeInLogic([handle]() {
 		SharedAudio.removeRef(handle);
 	});
@@ -885,6 +897,8 @@ bool Audio::init() {
 		_soloud = nullptr;
 		return false;
 	}
+	Info("[DoraAudioTrace] SoLoud initialized: backend={} sampleRate={} backendName={}",
+		DORA_AUDIO_BACKEND, DORA_SAMPLERATE, _soloud->getBackendString());
 	// Love Source filters are hosted by per-Source SoLoud buses, and each
 	// LoveNode owns one parent bus. Keep 255 internal routing slots (the limit
 	// of SoLoud's 8-bit resampler-owner table), but keep only the 32 strongest
@@ -1078,16 +1092,26 @@ void Audio::getListenerVelocity(float& aVelocityX, float& aVelocityY, float& aVe
 }
 
 void Audio::addRef(uint32_t handle, AudioFile* audioFile, const std::function<void(uint32_t)>& callback) {
+	const auto trace = DoraAudioTraceSequence.fetch_add(1, std::memory_order_relaxed);
+	if (shouldTraceDoraAudio(trace))
+		Info("[DoraAudioTrace {}] addRef: handle={} file={} callback={}", trace, handle,
+			audioFile != nullptr, callback != nullptr);
 	_resources[handle] = New<AudioResource>(MakeRef(audioFile), callback);
 }
 
 void Audio::removeRef(uint32_t handle) {
+	const auto trace = DoraAudioTraceSequence.fetch_add(1, std::memory_order_relaxed);
 	auto it = _resources.find(handle);
 	if (it != _resources.end()) {
+		if (shouldTraceDoraAudio(trace))
+			Info("[DoraAudioTrace {}] removeRef: handle={} found=true callback={}", trace,
+				handle, it->second->callback != nullptr);
 		if (it->second->callback) {
 			it->second->callback(it->first);
 		}
 		_resources.erase(it);
+	} else {
+		Warn("[DoraAudioTrace {}] removeRef: handle={} found=false", trace, handle);
 	}
 }
 
