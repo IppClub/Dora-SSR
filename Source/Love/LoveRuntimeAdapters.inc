@@ -625,6 +625,11 @@ constexpr const char *RecordingDeviceRegistry = "Dora.Love.RecordingDevice.Regis
 constexpr const char *ThreadContextRegistry = "Dora.Love.Thread.Context";
 constexpr const char *LoveRuntimeRegistry = "Dora.Love.Runtime";
 
+bool isAudioHandleBoundary(std::size_t count)
+{
+	return count <= 8 || (count != 0 && (count & (count - 1)) == 0);
+}
+
 struct DataSpan
 {
 	const std::uint8_t *bytes = nullptr;
@@ -4969,7 +4974,12 @@ void LoveRuntime::forgetLoveShaderHandle(GraphicsBackend::ShaderHandle handle) n
 
 void LoveRuntime::retainLoveAudioSourceHandle(AudioBackend::SourceHandle handle) noexcept
 {
-	if (handle != 0) _audioHandles.insert(handle);
+	if (handle == 0) return;
+	const auto before = _audioHandles.size();
+	_audioHandles.insert(handle);
+	const auto after = _audioHandles.size();
+	if (after != before && isAudioHandleBoundary(after))
+		Info("[LoveAudioTrace] handles retain: handle={} count={}", handle, after);
 }
 
 void LoveRuntime::releaseLoveAudioSource(AudioBackend::SourceHandle handle) noexcept
@@ -4977,7 +4987,17 @@ void LoveRuntime::releaseLoveAudioSource(AudioBackend::SourceHandle handle) noex
 	if (handle == 0) return;
 	_audioSourceFilters.erase(handle);
 	_audioSourceEffects.erase(handle);
-	if (_audioHandles.erase(handle) != 0 && _audioBackend)
+	const auto erased = _audioHandles.erase(handle) != 0;
+	if (!erased)
+	{
+		Warn("[LoveAudioTrace] handles release missing: handle={} count={}",
+			handle, _audioHandles.size());
+		return;
+	}
+	if (isAudioHandleBoundary(_audioHandles.size()))
+		Info("[LoveAudioTrace] handles release: handle={} count={}",
+			handle, _audioHandles.size());
+	if (_audioBackend)
 		_audioBackend->releaseSource(handle);
 }
 
@@ -4985,7 +5005,10 @@ void LoveRuntime::forgetLoveAudioSourceHandle(AudioBackend::SourceHandle handle)
 {
 	_audioSourceFilters.erase(handle);
 	_audioSourceEffects.erase(handle);
-	_audioHandles.erase(handle);
+	const auto erased = _audioHandles.erase(handle) != 0;
+	if (erased && isAudioHandleBoundary(_audioHandles.size()))
+		Info("[LoveAudioTrace] handles forget: handle={} count={}",
+			handle, _audioHandles.size());
 }
 
 void LoveRuntime::copyAudioSourceSettings(AudioBackend::SourceHandle source,
@@ -5262,12 +5285,19 @@ function ipairs(value)
 	return compatibility_ipairs_next, value, 0
 end
 
--- LuaJIT's math.randomseed accepts any finite number, while Lua 5.5 requires
--- an exact integer. Existing Love games commonly seed it from getTime(), so
--- truncate fractional inputs just like LuaJIT-compatible numeric C APIs.
+-- LuaJIT accepts fractional numeric seeds used by older LÖVE games. Lua 5.5
+-- requires an exact integer, but simply truncating the value is not equivalent:
+-- Balatro's pseudoseed() deliberately returns a number in [0, 1), so truncating
+-- every seed would collapse the entire deterministic random stream to seed 0.
+-- Preserve the fractional information when converting that range to an integer.
 math.randomseed = function(seed, stream)
 	if compatibility_type(seed) == "number" and math.tointeger(seed) == nil then
-		seed = seed < 0 and math.ceil(seed) or math.floor(seed)
+		if seed > -1 and seed < 1 then
+			seed = math.floor(seed * 9007199254740991 + (seed >= 0 and 0.5 or -0.5))
+			if seed == 0 then seed = 1 end
+		else
+			seed = seed < 0 and math.ceil(seed) or math.floor(seed)
+		end
 	end
 	if compatibility_type(stream) == "number" and math.tointeger(stream) == nil then
 		stream = stream < 0 and math.ceil(stream) or math.floor(stream)
@@ -5509,6 +5539,35 @@ end
 	registerRecordingDeviceType();
 	registerThreadTypes();
 	registerLoveModule();
+	// Balatro (and some other LÖVE projects) use the Lua 5.2-compatible
+	// math.log10 helper. Dora's embedded math library does not expose it, so
+	// provide the small compatibility function before the game starts.
+	lua_getglobal(_state, "math");
+	if (lua_istable(_state, -1))
+	{
+		lua_getfield(_state, -1, "log10");
+		const bool hasLog10 = lua_isfunction(_state, -1);
+		lua_pop(_state, 1);
+		if (!hasLog10)
+		{
+			lua_pushcfunction(_state, [](lua_State *state) -> int {
+				const lua_Number value = luaL_checknumber(state, 1);
+				lua_pushnumber(state, static_cast<lua_Number>(std::log10(value)));
+				return 1;
+			});
+			lua_setfield(_state, -2, "log10");
+		}
+	}
+	lua_pop(_state, 1);
+	// registerLoveModule creates the final global `love` table, so install the
+	// startup yield hook after it has finished replacing that table.
+	lua_getglobal(_state, "love");
+	if (lua_istable(_state, -1))
+	{
+		lua_pushcfunction(_state, LoveRuntime::bootYield);
+		lua_setfield(_state, -2, "bootYield");
+	}
+	lua_pop(_state, 1);
 	_graphicsColor[0] = _graphicsColor[1] = _graphicsColor[2] = _graphicsColor[3] = 1.0f;
 	_graphicsBackgroundColor[0] = _graphicsBackgroundColor[1] = _graphicsBackgroundColor[2] = 0.0f;
 	_graphicsBackgroundColor[3] = 1.0f;
@@ -10561,6 +10620,12 @@ void DoraLoveGraphics::draw(lua_State *state, ::love::graphics::Drawable *drawab
 		+ current.c * local.elements[13] + current.tx;
 	const float ty = current.b * local.elements[12]
 		+ current.d * local.elements[13] + current.ty;
+	// Love transforms use logical drawable coordinates, while the backend
+	// source rectangle below is expressed in physical texels. Keep the latter
+	// for correct UVs, but compensate the geometry transform for image/canvas
+	// DPI scaling.
+	const float dpiScale = std::max(0.0001f, requestedTexture->getDPIScale());
+	const float geometryScale = 1.0f / dpiScale;
 	const float imageWidth = static_cast<float>(image
 		? _runtime->_graphicsBackend->getImageWidth(image->handle)
 		: _runtime->_graphicsBackend->getCanvasWidth(canvas->handle));
@@ -10593,7 +10658,9 @@ void DoraLoveGraphics::draw(lua_State *state, ::love::graphics::Drawable *drawab
 	{
 		std::string error;
 		if (!_runtime->_graphicsBackend->drawImageLayer(image->handle, imageLayer,
-			sourceX, sourceY, sourceWidth, sourceHeight, a, b, c, d, tx, ty, 0.0f, 0.0f,
+			sourceX, sourceY, sourceWidth, sourceHeight,
+			a * geometryScale, b * geometryScale, c * geometryScale, d * geometryScale,
+			tx, ty, 0.0f, 0.0f,
 			_runtime->_graphicsColor[0], _runtime->_graphicsColor[1],
 			_runtime->_graphicsColor[2], _runtime->_graphicsColor[3],
 			image->filter, image->wrapU, image->wrapV, error))
@@ -10601,13 +10668,17 @@ void DoraLoveGraphics::draw(lua_State *state, ::love::graphics::Drawable *drawab
 	}
 	else if (image)
 		_runtime->_graphicsBackend->drawImage(image->handle,
-			sourceX, sourceY, sourceWidth, sourceHeight, a, b, c, d, tx, ty, 0.0f, 0.0f,
+			sourceX, sourceY, sourceWidth, sourceHeight,
+			a * geometryScale, b * geometryScale, c * geometryScale, d * geometryScale,
+			tx, ty, 0.0f, 0.0f,
 			_runtime->_graphicsColor[0], _runtime->_graphicsColor[1],
 			_runtime->_graphicsColor[2], _runtime->_graphicsColor[3],
 			image->filter, image->wrapU, image->wrapV);
 	else
 		_runtime->_graphicsBackend->drawCanvas(canvas->handle,
-			sourceX, sourceY, sourceWidth, sourceHeight, a, b, c, d, tx, ty, 0.0f, 0.0f,
+			sourceX, sourceY, sourceWidth, sourceHeight,
+			a * geometryScale, b * geometryScale, c * geometryScale, d * geometryScale,
+			tx, ty, 0.0f, 0.0f,
 			_runtime->_graphicsColor[0], _runtime->_graphicsColor[1],
 			_runtime->_graphicsColor[2], _runtime->_graphicsColor[3],
 			canvas->filter, canvas->wrapU, canvas->wrapV);
@@ -12140,13 +12211,19 @@ int LoveRuntime::graphicsDrawCommand(lua_State *state,
 	float originX = 0.0f, originY = 0.0f;
 	const auto transform = readDrawTransform(state, startIndex, runtime->_graphicsTransform,
 		"Texture draw transform values must be finite", &originX, &originY);
+	const float dpiScale = std::max(0.0001f,
+		(image ? image->getDPIScale() : canvas->getDPIScale()));
+	const float geometryScale = 1.0f / dpiScale;
+	const float physicalOriginX = originX * dpiScale;
+	const float physicalOriginY = originY * dpiScale;
 	if (image && image->textureType == GraphicsBackend::TextureType::Array)
 	{
 		std::string error;
 		if (!runtime->_graphicsBackend->drawImageLayer(image->handle, imageLayer,
 			sourceX, sourceY, sourceWidth, sourceHeight,
-			transform.a, transform.b, transform.c, transform.d,
-			transform.tx, transform.ty, originX, originY,
+			transform.a * geometryScale, transform.b * geometryScale,
+			transform.c * geometryScale, transform.d * geometryScale,
+			transform.tx, transform.ty, physicalOriginX, physicalOriginY,
 			runtime->_graphicsColor[0], runtime->_graphicsColor[1],
 			runtime->_graphicsColor[2], runtime->_graphicsColor[3],
 			image->filter, image->wrapU, image->wrapV, error))
@@ -12155,16 +12232,18 @@ int LoveRuntime::graphicsDrawCommand(lua_State *state,
 	else if (image)
 		runtime->_graphicsBackend->drawImage(image->handle,
 			sourceX, sourceY, sourceWidth, sourceHeight,
-			transform.a, transform.b, transform.c, transform.d,
-			transform.tx, transform.ty, originX, originY,
+			transform.a * geometryScale, transform.b * geometryScale,
+			transform.c * geometryScale, transform.d * geometryScale,
+			transform.tx, transform.ty, physicalOriginX, physicalOriginY,
 			runtime->_graphicsColor[0], runtime->_graphicsColor[1],
 			runtime->_graphicsColor[2], runtime->_graphicsColor[3],
 			image->filter, image->wrapU, image->wrapV);
 	else
 		runtime->_graphicsBackend->drawCanvas(canvas->handle,
 			sourceX, sourceY, sourceWidth, sourceHeight,
-			transform.a, transform.b, transform.c, transform.d,
-			transform.tx, transform.ty, originX, originY,
+			transform.a * geometryScale, transform.b * geometryScale,
+			transform.c * geometryScale, transform.d * geometryScale,
+			transform.tx, transform.ty, physicalOriginX, physicalOriginY,
 			runtime->_graphicsColor[0], runtime->_graphicsColor[1],
 			runtime->_graphicsColor[2], runtime->_graphicsColor[3],
 			canvas->filter, canvas->wrapU, canvas->wrapV);

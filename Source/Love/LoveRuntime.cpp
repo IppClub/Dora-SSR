@@ -637,6 +637,96 @@ bool LoveRuntime::start(std::string &error)
 	return true;
 }
 
+int LoveRuntime::bootYield(lua_State *state)
+{
+	if (!lua_isyieldable(state))
+		return luaL_error(state, "love.bootYield() must be called from the Love startup coroutine");
+	return lua_yield(state, 0);
+}
+
+bool LoveRuntime::startAsync(std::string &error)
+{
+	if (_status != Status::Ready)
+	{
+		error = "LoveRuntime must be ready before async start";
+		return false;
+	}
+	lua_getglobal(_state, "love");
+	lua_getfield(_state, -1, "load");
+	lua_remove(_state, -2);
+	if (!lua_isfunction(_state, -1))
+	{
+		lua_pop(_state, 1);
+		_status = Status::Running;
+		error.clear();
+		return true;
+	}
+
+	_loadThread = lua_newthread(_state);
+	_loadThreadReference = luaL_ref(_state, LUA_REGISTRYINDEX);
+	lua_xmove(_state, _loadThread, 1);
+	lua_getglobal(_state, "arg");
+	lua_xmove(_state, _loadThread, 1);
+	_loadThreadStarted = false;
+	_status = Status::Loading;
+	return continueStart(error);
+}
+
+bool LoveRuntime::continueStart(std::string &error)
+{
+	if (_status != Status::Loading || _loadThread == nullptr)
+	{
+		error = _lastError.empty() ? "LoveRuntime is not loading" : _lastError;
+		return _status == Status::Running;
+	}
+
+	if (_graphicsBackend)
+		_graphicsBackend->beginFrame();
+	_graphicsFrameActive = true;
+	_graphicsLoadCallbackActive = true;
+	int resultCount = 0;
+	const int argumentCount = _loadThreadStarted ? 0 : 1;
+	_loadThreadStarted = true;
+	const int result = love::luax_resume(_loadThread, argumentCount, &resultCount);
+	_graphicsLoadCallbackActive = false;
+	_graphicsFrameActive = false;
+	if (_graphicsBackend)
+		_graphicsBackend->endFrame();
+
+	if (result == LUA_YIELD)
+	{
+		lua_settop(_loadThread, 0);
+		error.clear();
+		return true;
+	}
+
+	if (result != LUA_OK)
+	{
+		const char *message = lua_tostring(_loadThread, -1);
+		luaL_traceback(_state, _loadThread, message ? message : "Love startup failed", 1);
+		error = lua_tostring(_state, -1);
+		lua_pop(_state, 1);
+		_status = Status::Faulted;
+		_lastError = error;
+		if (_loadThreadReference != -2)
+			luaL_unref(_state, LUA_REGISTRYINDEX, _loadThreadReference);
+		_loadThreadReference = -2;
+		_loadThread = nullptr;
+		_loadThreadStarted = false;
+		return false;
+	}
+
+	lua_settop(_loadThread, 0);
+	if (_loadThreadReference != -2)
+		luaL_unref(_state, LUA_REGISTRYINDEX, _loadThreadReference);
+	_loadThreadReference = -2;
+	_loadThread = nullptr;
+	_loadThreadStarted = false;
+	_status = Status::Running;
+	error.clear();
+	return true;
+}
+
 bool LoveRuntime::update(double deltaTime, std::string &error)
 {
 	if (_status != Status::Running)
@@ -663,7 +753,14 @@ bool LoveRuntime::update(double deltaTime, std::string &error)
 		return true;
 	}
 	lua_pushnumber(_state, deltaTime);
-	return callLoveCallback("update", 1, 0, error);
+	const bool success = callLoveCallback("update", 1, 0, error);
+	// In a normal LÖVE loop the VM gets regular allocation/GC opportunities from
+	// the host loop. LoveNode drives callbacks directly, so keep the embedded VM
+	// from deferring unreachable ImageData/Text/UI userdata indefinitely while a
+	// game is loading the first round. This is an incremental step, not a full
+	// collection, and therefore does not introduce a frame-sized GC pause.
+	if (_state) lua_gc(_state, LUA_GCSTEP, 64);
+	return success;
 }
 
 bool LoveRuntime::dispatchQueuedEvents(std::string &error)
