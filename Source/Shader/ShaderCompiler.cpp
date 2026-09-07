@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Application.h"
 #include "Basic/Content.h"
 #include "Common/Async.h"
+#include "Common/Debug.h"
 
 #include "bgfx/dora/DoraShaderc.h"
 

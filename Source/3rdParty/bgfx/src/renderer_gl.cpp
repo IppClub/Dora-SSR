@@ -10,6 +10,7 @@
 #	include <bx/timer.h>
 #	include <bx/uint32_t.h>
 #	include "emscripten.h"
+#	include <string>
 
 namespace bgfx { namespace gl
 {
@@ -2270,6 +2271,8 @@ namespace bgfx { namespace gl
 			, m_clearQuadDepth(BGFX_INVALID_HANDLE)
 		{
 			bx::memSet(m_msaaBackBufferRbos, 0, sizeof(m_msaaBackBufferRbos) );
+			m_doraLoveTrace[0] = '\0';
+			m_doraLoveTraceDrawCount = 0;
 		}
 
 		~RendererContextGL()
@@ -3650,6 +3653,17 @@ namespace bgfx { namespace gl
 
 		void setMarker(const char* _marker, uint16_t _len) override
 		{
+			const bx::StringView marker(_marker, _len);
+			if (bx::hasPrefix(marker, bx::StringView("DORA_LOVE_TRACE")))
+			{
+				bx::strCopy(m_doraLoveTrace, BX_COUNTOF(m_doraLoveTrace), marker);
+				m_doraLoveTraceDrawCount = 0;
+				#if defined(__EMSCRIPTEN__)
+				emscripten_log(EM_LOG_CONSOLE, "[DoraLoveTrace] bgfx GL marker=%s", m_doraLoveTrace);
+				#else
+				BX_TRACE("[DoraLoveTrace] bgfx GL marker=%s", m_doraLoveTrace);
+				#endif
+			}
 			GL_CHECK(glInsertEventMarker(_len, _marker) );
 		}
 
@@ -4136,6 +4150,18 @@ namespace bgfx { namespace gl
 			if (m_backBufferFbo != m_msaaBackBufferFbo // iOS
 			&&  0 != m_msaaBackBufferFbo)
 			{
+				const bool trace = m_doraLoveTrace[0] != '\0';
+				if (trace)
+				{
+					#if defined(__EMSCRIPTEN__)
+					emscripten_log(EM_LOG_CONSOLE,
+						"[DoraLoveTrace] msaa blit begin srcFbo=%u dstFbo=%u size=%ux%u",
+						m_msaaBackBufferFbo, m_backBufferFbo, m_resolution.width, m_resolution.height);
+					#else
+					BX_TRACE("[DoraLoveTrace] msaa blit begin srcFbo=%u dstFbo=%u size=%ux%u",
+						m_msaaBackBufferFbo, m_backBufferFbo, m_resolution.width, m_resolution.height);
+					#endif
+				}
 				GL_CHECK(glDisable(GL_SCISSOR_TEST) );
 				GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, m_backBufferFbo) );
 				GL_CHECK(glBindFramebuffer(GL_READ_FRAMEBUFFER, m_msaaBackBufferFbo) );
@@ -4172,6 +4198,22 @@ namespace bgfx { namespace gl
 				}
 
 				GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, m_backBufferFbo) );
+				if (trace)
+				{
+					uint8_t pixel[4] = {0, 0, 0, 0};
+					GL_CHECK(glReadPixels(
+						GLint(m_resolution.width / 2), GLint(m_resolution.height / 2),
+						1, 1, m_readPixelsFmt, GL_UNSIGNED_BYTE, pixel));
+					#if defined(__EMSCRIPTEN__)
+					emscripten_log(EM_LOG_CONSOLE,
+						"[DoraLoveTrace] msaa blit end dstFbo=%u centerPixel=%u,%u,%u,%u",
+						m_backBufferFbo, pixel[0], pixel[1], pixel[2], pixel[3]);
+					#else
+					BX_TRACE("[DoraLoveTrace] msaa blit end dstFbo=%u centerPixel=%u,%u,%u,%u",
+						m_backBufferFbo, pixel[0], pixel[1], pixel[2], pixel[3]);
+					#endif
+					m_doraLoveTrace[0] = '\0';
+				}
 			}
 		}
 
@@ -4840,6 +4882,8 @@ namespace bgfx { namespace gl
 
 		UniformHandle m_clearQuadColor;
 		UniformHandle m_clearQuadDepth;
+		char m_doraLoveTrace[96];
+		uint32_t m_doraLoveTraceDrawCount;
 
 		const char* m_vendor;
 		const char* m_renderer;
@@ -5075,9 +5119,22 @@ namespace bgfx { namespace gl
 
 				if (0 == linked)
 				{
-					char log[1024];
+					char log[1024] = {};
 					GL_CHECK(glGetProgramInfoLog(m_id, sizeof(log), NULL, log) );
 					BX_TRACE("%d: %s", linked, log);
+#if BX_PLATFORM_EMSCRIPTEN
+					// Shader objects may compile successfully while the WebGL program
+					// link still fails (for example, mismatched varyings). Keep the
+					// actual linker diagnostic before deleting the invalid program;
+					// otherwise the draw path only sees glProgram=0.
+					emscripten_log(EM_LOG_ERROR,
+						"[DoraShaderGL] program link failed glProgram=%u vertexShader=%u fragmentShader=%u status=%d log=%s",
+						(unsigned)m_id,
+						(unsigned)_vsh.m_id,
+						(unsigned)_fsh.m_id,
+						(int)linked,
+						log[0] != '\0' ? log : "(empty linker log)");
+#endif
 				}
 			}
 
@@ -6484,9 +6541,16 @@ namespace bgfx { namespace gl
 						}
 					}
 
-					bx::write(&writer, &err, "precision %s float;\n"
-						, m_type == GL_FRAGMENT_SHADER ? "mediump" : "highp"
-						);
+					// ES links uniforms across stages by precision as well as by
+					// type.  The old vertex=highp / fragment=mediump split makes
+					// predefined uniforms such as u_viewRect non-linkable on WebGL.
+					// Use one precision for both stages; mediump is the fallback
+					// when GLES2/WebGL1 cannot expose highp in fragments.
+					const char* shaderPrecision =
+						s_extension[Extension::OES_fragment_precision_high].m_supported
+							? "highp"
+							: "mediump";
+					bx::write(&writer, &err, "precision %s float;\n", shaderPrecision);
 
 					bx::write(&writer, code, &err);
 					bx::write(&writer, '\0', &err);
@@ -6734,10 +6798,12 @@ namespace bgfx { namespace gl
 				{
 					if (s_renderGL->m_gles3)
 					{
+						// In GLSL ES 3/WebGL2 highp float is available in both
+						// stages.  Keep the default precision identical so shared
+						// predefined uniforms link successfully.
 						bx::write(&writer, &err
 							, "#version 300 es\n"
-							  "precision %s float;\n"
-							, m_type == GL_FRAGMENT_SHADER ? "mediump" : "highp"
+							  "precision highp float;\n"
 							);
 					}
 					else
@@ -6864,9 +6930,44 @@ namespace bgfx { namespace gl
 					bx::write(&writer, '\0', &err);
 				}
 
-				code.set(temp);
+			code.set(temp);
+		}
+
+		{
+			// A Love effect can arrive here with its Image parameter already
+			// expanded to `sampler2D texture`. Rename it at the last possible
+			// point so it cannot shadow GLSL's texture() builtin.
+			std::string patched(code.getPtr(), static_cast<std::size_t>(code.getLength()));
+			bool changed = false;
+			auto replaceAll = [&patched, &changed](const char* from, const char* to) {
+				const std::string source(from);
+				const std::string replacement(to);
+				std::size_t offset = 0;
+				while ((offset = patched.find(source, offset)) != std::string::npos)
+				{
+					patched.replace(offset, source.size(), replacement);
+					offset += replacement.size();
+					changed = true;
+				}
+			};
+			replaceAll("sampler2D texture", "sampler2D loveTexture");
+			replaceAll("sampler2DArray texture", "sampler2DArray loveTexture");
+			replaceAll("samplerCube texture", "samplerCube loveTexture");
+			replaceAll("sampler3D texture", "sampler3D loveTexture");
+			replaceAll("texture(texture", "texture(loveTexture");
+			replaceAll("texture2D(texture", "texture2D(loveTexture");
+			replaceAll("texture2DArray(texture", "texture2DArray(loveTexture");
+			replaceAll("textureCube(texture", "textureCube(loveTexture");
+			replaceAll("texture3D(texture", "texture3D(loveTexture");
+			if (changed)
+			{
+				const int32_t patchedLen = static_cast<int32_t>(patched.size());
+				char* patchedCode = (char*)BX_STACK_ALLOC(patchedLen + 1);
+				bx::memCopy(patchedCode, patched.c_str(), patchedLen + 1);
+				code.set(patchedCode, patchedLen);
 			}
-			else if (GL_COMPUTE_SHADER == m_type)
+		}
+		if (GL_COMPUTE_SHADER == m_type)
 			{
 				int32_t codeLen = (int32_t)bx::strLen(code);
 				int32_t tempLen = codeLen + (4<<10);
@@ -6919,21 +7020,21 @@ namespace bgfx { namespace gl
 
 			if (0 == compiled)
 			{
-				bx::LineReader lineReader(code);
-				for (int32_t line = 1; !lineReader.isDone(); ++line)
-				{
-					bx::StringView str = lineReader.next();
-					BX_TRACE("%3d %.*s", line, str.getLength(), str.getPtr() );
-					BX_UNUSED(str, line);
-				}
-
 				GLsizei len;
 				char log[1024];
 				GL_CHECK(glGetShaderInfoLog(m_id, sizeof(log), &len, log) );
 
 				GL_CHECK(glDeleteShader(m_id) );
 				m_id = 0;
-				BGFX_FATAL(false, bgfx::Fatal::InvalidShader, "Failed to compile shader. %d: %s", compiled, log);
+#if BX_PLATFORM_EMSCRIPTEN
+				// A Love shader is user-provided input. WebGL compilation failures
+				// must stay recoverable instead of aborting the WASM runtime.
+				emscripten_log(EM_LOG_ERROR,
+					"DoraWebGL shader compile failed: %s", log);
+#else
+				BGFX_FATAL(false, bgfx::Fatal::InvalidShader,
+					"Failed to compile shader. %d: %s", compiled, log);
+#endif
 			}
 			else if (BX_ENABLED(BGFX_CONFIG_DEBUG)
 				 &&  s_extension[Extension::ANGLE_translated_shader_source].m_supported
@@ -8220,6 +8321,19 @@ namespace bgfx { namespace gl
 				bool constantsChanged = draw.m_uniformBegin < draw.m_uniformEnd;
 				bool bindAttribs = false;
 				rendererUpdateUniforms(this, _render->m_uniformBuffer[draw.m_uniformIdx], draw.m_uniformBegin, draw.m_uniformEnd);
+				if (m_doraLoveTrace[0] != '\0'
+				&& bx::hasPrefix(bx::StringView(m_doraLoveTrace), bx::StringView("DORA_LOVE_TRACE direct-bgfx bgfx-shader-probe")))
+				{
+					const GLuint directGlProgram = m_program[key.m_program.idx].m_id;
+					#if defined(__EMSCRIPTEN__)
+					emscripten_log(EM_LOG_CONSOLE,
+						"[DoraLoveTrace] probe item decoded view=%u keyProgram=%u glProgram=%u indices=%u vertices=%u fbo=%u",
+						view, key.m_program.idx, directGlProgram, draw.m_numIndices, draw.m_numVertices, m_currentFbo);
+					#else
+					BX_TRACE("[DoraLoveTrace] probe item decoded view=%u keyProgram=%u glProgram=%u indices=%u vertices=%u fbo=%u",
+						view, key.m_program.idx, directGlProgram, draw.m_numIndices, draw.m_numVertices, m_currentFbo);
+					#endif
+				}
 
 				if (key.m_program.idx != currentProgram.idx)
 				{
@@ -8233,6 +8347,19 @@ namespace bgfx { namespace gl
 					programChanged =
 						constantsChanged =
 						bindAttribs = true;
+					if (m_doraLoveTrace[0] != '\0'
+					&& bx::hasPrefix(bx::StringView(m_doraLoveTrace), bx::StringView("DORA_LOVE_TRACE direct-bgfx bgfx-shader-probe"))
+					&& 0 == id)
+					{
+						#if defined(__EMSCRIPTEN__)
+						emscripten_log(EM_LOG_CONSOLE,
+							"[DoraLoveTrace] probe draw skipped: invalid GL program view=%u keyProgram=%u",
+							view, key.m_program.idx);
+						#else
+						BX_TRACE("[DoraLoveTrace] probe draw skipped: invalid GL program view=%u keyProgram=%u",
+							view, key.m_program.idx);
+						#endif
+					}
 				}
 
 				if (isValid(currentProgram) )
@@ -8408,6 +8535,43 @@ namespace bgfx { namespace gl
 								}
 
 								program.bindAttributesEnd();
+
+								// The LoveNode probe has already reached the GL draw call, so keep
+								// the next diagnostic at the rasterization boundary.  This is
+								// intentionally limited to the first traced draw: it tells us
+								// whether the shader sees the vertex streams and transform without
+								// flooding the browser console.
+								if (m_doraLoveTrace[0] != '\0' && m_doraLoveTraceDrawCount == 0)
+								{
+									const GLint positionLoc = glGetAttribLocation(program.m_id, "a_position");
+									const GLint texcoordLoc = glGetAttribLocation(program.m_id, "a_texcoord0");
+									const GLint colorLoc = glGetAttribLocation(program.m_id, "a_color0");
+									const GLint transformLoc = glGetUniformLocation(program.m_id, "u_loveTransform");
+									const GLint samplerLoc = glGetUniformLocation(program.m_id, "s_texColor");
+									GLint samplerUnit = -1;
+									GLfloat transform[16] = {};
+									if (transformLoc >= 0) glGetUniformfv(program.m_id, transformLoc, transform);
+									if (samplerLoc >= 0) glGetUniformiv(program.m_id, samplerLoc, &samplerUnit);
+									const GLint cull = glIsEnabled(GL_CULL_FACE) ? 1 : 0;
+									const GLint depth = glIsEnabled(GL_DEPTH_TEST) ? 1 : 0;
+									const GLint scissor = glIsEnabled(GL_SCISSOR_TEST) ? 1 : 0;
+									#if defined(__EMSCRIPTEN__)
+									emscripten_log(EM_LOG_CONSOLE,
+										"[DoraLoveTrace] GL pipeline program=%u attrs=pos:%d/%d tex:%d/%d color:%d/%d transformLoc=%d diag=%g,%g,%g,%g samplerLoc=%d unit=%d cull=%d depth=%d scissor=%d",
+										(unsigned)program.m_id,
+										positionLoc, positionLoc >= 0 ? 1 : 0, texcoordLoc, texcoordLoc >= 0 ? 1 : 0,
+										colorLoc, colorLoc >= 0 ? 1 : 0,
+										transformLoc, transform[0], transform[5], transform[10], transform[15],
+										samplerLoc, samplerUnit, cull, depth, scissor);
+								#else
+									BX_TRACE("[DoraLoveTrace] GL pipeline program=%u attrs=pos:%d/%d tex:%d/%d color:%d/%d transformLoc=%d diag=%g,%g,%g,%g samplerLoc=%d unit=%d cull=%d depth=%d scissor=%d",
+										(unsigned)program.m_id,
+										positionLoc, positionLoc >= 0 ? 1 : 0, texcoordLoc, texcoordLoc >= 0 ? 1 : 0,
+										colorLoc, colorLoc >= 0 ? 1 : 0,
+										transformLoc, transform[0], transform[5], transform[10], transform[15],
+										samplerLoc, samplerUnit, cull, depth, scissor);
+								#endif
+								}
 							}
 						}
 					}
@@ -8439,6 +8603,91 @@ namespace bgfx { namespace gl
 						uint32_t numInstances      = 0;
 						uint32_t numPrimsRendered  = 0;
 						uint32_t numDrawIndirect   = 0;
+
+						const uint32_t traceDrawNumber = m_doraLoveTraceDrawCount + 1;
+		if (m_doraLoveTrace[0] != '\0' && traceDrawNumber <= 16)
+						{
+							GLint viewport[4] = {0, 0, 0, 0};
+							GLint drawFbo = 0;
+							GLint drawBuffer = 0;
+							GLint currentGlProgram = 0;
+							GLint fboStatus = 0;
+							GLint attachmentType = 0;
+							GLint attachmentName = 0;
+							GLint blendSrcRgb = 0;
+							GLint blendDstRgb = 0;
+							GLint blendSrcAlpha = 0;
+							GLint blendDstAlpha = 0;
+							GLboolean colorMask[4] = {GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE};
+							const bool blend = GL_TRUE == glIsEnabled(GL_BLEND);
+							GL_CHECK(glGetIntegerv(GL_VIEWPORT, viewport));
+							GL_CHECK(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFbo));
+							GL_CHECK(glGetIntegerv(GL_DRAW_BUFFER0, &drawBuffer));
+							GL_CHECK(glGetIntegerv(GL_CURRENT_PROGRAM, &currentGlProgram));
+							GL_CHECK(glGetBooleanv(GL_COLOR_WRITEMASK, colorMask));
+							if (drawFbo != 0)
+							{
+								fboStatus = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
+								GL_CHECK(glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
+									GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &attachmentType));
+								GL_CHECK(glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER,
+									GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, &attachmentName));
+							}
+							if (blend)
+							{
+								GL_CHECK(glGetIntegerv(GL_BLEND_SRC_RGB, &blendSrcRgb));
+								GL_CHECK(glGetIntegerv(GL_BLEND_DST_RGB, &blendDstRgb));
+								GL_CHECK(glGetIntegerv(GL_BLEND_SRC_ALPHA, &blendSrcAlpha));
+								GL_CHECK(glGetIntegerv(GL_BLEND_DST_ALPHA, &blendDstAlpha));
+							}
+							GLuint textureId = 0;
+							uint16_t textureHandle = UINT16_MAX;
+							if (isValid(m_fbh) && drawFbo != 0)
+							{
+								const FrameBufferGL& frameBuffer = m_frameBuffers[m_fbh.idx];
+								textureHandle = frameBuffer.m_attachment[0].handle.idx;
+								if (isValid(frameBuffer.m_attachment[0].handle))
+								{
+									textureId = m_textures[frameBuffer.m_attachment[0].handle.idx].m_id;
+								}
+							}
+							const char* readFormat = GL_BGRA == m_readPixelsFmt ? "BGRA" : "RGBA";
+							#if defined(__EMSCRIPTEN__)
+							emscripten_log(EM_LOG_CONSOLE,
+								"[DoraLoveTrace] draw state #%u view=%u bgfxProgram=%u glProgram=%u glFbo=%d drawBuffer=0x%x fboStatus=0x%x attachmentType=0x%x attachmentName=%d textureHandle=%u textureId=%u viewport=%d,%d %dx%d blend=%d blendFunc=%d,%d,%d,%d colorMask=%d,%d,%d,%d readFormat=%s",
+								traceDrawNumber, view, currentProgram.idx, program.m_id, drawFbo, drawBuffer, fboStatus,
+								attachmentType, attachmentName, textureHandle, textureId,
+								viewport[0], viewport[1], viewport[2], viewport[3], blend ? 1 : 0,
+								blendSrcRgb, blendDstRgb, blendSrcAlpha, blendDstAlpha,
+								colorMask[0], colorMask[1], colorMask[2], colorMask[3], readFormat);
+							#else
+							BX_TRACE("[DoraLoveTrace] draw state #%u view=%u bgfxProgram=%u glProgram=%u glFbo=%d drawBuffer=0x%x fboStatus=0x%x attachmentType=0x%x attachmentName=%d textureHandle=%u textureId=%u viewport=%d,%d %dx%d blend=%d blendFunc=%d,%d,%d,%d colorMask=%d,%d,%d,%d readFormat=%s",
+								traceDrawNumber, view, currentProgram.idx, program.m_id, drawFbo, drawBuffer, fboStatus,
+								attachmentType, attachmentName, textureHandle, textureId,
+								viewport[0], viewport[1], viewport[2], viewport[3], blend ? 1 : 0,
+								blendSrcRgb, blendDstRgb, blendSrcAlpha, blendDstAlpha,
+								colorMask[0], colorMask[1], colorMask[2], colorMask[3], readFormat);
+							#endif
+						}
+
+		if (m_doraLoveTrace[0] != '\0' && m_doraLoveTraceDrawCount < 16)
+						{
+							GLint viewport[4] = {0, 0, 0, 0};
+							GL_CHECK(glGetIntegerv(GL_VIEWPORT, viewport));
+							#if defined(__EMSCRIPTEN__)
+							emscripten_log(EM_LOG_CONSOLE,
+								"[DoraLoveTrace] bgfx GL draw #%u trace=%s view=%u program=%u vertices=%u indices=%u instances=%u streamMask=%u instanceBuffer=%d fbo=%u viewport=%d,%d %dx%d",
+								m_doraLoveTraceDrawCount + 1, m_doraLoveTrace, view, currentProgram.idx, numVertices, draw.m_numIndices,
+								draw.m_numInstances, draw.m_streamMask, isValid(draw.m_instanceDataBuffer),
+								m_currentFbo, viewport[0], viewport[1], viewport[2], viewport[3]);
+							#else
+							BX_TRACE("[DoraLoveTrace] bgfx GL draw #%u trace=%s view=%u program=%u vertices=%u indices=%u instances=%u streamMask=%u instanceBuffer=%d fbo=%u viewport=%d,%d %dx%d",
+								m_doraLoveTraceDrawCount + 1, m_doraLoveTrace, view, currentProgram.idx, numVertices, draw.m_numIndices,
+								draw.m_numInstances, draw.m_streamMask, isValid(draw.m_instanceDataBuffer),
+								m_currentFbo, viewport[0], viewport[1], viewport[2], viewport[3]);
+							#endif
+							++m_doraLoveTraceDrawCount;
+						}
 
 						if (hasOcclusionQuery)
 						{
@@ -8596,6 +8845,49 @@ namespace bgfx { namespace gl
 							}
 						}
 
+		if (m_doraLoveTrace[0] != '\0' && m_doraLoveTraceDrawCount <= 16)
+						{
+							GLint viewport[4] = {0, 0, 0, 0};
+							GLint drawFbo = 0;
+							GLint readFbo = 0;
+							GLint previousReadBuffer = GL_NONE;
+							GL_CHECK(glGetIntegerv(GL_VIEWPORT, viewport));
+							GL_CHECK(glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFbo));
+							GL_CHECK(glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFbo));
+							GL_CHECK(glGetIntegerv(GL_READ_BUFFER, &previousReadBuffer));
+							if (drawFbo != 0)
+							{
+								GL_CHECK(glReadBuffer(GL_COLOR_ATTACHMENT0));
+							}
+							uint8_t pixel[4] = {0, 0, 0, 0};
+							GL_CHECK(glReadPixels(
+								viewport[0] + viewport[2] / 2,
+								viewport[1] + viewport[3] / 2,
+								1, 1, m_readPixelsFmt, GL_UNSIGNED_BYTE, pixel));
+							if (drawFbo != 0)
+							{
+								GL_CHECK(glReadBuffer(static_cast<GLenum>(previousReadBuffer)));
+							}
+							const uint8_t rawR = pixel[0];
+							const uint8_t rawG = pixel[1];
+							const uint8_t rawB = pixel[2];
+							const uint8_t rawA = pixel[3];
+							if (GL_BGRA == m_readPixelsFmt)
+							{
+								std::swap(pixel[0], pixel[2]);
+							}
+							#if defined(__EMSCRIPTEN__)
+							emscripten_log(EM_LOG_CONSOLE,
+								"[DoraLoveTrace] draw result #%u reportedFbo=%u drawFbo=%d readFbo=%d raw=%u,%u,%u,%u rgba=%u,%u,%u,%u",
+								m_doraLoveTraceDrawCount, m_currentFbo, drawFbo, readFbo,
+								rawR, rawG, rawB, rawA, pixel[0], pixel[1], pixel[2], pixel[3]);
+							#else
+							BX_TRACE("[DoraLoveTrace] draw result #%u reportedFbo=%u drawFbo=%d readFbo=%d raw=%u,%u,%u,%u rgba=%u,%u,%u,%u",
+								m_doraLoveTraceDrawCount, m_currentFbo, drawFbo, readFbo,
+								rawR, rawG, rawB, rawA, pixel[0], pixel[1], pixel[2], pixel[3]);
+							#endif
+						}
+
 						if (hasOcclusionQuery)
 						{
 							m_occlusionQuery.end();
@@ -8625,6 +8917,27 @@ namespace bgfx { namespace gl
 			submitBlit(bs, BGFX_CONFIG_MAX_VIEWS);
 
 			blitMsaaFbo();
+			if (m_doraLoveTrace[0] != '\0')
+			{
+				GLint viewport[4] = {0, 0, 0, 0};
+				GL_CHECK(glGetIntegerv(GL_VIEWPORT, viewport));
+				uint8_t pixel[4] = {0, 0, 0, 0};
+				GL_CHECK(glReadPixels(
+					viewport[0] + viewport[2] / 2,
+					viewport[1] + viewport[3] / 2,
+					1, 1, m_readPixelsFmt, GL_UNSIGNED_BYTE, pixel));
+				#if defined(__EMSCRIPTEN__)
+				emscripten_log(EM_LOG_CONSOLE,
+					"[DoraLoveTrace] frame end no-msaa currentFbo=%u viewport=%d,%d %dx%d draws=%u centerPixel=%u,%u,%u,%u",
+					m_currentFbo, viewport[0], viewport[1], viewport[2], viewport[3],
+					m_doraLoveTraceDrawCount, pixel[0], pixel[1], pixel[2], pixel[3]);
+				#else
+				BX_TRACE("[DoraLoveTrace] frame end no-msaa currentFbo=%u viewport=%d,%d %dx%d draws=%u centerPixel=%u,%u,%u,%u",
+					m_currentFbo, viewport[0], viewport[1], viewport[2], viewport[3],
+					m_doraLoveTraceDrawCount, pixel[0], pixel[1], pixel[2], pixel[3]);
+				#endif
+				m_doraLoveTrace[0] = '\0';
+			}
 
 			if (0 < _render->m_numRenderItems)
 			{

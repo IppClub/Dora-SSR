@@ -12,6 +12,10 @@
 
 #include "topology.h"
 
+#if defined(__EMSCRIPTEN__)
+#	include "emscripten.h"
+#endif
+
 #if BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_VISIONOS
 #	include <objc/message.h>
 #elif BX_PLATFORM_WINDOWS
@@ -28,6 +32,11 @@ BX_ERROR_RESULT(BGFX_ERROR_IDENTIFIER_VALIDATION,   BX_MAKEFOURCC('b', 'g', 0, 3
 namespace bgfx
 {
 #define BGFX_API_THREAD_MAGIC UINT32_C(0x78666762)
+
+namespace
+{
+char DoraLoveTrace[96] = {};
+}
 
 #if BGFX_CONFIG_MULTITHREADED
 
@@ -1244,6 +1253,17 @@ namespace bgfx
 
 		if (m_discard)
 		{
+			if (DoraLoveTrace[0] != '\0')
+			{
+				#if defined(__EMSCRIPTEN__)
+				emscripten_log(EM_LOG_CONSOLE,
+					"[DoraLoveTrace] encoder item dropped reason=discard view=%u program=%u",
+					_id, _program.idx);
+				#else
+				BX_TRACE("[DoraLoveTrace] encoder item dropped reason=discard view=%u program=%u",
+					_id, _program.idx);
+				#endif
+			}
 			discard(_flags);
 			return;
 		}
@@ -1251,6 +1271,17 @@ namespace bgfx
 		if (0 == m_draw.m_numVertices
 		&&  0 == m_draw.m_numIndices)
 		{
+			if (DoraLoveTrace[0] != '\0')
+			{
+				#if defined(__EMSCRIPTEN__)
+				emscripten_log(EM_LOG_CONSOLE,
+					"[DoraLoveTrace] encoder item dropped reason=no-geometry view=%u program=%u vertices=%u indices=%u",
+					_id, _program.idx, m_draw.m_numVertices, m_draw.m_numIndices);
+				#else
+				BX_TRACE("[DoraLoveTrace] encoder item dropped reason=no-geometry view=%u program=%u vertices=%u indices=%u",
+					_id, _program.idx, m_draw.m_numVertices, m_draw.m_numIndices);
+				#endif
+			}
 			discard(_flags);
 			++m_numDropped;
 			return;
@@ -1259,6 +1290,17 @@ namespace bgfx
 		const uint32_t renderItemIdx = bx::atomicFetchAndAddsat<uint32_t>(&m_frame->m_numRenderItems, 1, BGFX_CONFIG_MAX_DRAW_CALLS);
 		if (BGFX_CONFIG_MAX_DRAW_CALLS <= renderItemIdx)
 		{
+			if (DoraLoveTrace[0] != '\0')
+			{
+				#if defined(__EMSCRIPTEN__)
+				emscripten_log(EM_LOG_CONSOLE,
+					"[DoraLoveTrace] encoder item dropped reason=capacity view=%u program=%u",
+					_id, _program.idx);
+				#else
+				BX_TRACE("[DoraLoveTrace] encoder item dropped reason=capacity view=%u program=%u",
+					_id, _program.idx);
+				#endif
+			}
 			discard(_flags);
 			++m_numDropped;
 			return;
@@ -1315,6 +1357,7 @@ namespace bgfx
 			m_draw.m_numVertices = m_numVertices[0];
 		}
 
+
 		if (isValid(_occlusionQuery) )
 		{
 			m_draw.m_stateFlags |= BGFX_STATE_INTERNAL_OCCLUSION_QUERY;
@@ -1323,6 +1366,19 @@ namespace bgfx
 
 		m_frame->m_renderItem[renderItemIdx].draw = m_draw;
 		m_frame->m_renderItemBind[renderItemIdx]  = m_bind;
+		if (DoraLoveTrace[0] != '\0')
+		{
+			#if defined(__EMSCRIPTEN__)
+			emscripten_log(EM_LOG_CONSOLE,
+				"[DoraLoveTrace] encoder item stored item=%u view=%u program=%u vertices=%u indices=%u streamMask=%u state=%llu",
+				renderItemIdx, _id, _program.idx, m_draw.m_numVertices, m_draw.m_numIndices,
+				m_draw.m_streamMask, static_cast<unsigned long long>(m_draw.m_stateFlags));
+			#else
+			BX_TRACE("[DoraLoveTrace] encoder item stored item=%u view=%u program=%u vertices=%u indices=%u streamMask=%u state=%llu",
+				renderItemIdx, _id, _program.idx, m_draw.m_numVertices, m_draw.m_numIndices,
+				m_draw.m_streamMask, static_cast<unsigned long long>(m_draw.m_stateFlags));
+			#endif
+		}
 
 		m_draw.clear(_flags);
 		m_bind.clear(_flags);
@@ -3671,6 +3727,11 @@ namespace bgfx
 
 	void Encoder::setMarker(const char* _name, int32_t _len)
 	{
+		const bx::StringView marker(_name, _len);
+		if (bx::hasPrefix(marker, bx::StringView("DORA_LOVE_TRACE")))
+		{
+			bx::strCopy(DoraLoveTrace, BX_COUNTOF(DoraLoveTrace), marker);
+		}
 		BGFX_ENCODER(setMarker(bx::StringView(_name, _len) ) );
 	}
 
@@ -3897,7 +3958,22 @@ namespace bgfx
 			);
 		BGFX_CHECK_HANDLE_INVALID_OK("submit", s_ctx->m_programHandle, _program);
 		BGFX_CHECK_HANDLE_INVALID_OK("submit", s_ctx->m_occlusionQueryHandle, _occlusionQuery);
+		if (DoraLoveTrace[0] != '\0')
+		{
+			#if defined(__EMSCRIPTEN__)
+			emscripten_log(EM_LOG_CONSOLE,
+				"[DoraLoveTrace] bgfx encoder submit trace=%s result=api-submit view=%u program=%u valid=%d depth=%u flags=%u",
+				DoraLoveTrace, _id, _program.idx, isValid(_program), _depth, _flags);
+			#else
+			BX_TRACE("[DoraLoveTrace] bgfx encoder submit trace=%s result=api-submit view=%u program=%u valid=%d depth=%u flags=%u",
+				DoraLoveTrace, _id, _program.idx, isValid(_program), _depth, _flags);
+			#endif
+		}
 		BGFX_ENCODER(submit(_id, _program, _occlusionQuery, _depth, _flags) );
+		if (DoraLoveTrace[0] != '\0')
+		{
+			DoraLoveTrace[0] = '\0';
+		}
 	}
 
 	void Encoder::submit(ViewId _id, ProgramHandle _program, IndirectBufferHandle _indirectHandle, uint32_t _start, uint32_t _num, uint32_t _depth, uint8_t _flags)

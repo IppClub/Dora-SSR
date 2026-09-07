@@ -20,6 +20,8 @@
 #include <bx/file.h>
 #include <bx/allocator.h>
 
+#include "Common/Debug.h"
+
 namespace bgfx {
 bool compileShader(const char* _varying, const char* _comment, char* _shader, uint32_t _shaderLen, const Options& _options, bx::WriterI* _shaderWriter, bx::WriterI* _messageWriter);
 }
@@ -114,7 +116,12 @@ static const char* getShaderProfile(
 ) {
     switch (renderer) {
         case DoraShadercRenderer_OpenGL:
-            return "430";
+            // Keep desktop OpenGL shader output compatible with the legacy
+            // contexts supported by bgfx. The GL backend can promote this
+            // profile when a shader actually requires newer features, while
+            // emitting GLSL 4.30 unconditionally makes `texture()` invalid
+            // on GLSL 1.20 drivers.
+            return "120";
         case DoraShadercRenderer_OpenGLES:
             return stage == DoraShadercStage_Compute ? "310_es" : "300_es";
         case DoraShadercRenderer_Metal:
@@ -357,13 +364,13 @@ static DoraShadercResult compileSourceInternal(
 
     std::vector<char> varyingStorage;
     const char* varying = nullptr;
-    if (bgfxOpts.shaderType != 'c') {
-        std::string varyingPath = options->varyingDefPath ? options->varyingDefPath : "";
+	if (bgfxOpts.shaderType != 'c') {
+		std::string varyingPath = options->varyingDefPath ? options->varyingDefPath : "";
         if (varyingPath.empty()) {
             varyingPath = getDefaultVaryingDefPath(sourcePath);
         }
-        if (!varyingPath.empty()) {
-            int varyingSize = 0;
+		if (!varyingPath.empty()) {
+			int varyingSize = 0;
             std::vector<char> varyingData;
             if (readFile(varyingPath.c_str(), varyingData, &varyingSize, options->fileOps) && !varyingData.empty()) {
                 const int bomSize = getUtf8BomSize(varyingData.data(), varyingSize);
@@ -371,9 +378,9 @@ static DoraShadercResult compileSourceInternal(
                 varyingStorage.assign(varyingData.data() + bomSize, varyingData.data() + bomSize + varyingSize);
                 varyingStorage.push_back('\0');
                 varying = varyingStorage.data();
-                bgfxOpts.dependencies.push_back(varyingPath);
-            }
-        }
+				bgfxOpts.dependencies.push_back(varyingPath);
+			}
+		}
     }
 
     const int bomSize = getUtf8BomSize(source, sourceSize);
@@ -388,16 +395,15 @@ static DoraShadercResult compileSourceInternal(
     StringWriter messageWriter;
     const char* comment = "// compiled by DoraShaderc\n\n";
 
-    const bool success = bgfx::compileShader(
-        varying,
+	const bool success = bgfx::compileShader(
+		varying,
         comment,
         shaderBuffer,
         (uint32_t)mutableSourceSize,
         bgfxOpts,
-        &bytecodeWriter,
-        &messageWriter);
-
-    result.success = success ? 1 : 0;
+		&bytecodeWriter,
+		&messageWriter);
+	result.success = success ? 1 : 0;
     if (success) {
         result.bytecodeSize = (int)bytecodeWriter.getSize();
         result.bytecode = bytecodeWriter.release();
@@ -449,6 +455,8 @@ DoraShadercPlatform DoraShadercGetDefaultPlatform(void) {
     return DoraShadercPlatform_iOS;
 #elif BX_PLATFORM_ANDROID
     return DoraShadercPlatform_Android;
+#elif BX_PLATFORM_EMSCRIPTEN
+    return DoraShadercPlatform_Web;
 #elif BX_PLATFORM_LINUX
     return DoraShadercPlatform_Linux;
 #else
