@@ -109,7 +109,7 @@ Use Dora runtime modules, not browser packages:
 - Do not use bare `null` in runtime code. Use `undefined`/omitted fields for absent Lua values.
 - In `edit_file` content, indent with ordinary space characters. Never emit the two literal characters `\\t` at the beginning of a source line; they are not indentation and will make TypeScript parsing fail.
 - Dora factory namespaces are values, not annotation types. Annotate instances with `Vec2.Type`, `Color.Type`, `Label.Type`, `DrawNode.Type`, and the corresponding `X.Type`; do not use bare `X` or `ReturnType<typeof X>`.
-- The Dora TypeScript-to-Lua subset does not support `Math.hypot`, `Math.random`, or `Math.imul`. Use `Math.sqrt(x*x + y*y)`, inject randomness, and use ordinary bounded arithmetic.
+- The Dora TypeScript-to-Lua subset does not support `Math.hypot` or `Math.imul`. Use `Math.sqrt(x*x + y*y)` and ordinary bounded arithmetic.
 - Lua arrays cannot represent `undefined`/`null` elements. Do not build arrays from optional factory results such as `Label(...)`; narrow each optional result before inserting it, or handle the labels individually.
 
 ## Coordinate System
