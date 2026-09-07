@@ -13,7 +13,16 @@ export type ExecuteCommandProgress = {
 	gitKind?: string;
 };
 
-export type ExecuteCommandResult = {
+export type ExecuteCommandVisionFields = {
+	/** Capture attempts reserved by previewGame in this command. */
+	visionCapture?: {batchCount: number; frameCount: number};
+	/** Persisted task usage plus the current command's reserved captures. */
+	visionBudget?: Record<string, unknown>;
+	/** The most recent previewGame result, including validation failures that did not reserve capture budget. */
+	previewGame?: {success: boolean; message?: string; files?: string[]; frameCount?: number};
+};
+
+export type ExecuteCommandResult = ({
 	success: true;
 	mode: ExecuteCommandMode;
 	output: string;
@@ -27,4 +36,4 @@ export type ExecuteCommandResult = {
 	phase?: "compile" | "execute" | "timeout" | "validate";
 	interrupted?: boolean;
 	cleanupError?: string;
-};
+}) & ExecuteCommandVisionFields;

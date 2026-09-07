@@ -1,0 +1,22 @@
+{
+  "success": true,
+  "checks": [
+    {"name":"compression_keeps_paired_history","success":true},
+    {"name":"compression_keeps_vision_purpose","success":true},
+    {"name":"compression_drops_image_paths","success":true},
+    {"name":"compression_keeps_visual_conclusion","success":true},
+    {"name":"compression_drops_visual_metadata","success":true},
+    {"name":"compression_keeps_vision_only_pair","success":true},
+    {"name":"compression_bounds_visual_report","success":true},
+    {"name":"persisted_capture_batches","success":true},
+    {"name":"persisted_capture_frames","success":true},
+    {"name":"issued_analysis_only","success":true},
+    {"name":"reported_usage_restored","success":true},
+    {"name":"remaining_budget","success":true},
+    {"name":"context_is_bounded","success":true},
+    {"name":"brief_keeps_focus","success":true},
+    {"name":"broad_report_prompt","success":true},
+    {"name":"additional_findings_do_not_expand_scope","success":true},
+    {"name":"analysis_hard_limit_rejects_before_provider","success":true}
+  ]
+}

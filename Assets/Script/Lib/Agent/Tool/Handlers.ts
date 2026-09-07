@@ -242,6 +242,7 @@ const executeCommand: AgentToolHandler = async (context, input) => {
 	const mode = typeof input.mode === "string" ? input.mode : "";
 	const output = await Tools.executeCommand({
 		workDir: context.workingDir,
+		taskId: context.taskId,
 		mode: mode as Tools.ExecuteCommandMode,
 		code: typeof input.code === "string" ? input.code : undefined,
 		command: typeof input.command === "string" ? input.command : undefined,
@@ -581,6 +582,24 @@ const finish: AgentToolHandler = async (_context, input) => {
 	};
 };
 
+const analyzeImageHandler: AgentToolHandler = async (context, input) => {
+	let visionContext = context.visionTaskContext ?? "";
+	if (typeof input.context === "string" && input.context.trim() !== "") {
+		visionContext = visionContext === "" ? input.context : `${visionContext}\n\n${input.context}`;
+	}
+	return {output: await analyzeImage({
+		workingDir:context.workingDir,
+		taskId:context.taskId,
+		sessionId:context.sessionId,
+		binding:context.visionBinding,
+		paths:input.paths as string[],
+		question:input.question as string,
+		criteria:input.criteria as string | undefined,
+		context:visionContext,
+		isCancelled:()=>context.cancellation.isCancelled(),
+	})};
+};
+
 export const AGENT_TOOL_HANDLERS: Partial<Record<AgentToolName, AgentToolHandler>> = {
 	read_file: readFile,
 	grep_files: grepFiles,
@@ -589,7 +608,7 @@ export const AGENT_TOOL_HANDLERS: Partial<Record<AgentToolName, AgentToolHandler
 	build,
 	fetch_url: fetchUrl,
 	execute_command: executeCommand,
-	analyze_image: async (context, input) => ({output: await analyzeImage({workingDir:context.workingDir, taskId:context.taskId, sessionId:context.sessionId, binding:context.visionBinding, paths:input.paths as string[], question:input.question as string, criteria:input.criteria as string | undefined, isCancelled:()=>context.cancellation.isCancelled()})}),
+	analyze_image: analyzeImageHandler,
 	edit_file: editFile,
 	delete_file: deleteFile,
 	ask_user: askUser,

@@ -6,6 +6,7 @@ import { createOperationId } from 'Agent/Tool/Operation';
 import { isValidWorkspacePath, ensureDirPath } from 'Agent/Tool/Workspace';
 import { PREVIEW_GAME_STARTUP_TIMEOUT_SECONDS, PREVIEW_GAME_TIMEOUT_SECONDS } from 'Agent/Tool/ToolBudgets';
 import { safeJsonEncode } from 'Agent/Utils';
+import type { VisionBudgetState } from 'Agent/Tool/VisionBudget';
 
 export interface CommandPreviewFrame {
 	path: string;
@@ -19,9 +20,12 @@ export interface CommandPreviewGameResult {
 	files?: string[];
 	frames?: CommandPreviewFrame[];
 	message?: string;
+	visionBudget?: VisionBudgetState;
 }
 
 export const COMMAND_VISION_DIR = ".agent/vision";
+
+const PREVIEW_ENTRY_EXTENSIONS = ["", "lua", "ts", "tsx", "yue", "tl", "xml"];
 
 /** Captures kept per project; oldest files roll out first. */
 export const COMMAND_VISION_MAX_FILES = 60;
@@ -56,33 +60,56 @@ export function pruneVisionCaptures(dir: string, keep = COMMAND_VISION_MAX_FILES
 export function createPreviewGameInjection(req: {
 	workDir: string;
 	operationId: string;
-	isCancelled?: () => boolean;
-	print: (line: string) => void;
+	isCancelled?: (this: void) => boolean;
+	print: (this: void, line: string) => void;
+	reserveCapture?: (this: void, frameCount: number) => {success: boolean; message?: string; budget: VisionBudgetState};
+	onResult?: (this: void, result: CommandPreviewGameResult) => void;
 }, entry: DevEntryModule): (this: void, opts?: unknown) => CommandPreviewGameResult {
 	return (opts) => {
 		const o = type(opts) === "table" ? opts as Record<string, unknown> : {};
 		const file = typeof o.entry === "string" && o.entry.trim() !== "" ? o.entry.trim() : "init.lua";
-		const rawTimes = Array.isArray(o.captureAtSeconds) ? o.captureAtSeconds : [0.5];
+		const complete = (result: CommandPreviewGameResult): CommandPreviewGameResult => {
+			const [encoded] = safeJsonEncode(result);
+			if (encoded) req.print(encoded);
+			req.onResult?.(result);
+			return result;
+		};
+		const requestedTimes = o.captureAtSeconds;
+		if (requestedTimes !== undefined && !Array.isArray(requestedTimes)) {
+			return complete({success: false, message: "captureAtSeconds needs 1-3 increasing times between 0 and 10"});
+		}
+		const rawTimes = requestedTimes as unknown[] | undefined ?? [0.5];
 		const times: number[] = [];
 		for (const value of rawTimes) {
-			if (typeof value === "number" && Number.isFinite(value)) times.push(value);
+			if (typeof value !== "number" || !Number.isFinite(value)) {
+				return complete({success: false, message: "captureAtSeconds needs 1-3 increasing times between 0 and 10"});
+			}
+			times.push(value);
 		}
-		if (!isValidWorkspacePath(file) || (Path.getExt(file) !== "lua" && Path.getExt(file) !== "")) {
-			return {success: false, message: "previewGame requires a built project-relative Lua entry"};
+		const sourceExt = Path.getExt(file).toLowerCase();
+		if (!isValidWorkspacePath(file) || PREVIEW_ENTRY_EXTENSIONS.indexOf(sourceExt) < 0) {
+			return complete({success: false, message: "previewGame entry must be a built project-relative Lua, TypeScript, YueScript, Teal, or XML entry"});
 		}
 		if (times.length < 1 || times.length > 3 || times.some((t, i) => t < 0 || t > 10 || (i > 0 && t <= times[i - 1]))) {
-			return {success: false, message: "captureAtSeconds needs 1-3 increasing times between 0 and 10"};
+			return complete({success: false, message: "captureAtSeconds needs 1-3 increasing times between 0 and 10"});
 		}
 		const full = Path.replaceExt(Path(req.workDir, file), "lua");
 		if (!Content.exist(full)) {
-			return {success: false, message: "Build the entry before previewGame"};
+			return complete({success: false, message: `Build the entry before previewGame; generated Lua was not found at ${full}`});
 		}
 		if (Director.beginGameCapture === undefined || Director.captureGameAsync === undefined || Director.endGameCapture === undefined) {
-			return {success: false, message: "This engine build does not support game capture; update Dora SSR"};
+			return complete({success: false, message: "This engine build does not support game capture; update Dora SSR"});
 		}
 		const visionDir = Path(req.workDir, ".agent", "vision");
 		if (!ensureDirPath(visionDir)) {
-			return {success: false, message: "failed to create the .agent/vision directory"};
+			return complete({success: false, message: "failed to create the .agent/vision directory"});
+		}
+		// Read the callback first so TypeScript-to-Lua does not emit a method call
+		// that passes req as an unexpected first argument.
+		const reserveCapture = req.reserveCapture;
+		const reservation = reserveCapture ? reserveCapture(times.length) : undefined;
+		if (reservation && !reservation.success) {
+			return complete({success: false, message: reservation.message ?? "Vision capture budget exhausted", visionBudget: reservation.budget});
 		}
 		const cancelled = () => req.isCancelled?.() === true;
 		const start = App.runningTime;
@@ -163,9 +190,9 @@ export function createPreviewGameInjection(req: {
 			const cleanupError = releaseEntryLease(req.operationId, entry);
 			leased = false;
 			if (cleanupError) error(cleanupError);
-			result = {success: true, files, frames};
+			result = {success: true, files, frames, visionBudget: reservation?.budget};
 		} catch (e) {
-			result = {success: false, files, message: tostring(e)};
+			result = {success: false, files, message: tostring(e), visionBudget: reservation?.budget};
 		} finally {
 			if (scope) Director.endGameCapture();
 			if (leased) {
@@ -177,8 +204,6 @@ export function createPreviewGameInjection(req: {
 				}
 			}
 		}
-		const [encoded] = safeJsonEncode(result);
-		if (encoded) req.print(encoded);
-		return result;
+		return complete(result);
 	};
 }

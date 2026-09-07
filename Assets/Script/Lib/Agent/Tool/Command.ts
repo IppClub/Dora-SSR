@@ -16,7 +16,14 @@ import {
 } from 'Agent/Tool/Workspace';
 
 import { acquireEntryLease, recordEntryLeaseRun, ownsEntryLease, releaseEntryLease, type DevEntryModule } from 'Agent/Tool/EntryLease';
-import { createPreviewGameInjection } from 'Agent/Tool/CommandPreview';
+import { createPreviewGameInjection, type CommandPreviewGameResult } from 'Agent/Tool/CommandPreview';
+import {
+	getVisionBudgetState,
+	getVisionTaskUsage,
+	type VisionTaskUsage,
+	VISION_MAX_CAPTURE_BATCHES,
+	VISION_MAX_CAPTURE_FRAMES,
+} from 'Agent/Tool/VisionBudget';
 interface AgentEntryDescriptor { entryName?: string; fileName?: string; }
 
 const LUA_COMMAND_DEFAULT_TIMEOUT_SECONDS = 30;
@@ -27,6 +34,7 @@ function executeLuaCommand(req: {
 	code: string;
 	timeoutSeconds: number;
 	operationId: string;
+	taskId: number;
 	onProgress?: (progress: ExecuteCommandProgress) => void;
 	isCancelled?: () => boolean;
 }): Promise<ExecuteCommandResult> {
@@ -41,6 +49,31 @@ function executeLuaCommand(req: {
 	let refreshTreeCalled = false;
 	let entryObjectBaseline = 0;
 	let entryLuaRefBaseline = 0;
+	let persistedVisionUsage: VisionTaskUsage | undefined;
+	let capturedBatches = 0;
+	let capturedFrames = 0;
+	let lastPreviewResult: CommandPreviewGameResult | undefined;
+	const currentVisionUsage = () => {
+		persistedVisionUsage ??= getVisionTaskUsage(req.taskId);
+		return {
+			...persistedVisionUsage,
+			captureBatchCount: persistedVisionUsage.captureBatchCount + capturedBatches,
+			captureFrameCount: persistedVisionUsage.captureFrameCount + capturedFrames,
+		};
+	};
+	const reserveCapture = (frameCount: number) => {
+		const current = currentVisionUsage();
+		if (current.captureBatchCount >= VISION_MAX_CAPTURE_BATCHES || current.captureFrameCount + frameCount > VISION_MAX_CAPTURE_FRAMES) {
+			return {
+				success: false,
+				message: `Vision capture budget exhausted: ${current.captureBatchCount} batches and ${current.captureFrameCount} frames already reserved`,
+				budget: getVisionBudgetState(current),
+			};
+		}
+		capturedBatches++;
+		capturedFrames += frameCount;
+		return {success: true, budget: getVisionBudgetState(currentVisionUsage())};
+	};
 	const acquireEntryRuntime = () => {
 		acquireEntryLease(req.operationId, entry);
 		ownsEntryRuntime = true;
@@ -143,6 +176,10 @@ function executeLuaCommand(req: {
 			operationId: req.operationId,
 			isCancelled: req.isCancelled,
 			print: line => capturePrint(line),
+			reserveCapture,
+			onResult: result => {
+				lastPreviewResult = result;
+			},
 		}, entry),
 		requireProjectModule: (moduleNameValue: unknown, reloadModulesValue?: unknown): unknown => {
 			if (typeof moduleNameValue !== "string") {
@@ -275,6 +312,19 @@ function executeLuaCommand(req: {
 			if (contentAccessed && !refreshTreeCalled && !refreshWorkspaceTree(req.workDir)) {
 				Log("Warn", `[execute_command] failed to refresh Web IDE tree after Lua command workDir=${req.workDir}`);
 			}
+			const previewGame = lastPreviewResult ? {
+				success: lastPreviewResult.success,
+				message: lastPreviewResult.message,
+				files: lastPreviewResult.files,
+				frameCount: lastPreviewResult.frames?.length,
+			} : undefined;
+			const visionFields = {
+				...(previewGame ? {previewGame} : {}),
+				...(capturedBatches > 0 ? {
+					visionCapture: {batchCount: capturedBatches, frameCount: capturedFrames},
+					visionBudget: getVisionBudgetState(currentVisionUsage()) as unknown as Record<string, unknown>,
+				} : {}),
+			};
 			if (!result.success && cleanupError !== undefined) {
 				result.cleanupError = cleanupError;
 			} else if (result.success && cleanupError !== undefined) {
@@ -285,10 +335,25 @@ function executeLuaCommand(req: {
 					message: cleanupError,
 					phase: "execute",
 					cleanupError,
+					...visionFields,
 				});
 				return;
 			}
-			resolve(result);
+			if (result.success && lastPreviewResult && !lastPreviewResult.success) {
+				resolve({
+					success: false,
+					mode: "lua",
+					output: result.output,
+					message: `previewGame failed: ${lastPreviewResult.message ?? "unknown error"}`,
+					phase: "execute",
+					...visionFields,
+				});
+				return;
+			}
+			resolve({
+				...result,
+				...visionFields,
+			});
 		};
 		if (onProgress) {
 			onProgress({
@@ -414,6 +479,7 @@ export async function executeCommand(req: {
 	command?: string;
 	cwd?: string;
 	timeoutSeconds?: number;
+	taskId?: number;
 	onProgress?: (progress: ExecuteCommandProgress) => void;
 	isCancelled?: () => boolean;
 }): Promise<ExecuteCommandResult> {
@@ -427,6 +493,7 @@ export async function executeCommand(req: {
 			code: req.code ?? "",
 			timeoutSeconds: math.max(1, math.floor(Number(req.timeoutSeconds ?? LUA_COMMAND_DEFAULT_TIMEOUT_SECONDS))),
 			operationId: createOperationId(),
+			taskId: req.taskId ?? 0,
 			onProgress: req.onProgress,
 			isCancelled: req.isCancelled,
 		});

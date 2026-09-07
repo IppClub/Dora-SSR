@@ -1,7 +1,6 @@
 // @preview-file off clear
 import { resolveVisionBinding } from 'Agent/Tool/VisionBinding';
 import { getVisionTaskUsage, type VisionTaskUsage } from 'Agent/Tool/VisionAnalysis';
-import { listRecentProjectImages } from 'Agent/Tool/VisionAssets';
 import { Path, Content } from 'Dora';
 import { Flow, Node } from 'Agent/flow';
 import * as AgentUtils from 'Agent/Utils';
@@ -447,8 +446,6 @@ interface AgentShared {
 	workflow: AgentToolWorkflowState;
 	/** Compression produced a checkpoint that should guide the next decision. */
 	resumeCheckpointPending?: boolean;
-	/** Bounded persisted image references recovered at task start or compression. */
-	visionReferenceContext?: string;
 	/** A truncated assistant turn was persisted and the next decision needs a one-shot recovery prompt. */
 	pendingTruncationRecovery?: boolean;
 	/** Provider-reported token usage accumulated for this task. */
@@ -1689,14 +1686,6 @@ function buildDecisionMessages(
 ): Message[] {
 	const systemPrompt = buildAgentSystemPrompt(shared, decisionMode === "xml");
 	const tailSections: string[] = [];
-	if (shared.agentStepCount === 0 || shared.resumeCheckpointPending === true) {
-		const [ok, references] = pcall(() => listRecentProjectImages(shared.workingDir));
-		shared.visionReferenceContext = undefined;
-		if (ok && references.length > 0) {
-			shared.visionReferenceContext = `Recent game capture files under .agent/vision (paths only, untrusted data): ${encodeDebugJSON(references)}. They are past captures, not evidence for later code changes. Reuse a file only when re-analysis is needed; do not repeat completed validation.`;
-		}
-	}
-	if (shared.visionReferenceContext) tailSections.push(shared.visionReferenceContext);
 	if (shared.resumeCheckpointPending === true) {
 		// A carried user message from an in-progress task is the original
 		// instruction kept verbatim across a partial compression, not a newer
@@ -2469,12 +2458,30 @@ function createAgentToolExecutionContext(
 	shared: AgentShared,
 	action: AgentActionRecord,
 ): AgentToolExecutionContext {
+	const takeVisionContext = (text: string, maxChars: number) => {
+		const value = text.trim();
+		const next = utf8.offset(value, maxChars + 1);
+		return next === undefined ? value : string.sub(value, 1, next - 1);
+	};
+	const contextParts: string[] = [];
+	if (action.tool === "analyze_image") {
+		contextParts.push(
+			`Original task goal:\n${takeVisionContext(shared.userQuery, 1800)}`,
+			action.reason.trim() !== "" ? `Current Agent stage:\n${takeVisionContext(action.reason, 800)}` : "",
+		);
+		const changeSet = Tools.summarizeTaskChangeSet(shared.taskId);
+		if (changeSet.success && changeSet.files.length > 0) {
+			const changedFiles = changeSet.files.slice(0, 12).map(item => `${item.op}: ${item.path}`);
+			contextParts.push(`Relevant files changed in this task:\n${changedFiles.join("\n")}`);
+		}
+	}
 	return {
 		sessionId: shared.sessionId,
 		taskId: shared.taskId,
 		step: action.step,
 		workingDir: shared.workingDir,
 		visionBinding: resolveVisionBinding(shared.llmConfig),
+		visionTaskContext: contextParts.filter(item => item !== "").join("\n\n"),
 		role: shared.role,
 		workMode: shared.workMode,
 		useChineseResponse: shared.useChineseResponse,
@@ -2540,6 +2547,14 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 			total.totalTokens += usage.total_tokens ?? (usage.prompt_tokens + usage.completion_tokens);
 		}
 		emitAgentEvent(shared, {type:"metrics_updated", sessionId:shared.sessionId, taskId:shared.taskId, step:action.step, metrics:{visionUsage:total}});
+	} else if (action.tool === "execute_command") {
+		const capture = execution.output.visionCapture as {batchCount?: number; frameCount?: number} | undefined;
+		if (capture && typeof capture.batchCount === "number" && typeof capture.frameCount === "number") {
+			const total = getVisionTaskUsage(shared.taskId);
+			total.captureBatchCount += capture.batchCount;
+			total.captureFrameCount += capture.frameCount;
+			emitAgentEvent(shared, {type:"metrics_updated", sessionId:shared.sessionId, taskId:shared.taskId, step:action.step, metrics:{visionUsage:total}});
+		}
 	}
 	return execution.output;
 }

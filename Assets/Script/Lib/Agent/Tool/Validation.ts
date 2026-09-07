@@ -233,9 +233,9 @@ export function validateAgentToolInput(tool: AgentToolName, input: Record<string
 			return {success:false, message:"analyze_image requires 1–3 project-relative PNG/JPEG image paths"};
 		}
 		value.paths = (value.paths as unknown[]).map(item => (item as string).trim());
-		for (const name of ["question", "criteria"]) {
+		for (const name of ["question", "criteria", "context"]) {
 			const text = value[name];
-			if (name === "criteria" && text === undefined) continue;
+			if ((name === "criteria" || name === "context") && text === undefined) continue;
 			if (typeof text !== "string" || (name === "question" && text.trim() === "")) return {success:false, message:`${name} must be valid text`};
 			const [length] = utf8.len(text);
 			if (length === undefined || length > 4000) return {success:false, message:`${name} must contain at most 4000 Unicode characters`};

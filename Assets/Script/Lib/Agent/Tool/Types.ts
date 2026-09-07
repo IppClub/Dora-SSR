@@ -182,6 +182,8 @@ export interface AgentToolWorkflowState {
 
 export interface AgentToolExecutionContext {
 	visionBinding?: VisionBinding;
+	/** Bounded task/stage/change summary for a one-shot vision request. */
+	visionTaskContext?: string;
 	sessionId?: number;
 	taskId: number;
 	step: number;

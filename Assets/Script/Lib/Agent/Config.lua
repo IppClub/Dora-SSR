@@ -25,22 +25,23 @@ ____exports.AGENT_LIMITS = { -- 11
 	llmHistoryBuildMaxMessages = 12, -- 26
 	llmHistoryCommandOutputMaxChars = 8000, -- 27
 	llmHistoryToolResultMaxChars = 12000, -- 28
-	searchDoraDocLimitMax = 20, -- 29
-	searchFilesLimitDefault = 20, -- 30
-	listFilesMaxEntriesDefault = 200, -- 31
-	searchPreviewContext = 80, -- 32
-	completionTextMaxChars = 800, -- 33
-	completionListMaxItems = 12, -- 34
-	completionEvidenceMaxItems = 8 -- 35
-} -- 35
-____exports.AGENT_FILE_PATTERNS = {freshProjectCodeGlobs = { -- 38
-	"**/*.ts", -- 40
-	"**/*.tsx", -- 41
-	"**/*.lua", -- 42
-	"**/*.yue", -- 43
-	"**/*.tl", -- 44
-	"**/*.yarn", -- 45
-	"**/*.xml", -- 46
-	"!**/*.d.ts" -- 47
-}} -- 47
-return ____exports -- 47
+	compressionVisionReportMaxChars = 6000, -- 29
+	searchDoraDocLimitMax = 20, -- 30
+	searchFilesLimitDefault = 20, -- 31
+	listFilesMaxEntriesDefault = 200, -- 32
+	searchPreviewContext = 80, -- 33
+	completionTextMaxChars = 800, -- 34
+	completionListMaxItems = 12, -- 35
+	completionEvidenceMaxItems = 8 -- 36
+} -- 36
+____exports.AGENT_FILE_PATTERNS = {freshProjectCodeGlobs = { -- 39
+	"**/*.ts", -- 41
+	"**/*.tsx", -- 42
+	"**/*.lua", -- 43
+	"**/*.yue", -- 44
+	"**/*.tl", -- 45
+	"**/*.yarn", -- 46
+	"**/*.xml", -- 47
+	"!**/*.d.ts" -- 48
+}} -- 48
+return ____exports -- 48

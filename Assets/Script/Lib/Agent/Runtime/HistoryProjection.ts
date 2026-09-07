@@ -403,6 +403,43 @@ function projectCommandResultForLLM(result: Record<string, unknown>): Record<str
 	return projected;
 }
 
+function sanitizeVisionActionParamsForCompression(params: Record<string, unknown>): Record<string, unknown> {
+	const projected: Record<string, unknown> = {};
+	if (typeof params.question === "string") projected.question = params.question;
+	if (typeof params.criteria === "string") projected.criteria = params.criteria;
+	if (isArray(params.paths)) projected.imageCount = params.paths.length;
+	return projected;
+}
+
+function projectVisionResultForCompression(content: string): string {
+	const [decoded] = AgentUtils.safeJsonDecode(content);
+	if (!isRecord(decoded) || isArray(decoded)) {
+		return truncateHistoryText(
+			content,
+			AgentConfig.AGENT_LIMITS.compressionVisionReportMaxChars,
+			"vision result"
+		);
+	}
+	const projected: Record<string, unknown> = {};
+	if (decoded.success !== undefined) projected.success = decoded.success;
+	if (typeof decoded.report === "string") {
+		projected.report = truncateHistoryText(
+			decoded.report,
+			AgentConfig.AGENT_LIMITS.compressionVisionReportMaxChars,
+			"vision report"
+		);
+	}
+	if (typeof decoded.message === "string") {
+		projected.message = truncateHistoryText(
+			decoded.message,
+			AgentConfig.AGENT_LIMITS.llmHistoryEditResultMessageMaxChars,
+			"vision message"
+		);
+	}
+	if (decoded.cancelled !== undefined) projected.cancelled = decoded.cancelled;
+	return toJson(projected, false);
+}
+
 function projectToolResultContentForLLM(tool: string, content: string): string {
 	const [decoded] = AgentUtils.safeJsonDecode(content);
 	if (!isRecord(decoded) || isArray(decoded)) {
@@ -456,13 +493,28 @@ export function projectMessagesForLLMContext(messages: Message[]): Message[] {
 
 export function projectMessagesForCompression(messages: Message[]): Message[] {
 	const projected = projectMessagesForLLMContext(messages);
+	const visionCallIds: Record<string, boolean> = {};
 	for (let i = 0; i < projected.length; i++) {
 		const message = projected[i];
+		if (message.role === "tool" && typeof message.content === "string" && (
+			message.name === "analyze_image"
+			|| (typeof message.tool_call_id === "string" && visionCallIds[message.tool_call_id] === true)
+		)) {
+			// Compression needs the visual conclusion even when the generic LLM
+			// history projection would have wrapped a long result in a preview.
+			const rawOriginalContent = messages[i]?.content;
+			const originalContent = typeof rawOriginalContent === "string" ? rawOriginalContent : message.content;
+			projected[i] = {...message, content: projectVisionResultForCompression(originalContent)};
+			continue;
+		}
 		if (message.role !== "assistant" || !message.tool_calls || message.tool_calls.length === 0) continue;
 		let changed = false;
 		const toolCalls = message.tool_calls.map(toolCall => {
 			const fn = toolCall.function;
-			if (fn?.name !== "edit_file" || typeof fn.arguments !== "string") return toolCall;
+			if (fn?.name === "analyze_image" && typeof toolCall.id === "string" && toolCall.id !== "") {
+				visionCallIds[toolCall.id] = true;
+			}
+			if ((fn?.name !== "edit_file" && fn?.name !== "analyze_image") || typeof fn.arguments !== "string") return toolCall;
 			const [decoded] = AgentUtils.safeJsonDecode(fn.arguments);
 			if (!isRecord(decoded) || isArray(decoded)) return toolCall;
 			changed = true;
@@ -470,7 +522,9 @@ export function projectMessagesForCompression(messages: Message[]): Message[] {
 				...toolCall,
 				function: {
 					...fn,
-					arguments: toJson(sanitizeActionParamsForHistory("edit_file", decoded), false),
+					arguments: toJson(fn.name === "analyze_image"
+						? sanitizeVisionActionParamsForCompression(decoded)
+						: sanitizeActionParamsForHistory("edit_file", decoded), false),
 				},
 			};
 		});

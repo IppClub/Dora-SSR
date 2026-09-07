@@ -16,6 +16,7 @@
 | 固定同服务默认、未知端点不开放、无配置切换 | VisionBinding.ts、engine/vision-response-contract-result.json、真实会话记录 | 两家固定绑定通过；品牌和自定义网关不外推 |
 | 独立单次视觉请求、纯文本主历史、实际图片输入 | G01/G02/G03/session 记录、engine/vision-http-result.json、VisionAnalysis.ts | 两家真实闭环和请求形状证据；不把接口成功当视觉正确 |
 | 响应错误、拒绝、取消/超时、预算与 Unicode | engine/vision-http-result.json、vision-budget-result.json、vision-input-contract-result.json | 9 项 HTTP、6 项预算、22 项输入边界通过 |
+| 视觉循环收敛、综合报告、受控上下文与压缩因果链 | vision-loop-contract-result.json、vision-compression-contract-result.json、vision-capture-budget-result.json、preview-game-contract-result.json、LIVE-ACCEPTANCE-2026-09-07.md、DEEPSEEK-LIVE-ACCEPTANCE-2026-09-07.md、VisionBudget.ts、HistoryProjection.ts | 契约和真实预算检查通过；会话 216 使用 3 批次/5 帧/2 请求，会话 217 纯 DeepSeek 使用 2 批次/4 帧/2 请求，均完成基线、集中修改和终态复查，非视觉轮 0 调用；压缩保留检查目的与结论并移除图片元数据。会话 216 的 3 次非法时间参数和会话 217 的 2 次非法入口参数均发生在捕获前；现已明确时间契约、接受源码入口，并由外层命令自动返回失败原因。真实源码入口与捕获回归通过 |
 | 进程重启及强制上下文压缩后旧图复用 | G03/restart-landscape-session.json、compression-session.json | 556/557 实际任务通过；不要用模块单测代替 |
 | XML 工具模式 | engine/vision-xml-result.json、web-session/xml-before-fix-session.json | 实测发现数组文本未解析；已修复并通过 10 项契约，修复数组及完成/修复规则后，212/565 实际 XML 取景→分析→最终文本 DONE；10+9 项契约通过。旧 561—564 失败保留 |
 | 计划模式仅分析旧图，禁止启动游戏 | Registry.ts、DoraAgent.ts 的模式/能力过滤 | 12 项注册断言通过；web-session/plan-result.json 的真实 plan 请求通过，仅分析旧图、入口 runId 不变、源码不变 |

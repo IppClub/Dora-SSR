@@ -26,6 +26,7 @@ export const AGENT_LIMITS = {
 	llmHistoryBuildMaxMessages: 12,
 	llmHistoryCommandOutputMaxChars: 8000,
 	llmHistoryToolResultMaxChars: 12000,
+	compressionVisionReportMaxChars: 6000,
 	searchDoraDocLimitMax: 20,
 	searchFilesLimitDefault: 20,
 	listFilesMaxEntriesDefault: 200,

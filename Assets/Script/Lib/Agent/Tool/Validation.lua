@@ -304,10 +304,10 @@ function ____exports.validateAgentToolInput(tool, input) -- 89
 			value.paths, -- 235
 			function(____, item) return __TS__StringTrim(item) end -- 235
 		) -- 235
-		for ____, name in ipairs({"question", "criteria"}) do -- 236
+		for ____, name in ipairs({"question", "criteria", "context"}) do -- 236
 			do -- 236
 				local text = value[name] -- 237
-				if name == "criteria" and text == nil then -- 237
+				if (name == "criteria" or name == "context") and text == nil then -- 237
 					goto __continue76 -- 238
 				end -- 238
 				if type(text) ~= "string" or name == "question" and __TS__StringTrim(text) == "" then -- 238

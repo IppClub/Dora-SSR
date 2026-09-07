@@ -1,0 +1,58 @@
+{
+  "date": "2026-09-07",
+  "engine": "macOS Debug Dora restarted after Agent TypeScript compilation",
+  "fixture": "/Users/Jin/Library/Application Support/IppClub/DoraSSR/Asset/AgentVisionG01",
+  "checks": {
+    "typescript_build": {
+      "success": true,
+      "scope": "Assets/Script/Lib/Agent",
+      "generatedLuaSynchronized": true
+    },
+    "invalid_capture_time": {
+      "success": true,
+      "input": {
+        "entry": "init.ts",
+        "captureAtSeconds": [11.5]
+      },
+      "scriptPrintedMessage": false,
+      "outerCommandSuccess": false,
+      "phase": "execute",
+      "message": "previewGame failed: captureAtSeconds needs 1-3 increasing times between 0 and 10",
+      "structuredPreviewGame": {
+        "success": false,
+        "message": "captureAtSeconds needs 1-3 increasing times between 0 and 10"
+      },
+      "captureBudgetConsumed": false
+    },
+    "invalid_capture_time_shape": {
+      "success": true,
+      "input": {
+        "entry": "init.ts",
+        "captureAtSeconds": "0.5"
+      },
+      "outerCommandSuccess": false,
+      "phase": "execute",
+      "message": "previewGame failed: captureAtSeconds needs 1-3 increasing times between 0 and 10",
+      "captureBudgetConsumed": false
+    },
+    "source_entry_capture": {
+      "success": true,
+      "input": {
+        "entry": "init.ts",
+        "captureAtSeconds": [0.5]
+      },
+      "resolvedBuiltEntry": "init.lua",
+      "outerCommandSuccess": true,
+      "frameCount": 1,
+      "sourceWidth": 1920,
+      "sourceHeight": 1136,
+      "outputWidth": 1280,
+      "outputHeight": 757,
+      "elapsedSeconds": 0.509968996047974,
+      "pngBytes": 11637,
+      "pngDecoded": true,
+      "entryStoppedAfterCapture": true
+    }
+  },
+  "result": "passed"
+}
