@@ -20,10 +20,9 @@ end
 
 local M = {}
 
-function M.runProject(root)
+local function findEntry(root)
 	if type(root) ~= "string" or root == "" then
-		Log("Error", "Web project root is empty")
-		return false
+		return nil, "Web project root is empty"
 	end
 	local entryFile = Path(root, "init")
 	local entryPath = Path(root, "init.lua")
@@ -37,22 +36,69 @@ function M.runProject(root)
 		end
 	end
 	if not Content:exist(entryPath) then
-		Log("Error", "Web project entry was not found: " .. root)
-		return false
+		return nil, "Web project entry was not found: " .. root
 	end
-	local entry = {
+	return {
 		entryName = Path:getName(root),
 		fileName = entryFile,
 		workDir = root,
 		projectRoot = root,
 		runKind = "webProject"
-	}
+	}, nil
+end
+
+local function startEntry(entry, entryPath)
 	Log("Info", "Starting web project entry: " .. entryPath)
 	-- allClear removes ordinary routines. Run it before creating the entry
 	-- coroutine, otherwise the cleanup pass removes this runner itself before
 	-- enterEntryAsync can resume after its initial sleep.
 	Entry.allClear()
 	thread(function()
+		return Entry.enterEntryAsync(entry)
+	end)
+	return true
+end
+
+function M.runProject(root)
+	local entry, err = findEntry(root)
+	if not entry then
+		Log("Error", err)
+		return false
+	end
+	return startEntry(entry, Path(root, "init.lua"))
+end
+
+function M.runPackage(packagePath, projectId)
+	if type(packagePath) ~= "string" or packagePath == "" then
+		Log("Error", "Web .dora package path is empty")
+		return false
+	end
+	if Path:getExt(packagePath) ~= "dora" then
+		Log("Error", "Web package is not a .dora file: " .. packagePath)
+		return false
+	end
+	local id = tostring(projectId or Path:getName(Path:replaceExt(packagePath, "")))
+	local root = Path("/idbfs/dora/projects", id)
+	if Content:exist(root) then
+		Content:remove(root)
+	end
+	Entry.allClear()
+	thread(function()
+		Log("Info", "Extracting .dora package: " .. packagePath .. " -> " .. root)
+		local success = Content:unzipAsync(packagePath, root, function(file)
+			return not (file:match("^%.") or file:match("[\\/]%.") or file:match("__MACOSX"))
+		end)
+		if not success then
+			Log("Error", "Failed to extract .dora package: " .. packagePath)
+			return false
+		end
+		Log("Info", "Extracted .dora package: " .. root)
+		local entry, err = findEntry(root)
+		if not entry then
+			Log("Error", err)
+			return false
+		end
+		Log("Info", "Starting web project entry from .dora: " .. root)
 		return Entry.enterEntryAsync(entry)
 	end)
 	return true

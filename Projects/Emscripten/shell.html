@@ -16,8 +16,9 @@
 </head>
 <body>
     <div id="loading">Loading...<br><small id="loading-detail"></small></div>
-    <!-- The input is only a fallback for browsers without showDirectoryPicker. -->
+    <!-- These inputs are fallbacks for browsers without the File System Access API. -->
     <input id="project-input" type="file" webkitdirectory directory multiple hidden>
+    <input id="package-input" type="file" accept=".dora,application/zip" hidden>
     <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
     <script>
         var Module = (function() {
@@ -25,7 +26,9 @@
             const loading = document.getElementById('loading');
             const detail = document.getElementById('loading-detail');
             const projectInput = document.getElementById('project-input');
+            const packageInput = document.getElementById('package-input');
             let pendingProjectPicker = null;
+            let pendingPackagePicker = null;
             let resolveReady;
             const ready = new Promise(resolve => { resolveReady = resolve; });
             let resolvePersistentFileSystem;
@@ -40,6 +43,58 @@
                     console.warn('DoraWeb: failed to resume Web Audio', error);
                 });
             }
+
+            let tracedAudioNode = null;
+            let audioCallbackCount = 0;
+            function installAudioDiagnostics() {
+                const sdl = module && module.SDL2;
+                const audio = sdl && sdl.audio;
+                const node = audio && audio.scriptProcessorNode;
+                if (!node || node === tracedAudioNode || typeof node.onaudioprocess !== 'function') return;
+                const original = node.onaudioprocess;
+                tracedAudioNode = node;
+                audioCallbackCount = 0;
+                node.onaudioprocess = function(event) {
+                    // A disconnected node can still have one queued callback. If
+                    // audio was reopened meanwhile, its closure still contains
+                    // the old Wasm callback/device pointer. Never dispatch that
+                    // stale callback into Wasm.
+                    const currentAudio = sdl && sdl.audio;
+                    if (!currentAudio || currentAudio.scriptProcessorNode !== node) {
+                        console.warn('[DoraAudioTrace] stale WebAudio callback skipped'
+                            + ' callback=' + (audioCallbackCount + 1)
+                            + ' audio=' + (currentAudio ? 'present' : 'gone')
+                            + ' nodeAttached=' + (currentAudio && currentAudio.scriptProcessorNode === node));
+                        return;
+                    }
+                    audioCallbackCount++;
+                    if (audioCallbackCount <= 3) {
+                        const context = sdl && sdl.audioContext;
+                        const output = event && event.outputBuffer;
+                        console.info('[DoraAudioTrace] WebAudio callback=' + audioCallbackCount
+                            + ' context=' + (context ? context.state : 'none')
+                            + ' audio=' + (currentAudio ? 'present' : 'gone')
+                            + ' nodeAttached=' + (currentAudio && currentAudio.scriptProcessorNode === node)
+                            + ' channels=' + (output ? output.numberOfChannels : 0)
+                            + ' frames=' + (output ? output.length : 0));
+                    }
+                    try {
+                        return original.call(this, event);
+                    } catch (error) {
+                        const currentAudio = sdl && sdl.audio;
+                        console.error('[DoraAudioTrace] WebAudio callback failed callback=' + audioCallbackCount
+                            + ' context=' + ((sdl && sdl.audioContext) ? sdl.audioContext.state : 'none')
+                            + ' audio=' + (currentAudio ? 'present' : 'gone')
+                            + ' nodeAttached=' + (currentAudio && currentAudio.scriptProcessorNode === node), error);
+                        throw error;
+                    }
+                };
+                console.info('[DoraAudioTrace] WebAudio callback wrapped'
+                    + ' context=' + (sdl.audioContext ? sdl.audioContext.state : 'none')
+                    + ' bufferSize=' + (node.bufferSize || 0));
+            }
+
+            window.setInterval(installAudioDiagnostics, 250);
 
             function resizeCanvas() {
                 const ratio = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
@@ -138,6 +193,11 @@
                 }
             }
 
+            function removeFile(path) {
+                if (typeof FS === 'undefined') return;
+                try { FS.unlink(path); } catch (_) {}
+            }
+
             function writeProjectFile(projectId, relativePath, bytes) {
                 if (!module.FS_createPath || !module.FS_createDataFile) {
                     throw new Error('Emscripten filesystem API is unavailable');
@@ -181,9 +241,27 @@
                 const root = '/idbfs/dora/projects/' + id;
                 removeTree(root);
                 ensureDirectory(root);
+                removeFile('/idbfs/dora/packages/' + id + '.dora');
                 for (const entry of entries) writeProjectFile(id, entry.path, entry.bytes);
                 await syncFileSystem();
                 return root;
+            }
+
+            async function importPackage(file, projectId, projectName) {
+                await ready;
+                if (!file) throw new Error('no .dora package selected');
+                const name = projectName || file.name || 'project.dora';
+                const inferredId = projectId || inferProjectId(name.replace(/\.[^.]+$/, ''));
+                const id = normalizeProjectId(inferredId);
+                const packageRoot = '/idbfs/dora/packages';
+                const packagePath = packageRoot + '/' + id + '.dora';
+                ensureDirectory(packageRoot);
+                removeFile(packagePath);
+                removeTree('/idbfs/dora/projects/' + id);
+                const bytes = new Uint8Array(await file.arrayBuffer());
+                module.FS_createDataFile(packageRoot, id + '.dora', bytes, true, true);
+                await syncFileSystem();
+                return packagePath;
             }
 
             async function importProject(files, projectId, projectName) {
@@ -234,9 +312,26 @@
                 }
             }
 
+            async function pickPackage() {
+                await ready;
+                if (window.showOpenFilePicker) {
+                    const handles = await window.showOpenFilePicker({
+                        multiple: false,
+                        types: [{ description: 'Dora package', accept: { 'application/zip': ['.dora'] } }]
+                    });
+                    if (!handles.length) return '';
+                    const file = await handles[0].getFile();
+                    return importPackage(file);
+                }
+                return new Promise((resolve, reject) => {
+                    pendingPackagePicker = { resolve, reject };
+                    packageInput.click();
+                });
+            }
+
             async function pickProject(folderOnly) {
                 await ready;
-                if (!folderOnly) throw new Error('Web project picker only supports folders');
+                if (!folderOnly) return pickPackage();
                 if (window.showDirectoryPicker) {
                     const directory = await window.showDirectoryPicker({ mode: 'read' });
                     const files = [];
@@ -312,6 +407,7 @@
                 pickProject,
                 writeProjectFile,
                 importProject,
+                importPackage,
                 importManifest,
                 runProject,
                 stopProject
@@ -327,6 +423,18 @@
             projectInput.addEventListener('cancel', () => {
                 const request = pendingProjectPicker;
                 pendingProjectPicker = null;
+                if (request) request.resolve('');
+            });
+            packageInput.addEventListener('change', () => {
+                const request = pendingPackagePicker;
+                pendingPackagePicker = null;
+                if (!request) return;
+                importPackage(packageInput.files[0]).then(request.resolve, request.reject);
+                packageInput.value = '';
+            });
+            packageInput.addEventListener('cancel', () => {
+                const request = pendingPackagePicker;
+                pendingPackagePicker = null;
                 if (request) request.resolve('');
             });
             window.addEventListener('resize', resizeCanvas);
