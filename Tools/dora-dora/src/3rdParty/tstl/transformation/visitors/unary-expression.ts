@@ -9,6 +9,7 @@ import {
 } from "./binary-expression/compound";
 import { isNumberType } from "../utils/typescript";
 import { LuaLibFeature, transformLuaLibFunction } from "../utils/lualib";
+import { checkOnlyTruthyCondition } from "./conditional";
 
 export function transformUnaryExpressionStatement(
     context: TransformationContext,
@@ -118,6 +119,7 @@ export const transformPrefixUnaryExpression: FunctionVisitor<ts.PrefixUnaryExpre
             }
         }
         case ts.SyntaxKind.ExclamationToken:
+            checkOnlyTruthyCondition(expression.operand, context);
             return lua.createUnaryExpression(
                 context.transformExpression(expression.operand),
                 lua.SyntaxKind.NotOperator
