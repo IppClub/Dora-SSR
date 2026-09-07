@@ -22,6 +22,8 @@ freely, subject to the following restrictions:
    distribution.
 */
 #include <stdlib.h>
+#include <atomic>
+#include <cstdio>
 
 #include "soloud.h"
 
@@ -44,11 +46,29 @@ namespace SoLoud
 {
 	static SDL_AudioSpec gActiveAudioSpec;
 	static SDL_AudioDeviceID gAudioDeviceID;
+	static std::atomic<unsigned long long> gAudioCallbackCount{0};
+	static std::atomic<unsigned long long> gAudioDeviceGeneration{0};
+
+	static bool audioTraceSample(unsigned long long count)
+	{
+		return count <= 3;
+	}
 
 	void soloud_sdl2static_audiomixer(void *userdata, Uint8 *stream, int len)
 	{
-		short *buf = (short*)stream;
+		const auto callbackCount = gAudioCallbackCount.fetch_add(1, std::memory_order_relaxed) + 1;
 		SoLoud::Soloud *soloud = (SoLoud::Soloud *)userdata;
+		if (audioTraceSample(callbackCount))
+			std::fprintf(stderr,
+				"[DoraAudioTrace] SDL mixer callback=%llu device=%u generation=%llu userdata=%p len=%d format=%u channels=%u samples=%u\n",
+				callbackCount, static_cast<unsigned int>(gAudioDeviceID),
+				gAudioDeviceGeneration.load(std::memory_order_relaxed), userdata, len,
+				static_cast<unsigned int>(gActiveAudioSpec.format),
+				static_cast<unsigned int>(gActiveAudioSpec.channels),
+				static_cast<unsigned int>(gActiveAudioSpec.samples));
+		if (!soloud || !stream || len <= 0)
+			return;
+		short *buf = (short*)stream;
 		if (gActiveAudioSpec.format == AUDIO_F32)
 		{
 			int samples = len / (gActiveAudioSpec.channels * sizeof(float));
@@ -63,7 +83,14 @@ namespace SoLoud
 
 	static void soloud_sdl2static_deinit(SoLoud::Soloud *aSoloud)
 	{
+		std::fprintf(stderr,
+			"[DoraAudioTrace] SDL deinit device=%u generation=%llu userdata=%p callbacks=%llu\n",
+			static_cast<unsigned int>(gAudioDeviceID),
+			gAudioDeviceGeneration.load(std::memory_order_relaxed), aSoloud,
+			gAudioCallbackCount.load(std::memory_order_relaxed));
+		SDL_PauseAudioDevice(gAudioDeviceID, 1);
 		SDL_CloseAudioDevice(gAudioDeviceID);
+		gAudioDeviceID = 0;
 	}
 
 	result sdl2static_init(SoLoud::Soloud *aSoloud, unsigned int aFlags, unsigned int aSamplerate, unsigned int aBuffer, unsigned int aChannels)
@@ -94,6 +121,16 @@ namespace SoLoud
 				return UNKNOWN_ERROR;
 			}
 		}
+		gAudioDeviceGeneration.fetch_add(1, std::memory_order_relaxed);
+		gAudioCallbackCount.store(0, std::memory_order_relaxed);
+		std::fprintf(stderr,
+			"[DoraAudioTrace] SDL initialized device=%u generation=%llu userdata=%p requestedRate=%u requestedBuffer=%u obtainedRate=%d obtainedBuffer=%u format=%u channels=%u\n",
+			static_cast<unsigned int>(gAudioDeviceID),
+			gAudioDeviceGeneration.load(std::memory_order_relaxed), aSoloud,
+			aSamplerate, aBuffer, gActiveAudioSpec.freq,
+			static_cast<unsigned int>(gActiveAudioSpec.samples),
+			static_cast<unsigned int>(gActiveAudioSpec.format),
+			static_cast<unsigned int>(gActiveAudioSpec.channels));
 
 		aSoloud->postinit_internal(gActiveAudioSpec.freq, gActiveAudioSpec.samples, aFlags, gActiveAudioSpec.channels);
 

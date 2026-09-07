@@ -13,12 +13,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/LuaEngine.h"
 
 #include "Common/Async.h"
+#include "Basic/Content.h"
 #include "Http/XrtNetwork.h"
 #include "Lua/LuaBinding.h"
 #include "Lua/LuaFromXml.h"
 #include "Lua/LuaHandler.h"
 #include "Lua/LuaManual.h"
 #include "Node/Node.h"
+#include "Render/View.h"
+#include "Shader/ShaderCompiler.h"
 #include "Support/Value.h"
 
 #include "Lua/Xml/DoraTag.h"
@@ -86,6 +89,154 @@ static int dora_print(lua_State* L) {
 	}
 	lua_settop(L, nargs);
 	LogInfoThreaded(t);
+	return 0;
+}
+
+// Minimal rendering probes used by the Web LoveNode MVP. These functions are
+// intentionally exposed as tiny Lua calls so each rendering layer can be
+// tested in isolation.
+struct BgfxProbeResources {
+	bgfx::ShaderHandle vertex = BGFX_INVALID_HANDLE;
+	bgfx::ShaderHandle fragment = BGFX_INVALID_HANDLE;
+	bgfx::ProgramHandle program = BGFX_INVALID_HANDLE;
+	bgfx::VertexLayout layout;
+	bool initialized = false;
+	uint32_t draws = 0;
+};
+
+static BgfxProbeResources g_bgfxProbe;
+
+static bool initBgfxProbe() {
+	if (g_bgfxProbe.initialized) return bgfx::isValid(g_bgfxProbe.program);
+	g_bgfxProbe.initialized = true;
+
+	// SharedContent paths are rooted at Assets/, so the runtime path omits the
+	// repository-level Assets prefix. Without this definition shaderc accepts
+	// `$input a_position` but emits no WebGL attribute declaration.
+	const auto varying = SharedContent.loadStr("Shader/Love/varying.def.sc");
+	if (varying.empty()) {
+		Error("[Probe:bgfx] missing Love varying definition: Shader/Love/varying.def.sc");
+		return false;
+	}
+	const String vertexSource = R"(
+$input a_position
+void main()
+{
+	gl_Position = a_position;
+}
+)"_slice;
+const String fragmentSource = R"(
+void main()
+{
+	bgfx_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+}
+)"_slice;
+	std::string error;
+	std::string vertexBytecode = SharedShaderCompiler.compile(vertexSource,
+		ShaderStage::Vertex, false, error, "DoraProbe/direct-vs.sc", nullptr, varying);
+	if (!error.empty() || vertexBytecode.empty()) {
+		Error("[Probe:bgfx] vertex compile failed: {}", error.empty() ? "empty bytecode" : error);
+		return false;
+	}
+	g_bgfxProbe.vertex = bgfx::createShader(bgfx::copy(vertexBytecode.data(), vertexBytecode.size()));
+	if (!bgfx::isValid(g_bgfxProbe.vertex)) {
+		Error("[Probe:bgfx] vertex shader handle invalid");
+		return false;
+	}
+
+	error.clear();
+	std::string fragmentBytecode = SharedShaderCompiler.compile(fragmentSource,
+		ShaderStage::Fragment, false, error, "DoraProbe/direct-fs.sc", nullptr, varying);
+	if (!error.empty() || fragmentBytecode.empty()) {
+		Error("[Probe:bgfx] fragment compile failed: {}", error.empty() ? "empty bytecode" : error);
+		return false;
+	}
+	g_bgfxProbe.fragment = bgfx::createShader(bgfx::copy(fragmentBytecode.data(), fragmentBytecode.size()));
+	if (!bgfx::isValid(g_bgfxProbe.fragment)) {
+		Error("[Probe:bgfx] fragment shader handle invalid");
+		return false;
+	}
+
+	g_bgfxProbe.program = bgfx::createProgram(g_bgfxProbe.vertex, g_bgfxProbe.fragment, true);
+	if (!bgfx::isValid(g_bgfxProbe.program)) {
+		Error("[Probe:bgfx] program link failed");
+		return false;
+	}
+	g_bgfxProbe.layout.begin()
+		.add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
+		.end();
+	Info("[Probe:bgfx] initialized vertexBytes={} fragmentBytes={} program={}",
+		vertexBytecode.size(), fragmentBytecode.size(), g_bgfxProbe.program.idx);
+	return true;
+}
+
+static int dora_bgfx_probe_draw(lua_State* L) {
+	if (!SharedView.hasActiveView()) {
+		Error("[Probe:bgfx] draw skipped: no active Dora view");
+		return 0;
+	}
+	if (!initBgfxProbe()) return 0;
+
+	bgfx::TransientVertexBuffer vertexBuffer;
+	bgfx::TransientIndexBuffer indexBuffer;
+	if (!bgfx::allocTransientBuffers(&vertexBuffer, g_bgfxProbe.layout, 4, &indexBuffer, 6)) {
+		Error("[Probe:bgfx] draw skipped: transient buffer allocation failed");
+		return 0;
+	}
+	const float vertices[] = {
+		-1.0f, -1.0f, 0.0f, 1.0f,
+		-1.0f,  1.0f, 0.0f, 1.0f,
+		 1.0f,  1.0f, 0.0f, 1.0f,
+		 1.0f, -1.0f, 0.0f, 1.0f};
+	const uint16_t indices[] = {0, 1, 2, 0, 2, 3};
+	std::memcpy(vertexBuffer.data, vertices, sizeof(vertices));
+	std::memcpy(indexBuffer.data, indices, sizeof(indices));
+	bgfx::setVertexBuffer(0, &vertexBuffer);
+	bgfx::setIndexBuffer(&indexBuffer);
+	bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
+	// The normal Love/Dora views are rendered after the active scene view. Use
+	// the last BGFX view for this probe so later scene/UI passes cannot cover
+	// the shader result before presentation.
+	const bgfx::ViewId viewId = 255;
+	const auto viewSize = SharedView.getSize();
+	const uint16_t width = s_cast<uint16_t>(std::max(1.0f, viewSize.width));
+	const uint16_t height = s_cast<uint16_t>(std::max(1.0f, viewSize.height));
+	// The active scene view normally has a camera projection.  This probe owns
+	// the whole viewport, so make its NDC rectangle explicit instead of letting
+	// the scene camera shrink it into world space.
+	bgfx::setViewRect(viewId, 0, 0, width, height);
+	bgfx::setViewTransform(viewId, nullptr, nullptr);
+	bgfx::setMarker("DORA_LOVE_TRACE direct-bgfx bgfx-shader-probe");
+	bgfx::submit(viewId, g_bgfxProbe.program, 0, BGFX_DISCARD_ALL);
+	++g_bgfxProbe.draws;
+	if (g_bgfxProbe.draws <= 2 || g_bgfxProbe.draws % 60 == 0) {
+		Info("[Probe:bgfx-shader] draw={} view={} program={} size={}x{} vertices=4 indices=6 color=0,255,0",
+			g_bgfxProbe.draws, viewId, g_bgfxProbe.program.idx, width, height);
+	}
+	return 0;
+}
+
+// Minimal WebGL presentation probe. It deliberately avoids shaders, buffers,
+// textures, canvases and LoveNode. The active Dora view is cleared red and
+// touched so this tests only BGFX view submission and presentation.
+static int dora_bgfx_probe_clear_red(lua_State* L) {
+	if (!SharedView.hasActiveView()) {
+		Error("[Probe:bgfx-clear] skipped: no active Dora view");
+		return 0;
+	}
+	const auto viewId = SharedView.getId();
+	const auto viewSize = SharedView.getSize();
+	const uint16_t width = s_cast<uint16_t>(std::max(1.0f, viewSize.width));
+	const uint16_t height = s_cast<uint16_t>(std::max(1.0f, viewSize.height));
+	bgfx::setViewRect(viewId, 0, 0, width, height);
+	bgfx::setViewClear(viewId, BGFX_CLEAR_COLOR, 0xff0000ff);
+	bgfx::touch(viewId);
+	static bool reported = false;
+	if (!reported) {
+		reported = true;
+		Info("[Probe:bgfx-clear] submitted view={} size={}x{} color=255,0,0,255",
+			viewId, width, height);
+	}
 	return 0;
 }
 
@@ -1208,6 +1359,8 @@ LuaEngine::LuaEngine()
 		tolua_function(L, "ubox", dora_ubox);
 		tolua_function(L, "emit", dora_emit);
 		tolua_function(L, "yarncompile", dora_yarn_compile);
+		tolua_function(L, "bgfxProbeDraw", dora_bgfx_probe_draw);
+		tolua_function(L, "bgfxProbeClearRed", dora_bgfx_probe_clear_red);
 
 		tolua_beginmodule(L, "Application");
 		{
