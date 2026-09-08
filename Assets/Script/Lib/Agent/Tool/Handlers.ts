@@ -89,7 +89,7 @@ const globFiles: AgentToolHandler = async (context, input) => {
 		workDir: context.workingDir,
 		path: (input.path as string) ?? "",
 		globs: input.globs as string[] | undefined,
-		maxEntries: math.max(1, math.floor(Number(input.maxEntries ?? AgentConfig.AGENT_LIMITS.listFilesMaxEntriesDefault))),
+		maxEntries: math.max(1, math.floor(Number(input.maxEntries ?? AgentConfig.AGENT_LIMITS.listFilesMaxEntriesDefault))), preferSourceVariants: false,
 	});
 	return { output: output as unknown as Record<string, unknown> };
 };

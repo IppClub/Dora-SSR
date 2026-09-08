@@ -82,6 +82,7 @@
 		"test:file-search-index": "node scripts/test-file-search-index.mjs",
 		"test:resource-tree-sync": "node scripts/test-resource-tree-sync.mjs",
 		"test:agent-doc-search": "node scripts/test-agent-doc-search.mjs",
+		"test:agent-vision-contract": "node scripts/test-agent-vision-contract.mjs",
 		"test:agent-virtual-log": "node scripts/test-agent-virtual-log.mjs",
 		"test:transpile-protocol": "node scripts/test-transpile-protocol.mjs",
 		"test:tstl-truthiness": "node scripts/test-tstl-truthiness.mjs",

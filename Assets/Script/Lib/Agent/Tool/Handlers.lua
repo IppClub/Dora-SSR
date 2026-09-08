@@ -157,7 +157,8 @@ local function globFiles(context, input) -- 87
 			maxEntries = ____math_max_20( -- 92
 				1, -- 92
 				____math_floor_19(__TS__Number(____input_maxEntries_18)) -- 92
-			) -- 92
+			), -- 92
+			preferSourceVariants = false -- 92
 		}) -- 92
 		return ____awaiter_resolve(nil, {output = output}) -- 92
 	end) -- 92

@@ -1,8 +1,8 @@
 # Dora Agent 图像多模态与游戏画面观察设计
 
-状态：首版功能和本地验收完成。DeepSeek 与 GLM 国内 Coding Plan（固定 glm-4.6v）实际主 Agent 闭环、三个游戏评测、恢复、异常路径及 UI 检查已有证据。移动真机按用户要求延期；模型误判与平台覆盖边界见 [验收审计](./ACCEPTANCE-AUDIT.md)。使用方法见 [使用说明](./USAGE.md)。
+状态：首版功能和本地验收完成。DeepSeek 与 GLM 国内 Coding Plan（当前固定 `glm-5.3-flash`）实际主 Agent 闭环、三个游戏评测、恢复、异常路径及 UI 检查已有证据。移动真机按用户要求延期；模型误判与平台覆盖边界见 [验收审计](./ACCEPTANCE-AUDIT.md)。使用方法见 [使用说明](./USAGE.md)。
 
-创建：2026-09-05；最后更新：2026-09-07
+创建：2026-09-05；最后更新：2026-09-08
 
 进度与验收：[PROGRESS.md](./PROGRESS.md)；逐项审计：[ACCEPTANCE-AUDIT.md](./ACCEPTANCE-AUDIT.md)
 
@@ -211,7 +211,7 @@ interface VisionAnalysisEvidence {
 
 1. 识别当前 Agent 服务配置，包含已知供应商、实际端点、区域、按量 / Coding Plan 类别及现有凭据引用。
 2. 选择目录为该服务登记的固定默认视觉模型与专用请求参数，执行独立请求；主 Agent 型号是否支持图片不改变此默认选择。
-3. 复用该视觉路线适用的现有凭据，不改变主 Agent 模型配置。首批默认候选：DeepSeek 为 `deepseek-v4-flash-vision-exp`；GLM 国内 Coding Plan 为用户指定并已完成静态验证的 `glm-4.6v`。
+3. 复用该视觉路线适用的现有凭据，不改变主 Agent 模型配置。首批默认候选：DeepSeek 为 `deepseek-v4-flash-vision-exp`；GLM 国内 Coding Plan 为 `glm-5.3-flash`。
 4. 未匹配、能力未知或没有该服务的默认视觉路线时，不向该轮 Agent 暴露 `analyze_image`。记录不可用原因，不自动探测任意模型、安装 MCP、跨供应商或跨套餐回退。
 
 服务匹配不能依赖展示名称或宽松域名子串；自定义代理 / 网关必须有显式支持规则，不能继承其背后官方直连的默认模型。国内 / 海外和 Coding Plan / 按量 API 分别登记。目录列明可调用的视觉端点；首版不把凭据转发到当前服务边界之外。GLM 国内 Coding Plan 是需要显式登记的例子：官方视觉 MCP 使用同域 `/api/paas/v4/chat/completions` 加专用请求头，并非主模型的 `/api/coding/paas/v4` 路径；不得据路径自行套用普通按量型号。请求 profile 与验证见 [GLM 记录](./validation/GLM-CODING-PLAN.md)。
@@ -320,7 +320,7 @@ P1 是前置门槛。P2 / P3 可以用固定测试图片验证内部契约，但
 | --- | --- | --- |
 | Q1 | 游戏 systemUI 与工具 systemUI 如何归属 | 启动前快照既有 systemUI 直接子节点；新增游戏 HUD 参与捕获，已有工具根排除，详见 §4 |
 | Q2 | 最终游戏纹理在哪里生成，如何覆盖后处理及自定义渲染 | 正常渲染 pass 按需导向合成 RT，再呈现窗口；不二次遍历场景；本地分层和像素检查通过 |
-| Q3 | 首个供应商 / 模型、协议参数和第二协议顺序 | 固定 DeepSeek vision-exp 与 GLM-4.6V；两家实际请求通过，其他协议延期，无视觉配置 UI |
+| Q3 | 首个供应商 / 模型、协议参数和第二协议顺序 | 固定 DeepSeek vision-exp 与 `glm-5.3-flash`；两家实际请求通过，其他协议延期，无视觉配置 UI |
 | Q4 | 图片尺寸、数量、配额和保留期限 | 内置长边 1280、1—3 张、4 MiB/张；每根会话 60 张/80 MiB，全局 256 MiB；真机预算延期 |
 | Q5 | 资产目录及元数据与当前存储清理策略如何衔接 | 独立 agent-vision 目录；原子元数据、会话归属、删除/改名衔接、孤儿清理；有效引用不因常规配额回收而删除 |
 | Q6 | 视觉结果怎样加入 completion report | 文本工具结果附资产引用、实际模型、bindingId/profileVersion、usage；Web/Remix 展示观察与图片 |

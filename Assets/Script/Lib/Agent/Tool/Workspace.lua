@@ -568,7 +568,7 @@ function ____exports.listFiles(req) -- 502
 		local ____try, ____hasReturned, ____returnValue = pcall(function() -- 529
 			local userGlobs = req.globs and #req.globs > 0 and req.globs or ({"**"}) -- 514
 			local globs = ____exports.ensureSafeSearchGlobs(userGlobs) -- 515
-			local files = Content:glob(searchRoot, globs, extensionLevels) -- 516
+			local files = Content:glob(searchRoot, globs, req.preferSourceVariants == false and ({}) or extensionLevels) -- 516
 			files = toWorkspaceRelativeFileList(req.workDir, files) -- 517
 			local totalEntries = #files -- 518
 			local maxEntries = math.max( -- 519

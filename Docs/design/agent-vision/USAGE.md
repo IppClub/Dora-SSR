@@ -17,7 +17,7 @@ Web IDE 和 Remix 的工具步骤显示图片、实际视觉模型与分析报�
 | 当前 Agent 服务 | 看图模型 |
 | --- | --- |
 | 官方 DeepSeek | `deepseek-v4-flash-vision-exp` |
-| 国内 GLM Coding Plan | `glm-4.6v` |
+| 国内 GLM Coding Plan | `glm-5.3-flash` |
 
 未知服务或自定义网关不自动启用看图，也不会切换到其他供应商。GLM 的实际 API 请求已验证，尚未核查其账单是否计入 Coding Plan 套餐额度。
 

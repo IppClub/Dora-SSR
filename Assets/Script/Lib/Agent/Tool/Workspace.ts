@@ -503,7 +503,7 @@ export function listFiles(req: {
 	workDir: string;
 	path: string;
 	globs?: string[];
-	maxEntries?: number;
+	maxEntries?: number; preferSourceVariants?: boolean;
 }): ListFilesResult {
 	const root = req.path ?? "";
 	const searchRoot = resolveWorkspaceSearchPath(req.workDir, root);
@@ -513,7 +513,7 @@ export function listFiles(req: {
 	try {
 		const userGlobs = req.globs && req.globs.length > 0 ? req.globs : ["**"];
 		const globs = ensureSafeSearchGlobs(userGlobs);
-		let files = Content.glob(searchRoot, globs, extensionLevels);
+		let files = Content.glob(searchRoot, globs, req.preferSourceVariants === false ? {} : extensionLevels);
 		files = toWorkspaceRelativeFileList(req.workDir, files);
 		const totalEntries = files.length;
 		const maxEntries = math.max(1, math.floor(req.maxEntries ?? 200));

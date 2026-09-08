@@ -6,7 +6,7 @@
 
 首版范围已按用户决定更新：由当前 Agent 服务配置自动绑定默认视觉能力，`analyze_image` 内部发起无工具、无历史的单次视觉请求，向主模型返回文本报告；不新增用户看图模型配置或切换。本文原生多模态 loop、工具图片与回放状态研究保留为后续参考，当前交付范围以 README / PROGRESS 为准。
 
-本文主体为官方文档调查和源码核对，未修改预设或实现功能。后续已完成 DeepSeek 独立静态图片请求，见[验证记录](./validation/README.md)；GLM 已确认国内 Coding Plan，按官方视觉 MCP 的 HTTP profile 完成 glm-5.3-flash 与 glm-4.6v 各 5 次静态请求验证，当前选型为 glm-4.6v。下文“支持”除特别标明外指文档能力；Dora 端到端组合仍未验证。火山 / BytePlus 部分动态文档正文无法完整取得，明确保留证据缺口。
+本文主体为官方文档调查和源码核对。后续已完成 DeepSeek 独立静态图片请求，见[验证记录](./validation/README.md)；GLM 已确认国内 Coding Plan，按官方视觉 MCP 的 HTTP profile 完成 `glm-5.3-flash` 与 `glm-4.6v` 各 5 次静态请求验证，当前默认选型为 `glm-5.3-flash`。下文“支持”除特别标明外指文档能力；火山 / BytePlus 部分动态文档正文无法完整取得，明确保留证据缺口。
 
 ## 1. 范围与当前接入点
 
@@ -37,7 +37,7 @@
 | `minimax-cn` | `MiniMax-M2.7`；`api.minimaxi.com/v1` | 同样需明确选择视觉模型；保留国内区域配置，核对可用性，不因国际文档示例而替换域名 / 凭据。[MM] |
 | `mimo` | `mimo-v2.5-pro`；`api.xiaomimimo.com/v1` | 官方图像指南明确支持 `mimo-v2.5`，不能等同于 `mimo-v2.5-pro`；提供 Chat 与 Anthropic 两种编码。[MI] |
 | `zai` | `glm-5.2`；`open.bigmodel.cn/api/paas/v4` | GLM-5.2 模型页标为文本输入；应显式另选视觉模型，例如文档中的 GLM-5V-Turbo，后者列出视觉与函数调用。[GL] |
-| `zai-coding-plan` | `glm-5.2`；`open.bigmodel.cn/api/coding/paas/v4` | 官方视觉 MCP 是独立入口；0.1.5 包默认 glm-5.3-flash；Dora 设计固定为用户指定并实测的 glm-4.6v，经同域视觉请求 profile 调用，可在 Dora 内实现 HTTP 适配而不安装 MCP。见 [套餐验证](./validation/GLM-CODING-PLAN.md)；不把 glm-5.2 本身标为支持图片。[GL] |
+| `zai-coding-plan` | `glm-5.2`；`open.bigmodel.cn/api/coding/paas/v4` | 官方视觉 MCP 是独立入口；0.1.5 包默认 `glm-5.3-flash`；Dora 通过同域视觉请求 profile 固定并实测该模型，可在 Dora 内实现 HTTP 适配而不安装 MCP。见 [套餐验证](./validation/GLM-CODING-PLAN.md)；不把 `glm-5.2` 本身标为支持图片。[GL] |
 | `ollama` | `llama3.2`；`localhost:11434/v1` | 优先现有 OpenAI 兼容接口 + 实际加载的视觉模型；默认文本模型不等于视觉模型。原生 `/api/chat` 使用独立 `images` 数组。[OL] |
 | `vllm` | `meta-llama/Llama-3.1-8B-Instruct`；`localhost:8000/v1` | 必须部署视觉模型、适配模板及工具解析器；当前文本模型不能靠改请求获得视觉。Chat 图像兼容不代表自动工具解析配置已启用。[VL] |
 
@@ -239,6 +239,6 @@ interface VisionProfile {
 - **[BP] BytePlus：**[图像理解入口](https://docs.byteplus.com/en/docs/ModelArk/1362931)、[ModelArk 视频 / 图像帧请求示例](https://docs.byteplus.com/en/docs/ModelArk/1895586)。图像页正文未完整取得；后者只支持本文的 Chat 图片字段与 Responses 分路判断，不用于推导静态图限制。
 - **[MM] MiniMax：**[OpenAI 兼容 API](https://platform.minimax.io/docs/api-reference/text-openai-api)、[Anthropic 兼容能力表](https://platform.minimax.io/docs/api-reference/text-anthropic-api)。实际正文已更新为包含 M3，不能引用旧摘要声称整个平台只接收文本。
 - **[MI] MiMo：**[图像理解与模型限制](https://mimo.mi.com/docs/en-US/quick-start/usage-guide/multimodal-understanding/image-understanding)。
-- **[GL] 智谱：**[GLM-5.2 文本模型](https://docs.bigmodel.cn/cn/guide/models/text/glm-5.2)、[GLM-5V-Turbo](https://docs.bigmodel.cn/cn/guide/models/vlm/glm-5v-turbo)、[Coding Plan 视觉 MCP](https://docs.bigmodel.cn/cn/coding-plan/mcp/vision-mcp-server)。
+- **[GL] 智谱：**[GLM-5.3 / GLM-5.3-Flash 官方仓库](https://github.com/zai-org/GLM-5)、[GLM-V 官方仓库](https://github.com/zai-org/GLM-V)、[GLM-5.2 文本模型](https://docs.bigmodel.cn/cn/guide/models/text/glm-5.2)、[GLM-5V-Turbo](https://docs.bigmodel.cn/cn/guide/models/vlm/glm-5v-turbo)、[Coding Plan 视觉 MCP](https://docs.bigmodel.cn/cn/coding-plan/mcp/vision-mcp-server)。GLM-V 发布记录明确将 `glm-5.3-flash` 标为原生多模态模型；GLM-5 仓库记录其 `reasoning_effort` 支持 `low`、`high`、`max`。
 - **[OL] Ollama：**[原生视觉输入](https://docs.ollama.com/capabilities/vision)、[OpenAI 兼容](https://docs.ollama.com/api/openai-compatibility)。
 - **[VL] vLLM：**[多模态输入](https://docs.vllm.ai/en/latest/features/multimodal_inputs/)、[工具解析与部署配置](https://docs.vllm.ai/en/latest/features/tool_calling/)。
