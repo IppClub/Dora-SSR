@@ -2968,8 +2968,8 @@ startMobileUI = function() -- 1675
 			feedOptions.dirtyProjectPath = nil -- 1768
 			return withMobileLaunchErrors(getMobileFeedEntries(false, dirtyProjectPath)) -- 1769
 		end, -- 1766
-		syncDiscover = function(onProgress, onDone) -- 1770
-			return mobileCatalog.syncMobileCatalog(onProgress, onDone) -- 1770
+		syncDiscover = function(onProgress, onDone, force) -- 1770
+			return mobileCatalog.syncMobileCatalog(onProgress, onDone, nil, force) -- 1770
 		end, -- 1770
 		getDiscoverEntries = function() -- 1771
 			local cached = loadCachedCatalog() -- 1772

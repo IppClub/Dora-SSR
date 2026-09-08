@@ -64,7 +64,7 @@ BX_PRAGMA_DIAGNOSTIC_POP();
 #define NVG_INIT_VERTS_SIZE 256
 
 #define NVG_DORA_SDF_TEXT_IMAGE_FLAG (1 << 17)
-#define NVG_DORA_SDF_TEXT_EDGE 0.69f
+#define NVG_DORA_SDF_TEXT_EDGE 0.684f
 #define NVG_DORA_SDF_BASE_SOFTNESS 0.012f
 
 #ifndef NVG_MAX_STATES
@@ -2635,7 +2635,8 @@ static void nvg__renderTextImage(NVGcontext* ctx, NVGvertex* verts, int nverts, 
 	// Render triangles.
 	paint.image = image;
 	float fontScale = nvg__maxf(state->fontSize / (float)DORA_SDF_FONT_BASE_SIZE, 0.01f);
-	float baseSoftness = nvg__clampf(NVG_DORA_SDF_BASE_SOFTNESS / fontScale, 0.006f, 0.08f);
+	float softnessScale = NVG_DORA_SDF_BASE_SOFTNESS - 0.003f * nvg__clampf((fontScale - 0.5f) * 2.0f, 0.0f, 1.0f);
+	float baseSoftness = nvg__clampf(softnessScale / fontScale, 0.001f, 0.08f);
 	float blurSoftness = nvg__clampf(state->fontBlur / nvg__maxf(state->fontSize, 1.0f), 0.0f, 0.25f);
 	paint.feather = baseSoftness + blurSoftness;
 	paint.radius = NVG_DORA_SDF_TEXT_EDGE;

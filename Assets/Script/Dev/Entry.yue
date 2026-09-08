@@ -1767,7 +1767,7 @@ startMobileUI = ->
 			dirtyProjectPath = importedProjectPath or feedOptions.dirtyProjectPath
 			feedOptions.dirtyProjectPath = nil
 			withMobileLaunchErrors getMobileFeedEntries false, dirtyProjectPath
-		syncDiscover: (onProgress, onDone) -> mobileCatalog.syncMobileCatalog onProgress, onDone
+		syncDiscover: (onProgress, onDone, force) -> mobileCatalog.syncMobileCatalog onProgress, onDone, nil, force
 		getDiscoverEntries: ->
 			cached = loadCachedCatalog!
 			return [] unless cached.success and cached.snapshot

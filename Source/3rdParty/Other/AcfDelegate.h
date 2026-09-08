@@ -194,15 +194,105 @@ private:
 		}
 	}
 
-	static void InvokeDelegateList(DelegateImplBase* list , Args ...args)
+	class InvocationFrame;
+
+	static InvocationFrame*& CurrentInvocation()
+	{
+		static thread_local InvocationFrame* current = nullptr;
+		return current;
+	}
+
+	class InvocationFrame
+	{
+	public:
+		InvocationFrame(const Delegate* owner)
+			: Owner(owner)
+			, Previous(CurrentInvocation())
+			, Retired(nullptr)
+		{
+			CurrentInvocation() = this;
+		}
+
+		~InvocationFrame()
+		{
+			CurrentInvocation() = Previous;
+			FreeDelegateList(Retired);
+		}
+
+		const Delegate* Owner;
+		InvocationFrame* Previous;
+		DelegateImplBase* Retired;
+	};
+
+	InvocationFrame* FindOutermostInvocation() const
+	{
+		InvocationFrame* outermost = nullptr;
+		for (auto frame = CurrentInvocation(); frame != nullptr; frame = frame->Previous)
+		{
+			if (frame->Owner == this)
+			{
+				outermost = frame;
+			}
+		}
+		return outermost;
+	}
+
+	bool IsRetired(DelegateImplBase* item) const
+	{
+		for (auto frame = CurrentInvocation(); frame != nullptr; frame = frame->Previous)
+		{
+			if (frame->Owner != this) continue;
+			for (auto retired = frame->Retired; retired != nullptr; retired = retired->Previous)
+			{
+				if (retired == item) return true;
+			}
+		}
+		return false;
+	}
+
+	void RetireOrDelete(DelegateImplBase* item)
+	{
+		if (auto frame = FindOutermostInvocation())
+		{
+			item->Previous = frame->Retired;
+			frame->Retired = item;
+		}
+		else
+		{
+			delete item;
+		}
+	}
+
+	void RetireOrDeleteList(DelegateImplBase* list)
+	{
+		if (auto frame = FindOutermostInvocation())
+		{
+			while (list != nullptr)
+			{
+				auto previous = list->Previous;
+				list->Previous = frame->Retired;
+				frame->Retired = list;
+				list = previous;
+			}
+		}
+		else
+		{
+			FreeDelegateList(list);
+		}
+	}
+
+	static void InvokeDelegateList(const Delegate* owner, DelegateImplBase* list, Args ...args)
 	{
 		if (list != nullptr)
 		{
 			if (list->Previous != nullptr)
 			{
-				InvokeDelegateList(list->Previous , args...);
+				InvokeDelegateList(owner, list->Previous, args...);
 			}
-			list->Invoke(args...);
+			if (!owner->IsRetired(list))
+			{
+				list->Invoke(args...);
+			}
 		}
 	}
 
@@ -237,7 +327,7 @@ public:
 			if (impl != nullptr && impl->Functor == f)
 			{
 				*pp = d->Previous;
-				delete impl;
+				RetireOrDelete(impl);
 				return true;
 			}
 			pp = &d->Previous;
@@ -254,7 +344,7 @@ public:
 
 	void Clear()
 	{
-		FreeDelegateList(this->_last);
+		RetireOrDeleteList(this->_last);
 		this->_last = nullptr;
 	}
 
@@ -291,7 +381,7 @@ public:
 	Delegate& operator=(const TFunctor& f)
 	{
 		DelegateImplBase* d = new DelegateImpl<TFunctor>(f);
-		FreeDelegateList(this->_last);
+		Clear();
 		this->_last = d;
 		return *this;
 	}
@@ -301,7 +391,7 @@ public:
 		if (this != &d)
 		{
 			DelegateImplBase* list = CloneDelegateList(d._last, nullptr);
-			FreeDelegateList(this->_last);
+			Clear();
 			this->_last = list;
 		}
 		return *this;
@@ -380,11 +470,17 @@ public:
 		{
 			return _HandleInvalidCall<R>();
 		}
-		else if (this->_last->Previous != nullptr)
+		auto last = this->_last;
+		InvocationFrame invocation(this);
+		if (last->Previous != nullptr)
 		{
-			InvokeDelegateList(this->_last->Previous , args...);
+			InvokeDelegateList(this, last->Previous, args...);
 		}
-		return this->_last->Invoke(args...);
+		if (!IsRetired(last))
+		{
+			return last->Invoke(args...);
+		}
+		return _HandleInvalidCall<R>();
 	}
 };
 

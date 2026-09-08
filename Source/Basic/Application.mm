@@ -119,7 +119,8 @@ static UIViewController* gamePresenter(SDL_Window* window) {
 }
 
 NS_DORA_BEGIN
-void Application::openFileDialog(bool folderOnly, const std::function<void(std::string)>& callback) {
+void Application::openFileDialog(bool folderOnly, const std::function<void(std::string)>& callback, String extensions) {
+	DORA_UNUSED_PARAM(extensions); // The mobile document picker remains ZIP-only.
 	invokeInRender([this, folderOnly, callback]() {
 		UIViewController* presenter = gamePresenter(_sdlWindow);
 		if (folderOnly || !presenter || gameDocumentPicker.completion) {

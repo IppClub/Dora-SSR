@@ -6,7 +6,6 @@ import { groupFeedProjects, type FeedEntry } from "Dev/Mobile/FeedModel";
 
 const fontName = "sarasa-mono-sc-regular";
 const headerHeight = 72;
-const footerHeight = 36;
 const railWidth = 48;
 const groupHeight = 36;
 const rowHeight = 48;
@@ -58,6 +57,10 @@ export function ProjectIndex(props: {
 	width: number;
 	height: number;
 	zh: boolean;
+	refreshing?: boolean;
+	refreshStatus?: string;
+	onRefresh?(): void;
+	onStatusReady?(update: (message: string) => void): void;
 	onClose(): void;
 	onSelect(entry: FeedEntry): void;
 }) {
@@ -71,6 +74,8 @@ export function ProjectIndex(props: {
 		root.touchEnabled = true;
 		root.swallowTouches = true;
 		const discover = props.kind === "discover";
+		const canRefresh = discover && props.onRefresh !== undefined;
+		const footerHeight = canRefresh ? 64 : 36;
 		addLabel(root, `${discover ? (props.zh ? "发现作品" : "DISCOVER") : (props.zh ? "本地作品" : "LOCAL")} · ${props.entries.length}`, 18, 0xfff4f1e8,
 			16, props.height - 34);
 		const back = Node(); back.tag = "mobile-project-index-back"; back.anchor = Vec2.zero;
@@ -167,7 +172,20 @@ export function ProjectIndex(props: {
 		rail.onTapEnded(() => { popup.visible = false; });
 
 		const hint = props.zh ? "拖动左侧刻度快速定位" : "Drag the index to jump";
-		addLabel(root, hint, 9, 0xff777e8c, props.width / 2, footerHeight / 2, Vec2(0.5, 0.5));
+		if (canRefresh) {
+			const refresh = Node(); refresh.tag = "mobile-project-index-refresh";
+			refresh.anchor = Vec2.zero; refresh.position = Vec2(16, 10); refresh.size = Size(76, 44);
+			refresh.touchEnabled = !props.refreshing; refresh.swallowTouches = true;
+			refresh.onTapped(() => { if (!props.refreshing) props.onRefresh?.(); }); refresh.addTo(root);
+			const border = DrawNode(); border.renderOrder = 15001;
+			border.drawPolygon(roundedVerts(0, 6, 76, 32, 16), Color(0), 0.5, Color(props.refreshing ? 0xff343b48 : 0xff806b1c)); border.addTo(refresh);
+			addLabel(refresh, props.refreshing ? (props.zh ? "刷新中…" : "Syncing…") : (props.zh ? "刷新" : "Refresh"), 12,
+				props.refreshing ? 0xffa8afbd : 0xffffcc33, 38, 22, Vec2(0.5, 0.5));
+			const status = addLabel(root, "", 11, 0xffa8afbd, 104, 32);
+			status.tag = "mobile-project-index-refresh-status";
+			const update = (message: string) => { status.text = ellipsize(string.gsub(message !== "" ? message : hint, "[\r\n]+", " ")[0], math.max(4, math.floor((props.width - 120) / 11))); };
+			update(props.refreshStatus ?? ""); props.onStatusReady?.(update);
+		} else addLabel(root, hint, 9, 0xff777e8c, props.width / 2, footerHeight / 2, Vec2(0.5, 0.5));
 		const moveSelection = (delta: number) => {
 			if (flat.length === 0) return;
 			selectedIndex = math.max(0, math.min(flat.length - 1, selectedIndex + delta));
@@ -179,6 +197,7 @@ export function ProjectIndex(props: {
 			onBack: () => props.onClose(),
 			onScroll: (amount: number) => { scroll.unschedule(); scroll.offset = Vec2(0, math.max(0, math.min(maxOffset(), scroll.offset.y + amount))); scroll.view.moveAndCullItems(Vec2.zero); },
 			onButton: (button: string) => {
+				if (button === "x" && canRefresh) { if (!props.refreshing) props.onRefresh?.(); return true; }
 				if (button === "dpup") { moveSelection(-1); return true; }
 				if (button === "dpdown") { moveSelection(1); return true; }
 				if (button === "dpleft" || button === "dpright") {

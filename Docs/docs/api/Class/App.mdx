@@ -499,11 +499,11 @@ saveScreenshot: function(self: App, filename: string): string
 
 **Description:**
 
-&emsp;&emsp;A function that opens a file dialog. Only works on Windows, macOS and Linux.
+&emsp;&emsp;Opens a file dialog. Desktop supports optional extension filters; mobile selects ZIP files only. Folder selection is desktop-only.
 
 **Signature:**
 ```tl
-openFileDialog: function(self: App, folderOnly: boolean, callback: function(path: string))
+openFileDialog: function(self: App, folderOnly: boolean, callback: function(path: string), extensions?: string)
 ```
 
 **Parameters:**
@@ -511,6 +511,7 @@ openFileDialog: function(self: App, folderOnly: boolean, callback: function(path
 | Parameter | Type | Description |
 | --- | --- | --- |
 | folderOnly | boolean | Whether the file dialog is only for selecting folders. |
+| extensions | string (optional) | Comma-separated extensions without dots, e.g. `"zip"` or `"png,jpg"`. Omit for default filters. Ignored for folders and on mobile. |
 | callback | function | The callback function to be called when the file dialog is closed. The callback function should accept a string parameter which is the path of the selected file or folder. Get empty string if the user canceled the dialog. |
 
 ## estimateTokens

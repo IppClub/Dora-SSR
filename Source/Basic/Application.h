@@ -82,7 +82,7 @@ public:
 	std::string getClipboardText() const;
 	bool hasBackgroundMusic() const;
 	bool setAudioMixWithSystem(bool mix);
-	void openFileDialog(bool folderOnly, const std::function<void(std::string)>& callback);
+	void openFileDialog(bool folderOnly, const std::function<void(std::string)>& callback, String extensions = "");
 	bool shareFile(String path);
 	bool saveFileDialog(String path);
 	std::string takeReceivedFile();

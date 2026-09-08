@@ -39,9 +39,11 @@ static float GetFontScale(String fontStr) {
 }
 
 static Vec2 GetSDFSmoothing(float fontScale) {
-	constexpr float edge = 0.69f;
-	constexpr float baseSoftness = 0.012f;
-	float softness = Math::clamp(baseSoftness / std::max(fontScale, 0.01f), 0.006f, 0.08f);
+	// A small contour outset restores weight without discarding subpixel coverage.
+	constexpr float edge = 0.684f;
+	// Keep small text antialiased; larger text needs a narrower pixel transition.
+	float baseSoftness = 0.012f - 0.003f * Math::clamp((fontScale - 0.5f) * 2.0f, 0.0f, 1.0f);
+	float softness = Math::clamp(baseSoftness / std::max(fontScale, 0.01f), 0.001f, 0.08f);
 	return {edge - softness, edge + softness};
 }
 

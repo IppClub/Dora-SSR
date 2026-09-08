@@ -177,8 +177,9 @@ function ____exports.startPackagePanel(options) -- 37
 					message = "" -- 92
 					render() -- 92
 				end -- 92
-			end -- 88
-		) -- 88
+			end, -- 88
+			"zip" -- 93
+		) -- 93
 	end -- 85
 	local function install(play) -- 95
 		if not enabled() or not preview then -- 95

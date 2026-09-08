@@ -23,7 +23,7 @@ interface MobileFeedOptions {
 	getLocalEntries: (this: void, dirtyProjectPath?: string) => FeedEntry[];
 	takeReceivedFile?: (this: void) => string;
 	getDiscoverEntries: (this: void) => FeedEntry[];
-	syncDiscover?: (this: void, onProgress: (this: void, message: string) => void, onDone: (this: void, success: boolean, message?: string) => void) => void;
+	syncDiscover?: (this: void, onProgress: (this: void, message: string) => void, onDone: (this: void, success: boolean, message?: string) => void, force?: boolean) => void;
 	onPlay: (this: void, entry: FeedEntry) => void;
 	onRemix: (this: void, entry: FeedEntry) => void;
 	onCurrentEntryChanged?: (this: void, entry: FeedEntry) => void;
@@ -112,6 +112,10 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	let preparing = false;
 	let transitioning = false;
 	let prepareStatus = "";
+	let prepareProgress = 0;
+	let catalogSyncing = false;
+	let catalogStatus = "";
+	let catalogStatusView: ((message: string) => void) | undefined;
 	let repairResourceId = "";
 	let userSelectedTab = false;
 	let active = true;
@@ -291,13 +295,15 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		const done = () => { returnEntry = item; return action === "play" ? onPlay(item) : onRemix(item); };
 		if (item.kind === "local" || item.installed) { done(); return; }
 		preparing = true;
+		prepareProgress = 0;
 		prepareStatus = zh ? "准备安装…" : "Preparing install…";
 		render();
 		const repairIncomplete = repairResourceId === item.id;
 		repairResourceId = "";
 		prepare(item, repairIncomplete, (progress, message) => {
 			if (!isActive()) return;
-			prepareStatus = `${math.floor(progress * 100)}% · ${message}`;
+			prepareProgress = math.max(0, math.min(1, progress));
+			prepareStatus = message;
 			render();
 		}, (success, ready, message, repairable) => {
 			if (!isActive()) return;
@@ -363,6 +369,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	host.slot("SwitchUIMode", switchMode);
 	const render = () => {
 		if (!isActive()) return;
+		catalogStatusView = undefined;
 		// Catalog updates must not replace an active IME target or discard its preedit.
 		const safeContentWidth = App.safeArea.width - 40;
 		const shortLandscapeInputWidth = safeContentWidth - 12 - math.min(300, math.floor(safeContentWidth * 0.42));
@@ -492,13 +499,29 @@ export function startMobileFeed(options: MobileFeedOptions) {
 							text={item.kind === "local" ? (zh ? "本地作品  ·  可 Remix" : "Local  ·  Remixable") : item.installed ? (zh ? "发现  ·  已安装" : "Discover  ·  Installed") : (zh ? "发现  ·  可安装" : "Discover  ·  Installable")}
 							textWidth={(wide ? 176 : 164) - 24} alignment={TextAlign.Left} color3={0xdce1ea} />
 					</node>}
+				{preparing ? <node tag="mobile-feed-download" x={infoX} y={actionsY} width={infoWidth} height={48} anchorX={0} anchorY={0}>
+					<label x={0} y={38} anchorX={0} fontName={fontName} fontSize={14} text={zh ? "正在下载作品" : "Downloading game"} color3={0xffcc33} />
+					<label tag="mobile-feed-download-percent" x={infoWidth} y={38} anchorX={1} fontName={fontName} fontSize={14} text={`${math.floor(prepareProgress * 100)}%`} color3={0xffcc33} />
+					<node tag="mobile-feed-download-track" width={infoWidth} height={8} y={8} anchorX={0} anchorY={0}>
+						<RoundedSurface width={infoWidth} height={8} radius={4} fillColor={0xff293140} />
+						<node tag="mobile-feed-download-fill" width={infoWidth * prepareProgress} height={8} anchorX={0} anchorY={0}>
+							{prepareProgress > 0 ? <RoundedSurface width={infoWidth * prepareProgress} height={8} radius={4} topColor={0xffffdf6b} bottomColor={0xffffbd2e} /> : undefined}
+						</node>
+					</node>
+				</node> : <node>
 				<MobileButton tag="mobile-feed-remix" x={infoX} y={actionsY} width={buttonWidth} text={zh ? "Remix 作品" : "Remix game"} fontSize={math.floor(16 * fontScale)}
 					primary={true} onTapped={() => activate("remix")} />
 				<MobileButton tag="mobile-feed-play" x={infoX + buttonWidth + 12} y={actionsY} width={buttonWidth} text={zh ? "试玩" : "Play"} fontSize={math.floor(17 * fontScale)}
 					onTapped={() => activate("play")} />
+				</node>}
+				{preparing ? <clip-node tag="mobile-feed-download-message-clip" x={infoX} y={gestureHintY - 10} width={infoWidth} height={20} anchorX={0} anchorY={0}
+					stencil={<RoundedStencil width={infoWidth} height={20} radius={0} />}>
+					<label tag="mobile-feed-download-message" x={0} y={10} anchorX={0} fontName={fontName} fontSize={12}
+						text={string.gsub(prepareStatus, "[\r\n]+", " ")[0]} textWidth={-1} color3={0xa8afbd} />
+				</clip-node> :
 					<label tag="mobile-feed-gesture-hint" x={infoX} y={gestureHintY} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={gamepadUsed ? 11 : 14}
 					text={prepareStatus !== "" ? prepareStatus : item.launchError !== undefined ? item.launchError : gamepadUsed ? (zh ? "↑↓ 浏览 · A 确认 · X Remix · Start 列表 · Y 新建" : "↑↓ Browse · A Select · X Remix · Start List · Y New") : (zh ? "上滑浏览  ·  右滑 Remix  ·  左滑试玩" : "Swipe up  ·  right Remix  ·  left Play")}
-						textWidth={infoWidth} alignment={TextAlign.Left} color3={item.launchError !== undefined ? 0xff6b6b : 0xa8afbd} />
+						textWidth={infoWidth} alignment={TextAlign.Left} color3={item.launchError !== undefined ? 0xff6b6b : 0xa8afbd} />}
 			</node> : <node>
 				<label x={left + usableWidth / 2} y={bottom + usableHeight / 2 + 20} fontName={fontName} fontSize={22}
 					text={tab === "discover" ? (zh ? "暂无移动作品" : "No mobile games yet") : (zh ? "没有可运行的本地作品" : "No runnable local games")}
@@ -511,6 +534,8 @@ export function startMobileFeed(options: MobileFeedOptions) {
 				<MobileButton tag="mobile-empty-new" x={left + 20} y={bottom + 24} width={(usableWidth - 52) / 2} text={zh ? "新建作品" : "New game"} onTapped={openCreate} />
 				<MobileButton tag="mobile-empty-import" x={left + 32 + (usableWidth - 52) / 2} y={bottom + 24} width={(usableWidth - 52) / 2} text={zh ? "导入作品包" : "Import package"} fontSize={15} primary={true} onTapped={() => openPackage("add", undefined, true)} />
 			</node> : undefined}
+			{!item && tab === "discover" && syncDiscover ? <MobileButton tag="mobile-feed-empty-index" x={left + (usableWidth - 160) / 2} y={bottom + 24} width={160}
+				text={zh ? "作品目录" : "Game index"} onTapped={openProjectIndex} /> : undefined}
 			<node tag="mobile-feed-header" order={headerRenderOrder}>
 				{options.onSwitchMode ? <node tag="mobile-ui-mode-switch" x={left + 12} y={bottom + usableHeight - 58 + landscapeTopLift} width={72} height={48}
 					anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={switchMode}>
@@ -576,6 +601,9 @@ export function startMobileFeed(options: MobileFeedOptions) {
 			})() : undefined}
 			</node>
 			{projectIndexOpen ? <ProjectIndex entries={entries()} kind={tab} current={current()} x={left} y={bottom} width={usableWidth} height={usableHeight} zh={zh}
+				refreshing={catalogSyncing} refreshStatus={catalogStatus}
+				onRefresh={syncDiscover ? () => refreshDiscover(true) : undefined}
+				onStatusReady={update => { catalogStatusView = update; }}
 				onClose={() => { projectIndexOpen = false; render(); }}
 				onSelect={entry => {
 					projectIndexOpen = false;
@@ -652,33 +680,43 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	});
 	host.slot("SuspendLocalUI", blurCreateInput);
 	host.slot("ResumeLocalUI", () => { leaving = false; render(); });
-	render();
-	if (syncDiscover) {
+	const refreshDiscover = (force: boolean) => {
+		if (!syncDiscover || catalogSyncing || !isActive()) return;
+		catalogSyncing = true;
+		catalogStatus = zh ? "正在同步资源目录…" : "Syncing Catalog…";
 		if (discover.length === 0) {
-			discoverError = zh ? "正在同步资源目录…" : "Syncing Catalog…";
-			render();
+			discoverError = catalogStatus;
 		}
+		render();
 		syncDiscover(message => {
-			if (!isActive() || discover.length > 0) return;
+			if (!isActive()) return;
+			catalogStatus = message;
+			catalogStatusView?.(message);
+			if (projectIndexOpen || discover.length > 0) return;
 			discoverError = message;
 			render();
 		}, (success, message) => {
 			if (!isActive()) return;
-			const selected = returnEntry ?? rememberedEntries[tab] ?? current();
+			catalogSyncing = false;
+			catalogStatus = success ? (zh ? "目录已更新" : "Catalog updated") : ((zh ? "刷新失败：" : "Refresh failed: ") + (message ?? (zh ? "请重试" : "Try again")));
+			const selected = force ? current() : returnEntry ?? rememberedEntries[tab] ?? current();
 			const previousCount = discover.length;
 			discover = getDiscoverEntries();
 			discoverError = success
 				? (discover.length === 0 ? (zh ? "目录中暂无可运行作品" : "No runnable Catalog games") : "")
 				: (message ?? (zh ? "资源目录同步失败" : "Catalog sync failed"));
-			tab = resolveDiscoverRefreshTab(tab, userSelectedTab, previousCount, discover.length, local.length);
+			// A catalog refresh updates the current list; it must not navigate to
+			// Local when the old Discover entry disappeared or matches an installed copy.
+			if (!force && !projectIndexOpen) tab = resolveDiscoverRefreshTab(tab, userSelectedTab, previousCount, discover.length, local.length);
 			if (selected !== undefined) {
 				const location = resolveFeedLocation(local, discover, selected);
-				tab = location.tab;
-				index = location.index;
+				if (location.tab === tab) index = location.index;
 			}
-			if (tab === "discover") index = normalizeFeedIndex(index, discover.length);
+			index = normalizeFeedIndex(index, entries().length);
 			render();
-		});
-	}
+		}, force);
+	};
+	render();
+	refreshDiscover(false);
 	return host;
 }

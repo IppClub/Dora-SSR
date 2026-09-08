@@ -800,8 +800,9 @@ interface App {
 	 * 打开文件对话框。移动端支持选择 ZIP 文件；文件夹选择仅限桌面端。
 	 * @param folderOnly 是否仅允许选择文件夹。
 	 * @param callback 当文件对话框关闭时调用的回调函数。回调函数应接受一个字符串参数，该参数为选中的文件或文件夹的路径。如果用户取消对话框，则返回空字符串。
+	 * @param extensions 桌面端扩展名筛选，不带点、以逗号分隔（如 "zip" 或 "png,jpg"）；省略时保留默认筛选。选择文件夹及移动端忽略此参数。
 	 */
-	openFileDialog(folderOnly: boolean, callback: (this: void, path: string) => void): void;
+	openFileDialog(folderOnly: boolean, callback: (this: void, path: string) => void, extensions?: string): void;
 
 	/** 在移动端打开系统分享面板，桌面端打开所在目录。返回 true 表示已发起操作，不代表已送达。 */
 	shareFile(path: string): boolean;

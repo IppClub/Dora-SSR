@@ -797,8 +797,9 @@ interface App {
 	 * Opens a file dialog. Mobile supports ZIP files only; folder selection is desktop-only.
 	 * @param folderOnly Whether the file dialog is only for selecting folders.
 	 * @param callback The callback function to be called when the file dialog is closed. The callback function should accept a string parameter which is the path of the selected file or folder. Get empty string if the user canceled the dialog.
+	 * @param extensions Comma-separated desktop extensions without dots (for example "zip" or "png,jpg"). Omit for default filters; ignored for folders and on mobile.
 	 */
-	openFileDialog(folderOnly: boolean, callback: (this: void, path: string) => void): void;
+	openFileDialog(folderOnly: boolean, callback: (this: void, path: string) => void, extensions?: string): void;
 
 	/** Opens the system share sheet on mobile (desktop: reveals the containing folder). True means dispatched, not delivered. */
 	shareFile(path: string): boolean;

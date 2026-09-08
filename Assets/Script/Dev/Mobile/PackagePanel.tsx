@@ -90,7 +90,7 @@ export function startPackagePanel(options: {
 			if (!active || !host.parent) return;
 			if (path !== "") receive(path);
 			else { message = ""; render(); }
-		});
+		}, "zip");
 	};
 	const install = (play: boolean) => {
 		if (!enabled() || !preview) return;

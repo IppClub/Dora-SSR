@@ -1873,9 +1873,9 @@ std::string Application::saveScreenshot(String filename) {
 }
 
 #if !BX_PLATFORM_IOS
-void Application::openFileDialog(bool folderOnly, const std::function<void(std::string)>& callback) {
+void Application::openFileDialog(bool folderOnly, const std::function<void(std::string)>& callback, String extensions) {
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX
-	invokeInRender([this, folderOnly, callback]() {
+	invokeInRender([this, folderOnly, callback, extensions = extensions.toString()]() {
 		std::string path;
 		NFD::Guard nfdGuard;
 		NFD::UniquePath outPath;
@@ -1884,6 +1884,9 @@ void Application::openFileDialog(bool folderOnly, const std::function<void(std::
 		nfdresult_t result;
 		if (folderOnly) {
 			result = NFD::PickFolder(outPath, nullptr, parentWindow);
+		} else if (!extensions.empty()) {
+			const nfdfilteritem_t filter = {"Files", extensions.c_str()};
+			result = NFD::OpenDialog(outPath, &filter, 1, nullptr, parentWindow);
 		} else {
 			const nfdfilteritem_t filters[] = {
 				{"Images", "png,jpg,jpeg,bmp,gif,webp,ktx,pvr,dds,clip"},

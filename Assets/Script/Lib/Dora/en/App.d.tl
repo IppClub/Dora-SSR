@@ -139,7 +139,8 @@ local record App
 	-- Opens a file dialog. Mobile supports ZIP files only; folder selection is desktop-only.
 	-- @param folderOnly (boolean) Whether the file dialog is only for selecting folders.
 	-- @param callback (function) The callback function to be called when the file dialog is closed. The callback function should accept a string parameter which is the path of the selected file or folder. Get empty string if the user canceled the dialog.
-	openFileDialog: function(self: App, folderOnly: boolean, callback: function(path: string))
+	-- @param extensions (string, optional) Comma-separated desktop extensions without dots (for example "zip" or "png,jpg"). Omit to keep the default filters. Ignored for folders and on mobile.
+	openFileDialog: function(self: App, folderOnly: boolean, callback: function(path: string), extensions?: string)
 
 	-- Dispatch a system share sheet (desktop: reveal containing folder), not a delivery receipt.
 	shareFile: function(self: App, path: string): boolean

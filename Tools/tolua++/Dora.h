@@ -179,7 +179,7 @@ class Application
 	void install(String path);
 	bool saveLog(String filename);
 	string saveScreenshot(String filename);
-	void openFileDialog(bool folderOnly, tolua_function_void callback);
+	void openFileDialog(bool folderOnly, tolua_function_void callback, String extensions = "");
 	bool shareFile(String path);
 	bool saveFileDialog(String path);
 	string takeReceivedFile();

@@ -9659,10 +9659,10 @@ void LoveNode::drawText(Love::GraphicsBackend::FontHandle font, std::string_view
 			if (_activeShader == 0)
 			{
 				const float fontScale = getLoveFontScale(*batch.resource) * transformScale;
-				constexpr float edge = 0.69f;
-				constexpr float baseSoftness = 0.012f;
+				constexpr float edge = 0.684f;
+				const float baseSoftness = 0.012f - 0.003f * std::clamp((fontScale - 0.5f) * 2.0f, 0.0f, 1.0f);
 				const float softness = std::clamp(baseSoftness / std::max(fontScale, 0.01f),
-					0.006f, 0.08f);
+					0.001f, 0.08f);
 				smooth = Vec2{edge - softness, edge + softness};
 			}
 			const auto blend = toDoraBlendFunc(_blendMode, _blendAlphaMode);
