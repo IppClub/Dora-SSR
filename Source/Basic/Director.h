@@ -165,6 +165,7 @@ private:
 	std::string _captureFile;
 	std::function<void(bool, double, Size)> _captureCallback;
 	bool _nvgDirty;
+	NVGcontext* _retiredNVGContext = nullptr;
 	bool _paused;
 	bool _stoped;
 	Color _clearColor;

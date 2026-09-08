@@ -71,6 +71,7 @@ Director::Director()
 Director::~Director() {
 	cleanup();
 	clearSystemUI();
+	if (_retiredNVGContext) nvgDelete(_retiredNVGContext);
 }
 
 void Director::setScheduler(Scheduler* scheduler) {
@@ -743,9 +744,14 @@ void Director::cleanup() {
 	}
 	Event::handlePostEvents();
 	if (_nvgContext) {
-		nvgDelete(_nvgContext);
+		// Keep the old renderer alive until its replacement acquires the shared
+		// bgfx shader/uniform handles. Destroying and recreating those handles in
+		// one frame makes the first persistent-UI frame lose its paint uniforms.
+		if (_nvgDirty) nvgCancelFrame(_nvgContext);
+		_retiredNVGContext = _nvgContext;
 		_nvgContext = nullptr;
 	}
+	_nvgDirty = false;
 	_camStack->clear();
 }
 
@@ -801,6 +807,10 @@ NVGcontext* Director::markNVGDirty() {
 	if (!_nvgContext) {
 		_nvgContext = nvgCreate(1, 0);
 		AssertUnless(_nvgContext, "failed to init NanoVG context!");
+		if (_retiredNVGContext) {
+			nvgDelete(_retiredNVGContext);
+			_retiredNVGContext = nullptr;
+		}
 	}
 	if (!_nvgDirty) {
 		_nvgDirty = true;

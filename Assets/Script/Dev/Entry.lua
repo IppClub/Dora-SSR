@@ -3003,8 +3003,8 @@ startMobileUI = function() -- 1675
 				return onDone(result.success, result.entry, result.message, result.repairable) -- 1794
 			end), repairIncomplete) -- 1793
 		end, -- 1792
-		createProject = function(name) -- 1796
-			local result = projectCreate.createMobileTypeScriptProject(name) -- 1797
+		createProject = function(name, language) -- 1796
+			local result = projectCreate.createMobileProject(name, language) -- 1797
 			if not result.success then -- 1798
 				return result -- 1798
 			end -- 1798

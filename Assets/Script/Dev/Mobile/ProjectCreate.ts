@@ -2,6 +2,8 @@ import { Content, Path } from "Dora";
 
 export const mobileTypeScriptProjectTemplate = "// @preview-file on clear\nimport {} from 'Dora';\n\n";
 export const mobileTypeScriptProjectLuaTemplate = "-- [ts]: init.ts\nlocal ____exports = {}\nreturn ____exports\n";
+export const mobileLuaProjectTemplate = "-- @preview-file on clear\nlocal Dora = require(\"Dora\")\n\n";
+export type MobileProjectLanguage = "typescript" | "lua";
 
 export type MobileProjectCreateError = "invalid-name" | "target-existed" | "create-folder-failed" | "create-entry-failed";
 
@@ -37,6 +39,10 @@ export const normalizeMobileProjectName = (name: string) => {
 };
 
 export function createMobileTypeScriptProject(name: string, storage = defaultStorage()): MobileProjectCreateResult {
+	return createMobileProject(name, "typescript", storage);
+}
+
+export function createMobileProject(name: string, language: MobileProjectLanguage = "typescript", storage = defaultStorage()): MobileProjectCreateResult {
 	const normalized = normalizeMobileProjectName(name);
 	if (!normalized) return { success: false, error: "invalid-name" };
 
@@ -47,12 +53,12 @@ export function createMobileTypeScriptProject(name: string, storage = defaultSto
 	if (collision || storage.exist(workDir)) return { success: false, error: "target-existed" };
 	if (!storage.mkdir(workDir)) return { success: false, error: "create-folder-failed" };
 
-	const entryFile = Path(workDir, "init.ts");
-	if (!storage.save(entryFile, mobileTypeScriptProjectTemplate)) {
+	const entryFile = Path(workDir, language === "lua" ? "init.lua" : "init.ts");
+	if (!storage.save(entryFile, language === "lua" ? mobileLuaProjectTemplate : mobileTypeScriptProjectTemplate)) {
 		storage.remove(workDir);
 		return { success: false, error: "create-entry-failed" };
 	}
-	if (!storage.save(Path(workDir, "init.lua"), mobileTypeScriptProjectLuaTemplate)) {
+	if (language === "typescript" && !storage.save(Path(workDir, "init.lua"), mobileTypeScriptProjectLuaTemplate)) {
 		storage.remove(workDir);
 		return { success: false, error: "create-entry-failed" };
 	}

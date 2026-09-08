@@ -11,6 +11,8 @@ local targets = {
 	["mobile-project-index-back"] = true,
 	["mobile-project-create-input"] = true, ["mobile-project-create-cancel"] = true,
 	["mobile-project-create-submit"] = true,
+	["mobile-project-create-language-typescript"] = true,
+	["mobile-project-create-language-lua"] = true,
 	["remix-back"] = true, ["remix-model-config"] = true,
 	["remix-mode-plan"] = true, ["remix-mode-code"] = true,
 	["remix-input"] = true, ["remix-question-input"] = true,

@@ -1,5 +1,5 @@
 import { React } from "DoraX";
-import { Color, Color3, DrawNode, Label, Node, Size, Vec2 } from "Dora";
+import { Color, Color3, DrawNode, Label, Node, Size, TextAlign, Vec2 } from "Dora";
 import { RoundedSurface } from "Dev/Mobile/Visual";
 
 const fontName = "sarasa-mono-sc-regular";
@@ -81,6 +81,21 @@ export function MobileButton(props: {
 		<label x={props.width / 2} y={height / 2} fontName={fontName}
 			fontSize={props.fontSize ?? 17} text={props.text}
 			color3={props.primary ? 0x17130a : 0xf4f1e8} />
+	</node>;
+}
+
+export function MobileChoiceButton(props: { x: number; y: number; width: number; text: string; tag?: string; selected: boolean; disabled?: boolean; renderOrder?: number; onTapped(): void }) {
+	return <node tag={props.tag} x={props.x} y={props.y} width={props.width} height={40} anchorX={0} anchorY={0} renderOrder={props.renderOrder} opacity={props.disabled ? 0.45 : 1} touchEnabled={!props.disabled} swallowTouches={true} onTapped={props.onTapped}>
+		<RoundedSurface width={props.width} height={40} radius={12} renderOrder={props.renderOrder === undefined ? undefined : props.renderOrder + 1}
+			topColor={props.selected ? 0xffffdf6b : 0xff202836}
+			bottomColor={props.selected ? 0xffffbd2e : 0xff10151d}
+			borderWidth={1} borderColor={props.selected ? 0xffffdd63 : 0xff343b48} />
+		<draw-node tag={props.tag ? `${props.tag}-radio` : undefined} x={17} y={20}>
+			<dot-shape radius={7} color={props.selected ? 0xff17130a : 0xffa8afbd} />
+			<dot-shape radius={5} color={props.selected ? 0xffffcf48 : 0xff171c26} />
+			{props.selected ? <draw-node tag={props.tag ? `${props.tag}-radio-dot` : undefined}><dot-shape radius={2.5} color={0xff17130a} /></draw-node> : undefined}
+		</draw-node>
+		<label x={32} y={20} anchorX={0} fontName={fontName} fontSize={14} text={props.text} textWidth={props.width - 44} alignment={TextAlign.Left} color3={props.selected ? 0x17130a : 0xf4f1e8} />
 	</node>;
 }
 

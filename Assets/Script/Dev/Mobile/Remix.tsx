@@ -15,6 +15,7 @@ import { createTextInput, inputLength, inputSlice } from "Dev/Mobile/TextInput";
 import { startMobileLLMManager } from "Dev/Mobile/LLMSetup";
 import { startPackagePanel } from "Dev/Mobile/PackagePanel";
 import { RoundedSurface, VerticalGradient } from "Dev/Mobile/Visual";
+import { MobileChoiceButton as ChoiceButton } from "Dev/Mobile/Controls";
 
 interface RemixEntry {
 	id: string;
@@ -97,21 +98,6 @@ function ActionButton(props: { x: number; y: number; width: number; height?: num
 			bottomColor={props.danger ? 0xffdf4e56 : props.primary ? 0xffffbd2e : 0xff171d27}
 			borderWidth={1} borderColor={props.danger ? colors.danger : props.primary ? 0xffffdd63 : colors.border} shadow={props.primary || props.danger} />
 		<label x={props.width / 2} y={height / 2} fontName={fontName} fontSize={15} text={props.text} color3={props.primary ? 0x17130a : 0xf4f1e8} />
-	</node>;
-}
-
-function ChoiceButton(props: { x: number; y: number; width: number; text: string; tag?: string; selected: boolean; disabled?: boolean; onTapped(): void }) {
-	return <node tag={props.tag} x={props.x} y={props.y} width={props.width} height={40} anchorX={0} anchorY={0} opacity={props.disabled ? 0.45 : 1} touchEnabled={!props.disabled} swallowTouches={true} onTapped={props.onTapped}>
-		<RoundedSurface width={props.width} height={40} radius={12}
-			topColor={props.selected ? 0xffffdf6b : 0xff202836}
-			bottomColor={props.selected ? 0xffffbd2e : 0xff10151d}
-			borderWidth={1} borderColor={props.selected ? 0xffffdd63 : colors.border} />
-		<draw-node tag={props.tag ? `${props.tag}-radio` : undefined} x={17} y={20}>
-			<dot-shape radius={7} color={props.selected ? 0xff17130a : 0xffa8afbd} />
-			<dot-shape radius={5} color={props.selected ? 0xffffcf48 : 0xff171c26} />
-			{props.selected ? <draw-node tag={props.tag ? `${props.tag}-radio-dot` : undefined}><dot-shape radius={2.5} color={0xff17130a} /></draw-node> : undefined}
-		</draw-node>
-		<label x={32} y={20} anchorX={0} fontName={fontName} fontSize={14} text={props.text} textWidth={props.width - 44} alignment={TextAlign.Left} color3={props.selected ? 0x17130a : 0xf4f1e8} />
 	</node>;
 }
 

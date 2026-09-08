@@ -1,4 +1,8 @@
 -- [tsx]: Controls.tsx
+local ____lualib = require("lualib_bundle") -- 1
+local __TS__SparseArrayNew = ____lualib.__TS__SparseArrayNew -- 1
+local __TS__SparseArrayPush = ____lualib.__TS__SparseArrayPush -- 1
+local __TS__SparseArraySpread = ____lualib.__TS__SparseArraySpread -- 1
 local ____exports = {} -- 1
 local ____DoraX = require("DoraX") -- 1
 local React = ____DoraX.React -- 1
@@ -114,17 +118,88 @@ function ____exports.MobileButton(props) -- 57
 		}) -- 74
 	) -- 74
 end -- 57
-function ____exports.MobilePanelSurface(props) -- 87
-	return React.createElement(RoundedSurface, { -- 88
-		width = props.width, -- 88
-		height = props.height, -- 88
-		radius = 24, -- 88
-		topColor = 4280560956, -- 88
-		bottomColor = 4279309856, -- 88
-		borderWidth = 1, -- 88
-		borderColor = 4283061608, -- 88
-		shadow = true, -- 88
-		renderOrder = props.renderOrder -- 88
-	}) -- 88
+function ____exports.MobileChoiceButton(props) -- 87
+	local ____React_createElement_9 = React.createElement -- 87
+	local ____temp_7 = { -- 87
+		tag = props.tag, -- 87
+		x = props.x, -- 87
+		y = props.y, -- 87
+		width = props.width, -- 87
+		height = 40, -- 87
+		anchorX = 0, -- 87
+		anchorY = 0, -- 87
+		renderOrder = props.renderOrder, -- 87
+		opacity = props.disabled and 0.45 or 1, -- 87
+		touchEnabled = not props.disabled, -- 87
+		swallowTouches = true, -- 87
+		onTapped = props.onTapped -- 87
+	} -- 87
+	local ____React_createElement_3 = React.createElement -- 87
+	local ____RoundedSurface_2 = RoundedSurface -- 89
+	local ____props_width_1 = props.width -- 89
+	local ____temp_0 -- 89
+	if props.renderOrder == nil then -- 89
+		____temp_0 = nil -- 89
+	else -- 89
+		____temp_0 = props.renderOrder + 1 -- 89
+	end -- 89
+	local ____React_createElement_3_result_8 = ____React_createElement_3(____RoundedSurface_2, { -- 89
+		width = ____props_width_1, -- 89
+		height = 40, -- 89
+		radius = 12, -- 89
+		renderOrder = ____temp_0, -- 89
+		topColor = props.selected and 4294958955 or 4280297526, -- 89
+		bottomColor = props.selected and 4294950190 or 4279244061, -- 89
+		borderWidth = 1, -- 89
+		borderColor = props.selected and 4294958435 or 4281613128 -- 89
+	}) -- 89
+	local ____React_createElement_6 = React.createElement -- 89
+	local ____array_5 = __TS__SparseArrayNew( -- 89
+		"draw-node", -- 89
+		{tag = props.tag and props.tag .. "-radio" or nil, x = 17, y = 20}, -- 89
+		React.createElement("dot-shape", {radius = 7, color = props.selected and 4279702282 or 4289245117}), -- 89
+		React.createElement("dot-shape", {radius = 5, color = props.selected and 4294954824 or 4279704614}) -- 89
+	) -- 89
+	local ____props_selected_4 -- 96
+	if props.selected then -- 96
+		____props_selected_4 = React.createElement( -- 96
+			"draw-node", -- 96
+			{tag = props.tag and props.tag .. "-radio-dot" or nil}, -- 96
+			React.createElement("dot-shape", {radius = 2.5, color = 4279702282}) -- 96
+		) -- 96
+	else -- 96
+		____props_selected_4 = nil -- 96
+	end -- 96
+	__TS__SparseArrayPush(____array_5, ____props_selected_4) -- 96
+	return ____React_createElement_9( -- 88
+		"node", -- 88
+		____temp_7, -- 88
+		____React_createElement_3_result_8, -- 88
+		____React_createElement_6(__TS__SparseArraySpread(____array_5)), -- 88
+		React.createElement("label", { -- 88
+			x = 32, -- 88
+			y = 20, -- 88
+			anchorX = 0, -- 88
+			fontName = fontName, -- 88
+			fontSize = 14, -- 88
+			text = props.text, -- 88
+			textWidth = props.width - 44, -- 88
+			alignment = "Left", -- 88
+			color3 = props.selected and 1512202 or 16052712 -- 88
+		}) -- 88
+	) -- 88
 end -- 87
-return ____exports -- 87
+function ____exports.MobilePanelSurface(props) -- 102
+	return React.createElement(RoundedSurface, { -- 103
+		width = props.width, -- 103
+		height = props.height, -- 103
+		radius = 24, -- 103
+		topColor = 4280560956, -- 103
+		bottomColor = 4279309856, -- 103
+		borderWidth = 1, -- 103
+		borderColor = 4283061608, -- 103
+		shadow = true, -- 103
+		renderOrder = props.renderOrder -- 103
+	}) -- 103
+end -- 102
+return ____exports -- 102

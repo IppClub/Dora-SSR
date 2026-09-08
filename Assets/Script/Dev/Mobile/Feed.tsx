@@ -5,10 +5,11 @@ import { attachGamepad, findGamepadNode } from "Dev/Mobile/Gamepad";
 import { mobileFontScale } from "Dev/Mobile/Accessibility";
 import { getCoverScales, getReusableCardIndices, normalizeFeedIndex, resolveDiscoverRefreshTab, resolveFeedGesture, resolveFeedLocation, stableCoverColor, type FeedAction, type FeedEntry as ModelFeedEntry, type FeedTab } from "Dev/Mobile/FeedModel";
 import { createTextInput } from "Dev/Mobile/TextInput";
-import { MobileButton, MobileNewButton, MobilePanelSurface } from "Dev/Mobile/Controls";
+import { MobileButton, MobileChoiceButton, MobileNewButton, MobilePanelSurface } from "Dev/Mobile/Controls";
 import { roundedRectVerts, RoundedStencil, RoundedSurface, VerticalGradient } from "Dev/Mobile/Visual";
 import { startPackagePanel } from "Dev/Mobile/PackagePanel";
 import { ProjectIndex } from "Dev/Mobile/ProjectIndex";
+import type { MobileProjectLanguage } from "Dev/Mobile/ProjectCreate";
 
 interface FeedEntry extends ModelFeedEntry {
 	resource?: unknown;
@@ -26,7 +27,7 @@ interface MobileFeedOptions {
 	onPlay: (this: void, entry: FeedEntry) => void;
 	onRemix: (this: void, entry: FeedEntry) => void;
 	onCurrentEntryChanged?: (this: void, entry: FeedEntry) => void;
-	createProject?: (this: void, name: string) => { success: true; entry: FeedEntry } | { success: false; error: string };
+	createProject?: (this: void, name: string, language: MobileProjectLanguage) => { success: true; entry: FeedEntry } | { success: false; error: string };
 	onSwitchMode?: (this: void) => void;
 	prepare: (this: void, entry: FeedEntry, repairIncomplete: boolean, onProgress: (this: void, progress: number, message: string) => void, onDone: (this: void, success: boolean, ready?: { fileName: string; workDir: string }, message?: string, repairable?: boolean) => void) => void;
 }
@@ -43,9 +44,9 @@ const colors = {
 };
 
 const fontName = "sarasa-mono-sc-regular";
-const createSheetHeight = 260;
+const createSheetHeight = 304;
 const createInputHeight = 44;
-const createInputTop = 96;
+const createInputTop = 140;
 
 function conciseDescription(text: string, limit: number) {
 	const length = utf8.len(text)[0] ?? 0;
@@ -120,6 +121,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	let projectIndexOpen = false;
 	let creating = false;
 	let createName = "";
+	let createLanguage: MobileProjectLanguage = "typescript";
 	let dismissedCreateComposition = false;
 	let createError = "";
 	let gamepadUsed = false;
@@ -185,6 +187,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		if (!options.createProject || preparing || transitioning || creating || createOpen || HttpServer.wsConnectionCount > 0) return;
 		projectIndexOpen = false;
 		createOpen = true;
+		createLanguage = "typescript";
 		createName = "";
 		dismissedCreateComposition = false;
 		createError = "";
@@ -214,7 +217,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		createError = "";
 		blurCreateInput();
 		render();
-		const result = options.createProject(createName);
+		const result = options.createProject(createName, createLanguage);
 		if (!isActive()) return;
 		creating = false;
 		if (!result.success) {
@@ -552,11 +555,18 @@ export function startMobileFeed(options: MobileFeedOptions) {
 					<node ref={createPanelRef} order={10} renderOrder={10} x={left} y={bottom} width={sheetWidth} height={sheetHeight} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true}>
 						<MobilePanelSurface width={sheetWidth} height={sheetHeight} renderOrder={10} />
 						<label x={20} y={sheetHeight - 24} anchorX={0} anchorY={1} fontName={fontName} fontSize={22} text={zh ? "新建项目" : "New project"} color3={0xf4f1e8} />
-						<label x={20} y={sheetHeight - 66} anchorX={0} anchorY={1} fontName={fontName} fontSize={14} text={zh ? "项目名称" : "Project name"} color3={0xa8afbd} />
+						{(["typescript", "lua"] as MobileProjectLanguage[]).map((language, i) => <MobileChoiceButton
+							tag={`mobile-project-create-language-${language}`} x={20 + i * 144} y={sheetHeight - 98} width={language === "lua" ? 84 : 132}
+							text={language === "lua" ? "Lua" : "TypeScript"}
+							selected={createLanguage === language} renderOrder={10} onTapped={() => {
+								if (!canEditCreate()) return;
+								blurCreateInput(); createLanguage = language; render();
+							}} />)}
+						<label x={20} y={sheetHeight - 110} anchorX={0} anchorY={1} fontName={fontName} fontSize={14} text={zh ? "项目名称" : "Project name"} color3={0xa8afbd} />
 							{keptInput ? undefined : <node tag="mobile-project-create-input" ref={createInputRef} renderOrder={10} x={20} y={sheetHeight - createInputTop - createInputHeight} width={inputWidth} height={createInputHeight} anchorX={0} anchorY={0}
 							onMount={createInput.mount} />}
 						<label tag="mobile-project-create-error" x={20} y={shortLandscape ? sheetHeight - createInputTop + 12 : sheetHeight - createInputTop - createInputHeight - 12} anchorX={0} anchorY={1} fontName={fontName} fontSize={12}
-							text={createError !== "" ? createError : (zh ? "将创建可运行的 TypeScript 起始项目" : "Creates a runnable TypeScript starter project")}
+							text={createError !== "" ? createError : (zh ? `将创建可运行的 ${createLanguage === "lua" ? "Lua" : "TypeScript"} 起始项目` : `Creates a runnable ${createLanguage === "lua" ? "Lua" : "TypeScript"} starter project`)}
 							textWidth={inputWidth} alignment={TextAlign.Left} color3={createError !== "" ? 0xff6b6b : 0xa8afbd} />
 							<MobileButton tag="mobile-project-create-cancel" x={actionX} y={actionY} width={cancelWidth} text={zh ? "取消" : "Cancel"} renderOrder={10} onTapped={closeCreate} />
 							<MobileButton tag="mobile-project-create-submit" x={actionX + cancelWidth + actionGap} y={actionY} width={actionsWidth - cancelWidth - actionGap}
