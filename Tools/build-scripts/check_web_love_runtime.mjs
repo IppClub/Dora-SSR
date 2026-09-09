@@ -236,5 +236,5 @@ try {
 		if (!exited && chrome.exitCode === null) chrome.kill("SIGKILL");
 	}
 	chrome.stderr.destroy();
-	fs.rmSync(profile, {recursive: true, force: true});
+	fs.rmSync(profile, {recursive: true, force: true, maxRetries: 20, retryDelay: 100});
 }

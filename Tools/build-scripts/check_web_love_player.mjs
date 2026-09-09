@@ -88,7 +88,17 @@ class Cdp {
 		this.socket.send(JSON.stringify({id, method, params}));
 		return result;
 	}
-	close() { this.socket.close(); }
+	async close() {
+		if (this.socket.readyState === WebSocket.CLOSED) return;
+		await new Promise((resolve) => {
+			const timeout = setTimeout(resolve, 1000);
+			this.socket.addEventListener("close", () => {
+				clearTimeout(timeout);
+				resolve();
+			}, {once: true});
+			this.socket.close();
+		});
+	}
 }
 
 async function waitFor(read, predicate, label, timeoutMs = 120000) {
@@ -149,5 +159,22 @@ try {
 	assert.equal(await evaluate("DoraLovePthreadPlayer.stopProject()"), true);
 	console.log(`[INFO] Love pthread Player browser import/start/stop passed: ${running.project}`);
 } finally {
-	cdp?.close(); chrome.kill("SIGTERM"); server.close(); fs.rmSync(profile, {recursive: true, force: true});
+	if (cdp) await cdp.close();
+	server.close();
+	if (chrome.exitCode === null) {
+		chrome.kill("SIGTERM");
+		const exited = await new Promise((resolve) => {
+			const onExit = () => {
+				clearTimeout(timeout);
+				resolve(true);
+			};
+			const timeout = setTimeout(() => {
+				chrome.off("exit", onExit);
+				resolve(false);
+			}, 2000);
+			chrome.once("exit", onExit);
+		});
+		if (!exited && chrome.exitCode === null) chrome.kill("SIGKILL");
+	}
+	fs.rmSync(profile, {recursive: true, force: true, maxRetries: 20, retryDelay: 100});
 }

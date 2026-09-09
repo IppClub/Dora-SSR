@@ -102,8 +102,9 @@ jobs:
           node-version: '22.14.0'
       - name: Setup CMake
         run: |
-          python3 -m pip install --user 'cmake==3.30.5'
-          echo "$(python3 -m site --user-base)/bin" >> "$GITHUB_PATH"
+          python3 -m venv "$RUNNER_TEMP/cmake-venv"
+          "$RUNNER_TEMP/cmake-venv/bin/python" -m pip install 'cmake==3.30.5'
+          echo "$RUNNER_TEMP/cmake-venv/bin" >> "$GITHUB_PATH"
       - name: Build Web packages
         run: Tools/build-scripts/build_web.sh
       - name: Verify Web package
@@ -215,8 +216,9 @@ jobs:
           node-version: '22.14.0'
       - name: Setup CMake
         run: |
-          python3 -m pip install --user 'cmake==3.30.5'
-          echo "$(python3 -m site --user-base)/bin" >> "$GITHUB_PATH"
+          python3 -m venv "$RUNNER_TEMP/cmake-venv"
+          "$RUNNER_TEMP/cmake-venv/bin/python" -m pip install 'cmake==3.30.5'
+          echo "$RUNNER_TEMP/cmake-venv/bin" >> "$GITHUB_PATH"
       - name: Build Love pthread Player
         env:
           DORA_WEB_PTHREADS: 1
