@@ -31,6 +31,9 @@ done
 node --check "$OUTPUT_DIR/dora-ssr.js"
 node --check "$OUTPUT_DIR/wasm_exec.js"
 node "$SCRIPT_DIR/check_wa_web.mjs" "$OUTPUT_DIR"
+# Keep the checks quiet on success, but identify the exact generated-artifact
+# assertion when a toolchain changes its output layout.
+trap 'echo "[ERROR] verification command failed: ${BASH_COMMAND}" >&2' ERR
 grep -q '<script' "$OUTPUT_DIR/index.html"
 grep -q 'dora-ssr.js' "$OUTPUT_DIR/index.html"
 grep -q 'DoraWeb' "$OUTPUT_DIR/index.html"
