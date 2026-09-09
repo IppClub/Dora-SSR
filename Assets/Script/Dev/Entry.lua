@@ -2546,7 +2546,7 @@ entryWindow = threadLoop(function() -- 1426
 						end -- 1516
 						if App.platform == "Emscripten" then
 							Dora.globals.webProjects.draw(zh, themeColor)
-							anyEntryMatched = true
+							allEntries.anyEntryMatched = true
 						end
 						if #gamesInDev > 0 then -- 1517
 							local columns = math.max(math.floor(width / DemoViewWidth), 1) -- 1518
