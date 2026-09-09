@@ -89,6 +89,7 @@ Workspace 是独立构建产物，不能通过给 Player 无条件加入全部�
 | `web-player-minimal` | Lua、2D 渲染、输入、基础音频、Content | 2D 物理、粒子、UI | 小型游戏发布和平台冒烟 |
 | `web-player-full` | minimal + 常用 Dora 子系统 | 3D、视频、LoveNode | 功能完整的游戏导出 |
 | `web-workspace` | full + 项目导入和编译工具 | Wa、Love 开发工具 | 浏览器内开发和预览 |
+| `love-pthread-player` | Love 11.5 adapter、pthread、`.dora` 导入、IDBFS | 项目最近列表 | 运行需要 `love.thread` 的 Love 项目 |
 
 模块通过 CMake option 和统一 feature manifest 管理。构建产物必须记录启用能力，运行时查询未编译能力时返回明确错误。P4-06 已落地 `dora-web-features.json` v1：`activeProfile` 指向当前构建，`profiles` 区分可用性与延后项，`modules` 逐项记录实际链接能力；浏览器宿主从 `DoraWebPlatform.features` 查询同一对象。当前仅 `minimal` 可用，`full` 被保留但明确标记不可用，CMake 配置也会拒绝它，直到延后模块拥有独立 fixture。
 
@@ -168,6 +169,17 @@ node Tools/build-scripts/check_web_player_output.mjs result/dora-web-player
 node Tools/build-scripts/check_web_forbidden_deps.mjs result/dora-web-player
 node Tools/build-scripts/check_web_browser.mjs result/dora-web-player
 ```
+
+需要 Love thread 的项目使用独立的正式 player，不改变默认单线程 Dora Player：
+
+```bash
+DORA_WEB_PTHREADS=1 Tools/build-scripts/build_web.sh
+node Tools/build-scripts/check_web_love_player_output.mjs result/love-pthread-player
+```
+
+产物位于 `result/love-pthread-player`。页面要求托管端返回
+`Cross-Origin-Opener-Policy: same-origin` 和
+`Cross-Origin-Embedder-Policy: require-corp`；满足 cross-origin isolation 后，用户可选择或拖入含根 `main.lua` 的 `.dora` Love 包。浏览器会在完整 ZIP 路径、大小、CRC、加密、ZIP64、symlink 与私密文件检查后原子安装到 `/user/projects`，项目与 Love 存档通过 IDBFS 持久化。相同内容使用稳定 SHA-256 项目 ID，不会重复解包。正式产物不预载测试游戏，也不包含 Balatro；`DORA_WEB_LOVE_COMPLEX_PACKAGE` 只保留给诊断 probe。
 
 版本锁位于 `Projects/Web/toolchain.env`。本地诊断其他工具链版本时可临时设置 `DORA_WEB_ALLOW_TOOLCHAIN_DRIFT=1`；该开关不得用于 CI 或发布验收。`dora-web-build-probe` 隔离验证工具链和异步队列，`dora-web-player` 则链接真实引擎并运行最小 Lua/DrawNode 场景。当前 Player 仍是功能裁剪中的开发工件，不代表资源、输入、音频和浏览器矩阵已经验收。
 
@@ -449,7 +461,9 @@ P5-07 增加独立的非发布 `dora-web-love-audio-probe`。同一 Dora runtime
 
 P5-08 的最终复杂输入按用户指定改为本地 `balatro_fixed.dora`。它是 56,676,652 B、305 个条目的标准 ZIP，archive SHA-256 为 `6814cfedd8743e125fc2f18b84478796bff9b724f130cdebf2a09be94f57765b`，版本记录为 `1.0.1o-FULL`。`check_web_love_complex_input.mjs` 只读核对 ZIP 完整性、绝对路径/路径穿越、精确哈希、条目数、版本和入口契约，任一漂移都会拒绝；staging 只解压到未跟踪构建目录。P5-09 直接启动包根 `main.lua`，不执行含 Dora `LoveNode("main.lua")` wrapper 的 `init.lua`，因此所选运行路径不调用 Dora 扩展。包的来源基线未记录且已包含兼容改动，不能宣称未修改 Balatro 兼容，也不得把包内容提交、上传或收入 Dora-SSR 发布产物。
 
-P5-09 的 opt-in probe 只有在显式设置 `DORA_WEB_LOVE_COMPLEX_PACKAGE` 且包校验通过时才预载入 `/love-complex`，普通 CI/发布产物仍不含授权内容。此前目录输入曾暴露并修复 shader 精度限定、单文件 vertex/pixel 符号冲突、触摸到模拟鼠标事件、非有限 Text transform 和增量 `love.load` coroutine 栈保留等通用 adapter 缺口；这些结果继续作为独立兼容诊断，但用户更换输入后不再计作最终 Balatro 验收。指定包在锁定 Emscripten 3.1.74 下构建成功；语义探针先确认 `love.system.getOS()` 错报 `Unknown`，在修正 `Application` 的 Web 宏优先级和 `LoveNode` 的 `Web` 映射后返回 `Web`，包内 sound thread 因而按自身逻辑关闭。存档管理器仍无条件使用 `love.thread`，因此新增默认关闭的 `DORA_WEB_PTHREADS` 独立 profile：它以 `-pthread`、`USE_PTHREADS=1` 和 4 worker pool 构建，部署必须返回 COOP/COEP，使页面具备 cross-origin isolation 与 SharedArrayBuffer；默认发布 profile 继续使用 `USE_PTHREADS=0`。Chrome 152 已在该 profile 用原包通过启动、主菜单、鼠标开局、盲注和发牌，并在固定游戏流中执行选牌、出牌与弃牌；期间补齐了 LuaJIT 的 `math.log10` 兼容。当前无策略的固定选牌会耗尽 4 手进入 `GAME_OVER`，所以 Shop、IDBFS 存档 reload、20 reload 与 30 分钟长稳仍未验收，不能把完整失败局或旧目录结果冒充最终通过。
+P5-09 的 opt-in probe 只有在显式设置 `DORA_WEB_LOVE_COMPLEX_PACKAGE` 且包校验通过时才预载入 `/love-complex`，普通 CI/发布产物仍不含授权内容。此前目录输入曾暴露并修复 shader 精度限定、单文件 vertex/pixel 符号冲突、触摸到模拟鼠标事件、非有限 Text transform 和增量 `love.load` coroutine 栈保留等通用 adapter 缺口；这些结果继续作为独立兼容诊断，但用户更换输入后不再计作最终 Balatro 验收。指定包在锁定 Emscripten 3.1.74 pthread profile 下已通过启动、主菜单、固定游戏流、商店、真实存档恢复、20 次 reload 与最终资源释放；仍缺该复杂项目自身的 30 分钟长稳。
+
+上述诊断路径已收敛为独立的 `love-pthread-player` 产品产物。它复用经过验证的 Love adapter，但把 Balatro 专用状态探针、自动点击和编译期 package staging 留在测试侧；正式页面从用户手势导入任意通过检查且根目录含 `main.lua` 的 `.dora` Love 包，挂载 IDBFS 后按项目启动、停止并同步存档。首轮浏览器验收使用用户指定的 `balatro_fixed.dora`，完成导入、启动画面和 Stop 后同步返回启动器；包本身未进入构建或发布目录。
 
 | 能力组 | 当前 Web 状态 | 进入支持前的门槛 |
 | --- | --- | --- |
@@ -461,7 +475,7 @@ P5-09 的 opt-in probe 只有在显式设置 `DORA_WEB_LOVE_COMPLEX_PACKAGE` 且
 | Canvas、Mesh、SpriteBatch、ParticleSystem | P5-04 已通过 | 真实 LoveNode/bgfx fixture 的像素、坐标、Canvas readback、21 次资源释放门禁已通过；发布仍受其余 P5 项约束 |
 | shader translation | P5-05/P5-06 成功与失败路径已通过 | GLSL1/GLSL3 的 varying、uniform、sampler、precision、Canvas readback、截图、21 次释放及翻译/编译/链接负向门禁已通过；默认显式失败且无静默降级，可选 package 降级尚未启用 |
 | window、system | 有限候选 | 只提供虚拟窗口/宿主桥；无原生 window handle/message box，电量与振动按设备能力 |
-| thread | 默认不支持；独立 pthread profile 进行中 | 默认发布保持 `USE_PTHREADS=0`；`DORA_WEB_PTHREADS=1` 已在 COOP/COEP、cross-origin isolation 和 SharedArrayBuffer 下运行 Balatro 存档 worker，iframe/PWA 部署、持久化和完整回归尚待验收 |
+| thread | 默认 Dora Player 不支持；`love-pthread-player` 可用 | 默认发布保持 `USE_PTHREADS=0`；独立 player 使用 4 worker pool，并要求 COOP/COEP、cross-origin isolation 和 SharedArrayBuffer；iframe/PWA 与移动浏览器仍待验收 |
 | video、physics | 首轮延后 | 分别需要浏览器媒体 adapter，以及独立 Box2D Web source/fixture 边界 |
 
 `love.load()` 的浏览器启动采用真实的让出机制，而不是只把函数放进 coroutine：

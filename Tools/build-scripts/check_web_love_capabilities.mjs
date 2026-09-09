@@ -7,6 +7,11 @@ assert.equal(matrix.version, 1);
 assert.equal(matrix.loveVersion, "11.5");
 assert.equal(matrix.available, false, "Love Web must remain unavailable until runtime fixtures pass");
 assert.equal(matrix.profile, "web-player-full");
+assert.equal(matrix.profiles["web-player-full"].available, false);
+assert.equal(matrix.profiles["love-pthread-player"].available, true);
+assert.equal(matrix.profiles["love-pthread-player"].threads, true);
+assert.deepEqual(matrix.profiles["love-pthread-player"].requires,
+	["Cross-Origin-Opener-Policy: same-origin", "Cross-Origin-Embedder-Policy: require-corp"]);
 assert.equal(matrix.validation.runtimeObjectCompile, "passed");
 assert.equal(matrix.validation.runtimeLink, "passed");
 assert.equal(matrix.validation.browserFixture, "passed");
@@ -16,6 +21,8 @@ assert.equal(matrix.validation.shaderFixture, "passed");
 assert.equal(matrix.validation.shaderFailureFixture, "passed");
 assert.equal(matrix.validation.audioLifecycleFixture, "passed");
 assert.equal(matrix.validation.complexProjectInput, "passed");
+assert.equal(matrix.validation.lovePthreadPlayerBuild, "passed");
+assert.equal(matrix.validation.lovePthreadPlayerBrowserFixture, "passed");
 assert.equal(matrix.validation.releaseProfile, "excluded");
 assert.equal(matrix.execution.startup, "incremental-instruction-budget-with-explicit-yield");
 assert.equal(matrix.execution.nativeLoveWindow, false);
@@ -44,6 +51,8 @@ assert.equal(matrix.acceptance.lifecycleSoak.milestone, "P5-07");
 assert.equal(matrix.acceptance.complexProject.status, "input-locked");
 assert.equal(matrix.acceptance.complexProject.milestone, "P5-08");
 assert.equal(matrix.acceptance.complexProject.runtimeValidation, "P5-09");
+assert.deepEqual(matrix.acceptance.formalPlayer,
+	{status: "passed", milestone: "P5-10", artifact: "love-pthread-player", bundlesProject: false});
 assert.deepEqual(matrix.acceptance.browserMatrix, ["Chrome", "Edge", "Firefox", "Safari"]);
 
 const complexProject = JSON.parse(fs.readFileSync("Projects/Web/love-complex-project.json", "utf8"));
@@ -107,6 +116,7 @@ assert.match(webCMake, /dora-web-love-graphics-probe/, "Love Web graphics probe 
 assert.match(webCMake, /dora-web-love-shader-probe/, "Love Web shader probe target is missing");
 assert.match(webCMake, /dora-web-love-audio-probe/, "Love Web audio probe target is missing");
 assert.match(webCMake, /dora-web-love-complex-probe/, "Love Web opt-in complex-project probe target is missing");
+assert.match(webCMake, /dora-web-love-pthread-player/, "Love Web formal pthread Player target is missing");
 assert.match(webCMake, /DORA_WEB_LOVE_COMPLEX_PACKAGE/, "Love Web complex-package path gate is missing");
 assert.match(webCMake, /option\(DORA_WEB_PTHREADS/, "Love Web opt-in pthread profile is missing");
 assert.match(webCMake, /USE_PTHREADS=1/, "Love Web pthread profile does not enable Emscripten threads");
@@ -120,6 +130,11 @@ assert.match(buildScript, /BUILD_TARGETS\+=\(dora-web-love-link-probe dora-web-l
 assert.match(buildScript, /BUILD_TARGETS\+=\(dora-web-love-complex-probe\)/,
 	"Love Web complex-project probe is not connected to the opt-in build");
 assert.match(buildScript, /DORA_WEB_PTHREADS/, "Love Web build script does not forward the pthread profile");
+assert.match(buildScript, /LOVE_PLAYER_PACKAGE_DIR/, "Love Web formal Player is not packaged independently");
+const formalPlayerRunner = fs.readFileSync("Projects/Web/love-pthread-player.js", "utf8");
+for (const evidence of ["inspectLovePackage", "installPackage", "dora_web_love_player_start", "doraSyncUserStorage", "crossOriginIsolated"]) {
+	assert.ok(formalPlayerRunner.includes(evidence), `Love Web formal Player evidence is missing: ${evidence}`);
+}
 const graphicsChecker = fs.readFileSync("Tools/build-scripts/check_web_love_graphics.mjs", "utf8");
 assert.match(graphicsChecker, /Canvas render and readback/, "Love Web Canvas readback evidence is missing");
 assert.match(graphicsChecker, /ParticleSystem/, "Love Web ParticleSystem evidence is missing");
@@ -144,4 +159,4 @@ assert.match(webFeatures, /"loveNode": false/, "Web feature profile exposed unva
 assert.match(loveNode, /validateLoveWebGLProgram/, "Love Web shader driver preflight is missing");
 assert.match(loveNode, /Shader source line/, "Love Web shader source-line diagnostic is missing");
 assert.match(graphicsChecker, /no silent fallback/, "Love Web shader failure fixture is missing its fallback assertion");
-console.log("[INFO] Love Web capability matrix covers 19 modules; P5-02 through P5-08 gates passed while the release profile remains excluded");
+console.log("[INFO] Love Web capability matrix covers 19 modules; full remains excluded and love-pthread-player passed its P5-10 gates");

@@ -221,7 +221,7 @@
 		return 0;
 	}
 
-	async function inspectPackage(input, options = {}) {
+	async function inspectArchive(input, options = {}) {
 		const requestedLimits = options.limits || {};
 		const limits = Object.freeze(Object.fromEntries(Object.entries(LIMITS).map(([name, hardLimit]) => {
 			const requested = requestedLimits[name];
@@ -240,6 +240,11 @@
 			if (crc32(data) !== entry.checksum) throw new Error(`ZIP entry CRC mismatch: ${entry.path}`);
 			files.push({path: entry.path, data});
 		}
+		return {bytes, parsed, files, limits};
+	}
+
+	async function inspectPackage(input, options = {}) {
+		const {bytes, parsed, files, limits} = await inspectArchive(input, options);
 		const filePaths = new Set(files.map((file) => file.path));
 		let root = "";
 		if (!runtimeEntries.some((entry) => filePaths.has(entry))) {
@@ -260,6 +265,28 @@
 		const currentEngineVersion = options.currentEngineVersion || "1.9.2";
 		if (compareVersion(manifest.engineVersion, currentEngineVersion) > 0) throw new Error("Dora package requires a newer engine");
 		return Object.freeze({manifest: Object.freeze({...manifest}), root, archiveBytes: bytes.byteLength, unpackedBytes: parsed.totalBytes, files: Object.freeze(relativeFiles)});
+	}
+
+	async function inspectLovePackage(input, options = {}) {
+		const {bytes, parsed, files} = await inspectArchive(input, options);
+		const filePaths = new Set(files.map((file) => file.path));
+		let root = "";
+		if (!filePaths.has("main.lua")) {
+			const roots = new Set(files.map((file) => file.path.split("/")[0]));
+			if (roots.size !== 1) throw new Error("Love package has no runnable main.lua entry");
+			root = [...roots][0];
+			if (!filePaths.has(`${root}/main.lua`)) throw new Error("Love package has no runnable main.lua entry");
+		}
+		const relativeFiles = files.map((file) => ({path: root ? file.path.slice(root.length + 1) : file.path, data: file.data}));
+		const mainFile = relativeFiles.find((file) => file.path === "main.lua");
+		if (!mainFile || mainFile.data.byteLength === 0) throw new Error("Love package main.lua is empty");
+		return Object.freeze({
+			kind: "love",
+			root,
+			archiveBytes: bytes.byteLength,
+			unpackedBytes: parsed.totalBytes,
+			files: Object.freeze(relativeFiles)
+		});
 	}
 
 	function validateProjectId(value) {
@@ -309,6 +336,6 @@
 		}
 	}
 
-	const api = Object.freeze({LIMITS, runtimeEntries, crc32, inspectPackage, installPackage});
+	const api = Object.freeze({LIMITS, runtimeEntries, crc32, inspectPackage, inspectLovePackage, installPackage});
 	scope.DoraWebPackage = api;
 })(typeof globalThis !== "undefined" ? globalThis : self);

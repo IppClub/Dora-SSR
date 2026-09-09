@@ -4,6 +4,14 @@
   "loveVersion": "11.5",
   "available": false,
   "profile": "web-player-full",
+  "profiles": {
+    "web-player-full": {"available": false, "threads": false},
+    "love-pthread-player": {
+      "available": true,
+      "threads": true,
+      "requires": ["Cross-Origin-Opener-Policy: same-origin", "Cross-Origin-Embedder-Policy: require-corp"]
+    }
+  },
   "validation": {
     "runtimeObjectCompile": "passed",
     "runtimeLink": "passed",
@@ -14,6 +22,8 @@
     "shaderFailureFixture": "passed",
     "audioLifecycleFixture": "passed",
     "complexProjectInput": "passed",
+    "lovePthreadPlayerBuild": "passed",
+    "lovePthreadPlayerBrowserFixture": "passed",
     "releaseProfile": "excluded"
   },
   "execution": {
@@ -68,6 +78,7 @@
   },
   "acceptance": {
     "complexProject": {"status": "input-locked", "milestone": "P5-08", "descriptor": "love-complex-project.json", "runtimeValidation": "P5-09"},
+    "formalPlayer": {"status": "passed", "milestone": "P5-10", "artifact": "love-pthread-player", "bundlesProject": false},
     "lifecycleSoak": {"status": "passed", "milestone": "P5-07", "report": "web-love-audio-report.json"},
     "browserMatrix": ["Chrome", "Edge", "Firefox", "Safari"]
   }

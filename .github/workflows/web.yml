@@ -22,6 +22,8 @@ on:
       - 'Tools/build-scripts/check_web_love_shader.mjs'
       - 'Tools/build-scripts/check_web_love_audio.mjs'
       - 'Tools/build-scripts/check_web_love_runtime.mjs'
+      - 'Tools/build-scripts/check_web_love_player_output.mjs'
+      - 'Tools/build-scripts/check_web_love_player.mjs'
       - 'Tools/build-scripts/check_web_package.mjs'
       - 'Tools/build-scripts/check_web_performance.mjs'
       - 'Tools/build-scripts/check_web_preview.mjs'
@@ -51,6 +53,8 @@ on:
       - 'Tools/build-scripts/check_web_love_shader.mjs'
       - 'Tools/build-scripts/check_web_love_audio.mjs'
       - 'Tools/build-scripts/check_web_love_runtime.mjs'
+      - 'Tools/build-scripts/check_web_love_player_output.mjs'
+      - 'Tools/build-scripts/check_web_love_player.mjs'
       - 'Tools/build-scripts/check_web_package.mjs'
       - 'Tools/build-scripts/check_web_performance.mjs'
       - 'Tools/build-scripts/check_web_preview.mjs'
@@ -184,3 +188,45 @@ jobs:
             build/web-love-shader.png
             build/web-love-audio-report.json
           if-no-files-found: ignore
+
+  build-love-pthread-player:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup Emscripten
+        uses: emscripten-core/setup-emsdk@v15
+        with:
+          version: 3.1.74
+          actions-cache-folder: emsdk-cache
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@1.85.1
+        with:
+          targets: wasm32-unknown-emscripten
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.3'
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+      - name: Setup CMake
+        run: |
+          python3 -m pip install --user 'cmake==3.30.5'
+          echo "$(python3 -m site --user-base)/bin" >> "$GITHUB_PATH"
+      - name: Build Love pthread Player
+        env:
+          DORA_WEB_PTHREADS: 1
+        run: Tools/build-scripts/build_web.sh
+      - name: Verify Love pthread Player
+        run: node Tools/build-scripts/check_web_love_player_output.mjs result/love-pthread-player
+      - name: Run Love pthread Player browser smoke
+        run: node Tools/build-scripts/check_web_love_player.mjs result/love-pthread-player
+      - name: Upload Love pthread Player
+        uses: actions/upload-artifact@v4
+        with:
+          name: love-pthread-player
+          path: result/love-pthread-player

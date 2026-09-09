@@ -73,6 +73,7 @@ set_target_properties(dora-web-build-probe PROPERTIES
 # silently divergent engine source list.
 option(DORA_WEB_BUILD_ENGINE "Compile the shared Dora engine sources for Web" OFF)
 option(DORA_WEB_BUILD_LOVE_PROBE "Compile the Dora Love runtime as a non-release Web compatibility probe" OFF)
+option(DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER "Build the installable Love pthread Web Player" OFF)
 option(DORA_WEB_PTHREADS "Build an opt-in shared-memory Web profile with Love thread workers" OFF)
 set(DORA_WEB_LOVE_COMPLEX_PACKAGE "" CACHE FILEPATH "Licensed local .dora package used only by the opt-in P5-09 probe")
 set(DORA_WEB_PROFILE "minimal" CACHE STRING "Dora Web feature profile")
@@ -93,6 +94,9 @@ else()
 	set(DORA_WEB_THREAD_LINK_OPTIONS "-sUSE_PTHREADS=0")
 	set(DORA_WEB_THREADS_JSON false)
 	set(DORA_WEB_CROSS_ORIGIN_ISOLATION_JSON false)
+endif()
+if(DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER AND NOT DORA_WEB_PTHREADS)
+	message(FATAL_ERROR "DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER requires DORA_WEB_PTHREADS=ON")
 endif()
 configure_file(
 	"${CMAKE_CURRENT_SOURCE_DIR}/web-features.json.in"
@@ -242,6 +246,9 @@ endif()
 # binding and feature profile removes the remaining native/Love dependencies.
 option(DORA_WEB_LINK_PLAYER "Attempt to link the Dora Web Player" OFF)
 option(DORA_WEB_DIAGNOSTICS "Keep browser-readable Wasm function names and assertions" OFF)
+if(DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER AND (NOT DORA_WEB_BUILD_ENGINE OR NOT DORA_WEB_BUILD_LOVE_PROBE OR NOT DORA_WEB_LINK_PLAYER))
+	message(FATAL_ERROR "DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER requires the engine, Love support and Player link targets")
+endif()
 if(DORA_WEB_LINK_PLAYER)
 	if(NOT DORA_WEB_BUILD_ENGINE)
 		message(FATAL_ERROR "DORA_WEB_LINK_PLAYER requires DORA_WEB_BUILD_ENGINE=ON")
@@ -530,6 +537,52 @@ if(DORA_WEB_LINK_PLAYER)
 			OUTPUT_NAME "dora-love-audio-probe"
 			LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/love-audio-probe-runner.js;${CMAKE_CURRENT_SOURCE_DIR}/love-audio-fixture/conf.lua;${CMAKE_CURRENT_SOURCE_DIR}/love-audio-fixture/main.lua;${CMAKE_CURRENT_SOURCE_DIR}/player-shell.html;${DORA_ROOT}/Assets/Script/Lib/lualib_bundle.lua;${DORA_WEB_AUDIO_FIXTURE_SCRIPT}"
 			RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+
+		if(DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER)
+			add_executable(dora-web-love-pthread-player
+				LovePthreadPlayer.cpp
+				$<TARGET_OBJECTS:dora-web-engine>
+				$<TARGET_OBJECTS:dora-web-link-deps>
+				$<TARGET_OBJECTS:dora-web-love-compile-probe>
+				$<TARGET_OBJECTS:dora-web-love-node-compile-probe>)
+			target_link_libraries(dora-web-love-pthread-player PRIVATE dora-web-love-support)
+			target_compile_definitions(dora-web-love-pthread-player PRIVATE
+				${DORA_WEB_ENGINE_DEFINITIONS}
+				DORA_WEB_LOVE_PROBE)
+			target_compile_options(dora-web-love-pthread-player PRIVATE ${DORA_WEB_ENGINE_OPTIONS})
+			target_include_directories(dora-web-love-pthread-player PRIVATE ${DORA_WEB_ENGINE_INCLUDES})
+			target_link_options(dora-web-love-pthread-player PRIVATE
+				"--ignore-dynamic-linking"
+				"-fwasm-exceptions"
+				"-sSUPPORT_LONGJMP=wasm"
+				"-sUSE_SDL=2"
+				"-sUSE_WEBGL2=1"
+				"-sFULL_ES3=1"
+				"-sALLOW_MEMORY_GROWTH=1"
+				"-sINITIAL_MEMORY=256MB"
+				"-sMAXIMUM_MEMORY=1GB"
+				"-sEXIT_RUNTIME=0"
+				"-sFILESYSTEM=1"
+				"-sFETCH=1"
+				"-lidbfs.js"
+				${DORA_WEB_THREAD_LINK_OPTIONS}
+				"-sEXPORTED_FUNCTIONS=['_main','_dora_web_stop','_dora_web_set_suspended','_dora_web_release_input','_dora_web_love_player_start','_dora_web_love_player_status','_dora_web_love_player_stop','_dora_web_love_player_error','_dora_web_love_player_project']"
+				"-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','UTF8ToString']"
+				"SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/web-platform.js\""
+				"SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/web-package.js\""
+				"SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/love-pthread-player.js\""
+				"SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/web-loader.js\""
+				"SHELL:--preload-file \"${DORA_ROOT}/Assets/Script/Lib/lualib_bundle.lua@/game/Script/Lib/lualib_bundle.lua\""
+				"SHELL:--preload-file \"${DORA_ROOT}/Assets/Shader/Love/varying.def.sc@/game/Shader/Love/varying.def.sc\""
+				"SHELL:--shell-file \"${CMAKE_CURRENT_SOURCE_DIR}/love-pthread-player-shell.html\"")
+			if(DORA_WEB_DIAGNOSTICS)
+				target_link_options(dora-web-love-pthread-player PRIVATE "-sASSERTIONS=1" "--profiling-funcs")
+			endif()
+			set_target_properties(dora-web-love-pthread-player PROPERTIES
+				OUTPUT_NAME "love-pthread-player"
+				LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/web-platform.js;${CMAKE_CURRENT_SOURCE_DIR}/web-package.js;${CMAKE_CURRENT_SOURCE_DIR}/web-loader.js;${CMAKE_CURRENT_SOURCE_DIR}/love-pthread-player.js;${CMAKE_CURRENT_SOURCE_DIR}/love-pthread-player-shell.html"
+				RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+		endif()
 
 		if(DORA_WEB_LOVE_COMPLEX_PACKAGE)
 			if(NOT EXISTS "${DORA_WEB_LOVE_COMPLEX_PACKAGE}" OR IS_DIRECTORY "${DORA_WEB_LOVE_COMPLEX_PACKAGE}")

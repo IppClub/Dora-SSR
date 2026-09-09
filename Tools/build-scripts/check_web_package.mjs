@@ -4,7 +4,7 @@ import {pathToFileURL} from "node:url";
 import {deflateRawSync, inflateRawSync} from "node:zlib";
 
 await import(pathToFileURL(path.resolve("Projects/Web/web-package.js")));
-const {crc32, inspectPackage, installPackage} = globalThis.DoraWebPackage;
+const {crc32, inspectPackage, inspectLovePackage, installPackage} = globalThis.DoraWebPackage;
 
 function zip(entries) {
 	const localParts = [];
@@ -80,6 +80,21 @@ const wrapped = await inspectPackage(zip(validEntries.map((entry) => ({...entry,
 assert.equal(wrapped.root, "Game");
 assert.deepEqual(wrapped.files.map((file) => file.path), ["dora-package.json", "init.lua", "Image/logo.txt"]);
 
+const loveEntries = [
+	{path: "main.lua", data: "function love.load() end"},
+	{path: "conf.lua", data: "function love.conf(t) end"},
+	{path: "resources/image.txt", data: "asset"}
+];
+const inspectedLove = await inspectLovePackage(zip(loveEntries), {inflateRaw});
+assert.equal(inspectedLove.kind, "love");
+assert.equal(inspectedLove.root, "");
+assert.deepEqual(inspectedLove.files.map((file) => file.path), ["main.lua", "conf.lua", "resources/image.txt"]);
+const wrappedLove = await inspectLovePackage(zip(loveEntries.map((entry) => ({...entry, path: `LoveGame/${entry.path}`}))), {inflateRaw});
+assert.equal(wrappedLove.root, "LoveGame");
+assert.deepEqual(wrappedLove.files.map((file) => file.path), ["main.lua", "conf.lua", "resources/image.txt"]);
+await assert.rejects(inspectLovePackage(zip([{path: "init.lua", data: "print('not Love')"}]), {inflateRaw}),
+	/has no runnable main.lua entry/);
+
 for (const [label, entries, pattern, options = {}] of [
 	["parent traversal", [...validEntries, {path: "../outside.txt", data: "bad"}], /unsafe ZIP entry path/],
 	["absolute path", [...validEntries, {path: "/outside.txt", data: "bad"}], /unsafe ZIP entry path/],
@@ -145,6 +160,8 @@ assert.equal(await installPackage(module, inspected, "fixture-1"), "/user/projec
 assert.equal(fileSystem.files.get("/user/projects/fixture-1/init.lua").toString(), "print('package fixture')");
 assert.equal(syncCount, 1);
 await assert.rejects(installPackage(module, inspected, "fixture-1"), /already exists/);
+assert.equal(await installPackage(module, inspectedLove, "love-fixture"), "/user/projects/love-fixture");
+assert.equal(fileSystem.files.get("/user/projects/love-fixture/main.lua").toString(), "function love.load() end");
 
 const rollbackFs = new MemoryFs();
 await assert.rejects(installPackage({FS: rollbackFs, doraSyncUserStorage: async () => { throw new Error("quota"); }}, inspected, "rollback"), /persistence failed/);
