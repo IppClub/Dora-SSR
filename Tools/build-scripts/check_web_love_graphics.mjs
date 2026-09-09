@@ -302,6 +302,14 @@ async function waitForProbe(cdp, pageErrors, consoleMessages) {
 	throw new Error(`timed out waiting for Love Web ${fixtureKind} fixture: ${JSON.stringify(lastProbe)}\n${pageErrors.join("\n")}\n${consoleMessages.slice(-20).join("\n")}`);
 }
 
+async function reloadPage(cdp) {
+	try {
+		await cdp.send("Page.reload", {ignoreCache: true});
+	} catch (error) {
+		if (!/Inspected target navigated or closed/i.test(error?.message || "")) throw error;
+	}
+}
+
 async function captureAndVerify(cdp, outputPath) {
 	await new Promise((resolve) => setTimeout(resolve, 150));
 	const capture = await cdp.send("Page.captureScreenshot", {format: "png", fromSurface: true});
@@ -359,7 +367,7 @@ try {
 		assert.equal(released.result.value, true, `Love Web ${fixtureKind} cleanup failed on run ${reload + 1}`);
 		releases++;
 		if (reload === reloadCount) break;
-		await cdp.send("Page.reload", {ignoreCache: true});
+		await reloadPage(cdp);
 		await waitForProbe(cdp, pageErrors, consoleMessages);
 		if (reload + 1 === reloadCount) await captureAndVerify(cdp, screenshotPath);
 	}

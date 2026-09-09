@@ -98,8 +98,11 @@ extern "C" EMSCRIPTEN_KEEPALIVE int dora_web_love_player_stop()
 	{
 		if (playerState < 0)
 		{
-			playerProject.clear();
-			playerState = 3;
+			playerState = 2;
+			SharedApplication.invokeInLogic([]() {
+				playerProject.clear();
+				playerState = 3;
+			});
 			return 1;
 		}
 		return 0;
