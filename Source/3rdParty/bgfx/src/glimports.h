@@ -330,6 +330,7 @@ GL_IMPORT______(true,  PFNGLGETCOMPRESSEDTEXIMAGEPROC,             glGetCompress
 GL_IMPORT______(true,  PFNGLGETDEBUGMESSAGELOGPROC,                glGetDebugMessageLog);
 GL_IMPORT______(false, PFNGLGETERRORPROC,                          glGetError);
 GL_IMPORT______(false, PFNGLGETFLOATVPROC,                         glGetFloatv);
+GL_IMPORT______(false, PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVPROC, glGetFramebufferAttachmentParameteriv);
 GL_IMPORT______(false, PFNGLGETINTEGERVPROC,                       glGetIntegerv);
 GL_IMPORT______(true,  PFNGLGETINTERNALFORMATIVPROC,               glGetInternalformativ);
 GL_IMPORT______(true,  PFNGLGETINTERNALFORMATI64VPROC,             glGetInternalformati64v);
@@ -354,6 +355,8 @@ GL_IMPORT______(true,  PFNGLGETQUERYOBJECTUI64VPROC,               glGetQueryObj
 GL_IMPORT______(false, PFNGLGETSHADERIVPROC,                       glGetShaderiv);
 GL_IMPORT______(false, PFNGLGETSHADERINFOLOGPROC,                  glGetShaderInfoLog);
 GL_IMPORT______(false, PFNGLGETSTRINGPROC,                         glGetString);
+GL_IMPORT______(false, PFNGLGETUNIFORMFVPROC,                       glGetUniformfv);
+GL_IMPORT______(false, PFNGLGETUNIFORMIVPROC,                       glGetUniformiv);
 GL_IMPORT______(false, PFNGLGETUNIFORMLOCATIONPROC,                glGetUniformLocation);
 
 #if BGFX_CONFIG_RENDERER_OPENGL || !(BGFX_CONFIG_RENDERER_OPENGLES < 30)
