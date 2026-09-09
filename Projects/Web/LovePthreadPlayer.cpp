@@ -94,7 +94,17 @@ extern "C" EMSCRIPTEN_KEEPALIVE int dora_web_love_player_status()
 
 extern "C" EMSCRIPTEN_KEEPALIVE int dora_web_love_player_stop()
 {
-	if (!playerNode || playerState == 2 || playerState == 3) return 0;
+	if (!playerNode)
+	{
+		if (playerState < 0)
+		{
+			playerProject.clear();
+			playerState = 3;
+			return 1;
+		}
+		return 0;
+	}
+	if (playerState == 2 || playerState == 3) return 0;
 	playerState = 2;
 	SharedApplication.invokeInLogic([]() {
 		playerNode->removeFromParent(true);

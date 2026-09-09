@@ -34,6 +34,15 @@ function chromeExecutable() {
 	return executable;
 }
 
+function removeProfile(directory) {
+	try {
+		fs.rmSync(directory, {recursive: true, force: true, maxRetries: 20, retryDelay: 100});
+	} catch (error) {
+		if (!["EBUSY", "ENOTEMPTY", "EPERM"].includes(error?.code)) throw error;
+		console.warn(`[WARN] Chrome profile cleanup deferred: ${error.message}`);
+	}
+}
+
 function mimeType(file) {
 	switch (path.extname(file)) {
 		case ".html": return "text/html; charset=utf-8";
@@ -372,5 +381,5 @@ try {
 	const chromeExit = new Promise((resolve) => chrome.once("exit", resolve));
 	chrome.kill("SIGTERM"); server.close();
 	await Promise.race([chromeExit, new Promise((resolve) => setTimeout(resolve, 2000))]);
-	fs.rmSync(profile, {recursive: true, force: true, maxRetries: 10, retryDelay: 100});
+	removeProfile(profile);
 }

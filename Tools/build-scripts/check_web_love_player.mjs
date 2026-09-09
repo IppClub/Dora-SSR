@@ -49,6 +49,15 @@ function chromeExecutable() {
 	return executable;
 }
 
+function removeProfile(directory) {
+	try {
+		fs.rmSync(directory, {recursive: true, force: true, maxRetries: 20, retryDelay: 100});
+	} catch (error) {
+		if (!["EBUSY", "ENOTEMPTY", "EPERM"].includes(error?.code)) throw error;
+		console.warn(`[WARN] Chrome profile cleanup deferred: ${error.message}`);
+	}
+}
+
 function mimeType(file) {
 	return ({".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
 		".wasm": "application/wasm", ".data": "application/octet-stream"})[path.extname(file)] || "application/octet-stream";
@@ -151,8 +160,8 @@ try {
 		(value) => !value.running && /synchronized/.test(value.status), "Love project stop");
 	assert.match(stopped.status, /synchronized/);
 	assert.equal(await evaluate("DoraLovePthreadPlayer.startProject({id:'missing-project',name:'Missing project'})"), true);
-	const recovered = await waitFor(() => evaluate(`({busy:DoraLovePthreadPlayer.state.busy,running:DoraLovePthreadPlayer.state.running,message:document.getElementById('player-status').textContent,faulted:document.getElementById('player-status').dataset.faulted})`),
-		(value) => !value.busy && !value.running && value.faulted === "true", "failed project cleanup");
+	const recovered = await waitFor(() => evaluate(`({busy:DoraLovePthreadPlayer.state.busy,running:DoraLovePthreadPlayer.state.running,status:Module.ccall('dora_web_love_player_status','number',[],[]),message:document.getElementById('player-status').textContent,faulted:document.getElementById('player-status').dataset.faulted})`),
+		(value) => !value.busy && !value.running && value.status === 3 && value.faulted === "true", "failed project cleanup");
 	assert.match(recovered.message, /does not exist/i);
 	assert.equal(await evaluate("DoraLovePthreadPlayer.startProject(DoraLovePthreadPlayer.state.projects[0])"), true);
 	await waitFor(() => evaluate("DoraLovePthreadPlayer.state.running"), Boolean, "project restart after failure");
@@ -176,5 +185,5 @@ try {
 		});
 		if (!exited && chrome.exitCode === null) chrome.kill("SIGKILL");
 	}
-	fs.rmSync(profile, {recursive: true, force: true, maxRetries: 20, retryDelay: 100});
+	removeProfile(profile);
 }
