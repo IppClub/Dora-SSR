@@ -6,15 +6,12 @@
 #include "shaderc.h"
 #include <bx/commandline.h>
 #include <bx/filepath.h>
-#include <cstdio>
 
 #define MAX_TAGS 256
 extern "C"
 {
 #include <fpp.h>
 } // extern "C"
-
-#include "Common/Debug.h"
 
 #define BGFX_SHADER_BIN_VERSION 11
 #define BGFX_CHUNK_MAGIC_CSH BX_MAKEFOURCC('C', 'S', 'H', BGFX_SHADER_BIN_VERSION)
