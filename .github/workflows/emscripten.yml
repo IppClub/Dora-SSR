@@ -43,10 +43,12 @@ jobs:
         with:
           go-version: '1.24.3'
       - name: Setup Rust
-        # Rust 1.98 switched wasm32-unknown-emscripten to native Wasm
-        # exception handling unconditionally. That is incompatible with the
-        # Emscripten exception ABI used here together with Asyncify.
-        uses: dtolnay/rust-toolchain@1.97.1
+        # Rust 1.97 added -wasm-use-legacy-eh=false to the
+        # wasm32-unknown-emscripten target. That enables native Wasm exception
+        # handling for this unwind-enabled runtime, which Binaryen's Asyncify
+        # pass cannot process. Keep the pre-change target with Emscripten's
+        # legacy exception ABI until the runtime no longer needs Asyncify.
+        uses: dtolnay/rust-toolchain@1.96.0
         with:
           targets: wasm32-unknown-emscripten
       - name: Build Web/WASM
