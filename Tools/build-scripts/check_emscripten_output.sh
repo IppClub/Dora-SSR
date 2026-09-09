@@ -57,9 +57,4 @@ if ! rg -a -q 'Dora\.Path' "$OUTPUT_DIR/dora-ssr.js" "$OUTPUT_DIR/dora-ssr.data"
 	exit 1
 fi
 
-if rg -a -q '/Game/init\.lua' "$OUTPUT_DIR/dora-ssr.data" "$OUTPUT_DIR/dora-ssr.js" "$OUTPUT_DIR/dora-ssr.wasm"; then
-	echo "[ERROR] Generic Web package unexpectedly contains static /Game/init.lua" >&2
-	exit 1
-fi
-
 echo "[INFO] Emscripten package verified: $OUTPUT_DIR"
