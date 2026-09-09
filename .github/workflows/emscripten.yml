@@ -43,7 +43,10 @@ jobs:
         with:
           go-version: '1.24.3'
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+        # Rust 1.98 switched wasm32-unknown-emscripten to native Wasm
+        # exception handling unconditionally. That is incompatible with the
+        # Emscripten exception ABI used here together with Asyncify.
+        uses: dtolnay/rust-toolchain@1.97.1
         with:
           targets: wasm32-unknown-emscripten
       - name: Build Web/WASM
