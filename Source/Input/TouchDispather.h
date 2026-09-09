@@ -87,6 +87,7 @@ public:
 	virtual bool handle(const SDL_Event& event) override;
 
 protected:
+	bool isTargetActive() const;
 	Touch* alloc(int64_t fingerId);
 	Touch* get(int64_t fingerId);
 	void collect(int64_t fingerId);
@@ -101,7 +102,7 @@ protected:
 	bool gesture(const SDL_Event& event);
 
 private:
-	Node* _target;
+	WRef<Node> _target;
 	Ref<Touch> _mouseMoveTouch;
 	std::stack<int> _availableTouchIds;
 	std::unordered_map<int64_t, Ref<Touch>> _touchMap;

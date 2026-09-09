@@ -18,6 +18,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  **/
 
+#include <cmath>
+#include <limits>
 #include <memory>
 
 #include "Variant.h"
@@ -245,7 +247,12 @@ void Variant::toLua(lua_State *L) const
 		lua_pushboolean(L, data.boolean);
 		break;
 	case NUMBER:
-		lua_pushnumber(L, data.number);
+		if (std::isfinite(data.number) && std::trunc(data.number) == data.number
+			&& data.number >= static_cast<double>(std::numeric_limits<lua_Integer>::min())
+			&& data.number <= static_cast<double>(std::numeric_limits<lua_Integer>::max()))
+			lua_pushinteger(L, static_cast<lua_Integer>(data.number));
+		else
+			lua_pushnumber(L, data.number);
 		break;
 	case STRING:
 		lua_pushlstring(L, data.string->str, data.string->len);

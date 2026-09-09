@@ -36,12 +36,12 @@ bool IsInLuaOrWasm();
 #define Println(...) Dora::LogInfoThreaded(fmt::format(__VA_ARGS__))
 
 #if DORA_DISABLE_LOG
-#define Info(...) DORA_DUMMY
-#define Warn(...) DORA_DUMMY
-#define Error(...) DORA_DUMMY
-#define InfoIf(...) DORA_DUMMY
-#define WarnIf(...) DORA_DUMMY
-#define ErrorIf(...) DORA_DUMMY
+#define Info(...) do { } while (0)
+#define Warn(...) do { } while (0)
+#define Error(...) do { } while (0)
+#define InfoIf(...) do { } while (0)
+#define WarnIf(...) do { } while (0)
+#define ErrorIf(...) do { } while (0)
 #else
 #define Info(...) Dora::LogInfoThreaded(fmt::format(__VA_ARGS__))
 #define Warn(...) Dora::LogWarnThreaded(fmt::format(__VA_ARGS__))
@@ -61,9 +61,9 @@ bool IsInLuaOrWasm();
 #endif
 
 #if DORA_DISABLE_ASSERTION
-#define AssertIf(cond, ...) DORA_DUMMY
-#define AssertUnless(cond, ...) DORA_DUMMY
-#define Issue(...) DORA_DUMMY
+#define AssertIf(cond, ...) do { } while (0)
+#define AssertUnless(cond, ...) do { } while (0)
+#define Issue(...) do { } while (0)
 #else
 #define AssertIf(cond, ...) \
 	do { \

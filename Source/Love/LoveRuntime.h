@@ -939,6 +939,7 @@ public:
 	StartResult resumeStart(int instructionBudget, std::string &error);
 	bool boot(std::string_view code, std::string_view chunkName, std::string &error);
 	bool update(double deltaTime, std::string &error);
+	void requestUserStorageSync() noexcept { _userStorageSyncPending = true; }
 	bool draw(std::string &error);
 	bool stop(std::string &error);
 	bool restart(std::string &error);
@@ -1148,6 +1149,7 @@ private:
 	lua_State *_startThread = nullptr;
 	int _startThreadReference = -2; // LUA_NOREF without exposing Lua headers here.
 	bool _startThreadNeedsArgument = false;
+	bool _userStorageSyncPending = false;
 	Status _status = Status::Closed;
 	std::string _lastError;
 	std::string _bootCode;

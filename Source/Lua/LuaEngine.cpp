@@ -482,7 +482,6 @@ static int dora_register_builtin_modules(lua_State* L) {
 #if !BX_PLATFORM_EMSCRIPTEN
 	luaL_requiref(L, "socket.core", luaopen_socket_core, 0);
 	lua_pop(L, 1);
-#endif
 	luaL_requiref(L, "mime.core", luaopen_mime_core, 0);
 	lua_pop(L, 1);
 #endif

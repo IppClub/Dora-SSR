@@ -379,6 +379,7 @@ struct ThreadContext
 	std::vector<std::pair<std::weak_ptr<ThreadWorker>, std::string>> pendingErrors;
 	std::mutex filesystemMutex;
 	std::deque<std::shared_ptr<ThreadFilesystemRequest>> filesystemRequests;
+	std::atomic<bool> userStorageSyncPending = false;
 	std::atomic<bool> stopping = false;
 };
 
@@ -403,15 +404,21 @@ public:
 	bool save(const std::string &path, std::string_view data, std::string &error) override
 	{
 		const std::string copy(data);
-		return invoke(false, [&]() { return _backend->save(path, copy, error); });
+		const bool saved = invoke(false, [&]() { return _backend->save(path, copy, error); });
+		if (saved && _context) _context->userStorageSyncPending.store(true, std::memory_order_release);
+		return saved;
 	}
 	bool createFolder(const std::string &path, std::string &error) override
 	{
-		return invoke(false, [&]() { return _backend->createFolder(path, error); });
+		const bool created = invoke(false, [&]() { return _backend->createFolder(path, error); });
+		if (created && _context) _context->userStorageSyncPending.store(true, std::memory_order_release);
+		return created;
 	}
 	bool remove(const std::string &path, std::string &error) override
 	{
-		return invoke(false, [&]() { return _backend->remove(path, error); });
+		const bool removed = invoke(false, [&]() { return _backend->remove(path, error); });
+		if (removed && _context) _context->userStorageSyncPending.store(true, std::memory_order_release);
+		return removed;
 	}
 	std::optional<std::uint64_t> getFileSize(const std::string &path) const override
 	{
@@ -645,7 +652,14 @@ void pushThreadValue(lua_State *state, const ThreadValue &value)
 	{
 		case ThreadValue::Type::Nil: lua_pushnil(state); break;
 		case ThreadValue::Type::Boolean: lua_pushboolean(state, value.boolean); break;
-		case ThreadValue::Type::Number: lua_pushnumber(state, value.number); break;
+		case ThreadValue::Type::Number:
+			if (std::isfinite(value.number) && std::trunc(value.number) == value.number
+				&& value.number >= static_cast<double>(std::numeric_limits<lua_Integer>::min())
+				&& value.number <= static_cast<double>(std::numeric_limits<lua_Integer>::max()))
+				lua_pushinteger(state, static_cast<lua_Integer>(value.number));
+			else
+				lua_pushnumber(state, value.number);
+			break;
 		case ThreadValue::Type::String:
 			lua_pushlstring(state, value.string.data(), value.string.size()); break;
 		case ThreadValue::Type::Data:
@@ -4281,6 +4295,34 @@ int pushFilesystemFailure(lua_State *state, const std::string &message)
 	return 2;
 }
 
+void queueLoveUserStorageSyncNow() noexcept
+{
+#if defined(__EMSCRIPTEN__)
+#if defined(__EMSCRIPTEN_PTHREADS__)
+	MAIN_THREAD_ASYNC_EM_ASM({
+		if (typeof Module !== "undefined" && typeof Module.doraQueueUserStorageSync === "function") {
+			Module.doraQueueUserStorageSync().catch(function(error) {
+				console.error("Love save persistence failed: " + (error && error.message ? error.message : error));
+			});
+		}
+	});
+#else
+	EM_ASM({
+		if (typeof Module !== "undefined" && typeof Module.doraQueueUserStorageSync === "function") {
+			Module.doraQueueUserStorageSync().catch(function(error) {
+				console.error("Love save persistence failed: " + (error && error.message ? error.message : error));
+			});
+		}
+	});
+#endif
+#endif
+}
+
+void requestLoveUserStorageSync(LoveRuntime *runtime) noexcept
+{
+	if (runtime) runtime->requestUserStorageSync();
+}
+
 bool resolveWritableEntry(LoveRuntime *runtime, std::string_view filename,
 	std::filesystem::path &resolved, bool allowRoot, std::string &error)
 {
@@ -4329,6 +4371,7 @@ bool flushFile(FileUserdata *file, std::string &error)
 		if (error.empty()) error = "failed to write Love filesystem file: " + file->filename;
 		return false;
 	}
+	requestLoveUserStorageSync(file->runtime);
 	error.clear();
 	return true;
 }
@@ -4376,6 +4419,7 @@ bool openFile(FileUserdata *file, FileMode mode, std::string &error)
 			if (error.empty()) error = "failed to create Love filesystem file: " + file->filename;
 			return false;
 		}
+		requestLoveUserStorageSync(file->runtime);
 	}
 	file->data = std::move(data);
 	file->mode = mode;
@@ -4805,16 +4849,20 @@ bool DoraLoveFilesystem::createDirectory(const char *directory)
 {
 	std::filesystem::path target;
 	std::string error;
-	return directory && resolveWritableEntry(_runtime, directory, target, false, error)
+	const bool created = directory && resolveWritableEntry(_runtime, directory, target, false, error)
 		&& _runtime->_filesystemBackend->createFolder(target.string(), error);
+	if (created) requestLoveUserStorageSync(_runtime);
+	return created;
 }
 
 bool DoraLoveFilesystem::remove(const char *file)
 {
 	std::filesystem::path target;
 	std::string error;
-	return file && resolveWritableEntry(_runtime, file, target, false, error)
+	const bool removed = file && resolveWritableEntry(_runtime, file, target, false, error)
 		&& _runtime->_filesystemBackend->remove(target.string(), error);
+	if (removed) requestLoveUserStorageSync(_runtime);
+	return removed;
 }
 
 ::love::filesystem::FileData *DoraLoveFilesystem::read(const char *filename, ::love::int64 size) const
@@ -4842,6 +4890,7 @@ void DoraLoveFilesystem::write(const char *filename, const void *source, ::love:
 		|| !_runtime->_filesystemBackend->save(target.string(),
 			std::string_view(static_cast<const char *>(source), static_cast<std::size_t>(size)), error))
 		throw ::love::Exception("%s", error.empty() ? "File could not be written." : error.c_str());
+	requestLoveUserStorageSync(_runtime);
 }
 
 void DoraLoveFilesystem::append(const char *filename, const void *source, ::love::int64 size) const
@@ -4858,6 +4907,7 @@ void DoraLoveFilesystem::append(const char *filename, const void *source, ::love
 	bytes.append(static_cast<const char *>(source), static_cast<std::size_t>(size));
 	if (!_runtime->_filesystemBackend->save(target.string(), bytes, error))
 		throw ::love::Exception("%s", error.empty() ? "File could not be appended." : error.c_str());
+	requestLoveUserStorageSync(_runtime);
 }
 
 void DoraLoveFilesystem::getDirectoryItems(const char *directory, std::vector<std::string> &output)
@@ -5560,15 +5610,6 @@ end
 			});
 			lua_setfield(_state, -2, "log10");
 		}
-	}
-	lua_pop(_state, 1);
-	// registerLoveModule creates the final global `love` table, so install the
-	// startup yield hook after it has finished replacing that table.
-	lua_getglobal(_state, "love");
-	if (lua_istable(_state, -1))
-	{
-		lua_pushcfunction(_state, LoveRuntime::bootYield);
-		lua_setfield(_state, -2, "bootYield");
 	}
 	lua_pop(_state, 1);
 	_graphicsColor[0] = _graphicsColor[1] = _graphicsColor[2] = _graphicsColor[3] = 1.0f;
@@ -10588,19 +10629,6 @@ void DoraLoveGraphics::draw(lua_State *state, ::love::graphics::Drawable *drawab
 	}
 	if (auto *text = dynamic_cast<TextUserdata *>(drawable))
 	{
-		const auto *elements = matrix.getElements();
-		const bool finiteMatrix = std::all_of(elements, elements + 16,
-			[](float value) { return std::isfinite(value); });
-		const bool finiteCurrent = std::isfinite(_runtime->_graphicsTransform.a)
-			&& std::isfinite(_runtime->_graphicsTransform.b)
-			&& std::isfinite(_runtime->_graphicsTransform.c)
-			&& std::isfinite(_runtime->_graphicsTransform.d)
-			&& std::isfinite(_runtime->_graphicsTransform.tx)
-			&& std::isfinite(_runtime->_graphicsTransform.ty);
-		// Love 11.5 accepts non-finite standard draw transforms. Native GPU
-		// backends make that individual draw non-visible, whereas forwarding
-		// NaN/Inf into Dora's retained command stream would poison later draws.
-		if (!finiteMatrix || !finiteCurrent) return;
 		const auto transform = combineDrawTransform(state, matrix,
 			_runtime->_graphicsTransform, 2, "Text draw transform values must be finite");
 		_runtime->graphicsDrawCommand(state, text, &transform);

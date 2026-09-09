@@ -1,5 +1,7 @@
 (function installLoveComplexProbe(global) {
 	"use strict";
+	Module.doraSkipManifestMount = true;
+	Module.doraSkipAutoMount = true;
 	const probe = global.DoraLoveComplexProbe = {
 		started: false, state: 0, error: "", logs: [],
 	};
@@ -44,6 +46,21 @@
 		}
 		poll();
 	}
+	let storageStart = null;
+	function startAfterStorage() {
+		try {
+			Module.FS = Module.FS || FS;
+			Module.IDBFS = Module.IDBFS || IDBFS;
+			if (!storageStart) storageStart = global.DoraWebLoader.mountUserStorage(Module).then(start).catch((error) => {
+				probe.error = String(error || "Love Web storage mount failed");
+				global.doraSetState?.("faulted", probe.error);
+			});
+		} catch (error) {
+			probe.error = String(error || "Love Web storage setup failed");
+			global.doraSetState?.("faulted", probe.error);
+		}
+		return storageStart;
+	}
 
 	global.doraLoveComplexSnapshot = function() {
 		probe.state = call("dora_web_love_complex_probe_status");
@@ -71,8 +88,15 @@
 			pageState: global.document?.documentElement?.dataset?.doraState || "missing",
 			crossOriginIsolated: Boolean(global.crossOriginIsolated),
 			sharedArrayBuffer: typeof global.SharedArrayBuffer === "function",
+			storageState: Module.doraStorageState || "uninitialized",
 			logs: probe.logs.slice(-80),
 		};
+	};
+	global.doraSkipLoveComplexTutorial = function() {
+		return call("dora_web_love_complex_probe_skip_tutorial") === 1;
+	};
+	global.doraForceLoveComplexSave = function() {
+		return call("dora_web_love_complex_probe_force_save") === 1;
 	};
 
 	global.doraUnlockLoveComplexAudio = async function() {
@@ -99,6 +123,13 @@
 	};
 
 	global.addEventListener("dora-statechange", (event) => {
-		if (event.detail?.state === "running") setTimeout(start, 0);
+		if (event.detail?.state === "running") setTimeout(startAfterStorage, 0);
 	});
+	if (global.document?.documentElement?.dataset?.doraState === "running")
+		setTimeout(startAfterStorage, 0);
+	const readinessPoll = setInterval(() => {
+		if (global.document?.documentElement?.dataset?.doraState !== "running") return;
+		clearInterval(readinessPoll);
+		startAfterStorage();
+	}, 50);
 })(globalThis);

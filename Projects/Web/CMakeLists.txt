@@ -13,6 +13,19 @@ set(CMAKE_EXECUTABLE_SUFFIX ".html")
 get_filename_component(DORA_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../.." REALPATH)
 set(DORA_SOURCE_ROOT "${DORA_ROOT}/Source")
 set(DORA_WEB_BOOTSTRAP_ASSETS "${CMAKE_CURRENT_SOURCE_DIR}/runtime-assets")
+set(DORA_WEB_EMBEDDED_BGFX_DIR "${CMAKE_BINARY_DIR}/bgfx-embedded")
+file(MAKE_DIRECTORY "${DORA_WEB_EMBEDDED_BGFX_DIR}/generated")
+function(dora_web_embed_text input output)
+	file(READ "${input}" hex_data HEX)
+	string(REGEX REPLACE "(..)" "0x\\1," byte_data "${hex_data}")
+	file(WRITE "${output}" "${byte_data}0x00\n")
+endfunction()
+dora_web_embed_text(
+	"${DORA_SOURCE_ROOT}/3rdParty/bgfx/src/bgfx_shader.sh"
+	"${DORA_WEB_EMBEDDED_BGFX_DIR}/generated/bgfx_shader.sh.h")
+dora_web_embed_text(
+	"${DORA_SOURCE_ROOT}/3rdParty/bgfx/src/bgfx_compute.sh"
+	"${DORA_WEB_EMBEDDED_BGFX_DIR}/generated/bgfx_compute.sh.h")
 file(GLOB_RECURSE DORA_WEB_BOOTSTRAP_ASSET_FILES CONFIGURE_DEPENDS
 	"${DORA_WEB_BOOTSTRAP_ASSETS}/*")
 set(DORA_WEB_DEMO_GAME "${CMAKE_CURRENT_SOURCE_DIR}/demo-game")
@@ -156,6 +169,7 @@ if(DORA_WEB_BUILD_ENGINE)
 		-Wno-macro-redefined
 	)
 	target_include_directories(dora-web-engine PRIVATE
+		"${DORA_WEB_EMBEDDED_BGFX_DIR}"
 		"${DORA_SOURCE_ROOT}/3rdParty/SDL2/include"
 		"${DORA_SOURCE_ROOT}/3rdParty/bgfx/include"
 		"${DORA_SOURCE_ROOT}/3rdParty/bimg/include"
@@ -562,11 +576,13 @@ if(DORA_WEB_LINK_PLAYER)
 				"-sEXIT_RUNTIME=0"
 				"-sFILESYSTEM=1"
 				"-sFETCH=1"
+				"-lidbfs.js"
 				${DORA_WEB_THREAD_LINK_OPTIONS}
-				"-sEXPORTED_FUNCTIONS=['_main','_dora_web_stop','_dora_web_set_suspended','_dora_web_release_input','_dora_web_love_complex_probe_start','_dora_web_love_complex_probe_status','_dora_web_love_complex_probe_release','_dora_web_love_complex_probe_frame','_dora_web_love_complex_probe_has_graphics','_dora_web_love_complex_probe_is_updating','_dora_web_love_complex_probe_runtime_status','_dora_web_love_complex_probe_audio_sources','_dora_web_love_complex_probe_audio_file_delta','_dora_web_love_complex_probe_voice_delta','_dora_web_love_complex_probe_pointer_presses','_dora_web_love_complex_probe_pointer_button','_dora_web_love_complex_probe_pointer_from_mouse','_dora_web_love_complex_probe_pointer_x','_dora_web_love_complex_probe_pointer_y','_dora_web_love_complex_probe_game_state','_dora_web_love_complex_probe_error']"
+				"-sEXPORTED_FUNCTIONS=['_main','_dora_web_stop','_dora_web_set_suspended','_dora_web_release_input','_dora_web_love_complex_probe_start','_dora_web_love_complex_probe_status','_dora_web_love_complex_probe_release','_dora_web_love_complex_probe_frame','_dora_web_love_complex_probe_has_graphics','_dora_web_love_complex_probe_is_updating','_dora_web_love_complex_probe_runtime_status','_dora_web_love_complex_probe_audio_sources','_dora_web_love_complex_probe_audio_file_delta','_dora_web_love_complex_probe_voice_delta','_dora_web_love_complex_probe_pointer_presses','_dora_web_love_complex_probe_pointer_button','_dora_web_love_complex_probe_pointer_from_mouse','_dora_web_love_complex_probe_pointer_x','_dora_web_love_complex_probe_pointer_y','_dora_web_love_complex_probe_game_state','_dora_web_love_complex_probe_skip_tutorial','_dora_web_love_complex_probe_force_save','_dora_web_love_complex_probe_error']"
 				"-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','UTF8ToString']"
 				"SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/web-platform.js\""
 				"SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/love-complex-probe-runner.js\""
+				"SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/web-loader.js\""
 				"SHELL:--preload-file \"${DORA_ROOT}/Assets/Script/Lib/lualib_bundle.lua@/game/Script/Lib/lualib_bundle.lua\""
 				"SHELL:--preload-file \"${DORA_ROOT}/Assets/Shader/Love/varying.def.sc@/game/Shader/Love/varying.def.sc\""
 				"SHELL:--preload-file \"${DORA_WEB_LOVE_COMPLEX_STAGE}@/love-complex\""
@@ -576,7 +592,7 @@ if(DORA_WEB_LINK_PLAYER)
 			endif()
 			set_target_properties(dora-web-love-complex-probe PROPERTIES
 				OUTPUT_NAME "dora-love-complex-probe"
-				LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/web-platform.js;${CMAKE_CURRENT_SOURCE_DIR}/love-complex-probe-runner.js;${CMAKE_CURRENT_SOURCE_DIR}/player-shell.html;${DORA_ROOT}/Tools/build-scripts/check_web_love_complex_input.mjs;${DORA_ROOT}/Tools/build-scripts/stage_web_love_complex_input.mjs;${CMAKE_CURRENT_SOURCE_DIR}/love-complex-project.json"
+				LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/web-platform.js;${CMAKE_CURRENT_SOURCE_DIR}/web-loader.js;${CMAKE_CURRENT_SOURCE_DIR}/love-complex-probe-runner.js;${CMAKE_CURRENT_SOURCE_DIR}/player-shell.html;${DORA_ROOT}/Tools/build-scripts/check_web_love_complex_input.mjs;${DORA_ROOT}/Tools/build-scripts/stage_web_love_complex_input.mjs;${CMAKE_CURRENT_SOURCE_DIR}/love-complex-project.json"
 				RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 		endif()
 	endif()

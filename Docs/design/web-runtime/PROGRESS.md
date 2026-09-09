@@ -37,7 +37,7 @@
 | P2 | manifest、资源、网络与持久化 | 已完成 | 100% | 游戏按需加载且存档刷新后恢复 |
 | P3 | 输入、音频与页面生命周期 | 进行中 | 60% | 桌面和移动核心交互通过 |
 | P4 | Dora 子系统覆盖与发布工具 | 进行中 | 90% | Player 首版能力和发布 profile 达标 |
-| P5 | LoveNode Web 兼容 | 进行中 | 89% | 基础 Love fixture、非阻塞启动、复杂图形、shader、音频长稳及复杂项目输入锁定通过；指定 Balatro 包已到完整可操作牌局，商店/存档/长稳未完成 |
+| P5 | LoveNode Web 兼容 | 进行中 | 95% | 基础 Love fixture、非阻塞启动、复杂图形、shader、音频长稳及复杂项目输入锁定通过；指定 Balatro 包已完成牌局到商店、真实存档及 20 次 reload，尚缺该复杂项目自身的 30 分钟长稳 |
 | P6 | Web Workspace | 延后 | 0% | 导入、编译、运行和错误恢复闭环 |
 | P7 | 发布矩阵与长期维护 | 进行中 | 29% | 正式发布门禁、文档和兼容矩阵闭合 |
 
@@ -150,7 +150,7 @@
 | P5-06 | shader 失败与可选降级策略 | P5-05 | 已完成 | Codex / #58 | 默认显式失败；允许降级时用户可见且由包声明 | WebGL2 预检在创建 bgfx 资源前同步编译并链接 shader；翻译、driver compile、driver link 与 `validateShader` 负向 fixture 均携带稳定阶段，编译诊断映射到 Love pixel 第 3 行并保留 ESSL 字节数/浏览器日志；默认 `explicit-error`、`silentFallback=false`，可选 package fallback 明确 `available=false`；Chrome 152 首次运行与 20 次 reload 每类失败 21 次，随后成功出图/释放均通过，`build/web-love-shader-report.json` |
 | P5-07 | Love 音频和资源生命周期 soak | P5-02、P3-07 | 已完成 | Codex / #59 | reload、停止、多实例和长时间运行通过 | 独立非发布 fixture 覆盖 WAV static、OGG stream、SoundData、clone 及 play/pause/resume/seek/stop/loop/volume/pitch；Chrome 152 首次运行与 20 次 reload 共 21 次实例重建、隔离清理和最终清理通过；30 分钟 31 样本中 frame 19→108,010，DOM/listener 恒定，heap 斜率 42,151 B/min，页面错误 0；`build/web-love-audio-report.json` |
 | P5-08 | 固定复杂项目验证输入 | P5-03、P5-06、P5-07 | 已完成 | Codex / #60 | 记录版本、源码修改、Dora 扩展和测试步骤 | 按用户指定改为本地 `balatro_fixed.dora`：标准 ZIP、56,676,652 B、305 个条目、archive SHA-256 `6814cfed…f57765b`、版本 1.0.1o-FULL；只读 verifier 校验完整性、路径安全、精确哈希、入口和 Love/Dora 边界。探针只直接启动 `main.lua`，不执行含 `LoveNode` 的 `init.lua`；来源基线未记录，不能宣称未修改原版，包内容不得提交或分发 |
-| P5-09 | 执行 Balatro 或等价复杂项目验证 | P5-08、P7-07 | 进行中 | Codex / #61 | 选定流程、画面、输入、音频和持续运行证据齐全 | 指定包已在独立 pthread profile 的 COOP/COEP 页面通过启动、主菜单、鼠标开局、盲注和 8 张手牌发放，退出清理归零且页面异常为 0；补齐 `math.log10` 后可执行选牌、弃牌和 4 手完整失败局。当前固定选最右 5 张会进入 `GAME_OVER`，尚须牌型策略达到 Shop，并完成 IDBFS 存档 reload、20 reload、30 分钟长稳及回归 |
+| P5-09 | 执行 Balatro 或等价复杂项目验证 | P5-08、P7-07 | 进行中 | Codex / #61 | 选定流程、画面、输入、音频和持续运行证据齐全 | 指定包已在独立 pthread profile 的 COOP/COEP 页面通过启动、主菜单、鼠标开局、盲注、选牌、出牌、弃牌、结算及商店；由游戏自身 `save_run()` 和 save-manager thread 写入真实 profile/save，IDBFS reload 恢复后连续 20 次重载均通过。末轮释放后 graphics/source/AudioFile/voice 归零、DOM/listener 无增长、页面异常为 0；仅剩指定复杂项目自身的 30 分钟长稳未执行 |
 
 ## 10. P6：Web Workspace
 
@@ -177,7 +177,7 @@
 | P7-04 | 发布版本和缓存升级策略 | P2-04、P4-10 | 已完成 | Codex | runtime/manifest/assets 可原子升级和回滚 | 浏览器 `/game` staging/backup 原子交换与 superseded request 隔离；不可变 `releases/<id>`、原子入口、previous 回滚、逐文件 SHA-256、缓存/MIME HTTP 测试；#51 |
 | P7-05 | 用户部署、兼容和排错文档 | P7-01、P7-02 | 未开始 | 未分配 | Docusaurus 英中页面与实际能力一致 | — |
 | P7-06 | 建立性能和体积趋势门禁 | P4-07 | 已完成 | Codex | CI 记录趋势并对超预算变化报警 | `performance-baseline.json`、`check_web_performance.mjs`、`web-performance-trend.json`；正向与超限负向测试、actionlint/YAML 通过 |
-| P7-07 | 评估 iframe、PWA 与 pthread profile | P7-01、P7-02 | 进行中 | Codex / #61 | 分别形成部署约束和是否实施的决策 | 已实现默认关闭的 `DORA_WEB_PTHREADS` 独立构建，使用 `-pthread`、`USE_PTHREADS=1` 和 4 worker pool；Chrome 152 在 COOP/COEP 下确认 `crossOriginIsolated=true`、`SharedArrayBuffer=true` 并运行 Balatro 存档线程。默认发布仍为单线程；iframe/PWA、静态门禁和部署文档尚未完成 |
+| P7-07 | 评估 iframe、PWA 与 pthread profile | P7-01、P7-02 | 进行中 | Codex / #61 | 分别形成部署约束和是否实施的决策 | 已实现默认关闭的 `DORA_WEB_PTHREADS` 独立构建，使用 `-pthread`、`USE_PTHREADS=1` 和 4 worker pool；Chrome 152 在 COOP/COEP 下确认 `crossOriginIsolated=true`、`SharedArrayBuffer=true` 并运行 Balatro 存档线程，静态门禁要求 shared memory、SharedArrayBuffer 和 Atomics 同时存在。默认发布仍为单线程；iframe/PWA 决策与面向用户的部署文档尚未完成 |
 
 ## 12. 当前问题与风险
 
@@ -194,7 +194,7 @@
 | R-09 | 安全 | 导入项目代码与宿主页面同权限执行 | 已定义边界 | 独立 origin、CSP、导入前检查和用户确认 |
 | R-10 | 架构 | 同步 XRT adapter 依赖全局 Asyncify，而 Rust 使用 Wasm exceptions | P0/P2 minimal 已解除 | minimal binding 不暴露同步 XRT API；HttpClient 和 host script 网络契约均使用异步 Fetch，Player 无全局 Asyncify/Rust bridge并通过浏览器回归；静态门禁继续默认拒绝 Asyncify |
 | R-11 | 兼容 | Headless SwiftShader 下 bgfx 格式探测和旧 WebAudio backend 产生大量非致命 warning | 已确认，不阻塞 P1 | smoke 单独拒绝 error、WebGL context 丢失/耗尽和 OOM；P3-05/P3-07 迁移 AudioWorklet，P4-01 审计 bgfx WebGL format probe，避免把已知能力探测噪声误报为 reload 泄漏 |
-| R-12 | 架构 | 用户指定的 Balatro 包用 `love.thread` 运行存档管理器 | 缓解中 | 独立 pthread profile 与 COOP/COEP/SharedArrayBuffer 浏览器运行已通过；继续补默认 profile 隔离、iframe/PWA 部署约束、存档持久化和完整回归 |
+| R-12 | 架构 | 用户指定的 Balatro 包用 `love.thread` 运行存档管理器 | 已缓解 | 独立 pthread profile 与 COOP/COEP/SharedArrayBuffer 浏览器运行已通过；worker 文件写入经主 runtime 合批同步 IDBFS，真实存档 reload 与 20 次重载通过；默认 profile 保持隔离，iframe/PWA 部署约束继续由 P7-07 跟踪 |
 
 当前没有需要外部输入才能开始 P0 的阻塞项。风险不等于阻塞；只有无法继续相应任务时才把任务状态改为“阻塞”。
 
@@ -257,6 +257,7 @@
 | 2026-09-09 | 当前工作树 P5-08（用户更换输入） | Node 25.9.0 本地只读 `.dora` verifier | 通过 | `balatro_fixed.dora` 为 56,676,652 B 的完整 ZIP，305 个安全相对路径条目，archive SHA-256 `6814cfedd8743e125fc2f18b84478796bff9b724f130cdebf2a09be94f57765b`，版本 1.0.1o-FULL；根 `main.lua`/`conf.lua` 为 Love 运行入口，`init.lua` 是仅作边界核对的 Dora `LoveNode` wrapper；所选入口不调用 Dora 扩展。包只解压到未跟踪 build staging，未修改、未上传、未进入发布产物 |
 | 2026-09-09 | 当前工作树 P5-09（阻塞） | Emscripten 3.1.74 + Node 22.14.0 + Chrome 152.0.7977.83 用户指定包启动/清理探针 | 未通过，已定位 | 锁定工具链完整重建成功；语义探针先确认 `love.system.getOS()` 错报 `Unknown`，修复 `Application` Web 宏优先级及 `LoveNode` 的 `Web` 映射后返回 `Web`，包内 sound thread 分支被正确关闭；启动继续至 `LOADING: savemanager`，再于 `game.lua:121` 因无条件启动 `engine/save_manager.lua` 报 `thread constructor failed: Resource temporarily unavailable`。当前能力矩阵明确 `thread=unsupported` 且 `USE_PTHREADS=0`。释放后 graphics/source/AudioFile/voice 归零、页面异常 0；`build/web-love-complex-package-boot-report.json`、`build/web-love-complex-package-boot.png`。旧目录取得的主菜单/输入/20 reload/30 分钟结果只保留为 adapter 诊断，不计作该包验收 |
 | 2026-09-09 | 当前工作树 P5-09/P7-07（指定包） | Emscripten 3.1.74 pthread profile + Node 22.14.0 + Chrome 152.0.7977.83 | 部分通过 | `DORA_WEB_PTHREADS=1` 独立构建以 COOP/COEP 获得 cross-origin isolation 与 SharedArrayBuffer，Balatro 存档线程不再阻塞启动；指定 `balatro_fixed.dora` 通过启动、主菜单、鼠标开局、盲注及发牌，锁定 Node 22 复核报告为 `build/web-love-complex-pthread-play-node22-report.json`。固定完整局进一步定位 LuaJIT `math.log10` 缺口并在通用 Love 环境补齐；随后浏览器可选牌、出牌、弃牌并耗尽 4 手进入 `GAME_OVER`。清理归零、页面异常为 0；尚未达到 Shop，存档/20 reload/30 分钟/回归未验收 |
+| 2026-09-09 | 当前工作树 P5-09/P7-07（指定包） | Emscripten 3.1.74 pthread profile + Node 22.14.0 + Chrome 152.0.7977.83 | 通过当前门禁 | macOS 26.6.2 arm64；测试入口为用户指定的本地 `balatro_fixed.dora`，只解压到忽略的 build staging。修正干净构建缺失 bgfx embedded shader、Love thread 数值整数语义及 worker 写入 IDBFS 合批，并恢复 shader 默认显式失败契约后，自动化流程从已有 RUN 存档完成选牌、出牌、回合结算、cash out 到 `SHOP`，调用游戏自身 `save_run()`/save-manager 写入 profile 与 run save；首次 reload 恢复真实存档，随后 20 次 reload 全部为 storage ready 且存档存在。末轮 documents/nodes/listeners 1/17/46→1/17/46，heap 3,065,512→2,628,176 B，释放后 graphics/source/AudioFile/voice 均归零，页面异常 0；`build/web-pthreads/balatro-full-game-reload20-strict.json`、`build/web-pthreads/balatro-full-game-reload20-strict.png`。未执行该包 30 分钟 soak，不能据此关闭 P5-09 |
 
 新增验证记录必须包含日期、commit/worktree、构建 profile、浏览器与版本、操作系统/设备、测试入口、结果和证据路径。未知字段写“未记录”，不能猜测。
 
@@ -305,6 +306,8 @@
 - [x] 失败 shader 不发生未声明的静默视觉降级。
 - [x] 音频、资源释放、reload 和多实例 soak 通过。
 - [x] 复杂项目输入、修改和 Dora 扩展使用均可复现。
+- [x] 指定 Balatro 包完成可见牌局、商店、真实存档恢复和 20 次 reload。
+- [ ] 指定 Balatro 包完成 30 分钟长稳。
 
 ### Web Workspace（P6）
 
@@ -353,3 +356,4 @@
 | 2026-09-09 | 完成 LoveNode Web shader 失败策略验收 | P5-06 完成，P5 达到 67%；翻译、WebGL 编译、program 链接和 `validateShader` 错误在 bgfx 资源创建前显式返回，含阶段、可识别 Love 源行、翻译摘要与浏览器日志；20 次 reload 证明无 fatal、无静默降级且失败后仍可成功渲染/释放，可选 package fallback 与发布能力保持关闭 |
 | 2026-09-09 | 完成 LoveNode Web 音频与资源生命周期长稳验收 | P5-07 完成，P5 达到 78%；WAV/OGG/SoundData、手势解锁、播放控制、双实例隔离、重建和最终资源归零经 21 轮验证，30 分钟内 heap 斜率低于门槛且 DOM/listener/错误稳定；Web/原生及既有 Love 回归通过，移动设备听感与复杂项目仍待后续矩阵 |
 | 2026-09-09 | 固定 LoveNode Web 复杂项目验证输入 | P5-08 完成，P5 达到 89%；授权本地 Balatro 1.0.1o-FULL 的 commit、既有 patch、source/runtime tree、Love/Dora 入口、修改边界、无 Dora 扩展声明和 P5-09 流程均机器可读并可只读复核；无 remote 与不可分发限制被保留，尚不计作浏览器运行通过 |
+| 2026-09-09 | 完成 Balatro 当前浏览器验收门禁 | P5 达到 95%；清除社区方案对未跟踪 bgfx embedded shader 的隐式依赖，修复 thread Channel 整数语义和 worker 写入后的 IDBFS 合批；用户指定包在 pthread/COOP/COEP profile 到达商店，真实存档首次恢复及 20 次 reload、资源释放和页面异常门禁通过；P5-09 仅保留该包 30 分钟长稳 |

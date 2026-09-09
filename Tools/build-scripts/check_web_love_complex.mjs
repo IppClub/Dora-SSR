@@ -10,6 +10,7 @@ const reportPath = path.resolve(process.argv[3] || "build/web-love-complex-repor
 const screenshotPath = path.resolve(process.argv[4] || "build/web-love-complex.png");
 const observationMs = Number(process.env.DORA_WEB_LOVE_COMPLEX_OBSERVATION_MS || 10000);
 const flowWaitMs = Number(process.env.DORA_WEB_LOVE_COMPLEX_FLOW_WAIT_MS || 8000);
+const startupWaitMs = Number(process.env.DORA_WEB_LOVE_COMPLEX_STARTUP_WAIT_MS || 180000);
 const reloadCount = Number(process.env.DORA_WEB_LOVE_COMPLEX_RELOADS || 0);
 const soakSeconds = Number(process.env.DORA_WEB_LOVE_COMPLEX_SOAK_SECONDS || 0);
 const flow = process.env.DORA_WEB_LOVE_COMPLEX_FLOW || "boot";
@@ -18,6 +19,8 @@ assert.ok(Number.isInteger(observationMs) && observationMs >= 0 && observationMs
 	"DORA_WEB_LOVE_COMPLEX_OBSERVATION_MS must be an integer from 0 to 120000");
 assert.ok(Number.isInteger(flowWaitMs) && flowWaitMs >= 0 && flowWaitMs <= 120000,
 	"DORA_WEB_LOVE_COMPLEX_FLOW_WAIT_MS must be an integer from 0 to 120000");
+assert.ok(Number.isInteger(startupWaitMs) && startupWaitMs >= 1000 && startupWaitMs <= 300000,
+	"DORA_WEB_LOVE_COMPLEX_STARTUP_WAIT_MS must be an integer from 1000 to 300000");
 assert.ok(Number.isInteger(reloadCount) && reloadCount >= 0 && reloadCount <= 100,
 	"DORA_WEB_LOVE_COMPLEX_RELOADS must be an integer from 0 to 100");
 assert.ok(Number.isInteger(soakSeconds) && soakSeconds >= 0 && soakSeconds <= 7200,
@@ -251,10 +254,28 @@ async function findCanvasHoverMatching(cdp, predicate, bounds = {}) {
 
 async function clearTutorial(cdp) {
 	for (let tutorialStep = 0; tutorialStep < 16; tutorialStep++) {
-		const tutorial = await snapshot(cdp);
+		let tutorial = await snapshot(cdp);
 		if (!tutorial.gameState?.overlayTutorial) return tutorial;
-		const next = await findCanvasHover(cdp, ["tut_next", "skip_tutorial_section"]);
-		await clickCanvas(cdp, next.xRatio, next.yRatio);
+		const readyDeadline = Date.now() + 15000;
+		while (Date.now() < readyDeadline) {
+			const state = tutorial.gameState;
+			if (state.tutorialNextButtonXRatio >= 0 || state.tutorialSkipButtonXRatio >= 0) break;
+			await new Promise((resolve) => setTimeout(resolve, 500));
+			tutorial = await snapshot(cdp);
+			if (!tutorial.gameState?.overlayTutorial) return tutorial;
+		}
+		const state = tutorial.gameState;
+		const direct = state.tutorialNextButtonXRatio >= 0 && state.tutorialNextButtonYRatio >= 0
+			? {xRatio: state.tutorialNextButtonXRatio, yRatio: state.tutorialNextButtonYRatio}
+			: state.tutorialSkipButtonXRatio >= 0 && state.tutorialSkipButtonYRatio >= 0
+				? {xRatio: state.tutorialSkipButtonXRatio, yRatio: state.tutorialSkipButtonYRatio}
+				: null;
+		if (direct) await clickCanvas(cdp, direct.xRatio, direct.yRatio);
+		else {
+			const skipped = await evaluate(cdp,
+				"globalThis.doraSkipLoveComplexTutorial ? doraSkipLoveComplexTutorial() : false");
+			assert.equal(skipped, true, "Love complex-project tutorial could not be skipped");
+		}
 		await new Promise((resolve) => setTimeout(resolve, 250));
 	}
 	const state = await snapshot(cdp);
@@ -378,6 +399,14 @@ async function selectLowestHandCard(cdp) {
 		.sort((a, b) => a.rank - b.rank).slice(0, 1), "discard selection");
 }
 
+async function waitForSettledHandOutcome(cdp, description) {
+	return waitForGameState(cdp, (state) => state.shop
+		|| (state.state === "SELECTING_HAND" && !state.locksFrame && state.eventQueueCount <= 6)
+		|| (state.state === "ROUND_EVAL" && !state.locksFrame
+			&& state.handCards === 0 && state.eventQueueCount <= 1),
+		description, 60000);
+}
+
 async function pressKey(cdp, key, code, virtualKeyCode) {
 	await cdp.send("Input.dispatchKeyEvent", {type: "keyDown", key, code,
 		windowsVirtualKeyCode: virtualKeyCode, nativeVirtualKeyCode: virtualKeyCode});
@@ -461,7 +490,7 @@ try {
 	const version = await cdp.send("Browser.getVersion");
 	const address = server.address();
 	await cdp.send("Page.navigate", {url: `http://127.0.0.1:${address.port}/dora-love-complex-probe.html`});
-	runtime = await waitForRuntime(cdp, 180000);
+	runtime = await waitForRuntime(cdp, startupWaitMs);
 	const isolation = await evaluate(cdp,
 		"({crossOriginIsolated: globalThis.crossOriginIsolated, sharedArrayBuffer: typeof SharedArrayBuffer === 'function'})");
 	if (pthreadProfile) {
@@ -518,10 +547,8 @@ try {
 						&& state.handsLeft < beforeFirstPlay.gameState.handsLeft)
 						|| state.state === "ROUND_EVAL" || state.shop,
 						"Love complex-project first played hand", 30000);
-					const discardHand = await waitForGameState(cdp,
-						(state) => (state.state === "SELECTING_HAND" && state.handCards > 0)
-							|| state.state === "ROUND_EVAL" || state.shop,
-						"Love complex-project discard hand", 30000);
+					const discardHand = await waitForSettledHandOutcome(cdp,
+						"Love complex-project settled first hand");
 					if (discardHand.gameState.state === "SELECTING_HAND") {
 						await clearSettledTutorial(cdp);
 						await selectLowestHandCard(cdp);
@@ -538,12 +565,19 @@ try {
 							&& state.highlightedCards === 0 && state.discardsLeft < beforeDiscard.gameState.discardsLeft,
 							"Love complex-project discard completion", 15000);
 					}
-					for (let hand = 0; hand < 6; hand++) {
+					for (let hand = 0; hand < 12; hand++) {
 						const handState = await waitForGameState(cdp,
 							(state) => (state.state === "SELECTING_HAND" && state.handCards > 0)
 								|| state.state === "ROUND_EVAL" || state.shop,
 							"Love complex-project playable hand", 30000);
-						if (handState.gameState.state !== "SELECTING_HAND") break;
+						if (handState.gameState.state !== "SELECTING_HAND") {
+							if (handState.gameState.cashOutButtonXRatio >= 0) {
+								await clickGameButton(cdp, handState, "cashOut",
+									["cash_out_button", "cash_out"]);
+								break;
+							}
+							continue;
+						}
 						await clearSettledTutorial(cdp);
 						await selectBestHandCards(cdp, Math.min(5, handState.gameState.handCards));
 						await clearSettledTutorial(cdp);
@@ -558,22 +592,30 @@ try {
 								&& state.handsLeft < beforePlay.gameState.handsLeft)
 								|| state.state === "ROUND_EVAL" || state.shop,
 							"Love complex-project played hand", 30000);
-					}
-					const roundEnd = await waitForGameState(cdp,
-						(state) => state.state === "ROUND_EVAL" || state.shop,
-						"Love complex-project round evaluation", 60000);
-					if (!roundEnd.gameState.shop) {
-						await new Promise((resolve) => setTimeout(resolve, 1500));
-						const cashOut = await findCanvasHover(cdp, ["cash_out_button", "cash_out"],
-							{xMin: 0.25, xMax: 0.75, yMin: 0.5, yMax: 0.95, step: 0.015});
-						const cashOutState = cashOut.state;
-						await captureScreenshot(cdp, screenshotPath.replace(/\.png$/i, "-cash-out.png"));
-						fs.writeFileSync(reportPath.replace(/\.json$/i, "-cash-out-state.json"),
-							`${JSON.stringify(cashOutState, null, 2)}\n`);
-						await clickCanvas(cdp, cashOut.xRatio, cashOut.yRatio);
+						const settledPlay = await waitForSettledHandOutcome(cdp,
+							"Love complex-project settled played hand");
+						if (settledPlay.gameState.state === "ROUND_EVAL") {
+							// Per-hand scoring also uses ROUND_EVAL and can remain there for
+							// several seconds while queued animations resolve. Only treat it
+							// as the round's cash-out state if it remains stable afterwards.
+							await new Promise((resolve) => setTimeout(resolve, 8000));
+							const afterEvaluation = await snapshot(cdp);
+							if (afterEvaluation.gameState.state === "SELECTING_HAND") continue;
+							if (afterEvaluation.gameState.cashOutButtonXRatio >= 0) {
+								await captureScreenshot(cdp, screenshotPath.replace(/\.png$/i, "-cash-out.png"));
+								await clickGameButton(cdp, afterEvaluation, "cashOut",
+									["cash_out_button", "cash_out"]);
+								break;
+							}
+							continue;
+						}
+						if (settledPlay.gameState.state !== "SELECTING_HAND") break;
 					}
 					await waitForGameState(cdp, (state) => state.shop && state.state === "SHOP",
 						"Love complex-project shop", 30000);
+					const saveRequested = await evaluate(cdp,
+						"globalThis.doraForceLoveComplexSave ? doraForceLoveComplexSave() : false");
+					assert.equal(saveRequested, true, "Love complex-project run save could not be requested");
 				}
 			}
 		}
@@ -606,16 +648,20 @@ try {
 	const released = await evaluate(cdp,
 		"globalThis.doraReleaseLoveComplexProbe ? doraReleaseLoveComplexProbe() : false");
 	cleanup = await snapshot(cdp);
+	const expectedRunSave = flow === "full-game" && Boolean(flowEvidence.at(-1)?.runtime?.gameState?.savePresent);
 	const reloadRuns = [{runtime, cleanup: {...cleanup, released}}];
 	const reloadMemory = [await memorySnapshot(cdp)];
 	for (let run = 1; run <= reloadCount; run++) {
 		await cdp.send("Page.reload", {ignoreCache: true});
-		let reloaded = await waitForRuntime(cdp, 180000);
+		let reloaded = await waitForRuntime(cdp, startupWaitMs);
 		const unlocked = await evaluate(cdp,
 			"globalThis.doraUnlockLoveComplexAudio ? doraUnlockLoveComplexAudio() : null", {userGesture: true});
 		reloaded = {...await snapshot(cdp), unlocked};
 		assert.equal(reloaded.error, "", `Love Web complex-project reload ${run} failed`);
 		assert.equal(reloaded.state, 1, `Love Web complex-project reload ${run} did not run`);
+		if (expectedRunSave)
+			assert.equal(reloaded.gameState?.savePresent, true,
+				`Love Web complex-project reload ${run} did not restore the run save from IDBFS`);
 		const reloadReleased = await evaluate(cdp,
 			"globalThis.doraReleaseLoveComplexProbe ? doraReleaseLoveComplexProbe() : false");
 		const reloadCleanup = await snapshot(cdp);
@@ -663,8 +709,8 @@ try {
 			|| cleanup?.state !== 2 || cleanup?.hasGraphics || cleanup?.audioSources !== 0
 			|| cleanup?.audioFileDelta !== 0 || cleanup?.voiceDelta !== 0
 			? "failed" : "diagnostic-passed",
-		observationMs, flowWaitMs, reloads: reloadCount, soakSeconds, flow, pthreadProfile, isolation, flowEvidence,
-		runtime, cleanup: {...cleanup, released}, reloadRuns,
+		observationMs, flowWaitMs, startupWaitMs, reloads: reloadCount, soakSeconds, flow, pthreadProfile, isolation, flowEvidence,
+		runtime, cleanup: {...cleanup, released}, expectedRunSave, reloadRuns,
 		reloadMemory: {first: firstMemory, last: lastMemory}, soakHeapSlopeBytesPerMinute, pageErrors,
 		consoleMessages: consoleMessages.slice(-200), screenshot: path.basename(screenshotPath)};
 	fs.mkdirSync(path.dirname(reportPath), {recursive: true});
@@ -704,6 +750,11 @@ try {
 	assert.equal(cleanup?.audioFileDelta, 0, "Love Web complex AudioFile objects survived cleanup");
 	assert.equal(cleanup?.voiceDelta, 0, "Love Web complex SoLoud voices survived cleanup");
 } finally {
+	if (!runtime && consoleMessages.length > 0) {
+		console.error("[DIAG] Love Web complex-project console before startup failure:");
+		for (const message of consoleMessages.slice(-200))
+			console.error(`[${message.type}] ${message.line}`);
+	}
 	await cdp?.close().catch(() => {});
 	const chromeExit = new Promise((resolve) => chrome.once("exit", resolve));
 	chrome.kill("SIGTERM"); server.close();

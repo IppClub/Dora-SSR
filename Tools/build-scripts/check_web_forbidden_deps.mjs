@@ -3,6 +3,8 @@ import path from "node:path";
 
 const args = process.argv.slice(2);
 const allowAsyncify = args.includes("--allow-asyncify");
+const allowPthreads = args.includes("--allow-pthreads");
+const allowLoveRuntime = args.includes("--allow-love-runtime");
 const outputArg = args.find((arg) => !arg.startsWith("--")) || "result/dora-web-player";
 const outputDir = path.resolve(outputArg);
 const wasmPath = path.join(outputDir, "dora-player-runtime.wasm");
@@ -92,9 +94,9 @@ const wasmText = wasm.toString("latin1");
 const module = await WebAssembly.compile(wasm);
 const sharedMemory = hasSharedMemory(wasm);
 const dynamicSections = ["dylink", "dylink.0"].filter((name) => WebAssembly.Module.customSections(module, name).length > 0);
+const pthreadGlueTokens = ["SharedArrayBuffer", "Atomics."]
+	.filter((token) => glue.includes(token));
 const forbiddenGlueTokens = [
-	"SharedArrayBuffer",
-	"Atomics.",
 	"PROXY_TO_PTHREAD",
 	"pthread-main.js",
 	"loadDynamicLibrary",
@@ -107,7 +109,8 @@ const forbiddenRuntimeTokens = [
 	"JoltPhysics",
 	"VideoNode:",
 	"Ogg/Theora",
-].filter((token) => wasmText.includes(token) || glue.includes(token));
+].filter((token) => !(allowLoveRuntime && token === "Ogg/Theora"))
+	.filter((token) => wasmText.includes(token) || glue.includes(token));
 const allFiles = listFiles(outputDir);
 const forbiddenArtifacts = allFiles
 	.filter((file) => /(?:\.(?:so|dylib|dll|a|o|bc)|(?:pthread-main|wasm-worker)\.js)$/i.test(file))
@@ -125,7 +128,11 @@ for (const file of allFiles) {
 
 const asyncify = glue.includes("_asyncify_start_unwind") || glue.includes("Asyncify");
 const failures = [];
-if (sharedMemory) failures.push("shared WebAssembly memory is enabled");
+if (sharedMemory && !allowPthreads) failures.push("shared WebAssembly memory is enabled");
+if (pthreadGlueTokens.length && !allowPthreads)
+	failures.push(`pthread glue tokens: ${pthreadGlueTokens.join(", ")}`);
+if (allowPthreads && (!sharedMemory || pthreadGlueTokens.length !== 2))
+	failures.push("pthread profile is missing shared memory, SharedArrayBuffer, or Atomics glue");
 if (dynamicSections.length) failures.push(`dynamic-linking sections: ${dynamicSections.join(", ")}`);
 if (forbiddenGlueTokens.length) failures.push(`forbidden glue tokens: ${forbiddenGlueTokens.join(", ")}`);
 if (forbiddenRuntimeTokens.length) failures.push(`forbidden runtime tokens: ${forbiddenRuntimeTokens.join(", ")}`);
@@ -136,6 +143,7 @@ if (asyncify && !allowAsyncify) failures.push("global Asyncify is enabled; pass 
 
 const report = {
 	sharedMemory,
+	pthreadGlueTokens,
 	dynamicSections,
 	forbiddenGlueTokens,
 	forbiddenRuntimeTokens,
@@ -143,7 +151,11 @@ const report = {
 	leakedPaths,
 	leakedSecrets,
 	asyncify,
-	allowedRisks: asyncify && allowAsyncify ? ["R-10: global Asyncify remains temporarily allowed"] : []
+	allowedRisks: [
+		...(allowPthreads ? ["Balatro profile: pthread shared memory requires COOP/COEP"] : []),
+		...(allowLoveRuntime ? ["Love profile: Ogg/Theora runtime support is intentionally linked"] : []),
+		...(asyncify && allowAsyncify ? ["R-10: global Asyncify remains temporarily allowed"] : []),
+	]
 };
 fs.writeFileSync(path.join(outputDir, "dependency-report.json"), `${JSON.stringify(report, null, 2)}\n`);
 if (failures.length) throw new Error(`Web dependency policy failed:\n- ${failures.join("\n- ")}`);

@@ -222,17 +222,23 @@
 
 	async function mountUserStorage(module) {
 		scope.performance?.mark?.("dora-storage-start");
+		module.doraStorageState = "mounting";
 		const fileSystem = module.FS;
 		if (!fileSystem || !module.IDBFS) throw new Error("IDBFS is unavailable");
 		try { fileSystem.mkdir("/user"); } catch (error) {
 			if (!fileSystem.analyzePath("/user").exists) throw error;
 		}
 		fileSystem.mount(module.IDBFS, {}, "/user");
+		module.doraStorageState = "loading";
 		await new Promise((resolve, reject) => {
-			fileSystem.syncfs(true, (error) => error ? reject(error) : resolve());
+			fileSystem.syncfs(true, (error) => {
+				module.doraStorageState = error ? `failed: ${error}` : "loaded";
+				error ? reject(error) : resolve();
+			});
 		});
 		for (const directory of ["/user/saves", "/user/settings", "/user/projects"]) fileSystem.mkdirTree(directory);
 		scope.performance?.mark?.("dora-storage-ready");
+		module.doraStorageState = "ready";
 		let syncInFlight = null;
 		let queuedSync = null;
 		function storageError(error) {
@@ -286,7 +292,7 @@
 	const api = Object.freeze({ LIMITS, validateManifest, loadManifest, fetchBytes, fetchPath, mountStartup, mountUserStorage });
 	scope.DoraWebLoader = api;
 
-	if (typeof Module !== "undefined" && typeof document !== "undefined") {
+	if (typeof Module !== "undefined" && typeof document !== "undefined" && !Module.doraSkipAutoMount) {
 		Module.preRun = Module.preRun || [];
 		Module.preRun.push(function() {
 			Module.FS = FS;
@@ -294,7 +300,9 @@
 			const manifestUrl = Module.doraManifestUrl || new URLSearchParams(location.search).get("manifest") || "dora-web-manifest.json";
 			const dependency = "dora-web-manifest";
 			addRunDependency(dependency);
-			Promise.all([api.mountUserStorage(Module), api.mountStartup(Module, manifestUrl)]).then(function() {
+			const mounts = [api.mountUserStorage(Module)];
+			if (!Module.doraSkipManifestMount) mounts.push(api.mountStartup(Module, manifestUrl));
+			Promise.all(mounts).then(function() {
 				scope.performance?.mark?.("dora-content-ready");
 				removeRunDependency(dependency);
 			}).catch(function(error) {

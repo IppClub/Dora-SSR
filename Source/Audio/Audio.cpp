@@ -258,7 +258,7 @@ extern "C" int32_t dora_audio_encode_wav_to_ogg(
 void soloud_stop_voice(uint32_t handle) {
 	const auto trace = DoraAudioTraceSequence.fetch_add(1, std::memory_order_relaxed);
 	if (shouldTraceDoraAudio(trace))
-		std::fprintf(stderr,
+		std::fprintf(stdout,
 			"[DoraAudioTrace %llu] SoLoud voice ended: handle=%u posting logic cleanup\n",
 			static_cast<unsigned long long>(trace), handle);
 	SharedApplication.invokeInLogic([handle]() {

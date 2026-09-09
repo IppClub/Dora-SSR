@@ -91,14 +91,30 @@ local queueCount = 0
 if G.E_MANAGER and type(G.E_MANAGER.queues) == 'table' then
   for _, queue in pairs(G.E_MANAGER.queues) do queueCount = queueCount + sequenceLength(queue) end
 end
-local profile = G.SETTINGS and tonumber(G.SETTINGS.profile) or 1
+local profileValue = G.SETTINGS and G.SETTINGS.profile or 1
+local profile = tonumber(profileValue) or 1
+local profilePath = tostring(profileValue)
 local savePresent = false
 local profilePresent = false
-local filesystemOk, filesystem = pcall(require, 'engine.core.filesystem')
-if filesystemOk and filesystem and filesystem.getInfo then
-  savePresent = filesystem.getInfo(tostring(profile) .. '/save.jkr') and true or false
-  profilePresent = filesystem.getInfo(tostring(profile) .. '/profile.jkr') and true or false
+local filesystem = love and love.filesystem or nil
+local saveItems = {}
+local profileItems = {}
+local saveIdentity = ''
+local saveDirectory = ''
+if filesystem and filesystem.getInfo then
+  savePresent = filesystem.getInfo(profilePath .. '/save.jkr') and true or false
+  profilePresent = filesystem.getInfo(profilePath .. '/profile.jkr') and true or false
+  saveItems = filesystem.getDirectoryItems('') or {}
+  profileItems = filesystem.getDirectoryItems(profilePath) or {}
+  saveIdentity = filesystem.getIdentity and filesystem.getIdentity() or ''
+  saveDirectory = filesystem.getSaveDirectory and filesystem.getSaveDirectory() or ''
 end
+local saveThread = G.SAVE_MANAGER and G.SAVE_MANAGER.thread or nil
+local saveThreadRunning = saveThread and saveThread.isRunning and saveThread:isRunning() or false
+local saveThreadError = saveThread and saveThread.getError and saveThread:getError() or ''
+local forceSaveError = rawget(_G, 'DORA_WEB_PROBE_FORCE_SAVE_ERROR') or ''
+local saveChannel = G.SAVE_MANAGER and G.SAVE_MANAGER.channel or nil
+local saveChannelCount = saveChannel and saveChannel.getCount and saveChannel:getCount() or -1
 local round = G.GAME and G.GAME.current_round or nil
 local activeTouches = love and love.touch and love.touch.getTouches and #love.touch.getTouches() or -1
 local function targetRatio(target, axis)
@@ -115,8 +131,21 @@ local function targetRatio(target, axis)
   local extent = axis == 'x' and love.graphics.getWidth() or love.graphics.getHeight()
   return extent > 0 and value * scale / extent or -1
 end
+local function stringList(values)
+  local result = {}
+  for _, value in ipairs(values) do result[#result + 1] = quote(value) end
+  return '[' .. table.concat(result, ',') .. ']'
+end
 local function buttonRatio(id, axis)
   local button = G.buttons and G.buttons.get_UIE_by_ID and G.buttons:get_UIE_by_ID(id) or nil
+  if not button and G.I and type(G.I.UIBOX) == 'table' then
+    for _, box in ipairs(G.I.UIBOX) do
+      if box and type(box.get_UIE_by_ID) == 'function' then
+        button = box:get_UIE_by_ID(id)
+        if button then break end
+      end
+    end
+  end
   return targetRatio(button, axis)
 end
 local function handCardRatios()
@@ -184,6 +213,12 @@ return table.concat({
   ',"playButtonYRatio":', tostring(buttonRatio('play_button', 'y')),
   ',"discardButtonXRatio":', tostring(buttonRatio('discard_button', 'x')),
   ',"discardButtonYRatio":', tostring(buttonRatio('discard_button', 'y')),
+  ',"cashOutButtonXRatio":', tostring(buttonRatio('cash_out_button', 'x')),
+  ',"cashOutButtonYRatio":', tostring(buttonRatio('cash_out_button', 'y')),
+  ',"tutorialNextButtonXRatio":', tostring(buttonRatio('tut_next', 'x')),
+  ',"tutorialNextButtonYRatio":', tostring(buttonRatio('tut_next', 'y')),
+  ',"tutorialSkipButtonXRatio":', tostring(buttonRatio('skip_tutorial_section', 'x')),
+  ',"tutorialSkipButtonYRatio":', tostring(buttonRatio('skip_tutorial_section', 'y')),
   ',"handCardRatios":', handCardRatios(),
   ',"handCardDetails":', handCardDetails(),
   ',"hoverTarget":', quote(controllerTarget('hovering')),
@@ -206,8 +241,19 @@ return table.concat({
   ',"chips":', tostring(round and tonumber(round.chips) or -1),
   ',"dollars":', tostring(G.GAME and tonumber(G.GAME.dollars) or -1),
   ',"profile":', tostring(profile),
+  ',"profilePath":', quote(profilePath),
   ',"savePresent":', savePresent and 'true' or 'false',
   ',"profilePresent":', profilePresent and 'true' or 'false',
+  ',"saveItems":', stringList(saveItems),
+  ',"profileItems":', stringList(profileItems),
+  ',"saveIdentity":', quote(saveIdentity),
+  ',"saveDirectory":', quote(saveDirectory),
+  ',"saveThreadRunning":', saveThreadRunning and 'true' or 'false',
+  ',"saveThreadError":', quote(saveThreadError or ''),
+  ',"forceSaveError":', quote(forceSaveError),
+  ',"saveChannelCount":', tostring(saveChannelCount),
+  ',"saveRunQueued":', G.FILE_HANDLER and G.FILE_HANDLER.run and 'true' or 'false',
+  ',"saveUpdateQueued":', G.FILE_HANDLER and G.FILE_HANDLER.update_queued and 'true' or 'false',
   ',"stageObjectCount":', tostring(G.STAGE_OBJECTS and sequenceLength(G.STAGE_OBJECTS[G.STAGE]) or -1),
   '}'
 })
@@ -407,6 +453,63 @@ extern "C" EMSCRIPTEN_KEEPALIVE const char *dora_web_love_complex_probe_game_sta
 {
 	refreshGameState();
 	return probeGameState.c_str();
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE int dora_web_love_complex_probe_skip_tutorial()
+{
+	if (!probeNode) return 0;
+	SharedApplication.invokeInLogic([]() {
+		if (!probeNode) return;
+		auto *state = probeNode->getProbeLuaState();
+		if (!state) return;
+		const int base = lua_gettop(state);
+		constexpr const char *script = R"lua(
+local G = rawget(_G, 'G')
+if G and G.OVERLAY_TUTORIAL and G.FUNCS and type(G.FUNCS.skip_tutorial_section) == 'function' then
+  G.FUNCS.skip_tutorial_section({})
+end
+)lua";
+		if (luaL_loadbufferx(state, script, std::char_traits<char>::length(script),
+			"@dora-web-love-complex-skip-tutorial.lua", nullptr) == LUA_OK)
+			lua_pcall(state, 0, 0, 0);
+		lua_settop(state, base);
+	});
+	return 1;
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE int dora_web_love_complex_probe_force_save()
+{
+	if (!probeNode) return 0;
+	SharedApplication.invokeInLogic([]() {
+		if (!probeNode) return;
+		auto *state = probeNode->getProbeLuaState();
+		if (!state) return;
+		const int base = lua_gettop(state);
+		constexpr const char *script = R"lua(
+local ok, err = pcall(function()
+  local G = rawget(_G, 'G')
+  local saveRun = rawget(_G, 'save_run')
+  if G and type(saveRun) == 'function' then
+    saveRun()
+    G.FILE_HANDLER = G.FILE_HANDLER or {}
+    G.FILE_HANDLER.force = true
+    if G.SAVE_MANAGER and G.SAVE_MANAGER.channel and G.ARGS and G.ARGS.save_run then
+      G.SAVE_MANAGER.channel:push({
+        type = 'save_run',
+        save_table = G.ARGS.save_run,
+        profile_num = G.SETTINGS and G.SETTINGS.profile or 1
+      })
+    end
+  end
+end)
+DORA_WEB_PROBE_FORCE_SAVE_ERROR = ok and '' or tostring(err)
+)lua";
+		if (luaL_loadbufferx(state, script, std::char_traits<char>::length(script),
+			"@dora-web-love-complex-force-save.lua", nullptr) == LUA_OK)
+			lua_pcall(state, 0, 0, 0);
+		lua_settop(state, base);
+	});
+	return 1;
 }
 
 extern "C" EMSCRIPTEN_KEEPALIVE const char *dora_web_love_complex_probe_error()

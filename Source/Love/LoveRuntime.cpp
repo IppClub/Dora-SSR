@@ -137,6 +137,9 @@ SOFTWARE. */
 #include "3rdParty/Love/src/modules/touch/wrap_Touch.h"
 #include "3rdParty/Love/src/modules/joystick/wrap_Joystick.h"
 #include "3rdParty/Love/src/modules/joystick/wrap_JoystickModule.h"
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
 extern "C"
 {
 #include "lauxlib.h"
@@ -762,6 +765,14 @@ bool LoveRuntime::update(double deltaTime, std::string &error)
 		return false;
 	}
 	drainThreadFilesystemRequests();
+	if (_threadContext && _ownsThreadContext
+		&& _threadContext->userStorageSyncPending.exchange(false, std::memory_order_acq_rel))
+		_userStorageSyncPending = true;
+	if (_userStorageSyncPending)
+	{
+		_userStorageSyncPending = false;
+		queueLoveUserStorageSyncNow();
+	}
 	_timerDelta = std::max(0.0, deltaTime);
 	_timerWindow += _timerDelta;
 	++_timerFrames;
@@ -780,7 +791,14 @@ bool LoveRuntime::update(double deltaTime, std::string &error)
 		return true;
 	}
 	lua_pushnumber(_state, deltaTime);
-	return callLoveCallback("update", 1, 0, error);
+	const bool success = callLoveCallback("update", 1, 0, error);
+	// In a normal LÖVE loop the VM gets regular allocation/GC opportunities from
+	// the host loop. LoveNode drives callbacks directly, so keep the embedded VM
+	// from deferring unreachable ImageData/Text/UI userdata indefinitely while a
+	// game is loading the first round. This is an incremental step, not a full
+	// collection, and therefore does not introduce a frame-sized GC pause.
+	if (_state) lua_gc(_state, LUA_GCSTEP, 64);
+	return success;
 }
 
 bool LoveRuntime::dispatchQueuedEvents(std::string &error)
