@@ -43,9 +43,10 @@ jobs:
           xmake-version: latest
       - name: Generate Lua bindings
         run: |
-          if [[ -f /etc/apt/sources.list.d/google-chrome.list ]]; then
-            sudo sed -i 's/^deb /# deb /' /etc/apt/sources.list.d/google-chrome.list
-          fi
+          shopt -s nullglob
+          for chrome_source in /etc/apt/sources.list.d/google-chrome*.list /etc/apt/sources.list.d/google-chrome*.sources; do
+            sudo mv "$chrome_source" "$chrome_source.disabled"
+          done
           sudo apt-get update
           sudo apt-get install -y lua5.1 luarocks
           sudo luarocks install luafilesystem
@@ -60,7 +61,7 @@ jobs:
           gomobile init
       - uses: dtolnay/rust-toolchain@stable
       - name: Set up JDK 17
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
@@ -75,19 +76,28 @@ jobs:
         run: node Docs/scripts/generate-language-docs.js
       - name: Pack Android
         if: startsWith(github.ref, 'refs/tags/')
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           cd Tools/dora-dora && pnpm install && pnpm build && cd ../..
-          echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > $GITHUB_WORKSPACE/signing-key.jks
+          echo "$KEYSTORE_B64" | base64 -d > "$GITHUB_WORKSPACE/signing-key.jks"
           cp Tools/dora-wa/wa.mod Assets/dora-wa
           cp -r Tools/dora-wa/vendor Assets/dora-wa
           cd Projects/Android/Dora
-          ./gradlew assembleRelease -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/signing-key.jks -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
+          ./gradlew assembleRelease \
+            "-Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/signing-key.jks" \
+            "-Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD" \
+            "-Pandroid.injected.signing.key.alias=$KEY_ALIAS" \
+            "-Pandroid.injected.signing.key.password=$KEY_PASSWORD"
           cd app/build/outputs/apk/release
           mv app-release.apk dora-ssr-${{ github.ref_name }}-android.apk
           zip dora-ssr-${{ github.ref_name }}-android.zip dora-ssr-${{ github.ref_name }}-android.apk
-          mv dora-ssr-${{ github.ref_name }}-android.zip $GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-android.zip
+          mv dora-ssr-${{ github.ref_name }}-android.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-android.zip"
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
