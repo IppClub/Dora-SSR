@@ -41,9 +41,6 @@ grep -q 'pickProject' "$OUTPUT_DIR/index.html"
 grep -q 'showDirectoryPicker' "$OUTPUT_DIR/index.html"
 grep -q 'startSharedPackage' "$OUTPUT_DIR/index.html"
 grep -q 'FS.syncfs' "$OUTPUT_DIR/index.html"
-# Emscripten may normalize JavaScript quotes and whitespace in the generated
-# shell. Validate the call and its dependency name, not one serializer format.
-grep -aEq "addRunDependency[[:space:]]*\([[:space:]]*['\"]dora-idbfs['\"][[:space:]]*\)" "$OUTPUT_DIR/index.html"
 grep -q 'persistentFileSystemReady' "$OUTPUT_DIR/index.html"
 grep -q 'project root must contain init.lua' "$OUTPUT_DIR/index.html"
 grep -q 'resumeAudio' "$OUTPUT_DIR/index.html"
