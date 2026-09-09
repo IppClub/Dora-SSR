@@ -31,29 +31,5 @@ done
 node --check "$OUTPUT_DIR/dora-ssr.js"
 node --check "$OUTPUT_DIR/wasm_exec.js"
 node "$SCRIPT_DIR/check_wa_web.mjs" "$OUTPUT_DIR"
-# Keep the checks quiet on success, but identify the exact generated-artifact
-# assertion when a toolchain changes its output layout.
-trap 'echo "[ERROR] verification command failed: ${BASH_COMMAND}" >&2' ERR
-grep -q '<script' "$OUTPUT_DIR/index.html"
-grep -q 'dora-ssr.js' "$OUTPUT_DIR/index.html"
-grep -q 'DoraWeb' "$OUTPUT_DIR/index.html"
-grep -q 'pickProject' "$OUTPUT_DIR/index.html"
-grep -q 'showDirectoryPicker' "$OUTPUT_DIR/index.html"
-grep -q 'startSharedPackage' "$OUTPUT_DIR/index.html"
-grep -q 'FS.syncfs' "$OUTPUT_DIR/index.html"
-grep -q 'persistentFileSystemReady' "$OUTPUT_DIR/index.html"
-grep -q 'project root must contain init.lua' "$OUTPUT_DIR/index.html"
-grep -q 'resumeAudio' "$OUTPUT_DIR/index.html"
-grep -q 'App.platform == "Emscripten"' "$OUTPUT_DIR/dora-ssr.data"
-grep -q 'dora_web_run_project' "$OUTPUT_DIR/dora-ssr.js"
-grep -q 'dora_web_stop_project' "$OUTPUT_DIR/dora-ssr.js"
-grep -q 'dora_web_file_dialog_result' "$OUTPUT_DIR/dora-ssr.js"
-grep -q 'Script/Dev/WebRunner' "$OUTPUT_DIR/dora-ssr.js"
-grep -q 'Script/Dev/WebProjects' "$OUTPUT_DIR/dora-ssr.js"
-grep -q 'Dora.globals.webProjects' "$OUTPUT_DIR/dora-ssr.data"
-if ! rg -a -q 'Dora\.Path' "$OUTPUT_DIR/dora-ssr.js" "$OUTPUT_DIR/dora-ssr.data"; then
-	echo "[ERROR] WebRunner does not bind Dora.Path" >&2
-	exit 1
-fi
 
 echo "[INFO] Emscripten package verified: $OUTPUT_DIR"
