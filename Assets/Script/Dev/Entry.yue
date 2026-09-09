@@ -1522,7 +1522,7 @@ entryWindow = threadLoop ->
 		filterText = filterText\lower! if filterText
 		if App.platform == "Emscripten"
 			Dora.globals.webProjects.draw zh, themeColor
-			anyEntryMatched = true
+			allEntries.anyEntryMatched = true
 		if #gamesInDev > 0
 			columns = math.max math.floor(width / DemoViewWidth), 1
 			Columns columns, false
