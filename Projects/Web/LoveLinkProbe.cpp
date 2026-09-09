@@ -112,6 +112,11 @@ end
 
 function love.load()
 	fixture.load = fixture.load + 1
+	assert(love.window.getDisplayCount() == 1)
+	local desktopWidth, desktopHeight = love.window.getDesktopDimensions(1)
+	local fullscreenModes = love.window.getFullscreenModes(1)
+	assert(#fullscreenModes == 1)
+	assert(fullscreenModes[1].width == desktopWidth and fullscreenModes[1].height == desktopHeight)
 	local image = love.image.newImageData(2, 2)
 	image:setPixel(1, 1, 0.25, 0.5, 0.75, 1.0)
 	local red, green, blue, alpha = image:getPixel(1, 1)

@@ -8320,7 +8320,10 @@ DoraLoveWindow::DisplayOrientation DoraLoveWindow::getDisplayOrientation(int dis
 std::vector<DoraLoveWindow::WindowSize> DoraLoveWindow::getFullscreenSizes(int displayIndex) const
 {
 	checkDisplay(displayIndex);
-	return {};
+	// LoveNode renders into a single virtual surface owned by Dora rather than
+	// a native OS window. Expose that surface as the only display mode so games
+	// which inspect the primary fullscreen mode can still build their video UI.
+	return {{getWidth(), getHeight()}};
 }
 
 void DoraLoveWindow::getDesktopDimensions(int displayIndex, int &width, int &height) const
