@@ -1348,7 +1348,7 @@ void Application::runEmscriptenFrame() {
 				break;
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
-				SharedController.handleDevVirtualControllerEventInRender(event);
+				SharedController.handleVirtualGamepadEventInRender(event);
 				break;
 			case SDL_CONTROLLERDEVICEADDED:
 			case SDL_CONTROLLERDEVICEREMOVED:
