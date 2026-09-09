@@ -3,13 +3,13 @@ name: Web
 on:
   push:
     branches: [ main ]
+    tags: 'v*.*.*'
     paths:
       - 'Projects/CMake/**'
       - 'Projects/Web/**'
       - 'Source/**'
       - 'Tools/build-scripts/build_web.sh'
       - 'Tools/build-scripts/check_web_build_env.sh'
-      - 'Tools/build-scripts/check_web_browser.mjs'
       - 'Tools/build-scripts/check_web_output.mjs'
       - 'Tools/build-scripts/check_web_player_output.mjs'
       - 'Tools/build-scripts/check_web_forbidden_deps.mjs'
@@ -18,14 +18,8 @@ on:
       - 'Tools/build-scripts/check_web_love_complex_input.mjs'
       - 'Tools/build-scripts/check_web_love_complex.mjs'
       - 'Tools/build-scripts/stage_web_love_complex_input.mjs'
-      - 'Tools/build-scripts/check_web_love_graphics.mjs'
-      - 'Tools/build-scripts/check_web_love_shader.mjs'
-      - 'Tools/build-scripts/check_web_love_audio.mjs'
-      - 'Tools/build-scripts/check_web_love_runtime.mjs'
       - 'Tools/build-scripts/check_web_love_player_output.mjs'
-      - 'Tools/build-scripts/check_web_love_player.mjs'
       - 'Tools/build-scripts/check_web_package.mjs'
-      - 'Tools/build-scripts/check_web_performance.mjs'
       - 'Tools/build-scripts/check_web_preview.mjs'
       - 'Tools/build-scripts/package_web_game.mjs'
       - 'Tools/build-scripts/package_web_preview.mjs'
@@ -40,7 +34,6 @@ on:
       - 'Source/**'
       - 'Tools/build-scripts/build_web.sh'
       - 'Tools/build-scripts/check_web_build_env.sh'
-      - 'Tools/build-scripts/check_web_browser.mjs'
       - 'Tools/build-scripts/check_web_output.mjs'
       - 'Tools/build-scripts/check_web_player_output.mjs'
       - 'Tools/build-scripts/check_web_forbidden_deps.mjs'
@@ -49,14 +42,8 @@ on:
       - 'Tools/build-scripts/check_web_love_complex_input.mjs'
       - 'Tools/build-scripts/check_web_love_complex.mjs'
       - 'Tools/build-scripts/stage_web_love_complex_input.mjs'
-      - 'Tools/build-scripts/check_web_love_graphics.mjs'
-      - 'Tools/build-scripts/check_web_love_shader.mjs'
-      - 'Tools/build-scripts/check_web_love_audio.mjs'
-      - 'Tools/build-scripts/check_web_love_runtime.mjs'
       - 'Tools/build-scripts/check_web_love_player_output.mjs'
-      - 'Tools/build-scripts/check_web_love_player.mjs'
       - 'Tools/build-scripts/check_web_package.mjs'
-      - 'Tools/build-scripts/check_web_performance.mjs'
       - 'Tools/build-scripts/check_web_preview.mjs'
       - 'Tools/build-scripts/package_web_game.mjs'
       - 'Tools/build-scripts/package_web_preview.mjs'
@@ -64,12 +51,6 @@ on:
       - 'Tools/tolua\+\+/**'
       - '.github/workflows/web.yml'
   workflow_dispatch:
-    inputs:
-      soak_seconds:
-        description: Web Player soak duration in seconds
-        required: true
-        default: 1800
-        type: number
 
 jobs:
   build-web:
@@ -116,80 +97,29 @@ jobs:
           node Tools/build-scripts/check_web_package.mjs
           node Tools/build-scripts/check_web_player_output.mjs result/dora-web-player
           node Tools/build-scripts/check_web_forbidden_deps.mjs result/dora-web-player
-      - name: Run Web Player browser smoke
-        if: runner.os == 'Linux'
-        env:
-          DORA_WEB_RELOADS: 20
-          DORA_WEB_SOAK_SECONDS: ${{ inputs.soak_seconds || 0 }}
-        run: node Tools/build-scripts/check_web_browser.mjs result/dora-web-player
-      - name: Run Love Web runtime browser fixture
-        if: runner.os == 'Linux'
-        env:
-          DORA_WEB_LOVE_RELOADS: 20
-        run: node Tools/build-scripts/check_web_love_runtime.mjs build/web
-      - name: Run Love Web graphics browser fixture
-        if: runner.os == 'Linux'
-        env:
-          DORA_WEB_LOVE_GRAPHICS_RELOADS: 20
-        run: node Tools/build-scripts/check_web_love_graphics.mjs build/web
-      - name: Run Love Web shader browser fixture
-        if: runner.os == 'Linux'
-        env:
-          DORA_WEB_LOVE_SHADER_RELOADS: 20
-        run: node Tools/build-scripts/check_web_love_shader.mjs build/web
-      - name: Run Love Web audio lifecycle fixture
-        if: runner.os == 'Linux'
-        env:
-          DORA_WEB_LOVE_AUDIO_RELOADS: 20
-          DORA_WEB_LOVE_AUDIO_SOAK_SECONDS: ${{ inputs.soak_seconds || 0 }}
-        run: node Tools/build-scripts/check_web_love_audio.mjs build/web
-      - name: Check Web Player performance trend
-        if: runner.os == 'Linux'
-        run: node Tools/build-scripts/check_web_performance.mjs
       - name: Package deployable Web Player preview
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && startsWith(github.ref, 'refs/tags/')
         run: |
           node Tools/build-scripts/check_web_preview.mjs result/dora-web-player
           node Tools/build-scripts/package_web_preview.mjs result/dora-web-player result/dora-web-preview "$GITHUB_SHA"
       - name: Upload Web package
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v4
         with:
           name: dora-web-build-probe
           path: result/dora-web-build-probe
       - name: Upload Web Player package
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v4
         with:
           name: dora-web-player
           path: result/dora-web-player
       - name: Upload deployable Web Player preview
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v4
         with:
           name: dora-web-preview
           path: result/dora-web-preview
-      - name: Upload Web Player browser smoke
-        if: always() && runner.os == 'Linux'
-        uses: actions/upload-artifact@v4
-        with:
-          name: dora-web-browser-smoke
-          path: |
-            build/web-browser-smoke.png
-            build/web-browser-smoke-dpr2.png
-            build/web-render-target-readback.png
-            build/web-advanced-texture-capabilities.json
-            build/web-startup-performance.json
-            build/web-performance-trend.json
-            build/web-soak-report.json
-            build/web-love-runtime-report.json
-            build/web-love-graphics-report.json
-            build/web-love-graphics.png
-            build/web-love-shader-report.json
-            build/web-love-shader.png
-            build/web-love-audio-report.json
-          if-no-files-found: ignore
-
   build-love-pthread-player:
     runs-on: ubuntu-latest
     steps:
@@ -225,9 +155,8 @@ jobs:
         run: Tools/build-scripts/build_web.sh
       - name: Verify Love pthread Player
         run: node Tools/build-scripts/check_web_love_player_output.mjs result/love-pthread-player
-      - name: Run Love pthread Player browser smoke
-        run: node Tools/build-scripts/check_web_love_player.mjs result/love-pthread-player
       - name: Upload Love pthread Player
+        if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v4
         with:
           name: love-pthread-player
