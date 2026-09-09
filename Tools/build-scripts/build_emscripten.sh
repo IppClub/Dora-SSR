@@ -67,6 +67,10 @@ build_rust_runtime() {
 
 build_rust_runtime
 
+# LuaBinding.cpp is generated and intentionally ignored by git. Generate it
+# before configuring CMake so a clean checkout uses the current Lua API.
+"$ROOT_DIR/Tools/tolua++/build.sh"
+
 cp "$SOURCE_DIR/shell.html" "$BUILD_DIR/shell.html"
 bash "$SCRIPT_DIR/build_wa_web.sh" "$BUILD_DIR/wa-web"
 
