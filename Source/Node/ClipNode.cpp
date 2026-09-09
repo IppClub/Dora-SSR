@@ -204,4 +204,46 @@ void ClipNode::visit() {
 	_layer--;
 }
 
+ScissorNode::ScissorNode(float x, float y, float width, float height)
+	: _scissorRect(x, y, width, height) { }
+
+ScissorNode* ScissorNode::create(float x, float y, float width, float height) {
+	auto node = new ScissorNode(x, y, width, height);
+	node->autorelease();
+	return node;
+}
+
+void ScissorNode::setScissorRect(Rect rect) {
+	_scissorRect = rect;
+}
+
+Rect ScissorNode::getScissorRect() const noexcept {
+	return _scissorRect;
+}
+
+void ScissorNode::visit() {
+	const Size viewSize = RenderTarget::getCurrent()
+		? Size{s_cast<float>(RenderTarget::getCurrent()->getWidth()), s_cast<float>(RenderTarget::getCurrent()->getHeight())}
+		: SharedView.getSize();
+	int left = std::clamp(s_cast<int>(std::floor(_scissorRect.getX())), 0, s_cast<int>(viewSize.width));
+	int top = std::clamp(s_cast<int>(std::floor(_scissorRect.getY())), 0, s_cast<int>(viewSize.height));
+	int right = std::clamp(s_cast<int>(std::ceil(_scissorRect.getRight())), 0, s_cast<int>(viewSize.width));
+	int bottom = std::clamp(s_cast<int>(std::ceil(_scissorRect.getY() + _scissorRect.getHeight())), 0, s_cast<int>(viewSize.height));
+	RendererManager::ScissorState parent;
+	if (SharedRendererManager.getCurrentScissorState(parent)) {
+		left = std::max(left, s_cast<int>(parent.x));
+		top = std::max(top, s_cast<int>(parent.y));
+		right = std::min(right, s_cast<int>(parent.x + parent.width));
+		bottom = std::min(bottom, s_cast<int>(parent.y + parent.height));
+	}
+	SharedRendererManager.flush();
+	SharedRendererManager.pushScissorState({
+		s_cast<uint16_t>(left), s_cast<uint16_t>(top),
+		s_cast<uint16_t>(std::max(0, right - left)),
+		s_cast<uint16_t>(std::max(0, bottom - top))}, [&]() {
+		Node::visit();
+		SharedRendererManager.flush();
+	});
+}
+
 NS_DORA_END

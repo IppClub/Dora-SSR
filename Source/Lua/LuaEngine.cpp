@@ -482,6 +482,7 @@ static int dora_register_builtin_modules(lua_State* L) {
 #if !BX_PLATFORM_EMSCRIPTEN
 	luaL_requiref(L, "socket.core", luaopen_socket_core, 0);
 	lua_pop(L, 1);
+#endif
 	luaL_requiref(L, "mime.core", luaopen_mime_core, 0);
 	lua_pop(L, 1);
 #endif
@@ -517,6 +518,82 @@ bool dora_open_builtin_modules(lua_State* L, std::string& error) {
 	return true;
 }
 
+#ifdef DORA_WEB_MINIMAL
+static int dora_web_node_slot(lua_State* L) {
+	Node* self = r_cast<Node*>(tolua_tousertype(L, 1, nullptr));
+	if (!self) return luaL_error(L, "invalid self in Node.slot");
+	size_t nameSize = 0;
+	const char* name = luaL_checklstring(L, 2, &nameSize);
+	if (lua_isfunction(L, 3)) {
+		self->slot(Slice{name, nameSize}, LuaFunction<void>(tolua_ref_function(L, 3)));
+		return 0;
+	}
+	if (lua_isnil(L, 3)) {
+		self->slot(Slice{name, nameSize}, nullptr);
+		return 0;
+	}
+	return luaL_error(L, "Node.slot expects a callback or nil");
+}
+
+static int dora_web_load_file(lua_State* L, String filename) {
+	AssertIf(filename.empty(), "passing empty filename string to lua loader.");
+	std::string targetFile = filename.toString();
+	auto extension = Path::getExt(targetFile);
+	if (extension.empty()) {
+		targetFile += ".lua";
+	} else if (extension != "lua") {
+		return luaL_error(L, "Web minimal profile only loads Lua modules: %s", targetFile.c_str());
+	}
+	auto fullPath = SharedContent.getFullPath(targetFile);
+	if (fullPath.empty() || !SharedContent.exist(fullPath)) {
+		auto message = "no file '"s + targetFile + '\'';
+		lua_pushlstring(L, message.c_str(), message.size());
+		return 1;
+	}
+	auto data = SharedContent.load(fullPath);
+	if (!data.first || data.second == 0) {
+		return luaL_error(L, "failed to load Lua file: %s", targetFile.c_str());
+	}
+	if (luaL_loadbuffer(L, r_cast<char*>(data.first.get()), data.second, targetFile.c_str()) != LUA_OK) {
+		return lua_error(L);
+	}
+	return 1;
+}
+
+static int dora_web_load_file(lua_State* L) {
+	size_t size = 0;
+	const char* filename = luaL_checklstring(L, 1, &size);
+	return dora_web_load_file(L, Slice{filename, size});
+}
+
+static int dora_web_do_file(lua_State* L) {
+	size_t size = 0;
+	const char* filename = luaL_checklstring(L, 1, &size);
+	dora_web_load_file(L, Slice{filename, size});
+	if (!lua_isfunction(L, -1)) return luaL_error(L, "%s", lua_tostring(L, -1));
+	lua_call(L, 0, LUA_MULTRET);
+	return lua_gettop(L) - 1;
+}
+
+static int dora_web_loader(lua_State* L) {
+	size_t size = 0;
+	const char* module = luaL_checklstring(L, 1, &size);
+	Slice filename{module, size};
+	std::string modulePath;
+	bool convertToPath = true;
+	for (auto ch : filename) {
+		if (ch == '\\' || ch == '/') {
+			convertToPath = false;
+			break;
+		}
+	}
+	if (convertToPath) {
+		modulePath = Path::concat(filename.split("."_slice));
+		filename = modulePath;
+	}
+	return dora_web_load_file(L, filename);
+}
+#else
 static int dora_load_file(lua_State* L, String filename, String moduleName = nullptr) {
 	AssertIf(filename.empty(), "passing empty filename string to lua loader.");
 	std::string extension = Path::getExt(filename);
@@ -689,6 +766,7 @@ static int dora_loader(lua_State* L) {
 	}
 	return dora_load_file(L, filename, filename);
 }
+#endif
 
 static int dora_do_xml(lua_State* L) {
 	size_t len = 0;
@@ -1026,6 +1104,12 @@ static int dora_threaded_read_file(lua_State* L) {
 #else
 	OwnArray<uint8_t> codeData;
 	size_t codeSize = 0;
+#if BX_PLATFORM_EMSCRIPTEN
+	int64_t loadedSize = 0;
+	auto data = SharedContent.loadUnsafe(filename, loadedSize);
+	codeSize = s_cast<size_t>(loadedSize);
+	codeData = MakeOwnArray(data);
+#else
 	bx::Semaphore waitForLoaded;
 	SharedContent.getThread()->run([&]() {
 		int64_t size = 0;
@@ -1035,6 +1119,7 @@ static int dora_threaded_read_file(lua_State* L) {
 		waitForLoaded.post();
 	});
 	waitForLoaded.wait();
+#endif
 	Slice codes{r_cast<char*>(codeData.get()), codeSize};
 	tolua_pushslice(L, codes);
 	return 1;
@@ -1323,6 +1408,31 @@ LuaEngine::LuaEngine()
 	, _tlState(nullptr) {
 
 	dora_load_base(L);
+#ifdef DORA_WEB_MINIMAL
+	tolua_open(L);
+
+	const luaL_Reg minimalGlobalFunctions[] = {
+		{"loadfile", dora_web_load_file},
+		{"dofile", dora_web_do_file},
+		{NULL, NULL}};
+	lua_pushglobaltable(L);
+	luaL_setfuncs(L, minimalGlobalFunctions, 0);
+	lua_pop(L, 1);
+
+	LuaEngine::insertLuaLoader(dora_web_loader, 2);
+	tolua_LuaBindingWeb_open(L);
+	tolua_beginmodule(L, nullptr);
+	tolua_beginmodule(L, "Node");
+	tolua_function(L, "slot", dora_web_node_slot);
+	tolua_endmodule(L);
+	tolua_beginmodule(L, "BodyDef");
+	tolua_variable(L, "type", BodyDef_GetType, BodyDef_SetType);
+	tolua_endmodule(L);
+	tolua_endmodule(L);
+	tolua_setlightmetatable(L);
+	tolua_LuaCodeWeb_open(L);
+	lua_settop(L, 0);
+#else
 	std::string builtinModuleError;
 	if (!dora_open_builtin_modules(L, builtinModuleError)) {
 		LogError(fmt::format("failed to initialize builtin Lua modules: {}", builtinModuleError));
@@ -1654,6 +1764,7 @@ LuaEngine::LuaEngine()
 			BLOCK_END
 		}
 	});
+#endif
 }
 
 LuaEngine::~LuaEngine() {
@@ -1665,6 +1776,47 @@ LuaEngine::~LuaEngine() {
 	}
 }
 
+#ifdef DORA_WEB_MINIMAL
+LuaEngine::TealState* LuaEngine::loadTealState() {
+	return nullptr;
+}
+
+void LuaEngine::initTealState(bool) { }
+
+std::string LuaEngine::getTealVersion() {
+	return {};
+}
+
+std::pair<std::string, std::string> LuaEngine::compileTealToLua(String, String, String) {
+	return {""s, "Teal is not included in web-player-minimal"s};
+}
+
+void LuaEngine::compileTealToLuaAsync(String, String, String, const std::function<void(std::pair<std::string, std::string>)>& callback) {
+	callback({""s, "Teal is not included in web-player-minimal"s});
+}
+
+void LuaEngine::checkTealAsync(String, String filename, bool, String, const std::function<void(std::optional<std::list<TealError>>)>& callback) {
+	callback(std::list<TealError>{{"unsupported"s, filename.toString(), 0, 0, "Teal is not included in web-player-minimal"s}});
+}
+
+void LuaEngine::completeTealAsync(String, String, int, String, const std::function<void(std::list<TealToken>)>& callback) {
+	callback({});
+}
+
+void LuaEngine::inferTealAsync(String, String, int, String, const std::function<void(std::optional<TealInference>)>& callback) {
+	callback(std::nullopt);
+}
+
+void LuaEngine::getTealSignatureAsync(String, String, int, String, const std::function<void(std::optional<std::list<TealInference>>)>& callback) {
+	callback(std::nullopt);
+}
+
+void LuaEngine::clearTealCompiler(bool) { }
+
+std::list<LuaEngine::XmlToken> LuaEngine::completeXml(String) {
+	return {};
+}
+#else
 LuaEngine::TealState* LuaEngine::loadTealState() {
 	if (!_tlState) {
 		_tlState = New<LuaEngine::TealState>();
@@ -2131,6 +2283,7 @@ std::list<LuaEngine::XmlToken> LuaEngine::completeXml(String xmlCodes) {
 	}
 	return {};
 }
+#endif
 
 void LuaEngine::insertLuaLoader(lua_CFunction func, int index) {
 	if (!func) return;

@@ -10,6 +10,7 @@ on:
       - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
       # Platform-specific code
+      - 'Projects/CMake/**'
       - 'Projects/Linux/**'
   pull_request:
     branches: [ main ]
@@ -18,6 +19,7 @@ on:
       - 'Tools/tolua\+\+/**'
       - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
+      - 'Projects/CMake/**'
       - 'Projects/Linux/**'
   workflow_dispatch:
 

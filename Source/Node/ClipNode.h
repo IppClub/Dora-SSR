@@ -42,4 +42,19 @@ private:
 	DORA_TYPE_OVERRIDE(ClipNode);
 };
 
+/** Clips this node subtree to a framebuffer-space rectangle. */
+class ScissorNode : public Node {
+public:
+	PROPERTY(Rect, ScissorRect);
+	virtual void visit() override;
+	static ScissorNode* create(float x, float y, float width, float height);
+
+protected:
+	ScissorNode(float x, float y, float width, float height);
+
+private:
+	Rect _scissorRect;
+	DORA_TYPE_OVERRIDE(ScissorNode);
+};
+
 NS_DORA_END

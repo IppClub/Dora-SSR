@@ -1,0 +1,59 @@
+{
+  "format": "dora-web-love-complex-package",
+  "version": 2,
+  "milestone": "P5-08",
+  "project": {
+    "name": "Balatro",
+    "edition": "1.0.1o-FULL",
+    "kind": "user-supplied-local-dora-archive",
+    "sourceOrigin": "not-recorded",
+    "selectionReason": "User-designated acceptance package containing a complete Love runtime, resources, localization, shaders, input, audio and save paths"
+  },
+  "source": {
+    "pathEnvironment": "DORA_WEB_LOVE_COMPLEX_PACKAGE",
+    "baseline": "Exact local archive SHA-256",
+    "warning": "This is a user-supplied licensed local package. Its contents must not be committed, uploaded, or included in Dora-SSR release artifacts."
+  },
+  "runtime": {
+    "entry": "main.lua",
+    "configuration": "conf.lua",
+    "comparisonDoraWrapper": "init.lua",
+    "backend": "love",
+    "usesDoraExtensions": false,
+    "distribution": "local-only-not-bundled",
+    "notes": [
+      "The probe starts main.lua directly through LoveNode and does not execute the package's Dora init.lua wrapper",
+      "The archive contains compatibility changes and is not evidence of unmodified retail Balatro compatibility"
+    ]
+  },
+  "modifications": {
+    "sourceChanged": true,
+    "baselineAvailable": false,
+    "vanillaCompatibilityClaim": false
+  },
+  "acceptancePlan": {
+    "milestone": "P5-09",
+    "minimumRunSeconds": 1800,
+    "flows": [
+      "boot through main.lua and reach the main menu",
+      "start a run and select a blind",
+      "select cards, play one hand and discard one hand",
+      "open the shop and exercise a shop action when available",
+      "verify keyboard, pointer/touch mapping, audio playback and volume control",
+      "reload and verify save restoration, then stop and prove Love resources are released",
+      "record screenshots, logs, frame progress, page errors and heap/resource trends"
+    ]
+  },
+  "expected": {
+    "archiveSha256": "6814cfedd8743e125fc2f18b84478796bff9b724f130cdebf2a09be94f57765b",
+    "archiveBytes": 56676652,
+    "entryCount": 305,
+    "gameVersion": "1.0.1o-FULL",
+    "versionRecordSha256": "a0525225e93bc81acd291aa4661e6648c8f3591ff34761bb3bee5319a766aaa3",
+    "entrypoints": {
+      "love": "main.lua",
+      "loveConfig": "conf.lua",
+      "doraWrapper": "init.lua"
+    }
+  }
+}

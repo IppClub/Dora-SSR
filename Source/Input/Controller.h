@@ -62,6 +62,7 @@ public:
 	std::string getControllerGamepadMappingString(int controllerId) const;
 	ControllerHandler handler;
 	void clearChanges();
+	void releaseAllInRender();
 	void handleEventInRender(const SDL_Event& event, bool emitEvents = true);
 	void handleShortcutsInRender(const SDL_Event& event);
 	void handleVirtualGamepadEventInRender(const SDL_Event& event);

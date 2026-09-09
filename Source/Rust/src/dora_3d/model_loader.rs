@@ -2334,7 +2334,7 @@ fn collect_mesh_triangles(
 				.read_indices()
 				.map(|values| values.into_u32().collect())
 				.unwrap_or_else(|| (0..primitive_vertices.len() as u32).collect());
-			if primitive_indices.len() < 3 || !primitive_indices.len().is_multiple_of(3) {
+			if primitive_indices.len() < 3 || primitive_indices.len() % 3 != 0 {
 				continue;
 			}
 			if primitive_indices

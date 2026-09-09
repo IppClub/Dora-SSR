@@ -43,6 +43,7 @@ ipch/
 *.xcuserstate
 xcschememanagement.plist
 build/
+result/
 .DS_Store
 Thumbs.db
 ._.*
@@ -59,6 +60,8 @@ Projects/macOS/Dora.app
 LuaCode.cpp
 LuaBinding.cpp
 TealCompiler.cpp
+LuaCodeWeb.cpp
+LuaBindingWeb.cpp
 
 # Ignore imgui ini file
 imgui.ini

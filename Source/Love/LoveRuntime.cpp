@@ -637,57 +637,79 @@ bool LoveRuntime::start(std::string &error)
 	return true;
 }
 
-int LoveRuntime::bootYield(lua_State *state)
+namespace
 {
-	if (!lua_isyieldable(state))
-		return luaL_error(state, "love.bootYield() must be called from the Love startup coroutine");
-	return lua_yield(state, 0);
+void incrementalStartHook(lua_State *state, lua_Debug *)
+{
+	if (lua_isyieldable(state))
+		lua_yield(state, 0);
+}
 }
 
-bool LoveRuntime::startAsync(std::string &error)
+bool LoveRuntime::beginStart(std::string &error)
 {
 	if (_status != Status::Ready)
 	{
-		error = "LoveRuntime must be ready before async start";
+		error = "LoveRuntime must be ready before incremental start";
 		return false;
 	}
+	clearIncrementalStart();
 	lua_getglobal(_state, "love");
 	lua_getfield(_state, -1, "load");
 	lua_remove(_state, -2);
-	if (!lua_isfunction(_state, -1))
+	if (lua_isnil(_state, -1))
 	{
 		lua_pop(_state, 1);
 		_status = Status::Running;
 		error.clear();
 		return true;
 	}
+	if (!lua_isfunction(_state, -1))
+	{
+		lua_pop(_state, 1);
+		return fail("love.load must be a function", error);
+	}
 
-	_loadThread = lua_newthread(_state);
-	_loadThreadReference = luaL_ref(_state, LUA_REGISTRYINDEX);
-	lua_xmove(_state, _loadThread, 1);
-	lua_getglobal(_state, "arg");
-	lua_xmove(_state, _loadThread, 1);
-	_loadThreadStarted = false;
-	_status = Status::Loading;
-	return continueStart(error);
+	_startThread = lua_newthread(_state);
+	lua_pushvalue(_state, -1);
+	_startThreadReference = luaL_ref(_state, LUA_REGISTRYINDEX);
+	lua_pop(_state, 1);
+	lua_xmove(_state, _startThread, 1);
+	lua_getglobal(_startThread, "arg");
+	_startThreadNeedsArgument = true;
+	_status = Status::Starting;
+	error.clear();
+	return true;
 }
 
-bool LoveRuntime::continueStart(std::string &error)
+LoveRuntime::StartResult LoveRuntime::resumeStart(int instructionBudget, std::string &error)
 {
-	if (_status != Status::Loading || _loadThread == nullptr)
+	if (_status == Status::Running)
 	{
-		error = _lastError.empty() ? "LoveRuntime is not loading" : _lastError;
-		return _status == Status::Running;
+		error.clear();
+		return StartResult::Complete;
+	}
+	if (_status != Status::Starting || !_startThread)
+	{
+		error = _lastError.empty() ? "LoveRuntime is not starting" : _lastError;
+		return StartResult::Failed;
+	}
+	if (instructionBudget <= 0)
+	{
+		error = "LoveRuntime incremental start instruction budget must be positive";
+		return StartResult::Failed;
 	}
 
 	if (_graphicsBackend)
 		_graphicsBackend->beginFrame();
 	_graphicsFrameActive = true;
 	_graphicsLoadCallbackActive = true;
+	lua_sethook(_startThread, incrementalStartHook, LUA_MASKCOUNT, instructionBudget);
 	int resultCount = 0;
-	const int argumentCount = _loadThreadStarted ? 0 : 1;
-	_loadThreadStarted = true;
-	const int result = love::luax_resume(_loadThread, argumentCount, &resultCount);
+	const int result = lua_resume(_startThread, _state,
+		_startThreadNeedsArgument ? 1 : 0, &resultCount);
+	_startThreadNeedsArgument = false;
+	lua_sethook(_startThread, nullptr, 0, 0);
 	_graphicsLoadCallbackActive = false;
 	_graphicsFrameActive = false;
 	if (_graphicsBackend)
@@ -695,36 +717,41 @@ bool LoveRuntime::continueStart(std::string &error)
 
 	if (result == LUA_YIELD)
 	{
-		lua_settop(_loadThread, 0);
+		// A count hook can yield between bytecode instructions while the VM
+		// operand stack still holds values required by the suspended Lua frame.
+		// Clearing that stack corrupts the resumed expression (for example,
+		// losing a table between assignment and table.insert).
 		error.clear();
-		return true;
+		return StartResult::Pending;
 	}
-
-	if (result != LUA_OK)
+	if (result == LUA_OK)
 	{
-		const char *message = lua_tostring(_loadThread, -1);
-		luaL_traceback(_state, _loadThread, message ? message : "Love startup failed", 1);
-		error = lua_tostring(_state, -1);
-		lua_pop(_state, 1);
-		_status = Status::Faulted;
-		_lastError = error;
-		if (_loadThreadReference != -2)
-			luaL_unref(_state, LUA_REGISTRYINDEX, _loadThreadReference);
-		_loadThreadReference = -2;
-		_loadThread = nullptr;
-		_loadThreadStarted = false;
-		return false;
+		lua_settop(_startThread, 0);
+		clearIncrementalStart();
+		_status = Status::Running;
+		error.clear();
+		return StartResult::Complete;
 	}
 
-	lua_settop(_loadThread, 0);
-	if (_loadThreadReference != -2)
-		luaL_unref(_state, LUA_REGISTRYINDEX, _loadThreadReference);
-	_loadThreadReference = -2;
-	_loadThread = nullptr;
-	_loadThreadStarted = false;
-	_status = Status::Running;
-	error.clear();
-	return true;
+	const char *rawMessage = lua_tostring(_startThread, -1);
+	luaL_traceback(_state, _startThread,
+		rawMessage ? rawMessage : "LoveRuntime incremental start error", 1);
+	const char *trace = lua_tostring(_state, -1);
+	std::string message = rewriteGeneratedError(
+		trace ? trace : (rawMessage ? rawMessage : "LoveRuntime incremental start error"));
+	lua_pop(_state, 1);
+	clearIncrementalStart();
+	fail(std::move(message), error);
+	return StartResult::Failed;
+}
+
+void LoveRuntime::clearIncrementalStart() noexcept
+{
+	if (_state && _startThreadReference != LUA_NOREF)
+		luaL_unref(_state, LUA_REGISTRYINDEX, _startThreadReference);
+	_startThread = nullptr;
+	_startThreadReference = LUA_NOREF;
+	_startThreadNeedsArgument = false;
 }
 
 bool LoveRuntime::update(double deltaTime, std::string &error)
@@ -753,14 +780,7 @@ bool LoveRuntime::update(double deltaTime, std::string &error)
 		return true;
 	}
 	lua_pushnumber(_state, deltaTime);
-	const bool success = callLoveCallback("update", 1, 0, error);
-	// In a normal LÖVE loop the VM gets regular allocation/GC opportunities from
-	// the host loop. LoveNode drives callbacks directly, so keep the embedded VM
-	// from deferring unreachable ImageData/Text/UI userdata indefinitely while a
-	// game is loading the first round. This is an incremental step, not a full
-	// collection, and therefore does not introduce a frame-sized GC pause.
-	if (_state) lua_gc(_state, LUA_GCSTEP, 64);
-	return success;
+	return callLoveCallback("update", 1, 0, error);
 }
 
 bool LoveRuntime::dispatchQueuedEvents(std::string &error)

@@ -32,8 +32,15 @@ namespace bgfx { namespace glsl
 			target = (_version >= 300) ? kGlslTargetOpenGLES30 : kGlslTargetOpenGLES20;
 		}
 
+		#if defined(DORA_SHADERC_WEB_RUNTIME)
+		// Mesa's glsl-optimizer does not complete in a single-threaded browser Wasm
+		// runtime. The source has already passed through bgfx's preprocessor, and the
+		// browser driver performs the final ESSL validation when bgfx creates the
+		// WebGL shader. Keep shaderc's uniform/reflection packing below, but bypass
+		// the native optimizer here so dynamic Love shaders cannot freeze the page.
+		const char* optimizedShader = _code.c_str();
+		#else
 		glslopt_ctx* ctx = glslopt_initialize(target);
-
 		glslopt_shader* shader = glslopt_optimize(ctx, type, _code.c_str(), 0);
 
 		if (!glslopt_get_status(shader) )
@@ -65,8 +72,28 @@ namespace bgfx { namespace glsl
 		}
 
 		const char* optimizedShader = glslopt_get_output(shader);
+		#endif
 
 		std::string out;
+		#if defined(DORA_SHADERC_WEB_RUNTIME)
+		// renderer_gl injects its WebGL compatibility macros when it consumes the
+		// packed shader. The native optimizer expands these declarations; after the
+		// Web bypass above, remove them to avoid duplicate macro definitions while
+		// retaining the already-preprocessed shader body and its line structure.
+		for (bx::LineReader reader(optimizedShader); !reader.isDone(); )
+		{
+			const bx::StringView line = reader.next();
+			const bx::StringView trimmed = bx::strLTrimSpace(line);
+			if (!trimmed.isEmpty() && trimmed.getPtr()[0] == '#'
+				&& 0 != bx::strCmp(trimmed, "#line", 5))
+			{
+				out.push_back('\n');
+				continue;
+			}
+			out.append(line.getPtr(), static_cast<std::size_t>(line.getLength()));
+			out.push_back('\n');
+		}
+		#else
 		// Trim all directives.
 		while ('#' == *optimizedShader)
 		{
@@ -74,6 +101,7 @@ namespace bgfx { namespace glsl
 		}
 
 		out.append(optimizedShader, strlen(optimizedShader));
+		#endif
 		optimizedShader = out.c_str();
 
 		{
@@ -108,7 +136,26 @@ namespace bgfx { namespace glsl
 
 		if (target != kGlslTargetMetal)
 		{
+			#if defined(DORA_SHADERC_WEB_RUNTIME)
+			// The native optimizer groups active uniforms before executable code.
+			// The Web path retains the preprocessed source, so collect declarations
+			// explicitly instead of letting the legacy parser stop at the first helper.
+			std::string reflectionSource;
+			for (bx::LineReader reader(optimizedShader); !reader.isDone(); )
+			{
+				const bx::StringView line = reader.next();
+				const bx::StringView trimmed = bx::strLTrimSpace(line);
+				if (0 == bx::strCmp(trimmed, "uniform", 7))
+				{
+					reflectionSource.append(trimmed.getPtr(),
+						static_cast<std::size_t>(trimmed.getLength()));
+					reflectionSource.push_back('\n');
+				}
+			}
+			bx::StringView parse(reflectionSource.c_str());
+			#else
 			bx::StringView parse(optimizedShader);
+			#endif
 
 			while (!parse.isEmpty() )
 			{
@@ -391,8 +438,10 @@ namespace bgfx { namespace glsl
 			writeFile(disasmfp.c_str(), optimizedShader, shaderSize);
 		}
 
+		#if !defined(DORA_SHADERC_WEB_RUNTIME)
 		glslopt_shader_delete(shader);
 		glslopt_cleanup(ctx);
+		#endif
 
 		return true;
 	}

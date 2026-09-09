@@ -1,0 +1,74 @@
+{
+  "format": "dora-web-love-capabilities",
+  "version": 1,
+  "loveVersion": "11.5",
+  "available": false,
+  "profile": "web-player-full",
+  "validation": {
+    "runtimeObjectCompile": "passed",
+    "runtimeLink": "passed",
+    "browserFixture": "passed",
+    "nonBlockingLoad": "passed",
+    "graphicsFixture": "passed",
+    "shaderFixture": "passed",
+    "shaderFailureFixture": "passed",
+    "audioLifecycleFixture": "passed",
+    "complexProjectInput": "passed",
+    "releaseProfile": "excluded"
+  },
+  "execution": {
+    "luaState": "isolated",
+    "presentation": "embedded-dora-renderer",
+    "startup": "incremental-instruction-budget-with-explicit-yield",
+    "nativeLoveWindow": false,
+    "nativeLoveMainLoop": false
+  },
+  "modules": {
+    "graphics": {"status": "candidate", "milestone": "P5-02/P5-04/P5-05", "requires": ["web fixture", "shader translation"]},
+    "image": {"status": "candidate", "milestone": "P5-02", "requires": ["decode and pixel-format fixtures"]},
+    "font": {"status": "candidate", "milestone": "P5-02", "requires": ["font and text layout fixtures"]},
+    "sound": {"status": "candidate", "milestone": "P5-02/P5-07", "requires": ["mobile browser decoder matrix"]},
+    "math": {"status": "candidate", "milestone": "P5-02", "requires": ["Lua compatibility fixtures"]},
+    "data": {"status": "candidate", "milestone": "P5-02", "requires": ["compression and hash fixtures"]},
+    "window": {"status": "limited", "milestone": "P5-02", "requires": ["virtual window contract"], "limits": ["no native window handle", "no message box"]},
+    "event": {"status": "candidate", "milestone": "P5-02", "requires": ["Dora event bridge fixtures"]},
+    "filesystem": {"status": "candidate", "milestone": "P5-02/P5-03", "requires": ["WebContent and IDBFS adapter", "asynchronous boot contract"]},
+    "keyboard": {"status": "candidate", "milestone": "P5-02", "requires": ["Dora Web input bridge fixtures"]},
+    "mouse": {"status": "candidate", "milestone": "P5-02", "requires": ["DPR, capture, and pointer-lock fixtures"]},
+    "touch": {"status": "candidate", "milestone": "P5-02", "requires": ["multi-touch and cancellation fixtures"]},
+    "joystick": {"status": "candidate", "milestone": "P5-02", "requires": ["Gamepad mapping and real-device fixtures"]},
+    "timer": {"status": "candidate", "milestone": "P5-02/P5-03", "requires": ["browser suspend and delta-reset fixtures"]},
+    "audio": {"status": "candidate", "milestone": "P5-02/P5-07", "requires": ["mobile AudioContext interruption matrix"], "validated": ["WAV", "OGG", "SoundData", "gesture unlock", "pause/resume/seek/stop/loop", "multi-instance isolation", "reload cleanup", "long-run soak"]},
+    "video": {"status": "deferred", "milestone": "post-P5", "requires": ["HTMLVideoElement or WebCodecs adapter", "A/V synchronization fixtures"], "reason": "current Theora CPU path is not validated for the browser main thread"},
+    "system": {"status": "limited", "milestone": "P5-02", "requires": ["Clipboard and open-URL host bridge"], "limits": ["power state and vibration are device dependent"]},
+    "thread": {"status": "unsupported", "milestone": "post-P7", "requires": ["pthread profile and COOP/COEP"], "reason": "minimal and initial full profiles are single-threaded while the current adapter creates std::thread workers"},
+    "physics": {"status": "deferred", "milestone": "post-P5", "requires": ["Box2D Web source boundary and fixtures"], "reason": "not required by the initial Love compatibility milestone"}
+  },
+  "graphicsGroups": {
+    "basicDrawImageFont": {"status": "candidate", "milestone": "P5-02"},
+    "canvasMeshSpriteBatchParticleSystem": {"status": "passed", "milestone": "P5-04"},
+    "shaderTranslation": {
+      "status": "passed",
+      "milestone": "P5-05/P5-06",
+      "failurePolicy": {
+        "defaultAction": "explicit-error",
+        "stages": ["translation", "compiler", "driver-compile", "driver-link"],
+        "diagnostics": ["stable-stage-marker", "Love-source-line-when-identifiable", "translated-byte-count", "WebGL-log"],
+        "silentFallback": false,
+        "optionalFallback": {
+          "available": false,
+          "packageDeclarationRequired": true,
+          "proposedManifestField": "features.love.shaderFallback",
+          "runtimeVisibilityRequired": ["capability-status", "console-log"]
+        }
+      },
+      "limits": ["validated in the non-release Love probe; the LoveNode release profile remains excluded"]
+    },
+    "videoTexture": {"status": "deferred", "milestone": "post-P5", "reason": "depends on the browser media adapter"}
+  },
+  "acceptance": {
+    "complexProject": {"status": "input-locked", "milestone": "P5-08", "descriptor": "love-complex-project.json", "runtimeValidation": "P5-09"},
+    "lifecycleSoak": {"status": "passed", "milestone": "P5-07", "report": "web-love-audio-report.json"},
+    "browserMatrix": ["Chrome", "Edge", "Firefox", "Safari"]
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "web-dragon",
+  "imagePath": "web-dragon.png",
+  "width": 128,
+  "height": 128,
+  "SubTexture": [{"name": "quad", "x": 0, "y": 0, "width": 128, "height": 128}]
+}

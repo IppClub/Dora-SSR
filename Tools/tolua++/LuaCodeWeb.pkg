@@ -1,0 +1,5 @@
+$#include "Const/Header.h"
+$#include "Lua/ToLua/tolua++.h"
+$using namespace Dora;
+
+$lfile "../../Source/Lua/Builtin/WebInitialization.lua"

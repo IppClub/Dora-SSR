@@ -55,6 +55,13 @@ _collect_functions = _collect_functions or {}
 _to_functions = _to_functions or {}
 _is_functions = _is_functions or {}
 
+-- Keep one generated binding source usable by feature-reduced targets. The
+-- named C++ define removes both support code and registration for a class,
+-- while native builds without the define retain the existing API.
+_compile_guards = {
+	LoveNode = "DORA_WEB_MINIMAL"
+}
+
 local objects = {
 	"Object",
 	"Scheduler",
@@ -95,6 +102,7 @@ local objects = {
 	"SpriteEffect",
 	"MoveJoint",
 	"ClipNode",
+	"ScissorNode",
 	"Texture2D",
 	"Camera3D",
 	"Material3D",

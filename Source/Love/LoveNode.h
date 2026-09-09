@@ -63,6 +63,16 @@ public:
 	String getSourceRoot() const noexcept { return _sourceRoot; }
 	String getLastError() const noexcept;
 	bool isRunning() const noexcept;
+#if defined(DORA_WEB_LOVE_PROBE)
+	static LoveNode *createProbe(String bootFile, std::string &error);
+	bool hasProbeGraphicsResources() const noexcept;
+	bool hasProbeAudioResources() const noexcept;
+	std::size_t getProbeAudioSourceCount() const noexcept;
+	std::size_t getProbePlayingAudioSourceCount() const noexcept;
+	lua_State *getProbeLuaState() const noexcept;
+	bool isProbeUpdating() const noexcept;
+	int getProbeRuntimeStatus() const noexcept;
+#endif
 
 	CREATE_FUNC_NULLABLE(LoveNode);
 

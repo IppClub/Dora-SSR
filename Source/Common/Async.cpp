@@ -14,6 +14,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
 
+#if BX_PLATFORM_EMSCRIPTEN
+#include "Platform/Web/WebTaskQueue.h"
+#endif
+
 #include <algorithm>
 #include <chrono>
 #include <condition_variable>
@@ -54,6 +58,7 @@ class AsyncFinisherState {
 public:
 	EventQueue events;
 	std::atomic_bool active{true};
+	std::atomic_uint64_t generation{0};
 };
 
 class AsyncSyncState {
@@ -256,14 +261,14 @@ bool AsyncTaskGroup::run(const std::function<void()>& worker) {
 }
 
 void AsyncTaskGroup::wait() {
-	if (_state) _state->wait();
+	if (_state && _state->getPendingCount() != 0) {
+		throw std::runtime_error("AsyncTaskGroup::wait cannot block the browser main thread");
+	}
 }
 
 size_t AsyncTaskGroup::getPendingCount() const {
 	return _state ? _state->getPendingCount() : 0;
 }
-
-// Async
 
 Async::Async()
 	: _scheduled(false)
@@ -274,42 +279,108 @@ Async::Async()
 	, _poolIndex(0) { }
 
 Async::~Async() {
-	_stopped.store(true, std::memory_order_release);
-	_finisherState->active.store(false, std::memory_order_release);
+	cancel();
+	stop();
 }
 
-void Async::run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher) {
-	if (_stopped.load(std::memory_order_acquire)) return;
-	try {
-		finisher(worker());
-	} catch (...) {
-		reportAsyncException(std::current_exception(), "synchronous Async task");
-	}
-}
-
-void Async::run(const std::function<void()>& worker) {
-	if (_stopped.load(std::memory_order_acquire)) return;
-	try {
-		worker();
-	} catch (...) {
-		reportAsyncException(std::current_exception(), "synchronous Async task");
-	}
-}
-
-void Async::runInMainSync(const std::function<void()>& worker) {
-	if (_stopped.load(std::memory_order_acquire)) return;
-	worker();
-}
-
-void Async::cancel() { }
+void Async::initThreadOnce() { }
 
 void Async::stop() {
 	_stopped.store(true, std::memory_order_release);
 	_finisherState->active.store(false, std::memory_order_release);
+	_finisherState->generation.fetch_add(1, std::memory_order_acq_rel);
 }
 
-bool Async::isPoolWorker() const {
-	return _pool != nullptr;
+void Async::requestStop() {
+	stop();
+}
+
+void Async::run(const std::function<Own<Values>()>& worker,
+	const std::function<void(Own<Values>)>& finisher) {
+	if (isPoolWorker()) {
+		_pool->run(_pool->getDefaultGroup(), this, worker, finisher);
+		return;
+	}
+	_standaloneTaskState->add();
+	if (!run(worker, finisher, _standaloneTaskState)) {
+		_standaloneTaskState->complete();
+	}
+}
+
+bool Async::run(const std::function<Own<Values>()>& worker,
+	const std::function<void(Own<Values>)>& finisher,
+	const std::shared_ptr<AsyncTaskGroupState>& group) {
+	requireLogicThread("Async::run with finisher");
+	if (_stopped.load(std::memory_order_acquire)) return false;
+	auto state = _finisherState;
+	const auto generation = state->generation.load(std::memory_order_acquire);
+	Web::postTask([worker, finisher, group, state, generation]() {
+		if (!state->active.load(std::memory_order_acquire)
+			|| state->generation.load(std::memory_order_acquire) != generation) {
+			if (group) group->complete();
+			return;
+		}
+		Own<Values> result;
+		try {
+			result = worker();
+		} catch (...) {
+			if (group) group->complete(std::current_exception());
+			else reportAsyncException(std::current_exception(), "WebTaskQueue worker");
+			return;
+		}
+		if (group) group->complete();
+		if (state->active.load(std::memory_order_acquire)
+			&& state->generation.load(std::memory_order_acquire) == generation) {
+			try {
+				finisher(std::move(result));
+			} catch (...) {
+				reportAsyncException(std::current_exception(), "WebTaskQueue finisher");
+			}
+		}
+	});
+	return true;
+}
+
+void Async::run(const std::function<void()>& worker) {
+	if (isPoolWorker()) {
+		_pool->run(_pool->getDefaultGroup(), this, worker);
+		return;
+	}
+	_standaloneTaskState->add();
+	if (!run(worker, _standaloneTaskState)) {
+		_standaloneTaskState->complete();
+	}
+}
+
+bool Async::run(const std::function<void()>& worker,
+	const std::shared_ptr<AsyncTaskGroupState>& group) {
+	if (_stopped.load(std::memory_order_acquire)) return false;
+	auto state = _finisherState;
+	const auto generation = state->generation.load(std::memory_order_acquire);
+	Web::postTask([worker, group, state, generation]() {
+		if (!state->active.load(std::memory_order_acquire)
+			|| state->generation.load(std::memory_order_acquire) != generation) {
+			if (group) group->complete();
+			return;
+		}
+		try {
+			worker();
+			if (group) group->complete();
+		} catch (...) {
+			if (group) group->complete(std::current_exception());
+			else reportAsyncException(std::current_exception(), "WebTaskQueue worker");
+		}
+	});
+	return true;
+}
+
+void Async::runInMainSync(const std::function<void()>& worker) {
+	requireLogicThread("Async::runInMainSync");
+	if (!_stopped.load(std::memory_order_acquire)) worker();
+}
+
+void Async::cancel() {
+	_finisherState->generation.fetch_add(1, std::memory_order_acq_rel);
 }
 
 void Async::bindPool(AsyncThread* pool, size_t index) {
@@ -317,10 +388,14 @@ void Async::bindPool(AsyncThread* pool, size_t index) {
 	_poolIndex = index;
 }
 
-// AsyncThread
+Own<QEvent> Async::pollWorkerEvent() { return nullptr; }
+void Async::notifyWorker() { }
+bool Async::processWorkerEvent(Own<QEvent>, Async*) { return false; }
+bool Async::isPoolWorker() const { return _pool != nullptr; }
 
 AsyncThread::AsyncThread()
 	: _stopping(false)
+	, _webActive(std::make_shared<std::atomic_bool>(true))
 	, _defaultGroup(new TaskGroup(this, std::make_shared<AsyncTaskGroupState>(true))) { }
 
 AsyncThread::~AsyncThread() {
@@ -328,8 +403,7 @@ AsyncThread::~AsyncThread() {
 }
 
 Async& AsyncThread::getProcess(int index) {
-	DORA_UNUSED_PARAM(index);
-	throw std::out_of_range("AsyncThread has no worker threads on Emscripten");
+	throw std::out_of_range(fmt::format("AsyncThread has no worker {} in the browser profile", index));
 }
 
 Async* AsyncThread::newThread() {
@@ -348,78 +422,96 @@ void AsyncThread::runFrameTasks(const std::vector<std::function<void()>>& tasks)
 	for (const auto& task : tasks) task();
 }
 
-void AsyncThread::runFrameTasks(size_t taskCount, const std::function<void(size_t)>& task,
-	FrameTaskDispatchStats* stats) {
+void AsyncThread::runFrameTasks(size_t taskCount,
+	const std::function<void(size_t)>& task, FrameTaskDispatchStats* stats) {
+	using Clock = std::chrono::steady_clock;
+	const auto started = stats ? Clock::now() : Clock::time_point{};
+	for (size_t index = 0; index < taskCount; ++index) task(index);
 	if (stats) {
 		*stats = FrameTaskDispatchStats{};
 		stats->taskCount = taskCount;
+		stats->callerMilliseconds = std::chrono::duration<double, std::milli>(Clock::now() - started).count();
+		stats->totalMilliseconds = stats->callerMilliseconds;
 	}
-	for (size_t index = 0; index < taskCount; index++) task(index);
 }
 
-size_t AsyncThread::getWorkerCount() const {
-	return 0;
-}
-
-AsyncThread::TaskGroup& AsyncThread::getDefaultGroup() {
-	return *_defaultGroup;
-}
+size_t AsyncThread::getWorkerCount() const { return 0; }
+AsyncThread::TaskGroup& AsyncThread::getDefaultGroup() { return *_defaultGroup; }
 
 void AsyncThread::run(const std::function<Own<Values>()>& worker,
 	const std::function<void(Own<Values>)>& finisher) {
-	if (_stopping.load(std::memory_order_acquire)) return;
-	try {
-		finisher(worker());
-	} catch (...) {
-		reportAsyncException(std::current_exception(), "synchronous AsyncThread task");
-	}
+	run(*_defaultGroup, nullptr, worker, finisher);
 }
 
 void AsyncThread::run(const std::function<void()>& worker) {
-	if (_stopping.load(std::memory_order_acquire)) return;
-	try {
-		worker();
-	} catch (...) {
-		reportAsyncException(std::current_exception(), "synchronous AsyncThread task");
-	}
+	run(*_defaultGroup, nullptr, worker);
 }
 
 void AsyncThread::cancel() {
 	if (_stopping.exchange(true, std::memory_order_acq_rel)) return;
-	for (auto& thread : _dedicatedThreads) {
-		thread->stop();
-	}
+	_webActive->store(false, std::memory_order_release);
+	for (auto& thread : _dedicatedThreads) thread->stop();
 }
 
-bool AsyncThread::run(TaskGroup& group, Async* target,
+bool AsyncThread::run(TaskGroup& group, Async*,
 	const std::function<Own<Values>()>& worker,
 	const std::function<void(Own<Values>)>& finisher) {
-	DORA_UNUSED_PARAM(target);
-	if (_stopping.load(std::memory_order_acquire) || !group._state) return false;
+	if (_stopping.load(std::memory_order_acquire)) return false;
 	group._state->add();
-	try {
-		finisher(worker());
-		group._state->complete();
-	} catch (...) {
-		group._state->complete(std::current_exception());
-		throw;
-	}
+	auto active = _webActive;
+	auto state = group._state;
+	Web::postTask([worker, finisher, active, state]() {
+		if (!active->load(std::memory_order_acquire)) {
+			state->complete();
+			return;
+		}
+		Own<Values> result;
+		try {
+			result = worker();
+		} catch (...) {
+			state->complete(std::current_exception());
+			return;
+		}
+		state->complete();
+		if (active->load(std::memory_order_acquire)) {
+			try {
+				finisher(std::move(result));
+			} catch (...) {
+				reportAsyncException(std::current_exception(), "WebTaskQueue finisher");
+			}
+		}
+	});
 	return true;
 }
 
-bool AsyncThread::run(TaskGroup& group, Async* target, const std::function<void()>& worker) {
-	DORA_UNUSED_PARAM(target);
-	if (_stopping.load(std::memory_order_acquire) || !group._state) return false;
+bool AsyncThread::run(TaskGroup& group, Async*, const std::function<void()>& worker) {
+	if (_stopping.load(std::memory_order_acquire)) return false;
 	group._state->add();
-	try {
-		worker();
-		group._state->complete();
-	} catch (...) {
-		group._state->complete(std::current_exception());
-		throw;
-	}
+	auto active = _webActive;
+	auto state = group._state;
+	Web::postTask([worker, active, state]() {
+		if (!active->load(std::memory_order_acquire)) {
+			state->complete();
+			return;
+		}
+		try {
+			worker();
+			state->complete();
+		} catch (...) {
+			state->complete(std::current_exception());
+		}
+	});
 	return true;
 }
+
+bool AsyncThread::popFrameTask(FrameTaskItem&) { return false; }
+bool AsyncThread::popTask(size_t, Async*&, Own<QEvent>&) { return false; }
+void AsyncThread::notifyTaskPosted() { }
+void AsyncThread::notifyTasksPosted(size_t) { }
+bool AsyncThread::isStopping() const { return _stopping.load(std::memory_order_acquire); }
+void AsyncThread::waitForTask() { }
+size_t AsyncThread::processCount() const { return 0; }
+void AsyncThread::notifyAllWorkers() { }
 
 #else
 

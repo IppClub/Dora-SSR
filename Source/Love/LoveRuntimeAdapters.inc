@@ -5182,6 +5182,9 @@ end
 math.atan2 = math.atan2 or function(y, x)
 	return math.atan(y, x)
 end
+math.log10 = math.log10 or function(value)
+	return math.log(value, 10)
+end
 local compatibility_require_loading = {}
 require = function(name)
 	local loaded = package.loaded[name]
@@ -5613,6 +5616,14 @@ end
 		_graphicsBackend->setWireframe(_graphicsWireframe);
 		_graphicsBackend->setStencilTest(_graphicsStencilCompare, _graphicsStencilValue);
 	}
+	lua_getglobal(_state, "love");
+	if (lua_istable(_state, -1))
+	{
+		lua_pushlightuserdata(_state, this);
+		lua_pushcclosure(_state, runtimeBootYield, 1);
+		lua_setfield(_state, -2, "bootYield");
+	}
+	lua_pop(_state, 1);
 	_configuredWidth = DefaultWindowWidth;
 	_configuredHeight = DefaultWindowHeight;
 	_windowResizable = false;
@@ -5688,6 +5699,14 @@ int LoveRuntime::runtimePrint(lua_State *state)
 	const std::string_view identity = runtime && !runtime->_identity.empty()
 		? std::string_view(runtime->_identity) : std::string_view("runtime");
 	LogInfoThreaded("[Love:" + std::string(identity) + "] " + output);
+	return 0;
+}
+
+int LoveRuntime::runtimeBootYield(lua_State *state)
+{
+	auto *runtime = runtimeFromUpvalue(state);
+	if (runtime && runtime->_status == Status::Starting && lua_isyieldable(state))
+		return lua_yield(state, 0);
 	return 0;
 }
 
@@ -5787,6 +5806,7 @@ void LoveRuntime::close()
 	_screenshotRequests.clear();
 	clearQueuedEvents();
 	clearMountedArchives();
+	clearIncrementalStart();
 	lua_close(_state);
 	_state = nullptr;
 	while (!_mouseCursorHandles.empty())
@@ -10568,6 +10588,19 @@ void DoraLoveGraphics::draw(lua_State *state, ::love::graphics::Drawable *drawab
 	}
 	if (auto *text = dynamic_cast<TextUserdata *>(drawable))
 	{
+		const auto *elements = matrix.getElements();
+		const bool finiteMatrix = std::all_of(elements, elements + 16,
+			[](float value) { return std::isfinite(value); });
+		const bool finiteCurrent = std::isfinite(_runtime->_graphicsTransform.a)
+			&& std::isfinite(_runtime->_graphicsTransform.b)
+			&& std::isfinite(_runtime->_graphicsTransform.c)
+			&& std::isfinite(_runtime->_graphicsTransform.d)
+			&& std::isfinite(_runtime->_graphicsTransform.tx)
+			&& std::isfinite(_runtime->_graphicsTransform.ty);
+		// Love 11.5 accepts non-finite standard draw transforms. Native GPU
+		// backends make that individual draw non-visible, whereas forwarding
+		// NaN/Inf into Dora's retained command stream would poison later draws.
+		if (!finiteMatrix || !finiteCurrent) return;
 		const auto transform = combineDrawTransform(state, matrix,
 			_runtime->_graphicsTransform, 2, "Text draw transform values must be finite");
 		_runtime->graphicsDrawCommand(state, text, &transform);

@@ -1,0 +1,47 @@
+{
+  "format": "dora-web-features",
+  "version": 1,
+  "activeProfile": "@DORA_WEB_PROFILE@",
+  "profiles": {
+    "minimal": {
+      "available": true,
+      "description": "Validated Dora Web Player subset"
+    },
+    "full": {
+      "available": false,
+      "description": "Reserved for modules that still require browser fixtures",
+      "deferred": ["model3d", "jolt3d", "video", "loveNode", "workspace"]
+    }
+  },
+  "modules": {
+    "lua": true,
+    "content": true,
+    "http": true,
+    "idbfs": true,
+    "doraPackage": true,
+    "input": true,
+    "audio": true,
+    "drawNode": true,
+    "sprite": true,
+    "label": true,
+    "renderTarget": true,
+    "particle": true,
+    "spine": true,
+    "dragonBones": true,
+    "nanoVG": true,
+    "playRho2D": true,
+    "imGui": true,
+    "threads": @DORA_WEB_THREADS_JSON@,
+    "crossOriginIsolationRequired": @DORA_WEB_CROSS_ORIGIN_ISOLATION_JSON@,
+    "dynamicLinking": false,
+    "rustBridge": false,
+    "wasmRuntime": false,
+    "yueCompiler": false,
+    "tealCompiler": false,
+    "loveNode": false,
+    "model3D": false,
+    "jolt3D": false,
+    "video": false,
+    "workspace": false
+  }
+}

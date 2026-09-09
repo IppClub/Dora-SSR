@@ -44,9 +44,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
-#ifndef DORA_NO_RUST
+#if !defined(DORA_NO_RUST) && !defined(DORA_WEB_MINIMAL)
 extern "C" int32_t dora_rust_init();
-#endif // DORA_NO_RUST
+#endif
 
 NS_DORA_BEGIN
 
@@ -113,6 +113,9 @@ Node* Director::getSystemUI() {
 }
 
 View3D* Director::getEntry() {
+#ifdef DORA_WEB_MINIMAL
+	return nullptr;
+#else
 	if (!_entry) {
 		_root = Node::create(false);
 		_root->setAnchor(Vec2::zero);
@@ -122,6 +125,7 @@ View3D* Director::getEntry() {
 		markDirty();
 	}
 	return _entry;
+#endif
 }
 
 Node* Director::getPostNode() {
@@ -245,12 +249,12 @@ bool Director::init() {
 	if (!SharedAudio.init()) {
 		Warn("audio function is not available.");
 	}
-#ifndef DORA_NO_RUST
+#if !defined(DORA_NO_RUST) && !defined(DORA_WEB_MINIMAL)
 	if (!dora_rust_init()) {
 		Error("failed to initialize Rust runtime.");
 		return false;
 	}
-#endif // DORA_NO_RUST
+#endif
 	bool entryFound = false;
 	const auto scriptPath = Path::concat({SharedContent.getAssetPath(), "Script"_slice});
 	for (const auto& entry : {"init.lua"_slice, "init.yue"_slice, "init.tl"_slice, "init.wasm"_slice}) {
@@ -312,9 +316,11 @@ void Director::handleTouchEvents() {
 	}
 
 	/* handle scene tree touch */
+#ifndef DORA_WEB_MINIMAL
 	if (registerTouchHandler(_entry)) {
 		SharedTouchDispatcher.dispatch();
 	}
+#endif
 
 	SharedTouchDispatcher.clearEvents();
 }
@@ -329,9 +335,14 @@ void Director::handleUnmanagedNodes() {
 		}
 		_unmanagedNodes.clear();
 		for (Node* node : nodes) {
+#ifdef DORA_WEB_MINIMAL
+			getUI()->addChild(node);
+#else
 			getEntry()->addChild(node);
+#endif
 		}
 	}
+#ifndef DORA_WEB_MINIMAL
 	if (!_unmanagedNodes3D.empty()) {
 		RefVector<Node3D> nodes;
 		for (Node3D* node : _unmanagedNodes3D) {
@@ -344,6 +355,7 @@ void Director::handleUnmanagedNodes() {
 			getEntry()->addChild(node);
 		}
 	}
+#endif
 }
 
 void Director::doLogic() {
@@ -701,12 +713,14 @@ void Director::cleanup() {
 		}
 	}
 	_unmanagedNodes.clear();
+#ifndef DORA_WEB_MINIMAL
 	if (!_unmanagedNodes3D.empty()) {
 		for (Node3D* node : _unmanagedNodes3D) {
 			node->cleanup();
 		}
 	}
 	_unmanagedNodes3D.clear();
+#endif
 	if (!_waitingList.empty()) {
 		for (Node* node : _waitingList) {
 			if (node) {
@@ -773,7 +787,11 @@ void Director::addUnManagedNode(Node* node) {
 }
 
 void Director::addUnManagedNode(Node3D* node) {
+#ifndef DORA_WEB_MINIMAL
 	_unmanagedNodes3D.push_back(node);
+#else
+	(void)node;
+#endif
 }
 
 void Director::addToWaitingList(Node* node) {
@@ -796,10 +814,12 @@ bool Director::isInFrustum(const AABB& aabb) const {
 void Director::markDirty() {
 	if (_ui) _ui->markDirty();
 	if (_systemUI) _systemUI->markDirty();
+#ifndef DORA_WEB_MINIMAL
 	if (_entry) {
 		auto viewSize = SharedView.getSize();
 		_root->setSize(viewSize);
 	}
+#endif
 	if (_postNode) _postNode->markDirty();
 }
 
@@ -838,9 +858,11 @@ void Director::handleSDLEvent(const SDL_Event& event) {
 			if (Singleton<AsyncThread>::isInitialized()) {
 				SharedAsyncThread.cancel();
 			}
+#ifndef DORA_WEB_MINIMAL
 			if (Singleton<WasmRuntime>::isInitialized()) {
 				SharedWasmRuntime.clear();
 			}
+#endif
 			break;
 		// The application is being terminated by the OS.
 		case SDL_APP_TERMINATING:
@@ -1000,9 +1022,11 @@ void Director::ProfilerInfo::update(double deltaTime) {
 	memPoolSize = std::max(MemoryPool::getTotalCapacity(), memPoolSize);
 	memLua = std::max(SharedLuaEngine.getRuntimeMemory(), memLua);
 	memTeal = std::max(SharedLuaEngine.getTealMemory(), memTeal);
+#ifndef DORA_WEB_MINIMAL
 	if (Singleton<WasmRuntime>::isInitialized()) {
 		memWASM = std::max(s_cast<int>(SharedWasmRuntime.getMemorySize()), memWASM);
 	}
+#endif
 
 	maxCPU = std::max(maxCPU, SharedApplication.getCPUTime());
 	maxGPU = std::max(maxGPU, SharedApplication.getGPUTime());

@@ -15,8 +15,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Director.h"
 #include "Common/Async.h"
 #include "Node/DrawNode.h"
+#ifndef DORA_NO_3D_PHYSICS
 #include "Node/Node3D.h"
 #include "Node/View3D.h"
+#endif
 #include "Physics/Body.h"
 #include "Physics/DebugDraw.h"
 #include "Physics/Joint.h"
@@ -27,6 +29,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
+#ifndef DORA_NO_3D_PHYSICS
 extern "C" {
 uint64_t dora_3d_physics_world_create(uint32_t maxBodies);
 void dora_3d_physics_world_destroy(uint64_t world);
@@ -1045,6 +1048,7 @@ void PhysicsWorld3D::cleanup() {
 	clearPhysics();
 	Node::cleanup();
 }
+#endif
 
 float PhysicsWorld::scaleFactor = 100.0f;
 

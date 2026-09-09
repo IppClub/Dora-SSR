@@ -17,7 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #if !BX_PLATFORM_EMSCRIPTEN
 #include "bx/thread.h"
-#endif // !BX_PLATFORM_EMSCRIPTEN
+#endif
 
 NS_DORA_BEGIN
 
@@ -83,7 +83,7 @@ public:
 	void stop();
 #if !BX_PLATFORM_EMSCRIPTEN
 	static int work(bx::Thread* thread, void* userData);
-#endif // !BX_PLATFORM_EMSCRIPTEN
+#endif
 
 private:
 	bool run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher, const std::shared_ptr<AsyncTaskGroupState>& group);
@@ -100,7 +100,7 @@ private:
 	bx::Thread _thread;
 	bx::Semaphore _workerSemaphore;
 	std::once_flag _initThreadFlag;
-#endif // !BX_PLATFORM_EMSCRIPTEN
+#endif
 	EventQueue _workerEvent;
 	std::shared_ptr<AsyncFinisherState> _finisherState;
 	// Tracks standalone-thread tasks so uncaught exceptions can be reported safely.
@@ -175,9 +175,10 @@ private:
 	void notifyAllWorkers();
 #if BX_PLATFORM_EMSCRIPTEN
 	std::atomic_bool _stopping;
+	std::shared_ptr<std::atomic_bool> _webActive;
 	OwnVector<Async> _dedicatedThreads;
 	Own<TaskGroup> _defaultGroup;
-	#else
+#else
 	std::atomic<size_t> _nextProcess;
 	std::atomic<size_t> _nextStealFrom;
 	std::atomic_bool _stopping;
@@ -189,7 +190,7 @@ private:
 	std::mutex _frameTaskMutex;
 	Own<AsyncFrameTaskState> _frameTaskState;
 	moodycamel::ConcurrentQueue<FrameTaskItem> _frameTasks;
-	#endif // BX_PLATFORM_EMSCRIPTEN
+#endif
 	SINGLETON_REF(AsyncThread, Director);
 };
 

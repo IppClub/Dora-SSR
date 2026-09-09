@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "allowedGrowthPercent": 5,
+  "budgets": {
+    "coldMilliseconds": 5000,
+    "warmMilliseconds": 2000
+  },
+  "runtimeTotals": {
+    "gzip": 2285357,
+    "brotli": 1940231
+  },
+  "firstLoadTotals": {
+    "gzip": 2291376,
+    "brotli": 1945919
+  }
+}

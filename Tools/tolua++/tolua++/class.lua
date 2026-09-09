@@ -26,6 +26,14 @@ classClass = {
 classClass.__index = classClass
 setmetatable(classClass, classContainer)
 
+-- write support code
+function classClass:supcode()
+	local guard = _compile_guards and _compile_guards[self.type]
+	if guard then output("#if !defined(" .. guard .. ")\n") end
+	classContainer.supcode(self)
+	if guard then output("#endif // !defined(" .. guard .. ")\n") end
+end
+
 -- register class
 function classClass:register(pre)
 	if not self:check_public_access() then
@@ -33,6 +41,8 @@ function classClass:register(pre)
 	end
 
 	pre = pre or ""
+	local guard = _compile_guards and _compile_guards[self.type]
+	if guard then output("#if !defined(" .. guard .. ")\n") end
 	push(self)
 	local btype = self.btype == "" and "" or _userltype[self.btype]
 	if _collect_functions[self.type] then
@@ -75,6 +85,7 @@ function classClass:register(pre)
 	end
 	output(pre .. "tolua_endmodule(tolua_S);")
 	pop()
+	if guard then output("#endif // !defined(" .. guard .. ")\n") end
 end
 
 -- return collection requirement
@@ -212,4 +223,3 @@ function Class(n, p, b)
 	c:parse(strsub(b, 2, strlen(b) - 1)) -- eliminate braces
 	pop()
 end
-

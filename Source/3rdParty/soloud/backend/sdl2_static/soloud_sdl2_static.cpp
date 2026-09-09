@@ -22,8 +22,6 @@ freely, subject to the following restrictions:
    distribution.
 */
 #include <stdlib.h>
-#include <atomic>
-#include <cstdio>
 
 #include "soloud.h"
 
@@ -40,57 +38,61 @@ namespace SoLoud
 #else
 
 #include "SDL.h"
+#include <stdint.h>
+#include <string.h>
 #include <math.h>
 
 namespace SoLoud
 {
-	static SDL_AudioSpec gActiveAudioSpec;
-	static SDL_AudioDeviceID gAudioDeviceID;
-	static std::atomic<unsigned long long> gAudioCallbackCount{0};
-	static std::atomic<unsigned long long> gAudioDeviceGeneration{0};
-
-	static bool audioTraceSample(unsigned long long count)
+	struct SDL2StaticBackendData
 	{
-		return count <= 3;
-	}
+		SDL_AudioSpec activeAudioSpec;
+		SDL_AudioDeviceID audioDeviceID;
+		SoLoud::Soloud *soloud;
+		uint64_t generation;
+	};
+
+	static uint64_t gNextBackendGeneration = 0;
 
 	void soloud_sdl2static_audiomixer(void *userdata, Uint8 *stream, int len)
 	{
-		const auto callbackCount = gAudioCallbackCount.fetch_add(1, std::memory_order_relaxed) + 1;
-		SoLoud::Soloud *soloud = (SoLoud::Soloud *)userdata;
-		if (audioTraceSample(callbackCount))
-			std::fprintf(stderr,
-				"[DoraAudioTrace] SDL mixer callback=%llu device=%u generation=%llu userdata=%p len=%d format=%u channels=%u samples=%u\n",
-				callbackCount, static_cast<unsigned int>(gAudioDeviceID),
-				gAudioDeviceGeneration.load(std::memory_order_relaxed), userdata, len,
-				static_cast<unsigned int>(gActiveAudioSpec.format),
-				static_cast<unsigned int>(gActiveAudioSpec.channels),
-				static_cast<unsigned int>(gActiveAudioSpec.samples));
-		if (!soloud || !stream || len <= 0)
-			return;
-		short *buf = (short*)stream;
-		if (gActiveAudioSpec.format == AUDIO_F32)
+		SDL2StaticBackendData *backend = (SDL2StaticBackendData *)userdata;
+		if (!backend || backend->generation == 0 || !backend->soloud)
 		{
-			int samples = len / (gActiveAudioSpec.channels * sizeof(float));
-			soloud->mix((float *)buf, samples);
+			memset(stream, 0, len);
+			return;
+		}
+		short *buf = (short*)stream;
+		if (backend->activeAudioSpec.format == AUDIO_F32)
+		{
+			int samples = len / (backend->activeAudioSpec.channels * sizeof(float));
+			backend->soloud->mix((float *)buf, samples);
 		}
 		else // assume s16 if not float
 		{
-			int samples = len / (gActiveAudioSpec.channels * sizeof(short));
-			soloud->mixSigned16(buf, samples);
+			int samples = len / (backend->activeAudioSpec.channels * sizeof(short));
+			backend->soloud->mixSigned16(buf, samples);
 		}
 	}
 
 	static void soloud_sdl2static_deinit(SoLoud::Soloud *aSoloud)
 	{
-		std::fprintf(stderr,
-			"[DoraAudioTrace] SDL deinit device=%u generation=%llu userdata=%p callbacks=%llu\n",
-			static_cast<unsigned int>(gAudioDeviceID),
-			gAudioDeviceGeneration.load(std::memory_order_relaxed), aSoloud,
-			gAudioCallbackCount.load(std::memory_order_relaxed));
-		SDL_PauseAudioDevice(gAudioDeviceID, 1);
-		SDL_CloseAudioDevice(gAudioDeviceID);
-		gAudioDeviceID = 0;
+		SDL2StaticBackendData *backend = (SDL2StaticBackendData *)aSoloud->mBackendData;
+		if (!backend)
+			return;
+		if (backend->audioDeviceID)
+		{
+			// SDL holds the device lock while invoking the callback. Taking it here
+			// waits for an in-flight mix and makes every later callback return silence.
+			SDL_LockAudioDevice(backend->audioDeviceID);
+			backend->generation = 0;
+			backend->soloud = NULL;
+			SDL_UnlockAudioDevice(backend->audioDeviceID);
+			SDL_CloseAudioDevice(backend->audioDeviceID);
+			backend->audioDeviceID = 0;
+		}
+		aSoloud->mBackendData = NULL;
+		delete backend;
 	}
 
 	result sdl2static_init(SoLoud::Soloud *aSoloud, unsigned int aFlags, unsigned int aSamplerate, unsigned int aBuffer, unsigned int aChannels)
@@ -103,40 +105,38 @@ namespace SoLoud
 			}
 		}
 
+		SDL2StaticBackendData *backend = new SDL2StaticBackendData();
+		memset(backend, 0, sizeof(*backend));
+		backend->soloud = aSoloud;
+		backend->generation = ++gNextBackendGeneration;
+
 		SDL_AudioSpec as;
+		memset(&as, 0, sizeof(as));
 		as.freq = aSamplerate;
 		as.format = AUDIO_F32;
 		as.channels = aChannels;
 		as.samples = aBuffer;
 		as.callback = soloud_sdl2static_audiomixer;
-		as.userdata = (void*)aSoloud;
+		as.userdata = backend;
 
-		gAudioDeviceID = SDL_OpenAudioDevice(NULL, 0, &as, &gActiveAudioSpec, SDL_AUDIO_ALLOW_ANY_CHANGE & ~(SDL_AUDIO_ALLOW_FORMAT_CHANGE | SDL_AUDIO_ALLOW_CHANNELS_CHANGE));
-		if (gAudioDeviceID == 0)
+		backend->audioDeviceID = SDL_OpenAudioDevice(NULL, 0, &as, &backend->activeAudioSpec, SDL_AUDIO_ALLOW_ANY_CHANGE & ~(SDL_AUDIO_ALLOW_FORMAT_CHANGE | SDL_AUDIO_ALLOW_CHANNELS_CHANGE));
+		if (backend->audioDeviceID == 0)
 		{
 			as.format = AUDIO_S16;
-			gAudioDeviceID = SDL_OpenAudioDevice(NULL, 0, &as, &gActiveAudioSpec, SDL_AUDIO_ALLOW_ANY_CHANGE & ~(SDL_AUDIO_ALLOW_FORMAT_CHANGE | SDL_AUDIO_ALLOW_CHANNELS_CHANGE));
-			if (gAudioDeviceID == 0)
+			backend->audioDeviceID = SDL_OpenAudioDevice(NULL, 0, &as, &backend->activeAudioSpec, SDL_AUDIO_ALLOW_ANY_CHANGE & ~(SDL_AUDIO_ALLOW_FORMAT_CHANGE | SDL_AUDIO_ALLOW_CHANNELS_CHANGE));
+			if (backend->audioDeviceID == 0)
 			{
+				delete backend;
 				return UNKNOWN_ERROR;
 			}
 		}
-		gAudioDeviceGeneration.fetch_add(1, std::memory_order_relaxed);
-		gAudioCallbackCount.store(0, std::memory_order_relaxed);
-		std::fprintf(stderr,
-			"[DoraAudioTrace] SDL initialized device=%u generation=%llu userdata=%p requestedRate=%u requestedBuffer=%u obtainedRate=%d obtainedBuffer=%u format=%u channels=%u\n",
-			static_cast<unsigned int>(gAudioDeviceID),
-			gAudioDeviceGeneration.load(std::memory_order_relaxed), aSoloud,
-			aSamplerate, aBuffer, gActiveAudioSpec.freq,
-			static_cast<unsigned int>(gActiveAudioSpec.samples),
-			static_cast<unsigned int>(gActiveAudioSpec.format),
-			static_cast<unsigned int>(gActiveAudioSpec.channels));
 
-		aSoloud->postinit_internal(gActiveAudioSpec.freq, gActiveAudioSpec.samples, aFlags, gActiveAudioSpec.channels);
+		aSoloud->postinit_internal(backend->activeAudioSpec.freq, backend->activeAudioSpec.samples, aFlags, backend->activeAudioSpec.channels);
 
+		aSoloud->mBackendData = backend;
 		aSoloud->mBackendCleanupFunc = soloud_sdl2static_deinit;
 
-		SDL_PauseAudioDevice(gAudioDeviceID, 0);
+		SDL_PauseAudioDevice(backend->audioDeviceID, 0);
 		aSoloud->mBackendString = "SDL2 (static)";
 		return 0;
 	}	

@@ -1,0 +1,6 @@
+web-spine.png
+size: 128,128
+filter: Linear,Linear
+pma: true
+quad
+bounds: 0,0,128,128

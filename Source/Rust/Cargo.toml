@@ -14,7 +14,7 @@ base64 = "0.13"
 cfixed-string = "1.0"
 clap = { version = "4.5.26", features = ["derive"] }
 glam = "0.30"
-image = { version = "0.25", default-features = false, features = ["hdr", "jpeg", "png"] }
+image = { version = "=0.25.9", default-features = false, features = ["hdr", "jpeg", "png"] }
 gltf = { version = "1.4", features = [
   "extensions",
   "KHR_materials_emissive_strength",

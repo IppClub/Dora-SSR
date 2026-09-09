@@ -195,8 +195,11 @@ function classPackage:preamble()
 				if hasEnum and not hasField then
 					_global_classes[v].enum_only = true
 				else
+					local guard = _compile_guards and _compile_guards[v]
+					if guard then output("#if !defined(" .. guard .. ")\n") end
 					output(' tolua_usertype(tolua_S,"', v, '");')
 					output(" Mtolua_typeid(tolua_S,", v, ',"', v, '");')
+					if guard then output("#endif // !defined(" .. guard .. ")\n") end
 				end
 			end
 		end
@@ -393,4 +396,3 @@ function prep(file)
 	setfenv(f, _extra_parameters)
 	return f()
 end
-

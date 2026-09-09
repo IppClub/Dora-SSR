@@ -37,6 +37,11 @@
 #if defined(linux) || defined(__linux) || defined(__linux__)
 #	define LOVE_LINUX 1
 #endif
+#if defined(__EMSCRIPTEN__)
+// Emscripten exposes the POSIX-style interfaces used by LOVE's Linux paths.
+#	define LOVE_LINUX 1
+#	define LOVE_EMSCRIPTEN 1
+#endif
 #if defined(__ANDROID__)
 #	define LOVE_ANDROID 1
 #endif

@@ -21,11 +21,14 @@ NS_DORA_BEGIN
 
 /* Touch */
 
-// Desktop input is delivered as SDL mouse events, while mobile and browser
-// input may be delivered as SDL touch events. Accept both by default. The
-// NodeTouchHandler filters SDL's synthetic mouse events generated for touch
-// input when both sources are enabled, so this does not double-dispatch taps.
-uint32_t Touch::_source = Touch::FromMouseAndTouch;
+uint32_t Touch::_source =
+#if BX_PLATFORM_EMSCRIPTEN
+	Touch::FromMouseAndTouch;
+#elif BX_PLATFORM_OSX
+	Touch::FromMouse;
+#else
+	Touch::FromTouch;
+#endif
 
 Touch::Touch(int id)
 	: _location{Vec2::zero}
@@ -130,6 +133,10 @@ NodeTouchHandler::NodeTouchHandler(Node* target)
 	: _target(target) { }
 
 bool NodeTouchHandler::handle(const SDL_Event& event) {
+	// Callbacks may remove the node (and rebuild an entire UI). Keep it alive
+	// through this event, but do not keep detached nodes alive between events.
+	Ref<Node> targetGuard(_target.get());
+	if (!isTargetActive()) return false;
 	switch (event.type) {
 		case SDL_MOUSEBUTTONUP:
 		case SDL_FINGERUP:
@@ -148,6 +155,11 @@ bool NodeTouchHandler::handle(const SDL_Event& event) {
 			return gesture(event) && isSwallowTouches();
 	}
 	return false;
+}
+
+bool NodeTouchHandler::isTargetActive() const {
+	return _target && _target->isRunning() && _target->isTouchEnabled()
+		&& _target->_flags.isOff(Node::Cleanup);
 }
 
 Touch* NodeTouchHandler::alloc(SDL_FingerID fingerId) {
@@ -280,7 +292,7 @@ Vec2 NodeTouchHandler::getPos(const SDL_Event& event) {
 }
 
 bool NodeTouchHandler::down(const SDL_Event& event) {
-	if (!_target->isTouchEnabled()) return false;
+	if (!isTargetActive()) return false;
 	int64_t id = 0;
 	switch (event.type) {
 		case SDL_MOUSEBUTTONDOWN:
@@ -298,6 +310,7 @@ bool NodeTouchHandler::down(const SDL_Event& event) {
 	Vec2 viewPos = getViewPos(event);
 	Vec2 pos = getPos({viewPos.x, viewPos.y, 0.0f});
 	Touch* touch = alloc(id);
+	Ref<Touch> touchGuard(touch);
 	if (event.type == SDL_MOUSEBUTTONDOWN) {
 		touch->_fromMouse = true;
 		touch->_clickCount = event.button.clicks;
@@ -317,7 +330,7 @@ bool NodeTouchHandler::down(const SDL_Event& event) {
 		touch->_worldPreLocation = touch->_worldLocation = _target->convertToWorldSpace(pos);
 		touch->_flags.setOn(Touch::Selected);
 		_target->emit("TapFilter"_slice, touch);
-		if (touch->isEnabled()) {
+		if (isTargetActive() && touch->isEnabled()) {
 			_target->emit("TapBegan"_slice, touch);
 		}
 		return touch->isEnabled();
@@ -328,7 +341,7 @@ bool NodeTouchHandler::down(const SDL_Event& event) {
 }
 
 bool NodeTouchHandler::up(const SDL_Event& event) {
-	if (!_target->isTouchEnabled()) return false;
+	if (!isTargetActive()) return false;
 	int64_t id = 0;
 	switch (event.type) {
 		case SDL_MOUSEBUTTONUP:
@@ -344,6 +357,7 @@ bool NodeTouchHandler::up(const SDL_Event& event) {
 			return false;
 	}
 	Touch* touch = get(id);
+	Ref<Touch> touchGuard(touch);
 	if (touch) {
 		if (touch->isEnabled()) {
 			Vec2 viewPos = getViewPos(event);
@@ -356,7 +370,9 @@ bool NodeTouchHandler::up(const SDL_Event& event) {
 			touch->_worldLocation = _target->convertToWorldSpace(pos);
 			if (touch->_flags.isOn(Touch::Selected)) {
 				_target->emit("TapEnded"_slice, touch);
-				_target->emit("Tapped"_slice, touch);
+				if (isTargetActive() && touch->isEnabled()) {
+					_target->emit("Tapped"_slice, touch);
+				}
 			}
 			collect(id);
 			return true;
@@ -367,7 +383,7 @@ bool NodeTouchHandler::up(const SDL_Event& event) {
 }
 
 bool NodeTouchHandler::move(const SDL_Event& event) {
-	if (!_target->isTouchEnabled()) return false;
+	if (!isTargetActive()) return false;
 	Touch* touch = nullptr;
 	switch (event.type) {
 		case SDL_MOUSEMOTION:
@@ -383,6 +399,7 @@ bool NodeTouchHandler::move(const SDL_Event& event) {
 			return false;
 	}
 	if (touch && touch->isEnabled()) {
+		Ref<Touch> touchGuard(touch);
 		Vec2 viewPos = getViewPos(event);
 		Vec2 pos = getPos({viewPos.x, viewPos.y, 0.0f});
 		touch->_preLocation = touch->_location;
@@ -392,6 +409,7 @@ bool NodeTouchHandler::move(const SDL_Event& event) {
 		touch->_worldPreLocation = touch->_worldLocation;
 		touch->_worldLocation = _target->convertToWorldSpace(pos);
 		_target->emit("TapMoved"_slice, touch);
+		if (!isTargetActive() || !touch->isEnabled()) return true;
 		if (_target->getSize() != Size::zero) {
 			bool inBound = Rect(Vec2::zero, _target->getSize()).containsPoint(pos);
 			if (touch->_flags.isOn(Touch::Selected) != inBound) {
@@ -411,7 +429,7 @@ bool NodeTouchHandler::move(const SDL_Event& event) {
 }
 
 void NodeTouchHandler::mouseMove(const SDL_Event& event) {
-	if (!_target->isTouchEnabled() || event.motion.which == SDL_TOUCH_MOUSEID) return;
+	if (!isTargetActive() || event.motion.which == SDL_TOUCH_MOUSEID) return;
 	if (!_target->_signal) return;
 	auto slot = _target->_signal->getSlot("MouseMove"_slice);
 	if (!slot || !slot->getHandler()) return;
@@ -437,7 +455,7 @@ void NodeTouchHandler::mouseMove(const SDL_Event& event) {
 }
 
 bool NodeTouchHandler::wheel(const SDL_Event& event) {
-	if (!_target->isTouchEnabled()) return false;
+	if (!isTargetActive()) return false;
 	int x, y;
 	SDL_GetMouseState(&x, &y);
 	Size size = SharedApplication.getWinSize();
@@ -452,7 +470,7 @@ bool NodeTouchHandler::wheel(const SDL_Event& event) {
 }
 
 bool NodeTouchHandler::gesture(const SDL_Event& event) {
-	if (!_target->isTouchEnabled()) return false;
+	if (!isTargetActive()) return false;
 	Vec2 ratio{event.mgesture.x, 1.0f - event.mgesture.y};
 	Vec2 pos = ratio * SharedView.getSize();
 	pos = getPos({pos.x, pos.y, 0.0f});

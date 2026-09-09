@@ -1,0 +1,17 @@
+{
+  "frameRate": 24,
+  "name": "web-dragon",
+  "version": "5.5",
+  "compatibleVersion": "5.5",
+  "armature": [{
+    "type": "Armature",
+    "frameRate": 24,
+    "name": "web-dragon",
+    "aabb": {"x": -64, "y": -64, "width": 128, "height": 128},
+    "bone": [{"name": "root"}],
+    "slot": [{"name": "quad", "parent": "root"}],
+    "skin": [{"slot": [{"name": "quad", "display": [{"name": "quad", "path": "quad", "type": "image", "transform": {}}]}]}],
+    "animation": [{"duration": 24, "playTimes": 0, "name": "pulse", "bone": [{"name": "root", "rotateFrame": [{"duration": 12, "rotate": -8}, {"duration": 12, "rotate": 16}, {"duration": 0, "rotate": -8}]}]}],
+    "defaultActions": [{"gotoAndPlay": "pulse"}]
+  }]
+}

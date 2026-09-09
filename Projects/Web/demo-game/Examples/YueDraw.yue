@@ -1,0 +1,15 @@
+-- @preview-file on clear
+_ENV = Dora
+
+draw = DrawNode!
+draw\drawPolygon {
+	Vec2 -35, -35
+	Vec2 35, -35
+	Vec2 35, 35
+	Vec2 -35, 35
+}, Color 0xff18a0fb
+draw.x = -340
+draw.y = -280
+Director.ui\addChild draw
+
+print "Dora Web example YueScript DrawNode verified"

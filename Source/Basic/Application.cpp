@@ -34,8 +34,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "bx/timer.h"
 
 #if BX_PLATFORM_EMSCRIPTEN
-#include <emscripten.h>
-#endif // BX_PLATFORM_EMSCRIPTEN
+#include <emscripten/emscripten.h>
+#include <emscripten/html5.h>
+#endif
 
 #include <chrono>
 #include <deque>
@@ -58,6 +59,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 namespace {
 std::mutex receivedFileMutex;
 std::deque<std::string> receivedFiles;
+#if BX_PLATFORM_EMSCRIPTEN
+void setWebRuntimeState(const char* state, const char* detail = "") {
+	EM_ASM({
+		if (typeof window.doraSetState === "function") {
+			window.doraSetState(UTF8ToString($0), UTF8ToString($1));
+		}
+	}, state, detail);
+}
+#endif
 #if BX_PLATFORM_ANDROID
 std::function<void(std::string)> filePickerCallback;
 #endif
@@ -646,22 +656,6 @@ int runCliApplication(int, char*[]) {
 
 } // namespace
 
-#if BX_PLATFORM_EMSCRIPTEN
-namespace {
-
-std::function<void(std::string)> webFileDialogCallback;
-
-} // namespace
-
-extern "C" EMSCRIPTEN_KEEPALIVE void dora_web_file_dialog_result(const char* path) {
-	if (!webFileDialogCallback) return;
-	auto callback = std::move(webFileDialogCallback);
-	SharedApplication.invokeInLogic([callback = std::move(callback), path = std::string(path ? path : "")]() mutable {
-		callback(std::move(path));
-	});
-}
-#endif // BX_PLATFORM_EMSCRIPTEN
-
 bool BGFXDora::init(const bgfx::PlatformData& data) {
 	bgfx::Init init{};
 	// Dora can render the host scene, Web IDE/ImGui, and embedded Love render
@@ -682,9 +676,7 @@ bool BGFXDora::init(const bgfx::PlatformData& data) {
 }
 
 BGFXDora::~BGFXDora() {
-	if (_initialized) {
-		bgfx::shutdown();
-	}
+	if (_initialized) bgfx::shutdown();
 }
 
 Application::Application()
@@ -693,6 +685,9 @@ Application::Application()
 	, _fpsLimited(true)
 	, _renderRunning(true)
 	, _logicRunning(true)
+#if BX_PLATFORM_EMSCRIPTEN
+	, _webSuspended(false)
+#endif
 	, _fullScreen(false)
 	, _alwaysOnTop(false)
 	, _devMode(false)
@@ -1016,18 +1011,10 @@ int Application::run(MainFunc mainFunc) {
 	}
 
 	SharedPoolManager.push();
-	if (!SharedDirector.init()) {
+	if (!SharedDirector.init() || (_mainFunc && !_mainFunc())) {
 		SharedPoolManager.pop();
-		Error("Director failed to initialize!");
-		Life::destroy("BGFXDora"_slice);
-		SDL_DestroyWindow(_sdlWindow);
-		_sdlWindow = nullptr;
-		SDL_Quit();
-		return 1;
-	}
-	if (_mainFunc && !_mainFunc()) {
-		SharedPoolManager.pop();
-		Error("Failed to start main!");
+		setWebRuntimeState("faulted", "Failed to initialize the Web runtime");
+		Error("Failed to initialize the Web runtime");
 		Life::destroy("BGFXDora"_slice);
 		SDL_DestroyWindow(_sdlWindow);
 		_sdlWindow = nullptr;
@@ -1035,10 +1022,10 @@ int Application::run(MainFunc mainFunc) {
 		return 1;
 	}
 	_frame = bgfx::frame();
+	setWebRuntimeState("running");
 	makeTimeNow();
 	_startTime = _lastTime;
 	SharedPoolManager.pop();
-
 	emscripten_set_main_loop_arg(Application::emscriptenMainLoop, this, 0, true);
 	return 0;
 #else
@@ -1177,7 +1164,7 @@ int Application::run(MainFunc mainFunc) {
 	SDL_Quit();
 
 	return _logicThread.getExitCode();
-#endif // BX_PLATFORM_EMSCRIPTEN
+#endif
 }
 
 void Application::updateDeltaTime() {
@@ -1197,9 +1184,12 @@ void Application::updateWindowSize() {
 	SDL_GetWindowSize(_sdlWindow, &_winWidth, &_winHeight);
 	_visualWidth = _winWidth;
 	_visualHeight = _winHeight;
+	EmscriptenFullscreenChangeEvent fullscreenStatus{};
+	if (emscripten_get_fullscreen_status(&fullscreenStatus) == EMSCRIPTEN_RESULT_SUCCESS) {
+		_fullScreen = fullscreenStatus.isFullscreen;
+	}
 	_maxFPS = 60;
-#else
-#if BX_PLATFORM_OSX
+#elif BX_PLATFORM_OSX
 	SDL_Metal_GetDrawableSize(_sdlWindow, &_bufferWidth, &_bufferHeight);
 #else
 	SDL_GL_GetDrawableSize(_sdlWindow, &_bufferWidth, &_bufferHeight);
@@ -1223,7 +1213,6 @@ void Application::updateWindowSize() {
 	_visualWidth = _winWidth;
 	_visualHeight = _winHeight;
 #endif
-#endif // BX_PLATFORM_EMSCRIPTEN
 }
 #endif // BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX || BX_PLATFORM_EMSCRIPTEN
 
@@ -1288,17 +1277,18 @@ void Application::shutdown() {
 		Event::send("AppEvent"sv, "Shutdown"s);
 		return;
 	}
-#if BX_PLATFORM_EMSCRIPTEN
-	_renderRunning = false;
-	_logicRunning = false;
-	return;
-#endif // BX_PLATFORM_EMSCRIPTEN
 	switch (Switch::hash(getPlatform())) {
 		case "Windows"_hash:
 		case "macOS"_hash:
 		case "Linux"_hash:
 			_renderEvent.post("Quit"_slice);
 			break;
+	#if BX_PLATFORM_EMSCRIPTEN
+		case "Web"_hash:
+			setWebRuntimeState("stopping");
+			_renderEvent.post("Quit"_slice);
+			break;
+	#endif
 	}
 }
 
@@ -1311,28 +1301,38 @@ void Application::invokeInLogic(const std::function<void()>& func) {
 }
 
 #if BX_PLATFORM_EMSCRIPTEN
+uint32_t Application::setWebSuspended(bool value) {
+	if (_webSuspended == value) return _frame;
+	_webSuspended = value;
+	// Do not deliver the time spent in a background tab as one oversized frame.
+	_lastTime = getCurrentTime();
+	_deltaTime = 1.0 / _targetFPS;
+	return _frame;
+}
+
 void Application::emscriptenMainLoop(void* userData) {
 	auto* app = static_cast<Application*>(userData);
 	try {
 		app->runEmscriptenFrame();
 	} catch (const std::exception& e) {
 		LogError(e.what());
+		setWebRuntimeState("faulted", e.what());
 		app->_logicRunning = false;
 		app->_renderRunning = false;
 	}
 }
 
 void Application::runEmscriptenFrame() {
-	auto startTime = getElapsedTime();
+	const auto started = getElapsedTime();
 	SharedPoolManager.push();
+	DEFER(SharedPoolManager.pop());
 
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
+		bool suppressKeyboardEvent = false;
 		switch (event.type) {
 			case SDL_QUIT:
-				if (Singleton<DB>::isInitialized()) {
-					SharedDB.stop();
-				}
+				if (Singleton<DB>::isInitialized()) SharedDB.stop();
 				_renderRunning = false;
 				break;
 			case SDL_WINDOWEVENT:
@@ -1344,11 +1344,19 @@ void Application::runEmscriptenFrame() {
 					case SDL_WINDOWEVENT_MOVED:
 						_winPosition = Vec2{s_cast<float>(event.window.data1), s_cast<float>(event.window.data2)};
 						break;
+					case SDL_WINDOWEVENT_FOCUS_LOST:
+						SharedController.releaseAllInRender();
+						break;
 				}
 				break;
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
 				SharedController.handleVirtualGamepadEventInRender(event);
+				suppressKeyboardEvent = SharedController.isVirtualGamepadEnabled();
+				break;
+			case SDL_TEXTINPUT:
+			case SDL_TEXTEDITING:
+				suppressKeyboardEvent = SharedController.isVirtualGamepadEnabled();
 				break;
 			case SDL_CONTROLLERDEVICEADDED:
 			case SDL_CONTROLLERDEVICEREMOVED:
@@ -1358,24 +1366,21 @@ void Application::runEmscriptenFrame() {
 				bool updateControllerState = false;
 				if (Singleton<ImGuiDora>::isInitialized()
 					&& SharedImGui.shouldCaptureControllerEvent(event, &updateControllerState)) {
-					if (updateControllerState) {
-						SharedController.handleEventInRender(event, false);
-					}
+					if (updateControllerState) SharedController.handleEventInRender(event, false);
 				} else {
 					SharedController.handleEventInRender(event);
 				}
+				SharedController.handleShortcutsInRender(event);
 				break;
 			}
 			default:
 				break;
 		}
-		_logicEvent.post("SDLEvent"_slice, event);
+		if (!suppressKeyboardEvent) _logicEvent.post("SDLEvent"_slice, event);
 	}
 
-	for (Own<QEvent> event = _renderEvent.poll();
-		event != nullptr;
-		event = _renderEvent.poll()) {
-		switch (Switch::hash(event->getName())) {
+	for (Own<QEvent> renderEvent = _renderEvent.poll(); renderEvent; renderEvent = _renderEvent.poll()) {
+		switch (Switch::hash(renderEvent->getName())) {
 			case "Quit"_hash: {
 				SDL_Event quitEvent{};
 				quitEvent.quit.type = SDL_QUIT;
@@ -1384,22 +1389,18 @@ void Application::runEmscriptenFrame() {
 			}
 			case "Invoke"_hash: {
 				std::function<void()> func;
-				event->get(func);
+				renderEvent->get(func);
 				func();
 				break;
 			}
-			default:
-				break;
 		}
 	}
 
-	for (Own<QEvent> event = _logicEvent.poll();
-		event != nullptr;
-		event = _logicEvent.poll()) {
-		switch (Switch::hash(event->getName())) {
+	for (Own<QEvent> logicEvent = _logicEvent.poll(); logicEvent; logicEvent = _logicEvent.poll()) {
+		switch (Switch::hash(logicEvent->getName())) {
 			case "SDLEvent"_hash: {
 				SDL_Event sdlEvent;
-				event->get(sdlEvent);
+				logicEvent->get(sdlEvent);
 				if (sdlEvent.type == SDL_QUIT) {
 					_logicRunning = false;
 					quitHandler();
@@ -1410,41 +1411,35 @@ void Application::runEmscriptenFrame() {
 			}
 			case "Invoke"_hash: {
 				std::function<void()> func;
-				event->get(func);
+				logicEvent->get(func);
 				func();
 				break;
 			}
-			default:
-				break;
 		}
 	}
 
-	if (_logicRunning) {
+	if (_logicRunning && _renderRunning && !_webSuspended) {
 		SharedDirector.doLogic();
-		_logicTime = getElapsedTime() - startTime;
-
+		_logicTime = getElapsedTime() - started;
 		SharedDirector.doRender();
-		_cpuTime = getElapsedTime() - startTime;
+		_cpuTime = getElapsedTime() - started;
 		_renderTime = _cpuTime - _logicTime;
 		_frame = bgfx::frame();
 		updateDeltaTime();
 		makeTimeNow();
 	}
-	SharedPoolManager.pop();
-
 	if (!_logicRunning || !_renderRunning) {
-		if (Singleton<BGFXDora>::isInitialized()) {
-			Life::destroy("BGFXDora"_slice);
-		}
+		if (Singleton<BGFXDora>::isInitialized()) Life::destroy("BGFXDora"_slice);
 		if (_sdlWindow) {
 			SDL_DestroyWindow(_sdlWindow);
 			_sdlWindow = nullptr;
 		}
 		SDL_Quit();
 		emscripten_cancel_main_loop();
+		setWebRuntimeState("stopped");
 	}
 }
-#endif // BX_PLATFORM_EMSCRIPTEN
+#endif
 
 int Application::mainLogic(Application* app) {
 	app->_logicThreadID = std::this_thread::get_id();
@@ -1584,10 +1579,12 @@ int Application::mainLogic(bx::Thread* thread, void* userData) {
 		std::abort();
 	}
 }
-#endif // !BX_PLATFORM_EMSCRIPTEN
+#endif
 
 const Slice Application::getPlatform() const noexcept {
-#if BX_PLATFORM_WINDOWS
+#if defined(DORA_EMSCRIPTEN) || BX_PLATFORM_EMSCRIPTEN
+	return "Web"_slice;
+#elif BX_PLATFORM_WINDOWS
 	return "Windows"_slice;
 #elif BX_PLATFORM_ANDROID
 	return "Android"_slice;
@@ -1597,8 +1594,6 @@ const Slice Application::getPlatform() const noexcept {
 	return "iOS"_slice;
 #elif BX_PLATFORM_LINUX
 	return "Linux"_slice;
-#elif BX_PLATFORM_EMSCRIPTEN
-	return "Emscripten"_slice;
 #else
 	return "Unsupported"_slice;
 #endif
@@ -1624,12 +1619,8 @@ std::thread::id Application::getLogicThread() const noexcept {
 #if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX || BX_PLATFORM_EMSCRIPTEN
 void Application::setupSdlWindow() {
 #if BX_PLATFORM_EMSCRIPTEN
-	// bgfx's HTML5 backend creates the WebGL context from the canvas selector
-	// in PlatformData::nwh. SDL owns the window wrapper here, while bgfx owns
-	// the actual WebGL context because SDL_HINT_VIDEO_EXTERNAL_CONTEXT is set.
 	_platformData.nwh = const_cast<char*>("#canvas");
 	updateWindowSize();
-	return;
 #else
 	SDL_SysWMinfo wmi;
 	SDL_VERSION(&wmi.version);
@@ -1690,7 +1681,7 @@ void Application::setupSdlWindow() {
 	}
 #endif // BX_PLATFORM_WINDOWS
 	updateWindowSize();
-#endif // BX_PLATFORM_EMSCRIPTEN
+#endif
 }
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX || BX_PLATFORM_EMSCRIPTEN
 
@@ -2137,24 +2128,7 @@ void Application::openFileDialog(bool folderOnly, const std::function<void(std::
 		callback("");
 	}
 #else
-	#if BX_PLATFORM_EMSCRIPTEN
-	webFileDialogCallback = callback;
-	EM_ASM({
-		if (!window.DoraWeb || !window.DoraWeb.pickProject) {
-			console.error("DoraWeb project picker is unavailable");
-			Module.ccall("dora_web_file_dialog_result", null, ["string"], [""]);
-			return;
-		}
-		window.DoraWeb.pickProject($0).then(function(root) {
-			Module.ccall("dora_web_file_dialog_result", null, ["string"], [root]);
-		}).catch(function(error) {
-			console.warn("DoraWeb project picker was cancelled or failed", error);
-			Module.ccall("dora_web_file_dialog_result", null, ["string"], [""]);
-		});
-	}, folderOnly ? 1 : 0);
-	#else
 	callback("");
-	#endif
 #endif
 }
 #endif
@@ -2198,29 +2172,40 @@ bool Application::saveFileDialog(String path) {
 
 NS_DORA_END
 
+#if BX_PLATFORM_EMSCRIPTEN
+extern "C" uint32_t dora_web_set_suspended(int value) {
+	return SharedApplication.setWebSuspended(value != 0);
+}
+
+extern "C" void dora_web_release_input() {
+	SharedController.releaseAllInRender();
+}
+
+extern "C" void dora_web_stop() {
+	SharedApplication.shutdown();
+}
+#endif
+
 // Entry functions needed by SDL2
 #if BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX || BX_PLATFORM_EMSCRIPTEN
 #ifndef DORA_AS_LIB
 int main(int argc, char* argv[]) {
-#if BX_PLATFORM_EMSCRIPTEN
-	DORA_UNUSED_PARAM(argc);
-	DORA_UNUSED_PARAM(argv);
-	int exitCode = SharedApplication.run();
-	Dora::Life::destroy(Slice::Empty);
-	return exitCode;
-#else
+#if !BX_PLATFORM_EMSCRIPTEN
 	if (Dora::isCliRequested(argc, argv)) {
 		int exitCode = Dora::runCliApplication(argc, argv);
 		Dora::Life::destroy(Slice::Empty);
 		return exitCode;
 	}
+#else
+	DORA_UNUSED_PARAM(argc);
+	DORA_UNUSED_PARAM(argv);
+#endif
 	int exitCode = SharedApplication.run();
 	Dora::Life::destroy(Slice::Empty);
 	return exitCode;
-#endif // BX_PLATFORM_EMSCRIPTEN
 }
 #endif // !DORA_AS_LIB
-#endif // BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
+#endif // BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX || BX_PLATFORM_EMSCRIPTEN
 
 #if BX_PLATFORM_WINDOWS
 

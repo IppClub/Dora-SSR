@@ -1181,7 +1181,7 @@ pub fn create_capsule_shape(half_height: f32, radius: f32) -> Dora3DHandle {
 pub fn create_mesh_shape(vertices: &[[f32; 3]], indices: &[u32]) -> Dora3DHandle {
 	if vertices.len() < 3
 		|| indices.len() < 3
-		|| !indices.len().is_multiple_of(3)
+		|| indices.len() % 3 != 0
 		|| vertices.len() > u32::MAX as usize
 		|| indices.len() > u32::MAX as usize
 	{

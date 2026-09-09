@@ -574,6 +574,26 @@ void Controller::clearChanges() {
 	}
 }
 
+void Controller::releaseAllInRender() {
+	SharedApplication.invokeInLogic([this]() {
+		for (const auto& [joystickId, device] : _deviceMap) {
+			DORA_UNUSED_PARAM(joystickId);
+			for (auto& [name, state] : device->buttonMap) {
+				if (!state.newState) continue;
+				state.newState = false;
+				EventArgs<int, Slice> button("ButtonUp"_slice, device->id, name);
+				handler(&button);
+			}
+			for (auto& [name, value] : device->axisMap) {
+				if (value == 0.0f) continue;
+				value = 0.0f;
+				EventArgs<int, Slice, float> axis("Axis"_slice, device->id, name, value);
+				handler(&axis);
+			}
+		}
+	});
+}
+
 void Controller::addControllerInRender(int deviceIndex) {
 #if DORA_VIRTUAL_GAMEPAD_SUPPORTED
 	if (deviceIndex == _devVirtualDeviceIndex && _devVirtualController) return;

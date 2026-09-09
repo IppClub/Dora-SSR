@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Dora SSR Web build probe</title>
+</head>
+<body>
+	<main id="status">Loading Dora SSR Web build probe...</main>
+	<script>
+		var Module = {
+			onDoraBuildProbeReady(value) {
+				const ready = value === 0x444f5241;
+				document.getElementById("status").textContent = ready
+					? "Dora SSR Web build probe ready (deferred task verified)"
+					: `Dora SSR Web build probe failed (${value})`;
+			}
+		};
+	</script>
+	{{{ SCRIPT }}}
+</body>
+</html>

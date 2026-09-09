@@ -1,0 +1,7 @@
+{
+  "skeleton": {"hash": "web-fixture", "spine": "4.3.10", "width": 128, "height": 128},
+  "bones": [{"name": "root"}],
+  "slots": [{"name": "quad", "bone": "root", "attachment": "quad"}],
+  "skins": [{"name": "default", "attachments": {"quad": {"quad": {"type": "region", "path": "quad", "width": 128, "height": 128}}}}],
+  "animations": {"pulse": {"bones": {"root": {"rotate": [{"value": -8}, {"time": 0.5, "value": 8}, {"time": 1, "value": -8}]}}}}
+}

@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #if !BX_PLATFORM_EMSCRIPTEN
 #include "bx/thread.h"
-#endif // !BX_PLATFORM_EMSCRIPTEN
+#endif
 
 #include <random>
 #include <thread>
@@ -78,6 +78,9 @@ public:
 	void shutdown();
 	void invokeInRender(const std::function<void()>& func);
 	void invokeInLogic(const std::function<void()>& func);
+#if BX_PLATFORM_EMSCRIPTEN
+	uint32_t setWebSuspended(bool value);
+#endif
 	void openURL(String url);
 	void vibrate(double seconds);
 	void setClipboardText(String text);
@@ -95,7 +98,7 @@ public:
 	std::string saveScreenshot(String filename);
 #if !BX_PLATFORM_EMSCRIPTEN
 	static int mainLogic(bx::Thread* thread, void* userData);
-#endif // !BX_PLATFORM_EMSCRIPTEN
+#endif
 	static int mainLogic(Application* app);
 #if BX_PLATFORM_WINDOWS
 	inline void* operator new(size_t i) {
@@ -116,13 +119,16 @@ protected:
 #if BX_PLATFORM_EMSCRIPTEN
 	static void emscriptenMainLoop(void* userData);
 	void runEmscriptenFrame();
-#endif // BX_PLATFORM_EMSCRIPTEN
+#endif
 
 private:
 	bool _idled;
 	bool _fpsLimited;
 	bool _renderRunning;
 	bool _logicRunning;
+#if BX_PLATFORM_EMSCRIPTEN
+	bool _webSuspended;
+#endif
 	bool _fullScreen;
 	bool _alwaysOnTop;
 	bool _devMode;
@@ -150,7 +156,7 @@ private:
 	std::string _orientation;
 #if !BX_PLATFORM_EMSCRIPTEN
 	bx::Thread _logicThread;
-#endif // !BX_PLATFORM_EMSCRIPTEN
+#endif
 	EventQueue _logicEvent;
 	EventQueue _renderEvent;
 	std::thread::id _logicThreadID;

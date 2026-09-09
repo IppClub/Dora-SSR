@@ -902,6 +902,12 @@ class ClipNode : public Node
 	static ClipNode* create(Node* stencil = nullptr);
 };
 
+class ScissorNode : public Node
+{
+	tolua_property__common Rect scissorRect;
+	static ScissorNode* create(float x, float y, float width, float height);
+};
+
 class DrawNode : public Node
 {
 	tolua_property__bool bool depthWrite;

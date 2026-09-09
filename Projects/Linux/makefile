@@ -4,13 +4,11 @@ all: release
 
 debug: lib-debug
 	[ -d build ] || mkdir build
-	cd ../../Tools/tolua++ && lua tolua++.lua && cd ../../Projects/Linux
 	cd build && cmake -DCMAKE_BUILD_TYPE=debug ..
 	$(MAKE) -C build
 
 release: lib-release
 	[ -d build ] || mkdir build
-	cd ../../Tools/tolua++ && lua tolua++.lua && cd ../../Projects/Linux
 	cd build && cmake -DCMAKE_BUILD_TYPE=release ..
 	$(MAKE) -C build
 

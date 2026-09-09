@@ -33,9 +33,16 @@ static bool needsReadbackStaging(const bgfx::Caps* caps) {
 		case bgfx::RendererType::Metal:
 			return true;
 		case bgfx::RendererType::OpenGLES:
+		#if BX_PLATFORM_EMSCRIPTEN
+			// WebGL readback emulation attaches the source texture directly. Routing it
+			// through bgfx's shader-based GLES blit leaks that helper pass into the
+			// backbuffer on some browsers.
+			return false;
+		#else
 			// Prefer a read-back staging texture when the active GLES backend advertises
 			// blit support. Backends without blit can still use bgfx's direct FBO readback.
 			return (caps->supported & BGFX_CAPS_TEXTURE_BLIT) != 0;
+		#endif
 		default:
 			return false;
 	}
@@ -238,6 +245,10 @@ void RenderTarget::submitAfterClear(const std::function<void()>& commands, uint1
 
 void RenderTarget::renderOnly(Node* target) {
 	if (!target) return;
+	// A detached node is normally adopted by Director at the end of the logic
+	// frame. Rendering it offscreen must consume that unmanaged state, otherwise
+	// the same fixture is also inserted into the visible scene on the next pass.
+	target->setAsManaged();
 	Node* transformTarget = target->getTransformTarget();
 	target->setTransformTarget(_dummy);
 	target->markDirty();

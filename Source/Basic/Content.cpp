@@ -16,6 +16,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Render/VGRender.h"
 #include "Other/utf8.h"
 
+#if BX_PLATFORM_EMSCRIPTEN
+#include "Platform/Web/WebAssetLoader.h"
+#endif
+
 #if BX_PLATFORM_LINUX
 #include <limits.h>
 #include <unistd.h>
@@ -39,10 +43,6 @@ namespace fs = std::filesystem;
 #include "miniz.h"
 
 #include "SDL.h"
-
-#if BX_PLATFORM_EMSCRIPTEN
-#include <emscripten.h>
-#endif // BX_PLATFORM_EMSCRIPTEN
 
 #include <atomic>
 #include <cstring>
@@ -79,7 +79,11 @@ std::string Content::getAndroidAssetName(String fullPath) const {
 
 static std::mutex pathCacheMutex;
 
-Content::~Content() { }
+Content::~Content() {
+#if BX_PLATFORM_EMSCRIPTEN
+	Web::cancelAssetFetches();
+#endif
+}
 
 static bool isBinaryData(const uint8_t* data, size_t size) {
 	size_t n = size < DORA_BINARY_CHECK_SIZE ? size : DORA_BINARY_CHECK_SIZE;
@@ -756,24 +760,19 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, std
 			}
 		};
 
-#if BX_PLATFORM_EMSCRIPTEN
-		size_t workerCount = 1;
-#else
 		std::atomic<size_t> nextIndex{0};
+#if !BX_PLATFORM_EMSCRIPTEN
 		size_t maxThreads = s_cast<size_t>(std::thread::hardware_concurrency());
 		if (maxThreads == 0) maxThreads = 1;
 		size_t workerCount = std::min(maxThreads, files.size());
 		std::vector<std::thread> workers;
 		workers.reserve(workerCount);
-#endif // BX_PLATFORM_EMSCRIPTEN
+#endif
 
 		auto worker = [&]() {
 			while (true) {
 				if (stoped()) break;
-				size_t idx = 0;
-#if !BX_PLATFORM_EMSCRIPTEN
-				idx = nextIndex.fetch_add(1);
-#endif // !BX_PLATFORM_EMSCRIPTEN
+				size_t idx = nextIndex.fetch_add(1);
 				if (idx >= files.size()) break;
 				if (stoped()) break;
 
@@ -793,7 +792,7 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, std
 					waitForLoaded.post();
 				});
 				waitForLoaded.wait();
-#endif // BX_PLATFORM_EMSCRIPTEN
+#endif
 				if (stoped()) break;
 				if (content.empty()) continue;
 
@@ -906,7 +905,7 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, std
 		for (auto& t : workers) {
 			t.join();
 		}
-#endif // BX_PLATFORM_EMSCRIPTEN
+#endif
 		SharedApplication.invokeInLogic([callbackPtr]() {
 			SearchResult done;
 			(*callbackPtr)(std::move(done));
@@ -1186,18 +1185,35 @@ bool Content::copyUnsafe(String src, String dst) {
 
 void Content::loadAsyncUnsafe(String filename, const std::function<void(uint8_t*, int64_t)>& callback) {
 	std::string fileStr = filename.toString();
-	_thread->run(
-		[fileStr, this]() {
-			int64_t size = 0;
-			uint8_t* buffer = this->loadUnsafe(fileStr, size);
-			return Values::alloc(buffer, size);
-		},
-		[callback](Own<Values> result) {
-			uint8_t* buffer;
-			int64_t size;
-			result->get(buffer, size);
-			callback(buffer, size);
+	auto load = [fileStr, callback, this]() {
+		_thread->run(
+			[fileStr, this]() {
+				int64_t size = 0;
+				uint8_t* buffer = this->loadUnsafe(fileStr, size);
+				return Values::alloc(buffer, size);
+			},
+			[callback](Own<Values> result) {
+				uint8_t* buffer;
+				int64_t size;
+				result->get(buffer, size);
+				callback(buffer, size);
+			});
+	};
+#if BX_PLATFORM_EMSCRIPTEN
+	if (!Content::exist(fileStr)) {
+		Web::fetchAsset(fileStr, [fileStr, callback, load = std::move(load), this](bool success, std::string error) mutable {
+			if (!success) {
+				Error("failed to fetch Web asset \"{}\": {}", fileStr, error);
+				callback(nullptr, 0);
+				return;
+			}
+			clearPathCache();
+			load();
 		});
+		return;
+	}
+#endif
+	load();
 }
 
 void Content::loadAsync(String filename, const std::function<void(String)>& callback) {
@@ -1734,16 +1750,13 @@ Content::Content()
 	: _thread(SharedAsyncThread.newThread())
 	, _appPath(getPrefPath()) {
 #if BX_PLATFORM_EMSCRIPTEN
-	EM_ASM({
-		if (typeof FS !== "undefined" && typeof IDBFS !== "undefined") {
-			try { FS.mkdir("/idbfs"); } catch (e) { }
-			try { FS.mount(IDBFS, {}, "/idbfs"); } catch (e) { }
-		}
-	});
-	_assetPath = "/Assets";
-	_writablePath = "/idbfs/dora";
+	_assetPath = "/game";
+	_writablePath = "/user";
 	std::error_code writableError;
-	fs::create_directories(_writablePath, writableError);
+	for (const auto* directory : {"/user/saves", "/user/settings", "/user/projects"}) {
+		fs::create_directories(directory, writableError);
+		if (writableError) break;
+	}
 	if (writableError) {
 		_writablePath = _appPath;
 	}

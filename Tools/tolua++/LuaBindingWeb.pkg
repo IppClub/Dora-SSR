@@ -1,0 +1,279 @@
+$#include "Const/Header.h"
+$#include "Lua/ToLua/tolua++.h"
+$#include "Lua/LuaManual.h"
+$#include "GUI/ImGuiBinding.h"
+$using namespace Dora;
+$using string = std::string;
+
+typedef Slice String;
+typedef char* CString;
+
+struct Color
+{
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+	uint8_t a;
+	~Color();
+	static tolua_outside Color Color_create @ create(double argb = 0);
+};
+
+struct Vec2
+{
+	tolua_readonly float x;
+	tolua_readonly float y;
+	static tolua_outside Vec2 Vec2_create @ create(float x, float y);
+};
+
+struct Size
+{
+	tolua_readonly float width;
+	tolua_readonly float height;
+	~Size();
+};
+
+class Object
+{
+	tolua_readonly tolua_property__common uint32_t id;
+};
+
+class Application
+{
+	tolua_readonly tolua_property__common Size bufferSize;
+	tolua_readonly tolua_property__common Size visualSize;
+	tolua_readonly tolua_property__common float devicePixelRatio;
+	tolua_readonly tolua_property__bool bool fullScreen;
+	tolua_readonly tolua_property__common String platform;
+	tolua_readonly tolua_property__common double deltaTime;
+	static tolua_outside Application* Application_shared @ create();
+};
+
+class Keyboard
+{
+	bool isKeyDown(String name);
+	bool isKeyUp(String name);
+	bool isKeyPressed(String name);
+	static tolua_outside Keyboard* Keyboard_shared @ create();
+};
+
+class Mouse
+{
+	static tolua_readonly tolua_property__common Vec2 position;
+	static tolua_readonly tolua_property__common Vec2 delta;
+	static tolua_readonly tolua_property__bool bool leftButtonPressed;
+	static tolua_readonly tolua_property__bool bool rightButtonPressed;
+	static tolua_readonly tolua_property__bool bool middleButtonPressed;
+	static tolua_readonly tolua_property__common Vec2 wheel;
+};
+
+class Controller
+{
+	bool isButtonDown(int controllerId, String name);
+	bool isButtonUp(int controllerId, String name);
+	bool isButtonPressed(int controllerId, String name);
+	float getAxis(int controllerId, String name);
+	static tolua_outside Controller* Controller_shared @ create();
+};
+
+class Audio
+{
+	tolua_property__common float globalVolume;
+	uint32_t play(String filename, bool loop = false);
+	void stop(uint32_t handle);
+	void stopAll(float fadeTime = 0.0f);
+	void setPauseAllCurrent(bool paused);
+	static tolua_outside Audio* Audio_shared @ create();
+};
+
+class Content
+{
+	void loadAsync(String filename, tolua_function_void handler);
+	static tolua_outside Content* Content_shared @ create();
+};
+
+class Scheduler : public Object
+{
+	void schedule(tolua_function_bool handler);
+};
+
+class Node : public Object
+{
+	tolua_property__bool bool touchEnabled;
+	tolua_property__bool bool keyboardEnabled;
+	tolua_property__bool bool controllerEnabled;
+	tolua_property__common float scaleX;
+	tolua_property__common float scaleY;
+	tolua_property__common float x;
+	tolua_property__common float y;
+	void addChild(Node* child);
+	void schedule(tolua_function_bool handler);
+};
+
+class Touch : public Object
+{
+	tolua_readonly tolua_property__common int id;
+	tolua_readonly tolua_property__common Vec2 location;
+	tolua_readonly tolua_property__bool bool fromMouse;
+};
+
+class Director
+{
+	tolua_readonly tolua_property__common Node* uI @ ui;
+	tolua_readonly tolua_property__common Scheduler* systemScheduler;
+	tolua_readonly tolua_property__common Scheduler* postScheduler;
+	static tolua_outside Director* Director_shared @ create();
+};
+
+class Texture2D : public Object
+{
+	tolua_readonly tolua_property__common int width;
+	tolua_readonly tolua_property__common int height;
+};
+
+struct BlendFunc
+{
+	BlendFunc(BlendFunc other);
+	~BlendFunc();
+	static tolua_outside BlendFunc* BlendFunc_create @ create(String src, String dst);
+	static tolua_outside BlendFunc* BlendFunc_create @ create(String srcColor, String dstColor, String srcAlpha, String dstAlpha);
+	static const BlendFunc Default;
+};
+
+class DrawNode : public Node
+{
+	tolua_property__common BlendFunc blendFunc;
+	void drawPolygon(Vec2 verts[tolua_len], Color fillColor, float borderWidth = 0.0f, Color borderColor = Color::White);
+	static DrawNode* create();
+};
+
+class Sprite : public Node
+{
+	tolua_property__common BlendFunc blendFunc;
+	static Sprite* from @ create(String clipStr);
+	static Sprite* create(Texture2D* texture);
+};
+
+class Label : public Node
+{
+	tolua_property__common string text;
+	static Label* create(String fontName, uint32_t fontSize, bool sdf = true);
+};
+
+class RenderTarget : public Object
+{
+	tolua_readonly tolua_property__common uint16_t width;
+	tolua_readonly tolua_property__common uint16_t height;
+	tolua_readonly tolua_property__common Texture2D* texture;
+	void render(Node* target);
+	void renderWithClear(Color color, float depth = 1.0f, uint8_t stencil = 0);
+	void renderWithClear(Node* target, Color color, float depth = 1.0f, uint8_t stencil = 0);
+	void saveAsync(String filename, tolua_function_void handler);
+	static RenderTarget* create(uint16_t width, uint16_t height);
+};
+
+class ClipNode : public Node
+{
+	tolua_property__common Node* stencil;
+	tolua_property__common float alphaThreshold;
+	tolua_property__bool bool inverted;
+	static ClipNode* create(Node* stencil = nullptr);
+};
+
+class ScissorNode : public Node
+{
+	static ScissorNode* create(float x, float y, float width, float height);
+};
+
+class ParticleNode @ Particle : public Node
+{
+	tolua_readonly tolua_property__bool bool active;
+	void start();
+	void stop();
+	static ParticleNode* create(String filename);
+};
+
+class Playable : public Node
+{
+	tolua_readonly tolua_property__common string current;
+	float play(String name, bool loop = false);
+	void stop();
+};
+
+class Spine : public Playable
+{
+	static Spine* create(String spineStr);
+};
+
+class DragonBone : public Playable
+{
+	static DragonBone* create(String boneStr);
+};
+
+namespace nvg
+{
+	void Save();
+	void Restore();
+	void FillColor(Color color);
+	void Scissor(float x, float y, float w, float h);
+	void ResetScissor();
+	void BeginPath();
+	void Rectangle @ Rect(float x, float y, float w, float h);
+	void Circle(float cx, float cy, float r);
+	void Fill();
+};
+
+class VGNode : public Node
+{
+	void render(tolua_function_void func);
+	static VGNode* create(float width, float height, float scale = 1.0f, int edgeAA = 1);
+};
+
+class PhysicsWorld : public Node
+{
+	tolua_property__bool bool showDebug;
+	bool raycast(Vec2 start, Vec2 stop, bool closest, tolua_function_bool handler);
+	void setIterations(int velocityIter, int positionIter);
+	static PhysicsWorld* create();
+};
+
+class FixtureDef : public Object {};
+
+class BodyDef : public Object
+{
+	tolua_property__common Vec2 linearAcceleration;
+	tolua_property__bool bool fixedRotation;
+	void attachPolygon(
+		float width,
+		float height,
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
+	static BodyDef* create();
+};
+
+class Body : public Node
+{
+	tolua_except tolua_readonly tolua_property__common float mass;
+	tolua_except tolua_readonly tolua_property__common Vec2 velocity;
+	static Body* create(BodyDef* def, PhysicsWorld* world, Vec2 pos = Vec2::zero, float rot = 0.0f);
+};
+
+namespace ImGui
+{
+	void Binding::SetDefaultFont @ SetDefaultFont(String ttfFontFile, float fontSize);
+	bool Binding::Begin @ Begin(CString name);
+	void Binding::SetNextWindowPos @ SetNextWindowPos(Vec2 pos, String setCond = nullptr, Vec2 pivot = Vec2::zero);
+	void Binding::SetNextWindowSize @ SetNextWindowSize(Vec2 size, String setCond = nullptr);
+	void Binding::PushStyleColor @ PushStyleColor(String name, Color color);
+	void Binding::Text @ Text(String text);
+	void PopStyleColor(int count = 1);
+	void PushClipRect(Vec2 clipMin, Vec2 clipMax, bool intersectWithCurrentClipRect);
+	void PopClipRect();
+	Vec2 GetCursorScreenPos();
+	Vec2 GetItemRectMin();
+	Vec2 GetItemRectMax();
+	bool Button(CString label, Vec2 size = Vec2::zero);
+	void End();
+};
+
+void Dora_Log @ Log(String level, String msg);
