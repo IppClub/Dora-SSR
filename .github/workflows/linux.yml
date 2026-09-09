@@ -34,6 +34,9 @@ jobs:
         submodules: recursive
     - name: Install deps
       run: |
+        if [[ -f /etc/apt/sources.list.d/google-chrome.list ]]; then
+          sudo sed -i 's/^deb /# deb /' /etc/apt/sources.list.d/google-chrome.list
+        fi
         sudo apt-get update
         sudo apt-get install -y cmake pkg-config libgl1-mesa-dev libssl-dev libdbus-1-dev \
           libasound2-dev libjack-jackd2-dev libpulse-dev libpipewire-0.3-dev libsamplerate0-dev libsndio-dev \

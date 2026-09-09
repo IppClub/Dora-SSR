@@ -41,6 +41,9 @@ jobs:
           xmake-version: latest
       - name: Generate Lua bindings
         run: |
+          if [[ -f /etc/apt/sources.list.d/google-chrome.list ]]; then
+            sudo sed -i 's/^deb /# deb /' /etc/apt/sources.list.d/google-chrome.list
+          fi
           sudo apt-get update
           sudo apt-get install -y lua5.1 luarocks
           sudo luarocks install luafilesystem
