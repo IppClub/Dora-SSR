@@ -36,19 +36,16 @@ jobs:
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
         with:
-          version: 3.1.74
+          version: 6.0.9
           actions-cache-folder: emsdk-cache
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.24.3'
       - name: Setup Rust
-        # Rust 1.97 added -wasm-use-legacy-eh=false to the
-        # wasm32-unknown-emscripten target. That enables native Wasm exception
-        # handling for this unwind-enabled runtime, which Binaryen's Asyncify
-        # pass cannot process. Keep the pre-change target with Emscripten's
-        # legacy exception ABI until the runtime no longer needs Asyncify.
-        uses: dtolnay/rust-toolchain@1.96.0
+        # Test the Emscripten/Binaryen upgrade against the same stable Rust
+        # combination that succeeds in the local web build.
+        uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-emscripten
       - name: Build Web/WASM
