@@ -4,6 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
+      - '.github/workflows/linux.yml'
       # Shared engine code — triggers all platforms
       - 'Source/**'
       - 'Tools/tolua\+\+/**'
@@ -15,6 +16,7 @@ on:
   pull_request:
     branches: [ main ]
     paths:
+      - '.github/workflows/linux.yml'
       - 'Source/**'
       - 'Tools/tolua\+\+/**'
       - 'Tools/build-scripts/**'
