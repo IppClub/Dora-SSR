@@ -22,6 +22,8 @@ setmetatable(classModule, classContainer)
 -- register module
 function classModule:register(pre)
 	pre = pre or ""
+	local guard = _compile_guards and _compile_guards[self.name]
+	if guard then output("#if !defined(" .. guard .. ")\n") end
 	push(self)
 	output(pre .. 'tolua_module(tolua_S,"' .. self.name .. '",', self:hasvar(), ");")
 	output(pre .. 'tolua_beginmodule(tolua_S,"' .. self.name .. '");')
@@ -32,6 +34,14 @@ function classModule:register(pre)
 	end
 	output(pre .. "tolua_endmodule(tolua_S);")
 	pop()
+	if guard then output("#endif // !defined(" .. guard .. ")\n") end
+end
+
+function classModule:supcode()
+	local guard = _compile_guards and _compile_guards[self.name]
+	if guard then output("#if !defined(" .. guard .. ")\n") end
+	classContainer.supcode(self)
+	if guard then output("#endif // !defined(" .. guard .. ")\n") end
 end
 
 -- Print method
@@ -62,4 +72,3 @@ function Module(n, b)
 	pop()
 	return t
 end
-

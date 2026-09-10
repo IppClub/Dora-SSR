@@ -18,7 +18,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
-#include "Platform/Web/WebTaskQueue.h"
+#include "Web/WebTaskQueue.h"
+
+#ifdef DORA_WEB_TASK_AUTORELEASE_POOL
+#include "Const/Header.h"
+#include "Basic/AutoreleasePool.h"
+#endif
 
 #include <cstdio>
 #include <deque>
@@ -37,11 +42,17 @@ void drainOneTask(void*) {
 	if (tasks.empty()) return;
 	auto task = std::move(tasks.front());
 	tasks.pop_front();
+#ifdef DORA_WEB_TASK_AUTORELEASE_POOL
+	SharedPoolManager.push();
+#endif
 	try {
 		task();
 	} catch (...) {
 		std::fputs("unhandled exception from WebTaskQueue task\n", stderr);
 	}
+#ifdef DORA_WEB_TASK_AUTORELEASE_POOL
+	SharedPoolManager.pop();
+#endif
 	if (!tasks.empty() && !drainScheduled) {
 		drainScheduled = true;
 		emscripten_async_call(drainOneTask, nullptr, 0);

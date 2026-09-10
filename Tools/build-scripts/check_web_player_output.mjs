@@ -47,13 +47,13 @@ if (manifest.format !== "dora-web-game" || manifest.version !== 1 || !Array.isAr
 }
 
 const features = JSON.parse(fs.readFileSync(path.join(outputDir, "dora-web-features.json"), "utf8"));
-if (features.format !== "dora-web-features" || features.version !== 1 || features.activeProfile !== "minimal") {
+if (features.format !== "dora-web-features" || features.version !== 2 || features.activeProfile !== "dora-preset") {
 	throw new Error("Web feature profile format or active profile is invalid");
 }
-if (features.profiles?.minimal?.available !== true || features.profiles?.full?.available !== false) {
-	throw new Error("Web minimal/full profile availability is invalid");
+if (features.profiles?.core?.available !== true || features.profiles?.["dora-preset"]?.available !== true || features.profiles?.custom?.available !== true) {
+	throw new Error("Web configurable profile availability is invalid");
 }
-const requiredModules = ["lua", "content", "http", "idbfs", "doraPackage", "input", "audio", "drawNode", "sprite", "label", "renderTarget", "particle", "spine", "dragonBones", "nanoVG", "playRho2D", "imGui"];
+const requiredModules = ["lua", "content", "http", "idbfs", "doraPackage", "input", "audio", "drawNode", "sprite", "label", "renderTarget", "particle", "spine", "dragonBones", "nanoVG", "playRho2D", "entity", "platformer", "builtinLuaLibraries", "imGui"];
 const excludedModules = ["threads", "dynamicLinking", "rustBridge", "wasmRuntime", "yueCompiler", "tealCompiler", "loveNode", "model3D", "jolt3D", "video", "workspace"];
 for (const moduleName of requiredModules) {
 	if (features.modules?.[moduleName] !== true) throw new Error(`required Web module is not declared: ${moduleName}`);

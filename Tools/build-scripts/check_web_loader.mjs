@@ -10,7 +10,7 @@ const valid = {
 	format: "dora-web-game",
 	version: 1,
 	engineVersion: "1.9.2",
-	profile: "web-player-minimal",
+	profile: "dora-preset",
 	entry: "init.lua",
 	files: [{
 		path: "init.lua",
@@ -22,6 +22,14 @@ const valid = {
 };
 
 assert.equal(validateManifest(valid, "https://example.test/dora-web-manifest.json").entry, "init.lua");
+for (const profile of ["dora-demo", "web-player-minimal"]) {
+	const legacy = structuredClone(valid);
+	legacy.profile = profile;
+	assert.throws(
+		() => validateManifest(legacy, "https://example.test/dora-web-manifest.json"),
+		new RegExp(`unsupported Web profile: ${profile}`)
+	);
+}
 
 for (const mutate of [
 	(value) => { value.version = 2; },
@@ -47,7 +55,7 @@ const lazyManifest = {
 	format: "dora-web-game",
 	version: 1,
 	engineVersion: "1.9.2",
-	profile: "web-player-minimal",
+	profile: "dora-preset",
 	entry: "init.lua",
 	files: [
 		{ path: "init.lua", url: "assets/init.lua", size: startupData.length, sha256: digest(startupData), startup: true },

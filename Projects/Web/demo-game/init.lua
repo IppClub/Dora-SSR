@@ -101,18 +101,18 @@ thread(function()
 	Director.postScheduler:schedule(function()
 		ImGui.SetNextWindowPos(Vec2(20, 260), "Always")
 		ImGui.SetNextWindowSize(Vec2(220, 160), "Always")
-		ImGui.PushStyleColor("WindowBg", Color(0xff203050))
-		local visible = ImGui.Begin("Web ImGui")
-		if visible then
+		ImGui.PushStyleColor("WindowBg", Color(0xff203050), function()
+		ImGui.Begin("Web ImGui", function()
 			ImGui.Text("Dora Web UI")
 			local buttonStart = ImGui.GetCursorScreenPos()
-			ImGui.PushClipRect(buttonStart, Vec2(buttonStart.x + 72, buttonStart.y + 48), true)
-			ImGui.PushStyleColor("Button", Color(0xffe04080))
-			local clicked = ImGui.Button("Capture", Vec2(140, 42))
-			local buttonMin = ImGui.GetItemRectMin()
-			local buttonMax = ImGui.GetItemRectMax()
-			ImGui.PopStyleColor()
-			ImGui.PopClipRect()
+			local clicked, buttonMin, buttonMax
+			ImGui.PushClipRect(buttonStart, Vec2(buttonStart.x + 72, buttonStart.y + 48), true, function()
+				ImGui.PushStyleColor("Button", Color(0xffe04080), function()
+					clicked = ImGui.Button("Capture", Vec2(140, 42))
+					buttonMin = ImGui.GetItemRectMin()
+					buttonMax = ImGui.GetItemRectMax()
+				end)
+			end)
 			if not imguiBoundsPrinted then
 				imguiBoundsPrinted = true
 				print(string.format("Dora Web ImGui button bounds %.1f %.1f %.1f %.1f", buttonMin.x, buttonMin.y, buttonMax.x, buttonMax.y))
@@ -120,9 +120,8 @@ thread(function()
 			if clicked then
 				print("Dora Web ImGui button clicked")
 			end
-		end
-		ImGui.End()
-		ImGui.PopStyleColor()
+		end)
+		end)
 		return false
 	end)
 	local oldVolume = Audio.globalVolume

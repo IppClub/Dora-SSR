@@ -6,7 +6,7 @@
 		files: 4096,
 		fileBytes: 64 * 1024 * 1024,
 		totalBytes: 256 * 1024 * 1024,
-		startupFiles: 64
+		startupFiles: 4096
 	});
 
 	function validatePath(value, label) {
@@ -24,7 +24,8 @@
 		if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("manifest must be an object");
 		if (input.format !== "dora-web-game" || input.version !== 1) throw new Error("unsupported Dora Web manifest format or version");
 		if (input.engineVersion !== "1.9.2") throw new Error(`unsupported engine version: ${input.engineVersion}`);
-		if (input.profile !== "web-player-minimal" && input.profile !== "web-player-full") {
+		const supportedProfiles = new Set(["core", "dora-preset", "custom"]);
+		if (!supportedProfiles.has(input.profile)) {
 			throw new Error(`unsupported Web profile: ${input.profile}`);
 		}
 		const entry = validatePath(input.entry, "manifest entry");

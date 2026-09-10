@@ -86,14 +86,16 @@ Workspace 是独立构建产物，不能通过给 Player 无条件加入全部�
 
 | Profile | 必选内容 | 可选内容 | 用途 |
 | --- | --- | --- | --- |
-| `web-player-minimal` | Lua、2D 渲染、输入、基础音频、Content | 2D 物理、粒子、UI | 小型游戏发布和平台冒烟 |
+| `core` | Lua、2D 渲染、输入、基础音频、Content | 由裁剪开关增加模块 | 最小基线和定制起点 |
+| `dora-preset`（默认） | core + 2D 物理、Entity、Platformer、标准 Lua 库与默认字体 | 继续通过裁剪开关调整 | Dora 2D 游戏发布；覆盖 Loli War、Zombie Escape、Dismantlism |
+| `custom` | core + 显式启用的裁剪模块 | 2D 物理、Entity、Platformer、标准 Lua 库 | 产品定制运行时 |
 | `web-player-full` | minimal + 常用 Dora 子系统 | 3D、视频、LoveNode | 功能完整的游戏导出 |
 | `web-workspace` | full + 项目导入和编译工具 | Wa、Love 开发工具 | 浏览器内开发和预览 |
 | `love-pthread-player` | Love 11.5 adapter、pthread、`.dora` 导入、IDBFS | 项目最近列表 | 运行需要 `love.thread` 的 Love 项目 |
 
-模块通过 CMake option 和统一 feature manifest 管理。构建产物必须记录启用能力，运行时查询未编译能力时返回明确错误。P4-06 已落地 `dora-web-features.json` v1：`activeProfile` 指向当前构建，`profiles` 区分可用性与延后项，`modules` 逐项记录实际链接能力；浏览器宿主从 `DoraWebPlatform.features` 查询同一对象。当前仅 `minimal` 可用，`full` 被保留但明确标记不可用，CMake 配置也会拒绝它，直到延后模块拥有独立 fixture。
+模块通过 CMake cache 和统一 feature manifest 管理。`DORA_WEB_PROFILE` 可选 `core`、`dora-preset`、`custom`，默认值为 `dora-preset`；`DORA_WEB_FEATURE_PHYSICS_2D`、`DORA_WEB_FEATURE_ENTITY`、`DORA_WEB_FEATURE_PLATFORMER`、`DORA_WEB_FEATURE_BUILTIN_LIBS` 均接受 `AUTO`、`ON`、`OFF`。`AUTO` 跟随所选 profile，显式值用于进一步裁剪；Platformer 配置必须同时启用 Entity 和 2D Physics。构建产物通过 `dora-web-features.json` v2 记录实际能力，浏览器宿主从 `DoraWebPlatform.features` 查询同一对象。
 
-当前 `web-player-minimal` 使用独立的 tolua++ binding 和 Lua 初始化脚本，向游戏暴露 Lua 基础库、`Application`、`Content`、`Scheduler`、`Node`、`Director.ui`、基础 2D、输入、音频、Particle、Spine、DragonBones、NanoVG/VGNode、PlayRho 2D 刚体与基础 ImGui 系统 UI 的已验收子集。Player 链接排除完整 Dora binding、Lua manual、Yue/Teal、Wa/Wasm runtime、LoveNode、Platformer、Entity、ML、3D 物理、3D 节点和 Rust Dora bridge；Rust `wasm32-unknown-emscripten` 静态库仍由独立 build probe 链接验证。P0 以 Lua/DrawNode 建立基线，P1 用按需加载的 logo 和 46,748 B 字体子集验证 Sprite/Label，P3 开放输入和音频，P4 再以独立 fixture 验收 RenderTarget、高级 2D、PlayRho 与 ImGui；其余完整子系统仍由后续阶段引入。
+当前 minimal Player 使用共享 Dora API binding 加编译期 guard：裁剪掉的模块不会注册，避免手工维护一套不断漂移的缩减 API。默认 `dora-preset` 包含 Lua 基础库、常用 2D 渲染与动画、输入、音频、Particle、Spine、DragonBones、NanoVG、ImGui、PlayRho 2D、Entity、Platformer、标准 Lua 库及默认字体；仍排除 Yue/Teal 运行期编译器、Wa/Wasm runtime、LoveNode、ML、3D 物理、3D 节点、视频、Workspace 和 Rust Dora bridge。Dora-Demo 的三个目标游戏使用预生成 Lua，并以 eager manifest 安装资源，均已在本地 Chrome 真实启动并持续运行。
 
 ## 5. 总体架构
 
@@ -129,17 +131,15 @@ Dora WASM Runtime
 
 ```text
 Projects/Web/
-Source/Platform/Web/
-├── WebApplication.cpp
+Source/Web/
+├── WebAssetLoader.cpp
 ├── WebTaskQueue.cpp
-├── WebContent.cpp
-├── WebHttpClient.cpp
-├── WebAudio.cpp
-├── WebFileDialog.cpp
-└── WebBridge.cpp
+├── WebHttp.cpp
+├── WebLuaManual.cpp
+└── WebXrtNetwork.cpp
 ```
 
-已有通用类可以保留 Emscripten 条件分支，但当一个文件出现完整的平台实现时，应移入 `Source/Platform/Web/`，避免在 Application、Content、HttpServer 和 LoveNode 中持续堆叠宏分支。
+跨平台实现优先保留在已有通用源码中，通过宏隔离差异，与 Dora 现有组织方式一致。`Source/Web/` 仅承载 Web 专用的资源加载、任务队列和宿主桥接，不建立统一的按平台拆分源码目录层级。
 
 ## 6. 构建系统
 
@@ -187,7 +187,7 @@ node Tools/build-scripts/check_web_love_player_output.mjs result/love-pthread-pl
 
 普通脚本项目按“源码随包、Lua 执行”的方式发布：Lua 文件直接执行；YueScript 与 Teal 在构建前生成 Lua，源文件和生成文件都进入 manifest，浏览器只加载生成 Lua，因此 minimal profile 不需要携带两个编译器。当前兼容集包含 Lua Sprite、YueScript DrawNode 和 Teal Label 三个独立示例；浏览器测试会检查源码/生成来源、唯一完成日志和各自的像素区域。运行期编辑与编译仍属于后续 Web Workspace，不在 Player minimal 能力内。
 
-`check_web_forbidden_deps.mjs` 检查 shared memory/pthread、动态链接段、原生库工件、本机构建路径、凭据样式内容和全局 Asyncify。`web-player-minimal` 已移除全局 Asyncify，标准门禁不使用例外参数；`--allow-asyncify` 仅保留给诊断历史产物，不能用于 CI 或发布验收。`check_web_package.mjs` 生成 Store/Deflate ZIP fixture 和恶意变体，覆盖检查与原子安装/回滚；Headless Chrome 再使用真实 IDBFS 验证导入后 reload 恢复。
+`check_web_forbidden_deps.mjs` 检查 shared memory/pthread、动态链接段、原生库工件、本机构建路径、凭据样式内容和全局 Asyncify。当前 Web player 已移除全局 Asyncify，标准门禁不使用例外参数；`--allow-asyncify` 仅保留给诊断历史产物，不能用于 CI 或发布验收。`check_web_package.mjs` 生成 Store/Deflate ZIP fixture 和恶意变体，覆盖检查与原子安装/回滚；Headless Chrome 再使用真实 IDBFS 验证导入后 reload 恢复。
 
 ### 6.2 Emscripten 基线
 
@@ -290,7 +290,7 @@ IDBFS 在 `preRun` 阶段先 populate，再允许引擎进入 ready。显式 `do
   "format": "dora-web-game",
   "version": 1,
   "engineVersion": "1.9.2",
-  "profile": "web-player-minimal",
+  "profile": "dora-preset",
   "entry": "init.lua",
   "files": [
     {
@@ -503,7 +503,7 @@ Preview 打包器会从实际 release HTML 提取 inline script/style 的精确 
 
 | 指标 | 初始目标 |
 | --- | --- |
-| `web-player-minimal` JS + WASM gzip | 不超过 20 MiB |
+| `dora-preset` JS + WASM gzip | 不超过 20 MiB |
 | 通用内置 preload gzip | 不超过 5 MiB |
 | 最小示例首次可交互 | 桌面宽带 P75 不超过 5 秒 |
 | 最小示例二次启动 | P75 不超过 2 秒 |

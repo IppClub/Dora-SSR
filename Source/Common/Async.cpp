@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Scheduler.h"
 
 #if BX_PLATFORM_EMSCRIPTEN
-#include "Platform/Web/WebTaskQueue.h"
+#include "Web/WebTaskQueue.h"
 #endif
 
 #include <algorithm>

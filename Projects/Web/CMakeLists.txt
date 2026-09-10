@@ -28,6 +28,31 @@ dora_web_embed_text(
 	"${DORA_WEB_EMBEDDED_BGFX_DIR}/generated/bgfx_compute.sh.h")
 file(GLOB_RECURSE DORA_WEB_BOOTSTRAP_ASSET_FILES CONFIGURE_DEPENDS
 	"${DORA_WEB_BOOTSTRAP_ASSETS}/*")
+set(DORA_WEB_BUILTIN_LIBS "${DORA_ROOT}/Assets/Script/Lib")
+set(DORA_WEB_BUILTIN_FONT "${CMAKE_CURRENT_SOURCE_DIR}/preset-assets/Font/sarasa-mono-sc-regular.ttf")
+set(DORA_WEB_PRESET_LUA_MODULES
+	BodyEx.lua
+	DoraX.lua
+	InputManager.lua
+	Utils.lua
+	lualib_bundle.lua
+	UI/Control/Basic/CircleButton.lua
+	UI/View/Control/Basic/ButtonBase.lua
+	UI/View/Control/Basic/CircleButton.lua
+	UI/View/Shape/Circle.lua
+	UI/View/Shape/LineCircle.lua
+	UI/View/Shape/LineRect.lua
+	UI/View/Shape/Rectangle.lua
+	UI/View/Shape/SolidCircle.lua
+	UI/View/Shape/SolidRect.lua
+	UI/View/Shape/Star.lua)
+set(DORA_WEB_BUILTIN_LIB_FILES)
+set(DORA_WEB_BUILTIN_PRELOAD_OPTIONS)
+foreach(DORA_WEB_PRESET_LUA_MODULE IN LISTS DORA_WEB_PRESET_LUA_MODULES)
+	list(APPEND DORA_WEB_BUILTIN_LIB_FILES "${DORA_WEB_BUILTIN_LIBS}/${DORA_WEB_PRESET_LUA_MODULE}")
+	list(APPEND DORA_WEB_BUILTIN_PRELOAD_OPTIONS
+		"SHELL:--preload-file \"${DORA_WEB_BUILTIN_LIBS}/${DORA_WEB_PRESET_LUA_MODULE}@/builtin/Script/Lib/${DORA_WEB_PRESET_LUA_MODULE}\"")
+endforeach()
 set(DORA_WEB_DEMO_GAME "${CMAKE_CURRENT_SOURCE_DIR}/demo-game")
 file(GLOB_RECURSE DORA_WEB_DEMO_GAME_FILES CONFIGURE_DEPENDS
 	"${DORA_WEB_DEMO_GAME}/*")
@@ -50,7 +75,7 @@ include("${DORA_ROOT}/Projects/CMake/DoraLoveSources.cmake")
 # P0 builds this tiny executable first so CI can prove that the locked
 # toolchain produces an instantiable browser package before engine ports are
 # allowed to obscure toolchain failures.
-set(DORA_WEB_TASK_QUEUE_SOURCE "${DORA_SOURCE_ROOT}/Platform/Web/WebTaskQueue.cpp")
+set(DORA_WEB_TASK_QUEUE_SOURCE "${DORA_SOURCE_ROOT}/Web/WebTaskQueue.cpp")
 add_executable(dora-web-build-probe WebBuildProbe.cpp "${DORA_WEB_TASK_QUEUE_SOURCE}")
 target_include_directories(dora-web-build-probe PRIVATE "${DORA_SOURCE_ROOT}")
 target_link_libraries(dora-web-build-probe PRIVATE "${DORA_RUST_RUNTIME}")
@@ -76,11 +101,43 @@ option(DORA_WEB_BUILD_LOVE_PROBE "Compile the Dora Love runtime as a non-release
 option(DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER "Build the installable Love pthread Web Player" OFF)
 option(DORA_WEB_PTHREADS "Build an opt-in shared-memory Web profile with Love thread workers" OFF)
 set(DORA_WEB_LOVE_COMPLEX_PACKAGE "" CACHE FILEPATH "Licensed local .dora package used only by the opt-in P5-09 probe")
-set(DORA_WEB_PROFILE "minimal" CACHE STRING "Dora Web feature profile")
-set_property(CACHE DORA_WEB_PROFILE PROPERTY STRINGS minimal full)
-if(NOT DORA_WEB_PROFILE STREQUAL "minimal")
-	message(FATAL_ERROR "DORA_WEB_PROFILE=${DORA_WEB_PROFILE} is not available yet; P4-05 keeps 3D, Jolt, video, LoveNode and Workspace out of the release Player")
+set(DORA_WEB_PROFILE "dora-preset" CACHE STRING "Dora Web feature preset")
+set_property(CACHE DORA_WEB_PROFILE PROPERTY STRINGS core dora-preset custom)
+if(NOT DORA_WEB_PROFILE MATCHES "^(core|dora-preset|custom)$")
+	message(FATAL_ERROR "Unknown DORA_WEB_PROFILE=${DORA_WEB_PROFILE}; expected core, dora-preset or custom")
 endif()
+
+if(DORA_WEB_PROFILE STREQUAL "dora-preset")
+	set(DORA_WEB_PRESET_FEATURE_DEFAULT ON)
+else()
+	set(DORA_WEB_PRESET_FEATURE_DEFAULT OFF)
+endif()
+foreach(DORA_WEB_TRISTATE_FEATURE IN ITEMS PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS)
+	set(DORA_WEB_FEATURE_${DORA_WEB_TRISTATE_FEATURE} AUTO CACHE STRING "Include this Dora Web feature: AUTO, ON or OFF")
+	set_property(CACHE DORA_WEB_FEATURE_${DORA_WEB_TRISTATE_FEATURE} PROPERTY STRINGS AUTO ON OFF)
+	string(TOUPPER "${DORA_WEB_FEATURE_${DORA_WEB_TRISTATE_FEATURE}}" DORA_WEB_FEATURE_VALUE)
+	if(DORA_WEB_FEATURE_VALUE STREQUAL "AUTO")
+		set(DORA_WEB_FEATURE_${DORA_WEB_TRISTATE_FEATURE} ${DORA_WEB_PRESET_FEATURE_DEFAULT})
+	elseif(DORA_WEB_FEATURE_VALUE MATCHES "^(ON|OFF)$")
+		set(DORA_WEB_FEATURE_${DORA_WEB_TRISTATE_FEATURE} ${DORA_WEB_FEATURE_VALUE})
+	else()
+		message(FATAL_ERROR "DORA_WEB_FEATURE_${DORA_WEB_TRISTATE_FEATURE}=${DORA_WEB_FEATURE_VALUE}; expected AUTO, ON or OFF")
+	endif()
+endforeach()
+if(DORA_WEB_FEATURE_PLATFORMER AND NOT DORA_WEB_FEATURE_ENTITY)
+	message(FATAL_ERROR "DORA_WEB_FEATURE_PLATFORMER requires DORA_WEB_FEATURE_ENTITY=ON")
+endif()
+if(DORA_WEB_FEATURE_PLATFORMER AND NOT DORA_WEB_FEATURE_PHYSICS_2D)
+	message(FATAL_ERROR "DORA_WEB_FEATURE_PLATFORMER requires DORA_WEB_FEATURE_PHYSICS_2D=ON")
+endif()
+
+foreach(DORA_WEB_BOOL_FEATURE IN ITEMS PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS)
+	if(DORA_WEB_FEATURE_${DORA_WEB_BOOL_FEATURE})
+		set(DORA_WEB_FEATURE_${DORA_WEB_BOOL_FEATURE}_JSON true)
+	else()
+		set(DORA_WEB_FEATURE_${DORA_WEB_BOOL_FEATURE}_JSON false)
+	endif()
+endforeach()
 if(DORA_WEB_PTHREADS)
 	set(DORA_WEB_THREAD_COMPILE_OPTIONS -pthread)
 	set(DORA_WEB_THREAD_LINK_OPTIONS
@@ -119,9 +176,23 @@ if(DORA_WEB_BUILD_ENGINE)
 		"${DORA_SOURCE_ROOT}/Lua/LuaCode.cpp"
 		"${DORA_SOURCE_ROOT}/Lua/TealCompiler.cpp"
 		"${DORA_SOURCE_ROOT}/Wasm/WasmRuntime.cpp")
-	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/(Platformer|Physics|Entity|ML|Test|Lua/Xml)/")
+	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/(ML|Test|Lua/Xml)/")
+	if(NOT DORA_WEB_FEATURE_PLATFORMER)
+		list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Platformer/")
+	endif()
+	if(NOT DORA_WEB_FEATURE_ENTITY)
+		list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Entity/")
+	endif()
+	if(NOT DORA_WEB_FEATURE_PHYSICS_2D)
+		list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Physics/")
+	else()
+		list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Physics/(JoltBridge|JoltSources)\\.cpp$")
+	endif()
 	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Cache/Model3DCache\.cpp$")
 	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Node/(Node3D|Surface3D|Light3D|Model3D|Visual3D|View3D)\.cpp$")
+	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Node/(VideoNode|TIC80Node)\.cpp$")
+	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/3rdParty/tic80/")
+	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/3rdParty/(JoltPhysics|ml|wasm3)/")
 	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Render/Camera3D\.cpp$")
 	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/3rdParty/(yuescript|yarnflow)/")
 	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Love/[^/]+\\.cpp$")
@@ -130,19 +201,14 @@ if(DORA_WEB_BUILD_ENGINE)
 	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/3rdParty/nfd/nfd_portal\\.cpp$")
 	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/3rdParty/soloud/backend/sdl/soloud_sdl2(_dll)?\\.(cpp|c)$")
 	list(APPEND DORA_WEB_ENGINE_SOURCES
-		"${DORA_SOURCE_ROOT}/Physics/BodyDef.cpp"
-		"${DORA_SOURCE_ROOT}/Physics/Body.cpp"
-		"${DORA_SOURCE_ROOT}/Physics/Sensor.cpp"
-		"${DORA_SOURCE_ROOT}/Physics/PhysicsWorld.cpp"
-		"${DORA_SOURCE_ROOT}/Physics/DebugDraw.cpp"
 		"${DORA_SOURCE_ROOT}/Lua/LuaBindingWeb.cpp"
 		"${DORA_SOURCE_ROOT}/Lua/LuaCodeWeb.cpp"
 		"${DORA_SOURCE_ROOT}/Wasm/CallStack.cpp"
 		"${DORA_WEB_TASK_QUEUE_SOURCE}"
-		"${DORA_SOURCE_ROOT}/Platform/Web/WebAssetLoader.cpp"
-		"${DORA_SOURCE_ROOT}/Platform/Web/WebHttp.cpp"
-		"${DORA_SOURCE_ROOT}/Platform/Web/WebLuaManual.cpp"
-		"${DORA_SOURCE_ROOT}/Platform/Web/WebXrtNetwork.cpp"
+		"${DORA_SOURCE_ROOT}/Web/WebAssetLoader.cpp"
+		"${DORA_SOURCE_ROOT}/Web/WebHttp.cpp"
+		"${DORA_SOURCE_ROOT}/Lua/LuaManual.cpp"
+		"${DORA_SOURCE_ROOT}/Web/WebXrtNetwork.cpp"
 		"${DORA_SOURCE_ROOT}/3rdParty/soloud/backend/sdl2_static/soloud_sdl2_static.cpp"
 		"${DORA_SOURCE_ROOT}/3rdParty/LuaSocket/src/compat.c"
 		"${DORA_SOURCE_ROOT}/3rdParty/LuaSocket/src/mime.c")
@@ -157,12 +223,22 @@ if(DORA_WEB_BUILD_ENGINE)
 		DORA_NO_3D_PHYSICS
 		DORA_TEST=0
 		DORA_WEB_MINIMAL
+		DORA_WEB_TASK_AUTORELEASE_POOL
 		WITH_SDL2_STATIC
 		SPDLOG_FMT_EXTERNAL
 		BGFX_CONFIG_RENDERER_OPENGLES=30
 		d_m3HasWASI
 		SQLITE_OMIT_LOAD_EXTENSION
 	)
+	if(NOT DORA_WEB_FEATURE_PHYSICS_2D)
+		target_compile_definitions(dora-web-engine PRIVATE DORA_WEB_NO_PHYSICS_2D)
+	endif()
+	if(NOT DORA_WEB_FEATURE_ENTITY)
+		target_compile_definitions(dora-web-engine PRIVATE DORA_WEB_NO_ENTITY)
+	endif()
+	if(NOT DORA_WEB_FEATURE_PLATFORMER)
+		target_compile_definitions(dora-web-engine PRIVATE DORA_WEB_NO_PLATFORMER)
+	endif()
 	target_compile_options(dora-web-engine PRIVATE
 		${DORA_WEB_THREAD_COMPILE_OPTIONS}
 		-fwasm-exceptions
@@ -330,6 +406,11 @@ if(DORA_WEB_LINK_PLAYER)
 		"SHELL:--preload-file \"${DORA_WEB_BOOTSTRAP_ASSETS}@/builtin\""
 		"SHELL:--shell-file \"${CMAKE_CURRENT_SOURCE_DIR}/player-shell.html\""
 	)
+	if(DORA_WEB_FEATURE_BUILTIN_LIBS)
+		target_link_options(dora-web-player PRIVATE
+			${DORA_WEB_BUILTIN_PRELOAD_OPTIONS}
+			"SHELL:--preload-file \"${DORA_WEB_BUILTIN_FONT}@/builtin/Font/sarasa-mono-sc-regular.ttf\"")
+	endif()
 	if(DORA_WEB_DIAGNOSTICS)
 		target_link_options(dora-web-player PRIVATE
 			"-sASSERTIONS=1"
@@ -337,7 +418,7 @@ if(DORA_WEB_LINK_PLAYER)
 	endif()
 	set_target_properties(dora-web-player PROPERTIES
 		OUTPUT_NAME "dora-player-runtime"
-		LINK_DEPENDS "${CMAKE_BINARY_DIR}/dora-web-features.js;${CMAKE_CURRENT_SOURCE_DIR}/player-shell.html;${CMAKE_CURRENT_SOURCE_DIR}/web-platform.js;${CMAKE_CURRENT_SOURCE_DIR}/web-network.js;${CMAKE_CURRENT_SOURCE_DIR}/web-package.js;${CMAKE_CURRENT_SOURCE_DIR}/web-loader.js;${DORA_WEB_BOOTSTRAP_ASSET_FILES}"
+		LINK_DEPENDS "${CMAKE_BINARY_DIR}/dora-web-features.js;${CMAKE_CURRENT_SOURCE_DIR}/player-shell.html;${CMAKE_CURRENT_SOURCE_DIR}/web-platform.js;${CMAKE_CURRENT_SOURCE_DIR}/web-network.js;${CMAKE_CURRENT_SOURCE_DIR}/web-package.js;${CMAKE_CURRENT_SOURCE_DIR}/web-loader.js;${DORA_WEB_BOOTSTRAP_ASSET_FILES};${DORA_WEB_BUILTIN_LIB_FILES};${DORA_WEB_BUILTIN_FONT}"
 		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 	if(DORA_WEB_BUILD_LOVE_PROBE)
 		add_executable(dora-web-love-link-probe
@@ -659,7 +740,10 @@ if(DORA_WEB_LINK_PLAYER)
 		COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${DORA_WEB_DEMO_SPRITE}" "${DORA_WEB_DEMO_STAGE}/Image/logo.png"
 		COMMAND "${DORA_WEB_NODE_EXECUTABLE}" "${DORA_WEB_AUDIO_FIXTURE_SCRIPT}" "${DORA_WEB_DEMO_STAGE}/Audio/fixture.wav" "${DORA_WEB_DEMO_STAGE}/Audio/fixture.ogg"
 		COMMAND "${DORA_WEB_NODE_EXECUTABLE}" "${DORA_WEB_RENDER_FIXTURE_SCRIPT}" "${DORA_WEB_DEMO_STAGE}"
-		COMMAND "${DORA_WEB_NODE_EXECUTABLE}"
+		COMMAND "${CMAKE_COMMAND}" -E env
+			"DORA_WEB_GAME_PROFILE=${DORA_WEB_PROFILE}"
+			"DORA_WEB_EAGER_GAME_ASSETS=0"
+			"${DORA_WEB_NODE_EXECUTABLE}"
 			"${DORA_ROOT}/Tools/build-scripts/package_web_game.mjs"
 			"${DORA_WEB_DEMO_STAGE}"
 			"${CMAKE_BINARY_DIR}"

@@ -698,8 +698,10 @@ try {
 	assert.equal(runtimeFeatures.exceptionDetails, undefined, `runtime feature profile query failed: ${runtimeFeatures.exceptionDetails?.text || "unknown error"}`);
 	assert.deepEqual(runtimeFeatures.result.value.platform, runtimeFeatures.result.value.global, "DoraWebPlatform feature profile differs from the host profile");
 	assert.deepEqual(runtimeFeatures.result.value.module, runtimeFeatures.result.value.global, "Module feature profile differs from the host profile");
-	assert.equal(runtimeFeatures.result.value.global.activeProfile, "minimal", "browser runtime did not activate the minimal feature profile");
-	assert.equal(runtimeFeatures.result.value.global.profiles.full.available, false, "unvalidated full profile was exposed as available");
+	assert.equal(runtimeFeatures.result.value.global.activeProfile, "dora-preset", "browser runtime did not activate the default Dora feature preset");
+	assert.equal(runtimeFeatures.result.value.global.profiles.core.available, true, "core feature preset was not exposed");
+	assert.equal(runtimeFeatures.result.value.global.profiles["dora-preset"].available, true, "default Dora feature preset was not exposed");
+	assert.equal(runtimeFeatures.result.value.global.profiles.custom.available, true, "custom feature preset was not exposed");
 	const imguiBoundsMessage = consoleMessages.find((message) => /Dora Web ImGui button bounds [0-9.]+ [0-9.]+ [0-9.]+ [0-9.]+/.test(message));
 	assert.ok(imguiBoundsMessage, `ImGui button bounds are missing:\n${consoleMessages.join("\n")}`);
 	const imguiBounds = /bounds ([0-9.]+) ([0-9.]+) ([0-9.]+) ([0-9.]+)/.exec(imguiBoundsMessage).slice(1).map(Number);

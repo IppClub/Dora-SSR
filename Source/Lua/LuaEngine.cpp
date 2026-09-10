@@ -544,6 +544,12 @@ static int dora_web_load_file(lua_State* L, String filename) {
 		return luaL_error(L, "Web minimal profile only loads Lua modules: %s", targetFile.c_str());
 	}
 	auto fullPath = SharedContent.getFullPath(targetFile);
+	if (!SharedContent.exist(fullPath)) {
+		const auto builtinPath = SharedContent.getFullPath("/builtin/Script/Lib/"s + targetFile);
+		if (SharedContent.exist(builtinPath)) {
+			fullPath = builtinPath;
+		}
+	}
 	if (fullPath.empty() || !SharedContent.exist(fullPath)) {
 		auto message = "no file '"s + targetFile + '\'';
 		lua_pushlstring(L, message.c_str(), message.size());
@@ -1408,6 +1414,12 @@ LuaEngine::LuaEngine()
 
 	dora_load_base(L);
 #ifdef DORA_WEB_MINIMAL
+	std::string builtinModuleError;
+	if (!dora_open_builtin_modules(L, builtinModuleError)) {
+		LogError(fmt::format("failed to initialize builtin Lua modules: {}", builtinModuleError));
+	}
+	luaL_requiref(L, "json", luaopen_colibc_json, 0);
+	lua_pop(L, 1);
 	tolua_open(L);
 
 	const luaL_Reg minimalGlobalFunctions[] = {
@@ -1421,12 +1433,81 @@ LuaEngine::LuaEngine()
 	LuaEngine::insertLuaLoader(dora_web_loader, 2);
 	tolua_LuaBindingWeb_open(L);
 	tolua_beginmodule(L, nullptr);
-	tolua_beginmodule(L, "Node");
-	tolua_function(L, "slot", dora_web_node_slot);
+	tolua_function(L, "emit", dora_emit);
+	tolua_beginmodule(L, "Path");
+	tolua_call(L, MT_CALL, Path_create);
 	tolua_endmodule(L);
+	tolua_beginmodule(L, "Content");
+	tolua_variable(L, "searchPaths", Content_GetSearchPaths, Content_SetSearchPaths);
+	tolua_endmodule(L);
+	tolua_beginmodule(L, "Node");
+	tolua_function(L, "gslot", Node_gslot);
+	tolua_function(L, "slot", Node_slot);
+	tolua_function(L, "emit", Node_emit);
+	tolua_endmodule(L);
+	tolua_beginmodule(L, "Action");
+	tolua_call(L, MT_CALL, Action_create);
+	tolua_endmodule(L);
+	tolua_beginmodule(L, "Dictionary");
+	tolua_variable(L, "keys", Dictionary_getKeys, nullptr);
+	tolua_function(L, "set", Dictionary_set);
+	tolua_function(L, "get", Dictionary_get);
+	tolua_endmodule(L);
+	tolua_beginmodule(L, "Array");
+	tolua_variable(L, "first", Array_getFirst, nullptr);
+	tolua_variable(L, "last", Array_getLast, nullptr);
+	tolua_variable(L, "randomObject", Array_getRandomObject, nullptr);
+	tolua_function(L, "set", Array_set);
+	tolua_function(L, "get", Array_get);
+	tolua_function(L, "add", Array_add);
+	tolua_function(L, "insert", Array_insert);
+	tolua_function(L, "contains", Array_contains);
+	tolua_function(L, "index", Array_index);
+	tolua_function(L, "removeLast", Array_removeLast);
+	tolua_function(L, "fastRemove", Array_fastRemove);
+	tolua_call(L, MT_CALL, Array_create);
+	tolua_endmodule(L);
+#ifndef DORA_WEB_NO_ENTITY
+	tolua_beginmodule(L, "Entity");
+	tolua_function(L, "set", Entity_set);
+	tolua_function(L, "get", Entity_get);
+	tolua_function(L, "getOld", Entity_getOld);
+	tolua_call(L, MT_CALL, Entity_create);
+	tolua_endmodule(L);
+	tolua_beginmodule(L, "Group");
+	tolua_function(L, "watch", EntityGroup_watch);
+	tolua_endmodule(L);
+	tolua_beginmodule(L, "Observer");
+	tolua_function(L, "watch", EntityObserver_watch);
+	tolua_endmodule(L);
+#endif
+#ifndef DORA_WEB_NO_PHYSICS_2D
 	tolua_beginmodule(L, "BodyDef");
 	tolua_variable(L, "type", BodyDef_GetType, BodyDef_SetType);
 	tolua_endmodule(L);
+#endif
+	tolua_beginmodule(L, "Sprite");
+	tolua_variable(L, "uwrap", Sprite_GetUWrap, Sprite_SetUWrap);
+	tolua_variable(L, "vwrap", Sprite_GetVWrap, Sprite_SetVWrap);
+	tolua_variable(L, "filter", Sprite_GetTextureFilter, Sprite_SetTextureFilter);
+	tolua_function(L, "getClips", Sprite_GetClips);
+	tolua_endmodule(L);
+	tolua_beginmodule(L, "Label");
+	tolua_variable(L, "alignment", Label_GetTextAlign, Label_SetTextAlign);
+	tolua_endmodule(L);
+	tolua_beginmodule(L, "DrawNode");
+	tolua_function(L, "drawVertices", DrawNode_drawVertices);
+	tolua_endmodule(L);
+#ifndef DORA_WEB_NO_PLATFORMER
+	tolua_beginmodule(L, "Platformer");
+	tolua_beginmodule(L, "Behavior");
+	tolua_beginmodule(L, "Blackboard");
+	tolua_function(L, "set", Platformer::Blackboard_set);
+	tolua_function(L, "get", Platformer::Blackboard_get);
+	tolua_endmodule(L);
+	tolua_endmodule(L);
+	tolua_endmodule(L);
+#endif
 	tolua_endmodule(L);
 	tolua_setlightmetatable(L);
 	tolua_LuaCodeWeb_open(L);
@@ -1787,15 +1868,15 @@ std::string LuaEngine::getTealVersion() {
 }
 
 std::pair<std::string, std::string> LuaEngine::compileTealToLua(String, String, String) {
-	return {""s, "Teal is not included in web-player-minimal"s};
+	return {""s, "Teal is not included in Dora Web Player"s};
 }
 
 void LuaEngine::compileTealToLuaAsync(String, String, String, const std::function<void(std::pair<std::string, std::string>)>& callback) {
-	callback({""s, "Teal is not included in web-player-minimal"s});
+	callback({""s, "Teal is not included in Dora Web Player"s});
 }
 
 void LuaEngine::checkTealAsync(String, String filename, bool, String, const std::function<void(std::optional<std::list<TealError>>)>& callback) {
-	callback(std::list<TealError>{{"unsupported"s, filename.toString(), 0, 0, "Teal is not included in web-player-minimal"s}});
+	callback(std::list<TealError>{{"unsupported"s, filename.toString(), 0, 0, "Teal is not included in Dora Web Player"s}});
 }
 
 void LuaEngine::completeTealAsync(String, String, int, String, const std::function<void(std::list<TealToken>)>& callback) {

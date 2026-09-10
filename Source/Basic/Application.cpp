@@ -2297,6 +2297,34 @@ extern "C" DORA_EXPORT int dora_run(MainFunc mainFunc) {
 #include "yuescript/yue_compiler.h"
 
 std::string Dora::Application::getDeps() const noexcept {
+#ifdef DORA_WEB_MINIMAL
+	return fmt::format(
+		"- SDL2 {}.{}.{}\n"
+		"- bgfx {}\n"
+		"- Lua {}.{}.{}\n"
+		"- PlayRho {}.{}.{}\n"
+		"- soloud {}\n"
+		"- DragonBones 5.6.3\n"
+		"- Spine {}\n"
+		"- ImGui {}\n"
+		"- ImPlot {}\n"
+		"- sqlite3 {}\n"
+		"- SQLiteCpp {}\n"
+		"- fmt {}\n"
+		"- spdlog {}.{}.{}",
+		SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL,
+		BGFX_API_VERSION,
+		LUA_VERSION_MAJOR, LUA_VERSION_MINOR, LUA_VERSION_RELEASE,
+		PLAYRHO_VERSION_MAJOR, PLAYRHO_VERSION_MINOR, PLAYRHO_VERSION_PATCH,
+		SOLOUD_VERSION,
+		SPINE_VERSION_STRING,
+		IMGUI_VERSION,
+		IMPLOT_VERSION,
+		SQLITE_VERSION,
+		SQLITECPP_VERSION,
+		FMT_VERSION,
+		SPDLOG_VER_MAJOR, SPDLOG_VER_MINOR, SPDLOG_VER_PATCH);
+#else
 	return fmt::format(
 		"- SDL2 {}.{}.{}\n"
 		"- bgfx {}\n"
@@ -2331,4 +2359,5 @@ std::string Dora::Application::getDeps() const noexcept {
 		FMT_VERSION,
 		HttpServer::getVersion(),
 		SPDLOG_VER_MAJOR, SPDLOG_VER_MINOR, SPDLOG_VER_PATCH);
+#endif
 }

@@ -1,4 +1,4 @@
-#include "Platform/Web/WebTaskQueue.h"
+#include "Web/WebTaskQueue.h"
 
 #include <emscripten/emscripten.h>
 

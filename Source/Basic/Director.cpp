@@ -316,7 +316,11 @@ void Director::handleTouchEvents() {
 	}
 
 	/* handle scene tree touch */
-#ifndef DORA_WEB_MINIMAL
+#ifdef DORA_WEB_MINIMAL
+	if (registerTouchHandler(_root)) {
+		SharedTouchDispatcher.dispatch();
+	}
+#else
 	if (registerTouchHandler(_entry)) {
 		SharedTouchDispatcher.dispatch();
 	}
@@ -336,7 +340,13 @@ void Director::handleUnmanagedNodes() {
 		_unmanagedNodes.clear();
 		for (Node* node : nodes) {
 #ifdef DORA_WEB_MINIMAL
-			getUI()->addChild(node);
+			if (!_root) {
+				_root = Node::create(false);
+				_root->setAnchor(Vec2::zero);
+				_root->setSize(SharedView.getSize());
+				_root->onEnter();
+			}
+			_root->addChild(node);
 #else
 			getEntry()->addChild(node);
 #endif
@@ -814,12 +824,10 @@ bool Director::isInFrustum(const AABB& aabb) const {
 void Director::markDirty() {
 	if (_ui) _ui->markDirty();
 	if (_systemUI) _systemUI->markDirty();
-#ifndef DORA_WEB_MINIMAL
-	if (_entry) {
+	if (_root) {
 		auto viewSize = SharedView.getSize();
 		_root->setSize(viewSize);
 	}
-#endif
 	if (_postNode) _postNode->markDirty();
 }
 

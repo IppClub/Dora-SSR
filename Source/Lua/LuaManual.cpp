@@ -561,8 +561,8 @@ int Content_searchFilesAsync(lua_State* L) {
 	} else
 #endif
 	{
-#ifndef TOLUA_RELEASE
 		Content* self = r_cast<Content*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Content_searchFilesAsync'", nullptr);
 #endif
 		std::string path = tolua_toslice(L, 2, 0).toString();

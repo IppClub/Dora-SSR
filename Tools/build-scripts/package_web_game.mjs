@@ -5,6 +5,12 @@ import path from "node:path";
 const inputDir = path.resolve(process.argv[2] || "");
 const outputDir = path.resolve(process.argv[3] || "");
 const entry = process.argv[4] || "init.lua";
+const profile = process.env.DORA_WEB_GAME_PROFILE || "dora-preset";
+const eagerAssetsValue = process.env.DORA_WEB_EAGER_GAME_ASSETS;
+if (eagerAssetsValue !== undefined && eagerAssetsValue !== "0" && eagerAssetsValue !== "1") {
+	throw new Error("DORA_WEB_EAGER_GAME_ASSETS must be 0 or 1");
+}
+const eagerAssets = eagerAssetsValue === undefined ? profile === "dora-preset" : eagerAssetsValue === "1";
 const maxFiles = 4096;
 const maxFileSize = 64 * 1024 * 1024;
 const maxTotalSize = 256 * 1024 * 1024;
@@ -63,7 +69,7 @@ const manifestFiles = files.map((file) => {
 		url: outputPath,
 		size: data.byteLength,
 		sha256,
-		startup: file.path === entry
+		startup: eagerAssets || file.path === entry
 	};
 });
 
@@ -71,7 +77,7 @@ const manifest = {
 	format: "dora-web-game",
 	version: 1,
 	engineVersion: "1.9.2",
-	profile: "web-player-minimal",
+	profile,
 	entry,
 	files: manifestFiles
 };
