@@ -8,10 +8,24 @@ on:
     branches: [ main ]
     paths:
       - 'Docs/**'
+      - 'Assets/**'
+      - 'Source/**'
+      - 'Projects/CMake/**'
+      - 'Projects/Web/**'
+      - 'Tools/build-scripts/**'
+      - 'Tools/tolua\+\+/**'
+      - '.github/workflows/static.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'Docs/**'
+      - 'Assets/**'
+      - 'Source/**'
+      - 'Projects/CMake/**'
+      - 'Projects/Web/**'
+      - 'Tools/build-scripts/**'
+      - 'Tools/tolua\+\+/**'
+      - '.github/workflows/static.yml'
   workflow_dispatch:
 
 # Only allow one concurrent deployment; let in-progress runs finish.
@@ -23,24 +37,57 @@ jobs:
   # Always build — serves as CI check on PRs, and feeds the deploy job.
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    env:
+      JOBS: '2'
+      DORA_WEB_JOBS: '2'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
           package_json_file: 'Docs/package.json'
+      - name: Setup Emscripten
+        uses: emscripten-core/setup-emsdk@v15
+        with:
+          version: 3.1.74
+          actions-cache-folder: emsdk-cache
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@1.85.1
+        with:
+          targets: wasm32-unknown-emscripten
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.3'
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '22.14.0'
           cache: 'pnpm'
           cache-dependency-path: 'Docs/pnpm-lock.yaml'
+      - name: Setup CMake
+        run: |
+          python3 -m venv "$RUNNER_TEMP/cmake-venv"
+          "$RUNNER_TEMP/cmake-venv/bin/python" -m pip install 'cmake==3.30.5'
+          echo "$RUNNER_TEMP/cmake-venv/bin" >> "$GITHUB_PATH"
+      - name: Build shared Web Player and all latest demos
+        run: |
+          node Tools/build-scripts/test_web_gallery.mjs
+          node Tools/build-scripts/build_web_gallery.mjs
+          node Tools/build-scripts/check_web_gallery.mjs Docs/static/play build/Dora-Demo
       - name: Build docs
         run: |
           cd Docs
           pnpm install --frozen-lockfile
           pnpm build
+      - name: Verify deployed gallery assets
+        run: node Tools/build-scripts/check_web_gallery.mjs Docs/build/play build/Dora-Demo
       - name: Upload artifact
         if: github.event_name != 'pull_request' && github.repository == 'IppClub/Dora-SSR'
         uses: actions/upload-pages-artifact@v3

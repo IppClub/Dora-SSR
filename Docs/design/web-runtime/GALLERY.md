@@ -19,6 +19,12 @@ pnpm serve --host 127.0.0.1 --port 8896
 
 运行时目录按其内容哈希命名，游戏目录按 manifest 哈希命名。全部打包成功后才替换 `catalog.json`，保留旧资源供已打开页面继续使用。发布时应整体部署文档 build；发布环境应定期保留最近成功版本并清理旧资源。构建不向远程网站发布。
 
+## 文档站 CI
+
+Docs 工作流会先安装与 Web CI 一致的工具链，运行 `build_web_gallery.mjs`，获取 Dora-Demo 默认分支最新源码并生成完整的共享 Player 和全部游戏，然后执行 Docusaurus 构建。干净构建直接使用完整中文字体，不重复链接默认字体版本。PR 只构建检查；main 和手动运行仍按原条件部署 Pages。
+
+部署前 `check_web_gallery.mjs` 检查 `Docs/build/play` 中的实际文件：Player/WASM、功能声明、所有游戏、封面和资源大小/SHA-256，缺失或损坏会阻止上传。引擎、资源、Web 打包脚本和工作流的变更也会触发 Docs 构建。仅 Dora-Demo 仓库更新时，可手动运行 Docs 工作流刷新网站；不固定游戏提交版本。CI 不启动 Chrome，不依赖图形环境。
+
 ## 本地浏览器验证
 
 ```sh
