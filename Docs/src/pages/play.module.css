@@ -1,0 +1,12 @@
+.gallery { padding-top: 2rem; padding-bottom: 3rem; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
+.cards article { border: 1px solid var(--ifm-color-emphasis-300); border-radius: 12px; padding: 1rem; }
+.cards img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 6px; }
+.cards h2 { font-size: 1.3rem; margin-top: 1rem; }
+.toolbar { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.toolbar h2 { margin: 0; margin-right: auto; }
+.toolbar button { cursor: pointer; }
+.stage { width: 85%; margin: 2rem auto; }
+.stage iframe { display: block; width: 100%; height: min(64vh, 646px); min-height: 300px; border: 0; background: #181818; }
+.stage iframe:fullscreen { width: 100vw; height: 100vh; min-height: 0; }
+@media (max-width: 768px) { .stage { width: 100%; } }

@@ -668,7 +668,7 @@ export interface InfoRequest {
 	webIDETourCompleted?: boolean;
 };
 export interface InfoResponse {
-	platform: "Windows" | "macOS" | "iOS" | "Android" | "Linux";
+	platform: "Windows" | "macOS" | "iOS" | "Android" | "Linux" | "Web" | "Unknown";
 	locale: string;
 	version: string;
 	engineDev: boolean;

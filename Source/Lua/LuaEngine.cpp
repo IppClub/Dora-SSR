@@ -1433,12 +1433,35 @@ LuaEngine::LuaEngine()
 	LuaEngine::insertLuaLoader(dora_web_loader, 2);
 	tolua_LuaBindingWeb_open(L);
 	tolua_beginmodule(L, nullptr);
+#ifdef DORA_WEB_YUE
+	luaL_requiref(L, "yue", luaopen_yue, 0);
+	lua_pushcfunction(L, dora_file_exist);
+	lua_setfield(L, -2, "file_exist");
+	lua_pushcfunction(L, dora_read_file);
+	lua_setfield(L, -2, "read_file");
+	lua_setfield(L, -2, "yue");
+	tolua_beginmodule(L, "yue");
+	tolua_function(L, "compile", dora_yue_compile);
+	tolua_function(L, "checkAsync", dora_yue_check_async);
+	tolua_function(L, "clear", dora_yue_clear);
+	tolua_endmodule(L);
+#endif
+	tolua_beginmodule(L, "Director");
+	// The minimal scene entry is a Node, without the native View3D API.
+	tolua_variable(L, "entry", [](lua_State* state) {
+		tolua_pushobject(state, SharedDirector.getEntry());
+		return 1;
+	}, nullptr);
+	tolua_endmodule(L);
 	tolua_function(L, "emit", dora_emit);
 	tolua_beginmodule(L, "Path");
 	tolua_call(L, MT_CALL, Path_create);
 	tolua_endmodule(L);
 	tolua_beginmodule(L, "Content");
 	tolua_variable(L, "searchPaths", Content_GetSearchPaths, Content_SetSearchPaths);
+	tolua_function(L, "loadExcel", Content_loadExcel);
+	tolua_function(L, "loadExcelAsync", Content_loadExcelAsync);
+	tolua_function(L, "searchFilesAsync", Content_searchFilesAsync);
 	tolua_endmodule(L);
 	tolua_beginmodule(L, "Node");
 	tolua_function(L, "gslot", Node_gslot);
@@ -1495,6 +1518,37 @@ LuaEngine::LuaEngine()
 	tolua_beginmodule(L, "Label");
 	tolua_variable(L, "alignment", Label_GetTextAlign, Label_SetTextAlign);
 	tolua_endmodule(L);
+	tolua_beginmodule(L, "TileNode");
+	tolua_variable(L, "filter", TileNode_GetTextureFilter, TileNode_SetTextureFilter);
+	tolua_endmodule(L);
+	tolua_beginmodule(L, "Spine");
+	tolua_function(L, "containsPoint", Spine_containsPoint);
+	tolua_function(L, "intersectsSegment", Spine_intersectsSegment);
+	tolua_endmodule(L);
+	tolua_beginmodule(L, "DragonBone");
+	tolua_function(L, "containsPoint", DragonBone_containsPoint);
+	tolua_function(L, "intersectsSegment", DragonBone_intersectsSegment);
+	tolua_endmodule(L);
+	tolua_beginmodule(L, "DB");
+	tolua_function(L, "transaction", DB_transaction);
+	tolua_function(L, "transactionAsync", DB_transactionAsync);
+	tolua_function(L, "query", DB_query);
+	tolua_function(L, "insert", DB_insert);
+	tolua_function(L, "exec", DB_exec);
+	tolua_function(L, "queryAsync", DB_queryAsync);
+	tolua_function(L, "insertAsync", DB_insertAsync);
+	tolua_function(L, "execAsync", DB_execAsync);
+	tolua_endmodule(L);
+#ifndef DORA_WEB_NO_ML
+	tolua_beginmodule(L, "ML");
+	tolua_beginmodule(L, "QLearner");
+	tolua_function(L, "pack", QLearner_pack);
+	tolua_function(L, "unpack", QLearner_unpack);
+	tolua_function(L, "load", QLearner_load);
+	tolua_variable(L, "matrix", QLearner_getMatrix, nullptr);
+	tolua_endmodule(L);
+	tolua_endmodule(L);
+#endif
 	tolua_beginmodule(L, "DrawNode");
 	tolua_function(L, "drawVertices", DrawNode_drawVertices);
 	tolua_endmodule(L);

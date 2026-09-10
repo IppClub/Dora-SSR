@@ -189,6 +189,7 @@ const config = {
 		// Set the /<baseUrl>/ pathname under which your site is served
 		// For GitHub pages deployment, it is often '/<projectName>/'
 		baseUrl: baseUrl,
+	customFields: {galleryBaseUrl: `${baseUrl}play/`},
 
 	// GitHub pages deployment config.
 	// If you aren't using GitHub pages, you don't need these.
@@ -282,6 +283,7 @@ const config = {
 					label: 'Creative',
 					position: 'left',
 				},
+				{to: '/play', label: 'Play', position: 'left'},
 				{
 					type: 'docsVersionDropdown',
 					position: 'right',

@@ -7,6 +7,7 @@
 	<style>
 		html, body, canvas { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 		canvas { display: block; }
+		canvas:focus { outline: 0.5px solid rgba(176, 176, 176, 0.35); outline-offset: -0.5px; }
 		#status { position: fixed; inset: 0; display: grid; place-items: center; color: #ddd; background: #181818; font: 14px system-ui, sans-serif; }
 		html[data-dora-state="running"] #status, html[data-dora-state="stopped"] #status { display: none; }
 	</style>
@@ -34,18 +35,6 @@
 			onRuntimeInitialized: function() { window.doraSetState("ready"); },
 			onAbort: function(reason) { window.doraSetState("faulted", String(reason || "Runtime aborted")); }
 		};
-		Module.canvas.addEventListener("dblclick", function() {
-			const action = document.fullscreenElement
-				? document.exitFullscreen()
-				: Module.canvas.requestFullscreen();
-			if (action && typeof action.catch === "function") {
-				action.catch(function(error) {
-					window.dispatchEvent(new CustomEvent("dora-fullscreenerror", {
-						detail: { message: String(error || "Fullscreen request failed") }
-					}));
-				});
-			}
-		});
 		window.doraStop = function() {
 			if (document.documentElement.dataset.doraState !== "running") return false;
 			window.doraSetState("stopping");

@@ -4,6 +4,7 @@
   "private": true,
   "packageManager": "pnpm@10.13.0",
   "scripts": {
+	"build:games": "node ../Tools/build-scripts/build_web_gallery.mjs",
     "docusaurus": "docusaurus",
     "start": "pnpm run update-version && docusaurus start",
     "build": "pnpm run update-version && docusaurus build",

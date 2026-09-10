@@ -4,6 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+node "$SCRIPT_DIR/check_web_api_parity.mjs"
 SOURCE_DIR="$ROOT_DIR/Projects/Web"
 BUILD_DIR="${DORA_WEB_BUILD_DIR:-$ROOT_DIR/build/web}"
 PACKAGE_DIR="${DORA_WEB_PACKAGE_DIR:-$ROOT_DIR/result/dora-web-build-probe}"
@@ -48,7 +49,7 @@ CMAKE_ARGS=(
 	-DDORA_WEB_PTHREADS="$BUILD_PTHREADS"
 	-DDORA_WEB_PROFILE="$WEB_PROFILE"
 )
-for feature in PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS; do
+for feature in PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS ML YUE; do
 	value_var="DORA_WEB_FEATURE_${feature}"
 	if [[ -n "${!value_var+x}" ]]; then
 		CMAKE_ARGS+=("-D${value_var}=${!value_var}")

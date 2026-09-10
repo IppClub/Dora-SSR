@@ -1,4 +1,8 @@
 {
+  "item.label.Play": {
+    "message": "在线试玩",
+    "description": "Navbar item with label Play"
+  },
   "title": {
     "message": "Dora SSR",
     "description": "The title in the navbar"

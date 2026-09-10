@@ -9,7 +9,7 @@
     },
     "dora-preset": {
       "available": true,
-      "description": "Default 2D runtime for Loli War, Zombie Escape and Dismantlism"
+      "description": "Default runtime for all Dora-Demo games"
     },
     "custom": {
       "available": true,
@@ -42,7 +42,8 @@
     "dynamicLinking": false,
     "rustBridge": false,
     "wasmRuntime": false,
-    "yueCompiler": false,
+    "yueCompiler": @DORA_WEB_FEATURE_YUE_JSON@,
+    "machineLearning": @DORA_WEB_FEATURE_ML_JSON@,
     "tealCompiler": false,
     "loveNode": false,
     "model3D": false,

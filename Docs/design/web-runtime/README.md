@@ -95,7 +95,7 @@ Workspace 是独立构建产物，不能通过给 Player 无条件加入全部�
 
 模块通过 CMake cache 和统一 feature manifest 管理。`DORA_WEB_PROFILE` 可选 `core`、`dora-preset`、`custom`，默认值为 `dora-preset`；`DORA_WEB_FEATURE_PHYSICS_2D`、`DORA_WEB_FEATURE_ENTITY`、`DORA_WEB_FEATURE_PLATFORMER`、`DORA_WEB_FEATURE_BUILTIN_LIBS` 均接受 `AUTO`、`ON`、`OFF`。`AUTO` 跟随所选 profile，显式值用于进一步裁剪；Platformer 配置必须同时启用 Entity 和 2D Physics。构建产物通过 `dora-web-features.json` v2 记录实际能力，浏览器宿主从 `DoraWebPlatform.features` 查询同一对象。
 
-当前 minimal Player 使用共享 Dora API binding 加编译期 guard：裁剪掉的模块不会注册，避免手工维护一套不断漂移的缩减 API。默认 `dora-preset` 包含 Lua 基础库、常用 2D 渲染与动画、输入、音频、Particle、Spine、DragonBones、NanoVG、ImGui、PlayRho 2D、Entity、Platformer、标准 Lua 库及默认字体；仍排除 Yue/Teal 运行期编译器、Wa/Wasm runtime、LoveNode、ML、3D 物理、3D 节点、视频、Workspace 和 Rust Dora bridge。Dora-Demo 的三个目标游戏使用预生成 Lua，并以 eager manifest 安装资源，均已在本地 Chrome 真实启动并持续运行。
+当前 minimal Player 使用共享 Dora API binding 加编译期 guard：裁剪掉的模块不会注册，避免手工维护一套不断漂移的缩减 API。默认 `dora-preset` 包含 Lua 基础库、常用 2D 渲染与动画、输入、音频、Particle、Spine、DragonBones、NanoVG、ImGui、PlayRho 2D、Entity、Platformer、标准 Lua 库及默认字体，并包含 AI Fighter 动态学习所需的 ML 与 Yue 编译器；仍排除 Teal 运行期编译器、Wa/Wasm runtime、LoveNode、3D 物理、3D 节点、视频、Workspace 和 Rust Dora bridge。全部 Dora-Demo 游戏的共享 Player 打包和文档站验证入口见 [GALLERY.md](./GALLERY.md)。普通项目仍优先执行预生成 Lua。
 
 ## 5. 总体架构
 
@@ -428,7 +428,7 @@ P5-06 把错误路径前移到任何 bgfx 资源创建之前。Web 目标从 sha
 | --- | --- | --- | --- |
 | Lua 执行 | 必选 | 必选 | 必选 |
 | Yue/Teal 已生成 Lua | 支持 | 支持 | 支持 |
-| 浏览器内 Yue/Teal 编译 | 不包含 | 可选 | 必选 |
+| 浏览器内 Yue/Teal 编译 | dora-preset 包含 Yue；不含 Teal | 可选 | 必选 |
 | Dora WASM 脚本 | 按需 | 按需 | 按需 |
 | Wa 浏览器内构建/格式化 | 不包含 | 不包含 | 可选 Worker |
 | Git 能力 | 不包含 | 不包含 | 首版不包含 |

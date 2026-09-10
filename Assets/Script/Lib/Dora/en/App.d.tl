@@ -29,6 +29,7 @@ local record App
 		"macOS"
 		"iOS"
 		"Linux"
+		"Web"
 		"Unknown"
 	end
 

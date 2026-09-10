@@ -617,6 +617,7 @@ export const enum PlatformType {
 	macOS = "macOS",
 	iOS = "iOS",
 	Linux = "Linux",
+	Web = "Web",
 	Unknown = "Unknown"
 }
 

@@ -226,10 +226,18 @@
 		module.doraStorageState = "mounting";
 		const fileSystem = module.FS;
 		if (!fileSystem || !module.IDBFS) throw new Error("IDBFS is unavailable");
-		try { fileSystem.mkdir("/user"); } catch (error) {
-			if (!fileSystem.analyzePath("/user").exists) throw error;
+		const storageId = module.doraStorageId;
+		if (storageId !== undefined && !/^[a-z0-9-]{1,80}$/.test(storageId)) throw new Error("invalid game storage ID");
+		if (storageId) {
+			fileSystem.mkdirTree(`/dora-saves/${storageId}`);
+			fileSystem.mount(module.IDBFS, {}, `/dora-saves/${storageId}`);
+			fileSystem.symlink(`/dora-saves/${storageId}`, "/user");
+		} else {
+			try { fileSystem.mkdir("/user"); } catch (error) {
+				if (!fileSystem.analyzePath("/user").exists) throw error;
+			}
+			fileSystem.mount(module.IDBFS, {}, "/user");
 		}
-		fileSystem.mount(module.IDBFS, {}, "/user");
 		module.doraStorageState = "loading";
 		await new Promise((resolve, reject) => {
 			fileSystem.syncfs(true, (error) => {

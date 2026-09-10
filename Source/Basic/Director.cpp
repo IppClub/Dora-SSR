@@ -112,10 +112,18 @@ Node* Director::getSystemUI() {
 	return _systemUI;
 }
 
-View3D* Director::getEntry() {
 #ifdef DORA_WEB_MINIMAL
-	return nullptr;
+Node* Director::getEntry() {
+	if (!_root) {
+		_root = Node::create(false);
+		_root->setAnchor(Vec2::zero);
+		_root->setSize(SharedView.getSize());
+		_root->onEnter();
+	}
+	return _root;
+}
 #else
+View3D* Director::getEntry() {
 	if (!_entry) {
 		_root = Node::create(false);
 		_root->setAnchor(Vec2::zero);
@@ -125,8 +133,8 @@ View3D* Director::getEntry() {
 		markDirty();
 	}
 	return _entry;
-#endif
 }
+#endif
 
 Node* Director::getPostNode() {
 	if (!_postNode) {
@@ -339,17 +347,7 @@ void Director::handleUnmanagedNodes() {
 		}
 		_unmanagedNodes.clear();
 		for (Node* node : nodes) {
-#ifdef DORA_WEB_MINIMAL
-			if (!_root) {
-				_root = Node::create(false);
-				_root->setAnchor(Vec2::zero);
-				_root->setSize(SharedView.getSize());
-				_root->onEnter();
-			}
-			_root->addChild(node);
-#else
 			getEntry()->addChild(node);
-#endif
 		}
 	}
 #ifndef DORA_WEB_MINIMAL
