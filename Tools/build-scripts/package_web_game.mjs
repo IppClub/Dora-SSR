@@ -33,6 +33,13 @@ function validatePath(relativePath) {
 	return relativePath;
 }
 
+// Static hosts such as Gitee Pages do not serve common license/readme names,
+// even after a content hash is inserted before the extension. These files are
+// package metadata, not runtime assets, so keep them out of the game manifest.
+function isPackageMetadata(relativePath) {
+	return /^(?:license|fontlog|readme|copying|notice)(?:\.|$)/i.test(path.posix.basename(relativePath));
+}
+
 function collectFiles(directory, prefix = "") {
 	const files = [];
 	for (const item of fs.readdirSync(directory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
@@ -41,7 +48,7 @@ function collectFiles(directory, prefix = "") {
 		const sourcePath = path.join(directory, item.name);
 		if (item.isSymbolicLink()) throw new Error(`symbolic links are not supported: ${relativePath}`);
 		if (item.isDirectory()) files.push(...collectFiles(sourcePath, relativePath));
-		else if (item.isFile()) files.push({ path: relativePath, sourcePath });
+		else if (item.isFile() && !isPackageMetadata(relativePath)) files.push({ path: relativePath, sourcePath });
 	}
 	return files;
 }
