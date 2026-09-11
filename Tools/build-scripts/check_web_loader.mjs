@@ -128,7 +128,8 @@ const fileSystem = {
 		for (const [candidate, data] of fileMoves) storedFiles.set(`${target}${candidate.slice(source.length)}`, data);
 	}
 };
-const module = { FS: fileSystem };
+const startupProgress = [];
+const module = { FS: fileSystem, doraReportProgress(loaded, total, detail) { startupProgress.push({loaded, total, detail}); } };
 const requestCounts = new Map();
 const requestOptions = new Map();
 let failRetryOnce = true;
@@ -159,6 +160,8 @@ globalThis.fetch = async (url, options) => {
 try {
 	await mountStartup(module, "https://example.test/dora-web-manifest.json");
 	assert.equal(storedFiles.get("/game/init.lua").toString(), "startup");
+	assert.deepEqual(startupProgress[0], {loaded: 0, total: startupData.length, detail: "Loading game resources…"});
+	assert.deepEqual(startupProgress.at(-1), {loaded: startupData.length, total: startupData.length, detail: "Loading game resources…"});
 	assert.equal(requestOptions.get("https://example.test/dora-web-manifest.json").cache, "no-cache");
 	assert.equal(requestOptions.get("https://example.test/assets/init.lua").cache, "force-cache");
 	assert.equal(storedFiles.has("/game/lazy.txt"), false, "non-startup assets must not be prefetched");

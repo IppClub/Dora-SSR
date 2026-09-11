@@ -1,6 +1,7 @@
 // Resolve only catalogued games before starting the shared runtime.
 (async () => {
 	try {
+		window.doraSetProgress(0, 'Loading game catalog…');
 		const gameId = new URLSearchParams(location.search).get('game');
 		const catalogUrl = new URL('../../catalog.json', document.baseURI);
 		const response = await fetch(catalogUrl, {cache: 'no-cache'});

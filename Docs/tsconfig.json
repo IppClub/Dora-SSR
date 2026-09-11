@@ -1,8 +1,10 @@
 {
   // This file is not used in compilation. It is here just for a nice editor experience.
-  "extends": "@tsconfig/docusaurus/tsconfig.json",
+  "extends": "@docusaurus/tsconfig",
   "compilerOptions": {
-    "baseUrl": "."
+	"baseUrl": ".",
+    // @docusaurus/tsconfig 3.10 still defines baseUrl; keep TypeScript 6 checking the site while upstream migrates it.
+    "ignoreDeprecations": "6.0"
   },
   "exclude": ["node_modules", "build", "static", ".docusaurus"]
 }

@@ -4,7 +4,8 @@
   "private": true,
   "packageManager": "pnpm@10.13.0",
   "scripts": {
-	"build:games": "node ../Tools/build-scripts/build_web_gallery.mjs",
+    "build:games": "node ../Tools/build-scripts/build_web_gallery.mjs",
+		"build:gitee": "pnpm run typecheck && pnpm run build:games && pnpm run update-version && GITEE=1 docusaurus build && node ../Tools/build-scripts/check_web_gallery.mjs build/play ../build/Dora-Demo",
     "docusaurus": "docusaurus",
     "start": "pnpm run update-version && docusaurus start",
     "build": "pnpm run update-version && docusaurus build",
@@ -34,8 +35,12 @@
   "devDependencies": {
     "@docusaurus/faster": "3.10.2",
     "@docusaurus/module-type-aliases": "3.10.2",
-    "@tsconfig/docusaurus": "^2.0.9",
-    "typescript": "^6.0.3"
+    "@docusaurus/tsconfig": "3.10.2",
+    "@docusaurus/types": "3.10.2",
+    "@types/prismjs": "1.26.6",
+    "@types/react": "19.2.17",
+    "typescript": "^6.0.3",
+    "utility-types": "3.11.0"
   },
   "browserslist": {
     "production": [

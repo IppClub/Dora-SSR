@@ -9,22 +9,52 @@
 		canvas { display: block; }
 		canvas:focus { outline: 0.5px solid rgba(176, 176, 176, 0.35); outline-offset: -0.5px; }
 		#status { position: fixed; inset: 0; display: grid; place-items: center; color: #ddd; background: #181818; font: 14px system-ui, sans-serif; }
+		#status-content { width: min(320px, calc(100% - 48px)); text-align: center; }
+		#status-message { min-height: 1.4em; }
+		#progress-track { height: 4px; margin-top: 12px; overflow: hidden; border-radius: 2px; background: rgba(255, 255, 255, 0.14); }
+		#progress-bar { width: 100%; height: 100%; border-radius: inherit; background: #d7b044; transform: scaleX(0); transform-origin: left; transition: transform 120ms ease-out; }
+		html[data-dora-progress="indeterminate"] #progress-bar { width: 38%; animation: dora-progress 1.15s ease-in-out infinite; }
+		html[data-dora-state="faulted"] #progress-track { display: none; }
 		html[data-dora-state="running"] #status, html[data-dora-state="stopped"] #status { display: none; }
+		@keyframes dora-progress { from { transform: translateX(-105%); } to { transform: translateX(365%); } }
+		@media (prefers-reduced-motion: reduce) { #progress-bar { transition: none; } html[data-dora-progress="indeterminate"] #progress-bar { animation-duration: 2.3s; } }
 	</style>
 </head>
 <body>
 	<canvas id="canvas" tabindex="0"></canvas>
-	<div id="status" role="status">Loading Dora SSR…</div>
+	<div id="status" role="status">
+		<div id="status-content">
+			<div id="status-message">Loading Dora SSR…</div>
+			<div id="progress-track"><div id="progress-bar" role="progressbar" aria-label="Loading game resources"></div></div>
+		</div>
+	</div>
 	<script>
 		performance.mark("dora-shell-ready");
+		window.doraSetProgress = function(value, detail) {
+			const root = document.documentElement;
+			const bar = document.getElementById("progress-bar");
+			const message = document.getElementById("status-message");
+			if (detail) message.textContent = detail;
+			if (!Number.isFinite(value)) {
+				root.dataset.doraProgress = "indeterminate";
+				bar.removeAttribute("aria-valuenow");
+				return;
+			}
+			const progress = Math.max(0, Math.min(1, value));
+			root.dataset.doraProgress = "determinate";
+			bar.style.transform = "scaleX(" + progress + ")";
+			bar.setAttribute("aria-valuemin", "0");
+			bar.setAttribute("aria-valuemax", "100");
+			bar.setAttribute("aria-valuenow", String(Math.round(progress * 100)));
+		};
 		window.doraSetState = function(state, detail) {
 			performance.mark("dora-state-" + state);
 			if (document.documentElement.dataset.doraState === "faulted" && state === "stopped") return;
 			document.documentElement.dataset.doraState = state;
-			const status = document.getElementById("status");
-			if (state === "faulted") status.textContent = detail || "Dora SSR failed to start.";
-			else if (state === "stopping") status.textContent = "Stopping Dora SSR…";
-			else if (state === "ready") status.textContent = "Starting Dora SSR…";
+			const message = document.getElementById("status-message");
+			if (state === "faulted") message.textContent = detail || "Dora SSR failed to start.";
+			else if (state === "stopping") message.textContent = "Stopping Dora SSR…";
+			else if (state === "ready") window.doraSetProgress(1, "Starting Dora SSR…");
 			window.dispatchEvent(new CustomEvent("dora-statechange", { detail: { state, message: detail || "" } }));
 			if (state === "running" && new URLSearchParams(location.search).has("dora-test-stop")) {
 				setTimeout(function() { window.doraStop(); }, 0);
@@ -32,9 +62,18 @@
 		};
 		var Module = {
 			canvas: document.getElementById("canvas"),
+			setStatus: function(status) {
+				const match = /\((\d+)\/(\d+)\)/.exec(status || "");
+				if (match && Number(match[2]) > 0) window.doraSetProgress((Number(match[1]) / Number(match[2])) * 0.5, "Loading Dora runtime…");
+				else if (status && status !== "Running...") window.doraSetProgress(NaN, status);
+			},
+			doraReportProgress: function(loaded, total, detail) {
+				window.doraSetProgress(total > 0 ? 0.5 + (loaded / total) * 0.48 : NaN, detail || "Loading game resources…");
+			},
 			onRuntimeInitialized: function() { window.doraSetState("ready"); },
 			onAbort: function(reason) { window.doraSetState("faulted", String(reason || "Runtime aborted")); }
 		};
+		window.doraSetProgress(0, "Loading Dora runtime…");
 		window.doraStop = function() {
 			if (document.documentElement.dataset.doraState !== "running") return false;
 			window.doraSetState("stopping");

@@ -34,7 +34,10 @@ if (!fs.existsSync(path.join(build, 'CMakeCache.txt'))) {
 }
 const features = JSON.parse(fs.readFileSync(path.join(build, 'dora-web-features.json')));
 if (features.activeProfile !== 'dora-preset' || features.modules.crossOriginIsolationRequired || !features.modules.machineLearning || !features.modules.yueCompiler) throw new Error('Gallery requires a single-threaded dora-preset build with ML and Yue');
-const output = path.resolve(process.env.DORA_WEB_GALLERY_DIR || path.join(root, 'Docs/static/play'));
+const destination = path.resolve(process.env.DORA_WEB_GALLERY_DIR || path.join(root, 'Docs/static/play'));
+const output = fs.mkdtempSync(path.join(root, 'build/web-gallery-output-'));
+let galleryPublished = false;
+process.on('exit', () => { if (!galleryPublished) fs.rmSync(output, {recursive: true, force: true}); });
 const artifacts = ['dora-player-runtime.js', 'dora-player-runtime.wasm', 'dora-player-runtime.data', 'dora-web-features.json'];
 const shell = fs.readFileSync(path.join(root, 'Projects/Web/player-shell.html'), 'utf8')
 	.replace('<head>', `<head><script>const base = document.createElement('base'); base.href = location.pathname.endsWith('.html') ? new URL('.', location.href).href : location.origin + location.pathname.replace(/\\/$/, '') + '/'; document.head.appendChild(base);</script>`)
@@ -71,4 +74,8 @@ fs.copyFileSync(path.join(demo, 'LICENSE'), path.join(output, 'LICENSE-Dora-Demo
 const catalog = {version: 1, player: `${player}/`, engineCommit: git(root, 'rev-parse', 'HEAD'), demoCommit: git(demo, 'rev-parse', 'HEAD'), games};
 fs.writeFileSync(path.join(output, 'catalog.json.tmp'), JSON.stringify(catalog, null, 2)+'\n');
 fs.renameSync(path.join(output, 'catalog.json.tmp'), path.join(output, 'catalog.json'));
-console.log(`Gallery ready: ${games.length} games, one player. ${output}`);
+fs.mkdirSync(path.dirname(destination), {recursive: true});
+fs.rmSync(destination, {recursive: true, force: true});
+fs.renameSync(output, destination);
+galleryPublished = true;
+console.log(`Gallery ready: ${games.length} games, one player. ${destination}`);

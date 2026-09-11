@@ -20,7 +20,12 @@ assert.equal(catalog.version, 1);
 assert.match(catalog.player, /^player\/[0-9a-f]{16}\/$/);
 assert.ok(Array.isArray(catalog.games) && catalog.games.length, 'gallery has no games');
 const player = path.join(root, catalog.player);
-assert.ok(file('index.html', player).toString().includes('gallery-player.js'));
+const directories = (relative) => fs.readdirSync(path.join(root, relative), {withFileTypes: true})
+	.filter(item => item.isDirectory()).map(item => item.name).sort();
+assert.deepEqual(directories('player'), [catalog.player.split('/')[1]], 'gallery must contain exactly one player build');
+const playerShell = file('index.html', player).toString();
+assert.ok(playerShell.includes('gallery-player.js'));
+assert.ok(playerShell.includes('id="progress-bar"') && playerShell.includes('doraReportProgress'), 'player shell is missing resource progress UI');
 for (const name of ['gallery-player.js', 'dora-player-runtime.js', 'dora-player-runtime.data']) file(name, player);
 assert.ok(WebAssembly.validate(file('dora-player-runtime.wasm', player)), 'invalid player WASM');
 const features = JSON.parse(file('dora-web-features.json', player));
@@ -34,6 +39,8 @@ for (const game of catalog.games) {
 	assert.ok(!ids.has(game.id), `duplicate game: ${game.id}`);
 	ids.add(game.id);
 	const manifest = JSON.parse(file(game.manifest));
+	const manifestParts = game.manifest.split('/');
+	assert.deepEqual(directories(`games/${game.id}`), [manifestParts[2]], `${game.id}: gallery must contain exactly one packaged revision`);
 	assert.equal(manifest.format, 'dora-web-game');
 	assert.equal(manifest.profile, 'dora-preset');
 	assert.ok(manifest.files.some(item => item.path === 'init.lua' && item.startup), `missing startup script: ${game.id}`);
@@ -46,6 +53,7 @@ for (const game of catalog.games) {
 	}
 	if (game.cover) file(game.cover);
 }
+assert.deepEqual(directories('games'), [...ids].sort(), 'gallery game directories must match the catalog');
 if (process.argv[3]) {
 	const demo = path.resolve(process.argv[3]);
 	const expected = fs.readdirSync(demo, {withFileTypes:true}).filter(item => item.isDirectory() && !item.name.startsWith('.')).map(item => item.name).sort();

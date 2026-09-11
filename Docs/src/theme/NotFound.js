@@ -8,7 +8,7 @@ import styles from './not-found.module.css';
 const pixDora = require('@site/static/img/art/pixel/dora.png');
 const pixToto = require('@site/static/img/art/pixel/toto.png');
 
-export default function NotFound(): JSX.Element {
+export default function NotFound() {
 	return (
 		<Layout title="Page Not Found">
 			<main className={clsx('container', styles.notFound)}>

@@ -78,15 +78,34 @@
 		return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 	}
 
-	async function fetchBytes(file) {
+	async function fetchBytes(file, onProgress) {
 		const response = await scope.fetch(file.url, { credentials: "same-origin", cache: "force-cache" });
 		if (!response.ok) throw new Error(`asset request failed (${response.status}): ${file.path}`);
 		const declaredLength = Number(response.headers.get("content-length"));
 		if (Number.isFinite(declaredLength) && declaredLength > file.size) throw new Error(`asset is larger than declared: ${file.path}`);
-		const data = await response.arrayBuffer();
+		let data;
+		if (onProgress && response.body && typeof response.body.getReader === "function") {
+			const reader = response.body.getReader();
+			const chunks = [];
+			let loaded = 0;
+			while (true) {
+				const result = await reader.read();
+				if (result.done) break;
+				chunks.push(result.value);
+				loaded += result.value.byteLength;
+				if (loaded > file.size) throw new Error(`asset is larger than declared: ${file.path}`);
+				onProgress(loaded, file.size);
+			}
+			data = new Uint8Array(loaded);
+			let offset = 0;
+			for (const chunk of chunks) { data.set(chunk, offset); offset += chunk.byteLength; }
+		} else {
+			data = new Uint8Array(await response.arrayBuffer());
+			if (onProgress) onProgress(data.byteLength, file.size);
+		}
 		if (data.byteLength !== file.size) throw new Error(`asset size mismatch: ${file.path}`);
 		if (await sha256Hex(data) !== file.sha256) throw new Error(`asset SHA-256 mismatch: ${file.path}`);
-		return new Uint8Array(data);
+		return data;
 	}
 
 	async function loadManifest(manifestUrl, options) {
@@ -175,7 +194,15 @@
 		const manifest = await loadManifest(manifestUrl, { allowedOrigins: module.doraAllowedOrigins || [] });
 		scope.performance?.mark?.("dora-manifest-ready");
 		const startupFiles = manifest.files.filter((file) => file.startup);
-		const loaded = await Promise.all(startupFiles.map(async (file) => ({ file, data: await fetchBytes(file) })));
+		const totalBytes = startupFiles.reduce((total, file) => total + file.size, 0);
+		const loadedBytes = new Map(startupFiles.map((file) => [file.path, 0]));
+		const reportProgress = (file, value) => {
+			loadedBytes.set(file.path, value);
+			const totalLoaded = [...loadedBytes.values()].reduce((total, size) => total + size, 0);
+			module.doraReportProgress?.(totalLoaded, totalBytes, "Loading game resources…");
+		};
+		module.doraReportProgress?.(0, totalBytes, "Loading game resources…");
+		const loaded = await Promise.all(startupFiles.map(async (file) => ({ file, data: await fetchBytes(file, (value) => reportProgress(file, value)) })));
 		scope.performance?.mark?.("dora-startup-assets-ready");
 		const fileSystem = module.FS;
 		if (!fileSystem) throw new Error("Emscripten filesystem is unavailable");

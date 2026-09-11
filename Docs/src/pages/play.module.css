@@ -6,7 +6,24 @@
 .toolbar { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
 .toolbar h2 { margin: 0; margin-right: auto; }
 .toolbar button { cursor: pointer; }
-.stage { width: 85%; margin: 2rem auto; }
+.stage { width: 85%; margin: 2rem auto; scroll-margin-top: calc(var(--ifm-navbar-height) + 0.75rem); }
+.stageAction {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 2.25rem;
+	padding: 0.35rem 0.8rem;
+	border: 1px solid var(--ifm-color-emphasis-400);
+	border-radius: 5px;
+	color: var(--ifm-font-color-base);
+	background: var(--ifm-color-emphasis-200);
+	font: inherit;
+	line-height: 1.2;
+	text-decoration: none;
+	cursor: pointer;
+}
+.stageAction:hover { color: var(--ifm-font-color-base); background: var(--ifm-color-emphasis-300); text-decoration: none; }
+.stageAction:focus-visible { outline: 2px solid var(--ifm-color-primary); outline-offset: 2px; }
 .stage iframe { display: block; width: 100%; height: min(64vh, 646px); min-height: 300px; border: 0; background: #181818; }
 .stage iframe:fullscreen { width: 100vw; height: 100vh; min-height: 0; }
 @media (max-width: 768px) { .stage { width: 100%; } }

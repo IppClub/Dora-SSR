@@ -223,7 +223,7 @@ function FeatureCard({title, image, description, featured = false}: FeatureItem 
 	);
 }
 
-function SectionHeading({id, children, mascot}: {id: string; children: React.ReactNode; mascot?: 'dora' | 'toto'}) {
+function SectionHeading({id, children, mascot}: {id: string; children: string; mascot?: 'dora' | 'toto'}) {
 	return (
 		<div className={styles.sectionHeading}>
 			{mascot && (
