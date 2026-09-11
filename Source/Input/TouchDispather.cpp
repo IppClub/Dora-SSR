@@ -593,6 +593,14 @@ void UITouchHandler::handleEvent(const SDL_Event& event) {
 /* TouchDispatcher */
 
 void TouchDispatcher::add(const SDL_Event& event) {
+	// SDL does not guarantee that a window receives the button-up event after
+	// the pointer leaves it. Capture mouse drags at the dispatcher boundary so
+	// every NodeTouchHandler can finish its active touch and emit TapEnded.
+	if (event.type == SDL_MOUSEBUTTONDOWN) {
+		SDL_CaptureMouse(SDL_TRUE);
+	} else if (event.type == SDL_MOUSEBUTTONUP) {
+		SDL_CaptureMouse(SDL_FALSE);
+	}
 	_events.push_back(event);
 }
 

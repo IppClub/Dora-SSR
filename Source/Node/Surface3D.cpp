@@ -22,6 +22,7 @@ SOFTWARE. */
 
 #include "Node/Surface3D.h"
 
+#include "Basic/Director.h"
 #include "Node/ClipNode.h"
 #include "Node/DrawNode.h"
 #include "Node/EffekNode.h"
@@ -34,6 +35,20 @@ SOFTWARE. */
 #include "Test/Test.h"
 
 NS_DORA_BEGIN
+
+static Matrix alignSurfaceWorldWithView3D(const Matrix& world, const Matrix& viewProj) {
+	Matrix inverseViewProj;
+	bx::mtxInverse(inverseViewProj.m, viewProj.m);
+	Matrix flipX = Matrix::Indentity;
+	flipX.m[0] = -1.0f;
+	Matrix flippedViewProj;
+	Matrix::mulMtx(flippedViewProj, flipX, viewProj);
+	Matrix correction;
+	Matrix::mulMtx(correction, inverseViewProj, flippedViewProj);
+	Matrix alignedWorld;
+	Matrix::mulMtx(alignedWorld, correction, world);
+	return alignedWorld;
+}
 
 class Surface3D::TransformProxy : public Node {
 public:
@@ -210,8 +225,15 @@ void Surface3D::renderDirect(Node* target) {
 	// plane. Reverse X once at the shared projection boundary so direct and
 	// render-target backends keep the same readable left-to-right orientation.
 	bx::mtxScale(scale.m, -_size.width / source.width, _size.height / source.height, 1.0f);
+	// View3D flips clip-space X before submitting the Rust 3D scene. Surface3D
+	// is submitted through the regular 2D renderer, which uses Director's
+	// unflipped view-projection, so compensate its world matrix here. Without
+	// this, a surface and its Model3D sibling agree only at the view origin and
+	// drift in opposite screen directions as either the parent or camera moves.
+	const Matrix& viewProj = SharedDirector.getViewProjection();
+	Matrix alignedWorld = alignSurfaceWorldWithView3D(_renderMatrix, viewProj);
 	Matrix world;
-	Matrix::mulMtx(world, _renderMatrix, scale);
+	Matrix::mulMtx(world, alignedWorld, scale);
 	_proxy->setWorld(world);
 	Node* transformTarget = target->getTransformTarget();
 	target->setTransformTarget(_proxy);
@@ -297,6 +319,27 @@ DORA_TEST_ENTRY(Surface3DCpp) {
 
 	surface->render(*camera);
 	if (surface->isUsingTexture()) return false;
+	// A non-origin Surface3D must reach the same clip coordinates as the Rust
+	// View3D path, including its clip-space X flip.
+	surface->setPosition(1.0f, 2.0f, 3.0f);
+	const Matrix& viewProj = SharedDirector.getViewProjection();
+	Matrix flipX = Matrix::Indentity;
+	flipX.m[0] = -1.0f;
+	Matrix flippedViewProj;
+	Matrix::mulMtx(flippedViewProj, flipX, viewProj);
+	Matrix expected;
+	Matrix::mulMtx(expected, flippedViewProj, surface->getWorldMatrix());
+	Matrix actual;
+	Matrix alignedWorld = alignSurfaceWorldWithView3D(surface->getWorldMatrix(), viewProj);
+	Matrix::mulMtx(actual, viewProj, alignedWorld);
+	Vec4 expectedClip;
+	Vec4 actualClip;
+	Matrix::mulVec4(expectedClip, expected, {0.0f, 0.0f, 0.0f, 1.0f});
+	Matrix::mulVec4(actualClip, actual, {0.0f, 0.0f, 0.0f, 1.0f});
+	if (std::abs(expectedClip.w) <= FLT_EPSILON || std::abs(actualClip.w) <= FLT_EPSILON) return false;
+	if (std::abs(expectedClip.x / expectedClip.w - actualClip.x / actualClip.w) > 0.0001f) return false;
+	if (std::abs(expectedClip.y / expectedClip.w - actualClip.y / actualClip.w) > 0.0001f) return false;
+	if (std::abs(expectedClip.z / expectedClip.w - actualClip.z / actualClip.w) > 0.0001f) return false;
 
 	auto stencil = DrawNode::create();
 	stencil->drawDot({32.0f, 32.0f}, 16.0f, Color(0xffffffff));
@@ -315,7 +358,6 @@ DORA_TEST_ENTRY(Surface3DCpp) {
 
 	// Both billboard paths must remain valid with a dynamically selected
 	// render target and a non-origin transform.
-	surface->setPosition(1.0f, 2.0f, 3.0f);
 	surface->setBillboard(Billboard::Screen);
 	surface->render(*camera);
 	surface->setBillboard(Billboard::YAxis);
