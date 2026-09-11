@@ -49,7 +49,7 @@ CMAKE_ARGS=(
 	-DDORA_WEB_PTHREADS="$BUILD_PTHREADS"
 	-DDORA_WEB_PROFILE="$WEB_PROFILE"
 )
-for feature in PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS ML YUE; do
+for feature in PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS ML YUE MODEL_3D; do
 	value_var="DORA_WEB_FEATURE_${feature}"
 	if [[ -n "${!value_var+x}" ]]; then
 		CMAKE_ARGS+=("-D${value_var}=${!value_var}")

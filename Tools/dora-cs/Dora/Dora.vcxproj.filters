@@ -1296,6 +1296,9 @@
     <ClCompile Include="..\..\..\Source\Wasm\WasmRuntime.cpp">
       <Filter>Wasm</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Wasm\RustRuntimeBridge.cpp">
+      <Filter>Wasm</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\Cache\Cache.cpp">
       <Filter>Cache</Filter>
     </ClCompile>

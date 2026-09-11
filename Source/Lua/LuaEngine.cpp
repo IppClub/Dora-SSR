@@ -1447,7 +1447,8 @@ LuaEngine::LuaEngine()
 	tolua_endmodule(L);
 #endif
 	tolua_beginmodule(L, "Director");
-	// The minimal scene entry is a Node, without the native View3D API.
+	// The default minimal scene entry is a Node. The optional Web 3D profile
+	// restores View3D while retaining the minimal Lua loader and host APIs.
 	tolua_variable(L, "entry", [](lua_State* state) {
 		tolua_pushobject(state, SharedDirector.getEntry());
 		return 1;

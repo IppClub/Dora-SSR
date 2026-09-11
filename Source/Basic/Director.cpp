@@ -44,7 +44,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
-#if !defined(DORA_NO_RUST) && !defined(DORA_WEB_MINIMAL)
+#if !defined(DORA_NO_RUST) && (!defined(DORA_WEB_MINIMAL) || defined(DORA_WEB_MODEL_3D))
 extern "C" int32_t dora_rust_init();
 #endif
 
@@ -112,7 +112,7 @@ Node* Director::getSystemUI() {
 	return _systemUI;
 }
 
-#ifdef DORA_WEB_MINIMAL
+#if defined(DORA_WEB_MINIMAL) && !defined(DORA_WEB_MODEL_3D)
 Node* Director::getEntry() {
 	if (!_root) {
 		_root = Node::create(false);
@@ -257,7 +257,7 @@ bool Director::init() {
 	if (!SharedAudio.init()) {
 		Warn("audio function is not available.");
 	}
-#if !defined(DORA_NO_RUST) && !defined(DORA_WEB_MINIMAL)
+#if !defined(DORA_NO_RUST) && (!defined(DORA_WEB_MINIMAL) || defined(DORA_WEB_MODEL_3D))
 	if (!dora_rust_init()) {
 		Error("failed to initialize Rust runtime.");
 		return false;
@@ -324,7 +324,7 @@ void Director::handleTouchEvents() {
 	}
 
 	/* handle scene tree touch */
-#ifdef DORA_WEB_MINIMAL
+#if defined(DORA_WEB_MINIMAL) && !defined(DORA_WEB_MODEL_3D)
 	if (registerTouchHandler(_root)) {
 		SharedTouchDispatcher.dispatch();
 	}
@@ -350,7 +350,7 @@ void Director::handleUnmanagedNodes() {
 			getEntry()->addChild(node);
 		}
 	}
-#ifndef DORA_WEB_MINIMAL
+#if !defined(DORA_WEB_MINIMAL) || defined(DORA_WEB_MODEL_3D)
 	if (!_unmanagedNodes3D.empty()) {
 		RefVector<Node3D> nodes;
 		for (Node3D* node : _unmanagedNodes3D) {
@@ -721,7 +721,7 @@ void Director::cleanup() {
 		}
 	}
 	_unmanagedNodes.clear();
-#ifndef DORA_WEB_MINIMAL
+#if !defined(DORA_WEB_MINIMAL) || defined(DORA_WEB_MODEL_3D)
 	if (!_unmanagedNodes3D.empty()) {
 		for (Node3D* node : _unmanagedNodes3D) {
 			node->cleanup();
@@ -795,7 +795,7 @@ void Director::addUnManagedNode(Node* node) {
 }
 
 void Director::addUnManagedNode(Node3D* node) {
-#ifndef DORA_WEB_MINIMAL
+#if !defined(DORA_WEB_MINIMAL) || defined(DORA_WEB_MODEL_3D)
 	_unmanagedNodes3D.push_back(node);
 #else
 	(void)node;

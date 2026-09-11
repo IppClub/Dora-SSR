@@ -40,14 +40,14 @@
     "threads": @DORA_WEB_THREADS_JSON@,
     "crossOriginIsolationRequired": @DORA_WEB_CROSS_ORIGIN_ISOLATION_JSON@,
     "dynamicLinking": false,
-    "rustBridge": false,
+    "rustBridge": @DORA_WEB_FEATURE_MODEL_3D_JSON@,
     "wasmRuntime": false,
     "yueCompiler": @DORA_WEB_FEATURE_YUE_JSON@,
     "machineLearning": @DORA_WEB_FEATURE_ML_JSON@,
     "tealCompiler": false,
     "loveNode": false,
-    "model3D": false,
-    "jolt3D": false,
+    "model3D": @DORA_WEB_FEATURE_MODEL_3D_JSON@,
+    "jolt3D": @DORA_WEB_FEATURE_MODEL_3D_JSON@,
     "video": false,
     "workspace": false
   }

@@ -111,6 +111,7 @@
 		A10E00000000000000000005 /* LoveNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A10E00000000000000000007 /* LoveNode.cpp */; };
 		3C592A722CA4EEF000CAF224 /* LuaManual.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A6A2CA4EEF000CAF224 /* LuaManual.cpp */; };
 		3C592A752CA4EF1000CAF224 /* WasmRuntime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A742CA4EF1000CAF224 /* WasmRuntime.cpp */; };
+		A11F00000000000000000001 /* RustRuntimeBridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A11F00000000000000000003 /* RustRuntimeBridge.cpp */; };
 		3C592A782CA4EFAB00CAF224 /* ML.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A772CA4EFAB00CAF224 /* ML.cpp */; };
 		3C592A992CA4EFBC00CAF224 /* DrawNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A802CA4EFBC00CAF224 /* DrawNode.cpp */; };
 		3C592A9A2CA4EFBC00CAF224 /* TileNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592A962CA4EFBC00CAF224 /* TileNode.cpp */; };
@@ -861,6 +862,8 @@
 		A10E00000000000000000007 /* LoveNode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LoveNode.cpp; sourceTree = "<group>"; };
 		3C592A732CA4EF1000CAF224 /* WasmRuntime.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WasmRuntime.h; sourceTree = "<group>"; };
 		3C592A742CA4EF1000CAF224 /* WasmRuntime.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = WasmRuntime.cpp; sourceTree = "<group>"; };
+		A11F00000000000000000002 /* RustRuntimeBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RustRuntimeBridge.h; sourceTree = "<group>"; };
+		A11F00000000000000000003 /* RustRuntimeBridge.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RustRuntimeBridge.cpp; sourceTree = "<group>"; };
 		3C592A762CA4EFAB00CAF224 /* ML.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ML.h; sourceTree = "<group>"; };
 		3C592A772CA4EFAB00CAF224 /* ML.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ML.cpp; sourceTree = "<group>"; };
 		3C592A792CA4EFBC00CAF224 /* AlignNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AlignNode.h; sourceTree = "<group>"; };
@@ -4449,6 +4452,8 @@
 			children = (
 				3C592A732CA4EF1000CAF224 /* WasmRuntime.h */,
 				3C592A742CA4EF1000CAF224 /* WasmRuntime.cpp */,
+				A11F00000000000000000002 /* RustRuntimeBridge.h */,
+				A11F00000000000000000003 /* RustRuntimeBridge.cpp */,
 			);
 			path = Wasm;
 			sourceTree = "<group>";
@@ -5178,6 +5183,7 @@
 				3CA77F112AE665C100B7BADA /* World.cpp in Sources */,
 				3CA77F0D2AE665C100B7BADA /* Compositor.cpp in Sources */,
 				3C592A752CA4EF1000CAF224 /* WasmRuntime.cpp in Sources */,
+				A11F00000000000000000001 /* RustRuntimeBridge.cpp in Sources */,
 				3C592A6C2CA4EEF000CAF224 /* LuaFromXml.cpp in Sources */,
 				3C592A6D2CA4EEF000CAF224 /* TealCompiler.cpp in Sources */,
 				3C592A6E2CA4EEF000CAF224 /* LuaHandler.cpp in Sources */,
