@@ -71,6 +71,10 @@
     "message": "物理模拟",
     "description": "The label for category Physics Simulation in sidebar apiSidebar"
   },
+  "sidebar.apiSidebar.category.3D Rendering and Physics": {
+    "message": "3D 渲染和物理",
+    "description": "The label for category 3D Rendering and Physics in sidebar apiSidebar"
+  },
   "sidebar.apiSidebar.category.ECS Framework": {
     "message": "ECS 系统",
     "description": "The label for category ECS Framework in sidebar apiSidebar"

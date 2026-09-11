@@ -10,9 +10,16 @@ local record DirectionalLight3D
 
 	-- 灯光强度。
 	intensity: number
+
+	-- 是否让该方向光投射阴影。
 	castShadow: boolean
+
+	-- 阴影深度比较使用的固定偏移。
 	shadowBias: number
+
+	-- 阴影深度比较使用的斜率相关法线偏移。
 	shadowNormalBias: number
+
 	-- 以阴影贴图 texel 为单位的阴影过滤半径。设为零会关闭过滤。
 	shadowSoftness: number
 end

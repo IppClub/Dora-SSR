@@ -4,6 +4,58 @@
 
 &emsp;&emsp;A per-instance material slot owned by a Model3D instance.
 
+## baseColor
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The base color factor.
+
+**Signature:**
+```tl
+baseColor: Color
+```
+
+## emissive
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The emissive color factor.
+
+**Signature:**
+```tl
+emissive: Color3
+```
+
+## metallic
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The metallic factor.
+
+**Signature:**
+```tl
+metallic: number
+```
+
+## roughness
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The roughness factor.
+
+**Signature:**
+```tl
+roughness: number
+```
+
 ## alphaMode
 
 **Type:** Field.
@@ -15,15 +67,147 @@
 **Signature:**
 ```tl
 alphaMode: integer
-	alphaCutoff: number
-	setBaseColorTexture: function(self: Material3D, texture: Texture2D)
-	clearBaseColorTexture: function(self: Material3D)
-	setMetallicRoughnessTexture: function(self: Material3D, texture: Texture2D)
-	clearMetallicRoughnessTexture: function(self: Material3D)
-	setNormalTexture: function(self: Material3D, texture: Texture2D)
-	clearNormalTexture: function(self: Material3D)
-	setEmissiveTexture: function(self: Material3D, texture: Texture2D)
-	clearEmissiveTexture: function(self: Material3D)
-	setOcclusionTexture: function(self: Material3D, texture: Texture2D)
-	clearOcclusionTexture: function(self: Material3D)
+```
+
+## alphaCutoff
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The alpha cutoff used in mask mode.
+
+**Signature:**
+```tl
+alphaCutoff: number
+```
+
+## setBaseColorTexture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the base color texture.
+
+**Signature:**
+```tl
+setBaseColorTexture: function(self: Material3D, texture: Texture2D)
+```
+
+## clearBaseColorTexture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Clears the base color texture.
+
+**Signature:**
+```tl
+clearBaseColorTexture: function(self: Material3D)
+```
+
+## setMetallicRoughnessTexture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the metallic-roughness texture.
+
+**Signature:**
+```tl
+setMetallicRoughnessTexture: function(self: Material3D, texture: Texture2D)
+```
+
+## clearMetallicRoughnessTexture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Clears the metallic-roughness texture.
+
+**Signature:**
+```tl
+clearMetallicRoughnessTexture: function(self: Material3D)
+```
+
+## setNormalTexture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the normal texture.
+
+**Signature:**
+```tl
+setNormalTexture: function(self: Material3D, texture: Texture2D)
+```
+
+## clearNormalTexture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Clears the normal texture.
+
+**Signature:**
+```tl
+clearNormalTexture: function(self: Material3D)
+```
+
+## setEmissiveTexture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the emissive texture.
+
+**Signature:**
+```tl
+setEmissiveTexture: function(self: Material3D, texture: Texture2D)
+```
+
+## clearEmissiveTexture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Clears the emissive texture.
+
+**Signature:**
+```tl
+clearEmissiveTexture: function(self: Material3D)
+```
+
+## setOcclusionTexture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the occlusion texture.
+
+**Signature:**
+```tl
+setOcclusionTexture: function(self: Material3D, texture: Texture2D)
+```
+
+## clearOcclusionTexture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Clears the occlusion texture.
+
+**Signature:**
+```tl
+clearOcclusionTexture: function(self: Material3D)
 ```

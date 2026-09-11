@@ -4,6 +4,58 @@
 
 &emsp;&emsp;由 Model3D 实例持有的逐实例材质槽。
 
+## baseColor
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;基础颜色系数。
+
+**签名：**
+```tl
+baseColor: Color
+```
+
+## emissive
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;自发光颜色系数。
+
+**签名：**
+```tl
+emissive: Color3
+```
+
+## metallic
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;金属度系数。
+
+**签名：**
+```tl
+metallic: number
+```
+
+## roughness
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;粗糙度系数。
+
+**签名：**
+```tl
+roughness: number
+```
+
 ## alphaMode
 
 **类型：** 成员变量。
@@ -15,15 +67,147 @@
 **签名：**
 ```tl
 alphaMode: integer
-	alphaCutoff: number
-	setBaseColorTexture: function(self: Material3D, texture: Texture2D)
-	clearBaseColorTexture: function(self: Material3D)
-	setMetallicRoughnessTexture: function(self: Material3D, texture: Texture2D)
-	clearMetallicRoughnessTexture: function(self: Material3D)
-	setNormalTexture: function(self: Material3D, texture: Texture2D)
-	clearNormalTexture: function(self: Material3D)
-	setEmissiveTexture: function(self: Material3D, texture: Texture2D)
-	clearEmissiveTexture: function(self: Material3D)
-	setOcclusionTexture: function(self: Material3D, texture: Texture2D)
-	clearOcclusionTexture: function(self: Material3D)
+```
+
+## alphaCutoff
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;遮罩模式使用的透明度阈值。
+
+**签名：**
+```tl
+alphaCutoff: number
+```
+
+## setBaseColorTexture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置基础颜色纹理。
+
+**签名：**
+```tl
+setBaseColorTexture: function(self: Material3D, texture: Texture2D)
+```
+
+## clearBaseColorTexture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;清除基础颜色纹理。
+
+**签名：**
+```tl
+clearBaseColorTexture: function(self: Material3D)
+```
+
+## setMetallicRoughnessTexture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置金属度与粗糙度纹理。
+
+**签名：**
+```tl
+setMetallicRoughnessTexture: function(self: Material3D, texture: Texture2D)
+```
+
+## clearMetallicRoughnessTexture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;清除金属度与粗糙度纹理。
+
+**签名：**
+```tl
+clearMetallicRoughnessTexture: function(self: Material3D)
+```
+
+## setNormalTexture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置法线纹理。
+
+**签名：**
+```tl
+setNormalTexture: function(self: Material3D, texture: Texture2D)
+```
+
+## clearNormalTexture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;清除法线纹理。
+
+**签名：**
+```tl
+clearNormalTexture: function(self: Material3D)
+```
+
+## setEmissiveTexture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置自发光纹理。
+
+**签名：**
+```tl
+setEmissiveTexture: function(self: Material3D, texture: Texture2D)
+```
+
+## clearEmissiveTexture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;清除自发光纹理。
+
+**签名：**
+```tl
+clearEmissiveTexture: function(self: Material3D)
+```
+
+## setOcclusionTexture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置环境光遮蔽纹理。
+
+**签名：**
+```tl
+setOcclusionTexture: function(self: Material3D, texture: Texture2D)
+```
+
+## clearOcclusionTexture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;清除环境光遮蔽纹理。
+
+**签名：**
+```tl
+clearOcclusionTexture: function(self: Material3D)
 ```
