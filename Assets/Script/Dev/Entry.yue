@@ -735,6 +735,11 @@ export allClear = ->
 	Platformer.UnitAction\clear!
 	Audio\stopAll 0.2
 	Struct\clear!
+	-- A 3D entry can change the shared projection and clip the next 2D scene.
+	-- Restore the defaults from View before rebuilding the entry/UI cameras.
+	View.nearPlaneDistance = 0.1
+	View.farPlaneDistance = 10000
+	View.fieldOfView = 45
 	View.postEffect = nil
 	View.scale = scaleContent and screenScale or 1
 	Director.clearColor = Color 0xff1a1a1a
