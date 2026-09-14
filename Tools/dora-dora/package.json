@@ -90,6 +90,7 @@
 		"test:audio-preview": "node scripts/test-audio-preview.mjs",
 		"test:es6-subset": "node scripts/test-es6-subset.mjs",
 		"test:heavy-assets": "node scripts/test-heavy-assets.mjs",
+		"test:lodash-amd": "node scripts/test-lodash-amd.mjs",
 		"test:xrt-network-wrapper": "node scripts/test-xrt-network-wrapper.mjs",
 		"preview": "vite preview",
 		"lint": "oxlint src",
