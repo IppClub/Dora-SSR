@@ -2,6 +2,7 @@ import fs from "node:fs";
 import crypto from "node:crypto";
 import path from "node:path";
 import zlib from "node:zlib";
+import {checkBuiltinLibraries} from "./check_web_builtin_libraries.mjs";
 
 const outputDir = path.resolve(process.argv[2] || "result/dora-web-player");
 const artifacts = [
@@ -30,6 +31,7 @@ if (!html.includes("data-dora-state") || !html.includes("doraStop")) {
 }
 
 const glue = fs.readFileSync(path.join(outputDir, "dora-player-runtime.js"), "utf8");
+checkBuiltinLibraries(glue, fs.readFileSync(path.join(outputDir, "dora-player-runtime.data")));
 if (!glue.includes("dora_web_stop")) throw new Error("Web Player stop export is missing");
 if (!glue.includes("dora_web_set_suspended")) throw new Error("Web Player suspend export is missing");
 if (!glue.includes("dora_web_release_input")) throw new Error("Web Player input release export is missing");
