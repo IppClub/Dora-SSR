@@ -109,6 +109,7 @@ if [[ "$BUILD_LOVE_PLAYER" == "1" ]]; then
 		install -m 0644 "$BUILD_DIR/$artifact" "$LOVE_PLAYER_PACKAGE_DIR/$artifact"
 	done
 	install -m 0644 "$BUILD_DIR/love-pthread-player.html" "$LOVE_PLAYER_PACKAGE_DIR/index.html"
+	install -m 0644 "$BUILD_DIR/audio-worklet.js" "$BUILD_DIR/dora-audio-mixer.wasm" "$LOVE_PLAYER_PACKAGE_DIR/"
 	if [[ -s "$BUILD_DIR/love-pthread-player.worker.js" ]]; then
 		install -m 0644 "$BUILD_DIR/love-pthread-player.worker.js" "$LOVE_PLAYER_PACKAGE_DIR/love-pthread-player.worker.js"
 	fi

@@ -66,6 +66,15 @@ protected:
 	AudioSource(AudioFile* audioFile, bool autoRemove = true, AudioBus* bus = nullptr);
 
 private:
+#ifdef DORA_EMSCRIPTEN
+	bool playWorklet(int mode, double delayTime);
+	bool useWorklet();
+	bool syncWorklet();
+	void workletConfig(float* values) const;
+	bool _webBackground = false;
+	bool _webFallbackReported = false;
+	float _webDelay = 0;
+#endif
 	AudioFile* getAudioFile() const;
 	std::string _filename;
 	Ref<AudioFile> _audioFile;

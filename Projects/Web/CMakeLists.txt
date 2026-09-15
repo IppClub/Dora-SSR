@@ -651,6 +651,7 @@ if(DORA_WEB_LINK_PLAYER)
 			OUTPUT_NAME "dora-love-audio-probe"
 			LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/love-audio-probe-runner.js;${CMAKE_CURRENT_SOURCE_DIR}/love-audio-fixture/conf.lua;${CMAKE_CURRENT_SOURCE_DIR}/love-audio-fixture/main.lua;${CMAKE_CURRENT_SOURCE_DIR}/player-shell.html;${DORA_ROOT}/Assets/Script/Lib/lualib_bundle.lua;${DORA_WEB_AUDIO_FIXTURE_SCRIPT}"
 			RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+		dora_enable_worklet(dora-web-love-audio-probe)
 
 		if(DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER)
 			add_executable(dora-web-love-pthread-player
@@ -696,6 +697,7 @@ if(DORA_WEB_LINK_PLAYER)
 				OUTPUT_NAME "love-pthread-player"
 				LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/web-platform.js;${CMAKE_CURRENT_SOURCE_DIR}/web-package.js;${CMAKE_CURRENT_SOURCE_DIR}/web-loader.js;${CMAKE_CURRENT_SOURCE_DIR}/love-pthread-player.js;${CMAKE_CURRENT_SOURCE_DIR}/love-pthread-player-shell.html"
 				RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+			dora_enable_worklet(dora-web-love-pthread-player)
 		endif()
 
 		if(DORA_WEB_LOVE_COMPLEX_PACKAGE)
@@ -761,6 +763,7 @@ if(DORA_WEB_LINK_PLAYER)
 				OUTPUT_NAME "dora-love-complex-probe"
 				LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/web-platform.js;${CMAKE_CURRENT_SOURCE_DIR}/web-loader.js;${CMAKE_CURRENT_SOURCE_DIR}/love-complex-probe-runner.js;${CMAKE_CURRENT_SOURCE_DIR}/player-shell.html;${DORA_ROOT}/Tools/build-scripts/check_web_love_complex_input.mjs;${DORA_ROOT}/Tools/build-scripts/stage_web_love_complex_input.mjs;${CMAKE_CURRENT_SOURCE_DIR}/love-complex-project.json"
 				RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+			dora_enable_worklet(dora-web-love-complex-probe)
 		endif()
 	endif()
 	set(DORA_WEB_DEMO_STAGE "${CMAKE_BINARY_DIR}/web-game-stage")

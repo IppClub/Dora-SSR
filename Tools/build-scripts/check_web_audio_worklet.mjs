@@ -9,10 +9,16 @@ import {spawn} from 'node:child_process';
 const root = path.resolve(process.argv[2] || 'build/web');
 const galleryMode = process.argv.includes('--gallery');
 const fallbackMode = process.argv.includes('--fallback');
+const spatialMode = process.argv.includes('--spatial');
+const loveMode = process.argv.includes('--love-probe');
+const complexMode = process.argv.includes('--love-complex');
+const isolatedMode = process.argv.includes('--isolated');
+const gameId = process.argv.find(x => x.startsWith('--game='))?.slice(7) || 'dodge-the-creeps';
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'dora-audio-browser-'));
 const chromePath = process.env.DORA_WEB_CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const harness = `<!doctype html><button>Audio test</button><script>
 window.Module = {preRun: [], doraAudioWorklet: ${!fallbackMode}};
+window.audioEnds=[]; Module.ccall=(name,type,args,values)=>{if(name==='dora_worklet_ended')audioEnds.push(values[0]);};
 let bootResolve; const boot = new Promise(r => bootResolve = r);
 window.addRunDependency = () => {};
 window.removeRunDependency = () => bootResolve();
@@ -52,7 +58,9 @@ window.testAudio = async () => {
  view.setUint32(24,rate,true);view.setUint32(28,rate*2,true);view.setUint16(32,2,true);view.setUint16(34,16,true);
  str(36,'data');view.setUint32(40,frames*2,true);
  for(let i=0;i<frames;i++)view.setInt16(44+i*2,Math.round(4000*Math.sin(2*Math.PI*440*i/rate)),true);
- const id=Module.doraAudio.play('sine.wav',bytes,true,0);
+ Module.doraAudio.listener([0,0,0,0,0,1,0,1,0,0,0,0,343,1,2]);
+ const config=${spatialMode} ? [2,-1,1,0,1,1,0,0,0,0,1,0,0,0,0,0,0,6.283185,6.283185,0,1,0,1,1000,1,1,1,0,0,0,1] : null;
+ const id=Module.doraAudio.play('sine.wav',bytes,true,0,false,config);
  await delay(300); await query('reset');
  const start=performance.now(); while(performance.now()-start<600) {};
  await delay(150); const blocked=await query('report');
@@ -64,10 +72,14 @@ window.testAudio = async () => {
  const stopped=await query('report');
  const state=Module.doraAudio.state;
  Module.doraAudio.dispose(); await delay(50);
- return {crossOriginIsolated,blocked,paused,resumed,stopped,state,closed:context.state};
+ return {crossOriginIsolated,blocked,paused,resumed,stopped,state,closed:context.state,audioEnds};
 };</script>`;
 const server = http.createServer((req, res) => {
-	if (galleryMode) {
+	if(isolatedMode) {
+		res.setHeader('Cross-Origin-Opener-Policy','same-origin');
+		res.setHeader('Cross-Origin-Embedder-Policy','require-corp');
+	}
+	if (galleryMode || loveMode || complexMode) {
 		let relative = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
 		if (relative.endsWith('/')) relative += 'index.html';
 		const target = path.resolve(root, `.${relative}`);
@@ -77,6 +89,8 @@ const server = http.createServer((req, res) => {
 		res.writeHead(200, {'Content-Type':types[path.extname(target)] || 'application/octet-stream'});
 		if (fallbackMode && path.basename(target) === 'gallery-player.js')
 			return res.end('Module.doraAudioWorklet=false;\n' + fs.readFileSync(target, 'utf8'));
+		if (fallbackMode && /^dora-love-(audio|complex)-probe\.js$/.test(path.basename(target)))
+			return res.end('var Module={doraAudioWorklet:false};\n' + fs.readFileSync(target,'utf8'));
 		return fs.createReadStream(target).pipe(res);
 	}
 	const files = {'/web-audio.js': 'Projects/Web/web-audio.js', '/audio-worklet.js': 'Projects/Web/audio-worklet.js',
@@ -109,16 +123,84 @@ try {
 		const id = ++sequence; pending.set(id, resolve); socket.send(JSON.stringify({id, method, params}));
 	});
 	const origin = `http://127.0.0.1:${server.address().port}/`;
-	if (galleryMode) {
+	if (loveMode || complexMode) {
+		const errors = [];
+		socket.addEventListener('message', ({data}) => {
+			const event=JSON.parse(data);
+			if(event.method==='Runtime.exceptionThrown' || (event.method==='Runtime.consoleAPICalled' && event.params.type==='error')) errors.push(event.params);
+		});
+		await call('Runtime.enable');
+		await call('Page.enable');
+		const injection=await call('Page.addScriptToEvaluateOnNewDocument', {source:`(()=>{const OriginalWorklet=globalThis.AudioWorkletNode;
+			globalThis.AudioWorkletNode=class extends OriginalWorklet { constructor(...args){ super(...args); if(args[1]==='dora-audio')globalThis.testMixer=this; } };})();`});
+		assert.ok(!injection.error,JSON.stringify(injection));
+		const evaluate = async expression => {
+			const result=await call('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true,timeout:15000});
+			assert.ok(!result.result?.exceptionDetails,JSON.stringify(result));
+			return result.result?.result?.value;
+		};
+		await call('Page.navigate',{url:origin+`dora-love-${complexMode?'complex':'audio'}-probe.html`});
+		const snapshot=complexMode?'doraLoveComplexSnapshot':'doraLoveAudioSnapshot';
+		let before;
+		for(let i=0;i<120;i++) {
+			await sleep(500);
+			before=await evaluate(`typeof ${snapshot}==='function' && Module.calledRun ? {runtime:${snapshot}(),audio:Module.doraAudio.state} : null`);
+			if(before?.runtime.error) throw new Error(JSON.stringify(before));
+			assert.deepEqual(errors,[],JSON.stringify(before));
+			if((fallbackMode ? before?.runtime.playing>0 : before?.audio.voices>0) && (complexMode || before?.runtime.readyCount>=2))break;
+		}
+		assert.ok(fallbackMode ? before?.runtime.playing>0 : before?.audio.voices>0,JSON.stringify({before,errors}));
+		assert.equal(before.audio.backend,fallbackMode?'sdl-fallback':'audioworklet-soloud');
+		const blocked=fallbackMode?null:await evaluate(`(async()=>{
+			const context=Module.doraAudio.context; await context.resume();
+			const url=URL.createObjectURL(new Blob([
+				"class Capture extends AudioWorkletProcessor { constructor(){super();this.frames=0;this.nonzero=0;this.zero=0;this.port.onmessage=()=>this.port.postMessage({frames:this.frames,nonzero:this.nonzero,zero:this.zero});} process(inputs){const a=inputs[0]?.[0];if(a){let energy=0;for(const x of a){energy+=x*x;if(Math.abs(x)>0.00001)this.nonzero++;}if(energy<1e-12)this.zero++;this.frames+=a.length;}return true;} } registerProcessor('capture-love',Capture);"
+			],{type:'text/javascript'})); await context.audioWorklet.addModule(url);URL.revokeObjectURL(url);
+			const observer=new AudioWorkletNode(context,'capture-love');testMixer.connect(observer);observer.connect(context.destination);
+			await new Promise(r=>setTimeout(r,200));
+			const read=()=>new Promise(r=>{observer.port.onmessage=e=>r(e.data);observer.port.postMessage('read');});
+			const a=await read();const t=performance.now();while(performance.now()-t<600){};
+			const b=await read();testMixer.disconnect(observer);observer.disconnect();
+			return {frames:b.frames-a.frames,nonzero:b.nonzero-a.nonzero,zero:b.zero-a.zero,
+				legacySignal:Array.from(Module.SDL2?.audio?.currentOutputBuffer?.getChannelData(0)||[]).some(v=>Math.abs(v)>0.001)};
+		})()`);
+		if(blocked) {
+			assert.ok(blocked.frames>before.audio.sampleRate*0.45,JSON.stringify(blocked));
+			assert.ok(blocked.nonzero>1000,JSON.stringify(blocked));
+			assert.equal(blocked.zero,0,'Love mix must continue while main thread is blocked');
+			assert.equal(blocked.legacySignal,false,'ordinary Love sources must not produce SDL samples');
+		}
+		if(loveMode) {
+			for(let i=0;i<3;i++) {
+				assert.equal(await evaluate('doraRestartFirstLoveAudioProbe()'),true);
+				await sleep(700);
+			}
+			assert.equal(await evaluate('doraReleaseFirstLoveAudioProbe()'),true);
+			await sleep(1100);
+			const peer=await evaluate('({runtime:doraLoveAudioSnapshot(),audio:Module.doraAudio.state})');
+			assert.equal(peer.runtime.instances,1);
+			if(!fallbackMode){assert.ok(peer.audio.voices>0);assert.equal(peer.audio.buses,5);}
+		}
+		assert.equal(await evaluate(complexMode?'doraReleaseLoveComplexProbe()':'doraReleaseLoveAudioProbe()'),true);
+		await sleep(1200);
+		const after=await evaluate(`({runtime:${snapshot}(),audio:Module.doraAudio.state})`);
+		if(!fallbackMode){assert.equal(after.audio.voices,0);assert.equal(after.audio.buses,0);}
+		else {assert.equal(after.runtime.sources,0);assert.equal(after.runtime.voices,0);}
+		assert.deepEqual(errors,[]);
+		await evaluate('Module.doraAudio.dispose()');
+		console.log(JSON.stringify({before,blocked,after},null,2));
+	} else if (galleryMode) {
 		const catalog = JSON.parse(fs.readFileSync(path.join(root, 'catalog.json')));
 		const browserErrors = [];
+		const logs = [];
 		socket.addEventListener('message', ({data}) => {
 			const event = JSON.parse(data);
 			if (event.method === 'Runtime.exceptionThrown') browserErrors.push(event.params);
 			if (event.method === 'Runtime.consoleAPICalled' && event.params.type === 'error') browserErrors.push(event.params);
+			if (event.method === 'Runtime.consoleAPICalled') logs.push(event.params.args.map(x=>x.value||'').join(' '));
 		});
 		await call('Runtime.enable');
-		await call('Page.navigate', {url:origin + catalog.player + '?game=dodge-the-creeps'});
+		await call('Page.navigate', {url:origin + catalog.player + '?game=' + gameId});
 		let state;
 		let started = false;
 		for (let i = 0; i < 60; ++i) {
@@ -137,6 +219,12 @@ try {
 		assert.equal(state?.engine, 'running', JSON.stringify({state,browserErrors}));
 		assert.equal(state.audio.backend, fallbackMode ? 'sdl-fallback' : 'audioworklet-soloud');
 		assert.ok(fallbackMode ? state.legacySignal : state.audio.voices > 0, JSON.stringify({state,browserErrors}));
+		if (gameId === 'audio-source-test') {
+			const marker = 'AUDIO_SOURCE_TEST_PASS';
+			for(let i=0;i<60 && !logs.some(x=>x.includes(marker));i++) await sleep(250);
+			assert.ok(logs.some(x=>x.includes(marker)), JSON.stringify({logs,browserErrors}));
+			if (!fallbackMode) assert.ok(!state.legacySignal, 'migrated fixture must not mix through SDL');
+		}
 		if (!fallbackMode) {
 			const paused = await call('Runtime.evaluate', {expression:'(async()=>{await DoraWebPlatform.unlockAudio();await DoraWebPlatform.setSuspended(true);Module.doraAudio.resume();return Module.doraAudio.state.context;})()', awaitPromise:true, returnByValue:true});
 			assert.equal(paused.result.result.value, 'suspended');
@@ -171,6 +259,7 @@ try {
 	assert.ok(report.resumed.nonzero > 1000);
 	assert.equal(report.stopped.nonzero, 0);
 	assert.equal(report.closed, 'closed');
+	assert.deepEqual(report.audioEnds, spatialMode ? [4096] : []);
 	}
 	console.log(JSON.stringify(report, null, 2));
 	}

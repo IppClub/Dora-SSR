@@ -6,6 +6,7 @@ class DoraAudioProcessor extends AudioWorkletProcessor {
 		this.frames = 0;
 		this.clipped = 0;
 		this.position = 128;
+		this.revision = 0;
 		const unsupported = () => { throw new Error('Unexpected audio WASI operation'); };
 		const wasi = {
 			proc_exit: unsupported,
@@ -24,14 +25,28 @@ class DoraAudioProcessor extends AudioWorkletProcessor {
 		this.api = instance.exports;
 		this.api._initialize();
 		if (this.api.audio_init(sampleRate)) throw new Error('SoLoud audio initialization failed');
+		this.configBuffer = this.api.malloc(31 * 4);
+		if (!this.configBuffer) throw new Error('Audio configuration allocation failed');
 		this.port.onmessage = ({data}) => {
-			try { this.command(data); }
-			catch (error) { this.port.postMessage({type: 'error', message: String(error), id: data.id}); }
+			this.revision = data.revision || 0;
+			try { this.command(data); this.reportVoices(); }
+			catch (error) { this.port.postMessage({type: 'error', message: String(error), id: data.id, command: data.type}); }
 		};
 		this.port.postMessage({type: 'ready', sampleRate});
 	}
+	reportVoices() {
+		const ptr = this.api.audio_status();
+		const count = new Float64Array(this.api.memory.buffer, ptr, 1)[0];
+		this.port.postMessage({type: 'voices', revision: this.revision,
+			values: new Float64Array(this.api.memory.buffer, ptr + 8, count * 3).slice()});
+	}
 	command(data) {
 		const api = this.api;
+		if (data.config || data.type === 'config' || data.type === 'listener') {
+			const expected = data.type === 'listener' ? 15 : 31;
+			if (!data.config || data.config.length !== expected || !data.config.every(Number.isFinite)) throw new Error('Invalid audio configuration');
+			new Float32Array(api.memory.buffer, this.configBuffer, data.config.length).set(data.config);
+		}
 		switch (data.type) {
 			case 'play': {
 				const bytes = new Uint8Array(data.bytes);
@@ -40,11 +55,20 @@ class DoraAudioProcessor extends AudioWorkletProcessor {
 				let result;
 				try {
 					new Uint8Array(api.memory.buffer, ptr, bytes.length).set(bytes);
-					result = api.audio_play(data.id, data.asset, ptr, bytes.length, data.loop, data.fade, data.background ? 1 : 0);
+					result = api.audio_play(data.id, data.asset, ptr, bytes.length, data.loop, data.fade, data.background ? 1 : 0, data.config ? this.configBuffer : 0, data.bus || 0, data.isStatic ? 1 : 0);
 				} finally { api.free(ptr); }
 				if (result) throw new Error(`Audio load/play failed (${result})`);
+				this.port.postMessage({type: 'accepted', id: data.id});
 				break;
 			}
+			case 'config': api.audio_config(data.id, this.configBuffer); break;
+			case 'bus':
+				if (api.audio_bus(data.id, data.op, data.a, data.b, data.c, data.d)) throw new Error('Audio bus command failed');
+				break;
+			case 'listener': api.audio_listener(this.configBuffer); break;
+			case 'control':
+				if (api.audio_control(data.id, data.op, data.value)) throw new Error('Audio control failed');
+				break;
 			case 'stop': api.audio_stop(data.id, data.fade); break;
 			case 'stopAll': api.audio_stop_all(data.fade); break;
 			case 'volume': api.audio_volume(data.value); break;
@@ -73,9 +97,12 @@ class DoraAudioProcessor extends AudioWorkletProcessor {
 		}
 		const before = this.frames;
 		this.frames += output[0].length;
+		if (Math.floor(before / 1024) !== Math.floor(this.frames / 1024)) {
+			this.reportVoices();
+		}
 		if (Math.floor(before / sampleRate) !== Math.floor(this.frames / sampleRate)) {
 			this.port.postMessage({type: 'stats', frames: this.frames, clipped: this.clipped,
-				voices: this.api.audio_voice_count(), assetBytes: this.api.audio_asset_bytes()});
+				voices: this.api.audio_voice_count(), buses: this.api.audio_bus_count(), assetBytes: this.api.audio_asset_bytes()});
 		}
 		return true;
 	}
