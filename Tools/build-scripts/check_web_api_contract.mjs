@@ -10,6 +10,7 @@ const output = path.join(root, 'build/web-api-contract');
 const run = (script, args = [], env = {}) => execFileSync(process.execPath, [path.join(root, 'Tools/build-scripts', script), ...args], {cwd:root, stdio:'inherit', env:{...process.env, ...env}});
 fs.mkdirSync(source, {recursive:true});
 fs.copyFileSync(path.join(root, 'Projects/Web/api-contract/init.lua'), path.join(source, 'init.lua'));
+fs.copyFileSync(path.join(root, 'Projects/Web/api-contract/builtin-libraries.lua'), path.join(source, 'builtin-libraries.lua'));
 run('check_web_api_parity.mjs', ['--emit', path.join(source, 'expected.lua')]);
 run('package_web_game.mjs', [source, output], {DORA_WEB_GAME_PROFILE:'dora-preset', DORA_WEB_EAGER_GAME_ASSETS:'1'});
 for (const name of ['dora-player-runtime.js', 'dora-player-runtime.wasm', 'dora-player-runtime.data', 'dora-web-features.json', 'dora-audio-mixer.wasm', 'audio-worklet.js']) fs.copyFileSync(path.join(build, name), path.join(output, name));

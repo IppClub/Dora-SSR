@@ -32,13 +32,17 @@ set(DORA_WEB_BUILTIN_LIBS "${DORA_ROOT}/Assets/Script/Lib")
 set(DORA_WEB_BUILTIN_FONT "${CMAKE_CURRENT_SOURCE_DIR}/preset-assets/Font/sarasa-mono-sc-regular.ttf" CACHE FILEPATH "Builtin player font (gallery uses full Chinese coverage)")
 set(DORA_WEB_PRESET_LUA_MODULES
 	BodyEx.lua
+	Config.lua
 	DoraX.lua
 	InputManager.lua
 	Utils.lua
 	lualib_bundle.lua
+	utf-8.lua
 	UI/Control/Basic/CircleButton.lua
+	UI/Control/Basic/ScrollArea.lua
 	UI/View/Control/Basic/ButtonBase.lua
 	UI/View/Control/Basic/CircleButton.lua
+	UI/View/Control/Basic/ScrollArea.lua
 	UI/View/Shape/Circle.lua
 	UI/View/Shape/LineCircle.lua
 	UI/View/Shape/LineRect.lua

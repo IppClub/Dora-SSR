@@ -1,0 +1,18 @@
+local D = require("Dora")
+local text = require("utf-8")
+assert(text.len("你好，Dora") == 7)
+assert(text.sub("你好，Dora", 1, 2) == "你好")
+
+local Config = require("Config")
+local config = Config("", "score")
+assert(config)
+config:load()
+assert(D.DB:exist("Config"))
+
+local ScrollArea = require("UI.Control.Basic.ScrollArea")
+local area = ScrollArea({width = 240, height = 160, viewWidth = 240, viewHeight = 480})
+assert(area.view)
+area:addTo(D.Director.entry)
+area:scrollTo(D.Vec2(0, 40))
+area:removeFromParent()
+print("DORA_WEB_BUILTIN_LIBRARIES_PASSED")

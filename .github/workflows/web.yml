@@ -5,6 +5,7 @@ on:
     branches: [ main ]
     tags: 'v*.*.*'
     paths:
+      - 'Assets/Script/Lib/**'
       - 'Projects/CMake/**'
       - 'Projects/Web/**'
       - 'Source/**'
@@ -12,6 +13,7 @@ on:
       - 'Tools/build-scripts/check_web_build_env.sh'
       - 'Tools/build-scripts/check_web_output.mjs'
       - 'Tools/build-scripts/check_web_player_output.mjs'
+      - 'Tools/build-scripts/check_web_builtin_libraries*'
       - 'Tools/build-scripts/check_web_forbidden_deps.mjs'
       - 'Tools/build-scripts/check_web_loader.mjs'
       - 'Tools/build-scripts/check_web_love_capabilities.mjs'
@@ -29,6 +31,7 @@ on:
   pull_request:
     branches: [ main ]
     paths:
+      - 'Assets/Script/Lib/**'
       - 'Projects/CMake/**'
       - 'Projects/Web/**'
       - 'Source/**'
@@ -36,6 +39,7 @@ on:
       - 'Tools/build-scripts/check_web_build_env.sh'
       - 'Tools/build-scripts/check_web_output.mjs'
       - 'Tools/build-scripts/check_web_player_output.mjs'
+      - 'Tools/build-scripts/check_web_builtin_libraries*'
       - 'Tools/build-scripts/check_web_forbidden_deps.mjs'
       - 'Tools/build-scripts/check_web_loader.mjs'
       - 'Tools/build-scripts/check_web_love_capabilities.mjs'
@@ -92,6 +96,7 @@ jobs:
         run: node Tools/build-scripts/check_web_output.mjs result/dora-web-build-probe
       - name: Verify Web Player package
         run: |
+          node --test Tools/build-scripts/check_web_builtin_libraries.test.mjs
           node Tools/build-scripts/check_web_loader.mjs
           node Tools/build-scripts/check_web_love_capabilities.mjs
           node Tools/build-scripts/check_web_package.mjs

@@ -1,4 +1,5 @@
 local D = require("Dora")
+require("builtin-libraries")
 for _, name in ipairs({"wait", "once", "loop", "cycle", "thread", "threadLoop", "sleep"}) do
 	assert(type(D[name]) == "function", name)
 end
