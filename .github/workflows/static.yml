@@ -80,6 +80,7 @@ jobs:
         run: |
           node Tools/build-scripts/test_web_gallery.mjs
           node Tools/build-scripts/build_web_gallery.mjs
+          node Tools/build-scripts/test_web_audio_worklet.mjs build/web
           node Tools/build-scripts/check_web_gallery.mjs Docs/static/play build/Dora-Demo
       - name: Build docs
         run: |

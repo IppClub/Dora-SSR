@@ -118,7 +118,7 @@ fi
 if [[ "$LINK_PLAYER" == "1" ]]; then
 	cmake -E remove_directory "$PLAYER_PACKAGE_DIR"
 	mkdir -p "$PLAYER_PACKAGE_DIR"
-	for artifact in dora-player-runtime.html dora-player-runtime.js dora-player-runtime.wasm dora-player-runtime.data dora-web-manifest.json dora-web-features.json; do
+	for artifact in dora-player-runtime.html dora-player-runtime.js dora-player-runtime.wasm dora-player-runtime.data dora-web-manifest.json dora-web-features.json dora-audio-mixer.wasm audio-worklet.js; do
 		if [[ ! -s "$BUILD_DIR/$artifact" ]]; then
 			echo "[ERROR] Missing Web Player artifact: $BUILD_DIR/$artifact" >&2
 			exit 1

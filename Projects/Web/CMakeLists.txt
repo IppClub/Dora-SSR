@@ -408,6 +408,7 @@ if(DORA_WEB_LINK_PLAYER)
 	add_executable(dora-web-player
 		$<TARGET_OBJECTS:dora-web-engine>
 		$<TARGET_OBJECTS:dora-web-link-deps>)
+	include("${CMAKE_CURRENT_SOURCE_DIR}/AudioMixer.cmake")
 	if(DORA_WEB_FEATURE_MODEL_3D)
 		target_link_libraries(dora-web-player PRIVATE "${DORA_RUST_RUNTIME}")
 	endif()
@@ -429,6 +430,7 @@ if(DORA_WEB_LINK_PLAYER)
 		"-sEXPORTED_FUNCTIONS=['_main','_dora_web_stop','_dora_web_set_suspended','_dora_web_release_input','_dora_web_asset_complete']"
 		"-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap']"
 		"SHELL:--pre-js \"${CMAKE_BINARY_DIR}/dora-web-features.js\""
+		"SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/web-audio.js\""
 		"SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/web-platform.js\""
 		"SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/web-network.js\""
 		"SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/web-package.js\""
@@ -450,6 +452,7 @@ if(DORA_WEB_LINK_PLAYER)
 		OUTPUT_NAME "dora-player-runtime"
 		LINK_DEPENDS "${CMAKE_BINARY_DIR}/dora-web-features.js;${CMAKE_CURRENT_SOURCE_DIR}/player-shell.html;${CMAKE_CURRENT_SOURCE_DIR}/web-platform.js;${CMAKE_CURRENT_SOURCE_DIR}/web-network.js;${CMAKE_CURRENT_SOURCE_DIR}/web-package.js;${CMAKE_CURRENT_SOURCE_DIR}/web-loader.js;${DORA_WEB_BOOTSTRAP_ASSET_FILES};${DORA_WEB_BUILTIN_LIB_FILES};${DORA_WEB_BUILTIN_FONT}"
 		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+	set_property(TARGET dora-web-player APPEND PROPERTY LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/web-audio.js")
 	if(DORA_WEB_BUILD_LOVE_PROBE)
 		add_executable(dora-web-love-link-probe
 			LoveLinkProbe.cpp

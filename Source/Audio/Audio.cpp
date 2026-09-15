@@ -16,6 +16,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Scheduler.h"
 #include "Cache/AudioCache.h"
 #include "Node/Node.h"
+#ifdef DORA_EMSCRIPTEN
+#include "Web/WebAudio.h"
+#endif
 
 #include "soloud_wav.h"
 #include "soloud_wavstream.h"
@@ -881,6 +884,10 @@ SoLoud::Soloud* Audio::getSoLoud() {
 }
 
 Audio::~Audio() {
+#ifdef DORA_EMSCRIPTEN
+	++_webStreamGeneration;
+	dora_worklet_stop_all(0);
+#endif
 	if (_soloud) {
 		_soloud->deinit();
 		delete _soloud;
@@ -929,6 +936,15 @@ bool Audio::init() {
 }
 
 uint32_t Audio::play(String filename, bool loop) {
+#ifdef DORA_EMSCRIPTEN
+	if (dora_worklet_ready()) {
+		const auto path = SharedContent.getFullPath(filename);
+		if (dora_worklet_has(path.c_str())) return dora_worklet_play(path.c_str(), nullptr, 0, loop, 0, 0);
+		auto data = SharedContent.load(path);
+		if (!data.first) return 0;
+		return dora_worklet_play(path.c_str(), data.first.get(), data.second, loop, 0, 0);
+	}
+#endif
 	if (!_soloud) return 0;
 	if (auto audioFile = SharedAudioCache.load(filename)) {
 		uint32_t handle = _soloud->play(*audioFile->getSource());
@@ -941,10 +957,30 @@ uint32_t Audio::play(String filename, bool loop) {
 }
 
 void Audio::stop(uint32_t handle) {
+#ifdef DORA_EMSCRIPTEN
+	if (dora_worklet_handle(handle)) { dora_worklet_stop(handle, 0); return; }
+#endif
 	if (_soloud) _soloud->stop(handle);
 }
 
 void Audio::playStream(String filename, bool loop, float crossFadeTime) {
+#ifdef DORA_EMSCRIPTEN
+	if (dora_worklet_ready()) {
+		stopStream(crossFadeTime);
+		const auto generation = _webStreamGeneration;
+		const auto path = SharedContent.getFullPath(filename);
+		if (dora_worklet_has(path.c_str())) {
+			_webStreamVoice = dora_worklet_play(path.c_str(), nullptr, 0, loop, crossFadeTime, 1);
+			return;
+		}
+		SharedContent.loadAsyncUnsafe(path, [this, path, generation, loop, crossFadeTime](uint8_t* bytes, int64_t size) {
+			auto owned = MakeOwnArray(bytes);
+			if (generation != _webStreamGeneration || !dora_worklet_ready() || size <= 0) return;
+			_webStreamVoice = dora_worklet_play(path.c_str(), owned.get(), size, loop, crossFadeTime, 1);
+		});
+		return;
+	}
+#endif
 	if (!_soloud) return;
 	stopStream(crossFadeTime);
 	std::string file(filename);
@@ -974,6 +1010,11 @@ void Audio::playStream(String filename, bool loop, float crossFadeTime) {
 }
 
 void Audio::stopStream(float fadeTime) {
+#ifdef DORA_EMSCRIPTEN
+	++_webStreamGeneration;
+	if (_webStreamVoice) dora_worklet_stop(_webStreamVoice, fadeTime);
+	_webStreamVoice = 0;
+#endif
 	if (!_soloud) return;
 	if (fadeTime > 0.0f) {
 		if (_currentVoice > 0 && _soloud->isValidVoiceHandle(_currentVoice)) {
@@ -989,6 +1030,11 @@ void Audio::stopStream(float fadeTime) {
 }
 
 void Audio::stopAll(float fadeTime) {
+#ifdef DORA_EMSCRIPTEN
+	++_webStreamGeneration;
+	_webStreamVoice = 0;
+	dora_worklet_stop_all(fadeTime);
+#endif
 	if (!_soloud) return;
 	if (fadeTime > 0.0f) {
 		for (const auto& res : _resources) {
@@ -1003,6 +1049,9 @@ void Audio::stopAll(float fadeTime) {
 }
 
 void Audio::setGlobalVolume(float var) {
+#ifdef DORA_EMSCRIPTEN
+	dora_worklet_volume(var);
+#endif
 	if (_soloud) _soloud->setGlobalVolume(var);
 }
 
@@ -1039,6 +1088,9 @@ Audio::DistanceModel Audio::getDistanceModel() const {
 }
 
 void Audio::setPauseAllCurrent(bool aPause) {
+#ifdef DORA_EMSCRIPTEN
+	dora_worklet_pause(aPause);
+#endif
 	_paused = aPause;
 	if (_soloud) _soloud->setPauseAll(aPause);
 }

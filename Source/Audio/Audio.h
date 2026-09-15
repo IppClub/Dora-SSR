@@ -229,6 +229,10 @@ protected:
 
 private:
 	bool _paused;
+#ifdef DORA_EMSCRIPTEN
+	uint64_t _webStreamGeneration = 0;
+	uint32_t _webStreamVoice = 0;
+#endif
 	uint32_t _currentVoice;
 	Ref<WavStream> _currentStream;
 	SoLoud::Soloud* _soloud;

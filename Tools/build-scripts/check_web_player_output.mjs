@@ -10,6 +10,8 @@ const artifacts = [
 	"dora-player-runtime.js",
 	"dora-player-runtime.wasm",
 	"dora-player-runtime.data",
+	"dora-audio-mixer.wasm",
+	"audio-worklet.js",
 	"dora-web-manifest.json",
 	"dora-web-features.json"
 ];

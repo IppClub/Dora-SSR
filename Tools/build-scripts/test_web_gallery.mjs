@@ -32,8 +32,9 @@ try {
 	const game = 'games/demo/1111111111111111/';
 	write('catalog.json', JSON.stringify({version:1, player, games:[{id:'demo', title:'Demo', manifest:`${game}manifest.json`}]}));
 	write(`${player}index.html`, '<div id="progress-bar"></div><script>Module={doraReportProgress(){}}</script><script src="gallery-player.js"></script>');
-	for (const name of ['gallery-player.js', 'dora-player-runtime.js', 'dora-player-runtime.data']) write(player+name, 'fixture');
+	for (const name of ['gallery-player.js', 'dora-player-runtime.js', 'dora-player-runtime.data', 'audio-worklet.js']) write(player+name, 'fixture');
 	write(`${player}dora-player-runtime.wasm`, Buffer.from([0,97,115,109,1,0,0,0]));
+	write(`${player}dora-audio-mixer.wasm`, Buffer.from([0,97,115,109,1,0,0,0]));
 	write(`${player}dora-web-features.json`, JSON.stringify({activeProfile:'dora-preset', modules:{crossOriginIsolationRequired:false,
 		machineLearning:true, yueCompiler:true, playRho2D:true, entity:true, platformer:true, builtinLuaLibraries:true}}));
 	const data = 'print("demo")';

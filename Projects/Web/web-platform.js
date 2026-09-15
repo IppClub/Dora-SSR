@@ -55,6 +55,7 @@ SOFTWARE. */
 
 	async function unlockAudio() {
 		if (!active) return {supported: false, state: "disposed"};
+		module.doraAudio?.resume();
 		const context = audioContext();
 		if (!context) return {supported: false, state: "unavailable"};
 		try {
@@ -110,8 +111,16 @@ SOFTWARE. */
 		}
 		if (next) releaseInput(reason);
 		suspended = next;
+		module.doraAudio?.setSuspended(suspended);
 		const engineFrame = module.ccall?.("dora_web_set_suspended", "number", ["number"], [suspended ? 1 : 0]);
 		const context = audioContext();
+		const workletContext = module.doraAudio?.context;
+		if (workletContext && workletContext.state !== "closed") {
+			try {
+				if (suspended && workletContext.state === "running") await workletContext.suspend();
+				else if (!suspended && audioUnlocked) module.doraAudio.resume();
+			} catch (_) { }
+		}
 		if (context) {
 			try {
 				if (suspended && context.state === "running") await context.suspend();
@@ -191,6 +200,7 @@ SOFTWARE. */
 		for (const remove of listeners.splice(0)) remove();
 		for (const cancel of [...pendingInputs]) cancel();
 		cancelAudioCallback();
+		module.doraAudio?.dispose();
 		const context = audioContext();
 		if (context?.state === "running") context.suspend().catch(() => {});
 		return true;
@@ -262,6 +272,7 @@ SOFTWARE. */
 				suspended,
 				audioUnlocked,
 				audioState: audioContext()?.state || "unavailable",
+				workletAudio: module.doraAudio?.state,
 				pressedKeys: pressedKeys.size,
 				activePointers: activePointers.size,
 			});

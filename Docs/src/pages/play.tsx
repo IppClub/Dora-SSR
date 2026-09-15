@@ -7,8 +7,11 @@ type Game = {id: string; title: string; cover: string | null; source: string};
 type Catalog = {player: string; games: Game[]};
 export default function Play() {
 	const {siteConfig, i18n} = useDocusaurusContext();
-	// Share runtime URLs and browser cache across all documentation locales.
-	const base = String(siteConfig.customFields?.galleryBaseUrl ?? '/play/');
+	// Production shares assets across locales; a single-locale dev server mounts
+	// its static directory below the locale-specific baseUrl instead.
+	const base = process.env.NODE_ENV === 'development'
+		? `${siteConfig.baseUrl}play/`
+		: String(siteConfig.customFields?.galleryBaseUrl ?? '/play/');
 	const zh = i18n.currentLocale === 'zh-Hans';
 	const [catalog, setCatalog] = useState<Catalog | null>(null);
 	const [error, setError] = useState('');
