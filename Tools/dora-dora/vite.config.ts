@@ -511,6 +511,7 @@ export default defineConfig(async ({ command, mode }) => {
 			}),
 		],
 		resolve: {
+			dedupe: ['react', 'react-dom'],
 			alias: [
 				{ find: 'path', replacement: path.join(rootDir, 'src/3rdParty/Path') },
 				{ find: 'fs', replacement: emptyModule },

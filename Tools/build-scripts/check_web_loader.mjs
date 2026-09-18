@@ -9,7 +9,7 @@ const { validateManifest, mountStartup, mountSnapshot, mountUserStorage, fetchPa
 const valid = {
 	format: "dora-web-game",
 	version: 1,
-	engineVersion: "1.9.2",
+	engineVersion: "1.9.3",
 	profile: "dora-preset",
 	entry: "init.lua",
 	files: [{
@@ -54,7 +54,7 @@ const digest = (data) => crypto.createHash("sha256").update(data).digest("hex");
 const lazyManifest = {
 	format: "dora-web-game",
 	version: 1,
-	engineVersion: "1.9.2",
+	engineVersion: "1.9.3",
 	profile: "dora-preset",
 	entry: "init.lua",
 	files: [

@@ -233,7 +233,7 @@
 ## 编译产物到运行快照（2026-09-15）
 
 - `contracts.serializeArtifactContent` 抽取既有哈希输入规则，编译 Worker 复用；不引入浏览器或服务器依赖。
-- `apps/web/src/runtime-snapshot.ts` 验证产物结构、复制输入、重新计算完整内容哈希，输出供内存加载器使用的 manifest 与二进制文件，保留 projectId/revision/buildId/sha256。当前版本/profile 明确固定为已有 Player 接受的 1.9.2/dora-preset；不是完整引擎版本注册实现。
+- `apps/web/src/runtime-snapshot.ts` 验证产物结构、复制输入、重新计算完整内容哈希，输出供内存加载器使用的 manifest 与二进制文件，保留 projectId/revision/buildId/sha256。当前版本/profile 明确固定为已有 Player 接受的 1.9.3/dora-preset；不是完整引擎版本注册实现。
 - `pnpm test` 全量构建及 31 项测试通过，新增文本 UTF-8/二进制精确传递、逐文件哈希、篡改拒绝、异步期间输入修改隔离。Chrome 152 实际编译 Worker TS/Lua/资源/哈希/取消/超时恢复通过，编译期间 52 次主线程心跳，无原生服务请求。
 - 正式 UI 尚未调用此适配器，也尚未建立生产运行来源与消息授权；不能视为编辑→试玩端到端完成。
 

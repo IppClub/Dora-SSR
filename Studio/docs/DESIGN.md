@@ -104,7 +104,7 @@ v0.4 原型体验约定：首页操作明确为“新建并生成”，为独立
 | `Projects/Web/web-features.json.in` | core/dora-preset/custom、可选功能 | workspace 与 tealCompiler 当前为 false；能力需按产物核查 |
 | `Projects/Web/player-shell.html` | 状态、进度、停止 | 工作室运行协议、隔离与恢复 |
 | `Projects/Web/web-platform.js` | 暂停、输入释放、音频解锁与释放 | 新容器与设备矩阵验证 |
-| `Projects/Web/web-loader.js` | manifest、哈希校验、资源加载、IDBFS | 开发工作区、引擎版本注册；当前固定检查 1.9.2 |
+| `Projects/Web/web-loader.js` | manifest、哈希校验、资源加载、IDBFS | 开发工作区、引擎版本注册；当前固定检查 1.9.3 |
 | `Tools/dora-dora/src/TranspileTS.ts` | 浏览器 TS/TSTL 与 virtualFiles | 仍耦合 Monaco、Info、Service；需独立 CompilerHost |
 | `Tools/dora-dora/src/App.tsx` | 完整编辑 UI | 设备连接与应用状态耦合，不宜整页双模式化 |
 | `Assets/Script/Dev/WebServer.yue` | 原生文件、编译、Git、Agent、运行服务 | 多租户授权与云生命周期不同，不直接公网托管 |

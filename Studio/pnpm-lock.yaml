@@ -63,9 +63,6 @@ importers:
       '@dora-studio/agent-contracts':
         specifier: workspace:*
         version: link:../agent-contracts
-      react:
-        specifier: 19.2.6
-        version: 19.2.6
       react-markdown:
         specifier: ^10.1.0
         version: 10.1.0(@types/react@19.2.15)(react@19.2.6)
@@ -76,6 +73,9 @@ importers:
       '@types/react':
         specifier: 19.2.15
         version: 19.2.15
+      react:
+        specifier: 19.2.6
+        version: 19.2.6
       typescript:
         specifier: 5.9.3
         version: 5.9.3

@@ -27,7 +27,7 @@ export async function prepareRuntimeSnapshot(input: BuildArtifact) {
   return {
     identity: { projectId: artifact.projectId, revision: artifact.revision,
       buildId: artifact.buildId, sha256: artifact.sha256 },
-    manifest: { format: 'dora-web-game', version: 1, engineVersion: '1.9.2',
+    manifest: { format: 'dora-web-game', version: 1, engineVersion: '1.9.3',
       profile: 'dora-preset', entry: artifact.entry, files: manifestFiles },
     files,
   };

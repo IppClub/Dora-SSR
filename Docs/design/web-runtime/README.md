@@ -289,7 +289,7 @@ IDBFS 在 `preRun` 阶段先 populate，再允许引擎进入 ready。显式 `do
 {
   "format": "dora-web-game",
   "version": 1,
-  "engineVersion": "1.9.2",
+  "engineVersion": "1.9.3",
   "profile": "dora-preset",
   "entry": "init.lua",
   "files": [

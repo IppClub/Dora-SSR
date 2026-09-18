@@ -47,7 +47,7 @@ function crc32(bytes) {
 
 function createPackageFixture() {
 	const entries = [
-		["dora-package.json", JSON.stringify({format: "dora-game", version: 1, title: "Browser import", engineVersion: "1.9.2", entry: "init"})],
+		["dora-package.json", JSON.stringify({format: "dora-game", version: 1, title: "Browser import", engineVersion: "1.9.3", entry: "init"})],
 		["init.lua", "print('browser package import ready')"],
 	];
 	const locals = [];

@@ -263,7 +263,7 @@
 			throw new Error("unsupported dora-package.json format, version, or entry");
 		}
 		if (typeof manifest.title !== "string" || !manifest.title.trim() || manifest.title.length > 120) throw new Error("Dora package title is invalid");
-		const currentEngineVersion = options.currentEngineVersion || "1.9.2";
+		const currentEngineVersion = options.currentEngineVersion || "1.9.3";
 		if (compareVersion(manifest.engineVersion, currentEngineVersion) > 0) throw new Error("Dora package requires a newer engine");
 		return Object.freeze({manifest: Object.freeze({...manifest}), root, archiveBytes: bytes.byteLength, unpackedBytes: parsed.totalBytes, files: Object.freeze(relativeFiles)});
 	}

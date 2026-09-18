@@ -83,7 +83,7 @@ const manifestFiles = files.map((file) => {
 const manifest = {
 	format: "dora-web-game",
 	version: 1,
-	engineVersion: "1.9.2",
+	engineVersion: "1.9.3",
 	profile,
 	entry,
 	files: manifestFiles

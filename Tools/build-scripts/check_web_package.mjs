@@ -79,7 +79,7 @@ const manifest = (overrides = {}) => JSON.stringify({
 	format: "dora-game",
 	version: 1,
 	title: "Web package fixture",
-	engineVersion: "1.9.2",
+	engineVersion: "1.9.3",
 	entry: "init",
 	...overrides
 });
