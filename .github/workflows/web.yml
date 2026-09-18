@@ -71,7 +71,7 @@ jobs:
       - name: Setup Emscripten
         uses: emscripten-core/setup-emsdk@v15
         with:
-          version: 3.1.74
+          version: 5.0.5
           actions-cache-folder: emsdk-cache
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@1.85.1
@@ -135,7 +135,7 @@ jobs:
       - name: Setup Emscripten
         uses: emscripten-core/setup-emsdk@v15
         with:
-          version: 3.1.74
+          version: 5.0.5
           actions-cache-folder: emsdk-cache
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@1.85.1

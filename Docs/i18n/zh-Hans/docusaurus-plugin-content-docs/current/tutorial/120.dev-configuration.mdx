@@ -181,7 +181,7 @@ Linux 本地构建会使用仓库内置的 SDL2 源码，并交给 SDL 原版 CM
 Web 构建使用 Emscripten 将引擎编译为 WebAssembly，产出的是用于发布游戏的浏览器端 Web Player——参见[打包游戏为 Web 版](/docs/tutorial/game-app-pack)。它不会把 Web IDE 搬进浏览器。
 :::
 
-1. 安装指定版本的 Web 工具链：[Emscripten](https://emscripten.org/docs/getting_started/downloads.html) `3.1.74`、[Rust](https://www.rust-lang.org/tools/install) `1.85.1`（含 `wasm32-unknown-emscripten` 目标）、[Go](https://go.dev/dl/) `1.24.3`、[Node.js](https://nodejs.org/) `22.14.0` 与 [CMake](https://cmake.org/download/) `3.30.5`。
+1. 安装指定版本的 Web 工具链：[Emscripten](https://emscripten.org/docs/getting_started/downloads.html) `5.0.5`、[Rust](https://www.rust-lang.org/tools/install) `1.85.1`（含 `wasm32-unknown-emscripten` 目标）、[Go](https://go.dev/dl/) `1.24.3`、[Node.js](https://nodejs.org/) `22.14.0` 与 [CMake](https://cmake.org/download/) `3.30.5`。
 
 	精确版本固定在 `Projects/Web/toolchain.env` 中，版本不一致时构建会直接报错，以保证 Web 产物可复现。仅在本地排查问题时才设置 `DORA_WEB_ALLOW_TOOLCHAIN_DRIFT=1`。
 
