@@ -705,7 +705,13 @@ end -- 611
 local function getMemoryCompressionStartReason(shared) -- 632
 	return shared.useChineseResponse and "开始进行上下文记忆压缩。" or "Starting context memory compression." -- 633
 end -- 632
-local function getMemoryCompressionSuccessReason(shared, compressedCount) -- 638
+local function getMemoryCompressionSuccessReason(shared, compressedCount, fallbackArchived) -- 638
+	if fallbackArchived == nil then
+		fallbackArchived = false
+	end
+	if fallbackArchived then
+		return shared.useChineseResponse and ("记忆摘要未生成，已安全归档 " .. tostring(compressedCount)) .. " 条原始历史并继续工作。" or ("Memory summary was unavailable; archived " .. tostring(compressedCount)) .. " raw historical messages and continued."
+	end
 	return shared.useChineseResponse and ("记忆压缩完成，已整理 " .. tostring(compressedCount)) .. " 条历史消息。" or ("Memory compression finished after consolidating " .. tostring(compressedCount)) .. " historical messages." -- 639
 end -- 638
 local function getMemoryCompressionFailureReason(shared, ____error) -- 644
@@ -1091,7 +1097,7 @@ local function maybeCompressHistory(shared, includePendingUserPrompt, pendingUse
 						taskId = shared.taskId, -- 1095
 						step = stepId, -- 1096
 						tool = "compress_memory", -- 1097
-						reason = getMemoryCompressionSuccessReason(shared, result.compressedCount), -- 1098
+						reason = getMemoryCompressionSuccessReason(shared, result.compressedCount, result.fallbackArchived == true), -- 1098
 						result = { -- 1099
 							success = true, -- 1100
 							round = compressionRound, -- 1101
@@ -1100,7 +1106,9 @@ local function maybeCompressHistory(shared, includePendingUserPrompt, pendingUse
 							historyEntryPreview = summarizeHistoryEntryPreview(result.summary or ""), -- 1104
 							partialRecovered = result.partialRecovered == true, -- 1105
 							recoveredFields = result.recoveredFields or ({}), -- 1106
-							finishReason = result.finishReason -- 1107
+							finishReason = result.finishReason, -- 1107
+							fallbackArchived = result.fallbackArchived == true,
+							fallbackError = result.fallbackArchived == true and result.error or nil
 						} -- 1107
 					} -- 1107
 				) -- 1107
@@ -1225,7 +1233,7 @@ local function compactAllHistory(shared) -- 1119
 					taskId = shared.taskId, -- 1204
 					step = stepId, -- 1205
 					tool = "compress_memory", -- 1206
-					reason = getMemoryCompressionSuccessReason(shared, result.compressedCount), -- 1207
+					reason = getMemoryCompressionSuccessReason(shared, result.compressedCount, result.fallbackArchived == true), -- 1207
 					result = { -- 1208
 						success = true, -- 1209
 						round = rounds, -- 1210
@@ -1234,7 +1242,9 @@ local function compactAllHistory(shared) -- 1119
 						fullCompaction = true, -- 1213
 						partialRecovered = result.partialRecovered == true, -- 1214
 						recoveredFields = result.recoveredFields or ({}), -- 1215
-						finishReason = result.finishReason -- 1216
+						finishReason = result.finishReason, -- 1216
+						fallbackArchived = result.fallbackArchived == true,
+						fallbackError = result.fallbackArchived == true and result.error or nil
 					} -- 1216
 				} -- 1216
 			) -- 1216
@@ -1693,7 +1703,7 @@ function MainDecisionAgent.prototype.callDecisionByToolCalling(self, shared, las
 				return ____awaiter_resolve(nil, committed) -- 1950
 			end -- 1950
 			clearPreExecutedResults(shared) -- 1952
-			return ____awaiter_resolve(nil, {success = false, message = res.message, raw = res.raw}) -- 1952
+			return ____awaiter_resolve(nil, {success = false, message = res.message, raw = res.raw, requestFailed = true}) -- 1952
 		end -- 1952
 		local usage = res.tokenUsage -- 1955
 		recordLLMTokenUsage(shared, stepId, "decision_tool_calling", usage) -- 1956
@@ -1886,9 +1896,7 @@ function MainDecisionAgent.prototype.repairDecisionXml(self, shared, originalRaw
 						) -- 2105
 					end -- 2105
 					if not llmRes.success then -- 2105
-						lastError = llmRes.message -- 2108
-						AgentUtils.Log("Error", "[CodingAgent] xml repair attempt failed: " .. lastError) -- 2109
-						goto __continue239 -- 2110
+						return ____awaiter_resolve(nil, {success = false, message = llmRes.message, raw = llmRes.text or "", requestFailed = true}) -- 2110
 					end -- 2110
 					candidateRaw = llmRes.text -- 2112
 					candidateReasoning = llmRes.reasoningContent -- 2113
@@ -1904,7 +1912,6 @@ function MainDecisionAgent.prototype.repairDecisionXml(self, shared, originalRaw
 					lastError = decision.message -- 2123
 					AgentUtils.Log("Error", "[CodingAgent] xml repair candidate invalid: " .. lastError) -- 2124
 				end -- 2124
-				::__continue239:: -- 2124
 				attempt = attempt + 1 -- 2092
 			end -- 2092
 		end -- 2092
@@ -1935,7 +1942,7 @@ function MainDecisionAgent.prototype.callDecisionByXml(self, shared, lastError, 
 			) -- 2149
 		end -- 2149
 		if not llmRes.success then -- 2149
-			return ____awaiter_resolve(nil, {success = false, message = llmRes.message, raw = llmRes.text or ""}) -- 2149
+			return ____awaiter_resolve(nil, {success = false, message = llmRes.message, raw = llmRes.text or "", requestFailed = true}) -- 2149
 		end -- 2149
 		local xmlCompletion = parseMainXMLCompletion(shared.role, llmRes.text) -- 2158
 		if xmlCompletion then -- 2158
@@ -2017,6 +2024,9 @@ function MainDecisionAgent.prototype.exec(self, input) -- 2182
 					if decision.success then -- 2206
 						return ____awaiter_resolve(nil, decision) -- 2206
 					end -- 2206
+					if decision.requestFailed then -- 2206
+						return ____awaiter_resolve(nil, decision) -- 2206
+					end -- 2206
 					lastError = decision.message -- 2211
 					lastRaw = decision.raw or "" -- 2212
 					AgentUtils.Log("Error", "[CodingAgent] tool-calling attempt failed: " .. lastError) -- 2213
@@ -2048,6 +2058,9 @@ function MainDecisionAgent.prototype.exec(self, input) -- 2182
 							) -- 2231
 						end -- 2231
 						if decision.success then -- 2231
+							return ____awaiter_resolve(nil, decision) -- 2231
+						end -- 2231
+						if decision.requestFailed then -- 2231
 							return ____awaiter_resolve(nil, decision) -- 2231
 						end -- 2231
 						lastError = decision.message -- 2236
@@ -2090,6 +2103,9 @@ function MainDecisionAgent.prototype.exec(self, input) -- 2182
 					) -- 2259
 				end -- 2259
 				if decision.success then -- 2259
+					return ____awaiter_resolve(nil, decision) -- 2259
+				end -- 2259
+				if decision.requestFailed then -- 2259
 					return ____awaiter_resolve(nil, decision) -- 2259
 				end -- 2259
 				lastError = decision.message -- 2264

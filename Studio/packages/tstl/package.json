@@ -1,0 +1,22 @@
+{
+  "name": "@dora-studio/tstl",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./output-collector": "./transpilation/output-collector.ts",
+    "./browser-typescript": "./browser-typescript.ts",
+    "./browser-url": "./browser-url.ts",
+    "./path": { "types": "./path/Path.d.ts", "default": "./path/Path.js" }
+  },
+  "typesVersions": { "*": {
+    "output-collector": ["transpilation/output-collector.ts"],
+    "browser-typescript": ["browser-typescript.ts"],
+    "path": ["path/Path.d.ts"]
+  } },
+  "dependencies": { "source-map": "0.7.6" },
+  "peerDependencies": { "typescript": "5.9.3" }
+}

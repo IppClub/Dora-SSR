@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Dora Studio 可点击产品原型，所有服务与调用均为模拟。">
+  <title>Dora Studio · 产品原型</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="design.css?v=6">
+</head>
+<body>
+  <div id="app">
+    <aside class="sidebar">
+      <a class="brand" href="#home"><img class="brand-logo" src="dora-symbol.svg" alt="Dora"><span>Dora<span class="brand-sub">STUDIO</span></span></a>
+      <div class="invite">受邀创作空间 <span>ALPHA</span></div>
+      <nav aria-label="主导航">
+        <button data-page="home">开始创作 <span>＋</span></button>
+        <button data-page="workspace">工作室 <span>↗</span></button>
+        <button data-page="models">模型与额度</button>
+        <button data-page="work">作品与分享</button>
+      </nav>
+      <div class="side-project"><small>最近项目</small><button data-action="open-project">月光花园 <span class="dot"></span></button><span>源码私有 · 会话草稿</span></div>
+      <div class="side-bottom"><button data-page="admin">管理后台</button><div class="account"><span class="avatar">J</span><div>Jin<small>受邀用户 / 演示管理员</small></div></div></div>
+    </aside>
+    <main>
+      <header class="topbar"><span id="breadcrumb">创作 / 开始</span><div class="top-actions"><span class="prototype-label">DESIGN PREVIEW · 交互演示</span><button id="connection" data-action="connection">● 已连接</button></div></header>
+      <section id="home" class="page">
+        <div class="hero"><div class="eyebrow">DORA STUDIO · 游戏创作工作台</div><h1>从一个想法，<br>开始<span class="hero-accent">你的游戏。</span></h1><p>描述玩法，与 Dora Agent 一起创作、运行和迭代。</p>
+          <div class="prompt-box"><label class="sr-only" for="idea">游戏描述</label><textarea id="idea" placeholder="例如：一个夜晚收集星光的花园游戏，用方向键移动，带轻柔背景音乐。">做一个夜晚收集星光的花园游戏，用方向键移动，带轻柔背景音乐。</textarea><div class="prompt-footer"><button data-page="models" class="text-button">共享 · Dora 创作模型 ▾</button><button class="primary" data-action="create" id="create-game">新建并生成 ↗</button></div></div>
+          <p class="creation-hint" id="creation-hint">将新建独立项目并自动开始创作 · 当前仅演示流程，不调用模型</p><div class="creation-credit" id="creation-credit"></div><div class="suggestions"><button data-idea="做一个像素风横版跳跃游戏，躲避障碍并收集金币。">像素跳跃</button><button data-idea="做一个俯视角探索游戏，在夜晚的花园收集星光。">花园探索</button><button data-idea="做一个三分钟节奏小游戏，用现有音乐生成能力制作配乐。">节奏小游戏</button></div>
+        </div>
+        <div class="entry-grid"><button data-action="blank"><span class="entry-symbol">＋</span><strong>空白新建</strong><small>从自己的代码开始</small></button><button data-action="import"><span class="entry-symbol">↑</span><strong>上传游戏包</strong><small>.dora 或 ZIP · 导入后检查兼容性</small></button><button data-action="clone"><span class="entry-symbol">↗</span><strong>从链接 Remix</strong><small>公开 Git / ZIP / Studio 开源作品</small></button></div>
+        <div class="section-heading"><h2>最近项目</h2><span>本次会话 · 刷新后清空</span></div><div id="recent-projects"></div>
+        <button class="recent-project" data-action="open-project"><div class="mini-scene"><span>✦</span><i></i></div><div><strong>月光花园</strong><small>2D · TypeScript · 最近保存到本机</small></div><span class="pill">源码私有</span><span>打开 →</span></button>
+      </section>
+      <section id="workspace" class="page workspace-page" hidden>
+        <div class="workspace-heading"><div><h1 id="project-title">月光花园</h1><span id="save-state">本次会话草稿 · 刷新后清空</span></div><div class="button-row"><button data-action="rename">重命名</button><button data-action="checkpoint">修改记录</button><button data-action="publish" class="primary">发布作品</button></div></div>
+        <div id="state-banner" class="banner" role="status" hidden></div><div id="task-status" class="task-status" role="status" hidden><span id="task-status-text"></span><button data-action="show-agent">查看 Agent</button><button data-action="show-preview" id="ready-preview" hidden>开始试玩</button></div>
+        <div class="workspace-grid">
+          <section class="agent-pane"><div class="pane-heading"><h2>Dora Agent</h2><button data-page="models" class="text-button" id="active-model">共享模型 ▾</button></div><div class="agent-note">直接修改 · 自动试玩 · 可从检查点恢复</div><div id="agent-credit" class="agent-credit"></div><div id="messages" class="messages" aria-live="polite"></div><div id="agent-progress" class="agent-progress" role="status">等待你的描述</div><div class="agent-compose"><label for="followup" class="sr-only">继续描述修改</label><textarea id="followup" placeholder="例如：把移动速度调快，添加收集音效…"></textarea><div class="compose-hint">⌘ / Ctrl + Enter 发送 · Enter 换行</div><div class="button-row"><button data-action="pause" id="pause-agent" hidden>暂停创作</button><button data-action="cancel-queue" id="cancel-queue" hidden>退出排队</button><button data-action="show-preview" id="agent-play" hidden>试玩结果</button><button data-action="resume" id="resume" hidden>从检查点继续</button><button data-action="generate" class="primary" id="send">发送并创作 ↑</button></div></div></section>
+          <section class="preview-pane"><div class="pane-heading"><div class="tab-row" role="tablist" aria-label="工作区面板"><button role="tab" aria-selected="true" data-tab="preview">试玩</button><button role="tab" aria-selected="false" data-tab="code">代码</button><button role="tab" aria-selected="false" data-tab="assets">资源</button></div><div class="button-row"><button data-action="run">重新运行</button><button data-action="stop">停止</button></div></div>
+            <div id="preview" class="tab-panel"><div class="preview-meta"><span id="run-version">运行快照 r1</span><span>浏览器端 · 示意游戏，非 Dora 引擎</span></div><div id="preview-empty" class="preview-empty" hidden><span class="empty-symbol">▷</span><h2 id="preview-empty-title">等待第一次运行</h2><p id="preview-empty-copy">描述想做的游戏，或打开代码开始编辑。</p><button data-action="show-agent">打开 Dora Agent</button></div><canvas tabindex="0" id="game" width="720" height="430" aria-label="示意试玩：使用方向键或下方按钮移动收集星光"></canvas><div class="game-control"><span id="game-help">点击画面后用方向键移动 · 星光 <b id="score">0</b>/4</span><div><button data-move="left" aria-label="向左移动">←</button><button data-move="up" aria-label="向上移动">↑</button><button data-move="down" aria-label="向下移动">↓</button><button data-move="right" aria-label="向右移动">→</button></div></div></div>
+            <div id="code" class="tab-panel" hidden><div class="code-heading"><span>init.ts</span><span>示意编辑器 · 不执行输入代码</span></div><label for="source" class="sr-only">项目代码</label><textarea id="source" spellcheck="false">import { Node, DrawNode, Vec2, App } from 'Dora';
+
+// 月光花园 · 原型中的展示代码
+const garden = Node();
+const player = DrawNode();
+player.position = Vec2(320, 200);
+garden.addChild(player);
+
+const speed = 160;
+// 完整编译与 Dora RuntimeHost 尚未接入。</textarea><div class="code-footer">编辑后点击“重新运行”，体验运行版本与草稿分离。</div></div>
+            <div id="assets" class="tab-panel asset-panel" hidden><h3>项目资源</h3><div class="asset-row"><span>角色与场景</span><span>内置素材</span></div><div class="asset-row"><span>garden-loop.ogg</span><span>已有 Agent 音乐生成 · 模拟</span></div><div class="asset-row"><span>collect.wav</span><span>已有 Agent 音效生成 · 模拟</span></div><button data-action="asset-upload">上传自己的素材</button><p>首版：内置素材、用户上传、现有音乐/音效生成。不新增 AI 图片生成。</p></div>
+            <details class="logs"><summary>问题与运行日志 <span id="log-count">0 条</span></summary><pre id="logs">[原型] 尚未连接编译器与 Dora Web 引擎。</pre></details>
+          </section>
+        </div>
+        <details class="scenario-tools"><summary>设计评审 · 状态演练</summary><div class="scenario-strip"><button data-scenario="queued">并发排队</button><button data-scenario="quota">额度不足</button><button data-scenario="compile">编译失败</button><button data-scenario="incompatible">项目不兼容</button><button data-scenario="usage">缺失 usage</button><button data-scenario="normal">恢复正常</button></div></details>
+      </section>
+      <section id="models" class="page" hidden>
+        <div class="page-heading credit-heading"><div><div class="eyebrow">模型与额度</div><h1 id="models-title">你的创作经费</h1><p id="models-subtitle">看清还能用多少，再选择适合的创作模型。</p></div><button data-page="workspace">返回工作室</button></div>
+        <section class="credit-overview" aria-label="创作额度概览">
+          <div class="credit-main"><span id="credit-label">当前模型可用额度</span><strong id="usable-credit">¥80.00</strong><p id="credit-explanation">平台提供 · 人民币使用额度，不是现金余额</p></div>
+          <div class="credit-stats" id="platform-stats"><div><span>平台可用余额</span><strong id="model-balance">¥120.00</strong></div><div><span>已使用</span><strong id="spent-credit">¥0.00</strong></div><div><span>暂时预留</span><strong id="held-credit">¥0.00</strong></div></div>
+          <div class="credit-stats" id="personal-stats" hidden><div><span>调用次数</span><strong id="byok-calls">0</strong></div><div><span>输入 Token</span><strong id="byok-input">0</strong></div><div><span>输出 Token</span><strong id="byok-output">0</strong></div></div>
+        </section>
+        <div class="model-grid credit-models">
+          <section class="panel"><div class="section-heading"><h2>用哪个模型创作？</h2><span class="pill" id="funding-source">平台提供</span></div>
+            <label for="model-choice">当前模型</label><select id="model-choice"><option value="shared">Dora 创作模型 · 平台提供</option><option value="vision">Dora 视觉配置 · 平台提供</option><option value="byok">个人 API · 自行付费</option></select>
+            <p id="model-availability" role="status"></p><div class="cost-example"><span id="request-price">本次演示预计使用 ¥0.34</span><small id="request-reserve">开始时暂时预留 ¥0.80，完成后退回差额。</small></div>
+            <details class="billing-details"><summary>额度限制与计价方式</summary><div class="definition-row"><span>此模型剩余授权额度</span><strong id="api-balance">¥80.00</strong></div><p>当前模型可用金额取平台余额与该模型授权额度中较小的一项，不是两笔钱相加。</p><div class="definition-row"><span>输入 / 输出单价</span><strong id="model-rates">¥1.00 / ¥3.00 每百万 Token</strong></div><div class="definition-row"><span>API / 账号 / 此授权并发</span><strong id="limits">4 / 2 / 1</strong></div><p>金额按管理员设置的人民币费率折算。预留不是扣费，已从可用金额中排除；额度不自动按月重置。余额不足请联系管理员。</p></details>
+          </section>
+          <section class="panel personal-api"><div class="section-heading"><h2>使用自己的 API</h2><span class="pill">自行付费</span></div><p>费用由你的模型服务商收取，不扣平台提供的额度。</p><div class="byok-balance"><span>本次会话 · 已记录用量</span><strong id="byok-summary">0 Token · 0 次调用</strong><small id="byok-coverage">只统计通过 Studio 发起的调用。</small></div><label for="demo-key">API Key（仅演示占位）</label><input id="demo-key" readonly value="•••••••• DEMO ONLY"><div class="button-row"><button data-action="byok-add">连接演示 API</button><button data-action="byok-revoke">断开连接</button></div><p id="byok-status" role="status">尚未连接（模拟）</p><details class="billing-details"><summary>密钥与费用说明</summary><p>正式版经授权云端加密保存，可跨设备使用、更换或撤销。本原型不接收真实 Key，也不查询服务商余额。用量按供应商返回值记录，金额仅在有明确单价时估算，以服务商账单为准。不自动从平台模型切换到个人 API。</p></details></section>
+        </div>
+        <section class="panel ledger"><div class="section-heading"><h2 id="ledger-title">平台费用明细</h2><span id="ledger-caption">人民币 · 演示账单，非真实扣费</span></div><div class="table-wrap"><table><thead><tr id="ledger-head"><th>调用</th><th>模型</th><th>开始时预留</th><th>实际使用</th><th>状态</th></tr></thead><tbody id="ledger"></tbody></table></div></section>
+      </section>
+      <section id="work" class="page" hidden><div class="page-heading"><div class="eyebrow">作品与分享</div><h1>月光花园</h1><p>发布固定快照。公开试玩和开放源码，是两个不同的决定。</p></div><div class="work-grid"><section class="panel"><div class="work-art"><div class="moon"></div><span>MOONLIGHT GARDEN</span><small>月光花园 · 示意作品封面</small></div><div class="definition-row"><span>发布状态</span><strong id="publish-state">尚未发布</strong></div><div class="definition-row"><span>源码</span><strong id="source-state">私有 · 不允许 clone</strong></div><div class="button-row"><button data-action="publish" class="primary">发布当前快照</button><button data-action="open-project">继续创作</button></div></section><section class="panel"><h2>分享设置</h2><label for="share-url">公开试玩链接</label><input id="share-url" readonly value="发布后生成（模拟）"><button data-action="copy-link">复制演示链接</button><hr><label class="check"><input type="checkbox" id="open-source">人工开放源码并允许 Remix</label><p class="muted">默认关闭。仅公开试玩不会授权源项目下载。开启前请确认代码与素材的授权。</p><div class="button-row"><button data-action="save-sharing">保存开放设置</button><button data-action="clone-work">体验访客 clone</button></div><p id="sharing-status" role="status">当前源码私有，访客只能试玩。</p><p class="muted">所有链接使用 example.invalid，不存在真实发布。</p></section></div></section>
+      <section id="admin" class="page" hidden><div class="page-heading"><div class="eyebrow">平台管理员</div><h1>共享 API 与账号授权</h1><p>管理配置、并发和人民币使用额度。普通用户不具有此后台权限。</p></div><div class="admin-tabs tab-row"><button data-admin-tab="pool" aria-pressed="true">API 配置池</button><button data-admin-tab="grants" aria-pressed="false">账号授权</button><button data-admin-tab="billing" aria-pressed="false">暂挂账务</button></div>
+        <section class="panel" id="pool"><div class="section-heading"><h2>共享配置</h2><button data-action="pool-import">导入演示配置</button></div><div class="table-wrap"><table><thead><tr><th>名称 / 模型</th><th>并发上限</th><th>输入 / 输出单价</th><th>凭据</th><th>状态</th></tr></thead><tbody><tr><td>Dora 创作模型<br><small>模型名由管理员提供</small></td><td><input aria-label="API 并发上限" id="pool-limit" type="number" min="1" max="99" value="4"></td><td><div class="rate-fields"><input aria-label="输入费率" id="input-rate" type="number" min="0" step="0.1" value="1"><span>/</span><input aria-label="输出费率" id="output-rate" type="number" min="0" step="0.1" value="3"></div><small>元 / 百万 Token</small></td><td>加密 · 不回显</td><td><button data-action="pool-toggle" id="pool-toggle">已启用</button></td></tr></tbody></table></div><button data-action="save-pool" class="primary">保存配置</button></section>
+        <section class="panel" id="grants" hidden><div class="section-heading"><h2>Jin · 账号及逐 API 授权</h2><span>累计额度，不自动重置</span></div><div class="form-grid"><label>账号总并发<input id="account-limit" type="number" min="1" max="99" value="2"></label><label>账号可用金额（元）<input id="account-quota" type="number" min="0" step="0.01" value="120"></label><label>此 API 授权并发<input id="grant-limit" type="number" min="1" max="99" value="1"></label><label>此 API 授权可用金额（元）<input id="grant-quota" type="number" min="0" step="0.01" value="80"></label></div><label class="check"><input id="grant-enabled" type="checkbox" checked>授权使用 Dora 创作模型</label><button data-action="save-grants" class="primary">保存账号授权</button><p>单次调用同时检查 API 全局、账号总、用户×API 授权；两层金额限制不叠加重复收费。</p></section>
+        <section class="panel" id="billing" hidden><h2>缺失 usage · 待核对</h2><p>已发出调用不能默认免费。保留预留金额，人工核对后释放或补记，处理原因进入审计。</p><div id="pending-billing">当前没有暂挂调用。可在工作室选择“缺失 usage”演练。</div><label>处理原因<input id="billing-reason" placeholder="例如：核对供应商确认调用未计费"></label><button data-action="resolve-billing">确认释放暂挂预留（模拟）</button></section>
+      </section>
+      <footer>设计预览 v0.6 · 仅本次会话，刷新后清空 · 模型、文件与发布均为模拟</footer>
+    </main>
+  </div>
+  <dialog id="dialog"><form method="dialog"><div class="section-heading"><h2 id="dialog-title">项目导入</h2><button value="cancel" aria-label="关闭对话框">×</button></div><div id="dialog-body"></div><div class="button-row dialog-actions"><button value="cancel">取消</button><button id="dialog-confirm" type="button" class="primary">确认</button></div></form></dialog>
+  <div id="toast" role="status" hidden></div>
+  <script src="app.js?v=6"></script>
+</body>
+</html>

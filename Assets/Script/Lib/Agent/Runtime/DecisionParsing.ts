@@ -220,7 +220,7 @@ export type DecisionPlainTextCompletion = {
 	reasoningContent?: string;
 };
 export type DecisionResult = DecisionSuccess | DecisionBatchSuccess | DecisionLoopContinue | DecisionPlainTextCompletion | DecisionFailure;
-export type DecisionFailure = { success: false; message: string; raw?: string };
+export type DecisionFailure = { success: false; message: string; raw?: string; requestFailed?: boolean };
 
 /** A main-agent finish envelope is a final answer, never a request for new work. */
 export function parseMainXMLCompletion(role: AgentRole, raw: string): DecisionPlainTextCompletion | undefined {

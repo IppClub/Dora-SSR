@@ -26,10 +26,23 @@ SOFTWARE. */
 #include <limits>
 #include <unordered_map>
 #include <utility>
+#include <memory>
+#ifdef __EMSCRIPTEN_PTHREADS__
+#include <atomic>
+#include <emscripten/proxying.h>
+#endif
 
 #include <emscripten/emscripten.h>
 
 namespace {
+
+#ifdef __EMSCRIPTEN_PTHREADS__
+std::atomic<pthread_t> assetOwner{0};
+em_proxying_queue* completionQueue() {
+	static auto* queue = em_proxying_queue_create();
+	return queue;
+}
+#endif
 
 struct AssetRequest {
 	uint64_t generation;
@@ -56,8 +69,12 @@ int nextRequestId() {
 	return requestId;
 }
 
-EM_JS(void, requestWebAsset, (int requestId, const char* path), {
-	const assetPath = UTF8ToString(path);
+void requestWebAsset(int requestId, const char* path) {
+	// Copy the borrowed path while the calling thread is synchronously waiting.
+	// Only the page owns the manifest and the authoritative Emscripten FS.
+	MAIN_THREAD_EM_ASM({
+	const requestId = $0;
+	const assetPath = UTF8ToString($1);
 	const complete = (success, message) => {
 		Module.ccall("dora_web_asset_complete", null,
 			["number", "number", "string"], [requestId, success ? 1 : 0, message || ""]);
@@ -70,11 +87,24 @@ EM_JS(void, requestWebAsset, (int requestId, const char* path), {
 	}).then(() => complete(true, ""), (error) => {
 		complete(false, String(error && error.message || error));
 	});
-});
+	}, requestId, path);
+}
 
 } // namespace
 
 extern "C" void dora_web_asset_complete(int requestId, int success, const char* message) {
+#ifdef __EMSCRIPTEN_PTHREADS__
+	const auto owner = assetOwner.load();
+	if (owner && !pthread_equal(owner, pthread_self())) {
+		struct Completion { int id; int success; std::string message; };
+		auto* result = new Completion{requestId, success, message ? message : ""};
+		if (!emscripten_proxy_async(completionQueue(), owner, [](void* value) {
+			std::unique_ptr<Completion> result(static_cast<Completion*>(value));
+			dora_web_asset_complete(result->id, result->success, result->message.c_str());
+		}, result)) delete result;
+		return;
+	}
+#endif
 	auto& pending = requests();
 	auto it = pending.find(requestId);
 	if (it == pending.end()) return;
@@ -91,6 +121,11 @@ extern "C" void dora_web_asset_complete(int requestId, int success, const char* 
 namespace Dora::Web {
 
 void fetchAsset(std::string path, AssetFetchCallback callback) {
+#ifdef __EMSCRIPTEN_PTHREADS__
+	// Asset requests, like the Lua state and WebTaskQueue, belong to the logic
+	// thread. Publish its identity before invoking the page's async loader.
+	assetOwner.store(pthread_self());
+#endif
 	const int requestId = nextRequestId();
 	requests().emplace(requestId, AssetRequest{generation(), std::move(callback)});
 	requestWebAsset(requestId, path.c_str());

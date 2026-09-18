@@ -28,6 +28,8 @@ function run(command, args, options = {}) {
 const pnpmCmd = getPnpmCommand();
 const buildEnv = { ...process.env };
 
+run(process.execPath, [path.join("scripts", "build-studio-compiler.cjs")]);
+
 // Apply a higher memory setting in a cross-platform way.
 buildEnv.NODE_OPTIONS = mergeNodeOptions("--max-old-space-size=8192");
 

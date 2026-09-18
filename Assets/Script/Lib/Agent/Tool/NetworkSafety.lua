@@ -147,7 +147,7 @@ function ____exports.isSafePublicHttpUrl(url) -- 64
 	-- runtime. Fetch is already subject to the browser's origin/CORS policy, so -- 77
 	-- retain the URL and literal-address checks above and leave hostname -- 77
 	-- resolution to the browser network stack. -- 77
-	if App.platform == "Emscripten" then -- 77
+	if App.platform == "Web" then -- 77
 		return true -- 77
 	end -- 77
 	local ____socket = require("socket") -- 78

@@ -4,6 +4,9 @@
 	"private": true,
 	"packageManager": "pnpm@11.24.0",
 	"dependencies": {
+		"@dora-studio/compiler": "link:../../Studio/packages/compiler",
+		"@dora-studio/agent-ui": "link:../../Studio/packages/agent-ui",
+		"@dora-studio/tstl": "file:../../Studio/packages/tstl",
 		"@ant-design/icons": "^6.2.5",
 		"@ant-design/plots": "^2.6.8",
 		"@blockly/field-colour-hsv-sliders": "^6.0.12",
@@ -61,6 +64,7 @@
 		"typescript": "5.9.3"
 	},
 	"scripts": {
+		"predev": "node scripts/build-studio-compiler.cjs",
 		"dev": "vite",
 		"start": "vite",
 		"build": "node scripts/build-project.js",

@@ -16,6 +16,7 @@ import * as AgentRuntimePolicy from 'Agent/Runtime/Policy';
 import { executeRegisteredAgentTool } from 'Agent/Tool/Executor';
 import type { AgentToolControl, AgentToolExecutionContext, AgentToolWorkflowState } from 'Agent/Tool/Types';
 import { getPlainTextCompletionBudgetState, getRemainingAgentWorkSteps, isFinalAgentDecisionTurn } from 'Agent/Runtime/StepBudget';
+import { getAuthoredCompletionBlocker } from 'Agent/Runtime/CompletionPolicy';
 import { areAgentToolParamsEqual, cloneAgentToolParams, partitionAgentToolCalls } from 'Agent/Tool/Batch';
 import type {
 	AgentCompletionOutcome,
@@ -635,7 +636,12 @@ function getMemoryCompressionStartReason(shared: AgentShared): string {
 		: `Starting context memory compression.`;
 }
 
-function getMemoryCompressionSuccessReason(shared: AgentShared, compressedCount: number): string {
+function getMemoryCompressionSuccessReason(shared: AgentShared, compressedCount: number, fallbackArchived = false): string {
+	if (fallbackArchived) {
+		return shared.useChineseResponse
+			? `记忆摘要未生成，已安全归档 ${compressedCount} 条原始历史并继续工作。`
+			: `Memory summary was unavailable; archived ${compressedCount} raw historical messages and continued.`;
+	}
 	return shared.useChineseResponse
 		? `记忆压缩完成，已整理 ${compressedCount} 条历史消息。`
 		: `Memory compression finished after consolidating ${compressedCount} historical messages.`;
@@ -1095,7 +1101,7 @@ async function maybeCompressHistory(
 			taskId: shared.taskId,
 			step: stepId,
 			tool: "compress_memory",
-			reason: getMemoryCompressionSuccessReason(shared, result.compressedCount),
+			reason: getMemoryCompressionSuccessReason(shared, result.compressedCount, result.fallbackArchived === true),
 			result: {
 				success: true,
 				round: compressionRound,
@@ -1105,6 +1111,8 @@ async function maybeCompressHistory(
 				partialRecovered: result.partialRecovered === true,
 				recoveredFields: result.recoveredFields ?? [],
 				finishReason: result.finishReason,
+				fallbackArchived: result.fallbackArchived === true,
+				fallbackError: result.fallbackArchived === true ? result.error : undefined,
 			},
 		});
 		applyCompressedSessionState(shared, result.compressedCount, result.carryMessageIndex, result.sessionSummaryUpdate);
@@ -1204,7 +1212,7 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 			taskId: shared.taskId,
 			step: stepId,
 			tool: "compress_memory",
-			reason: getMemoryCompressionSuccessReason(shared, result.compressedCount),
+			reason: getMemoryCompressionSuccessReason(shared, result.compressedCount, result.fallbackArchived === true),
 			result: {
 				success: true,
 				round: rounds,
@@ -1214,6 +1222,8 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 				partialRecovered: result.partialRecovered === true,
 				recoveredFields: result.recoveredFields ?? [],
 				finishReason: result.finishReason,
+				fallbackArchived: result.fallbackArchived === true,
+				fallbackError: result.fallbackArchived === true ? result.error : undefined,
 			},
 		});
 		applyCompressedSessionState(shared, result.compressedCount, result.carryMessageIndex, result.sessionSummaryUpdate);
@@ -1950,7 +1960,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			const committed = this.commitPreExecutedDecision(shared);
 			if (committed) return committed;
 			clearPreExecutedResults(shared);
-			return { success: false, message: res.message, raw: res.raw };
+			return { success: false, message: res.message, raw: res.raw, requestFailed: true };
 		}
 		const usage = res.tokenUsage;
 		recordLLMTokenUsage(shared, stepId, "decision_tool_calling", usage);
@@ -1976,7 +1986,12 @@ class MainDecisionAgent extends Node<AgentShared> {
 					return terminalDecision;
 				}
 				if (isDecisionPlainTextCompletion(terminalDecision)) {
-				AgentUtils.Log("Info", `[CodingAgent] ${shared.role} agent completed with plain text`);
+					const blocker = getAuthoredCompletionBlocker(shared.workflow);
+					if (blocker !== undefined) {
+						clearPreExecutedResults(shared);
+						return { success: false, message: blocker, raw: terminalDecision.content };
+					}
+					AgentUtils.Log("Info", `[CodingAgent] ${shared.role} agent completed with plain text`);
 				}
 				clearPreExecutedResults(shared);
 				return terminalDecision;
@@ -2105,9 +2120,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				return { success: false, message: getCancelledReason(shared) };
 			}
 			if (!llmRes.success) {
-				lastError = llmRes.message;
-				AgentUtils.Log("Error", `[CodingAgent] xml repair attempt failed: ${lastError}`);
-				continue;
+				return { success: false, message: llmRes.message, raw: llmRes.text ?? "", requestFailed: true };
 			}
 			candidateRaw = llmRes.text;
 			candidateReasoning = llmRes.reasoningContent;
@@ -2153,10 +2166,17 @@ class MainDecisionAgent extends Node<AgentShared> {
 				success: false,
 				message: llmRes.message,
 				raw: llmRes.text ?? "",
+				requestFailed: true,
 			};
 		}
 		const xmlCompletion = parseMainXMLCompletion(shared.role, llmRes.text);
-		if (xmlCompletion) return {...xmlCompletion, reasoningContent: llmRes.reasoningContent};
+		if (xmlCompletion) {
+			const blocker = getAuthoredCompletionBlocker(shared.workflow);
+			if (blocker !== undefined) {
+				return { success: false, message: blocker, raw: xmlCompletion.content };
+			}
+			return {...xmlCompletion, reasoningContent: llmRes.reasoningContent};
+		}
 		if (llmRes.text.indexOf("<tool_call") < 0) {
 			const terminalDecision = classifyToolCallingTurnWithoutCalls(
 				shared.role,
@@ -2166,6 +2186,10 @@ class MainDecisionAgent extends Node<AgentShared> {
 			);
 			if (terminalDecision) {
 				if (terminalDecision.success && isDecisionPlainTextCompletion(terminalDecision)) {
+					const blocker = getAuthoredCompletionBlocker(shared.workflow);
+					if (blocker !== undefined) {
+						return { success: false, message: blocker, raw: terminalDecision.content };
+					}
 					AgentUtils.Log("Info", `[CodingAgent] ${shared.role} agent completed with plain text in XML mode`);
 				}
 				return terminalDecision;
@@ -2208,6 +2232,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 				if (decision.success) {
 					return decision;
 				}
+				if (decision.requestFailed) return decision;
 				lastError = decision.message;
 				lastRaw = decision.raw ?? "";
 				AgentUtils.Log("Error", `[CodingAgent] tool-calling attempt failed: ${lastError}`);
@@ -2233,6 +2258,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 					if (decision.success) {
 						return decision;
 					}
+					if (decision.requestFailed) return decision;
 					lastError = decision.message;
 					lastRaw = decision.raw ?? "";
 					AgentUtils.Log("Error", `[CodingAgent] xml fallback attempt failed: ${lastError}`);
@@ -2261,6 +2287,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			if (decision.success) {
 				return decision;
 			}
+			if (decision.requestFailed) return decision;
 			lastError = decision.message;
 			lastRaw = decision.raw ?? "";
 		}

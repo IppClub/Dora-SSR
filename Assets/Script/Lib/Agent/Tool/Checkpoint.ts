@@ -7,7 +7,8 @@ import {
 	TABLE_CHECKPOINT_ENTRY as TABLE_ENTRY,
 	requireAgentStorage,
 } from 'Agent/Storage/Database';
-import { Log } from 'Agent/Utils';
+import { Log, safeJsonEncode } from 'Agent/Utils';
+import { hasFileCommitListeners, publishFileCommit } from 'Agent/Runtime/FileCommitEvents';
 import {
 	isValidWorkDir,
 	isValidWorkspacePath,
@@ -679,6 +680,13 @@ export function applyFileChanges(taskId: number, workDir: string, changes: FileC
 		`UPDATE ${TABLE_TASK} SET head_seq = ?, updated_at = ? WHERE id = ?`,
 		[nextSeq, now(), taskId],
 	);
+	if (hasFileCommitListeners(workDir)) {
+		try {
+			const [payload] = safeJsonEncode({version: 1, taskId, checkpointId, checkpointSeq: nextSeq,
+				changes: preparedEntries.map(entry => ({path: entry.path, op: entry.op}))});
+			if (payload) publishFileCommit(workDir, payload);
+		} catch { /* Notifications do not change the original tool result. */ }
+	}
 	return {
 		success: true,
 		taskId,

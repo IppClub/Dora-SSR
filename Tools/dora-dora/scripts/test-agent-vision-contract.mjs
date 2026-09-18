@@ -59,7 +59,8 @@ for (const requiredInstruction of [
 }
 assert.match(visionSource, /temperature:0\.1,top_p:0\.6/);
 assert.ok(visionSource.includes("reportGuidance:\"Qualitative visual observation only"));
-assert.match(bindingSource, /VISION_PROFILE_VERSION = 5/);
+assert.match(bindingSource, /VISION_PROFILE_VERSION = 6/);
+assert.match(bindingSource, /model: "deepseek-flash"/);
 assert.match(bindingSource, /model: "glm-5\.3-flash"/);
 assert.match(visionSource, /reasoning_effort:"low"/);
 assert.ok(memorySource.includes("earlier-turn listing does not prove absence"));
@@ -75,7 +76,8 @@ for (const requiredInstruction of ["separate label for every image", "sprite str
 }
 assert.match(visionLua, /temperature = 0\.1/);
 assert.ok(visionLua.includes("reportGuidance = \"Qualitative visual observation only"));
-assert.match(bindingLua, /VISION_PROFILE_VERSION = 5/);
+assert.match(bindingLua, /VISION_PROFILE_VERSION = 6/);
+assert.match(bindingLua, /model = "deepseek-flash"/);
 assert.match(bindingLua, /model = "glm-5\.3-flash"/);
 assert.match(visionLua, /reasoning_effort = "low"/);
 assert.ok(memoryLua.includes("earlier-turn listing does not prove absence"));

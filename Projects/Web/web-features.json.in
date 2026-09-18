@@ -2,6 +2,7 @@
   "format": "dora-web-features",
   "version": 2,
   "activeProfile": "@DORA_WEB_PROFILE@",
+  "studioAgentHost": @DORA_WEB_STUDIO_AGENT_HOST_JSON@,
   "profiles": {
     "core": {
       "available": true,

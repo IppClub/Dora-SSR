@@ -70,6 +70,8 @@ local function executeLuaCommand(req) -- 32
 	local capturedBatches = 0 -- 53
 	local capturedFrames = 0 -- 54
 	local lastPreviewResult -- 55
+	local previewCleanup
+	local restorePrint
 	local function currentVisionUsage() -- 56
 		if persistedVisionUsage == nil then -- 56
 			persistedVisionUsage = getVisionTaskUsage(req.taskId) -- 57
@@ -205,6 +207,7 @@ local function executeLuaCommand(req) -- 32
 					isCancelled = req.isCancelled, -- 177
 					print = function(line) return capturePrint(line) end, -- 178
 					reserveCapture = reserveCapture, -- 179
+					registerCleanup = function(cleanup) previewCleanup = cleanup end,
 					onResult = function(result) -- 180
 						lastPreviewResult = result -- 181
 					end -- 180
@@ -376,7 +379,14 @@ local function executeLuaCommand(req) -- 32
 				end -- 300
 				settled = true -- 301
 				local cleanupError -- 302
-				if not result.success and (result.interrupted == true or result.phase == "timeout") then -- 302
+				local cleanup = previewCleanup
+				previewCleanup = nil
+				if cleanup then
+					local ok, message = pcall(cleanup)
+					if not ok then cleanupError = "failed to release Agent preview: " .. tostring(message) end
+				end
+				if restorePrint then restorePrint(); restorePrint = nil end
+				if not result.success and (result.interrupted == true or result.phase == "timeout") and (not entry.getCurrentEntryStatus().running or ownsEntryLease(req.operationId, entry)) then -- 302
 					do -- 302
 						local function ____catch(e) -- 302
 							cleanupError = "failed to clear interrupted Lua command runtime: " .. tostring(e) -- 307
@@ -472,6 +482,7 @@ local function executeLuaCommand(req) -- 32
 					}) -- 375
 				end -- 375
 				local previousGlobalPrint = _G.print -- 378
+				restorePrint = function() if _G.print == capturePrint then _G.print = previousGlobalPrint end end
 				local previousHook, previousHookMask, previousHookCount = debug.gethook() -- 379
 				local frameTimedOut = false -- 380
 				local watchdogMessage -- 380

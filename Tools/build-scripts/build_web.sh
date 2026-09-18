@@ -16,6 +16,17 @@ BUILD_LOVE_PROBE="${DORA_WEB_BUILD_LOVE_PROBE:-$BUILD_ENGINE}"
 BUILD_PTHREADS="${DORA_WEB_PTHREADS:-0}"
 BUILD_LOVE_PLAYER="${DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER:-$BUILD_PTHREADS}"
 WEB_PROFILE="${DORA_WEB_PROFILE:-dora-preset}"
+STUDIO_AGENT_HOST="${DORA_WEB_STUDIO_AGENT_HOST:-0}"
+if [[ "$STUDIO_AGENT_HOST" == "1" ]]; then
+	if [[ -z "${DORA_WEB_BUILD_DIR+x}" || -z "${DORA_WEB_PACKAGE_DIR+x}" || -z "${DORA_WEB_PLAYER_PACKAGE_DIR+x}" || "$BUILD_ENGINE" != "1" || "$LINK_PLAYER" != "1" ]]; then
+		echo "[ERROR] Studio Agent host requires explicit, separate build/probe/player directories and the full linked engine" >&2
+		exit 1
+	fi
+	if [[ "$BUILD_DIR" == "$ROOT_DIR/build/web" || "$PACKAGE_DIR" == "$ROOT_DIR/result/dora-web-build-probe" || "$PLAYER_PACKAGE_DIR" == "$ROOT_DIR/result/dora-web-player" || "$PLAYER_PACKAGE_DIR" == "$ROOT_DIR/result/dora-web-player-pthreads" ]]; then
+		echo "[ERROR] Studio Agent host cannot overwrite the public game Player" >&2
+		exit 1
+	fi
+fi
 if [[ "$BUILD_PTHREADS" == "1" && -z "${DORA_WEB_PLAYER_PACKAGE_DIR+x}" ]]; then
 	PLAYER_PACKAGE_DIR="$ROOT_DIR/result/dora-web-player-pthreads"
 fi
@@ -48,7 +59,11 @@ CMAKE_ARGS=(
 	-DDORA_WEB_LINK_PLAYER="$LINK_PLAYER"
 	-DDORA_WEB_PTHREADS="$BUILD_PTHREADS"
 	-DDORA_WEB_PROFILE="$WEB_PROFILE"
+	-DDORA_WEB_STUDIO_AGENT_HOST="$STUDIO_AGENT_HOST"
 )
+if [[ "$STUDIO_AGENT_HOST" == "1" ]]; then
+	CMAKE_ARGS+=(-DDORA_WEB_EXPERIMENTAL_MAIN_WORKER=OFF)
+fi
 for feature in PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS ML YUE MODEL_3D; do
 	value_var="DORA_WEB_FEATURE_${feature}"
 	if [[ -n "${!value_var+x}" ]]; then

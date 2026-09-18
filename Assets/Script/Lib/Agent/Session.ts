@@ -1,9 +1,12 @@
 // @preview-file off clear
 import { App, Content, DB, Path, HttpServer, emit } from 'Dora';
+import { publishSessionPatch } from 'Agent/Runtime/SessionEvents';
+import { holdProjectTaskAdmission, isProjectTaskAdmissionClosed } from 'Agent/Runtime/TaskAdmission';
 import type { SQL } from 'Dora';
 import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult, truncateAgentUserPrompt } from 'Agent/DoraAgent';
 import type { AgentCompletionReport, AgentTokenUsageMetric } from 'Agent/DoraAgent';
 import type { VisionTaskUsage } from 'Agent/Tool/VisionAnalysis';
+import * as AgentConfig from 'Agent/Config';
 import * as AgentToolRegistry from 'Agent/Tool/Registry';
 import * as AgentRuntimePolicy from 'Agent/Runtime/Policy';
 import * as Tools from 'Agent/Tools';
@@ -1801,16 +1804,15 @@ function sanitizeStoredSteps(sessionId: number) {
 }
 
 function emitAgentSessionPatch(sessionId: number, patch: Record<string, unknown>) {
-	if (HttpServer.wsConnectionCount === 0) {
-		return;
-	}
 	const [text] = safeJsonEncode({
 		name: "AgentSessionPatch",
 		sessionId,
 		...patch,
 	} as object);
 	if (!text) return;
-	emit("AppWS", "Send", text);
+	const failed = publishSessionPatch(sessionId, text);
+	if (failed > 0) Log("Warn", `[AgentSession] ${failed} patch subscribers failed`);
+	if (HttpServer !== undefined && HttpServer.wsConnectionCount > 0) emit("AppWS", "Send", text);
 }
 
 function emitSessionDeletedPatch(sessionId: number, rootSessionId: number, projectRoot: string) {
@@ -2144,6 +2146,7 @@ export function createSubSession(parentSessionId: number, title = "") {
 		return { success: false as const, message: "parent session not found" };
 	}
 	const rootId = getSessionRootId(parent);
+	if (isProjectTaskAdmissionClosed(parent.projectRoot)) return { success: false as const, message: "project task admission is closed" };
 	const t = now();
 	DB.exec(
 		`INSERT INTO ${TABLE_SESSION}(project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_status, created_at, updated_at)
@@ -2210,6 +2213,7 @@ async function spawnSubAgentSession(request: {
 		return { success: false, message: "parent session not found" };
 	}
 	const runningSubSessionCount = countRunningSubSessions(getSessionRootId(parentSession));
+	if (isProjectTaskAdmissionClosed(parentSession.projectRoot)) return { success: false, message: "project task admission is closed" };
 	if (runningSubSessionCount >= MAX_CONCURRENT_SUB_AGENTS) {
 		return { success: false, message: "已达到子代理并发上限，暂无法派出新的代理。" };
 	}
@@ -2526,8 +2530,9 @@ function stopClearedSubSession(session: AgentSessionItem, taskId: number): { suc
 	return { success: true };
 }
 
-export function sendPrompt(sessionId: number, prompt: string, disabledAgentTools?: unknown, workMode?: unknown, llmConfigId?: unknown, llmConfig?: LLMConfig): AgentSessionSendResult {
+export function sendPrompt(sessionId: number, prompt: string, disabledAgentTools?: unknown, workMode?: unknown, llmConfigId?: unknown, llmConfig?: LLMConfig, maxSteps?: unknown): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
+	if (session && isProjectTaskAdmissionClosed(session.projectRoot)) return { success: false, message: "project task admission is closed" };
 	if (!session) {
 		return { success: false, message: "session not found" };
 	}
@@ -2560,11 +2565,13 @@ export function sendPrompt(sessionId: number, prompt: string, disabledAgentTools
 		DB.exec(`UPDATE ${TABLE_SESSION} SET work_mode = ?, updated_at = ? WHERE id = ?`, [nextWorkMode, now(), session.id]);
 		session.workMode = nextWorkMode;
 	}
-	return startPromptTask(session, normalizedPrompt, undefined, normalizeDisabledAgentTools(disabledAgentTools), { workMode: nextWorkMode, llmConfigId, llmConfig });
+	const boundedMaxSteps=typeof maxSteps==="number"&&maxSteps>=1&&maxSteps<=AgentConfig.AGENT_DEFAULTS.maxSteps?math.floor(maxSteps):undefined;
+	return startPromptTask(session, normalizedPrompt, undefined, normalizeDisabledAgentTools(disabledAgentTools), { workMode: nextWorkMode, llmConfigId, llmConfig, maxSteps:boundedMaxSteps });
 }
 
 export function continuePrompt(sessionId: number, disabledAgentTools?: unknown, llmConfigId?: unknown): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
+	if (session && isProjectTaskAdmissionClosed(session.projectRoot)) return { success: false, message: "project task admission is closed" };
 	if (!session) {
 		return { success: false, message: "session not found" };
 	}
@@ -2621,6 +2628,7 @@ function startPromptTask(
 	options?: PromptTaskOptions
 ): AgentSessionSendResult {
 	const taskWorkMode = session.kind === "main" ? (options?.workMode ?? session.workMode) : "code";
+	if (isProjectTaskAdmissionClosed(session.projectRoot)) return { success: false, message: "project task admission is closed" };
 	const llmConfigRes = options?.llmConfig
 		? { success: true as const, config: options.llmConfig }
 		: getLLMConfig(options?.llmConfigId);
@@ -2642,14 +2650,23 @@ function startPromptTask(
 	const taskId = taskRes.taskId;
 	const previousTaskId = options?.existingTaskId === undefined ? session.currentTaskId : undefined;
 	const useChineseResponse = getDefaultUseChineseResponse();
+	let promptMessageId: number | undefined;
 	if (existingUserMessageId !== undefined) {
 		updateUserMessageForTask(existingUserMessageId, normalizedPrompt, taskId);
+		promptMessageId = existingUserMessageId;
 	} else if (options?.resumeConversation !== true && options?.persistUserMessage !== false) {
-		insertMessage(session.id, "user", normalizedPrompt, taskId, options?.displayContent);
+		promptMessageId = insertMessage(session.id, "user", normalizedPrompt, taskId, options?.displayContent);
 	}
 	const stopToken: StopToken = { stopped: false };
 	activeStopTokens[taskId] = stopToken;
 	setSessionState(session.id, "RUNNING", taskId, "RUNNING");
+	// A newly accepted prompt is part of the live conversation immediately. Do
+	// not make Studio wait for the first model/tool event (or a later snapshot)
+	// before it can show the user's new task and running state.
+	emitAgentSessionPatch(session.id, {
+		session: getSessionItem(session.id),
+		...(promptMessageId !== undefined ? {message: getMessageItem(promptMessageId)} : {}),
+	});
 	if (previousTaskId && previousTaskId !== taskId) {
 		cleanupTaskHeavyData(previousTaskId);
 	}
@@ -2776,6 +2793,7 @@ export function finishSubSessionHandoff(sessionId: number, llmConfigId?: unknown
 
 export function resendPrompt(sessionId: number, messageId: number, prompt: string, disabledAgentTools?: unknown, workMode?: unknown, llmConfigId?: unknown): AgentSessionResendResult {
 	const session = getSessionItem(sessionId);
+	if (session && isProjectTaskAdmissionClosed(session.projectRoot)) return { success: false, message: "project task admission is closed" };
 	if (!session) {
 		return { success: false, message: "session not found" };
 	}
@@ -2989,15 +3007,16 @@ function replaceQuestionnaireToolResult(
 	return { success: true, answerStep, result };
 }
 
-export function cancelQuestionnaire(sessionId: number, questionnaireId: number, llmConfigId?: unknown): AgentSessionSendResult {
+export function cancelQuestionnaire(sessionId: number, questionnaireId: number, llmConfigId?: unknown, llmConfig?: LLMConfig): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
+	if (session && isProjectTaskAdmissionClosed(session.projectRoot)) return { success: false, message: "project task admission is closed" };
 	if (!session) return { success: false, message: "session not found" };
 	if (session.kind !== "main") return { success: false, message: "questionnaires are only available for main sessions" };
 	const questionnaire = getPendingQuestionnaire(sessionId);
 	if (!questionnaire || questionnaire.id !== questionnaireId) {
 		return { success: false, message: "pending questionnaire not found or already handled" };
 	}
-	const llmConfigRes = getLLMConfig(llmConfigId);
+	const llmConfigRes = llmConfig ? { success: true as const, config: llmConfig } : getLLMConfig(llmConfigId);
 	if (!llmConfigRes.success) return { success: false, message: llmConfigRes.message };
 	if (!removePendingQuestionnaire(session)) return { success: false, message: "failed to consume questionnaire file" };
 	const replaced = replaceQuestionnaireToolResult(session, questionnaire, [], "dismissed");
@@ -3034,15 +3053,16 @@ export function cancelQuestionnaire(sessionId: number, questionnaireId: number, 
 	return result;
 }
 
-export function respondQuestionnaire(sessionId: number, questionnaireId: number, answers: unknown, llmConfigId?: unknown): AgentSessionSendResult {
+export function respondQuestionnaire(sessionId: number, questionnaireId: number, answers: unknown, llmConfigId?: unknown, llmConfig?: LLMConfig): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
+	if (session && isProjectTaskAdmissionClosed(session.projectRoot)) return { success: false, message: "project task admission is closed" };
 	if (!session) return { success: false, message: "session not found" };
 	if (session.kind !== "main") return { success: false, message: "questionnaires are only available for main sessions" };
 	const questionnaire = getPendingQuestionnaire(sessionId);
 	if (!questionnaire || questionnaire.id !== questionnaireId) return { success: false, message: "pending questionnaire not found" };
 	const validated = validateQuestionnaireAnswers(questionnaire.schema, answers);
 	if (!validated.success) return validated;
-	const llmConfigRes = getLLMConfig(llmConfigId);
+	const llmConfigRes = llmConfig ? { success: true as const, config: llmConfig } : getLLMConfig(llmConfigId);
 	if (!llmConfigRes.success) return { success: false, message: llmConfigRes.message };
 	const t = now();
 	if (!removePendingQuestionnaire(session)) return { success: false, message: "failed to consume questionnaire file" };
@@ -3108,6 +3128,39 @@ export function stopSessionTask(sessionId: number) {
 
 export function getCurrentTaskId(sessionId: number): number | undefined {
 	return getSessionItem(sessionId)?.currentTaskId;
+}
+
+/** Trusted host lifecycle only. Quiescent does not mean persisted or resumable. */
+export function beginProjectTaskQuiescence(sessionId: number) {
+	const owner = getSessionItem(sessionId);
+	if (!owner) return { success: false as const, message: "session not found" };
+	const projectRoot = owner.projectRoot;
+	const release = holdProjectTaskAdmission(projectRoot);
+	let closed = false;
+	return {
+		success: true as const,
+		projectRoot,
+		close: () => { if (!closed) { closed = true; release(); } },
+		poll: () => {
+			if (closed) return { success: false as const, message: "quiescence handle closed" };
+			const rows = queryRows(`SELECT ${SESSION_SELECT_COLUMNS} FROM ${TABLE_SESSION} WHERE project_root = ? ORDER BY id ASC`, [projectRoot]);
+			if (!rows) return { success: false as const, message: "failed to inspect project tasks" };
+			const pending: {sessionId: number; taskId: number; finalizing: boolean; stopRequested: boolean; message?: string}[] = [];
+			for (const row of rows) {
+				const session = rowToSession(row);
+				const taskId = session.currentTaskId;
+				if (taskId === undefined) continue;
+				const finalizing = finalizingSubSessionTaskIds[taskId] === true;
+				if (!finalizing && activeStopTokens[taskId] === undefined && session.currentTaskStatus !== "RUNNING") continue;
+				// Preserve original cooperative cancellation and finalization semantics.
+				const result = finalizing ? {success: false, message: "session task is finalizing"} : stopSessionTask(session.id);
+				pending.push({sessionId: session.id, taskId, finalizing, stopRequested: result.success, message: result.success ? undefined : result.message});
+			}
+			// A request is not a terminal observation. Even a successful stop remains
+			// pending until a later poll observes the runner's actual completion.
+			return {success: true as const, quiescent: pending.length === 0, pending};
+		},
+	};
 }
 
 export function validateTaskAccess(sessionId: number, taskId: number) {

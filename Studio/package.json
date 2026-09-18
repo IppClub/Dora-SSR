@@ -1,0 +1,15 @@
+{
+  "name": "dora-studio",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "build": "pnpm -r build && pnpm build:agent-host",
+    "build:agent-host": "node scripts/build-agent-host.mjs"
+  },
+  "devDependencies": {
+    "@dora-studio/tstl": "workspace:*",
+    "esbuild": "0.28.0",
+    "typescript": "5.9.3"
+  }
+}

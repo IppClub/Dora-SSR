@@ -1,0 +1,14 @@
+{
+  "name": "@dora-studio/compiler-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": { "types": "./dist/client.d.ts", "import": "./dist/client.js" } },
+  "scripts": { "build": "tsc -p tsconfig.json && node build.mjs" },
+  "dependencies": {
+    "@dora-studio/contracts": "workspace:*",
+    "@dora-studio/compiler": "workspace:*",
+    "@dora-studio/tstl": "workspace:*"
+  },
+  "devDependencies": { "typescript": "5.9.3", "esbuild": "0.28.0" }
+}

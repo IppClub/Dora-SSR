@@ -104,6 +104,11 @@ option(DORA_WEB_BUILD_ENGINE "Compile the shared Dora engine sources for Web" OF
 option(DORA_WEB_BUILD_LOVE_PROBE "Compile the Dora Love runtime as a non-release Web compatibility probe" OFF)
 option(DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER "Build the installable Love pthread Web Player" OFF)
 option(DORA_WEB_PTHREADS "Build an opt-in shared-memory Web profile with Love thread workers" OFF)
+option(DORA_WEB_EXPERIMENTAL_MAIN_WORKER "Experiment: run Player main on a pthread with OffscreenCanvas (not production-ready)" OFF)
+option(DORA_WEB_STUDIO_AGENT_HOST "Enable trusted Studio Agent callbacks (never enable for public game Players)" OFF)
+if(DORA_WEB_EXPERIMENTAL_MAIN_WORKER AND NOT DORA_WEB_PTHREADS)
+	message(FATAL_ERROR "DORA_WEB_EXPERIMENTAL_MAIN_WORKER requires DORA_WEB_PTHREADS=ON")
+endif()
 set(DORA_WEB_LOVE_COMPLEX_PACKAGE "" CACHE FILEPATH "Licensed local .dora package used only by the opt-in P5-09 probe")
 set(DORA_WEB_PROFILE "dora-preset" CACHE STRING "Dora Web feature preset")
 set_property(CACHE DORA_WEB_PROFILE PROPERTY STRINGS core dora-preset custom)
@@ -166,6 +171,11 @@ endif()
 if(DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER AND NOT DORA_WEB_PTHREADS)
 	message(FATAL_ERROR "DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER requires DORA_WEB_PTHREADS=ON")
 endif()
+if(DORA_WEB_STUDIO_AGENT_HOST)
+	set(DORA_WEB_STUDIO_AGENT_HOST_JSON true)
+else()
+	set(DORA_WEB_STUDIO_AGENT_HOST_JSON false)
+endif()
 configure_file(
 	"${CMAKE_CURRENT_SOURCE_DIR}/web-features.json.in"
 	"${CMAKE_BINARY_DIR}/dora-web-features.json"
@@ -187,6 +197,11 @@ if(DORA_WEB_BUILD_ENGINE)
 		"${DORA_SOURCE_ROOT}/Lua/LuaCode.cpp"
 		"${DORA_SOURCE_ROOT}/Lua/TealCompiler.cpp"
 		"${DORA_SOURCE_ROOT}/Wasm/WasmRuntime.cpp")
+	# The dedicated Studio Agent host needs the original XML-to-Lua builder
+	# for Agent's explicit build tool. Keep it out of the ordinary game Player.
+	if(DORA_WEB_STUDIO_AGENT_HOST)
+		list(APPEND DORA_WEB_ENGINE_SOURCES "${DORA_SOURCE_ROOT}/Lua/LuaFromXml.cpp")
+	endif()
 	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/(Test|Lua/Xml)/")
 	if(NOT DORA_WEB_FEATURE_ML)
 		list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/(ML|3rdParty/ml)/")
@@ -248,6 +263,9 @@ if(DORA_WEB_BUILD_ENGINE)
 		d_m3HasWASI
 		SQLITE_OMIT_LOAD_EXTENSION
 	)
+	if(DORA_WEB_STUDIO_AGENT_HOST)
+		target_compile_definitions(dora-web-engine PRIVATE DORA_WEB_STUDIO_AGENT_HOST)
+	endif()
 	if(NOT DORA_WEB_FEATURE_PHYSICS_2D)
 		target_compile_definitions(dora-web-engine PRIVATE DORA_WEB_NO_PHYSICS_2D)
 	endif()
@@ -353,6 +371,10 @@ endif()
 # binding and feature profile removes the remaining native/Love dependencies.
 option(DORA_WEB_LINK_PLAYER "Attempt to link the Dora Web Player" OFF)
 option(DORA_WEB_DIAGNOSTICS "Keep browser-readable Wasm function names and assertions" OFF)
+if(DORA_WEB_DIAGNOSTICS)
+	set_property(SOURCE "${DORA_SOURCE_ROOT}/Render/RenderTarget.cpp" APPEND PROPERTY
+		COMPILE_DEFINITIONS DORA_WEB_READBACK_TRACE)
+endif()
 if(DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER AND (NOT DORA_WEB_BUILD_ENGINE OR NOT DORA_WEB_BUILD_LOVE_PROBE OR NOT DORA_WEB_LINK_PLAYER))
 	message(FATAL_ERROR "DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER requires the engine, Love support and Player link targets")
 endif()
@@ -413,8 +435,20 @@ if(DORA_WEB_LINK_PLAYER)
 		$<TARGET_OBJECTS:dora-web-engine>
 		$<TARGET_OBJECTS:dora-web-link-deps>)
 	include("${CMAKE_CURRENT_SOURCE_DIR}/AudioMixer.cmake")
+	if(DORA_WEB_EXPERIMENTAL_MAIN_WORKER)
+		include("${CMAKE_CURRENT_SOURCE_DIR}/MainWorkerAudio.cmake")
+		target_link_options(dora-web-player PRIVATE
+			"-sPROXY_TO_PTHREAD=1"
+			"-sOFFSCREENCANVAS_SUPPORT=1"
+			"-sOFFSCREENCANVASES_TO_PTHREAD=#canvas")
+	endif()
 	if(DORA_WEB_FEATURE_MODEL_3D)
 		target_link_libraries(dora-web-player PRIVATE "${DORA_RUST_RUNTIME}")
+	endif()
+	if(DORA_WEB_STUDIO_AGENT_HOST)
+		set(DORA_WEB_PLAYER_EXPORTED_FUNCTIONS "['_main','_dora_web_stop','_dora_web_set_suspended','_dora_web_release_input','_dora_web_asset_complete','_dora_web_agent_request']")
+	else()
+		set(DORA_WEB_PLAYER_EXPORTED_FUNCTIONS "['_main','_dora_web_stop','_dora_web_set_suspended','_dora_web_release_input','_dora_web_asset_complete']")
 	endif()
 	target_link_options(dora-web-player PRIVATE
 		"--ignore-dynamic-linking"
@@ -430,9 +464,10 @@ if(DORA_WEB_LINK_PLAYER)
 		"-sFILESYSTEM=1"
 		"-lidbfs.js"
 		"-sFETCH=1"
+		"-sFETCH_STREAMING=1"
 		${DORA_WEB_THREAD_LINK_OPTIONS}
-		"-sEXPORTED_FUNCTIONS=['_main','_dora_web_stop','_dora_web_set_suspended','_dora_web_release_input','_dora_web_asset_complete']"
-		"-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap']"
+		"-sEXPORTED_FUNCTIONS=${DORA_WEB_PLAYER_EXPORTED_FUNCTIONS}"
+		"-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','FS','IDBFS']"
 		"SHELL:--pre-js \"${CMAKE_BINARY_DIR}/dora-web-features.js\""
 		"SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/web-audio.js\""
 		"SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/web-platform.js\""

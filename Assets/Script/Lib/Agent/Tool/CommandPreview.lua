@@ -142,6 +142,14 @@ function ____exports.createPreviewGameInjection(req, entry) -- 60
 		local start = App.runningTime -- 115
 		local scope = false -- 116
 		local leased = false -- 117
+		if req.registerCleanup then req.registerCleanup(function()
+			if scope then scope = false; Director:endGameCapture() end
+			if leased then
+				leased = false
+				local message = releaseEntryLease(req.operationId, entry)
+				if message ~= nil then error(message) end
+			end
+		end) end
 		local files = {} -- 118
 		local frames = {} -- 119
 		local result = {success = false, message = "previewGame did not complete"} -- 120
@@ -280,6 +288,7 @@ function ____exports.createPreviewGameInjection(req, entry) -- 60
 				end -- 201
 			end -- 201
 		end -- 201
+		if req.registerCleanup then req.registerCleanup(nil) end
 		return complete(result) -- 207
 	end -- 68
 end -- 60

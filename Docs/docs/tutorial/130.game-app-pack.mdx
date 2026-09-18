@@ -12,7 +12,7 @@ graph TD
     A[Game Development Complete] --> B[Prepare Game Assets]
     B --> C[Streamline Assets Directory]
     C --> D[Set Resource Search Paths]
-    D --> E[Select Target Platform<br/>Windows/macOS/Linux/iOS/Android]
+    D --> E[Select Target Platform<br/>Windows/macOS/Linux/iOS/Android/Web]
 
     E --> F[Configure Packaging Settings]
 
@@ -130,6 +130,7 @@ main()
 | Linux | CMake | Binary | Optional | Steam, official website |
 | iOS | Xcode | .ipa | Required | App Store |
 | Android | Android Studio | .apk/.aab | Required | Google Play, other stores |
+| Web | Emscripten + Node.js (engine build scripts) | Static site directory | None | itch.io (HTML), GitHub Pages, any static hosting |
 
 ### 4.2 Packaging Operations for Different Platforms
 
@@ -205,6 +206,45 @@ xcodebuild -project Projects/iOS/Dora.xcodeproj -scheme Dora -configuration Rele
 # Build through Android Studio GUI or use the command below
 ./gradlew assembleRelease
 ```
+
+</TabItem>
+<TabItem value="web" label="Web">
+
+&emsp;&emsp;The Web export packages the game with a WebAssembly build of the engine. The result is a plain directory of static files: host it anywhere and players run the game directly in a desktop or mobile browser, with player settings and game saves persisted in the browser's storage.
+
+#### Step 1: Build the Web Player
+
+From the engine repository, build the Web Player once. The script checks the Emscripten toolchain itself (pinned in `Projects/Web/toolchain.env`):
+
+```bash
+Tools/build-scripts/build_web.sh
+```
+
+The script produces a self-contained Player package in `result/dora-web-player`, containing `index.html`, the Player runtime, and a built-in demo game. The default `dora-preset` profile covers common 2D games; before building, the runtime can be tuned with `DORA_WEB_PROFILE` (`core`, `dora-preset` or `custom`) and feature switches such as `DORA_WEB_FEATURE_MODEL_3D=ON`.
+
+#### Step 2: Package the Game
+
+```bash
+node Tools/build-scripts/package_web_game.mjs <game-dir> <output-dir> [entry]
+```
+
+`<game-dir>` is the streamlined game directory containing the entry file (`init.lua` by default). The script writes a `dora-web-manifest.json` plus content-hashed files under `assets/` into `<output-dir>`; every file is SHA-256 verified when loaded in the browser. A game package holds up to 4096 files and 256 MB in total.
+
+#### Step 3: Combine and Deploy
+
+Copy the Player and the game package into one directory — replacing the built-in demo game — and upload it to any static file server:
+
+```bash
+mkdir -p dist/web-game
+# Player files; skip dora-web-manifest.json and assets/, which belong to the demo game
+cp result/dora-web-player/index.html result/dora-web-player/dora-player-runtime.* \
+	result/dora-web-player/dora-web-features.json result/dora-web-player/dora-audio-mixer.wasm \
+	result/dora-web-player/audio-worklet.js dist/web-game/
+cp <output-dir>/dora-web-manifest.json dist/web-game/
+cp -r <output-dir>/assets dist/web-game/
+```
+
+The page loads `dora-web-manifest.json` next to `index.html` by default and starts the game automatically. The current stable versions of Chrome, Edge, Firefox and Safari are supported.
 
 </TabItem>
 </Tabs>
@@ -314,6 +354,7 @@ gameScene:addTo(Director.entry)
 - **Google Play**: Android applications
 - **Official Website Download**: Direct distribution
 - **itch.io**: Independent game platform
+- **Static Web Hosting**: Browser games exported with the Web Player (GitHub Pages, itch.io HTML, or your own server)
 
 ## Summary
 

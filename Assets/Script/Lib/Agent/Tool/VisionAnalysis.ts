@@ -1,7 +1,7 @@
 // @preview-file off clear
 import { App, Content, Director, HttpClient } from 'Dora';
 const mime = require("mime") as { b64(this: void, value: string): LuaMultiReturn<[string | undefined, string | undefined]> };
-import { safeJsonEncode } from 'Agent/Utils';
+import { createStudioModelRequestId, safeJsonEncode } from 'Agent/Utils';
 import { VISION_PROFILE_VERSION, type VisionBinding } from 'Agent/Tool/VisionBinding';
 import { inspectImage } from 'Agent/Tool/VisionAssets';
 import { resolveWorkspaceFilePath } from 'Agent/Tool/Workspace';
@@ -84,6 +84,7 @@ export async function analyzeImage(req: AnalyzeImageRequest): Promise<Record<str
 		const [json]=safeJsonEncode(body);
 		if (!json) error("Unable to encode vision request");
 		const headers=[`Authorization: Bearer ${binding.apiKey}`,"Content-Type: application/json"];
+		if (binding.studioGateway) headers.push(`X-Studio-Model-Request-Id: ${createStudioModelRequestId()}`);
 		if (binding.provider==="glm-coding-cn") headers.push("X-Title: 4.5V MCP Local","Accept-Language: en-US,en");
 		// Never pass this payload through the text model's debug/history machinery.
 		const raw=await new Promise<string>((resolve,reject)=>{

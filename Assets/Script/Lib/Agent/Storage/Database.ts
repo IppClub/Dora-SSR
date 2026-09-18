@@ -1,5 +1,5 @@
 // @preview-file off clear
-import { Content, DB, Path } from 'Dora';
+import { App, Content, DB, Path } from 'Dora';
 import { Log } from 'Agent/Utils';
 import { toStr } from 'Agent/Storage/Support';
 
@@ -284,7 +284,7 @@ function validateCodecAndWrite(): boolean {
 }
 
 function initializeAgentStorage() {
-	const dbPath = Path(Content.appPath, AGENT_DB_FILE);
+	const dbPath = Path(App.platform === "Web" ? Content.writablePath : Content.appPath, AGENT_DB_FILE);
 	if (!DB.existDB(AGENT_SCHEMA)) {
 		DB.exec(`ATTACH DATABASE ? AS ${AGENT_SCHEMA}`, [dbPath]);
 	}

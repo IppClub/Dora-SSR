@@ -5,7 +5,7 @@ import { acquireEntryLease, recordEntryLeaseRun, ownsEntryLease, releaseEntryLea
 import { createOperationId } from 'Agent/Tool/Operation';
 import { isValidWorkspacePath, ensureDirPath } from 'Agent/Tool/Workspace';
 import { PREVIEW_GAME_STARTUP_TIMEOUT_SECONDS, PREVIEW_GAME_TIMEOUT_SECONDS } from 'Agent/Tool/ToolBudgets';
-import { safeJsonEncode } from 'Agent/Utils';
+import { safeJsonDecode, safeJsonEncode } from 'Agent/Utils';
 import type { VisionBudgetState } from 'Agent/Tool/VisionBudget';
 
 export interface CommandPreviewFrame {
@@ -26,6 +26,12 @@ export interface CommandPreviewGameResult {
 export const COMMAND_VISION_DIR = ".agent/vision";
 
 const PREVIEW_ENTRY_EXTENSIONS = ["", "lua", "ts", "tsx", "yue", "tl", "xml"];
+
+// The dedicated Studio host installs this only for the original Agent session.
+// Native Agent preview continues to use its Dora Director/Entry path below.
+declare const _studio_agent_tool_begin: ((operation:string,file:string,content:string,projectRoot:string)=>string)|undefined;
+declare const _studio_agent_tool_poll: ((requestId:string)=>{success:boolean;resultJSON?:string;message?:string}|undefined)|undefined;
+declare const _studio_agent_tool_cancel: ((requestId:string)=>void)|undefined;
 
 /** Captures kept per project; oldest files roll out first. */
 export const COMMAND_VISION_MAX_FILES = 60;
@@ -64,6 +70,7 @@ export function createPreviewGameInjection(req: {
 	print: (this: void, line: string) => void;
 	reserveCapture?: (this: void, frameCount: number) => {success: boolean; message?: string; budget: VisionBudgetState};
 	onResult?: (this: void, result: CommandPreviewGameResult) => void;
+	registerCleanup?: (this: void, cleanup: (() => void) | undefined) => void;
 }, entry: DevEntryModule): (this: void, opts?: unknown) => CommandPreviewGameResult {
 	return (opts) => {
 		const o = type(opts) === "table" ? opts as Record<string, unknown> : {};
@@ -97,6 +104,40 @@ export function createPreviewGameInjection(req: {
 		if (!Content.exist(full)) {
 			return complete({success: false, message: `Build the entry before previewGame; generated Lua was not found at ${full}`});
 		}
+		if (typeof _studio_agent_tool_begin === "function") {
+			const reserveCapture = req.reserveCapture;
+			const reservation = reserveCapture ? reserveCapture(times.length) : undefined;
+			if (reservation && !reservation.success) return complete({success:false,message:reservation.message ?? "Vision capture budget exhausted",visionBudget:reservation.budget});
+			let requestId:string|undefined,active=false;
+			const cancel = () => { if(active && requestId){active=false;_studio_agent_tool_cancel?.(requestId);} };
+			req.registerCleanup?.(cancel);
+			let result:CommandPreviewGameResult={success:false,message:"Studio Agent Player preview did not complete",visionBudget:reservation?.budget};
+			try {
+				const [options] = safeJsonEncode({entry:file,captureAtSeconds:times});
+				if (!options) error("failed to encode Studio Agent preview options");
+				requestId = _studio_agent_tool_begin("preview-game",full,options,req.workDir);
+				active = true;
+				const deadline=App.runningTime+PREVIEW_GAME_TIMEOUT_SECONDS;
+				let answer:{success:boolean;resultJSON?:string;message?:string}|undefined;
+				while (!answer) {
+					if(req.isCancelled?.()===true) error("previewGame cancelled");
+					if(App.runningTime>=deadline) error("previewGame timed out");
+					answer=_studio_agent_tool_poll?.(requestId);
+					if(!answer)sleep();
+				}
+				active=false;
+				if(!answer.success) error(answer.message??"Studio Agent Player preview failed");
+				const [decoded] = safeJsonDecode(answer.resultJSON??"");
+				const value=decoded as CommandPreviewGameResult|undefined;
+				if(!value || value.success!==true || !Array.isArray(value.files) || !Array.isArray(value.frames)
+					|| value.files.length!==times.length || value.frames.length!==times.length
+					|| value.files.some(path=>typeof path!=="string" || !path.startsWith(`${COMMAND_VISION_DIR}/`)))error("Invalid Studio Agent Player preview result");
+				result={success:true,files:value.files,frames:value.frames,visionBudget:reservation?.budget};
+				pruneVisionCaptures(Path(req.workDir,".agent","vision"));
+			} catch(error) {cancel();result={success:false,message:tostring(error),visionBudget:reservation?.budget};}
+			finally {req.registerCleanup?.(undefined);}
+			return complete(result);
+		}
 		if (Director.beginGameCapture === undefined || Director.captureGameAsync === undefined || Director.endGameCapture === undefined) {
 			return complete({success: false, message: "This engine build does not support game capture; update Dora SSR"});
 		}
@@ -115,6 +156,14 @@ export function createPreviewGameInjection(req: {
 		const start = App.runningTime;
 		let scope = false;
 		let leased = false;
+		req.registerCleanup?.(() => {
+			if (scope) { scope = false; Director.endGameCapture(); }
+			if (leased) {
+				leased = false;
+				const message = releaseEntryLease(req.operationId, entry);
+				if (message !== undefined) error(message);
+			}
+		});
 		const files: string[] = [];
 		const frames: CommandPreviewFrame[] = [];
 		let result: CommandPreviewGameResult = {success: false, message: "previewGame did not complete"};
@@ -204,6 +253,7 @@ export function createPreviewGameInjection(req: {
 				}
 			}
 		}
+		req.registerCleanup?.(undefined);
 		return complete(result);
 	};
 }

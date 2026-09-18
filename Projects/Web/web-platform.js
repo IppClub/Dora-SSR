@@ -81,11 +81,12 @@ SOFTWARE. */
 		(global.window || global).dispatchEvent(event);
 	}
 
-	function releaseInput(reason = "blur") {
-		for (const entry of pressedKeys.values()) syntheticKeyUp(entry);
+	function releaseInput(reason = "blur", notifyEngine = true) {
+		if (notifyEngine) for (const entry of pressedKeys.values()) syntheticKeyUp(entry);
 		pressedKeys.clear();
 		for (const [pointerId, entry] of activePointers) {
 			if (canvas?.hasPointerCapture?.(pointerId)) canvas.releasePointerCapture(pointerId);
+			if (!notifyEngine) continue;
 			const event = new PointerEvent("pointercancel", {
 				pointerId,
 				pointerType: entry.pointerType,
@@ -98,7 +99,8 @@ SOFTWARE. */
 			(canvas || global).dispatchEvent(event);
 		}
 		activePointers.clear();
-		module.ccall?.("dora_web_release_input", null, [], []);
+		if (notifyEngine) module.ccall?.("dora_web_release_input", null, [], []);
+		if (global.document?.pointerLockElement === canvas) global.document.exitPointerLock?.();
 		global.dispatchEvent?.(new CustomEvent("dora-inputrelease", {detail: {reason}}));
 	}
 
@@ -193,10 +195,10 @@ SOFTWARE. */
 		return global.document.pointerLockElement === canvas;
 	}
 
-	function dispose() {
+	function dispose({notifyEngine = true} = {}) {
 		if (!active) return false;
 		active = false;
-		releaseInput("dispose");
+		releaseInput("dispose", notifyEngine);
 		for (const remove of listeners.splice(0)) remove();
 		for (const cancel of [...pendingInputs]) cancel();
 		cancelAudioCallback();
@@ -236,6 +238,11 @@ SOFTWARE. */
 	listen(canvas, "pointercancel", (event) => activePointers.delete(event.pointerId), true);
 	listen(global, "blur", () => releaseInput("blur"));
 	listen(global.document, "visibilitychange", () => void setSuspended(global.document.hidden, "visibility"));
+	// Fault notifications can arrive while the runtime is aborted or its worker
+	// is synchronously waiting on this page. Cleanup must not re-enter Wasm.
+	listen(global, "dora-statechange", (event) => {
+		if (event.detail?.state === "faulted") dispose({notifyEngine: false});
+	});
 
 	const probe = global.document?.createElement("audio");
 	const capabilities = Object.freeze({

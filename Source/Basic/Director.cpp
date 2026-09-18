@@ -9,6 +9,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 
 #include "Basic/Director.h"
+#if BX_PLATFORM_EMSCRIPTEN
+#include <emscripten.h>
+#endif
 
 #include "Audio/Audio.h"
 #include "Basic/Application.h"
@@ -264,6 +267,28 @@ bool Director::init() {
 	}
 #endif
 	bool entryFound = false;
+#if BX_PLATFORM_EMSCRIPTEN
+	// The manifest is owned by the page even when main runs on a pthread.
+	const auto entryPointer = MAIN_THREAD_EM_ASM_PTR({
+		const entry = Module['doraManifest']?.entry;
+		if (!entry) return 0;
+		const bytes = new TextEncoder().encode(entry);
+		const pointer = _malloc(bytes.length + 1);
+		HEAPU8.set(bytes, pointer);
+		HEAPU8[pointer + bytes.length] = 0;
+		return pointer;
+	});
+	if (entryPointer) {
+		const std::string entry(static_cast<const char*>(entryPointer));
+		free(entryPointer);
+		// Studio owns a dedicated page: establish the tool-UI baseline before
+		// executing game code, so game-created system UI remains in captures.
+		if (MAIN_THREAD_EM_ASM_INT({ return Module['doraStudioCapture'] === true; })) {
+			beginGameCapture();
+		}
+		return SharedLuaEngine.executeModule(Path::concat({"/game"_slice, entry}));
+	}
+#endif
 	const auto scriptPath = Path::concat({SharedContent.getAssetPath(), "Script"_slice});
 	for (const auto& entry : {"init.lua"_slice, "init.yue"_slice, "init.tl"_slice, "init.wasm"_slice}) {
 		auto file = Path::concat({scriptPath, entry});

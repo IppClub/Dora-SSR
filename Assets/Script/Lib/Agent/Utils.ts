@@ -45,6 +45,7 @@ export type SimpleXMLParseResult =
 
 const TOOL_CALL_ID_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
 let TOOL_CALL_ID_COUNTER = 0;
+let STUDIO_MODEL_REQUEST_COUNTER = 0;
 
 function toBase36(value: number): string {
 	if (value <= 0) return "0";
@@ -63,6 +64,13 @@ export function createLocalToolCallId(): string {
 	const timePart = toBase36(os.time());
 	const counterPart = toBase36(TOOL_CALL_ID_COUNTER);
 	return `tc${timePart}${counterPart}`;
+}
+
+export function createStudioModelRequestId(): string {
+	STUDIO_MODEL_REQUEST_COUNTER += 1;
+	// An identity, never an authorization token. The Studio server binds it to
+	// the live launch and fingerprints the exact request before any dispatch.
+	return `mr${toBase36(os.time())}${toBase36(STUDIO_MODEL_REQUEST_COUNTER)}${toBase36(math.floor(math.random() * 1000000000))}${toBase36(math.floor(math.random() * 1000000000))}`;
 }
 
 export interface StopToken {
@@ -773,7 +781,8 @@ const postLLM = (
 	stream: boolean,
 	customOptions?: Record<string, unknown>,
 	receiver?: (this: void, data: string) => boolean,
-	stopToken?: StopToken
+	stopToken?: StopToken,
+	studioGateway?: boolean
 ) => {
 	const requestTimeout = stream ? LLM_STREAM_TIMEOUT : LLM_TIMEOUT;
 	const requestOptions = applyCustomLLMOptions(options, customOptions);
@@ -783,6 +792,7 @@ const postLLM = (
 		messages,
 		stream,
 	};
+	const studioRequestId = studioGateway ? createStudioModelRequestId() : undefined;
 	stopToken ??= { stopped: false };
 	return new Promise<string>((resolve, reject) => {
 		let requestId = 0;
@@ -819,6 +829,7 @@ const postLLM = (
 					`Authorization: Bearer ${apiKey}`,
 					"Content-Type: application/json",
 					receiver ? "Accept: text/event-stream" : "Accept: application/json",
+					...(studioRequestId ? [`X-Studio-Model-Request-Id: ${studioRequestId}`] : []),
 				];
 				requestId = receiver
 					? HttpClient.post(url, headers, jsonStr, requestTimeout, (data) => {
@@ -1150,6 +1161,12 @@ export type LLMConfig = {
 	reasoningEffort?: string;
 	customOptions?: Record<string, unknown>;
 	supportsFunctionCalling: boolean;
+	studioGateway?: boolean;
+	studioVision?: {
+		provider: "deepseek" | "glm-coding-cn";
+		model: string;
+		url: string;
+	};
 };
 
 export function validateAgentLLMConfig(config: LLMConfig): { success: true } | { success: false; message: string } {
@@ -1367,7 +1384,7 @@ export const callLLMStream = (
 				}
 				parser.append(data);
 				return false;
-			}, streamStopToken);
+			}, streamStopToken, config.studioGateway);
 			await parser.finish();
 			if (onDone) {
 				onDone(result);
@@ -1623,7 +1640,7 @@ export async function callLLMStreamAggregated(
 				}
 				parser.append(data);
 				return false;
-			}, stopToken);
+			}, stopToken, resolvedConfig.studioGateway);
 			await parser.finish();
 		} catch (e) {
 			parser.cancel();
@@ -1727,7 +1744,7 @@ export async function callLLM(
 		return { success: false, message: reason };
 	}
 	try {
-		const raw = sanitizeUTF8(await postLLM(fitted.messages, url, apiKey, model, options, false, resolvedConfig.customOptions, undefined, stopToken));
+		const raw = sanitizeUTF8(await postLLM(fitted.messages, url, apiKey, model, options, false, resolvedConfig.customOptions, undefined, stopToken, resolvedConfig.studioGateway));
 		const normalizedRaw = normalizeLLMJSONResponse(raw);
 		Log("Info", `[Agent.Utils] callLLMOnce raw response length=${raw.length}${normalizedRaw.length !== raw.length ? ` normalized=${normalizedRaw.length}` : ""}`);
 		const [response, err] = safeJsonDecode(normalizedRaw);

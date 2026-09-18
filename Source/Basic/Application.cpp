@@ -61,7 +61,9 @@ std::mutex receivedFileMutex;
 std::deque<std::string> receivedFiles;
 #if BX_PLATFORM_EMSCRIPTEN
 void setWebRuntimeState(const char* state, const char* detail = "") {
-	EM_ASM({
+	// The page owns lifecycle UI even when main runs on a pthread. Synchronous
+	// proxying keeps the borrowed UTF-8 strings alive until the page has read them.
+	MAIN_THREAD_EM_ASM({
 		if (typeof window.doraSetState === "function") {
 			window.doraSetState(UTF8ToString($0), UTF8ToString($1));
 		}
@@ -747,6 +749,9 @@ bool Application::isReducedMotion() const noexcept {
 #endif
 
 float Application::getDevicePixelRatio() const noexcept {
+	// Hidden Web frames and minimized windows may have no drawable area.
+	// Keep a valid density until dimensions become available again.
+	if (_bufferWidth <= 0 || _visualWidth <= 0) return 1.0f;
 	return s_cast<float>(_bufferWidth) / _visualWidth;
 }
 
@@ -1010,6 +1015,14 @@ int Application::run(MainFunc mainFunc) {
 		return 1;
 	}
 
+	// The html5 callback API proxies registration to the page, which cannot
+	// observe context loss on the transferred OffscreenCanvas. Listen on the
+	// actual canvas here and consume the flag on its owning logic thread.
+	EM_ASM({
+		Module['canvas'].addEventListener('webglcontextlost', () => {
+			Module['doraWebContextLost'] = true;
+		}, {once: true});
+	});
 	SharedPoolManager.push();
 	if (!SharedDirector.init() || (_mainFunc && !_mainFunc())) {
 		SharedPoolManager.pop();
@@ -1302,6 +1315,7 @@ void Application::invokeInLogic(const std::function<void()>& func) {
 
 #if BX_PLATFORM_EMSCRIPTEN
 uint32_t Application::setWebSuspended(bool value) {
+	if (_webContextLost && !value) return _frame;
 	if (_webSuspended == value) return _frame;
 	_webSuspended = value;
 	// Do not deliver the time spent in a background tab as one oversized frame.
@@ -1313,6 +1327,11 @@ uint32_t Application::setWebSuspended(bool value) {
 void Application::emscriptenMainLoop(void* userData) {
 	auto* app = static_cast<Application*>(userData);
 	try {
+		if (!app->_webContextLost && EM_ASM_INT({ return !!Module['doraWebContextLost']; })) {
+			app->_webContextLost = true;
+			app->setWebSuspended(true);
+			setWebRuntimeState("faulted", "WebGL context lost; restart the runtime");
+		}
 		app->runEmscriptenFrame();
 	} catch (const std::exception& e) {
 		LogError(e.what());
@@ -2183,6 +2202,23 @@ extern "C" void dora_web_release_input() {
 
 extern "C" void dora_web_stop() {
 	SharedApplication.shutdown();
+}
+
+// The page may call this while main runs on a pthread. All Director access
+// belongs to the logic queue; completion is delivered back to the page.
+extern "C" EMSCRIPTEN_KEEPALIVE void dora_web_capture_game(int requestId) {
+	if (requestId <= 0) return;
+	SharedApplication.invokeInLogic([requestId]() {
+		auto complete = [requestId](bool success) {
+			MAIN_THREAD_EM_ASM({
+				Module['doraCaptureComplete']?.($0, !!$1);
+			}, requestId, success ? 1 : 0);
+		};
+		const auto path = std::string("/tmp/dora-studio-capture-") + std::to_string(requestId) + ".png";
+		if (!SharedDirector.captureGameAsync(path, [complete](bool success, double, Dora::Size) {
+			complete(success);
+		})) complete(false);
+	});
 }
 #endif
 

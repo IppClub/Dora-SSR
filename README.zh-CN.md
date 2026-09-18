@@ -22,7 +22,7 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/IppClub/Dora-SSR)
 [![OpenAtom](https://img.shields.io/badge/%E5%BC%80%E6%94%BE%E5%8E%9F%E5%AD%90%E5%BC%80%E6%BA%90%E5%9F%BA%E9%87%91%E4%BC%9A-%E5%AD%B5%E5%8C%96%E4%B8%AD-blue)](https://openatom.org/project/RJHufNnSKtDZ)
 
-Dora SSR 是一款跨平台游戏引擎，直接运行在游戏的目标设备上——手机、掌机或桌面电脑。通过同一网络内任意浏览器打开内置的 Web IDE，即可针对真实运行时编写、检查与迭代代码，而不是脱离设备的预览；引擎还内置了 AI 编程智能体。支持原生运行于 `Android`、`iOS`、`Windows`、`macOS`、`Linux` 与 [鸿蒙](https://github.com/IppClub/ohos_dora_ssr/blob/main/README.zh-CN.md)。
+Dora SSR 是一款跨平台游戏引擎，直接运行在游戏的目标设备上——手机、掌机或桌面电脑。通过同一网络内任意浏览器打开内置的 Web IDE，即可针对真实运行时编写、检查与迭代代码，而不是脱离设备的预览；引擎还内置了 AI 编程智能体。支持原生运行于 `Android`、`iOS`、`Windows`、`macOS`、`Linux` 与 [鸿蒙](https://github.com/IppClub/ohos_dora_ssr/blob/main/README.zh-CN.md)。完成的游戏还可以导出为 WebAssembly 版本，通过纯静态托管直接在浏览器中运行——就像[网页游戏画廊](https://dora-ssr.net/zh-Hans/play)中的作品一样。
 
 <div align='center'>
 
@@ -364,6 +364,7 @@ fn main () {
 
 - 参考 [Dora-Example](https://github.com/IppClub/Dora-Example/tree/master/Example) 了解各项 API 与引擎能力的最小用法。
 - 参考 [Dora-Demo](https://github.com/IppClub/Dora-Demo) 了解完整项目如何组织资源、脚本与游戏逻辑。
+- 打开[网页游戏画廊](https://dora-ssr.net/zh-Hans/play)，无需安装即可在浏览器中直接试玩其中的一部分游戏——它们都是引擎的 WebAssembly 导出版本。
 
 ## 安装
 
@@ -422,6 +423,7 @@ sudo apt install dora-ssr
 ![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg)
 ![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg)
 ![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg)
+![Web](https://github.com/ippclub/Dora-SSR/actions/workflows/web.yml/badge.svg)
 
 </div>
 

@@ -7,6 +7,7 @@ local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf -- 1
 local ____exports = {} -- 1
 local ____Dora = require("Dora") -- 2
 local Content = ____Dora.Content -- 2
+local App = ____Dora.App
 local DB = ____Dora.DB -- 2
 local Path = ____Dora.Path -- 2
 local ____Utils = require("Agent.Utils") -- 3
@@ -252,7 +253,7 @@ local function validateCodecAndWrite() -- 253
 	return DB:transaction({"CREATE TABLE agent.AgentStorageProbe(value INTEGER NOT NULL);", "INSERT INTO agent.AgentStorageProbe(value) VALUES(1);", "DROP TABLE agent.AgentStorageProbe;"}) -- 279
 end -- 253
 local function initializeAgentStorage() -- 286
-	local dbPath = Path(Content.appPath, AGENT_DB_FILE) -- 287
+	local dbPath = Path(App.platform == "Web" and Content.writablePath or Content.appPath, AGENT_DB_FILE) -- 287
 	if not DB:existDB(____exports.AGENT_SCHEMA) then -- 287
 		DB:exec("ATTACH DATABASE ? AS " .. ____exports.AGENT_SCHEMA, {dbPath}) -- 289
 	end -- 289
