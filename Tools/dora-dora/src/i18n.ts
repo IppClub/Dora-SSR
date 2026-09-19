@@ -15,6 +15,18 @@ i18n
 		resources: {
 			en: {
 				translation: {
+					webPackage: {
+						package: "Package",
+						busy: "Packaging Web…",
+						noProject: "Open a file in the project to package.",
+						agentBusy: "Wait for Dora to finish working on this project.",
+						saveFailed: "Could not save the project.",
+						buildFailed: "Compilation failed. Check the log before packaging.",
+						snapshotFailed: "Could not prepare the project archive.",
+						runtimeUnavailable: "Web runtime is unavailable. Rebuild the Web IDE with its export runtime.",
+						done: "Web package downloaded.",
+						failed: "Web packaging failed",
+					},
 					spine: {
 						load: "failed to load {{file}}",
 					},
@@ -1214,6 +1226,18 @@ i18n
 			},
 			zh: {
 				translation: {
+					webPackage: {
+						package: "打包",
+						busy: "正在打包 Web…",
+						noProject: "请先打开要打包的项目文件",
+						agentBusy: "请等待 Dora 完成当前项目任务后再打包",
+						saveFailed: "项目保存失败",
+						buildFailed: "编译失败，请检查日志后重新打包",
+						snapshotFailed: "项目压缩失败",
+						runtimeUnavailable: "Web 运行时不可用，请重新构建包含运行时的 Web IDE",
+						done: "Web 作品包已下载",
+						failed: "Web 打包失败",
+					},
 					spine: {
 						load: "加载 {{file}} 失败",
 					},

@@ -68,6 +68,7 @@ import { getMonacoRuntime, getMonacoTypeScript, peekMonacoRuntime } from './Mona
 import { isPathWithin, relativePathFromRoot, toUrlPath } from './PathUtils';
 import { getResourceTreeReconcileDirectories } from './ResourceTreeSync';
 import AudioPreviewCard from './AudioPreviewCard';
+import {useWebPackage} from './WebPackage/useWebPackage';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -3316,12 +3317,13 @@ export default function PersistentDrawerLeft() {
 		});
 	}, [addAlert, closeAudioPreviewPath, refreshTreeDirectory, t, switchTab, updateCachedFileSearch]);
 
-	const buildTreeData = useCallback(async (data: TreeDataType) => {
+	const buildTreeData = useCallback(async (data: TreeDataType, quiet = false) => {
 		const { key } = data;
 		let built = false;
+		let succeeded = true;
 		const buildFile = async (key: string, buildFolder: boolean) => {
 			const preferLog = buildFolder;
-			if (checkFileReadonly(key, false)) return;
+			if (checkFileReadonly(key, false)) { succeeded = false; return; }
 			let title: string;
 			if (isChildFolder(key, writablePath)) {
 				title = path.relative(writablePath, key);
@@ -3340,6 +3342,7 @@ export default function PersistentDrawerLeft() {
 					setIsWaSaving(true);
 					try {
 						const res = await Service.buildWa({ path: key });
+						if (!res.success) succeeded = false;
 						if (res.success) {
 							addAlert(t("alert.build", { title }), "success");
 						} else {
@@ -3354,6 +3357,7 @@ export default function PersistentDrawerLeft() {
 					setIsWaSaving(true);
 					try {
 						const res = await Service.buildWa({ path: key });
+						if (!res.success) succeeded = false;
 						if (res.success) {
 							Service.command({ code: `Log "Info", "Built ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
 						} else {
@@ -3367,6 +3371,7 @@ export default function PersistentDrawerLeft() {
 					setIsWaSaving(true);
 					try {
 						const res = await Service.buildWa({ path: key });
+						if (!res.success) succeeded = false;
 						if (res.success) {
 							addAlert(t("alert.build", { title }), "success");
 						} else {
@@ -3379,6 +3384,7 @@ export default function PersistentDrawerLeft() {
 				} else if ((ext === '.ts' || ext === '.tsx') && !key.toLocaleLowerCase().endsWith(".d.ts")) {
 					built = true;
 					const res = await Service.read({ path: key });
+					if (!res.success || res.content === undefined) succeeded = false;
 					if (res.success && res.content !== undefined) {
 						if (/^[\s\n\r]*<\?xml/.test(res.content)) {
 							return;
@@ -3386,12 +3392,14 @@ export default function PersistentDrawerLeft() {
 						const { transpileTypescript, addDiagnosticToLog } = await import('./TranspileTS');
 						const { luaCode, diagnostics } = await transpileTypescript(key, res.content);
 						if (diagnostics.length > 0) {
+							succeeded = false;
 							await addDiagnosticToLog(key, diagnostics);
 							if (!preferLog) {
 								addAlert(t("alert.failedCompile", { title }), "warning");
 							}
 							return;
 						}
+						if (luaCode === undefined) succeeded = false;
 						if (luaCode !== undefined) {
 							if (fileInTab !== undefined) {
 								fileInTab.content = luaCode;
@@ -3401,6 +3409,7 @@ export default function PersistentDrawerLeft() {
 								}
 							}
 							const res = await Service.write({ path: luaFile, content: luaCode });
+							if (!res.success) succeeded = false;
 							if (res.success) {
 								if (preferLog) {
 									Service.command({ code: `Log "Info", "Built ${title.replace(/[\\"]/g, "\\$&")}"`, log: false });
@@ -3418,6 +3427,7 @@ export default function PersistentDrawerLeft() {
 					}
 				} else if (ext === '.yue' || ext === '.tl' || ext === '.xml') {
 					const res = await Service.build({ path: key });
+					if (!res.success) succeeded = false;
 					built = true;
 					if (res.success) {
 						if (preferLog) {
@@ -3444,6 +3454,7 @@ export default function PersistentDrawerLeft() {
 					}
 				}
 			} catch (e) {
+				succeeded = false;
 				built = true;
 				console.error(e);
 				if (preferLog) {
@@ -3457,17 +3468,18 @@ export default function PersistentDrawerLeft() {
 		};
 		if (data.dir) {
 			const { title } = data;
-			setOpenLog({
+			if (!quiet) setOpenLog({
 				title: t("menu.build") + " " + title,
 				stopOnClose: false
 			});
 			if (isSaving) {
 				addAlert(t("alert.waitForJob"), "info");
-				return;
+				return false;
 			}
 			isSaving = true;
 			try {
 				const listRes = await Service.assetFiles(data.key);
+				if (!listRes.success) succeeded = false;
 				if (listRes.success) {
 					for (const file of listRes.files) {
 						await buildFile(file, true);
@@ -3481,7 +3493,19 @@ export default function PersistentDrawerLeft() {
 		} else {
 			await buildFile(key, false);
 		}
+		return succeeded;
 	}, [addAlert, checkFileReadonly, files, t]);
+
+	const webPackageAction = useWebPackage({
+		currentFile,
+		writablePath,
+		isBusy: () => isProjectBuilding || isSaving,
+		setBuilding: setIsProjectBuilding,
+		save: saveAllTabs,
+		build: target => buildTreeData(target, true),
+		checkAgent: getRunningAgentSessionForProject,
+		notify: addAlert,
+	});
 
 	const buildCurrentProject = useCallback(async () => {
 		if (isProjectBuilding || isSaving) {
@@ -5564,6 +5588,7 @@ export default function PersistentDrawerLeft() {
 									compact
 									touch
 									onClick={onPlayControlClick}
+									packageAction={webPackageAction}
 									showFirstProjectTour={!firstProjectTourCompleted}
 									buildProjectAction={{
 										onClick: () => void buildCurrentProject(),
@@ -6574,6 +6599,7 @@ export default function PersistentDrawerLeft() {
 								compact
 								touch={compactViewportLayout}
 								onClick={onPlayControlClick}
+								packageAction={webPackageAction}
 								showFirstProjectTour={!firstProjectTourCompleted}
 								buildProjectAction={{
 									onClick: () => void buildCurrentProject(),
