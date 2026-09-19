@@ -9,6 +9,8 @@ const lockPath = process.env.DORA_WEB_RUNTIME_LOCK
   ? path.resolve(process.env.DORA_WEB_RUNTIME_LOCK)
   : new URL('./web-runtime-lock.json', import.meta.url);
 const lock = JSON.parse(await fs.readFile(lockPath, 'utf8'));
+// Export owns its page template; ignore shells in older gallery/local locks.
+const runtimeFiles = Object.fromEntries(Object.entries(lock.files).filter(([name]) => name !== 'index.html'));
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const localFiles = {
   'dora-logo.png': await fs.readFile(path.join(root, 'Tools/dora-dora/public/logo512.png')),
@@ -16,27 +18,21 @@ const localFiles = {
   'LICENSES.3rdparty.md': await fs.readFile(path.join(root, 'LICENSES.3rdparty.md')),
   'NOTICE.txt': await fs.readFile(path.join(root, 'NOTICE.txt')),
 };
-const files = {...Object.fromEntries(Object.entries(lock.files).map(([name, file]) => [name, file.output ?? file])), ...Object.fromEntries(Object.entries(localFiles).map(([name, data]) => [name, {size: data.length, sha256: hash(data)}]))};
+const files = {...runtimeFiles, ...Object.fromEntries(Object.entries(localFiles).map(([name, data]) => [name, {size: data.length, sha256: hash(data)}]))};
 let cached = true;
 for (const [name, expected] of Object.entries(files)) {
   const bytes = await fs.readFile(path.join(destination, name)).catch(() => null);
   if (!bytes || bytes.length !== expected.size || hash(bytes) !== expected.sha256) {cached = false; break;}
 }
 if (cached) {
-  const shell = await fs.readFile(path.join(destination, 'index.html'));
-  files['index.html'] = {size: shell.length, sha256: hash(shell)};
   await fs.writeFile(path.join(destination, 'runtime.json'), JSON.stringify({version: 1, engineVersion: lock.engineVersion, files}));
   console.log('Web export runtime is ready (verified cache).');
 } else {
   const stage = `${destination}.tmp-${process.pid}`;
   await fs.mkdir(stage, {recursive: true});
   try {
-    for (const [name, expected] of Object.entries(lock.files)) {
+    for (const [name, expected] of Object.entries(runtimeFiles)) {
       const cachedBytes = await fs.readFile(path.join(destination, name)).catch(() => null);
-      if (expected.output && cachedBytes && cachedBytes.length === expected.output.size && hash(cachedBytes) === expected.output.sha256) {
-        await fs.writeFile(path.join(stage, name), cachedBytes);
-        continue;
-      }
       let bytes = cachedBytes;
       if (!bytes || bytes.length !== expected.size || hash(bytes) !== expected.sha256) {
         console.log(`Preparing Web export runtime: ${name}`);
@@ -50,12 +46,6 @@ if (cached) {
         }
       }
       if (bytes.length !== expected.size || hash(bytes) !== expected.sha256) throw new Error(`Web runtime checksum mismatch: ${name}`);
-      if (name === 'index.html') {
-        const shell = bytes.toString('utf8');
-        if (!shell.includes('src="gallery-player.js"') && !shell.includes('src="dora-player-runtime.js"')) throw new Error('Unsupported player shell');
-        bytes = Buffer.from(shell.replace('src="gallery-player.js"', 'src="dora-player-runtime.js"'));
-        if (bytes.length !== files[name].size || hash(bytes) !== files[name].sha256) throw new Error('Player shell checksum mismatch');
-      }
       await fs.writeFile(path.join(stage, name), bytes);
     }
     for (const [name, data] of Object.entries(localFiles)) await fs.writeFile(path.join(stage, name), data);

@@ -2,27 +2,13 @@ import {strToU8, strFromU8, unzipSync, zip} from 'fflate';
 import {sha256} from '@noble/hashes/sha2.js';
 import {bytesToHex} from '@noble/hashes/utils.js';
 import {createHtmlFiles} from './HtmlArchive';
+import {createPlayerShell} from './PlayerShell';
 
 export type PackageFiles = Record<string, Uint8Array>;
 export type WebPackageFormat = 'html' | 'http';
-export const runtimeFiles = ['index.html', 'dora-player-runtime.js', 'dora-player-runtime.wasm', 'dora-player-runtime.data', 'dora-web-features.json', 'audio-worklet.js', 'dora-audio-mixer.wasm', 'dora-logo.png'];
+export const runtimeFiles = ['dora-player-runtime.js', 'dora-player-runtime.wasm', 'dora-player-runtime.data', 'dora-web-features.json', 'audio-worklet.js', 'dora-audio-mixer.wasm', 'dora-logo.png'];
 const maxFileBytes = 64 * 1024 * 1024;
 const maxTotalBytes = 256 * 1024 * 1024;
-
-function brandPlayerShell(bytes: Uint8Array): Uint8Array {
-  const shell = strFromU8(bytes);
-  const content = '<div id="status-content">';
-  if (!shell.includes(content) || !shell.includes('</head>')) throw new Error('Unsupported Web player shell');
-  const style = `<style>
-    #engine-brand { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-bottom: 28px; }
-    #engine-logo { display: block; width: 128px; height: 128px; object-fit: contain; }
-    #engine-name { font: 600 28px/1.2 system-ui, sans-serif; letter-spacing: .4px; color: #f1f5fa; }
-    #status-message { font-size: 12px; line-height: 1.6; color: #aeb6bf; overflow-wrap: anywhere; }
-    @media (max-height: 360px) { #engine-brand { gap: 8px; margin-bottom: 12px; } #engine-logo { width: 80px; height: 80px; } }
-  </style>`;
-  const brand = '<div id="engine-brand"><img id="engine-logo" src="dora-logo.png" alt="" width="128" height="128"><div id="engine-name">Dora SSR</div></div>';
-  return strToU8(shell.replace('</head>', style + '</head>').replace(content, content + brand));
-}
 
 function validatePath(name: string) {
   if (!name || /[\\\x00-\x1f]/.test(name) || /^[A-Za-z]:/.test(name)
@@ -69,7 +55,7 @@ export async function createWebArchive(project: PackageFiles, runtime: PackageFi
   const metadata = JSON.parse(strFromU8(runtime['runtime.json'] || new Uint8Array()));
   if (!/^\d+\.\d+\.\d+$/.test(metadata.engineVersion)) throw new Error('Invalid Web runtime version');
   const output: PackageFiles = {...runtime};
-  output['index.html'] = brandPlayerShell(runtime['index.html']);
+  output['index.html'] = strToU8(createPlayerShell(format));
   output['runtime.json'] = strToU8(JSON.stringify({...metadata, files: {...metadata.files,
     'index.html': {size: output['index.html'].length, sha256: digest(output['index.html'])},
   }}));

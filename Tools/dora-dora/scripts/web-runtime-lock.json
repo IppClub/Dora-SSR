@@ -18,14 +18,6 @@
       "size": 1252,
       "sha256": "c99218e8aa5d21b6c0e913613b1b023d5d8a6c4474fc408982547382202c1850"
     },
-    "index.html": {
-      "size": 4881,
-      "sha256": "91f8291edae08c76c02b38ab4430d1dfc02d3a804ea5b8d7ee3a591602d847b6",
-      "output": {
-        "size": 4886,
-        "sha256": "126c4febf91e6d494396874eb311b91ce518702b735f99ee71f2bc03d78121df"
-      }
-    },
     "audio-worklet.js": {
       "size": 4811,
       "sha256": "0a69374be7060caf6651b1335b418df062345d4666d36f8d4638b06b2a97c76b"

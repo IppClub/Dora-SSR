@@ -58,6 +58,16 @@ try {
   assert.equal(JSON.parse(strFromU8(newer['dora-web-manifest.json'])).engineVersion, '1.9.3');
   assert.ok(newer['audio-worklet.js'] && newer['dora-audio-mixer.wasm']);
   const htmlRuntime = {...runtime, 'dora-player-runtime.js': strToU8('Module.doraSnapshot; new URL("dora-audio-mixer.wasm",base); new URL("audio-worklet.js",base);')};
+  // Export owns its shell; compiler/gallery HTML formatting must not affect it.
+  const foreignShell = '<html><body><canvas id=canvas></canvas><script async src=dora-player-runtime.js></script></body></html>';
+  for (const format of ['html', 'http']) {
+    const foreign = unzipSync(await createWebArchive(project, {...htmlRuntime, 'index.html': strToU8(foreignShell)}, format));
+    const ownShell = strFromU8(foreign['index.html']);
+    assert.match(ownShell, /id="engine-name">Dora SSR</);
+    assert.match(ownShell, format === 'html' ? /src="html-loader.js"/ : /src="dora-player-runtime.js"/);
+    const absent = unzipSync(await createWebArchive(project, {...htmlRuntime, 'index.html': undefined}, format));
+    assert.equal(strFromU8(absent['index.html']), ownShell);
+  }
   const html = unzipSync(await createWebArchive(project, htmlRuntime, 'html'));
   assert.match(strFromU8(html['index.html']), /src="html-loader.js"/);
   assert.match(strFromU8(html['index.html']), /id="engine-name">Dora SSR</);

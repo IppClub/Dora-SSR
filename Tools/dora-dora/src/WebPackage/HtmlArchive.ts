@@ -34,10 +34,6 @@ export function createHtmlFiles(input: PackageFiles, digest: (bytes: Uint8Array)
     output[script] = strToU8(`DoraHtmlPackage.deliver(${JSON.stringify(name)},"${base64(bytes)}");\n`);
     delete output[name];
   }
-  const entry = '<script src="dora-player-runtime.js"></script>';
-  const shell = strFromU8(output['index.html']);
-  if (!shell.includes(entry)) throw new Error('Unsupported HTML player shell');
-  output['index.html'] = strToU8(shell.replace(entry, '<script src="html-loader.js"></script>'));
   output['html-loader.js'] = strToU8(`(${htmlPlayer})(${JSON.stringify({manifest, records})});\n`);
   // The manifest is delivered through Module.doraSnapshot, not fetched from disk.
   delete output['dora-web-manifest.json'];
