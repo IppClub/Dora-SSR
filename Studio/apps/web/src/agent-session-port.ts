@@ -4,6 +4,7 @@ import {decodeAgentProjectCapture,type AgentProjectCapture} from './agent-projec
 import {isBuildArtifact,type BuildArtifact} from '@dora-studio/contracts';
 import type {AgentPreviewCapture} from './agent-tool-preview-host';
 import {isAgentPromptOptions,type AgentPromptOptions} from './agent-prompt-options';
+import {createAgentModelQueueStore,type AgentModelQueueStore} from './agent-model-queue';
 
 export type AgentPreviewHandler=(artifact:BuildArtifact,captureAtSeconds:readonly number[],signal:AbortSignal)=>Promise<readonly AgentPreviewCapture[]>;
 
@@ -11,7 +12,7 @@ export type AgentPreviewHandler=(artifact:BuildArtifact,captureAtSeconds:readonl
  * Port ownership is a capability; never accept a port supplied by game code.
  * Host sends one snapshot before patches on the same FIFO channel.
  */
-export function connectAgentSessionPort(port: MessagePort, binding: {projectId:string;generation:string;sessionId:number}, signal: AbortSignal, timeoutMs = 15000): Promise<{controller:AgentSessionController;close:()=>void;canPersist:boolean;persist:()=>Promise<void>;canSyncProject:boolean;syncProject:(snapshot:AgentProjectSnapshot)=>Promise<void>;canCaptureProject:boolean;captureProject:()=>Promise<AgentProjectCapture>;canCaptureLiveProject:boolean;captureLiveProject:()=>Promise<AgentProjectCapture>;canSendPrompt:boolean;sendPrompt:(prompt:string,grantId:string,requestId:string,options:AgentPromptOptions)=>Promise<number>;canHandleQuestionnaire:boolean;handleQuestionnaire:(action:'respond'|'cancel',questionnaireId:number,answers:unknown[],grantId:string,requestId:string)=>Promise<number>;canStopTask:boolean;stopTask:(requestId:string)=>Promise<void>;setPreviewHandler:(handler:AgentPreviewHandler|undefined)=>void}> {
+export function connectAgentSessionPort(port: MessagePort, binding: {projectId:string;generation:string;sessionId:number}, signal: AbortSignal, timeoutMs = 15000): Promise<{controller:AgentSessionController;modelQueue:AgentModelQueueStore;close:()=>void;canPersist:boolean;persist:()=>Promise<void>;canSyncProject:boolean;syncProject:(snapshot:AgentProjectSnapshot)=>Promise<void>;canCaptureProject:boolean;captureProject:()=>Promise<AgentProjectCapture>;canCaptureLiveProject:boolean;captureLiveProject:()=>Promise<AgentProjectCapture>;canSendPrompt:boolean;sendPrompt:(prompt:string,grantId:string,requestId:string,options:AgentPromptOptions)=>Promise<number>;canHandleQuestionnaire:boolean;handleQuestionnaire:(action:'respond'|'cancel',questionnaireId:number,answers:unknown[],grantId:string,requestId:string)=>Promise<number>;canStopTask:boolean;stopTask:(requestId:string)=>Promise<void>;setPreviewHandler:(handler:AgentPreviewHandler|undefined)=>void}> {
   const expected = {projectId:binding.projectId, generation:binding.generation, sessionId:binding.sessionId};
   return new Promise((resolve, reject) => {
     let controller: AgentSessionController | undefined;
@@ -19,6 +20,7 @@ export function connectAgentSessionPort(port: MessagePort, binding: {projectId:s
     let timer: ReturnType<typeof setTimeout> | undefined;
     let canPersist=false,canSyncProject=false,canCaptureProject=false,canCaptureLiveProject=false,canSendPrompt=false,canHandleQuestionnaire=false,canStopTask=false;
     let previewHandler:AgentPreviewHandler|undefined;
+    let modelQueue:ReturnType<typeof createAgentModelQueueStore>|undefined;
     let preview:{id:string;controller:AbortController}|undefined;
     let operation:{id:string;type:'persisted'|'project-synced'|'project-captured'|'live-project-captured'|'prompt-sent'|'questionnaire-handled'|'task-stopped';revision?:number;resolve:(value?:AgentProjectCapture|number)=>void;reject:(error:unknown)=>void;timer:ReturnType<typeof setTimeout>}|undefined;
     const cleanup = () => {
@@ -92,6 +94,7 @@ export function connectAgentSessionPort(port: MessagePort, binding: {projectId:s
         if (!controller) {
           if (message.type !== 'snapshot') throw new Error('Agent transport requires an initial snapshot');
           controller = openAgentSessionSnapshot(expected, value);
+          modelQueue=createAgentModelQueueStore(message.modelQueue);
           canPersist=message.canPersist===true;
           canSyncProject=message.canSyncProject===true;
           canCaptureProject=message.canCaptureProject===true;
@@ -100,8 +103,12 @@ export function connectAgentSessionPort(port: MessagePort, binding: {projectId:s
           canHandleQuestionnaire=message.canHandleQuestionnaire===true;
           canStopTask=message.canStopTask===true;
           if (timer !== undefined) clearTimeout(timer);
-          resolve({controller, close,canPersist,persist,canSyncProject,syncProject,canCaptureProject,captureProject,canCaptureLiveProject,captureLiveProject,canSendPrompt,sendPrompt,canHandleQuestionnaire,handleQuestionnaire,canStopTask,stopTask,setPreviewHandler});
+          resolve({controller,modelQueue,close,canPersist,persist,canSyncProject,syncProject,canCaptureProject,captureProject,canCaptureLiveProject,captureLiveProject,canSendPrompt,sendPrompt,canHandleQuestionnaire,handleQuestionnaire,canStopTask,stopTask,setPreviewHandler});
         } else {
+          if(message.type==='model-queue'){
+            if(message.version!==1||message.projectId!==expected.projectId||message.generation!==expected.generation||message.sessionId!==expected.sessionId)throw new Error('Invalid Agent model queue message');
+            modelQueue!.update(message.modelQueue);return;
+          }
           if(message.type==='preview-cancel'){
             if(message.version!==1||message.projectId!==expected.projectId||message.generation!==expected.generation||message.sessionId!==expected.sessionId
               ||typeof message.requestId!=='string'||!/^[0-9a-f-]{36}$/i.test(message.requestId))throw new Error('Invalid Agent preview cancellation');

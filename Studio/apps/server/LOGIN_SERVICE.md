@@ -1,8 +1,10 @@
 # Dora Studio 受邀登录服务
 
+> 2026-09-19：服务端已统一迁移到 Go。当前入口是 `pnpm server`（`cmd/studio-server`），首次邀请码使用 `pnpm invite:bootstrap`；本文后续出现的 `.mjs` 名称和旧 Dora-Example 脚本仅用于解释历史接口与验证来源，部署与回归以 [Go 服务说明](README.md) 和 `go test -race ./...` 为准。
+
 首版方式是邀请码＋账号密码。账号、邀请码、密码派生值、会话、云项目与模型设置使用同一个绝对路径的 SQLite 数据库。API 后端与前端必须都通过 HTTPS 提供服务，前端 `/api` 同源反向代理到后端；浏览器不应直接跨源访问 API。
 
-后端 `node apps/server/serve.mjs` 必需环境：`STUDIO_DB_PATH`（绝对路径，持久磁盘）、`STUDIO_PUBLIC_ORIGIN`（用户实际访问的前端 HTTPS origin）、`STUDIO_SECRET_KEY`（持久保存的 32 字节 base64 密钥）、`STUDIO_TLS_KEY` 与 `STUDIO_TLS_CERT`（PEM 文件）。可选 `STUDIO_API_HOST` 默认为 `127.0.0.1`、`STUDIO_API_PORT` 默认为 `8899`。启动不会自动发邀请码，且不能每次生成新加密密钥替代稳定配置。共享模型派发还要求部署方通过 `STUDIO_PROVIDER_ENDPOINTS` 配置固定 HTTPS 供应商端点；管理员导入的模型/密文 Key 不会让未配置端点的供应商自动可用。
+Go 后端 `pnpm server` 必需环境：`STUDIO_DB_PATH`（绝对路径，持久磁盘）、`STUDIO_PUBLIC_ORIGIN`（用户实际访问的前端 HTTPS origin）、`STUDIO_SECRET_KEY`（持久保存的 32 字节 base64 密钥）、`STUDIO_TLS_KEY` 与 `STUDIO_TLS_CERT`（PEM 文件）。可选 `STUDIO_API_HOST` 默认为 `127.0.0.1`、`STUDIO_API_PORT` 默认为 `8899`。启动不会自动发邀请码，且不能每次生成新加密密钥替代稳定配置。共享模型派发还要求部署方通过 `STUDIO_PROVIDER_ENDPOINTS` 配置固定 HTTPS 供应商端点；管理员导入的模型/密文 Key 不会让未配置端点的供应商自动可用。
 
 管理员登录后可在正式页面“共享 API 管理”分阶段导入停用的共享供应商/模型配置及人民币输入输出单价、加密 Key、API 全局并发，再启用；“账号与逐 API 授权”可设每个账号的累计人民币上限和并发，以及该账号对某个 API 的单独上限和并发。创作者只看获授权配置及用量，不看共享 Key。启用必须有托管 Key 与正的 API 并发，撤销在用 Key 前先停用配置。当前共享路由可供专用 Agent 宿主调用，但管理员配置、供应商端点、授信和会话都须实际就绪；BYOK 尚未接入此路由，部署前仍须完成生产安全/故障/账务验收。
 
@@ -12,7 +14,7 @@
 
 当前宿主仍用 `__Host-dora-studio-session` 主机限定 Cookie 验证私有资源，因此前端、API 和独立宿主需要同一 HTTPS 主机名、不同端口/来源，并由前端同源代理 `/api`；仅换成不同子域名并不能复用该 Cookie。多节点/不同域名的宿主身份传递尚未设计与验收。开发机若工具链与项目锁定版本不同，脚本只允许以 `DORA_WEB_ALLOW_TOOLCHAIN_DRIFT=1` 作本地诊断，不能把漂移构建当作发布证据。
 
-空账号库启动后，在受信终端且仅执行一次 `node apps/server/issue-bootstrap-invite.mjs`（同一 `STUDIO_DB_PATH`）获得首管理员邀请码；请通过可信渠道交付，不记录在工单或公开日志。浏览器打开登录/邀请码注册，创建管理员账号。以后从“账号管理→邀请新账号”签发创作者或管理员邀请码。邀请码默认 7 天有效、只显示一次、一次核销；账号名 3–64 位，密码至少 12 字符。账号停用不会自动撤销现有会话，需强制退出时另行撤销。
+空账号库启动后，在受信终端且仅执行一次 `pnpm invite:bootstrap`（同一 `STUDIO_DB_PATH`）获得首管理员邀请码；请通过可信渠道交付，不记录在工单或公开日志。浏览器打开登录/邀请码注册，创建管理员账号。以后从“账号管理→邀请新账号”签发创作者或管理员邀请码。邀请码默认 7 天有效、只显示一次、一次核销；账号名 3–64 位，密码至少 12 字符。账号停用不会自动撤销现有会话，需强制退出时另行撤销。
 
 测试源码位于 `Dora-Example/Test/DoraStudio`，从 Dora-Example checkout 通过 `DORA_SSR_ROOT=/path/to/Dora-SSR node Test/DoraStudio/run.mjs` 运行构建与单测；浏览器脚本需显式传入文件名且不包含在默认单测中。本地自动双服务验收使用 `node Test/DoraStudio/run.mjs --no-build login.browser.mjs`：先同时启动独立 HTTPS 前端与 API，设置 `STUDIO_LOGIN_TEST_URL`、`STUDIO_LOGIN_TEST_DB`、Playwright/Chrome 路径；测试数据库必须为空，会由脚本发一张 bootstrap 邀请，然后在浏览器实际完成注册登录和云项目上传。测试放宽自签证书验证，不可用于生产。
 

@@ -1,5 +1,7 @@
 # Cloud project storage and synchronization
 
+> 2026-09-19：当前实现已迁移至 Go 的 `internal/studio`；本文中的 `.mjs` 模块名是迁移前的设计来源，不是现行部署入口。
+
 ## Current integration
 
 The unified account handler mounts authenticated project reads and writes. Session, account and project tables share SQLite for transaction-bound upload authorization. Callers own stores and close them after draining requests.

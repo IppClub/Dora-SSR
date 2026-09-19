@@ -5,6 +5,7 @@ import {useLayoutEffect,useRef,useState,type ReactNode} from 'react';
 import {ModelAllowance} from './ModelAllowance';
 import {SharedAgentComposer,SharedAgentMarkdown,SharedAgentQuestionnaire,SharedAgentStepList,useAgentTimeline,type AgentQuestionnaireAnswer} from '@dora-studio/agent-ui';
 import '@dora-studio/agent-ui/style.css';
+import type {AgentModelQueueState} from './agent-model-queue';
 
 const statuses: Record<string, string> = {IDLE:'就绪', RUNNING:'进行中', WAITING_USER:'等待回答', DONE:'已完成', FAILED:'失败', STOPPED:'已停止', PENDING:'等待中'};
 export interface AgentComposer {
@@ -18,8 +19,9 @@ export interface AgentQuestionnaireControl {submitting:boolean;onSubmit:(answers
 export function isAgentTranscriptAtBottom(element:Pick<HTMLElement,'scrollHeight'|'scrollTop'|'clientHeight'>,threshold=48){return element.scrollHeight-element.scrollTop-element.clientHeight<threshold;}
 
 /** Presentation only. Commands remain disabled until an authenticated host is connected. */
-export function AgentPanel({state, onLoadHistory, loadingHistory = false, connection = 'live',controls,modelGrantId,composer,questionnaire}: {
+export function AgentPanel({state, onLoadHistory, loadingHistory = false, connection = 'live',controls,modelGrantId,modelQueue,composer,questionnaire}: {
   modelGrantId?:string|undefined;
+  modelQueue?:AgentModelQueueState;
   controls?:ReactNode;
   state?: AgentSessionState;
   onLoadHistory?: () => void;
@@ -63,7 +65,7 @@ export function AgentPanel({state, onLoadHistory, loadingHistory = false, connec
         {timeline.unboundSteps.length>0&&<section className="agent-activity" aria-label="执行步骤"><SharedAgentStepList steps={timeline.unboundSteps}/></section>}
         {timeline.unboundMessages.filter(message=>message.role!=='user').map(messageView)}
         {timeline.tasks.map(task=>{
-          return <section key={task.taskId} className={`agent-task${task.current?' current':''}`} aria-label={task.current?'当前 Agent 任务':`Agent 任务 ${task.taskId}`}><h3><span>{task.current?'当前任务':`任务 #${task.taskId}`}</span>{task.current&&<small>{statuses[state.session.currentTaskStatus??state.session.status]??state.session.currentTaskStatus??state.session.status}</small>}</h3>{task.messages.filter(message=>message.role==='user').map(messageView)}{task.steps.length>0&&<div className="agent-activity" aria-label={task.current?'当前任务执行步骤':`任务 ${task.taskId} 执行步骤`}><SharedAgentStepList steps={task.steps}/></div>}{task.current&&state.session.currentTaskStatus==='RUNNING'&&task.steps.length===0&&<div className="agent-task-waiting" role="status"><i/>正在准备上下文并请求模型…</div>}{task.messages.filter(message=>message.role!=='user').map(messageView)}</section>;
+          return <section key={task.taskId} className={`agent-task${task.current?' current':''}`} aria-label={task.current?'当前 Agent 任务':`Agent 任务 ${task.taskId}`}><h3><span>{task.current?'当前任务':`任务 #${task.taskId}`}</span>{task.current&&<small>{statuses[state.session.currentTaskStatus??state.session.status]??state.session.currentTaskStatus??state.session.status}</small>}</h3>{task.messages.filter(message=>message.role==='user').map(messageView)}{task.steps.length>0&&<div className="agent-activity" aria-label={task.current?'当前任务执行步骤':`任务 ${task.taskId} 执行步骤`}><SharedAgentStepList steps={task.steps}/></div>}{task.current&&state.session.currentTaskStatus==='RUNNING'&&modelQueue?.state==='queued'&&<div className="agent-task-waiting model-queue" role="status"><i/>共享模型繁忙，正在自动排队等待（前方 {modelQueue.position-1} 个请求）…</div>}{task.current&&state.session.currentTaskStatus==='RUNNING'&&task.steps.length===0&&modelQueue?.state!=='queued'&&<div className="agent-task-waiting" role="status"><i/>正在准备上下文并请求模型…</div>}{task.messages.filter(message=>message.role!=='user').map(messageView)}</section>;
         })}
         {state.checkpoints.orderedIds.length > 0 && <details className="agent-activity"><summary>修改检查点 · {state.checkpoints.orderedIds.length}</summary>{state.checkpoints.orderedIds.map(id => <p key={id}>{state.checkpoints.byId.get(id)!.summary}</p>)}</details>}
         {(state.session.metrics?.usage||modelGrantId)&&<div className="agent-usage"><span>累计 Token {state.session.metrics?.usage?.totalTokens ?? '未报告'}</span>{modelGrantId&&<ModelAllowance compact grantId={modelGrantId} refreshSignal={`${state.session.currentTaskId??''}:${state.session.currentTaskStatus??state.session.status}:${state.session.metrics?.usage?.requestCount??0}:${state.session.metrics?.usage?.totalTokens??0}`}/>}</div>}

@@ -1,0 +1,56 @@
+import {spawn} from 'node:child_process';
+import {mkdtemp,readFile,rm,mkdir,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+
+const target=process.env.STUDIO_ACCEPTANCE_URL,invite=process.env.STUDIO_ACCEPTANCE_INVITE,existing=process.env.STUDIO_ACCEPTANCE_LOGIN==='1';
+const chrome=process.env.STUDIO_CHROME_PATH??'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+if(!target||(!invite&&!existing))throw new Error('STUDIO_ACCEPTANCE_URL and an invite or STUDIO_ACCEPTANCE_LOGIN=1 are required');
+const profile=await mkdtemp(join(tmpdir(),'dora-studio-go-browser-'));
+const browser=spawn(chrome,['--headless=new','--ignore-certificate-errors','--disable-gpu','--no-first-run','--no-default-browser-check','--remote-debugging-port=0',`--user-data-dir=${profile}`,'about:blank'],{stdio:['ignore','ignore','pipe']});
+let browserErrors='';browser.stderr.on('data',part=>browserErrors+=part);
+const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function activePort(){for(let i=0;i<100;i++){try{return (await readFile(join(profile,'DevToolsActivePort'),'utf8')).split(/\r?\n/)}catch{await wait(50)}}throw new Error(`Chrome DevTools did not start: ${browserErrors}`)}
+const [port]=await activePort();const page=await (await fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent(target)}`,{method:'PUT'})).json();
+const socket=new WebSocket(page.webSocketDebuggerUrl);await new Promise((resolve,reject)=>{socket.onopen=resolve;socket.onerror=reject});let sequence=0;const pending=new Map(),events=[];
+socket.onmessage=event=>{const message=JSON.parse(event.data);if(message.id){const operation=pending.get(message.id);if(operation){pending.delete(message.id);clearTimeout(operation.timer);message.error?operation.reject(new Error(message.error.message)):operation.resolve(message.result)}}else events.push(message)};
+function send(method,params={},timeout=15000){const id=++sequence;socket.send(JSON.stringify({id,method,params}));return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(id);reject(new Error(`CDP ${method} timed out`))},timeout);pending.set(id,{resolve,reject,timer})})}
+async function evaluate(expression){for(let attempt=0;attempt<50;attempt++){try{const result=await send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true,userGesture:true});if(result.exceptionDetails)throw new Error(result.exceptionDetails.text);return result.result.value}catch(error){if(!String(error).includes('execution context'))throw error;await wait(50)}}throw new Error('Page execution context unavailable')}
+async function until(label,expression,timeout=15000){const deadline=Date.now()+timeout;while(Date.now()<deadline){if(await evaluate(`Boolean(${expression})`))return;await wait(50)}throw new Error(`Timed out waiting for ${label}: ${await evaluate('document.body.innerText')}`)}
+const click=text=>evaluate(`(()=>{const node=[...document.querySelectorAll('button')].find(item=>item.textContent.trim()===${JSON.stringify(text)}&&!item.disabled);if(!node)return false;node.click();return true})()`);
+const clickContains=text=>evaluate(`(()=>{const node=[...document.querySelectorAll('button')].find(item=>item.textContent.includes(${JSON.stringify(text)})&&!item.disabled);if(!node)return false;node.click();return true})()`);
+const setLabel=(label,value)=>evaluate(`(()=>{const label=[...document.querySelectorAll('label')].find(item=>item.childNodes[0]?.textContent?.trim()===${JSON.stringify(label)}||item.textContent.trim().startsWith(${JSON.stringify(label)}));const input=label?.querySelector('input,textarea,select')||(label?.htmlFor?document.getElementById(label.htmlFor):null);if(!input)return false;const previous=input.value;const setter=Object.getOwnPropertyDescriptor(Object.getPrototypeOf(input),'value').set;setter.call(input,${JSON.stringify(value)});input._valueTracker?.setValue(previous);input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));return true})()`);
+const setAria=(label,value)=>evaluate(`(()=>{const input=document.querySelector('[aria-label=${JSON.stringify(label)}]');if(!input)return false;const previous=input.value;const setter=Object.getOwnPropertyDescriptor(Object.getPrototypeOf(input),'value').set;setter.call(input,${JSON.stringify(value)});input._valueTracker?.setValue(previous);input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));return true})()`);
+const typeAria=async(label,value)=>{const point=await evaluate(`(()=>{const input=document.querySelector('[aria-label=${JSON.stringify(label)}]');if(!input)return null;const rect=input.getBoundingClientRect();return {x:rect.left+rect.width/2,y:rect.top+rect.height/2}})()`);if(!point)return false;await send('Input.dispatchMouseEvent',{type:'mousePressed',x:point.x,y:point.y,button:'left',clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:point.x,y:point.y,button:'left',clickCount:1});await send('Input.dispatchKeyEvent',{type:'rawKeyDown',key:'a',code:'KeyA',modifiers:4});await send('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',modifiers:4});await send('Input.insertText',{text:value});return true};
+const step=message=>process.stderr.write(`[acceptance] ${message}\n`);
+const report={registered:false,created:false,saved:false,reopened:false,adminAccounts:false,modelSettings:false,agentPanel:false,loggedOut:false,consoleErrors:[]};
+try{
+  step('enable browser instrumentation');
+  await send('Runtime.enable');await send('Page.enable');await send('Log.enable');
+  step(existing?'log in':'register account');
+  await until('Studio shell',`document.body.innerText.includes('登录 / 邀请码注册')`);
+  if(!await click('登录 / 邀请码注册'))throw new Error('Login entry missing');await until('login dialog',`document.body.innerText.includes('邀请码注册')`);
+  if(existing){if(!await setLabel('账号名','go-acceptance')||!await setLabel('密码','acceptance password 123'))throw new Error('Login fields missing');if(!await click('登录账号'))throw new Error('Login submit missing')}
+  else{if(!await click('邀请码注册'))throw new Error('Registration mode missing');await until('registration form',`document.body.innerText.includes('使用邀请码加入')`);if(!await setLabel('邀请码',invite)||!await setLabel('账号名','go-acceptance')||!await setLabel('密码','acceptance password 123'))throw new Error('Registration fields missing');if(!await click('创建账号并登录'))throw new Error('Registration submit missing')}
+  await until('authenticated session',`document.body.innerText.includes('账号已连接')`);report.registered=true;
+  step('create project');
+  if(!await click('新建 / 导入空白项目或 Dora 游戏包')){if(!await evaluate(`(()=>{const node=document.querySelector('.project-start-trigger');node?.click();return !!node})()`))throw new Error('Project start missing')};await until('project chooser',`document.body.innerText.includes('新建空白项目')`);
+  if(!await clickContains('新建空白项目'))throw new Error('Blank project option missing');await until('project create form',`document.body.innerText.includes('创建并进入 Studio')`);
+  if(!await setLabel('项目名称','Go 后端验收项目'))throw new Error('Project name field missing');if(!await click('创建并进入 Studio'))throw new Error('Project create submit missing');await until('project workspace',`document.querySelector('.project-header h1')?.textContent.includes('Go 后端验收项目')`);await until('resource tab ready',`[...document.querySelectorAll('button')].some(item=>item.textContent.trim()==='资源'&&!item.disabled)`);if(!await click('资源'))throw new Error('Resource workspace tab missing');await until('code workspace',`document.querySelector('[aria-label="项目代码"]')`);report.created=true;
+  await until('created project saved',`!document.body.innerText.includes('正在处理项目')`);report.saved=true;
+  step('return home and reopen project');
+  if(!await evaluate(`(()=>{const node=document.querySelector('[aria-label="返回首页"]');node?.click();return !!node})()`))throw new Error('Home navigation missing');await until('project catalog',`document.body.innerText.includes('Go 后端验收项目')`);if(!await evaluate(`(()=>{const node=[...document.querySelectorAll('button')].find(item=>item.textContent.includes('Go 后端验收项目'));node?.click();return !!node})()`))throw new Error('Saved project missing from catalog');await until('reopened project',`document.querySelector('.project-header h1')?.textContent.includes('Go 后端验收项目')`);if(await click('资源'))await until('reopened source',`document.querySelector('[aria-label="项目代码"]')?.value?.length>0`);report.reopened=true;
+  step('exercise administration and model settings');
+  if(await click('账号管理')){await until('account manager',`document.body.innerText.includes('邀请新账号')||document.querySelector('[aria-label="账号管理"]')`);report.adminAccounts=true;await click('关闭账号管理')}
+  if(await click('共享 API 管理')){await until('shared model manager',`document.body.innerText.includes('导入共享 API 配置')`);report.modelSettings=true;await evaluate(`(()=>{const dialog=[...document.querySelectorAll('dialog')].find(item=>item.textContent.includes('共享 API'));const close=[...dialog.querySelectorAll('button')].find(item=>item.textContent.includes('关闭'));close?.click();return !!close})()`)}
+  if(!report.modelSettings&&await click('模型与用量')){await until('model settings',`document.body.innerText.includes('自带 API Key')||document.body.innerText.includes('共享模型')`);report.modelSettings=true;await evaluate(`(()=>{const dialog=[...document.querySelectorAll('dialog')].at(-1);const close=[...dialog.querySelectorAll('button')].find(item=>item.textContent.includes('关闭'));close?.click();return !!close})()`)}
+  step('open Agent workspace');
+  if(await click('Dora Agent')){await until('agent panel',`document.querySelector('.agent-workspace-view')||document.body.innerText.includes('Dora Agent')`);report.agentPanel=true}
+  step('log out');
+  if(!await click('退出登录'))throw new Error('Logout missing');await until('logged out',`document.body.innerText.includes('已退出，可继续本地编辑')`);report.loggedOut=true;
+  const errors=events.filter(event=>event.method==='Runtime.exceptionThrown'||event.method==='Log.entryAdded'&&event.params?.entry?.level==='error');report.consoleErrors=errors.map(event=>event.params?.entry?.text??event.params?.exceptionDetails?.text??event.method).filter(message=>!(report.loggedOut&&message.includes('status of 401')));
+  step('capture acceptance artifacts');
+  const screenshot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},30000);const artifact=join(process.cwd(),'apps','web','artifacts','go-backend');await mkdir(artifact,{recursive:true});await writeFile(join(artifact,'acceptance.png'),Buffer.from(screenshot.data,'base64'));await writeFile(join(artifact,'result.json'),JSON.stringify(report,null,2));
+  if(Object.entries(report).some(([key,value])=>key!=='consoleErrors'&&value!==true)||report.consoleErrors.length)throw new Error(`Acceptance failed: ${JSON.stringify(report)}`);
+  process.stdout.write(`${JSON.stringify(report)}\n`);
+}finally{socket.close();browser.kill('SIGTERM');await Promise.race([new Promise(resolve=>browser.once('exit',resolve)),wait(2000)]);await rm(profile,{recursive:true,force:true,maxRetries:5,retryDelay:100}).catch(()=>{})}

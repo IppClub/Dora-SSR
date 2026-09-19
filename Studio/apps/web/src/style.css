@@ -26,8 +26,8 @@
 /* Fixed-height Studio workspace: preview remains visible while the adjacent tools switch. */
 html,body,#root{height:100%;overflow:hidden}
 .app-shell{height:100dvh;min-height:0;overflow:hidden}
-.sidebar{height:100dvh;min-height:0;overflow-y:auto}
-.sidebar nav{flex:none;max-height:none;overflow:visible}
+.sidebar{height:100dvh;min-height:0;overflow:hidden}
+.sidebar nav{flex:1 1 auto;min-height:0;max-height:none;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
 main{height:100dvh;min-height:0;overflow:hidden}
 .topbar,.project-header,main>footer{flex:none}
 .studio-workbench{display:grid;grid-template-columns:minmax(300px,var(--preview-pane-ratio,45%)) 6px minmax(410px,1fr);flex:1;min-height:0;overflow:hidden;background:#1a1a1a}
@@ -56,8 +56,8 @@ main{height:100dvh;min-height:0;overflow:hidden}
 @media(max-width:1000px){.studio-workbench{grid-template-columns:minmax(270px,var(--preview-pane-ratio,42%)) 6px minmax(360px,1fr)}}
 @media(max-width:800px){
   .app-shell{display:flex;flex-direction:column;height:100dvh}
-  .sidebar{flex:none;width:100%;height:auto;max-height:142px;overflow:auto}
-  .sidebar nav{max-height:80px;overflow:auto}
+  .sidebar{flex:none;width:100%;height:auto;max-height:142px;overflow:hidden}
+  .sidebar nav{min-height:0;max-height:80px;overflow-x:auto;overflow-y:hidden;scrollbar-gutter:auto}
   main{flex:1;height:auto;min-height:0}
   .project-header{min-height:60px}
   .project-header>div:first-child{display:none}

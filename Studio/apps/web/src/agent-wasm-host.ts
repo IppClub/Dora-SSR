@@ -10,6 +10,7 @@ import {previewAgentGameTool} from './agent-tool-preview-host';
 import {buildAgentScriptTool} from './agent-tool-script-build';
 import type {AgentPromptOptions} from './agent-prompt-options';
 import {persistSessionBoundariesBeforePublish,type DurableAgentSessionSource} from './agent-session-durability';
+import {createAgentModelQueueStore,idleAgentModelQueue} from './agent-model-queue';
 
 /** Owns transport and explicit stop/persist operations. close() does not imply
  * persistence; the runtime owner must await persist() before normal destruction.
@@ -35,11 +36,14 @@ export function installAgentWasmHost(module:AgentHostModule, parentWindow:Window
         },signal):undefined);
   const lifetime = new AbortController();
   let leaseTimer:ReturnType<typeof setInterval>|undefined;
+  let queueTimer:ReturnType<typeof setInterval>|undefined,queuePolling=false;
+  const modelQueue=createAgentModelQueueStore();
   const close = () => {
     if (closed) return;
     closed = true;
     lifetime.abort(new Error('Agent host closed'));
     if(leaseTimer!==undefined)clearInterval(leaseTimer);
+    if(queueTimer!==undefined)clearInterval(queueTimer);
     window.removeEventListener('pagehide',close);
     unsubscribe?.();
     try {host?.close();} finally {source.close();}
@@ -48,7 +52,7 @@ export function installAgentWasmHost(module:AgentHostModule, parentWindow:Window
     ?persistSessionBoundariesBeforePublish(source,()=>module.doraSyncUserStorage!({afterCurrent:true}),lifetime.signal)
     :Object.assign(source,{waitForDurability:()=>Promise.resolve()});
   try {
-    host = installAgentFrameHost(parentWindow,parentOrigin,binding,publishedSource,{persist:signal=>persist(signal),
+    host = installAgentFrameHost(parentWindow,parentOrigin,binding,publishedSource,{persist:signal=>persist(signal),modelQueue,
       ...(binding.projectRoot==='/user/studio-project' && module.FS && module.doraSyncUserStorage ? {syncProject:(snapshot:ProjectSnapshot,signal:AbortSignal)=>syncProject(snapshot,signal),captureProject:(signal:AbortSignal)=>captureProject(signal),captureLiveProject:(signal:AbortSignal)=>captureLiveProject(signal),sendPrompt:(prompt:string,grantId:string,requestId:string,options:AgentPromptOptions,signal:AbortSignal)=>sendPrompt(prompt,grantId,requestId,options,signal),handleQuestionnaire:(action:'respond'|'cancel',questionnaireId:number,answers:unknown[],grantId:string,requestId:string,signal:AbortSignal)=>handleQuestionnaire(action,questionnaireId,answers,grantId,requestId,signal),stopTask:(requestId:string,signal:AbortSignal)=>source.requestStop(requestId,signal)} : {})});
     unsubscribe = source.subscribe(()=>{},close);
     window.addEventListener('pagehide',close,{once:true});
@@ -66,10 +70,21 @@ export function installAgentWasmHost(module:AgentHostModule, parentWindow:Window
         if(data?.version!==1||!Number.isSafeInteger(data.expiresAt)||data.expiresAt<=Date.now())throw new Error('Invalid Agent launch lease');
       }catch(error){if(!closed)console.warn('Studio Agent host lease unavailable');}
     };
+    const pollModelQueue=async()=>{
+      if(closed||queuePolling)return;queuePolling=true;
+      try{
+        const response=await fetch(new URL('./model-queue',location.href),{method:'GET',credentials:'same-origin',cache:'no-store',redirect:'error',signal:AbortSignal.any([lifetime.signal,AbortSignal.timeout(5000)])});
+        if(!response.ok)throw new Error('Agent model queue unavailable');
+        modelQueue.update(await response.json());
+      }catch{if(!closed)modelQueue.update(idleAgentModelQueue);}
+      finally{queuePolling=false;}
+    };
     // Non-browser Agent lifecycle unit fixtures have no page URL or timer.
-    if(typeof location.href==='string'){
+    if(typeof location!=='undefined'&&typeof location.href==='string'){
       void renewLease();
       leaseTimer=setInterval(()=>void renewLease(),60_000);
+      void pollModelQueue();
+      queueTimer=setInterval(()=>void pollModelQueue(),1_000);
     }
   } catch(error) {close();throw error;}
   const syncProject=async(snapshot:ProjectSnapshot,signal:AbortSignal)=>{

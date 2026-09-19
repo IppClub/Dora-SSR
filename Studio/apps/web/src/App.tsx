@@ -15,7 +15,7 @@ import {resolveWorkspaceRuntimeArtifact} from './workspace-runtime-artifact';
 import { appendResources } from './resource-upload';
 import { ResourcePreview } from './ResourcePreview';
 import { exportProject } from './project-export';
-import { importStudioBackup, importDoraProject, DoraSourceRecognitionError } from './project-import';
+import { importStudioBackup, importDoraProject } from './project-import';
 import { AgentPanel } from './AgentPanel';
 import { AgentSessionPanel } from './AgentSessionPanel';
 import {startWorkspaceAgent, AgentStartupFailure, isLiveWorkspaceAgent, type WorkspaceAgentBinding} from './workspace-agent';
@@ -25,7 +25,6 @@ import {initialPromptTerminal,shouldAutoWriteback,type AgentTaskTerminal} from '
 import {ModelSettingsDialog} from './ModelSettings';
 import {loadModelGrants,type ModelGrantChoice} from './model-grants-client';
 import {ProjectCompatibility} from './ProjectCompatibility';
-import {ArchiveLibrary} from './ArchiveLibrary';
 import {useWorkspaceConfirm} from './useWorkspaceConfirm';
 import type {AgentQuestionnaireAnswer} from '@dora-studio/agent-ui';
 import {defaultAgentPromptOptions,type AgentPromptOptions,type AgentWorkMode} from './agent-prompt-options';
@@ -104,7 +103,6 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
   const [projectOpenProgress,setProjectOpenProgress]=useState<ProjectOpenProgress>();
   const editor = useRef<HTMLTextAreaElement>(null);
   const [checkpoints, setCheckpoints] = useState<{revision:number;updatedAt:number}[] | null>(null);
-  const [pendingArchiveFile,setPendingArchiveFile]=useState<File>();
   const confirmation=useWorkspaceConfirm();
   const confirmingAction=useRef(false);
   useEffect(()=>setProjectNameDraft(project?.name??''),[project?.snapshot.projectId,project?.name]);
@@ -667,13 +665,13 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
     confirmingAction.current=true;
     try{
       if(!await canLeave())return;
-      setBusy(true); setError('');setPendingArchiveFile(undefined);
+      setBusy(true); setError('');
       try {
         const imported = await (dora ? importDoraProject(file) : importStudioBackup(file));
         await retireAgent();
         const next = await storage.current.save(imported.name, imported.snapshot, null);
         await catalog.refreshLocal(); activate(next);
-      } catch (error) { setError(describeError(error));if(dora&&error instanceof DoraSourceRecognitionError)setPendingArchiveFile(file); }
+      } catch (error) { setError(describeError(error)); }
       finally { setBusy(false); }
     }finally{confirmingAction.current=false;}
   }
@@ -778,7 +776,6 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
       }) : <p className="muted">{catalog.state==='loading'?'正在读取项目…':<>还没有项目。<br/>从一个空白项目开始。</>}</p>}</nav>
       {catalog.state==='failed'&&<p className="project-catalog-status" role="status">暂时无法读取其他设备上的项目；当前项目仍可正常使用，恢复连接后会自动重试。</p>}
       <button disabled={!accountId} onClick={()=>setModelSettingsOpen(true)}>模型与用量{accountId?'':' · 登录后可用'}</button>
-      {ready&&storage.current&&<ArchiveLibrary store={storage.current} offeredFile={pendingArchiveFile} onOfferedHandled={file=>setPendingArchiveFile(current=>current===file?undefined:current)} onProjectCreated={async()=>{await catalog.refreshLocal();}}/>}
       <div className="storage-note">项目自动保存<br/><span>登录后会自动同步；其他设备上的项目也会在此显示。仅在网络失败或内容冲突时需要处理。</span></div>
     </aside>
     <main className={!draft||!project?'home-main':undefined}>
@@ -797,13 +794,13 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
           </section>
           <div className="workbench-resizer" role="separator" aria-label="调整试玩与工作区宽度" aria-orientation="vertical" aria-valuemin={25} aria-valuemax={72} aria-valuenow={Math.round(splitRatio*100)} tabIndex={0} onPointerDown={beginSplitResize} onKeyDown={resizeWithKeyboard} onDoubleClick={()=>setRememberedSplit(.45)}/>
           <section className="workspace-pane" aria-label="创作工作区">
-            <div className="pane-header workspace-heading"><div className="tabs">{(['resources','agent'] as const).map(view => <button key={view} aria-pressed={workspaceView === view} onClick={() => selectWorkspaceView(view)}>{({resources:'资源',agent:'Dora Agent'})[view]}</button>)}</div>{workspaceView === 'resources' && <small>{visibleSelected}</small>}</div>
+            <div className="pane-header workspace-heading"><div className="tabs">{(['agent','resources'] as const).map(view => <button key={view} aria-pressed={workspaceView === view} onClick={() => selectWorkspaceView(view)}>{({resources:'资源',agent:'Dora Agent'})[view]}</button>)}</div>{workspaceView === 'resources' && <small>{visibleSelected}</small>}</div>
             {workspaceView === 'resources' && <div className="workspace-code-view workspace-resource-view">
               <div className="code-pane"><div className="files"><div className="section-label">项目资源<div className="resource-file-actions"><button aria-label="选择资源上传" disabled={busy} onClick={()=>resourceUploadInput.current?.click()}>⇧</button><button aria-label="新建文件" disabled={busy} onClick={addFile}>＋</button></div></div>{projectFiles.map(f => <button aria-label={f.path} title={f.path} key={f.path} className={f.path === visibleSelected ? 'active' : ''} onClick={() => setSelected(f.path)}><span aria-hidden="true">{f.kind === 'text' ? '≡' : '▧'}</span>{f.path}</button>)}</div><div className="editor-pane"><div className="editor-heading"><span>{visibleSelected}</span><div><small>{file?.kind === 'text' ? 'UTF-8' : file?.kind === 'binary'?`${file.bytes.byteLength} 字节`:'未选择资源'}</small><button className="delete-resource" disabled={busy||!file} onClick={()=>void deleteSelectedFile()}>删除</button></div></div>{file?.kind === 'text' ? <textarea ref={editor} aria-label="项目代码" spellCheck={false} disabled={busy} value={file.text} onChange={e => changeFiles(draft.files.map(f => f.path === visibleSelected ? { path: f.path, kind: 'text', text: e.target.value } : f))}/> : <div className="resource-binary-editor"><ResourcePreview file={file}/></div>}</div></div>
               <div className="diagnostics"><div className="section-label">构建消息 <span>{diagnosticErrors} 错误 · {diagnosticWarnings} 警告</span></div>{diagnostics.map((d, i) => <button key={i} onClick={() => locate(d)}><span className={`diagnostic-kind ${d.severity}`}>{d.severity==='error'?'错误':d.severity==='warning'?'警告':'提示'}</span><span>{d.message}<small>{d.path ?? '编译器'} · {d.code}</small></span></button>)}</div>
             </div>}
             <div className="agent-workspace-view" hidden={workspaceView !== 'agent'}>
-              {agent && agent.projectId === project.snapshot.projectId ? <AgentSessionPanel modelGrantId={activeGrantId} controller={agent.controller} busy={busy} {...(showAgentReconnect?{reconnect:{run:()=>void retryIdeaPreparation(),disabled:dirty||preparingIdea,status:reconnectStatus}}:{})} composer={{value:followupPrompt,onChange:setFollowupPrompt,onSubmit:()=>void (project.creation?sendFollowupPrompt():startProjectAgent()),disabled:followupDisabled,busy:sendingFollowup||preparingIdea,...(agent.stopTask?{onStop:()=>void stopAgentTask(),stopping:stoppingAgent}:{}),...agentComposerSettings}} {...(agent.handleQuestionnaire&&activeGrantId&&sessionSnapshot?.state.pendingQuestionnaire?{questionnaire:{submitting:questionnaireSubmitting,onSubmit:(answers:AgentQuestionnaireAnswer[])=>void handleAgentQuestionnaire('respond',sessionSnapshot.state.pendingQuestionnaire!.id,answers),onCancel:()=>void handleAgentQuestionnaire('cancel',sessionSnapshot.state.pendingQuestionnaire!.id)}}:{})} synchronization={agentSyncFailure&&agent.syncProject?{
+              {agent && agent.projectId === project.snapshot.projectId ? <AgentSessionPanel modelGrantId={activeGrantId} {...(agent.modelQueue?{modelQueue:agent.modelQueue}:{})} controller={agent.controller} busy={busy} {...(showAgentReconnect?{reconnect:{run:()=>void retryIdeaPreparation(),disabled:dirty||preparingIdea,status:reconnectStatus}}:{})} composer={{value:followupPrompt,onChange:setFollowupPrompt,onSubmit:()=>void (project.creation?sendFollowupPrompt():startProjectAgent()),disabled:followupDisabled,busy:sendingFollowup||preparingIdea,...(agent.stopTask?{onStop:()=>void stopAgentTask(),stopping:stoppingAgent}:{}),...agentComposerSettings}} {...(agent.handleQuestionnaire&&activeGrantId&&sessionSnapshot?.state.pendingQuestionnaire?{questionnaire:{submitting:questionnaireSubmitting,onSubmit:(answers:AgentQuestionnaireAnswer[])=>void handleAgentQuestionnaire('respond',sessionSnapshot.state.pendingQuestionnaire!.id,answers),onCancel:()=>void handleAgentQuestionnaire('cancel',sessionSnapshot.state.pendingQuestionnaire!.id)}}:{})} synchronization={agentSyncFailure&&agent.syncProject?{
                 run:()=>void syncAgentProject(),disabled:dirty,
                 status:agentSyncing?'正在重试同步…':'Agent 自动同步失败；前端工作区内容未丢失。',
               }:undefined} writeback={writebackRecoveryNeeded&&agent.captureProject&&agent.syncProject?{run:()=>void receiveAgentProject(),disabled:dirty||agentBaseline?.owner!==agent,status:'Agent 自动回写失败；请重试接收，前端现有内容不会被直接覆盖。'}:undefined}/> : <AgentPanel modelGrantId={activeGrantId} controls={reconnectControl} composer={{value:followupPrompt,onChange:setFollowupPrompt,onSubmit:()=>void (project.creation?sendFollowupPrompt():startProjectAgent()),disabled:followupDisabled,busy:sendingFollowup||preparingIdea,placeholder:project.creation?'继续描述你希望修改的玩法…':'描述希望 Agent 为当前项目实现的玩法…',submitLabel:project.creation?'发送 ↑':'启动 Agent ↑',...agentComposerSettings}}/>}

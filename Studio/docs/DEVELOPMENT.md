@@ -1,5 +1,13 @@
 # Studio 开发与验证
 
+## Go 后端迁移验证（2026-09-19）
+
+Studio 可部署后端已全部迁移到 `cmd/studio-server` 与 `internal/studio`，旧 `apps/server/*.mjs` 实现已删除。服务端回归使用 `go test -race ./...`，覆盖真实 TLS Cookie 注册/登录、持久限流、项目快照、管理员与模型配置、密钥、额度、BYOK 兼容投影、Agent Host、真实 HTTPS 供应商代理、SSE 完整性、账务结算与并发排队。`pnpm build` 同时构建 Web、Agent Host 和 Go 二进制。
+
+本机用户操作验收使用 `scripts/go-backend-acceptance.mjs` 驱动系统 Chrome，依次执行登录、创建项目、返回首页后重开、账号管理、共享模型设置、Agent 工作区和退出登录，并保存 `apps/web/artifacts/go-backend/result.json` 与截图。该脚本只允许在显式测试 URL 下使用 `--ignore-certificate-errors` 接受本机自签证书，不能作为生产浏览器参数。
+
+完整 Agent 游戏验收使用 `scripts/go-agent-game-acceptance.mjs` 与 `scripts/rich-game-fixture-provider.mjs`：从空数据库注册管理员和创作者，经正式管理页面配置加密共享 Key、API/账号/逐 API 额度，创作者选择模型后连续完成三轮创作。第一轮建立平台、角色和点击玩法，第二轮增加雨景，第三轮增加星光目标和终点；每轮原 Agent 都独立调用 `edit_file → build → previewGame`，真实隔离 Player 生成一帧画面，源码自动写回，账本金额递增且预留归零。脚本还防止把上一轮的“已完成”误认成新任务终态，逐帧检查深绿场景、蓝色雨滴和黄色星光，最后模拟用户点击“编译项目”“运行游戏”和画布，核对最终 READY/点击日志。结果、三轮画面和最终运行截图保存于 `apps/web/artifacts/go-agent-multiround/`。模型决策由确定性的本地 HTTPS 桩模拟，验证的是多轮完整产品链路而非外部模型创作质量。
+
 ## 当前验证口径与下一道工程门槛（2026-09-16）
 
 测试源码已统一迁移到 `Dora-Example/Test/DoraStudio`，Studio 仓库不再保留副本。当前完整构建与 Node.js 单测从 Dora-Example checkout 执行：`DORA_SSR_ROOT=/path/to/Dora-SSR node Test/DoraStudio/run.mjs`；单独运行浏览器脚本可追加 `--no-build 脚本文件名`。本文旧记录中的 `tests/<name>` 均指 `Dora-Example/Test/DoraStudio/tests/<name>`。

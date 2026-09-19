@@ -5,6 +5,7 @@ import {decodeAgentProjectCapture,type AgentProjectCapture} from './agent-projec
 import {isBuildArtifact,type BuildArtifact} from '@dora-studio/contracts';
 import type {AgentPreviewCapture} from './agent-tool-preview-host';
 import {isAgentPromptOptions,type AgentPromptOptions} from './agent-prompt-options';
+import type {AgentModelQueueStore} from './agent-model-queue';
 
 export interface AgentHostLifecycle {
   persist(signal:AbortSignal):Promise<void>;
@@ -14,6 +15,7 @@ export interface AgentHostLifecycle {
   sendPrompt?(prompt:string,grantId:string,requestId:string,options:AgentPromptOptions,signal:AbortSignal):Promise<number>;
   handleQuestionnaire?(action:'respond'|'cancel',questionnaireId:number,answers:unknown[],grantId:string,requestId:string,signal:AbortSignal):Promise<number>;
   stopTask?(requestId:string,signal:AbortSignal):Promise<void>;
+  modelQueue?:AgentModelQueueStore;
 }
 
 export interface AgentSessionSource {
@@ -30,6 +32,7 @@ export function serveAgentSessionPort(port: MessagePort, binding: {projectId:str
   const expected = {projectId:binding.projectId,generation:binding.generation,sessionId:binding.sessionId};
   let closed = false, started = false, capturing = true, sequence = 0;
   let unsubscribe: (() => void) | undefined;
+  let unsubscribeModelQueue:(()=>void)|undefined;
   const pending: {payload:string;sequence:number}[] = [];
   const captureAbort = new AbortController();
   let captureTimer: ReturnType<typeof setTimeout> | undefined;
@@ -46,7 +49,7 @@ export function serveAgentSessionPort(port: MessagePort, binding: {projectId:str
     port.removeEventListener('messageerror', close);
     pending.length = 0;
     try {port.postMessage({type:'closed',version:1,...expected});} catch {/* Peer may already be gone. */}
-    try {unsubscribe?.();} finally {unsubscribe = undefined;port.close();}
+    try {unsubscribe?.();unsubscribeModelQueue?.();} finally {unsubscribe = undefined;unsubscribeModelQueue=undefined;port.close();}
   };
   const sendPatch = (payload:string, next:number) => {
     if (closed) return;
@@ -161,6 +164,10 @@ export function serveAgentSessionPort(port: MessagePort, binding: {projectId:str
       const stop = source.subscribe(sendPatch,close);
       if (closed) {stop();return;}
       unsubscribe = stop;
+      unsubscribeModelQueue=lifecycle?.modelQueue?.subscribe(()=>{
+        if(closed||capturing)return;
+        try{port.postMessage({type:'model-queue',version:1,...expected,modelQueue:lifecycle.modelQueue!.getSnapshot()});}catch{close();}
+      });
       captureTimer = setTimeout(close, 15000);
       const snapshot = await source.capture(captureAbort.signal);
       clearTimeout(captureTimer);
@@ -168,7 +175,7 @@ export function serveAgentSessionPort(port: MessagePort, binding: {projectId:str
       decodeAgentSessionSnapshot(snapshot.payload, expected.sessionId);
       if (!Number.isSafeInteger(snapshot.sequence) || snapshot.sequence < 0) throw new Error('Invalid snapshot cursor');
       sequence = snapshot.sequence;
-      port.postMessage({type:'snapshot',version:1,...expected,...snapshot,canPersist:!!lifecycle,canSyncProject:!!lifecycle?.syncProject,canCaptureProject:!!lifecycle?.captureProject,canCaptureLiveProject:!!lifecycle?.captureLiveProject,canSendPrompt:!!lifecycle?.sendPrompt,canHandleQuestionnaire:!!lifecycle?.handleQuestionnaire,canStopTask:!!lifecycle?.stopTask});
+      port.postMessage({type:'snapshot',version:1,...expected,...snapshot,canPersist:!!lifecycle,canSyncProject:!!lifecycle?.syncProject,canCaptureProject:!!lifecycle?.captureProject,canCaptureLiveProject:!!lifecycle?.captureLiveProject,canSendPrompt:!!lifecycle?.sendPrompt,canHandleQuestionnaire:!!lifecycle?.handleQuestionnaire,canStopTask:!!lifecycle?.stopTask,modelQueue:lifecycle?.modelQueue?.getSnapshot()??{version:1,state:'idle'}});
       capturing = false;
       for (const item of pending.splice(0)) sendPatch(item.payload,item.sequence);
     } catch {close();}

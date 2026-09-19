@@ -27,7 +27,7 @@ export function LoginDialog({onClose,onAuthenticated}:{onClose:()=>void;onAuthen
     <div className="login-modes"><button aria-pressed={mode==='login'} onClick={()=>{setMode('login');setError('');}}>登录</button><button aria-pressed={mode==='register'} onClick={()=>{setMode('register');setError('');}}>邀请码注册</button></div>
     <form onSubmit={event=>{event.preventDefault();void submit();}}>
       {mode==='register'&&<label>邀请码<input value={code} onChange={event=>setCode(event.target.value.trim())} autoComplete="off" required maxLength={43} placeholder="由管理员提供"/></label>}
-      <label>账号名<input value={accountId} onChange={event=>setAccountId(event.target.value.trim())} autoComplete="username" required minLength={3} maxLength={64} pattern="[a-zA-Z0-9][a-zA-Z0-9._-]{2,63}" placeholder="3–64 位英文字母、数字及 ._-"/></label>
+      <label>账号名<input value={accountId} onChange={event=>setAccountId(event.target.value.trim())} autoComplete="username" required minLength={3} maxLength={64} pattern="[a-zA-Z0-9][a-zA-Z0-9._\-]{2,63}" placeholder="3–64 位英文字母、数字及 ._-"/></label>
       <label>密码<input type="password" value={password} onChange={event=>setPassword(event.target.value)} autoComplete={mode==='register'?'new-password':'current-password'} required minLength={mode==='register'?12:1} maxLength={128} placeholder={mode==='register'?'至少 12 个字符':'输入密码'}/></label>
       {error&&<p className="login-error" role="alert">{error}</p>}
       <button className="primary" type="submit" disabled={busy}>{busy?'正在验证…':mode==='login'?'登录账号':'创建账号并登录'}</button>

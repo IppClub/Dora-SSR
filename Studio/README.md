@@ -1,6 +1,6 @@
 # Dora Studio
 
-Dora Studio 是基于 Dora Web 引擎的浏览器游戏创作产品：浏览器负责编辑、编译与试玩，云端负责身份、模型密钥/流控/账务、项目同步与发布，不承担游戏运行和渲染。Agent 编排与完整工具的部署位置仍按设计方案进行浏览器迁移和隔离验证，不预设必须云端执行。
+Dora Studio 是基于 Dora Web 引擎的浏览器游戏创作产品：浏览器负责编辑、编译与试玩，Go 后端负责身份、模型密钥/流控/账务、项目同步与发布，不承担游戏运行和渲染。Agent 编排与完整工具的部署位置仍按设计方案进行浏览器迁移和隔离验证，不预设必须云端执行。
 
 首版面向受邀用户，以一句描述生成游戏为主入口，AI 直接修改并自动试玩，代码始终可编辑；完整迁移现有 Dora Agent 能力，不重新设计 Agent 行为或试玩标准。
 
@@ -20,3 +20,5 @@ Dora Studio 是基于 Dora Web 引擎的浏览器游戏创作产品：浏览器�
 - [上游 Web 运行时进度](../Docs/design/web-runtime/PROGRESS.md)
 
 工程采用同仓起步、独立应用、共享能力、独立部署的路线。现有 `Tools/dora-dora` 保留原生 Web IDE 职责；引擎源码仍在 `Source/` 与 `Projects/Web/`，不复制到 Studio。
+
+服务端已统一迁移到 Go，入口为 `cmd/studio-server`，不再保留 Node.js 后端实现。`pnpm build:server` 生成 `build/bin/dora-studio-server`，`pnpm test:server` 执行含竞态检测的服务端测试。环境变量、双 HTTPS 来源和启动示例见 [Go 服务说明](apps/server/README.md)。

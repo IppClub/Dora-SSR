@@ -1,5 +1,7 @@
 # 非秘密模型配置目录
 
+> 2026-09-19：当前实现已迁移至 Go 的 `internal/studio`；本文中的 `.mjs` 模块名是迁移前的设计来源，不是现行部署入口。
+
 model-configuration-store.mjs 保存配置 ID、资金来源、所属账号、显示名、模型、供应商引用、启用状态和版本。只允许部署提供的 providerIds，目录不保存 Key、任意服务 URL 或请求头；实际供应商定义与出站安全策略尚需实现。
 
 put 是可信内部接口：调用方负责管理员/用户权限，actorId 必须来自认证上下文。新记录 expectedVersion=0，更新使用原版本；已有 ID 的资金来源和所属账号不可转移。配置写入与审计同一事务提交。get 为内部读取；listOwnedByok/ownedByok 按账号过滤，仍不能用客户端账号参数代替身份认证。

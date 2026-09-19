@@ -65,12 +65,12 @@ export function restoreDoraArchive(archive: readonly {path:string;data:Uint8Arra
   let files=archive;
   while(!entries.some(entry=>files.some(file=>file.path===entry))){
     const roots=new Set(files.map(file=>file.path.split('/')[0]));
-    if(roots.size!==1||files.some(file=>!file.path.includes('/')))throw new DoraSourceRecognitionError('未找到明确的源码入口；可在待适配归档中保留本次上传');
+    if(roots.size!==1||files.some(file=>!file.path.includes('/')))throw new DoraSourceRecognitionError('未找到明确的源码入口，请检查游戏包目录结构');
     const root=[...roots][0]!+'/';
     files=files.map(file=>({path:file.path.slice(root.length),data:file.data}));
   }
   const entry=entries.find(entry=>files.some(file=>file.path===entry));
-  if(!entry)throw new DoraSourceRecognitionError('未找到明确的源码入口；可在待适配归档中保留本次上传');
+  if(!entry)throw new DoraSourceRecognitionError('未找到明确的源码入口，请检查游戏包目录结构');
   const decoder=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});
   const snapshot:ProjectSnapshot={version:1,projectId:crypto.randomUUID(),revision:0,entry,files:files.map(file=>/\.(lua|yue|tl|xml|tsx?|json|md|txt|csv|svg|vert|frag)$/i.test(file.path)
     ?{path:file.path,kind:'text' as const,text:decoder.decode(file.data)}

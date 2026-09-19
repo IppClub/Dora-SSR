@@ -1,5 +1,7 @@
 # Model settings HTTP integration
 
+> 2026-09-19：当前实现已迁移至 Go 的 `internal/studio`；本文中的 `.mjs` 模块名是迁移前的设计来源，不是现行部署入口。
+
 `createAccountModelHandler` in `account-model-handler.mjs` composes session read/logout, optional HTTPS invite/password login when supplied a `login` store, account administration (list, detail, audit and writes), and these settings routes. Supply the session store, the real `accounts` store, model stores, origin and provider definitions. All routes use that account store for current enabled status; administrative routes additionally check current administrator authority. It owns no stores and does not provide supplier transport. Older model-settings integration tests use manually issued test sessions; `login.browser.mjs` separately proves a real dual-service registration/login and HTTPS Cookie flow.
 
 `createModelSettingsHandler` in `model-settings-handler.mjs` composes the platform grant list/allowance, BYOK provider discovery, configuration list/detail/write, secret management and usage routes. Mount it before a static/SPA handler:

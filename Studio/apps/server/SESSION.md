@@ -1,12 +1,14 @@
 # 当前账号读取接口
 
+> 2026-09-19：本页保留接口设计和历史验证记录。当前实现位于 `internal/studio`，HTTPS 服务入口为 `cmd/studio-server`，不再存在可部署的 Node.js 服务端模块。
+
 ## 邀请码、密码和 HTTPS 服务（当前实现）
 
-首版已选邀请码＋账号密码。`openLoginStore` 在共享 SQLite 中保存一次性邀请码 SHA-256 摘要、到期/核销状态与每账号随机盐的 scrypt 密码派生值；核销建档、密码记录和审计同事务。首位管理员只能在空账号库通过 `issue-bootstrap-invite.mjs` 受信命令领取邀请码；之后管理员可在后台经会话绑定的 `POST /api/admin/invitations` 发创作者/管理员邀请码。原始邀请码只在生成时显示一次。注册和登录分别使用 `POST /api/auth/register`、`POST /api/auth/login`，同源 JSON、实际 TLS 连接和简单持久失败次数限制；非 TLS 请求拒绝，成功签发随机会话并下发 `__Host-dora-studio-session` Secure/HttpOnly/SameSite=Lax/Path=/ Cookie。账号停用拒绝密码登录。
+Go 存储层在共享 SQLite 中保存一次性邀请码 SHA-256 摘要、到期/核销状态与每账号随机盐的 scrypt 密码派生值；核销建档、密码记录和审计同事务。首位管理员只能在空账号库通过 `pnpm invite:bootstrap` 受信命令领取邀请码；之后管理员可在后台经会话绑定的 `POST /api/admin/invitations` 发创作者/管理员邀请码。原始邀请码只在生成时显示一次。注册和登录分别使用 `POST /api/auth/register`、`POST /api/auth/login`，同源 JSON、实际 TLS 连接和持久失败次数限制；非 TLS 请求拒绝，成功签发随机会话并下发 `__Host-dora-studio-session` Secure/HttpOnly/SameSite=Lax/Path=/ Cookie。账号停用拒绝密码登录。
 
-`serve.mjs` 提供真实 HTTPS API 服务；它要求明确的绝对 SQLite 路径、前端 HTTPS origin、稳定 32 字节 base64 密钥、证书/私钥，并不内置试玩渲染。Vite 在提供 `STUDIO_API_URL` 与 TLS 环境时将同源 `/api` 代理到此服务。Chrome 152 双独立服务 `login.browser.mjs` 从实际页面注册两类账号、登录/退出/刷新、创建云项目与读取权限接口，未预置 Cookie；旧 `model-settings.browser.mjs` 的预置会话仍只证明其原有设置回归。自签证书和测试上下文的证书放宽只适用于本地。
+`cmd/studio-server` 提供真实 HTTPS API 服务；它要求明确的绝对 SQLite 路径、前端 HTTPS origin、稳定 32 字节 base64 密钥、证书/私钥，并不内置试玩渲染。Vite 在提供 `STUDIO_API_URL` 与 TLS 环境时将同源 `/api` 代理到此服务。当前 Go 验收脚本从实际页面完成登录、项目创建/重开、管理页面、Agent 工作区和退出；自签证书和测试上下文的证书放宽只适用于本地。
 
-当前缺口：生产反向代理与证书、持久密钥运维/轮换、密码找回、跨实例与连接层限流、会话/邀请过期清理、对象存储及真实受邀用户验收。`serve.mjs` 的 OpenAI 条目只用于设置记录，尚未连接真实模型调用网关；不能据此宣称可生成游戏。
+当前缺口：生产反向代理与证书、持久密钥运维/轮换、密码找回、连接层限流、会话/邀请过期清理、对象存储及真实受邀用户验收。Go 登录失败计数已在共享 SQLite 中跨进程持久化；它不能替代反向代理的连接级防护。
 
 ## 管理员账号修改接口
 
