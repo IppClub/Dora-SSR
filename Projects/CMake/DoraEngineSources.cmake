@@ -60,6 +60,7 @@ set(DORA_ENGINE_SOURCES
 	${DORA_SOURCE_ROOT}/Http/HttpServer.cpp
 	${DORA_SOURCE_ROOT}/Http/XrtNetwork.c
 	${DORA_SOURCE_ROOT}/Wasm/WasmRuntime.cpp
+	${DORA_SOURCE_ROOT}/Wasm/RustRuntimeBridge.cpp
 	${DORA_SOURCE_ROOT}/Const/Header.cpp
 	${DORA_SOURCE_ROOT}/Common/Utils.cpp
 	${DORA_SOURCE_ROOT}/Common/Singleton.cpp

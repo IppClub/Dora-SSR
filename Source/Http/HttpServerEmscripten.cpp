@@ -189,6 +189,9 @@ static void add_request_header(FetchRequestState& request, Slice header) {
 
 static void finalize_fetch(emscripten_fetch_t* fetch, bool success) {
 	if (!fetch) return;
+	// Closing an in-flight fetch synchronously invokes onerror. This function
+	// already owns completion; prevent recursive finalization and double free.
+	fetch->__attributes.onerror = nullptr;
 	auto* raw = r_cast<FetchRequestState*>(fetch->userData);
 	if (!raw) {
 		emscripten_fetch_close(fetch);

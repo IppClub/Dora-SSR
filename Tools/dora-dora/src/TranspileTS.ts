@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 import monaco, { monacoTypescript } from './monacoBase';
 import type { CompilerHost, CompilerOptions, Diagnostic, Program } from 'typescript';
-import type { CompilerOptions as TstlCompilerOptions } from './3rdParty/tstl';
+import type { CompilerOptions as TstlCompilerOptions } from '@dora-studio/tstl';
 import { SourceMapConsumer } from 'source-map';
 import Info from './Info';
 import * as Service from './Service';
@@ -16,6 +16,8 @@ import type { TranspileTSVirtualFile } from './Service';
 import { getExtraLib } from './MonacoPath';
 import { setMonacoRuntime } from './MonacoRuntimeAccess';
 import { isPathWithin } from './PathUtils';
+import { createSnapshotProgram, doraCompilerOptions } from '@dora-studio/compiler';
+import { toFilePath } from './MonacoPath';
 
 setMonacoRuntime({
 	monaco,
@@ -23,8 +25,8 @@ setMonacoRuntime({
 });
 
 type TsModule = typeof import('typescript');
-type TstlModule = typeof import('./3rdParty/tstl');
-type OutputCollectorModule = typeof import('./3rdParty/tstl/transpilation/output-collector');
+type TstlModule = typeof import('@dora-studio/tstl');
+type OutputCollectorModule = typeof import('@dora-studio/tstl/output-collector');
 
 let tsPromise: Promise<TsModule> | null = null;
 let cachedTs: TsModule | null = null;
@@ -108,14 +110,14 @@ async function loadTypescriptCompiler(): Promise<TsModule> {
 
 async function loadTstl(): Promise<TstlModule> {
 	if (!tstlPromise) {
-		tstlPromise = import('./3rdParty/tstl');
+		tstlPromise = import('@dora-studio/tstl');
 	}
 	return tstlPromise;
 }
 
 async function loadOutputCollector(): Promise<OutputCollectorModule> {
 	if (!outputCollectorPromise) {
-		outputCollectorPromise = import('./3rdParty/tstl/transpilation/output-collector');
+		outputCollectorPromise = import('@dora-studio/tstl/output-collector');
 	}
 	return outputCollectorPromise;
 }
@@ -146,18 +148,7 @@ export async function warmupTypescriptTranspiler() {
 }
 
 function getTstlOptions(ts: TsModule, tstl: TstlModule): TstlCompilerOptions {
-	return {
-		strict: true,
-		jsx: ts.JsxEmit.React,
-		luaTarget: tstl.LuaTarget.Lua55,
-		luaLibImport: tstl.LuaLibImportKind.Require,
-		noHeader: true,
-		sourceMap: true,
-		noImplicitSelf: true,
-		moduleResolution: ts.ModuleResolutionKind.Classic,
-		target: ts.ScriptTarget.ESNext,
-		module: ts.ModuleKind.ESNext,
-	};
+	return doraCompilerOptions(ts, tstl.LuaTarget.Lua55, tstl.LuaLibImportKind.Require);
 }
 
 function getDeclarationOptions(ts: TsModule): CompilerOptions {
@@ -556,7 +547,7 @@ function createTypescriptProgram(
 	content: string,
 	projectRoot?: string,
 	virtualFiles?: readonly TranspileTSVirtualFile[],
-): Program {
+): { program: Program; snapshotHost?: CompilerHost } {
 	const sourceRoot = projectRoot && projectRoot !== "" ? projectRoot : Info.path.dirname(rootFileName);
 	// WebSocket transpile requests may overlap across Agent projects. Keep the
 	// project-specific paths on this program instead of mutating shared options.
@@ -565,8 +556,29 @@ function createTypescriptProgram(
 		baseUrl: sourceRoot,
 		rootDir: sourceRoot,
 	};
+	if (virtualFiles !== undefined) {
+		// Complete builds must never consult Monaco's possibly stale project models.
+		// Only platform-owned declaration assets are added by this adapter.
+		const files = new Map(virtualFiles.map(file => [Info.path.normalize(file.file), file]));
+		const rootPath = Info.path.normalize(rootFileName);
+		files.set(rootPath, { ...files.get(rootPath), file: rootPath, content });
+		let defaultLibFileName = virtualFiles.find(file => Info.path.basename(file.file) === "Dora.d.ts")?.file;
+		const extraLibs = defaultLibFileName === undefined ? monacoTypescript.typescriptDefaults.getExtraLibs() : {};
+		for (const [name, lib] of Object.entries(extraLibs) as [string, { content: string }][]) {
+			const file = Info.path.normalize(toFilePath(name));
+			const base = Info.path.basename(file);
+			if (!["Dora.d.ts", "es6-subset.d.ts", "lua.d.ts", "jsx.d.ts"].includes(base)) continue;
+			if (!files.has(file)) files.set(file, { file, content: lib.content });
+			if (base === "Dora.d.ts") defaultLibFileName = file;
+		}
+		const snapshot = createSnapshotProgram(ts, {
+			rootNames: [rootPath], projectRoot: sourceRoot, files: [...files.values()],
+			options: compilerOptions, defaultLibFileName: defaultLibFileName ?? "Dora.d.ts",
+		});
+		return { program: snapshot.program, snapshotHost: snapshot.host };
+	}
 	const [compilerHost] = createCompilerHost(ts, rootFileName, content, projectRoot, compilerOptions, virtualFiles);
-	return ts.createProgram([rootFileName], compilerOptions, compilerHost);
+	return { program: ts.createProgram([rootFileName], compilerOptions, compilerHost) };
 }
 
 export async function transpileTypescript(
@@ -579,16 +591,17 @@ export async function transpileTypescript(
 	const tstl = await loadTstl();
 	await loadSourceMapWasm();
 	const tstlOptions = getTstlOptions(ts, tstl);
-	const program = createTypescriptProgram(ts, tstlOptions, fileName, content, projectRoot, virtualFiles);
+	const { program, snapshotHost } = createTypescriptProgram(ts, tstlOptions, fileName, content, projectRoot, virtualFiles);
 	let diagnostics = ts.getPreEmitDiagnostics(program);
 	const { createEmitOutputCollector } = await loadOutputCollector();
 	const collector = createEmitOutputCollector();
 	const res = new tstl.Transpiler({
 		emitHost: {
-			directoryExists: () => false,
-			fileExists: () => true,
+			directoryExists: path => snapshotHost?.directoryExists?.(path) ?? false,
+			fileExists: path => snapshotHost?.fileExists(path) ?? true,
 			getCurrentDirectory: () => projectRoot && projectRoot !== "" ? projectRoot : Info.path.dirname(fileName),
 			readFile: (filename) => {
+				if (snapshotHost) return snapshotHost.readFile(filename);
 				const normalizedFilename = Info.path.normalize(filename);
 				const virtualSource = virtualFiles?.find(entry => Info.path.normalize(entry.file) === normalizedFilename);
 				const res = virtualSource === undefined ? virtualFiles === undefined

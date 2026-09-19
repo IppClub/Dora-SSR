@@ -3,7 +3,7 @@ import path from "node:path";
 
 const outputDir = path.resolve(process.argv[2] || "result/love-pthread-player");
 const artifacts = ["index.html", "love-pthread-player.html", "love-pthread-player.js",
-	"love-pthread-player.wasm", "love-pthread-player.data"];
+	"love-pthread-player.wasm", "love-pthread-player.data", "audio-worklet.js", "dora-audio-mixer.wasm"];
 for (const artifact of artifacts) {
 	const file = path.join(outputDir, artifact);
 	if (!fs.statSync(file, {throwIfNoEntry: false})?.isFile() || fs.statSync(file).size === 0)
@@ -23,5 +23,8 @@ if (/balatro|love-complex-stage/i.test(glue) || fs.readdirSync(outputDir).some((
 
 const wasm = fs.readFileSync(path.join(outputDir, "love-pthread-player.wasm"));
 if (!WebAssembly.validate(wasm)) throw new Error("Love pthread Player WASM is invalid");
+const mixer = new WebAssembly.Module(fs.readFileSync(path.join(outputDir, "dora-audio-mixer.wasm")));
+if (WebAssembly.Module.imports(mixer).some((entry) => entry.kind === "memory"))
+	throw new Error("Love audio mixer must own its memory independently of pthread workers");
 
 console.log(`[INFO] Love pthread Player output validated: ${outputDir}`);

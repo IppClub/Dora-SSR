@@ -176,6 +176,33 @@ Local Linux builds use the vendored SDL2 source and SDL's upstream CMake detecti
 	```
 
 </TabItem>
+<TabItem value="web" label="Web">
+
+:::tip
+The Web build compiles the engine to WebAssembly with Emscripten and produces the browser-side Web Player for publishing games — see [package games for the Web](/docs/tutorial/game-app-pack). It does not bring the Web IDE into the browser.
+:::
+
+1. Install the pinned Web toolchain: [Emscripten](https://emscripten.org/docs/getting_started/downloads.html) `5.0.5`, [Rust](https://www.rust-lang.org/tools/install) `1.85.1` with the `wasm32-unknown-emscripten` target, [Go](https://go.dev/dl/) `1.24.3`, [Node.js](https://nodejs.org/) `22.14.0`, and [CMake](https://cmake.org/download/) `3.30.5`.
+
+	The exact versions are pinned in `Projects/Web/toolchain.env`, and the build refuses version drift to keep the Web output reproducible. Set `DORA_WEB_ALLOW_TOOLCHAIN_DRIFT=1` only for local diagnosis.
+
+	```sh
+	rustup target add wasm32-unknown-emscripten
+	```
+
+2. Build the Web runtime and Player. The script checks the toolchain, builds the Rust runtime for the Emscripten target, compiles the engine to WebAssembly, and packages a self-contained Player into `result/dora-web-player`.
+	```sh
+	Tools/build-scripts/build_web.sh
+	```
+
+3. Optionally verify the Player in a real browser. The smoke check serves the package locally, opens it with Chrome or Chromium, waits for the built-in example to verify rendering and scripting features, and saves a screenshot to `build/web-browser-smoke.png`.
+	```sh
+	node Tools/build-scripts/check_web_browser.mjs result/dora-web-player
+	```
+
+4. To tune the runtime before building, set `DORA_WEB_PROFILE` (`core`, `dora-preset`, or `custom`) and feature switches such as `DORA_WEB_FEATURE_MODEL_3D=ON`. The build directory defaults to `build/web` (`DORA_WEB_BUILD_DIR`), and `DORA_WEB_JOBS` controls build parallelism.
+
+</TabItem>
 </Tabs>
 
 ## 3. Build Web IDE

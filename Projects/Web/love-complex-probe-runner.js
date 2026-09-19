@@ -1,7 +1,6 @@
 (function installLoveComplexProbe(global) {
 	"use strict";
 	Module.doraSkipManifestMount = true;
-	Module.doraSkipAutoMount = true;
 	const probe = global.DoraLoveComplexProbe = {
 		started: false, state: 0, error: "", logs: [],
 	};
@@ -51,7 +50,10 @@
 		try {
 			Module.FS = Module.FS || FS;
 			Module.IDBFS = Module.IDBFS || IDBFS;
-			if (!storageStart) storageStart = global.DoraWebLoader.mountUserStorage(Module).then(start).catch((error) => {
+			// The loader's preRun dependency mounts storage before the engine can
+			// open its database. Do not remount a live /user filesystem here.
+			if (!storageStart) storageStart = (Module.doraStorageState === 'ready'
+				? Promise.resolve() : global.DoraWebLoader.mountUserStorage(Module)).then(start).catch((error) => {
 				probe.error = String(error || "Love Web storage mount failed");
 				global.doraSetState?.("faulted", probe.error);
 			});
@@ -100,6 +102,7 @@
 	};
 
 	global.doraUnlockLoveComplexAudio = async function() {
+		Module.doraAudio?.resume();
 		const context = Module.SDL2?.audioContext;
 		if (!context) return {supported: false, state: "missing"};
 		if (context.state !== "running") await context.resume();

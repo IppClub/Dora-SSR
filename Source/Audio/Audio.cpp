@@ -16,6 +16,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Scheduler.h"
 #include "Cache/AudioCache.h"
 #include "Node/Node.h"
+#ifdef DORA_EMSCRIPTEN
+#define DORA_WEB_AUDIO_IMPLEMENTATION
+#include "Web/WebAudio.h"
+#endif
 
 #include "soloud_wav.h"
 #include "soloud_wavstream.h"
@@ -266,6 +270,14 @@ void soloud_stop_voice(uint32_t handle) {
 	});
 }
 
+#ifdef DORA_EMSCRIPTEN
+extern "C" EMSCRIPTEN_KEEPALIVE void dora_worklet_ended(uint32_t handle) {
+	SharedApplication.invokeInLogic([handle]() {
+		if (SharedAudio.isVoicePlaying(handle)) SharedAudio.removeRef(handle);
+	});
+}
+#endif
+
 NS_DORA_BEGIN
 
 uint32_t AudioFile::_count = 0;
@@ -280,6 +292,14 @@ uint64_t AudioFile::getStorageSize() {
 }
 
 /* WavFile */
+#ifdef DORA_EMSCRIPTEN
+uint64_t AudioFile::getWebId() const {
+	// Object IDs are recycled; asset cache identities must not be.
+	static std::atomic<uint64_t> sequence{0};
+	if (!_webId) _webId = ++sequence;
+	return _webId;
+}
+#endif
 
 SoLoud::AudioSource* WavFile::getSource() const {
 	return _wav;
@@ -321,7 +341,9 @@ WavFile::~WavFile() {
 bool WavFile::init() {
 	_wav = new SoLoud::Wav();
 	SoLoud::result result = _wav->loadMem(_data.get(), s_cast<uint32_t>(_size), false, false);
+#ifndef DORA_EMSCRIPTEN
 	_data.reset();
+#endif
 	if (result) {
 		delete _wav;
 		_wav = nullptr;
@@ -663,6 +685,9 @@ AudioBus::AudioBus(AudioBus* parent)
 }
 
 AudioBus::~AudioBus() {
+#ifdef DORA_EMSCRIPTEN
+	if (_webHandle) dora_worklet_bus(_webHandle, DoraWebAudio::DestroyBus, 0, 0, 0, 0);
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) soloud->stop(_handle);
 		_handle = 0;
@@ -690,10 +715,19 @@ bool AudioBus::init() {
 	// select child voices. Directly routing children through Soloud::play does
 	// not initialize that field, so resolve it as soon as the bus is playing.
 	_bus->findBusHandle();
+#ifdef DORA_EMSCRIPTEN
+	if (dora_worklet_ready() && (!_parent || _parent->getWebHandle())) {
+		_webHandle = getId();
+		dora_worklet_bus(_webHandle, DoraWebAudio::CreateBus, _parent ? _parent->getWebHandle() : 0, 0, 0, 0);
+	}
+#endif
 	return Object::init();
 }
 
 void AudioBus::setPan(float var) {
+#ifdef DORA_EMSCRIPTEN
+	if (_webHandle) dora_worklet_bus(_webHandle, DoraWebAudio::BusPan, var, 0, 0, 0);
+#endif
 	if (auto soloud = SharedAudio.getSoLoud()) soloud->setPan(_handle, var);
 }
 
@@ -703,6 +737,9 @@ float AudioBus::getPan() const noexcept {
 }
 
 void AudioBus::setVolume(float var) {
+#ifdef DORA_EMSCRIPTEN
+	if (_webHandle) dora_worklet_bus(_webHandle, DoraWebAudio::BusVolume, var, 0, 0, 0);
+#endif
 	if (auto soloud = SharedAudio.getSoLoud()) soloud->setVolume(_handle, var);
 }
 
@@ -712,6 +749,9 @@ float AudioBus::getVolume() const noexcept {
 }
 
 void AudioBus::setPlaySpeed(float var) {
+#ifdef DORA_EMSCRIPTEN
+	if (_webHandle) dora_worklet_bus(_webHandle, DoraWebAudio::BusSpeed, var, 0, 0, 0);
+#endif
 	if (auto soloud = SharedAudio.getSoLoud()) soloud->setRelativePlaySpeed(_handle, var);
 }
 
@@ -725,14 +765,23 @@ uint32_t AudioBus::getHandle() const noexcept {
 }
 
 void AudioBus::fadeVolume(double time, float toVolume) {
+#ifdef DORA_EMSCRIPTEN
+	if (_webHandle) dora_worklet_bus(_webHandle, DoraWebAudio::FadeBusVolume, toVolume, time, 0, 0);
+#endif
 	if (auto soloud = SharedAudio.getSoLoud()) soloud->fadeVolume(_handle, toVolume, time);
 }
 
 void AudioBus::fadePan(double time, float toPan) {
+#ifdef DORA_EMSCRIPTEN
+	if (_webHandle) dora_worklet_bus(_webHandle, DoraWebAudio::FadeBusPan, toPan, time, 0, 0);
+#endif
 	if (auto soloud = SharedAudio.getSoLoud()) soloud->fadePan(_handle, toPan, time);
 }
 
 void AudioBus::fadePlaySpeed(double time, float toPlaySpeed) {
+#ifdef DORA_EMSCRIPTEN
+	if (_webHandle) dora_worklet_bus(_webHandle, DoraWebAudio::FadeBusSpeed, toPlaySpeed, time, 0, 0);
+#endif
 	if (auto soloud = SharedAudio.getSoLoud()) soloud->fadeRelativePlaySpeed(_handle, toPlaySpeed, time);
 }
 
@@ -746,6 +795,12 @@ void AudioBus::setFilter(uint32_t index, String name) {
 		return;
 	}
 	// Bus::setFilter replaces the live instance under SoLoud's audio mutex.
+#ifdef DORA_EMSCRIPTEN
+	// IDs match the isolated mixer's factory; zero detaches a filter.
+	static const std::array<std::string_view, 12> names = {"", "BassBoost", "BiquadResonant", "DCRemoval", "Echo", "Eq", "FFT", "Flanger", "FreeVerb", "Lofi", "Robotize", "WaveShaper"};
+	const auto type = std::find(names.begin(), names.end(), name.toString());
+	if (_webHandle && type != names.end()) dora_worklet_bus(_webHandle, DoraWebAudio::BusFilter, index, type - names.begin(), 0, 0);
+#endif
 	// Detach it before deleting the owning filter object, since several filter
 	// instances retain a pointer to that object while the mixer is running.
 	if (_filters[index]) {
@@ -857,6 +912,9 @@ void AudioBus::setFilter(uint32_t index, String name) {
 }
 
 void AudioBus::setFilterParameter(uint32_t index, uint32_t attrId, float value) {
+#ifdef DORA_EMSCRIPTEN
+	if (_webHandle) dora_worklet_bus(_webHandle, DoraWebAudio::BusParameter, index, attrId, value, 0);
+#endif
 	if (auto soloud = SharedAudio.getSoLoud()) soloud->setFilterParameter(_handle, index, attrId, value);
 }
 
@@ -866,6 +924,9 @@ float AudioBus::getFilterParameter(uint32_t index, uint32_t attrId) {
 }
 
 void AudioBus::fadeFilterParameter(uint32_t index, uint32_t attrId, float to, double time) {
+#ifdef DORA_EMSCRIPTEN
+	if (_webHandle) dora_worklet_bus(_webHandle, DoraWebAudio::FadeBusParameter, index, attrId, to, time);
+#endif
 	if (auto soloud = SharedAudio.getSoLoud()) soloud->fadeFilterParameter(_handle, index, attrId, to, time);
 }
 
@@ -880,7 +941,24 @@ SoLoud::Soloud* Audio::getSoLoud() {
 	return _soloud;
 }
 
+#ifdef DORA_EMSCRIPTEN
+void Audio::syncWorkletListener() {
+	if (!_soloud || !dora_worklet_ready()) return;
+	const float listener[] = {
+		_soloud->m3dPosition[0], _soloud->m3dPosition[1], _soloud->m3dPosition[2],
+		_soloud->m3dAt[0], _soloud->m3dAt[1], _soloud->m3dAt[2],
+		_soloud->m3dUp[0], _soloud->m3dUp[1], _soloud->m3dUp[2],
+		_soloud->m3dVelocity[0], _soloud->m3dVelocity[1], _soloud->m3dVelocity[2],
+		_soloud->m3dSoundSpeed, _soloud->m3dDopplerScale, static_cast<float>(_soloud->m3dDistanceModel)};
+	dora_worklet_listener(listener);
+}
+#endif
+
 Audio::~Audio() {
+#ifdef DORA_EMSCRIPTEN
+	++_webStreamGeneration;
+	dora_worklet_stop_all(0);
+#endif
 	if (_soloud) {
 		_soloud->deinit();
 		delete _soloud;
@@ -921,14 +999,29 @@ bool Audio::init() {
 			_soloud->set3dListenerPosition(point.x, point.y, point.z);
 		}
 		_soloud->update3dAudio();
+#ifdef DORA_EMSCRIPTEN
+		syncWorkletListener();
+#endif
 		return false;
 	});
 	_soloud->set3dListenerUp(0, 1.0f, 0);
 	_soloud->set3dListenerAt(0, 0, 1.0f);
+#ifdef DORA_EMSCRIPTEN
+	syncWorkletListener();
+#endif
 	return true;
 }
 
 uint32_t Audio::play(String filename, bool loop) {
+#ifdef DORA_EMSCRIPTEN
+	if (dora_worklet_ready()) {
+		const auto path = SharedContent.getFullPath(filename);
+		if (dora_worklet_has(path.c_str())) return dora_worklet_play(path.c_str(), nullptr, 0, loop, 0, 0);
+		auto data = SharedContent.load(path);
+		if (!data.first) return 0;
+		return dora_worklet_play(path.c_str(), data.first.get(), data.second, loop, 0, 0);
+	}
+#endif
 	if (!_soloud) return 0;
 	if (auto audioFile = SharedAudioCache.load(filename)) {
 		uint32_t handle = _soloud->play(*audioFile->getSource());
@@ -941,10 +1034,30 @@ uint32_t Audio::play(String filename, bool loop) {
 }
 
 void Audio::stop(uint32_t handle) {
+#ifdef DORA_EMSCRIPTEN
+	if (dora_worklet_handle(handle)) { dora_worklet_stop(handle, 0); return; }
+#endif
 	if (_soloud) _soloud->stop(handle);
 }
 
 void Audio::playStream(String filename, bool loop, float crossFadeTime) {
+#ifdef DORA_EMSCRIPTEN
+	if (dora_worklet_ready()) {
+		stopStream(crossFadeTime);
+		const auto generation = _webStreamGeneration;
+		const auto path = SharedContent.getFullPath(filename);
+		if (dora_worklet_has(path.c_str())) {
+			_webStreamVoice = dora_worklet_play(path.c_str(), nullptr, 0, loop, crossFadeTime, 1);
+			return;
+		}
+		SharedContent.loadAsyncUnsafe(path, [this, path, generation, loop, crossFadeTime](uint8_t* bytes, int64_t size) {
+			auto owned = MakeOwnArray(bytes);
+			if (generation != _webStreamGeneration || !dora_worklet_ready() || size <= 0) return;
+			_webStreamVoice = dora_worklet_play(path.c_str(), owned.get(), size, loop, crossFadeTime, 1);
+		});
+		return;
+	}
+#endif
 	if (!_soloud) return;
 	stopStream(crossFadeTime);
 	std::string file(filename);
@@ -974,6 +1087,11 @@ void Audio::playStream(String filename, bool loop, float crossFadeTime) {
 }
 
 void Audio::stopStream(float fadeTime) {
+#ifdef DORA_EMSCRIPTEN
+	++_webStreamGeneration;
+	if (_webStreamVoice) dora_worklet_stop(_webStreamVoice, fadeTime);
+	_webStreamVoice = 0;
+#endif
 	if (!_soloud) return;
 	if (fadeTime > 0.0f) {
 		if (_currentVoice > 0 && _soloud->isValidVoiceHandle(_currentVoice)) {
@@ -989,20 +1107,34 @@ void Audio::stopStream(float fadeTime) {
 }
 
 void Audio::stopAll(float fadeTime) {
+#ifdef DORA_EMSCRIPTEN
+	++_webStreamGeneration;
+	_webStreamVoice = 0;
+	dora_worklet_stop_all(fadeTime);
+#endif
 	if (!_soloud) return;
 	if (fadeTime > 0.0f) {
 		for (const auto& res : _resources) {
+#ifdef DORA_EMSCRIPTEN
+			if (dora_worklet_handle(res.first)) continue;
+#endif
 			_soloud->fadeVolume(res.first, 0.0f, fadeTime);
 			_soloud->scheduleStop(res.first, fadeTime);
 		}
 	} else {
 		for (const auto& res : _resources) {
+#ifdef DORA_EMSCRIPTEN
+			if (dora_worklet_handle(res.first)) continue;
+#endif
 			_soloud->stop(res.first);
 		}
 	}
 }
 
 void Audio::setGlobalVolume(float var) {
+#ifdef DORA_EMSCRIPTEN
+	dora_worklet_volume(var);
+#endif
 	if (_soloud) _soloud->setGlobalVolume(var);
 }
 
@@ -1012,6 +1144,9 @@ float Audio::getGlobalVolume() const noexcept {
 
 void Audio::setSoundSpeed(float var) {
 	if (_soloud) _soloud->set3dSoundSpeed(var);
+#ifdef DORA_EMSCRIPTEN
+	syncWorkletListener();
+#endif
 }
 
 float Audio::getSoundSpeed() const noexcept {
@@ -1020,6 +1155,9 @@ float Audio::getSoundSpeed() const noexcept {
 
 void Audio::setDopplerScale(float var) {
 	if (_soloud) _soloud->set3dDopplerScale(var);
+#ifdef DORA_EMSCRIPTEN
+	syncWorkletListener();
+#endif
 }
 
 float Audio::getDopplerScale() const noexcept {
@@ -1030,6 +1168,9 @@ void Audio::setDistanceModel(Audio::DistanceModel model) {
 	if (_soloud) {
 		_soloud->set3dDistanceModel(static_cast<SoLoud::DISTANCE_MODELS>(model));
 	}
+#ifdef DORA_EMSCRIPTEN
+	syncWorkletListener();
+#endif
 }
 
 Audio::DistanceModel Audio::getDistanceModel() const {
@@ -1039,6 +1180,9 @@ Audio::DistanceModel Audio::getDistanceModel() const {
 }
 
 void Audio::setPauseAllCurrent(bool aPause) {
+#ifdef DORA_EMSCRIPTEN
+	dora_worklet_pause(aPause);
+#endif
 	_paused = aPause;
 	if (_soloud) _soloud->setPauseAll(aPause);
 }
@@ -1053,18 +1197,30 @@ Node* Audio::getListener() const noexcept {
 
 void Audio::setListenerAt(float aAtX, float aAtY, float aAtZ) {
 	if (_soloud) _soloud->set3dListenerAt(aAtX, aAtY, aAtZ);
+#ifdef DORA_EMSCRIPTEN
+	syncWorkletListener();
+#endif
 }
 
 void Audio::setListenerUp(float aUpX, float aUpY, float aUpZ) {
 	if (_soloud) _soloud->set3dListenerUp(aUpX, aUpY, aUpZ);
+#ifdef DORA_EMSCRIPTEN
+	syncWorkletListener();
+#endif
 }
 
 void Audio::setListenerVelocity(float aVelocityX, float aVelocityY, float aVelocityZ) {
 	if (_soloud) _soloud->set3dListenerVelocity(aVelocityX, aVelocityY, aVelocityZ);
+#ifdef DORA_EMSCRIPTEN
+	syncWorkletListener();
+#endif
 }
 
 void Audio::setListenerPosition(float aPosX, float aPosY, float aPosZ) {
 	if (_soloud) _soloud->set3dListenerPosition(aPosX, aPosY, aPosZ);
+#ifdef DORA_EMSCRIPTEN
+	syncWorkletListener();
+#endif
 }
 
 void Audio::getListenerPosition(float& aPosX, float& aPosY, float& aPosZ) const {
@@ -1106,10 +1262,11 @@ void Audio::removeRef(uint32_t handle) {
 		if (shouldTraceDoraAudio(trace))
 			Info("[DoraAudioTrace {}] removeRef: handle={} found=true callback={}", trace,
 				handle, it->second->callback != nullptr);
-		if (it->second->callback) {
-			it->second->callback(it->first);
-		}
+		// An AudioEnd callback can start another source (and rehash _resources).
+		// Remove ownership first, keeping the resource alive through the callback.
+		auto resource = std::move(it->second);
 		_resources.erase(it);
+		if (resource->callback) resource->callback(handle);
 	} else {
 		Warn("[DoraAudioTrace {}] removeRef: handle={} found=false", trace, handle);
 	}

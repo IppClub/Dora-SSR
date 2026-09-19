@@ -32,13 +32,17 @@ set(DORA_WEB_BUILTIN_LIBS "${DORA_ROOT}/Assets/Script/Lib")
 set(DORA_WEB_BUILTIN_FONT "${CMAKE_CURRENT_SOURCE_DIR}/preset-assets/Font/sarasa-mono-sc-regular.ttf" CACHE FILEPATH "Builtin player font (gallery uses full Chinese coverage)")
 set(DORA_WEB_PRESET_LUA_MODULES
 	BodyEx.lua
+	Config.lua
 	DoraX.lua
 	InputManager.lua
 	Utils.lua
 	lualib_bundle.lua
+	utf-8.lua
 	UI/Control/Basic/CircleButton.lua
+	UI/Control/Basic/ScrollArea.lua
 	UI/View/Control/Basic/ButtonBase.lua
 	UI/View/Control/Basic/CircleButton.lua
+	UI/View/Control/Basic/ScrollArea.lua
 	UI/View/Shape/Circle.lua
 	UI/View/Shape/LineCircle.lua
 	UI/View/Shape/LineRect.lua
@@ -100,6 +104,11 @@ option(DORA_WEB_BUILD_ENGINE "Compile the shared Dora engine sources for Web" OF
 option(DORA_WEB_BUILD_LOVE_PROBE "Compile the Dora Love runtime as a non-release Web compatibility probe" OFF)
 option(DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER "Build the installable Love pthread Web Player" OFF)
 option(DORA_WEB_PTHREADS "Build an opt-in shared-memory Web profile with Love thread workers" OFF)
+option(DORA_WEB_EXPERIMENTAL_MAIN_WORKER "Experiment: run Player main on a pthread with OffscreenCanvas (not production-ready)" OFF)
+option(DORA_WEB_STUDIO_AGENT_HOST "Enable trusted Studio Agent callbacks (never enable for public game Players)" OFF)
+if(DORA_WEB_EXPERIMENTAL_MAIN_WORKER AND NOT DORA_WEB_PTHREADS)
+	message(FATAL_ERROR "DORA_WEB_EXPERIMENTAL_MAIN_WORKER requires DORA_WEB_PTHREADS=ON")
+endif()
 set(DORA_WEB_LOVE_COMPLEX_PACKAGE "" CACHE FILEPATH "Licensed local .dora package used only by the opt-in P5-09 probe")
 set(DORA_WEB_PROFILE "dora-preset" CACHE STRING "Dora Web feature preset")
 set_property(CACHE DORA_WEB_PROFILE PROPERTY STRINGS core dora-preset custom)
@@ -112,12 +121,19 @@ if(DORA_WEB_PROFILE STREQUAL "dora-preset")
 else()
 	set(DORA_WEB_PRESET_FEATURE_DEFAULT OFF)
 endif()
-foreach(DORA_WEB_TRISTATE_FEATURE IN ITEMS PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS ML YUE)
+foreach(DORA_WEB_TRISTATE_FEATURE IN ITEMS PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS ML YUE MODEL_3D)
 	set(DORA_WEB_FEATURE_${DORA_WEB_TRISTATE_FEATURE} AUTO CACHE STRING "Include this Dora Web feature: AUTO, ON or OFF")
 	set_property(CACHE DORA_WEB_FEATURE_${DORA_WEB_TRISTATE_FEATURE} PROPERTY STRINGS AUTO ON OFF)
 	string(TOUPPER "${DORA_WEB_FEATURE_${DORA_WEB_TRISTATE_FEATURE}}" DORA_WEB_FEATURE_VALUE)
+	if(DORA_WEB_TRISTATE_FEATURE STREQUAL "MODEL_3D")
+		# The default Dora/Love Web player stays 2D. A 3D package opts into the
+		# inseparable Model3D + Jolt + Rust feature set explicitly.
+		set(DORA_WEB_FEATURE_DEFAULT OFF)
+	else()
+		set(DORA_WEB_FEATURE_DEFAULT ${DORA_WEB_PRESET_FEATURE_DEFAULT})
+	endif()
 	if(DORA_WEB_FEATURE_VALUE STREQUAL "AUTO")
-		set(DORA_WEB_FEATURE_${DORA_WEB_TRISTATE_FEATURE} ${DORA_WEB_PRESET_FEATURE_DEFAULT})
+		set(DORA_WEB_FEATURE_${DORA_WEB_TRISTATE_FEATURE} ${DORA_WEB_FEATURE_DEFAULT})
 	elseif(DORA_WEB_FEATURE_VALUE MATCHES "^(ON|OFF)$")
 		set(DORA_WEB_FEATURE_${DORA_WEB_TRISTATE_FEATURE} ${DORA_WEB_FEATURE_VALUE})
 	else()
@@ -131,7 +147,7 @@ if(DORA_WEB_FEATURE_PLATFORMER AND NOT DORA_WEB_FEATURE_PHYSICS_2D)
 	message(FATAL_ERROR "DORA_WEB_FEATURE_PLATFORMER requires DORA_WEB_FEATURE_PHYSICS_2D=ON")
 endif()
 
-foreach(DORA_WEB_BOOL_FEATURE IN ITEMS PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS ML YUE)
+foreach(DORA_WEB_BOOL_FEATURE IN ITEMS PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS ML YUE MODEL_3D)
 	if(DORA_WEB_FEATURE_${DORA_WEB_BOOL_FEATURE})
 		set(DORA_WEB_FEATURE_${DORA_WEB_BOOL_FEATURE}_JSON true)
 	else()
@@ -155,6 +171,11 @@ endif()
 if(DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER AND NOT DORA_WEB_PTHREADS)
 	message(FATAL_ERROR "DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER requires DORA_WEB_PTHREADS=ON")
 endif()
+if(DORA_WEB_STUDIO_AGENT_HOST)
+	set(DORA_WEB_STUDIO_AGENT_HOST_JSON true)
+else()
+	set(DORA_WEB_STUDIO_AGENT_HOST_JSON false)
+endif()
 configure_file(
 	"${CMAKE_CURRENT_SOURCE_DIR}/web-features.json.in"
 	"${CMAKE_BINARY_DIR}/dora-web-features.json"
@@ -176,6 +197,11 @@ if(DORA_WEB_BUILD_ENGINE)
 		"${DORA_SOURCE_ROOT}/Lua/LuaCode.cpp"
 		"${DORA_SOURCE_ROOT}/Lua/TealCompiler.cpp"
 		"${DORA_SOURCE_ROOT}/Wasm/WasmRuntime.cpp")
+	# The dedicated Studio Agent host needs the original XML-to-Lua builder
+	# for Agent's explicit build tool. Keep it out of the ordinary game Player.
+	if(DORA_WEB_STUDIO_AGENT_HOST)
+		list(APPEND DORA_WEB_ENGINE_SOURCES "${DORA_SOURCE_ROOT}/Lua/LuaFromXml.cpp")
+	endif()
 	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/(Test|Lua/Xml)/")
 	if(NOT DORA_WEB_FEATURE_ML)
 		list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/(ML|3rdParty/ml)/")
@@ -186,17 +212,19 @@ if(DORA_WEB_BUILD_ENGINE)
 	if(NOT DORA_WEB_FEATURE_ENTITY)
 		list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Entity/")
 	endif()
-	if(NOT DORA_WEB_FEATURE_PHYSICS_2D)
+	if(NOT DORA_WEB_FEATURE_PHYSICS_2D AND NOT DORA_WEB_FEATURE_MODEL_3D)
 		list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Physics/")
-	else()
+	elseif(NOT DORA_WEB_FEATURE_MODEL_3D)
 		list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Physics/(JoltBridge|JoltSources)\\.cpp$")
 	endif()
-	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Cache/Model3DCache\.cpp$")
-	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Node/(Node3D|Surface3D|Light3D|Model3D|Visual3D|View3D)\.cpp$")
+	if(NOT DORA_WEB_FEATURE_MODEL_3D)
+		list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Cache/Model3DCache\.cpp$")
+		list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Node/(Node3D|Surface3D|Light3D|Model3D|Visual3D|View3D)\.cpp$")
+		list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Render/Camera3D\.cpp$")
+	endif()
 	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Node/(VideoNode|TIC80Node)\.cpp$")
 	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/3rdParty/tic80/")
 	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/3rdParty/(JoltPhysics|wasm3)/")
-	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Render/Camera3D\.cpp$")
 	list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/3rdParty/yarnflow/")
 	if(NOT DORA_WEB_FEATURE_YUE)
 		list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/3rdParty/yuescript/")
@@ -226,7 +254,6 @@ if(DORA_WEB_BUILD_ENGINE)
 		DORA_DEBUG=0
 		DORA_EMSCRIPTEN
 		DORA_NO_WA
-		DORA_NO_3D_PHYSICS
 		DORA_TEST=0
 		DORA_WEB_MINIMAL
 		DORA_WEB_TASK_AUTORELEASE_POOL
@@ -236,6 +263,9 @@ if(DORA_WEB_BUILD_ENGINE)
 		d_m3HasWASI
 		SQLITE_OMIT_LOAD_EXTENSION
 	)
+	if(DORA_WEB_STUDIO_AGENT_HOST)
+		target_compile_definitions(dora-web-engine PRIVATE DORA_WEB_STUDIO_AGENT_HOST)
+	endif()
 	if(NOT DORA_WEB_FEATURE_PHYSICS_2D)
 		target_compile_definitions(dora-web-engine PRIVATE DORA_WEB_NO_PHYSICS_2D)
 	endif()
@@ -250,6 +280,13 @@ if(DORA_WEB_BUILD_ENGINE)
 	endif()
 	if(NOT DORA_WEB_FEATURE_PLATFORMER)
 		target_compile_definitions(dora-web-engine PRIVATE DORA_WEB_NO_PLATFORMER)
+	endif()
+	if(DORA_WEB_FEATURE_MODEL_3D)
+		target_compile_definitions(dora-web-engine PRIVATE DORA_WEB_MODEL_3D)
+	else()
+		target_compile_definitions(dora-web-engine PRIVATE
+			DORA_NO_3D_PHYSICS
+			DORA_WEB_NO_MODEL_3D)
 	endif()
 	target_compile_options(dora-web-engine PRIVATE
 		${DORA_WEB_THREAD_COMPILE_OPTIONS}
@@ -334,6 +371,10 @@ endif()
 # binding and feature profile removes the remaining native/Love dependencies.
 option(DORA_WEB_LINK_PLAYER "Attempt to link the Dora Web Player" OFF)
 option(DORA_WEB_DIAGNOSTICS "Keep browser-readable Wasm function names and assertions" OFF)
+if(DORA_WEB_DIAGNOSTICS)
+	set_property(SOURCE "${DORA_SOURCE_ROOT}/Render/RenderTarget.cpp" APPEND PROPERTY
+		COMPILE_DEFINITIONS DORA_WEB_READBACK_TRACE)
+endif()
 if(DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER AND (NOT DORA_WEB_BUILD_ENGINE OR NOT DORA_WEB_BUILD_LOVE_PROBE OR NOT DORA_WEB_LINK_PLAYER))
 	message(FATAL_ERROR "DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER requires the engine, Love support and Player link targets")
 endif()
@@ -393,6 +434,22 @@ if(DORA_WEB_LINK_PLAYER)
 	add_executable(dora-web-player
 		$<TARGET_OBJECTS:dora-web-engine>
 		$<TARGET_OBJECTS:dora-web-link-deps>)
+	include("${CMAKE_CURRENT_SOURCE_DIR}/AudioMixer.cmake")
+	if(DORA_WEB_EXPERIMENTAL_MAIN_WORKER)
+		include("${CMAKE_CURRENT_SOURCE_DIR}/MainWorkerAudio.cmake")
+		target_link_options(dora-web-player PRIVATE
+			"-sPROXY_TO_PTHREAD=1"
+			"-sOFFSCREENCANVAS_SUPPORT=1"
+			"-sOFFSCREENCANVASES_TO_PTHREAD=#canvas")
+	endif()
+	if(DORA_WEB_FEATURE_MODEL_3D)
+		target_link_libraries(dora-web-player PRIVATE "${DORA_RUST_RUNTIME}")
+	endif()
+	if(DORA_WEB_STUDIO_AGENT_HOST)
+		set(DORA_WEB_PLAYER_EXPORTED_FUNCTIONS "['_main','_dora_web_stop','_dora_web_set_suspended','_dora_web_release_input','_dora_web_asset_complete','_dora_web_agent_request']")
+	else()
+		set(DORA_WEB_PLAYER_EXPORTED_FUNCTIONS "['_main','_dora_web_stop','_dora_web_set_suspended','_dora_web_release_input','_dora_web_asset_complete']")
+	endif()
 	target_link_options(dora-web-player PRIVATE
 		"--ignore-dynamic-linking"
 		"-fwasm-exceptions"
@@ -407,10 +464,12 @@ if(DORA_WEB_LINK_PLAYER)
 		"-sFILESYSTEM=1"
 		"-lidbfs.js"
 		"-sFETCH=1"
+		"-sFETCH_STREAMING=1"
 		${DORA_WEB_THREAD_LINK_OPTIONS}
-		"-sEXPORTED_FUNCTIONS=['_main','_dora_web_stop','_dora_web_set_suspended','_dora_web_release_input','_dora_web_asset_complete']"
-		"-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap']"
+		"-sEXPORTED_FUNCTIONS=${DORA_WEB_PLAYER_EXPORTED_FUNCTIONS}"
+		"-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','FS','IDBFS']"
 		"SHELL:--pre-js \"${CMAKE_BINARY_DIR}/dora-web-features.js\""
+		"SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/web-audio.js\""
 		"SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/web-platform.js\""
 		"SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/web-network.js\""
 		"SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/web-package.js\""
@@ -432,6 +491,7 @@ if(DORA_WEB_LINK_PLAYER)
 		OUTPUT_NAME "dora-player-runtime"
 		LINK_DEPENDS "${CMAKE_BINARY_DIR}/dora-web-features.js;${CMAKE_CURRENT_SOURCE_DIR}/player-shell.html;${CMAKE_CURRENT_SOURCE_DIR}/web-platform.js;${CMAKE_CURRENT_SOURCE_DIR}/web-network.js;${CMAKE_CURRENT_SOURCE_DIR}/web-package.js;${CMAKE_CURRENT_SOURCE_DIR}/web-loader.js;${DORA_WEB_BOOTSTRAP_ASSET_FILES};${DORA_WEB_BUILTIN_LIB_FILES};${DORA_WEB_BUILTIN_FONT}"
 		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+	set_property(TARGET dora-web-player APPEND PROPERTY LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/web-audio.js")
 	if(DORA_WEB_BUILD_LOVE_PROBE)
 		add_executable(dora-web-love-link-probe
 			LoveLinkProbe.cpp
@@ -630,6 +690,7 @@ if(DORA_WEB_LINK_PLAYER)
 			OUTPUT_NAME "dora-love-audio-probe"
 			LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/love-audio-probe-runner.js;${CMAKE_CURRENT_SOURCE_DIR}/love-audio-fixture/conf.lua;${CMAKE_CURRENT_SOURCE_DIR}/love-audio-fixture/main.lua;${CMAKE_CURRENT_SOURCE_DIR}/player-shell.html;${DORA_ROOT}/Assets/Script/Lib/lualib_bundle.lua;${DORA_WEB_AUDIO_FIXTURE_SCRIPT}"
 			RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+		dora_enable_worklet(dora-web-love-audio-probe)
 
 		if(DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER)
 			add_executable(dora-web-love-pthread-player
@@ -675,6 +736,7 @@ if(DORA_WEB_LINK_PLAYER)
 				OUTPUT_NAME "love-pthread-player"
 				LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/web-platform.js;${CMAKE_CURRENT_SOURCE_DIR}/web-package.js;${CMAKE_CURRENT_SOURCE_DIR}/web-loader.js;${CMAKE_CURRENT_SOURCE_DIR}/love-pthread-player.js;${CMAKE_CURRENT_SOURCE_DIR}/love-pthread-player-shell.html"
 				RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+			dora_enable_worklet(dora-web-love-pthread-player)
 		endif()
 
 		if(DORA_WEB_LOVE_COMPLEX_PACKAGE)
@@ -740,6 +802,7 @@ if(DORA_WEB_LINK_PLAYER)
 				OUTPUT_NAME "dora-love-complex-probe"
 				LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/web-platform.js;${CMAKE_CURRENT_SOURCE_DIR}/web-loader.js;${CMAKE_CURRENT_SOURCE_DIR}/love-complex-probe-runner.js;${CMAKE_CURRENT_SOURCE_DIR}/player-shell.html;${DORA_ROOT}/Tools/build-scripts/check_web_love_complex_input.mjs;${DORA_ROOT}/Tools/build-scripts/stage_web_love_complex_input.mjs;${CMAKE_CURRENT_SOURCE_DIR}/love-complex-project.json"
 				RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
+			dora_enable_worklet(dora-web-love-complex-probe)
 		endif()
 	endif()
 	set(DORA_WEB_DEMO_STAGE "${CMAKE_BINARY_DIR}/web-game-stage")

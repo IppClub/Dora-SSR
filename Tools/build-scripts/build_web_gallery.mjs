@@ -38,7 +38,7 @@ const destination = path.resolve(process.env.DORA_WEB_GALLERY_DIR || path.join(r
 const output = fs.mkdtempSync(path.join(root, 'build/web-gallery-output-'));
 let galleryPublished = false;
 process.on('exit', () => { if (!galleryPublished) fs.rmSync(output, {recursive: true, force: true}); });
-const artifacts = ['dora-player-runtime.js', 'dora-player-runtime.wasm', 'dora-player-runtime.data', 'dora-web-features.json'];
+const artifacts = ['dora-player-runtime.js', 'dora-player-runtime.wasm', 'dora-player-runtime.data', 'dora-web-features.json', 'dora-audio-mixer.wasm', 'audio-worklet.js'];
 const shell = fs.readFileSync(path.join(root, 'Projects/Web/player-shell.html'), 'utf8')
 	.replace('<head>', `<head><script>const base = document.createElement('base'); base.href = location.pathname.endsWith('.html') ? new URL('.', location.href).href : location.origin + location.pathname.replace(/\\/$/, '') + '/'; document.head.appendChild(base);</script>`)
 	.replace('{{{ SCRIPT }}}', '<script src="gallery-player.js"></script>');

@@ -5,6 +5,7 @@ import { createRequire } from 'node:module';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import monacoEditorPlugin from 'vite-plugin-monaco-editor';
+import { commonjsLodashPlugin } from './scripts/commonjs-lodash-plugin.mjs';
 
 const require = createRequire(import.meta.url);
 
@@ -488,6 +489,7 @@ export default defineConfig(async ({ command, mode }) => {
 			},
 		},
 		plugins: [
+			commonjsLodashPlugin(),
 			react(),
 			yarnEditorStaticPlugin(),
 			codeWireStaticPlugin(),
@@ -509,6 +511,7 @@ export default defineConfig(async ({ command, mode }) => {
 			}),
 		],
 		resolve: {
+			dedupe: ['react', 'react-dom', 'react-markdown', 'remark-gfm'],
 			alias: [
 				{ find: 'path', replacement: path.join(rootDir, 'src/3rdParty/Path') },
 				{ find: 'fs', replacement: emptyModule },

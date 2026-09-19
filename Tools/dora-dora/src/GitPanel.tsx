@@ -22,6 +22,7 @@ import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { DiffEditor } from '@monaco-editor/react';
+import './MonacoEditorRuntime';
 import { MacScrollbar } from 'mac-scrollbar';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import CallSplitIcon from '@mui/icons-material/CallSplit';
@@ -591,26 +592,38 @@ interface GitDiffPreviewProps {
 	preview: GitDiffPreviewState | null;
 	emptyMessage: string;
 	placeholderMessage?: string;
-	modelKey: "local" | "commit";
 }
 
+const GitDiffEditor = (props: React.ComponentProps<typeof DiffEditor>) => {
+	const editorRef = React.useRef<Parameters<NonNullable<typeof props.onMount>>[0] | null>(null);
+	React.useLayoutEffect(() => () => {
+		const editor = editorRef.current;
+		const models = editor?.getModel();
+		// Monaco requires detaching the diff model before disposing its text models.
+		editor?.setModel(null);
+		models?.original.dispose();
+		models?.modified.dispose();
+		editorRef.current = null;
+	}, []);
+	return <DiffEditor {...props} keepCurrentOriginalModel keepCurrentModifiedModel onMount={editor => { editorRef.current = editor; }} />;
+};
+
 const GitDiffPreview = (props: GitDiffPreviewProps) => {
-	const { path, preview, emptyMessage, placeholderMessage, modelKey } = props;
+	const { path, emptyMessage, placeholderMessage } = props;
+	const preview = props.preview?.path === path ? props.preview : null;
 	const message = diffPreviewMessage(preview, path !== "", emptyMessage);
 	return (
 		<Box sx={{ flex: 1, minHeight: 0, background: "#222", overflow: "hidden" }}>
 			{path && preview && !preview.loading && preview.mode === "diff" ? (
-				<DiffEditor
+				<GitDiffEditor
 					height="100%"
 					theme={EditorTheme}
 					language={getLanguageForGitFile(path)}
 					loading={null}
 					original={preview.oldText ?? ""}
 					modified={preview.newText ?? ""}
-					originalModelPath={`inmemory://dora-git/${modelKey}/original`}
-					modifiedModelPath={`inmemory://dora-git/${modelKey}/modified`}
-					keepCurrentOriginalModel
-					keepCurrentModifiedModel
+					// Each mounted preview owns its models. Loading another file unmounts
+					// this editor, so retaining named models would reuse stale contents.
 					options={{
 						readOnly: true,
 						renderSideBySide: true,
@@ -1935,7 +1948,6 @@ export default function GitPanel(props: GitPanelProps) {
 					preview={diffPreview}
 					emptyMessage={t("git.noDiff")}
 					placeholderMessage={selectedLocalDirectoryPath ? t("git.directorySelectedHint") : undefined}
-					modelKey="local"
 				/>
 				{commitForm}
 			</Box>
@@ -2089,7 +2101,6 @@ export default function GitPanel(props: GitPanelProps) {
 								path={selectedCommitFilePath}
 								preview={commitDiffPreview}
 								emptyMessage={t("git.noDiff")}
-								modelKey="commit"
 							/>
 						</Box>
 					</Box>

@@ -28,9 +28,56 @@ color: Color3
 **Signature:**
 ```tl
 intensity: number
-	castShadow: boolean
-	shadowBias: number
-	shadowNormalBias: number
-	-- Shadow filter radius measured in shadow-map texels. Zero disables filtering.
-	shadowSoftness: number
+```
+
+## castShadow
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether this light casts a shadow.
+
+**Signature:**
+```tl
+castShadow: boolean
+```
+
+## shadowBias
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Constant depth bias used by the shadow comparison.
+
+**Signature:**
+```tl
+shadowBias: number
+```
+
+## shadowNormalBias
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Slope-dependent normal bias used by the shadow comparison.
+
+**Signature:**
+```tl
+shadowNormalBias: number
+```
+
+## shadowSoftness
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Shadow filter radius measured in shadow-map texels. Zero disables filtering.
+
+**Signature:**
+```tl
+shadowSoftness: number
 ```

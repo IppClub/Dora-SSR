@@ -78,10 +78,12 @@ export function isSafePublicHttpUrl(url: string): boolean {
 	// runtime. Fetch is already subject to the browser's origin/CORS policy, so
 	// retain the URL and literal-address checks above and leave hostname
 	// resolution to the browser network stack.
-	if (App.platform === "Emscripten") return true;
+	if (App.platform === "Web") return true;
 
 	// Native builds retain the DNS rebinding protection.
-	const { dns } = require('socket') as any;
+	const { dns } = require('socket') as {
+		dns: { getaddrinfo(this: void, host: string): LuaMultiReturn<[{addr: string}[] | undefined, string | undefined]> };
+	};
 	const [addresses] = dns.getaddrinfo(host);
 	if (!addresses || addresses.length === 0) return false;
 	for (const address of addresses) {

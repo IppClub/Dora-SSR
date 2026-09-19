@@ -23,7 +23,7 @@
 	function validateManifest(input, manifestUrl, options) {
 		if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("manifest must be an object");
 		if (input.format !== "dora-web-game" || input.version !== 1) throw new Error("unsupported Dora Web manifest format or version");
-		if (input.engineVersion !== "1.9.2") throw new Error(`unsupported engine version: ${input.engineVersion}`);
+		if (input.engineVersion !== "1.9.3") throw new Error(`unsupported engine version: ${input.engineVersion}`);
 		const supportedProfiles = new Set(["core", "dora-preset", "custom"]);
 		if (!supportedProfiles.has(input.profile)) {
 			throw new Error(`unsupported Web profile: ${input.profile}`);
@@ -204,6 +204,34 @@
 		module.doraReportProgress?.(0, totalBytes, "Loading game resources…");
 		const loaded = await Promise.all(startupFiles.map(async (file) => ({ file, data: await fetchBytes(file, (value) => reportProgress(file, value)) })));
 		scope.performance?.mark?.("dora-startup-assets-ready");
+		return mountLoaded(module, manifest, loaded);
+	}
+
+	// RuntimeHost supplies an immutable structured-cloned snapshot. Validate all
+	// bytes before touching the current /game tree; this path never fetches URLs.
+	async function mountSnapshot(module, input, files) {
+		const manifest = validateManifest(input, "https://snapshot.invalid/manifest.json");
+		if (!Array.isArray(files) || files.length !== manifest.files.length) throw new Error("snapshot file count mismatch");
+		const expected = new Map(manifest.files.map(file => [file.path, file.size]));
+		const supplied = new Map();
+		for (const item of files) {
+			if (!item || typeof item.path !== "string" || !(item.bytes instanceof Uint8Array) || supplied.has(item.path)) {
+				throw new Error("invalid or duplicate snapshot file");
+			}
+			if (expected.get(item.path) !== item.bytes.byteLength) throw new Error(`snapshot size mismatch: ${item.path}`);
+			supplied.set(item.path, new Uint8Array(item.bytes));
+		}
+		const loaded = await Promise.all(manifest.files.map(async (file) => {
+			const data = supplied.get(file.path);
+			if (!data || data.byteLength !== file.size || await sha256Hex(data) !== file.sha256) {
+				throw new Error(`snapshot integrity mismatch: ${file.path}`);
+			}
+			return {file, data};
+		}));
+		return mountLoaded(module, manifest, loaded);
+	}
+
+	function mountLoaded(module, manifest, loaded) {
 		const fileSystem = module.FS;
 		if (!fileSystem) throw new Error("Emscripten filesystem is unavailable");
 		const previous = moduleStates.get(module);
@@ -253,7 +281,7 @@
 		module.doraStorageState = "mounting";
 		const fileSystem = module.FS;
 		if (!fileSystem || !module.IDBFS) throw new Error("IDBFS is unavailable");
-		const storageId = module.doraStorageId;
+		const storageId = await module.doraStorageId;
 		if (storageId !== undefined && !/^[a-z0-9-]{1,80}$/.test(storageId)) throw new Error("invalid game storage ID");
 		if (storageId) {
 			fileSystem.mkdirTree(`/dora-saves/${storageId}`);
@@ -291,11 +319,13 @@
 			}).finally(function() { syncInFlight = null; });
 			return syncInFlight;
 		}
-		module.doraSyncUserStorage = function() {
+		module.doraSyncUserStorage = function(options) {
 			const batch = queuedSync;
 			queuedSync = null;
 			if (batch) clearTimeout(batch.timer);
-			const syncing = runSync(Boolean(batch && syncInFlight));
+			// A lifecycle barrier must include writes made after an older sync began.
+			// Ordinary autosave callers retain the existing in-flight deduplication.
+			const syncing = runSync(Boolean(options?.afterCurrent || (batch && syncInFlight)));
 			if (batch) syncing.then(batch.resolve, batch.reject);
 			return syncing;
 		};
@@ -325,7 +355,7 @@
 		}
 	}
 
-	const api = Object.freeze({ LIMITS, validateManifest, loadManifest, fetchBytes, fetchPath, mountStartup, mountUserStorage });
+	const api = Object.freeze({ LIMITS, validateManifest, loadManifest, fetchBytes, fetchPath, mountStartup, mountSnapshot, mountUserStorage });
 	scope.DoraWebLoader = api;
 
 	if (typeof Module !== "undefined" && typeof document !== "undefined" && !Module.doraSkipAutoMount) {
@@ -337,13 +367,19 @@
 			const dependency = "dora-web-manifest";
 			addRunDependency(dependency);
 			const mounts = [api.mountUserStorage(Module)];
-			if (!Module.doraSkipManifestMount) mounts.push(api.mountStartup(Module, manifestUrl));
+			if (Module.doraSnapshot !== undefined) {
+				// RuntimeHost may provide a Promise while its authenticated message
+				// channel receives the snapshot. Keep main behind the run dependency.
+				mounts.push(Promise.resolve(Module.doraSnapshot).then(snapshot => {
+					if (!snapshot || typeof snapshot !== "object") throw new Error("invalid runtime snapshot");
+					return api.mountSnapshot(Module, snapshot.manifest, snapshot.files);
+				}));
+			} else if (!Module.doraSkipManifestMount) mounts.push(api.mountStartup(Module, manifestUrl));
 			Promise.all(mounts).then(function() {
 				scope.performance?.mark?.("dora-content-ready");
 				removeRunDependency(dependency);
 			}).catch(function(error) {
 				if (typeof window.doraSetState === "function") window.doraSetState("faulted", error.message);
-				removeRunDependency(dependency);
 				abort(error.message);
 			});
 		});

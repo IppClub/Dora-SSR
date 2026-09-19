@@ -12,7 +12,7 @@ graph TD
     A[游戏开发完成] --> B[准备游戏资源]
     B --> C[精简 Assets 目录]
     C --> D[设置资源搜索路径]
-    D --> E[选择目标平台<br/>Windows/macOS/Linux/iOS/Android]
+    D --> E[选择目标平台<br/>Windows/macOS/Linux/iOS/Android/Web]
 
     E --> F[配置打包设置]
 
@@ -130,6 +130,7 @@ main()
 | Linux | CMake | 二进制 | 可选 | Steam、官网 |
 | iOS | Xcode | .ipa | 必需 | App Store |
 | Android | Android Studio | .apk/.aab | 必需 | Google Play、其他商店 |
+| Web | Emscripten + Node.js（引擎构建脚本） | 静态网站目录 | 无 | itch.io（HTML）、GitHub Pages、任意静态托管 |
 
 ### 4.2 不同平台的打包操作
 
@@ -205,6 +206,45 @@ xcodebuild -project Projects/iOS/Dora.xcodeproj -scheme Dora -configuration Rele
 # 通过 Android Studio 图形界面或是使用下面命令构建
 ./gradlew assembleRelease
 ```
+
+</TabItem>
+<TabItem value="web" label="Web">
+
+&emsp;&emsp;Web 导出会将游戏与引擎的 WebAssembly 构建打包在一起，产物是一个纯静态文件目录：托管到任意静态服务器后，玩家在桌面或移动浏览器中打开即可直接游玩，玩家设置与游戏存档会保存在浏览器存储中。
+
+#### 步骤 1：构建 Web Player
+
+在引擎仓库中构建一次 Web Player，脚本会自行检查 Emscripten 工具链（版本固定在 `Projects/Web/toolchain.env`）：
+
+```bash
+Tools/build-scripts/build_web.sh
+```
+
+脚本会在 `result/dora-web-player` 下生成一个自包含的 Player 包，包含 `index.html`、Player 运行时以及一个内置示例游戏。默认的 `dora-preset` 配置覆盖常见 2D 游戏；构建前可以通过 `DORA_WEB_PROFILE`（`core`、`dora-preset` 或 `custom`）以及诸如 `DORA_WEB_FEATURE_MODEL_3D=ON` 的功能开关调整运行时。
+
+#### 步骤 2：打包游戏
+
+```bash
+node Tools/build-scripts/package_web_game.mjs <游戏目录> <输出目录> [入口文件]
+```
+
+`<游戏目录>` 是精简后、包含入口文件（默认为 `init.lua`）的游戏目录。脚本会向 `<输出目录>` 写入 `dora-web-manifest.json` 以及带内容哈希的 `assets/` 文件；每个文件在浏览器加载时都会做 SHA-256 校验。单个游戏包最多包含 4096 个文件、总计 256 MB。
+
+#### 步骤 3：合并并部署
+
+将 Player 与游戏包复制进同一个目录——替换掉内置示例游戏——然后上传到任意静态文件服务器：
+
+```bash
+mkdir -p dist/web-game
+# Player 文件；跳过属于示例游戏的 dora-web-manifest.json 和 assets/
+cp result/dora-web-player/index.html result/dora-web-player/dora-player-runtime.* \
+	result/dora-web-player/dora-web-features.json result/dora-web-player/dora-audio-mixer.wasm \
+	result/dora-web-player/audio-worklet.js dist/web-game/
+cp <输出目录>/dora-web-manifest.json dist/web-game/
+cp -r <输出目录>/assets dist/web-game/
+```
+
+页面默认加载 `index.html` 旁的 `dora-web-manifest.json` 并自动启动游戏。支持当前稳定版本的 Chrome、Edge、Firefox 与 Safari 浏览器。
 
 </TabItem>
 </Tabs>
@@ -314,6 +354,7 @@ gameScene:addTo(Director.entry)
 - **Google Play**：Android 应用
 - **官网下载**：直接分发
 - **itch.io**：独立游戏平台
+- **静态网站托管**：通过 Web Player 导出的浏览器游戏（GitHub Pages、itch.io HTML 或自有服务器）
 
 ## 总结
 

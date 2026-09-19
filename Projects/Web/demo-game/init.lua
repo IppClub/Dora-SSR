@@ -300,15 +300,7 @@ thread(function()
 	assert(rayHit, "PlayRho raycast fixture failed")
 	print(string.format("Dora Web PlayRho verified y=%.3f mass=%.3f", falling.y, falling.mass))
 
-	local readbackDone = false
-	local readbackSucceeded = false
-	renderTarget:saveAsync("/tmp/dora-web-render-target.png", function(success)
-		readbackSucceeded = success
-		readbackDone = true
-	end)
-	wait(function()
-		return readbackDone
-	end)
+	local readbackSucceeded = renderTarget:saveAsync("/tmp/dora-web-render-target.png")
 	assert(readbackSucceeded, "RenderTarget readback failed")
 
 	local function runCompiledExample(sourcePath, luaPath, sourceMarker)

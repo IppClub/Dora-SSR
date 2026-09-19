@@ -10,9 +10,16 @@ local record DirectionalLight3D
 
 	-- The light intensity.
 	intensity: number
+
+	-- Whether this light casts a shadow.
 	castShadow: boolean
+
+	-- Constant depth bias used by the shadow comparison.
 	shadowBias: number
+
+	-- Slope-dependent normal bias used by the shadow comparison.
 	shadowNormalBias: number
+
 	-- Shadow filter radius measured in shadow-map texels. Zero disables filtering.
 	shadowSoftness: number
 end

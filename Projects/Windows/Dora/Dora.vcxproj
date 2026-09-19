@@ -1939,6 +1939,7 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Test\Test.cpp" />
     <ClCompile Include="..\..\..\Source\Wasm\WasmRuntime.cpp" />
+    <ClCompile Include="..\..\..\Source\Wasm\RustRuntimeBridge.cpp" />
     <ClCompile Include="..\..\..\Source\GUI\ImGuiBinding.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\colib\ljson.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>

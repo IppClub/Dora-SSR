@@ -26,8 +26,9 @@ assert.deepEqual(directories('player'), [catalog.player.split('/')[1]], 'gallery
 const playerShell = file('index.html', player).toString();
 assert.ok(playerShell.includes('gallery-player.js'));
 assert.ok(playerShell.includes('id="progress-bar"') && playerShell.includes('doraReportProgress'), 'player shell is missing resource progress UI');
-for (const name of ['gallery-player.js', 'dora-player-runtime.js', 'dora-player-runtime.data']) file(name, player);
+for (const name of ['gallery-player.js', 'dora-player-runtime.js', 'dora-player-runtime.data', 'audio-worklet.js']) file(name, player);
 assert.ok(WebAssembly.validate(file('dora-player-runtime.wasm', player)), 'invalid player WASM');
+assert.ok(WebAssembly.validate(file('dora-audio-mixer.wasm', player)), 'invalid audio mixer WASM');
 const features = JSON.parse(file('dora-web-features.json', player));
 assert.equal(features.activeProfile, 'dora-preset');
 assert.equal(features.modules.crossOriginIsolationRequired, false);

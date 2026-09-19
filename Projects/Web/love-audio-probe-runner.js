@@ -60,7 +60,7 @@
 	}
 
 	global.doraLoveAudioSnapshot = function() {
-		const context = Module.SDL2?.audioContext;
+		const context = Module.doraAudio?.ready ? Module.doraAudio.context : Module.SDL2?.audioContext;
 		return {
 			state: call("dora_web_love_audio_probe_status"),
 			instances: call("dora_web_love_audio_probe_instance_count"),
@@ -70,6 +70,7 @@
 			voices: call("dora_web_love_audio_probe_voice_delta"),
 			frame: call("dora_web_love_audio_probe_frame"),
 			audioContext: context?.state || "unavailable",
+			worklet: Module.doraAudio?.state,
 			readyCount: probe.readyCount,
 			cycleCount: probe.cycleCount,
 			error: probe.error,
@@ -77,6 +78,7 @@
 	};
 
 	global.doraUnlockLoveAudioProbe = async function() {
+		Module.doraAudio?.resume();
 		const context = Module.SDL2?.audioContext;
 		if (!context) return {supported: false, state: "unavailable"};
 		if (context.state !== "running") await context.resume();

@@ -14,9 +14,6 @@ DORA_EXPORT void content_set_search_paths(int64_t val) {
 DORA_EXPORT int64_t content_get_search_paths() {
 	return Vec_To(SharedContent.getSearchPaths());
 }
-DORA_EXPORT void content_set_asset_path(int64_t val) {
-	SharedContent.setAssetPath(*Str_From(val));
-}
 DORA_EXPORT int64_t content_get_asset_path() {
 	return Str_Retain(SharedContent.getAssetPath());
 }
@@ -52,9 +49,6 @@ DORA_EXPORT int32_t content_move_to(int64_t src, int64_t dst) {
 }
 DORA_EXPORT int32_t content_remove(int64_t path) {
 	return SharedContent.remove(*Str_From(path)) ? 1 : 0;
-}
-DORA_EXPORT int64_t content_get_full_path(int64_t filename) {
-	return Str_Retain(SharedContent.getFullPath(*Str_From(filename)));
 }
 DORA_EXPORT int64_t content_get_attr(int64_t filename) {
 	return Object_From(Content_GetAttr(*Str_From(filename)));

@@ -1,0 +1,19 @@
+{
+  "name": "dora-studio",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "build": "pnpm -r build && pnpm build:agent-host && pnpm build:server",
+    "build:agent-host": "node scripts/build-agent-host.mjs",
+    "build:server": "go build -trimpath -o build/bin/dora-studio-server ./cmd/studio-server",
+    "test:server": "go test -race ./...",
+    "server": "go run ./cmd/studio-server",
+    "invite:bootstrap": "go run ./cmd/issue-bootstrap-invite"
+  },
+  "devDependencies": {
+    "@dora-studio/tstl": "workspace:*",
+    "esbuild": "0.28.0",
+    "typescript": "5.9.3"
+  }
+}

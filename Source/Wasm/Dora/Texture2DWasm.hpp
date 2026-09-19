@@ -11,18 +11,6 @@ using namespace Dora;
 DORA_EXPORT int32_t texture2d_type() {
 	return DoraType<Texture2D>();
 }
-DORA_EXPORT int32_t texture2d_get_width(int64_t self) {
-	return s_cast<int32_t>(r_cast<Texture2D*>(self)->getWidth());
-}
-DORA_EXPORT int32_t texture2d_get_height(int64_t self) {
-	return s_cast<int32_t>(r_cast<Texture2D*>(self)->getHeight());
-}
-DORA_EXPORT int32_t texture2d_get_handle(int64_t self) {
-	return s_cast<int32_t>(Texture2D_GetHandle(r_cast<Texture2D*>(self)));
-}
-DORA_EXPORT int64_t texture2d_with_file(int64_t filename) {
-	return Object_From(Texture2D_Create(*Str_From(filename)));
-}
 } // extern "C"
 
 static void linkTexture2D(wasm3::module3& mod) {

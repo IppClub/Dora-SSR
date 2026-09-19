@@ -8,8 +8,10 @@ local record Constraint3D
 
 	-- The owning world. Nil after the constraint is destroyed.
 	const world: PhysicsWorld3D | nil
+
 	-- The first constrained body. Nil after the constraint is destroyed.
 	const firstBody: Body3D | nil
+
 	-- The second constrained body. Nil after the constraint is destroyed.
 	const secondBody: Body3D | nil
 

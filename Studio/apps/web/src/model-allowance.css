@@ -1,0 +1,5 @@
+.model-allowance-container{border-bottom:1px solid #ffffff20;padding:12px 16px;color:#aaa;font-size:12px;overflow-wrap:anywhere}
+.model-allowance-heading{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}
+.model-allowance-heading strong{color:#fac03d;font-size:20px;font-variant-numeric:tabular-nums}
+.model-allowance details{margin-top:8px}.model-allowance summary{cursor:pointer}.model-allowance p{display:flex;justify-content:space-between;gap:10px;margin:8px 0}.model-allowance b{color:#ddd;font-weight:500}.model-allowance small{display:block;line-height:1.6}
+.model-allowance-inline{display:inline-flex;align-items:center;min-width:0;color:#aaa;font:inherit;font-variant-numeric:tabular-nums}.model-allowance-compact{display:inline-flex;align-items:center;gap:7px}.model-allowance-compact>span{color:#fac03d}.model-allowance-compact small{color:#c9a75e;font:inherit}

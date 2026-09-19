@@ -36,7 +36,7 @@ public:
 	PROPERTY_READONLY_CALL(Node*, UI);
 	PROPERTY_READONLY_CALL(Node*, UI3D);
 	PROPERTY_READONLY_CALL(Node*, SystemUI);
-#ifdef DORA_WEB_MINIMAL
+#if defined(DORA_WEB_MINIMAL) && !defined(DORA_WEB_MODEL_3D)
 	PROPERTY_READONLY_CALL(Node*, Entry);
 #else
 	PROPERTY_READONLY_CALL(View3D*, Entry);
@@ -180,7 +180,7 @@ private:
 	Ref<Camera> _ui3DCamera;
 	Ref<Camera> _systemUICamera;
 	Ref<Node> _postNode;
-#ifdef DORA_WEB_MINIMAL
+#if defined(DORA_WEB_MINIMAL) && !defined(DORA_WEB_MODEL_3D)
 	Ref<Node> _entry;
 #else
 	Ref<View3D> _entry;

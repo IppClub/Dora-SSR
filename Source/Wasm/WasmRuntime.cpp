@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 
 #include "Wasm/WasmRuntime.h"
+#include "Wasm/RustRuntimeBridge.h"
 
 #include "Dora.h"
 #include "GUI/ImGuiBinding.h"
@@ -880,16 +881,6 @@ static void Node_Emit(Node* node, String name, CallStack* stack) {
 	r_cast<Node*>(node)->emit(&event);
 }
 
-// Texture2D
-
-static inline Texture2D* Texture2D_Create(String name) {
-	return SharedTextureCache.load(name);
-}
-
-static inline uint16_t Texture2D_GetHandle(Texture2D* texture) {
-	return texture->getHandle().idx;
-}
-
 // Sprite
 
 static inline void Sprite_SetEffectNullptr(Sprite* self) {
@@ -1360,29 +1351,11 @@ using namespace Dora;
 
 /* String */
 
-DORA_EXPORT int64_t str_new(int32_t len) {
-	return r_cast<int64_t>(new std::string(len, 0));
-}
-DORA_EXPORT int32_t str_len(int64_t str) {
-	return s_cast<int32_t>(r_cast<std::string*>(str)->length());
-}
-DORA_EXPORT void str_read(void* dest, int64_t src) {
-	auto str = r_cast<std::string*>(src);
-	if (str->length() > 0) {
-		std::memcpy(dest, str->c_str(), str->length());
-	}
-}
 DORA_EXPORT void str_read_ptr(int32_t dest, int64_t src) {
 	auto destPtr = CurrentWasmInstanceOrAssert()->getMemoryAddress(dest);
 	auto str = r_cast<std::string*>(src);
 	if (str->length() > 0) {
 		std::memcpy(destPtr, str->c_str(), str->length());
-	}
-}
-DORA_EXPORT void str_write(int64_t dest, const void* src) {
-	auto str = r_cast<std::string*>(dest);
-	if (str->length() > 0) {
-		std::memcpy(&str->front(), src, str->length());
 	}
 }
 DORA_EXPORT void str_write_ptr(int64_t dest, int32_t src) {
@@ -1392,10 +1365,6 @@ DORA_EXPORT void str_write_ptr(int64_t dest, int32_t src) {
 		std::memcpy(&str->front(), srcPtr, str->length());
 	}
 }
-DORA_EXPORT void str_release(int64_t str) {
-	delete r_cast<std::string*>(str);
-}
-
 /* Buf */
 
 DORA_EXPORT int64_t buf_new_i32(int32_t len) {
@@ -1476,9 +1445,6 @@ DORA_EXPORT int32_t object_get_type(int64_t obj) {
 }
 DORA_EXPORT void object_retain(int64_t obj) {
 	r_cast<Object*>(obj)->retain();
-}
-DORA_EXPORT void object_release(int64_t obj) {
-	r_cast<Object*>(obj)->release();
 }
 DORA_EXPORT int64_t object_to_node(int64_t obj) {
 	if (auto target = d_cast<Node*>(r_cast<Object*>(obj))) {
@@ -1707,10 +1673,6 @@ DORA_EXPORT void dora_print_warning(int64_t var) {
 	LogWarnThreaded(*Str_From(var));
 }
 
-DORA_EXPORT void dora_print_error(int64_t var) {
-	LogErrorThreaded(*Str_From(var));
-}
-
 /* Vec2 */
 
 DORA_EXPORT int64_t vec2_add(int64_t a, int64_t b) {
@@ -1829,16 +1791,6 @@ DORA_EXPORT void dictionary_set(int64_t dict, int64_t key, int64_t value) {
 }
 DORA_EXPORT int64_t dictionary_get(int64_t dict, int64_t key) {
 	return Value_From(r_cast<Dictionary*>(dict)->get(*Str_From(key)).get());
-}
-
-/* Content */
-
-DORA_EXPORT int64_t content_load(int64_t filename) {
-	auto result = SharedContent.load(*Str_From(filename));
-	if (result.second > 0) {
-		return Str_Retain({r_cast<char*>(result.first.get()), result.second});
-	}
-	return 0;
 }
 
 /* Entity */

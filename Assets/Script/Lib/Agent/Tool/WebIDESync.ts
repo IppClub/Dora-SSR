@@ -9,7 +9,7 @@ function encodePayload(value: object): string | undefined {
 }
 
 export function sendWebIDEFileUpdate(file: string, exists: boolean, content: string): boolean {
-	if (HttpServer.wsConnectionCount === 0) return true;
+	if (HttpServer === undefined || HttpServer.wsConnectionCount === 0) return true;
 	const payload = encodePayload({ name: "UpdateFile", file, exists, content });
 	if (!payload) return false;
 	emit("AppWS", "Send", payload);
@@ -17,7 +17,7 @@ export function sendWebIDEFileUpdate(file: string, exists: boolean, content: str
 }
 
 export function sendWebIDERefreshTree(): boolean {
-	if (HttpServer.wsConnectionCount === 0) return true;
+	if (HttpServer === undefined || HttpServer.wsConnectionCount === 0) return true;
 	const payload = encodePayload({ name: "RefreshTree" });
 	if (!payload) return false;
 	emit("AppWS", "Send", payload);

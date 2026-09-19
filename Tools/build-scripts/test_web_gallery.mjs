@@ -8,6 +8,7 @@ import {fileURLToPath} from 'node:url';
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'dora-gallery-gate-'));
 const checker = fileURLToPath(new URL('./check_web_gallery.mjs', import.meta.url));
+const packager = fileURLToPath(new URL('./package_web_game.mjs', import.meta.url));
 const write = (name, data) => {
 	const target = path.join(temp, name);
 	fs.mkdirSync(path.dirname(target), {recursive:true});
@@ -15,13 +16,25 @@ const write = (name, data) => {
 };
 const run = () => spawnSync(process.execPath, [checker, temp], {encoding:'utf8'});
 try {
+	const packageSource = path.join(temp, 'package-source');
+	const packageOutput = path.join(temp, 'package-output');
+	write('package-source/init.lua', 'print("package")');
+	write('package-source/dialogue.txt', 'runtime text');
+	write('package-source/Font/LICENSE.txt', 'font license');
+	write('package-source/Font/FONTLOG.txt', 'font log');
+	const packaged = spawnSync(process.execPath, [packager, packageSource, packageOutput], {encoding: 'utf8'});
+	assert.equal(packaged.status, 0, packaged.stderr);
+	const packagedPaths = JSON.parse(fs.readFileSync(path.join(packageOutput, 'dora-web-manifest.json'))).files.map(file => file.path).sort();
+	assert.deepEqual(packagedPaths, ['dialogue.txt', 'init.lua'], 'runtime text must remain while static-host-blocked metadata is excluded');
+
 	assert.notEqual(run().status, 0, 'missing gallery must fail');
 	const player = 'player/0000000000000000/';
 	const game = 'games/demo/1111111111111111/';
 	write('catalog.json', JSON.stringify({version:1, player, games:[{id:'demo', title:'Demo', manifest:`${game}manifest.json`}]}));
 	write(`${player}index.html`, '<div id="progress-bar"></div><script>Module={doraReportProgress(){}}</script><script src="gallery-player.js"></script>');
-	for (const name of ['gallery-player.js', 'dora-player-runtime.js', 'dora-player-runtime.data']) write(player+name, 'fixture');
+	for (const name of ['gallery-player.js', 'dora-player-runtime.js', 'dora-player-runtime.data', 'audio-worklet.js']) write(player+name, 'fixture');
 	write(`${player}dora-player-runtime.wasm`, Buffer.from([0,97,115,109,1,0,0,0]));
+	write(`${player}dora-audio-mixer.wasm`, Buffer.from([0,97,115,109,1,0,0,0]));
 	write(`${player}dora-web-features.json`, JSON.stringify({activeProfile:'dora-preset', modules:{crossOriginIsolationRequired:false,
 		machineLearning:true, yueCompiler:true, playRho2D:true, entity:true, platformer:true, builtinLuaLibraries:true}}));
 	const data = 'print("demo")';

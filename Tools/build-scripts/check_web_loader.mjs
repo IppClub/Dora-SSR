@@ -4,12 +4,12 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 await import(pathToFileURL(path.resolve("Projects/Web/web-loader.js")));
-const { validateManifest, mountStartup, mountUserStorage, fetchPath } = globalThis.DoraWebLoader;
+const { validateManifest, mountStartup, mountSnapshot, mountUserStorage, fetchPath } = globalThis.DoraWebLoader;
 
 const valid = {
 	format: "dora-web-game",
 	version: 1,
-	engineVersion: "1.9.2",
+	engineVersion: "1.9.3",
 	profile: "dora-preset",
 	entry: "init.lua",
 	files: [{
@@ -54,7 +54,7 @@ const digest = (data) => crypto.createHash("sha256").update(data).digest("hex");
 const lazyManifest = {
 	format: "dora-web-game",
 	version: 1,
-	engineVersion: "1.9.2",
+	engineVersion: "1.9.3",
 	profile: "dora-preset",
 	entry: "init.lua",
 	files: [
@@ -200,6 +200,33 @@ try {
 
 console.log("[INFO] Dora Web lazy asset fetch, deduplication, and retry tests passed");
 
+globalThis.fetch = () => { throw new Error("Snapshot mounting must not access the network"); };
+try {
+	const bytes = new TextEncoder().encode('print("snapshot")');
+	const snapshotManifest = { ...valid, files: [{ ...valid.files[0], size: bytes.length, sha256: digest(bytes) }] };
+	const supplied = [{ path: "init.lua", bytes }];
+	await mountSnapshot(module, snapshotManifest, supplied);
+	assert.equal(storedFiles.get("/game/init.lua").toString(), 'print("snapshot")');
+	await fetchPath(module, "init.lua");
+	bytes.fill(0);
+	assert.equal(storedFiles.get("/game/init.lua").toString(), 'print("snapshot")', "caller mutation must not change mounted bytes");
+	await assert.rejects(mountSnapshot(module, snapshotManifest, supplied), /integrity mismatch/);
+	await assert.rejects(mountSnapshot(module, snapshotManifest, []), /count mismatch/);
+	await assert.rejects(mountSnapshot(module, snapshotManifest, [{ path: "unknown.lua", bytes }]), /size mismatch/);
+	await assert.rejects(mountSnapshot(module, snapshotManifest, [{ path: "init.lua", bytes: new Uint8Array(1) }]), /size mismatch/);
+	assert.equal(storedFiles.get("/game/init.lua").toString(), 'print("snapshot")', "invalid snapshot must preserve the previous game");
+	const replacement = new TextEncoder().encode('print("replaced")');
+	const replacementManifest = { ...valid, files: [{ ...valid.files[0], size: replacement.length, sha256: digest(replacement) }] };
+	failRenameTargetOnce = "/game";
+	await assert.rejects(mountSnapshot(module, replacementManifest, [{ path: "init.lua", bytes: replacement }]), /injected rename failure/);
+	assert.equal(storedFiles.get("/game/init.lua").toString(), 'print("snapshot")');
+	await mountSnapshot(module, replacementManifest, [{ path: "init.lua", bytes: replacement }]);
+	assert.equal(storedFiles.get("/game/init.lua").toString(), 'print("replaced")');
+} finally {
+	globalThis.fetch = originalFetch;
+}
+console.log("[INFO] Dora Web in-memory snapshot integrity, isolation, zero-network mount and rollback tests passed");
+
 const storageSyncs = [];
 let storageFailure;
 const storageFileSystem = {
@@ -255,3 +282,37 @@ storageFailure = Object.assign(new Error("browser quota"), {name: "QuotaExceeded
 await assert.rejects(storageModule.doraSyncUserStorage(), /IDBFS quota exceeded/);
 await storageModule.doraSyncUserStorage();
 console.log("[INFO] Dora Web IDBFS batching, deduplication, quota mapping, and retry tests passed");
+
+const barrierCallbacks = [];
+const barrierModule = {IDBFS: {}, FS: {...storageFileSystem, syncfs(populate, callback) {
+	if (populate) queueMicrotask(() => callback());
+	else barrierCallbacks.push(callback);
+}}};
+await mountUserStorage(barrierModule);
+const oldSync = barrierModule.doraSyncUserStorage();
+let barrierFinished = false;
+const barrier = barrierModule.doraSyncUserStorage({afterCurrent: true}).then(() => {barrierFinished = true;});
+assert.equal(barrierCallbacks.length, 1);
+barrierCallbacks[0]();
+await oldSync;
+await new Promise(resolve => setTimeout(resolve, 0));
+assert.equal(barrierCallbacks.length, 2, "a barrier must start a fresh sync after the old snapshot");
+assert.equal(barrierFinished, false, "old sync completion must not acknowledge newer writes");
+barrierCallbacks[1]();
+await barrier;
+const failingBarrier = barrierModule.doraSyncUserStorage({afterCurrent: true});
+barrierCallbacks[2](new Error("storage unavailable"));
+await assert.rejects(failingBarrier, /storage unavailable/);
+console.log("[INFO] Dora Web explicit persistence barrier completion and failure tests passed");
+
+const scopedMounts = [], scopedLinks = [];
+await mountUserStorage({ IDBFS: {}, doraStorageId: Promise.resolve('preview-project-a'), FS: {
+	...storageFileSystem,
+	mount(_backend, _options, target) { scopedMounts.push(target); },
+	symlink(target, link) { scopedLinks.push([target, link]); },
+	syncfs(_populate, callback) { callback(); }
+} });
+assert.deepEqual(scopedMounts, ['/dora-saves/preview-project-a']);
+assert.deepEqual(scopedLinks, [['/dora-saves/preview-project-a', '/user']]);
+await assert.rejects(mountUserStorage({ FS: storageFileSystem, IDBFS: {}, doraStorageId: Promise.resolve('../escape') }), /invalid game storage ID/);
+console.log('[INFO] Dora Web asynchronous project storage namespace tests passed');

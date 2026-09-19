@@ -47,6 +47,7 @@
 	}
 
 	function packageFileAllowed(path) {
+		if (path === ".studio/project.json") return true;
 		if (path === "dora-package.json" || [".dora/repo.json", ".dora/banner.jpg", ".dora/banner.png"].some((allowed) => path === allowed || path.endsWith(`/${allowed}`))) return true;
 		const parts = path.split("/");
 		const lowerName = parts[parts.length - 1].toLowerCase();
@@ -94,7 +95,7 @@
 		return false;
 	}
 
-	function parseCentralDirectory(bytes, limits) {
+	function parseCentralDirectory(bytes, limits, projectBackup = false) {
 		if (bytes.length === 0 || bytes.length > limits.archiveBytes) throw new Error("Dora package archive size is invalid");
 		const view = viewOf(bytes);
 		const end = findEndRecord(bytes, view);
@@ -142,7 +143,7 @@
 			const unixMode = madeBy >>> 8 === 3 ? externalAttributes >>> 16 : 0;
 			if ((unixMode & 0xf000) === 0xa000) throw new Error(`symbolic links are unsupported: ${path}`);
 			if (!directory) {
-				if (!packageFileAllowed(path)) throw new Error(`disallowed Dora package file: ${path}`);
+				if (!projectBackup && !packageFileAllowed(path)) throw new Error(`disallowed Dora package file: ${path}`);
 				if (unpackedBytes > limits.fileBytes) throw new Error(`Dora package file is too large: ${path}`);
 				totalBytes = safeAdd(totalBytes, unpackedBytes, limits.totalBytes, "Dora package unpacked size");
 			}
@@ -230,7 +231,7 @@
 			return [name, requested];
 		})));
 		const bytes = await toBytes(input);
-		const parsed = parseCentralDirectory(bytes, limits);
+		const parsed = parseCentralDirectory(bytes, limits, options.projectBackup === true);
 		compressedSlices(bytes, parsed);
 		const files = [];
 		for (const entry of parsed.entries) {
@@ -244,7 +245,7 @@
 	}
 
 	async function inspectPackage(input, options = {}) {
-		const {bytes, parsed, files, limits} = await inspectArchive(input, options);
+		const {bytes, parsed, files, limits} = await inspectArchive(input, {...options, projectBackup: false});
 		const filePaths = new Set(files.map((file) => file.path));
 		let root = "";
 		if (!runtimeEntries.some((entry) => filePaths.has(entry))) {
@@ -262,13 +263,13 @@
 			throw new Error("unsupported dora-package.json format, version, or entry");
 		}
 		if (typeof manifest.title !== "string" || !manifest.title.trim() || manifest.title.length > 120) throw new Error("Dora package title is invalid");
-		const currentEngineVersion = options.currentEngineVersion || "1.9.2";
+		const currentEngineVersion = options.currentEngineVersion || "1.9.3";
 		if (compareVersion(manifest.engineVersion, currentEngineVersion) > 0) throw new Error("Dora package requires a newer engine");
 		return Object.freeze({manifest: Object.freeze({...manifest}), root, archiveBytes: bytes.byteLength, unpackedBytes: parsed.totalBytes, files: Object.freeze(relativeFiles)});
 	}
 
 	async function inspectLovePackage(input, options = {}) {
-		const {bytes, parsed, files} = await inspectArchive(input, options);
+		const {bytes, parsed, files} = await inspectArchive(input, {...options, projectBackup: false});
 		const filePaths = new Set(files.map((file) => file.path));
 		let root = "";
 		if (!filePaths.has("main.lua")) {
@@ -336,6 +337,37 @@
 		}
 	}
 
-	const api = Object.freeze({LIMITS, runtimeEntries, crc32, inspectPackage, inspectLovePackage, installPackage});
+	function createArchive(files) {
+		if (!Array.isArray(files) || !files.length || files.length > LIMITS.files) throw new Error("invalid ZIP file count");
+		const parts = [], central = [], paths = [];
+		let offset = 0, centralSize = 0;
+		for (const file of files) {
+			if (!file || typeof file.path !== "string" || !(file.data instanceof Uint8Array)) throw new Error("invalid ZIP file");
+			const path = validateEntryPath(file.path.normalize("NFC"), false);
+			const key = path.toLocaleLowerCase("en-US");
+			if (paths.some(existing => existing === key || existing.startsWith(key + "/") || key.startsWith(existing + "/"))) throw new Error("conflicting ZIP paths");
+			paths.push(key);
+			const name = new TextEncoder().encode(path), data = file.data;
+			if (name.length > 65535 || data.length > LIMITS.fileBytes) throw new Error("ZIP file exceeds limit");
+			const local = new Uint8Array(30), l = viewOf(local), header = new Uint8Array(46), c = viewOf(header);
+			const crc = crc32(data);
+			l.setUint32(0, 0x04034b50, true); l.setUint16(4, 20, true); l.setUint16(6, 0x800, true);
+			l.setUint16(12, 33, true); l.setUint32(14, crc, true); l.setUint32(18, data.length, true); l.setUint32(22, data.length, true); l.setUint16(26, name.length, true);
+			c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x800, true);
+			c.setUint16(14, 33, true); c.setUint32(16, crc, true); c.setUint32(20, data.length, true); c.setUint32(24, data.length, true); c.setUint16(28, name.length, true); c.setUint32(42, offset, true);
+			offset = safeAdd(offset, local.length + name.length + data.length, LIMITS.archiveBytes, "ZIP output");
+			centralSize = safeAdd(centralSize, header.length + name.length, LIMITS.archiveBytes, "ZIP directory");
+			parts.push(local, name, data); central.push(header, name);
+		}
+		const end = new Uint8Array(22), e = viewOf(end);
+		e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true);
+		e.setUint32(12, centralSize, true); e.setUint32(16, offset, true);
+		const output = new Uint8Array(safeAdd(offset, centralSize + end.length, LIMITS.archiveBytes, "ZIP output"));
+		let position = 0;
+		for (const part of [...parts, ...central, end]) { output.set(part, position); position += part.length; }
+		return output;
+	}
+
+	const api = Object.freeze({LIMITS, runtimeEntries, crc32, createArchive, inspectArchive, inspectPackage, inspectLovePackage, installPackage});
 	scope.DoraWebPackage = api;
 })(typeof globalThis !== "undefined" ? globalThis : self);

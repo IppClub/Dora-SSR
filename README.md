@@ -22,7 +22,7 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/IppClub/Dora-SSR)
 [![Open Atom Foundation](https://img.shields.io/badge/Open_Atom_Foundation-Incubation-blue)](https://openatom.org/project/RJHufNnSKtDZ)
 
-Dora SSR is a cross-platform game engine that lives on the device your game runs on — a phone, a handheld, or a desktop. Its built-in Web IDE opens in any browser on the same network, so you code, inspect, and iterate against the real runtime instead of a detached preview, with an AI coding agent built in. The engine runs natively on `Android`, `iOS`, `Windows`, `macOS`, `Linux`, and [HarmonyOS](https://github.com/IppClub/ohos_dora_ssr).
+Dora SSR is a cross-platform game engine that lives on the device your game runs on — a phone, a handheld, or a desktop. Its built-in Web IDE opens in any browser on the same network, so you code, inspect, and iterate against the real runtime instead of a detached preview, with an AI coding agent built in. The engine runs natively on `Android`, `iOS`, `Windows`, `macOS`, `Linux`, and [HarmonyOS](https://github.com/IppClub/ohos_dora_ssr). Finished games can also be exported to the Web as WebAssembly builds that run in any browser from plain static hosting — like the games in the [web gallery](https://dora-ssr.net/play).
 
 <div align='center'>
 
@@ -364,6 +364,7 @@ fn main () {
 
 - Learn individual APIs and engine features with [Dora-Example](https://github.com/IppClub/Dora-Example/tree/master/Example).
 - See how real projects organize assets, scripts, and gameplay with [Dora-Demo](https://github.com/IppClub/Dora-Demo).
+- Play several of these games instantly in your browser on the [web gallery](https://dora-ssr.net/play) — each one is a WebAssembly export of the engine.
 
 ## Installation
 
@@ -422,6 +423,7 @@ See the [official guide](https://dora-ssr.net/docs/tutorial/dev-configuration).
 ![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg)
 ![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg)
 ![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg)
+![Web](https://github.com/ippclub/Dora-SSR/actions/workflows/web.yml/badge.svg)
 
 </div>
 

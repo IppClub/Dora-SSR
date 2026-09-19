@@ -1,0 +1,18 @@
+{
+  "name": "@dora-studio/web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/prepare.mjs && vite build",
+    "dev": "node scripts/prepare.mjs && vite --host 127.0.0.1",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "@dora-studio/agent-contracts": "workspace:*",
+    "@dora-studio/agent-ui": "workspace:*",
+    "@dora-studio/contracts": "workspace:*",
+    "@dora-studio/compiler-web": "workspace:*",
+    "react": "19.2.6", "react-dom": "19.2.6"
+  },
+  "devDependencies": { "typescript": "5.9.3", "vite": "8.0.16", "@types/react": "19.2.15", "@types/react-dom": "19.2.3" }
+}

@@ -55,7 +55,7 @@ jobs:
       - name: Setup Emscripten
         uses: emscripten-core/setup-emsdk@v15
         with:
-          version: 3.1.74
+          version: 5.0.5
           actions-cache-folder: emsdk-cache
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@1.85.1
@@ -80,6 +80,8 @@ jobs:
         run: |
           node Tools/build-scripts/test_web_gallery.mjs
           node Tools/build-scripts/build_web_gallery.mjs
+          node Tools/build-scripts/test_web_audio_worklet.mjs build/web
+          node Tools/build-scripts/test_web_audio_state.mjs
           node Tools/build-scripts/check_web_gallery.mjs Docs/static/play build/Dora-Demo
       - name: Build docs
         run: |

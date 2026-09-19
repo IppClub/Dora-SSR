@@ -18,7 +18,7 @@ function run(command, args, options = {}) {
 	const result = spawnSync(command, args, {
 		cwd: doraDoraDir,
 		stdio: "inherit",
-		shell: true,
+		shell: options.shell ?? true,
 		env: options.env || process.env,
 	});
 	if (result.error) throw result.error;
@@ -28,12 +28,13 @@ function run(command, args, options = {}) {
 const pnpmCmd = getPnpmCommand();
 const buildEnv = { ...process.env };
 
-run(process.execPath, [path.join("scripts", "prepare-web-runtime.mjs")]);
+run(process.execPath, [path.join("scripts", "prepare-web-runtime.mjs")], { shell: false });
+run(process.execPath, [path.join("scripts", "build-studio-compiler.cjs")], { shell: false });
 
 // Apply a higher memory setting in a cross-platform way.
 buildEnv.NODE_OPTIONS = mergeNodeOptions("--max-old-space-size=8192");
 
 run(pnpmCmd, ["exec", "vite", "build"], { env: buildEnv });
-run(process.execPath, [path.join("scripts", "minify-javascript-codes.js")]);
-run(process.execPath, [path.join("scripts", "version-heavy-assets.js")]);
-run(process.execPath, [path.join("scripts", "sync-build-to-assets.js")]);
+run(process.execPath, [path.join("scripts", "minify-javascript-codes.js")], { shell: false });
+run(process.execPath, [path.join("scripts", "version-heavy-assets.js")], { shell: false });
+run(process.execPath, [path.join("scripts", "sync-build-to-assets.js")], { shell: false });

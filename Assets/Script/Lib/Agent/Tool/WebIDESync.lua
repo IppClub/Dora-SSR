@@ -16,7 +16,7 @@ local function encodePayload(value) -- 6
 	return text -- 8
 end -- 6
 function ____exports.sendWebIDEFileUpdate(file, exists, content) -- 11
-	if HttpServer.wsConnectionCount == 0 then -- 11
+	if HttpServer == nil or HttpServer.wsConnectionCount == 0 then -- 11
 		return true -- 12
 	end -- 12
 	local payload = encodePayload({name = "UpdateFile", file = file, exists = exists, content = content}) -- 13
@@ -27,7 +27,7 @@ function ____exports.sendWebIDEFileUpdate(file, exists, content) -- 11
 	return true -- 16
 end -- 11
 function ____exports.sendWebIDERefreshTree() -- 19
-	if HttpServer.wsConnectionCount == 0 then -- 19
+	if HttpServer == nil or HttpServer.wsConnectionCount == 0 then -- 19
 		return true -- 20
 	end -- 20
 	local payload = encodePayload({name = "RefreshTree"}) -- 21

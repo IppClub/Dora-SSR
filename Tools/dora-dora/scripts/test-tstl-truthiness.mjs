@@ -16,7 +16,7 @@ const diagnosticText = "Only false and nil evaluate to 'false' in Lua";
 try {
 	const tstlBundle = join(tempDir, "tstl.cjs");
 	await build({
-		entryPoints: [resolve(projectDir, "src/3rdParty/tstl/index.ts")],
+		entryPoints: [require.resolve("@dora-studio/tstl")],
 		bundle: true,
 		platform: "node",
 		format: "cjs",

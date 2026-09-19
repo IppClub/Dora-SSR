@@ -119,3 +119,5 @@ Docs/kanban
 .codex*
 Docs/design/agent-vision/validation/
 Docs/static/play/
+# Delivery state — worktrees and the like. Never committed.
+.akb/

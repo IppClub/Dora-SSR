@@ -175,6 +175,33 @@ Linux 本地构建会使用仓库内置的 SDL2 源码，并交给 SDL 原版 CM
 	```
 
 </TabItem>
+<TabItem value="web" label="Web">
+
+:::tip
+Web 构建使用 Emscripten 将引擎编译为 WebAssembly，产出的是用于发布游戏的浏览器端 Web Player——参见[打包游戏为 Web 版](/docs/tutorial/game-app-pack)。它不会把 Web IDE 搬进浏览器。
+:::
+
+1. 安装指定版本的 Web 工具链：[Emscripten](https://emscripten.org/docs/getting_started/downloads.html) `5.0.5`、[Rust](https://www.rust-lang.org/tools/install) `1.85.1`（含 `wasm32-unknown-emscripten` 目标）、[Go](https://go.dev/dl/) `1.24.3`、[Node.js](https://nodejs.org/) `22.14.0` 与 [CMake](https://cmake.org/download/) `3.30.5`。
+
+	精确版本固定在 `Projects/Web/toolchain.env` 中，版本不一致时构建会直接报错，以保证 Web 产物可复现。仅在本地排查问题时才设置 `DORA_WEB_ALLOW_TOOLCHAIN_DRIFT=1`。
+
+	```sh
+	rustup target add wasm32-unknown-emscripten
+	```
+
+2. 构建 Web 运行时与 Player。脚本会检查工具链，为 Emscripten 目标构建 Rust 运行时，把引擎编译为 WebAssembly，并在 `result/dora-web-player` 下打包出自包含的 Player。
+	```sh
+	Tools/build-scripts/build_web.sh
+	```
+
+3. 可选：在真实浏览器中验证 Player。冒烟检查会在本地起服务，用 Chrome 或 Chromium 打开页面，等待内置示例验证渲染与脚本功能，并将截图保存到 `build/web-browser-smoke.png`。
+	```sh
+	node Tools/build-scripts/check_web_browser.mjs result/dora-web-player
+	```
+
+4. 构建前可通过 `DORA_WEB_PROFILE`（`core`、`dora-preset` 或 `custom`）以及诸如 `DORA_WEB_FEATURE_MODEL_3D=ON` 的功能开关调整运行时。构建目录默认为 `build/web`（`DORA_WEB_BUILD_DIR`），`DORA_WEB_JOBS` 控制构建并行度。
+
+</TabItem>
 </Tabs>
 
 ## 3. 构建 Web IDE

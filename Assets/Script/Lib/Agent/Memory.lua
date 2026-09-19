@@ -2335,7 +2335,9 @@ function MemoryCompressor.prototype.handleCompressionFailure(self, chunk, ____er
 			success = true, -- 2489
 			memoryUpdate = self.storage:readMemory(), -- 2490
 			ts = archived.ts, -- 2491
-			compressedCount = #chunk -- 2492
+			compressedCount = #chunk, -- 2492
+			error = ____error,
+			fallbackArchived = true
 		} -- 2492
 	end -- 2492
 	return { -- 2496
@@ -2360,7 +2362,7 @@ function MemoryCompressor.prototype.getMaxCompressionRounds(self) -- 2524
 		math.floor(self.config.maxCompressionRounds) -- 2525
 	) -- 2525
 end -- 2524
-MemoryCompressor.MAX_FAILURES = 3 -- 2524
+MemoryCompressor.MAX_FAILURES = 1 -- 2524
 function ____exports.compactSessionMemoryScope(options) -- 2529
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 2529
 		local llmConfigRes = options.llmConfig and ({success = true, config = options.llmConfig}) or getActiveLLMConfig() -- 2538

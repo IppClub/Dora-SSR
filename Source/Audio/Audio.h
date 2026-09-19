@@ -47,14 +47,27 @@ public:
 	virtual double getSampleRate() const = 0;
 	virtual uint64_t getSampleCount() const = 0;
 	virtual uint32_t getChannelCount() const = 0;
+#ifdef DORA_EMSCRIPTEN
+	// Owned encoded bytes only; never transfer a native decoder or its pointers.
+	virtual std::span<const uint8_t> getWebData() const { return {}; }
+	virtual bool isWebStatic() const { return false; }
+	uint64_t getWebId() const;
+#endif
 
 protected:
+#ifdef DORA_EMSCRIPTEN
+	mutable uint64_t _webId = 0;
+#endif
 	static uint64_t _storageSize;
 	static uint32_t _count;
 };
 
 class WavFile : public AudioFile {
 public:
+#ifdef DORA_EMSCRIPTEN
+	std::span<const uint8_t> getWebData() const override { return {_data.get(), _size}; }
+	bool isWebStatic() const override { return true; }
+#endif
 	virtual ~WavFile();
 	virtual SoLoud::AudioSource* getSource() const override;
 	virtual double getDuration() const override;
@@ -76,6 +89,9 @@ private:
 
 class WavStream : public AudioFile {
 public:
+#ifdef DORA_EMSCRIPTEN
+	std::span<const uint8_t> getWebData() const override { return {_data.get(), _size}; }
+#endif
 	virtual ~WavStream();
 	virtual SoLoud::AudioSource* getSource() const override;
 	virtual double getDuration() const override;
@@ -150,6 +166,9 @@ private:
 
 class AudioBus : public Object {
 public:
+#ifdef DORA_EMSCRIPTEN
+	uint32_t getWebHandle() const { return _webHandle; }
+#endif
 	PROPERTY(float, Volume);
 	PROPERTY(float, Pan);
 	PROPERTY(float, PlaySpeed);
@@ -173,6 +192,9 @@ protected:
 
 private:
 	SoLoud::Bus* _bus;
+#ifdef DORA_EMSCRIPTEN
+	uint32_t _webHandle = 0;
+#endif
 	SoLoud::Filter** _filters;
 	uint32_t _handle;
 	Ref<AudioBus> _parent;
@@ -229,6 +251,11 @@ protected:
 
 private:
 	bool _paused;
+#ifdef DORA_EMSCRIPTEN
+	void syncWorkletListener();
+	uint64_t _webStreamGeneration = 0;
+	uint32_t _webStreamVoice = 0;
+#endif
 	uint32_t _currentVoice;
 	Ref<WavStream> _currentStream;
 	SoLoud::Soloud* _soloud;

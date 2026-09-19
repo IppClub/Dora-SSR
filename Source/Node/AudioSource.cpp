@@ -12,13 +12,88 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Audio/Audio.h"
 #include "Cache/AudioCache.h"
+#ifdef DORA_EMSCRIPTEN
+#include "Basic/Content.h"
+#include "Web/WebAudio.h"
+#endif
 
 #include "soloud.h"
 
 NS_DORA_BEGIN
 
+#ifdef DORA_EMSCRIPTEN
+bool AudioSource::useWorklet() {
+	if (!dora_worklet_ready()) return false;
+	if ((!_audioFile || !_audioFile->getWebData().empty()) && (!_bus || _bus->getWebHandle())) return true;
+	if (!_webFallbackReported) {
+		_webFallbackReported = true;
+		Warn("Web AudioSource '{}' retains SDL mixing: this custom decoder/PCM queue or pre-existing bus is not migrated.", _filename);
+	}
+	return false;
+}
+
+void AudioSource::workletConfig(float* c) const {
+	using namespace DoraWebAudio;
+	Vec4 point;
+	if (_useExplicit3DPosition) point = {_position3D.x, _position3D.y, _position3D.z, 1};
+	else Matrix::mulVec4(point, const_cast<AudioSource*>(this)->getWorld(), {0, 0, 0, 1});
+	const float values[] = {static_cast<float>(_is3D ? 2 : _webBackground ? 1 : 0), _webDelay,
+		_volume, _pan, _playSpeed, static_cast<float>(_loop), static_cast<float>(_protected), static_cast<float>(_loopStartTime),
+		point.x, point.y, point.z, _velocity.x, _velocity.y, _velocity.z,
+		_direction3D.x, _direction3D.y, _direction3D.z, _coneInnerAngle, _coneOuterAngle, _coneOuterVolume,
+		_coneOuterHighGain, _airAbsorptionFactor, _minDistance, _maxDistance,
+		static_cast<float>(_attenuation), _attenuationFactor, _dopplerFactor, static_cast<float>(_listenerRelative),
+		static_cast<float>(_useVolumeLimits), _minVolumeLimit, _maxVolumeLimit};
+	static_assert(sizeof(values) / sizeof(float) == SourceFields);
+	std::copy(std::begin(values), std::end(values), c);
+}
+
+bool AudioSource::syncWorklet() {
+	if (!dora_worklet_handle(_handle)) return false;
+	float config[DoraWebAudio::SourceFields];
+	workletConfig(config);
+	dora_worklet_config(_handle, config);
+	return true;
+}
+
+bool AudioSource::playWorklet(int mode, double delayTime) {
+	_webBackground = mode == 1;
+	_webDelay = static_cast<float>(delayTime);
+	if (_webBackground) { _pan = 0; _protected = true; }
+	float config[DoraWebAudio::SourceFields];
+	workletConfig(config);
+	const auto path = _audioFile ? "audio-file:" + std::to_string(_audioFile->getWebId()) : SharedContent.getFullPath(_filename);
+	const auto bus = _bus ? _bus->getWebHandle() : 0;
+	const auto isStatic = _audioFile && _audioFile->isWebStatic();
+	if (dora_worklet_has(path.c_str())) _handle = dora_worklet_source(path.c_str(), nullptr, 0, config, bus, isStatic);
+	else if (_audioFile) {
+		const auto bytes = _audioFile->getWebData();
+		_handle = dora_worklet_source(path.c_str(), bytes.data(), bytes.size(), config, bus, isStatic);
+	}
+	else {
+		auto data = SharedContent.load(path);
+		if (!data.first) return false;
+		_handle = dora_worklet_source(path.c_str(), data.first.get(), data.second, config, bus, isStatic);
+	}
+	if (!_handle) return false;
+	WRef<AudioSource> self(this);
+	SharedAudio.addRef(_handle, nullptr, [self](uint32_t handle) {
+		if (self && self->_handle == handle) {
+			self->_handle = 0;
+			self->emit("AudioEnd"sv, handle);
+			if (self->_autoRemove) self->removeFromParent();
+		}
+	});
+	return true;
+}
+#endif
+
 void AudioSource::setPan(float var) {
 	_pan = var;
+#ifdef DORA_EMSCRIPTEN
+	_webBackground = false;
+	if (syncWorklet()) return;
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->setPan(_handle, var);
@@ -32,6 +107,9 @@ float AudioSource::getPan() const noexcept {
 
 void AudioSource::setVolume(float var) {
 	_volume = var;
+#ifdef DORA_EMSCRIPTEN
+	if (syncWorklet()) return;
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->setVolume(_handle, var);
@@ -45,6 +123,9 @@ float AudioSource::getVolume() const noexcept {
 
 void AudioSource::setPlaySpeed(float var) {
 	_playSpeed = var;
+#ifdef DORA_EMSCRIPTEN
+	if (syncWorklet()) return;
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->setRelativePlaySpeed(_handle, var);
@@ -58,6 +139,9 @@ float AudioSource::getPlaySpeed() const noexcept {
 
 void AudioSource::setLooping(bool var) {
 	_loop = var;
+#ifdef DORA_EMSCRIPTEN
+	if (syncWorklet()) return;
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->setLooping(_handle, var);
@@ -70,6 +154,9 @@ bool AudioSource::isLooping() const noexcept {
 }
 
 bool AudioSource::isPlaying() const noexcept {
+#ifdef DORA_EMSCRIPTEN
+	if (dora_worklet_handle(_handle)) return dora_worklet_get(_handle, 0) != 0;
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			return soloud->isValidVoiceHandle(_handle);
@@ -79,6 +166,9 @@ bool AudioSource::isPlaying() const noexcept {
 }
 
 void AudioSource::seek(double startTime) {
+#ifdef DORA_EMSCRIPTEN
+	if (dora_worklet_handle(_handle)) { dora_worklet_control(_handle, 0, startTime); return; }
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->seek(_handle, startTime);
@@ -87,6 +177,9 @@ void AudioSource::seek(double startTime) {
 }
 
 void AudioSource::setPaused(bool paused) {
+#ifdef DORA_EMSCRIPTEN
+	if (dora_worklet_handle(_handle)) { dora_worklet_control(_handle, 1, paused); return; }
+#endif
 	if (_handle != 0 && isPlaying()) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->setPause(_handle, paused);
@@ -95,6 +188,9 @@ void AudioSource::setPaused(bool paused) {
 }
 
 bool AudioSource::isPaused() const {
+#ifdef DORA_EMSCRIPTEN
+	if (dora_worklet_handle(_handle)) return dora_worklet_get(_handle, 1) != 0;
+#endif
 	if (_handle != 0 && isPlaying()) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			return soloud->getPause(_handle);
@@ -104,6 +200,9 @@ bool AudioSource::isPaused() const {
 }
 
 double AudioSource::getCurrentTime() const {
+#ifdef DORA_EMSCRIPTEN
+	if (dora_worklet_handle(_handle)) return dora_worklet_get(_handle, 2);
+#endif
 	if (_handle != 0 && isPlaying()) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			return soloud->getStreamPosition(_handle);
@@ -113,6 +212,9 @@ double AudioSource::getCurrentTime() const {
 }
 
 void AudioSource::scheduleStop(double timeToStop) {
+#ifdef DORA_EMSCRIPTEN
+	if (dora_worklet_handle(_handle)) { dora_worklet_control(_handle, 2, timeToStop); return; }
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->scheduleStop(_handle, timeToStop);
@@ -121,6 +223,9 @@ void AudioSource::scheduleStop(double timeToStop) {
 }
 
 void AudioSource::stop(double fadeTime) {
+#ifdef DORA_EMSCRIPTEN
+	if (dora_worklet_handle(_handle)) { dora_worklet_stop(_handle, fadeTime); return; }
+#endif
 	if (_handle != 0) {
 		auto soloud = SharedAudio.getSoLoud();
 		if (!soloud) return;
@@ -175,6 +280,9 @@ AudioFile* AudioSource::getAudioFile() const {
 }
 
 void AudioSource::visit() {
+#ifdef DORA_EMSCRIPTEN
+	if (syncWorklet()) { Node::visit(); return; }
+#endif
 	if (!_is3D) {
 		Node::visit();
 		return;
@@ -208,6 +316,10 @@ bool AudioSource::playBackground() {
 		return false;
 	}
 	_is3D = false;
+
+#ifdef DORA_EMSCRIPTEN
+	if (useWorklet()) return playWorklet(1, 0);
+#endif
 	auto soloud = SharedAudio.getSoLoud();
 	if (!soloud) return false;
 	if (auto audioFile = getAudioFile()) {
@@ -247,6 +359,9 @@ bool AudioSource::play(double delayTime) {
 		return false;
 	}
 	_is3D = false;
+#ifdef DORA_EMSCRIPTEN
+	if (useWorklet()) return playWorklet(0, delayTime);
+#endif
 	auto soloud = SharedAudio.getSoLoud();
 	if (!soloud) return false;
 	if (auto audioFile = getAudioFile()) {
@@ -290,6 +405,9 @@ bool AudioSource::play3D(double delayTime) {
 		return false;
 	}
 	_is3D = true;
+#ifdef DORA_EMSCRIPTEN
+	if (useWorklet()) return playWorklet(2, delayTime);
+#endif
 	auto soloud = SharedAudio.getSoLoud();
 	if (!soloud) return false;
 	if (auto audioFile = getAudioFile()) {
@@ -344,6 +462,9 @@ bool AudioSource::play3D(double delayTime) {
 
 void AudioSource::setLoopPoint(double loopStartTime) {
 	_loopStartTime = loopStartTime;
+#ifdef DORA_EMSCRIPTEN
+	if (syncWorklet()) return;
+#endif
 	if (_handle != 0 && _loopStartTime > 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->setLoopPoint(_handle, loopStartTime);
@@ -353,6 +474,9 @@ void AudioSource::setLoopPoint(double loopStartTime) {
 
 void AudioSource::setProtected(bool var) {
 	_protected = var;
+#ifdef DORA_EMSCRIPTEN
+	if (syncWorklet()) return;
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->setProtectVoice(_handle, var);
@@ -363,6 +487,9 @@ void AudioSource::setProtected(bool var) {
 void AudioSource::set3DPosition(float x, float y, float z) {
 	_useExplicit3DPosition = true;
 	_position3D = {x, y, z};
+#ifdef DORA_EMSCRIPTEN
+	if (syncWorklet()) return;
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->set3dSourcePosition(_handle, x, y, z);
@@ -372,6 +499,9 @@ void AudioSource::set3DPosition(float x, float y, float z) {
 
 void AudioSource::setVelocity(float vx, float vy, float vz) {
 	_velocity = {vx, vy, vz};
+#ifdef DORA_EMSCRIPTEN
+	if (syncWorklet()) return;
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->set3dSourceVelocity(_handle, vx, vy, vz);
@@ -381,6 +511,9 @@ void AudioSource::setVelocity(float vx, float vy, float vz) {
 
 void AudioSource::set3DDirection(float x, float y, float z) {
 	_direction3D = {x, y, z};
+#ifdef DORA_EMSCRIPTEN
+	if (syncWorklet()) return;
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->set3dSourceCone(_handle, _direction3D.x, _direction3D.y, _direction3D.z,
@@ -395,6 +528,9 @@ void AudioSource::set3DCone(float innerAngle, float outerAngle, float outerVolum
 	_coneOuterAngle = outerAngle;
 	_coneOuterVolume = outerVolume;
 	_coneOuterHighGain = outerHighGain;
+#ifdef DORA_EMSCRIPTEN
+	if (syncWorklet()) return;
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->set3dSourceCone(_handle, _direction3D.x, _direction3D.y, _direction3D.z,
@@ -405,6 +541,9 @@ void AudioSource::set3DCone(float innerAngle, float outerAngle, float outerVolum
 
 void AudioSource::setAirAbsorptionFactor(float factor) {
 	_airAbsorptionFactor = factor;
+#ifdef DORA_EMSCRIPTEN
+	if (syncWorklet()) return;
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->set3dSourceAirAbsorption(_handle, factor);
@@ -416,6 +555,9 @@ void AudioSource::setVolumeLimits(float minVolume, float maxVolume) {
 	_useVolumeLimits = true;
 	_minVolumeLimit = minVolume;
 	_maxVolumeLimit = maxVolume;
+#ifdef DORA_EMSCRIPTEN
+	if (syncWorklet()) return;
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->setVoiceVolumeLimits(_handle, minVolume, maxVolume);
@@ -425,6 +567,9 @@ void AudioSource::setVolumeLimits(float minVolume, float maxVolume) {
 
 void AudioSource::setListenerRelative(bool relative) {
 	_listenerRelative = relative;
+#ifdef DORA_EMSCRIPTEN
+	if (syncWorklet()) return;
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->set3dSourceListenerRelative(_handle, relative);
@@ -435,6 +580,9 @@ void AudioSource::setListenerRelative(bool relative) {
 void AudioSource::setMinMaxDistance(float min, float max) {
 	_minDistance = min;
 	_maxDistance = max;
+#ifdef DORA_EMSCRIPTEN
+	if (syncWorklet()) return;
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->set3dSourceMinMaxDistance(_handle, min, max);
@@ -463,6 +611,9 @@ void AudioSource::setAttenuation(AudioSource::AttenuationModel model, float fact
 	}
 	_attenuation = modelType;
 	_attenuationFactor = factor;
+#ifdef DORA_EMSCRIPTEN
+	if (syncWorklet()) return;
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->set3dSourceAttenuation(_handle, modelType, factor);
@@ -491,6 +642,9 @@ void AudioSource::setAttenuation(String model, float factor) {
 	}
 	_attenuation = modelType;
 	_attenuationFactor = factor;
+#ifdef DORA_EMSCRIPTEN
+	if (syncWorklet()) return;
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->set3dSourceAttenuation(_handle, modelType, factor);
@@ -500,6 +654,9 @@ void AudioSource::setAttenuation(String model, float factor) {
 
 void AudioSource::setDopplerFactor(float factor) {
 	_dopplerFactor = factor;
+#ifdef DORA_EMSCRIPTEN
+	if (syncWorklet()) return;
+#endif
 	if (_handle != 0) {
 		if (auto soloud = SharedAudio.getSoLoud()) {
 			soloud->set3dSourceDopplerFactor(_handle, factor);

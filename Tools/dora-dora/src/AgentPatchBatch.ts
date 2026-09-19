@@ -187,13 +187,22 @@ export const applyStepCollectionPatches = (
 	current: AgentEntityCollection<AgentSessionStep>,
 	patches: AgentSessionPatch[],
 ) => {
-	const updates: AgentSessionStep[] = [];
-	const removedIds: number[] = [];
+	// Preserve event order while still applying one collection update per batch.
+	// A later removal must not resurrect an earlier update of the same step.
+	const updates = new Map<number, AgentSessionStep>();
+	const removedIds = new Set<number>();
 	for (const patch of patches) {
-		if (patch.step) updates.push(patch.step);
-		removedIds.push(...(patch.removedStepIds ?? []));
+		for (const id of patch.removedStepIds ?? []) {
+			updates.delete(id);
+			removedIds.add(id);
+		}
+		// Within one patch, preserve the existing remove-then-upsert behavior.
+		if (patch.step) {
+			removedIds.delete(patch.step.id);
+			updates.set(patch.step.id, patch.step);
+		}
 	}
-	return applyCollectionPatches(current, updates, removedIds, stepCompare);
+	return applyCollectionPatches(current, [...updates.values()], [...removedIds], stepCompare);
 };
 
 export const applyCheckpointCollectionPatches = (

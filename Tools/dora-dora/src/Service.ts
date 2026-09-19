@@ -1614,10 +1614,12 @@ export type AgentSessionDetailResponse = {
 	success: true;
 	session: AgentSession;
 	relatedSessions: AgentSession[];
-	pendingMergeCount: number;
-	pendingMergeJobs: AgentPendingMergeJob[];
+	pendingMergeCount?: number;
+	pendingMergeJobs?: AgentPendingMergeJob[];
 	spawnInfo?: AgentSessionSpawnInfo;
 	messages: AgentSessionMessage[];
+	/** Older messages omitted from the requested view, not deleted. */
+	hasEarlierMessages?: boolean;
 	steps: AgentSessionStep[];
 	checkpoints?: AgentCheckpointItem[];
 	pendingQuestionnaire?: AgentQuestionnaire;

@@ -11,6 +11,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Application.h"
 #include "Lua/BuiltinModules.h"
 #include "Lua/LuaEngine.h"
+#if BX_PLATFORM_EMSCRIPTEN
+#include <emscripten.h>
+#endif
 
 #include "Common/Async.h"
 #include "Basic/Content.h"
@@ -32,9 +35,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 extern "C" {
 int luaopen_yue(lua_State* L);
 int luaopen_colibc_json(lua_State* L);
+int luaopen_mime_core(lua_State* L);
 #if !BX_PLATFORM_EMSCRIPTEN
 int luaopen_socket_core(lua_State* L);
-int luaopen_mime_core(lua_State* L);
 #endif
 } // extern "C"
 
@@ -241,21 +244,34 @@ static int dora_bgfx_probe_clear_red(lua_State* L) {
 }
 
 static int dora_trace_back(lua_State* L) {
-	// -1 error_string
-	lua_getglobal(L, "debug"); // err debug
-	lua_getfield(L, -1, "traceback"); // err debug traceback
-	lua_pushvalue(L, -3); // err debug traceback err
-	lua_pushinteger(L, 1); // err debug traceback err 1
-	lua_call(L, 2, 1); // traceback(err, 1), err debug msg
+	// Error values may be tables (for example TypeScript Error). Protect their
+	// __tostring too: a broken error formatter must not panic the host runtime.
+	lua_pushcfunction(L, [](lua_State* state) -> int {
+		luaL_tolstring(state, 1, nullptr);
+		return 1;
+	});
+	lua_pushvalue(L, -2);
+	const int formatted = lua_pcall(L, 1, 1, 0);
+	const char* text = formatted == LUA_OK ? lua_tostring(L, -1) : nullptr;
+	luaL_traceback(L, L, text ? text : "Lua error (message formatting failed)", 1);
 	auto message = tolua_toslice(L, -1, nullptr).toString();
+#if BX_PLATFORM_EMSCRIPTEN
+	// Startup can fail before another logic frame drains the native log queue.
+	// Deliver diagnostics before the lifecycle fault removes this runtime page.
+	MAIN_THREAD_EM_ASM({
+		const message = '[error] ' + UTF8ToString($0);
+		if (Module['print']) Module['print'](message);
+		else console.log(message);
+	}, message.c_str());
+#else
 	LogErrorThreaded(message);
+#endif
 	// Lua callbacks can fail after an entrypoint has already returned successfully.
 	// Defer the notification so system UI can recover after the error stack unwinds.
 	SharedApplication.invokeInLogic([message = std::move(message)]() {
 		Event::send("ScriptError"_slice, message);
 	});
-	lua_pop(L, 3); // empty
-	return 0;
+	return 1;
 }
 
 static int dora_builtin_lua_loader(lua_State* L) {
@@ -482,9 +498,9 @@ static int dora_register_builtin_modules(lua_State* L) {
 #if !BX_PLATFORM_EMSCRIPTEN
 	luaL_requiref(L, "socket.core", luaopen_socket_core, 0);
 	lua_pop(L, 1);
+#endif
 	luaL_requiref(L, "mime.core", luaopen_mime_core, 0);
 	lua_pop(L, 1);
-#endif
 	luaL_requiref(L, "dora.https", luaopen_dora_https, 0);
 	lua_pop(L, 1);
 	for (const auto& script : DoraLuaSocketScripts::scripts) {
@@ -516,6 +532,49 @@ bool dora_open_builtin_modules(lua_State* L, std::string& error) {
 	error.clear();
 	return true;
 }
+
+#if BX_PLATFORM_EMSCRIPTEN && defined(DORA_WEB_STUDIO_AGENT_HOST)
+// This build is a trusted host, not a public project runtime. Never put keys in
+// the payload or enable this callback in an instance executing project scripts.
+static int dora_studio_agent_emit(lua_State* L) {
+	size_t size = 0;
+	const char* payload = luaL_checklstring(L, 1, &size);
+	if (size > 1024 * 1024) return luaL_error(L, "Studio Agent payload exceeds limit");
+	const int delivered = MAIN_THREAD_EM_ASM_INT({
+		try {
+			const receive = Module['doraStudioAgentEvent'];
+			if (typeof receive !== 'function') return 0;
+			receive(UTF8ToString($0, $1));
+			return 1;
+		} catch (_) { return 0; }
+	}, payload, size);
+	lua_pushboolean(L, delivered != 0);
+	return 1;
+}
+
+// Copy on the calling thread; inspect the Lua state only on the logic queue.
+// The trusted bootstrap installs the fixed protocol handler. This does not eval code.
+extern "C" EMSCRIPTEN_KEEPALIVE void dora_web_agent_request(const char* payload) {
+	if (!payload) return;
+	size_t size = 0;
+	while (size <= 1024 * 1024 && payload[size] != '\0') ++size;
+	if (size > 1024 * 1024) return;
+	std::string request(payload, size);
+	SharedApplication.invokeInLogic([request = std::move(request)]() {
+		auto L = SharedLuaEngine.getState();
+		const int top = lua_gettop(L);
+		lua_getglobal(L, "_studio_agent_request");
+		if (lua_isfunction(L, -1)) {
+			lua_pushlstring(L, request.data(), request.size());
+			if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
+				// Do not put payloads or host secrets in engine logs.
+				LogError("Studio Agent request handler failed");
+			}
+		}
+		lua_settop(L, top);
+	});
+}
+#endif
 
 #ifdef DORA_WEB_MINIMAL
 static int dora_web_node_slot(lua_State* L) {
@@ -1425,6 +1484,9 @@ LuaEngine::LuaEngine()
 	const luaL_Reg minimalGlobalFunctions[] = {
 		{"loadfile", dora_web_load_file},
 		{"dofile", dora_web_do_file},
+#ifdef DORA_WEB_STUDIO_AGENT_HOST
+		{"_studio_agent_emit", dora_studio_agent_emit},
+#endif
 		{NULL, NULL}};
 	lua_pushglobaltable(L);
 	luaL_setfuncs(L, minimalGlobalFunctions, 0);
@@ -1446,8 +1508,17 @@ LuaEngine::LuaEngine()
 	tolua_function(L, "clear", dora_yue_clear);
 	tolua_endmodule(L);
 #endif
+#ifdef DORA_WEB_STUDIO_AGENT_HOST
+	// Original WebServer XML build semantics, exposed only to the separate
+	// Studio Agent host. User game Players do not need this compiler binding.
+	tolua_module(L, "xml", 0);
+	tolua_beginmodule(L, "xml");
+	tolua_function(L, "tolua", dora_xml_to_lua);
+	tolua_endmodule(L);
+#endif
 	tolua_beginmodule(L, "Director");
-	// The minimal scene entry is a Node, without the native View3D API.
+	// The default minimal scene entry is a Node. The optional Web 3D profile
+	// restores View3D while retaining the minimal Lua loader and host APIs.
 	tolua_variable(L, "entry", [](lua_State* state) {
 		tolua_pushobject(state, SharedDirector.getEntry());
 		return 1;
@@ -2565,7 +2636,7 @@ bool LuaEngine::scriptHandlerEqual(int handlerA, int handlerB) {
 
 bool LuaEngine::call(lua_State* L, int paramCount, int returnCount) {
 	int functionIndex = -(paramCount + 1);
-#ifndef TOLUA_RELEASE
+#if !defined(TOLUA_RELEASE) || BX_PLATFORM_EMSCRIPTEN
 	int top = lua_gettop(L);
 	int traceIndex = std::max(functionIndex + top, 1);
 	int type = lua_type(L, functionIndex);

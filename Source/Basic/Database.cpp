@@ -37,7 +37,9 @@ NS_DORA_BEGIN
 namespace {
 
 constexpr size_t TextCompressThreshold = 512;
-constexpr size_t TextInflateChunkSize = 64 * 1024;
+// Keep the temporary inflater buffer small: Web callbacks can enter this
+// SQLite function through a constrained WASM stack before vector growth.
+constexpr size_t TextInflateChunkSize = 8 * 1024;
 constexpr uint64_t TextMaxRawSize = 256ull * 1024ull * 1024ull;
 
 void compressText(sqlite3_context* context, int argc, sqlite3_value** argv) {

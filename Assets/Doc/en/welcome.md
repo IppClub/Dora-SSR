@@ -26,7 +26,7 @@
 - Supports 2D [skeletal animation](https://dora-ssr.net/docs/tutorial/Using%20Nodes/using-playable) and a [physics engine](https://dora-ssr.net/docs/tutorial/Using%20Nodes/using-physics-1).
 - Built-in Animation Editor for creating and editing 2D model animation resources with visual tree editing, keyframes, clips, playback, and transform tools.
 - The Web IDE also includes particle, physics, visual-script, Yarn, Spine, tile-map, Git, profiler, and TIC-80 editors.
-- Runs natively on Android, Windows, Linux, macOS, and iOS, with a [HarmonyOS port](https://github.com/IppClub/ohos_dora_ssr).
+- Runs natively on Android, Windows, Linux, macOS, and iOS, with a [HarmonyOS port](https://github.com/IppClub/ohos_dora_ssr). Games can also be exported to the Web as WebAssembly builds that run in the browser from static hosting.
 - Supports H.264 / AVC Annex-B `.h264` video playback.
 - Supports asynchronous [SQLite](https://dora-ssr.net/docs/tutorial/Managing%20Game%20Data/using-database) operations for real-time queries and managing large game configuration datasets.
 - Supports reading [Excel](https://dora-ssr.net/docs/tutorial/Managing%20Game%20Data/using-excel) spreadsheet data and synchronizing it to SQLite tables.

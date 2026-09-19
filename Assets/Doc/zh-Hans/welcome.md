@@ -26,7 +26,7 @@ Dora SSR 引擎的功能丰富，主要特性包括：
 - 2D [骨骼动画](https://dora-ssr.net/zh-Hans/docs/tutorial/Using%20Nodes/using-playable)和[物理引擎](https://dora-ssr.net/zh-Hans/docs/tutorial/Using%20Nodes/using-physics-1)支持。
 - 内置动画编辑器，可用于创建和编辑 2D 模型动画资源，并提供树形结构、关键帧、动画片段、播放预览和变换工具。
 - Web IDE 还内置粒子、物理、可视化脚本、Yarn、Spine、瓦片地图、Git、性能分析和 TIC-80 编辑器。
-- 原生支持 Android、Windows、Linux、macOS 和 iOS，并提供[鸿蒙适配](https://github.com/IppClub/ohos_dora_ssr/blob/main/README.zh-CN.md)。
+- 原生支持 Android、Windows、Linux、macOS 和 iOS，并提供[鸿蒙适配](https://github.com/IppClub/ohos_dora_ssr/blob/main/README.zh-CN.md)。游戏还可以导出为 WebAssembly 版本，通过静态托管直接在浏览器中运行。
 - 支持 H.264 / AVC Annex-B `.h264` 视频播放。
 - 支持异步操作 [SQLite](https://dora-ssr.net/zh-Hans/docs/tutorial/Managing%20Game%20Data/using-database)，进行大量游戏配置数据的实时查询和写入。
 - 支持 [Excel](https://dora-ssr.net/zh-Hans/docs/tutorial/Managing%20Game%20Data/using-excel) 表格数据读取，支持同步到 SQLite 库表。

@@ -53,6 +53,8 @@ function executeLuaCommand(req: {
 	let capturedBatches = 0;
 	let capturedFrames = 0;
 	let lastPreviewResult: CommandPreviewGameResult | undefined;
+	let previewCleanup: (() => void) | undefined;
+	let restorePrint: (() => void) | undefined;
 	const currentVisionUsage = () => {
 		persistedVisionUsage ??= getVisionTaskUsage(req.taskId);
 		return {
@@ -177,6 +179,7 @@ function executeLuaCommand(req: {
 			isCancelled: req.isCancelled,
 			print: line => capturePrint(line),
 			reserveCapture,
+			registerCleanup: cleanup => { previewCleanup = cleanup; },
 			onResult: result => {
 				lastPreviewResult = result;
 			},
@@ -300,7 +303,14 @@ function executeLuaCommand(req: {
 			if (settled) return;
 			settled = true;
 			let cleanupError: string | undefined;
-			if (!result.success && (result.interrupted === true || result.phase === "timeout")) {
+			const cleanup = previewCleanup;
+			previewCleanup = undefined;
+			try { cleanup?.(); }
+			catch (e) { cleanupError = `failed to release Agent preview: ${tostring(e)}`; }
+			restorePrint?.();
+			restorePrint = undefined;
+			if (!result.success && (result.interrupted === true || result.phase === "timeout")
+				&& (!entry.getCurrentEntryStatus().running || ownsEntryLease(req.operationId, entry))) {
 				try {
 					entry.allClear();
 				} catch (e) {
@@ -376,6 +386,7 @@ function executeLuaCommand(req: {
 				});
 			}
 			const previousGlobalPrint = _G["print"];
+			restorePrint = () => { if (_G["print"] === capturePrint) _G["print"] = previousGlobalPrint; };
 			const [previousHook, previousHookMask, previousHookCount] = debug.gethook();
 			let frameTimedOut = false, watchdogMessage: string | undefined;
 			_G["print"] = capturePrint;

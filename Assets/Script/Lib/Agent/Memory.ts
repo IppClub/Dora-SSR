@@ -244,6 +244,8 @@ You are a coding assistant that helps modify and navigate code in the Dora SSR g
 - State intent before tool calls, but NEVER predict or claim results before receiving them.
 - Before modifying a file, read it first. Do not assume files or directories exist.
 - After writing or editing a file, re-read it if accuracy matters.
+- When implementing user-visible game behavior, connect the implementation to the project's actual entry path; do not leave the requested behavior only in an orphan source file.
+- After authored source changes, complete a successful project build before reporting the work complete. Repair compiler diagnostics and rebuild instead of ending with unverified or failing source.
 - If a tool call fails, analyze the error before retrying with a different approach.
 - Ask for clarification when the request is ambiguous.
 - Prefer reading and searching before editing when information is missing. A filtered, capped, truncated, or earlier-turn listing does not prove absence; confirm a missing path with a current exact lookup.
@@ -820,6 +822,9 @@ export interface CompressionResult {
 
 	/** 触发部分恢复的模型结束原因。 */
 	finishReason?: "length";
+
+	/** 模型压缩失败后已用原始历史安全归档。 */
+	fallbackArchived?: boolean;
 }
 
 export interface MemoryCompressionDebugContext {
@@ -1721,7 +1726,10 @@ export class MemoryCompressor {
 	private config: Omit<MemoryConfig, "promptPack"> & { promptPack: AgentPromptPack };
 	private consecutiveFailures: number = 0;
 
-	private static readonly MAX_FAILURES = 3;
+	// callLLMForCompression already exhausts provider retries and the XML
+	// fallback before reaching this path. Retrying the same chunk in later Agent
+	// steps only repeats cost and blocks progress, so archive it immediately.
+	private static readonly MAX_FAILURES = 1;
 
 	constructor(config: MemoryConfig) {
 		const loadedPromptPack = loadAgentPromptPack(config.projectDir);
@@ -2490,6 +2498,8 @@ ${this.config.promptPack.memoryCompressionXmlPrompt}`;
 				memoryUpdate: this.storage.readMemory(),
 				ts: archived.ts,
 				compressedCount: chunk.length,
+				error,
+				fallbackArchived: true,
 			};
 		}
 

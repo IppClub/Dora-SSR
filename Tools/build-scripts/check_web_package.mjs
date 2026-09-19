@@ -6,6 +6,25 @@ import {deflateRawSync, inflateRawSync} from "node:zlib";
 await import(pathToFileURL(path.resolve("Projects/Web/web-package.js")));
 const {crc32, inspectPackage, inspectLovePackage, installPackage} = globalThis.DoraWebPackage;
 
+const exportedFiles = [{ path: 'main.ts', data: new TextEncoder().encode('print("你好");') },
+	{ path: 'Resources/音效.bin', data: new Uint8Array([0, 255, 128]) }];
+const exported = globalThis.DoraWebPackage.createArchive(exportedFiles);
+const roundtrip = await globalThis.DoraWebPackage.inspectArchive(exported);
+assert.deepEqual(roundtrip.files, exportedFiles);
+assert.throws(() => globalThis.DoraWebPackage.createArchive([{ path: '../escape', data: new Uint8Array() }]), /unsafe/);
+assert.throws(() => globalThis.DoraWebPackage.createArchive([exportedFiles[0], exportedFiles[0]]), /conflicting/);
+assert.throws(() => globalThis.DoraWebPackage.createArchive([{ path: 'dir', data: new Uint8Array() }, { path: 'dir/file', data: new Uint8Array() }]), /conflicting/);
+console.log('[INFO] ZIP export UTF-8/binary roundtrip and path collision tests passed');
+const backupFiles = [{ path: '.settings/editor.json', data: new TextEncoder().encode('{}') },
+	{ path: 'Resources/debug.log', data: new Uint8Array([0, 255]) }];
+const backupZIP = globalThis.DoraWebPackage.createArchive(backupFiles);
+assert.deepEqual((await globalThis.DoraWebPackage.inspectArchive(backupZIP, { projectBackup: true })).files, backupFiles);
+await assert.rejects(() => globalThis.DoraWebPackage.inspectArchive(backupZIP), /disallowed/);
+await assert.rejects(() => inspectPackage(backupZIP, { projectBackup: true }), /disallowed/);
+await assert.rejects(() => inspectLovePackage(backupZIP, { projectBackup: true }), /disallowed/);
+assert.throws(() => globalThis.DoraWebPackage.createArchive([{ path: 'A.lua', data: new Uint8Array() }, { path: 'a.lua', data: new Uint8Array() }]), /conflicting/);
+assert.throws(() => globalThis.DoraWebPackage.createArchive([{ path: 'DIR', data: new Uint8Array() }, { path: 'dir/file', data: new Uint8Array() }]), /conflicting/);
+
 function zip(entries) {
 	const localParts = [];
 	const centralParts = [];
@@ -60,7 +79,7 @@ const manifest = (overrides = {}) => JSON.stringify({
 	format: "dora-game",
 	version: 1,
 	title: "Web package fixture",
-	engineVersion: "1.9.2",
+	engineVersion: "1.9.3",
 	entry: "init",
 	...overrides
 });
