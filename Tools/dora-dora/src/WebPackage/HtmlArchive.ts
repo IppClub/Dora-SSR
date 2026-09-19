@@ -1,6 +1,7 @@
 import {strFromU8, strToU8} from 'fflate';
 import type {PackageFiles} from './Archive';
 import {htmlPlayer} from './HtmlPlayer';
+import {prepareHtmlRuntime} from './RuntimeAdapter';
 
 function base64(bytes: Uint8Array): string {
   const chunks: string[] = [];
@@ -14,16 +15,7 @@ function base64(bytes: Uint8Array): string {
 export function createHtmlFiles(input: PackageFiles, digest: (bytes: Uint8Array) => string): PackageFiles {
   const output = {...input};
   const manifest = JSON.parse(strFromU8(input['dora-web-manifest.json']));
-  let runtime = strFromU8(input['dora-player-runtime.js']);
-  if (!runtime.includes('Module.doraSnapshot')) throw new Error('Web runtime does not support HTML snapshots');
-  // The pinned player's audio bridge resolves these two resources itself. Route only
-  // those URLs through the host's Blob map; leave all other runtime code unchanged.
-  for (const name of ['dora-audio-mixer.wasm', 'audio-worklet.js']) {
-    const source = `new URL("${name}",base)`;
-    if (runtime.split(source).length !== 2) throw new Error('Unsupported HTML audio bridge');
-    runtime = runtime.replace(source, `Module.locateFile("${name}")`);
-  }
-  output['dora-player-runtime.js'] = strToU8(runtime);
+  output['dora-player-runtime.js'] = prepareHtmlRuntime(input['dora-player-runtime.js']);
   const records: Record<string, {script: string; size: number; sha256: string}> = Object.create(null);
   const names = ['dora-player-runtime.wasm', 'dora-player-runtime.data', 'dora-audio-mixer.wasm', 'audio-worklet.js',
     ...manifest.files.map((file: {url: string}) => decodeURIComponent(file.url))];

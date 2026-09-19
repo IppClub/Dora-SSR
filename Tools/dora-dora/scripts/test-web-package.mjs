@@ -57,7 +57,13 @@ try {
   const newer = unzipSync(await createWebArchive(project, {...runtime, 'runtime.json': strToU8(JSON.stringify({engineVersion: '1.9.3'}))}));
   assert.equal(JSON.parse(strFromU8(newer['dora-web-manifest.json'])).engineVersion, '1.9.3');
   assert.ok(newer['audio-worklet.js'] && newer['dora-audio-mixer.wasm']);
-  const htmlRuntime = {...runtime, 'dora-player-runtime.js': strToU8('Module.doraSnapshot; new URL("dora-audio-mixer.wasm",base); new URL("audio-worklet.js",base);')};
+  const pretendRuntime = {...runtime, 'dora-player-runtime.js': strToU8('Module.doraSnapshot; new URL("dora-audio-mixer.wasm",base); new URL("audio-worklet.js",base);')};
+  await assert.rejects(createWebArchive(project, pretendRuntime, 'html'), /Unverified HTML runtime/);
+  assert.ok(unzipSync(await createWebArchive(project, pretendRuntime, 'http'))['dora-player-runtime.js']);
+  const realRuntime = new Uint8Array(await readFile('public/web-player/dora-player-runtime.js').catch(() => {
+    throw new Error('Run pnpm prepare:web-runtime before testing HTML runtime compatibility.');
+  }));
+  const htmlRuntime = {...runtime, 'dora-player-runtime.js': realRuntime};
   // Export owns its shell; compiler/gallery HTML formatting must not affect it.
   const foreignShell = '<html><body><canvas id=canvas></canvas><script async src=dora-player-runtime.js></script></body></html>';
   for (const format of ['html', 'http']) {
@@ -144,7 +150,7 @@ try {
   assert.equal(aborted.browser.Module.doraSnapshot, undefined);
   assert.equal(aborted.browser.Module.getPreloadedPackage, undefined);
   assert.equal(aborted.revoked.length, 1);
-  await assert.rejects(createWebArchive(project, runtime, 'html'), /snapshots/);
+  await assert.rejects(createWebArchive(project, runtime, 'html'), /Unverified HTML runtime/);
   await assert.rejects(createWebArchive(project, runtime, 'other'), /format/);
   await assert.rejects(createWebArchive({'init.ts': strToU8('print("hi")')}, runtime), /entry/);
   await assert.rejects(createWebArchive(project, {...runtime, 'dora-player-runtime.wasm': undefined}), /runtime/);
