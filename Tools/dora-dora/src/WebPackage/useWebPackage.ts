@@ -4,6 +4,7 @@ import * as Service from '../Service';
 import Info from '../Info';
 import type {TreeDataType} from '../FileTree';
 import type {PackageAction} from './PackageButton';
+import type {WebPackageFormat} from './Archive';
 
 interface Options {
   currentFile?: {key: string; folder?: boolean};
@@ -20,7 +21,7 @@ export function useWebPackage(options: Options): PackageAction {
   const {t} = useTranslation();
   const locked = useRef(false);
   const [busy, setBusy] = useState(false);
-  const onClick = useCallback(async () => {
+  const onClick = useCallback(async (format: WebPackageFormat) => {
     if (locked.current || options.isBusy()) { options.notify(t('alert.waitForJob'), 'info'); return; }
     if (!options.currentFile) { options.notify(t('webPackage.noProject'), 'info'); return; }
     locked.current = true;
@@ -37,7 +38,7 @@ export function useWebPackage(options: Options): PackageAction {
       const title = Info.path.basename(root.projectRoot);
       if (!await options.build({key: root.projectRoot, title, dir: true})) throw new Error('webPackage.buildFailed');
       const {packageWebProject, downloadWebArchive} = await import('./Service');
-      downloadWebArchive(await packageWebProject(root.projectRoot, options.writablePath), title);
+      downloadWebArchive(await packageWebProject(root.projectRoot, options.writablePath, format), title, format);
       options.notify(t('webPackage.done'), 'success');
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -48,5 +49,5 @@ export function useWebPackage(options: Options): PackageAction {
       options.setBuilding(false);
     }
   }, [options, t]);
-  return {busy, onClick: () => void onClick()};
+  return {busy, onClick: format => void onClick(format)};
 }

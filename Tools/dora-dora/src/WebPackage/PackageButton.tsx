@@ -3,9 +3,10 @@ import {CircularProgress, IconButton, Tooltip, type SxProps, type Theme} from '@
 import {BsBoxSeam} from 'react-icons/bs';
 import {useTranslation} from 'react-i18next';
 import {StyledMenu, StyledMenuItem} from '../Menu';
+import type {WebPackageFormat} from './Archive';
 
 export interface PackageAction {
-  onClick: () => void;
+  onClick: (format: WebPackageFormat) => void;
   busy: boolean;
 }
 
@@ -23,7 +24,8 @@ export default function PackageButton({action, sx}: {action: PackageAction; sx: 
     </Tooltip>
     <StyledMenu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}
       anchorOrigin={{vertical: 'top', horizontal: 'right'}} transformOrigin={{vertical: 'bottom', horizontal: 'right'}}>
-      <StyledMenuItem disabled={action.busy} onClick={() => {setAnchor(null); action.onClick();}}>Web</StyledMenuItem>
+      <StyledMenuItem disabled={action.busy} onClick={() => {setAnchor(null); action.onClick('html');}}>Web (HTML)</StyledMenuItem>
+      <StyledMenuItem disabled={action.busy} onClick={() => {setAnchor(null); action.onClick('http');}}>Web (HTTP Server)</StyledMenuItem>
     </StyledMenu>
   </>;
 }

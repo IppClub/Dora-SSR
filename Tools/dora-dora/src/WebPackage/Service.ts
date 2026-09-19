@@ -2,7 +2,7 @@ import * as Service from '../Service';
 import Info from '../Info';
 import {toUrlPath} from '../PathUtils';
 import {strToU8} from 'fflate';
-import {createWebArchive, digest, readProjectZip, runtimeFiles, type PackageFiles} from './Archive';
+import {createWebArchive, digest, readProjectZip, runtimeFiles, type PackageFiles, type WebPackageFormat} from './Archive';
 
 async function fetchBytes(url: string, limit: number): Promise<Uint8Array> {
   const response = await fetch(url, {signal: AbortSignal.timeout(120000)});
@@ -47,7 +47,7 @@ async function loadRuntime(): Promise<PackageFiles> {
   }
 }
 
-export async function packageWebProject(projectRoot: string, writablePath: string): Promise<Uint8Array> {
+export async function packageWebProject(projectRoot: string, writablePath: string, format: WebPackageFormat): Promise<Uint8Array> {
   // The runtime is distributed with the IDE. Game code never leaves the user's Dora host.
   const runtime = await loadRuntime();
   const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -57,17 +57,17 @@ export async function packageWebProject(projectRoot: string, writablePath: strin
     if (!result.success) throw new Error('webPackage.snapshotFailed');
     const relative = toUrlPath(Info.path.relative(writablePath, zipFile), Info.path);
     const bytes = await fetchBytes(Service.addr('/' + relative.split('/').map(encodeURIComponent).join('/')), 256 * 1024 * 1024);
-    return await createWebArchive(readProjectZip(bytes), runtime);
+    return await createWebArchive(readProjectZip(bytes), runtime, format);
   } finally {
     await Service.deleteFile({path: zipFile}).catch(() => undefined);
   }
 }
 
-export function downloadWebArchive(bytes: Uint8Array, title: string) {
+export function downloadWebArchive(bytes: Uint8Array, title: string, format: WebPackageFormat) {
   const url = URL.createObjectURL(new Blob([bytes as BlobPart], {type: 'application/zip'}));
   const anchor = document.createElement('a');
   anchor.href = url;
-  anchor.download = `${title.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_')}-web.zip`;
+  anchor.download = `${title.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_')}-web-${format}.zip`;
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();

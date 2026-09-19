@@ -38,10 +38,15 @@ You can learn more in the [Vite documentation](https://vitejs.dev/).
 
 ## Web game export
 
-Open a project file, then choose **Package → Web** in the development toolbar. The IDE saves open files, compiles the project, and downloads `<project>-web.zip`. Compilation errors stop the export. The ZIP includes the player, game assets, SHA-256 manifest, runtime capability manifest, and engine license notices. Deploy the extracted directory to a static host using HTTPS (or localhost); `file://` is unsupported.
+Open a project file, then choose a format from **Package** in the development toolbar. Both formats save open files, compile the project, and include the Dora SSR loading screen and engine license notices. Compilation errors stop the export.
+
+- **Web (HTML)** downloads `<project>-web-html.zip`. Extract the entire ZIP and double-click its root `index.html`; no server is needed. Keep the accompanying files. WASM and game resources are encoded as classic JavaScript files, verified, and passed to the player's in-memory snapshot interface. Audio uses local Blob and data URLs. This format also works on static hosting, but encoding increases package size and all resources are loaded into memory at startup.
+- **Web (HTTP Server)** downloads `<project>-web-http.zip`. Deploy the extracted directory to a static host using HTTPS (or localhost). It contains the player, binary game assets, and SHA-256 manifest; opening it through `file://` is unsupported.
+
+Use a modern browser with WebAssembly and Web Crypto support. HTML export isolates saved data by package directory, so moving the extracted directory changes its save location. The runtime lock also pins the snapshot interface and two audio resource URL expressions used by HTML export; update and test both formats when upgrading it.
 
 The current export uses the single-threaded `dora-preset` Web Player and requires a compiled `init.lua`. Native-only APIs such as LoveNode, 3D physics, video, and the Wasm runtime are outside this profile. Export does not validate every game's API compatibility; test the resulting game in a browser.
 
 `pnpm build` prepares the export runtime before building the IDE. For `pnpm dev`, first run `pnpm prepare:web-runtime`. The first preparation downloads the runtime pinned in `scripts/web-runtime-lock.json` from the official Dora gallery and verifies every file's SHA-256 and size. Later builds reuse the verified local cache. The generated runtime is excluded from Git and distributed in the IDE's static files; packaging a user's project does not upload game files or contact the gallery.
 
-Run `pnpm test:web-package` to verify ZIP contents, resource hashes, loader compatibility, excluded private files, and invalid/oversized input rejection.
+Run `pnpm test:web-package` to verify both ZIP formats, local resource loading, resource hashes, loader compatibility, excluded private files, and invalid/oversized input rejection.

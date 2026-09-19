@@ -4,7 +4,7 @@ import {mkdtemp, readFile, rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {createHash} from 'node:crypto';
+import {createHash, webcrypto} from 'node:crypto';
 import vm from 'node:vm';
 
 const directory = await mkdtemp(path.join(tmpdir(), 'dora-web-package-'));
@@ -57,6 +57,85 @@ try {
   const newer = unzipSync(await createWebArchive(project, {...runtime, 'runtime.json': strToU8(JSON.stringify({engineVersion: '1.9.3'}))}));
   assert.equal(JSON.parse(strFromU8(newer['dora-web-manifest.json'])).engineVersion, '1.9.3');
   assert.ok(newer['audio-worklet.js'] && newer['dora-audio-mixer.wasm']);
+  const htmlRuntime = {...runtime, 'dora-player-runtime.js': strToU8('Module.doraSnapshot; new URL("dora-audio-mixer.wasm",base); new URL("audio-worklet.js",base);')};
+  const html = unzipSync(await createWebArchive(project, htmlRuntime, 'html'));
+  assert.match(strFromU8(html['index.html']), /src="html-loader.js"/);
+  assert.match(strFromU8(html['index.html']), /id="engine-name">Dora SSR</);
+  assert.equal(html['dora-player-runtime.wasm'], undefined);
+  assert.equal(html['dora-web-manifest.json'], undefined);
+  assert.ok(!Object.keys(html).some(name => name.startsWith('assets/')));
+  assert.match(strFromU8(html['dora-player-runtime.js']), /Module\.locateFile\("audio-worklet.js"\)/);
+  const htmlMetadata = JSON.parse(strFromU8(html['runtime.json']));
+  for (const [name, file] of Object.entries(htmlMetadata.files)) {
+    assert.equal(html[name]?.length, file.size, name);
+    assert.equal(createHash('sha256').update(html[name]).digest('hex'), file.sha256, name);
+  }
+  async function bootHtml(overrides = {}) {
+    const assetFiles = {...html, ...overrides};
+    const faults = [], requests = [], blobs = [], revoked = [];
+    class LocalURL extends URL {
+      static createObjectURL(blob) { blobs.push(blob); return 'blob:test/' + blobs.length; }
+      static revokeObjectURL(url) { revoked.push(url); }
+    }
+    const browser = {
+      URL: LocalURL, Blob, TextEncoder, Uint8Array, atob, btoa, crypto: webcrypto, WebAssembly,
+      setTimeout, clearTimeout, console: {error() {}}, Module: {},
+      doraSetProgress(value, message) { browser.message = message; },
+      doraSetState(state, message) { browser.message = message; faults.push({state, message}); }, addEventListener() {},
+      document: {baseURI: 'file:///test/中文%20game/index.html', createElement: () => ({remove() {}}), body: {
+        appendChild(script) {
+          // Resolve using the encoded base so unicode and spaces remain valid.
+          const relative = decodeURIComponent(script.src.slice(new URL('.', browser.document.baseURI).href.length));
+          requests.push(relative);
+          if (relative === 'dora-player-runtime.js') { if (!assetFiles[relative]) script.onerror(); return; }
+          queueMicrotask(() => {
+            if (!assetFiles[relative]) { script.onerror(); return; }
+            vm.runInContext(strFromU8(assetFiles[relative]), sandbox);
+            script.onload();
+          });
+        }
+      }}
+    };
+    browser.window = browser;
+    const sandbox = vm.createContext(browser);
+    await vm.runInContext(strFromU8(html['html-loader.js']), sandbox);
+    await new Promise(resolve => setTimeout(resolve, 10));
+    return {browser, faults, requests, blobs, revoked};
+  }
+  const local = await bootHtml();
+  assert.deepEqual(local.faults, []);
+  assert.ok(local.requests.includes('dora-player-runtime.js'));
+  assert.deepEqual(local.browser.Module.wasmBinary, runtime['dora-player-runtime.wasm']);
+  assert.deepEqual(new Uint8Array(local.browser.Module.getPreloadedPackage()), runtime['dora-player-runtime.data']);
+  assert.equal(local.browser.Module.getPreloadedPackage(), null);
+  for (const file of local.browser.Module.doraSnapshot.files) assert.deepEqual(file.bytes, project[file.path]);
+  assert.equal(local.blobs.length, 1);
+  assert.match(local.browser.Module.locateFile('audio-worklet.js'), /^data:text\/javascript;base64,/);
+  assert.match(local.browser.Module.locateFile('dora-audio-mixer.wasm'), /^blob:/);
+  assert.match(local.browser.Module.doraStorageId, /^html-[a-f0-9]{64}$/);
+  local.browser.Module.onRuntimeInitialized();
+  assert.equal(local.browser.Module.doraSnapshot, undefined);
+  const missing = await bootHtml({'html-assets/0.js': undefined});
+  assert.match(missing.faults[0].message, /Extract the entire ZIP/);
+  assert.equal(missing.browser.message, missing.faults[0].message);
+  assert.ok(!missing.requests.includes('dora-player-runtime.js'));
+  const corrupt = await bootHtml({'html-assets/0.js': strToU8('DoraHtmlPackage.deliver("dora-player-runtime.wasm","AAAAAA==");')});
+  assert.match(corrupt.faults[0].message, /checksum mismatch/);
+  assert.equal(corrupt.browser.message, corrupt.faults[0].message);
+  assert.ok(!corrupt.requests.includes('dora-player-runtime.js'));
+  const noEngine = await bootHtml({'dora-player-runtime.js': undefined});
+  assert.match(noEngine.browser.message, /Unable to load the engine/);
+  assert.equal(noEngine.browser.Module.doraSnapshot, undefined);
+  assert.equal(noEngine.browser.Module.wasmBinary, undefined);
+  assert.equal(noEngine.revoked.length, 1);
+  const aborted = await bootHtml();
+  aborted.browser.Module.onAbort('test abort');
+  assert.equal(aborted.browser.message, 'test abort');
+  assert.equal(aborted.browser.Module.doraSnapshot, undefined);
+  assert.equal(aborted.browser.Module.getPreloadedPackage, undefined);
+  assert.equal(aborted.revoked.length, 1);
+  await assert.rejects(createWebArchive(project, runtime, 'html'), /snapshots/);
+  await assert.rejects(createWebArchive(project, runtime, 'other'), /format/);
   await assert.rejects(createWebArchive({'init.ts': strToU8('print("hi")')}, runtime), /entry/);
   await assert.rejects(createWebArchive(project, {...runtime, 'dora-player-runtime.wasm': undefined}), /runtime/);
   await assert.rejects(createWebArchive(project, {...runtime, 'dora-logo.png': undefined}), /runtime/);
