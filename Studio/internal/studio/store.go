@@ -239,7 +239,11 @@ func (s *Store) IsAdministrator(ctx context.Context, id string) bool {
 }
 
 func (s *Store) ListAccounts(ctx context.Context, after string, limit int) ([]Account, bool, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT id,enabled,administrator,version FROM studio_accounts WHERE id>? ORDER BY id LIMIT ?`, after, limit+1)
+	return s.SearchAccounts(ctx, "", after, limit)
+}
+
+func (s *Store) SearchAccounts(ctx context.Context, query, after string, limit int) ([]Account, bool, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT id,enabled,administrator,version FROM studio_accounts WHERE id>? AND (?='' OR instr(lower(id),lower(?))>0) ORDER BY id LIMIT ?`, after, query, query, limit+1)
 	if err != nil {
 		return nil, false, err
 	}
@@ -257,6 +261,18 @@ func (s *Store) ListAccounts(ctx context.Context, after string, limit int) ([]Ac
 		items = items[:limit]
 	}
 	return items, more, rows.Err()
+}
+
+type BatchAllowanceUpdate struct {
+	AccountID string
+	Account   ModelScope
+	Grant     *ModelScope
+}
+type BatchAllowanceResult struct {
+	AccountID    string      `json:"accountId"`
+	AccountScope *ModelScope `json:"accountScope"`
+	GrantID      string      `json:"grantId,omitempty"`
+	GrantScope   *ModelScope `json:"grantScope,omitempty"`
 }
 
 func (s *Store) AccountAudit(ctx context.Context, after int64, limit int) ([]map[string]any, bool, error) {
@@ -1062,6 +1078,91 @@ func (s *Store) ConfigureScope(ctx context.Context, kind, id string, v ModelScop
 		return err
 	}
 	return tx.Commit()
+}
+
+func configureScopeTx(ctx context.Context, tx *sql.Tx, kind, id string, v ModelScope, actor string, timestamp int64) (*ModelScope, error) {
+	before, _ := scopeTx(ctx, tx, kind, id)
+	if before != nil {
+		v.Active, v.Spent, v.Reserved = before.Active, before.Spent, before.Reserved
+	} else {
+		v.Spent, v.Reserved = "0", "0"
+	}
+	if kind == "grant" {
+		if _, err := scopeTx(ctx, tx, "account", v.AccountID); err != nil {
+			return nil, errNotFound
+		}
+		if _, err := scopeTx(ctx, tx, "api", v.APIID); err != nil {
+			return nil, errNotFound
+		}
+		if before != nil && (before.AccountID != v.AccountID || before.APIID != v.APIID) {
+			return nil, errConflict
+		}
+	}
+	if _, err := tx.ExecContext(ctx, `INSERT INTO model_scopes VALUES(?,?,?) ON CONFLICT(kind,id) DO UPDATE SET data=excluded.data`, kind, id, encodeScope(v)); err != nil {
+		return nil, err
+	}
+	audit, _ := json.Marshal(map[string]any{"timestamp": timestamp, "action": "configure", "actorId": actor, "kind": kind, "scopeId": id, "before": before, "after": v})
+	if _, err := tx.ExecContext(ctx, `INSERT INTO model_audit(data) VALUES(?)`, string(audit)); err != nil {
+		return nil, err
+	}
+	return &v, nil
+}
+
+func (s *Store) ConfigureAllowancesBatch(ctx context.Context, updates []BatchAllowanceUpdate, actor, token string) ([]BatchAllowanceResult, error) {
+	if len(updates) < 1 || len(updates) > 100 {
+		return nil, errors.New("invalid batch")
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	timestamp := s.now().UnixMilli()
+	if err = requireAdminTx(ctx, tx, token, actor, timestamp); err != nil {
+		return nil, err
+	}
+	results := make([]BatchAllowanceResult, 0, len(updates))
+	seen := map[string]bool{}
+	for _, update := range updates {
+		if !validIdentity(update.AccountID, 256) || seen[update.AccountID] {
+			return nil, errors.New("invalid batch account")
+		}
+		seen[update.AccountID] = true
+		var exists int
+		if err = tx.QueryRowContext(ctx, `SELECT 1 FROM studio_accounts WHERE id=?`, update.AccountID).Scan(&exists); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return nil, errNotFound
+			}
+			return nil, err
+		}
+		accountScope, applyErr := configureScopeTx(ctx, tx, "account", update.AccountID, update.Account, actor, timestamp)
+		if applyErr != nil {
+			return nil, applyErr
+		}
+		result := BatchAllowanceResult{AccountID: update.AccountID, AccountScope: accountScope}
+		if update.Grant != nil {
+			grant := *update.Grant
+			grant.AccountID = update.AccountID
+			var grantID string
+			err = tx.QueryRowContext(ctx, `SELECT id FROM model_scopes WHERE kind='grant' AND json_extract(data,'$.accountId')=? AND json_extract(data,'$.apiId')=? ORDER BY id LIMIT 1`, update.AccountID, grant.APIID).Scan(&grantID)
+			if errors.Is(err, sql.ErrNoRows) {
+				grantID, err = randomUUID()
+			}
+			if err != nil {
+				return nil, err
+			}
+			grantScope, applyErr := configureScopeTx(ctx, tx, "grant", grantID, grant, actor, timestamp)
+			if applyErr != nil {
+				return nil, applyErr
+			}
+			result.GrantID, result.GrantScope = grantID, grantScope
+		}
+		results = append(results, result)
+	}
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return results, nil
 }
 
 func (s *Store) OwnedGrant(ctx context.Context, account, grant string) (string, bool) {

@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 const sessionCookie = "__Host-dora-studio-session"
@@ -92,7 +93,7 @@ func (s *Server) serveHTTP(w http.ResponseWriter, r *http.Request) {
 		s.adminAccountRoutes(w, r)
 	case r.URL.Path == "/api/admin/shared-models" || strings.HasPrefix(r.URL.Path, "/api/admin/shared-models/"):
 		s.adminSharedModelRoutes(w, r)
-	case strings.HasPrefix(r.URL.Path, "/api/admin/model-accounts/") || strings.HasPrefix(r.URL.Path, "/api/admin/model-grants/"):
+	case r.URL.Path == "/api/admin/model-allowances/batch" || strings.HasPrefix(r.URL.Path, "/api/admin/model-accounts/") || strings.HasPrefix(r.URL.Path, "/api/admin/model-grants/"):
 		s.adminAllowanceRoutes(w, r)
 	case r.URL.Path == "/api/model-grants" || strings.HasPrefix(r.URL.Path, "/api/model-grants/") || strings.HasPrefix(r.URL.Path, "/api/byok/"):
 		s.modelSettingsRoutes(w, r)
@@ -154,6 +155,24 @@ func page(r *http.Request, defaultLimit, max int) (string, int, error) {
 		return "", 0, errors.New("invalid page")
 	}
 	return after, n, nil
+}
+func searchableAccountPage(r *http.Request, defaultLimit, max int) (string, int, string, error) {
+	q := r.URL.Query()
+	for key, values := range q {
+		if (key != "after" && key != "limit" && key != "q") || len(values) != 1 {
+			return "", 0, "", errors.New("invalid account page")
+		}
+	}
+	raw := q.Get("limit")
+	if raw == "" {
+		raw = strconv.Itoa(defaultLimit)
+	}
+	limit, err := strconv.Atoi(raw)
+	query := strings.TrimSpace(q.Get("q"))
+	if err != nil || limit < 1 || limit > max || len(query) > 256 || !utf8.ValidString(query) {
+		return "", 0, "", errors.New("invalid account page")
+	}
+	return q.Get("after"), limit, query, nil
 }
 
 func sessionToken(r *http.Request) string {
@@ -495,12 +514,12 @@ func (s *Server) adminAccountRoutes(w http.ResponseWriter, r *http.Request) {
 			method(w, "GET")
 			return
 		}
-		after, limit, err := page(r, 20, 100)
+		after, limit, query, err := searchableAccountPage(r, 20, 100)
 		if err != nil {
 			empty(w, 400)
 			return
 		}
-		items, more, err := s.store.ListAccounts(r.Context(), after, limit)
+		items, more, err := s.store.SearchAccounts(r.Context(), query, after, limit)
 		if err != nil {
 			empty(w, 500)
 			return
@@ -735,6 +754,52 @@ func (s *Server) adminAllowanceRoutes(w http.ResponseWriter, r *http.Request) {
 	}
 	a, t, ok := s.requireAdmin(w, r)
 	if !ok {
+		return
+	}
+	if r.URL.Path == "/api/admin/model-allowances/batch" {
+		if r.Method != "PUT" {
+			method(w, "PUT")
+			return
+		}
+		var b struct {
+			AccountIDs []string `json:"accountIds"`
+			Account    struct {
+				Enabled     bool
+				Limit       int64
+				AmountLimit string
+			} `json:"account"`
+			Grant *struct {
+				APIID       string `json:"apiId"`
+				Enabled     bool
+				Limit       int64
+				AmountLimit string
+			} `json:"grant"`
+		}
+		if err := jsonBody(r, 32768, &b); err != nil || len(b.AccountIDs) < 1 || len(b.AccountIDs) > 100 || b.Account.Limit < 0 || b.Account.Limit > 1000 || decimal(b.Account.AmountLimit) == nil {
+			empty(w, 400)
+			return
+		}
+		if b.Grant != nil {
+			configuration, _ := s.store.GetConfiguration(r.Context(), b.Grant.APIID)
+			if !validSlug(b.Grant.APIID, 128) || b.Grant.Limit < 0 || b.Grant.Limit > 1000 || decimal(b.Grant.AmountLimit) == nil || configuration == nil || configuration.Kind != "shared" {
+				empty(w, 400)
+				return
+			}
+		}
+		updates := make([]BatchAllowanceUpdate, 0, len(b.AccountIDs))
+		for _, accountID := range b.AccountIDs {
+			update := BatchAllowanceUpdate{AccountID: accountID, Account: ModelScope{Enabled: b.Account.Enabled, Limit: b.Account.Limit, AmountLimit: b.Account.AmountLimit}}
+			if b.Grant != nil {
+				update.Grant = &ModelScope{Enabled: b.Grant.Enabled, Limit: b.Grant.Limit, AmountLimit: b.Grant.AmountLimit, APIID: b.Grant.APIID}
+			}
+			updates = append(updates, update)
+		}
+		items, err := s.store.ConfigureAllowancesBatch(r.Context(), updates, a.AccountID, t)
+		if err != nil {
+			writeStoreError(w, err)
+			return
+		}
+		jsonResponse(w, 200, map[string]any{"version": 1, "items": items})
 		return
 	}
 	if strings.HasPrefix(r.URL.Path, "/api/admin/model-accounts/") {

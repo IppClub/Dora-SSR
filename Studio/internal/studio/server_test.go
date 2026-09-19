@@ -168,6 +168,18 @@ func TestAdministrationModelsAndBYOK(t *testing.T) {
 	a.client = &http.Client{Transport: creatorClient.Transport, Jar: jar}
 	register(t, a, invite["code"].(string), "creator-user")
 	a.client = creatorClient
+	status, secondInvite, _ := a.do(t, "POST", "/api/admin/invitations", map[string]any{"administrator": false}, true)
+	mustStatus(t, status, 201)
+	secondJar, _ := cookiejar.New(nil)
+	a.client = &http.Client{Transport: creatorClient.Transport, Jar: secondJar}
+	register(t, a, secondInvite["code"].(string), "creator-batch")
+	a.client = creatorClient
+	status, search, _ := a.do(t, "GET", "/api/admin/accounts?limit=20&q=batch", nil, false)
+	mustStatus(t, status, 200)
+	searchItems := search["items"].([]any)
+	if len(searchItems) != 1 || searchItems[0].(map[string]any)["accountId"] != "creator-batch" {
+		t.Fatalf("unexpected account search: %#v", search)
+	}
 	status, _, _ = a.do(t, "PUT", "/api/admin/shared-models/deepseek-main", map[string]any{"expectedVersion": 0, "label": "DeepSeek", "model": "deepseek-chat", "providerId": "deepseek", "enabled": false, "pricing": map[string]string{"inputNanoCnyPerMillion": "1000000000", "outputNanoCnyPerMillion": "2000000000"}}, true)
 	mustStatus(t, status, 200)
 	status, _, _ = a.do(t, "PUT", "/api/admin/shared-models/deepseek-main/secret", map[string]any{"expectedVersion": 0, "key": "test-secret", "consent": true}, true)
@@ -176,6 +188,32 @@ func TestAdministrationModelsAndBYOK(t *testing.T) {
 	mustStatus(t, status, 200)
 	status, _, _ = a.do(t, "PUT", "/api/admin/shared-models/deepseek-main", map[string]any{"expectedVersion": 1, "label": "DeepSeek", "model": "deepseek-chat", "providerId": "deepseek", "enabled": true, "pricing": map[string]string{"inputNanoCnyPerMillion": "1000000000", "outputNanoCnyPerMillion": "2000000000"}}, true)
 	mustStatus(t, status, 200)
+	status, batch, _ := a.do(t, "PUT", "/api/admin/model-allowances/batch", map[string]any{
+		"accountIds": []string{"creator-batch", "admin-user"},
+		"account":    map[string]any{"enabled": true, "limit": 3, "amountLimit": "12000000000"},
+		"grant":      map[string]any{"apiId": "deepseek-main", "enabled": true, "limit": 2, "amountLimit": "6000000000"},
+	}, true)
+	mustStatus(t, status, 200)
+	if len(batch["items"].([]any)) != 2 {
+		t.Fatalf("unexpected batch receipt: %#v", batch)
+	}
+	batchAccount, err := a.store.Scope(context.Background(), "account", "creator-batch")
+	if err != nil || batchAccount.AmountLimit != "12000000000" || batchAccount.Limit != 3 {
+		t.Fatalf("batch account scope missing: %#v %v", batchAccount, err)
+	}
+	batchGrants, err := a.store.Grants(context.Background(), "creator-batch", "", 10)
+	if err != nil || len(batchGrants) != 1 || batchGrants[0]["apiId"] != "deepseek-main" {
+		t.Fatalf("batch grant missing: %#v %v", batchGrants, err)
+	}
+	status, _, _ = a.do(t, "PUT", "/api/admin/model-allowances/batch", map[string]any{
+		"accountIds": []string{"creator-batch", "missing-user"},
+		"account":    map[string]any{"enabled": true, "limit": 9, "amountLimit": "99000000000"},
+	}, true)
+	mustStatus(t, status, 404)
+	batchAccount, err = a.store.Scope(context.Background(), "account", "creator-batch")
+	if err != nil || batchAccount.AmountLimit != "12000000000" || batchAccount.Limit != 3 {
+		t.Fatalf("failed batch was not atomic: %#v %v", batchAccount, err)
+	}
 	status, _, _ = a.do(t, "PUT", "/api/admin/model-accounts/creator-user", map[string]any{"enabled": true, "limit": 2, "amountLimit": "10000000000"}, true)
 	mustStatus(t, status, 200)
 	status, _, _ = a.do(t, "PUT", "/api/admin/model-grants/grant-1", map[string]any{"accountId": "creator-user", "apiId": "deepseek-main", "enabled": true, "limit": 1, "amountLimit": "5000000000"}, true)
