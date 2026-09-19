@@ -50,3 +50,5 @@ The current export uses the single-threaded `dora-preset` Web Player and require
 `pnpm build` prepares the export runtime before building the IDE. For `pnpm dev`, first run `pnpm prepare:web-runtime`. The first preparation downloads the runtime pinned in `scripts/web-runtime-lock.json` from the official Dora gallery and verifies every file's SHA-256 and size. Later builds reuse the verified local cache. The generated runtime is excluded from Git and distributed in the IDE's static files; packaging a user's project does not upload game files or contact the gallery.
 
 Run `pnpm test:web-package` to verify both ZIP formats, local resource loading, resource hashes, loader compatibility, excluded private files, and invalid/oversized input rejection.
+
+To test a rebuilt engine before publishing a runtime release, set `DORA_WEB_RUNTIME_LOCK` to an absolute path to a separate lock file with the same schema. Its `baseUrl` may be a `file:///` directory containing the rebuilt player files. Size and SHA-256 checks still apply. Use that environment variable for every prepare/build invocation; without it, preparation restores the official pinned runtime.

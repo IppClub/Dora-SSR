@@ -5,7 +5,10 @@ import {createHash} from 'node:crypto';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const destination = path.join(root, 'Tools/dora-dora/public/web-player');
-const lock = JSON.parse(await fs.readFile(new URL('./web-runtime-lock.json', import.meta.url), 'utf8'));
+const lockPath = process.env.DORA_WEB_RUNTIME_LOCK
+  ? path.resolve(process.env.DORA_WEB_RUNTIME_LOCK)
+  : new URL('./web-runtime-lock.json', import.meta.url);
+const lock = JSON.parse(await fs.readFile(lockPath, 'utf8'));
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const localFiles = {
   'dora-logo.png': await fs.readFile(path.join(root, 'Tools/dora-dora/public/logo512.png')),
@@ -37,14 +40,19 @@ if (cached) {
       let bytes = cachedBytes;
       if (!bytes || bytes.length !== expected.size || hash(bytes) !== expected.sha256) {
         console.log(`Preparing Web export runtime: ${name}`);
-        const response = await fetch(new URL(name, lock.baseUrl), {signal: AbortSignal.timeout(180000)});
-        if (!response.ok) throw new Error(`Web runtime download failed (${response.status}): ${name}`);
-        bytes = Buffer.from(await response.arrayBuffer());
+        const url = new URL(name, lock.baseUrl);
+        if (url.protocol === 'file:') {
+          bytes = await fs.readFile(url);
+        } else {
+          const response = await fetch(url, {signal: AbortSignal.timeout(180000)});
+          if (!response.ok) throw new Error(`Web runtime download failed (${response.status}): ${name}`);
+          bytes = Buffer.from(await response.arrayBuffer());
+        }
       }
       if (bytes.length !== expected.size || hash(bytes) !== expected.sha256) throw new Error(`Web runtime checksum mismatch: ${name}`);
       if (name === 'index.html') {
         const shell = bytes.toString('utf8');
-        if (!shell.includes('src="gallery-player.js"')) throw new Error('Unsupported player shell');
+        if (!shell.includes('src="gallery-player.js"') && !shell.includes('src="dora-player-runtime.js"')) throw new Error('Unsupported player shell');
         bytes = Buffer.from(shell.replace('src="gallery-player.js"', 'src="dora-player-runtime.js"'));
         if (bytes.length !== files[name].size || hash(bytes) !== files[name].sha256) throw new Error('Player shell checksum mismatch');
       }
