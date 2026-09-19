@@ -180,7 +180,11 @@ private:
 	Ref<Camera> _ui3DCamera;
 	Ref<Camera> _systemUICamera;
 	Ref<Node> _postNode;
+#ifdef DORA_WEB_MINIMAL
+	Ref<Node> _entry;
+#else
 	Ref<View3D> _entry;
+#endif
 	Ref<Node> _root;
 	Ref<Array> _camStack;
 	Ref<Scheduler> _systemScheduler;
