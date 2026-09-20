@@ -36,6 +36,12 @@ pnpm invite:bootstrap
 - `STUDIO_PROVIDER_ENDPOINTS`：Base64 编码的受信供应商 JSON 数组；端点只允许 HTTPS。
 - `STUDIO_PROVIDER_CA_CERT`：可选的 PEM CA 证书包，用于显式信任企业内网或本地验收的 HTTPS 模型端点；不会关闭主机名或证书链验证。
 
+可选独立游戏 Player：
+
+- `STUDIO_RUNTIME_DIR`：`build/studio-runtime` 的绝对路径；设置后由同一 Go 进程托管第三个、无认证能力的独立 HTTPS Player 来源。
+- `STUDIO_RUNTIME_PORT`：默认 `8901`。前端 `VITE_DORA_RUNTIME_URL` 应指向这个来源的 `/index.html`。
+- Player、API 与 Agent Host 使用同一套 `STUDIO_TLS_CERT`/`STUDIO_TLS_KEY`，但监听来源彼此独立。本地自签名证书仍必须由浏览器信任；生产环境应使用受信任证书。
+
 API 默认监听 `127.0.0.1:8899`，可用 `STUDIO_API_HOST` 和 `STUDIO_API_PORT` 修改。服务接收 `SIGINT`/`SIGTERM` 后停止接入、等待请求结束、关闭 Agent 启动租约并关闭数据库。
 
 ## 设计边界

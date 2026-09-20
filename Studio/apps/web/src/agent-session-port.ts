@@ -3,16 +3,18 @@ import type {AgentProjectSnapshot} from './agent-project-snapshot';
 import {decodeAgentProjectCapture,type AgentProjectCapture} from './agent-project-capture';
 import {isBuildArtifact,type BuildArtifact} from '@dora-studio/contracts';
 import type {AgentPreviewCapture} from './agent-tool-preview-host';
+import type {AgentLuaCommandResult} from './agent-tool-lua-host';
 import {isAgentPromptOptions,type AgentPromptOptions} from './agent-prompt-options';
 import {createAgentModelQueueStore,type AgentModelQueueStore} from './agent-model-queue';
 
 export type AgentPreviewHandler=(artifact:BuildArtifact,captureAtSeconds:readonly number[],signal:AbortSignal)=>Promise<readonly AgentPreviewCapture[]>;
+export type AgentLuaHandler=(artifact:BuildArtifact,commandId:string,timeoutSeconds:number,signal:AbortSignal)=>Promise<AgentLuaCommandResult>;
 
 /** The caller must obtain this dedicated port from its authenticated Agent host.
  * Port ownership is a capability; never accept a port supplied by game code.
  * Host sends one snapshot before patches on the same FIFO channel.
  */
-export function connectAgentSessionPort(port: MessagePort, binding: {projectId:string;generation:string;sessionId:number}, signal: AbortSignal, timeoutMs = 15000): Promise<{controller:AgentSessionController;modelQueue:AgentModelQueueStore;close:()=>void;canPersist:boolean;persist:()=>Promise<void>;canSyncProject:boolean;syncProject:(snapshot:AgentProjectSnapshot)=>Promise<void>;canCaptureProject:boolean;captureProject:()=>Promise<AgentProjectCapture>;canCaptureLiveProject:boolean;captureLiveProject:()=>Promise<AgentProjectCapture>;canSendPrompt:boolean;sendPrompt:(prompt:string,grantId:string,requestId:string,options:AgentPromptOptions)=>Promise<number>;canHandleQuestionnaire:boolean;handleQuestionnaire:(action:'respond'|'cancel',questionnaireId:number,answers:unknown[],grantId:string,requestId:string)=>Promise<number>;canStopTask:boolean;stopTask:(requestId:string)=>Promise<void>;setPreviewHandler:(handler:AgentPreviewHandler|undefined)=>void}> {
+export function connectAgentSessionPort(port: MessagePort, binding: {projectId:string;generation:string;sessionId:number}, signal: AbortSignal, timeoutMs = 15000): Promise<{controller:AgentSessionController;modelQueue:AgentModelQueueStore;close:()=>void;canPersist:boolean;persist:()=>Promise<void>;canSyncProject:boolean;syncProject:(snapshot:AgentProjectSnapshot)=>Promise<void>;canCaptureProject:boolean;captureProject:()=>Promise<AgentProjectCapture>;canCaptureLiveProject:boolean;captureLiveProject:()=>Promise<AgentProjectCapture>;canSendPrompt:boolean;sendPrompt:(prompt:string,grantId:string,requestId:string,options:AgentPromptOptions)=>Promise<number>;canHandleQuestionnaire:boolean;handleQuestionnaire:(action:'respond'|'cancel',questionnaireId:number,answers:unknown[],grantId:string,requestId:string)=>Promise<number>;canStopTask:boolean;stopTask:(requestId:string)=>Promise<void>;setPreviewHandler:(handler:AgentPreviewHandler|undefined)=>void;setLuaHandler:(handler:AgentLuaHandler|undefined)=>void}> {
   const expected = {projectId:binding.projectId, generation:binding.generation, sessionId:binding.sessionId};
   return new Promise((resolve, reject) => {
     let controller: AgentSessionController | undefined;
@@ -20,13 +22,16 @@ export function connectAgentSessionPort(port: MessagePort, binding: {projectId:s
     let timer: ReturnType<typeof setTimeout> | undefined;
     let canPersist=false,canSyncProject=false,canCaptureProject=false,canCaptureLiveProject=false,canSendPrompt=false,canHandleQuestionnaire=false,canStopTask=false;
     let previewHandler:AgentPreviewHandler|undefined;
+    let luaHandler:AgentLuaHandler|undefined;
     let modelQueue:ReturnType<typeof createAgentModelQueueStore>|undefined;
     let preview:{id:string;controller:AbortController}|undefined;
+    let lua:{id:string;controller:AbortController}|undefined;
     let operation:{id:string;type:'persisted'|'project-synced'|'project-captured'|'live-project-captured'|'prompt-sent'|'questionnaire-handled'|'task-stopped';revision?:number;resolve:(value?:AgentProjectCapture|number)=>void;reject:(error:unknown)=>void;timer:ReturnType<typeof setTimeout>}|undefined;
     const cleanup = () => {
       if (timer !== undefined) clearTimeout(timer);
       if(operation){clearTimeout(operation.timer);operation.reject(new Error('Agent persistence connection closed'));operation=undefined;}
       preview?.controller.abort(new Error('Agent preview connection closed'));preview=undefined;previewHandler=undefined;
+      lua?.controller.abort(new Error('Agent Lua connection closed'));lua=undefined;luaHandler=undefined;
       port.removeEventListener('message', onMessage);
       port.removeEventListener('messageerror', onError);
       signal.removeEventListener('abort', onAbort);
@@ -85,6 +90,7 @@ export function connectAgentSessionPort(port: MessagePort, binding: {projectId:s
       try{port.postMessage({type:'stop-task',version:1,...expected,requestId});}catch(error){fail(error);}
     });
     const setPreviewHandler=(handler:AgentPreviewHandler|undefined)=>{previewHandler=handler;};
+    const setLuaHandler=(handler:AgentLuaHandler|undefined)=>{luaHandler=handler;};
     const onMessage = (event: MessageEvent<unknown>) => {
       if (retired) return;
       try {
@@ -103,7 +109,7 @@ export function connectAgentSessionPort(port: MessagePort, binding: {projectId:s
           canHandleQuestionnaire=message.canHandleQuestionnaire===true;
           canStopTask=message.canStopTask===true;
           if (timer !== undefined) clearTimeout(timer);
-          resolve({controller,modelQueue,close,canPersist,persist,canSyncProject,syncProject,canCaptureProject,captureProject,canCaptureLiveProject,captureLiveProject,canSendPrompt,sendPrompt,canHandleQuestionnaire,handleQuestionnaire,canStopTask,stopTask,setPreviewHandler});
+          resolve({controller,modelQueue,close,canPersist,persist,canSyncProject,syncProject,canCaptureProject,captureProject,canCaptureLiveProject,captureLiveProject,canSendPrompt,sendPrompt,canHandleQuestionnaire,handleQuestionnaire,canStopTask,stopTask,setPreviewHandler,setLuaHandler});
         } else {
           if(message.type==='model-queue'){
             if(message.version!==1||message.projectId!==expected.projectId||message.generation!==expected.generation||message.sessionId!==expected.sessionId)throw new Error('Invalid Agent model queue message');
@@ -115,6 +121,12 @@ export function connectAgentSessionPort(port: MessagePort, binding: {projectId:s
             if(preview?.id===message.requestId){preview.controller.abort(new Error('Original Agent preview canceled'));preview=undefined;}
             return;
           }
+          if(message.type==='lua-cancel'){
+            if(message.version!==1||message.projectId!==expected.projectId||message.generation!==expected.generation||message.sessionId!==expected.sessionId
+              ||typeof message.requestId!=='string'||!/^[0-9a-f-]{36}$/i.test(message.requestId))throw new Error('Invalid Agent Lua cancellation');
+            if(lua?.id===message.requestId){lua.controller.abort(new Error('Original Agent Lua command canceled'));lua=undefined;}
+            return;
+          }
           if(message.type==='preview-request'){
             const times=message.captureAtSeconds,agentArtifact=message.artifact;
             if(message.version!==1||message.projectId!==expected.projectId||message.generation!==expected.generation||message.sessionId!==expected.sessionId
@@ -123,15 +135,34 @@ export function connectAgentSessionPort(port: MessagePort, binding: {projectId:s
               ||!Array.isArray(times)||times.length<1||times.length>3
               ||times.some((time:unknown,index:number)=>typeof time!=='number'||!Number.isFinite(time)||time<0||time>10||(index>0&&time<=Number(times[index-1]))))throw new Error('Invalid Agent preview request');
             const id=message.requestId,handler=previewHandler;
-            if(!handler||preview){port.postMessage({type:'preview-result',version:1,...expected,requestId:id,success:false});return;}
+            if(!handler||preview||lua){port.postMessage({type:'preview-result',version:1,...expected,requestId:id,success:false,message:'Agent Player preview unavailable'});return;}
             const controller=new AbortController();preview={id,controller};
             void handler(agentArtifact,times,controller.signal).then(frames=>{
               if(retired||preview?.id!==id||controller.signal.aborted)return;
               if(frames.length!==times.length||frames.some(frame=>!(frame.png instanceof Uint8Array)||frame.png.byteLength>12*1024*1024
                 ||!Number.isSafeInteger(frame.width)||!Number.isSafeInteger(frame.height)||!Number.isFinite(frame.elapsedSeconds)))throw new Error('Invalid Agent preview frames');
               port.postMessage({type:'preview-result',version:1,...expected,requestId:id,success:true,captures:frames});
-            }).catch(()=>{if(!retired&&preview?.id===id&&!controller.signal.aborted)port.postMessage({type:'preview-result',version:1,...expected,requestId:id,success:false});})
+            }).catch(error=>{if(!retired&&preview?.id===id&&!controller.signal.aborted)port.postMessage({type:'preview-result',version:1,...expected,requestId:id,success:false,message:error instanceof Error?error.message.slice(0,4096):'Agent Player preview failed'});})
               .finally(()=>{if(preview?.id===id)preview=undefined;});
+            return;
+          }
+          if(message.type==='lua-request'){
+            const agentArtifact=message.artifact,commandId=message.commandId,timeoutSeconds=message.timeoutSeconds;
+            if(message.version!==1||message.projectId!==expected.projectId||message.generation!==expected.generation||message.sessionId!==expected.sessionId
+              ||typeof message.requestId!=='string'||!/^[0-9a-f-]{36}$/i.test(message.requestId)
+              ||!isBuildArtifact(agentArtifact)||agentArtifact.projectId!==expected.projectId
+              ||typeof commandId!=='string'||!/^[a-zA-Z0-9_-]{1,128}$/.test(commandId)
+              ||!Number.isSafeInteger(timeoutSeconds)||Number(timeoutSeconds)<1||Number(timeoutSeconds)>120)throw new Error('Invalid Agent Lua request');
+            const id=message.requestId,handler=luaHandler;
+            if(!handler||lua||preview){port.postMessage({type:'lua-result',version:1,...expected,requestId:id,success:false,message:'Agent Lua Player unavailable'});return;}
+            const controller=new AbortController();lua={id,controller};
+            void handler(agentArtifact,commandId,Number(timeoutSeconds),controller.signal).then(result=>{
+              if(retired||lua?.id!==id||controller.signal.aborted)return;
+              if(!result||typeof result.success!=='boolean'||typeof result.output!=='string'||new TextEncoder().encode(result.output).byteLength>131072
+                ||(result.message!==undefined&&(typeof result.message!=='string'||new TextEncoder().encode(result.message).byteLength>16384)))throw new Error('Invalid Agent Lua Player result');
+              port.postMessage({type:'lua-result',version:1,...expected,requestId:id,success:true,result});
+            }).catch(error=>{if(!retired&&lua?.id===id&&!controller.signal.aborted)port.postMessage({type:'lua-result',version:1,...expected,requestId:id,success:false,message:error instanceof Error?error.message.slice(0,4096):'Agent Lua Player failed'});})
+              .finally(()=>{if(lua?.id===id)lua=undefined;});
             return;
           }
           if(message.type==='persisted' || message.type==='project-synced' || message.type==='project-captured'||message.type==='live-project-captured'||message.type==='prompt-sent'||message.type==='questionnaire-handled'||message.type==='task-stopped') {

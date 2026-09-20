@@ -4,6 +4,7 @@ import type {ProjectSnapshot} from '@dora-studio/contracts';
 import {decodeAgentProjectCapture,type AgentProjectCapture} from './agent-project-capture';
 import {isBuildArtifact,type BuildArtifact} from '@dora-studio/contracts';
 import type {AgentPreviewCapture} from './agent-tool-preview-host';
+import type {AgentLuaCommandResult} from './agent-tool-lua-host';
 import {isAgentPromptOptions,type AgentPromptOptions} from './agent-prompt-options';
 import type {AgentModelQueueStore} from './agent-model-queue';
 
@@ -39,12 +40,14 @@ export function serveAgentSessionPort(port: MessagePort, binding: {projectId:str
   let persisting=false;
   const operations=new Set<string>();
   let preview:{id:string;finish:(captures:readonly AgentPreviewCapture[])=>void;fail:(reason:unknown)=>void;timer:ReturnType<typeof setTimeout>;abort:()=>void}|undefined;
+  let lua:{id:string;finish:(result:AgentLuaCommandResult)=>void;fail:(reason:unknown)=>void;timer:ReturnType<typeof setTimeout>;abort:()=>void}|undefined;
   const close = () => {
     if (closed) return;
     closed = true;
     if (captureTimer !== undefined) clearTimeout(captureTimer);
     captureAbort.abort(new Error('Agent session port closed'));
     if(preview){clearTimeout(preview.timer);preview.fail(new Error('Agent preview port closed'));preview=undefined;}
+    if(lua){clearTimeout(lua.timer);lua.fail(new Error('Agent Lua port closed'));lua=undefined;}
     port.removeEventListener('message', onMessage);
     port.removeEventListener('messageerror', close);
     pending.length = 0;
@@ -80,7 +83,21 @@ export function serveAgentSessionPort(port: MessagePort, binding: {projectId:str
           if(!Array.isArray(frames)||frames.length<1||frames.length>3||frames.some(frame=>!(frame.png instanceof Uint8Array)||frame.png.byteLength>12*1024*1024
             ||!Number.isSafeInteger(frame.width)||!Number.isSafeInteger(frame.height)||typeof frame.elapsedSeconds!=='number'))throw new Error('Invalid Agent preview captures');
           current.finish(frames as AgentPreviewCapture[]);
-        }else current.fail(new Error('Agent Player preview failed'));
+        }else current.fail(new Error(typeof message.message==='string'&&message.message.length<=4096?message.message:'Agent Player preview failed'));
+        return;
+      }
+      if(message?.type==='lua-result'){
+        if(!lua||message.version!==1||message.projectId!==expected.projectId||message.generation!==expected.generation||message.sessionId!==expected.sessionId
+          ||message.requestId!==lua.id||typeof message.success!=='boolean')throw new Error('Invalid Agent Lua response');
+        const current=lua;lua=undefined;clearTimeout(current.timer);
+        if(message.success){
+          const result=message.result as Record<string,unknown>|undefined;
+          if(!result||typeof result!=='object'||Array.isArray(result)||typeof result.success!=='boolean'||typeof result.output!=='string'
+            ||(result.message!==undefined&&typeof result.message!=='string')||(result.phase!==undefined&&typeof result.phase!=='string'))throw new Error('Invalid Agent Lua result');
+          current.finish({success:result.success,output:result.output,
+            ...(typeof result.message==='string'?{message:result.message}:{}),
+            ...(typeof result.phase==='string'?{phase:result.phase}:{})});
+        }else current.fail(new Error(typeof message.message==='string'&&message.message.length<=4096?message.message:'Agent Lua Player failed'));
         return;
       }
       if(message?.type==='send-prompt') {
@@ -185,7 +202,7 @@ export function serveAgentSessionPort(port: MessagePort, binding: {projectId:str
   port.addEventListener('messageerror',close);
   port.start();
   const requestPreview=(artifact:BuildArtifact,captureAtSeconds:readonly number[],signal:AbortSignal):Promise<readonly AgentPreviewCapture[]>=>new Promise((resolve,reject)=>{
-    if(closed||!started||capturing||persisting||preview||signal.aborted||!isBuildArtifact(artifact)||artifact.projectId!==expected.projectId
+    if(closed||!started||capturing||persisting||preview||lua||signal.aborted||!isBuildArtifact(artifact)||artifact.projectId!==expected.projectId
       ||captureAtSeconds.length<1||captureAtSeconds.length>3){reject(new Error('Agent Player preview unavailable'));return;}
     const id=crypto.randomUUID();
     const cleanup=()=>{if(preview?.id===id)preview=undefined;signal.removeEventListener('abort',abort);clearTimeout(timer);};
@@ -197,5 +214,18 @@ export function serveAgentSessionPort(port: MessagePort, binding: {projectId:str
     try{port.postMessage({type:'preview-request',version:1,...expected,requestId:id,artifact,captureAtSeconds});}
     catch(error){fail(error);}
   });
-  return {close,requestPreview,get closed(){return closed;}};
+  const requestLua=(artifact:BuildArtifact,commandId:string,timeoutSeconds:number,signal:AbortSignal):Promise<AgentLuaCommandResult>=>new Promise((resolve,reject)=>{
+    if(closed||!started||capturing||persisting||preview||lua||signal.aborted||!isBuildArtifact(artifact)||artifact.projectId!==expected.projectId
+      ||!/^[a-zA-Z0-9_-]{1,128}$/.test(commandId)||!Number.isSafeInteger(timeoutSeconds)||timeoutSeconds<1||timeoutSeconds>120){reject(new Error('Agent Lua Player unavailable'));return;}
+    const id=crypto.randomUUID();
+    const cleanup=()=>{if(lua?.id===id)lua=undefined;signal.removeEventListener('abort',abort);clearTimeout(timer);};
+    const fail=(reason:unknown)=>{cleanup();reject(reason);};
+    const abort=()=>{try{port.postMessage({type:'lua-cancel',version:1,...expected,requestId:id});}catch{/* Port may already be gone. */}fail(signal.reason??new DOMException('Aborted','AbortError'));};
+    const timer=setTimeout(()=>{try{port.postMessage({type:'lua-cancel',version:1,...expected,requestId:id});}catch{/* Port may already be gone. */}fail(new Error(`Lua command timed out after ${timeoutSeconds} seconds`));},timeoutSeconds*1000);
+    lua={id,finish:result=>{cleanup();resolve(result);},fail,timer,abort};
+    signal.addEventListener('abort',abort,{once:true});
+    try{port.postMessage({type:'lua-request',version:1,...expected,requestId:id,artifact,commandId,timeoutSeconds});}
+    catch(error){fail(error);}
+  });
+  return {close,requestPreview,requestLua,get closed(){return closed;}};
 }

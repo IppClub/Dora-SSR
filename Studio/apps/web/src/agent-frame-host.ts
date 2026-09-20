@@ -1,6 +1,7 @@
 import {serveAgentSessionPort, type AgentSessionSource, type AgentHostLifecycle} from './agent-session-port-host';
 import type {BuildArtifact} from '@dora-studio/contracts';
 import type {AgentPreviewCapture} from './agent-tool-preview-host';
+import type {AgentLuaCommandResult} from './agent-tool-lua-host';
 
 /** Install only in a dedicated trusted host document with no user project scripts.
  * parentOrigin and binding come from trusted provisioning, not an incoming message.
@@ -42,5 +43,8 @@ export function installAgentFrameHost(parentWindow: Window, parentOrigin: string
   return {close,requestPreview:(artifact:BuildArtifact,times:readonly number[],signal:AbortSignal):Promise<readonly AgentPreviewCapture[]>=>{
     if(!active)return Promise.reject(new Error('Agent preview port unavailable'));
     return active.requestPreview(artifact,times,signal);
+  },requestLua:(artifact:BuildArtifact,commandId:string,timeoutSeconds:number,signal:AbortSignal):Promise<AgentLuaCommandResult>=>{
+    if(!active)return Promise.reject(new Error('Agent Lua Player port unavailable'));
+    return active.requestLua(artifact,commandId,timeoutSeconds,signal);
   }};
 }

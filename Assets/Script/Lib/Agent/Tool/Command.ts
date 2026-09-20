@@ -1,8 +1,8 @@
 // @preview-file off clear
 import * as Dora from 'Dora';
-import { Content, Path, Director, once, App } from 'Dora';
+import { Content, Path, Director, once, App, sleep } from 'Dora';
 import * as AgentConfig from 'Agent/Config';
-import { Log } from 'Agent/Utils';
+import { Log, safeJsonDecode, safeJsonEncode } from 'Agent/Utils';
 import type { ExecuteCommandMode, ExecuteCommandProgress, ExecuteCommandResult } from 'Agent/Tool/CommandTypes';
 export type { ExecuteCommandMode, ExecuteCommandProgress, ExecuteCommandResult } from 'Agent/Tool/CommandTypes';
 import { toCommandString as toStr, truncateCommandOutput, truncateCommandError } from 'Agent/Tool/CommandShared';
@@ -28,6 +28,72 @@ interface AgentEntryDescriptor { entryName?: string; fileName?: string; }
 
 const LUA_COMMAND_DEFAULT_TIMEOUT_SECONDS = 30;
 
+// The dedicated Studio host has no game renderer. Normal Lua snippets are
+// transported to an isolated Player, while previewGame keeps its specialized
+// capture bridge below. Native Agent builds do not install these globals.
+declare const _studio_agent_tool_begin: ((operation:string,file:string,content:string,projectRoot:string)=>string)|undefined;
+declare const _studio_agent_tool_poll: ((requestId:string)=>{success:boolean;resultJSON?:string;message?:string}|undefined)|undefined;
+declare const _studio_agent_tool_cancel: ((requestId:string)=>void)|undefined;
+
+function executeStudioLuaCommand(req: {
+	workDir:string;
+	code:string;
+	timeoutSeconds:number;
+	operationId:string;
+	onProgress?:(progress:ExecuteCommandProgress)=>void;
+	isCancelled?:()=>boolean;
+}):Promise<ExecuteCommandResult>|undefined {
+	const previewOnly=string.match(req.code.trim(),"^previewGame%s*%b()%s*;?%s*$")[0]!==undefined;
+	if (typeof _studio_agent_tool_begin !== "function" || previewOnly) return undefined;
+	const onProgress=req.onProgress;
+	const isCancelled=req.isCancelled;
+	return new Promise(resolve => {
+		let requestId:string|undefined;
+		let settled=false;
+		const finish=(result:ExecuteCommandResult)=>{
+			if(settled)return;
+			settled=true;
+			resolve(result);
+		};
+		onProgress?.({state:"pending",mode:"lua",operationId:req.operationId,stage:"player",message:"Lua command pending in isolated game Player"});
+		const routine=once(()=>{
+			try{
+				const [options]=safeJsonEncode({code:req.code,timeoutSeconds:req.timeoutSeconds});
+				if(!options)error("failed to encode Studio Agent Lua command");
+				requestId=_studio_agent_tool_begin("execute-lua",Path(req.workDir,".agent","command.lua"),options,req.workDir);
+				onProgress?.({state:"running",mode:"lua",operationId:req.operationId,stage:"player",message:"Lua command running in isolated game Player"});
+				const deadline=App.runningTime+req.timeoutSeconds;
+				let answer:{success:boolean;resultJSON?:string;message?:string}|undefined;
+				while(!answer){
+					if(isCancelled&&isCancelled())error("Lua command canceled");
+					if(App.runningTime>=deadline)error(`Lua command timed out after ${tostring(req.timeoutSeconds)} seconds`);
+					answer=_studio_agent_tool_poll?.(requestId);
+					if(!answer)sleep();
+				}
+				requestId=undefined;
+				if(!answer.success)error(answer.message??"Studio Agent Lua Player failed");
+				const [decoded]=safeJsonDecode(answer.resultJSON??"");
+				const value=decoded as {success?:unknown;output?:unknown;message?:unknown;phase?:unknown}|undefined;
+				if(!value||typeof value.success!=="boolean"||typeof value.output!=="string"
+					||(value.message!==undefined&&typeof value.message!=="string")
+					||(value.phase!==undefined&&value.phase!=="compile"&&value.phase!=="execute"&&value.phase!=="timeout"&&value.phase!=="validate"))error("Invalid Studio Agent Lua Player result");
+				if(value.success)finish({success:true,mode:"lua",output:truncateCommandOutput(value.output)});
+				else finish({success:false,mode:"lua",output:truncateCommandOutput(value.output),message:truncateCommandError(value.message??"Lua command failed"),phase:value.phase??"execute"});
+			}catch(e){
+				if(requestId){_studio_agent_tool_cancel?.(requestId);requestId=undefined;}
+				const message=truncateCommandError(toStr(e));
+				finish({success:false,mode:"lua",output:"",message,phase:message.indexOf("timed out")>=0?"timeout":"execute",interrupted:message.indexOf("canceled")>=0?true:undefined});
+			}
+		});
+		Director.systemScheduler.schedule(()=>{
+			if(settled)return true;
+			const [ok,result]=coroutine.resume(routine);
+			if(!ok){finish({success:false,mode:"lua",output:"",message:truncateCommandError(toStr(result)),phase:"execute"});return true;}
+			return settled||result===true;
+		});
+	});
+}
+
 
 function executeLuaCommand(req: {
 	workDir: string;
@@ -42,6 +108,8 @@ function executeLuaCommand(req: {
 	if (code === "") {
 		return Promise.resolve({ success: false, mode: "lua", output: "", message: "missing code", phase: "validate" });
 	}
+	const studioResult=executeStudioLuaCommand({...req,code});
+	if(studioResult)return studioResult;
 	const output: string[] = [];
 	const entry = require("Script.Dev.Entry") as DevEntryModule;
 	let ownsEntryRuntime = false;

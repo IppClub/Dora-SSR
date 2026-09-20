@@ -16,10 +16,13 @@ async function packageWorkspace(snapshot:ProjectSnapshot,entry:string):Promise<B
     sha256:[...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,'0')).join('')};
 }
 
-/** Prefer generated files already in the frontend workspace, otherwise retain
- * the latest explicit build. With neither, let Player diagnose the raw entry. */
+/** A successful explicit build for this exact snapshot is authoritative. Agent
+ * writeback can retain a generated Lua sibling beside its authored TS source;
+ * preferring that sibling after a new editor build would silently run stale
+ * code. With no matching build, fall back to a workspace-generated entry and
+ * finally let Player diagnose the raw source entry. */
 export async function resolveWorkspaceRuntimeArtifact(snapshot:ProjectSnapshot,compiled:BuildArtifact|null):Promise<BuildArtifact>{
+  if(compiled?.projectId===snapshot.projectId&&compiled.revision===snapshot.revision)return compiled;
   const entry=generatedEntry(snapshot);
-  if(entry||!generatedSource.test(snapshot.entry))return packageWorkspace(snapshot,entry??snapshot.entry);
-  return compiled??packageWorkspace(snapshot,snapshot.entry);
+  return packageWorkspace(snapshot,entry??snapshot.entry);
 }

@@ -5,6 +5,7 @@ local Events = require("Agent.Runtime.SessionEvents")
 local Utils = require("Agent.Utils")
 local FileCommits = require("Agent.Runtime.FileCommitEvents")
 
+local STUDIO_AGENT_MAX_STEPS = 999
 local exports = {}
 function exports.open(sessionId)
 	assert(type(_studio_agent_emit) == "function", "Studio Agent host callback is unavailable")
@@ -114,7 +115,7 @@ function exports.open(sessionId)
 				if pendingTool.operation == "transpile-ts" or pendingTool.operation == "build-script" then
 					assert(type(result.luaCode) == "string" and #result.luaCode <= 1048576, "Invalid Studio Agent transpile output")
 				else
-					assert(type(result.resultJSON) == "string" and #result.resultJSON <= 65536, "Invalid Studio Agent preview result")
+					assert(type(result.resultJSON) == "string" and #result.resultJSON <= 262144, "Invalid Studio Agent Player result")
 				end
 			else
 				assert(type(result.message) == "string" and #result.message <= 4096, "Invalid Studio Agent transpile diagnostic")
@@ -185,10 +186,10 @@ function exports.open(sessionId)
 			local disabledKey = Utils.safeJsonEncode(request.disabledAgentTools)
 			assert(type(disabledKey) == "string", "Invalid Studio Agent tool settings")
 			promptReceipts[request.requestId] = {kind = "prompt", prompt = request.prompt, url = config.url, workMode = request.workMode, disabledKey = disabledKey, result = {success = false, message = "prompt acknowledgement pending; inspect session"}}
-			-- Keep the original Dora Agent step policy. A Studio prompt may build,
-			-- repair and validate as many times as the task needs; users do not have
-			-- to split one requested change into artificial continuation rounds.
-			local result = Session.sendPrompt(sessionId, request.prompt, request.disabledAgentTools, request.workMode, nil, config)
+			-- Keep Studio's task budget explicit instead of inheriting a mutable
+			-- global default. A prompt may build, repair and validate repeatedly
+			-- without forcing the user into artificial continuation rounds.
+			local result = Session.sendPrompt(sessionId, request.prompt, request.disabledAgentTools, request.workMode, nil, config, STUDIO_AGENT_MAX_STEPS)
 			promptReceipts[request.requestId].result = result
 			send("command", Utils.safeJsonEncode(result), 0, request.requestId)
 			return
@@ -208,7 +209,7 @@ function exports.open(sessionId)
 	end
 	_studio_agent_request = requestHandler
 	toolBegin = function(operation, file, content, projectRoot)
-		assert(not closed and (operation == "transpile-ts" or operation == "build-script" or operation == "preview-game"), "Studio Agent tool unavailable")
+		assert(not closed and (operation == "transpile-ts" or operation == "build-script" or operation == "preview-game" or operation == "execute-lua"), "Studio Agent tool unavailable")
 		assert(type(file) == "string" and type(content) == "string" and type(projectRoot) == "string"
 			and #content <= 524288 and #file <= 1024 and #projectRoot <= 1024, "Invalid Studio Agent tool input")
 		local detail = Session.getSession(sessionId)
@@ -223,6 +224,12 @@ function exports.open(sessionId)
 			assert(type(options) == "table" and type(options.entry) == "string" and #options.entry > 0
 				and type(options.captureAtSeconds) == "table" and #options.captureAtSeconds >= 1
 				and #options.captureAtSeconds <= 3, "Invalid Studio Agent preview options")
+		elseif operation == "execute-lua" then
+			assert(file:sub(-4) == ".lua" and #content <= 140000, "Invalid Studio Agent Lua command")
+			local options = Utils.safeJsonDecode(content)
+			assert(type(options) == "table" and type(options.code) == "string" and #options.code > 0 and #options.code <= 131072
+				and type(options.timeoutSeconds) == "number" and options.timeoutSeconds >= 1 and options.timeoutSeconds <= 120
+				and options.timeoutSeconds % 1 == 0, "Invalid Studio Agent Lua options")
 		end
 		local active = 0
 		for _ in pairs(toolRequests) do active = active + 1 end

@@ -3,10 +3,12 @@ import type { BuildArtifact } from '@dora-studio/contracts';
 import { RuntimeHost } from './runtime-host';
 import { runtimeSupportProblem } from './runtime-support';
 import type {AgentPreviewCapture} from './agent-tool-preview-host';
+import type {AgentLuaCommandResult} from './agent-tool-lua-host';
 
 export interface RuntimePreviewHandle {
   ready():boolean;
   previewAgent(artifact:BuildArtifact,captureAtSeconds:readonly number[],signal:AbortSignal):Promise<readonly AgentPreviewCapture[]>;
+  executeAgentLua(artifact:BuildArtifact,commandId:string,signal:AbortSignal):Promise<AgentLuaCommandResult>;
 }
 
 export const RuntimePreview=forwardRef<RuntimePreviewHandle,{ artifact: BuildArtifact | null;resolveArtifact?:()=>Promise<BuildArtifact>;controls?:ReactNode;autoRunBuildId?:string|undefined;onAutoRunConsumed?:()=>void }>(function RuntimePreview({ artifact,resolveArtifact,controls,autoRunBuildId,onAutoRunConsumed },ref) {
@@ -16,9 +18,11 @@ export const RuntimePreview=forwardRef<RuntimePreviewHandle,{ artifact: BuildArt
   const [logs, setLogs] = useState<{ level: string; message: string }[]>([]);
   const runtimeURL = import.meta.env.VITE_DORA_RUNTIME_URL;
   const engineBuild = import.meta.env.VITE_DORA_ENGINE_BUILD;
+  const configurationProblem=!runtimeURL?'试玩 Player 未配置运行页地址':!engineBuild?'试玩 Player 未配置引擎版本':'';
   const toolbarStatus=status==='等待运行'||status==='已停止'?'':status;
   useEffect(() => {
-    if (!container.current || !runtimeURL || !engineBuild) return;
+    if (!container.current) return;
+    if(configurationProblem){setStatus(configurationProblem);return;}
     const instance = new RuntimeHost(container.current, { runtimeURL, engineBuild,
       onEvent(event) {
         if (event.type === 'log') { setLogs(previous => [...previous.slice(-199), { level: event.level, message: event.message.slice(0, 8192) }]); return; }
@@ -30,13 +34,13 @@ export const RuntimePreview=forwardRef<RuntimePreviewHandle,{ artifact: BuildArt
       } });
     host.current = instance;
     return () => { instance.stop(); host.current = undefined; };
-  }, [runtimeURL, engineBuild]);
+  }, [runtimeURL, engineBuild,configurationProblem]);
   useEffect(() => {
-    if(!active)setStatus('等待运行');
+    if(!active)setStatus(configurationProblem||'等待运行');
     // A newly compiled artifact is adopted by the next run. It must not stop
     // the immutable artifact snapshot already running in the Player.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [artifact]);
+  }, [artifact,configurationProblem]);
   useEffect(() => {
     if(!artifact||!autoRunBuildId||artifact.buildId!==autoRunBuildId)return;
     onAutoRunConsumed?.();
@@ -73,6 +77,33 @@ export const RuntimePreview=forwardRef<RuntimePreviewHandle,{ artifact: BuildArt
         setStatus(`Agent 工具试玩完成 · ${frames.length} 帧`);
         return frames;
       }catch(error){setStatus(error instanceof Error?error.message:'Agent 工具试玩失败');throw error;}
+      finally{signal.removeEventListener('abort',abort);run.stop();setActive(false);}
+    },
+    executeAgentLua:async(agentArtifact,commandId,signal)=>{
+      const instance=host.current;
+      if(!instance)throw new Error('独立试玩 Player 尚未就绪');
+      const problem=runtimeSupportProblem({secure:window.isSecureContext,isolated:window.crossOriginIsolated,
+        sharedMemory:typeof SharedArrayBuffer!=='undefined',offscreen:typeof OffscreenCanvas!=='undefined',
+        transferCanvas:typeof HTMLCanvasElement.prototype.transferControlToOffscreen==='function'});
+      if(problem)throw new Error(problem);
+      signal.throwIfAborted();setLogs([]);setStatus('Agent Lua 命令正在启动游戏环境…');setActive(true);
+      const run=instance.start(agentArtifact);
+      const abort=()=>run.stop();signal.addEventListener('abort',abort,{once:true});
+      try{
+        const startup=await run.ready;
+        if(startup.state!=='running')throw new Error(startup.message);
+        const resultJSON=await run.readAgentCommand(commandId,signal);
+        const result:unknown=JSON.parse(resultJSON);
+        if(!result||typeof result!=='object'||Array.isArray(result))throw new Error('Agent Lua Player 返回了无效结果');
+        const value=result as Record<string,unknown>;
+        if(typeof value.success!=='boolean'||typeof value.output!=='string'
+          ||(value.message!==undefined&&typeof value.message!=='string')
+          ||(value.phase!==undefined&&typeof value.phase!=='string'))throw new Error('Agent Lua Player 返回了无效结果');
+        const decoded:AgentLuaCommandResult={success:value.success,output:value.output,
+          ...(typeof value.message==='string'?{message:value.message}:{}),...(typeof value.phase==='string'?{phase:value.phase}:{})};
+        setStatus(decoded.success?'Agent Lua 命令执行完成':decoded.message??'Agent Lua 命令执行失败');
+        return decoded;
+      }catch(error){setStatus(error instanceof Error?error.message:'Agent Lua Player 执行失败');throw error;}
       finally{signal.removeEventListener('abort',abort);run.stop();setActive(false);}
     },
   }),[]);

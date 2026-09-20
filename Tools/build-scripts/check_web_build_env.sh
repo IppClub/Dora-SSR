@@ -31,6 +31,29 @@ check_version() {
 	fi
 }
 
+version_at_least() {
+	awk -v actual="$1" -v minimum="$2" 'BEGIN {
+		split(actual, a, "."); split(minimum, m, ".");
+		for (i = 1; i <= 3; i++) {
+			if ((a[i] + 0) > (m[i] + 0)) exit 0;
+			if ((a[i] + 0) < (m[i] + 0)) exit 1;
+		}
+		exit 0;
+	}'
+}
+
+check_min_version() {
+	local tool="$1"
+	local actual="$2"
+	local minimum="$3"
+	if version_at_least "$actual" "$minimum"; then
+		echo "[OK] $tool $actual (minimum $minimum)"
+	else
+		echo "[ERROR] $tool version is below minimum: expected >= $minimum, found $actual" >&2
+		exit 1
+	fi
+}
+
 for tool in emcc emcmake emmake rustup cargo go node cmake; do
 	require_tool "$tool"
 done
@@ -42,7 +65,7 @@ NODE_ACTUAL="$(node --version | sed 's/^v//')"
 CMAKE_ACTUAL="$(cmake --version | awk 'NR == 1 {print $3}')"
 
 check_version Emscripten "$EMSCRIPTEN_ACTUAL" "$DORA_WEB_EMSCRIPTEN_VERSION"
-check_version Rust "$RUST_ACTUAL" "$DORA_WEB_RUST_VERSION"
+check_min_version Rust "$RUST_ACTUAL" "$DORA_WEB_RUST_MIN_VERSION"
 check_version Go "$GO_ACTUAL" "$DORA_WEB_GO_VERSION"
 check_version Node "$NODE_ACTUAL" "$DORA_WEB_NODE_VERSION"
 check_version CMake "$CMAKE_ACTUAL" "$DORA_WEB_CMAKE_VERSION"

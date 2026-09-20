@@ -4,6 +4,7 @@ import { runtimeStorageId } from './runtime-storage';
 import { createRuntimeCapture, type CaptureModule } from './runtime-capture';
 
 declare const __STUDIO_ENGINE_BUILD__: string;
+declare const __STUDIO_ENGINE_VERSION__: string;
 declare global {
   interface Window {
     Module: CaptureModule & { doraSnapshot?: Promise<unknown>; doraStorageId?: string | Promise<string> };
@@ -20,6 +21,7 @@ try {
   const bridge = installRuntimeBridge(window, runtimeWindow.Module, {
     parentOrigin: params.get('parentOrigin') || '', nonce: params.get('nonce') || '',
     identity: { ...identity, runId: identity.runId }, engineBuild: __STUDIO_ENGINE_BUILD__,
+    engineVersion: __STUDIO_ENGINE_VERSION__,
     captureGame: createRuntimeCapture(runtimeWindow.Module),
   });
   runtimeWindow.Module.doraStorageId = runtimeStorageId(params.get('parentOrigin')!, identity.projectId);

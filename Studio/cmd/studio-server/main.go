@@ -106,7 +106,7 @@ func main() {
 	cert, keyPath := required("STUDIO_TLS_CERT"), required("STUDIO_TLS_KEY")
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
-	errorsCh := make(chan error, 2)
+	errorsCh := make(chan error, 3)
 	go func() {
 		logger.Info("Studio API listening", "address", apiAddr, "frontendOrigin", publicOrigin)
 		errorsCh <- studio.ListenAndServeTLS(ctx, apiAddr, cert, keyPath, api.Handler(), logger)
@@ -118,6 +118,20 @@ func main() {
 		go func() {
 			logger.Info("Studio Agent host listening", "address", hostAddr)
 			errorsCh <- studio.ListenAndServeTLS(ctx, hostAddr, cert, keyPath, agent.HostHandler(), logger)
+		}()
+	}
+	if runtimeDir := os.Getenv("STUDIO_RUNTIME_DIR"); runtimeDir != "" {
+		runtimeHandler, runtimeErr := studio.NewRuntimeHandler(runtimeDir)
+		if runtimeErr != nil {
+			logger.Error("Studio Player service failed", "error", runtimeErr)
+			cancel()
+			return
+		}
+		servers++
+		runtimeAddr := fmt.Sprintf("%s:%d", host, port("STUDIO_RUNTIME_PORT", "8901"))
+		go func() {
+			logger.Info("Studio Player listening", "address", runtimeAddr)
+			errorsCh <- studio.ListenAndServeTLS(ctx, runtimeAddr, cert, keyPath, runtimeHandler, logger)
 		}()
 	}
 	for i := 0; i < servers; i++ {

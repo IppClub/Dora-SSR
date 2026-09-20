@@ -149,6 +149,7 @@ export interface RuntimeCapabilities {
 export type RuntimeCommand = Correlation & { readonly runId: string } & (
   | { readonly type: "loadSnapshot"; readonly artifact: BuildArtifact; readonly engineBuild: string; readonly profile: string }
   | { readonly type: "captureGame"; readonly captureId: string }
+  | { readonly type: "readAgentCommand"; readonly commandId: string }
   | { readonly type: "start" | "stop" | "restart" | "suspend" | "releaseInput" }
 );
 
@@ -161,6 +162,7 @@ export interface RequestFailure extends Correlation {
 export type RuntimeEvent = Correlation & { readonly runId: string } & (
   | { readonly type: "gameCaptured"; readonly captureId: string; readonly png: Uint8Array; readonly width:number; readonly height:number }
   | { readonly type: "captureFailed"; readonly captureId: string; readonly message:string }
+  | { readonly type: "agentCommandResult"; readonly commandId: string; readonly resultJSON:string }
   | { readonly type: "state"; readonly state: "loading" | "ready" | "running" | "suspended" | "stopped" }
   | { readonly type: "log"; readonly level: "info" | "warning" | "error"; readonly message: string }
   | { readonly type: "error"; readonly code: "invalidSnapshot" | "unsupported" | "timeout" | "runtimeFailure"; readonly message: string }
@@ -217,6 +219,7 @@ export function isRuntimeCommand(value: unknown): value is RuntimeCommand {
   if (!record(value) || !isCorrelation(value) || !identifier(value.runId)) return false;
   switch (value.type) {
     case "captureGame": return captureIdentifier(value.captureId);
+    case "readAgentCommand": return captureIdentifier(value.commandId);
     case "loadSnapshot":
       return identifier(value.engineBuild) && identifier(value.profile) &&
         isBuildArtifact(value.artifact) && value.artifact.projectId === value.projectId &&
@@ -234,6 +237,8 @@ export function isRuntimeEvent(value: unknown): value is RuntimeEvent {
       return captureIdentifier(value.captureId) && isBoundedCapturePNG(value.png, value.width, value.height);
     case "captureFailed":
       return captureIdentifier(value.captureId) && typeof value.message === 'string' && value.message.length <= 8192;
+    case "agentCommandResult":
+      return captureIdentifier(value.commandId) && typeof value.resultJSON === 'string' && value.resultJSON.length <= 262144;
     case "state":
       return ["loading", "ready", "running", "suspended", "stopped"].includes(value.state as string);
     case "log":

@@ -14,7 +14,7 @@ Studio 可部署后端已全部迁移到 `cmd/studio-server` 与 `internal/studi
 
 当前源码通过上述命令构建与单测。真实 DeepSeek `deepseek-flash` 已在隔离 HTTPS 前端/API/Agent Host/Player 环境完成首轮及两次同项目继续描述：三轮分别由原 Agent 调用编辑、`build` 和 `previewGame`，作者 r1→r2→r3，740×340 PNG 的源码/图像哈希逐轮变化。成功链共 16 笔请求、147,472 输入/3,325 输出 token、¥0.321544；含前序失败诊断的隔离账本共 80 笔、¥1.460134，结束时全部 `settled`。刷新后注入一次 Agent launch 503，重试恢复同一项目且失败未新增结算；另一个受邀账号读取项目返回 404。证据脚本为 `tests/real-model-setup.browser.mjs`、`tests/real-game.browser.mjs` 和 `tests/real-project-isolation.browser.mjs`，截图在 `apps/web/artifacts/real-mvp/`。
 
-受邀预览 MVP 的代理用户整链已通过，可开始小规模技术预览。产品不限制继续描述轮次；Studio 对单次 prompt 使用原 Agent 已有的 `maxSteps` 参数限制 24 次内部决策，防止异常循环耗尽共享额度，这不是用户继续轮次上限。下一工程门槛是受邀真人走查、完整 Agent 对照、BYOK 派发、公开发布/Remix、外部 clone、设备矩阵和生产运维。
+受邀预览 MVP 的代理用户整链已通过，可开始小规模技术预览。产品不限制继续描述轮次；Studio 对单次 prompt 显式设置 `maxSteps: 999`，防止继承原 Agent 的全局默认值变化，同时仍保留异常循环的有限边界；这不是用户继续轮次上限。下一工程门槛是受邀真人走查、完整 Agent 对照、BYOK 派发、公开发布/Remix、外部 clone、设备矩阵和生产运维。
 
 这证明**受控工具回复下 XML 生成游戏可经原 Agent 的 `build`/`previewGame` 在浏览器实际试玩**，不证明 XML 所有节点、嵌入 Yue、模型自主规划、音乐音效、原 Agent 全工具/模式/子任务、BYOK 派发、发布/Remix、真实外部供应商、锁定工具链构建或受邀真人签收。工程下一道门槛应是原 Agent 完整能力对照与真实模型/继续迭代整链，再补 BYOK 派发、发布/clone 与部署设备安全出口；禁止以回写或任务终态再加一条 Studio 自动编译来代替原工具。
 

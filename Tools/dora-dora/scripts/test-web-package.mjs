@@ -22,7 +22,9 @@ try {
     'dora-player-runtime.js': strToU8('runtime'),
     'dora-player-runtime.wasm': new Uint8Array([0, 97, 115, 109]),
     'dora-player-runtime.data': new Uint8Array([42]),
-    'dora-web-features.json': strToU8(JSON.stringify({activeProfile: 'dora-preset', modules: {threads: false, crossOriginIsolationRequired: false}})),
+    'dora-web-features.json': strToU8(JSON.stringify({activeProfile: 'dora-preset', modules: {
+      threads: false, crossOriginIsolationRequired: false, model3D: true, jolt3D: true, rustBridge: true,
+    }})),
   };
   const project = {
     'init.lua': strToU8('print("game")'),
@@ -49,7 +51,7 @@ try {
   assert.deepEqual(archive['dora-logo.png'], runtime['dora-logo.png']);
   const shell = strFromU8(archive['index.html']);
   assert.match(shell, /src="dora-logo\.png"/);
-  assert.match(shell, /id="engine-name">Dora SSR</);
+  assert.doesNotMatch(shell, /id="engine-name"/);
   const shellMetadata = JSON.parse(strFromU8(archive['runtime.json'])).files['index.html'];
   assert.equal(shellMetadata.size, archive['index.html'].length);
   assert.equal(shellMetadata.sha256, createHash('sha256').update(archive['index.html']).digest('hex'));
@@ -58,7 +60,12 @@ try {
   assert.equal(JSON.parse(strFromU8(newer['dora-web-manifest.json'])).engineVersion, '1.9.4');
   assert.ok(newer['audio-worklet.js'] && newer['dora-audio-mixer.wasm']);
   const pretendRuntime = {...runtime, 'dora-player-runtime.js': strToU8('Module.doraSnapshot; new URL("dora-audio-mixer.wasm",base); new URL("audio-worklet.js",base);')};
-  await assert.rejects(createWebArchive(project, pretendRuntime, 'html'), /Unverified HTML runtime/);
+  const adaptedRuntime = unzipSync(await createWebArchive(project, pretendRuntime, 'html'));
+  assert.match(strFromU8(adaptedRuntime['dora-player-runtime.js']), /Module\.locateFile\("audio-worklet.js"\)/);
+  const invalidRuntime = {...pretendRuntime, 'dora-player-runtime.js': strToU8('new URL("audio-worklet.js",base);')};
+  await assert.rejects(createWebArchive(project, invalidRuntime, 'html'), /Invalid snapshot\/audio v1 adapter/);
+  const duplicateRuntime = {...pretendRuntime, 'dora-player-runtime.js': strToU8('new URL("dora-audio-mixer.wasm",base); new URL("audio-worklet.js",base); new URL("audio-worklet.js",base);')};
+  await assert.rejects(createWebArchive(project, duplicateRuntime, 'html'), /Invalid snapshot\/audio v1 adapter/);
   assert.ok(unzipSync(await createWebArchive(project, pretendRuntime, 'http'))['dora-player-runtime.js']);
   const realRuntime = new Uint8Array(await readFile('public/web-player/dora-player-runtime.js').catch(() => {
     throw new Error('Run pnpm prepare:web-runtime before testing HTML runtime compatibility.');
@@ -69,14 +76,14 @@ try {
   for (const format of ['html', 'http']) {
     const foreign = unzipSync(await createWebArchive(project, {...htmlRuntime, 'index.html': strToU8(foreignShell)}, format));
     const ownShell = strFromU8(foreign['index.html']);
-    assert.match(ownShell, /id="engine-name">Dora SSR</);
+    assert.doesNotMatch(ownShell, /id="engine-name"/);
     assert.match(ownShell, format === 'html' ? /src="html-loader.js"/ : /src="dora-player-runtime.js"/);
     const absent = unzipSync(await createWebArchive(project, {...htmlRuntime, 'index.html': undefined}, format));
     assert.equal(strFromU8(absent['index.html']), ownShell);
   }
   const html = unzipSync(await createWebArchive(project, htmlRuntime, 'html'));
   assert.match(strFromU8(html['index.html']), /src="html-loader.js"/);
-  assert.match(strFromU8(html['index.html']), /id="engine-name">Dora SSR</);
+  assert.doesNotMatch(strFromU8(html['index.html']), /id="engine-name"/);
   assert.equal(html['dora-player-runtime.wasm'], undefined);
   assert.equal(html['dora-web-manifest.json'], undefined);
   assert.ok(!Object.keys(html).some(name => name.startsWith('assets/')));
@@ -150,8 +157,12 @@ try {
   assert.equal(aborted.browser.Module.doraSnapshot, undefined);
   assert.equal(aborted.browser.Module.getPreloadedPackage, undefined);
   assert.equal(aborted.revoked.length, 1);
-  await assert.rejects(createWebArchive(project, runtime, 'html'), /Unverified HTML runtime/);
+  await assert.rejects(createWebArchive(project, runtime, 'html'), /Invalid snapshot\/audio v1 adapter/);
   await assert.rejects(createWebArchive(project, runtime, 'other'), /format/);
+  const incompleteFeatures = {...runtime, 'dora-web-features.json': strToU8(JSON.stringify({
+    activeProfile: 'dora-preset', modules: {threads: false, model3D: false, jolt3D: false, rustBridge: false},
+  }))};
+  await assert.rejects(createWebArchive(project, incompleteFeatures), /Unsupported Web runtime profile/);
   await assert.rejects(createWebArchive({'init.ts': strToU8('print("hi")')}, runtime), /entry/);
   await assert.rejects(createWebArchive(project, {...runtime, 'dora-player-runtime.wasm': undefined}), /runtime/);
   await assert.rejects(createWebArchive(project, {...runtime, 'dora-logo.png': undefined}), /runtime/);

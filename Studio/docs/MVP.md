@@ -93,7 +93,7 @@ MVP 通过表示可以进入受邀 Beta，不表示完整首版、公开发布�
 - 隔离 HTTPS 来源：前端 8960、API 8961、Agent Host 8962、Player 8963；Player engine build 为 `b9c5e04196e90d922f4bf191873927392fbbf06b7c20cb171e87c61374e52424`。
 - 管理员通过正式页面配置 DeepSeek `deepseek-flash` 和人民币费率，受邀创作者获得 ¥5 逐 API 额度；Key 未出现在浏览器输出或产物中。
 - `tests/real-game.browser.mjs` 让真实模型在同一项目完成 r1→r2→r3。16 笔成功链请求共 147,472 输入、3,325 输出 token，结算 ¥0.321544；三轮均由原 Agent 调用编辑、构建和 `previewGame`，PNG 为 740×340 且源码、图像哈希逐轮变化。
-- 刷新后首次 Agent launch 注入 503，失败没有新增模型请求或金额；重试恢复同一项目，版本记录可见 r0/r1/r2。产品不限制用户继续修改轮次，单次 prompt 只对 Agent 内部决策循环设置 24 步安全界限。
+- 刷新后首次 Agent launch 注入 503，失败没有新增模型请求或金额；重试恢复同一项目，版本记录可见 r0/r1/r2。产品不限制用户继续修改轮次，单次 prompt 对 Agent 内部决策循环显式设置 999 步上限。
 - `tests/real-project-isolation.browser.mjs` 用第二个新受邀账号验证创作者项目读取返回 404，账号自己的云项目列表为空。
 - 本次外部模型调试与最终成功链累计结算 ¥1.460134，共 80 笔请求，结束时全部为 `settled`、无在途请求。三轮截图和最终页面保存在 `apps/web/artifacts/real-mvp/`。
 

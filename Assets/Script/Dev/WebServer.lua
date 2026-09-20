@@ -6824,7 +6824,14 @@ thread(function()
 		else
 			heavyAssetsContent = ""
 		end
-		local readyContent = App.version .. "\n" .. Content:load(doraWeb) .. "\n" .. heavyAssetsContent
+		local runtimeIndex = Path(Content.assetPath, "www", "web-player", "runtime.json")
+		local runtimeIndexContent
+		if Content:exist(runtimeIndex) then
+			runtimeIndexContent = Content:load(runtimeIndex)
+		else
+			runtimeIndexContent = ""
+		end
+		local readyContent = App.version .. "\n" .. Content:load(doraWeb) .. "\n" .. heavyAssetsContent .. "\n" .. runtimeIndexContent
 		local needReload
 		if Content:exist(doraReady) then
 			needReload = readyContent ~= Content:load(doraReady)

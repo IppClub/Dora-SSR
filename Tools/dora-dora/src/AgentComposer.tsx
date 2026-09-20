@@ -12,33 +12,18 @@ import {SharedAgentComposer,type AgentActualUsage} from '@dora-studio/agent-ui';
 import '@dora-studio/agent-ui/style.css';
 
 interface AgentComposerProps {
-	compact?: boolean;
-	prompt: string;
-	loading: boolean;
-	running: boolean;
-	stopping?: boolean;
-	canStop?: boolean;
-	contextRatio?: number;
-	usedTokens?: number;
-	maxTokens?: number;
-	actualUsage?: AgentActualUsage;
-	fetchUrlEnabled?: boolean;
-	executeCommandEnabled?: boolean;
-	planMode?: boolean;
-	llmConfigs?: Array<{ id: number; name: string }>;
-	llmConfigId?: number;
-	onPromptChange: (value: string) => void;
-	onSend: () => void;
-	onStop: () => void;
-	onFetchUrlEnabledChange?: (value: boolean) => void;
-	onExecuteCommandEnabledChange?: (value: boolean) => void;
-	onPlanModeChange?: (value: boolean) => void;
-	onLLMConfigChange?: (value: number) => void;
+	compact?:boolean;prompt:string;loading:boolean;running:boolean;stopping?:boolean;canStop?:boolean;
+	contextRatio?:number;usedTokens?:number;maxTokens?:number;actualUsage?:AgentActualUsage;
+	fetchUrlEnabled?:boolean;executeCommandEnabled?:boolean;planMode?:boolean;
+	llmConfigs?:Array<{id:number;name:string}>;llmConfigId?:number;
+	onPromptChange:(value:string)=>void;onSend:()=>void;onStop:()=>void;
+	onFetchUrlEnabledChange?:(value:boolean)=>void;onExecuteCommandEnabledChange?:(value:boolean)=>void;
+	onPlanModeChange?:(value:boolean)=>void;onLLMConfigChange?:(value:number)=>void;
 }
 
 function compactNumber(value:number){if(value>=1_000_000)return`${(value/1_000_000).toFixed(1)}m`;if(value>=1_000)return`${(value/1_000).toFixed(1)}k`;return String(Math.max(0,Math.round(value)));}
 
-/** The Web IDE and Studio share the composer; this wrapper only adapts i18n and numeric model IDs. */
+/** The Web IDE and Studio share the original MUI composer; this wrapper only adapts i18n and numeric model IDs. */
 export default function AgentComposer(props:AgentComposerProps){
 	const {t}=useTranslation();
 	return <SharedAgentComposer
@@ -50,7 +35,7 @@ export default function AgentComposer(props:AgentComposerProps){
 		models={props.llmConfigs??[]} {...(props.llmConfigId===undefined?{}:{modelId:props.llmConfigId})}
 		labels={{
 			promptPlaceholder:t('agent.promptPlaceholder'),planPromptPlaceholder:t('agent.planPromptPlaceholder'),send:t('agent.send'),stop:t('menu.stop'),stopping:t('agent.stopping'),
-			planMode:t('agent.planMode'),planModeInactive:t('agent.planModeInactive'),networkAccess:t('agent.networkAccess'),executeCommand:t('agent.executeCommand'),
+			planMode:t('agent.planMode'),planModeInactive:t('agent.planModeInactive'),planModeToggle:t('agent.planModeToggle'),networkAccess:t('agent.networkAccess'),networkToolsToggle:t('agent.networkToolsToggle'),executeCommand:t('agent.executeCommand'),executeCommandToggle:t('agent.executeCommandToggle'),
 			selectModel:t('agent.selectModel'),modelForNextRun:t('agent.modelForNextRun'),contextUsage:(used,max,percent)=>t('agent.contextEstimateTitle',{used,max,percent}),
 			actualUsage:usage=>t(usage.cachedInputTokens===undefined?'agent.actualUsageTitle':'agent.actualUsageWithCacheTitle',{input:compactNumber(usage.inputTokens),output:compactNumber(usage.outputTokens),cached:compactNumber(usage.cachedInputTokens??0),cachePercent:usage.inputTokens>0?Math.round(((usage.cachedInputTokens??0)/usage.inputTokens)*100):0,requests:compactNumber(usage.requestCount??0)}),
 		}}

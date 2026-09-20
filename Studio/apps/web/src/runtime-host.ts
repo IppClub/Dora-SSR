@@ -21,6 +21,7 @@ export interface RuntimeRun {
   /** Settles once; iframe creation is not evidence of successful startup. */
   readonly ready: Promise<RuntimeStartup>;
   capture(signal?:AbortSignal): Promise<Extract<RuntimeEvent,{type:'gameCaptured'|'captureFailed'}>>;
+  readAgentCommand(commandId:string,signal:AbortSignal):Promise<string>;
   /** Releases only this run. A late owner cannot stop a subsequent preview. */
   stop(): boolean;
 }
@@ -38,6 +39,10 @@ export class RuntimeHost {
         (url.origin === window.location.origin && !this.options.allowSameOriginDevelopment)) {
       throw new Error('运行页必须使用独立来源');
     }
+    // A Player rebuild must create a new navigation identity. Browsers may
+    // otherwise reuse an already loaded iframe document even when its static
+    // response was marked no-store.
+    url.searchParams.set('engineBuild', this.options.engineBuild);
     const artifact = structuredClone(input);
     this.stop();
     const generation = ++this.generation;
@@ -48,6 +53,7 @@ export class RuntimeHost {
     let settle: (result: RuntimeStartup) => void;
     const ready = new Promise<RuntimeStartup>(resolve => { settle = resolve; });
     const captures = new Map<string,(event:Extract<RuntimeEvent,{type:'gameCaptured'|'captureFailed'}>)=>void>();
+    const commandReads = new Map<string,(resultJSON:string)=>void>();
     const decoding = new Set<string>();
     let running = false;
     let startedAt:number | undefined;
@@ -74,6 +80,8 @@ export class RuntimeHost {
       if (finished) return;
       finished = true;
       for (const [captureId,finish] of captures) finish({...identity,type:'captureFailed',captureId,message:'运行已停止'});
+      for(const finish of commandReads.values())finish(JSON.stringify({success:false,output:'',message:'Agent Lua Player stopped',phase:'execute'}));
+      commandReads.clear();
       settle({state:'cancelled',runId:command.runId,message:'运行已停止或被替换'});
       window.clearTimeout(timer);
       frame.onload = null;
@@ -104,6 +112,11 @@ export class RuntimeHost {
           if (current() && captures.get(data.captureId) === finish)
             finish({...identity,type:'captureFailed',captureId:data.captureId,message:'游戏截图无法完整解码'});
         } finally {decoding.delete(data.captureId);}
+        return;
+      }
+      if(data.type==='agentCommandResult'){
+        const finish=commandReads.get(data.commandId);
+        if(finish)finish(data.resultJSON);
         return;
       }
       this.options.onEvent(data);
@@ -138,7 +151,16 @@ export class RuntimeHost {
         captures.set(captureId,finish);signal?.addEventListener('abort',abort,{once:true});
         channel.port1.postMessage({...identity,type:'captureGame',captureId});
       });
-    }, stop: () => {
+    }, readAgentCommand:(commandId:string,signal:AbortSignal)=>new Promise<string>((resolve,reject)=>{
+      if(!current()||!running||signal.aborted||!/^[a-zA-Z0-9_-]{1,128}$/.test(commandId)){reject(signal.reason??new Error('Agent Lua Player is unavailable'));return;}
+      let poll:ReturnType<typeof window.setInterval>|undefined;
+      const cleanup=()=>{if(poll!==undefined)window.clearInterval(poll);signal.removeEventListener('abort',abort);commandReads.delete(commandId);};
+      const finish=(resultJSON:string)=>{cleanup();resolve(resultJSON);};
+      const abort=()=>{cleanup();reject(signal.reason??new DOMException('Aborted','AbortError'));};
+      commandReads.set(commandId,finish);signal.addEventListener('abort',abort,{once:true});
+      const request=()=>{if(current()&&!signal.aborted)channel.port1.postMessage({...identity,type:'readAgentCommand',commandId});};
+      request();poll=window.setInterval(request,25);
+    }), stop: () => {
       if (!current()) return false;
       this.stop();
       return true;

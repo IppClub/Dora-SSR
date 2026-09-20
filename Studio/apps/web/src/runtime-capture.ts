@@ -4,7 +4,12 @@ export interface CaptureModule {
   doraStudioCapture?: boolean;
   doraCaptureComplete?: (id:number,success:boolean)=>void;
   ccall?: (name:string,type:null,types:string[],args:number[])=>unknown;
-  FS?: {readFile(path:string):Uint8Array;unlink(path:string):void};
+  FS?: {
+    analyzePath(path:string):{exists:boolean};
+    readFile(path:string):Uint8Array;
+    readFile(path:string,options:{encoding:'utf8'}):string;
+    unlink(path:string):void;
+  };
 }
 
 /** Bridge one engine-thread capture back to the page. Never accepts a user path. */

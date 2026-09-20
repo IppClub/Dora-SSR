@@ -600,6 +600,11 @@ func profile(provider string) (map[string]any, map[string]any) {
 		vision = map[string]any{"provider": "glm-coding-cn", "model": "glm-5.3-flash"}
 	case "openai":
 		base["customOptions"] = map[string]any{"auxiliaryOptions": map[string]any{"max_tokens": nil, "max_completion_tokens": 8192, "reasoning_effort": "none"}}
+	case "xywhsoft":
+		// ling-3.0-tiny accepts simple forced function calls but repeatedly emits
+		// empty arguments for the Agent's larger tool set. Use the Agent's native
+		// XML decision protocol for this deployed provider instead.
+		base["supportsFunctionCalling"] = false
 	}
 	return base, vision
 }

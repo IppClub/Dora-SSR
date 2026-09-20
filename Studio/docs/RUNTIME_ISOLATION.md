@@ -84,10 +84,13 @@ emcmake cmake -S Projects/Web -B build/studio-main-worker \
   -DCMAKE_BUILD_TYPE=Release -DDORA_WEB_BUILD_ENGINE=ON \
   -DDORA_WEB_LINK_PLAYER=ON -DDORA_WEB_PTHREADS=ON \
   -DDORA_WEB_EXPERIMENTAL_MAIN_WORKER=ON \
+  -DDORA_WEB_BUILTIN_FONT="$PWD/Assets/Font/sarasa-mono-sc-regular.ttf" \
   -DDORA_WEB_SDL2_PORT_SOURCE_DIR=/path/to/active-sdk/cache/ports/sdl2/SDL-release-2.32.10 \
   -DDORA_WEB_FEATURE_MODEL_3D=OFF -DDORA_WEB_BUILD_LOVE_PROBE=OFF
 cmake --build build/studio-main-worker --target dora-web-player -j 6
 ```
+
+Studio 试玩必须使用 `Assets/Font` 中的完整中文字库；Web preset 目录中的精简字体只覆盖基础字符，会使 Agent 生成游戏里的中文标签显示为方框。
 
 当前源码也不能直接宣称支持主运行 Worker：
 

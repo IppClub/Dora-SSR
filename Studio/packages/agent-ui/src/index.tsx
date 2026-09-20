@@ -1,67 +1,10 @@
-import React, {useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type {AgentQuestionnaire,AgentSessionMessage,AgentSessionStep} from '@dora-studio/agent-contracts/session-patches';
 
-export type AgentModelChoice={id:string|number;name:string};
-export type AgentActualUsage={inputTokens:number;outputTokens:number;cachedInputTokens?:number;requestCount?:number};
-export type AgentComposerLabels={
-  promptPlaceholder:string;planPromptPlaceholder:string;send:string;stop:string;stopping:string;
-  planMode:string;planModeInactive:string;networkAccess:string;executeCommand:string;
-  selectModel:string;modelForNextRun:string;contextUsage:(used:string,max:string,percent:number)=>string;
-  actualUsage:(usage:AgentActualUsage)=>string;
-};
-
-const defaultLabels:AgentComposerLabels={
-  promptPlaceholder:'继续描述你希望修改的玩法…',planPromptPlaceholder:'描述目标，让 Agent 先制定计划…',send:'发送',stop:'停止',stopping:'正在停止',
-  planMode:'计划',planModeInactive:'计划',networkAccess:'网络',executeCommand:'命令',selectModel:'选择模型',modelForNextRun:'下一轮使用的模型',
-  contextUsage:(used,max,percent)=>`上下文估算：${used} / ${max}（${percent}%）`,
-  actualUsage:usage=>`实际用量：输入 ${compactNumber(usage.inputTokens)}，输出 ${compactNumber(usage.outputTokens)}${usage.cachedInputTokens===undefined?'':`，缓存 ${compactNumber(usage.cachedInputTokens)}`}`,
-};
-
-export interface SharedAgentComposerProps{
-  compact?:boolean;prompt:string;loading:boolean;running:boolean;stopping?:boolean;canStop?:boolean;
-  disabled?:boolean;status?:string;contextRatio?:number;usedTokens?:number;maxTokens?:number;actualUsage?:AgentActualUsage;
-  fetchUrlEnabled?:boolean;executeCommandEnabled?:boolean;planMode?:boolean;models?:AgentModelChoice[];modelId?:string|number;
-  labels?:Partial<AgentComposerLabels>;ariaLabel?:string;maxLength?:number;
-  onPromptChange:(value:string)=>void;onSend:()=>void;onStop?:()=>void;
-  onFetchUrlEnabledChange?:(value:boolean)=>void;onExecuteCommandEnabledChange?:(value:boolean)=>void;
-  onPlanModeChange?:(value:boolean)=>void;onModelChange?:(value:string|number)=>void;
-}
-
-function compactNumber(value:number){if(!Number.isFinite(value))return'0';if(value>=1_000_000)return`${(value/1_000_000).toFixed(1)}m`;if(value>=1_000)return`${(value/1_000).toFixed(1)}k`;return String(Math.max(0,Math.round(value)));}
-
-export function AgentContextUsage({compact=false,contextRatio,usedTokens=0,maxTokens=64000,actualUsage,labels}:Pick<SharedAgentComposerProps,'compact'|'contextRatio'|'usedTokens'|'maxTokens'|'actualUsage'|'labels'>){
-  const copy={...defaultLabels,...labels},value=Math.max(0,Math.min(1,contextRatio??(maxTokens>0?usedTokens/maxTokens:0))),percent=Math.round(value*100);
-  const title=[copy.contextUsage(compactNumber(usedTokens),compactNumber(maxTokens),percent),actualUsage?copy.actualUsage(actualUsage):''].filter(Boolean).join('\n');
-  return <span className={`dora-agent-context${compact?' compact':''}`} style={{'--agent-context-angle':`${percent*3.6}deg`} as React.CSSProperties} title={title} aria-label={title}><i>{percent}%</i></span>;
-}
-
-export function SharedAgentComposer(props:SharedAgentComposerProps){
-  const copy={...defaultLabels,...props.labels},textArea=useRef<HTMLTextAreaElement>(null),composing=useRef(false),[focused,setFocused]=useState(false);
-  const compact=props.compact??false,maxLength=props.maxLength??12000,disabled=props.disabled||props.loading;
-  const actionDisabled=disabled||(props.running?!props.canStop:!props.prompt.trim());
-  const selected=props.models?.find(item=>String(item.id)===String(props.modelId));
-  useLayoutEffect(()=>{const element=textArea.current;if(!element)return;element.style.height='0px';const max=compact?160:220;element.style.height=`${Math.max(compact?44:64,Math.min(element.scrollHeight,max))}px`;element.style.overflowY=element.scrollHeight>max?'auto':'hidden';},[compact,props.prompt]);
-  const submit=()=>{if(actionDisabled)return;if(props.running)props.onStop?.();else props.onSend();};
-  return <div className={`dora-agent-composer${compact?' compact':''}${focused?' focused':''}`}>
-    <div className="dora-agent-composer-box">
-      <textarea ref={textArea} aria-label={props.ariaLabel??'Agent 描述'} maxLength={maxLength} disabled={disabled||props.running} value={props.prompt} placeholder={props.planMode?copy.planPromptPlaceholder:copy.promptPlaceholder}
-        onFocus={()=>setFocused(true)} onBlur={()=>setFocused(false)} onCompositionStart={()=>{composing.current=true;}} onCompositionEnd={event=>{composing.current=false;props.onPromptChange(event.currentTarget.value);}}
-        onChange={event=>props.onPromptChange(event.target.value.slice(0,maxLength))} onKeyDown={event=>{if(composing.current||event.nativeEvent.isComposing)return;if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submit();}}}/>
-      <div className="dora-agent-composer-toolbar"><div className="dora-agent-tools">
-        {props.onPlanModeChange&&<button type="button" aria-pressed={!!props.planMode} disabled={disabled||props.running} onClick={()=>props.onPlanModeChange?.(!props.planMode)}>☷ {props.planMode?copy.planMode:copy.planModeInactive}</button>}
-        {props.onFetchUrlEnabledChange&&!props.planMode&&<button type="button" aria-pressed={!!props.fetchUrlEnabled} disabled={disabled||props.running} onClick={()=>props.onFetchUrlEnabledChange?.(!props.fetchUrlEnabled)}>↓ {copy.networkAccess}</button>}
-        {props.onExecuteCommandEnabledChange&&!props.planMode&&<button type="button" aria-pressed={!!props.executeCommandEnabled} disabled={disabled||props.running} onClick={()=>props.onExecuteCommandEnabledChange?.(!props.executeCommandEnabled)}>›_ {copy.executeCommand}</button>}
-      </div><div className="dora-agent-composer-actions">
-        {props.status&&<span className="dora-agent-composer-status">{props.status}</span>}
-        <AgentContextUsage compact={compact} {...(props.contextRatio===undefined?{}:{contextRatio:props.contextRatio})} {...(props.usedTokens===undefined?{}:{usedTokens:props.usedTokens})} {...(props.maxTokens===undefined?{}:{maxTokens:props.maxTokens})} {...(props.actualUsage===undefined?{}:{actualUsage:props.actualUsage})} {...(props.labels===undefined?{}:{labels:props.labels})}/>
-        {props.models&&<select aria-label={copy.modelForNextRun} disabled={!props.models.length||!props.onModelChange} value={selected?String(selected.id):''} onChange={event=>{const item=props.models?.find(model=>String(model.id)===event.target.value);if(item)props.onModelChange?.(item.id);}}><option value="">{copy.selectModel}</option>{props.models.map(model=><option key={String(model.id)} value={String(model.id)}>{model.name}</option>)}</select>}
-        <button className={`dora-agent-send${props.running?' stop':''}`} type="button" aria-label={props.stopping?copy.stopping:props.running?copy.stop:copy.send} disabled={actionDisabled} onClick={submit}>{props.stopping?'…':props.running?'■':'↑'}</button>
-      </div></div>
-    </div>
-  </div>;
-}
+export {AgentContextUsage,SharedAgentComposer} from './AgentComposer';
+export type {AgentActualUsage,AgentComposerLabels,AgentModelChoice,SharedAgentComposerProps} from './AgentComposer';
 
 export type AgentTimelineTask={taskId:number;current:boolean;messages:AgentSessionMessage[];steps:AgentSessionStep[]};
 export function buildAgentTimeline(messages:readonly AgentSessionMessage[],steps:readonly AgentSessionStep[],currentTaskId?:number){

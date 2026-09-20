@@ -11,7 +11,7 @@ export interface AgentHostModule {
   ccall(name:string, result:null, types:string[], args:string[]): unknown;
 }
 
-export type AgentToolRequest = {operation:'transpile-ts'|'build-script'|'preview-game';file:string;content:string;projectRoot:string};
+export type AgentToolRequest = {operation:'transpile-ts'|'build-script'|'preview-game'|'execute-lua';file:string;content:string;projectRoot:string};
 export type AgentToolReply={success:true;luaCode:string}|{success:true;resultJSON:string}|{success:false;message:string};
 
 /** Owns the callback of one trusted Agent WASM instance, never a game instance. */
@@ -53,12 +53,12 @@ export function createAgentWasmSource(module:AgentHostModule, sessionId:number, 
       } else if(event.kind==='tool-request') {
 		if(!toolHandler||typeof event.requestId!=='string'||!/^studio-tool-[1-9]\d*-[1-9]\d*$/.test(event.requestId)||activeTools.size>=1||activeTools.has(event.requestId)||event.payload.length>524288+4096)throw new Error('Invalid Agent tool callback');
 		const input=JSON.parse(event.payload) as AgentToolRequest;
-		if((input?.operation!=='transpile-ts'&&input?.operation!=='build-script'&&input?.operation!=='preview-game')||typeof input.file!=='string'||typeof input.projectRoot!=='string'||typeof input.content!=='string'||input.content.length>524288||input.file.length>1024||input.projectRoot.length>1024||!input.file.startsWith(input.projectRoot+'/')||input.file.slice(input.projectRoot.length+1).split('/').some(part=>!part||part==='.'||part==='..')||!/^\/user\/studio-project$/.test(input.projectRoot)
-			|| (input.operation==='transpile-ts'?!/\.tsx?$/.test(input.file):input.operation==='build-script'?!/\.(tl|lua|yarn)$/.test(input.file):(!/\.lua$/.test(input.file)||input.content.length>2048)))throw new Error('Invalid Agent tool input');
+		if((input?.operation!=='transpile-ts'&&input?.operation!=='build-script'&&input?.operation!=='preview-game'&&input?.operation!=='execute-lua')||typeof input.file!=='string'||typeof input.projectRoot!=='string'||typeof input.content!=='string'||input.content.length>524288||input.file.length>1024||input.projectRoot.length>1024||!input.file.startsWith(input.projectRoot+'/')||input.file.slice(input.projectRoot.length+1).split('/').some(part=>!part||part==='.'||part==='..')||!/^\/user\/studio-project$/.test(input.projectRoot)
+			|| (input.operation==='transpile-ts'?!/\.tsx?$/.test(input.file):input.operation==='build-script'?!/\.(tl|lua|yarn)$/.test(input.file):input.operation==='preview-game'?(!/\.lua$/.test(input.file)||input.content.length>2048):(!/\.lua$/.test(input.file)||input.content.length>140000)))throw new Error('Invalid Agent tool input');
 		const id=event.requestId,controller=new AbortController();activeTools.set(id,controller);
 		void toolHandler(input,AbortSignal.any([toolLifetime.signal,controller.signal])).then(reply=>{
 			if(closed||controller.signal.aborted)return;
-			if(reply.success?(input.operation!=='preview-game'?(!('luaCode' in reply)||typeof reply.luaCode!=='string'||new TextEncoder().encode(reply.luaCode).byteLength>1048576):(!('resultJSON' in reply)||typeof reply.resultJSON!=='string'||new TextEncoder().encode(reply.resultJSON).byteLength>65536)):(typeof reply.message!=='string'||new TextEncoder().encode(reply.message).byteLength>4096))throw new Error('Invalid Agent tool result');
+			if(reply.success?((input.operation==='transpile-ts'||input.operation==='build-script')?(!('luaCode' in reply)||typeof reply.luaCode!=='string'||new TextEncoder().encode(reply.luaCode).byteLength>1048576):(!('resultJSON' in reply)||typeof reply.resultJSON!=='string'||new TextEncoder().encode(reply.resultJSON).byteLength>262144)):(typeof reply.message!=='string'||new TextEncoder().encode(reply.message).byteLength>4096))throw new Error('Invalid Agent tool result');
 			module.ccall('dora_web_agent_request',null,['string'],[JSON.stringify({operation:'tool-result',sessionId,requestId:id,result:reply})]);
 		}).catch(error=>{
 			if(closed||controller.signal.aborted)return;

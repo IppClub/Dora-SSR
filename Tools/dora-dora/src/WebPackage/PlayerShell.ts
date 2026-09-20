@@ -25,17 +25,16 @@ export function createPlayerShell(format: WebPackageFormat): string {
 		@media (prefers-reduced-motion: reduce) { #progress-bar { transition: none; } html[data-dora-progress="indeterminate"] #progress-bar { animation-duration: 2.3s; } }
 	</style>
 <style>
-    #engine-brand { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-bottom: 28px; }
+    #engine-brand { display: flex; justify-content: center; margin-bottom: 28px; }
     #engine-logo { display: block; width: 128px; height: 128px; object-fit: contain; }
-    #engine-name { font: 600 28px/1.2 system-ui, sans-serif; letter-spacing: .4px; color: #f1f5fa; }
     #status-message { font-size: 12px; line-height: 1.6; color: #aeb6bf; overflow-wrap: anywhere; }
-    @media (max-height: 360px) { #engine-brand { gap: 8px; margin-bottom: 12px; } #engine-logo { width: 80px; height: 80px; } }
+    @media (max-height: 360px) { #engine-brand { margin-bottom: 12px; } #engine-logo { width: 80px; height: 80px; } }
   </style>
 </head>
 <body>
 	<canvas id="canvas" tabindex="0"></canvas>
 	<div id="status" role="status">
-		<div id="status-content"><div id="engine-brand"><img id="engine-logo" src="dora-logo.png" alt="" width="128" height="128"><div id="engine-name">Dora SSR</div></div>
+		<div id="status-content"><div id="engine-brand"><img id="engine-logo" src="dora-logo.png" alt="" width="128" height="128"></div>
 			<div id="status-message">Loading Dora SSR…</div>
 			<div id="progress-track"><div id="progress-bar" role="progressbar" aria-label="Loading game resources"></div></div>
 		</div>

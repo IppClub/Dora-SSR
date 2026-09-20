@@ -5,7 +5,7 @@ import type {AgentSessionController} from './agent-session-controller';
 import {prepareAgentProjectSnapshot} from './agent-project-snapshot';
 import type {ProjectSnapshot} from '@dora-studio/contracts';
 import type {AgentProjectCapture} from './agent-project-capture';
-import type {AgentPreviewHandler} from './agent-session-port';
+import type {AgentLuaHandler,AgentPreviewHandler} from './agent-session-port';
 import type {AgentPromptOptions} from './agent-prompt-options';
 import type {AgentModelQueueStore} from './agent-model-queue';
 
@@ -21,6 +21,7 @@ export interface WorkspaceAgentBinding {
   handleQuestionnaire?:(action:'respond'|'cancel',questionnaireId:number,answers:unknown[],grantId:string,requestId:string,signal:AbortSignal)=>Promise<number>;
   stopTask?:(requestId:string,signal:AbortSignal)=>Promise<void>;
   setPreviewHandler?:(handler:AgentPreviewHandler|undefined)=>void;
+  setLuaHandler?:(handler:AgentLuaHandler|undefined)=>void;
   modelQueue?:AgentModelQueueStore;
 }
 
@@ -58,7 +59,7 @@ export async function startWorkspaceAgent(container:HTMLElement,projectId:string
     const connection=await host.ready;
     signal.throwIfAborted();
     const owner=host;
-    return {projectId,controller:connection.controller,modelQueue:connection.modelQueue,close:()=>owner.close(),retirement:createAgentRetirement({persistAndClose:()=>owner.persistAndClose(),revoke:cleanup}),setPreviewHandler:connection.setPreviewHandler,
+    return {projectId,controller:connection.controller,modelQueue:connection.modelQueue,close:()=>owner.close(),retirement:createAgentRetirement({persistAndClose:()=>owner.persistAndClose(),revoke:cleanup}),setPreviewHandler:connection.setPreviewHandler,setLuaHandler:connection.setLuaHandler,
       ...(connection.canSendPrompt?{sendPrompt:async(prompt:string,grantId:string,requestId:string,options:AgentPromptOptions,signal:AbortSignal)=>{
         signal.throwIfAborted();const taskId=await connection.sendPrompt(prompt,grantId,requestId,options);signal.throwIfAborted();return taskId;
       }}:{}),

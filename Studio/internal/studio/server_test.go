@@ -19,6 +19,13 @@ import (
 
 const testOrigin = "https://studio.test"
 
+func TestXYWHSoftUsesXMLAgentDecisions(t *testing.T) {
+	config, vision := profile("xywhsoft")
+	if config["contextWindow"] != 128000 || config["maxTokens"] != 8192 || config["supportsFunctionCalling"] != false || vision != nil {
+		t.Fatalf("unexpected XYWH Soft profile: %#v, vision=%#v", config, vision)
+	}
+}
+
 type testApp struct {
 	store  *Store
 	server *httptest.Server

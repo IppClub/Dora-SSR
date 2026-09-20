@@ -7,8 +7,9 @@ async function digest(bytes: Uint8Array<ArrayBuffer>): Promise<string> {
 }
 
 /** The pinned Player currently accepts this version/profile, not arbitrary engine builds. */
-export async function prepareRuntimeSnapshot(input: BuildArtifact) {
+export async function prepareRuntimeSnapshot(input: BuildArtifact, engineVersion: string) {
   if (!isBuildArtifact(input)) throw new Error('无效的编译产物');
+  if (!/^\d+\.\d+\.\d+$/.test(engineVersion)) throw new Error('无效的 Player 引擎版本');
   // Copy before the first await so edits/caller mutation cannot race the hash.
   const artifact = structuredClone(input);
   if (await digest(encoder.encode(serializeArtifactContent(artifact))) !== artifact.sha256) {
@@ -27,7 +28,7 @@ export async function prepareRuntimeSnapshot(input: BuildArtifact) {
   return {
     identity: { projectId: artifact.projectId, revision: artifact.revision,
       buildId: artifact.buildId, sha256: artifact.sha256 },
-    manifest: { format: 'dora-web-game', version: 1, engineVersion: '1.9.3',
+    manifest: { format: 'dora-web-game', version: 1, engineVersion,
       profile: 'dora-preset', entry: artifact.entry, files: manifestFiles },
     files,
   };

@@ -180,7 +180,7 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
   },[accountId,ownedAgent]);
   useEffect(()=>{
     const projectId=project?.snapshot.projectId;
-    if(!agent?.setPreviewHandler||!accountId||!projectId||agent.projectId!==projectId)return;
+    if(!agent?.setPreviewHandler||!agent.setLuaHandler||!accountId||!projectId||agent.projectId!==projectId)return;
     agent.setPreviewHandler(async(artifact,times,signal)=>{
       if(currentAccount.current!==accountId||agent.projectId!==projectId)throw new Error('Agent 试玩所属项目或账号已变化');
       const deadline=performance.now()+5000;
@@ -192,7 +192,18 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
       signal.throwIfAborted();
       return agentPreview.current.previewAgent(artifact,times,signal);
     });
-    return()=>agent.setPreviewHandler?.(undefined);
+    agent.setLuaHandler(async(artifact,commandId,_timeoutSeconds,signal)=>{
+      if(currentAccount.current!==accountId||agent.projectId!==projectId)throw new Error('Agent Lua 命令所属项目或账号已变化');
+      const deadline=performance.now()+5000;
+      while(!agentPreview.current?.ready()){
+        signal.throwIfAborted();
+        if(performance.now()>=deadline)throw new Error('试玩区域尚未就绪');
+        await new Promise<void>(resolve=>setTimeout(resolve,16));
+      }
+      signal.throwIfAborted();
+      return agentPreview.current.executeAgentLua(artifact,commandId,signal);
+    });
+    return()=>{agent.setPreviewHandler?.(undefined);agent.setLuaHandler?.(undefined);};
   },[agent,accountId,project?.snapshot.projectId]);
   useEffect(()=>{
     const task=project?.iterations?.at(-1)??project?.creation;

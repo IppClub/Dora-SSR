@@ -3,9 +3,15 @@ import { prepareRuntimeSnapshot } from './runtime-snapshot';
 
 type Identity = Correlation & { runId: string };
 interface Options { parentOrigin: string; nonce: string; identity: Identity; engineBuild: string; timeoutMs?: number;
+  engineVersion: string;
   captureGame?: (signal:AbortSignal)=>Promise<{png:Uint8Array;width:number;height:number}>;
 }
-interface RuntimeModule { doraSnapshot?: Promise<unknown>; print?: (text: string) => void; printErr?: (text: string) => void }
+interface RuntimeModule {
+  doraSnapshot?: Promise<unknown>;
+  print?: (text: string) => void;
+  printErr?: (text: string) => void;
+  FS?: {analyzePath(path:string):{exists:boolean};readFile(path:string,options:{encoding:'utf8'}):string;unlink(path:string):void};
+}
 
 /** Install before loading Emscripten. One connection and one snapshot per page. */
 export function installRuntimeBridge(page: Window, module: RuntimeModule, options: Options) {
@@ -87,6 +93,20 @@ export function installRuntimeBridge(page: Window, module: RuntimeModule, option
         }
         return;
       }
+      if (data.type === 'readAgentCommand') {
+        if (!accepted || !running || !module.FS) return;
+        const path=`/tmp/studio-agent-command-${data.commandId}.json`;
+        try{
+          if(!module.FS.analyzePath(path).exists)return;
+          const resultJSON=module.FS.readFile(path,{encoding:'utf8'});
+          module.FS.unlink(path);
+          if(typeof resultJSON!=='string'||resultJSON.length>262144)throw new Error('Agent Lua result exceeds limit');
+          send({...identity,type:'agentCommandResult',commandId:data.commandId,resultJSON});
+        }catch(error){
+          send({...identity,type:'agentCommandResult',commandId:data.commandId,resultJSON:JSON.stringify({success:false,output:'',message:String(error),phase:'execute'})});
+        }
+        return;
+      }
       if (accepted || data.type !== 'loadSnapshot') return;
       if (data.engineBuild !== options.engineBuild || data.profile !== 'dora-preset') {
         send({ ...identity, type: 'error', code: 'unsupported', message: '运行引擎版本或配置不匹配' });
@@ -95,7 +115,7 @@ export function installRuntimeBridge(page: Window, module: RuntimeModule, option
       }
       accepted = true;
       try {
-        const snapshot = await prepareRuntimeSnapshot(data.artifact);
+        const snapshot = await prepareRuntimeSnapshot(data.artifact, options.engineVersion);
         if (disposed) return;
         page.clearTimeout(timer);
         resolveSnapshot(snapshot);

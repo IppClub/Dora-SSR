@@ -2812,7 +2812,9 @@ thread ->
 	if Content\exist doraWeb
 		heavyAssets = Path Content.assetPath, "www", "heavy-assets.json"
 		heavyAssetsContent = if Content\exist heavyAssets then Content\load heavyAssets else ""
-		readyContent = App.version .. "\n" .. Content\load(doraWeb) .. "\n" .. heavyAssetsContent
+		runtimeIndex = Path Content.assetPath, "www", "web-player", "runtime.json"
+		runtimeIndexContent = if Content\exist runtimeIndex then Content\load runtimeIndex else ""
+		readyContent = App.version .. "\n" .. Content\load(doraWeb) .. "\n" .. heavyAssetsContent .. "\n" .. runtimeIndexContent
 		needReload = if Content\exist doraReady
 			readyContent ~= Content\load doraReady
 		else true

@@ -7,6 +7,7 @@ import {readAgentProjectBaseline,writeAgentProjectBaseline} from './agent-projec
 import type {AgentProjectCapture} from './agent-project-capture';
 import {transpileAgentTsTool} from './agent-tool-build';
 import {previewAgentGameTool} from './agent-tool-preview-host';
+import {executeAgentLuaTool} from './agent-tool-lua-host';
 import {buildAgentScriptTool} from './agent-tool-script-build';
 import type {AgentPromptOptions} from './agent-prompt-options';
 import {persistSessionBoundariesBeforePublish,type DurableAgentSessionSource} from './agent-session-durability';
@@ -29,10 +30,16 @@ export function installAgentWasmHost(module:AgentHostModule, parentWindow:Window
       ?transpileAgentTsTool(module.FS!,binding.projectId,request,signal)
       :request.operation==='build-script'
       ?buildAgentScriptTool(module.FS!,binding.projectId,request,signal)
-      :previewAgentGameTool(module.FS!,binding.projectId,baselineRevision??0,request,
+      :request.operation==='preview-game'
+      ?previewAgentGameTool(module.FS!,binding.projectId,baselineRevision??0,request,
         (artifact,times,operation)=>{
           if(!host)throw new Error('Agent Player preview connection unavailable');
           return host.requestPreview(artifact,times,operation);
+        },signal)
+      :executeAgentLuaTool(module.FS!,binding.projectId,baselineRevision??0,request,
+        (artifact,commandId,timeoutSeconds,operation)=>{
+          if(!host)throw new Error('Agent Lua Player connection unavailable');
+          return host.requestLua(artifact,commandId,timeoutSeconds,operation);
         },signal):undefined);
   const lifetime = new AbortController();
   let leaseTimer:ReturnType<typeof setInterval>|undefined;
