@@ -135,7 +135,7 @@ if (process.env.DORA_WEB_RUNTIME_LOCK) {
         DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER: '0',
         DORA_WEB_PTHREADS: '0',
         DORA_WEB_PROFILE: 'dora-preset',
-        DORA_WEB_ALLOW_TOOLCHAIN_DRIFT: process.env.DORA_WEB_ALLOW_TOOLCHAIN_DRIFT || '1',
+        DORA_WEB_ALLOW_TOOLCHAIN_DRIFT: process.env.DORA_WEB_ALLOW_TOOLCHAIN_DRIFT ?? (process.env.CI ? '0' : '1'),
         DORA_WEB_BUILTIN_FONT: path.join(root, 'Assets/Font/sarasa-mono-sc-regular.ttf'),
         ...Object.fromEntries(['PHYSICS_2D', 'ENTITY', 'PLATFORMER', 'BUILTIN_LIBS', 'ML', 'YUE', 'MODEL_3D']
           .map(feature => [`DORA_WEB_FEATURE_${feature}`, 'ON'])),

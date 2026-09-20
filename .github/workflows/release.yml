@@ -1,0 +1,433 @@
+name: Release
+
+on:
+  push:
+    tags: 'v*.*.*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  web-assets:
+    name: Build Web IDE assets
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Emscripten
+        uses: emscripten-core/setup-emsdk@v15
+        with:
+          version: 5.0.5
+          actions-cache-folder: emsdk-cache
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-emscripten
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.3'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          package_json_file: Tools/dora-dora/package.json
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+          cache: pnpm
+          cache-dependency-path: Tools/dora-dora/pnpm-lock.yaml
+
+      - name: Setup CMake
+        run: |
+          python3 -m venv "$RUNNER_TEMP/cmake-venv"
+          "$RUNNER_TEMP/cmake-venv/bin/python" -m pip install 'cmake==3.30.5'
+          echo "$RUNNER_TEMP/cmake-venv/bin" >> "$GITHUB_PATH"
+
+      - name: Build and verify Web IDE
+        working-directory: Tools/dora-dora
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm test:web-runtime-preparation
+          pnpm build
+          pnpm test:web-package
+          pnpm verify:web-release-assets
+
+      - name: Package standalone Web IDE
+        run: |
+          cd Assets/www
+          zip -qry "$GITHUB_WORKSPACE/web-ide-files.zip" .
+
+      - name: Upload shared Web IDE assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-ide-assets-${{ github.sha }}
+          path: Assets/www
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Upload standalone Web IDE package
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-web-ide
+          path: web-ide-files.zip
+          if-no-files-found: error
+          retention-days: 3
+
+  macos:
+    name: Build macOS release
+    needs: web-assets
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download shared Web IDE assets
+        uses: actions/download-artifact@v5
+        with:
+          name: web-ide-assets-${{ github.sha }}
+          path: Assets/www
+
+      - name: Verify shared Web IDE assets
+        run: node Tools/dora-dora/scripts/verify-web-release-assets.mjs Assets/www
+
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.3'
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Generate tutorial docs
+        run: node Docs/scripts/generate-language-docs.js
+
+      - name: Build and package macOS
+        run: |
+          cp Tools/dora-wa/wa.mod Assets/dora-wa
+          cp -r Tools/dora-wa/vendor Assets/dora-wa
+          Tools/tolua++/build.sh
+          Tools/build-scripts/build_macos.sh release
+          cd Projects/macOS/build/Release/dora.xcarchive/Products/Applications
+          zip -qry Dora.zip Dora.app
+          mv Dora.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-universal.zip"
+
+      - name: Upload macOS package
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-macos
+          path: dora-ssr-${{ github.ref_name }}-macos-universal.zip
+          if-no-files-found: error
+          retention-days: 3
+
+  windows:
+    name: Build Windows release
+    needs: web-assets
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download shared Web IDE assets
+        uses: actions/download-artifact@v5
+        with:
+          name: web-ide-assets-${{ github.sha }}
+          path: Assets/www
+
+      - name: Verify shared Web IDE assets
+        run: node Tools/dora-dora/scripts/verify-web-release-assets.mjs Assets/www
+
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.3'
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          path-type: inherit
+          install: mingw-w64-i686-gcc
+
+      - name: Setup MinGW32 for Go cgo
+        shell: msys2 {0}
+        run: |
+          mingw32_bin="$(cygpath -w /mingw32/bin)"
+          mingw32_gcc="$(cygpath -w /mingw32/bin/gcc.exe)"
+          test -x /mingw32/bin/gcc.exe
+          echo "${mingw32_bin}" >> "${GITHUB_PATH}"
+          echo "CC=${mingw32_gcc}" >> "${GITHUB_ENV}"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup msbuild
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      - name: Build native release
+        run: Tools\build-scripts\build_windows.bat release
+
+      - name: Generate tutorial docs
+        run: node Docs/scripts/generate-language-docs.js
+
+      - name: Package Windows
+        run: |
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip www)
+          xcopy Tools\dora-wa\wa.mod Assets\dora-wa\ /I /Y
+          xcopy Tools\dora-wa\vendor Assets\dora-wa\vendor /I /E /Y
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip dora-wa)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Audio)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Doc)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Font)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Image)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip gamecontrollerdb.txt)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip LICENSES)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Script)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Shader\Love\varying.def.sc)
+          Push-Location Projects\Windows\build\Release
+          if (!(Test-Path Dora.exe)) { throw "Dora.exe was not produced by the Windows build" }
+          if (!(Test-Path wa.dll)) { throw "wa.dll was not copied by the Windows build" }
+          7z a -tzip ..\..\..\..\dora-ssr-windows-x86.zip Dora.exe wa.dll
+          Pop-Location
+          if (!(7z l dora-ssr-windows-x86.zip www\web-player\runtime.json | Select-String -SimpleMatch "runtime.json")) { throw "Web export runtime is missing from the Windows package" }
+          if (!(7z l dora-ssr-windows-x86.zip Shader\Love\varying.def.sc | Select-String -SimpleMatch "varying.def.sc")) { throw "Love shader varying definition is missing from the Windows package" }
+          Rename-Item dora-ssr-windows-x86.zip dora-ssr-${{ github.ref_name }}-windows-x86.zip
+
+      - name: Upload Windows package
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: dora-ssr-${{ github.ref_name }}-windows-x86.zip
+          if-no-files-found: error
+          retention-days: 3
+
+  android:
+    name: Build Android release
+    needs: web-assets
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download shared Web IDE assets
+        uses: actions/download-artifact@v5
+        with:
+          name: web-ide-assets-${{ github.sha }}
+          path: Assets/www
+
+      - name: Verify shared Web IDE assets
+        run: node Tools/dora-dora/scripts/verify-web-release-assets.mjs Assets/www
+
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+
+      - name: Generate Lua bindings
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.1 luarocks
+          sudo luarocks install luafilesystem
+          cd Tools/tolua++
+          lua tolua++.lua
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.3'
+
+      - name: Setup gomobile
+        run: |
+          go install golang.org/x/mobile/cmd/gomobile@v0.0.0-20250606033058-a2a15c67f36f
+          gomobile init
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: '17'
+
+      - name: Build native libraries
+        run: Tools/build-scripts/build_lib_android.sh release
+
+      - name: Generate tutorial docs
+        run: node Docs/scripts/generate-language-docs.js
+
+      - name: Package Android
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_B64" | base64 -d > "$GITHUB_WORKSPACE/signing-key.jks"
+          cp Tools/dora-wa/wa.mod Assets/dora-wa
+          cp -r Tools/dora-wa/vendor Assets/dora-wa
+          cd Projects/Android/Dora
+          ./gradlew assembleRelease \
+            "-Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/signing-key.jks" \
+            "-Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD" \
+            "-Pandroid.injected.signing.key.alias=$KEY_ALIAS" \
+            "-Pandroid.injected.signing.key.password=$KEY_PASSWORD"
+          cd app/build/outputs/apk/release
+          mv app-release.apk dora-ssr-${{ github.ref_name }}-android.apk
+          unzip -l dora-ssr-${{ github.ref_name }}-android.apk | grep -F 'assets/www/web-player/runtime.json'
+          zip -q dora-ssr-${{ github.ref_name }}-android.zip dora-ssr-${{ github.ref_name }}-android.apk
+          mv dora-ssr-${{ github.ref_name }}-android.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-android.zip"
+
+      - name: Upload Android package
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-android
+          path: dora-ssr-${{ github.ref_name }}-android.zip
+          if-no-files-found: error
+          retention-days: 3
+
+  linux:
+    name: Build Linux release (${{ matrix.arch }})
+    needs: web-assets
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-22.04
+          - arch: aarch64
+            runner: ubuntu-22.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Download shared Web IDE assets
+        uses: actions/download-artifact@v5
+        with:
+          name: web-ide-assets-${{ github.sha }}
+          path: Assets/www
+
+      - name: Verify shared Web IDE assets
+        run: node Tools/dora-dora/scripts/verify-web-release-assets.mjs Assets/www
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake pkg-config patchelf pax-utils curl \
+            libgl1-mesa-dev libssl-dev libdbus-1-dev libasound2-dev \
+            libjack-jackd2-dev libpulse-dev libpipewire-0.3-dev \
+            libsamplerate0-dev libsndio-dev libibus-1.0-dev libudev-dev \
+            libusb-1.0-0-dev libx11-dev libxext-dev libxcursor-dev libxi-dev \
+            libxfixes-dev libxrandr-dev libxrender-dev libxss-dev libdrm-dev \
+            libgbm-dev libegl1-mesa-dev libwayland-dev libwayland-bin \
+            wayland-protocols libxkbcommon-dev libdecor-0-dev lua5.1 luarocks
+          sudo luarocks install luafilesystem
+
+      - name: Generate Lua bindings
+        run: |
+          cd Tools/tolua++
+          lua tolua++.lua
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.3'
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+
+      - name: Generate tutorial docs
+        run: node Docs/scripts/generate-language-docs.js
+
+      - name: Build Linux release
+        run: Tools/build-scripts/build_linux.sh release
+
+      - name: Package AppImage
+        env:
+          APPIMAGE_ARCH: ${{ matrix.arch }}
+        run: Tools/build-scripts/package_appimage.sh "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-linux-${{ matrix.arch }}.AppImage"
+
+      - name: Upload Linux package
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-linux-${{ matrix.arch }}
+          path: dora-ssr-${{ github.ref_name }}-linux-${{ matrix.arch }}.AppImage
+          if-no-files-found: error
+          retention-days: 3
+
+  publish:
+    name: Publish GitHub release
+    needs: [web-assets, macos, windows, android, linux]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download release packages
+        uses: actions/download-artifact@v5
+        with:
+          pattern: release-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Verify release package set
+        run: |
+          test -s release-assets/web-ide-files.zip
+          test -s release-assets/dora-ssr-${{ github.ref_name }}-macos-universal.zip
+          test -s release-assets/dora-ssr-${{ github.ref_name }}-windows-x86.zip
+          test -s release-assets/dora-ssr-${{ github.ref_name }}-android.zip
+          test -s release-assets/dora-ssr-${{ github.ref_name }}-linux-x86_64.AppImage
+          test -s release-assets/dora-ssr-${{ github.ref_name }}-linux-aarch64.AppImage
+          sha256sum release-assets/*
+
+      - name: Publish release assets
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.ref_name }}
+          fail_on_unmatched_files: true
+          overwrite_files: true
+          files: release-assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Homebrew tap token
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: test -n "$HOMEBREW_TAP_TOKEN"
+
+      - name: Checkout Homebrew tap
+        uses: actions/checkout@v4
+        with:
+          repository: IppClub/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - name: Update Homebrew cask
+        env:
+          DORA_VERSION: ${{ github.ref_name }}
+          HOMEBREW_PACKAGE: release-assets/dora-ssr-${{ github.ref_name }}-macos-universal.zip
+        run: |
+          set -euo pipefail
+          version="${DORA_VERSION#v}"
+          sha256="$(sha256sum "$HOMEBREW_PACKAGE" | awk '{print $1}')"
+          cask="homebrew-tap/Casks/dora-ssr.rb"
+          DORA_VERSION="$version" DORA_SHA256="$sha256" ruby -0pi -e 'version = ENV.fetch("DORA_VERSION"); sha256 = ENV.fetch("DORA_SHA256"); gsub(/version "[^"]+"/, "version \"#{version}\""); gsub(/sha256 "[a-fA-F0-9]+"/, "sha256 \"#{sha256}\"")' "$cask"
+          if git -C homebrew-tap diff --quiet -- Casks/dora-ssr.rb; then
+            exit 0
+          fi
+          git -C homebrew-tap config user.name "github-actions[bot]"
+          git -C homebrew-tap config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C homebrew-tap add Casks/dora-ssr.rb
+          git -C homebrew-tap commit -m "Update Dora SSR to ${DORA_VERSION}"
+          git -C homebrew-tap push

@@ -3,7 +3,6 @@ name: macOS
 on:
   push:
     branches: [ main ]
-    tags: 'v*.*.*'
     paths:
       # Shared engine code — triggers all platforms
       - 'Source/**'

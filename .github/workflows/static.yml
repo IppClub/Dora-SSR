@@ -58,7 +58,7 @@ jobs:
           version: 5.0.5
           actions-cache-folder: emsdk-cache
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@1.85.1
+        uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-emscripten
       - name: Setup Go

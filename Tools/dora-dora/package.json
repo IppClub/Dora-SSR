@@ -96,6 +96,7 @@
 		"prepare:web-runtime": "node scripts/prepare-web-runtime.mjs",
 		"test:web-package": "node scripts/test-web-package.mjs",
 		"test:web-runtime-preparation": "node scripts/test-web-runtime-preparation.mjs",
+		"verify:web-release-assets": "node scripts/verify-web-release-assets.mjs",
 		"test:audio-preview": "node scripts/test-audio-preview.mjs",
 		"test:es6-subset": "node scripts/test-es6-subset.mjs",
 		"test:heavy-assets": "node scripts/test-heavy-assets.mjs",
