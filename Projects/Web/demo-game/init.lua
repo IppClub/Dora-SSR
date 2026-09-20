@@ -6,6 +6,13 @@ local lastLeftButton = false
 local lastControllerA = false
 local lastControllerAxis = 0
 Director.ui.touchEnabled = true
+Director.ui.swallowTouches = false
+Director.entry.touchEnabled = true
+Director.entry:slot("TapBegan", function(touch)
+	local pos = touch.location
+	local source = touch.fromMouse and "mouse" or "touch"
+	print(string.format("Dora Web scene input %s-began id=%d x=%.1f y=%.1f", source, touch.id, pos.x, pos.y))
+end)
 Director.ui.controllerEnabled = true
 Director.ui:slot("TapBegan", function(touch)
 	local pos = touch.location

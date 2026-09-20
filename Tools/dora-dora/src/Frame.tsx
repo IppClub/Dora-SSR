@@ -15,6 +15,7 @@ import { GoChecklist } from "react-icons/go";
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { theme, Color } from './Theme';
+import PackageButton, {type PackageAction} from './WebPackage/PackageButton';
 
 export const Separator = () => <Divider style={{ backgroundColor: Color.Line }} />;
 
@@ -99,6 +100,7 @@ export interface PlayControlProp {
 	compact?: boolean;
 	touch?: boolean;
 	showFirstProjectTour?: boolean;
+	packageAction?: PackageAction;
 	buildProjectAction?: {
 		onClick: () => void;
 	};
@@ -196,6 +198,9 @@ export const PlayControl = memo((prop: PlayControlProp) => {
 					</span>
 				</Tooltip>
 			);
+		}
+		if (action.mode === "View Log" && prop.packageAction) {
+			actionItems.push(<PackageButton key="Package" action={prop.packageAction} sx={buttonSx} />);
 		}
 		actionItems.push(
 			<Tooltip key={action.mode} title={action.shortcut ? `${action.name} ${action.shortcut}` : action.name}>

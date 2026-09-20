@@ -117,13 +117,17 @@ Node* Director::getSystemUI() {
 
 #if defined(DORA_WEB_MINIMAL) && !defined(DORA_WEB_MODEL_3D)
 Node* Director::getEntry() {
-	if (!_root) {
+	if (!_entry) {
 		_root = Node::create(false);
 		_root->setAnchor(Vec2::zero);
-		_root->setSize(SharedView.getSize());
 		_root->onEnter();
+		// Keep the public scene entry unbounded, as on native platforms. The
+		// viewport-sized root remains internal for render targets and layout.
+		_entry = Node::create(false);
+		_root->addChild(_entry);
+		markDirty();
 	}
-	return _root;
+	return _entry;
 }
 #else
 View3D* Director::getEntry() {
@@ -349,15 +353,9 @@ void Director::handleTouchEvents() {
 	}
 
 	/* handle scene tree touch */
-#if defined(DORA_WEB_MINIMAL) && !defined(DORA_WEB_MODEL_3D)
-	if (registerTouchHandler(_root)) {
-		SharedTouchDispatcher.dispatch();
-	}
-#else
 	if (registerTouchHandler(_entry)) {
 		SharedTouchDispatcher.dispatch();
 	}
-#endif
 
 	SharedTouchDispatcher.clearEvents();
 }

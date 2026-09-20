@@ -877,6 +877,25 @@ try {
 	assert.ok(consoleMessages.filter((message) => message.includes("Dora Web input touch-ended")).length > cancelEndCount, "Dora did not release cancelled touch point");
 	await cdp.send("Emulation.setTouchEmulationEnabled", {enabled: false});
 
+	// A viewport-sized scene entry wrongly rejects the negative world-coordinate
+	// half-planes. Exercise every quadrant through both browser input paths.
+	for (const source of ["mouse", "touch"]) {
+		await cdp.send("Emulation.setTouchEmulationEnabled", {enabled: source === "touch", maxTouchPoints: 1});
+		for (const [x, y] of [[200, 180], [1080, 180], [200, 540], [1080, 540]]) {
+			const marker = `Dora Web scene input ${source}-began`;
+			const before = consoleMessages.filter(message => message.includes(marker)).length;
+			if (source === "mouse") {
+				await cdp.send("Input.dispatchMouseEvent", {type: "mousePressed", x, y, button: "left", buttons: 1, clickCount: 1});
+				await cdp.send("Input.dispatchMouseEvent", {type: "mouseReleased", x, y, button: "left", buttons: 0, clickCount: 1});
+			} else {
+				await cdp.send("Input.dispatchTouchEvent", {type: "touchStart", touchPoints: [{x, y, id: 1}]});
+				await cdp.send("Input.dispatchTouchEvent", {type: "touchEnd", touchPoints: []});
+			}
+			await waitForConsole(consoleMessages, () => consoleMessages.filter(message => message.includes(marker)).length > before, `scene ${source} input at ${x},${y}`);
+		}
+	}
+	await cdp.send("Emulation.setTouchEmulationEnabled", {enabled: false});
+
 	await cdp.send("Runtime.evaluate", {
 		expression: `(function() {
 			const state = globalThis.__doraGamepadState = {

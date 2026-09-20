@@ -28,6 +28,7 @@ function run(command, args, options = {}) {
 const pnpmCmd = getPnpmCommand();
 const buildEnv = { ...process.env };
 
+run(process.execPath, [path.join("scripts", "prepare-web-runtime.mjs")], { shell: false });
 run(process.execPath, [path.join("scripts", "build-studio-compiler.cjs")], { shell: false });
 
 // Apply a higher memory setting in a cross-platform way.
