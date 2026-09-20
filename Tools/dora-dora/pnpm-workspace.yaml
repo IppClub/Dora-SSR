@@ -1,3 +1,9 @@
+packages:
+  - .
+  - ../../Studio/packages/agent-contracts
+  - ../../Studio/packages/agent-ui
+  - ../../Studio/packages/contracts
+
 allowBuilds:
   '@fortawesome/fontawesome-free': true
   esbuild: true
