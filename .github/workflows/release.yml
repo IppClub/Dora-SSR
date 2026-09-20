@@ -184,18 +184,11 @@ jobs:
 
       - name: Package Windows
         run: |
-          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip www)
           xcopy Tools\dora-wa\wa.mod Assets\dora-wa\ /I /Y
           xcopy Tools\dora-wa\vendor Assets\dora-wa\vendor /I /E /Y
-          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip dora-wa)
-          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Audio)
-          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Doc)
-          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Font)
-          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Image)
-          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip gamecontrollerdb.txt)
-          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip LICENSES)
-          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Script)
-          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Shader\Love\varying.def.sc)
+          Push-Location Assets
+          7z a -tzip ..\dora-ssr-windows-x86.zip www dora-wa Audio Doc Font Image gamecontrollerdb.txt LICENSES Script Shader\Love\varying.def.sc
+          Pop-Location
           Push-Location Projects\Windows\build\Release
           if (!(Test-Path Dora.exe)) { throw "Dora.exe was not produced by the Windows build" }
           if (!(Test-Path wa.dll)) { throw "wa.dll was not copied by the Windows build" }
