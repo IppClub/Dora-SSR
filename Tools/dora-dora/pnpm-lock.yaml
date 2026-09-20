@@ -312,7 +312,22 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  ../../Studio/packages/compiler:
+    dependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   ../../Studio/packages/contracts: {}
+
+  ../../Studio/packages/tstl:
+    dependencies:
+      source-map:
+        specifier: 0.7.6
+        version: 0.7.6
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
 
 packages:
 

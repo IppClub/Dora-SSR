@@ -2,7 +2,9 @@ packages:
   - .
   - ../../Studio/packages/agent-contracts
   - ../../Studio/packages/agent-ui
+  - ../../Studio/packages/compiler
   - ../../Studio/packages/contracts
+  - ../../Studio/packages/tstl
 
 allowBuilds:
   '@fortawesome/fontawesome-free': true
