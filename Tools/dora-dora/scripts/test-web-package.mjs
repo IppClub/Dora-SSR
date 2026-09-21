@@ -24,6 +24,7 @@ try {
     'dora-player-runtime.data': new Uint8Array([42]),
     'dora-web-features.json': strToU8(JSON.stringify({activeProfile: 'dora-preset', modules: {
       threads: false, crossOriginIsolationRequired: false, model3D: true, jolt3D: true, rustBridge: true,
+      loveNode: true, yueCompiler: false, tealCompiler: false, xmlCompiler: false,
     }})),
   };
   const project = {
@@ -160,7 +161,8 @@ try {
   await assert.rejects(createWebArchive(project, runtime, 'html'), /Invalid snapshot\/audio v1 adapter/);
   await assert.rejects(createWebArchive(project, runtime, 'other'), /format/);
   const incompleteFeatures = {...runtime, 'dora-web-features.json': strToU8(JSON.stringify({
-    activeProfile: 'dora-preset', modules: {threads: false, model3D: false, jolt3D: false, rustBridge: false},
+    activeProfile: 'dora-preset', modules: {threads: false, model3D: false, jolt3D: false, rustBridge: false,
+      loveNode: false, yueCompiler: true, tealCompiler: true, xmlCompiler: true},
   }))};
   await assert.rejects(createWebArchive(project, incompleteFeatures), /Unsupported Web runtime profile/);
   await assert.rejects(createWebArchive({'init.ts': strToU8('print("hi")')}, runtime), /entry/);

@@ -84,6 +84,17 @@ end)
 thread(function()
 	local lazyText = Content:loadAsync("lazy.txt")
 	assert(lazyText == "Dora Web lazy asset ready\n", "lazy Web asset content mismatch")
+	if LoveNode then
+		-- The production Player mounts project files under /game and engine
+		-- modules under /builtin. Loading a packaged Love game here prevents
+		-- standalone probes from masking a broken production mount layout.
+		assert(Content:loadAsync("LoveFixture/main.lua"), "Love fixture failed to load")
+		local loveFixture = LoveNode("LoveFixture")
+		assert(loveFixture, "Packaged LoveNode fixture failed to initialize")
+		loveFixture.visible = false
+		loveFixture:addTo(Director.entry)
+		print("Dora Web packaged LoveNode verified")
+	end
 	assert(Content:loadAsync("Image/logo.png"), "Sprite fixture failed to load")
 	assert(Content:loadAsync("Font/web-fixture.ttf"), "Label fixture font failed to load")
 	assert(Content:loadAsync("Audio/fixture.wav"), "WAV fixture failed to load")

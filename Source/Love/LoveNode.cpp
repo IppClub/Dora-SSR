@@ -4740,14 +4740,22 @@ bool LoveNode::loadBoot()
 	_runtime->setMouseBackend(this);
 	_runtime->setJoystickBackend(this);
 	_runtime->setSystemBackend(this);
-	const std::string defaultFont = Path::concat({SharedContent.getAssetPath(),
+	std::string defaultFont = Path::concat({SharedContent.getAssetPath(),
 		"Font/sarasa-mono-sc-regular.ttf"_slice});
+#if defined(DORA_EMSCRIPTEN)
+	if (!SharedContent.exist(defaultFont))
+		defaultFont = "/builtin/Font/sarasa-mono-sc-regular.ttf";
+#endif
 	if (SharedContent.exist(defaultFont))
 		_runtime->setDefaultFontData(SharedContent.loadStr(defaultFont));
 	if (!_runtime->open(error))
 		return reportError("open", error);
-	const std::string lualibBundle = Path::concat({SharedContent.getAssetPath(),
+	std::string lualibBundle = Path::concat({SharedContent.getAssetPath(),
 		"Script/Lib/lualib_bundle.lua"_slice});
+#if defined(DORA_EMSCRIPTEN)
+	if (!SharedContent.exist(lualibBundle))
+		lualibBundle = "/builtin/Script/Lib/lualib_bundle.lua";
+#endif
 	if (!SharedContent.exist(lualibBundle)
 		|| !_runtime->setPreloadModule("lualib_bundle", SharedContent.loadStr(lualibBundle), error))
 		return reportError("lualib_bundle", error.empty() ? "built-in module is missing" : error);

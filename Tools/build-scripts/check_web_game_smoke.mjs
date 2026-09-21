@@ -150,8 +150,8 @@ try {
 	const cases = galleryMode ? JSON.parse(fs.readFileSync(path.join(roots[0], 'catalog.json'))).games.map(game => {
 		const catalog = JSON.parse(fs.readFileSync(path.join(roots[0], 'catalog.json')));
 		return {name: game.id, url: `${process.env.DORA_WEB_GALLERY_URL || `http://127.0.0.1:${server.address().port}/0/`}${catalog.player}?game=${game.id}`};
-	}) : roots.map((root, index) => ({name: path.basename(root), url: `http://127.0.0.1:${server.address().port}/${index}/`}));
-	for (const {name, url} of cases.filter(item => !process.env.DORA_WEB_SMOKE_GAME || item.name === process.env.DORA_WEB_SMOKE_GAME)) {
+	}) : roots.map((root, index) => ({name: path.basename(root), root, url: `http://127.0.0.1:${server.address().port}/${index}/`}));
+	for (const {name, root, url} of cases.filter(item => !process.env.DORA_WEB_SMOKE_GAME || item.name === process.env.DORA_WEB_SMOKE_GAME)) {
 		pageErrors = [];
 		pageLogs = [];
 		const galleryPage = galleryMode && process.env.DORA_WEB_GALLERY_PAGE;
@@ -235,6 +235,13 @@ try {
 		assert.equal(heartbeat.result.value, "running", `${name} stopped after startup:\n${pageErrors.join("\n")}`);
 		assert.deepEqual(pageErrors, [], `${name} emitted browser errors`);
 		assert.ok(!pageLogs.some(message => /stack traceback|Missing End\(|\[error\]/i.test(message)), `${name} script errors:\n${pageLogs.join('\n')}`);
+		if (root) {
+			const features = JSON.parse(fs.readFileSync(path.join(root, "dora-web-features.json"), "utf8"));
+			if (features.modules?.loveNode) {
+				assert.ok(pageLogs.some(message => message.includes("Dora Web packaged LoveNode verified")),
+					`${name} did not initialize its packaged LoveNode fixture`);
+			}
+		}
 		if (name === 'web-api-contract') assert.ok(pageLogs.some(message => message.includes('DORA_WEB_API_CONTRACT_PASSED')), 'API contract did not finish');
 		if (galleryPage) {
 			const saved = await cdp.send('Runtime.evaluate', {expression: `(async () => {

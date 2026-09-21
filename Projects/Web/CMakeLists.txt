@@ -101,7 +101,7 @@ set_target_properties(dora-web-build-probe PROPERTIES
 # it on the shared manifest now prevents the Web target from growing a second,
 # silently divergent engine source list.
 option(DORA_WEB_BUILD_ENGINE "Compile the shared Dora engine sources for Web" OFF)
-option(DORA_WEB_BUILD_LOVE_PROBE "Compile the Dora Love runtime as a non-release Web compatibility probe" OFF)
+option(DORA_WEB_BUILD_LOVE_PROBE "Compile an additional Dora Love Web compatibility probe" OFF)
 option(DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER "Build the installable Love pthread Web Player" OFF)
 option(DORA_WEB_PTHREADS "Build an opt-in shared-memory Web profile with Love thread workers" OFF)
 option(DORA_WEB_EXPERIMENTAL_MAIN_WORKER "Experiment: run Player main on a pthread with OffscreenCanvas (not production-ready)" OFF)
@@ -121,13 +121,13 @@ if(DORA_WEB_PROFILE STREQUAL "dora-preset")
 else()
 	set(DORA_WEB_PRESET_FEATURE_DEFAULT OFF)
 endif()
-foreach(DORA_WEB_TRISTATE_FEATURE IN ITEMS PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS ML YUE MODEL_3D)
+foreach(DORA_WEB_TRISTATE_FEATURE IN ITEMS PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS ML YUE LOVE MODEL_3D)
 	set(DORA_WEB_FEATURE_${DORA_WEB_TRISTATE_FEATURE} AUTO CACHE STRING "Include this Dora Web feature: AUTO, ON or OFF")
 	set_property(CACHE DORA_WEB_FEATURE_${DORA_WEB_TRISTATE_FEATURE} PROPERTY STRINGS AUTO ON OFF)
 	string(TOUPPER "${DORA_WEB_FEATURE_${DORA_WEB_TRISTATE_FEATURE}}" DORA_WEB_FEATURE_VALUE)
-	if(DORA_WEB_TRISTATE_FEATURE STREQUAL "MODEL_3D")
-		# The default Dora/Love Web player stays 2D. A 3D package opts into the
-		# inseparable Model3D + Jolt + Rust feature set explicitly.
+	if(DORA_WEB_TRISTATE_FEATURE MATCHES "^(LOVE|MODEL_3D)$")
+		# Large optional runtimes stay outside the general preset unless their
+		# consumer explicitly requests them. Web IDE export enables both.
 		set(DORA_WEB_FEATURE_DEFAULT OFF)
 	else()
 		set(DORA_WEB_FEATURE_DEFAULT ${DORA_WEB_PRESET_FEATURE_DEFAULT})
@@ -147,7 +147,7 @@ if(DORA_WEB_FEATURE_PLATFORMER AND NOT DORA_WEB_FEATURE_PHYSICS_2D)
 	message(FATAL_ERROR "DORA_WEB_FEATURE_PLATFORMER requires DORA_WEB_FEATURE_PHYSICS_2D=ON")
 endif()
 
-foreach(DORA_WEB_BOOL_FEATURE IN ITEMS PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS ML YUE MODEL_3D)
+foreach(DORA_WEB_BOOL_FEATURE IN ITEMS PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS ML YUE LOVE MODEL_3D)
 	if(DORA_WEB_FEATURE_${DORA_WEB_BOOL_FEATURE})
 		set(DORA_WEB_FEATURE_${DORA_WEB_BOOL_FEATURE}_JSON true)
 	else()
@@ -281,6 +281,9 @@ if(DORA_WEB_BUILD_ENGINE)
 	if(NOT DORA_WEB_FEATURE_PLATFORMER)
 		target_compile_definitions(dora-web-engine PRIVATE DORA_WEB_NO_PLATFORMER)
 	endif()
+	if(NOT DORA_WEB_FEATURE_LOVE)
+		target_compile_definitions(dora-web-engine PRIVATE DORA_WEB_NO_LOVE)
+	endif()
 	if(DORA_WEB_FEATURE_MODEL_3D)
 		target_compile_definitions(dora-web-engine PRIVATE DORA_WEB_MODEL_3D)
 	else()
@@ -323,7 +326,7 @@ if(DORA_WEB_BUILD_ENGINE)
 		"${DORA_SOURCE_ROOT}/3rdParty/wasm3"
 		"${DORA_SOURCE_ROOT}/3rdParty/Effekseer"
 	)
-	if(DORA_WEB_BUILD_LOVE_PROBE)
+	if(DORA_WEB_FEATURE_LOVE OR DORA_WEB_BUILD_LOVE_PROBE)
 		get_target_property(DORA_WEB_ENGINE_DEFINITIONS dora-web-engine COMPILE_DEFINITIONS)
 		get_target_property(DORA_WEB_ENGINE_OPTIONS dora-web-engine COMPILE_OPTIONS)
 		get_target_property(DORA_WEB_ENGINE_INCLUDES dora-web-engine INCLUDE_DIRECTORIES)
@@ -340,6 +343,22 @@ if(DORA_WEB_BUILD_ENGINE)
 			${DORA_WEB_ENGINE_INCLUDES}
 			"${DORA_LOVE_SOURCE_ROOT}/libraries"
 			"${DORA_SOURCE_ROOT}/3rdParty/Zip/zlib")
+	endif()
+	if(DORA_WEB_FEATURE_LOVE)
+		add_library(dora-web-love-runtime OBJECT
+			"${DORA_SOURCE_ROOT}/Love/LoveRuntime.cpp"
+			"${DORA_SOURCE_ROOT}/Love/LoveVideoSources.cpp"
+			"${DORA_SOURCE_ROOT}/Love/LoveNode.cpp")
+		target_compile_definitions(dora-web-love-runtime PRIVATE
+			${DORA_WEB_ENGINE_DEFINITIONS})
+		target_compile_options(dora-web-love-runtime PRIVATE
+			${DORA_WEB_ENGINE_OPTIONS})
+		target_include_directories(dora-web-love-runtime PRIVATE
+			${DORA_WEB_ENGINE_INCLUDES}
+			"${DORA_SOURCE_ROOT}/3rdParty/theora/include"
+			"${DORA_SOURCE_ROOT}/3rdParty/theora/Source")
+	endif()
+	if(DORA_WEB_BUILD_LOVE_PROBE)
 		add_library(dora-web-love-compile-probe OBJECT
 			"${DORA_SOURCE_ROOT}/Love/LoveRuntime.cpp"
 			"${DORA_SOURCE_ROOT}/Love/LoveVideoSources.cpp")
@@ -431,9 +450,13 @@ if(DORA_WEB_LINK_PLAYER)
 		"${DORA_SOURCE_ROOT}/3rdParty/Zip"
 	)
 
-	add_executable(dora-web-player
+	set(DORA_WEB_PLAYER_OBJECTS
 		$<TARGET_OBJECTS:dora-web-engine>
 		$<TARGET_OBJECTS:dora-web-link-deps>)
+	if(DORA_WEB_FEATURE_LOVE)
+		list(APPEND DORA_WEB_PLAYER_OBJECTS $<TARGET_OBJECTS:dora-web-love-runtime>)
+	endif()
+	add_executable(dora-web-player ${DORA_WEB_PLAYER_OBJECTS})
 	include("${CMAKE_CURRENT_SOURCE_DIR}/AudioMixer.cmake")
 	if(DORA_WEB_EXPERIMENTAL_MAIN_WORKER)
 		include("${CMAKE_CURRENT_SOURCE_DIR}/MainWorkerAudio.cmake")
@@ -444,6 +467,9 @@ if(DORA_WEB_LINK_PLAYER)
 	endif()
 	if(DORA_WEB_FEATURE_MODEL_3D)
 		target_link_libraries(dora-web-player PRIVATE "${DORA_RUST_RUNTIME}")
+	endif()
+	if(DORA_WEB_FEATURE_LOVE)
+		target_link_libraries(dora-web-player PRIVATE dora-web-love-support)
 	endif()
 	if(DORA_WEB_STUDIO_AGENT_HOST)
 		set(DORA_WEB_PLAYER_EXPORTED_FUNCTIONS "['_main','_dora_web_stop','_dora_web_set_suspended','_dora_web_release_input','_dora_web_asset_complete','_dora_web_agent_request']")
@@ -492,13 +518,18 @@ if(DORA_WEB_LINK_PLAYER)
 		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 	set_property(TARGET dora-web-player APPEND PROPERTY LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/web-audio.js")
 	if(DORA_WEB_BUILD_LOVE_PROBE)
+		set(DORA_WEB_LOVE_PROBE_LIBRARIES dora-web-love-support)
+		if(DORA_WEB_FEATURE_MODEL_3D)
+			list(APPEND DORA_WEB_LOVE_PROBE_LIBRARIES "${DORA_RUST_RUNTIME}")
+		endif()
 		add_executable(dora-web-love-link-probe
 			LoveLinkProbe.cpp
 			$<TARGET_OBJECTS:dora-web-engine>
 			$<TARGET_OBJECTS:dora-web-link-deps>
-			$<TARGET_OBJECTS:dora-web-love-compile-probe>)
+			$<TARGET_OBJECTS:dora-web-love-compile-probe>
+			$<TARGET_OBJECTS:dora-web-love-node-compile-probe>)
 		target_link_libraries(dora-web-love-link-probe PRIVATE
-			dora-web-love-support)
+			${DORA_WEB_LOVE_PROBE_LIBRARIES})
 		target_compile_definitions(dora-web-love-link-probe PRIVATE
 			${DORA_WEB_ENGINE_DEFINITIONS})
 		target_compile_options(dora-web-love-link-probe PRIVATE
@@ -535,7 +566,7 @@ if(DORA_WEB_LINK_PLAYER)
 			$<TARGET_OBJECTS:dora-web-love-compile-probe>
 			$<TARGET_OBJECTS:dora-web-love-node-compile-probe>)
 		target_link_libraries(dora-web-love-graphics-probe PRIVATE
-			dora-web-love-support)
+			${DORA_WEB_LOVE_PROBE_LIBRARIES})
 		target_compile_definitions(dora-web-love-graphics-probe PRIVATE
 			${DORA_WEB_ENGINE_DEFINITIONS}
 			DORA_WEB_LOVE_PROBE)
@@ -580,7 +611,7 @@ if(DORA_WEB_LINK_PLAYER)
 			$<TARGET_OBJECTS:dora-web-love-compile-probe>
 			$<TARGET_OBJECTS:dora-web-love-node-compile-probe>)
 		target_link_libraries(dora-web-love-shader-probe PRIVATE
-			dora-web-love-support)
+			${DORA_WEB_LOVE_PROBE_LIBRARIES})
 		target_compile_definitions(dora-web-love-shader-probe PRIVATE
 			${DORA_WEB_ENGINE_DEFINITIONS}
 			DORA_WEB_LOVE_PROBE)
@@ -652,7 +683,7 @@ if(DORA_WEB_LINK_PLAYER)
 			$<TARGET_OBJECTS:dora-web-love-node-compile-probe>)
 		add_dependencies(dora-web-love-audio-probe dora-web-love-audio-fixture)
 		target_link_libraries(dora-web-love-audio-probe PRIVATE
-			dora-web-love-support)
+			${DORA_WEB_LOVE_PROBE_LIBRARIES})
 		target_compile_definitions(dora-web-love-audio-probe PRIVATE
 			${DORA_WEB_ENGINE_DEFINITIONS}
 			DORA_WEB_LOVE_PROBE)
@@ -698,7 +729,7 @@ if(DORA_WEB_LINK_PLAYER)
 				$<TARGET_OBJECTS:dora-web-link-deps>
 				$<TARGET_OBJECTS:dora-web-love-compile-probe>
 				$<TARGET_OBJECTS:dora-web-love-node-compile-probe>)
-			target_link_libraries(dora-web-love-pthread-player PRIVATE dora-web-love-support)
+			target_link_libraries(dora-web-love-pthread-player PRIVATE ${DORA_WEB_LOVE_PROBE_LIBRARIES})
 			target_compile_definitions(dora-web-love-pthread-player PRIVATE
 				${DORA_WEB_ENGINE_DEFINITIONS}
 				DORA_WEB_LOVE_PROBE)
@@ -764,7 +795,7 @@ if(DORA_WEB_LINK_PLAYER)
 				$<TARGET_OBJECTS:dora-web-love-compile-probe>
 				$<TARGET_OBJECTS:dora-web-love-node-compile-probe>)
 			add_dependencies(dora-web-love-complex-probe dora-web-love-complex-stage)
-			target_link_libraries(dora-web-love-complex-probe PRIVATE dora-web-love-support)
+			target_link_libraries(dora-web-love-complex-probe PRIVATE ${DORA_WEB_LOVE_PROBE_LIBRARIES})
 			target_compile_definitions(dora-web-love-complex-probe PRIVATE
 				${DORA_WEB_ENGINE_DEFINITIONS}
 				DORA_WEB_LOVE_PROBE)

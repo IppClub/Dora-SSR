@@ -32,10 +32,12 @@ count=0
 [[ ! -f "$count_file" ]] || count="$(<"$count_file")"
 printf '%s' "$((count + 1))" > "$count_file"
 printf '%s' "\${DORA_WEB_FEATURE_MODEL_3D:-}" > "$PWD/model-3d-feature"
+printf '%s' "\${DORA_WEB_FEATURE_LOVE:-}" > "$PWD/love-feature"
+printf '%s' "\${DORA_WEB_FEATURE_YUE:-}" > "$PWD/yue-feature"
 mkdir -p "$DORA_WEB_PLAYER_PACKAGE_DIR"
 for name in dora-player-runtime.js dora-player-runtime.wasm dora-player-runtime.data dora-web-features.json audio-worklet.js dora-audio-mixer.wasm; do
   if [[ "$name" == "dora-web-features.json" ]]; then
-    printf '%s' '{"modules":{"model3D":true,"jolt3D":true,"rustBridge":true}}' > "$DORA_WEB_PLAYER_PACKAGE_DIR/$name"
+    printf '%s' '{"modules":{"model3D":true,"jolt3D":true,"rustBridge":true,"loveNode":true,"yueCompiler":false,"tealCompiler":false,"xmlCompiler":false}}' > "$DORA_WEB_PLAYER_PACKAGE_DIR/$name"
   else
     printf 'locally built %s' "$name" > "$DORA_WEB_PLAYER_PACKAGE_DIR/$name"
   fi
@@ -49,6 +51,8 @@ done
   assert.match(cold.stdout, /building it from the local source tree/);
   assert.equal(await readFile(path.join(root, 'build-count'), 'utf8'), '1');
   assert.equal(await readFile(path.join(root, 'model-3d-feature'), 'utf8'), 'ON');
+  assert.equal(await readFile(path.join(root, 'love-feature'), 'utf8'), 'ON');
+  assert.equal(await readFile(path.join(root, 'yue-feature'), 'utf8'), 'OFF');
   const output = path.join(ide, 'public/web-player');
   for (const name of runtimeNames.filter(name => name !== 'dora-web-features.json')) {
     assert.match(await readFile(path.join(output, name), 'utf8'), /^locally built /);
@@ -81,7 +85,7 @@ done
   const lockFiles = {};
   for (const name of runtimeNames) {
     const bytes = Buffer.from(name === featureName
-      ? '{"modules":{"model3D":true,"jolt3D":true,"rustBridge":true}}'
+      ? '{"modules":{"model3D":true,"jolt3D":true,"rustBridge":true,"loveNode":true,"yueCompiler":false,"tealCompiler":false,"xmlCompiler":false}}'
       : `override ${name}`);
     await writeFile(path.join(source, name), bytes);
     lockFiles[name] = {size: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex')};

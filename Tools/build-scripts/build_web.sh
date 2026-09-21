@@ -64,7 +64,7 @@ CMAKE_ARGS=(
 if [[ "$STUDIO_AGENT_HOST" == "1" ]]; then
 	CMAKE_ARGS+=(-DDORA_WEB_EXPERIMENTAL_MAIN_WORKER=OFF)
 fi
-for feature in PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS ML YUE MODEL_3D; do
+for feature in PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS ML YUE LOVE MODEL_3D; do
 	value_var="DORA_WEB_FEATURE_${feature}"
 	if [[ -n "${!value_var+x}" ]]; then
 		CMAKE_ARGS+=("-D${value_var}=${!value_var}")

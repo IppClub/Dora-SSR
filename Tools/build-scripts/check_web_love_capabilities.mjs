@@ -155,8 +155,10 @@ for (const evidence of ["fixture.wav", "fixture.ogg", "newSoundData", "setLoopin
 const loveConfig = fs.readFileSync("Source/3rdParty/Love/src/common/config.h", "utf8");
 assert.match(loveConfig, /defined\(__EMSCRIPTEN__\)/, "Love does not recognize Emscripten as a target platform");
 const webFeatures = fs.readFileSync("Projects/Web/web-features.json.in", "utf8");
-assert.match(webFeatures, /"loveNode": false/, "Web feature profile exposed unvalidated LoveNode support");
+assert.match(webFeatures, /"loveNode": @DORA_WEB_FEATURE_LOVE_JSON@/, "Web feature profile does not expose configured LoveNode support");
+assert.match(webCMake, /DORA_WEB_FEATURE_LOVE/, "LoveNode is not a selectable production Web feature");
+assert.match(webCMake, /TARGET_OBJECTS:dora-web-love-runtime/, "Production Web Player does not link the Love runtime");
 assert.match(loveNode, /validateLoveWebGLProgram/, "Love Web shader driver preflight is missing");
 assert.match(loveNode, /Shader source line/, "Love Web shader source-line diagnostic is missing");
 assert.match(graphicsChecker, /no silent fallback/, "Love Web shader failure fixture is missing its fallback assertion");
-console.log("[INFO] Love Web capability matrix covers 19 modules; full remains excluded and love-pthread-player passed its P5-10 gates");
+console.log("[INFO] Love Web capability matrix covers 19 modules; production LoveNode and love-pthread-player passed their gates");

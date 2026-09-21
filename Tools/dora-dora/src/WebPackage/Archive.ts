@@ -50,7 +50,9 @@ export async function createWebArchive(project: PackageFiles, runtime: PackageFi
   }
   const features = JSON.parse(strFromU8(runtime['dora-web-features.json']));
   if (features.activeProfile !== 'dora-preset' || features.modules?.threads || features.modules?.crossOriginIsolationRequired
-    || features.modules?.model3D !== true || features.modules?.jolt3D !== true || features.modules?.rustBridge !== true) {
+    || features.modules?.model3D !== true || features.modules?.jolt3D !== true || features.modules?.rustBridge !== true
+    || features.modules?.loveNode !== true || features.modules?.yueCompiler !== false
+    || features.modules?.tealCompiler !== false || features.modules?.xmlCompiler !== false) {
     throw new Error('Unsupported Web runtime profile');
   }
   const metadata = JSON.parse(strFromU8(runtime['runtime.json'] || new Uint8Array()));

@@ -59,7 +59,7 @@ _is_functions = _is_functions or {}
 -- named C++ define removes both support code and registration for a class,
 -- while native builds without the define retain the existing API.
 _compile_guards = {
-	LoveNode = "DORA_WEB_MINIMAL",
+	LoveNode = "DORA_WEB_NO_LOVE",
 	VideoNode = "DORA_WEB_MINIMAL",
 	HttpServer = "DORA_WEB_MINIMAL",
 	WasmRuntime = "DORA_WEB_MINIMAL",
