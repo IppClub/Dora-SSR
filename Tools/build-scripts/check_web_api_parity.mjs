@@ -39,7 +39,6 @@ const exclusions = {
 	'Surface3D': '3D nodes excluded',
 	'Application.testNames': 'native test registry excluded',
 	'Application.runTest': 'native test registry excluded',
-	'Audio.renderMusicAsync': 'native music-rendering service excluded',
 	'ubox': 'native object-debugging helper excluded',
 	'yarncompile': 'Yarn compiler excluded',
 	'bgfxProbeDraw': 'native diagnostic probe excluded',

@@ -189,7 +189,7 @@ Web 构建使用 Emscripten 将引擎编译为 WebAssembly，产出的是用于�
 	rustup target add wasm32-unknown-emscripten
 	```
 
-2. 构建 Web 运行时与 Player。脚本会检查工具链，为 Emscripten 目标构建 Rust 运行时，把引擎编译为 WebAssembly，并在 `result/dora-web-player` 下打包出自包含的 Player。
+2. 构建 Web 运行时与 Player。脚本会检查工具链，把引擎编译为 WebAssembly，并在 `result/dora-web-player` 下打包出自包含的 Player。只有显式启用依赖 Rust 的功能时，才会构建并链接 Rust 运行时。
 	```sh
 	Tools/build-scripts/build_web.sh
 	```
@@ -199,7 +199,7 @@ Web 构建使用 Emscripten 将引擎编译为 WebAssembly，产出的是用于�
 	node Tools/build-scripts/check_web_browser.mjs result/dora-web-player
 	```
 
-4. 构建前可通过 `DORA_WEB_PROFILE`（`core`、`dora-preset` 或 `custom`）以及诸如 `DORA_WEB_FEATURE_MODEL_3D=ON` 的功能开关调整运行时。构建目录默认为 `build/web`（`DORA_WEB_BUILD_DIR`），`DORA_WEB_JOBS` 控制构建并行度。
+4. 构建前可通过 `DORA_WEB_PROFILE`（`core`、`dora-preset` 或 `custom`）以及 `DORA_WEB_FEATURE_MUSIC=ON`、`DORA_WEB_FEATURE_MODEL_3D=ON` 等功能开关调整运行时。这两个开关默认均为 `OFF`；启用任意一个都会构建并链接 Rust 运行时，但只有音乐开关会启用 Rust 的 `music` feature 及其合成器、编码器依赖。Web IDE 导出的 HTML 游戏只需要音乐播放，因此其运行时明确关闭音乐生成功能。构建目录默认为 `build/web`（`DORA_WEB_BUILD_DIR`），`DORA_WEB_JOBS` 控制构建并行度。
 
 </TabItem>
 </Tabs>

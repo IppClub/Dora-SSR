@@ -57,5 +57,8 @@ export async function readAgentProjectBaseline(fs:AgentProjectFS,projectId:strin
   }
   signal.throwIfAborted();
   const snapshot:ProjectSnapshot={version:1,projectId,revision:record.revision,entry:record.entry,files};
-  return matchesInstalledAgentProject(fs,snapshot)?{...changed,snapshot}:changed;
+  // Trusted support is loader-owned and may legitimately be missing or stale
+  // before synchronization repairs it. Only author files determine whether the
+  // persisted author baseline is still intact.
+  return matchesInstalledAgentProject(fs,snapshot,false)?{...changed,snapshot}:changed;
 }

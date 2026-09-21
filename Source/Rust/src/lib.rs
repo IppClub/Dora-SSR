@@ -4,7 +4,9 @@ extern crate bitflags;
 pub use dora_ssr::*;
 mod bgfx_rs;
 pub mod dora_3d;
+#[cfg(feature = "music")]
 pub mod music;
+#[cfg(feature = "music")]
 mod soundfont;
 pub use bgfx_rs::*;
 

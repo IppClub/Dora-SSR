@@ -240,7 +240,7 @@ func (a *AgentService) createSnapshot(c AgentConfig) (AgentSnapshot, error) {
 		if _, static := a.assets[f.Path]; static || strings.HasPrefix(f.Path, "declarations/") {
 			continue
 		}
-		allowed := f.Path == "AgentHostSession.lua" || f.Path == "AgentSessionBridge.lua" || f.Path == "StudioAgentEntry.lua" || f.Path == "StudioAgentYueBuild.lua" || f.Path == "StudioAgentXmlBuild.lua" || f.Path == "lua/Utils.lua" || strings.HasPrefix(f.Path, "lua/Agent/") || f.Path == "lua/DoraX.lua" || f.Path == "lua/lualib_bundle.lua" || strings.HasPrefix(f.Path, "docs/")
+		allowed := f.Path == "AgentHostSession.lua" || f.Path == "AgentSessionBridge.lua" || f.Path == "StudioAgentEntry.lua" || f.Path == "StudioAgentYueBuild.lua" || f.Path == "StudioAgentXmlBuild.lua" || f.Path == "lua/Utils.lua" || strings.HasPrefix(f.Path, "lua/Agent/") || f.Path == "lua/DoraX.lua" || f.Path == "lua/lualib_bundle.lua" || strings.HasPrefix(f.Path, "docs/") || f.Path == "types/Agent/Gen/Music.d.ts" || strings.HasPrefix(f.Path, "skills/music-generation/")
 		if !allowed {
 			continue
 		}
@@ -293,6 +293,11 @@ func (a *AgentService) createSnapshot(c AgentConfig) (AgentSnapshot, error) {
 			continue
 		}
 		path := strings.TrimPrefix(f.Path, "lua/")
+		if strings.HasPrefix(f.Path, "types/") {
+			path = strings.TrimPrefix(f.Path, "types/")
+		} else if strings.HasPrefix(f.Path, "skills/") {
+			path = "Doc/" + f.Path
+		}
 		if seen[path] {
 			return AgentSnapshot{}, errors.New("duplicate agent file")
 		}

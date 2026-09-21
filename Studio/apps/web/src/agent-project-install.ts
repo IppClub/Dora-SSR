@@ -14,12 +14,25 @@ export interface AgentProjectFS {
   rmdir(path:string):void;
 }
 const root='/user/studio-project';
+const trustedSupportPaths=new Set(['Agent/Gen/Music.d.ts','Agent/Gen/Music.lua']);
+function isTrustedSupportPath(path:string){return trustedSupportPaths.has(path);}
+function hasCurrentTrustedSupport(fs:AgentProjectFS):boolean {
+  for(const path of trustedSupportPaths){
+    const installed=root+'/'+path,source='/game/'+path;
+    if(!fs.analyzePath(installed).exists||!fs.analyzePath(source).exists)return false;
+    const installedStat=fs.lstat(installed),sourceStat=fs.lstat(source);
+    if(!fs.isFile(installedStat.mode)||!fs.isFile(sourceStat.mode)||installedStat.size!==sourceStat.size)return false;
+    const installedBytes=fs.readFile(installed),sourceBytes=fs.readFile(source);
+    if(installedBytes.length!==sourceBytes.length||installedBytes.some((byte,index)=>byte!==sourceBytes[index]))return false;
+  }
+  return true;
+}
 
 /** Read only under the caller's project quiescence hold. Bytes are current state,
  * not historical checkpoint contents, an author revision, or a persistence receipt.
  * Classification into text/binary belongs to reconciliation with the author manifest.
  */
-export function readInstalledAgentFiles(fs:AgentProjectFS):Array<{path:string;bytes:Uint8Array}> {
+export function readInstalledAgentFiles(fs:AgentProjectFS,includeTrustedSupport=false):Array<{path:string;bytes:Uint8Array}> {
   const files:Array<{path:string;bytes:Uint8Array}>=[];
   let visited=0,total=0;
   // /user is a trusted loader-owned alias to the leased IDBFS mount. Reject
@@ -38,6 +51,7 @@ export function readInstalledAgentFiles(fs:AgentProjectFS):Array<{path:string;by
       return;
     }
     if(!relative||!fs.isFile(stat.mode))throw new Error('Agent project links or special files cannot be read');
+    if(isTrustedSupportPath(relative)&&!includeTrustedSupport)return;
     if(!Number.isSafeInteger(stat.size)||stat.size<0||stat.size>64*1024*1024||total+stat.size>256*1024*1024||files.length>=4096)
       throw new Error('Agent project file bounds exceeded');
     const bytes=new Uint8Array(fs.readFile(path));
@@ -49,8 +63,9 @@ export function readInstalledAgentFiles(fs:AgentProjectFS):Array<{path:string;by
 }
 
 /** Byte equality only, not a revision ledger or permission to overwrite changes. */
-export function matchesInstalledAgentProject(fs:AgentProjectFS,input:ProjectSnapshot):boolean {
+export function matchesInstalledAgentProject(fs:AgentProjectFS,input:ProjectSnapshot,requireTrustedSupport=true):boolean {
   if(validateSnapshot(input).length || input.files.some(file=>file.path==='.agent'||file.path.startsWith('.agent/')))return false;
+  try{if(requireTrustedSupport&&!hasCurrentTrustedSupport(fs))return false;}catch{return false;}
   const expected=new Map(input.files.map(file=>[file.path,file]));
   const found=new Set<string>(),encoder=new TextEncoder();let visited=0;
   const visit=(path:string,relative:string,depth:number):boolean=>{
@@ -61,6 +76,7 @@ export function matchesInstalledAgentProject(fs:AgentProjectFS,input:ProjectSnap
       if(name.includes('/')||name.includes('\\'))return false;
       return visit(path+'/'+name,relative?relative+'/'+name:name,depth+1);
     });
+    if(isTrustedSupportPath(relative))return true;
     const file=expected.get(relative);
     if(!file || !fs.isFile(stat.mode))return false;
     const bytes=file.kind==='text'?encoder.encode(file.text):file.bytes;
@@ -81,6 +97,8 @@ export function installAgentProjectSnapshot(fs:AgentProjectFS,input:ProjectSnaps
   const snapshot=structuredClone(input);
   if(snapshot.files.some(file=>file.path==='.agent'||file.path.startsWith('.agent/')))
     throw new Error('Imported .agent data conflicts with the active Agent session; project was not installed');
+  if(snapshot.files.some(file=>isTrustedSupportPath(file.path)))
+    throw new Error('Imported project conflicts with trusted Agent support files');
   const id=crypto.randomUUID(),stage=`/user/.studio-author-stage-${id}`,backup=`/user/.studio-author-backup-${id}`;
   const remove=(path:string)=>{
     if(!fs.analyzePath(path).exists)return;
@@ -117,6 +135,11 @@ export function installAgentProjectSnapshot(fs:AgentProjectFS,input:ProjectSnaps
     if(fs.analyzePath(root+'/.agent').exists)preserve(root+'/.agent',stage+'/.agent');
     const encoder=new TextEncoder();
     for(const file of snapshot.files)write(stage+'/'+file.path,file.kind==='text'?encoder.encode(file.text):file.bytes);
+    for(const path of trustedSupportPaths){
+      const source='/game/'+path;
+      if(!fs.analyzePath(source).exists||!fs.isFile(fs.lstat(source).mode))throw new Error('Trusted Agent support file is unavailable');
+      write(stage+'/'+path,new Uint8Array(fs.readFile(source)));
+    }
     if(hadRoot){fs.rename(root,backup);moved=true;}
     try{fs.rename(stage,root);}catch(error){
       if(moved){fs.rename(backup,root);moved=false;}

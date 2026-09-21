@@ -1495,6 +1495,11 @@ LuaEngine::LuaEngine()
 	LuaEngine::insertLuaLoader(dora_web_loader, 2);
 	tolua_LuaBindingWeb_open(L);
 	tolua_beginmodule(L, nullptr);
+#ifdef DORA_WEB_MUSIC
+	tolua_beginmodule(L, "Audio");
+	tolua_function(L, "renderMusicAsync", dora_audio_render_music_async);
+	tolua_endmodule(L);
+#endif
 #ifdef DORA_WEB_YUE
 	luaL_requiref(L, "yue", luaopen_yue, 0);
 	lua_pushcfunction(L, dora_file_exist);

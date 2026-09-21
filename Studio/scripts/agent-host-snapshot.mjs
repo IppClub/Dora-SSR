@@ -32,7 +32,9 @@ export async function createAgentHostSnapshot(value,{engineVersion,supportDirect
     if(typeof file.path!=='string' || !(file.path==='AgentHostSession.lua' || file.path==='AgentSessionBridge.lua' || file.path==='StudioAgentEntry.lua'
       || file.path==='StudioAgentYueBuild.lua' || file.path==='StudioAgentXmlBuild.lua' || file.path==='lua/Utils.lua'
       || /^lua\/(?:Agent\/[A-Za-z0-9_/-]+|DoraX|lualib_bundle)\.lua$/.test(file.path)
-      || /^docs\/(en|zh)\.json$/.test(file.path)))throw new Error('Unexpected Agent support file');
+      || /^docs\/(en|zh)\.json$/.test(file.path)
+      || file.path==='types/Agent/Gen/Music.d.ts'
+      || /^skills\/music-generation\/(?:SKILL|GeneralUserGS-Presets)\.md$/.test(file.path)))throw new Error('Unexpected Agent support file');
     const absolute=await realpath(resolve(root,file.path));
     if(!absolute.startsWith(root+sep))throw new Error('Agent support file escaped build directory');
     const bytes=await readFile(absolute);
@@ -42,7 +44,10 @@ export async function createAgentHostSnapshot(value,{engineVersion,supportDirect
       if(documentBundles.has(documentMatch[1]))throw new Error('Duplicate Agent document bundle');
       documentBundles.set(documentMatch[1],bytes);continue;
     }
-    const path=file.path.startsWith('lua/')?file.path.slice(4):file.path;
+    const path=file.path.startsWith('lua/')?file.path.slice(4)
+      :file.path.startsWith('types/')?file.path.slice(6)
+      :file.path.startsWith('skills/')?'Doc/'+file.path
+      :file.path;
     if(seen.has(path))throw new Error('Duplicate Agent support file');seen.add(path);
     files.push({path,bytes});
   }

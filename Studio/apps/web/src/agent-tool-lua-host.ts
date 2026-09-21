@@ -25,7 +25,7 @@ function luaLongString(value:string):string{
 function commandEntry(code:string,commandId:string):string{
   const source=luaLongString(code),resultPath=luaLongString(`/tmp/studio-agent-command-${commandId}.json`);
   return `local Dora = require("Dora")
-local Utils = require("Utils")
+local json = Dora.json
 local output, outputBytes, truncated = {}, 0, false
 local function capture(...)
   local parts = {}
@@ -68,8 +68,11 @@ else
     and {success = true, output = table.concat(output, "\\n")}
     or {success = false, output = table.concat(output, "\\n"), message = tostring(runtimeError), phase = "execute"}
 end
-local encoded = Utils.safeJsonEncode(result)
-if not encoded or not Dora.Content:save(${resultPath}, encoded) then
+local encoded, encodeError = json.encode(result)
+if not encoded then
+  error("failed to encode Agent Lua command result: " .. tostring(encodeError))
+end
+if not Dora.Content:save(${resultPath}, encoded) then
   error("failed to save Agent Lua command result")
 end
 `;
@@ -86,7 +89,7 @@ export async function executeAgentLuaTool(fs:AgentProjectFS,projectId:string,rev
   signal.throwIfAborted();
   const commandId=crypto.randomUUID(),entry=`.agent/commands/${commandId}.lua`;
   if(!isProjectPath(entry))return {success:false,message:'Invalid Agent Lua entry'};
-  const installed=readInstalledAgentFiles(fs).filter(file=>!file.path.startsWith('.agent/commands/'));
+  const installed=readInstalledAgentFiles(fs,true).filter(file=>!file.path.startsWith('.agent/commands/'));
   const files:ProjectFile[]=installed.map(file=>{
     try{return {path:file.path,kind:'text',text:decoder.decode(file.bytes)};}
     catch{return {path:file.path,kind:'binary',bytes:file.bytes};}

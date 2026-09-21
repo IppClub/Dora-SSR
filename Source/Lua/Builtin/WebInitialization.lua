@@ -64,6 +64,27 @@ local function wait(cond)
 	until cond()
 end
 
+do
+	local Audio = getmetatable(Dora.Audio)
+	local Audio_renderMusicAsync = Audio.renderMusicAsync
+	if Audio_renderMusicAsync then
+		Audio.renderMusicAsync = function(self, request, progress)
+			local _, mainThread = coroutine.running()
+			assert(not mainThread, "Audio.renderMusicAsync should be run in a thread")
+			local result
+			local done = false
+			Audio_renderMusicAsync(self, request, progress, function(response)
+				result = response
+				done = true
+			end)
+			wait(function()
+				return done
+			end)
+			return result
+		end
+	end
+end
+
 local function once(work)
 	return coroutine_create(function(...)
 		xpcall(work, traceback, ...)

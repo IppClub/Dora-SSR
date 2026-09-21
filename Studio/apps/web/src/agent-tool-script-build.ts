@@ -32,7 +32,7 @@ export async function buildAgentScriptTool(fs:AgentProjectFS,projectId:string,re
   const relative=request.file.slice(root.length+1);
   if(!isProjectPath(relative)||!/\.(tl|lua|yarn)$/.test(relative)||relative.endsWith('.d.tl'))return {success:false,message:'Invalid Agent script build target'};
   signal.throwIfAborted();
-  const installed=readInstalledAgentFiles(fs);
+  const installed=readInstalledAgentFiles(fs,true);
   const source=installed.find(file=>file.path===relative);
   if(!source)return {success:false,message:'Agent script changed before build'};
   let content:string;

@@ -6,8 +6,9 @@ const status=document.getElementById('status')!;
 let configuration:Readonly<AgentHostConfig>|undefined;
 let runtime:ReturnType<typeof prepareAgentHostRuntime>|undefined;
 let failed=false;
-function fail() {
+function fail(error?:unknown) {
   if(failed)return;failed=true;
+  console.error('Agent host initialization failed',error);
   runtime?.close();
   status.textContent='Agent 宿主启动失败，请返回工作台重试。';
   if(configuration)parent.postMessage({type:'studio-agent-failed',version:1,projectId:configuration.projectId,

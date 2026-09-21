@@ -17,6 +17,10 @@ BUILD_PTHREADS="${DORA_WEB_PTHREADS:-0}"
 BUILD_LOVE_PLAYER="${DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER:-$BUILD_PTHREADS}"
 WEB_PROFILE="${DORA_WEB_PROFILE:-dora-preset}"
 STUDIO_AGENT_HOST="${DORA_WEB_STUDIO_AGENT_HOST:-0}"
+MUSIC_FEATURE="${DORA_WEB_FEATURE_MUSIC:-AUTO}"
+MODEL_3D_FEATURE="${DORA_WEB_FEATURE_MODEL_3D:-AUTO}"
+MUSIC_FEATURE_UPPER="$(printf '%s' "$MUSIC_FEATURE" | tr '[:lower:]' '[:upper:]')"
+MODEL_3D_FEATURE_UPPER="$(printf '%s' "$MODEL_3D_FEATURE" | tr '[:lower:]' '[:upper:]')"
 if [[ "$STUDIO_AGENT_HOST" == "1" ]]; then
 	if [[ -z "${DORA_WEB_BUILD_DIR+x}" || -z "${DORA_WEB_PACKAGE_DIR+x}" || -z "${DORA_WEB_PLAYER_PACKAGE_DIR+x}" || "$BUILD_ENGINE" != "1" || "$LINK_PLAYER" != "1" ]]; then
 		echo "[ERROR] Studio Agent host requires explicit, separate build/probe/player directories and the full linked engine" >&2
@@ -32,20 +36,41 @@ if [[ "$BUILD_PTHREADS" == "1" && -z "${DORA_WEB_PLAYER_PACKAGE_DIR+x}" ]]; then
 fi
 # shellcheck source=/dev/null
 source "$ROOT_DIR/Projects/Web/toolchain.env"
-RUST_RUNTIME="$ROOT_DIR/Source/Rust/target/$DORA_WEB_RUST_TARGET/release/libdora_runtime.a"
+RUST_TARGET_DIR="$ROOT_DIR/Source/Rust/target"
+if [[ "$BUILD_PTHREADS" == "1" ]]; then
+	# A pthread Player needs Rust's standard library rebuilt with wasm atomics.
+	# Keep it separate so a later non-threaded build cannot reuse the wrong archive.
+	RUST_TARGET_DIR="$ROOT_DIR/Source/Rust/target-web-pthreads"
+fi
+RUST_RUNTIME="$RUST_TARGET_DIR/$DORA_WEB_RUST_TARGET/release/libdora_runtime.a"
 RUST_USER_ROOT="$(dirname "$(rustup show home)")"
 RUST_TOOLCHAIN_ROOT="$(rustc --print sysroot)"
 RUST_REMAP_FLAGS="--remap-path-prefix=$RUST_USER_ROOT=/build-user --remap-path-prefix=$RUST_TOOLCHAIN_ROOT=/rust-toolchain"
 
 "$SCRIPT_DIR/check_web_build_env.sh"
-RUSTC_WRAPPER='' RUSTFLAGS="$RUST_REMAP_FLAGS ${RUSTFLAGS:-}" cargo build \
-	--manifest-path "$ROOT_DIR/Source/Rust/Cargo.toml" \
-	--target "$DORA_WEB_RUST_TARGET" \
-	--locked \
-	--release
-if [[ ! -s "$RUST_RUNTIME" ]]; then
-	echo "[ERROR] Rust Web runtime was not produced: $RUST_RUNTIME" >&2
-	exit 1
+if [[ "$MUSIC_FEATURE_UPPER" == "ON" || "$MODEL_3D_FEATURE_UPPER" == "ON" ]]; then
+	RUST_BUILD_ARGS=(
+		--manifest-path "$ROOT_DIR/Source/Rust/Cargo.toml"
+		--target "$DORA_WEB_RUST_TARGET"
+		--no-default-features
+		--locked
+		--release
+	)
+	if [[ "$MUSIC_FEATURE_UPPER" == "ON" ]]; then
+		RUST_BUILD_ARGS+=(--features music)
+	fi
+	RUST_BUILD_FLAGS="$RUST_REMAP_FLAGS ${RUSTFLAGS:-}"
+	if [[ "$BUILD_PTHREADS" == "1" ]]; then
+		RUST_BUILD_ARGS=(-Z build-std=std,panic_abort "${RUST_BUILD_ARGS[@]}")
+		RUST_BUILD_FLAGS="$RUST_BUILD_FLAGS -C target-feature=+atomics,+bulk-memory,+mutable-globals"
+		RUSTC_BOOTSTRAP=1 RUSTC_WRAPPER='' CARGO_TARGET_DIR="$RUST_TARGET_DIR" RUSTFLAGS="$RUST_BUILD_FLAGS" cargo build "${RUST_BUILD_ARGS[@]}"
+	else
+		RUSTC_WRAPPER='' CARGO_TARGET_DIR="$RUST_TARGET_DIR" RUSTFLAGS="$RUST_BUILD_FLAGS" cargo build "${RUST_BUILD_ARGS[@]}"
+	fi
+	if [[ ! -s "$RUST_RUNTIME" ]]; then
+		echo "[ERROR] Rust Web runtime was not produced: $RUST_RUNTIME" >&2
+		exit 1
+	fi
 fi
 
 CMAKE_ARGS=(
@@ -64,7 +89,7 @@ CMAKE_ARGS=(
 if [[ "$STUDIO_AGENT_HOST" == "1" ]]; then
 	CMAKE_ARGS+=(-DDORA_WEB_EXPERIMENTAL_MAIN_WORKER=OFF)
 fi
-for feature in PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS ML YUE LOVE MODEL_3D; do
+for feature in PHYSICS_2D ENTITY PLATFORMER BUILTIN_LIBS ML YUE LOVE MODEL_3D MUSIC; do
 	value_var="DORA_WEB_FEATURE_${feature}"
 	if [[ -n "${!value_var+x}" ]]; then
 		CMAKE_ARGS+=("-D${value_var}=${!value_var}")

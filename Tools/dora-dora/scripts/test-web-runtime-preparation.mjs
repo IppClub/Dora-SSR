@@ -32,6 +32,7 @@ count=0
 [[ ! -f "$count_file" ]] || count="$(<"$count_file")"
 printf '%s' "$((count + 1))" > "$count_file"
 printf '%s' "\${DORA_WEB_FEATURE_MODEL_3D:-}" > "$PWD/model-3d-feature"
+printf '%s' "\${DORA_WEB_FEATURE_MUSIC:-}" > "$PWD/music-feature"
 printf '%s' "\${DORA_WEB_FEATURE_LOVE:-}" > "$PWD/love-feature"
 printf '%s' "\${DORA_WEB_FEATURE_YUE:-}" > "$PWD/yue-feature"
 mkdir -p "$DORA_WEB_PLAYER_PACKAGE_DIR"
@@ -51,6 +52,7 @@ done
   assert.match(cold.stdout, /building it from the local source tree/);
   assert.equal(await readFile(path.join(root, 'build-count'), 'utf8'), '1');
   assert.equal(await readFile(path.join(root, 'model-3d-feature'), 'utf8'), 'ON');
+  assert.equal(await readFile(path.join(root, 'music-feature'), 'utf8'), 'OFF');
   assert.equal(await readFile(path.join(root, 'love-feature'), 'utf8'), 'ON');
   assert.equal(await readFile(path.join(root, 'yue-feature'), 'utf8'), 'OFF');
   const output = path.join(ide, 'public/web-player');

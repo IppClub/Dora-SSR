@@ -14,7 +14,7 @@ export async function transpileAgentTsTool(fs:AgentProjectFS,projectId:string,re
   const relative=request.file.slice(request.projectRoot.length+1);
   if(!isProjectPath(relative)||!/\.tsx?$/.test(relative)||/\.d\.ts$/.test(relative))return {success:false,message:'Invalid Studio TypeScript target'};
   signal.throwIfAborted();
-  const installed=readInstalledAgentFiles(fs);
+  const installed=readInstalledAgentFiles(fs,true);
   const source=installed.find(file=>file.path===relative);
   if(!source||decoder.decode(source.bytes)!==request.content)return {success:false,message:'Agent source changed before build'};
   const tsPaths=new Set(installed.filter(file=>/\.tsx?$/.test(file.path)&&!/\.d\.ts$/.test(file.path)).map(file=>file.path.replace(/\.tsx?$/,'.lua')));

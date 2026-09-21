@@ -111,10 +111,11 @@ export function installAgentWasmHost(module:AgentHostModule, parentWindow:Window
       // A verified persisted baseline permits one-sided author edits after reopening.
       const existing=module.FS.readdir('/user/studio-project').filter(name=>name!=='.'&&name!=='..'&&name!=='.agent');
       const alreadyInstalled=matchesInstalledAgentProject(module.FS,snapshot);
+      const authorAlreadyInstalled=matchesInstalledAgentProject(module.FS,snapshot,false);
       if(baselineRevision!==undefined && !authorBaseline && !alreadyInstalled)throw new Error('Persisted author files changed and require reconciliation');
       if(authorBaseline){
-        const unchanged=matchesInstalledAgentProject(module.FS,authorBaseline);
-        if(snapshot.revision<authorBaseline.revision || (snapshot.revision===authorBaseline.revision && (!unchanged || !alreadyInstalled)))throw new Error('Stale author revision');
+        const unchanged=matchesInstalledAgentProject(module.FS,authorBaseline,false);
+        if(snapshot.revision<authorBaseline.revision || (snapshot.revision===authorBaseline.revision && (!unchanged || !authorAlreadyInstalled)))throw new Error('Stale author revision');
         if(!alreadyInstalled){
           if(!unchanged)throw new Error('Agent author files changed since the acknowledged baseline');
           installAgentProjectSnapshot(module.FS,snapshot);

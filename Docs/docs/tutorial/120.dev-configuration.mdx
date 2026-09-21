@@ -190,7 +190,7 @@ The Web build compiles the engine to WebAssembly with Emscripten and produces th
 	rustup target add wasm32-unknown-emscripten
 	```
 
-2. Build the Web runtime and Player. The script checks the toolchain, builds the Rust runtime for the Emscripten target, compiles the engine to WebAssembly, and packages a self-contained Player into `result/dora-web-player`.
+2. Build the Web runtime and Player. The script checks the toolchain, compiles the engine to WebAssembly, and packages a self-contained Player into `result/dora-web-player`. Rust is only built and linked when a Rust-backed feature is explicitly enabled.
 	```sh
 	Tools/build-scripts/build_web.sh
 	```
@@ -200,7 +200,7 @@ The Web build compiles the engine to WebAssembly with Emscripten and produces th
 	node Tools/build-scripts/check_web_browser.mjs result/dora-web-player
 	```
 
-4. To tune the runtime before building, set `DORA_WEB_PROFILE` (`core`, `dora-preset`, or `custom`) and feature switches such as `DORA_WEB_FEATURE_MODEL_3D=ON`. The build directory defaults to `build/web` (`DORA_WEB_BUILD_DIR`), and `DORA_WEB_JOBS` controls build parallelism.
+4. To tune the runtime before building, set `DORA_WEB_PROFILE` (`core`, `dora-preset`, or `custom`) and feature switches such as `DORA_WEB_FEATURE_MUSIC=ON` or `DORA_WEB_FEATURE_MODEL_3D=ON`. Both default to `OFF`; enabling either builds and links the Rust runtime, while only the music switch enables the Rust `music` feature and its synthesizer/encoder dependencies. Web IDE HTML export keeps music generation disabled because exported games only need playback. The build directory defaults to `build/web` (`DORA_WEB_BUILD_DIR`), and `DORA_WEB_JOBS` controls build parallelism.
 
 </TabItem>
 </Tabs>

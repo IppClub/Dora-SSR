@@ -82,6 +82,7 @@ Projects/Linux/3rdParty/
 # Ignore rust files
 Source/Rust/lib/*
 Source/Rust/target/*
+Source/Rust/target-web-pthreads/*
 
 # Ignore tolua++ files
 Tools/tolua++/**/*.o

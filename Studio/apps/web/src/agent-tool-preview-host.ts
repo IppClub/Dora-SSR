@@ -31,7 +31,7 @@ export async function previewAgentGameTool(fs:AgentProjectFS,projectId:string,re
     ||!Array.isArray(times)||times.length<1||times.length>3
     ||times.some((time,index)=>typeof time!=='number'||!Number.isFinite(time)||time<0||time>10||(index>0&&time<=times[index-1])))return {success:false,message:'Invalid Agent preview options'};
   signal.throwIfAborted();
-  const installed=readInstalledAgentFiles(fs);
+  const installed=readInstalledAgentFiles(fs,true);
   if(!installed.some(file=>file.path===entry))return {success:false,message:'Build the entry before previewGame'};
   const files:ProjectFile[]=installed.map(file=>{
     try{return {path:file.path,kind:'text',text:decoder.decode(file.bytes)};}

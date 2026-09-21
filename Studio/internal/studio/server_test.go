@@ -434,6 +434,19 @@ func TestAgentLaunchAssetsModelAndLedger(t *testing.T) {
 	if !bytes.Contains(html, []byte("script")) {
 		t.Fatal("agent host HTML missing")
 	}
+	for path, marker := range map[string]string{
+		"/host-files/Agent/Gen/Music.d.ts":                                 "generateMusicAsync",
+		"/host-files/Doc/skills/music-generation/SKILL.md":                 "music-generation",
+		"/host-files/Doc/skills/music-generation/GeneralUserGS-Presets.md": "GeneralUser",
+	} {
+		resp = request(hostServer.Client(), "GET", base+path, "", nil)
+		mustStatus(t, resp.StatusCode, 200)
+		content, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if !bytes.Contains(content, []byte(marker)) {
+			t.Fatalf("Agent music support %s is incomplete", path)
+		}
+	}
 	resp = request(hostServer.Client(), "GET", base+"/model-config/grant-1", "", nil)
 	mustStatus(t, resp.StatusCode, 200)
 	var binding map[string]any

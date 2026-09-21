@@ -34,6 +34,11 @@ for(const name of ['worker.mjs','compiler.mjs'])files.push({path:'yarn/'+name,
 // trusted support; snapshot assembly expands them into those original paths.
 for(const language of ['en','zh'])files.push({path:`docs/${language}.json`,
   bytes:await readFile(new URL(`../packages/agent-contracts/dist/docs/${language}.json`,import.meta.url))});
+// Built-in skills and their typed helper declarations must live in the trusted
+// engine asset tree. They are read-only support files, never project content.
+files.push({path:'types/Agent/Gen/Music.d.ts',bytes:await readFile(new URL('../../Assets/Script/Lib/Agent/Gen/Music.d.ts',import.meta.url))});
+for(const name of ['SKILL.md','GeneralUserGS-Presets.md'])files.push({path:`skills/music-generation/${name}`,
+  bytes:await readFile(new URL(`../../Assets/Doc/skills/music-generation/${name}`,import.meta.url))});
 for(const path of ['AgentHostSession.lua','AgentSessionBridge.lua','StudioAgentEntry.lua','StudioAgentYueBuild.lua','StudioAgentXmlBuild.lua'])files.push({path,bytes:await readFile(new URL(`../packages/runtime-web/${path}`,import.meta.url))});
 // Use the exact global lint/TIC80 helpers used by the original WebServer Yue
 // build path. This module is integrity-pinned in the trusted host snapshot.
