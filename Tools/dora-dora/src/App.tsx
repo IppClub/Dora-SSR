@@ -69,6 +69,7 @@ import { isPathWithin, relativePathFromRoot, toUrlPath } from './PathUtils';
 import { getResourceTreeReconcileDirectories } from './ResourceTreeSync';
 import AudioPreviewCard from './AudioPreviewCard';
 import {useWebPackage} from './WebPackage/useWebPackage';
+import ExportDialog from './WebPackage/ExportDialog';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -101,7 +102,6 @@ document.addEventListener("contextmenu", (event) => {
 });
 
 let contentModified = false;
-let waitingForDownload = false;
 
 let saveEditingInfo: () => void = () => { };
 let lastSaveEditingInfoTime = Date.now();
@@ -3612,50 +3612,17 @@ export default function PersistentDrawerLeft() {
 				void openAgentSessionTab(data.key, data.dir);
 				break;
 			}
-			case "Download":
-			case "Obfuscate": {
+			case "Export": {
 				const rootNode = treeData.at(0);
 				if (rootNode === undefined) break;
-				const { key, title } = data;
-				if (!isChildFolder(key, rootNode.key)) {
+				if (!isChildFolder(data.key, rootNode.key)) {
 					addAlert(t("alert.downloadFailed"), "error");
 					break;
 				}
-				const downloadFile = (filename: string) => {
-					const downloadPath = toUrlPath(path.relative(writablePath, filename), path);
-					const x = new XMLHttpRequest();
-					x.open("GET", Service.addr("/" + downloadPath), true);
-					x.responseType = 'blob';
-					x.onload = function () {
-						const url = window.URL.createObjectURL(x.response);
-						const a = document.createElement('a');
-						a.href = url;
-						a.download = title;
-						a.click();
-					}
-					x.send();
-				};
 				if (!data.dir) {
-					downloadFile(key);
+					webPackageAction.downloadFile(data);
 				} else {
-					if (waitingForDownload) {
-						addAlert(t("alert.downloadWait"), "info");
-						break;
-					}
-					waitingForDownload = true;
-					addAlert(t("alert.downloadStart"), "info");
-					const zipFile = path.join(writablePath, ".download", title + ".zip");
-					Service.zip({ zipFile, path: key, obfuscated: event === "Obfuscate" }).then(res => {
-						waitingForDownload = false;
-						if (res.success) {
-							downloadFile(zipFile);
-						} else {
-							addAlert(t("alert.downloadFailed"), "error");
-						}
-					}).catch(() => {
-						addAlert(t("alert.downloadFailed"), "error");
-						waitingForDownload = false;
-					});
+					webPackageAction.open(data);
 				}
 				break;
 			}
@@ -3871,7 +3838,7 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 		}
-	}, [addAlert, buildTreeData, refreshTreeDirectory, t, files, deleteFile, treeData, openFileInTab, onEditorDidMount, switchTab, openAgentSessionTab, firstProjectTourOpen, firstProjectTourCurrent]);
+	}, [addAlert, buildTreeData, refreshTreeDirectory, t, files, deleteFile, treeData, openFileInTab, onEditorDidMount, switchTab, openAgentSessionTab, firstProjectTourOpen, firstProjectTourCurrent, webPackageAction]);
 
 	const onNewFileClose = (item?: DoraFileType) => {
 		let ext: string | null = null;
@@ -5505,6 +5472,7 @@ export default function PersistentDrawerLeft() {
 			</Dialog>
 			<NewFileDialog open={openNewFile !== null} onClose={onNewFileClose} />
 			<LLMConfigDialog open={openLLMConfig} onClose={() => setOpenLLMConfig(false)} />
+			<ExportDialog action={webPackageAction} />
 			<FirstProjectTour
 				open={firstProjectTourOpen}
 				current={firstProjectTourCurrent}

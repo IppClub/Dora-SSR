@@ -31,7 +31,6 @@ import {
 	AiOutlineFileAdd,
 	AiOutlineDelete,
 	AiOutlineEdit,
-	AiOutlineDownload,
 	AiOutlineSetting,
 	AiFillFileZip,
 	AiOutlineUpload,
@@ -42,7 +41,7 @@ import { RxClipboardCopy } from "react-icons/rx";
 import { GoFileCode, GoChecklist } from "react-icons/go";
 import { FcImageFile } from 'react-icons/fc';
 import { SiWebassembly } from 'react-icons/si';
-import { BsGrid3X3Gap } from 'react-icons/bs';
+import { BsBoxSeam, BsGrid3X3Gap } from 'react-icons/bs';
 import { CaretDownFilled } from '@ant-design/icons';
 import { ConfigProvider, Tree, theme as antdTheme } from 'antd';
 import type { TreeDataNode, TreeNodeProps, TreeProps } from 'antd';
@@ -58,7 +57,7 @@ import yarnLogo from './yarn.png';
 import doraAnimationLogo from './dora-animation.png';
 import doraBodyLogo from './dora-body.png';
 import { DiCode } from 'react-icons/di';
-import { TbMoodConfuzed, TbMusic, TbSql } from 'react-icons/tb';
+import { TbMusic, TbSql } from 'react-icons/tb';
 import { SiNodered } from 'react-icons/si';
 import { VscMarkdown } from 'react-icons/vsc';
 import { MacScrollbar } from 'mac-scrollbar';
@@ -186,7 +185,7 @@ const fileIcon = (props: TreeNodeProps) => {
 	return <AiOutlineFile />;
 };
 
-export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Upload" | "Download" | "Cancel" | "Unzip" | "Pack Atlas" | "View Compiled" | "Copy Path" | "Build" | "Obfuscate" | "Declaration" | "Update Dora" | "Dora";
+export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Upload" | "Export" | "Cancel" | "Unzip" | "Pack Atlas" | "View Compiled" | "Copy Path" | "Build" | "Declaration" | "Update Dora" | "Dora";
 
 export interface FileTreeProps {
 	selectedKeys: string[];
@@ -498,12 +497,11 @@ export default memo(function FileTree(props: FileTreeProps) {
 	const enableDelete = (!isRoot && !isBuiltin) || Info.engineDev;
 	const enableRename = (!isRoot && !isBuiltin) || Info.engineDev;
 	const enableUpload = isRoot || !isBuiltin;
-	const enableDownload = isRoot || !isBuiltin;
+	const enableExport = isRoot || !isBuiltin;
 	const enableCopyPath = (!isRoot || isBuiltin) || Info.engineDev;
 	const enableUnzip = !isRoot && !isBuiltin;
 	const enablePackAtlas = anchorItem?.data.dir === true && ext === ".clips" && (((!isRoot && !isBuiltin) || Info.engineDev));
 	const enableBuild = (isRoot || !isBuiltin) || Info.engineDev;
-	const enableObfuscate = (isRoot || !isBuiltin) || Info.engineDev;
 	const enableViewCompiled = (!isRoot && !isBuiltin) || Info.engineDev;
 	const enableDeclaration =
 		anchorItem?.data.dir !== true &&
@@ -604,12 +602,12 @@ export default memo(function FileTree(props: FileTreeProps) {
 						<ListItemText primary={t("menu.upload")} />
 					</StyledMenuItem> : null
 				}
-				{enableDownload ?
-					<StyledMenuItem onClick={() => handleClose("Download", anchorItem?.data)}>
+				{enableExport ?
+					<StyledMenuItem onClick={() => handleClose("Export", anchorItem?.data)}>
 						<ListItemIcon>
-							<AiOutlineDownload />
+							<BsBoxSeam />
 						</ListItemIcon>
-						<ListItemText primary={t("menu.download")} />
+						<ListItemText primary={t("menu.export")} />
 					</StyledMenuItem> : null
 				}
 				{enableCopyPath ?
@@ -670,14 +668,6 @@ export default memo(function FileTree(props: FileTreeProps) {
 							<Refresh />
 						</ListItemIcon>
 						<ListItemText primary={t("menu.updateDora")} />
-					</StyledMenuItem> : null
-				}
-				{enableObfuscate && anchorItem && anchorItem.data.dir ?
-					<StyledMenuItem onClick={() => handleClose("Obfuscate", anchorItem?.data)}>
-						<ListItemIcon>
-							<TbMoodConfuzed />
-						</ListItemIcon>
-						<ListItemText primary={t("menu.obfuscate")} />
 					</StyledMenuItem> : null
 				}
 				{enableViewCompiled && anchorItem &&

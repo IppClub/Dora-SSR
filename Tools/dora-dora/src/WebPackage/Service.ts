@@ -28,6 +28,44 @@ async function fetchBytes(url: string, limit: number): Promise<Uint8Array> {
   return result;
 }
 
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = Array.from(filename, character => (
+    character.charCodeAt(0) < 32 || '<>:"/\\|?*'.includes(character) ? '_' : character
+  )).join('');
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+async function readWorkspaceFile(filename: string, writablePath: string): Promise<Blob> {
+  const relative = toUrlPath(Info.path.relative(writablePath, filename), Info.path);
+  const url = Service.addr('/' + relative.split('/').map(encodeURIComponent).join('/'));
+  const response = await fetch(url, {signal: AbortSignal.timeout(120000)});
+  if (!response.ok) throw new Error(`Download failed: ${response.status}`);
+  return await response.blob();
+}
+
+export async function downloadWorkspaceFile(filename: string, writablePath: string, title: string) {
+  downloadBlob(await readWorkspaceFile(filename, writablePath), title);
+}
+
+export async function packageDirectory(directory: string, writablePath: string, title: string, obfuscated: boolean) {
+  const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const zipFile = Info.path.join(writablePath, '.download', `export-${id}.zip`);
+  try {
+    const result = await Service.zip({path: directory, zipFile, obfuscated});
+    if (!result.success) throw new Error('export.failed');
+    const suffix = obfuscated ? '-obfuscated.zip' : '.zip';
+    downloadBlob(await readWorkspaceFile(zipFile, writablePath), `${title}${suffix}`);
+  } finally {
+    await Service.deleteFile({path: zipFile}).catch(() => undefined);
+  }
+}
+
 async function loadRuntime(): Promise<PackageFiles> {
   try {
     const base = new URL('web-player/', document.baseURI);
@@ -64,12 +102,5 @@ export async function packageWebProject(projectRoot: string, writablePath: strin
 }
 
 export function downloadWebArchive(bytes: Uint8Array, title: string, format: WebPackageFormat) {
-  const url = URL.createObjectURL(new Blob([bytes as BlobPart], {type: 'application/zip'}));
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = `${title.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_')}-web-${format}.zip`;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  downloadBlob(new Blob([bytes as BlobPart], {type: 'application/zip'}), `${title}-web-${format}.zip`);
 }
