@@ -10,8 +10,13 @@ SAMPLER2D(s_occlusion, 4);
 SAMPLER2D(s_clearcoat, 5);
 SAMPLER2D(s_clearcoatRoughness, 6);
 SAMPLER2D(s_clearcoatNormal, 7);
+#if BGFX_SHADER_LANGUAGE_GLSL >= 300
+uniform highp samplerCube s_irradiance;
+uniform highp samplerCube s_prefilter;
+#else
 SAMPLERCUBE(s_irradiance, 8);
 SAMPLERCUBE(s_prefilter, 9);
+#endif
 SAMPLER2D(s_shadowMap, 10);
 SAMPLER2D(s_specular, 11);
 SAMPLER2D(s_specularColor, 12);
@@ -108,6 +113,33 @@ vec3 linearToSrgb(vec3 value)
 	return pow(max(value, vec3_splat(0.0)), vec3_splat(1.0 / 2.2));
 }
 
+highp vec3 safeTangent(highp vec3 normal, highp vec3 tangent)
+{
+	highp vec3 orthogonal = tangent - normal * dot(normal, tangent);
+	highp float lengthSquared = dot(orthogonal, orthogonal);
+	// glTF tangents are optional. Avoid propagating normalize(0) when a mesh has none.
+	if (lengthSquared != lengthSquared || lengthSquared <= 0.000001)
+	{
+		highp vec3 axis = abs(normal.y) < 0.999 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+		orthogonal = cross(axis, normal);
+		lengthSquared = max(dot(orthogonal, orthogonal), 0.000001);
+	}
+	return orthogonal * inversesqrt(lengthSquared);
+}
+
+highp vec3 safeNormalize(highp vec3 value, highp vec3 fallback)
+{
+	highp float lengthSquared = dot(value, value);
+	// View and light vectors can be opposite, leaving their half-vector at zero.
+	if (lengthSquared != lengthSquared || lengthSquared <= 0.000001) return fallback;
+	return value * inversesqrt(lengthSquared);
+}
+
+float tangentHandedness(float value)
+{
+	return value < -0.5 ? -1.0 : 1.0;
+}
+
 float saturateFloat(float value)
 {
 	return clamp(value, 0.0, 1.0);
@@ -115,9 +147,9 @@ float saturateFloat(float value)
 
 vec3 getNormal(vec3 worldNormal, vec4 worldTangent, vec2 uv)
 {
-	vec3 normal = normalize(worldNormal);
-	vec3 tangent = normalize(worldTangent.xyz);
-	vec3 bitangent = normalize(cross(normal, tangent) * worldTangent.w);
+	highp vec3 normal = normalize(worldNormal);
+	highp vec3 tangent = safeTangent(normal, worldTangent.xyz);
+	highp vec3 bitangent = cross(normal, tangent) * tangentHandedness(worldTangent.w);
 	vec3 tangentNormal = texture2D(s_normal, uv).xyz * 2.0 - 1.0;
 	tangentNormal.xy *= u_metallicRoughness.z;
 	return normalize(tangent * tangentNormal.x + bitangent * tangentNormal.y + normal * tangentNormal.z);
@@ -125,9 +157,9 @@ vec3 getNormal(vec3 worldNormal, vec4 worldTangent, vec2 uv)
 
 vec3 getTextureNormal(vec3 worldNormal, vec4 worldTangent, vec2 uv, vec3 tangentNormal, float scale)
 {
-	vec3 normal = normalize(worldNormal);
-	vec3 tangent = normalize(worldTangent.xyz);
-	vec3 bitangent = normalize(cross(normal, tangent) * worldTangent.w);
+	highp vec3 normal = normalize(worldNormal);
+	highp vec3 tangent = safeTangent(normal, worldTangent.xyz);
+	highp vec3 bitangent = cross(normal, tangent) * tangentHandedness(worldTangent.w);
 	tangentNormal = tangentNormal * 2.0 - 1.0;
 	tangentNormal.xy *= scale;
 	return normalize(tangent * tangentNormal.x + bitangent * tangentNormal.y + normal * tangentNormal.z);
@@ -278,7 +310,7 @@ vec3 evaluateDirectLight(
 	float anisotropyStrength,
 	float transmissionFactor)
 {
-	vec3 h = normalize(v + l);
+	highp vec3 h = safeNormalize(v + l, n);
 	float nDotL = saturateFloat(dot(n, l));
 	float nDotV = max(saturateFloat(dot(n, v)), 0.000001);
 	float nDotH = saturateFloat(dot(n, h));
@@ -312,7 +344,11 @@ vec3 evaluateDirectLight(
 	float ccD = distributionGGX(ccNDotH, clearcoatRoughness);
 	float ccG = geometrySchlickGGX(ccNDotV, clearcoatRoughness) * geometrySchlickGGX(ccNDotL, clearcoatRoughness);
 	float ccF = fresnelSchlick(ccHDotV, vec3_splat(0.04)).x;
-	vec3 clearcoatSpecular = vec3_splat((ccD * ccG * ccF) / max(4.0 * ccNDotV * ccNDotL, 0.000001) * ccNDotL * clearcoatFactor);
+	vec3 clearcoatSpecular = vec3_splat(0.0);
+	if (clearcoatFactor > 0.0001)
+	{
+		clearcoatSpecular = vec3_splat((ccD * ccG * ccF) / max(4.0 * ccNDotV * ccNDotL, 0.000001) * ccNDotL * clearcoatFactor);
+	}
 	float sheenPower = mix(8.0, 2.0, sheenRoughness);
 	float sheenLobe = pow(max(1.0 - hDotV, 0.0), sheenPower) * (0.5 + 0.5 * sheenRoughness);
 	vec3 sheenDirect = sheenColor * sheenLobe * nDotL * (1.0 - metallic);
@@ -341,8 +377,8 @@ void main()
 	vec2 thicknessUv = transformUv(selectUv(v_texcoord01, u_uvThicknessOffset.z), u_uvThickness, u_uvThicknessOffset);
 #endif
 	vec2 sheenColorUv = transformUv(selectUv(v_texcoord01, u_uvSheenColorOffset.z), u_uvSheenColor, u_uvSheenColorOffset);
-	vec4 baseSample = texture2D(s_baseColor, baseColorUv);
-	vec4 baseColor = vec4(srgbToLinear(baseSample.rgb), baseSample.a) * u_baseColor * v_color0;
+	highp vec4 baseSample = texture2D(s_baseColor, baseColorUv);
+	highp vec4 baseColor = vec4(srgbToLinear(baseSample.rgb), baseSample.a) * u_baseColor * v_color0;
 	if (u_alphaMode.x > 0.5 && u_alphaMode.x < 1.5 && baseColor.a < u_alphaMode.y)
 	{
 		discard;
@@ -363,25 +399,25 @@ void main()
 	float sheenRoughness = clamp(u_sheen.w, 0.0, 1.0);
 #endif
 	float occlusion = mix(1.0, texture2D(s_occlusion, occlusionUv).r, u_metallicRoughness.w);
-	vec3 emissive = srgbToLinear(texture2D(s_emissive, emissiveUv).rgb) * u_emissiveFactor.rgb;
+	highp vec3 emissive = srgbToLinear(texture2D(s_emissive, emissiveUv).rgb) * u_emissiveFactor.rgb;
 	if (u_materialExt.z > 0.5)
 	{
-		vec3 unlitColor = pbrNeutralToneMap((baseColor.rgb + emissive) * u_pbrParams.x);
+		highp vec3 unlitColor = pbrNeutralToneMap((baseColor.rgb + emissive) * u_pbrParams.x);
 		gl_FragColor = vec4(linearToSrgb(unlitColor), baseColor.a);
 		return;
 	}
 
-	vec3 n = getNormal(v_worldNormal.xyz, v_worldTangent, normalUv);
-	vec3 clearcoatNormal = getTextureNormal(
+	highp vec3 n = getNormal(v_worldNormal.xyz, v_worldTangent, normalUv);
+	highp vec3 clearcoatNormal = getTextureNormal(
 		v_worldNormal.xyz,
 		v_worldTangent,
 		clearcoatNormalUv,
 		texture2D(s_clearcoatNormal, clearcoatNormalUv).xyz,
 		u_clearcoat.z);
-	vec3 v = normalize(u_viewPos.xyz - v_worldPos.xyz);
+	highp vec3 v = normalize(u_viewPos.xyz - v_worldPos.xyz);
 	float nDotV = max(saturateFloat(dot(n, v)), 0.000001);
-	vec3 tangent = normalize(v_worldTangent.xyz - n * dot(n, v_worldTangent.xyz));
-	vec3 bitangent = normalize(cross(n, tangent) * v_worldTangent.w);
+	highp vec3 tangent = safeTangent(n, v_worldTangent.xyz);
+	highp vec3 bitangent = cross(n, tangent) * tangentHandedness(v_worldTangent.w);
 	float anisotropyDirectionX = u_anisotropy.y;
 	float anisotropyDirectionY = u_anisotropy.z;
 	float anisotropyStrength = saturateFloat(u_anisotropy.x);
@@ -394,17 +430,17 @@ void main()
 		anisotropyDirectionY = textureDirectionX * u_anisotropy.z + textureDirectionY * u_anisotropy.y;
 		anisotropyStrength *= metallicRoughness.a;
 	}
-	vec3 anisotropyTangent = normalize(tangent * anisotropyDirectionX + bitangent * anisotropyDirectionY);
-	vec3 anisotropyBitangent = normalize(cross(n, anisotropyTangent));
+	highp vec3 anisotropyTangent = normalize(tangent * anisotropyDirectionX + bitangent * anisotropyDirectionY);
+	highp vec3 anisotropyBitangent = normalize(cross(n, anisotropyTangent));
 
 	float dielectricF0 = pow((u_materialExt.y - 1.0) / (u_materialExt.y + 1.0), 2.0);
 	float specularStrength = saturateFloat(u_materialExt.x * texture2D(s_specular, specularUv).a);
 	vec3 specularColorFactor = u_specularColor.rgb * srgbToLinear(texture2D(s_specularColor, specularColorUv).rgb);
-	vec3 dielectricF0Color = min(vec3_splat(dielectricF0) * specularColorFactor, vec3_splat(1.0)) * specularStrength;
-	vec3 dielectricF90Color = vec3_splat(specularStrength);
+	highp vec3 dielectricF0Color = min(vec3_splat(dielectricF0) * specularColorFactor, vec3_splat(1.0)) * specularStrength;
+	highp vec3 dielectricF90Color = vec3_splat(specularStrength);
 	float ccNDotV = max(saturateFloat(dot(clearcoatNormal, v)), 0.000001);
 	float sheenStrength = maxValue(sheenColor);
-	vec3 direct = vec3_splat(0.0);
+	highp vec3 direct = vec3_splat(0.0);
 	if (u_directionalLightDirection.w > 0.5)
 	{
 		vec3 directionalLight = normalize(u_directionalLightDirection.xyz);
@@ -429,8 +465,8 @@ void main()
 	vec3 kD = vec3_splat(1.0 - maxValue(dielectricFAmbient)) * (1.0 - metallic);
 	vec3 overflowIrradiance = max(u_overflowLightSH[0].rgb + u_overflowLightSH[1].rgb * n.x + u_overflowLightSH[2].rgb * n.y + u_overflowLightSH[3].rgb * n.z, vec3_splat(0.0));
 	direct += kD * baseColor.rgb * overflowIrradiance * occlusion * (1.0 - transmissionFactor) / PI;
-	vec3 diffuseIrradiance = textureCube(s_irradiance, n).rgb * u_envDiffuse.a;
-	vec3 diffuseAmbient = kD * baseColor.rgb * diffuseIrradiance * occlusion * (1.0 - transmissionFactor) / PI;
+	highp vec3 diffuseIrradiance = textureCube(s_irradiance, n).rgb * u_envDiffuse.a;
+	highp vec3 diffuseAmbient = kD * baseColor.rgb * diffuseIrradiance * occlusion * (1.0 - transmissionFactor) / PI;
 	vec3 r = reflect(-v, n);
 	if (anisotropyStrength > 0.0001)
 	{
@@ -443,8 +479,8 @@ void main()
 	float eta = 1.0 / max(u_materialExt.y, 0.001);
 	vec3 transmissionDir = refract(-v, n, eta);
 	transmissionDir = dot(transmissionDir, transmissionDir) > 0.000001 ? transmissionDir : -r;
-	vec3 transmissionIrradiance = textureCubeLod(s_prefilter, transmissionDir, roughness * u_envSpecular.y).rgb * u_envSpecular.a;
-	vec3 transmissionColor = transmissionIrradiance * baseColor.rgb * transmissionFactor * occlusion;
+	highp vec3 transmissionIrradiance = textureCubeLod(s_prefilter, transmissionDir, roughness * u_envSpecular.y).rgb * u_envSpecular.a;
+	highp vec3 transmissionColor = transmissionIrradiance * baseColor.rgb * transmissionFactor * occlusion;
 #ifdef DORA_THICKNESS_SHEEN_TEXTURE
 	float thickness = max(u_volume.x * texture2D(s_thicknessSheen, thicknessUv).g, 0.0);
 #elif defined(DORA_SHEEN_ROUGHNESS_TEXTURE)
@@ -457,16 +493,16 @@ void main()
 		vec3 attenuation = pow(clamp(u_attenuationColor.rgb, vec3_splat(0.0001), vec3_splat(1.0)), vec3_splat(thickness / u_volume.y));
 		transmissionColor *= attenuation;
 	}
-	vec3 specularIrradiance = textureCubeLod(s_prefilter, r, roughness * u_envSpecular.y).rgb * u_envSpecular.a;
+	highp vec3 specularIrradiance = textureCubeLod(s_prefilter, r, roughness * u_envSpecular.y).rgb * u_envSpecular.a;
 	vec2 envBRDF = environmentBRDF(nDotV, roughness);
 	vec3 dielectricSpecularAmbient = specularIrradiance * (dielectricF0Color * envBRDF.x + dielectricF90Color * envBRDF.y);
 	vec3 metalSpecularAmbient = specularIrradiance * (baseColor.rgb * envBRDF.x + vec3_splat(envBRDF.y));
-	vec3 specularAmbient = mix(dielectricSpecularAmbient, metalSpecularAmbient, metallic) * occlusion;
+	highp vec3 specularAmbient = mix(dielectricSpecularAmbient, metalSpecularAmbient, metallic) * occlusion;
 	vec3 clearcoatR = reflect(-v, clearcoatNormal);
 	vec2 clearcoatBRDF = environmentBRDF(ccNDotV, clearcoatRoughness);
 	vec3 clearcoatAmbient = textureCubeLod(s_prefilter, clearcoatR, clearcoatRoughness * u_envSpecular.y).rgb * (0.04 * clearcoatBRDF.x + clearcoatBRDF.y) * clearcoatFactor * u_envSpecular.a * occlusion;
 	vec3 sheenAmbient = diffuseIrradiance * sheenColor * sheenStrength * (0.25 + 0.5 * sheenRoughness) * occlusion;
-	vec3 color = (diffuseAmbient * (1.0 - 0.25 * clearcoatFactor) + transmissionColor + specularAmbient + clearcoatAmbient + sheenAmbient + direct + emissive) * u_pbrParams.x;
+	highp vec3 color = (diffuseAmbient * (1.0 - 0.25 * clearcoatFactor) + transmissionColor + specularAmbient + clearcoatAmbient + sheenAmbient + direct + emissive) * u_pbrParams.x;
 	color = pbrNeutralToneMap(color);
 	gl_FragColor = vec4(linearToSrgb(color), baseColor.a * (1.0 - 0.65 * transmissionFactor));
 }
