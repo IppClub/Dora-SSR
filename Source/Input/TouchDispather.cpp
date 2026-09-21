@@ -22,7 +22,7 @@ NS_DORA_BEGIN
 /* Touch */
 
 uint32_t Touch::_source =
-#if BX_PLATFORM_EMSCRIPTEN
+#if BX_PLATFORM_EMSCRIPTEN || BX_PLATFORM_WINDOWS
 	Touch::FromMouseAndTouch;
 #elif BX_PLATFORM_OSX
 	Touch::FromMouse;
