@@ -15,7 +15,7 @@ pnpm serve --host 127.0.0.1 --port 8896
 
 脚本默认更新 `build/Dora-Demo` 到上游默认分支的最新提交（通过远端 HEAD 查询，当前为 master），编译当前引擎源码并扫描所有顶层游戏目录。引擎 checkout 应在开始构建前更新到最新 main；脚本不修改开发者 checkout。没有预生成 `init.lua` 的游戏会明确失败，不会静默跳过。引擎和 demo 的提交信息只用于追溯，不是固定版本依赖。
 
-`DORA_DEMO_DIR` 可指定本地开发目录（不会拉取或修改该目录）；`DORA_WEB_BUILD_DIR` 指定 Web 构建目录；`DORA_WEB_GALLERY_DIR` 指定静态输出目录，默认 `Docs/static/play`。生成目录不提交 Git。当前 preset 包含 AI Fighter 所需的 ML 与 Yue 编译器；可以通过 `DORA_WEB_FEATURE_ML`、`DORA_WEB_FEATURE_YUE` 裁剪其他用途的运行时。
+`DORA_DEMO_DIR` 可指定本地开发目录（不会拉取或修改该目录）；`DORA_WEB_BUILD_DIR` 指定 Web 构建目录；`DORA_WEB_GALLERY_DIR` 指定静态输出目录，默认 `Docs/static/play`。生成目录不提交 Git。Gallery 会显式启用 AI Fighter 所需的 ML 与 Yue 编译器，以及 Returning Home 所需的 Model3D、Jolt3D 和 Rust bridge；这些大型可选模块在其他 Web 构建中仍可通过对应的 `DORA_WEB_FEATURE_*` 配置裁剪。
 
 运行时目录按其内容哈希命名，游戏目录按 manifest 哈希命名。全部打包成功后才替换 `catalog.json`，保留旧资源供已打开页面继续使用。发布时应整体部署文档 build；发布环境应定期保留最近成功版本并清理旧资源。构建不向远程网站发布。
 
@@ -23,7 +23,7 @@ pnpm serve --host 127.0.0.1 --port 8896
 
 Docs 工作流会先安装与 Web CI 一致的工具链，运行 `build_web_gallery.mjs`，获取 Dora-Demo 默认分支最新源码并生成完整的共享 Player 和全部游戏，然后执行 Docusaurus 构建。干净构建直接使用完整中文字体，不重复链接默认字体版本。PR 只构建检查；main 和手动运行仍按原条件部署 Pages。
 
-部署前 `check_web_gallery.mjs` 检查 `Docs/build/play` 中的实际文件：Player/WASM、功能声明、所有游戏、封面和资源大小/SHA-256，缺失或损坏会阻止上传。引擎、资源、Web 打包脚本和工作流的变更也会触发 Docs 构建。仅 Dora-Demo 仓库更新时，可手动运行 Docs 工作流刷新网站；不固定游戏提交版本。CI 不启动 Chrome，不依赖图形环境。
+部署前 `check_web_gallery.mjs` 检查 `Docs/build/play` 中的实际文件：Player/WASM、ML/Yue/Model3D/Jolt3D/Rust bridge 功能声明、所有游戏、封面和资源大小/SHA-256，缺失或损坏会阻止上传。引擎、资源、Web 打包脚本和工作流的变更也会触发 Docs 构建。仅 Dora-Demo 仓库更新时，可手动运行 Docs 工作流刷新网站；不固定游戏提交版本。CI 不启动 Chrome，不依赖图形环境。
 
 ## 本地浏览器验证
 

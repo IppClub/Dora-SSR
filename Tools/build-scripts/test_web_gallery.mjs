@@ -36,7 +36,8 @@ try {
 	write(`${player}dora-player-runtime.wasm`, Buffer.from([0,97,115,109,1,0,0,0]));
 	write(`${player}dora-audio-mixer.wasm`, Buffer.from([0,97,115,109,1,0,0,0]));
 	write(`${player}dora-web-features.json`, JSON.stringify({activeProfile:'dora-preset', modules:{crossOriginIsolationRequired:false,
-		machineLearning:true, yueCompiler:true, playRho2D:true, entity:true, platformer:true, builtinLuaLibraries:true}}));
+		machineLearning:true, yueCompiler:true, playRho2D:true, entity:true, platformer:true, builtinLuaLibraries:true,
+		model3D:true, jolt3D:true, rustBridge:true}}));
 	const data = 'print("demo")';
 	write(`${game}init.lua`, data);
 	write(`${game}manifest.json`, JSON.stringify({format:'dora-web-game', profile:'dora-preset', files:[{path:'init.lua', url:'init.lua', startup:true,
@@ -44,6 +45,13 @@ try {
 	write('LICENSE-Dora-Demo', 'test license');
 	const valid = run();
 	assert.equal(valid.status, 0, valid.stderr);
+	write(`${player}dora-web-features.json`, JSON.stringify({activeProfile:'dora-preset', modules:{crossOriginIsolationRequired:false,
+		machineLearning:true, yueCompiler:true, playRho2D:true, entity:true, platformer:true, builtinLuaLibraries:true,
+		model3D:false, jolt3D:false, rustBridge:false}}));
+	assert.match(run().stderr, /missing runtime feature: model3D/);
+	write(`${player}dora-web-features.json`, JSON.stringify({activeProfile:'dora-preset', modules:{crossOriginIsolationRequired:false,
+		machineLearning:true, yueCompiler:true, playRho2D:true, entity:true, platformer:true, builtinLuaLibraries:true,
+		model3D:true, jolt3D:true, rustBridge:true}}));
 	write(`${game}init.lua`, data.replace('demo', 'oops'));
 	const corrupt = run();
 	assert.notEqual(corrupt.status, 0);

@@ -18,7 +18,7 @@ if (!process.env.DORA_DEMO_DIR) {
 	run('git', ['switch', '--detach', 'FETCH_HEAD'], demo);
 }
 const build = path.resolve(process.env.DORA_WEB_BUILD_DIR || path.join(root, 'build/web'));
-const requiredFeatures = ['PHYSICS_2D', 'ENTITY', 'PLATFORMER', 'BUILTIN_LIBS', 'ML', 'YUE'];
+const requiredFeatures = ['PHYSICS_2D', 'ENTITY', 'PLATFORMER', 'BUILTIN_LIBS', 'ML', 'YUE', 'MODEL_3D'];
 const builtinFont = path.join(root, 'Assets/Font/sarasa-mono-sc-regular.ttf');
 if (!fs.existsSync(path.join(build, 'CMakeCache.txt'))) {
 	execFileSync('bash', ['Tools/build-scripts/build_web.sh'], {cwd: root, stdio: 'inherit', env: {...process.env,
@@ -33,7 +33,11 @@ if (!fs.existsSync(path.join(build, 'CMakeCache.txt'))) {
 	run('cmake', ['--build', build, '--target', 'dora-web-player', '-j', process.env.DORA_WEB_JOBS || '8']);
 }
 const features = JSON.parse(fs.readFileSync(path.join(build, 'dora-web-features.json')));
-if (features.activeProfile !== 'dora-preset' || features.modules.crossOriginIsolationRequired || !features.modules.machineLearning || !features.modules.yueCompiler) throw new Error('Gallery requires a single-threaded dora-preset build with ML and Yue');
+if (features.activeProfile !== 'dora-preset' || features.modules.crossOriginIsolationRequired
+	|| !features.modules.machineLearning || !features.modules.yueCompiler
+	|| !features.modules.model3D || !features.modules.jolt3D || !features.modules.rustBridge) {
+	throw new Error('Gallery requires a single-threaded dora-preset build with ML, Yue and Model3D/Jolt3D');
+}
 const destination = path.resolve(process.env.DORA_WEB_GALLERY_DIR || path.join(root, 'Docs/static/play'));
 const output = fs.mkdtempSync(path.join(root, 'build/web-gallery-output-'));
 let galleryPublished = false;

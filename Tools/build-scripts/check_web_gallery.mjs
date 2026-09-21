@@ -32,7 +32,7 @@ assert.ok(WebAssembly.validate(file('dora-audio-mixer.wasm', player)), 'invalid 
 const features = JSON.parse(file('dora-web-features.json', player));
 assert.equal(features.activeProfile, 'dora-preset');
 assert.equal(features.modules.crossOriginIsolationRequired, false);
-for (const name of ['machineLearning', 'yueCompiler', 'playRho2D', 'entity', 'platformer', 'builtinLuaLibraries']) assert.equal(features.modules[name], true, `missing runtime feature: ${name}`);
+for (const name of ['machineLearning', 'yueCompiler', 'playRho2D', 'entity', 'platformer', 'builtinLuaLibraries', 'model3D', 'jolt3D', 'rustBridge']) assert.equal(features.modules[name], true, `missing runtime feature: ${name}`);
 const ids = new Set();
 let count = 0;
 for (const game of catalog.games) {
