@@ -22,7 +22,7 @@ NS_DORA_BEGIN
 /* Touch */
 
 uint32_t Touch::_source =
-#if BX_PLATFORM_EMSCRIPTEN || BX_PLATFORM_WINDOWS
+#if BX_PLATFORM_EMSCRIPTEN
 	Touch::FromMouseAndTouch;
 #elif BX_PLATFORM_OSX
 	Touch::FromMouse;
@@ -296,12 +296,12 @@ bool NodeTouchHandler::down(const SDL_Event& event) {
 	int64_t id = 0;
 	switch (event.type) {
 		case SDL_MOUSEBUTTONDOWN:
-			if ((Touch::getSource() & Touch::FromMouseAndTouch) && event.button.which == SDL_TOUCH_MOUSEID) return false;
+			if ((Touch::getSource() & Touch::FromMouseAndTouch) == Touch::FromMouseAndTouch && event.button.which == SDL_TOUCH_MOUSEID) return false;
 			if ((Touch::getSource() & Touch::FromMouse) == 0) return false;
 			id = INT64_MAX;
 			break;
 		case SDL_FINGERDOWN:
-			if ((Touch::getSource() & Touch::FromMouseAndTouch) && event.tfinger.touchId == SDL_MOUSE_TOUCHID) return false;
+			if ((Touch::getSource() & Touch::FromMouseAndTouch) == Touch::FromMouseAndTouch && event.tfinger.touchId == SDL_MOUSE_TOUCHID) return false;
 			if ((Touch::getSource() & Touch::FromTouch) == 0) return false;
 			id = event.tfinger.fingerId;
 			break;
@@ -346,12 +346,12 @@ bool NodeTouchHandler::up(const SDL_Event& event) {
 	int64_t id = 0;
 	switch (event.type) {
 		case SDL_MOUSEBUTTONUP:
-			if ((Touch::getSource() & Touch::FromMouseAndTouch) && event.button.which == SDL_TOUCH_MOUSEID) return false;
+			if ((Touch::getSource() & Touch::FromMouseAndTouch) == Touch::FromMouseAndTouch && event.button.which == SDL_TOUCH_MOUSEID) return false;
 			if ((Touch::getSource() & Touch::FromMouse) == 0) return false;
 			id = INT64_MAX;
 			break;
 		case SDL_FINGERUP:
-			if ((Touch::getSource() & Touch::FromMouseAndTouch) && event.tfinger.touchId == SDL_MOUSE_TOUCHID) return false;
+			if ((Touch::getSource() & Touch::FromMouseAndTouch) == Touch::FromMouseAndTouch && event.tfinger.touchId == SDL_MOUSE_TOUCHID) return false;
 			if ((Touch::getSource() & Touch::FromTouch) == 0) return false;
 			id = event.tfinger.fingerId;
 			break;
@@ -389,12 +389,12 @@ bool NodeTouchHandler::move(const SDL_Event& event) {
 	Touch* touch = nullptr;
 	switch (event.type) {
 		case SDL_MOUSEMOTION:
-			if ((Touch::getSource() & Touch::FromMouseAndTouch) && event.motion.which == SDL_TOUCH_MOUSEID) return false;
+			if ((Touch::getSource() & Touch::FromMouseAndTouch) == Touch::FromMouseAndTouch && event.motion.which == SDL_TOUCH_MOUSEID) return false;
 			if ((Touch::getSource() & Touch::FromMouse) == 0) return false;
 			touch = get(INT64_MAX);
 			break;
 		case SDL_FINGERMOTION:
-			if ((Touch::getSource() & Touch::FromMouseAndTouch) && event.tfinger.touchId == SDL_MOUSE_TOUCHID) return false;
+			if ((Touch::getSource() & Touch::FromMouseAndTouch) == Touch::FromMouseAndTouch && event.tfinger.touchId == SDL_MOUSE_TOUCHID) return false;
 			if ((Touch::getSource() & Touch::FromTouch) == 0) return false;
 			touch = get(event.tfinger.fingerId);
 			break;
