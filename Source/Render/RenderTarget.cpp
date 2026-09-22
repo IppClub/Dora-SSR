@@ -207,14 +207,14 @@ void RenderTarget::submitAfterClear(const std::function<void()>& commands, uint1
 				if (_camera) {
 					Matrix tmpVP;
 					Matrix revertY;
-					bx::mtxScale(revertY.m, 1.0f, -1.0f, 1.0f);
+					revertY.ktm() = ktm::scale3d(ktm::fvec3{1.0f, -1.0f, 1.0f});
 					if (_camera->hasProjection())
 						tmpVP = _camera->getView();
 					else
 						Matrix::mulMtx(tmpVP, SharedView.getProjection(), _camera->getView());
 					Matrix::mulMtx(viewProj, revertY, tmpVP);
 				} else {
-					bx::mtxOrtho(viewProj.m, 0, s_cast<float>(_textureWidth), s_cast<float>(_textureHeight), 0, -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
+					Matrix::ortho(viewProj, 0.0f, s_cast<float>(_textureWidth), s_cast<float>(_textureHeight), 0.0f, -1000.0f, 1000.0f, 0.0f, bgfx::getCaps()->homogeneousDepth);
 				}
 				break;
 			}
@@ -225,7 +225,7 @@ void RenderTarget::submitAfterClear(const std::function<void()>& commands, uint1
 					else
 						Matrix::mulMtx(viewProj, SharedView.getProjection(), _camera->getView());
 				} else {
-					bx::mtxOrtho(viewProj.m, 0, s_cast<float>(_textureWidth), 0, s_cast<float>(_textureHeight), -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
+					Matrix::ortho(viewProj, 0.0f, s_cast<float>(_textureWidth), 0.0f, s_cast<float>(_textureHeight), -1000.0f, 1000.0f, 0.0f, bgfx::getCaps()->homogeneousDepth);
 				}
 				break;
 			}

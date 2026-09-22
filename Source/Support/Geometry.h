@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "bx/math.h"
+#include "ktm/ktm.h"
 #include "playrho/d2/BasicAPI.hpp"
 
 NS_DORA_BEGIN
@@ -117,16 +117,16 @@ struct alignas(16) Vec3 {
 	float y;
 	float z;
 	bool operator==(const Vec3& other) const = default;
-	inline operator const bx::Vec3() const {
-		return *r_cast<const bx::Vec3*>(&x);
-	}
-	inline operator bx::Vec3() {
-		return *r_cast<bx::Vec3*>(&x);
-	}
 	inline Vec2 toVec2() const {
 		return Vec2{x, y};
 	}
-	static inline Vec3 from(const bx::Vec3& vec3) {
+	inline ktm::fvec3& ktm() {
+		return r_cast<ktm::fvec3&>(*this);
+	}
+	inline const ktm::fvec3& ktm() const {
+		return r_cast<const ktm::fvec3&>(*this);
+	}
+	static inline Vec3 from(const ktm::fvec3& vec3) {
 		return {vec3.x, vec3.y, vec3.z};
 	}
 };
@@ -163,6 +163,12 @@ struct Frustum {
 struct alignas(32) Matrix {
 	float m[16];
 	bool operator==(const Matrix& other) const = default;
+	inline ktm::fmat4x4& ktm() {
+		return r_cast<ktm::fmat4x4&>(*this);
+	}
+	inline const ktm::fmat4x4& ktm() const {
+		return r_cast<const ktm::fmat4x4&>(*this);
+	}
 	static void mulVec4(float* result, const Matrix& matrix, const Vec4& vec4);
 	static void mulVec4(Vec4& result, const Matrix& matrix, const Vec4& vec4);
 	static void mulMtx(Matrix& result, const Matrix& left, const Matrix& right);
@@ -170,6 +176,10 @@ struct alignas(32) Matrix {
 	static void mulAABB(AABB& result, const Matrix& matrix, float spriteWidth, float spriteHeight);
 	static void toFrustum(Frustum& result, const Matrix& matrix);
 	static void transpose(Matrix& result, const Matrix& matrix);
+	static void ortho(Matrix& result, float left, float right, float bottom, float top, float nearZ, float farZ, float offset, bool homogeneousDepth);
+	static void perspective(Matrix& result, float fovy, float aspect, float nearZ, float farZ, bool homogeneousDepth);
+	static void lookAt(Matrix& result, const Vec3& eye, const Vec3& at, const Vec3& up);
+	static void SRT(Matrix& result, float scaleX, float scaleY, float scaleZ, float angleX, float angleY, float angleZ, float tx, float ty, float tz);
 	static const Matrix Indentity;
 };
 

@@ -22,7 +22,7 @@ Body::Body(NotNull<BodyDef, 1> bodyDef, NotNull<PhysicsWorld, 2> world, const Ve
 	, _pWorld(world)
 	, _group(0) {
 	bodyDef->getConf()->UseLocation(PhysicsWorld::prVal(pos + bodyDef->offset));
-	bodyDef->getConf()->UseAngle(-bx::toRad(rot + bodyDef->angleOffset));
+	bodyDef->getConf()->UseAngle(-ktm::radians(rot + bodyDef->angleOffset));
 }
 
 Body::~Body() {
@@ -156,13 +156,13 @@ Vec2 Body::getVelocity() const {
 void Body::setAngularRate(float var) {
 	AssertUnless(_pWorld && _pWorld->getPrWorld() && pr::IsValid(_prBody), "got invalid physics state.");
 	auto& world = *_pWorld->getPrWorld();
-	pd::SetVelocity(world, _prBody, -bx::toRad(var));
+	pd::SetVelocity(world, _prBody, -ktm::radians(var));
 }
 
 float Body::getAngularRate() const {
 	AssertUnless(_pWorld && _pWorld->getPrWorld() && pr::IsValid(_prBody), "got invalid physics state.");
 	auto& world = *_pWorld->getPrWorld();
-	return -bx::toDeg(pd::GetAngularVelocity(world, _prBody));
+	return -ktm::degrees(pd::GetAngularVelocity(world, _prBody));
 }
 
 void Body::setLinearDamping(float var) {
@@ -313,7 +313,7 @@ void Body::setAngle(float var) {
 		AssertUnless(_pWorld && _pWorld->getPrWorld() && pr::IsValid(_prBody), "got invalid physics state.");
 		Node::setAngle(var);
 		auto& world = *_pWorld->getPrWorld();
-		pd::SetTransform(world, _prBody, pd::GetLocation(world, _prBody), -bx::toRad(var));
+		pd::SetTransform(world, _prBody, pd::GetLocation(world, _prBody), -ktm::radians(var));
 	}
 }
 
@@ -351,7 +351,7 @@ void Body::updatePhysics() {
 		*/
 		Node::setPosition(pos);
 		float angle = pd::GetAngle(world, _prBody);
-		Node::setAngle(-bx::toDeg(angle));
+		Node::setAngle(-ktm::degrees(angle));
 	}
 }
 

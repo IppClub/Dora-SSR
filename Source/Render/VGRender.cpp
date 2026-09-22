@@ -218,15 +218,15 @@ void nvg::Translate(float x, float y) {
 }
 
 void nvg::Rotate(float angle) {
-	nvgRotate(Context(), bx::toRad(angle));
+	nvgRotate(Context(), ktm::radians(angle));
 }
 
 void nvg::SkewX(float angle) {
-	nvgSkewX(Context(), bx::toRad(angle));
+	nvgSkewX(Context(), ktm::radians(angle));
 }
 
 void nvg::SkewY(float angle) {
-	nvgSkewY(Context(), bx::toRad(angle));
+	nvgSkewY(Context(), ktm::radians(angle));
 }
 
 void nvg::Scale(float x, float y) {

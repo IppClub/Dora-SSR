@@ -174,7 +174,7 @@ void EffekNode::render() {
 			case bgfx::RendererType::OpenGLES: {
 				Matrix tempProj;
 				Matrix revertY;
-				bx::mtxScale(revertY.m, 1.0f, -1.0f, 1.0f);
+				revertY.ktm() = ktm::scale3d(ktm::fvec3{1.0f, -1.0f, 1.0f});
 				Matrix::mulMtx(tempProj, revertY, SharedView.getProjection());
 				MtoM44(tempProj, matrix);
 				break;

@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
-using Quat = bx::Quaternion;
+using Quat = ktm::fquat;
 
 class Node3D : public Object {
 public:

@@ -904,10 +904,10 @@ Body3D* PhysicsWorld3D::getBody(uint64_t handle) const {
 }
 
 bool PhysicsWorld3D::raycast(const Vec3& start, const Vec3& stop, const std::function<bool(Body3D*, const Vec3&, const Vec3&)>& callback) {
-	auto delta = bx::sub(stop, start);
-	auto distance = bx::length(delta);
+	ktm::fvec3 delta = stop.ktm() - start.ktm();
+	float distance = ktm::length(delta);
 	if (_handle == 0 || distance <= 0.0f) return false;
-	auto direction = Vec3::from(bx::mul(delta, 1.0f / distance));
+	Vec3 direction = Vec3::from(delta * (1.0f / distance));
 	uint64_t bodyHandle = 0;
 	Vec3 point;
 	Vec3 normal;

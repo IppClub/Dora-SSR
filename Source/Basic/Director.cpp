@@ -524,9 +524,9 @@ void Director::doRender() {
 					bgfx::setViewClear(viewId, BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL);
 					Size viewSize = SharedView.getSize();
 					Matrix ortho;
-					bx::mtxOrtho(ortho.m,
-						0, viewSize.width, 0, viewSize.height,
-						-1000.0f, 1000.0f, 0,
+					Matrix::ortho(ortho,
+						0.0f, viewSize.width, 0.0f, viewSize.height,
+						-1000.0f, 1000.0f, 0.0f,
 						bgfx::getCaps()->homogeneousDepth);
 					pushViewProjection(ortho, [&]() {
 						bgfx::setViewTransform(viewId, nullptr, getViewProjection().m);
@@ -648,7 +648,7 @@ void Director::doRender() {
 			SharedView.pushBack("GameCapturePresent"_slice, [&]() {
 				const auto size = SharedView.getSize();
 				Matrix ortho;
-				bx::mtxOrtho(ortho.m, 0, size.width, 0, size.height, -1000, 1000, 0,
+				Matrix::ortho(ortho, 0.0f, size.width, 0.0f, size.height, -1000.0f, 1000.0f, 0.0f,
 					bgfx::getCaps()->homogeneousDepth);
 				pushViewProjection(ortho, [&]() {
 					bgfx::setViewTransform(SharedView.getId(), nullptr, ortho.m);

@@ -111,11 +111,10 @@ void PlatformCamera::updateView() {
 	}
 	if (_transformDirty) {
 		_transformDirty = false;
-		Matrix rotateZ;
-		bx::mtxRotateZ(rotateZ.m, -bx::toRad(_rotation));
-		_up = Vec3::from(bx::mul(bx::Vec3{0, 1.0f, 0}, rotateZ.m));
-		_up = Vec3::from(bx::normalize(_up));
-		bx::mtxLookAt(_view.m, _position, _target, _up);
+		ktm::fmat4x4 rotateZ = ktm::rotate3d_z(ktm::radians(_rotation));
+		_up = Vec3::from((rotateZ * ktm::fvec4{0.0f, 1.0f, 0.0f, 1.0f}).xyz());
+		_up = Vec3::from(ktm::normalize(_up.ktm()));
+		Matrix::lookAt(_view, _position, _target, _up);
 		Updated();
 	}
 }

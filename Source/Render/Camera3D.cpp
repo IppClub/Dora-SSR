@@ -46,7 +46,7 @@ void Camera3D::setUp(float x, float y, float z) {
 }
 
 void Camera3D::setUp(const Vec3& up) {
-	_up = Vec3::from(bx::normalize(up));
+	_up = Vec3::from(ktm::normalize(up.ktm()));
 	_transformDirty = true;
 }
 
@@ -57,7 +57,7 @@ void Camera3D::lookAt(float px, float py, float pz, float tx, float ty, float tz
 void Camera3D::lookAt(const Vec3& position, const Vec3& target, const Vec3& up) {
 	_position = position;
 	_target = target;
-	_up = Vec3::from(bx::normalize(up));
+	_up = Vec3::from(ktm::normalize(up.ktm()));
 	_transformDirty = true;
 }
 
@@ -76,7 +76,7 @@ const Vec3& Camera3D::getUp() {
 void Camera3D::updateMatrices() {
 	if (_transformDirty) {
 		_transformDirty = false;
-		bx::mtxLookAt(_viewMatrix.m, _position, _target, _up);
+		Matrix::lookAt(_viewMatrix, _position, _target, _up);
 	}
 	Matrix::mulMtx(_view, SharedView.getProjection(), _viewMatrix);
 	Updated();

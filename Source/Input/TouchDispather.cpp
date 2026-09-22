@@ -229,10 +229,16 @@ Vec2 NodeTouchHandler::getPos(const Vec3& winPos) {
 	{
 		Matrix MVP;
 		Matrix::mulMtx(MVP, SharedDirector.getViewProjection(), _target->getWorld());
-		bx::mtxInverse(invMVP.m, MVP.m);
+		invMVP.ktm() = ktm::inverse(MVP.ktm());
 	}
-	bx::Plane plane(bx::InitNone);
-	bx::calcPlane(plane, bx::Vec3{0, 0, 0}, bx::Vec3{1, 0, 0}, bx::Vec3{0, 1, 0});
+	Plane plane;
+	{
+		ktm::fvec3 va{0.0f, 0.0f, 0.0f};
+		ktm::fvec3 vb{1.0f, 0.0f, 0.0f};
+		ktm::fvec3 vc{0.0f, 1.0f, 0.0f};
+		plane.normal = Vec3::from(ktm::normalize(ktm::cross(vb - va, vc - va)));
+		plane.distance = -ktm::dot(plane.normal.ktm(), va);
+	}
 
 	Vec3 posTarget{pos.x, pos.y, 1.0f};
 	float viewPort[4]{0, 0, viewSize.width, viewSize.height};
@@ -241,15 +247,14 @@ Vec2 NodeTouchHandler::getPos(const Vec3& winPos) {
 	unProject(pos.x, pos.y, pos.z, invMVP, viewPort, origin);
 	unProject(posTarget.x, posTarget.y, posTarget.z, invMVP, viewPort, target);
 
-	bx::Vec3 dir = bx::sub(target, origin);
-	bx::Vec3 dirNorm = bx::normalize(dir);
-	float denom = bx::dot(dirNorm, plane.normal);
+	ktm::fvec3 dirNorm = ktm::normalize(target.ktm() - origin.ktm());
+	ktm::fvec3 planeNormal = plane.normal.ktm();
+	float denom = ktm::dot(dirNorm, planeNormal);
 	if (std::abs(denom) >= FLT_EPSILON) {
-		float nom = bx::dot(origin, plane.normal) + plane.dist;
+		float nom = ktm::dot(origin.ktm(), planeNormal) + plane.distance;
 		float t = -(nom / denom);
 		if (t >= 0) {
-			bx::Vec3 offset = bx::mul(dirNorm, t);
-			bx::Vec3 result = bx::add(origin, offset);
+			ktm::fvec3 result = origin.ktm() + dirNorm * t;
 			return Vec2{result.x, result.y};
 		}
 	}
@@ -478,7 +483,7 @@ bool NodeTouchHandler::gesture(const SDL_Event& event) {
 	Vec2 pos = ratio * SharedView.getSize();
 	pos = getPos({pos.x, pos.y, 0.0f});
 	if (_target->getSize() == Size::zero || Rect(Vec2::zero, _target->getSize()).containsPoint(pos)) {
-		_target->emit("Gesture"_slice, pos, event.mgesture.numFingers, event.mgesture.dDist, bx::toDeg(event.mgesture.dTheta));
+		_target->emit("Gesture"_slice, pos, event.mgesture.numFingers, event.mgesture.dDist, ktm::degrees(event.mgesture.dTheta));
 		return true;
 	}
 	return false;

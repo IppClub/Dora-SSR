@@ -31,9 +31,9 @@ struct nvg {
 		inline void indentity() { nvgTransformIdentity(t); }
 		inline void translate(float tx, float ty) { nvgTransformTranslate(t, tx, ty); }
 		inline void scale(float sx, float sy) { nvgTransformScale(t, sx, sy); }
-		inline void rotate(float a) { nvgTransformRotate(t, bx::toRad(a)); }
-		inline void skewX(float a) { nvgTransformSkewX(t, bx::toRad(a)); }
-		inline void skewY(float a) { nvgTransformSkewY(t, bx::toRad(a)); }
+		inline void rotate(float a) { nvgTransformRotate(t, ktm::radians(a)); }
+		inline void skewX(float a) { nvgTransformSkewX(t, ktm::radians(a)); }
+		inline void skewY(float a) { nvgTransformSkewY(t, ktm::radians(a)); }
 		inline void multiply(const Transform& src) { nvgTransformMultiply(t, src); }
 		inline bool inverseFrom(const Transform& src) { return nvgTransformInverse(t, src) != 0; }
 		inline Vec2 applyPoint(Vec2 src) {

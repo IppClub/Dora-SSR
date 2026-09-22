@@ -150,7 +150,7 @@ bool View3D::getScreenRay(const Vec2& viewPoint, Vec3& origin, Vec3& direction) 
 	flipX.m[0] = -1.0f;
 	Matrix::mulMtx(viewProj, flipX, viewProj);
 	Matrix inverse;
-	bx::mtxInverse(inverse.m, viewProj.m);
+	inverse.ktm() = ktm::inverse(viewProj.ktm());
 	float ndcX = viewPoint.x / viewSize.width * 2.0f - 1.0f;
 	float ndcY = viewPoint.y / viewSize.height * 2.0f - 1.0f;
 	float nearZ = bgfx::getCaps()->homogeneousDepth ? -1.0f : 0.0f;
@@ -164,10 +164,10 @@ bool View3D::getScreenRay(const Vec2& viewPoint, Vec3& origin, Vec3& direction) 
 	};
 	Vec3 farPoint;
 	if (!unproject(nearZ, origin) || !unproject(1.0f, farPoint)) return false;
-	bx::Vec3 ray = bx::sub(farPoint, origin);
-	float length = bx::length(ray);
+	ktm::fvec3 ray = farPoint.ktm() - origin.ktm();
+	float length = ktm::length(ray);
 	if (length <= FLT_EPSILON) return false;
-	direction = Vec3::from(bx::mul(ray, 1.0f / length));
+	direction = Vec3::from(ray * (1.0f / length));
 	return true;
 }
 
@@ -297,9 +297,9 @@ void View3D::render3D(bgfx::ViewId viewId) {
 	std::stable_sort(surfaces.begin(), surfaces.end(), [camera](Surface3D* a, Surface3D* b) {
 		Vec3 ap{a->getWorldMatrix().m[12], a->getWorldMatrix().m[13], a->getWorldMatrix().m[14]};
 		Vec3 bp{b->getWorldMatrix().m[12], b->getWorldMatrix().m[13], b->getWorldMatrix().m[14]};
-		auto ad = bx::sub(camera->getPosition(), ap);
-		auto bd = bx::sub(camera->getPosition(), bp);
-		return bx::dot(ad, ad) > bx::dot(bd, bd);
+		ktm::fvec3 ad = camera->getPosition().ktm() - ap.ktm();
+		ktm::fvec3 bd = camera->getPosition().ktm() - bp.ktm();
+		return ktm::dot(ad, ad) > ktm::dot(bd, bd);
 	});
 	if (!surfaces.empty()) {
 		for (auto surface : surfaces) surface->prepare(*camera);

@@ -38,7 +38,7 @@ NS_DORA_BEGIN
 
 static Matrix alignSurfaceWorldWithView3D(const Matrix& world, const Matrix& viewProj) {
 	Matrix inverseViewProj;
-	bx::mtxInverse(inverseViewProj.m, viewProj.m);
+	inverseViewProj.ktm() = ktm::inverse(viewProj.ktm());
 	Matrix flipX = Matrix::Indentity;
 	flipX.m[0] = -1.0f;
 	Matrix flippedViewProj;
@@ -170,22 +170,22 @@ void Surface3D::updateRenderMatrix(Camera& camera) {
 	_renderMatrix = getWorldMatrix();
 	if (_billboard == Billboard::None) return;
 	Vec3 position{_renderMatrix.m[12], _renderMatrix.m[13], _renderMatrix.m[14]};
-	Vec3 toCamera = Vec3::from(bx::sub(camera.getPosition(), position));
-	if (bx::length(toCamera) <= FLT_EPSILON) return;
-	toCamera = Vec3::from(bx::normalize(toCamera));
-	Vec3 up = _billboard == Billboard::YAxis ? Vec3{0.0f, 1.0f, 0.0f} : camera.getUp();
+	ktm::fvec3 toCamera = camera.getPosition().ktm() - position.ktm();
+	if (ktm::length(toCamera) <= FLT_EPSILON) return;
+	toCamera = ktm::normalize(toCamera);
+	ktm::fvec3 up = _billboard == Billboard::YAxis ? ktm::fvec3{0.0f, 1.0f, 0.0f} : camera.getUp().ktm();
 	if (_billboard == Billboard::YAxis) {
 		toCamera.y = 0.0f;
-		if (bx::length(toCamera) <= FLT_EPSILON) return;
-		toCamera = Vec3::from(bx::normalize(toCamera));
+		if (ktm::length(toCamera) <= FLT_EPSILON) return;
+		toCamera = ktm::normalize(toCamera);
 	}
-	Vec3 right = Vec3::from(bx::cross(up, toCamera));
-	if (bx::length(right) <= FLT_EPSILON) return;
-	right = Vec3::from(bx::normalize(right));
-	up = Vec3::from(bx::normalize(bx::cross(toCamera, right)));
-	float sx = bx::length(bx::Vec3{_renderMatrix.m[0], _renderMatrix.m[1], _renderMatrix.m[2]});
-	float sy = bx::length(bx::Vec3{_renderMatrix.m[4], _renderMatrix.m[5], _renderMatrix.m[6]});
-	float sz = bx::length(bx::Vec3{_renderMatrix.m[8], _renderMatrix.m[9], _renderMatrix.m[10]});
+	ktm::fvec3 right = ktm::cross(up, toCamera);
+	if (ktm::length(right) <= FLT_EPSILON) return;
+	right = ktm::normalize(right);
+	up = ktm::normalize(ktm::cross(toCamera, right));
+	float sx = ktm::length(ktm::fvec3{_renderMatrix.m[0], _renderMatrix.m[1], _renderMatrix.m[2]});
+	float sy = ktm::length(ktm::fvec3{_renderMatrix.m[4], _renderMatrix.m[5], _renderMatrix.m[6]});
+	float sz = ktm::length(ktm::fvec3{_renderMatrix.m[8], _renderMatrix.m[9], _renderMatrix.m[10]});
 	_renderMatrix = Matrix::Indentity;
 	_renderMatrix.m[0] = right.x * sx;
 	_renderMatrix.m[1] = right.y * sx;
@@ -224,7 +224,7 @@ void Surface3D::renderDirect(Node* target) {
 	// The 2D scene faces the 3D camera from the opposite side of its local XY
 	// plane. Reverse X once at the shared projection boundary so direct and
 	// render-target backends keep the same readable left-to-right orientation.
-	bx::mtxScale(scale.m, -_size.width / source.width, _size.height / source.height, 1.0f);
+	scale.ktm() = ktm::scale3d(ktm::fvec3{-_size.width / source.width, _size.height / source.height, 1.0f});
 	// View3D flips clip-space X before submitting the Rust 3D scene. Surface3D
 	// is submitted through the regular 2D renderer, which uses Director's
 	// unflipped view-projection, so compensate its world matrix here. Without

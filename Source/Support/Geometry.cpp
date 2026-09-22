@@ -100,7 +100,7 @@ Vec2 Vec2::operator*(const Size& size) const {
 float Vec2::distance(const Vec2& vec) const {
 	float dx = x - vec.x;
 	float dy = y - vec.y;
-	return bx::sqrt(dx * dx + dy * dy);
+	return ktm::sqrt(dx * dx + dy * dy);
 }
 
 float Vec2::distanceSquared(const Vec2& vec) const {
@@ -110,7 +110,7 @@ float Vec2::distanceSquared(const Vec2& vec) const {
 }
 
 float Vec2::length() const {
-	return bx::sqrt(x * x + y * y);
+	return ktm::sqrt(x * x + y * y);
 }
 
 float Vec2::lengthSquared() const {
@@ -118,7 +118,7 @@ float Vec2::lengthSquared() const {
 }
 
 float Vec2::angle() const {
-	return bx::toDeg(bx::atan2(y, x));
+	return ktm::degrees(ktm::atan2(y, x));
 }
 
 void Vec2::normalize() {
@@ -537,6 +537,49 @@ void Matrix::transpose(Matrix& result, const Matrix& matrix) {
 	ktm::fmat4x4& output = r_cast<ktm::fmat4x4&>(result);
 	auto mat = r_cast<const ktm::fmat4x4&>(matrix);
 	output = ktm::transpose(mat);
+}
+
+void Matrix::ortho(Matrix& result, float left, float right, float bottom, float top, float nearZ, float farZ, float offset, bool homogeneousDepth) {
+	// Matches bgfx's left-handed orthographic matrix (bx::mtxOrtho).
+	// ktm::ortho_lh produces the non-homogeneous depth (0..1) variant.
+	r_cast<ktm::fmat4x4&>(result) = ktm::ortho_lh(left, right, top, bottom, nearZ, farZ);
+	if (homogeneousDepth) {
+		float diff = farZ - nearZ;
+		result.m[10] = 2.0f / diff;
+		result.m[14] = (nearZ + farZ) / (nearZ - farZ);
+	}
+	if (offset != 0.0f) {
+		result.m[12] += offset;
+	}
+}
+
+void Matrix::perspective(Matrix& result, float fovy, float aspect, float nearZ, float farZ, bool homogeneousDepth) {
+	// Matches bgfx's left-handed perspective matrix (bx::mtxProj).
+	// ktm::perspective_lh produces the non-homogeneous depth (0..1) variant.
+	r_cast<ktm::fmat4x4&>(result) = ktm::perspective_lh(ktm::radians(fovy), aspect, nearZ, farZ);
+	if (homogeneousDepth) {
+		float diff = farZ - nearZ;
+		result.m[10] = (farZ + nearZ) / diff;
+		result.m[14] = -2.0f * farZ * nearZ / diff;
+	}
+}
+
+void Matrix::lookAt(Matrix& result, const Vec3& eye, const Vec3& at, const Vec3& up) {
+	// Matches bgfx's left-handed view matrix (bx::mtxLookAt).
+	r_cast<ktm::fmat4x4&>(result) = ktm::look_at_lh(
+		r_cast<const ktm::fvec3&>(eye),
+		r_cast<const ktm::fvec3&>(at),
+		r_cast<const ktm::fvec3&>(up));
+}
+
+void Matrix::SRT(Matrix& result, float scaleX, float scaleY, float scaleZ, float angleX, float angleY, float angleZ, float tx, float ty, float tz) {
+	// Matches bgfx's SRT matrix (bx::mtxSRT), angles in radians:
+	// translate * rotateY * rotateX * rotateZ * scale.
+	r_cast<ktm::fmat4x4&>(result) = ktm::translate3d(ktm::fvec3{tx, ty, tz})
+								  * ktm::rotate3d_y(-angleY)
+								  * ktm::rotate3d_x(-angleX)
+								  * ktm::rotate3d_z(-angleZ)
+								  * ktm::scale3d(ktm::fvec3{scaleX, scaleY, scaleZ});
 }
 
 bool Frustum::intersect(const AABB& aabb) const {
