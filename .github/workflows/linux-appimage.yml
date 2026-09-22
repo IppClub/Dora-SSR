@@ -89,6 +89,33 @@ jobs:
         with:
           package_json_file: 'Tools/dora-dora/package.json'
 
+      - name: Setup Emscripten
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
+        uses: emscripten-core/setup-emsdk@v15
+        with:
+          version: 5.0.5
+          actions-cache-folder: emsdk-cache
+
+      - name: Setup Node.js
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+          cache: pnpm
+          cache-dependency-path: Tools/dora-dora/pnpm-lock.yaml
+
+      - name: Setup Web build tools
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
+        run: |
+          rustup target add wasm32-unknown-emscripten
+          python3 -m venv "$RUNNER_TEMP/cmake-venv"
+          "$RUNNER_TEMP/cmake-venv/bin/python" -m pip install 'cmake==3.30.5'
+          echo "$RUNNER_TEMP/cmake-venv/bin" >> "$GITHUB_PATH"
+
+      - name: Verify Web build tools
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
+        run: bash Tools/build-scripts/check_web_build_env.sh
+
       - name: Generate tutorial docs
         if: startsWith(github.ref, 'refs/tags/')
         run: node Docs/scripts/generate-language-docs.js
