@@ -35,8 +35,84 @@ permissions:
   contents: read
 
 jobs:
+  web-assets:
+    name: Build shared Web IDE assets
+    if: >-
+      (github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')) &&
+      (github.event_name != 'push' ||
+        (!contains(github.event.head_commit.message, '[skip CI]') &&
+         !contains(github.event.head_commit.message, '[skip Linux]')))
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Emscripten
+        uses: emscripten-core/setup-emsdk@v15
+        with:
+          version: 5.0.5
+          actions-cache-folder: emsdk-cache
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-emscripten
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.3'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          package_json_file: Tools/dora-dora/package.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+          cache: pnpm
+          cache-dependency-path: Tools/dora-dora/pnpm-lock.yaml
+
+      - name: Setup CMake
+        run: |
+          python3 -m venv "$RUNNER_TEMP/cmake-venv"
+          "$RUNNER_TEMP/cmake-venv/bin/python" -m pip install 'cmake==3.30.5'
+          echo "$RUNNER_TEMP/cmake-venv/bin" >> "$GITHUB_PATH"
+
+      - name: Verify Web build tools
+        run: bash Tools/build-scripts/check_web_build_env.sh
+
+      - name: Build and verify Web IDE
+        working-directory: Tools/dora-dora
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm test:web-runtime-preparation
+          pnpm build
+          pnpm test:web-package
+          pnpm verify:web-release-assets
+
+      - name: Upload shared Web IDE assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-ide-assets-${{ github.sha }}
+          path: Assets/www
+          if-no-files-found: error
+          retention-days: 3
+
   build:
-    if: "startsWith(github.ref, 'refs/tags/') || (!contains(github.event.head_commit.message, '[skip CI]') && !contains(github.event.head_commit.message, '[skip Linux]'))"
+    needs: web-assets
+    if: >-
+      always() &&
+      (github.event_name != 'push' ||
+        (!contains(github.event.head_commit.message, '[skip CI]') &&
+         !contains(github.event.head_commit.message, '[skip Linux]'))) &&
+      ((github.ref == 'refs/heads/main' && needs.web-assets.result == 'skipped') ||
+       ((github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')) &&
+        needs.web-assets.result == 'success'))
     strategy:
       fail-fast: false
       matrix:
@@ -51,6 +127,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Download shared Web IDE assets
+        if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
+        uses: actions/download-artifact@v5
+        with:
+          name: web-ide-assets-${{ github.sha }}
+          path: Assets/www
+
+      - name: Verify shared Web IDE assets
+        if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
+        run: node Tools/dora-dora/scripts/verify-web-release-assets.mjs Assets/www
 
       - name: Install dependencies
         run: |
@@ -84,101 +171,28 @@ jobs:
         with:
           xmake-version: latest
 
-      - uses: pnpm/action-setup@v6
-        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
-        with:
-          package_json_file: 'Tools/dora-dora/package.json'
-
-      - name: Setup Emscripten
-        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
-        uses: emscripten-core/setup-emsdk@v15
-        with:
-          version: 5.0.5
-          actions-cache-folder: emsdk-cache
-
-      - name: Setup Node.js
-        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22.14.0'
-          cache: pnpm
-          cache-dependency-path: Tools/dora-dora/pnpm-lock.yaml
-
-      - name: Setup Web build tools
-        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
-        run: |
-          rustup target add wasm32-unknown-emscripten
-          python3 -m venv "$RUNNER_TEMP/cmake-venv"
-          "$RUNNER_TEMP/cmake-venv/bin/python" -m pip install 'cmake==3.30.5'
-          echo "$RUNNER_TEMP/cmake-venv/bin" >> "$GITHUB_PATH"
-
-      - name: Verify Web build tools
-        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
-        run: bash Tools/build-scripts/check_web_build_env.sh
-
-      - name: Generate tutorial docs
-        if: startsWith(github.ref, 'refs/tags/')
-        run: node Docs/scripts/generate-language-docs.js
-
-      - name: Build Web IDE assets
-        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
-        run: |
-          cd Tools/dora-dora
-          pnpm install --frozen-lockfile
-          pnpm build
-
       - name: Build Linux debug
-        if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && !startsWith(github.ref, 'refs/tags/') && !startsWith(github.ref, 'refs/heads/ci/'))
+        if: github.ref == 'refs/heads/main'
         run: Tools/build-scripts/build_linux.sh debug
 
       - name: Build Linux release
-        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
+        if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
         run: Tools/build-scripts/build_linux.sh release
 
       - name: Package AppImage
         id: package
-        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
+        if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
         env:
           APPIMAGE_ARCH: ${{ matrix.arch }}
         run: |
-          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
-            filename="dora-ssr-${GITHUB_REF_NAME}-linux-${APPIMAGE_ARCH}.AppImage"
-          else
-            filename="dora-ssr-linux-${APPIMAGE_ARCH}.AppImage"
-          fi
+          filename="dora-ssr-linux-${APPIMAGE_ARCH}.AppImage"
           Tools/build-scripts/package_appimage.sh "$GITHUB_WORKSPACE/$filename"
           echo "path=$filename" >> "$GITHUB_OUTPUT"
 
       - name: Upload AppImage artifact
-        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
+        if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
         uses: actions/upload-artifact@v4
         with:
           name: dora-ssr-linux-appimage-${{ matrix.arch }}
           path: ${{ steps.package.outputs.path }}
           if-no-files-found: error
-
-  release:
-    name: Release Linux AppImages
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: write
-    steps:
-      - name: Download AppImages
-        uses: actions/download-artifact@v5
-        with:
-          pattern: dora-ssr-linux-appimage-*
-          path: release-assets
-          merge-multiple: true
-
-      - name: Release
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: ${{ github.ref_name }}
-          fail_on_unmatched_files: true
-          files: |
-            release-assets/dora-ssr-${{ github.ref_name }}-linux-x86_64.AppImage
-            release-assets/dora-ssr-${{ github.ref_name }}-linux-aarch64.AppImage
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
