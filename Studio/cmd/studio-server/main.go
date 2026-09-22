@@ -98,6 +98,14 @@ func main() {
 		logger.Error("server configuration failed", "error", err)
 		os.Exit(2)
 	}
+	apiHandler := api.Handler()
+	if webDir := os.Getenv("STUDIO_WEB_DIR"); webDir != "" {
+		apiHandler, err = studio.NewWebHandler(webDir, apiHandler)
+		if err != nil {
+			logger.Error("Studio Web service failed", "error", err)
+			os.Exit(2)
+		}
+	}
 	host := os.Getenv("STUDIO_API_HOST")
 	if host == "" {
 		host = "127.0.0.1"
@@ -109,7 +117,7 @@ func main() {
 	errorsCh := make(chan error, 3)
 	go func() {
 		logger.Info("Studio API listening", "address", apiAddr, "frontendOrigin", publicOrigin)
-		errorsCh <- studio.ListenAndServeTLS(ctx, apiAddr, cert, keyPath, api.Handler(), logger)
+		errorsCh <- studio.ListenAndServeTLS(ctx, apiAddr, cert, keyPath, apiHandler, logger)
 	}()
 	servers := 1
 	if agent != nil {

@@ -706,14 +706,15 @@ func (s *Server) adminSharedModelRoutes(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 		var b struct {
-			Enabled bool  `json:"enabled"`
-			Limit   int64 `json:"limit"`
+			Enabled     bool   `json:"enabled"`
+			Limit       int64  `json:"limit"`
+			AmountLimit string `json:"amountLimit"`
 		}
-		if err := jsonBody(r, 4096, &b); err != nil || b.Limit < 0 || b.Limit > 1000 {
+		if err := jsonBody(r, 4096, &b); err != nil || b.Limit < 0 || b.Limit > 1000 || decimal(b.AmountLimit) == nil {
 			empty(w, 400)
 			return
 		}
-		if err := s.store.ConfigureScope(r.Context(), "api", id, ModelScope{Enabled: b.Enabled, Limit: b.Limit, AmountLimit: "0"}, a.AccountID, t); err != nil {
+		if err := s.store.ConfigureScope(r.Context(), "api", id, ModelScope{Enabled: b.Enabled, Limit: b.Limit, AmountLimit: b.AmountLimit}, a.AccountID, t); err != nil {
 			writeStoreError(w, err)
 			return
 		}
@@ -1158,6 +1159,9 @@ func (s *Server) allowance(ctx context.Context, account, grant string) (map[stri
 	enabled := api.Enabled && acct.Enabled && g.Enabled
 	capacity := api.Limit > 0 && acct.Limit > 0 && g.Limit > 0
 	available := minimumAvailable(acct, g)
+	if apiLimit := decimal(api.AmountLimit); apiLimit != nil && apiLimit.Sign() > 0 {
+		available = minimumBigInt(available, scopeAvailable(api))
+	}
 	state := "available"
 	if !enabled {
 		state = "unavailable"
@@ -1172,31 +1176,29 @@ func (s *Server) allowance(ctx context.Context, account, grant string) (map[stri
 	if enabled && capacity {
 		av = available.String()
 	}
-	return map[string]any{"version": 1, "funding": "platform", "currency": "CNY", "unit": "nano-CNY", "grantId": grant, "state": state, "available": av, "account": map[string]string{"spent": acct.Spent, "reserved": acct.Reserved, "limit": acct.AmountLimit}, "grant": map[string]string{"spent": g.Spent, "reserved": g.Reserved, "limit": g.AmountLimit}}, nil
+	return map[string]any{"version": 1, "funding": "platform", "currency": "CNY", "unit": "nano-CNY", "grantId": grant, "state": state, "available": av, "api": map[string]string{"spent": api.Spent, "reserved": api.Reserved, "limit": api.AmountLimit}, "account": map[string]string{"spent": acct.Spent, "reserved": acct.Reserved, "limit": acct.AmountLimit}, "grant": map[string]string{"spent": g.Spent, "reserved": g.Reserved, "limit": g.AmountLimit}}, nil
 }
-func minimumAvailable(a, b *ModelScope) *big.Int {
-	al := decimal(a.AmountLimit)
-	if al == nil {
-		al = new(big.Int)
+func minimumAvailable(scopes ...*ModelScope) *big.Int {
+	var minimum *big.Int
+	for _, scope := range scopes {
+		minimum = minimumBigInt(minimum, scopeAvailable(scope))
 	}
-	al.Sub(al, orZero(decimal(a.Spent)))
-	al.Sub(al, orZero(decimal(a.Reserved)))
-	bl := decimal(b.AmountLimit)
-	if bl == nil {
-		bl = new(big.Int)
+	return orZero(minimum)
+}
+func scopeAvailable(scope *ModelScope) *big.Int {
+	available := orZero(decimal(scope.AmountLimit))
+	available.Sub(available, orZero(decimal(scope.Spent)))
+	available.Sub(available, orZero(decimal(scope.Reserved)))
+	if available.Sign() < 0 {
+		available.SetInt64(0)
 	}
-	bl.Sub(bl, orZero(decimal(b.Spent)))
-	bl.Sub(bl, orZero(decimal(b.Reserved)))
-	if al.Sign() < 0 {
-		al.SetInt64(0)
+	return available
+}
+func minimumBigInt(current, candidate *big.Int) *big.Int {
+	if current == nil || candidate.Cmp(current) < 0 {
+		return candidate
 	}
-	if bl.Sign() < 0 {
-		bl.SetInt64(0)
-	}
-	if al.Cmp(bl) < 0 {
-		return al
-	}
-	return bl
+	return current
 }
 func orZero(v *big.Int) *big.Int {
 	if v == nil {

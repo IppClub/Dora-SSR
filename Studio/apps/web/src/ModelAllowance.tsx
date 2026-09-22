@@ -3,11 +3,11 @@ import './model-allowance.css';
 
 const amount=(value:unknown):value is string=>typeof value==='string'&&/^(0|[1-9][0-9]{0,59})$/.test(value);
 type Balance={spent:string;reserved:string;limit:string};
-export type ModelAllowanceData={grantId:string;state:string;available:string|null;account:Balance;grant:Balance};
+export type ModelAllowanceData={grantId:string;state:string;available:string|null;api:Balance;account:Balance;grant:Balance};
 export function decodeAllowance(value:unknown,grantId:string):ModelAllowanceData {
   const v=value as Record<string,unknown>|null;
   if(!v||v.version!==1||v.currency!=='CNY'||v.unit!=='nano-CNY'||v.funding!=='platform'||v.grantId!==grantId||!['available','unavailable','zero-capacity','insufficient-amount','concurrency'].includes(String(v.state)))throw new Error('Invalid allowance');
-  for(const key of ['account','grant']){
+  for(const key of ['api','account','grant']){
     const row=v[key] as Record<string,unknown>|undefined;
     if(!row||!amount(row.spent)||!amount(row.reserved)||!amount(row.limit))throw new Error('Invalid amount');
   }
@@ -25,7 +25,7 @@ export function formatNanoCny(value:string):string {
 const labels:Record<string,string>={available:'当前可用',concurrency:'并发已满，调用需排队','insufficient-amount':'可用额度已耗尽',unavailable:'配置或授权已停用','zero-capacity':'调用容量已停用'};
 export function ModelAllowanceView({data}:{data:ModelAllowanceData}) {
   return <div className="model-allowance"><div className="model-allowance-heading"><span>平台模型额度</span><strong>{data.available===null?'不可用':formatNanoCny(data.available)}</strong></div>
-    <span>{labels[data.state]}</span><details><summary>使用明细</summary><p>账号已使用 <b>{formatNanoCny(data.account.spent)}</b></p><p>账号暂时预留 <b>{formatNanoCny(data.account.reserved)}</b></p><p>当前配置已使用 <b>{formatNanoCny(data.grant.spent)}</b></p><small>两层额度不相加；预留未计入消费。此为平台服务额度，不是供应商余额。金额为展示近似值。</small></details></div>;
+    <span>{labels[data.state]}</span><details><summary>使用明细</summary><p>共享 API 已使用 <b>{formatNanoCny(data.api.spent)}</b> / 上限 <b>{data.api.limit==='0'?'不限额':formatNanoCny(data.api.limit)}</b></p><p>账号已使用 <b>{formatNanoCny(data.account.spent)}</b> / 上限 <b>{formatNanoCny(data.account.limit)}</b></p><p>当前授权已使用 <b>{formatNanoCny(data.grant.spent)}</b> / 上限 <b>{formatNanoCny(data.grant.limit)}</b></p><p>本次请求暂时预留 <b>{formatNanoCny(data.grant.reserved)}</b></p><small>共享 API 设置上限时，三层额度不相加，可用额度取三层剩余值的最小值。此为平台服务额度，不是供应商余额。</small></details></div>;
 }
 export function ModelAllowanceCompactView({data}:{data:ModelAllowanceData}) {
   return <span className="model-allowance-compact"><span>可用额度 {data.available===null?'不可用':formatNanoCny(data.available)}</span>{data.state!=='available'&&<small>{labels[data.state]}</small>}</span>;

@@ -11,8 +11,9 @@ function fail(error?:unknown) {
   console.error('Agent host initialization failed',error);
   runtime?.close();
   status.textContent='Agent 宿主启动失败，请返回工作台重试。';
+  const message=(error instanceof Error ? error.message : String(error ?? 'Unknown Agent host failure')).slice(0,1024);
   if(configuration)parent.postMessage({type:'studio-agent-failed',version:1,projectId:configuration.projectId,
-    generation:configuration.generation,code:'initialization-failed'},configuration.parentOrigin);
+    generation:configuration.generation,code:'initialization-failed',message},configuration.parentOrigin);
 }
 async function readConfig(path:string) {
   const response=await fetch(new URL(path,location.href),{credentials:'same-origin',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(15000)});

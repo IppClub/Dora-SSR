@@ -37,8 +37,9 @@ export function mountAgentHostFrame(container:HTMLElement, options:{url:string;p
     if(closed || event.source!==frame.contentWindow || event.origin!==url.origin)return;
     const message=event.data;
     if(message?.type==='studio-agent-failed' && message.version===1 && message.projectId===binding.projectId
-      && message.generation===binding.generation && message.code==='initialization-failed'){
-      close(new Error('Agent host initialization failed'));return;
+      && message.generation===binding.generation && message.code==='initialization-failed'
+      && typeof message.message==='string' && message.message.length<=1024){
+      close(new Error(`Agent host initialization failed: ${message.message}`));return;
     }
     if(connecting || hostReady)return;
     if(!message || message.type!=='studio-agent-ready' || message.version!==1 || message.projectId!==binding.projectId || message.generation!==binding.generation

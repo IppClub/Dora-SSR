@@ -22,3 +22,5 @@ Dora Studio 是基于 Dora Web 引擎的浏览器游戏创作产品：浏览器�
 工程采用同仓起步、独立应用、共享能力、独立部署的路线。现有 `Tools/dora-dora` 保留原生 Web IDE 职责；引擎源码仍在 `Source/` 与 `Projects/Web/`，不复制到 Studio。
 
 服务端已统一迁移到 Go，入口为 `cmd/studio-server`，不再保留 Node.js 后端实现。`pnpm build:server` 生成 `build/bin/dora-studio-server`，`pnpm test:server` 执行含竞态检测的服务端测试。环境变量、双 HTTPS 来源和启动示例见 [Go 服务说明](apps/server/README.md)。
+
+macOS 一键开发启停与 Linux 部署包构建使用 `scripts/studio-macos.sh`；`dev start/restart` 会校验并按需重建 Agent 引擎及带音乐生成能力的 Studio 隔离 Player，`dev rebuild` 可强制重建两者。部署包支持 `linux/amd64` 和 `linux/arm64`，包含前端、Agent 支持资源、专用 Agent 引擎及独立 Player。Linux 解包后使用包内 `studio-linux.sh` 安装和管理 systemd 服务，详见 [部署说明](deployment/README.md)。

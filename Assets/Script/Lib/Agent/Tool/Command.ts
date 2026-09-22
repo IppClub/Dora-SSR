@@ -43,8 +43,12 @@ function executeStudioLuaCommand(req: {
 	onProgress?:(progress:ExecuteCommandProgress)=>void;
 	isCancelled?:()=>boolean;
 }):Promise<ExecuteCommandResult>|undefined {
-	const previewOnly=string.match(req.code.trim(),"^previewGame%s*%b()%s*;?%s*$")[0]!==undefined;
-	if (typeof _studio_agent_tool_begin !== "function" || previewOnly) return undefined;
+	// Keep every previewGame call in the original Agent command sandbox. The
+	// preview bridge lives there and forwards rendering to the isolated Player;
+	// transporting wrapped calls to the generic Lua Player would make the
+	// injected previewGame function disappear.
+	const usesPreviewGame=string.match(req.code,"%f[%a_]previewGame%f[^%w_]%s*%(")[0]!==undefined;
+	if (typeof _studio_agent_tool_begin !== "function" || usesPreviewGame) return undefined;
 	const onProgress=req.onProgress;
 	const isCancelled=req.isCancelled;
 	return new Promise(resolve => {

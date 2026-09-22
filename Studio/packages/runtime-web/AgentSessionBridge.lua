@@ -228,7 +228,7 @@ function exports.open(sessionId)
 			assert(file:sub(-4) == ".lua" and #content <= 140000, "Invalid Studio Agent Lua command")
 			local options = Utils.safeJsonDecode(content)
 			assert(type(options) == "table" and type(options.code) == "string" and #options.code > 0 and #options.code <= 131072
-				and type(options.timeoutSeconds) == "number" and options.timeoutSeconds >= 1 and options.timeoutSeconds <= 120
+				and type(options.timeoutSeconds) == "number" and options.timeoutSeconds >= 1 and options.timeoutSeconds <= 600
 				and options.timeoutSeconds % 1 == 0, "Invalid Studio Agent Lua options")
 		end
 		local active = 0

@@ -191,8 +191,11 @@ func TestAdministrationModelsAndBYOK(t *testing.T) {
 	mustStatus(t, status, 200)
 	status, _, _ = a.do(t, "PUT", "/api/admin/shared-models/deepseek-main/secret", map[string]any{"expectedVersion": 0, "key": "test-secret", "consent": true}, true)
 	mustStatus(t, status, 200)
-	status, _, _ = a.do(t, "PUT", "/api/admin/shared-models/deepseek-main/limits", map[string]any{"enabled": true, "limit": 2}, true)
+	status, limits, _ := a.do(t, "PUT", "/api/admin/shared-models/deepseek-main/limits", map[string]any{"enabled": true, "limit": 2, "amountLimit": "20000000000"}, true)
 	mustStatus(t, status, 200)
+	if limits["api"].(map[string]any)["amountLimit"] != "20000000000" {
+		t.Fatalf("shared API amount limit missing: %#v", limits)
+	}
 	status, _, _ = a.do(t, "PUT", "/api/admin/shared-models/deepseek-main", map[string]any{"expectedVersion": 1, "label": "DeepSeek", "model": "deepseek-chat", "providerId": "deepseek", "enabled": true, "pricing": map[string]string{"inputNanoCnyPerMillion": "1000000000", "outputNanoCnyPerMillion": "2000000000"}}, true)
 	mustStatus(t, status, 200)
 	status, batch, _ := a.do(t, "PUT", "/api/admin/model-allowances/batch", map[string]any{
@@ -237,7 +240,7 @@ func TestAdministrationModelsAndBYOK(t *testing.T) {
 	}
 	status, allowance, _ := a.do(t, "GET", "/api/model-grants/grant-1/allowance", nil, false)
 	mustStatus(t, status, 200)
-	if allowance["state"] != "available" {
+	if allowance["state"] != "available" || allowance["api"].(map[string]any)["limit"] != "20000000000" {
 		t.Fatalf("unexpected allowance: %#v", allowance)
 	}
 	status, created, _ := a.do(t, "PUT", "/api/byok/configurations/byok-1", map[string]any{"label": "Personal", "model": "deepseek-chat", "providerId": "deepseek", "enabled": true, "expectedVersion": 0}, true)
@@ -359,7 +362,7 @@ func TestAgentLaunchAssetsModelAndLedger(t *testing.T) {
 	if _, err = store.PutSecret(ctx, "shared", "platform", config.ID, 0, []byte("shared-secret"), "admin-user", token); err != nil {
 		t.Fatal(err)
 	}
-	if err = store.ConfigureScope(ctx, "api", config.ID, ModelScope{Enabled: true, Limit: 2, AmountLimit: "0"}, "admin-user", token); err != nil {
+	if err = store.ConfigureScope(ctx, "api", config.ID, ModelScope{Enabled: true, Limit: 2, AmountLimit: "100000000000"}, "admin-user", token); err != nil {
 		t.Fatal(err)
 	}
 	config.Enabled = true
@@ -467,6 +470,9 @@ func TestAgentLaunchAssetsModelAndLedger(t *testing.T) {
 		t.Fatal(err)
 	}
 	mustStatus(t, resp.StatusCode, 200)
+	if resp.ContentLength <= 0 {
+		t.Fatalf("buffered model response must preserve a fixed content length, got %d", resp.ContentLength)
+	}
 	var reply map[string]any
 	json.NewDecoder(resp.Body).Decode(&reply)
 	resp.Body.Close()
@@ -488,6 +494,13 @@ func TestAgentLaunchAssetsModelAndLedger(t *testing.T) {
 	}
 	if accountScope.Active != 0 || accountScope.Spent == "0" {
 		t.Fatalf("usage not settled: %#v", accountScope)
+	}
+	apiScope, err := store.Scope(ctx, "api", config.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if apiScope.Active != 0 || apiScope.Spent != accountScope.Spent || apiScope.Reserved != accountScope.Reserved {
+		t.Fatalf("shared API usage not settled with account: api=%#v account=%#v", apiScope, accountScope)
 	}
 	call := func(id, content string) chan int {
 		done := make(chan int, 1)

@@ -52,13 +52,13 @@ local VISION_MAX_CAPTURE_BATCHES = ____VisionBudget.VISION_MAX_CAPTURE_BATCHES -
 local VISION_MAX_CAPTURE_FRAMES = ____VisionBudget.VISION_MAX_CAPTURE_FRAMES -- 25
 local LUA_COMMAND_DEFAULT_TIMEOUT_SECONDS = 30 -- 29
 local function executeStudioLuaCommand(req) -- 38
-	local previewOnly = (string.match( -- 46
-		__TS__StringTrim(req.code), -- 46
-		"^previewGame%s*%b()%s*;?%s*$" -- 46
-	)) ~= nil -- 46
-	if type(_studio_agent_tool_begin) ~= "function" or previewOnly then -- 46
-		return nil -- 47
-	end -- 47
+	local usesPreviewGame = (string.match( -- 50
+		req.code, -- 50
+		"%f[%a_]previewGame%f[^%w_]%s*%(" -- 50
+	)) ~= nil -- 50
+	if type(_studio_agent_tool_begin) ~= "function" or usesPreviewGame then -- 50
+		return nil -- 51
+	end -- 51
 	local onProgress = req.onProgress -- 48
 	local isCancelled = req.isCancelled -- 49
 	return __TS__New( -- 50

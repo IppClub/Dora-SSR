@@ -6,6 +6,10 @@ export interface CaptureModule {
   ccall?: (name:string,type:null,types:string[],args:number[])=>unknown;
   FS?: {
     analyzePath(path:string):{exists:boolean};
+    lstat(path:string):{mode:number;size:number};
+    isDir(mode:number):boolean;
+    isFile(mode:number):boolean;
+    readdir(path:string):string[];
     readFile(path:string):Uint8Array;
     readFile(path:string,options:{encoding:'utf8'}):string;
     unlink(path:string):void;

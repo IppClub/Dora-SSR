@@ -27,6 +27,10 @@ pnpm invite:bootstrap
 - `STUDIO_SECRET_KEY`：32 字节主密钥的 Base64；只从部署密钥管理注入。
 - `STUDIO_TLS_KEY`、`STUDIO_TLS_CERT`：HTTPS 私钥与证书。
 
+可选同源 Studio Web：
+
+- `STUDIO_WEB_DIR`：Vite 生产构建目录。设置后，API 监听器同时提供受控的 Web 静态资源和 SPA 路由；`/api/*` 始终交给现有鉴权 API。目录在启动时固定清单并拒绝符号链接，不能用作通用文件服务器。
+
 可选 Agent Host：
 
 - `STUDIO_AGENT_HOST_ORIGIN`：与前端不同的精确 HTTPS origin。
@@ -43,6 +47,31 @@ pnpm invite:bootstrap
 - Player、API 与 Agent Host 使用同一套 `STUDIO_TLS_CERT`/`STUDIO_TLS_KEY`，但监听来源彼此独立。本地自签名证书仍必须由浏览器信任；生产环境应使用受信任证书。
 
 API 默认监听 `127.0.0.1:8899`，可用 `STUDIO_API_HOST` 和 `STUDIO_API_PORT` 修改。服务接收 `SIGINT`/`SIGTERM` 后停止接入、等待请求结束、关闭 Agent 启动租约并关闭数据库。
+
+## 本地开发与 Linux 部署包
+
+macOS 本地开发服务器：
+
+```bash
+cd Studio
+./scripts/studio-macos.sh dev start
+./scripts/studio-macos.sh dev rebuild
+./scripts/studio-macos.sh dev status
+./scripts/studio-macos.sh dev logs
+./scripts/studio-macos.sh dev stop
+```
+
+首次启动会在忽略目录 `.runtime/dev-server` 生成开发数据库、稳定主密钥及 30 天自签名证书。自签名证书只用于本机开发。可编辑该目录中的 `studio.env` 调整端口或外部模型配置。
+
+在 macOS 打包完整 Linux 部署归档：
+
+```bash
+./scripts/studio-macos.sh package amd64 studio.example.com
+./scripts/studio-macos.sh package aarch64 studio.example.com
+./scripts/studio-macos.sh package all studio.example.com
+```
+
+默认三个来源分别使用 `8899`、`8900`、`8901`；可通过 `STUDIO_PACKAGE_PUBLIC_ORIGIN`、`STUDIO_PACKAGE_AGENT_HOST_ORIGIN`、`STUDIO_PACKAGE_RUNTIME_ORIGIN` 覆盖。脚本固定 `CGO_ENABLED=0`，验证 Linux/纯 Go 构建信息，构建全部 Studio 前端，并打包经过能力清单校验的 Agent 引擎和 pthread Studio Player。该 Player 明确启用仅供 Agent 创作命令使用的音乐生成能力；Web IDE 导出的普通 HTML 游戏仍默认关闭 MUSIC。`dev start/restart` 会自动重建不合格的本地产物，`dev rebuild` 或 `STUDIO_PACKAGE_REBUILD_ENGINES=1` 可强制重建。归档输出到 `Studio/build/packages/`。
 
 ## 设计边界
 

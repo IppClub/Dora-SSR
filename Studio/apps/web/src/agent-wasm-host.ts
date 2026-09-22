@@ -13,6 +13,8 @@ import type {AgentPromptOptions} from './agent-prompt-options';
 import {persistSessionBoundariesBeforePublish,type DurableAgentSessionSource} from './agent-session-durability';
 import {createAgentModelQueueStore,idleAgentModelQueue} from './agent-model-queue';
 
+const agentRoot='/user/studio-project';
+
 /** Owns transport and explicit stop/persist operations. close() does not imply
  * persistence; the runtime owner must await persist() before normal destruction.
  * Never install in a game Player.
@@ -36,11 +38,11 @@ export function installAgentWasmHost(module:AgentHostModule, parentWindow:Window
           if(!host)throw new Error('Agent Player preview connection unavailable');
           return host.requestPreview(artifact,times,operation);
         },signal)
-      :executeAgentLuaTool(module.FS!,binding.projectId,baselineRevision??0,request,
+	      :executeAgentLuaTool(module.FS!,binding.projectId,baselineRevision??0,request,
         (artifact,commandId,timeoutSeconds,operation)=>{
           if(!host)throw new Error('Agent Lua Player connection unavailable');
           return host.requestLua(artifact,commandId,timeoutSeconds,operation);
-        },signal):undefined);
+	        },signal):undefined);
   const lifetime = new AbortController();
   let leaseTimer:ReturnType<typeof setInterval>|undefined;
   let queueTimer:ReturnType<typeof setInterval>|undefined,queuePolling=false;

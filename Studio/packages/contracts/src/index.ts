@@ -162,7 +162,8 @@ export interface RequestFailure extends Correlation {
 export type RuntimeEvent = Correlation & { readonly runId: string } & (
   | { readonly type: "gameCaptured"; readonly captureId: string; readonly png: Uint8Array; readonly width:number; readonly height:number }
   | { readonly type: "captureFailed"; readonly captureId: string; readonly message:string }
-  | { readonly type: "agentCommandResult"; readonly commandId: string; readonly resultJSON:string }
+  | { readonly type: "agentCommandResult"; readonly commandId: string; readonly resultJSON:string;
+      readonly files:readonly {readonly path:string;readonly bytes:Uint8Array}[];readonly deletedPaths:readonly string[] }
   | { readonly type: "state"; readonly state: "loading" | "ready" | "running" | "suspended" | "stopped" }
   | { readonly type: "log"; readonly level: "info" | "warning" | "error"; readonly message: string }
   | { readonly type: "error"; readonly code: "invalidSnapshot" | "unsupported" | "timeout" | "runtimeFailure"; readonly message: string }
@@ -238,7 +239,19 @@ export function isRuntimeEvent(value: unknown): value is RuntimeEvent {
     case "captureFailed":
       return captureIdentifier(value.captureId) && typeof value.message === 'string' && value.message.length <= 8192;
     case "agentCommandResult":
-      return captureIdentifier(value.commandId) && typeof value.resultJSON === 'string' && value.resultJSON.length <= 262144;
+      if(!captureIdentifier(value.commandId)||typeof value.resultJSON!=='string'||value.resultJSON.length>262144
+        ||!Array.isArray(value.files)||value.files.length>4096||!Array.isArray(value.deletedPaths)||value.deletedPaths.length>4096)return false;
+      let total=0;const paths=new Set<string>();
+      for(const file of value.files){
+        if(!record(file)||!isProjectPath(file.path)||file.path==='.agent'||file.path.startsWith('.agent/')
+          ||!(file.bytes instanceof Uint8Array)||file.bytes.byteLength>64*1024*1024||paths.has(file.path))return false;
+        total+=file.bytes.byteLength;if(total>256*1024*1024)return false;paths.add(file.path);
+      }
+      for(const path of value.deletedPaths){
+        if(!isProjectPath(path)||path==='.agent'||path.startsWith('.agent/')||paths.has(path))return false;
+        paths.add(path);
+      }
+      return true;
     case "state":
       return ["loading", "ready", "running", "suspended", "stopped"].includes(value.state as string);
     case "log":

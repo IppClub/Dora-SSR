@@ -68,11 +68,13 @@ export function AgentContextUsage(props:Pick<SharedAgentComposerProps,'compact'|
 
 function ComposerContent(props:SharedAgentComposerProps){
   const copy={...defaultLabels,...props.labels};
-  const compact=props.compact??false,prompt=props.prompt,loading=props.loading||props.disabled===true,running=props.running;
+	const compact=props.compact??false,prompt=props.prompt,loading=props.loading,running=props.running,disabled=props.disabled===true;
   const stopping=props.stopping??false,canStop=props.canStop??true,maxLength=props.maxLength??12000;
   const fetchUrlEnabled=props.fetchUrlEnabled??false,executeCommandEnabled=props.executeCommandEnabled??false,planMode=props.planMode??false;
   const models=props.models??[],selectedModel=models.find(item=>String(item.id)===String(props.modelId));
-  const disabledInput=loading||running,actionDisabled=running?!canStop:loading||prompt.trim()==='',toolToggleDisabled=loading||running;
+	// A temporarily unavailable send action must not lock the draft. Users may
+	// continue typing while the workspace saves/synchronizes in the background.
+	const disabledInput=loading||running,actionDisabled=running?!canStop:disabled||loading||prompt.trim()==='',toolToggleDisabled=disabled||loading||running;
   const textAreaRef=React.useRef<HTMLTextAreaElement|null>(null),isComposingRef=React.useRef(false);
   const [modelMenuOpen,setModelMenuOpen]=React.useState(false),[modelTooltipOpen,setModelTooltipOpen]=React.useState(false),[inputFocused,setInputFocused]=React.useState(false);
   React.useLayoutEffect(()=>{const textarea=textAreaRef.current;if(!textarea)return;textarea.style.height='0px';const maxHeight=compact?160:220;textarea.style.height=`${Math.max(compact?44:64,Math.min(textarea.scrollHeight,maxHeight))}px`;textarea.style.overflowY=textarea.scrollHeight>maxHeight?'auto':'hidden';},[compact,prompt]);

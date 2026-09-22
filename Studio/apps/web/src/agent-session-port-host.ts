@@ -94,9 +94,22 @@ export function serveAgentSessionPort(port: MessagePort, binding: {projectId:str
           const result=message.result as Record<string,unknown>|undefined;
           if(!result||typeof result!=='object'||Array.isArray(result)||typeof result.success!=='boolean'||typeof result.output!=='string'
             ||(result.message!==undefined&&typeof result.message!=='string')||(result.phase!==undefined&&typeof result.phase!=='string'))throw new Error('Invalid Agent Lua result');
+          const files=result.files,deletedPaths=result.deletedPaths;
+          if(!Array.isArray(files)||files.length>4096||!Array.isArray(deletedPaths)||deletedPaths.length>4096)throw new Error('Invalid Agent Lua file changes');
+          let total=0;const changed=new Set<string>();
+          for(const file of files){
+            if(!file||typeof file!=='object'||Array.isArray(file)||typeof file.path!=='string'||file.path==='.agent'||file.path.startsWith('.agent/')
+              ||!(file.bytes instanceof Uint8Array)||file.bytes.byteLength>64*1024*1024||changed.has(file.path))throw new Error('Invalid Agent Lua changed file');
+            total+=file.bytes.byteLength;if(total>256*1024*1024)throw new Error('Agent Lua changes exceed limit');changed.add(file.path);
+          }
+          for(const path of deletedPaths){
+            if(typeof path!=='string'||path==='.agent'||path.startsWith('.agent/')||changed.has(path))throw new Error('Invalid Agent Lua deleted file');
+            changed.add(path);
+          }
           current.finish({success:result.success,output:result.output,
             ...(typeof result.message==='string'?{message:result.message}:{}),
-            ...(typeof result.phase==='string'?{phase:result.phase}:{})});
+            ...(typeof result.phase==='string'?{phase:result.phase}:{}),
+            files:files as {path:string;bytes:Uint8Array}[],deletedPaths:deletedPaths as string[]});
         }else current.fail(new Error(typeof message.message==='string'&&message.message.length<=4096?message.message:'Agent Lua Player failed'));
         return;
       }
@@ -216,7 +229,7 @@ export function serveAgentSessionPort(port: MessagePort, binding: {projectId:str
   });
   const requestLua=(artifact:BuildArtifact,commandId:string,timeoutSeconds:number,signal:AbortSignal):Promise<AgentLuaCommandResult>=>new Promise((resolve,reject)=>{
     if(closed||!started||capturing||persisting||preview||lua||signal.aborted||!isBuildArtifact(artifact)||artifact.projectId!==expected.projectId
-      ||!/^[a-zA-Z0-9_-]{1,128}$/.test(commandId)||!Number.isSafeInteger(timeoutSeconds)||timeoutSeconds<1||timeoutSeconds>120){reject(new Error('Agent Lua Player unavailable'));return;}
+      ||!/^[a-zA-Z0-9_-]{1,128}$/.test(commandId)||!Number.isSafeInteger(timeoutSeconds)||timeoutSeconds<1||timeoutSeconds>600){reject(new Error('Agent Lua Player unavailable'));return;}
     const id=crypto.randomUUID();
     const cleanup=()=>{if(lua?.id===id)lua=undefined;signal.removeEventListener('abort',abort);clearTimeout(timer);};
     const fail=(reason:unknown)=>{cleanup();reject(reason);};

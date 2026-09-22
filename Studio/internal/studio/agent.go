@@ -785,6 +785,7 @@ func (a *AgentService) model(w http.ResponseWriter, r *http.Request, launchID, k
 		usage = parseProviderUsage(responseBody)
 	}
 	_ = a.store.FinishModelRequest(context.Background(), ledgerID, usage)
+	w.Header().Set("Content-Length", fmt.Sprint(len(responseBody)))
 	w.WriteHeader(response.StatusCode)
 	_, _ = w.Write(responseBody)
 }

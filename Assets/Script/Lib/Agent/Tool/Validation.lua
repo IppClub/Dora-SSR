@@ -344,7 +344,7 @@ function ____exports.validateAgentToolInput(tool, input) -- 89
 				value.cwd = __TS__StringTrim(value.cwd) -- 257
 			end -- 257
 		end -- 257
-		value.timeoutSeconds = clampInteger(value.timeoutSeconds, mode == "lua" and 30 or 600, 1, mode == "lua" and 120 or 1800) -- 259
+		value.timeoutSeconds = clampInteger(value.timeoutSeconds, mode == "lua" and 30 or 600, 1, mode == "lua" and 600 or 1800) -- 259
 		return {success = true, value = value} -- 260
 	end -- 260
 	if tool == "list_sub_agents" then -- 260

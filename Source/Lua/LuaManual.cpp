@@ -19,6 +19,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "rapidjson/document.h"
 
+#ifdef __EMSCRIPTEN_PTHREADS__
+#include <emscripten/proxying.h>
+#include <pthread.h>
+#include <thread>
+#endif
+
 extern "C" {
 int colibc_json_decode(lua_State* L);
 int colibc_json_encode(lua_State* L);
@@ -41,6 +47,34 @@ void updateMusicRenderProgress(float progress, void* userData) {
 	auto state = r_cast<MusicRenderProgress*>(userData);
 	state->value.store(progress, std::memory_order_relaxed);
 }
+
+void completeMusicRender(const std::shared_ptr<MusicRenderProgress>& progress,
+	const Ref<LuaHandler>& progressHandler, const Ref<LuaHandler>& completionHandler,
+	std::string response) {
+	auto value = progress->value.load(std::memory_order_relaxed);
+	if (value > progress->reported) {
+		progress->reported = value;
+		tolua_pushnumber(SharedLuaEngine.getState(), value);
+		SharedLuaEngine.executeFunction(progressHandler->get(), 1);
+	}
+	progress->finished.store(true, std::memory_order_release);
+	tolua_pushslice(SharedLuaEngine.getState(), response);
+	SharedLuaEngine.executeFunction(completionHandler->get(), 1);
+}
+
+#ifdef __EMSCRIPTEN_PTHREADS__
+em_proxying_queue* musicCompletionQueue() {
+	static auto* queue = em_proxying_queue_create();
+	return queue;
+}
+
+struct WebMusicCompletion {
+	std::shared_ptr<MusicRenderProgress> progress;
+	Ref<LuaHandler> progressHandler;
+	Ref<LuaHandler> completionHandler;
+	std::string response;
+};
+#endif
 
 std::string resolveMusicSoundFontPath(const std::string& request) {
 	rapidjson::Document document;
@@ -89,27 +123,44 @@ int dora_audio_render_music_async(lua_State* L) {
 			}
 			return false;
 		});
+		auto render = [request = std::move(request), soundFontPath = std::move(soundFontPath), progress]() {
+			char* result = dora_music_render(
+				request.c_str(), soundFontPath.c_str(), updateMusicRenderProgress, progress.get());
+			std::string response = result ? result : R"({"success":false,"message":"music generator returned no result"})";
+			if (result) dora_music_string_free(result);
+			return response;
+		};
+#ifdef __EMSCRIPTEN_PTHREADS__
+		// Music synthesis is CPU-heavy. Running it through WebTaskQueue blocks the
+		// Player event loop, so the Lua coroutine can neither resume nor be
+		// cancelled. The pthread Player already owns a preallocated worker pool;
+		// synthesize there and proxy only the Lua completion back to its owner.
+		auto owner = pthread_self();
+		try {
+			std::thread([render = std::move(render), owner, progress, progressHandler, completionHandler]() mutable {
+				auto* completion = new WebMusicCompletion{
+					progress, progressHandler, completionHandler, render()};
+				if (!emscripten_proxy_async(musicCompletionQueue(), owner, [](void* value) {
+					std::unique_ptr<WebMusicCompletion> completion(static_cast<WebMusicCompletion*>(value));
+					completeMusicRender(completion->progress, completion->progressHandler,
+						completion->completionHandler, std::move(completion->response));
+				}, completion)) delete completion;
+			}).detach();
+		} catch (...) {
+			completeMusicRender(progress, progressHandler, completionHandler,
+				R"({"success":false,"message":"failed to start music render worker"})");
+		}
+#else
 		SharedAsyncThread.run(
-			[request = std::move(request), soundFontPath = std::move(soundFontPath), progress]() {
-				char* result = dora_music_render(
-					request.c_str(), soundFontPath.c_str(), updateMusicRenderProgress, progress.get());
-				std::string response = result ? result : R"({"success":false,"message":"music generator returned no result"})";
-				if (result) dora_music_string_free(result);
-				return Values::alloc(std::move(response));
+			[render = std::move(render)]() mutable {
+				return Values::alloc(render());
 			},
 			[progress, progressHandler, completionHandler](Own<Values> values) {
 				std::string response;
 				values->get(response);
-				auto value = progress->value.load(std::memory_order_relaxed);
-				if (value > progress->reported) {
-					progress->reported = value;
-					tolua_pushnumber(SharedLuaEngine.getState(), value);
-					SharedLuaEngine.executeFunction(progressHandler->get(), 1);
-				}
-				progress->finished.store(true, std::memory_order_release);
-				tolua_pushslice(SharedLuaEngine.getState(), response);
-				SharedLuaEngine.executeFunction(completionHandler->get(), 1);
+				completeMusicRender(progress, progressHandler, completionHandler, std::move(response));
 			});
+#endif
 	}
 	return 0;
 #ifndef TOLUA_RELEASE

@@ -92,15 +92,16 @@ export const RuntimePreview=forwardRef<RuntimePreviewHandle,{ artifact: BuildArt
       try{
         const startup=await run.ready;
         if(startup.state!=='running')throw new Error(startup.message);
-        const resultJSON=await run.readAgentCommand(commandId,signal);
-        const result:unknown=JSON.parse(resultJSON);
+        const commandResult=await run.readAgentCommand(commandId,signal);
+        const result:unknown=JSON.parse(commandResult.resultJSON);
         if(!result||typeof result!=='object'||Array.isArray(result))throw new Error('Agent Lua Player 返回了无效结果');
         const value=result as Record<string,unknown>;
         if(typeof value.success!=='boolean'||typeof value.output!=='string'
           ||(value.message!==undefined&&typeof value.message!=='string')
           ||(value.phase!==undefined&&typeof value.phase!=='string'))throw new Error('Agent Lua Player 返回了无效结果');
         const decoded:AgentLuaCommandResult={success:value.success,output:value.output,
-          ...(typeof value.message==='string'?{message:value.message}:{}),...(typeof value.phase==='string'?{phase:value.phase}:{})};
+          ...(typeof value.message==='string'?{message:value.message}:{}),...(typeof value.phase==='string'?{phase:value.phase}:{}),
+          files:commandResult.files,deletedPaths:commandResult.deletedPaths};
         setStatus(decoded.success?'Agent Lua 命令执行完成':decoded.message??'Agent Lua 命令执行失败');
         return decoded;
       }catch(error){setStatus(error instanceof Error?error.message:'Agent Lua Player 执行失败');throw error;}

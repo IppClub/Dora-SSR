@@ -15,8 +15,12 @@ export function prepareAgentHostRuntime(module:AgentHostModule,parentWindow:Wind
   const bootstrap=prepareAgentBootstrap(module,parentWindow,config.parentOrigin,config);
   claimed.add(module);
   let closed=false;
-  const close=()=>{closed=true;bootstrap.close();};
-  void bootstrap.ready.catch(()=>close());
+  let failure:unknown;
+  const close=(reason?:unknown)=>{
+    if(reason!==undefined && failure===undefined)failure=reason;
+    closed=true;bootstrap.close();
+  };
+  const bootstrapReady=bootstrap.ready.catch(error=>{close(error);throw failure;});
   const storageId=(async()=>{
     const id=await agentStorageId(config.parentOrigin,config.accountId,config.projectId);
     if(closed)throw new Error('Agent runtime closed before storage acquisition');
@@ -24,8 +28,8 @@ export function prepareAgentHostRuntime(module:AgentHostModule,parentWindow:Wind
     // A cancelled setup must not acquire a lease after its owner has gone away.
     if(closed){await lease.release();throw new Error('Agent runtime closed before storage admission');}
     return id;
-  })().catch(error=>{close();throw error;});
-  const ready=Promise.all([storageId,bootstrap.ready]).then(([,host])=>{
+  })().catch(error=>{close(error);throw error;});
+  const ready=Promise.all([storageId,bootstrapReady]).then(([,host])=>{
     if(closed)throw new Error('Agent runtime closed before readiness');
     return host;
   });

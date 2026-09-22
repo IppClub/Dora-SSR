@@ -38,6 +38,8 @@ const viewPreferenceKey=(projectId:string)=>`dora-studio:project-view:${projectI
 const readSplitPreference=()=>{try{const value=Number(localStorage.getItem(splitPreferenceKey));return Number.isFinite(value)&&value>=.25&&value<=.72?value:.45;}catch{return .45;}};
 const readViewPreference=(projectId:string):WorkspaceView=>{try{return localStorage.getItem(viewPreferenceKey(projectId))==='resources'?'resources':'agent';}catch{return 'agent';}};
 const savePreference=(key:string,value:string)=>{try{localStorage.setItem(key,value);}catch{/* UI preferences must never block project work. */}};
+const agentMaintenanceSignal=()=>AbortSignal.timeout(15000);
+const agentDispatchSignal=()=>AbortSignal.timeout(30000);
 type ProjectOpenProgress={projectId:string;value:number;label:string};
 const describeError = (error: unknown) => error instanceof WorkspaceError ? ({
   conflict: '其他标签页已修改这个项目。当前草稿仍保留，请另存副本或重新打开后合并。',
@@ -148,6 +150,14 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
     return()=>{active=false;abort.abort();};
   },[accountId,grantRefresh]);
   useEffect(()=>{
+    if(modelGrantId||grantLoading||grantFailed||!grantChoices.length)return;
+    const enabled=grantChoices.filter(choice=>choice.enabled);
+    if(!enabled.length)return;
+    const projectGrant=project?.creation?.grantId;
+    const preferred=enabled.find(choice=>choice.grantId===projectGrant)?.grantId??enabled[0]?.grantId;
+    if(preferred&&(!chosenGrantId||!enabled.some(choice=>choice.grantId===chosenGrantId)))setChosenGrantId(preferred);
+  },[modelGrantId,grantLoading,grantFailed,grantChoices,chosenGrantId,project?.creation?.grantId]);
+  useEffect(()=>{
     if(!agent)return;
     setAgentWorkMode(agent.controller.getSnapshot().state.session.workMode);
   },[agent]);
@@ -229,7 +239,7 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
       let received=liveWritebackCheckpoints.current.get(agent);if(!received){received=new Set();liveWritebackCheckpoints.current.set(agent,received);}
       if(!ids.some(id=>!received!.has(id)))return;
       liveWritebackActive.current=true;setBusy(true);
-      void agent.captureLiveProject!(new AbortController().signal).then(captured=>commitAgentWriteback(storage.current!,agentBaseline.snapshot,captured.files)).then(async result=>{
+	  void agent.captureLiveProject!(agentMaintenanceSignal()).then(captured=>commitAgentWriteback(storage.current!,agentBaseline.snapshot,captured.files)).then(async result=>{
         for(const id of ids)received!.add(id);
         setProject(result.project);setDraft(result.project.snapshot);setDirty(false);setCheckpoints(null);
         if(!result.project.snapshot.files.some(file=>file.path===selected))setSelected(result.project.snapshot.entry);
@@ -264,7 +274,7 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
     if(busy || dirty || !agent?.syncProject || agent.controller.closed || !project || agent.projectId!==project.snapshot.projectId)return;
     setBusy(true);setAgentSyncing(true);setError('');
     try{
-      await agent.syncProject(project.snapshot,new AbortController().signal);
+	  await agent.syncProject(project.snapshot,agentMaintenanceSignal());
       setAgentSynced({owner:agent,revision:project.snapshot.revision});
       setAgentBaseline({owner:agent,snapshot:structuredClone(project.snapshot)});
       setAgentSyncFailure(false);
@@ -288,7 +298,7 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
           setProject(current=>current?.snapshot.projectId===project.snapshot.projectId?{...current,creation:attempted}:current);
         }
       }
-      const result=await reconcileAgentProject(storage.current,{projectId:agent.projectId,captureProject:agent.captureProject,syncProject:agent.syncProject},agentBaseline.snapshot,new AbortController().signal);
+	  const result=await reconcileAgentProject(storage.current,{projectId:agent.projectId,captureProject:agent.captureProject,syncProject:agent.syncProject},agentBaseline.snapshot,agentMaintenanceSignal());
       if(result.committed)markBuildStale();
       setProject(result.project);setDraft(result.project.snapshot);setDirty(false);setCheckpoints(null);
       setWritebackRecoveryNeeded(false);setAgentSyncFailure(!result.hostConfirmed);
@@ -324,7 +334,7 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
       const live=binding?.controller.getSnapshot();
       if(!binding?.sendPrompt||!binding.syncProject||live?.connection!=='live'||live.state.deleted)throw new Error('Agent 会话暂时无法连接');
       if(dirty||agentBaseline?.owner!==binding||agentBaseline.snapshot.revision!==current.snapshot.revision){
-        await binding.syncProject(current.snapshot,new AbortController().signal);
+		await binding.syncProject(current.snapshot,agentMaintenanceSignal());
         setAgentSynced({owner:binding,revision:current.snapshot.revision});setAgentBaseline({owner:binding,snapshot:structuredClone(current.snapshot)});setAgentSyncFailure(false);
       }
       const next=await storage.current.beginAgentIteration(current.snapshot.projectId,accountId,followupPrompt,activeGrantId);
@@ -332,7 +342,7 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
       setProject(value=>value?.snapshot.projectId===current.snapshot.projectId?{...value,iterations:[...(value.iterations??[]),next]}:value);
       const attempted=await storage.current.markAgentIterationDispatch(current.snapshot.projectId,next.requestId,'attempted');
       setProject(value=>value?.snapshot.projectId===current.snapshot.projectId?{...value,iterations:(value.iterations??[]).map(item=>item.requestId===attempted.requestId?attempted:item)}:value);
-      const taskId=await binding.sendPrompt(next.prompt,next.grantId,next.requestId,agentPromptOptions,new AbortController().signal);
+	  const taskId=await binding.sendPrompt(next.prompt,next.grantId,next.requestId,agentPromptOptions,agentDispatchSignal());
       const confirmed=await storage.current.markAgentIterationDispatch(current.snapshot.projectId,next.requestId,'confirmed',taskId);
       setFinishedIdea(undefined);
       setProject(value=>value?.snapshot.projectId===current.snapshot.projectId?{...value,iterations:(value.iterations??[]).map(item=>item.requestId===confirmed.requestId?confirmed:item)}:value);
@@ -342,14 +352,14 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
   async function stopAgentTask(){
     if(!agent?.stopTask||stoppingAgent)return;
     setStoppingAgent(true);setError('');
-    try{await agent.stopTask(crypto.randomUUID(),new AbortController().signal);}
+    try{await agent.stopTask(crypto.randomUUID(),agentMaintenanceSignal());}
     catch(error){setStoppingAgent(false);setError(`停止 Agent 未完成：${describeError(error)}`);}
   }
   async function handleAgentQuestionnaire(action:'respond'|'cancel',questionnaireId:number,answers:AgentQuestionnaireAnswer[]=[]){
     if(!agent?.handleQuestionnaire||!activeGrantId||questionnaireSubmitting)return;
     if(action==='cancel'&&!await confirmation.ask({title:'关闭这份问卷？',description:'Agent 会把未作答视为你的反馈，并根据现有信息继续当前任务。',confirmLabel:'关闭并继续'}))return;
     setQuestionnaireSubmitting(true);setError('');
-    try{await agent.handleQuestionnaire(action,questionnaireId,answers,activeGrantId,crypto.randomUUID(),new AbortController().signal);setFinishedIdea(undefined);sessionStorage.removeItem(`agent-questionnaire:${questionnaireId}`);}
+    try{await agent.handleQuestionnaire(action,questionnaireId,answers,activeGrantId,crypto.randomUUID(),agentDispatchSignal());setFinishedIdea(undefined);sessionStorage.removeItem(`agent-questionnaire:${questionnaireId}`);}
     catch(error){setError(`问卷提交未完成：${describeError(error)} 投递结果不明时不会自动重发，请先查看 Agent 会话。`);}
     finally{setQuestionnaireSubmitting(false);}
   }
@@ -464,7 +474,7 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
       }
       if(!binding.syncProject)throw new Error('Agent 宿主暂不支持项目文件同步。');
       setAgentSyncing(true);
-      await binding.syncProject(next.snapshot,abort.signal);
+      await binding.syncProject(next.snapshot,AbortSignal.any([abort.signal,agentMaintenanceSignal()]));
       if(currentAccount.current!==ownerAccount||abort.signal.aborted)return;
       setAgentSynced({owner:binding,revision:next.snapshot.revision});
       setAgentBaseline({owner:binding,snapshot:structuredClone(next.snapshot)});
@@ -474,7 +484,7 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
         if(!binding.sendPrompt)throw new Error('Agent 宿主尚不支持投递游戏描述。');
         const attempted=await storage.current.markPromptDispatch(next.snapshot.projectId,next.creation.requestId,'attempted');
         setProject(current=>current?.snapshot.projectId===next.snapshot.projectId?{...current,creation:attempted}:current);
-        const taskId=await binding.sendPrompt(next.creation.prompt,next.creation.grantId,next.creation.requestId,defaultAgentPromptOptions(),abort.signal);
+        const taskId=await binding.sendPrompt(next.creation.prompt,next.creation.grantId,next.creation.requestId,defaultAgentPromptOptions(),AbortSignal.any([abort.signal,agentDispatchSignal()]));
         const confirmed=await storage.current.markPromptDispatch(next.snapshot.projectId,next.creation.requestId,'confirmed',taskId);
         setProject(current=>current?.snapshot.projectId===next.snapshot.projectId?{...current,creation:confirmed}:current);
       }
@@ -505,11 +515,19 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
     }finally{confirmingAction.current=false;}
   }
   async function startProjectAgent() {
-    if(!storage.current||!project||!draft||project.creation||busy||!accountId||!agentHostOrigin||!selectedGrantId||!followupPrompt.trim())return;
+	const foreignCreation=Boolean(project?.creation&&project.creation.accountId!==accountId);
+	if(!storage.current||!project||!draft||project.creation&&!foreignCreation||busy||!accountId||!agentHostOrigin||!selectedGrantId||!followupPrompt.trim())return;
     setBusy(true);setPreparingIdea(true);setPreparationFailure(false);setError('');
     try{
-      const current=dirty?await storage.current.save(project.name,draft,project.snapshot.revision,true):project;
-      if(dirty){setDraft(current.snapshot);setDirty(false);setCheckpoints(null);await catalog.refreshLocal();}
+	  let current:LocalProject;
+	  if(foreignCreation){
+		await retireAgent();
+		current=await storage.current.save(`${project.name} · 当前账号副本`,{...draft,projectId:crypto.randomUUID(),revision:0},null,false);
+		activate(current);setWorkspaceView('agent');await catalog.refreshLocal();
+	  }else{
+		current=dirty?await storage.current.save(project.name,draft,project.snapshot.revision,true):project;
+		if(dirty){setDraft(current.snapshot);setDirty(false);setCheckpoints(null);await catalog.refreshLocal();}
+	  }
       const creation=await storage.current.beginProjectAgent(current.snapshot.projectId,current.snapshot.revision,accountId,followupPrompt,selectedGrantId);
       const next={...current,creation};
       setProject(next);setFollowupPrompt('');selectWorkspaceView('agent');
@@ -557,7 +575,7 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
         if(agent?.syncProject&&agent.projectId===next.snapshot.projectId&&!agent.controller.closed){
           setAgentSyncing(true);
           try{
-            await agent.syncProject(next.snapshot,new AbortController().signal);
+            await agent.syncProject(next.snapshot,agentMaintenanceSignal());
             setAgentSynced({owner:agent,revision:next.snapshot.revision});setAgentBaseline({owner:agent,snapshot:structuredClone(next.snapshot)});setAgentSyncFailure(false);
           }catch{setAgentSyncFailure(true);setError('项目已保存到前端工作区，但 Agent 自动同步失败，可在侧栏重试。');}
           finally{setAgentSyncing(false);}
@@ -575,7 +593,7 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
       setProject(next);setDraft(next.snapshot);setDirty(false);setCheckpoints(null);await catalog.refreshLocal();
       if(agent?.syncProject&&agent.projectId===next.snapshot.projectId&&!agent.controller.closed){
         setAgentSyncing(true);
-        try{await agent.syncProject(next.snapshot,new AbortController().signal);setAgentSynced({owner:agent,revision:next.snapshot.revision});setAgentBaseline({owner:agent,snapshot:structuredClone(next.snapshot)});setAgentSyncFailure(false);}
+        try{await agent.syncProject(next.snapshot,agentMaintenanceSignal());setAgentSynced({owner:agent,revision:next.snapshot.revision});setAgentBaseline({owner:agent,snapshot:structuredClone(next.snapshot)});setAgentSyncFailure(false);}
         catch{setAgentSyncFailure(true);setError('项目名称已保存，但 Agent 作者基线同步失败，可在侧栏重试。');}
         finally{setAgentSyncing(false);}
       }
@@ -758,9 +776,17 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
   const showAgentReconnect=Boolean(project&&accountId&&agentHostOrigin&&preparationFailure&&!isLiveWorkspaceAgent(agent,project.snapshot.projectId));
   const reconnectStatus=dirty?'请先保存当前资源修改，再重新连接。':'自动连接失败；项目内容仍保存在浏览器工作区。';
   const reconnectControl=showAgentReconnect?<div className="agent-reconnect-control"><button disabled={busy||dirty||preparingIdea} onClick={()=>void retryIdeaPreparation()}>重新连接 Agent</button><span role="status">{reconnectStatus}</span></div>:undefined;
-  const initialAgentReady=Boolean(project&&!project.creation&&accountId&&agentHostOrigin&&selectedGrantId&&!grantLoading&&!grantFailed);
-  const followupReady=Boolean(project?.creation&&project.creation.accountId===accountId&&activeGrantId&&accountId&&agentHostOrigin);
-  const followupDisabled=!(project?.creation?followupReady:initialAgentReady)||busy||sendingFollowup;
+	const foreignAgentProject=Boolean(project?.creation&&project.creation.accountId!==accountId);
+  const followupReady=Boolean(project?.creation&&!foreignAgentProject&&activeGrantId&&accountId&&agentHostOrigin);
+	const startOrMigrateReady=Boolean(project&&(!project.creation||foreignAgentProject)&&accountId&&agentHostOrigin&&selectedGrantId&&!grantLoading&&!grantFailed);
+	const followupDisabled=!(project?.creation&&!foreignAgentProject?followupReady:startOrMigrateReady)||busy||sendingFollowup;
+	const followupStatus=sendingFollowup?'正在发送…'
+	  :busy?'正在完成项目保存或同步…'
+	  :!accountId?'账号未登录'
+	  :foreignAgentProject?'发送时会保留原项目，并创建当前账号副本'
+	  :!agentHostOrigin?'Agent 服务未配置'
+	  :!activeGrantId?'尚未选择可用模型'
+	  :undefined;
   const ideaAvailability=!accountId?'请先登录受邀账号'
     :!agentHostOrigin?'Agent 服务尚未配置'
     :grantLoading?'正在读取可用模型…'
@@ -787,7 +813,6 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
       }) : <p className="muted">{catalog.state==='loading'?'正在读取项目…':<>还没有项目。<br/>从一个空白项目开始。</>}</p>}</nav>
       {catalog.state==='failed'&&<p className="project-catalog-status" role="status">暂时无法读取其他设备上的项目；当前项目仍可正常使用，恢复连接后会自动重试。</p>}
       <button disabled={!accountId} onClick={()=>setModelSettingsOpen(true)}>模型与用量{accountId?'':' · 登录后可用'}</button>
-      <div className="storage-note">项目自动保存<br/><span>登录后会自动同步；其他设备上的项目也会在此显示。仅在网络失败或内容冲突时需要处理。</span></div>
     </aside>
     <main className={!draft||!project?'home-main':undefined}>
       <header className="topbar"><span>创作 / 工作室</span><div className="topbar-controls"><span className="connection">{ready ? '● 本地存储可用' : '○ 正在连接本地存储'}</span>{topbarActions}</div></header>
@@ -811,15 +836,14 @@ export function App({agent:providedAgent,agentHostOrigin,modelGrantId,accountId,
               <div className="diagnostics"><div className="section-label">构建消息 <span>{diagnosticErrors} 错误 · {diagnosticWarnings} 警告</span></div>{diagnostics.map((d, i) => <button key={i} onClick={() => locate(d)}><span className={`diagnostic-kind ${d.severity}`}>{d.severity==='error'?'错误':d.severity==='warning'?'警告':'提示'}</span><span>{d.message}<small>{d.path ?? '编译器'} · {d.code}</small></span></button>)}</div>
             </div>}
             <div className="agent-workspace-view" hidden={workspaceView !== 'agent'}>
-              {agent && agent.projectId === project.snapshot.projectId ? <AgentSessionPanel modelGrantId={activeGrantId} {...(agent.modelQueue?{modelQueue:agent.modelQueue}:{})} controller={agent.controller} busy={busy} {...(showAgentReconnect?{reconnect:{run:()=>void retryIdeaPreparation(),disabled:dirty||preparingIdea,status:reconnectStatus}}:{})} composer={{value:followupPrompt,onChange:setFollowupPrompt,onSubmit:()=>void (project.creation?sendFollowupPrompt():startProjectAgent()),disabled:followupDisabled,busy:sendingFollowup||preparingIdea,...(agent.stopTask?{onStop:()=>void stopAgentTask(),stopping:stoppingAgent}:{}),...agentComposerSettings}} {...(agent.handleQuestionnaire&&activeGrantId&&sessionSnapshot?.state.pendingQuestionnaire?{questionnaire:{submitting:questionnaireSubmitting,onSubmit:(answers:AgentQuestionnaireAnswer[])=>void handleAgentQuestionnaire('respond',sessionSnapshot.state.pendingQuestionnaire!.id,answers),onCancel:()=>void handleAgentQuestionnaire('cancel',sessionSnapshot.state.pendingQuestionnaire!.id)}}:{})} synchronization={agentSyncFailure&&agent.syncProject?{
+              {agent && agent.projectId === project.snapshot.projectId ? <AgentSessionPanel modelGrantId={activeGrantId} {...(agent.modelQueue?{modelQueue:agent.modelQueue}:{})} controller={agent.controller} busy={busy} {...(showAgentReconnect?{reconnect:{run:()=>void retryIdeaPreparation(),disabled:dirty||preparingIdea,status:reconnectStatus}}:{})} composer={{value:followupPrompt,onChange:setFollowupPrompt,onSubmit:()=>void (project.creation&&!foreignAgentProject?sendFollowupPrompt():startProjectAgent()),disabled:followupDisabled,busy:sendingFollowup||preparingIdea,...(followupStatus?{status:followupStatus}:{}),placeholder:project.creation&&!foreignAgentProject?'继续描述你希望修改的玩法…':'描述希望 Agent 为当前项目实现的玩法…',submitLabel:foreignAgentProject?'创建当前账号副本并启动 ↑':project.creation?'发送 ↑':'启动 Agent ↑',...(agent.stopTask?{onStop:()=>void stopAgentTask(),stopping:stoppingAgent}:{}),...agentComposerSettings}} {...(agent.handleQuestionnaire&&activeGrantId&&sessionSnapshot?.state.pendingQuestionnaire?{questionnaire:{submitting:questionnaireSubmitting,onSubmit:(answers:AgentQuestionnaireAnswer[])=>void handleAgentQuestionnaire('respond',sessionSnapshot.state.pendingQuestionnaire!.id,answers),onCancel:()=>void handleAgentQuestionnaire('cancel',sessionSnapshot.state.pendingQuestionnaire!.id)}}:{})} synchronization={agentSyncFailure&&agent.syncProject?{
                 run:()=>void syncAgentProject(),disabled:dirty,
                 status:agentSyncing?'正在重试同步…':'Agent 自动同步失败；前端工作区内容未丢失。',
-              }:undefined} writeback={writebackRecoveryNeeded&&agent.captureProject&&agent.syncProject?{run:()=>void receiveAgentProject(),disabled:dirty||agentBaseline?.owner!==agent,status:'Agent 自动回写失败；请重试接收，前端现有内容不会被直接覆盖。'}:undefined}/> : <AgentPanel modelGrantId={activeGrantId} controls={reconnectControl} composer={{value:followupPrompt,onChange:setFollowupPrompt,onSubmit:()=>void (project.creation?sendFollowupPrompt():startProjectAgent()),disabled:followupDisabled,busy:sendingFollowup||preparingIdea,placeholder:project.creation?'继续描述你希望修改的玩法…':'描述希望 Agent 为当前项目实现的玩法…',submitLabel:project.creation?'发送 ↑':'启动 Agent ↑',...agentComposerSettings}}/>}
+			  }:undefined} writeback={writebackRecoveryNeeded&&agent.captureProject&&agent.syncProject?{run:()=>void receiveAgentProject(),disabled:dirty||agentBaseline?.owner!==agent,status:'Agent 自动回写失败；请重试接收，前端现有内容不会被直接覆盖。'}:undefined}/> : <AgentPanel modelGrantId={activeGrantId} controls={reconnectControl} composer={{value:followupPrompt,onChange:setFollowupPrompt,onSubmit:()=>void (project.creation&&!foreignAgentProject?sendFollowupPrompt():startProjectAgent()),disabled:followupDisabled,busy:sendingFollowup||preparingIdea,...(followupStatus?{status:followupStatus}:{}),placeholder:project.creation&&!foreignAgentProject?'继续描述你希望修改的玩法…':'描述希望 Agent 为当前项目实现的玩法…',submitLabel:foreignAgentProject?'创建当前账号副本并启动 ↑':project.creation?'发送 ↑':'启动 Agent ↑',...agentComposerSettings}}/>}
             </div>
           </section>
         </div>
       </>}
-      <footer>AI 创作分阶段接入中，首版验收未完成；在线同步与 Agent 需受邀账号及后端配置</footer>
       <div ref={hostContainer} className="agent-host-runtime" aria-hidden="true" />
       {confirmation.node}
       {modelSettingsOpen&&accountId&&

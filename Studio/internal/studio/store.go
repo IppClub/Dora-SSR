@@ -1265,14 +1265,19 @@ func (s *Store) BeginModelRequest(ctx context.Context, in ModelIntent) error {
 			return errConcurrency
 		}
 	}
-	if minimumScopeAvailable(account, grant).Cmp(in.Reservation) < 0 {
+	available := minimumScopeAvailable(account, grant)
+	if apiLimit := decimal(api.AmountLimit); apiLimit != nil && apiLimit.Sign() > 0 {
+		available = minimumScopeAmount(available, scopeAmountAvailable(api))
+	}
+	if available.Cmp(in.Reservation) < 0 {
 		return errInsufficient
 	}
 	for _, scope := range []*ModelScope{api, account, grant} {
 		scope.Active++
 	}
-	account.Reserved = addNano(account.Reserved, in.Reservation)
-	grant.Reserved = addNano(grant.Reserved, in.Reservation)
+	for _, scope := range []*ModelScope{api, account, grant} {
+		scope.Reserved = addNano(scope.Reserved, in.Reservation)
+	}
 	for _, entry := range []struct {
 		kind, id string
 		scope    *ModelScope
@@ -1293,23 +1298,26 @@ func (s *Store) BeginModelRequest(ctx context.Context, in ModelIntent) error {
 	return tx.Commit()
 }
 
-func minimumScopeAvailable(a, b *ModelScope) *big.Int {
-	al := orZero(decimal(a.AmountLimit))
-	al = new(big.Int).Sub(al, orZero(decimal(a.Spent)))
-	al.Sub(al, orZero(decimal(a.Reserved)))
-	bl := orZero(decimal(b.AmountLimit))
-	bl = new(big.Int).Sub(bl, orZero(decimal(b.Spent)))
-	bl.Sub(bl, orZero(decimal(b.Reserved)))
-	if al.Sign() < 0 {
-		al.SetInt64(0)
+func minimumScopeAvailable(scopes ...*ModelScope) *big.Int {
+	var minimum *big.Int
+	for _, scope := range scopes {
+		minimum = minimumScopeAmount(minimum, scopeAmountAvailable(scope))
 	}
-	if bl.Sign() < 0 {
-		bl.SetInt64(0)
+	return orZero(minimum)
+}
+func scopeAmountAvailable(scope *ModelScope) *big.Int {
+	available := new(big.Int).Sub(orZero(decimal(scope.AmountLimit)), orZero(decimal(scope.Spent)))
+	available.Sub(available, orZero(decimal(scope.Reserved)))
+	if available.Sign() < 0 {
+		available.SetInt64(0)
 	}
-	if al.Cmp(bl) < 0 {
-		return al
+	return available
+}
+func minimumScopeAmount(current, candidate *big.Int) *big.Int {
+	if current == nil || candidate.Cmp(current) < 0 {
+		return candidate
 	}
-	return bl
+	return current
 }
 
 func charge(tokens, rate *big.Int) *big.Int {
@@ -1370,10 +1378,10 @@ func (s *Store) FinishModelRequest(ctx context.Context, id string, usage *ModelU
 	var usageValue any = nil
 	if usage != nil {
 		actual.Add(charge(usage.InputTokens, inputRate), charge(usage.OutputTokens, outputRate))
-		account.Reserved = subNano(account.Reserved, reservation)
-		grant.Reserved = subNano(grant.Reserved, reservation)
-		account.Spent = addNano(account.Spent, actual)
-		grant.Spent = addNano(grant.Spent, actual)
+		for _, scope := range []*ModelScope{api, account, grant} {
+			scope.Reserved = subNano(scope.Reserved, reservation)
+			scope.Spent = addNano(scope.Spent, actual)
+		}
 		state = "settled"
 		usageValue = map[string]any{"inputTokens": tagged(usage.InputTokens), "outputTokens": tagged(usage.OutputTokens)}
 	}

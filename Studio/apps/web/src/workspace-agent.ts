@@ -36,6 +36,15 @@ export class AgentStartupFailure extends Error {
   }
 }
 
+function waitForAgentOperation<T>(operation:Promise<T>,signal:AbortSignal):Promise<T>{
+  signal.throwIfAborted();
+  return new Promise<T>((resolve,reject)=>{
+    const aborted=()=>reject(signal.reason instanceof Error?signal.reason:new DOMException('Agent 操作已取消','AbortError'));
+    signal.addEventListener('abort',aborted,{once:true});
+    operation.then(value=>{signal.removeEventListener('abort',aborted);resolve(value);},error=>{signal.removeEventListener('abort',aborted);reject(error);});
+  });
+}
+
 /** Signal controls startup only. Once ready, use retirement, not abort, to save.
  * The caller must retain the returned binding until retirement is confirmed.
  */
@@ -61,23 +70,23 @@ export async function startWorkspaceAgent(container:HTMLElement,projectId:string
     const owner=host;
     return {projectId,controller:connection.controller,modelQueue:connection.modelQueue,close:()=>owner.close(),retirement:createAgentRetirement({persistAndClose:()=>owner.persistAndClose(),revoke:cleanup}),setPreviewHandler:connection.setPreviewHandler,setLuaHandler:connection.setLuaHandler,
       ...(connection.canSendPrompt?{sendPrompt:async(prompt:string,grantId:string,requestId:string,options:AgentPromptOptions,signal:AbortSignal)=>{
-        signal.throwIfAborted();const taskId=await connection.sendPrompt(prompt,grantId,requestId,options);signal.throwIfAborted();return taskId;
+		signal.throwIfAborted();const taskId=await waitForAgentOperation(connection.sendPrompt(prompt,grantId,requestId,options),signal);signal.throwIfAborted();return taskId;
       }}:{}),
       ...(connection.canHandleQuestionnaire?{handleQuestionnaire:async(action:'respond'|'cancel',questionnaireId:number,answers:unknown[],grantId:string,requestId:string,signal:AbortSignal)=>{
-        signal.throwIfAborted();const taskId=await connection.handleQuestionnaire(action,questionnaireId,answers,grantId,requestId);signal.throwIfAborted();return taskId;
+		signal.throwIfAborted();const taskId=await waitForAgentOperation(connection.handleQuestionnaire(action,questionnaireId,answers,grantId,requestId),signal);signal.throwIfAborted();return taskId;
       }}:{}),
       ...(connection.canStopTask?{stopTask:async(requestId:string,signal:AbortSignal)=>{
-        signal.throwIfAborted();await connection.stopTask(requestId);signal.throwIfAborted();
+		signal.throwIfAborted();await waitForAgentOperation(connection.stopTask(requestId),signal);signal.throwIfAborted();
       }}:{}),
       ...(connection.canCaptureProject?{captureProject:async(signal:AbortSignal)=>{
-        signal.throwIfAborted();const result=await connection.captureProject();signal.throwIfAborted();return result;
+		signal.throwIfAborted();const result=await waitForAgentOperation(connection.captureProject(),signal);signal.throwIfAborted();return result;
       }}:{}),
       ...(connection.canCaptureLiveProject?{captureLiveProject:async(signal:AbortSignal)=>{
-        signal.throwIfAborted();const result=await connection.captureLiveProject();signal.throwIfAborted();return result;
+		signal.throwIfAborted();const result=await waitForAgentOperation(connection.captureLiveProject(),signal);signal.throwIfAborted();return result;
       }}:{}),
       ...(connection.canSyncProject?{syncProject:async(snapshot:ProjectSnapshot,signal:AbortSignal)=>{
         const envelope=await prepareAgentProjectSnapshot(snapshot,projectId,signal);
-        signal.throwIfAborted();await connection.syncProject(envelope);signal.throwIfAborted();
+		signal.throwIfAborted();await waitForAgentOperation(connection.syncProject(envelope),signal);signal.throwIfAborted();
       }}:{})};
   }catch{
     host?.close();

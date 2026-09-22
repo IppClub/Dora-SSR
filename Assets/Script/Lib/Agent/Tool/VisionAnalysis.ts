@@ -1,5 +1,5 @@
 // @preview-file off clear
-import { App, Content, Director, HttpClient } from 'Dora';
+import { App, Content, Director, HttpClient, once } from 'Dora';
 const mime = require("mime") as { b64(this: void, value: string): LuaMultiReturn<[string | undefined, string | undefined]> };
 import { createStudioModelRequestId, safeJsonEncode } from 'Agent/Utils';
 import { VISION_PROFILE_VERSION, type VisionBinding } from 'Agent/Tool/VisionBinding';
@@ -88,27 +88,39 @@ export async function analyzeImage(req: AnalyzeImageRequest): Promise<Record<str
 		if (binding.provider==="glm-coding-cn") headers.push("X-Title: 4.5V MCP Local","Accept-Language: en-US,en");
 		// Never pass this payload through the text model's debug/history machinery.
 		const raw=await new Promise<string>((resolve,reject)=>{
-			let settled=false, requestId=0;
+			let settled=false, requestId=0, responseReady=false;
+			let responseData:string|undefined, responseError:string|undefined;
 			const fail=(message:string)=>{if(settled)return;settled=true;if(requestId!==0)HttpClient.cancel(requestId);reject(message);};
 			Director.systemScheduler.schedule(()=>{
 				if(settled)return true;
+				// Emscripten invokes fetch completion outside Dora's engine frame.
+				// Resuming a Lua Promise there can create autoreleased engine objects
+				// without an active pool. Consume the browser result on this scheduler.
+				if(responseReady){
+					if(responseError!==undefined)fail(responseError);
+					else {settled=true;resolve(responseData!);}
+					return true;
+				}
 				if(req.isCancelled() || App.runningTime-start>ANALYZE_IMAGE_HTTP_TIMEOUT_SECONDS){fail(req.isCancelled()?"Vision analysis cancelled":"Vision request timed out");return true;}
 				return false;
 			});
-			let received=0;
-			const chunks:string[]=[];
-			requestId=HttpClient.post(binding.url,headers,json,ANALYZE_IMAGE_HTTP_TIMEOUT_SECONDS,chunk=>{
-				received+=chunk.length;
-				if(received>512*1024){fail("Vision response exceeded size budget");return true;}
-				chunks.push(chunk);
-				return req.isCancelled();
-			},data=>{
+			// Match the original Agent model request timing. Starting an Emscripten
+			// fetch re-entrantly from the active Lua tool coroutine can resume that
+			// coroutine from the browser completion callback before the current
+			// engine frame has released its autorelease objects.
+			Director.systemScheduler.schedule(once(()=>{
 				if(settled)return;
-				if(data===undefined){fail("Vision request failed (network, credentials, model access or quota); no fallback was attempted");return;}
-				settled=true;resolve(chunks.join(""));
-			});
-			if(requestId===0){fail("Unable to schedule vision request");return;}
-			requestIssued=true;
+				requestId=HttpClient.post(binding.url,headers,json,ANALYZE_IMAGE_HTTP_TIMEOUT_SECONDS,data=>{
+					if(settled)return;
+					requestId=0;
+					if(data===undefined)responseError="Vision request failed (network, credentials, model access or quota); no fallback was attempted";
+					else if(data.length>512*1024)responseError="Vision response exceeded size budget";
+					else responseData=data;
+					responseReady=true;
+				});
+				if(requestId===0){fail("Unable to schedule vision request");return;}
+				requestIssued=true;
+			}));
 		});
 		if(req.isCancelled())return {success:false,cancelled:true,message:"Vision analysis cancelled"};
 		const result = parseVisionResponse(raw, binding.model);

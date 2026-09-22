@@ -222,7 +222,10 @@ interface MusicGenerationRequest {
 const MusicGenerator = Audio as unknown as MusicGeneratorAPI;
 
 function notifyWebIDE(path: string): void {
-	if (HttpServer.wsConnectionCount === 0) return;
+	// Web Player and the dedicated Studio Agent host intentionally do not expose
+	// the native HTTP server. Music generation is still valid there; only the
+	// legacy Web IDE tree refresh notification is unavailable.
+	if (!HttpServer || HttpServer.wsConnectionCount === 0) return;
 	const [payload] = json.encode({ name: "UpdateFile", file: path, exists: true, content: "" });
 	if (payload) emit("AppWS", "Send", payload);
 }

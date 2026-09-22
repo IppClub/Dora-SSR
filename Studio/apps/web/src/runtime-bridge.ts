@@ -1,4 +1,4 @@
-import { isRuntimeCommand, isBoundedCapturePNG, type Correlation, type RuntimeEvent } from '@dora-studio/contracts';
+import { isRuntimeCommand, isBoundedCapturePNG, isProjectPath, type BuildArtifact, type Correlation, type RuntimeEvent } from '@dora-studio/contracts';
 import { prepareRuntimeSnapshot } from './runtime-snapshot';
 
 type Identity = Correlation & { runId: string };
@@ -10,7 +10,38 @@ interface RuntimeModule {
   doraSnapshot?: Promise<unknown>;
   print?: (text: string) => void;
   printErr?: (text: string) => void;
-  FS?: {analyzePath(path:string):{exists:boolean};readFile(path:string,options:{encoding:'utf8'}):string;unlink(path:string):void};
+  FS?: {analyzePath(path:string):{exists:boolean};lstat(path:string):{mode:number;size:number};isDir(mode:number):boolean;isFile(mode:number):boolean;
+    readdir(path:string):string[];readFile(path:string):Uint8Array;readFile(path:string,options:{encoding:'utf8'}):string;unlink(path:string):void};
+}
+
+function captureProjectChanges(fs:NonNullable<RuntimeModule['FS']>,artifact:BuildArtifact){
+  const encoder=new TextEncoder(),baseline=new Map(artifact.files.filter(file=>file.path!=='.agent'&&!file.path.startsWith('.agent/'))
+    .map(file=>[file.path,file.kind==='text'?encoder.encode(file.text):file.bytes] as const));
+  const files:Array<{path:string;bytes:Uint8Array}>=[],found=new Set<string>();let visited=0,total=0;
+  const visit=(path:string,relative:string,depth:number)=>{
+    if(++visited>65536||depth>256)throw new Error('Agent Lua project traversal bounds exceeded');
+    const stat=fs.lstat(path);
+    if(fs.isDir(stat.mode)){
+      for(const name of fs.readdir(path).sort()){
+        if(name==='.'||name==='..'||(!relative&&name==='.agent'))continue;
+        const child=relative?relative+'/'+name:name;
+        if(name.includes('/')||name.includes('\\')||!isProjectPath(child))throw new Error('Invalid Agent Lua project path');
+        visit(path+'/'+name,child,depth+1);
+      }
+      return;
+    }
+    if(!relative||!fs.isFile(stat.mode)||stat.size<0||stat.size>64*1024*1024)throw new Error('Invalid Agent Lua project file');
+    const bytes=new Uint8Array(fs.readFile(path));
+    if(bytes.byteLength!==stat.size)throw new Error('Agent Lua project changed during capture');
+    found.add(relative);const before=baseline.get(relative);
+    if(before&&before.byteLength===bytes.byteLength&&before.every((byte,index)=>byte===bytes[index]))return;
+    total+=bytes.byteLength;if(files.length>=4096||total>256*1024*1024)throw new Error('Agent Lua project changes exceed limit');
+    files.push({path:relative,bytes});
+  };
+  visit('/game','',0);
+  const deletedPaths=[...baseline.keys()].filter(path=>!found.has(path));
+  if(deletedPaths.length>4096)throw new Error('Agent Lua project deletions exceed limit');
+  return {files,deletedPaths};
 }
 
 /** Install before loading Emscripten. One connection and one snapshot per page. */
@@ -21,6 +52,7 @@ export function installRuntimeBridge(page: Window, module: RuntimeModule, option
   }
   const identity = { ...options.identity };
   let port: MessagePort | undefined, disposed = false, accepted = false;
+  let currentArtifact:BuildArtifact|undefined;
   let running = false;
   let capture: AbortController | undefined;
   let cancelCapture: (()=>void) | undefined;
@@ -101,9 +133,10 @@ export function installRuntimeBridge(page: Window, module: RuntimeModule, option
           const resultJSON=module.FS.readFile(path,{encoding:'utf8'});
           module.FS.unlink(path);
           if(typeof resultJSON!=='string'||resultJSON.length>262144)throw new Error('Agent Lua result exceeds limit');
-          send({...identity,type:'agentCommandResult',commandId:data.commandId,resultJSON});
+          const changes=captureProjectChanges(module.FS,currentArtifact!);
+          send({...identity,type:'agentCommandResult',commandId:data.commandId,resultJSON,...changes});
         }catch(error){
-          send({...identity,type:'agentCommandResult',commandId:data.commandId,resultJSON:JSON.stringify({success:false,output:'',message:String(error),phase:'execute'})});
+          send({...identity,type:'agentCommandResult',commandId:data.commandId,resultJSON:JSON.stringify({success:false,output:'',message:String(error),phase:'execute'}),files:[],deletedPaths:[]});
         }
         return;
       }
@@ -115,6 +148,7 @@ export function installRuntimeBridge(page: Window, module: RuntimeModule, option
       }
       accepted = true;
       try {
+        currentArtifact=data.artifact;
         const snapshot = await prepareRuntimeSnapshot(data.artifact, options.engineVersion);
         if (disposed) return;
         page.clearTimeout(timer);

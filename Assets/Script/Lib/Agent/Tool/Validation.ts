@@ -256,7 +256,7 @@ export function validateAgentToolInput(tool: AgentToolName, input: Record<string
 			value.command = command;
 			if (typeof value.cwd === "string") value.cwd = value.cwd.trim();
 		}
-		value.timeoutSeconds = clampInteger(value.timeoutSeconds, mode === "lua" ? 30 : 600, 1, mode === "lua" ? 120 : 1800);
+		value.timeoutSeconds = clampInteger(value.timeoutSeconds, mode === "lua" ? 30 : 600, 1, mode === "lua" ? 600 : 1800);
 		return { success: true, value };
 	}
 	if (tool === "list_sub_agents") {

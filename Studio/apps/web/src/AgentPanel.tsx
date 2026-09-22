@@ -10,6 +10,7 @@ import type {AgentModelQueueState} from './agent-model-queue';
 const statuses: Record<string, string> = {IDLE:'就绪', RUNNING:'进行中', WAITING_USER:'等待回答', DONE:'已完成', FAILED:'失败', STOPPED:'已停止', PENDING:'等待中'};
 export interface AgentComposer {
   value:string;onChange:(value:string)=>void;onSubmit:()=>void;disabled:boolean;busy:boolean;placeholder?:string;submitLabel?:string;
+	status?:string;
   stopping?:boolean;onStop?:()=>void;
   planMode?:boolean;fetchUrlEnabled?:boolean;executeCommandEnabled?:boolean;
   models?:Array<{id:string;name:string}>;modelId?:string;
@@ -76,6 +77,7 @@ export function AgentPanel({state, onLoadHistory, loadingHistory = false, connec
       usedTokens={state?.session.metrics?.context?.usedTokens??0} maxTokens={state?.session.metrics?.context?.maxTokens??64000} contextRatio={state?.session.metrics?.context?.ratio??0}
       {...(state?.session.metrics?.usage?{actualUsage:{inputTokens:state.session.metrics.usage.inputTokens,outputTokens:state.session.metrics.usage.outputTokens,...(state.session.metrics.usage.cachedInputTokens===undefined?{}:{cachedInputTokens:state.session.metrics.usage.cachedInputTokens}),requestCount:state.session.metrics.usage.requestCount}}:{})}
       labels={{promptPlaceholder:composer?.placeholder??(composer?'继续描述你希望修改的玩法…':'连接 Agent 后可继续描述修改…'),send:composer?.submitLabel??'发送 ↑'}}
+	  {...(composer?.status?{status:composer.status}:{})}
       onPromptChange={value=>composer?.onChange(value)} onSend={()=>composer?.onSubmit()}
       {...(composer?.onStop?{onStop:composer.onStop}:{})}
       {...(composer?.onPlanModeChange?{onPlanModeChange:composer.onPlanModeChange}:{})}

@@ -152,7 +152,7 @@ export function connectAgentSessionPort(port: MessagePort, binding: {projectId:s
               ||typeof message.requestId!=='string'||!/^[0-9a-f-]{36}$/i.test(message.requestId)
               ||!isBuildArtifact(agentArtifact)||agentArtifact.projectId!==expected.projectId
               ||typeof commandId!=='string'||!/^[a-zA-Z0-9_-]{1,128}$/.test(commandId)
-              ||!Number.isSafeInteger(timeoutSeconds)||Number(timeoutSeconds)<1||Number(timeoutSeconds)>120)throw new Error('Invalid Agent Lua request');
+              ||!Number.isSafeInteger(timeoutSeconds)||Number(timeoutSeconds)<1||Number(timeoutSeconds)>600)throw new Error('Invalid Agent Lua request');
             const id=message.requestId,handler=luaHandler;
             if(!handler||lua||preview){port.postMessage({type:'lua-result',version:1,...expected,requestId:id,success:false,message:'Agent Lua Player unavailable'});return;}
             const controller=new AbortController();lua={id,controller};

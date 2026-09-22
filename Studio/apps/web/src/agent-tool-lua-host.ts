@@ -2,7 +2,8 @@ import {isProjectPath,serializeArtifactContent,type BuildArtifact,type ProjectFi
 import {readInstalledAgentFiles,type AgentProjectFS} from './agent-project-install';
 import type {AgentToolReply,AgentToolRequest} from './agent-wasm-source';
 
-export interface AgentLuaCommandResult {success:boolean;output:string;message?:string;phase?:string}
+export interface AgentLuaCommandResult {success:boolean;output:string;message?:string;phase?:string;
+  files?:readonly {path:string;bytes:Uint8Array}[];deletedPaths?:readonly string[]}
 export type AgentLuaBroker=(artifact:BuildArtifact,commandId:string,timeoutSeconds:number,signal:AbortSignal)=>Promise<AgentLuaCommandResult>;
 
 const decoder=new TextDecoder('utf-8',{fatal:true});
@@ -59,21 +60,29 @@ local env = setmetatable({
   return _G[key]
 end})
 local fn, compileError = load(${source}, "=(agent_command)", "t", env)
-local result
+local function finish(result)
+  local encoded, encodeError = json.encode(result)
+  if not encoded then
+    error("failed to encode Agent Lua command result: " .. tostring(encodeError))
+  end
+  if not Dora.Content:save(${resultPath}, encoded) then
+    error("failed to save Agent Lua command result")
+  end
+end
 if not fn then
-  result = {success = false, output = table.concat(output, "\\n"), message = tostring(compileError), phase = "compile"}
+  finish({success = false, output = table.concat(output, "\\n"), message = tostring(compileError), phase = "compile"})
 else
-  local ok, runtimeError = xpcall(fn, debug.traceback)
-  result = ok
-    and {success = true, output = table.concat(output, "\\n")}
-    or {success = false, output = table.concat(output, "\\n"), message = tostring(runtimeError), phase = "execute"}
-end
-local encoded, encodeError = json.encode(result)
-if not encoded then
-  error("failed to encode Agent Lua command result: " .. tostring(encodeError))
-end
-if not Dora.Content:save(${resultPath}, encoded) then
-  error("failed to save Agent Lua command result")
+  -- The isolated Player owns cancellation and timeout by destroying this run,
+  -- so its command wrapper only needs Dora's native frame-driven coroutine.
+  local started, startError = pcall(Dora.thread, function()
+    local ok, runtimeError = xpcall(fn, debug.traceback)
+    finish(ok
+      and {success = true, output = table.concat(output, "\\n")}
+      or {success = false, output = table.concat(output, "\\n"), message = tostring(runtimeError), phase = "execute"})
+  end)
+  if not started then
+    finish({success = false, output = table.concat(output, "\\n"), message = tostring(startError), phase = "execute"})
+  end
 end
 `;
 }
@@ -85,7 +94,7 @@ export async function executeAgentLuaTool(fs:AgentProjectFS,projectId:string,rev
   try{options=JSON.parse(request.content);}catch{return {success:false,message:'Invalid Agent Lua options'};}
   const code=options.code,timeoutSeconds=options.timeoutSeconds;
   if(typeof code!=='string'||!code.trim()||encoder.encode(code).byteLength>131072
-    ||typeof timeoutSeconds!=='number'||!Number.isSafeInteger(timeoutSeconds)||timeoutSeconds<1||timeoutSeconds>120)return {success:false,message:'Invalid Agent Lua options'};
+    ||typeof timeoutSeconds!=='number'||!Number.isSafeInteger(timeoutSeconds)||timeoutSeconds<1||timeoutSeconds>600)return {success:false,message:'Invalid Agent Lua options'};
   signal.throwIfAborted();
   const commandId=crypto.randomUUID(),entry=`.agent/commands/${commandId}.lua`;
   if(!isProjectPath(entry))return {success:false,message:'Invalid Agent Lua entry'};
@@ -102,6 +111,19 @@ export async function executeAgentLuaTool(fs:AgentProjectFS,projectId:string,rev
     const result=await broker(artifact,commandId,timeoutSeconds,signal);
     if(!result||typeof result.success!=='boolean'||typeof result.output!=='string'||encoder.encode(result.output).byteLength>131072
       ||(result.message!==undefined&&(typeof result.message!=='string'||encoder.encode(result.message).byteLength>16384)))return {success:false,message:'Invalid Agent Lua Player result'};
-    return {success:true,resultJSON:JSON.stringify(result)};
+    const changed=new Set<string>();
+    for(const file of result.files??[]){
+      if(!isProjectPath(file.path)||file.path==='.agent'||file.path.startsWith('.agent/')||changed.has(file.path)
+        ||!(file.bytes instanceof Uint8Array)||file.bytes.byteLength>64*1024*1024)return {success:false,message:'Invalid Agent Lua Player files'};
+      changed.add(file.path);const target=root+'/'+file.path;
+      fs.mkdirTree(target.slice(0,target.lastIndexOf('/')));fs.writeFile(target,new Uint8Array(file.bytes));
+    }
+    for(const path of result.deletedPaths??[]){
+      if(!isProjectPath(path)||path==='.agent'||path.startsWith('.agent/')||changed.has(path))return {success:false,message:'Invalid Agent Lua Player deletions'};
+      changed.add(path);const target=root+'/'+path;
+      if(fs.analyzePath(target).exists){const stat=fs.lstat(target);if(!fs.isFile(stat.mode))return {success:false,message:'Invalid Agent Lua Player deletion'};fs.unlink(target);}
+    }
+    const {files:_,deletedPaths:__,...commandResult}=result;
+    return {success:true,resultJSON:JSON.stringify(commandResult)};
   }catch(error){return {success:false,message:error instanceof Error?error.message.slice(0,4096):'Agent Lua Player failed'};}
 }
