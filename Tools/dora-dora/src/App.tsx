@@ -3976,6 +3976,7 @@ export default function PersistentDrawerLeft() {
 	}, [firstProjectTourCurrent, firstProjectTourOpen]);
 
 	const handleFilenameClose = (callbacks?: {
+		openInEditor?: boolean;
 		onCreated?: (openedFile: string) => void;
 		onFailed?: () => void;
 	}) => {
@@ -4122,6 +4123,10 @@ export default function PersistentDrawerLeft() {
 						updateCachedFileSearch(newFile, true);
 					}
 					await refreshTreeDirectory(dir, true);
+					if (initFile !== null && !callbacks?.openInEditor && await openAgentSessionTab(newFile, true)) {
+						callbacks?.onCreated?.(initFile);
+						return;
+					}
 					const openedFile = initFile ?? newFile;
 					const openedName = path.basename(openedFile);
 					const openedFolder = folder && initFile === null;
@@ -4198,6 +4203,7 @@ export default function PersistentDrawerLeft() {
 		const pendingFileInfo = fileInfo;
 		setFirstProjectTourCreating(true);
 		handleFilenameClose({
+			openInEditor: true,
 			onCreated: (openedFile) => {
 				setFirstProjectTourCreating(false);
 				setFirstProjectTourFile(openedFile);
