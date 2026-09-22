@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -32,7 +32,7 @@ struct ktm::detail::vec_data_implement::vec_swizzle<2, 2, float>
     using RetV = vec<2, float>;
 
     template <size_t S0, size_t S1>
-    static KTM_INLINE RetV call(const V& v) noexcept
+    static KTM_CORE_FUNC RetV call(const V& v) noexcept
     {
         RetV ret;
         ret.st = _shuffo64_f32(v.st, S1, S0);
@@ -47,7 +47,7 @@ struct ktm::detail::vec_data_implement::vec_swizzle<2, ISize, float, std::enable
     using RetV = vec<2, float>;
 
     template <size_t S0, size_t S1>
-    static KTM_INLINE RetV call(const V& v) noexcept
+    static KTM_CORE_FUNC RetV call(const V& v) noexcept
     {
         RetV ret;
         ret.st = _cast128to64_f32(_shuffo128_f32(v.st, S1, S0, S1, S0));
@@ -65,7 +65,7 @@ struct ktm::detail::vec_data_implement::vec_swizzle<
     using FRetV = vec<2, float>;
 
     template <size_t S0, size_t S1>
-    static KTM_INLINE RetV call(const V& v) noexcept
+    static KTM_CORE_FUNC RetV call(const V& v) noexcept
     {
         FRetV ret = vec_swizzle<2, ISize, float>::template call<S0, S1>(reinterpret_cast<const FV&>(v));
         return *reinterpret_cast<RetV*>(&ret);
@@ -95,7 +95,7 @@ struct ktm::detail::vec_data_implement::vec_swizzle<3, ISize, float, std::enable
     using RetV = vec<3, float>;
 
     template <size_t S0, size_t S1, size_t S2>
-    static KTM_INLINE RetV call(const V& v) noexcept
+    static KTM_CORE_FUNC RetV call(const V& v) noexcept
     {
         RetV ret;
         ret.st = _shuffo128_f32(v.st, 0, S2, S1, S0);
@@ -113,7 +113,7 @@ struct ktm::detail::vec_data_implement::vec_swizzle<
     using FRetV = vec<3, float>;
 
     template <size_t S0, size_t S1, size_t S2>
-    static KTM_INLINE RetV call(const V& v) noexcept
+    static KTM_CORE_FUNC RetV call(const V& v) noexcept
     {
         FRetV ret = vec_swizzle<3, ISize, float>::template call<S0, S1, S2>(reinterpret_cast<const FV&>(v));
         return *reinterpret_cast<RetV*>(&ret);
@@ -127,7 +127,7 @@ struct ktm::detail::vec_data_implement::vec_swizzle<4, 4, float>
     using RetV = vec<4, float>;
 
     template <size_t S0, size_t S1, size_t S2, size_t S3>
-    static KTM_INLINE RetV call(const V& v) noexcept
+    static KTM_CORE_FUNC RetV call(const V& v) noexcept
     {
         RetV ret;
         ret.st = _shuffo128_f32(v.st, S3, S2, S1, S0);
@@ -145,7 +145,7 @@ struct ktm::detail::vec_data_implement::vec_swizzle<
     using FRetV = vec<4, float>;
 
     template <size_t S0, size_t S1, size_t S2, size_t S3>
-    static KTM_INLINE RetV call(const V& v) noexcept
+    static KTM_CORE_FUNC RetV call(const V& v) noexcept
     {
         FRetV ret = vec_swizzle<4, 4, float>::template call<S0, S1, S2, S3>(reinterpret_cast<const FV&>(v));
         return *reinterpret_cast<RetV*>(&ret);

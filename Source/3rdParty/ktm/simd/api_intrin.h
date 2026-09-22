@@ -1,14 +1,14 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
 
-#ifndef _KTM_INTRIN_API_H_
-#define _KTM_INTRIN_API_H_
+#ifndef _KTM_API_INTRIN_H_
+#define _KTM_API_INTRIN_H_
 
-#include "arch_def.h"
+#include "arch.h"
 #include "arm_intrin.h"
 #include "x86_intrin.h"
 #include "wasm_intrin.h"

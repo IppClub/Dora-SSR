@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -22,20 +22,20 @@ struct icomp_mul<Father, comp<T>> : Father
 {
     using Father::Father;
 
-    friend KTM_INLINE comp<T> operator*(const comp<T>& x, const comp<T>& y) noexcept
+    friend KTM_CORE_FUNC comp<T> operator*(const comp<T>& x, const comp<T>& y) noexcept
     {
         comp<T> ret;
         detail::comp_mul_implement::mul<T>(ret, x, y);
         return ret;
     }
 
-    friend KTM_INLINE comp<T>& operator*=(comp<T>& x, const comp<T>& y) noexcept
+    friend KTM_CORE_FUNC comp<T>& operator*=(comp<T>& x, const comp<T>& y) noexcept
     {
         detail::comp_mul_implement::mul<T>(x, x, y);
         return x;
     }
 
-    friend KTM_INLINE vec<2, T> operator*(const comp<T>& q, const vec<2, T>& v) noexcept
+    friend KTM_CORE_FUNC vec<2, T> operator*(const comp<T>& q, const vec<2, T>& v) noexcept
     {
         vec<2, T> ret;
         detail::comp_mul_implement::act<T>(ret, q, v);

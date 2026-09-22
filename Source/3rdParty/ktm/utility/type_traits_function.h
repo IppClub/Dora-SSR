@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -22,7 +22,7 @@ struct function_traits<R (*)(Ps...)>
 {
     using return_type = R;
     template <size_t N>
-    using param_type = std::select_idx_t<N, Ps...>;
+    using param_type = select_idx_t<N, Ps...>;
     static inline constexpr size_t param_num = sizeof...(Ps);
     static inline constexpr bool is_const = false;
 };
@@ -32,7 +32,7 @@ struct function_traits<R (ClassT::*)(Ps...)>
 {
     using return_type = R;
     template <size_t N>
-    using param_type = std::select_idx_t<N, Ps...>;
+    using param_type = select_idx_t<N, Ps...>;
     static inline constexpr size_t param_num = sizeof...(Ps);
     static inline constexpr bool is_const = false;
 };
@@ -42,7 +42,7 @@ struct function_traits<R (ClassT::*)(Ps...) const>
 {
     using return_type = R;
     template <size_t N>
-    using param_type = std::select_idx_t<N, Ps...>;
+    using param_type = select_idx_t<N, Ps...>;
     static inline constexpr size_t param_num = sizeof...(Ps);
     static inline constexpr bool is_const = true;
 };

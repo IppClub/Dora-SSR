@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -13,7 +13,7 @@
 #include "setup.h"
 
 template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-KTM_FUNC T ktm_op_madd(T x, T y, T z) noexcept
+KTM_CORE_FUNC T ktm_op_madd(T x, T y, T z) noexcept
 {
     if constexpr (std::is_floating_point_v<T>)
         return std::fma(y, z, x);
@@ -21,7 +21,7 @@ KTM_FUNC T ktm_op_madd(T x, T y, T z) noexcept
 }
 
 template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-KTM_FUNC T& ktm_op_smadd(T& x, T y, T z) noexcept
+KTM_CORE_FUNC T& ktm_op_smadd(T& x, T y, T z) noexcept
 {
     if constexpr (std::is_floating_point_v<T>)
         x = std::fma(y, z, x);

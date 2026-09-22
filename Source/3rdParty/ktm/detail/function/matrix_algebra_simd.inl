@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -19,7 +19,7 @@ struct ktm::detail::matrix_algebra_implement::transpose<2, 2, float>
     using M = mat<2, 2, float>;
     using RetM = M;
 
-    static KTM_INLINE RetM call(const M& m) noexcept
+    static KTM_CORE_FUNC RetM call(const M& m) noexcept
     {
         RetM ret;
         skv::fv4 tmp = _load128_f32(&m[0][0]);
@@ -35,7 +35,7 @@ struct ktm::detail::matrix_algebra_implement::transpose<3, 3, float>
     using M = mat<3, 3, float>;
     using RetM = M;
 
-    static KTM_INLINE RetM call(const M& m) noexcept
+    static KTM_CORE_FUNC RetM call(const M& m) noexcept
     {
         RetM ret;
         const skv::fv4* in = &m[0].st;
@@ -57,7 +57,7 @@ struct ktm::detail::matrix_algebra_implement::transpose<4, 4, float>
     using M = mat<4, 4, float>;
     using RetM = M;
 
-    static KTM_INLINE RetM call(const M& m) noexcept
+    static KTM_CORE_FUNC RetM call(const M& m) noexcept
     {
         RetM ret;
         const skv::fv4* in = &m[0].st;
@@ -85,7 +85,7 @@ struct ktm::detail::matrix_algebra_implement::transpose<
     using FM = mat<N, N, float>;
     using FRetM = FM;
 
-    static KTM_INLINE RetM call(const M& m) noexcept
+    static KTM_CORE_FUNC RetM call(const M& m) noexcept
     {
         FRetM ret = transpose<N, N, float>::call(reinterpret_cast<const FM&>(m));
         return *reinterpret_cast<RetM*>(&ret);
@@ -97,7 +97,7 @@ struct ktm::detail::matrix_algebra_implement::determinant<3, float>
 {
     using M = mat<3, 3, float>;
 
-    static KTM_INLINE float call(const M& m) noexcept
+    static KTM_CORE_FUNC float call(const M& m) noexcept
     {
         const skv::fv4& c_0 = m[0].st;
         const skv::fv4& c_1 = m[1].st;
@@ -115,7 +115,7 @@ struct ktm::detail::matrix_algebra_implement::determinant<4, float>
 {
     using M = mat<4, 4, float>;
 
-    static KTM_INLINE float call(const M& m) noexcept
+    static KTM_CORE_FUNC float call(const M& m) noexcept
     {
         const skv::fv4& c_0 = m[0].st;
         const skv::fv4& c_1 = m[1].st;
@@ -156,7 +156,7 @@ struct ktm::detail::matrix_algebra_implement::inverse<4, float>
 {
     using M = mat<4, 4, float>;
 
-    static KTM_INLINE M call(const M& m) noexcept
+    static KTM_CORE_FUNC M call(const M& m) noexcept
     {
         const skv::fv4& c_0 = m[0].st;
         const skv::fv4& c_1 = m[1].st;
@@ -367,7 +367,7 @@ struct ktm::detail::matrix_algebra_implement::determinant<3, int>
 {
     using M = mat<3, 3, int>;
 
-    static KTM_INLINE int call(const M& m) noexcept
+    static KTM_CORE_FUNC int call(const M& m) noexcept
     {
         const skv::sv4& c_0 = m[0].st;
         const skv::sv4& c_1 = m[1].st;
@@ -384,7 +384,7 @@ struct ktm::detail::matrix_algebra_implement::determinant<4, int>
 {
     using M = mat<4, 4, int>;
 
-    static KTM_INLINE int call(const M& m) noexcept
+    static KTM_CORE_FUNC int call(const M& m) noexcept
     {
         const skv::sv4& c_0 = m[0].st;
         const skv::sv4& c_1 = m[1].st;

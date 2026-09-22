@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -8,6 +8,7 @@
 #ifndef _KTM_ARRAY_CALC_FWD_H_
 #define _KTM_ARRAY_CALC_FWD_H_
 
+#include <cstddef>
 #include <array>
 
 namespace ktm

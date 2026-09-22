@@ -1,12 +1,12 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
 
-#ifndef _KTM_LOOP_UTIL_H_
-#define _KTM_LOOP_UTIL_H_
+#ifndef _KTM_LOOP_IMPL_H_
+#define _KTM_LOOP_IMPL_H_
 
 #include <utility>
 #include <functional>
@@ -18,10 +18,10 @@ namespace detail
 {
 
 template <size_t LoopN, typename T>
-struct loop_op
+struct loop_impl
 {
     template <typename OP, typename... As>
-    static KTM_FUNC void call(T& out, OP&& op, As&&... ls)
+    static KTM_CORE_FUNC void call(T& out, OP&& op, As&&... ls)
     {
         if constexpr (LoopN <= 4)
             call(out, std::forward<OP>(op), std::make_index_sequence<LoopN>(), std::forward<As>(ls)...);
@@ -31,7 +31,7 @@ struct loop_op
 
 private:
     template <typename OP, typename... As, size_t... Ns>
-    static KTM_FUNC void call(T& out, OP&& op, std::index_sequence<Ns...>, As&&... ls)
+    static KTM_CORE_FUNC void call(T& out, OP&& op, std::index_sequence<Ns...>, As&&... ls)
     {
         constexpr auto apply_lambda = [](T& out, OP&& op, As&&... ls, size_t index) -> void
         {
@@ -41,7 +41,7 @@ private:
     }
 
     template <typename OP, typename... As>
-    static KTM_FUNC void call(T& out, OP&& op, size_t loop, As&&... ls)
+    static KTM_CORE_FUNC void call(T& out, OP&& op, size_t loop, As&&... ls)
     {
         for (int i = 0; i < loop; ++i)
             out[i] = op(ls[i]...);
@@ -49,10 +49,10 @@ private:
 };
 
 template <size_t LoopN>
-struct loop_op<LoopN, void>
+struct loop_impl<LoopN, void>
 {
     template <typename OP, typename... As>
-    static KTM_FUNC void call(OP&& op, As&&... ls)
+    static KTM_CORE_FUNC void call(OP&& op, As&&... ls)
     {
         if constexpr (LoopN <= 4)
             call(std::forward<OP>(op), std::make_index_sequence<LoopN>(), std::forward<As>(ls)...);
@@ -62,7 +62,7 @@ struct loop_op<LoopN, void>
 
 private:
     template <typename OP, typename... As, size_t... Ns>
-    static KTM_FUNC void call(OP&& op, std::index_sequence<Ns...>, As&&... ls)
+    static KTM_CORE_FUNC void call(OP&& op, std::index_sequence<Ns...>, As&&... ls)
     {
         constexpr auto apply_lambda = [](OP&& op, As&&... ls, size_t index) -> void
         {
@@ -72,7 +72,7 @@ private:
     }
 
     template <typename OP, typename... As>
-    static KTM_FUNC void call(OP&& op, size_t loop, As&&... ls)
+    static KTM_CORE_FUNC void call(OP&& op, size_t loop, As&&... ls)
     {
         for (int i = 0; i < loop; ++i)
             op(ls[i]...);

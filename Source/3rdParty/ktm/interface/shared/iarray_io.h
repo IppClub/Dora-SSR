@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -10,7 +10,7 @@
 
 #include <iosfwd>
 #include "../../setup.h"
-#include "../../traits/type_single_extends.h"
+#include "../../utility/single_extends.h"
 
 namespace ktm
 {
@@ -21,22 +21,23 @@ struct iarray_io : Father
     using Father::child_ptr;
     using Father::Father;
 
-    friend KTM_FUNC std::basic_ostream<char>& operator<<(std::basic_ostream<char>& out, const Child& x) noexcept
+    friend KTM_CORE_FUNC std::basic_ostream<char>& operator<<(std::basic_ostream<char>& out, const Child& x) noexcept
     {
         return x.stream_out(out);
     }
 
-    friend KTM_FUNC std::basic_istream<char>& operator>>(std::basic_istream<char>& in, Child& x) noexcept
+    friend KTM_CORE_FUNC std::basic_istream<char>& operator>>(std::basic_istream<char>& in, Child& x) noexcept
     {
         return x.stream_in(in);
     }
 
-    friend KTM_FUNC std::basic_ostream<wchar_t>& operator<<(std::basic_ostream<wchar_t>& out, const Child& x) noexcept
+    friend KTM_CORE_FUNC std::basic_ostream<wchar_t>& operator<<(std::basic_ostream<wchar_t>& out,
+                                                                 const Child& x) noexcept
     {
         return x.wstream_out(out);
     }
 
-    friend KTM_FUNC std::basic_istream<wchar_t>& operator>>(std::basic_istream<wchar_t>& in, Child& x) noexcept
+    friend KTM_CORE_FUNC std::basic_istream<wchar_t>& operator>>(std::basic_istream<wchar_t>& in, Child& x) noexcept
     {
         return x.wstream_in(in);
     }
@@ -44,7 +45,7 @@ struct iarray_io : Father
 private:
     KTM_CRTP_INTERFACE_REGISTER(stream_out, stream_out_impl)
 
-    KTM_FUNC std::basic_ostream<char>& stream_out(std::basic_ostream<char>& o) const noexcept
+    KTM_CORE_FUNC std::basic_ostream<char>& stream_out(std::basic_ostream<char>& o) const noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, stream_out_impl))
             return child_ptr()->stream_out_impl(o);
@@ -54,7 +55,7 @@ private:
 
     KTM_CRTP_INTERFACE_REGISTER(stream_in, stream_in_impl)
 
-    KTM_FUNC std::basic_istream<char>& stream_in(std::basic_istream<char>& i) noexcept
+    KTM_CORE_FUNC std::basic_istream<char>& stream_in(std::basic_istream<char>& i) noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, stream_in_impl))
             return child_ptr()->stream_in_impl(i);
@@ -64,7 +65,7 @@ private:
 
     KTM_CRTP_INTERFACE_REGISTER(wstream_out, wstream_out_impl)
 
-    KTM_FUNC std::basic_ostream<wchar_t>& wstream_out(std::basic_ostream<wchar_t>& o) const noexcept
+    KTM_CORE_FUNC std::basic_ostream<wchar_t>& wstream_out(std::basic_ostream<wchar_t>& o) const noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, wstream_out_impl))
             return child_ptr()->wstream_out_impl(o);
@@ -74,7 +75,7 @@ private:
 
     KTM_CRTP_INTERFACE_REGISTER(wstream_in, wstream_in_impl)
 
-    KTM_FUNC std::basic_istream<wchar_t>& wstream_in(std::basic_istream<wchar_t>& i) noexcept
+    KTM_CORE_FUNC std::basic_istream<wchar_t>& wstream_in(std::basic_istream<wchar_t>& i) noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, wstream_in_impl))
             return child_ptr()->wstream_in_impl(i);
@@ -83,10 +84,10 @@ private:
     }
 
     template <typename T>
-    KTM_FUNC std::basic_ostream<T>& stream_out_default(std::basic_ostream<T>& o) const noexcept
+    KTM_CORE_FUNC std::basic_ostream<T>& stream_out_default(std::basic_ostream<T>& o) const noexcept
     {
         using VT = typename std::decay_t<decltype(child_ptr()->to_array())>::value_type;
-        using ST = std::select_if_t<std::is_character_v<VT>, int, VT>;
+        using ST = select_if_t<is_character_v<VT>, int, VT>;
         auto it = child_ptr()->begin();
         for (; it != child_ptr()->end() - 1; ++it)
             o << static_cast<ST>(*it) << " ";
@@ -95,12 +96,12 @@ private:
     }
 
     template <typename T>
-    KTM_FUNC std::basic_istream<T>& stream_in_default(std::basic_istream<T>& i) noexcept
+    KTM_CORE_FUNC std::basic_istream<T>& stream_in_default(std::basic_istream<T>& i) noexcept
     {
         using VT = typename std::decay_t<decltype(child_ptr()->to_array())>::value_type;
         for (auto it = child_ptr()->begin(); it != child_ptr()->end(); ++it)
         {
-            if constexpr (std::is_character_v<VT>)
+            if constexpr (is_character_v<VT>)
             {
                 int value;
                 i >> value;

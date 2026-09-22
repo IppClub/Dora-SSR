@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -27,39 +27,39 @@ struct iquat_make<Father, quat<T>> : Father
 {
     using Father::Father;
 
-    static KTM_INLINE quat<T> identity() noexcept { return quat<T>(zero<T>, zero<T>, zero<T>, one<T>); }
+    static KTM_CORE_FUNC quat<T> identity() noexcept { return quat<T>(zero<T>, zero<T>, zero<T>, one<T>); }
 
-    static KTM_INLINE quat<T> real_imag(T real, const vec<3, T>& imag) noexcept
+    static KTM_CORE_FUNC quat<T> real_imag(T real, const vec<3, T>& imag) noexcept
     {
         return quat<T>(imag.x, imag.y, imag.z, real);
     }
 
-    static KTM_INLINE quat<T> angle_axis(T angle, const vec<3, T>& axis) noexcept
+    static KTM_CORE_FUNC quat<T> angle_axis(T angle, const vec<3, T>& axis) noexcept
     {
         T half_angle = angle * static_cast<T>(0.5);
         T sin_half_angle = sin(half_angle);
         return quat<T>(sin_half_angle * axis[0], sin_half_angle * axis[1], sin_half_angle * axis[2], cos(half_angle));
     }
 
-    static KTM_INLINE quat<T> from_angle_x(T angle) noexcept
+    static KTM_CORE_FUNC quat<T> from_angle_x(T angle) noexcept
     {
         T half_angle = angle * static_cast<T>(0.5);
         return quat<T>(sin(half_angle), zero<T>, zero<T>, cos(half_angle));
     }
 
-    static KTM_INLINE quat<T> from_angle_y(T angle) noexcept
+    static KTM_CORE_FUNC quat<T> from_angle_y(T angle) noexcept
     {
         T half_angle = angle * static_cast<T>(0.5);
         return quat<T>(zero<T>, sin(half_angle), zero<T>, cos(half_angle));
     }
 
-    static KTM_INLINE quat<T> from_angle_z(T angle) noexcept
+    static KTM_CORE_FUNC quat<T> from_angle_z(T angle) noexcept
     {
         T half_angle = angle * static_cast<T>(0.5);
         return quat<T>(zero<T>, zero<T>, sin(half_angle), cos(half_angle));
     }
 
-    static KTM_NOINLINE quat<T> from_to(const vec<3, T>& from, const vec<3, T>& to) noexcept
+    static KTM_CORE_NI_FUNC quat<T> from_to(const vec<3, T>& from, const vec<3, T>& to) noexcept
     {
         if (dot(from, to) >= 0)
             return from_to_less_half_pi(from, to);
@@ -82,12 +82,12 @@ struct iquat_make<Father, quat<T>> : Father
         return from_to_less_half_pi(from, half) * from_to_less_half_pi(half, to);
     }
 
-    static KTM_INLINE quat<T> from_matrix(const mat<4, 4, T>& m) noexcept
+    static KTM_CORE_FUNC quat<T> from_matrix(const mat<4, 4, T>& m) noexcept
     {
         return from_matrix(reinterpret_cast<const mat<3, 3, T>&>(m));
     }
 
-    static KTM_NOINLINE quat<T> from_matrix(const mat<3, 3, T>& m) noexcept
+    static KTM_CORE_NI_FUNC quat<T> from_matrix(const mat<3, 3, T>& m) noexcept
     {
         T m_trace = trace(m);
         if (m_trace >= zero<T>)
@@ -120,7 +120,7 @@ struct iquat_make<Father, quat<T>> : Father
         }
     }
 
-    static KTM_INLINE quat<T> look_to_lh(const vec<3, T>& direction, const vec<3, T>& up) noexcept
+    static KTM_CORE_FUNC quat<T> look_to_lh(const vec<3, T>& direction, const vec<3, T>& up) noexcept
     {
         mat<3, 3, T> m;
         m[2] = direction;
@@ -129,13 +129,13 @@ struct iquat_make<Father, quat<T>> : Father
         return from_matrix(m);
     }
 
-    static KTM_INLINE quat<T> look_to_rh(const vec<3, T>& direction, const vec<3, T>& up) noexcept
+    static KTM_CORE_FUNC quat<T> look_to_rh(const vec<3, T>& direction, const vec<3, T>& up) noexcept
     {
         return look_to_lh(-direction, up);
     }
 
 private:
-    static KTM_INLINE quat<T> from_to_less_half_pi(const vec<3, T>& from, const vec<3, T>& to) noexcept
+    static KTM_CORE_FUNC quat<T> from_to_less_half_pi(const vec<3, T>& from, const vec<3, T>& to) noexcept
     {
         // calculate quaternions with rotation angles less than half pi
         vec<3, T> half = normalize(from + to);

@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -19,7 +19,7 @@ namespace ktm
 {
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>>
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>>
 look_to_lh(const vec<3, T>& eye_pos, const vec<3, T>& direction, const vec<3, T>& up) noexcept
 {
     vec<3, T> x = normalize(cross(up, direction));
@@ -34,7 +34,7 @@ look_to_lh(const vec<3, T>& eye_pos, const vec<3, T>& direction, const vec<3, T>
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>>
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>>
 look_to_rh(const vec<3, T>& eye_pos, const vec<3, T>& direction, const vec<3, T>& up) noexcept
 {
     vec<3, T> x = normalize(cross(direction, up));
@@ -49,22 +49,22 @@ look_to_rh(const vec<3, T>& eye_pos, const vec<3, T>& direction, const vec<3, T>
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>>
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>>
 look_at_lh(const vec<3, T>& eye_pos, const vec<3, T>& focus_pos, const vec<3, T>& up) noexcept
 {
     return look_to_lh(eye_pos, normalize(focus_pos - eye_pos), up);
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>>
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>>
 look_at_rh(const vec<3, T>& eye_pos, const vec<3, T>& focus_pos, const vec<3, T>& up) noexcept
 {
     return look_to_rh(eye_pos, normalize(focus_pos - eye_pos), up);
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> perspective_lh(T fov_radians, T aspect, T znear,
-                                                                                      T zfar) noexcept
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> perspective_lh(T fov_radians, T aspect,
+                                                                                         T znear, T zfar) noexcept
 {
     T ys = one<T> / tan(fov_radians * static_cast<T>(0.5));
     T xs = ys / aspect;
@@ -76,8 +76,8 @@ KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> perspecti
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> perspective_rh(T fov_radians, T aspect, T znear,
-                                                                                      T zfar) noexcept
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> perspective_rh(T fov_radians, T aspect,
+                                                                                         T znear, T zfar) noexcept
 {
     T ys = one<T> / tan(fov_radians * static_cast<T>(0.5));
     T xs = ys / aspect;
@@ -89,8 +89,8 @@ KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> perspecti
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> ortho_lh(T left, T right, T top, T bottom,
-                                                                                T znear, T zfar) noexcept
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> ortho_lh(T left, T right, T top, T bottom,
+                                                                                   T znear, T zfar) noexcept
 {
     T dx = right - left;
     T dy = top - bottom;
@@ -102,8 +102,8 @@ KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> ortho_lh(
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> ortho_rh(T left, T right, T top, T bottom,
-                                                                                T znear, T zfar) noexcept
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> ortho_rh(T left, T right, T top, T bottom,
+                                                                                   T znear, T zfar) noexcept
 {
     T dx = right - left;
     T dy = top - bottom;
@@ -115,35 +115,35 @@ KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> ortho_rh(
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> frustum_lh(T left, T right, T top, T bottom,
-                                                                                  T znear, T zfar) noexcept
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> frustum_lh(T left, T right, T top, T bottom,
+                                                                                     T znear, T zfar) noexcept
 {
-    T tow_near = static_cast<T>(2) * znear;
+    T two_near = static_cast<T>(2) * znear;
     T dx = right - left;
     T dy = top - bottom;
     T zs = zfar / (znear - zfar);
-    return mat<4, 4, T> { { tow_near / dx, zero<T>, zero<T>, zero<T> },
-                          { zero<T>, tow_near / dy, zero<T>, zero<T> },
+    return mat<4, 4, T> { { two_near / dx, zero<T>, zero<T>, zero<T> },
+                          { zero<T>, two_near / dy, zero<T>, zero<T> },
                           { (right + left) / (-dx), (top + bottom) / (-dy), -zs, one<T> },
                           { zero<T>, zero<T>, znear * zs, zero<T> } };
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> frustum_rh(T left, T right, T top, T bottom,
-                                                                                  T znear, T zfar) noexcept
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> frustum_rh(T left, T right, T top, T bottom,
+                                                                                     T znear, T zfar) noexcept
 {
-    T tow_near = static_cast<T>(2) * znear;
+    T two_near = static_cast<T>(2) * znear;
     T dx = right - left;
     T dy = top - bottom;
     T zs = zfar / (znear - zfar);
-    return mat<4, 4, T> { { tow_near / dx, zero<T>, zero<T>, zero<T> },
-                          { zero<T>, tow_near / dy, zero<T>, zero<T> },
+    return mat<4, 4, T> { { two_near / dx, zero<T>, zero<T>, zero<T> },
+                          { zero<T>, two_near / dy, zero<T>, zero<T> },
                           { (right + left) / dx, (top + bottom) / dy, zs, -one<T> },
                           { zero<T>, zero<T>, znear * zs, zero<T> } };
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> rotate3d_x(T angle) noexcept
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> rotate3d_x(T angle) noexcept
 {
     T cos_theta = cos(angle);
     T sin_theta = sin(angle);
@@ -154,7 +154,7 @@ KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> rotate3d_
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> rotate3d_y(T angle) noexcept
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> rotate3d_y(T angle) noexcept
 {
     T cos_theta = cos(angle);
     T sin_theta = sin(angle);
@@ -165,7 +165,7 @@ KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> rotate3d_
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> rotate3d_z(T angle) noexcept
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> rotate3d_z(T angle) noexcept
 {
     T cos_theta = cos(angle);
     T sin_theta = sin(angle);
@@ -176,8 +176,8 @@ KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> rotate3d_
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> rotate3d_axis(T angle,
-                                                                                     const vec<3, T>& axis) noexcept
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> rotate3d_axis(T angle,
+                                                                                        const vec<3, T>& axis) noexcept
 {
     mat<4, 4, T> ret;
     detail::matrix_transform3d_implement::rotate3d_normal(ret, sin(angle), cos(angle), axis, 0);
@@ -185,8 +185,8 @@ KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> rotate3d_
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> rotate3d_from_to(const vec<3, T>& from,
-                                                                                        const vec<3, T>& to) noexcept
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> rotate3d_from_to(const vec<3, T>& from,
+                                                                                           const vec<3, T>& to) noexcept
 {
     T cos_theta = dot(from, to);
     T sin_theta = sqrt(one<T> - cos_theta * cos_theta);
@@ -196,7 +196,7 @@ KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> rotate3d_
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>>
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>>
 rotate3d_any_axis(T angle, const vec<3, T>& axis_start, const vec<3, T>& axis) noexcept
 {
     mat<4, 4, T> ret;
@@ -205,7 +205,7 @@ rotate3d_any_axis(T angle, const vec<3, T>& axis_start, const vec<3, T>& axis) n
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> translate3d(const vec<3, T>& v) noexcept
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> translate3d(const vec<3, T>& v) noexcept
 {
     return mat<4, 4, T> { { one<T>, zero<T>, zero<T>, zero<T> },
                           { zero<T>, one<T>, zero<T>, zero<T> },
@@ -214,7 +214,7 @@ KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> translate
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> scale3d(const vec<3, T>& v) noexcept
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> scale3d(const vec<3, T>& v) noexcept
 {
     return mat<4, 4, T> { { v[0], zero<T>, zero<T>, zero<T> },
                           { zero<T>, v[1], zero<T>, zero<T> },
@@ -223,7 +223,7 @@ KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> scale3d(c
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> shear3d_x(T angle_y, T angle_z) noexcept
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> shear3d_x(T angle_y, T angle_z) noexcept
 {
     return mat<4, 4, T> { { one<T>, tan(angle_y), tan(angle_z), zero<T> },
                           { zero<T>, one<T>, zero<T>, zero<T> },
@@ -232,7 +232,7 @@ KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> shear3d_x
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> shear3d_y(T angle_x, T angle_z) noexcept
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> shear3d_y(T angle_x, T angle_z) noexcept
 {
     return mat<4, 4, T> { { one<T>, zero<T>, zero<T>, zero<T> },
                           { tan(angle_x), one<T>, tan(angle_z), zero<T> },
@@ -241,7 +241,7 @@ KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> shear3d_y
 }
 
 template <typename T>
-KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> shear3d_z(T angle_x, T angle_y) noexcept
+KTM_CORE_FUNC std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> shear3d_z(T angle_x, T angle_y) noexcept
 {
     return mat<4, 4, T> { { one<T>, zero<T>, zero<T>, zero<T> },
                           { zero<T>, one<T>, zero<T>, zero<T> },

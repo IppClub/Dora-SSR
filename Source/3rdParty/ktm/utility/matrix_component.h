@@ -1,24 +1,25 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
 
-#ifndef _KTM_TYPE_MATRIX_COMPONENT_H_
-#define _KTM_TYPE_MATRIX_COMPONENT_H_
+#ifndef _KTM_MATRIX_COMPONENT_H_
+#define _KTM_MATRIX_COMPONENT_H_
 
 #include <tuple>
+#include "../setup.h"
 #include "../type/vec_fwd.h"
 #include "../type/mat_fwd.h"
 
 namespace ktm
 {
 
-#define KTM_MATRIX_COMPONENT_ELEMENT(name, index)                                \
-    using name##_type = std::tuple_element_t<index, type>;                       \
-    inline name##_type& get_##name() noexcept { return std::get<index>(*this); } \
-    inline const name##_type& get_##name() const noexcept { return std::get<index>(*this); }
+#define KTM_MATRIX_COMPONENT_ELEMENT(name, index)                                       \
+    using name##_type = std::tuple_element_t<index, type>;                              \
+    KTM_CORE_FUNC name##_type& get_##name() noexcept { return std::get<index>(*this); } \
+    KTM_CORE_FUNC const name##_type& get_##name() const noexcept { return std::get<index>(*this); }
 
 template <class M>
 struct reduce_component;

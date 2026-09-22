@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -18,7 +18,7 @@ struct ktm::detail::vector_exponential_implement::sqrt<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = _sqrth64_f32(x.st);
@@ -31,7 +31,7 @@ struct ktm::detail::vector_exponential_implement::rsqrt<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = _rsqrth64_f32(x.st);
@@ -44,7 +44,7 @@ struct ktm::detail::vector_exponential_implement::recip<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = _reciph64_f32(x.st);
@@ -57,7 +57,7 @@ struct ktm::detail::vector_exponential_implement::fast_sqrt<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = _sqrtl64_f32(x.st);
@@ -70,7 +70,7 @@ struct ktm::detail::vector_exponential_implement::fast_rsqrt<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = _rsqrtl64_f32(x.st);
@@ -83,7 +83,7 @@ struct ktm::detail::vector_exponential_implement::fast_recip<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = _recipl64_f32(x.st);
@@ -100,7 +100,7 @@ struct ktm::detail::vector_exponential_implement::sqrt<N, float, std::enable_if_
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = _sqrth128_f32(x.st);
@@ -113,7 +113,7 @@ struct ktm::detail::vector_exponential_implement::rsqrt<N, float, std::enable_if
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = _rsqrth128_f32(x.st);
@@ -126,7 +126,7 @@ struct ktm::detail::vector_exponential_implement::recip<N, float, std::enable_if
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = _reciph128_f32(x.st);
@@ -139,7 +139,7 @@ struct ktm::detail::vector_exponential_implement::fast_sqrt<N, float, std::enabl
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = _sqrtl128_f32(x.st);
@@ -152,7 +152,7 @@ struct ktm::detail::vector_exponential_implement::fast_rsqrt<N, float, std::enab
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = _rsqrtl128_f32(x.st);
@@ -165,7 +165,7 @@ struct ktm::detail::vector_exponential_implement::fast_recip<N, float, std::enab
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = _recipl128_f32(x.st);

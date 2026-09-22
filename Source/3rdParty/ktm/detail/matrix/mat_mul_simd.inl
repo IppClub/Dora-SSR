@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -14,9 +14,9 @@
 #if KTM_SIMD_ENABLE(KTM_SIMD_AVX)
 
 template <>
-KTM_INLINE void ktm::detail::mat_mul_implement::mat_mul_mat<4, 4, 4, float>(mat<4, 4, float>& out,
-                                                                            const mat<4, 4, float>& m1,
-                                                                            const mat<4, 4, float>& m2) noexcept
+KTM_CORE_FUNC void ktm::detail::mat_mul_implement::mat_mul_mat<4, 4, 4, float>(mat<4, 4, float>& out,
+                                                                               const mat<4, 4, float>& m1,
+                                                                               const mat<4, 4, float>& m2) noexcept
 {
     skv::fv8 m2_01 = _load256_f32(&m2[0][0]);
     skv::fv8 m2_23 = _load256_f32(&m2[2][0]);
@@ -55,8 +55,9 @@ KTM_INLINE void ktm::detail::mat_mul_implement::mat_mul_mat<4, 4, 4, float>(mat<
 #if KTM_SIMD_ENABLE(KTM_SIMD_AVX2)
 
 template <>
-KTM_INLINE void ktm::detail::mat_mul_implement::mat_mul_mat<4, 4, 4, int>(mat<4, 4, int>& out, const mat<4, 4, int>& m1,
-                                                                          const mat<4, 4, int>& m2) noexcept
+KTM_CORE_FUNC void ktm::detail::mat_mul_implement::mat_mul_mat<4, 4, 4, int>(mat<4, 4, int>& out,
+                                                                             const mat<4, 4, int>& m1,
+                                                                             const mat<4, 4, int>& m2) noexcept
 {
     skv::sv8 m2_01 = _cast256_s32_f32(_load256_f32(&m2[0][0]));
     skv::sv8 m2_23 = _cast256_s32_f32(_load256_f32(&m2[2][0]));

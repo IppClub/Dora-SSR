@@ -1,12 +1,12 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
 
-#ifndef _KTM_ARCH_DEF_H_
-#define _KTM_ARCH_DEF_H_
+#ifndef _KTM_ARCH_H_
+#define _KTM_ARCH_H_
 
 #include "../setup.h"
 
@@ -22,7 +22,6 @@
 #define KTM_SIMD_FMA 0x200
 #define KTM_SIMD_AVX2 0x400
 #define KTM_SIMD_WASM 0x800
-#define KTM_SIMD_ENABLE(flags) (KTM_SIMD_SUPPORT & (flags))
 
 #include <cstddef>
 #include <cstdint>
@@ -99,6 +98,18 @@
 #if defined(__wasm__) && defined(__wasm_simd128__)
 #    define KTM_SIMD_SUPPORT KTM_SIMD_WASM
 #    include <wasm_simd128.h>
+#endif
+
+#if !defined(KTM_SIMD_SUPPORT)
+#    define KTM_SIMD_SUPPORT 0
+#endif
+
+#define KTM_SIMD_ENABLE(flags) (KTM_SIMD_SUPPORT & (flags))
+
+#if KTM_SIMD_SUPPORT
+#    define KTM_SIMD_FUNC KTM_INLINE KTM_NOTHROW KTM_ARTIFICIAL
+#else
+#    define KTM_SIMD_FUNC
 #endif
 
 #endif

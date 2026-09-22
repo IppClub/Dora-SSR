@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -32,7 +32,7 @@ inline constexpr std::enable_if_t<std::is_floating_point_v<T>, T> pi =
     static_cast<T>(3.14159265358979323846264338327950288419716939937511);
 
 template <typename T>
-inline constexpr std::enable_if_t<std::is_floating_point_v<T>, T> tow_pi = static_cast<T>(2) * pi<T>;
+inline constexpr std::enable_if_t<std::is_floating_point_v<T>, T> two_pi = static_cast<T>(2) * pi<T>;
 
 template <typename T>
 inline constexpr std::enable_if_t<std::is_floating_point_v<T>, T> half_pi = static_cast<T>(0.5) * pi<T>;
@@ -41,11 +41,11 @@ template <typename T>
 inline constexpr std::enable_if_t<std::is_floating_point_v<T>, T> recip_pi = one<T> / pi<T>;
 
 template <typename T>
-inline constexpr std::enable_if_t<std::is_floating_point_v<T>, T> sqrt_tow =
+inline constexpr std::enable_if_t<std::is_floating_point_v<T>, T> sqrt_two =
     static_cast<T>(1.41421356237309504880168872420969807856967187537695);
 
 template <typename T>
-inline constexpr std::enable_if_t<std::is_floating_point_v<T>, T> rsqrt_tow = one<T> / sqrt_tow<T>;
+inline constexpr std::enable_if_t<std::is_floating_point_v<T>, T> rsqrt_two = one<T> / sqrt_two<T>;
 
 } // namespace ktm
 

@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -18,7 +18,7 @@ struct ktm::detail::vector_arithmetic_implement::abs<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = _abs64_f32(x.st);
@@ -31,7 +31,7 @@ struct ktm::detail::vector_arithmetic_implement::min<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y) noexcept
     {
         V ret;
         ret.st = _min64_f32(x.st, y.st);
@@ -44,7 +44,7 @@ struct ktm::detail::vector_arithmetic_implement::max<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y) noexcept
     {
         V ret;
         ret.st = _max64_f32(x.st, y.st);
@@ -57,7 +57,7 @@ struct ktm::detail::vector_arithmetic_implement::clamp<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& v, const V& min, const V& max) noexcept
+    static KTM_CORE_FUNC V call(const V& v, const V& min, const V& max) noexcept
     {
         V ret;
         ret.st = _clamp64_f32(v.st, min.st, max.st);
@@ -70,7 +70,7 @@ struct ktm::detail::vector_arithmetic_implement::floor<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = skv::floor_fv2(x.st);
@@ -83,7 +83,7 @@ struct ktm::detail::vector_arithmetic_implement::ceil<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = skv::ceil_fv2(x.st);
@@ -96,7 +96,7 @@ struct ktm::detail::vector_arithmetic_implement::round<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = skv::round_fv2(x.st);
@@ -109,7 +109,7 @@ struct ktm::detail::vector_arithmetic_implement::fract<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         skv::fv2 floor = skv::floor_fv2(x.st);
@@ -123,7 +123,7 @@ struct ktm::detail::vector_arithmetic_implement::mod<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y) noexcept
     {
         V ret;
         skv::fv2 div = _div64_f32(x.st, y.st);
@@ -138,7 +138,7 @@ struct ktm::detail::vector_arithmetic_implement::lerp<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x, const V& y, float t) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y, float t) noexcept
     {
         V ret;
         skv::fv2 t_t = _dup64_f32(t);
@@ -152,7 +152,7 @@ struct ktm::detail::vector_arithmetic_implement::mix<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x, const V& y, const V& t) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y, const V& t) noexcept
     {
         V ret;
         ret.st = _madd64_f32(x.st, t.st, _sub64_f32(y.st, x.st));
@@ -165,7 +165,7 @@ struct ktm::detail::vector_arithmetic_implement::step<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& edge, const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& edge, const V& x) noexcept
     {
         V ret;
         skv::fv2 cmp = _cmpge64_f32(x.st, edge.st);
@@ -179,7 +179,7 @@ struct ktm::detail::vector_arithmetic_implement::smoothstep<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& edge0, const V& edge1, const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& edge0, const V& edge1, const V& x) noexcept
     {
         V ret;
         skv::fv2 tmp = _div64_f32(_sub64_f32(x.st, edge0.st), _sub64_f32(edge1.st, edge0.st));
@@ -194,7 +194,7 @@ struct ktm::detail::vector_arithmetic_implement::abs<2, int>
 {
     using V = vec<2, int>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = _abs64_s32(x.st);
@@ -207,7 +207,7 @@ struct ktm::detail::vector_arithmetic_implement::min<2, int>
 {
     using V = vec<2, int>;
 
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y) noexcept
     {
         V ret;
         ret.st = _min64_s32(x.st, y.st);
@@ -220,7 +220,7 @@ struct ktm::detail::vector_arithmetic_implement::max<2, int>
 {
     using V = vec<2, int>;
 
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y) noexcept
     {
         V ret;
         ret.st = _max64_s32(x.st, y.st);
@@ -233,7 +233,7 @@ struct ktm::detail::vector_arithmetic_implement::clamp<2, int>
 {
     using V = vec<2, int>;
 
-    static KTM_INLINE V call(const V& v, const V& min, const V& max) noexcept
+    static KTM_CORE_FUNC V call(const V& v, const V& min, const V& max) noexcept
     {
         V ret;
         ret.st = _clamp64_s32(v.st, min.st, max.st);
@@ -250,7 +250,7 @@ struct ktm::detail::vector_arithmetic_implement::abs<N, float, std::enable_if_t<
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = _abs128_f32(x.st);
@@ -263,7 +263,7 @@ struct ktm::detail::vector_arithmetic_implement::min<N, float, std::enable_if_t<
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y) noexcept
     {
         V ret;
         ret.st = _min128_f32(x.st, y.st);
@@ -276,7 +276,7 @@ struct ktm::detail::vector_arithmetic_implement::max<N, float, std::enable_if_t<
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y) noexcept
     {
         V ret;
         ret.st = _max128_f32(x.st, y.st);
@@ -289,7 +289,7 @@ struct ktm::detail::vector_arithmetic_implement::clamp<N, float, std::enable_if_
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& v, const V& min, const V& max) noexcept
+    static KTM_CORE_FUNC V call(const V& v, const V& min, const V& max) noexcept
     {
         V ret;
         ret.st = _clamp128_f32(v.st, min.st, max.st);
@@ -302,7 +302,7 @@ struct ktm::detail::vector_arithmetic_implement::floor<N, float, std::enable_if_
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = skv::floor_fv4(x.st);
@@ -315,7 +315,7 @@ struct ktm::detail::vector_arithmetic_implement::ceil<N, float, std::enable_if_t
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = skv::ceil_fv4(x.st);
@@ -328,7 +328,7 @@ struct ktm::detail::vector_arithmetic_implement::round<N, float, std::enable_if_
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = skv::round_fv4(x.st);
@@ -341,7 +341,7 @@ struct ktm::detail::vector_arithmetic_implement::fract<N, float, std::enable_if_
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         skv::fv4 floor = skv::floor_fv4(x.st);
@@ -355,7 +355,7 @@ struct ktm::detail::vector_arithmetic_implement::mod<N, float, std::enable_if_t<
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y) noexcept
     {
         V ret;
         skv::fv4 div = _div128_f32(x.st, y.st);
@@ -370,7 +370,7 @@ struct ktm::detail::vector_arithmetic_implement::lerp<N, float, std::enable_if_t
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x, const V& y, float t) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y, float t) noexcept
     {
         V ret;
         skv::fv4 t_t = _dup128_f32(t);
@@ -384,7 +384,7 @@ struct ktm::detail::vector_arithmetic_implement::mix<N, float, std::enable_if_t<
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x, const V& y, const V& t) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y, const V& t) noexcept
     {
         V ret;
         ret.st = _madd128_f32(x.st, t.st, _sub128_f32(y.st, x.st));
@@ -397,7 +397,7 @@ struct ktm::detail::vector_arithmetic_implement::step<N, float, std::enable_if_t
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& edge, const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& edge, const V& x) noexcept
     {
         V ret;
         skv::fv4 cmp = _cmplt128_f32(x.st, edge.st);
@@ -411,7 +411,7 @@ struct ktm::detail::vector_arithmetic_implement::smoothstep<N, float, std::enabl
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& edge0, const V& edge1, const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& edge0, const V& edge1, const V& x) noexcept
     {
         V ret;
         skv::fv4 tmp = _div128_f32(_sub128_f32(x.st, edge0.st), _sub128_f32(edge1.st, edge0.st));
@@ -430,7 +430,7 @@ struct ktm::detail::vector_arithmetic_implement::abs<N, int, std::enable_if_t<N 
 {
     using V = vec<N, int>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         ret.st = _abs128_s32(x.st);
@@ -447,7 +447,7 @@ struct ktm::detail::vector_arithmetic_implement::min<N, int, std::enable_if_t<N 
 {
     using V = vec<N, int>;
 
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y) noexcept
     {
         V ret;
         ret.st = _min128_s32(x.st, y.st);
@@ -460,7 +460,7 @@ struct ktm::detail::vector_arithmetic_implement::max<N, int, std::enable_if_t<N 
 {
     using V = vec<N, int>;
 
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y) noexcept
     {
         V ret;
         ret.st = _max128_s32(x.st, y.st);
@@ -473,7 +473,7 @@ struct ktm::detail::vector_arithmetic_implement::clamp<N, int, std::enable_if_t<
 {
     using V = vec<N, int>;
 
-    static KTM_INLINE V call(const V& v, const V& min, const V& max) noexcept
+    static KTM_CORE_FUNC V call(const V& v, const V& min, const V& max) noexcept
     {
         V ret;
         ret.st = _clamp128_s32(v.st, min.st, max.st);
