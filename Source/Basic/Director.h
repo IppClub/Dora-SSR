@@ -70,6 +70,9 @@ public:
 	bool beginGameCapture();
 	void endGameCapture();
 	bool captureGameAsync(String filename, const std::function<void(bool, double, Size)>& callback);
+	// Route dynamically-created game color views (such as View3D) into the
+	// active capture target without hijacking nested offscreen render targets.
+	void bindGameCaptureView(bgfx::ViewId viewId);
 
 	template <typename Func>
 	void pushViewProjection(const Matrix& viewProj, const Func& workHere) {
@@ -168,6 +171,7 @@ private:
 	WRef<Node> _captureSystemRoot;
 	std::string _captureFile;
 	std::function<void(bool, double, Size)> _captureCallback;
+	Ref<RenderTarget> _captureTarget;
 	bool _nvgDirty;
 	NVGcontext* _retiredNVGContext = nullptr;
 	bool _paused;

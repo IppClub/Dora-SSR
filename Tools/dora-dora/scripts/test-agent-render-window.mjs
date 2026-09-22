@@ -55,4 +55,16 @@ assert.match(stepListSource, /toolFailureMessage/, "completed tool failures shou
 const appSource = await readFile(path.resolve("src/App.tsx"), "utf8");
 assert.match(appSource, /if \(language && \(active \|\| file\.editor !== undefined\)\)/);
 
+const agentPanelSource = await readFile(path.resolve("src/AgentPanel.tsx"), "utf8");
+assert.ok(
+	agentPanelSource.includes('sx={{ display: "flex", flexDirection: "column", height, position: "relative", backgroundColor: Color.Background }}'),
+	"the Agent transcript and composer must share the same panel background",
+);
+const agentComposerSource = await readFile(path.resolve("../../Studio/packages/agent-ui/src/AgentComposer.tsx"), "utf8");
+assert.match(
+	agentComposerSource,
+	/borderRadius:compact\?2:3,backgroundColor:Color\.Background,overflow:'hidden'/,
+	"the composer surface must use the transcript background instead of the darker paper color",
+);
+
 console.log("Agent render window bounded-tail and reveal tests passed.");

@@ -459,6 +459,12 @@ bool Director::captureGameAsync(String filename, const std::function<void(bool, 
 	return true;
 }
 
+void Director::bindGameCaptureView(bgfx::ViewId viewId) {
+	if (_captureTarget && RenderTarget::getCurrent() == nullptr) {
+		_captureTarget->bind(viewId);
+	}
+}
+
 void Director::doRender() {
 	if (_paused || _stoped) return;
 
@@ -479,6 +485,7 @@ void Director::doRender() {
 			callback(false, 0, Size{0, 0});
 		}
 	}
+	_captureTarget = capture;
 	auto bindCapture = [&](bgfx::ViewId id) { if (capture) capture->bind(id); };
 	auto isToolUI = [&](Node* node) {
 		return std::any_of(_captureToolUI.begin(), _captureToolUI.end(),
@@ -635,6 +642,7 @@ void Director::doRender() {
 				}
 			});
 		}
+		_captureTarget = nullptr;
 		if (capture) {
 			const bool flipY = bgfx::getCaps()->originBottomLeft;
 			SharedView.pushBack("GameCapturePresent"_slice, [&]() {

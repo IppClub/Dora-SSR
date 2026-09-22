@@ -255,6 +255,10 @@ void View3D::setEnvironmentIntensity(float diffuse, float specular, float exposu
 
 void View3D::render3D(bgfx::ViewId viewId) {
 	if (!_scene || !_scene->hasChildren()) return;
+	// View3D may allocate a view after Director bound the ordinary Main/UI
+	// passes. Include this color pass in game captures while leaving shadow and
+	// nested offscreen render targets independent.
+	SharedDirector.bindGameCaptureView(viewId);
 	Camera* camera = SharedDirector.getCurrentCamera();
 	const Matrix& directorViewProj = SharedDirector.getViewProjection();
 	const Vec3& eye = camera->getPosition();
@@ -300,6 +304,7 @@ void View3D::render3D(bgfx::ViewId viewId) {
 	if (!surfaces.empty()) {
 		for (auto surface : surfaces) surface->prepare(*camera);
 		SharedView.pushBack("Surface3D"_slice, [&]() {
+			SharedDirector.bindGameCaptureView(SharedView.getId());
 			for (auto surface : surfaces) surface->renderPrepared();
 		});
 	}

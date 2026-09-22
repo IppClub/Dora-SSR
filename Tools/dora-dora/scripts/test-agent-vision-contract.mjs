@@ -5,7 +5,7 @@ import path from "node:path";
 const repoRoot = path.resolve("../..");
 const readAgentSource = relativePath => readFile(path.join(repoRoot, relativePath), "utf8");
 
-const [workspaceSource, handlersSource, registrySource, visionSource, bindingSource, memorySource, workspaceLua, handlersLua, registryLua, visionLua, bindingLua, memoryLua] = await Promise.all([
+const [workspaceSource, handlersSource, registrySource, visionSource, bindingSource, memorySource, workspaceLua, handlersLua, registryLua, visionLua, bindingLua, memoryLua, directorHeader, directorSource, view3DSource] = await Promise.all([
 	readAgentSource("Assets/Script/Lib/Agent/Tool/Workspace.ts"),
 	readAgentSource("Assets/Script/Lib/Agent/Tool/Handlers.ts"),
 	readAgentSource("Assets/Script/Lib/Agent/Tool/Registry.ts"),
@@ -18,6 +18,9 @@ const [workspaceSource, handlersSource, registrySource, visionSource, bindingSou
 	readAgentSource("Assets/Script/Lib/Agent/Tool/VisionAnalysis.lua"),
 	readAgentSource("Assets/Script/Lib/Agent/Tool/VisionBinding.lua"),
 	readAgentSource("Assets/Script/Lib/Agent/Memory.lua"),
+	readAgentSource("Source/Basic/Director.h"),
+	readAgentSource("Source/Basic/Director.cpp"),
+	readAgentSource("Source/Node/View3D.cpp"),
 ]);
 
 assert.match(workspaceSource, /preferSourceVariants\?: boolean/);
@@ -82,5 +85,22 @@ assert.match(bindingLua, /model = "glm-5\.3-flash"/);
 assert.match(visionLua, /reasoning_effort = "low"/);
 assert.ok(memoryLua.includes("earlier-turn listing does not prove absence"));
 assert.ok(memoryLua.includes("Preserve confidence and uncertainty from visual reports"));
+
+assert.match(directorHeader, /void bindGameCaptureView\(bgfx::ViewId viewId\)/);
+assert.match(
+	directorSource,
+	/if \(_captureTarget && RenderTarget::getCurrent\(\) == nullptr\)/,
+	"game capture must not replace a nested offscreen render target",
+);
+assert.match(
+	view3DSource,
+	/void View3D::render3D[\s\S]*?SharedDirector\.bindGameCaptureView\(viewId\)/,
+	"dynamically-created View3D color passes must join game capture",
+);
+assert.match(
+	view3DSource,
+	/SharedView\.pushBack\("Surface3D"_slice[\s\S]*?SharedDirector\.bindGameCaptureView\(SharedView\.getId\(\)\)/,
+	"the final Surface3D composite pass must join game capture",
+);
 
 console.log("Agent image-analysis evidence contract tests passed.");

@@ -1199,7 +1199,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 			data-agent-task-status={session?.currentTaskStatus ?? session?.status}
 			data-agent-session-hydrating={isSessionHydrating ? "true" : "false"}
 			data-agent-compact={compact ? "true" : "false"}
-			sx={{ display: "flex", flexDirection: "column", height, position: "relative" }}
+			sx={{ display: "flex", flexDirection: "column", height, position: "relative", backgroundColor: Color.Background }}
 		>
 			{showHeader ? (
 				<Box sx={{ px: 1, py: 1, borderBottom: `0.5px solid ${Color.Line}`, backgroundColor: Color.BackgroundDark }}>
