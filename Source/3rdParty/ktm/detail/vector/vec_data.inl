@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -16,7 +16,7 @@ template <size_t N, typename T, typename Void>
 struct ktm::detail::vec_data_implement::vec_storage
 {
 private:
-    static KTM_INLINE constexpr size_t align() noexcept
+    static inline constexpr size_t align() noexcept
     {
         if constexpr (sizeof(T) > 8)
             return alignof(T);
@@ -38,7 +38,7 @@ struct ktm::detail::vec_data_implement::vec_swizzle
 {
 private:
     template <size_t... E>
-    static KTM_INLINE constexpr bool enable_swizzle() noexcept
+    static inline constexpr bool enable_swizzle() noexcept
     {
         return (sizeof...(E) == OSize) && ((E < ISize) && ...);
     }
@@ -48,7 +48,7 @@ public:
     using RetV = vec<OSize, T>;
 
     template <size_t... E>
-    static KTM_INLINE std::enable_if_t<enable_swizzle<E...>(), RetV> call(const V& v) noexcept
+    static KTM_CORE_FUNC std::enable_if_t<enable_swizzle<E...>(), RetV> call(const V& v) noexcept
     {
         return RetV(v[E]...);
     }

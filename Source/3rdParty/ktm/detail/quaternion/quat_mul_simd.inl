@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -20,7 +20,7 @@ namespace detail
 namespace quat_mul_implement
 {
 
-KTM_FUNC skv::fv4 fv3_mul_fq(skv::fv4 v, skv::fv4 q) noexcept
+KTM_SIMD_FUNC skv::fv4 fv3_mul_fq(skv::fv4 v, skv::fv4 q) noexcept
 {
     skv::fv4 q_opp = _neg128_f32(q);
 
@@ -38,7 +38,7 @@ KTM_FUNC skv::fv4 fv3_mul_fq(skv::fv4 v, skv::fv4 q) noexcept
     return _add128_f32(add_0, _add128_f32(add_1, add_2));
 }
 
-KTM_FUNC skv::fv4 fq_mul_fq(skv::fv4 x, skv::fv4 y) noexcept
+KTM_SIMD_FUNC skv::fv4 fq_mul_fq(skv::fv4 x, skv::fv4 y) noexcept
 {
     skv::fv4 add_012 = fv3_mul_fq(x, y);
     skv::fv4 add_3 = _mul128_f32(_shuffo128_f32(x, 3, 3, 3, 3), y);
@@ -50,15 +50,15 @@ KTM_FUNC skv::fv4 fq_mul_fq(skv::fv4 x, skv::fv4 y) noexcept
 } // namespace ktm
 
 template <>
-KTM_INLINE void ktm::detail::quat_mul_implement::mul<float>(quat<float>& out, const quat<float>& x,
-                                                            const quat<float>& y) noexcept
+KTM_CORE_FUNC void ktm::detail::quat_mul_implement::mul<float>(quat<float>& out, const quat<float>& x,
+                                                               const quat<float>& y) noexcept
 {
     out.st = fq_mul_fq(x.st, y.st);
 }
 
 template <>
-KTM_INLINE void ktm::detail::quat_mul_implement::act<float>(vec<3, float>& out, const quat<float>& q,
-                                                            const vec<3, float>& v) noexcept
+KTM_CORE_FUNC void ktm::detail::quat_mul_implement::act<float>(vec<3, float>& out, const quat<float>& q,
+                                                               const vec<3, float>& v) noexcept
 {
     constexpr union
     {

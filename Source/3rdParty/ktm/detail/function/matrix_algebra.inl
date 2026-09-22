@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -22,7 +22,7 @@ struct ktm::detail::matrix_algebra_implement::transpose
     using RetM = mat<Col, Row, T>;
     using RowV = vec<Row, T>;
 
-    static KTM_INLINE RetM call(const M& m) noexcept
+    static KTM_CORE_FUNC RetM call(const M& m) noexcept
     {
         if constexpr (Row <= 4 && Col <= 4)
             return call(m, std::make_index_sequence<Row>());
@@ -38,7 +38,7 @@ struct ktm::detail::matrix_algebra_implement::transpose
 
 private:
     template <size_t... Ns>
-    static KTM_INLINE RetM call(const M& m, std::index_sequence<Ns...>) noexcept
+    static KTM_CORE_FUNC RetM call(const M& m, std::index_sequence<Ns...>) noexcept
     {
         return RetM::from_row(m[Ns]...);
     }
@@ -50,7 +50,7 @@ struct ktm::detail::matrix_algebra_implement::diagonal
     using M = mat<N, N, T>;
     using ColV = vec<N, T>;
 
-    static KTM_INLINE ColV call(const M& m) noexcept
+    static KTM_CORE_FUNC ColV call(const M& m) noexcept
     {
         ColV ret;
         if constexpr (N <= 4)
@@ -65,7 +65,7 @@ struct ktm::detail::matrix_algebra_implement::diagonal
 
 private:
     template <size_t... Ns>
-    static KTM_INLINE void call(ColV& ret, const M& m, std::index_sequence<Ns...>) noexcept
+    static KTM_CORE_FUNC void call(ColV& ret, const M& m, std::index_sequence<Ns...>) noexcept
     {
         ((ret[Ns] = m[Ns][Ns]), ...);
     }
@@ -76,7 +76,7 @@ struct ktm::detail::matrix_algebra_implement::determinant<2, T>
 {
     using M = mat<2, 2, T>;
 
-    static KTM_INLINE T call(const M& m) noexcept { return m[0][0] * m[1][1] - m[1][0] * m[0][1]; }
+    static KTM_CORE_FUNC T call(const M& m) noexcept { return m[0][0] * m[1][1] - m[1][0] * m[0][1]; }
 };
 
 template <typename T>
@@ -84,7 +84,7 @@ struct ktm::detail::matrix_algebra_implement::determinant<3, T>
 {
     using M = mat<3, 3, T>;
 
-    static KTM_INLINE T call(const M& m) noexcept
+    static KTM_CORE_FUNC T call(const M& m) noexcept
     {
         return m[0][0] * (m[1][1] * m[2][2] - m[2][1] * m[1][2]) + m[1][0] * (m[2][1] * m[0][2] - m[0][1] * m[2][2]) +
                m[2][0] * (m[0][1] * m[1][2] - m[1][1] * m[0][2]);
@@ -96,7 +96,7 @@ struct ktm::detail::matrix_algebra_implement::determinant<4, T>
 {
     using M = mat<4, 4, T>;
 
-    static KTM_INLINE T call(const M& m) noexcept
+    static KTM_CORE_FUNC T call(const M& m) noexcept
     {
         T d00 = m[2][2] * m[3][3] - m[3][2] * m[2][3];
         T d01 = m[3][2] * m[1][3] - m[1][2] * m[3][3];
@@ -120,7 +120,7 @@ struct ktm::detail::matrix_algebra_implement::determinant<N, T,
 {
     using M = mat<N, N, T>;
 
-    static KTM_NOINLINE T call(const M& m) noexcept
+    static KTM_CORE_NI_FUNC T call(const M& m) noexcept
     {
         T det = one<T>;
         M a { m };
@@ -148,7 +148,7 @@ struct ktm::detail::matrix_algebra_implement::determinant<N, T,
 {
     using M = mat<N, N, T>;
 
-    static KTM_NOINLINE T call(const M& m) noexcept
+    static KTM_CORE_NI_FUNC T call(const M& m) noexcept
     {
         T det = zero<T>;
         for (int i = 0; i < N; ++i)
@@ -176,7 +176,7 @@ struct ktm::detail::matrix_algebra_implement::inverse<2, T>
 {
     using M = mat<2, 2, T>;
 
-    static KTM_INLINE M call(const M& m) noexcept
+    static KTM_CORE_FUNC M call(const M& m) noexcept
     {
         T recip_det = one<T> / determinant<2, T>::call(m);
         M ret;
@@ -193,7 +193,7 @@ struct ktm::detail::matrix_algebra_implement::inverse<3, T>
 {
     using M = mat<3, 3, T>;
 
-    static KTM_INLINE M call(const M& m) noexcept
+    static KTM_CORE_FUNC M call(const M& m) noexcept
     {
         T recip_det = one<T> / determinant<3, T>::call(m);
         M ret;
@@ -215,7 +215,7 @@ struct ktm::detail::matrix_algebra_implement::inverse<4, T>
 {
     using M = mat<4, 4, T>;
 
-    static KTM_INLINE M call(const M& m) noexcept
+    static KTM_CORE_FUNC M call(const M& m) noexcept
     {
         T recip_det = one<T> / determinant<4, T>::call(m);
         M ret;
@@ -276,7 +276,7 @@ struct ktm::detail::matrix_algebra_implement::inverse<N, T, std::enable_if_t<(N 
 {
     using M = mat<N, N, T>;
 
-    static KTM_NOINLINE M call(const M& m) noexcept
+    static KTM_CORE_NI_FUNC M call(const M& m) noexcept
     {
         M left = m;
         M right = M::from_eye();

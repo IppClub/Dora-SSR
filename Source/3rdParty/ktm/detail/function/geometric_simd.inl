@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -18,7 +18,10 @@ struct ktm::detail::geometric_implement::dot<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE float call(const V& x, const V& y) noexcept { return _cast64to32_f32(skv::dot1_fv2(x.st, y.st)); }
+    static KTM_CORE_FUNC float call(const V& x, const V& y) noexcept
+    {
+        return _cast64to32_f32(skv::dot1_fv2(x.st, y.st));
+    }
 };
 
 template <>
@@ -26,7 +29,7 @@ struct ktm::detail::geometric_implement::project<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y) noexcept
     {
         V ret;
         skv::fv2 dot_xy = skv::dot_fv2(x.st, y.st);
@@ -41,7 +44,7 @@ struct ktm::detail::geometric_implement::length<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE float call(const V& x) noexcept
+    static KTM_CORE_FUNC float call(const V& x) noexcept
     {
         skv::fv2 len_sq = skv::dot1_fv2(x.st, x.st);
         return _cast64to32_f32(_sqrth64_f32(len_sq));
@@ -53,7 +56,7 @@ struct ktm::detail::geometric_implement::distance<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE float call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC float call(const V& x, const V& y) noexcept
     {
         V delta;
         delta.st = _sub64_f32(x.st, y.st);
@@ -66,7 +69,7 @@ struct ktm::detail::geometric_implement::normalize<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         skv::fv2 dot = skv::dot_fv2(x.st, x.st);
@@ -81,7 +84,7 @@ struct ktm::detail::geometric_implement::reflect<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x, const V& n) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& n) noexcept
     {
         V ret;
         skv::fv2 dot = skv::dot_fv2(x.st, n.st);
@@ -97,7 +100,7 @@ struct ktm::detail::geometric_implement::refract<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x, const V& n, float eta) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& n, float eta) noexcept
     {
         skv::fv2 t_eta = _dup64_f32(eta);
         skv::fv2 one = _dup64_f32(1.f);
@@ -120,7 +123,7 @@ struct ktm::detail::geometric_implement::fast_project<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y) noexcept
     {
         V ret;
         skv::fv2 dot_xy = skv::dot_fv2(x.st, y.st);
@@ -135,7 +138,7 @@ struct ktm::detail::geometric_implement::fast_length<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE float call(const V& x) noexcept
+    static KTM_CORE_FUNC float call(const V& x) noexcept
     {
         skv::fv2 len_sq = skv::dot1_fv2(x.st, x.st);
         return _cast64to32_f32(_sqrtl64_f32(len_sq));
@@ -147,7 +150,7 @@ struct ktm::detail::geometric_implement::fast_distance<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE float call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC float call(const V& x, const V& y) noexcept
     {
         V delta;
         delta.st = _sub64_f32(x.st, y.st);
@@ -160,7 +163,7 @@ struct ktm::detail::geometric_implement::fast_normalize<2, float>
 {
     using V = vec<2, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         skv::fv2 dot = skv::dot_fv2(x.st, x.st);
@@ -179,7 +182,7 @@ struct ktm::detail::geometric_implement::dot<N, float, std::enable_if_t<N == 3 |
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE float call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC float call(const V& x, const V& y) noexcept
     {
         if constexpr (N == 3)
             return _cast128to32_f32(skv::dot1_fv3(x.st, y.st));
@@ -193,7 +196,7 @@ struct ktm::detail::geometric_implement::project<N, float, std::enable_if_t<N ==
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y) noexcept
     {
         V ret;
         skv::fv4 dot_xy;
@@ -218,7 +221,7 @@ struct ktm::detail::geometric_implement::cross<3, float>
 {
     using V = vec<3, float>;
 
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y) noexcept
     {
         V ret;
         skv::fv4 s_x = _shuffo128_f32(x.st, 3, 1, 0, 2);
@@ -234,7 +237,7 @@ struct ktm::detail::geometric_implement::length<N, float, std::enable_if_t<N == 
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE float call(const V& x) noexcept
+    static KTM_CORE_FUNC float call(const V& x) noexcept
     {
         skv::fv4 len_sq;
         if constexpr (N == 3)
@@ -250,7 +253,7 @@ struct ktm::detail::geometric_implement::distance<N, float, std::enable_if_t<N =
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE float call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC float call(const V& x, const V& y) noexcept
     {
         V delta;
         delta.st = _sub128_f32(x.st, y.st);
@@ -263,7 +266,7 @@ struct ktm::detail::geometric_implement::normalize<N, float, std::enable_if_t<N 
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         skv::fv4 dot;
@@ -282,7 +285,7 @@ struct ktm::detail::geometric_implement::reflect<N, float, std::enable_if_t<N ==
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x, const V& n) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& n) noexcept
     {
         V ret;
         skv::fv4 dot;
@@ -302,7 +305,7 @@ struct ktm::detail::geometric_implement::refract<N, float, std::enable_if_t<N ==
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x, const V& n, float eta) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& n, float eta) noexcept
     {
         skv::fv4 t_eta = _dup128_f32(eta);
         skv::fv4 one = _dup128_f32(1.f);
@@ -329,7 +332,7 @@ struct ktm::detail::geometric_implement::fast_project<N, float, std::enable_if_t
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC V call(const V& x, const V& y) noexcept
     {
         V ret;
         skv::fv4 dot_xy;
@@ -354,7 +357,7 @@ struct ktm::detail::geometric_implement::fast_length<N, float, std::enable_if_t<
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE float call(const V& x) noexcept
+    static KTM_CORE_FUNC float call(const V& x) noexcept
     {
         skv::fv4 len_sq;
         if constexpr (N == 3)
@@ -370,7 +373,7 @@ struct ktm::detail::geometric_implement::fast_distance<N, float, std::enable_if_
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE float call(const V& x, const V& y) noexcept
+    static KTM_CORE_FUNC float call(const V& x, const V& y) noexcept
     {
         V delta;
         delta.st = _sub128_f32(x.st, y.st);
@@ -383,7 +386,7 @@ struct ktm::detail::geometric_implement::fast_normalize<N, float, std::enable_if
 {
     using V = vec<N, float>;
 
-    static KTM_INLINE V call(const V& x) noexcept
+    static KTM_CORE_FUNC V call(const V& x) noexcept
     {
         V ret;
         skv::fv4 dot;

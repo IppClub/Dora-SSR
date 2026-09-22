@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -10,7 +10,7 @@
 
 #include "../setup.h"
 #include "../type/quat.h"
-#include "../traits/type_traits_math.h"
+#include "../utility/type_traits_math.h"
 #include "common.h"
 #include "compare.h"
 #include "geometric.h"
@@ -19,38 +19,38 @@ namespace ktm
 {
 
 template <class Q>
-KTM_INLINE std::enable_if_t<is_quaternion_v<Q>, Q> conjugate(const Q& q) noexcept
+KTM_CORE_FUNC std::enable_if_t<is_quaternion_v<Q>, Q> conjugate(const Q& q) noexcept
 {
     return Q(-q.i, -q.j, -q.k, q.r);
 }
 
 template <class Q>
-KTM_INLINE std::enable_if_t<is_quaternion_v<Q>, Q> inverse(const Q& q) noexcept
+KTM_CORE_FUNC std::enable_if_t<is_quaternion_v<Q>, Q> inverse(const Q& q) noexcept
 {
     Q conjugate_q = conjugate(q);
     return Q((*conjugate_q) * recip(length_squared(*q)));
 }
 
 template <class Q>
-KTM_INLINE std::enable_if_t<is_quaternion_v<Q>, Q> lerp(const Q& p, const Q& q, quat_traits_base_t<Q> t) noexcept
+KTM_CORE_FUNC std::enable_if_t<is_quaternion_v<Q>, Q> lerp(const Q& p, const Q& q, quat_traits_base_t<Q> t) noexcept
 {
     return Q(lerp(*p, *q, t));
 }
 
 template <class Q>
-KTM_INLINE std::enable_if_t<is_quaternion_v<Q>, quat_traits_base_t<Q>> dot(const Q& p, const Q& q) noexcept
+KTM_CORE_FUNC std::enable_if_t<is_quaternion_v<Q>, quat_traits_base_t<Q>> dot(const Q& p, const Q& q) noexcept
 {
     return dot(*p, *q);
 }
 
 template <class Q>
-KTM_INLINE std::enable_if_t<is_quaternion_v<Q>, quat_traits_base_t<Q>> length(const Q& q) noexcept
+KTM_CORE_FUNC std::enable_if_t<is_quaternion_v<Q>, quat_traits_base_t<Q>> length(const Q& q) noexcept
 {
     return length(*q);
 }
 
 template <class Q>
-KTM_INLINE std::enable_if_t<is_quaternion_v<Q>, Q> normalize(const Q& q) noexcept
+KTM_CORE_FUNC std::enable_if_t<is_quaternion_v<Q>, Q> normalize(const Q& q) noexcept
 {
     using T = quat_traits_base_t<Q>;
     T ls = length_squared(*q);
@@ -58,7 +58,7 @@ KTM_INLINE std::enable_if_t<is_quaternion_v<Q>, Q> normalize(const Q& q) noexcep
 }
 
 template <class Q>
-KTM_NOINLINE std::enable_if_t<is_quaternion_v<Q>, Q> exp(const Q& q) noexcept
+KTM_CORE_NI_FUNC std::enable_if_t<is_quaternion_v<Q>, Q> exp(const Q& q) noexcept
 {
     using T = quat_traits_base_t<Q>;
     vec<3, T> q_imag = q.imag();
@@ -71,7 +71,7 @@ KTM_NOINLINE std::enable_if_t<is_quaternion_v<Q>, Q> exp(const Q& q) noexcept
 }
 
 template <class Q>
-KTM_NOINLINE std::enable_if_t<is_quaternion_v<Q>, Q> log(const Q& q) noexcept
+KTM_CORE_NI_FUNC std::enable_if_t<is_quaternion_v<Q>, Q> log(const Q& q) noexcept
 {
     using T = quat_traits_base_t<Q>;
     T real = log(length_squared(*q)) / static_cast<T>(2);
@@ -83,8 +83,8 @@ KTM_NOINLINE std::enable_if_t<is_quaternion_v<Q>, Q> log(const Q& q) noexcept
 }
 
 template <class Q>
-KTM_NOINLINE std::enable_if_t<is_quaternion_v<Q>, Q> slerp_internal(const Q& x, const Q& y,
-                                                                    quat_traits_base_t<Q> t) noexcept
+KTM_CORE_NI_FUNC std::enable_if_t<is_quaternion_v<Q>, Q> slerp_internal(const Q& x, const Q& y,
+                                                                        quat_traits_base_t<Q> t) noexcept
 {
     using T = quat_traits_base_t<Q>;
     T s = one<T> - t;
@@ -94,7 +94,7 @@ KTM_NOINLINE std::enable_if_t<is_quaternion_v<Q>, Q> slerp_internal(const Q& x, 
 }
 
 template <class Q>
-KTM_NOINLINE std::enable_if_t<is_quaternion_v<Q>, Q> slerp(const Q& x, const Q& y, quat_traits_base_t<Q> t) noexcept
+KTM_CORE_NI_FUNC std::enable_if_t<is_quaternion_v<Q>, Q> slerp(const Q& x, const Q& y, quat_traits_base_t<Q> t) noexcept
 {
     if (dot(x, y) >= 0)
         return slerp_internal(x, y, t);
@@ -102,8 +102,8 @@ KTM_NOINLINE std::enable_if_t<is_quaternion_v<Q>, Q> slerp(const Q& x, const Q& 
 }
 
 template <class Q>
-KTM_NOINLINE std::enable_if_t<is_quaternion_v<Q>, Q> slerp_longest(const Q& x, const Q& y,
-                                                                   quat_traits_base_t<Q> t) noexcept
+KTM_CORE_NI_FUNC std::enable_if_t<is_quaternion_v<Q>, Q> slerp_longest(const Q& x, const Q& y,
+                                                                       quat_traits_base_t<Q> t) noexcept
 {
     if (dot(x, y) >= 0)
         return slerp_internal(x, -y, t);

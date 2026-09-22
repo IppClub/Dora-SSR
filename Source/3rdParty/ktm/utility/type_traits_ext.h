@@ -1,17 +1,17 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
 
-#ifndef _STD_TYPE_TRAITS_EXT_H_
-#define _STD_TYPE_TRAITS_EXT_H_
+#ifndef _KTM_TYPE_TRAITS_EXT_H_
+#define _KTM_TYPE_TRAITS_EXT_H_
 
 #include <cstddef>
 #include <type_traits>
 
-namespace std
+namespace ktm
 {
 
 // select the type, if true select the former, otherwise select the latter
@@ -60,7 +60,7 @@ template <class Tp1, class Tp2, class... Tps>
 inline constexpr bool is_same_vs<Tp1, Tp2, Tps...> = is_same_vs<Tp1, Tp2> && is_same_vs<Tp2, Tps...>;
 
 template <class Tp, class Up>
-inline constexpr bool is_same_vs<Tp, Up> = is_same_v<Tp, Up>;
+inline constexpr bool is_same_vs<Tp, Up> = std::is_same_v<Tp, Up>;
 
 template <class Tp>
 inline constexpr bool is_same_vs<Tp> = true;
@@ -73,7 +73,7 @@ template <class... Tps>
 inline bool is_exist_same_vs;
 
 template <class Tp, class... Tps>
-inline constexpr bool is_exist_same_vs<Tp, Tps...> = (is_same_v<Tp, Tps> || ...) || is_exist_same_vs<Tps...>;
+inline constexpr bool is_exist_same_vs<Tp, Tps...> = (std::is_same_v<Tp, Tps> || ...) || is_exist_same_vs<Tps...>;
 
 template <class Tp>
 inline constexpr bool is_exist_same_vs<Tp> = false;
@@ -81,14 +81,14 @@ inline constexpr bool is_exist_same_vs<Tp> = false;
 template <>
 inline constexpr bool is_exist_same_vs<> = false;
 
-// comparing tow templates
+// comparing two templates
 template <template <typename...> class Tp, template <typename...> class Up>
-struct is_template_same : false_type
+struct is_template_same : std::false_type
 {
 };
 
 template <template <typename...> class Tp>
-struct is_template_same<Tp, Tp> : true_type
+struct is_template_same<Tp, Tp> : std::true_type
 {
 };
 
@@ -131,6 +131,6 @@ template <typename T>
 inline constexpr bool is_character_v =
     is_exist_same_vs<std::remove_cv_t<T>, char, unsigned char, signed char, wchar_t, char16_t, char32_t>;
 
-} // namespace std
+} // namespace ktm
 
 #endif

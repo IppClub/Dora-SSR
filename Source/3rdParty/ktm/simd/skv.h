@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -8,8 +8,8 @@
 #ifndef _KTM_SKV_H_
 #define _KTM_SKV_H_
 
-#include "arch_def.h"
-#include "intrin_api.h"
+#include "arch.h"
+#include "api_intrin.h"
 
 namespace skv
 {
@@ -35,7 +35,7 @@ typedef v128_t sv4;
 
 #if KTM_SIMD_ENABLE(KTM_SIMD_NEON)
 
-KTM_FUNC fv2 round_fv2(fv2 a) noexcept
+KTM_SIMD_FUNC fv2 round_fv2(fv2 a) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_NEON64)
     return _round64_f32(a);
@@ -59,7 +59,7 @@ KTM_FUNC fv2 round_fv2(fv2 a) noexcept
 #    endif
 }
 
-KTM_FUNC fv2 floor_fv2(fv2 a) noexcept
+KTM_SIMD_FUNC fv2 floor_fv2(fv2 a) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_NEON64)
     return _floor64_f32(a);
@@ -78,7 +78,7 @@ KTM_FUNC fv2 floor_fv2(fv2 a) noexcept
 #    endif
 }
 
-KTM_FUNC fv2 ceil_fv2(fv2 a) noexcept
+KTM_SIMD_FUNC fv2 ceil_fv2(fv2 a) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_NEON64)
     return _ceil64_f32(a);
@@ -97,7 +97,7 @@ KTM_FUNC fv2 ceil_fv2(fv2 a) noexcept
 #    endif
 }
 
-KTM_FUNC float radd_fv2(fv2 a) noexcept
+KTM_SIMD_FUNC float radd_fv2(fv2 a) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_NEON64)
     fv2 add = _padd64_f32(a, a);
@@ -107,7 +107,7 @@ KTM_FUNC float radd_fv2(fv2 a) noexcept
     return _cast64to32_f32(add);
 }
 
-KTM_FUNC int radd_sv2(sv2 a) noexcept
+KTM_SIMD_FUNC int radd_sv2(sv2 a) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_NEON64)
     sv2 add = _padd64_s32(a, a);
@@ -123,7 +123,7 @@ KTM_FUNC int radd_sv2(sv2 a) noexcept
     return ret.i;
 }
 
-KTM_FUNC fv2 dot_fv2(fv2 x, fv2 y) noexcept
+KTM_SIMD_FUNC fv2 dot_fv2(fv2 x, fv2 y) noexcept
 {
     fv2 mul = _mul64_f32(x, y);
 #    if KTM_SIMD_ENABLE(KTM_SIMD_NEON64)
@@ -134,7 +134,7 @@ KTM_FUNC fv2 dot_fv2(fv2 x, fv2 y) noexcept
     return dot;
 }
 
-KTM_FUNC fv2 dot1_fv2(fv2 x, fv2 y) noexcept
+KTM_SIMD_FUNC fv2 dot1_fv2(fv2 x, fv2 y) noexcept
 {
     fv2 mul = _mul64_f32(x, y);
 #    if KTM_SIMD_ENABLE(KTM_SIMD_NEON64)
@@ -149,7 +149,7 @@ KTM_FUNC fv2 dot1_fv2(fv2 x, fv2 y) noexcept
 
 #if KTM_SIMD_ENABLE(KTM_SIMD_NEON | KTM_SIMD_SSE | KTM_SIMD_WASM)
 
-KTM_FUNC fv4 round_fv4(fv4 a) noexcept
+KTM_SIMD_FUNC fv4 round_fv4(fv4 a) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_NEON64 | KTM_SIMD_SSE4_1 | KTM_SIMD_WASM)
     return _round128_f32(a);
@@ -173,7 +173,7 @@ KTM_FUNC fv4 round_fv4(fv4 a) noexcept
 #    endif
 }
 
-KTM_FUNC fv4 floor_fv4(fv4 a) noexcept
+KTM_SIMD_FUNC fv4 floor_fv4(fv4 a) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_NEON64 | KTM_SIMD_SSE4_1 | KTM_SIMD_WASM)
     return _floor128_f32(a);
@@ -192,7 +192,7 @@ KTM_FUNC fv4 floor_fv4(fv4 a) noexcept
 #    endif
 }
 
-KTM_FUNC fv4 ceil_fv4(fv4 a) noexcept
+KTM_SIMD_FUNC fv4 ceil_fv4(fv4 a) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_NEON64 | KTM_SIMD_SSE4_1 | KTM_SIMD_WASM)
     return _ceil128_f32(a);
@@ -211,7 +211,7 @@ KTM_FUNC fv4 ceil_fv4(fv4 a) noexcept
 #    endif
 }
 
-KTM_FUNC float radd_fv3(fv4 a) noexcept
+KTM_SIMD_FUNC float radd_fv3(fv4 a) noexcept
 {
     fv4 shuf = _shuffo128_f32(a, 1, 1, 1, 1);
     fv4 add = _add128_f32(a, shuf);
@@ -220,7 +220,7 @@ KTM_FUNC float radd_fv3(fv4 a) noexcept
     return _cast128to32_f32(add);
 }
 
-KTM_FUNC float radd_fv4(fv4 a) noexcept
+KTM_SIMD_FUNC float radd_fv4(fv4 a) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_NEON64)
     return _radd128_f32(a);
@@ -237,7 +237,7 @@ KTM_FUNC float radd_fv4(fv4 a) noexcept
 #    endif
 }
 
-KTM_FUNC float rsub_fv4(fv4 a) noexcept
+KTM_SIMD_FUNC float rsub_fv4(fv4 a) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_SSSE3)
     fv4 sub = _psub128_f32(a, a);
@@ -252,7 +252,7 @@ KTM_FUNC float rsub_fv4(fv4 a) noexcept
 #    endif
 }
 
-KTM_FUNC float rmax_fv4(fv4 a) noexcept
+KTM_SIMD_FUNC float rmax_fv4(fv4 a) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_NEON64)
     return _rmax128_f32(a);
@@ -265,7 +265,7 @@ KTM_FUNC float rmax_fv4(fv4 a) noexcept
 #    endif
 }
 
-KTM_FUNC float rmin_fv4(fv4 a) noexcept
+KTM_SIMD_FUNC float rmin_fv4(fv4 a) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_NEON64)
     return _rmin128_f32(a);
@@ -278,7 +278,7 @@ KTM_FUNC float rmin_fv4(fv4 a) noexcept
 #    endif
 }
 
-KTM_FUNC fv4 dot_fv3(fv4 x, fv4 y) noexcept
+KTM_SIMD_FUNC fv4 dot_fv3(fv4 x, fv4 y) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_SSE4_1)
     fv4 dot = _dot128_f32(x, y, 0x7, 0xf);
@@ -290,7 +290,7 @@ KTM_FUNC fv4 dot_fv3(fv4 x, fv4 y) noexcept
     return dot;
 }
 
-KTM_FUNC fv4 dot_fv4(fv4 x, fv4 y) noexcept
+KTM_SIMD_FUNC fv4 dot_fv4(fv4 x, fv4 y) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_SSE4_1)
     fv4 dot = _dot128_f32(x, y, 0xf, 0xf);
@@ -306,7 +306,7 @@ KTM_FUNC fv4 dot_fv4(fv4 x, fv4 y) noexcept
     return dot;
 }
 
-KTM_FUNC fv4 dot1_fv3(fv4 x, fv4 y) noexcept
+KTM_SIMD_FUNC fv4 dot1_fv3(fv4 x, fv4 y) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_SSE4_1)
     fv4 dot = _dot128_f32(x, y, 0x7, 0x1);
@@ -318,7 +318,7 @@ KTM_FUNC fv4 dot1_fv3(fv4 x, fv4 y) noexcept
     return dot;
 }
 
-KTM_FUNC fv4 dot1_fv4(fv4 x, fv4 y) noexcept
+KTM_SIMD_FUNC fv4 dot1_fv4(fv4 x, fv4 y) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_SSE4_1)
     fv4 dot = _dot128_f32(x, y, 0xf, 0x1);
@@ -338,7 +338,7 @@ KTM_FUNC fv4 dot1_fv4(fv4 x, fv4 y) noexcept
 
 #if KTM_SIMD_ENABLE(KTM_SIMD_NEON | KTM_SIMD_SSE2 | KTM_SIMD_WASM)
 
-KTM_FUNC int radd_sv3(sv4 a) noexcept
+KTM_SIMD_FUNC int radd_sv3(sv4 a) noexcept
 {
     sv4 shuf = _shuffo128_s32(a, 1, 1, 1, 1);
     sv4 add = _add128_s32(a, shuf);
@@ -354,7 +354,7 @@ KTM_FUNC int radd_sv3(sv4 a) noexcept
     return ret.i;
 }
 
-KTM_FUNC int radd_sv4(sv4 a) noexcept
+KTM_SIMD_FUNC int radd_sv4(sv4 a) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_NEON64)
     return _radd128_s32(a);
@@ -385,7 +385,7 @@ KTM_FUNC int radd_sv4(sv4 a) noexcept
 #    endif
 }
 
-KTM_FUNC int rsub_sv4(sv4 a) noexcept
+KTM_SIMD_FUNC int rsub_sv4(sv4 a) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_SSSE3)
     sv4 sub = _psub128_s32(a, a);
@@ -409,7 +409,7 @@ KTM_FUNC int rsub_sv4(sv4 a) noexcept
 
 #if KTM_SIMD_ENABLE(KTM_SIMD_NEON | KTM_SIMD_SSE4_1 | KTM_SIMD_WASM)
 
-KTM_FUNC int rmax_sv4(sv4 a) noexcept
+KTM_SIMD_FUNC int rmax_sv4(sv4 a) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_NEON64)
     return _rmax128_s32(a);
@@ -429,7 +429,7 @@ KTM_FUNC int rmax_sv4(sv4 a) noexcept
 #    endif
 }
 
-KTM_FUNC int rmin_sv4(sv4 a) noexcept
+KTM_SIMD_FUNC int rmin_sv4(sv4 a) noexcept
 {
 #    if KTM_SIMD_ENABLE(KTM_SIMD_NEON64)
     return _rmin128_s32(a);

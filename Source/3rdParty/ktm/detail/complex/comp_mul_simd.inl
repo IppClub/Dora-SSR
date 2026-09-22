@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -20,7 +20,7 @@ namespace detail
 namespace comp_mul_implement
 {
 
-KTM_FUNC skv::fv2 fc_mul_fc(skv::fv2 x, skv::fv2 y) noexcept
+KTM_SIMD_FUNC skv::fv2 fc_mul_fc(skv::fv2 x, skv::fv2 y) noexcept
 {
     constexpr union
     {
@@ -39,15 +39,15 @@ KTM_FUNC skv::fv2 fc_mul_fc(skv::fv2 x, skv::fv2 y) noexcept
 } // namespace ktm
 
 template <>
-KTM_INLINE void ktm::detail::comp_mul_implement::mul<float>(comp<float>& out, const comp<float>& x,
-                                                            const comp<float>& y) noexcept
+KTM_CORE_FUNC void ktm::detail::comp_mul_implement::mul<float>(comp<float>& out, const comp<float>& x,
+                                                               const comp<float>& y) noexcept
 {
     out.st = fc_mul_fc(x.st, y.st);
 }
 
 template <>
-KTM_INLINE void ktm::detail::comp_mul_implement::act<float>(vec<2, float>& out, const comp<float>& c,
-                                                            const vec<2, float>& v) noexcept
+KTM_CORE_FUNC void ktm::detail::comp_mul_implement::act<float>(vec<2, float>& out, const comp<float>& c,
+                                                               const vec<2, float>& v) noexcept
 {
     constexpr union
     {

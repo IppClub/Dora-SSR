@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -9,7 +9,7 @@
 #define _KTM_VECTOR_ARITHMETIC_FWD_H_
 
 #include <cstddef>
-#include "../../traits/type_traits_ext.h"
+#include "../../utility/type_traits_ext.h"
 
 namespace ktm
 {

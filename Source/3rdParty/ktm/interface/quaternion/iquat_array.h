@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -28,9 +28,12 @@ private:
     template <class F, class C>
     friend struct iarray_util;
 
-    KTM_FUNC array_type& to_array_impl() noexcept { return reinterpret_cast<array_type&>(*this); }
+    KTM_CORE_FUNC array_type& to_array_impl() noexcept { return reinterpret_cast<array_type&>(*this); }
 
-    KTM_FUNC const array_type& to_array_impl() const noexcept { return reinterpret_cast<const array_type&>(*this); }
+    KTM_CORE_FUNC const array_type& to_array_impl() const noexcept
+    {
+        return reinterpret_cast<const array_type&>(*this);
+    }
 };
 
 } // namespace ktm

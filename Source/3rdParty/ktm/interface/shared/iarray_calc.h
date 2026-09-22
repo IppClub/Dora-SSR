@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -10,8 +10,8 @@
 
 #include <tuple>
 #include "../../setup.h"
-#include "../../traits/type_traits_math.h"
-#include "../../traits/type_single_extends.h"
+#include "../../utility/type_traits_math.h"
+#include "../../utility/single_extends.h"
 #include "../../detail/shared/array_calc_fwd.h"
 
 namespace ktm
@@ -27,20 +27,20 @@ struct iarray_add : Father
     using Father::child_ptr;
     using Father::Father;
 
-    friend KTM_FUNC Child operator+(const Child& x, const Child& y) noexcept { return x.add(y); }
+    friend KTM_CORE_FUNC Child operator+(const Child& x, const Child& y) noexcept { return x.add(y); }
 
-    friend KTM_FUNC Child& operator+=(Child& x, const Child& y) noexcept { return x.add_to_self(y); }
+    friend KTM_CORE_FUNC Child& operator+=(Child& x, const Child& y) noexcept { return x.add_to_self(y); }
 
-    friend KTM_FUNC Child operator-(const Child& x, const Child& y) noexcept { return x.sub(y); }
+    friend KTM_CORE_FUNC Child operator-(const Child& x, const Child& y) noexcept { return x.sub(y); }
 
-    friend KTM_FUNC Child& operator-=(Child& x, const Child& y) noexcept { return x.sub_to_self(y); }
+    friend KTM_CORE_FUNC Child& operator-=(Child& x, const Child& y) noexcept { return x.sub_to_self(y); }
 
-    friend KTM_FUNC Child operator-(const Child& x) noexcept { return x.neg(); }
+    friend KTM_CORE_FUNC Child operator-(const Child& x) noexcept { return x.neg(); }
 
 private:
     KTM_CRTP_INTERFACE_REGISTER(add, add_impl)
 
-    KTM_FUNC Child add(const Child& y) const noexcept
+    KTM_CORE_FUNC Child add(const Child& y) const noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, add_impl))
             return child_ptr()->add_impl(y);
@@ -54,7 +54,7 @@ private:
 
     KTM_CRTP_INTERFACE_REGISTER(add_to_self, add_to_self_impl)
 
-    KTM_FUNC Child& add_to_self(const Child& y) noexcept
+    KTM_CORE_FUNC Child& add_to_self(const Child& y) noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, add_to_self_impl))
             return child_ptr()->add_to_self_impl(y);
@@ -67,7 +67,7 @@ private:
 
     KTM_CRTP_INTERFACE_REGISTER(sub, sub_impl)
 
-    KTM_FUNC Child sub(const Child& y) const noexcept
+    KTM_CORE_FUNC Child sub(const Child& y) const noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, sub_impl))
             return child_ptr()->sub_impl(y);
@@ -81,7 +81,7 @@ private:
 
     KTM_CRTP_INTERFACE_REGISTER(sub_to_self, sub_to_self_impl)
 
-    KTM_FUNC Child& sub_to_self(const Child& y) noexcept
+    KTM_CORE_FUNC Child& sub_to_self(const Child& y) noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, sub_to_self_impl))
             return child_ptr()->sub_to_self_impl(y);
@@ -94,7 +94,7 @@ private:
 
     KTM_CRTP_INTERFACE_REGISTER(neg, neg_impl)
 
-    KTM_FUNC Child neg() const noexcept
+    KTM_CORE_FUNC Child neg() const noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, neg_impl))
             return child_ptr()->neg_impl();
@@ -113,18 +113,18 @@ struct iarray_mul : Father
     using Father::child_ptr;
     using Father::Father;
 
-    friend KTM_FUNC Child operator*(const Child& x, const Child& y) noexcept { return x.mul(y); }
+    friend KTM_CORE_FUNC Child operator*(const Child& x, const Child& y) noexcept { return x.mul(y); }
 
-    friend KTM_FUNC Child& operator*=(Child& x, const Child& y) noexcept { return x.mul_to_self(y); }
+    friend KTM_CORE_FUNC Child& operator*=(Child& x, const Child& y) noexcept { return x.mul_to_self(y); }
 
-    friend KTM_FUNC Child operator/(const Child& x, const Child& y) noexcept { return x.div(y); }
+    friend KTM_CORE_FUNC Child operator/(const Child& x, const Child& y) noexcept { return x.div(y); }
 
-    friend KTM_FUNC Child& operator/=(Child& x, const Child& y) noexcept { return x.div_to_self(y); }
+    friend KTM_CORE_FUNC Child& operator/=(Child& x, const Child& y) noexcept { return x.div_to_self(y); }
 
 private:
     KTM_CRTP_INTERFACE_REGISTER(mul, mul_impl)
 
-    KTM_FUNC Child mul(const Child& y) const noexcept
+    KTM_CORE_FUNC Child mul(const Child& y) const noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, mul_impl))
             return child_ptr()->mul_impl(y);
@@ -138,7 +138,7 @@ private:
 
     KTM_CRTP_INTERFACE_REGISTER(mul_to_self, mul_to_self_impl)
 
-    KTM_FUNC Child& mul_to_self(const Child& y) noexcept
+    KTM_CORE_FUNC Child& mul_to_self(const Child& y) noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, mul_to_self_impl))
             return child_ptr()->mul_to_self_impl(y);
@@ -151,7 +151,7 @@ private:
 
     KTM_CRTP_INTERFACE_REGISTER(div, div_impl)
 
-    KTM_FUNC Child div(const Child& y) const noexcept
+    KTM_CORE_FUNC Child div(const Child& y) const noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, div_impl))
             return child_ptr()->div_impl(y);
@@ -165,7 +165,7 @@ private:
 
     KTM_CRTP_INTERFACE_REGISTER(div_to_self, div_to_self_impl)
 
-    KTM_FUNC Child& div_to_self(const Child& y) noexcept
+    KTM_CORE_FUNC Child& div_to_self(const Child& y) noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, div_to_self_impl))
             return child_ptr()->div_to_self_impl(y);
@@ -184,20 +184,20 @@ struct iarray_add_scalar : Father
     using Father::Father;
     using ScalarT = typename math_traits<Child>::base_type;
 
-    friend KTM_FUNC Child operator+(const Child& x, ScalarT scalar) noexcept { return x.add_scalar(scalar); }
+    friend KTM_CORE_FUNC Child operator+(const Child& x, ScalarT scalar) noexcept { return x.add_scalar(scalar); }
 
-    friend KTM_FUNC Child& operator+=(Child& x, ScalarT scalar) noexcept { return x.add_scalar_to_self(scalar); }
+    friend KTM_CORE_FUNC Child& operator+=(Child& x, ScalarT scalar) noexcept { return x.add_scalar_to_self(scalar); }
 
-    friend KTM_FUNC Child operator-(const Child& x, ScalarT scalar) noexcept { return x.sub_scalar(scalar); }
+    friend KTM_CORE_FUNC Child operator-(const Child& x, ScalarT scalar) noexcept { return x.sub_scalar(scalar); }
 
-    friend KTM_FUNC Child& operator-=(Child& x, ScalarT scalar) noexcept { return x.sub_scalar_to_self(scalar); }
+    friend KTM_CORE_FUNC Child& operator-=(Child& x, ScalarT scalar) noexcept { return x.sub_scalar_to_self(scalar); }
 
-    friend KTM_FUNC Child operator+(ScalarT scalar, const Child& x) noexcept { return x + scalar; }
+    friend KTM_CORE_FUNC Child operator+(ScalarT scalar, const Child& x) noexcept { return x + scalar; }
 
 private:
     KTM_CRTP_INTERFACE_REGISTER(add_scalar, add_scalar_impl)
 
-    KTM_FUNC Child add_scalar(ScalarT scalar) const noexcept
+    KTM_CORE_FUNC Child add_scalar(ScalarT scalar) const noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, add_scalar_impl))
             return child_ptr()->add_scalar_impl(scalar);
@@ -211,7 +211,7 @@ private:
 
     KTM_CRTP_INTERFACE_REGISTER(add_scalar_to_self, add_scalar_to_self_impl)
 
-    KTM_FUNC Child& add_scalar_to_self(ScalarT scalar) noexcept
+    KTM_CORE_FUNC Child& add_scalar_to_self(ScalarT scalar) noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, add_scalar_to_self_impl))
             return child_ptr()->add_scalar_to_self_impl(scalar);
@@ -224,7 +224,7 @@ private:
 
     KTM_CRTP_INTERFACE_REGISTER(sub_scalar, sub_scalar_impl)
 
-    KTM_FUNC Child sub_scalar(ScalarT scalar) const noexcept
+    KTM_CORE_FUNC Child sub_scalar(ScalarT scalar) const noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, sub_scalar_impl))
             return child_ptr()->sub_scalar_impl(scalar);
@@ -238,7 +238,7 @@ private:
 
     KTM_CRTP_INTERFACE_REGISTER(sub_scalar_to_self, sub_scalar_to_self_impl)
 
-    KTM_FUNC Child& sub_scalar_to_self(ScalarT scalar) noexcept
+    KTM_CORE_FUNC Child& sub_scalar_to_self(ScalarT scalar) noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, sub_scalar_to_self_impl))
             return child_ptr()->sub_scalar_to_self_impl(scalar);
@@ -257,20 +257,20 @@ struct iarray_mul_scalar : Father
     using Father::Father;
     using ScalarT = typename math_traits<Child>::base_type;
 
-    friend KTM_FUNC Child operator*(const Child& x, ScalarT scalar) noexcept { return x.mul_scalar(scalar); }
+    friend KTM_CORE_FUNC Child operator*(const Child& x, ScalarT scalar) noexcept { return x.mul_scalar(scalar); }
 
-    friend KTM_FUNC Child& operator*=(Child& x, ScalarT scalar) noexcept { return x.mul_scalar_to_self(scalar); }
+    friend KTM_CORE_FUNC Child& operator*=(Child& x, ScalarT scalar) noexcept { return x.mul_scalar_to_self(scalar); }
 
-    friend KTM_FUNC Child operator/(const Child& x, ScalarT scalar) noexcept { return x.div_scalar(scalar); }
+    friend KTM_CORE_FUNC Child operator/(const Child& x, ScalarT scalar) noexcept { return x.div_scalar(scalar); }
 
-    friend KTM_FUNC Child& operator/=(Child& x, ScalarT scalar) noexcept { return x.div_scalar_to_self(scalar); }
+    friend KTM_CORE_FUNC Child& operator/=(Child& x, ScalarT scalar) noexcept { return x.div_scalar_to_self(scalar); }
 
-    friend KTM_FUNC Child operator*(ScalarT scalar, const Child& x) noexcept { return x * scalar; }
+    friend KTM_CORE_FUNC Child operator*(ScalarT scalar, const Child& x) noexcept { return x * scalar; }
 
 private:
     KTM_CRTP_INTERFACE_REGISTER(mul_scalar, mul_scalar_impl)
 
-    KTM_FUNC Child mul_scalar(ScalarT scalar) const noexcept
+    KTM_CORE_FUNC Child mul_scalar(ScalarT scalar) const noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, mul_scalar_impl))
             return child_ptr()->mul_scalar_impl(scalar);
@@ -284,7 +284,7 @@ private:
 
     KTM_CRTP_INTERFACE_REGISTER(mul_scalar_to_self, mul_scalar_to_self_impl)
 
-    KTM_FUNC Child& mul_scalar_to_self(ScalarT scalar) noexcept
+    KTM_CORE_FUNC Child& mul_scalar_to_self(ScalarT scalar) noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, mul_scalar_to_self_impl))
             return child_ptr()->mul_scalar_to_self_impl(scalar);
@@ -297,7 +297,7 @@ private:
 
     KTM_CRTP_INTERFACE_REGISTER(div_scalar, div_scalar_impl)
 
-    KTM_FUNC Child div_scalar(ScalarT scalar) const noexcept
+    KTM_CORE_FUNC Child div_scalar(ScalarT scalar) const noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, div_scalar_impl))
             return child_ptr()->div_scalar_impl(scalar);
@@ -311,7 +311,7 @@ private:
 
     KTM_CRTP_INTERFACE_REGISTER(div_scalar_to_self, div_scalar_to_self_impl)
 
-    KTM_FUNC Child& div_scalar_to_self(ScalarT scalar) noexcept
+    KTM_CORE_FUNC Child& div_scalar_to_self(ScalarT scalar) noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, div_scalar_to_self_impl))
             return child_ptr()->div_scalar_to_self_impl(scalar);
@@ -329,9 +329,12 @@ struct iarray_madd : Father
     using Father::child_ptr;
     using Father::Father;
 
-    friend KTM_FUNC Child ktm_op_madd(const Child& x, const Child& y, const Child& z) noexcept { return x.madd(y, z); }
+    friend KTM_CORE_FUNC Child ktm_op_madd(const Child& x, const Child& y, const Child& z) noexcept
+    {
+        return x.madd(y, z);
+    }
 
-    friend KTM_FUNC Child ktm_op_smadd(Child& x, const Child& y, const Child& z) noexcept
+    friend KTM_CORE_FUNC Child ktm_op_smadd(Child& x, const Child& y, const Child& z) noexcept
     {
         return x.madd_to_self(y, z);
     }
@@ -339,7 +342,7 @@ struct iarray_madd : Father
 private:
     KTM_CRTP_INTERFACE_REGISTER(madd, madd_impl)
 
-    KTM_FUNC Child madd(const Child& y, const Child& z) const noexcept
+    KTM_CORE_FUNC Child madd(const Child& y, const Child& z) const noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, madd_impl))
             return child_ptr()->madd_impl(y, z);
@@ -353,7 +356,7 @@ private:
 
     KTM_CRTP_INTERFACE_REGISTER(madd_to_self, madd_to_self_impl)
 
-    KTM_FUNC Child& madd_to_self(const Child& y, const Child& z) noexcept
+    KTM_CORE_FUNC Child& madd_to_self(const Child& y, const Child& z) noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, madd_to_self_impl))
             return child_ptr()->madd_to_self_impl(y, z);
@@ -372,22 +375,22 @@ struct iarray_madd_scalar : Father
     using Father::Father;
     using ScalarT = typename math_traits<Child>::base_type;
 
-    friend KTM_FUNC Child ktm_op_madd(const Child& x, const Child& y, ScalarT scalar) noexcept
+    friend KTM_CORE_FUNC Child ktm_op_madd(const Child& x, const Child& y, ScalarT scalar) noexcept
     {
         return x.madd_scalar(y, scalar);
     }
 
-    friend KTM_FUNC Child ktm_op_madd(const Child& x, ScalarT scalar, const Child& z) noexcept
+    friend KTM_CORE_FUNC Child ktm_op_madd(const Child& x, ScalarT scalar, const Child& z) noexcept
     {
         return x.madd_scalar(z, scalar);
     }
 
-    friend KTM_FUNC Child ktm_op_smadd(Child& x, const Child& y, ScalarT scalar) noexcept
+    friend KTM_CORE_FUNC Child ktm_op_smadd(Child& x, const Child& y, ScalarT scalar) noexcept
     {
         return x.madd_scalar_to_self(y, scalar);
     }
 
-    friend KTM_FUNC Child ktm_op_smadd(Child& x, ScalarT scalar, const Child& z) noexcept
+    friend KTM_CORE_FUNC Child ktm_op_smadd(Child& x, ScalarT scalar, const Child& z) noexcept
     {
         return x.madd_scalar_to_self(z, scalar);
     }
@@ -395,7 +398,7 @@ struct iarray_madd_scalar : Father
 private:
     KTM_CRTP_INTERFACE_REGISTER(madd_scalar, madd_scalar_impl)
 
-    KTM_FUNC Child madd_scalar(const Child& y, ScalarT scalar) const noexcept
+    KTM_CORE_FUNC Child madd_scalar(const Child& y, ScalarT scalar) const noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, madd_scalar_impl))
             return child_ptr()->madd_scalar_impl(y, scalar);
@@ -409,7 +412,7 @@ private:
 
     KTM_CRTP_INTERFACE_REGISTER(madd_scalar_to_self, madd_scalar_to_self_impl)
 
-    KTM_FUNC Child& madd_scalar_to_self(const Child& y, ScalarT scalar) noexcept
+    KTM_CORE_FUNC Child& madd_scalar_to_self(const Child& y, ScalarT scalar) noexcept
     {
         if constexpr (KTM_CRTP_INTERFACE_IMPLEMENT(Child, madd_scalar_to_self_impl))
             return child_ptr()->madd_scalar_to_self_impl(y, scalar);

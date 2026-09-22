@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -9,7 +9,7 @@
 #define _KTM_GEOMETRIC_FWD_H_
 
 #include <cstddef>
-#include "../../traits/type_traits_ext.h"
+#include "../../utility/type_traits_ext.h"
 
 namespace ktm
 {
@@ -42,16 +42,16 @@ struct reflect;
 template <size_t N, typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
 struct refract;
 
-template <size_t N, typename T, typename = std::enable_if_t<std::is_exist_same_vs<float, double, T>>>
+template <size_t N, typename T, typename = std::enable_if_t<ktm::is_exist_same_vs<float, double, T>>>
 struct fast_project;
 
-template <size_t N, typename T, typename = std::enable_if_t<std::is_exist_same_vs<float, double, T>>>
+template <size_t N, typename T, typename = std::enable_if_t<ktm::is_exist_same_vs<float, double, T>>>
 struct fast_length;
 
-template <size_t N, typename T, typename = std::enable_if_t<std::is_exist_same_vs<float, double, T>>>
+template <size_t N, typename T, typename = std::enable_if_t<ktm::is_exist_same_vs<float, double, T>>>
 struct fast_distance;
 
-template <size_t N, typename T, typename = std::enable_if_t<std::is_exist_same_vs<float, double, T>>>
+template <size_t N, typename T, typename = std::enable_if_t<ktm::is_exist_same_vs<float, double, T>>>
 struct fast_normalize;
 
 } // namespace geometric_implement

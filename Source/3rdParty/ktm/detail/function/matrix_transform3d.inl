@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -12,7 +12,7 @@
 #include "../../type/basic.h"
 
 template <typename T, typename StartV, typename Void>
-KTM_NOINLINE std::enable_if_t<std::is_floating_point_v<T>>
+KTM_CORE_NI_FUNC std::enable_if_t<std::is_floating_point_v<T>>
 ktm::detail::matrix_transform3d_implement::rotate3d_normal(ktm::mat<4, 4, T>& out, T sin_theta, T cos_theta,
                                                            const vec<3, T>& normal, StartV&& normal_start) noexcept
 {

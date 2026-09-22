@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023-2024 有个小小杜
+//  Copyright (c) 2023-2026 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -12,7 +12,7 @@
 #include "../type/mat_fwd.h"
 #include "../type/quat_fwd.h"
 #include "../type/comp_fwd.h"
-#include "type_single_extends.h"
+#include "static_container.h"
 
 namespace ktm
 {
@@ -114,7 +114,7 @@ struct is_listing_type;
 template <typename T, typename... Ts>
 struct is_listing_type<type_list<Ts...>, T>
 {
-    static inline constexpr bool value = std::is_exist_same_vs<Ts..., T>;
+    static inline constexpr bool value = is_exist_same_vs<Ts..., T>;
 };
 
 template <typename TList, typename T>
