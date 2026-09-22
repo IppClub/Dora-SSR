@@ -71,7 +71,6 @@ local CloseCurrentPopup <const> = CloseCurrentPopup -- 11
 local Separator <const> = Separator -- 11
 local SetNextWindowSize <const> = SetNextWindowSize -- 11
 local PushStyleVar <const> = PushStyleVar -- 11
-local Begin <const> = Begin -- 11
 local TreeNode <const> = TreeNode -- 11
 local BeginPopup <const> = BeginPopup -- 11
 local Selectable <const> = Selectable -- 11
@@ -82,6 +81,7 @@ local threadLoop <const> = threadLoop -- 11
 local Keyboard <const> = Keyboard -- 11
 local SetNextWindowBgAlpha <const> = SetNextWindowBgAlpha -- 11
 local SetNextWindowPos <const> = SetNextWindowPos -- 11
+local Begin <const> = Begin -- 11
 local SetWindowFocus <const> = SetWindowFocus -- 11
 local ImageButton <const> = ImageButton -- 11
 local ImGui <const> = ImGui -- 11
@@ -1701,7 +1701,7 @@ local extraOperations -- 971
 do -- 971
 	local isOSSLicenseExist = Content:exist("LICENSES") -- 972
 	local ossLicenses = nil -- 973
-	local ossLicenseOpen = false -- 974
+	local ossLicensePopup = tostring(useChinese and '开源协议' or 'OSS Licenses') .. "##ossLicenses" -- 974
 	local failedSetFolder = false -- 975
 	local statusFlags = { -- 976
 		"NoResize", -- 976
@@ -1832,46 +1832,46 @@ When enabled, regular key and text input events are suppressed; mapped keys are 
 		if isOSSLicenseExist then -- 1064
 			if Button(zh and '开源协议' or 'OSS Licenses') then -- 1065
 				if not ossLicenses then -- 1066
-					ossLicenses = { } -- 1067
-					local licenseText = Content:load("LICENSES") -- 1068
-					ossLicenseOpen = (licenseText ~= nil) -- 1069
-					if ossLicenseOpen then -- 1069
-						licenseText = licenseText:gsub("\r\n", "\n") -- 1070
-						for license in GSplit(licenseText, "\n--------\n", true) do -- 1071
-							local name, text = license:match("[%s\n]*([^\n]*)[\n]*(.*)") -- 1072
-							if name then -- 1072
-								ossLicenses[#ossLicenses + 1] = { -- 1073
-									name, -- 1073
-									text -- 1073
-								} -- 1073
-							end -- 1072
-						end -- 1071
-					end -- 1069
-				else -- 1075
-					ossLicenseOpen = true -- 1075
+					local licenseText = Content:load("LICENSES") -- 1067
+					if licenseText then -- 1067
+						ossLicenses = { } -- 1068
+						licenseText = licenseText:gsub("\r\n", "\n") -- 1069
+						for license in GSplit(licenseText, "\n--------\n", true) do -- 1070
+							local name, text = license:match("[%s\n]*([^\n]*)[\n]*(.*)") -- 1071
+							if name then -- 1071
+								ossLicenses[#ossLicenses + 1] = { -- 1072
+									name, -- 1072
+									text -- 1072
+								} -- 1072
+							end -- 1071
+						end -- 1070
+					end -- 1067
 				end -- 1066
+				if ossLicenses then -- 1073
+					OpenPopup(ossLicensePopup) -- 1073
+				end -- 1073
 			end -- 1065
-			if ossLicenseOpen then -- 1076
-				local width, height, themeColor = App.visualSize.width, App.visualSize.height, App.themeColor -- 1077
-				SetNextWindowPosCenter("Appearing", Vec2(0.5, 0.5)) -- 1078
-				SetNextWindowSize(Vec2(math.min(width * 0.8, 750), height * 0.8), "Appearing") -- 1079
-				PushStyleVar("WindowPadding", Vec2(20, 10), function() -- 1080
-					ossLicenseOpen = Begin(zh and '开源协议' or 'OSS Licenses', ossLicenseOpen, { -- 1083
-						"NoSavedSettings" -- 1083
-					}, function() -- 1084
-						for _index_0 = 1, #ossLicenses do -- 1084
-							local _des_0 = ossLicenses[_index_0] -- 1084
-							local firstLine, text = _des_0[1], _des_0[2] -- 1084
-							local name, license = firstLine:match("(.+): (.+)") -- 1085
-							TextColored(themeColor, name) -- 1086
-							SameLine() -- 1087
-							TreeNode(tostring(license) .. "##" .. tostring(name), function() -- 1088
-								return TextWrapped(text) -- 1088
-							end) -- 1088
+			local width, height, themeColor = App.visualSize.width, App.visualSize.height, App.themeColor -- 1074
+			SetNextWindowPosCenter("Appearing", Vec2(0.5, 0.5)) -- 1075
+			SetNextWindowSize(Vec2(math.min(width * 0.8, 750), height * 0.8), "Appearing") -- 1076
+			PushStyleVar("WindowPadding", Vec2(20, 10), function() -- 1077
+				return BeginPopupModal(ossLicensePopup, true, { -- 1080
+					"NoSavedSettings" -- 1080
+				}, function() -- 1081
+					for _index_0 = 1, #ossLicenses do -- 1082
+						local _des_0 = ossLicenses[_index_0] -- 1082
+						local firstLine, text = _des_0[1], _des_0[2] -- 1082
+						local name, license = firstLine:match("(.+): (.+)") -- 1084
+						if name then -- 1084
+							TextColored(themeColor, name) -- 1085
+							SameLine() -- 1086
+							TreeNode(tostring(license) .. "##" .. tostring(name), function() -- 1087
+								return TextWrapped(text) -- 1087
+							end) -- 1087
 						end -- 1084
-					end) -- 1080
-				end) -- 1080
-			end -- 1076
+					end -- 1082
+				end) -- 1077
+			end) -- 1077
 		end -- 1064
 		if not App.debugging then -- 1090
 			return -- 1090

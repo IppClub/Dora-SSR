@@ -26,7 +26,7 @@ import { Color } from './Theme';
 
 export interface FirstProjectTourProps {
 	open: boolean;
-	current: number;
+	current: FirstProjectTourStep;
 	creating: boolean;
 	projectNameReady: boolean;
 	exampleCodeReady: boolean;
@@ -37,11 +37,29 @@ export interface FirstProjectTourProps {
 	onExampleCodeReady: () => void;
 	onSkip: () => void;
 	onFinish: () => void;
-	onExploreAgent: () => void;
+	onUseAgent: () => void;
+	onOpenEntryFile: () => void;
+	onReturnToAgent: () => void;
 	onClose: () => void;
 }
 
 export const firstProjectExampleCode = 'print("Hello Dora!");';
+
+export const FirstProjectTourStep = {
+	Welcome: 0,
+	Workspace: 1,
+	NewMenu: 2,
+	FolderType: 3,
+	ProjectName: 4,
+	ProjectOption: 5,
+	CreateProject: 6,
+	AgentIntro: 7,
+	EditEntry: 8,
+	RunProject: 9,
+	Completed: 10,
+} as const;
+
+export type FirstProjectTourStep = typeof FirstProjectTourStep[keyof typeof FirstProjectTourStep];
 
 const target = (selector: string) => () =>
 	document.querySelector<HTMLElement>(selector);
@@ -104,6 +122,12 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 			placement: "topRight",
 		},
 		{
+			target: compact ? null : target('[data-first-project-agent-tab="true"]'),
+			title: t("onboarding.agentIntroTitle"),
+			description: t("onboarding.agentIntroDescription"),
+			placement: compact ? "center" : "bottomRight",
+		},
+		{
 			target: compact ? null : target('[data-first-project-editor="true"]'),
 			title: t("onboarding.exampleCodeTitle"),
 			description: (
@@ -136,23 +160,15 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 			description: t("onboarding.completedDescription"),
 			placement: "center",
 		},
-		{
-			target: target('[data-first-project-log-close="true"]'),
-			title: t("onboarding.closeLogTitle"),
-			description: t("onboarding.closeLogDescription"),
-			placement: compact ? "top" : "topRight",
-		},
-		{
-			target: target('[data-first-project-agent-target="true"]'),
-			title: t("onboarding.agentTitle"),
-			description: t("onboarding.agentDescription"),
-			placement: compact ? "topRight" : "right",
-		},
 	], [compact, t]);
-	const agentPhase = props.current >= 10;
-	const steps = agentPhase ? allSteps.slice(10) : allSteps.slice(0, 10);
-	const current = agentPhase ? props.current - 10 : props.current;
-	const hasActions = !agentPhase && [0, 4, 7, 9].includes(current);
+	const actionSteps = new Set<FirstProjectTourStep>([
+		FirstProjectTourStep.Welcome,
+		FirstProjectTourStep.ProjectName,
+		FirstProjectTourStep.AgentIntro,
+		FirstProjectTourStep.EditEntry,
+		FirstProjectTourStep.Completed,
+	]);
+	const hasActions = actionSteps.has(props.current);
 
 	return (
 		<ConfigProvider
@@ -169,10 +185,10 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 			}}
 		>
 			<Tour
-				key={agentPhase ? "agent" : "project"}
+				key="first-project"
 				open={props.open}
-				current={current}
-				steps={steps}
+				current={props.current}
+				steps={allSteps}
 				keyboard
 				disabledInteraction={false}
 				gap={{ offset: 8, radius: 8 }}
@@ -186,7 +202,7 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 					if (!hasActions) return null;
 					return (
 						<Space size={8}>
-						{!agentPhase && info.current === 0 ? (
+						{info.current === FirstProjectTourStep.Welcome ? (
 							<Button
 								size="small"
 								type="text"
@@ -196,7 +212,7 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 								{t("onboarding.skip")}
 							</Button>
 						) : null}
-						{!agentPhase && info.current === 9 ? (
+						{info.current === FirstProjectTourStep.Completed ? (
 							<Button
 								size="small"
 								type="text"
@@ -205,21 +221,21 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 								{t("onboarding.finish")}
 							</Button>
 						) : null}
-						{!agentPhase && info.current === 9 ? (
+						{info.current === FirstProjectTourStep.Completed ? (
 							<Button
 								size="small"
 								type="primary"
-								onClick={props.onExploreAgent}
+								onClick={props.onReturnToAgent}
 							>
-								{t("onboarding.exploreAgent")}
+								{t("onboarding.returnToAgent")}
 							</Button>
 						) : null}
-						{!agentPhase && info.current === 0 ? (
+						{info.current === FirstProjectTourStep.Welcome ? (
 							<Button size="small" type="primary" onClick={props.onStart}>
 								{t("onboarding.startCreating")}
 							</Button>
 						) : null}
-						{!agentPhase && info.current === 4 ? (
+						{info.current === FirstProjectTourStep.ProjectName ? (
 							<Button
 								size="small"
 								type="primary"
@@ -229,7 +245,17 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 								{t("onboarding.next")}
 							</Button>
 						) : null}
-						{!agentPhase && info.current === 7 ? (
+						{info.current === FirstProjectTourStep.AgentIntro ? (
+							<Button size="small" onClick={props.onOpenEntryFile}>
+								{t("onboarding.editEntry")}
+							</Button>
+						) : null}
+						{info.current === FirstProjectTourStep.AgentIntro ? (
+							<Button size="small" type="primary" onClick={props.onUseAgent}>
+								{t("onboarding.useAgent")}
+							</Button>
+						) : null}
+						{info.current === FirstProjectTourStep.EditEntry ? (
 							<Button
 								size="small"
 								disabled={!props.canInsertExample || props.exampleCodeReady}
@@ -238,7 +264,7 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 								{t("onboarding.insertExample")}
 							</Button>
 						) : null}
-						{!agentPhase && info.current === 7 ? (
+						{info.current === FirstProjectTourStep.EditEntry ? (
 							<Button
 								size="small"
 								type="primary"

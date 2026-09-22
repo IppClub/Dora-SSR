@@ -971,7 +971,7 @@ descColor = Color 0xffa1a1a1
 extraOperations = do
 	isOSSLicenseExist = Content\exist "LICENSES"
 	ossLicenses = nil
-	ossLicenseOpen = false
+	ossLicensePopup = "#{useChinese and '开源协议' or 'OSS Licenses'}##ossLicenses"
 	failedSetFolder = false
 	statusFlags = $WindowFlag(
 		NoResize
@@ -1064,29 +1064,29 @@ When enabled, regular key and text input events are suppressed; mapped keys are 
 		if isOSSLicenseExist
 			if Button zh and '开源协议' or 'OSS Licenses'
 				unless ossLicenses
-					ossLicenses = []
-					licenseText = Content\load "LICENSES"
-					if ossLicenseOpen := licenseText?
+					if licenseText := Content\load "LICENSES"
+						ossLicenses = []
 						licenseText = licenseText\gsub "\r\n", "\n"
 						for license in GSplit licenseText, "\n--------\n", true
 							if name, text := license\match "[%s\n]*([^\n]*)[\n]*(.*)"
 								ossLicenses[] = [name, text]
-				else
-					ossLicenseOpen = true
-			if ossLicenseOpen
-				visualSize: {:width, :height}, :themeColor = App
-				SetNextWindowPosCenter $SetCond(Appearing), Vec2 0.5, 0.5
-				SetNextWindowSize Vec2(math.min(width * 0.8, 750), height * 0.8), $SetCond Appearing
-				PushStyleVar "WindowPadding", Vec2(20, 10), -> ossLicenseOpen = Begin(
-					zh and '开源协议' or 'OSS Licenses'
-					ossLicenseOpen
-					["NoSavedSettings",]
-					-> for [firstLine, text] in *ossLicenses
-						name, license = firstLine\match "(.+): (.+)"
-						TextColored themeColor, name
-						SameLine!
-						TreeNode "#{license}###{name}", -> TextWrapped text
-				)
+				OpenPopup ossLicensePopup if ossLicenses
+			visualSize: {:width, :height}, :themeColor = App
+			SetNextWindowPosCenter $SetCond(Appearing), Vec2 0.5, 0.5
+			SetNextWindowSize Vec2(math.min(width * 0.8, 750), height * 0.8), $SetCond Appearing
+			PushStyleVar "WindowPadding", Vec2(20, 10), -> BeginPopupModal(
+				ossLicensePopup
+				true -- let the native title-bar close button dismiss the popup
+				["NoSavedSettings",]
+				->
+					for [firstLine, text] in *ossLicenses
+						-- ignore separators without a "name: license" header
+						if name, license := firstLine\match "(.+): (.+)"
+							TextColored themeColor, name
+							SameLine!
+							TreeNode "#{license}###{name}", -> TextWrapped text
+
+			)
 		return unless App.debugging
 		<- TreeNode zh and "开发操作" or "Development"
 		OpenPopup "build" if Button zh and "脚本编译测试" or "Script Build Test"

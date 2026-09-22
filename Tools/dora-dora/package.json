@@ -82,6 +82,7 @@
 		"test:log-buffer": "node scripts/test-log-buffer.mjs",
 		"test:agent-patch-batch": "node scripts/test-agent-patch-batch.mjs",
 		"test:agent-auto-scroll": "node scripts/test-agent-auto-scroll.mjs",
+		"test:first-project-tour": "node scripts/test-first-project-tour.mjs",
 		"test:agent-render-window": "node scripts/test-agent-render-window.mjs",
 		"test:agent-session-snapshot": "node scripts/test-agent-session-snapshot.mjs",
 		"test:agent-step-budget": "node scripts/test-agent-step-budget.mjs",

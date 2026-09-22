@@ -31,7 +31,11 @@ import { MacScrollbar } from 'mac-scrollbar';
 import 'mac-scrollbar/dist/mac-scrollbar.css';
 import FileFilter, { FilterOption } from './FileFilter';
 import FileSearchPanel from './FileSearch';
-import FirstProjectTour, { firstProjectExampleCode } from './FirstProjectTour';
+import FirstProjectTour, {
+	FirstProjectTourStep,
+	firstProjectExampleCode,
+	type FirstProjectTourStep as FirstProjectTourStepValue,
+} from './FirstProjectTour';
 import { useTranslation } from 'react-i18next';
 import { Image, Splitter } from 'antd';
 import type { YarnEditorData } from './YarnEditor';
@@ -757,7 +761,7 @@ export default function PersistentDrawerLeft() {
 			projectType?: FolderProjectType,
 		} | null>(null);
 	const [firstProjectTourOpen, setFirstProjectTourOpen] = useState(false);
-	const [firstProjectTourCurrent, setFirstProjectTourCurrent] = useState(0);
+	const [firstProjectTourCurrent, setFirstProjectTourCurrent] = useState<FirstProjectTourStepValue>(FirstProjectTourStep.Welcome);
 	const [firstProjectTourCreating, setFirstProjectTourCreating] = useState(false);
 	const [firstProjectTourCompleted, setFirstProjectTourCompleted] = useState(Info.webIDETourCompleted);
 	const [firstProjectTourFile, setFirstProjectTourFile] = useState<string | null>(null);
@@ -1546,14 +1550,14 @@ export default function PersistentDrawerLeft() {
 		}
 	}, [addAlert, t]);
 
-	const completeFirstProjectTour = useCallback(() => {
-		void persistFirstProjectTourCompletion().then((completed) => {
-			if (!completed) return;
-			setFirstProjectTourOpen(false);
-			setFirstProjectTourCreating(false);
-			setFirstProjectTourFile(null);
-			setFileInfo(null);
-		});
+	const completeFirstProjectTour = useCallback(async () => {
+		const completed = await persistFirstProjectTourCompletion();
+		if (!completed) return false;
+		setFirstProjectTourOpen(false);
+		setFirstProjectTourCreating(false);
+		setFirstProjectTourFile(null);
+		setFileInfo(null);
+		return true;
 	}, [persistFirstProjectTourCompletion]);
 
 	const openProjectWorkspaceTab = useCallback((projectPath: string, workspaceView: "upload" | "git" = "upload") => {
@@ -2639,15 +2643,6 @@ export default function PersistentDrawerLeft() {
 					if (opened && narrowLayout) {
 						setDrawerOpen(false);
 					}
-					if (
-						opened
-						&& firstProjectTourOpen
-						&& firstProjectTourCurrent === 11
-						&& firstProjectTourFile !== null
-						&& key === path.dirname(firstProjectTourFile)
-					) {
-						completeFirstProjectTour();
-					}
 					return;
 				}
 				openFileInTab(key, title, true);
@@ -2669,10 +2664,6 @@ export default function PersistentDrawerLeft() {
 			setDrawerOpen(false);
 		}
 	}, [
-		completeFirstProjectTour,
-		firstProjectTourCurrent,
-		firstProjectTourFile,
-		firstProjectTourOpen,
 		narrowLayout,
 		openAudioPreview,
 		openAgentSessionTab,
@@ -3581,10 +3572,10 @@ export default function PersistentDrawerLeft() {
 				setOpenNewFile(data);
 				if (
 					firstProjectTourOpen
-					&& firstProjectTourCurrent === 2
+					&& firstProjectTourCurrent === FirstProjectTourStep.NewMenu
 					&& data.key === treeDataRef.current.at(0)?.key
 				) {
-					setFirstProjectTourCurrent(3);
+					setFirstProjectTourCurrent(FirstProjectTourStep.FolderType);
 				}
 				break;
 			}
@@ -3870,19 +3861,19 @@ export default function PersistentDrawerLeft() {
 			if (
 				item === "Folder"
 				&& firstProjectTourOpen
-				&& firstProjectTourCurrent === 3
+				&& firstProjectTourCurrent === FirstProjectTourStep.FolderType
 			) {
-				setFirstProjectTourCurrent(4);
+				setFirstProjectTourCurrent(FirstProjectTourStep.ProjectName);
 			}
-		} else if (firstProjectTourOpen && firstProjectTourCurrent === 3) {
-			setFirstProjectTourCurrent(1);
+		} else if (firstProjectTourOpen && firstProjectTourCurrent === FirstProjectTourStep.FolderType) {
+			setFirstProjectTourCurrent(FirstProjectTourStep.Workspace);
 		}
 		setOpenNewFile(null);
 	};
 
 	const startFirstProjectTour = useCallback(() => {
 		setFirstProjectTourCreating(false);
-		setFirstProjectTourCurrent(0);
+		setFirstProjectTourCurrent(FirstProjectTourStep.Welcome);
 		setFirstProjectTourFile(null);
 		setFirstProjectTourOpen(true);
 	}, []);
@@ -3895,29 +3886,6 @@ export default function PersistentDrawerLeft() {
 		setFileInfo(null);
 	}, []);
 
-	const locateFirstProjectAgent = useCallback(() => {
-		if (firstProjectTourFile === null) return;
-		const projectPath = path.dirname(firstProjectTourFile);
-		setDrawerOpen(true);
-		setLeftDockTab("explorer");
-		window.requestAnimationFrame(() => {
-			void revealTreeNode(projectPath).finally(() => {
-				window.requestAnimationFrame(() => setFirstProjectTourCurrent(11));
-			});
-		});
-	}, [firstProjectTourFile, revealTreeNode]);
-
-	const exploreFirstProjectAgent = useCallback(() => {
-		void persistFirstProjectTourCompletion().then((completed) => {
-			if (!completed) return;
-			if (openLog === null) {
-				locateFirstProjectAgent();
-			} else {
-				setFirstProjectTourCurrent(10);
-			}
-		});
-	}, [locateFirstProjectAgent, openLog, persistFirstProjectTourCompletion]);
-
 	const beginFirstProjectTour = useCallback(() => {
 		const target = treeDataRef.current.at(0);
 		if (target === undefined) {
@@ -3927,11 +3895,11 @@ export default function PersistentDrawerLeft() {
 		setDrawerOpen(true);
 		setLeftDockTab("explorer");
 		void revealTreeNode(target.key);
-		setFirstProjectTourCurrent(1);
+		setFirstProjectTourCurrent(FirstProjectTourStep.Workspace);
 	}, [addAlert, revealTreeNode, t]);
 
 	useEffect(() => {
-		if (!firstProjectTourOpen || firstProjectTourCurrent !== 8) return;
+		if (!firstProjectTourOpen || firstProjectTourCurrent !== FirstProjectTourStep.RunProject) return;
 		let secondFrame = 0;
 		const firstFrame = window.requestAnimationFrame(() => {
 			secondFrame = window.requestAnimationFrame(() => {
@@ -3976,7 +3944,6 @@ export default function PersistentDrawerLeft() {
 	}, [firstProjectTourCurrent, firstProjectTourOpen]);
 
 	const handleFilenameClose = (callbacks?: {
-		openInEditor?: boolean;
 		onCreated?: (openedFile: string) => void;
 		onFailed?: () => void;
 	}) => {
@@ -4123,7 +4090,7 @@ export default function PersistentDrawerLeft() {
 						updateCachedFileSearch(newFile, true);
 					}
 					await refreshTreeDirectory(dir, true);
-					if (initFile !== null && !callbacks?.openInEditor && await openAgentSessionTab(newFile, true)) {
+					if (initFile !== null && await openAgentSessionTab(newFile, true)) {
 						callbacks?.onCreated?.(initFile);
 						return;
 					}
@@ -4191,11 +4158,11 @@ export default function PersistentDrawerLeft() {
 		setFileInfo(null);
 		if (
 			firstProjectTourOpen
-			&& firstProjectTourCurrent >= 4
-			&& firstProjectTourCurrent <= 6
+			&& firstProjectTourCurrent >= FirstProjectTourStep.ProjectName
+			&& firstProjectTourCurrent <= FirstProjectTourStep.CreateProject
 		) {
 			setFirstProjectTourCreating(false);
-			setFirstProjectTourCurrent(1);
+			setFirstProjectTourCurrent(FirstProjectTourStep.Workspace);
 		}
 	};
 
@@ -4203,16 +4170,15 @@ export default function PersistentDrawerLeft() {
 		const pendingFileInfo = fileInfo;
 		setFirstProjectTourCreating(true);
 		handleFilenameClose({
-			openInEditor: true,
 			onCreated: (openedFile) => {
 				setFirstProjectTourCreating(false);
 				setFirstProjectTourFile(openedFile);
 				if (narrowLayout) setDrawerOpen(false);
-				setFirstProjectTourCurrent(7);
+				setFirstProjectTourCurrent(FirstProjectTourStep.AgentIntro);
 			},
 			onFailed: () => {
 				setFirstProjectTourCreating(false);
-				setFirstProjectTourCurrent(6);
+				setFirstProjectTourCurrent(FirstProjectTourStep.CreateProject);
 				if (pendingFileInfo !== null) setFileInfo(pendingFileInfo);
 			},
 		});
@@ -4779,11 +4745,11 @@ export default function PersistentDrawerLeft() {
 					if (
 						mode === "Run"
 						&& firstProjectTourOpen
-						&& firstProjectTourCurrent === 8
+						&& firstProjectTourCurrent === FirstProjectTourStep.RunProject
 						&& firstProjectTourFile !== null
 						&& currentFileKey === firstProjectTourFile
 					) {
-						setFirstProjectTourCurrent(9);
+						setFirstProjectTourCurrent(FirstProjectTourStep.Completed);
 					}
 					return;
 				}
@@ -5123,15 +5089,59 @@ export default function PersistentDrawerLeft() {
 	const onCloseLog = useCallback(() => {
 		if (openLog?.stopOnClose) onStopRunning();
 		setOpenLog(null);
-		if (firstProjectTourOpen && firstProjectTourCurrent === 10) {
-			locateFirstProjectAgent();
-		}
+	}, [openLog, onStopRunning]);
+
+	const openFirstProjectEntryFile = useCallback(() => {
+		if (firstProjectTourFile === null) return;
+		openFileInTab(
+			firstProjectTourFile,
+			path.basename(firstProjectTourFile),
+			false,
+		);
+		if (narrowLayout) setDrawerOpen(false);
+		setFirstProjectTourCurrent(FirstProjectTourStep.EditEntry);
+	}, [firstProjectTourFile, narrowLayout, openFileInTab]);
+
+	const finishFirstProjectTourAtAgent = useCallback(() => {
+		if (firstProjectTourFile === null) return;
+		const projectPath = path.dirname(firstProjectTourFile);
+		const focusComposer = () => {
+			window.requestAnimationFrame(() => {
+				window.requestAnimationFrame(() => {
+					document.querySelector<HTMLTextAreaElement>(
+						'[data-first-project-agent-panel="true"] textarea'
+					)?.focus();
+				});
+			});
+		};
+		void completeFirstProjectTour().then((completed) => {
+			if (!completed) return;
+			if (openLog?.stopOnClose) onStopRunning();
+			setOpenLog(null);
+			const agentIndex = files.findIndex(file => (
+				file.key === projectPath && file.agentSessionId !== undefined
+			));
+			if (agentIndex < 0) {
+				void openAgentSessionTab(projectPath, true).then(focusComposer);
+				return;
+			}
+			const agentFile: EditingFile = {
+				...files[agentIndex],
+				workspaceView: "agent",
+			};
+			setFiles(previous => previous.map((file, index) => (
+				index === agentIndex ? agentFile : file
+			)));
+			void switchTab(agentIndex, agentFile).then(focusComposer);
+		});
 	}, [
-		firstProjectTourCurrent,
-		firstProjectTourOpen,
-		locateFirstProjectAgent,
-		openLog,
+		completeFirstProjectTour,
+		files,
+		firstProjectTourFile,
 		onStopRunning,
+		openAgentSessionTab,
+		openLog,
+		switchTab,
 	]);
 
 	const onValidate = useCallback((markers: Monaco.editor.IMarker[], key: string) => {
@@ -5259,7 +5269,7 @@ export default function PersistentDrawerLeft() {
 					height={editorHeight * 0.9}
 					onClose={onCloseLog}
 					onFixLog={onFixLog}
-					allowBackgroundInteraction={firstProjectTourOpen && firstProjectTourCurrent === 10}
+					allowBackgroundInteraction={false}
 				/>
 			) : null}
 			<Dialog
@@ -5414,9 +5424,9 @@ export default function PersistentDrawerLeft() {
 												if (
 													event.target.checked
 													&& firstProjectTourOpen
-													&& firstProjectTourCurrent === 5
+													&& firstProjectTourCurrent === FirstProjectTourStep.ProjectOption
 												) {
-													setFirstProjectTourCurrent(6);
+													setFirstProjectTourCurrent(FirstProjectTourStep.CreateProject);
 												}
 											}}
 										/>
@@ -5450,8 +5460,8 @@ export default function PersistentDrawerLeft() {
 						data-first-project-create="true"
 						disabled={
 							firstProjectTourOpen
-							&& firstProjectTourCurrent >= 4
-							&& firstProjectTourCurrent <= 6
+							&& firstProjectTourCurrent >= FirstProjectTourStep.ProjectName
+							&& firstProjectTourCurrent <= FirstProjectTourStep.CreateProject
 							&& (
 								(fileInfo?.name.trim().length ?? 0) === 0
 								|| fileInfo?.project !== true
@@ -5460,8 +5470,8 @@ export default function PersistentDrawerLeft() {
 						onClick={() => {
 							if (
 								firstProjectTourOpen
-								&& firstProjectTourCurrent >= 4
-								&& firstProjectTourCurrent <= 6
+								&& firstProjectTourCurrent >= FirstProjectTourStep.ProjectName
+								&& firstProjectTourCurrent <= FirstProjectTourStep.CreateProject
 							) {
 								createFirstProject();
 							} else {
@@ -5487,12 +5497,14 @@ export default function PersistentDrawerLeft() {
 				exampleCodeReady={firstProjectTourExampleReady}
 				canInsertExample={firstProjectTourEditingFile?.editor !== undefined}
 				onStart={beginFirstProjectTour}
-				onProjectNameReady={() => setFirstProjectTourCurrent(5)}
+				onProjectNameReady={() => setFirstProjectTourCurrent(FirstProjectTourStep.ProjectOption)}
 				onInsertExample={insertFirstProjectExample}
-				onExampleCodeReady={() => setFirstProjectTourCurrent(8)}
+				onExampleCodeReady={() => setFirstProjectTourCurrent(FirstProjectTourStep.RunProject)}
 				onSkip={completeFirstProjectTour}
 				onFinish={completeFirstProjectTour}
-				onExploreAgent={exploreFirstProjectAgent}
+				onUseAgent={finishFirstProjectTourAtAgent}
+				onOpenEntryFile={openFirstProjectEntryFile}
+				onReturnToAgent={finishFirstProjectTourAtAgent}
 				onClose={interruptFirstProjectTour}
 			/>
 			<Box sx={{ display: "flex", width: '100%', height: '100%' }}>
@@ -5572,9 +5584,7 @@ export default function PersistentDrawerLeft() {
 						) : null}
 					</Toolbar>
 				</AppBar>
-				{narrowLayout
-					&& drawerOpen
-					&& !(firstProjectTourOpen && firstProjectTourCurrent === 11) ? (
+				{narrowLayout && drawerOpen ? (
 					<Box
 						aria-hidden="true"
 						onPointerDown={(event) => event.stopPropagation()}
@@ -5636,7 +5646,7 @@ export default function PersistentDrawerLeft() {
 							...(narrowLayout ? {
 								position: 'absolute',
 								inset: '0 auto 0 0',
-								zIndex: firstProjectTourOpen && firstProjectTourCurrent === 11 ? 1400 : 3,
+								zIndex: 3,
 								width: drawerOpen ? effectiveDrawerWidth : 0,
 								maxWidth: '82vw',
 								boxShadow: drawerOpen ? '12px 0 28px rgba(0, 0, 0, 0.42)' : 'none',
@@ -5762,13 +5772,8 @@ export default function PersistentDrawerLeft() {
 								checkedKeys={checkedKeys}
 								expandedKeys={expandedKeys}
 								treeData={treeData}
-								firstProjectTourTargetKey={
-									firstProjectTourOpen && firstProjectTourFile !== null
-										? path.dirname(firstProjectTourFile)
-										: undefined
-								}
 								firstProjectTourWorkspaceRightClickOnly={
-									firstProjectTourOpen && firstProjectTourCurrent === 1
+									firstProjectTourOpen && firstProjectTourCurrent === FirstProjectTourStep.Workspace
 								}
 								scrollRequest={treeScrollRequest}
 								resizing={isResizing}
@@ -5778,29 +5783,11 @@ export default function PersistentDrawerLeft() {
 								onContextMenuOpen={(data) => {
 									if (
 										firstProjectTourOpen
-										&& firstProjectTourCurrent === 1
+										&& firstProjectTourCurrent === FirstProjectTourStep.Workspace
 										&& data.key === treeDataRef.current.at(0)?.key
 									) {
-										setFirstProjectTourCurrent(2);
+										setFirstProjectTourCurrent(FirstProjectTourStep.NewMenu);
 									}
-								}}
-								onFirstProjectTourTargetSelect={(data) => {
-									if (
-										!firstProjectTourOpen
-										|| firstProjectTourCurrent !== 11
-										|| firstProjectTourFile === null
-										|| data.key !== path.dirname(firstProjectTourFile)
-									) {
-										onSelect([data]);
-										return;
-									}
-									setSelectedKeys([data.key]);
-									setSelectedNode(data);
-									void openAgentSessionTab(data.key, true, { silentWhenNotFound: true }).then((opened) => {
-										if (!opened) return;
-										if (narrowLayout) setDrawerOpen(false);
-										completeFirstProjectTour();
-									});
 								}}
 								onSelect={onSelect}
 								onCheck={onCheckTreeNodes}
@@ -6377,7 +6364,7 @@ export default function PersistentDrawerLeft() {
 										tourTarget={
 											firstProjectTourOpen
 											&& firstProjectTourFile === file.key
-											&& firstProjectTourCurrent === 7
+											&& firstProjectTourCurrent === FirstProjectTourStep.EditEntry
 										}
 									/>;
 									if (yarn) {

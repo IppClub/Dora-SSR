@@ -115,7 +115,11 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 	];
 
 	return (
-		<Box data-compact-agent-layout={compact ? "true" : "false"} sx={{ display: "flex", flexDirection: "column", height }}>
+		<Box
+			data-compact-agent-layout={compact ? "true" : "false"}
+			data-first-project-agent-panel={active && currentView === "agent" ? "true" : undefined}
+			sx={{ display: "flex", flexDirection: "column", height }}
+		>
 			<Box sx={{
 				height: headerHeight,
 				px: compact ? 1.25 : 2,
@@ -153,6 +157,9 @@ export default function ProjectWorkspacePanel(props: ProjectWorkspacePanelProps)
 							<Button
 								key={tab.value}
 								data-workspace-view={tab.value}
+								data-first-project-agent-tab={
+									active && tab.value === "agent" ? "true" : undefined
+								}
 								size="small"
 								variant="text"
 								onClick={() => handleViewChange(tab.value)}

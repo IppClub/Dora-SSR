@@ -192,7 +192,6 @@ export interface FileTreeProps {
 	checkedKeys: string[];
 	expandedKeys: string[];
 	treeData: TreeDataType[];
-	firstProjectTourTargetKey?: string;
 	firstProjectTourWorkspaceRightClickOnly?: boolean;
 	scrollRequest: number;
 	resizing: boolean;
@@ -206,7 +205,6 @@ export interface FileTreeProps {
 	onCancelBatchTarget: () => void;
 	onMenuClick: (event: TreeMenuEvent, data?: TreeDataType) => void;
 	onContextMenuOpen?: (data: TreeDataType) => void;
-	onFirstProjectTourTargetSelect?: (data: TreeDataType) => void;
 	onExpand: (key: string[], info?: { node: TreeDataType; expanded: boolean }) => void;
 	loadData: (node: TreeDataType) => Promise<void>;
 	onDrop: (self: TreeDataType, target: TreeDataType) => void;
@@ -419,7 +417,6 @@ export default memo(function FileTree(props: FileTreeProps) {
 
 	const onRightClick: NonNullable<TreeProps<TreeDataType>["onRightClick"]> = (info) => {
 		if (multiSelectMode) return;
-		if (info.node.key === props.firstProjectTourTargetKey) return;
 		const target = info.event.target instanceof Element
 			? info.event.target.closest(".ant-tree-node-content-wrapper") ?? info.event.currentTarget
 			: info.event.currentTarget;
@@ -459,11 +456,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 			);
 			return;
 		}
-		props.onSelect(
-			info.node.key === props.firstProjectTourTargetKey
-				? [info.node]
-				: info.selectedNodes
-		);
+		props.onSelect(info.selectedNodes);
 	};
 
 	const onCheck: NonNullable<TreeProps<TreeDataType>["onCheck"]> = (keys, info) => {
@@ -801,22 +794,9 @@ export default memo(function FileTree(props: FileTreeProps) {
 						<span
 							className="dora-resource-tree-title"
 							data-first-project-workspace-root={node.root && !node.builtin ? "true" : undefined}
-							data-first-project-agent-target={
-								node.key === props.firstProjectTourTargetKey ? "true" : undefined
-							}
 							onPointerDown={(event) => startTouchLongPress(event, node)}
 							onPointerUp={cancelTouchLongPress}
 							onPointerCancel={finishTouchLongPressPointer}
-							onClick={node.key === props.firstProjectTourTargetKey
-								? (event) => {
-									event.stopPropagation();
-									if (props.onFirstProjectTourTargetSelect !== undefined) {
-										props.onFirstProjectTourTargetSelect(node);
-									} else {
-										props.onSelect([node]);
-									}
-								}
-								: undefined}
 							style={node.root && !node.builtin && props.firstProjectTourWorkspaceRightClickOnly
 								? {
 									display: "inline-flex",
@@ -1001,9 +981,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 		}
 	}
 	return prev.treeData === next.treeData &&
-		prev.firstProjectTourTargetKey === next.firstProjectTourTargetKey &&
 		prev.firstProjectTourWorkspaceRightClickOnly === next.firstProjectTourWorkspaceRightClickOnly &&
-		prev.onFirstProjectTourTargetSelect === next.onFirstProjectTourTargetSelect &&
 		prev.scrollRequest === next.scrollRequest &&
 		prev.resizing === next.resizing &&
 		prev.multiSelectMode === next.multiSelectMode &&
