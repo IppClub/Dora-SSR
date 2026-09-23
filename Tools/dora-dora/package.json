@@ -103,6 +103,7 @@
 		"test:heavy-assets": "node scripts/test-heavy-assets.mjs",
 		"test:lodash-amd": "node scripts/test-lodash-amd.mjs",
 		"test:xrt-network-wrapper": "node scripts/test-xrt-network-wrapper.mjs",
+		"test:auth-signature": "node scripts/test-auth-signature.mjs",
 		"preview": "vite preview",
 		"lint": "oxlint src",
 		"postinstall": "node scripts/copy-typescript.js"

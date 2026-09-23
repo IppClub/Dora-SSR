@@ -16,6 +16,7 @@ import i18n from './i18n';
 import Info from './Info';
 import Path from './3rdParty/Path';
 import AuthDialog, { AuthDialogProps, AuthSession } from './AuthDialog';
+import { canonicalizeAuthPath } from './AuthSignature';
 
 const origFetch = window.fetch.bind(window);
 
@@ -179,25 +180,6 @@ const setupAuth = async (): Promise<void> => {
 		return bufferToHex(signature);
 	};
 
-	const canonicalizePath = (url: URL) => {
-		if (!url.searchParams || Array.from(url.searchParams).length === 0) {
-			return url.pathname;
-		}
-		const encodeUriCompat = (value: string) => encodeURI(value)
-			.replace(/%5B/g, '[')
-			.replace(/%5D/g, ']');
-		const params = Array.from(url.searchParams.entries());
-		params.sort(([keyA, valueA], [keyB, valueB]) => {
-			const keySort = keyA.localeCompare(keyB);
-			if (keySort !== 0) return keySort;
-			return valueA.localeCompare(valueB);
-		});
-		const query = params
-			.map(([key, value]) => `${encodeUriCompat(key)}=${encodeUriCompat(value)}`)
-			.join('&');
-		return query ? `${url.pathname}?${query}` : url.pathname;
-	};
-
 	const getBodyBytes = async (request: Request) => {
 		if (request.method === 'GET' || request.method === 'HEAD') {
 			return new Uint8Array();
@@ -224,7 +206,7 @@ const setupAuth = async (): Promise<void> => {
 	const buildAuthHeaders = async (request: Request) => {
 		if (!session) return null;
 		const url = new URL(request.url, window.location.href);
-		const path = canonicalizePath(url);
+		const path = canonicalizeAuthPath(url);
 		const timestamp = Math.floor(Date.now() / 1000).toString();
 		const nonce = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(16).slice(2);
 		const bodyBytes = await getBodyBytes(request);

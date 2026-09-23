@@ -10,6 +10,7 @@ import type { TreeDataType } from "./FileTree";
 import { ProfilerInfo } from "./ProfilerInfo";
 import { TypedEmitter } from "./utils/typedEmitter";
 import { LogBuffer } from "./LogBuffer";
+import { canonicalizeAuthPath } from "./AuthSignature";
 
 let authRequired = false;
 export const setAuthRequired = (required: boolean) => {
@@ -74,22 +75,6 @@ const parseSession = (raw: string | null): AuthSession | null => {
 	return null;
 };
 
-const canonicalizePath = (url: URL) => {
-	if (!url.searchParams || Array.from(url.searchParams).length === 0) {
-		return url.pathname;
-	}
-	const params = Array.from(url.searchParams.entries());
-	params.sort(([keyA, valueA], [keyB, valueB]) => {
-		const keySort = keyA.localeCompare(keyB);
-		if (keySort !== 0) return keySort;
-		return valueA.localeCompare(valueB);
-	});
-	const query = params
-		.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-		.join('&');
-	return query ? `${url.pathname}?${query}` : url.pathname;
-};
-
 const hmacHex = async (secret: string, payload: string) => {
 	const encoder = new TextEncoder();
 	const key = await crypto.subtle.importKey(
@@ -113,7 +98,7 @@ const buildWebSocketUrl = async (baseUrl: string, session: AuthSession) => {
 	params.set('session', session.sessionId);
 	params.set('ts', timestamp);
 	params.set('nonce', nonce);
-	const path = canonicalizePath(new URL(`${url.origin}${url.pathname}?${params.toString()}`));
+	const path = canonicalizeAuthPath(new URL(`${url.origin}${url.pathname}?${params.toString()}`));
 	const payload = [session.sessionId, 'GET', path, timestamp, nonce, ''].join('\n');
 	const signature = await hmacHex(session.sessionSecret, payload);
 	params.set('sig', signature);
