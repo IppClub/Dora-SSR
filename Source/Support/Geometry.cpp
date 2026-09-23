@@ -566,10 +566,20 @@ void Matrix::perspective(Matrix& result, float fovy, float aspect, float nearZ, 
 
 void Matrix::lookAt(Matrix& result, const Vec3& eye, const Vec3& at, const Vec3& up) {
 	// Matches bgfx's left-handed view matrix (bx::mtxLookAt).
-	r_cast<ktm::fmat4x4&>(result) = ktm::look_at_lh(
-		r_cast<const ktm::fvec3&>(eye),
-		r_cast<const ktm::fvec3&>(at),
-		r_cast<const ktm::fvec3&>(up));
+	auto normalizeSafe = [](const ktm::fvec3& value) {
+		return ktm::length_squared(value) == 0.0f ? ktm::fvec3{} : ktm::normalize(value);
+	};
+	ktm::fvec3 view = normalizeSafe(at.ktm() - eye.ktm());
+	ktm::fvec3 upCrossView = ktm::cross(up.ktm(), view);
+	ktm::fvec3 right = ktm::length_squared(upCrossView) == 0.0f
+		? ktm::fvec3{-1.0f, 0.0f, 0.0f}
+		: ktm::normalize(upCrossView);
+	ktm::fvec3 cameraUp = ktm::cross(view, right);
+	result.ktm() = ktm::fmat4x4{
+		{right.x, cameraUp.x, view.x, 0.0f},
+		{right.y, cameraUp.y, view.y, 0.0f},
+		{right.z, cameraUp.z, view.z, 0.0f},
+		{-ktm::dot(right, eye.ktm()), -ktm::dot(cameraUp, eye.ktm()), -ktm::dot(view, eye.ktm()), 1.0f}};
 }
 
 void Matrix::SRT(Matrix& result, float scaleX, float scaleY, float scaleZ, float angleX, float angleY, float angleZ, float tx, float ty, float tz) {
