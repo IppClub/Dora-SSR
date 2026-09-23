@@ -408,6 +408,26 @@ static std::optional<Slice> find_header(const HttpServer::Request& req, String n
 	return std::nullopt;
 }
 
+static bool starts_with_ignore_ascii_case(std::string_view value, std::string_view prefix) {
+	if (value.size() < prefix.size()) return false;
+	return std::equal(prefix.begin(), prefix.end(), value.begin(), [](char a, char b) {
+		return std::tolower(s_cast<unsigned char>(a)) == std::tolower(s_cast<unsigned char>(b));
+	});
+}
+
+static std::string auth_body_hash(const HttpServer::Request& req) {
+	auto contentType = req.contentType.toString();
+	if (contentType.empty()) {
+		if (auto value = find_header(req, "Content-Type"_slice)) contentType = value->toString();
+	}
+	if (starts_with_ignore_ascii_case(contentType, "multipart/form-data"sv)) {
+		// Browsers generate multipart boundaries while sending the request, so the
+		// Web IDE intentionally signs multipart uploads with an empty body hash.
+		return {};
+	}
+	return sha256_hex(req.body.toString());
+}
+
 static bool has_valid_auth(const HttpServer::Request& req, const std::string& token) {
 	if (auto value = find_header(req, "X-Dora-Auth"_slice); value && *value == token) {
 		return true;
@@ -632,7 +652,7 @@ bool HttpServer::isAuthorized(const Request& req) {
 		std::vector<std::pair<std::string, std::string>> params;
 		for (size_t i = 0; i + 1 < req.params.size(); i += 2) params.emplace_back(req.params[i].toString(), req.params[i + 1].toString());
 		auto path = canonicalize_path(req.path.toString(), params);
-		auto bodyHash = sha256_hex(req.body.toString());
+		auto bodyHash = auth_body_hash(req);
 		auto payload = fmt::format("{}\n{}\n{}\n{}\n{}\n{}", sessionId, req.method.toString(), path, timestampHeader->toString(), nonce, bodyHash);
 		auto expected = hmac_sha256_hex(_authSessionSecret, payload);
 		if (expected != signatureHeader->toString()) {
@@ -1073,6 +1093,30 @@ DORA_TEST_ENTRY(HttpCompressionCpp) {
 	auto preparedBinary = prepare_dynamic_response(std::move(binaryResponse), true);
 	passed &= check(!preparedBinary.varyAcceptEncoding, "binary dynamic responses should not vary on Accept-Encoding"_slice);
 	passed &= check(!preparedBinary.gzipEncoded, "binary dynamic responses should not be gzip encoded"_slice);
+	return passed;
+}
+
+DORA_TEST_ENTRY(HttpAuthBodyHashCpp) {
+	auto check = [](bool condition, String message) {
+		if (!condition) LogError(fmt::format("HttpAuthBodyHashCpp: {}", message.toString()));
+		return condition;
+	};
+	bool passed = true;
+
+	std::string multipartType = "Multipart/Form-Data; boundary=generated-by-browser";
+	std::string multipartBody = "--generated-by-browser\r\nContent-Disposition: form-data; name=\"file\"\r\n\r\npayload";
+	HttpServer::Request multipartRequest;
+	multipartRequest.contentType = multipartType;
+	multipartRequest.body = multipartBody;
+	passed &= check(auth_body_hash(multipartRequest).empty(), "multipart uploads should use the Web IDE empty body hash"_slice);
+
+	std::string jsonType = "application/json";
+	std::string jsonBody = R"({"value":1})";
+	HttpServer::Request jsonRequest;
+	jsonRequest.contentType = jsonType;
+	jsonRequest.body = jsonBody;
+	passed &= check(auth_body_hash(jsonRequest) == sha256_hex(jsonBody), "non-multipart requests should hash their actual body"_slice);
+
 	return passed;
 }
 

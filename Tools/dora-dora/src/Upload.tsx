@@ -132,12 +132,12 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 		directory: true,
 		multiple: true,
 		showUploadList: false,
-		action: Service.addr(`/upload?path=${prop.path}`),
+		action: Service.addr(`/upload?path=${encodeURIComponent(prop.path)}`),
 		customRequest(options) {
 			let aborted = false;
 			void (async () => {
 				try {
-					const action = typeof options.action === 'string' ? options.action : Service.addr(`/upload?path=${prop.path}`);
+					const action = typeof options.action === 'string' ? options.action : Service.addr(`/upload?path=${encodeURIComponent(prop.path)}`);
 					const formData = new FormData();
 					const file = options.file as RcFile;
 					formData.append(options.filename ?? 'file', file, file.name);
@@ -318,7 +318,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 			formData.append('file', file as RcFile);
 		});
 		setUploading(true);
-		fetch(Service.addr(`/upload?path=${prop.path}`), {
+		fetch(Service.addr(`/upload?path=${encodeURIComponent(prop.path)}`), {
 			method: 'POST',
 			body: formData,
 		})

@@ -14,7 +14,7 @@ pub struct Vertex {
 	pub uv0: [f32; 2],
 	pub uv1: [f32; 2],
 	pub color: u32,
-	pub joint_indices: [u16; 4],
+	pub joint_indices: [f32; 4],
 	pub joint_weights: [f32; 4],
 }
 
@@ -144,7 +144,7 @@ pub fn create_vertex_layout() -> bgfx_sys::bgfx_vertex_layout_t {
 			layout_ptr,
 			bgfx_sys::BGFX_ATTRIB_INDICES as _,
 			4,
-			bgfx_sys::BGFX_ATTRIB_TYPE_INT16 as _,
+			bgfx_sys::BGFX_ATTRIB_TYPE_FLOAT as _,
 			false,
 			false,
 		);

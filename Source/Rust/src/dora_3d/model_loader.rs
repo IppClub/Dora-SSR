@@ -1692,18 +1692,13 @@ fn prepare_primitive_mesh(
 			})
 			.collect()
 	});
-	let joints: Option<Vec<[u16; 4]>> = reader.read_joints(0).map(|joints| match joints {
+	let joints: Option<Vec<[f32; 4]>> = reader.read_joints(0).map(|joints| match joints {
 		ReadJoints::U8(values) => values
-			.map(|joint| {
-				[
-					joint[0] as u16,
-					joint[1] as u16,
-					joint[2] as u16,
-					joint[3] as u16,
-				]
-			})
+			.map(|joint| joint.map(|index| index as f32))
 			.collect(),
-		ReadJoints::U16(values) => values.collect(),
+		ReadJoints::U16(values) => values
+			.map(|joint| joint.map(|index| index as f32))
+			.collect(),
 	});
 	let weights: Option<Vec<[f32; 4]>> = reader.read_weights(0).map(|weights| match weights {
 		ReadWeights::U8(values) => values
@@ -1785,7 +1780,7 @@ fn prepare_primitive_mesh(
 					.as_ref()
 					.and_then(|values| values.get(index))
 					.copied()
-					.unwrap_or([0, 0, 0, 0]),
+					.unwrap_or([0.0, 0.0, 0.0, 0.0]),
 				joint_weights: weights
 					.as_ref()
 					.and_then(|values| values.get(index))
