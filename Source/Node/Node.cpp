@@ -52,7 +52,7 @@ Node::NodeTransform::NodeTransform()
 	, width(0.0f)
 	, height(0.0f)
 	, transform(AffineTransform::Indentity) {
-	bx::mtxIdentity(world.m);
+	world = Matrix::Indentity;
 }
 
 Node::NodeTransform& Node::getTransform() {
@@ -669,14 +669,14 @@ Node* Node::getChildByTag(String tag) {
 
 Vec2 Node::convertToNodeSpace(const Vec2& worldPoint) {
 	Matrix invWorld;
-	bx::mtxInverse(invWorld.m, getWorld().m);
+	invWorld.ktm() = ktm::inverse(getWorld().ktm());
 	Vec3 point;
-	point = Vec3::from(bx::mul(bx::Vec3{worldPoint.x, worldPoint.y, 0.0f}, invWorld.m));
+	point = Vec3::from((invWorld.ktm() * ktm::fvec4{worldPoint.x, worldPoint.y, 0.0f, 1.0f}).xyz());
 	return point.toVec2();
 }
 
 Vec2 Node::convertToWorldSpace(const Vec2& nodePoint) {
-	Vec3 point = Vec3::from(bx::mul(bx::Vec3{nodePoint.x, nodePoint.y, 0.0f}, getWorld().m));
+	Vec3 point = Vec3::from((getWorld().ktm() * ktm::fvec4{nodePoint.x, nodePoint.y, 0.0f, 1.0f}).xyz());
 	return point.toVec2();
 }
 
@@ -694,12 +694,12 @@ Vec2 Node::convertToNodeSpace(const Vec2& worldPoint, float& zInOut) {
 
 Vec3 Node::convertToNodeSpace3(const Vec3& worldPoint) {
 	Matrix invWorld;
-	bx::mtxInverse(invWorld.m, getWorld().m);
-	return Vec3::from(bx::mul(worldPoint, invWorld.m));
+	invWorld.ktm() = ktm::inverse(getWorld().ktm());
+	return Vec3::from((invWorld.ktm() * ktm::fvec4{worldPoint.x, worldPoint.y, worldPoint.z, 1.0f}).xyz());
 }
 
 Vec3 Node::convertToWorldSpace3(const Vec3& nodePoint) {
-	Vec3 point = Vec3::from(bx::mul(nodePoint, getWorld().m));
+	Vec3 point = Vec3::from((getWorld().ktm() * ktm::fvec4{nodePoint.x, nodePoint.y, nodePoint.z, 1.0f}).xyz());
 	return point;
 }
 
@@ -1040,16 +1040,16 @@ const AffineTransform& Node::getLocalTransform() {
 		/* cos(rotateZ), sin(rotateZ) */
 		float c = 1, s = 0;
 		if (t.angle) {
-			float radians = -bx::toRad(t.angle);
-			c = bx::cos(radians);
-			s = bx::sin(radians);
+			float radians = -ktm::radians(t.angle);
+			c = ktm::cos(radians);
+			s = ktm::sin(radians);
 		}
 
 		if (t.skewX || t.skewY) {
 			/* skewXY */
 			t.transform = {
-				1.0f, bx::tan(bx::toRad(t.skewY)),
-				bx::tan(bx::toRad(t.skewX)), 1.0f,
+				1.0f, ktm::tan(ktm::radians(t.skewY)),
+				ktm::tan(ktm::radians(t.skewX)), 1.0f,
 				0.0f, 0.0f};
 
 			/* scaleXY, rotateZ, translateXY */
@@ -1079,9 +1079,9 @@ void Node::getLocalWorld(Matrix& localWorld) {
 		if (t.anchorPointX || t.anchorPointY) {
 			/* scaleXYZ, rotateXYZ, translateXYZ */
 			Matrix mtxBase;
-			bx::mtxSRT(mtxBase.m,
+			Matrix::SRT(mtxBase,
 				t.scaleX, t.scaleY, t.scaleZ,
-				-bx::toRad(t.angleX), -bx::toRad(t.angleY), -bx::toRad(t.angle),
+				-ktm::radians(t.angleX), -ktm::radians(t.angleY), -ktm::radians(t.angle),
 				t.x, t.y, t.z);
 			if (t.skewX || t.skewY) {
 				Matrix mtxTemp;
@@ -1089,43 +1089,43 @@ void Node::getLocalWorld(Matrix& localWorld) {
 					Matrix mtxSkew;
 					/* skewXY */
 					AffineTransform{
-						1.0f, bx::tan(bx::toRad(t.skewY)),
-						bx::tan(bx::toRad(t.skewX)), 1.0f,
+						1.0f, ktm::tan(ktm::radians(t.skewY)),
+						ktm::tan(ktm::radians(t.skewX)), 1.0f,
 						0.0f, 0.0f}
 						.toMatrix(mtxSkew);
 					Matrix::mulMtx(mtxTemp, mtxBase, mtxSkew);
 				}
 				/* translateAnchorXY */
 				Matrix mtxAnchor;
-				bx::mtxTranslate(mtxAnchor.m, -t.anchorPointX, -t.anchorPointY, 0.0f);
+				mtxAnchor.ktm() = ktm::translate3d(ktm::fvec3{-t.anchorPointX, -t.anchorPointY, 0.0f});
 				Matrix::mulMtx(localWorld, mtxTemp, mtxAnchor);
 			} else {
 				/* translateAnchorXY */
 				Matrix mtxAnchor;
-				bx::mtxTranslate(mtxAnchor.m, -t.anchorPointX, -t.anchorPointY, 0.0f);
+				mtxAnchor.ktm() = ktm::translate3d(ktm::fvec3{-t.anchorPointX, -t.anchorPointY, 0.0f});
 				Matrix::mulMtx(localWorld, mtxBase, mtxAnchor);
 			}
 		} else {
 			if (t.skewX || t.skewY) {
 				/* scaleXYZ, rotateXYZ, translateXYZ */
 				Matrix mtxBase;
-				bx::mtxSRT(mtxBase.m,
+				Matrix::SRT(mtxBase,
 					t.scaleX, t.scaleY, t.scaleZ,
-					-bx::toRad(t.angleX), -bx::toRad(t.angleY), -bx::toRad(t.angle),
+					-ktm::radians(t.angleX), -ktm::radians(t.angleY), -ktm::radians(t.angle),
 					t.x, t.y, t.z);
 				Matrix mtxSkew;
 				/* skewXY */
 				AffineTransform{
-					1.0f, bx::tan(bx::toRad(t.skewY)),
-					bx::tan(bx::toRad(t.skewX)), 1.0f,
+					1.0f, ktm::tan(ktm::radians(t.skewY)),
+					ktm::tan(ktm::radians(t.skewX)), 1.0f,
 					0.0f, 0.0f}
 					.toMatrix(mtxSkew);
 				Matrix::mulMtx(localWorld, mtxBase, mtxSkew);
 			} else {
 				/* translateXYZ, rotateXYZ, scaleXYZ */
-				bx::mtxSRT(localWorld.m,
+				Matrix::SRT(localWorld,
 					t.scaleX, t.scaleY, t.scaleZ,
-					-bx::toRad(t.angleX), -bx::toRad(t.angleY), -bx::toRad(t.angle),
+					-ktm::radians(t.angleX), -ktm::radians(t.angleY), -ktm::radians(t.angle),
 					t.x, t.y, t.z);
 			}
 		}

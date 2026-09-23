@@ -58,7 +58,7 @@ bool Bullet::init() {
 	Vec2 offset = (playable ? playable->getKeyPoint(Def::BulletKey) : Vec2::zero);
 	Bullet::setPosition(_emitter->getPosition() + offset);
 	if (Body::getBodyDef()->getLinearAcceleration() != Vec2::zero) {
-		Bullet::setAngle(-bx::toDeg(std::atan2(v.y, _emitter->isFaceRight() ? v.x : -v.x)));
+		Bullet::setAngle(-ktm::degrees(std::atan2(v.y, _emitter->isFaceRight() ? v.x : -v.x)));
 	}
 	hitTarget += [](Bullet* bullet, Unit* target, Vec2 point, Vec2 normal) {
 		bullet->emit("HitTarget"_slice, bullet, target, point, normal);
@@ -81,7 +81,7 @@ void Bullet::updatePhysics() {
 		Node::setPosition(Vec2{PhysicsWorld::Val(pos[0]), PhysicsWorld::Val(pos[1])});
 		if (pd::GetLinearAcceleration(world, _prBody) != pr::LinearAcceleration2{}) {
 			pd::Velocity velocity = pd::GetVelocity(world, _prBody);
-			Node::setAngle(-bx::toDeg(std::atan2(velocity.linear[1], velocity.linear[0])));
+			Node::setAngle(-ktm::degrees(std::atan2(velocity.linear[1], velocity.linear[0])));
 		}
 	}
 }

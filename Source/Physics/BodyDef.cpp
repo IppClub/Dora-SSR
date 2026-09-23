@@ -91,7 +91,7 @@ void BodyDef::attachPolygon(const Vec2& center, float width, float height, float
 										PhysicsWorld::prVal(width * 0.5f),
 										PhysicsWorld::prVal(height * 0.5f),
 										PhysicsWorld::prVal(center),
-										-bx::toRad(angle))
+										-ktm::radians(angle))
 									.UseDensity(density)
 									.UseFriction(friction)
 									.UseRestitution(restitution);
@@ -202,7 +202,7 @@ void BodyDef::attachPolygonSensor(int tag, const Vec2& center, float width, floa
 					PhysicsWorld::prVal(width * 0.5f),
 					PhysicsWorld::prVal(height * 0.5f),
 					PhysicsWorld::prVal(center),
-					-bx::toRad(angle))
+					-ktm::radians(angle))
 				.UseIsSensor(true)});
 }
 
@@ -258,7 +258,7 @@ FixtureDef* BodyDef::polygon(const Vec2& center, float width, float height, floa
 					PhysicsWorld::prVal(width * 0.5f),
 					PhysicsWorld::prVal(height * 0.5f),
 					PhysicsWorld::prVal(center),
-					-bx::toRad(angle))
+					-ktm::radians(angle))
 				.UseDensity(density)
 				.UseFriction(friction)
 				.UseRestitution(restitution)});

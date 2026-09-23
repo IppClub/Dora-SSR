@@ -56,7 +56,7 @@ Node3D::Node3D(bool unManaged)
 	, _handle(0)
 	, _position{0.0f, 0.0f, 0.0f}
 	, _scale{1.0f, 1.0f, 1.0f}
-	, _rotation(bx::InitIdentity)
+	, _rotation(ktm::fquat::identity())
 	, _angles{0.0f, 0.0f, 0.0f}
 	, _worldMatrix(Matrix::Indentity) {
 	if (_unManaged) {
@@ -235,9 +235,9 @@ const Vec3& Node3D::getScale() const noexcept {
 }
 
 void Node3D::setRotation(const Quat& var) {
-	Quat rotation = bx::normalize(var);
+	Quat rotation = ktm::normalize(var);
 #ifndef DORA_NO_RUST
-	dora_3d_node_set_rotation(_handle, rotation.x, rotation.y, rotation.z, rotation.w);
+	dora_3d_node_set_rotation(_handle, rotation.i, rotation.j, rotation.k, rotation.r);
 #endif // DORA_NO_RUST
 }
 

@@ -673,7 +673,7 @@ private:
 			// restore that coordinate before uploading it below and perform the
 			// Love-to-Dora conversion exactly once in u_loveTransform.
 			Matrix loveToDora;
-			bx::mtxSRT(loveToDora.m, 1.0f, -1.0f, 1.0f,
+			Matrix::SRT(loveToDora, 1.0f, -1.0f, 1.0f,
 				0.0f, 0.0f, 0.0f, 0.0f, _loveCoordinateHeight, 0.0f);
 			Matrix::mulMtx(loveTransform, SharedDirector.getViewProjection(), loveToDora);
 		}
@@ -1074,7 +1074,7 @@ public:
 			}
 		}
 		Matrix loveToDora;
-		bx::mtxSRT(loveToDora.m, 1.0f, -1.0f, 1.0f,
+		Matrix::SRT(loveToDora, 1.0f, -1.0f, 1.0f,
 			0.0f, 0.0f, 0.0f, 0.0f, _coordinateHeight, 0.0f);
 		Matrix transform;
 		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), loveToDora);

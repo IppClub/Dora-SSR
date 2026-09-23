@@ -56,7 +56,7 @@ void DebugDraw::DrawSolidPolygon(const pr::Length2* oldVertices, int vertexCount
 void DebugDraw::DrawCircle(const pr::Length2& center, float radius, const Color& color) {
 	const float k_segments = 16.0f;
 	const int vertexCount = 16;
-	const float k_increment = 2.0f * bx::kPi / k_segments;
+	const float k_increment = 2.0f * ktm::pi<float> / k_segments;
 	float theta = 0.0f;
 
 	Vec2 pos{center[0], center[1]};
@@ -73,7 +73,7 @@ void DebugDraw::DrawCircle(const pr::Length2& center, float radius, const Color&
 void DebugDraw::DrawSolidCircle(const pr::Length2& center, float radius, const Color& color) {
 	const float k_segments = 16.0f;
 	const int vertexCount = 16;
-	const float k_increment = 2.0f * bx::kPi / k_segments;
+	const float k_increment = 2.0f * ktm::pi<float> / k_segments;
 	float theta = 0.0f;
 
 	Vec2 pos{center[0], center[1]};

@@ -223,7 +223,7 @@ JointDef* JointDef::wheel(
 
 Vec2 JointDef::r(const Vec2& target) {
 	if (angle) {
-		float realAngle = -bx::toRad(angle) + std::atan2(target.y, target.x);
+		float realAngle = -ktm::radians(angle) + std::atan2(target.y, target.x);
 		float length = target.length();
 		return Vec2{length * std::cos(realAngle), length * std::sin(realAngle)};
 	}

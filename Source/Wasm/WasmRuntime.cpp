@@ -1897,12 +1897,12 @@ DORA_EXPORT float math_atan(float v) { return std::atan(v); }
 DORA_EXPORT float math_atan2(float y, float x) { return std::atan2(y, x); }
 DORA_EXPORT float math_ceil(float v) { return std::ceil(v); }
 DORA_EXPORT float math_cos(float v) { return std::cos(v); }
-DORA_EXPORT float math_deg(float v) { return bx::toDeg(v); }
+DORA_EXPORT float math_deg(float v) { return ktm::degrees(v); }
 DORA_EXPORT float math_exp(float v) { return std::exp(v); }
 DORA_EXPORT float math_floor(float v) { return std::floor(v); }
 DORA_EXPORT float math_fmod(float x, float y) { return std::fmod(x, y); }
 DORA_EXPORT float math_log(float v) { return std::log(v); }
-DORA_EXPORT float math_rad(float v) { return bx::toRad(v); }
+DORA_EXPORT float math_rad(float v) { return ktm::radians(v); }
 DORA_EXPORT float math_sin(float v) { return std::sin(v); }
 DORA_EXPORT float math_sqrt(float v) { return std::sqrt(v); }
 DORA_EXPORT float math_tan(float v) { return std::tan(v); }

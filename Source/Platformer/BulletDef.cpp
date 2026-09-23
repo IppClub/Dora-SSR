@@ -32,7 +32,7 @@ BodyDef* BulletDef::getBodyDef() const {
 }
 
 void BulletDef::setVelocity(float angle, float speed) {
-	angle = bx::toRad(angle);
+	angle = ktm::radians(angle);
 	_velocity.x = std::cos(angle) * speed;
 	_velocity.y = std::sin(angle) * speed;
 }

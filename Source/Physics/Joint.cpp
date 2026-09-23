@@ -161,7 +161,7 @@ Joint* Joint::spring(
 	joint->_joint = pd::CreateJoint(prWorld,
 		pd::MotorJointConf{bA, bB}
 			.UseLinearOffset(PhysicsWorld::prVal(linearOffset))
-			.UseAngularOffset(-bx::toRad(angularOffset))
+			.UseAngularOffset(-ktm::radians(angularOffset))
 			.UseMaxForce(maxForce)
 			.UseMaxTorque(maxTorque)
 			.UseCorrectionFactor(correctionFactor)
@@ -218,7 +218,7 @@ MotorJoint* Joint::prismatic(
 	auto& prWorld = *world->getPrWorld();
 	pr::Vec2 a = PhysicsWorld::prVal(worldAnchor);
 	pd::PrismaticJointConf conf = pd::GetPrismaticJointConf(prWorld,
-		bA, bB, a, pd::UnitVec::Get(-bx::toRad(axisAngle)))
+		bA, bB, a, pd::UnitVec::Get(-ktm::radians(axisAngle)))
 									  .UseLowerLength(PhysicsWorld::prVal(lowerTranslation))
 									  .UseUpperLength(PhysicsWorld::prVal(upperTranslation))
 									  .UseEnableLimit((lowerTranslation || upperTranslation) && (lowerTranslation <= upperTranslation))
@@ -280,9 +280,9 @@ MotorJoint* Joint::revolute(
 	pr::BodyID bA = bodyA->getPrBody();
 	pr::BodyID bB = bodyB->getPrBody();
 	pr::Vec2 a = PhysicsWorld::prVal(worldPos);
-	lowerAngle = -bx::toRad(lowerAngle);
-	upperAngle = -bx::toRad(upperAngle);
-	motorSpeed = -bx::toRad(motorSpeed);
+	lowerAngle = -ktm::radians(lowerAngle);
+	upperAngle = -ktm::radians(upperAngle);
+	motorSpeed = -ktm::radians(motorSpeed);
 	auto world = bodyA->getPhysicsWorld();
 	if (!world || !world->getPrWorld()) {
 		return nullptr;
@@ -383,11 +383,11 @@ MotorJoint* Joint::wheel(
 		return nullptr;
 	}
 	auto& prWorld = *world->getPrWorld();
-	motorSpeed = -bx::toRad(motorSpeed);
+	motorSpeed = -ktm::radians(motorSpeed);
 	MotorJoint* joint = MotorJoint::create();
 	joint->_world = world;
 	joint->_joint = pd::CreateJoint(prWorld,
-		pd::GetWheelJointConf(prWorld, bA, bB, a, pd::UnitVec::Get(-bx::toRad(axisAngle)))
+		pd::GetWheelJointConf(prWorld, bA, bB, a, pd::UnitVec::Get(-ktm::radians(axisAngle)))
 			.UseDampingRatio(damping)
 			.UseFrequency(frequency)
 			.UseMotorSpeed(motorSpeed)

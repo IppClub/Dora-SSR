@@ -313,7 +313,7 @@ void ParticleNode::addParticle() {
 	particle.rotation = startAngle;
 	particle.deltaRotation = (endAngle - startAngle) / particle.timeToLive;
 
-	float angle = bx::toRad(def.angle + def.angleVariance * Math::rand1to1());
+	float angle = ktm::radians(def.angle + def.angleVariance * Math::rand1to1());
 
 	switch (def.emitterMode) {
 		case EmitterMode::Gravity: {
@@ -323,7 +323,7 @@ void ParticleNode::addParticle() {
 			particle.mode.gravity.radialAccel = def.mode.gravity.radialAcceleration + def.mode.gravity.radialAccelVariance * Math::rand1to1();
 			particle.mode.gravity.tangentialAccel = def.mode.gravity.tangentialAcceleration + def.mode.gravity.tangentialAccelVariance * Math::rand1to1();
 			if (def.mode.gravity.rotationIsDir) {
-				particle.rotation = -bx::toDeg(particle.mode.gravity.dir.angle());
+				particle.rotation = -ktm::degrees(particle.mode.gravity.dir.angle());
 			}
 			break;
 		}
@@ -337,7 +337,7 @@ void ParticleNode::addParticle() {
 				particle.mode.radius.deltaRadius = (endRadius - startRadius) / particle.timeToLive;
 			}
 			particle.mode.radius.angle = angle;
-			particle.mode.radius.degreesPerSecond = bx::toRad(def.mode.radius.rotatePerSecond + def.mode.radius.rotatePerSecondVariance * Math::rand1to1());
+			particle.mode.radius.degreesPerSecond = ktm::radians(def.mode.radius.rotatePerSecond + def.mode.radius.rotatePerSecondVariance * Math::rand1to1());
 			break;
 		}
 	}
@@ -376,7 +376,7 @@ void ParticleNode::addQuad(const Particle& particle, float scale, float angleX, 
 		float y1 = -halfSize;
 		float x2 = halfSize;
 		float y2 = halfSize;
-		float r = -bx::toRad(particle.rotation);
+		float r = -ktm::radians(particle.rotation);
 		float cr = std::cos(r);
 		float sr = std::sin(r);
 		float ax = x1 * cr - y1 * sr;
@@ -407,7 +407,7 @@ void ParticleNode::addQuad(const Particle& particle, float scale, float angleX, 
 	}
 	if (angleX || angleY) {
 		Matrix rotate;
-		bx::mtxRotateXY(rotate.m, -bx::toRad(angleX), -bx::toRad(angleY));
+		rotate.ktm() = ktm::rotate3d_y(ktm::radians(angleY)) * ktm::rotate3d_x(ktm::radians(angleX));
 		Vec4 v4 = *r_cast<Vec4*>(&quad.rb.x);
 		Matrix::mulVec4(&quad.rb.x, rotate, v4);
 		v4 = *r_cast<Vec4*>(&quad.lb.x);
