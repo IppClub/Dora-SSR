@@ -39,7 +39,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 #define XRT_NO_XSON
 #define XRT_NO_TEMPLATE
 #define XRT_NO_REGEX
-#if defined(__ANDROID__)
+/*
+ * xrt's io_uring backend can busy-poll an idle ring on Linux kernels where
+ * the ring fd remains readable without a consumable CQE. This is especially
+ * costly on small ARM systems: each HTTP/WebSocket engine can consume a whole
+ * CPU core while no requests are being served. The development server is
+ * latency-insensitive enough that the mature blocking epoll backend is the
+ * safer Linux default.
+ */
+#if defined(__linux__)
 #define XNET_FORCE_EPOLL
 #endif
 #define XRT_IMPLEMENTATION

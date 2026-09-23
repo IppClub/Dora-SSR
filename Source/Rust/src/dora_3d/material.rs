@@ -146,6 +146,20 @@ impl Drop for MaterialData {
 }
 
 impl MaterialData {
+	pub(crate) fn uses_simple_pbr(&self) -> bool {
+		matches!(self.material_type, MaterialType::PbrMetallicRoughness)
+			&& self.program.is_none()
+			&& !self
+				.shader_params
+				.values()
+				.any(|param| matches!(param, ShaderParam::Texture(_)))
+			&& self.clearcoat_factor <= 0.0001
+			&& self.transmission_factor <= 0.0001
+			&& self.thickness_factor <= 0.0001
+			&& self.sheen_color.max_element() <= 0.0001
+			&& self.anisotropy_strength <= 0.0001
+	}
+
 	fn new(handle: Dora3DHandle) -> Self {
 		let mut material = Self {
 			handle,

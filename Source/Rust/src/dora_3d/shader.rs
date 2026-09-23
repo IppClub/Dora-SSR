@@ -34,6 +34,7 @@ struct JointUniforms {
 pub struct ShaderPrograms {
 	pub unlit: bgfx_sys::bgfx_program_handle_t,
 	pub lambert: bgfx_sys::bgfx_program_handle_t,
+	pub simple_pbr: bgfx_sys::bgfx_program_handle_t,
 	pub sheen_roughness: bgfx_sys::bgfx_program_handle_t,
 	pub thickness_sheen: bgfx_sys::bgfx_program_handle_t,
 	pub shadow: bgfx_sys::bgfx_program_handle_t,
@@ -1169,6 +1170,7 @@ fn importance_sample_ggx(xi: [f32; 2], roughness: f32, normal: Vec3) -> Vec3 {
 fn shader_state() -> &'static ShaderState {
 	SHADER_STATE.get_or_init(|| {
 		let unlit = create_builtin_program("vs_model3d", "fs_model3d");
+		let simple_pbr = create_builtin_program("vs_model3d", "fs_model3d_simple");
 		let sheen_roughness = create_builtin_program("vs_model3d", "fs_model3d_sheen");
 		let thickness_sheen = create_builtin_program("vs_model3d", "fs_model3d_thickness_sheen");
 		let shadow = create_builtin_program("vs_shadow_model3d", "fs_shadow_model3d");
@@ -1186,6 +1188,7 @@ fn shader_state() -> &'static ShaderState {
 			programs: ShaderPrograms {
 				unlit,
 				lambert: unlit,
+				simple_pbr,
 				sheen_roughness,
 				thickness_sheen,
 				shadow,
@@ -1332,6 +1335,7 @@ pub fn clear_shader_resources() {
 	}
 	let programs = [
 		state.programs.unlit,
+		state.programs.simple_pbr,
 		state.programs.sheen_roughness,
 		state.programs.thickness_sheen,
 		state.programs.shadow,
@@ -1406,6 +1410,9 @@ fn choose_program(
 		}
 		match material.material_type {
 			MaterialType::Unlit => state.programs.unlit,
+			MaterialType::PbrMetallicRoughness if material.uses_simple_pbr() => {
+				state.programs.simple_pbr
+			}
 			MaterialType::PbrMetallicRoughness
 				if matches!(
 					material
