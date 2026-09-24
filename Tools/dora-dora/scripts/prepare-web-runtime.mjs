@@ -3,6 +3,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
+import {forceWebRuntimeRebuild, runtimeSourceState} from './web-runtime-source.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const destination = path.join(root, 'Tools/dora-dora/public/web-player');
@@ -47,7 +48,7 @@ async function engineVersion() {
   return version;
 }
 
-async function publish(runtime, version) {
+async function publish(runtime, version, sourceState) {
   if (!hasExportFeatures(runtime)) throw new Error('Web export runtime is missing required 3D features');
   const parent = path.dirname(destination);
   await fs.mkdir(parent, {recursive: true});
@@ -64,7 +65,14 @@ async function publish(runtime, version) {
       files[name] = describe(bytes);
       await fs.writeFile(path.join(stage, name), bytes);
     }
-    await fs.writeFile(path.join(stage, 'runtime.json'), JSON.stringify({version: 1, engineVersion: version, files}));
+    await fs.writeFile(path.join(stage, 'runtime.json'), JSON.stringify({
+      version: 1,
+      engineVersion: version,
+      sourceCommit: sourceState.sourceCommit,
+      sourceFingerprint: sourceState.sourceFingerprint,
+      sourceDirty: sourceState.sourceDirty,
+      files,
+    }));
     await fs.rm(destination, {recursive: true, force: true});
     await fs.rename(stage, destination);
   } finally {
@@ -72,9 +80,12 @@ async function publish(runtime, version) {
   }
 }
 
-async function cachedRuntime() {
+async function cachedRuntime(sourceState) {
   const metadata = JSON.parse(await fs.readFile(path.join(destination, 'runtime.json'), 'utf8').catch(() => 'null'));
-  if (!metadata || !/^\d+\.\d+\.\d+$/.test(metadata.engineVersion) || !metadata.files) return null;
+  if (!metadata || !/^\d+\.\d+\.\d+$/.test(metadata.engineVersion) || !metadata.files
+    || !sourceState.sourceFingerprint || metadata.sourceCommit !== sourceState.sourceCommit
+    || metadata.sourceFingerprint !== sourceState.sourceFingerprint
+    || metadata.sourceDirty !== sourceState.sourceDirty) return null;
   const runtime = {};
   for (const name of runtimeNames) {
     const bytes = await read(path.join(destination, name));
@@ -110,17 +121,27 @@ async function prepareOverride(lockPath) {
   for (const name of runtimeNames) {
     if (!runtime[name]) throw new Error(`Web runtime override is missing: ${name}`);
   }
-  await publish(runtime, lock.engineVersion);
+  await publish(runtime, lock.engineVersion, {
+    sourceCommit: lock.sourceCommit || null,
+    sourceFingerprint: lock.sourceFingerprint || null,
+    sourceDirty: lock.sourceDirty ?? true,
+  });
   console.log('Web export runtime prepared from explicit override.');
 }
 
 if (process.env.DORA_WEB_RUNTIME_LOCK) {
   await prepareOverride(process.env.DORA_WEB_RUNTIME_LOCK);
 } else {
-  const cached = await cachedRuntime();
+  const sourceState = await runtimeSourceState(root);
+  const forced = forceWebRuntimeRebuild();
+  if (sourceState.sourceStateError) {
+    console.warn(`Web runtime source state is unavailable; cache disabled: ${sourceState.sourceStateError}`);
+  }
+  if (forced) console.log('Web export runtime rebuild explicitly requested.');
+  const cached = forced ? null : await cachedRuntime(sourceState);
   if (cached) {
     // Refresh local notices without rebuilding the engine.
-    await publish(cached.runtime, cached.engineVersion);
+    await publish(cached.runtime, cached.engineVersion, sourceState);
     console.log('Web export runtime is ready (verified local cache).');
   } else {
     console.log('Web export runtime is missing or invalid; building it from the local source tree.');
@@ -147,7 +168,7 @@ if (process.env.DORA_WEB_RUNTIME_LOCK) {
           .map(feature => [`DORA_WEB_FEATURE_${feature}`, 'ON'])),
       }});
       const runtime = Object.fromEntries(await Promise.all(runtimeNames.map(async name => [name, await fs.readFile(path.join(player, name))])));
-      await publish(runtime, await engineVersion());
+      await publish(runtime, await engineVersion(), sourceState);
       console.log('Web export runtime built from local sources.');
     } finally {
       await fs.rm(temporary, {recursive: true, force: true});

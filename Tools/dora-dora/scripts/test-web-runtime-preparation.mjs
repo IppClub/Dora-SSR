@@ -21,10 +21,22 @@ try {
   await mkdir(path.join(root, 'Projects/Web'), {recursive: true});
   await mkdir(source);
   await copyFile(new URL('./prepare-web-runtime.mjs', import.meta.url), script);
+  await copyFile(new URL('./web-runtime-source.mjs', import.meta.url), path.join(ide, 'scripts/web-runtime-source.mjs'));
   for (const name of ['LICENSE.txt', 'LICENSES.3rdparty.md', 'NOTICE.txt']) await writeFile(path.join(root, name), name);
   await writeFile(path.join(ide, 'public/logo512.png'), 'test logo');
   await writeFile(path.join(root, 'Source/Basic/Application.cpp'), '#define DORA_VERSION "1.9.3"_slice\n');
   await writeFile(path.join(root, 'Projects/Web/toolchain.env'), 'DORA_WEB_RUST_MIN_VERSION=1.85.1\n');
+  await writeFile(path.join(root, '.gitignore'), [
+    'build/',
+    'build-count',
+    'model-3d-feature',
+    'music-feature',
+    'love-feature',
+    'yue-feature',
+    'runtime-source/',
+    'local-lock.json',
+    'Tools/dora-dora/public/web-player/',
+  ].join('\n'));
 const fakeBuild = `#!/usr/bin/env bash
 set -euo pipefail
 count_file="$PWD/build-count"
@@ -45,6 +57,16 @@ for name in dora-player-runtime.js dora-player-runtime.wasm dora-player-runtime.
 done
 `;
   await writeFile(path.join(root, 'Tools/build-scripts/build_web.sh'), fakeBuild);
+  for (const args of [
+    ['init'],
+    ['config', 'user.email', 'runtime-test@example.invalid'],
+    ['config', 'user.name', 'Runtime Test'],
+    ['add', '.'],
+    ['commit', '-m', 'fixture'],
+  ]) {
+    const result = spawnSync('git', args, {cwd: root, encoding: 'utf8'});
+    assert.equal(result.status, 0, result.stderr);
+  }
   const run = env => spawnSync(process.execPath, [script], {encoding: 'utf8', env: {...process.env, ...env}});
 
   const cold = run();
@@ -61,27 +83,47 @@ done
   }
   const metadata = JSON.parse(await readFile(path.join(output, 'runtime.json'), 'utf8'));
   assert.equal(metadata.engineVersion, '1.9.3');
+  assert.match(metadata.sourceCommit, /^[0-9a-f]{40}$/);
+  assert.equal(metadata.sourceFingerprint, metadata.sourceCommit);
+  assert.equal(metadata.sourceDirty, false);
 
   const warm = run();
   assert.equal(warm.status, 0, warm.stderr);
   assert.match(warm.stdout, /verified local cache/);
   assert.equal(await readFile(path.join(root, 'build-count'), 'utf8'), '1');
 
+  // A source change must invalidate the cache even when the public version is unchanged.
+  await writeFile(path.join(root, 'Source/Basic/Application.cpp'), '#define DORA_VERSION "1.9.3"_slice\n// changed source\n');
+  const sourceChange = run();
+  assert.equal(sourceChange.status, 0, sourceChange.stderr);
+  assert.match(sourceChange.stdout, /building it from the local source tree/);
+  assert.equal(await readFile(path.join(root, 'build-count'), 'utf8'), '2');
+  const changedMetadata = JSON.parse(await readFile(path.join(output, 'runtime.json'), 'utf8'));
+  assert.equal(changedMetadata.sourceCommit, metadata.sourceCommit);
+  assert.notEqual(changedMetadata.sourceFingerprint, metadata.sourceFingerprint);
+  assert.equal(changedMetadata.sourceDirty, true);
+
+  // The explicit switch rebuilds even when the source fingerprint is unchanged.
+  const forced = run({DORA_WEB_RUNTIME_FORCE_REBUILD: '1'});
+  assert.equal(forced.status, 0, forced.stderr);
+  assert.match(forced.stdout, /rebuild explicitly requested/);
+  assert.equal(await readFile(path.join(root, 'build-count'), 'utf8'), '3');
+
   // A checksum-valid but feature-incomplete cache must be rebuilt.
   const featureName = 'dora-web-features.json';
   const incompleteFeatures = Buffer.from('{"modules":{"model3D":false,"jolt3D":false,"rustBridge":false}}');
   await writeFile(path.join(output, featureName), incompleteFeatures);
-  metadata.files[featureName] = {size: incompleteFeatures.length, sha256: createHash('sha256').update(incompleteFeatures).digest('hex')};
-  await writeFile(path.join(output, 'runtime.json'), JSON.stringify(metadata));
+  changedMetadata.files[featureName] = {size: incompleteFeatures.length, sha256: createHash('sha256').update(incompleteFeatures).digest('hex')};
+  await writeFile(path.join(output, 'runtime.json'), JSON.stringify(changedMetadata));
   const featureRepair = run();
   assert.equal(featureRepair.status, 0, featureRepair.stderr);
-  assert.equal(await readFile(path.join(root, 'build-count'), 'utf8'), '2');
+  assert.equal(await readFile(path.join(root, 'build-count'), 'utf8'), '4');
 
   // Corruption triggers a fresh local build instead of a network request.
   await writeFile(path.join(output, runtimeNames[0]), 'corrupt');
   const repair = run();
   assert.equal(repair.status, 0, repair.stderr);
-  assert.equal(await readFile(path.join(root, 'build-count'), 'utf8'), '3');
+  assert.equal(await readFile(path.join(root, 'build-count'), 'utf8'), '5');
 
   // Explicit locks remain available for reproducible local overrides.
   const lockFiles = {};

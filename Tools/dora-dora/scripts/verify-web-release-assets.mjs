@@ -2,6 +2,7 @@ import {createHash} from 'node:crypto';
 import {readFile, stat} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {runtimeSourceState} from './web-runtime-source.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const webRoot = path.resolve(process.argv[2] || path.join(root, 'Assets/www'));
@@ -17,6 +18,16 @@ for (const name of ['index.html', 'heavy-assets.json']) {
 const metadata = await loadJson(path.join(playerRoot, 'runtime.json'));
 if (metadata.version !== 1 || !/^\d+\.\d+\.\d+$/.test(metadata.engineVersion) || !metadata.files) {
 	throw new Error('Invalid Web export runtime metadata');
+}
+
+const sourceState = await runtimeSourceState(root);
+if (!sourceState.sourceFingerprint) {
+	throw new Error(`Cannot verify Web runtime source state: ${sourceState.sourceStateError || 'unknown error'}`);
+}
+if (metadata.sourceCommit !== sourceState.sourceCommit
+	|| metadata.sourceFingerprint !== sourceState.sourceFingerprint
+	|| metadata.sourceDirty !== sourceState.sourceDirty) {
+	throw new Error('Web runtime was not built from the current source state; rebuild Tools/dora-dora');
 }
 
 const required = [
@@ -50,4 +61,4 @@ if (metadata.engineVersion !== sourceVersion) {
 	throw new Error(`Web runtime engine version ${metadata.engineVersion} does not match source ${sourceVersion}`);
 }
 
-console.log(`Verified Web release assets for Dora SSR ${metadata.engineVersion}: ${required.length} runtime files`);
+console.log(`Verified Web release assets for Dora SSR ${metadata.engineVersion} at ${metadata.sourceCommit.slice(0, 12)}${metadata.sourceDirty ? ' (dirty)' : ''}: ${required.length} runtime files`);
