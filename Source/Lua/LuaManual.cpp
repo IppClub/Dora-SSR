@@ -2491,6 +2491,29 @@ tolua_lerror:
 
 /* DB */
 
+int DB_isReady(lua_State* L) {
+	DB* self = r_cast<DB*>(tolua_tousertype(L, 1, 0));
+	if (!self) return luaL_error(L, "invalid 'self' in function 'DB_isReady'");
+	lua_pushboolean(L, self->isReady() ? 1 : 0);
+	return 1;
+}
+
+int DB_getOpenError(lua_State* L) {
+	DB* self = r_cast<DB*>(tolua_tousertype(L, 1, 0));
+	if (!self) return luaL_error(L, "invalid 'self' in function 'DB_getOpenError'");
+	tolua_pushslice(L, self->getOpenError());
+	return 1;
+}
+
+int DB_recover(lua_State* L) {
+	DB* self = r_cast<DB*>(tolua_tousertype(L, 1, 0));
+	if (!self) return luaL_error(L, "invalid 'self' in function 'DB_recover'");
+	auto [success, detail] = self->recover();
+	lua_pushboolean(L, success ? 1 : 0);
+	tolua_pushslice(L, detail);
+	return 2;
+}
+
 static Own<Value> Dora_getDBValue(lua_State* L, int loc) {
 	if (!lua_isnil(L, loc)) {
 		if (lua_isinteger(L, loc)) {

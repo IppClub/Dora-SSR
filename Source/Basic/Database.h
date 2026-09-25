@@ -26,6 +26,9 @@ public:
 	PROPERTY_READONLY(Async*, Thread);
 	PROPERTY_READONLY(SQLite::Database*, Database);
 	virtual ~DB();
+	bool isReady() const noexcept;
+	const std::string& getOpenError() const noexcept;
+	std::pair<bool, std::string> recover();
 	bool existDB(String name) const;
 	bool exist(String tableName, String schema = Slice::Empty) const;
 	int exec(String sql);
@@ -56,7 +59,10 @@ protected:
 	DB();
 
 private:
+	bool open(std::string& error);
+	std::string getMainPath() const;
 	Own<SQLite::Database> _database;
+	std::string _openError;
 	Async* _thread;
 	SINGLETON_REF(DB, Application);
 };

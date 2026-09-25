@@ -20,6 +20,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "sqlite3.h"
 
 #include <array>
+#include <chrono>
 
 #ifdef SQLITECPP_ENABLE_ASSERT_HANDLER
 namespace SQLite {
@@ -175,33 +176,108 @@ void registerTextCodecs(SQLite::Database& database) {
 
 DB::DB()
 	: _thread(SharedAsyncThread.newThread()) {
+	open(_openError);
+}
+
+std::string DB::getMainPath() const {
 #if defined(DORA_WEB_MINIMAL)
-	auto dbFile = Path::concat({SharedContent.getWritablePath(), "saves/dora.db"_slice});
+	return Path::concat({SharedContent.getWritablePath(), "saves/dora.db"_slice});
 #elif BX_PLATFORM_EMSCRIPTEN
-	auto dbFile = "/idbfs/dora.db"s;
+	return "/idbfs/dora.db"s;
 #else
-	auto dbFile = Path::concat({SharedContent.getAppPath(), "dora.db"_slice});
+	return Path::concat({SharedContent.getAppPath(), "dora.db"_slice});
 #endif // BX_PLATFORM_EMSCRIPTEN
+}
+
+bool DB::open(std::string& error) {
 	try {
-		_database = New<SQLite::Database>(dbFile,
+		_database = New<SQLite::Database>(getMainPath(),
 			SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE | SQLite::OPEN_NOMUTEX);
-	} catch (std::exception&) {
-		if (SharedContent.exist(dbFile)) {
-			SharedContent.remove(dbFile);
-		}
-		try {
-			_database = New<SQLite::Database>(dbFile,
-				SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE | SQLite::OPEN_NOMUTEX);
-		} catch (std::exception& e) {
-			Dora::LogError(
-				fmt::format("[Dora Error] failed to open database: {}\n", e.what()));
-			std::abort();
-		}
+		registerTextCodecs(*_database);
+		error.clear();
+		return true;
+	} catch (std::exception& e) {
+		_database.reset();
+		error = e.what();
+		Dora::LogError(fmt::format("[Dora Error] failed to open database: {}\n", error));
+		return false;
 	}
-	registerTextCodecs(*_database);
 }
 
 DB::~DB() { }
+
+bool DB::isReady() const noexcept {
+	return _database != nullptr;
+}
+
+const std::string& DB::getOpenError() const noexcept {
+	return _openError;
+}
+
+std::pair<bool, std::string> DB::recover() {
+	std::pair<bool, std::string> result;
+	_thread->runInMainSync([&]() {
+		const auto dbFile = getMainPath();
+		const auto dbDir = Path::getPath(dbFile);
+		_database.reset();
+
+		std::vector<std::pair<std::string, std::string>> movedFiles;
+		std::vector<std::string> databaseFiles;
+		for (const auto& name : {"dora.db"s, "dora.db-wal"s, "dora.db-shm"s}) {
+			auto path = Path::concat({dbDir, name});
+			if (SharedContent.exist(path)) databaseFiles.push_back(std::move(path));
+		}
+		if (!databaseFiles.empty()) {
+			const auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+				std::chrono::system_clock::now().time_since_epoch())
+					.count();
+			auto backupDir = Path::concat({dbDir, "Recovery"_slice, fmt::format("dora-db-{}", timestamp)});
+			for (int suffix = 1; SharedContent.exist(backupDir); ++suffix) {
+				backupDir = Path::concat({dbDir, "Recovery"_slice, fmt::format("dora-db-{}-{}", timestamp, suffix)});
+			}
+			if (!SharedContent.createFolder(backupDir) && !SharedContent.exist(backupDir)) {
+				_openError = fmt::format("failed to create database backup folder: {}", backupDir);
+				result = {false, _openError};
+				return;
+			}
+			for (auto& source : databaseFiles) {
+				auto target = Path::concat({backupDir, Path::getFilename(source)});
+				if (!SharedContent.move(source, target)) {
+					for (auto it = movedFiles.rbegin(); it != movedFiles.rend(); ++it) {
+						SharedContent.move(it->second, it->first);
+					}
+					auto recoveryError = fmt::format("failed to back up database file: {}", source);
+					std::string reopenError;
+					open(reopenError);
+					_openError = reopenError.empty() ? recoveryError : fmt::format("{}; failed to reopen original database: {}", recoveryError, reopenError);
+					result = {false, _openError};
+					return;
+				}
+				movedFiles.emplace_back(std::move(source), std::move(target));
+			}
+			result.second = backupDir;
+		}
+
+		std::string error;
+		if (open(error)) {
+			_openError.clear();
+			result.first = true;
+			return;
+		}
+
+		for (const auto& name : {"dora.db"s, "dora.db-wal"s, "dora.db-shm"s}) {
+			auto path = Path::concat({dbDir, name});
+			if (SharedContent.exist(path)) SharedContent.remove(path);
+		}
+		for (auto it = movedFiles.rbegin(); it != movedFiles.rend(); ++it) {
+			SharedContent.move(it->second, it->first);
+		}
+		open(_openError);
+		if (_openError.empty()) _openError = error;
+		result = {false, _openError};
+	});
+	return result;
+}
 
 Async* DB::getThread() const noexcept {
 	return _thread;
@@ -213,7 +289,7 @@ SQLite::Database* DB::getDatabase() const noexcept {
 
 bool DB::existDBUnsafe(SQLite::Database* db, String name) {
 	bool existed = false;
-	if (!name.empty()) {
+	if (db && !name.empty()) {
 		try {
 			SQLite::Statement statement(*db, fmt::format("SELECT EXISTS(SELECT 1 FROM pragma_database_list WHERE name = ?)", name.toString()));
 			statement.bind(1, name.toString());
@@ -240,6 +316,7 @@ bool DB::existDB(String name) const {
 bool DB::exist(String tableName, String schema) const {
 	bool existed = false;
 	_thread->runInMainSync([&]() {
+		if (!_database) return;
 		if (!schema.empty() && !existDBUnsafe(_database.get(), schema)) {
 			return;
 		}
@@ -311,6 +388,7 @@ bool DB::transaction(const std::function<void(SQLite::Database*)>& sqls) {
 }
 
 bool DB::transactionUnsafe(SQLite::Database* db, const std::function<void(SQLite::Database*)>& sqls) {
+	if (!db) return false;
 	try {
 		SQLite::Transaction transaction(*db);
 		sqls(db);
@@ -325,6 +403,7 @@ bool DB::transactionUnsafe(SQLite::Database* db, const std::function<void(SQLite
 void DB::transactionAsync(const std::function<void(SQLite::Database*)>& sqls, const std::function<void(bool)>& callback) {
 	_thread->run(
 		[sqls, this]() {
+			if (!_database) return Values::alloc(false);
 			try {
 				SQLite::Transaction transaction(*_database);
 				sqls(_database.get());
@@ -371,6 +450,7 @@ std::optional<DB::Rows> DB::query(String sql, const std::vector<Own<Value>>& arg
 }
 
 DB::Rows DB::queryUnsafe(SQLite::Database* db, String sql, const std::vector<Own<Value>>& args, bool withColumns) {
+	if (!db) throw std::runtime_error("database is not ready");
 	Rows result;
 	SQLite::Statement statement(*db, sql.toString());
 	bindValues(statement, args);
@@ -402,6 +482,7 @@ DB::Rows DB::queryUnsafe(SQLite::Database* db, String sql, const std::vector<Own
 }
 
 void DB::insertUnsafe(SQLite::Database* db, String tableName, const std::deque<std::vector<Own<Value>>>& rows) {
+	if (!db) throw std::runtime_error("database is not ready");
 	if (rows.empty() || rows.front().empty()) return;
 	std::string valueHolder;
 	for (size_t i = 0; i < rows.front().size(); i++) {
@@ -418,17 +499,20 @@ void DB::insertUnsafe(SQLite::Database* db, String tableName, const std::deque<s
 }
 
 int DB::execUnsafe(SQLite::Database* db, String sql) {
+	if (!db) throw std::runtime_error("database is not ready");
 	SQLite::Statement statement(*db, sql.toString());
 	return statement.exec();
 }
 
 int DB::execUnsafe(SQLite::Database* db, String sql, const std::vector<Own<Value>>& args) {
+	if (!db) throw std::runtime_error("database is not ready");
 	SQLite::Statement statement(*db, sql.toString());
 	bindValues(statement, args);
 	return statement.exec();
 }
 
 int DB::execUnsafe(SQLite::Database* db, String sql, const std::deque<std::vector<Own<Value>>>& rows) {
+	if (!db) throw std::runtime_error("database is not ready");
 	SQLite::Statement statement(*db, sql.toString());
 	if (rows.empty()) {
 		return statement.exec();

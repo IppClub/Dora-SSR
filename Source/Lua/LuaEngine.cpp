@@ -1606,6 +1606,9 @@ LuaEngine::LuaEngine()
 	tolua_function(L, "intersectsSegment", DragonBone_intersectsSegment);
 	tolua_endmodule(L);
 	tolua_beginmodule(L, "DB");
+	tolua_function(L, "isReady", DB_isReady);
+	tolua_function(L, "getOpenError", DB_getOpenError);
+	tolua_function(L, "recover", DB_recover);
 	tolua_function(L, "transaction", DB_transaction);
 	tolua_function(L, "transactionAsync", DB_transactionAsync);
 	tolua_function(L, "query", DB_query);
@@ -1825,6 +1828,9 @@ LuaEngine::LuaEngine()
 
 		tolua_beginmodule(L, "DB");
 		{
+			tolua_function(L, "isReady", DB_isReady);
+			tolua_function(L, "getOpenError", DB_getOpenError);
+			tolua_function(L, "recover", DB_recover);
 			tolua_function(L, "transaction", DB_transaction);
 			tolua_function(L, "transactionAsync", DB_transactionAsync);
 			tolua_function(L, "query", DB_query);

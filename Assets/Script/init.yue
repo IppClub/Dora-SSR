@@ -15,4 +15,13 @@ with Content
 		* Path .assetPath, "Script", "Lib"
 		* Path .assetPath, "Script", "Lib", "Dora", App.locale\match("^zh") and "zh-Hans" or "en"
 
+bootstrap = require "Script.Dev.Bootstrap"
+status = bootstrap.check!
+unless status.ok
+	recovery = require "Script.Dev.Recovery"
+	ok, reason = recovery.recover status
+	error "failed to initialize Dora database: #{reason}" unless ok
+	status = bootstrap.check!
+	error "failed to initialize Dora database after recovery" unless status.ok
+
 require "Script.Dev.Entry"
