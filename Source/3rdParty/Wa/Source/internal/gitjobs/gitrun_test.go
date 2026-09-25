@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
@@ -144,6 +146,114 @@ func TestWaitGitDataWithContextReturnsOnCancel(t *testing.T) {
 		t.Fatal("status wrapper did not release the Git worker after cancellation")
 	}
 	close(release)
+}
+
+func TestPullRepairsDetachedTagClone(t *testing.T) {
+	remotePath := t.TempDir()
+	remote, err := git.PlainInit(remotePath, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	worktree, err := remote.Worktree()
+	if err != nil {
+		t.Fatal(err)
+	}
+	commit := func(value string, timestamp int64) plumbing.Hash {
+		t.Helper()
+		if err := os.WriteFile(filepath.Join(remotePath, "game.txt"), []byte(value), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := worktree.Add("game.txt"); err != nil {
+			t.Fatal(err)
+		}
+		hash, err := worktree.Commit(value, &git.CommitOptions{Author: &object.Signature{
+			Name: "Dora", Email: "dora@example.com", When: time.Unix(timestamp, 0),
+		}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return hash
+	}
+	releaseHash := commit("release\n", 1)
+	if _, err := remote.CreateTag("v1.0.0", releaseHash, nil); err != nil {
+		t.Fatal(err)
+	}
+	latestHash := commit("latest\n", 2)
+
+	clonePath := filepath.Join(t.TempDir(), "tag-clone")
+	cloned, err := git.PlainClone(clonePath, false, &git.CloneOptions{
+		URL:           remotePath,
+		Depth:         1,
+		ReferenceName: plumbing.NewTagReferenceName("v1.0.0"),
+		SingleBranch:  true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if branch := currentBranchName(cloned); branch != "" {
+		t.Fatalf("expected detached tag clone, got branch %q", branch)
+	}
+	shallow, err := cloned.Storer.Shallow()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(shallow) == 0 {
+		t.Fatal("expected tag clone to be shallow")
+	}
+	metadataPath := filepath.Join(clonePath, ".dora", "resource-state.json")
+	if err := os.MkdirAll(filepath.Dir(metadataPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(metadataPath, []byte("resource metadata\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	j := &job{
+		ctx:   context.Background(),
+		state: StateRunning,
+		req: cloneRequest{cmd: commandRequest{
+			repoPath: clonePath,
+			parsed:   gitCommand{op: "pull", remote: "origin"},
+		}},
+	}
+	if _, err := execPull(j.ctx, j, j.req.cmd.parsed); err != nil {
+		t.Fatal(err)
+	}
+	repaired, err := git.PlainOpen(clonePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if branch := currentBranchName(repaired); branch != "master" {
+		t.Fatalf("expected repaired master branch, got %q", branch)
+	}
+	head, err := repaired.Head()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if head.Hash() != latestHash {
+		t.Fatalf("expected pull to advance to %s, got %s", latestHash, head.Hash())
+	}
+	if metadata, err := os.ReadFile(metadataPath); err != nil || string(metadata) != "resource metadata\n" {
+		t.Fatalf("resource metadata was not preserved: %q, %v", metadata, err)
+	}
+	cfg, err := repaired.Config()
+	if err != nil {
+		t.Fatal(err)
+	}
+	branchCfg := cfg.Branches["master"]
+	if branchCfg == nil || branchCfg.Remote != "origin" || branchCfg.Merge != plumbing.NewBranchReferenceName("master") {
+		t.Fatalf("unexpected repaired branch config: %#v", branchCfg)
+	}
+	expectedFetch := config.RefSpec("+refs/heads/*:refs/remotes/origin/*")
+	foundFetch := false
+	for _, spec := range cfg.Remotes["origin"].Fetch {
+		if spec == expectedFetch {
+			foundFetch = true
+		}
+	}
+	if !foundFetch {
+		t.Fatalf("branch fetch refspec was not restored: %#v", cfg.Remotes["origin"].Fetch)
+	}
 }
 
 func BenchmarkExecLogDataModes(b *testing.B) {

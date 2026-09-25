@@ -1484,7 +1484,7 @@ export default function GitPanel(props: GitPanelProps) {
 					name: "branch",
 					label: t("git.remoteBranch"),
 					value: defaultBranch,
-					required: true,
+					required: kind === "push",
 					options: values => remoteBranchNames(String(values.remote ?? "")),
 				},
 				...(kind === "push" ? [
@@ -1497,14 +1497,14 @@ export default function GitPanel(props: GitPanelProps) {
 			onSubmit: values => {
 				const remote = String(values.remote ?? "").trim();
 				const branch = String(values.branch ?? "").trim();
-				if (!remote || !branch) return;
+				if (!remote || (kind === "push" && !branch)) return;
 				const setUpstream = kind === "push" && values.setUpstream === true;
 				const force = values.force === true;
 				const options = [
 					setUpstream ? "-u" : "",
 					force ? "-f" : "",
 				].filter(Boolean).join(" ");
-				const command = `${kind}${options ? ` ${options}` : ""} ${quoteArg(remote)} ${quoteArg(branch)}`;
+				const command = `${kind}${options ? ` ${options}` : ""} ${quoteArg(remote)}${branch ? ` ${quoteArg(branch)}` : ""}`;
 				if (force) {
 					const forceTitle = kind === "push" ? t("git.forcePush") : t("git.forcePull");
 					openConfirmDialog({

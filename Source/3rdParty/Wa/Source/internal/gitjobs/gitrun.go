@@ -1186,6 +1186,24 @@ func execPull(ctx context.Context, j *job, cmd gitCommand) (map[string]any, erro
 	if err != nil {
 		return nil, err
 	}
+	detached := currentBranchName(repo) == ""
+	if detached {
+		branch := cmd.branch
+		if branch == "" {
+			branch, err = remoteDefaultBranch(ctx, repo, cmd.remote, authMethod(j.req.cmd.options))
+			if err != nil {
+				return nil, err
+			}
+		}
+		if err := attachDetachedPullBranch(repo, cmd.remote, branch); err != nil {
+			return nil, err
+		}
+		cmd.branch = branch
+	}
+	restoreResourceMetadata, err := preserveResourceMetadata(j.req.cmd.repoPath, detached)
+	if err != nil {
+		return nil, err
+	}
 	dehydrated, err := dehydrateCleanLFSFiles(j.req.cmd.repoPath)
 	if err != nil {
 		return nil, err
@@ -1202,16 +1220,21 @@ func execPull(ctx context.Context, j *job, cmd gitCommand) (map[string]any, erro
 		Progress:   progressWriter{job: j},
 		Auth:       authMethod(j.req.cmd.options),
 	}
-	depth, err := fetchDepth(repo, cmd.depth)
-	if err != nil {
-		return nil, err
+	if !detached {
+		depth, err := fetchDepth(repo, cmd.depth)
+		if err != nil {
+			return nil, err
+		}
+		opts.Depth = depth
 	}
-	opts.Depth = depth
 	if cmd.branch != "" {
 		opts.ReferenceName = plumbingBranch(cmd.branch)
 		opts.SingleBranch = true
 	}
 	err = worktree.PullContext(ctx, opts)
+	if restoreErr := restoreResourceMetadata(); restoreErr != nil {
+		return nil, restoreErr
+	}
 	if errors.Is(err, git.NoErrAlreadyUpToDate) {
 		lfsData, lfsErr := fetchLFS(ctx, j, j.req.cmd.repoPath, cmd.remote, true, false)
 		applied = lfsErr == nil
@@ -1223,6 +1246,138 @@ func execPull(ctx context.Context, j *job, cmd gitCommand) (map[string]any, erro
 	applied = true
 	lfsData, err := fetchLFS(ctx, j, j.req.cmd.repoPath, cmd.remote, true, false)
 	return map[string]any{"lfs": lfsData}, err
+}
+
+type preservedResourceMetadata struct {
+	path string
+	data []byte
+	mode os.FileMode
+}
+
+func preserveResourceMetadata(repoPath string, enabled bool) (func() error, error) {
+	if !enabled {
+		return func() error { return nil }, nil
+	}
+	doraPath := filepath.Join(repoPath, ".dora")
+	files := make([]preservedResourceMetadata, 0, 3)
+	for _, name := range []string{"resource-state.json", "repo.json", "banner.jpg"} {
+		path := filepath.Join(doraPath, name)
+		info, err := os.Stat(path)
+		if os.IsNotExist(err) {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		if !info.Mode().IsRegular() {
+			continue
+		}
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, preservedResourceMetadata{path: path, data: data, mode: info.Mode()})
+	}
+	return func() error {
+		if len(files) == 0 {
+			return nil
+		}
+		if err := os.MkdirAll(doraPath, 0o755); err != nil {
+			return err
+		}
+		for _, file := range files {
+			if err := os.WriteFile(file.path, file.data, file.mode.Perm()); err != nil {
+				return err
+			}
+		}
+		return nil
+	}, nil
+}
+
+func remoteDefaultBranch(ctx context.Context, repo *git.Repository, remoteName string, auth transport.AuthMethod) (string, error) {
+	remote, err := repo.Remote(remoteName)
+	if err != nil {
+		return "", err
+	}
+	refs, err := remote.ListContext(ctx, &git.ListOptions{Auth: auth})
+	if err != nil {
+		return "", err
+	}
+	heads := make([]string, 0)
+	for _, ref := range refs {
+		if ref.Name() == plumbing.HEAD && ref.Target().IsBranch() {
+			return ref.Target().Short(), nil
+		}
+		if ref.Name().IsBranch() {
+			heads = append(heads, ref.Name().Short())
+		}
+	}
+	for _, preferred := range []string{"main", "master"} {
+		for _, branch := range heads {
+			if branch == preferred {
+				return branch, nil
+			}
+		}
+	}
+	if len(heads) == 1 {
+		return heads[0], nil
+	}
+	return "", fmt.Errorf("remote %q did not advertise a default branch; select a branch explicitly", remoteName)
+}
+
+func attachDetachedPullBranch(repo *git.Repository, remoteName, branch string) error {
+	branchRef := plumbingBranch(branch)
+	if !branchRef.IsBranch() {
+		return fmt.Errorf("pull target %q is not a branch", branch)
+	}
+	if err := branchRef.Validate(); err != nil {
+		return err
+	}
+	head, err := repo.Head()
+	if err != nil {
+		return err
+	}
+	if existing, err := repo.Reference(branchRef, false); err == nil {
+		if existing.Hash() != head.Hash() {
+			return fmt.Errorf("cannot attach detached HEAD to existing branch %q at a different commit", branch)
+		}
+	} else if !errors.Is(err, plumbing.ErrReferenceNotFound) {
+		return err
+	} else if err := repo.Storer.SetReference(plumbing.NewHashReference(branchRef, head.Hash())); err != nil {
+		return err
+	}
+
+	cfg, err := repo.Config()
+	if err != nil {
+		return err
+	}
+	remoteCfg, ok := cfg.Remotes[remoteName]
+	if !ok {
+		return fmt.Errorf("remote %q not found", remoteName)
+	}
+	branchFetch := config.RefSpec(fmt.Sprintf("+refs/heads/*:refs/remotes/%s/*", remoteName))
+	hasBranchFetch := false
+	for _, spec := range remoteCfg.Fetch {
+		if spec == branchFetch {
+			hasBranchFetch = true
+			break
+		}
+	}
+	if !hasBranchFetch {
+		remoteCfg.Fetch = append(remoteCfg.Fetch, branchFetch)
+	}
+	if cfg.Branches == nil {
+		cfg.Branches = make(map[string]*config.Branch)
+	}
+	cfg.Branches[branch] = &config.Branch{
+		Name:   branch,
+		Remote: remoteName,
+		Merge:  branchRef,
+	}
+	if err := repo.SetConfig(cfg); err != nil {
+		return err
+	}
+	return repo.Storer.SetReference(plumbing.NewSymbolicReference(plumbing.HEAD, branchRef))
 }
 
 func execFetch(ctx context.Context, j *job, cmd gitCommand) (map[string]any, error) {
