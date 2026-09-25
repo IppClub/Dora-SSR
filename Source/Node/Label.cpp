@@ -47,6 +47,29 @@ static Vec2 GetSDFSmoothing(float fontScale) {
 	return {edge - softness, edge + softness};
 }
 
+namespace {
+
+constexpr float MaxSDFOutlineWidth = 0.25f;
+constexpr float MinSDFSmoothingGap = 0.001f;
+
+float ClampSDFOutlineWidth(float width) {
+	if (!std::isfinite(width)) return 0.0f;
+	return Math::clamp(width, 0.0f, MaxSDFOutlineWidth);
+}
+
+Vec2 ClampSDFSmoothing(Vec2 smoothing, const Vec2& fallback) {
+	float lower = std::isfinite(smoothing.x) ? Math::clamp(smoothing.x, 0.0f, 1.0f) : fallback.x;
+	float upper = std::isfinite(smoothing.y) ? Math::clamp(smoothing.y, 0.0f, 1.0f) : fallback.y;
+	if (lower > upper) std::swap(lower, upper);
+	if (upper - lower < MinSDFSmoothingGap) {
+		lower = Math::clamp((lower + upper - MinSDFSmoothingGap) * 0.5f, 0.0f, 1.0f - MinSDFSmoothingGap);
+		upper = lower + MinSDFSmoothingGap;
+	}
+	return {lower, upper};
+}
+
+} // namespace
+
 Label::Label(String fontName, uint32_t fontSize, bool sdf)
 	: _alphaRef(0)
 	, _spacing(0)
@@ -238,7 +261,7 @@ Color Label::getOutlineColor() const noexcept {
 }
 
 void Label::setOutlineWidth(float var) {
-	_outlineWidth = var;
+	_outlineWidth = ClampSDFOutlineWidth(var);
 }
 
 float Label::getOutlineWidth() const noexcept {
@@ -246,7 +269,7 @@ float Label::getOutlineWidth() const noexcept {
 }
 
 void Label::setSmooth(Vec2 var) {
-	_smooth = var;
+	_smooth = ClampSDFSmoothing(var, GetSDFSmoothing(_fontScale));
 	_flags.setOff(Label::SDFSmoothingAuto);
 }
 
@@ -746,7 +769,10 @@ void Label::render() {
 				float worldScale = std::sqrt(std::abs(world.m[0] * world.m[5] - world.m[1] * world.m[4]));
 				smoothing = GetSDFSmoothing(_fontScale * worldScale);
 			}
-			passes.front()->set("u_smooth"sv, smoothing.x, smoothing.y, _outlineWidth, 0.0f);
+			// Keep the outline inside the supported range and its lower threshold.
+			// Otherwise the outline can cover the whole glyph quad.
+			float outlineWidth = std::min(_outlineWidth, std::max(0.0f, smoothing.x - MinSDFSmoothingGap));
+			passes.front()->set("u_smooth"sv, smoothing.x, smoothing.y, outlineWidth, 0.0f);
 			passes.front()->set("u_outlineColor"sv, _outlineColor);
 		}
 	}

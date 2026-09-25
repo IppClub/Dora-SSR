@@ -109,19 +109,19 @@ impl Label {
 	pub fn get_outline_color(&self) -> crate::dora::Color {
 		return unsafe { crate::dora::Color::from(label_get_outline_color(self.raw())) };
 	}
-	/// Sets the width of the outline, only works with SDF label.
+	/// Sets the outline width in normalized SDF distance units, not pixels. A typical visible outline uses 0.12 to 0.18; values are clamped to 0 to 0.25.
 	pub fn set_outline_width(&mut self, val: f32) {
 		unsafe { label_set_outline_width(self.raw(), val) };
 	}
-	/// Gets the width of the outline, only works with SDF label.
+	/// Gets the outline width in normalized SDF distance units, not pixels.
 	pub fn get_outline_width(&self) -> f32 {
 		return unsafe { label_get_outline_width(self.raw()) };
 	}
-	/// Sets the smooth value of the text, only works with SDF label, default is (0.7, 0.7).
+	/// Sets the lower and upper normalized SDF thresholds. Components are clamped to 0 to 1 and kept in ascending order; values around 0.5 to 0.8 are recommended.
 	pub fn set_smooth(&mut self, val: &crate::dora::Vec2) {
 		unsafe { label_set_smooth(self.raw(), val.into_i64()) };
 	}
-	/// Gets the smooth value of the text, only works with SDF label, default is (0.7, 0.7).
+	/// Gets the lower and upper normalized SDF thresholds used to smooth the text edge.
 	pub fn get_smooth(&self) -> crate::dora::Vec2 {
 		return unsafe { crate::dora::Vec2::from(label_get_smooth(self.raw())) };
 	}

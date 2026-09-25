@@ -837,17 +837,18 @@ class Label extends Node {
 	outlineColor?: number;
 
 	/**
-	 * 描边宽度，仅适用于SDF标签。
+	 * 描边宽度使用归一化的 SDF 距离单位，并非像素。仅适用于 SDF 标签。
+	 * 常用的清晰描边范围为 0.12 到 0.18；程序会将其限制在受支持的 0 到 0.25 范围内。
 	 */
 	outlineWidth?: number;
 
 	/**
-	 * 文本的 lower 平滑值，仅适用于SDF标签，默认是 0.7。
+	 * 归一化的 SDF 平滑下限。程序会将其限制在 0 到 1；建议使用 0.5 到 0.8 附近的值。
 	 */
 	smoothLower?: number;
 
 	/**
-	 * 文本的 upper 平滑值，仅适用于SDF标签，默认是 0.7。
+	 * 归一化的 SDF 平滑上限。程序会将其限制在 0 到 1 并保证高于 `smoothLower`；建议使用 0.5 到 0.8 附近的值。
 	 */
 	smoothUpper?: number;
 

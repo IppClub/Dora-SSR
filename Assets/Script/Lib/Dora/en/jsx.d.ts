@@ -832,17 +832,18 @@ class Label extends Node {
 	outlineColor?: number;
 
 	/**
-	 * The width of the outline, only works with SDF label.
+	 * The outline width in normalized SDF distance units, not pixels. Only works with SDF labels.
+	 * A typical visible outline uses 0.12 to 0.18. Values are clamped to the supported range of 0 to 0.25.
 	 */
 	outlineWidth?: number;
 
 	/**
-	 * The smooth lower value of the text, only works with SDF label, default is 0.7.
+	 * The normalized lower SDF threshold. Values are clamped to 0 to 1; values around 0.5 to 0.8 are recommended.
 	 */
 	smoothLower?: number;
 
 	/**
-	 * The smooth upper value of the text, only works with SDF label, default is 0.7.
+	 * The normalized upper SDF threshold. Values are clamped to 0 to 1 and kept above `smoothLower`; values around 0.5 to 0.8 are recommended.
 	 */
 	smoothUpper?: number;
 

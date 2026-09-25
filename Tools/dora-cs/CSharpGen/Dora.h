@@ -2436,11 +2436,14 @@ object class Label : public Node
 	/// </summary>
 	common Color outlineColor;
 	/// <summary>
-	/// The width of the outline, only works with SDF label.
+	/// The outline width in normalized SDF distance units, not pixels. Only works with SDF labels.
+	/// A typical visible outline uses 0.12 to 0.18. Values are clamped to the supported range of 0 to 0.25.
 	/// </summary>
 	common float outlineWidth;
 	/// <summary>
-	/// The smooth value of the text, only works with SDF label, default is (0.7, 0.7).
+	/// The lower and upper normalized SDF thresholds used to smooth the text edge.
+	/// Each component is clamped to 0 to 1 and the lower value is kept below the upper value.
+	/// Automatic smoothing is used by default; for manual tuning, values around 0.5 to 0.8 are recommended.
 	/// </summary>
 	common Vec2 smooth;
 	/// <summary>

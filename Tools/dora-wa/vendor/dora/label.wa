@@ -193,22 +193,22 @@ func Label.GetOutlineColor() => Color {
 	return NewColor(label_get_outline_color(*this.raw))
 }
 
-/// Sets the width of the outline, only works with SDF label.
+/// Sets the outline width in normalized SDF distance units, not pixels. A typical visible outline uses 0.12 to 0.18; values are clamped to 0 to 0.25.
 func Label.SetOutlineWidth(val: f32) {
 	label_set_outline_width(*this.raw, val)
 }
 
-/// Gets the width of the outline, only works with SDF label.
+/// Gets the outline width in normalized SDF distance units, not pixels.
 func Label.GetOutlineWidth() => f32 {
 	return label_get_outline_width(*this.raw)
 }
 
-/// Sets the smooth value of the text, only works with SDF label, default is (0.7, 0.7).
+/// Sets the lower and upper normalized SDF thresholds. Components are clamped to 0 to 1 and kept in ascending order; values around 0.5 to 0.8 are recommended.
 func Label.SetSmooth(val: Vec2) {
 	label_set_smooth(*this.raw, val.ToValue())
 }
 
-/// Gets the smooth value of the text, only works with SDF label, default is (0.7, 0.7).
+/// Gets the lower and upper normalized SDF thresholds used to smooth the text edge.
 func Label.GetSmooth() => Vec2 {
 	return Vec2FromValue(label_get_smooth(*this.raw))
 }
