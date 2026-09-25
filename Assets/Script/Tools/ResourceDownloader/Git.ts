@@ -7,6 +7,7 @@ export interface GitOperationStatus {
 	kind: string;
 	repoPath: string;
 	progress: number;
+	transferredBytes?: number;
 	message?: string;
 	error?: string;
 	data?: Record<string, unknown>;
@@ -40,6 +41,8 @@ export const runGit = (
 		const timeout = options.timeout ?? 1200;
 		let currentStatus: GitOperationStatus | undefined;
 		let settled = false;
+		let cancelRequested = false;
+		let timedOut = false;
 		let jobId = 0;
 		const finish = (result: GitOperationResult) => {
 			if (settled) return;
@@ -56,8 +59,8 @@ export const runGit = (
 				finish({
 					success: false,
 					status: currentStatus,
-					message: currentStatus.error ?? currentStatus.message ?? "Git operation failed",
-					canceled: currentStatus.state === "canceled",
+					message: timedOut ? "Git operation timed out" : (currentStatus.error ?? currentStatus.message ?? "Git operation failed"),
+					canceled: !timedOut && currentStatus.state === "canceled",
 				});
 				return true;
 			}
@@ -79,16 +82,15 @@ export const runGit = (
 		const startedAt = os.time();
 		Director.systemScheduler.schedule(() => {
 			if (settled) return true;
-			if (options.isCanceled && options.isCanceled()) {
+			if (!cancelRequested && options.isCanceled && options.isCanceled()) {
+				cancelRequested = true;
 				Git.cancel(jobId);
-				finish({ success: false, status: currentStatus, message: "Git operation canceled", canceled: true });
-				return true;
 			}
 			if (consumeTerminalStatus()) return true;
-			if (os.time() - startedAt >= timeout) {
+			if (!cancelRequested && os.time() - startedAt >= timeout) {
+				cancelRequested = true;
+				timedOut = true;
 				Git.cancel(jobId);
-				finish({ success: false, status: currentStatus, message: "Git operation timed out" });
-				return true;
 			}
 			return false;
 		});

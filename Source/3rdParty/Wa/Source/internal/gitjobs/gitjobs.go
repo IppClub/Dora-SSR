@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -31,16 +32,17 @@ const (
 )
 
 type pollResult struct {
-	ID        int64   `json:"id"`
-	State     State   `json:"state"`
-	Kind      string  `json:"kind"`
-	RepoPath  string  `json:"repoPath"`
-	StartedAt string  `json:"startedAt,omitempty"`
-	EndedAt   string  `json:"endedAt,omitempty"`
-	Progress  float64 `json:"progress"`
-	Message   string  `json:"message,omitempty"`
-	Error     string  `json:"error,omitempty"`
-	Data      any     `json:"data,omitempty"`
+	ID               int64   `json:"id"`
+	State            State   `json:"state"`
+	Kind             string  `json:"kind"`
+	RepoPath         string  `json:"repoPath"`
+	StartedAt        string  `json:"startedAt,omitempty"`
+	EndedAt          string  `json:"endedAt,omitempty"`
+	Progress         float64 `json:"progress"`
+	TransferredBytes int64   `json:"transferredBytes,omitempty"`
+	Message          string  `json:"message,omitempty"`
+	Error            string  `json:"error,omitempty"`
+	Data             any     `json:"data,omitempty"`
 }
 
 type cloneRequest struct {
@@ -61,14 +63,16 @@ type job struct {
 	cancel   context.CancelFunc
 	req      cloneRequest
 
-	mu        sync.Mutex
-	state     State
-	startedAt time.Time
-	endedAt   time.Time
-	progress  float64
-	message   string
-	err       string
-	data      map[string]any
+	mu               sync.Mutex
+	state            State
+	startedAt        time.Time
+	endedAt          time.Time
+	progress         float64
+	transferPath     string
+	transferredBytes int64
+	message          string
+	err              string
+	data             map[string]any
 }
 
 type progressWriter struct {
@@ -247,6 +251,7 @@ func runClone(j *job) {
 		j.setError(err)
 		return
 	}
+	j.setTransferPath(j.req.path)
 
 	opts := &git.CloneOptions{
 		URL:   j.req.url,
@@ -393,6 +398,47 @@ func (j *job) setProgress(progress float64, message string) {
 	}
 }
 
+func (j *job) setTransferPath(path string) {
+	j.mu.Lock()
+	j.transferPath = path
+	j.mu.Unlock()
+}
+
+func (j *job) refreshTransferredBytes() int64 {
+	j.mu.Lock()
+	path := j.transferPath
+	current := j.transferredBytes
+	j.mu.Unlock()
+	if path == "" {
+		return current
+	}
+	entries, err := os.ReadDir(filepath.Join(path, ".git", "objects", "pack"))
+	if err != nil {
+		return current
+	}
+	var total int64
+	for _, entry := range entries {
+		if entry.IsDir() || (!strings.HasPrefix(entry.Name(), "tmp_pack_") && filepath.Ext(entry.Name()) != ".pack") {
+			continue
+		}
+		if info, statErr := entry.Info(); statErr == nil {
+			total += info.Size()
+		}
+	}
+	j.setTransferredBytes(total)
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	return j.transferredBytes
+}
+
+func (j *job) setTransferredBytes(bytes int64) {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	if bytes > j.transferredBytes {
+		j.transferredBytes = bytes
+	}
+}
+
 func (j *job) setDone(message string) {
 	j.mu.Lock()
 	defer j.mu.Unlock()
@@ -437,17 +483,21 @@ func (j *job) setResult(data map[string]any) {
 }
 
 func (j *job) snapshot() string {
+	if j.kind == "clone" {
+		j.refreshTransferredBytes()
+	}
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	result := pollResult{
-		ID:       j.id,
-		State:    j.state,
-		Kind:     j.kind,
-		RepoPath: j.repoPath,
-		Progress: j.progress,
-		Message:  j.message,
-		Error:    j.err,
-		Data:     j.data,
+		ID:               j.id,
+		State:            j.state,
+		Kind:             j.kind,
+		RepoPath:         j.repoPath,
+		Progress:         j.progress,
+		TransferredBytes: j.transferredBytes,
+		Message:          j.message,
+		Error:            j.err,
+		Data:             j.data,
 	}
 	if !j.startedAt.IsZero() {
 		result.StartedAt = j.startedAt.Format(time.RFC3339)

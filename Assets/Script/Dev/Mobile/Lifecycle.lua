@@ -67,7 +67,7 @@ local function reserveRecoveryPath(resourceId) -- 51
 	end -- 58
 	return recoveryPath -- 60
 end -- 51
-____exports.prepareMobileResource = function(resource, catalogCommit, onProgress, onDone, repairIncomplete) -- 63
+____exports.prepareMobileResource = function(resource, catalogCommit, onProgress, onDone, repairIncomplete, isCanceled) -- 63
 	if repairIncomplete == nil then -- 63
 		repairIncomplete = false -- 68
 	end -- 68
@@ -107,7 +107,8 @@ ____exports.prepareMobileResource = function(resource, catalogCommit, onProgress
 				version, -- 98
 				{ -- 98
 					catalogCommit = catalogCommit, -- 99
-					onProgress = function(____, item) return onProgress(item.progress, item.message) end -- 100
+					onProgress = function(____, item) return onProgress(item.progress, item.message, item.transferredBytes) end, -- 100
+					isCanceled = isCanceled -- 101
 				} -- 100
 			)) -- 100
 			if not result.success then -- 100

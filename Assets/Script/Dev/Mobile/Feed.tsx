@@ -29,7 +29,7 @@ interface MobileFeedOptions {
 	onCurrentEntryChanged?: (this: void, entry: FeedEntry) => void;
 	createProject?: (this: void, name: string, language: MobileProjectLanguage) => { success: true; entry: FeedEntry } | { success: false; error: string };
 	onSwitchMode?: (this: void) => void;
-	prepare: (this: void, entry: FeedEntry, repairIncomplete: boolean, onProgress: (this: void, progress: number, message: string) => void, onDone: (this: void, success: boolean, ready?: { fileName: string; workDir: string }, message?: string, repairable?: boolean) => void) => void;
+	prepare: (this: void, entry: FeedEntry, repairIncomplete: boolean, onProgress: (this: void, progress: number, message: string, transferredBytes?: number) => void, onDone: (this: void, success: boolean, ready?: { fileName: string; workDir: string }, message?: string, repairable?: boolean) => void, isCanceled: (this: void) => boolean) => void;
 }
 
 const colors = {
@@ -53,6 +53,17 @@ function conciseDescription(text: string, limit: number) {
 	if (length <= limit) return text;
 	const stop = utf8.offset(text, limit + 1) ?? text.length + 1;
 	return string.sub(text, 1, stop - 1) + "…";
+}
+
+function formatTransferBytes(bytes: number) {
+	if (bytes < 1024) return `${math.floor(bytes)} B`;
+	let value = bytes;
+	const units = ["KiB", "MiB", "GiB", "TiB"];
+	for (const unit of units) {
+		value /= 1024;
+		if (value < 1024 || unit === "TiB") return `${string.format("%.1f", value)} ${unit}`;
+	}
+	return `${math.floor(bytes)} B`;
 }
 
 function Cover(props: { key?: string; entry: FeedEntry; x: number; y: number; width: number; height: number }) {
@@ -113,6 +124,8 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	let transitioning = false;
 	let prepareStatus = "";
 	let prepareProgress = 0;
+	let prepareTransferredBytes = 0;
+	let prepareCanceled = false;
 	let catalogSyncing = false;
 	let catalogStatus = "";
 	let catalogStatusView: ((message: string) => void) | undefined;
@@ -296,13 +309,16 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		if (item.kind === "local" || item.installed) { done(); return; }
 		preparing = true;
 		prepareProgress = 0;
+		prepareTransferredBytes = 0;
+		prepareCanceled = false;
 		prepareStatus = zh ? "准备安装…" : "Preparing install…";
 		render();
 		const repairIncomplete = repairResourceId === item.id;
 		repairResourceId = "";
-		prepare(item, repairIncomplete, (progress, message) => {
+		prepare(item, repairIncomplete, (progress, message, transferredBytes) => {
 			if (!isActive()) return;
 			prepareProgress = math.max(0, math.min(1, progress));
+			if (transferredBytes !== undefined) prepareTransferredBytes = math.max(prepareTransferredBytes, transferredBytes);
 			prepareStatus = message;
 			render();
 		}, (success, ready, message, repairable) => {
@@ -320,7 +336,13 @@ export function startMobileFeed(options: MobileFeedOptions) {
 			prepareStatus = "";
 			if (HttpServer.wsConnectionCount === 0 && host.visible) done();
 			else render();
-		});
+		}, () => prepareCanceled);
+	};
+	const cancelPrepare = () => {
+		if (!preparing || prepareCanceled) return;
+		prepareCanceled = true;
+		prepareStatus = zh ? "正在中断下载…" : "Canceling download…";
+		render();
 	};
 
 	const commit = (action: FeedAction) => {
@@ -412,6 +434,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		const infoWidth = wide ? usableWidth - coverWidth - 72 : usableWidth - 40;
 		const infoTop = wide ? bottom + usableHeight - 122 + landscapeTopLift : coverY - (compactLandscape ? 28 : 30);
 		const descriptionY = infoTop - (compactLandscape ? 38 : 58);
+		const metadataY = infoTop - (wide ? 136 : 118);
 		const actionsY = bottom + (compactLandscape ? 18 : 24);
 		const gestureHintY = bottom + (compactLandscape ? 88 : 92);
 		const buttonWidth = wide ? math.min(190, (infoWidth - 12) / 2) : (infoWidth - 12) / 2;
@@ -493,21 +516,24 @@ export function startMobileFeed(options: MobileFeedOptions) {
 					{item.kind === "local" && canShare ? <MobileButton tag="mobile-feed-share" x={infoX + infoWidth - 84} y={infoTop - 18} width={84} height={36} text={zh ? "分享作品" : "Share"} fontSize={13} onTapped={() => openPackage("share")} /> : undefined}
 					<label tag="mobile-feed-description" x={infoX} y={descriptionY} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={math.floor(15 * fontScale)}
 						text={conciseDescription(item.description, wide ? 80 : compact ? 28 : 42)} textWidth={infoWidth} alignment={TextAlign.Left} color3={0xa8afbd} />
-					{compact || shortLandscape ? undefined : <node x={infoX} y={infoTop - 118} width={wide ? 176 : 164} height={28} anchorX={0} anchorY={0}>
+					{compact || shortLandscape ? undefined : <node x={infoX} y={metadataY} width={wide ? 176 : 164} height={28} anchorX={0} anchorY={0}>
 						<RoundedSurface width={wide ? 176 : 164} height={28} radius={14} topColor={0x66303a4b} bottomColor={0x6618202b} borderWidth={1} borderColor={0x88606b7d} />
 						<label x={12} y={14} anchorX={0} fontName={fontName} fontSize={12}
 							text={item.kind === "local" ? (zh ? "本地作品  ·  可 Remix" : "Local  ·  Remixable") : item.installed ? (zh ? "发现  ·  已安装" : "Discover  ·  Installed") : (zh ? "发现  ·  可安装" : "Discover  ·  Installable")}
 							textWidth={(wide ? 176 : 164) - 24} alignment={TextAlign.Left} color3={0xdce1ea} />
 					</node>}
 				{preparing ? <node tag="mobile-feed-download" x={infoX} y={actionsY} width={infoWidth} height={48} anchorX={0} anchorY={0}>
-					<label x={0} y={38} anchorX={0} fontName={fontName} fontSize={14} text={zh ? "正在下载作品" : "Downloading game"} color3={0xffcc33} />
-					<label tag="mobile-feed-download-percent" x={infoWidth} y={38} anchorX={1} fontName={fontName} fontSize={14} text={`${math.floor(prepareProgress * 100)}%`} color3={0xffcc33} />
-					<node tag="mobile-feed-download-track" width={infoWidth} height={8} y={8} anchorX={0} anchorY={0}>
-						<RoundedSurface width={infoWidth} height={8} radius={4} fillColor={0xff293140} />
-						<node tag="mobile-feed-download-fill" width={infoWidth * prepareProgress} height={8} anchorX={0} anchorY={0}>
-							{prepareProgress > 0 ? <RoundedSurface width={infoWidth * prepareProgress} height={8} radius={4} topColor={0xffffdf6b} bottomColor={0xffffbd2e} /> : undefined}
+					<label x={0} y={38} anchorX={0} fontName={fontName} fontSize={14} text={zh ? "正在下载" : "Downloading"} color3={0xffcc33} />
+					<label tag="mobile-feed-download-percent" x={infoWidth - 92} y={38} anchorX={1} fontName={fontName} fontSize={14}
+						text={`${math.floor(prepareProgress * 100)}%${prepareTransferredBytes > 0 ? ` · ${formatTransferBytes(prepareTransferredBytes)}` : ""}`} color3={0xffcc33} />
+					<node tag="mobile-feed-download-track" width={infoWidth - 92} height={8} y={8} anchorX={0} anchorY={0}>
+						<RoundedSurface width={infoWidth - 92} height={8} radius={4} fillColor={0xff293140} />
+						<node tag="mobile-feed-download-fill" width={(infoWidth - 92) * prepareProgress} height={8} anchorX={0} anchorY={0}>
+							{prepareProgress > 0 ? <RoundedSurface width={(infoWidth - 92) * prepareProgress} height={8} radius={4} topColor={0xffffdf6b} bottomColor={0xffffbd2e} /> : undefined}
 						</node>
 					</node>
+					<MobileButton tag="mobile-feed-download-cancel" x={infoWidth - 80} y={0} width={80} height={48}
+						text={prepareCanceled ? (zh ? "中断中…" : "Canceling…") : (zh ? "中断" : "Cancel")} fontSize={13} danger={true} onTapped={cancelPrepare} />
 				</node> : <node>
 				<MobileButton tag="mobile-feed-remix" x={infoX} y={actionsY} width={buttonWidth} text={zh ? "Remix 作品" : "Remix game"} fontSize={math.floor(16 * fontScale)}
 					primary={true} onTapped={() => activate("remix")} />

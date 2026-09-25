@@ -1803,10 +1803,10 @@ startMobileUI = ->
 					launchError: mobileLaunchErrors[resource.id]
 				}
 			items
-		prepare: (entry, repairIncomplete, onProgress, onDone) ->
+		prepare: (entry, repairIncomplete, onProgress, onDone, isCanceled) ->
 			lifecycle.prepareMobileResource entry.resource, entry.catalogCommit, onProgress, ((result) ->
 				onDone result.success, result.entry, result.message, result.repairable
-			), repairIncomplete
+			), repairIncomplete, isCanceled
 		createProject: (name, language) ->
 			result = projectCreate.createMobileProject name, language
 			return result unless result.success

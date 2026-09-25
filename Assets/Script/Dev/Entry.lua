@@ -3012,10 +3012,10 @@ startMobileUI = function() -- 1689
 			end -- 1789
 			return items -- 1805
 		end, -- 1785
-		prepare = function(entry, repairIncomplete, onProgress, onDone) -- 1806
+		prepare = function(entry, repairIncomplete, onProgress, onDone, isCanceled) -- 1806
 			return lifecycle.prepareMobileResource(entry.resource, entry.catalogCommit, onProgress, (function(result) -- 1807
 				return onDone(result.success, result.entry, result.message, result.repairable) -- 1808
-			end), repairIncomplete) -- 1807
+			end), repairIncomplete, isCanceled) -- 1807
 		end, -- 1806
 		createProject = function(name, language) -- 1810
 			local result = projectCreate.createMobileProject(name, language) -- 1811

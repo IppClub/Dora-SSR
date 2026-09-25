@@ -21,6 +21,8 @@ ____exports.runGit = function(repoPath, command, options) -- 34
 			local timeout = options.timeout or 1200 -- 40
 			local currentStatus -- 41
 			local settled = false -- 42
+			local cancelRequested = false -- 43
+			local timedOut = false -- 44
 			local jobId = 0 -- 43
 			local function finish(result) -- 44
 				if settled then -- 44
@@ -38,7 +40,7 @@ ____exports.runGit = function(repoPath, command, options) -- 34
 					return true -- 53
 				end -- 53
 				if currentStatus.state == "error" or currentStatus.state == "canceled" then -- 53
-					finish({success = false, status = currentStatus, message = currentStatus.error or currentStatus.message or "Git operation failed", canceled = currentStatus.state == "canceled"}) -- 56
+					finish({success = false, status = currentStatus, message = timedOut and "Git operation timed out" or currentStatus.error or currentStatus.message or "Git operation failed", canceled = not timedOut and currentStatus.state == "canceled"}) -- 56
 					return true -- 62
 				end -- 62
 				return false -- 64
@@ -67,18 +69,17 @@ ____exports.runGit = function(repoPath, command, options) -- 34
 				if settled then -- 80
 					return true -- 81
 				end -- 81
-				if options.isCanceled and options:isCanceled() then -- 81
+				if not cancelRequested and options.isCanceled and options:isCanceled() then -- 81
+					cancelRequested = true -- 82
 					Git:cancel(jobId) -- 83
-					finish({success = false, status = currentStatus, message = "Git operation canceled", canceled = true}) -- 84
-					return true -- 85
 				end -- 85
 				if consumeTerminalStatus() then -- 85
 					return true -- 87
 				end -- 87
-				if os.time() - startedAt >= timeout then -- 87
+				if not cancelRequested and os.time() - startedAt >= timeout then -- 87
+					cancelRequested = true -- 88
+					timedOut = true -- 89
 					Git:cancel(jobId) -- 89
-					finish({success = false, status = currentStatus, message = "Git operation timed out"}) -- 90
-					return true -- 91
 				end -- 91
 				return false -- 93
 			end) -- 80

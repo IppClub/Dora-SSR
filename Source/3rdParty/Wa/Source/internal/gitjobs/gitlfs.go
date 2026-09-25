@@ -530,8 +530,10 @@ func fetchLFS(ctx context.Context, j *job, repoPath, remote string, hydrate, all
 		}
 		stageStart := j.progressValue()
 		totalBytes := lfsObjectsSize(toDownload)
+		transferBase := j.refreshTransferredBytes()
 		j.setProgress(stageStart, lfsDownloadProgressMessage(0, len(toDownload), 0, totalBytes))
 		n, dlErr := downloadLFSObjectsConcurrent(ctx, repo, remote, repoPath, toDownload, j.req.cmd.options, func(done, total int, received int64) {
+			j.setTransferredBytes(transferBase + received)
 			j.setProgress(
 				lfsDownloadProgressValue(stageStart, done, total, received, totalBytes),
 				lfsDownloadProgressMessage(done, total, received, totalBytes),

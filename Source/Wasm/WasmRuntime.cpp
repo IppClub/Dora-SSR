@@ -2963,20 +2963,10 @@ bool Git::cancel(int64_t jobId) {
 	auto& gitHandles = handles();
 	auto it = gitHandles.find(jobId);
 	if (it != gitHandles.end()) {
-		auto handle = std::move(it->second);
-		gitHandles.erase(it);
-		bool canceled = WaGitCancel(jobId);
-		std::string status = poll(jobId);
-		if (!IsGitTerminalStatus(status)) {
-			status = fmt::format(
-				"{{\"id\":{},\"state\":\"canceled\",\"kind\":\"{}\",\"repoPath\":\"{}\",\"progress\":0,\"message\":\"canceled\"}}",
-				jobId,
-				EscapeJsonString(handle.kind),
-				EscapeJsonString(handle.repoPath));
-		}
-		handle.callback(status);
-		dispose(jobId);
-		return canceled;
+		// Keep the polling handle alive until the worker acknowledges the
+		// cancellation. Callers can then clean up clone paths without racing a
+		// goroutine that is still writing pack data.
+		return WaGitCancel(jobId);
 	}
 	return WaGitCancel(jobId);
 #endif // !DORA_NO_WA

@@ -63,9 +63,10 @@ const reserveRecoveryPath = (resourceId: string) => {
 export const prepareMobileResource = (
 	resource: ResourceInfo,
 	catalogCommit: string,
-	onProgress: (progress: number, message: string) => void,
+	onProgress: (progress: number, message: string, transferredBytes?: number) => void,
 	onDone: (result: MobilePrepareResult) => void,
 	repairIncomplete = false,
+	isCanceled?: () => boolean,
 ) => {
 	if (isMobileResourceReady(resource)) {
 		onDone({ success: true, entry: installedEntry(resource) });
@@ -97,7 +98,8 @@ export const prepareMobileResource = (
 	(async () => {
 		const result = await installResource(resource, version, {
 			catalogCommit,
-			onProgress: item => onProgress(item.progress, item.message),
+			onProgress: item => onProgress(item.progress, item.message, item.transferredBytes),
+			isCanceled,
 		});
 		if (!result.success) {
 			let message = result.message ?? "installation failed";

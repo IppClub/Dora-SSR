@@ -12,9 +12,9 @@ local Path = ____Dora.Path -- 2
 local ____Git = require("Tools.ResourceDownloader.Git") -- 4
 local quoteGitArgument = ____Git.quoteGitArgument -- 4
 local runGit = ____Git.runGit -- 4
-local function emitProgress(options, progress, message, source) -- 26
+local function emitProgress(options, progress, message, source, transferredBytes) -- 26
 	if options.onProgress then -- 26
-		options:onProgress({progress = progress, message = message, source = source}) -- 32
+		options:onProgress({progress = progress, message = message, source = source, transferredBytes = transferredBytes}) -- 32
 	end -- 32
 end -- 26
 local function installMetadata(resource, version, installedCommit, catalogCommit, source, tempPath) -- 35
@@ -128,7 +128,8 @@ ____exports.installResource = function(resource, version, options) -- 93
 										math.min(0.82, status.progress * 0.82) -- 142
 									), -- 142
 									status.message or "Receiving Git objects", -- 143
-									source.url -- 144
+									source.url, -- 144
+									status.transferredBytes -- 145
 								) -- 144
 							end -- 139
 						} -- 139

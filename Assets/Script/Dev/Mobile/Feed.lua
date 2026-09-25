@@ -73,6 +73,20 @@ local function conciseDescription(text, limit) -- 51
 	local stop = utf8.offset(text, limit + 1) or #text + 1 -- 54
 	return string.sub(text, 1, stop - 1) .. "…" -- 55
 end -- 51
+local function formatTransferBytes(bytes) -- 58
+	if bytes < 1024 then -- 58
+		return tostring(math.floor(bytes)) .. " B" -- 59
+	end -- 59
+	local value = bytes -- 61
+	local units = {"KiB", "MiB", "GiB", "TiB"} -- 62
+	for ____, unit in ipairs(units) do -- 63
+		value = value / 1024 -- 64
+		if value < 1024 or unit == "TiB" then -- 64
+			return (string.format("%.1f", value) .. " ") .. unit -- 65
+		end -- 65
+	end -- 63
+	return tostring(math.floor(bytes)) .. " B" -- 68
+end -- 58
 local function Cover(props) -- 58
 	local file = props.entry.bannerFile -- 59
 	local function scaleSprite(sprite, mode) -- 60
@@ -228,6 +242,8 @@ function ____exports.startMobileFeed(options) -- 98
 	local transitioning = false -- 113
 	local prepareStatus = "" -- 114
 	local prepareProgress = 0 -- 115
+	local prepareTransferredBytes = 0 -- 116
+	local prepareCanceled = false -- 117
 	local catalogSyncing = false -- 116
 	local catalogStatus = "" -- 117
 	local catalogStatusView -- 118
@@ -503,6 +519,8 @@ function ____exports.startMobileFeed(options) -- 98
 		end -- 296
 		preparing = true -- 297
 		prepareProgress = 0 -- 298
+		prepareTransferredBytes = 0 -- 299
+		prepareCanceled = false -- 300
 		prepareStatus = zh and "准备安装…" or "Preparing install…" -- 299
 		render() -- 300
 		local repairIncomplete = repairResourceId == item.id -- 301
@@ -510,7 +528,7 @@ function ____exports.startMobileFeed(options) -- 98
 		prepare( -- 303
 			item, -- 303
 			repairIncomplete, -- 303
-			function(progress, message) -- 303
+			function(progress, message, transferredBytes) -- 303
 				if not isActive() then -- 303
 					return -- 304
 				end -- 304
@@ -518,6 +536,9 @@ function ____exports.startMobileFeed(options) -- 98
 					0, -- 305
 					math.min(1, progress) -- 305
 				) -- 305
+				if transferredBytes ~= nil then -- 306
+					prepareTransferredBytes = math.max(prepareTransferredBytes, transferredBytes) -- 306
+				end -- 306
 				prepareStatus = message -- 306
 				render() -- 307
 			end, -- 303
@@ -541,9 +562,18 @@ function ____exports.startMobileFeed(options) -- 98
 				else -- 321
 					render() -- 322
 				end -- 322
-			end -- 308
+			end, -- 308
+			function() return prepareCanceled end -- 324
 		) -- 308
 	end -- 291
+	local function cancelPrepare() -- 326
+		if not preparing or prepareCanceled then -- 326
+			return -- 327
+		end -- 327
+		prepareCanceled = true -- 329
+		prepareStatus = zh and "正在中断下载…" or "Canceling download…" -- 330
+		render() -- 331
+	end -- 326
 	local function commit(action) -- 326
 		if not isActive() or not host.visible or HttpServer.wsConnectionCount > 0 or preparing or transitioning then -- 326
 			return -- 327
@@ -677,6 +707,7 @@ function ____exports.startMobileFeed(options) -- 98
 		local infoWidth = wide and usableWidth - coverWidth - 72 or usableWidth - 40 -- 412
 		local infoTop = wide and bottom + usableHeight - 122 + landscapeTopLift or coverY - (compactLandscape and 28 or 30) -- 413
 		local descriptionY = infoTop - (compactLandscape and 38 or 58) -- 414
+		local metadataY = infoTop - (wide and 136 or 118) -- 415
 		local actionsY = bottom + (compactLandscape and 18 or 24) -- 415
 		local gestureHintY = bottom + (compactLandscape and 88 or 92) -- 416
 		local buttonWidth = wide and math.min(190, (infoWidth - 12) / 2) or (infoWidth - 12) / 2 -- 417
@@ -927,7 +958,7 @@ function ____exports.startMobileFeed(options) -- 98
 						"node", -- 496
 						{ -- 496
 							x = infoX, -- 496
-							y = infoTop - 118, -- 496
+							y = metadataY, -- 496
 							width = wide and 176 or 164, -- 496
 							height = 28, -- 496
 							anchorX = 0, -- 496
@@ -976,19 +1007,19 @@ function ____exports.startMobileFeed(options) -- 98
 							anchorX = 0, -- 502
 							fontName = fontName, -- 502
 							fontSize = 14, -- 502
-							text = zh and "正在下载作品" or "Downloading game", -- 502
+							text = zh and "正在下载" or "Downloading", -- 502
 							color3 = 16763955 -- 502
 						}), -- 502
 						React.createElement( -- 502
 							"label", -- 502
 							{ -- 502
 								tag = "mobile-feed-download-percent", -- 502
-								x = infoWidth, -- 502
+								x = infoWidth - 92, -- 502
 								y = 38, -- 502
 								anchorX = 1, -- 502
 								fontName = fontName, -- 502
 								fontSize = 14, -- 502
-								text = tostring(math.floor(prepareProgress * 100)) .. "%", -- 502
+								text = (tostring(math.floor(prepareProgress * 100)) .. "%") .. (prepareTransferredBytes > 0 and " · " .. formatTransferBytes(prepareTransferredBytes) or ""), -- 502
 								color3 = 16763955 -- 502
 							} -- 502
 						) -- 502
@@ -996,17 +1027,17 @@ function ____exports.startMobileFeed(options) -- 98
 					local ____React_createElement_30 = React.createElement -- 502
 					local ____temp_28 = { -- 502
 						tag = "mobile-feed-download-track", -- 502
-						width = infoWidth, -- 502
+						width = infoWidth - 92, -- 502
 						height = 8, -- 502
 						y = 8, -- 502
 						anchorX = 0, -- 502
 						anchorY = 0 -- 502
 					} -- 502
-					local ____React_createElement_result_29 = React.createElement(RoundedSurface, {width = infoWidth, height = 8, radius = 4, fillColor = 4280889664}) -- 502
+					local ____React_createElement_result_29 = React.createElement(RoundedSurface, {width = infoWidth - 92, height = 8, radius = 4, fillColor = 4280889664}) -- 502
 					local ____React_createElement_27 = React.createElement -- 502
 					local ____temp_26 = { -- 502
 						tag = "mobile-feed-download-fill", -- 502
-						width = infoWidth * prepareProgress, -- 502
+						width = (infoWidth - 92) * prepareProgress, -- 502
 						height = 8, -- 502
 						anchorX = 0, -- 502
 						anchorY = 0 -- 502
@@ -1014,7 +1045,7 @@ function ____exports.startMobileFeed(options) -- 98
 					local ____temp_25 -- 508
 					if prepareProgress > 0 then -- 508
 						____temp_25 = React.createElement(RoundedSurface, { -- 508
-							width = infoWidth * prepareProgress, -- 508
+							width = (infoWidth - 92) * prepareProgress, -- 508
 							height = 8, -- 508
 							radius = 4, -- 508
 							topColor = 4294958955, -- 508
@@ -1032,6 +1063,17 @@ function ____exports.startMobileFeed(options) -- 98
 							____React_createElement_27("node", ____temp_26, ____temp_25) -- 508
 						) -- 508
 					) -- 508
+					__TS__SparseArrayPush(____array_31, React.createElement(MobileButton, {
+						tag = "mobile-feed-download-cancel",
+						x = infoWidth - 80,
+						y = 0,
+						width = 80,
+						height = 48,
+						text = prepareCanceled and (zh and "中断中…" or "Canceling…") or (zh and "中断" or "Cancel"),
+						fontSize = 13,
+						danger = true,
+						onTapped = cancelPrepare
+					}))
 					____preparing_33 = ____React_createElement_32(__TS__SparseArraySpread(____array_31)) -- 508
 				else -- 508
 					____preparing_33 = React.createElement( -- 508

@@ -7,6 +7,7 @@ export interface ResourceInstallProgress {
 	progress: number;
 	message: string;
 	source?: string;
+	transferredBytes?: number;
 }
 
 export interface ResourceInstallOptions {
@@ -28,8 +29,9 @@ const emitProgress = (
 	progress: number,
 	message: string,
 	source?: string,
+	transferredBytes?: number,
 ) => {
-	if (options.onProgress) options.onProgress({ progress, message, source });
+	if (options.onProgress) options.onProgress({ progress, message, source, transferredBytes });
 };
 
 const installMetadata = (
@@ -142,6 +144,7 @@ export const installResource = async (
 					math.max(0.03, math.min(0.82, status.progress * 0.82)),
 					status.message ?? "Receiving Git objects",
 					source.url,
+					status.transferredBytes,
 				);
 			},
 		});

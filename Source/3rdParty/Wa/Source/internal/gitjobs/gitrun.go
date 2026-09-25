@@ -872,6 +872,7 @@ func execClone(ctx context.Context, j *job, cmd gitCommand) (map[string]any, err
 	if err := prepareClonePath(targetPath); err != nil {
 		return nil, err
 	}
+	j.setTransferPath(targetPath)
 	opts := &git.CloneOptions{
 		URL:      cmd.url,
 		Depth:    cmd.depth,
