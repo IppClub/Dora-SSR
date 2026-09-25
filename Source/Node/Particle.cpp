@@ -209,6 +209,11 @@ bool ParticleNode::init() {
 		setAsManaged();
 		return false;
 	}
+	if (_particleDef->maxParticles > ParticleDef::MaxParticles) {
+		Warn("particle maxParticles value {} exceeds the supported limit {}; clamping it.",
+			_particleDef->maxParticles, ParticleDef::MaxParticles);
+		_particleDef->maxParticles = ParticleDef::MaxParticles;
+	}
 	_particles.reserve(_particleDef->maxParticles);
 	_quads.reserve(_particleDef->maxParticles);
 	Rect textureRect = _particleDef->textureRect;

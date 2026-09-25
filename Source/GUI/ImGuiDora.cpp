@@ -496,9 +496,25 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"渲染调用：") : "Draw Call:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
-			ImGui::Text("%d", bgfx::getStats()->numDraw);
+			ImGui::Text("%d / %u", bgfx::getStats()->numDraw, bgfx::getCaps()->limits.maxDrawCalls);
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ? u8"底层图形接口的调用次数，图形接口的调用，包括设置渲染状态，传输渲染数据之类的操作。这些操作调用的次数减少对改善性能会有一定的帮助"sv : "the number of calls to the low-level graphics interface, including operations such as setting rendering states and transferring rendering data, a reduction of these operations can improve performance"_slice);
+			const auto* renderStats = bgfx::getStats();
+			const auto* renderCaps = bgfx::getCaps();
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"临时顶点缓冲：") : "Transient Vertex Buffer:");
+			ImGui::SameLine();
+			ImGui::Text("%.2f / %.2f MiB",
+				static_cast<double>(std::max(renderStats->transientVbUsed, 0)) / (1024.0 * 1024.0),
+				static_cast<double>(renderCaps->limits.transientVbSize) / (1024.0 * 1024.0));
+			itemHovered = ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ? u8"当前帧共享临时顶点缓冲区的使用量和容量，达到容量后后续临时几何会被安全丢弃"sv : "shared per-frame transient vertex buffer usage and capacity; later transient geometry is safely dropped when exhausted"_slice);
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"临时索引缓冲：") : "Transient Index Buffer:");
+			ImGui::SameLine();
+			ImGui::Text("%.2f / %.2f MiB",
+				static_cast<double>(std::max(renderStats->transientIbUsed, 0)) / (1024.0 * 1024.0),
+				static_cast<double>(renderCaps->limits.transientIbSize) / (1024.0 * 1024.0));
+			itemHovered = ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ? u8"当前帧共享临时索引缓冲区的使用量和容量"sv : "shared per-frame transient index buffer usage and capacity"_slice);
 			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"三角形：") : "Tri:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();

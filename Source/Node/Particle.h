@@ -20,6 +20,8 @@ enum struct EmitterMode {
 
 class ParticleDef : public Object {
 public:
+	static constexpr uint32_t MaxParticles = 65536;
+
 	float angle;
 	float angleVariance;
 	uint32_t blendFuncDestination;

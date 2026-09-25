@@ -3084,7 +3084,7 @@ function ____exports.continuePrompt(sessionId, disabledAgentTools, llmConfigId) 
 				0, -- 2602
 				getNextStepNumber(session.id, taskId) - 1 -- 2602
 			), -- 2602
-			initialAgentStepCount = getAgentStepCount(session.id, taskId), -- 2603
+			initialAgentStepCount = 0, -- 2603
 			llmConfigId = llmConfigId -- 2604
 		} -- 2604
 	) -- 2604

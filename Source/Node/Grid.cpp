@@ -44,6 +44,15 @@ Grid::Grid(Texture2D* texture, const Size& texSize, const Rect& textureRect, uin
 
 bool Grid::init() {
 	if (!Node::init()) return false;
+	constexpr uint64_t maxVertexCount = static_cast<uint64_t>(std::numeric_limits<SpriteRenderer::IndexType>::max()) + 1;
+	const uint64_t xCount = static_cast<uint64_t>(_gridX) + 1;
+	const uint64_t yCount = static_cast<uint64_t>(_gridY) + 1;
+	if (_gridX == 0 || _gridY == 0 || xCount > maxVertexCount
+		|| yCount > maxVertexCount || xCount > maxVertexCount / yCount) {
+		Warn("Grid size {} x {} is invalid: both dimensions must be positive and the grid may contain at most {} vertices.",
+			_gridX, _gridY, maxVertexCount);
+		return false;
+	}
 	setupVertices();
 	return true;
 }

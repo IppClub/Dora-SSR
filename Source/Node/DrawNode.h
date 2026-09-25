@@ -75,6 +75,7 @@ protected:
 	DrawNode();
 	virtual void updateRealColor3() override;
 	virtual void updateRealOpacity() override;
+	bool ensureVertexCapacity(uint64_t additionalVertices);
 	void pushVertex(const Vec2& pos, const Vec4& color, const Vec2& coord);
 
 private:
@@ -91,6 +92,7 @@ private:
 		VertexColorDirty = Node::UserFlag,
 		VertexPosDirty = Node::UserFlag << 1,
 		DepthWrite = Node::UserFlag << 2,
+		VertexLimitWarned = Node::UserFlag << 3,
 	};
 	DORA_TYPE_OVERRIDE(DrawNode);
 };

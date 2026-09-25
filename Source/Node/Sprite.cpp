@@ -18,6 +18,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
+namespace {
+
+constexpr size_t MaxSpriteBatchVertices = static_cast<size_t>(std::numeric_limits<uint16_t>::max()) + 1;
+
+} // namespace
+
 /* Sprite */
 
 bgfx::VertexLayout SpriteVertex::ms_layout;
@@ -381,7 +387,8 @@ void SpriteRenderer::push(Sprite* sprite) {
 
 	if (!texture || !effect) return;
 
-	if (effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags) {
+	if (effect != _lastEffect || texture != _lastTexture || state != _lastState || flags != _lastFlags
+		|| (!_vertices.empty() && _vertices.size() + 4 > MaxSpriteBatchVertices)) {
 		render();
 	}
 
@@ -406,33 +413,44 @@ void SpriteRenderer::push(const SpriteVertex* verts, size_t size,
 	SpriteEffect* effect, Texture2D* texture, uint64_t state, uint32_t flags) {
 	AssertUnless(size % 4 == 0, "invalid sprite vertices size.");
 
-	if (!texture || !effect) return;
+	if (!texture || !effect || size == 0) return;
 
-	if (effect != _lastEffect
-		|| texture != _lastTexture
-		|| state != _lastState
-		|| flags != _lastFlags) {
-		render();
-	}
-
-	_lastEffect = effect;
-	_lastTexture = texture;
-	_lastState = state;
-	_lastFlags = flags;
-
-	size_t vertSize = _vertices.size();
-	_vertices.resize(vertSize + size);
-	std::memcpy(_vertices.data() + vertSize, verts, sizeof(verts[0]) * size);
-
-	size_t indSize = _indices.size();
-	size_t spriteCount = size / 4;
-	size_t added = 6 * spriteCount;
-	_indices.resize(indSize + added);
-	auto indices = _indices.data() + indSize;
-	for (size_t i = 0; i < spriteCount; i++) {
-		for (size_t j = 0; j < 6; j++) {
-			indices[i * 6 + j] = s_cast<IndexType>(_spriteIndices[j] + i * 4 + vertSize);
+	while (size > 0) {
+		if (effect != _lastEffect
+			|| texture != _lastTexture
+			|| state != _lastState
+			|| flags != _lastFlags) {
+			render();
 		}
+
+		size_t available = MaxSpriteBatchVertices - _vertices.size();
+		available -= available % 4;
+		if (available == 0) {
+			render();
+			available = MaxSpriteBatchVertices;
+		}
+
+		_lastEffect = effect;
+		_lastTexture = texture;
+		_lastState = state;
+		_lastFlags = flags;
+
+		const size_t chunkSize = std::min(size, available);
+		const size_t vertSize = _vertices.size();
+		_vertices.resize(vertSize + chunkSize);
+		std::memcpy(_vertices.data() + vertSize, verts, sizeof(verts[0]) * chunkSize);
+
+		const size_t indSize = _indices.size();
+		const size_t spriteCount = chunkSize / 4;
+		_indices.resize(indSize + 6 * spriteCount);
+		auto indices = _indices.data() + indSize;
+		for (size_t i = 0; i < spriteCount; i++) {
+			for (size_t j = 0; j < 6; j++) {
+				indices[i * 6 + j] = s_cast<IndexType>(_spriteIndices[j] + i * 4 + vertSize);
+			}
+		}
+		verts += chunkSize;
+		size -= chunkSize;
 	}
 }
 
@@ -442,12 +460,22 @@ void SpriteRenderer::push(
 	SpriteEffect* effect, Texture2D* texture,
 	uint64_t state, uint32_t flags) {
 
-	if (!texture || !effect) return;
+	if (!texture || !effect || vsize == 0 || isize == 0) return;
+	if (vsize > MaxSpriteBatchVertices) {
+		Warn("SpriteRenderer rejected an indexed mesh with {} vertices; the 16-bit limit is {}. Split the mesh before rendering.",
+			vsize, MaxSpriteBatchVertices);
+		return;
+	}
+	if (std::any_of(inds, inds + isize, [vsize](IndexType index) { return index >= vsize; })) {
+		Warn("SpriteRenderer rejected an indexed mesh containing an index outside its {} vertices.", vsize);
+		return;
+	}
 
 	if (effect != _lastEffect
 		|| texture != _lastTexture
 		|| state != _lastState
-		|| flags != _lastFlags) {
+		|| flags != _lastFlags
+		|| (!_vertices.empty() && _vertices.size() + vsize > MaxSpriteBatchVertices)) {
 		render();
 	}
 

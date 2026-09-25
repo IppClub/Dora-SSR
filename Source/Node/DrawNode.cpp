@@ -72,6 +72,22 @@ const Matrix& DrawNode::getWorld() {
 	return Node::getWorld();
 }
 
+bool DrawNode::ensureVertexCapacity(uint64_t additionalVertices) {
+	constexpr uint64_t maxVertexCount = static_cast<uint64_t>(std::numeric_limits<uint16_t>::max()) + 1;
+	const uint64_t currentVertexCount = _vertices.size();
+	if (currentVertexCount <= maxVertexCount
+		&& additionalVertices <= maxVertexCount - currentVertexCount) {
+		return true;
+	}
+	if (_flags.isOff(DrawNode::VertexLimitWarned)) {
+		_flags.setOn(DrawNode::VertexLimitWarned);
+		Warn("DrawNode 16-bit vertex limit exceeded: current={}, requested={}, limit={}. "
+			 "Call clear() or split geometry across multiple DrawNodes.",
+			currentVertexCount, additionalVertices, maxVertexCount);
+	}
+	return false;
+}
+
 void DrawNode::render() {
 	if (_vertices.empty()) {
 		Node::render();
@@ -137,6 +153,7 @@ void DrawNode::pushVertex(const Vec2& pos, const Vec4& color, const Vec2& coord)
 void DrawNode::drawDot(const Vec2& pos, float radius, Color color) {
 	const size_t vertexCount = 4;
 	const size_t indexCount = 6;
+	if (!ensureVertexCapacity(vertexCount)) return;
 
 	_posColors.reserve(_posColors.size() + vertexCount);
 	_vertices.reserve(_vertices.size() + vertexCount);
@@ -161,6 +178,7 @@ void DrawNode::drawDot(const Vec2& pos, float radius, Color color) {
 void DrawNode::drawSegment(const Vec2& from, const Vec2& to, float radius, Color color) {
 	const size_t vertexCount = 6 * 3;
 	const size_t indexCount = vertexCount;
+	if (!ensureVertexCapacity(vertexCount)) return;
 	_posColors.reserve(_posColors.size() + vertexCount);
 	_vertices.reserve(_vertices.size() + vertexCount);
 	_indices.reserve(_indices.size() + indexCount);
@@ -226,12 +244,14 @@ void DrawNode::drawPolygon(const Vec2* verts, uint32_t count, Color fillColor, f
 
 	bool outline = (borderColor.a > 0 && borderWidth > 0.0f);
 	bool fillPoly = (fillColor.a > 0);
+	const uint64_t vertexCount = fillPoly && !outline
+		? 3ull * (count - 2)
+		: (fillPoly ? 3ull * (count - 2) : 0) + 6ull * count;
+	if (!ensureVertexCapacity(vertexCount)) return;
 
 	if (fillPoly && !outline) {
-		const size_t triangleCount = 3 * count - 2;
-		const size_t vertexCount = 3 * triangleCount;
-		_posColors.reserve(vertexCount);
-		_vertices.reserve(vertexCount);
+		_posColors.reserve(_posColors.size() + s_cast<size_t>(vertexCount));
+		_vertices.reserve(_vertices.size() + s_cast<size_t>(vertexCount));
 
 		Vec4 fillColor4 = fillColor.toVec4();
 		uint16_t start = s_cast<uint16_t>(_vertices.size());
@@ -248,8 +268,8 @@ void DrawNode::drawPolygon(const Vec2* verts, uint32_t count, Color fillColor, f
 		const size_t indexCount = _vertices.size() - start;
 		_indices.reserve(indexCount);
 
-		for (uint16_t i = 0; i < indexCount; i++) {
-			_indices.push_back(start + i);
+		for (size_t i = 0; i < indexCount; i++) {
+			_indices.push_back(s_cast<uint16_t>(start + i));
 		}
 
 		_flags.setOn(DrawNode::VertexColorDirty);
@@ -271,10 +291,8 @@ void DrawNode::drawPolygon(const Vec2* verts, uint32_t count, Color fillColor, f
 		extrude[i] = {offset, n2};
 	}
 
-	const size_t triangleCount = 3 * count - 2;
-	const size_t vertexCount = 3 * triangleCount - (fillPoly ? 0 : count - 2);
-	_posColors.reserve(vertexCount);
-	_vertices.reserve(vertexCount);
+	_posColors.reserve(_posColors.size() + s_cast<size_t>(vertexCount));
+	_vertices.reserve(_vertices.size() + s_cast<size_t>(vertexCount));
 
 	Vec4 fillColor4 = fillColor.toVec4();
 	Vec4 borderColor4 = borderColor.toVec4();
@@ -332,8 +350,8 @@ void DrawNode::drawPolygon(const Vec2* verts, uint32_t count, Color fillColor, f
 	const size_t indexCount = _vertices.size() - start;
 	_indices.reserve(indexCount);
 
-	for (uint16_t i = 0; i < indexCount; i++) {
-		_indices.push_back(start + i);
+	for (size_t i = 0; i < indexCount; i++) {
+		_indices.push_back(s_cast<uint16_t>(start + i));
 	}
 
 	_flags.setOn(DrawNode::VertexColorDirty);
@@ -342,10 +360,11 @@ void DrawNode::drawPolygon(const Vec2* verts, uint32_t count, Color fillColor, f
 
 void DrawNode::drawVertices(const std::vector<VertexColor>& verts) {
 	uint32_t count = s_cast<uint32_t>(verts.size());
-	const size_t triangleCount = 3 * count - 2;
-	const size_t vertexCount = 3 * triangleCount;
-	_posColors.reserve(vertexCount);
-	_vertices.reserve(vertexCount);
+	if (count < 3) return;
+	const uint64_t vertexCount = 3ull * (count - 2);
+	if (!ensureVertexCapacity(vertexCount)) return;
+	_posColors.reserve(_posColors.size() + s_cast<size_t>(vertexCount));
+	_vertices.reserve(_vertices.size() + s_cast<size_t>(vertexCount));
 
 	uint16_t start = s_cast<uint16_t>(_vertices.size());
 
@@ -358,8 +377,8 @@ void DrawNode::drawVertices(const std::vector<VertexColor>& verts) {
 	const size_t indexCount = _vertices.size() - start;
 	_indices.reserve(indexCount);
 
-	for (uint16_t i = 0; i < indexCount; i++) {
-		_indices.push_back(start + i);
+	for (size_t i = 0; i < indexCount; i++) {
+		_indices.push_back(s_cast<uint16_t>(start + i));
 	}
 
 	_flags.setOn(DrawNode::VertexColorDirty);
@@ -368,6 +387,11 @@ void DrawNode::drawVertices(const std::vector<VertexColor>& verts) {
 
 void DrawNode::drawIndexedVertices(const std::vector<DrawVertexInput>& verts,
 	const std::vector<uint16_t>& indices) {
+	if (!ensureVertexCapacity(verts.size())) return;
+	if (std::any_of(indices.begin(), indices.end(), [&verts](uint16_t index) { return index >= verts.size(); })) {
+		Warn("DrawNode indexed vertex input contains an index outside the vertex array.");
+		return;
+	}
 	const uint16_t start = s_cast<uint16_t>(_vertices.size());
 	_posColors.reserve(_posColors.size() + verts.size());
 	_vertices.reserve(_vertices.size() + verts.size());
@@ -377,7 +401,7 @@ void DrawNode::drawIndexedVertices(const std::vector<DrawVertexInput>& verts,
 		_vertices.push_back({0, 0, 0, 0, 0, vertex.texCoord.x, vertex.texCoord.y});
 	}
 	for (const auto index : indices) {
-		_indices.push_back(start + index);
+		_indices.push_back(s_cast<uint16_t>(start + index));
 	}
 	_flags.setOn(DrawNode::VertexColorDirty);
 	_flags.setOn(DrawNode::VertexPosDirty);
@@ -404,8 +428,9 @@ void DrawRenderer::push(DrawNode* node) {
 	const auto& verts = node->getVertices();
 	// Indices in DrawNode batches are 16-bit. Flush before rebasing another node
 	// would wrap its indices, which also keeps each transient allocation bounded.
+	constexpr size_t maxVertexCount = static_cast<size_t>(std::numeric_limits<uint16_t>::max()) + 1;
 	if (state != _lastState
-		|| (!_vertices.empty() && _vertices.size() + verts.size() > std::numeric_limits<uint16_t>::max())) {
+		|| (!_vertices.empty() && _vertices.size() + verts.size() > maxVertexCount)) {
 		render();
 	}
 	_lastState = state;

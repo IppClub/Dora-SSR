@@ -43,8 +43,25 @@ assert.deepEqual(getPlainTextCompletionBudgetState(998, 999), {
 const sessionSource = await readFile(path.join(repoRoot, "Assets/Script/Lib/Agent/Session.ts"), "utf8");
 assert.match(
 	sessionSource,
-	/initialAgentStepCount:\s*getAgentStepCount\(session\.id, taskId\)/,
-	"continuing an interrupted task must restore its cumulative agent step count",
+	/initialStep:\s*math\.max\(0, getNextStepNumber\(session\.id, taskId\) - 1\)/,
+	"continuing an interrupted task must preserve its persisted timeline",
+);
+assert.match(
+	sessionSource,
+	/existingTaskId:\s*taskId,[\s\S]*?initialAgentStepCount:\s*0/,
+	"an explicit continuation must receive a fresh agent step budget",
+);
+assert.doesNotMatch(
+	sessionSource,
+	/existingTaskId:\s*taskId,[\s\S]*?initialAgentStepCount:\s*getAgentStepCount\(session\.id, taskId\)/,
+	"an explicit continuation must not reuse the exhausted cumulative step count",
+);
+
+const sessionLua = await readFile(path.join(repoRoot, "Assets/Script/Lib/Agent/Session.lua"), "utf8");
+assert.match(
+	sessionLua,
+	/existingTaskId = taskId,[\s\S]*?initialAgentStepCount = 0/,
+	"the generated Lua runtime must also grant continuations a fresh agent step budget",
 );
 
 const configSource = await readFile(path.join(repoRoot, "Assets/Script/Lib/Agent/Config.ts"), "utf8");

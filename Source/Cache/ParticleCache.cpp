@@ -14,6 +14,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/XmlTag.h"
 #include "Node/Particle.h"
 
+#include <charconv>
+
 NS_DORA_BEGIN
 
 std::shared_ptr<XmlParser<ParticleDef>> ParticleCache::prepareParser(String filename) {
@@ -72,7 +74,21 @@ void ParticleCache::Parser::xmlSAX2StartElement(std::string_view name, const std
 			_item->finishParticleSizeVariance = s_cast<float>(std::atof(attrs[1].data()));
 			break;
 		case Xml::Particle::MaxParticles:
-			_item->maxParticles = s_cast<uint32_t>(std::atoi(attrs[1].data()));
+			{
+				int64_t value = 0;
+				const auto text = attrs[1];
+				const auto [end, error] = std::from_chars(text.data(), text.data() + text.size(), value);
+				if (error != std::errc{} || end != text.data() + text.size()) {
+					Warn("invalid particle maxParticles value '{}'; using 0.", text);
+					value = 0;
+				}
+				const auto clamped = std::clamp<int64_t>(value, 0, ParticleDef::MaxParticles);
+				if (clamped != value) {
+					Warn("particle maxParticles value {} exceeds the supported range 0..{}; using {}.",
+						value, ParticleDef::MaxParticles, clamped);
+				}
+				_item->maxParticles = s_cast<uint32_t>(clamped);
+			}
 			break;
 		case Xml::Particle::ParticleLifespan:
 			_item->particleLifespan = s_cast<float>(std::atof(attrs[1].data()));
