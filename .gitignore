@@ -44,6 +44,7 @@ ipch/
 xcschememanagement.plist
 build/
 result/
+emsdk-cache/
 .DS_Store
 Thumbs.db
 ._.*
