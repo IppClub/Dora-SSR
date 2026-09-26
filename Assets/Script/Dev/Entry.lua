@@ -165,7 +165,17 @@ if DB:exist("Config") then -- 38
 				end -- 45
 			end -- 45
 			if writablePath ~= nil then -- 45
-				Content.writablePath = writablePath -- 46
+				if writablePath ~= "" and Content:exist(writablePath) and Content:isdir(writablePath) then -- 46
+					Content.writablePath = writablePath -- 47
+				else -- 49
+					Log("Warning", "saved writable path \"" .. tostring(writablePath) .. "\" is unavailable; using \"" .. tostring(Content.writablePath) .. "\" instead") -- 49
+					if not DB:exec("update Config set value_str = ? where name = ?", { -- 50
+						Content.writablePath, -- 50
+						"writablePath" -- 50
+					}) then -- 50
+						Log("Warning", "failed to persist the fallback writable path") -- 51
+					end -- 50
+				end -- 46
 			end -- 45
 		end -- 44
 	end -- 43

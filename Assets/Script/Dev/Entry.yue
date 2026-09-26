@@ -43,7 +43,12 @@ if DB\exist "Config"
 	if isDesktop
 		switch DB\query "select value_str from Config where name = 'writablePath'"
 			when [ [writablePath,], ]
-				Content.writablePath = writablePath
+				if writablePath ~= "" and Content\exist(writablePath) and Content\isdir(writablePath)
+					Content.writablePath = writablePath
+				else
+					Log "Warning", "saved writable path \"#{writablePath}\" is unavailable; using \"#{Content.writablePath}\" instead"
+					unless DB\exec "update Config set value_str = ? where name = ?", {Content.writablePath, "writablePath"}
+						Log "Warning", "failed to persist the fallback writable path"
 
 import "Config"
 
