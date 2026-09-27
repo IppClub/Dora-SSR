@@ -1348,16 +1348,30 @@ HttpServer\postSchedule "/complete", (req): success: false ->
 					[label, insertText, "field"]
 				return success: true, :suggestions
 
+getUploadFilename = (req, multipartFilename) ->
+	filename = req.params.name
+	filename = multipartFilename unless type(filename) == "string" and filename ~= ""
+	return unless type(filename) == "string" and filename ~= ""
+	-- Folder uploads intentionally contain forward slashes. Reject alternate
+	-- separators and traversal before joining the staging directory.
+	return if filename\sub(1, 1) == "/" or filename\sub(-1) == "/" or filename\find("//", 1, true) or filename\find("\\", 1, true) or filename\find(":", 1, true) or filename\find("\0", 1, true)
+	parts = [part for part in filename\gmatch "[^/]+"]
+	return if #parts == 0
+	for part in *parts
+		return if part == "." or part == ".." or part == ""
+	filename
+
 HttpServer\upload(
 	"/upload"
-	(req, filename): nil ->
+	(req, multipartFilename): nil ->
 		switch req when {params: {:path}}
-			uploadPath = Path Content.writablePath, ".upload"
-			if not Content\exist uploadPath
-				Content\mkdir uploadPath
-			targetPath = Path uploadPath, filename
-			Content\mkdir Path\getPath targetPath
-			return targetPath
+			if filename := getUploadFilename req, multipartFilename
+				uploadPath = Path Content.writablePath, ".upload"
+				if not Content\exist uploadPath
+					Content\mkdir uploadPath
+				targetPath = Path uploadPath, filename
+				Content\mkdir Path\getPath targetPath
+				return targetPath
 	(req, file): false ->
 		switch req when {params: {:path}}
 			path = Path Content.writablePath, path

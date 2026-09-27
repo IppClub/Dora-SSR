@@ -3468,7 +3468,32 @@ HttpServer:postSchedule("/complete", function(req)
 		success = false
 	}
 end)
-HttpServer:upload("/upload", function(req, filename)
+local function getUploadFilename(req, multipartFilename)
+	local filename = req.params.name
+	if not (type(filename) == "string" and filename ~= "") then
+		filename = multipartFilename
+	end
+	if not (type(filename) == "string" and filename ~= "") then
+		return
+	end
+	if string.sub(filename, 1, 1) == "/" or string.sub(filename, -1) == "/" or string.find(filename, "//", 1, true) or string.find(filename, "\\", 1, true) or string.find(filename, ":", 1, true) or string.find(filename, "\0", 1, true) then
+		return
+	end
+	local parts = {}
+	for part in string.gmatch(filename, "[^/]+") do
+		parts[#parts + 1] = part
+	end
+	if #parts == 0 then
+		return
+	end
+	for _, part in ipairs(parts) do
+		if part == "." or part == ".." or part == "" then
+			return
+		end
+	end
+	return filename
+end
+HttpServer:upload("/upload", function(req, multipartFilename)
 	do
 		local _type_0 = type(req)
 		local _tab_0 = "table" == _type_0 or "userdata" == _type_0
@@ -3482,13 +3507,16 @@ HttpServer:upload("/upload", function(req, filename)
 				end
 			end
 			if path ~= nil then
-				local uploadPath = Path(Content.writablePath, ".upload")
-				if not Content:exist(uploadPath) then
-					Content:mkdir(uploadPath)
+				local filename = getUploadFilename(req, multipartFilename)
+				if filename then
+					local uploadPath = Path(Content.writablePath, ".upload")
+					if not Content:exist(uploadPath) then
+						Content:mkdir(uploadPath)
+					end
+					local targetPath = Path(uploadPath, filename)
+					Content:mkdir(Path:getPath(targetPath))
+					return targetPath
 				end
-				local targetPath = Path(uploadPath, filename)
-				Content:mkdir(Path:getPath(targetPath))
-				return targetPath
 			end
 		end
 	end

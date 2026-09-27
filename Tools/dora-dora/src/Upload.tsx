@@ -140,9 +140,13 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 					const action = typeof options.action === 'string' ? options.action : Service.addr(`/upload?path=${encodeURIComponent(prop.path)}`);
 					const formData = new FormData();
 					const file = options.file as RcFile;
+					// Browser multipart filename encoding is not consistent across
+					// platforms. Send the authoritative UTF-8 path separately so CJK
+					// names do not depend on Content-Disposition compatibility decoding.
+					const uploadAction = `${action}${action.includes('?') ? '&' : '?'}name=${encodeURIComponent(file.name)}`;
 					formData.append(options.filename ?? 'file', file, file.name);
 					options.onProgress?.({ percent: 0 });
-					const res = await fetch(action, {
+					const res = await fetch(uploadAction, {
 						method: 'POST',
 						body: formData,
 					});
@@ -312,30 +316,33 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 		return () => clearInterval(interval);
 	}, []);
 
-	const handleUpload = () => {
-		const formData = new FormData();
-		fileList.forEach(file => {
-			formData.append('file', file as RcFile);
-		});
+	const handleUpload = async () => {
 		setUploading(true);
-		fetch(Service.addr(`/upload?path=${encodeURIComponent(prop.path)}`), {
-			method: 'POST',
-			body: formData,
-		})
-			.then(() => {
-				fileList.forEach(file => {
-					const f = file as RcFile;
-					prop.onUploaded(prop.path, f.name, false);
+		try {
+			await Promise.all(fileList.map(async selectedFile => {
+				const file = selectedFile as RcFile;
+				const formData = new FormData();
+				formData.append('file', file, file.name);
+				const uploadPath = Service.addr(`/upload?path=${encodeURIComponent(prop.path)}&name=${encodeURIComponent(file.name)}`);
+				const response = await fetch(uploadPath, {
+					method: 'POST',
+					body: formData,
 				});
-				setFileList([]);
-				message.success(t('upload.success'));
-			})
-			.catch(() => {
-				message.error(t('upload.failed'));
-			})
-			.finally(() => {
-				setUploading(false);
+				if (!response.ok) {
+					throw new Error(`upload failed: ${response.status}`);
+				}
+			}));
+			fileList.forEach(file => {
+				const f = file as RcFile;
+				prop.onUploaded(prop.path, f.name, false);
 			});
+			setFileList([]);
+			message.success(t('upload.success'));
+		} catch (_error) {
+			message.error(t('upload.failed'));
+		} finally {
+			setUploading(false);
+		}
 	};
 
 	const uprops: UploadProps = {
