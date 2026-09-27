@@ -4,7 +4,6 @@ local __TS__StringStartsWith = ____lualib.__TS__StringStartsWith -- 1
 local __TS__StringSplit = ____lualib.__TS__StringSplit -- 1
 local __TS__ArraySome = ____lualib.__TS__ArraySome -- 1
 local __TS__StringEndsWith = ____lualib.__TS__StringEndsWith -- 1
-local __TS__StringTrim = ____lualib.__TS__StringTrim -- 1
 local __TS__ArrayFilter = ____lualib.__TS__ArrayFilter -- 1
 local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
 local __TS__StringSubstring = ____lualib.__TS__StringSubstring -- 1
@@ -60,10 +59,11 @@ local function fail(zh, en) -- 29
 	) and zh or en) -- 30
 end -- 29
 local function cleanName(value) -- 33
-	local cleaned = __TS__StringTrim((string.gsub(value, "[\\/:*?\"<>|%c]", "_"))) -- 34
-	local name = (string.gsub(cleaned, "^%.+", "")) -- 35
-	local ____end = utf8.offset(name, 61) -- 36
-	return name == "" and "Game" or (____end and string.sub(name, 1, ____end - 1) or name) -- 37
+	local replaced = (string.gsub(value, "[\\/:*?\"<>|%c]", "_")) -- 34
+	local cleaned = string.match(replaced, "^%s*(.-)%s*$") or replaced -- 38
+	local name = (string.gsub(cleaned, "^%.+", "")) -- 39
+	local ____end = utf8.offset(name, 61) -- 40
+	return name == "" and "Game" or (____end and string.sub(name, 1, ____end - 1) or name) -- 41
 end -- 33
 local function newStage() -- 40
 	local cache = Path(Content.writablePath, ".share") -- 41

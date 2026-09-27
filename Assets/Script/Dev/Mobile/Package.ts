@@ -31,7 +31,11 @@ function fail(zh: string, en: string): never {
 }
 
 function cleanName(value: string) {
-	const cleaned = string.gsub(value, '[\\/:*?"<>|%c]', "_")[0].trim();
+	const replaced = string.gsub(value, '[\\/:*?"<>|%c]', "_")[0];
+	// TSTL's String.trim helper places UTF-8 NBSP/BOM bytes in a Lua
+	// character class. A trailing byte shared by a valid character (for
+	// example U+79FB "移") can therefore be stripped and corrupt the name.
+	const cleaned = string.match(replaced, "^%s*(.-)%s*$")[0] ?? replaced;
 	const name = string.gsub(cleaned, "^%.+", "")[0];
 	const end = utf8.offset(name, 61);
 	return name === "" ? "Game" : end ? string.sub(name, 1, end - 1) : name;
