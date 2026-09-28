@@ -142,6 +142,7 @@ function ____exports.createPreviewGameInjection(req, entry) -- 60
 		local start = App.runningTime -- 115
 		local scope = false -- 116
 		local leased = false -- 117
+		local interruptedUserRun = false
 		if req.registerCleanup then req.registerCleanup(function()
 			if scope then scope = false; Director:endGameCapture() end
 			if leased then
@@ -170,11 +171,12 @@ function ____exports.createPreviewGameInjection(req, entry) -- 60
 					success = false, -- 195
 					files = files, -- 195
 					message = tostring(e), -- 195
+					interruptedUserRun = interruptedUserRun,
 					visionBudget = reservation and reservation.budget -- 195
 				} -- 195
 			end -- 195
 			local ____try, ____hasReturned = pcall(function() -- 195
-				acquireEntryLease(req.operationId, entry) -- 127
+				interruptedUserRun = acquireEntryLease(req.operationId, entry) -- 127
 				leased = true -- 128
 				entry.allClear() -- 129
 				scope = Director:beginGameCapture() -- 130
@@ -271,7 +273,7 @@ function ____exports.createPreviewGameInjection(req, entry) -- 60
 				if cleanupError then -- 191
 					error(cleanupError) -- 192
 				end -- 192
-				result = {success = true, files = files, frames = frames, visionBudget = reservation and reservation.budget} -- 193
+				result = {success = true, files = files, frames = frames, interruptedUserRun = interruptedUserRun, visionBudget = reservation and reservation.budget} -- 193
 			end) -- 193
 			if not ____try then -- 193
 				____catch(____hasReturned) -- 193
@@ -283,7 +285,7 @@ function ____exports.createPreviewGameInjection(req, entry) -- 60
 				if leased then -- 197
 					local cleanupError = releaseEntryLease(req.operationId, entry) -- 199
 					if cleanupError ~= nil then -- 199
-						result = result.success and ({success = false, files = files, message = cleanupError}) or ({success = false, files = files, message = ((result.message or "previewGame failed") .. "; ") .. cleanupError}) -- 201
+						result = result.success and ({success = false, files = files, message = cleanupError, interruptedUserRun = interruptedUserRun}) or ({success = false, files = files, message = ((result.message or "previewGame failed") .. "; ") .. cleanupError, interruptedUserRun = interruptedUserRun}) -- 201
 					end -- 201
 				end -- 201
 			end -- 201

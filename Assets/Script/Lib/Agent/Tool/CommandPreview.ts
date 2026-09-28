@@ -20,6 +20,7 @@ export interface CommandPreviewGameResult {
 	files?: string[];
 	frames?: CommandPreviewFrame[];
 	message?: string;
+	interruptedUserRun?: boolean;
 	visionBudget?: VisionBudgetState;
 }
 
@@ -156,6 +157,7 @@ export function createPreviewGameInjection(req: {
 		const start = App.runningTime;
 		let scope = false;
 		let leased = false;
+		let interruptedUserRun = false;
 		req.registerCleanup?.(() => {
 			if (scope) { scope = false; Director.endGameCapture(); }
 			if (leased) {
@@ -173,7 +175,7 @@ export function createPreviewGameInjection(req: {
 			if (App.runningTime - start > PREVIEW_GAME_TIMEOUT_SECONDS) error("previewGame timed out");
 		};
 		try {
-			acquireEntryLease(req.operationId, entry);
+			interruptedUserRun = acquireEntryLease(req.operationId, entry);
 			leased = true;
 			entry.allClear();
 			scope = Director.beginGameCapture();
@@ -239,17 +241,17 @@ export function createPreviewGameInjection(req: {
 			const cleanupError = releaseEntryLease(req.operationId, entry);
 			leased = false;
 			if (cleanupError) error(cleanupError);
-			result = {success: true, files, frames, visionBudget: reservation?.budget};
+			result = {success: true, files, frames, interruptedUserRun, visionBudget: reservation?.budget};
 		} catch (e) {
-			result = {success: false, files, message: tostring(e), visionBudget: reservation?.budget};
+			result = {success: false, files, message: tostring(e), interruptedUserRun, visionBudget: reservation?.budget};
 		} finally {
 			if (scope) Director.endGameCapture();
 			if (leased) {
 				const cleanupError = releaseEntryLease(req.operationId, entry);
 				if (cleanupError !== undefined) {
 					result = result.success
-						? {success: false, files, message: cleanupError}
-						: {success: false, files, message: `${result.message ?? "previewGame failed"}; ${cleanupError}`};
+						? {success: false, files, message: cleanupError, interruptedUserRun}
+						: {success: false, files, message: `${result.message ?? "previewGame failed"}; ${cleanupError}`, interruptedUserRun};
 				}
 			}
 		}

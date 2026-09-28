@@ -5369,6 +5369,116 @@ HttpServer:postSchedule("/run", function(req)
 		success = false
 	}
 end)
+local agentEntryRunQueue
+local _anon_func_7 = function(result)
+	if result.success then
+		return nil
+	else
+		return "PREVIEW_FAILED"
+	end
+end
+HttpServer:postSchedule("/agent/preview", function(req)
+	do
+		local _type_0 = type(req)
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0
+		if _tab_0 then
+			local projectRoot
+			do
+				local _obj_0 = req.body
+				local _type_1 = type(_obj_0)
+				if "table" == _type_1 or "userdata" == _type_1 then
+					projectRoot = _obj_0.projectRoot
+				end
+			end
+			if projectRoot ~= nil then
+				if not getProjectSourceRoot(projectRoot) then
+					return {
+						success = false,
+						code = "INVALID_PROJECT",
+						message = "projectRoot must be an existing absolute directory"
+					}
+				end
+				local entryFile = req.body.entry or "init.lua"
+				if not (type(entryFile) == "string" and entryFile ~= "") then
+					return {
+						success = false,
+						code = "INVALID_ENTRY",
+						message = "entry must be a non-empty project-relative path"
+					}
+				end
+				local captureAtSeconds = req.body.captureAtSeconds or {
+					0.5
+				}
+				local queueTimeoutSeconds = req.body.queueTimeoutSeconds or 30
+				if not (type(queueTimeoutSeconds) == "number" and queueTimeoutSeconds >= 1 and queueTimeoutSeconds <= 300) then
+					return {
+						success = false,
+						code = "INVALID_QUEUE_TIMEOUT",
+						message = "queueTimeoutSeconds must be between 1 and 300"
+					}
+				end
+				local AgentEntryRunQueue = require("Agent.Tool.EntryRunQueue")
+				local AgentOperation = require("Agent.Tool.Operation")
+				agentEntryRunQueue = agentEntryRunQueue or AgentEntryRunQueue.sharedEntryRunQueue
+				local requestId = AgentOperation.createOperationId()
+				local enqueued = agentEntryRunQueue:enqueue(requestId)
+				if not enqueued.success then
+					return {
+						success = false,
+						code = "ENTRY_QUEUE_REJECTED",
+						message = enqueued.message
+					}
+				end
+				local queuedAt = App.runningTime
+				while not agentEntryRunQueue:tryAcquire(requestId) do
+					if App.runningTime - queuedAt >= queueTimeoutSeconds then
+						local state = agentEntryRunQueue:get(requestId)
+						agentEntryRunQueue:cancel(requestId)
+						return {
+							success = false,
+							code = "ENTRY_QUEUE_TIMEOUT",
+							message = "timed out waiting for the Dora entry runtime",
+							requestId = requestId,
+							queuePosition = state.position
+						}
+					end
+					sleep()
+				end
+				local queueWaitSeconds = App.runningTime - queuedAt
+				local _ <close> = setmetatable({ }, {
+					__close = function()
+						return agentEntryRunQueue:release(requestId)
+					end
+				})
+				local AgentCommandPreview = require("Agent.Tool.CommandPreview")
+				local Entry = require("Script.Dev.Entry")
+				local preview = AgentCommandPreview.createPreviewGameInjection({
+					workDir = projectRoot,
+					operationId = requestId,
+					print = function() end
+				}, Entry)
+				local result = preview({
+					entry = entryFile,
+					captureAtSeconds = captureAtSeconds
+				})
+				return {
+					success = result.success,
+					code = _anon_func_7(result),
+					message = result.message,
+					requestId = requestId,
+					queueWaitSeconds = queueWaitSeconds,
+					interruptedUserRun = result.interruptedUserRun,
+					files = result.files,
+					frames = result.frames
+				}
+			end
+		end
+	end
+	return {
+		success = false,
+		message = "invalid call"
+	}
+end)
 HttpServer:postSchedule("/stop", function()
 	local Entry = require("Script.Dev.Entry")
 	return {
@@ -6437,7 +6547,7 @@ transpileTSFile = function(file, content, sourceRoot, files, isCancelled)
 	end
 	return transpileTSFileWithWebIDE(file, content, sourceRoot, files)
 end
-local _anon_func_7 = function(path)
+local _anon_func_8 = function(path)
 	local _val_0 = Path:getExt(path)
 	return "ts" == _val_0 or "tsx" == _val_0
 end
@@ -6470,7 +6580,7 @@ HttpServer:postSchedule("/ts/build", function(req)
 					}
 				end
 				if not Content:isdir(path) then
-					if not (_anon_func_7(path)) then
+					if not (_anon_func_8(path)) then
 						return {
 							success = false,
 							message = "expecting a TypeScript file"

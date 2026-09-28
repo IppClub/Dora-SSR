@@ -2210,6 +2210,54 @@ HttpServer\postSchedule "/run", (req): success: false ->
 		success, err = Entry.enterEntryAsync entry
 		return :success, :err
 
+agentEntryRunQueue = nil
+
+HttpServer\postSchedule "/agent/preview", (req): success: false, message: "invalid call" ->
+	switch req when {body: {:projectRoot}}
+		return success: false, code: "INVALID_PROJECT", message: "projectRoot must be an existing absolute directory" unless getProjectSourceRoot projectRoot
+		entryFile = req.body.entry or "init.lua"
+		return success: false, code: "INVALID_ENTRY", message: "entry must be a non-empty project-relative path" unless type(entryFile) == "string" and entryFile ~= ""
+		captureAtSeconds = req.body.captureAtSeconds or {0.5}
+		queueTimeoutSeconds = req.body.queueTimeoutSeconds or 30
+		return success: false, code: "INVALID_QUEUE_TIMEOUT", message: "queueTimeoutSeconds must be between 1 and 300" unless type(queueTimeoutSeconds) == "number" and queueTimeoutSeconds >= 1 and queueTimeoutSeconds <= 300
+		import "Agent.Tool.EntryRunQueue" as AgentEntryRunQueue
+		import "Agent.Tool.Operation" as AgentOperation
+		agentEntryRunQueue or= AgentEntryRunQueue.sharedEntryRunQueue
+		requestId = AgentOperation.createOperationId!
+		enqueued = agentEntryRunQueue\enqueue requestId
+		return success: false, code: "ENTRY_QUEUE_REJECTED", message: enqueued.message unless enqueued.success
+		queuedAt = App.runningTime
+		while not agentEntryRunQueue\tryAcquire requestId
+			if App.runningTime - queuedAt >= queueTimeoutSeconds
+				state = agentEntryRunQueue\get requestId
+				agentEntryRunQueue\cancel requestId
+				return
+					success: false
+					code: "ENTRY_QUEUE_TIMEOUT"
+					message: "timed out waiting for the Dora entry runtime"
+					requestId: requestId
+					queuePosition: state.position
+			sleep!
+		queueWaitSeconds = App.runningTime - queuedAt
+		close _ = <close>: -> agentEntryRunQueue\release requestId
+		import "Agent.Tool.CommandPreview" as AgentCommandPreview
+		import "Script.Dev.Entry"
+		preview = AgentCommandPreview.createPreviewGameInjection {
+			workDir: projectRoot
+			operationId: requestId
+			print: ->
+		}, Entry
+		result = preview entry: entryFile, :captureAtSeconds
+		return
+			success: result.success
+			code: if result.success then nil else "PREVIEW_FAILED"
+			message: result.message
+			requestId: requestId
+			queueWaitSeconds: queueWaitSeconds
+			interruptedUserRun: result.interruptedUserRun
+			files: result.files
+			frames: result.frames
+
 HttpServer\postSchedule "/stop", ->
 	import "Script.Dev.Entry"
 	success: Entry.stop!

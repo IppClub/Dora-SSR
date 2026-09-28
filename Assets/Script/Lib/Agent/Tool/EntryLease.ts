@@ -17,11 +17,23 @@ export interface DevEntryModule {
 }
 let owner = "";
 let runId: number | undefined;
-export function acquireEntryLease(id: string, entry: DevEntryModule): void {
+/**
+ * Acquires the Agent-owned Entry runtime. A running game without an Agent
+ * owner belongs to the user and is stopped so Agent work takes priority.
+ * Agent-owned runs remain mutually exclusive and are never preempted.
+ * Returns true when a user game was interrupted.
+ */
+export function acquireEntryLease(id: string, entry: DevEntryModule): boolean {
 	if (owner !== "" && owner !== id) error("Dora entry runtime is busy with another Agent tool");
 	const status = entry.getCurrentEntryStatus();
-	if (status.running && (owner !== id || status.runId !== runId)) error("Dora entry runtime is in use; stop the current game before previewing");
+	let interruptedUserRun = false;
+	if (status.running && (owner !== id || status.runId !== runId)) {
+		if (owner !== "") error("Dora entry runtime is busy with another Agent tool");
+		if (!entry.stop()) error("Dora could not interrupt the running user game for Agent work");
+		interruptedUserRun = true;
+	}
 	owner = id;
+	return interruptedUserRun;
 }
 // The lease predicts Entry's next run id as (current + 1). This relies on an
 // invariant in Script.Dev.Entry: enterEntryAsync increments its run counter

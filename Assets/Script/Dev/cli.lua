@@ -65,6 +65,9 @@ local function help()
 Usage: dora cli <command> [options]
 
 Commands:
+	agent status [-p project]
+	agent preview [-p project] [--entry init.lua] [--capture-at 0.5,2] [--queue-timeout 30]
+	agent log [-n lines]
 	ts install [-p project] [-l zh-Hans|en]
 	wa install [-p project]
 	build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa|yarn]
@@ -81,6 +84,19 @@ Commands:
 	rust upload <target-path> [-p project] [--run]
 
 Connection options: --host, --port, --timeout
+]])
+end
+
+local function agentHelp()
+	print([[
+Usage: dora cli agent <command> [options]
+
+Commands:
+	status [-p project]
+	preview [-p project] [--entry init.lua] [--capture-at 0.5,2] [--queue-timeout 30]
+	log [-n lines]
+
+Agent commands always emit one JSON object on stdout. Diagnostics are written to stderr.
 ]])
 end
 
@@ -272,6 +288,17 @@ local function parseNumber(value, fallback)
 	return value
 end
 
+local function parseNumberList(value, option)
+	local result = {}
+	for part in tostring(value):gmatch("[^,]+") do
+		local number = tonumber(part)
+		if number == nil then fail(option .. " expects comma-separated numbers") end
+		result[#result + 1] = number
+	end
+	if #result == 0 then fail(option .. " expects at least one number") end
+	return result
+end
+
 local function parseOptions(args, index)
 	local options = {
 		host = CLI.env("DORA_HOST", defaultHost),
@@ -286,6 +313,8 @@ local function parseOptions(args, index)
 		docType = "dora-api",
 		docCode = nil,
 		json = false,
+		captureAtSeconds = {0.5},
+		queueTimeoutSeconds = 30,
 		startLine = nil,
 		endLine = nil,
 		files = {},
@@ -363,6 +392,16 @@ local function parseOptions(args, index)
 			index = index + 1
 		elseif arg == "--json" then
 			options.json = true
+			index = index + 1
+		elseif arg == "--capture-at" then
+			index = index + 1
+			if index > #args then fail("--capture-at expects a value") end
+			options.captureAtSeconds = parseNumberList(args[index], "--capture-at")
+			index = index + 1
+		elseif arg == "--queue-timeout" then
+			index = index + 1
+			if index > #args then fail("--queue-timeout expects a value") end
+			options.queueTimeoutSeconds = tonumber(args[index]) or fail("--queue-timeout expects a number")
 			index = index + 1
 		elseif arg == "--run" then
 			options.runAfterUpload = true
@@ -875,6 +914,52 @@ local function runLog(options)
 	io.write(tostring(doc.log or ""))
 end
 
+local function printAgentResult(doc)
+	print(json.encode(doc))
+	return type(doc) == "table" and doc.success == true and 0 or 1
+end
+
+local function requestAgentJson(options, path, body)
+	local doc, err = tryPostJson(options, path, body)
+	if doc == nil then
+		return printAgentResult({
+			success = false,
+			code = "DORA_SERVICE_UNAVAILABLE",
+			message = err,
+		})
+	end
+	return printAgentResult(doc)
+end
+
+local function runAgentCommand(args)
+	local action = args[2]
+	if action == nil or isHelpArg(action) then
+		agentHelp()
+		return action == nil and 1 or 0
+	end
+	local options = parseOptionsExact(args, 3)
+	if action == "status" then
+		return requestAgentJson(options, "/status", {projectRoot = options.project})
+	elseif action == "preview" then
+		if not CLI.exists(options.project) or not CLI.isDir(options.project) then
+			return printAgentResult({success = false, code = "INVALID_PROJECT", message = "Project directory does not exist: " .. options.project})
+		end
+		return requestAgentJson(options, "/agent/preview", {
+			projectRoot = options.project,
+			entry = options.entry,
+			captureAtSeconds = options.captureAtSeconds,
+			queueTimeoutSeconds = options.queueTimeoutSeconds,
+		})
+	elseif action == "log" then
+		local count = options.logLines or 20
+		if count < 1 or count ~= math.floor(count) then
+			return printAgentResult({success = false, code = "INVALID_LOG_COUNT", message = "-n expects a positive integer"})
+		end
+		return requestAgentJson(options, "/log", {count = count})
+	end
+	return printAgentResult({success = false, code = "UNKNOWN_AGENT_COMMAND", message = "Unsupported agent command: " .. tostring(action)})
+end
+
 local function docLanguage(options)
 	if not options.languageProvided then
 		return "en"
@@ -1267,7 +1352,9 @@ local function main()
 		return #args < 1 and 1 or 0
 	end
 	local command = args[1]
-	if command == "build" then
+	if command == "agent" then
+		return runAgentCommand(args)
+	elseif command == "build" then
 		local options = parseOptionsExact(args, 2)
 		runBuild(options)
 	elseif command == "run" then
@@ -1303,7 +1390,11 @@ local ok, result = xpcall(main, function(err)
 	return tostring(err)
 end)
 if not ok then
-	io.stderr:write(result .. "\n")
+	if CLI.args[1] == "agent" then
+		print(json.encode({success = false, code = "CLI_ERROR", message = result}))
+	else
+		io.stderr:write(result .. "\n")
+	end
 	return 1
 end
 return result or 0

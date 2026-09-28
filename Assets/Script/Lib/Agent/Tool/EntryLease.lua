@@ -2,16 +2,24 @@
 local ____exports = {} -- 1
 local owner = "" -- 18
 local runId -- 19
-function ____exports.acquireEntryLease(id, entry) -- 20
+function ____exports.acquireEntryLease(id, entry) -- 27
 	if owner ~= "" and owner ~= id then -- 20
 		error("Dora entry runtime is busy with another Agent tool") -- 21
 	end -- 21
 	local status = entry.getCurrentEntryStatus() -- 22
+	local interruptedUserRun = false
 	if status.running and (owner ~= id or status.runId ~= runId) then -- 22
-		error("Dora entry runtime is in use; stop the current game before previewing") -- 23
+		if owner ~= "" then
+			error("Dora entry runtime is busy with another Agent tool")
+		end
+		if not entry.stop() then
+			error("Dora could not interrupt the running user game for Agent work")
+		end
+		interruptedUserRun = true
 	end -- 23
 	owner = id -- 24
-end -- 20
+	return interruptedUserRun
+end -- 27
 function ____exports.recordEntryLeaseRun(id, entry) -- 29
 	if owner == id then -- 29
 		runId = (entry.getCurrentEntryStatus().runId or 0) + 1 -- 30
