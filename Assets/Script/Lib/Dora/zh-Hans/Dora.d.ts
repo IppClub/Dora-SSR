@@ -655,6 +655,9 @@ interface App {
 	*/
 	readonly version: string;
 
+	/** 当前运行中的 Dora 可执行程序的绝对路径。 */
+	readonly executablePath: string;
+
 	/**
 	 * 自从上一帧游戏更新以来间隔的时间（以秒为单位）。
 	 * 在同游戏帧中多次调用时得到的是常数。
@@ -7706,6 +7709,44 @@ interface ParticleClass {
 
 const particleClass: ParticleClass;
 export {particleClass as Particle};
+
+export interface ProcessSpawnOptions {
+	program: string;
+	args?: string[];
+	cwd?: string;
+	/** 添加到继承环境中或覆盖继承环境的环境变量。 */
+	env?: Record<string, string>;
+}
+
+export interface ProcessReadResult {
+	stdout: string;
+	stderr: string;
+	stdoutOffset: number;
+	stderrOffset: number;
+	running: boolean;
+	state: number;
+	exit: {
+		kind?: number;
+		exitCode?: number;
+		signal?: number;
+		stage?: number;
+		osError?: number;
+		stopReason?: number;
+		timedOut?: boolean;
+		cancelled?: boolean;
+	};
+}
+
+interface ProcessClass {
+	spawn(options: ProcessSpawnOptions): number | undefined;
+	read(handle: number, stdoutOffset?: number, stderrOffset?: number): ProcessReadResult;
+	write(handle: number, text?: string): number | boolean;
+	stop(handle: number, mode?: "interrupt" | "terminate" | "kill" | "kill-tree"): boolean;
+	destroy(handle: number): boolean;
+}
+
+const process: ProcessClass;
+export {process as Process};
 
 /** 文件路径操作的辅助类。 */
 interface Path {

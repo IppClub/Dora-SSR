@@ -653,6 +653,9 @@ interface App {
 	/** The version string of the game engine. Should be in format of "v0.0.0.0". */
 	readonly version: string;
 
+	/** The absolute path to the currently running Dora executable. */
+	readonly executablePath: string;
+
 	/** The time in seconds since the last frame update. */
 	readonly deltaTime: number;
 
@@ -7712,6 +7715,44 @@ interface ParticleClass {
 
 const particleClass: ParticleClass;
 export {particleClass as Particle};
+
+export interface ProcessSpawnOptions {
+	program: string;
+	args?: string[];
+	cwd?: string;
+	/** Environment variables added to or overriding the inherited process environment. */
+	env?: Record<string, string>;
+}
+
+export interface ProcessReadResult {
+	stdout: string;
+	stderr: string;
+	stdoutOffset: number;
+	stderrOffset: number;
+	running: boolean;
+	state: number;
+	exit: {
+		kind?: number;
+		exitCode?: number;
+		signal?: number;
+		stage?: number;
+		osError?: number;
+		stopReason?: number;
+		timedOut?: boolean;
+		cancelled?: boolean;
+	};
+}
+
+interface ProcessClass {
+	spawn(options: ProcessSpawnOptions): number | undefined;
+	read(handle: number, stdoutOffset?: number, stderrOffset?: number): ProcessReadResult;
+	write(handle: number, text?: string): number | boolean;
+	stop(handle: number, mode?: "interrupt" | "terminate" | "kill" | "kill-tree"): boolean;
+	destroy(handle: number): boolean;
+}
+
+const process: ProcessClass;
+export {process as Process};
 
 /** Helper class for file path operations. */
 interface Path {

@@ -9,6 +9,7 @@ import type { VisionTaskUsage } from 'Agent/Tool/VisionAnalysis';
 import * as AgentConfig from 'Agent/Config';
 import * as AgentToolRegistry from 'Agent/Tool/Registry';
 import * as AgentRuntimePolicy from 'Agent/Runtime/Policy';
+import * as LocalAgent from 'Agent/LocalAgent';
 import * as Tools from 'Agent/Tools';
 import {
 	TABLE_SESSION,
@@ -330,6 +331,7 @@ interface PendingSubAgentHandoffItem {
 }
 
 const activeStopTokens: Record<number, StopToken> = {};
+const activeLocalAgentControls: Record<number, LocalAgent.LocalAgentRunControl> = {};
 const finalizingSubSessionTaskIds: Record<number, boolean> = {};
 const SESSION_SELECT_COLUMNS = "id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json, work_mode";
 const now = () => os.time();
@@ -1340,6 +1342,9 @@ function normalizeSessionRuntimeState(session: AgentSessionItem): AgentSessionIt
 		return session;
 	}
 	if (activeStopTokens[session.currentTaskId] !== undefined) {
+		return session;
+	}
+	if (activeLocalAgentControls[session.currentTaskId] !== undefined) {
 		return session;
 	}
 	const pendingToolRows = queryRows(
@@ -2569,6 +2574,83 @@ export function sendPrompt(sessionId: number, prompt: string, disabledAgentTools
 	return startPromptTask(session, normalizedPrompt, undefined, normalizeDisabledAgentTools(disabledAgentTools), { workMode: nextWorkMode, llmConfigId, llmConfig, maxSteps:boundedMaxSteps });
 }
 
+export function sendLocalPrompt(sessionId: number, prompt: string, localAgentConfigId: unknown): AgentSessionSendResult {
+	const session = getSessionItem(sessionId);
+	if (!session) return { success: false, message: "session not found" };
+	if (session.kind !== "main") return { success: false, message: "local Agent only supports main sessions" };
+	if (getPendingQuestionnaire(sessionId)) return { success: false, message: "complete the pending questionnaire before sending another prompt" };
+	if (session.currentTaskStatus === "RUNNING") return { success: false, message: "session task is still running" };
+	const normalizedPrompt = normalizePromptTextSafe(prompt);
+	if (normalizedPrompt === "") return { success: false, message: "prompt is empty" };
+	const config = LocalAgent.getConfig(localAgentConfigId);
+	if (!config) return { success: false, message: "local Agent config not found" };
+	if (!config.verifiedAt) return { success: false, message: "local Agent config is not verified" };
+	const taskRes = Tools.createTask(normalizedPrompt, "code");
+	if (!taskRes.success) return taskRes;
+	const taskId = taskRes.taskId;
+	const messageId = insertMessage(session.id, "user", normalizedPrompt, taskId);
+	Tools.setTaskStatus(taskId, "RUNNING");
+	setSessionState(session.id, "RUNNING", taskId, "RUNNING");
+	upsertStep(session.id, taskId, 1, "local_agent_message", {
+		status: "RUNNING",
+		reason: `${config.name} · full permissions`,
+		params: { provider: config.provider, configId: config.id },
+		result: { events: [], transcript: "" },
+	});
+	emitAgentSessionPatch(session.id, {
+		session: getSessionItem(session.id),
+		message: getMessageItem(messageId),
+		step: getStepItem(session.id, taskId, 1),
+	});
+	let events: {kind: string; text: string}[] = [];
+	let transcript = "";
+	let assistant = "";
+	let lastFlush = 0;
+	const flush = (force = false) => {
+		if (!force && App.runningTime - lastFlush < 0.075) return;
+		lastFlush = App.runningTime;
+		if (events.length > 400) events = events.slice(events.length - 400);
+		if (transcript.length > 1024 * 1024) transcript = transcript.slice(transcript.length - 1024 * 1024);
+		upsertStep(session.id, taskId, 1, "local_agent_message", {
+			status: "RUNNING",
+			reason: `${config.name} · full permissions`,
+			result: { provider: config.provider, events, transcript },
+		});
+		let message: AgentSessionMessageItem | undefined;
+		if (assistant !== "") {
+			const assistantId = upsertAssistantMessage(session.id, taskId, assistant);
+			message = getMessageItem(assistantId);
+		}
+		emitAgentSessionPatch(session.id, { step: getStepItem(session.id, taskId, 1), ...(message ? {message} : {}) });
+	};
+	let completedSynchronously = false;
+	const control = LocalAgent.run(session.id, config, session.projectRoot, normalizedPrompt, event => {
+		const text = sanitizeUTF8(event.text);
+		if (text === "") return;
+		const previous = events.length > 0 ? events[events.length - 1] : undefined;
+		if (previous && previous.kind === event.kind && previous.text === text) return;
+		events.push({kind: event.kind, text});
+		transcript += `${event.kind}: ${text}\n`;
+		if (event.kind === "assistant") assistant = text;
+		flush(false);
+	}, result => {
+		completedSynchronously = true;
+		flush(true);
+		delete activeLocalAgentControls[taskId];
+		const status: AgentSessionStatus = result.stopped ? "STOPPED" : result.success ? "DONE" : "FAILED";
+		Tools.setTaskStatus(taskId, status);
+		setSessionState(session.id, status, taskId, status);
+		upsertStep(session.id, taskId, 1, "local_agent_message", {
+			status,
+			reason: `${config.name} · full permissions`,
+			result: {provider: config.provider, events, transcript, exitCode: result.exitCode, resumeId: result.resumeId, message: result.message},
+		});
+		emitAgentSessionPatch(session.id, {session: getSessionItem(session.id), step: getStepItem(session.id, taskId, 1)});
+	});
+	if (!completedSynchronously) activeLocalAgentControls[taskId] = control;
+	return { success: true, sessionId: session.id, taskId };
+}
+
 export function continuePrompt(sessionId: number, disabledAgentTools?: unknown, llmConfigId?: unknown): AgentSessionSendResult {
 	const session = getSessionItem(sessionId);
 	if (session && isProjectTaskAdmissionClosed(session.projectRoot)) return { success: false, message: "project task admission is closed" };
@@ -3111,6 +3193,11 @@ export function stopSessionTask(sessionId: number) {
 		return { success: false as const, message: "session task is finalizing" };
 	}
 	const normalizedSession = normalizeSessionRuntimeState(session);
+	const localControl = activeLocalAgentControls[session.currentTaskId];
+	if (localControl) {
+		localControl.stop();
+		return { success: true as const, stopping: true };
+	}
 	const stopToken = activeStopTokens[session.currentTaskId];
 	if (!stopToken) {
 		if (normalizedSession.currentTaskStatus === "STOPPED") {

@@ -32,6 +32,7 @@ const nativeCpp = cpp.slice(cpp.indexOf('// add manual binding'), cpp.indexOf('/
 const exclusions = {
 	'Git': 'native Git workspace integration is excluded',
 	'HttpServer': 'browser cannot host the native HTTP server',
+	'Process': 'browser cannot spawn native local processes',
 	'Cache': 'aggregate cache API pulls in excluded 3D/Wasm loaders',
 	'Wasm': 'Wasm script runtime excluded',
 	'teal': 'Teal editor/compiler excluded',

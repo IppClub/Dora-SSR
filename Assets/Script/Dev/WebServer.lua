@@ -25,10 +25,10 @@ local pairs <const> = pairs
 local App <const> = App
 local setmetatable <const> = setmetatable
 local Wasm <const> = Wasm
+local sleep <const> = sleep
 local package <const> = package
 local thread <const> = thread
 local print <const> = print
-local sleep <const> = sleep
 local emit <const> = emit
 local Node <const> = Node
 local yarncompile <const> = yarncompile
@@ -1814,6 +1814,86 @@ HttpServer:post("/agent/session/send", function(req)
 	end
 	return invalidArguments
 end)
+HttpServer:post("/agent/session/send-local", function(req)
+	do
+		local _type_0 = type(req)
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0
+		if _tab_0 then
+			local sessionId
+			do
+				local _obj_0 = req.body
+				local _type_1 = type(_obj_0)
+				if "table" == _type_1 or "userdata" == _type_1 then
+					sessionId = _obj_0.sessionId
+				end
+			end
+			local prompt
+			do
+				local _obj_0 = req.body
+				local _type_1 = type(_obj_0)
+				if "table" == _type_1 or "userdata" == _type_1 then
+					prompt = _obj_0.prompt
+				end
+			end
+			local localAgentConfigId
+			do
+				local _obj_0 = req.body
+				local _type_1 = type(_obj_0)
+				if "table" == _type_1 or "userdata" == _type_1 then
+					localAgentConfigId = _obj_0.localAgentConfigId
+				end
+			end
+			if sessionId ~= nil and prompt ~= nil and localAgentConfigId ~= nil then
+				return AgentSession.sendLocalPrompt(sessionId, prompt, localAgentConfigId)
+			end
+		end
+	end
+	return invalidArguments
+end)
+HttpServer:post("/agent/session/local/new", function(req)
+	do
+		local _type_0 = type(req)
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0
+		if _tab_0 then
+			local sessionId
+			do
+				local _obj_0 = req.body
+				local _type_1 = type(_obj_0)
+				if "table" == _type_1 or "userdata" == _type_1 then
+					sessionId = _obj_0.sessionId
+				end
+			end
+			if sessionId ~= nil then
+				return (require("Agent.LocalAgent")).abandonSession(sessionId)
+			end
+		end
+	end
+	return invalidArguments
+end)
+HttpServer:post("/agent/session/local/info", function(req)
+	do
+		local _type_0 = type(req)
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0
+		if _tab_0 then
+			local sessionId
+			do
+				local _obj_0 = req.body
+				local _type_1 = type(_obj_0)
+				if "table" == _type_1 or "userdata" == _type_1 then
+					sessionId = _obj_0.sessionId
+				end
+			end
+			if sessionId ~= nil then
+				local info = (require("Agent.LocalAgent")).getSessionInfo(sessionId)
+				return {
+					success = true,
+					info = info
+				}
+			end
+		end
+	end
+	return invalidArguments
+end)
 HttpServer:post("/agent/session/continue", function(req)
 	do
 		local _type_0 = type(req)
@@ -3468,7 +3548,8 @@ HttpServer:postSchedule("/complete", function(req)
 		success = false
 	}
 end)
-local function getUploadFilename(req, multipartFilename)
+local getUploadFilename
+getUploadFilename = function(req, multipartFilename)
 	local filename = req.params.name
 	if not (type(filename) == "string" and filename ~= "") then
 		filename = multipartFilename
@@ -3476,17 +3557,24 @@ local function getUploadFilename(req, multipartFilename)
 	if not (type(filename) == "string" and filename ~= "") then
 		return
 	end
-	if string.sub(filename, 1, 1) == "/" or string.sub(filename, -1) == "/" or string.find(filename, "//", 1, true) or string.find(filename, "\\", 1, true) or string.find(filename, ":", 1, true) or string.find(filename, "\0", 1, true) then
+	if filename:sub(1, 1) == "/" or filename:sub(-1) == "/" or filename:find("//", 1, true) or filename:find("\\", 1, true) or filename:find(":", 1, true) or filename:find("\0", 1, true) then
 		return
 	end
-	local parts = {}
-	for part in string.gmatch(filename, "[^/]+") do
-		parts[#parts + 1] = part
+	local parts
+	do
+		local _accum_0 = { }
+		local _len_0 = 1
+		for part in filename:gmatch("[^/]+") do
+			_accum_0[_len_0] = part
+			_len_0 = _len_0 + 1
+		end
+		parts = _accum_0
 	end
 	if #parts == 0 then
 		return
 	end
-	for _, part in ipairs(parts) do
+	for _index_0 = 1, #parts do
+		local part = parts[_index_0]
 		if part == "." or part == ".." or part == "" then
 			return
 		end
@@ -3932,6 +4020,67 @@ HttpServer:post("/llm/delete", function(req)
 				return {
 					success = affected >= 0
 				}
+			end
+		end
+	end
+	return invalidArguments
+end)
+HttpServer:post("/local-agent/list", function()
+	local LocalAgent = require("Agent.LocalAgent")
+	return {
+		success = true,
+		supported = LocalAgent.isLocalAgentSupported(),
+		items = LocalAgent.listConfigs()
+	}
+end)
+HttpServer:post("/local-agent/save", function(req)
+	do
+		local _type_0 = type(req)
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0
+		if _tab_0 then
+			local body = req.body
+			if body ~= nil then
+				return (require("Agent.LocalAgent")).saveConfig(body)
+			end
+		end
+	end
+	return invalidArguments
+end)
+HttpServer:post("/local-agent/delete", function(req)
+	do
+		local _type_0 = type(req)
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0
+		if _tab_0 then
+			local id
+			do
+				local _obj_0 = req.body
+				local _type_1 = type(_obj_0)
+				if "table" == _type_1 or "userdata" == _type_1 then
+					id = _obj_0.id
+				end
+			end
+			if id ~= nil then
+				return (require("Agent.LocalAgent")).deleteConfig(id)
+			end
+		end
+	end
+	return invalidArguments
+end)
+HttpServer:postSchedule("/local-agent/verify", function(req)
+	do
+		local _type_0 = type(req)
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0
+		if _tab_0 then
+			local id
+			do
+				local _obj_0 = req.body
+				local _type_1 = type(_obj_0)
+				if "table" == _type_1 or "userdata" == _type_1 then
+					id = _obj_0.id
+				end
+			end
+			if id ~= nil then
+				return (require("Agent.LocalAgent")).verifyConfig(id, req.body.projectRoot)
 			end
 		end
 	end
@@ -5369,7 +5518,7 @@ HttpServer:postSchedule("/run", function(req)
 		success = false
 	}
 end)
-local agentEntryRunQueue
+local agentEntryRunQueue = nil
 local _anon_func_7 = function(result)
 	if result.success then
 		return nil
@@ -6255,27 +6404,15 @@ collectTSVirtualFiles = function(sourceRoot)
 		end
 	end
 	local lualibBundle = Path(Content.assetPath, "Script", "Lib", "lualib_bundle.lua")
-	do
-		local content = Content:load(lualibBundle)
-		if content then
-			files[#files + 1] = {
-				file = "lualib_bundle.lua",
-				content = content
-			}
-		end
-	end
+	local lualibBundleTarget = sourceRoot and Path(sourceRoot, "lualib_bundle.lua") or "lualib_bundle.lua"
+	addFile(lualibBundle, nil, lualibBundleTarget)
 	local lualibRoot = Path(Content.assetPath, "Script", "Lib", "lualib")
 	local _list_1 = Content:getFiles(lualibRoot)
 	for _index_0 = 1, #_list_1 do
 		local file = _list_1[_index_0]
 		if Path:getExt(file) == "lua" then
-			local content = Content:load(Path(lualibRoot, file))
-			if content then
-				files[#files + 1] = {
-					file = Path("lualib", file),
-					content = content
-				}
-			end
+			local virtualFile = sourceRoot and Path(sourceRoot, "lualib", file) or Path("lualib", file)
+			addFile(Path(lualibRoot, file), nil, virtualFile)
 		end
 	end
 	return files

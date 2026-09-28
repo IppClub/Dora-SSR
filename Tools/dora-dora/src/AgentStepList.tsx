@@ -60,6 +60,27 @@ type ExecuteCommandDetails = {
 	output?: string;
 };
 
+type LocalAgentDisplayEvent = {
+	kind: string;
+	text: string;
+};
+
+function getLocalAgentDisplayEvents(step: AgentSessionStep): LocalAgentDisplayEvent[] {
+	if (step.tool !== "local_agent_message" || !Array.isArray(step.result?.events)) return [];
+	return step.result.events
+		.filter((event): event is {kind: string; text: string} => (
+			typeof event === "object" && event !== null
+			&& typeof (event as {kind?: unknown}).kind === "string"
+			&& typeof (event as {text?: unknown}).text === "string"
+		))
+		.map(event => ({
+			kind: event.kind === "activity" && event.text.includes('"mcp_tool_call"') ? "command" : event.kind,
+			text: event.kind === "stderr"
+				? event.text.replace(/^\d{4}-\d{2}-\d{2}T\S+\s+/, "")
+				: event.text,
+		}));
+}
+
 const stepActionButtonSx = {
 	color: Color.TextSecondary,
 	borderColor: Color.Line,
@@ -538,6 +559,9 @@ function AgentStepListBody(props: AgentStepListProps) {
 				const historyEntryPreview = step.tool === "compress_memory" && typeof step.result?.historyEntryPreview === "string"
 					? step.result.historyEntryPreview
 					: "";
+				const localAgentTranscript = step.tool === "local_agent_message" && typeof step.result?.transcript === "string"
+					? step.result.transcript
+					: "";
 				const isSystemStep = step.tool === "compress_memory" || step.tool === "merge_memory" || step.tool === "sub_agent_handoff";
 				const hasCompletedToolOutcome = step.status === "FAILED"
 					&& !isSystemStep
@@ -605,6 +629,11 @@ function AgentStepListBody(props: AgentStepListProps) {
 							<Typography variant="body2" sx={{ color: Color.TextSecondary, whiteSpace: "pre-wrap", lineHeight: 1.6, mt: 0.75 }}>
 								{historyEntryPreview}
 							</Typography>
+						) : null}
+						{localAgentTranscript !== "" ? (
+							<Box component="pre" data-local-agent-transcript="true" sx={{mt: 1, mb: 0, p: 1.25, maxHeight: 420, overflow: 'auto', whiteSpace: 'pre-wrap', color: Color.TextSecondary, backgroundColor: Color.BackgroundDark, borderRadius: 1.5, fontSize: 13, lineHeight: 1.55}}>
+								{localAgentTranscript}
+							</Box>
 						) : null}
 						{handoffMeta ? (
 							<Box sx={{ mt: 1.25 }}>
@@ -966,15 +995,112 @@ type AgentStepRowProps = Omit<AgentStepListProps, "steps"> & {
 	step: AgentSessionStep;
 };
 
+function LocalAgentEventRow({event, index, isLast, step}: {
+	event: LocalAgentDisplayEvent;
+	index: number;
+	isLast: boolean;
+	step: AgentSessionStep;
+}) {
+	const {t} = useTranslation();
+	const [toolCallOpen, setToolCallOpen] = React.useState(false);
+	const eventColor = event.kind === "stderr" ? Color.Error : Color.TextSecondary;
+	const isToolCall = event.kind === "command";
+	const toolPreview = event.text.slice(0, 520).replace(/\s+/g, " ").trim();
+	const collapsedPreview = event.text.length > 520 || toolPreview.length > 260 ? `${toolPreview.slice(0, 260)}…` : toolPreview;
+	return (
+		<Box
+			data-agent-step-id={`${step.id}:${index}`}
+			data-local-agent-event-kind={event.kind}
+			sx={{
+				borderLeft: `2px solid ${event.kind === "stderr" ? "rgba(255,120,120,0.4)" : Color.Line}`,
+				pl: 1.5,
+				py: 0.25,
+				width: "100%",
+				maxWidth: "100%",
+				minWidth: 0,
+				boxSizing: "border-box",
+				overflowWrap: "anywhere",
+				wordBreak: "break-word",
+			}}
+		>
+			<Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+				<Typography variant="caption" sx={{color: Color.TextSecondary}}>
+					{index + 1}
+				</Typography>
+				<Chip
+					size="small"
+					label={event.kind}
+					variant="outlined"
+					sx={{borderColor: event.kind === "stderr" ? "rgba(255,120,120,0.4)" : Color.Line, color: eventColor, textTransform: "uppercase"}}
+				/>
+				{index === 0 ? (
+					<Typography variant="caption" sx={{color: Color.TextSecondary}}>{step.reason}</Typography>
+				) : null}
+				{isLast ? (
+					<Chip size="small" label={step.status} variant="outlined" sx={{borderColor: Color.Line, color: Color.TextSecondary}} />
+				) : null}
+			</Stack>
+			{event.kind === "assistant" ? (
+				<Box sx={{mt: 1, color: Color.TextPrimary, fontSize: 16, lineHeight: 1.65, '& .markdown-body > :first-of-type': {marginTop: 0}, '& .markdown-body > :last-child': {marginBottom: 0}}}>
+					<Markdown content={event.text} contentPadding={0} inheritTypography />
+				</Box>
+			) : isToolCall ? (
+				<Box sx={{mt: 0.5, minWidth: 0}}>
+					<Button
+						data-local-agent-tool-toggle="true"
+						size="small"
+						variant="text"
+						onClick={() => setToolCallOpen(open => !open)}
+						aria-expanded={toolCallOpen}
+						sx={{px: 0, minWidth: 0, maxWidth: "100%", color: Color.TextSecondary, textTransform: "none", justifyContent: "flex-start", textAlign: "left", '&:hover': {backgroundColor: "transparent", color: Color.TextPrimary}}}
+					>
+						<Box component="span" sx={{mr: 0.75, flex: "0 0 auto"}}>{toolCallOpen ? "▾" : "▸"}</Box>
+						<Box component="span" sx={{minWidth: 0, fontFamily: 'Menlo, Monaco, Consolas, "Liberation Mono", monospace', fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}>
+							{toolCallOpen ? t("agent.hideToolCall") : collapsedPreview}
+						</Box>
+					</Button>
+					<Collapse in={toolCallOpen} timeout="auto" unmountOnExit>
+						<Box sx={{mt: 0.5, border: `0.5px solid ${Color.Line}`, borderRadius: 1.5, backgroundColor: "rgba(255,255,255,0.025)", overflow: "hidden"}}>
+							<MacScrollbar skin="dark" style={{width: "100%", maxHeight: 360, padding: "8px 10px"}}>
+								<Typography component="pre" sx={{m: 0, minWidth: 0, whiteSpace: "pre-wrap", overflowWrap: "anywhere", color: eventColor, fontFamily: 'Menlo, Monaco, Consolas, "Liberation Mono", monospace', fontSize: 12, lineHeight: 1.55}}>
+									{event.text}
+								</Typography>
+							</MacScrollbar>
+						</Box>
+					</Collapse>
+				</Box>
+			) : (
+				<Typography component="pre" sx={{mt: 1, mb: 0, minWidth: 0, whiteSpace: "pre-wrap", overflowWrap: "anywhere", color: eventColor, fontFamily: "inherit", fontSize: 13, lineHeight: 1.55}}>
+					{event.text}
+				</Typography>
+			)}
+		</Box>
+	);
+}
+
+function LocalAgentEventRows({step}: {step: AgentSessionStep}) {
+	const events = getLocalAgentDisplayEvents(step);
+	return (
+		<Stack data-local-agent-events="true" spacing={2}>
+			{events.map((event, index) => (
+				<LocalAgentEventRow key={`${step.id}:${index}`} event={event} index={index} isLast={index === events.length - 1} step={step} />
+			))}
+		</Stack>
+	);
+}
+
 const AgentStepRow = React.memo(function AgentStepRow(props: AgentStepRowProps) {
 	const { step, ...listProps } = props;
 	const renderCount = recordAgentRowRender("step", step.id);
+	const localAgentEvents = getLocalAgentDisplayEvents(step);
 	return (
 		<Box
 			data-agent-step-row-id={step.id}
 			data-agent-step-render-count={renderCount}
 		>
-			<AgentStepListBody {...listProps} steps={[step]} />
+			{localAgentEvents.length > 0
+				? <LocalAgentEventRows step={step} />
+				: <AgentStepListBody {...listProps} steps={[step]} />}
 		</Box>
 	);
 });

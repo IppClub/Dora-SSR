@@ -1,4 +1,4 @@
-import { Button, Checkbox as MuiCheckbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, IconButton, InputAdornment, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material';
+import { Button, Checkbox as MuiCheckbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, IconButton, InputAdornment, MenuItem, Stack, Tab, Tabs, TextField, Tooltip, Typography } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -345,9 +345,61 @@ const ensureAuxiliaryOptions = (
 	}, null, 2);
 };
 
+type LocalAgentFormState = {
+	id: number;
+	name: string;
+	provider: Service.LocalAgentProvider;
+	executable: string;
+	extraArgs: string;
+};
+
+const LOCAL_AGENT_TEMPLATES: Record<Service.LocalAgentProvider, {
+	name: string;
+	executable: string;
+	extraArgs: string[];
+	commandPreview: string;
+}> = {
+	opencode: {
+		name: 'OpenCode',
+		executable: 'opencode',
+		extraArgs: [],
+		commandPreview: 'opencode run --format json --auto --dir <project> <prompt>',
+	},
+	codex: {
+		name: 'Codex',
+		executable: 'codex',
+		extraArgs: ['--skip-git-repo-check'],
+		commandPreview: 'codex exec --json --dangerously-bypass-approvals-and-sandbox -C <project> --skip-git-repo-check <prompt>',
+	},
+	zcode: {
+		name: 'ZCode',
+		executable: 'zcode',
+		extraArgs: [],
+		commandPreview: 'zcode --prompt <prompt> --json --mode yolo --cwd <project>',
+	},
+};
+
+const createLocalAgentForm = (provider: Service.LocalAgentProvider): LocalAgentFormState => {
+	const template = LOCAL_AGENT_TEMPLATES[provider];
+	return {
+		id: 0,
+		name: template.name,
+		provider,
+		executable: template.executable,
+		extraArgs: template.extraArgs.join('\n'),
+	};
+};
+
 const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 	const { t } = useTranslation();
+	const [tab, setTab] = useState(0);
 	const [items, setItems] = useState<Service.LLMConfigItem[]>([]);
+	const [localItems, setLocalItems] = useState<Service.LocalAgentConfigItem[]>([]);
+	const [localSupported, setLocalSupported] = useState(false);
+	const [localFormOpen, setLocalFormOpen] = useState(false);
+	const [localEditing, setLocalEditing] = useState(false);
+	const [localForm, setLocalForm] = useState<LocalAgentFormState>(() => createLocalAgentForm('opencode'));
+	const [verifyingId, setVerifyingId] = useState<number | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [formOpen, setFormOpen] = useState(false);
@@ -393,6 +445,17 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 		}
 	}, [t]);
 
+	const loadLocalItems = useCallback(async () => {
+		try {
+			const res = await Service.listLocalAgentConfigs();
+			setLocalSupported(res.supported === true);
+			if (res.success) setLocalItems(res.items ?? []);
+			else setError(res.message ?? t('llm.localLoadFailed'));
+		} catch {
+			setError(t('llm.localLoadFailed'));
+		}
+	}, [t]);
+
 	const applyTemplate = useCallback((id: string) => {
 		const template = templates.find((item) => item.id === id);
 		if (!template) return;
@@ -415,6 +478,7 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 	useEffect(() => {
 		if (open) {
 			loadItems();
+			loadLocalItems();
 			setMode('create');
 			applyTemplate('deepseek');
 		} else {
@@ -425,8 +489,42 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			setFormOpen(false);
 			setShowApiKey(false);
 			setPendingDelete(null);
+			setLocalItems([]);
+			setLocalFormOpen(false);
+			setVerifyingId(null);
 		}
-	}, [open, loadItems, applyTemplate]);
+	}, [open, loadItems, loadLocalItems, applyTemplate]);
+
+	const openLocalCreate = (provider: Service.LocalAgentProvider = 'opencode') => {
+		setLocalEditing(false);
+		setLocalForm(createLocalAgentForm(provider));
+		setLocalFormOpen(true);
+	};
+
+	const applyLocalAgentTemplate = (provider: Service.LocalAgentProvider) => {
+		const next = createLocalAgentForm(provider);
+		setLocalForm({...next, id: localForm.id});
+	};
+
+	const saveLocal = async () => {
+		const extraArgs = localForm.extraArgs.split('\n').map(item => item.trim()).filter(Boolean);
+		const res = await Service.saveLocalAgentConfig({id: localForm.id, name: localForm.name.trim(), provider: localForm.provider, executable: localForm.executable.trim(), extraArgs});
+		if (!res.success) { setError(res.message ?? t('llm.localSaveFailed')); return; }
+		setLocalFormOpen(false);
+		await loadLocalItems();
+		window.dispatchEvent(new Event('local-agent-configs-changed'));
+	};
+
+	const verifyLocal = async (id: number) => {
+		setVerifyingId(id);
+		setError(null);
+		try {
+			const res = await Service.verifyLocalAgentConfig(id);
+			if (!res.success) setError(res.message ?? t('llm.localVerificationFailed'));
+			await loadLocalItems();
+			window.dispatchEvent(new Event('local-agent-configs-changed'));
+		} finally { setVerifyingId(null); }
+	};
 
 	const openCreateForm = () => {
 		setError(null);
@@ -554,13 +652,27 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 		}
 	];
 
+	const localColumns: ColumnsType<Service.LocalAgentConfigItem> = [
+		{title: t('llm.name'), dataIndex: 'name', key: 'name'},
+		{title: t('llm.localProvider'), dataIndex: 'provider', key: 'provider'},
+		{title: t('llm.localExecutable'), dataIndex: 'executable', key: 'executable'},
+		{title: t('llm.localStatus'), key: 'status', render: (_, record) => record.verifiedAt ? <Chip size="small" color="success" variant="outlined" label={record.verifiedVersion || t('llm.localVerified')} /> : <Chip size="small" variant="outlined" label={t('llm.localNotVerified')} />},
+		{title: t('llm.actions'), key: 'actions', render: (_, record) => <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+			<Button size="small" disabled={verifyingId !== null} onClick={() => void verifyLocal(record.id)}>{verifyingId === record.id ? <CircularProgress size={14} /> : t('llm.localVerify')}</Button>
+			<IconButton size="small" onClick={() => {setLocalEditing(true); setLocalForm({id: record.id, name: record.name, provider: record.provider, executable: record.executable, extraArgs: record.extraArgs.join('\n')}); setLocalFormOpen(true);}}><EditIcon fontSize="small" /></IconButton>
+			<IconButton size="small" onClick={async () => {await Service.deleteLocalAgentConfig(record.id); await loadLocalItems(); window.dispatchEvent(new Event('local-agent-configs-changed'));}}><DeleteIcon fontSize="small" /></IconButton>
+		</Stack>},
+	];
+
 	const isEditing = mode === 'edit';
 
 	return (
 		<Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-			<DialogTitle>{t('llm.title')}</DialogTitle>
+			<DialogTitle>{t('llm.agentConfiguration')}</DialogTitle>
 			<DialogContent>
-				<Stack spacing={2}>
+				<Tabs value={tab} onChange={(_, value) => setTab(value)} sx={{mb: 2}}><Tab label={t('llm.llmApiTab')} /><Tab label={t('llm.localAgentTab')} /></Tabs>
+				{error ? <Typography color={Color.Error} sx={{mb: 2}}>{error}</Typography> : null}
+				<Stack spacing={2} sx={{display: tab === 0 ? 'flex' : 'none'}}>
 					<Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
 						<Typography color={Color.TextSecondary}>{t('llm.list')}</Typography>
 						<Button size="small" startIcon={<AddIcon />} onClick={openCreateForm}>
@@ -596,6 +708,13 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 						</MacScrollbar>
 					</ConfigProvider>
 				</Stack>
+				<Stack spacing={2} sx={{display: tab === 1 ? 'flex' : 'none'}}>
+					<Stack direction="row" justifyContent="space-between" alignItems="center">
+						<Typography color={Color.TextSecondary}>{t('llm.localAgentDescription')}</Typography>
+						<Button size="small" startIcon={<AddIcon />} onClick={() => openLocalCreate()}>{t('llm.add')}</Button>
+					</Stack>
+					{localSupported ? <ConfigProvider theme={{algorithm: [theme.darkAlgorithm, theme.compactAlgorithm]}}><Table rowKey="id" columns={localColumns} dataSource={localItems} pagination={false} size="small" locale={{emptyText: t('llm.localEmpty')}} /></ConfigProvider> : <Typography color={Color.Warning}>{t('llm.localUnsupported')}</Typography>}
+				</Stack>
 			</DialogContent>
 			<DialogActions>
 				<Button onClick={onClose}>{t('action.close')}</Button>
@@ -623,6 +742,17 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 						{t('action.confirm')}
 					</Button>
 				</DialogActions>
+			</Dialog>
+			<Dialog open={localFormOpen} onClose={() => setLocalFormOpen(false)} fullWidth maxWidth="sm">
+				<DialogTitle>{localEditing ? t('llm.localEditTitle') : t('llm.localCreateTitle')}</DialogTitle>
+				<DialogContent><Stack spacing={2} sx={{mt: 1}}>
+					<TextField select label={t('llm.localTemplate')} value={localForm.provider} onChange={event => applyLocalAgentTemplate(event.target.value as Service.LocalAgentProvider)}><MenuItem value="opencode">OpenCode</MenuItem><MenuItem value="codex">Codex</MenuItem><MenuItem value="zcode">ZCode</MenuItem></TextField>
+					<TextField label={t('llm.name')} value={localForm.name} onChange={event => setLocalForm({...localForm, name: event.target.value})} />
+					<TextField label={t('llm.localExecutable')} value={localForm.executable} onChange={event => setLocalForm({...localForm, executable: event.target.value})} helperText={t('llm.localExecutableHint')} />
+					<TextField label={t('llm.localCommandPreview')} value={LOCAL_AGENT_TEMPLATES[localForm.provider].commandPreview} slotProps={{input: {readOnly: true}}} helperText={t('llm.localCommandPreviewHint')} />
+					<TextField label={t('llm.localExtraArgs')} multiline minRows={3} value={localForm.extraArgs} onChange={event => setLocalForm({...localForm, extraArgs: event.target.value})} helperText={t('llm.localExtraArgsHint')} />
+				</Stack></DialogContent>
+				<DialogActions><Button onClick={() => setLocalFormOpen(false)}>{t('action.cancel')}</Button><Button variant="contained" disabled={!localForm.name.trim() || !localForm.executable.trim()} onClick={() => void saveLocal()}>{t('llm.save')}</Button></DialogActions>
 			</Dialog>
 			<Dialog open={formOpen} onClose={() => setFormOpen(false)} fullWidth maxWidth="sm">
 				<DialogTitle>{isEditing ? t('llm.editTitle') : t('llm.createTitle')}</DialogTitle>

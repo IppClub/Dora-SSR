@@ -1,6 +1,6 @@
 # Dora Agent 本地第三方 Agent 执行后端设计
 
-状态：设计基线已确认；Dora CLI Tool Bridge、Entry 运行队列和 Agent 抢占用户游戏的基础实现已存在，其余本地 Agent 执行、消息反显、Skill 与 session 管理尚待开发。实际状态和验收证据以 [开发进度跟踪表](./PROGRESS.md) 为准。
+状态：首版 OpenCode、Codex、ZCode 本地执行后端已完成 macOS 开发与验收；Windows/Linux 的实现已纳入桌面平台条件编译，仍待对应真机验证。实施顺序见 [PLAN.md](./PLAN.md)，实际状态和证据以 [开发进度跟踪表](./PROGRESS.md) 为准。
 
 创建：2026-09-28；最后更新：2026-09-28
 
@@ -8,7 +8,7 @@
 
 ## 1. 目标与范围
 
-在 Windows、macOS 和 Linux 桌面设备上，Dora Agent 可以把 Composer 中的用户任务交给本机已经安装的第三方命令行 Agent，例如 Codex、Claude Code、OpenCode 和 ZCode。第三方 Agent 直接完成代码编辑、构建和游戏验证，Dora Agent 本身不再为该任务发起任何 LLM 请求。
+在 Windows、macOS 和 Linux 桌面设备上，Dora Agent 可以把 Composer 中的用户任务交给本机已经安装的第三方命令行 Agent。首版实现 OpenCode、Codex 和 ZCode；Claude Code 保留为后续扩展。第三方 Agent 直接完成代码编辑、构建和游戏验证，Dora Agent 本身不再为该任务发起任何 LLM 请求。
 
 首版目标：
 
@@ -244,6 +244,7 @@ Codex / OpenCode / ZCode:
 
 - Dora runtime、入口文件、TypeScript 转 Lua和模块导入规则。
 - 禁止在 Dora 游戏代码中生成 DOM、Canvas、Node.js 专用代码。
+- 不依赖用户 shell 中已有 `dora` 命令、alias 或 PATH 配置。运行中的引擎根据 `App.executablePath` 和 `Content.assetPath` 在 writable path 生成私有 `dora` shim，并只为第三方 Agent 进程树把 shim 目录置于 PATH 首位；不会修改全局环境。shim 创建失败时才在当前 Prompt 中提供完整绝对命令作为降级。
 - 不猜测 Dora API；使用 `dora cli doc search/read` 查证。
 - 使用 Agent 自己的文件工具修改源码。
 - 使用 `dora cli build` 做编译验证。
@@ -254,9 +255,9 @@ Codex / OpenCode / ZCode:
 
 ### 8.3 所有权与升级
 
-- Dora 管理的文件带版本和内容 hash 标记。
-- 文件缺失时创建；仍等于已知旧版本时可原子升级。
-- 用户修改过的文件不得覆盖，状态显示为“自定义 Skill”。
+- Dora 管理的文件带版本标记。
+- 文件缺失时创建；已知 Dora 管理版本可原子升级。Skill 不保存机器相关路径，因此 Dora 安装位置或 Asset 根目录改变时无需改写。
+- 没有管理标记的用户文件不得覆盖，状态显示为“自定义 Skill”。
 - 不删除整个 skill 目录，不修改 `AGENTS.md`、`CLAUDE.md` 或其他 Agent 的配置。
 - session 记录启动时的 skillVersion；Skill 升级后，下一轮显式要求重新读取 Skill，或开启新 external session。
 

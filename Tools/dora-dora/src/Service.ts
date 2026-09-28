@@ -708,6 +708,23 @@ export const deleteLLMConfig = (id: number) => {
 	return post<LLMConfigWriteResponse>("/llm/delete", { id });
 };
 
+export type LocalAgentProvider = "opencode" | "codex" | "zcode";
+export interface LocalAgentConfigItem {
+	id: number;
+	name: string;
+	provider: LocalAgentProvider;
+	executable: string;
+	extraArgs: string[];
+	verifiedAt?: number;
+	verifiedVersion?: string;
+	verifiedFingerprint?: string;
+}
+
+export const listLocalAgentConfigs = () => post<{success: boolean; supported: boolean; items?: LocalAgentConfigItem[]; message?: string}>("/local-agent/list");
+export const saveLocalAgentConfig = (item: Omit<LocalAgentConfigItem, "verifiedAt" | "verifiedVersion" | "verifiedFingerprint">) => post<{success: boolean; id?: number; message?: string}>("/local-agent/save", item);
+export const deleteLocalAgentConfig = (id: number) => post<{success: boolean; message?: string}>("/local-agent/delete", {id});
+export const verifyLocalAgentConfig = (id: number, projectRoot?: string) => post<{success: boolean; version?: string; verifiedAt?: number; code?: string; message?: string}>("/local-agent/verify", {id, projectRoot});
+
 // Read
 
 export interface ReadRequest {
@@ -1689,6 +1706,13 @@ export const agentSessionSend = (req: { sessionId: number; prompt: string; llmCo
 		message: string;
 	}>("/agent/session/send", req);
 };
+
+export const agentSessionSendLocal = (req: {sessionId: number; prompt: string; localAgentConfigId: number}) => {
+	return post<{success: true; sessionId: number; taskId: number} | {success: false; message: string}>("/agent/session/send-local", req);
+};
+
+export const agentSessionNewLocal = (sessionId: number) => post<{success: boolean; message?: string}>("/agent/session/local/new", {sessionId});
+export const agentSessionLocalInfo = (sessionId: number) => post<{success: boolean; info?: {configId: number; provider: LocalAgentProvider; resumeId?: string; generation: number}; message?: string}>("/agent/session/local/info", {sessionId});
 
 export const agentSessionContinue = (req: { sessionId: number; llmConfigId: number; disabledAgentTools?: string[] }) => {
 	return post<{

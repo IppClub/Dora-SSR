@@ -1685,6 +1685,19 @@ LuaEngine::LuaEngine()
 		tolua_function(L, "bgfxProbeDraw", dora_bgfx_probe_draw);
 		tolua_function(L, "bgfxProbeClearRed", dora_bgfx_probe_clear_red);
 
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX
+		tolua_module(L, "Process", 0);
+		tolua_beginmodule(L, "Process");
+		{
+			tolua_function(L, "spawn", Process_spawn);
+			tolua_function(L, "read", Process_read);
+			tolua_function(L, "write", Process_write);
+			tolua_function(L, "stop", Process_stop);
+			tolua_function(L, "destroy", Process_destroy);
+		}
+		tolua_endmodule(L);
+#endif
+
 		tolua_beginmodule(L, "Application");
 		{
 			tolua_variable(L, "testNames", Test_getNames, nullptr);

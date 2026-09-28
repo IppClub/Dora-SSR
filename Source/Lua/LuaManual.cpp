@@ -18,6 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "SQLiteCpp/SQLiteCpp.h"
 
 #include "rapidjson/document.h"
+#include "Http/XrtNetwork.h"
 
 #ifdef __EMSCRIPTEN_PTHREADS__
 #include <emscripten/proxying.h>
@@ -35,6 +36,40 @@ void dora_music_string_free(char* value);
 NS_DORA_BEGIN
 
 namespace {
+
+#if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_WEB_MINIMAL)
+#define DORA_PROCESS_AVAILABLE
+std::unordered_map<int64_t, DoraXrtProcess*> processHandles;
+int64_t nextProcessHandle = 1;
+
+DoraXrtProcess* getProcessHandle(lua_State* L, int index) {
+	auto id = static_cast<int64_t>(luaL_checkinteger(L, index));
+	auto it = processHandles.find(id);
+	return it == processHandles.end() ? nullptr : it->second;
+}
+#endif
+
+void pushProcessExitInfo(lua_State* L, const DoraXrtProcessReadResult& info) {
+	lua_newtable(L);
+	if (info.exitKind != 0) {
+		lua_pushinteger(L, info.exitKind);
+		lua_setfield(L, -2, "kind");
+		lua_pushinteger(L, info.exitCode);
+		lua_setfield(L, -2, "exitCode");
+		lua_pushinteger(L, info.exitSignal);
+		lua_setfield(L, -2, "signal");
+		lua_pushinteger(L, info.exitStage);
+		lua_setfield(L, -2, "stage");
+		lua_pushinteger(L, info.osError);
+		lua_setfield(L, -2, "osError");
+		lua_pushinteger(L, info.stopReason);
+		lua_setfield(L, -2, "stopReason");
+		lua_pushboolean(L, info.timedOut);
+		lua_setfield(L, -2, "timedOut");
+		lua_pushboolean(L, info.cancelled);
+		lua_setfield(L, -2, "cancelled");
+	}
+}
 
 struct MusicRenderProgress {
 	std::atomic<float> value{0.0f};
@@ -95,6 +130,159 @@ std::string resolveMusicSoundFontPath(const std::string& request) {
 }
 
 } // namespace
+
+int Process_spawn(lua_State* L) {
+#ifdef DORA_PROCESS_AVAILABLE
+	// Dora module members are emitted as Lua methods by TypeScriptToLua, so the
+	// module table occupies stack slot 1 and the user arguments start at slot 2.
+	luaL_checktype(L, 2, LUA_TTABLE);
+	auto getStringField = [L](const char* name, bool required = false) {
+		lua_getfield(L, 2, name);
+		size_t size = 0;
+		const char* value = lua_tolstring(L, -1, &size);
+		std::string result;
+		if (value) result.assign(value, size);
+		lua_pop(L, 1);
+		if (required && result.empty()) luaL_error(L, "Process.spawn requires a non-empty %s", name);
+		return result;
+	};
+	std::string program = getStringField("program", true);
+	std::string workDir = getStringField("cwd");
+	std::vector<std::string> arguments;
+	lua_getfield(L, 2, "args");
+	if (lua_istable(L, -1)) {
+		auto count = lua_rawlen(L, -1);
+		arguments.reserve(count);
+		for (size_t i = 1; i <= count; ++i) {
+			lua_rawgeti(L, -1, static_cast<lua_Integer>(i));
+			size_t size = 0;
+			const char* value = luaL_checklstring(L, -1, &size);
+			arguments.emplace_back(value, size);
+			lua_pop(L, 1);
+		}
+	}
+	lua_pop(L, 1);
+	std::vector<const char*> args;
+	args.reserve(arguments.size());
+	for (auto& argument : arguments) args.push_back(argument.c_str());
+	std::vector<std::string> environment;
+	lua_getfield(L, 2, "env");
+	if (lua_istable(L, -1)) {
+		lua_pushnil(L);
+		while (lua_next(L, -2) != 0) {
+			size_t keySize = 0;
+			size_t valueSize = 0;
+			const char* key = luaL_checklstring(L, -2, &keySize);
+			const char* value = luaL_checklstring(L, -1, &valueSize);
+			if (keySize == 0 || memchr(key, '=', keySize) != nullptr || memchr(key, '\0', keySize) != nullptr || memchr(value, '\0', valueSize) != nullptr) {
+				return luaL_error(L, "Process.spawn env keys must be non-empty and cannot contain '=' or NUL");
+			}
+			environment.emplace_back(std::string(key, keySize) + "=" + std::string(value, valueSize));
+			lua_pop(L, 1);
+		}
+	}
+	lua_pop(L, 1);
+	std::vector<const char*> env;
+	env.reserve(environment.size());
+	for (auto& entry : environment) env.push_back(entry.c_str());
+
+	auto process = dora_xrt_process_spawn(program.c_str(), args.data(), args.size(), workDir.c_str(), env.data(), env.size());
+	if (!process) {
+		lua_pushnil(L);
+		lua_pushliteral(L, "failed to allocate subprocess");
+		return 2;
+	}
+	auto id = nextProcessHandle++;
+	processHandles[id] = process;
+	lua_pushinteger(L, id);
+	return 1;
+#else
+	return luaL_error(L, "subprocess is unavailable on this platform");
+#endif
+}
+
+int Process_read(lua_State* L) {
+#ifdef DORA_PROCESS_AVAILABLE
+	auto process = getProcessHandle(L, 2);
+	if (!process) return luaL_error(L, "invalid process handle");
+	auto stdoutOffset = static_cast<uint64_t>(luaL_optinteger(L, 3, 0));
+	auto stderrOffset = static_cast<uint64_t>(luaL_optinteger(L, 4, 0));
+	DoraXrtProcessReadResult info{};
+	if (!dora_xrt_process_read(process, stdoutOffset, stderrOffset, &info)) return luaL_error(L, "failed to read process");
+	lua_newtable(L);
+	lua_pushlstring(L, info.stdoutData ? info.stdoutData : "", info.stdoutSize);
+	lua_setfield(L, -2, "stdout");
+	lua_pushinteger(L, static_cast<lua_Integer>(info.stdoutOffset));
+	lua_setfield(L, -2, "stdoutOffset");
+	lua_pushlstring(L, info.stderrData ? info.stderrData : "", info.stderrSize);
+	lua_setfield(L, -2, "stderr");
+	lua_pushinteger(L, static_cast<lua_Integer>(info.stderrOffset));
+	lua_setfield(L, -2, "stderrOffset");
+	lua_pushboolean(L, info.running);
+	lua_setfield(L, -2, "running");
+	lua_pushinteger(L, info.state);
+	lua_setfield(L, -2, "state");
+	pushProcessExitInfo(L, info);
+	lua_setfield(L, -2, "exit");
+	dora_xrt_process_read_result_free(&info);
+	return 1;
+#else
+	return luaL_error(L, "subprocess is unavailable on this platform");
+#endif
+}
+
+int Process_write(lua_State* L) {
+#ifdef DORA_PROCESS_AVAILABLE
+	auto process = getProcessHandle(L, 2);
+	if (!process) return luaL_error(L, "invalid process handle");
+	size_t size = 0;
+	const char* text = luaL_optlstring(L, 3, nullptr, &size);
+	if (text && size > 0) {
+		auto written = dora_xrt_process_write(process, text, size);
+		lua_pushinteger(L, written);
+		return 1;
+	}
+	lua_pushboolean(L, dora_xrt_process_close_stdin(process));
+	return 1;
+#else
+	return luaL_error(L, "subprocess is unavailable on this platform");
+#endif
+}
+
+int Process_stop(lua_State* L) {
+#ifdef DORA_PROCESS_AVAILABLE
+	auto process = getProcessHandle(L, 2);
+	if (!process) return luaL_error(L, "invalid process handle");
+	const char* mode = luaL_optstring(L, 3, "interrupt");
+	int stopMode = 0;
+	if (strcmp(mode, "interrupt") == 0) stopMode = 1;
+	else if (strcmp(mode, "terminate") == 0) stopMode = 2;
+	else if (strcmp(mode, "kill") == 0) stopMode = 3;
+	else if (strcmp(mode, "kill-tree") == 0) stopMode = 4;
+	else return luaL_error(L, "invalid process stop mode");
+	lua_pushboolean(L, dora_xrt_process_stop(process, stopMode));
+	return 1;
+#else
+	return luaL_error(L, "subprocess is unavailable on this platform");
+#endif
+}
+
+int Process_destroy(lua_State* L) {
+#ifdef DORA_PROCESS_AVAILABLE
+	auto id = static_cast<int64_t>(luaL_checkinteger(L, 2));
+	auto it = processHandles.find(id);
+	if (it == processHandles.end()) {
+		lua_pushboolean(L, false);
+		return 1;
+	}
+	dora_xrt_process_destroy(it->second);
+	processHandles.erase(it);
+	lua_pushboolean(L, true);
+	return 1;
+#else
+	return luaL_error(L, "subprocess is unavailable on this platform");
+#endif
+}
 
 int dora_audio_render_music_async(lua_State* L) {
 #ifndef TOLUA_RELEASE

@@ -153,6 +153,7 @@ class Application
 	tolua_readonly tolua_property__bool bool reducedMotion;
 	tolua_readonly tolua_property__common String platform;
 	tolua_readonly tolua_property__common String version;
+	tolua_readonly tolua_property__common string executablePath;
 	tolua_readonly tolua_property__common String deps;
 	tolua_readonly tolua_property__common double deltaTime;
 	tolua_readonly tolua_property__common double elapsedTime;

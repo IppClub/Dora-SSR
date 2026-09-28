@@ -98,6 +98,8 @@
 		"test:entry-run-queue": "node scripts/test-entry-run-queue.mjs",
 		"test:entry-lease": "node scripts/test-entry-lease.mjs",
 		"test:cli-agent": "node scripts/test-cli-agent.mjs",
+		"test:local-agent-backends": "node scripts/test-local-agent-backends.mjs",
+		"test:local-agent-backends:real": "node scripts/test-local-agent-backends.mjs --real",
 		"prepare:web-runtime": "node scripts/prepare-web-runtime.mjs",
 		"test:web-package": "node scripts/test-web-package.mjs",
 		"test:web-runtime-preparation": "node scripts/test-web-runtime-preparation.mjs",

@@ -46,6 +46,7 @@ import { resolveAgentAutoScrollState } from './AgentAutoScroll';
 
 const AGENT_LLM_CONFIG_STORAGE_KEY = "dora.agent.llmConfigId";
 const AGENT_LLM_CONFIG_CHANGE_EVENT = "dora-agent-llm-config-changed";
+const AGENT_BACKEND_STORAGE_KEY = "dora.agent.backendId";
 
 interface AgentPanelProps {
 	active?: boolean;
@@ -131,11 +132,15 @@ export default function AgentPanel(props: AgentPanelProps) {
 	const [isFollowingOutput, setIsFollowingOutput] = useState(true);
 	const [llmConfigMissing, setLLMConfigMissing] = useState(false);
 	const [llmConfigs, setLLMConfigs] = useState<Service.LLMConfigItem[]>([]);
+	const [localAgentConfigs, setLocalAgentConfigs] = useState<Service.LocalAgentConfigItem[]>([]);
+	const [resettingLocalSession, setResettingLocalSession] = useState(false);
 	const [selectedLLMConfigId, setSelectedLLMConfigId] = useState<number | undefined>(() => {
 		const value = Number(window.localStorage.getItem(AGENT_LLM_CONFIG_STORAGE_KEY));
 		return Number.isFinite(value) && value > 0 ? value : undefined;
 	});
 	const selectedLLMConfigIdRef = React.useRef(selectedLLMConfigId);
+	const [selectedBackendId, setSelectedBackendId] = useState<string>(() => window.localStorage.getItem(AGENT_BACKEND_STORAGE_KEY) ?? (selectedLLMConfigId ? `llm:${selectedLLMConfigId}` : ''));
+	const selectedBackendIdRef = React.useRef(selectedBackendId);
 	// Engine-side Lua/Git commands are bounded by the Agent command sandbox and
 	// are required for real build/runtime validation. Keep network fetch opt-in,
 	// but make local validation available in every new main session.
@@ -255,18 +260,39 @@ export default function AgentPanel(props: AgentPanelProps) {
 			setSelectedLLMConfigId(nextId);
 			setLLMConfigMissing(nextId === undefined);
 			if (nextId !== undefined) window.localStorage.setItem(AGENT_LLM_CONFIG_STORAGE_KEY, String(nextId));
+			if (!selectedBackendIdRef.current && nextId !== undefined) {
+				const backendId = `llm:${nextId}`;
+				selectedBackendIdRef.current = backendId;
+				setSelectedBackendId(backendId);
+				window.localStorage.setItem(AGENT_BACKEND_STORAGE_KEY, backendId);
+			}
 			return nextId;
 		} catch {
 			return selectedLLMConfigIdRef.current;
 		}
 	}, []);
 
+	const refreshLocalAgentConfigs = React.useCallback(async () => {
+		try {
+			const res = await Service.listLocalAgentConfigs();
+			const items = res.success && res.supported ? (res.items ?? []).filter(item => item.verifiedAt) : [];
+			setLocalAgentConfigs(items);
+			const current = selectedBackendIdRef.current;
+			if (current.startsWith('local:') && !items.some(item => `local:${item.id}` === current)) {
+				const fallback = selectedLLMConfigIdRef.current ? `llm:${selectedLLMConfigIdRef.current}` : '';
+				selectedBackendIdRef.current = fallback;
+				setSelectedBackendId(fallback);
+			}
+		} catch { setLocalAgentConfigs([]); }
+	}, []);
+
 	useEffect(() => {
-		const refreshConfigs = () => void resolveLLMConfigId();
+		const refreshConfigs = () => { void resolveLLMConfigId(); void refreshLocalAgentConfigs(); };
 		refreshConfigs();
 		window.addEventListener('llm-configs-changed', refreshConfigs);
-		return () => window.removeEventListener('llm-configs-changed', refreshConfigs);
-	}, [resolveLLMConfigId]);
+		window.addEventListener('local-agent-configs-changed', refreshConfigs);
+		return () => { window.removeEventListener('llm-configs-changed', refreshConfigs); window.removeEventListener('local-agent-configs-changed', refreshConfigs); };
+	}, [resolveLLMConfigId, refreshLocalAgentConfigs]);
 
 	useEffect(() => {
 		const applySelection = (configId: number) => {
@@ -274,6 +300,9 @@ export default function AgentPanel(props: AgentPanelProps) {
 			selectedLLMConfigIdRef.current = configId;
 			setSelectedLLMConfigId(configId);
 			setLLMConfigMissing(false);
+			const backendId = `llm:${configId}`;
+			selectedBackendIdRef.current = backendId;
+			setSelectedBackendId(backendId);
 		};
 		const handleSelectionChange = (event: Event) => {
 			applySelection(Number((event as CustomEvent<number>).detail));
@@ -291,7 +320,13 @@ export default function AgentPanel(props: AgentPanelProps) {
 		};
 	}, []);
 
-	const selectLLMConfig = React.useCallback((configId: number) => {
+	const selectLLMConfig = React.useCallback((backendValue: string | number) => {
+		const backendId = typeof backendValue === 'number' ? `llm:${backendValue}` : String(backendValue);
+		selectedBackendIdRef.current = backendId;
+		setSelectedBackendId(backendId);
+		window.localStorage.setItem(AGENT_BACKEND_STORAGE_KEY, backendId);
+		if (!backendId.startsWith('llm:')) { setLLMConfigMissing(false); return; }
+		const configId = Number(backendId.slice(4));
 		selectedLLMConfigIdRef.current = configId;
 		setSelectedLLMConfigId(configId);
 		setLLMConfigMissing(false);
@@ -300,6 +335,27 @@ export default function AgentPanel(props: AgentPanelProps) {
 			detail: configId,
 		}));
 	}, []);
+	const selectedLocalConfigId = selectedBackendId.startsWith('local:') ? Number(selectedBackendId.slice(6)) : undefined;
+	const localBackendSelected = selectedLocalConfigId !== undefined && Number.isFinite(selectedLocalConfigId);
+	const backendChoices = useMemo(() => [
+		...llmConfigs.map(item => ({id: `llm:${item.id}`, name: item.name})),
+		...localAgentConfigs.map(item => ({id: `local:${item.id}`, name: `${item.name} · Local`})),
+	], [llmConfigs, localAgentConfigs]);
+
+	const newLocalSession = React.useCallback(async () => {
+		if (resettingLocalSession || session?.currentTaskStatus === "RUNNING") return;
+		setResettingLocalSession(true);
+		try {
+			const res = await Service.agentSessionNewLocal(selectedSessionId);
+			if (!res.success) {
+				addAlert?.(res.message ?? "Failed to start a new local Agent session", "error");
+				return;
+			}
+			addAlert?.("A new local Agent session will be used for the next message", "success");
+		} finally {
+			setResettingLocalSession(false);
+		}
+	}, [addAlert, resettingLocalSession, selectedSessionId, session?.currentTaskStatus]);
 
 	const scrollToBottom = React.useCallback((behavior: ScrollBehavior = "auto") => {
 		const container = scrollRef.current;
@@ -586,8 +642,13 @@ export default function AgentPanel(props: AgentPanelProps) {
 		if (!taskId) return steps;
 		return steps.filter(step => step.taskId === taskId);
 	}, [session?.currentTaskId, steps]);
+	const currentTaskUsesLocalAgent = useMemo(
+		() => latestSteps.some(step => step.tool === "local_agent_message"),
+		[latestSteps],
+	);
 
 	const continuableTaskId = useMemo(() => {
+		if (localBackendSelected) return null;
 		if (session?.currentTaskStatus !== "FAILED" && session?.currentTaskStatus !== "STOPPED") {
 			return null;
 		}
@@ -596,7 +657,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 			return null;
 		}
 		return taskId;
-	}, [session?.currentTaskId, session?.currentTaskStatus]);
+	}, [localBackendSelected, session?.currentTaskId, session?.currentTaskStatus]);
 
 	const activeTaskId = useMemo(() => {
 		if (session?.currentTaskId) return session.currentTaskId;
@@ -699,8 +760,15 @@ export default function AgentPanel(props: AgentPanelProps) {
 	}, [historyGroups, messageGroups.historyMessages, visibleHistoryRounds]);
 
 	const visibleSummaryMessages = useMemo(() => {
-		return messageGroups.currentSummaryMessages;
-	}, [messageGroups.currentSummaryMessages]);
+		return currentTaskUsesLocalAgent ? [] : messageGroups.currentSummaryMessages;
+	}, [currentTaskUsesLocalAgent, messageGroups.currentSummaryMessages]);
+	const localAgentCompletionSummary = useMemo(() => {
+		if (!currentTaskUsesLocalAgent) return undefined;
+		if (session?.currentTaskStatus === "DONE") return {status: "DONE", text: t("agent.localAgentCompleted"), color: "rgb(140,220,160)"};
+		if (session?.currentTaskStatus === "FAILED") return {status: "FAILED", text: t("agent.localAgentFailed"), color: Color.Error};
+		if (session?.currentTaskStatus === "STOPPED") return {status: "STOPPED", text: t("agent.localAgentStopped"), color: Color.Warning};
+		return undefined;
+	}, [currentTaskUsesLocalAgent, session?.currentTaskStatus, t]);
 
 	const currentStepWindow = useMemo(() => {
 		return getAgentTailRenderWindow(
@@ -810,22 +878,19 @@ export default function AgentPanel(props: AgentPanelProps) {
 		if (text === "" || loading || continueLoadingTaskId !== null) return;
 		setLoading(true);
 		try {
-			const llmConfigId = await resolveLLMConfigId();
-			if (llmConfigId === undefined) {
-				addAlert?.(t("agent.noLLMConfigAlert"), "error");
-				return;
-			}
-			const canStartAgent = requestedWorkMode === "plan" ? true : await stopProjectRunBeforeAgent();
+			const backendId = selectedBackendIdRef.current;
+			const localId = backendId.startsWith('local:') ? Number(backendId.slice(6)) : undefined;
+			const llmConfigId = localId === undefined ? await resolveLLMConfigId() : undefined;
+			if (localId === undefined && llmConfigId === undefined) { addAlert?.(t("agent.noLLMConfigAlert"), "error"); return; }
+			const canStartAgent = localId !== undefined
+				? await stopProjectRunBeforeAgent()
+				: requestedWorkMode === "plan" ? true : await stopProjectRunBeforeAgent();
 			if (!canStartAgent) {
 				return;
 			}
-			const res = await Service.agentSessionSend({
-				sessionId: targetSessionId,
-				prompt: text,
-				llmConfigId,
-				disabledAgentTools,
-				workMode: requestedWorkMode,
-			});
+			const res = localId !== undefined
+				? await Service.agentSessionSendLocal({sessionId: targetSessionId, prompt: text, localAgentConfigId: localId})
+				: await Service.agentSessionSend({sessionId: targetSessionId, prompt: text, llmConfigId: llmConfigId!, disabledAgentTools, workMode: requestedWorkMode});
 			if (!res.success) {
 				if (res.message.includes("LLM config")) {
 					setLLMConfigMissing(true);
@@ -1388,7 +1453,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 								) : null}
 								<AgentMessageList
 									messages={visibleHistoryMessages}
-									editableMessageId={latestUserMessageId}
+									editableMessageId={localBackendSelected ? undefined : latestUserMessageId}
 									editDisabled={loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING"}
 									onResendPrompt={resendPromptText}
 								/>
@@ -1398,7 +1463,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 							<Box>
 								<AgentMessageList
 									messages={messageGroups.currentPromptMessages}
-									editableMessageId={latestUserMessageId}
+									editableMessageId={localBackendSelected ? undefined : latestUserMessageId}
 									editDisabled={loading || continueLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING"}
 									onResendPrompt={resendPromptText}
 								/>
@@ -1447,15 +1512,21 @@ export default function AgentPanel(props: AgentPanelProps) {
 								/>
 							</Box>
 						) : null}
-						{showSummaryShimmer || visibleSummaryMessages.length > 0 || continuableTaskId ? (
+						{showSummaryShimmer || visibleSummaryMessages.length > 0 || localAgentCompletionSummary || continuableTaskId ? (
 							<Box>
-								{visibleSummaryMessages.length > 0 || continuableTaskId ? (
+								{visibleSummaryMessages.length > 0 || localAgentCompletionSummary || continuableTaskId ? (
 									<Typography variant="overline" sx={{ color: Color.TextSecondary, letterSpacing: "0.08em", display: "block", mb: 1.25 }}>{t("agent.summary")}</Typography>
+								) : null}
+								{localAgentCompletionSummary ? (
+									<Stack data-local-agent-completion-summary="true" direction="row" spacing={1} alignItems="center">
+										<Chip size="small" label={localAgentCompletionSummary.status} variant="outlined" sx={{borderColor: `${localAgentCompletionSummary.color}66`, color: localAgentCompletionSummary.color}} />
+										<Typography variant="body2" sx={{color: Color.TextSecondary}}>{localAgentCompletionSummary.text}</Typography>
+									</Stack>
 								) : null}
 								{visibleSummaryMessages.length > 0 ? (
 									<AgentMessageList
 										messages={visibleSummaryMessages}
-										editableMessageId={latestUserMessageId}
+										editableMessageId={localBackendSelected ? undefined : latestUserMessageId}
 										editDisabled={loading || continueLoadingTaskId !== null || finishHandoffLoadingTaskId !== null || session?.currentTaskStatus === "RUNNING"}
 										onResendPrompt={resendPromptText}
 									/>
@@ -1598,7 +1669,7 @@ export default function AgentPanel(props: AgentPanelProps) {
 								) : null}
 							</Box>
 						) : null}
-						{llmConfigMissing && session?.currentTaskStatus !== "RUNNING" ? (
+						{llmConfigMissing && !localBackendSelected && session?.currentTaskStatus !== "RUNNING" ? (
 							<Box
 								sx={{
 									border: `1px solid ${Color.Warning}44`,
@@ -1653,18 +1724,23 @@ export default function AgentPanel(props: AgentPanelProps) {
 						contextRatio={contextStats.contextRatio}
 					usedTokens={contextStats.usedTokens}
 					maxTokens={contextStats.maxTokens}
-					actualUsage={contextStats.actualUsage}
-					fetchUrlEnabled={fetchUrlEnabled}
-					executeCommandEnabled={executeCommandEnabled}
-					planMode={workMode === "plan"}
-					llmConfigs={llmConfigs}
-					llmConfigId={selectedLLMConfigId}
+						actualUsage={contextStats.actualUsage}
+					hideContextUsage={localBackendSelected}
+					newSessionLabel={localBackendSelected ? t("agent.newSession") : undefined}
+					newSessionLoading={localBackendSelected && resettingLocalSession}
+					newSessionDisabled={localBackendSelected && (resettingLocalSession || session?.currentTaskStatus === "RUNNING")}
+					fetchUrlEnabled={!localBackendSelected && fetchUrlEnabled}
+					executeCommandEnabled={!localBackendSelected && executeCommandEnabled}
+					planMode={!localBackendSelected && workMode === "plan"}
+					llmConfigs={backendChoices}
+					llmConfigId={selectedBackendId || undefined}
 					onPromptChange={setPrompt}
 					onSend={() => void onSend()}
 					onStop={() => void onStop()}
-					onFetchUrlEnabledChange={session?.kind === "main" ? setFetchUrlEnabled : undefined}
-					onExecuteCommandEnabledChange={session?.kind === "main" ? setExecuteCommandEnabled : undefined}
-					onPlanModeChange={session?.kind === "main" ? value => void changeWorkMode(value) : undefined}
+					onNewSession={localBackendSelected ? () => void newLocalSession() : undefined}
+					onFetchUrlEnabledChange={session?.kind === "main" && !localBackendSelected ? setFetchUrlEnabled : undefined}
+					onExecuteCommandEnabledChange={session?.kind === "main" && !localBackendSelected ? setExecuteCommandEnabled : undefined}
+					onPlanModeChange={session?.kind === "main" && !localBackendSelected ? value => void changeWorkMode(value) : undefined}
 					onLLMConfigChange={selectLLMConfig}
 				/>
 			</>}

@@ -47,6 +47,34 @@ typedef struct DoraXrtHttpServer DoraXrtHttpServer;
 typedef struct DoraXrtHttpServerResponse DoraXrtHttpServerResponse;
 typedef struct DoraXrtWebSocketServer DoraXrtWebSocketServer;
 typedef void DoraXrtWebSocketConnection;
+typedef void DoraXrtProcess;
+
+typedef struct DoraXrtProcessReadResult {
+	char* stdoutData;
+	size_t stdoutSize;
+	unsigned long long stdoutOffset;
+	char* stderrData;
+	size_t stderrSize;
+	unsigned long long stderrOffset;
+	int running;
+	int state;
+	int exitKind;
+	int exitCode;
+	int exitSignal;
+	int exitStage;
+	int osError;
+	int stopReason;
+	int timedOut;
+	int cancelled;
+} DoraXrtProcessReadResult;
+
+DoraXrtProcess* dora_xrt_process_spawn(const char* program, const char* const* args, size_t argCount, const char* workDir, const char* const* env, size_t envCount);
+int dora_xrt_process_read(DoraXrtProcess* process, unsigned long long stdoutOffset, unsigned long long stderrOffset, DoraXrtProcessReadResult* result);
+long long dora_xrt_process_write(DoraXrtProcess* process, const void* data, size_t size);
+int dora_xrt_process_close_stdin(DoraXrtProcess* process);
+int dora_xrt_process_stop(DoraXrtProcess* process, int mode);
+void dora_xrt_process_read_result_free(DoraXrtProcessReadResult* result);
+void dora_xrt_process_destroy(DoraXrtProcess* process);
 
 typedef enum DoraXrtHttpMethod {
 	DORA_XRT_HTTP_METHOD_UNKNOWN = 0,

@@ -752,6 +752,19 @@ HttpServer\post "/agent/session/send", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :prompt}}
 		return AgentSession.sendPrompt sessionId, prompt, req.body.disabledAgentTools, req.body.workMode, req.body.llmConfigId
 
+HttpServer\post "/agent/session/send-local", (req): invalidArguments ->
+	switch req when {body: {:sessionId, :prompt, :localAgentConfigId}}
+		return AgentSession.sendLocalPrompt sessionId, prompt, localAgentConfigId
+
+HttpServer\post "/agent/session/local/new", (req): invalidArguments ->
+	switch req when {body: {:sessionId}}
+		return (require "Agent.LocalAgent").abandonSession sessionId
+
+HttpServer\post "/agent/session/local/info", (req): invalidArguments ->
+	switch req when {body: {:sessionId}}
+		info = (require "Agent.LocalAgent").getSessionInfo sessionId
+		return success: true, :info
+
 HttpServer\post "/agent/session/continue", (req): invalidArguments ->
 	switch req when {body: {:sessionId}}
 		return AgentSession.continuePrompt sessionId, req.body.disabledAgentTools, req.body.llmConfigId
@@ -1612,6 +1625,22 @@ HttpServer\post "/llm/delete", (req): invalidArguments ->
 		return invalidArguments if id == nil
 		affected = DB\exec "delete from LLMConfig where id = ?", [id,]
 		return success: affected >= 0
+
+HttpServer\post "/local-agent/list", ->
+	LocalAgent = require "Agent.LocalAgent"
+	return success: true, supported: LocalAgent.isLocalAgentSupported!, items: LocalAgent.listConfigs!
+
+HttpServer\post "/local-agent/save", (req): invalidArguments ->
+	switch req when {body: body}
+		return (require "Agent.LocalAgent").saveConfig body
+
+HttpServer\post "/local-agent/delete", (req): invalidArguments ->
+	switch req when {body: {:id}}
+		return (require "Agent.LocalAgent").deleteConfig id
+
+HttpServer\postSchedule "/local-agent/verify", (req): invalidArguments ->
+	switch req when {body: {:id}}
+		return (require "Agent.LocalAgent").verifyConfig id, req.body.projectRoot
 
 HttpServer\post "/stat", (req): success: false, message: "failed to stat" ->
 	switch req when {body: {:path}}
@@ -2554,13 +2583,13 @@ collectTSVirtualFiles = (sourceRoot) ->
 			moduleName = Path\getName Path\getName file
 			addFile fullPath, moduleName
 	lualibBundle = Path Content.assetPath, "Script", "Lib", "lualib_bundle.lua"
-	if content := Content\load lualibBundle
-		files[] = file: "lualib_bundle.lua", :content
+	lualibBundleTarget = if sourceRoot then Path(sourceRoot, "lualib_bundle.lua") else "lualib_bundle.lua"
+	addFile lualibBundle, nil, lualibBundleTarget
 	lualibRoot = Path Content.assetPath, "Script", "Lib", "lualib"
 	for file in *Content\getFiles lualibRoot
 		if Path\getExt(file) == "lua"
-			if content := Content\load Path lualibRoot, file
-				files[] = file: Path("lualib", file), :content
+			virtualFile = if sourceRoot then Path(sourceRoot, "lualib", file) else Path("lualib", file)
+			addFile Path(lualibRoot, file), nil, virtualFile
 	files
 
 transpileTSFileWithWebIDE = do

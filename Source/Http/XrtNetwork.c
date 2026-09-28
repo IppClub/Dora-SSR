@@ -19,7 +19,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Http/XrtNetwork.h"
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
+#if defined(_WIN32) || defined(_WIN64) || (defined(__APPLE__) && TARGET_OS_OSX && !TARGET_OS_IPHONE) || (defined(__linux__) && !defined(__ANDROID__))
+#define DORA_XRT_SUBPROCESS
+#else
 #define XRT_NO_SUBPROCESS
+#endif
+
 #define XRT_NO_LOGGER
 #define XRT_NO_FILE_ASYNC
 #define XRT_NO_COROUTINE
@@ -75,6 +84,93 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#ifdef DORA_XRT_SUBPROCESS
+DoraXrtProcess* dora_xrt_process_spawn(const char* program, const char* const* args, size_t argCount, const char* workDir, const char* const* env, size_t envCount) {
+	xprocessconfig config;
+	xrtProcessConfigInit(&config);
+	config.iTargetKind = XPROC_TARGET_EXEC;
+	config.sProgram = (str)program;
+	config.arrArgs = (str*)args;
+	config.iArgCount = (uint32)argCount;
+	config.sWorkDir = workDir && workDir[0] ? (str)workDir : NULL;
+	config.arrEnv = (str*)env;
+	config.iEnvCount = (uint32)envCount;
+	config.bInheritEnv = true;
+	config.bCreateProcessGroup = true;
+	config.bHideWindow = true;
+	config.iReadChunkSize = 64 * 1024;
+	config.iMaxCaptureBytes = 8 * 1024 * 1024;
+	config.iMaxEventCount = 2048;
+	config.Stdin.iMode = XPROC_STDIO_PIPE;
+	config.Stdout.iMode = XPROC_STDIO_PIPE;
+	config.Stdout.bCapture = true;
+	config.Stderr.iMode = XPROC_STDIO_PIPE;
+	config.Stderr.bCapture = true;
+	return (DoraXrtProcess*)xrtProcessSpawn(&config);
+}
+
+int dora_xrt_process_read(DoraXrtProcess* opaque, unsigned long long stdoutOffset, unsigned long long stderrOffset, DoraXrtProcessReadResult* result) {
+	xprocess* process = (xprocess*)opaque;
+	xprocessreadinfo stdoutInfo;
+	xprocessreadinfo stderrInfo;
+	xprocessexitinfo exitInfo;
+	if (!process || !result) return 0;
+	memset(result, 0, sizeof(*result));
+	memset(&stdoutInfo, 0, sizeof(stdoutInfo));
+	memset(&stderrInfo, 0, sizeof(stderrInfo));
+	memset(&exitInfo, 0, sizeof(exitInfo));
+	result->stdoutData = (char*)xrtProcessReadStdoutSince(process, (uint64)stdoutOffset, 256 * 1024, &result->stdoutSize, &stdoutInfo);
+	result->stderrData = (char*)xrtProcessReadStderrSince(process, (uint64)stderrOffset, 256 * 1024, &result->stderrSize, &stderrInfo);
+	result->stdoutOffset = stdoutInfo.iNextOffset;
+	result->stderrOffset = stderrInfo.iNextOffset;
+	result->running = xrtProcessIsRunning(process) ? 1 : 0;
+	result->state = xrtProcessState(process);
+	if (xrtProcessGetExitInfo(process, &exitInfo)) {
+		result->exitKind = exitInfo.iKind;
+		result->exitCode = exitInfo.iExitCode;
+		result->exitSignal = exitInfo.iSignal;
+		result->exitStage = exitInfo.iStage;
+		result->osError = exitInfo.iOsError;
+		result->stopReason = exitInfo.iStopReason;
+		result->timedOut = exitInfo.bTimedOut ? 1 : 0;
+		result->cancelled = exitInfo.bCancelled ? 1 : 0;
+	}
+	return 1;
+}
+
+long long dora_xrt_process_write(DoraXrtProcess* process, const void* data, size_t size) {
+	return (long long)xrtProcessWrite((xprocess*)process, data, size);
+}
+
+int dora_xrt_process_close_stdin(DoraXrtProcess* process) {
+	return xrtProcessCloseStdin((xprocess*)process) ? 1 : 0;
+}
+
+int dora_xrt_process_stop(DoraXrtProcess* process, int mode) {
+	switch (mode) {
+		case 1: return xrtProcessInterrupt((xprocess*)process) ? 1 : 0;
+		case 2: return xrtProcessTerminate((xprocess*)process) ? 1 : 0;
+		case 3: return xrtProcessKill((xprocess*)process) ? 1 : 0;
+		case 4: return xrtProcessKillTree((xprocess*)process) ? 1 : 0;
+		default: return 0;
+	}
+}
+
+void dora_xrt_process_read_result_free(DoraXrtProcessReadResult* result) {
+	if (!result) return;
+	if (result->stdoutData) xrtFree(result->stdoutData);
+	if (result->stderrData) xrtFree(result->stderrData);
+	result->stdoutData = NULL;
+	result->stderrData = NULL;
+}
+
+void dora_xrt_process_destroy(DoraXrtProcess* process) {
+	if (!process) return;
+	if (xrtProcessIsRunning((xprocess*)process)) xrtProcessKillTree((xprocess*)process);
+	xrtProcessDestroy((xprocess*)process);
+}
+#endif
 
 #define DORA_XRT_HTTP_MAX_REDIRECTS 5
 #define DORA_XRT_HTTP_POLL_MS 50u
