@@ -47,9 +47,6 @@ endif()
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(DBUS REQUIRED dbus-1)
-# Mirror SDL2's own ALSA detection: link it only when the SDL2 static
-# library was built with the ALSA audio driver.
-find_package(ALSA)
 
 include_directories(
 	${DORA_SDL2_ROOT}/include
@@ -162,4 +159,4 @@ include("${DORA_ROOT}/Projects/CMake/DoraGeneratedSources.cmake")
 add_executable(dora-ssr ${DORA_ENGINE_SOURCES})
 dora_add_generated_lua_sources(dora-ssr)
 
-target_link_libraries(dora-ssr z SDL2-lib ${ALSA_LIBRARIES} LOVE-lib THEORA-lib BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib ${DORA_RENDER_LINK_LIBS} ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib m dl pthread rt)
+target_link_libraries(dora-ssr z SDL2-lib LOVE-lib THEORA-lib BGFX-lib BIMGDE-lib BIMG-lib SHADERC-lib GLSLO-lib FCPP-lib BX-lib ${DORA_RENDER_LINK_LIBS} ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib m dl pthread rt)
