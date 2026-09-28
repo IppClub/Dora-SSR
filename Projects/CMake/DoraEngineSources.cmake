@@ -369,6 +369,7 @@ set(DORA_ENGINE_SOURCES
 	${DORA_SOURCE_ROOT}/3rdParty/soloud/filter/soloud_freeverbfilter.cpp
 	${DORA_SOURCE_ROOT}/3rdParty/soloud/filter/soloud_biquadresonantfilter.cpp
 	${DORA_SOURCE_ROOT}/3rdParty/soloud/filter/soloud_waveshaperfilter.cpp
+	${DORA_SOURCE_ROOT}/3rdParty/soloud/backend/sdl2_static/soloud_sdl2_static.cpp
 	${DORA_SOURCE_ROOT}/3rdParty/soloud/backend/sdl/soloud_sdl2.cpp
 	${DORA_SOURCE_ROOT}/3rdParty/soloud/backend/sdl/soloud_sdl2_dll.c
 	${DORA_SOURCE_ROOT}/3rdParty/soloud/audiosource/wav/stb_vorbis.c
