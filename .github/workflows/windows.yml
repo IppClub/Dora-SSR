@@ -12,6 +12,7 @@ on:
       - 'Tools/dora-rust/**'
       # Platform-specific code
       - 'Projects/Windows/**'
+      - 'Projects/CMake/**'
   pull_request:
     branches: [ main ]
     paths:
@@ -21,6 +22,7 @@ on:
       - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
       - 'Projects/Windows/**'
+      - 'Projects/CMake/**'
   workflow_dispatch:
 
 jobs:

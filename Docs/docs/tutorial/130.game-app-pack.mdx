@@ -138,27 +138,23 @@ main()
 <TabItem value="windows" label="Windows">
 
 #### Step 1: Configure Project
-1. Open `Projects/Windows/Dora.sln`
-2. Configure project properties in Visual Studio:
-   - Application name
-   - Version number
-   - Icon file
-   - Target platform (x86/x64)
+1. Run `Tools/build-scripts/build_windows.bat release` to generate the Visual Studio project and build the application.
+2. Set the application name and version in the build configuration and resource file. The current prebuilt libraries target x86.
 
 #### Step 2: Build Project
 ```bash
-# Build through Visual Studio GUI or use the command below
-msbuild Projects/Windows/Dora.sln /p:Configuration=Release /p:Platform=x64
+# To rebuild with the generated Visual Studio project:
+cmake --build Projects/Windows/build-cmake --config Release --target Dora
 ```
 
 #### Step 3: Package Application
-After building, executable files and related resources will be generated in the `Projects/Windows/Release/` directory.
+After building, the executable and `wa.dll` will be in `Projects/Windows/build/Release/`.
 
 </TabItem>
 <TabItem value="macos" label="macOS">
 
 #### Step 1: Configure Project
-1. Open `Projects/macOS/Dora.xcodeproj`
+1. Run `Tools/build-scripts/build_macos.sh release`, then open `Projects/macOS/build-cmake/Dora.xcodeproj`
 2. Set in Xcode:
    - Bundle Identifier
    - Application name
@@ -168,21 +164,21 @@ After building, executable files and related resources will be generated in the 
 #### Step 2: Build Project
 ```bash
 # Build through Xcode GUI or use the command below
-xcodebuild -project Projects/macOS/Dora.xcodeproj -scheme Dora -configuration Release
+cmake --build Projects/macOS/build-cmake --config Release --target Dora
 ```
 
 </TabItem>
 <TabItem value="ios" label="iOS">
 
 #### Step 1: Configure Project
-1. Open `Projects/iOS/Dora.xcodeproj`
+1. Generate a device project as described in `Projects/apple/README.md`, then open `Projects/iOS/build-cmake-device/Dora.xcodeproj`
 2. Set Bundle Identifier and developer certificate
 3. Configure app icons and launch screen
 
 #### Step 2: Build and Package
 ```bash
 # Build through Xcode GUI or use the command below
-xcodebuild -project Projects/iOS/Dora.xcodeproj -scheme Dora -configuration Release -destination generic/platform=iOS
+cmake --build Projects/iOS/build-cmake-device --config Release --target Dora
 ```
 
 </TabItem>

@@ -42,11 +42,13 @@ fi
 
 case "$PLATFORM" in
 	macos)
+		require_command cmake "required to generate the Xcode project"
 		require_command xcodebuild "install Xcode command line tools"
 		require_command xcrun "install Xcode command line tools"
 		require_command lipo "install Xcode command line tools"
 		;;
 	ios)
+		require_command cmake "required to generate the Xcode project"
 		require_command xcodebuild "install Xcode"
 		require_command xcrun "install Xcode"
 		require_command lipo "install Xcode"

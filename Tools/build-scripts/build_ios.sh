@@ -23,6 +23,12 @@ esac
 "$SCRIPT_DIR/build_lib_ios.sh" "$BUILD_MODE"
 
 cd "$SCRIPT_DIR/../.."
-xcodebuild ARCHS=arm64 ONLY_ACTIVE_ARCH=NO -project Projects/iOS/Dora.xcodeproj -configuration "$XCODE_CONFIGURATION" -target Simulator -sdk iphonesimulator
+cmake -S Projects/iOS -B Projects/iOS/build-cmake-simulator -G Xcode \
+	-DCMAKE_SYSTEM_NAME=iOS \
+	-DCMAKE_OSX_SYSROOT=iphonesimulator \
+	-DCMAKE_OSX_ARCHITECTURES=arm64 \
+	-DDORA_IOS_VARIANT=simulator \
+	-DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO
+cmake --build Projects/iOS/build-cmake-simulator --config "$XCODE_CONFIGURATION" --target Dora -j 8
 
 echo "Built APP for iOS Simulator ($XCODE_CONFIGURATION)"

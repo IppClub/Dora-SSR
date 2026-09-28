@@ -7,6 +7,11 @@ function(dora_add_generated_lua_sources target)
 	endif()
 
 	set(DORA_TOLUA_ROOT "${DORA_ROOT}/Tools/tolua++")
+	if(WIN32)
+		set(DORA_TOLUA_SCRIPT "${DORA_TOLUA_ROOT}/build.bat")
+	else()
+		set(DORA_TOLUA_SCRIPT "${DORA_TOLUA_ROOT}/build.sh")
+	endif()
 	set(DORA_LUA_GENERATED_SOURCES
 		"${DORA_ROOT}/Source/Lua/LuaBinding.cpp"
 		"${DORA_ROOT}/Source/Lua/LuaBindingWeb.cpp"
@@ -22,7 +27,7 @@ function(dora_add_generated_lua_sources target)
 
 	add_custom_command(
 		OUTPUT ${DORA_LUA_GENERATED_SOURCES}
-		COMMAND "${DORA_TOLUA_ROOT}/build.sh"
+		COMMAND "${DORA_TOLUA_SCRIPT}"
 		DEPENDS ${DORA_TOLUA_INPUTS}
 		WORKING_DIRECTORY "${DORA_TOLUA_ROOT}"
 		COMMENT "Generating Dora Lua bindings"

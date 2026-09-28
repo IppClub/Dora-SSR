@@ -13,6 +13,7 @@ if /I not "%SCOPE%"=="run" (
 	call :require xmake "required for SDL2/bgfx"
 )
 
+call :require cmake "required to generate the Visual Studio project"
 call :require msbuild "required for Visual Studio build"
 call :require gcc "required for Go cgo Windows Wa DLL"
 

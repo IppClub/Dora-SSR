@@ -67,6 +67,10 @@ ensure_dependencies
 cd "$ROOT_DIR/Source/Rust"
 cargo build --target "$RUST_TARGET"
 cp "target/$RUST_TARGET/debug/libdora_runtime.a" lib/macOS/libdora_runtime.a
-xcodebuild ARCHS="$XCODE_ARCH" ONLY_ACTIVE_ARCH=NO -project ../../Projects/macOS/Dora.xcodeproj -target Dora -configuration Debug CONFIGURATION_BUILD_DIR=./build/Debug
+cd "$ROOT_DIR"
+cmake -S Projects/macOS -B Projects/macOS/build-cmake -G Xcode \
+	-DCMAKE_OSX_ARCHITECTURES="$XCODE_ARCH" \
+	-DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO
+cmake --build Projects/macOS/build-cmake --config Debug --target Dora -j 8
 stop_running_dora
-../../Projects/macOS/build/Debug/Dora.app/Contents/MacOS/Dora --asset ../../Assets
+Projects/macOS/build-cmake/Debug/Dora.app/Contents/MacOS/Dora --asset Assets

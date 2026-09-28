@@ -20,7 +20,10 @@ if errorlevel 1 exit /b %errorlevel%
 copy "%DORA_CARGO_TARGET_DIR%\i686-pc-windows-msvc\debug\dora_runtime.lib" "lib\Windows\dora_runtime.lib"
 if errorlevel 1 exit /b %errorlevel%
 
-msbuild ..\..\Projects\Windows\Dora.sln -p:Configuration=Debug
+cmake -S "%SCRIPT_DIR%..\..\Projects\Windows" -B "%SCRIPT_DIR%..\..\Projects\Windows\build-cmake" -A Win32
+if errorlevel 1 exit /b %errorlevel%
+
+cmake --build "%SCRIPT_DIR%..\..\Projects\Windows\build-cmake" --config Debug --target Dora --parallel 8
 if errorlevel 1 exit /b %errorlevel%
 
 call :stop_running_dora

@@ -120,7 +120,7 @@ jobs:
           cp -r Tools/dora-wa/vendor Assets/dora-wa
           Tools/tolua++/build.sh
           Tools/build-scripts/build_macos.sh release
-          cd Projects/macOS/build/Release/dora.xcarchive/Products/Applications
+          cd Projects/macOS/build-cmake/Release
           zip -qry Dora.zip Dora.app
           mv Dora.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-universal.zip"
 

@@ -56,7 +56,7 @@ git clone https://gitcode.com/ippclub/Dora-SSR.git
 	Tools\build-scripts\run_windows.bat
 	```
 
-4. 如果需要本地调试，可在 Visual Studio 中打开 **Projects/Windows/Dora.sln**，运行 `Debug` 配置。
+4. 如果需要本地调试，可在 Visual Studio 中打开生成的 **Projects/Windows/build-cmake/DoraWindows.sln**，运行 `Debug` 配置。首次运行构建脚本时会生成该文件。
 
 </TabItem>
 <TabItem value="macos" label="macOS">
@@ -68,24 +68,19 @@ git clone https://gitcode.com/ippclub/Dora-SSR.git
 	Tools/build-scripts/run_macos.sh
 	```
 
-3. 如果需要 IDE 调试，可在 Xcode 中打开 **Projects/macOS/Dora.xcodeproj**，运行 `Dora` target。
+3. 如果需要 IDE 调试，可在 Xcode 中打开生成的 **Projects/macOS/build-cmake/Dora.xcodeproj**，运行 `Dora` target。
 
 </TabItem>
 <TabItem value="ios" label="iOS">
 
 1. 安装 [Go 1.24 或更高版本](https://go.dev/dl/)、[Rust](https://www.rust-lang.org/tools/install)、[xmake](https://xmake.io/#/guide/installation) 和最新版 [Xcode](https://developer.apple.com/xcode/)。
 
-2. 构建 iOS 原生依赖库。
+2. 构建 iOS 运行时和模拟器应用。
 	```sh
-	Tools/build-scripts/build_lib_ios.sh debug
+	Tools/build-scripts/build_ios.sh debug
 	```
 
-3. 构建模拟器目标。
-	```sh
-	xcodebuild ARCHS=arm64 ONLY_ACTIVE_ARCH=NO -project Projects/iOS/Dora.xcodeproj -configuration Debug -target Simulator -sdk iphonesimulator
-	```
-
-4. 如果需要 IDE 调试，可在 Xcode 中打开 **Projects/iOS/Dora.xcodeproj**，运行 `Simulator` target。
+3. 如果需要 IDE 调试，可在 Xcode 中打开生成的 **Projects/iOS/build-cmake-simulator/Dora.xcodeproj**，运行 `Dora` target。
 
 </TabItem>
 <TabItem value="android" label="Android">

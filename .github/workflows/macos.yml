@@ -11,6 +11,7 @@ on:
       - 'Tools/dora-rust/**'
       # Platform-specific code
       - 'Projects/macOS/**'
+      - 'Projects/apple/**'
   pull_request:
     branches: [ main ]
     paths:
@@ -19,6 +20,7 @@ on:
       - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
       - 'Projects/macOS/**'
+      - 'Projects/apple/**'
   workflow_dispatch:
 
 jobs:
@@ -59,7 +61,7 @@ jobs:
           cp -r Tools/dora-wa/vendor Assets/dora-wa
           Tools/tolua++/build.sh
           Tools/build-scripts/build_macos.sh release
-          cd Projects/macOS/build/Release/dora.xcarchive/Products/Applications
+          cd Projects/macOS/build-cmake/Release
           zip -vr Dora.zip Dora.app
           mv Dora.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-universal.zip"
       - name: Release

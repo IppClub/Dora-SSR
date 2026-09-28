@@ -138,27 +138,23 @@ main()
 <TabItem value="windows" label="Windows">
 
 #### 步骤 1：配置项目
-1. 打开 `Projects/Windows/Dora.sln`
-2. 在 Visual Studio 中配置项目属性：
-   - 应用名称
-   - 版本号
-   - 图标文件
-   - 目标平台（x86/x64）
+1. 运行 `Tools/build-scripts/build_windows.bat release`，生成 Visual Studio 工程并构建应用。
+2. 在构建配置和资源文件中设置应用名称、版本和图标。目前预编译库面向 x86。
 
 #### 步骤 2：构建项目
 ```bash
 # 通过 Visual Studio 图形界面或是使用下面的命令构建
-msbuild Projects/Windows/Dora.sln /p:Configuration=Release /p:Platform=x64
+cmake --build Projects/Windows/build-cmake --config Release --target Dora
 ```
 
 #### 步骤 3：打包应用
-构建完成后，在 `Projects/Windows/Release/` 目录下会生成可执行文件和相关资源。
+构建完成后，可执行文件和 `wa.dll` 位于 `Projects/Windows/build/Release/`。
 
 </TabItem>
 <TabItem value="macos" label="macOS">
 
 #### 步骤 1：配置项目
-1. 打开 `Projects/macOS/Dora.xcodeproj`
+1. 运行 `Tools/build-scripts/build_macos.sh release`，再打开 `Projects/macOS/build-cmake/Dora.xcodeproj`
 2. 在 Xcode 中设置：
    - Bundle Identifier
    - 应用名称
@@ -168,21 +164,21 @@ msbuild Projects/Windows/Dora.sln /p:Configuration=Release /p:Platform=x64
 #### 步骤 2：构建项目
 ```bash
 # 通过 Xcode 图形界面或是使用下面命令构建
-xcodebuild -project Projects/macOS/Dora.xcodeproj -scheme Dora -configuration Release
+cmake --build Projects/macOS/build-cmake --config Release --target Dora
 ```
 
 </TabItem>
 <TabItem value="ios" label="iOS">
 
 #### 步骤 1：配置项目
-1. 打开 `Projects/iOS/Dora.xcodeproj`
+1. 按 `Projects/apple/README.md` 生成真机工程，再打开 `Projects/iOS/build-cmake-device/Dora.xcodeproj`
 2. 设置 Bundle Identifier 和开发者证书
 3. 配置应用图标和启动画面
 
 #### 步骤 2：构建和打包
 ```bash
 # 通过 Xcode 图形界面或是使用下面命令构建
-xcodebuild -project Projects/iOS/Dora.xcodeproj -scheme Dora -configuration Release -destination generic/platform=iOS
+cmake --build Projects/iOS/build-cmake-device --config Release --target Dora
 ```
 
 </TabItem>

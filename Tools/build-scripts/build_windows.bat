@@ -17,7 +17,10 @@ if /I "%BUILD_MODE%"=="release" (
 call "%SCRIPT_DIR%build_lib_windows.bat" %BUILD_MODE%
 if errorlevel 1 exit /b %errorlevel%
 
-msbuild ..\..\Projects\Windows\Dora.sln -p:Configuration=%MSBUILD_CONFIGURATION%
+cmake -S "%SCRIPT_DIR%..\..\Projects\Windows" -B "%SCRIPT_DIR%..\..\Projects\Windows\build-cmake" -A Win32
+if errorlevel 1 exit /b %errorlevel%
+
+cmake --build "%SCRIPT_DIR%..\..\Projects\Windows\build-cmake" --config %MSBUILD_CONFIGURATION% --target Dora --parallel 8
 if errorlevel 1 exit /b %errorlevel%
 
 echo Built APP in 'Projects\Windows\build\%MSBUILD_CONFIGURATION%'

@@ -57,7 +57,7 @@ For the fastest local desktop loop, use the `run_*` scripts where available. The
 	Tools\build-scripts\run_windows.bat
 	```
 
-4. For local debugging, open **Projects/Windows/Dora.sln** in Visual Studio and run the `Debug` configuration.
+4. For local debugging, open the generated **Projects/Windows/build-cmake/DoraWindows.sln** in Visual Studio and run the `Debug` configuration. The build script creates it on first use.
 
 </TabItem>
 <TabItem value="macos" label="macOS">
@@ -69,24 +69,19 @@ For the fastest local desktop loop, use the `run_*` scripts where available. The
 	Tools/build-scripts/run_macos.sh
 	```
 
-3. For IDE debugging, open **Projects/macOS/Dora.xcodeproj** in Xcode and run the `Dora` target.
+3. For IDE debugging, open the generated **Projects/macOS/build-cmake/Dora.xcodeproj** in Xcode and run the `Dora` target.
 
 </TabItem>
 <TabItem value="ios" label="iOS">
 
 1. Install [Go 1.24 or later](https://go.dev/dl/), [Rust](https://www.rust-lang.org/tools/install), [xmake](https://xmake.io/#/guide/installation), and the latest [Xcode](https://developer.apple.com/xcode/).
 
-2. Build the iOS native dependencies.
+2. Build the iOS runtime and simulator app.
 	```sh
-	Tools/build-scripts/build_lib_ios.sh debug
+	Tools/build-scripts/build_ios.sh debug
 	```
 
-3. Build the simulator target.
-	```sh
-	xcodebuild ARCHS=arm64 ONLY_ACTIVE_ARCH=NO -project Projects/iOS/Dora.xcodeproj -configuration Debug -target Simulator -sdk iphonesimulator
-	```
-
-4. For IDE debugging, open **Projects/iOS/Dora.xcodeproj** in Xcode and run the `Simulator` target.
+3. For IDE debugging, open the generated **Projects/iOS/build-cmake-simulator/Dora.xcodeproj** in Xcode and run the `Dora` target.
 
 </TabItem>
 <TabItem value="android" label="Android">
