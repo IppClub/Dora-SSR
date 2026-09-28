@@ -4,7 +4,7 @@
 
 ## 邀请码、密码和 HTTPS 服务（当前实现）
 
-Go 存储层在共享 SQLite 中保存一次性邀请码 SHA-256 摘要、到期/核销状态与每账号随机盐的 scrypt 密码派生值；核销建档、密码记录和审计同事务。首位管理员只能在空账号库通过 `pnpm invite:bootstrap` 受信命令领取邀请码；之后管理员可在后台经会话绑定的 `POST /api/admin/invitations` 发创作者/管理员邀请码。原始邀请码只在生成时显示一次。注册和登录分别使用 `POST /api/auth/register`、`POST /api/auth/login`，同源 JSON、实际 TLS 连接和持久失败次数限制；非 TLS 请求拒绝，成功签发随机会话并下发 `__Host-dora-studio-session` Secure/HttpOnly/SameSite=Lax/Path=/ Cookie。账号停用拒绝密码登录。
+Go 存储层在共享 SQLite 中保存邀请码 SHA-256 摘要、到期/撤销状态、注册人数额度及每账号随机盐的 scrypt 密码派生值；名额扣减、建档、密码记录和审计同事务。首位管理员只能在空账号库通过 `pnpm invite:bootstrap` 受信命令领取一次性邀请码；之后管理员可在后台经会话绑定的 `/api/admin/invitations` 签发创作者共享邀请码或一次性管理员邀请码，并查看使用进度、注册账号、调整人数上限或撤销。原始邀请码只在生成时显示一次。注册和登录分别使用 `POST /api/auth/register`、`POST /api/auth/login`，同源 JSON、实际 TLS 连接和持久失败次数限制；非 TLS 请求拒绝，成功签发随机会话并下发 `__Host-dora-studio-session` Secure/HttpOnly/SameSite=Lax/Path=/ Cookie。账号停用拒绝密码登录。
 
 `cmd/studio-server` 提供真实 HTTPS API 服务；它要求明确的绝对 SQLite 路径、前端 HTTPS origin、稳定 32 字节 base64 密钥、证书/私钥，并不内置试玩渲染。Vite 在提供 `STUDIO_API_URL` 与 TLS 环境时将同源 `/api` 代理到此服务。当前 Go 验收脚本从实际页面完成登录、项目创建/重开、管理页面、Agent 工作区和退出；自签证书和测试上下文的证书放宽只适用于本地。
 

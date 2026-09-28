@@ -14,7 +14,9 @@ Go 后端 `pnpm server` 必需环境：`STUDIO_DB_PATH`（绝对路径，持久�
 
 当前宿主仍用 `__Host-dora-studio-session` 主机限定 Cookie 验证私有资源，因此前端、API 和独立宿主需要同一 HTTPS 主机名、不同端口/来源，并由前端同源代理 `/api`；仅换成不同子域名并不能复用该 Cookie。多节点/不同域名的宿主身份传递尚未设计与验收。开发机若工具链与项目锁定版本不同，脚本只允许以 `DORA_WEB_ALLOW_TOOLCHAIN_DRIFT=1` 作本地诊断，不能把漂移构建当作发布证据。
 
-空账号库启动后，在受信终端且仅执行一次 `pnpm invite:bootstrap`（同一 `STUDIO_DB_PATH`）获得首管理员邀请码；请通过可信渠道交付，不记录在工单或公开日志。浏览器打开登录/邀请码注册，创建管理员账号。以后从“账号管理→邀请新账号”签发创作者或管理员邀请码。邀请码默认 7 天有效、只显示一次、一次核销；账号名 3–64 位，密码至少 12 字符。账号停用不会自动撤销现有会话，需强制退出时另行撤销。
+空账号库启动后，在受信终端且仅执行一次 `pnpm invite:bootstrap`（同一 `STUDIO_DB_PATH`）获得首管理员邀请码；请通过可信渠道交付，不记录在工单或公开日志。浏览器打开登录/邀请码注册，创建管理员账号。以后从“账号管理→邀请新账号”签发邀请码：创作者邀请码可设置 1–1000 个注册名额、1–30 天有效期和用途备注；管理员邀请码由服务端强制一次性。后台可查看已用/总名额和注册账号、调整不低于已使用人数的上限，或立即撤销邀请码。原始邀请码只显示一次；账号名 3–64 位，密码至少 12 字符。账号停用不会自动撤销现有会话，需强制退出时另行撤销。
+
+本版邀请码表采用全新 schema，不迁移旧数据库。升级时删除旧 `STUDIO_DB_PATH` 文件并重新执行 `pnpm invite:bootstrap`；不要让服务在旧数据库上继续运行。
 
 测试源码位于 `Dora-Example/Test/DoraStudio`，从 Dora-Example checkout 通过 `DORA_SSR_ROOT=/path/to/Dora-SSR node Test/DoraStudio/run.mjs` 运行构建与单测；浏览器脚本需显式传入文件名且不包含在默认单测中。本地自动双服务验收使用 `node Test/DoraStudio/run.mjs --no-build login.browser.mjs`：先同时启动独立 HTTPS 前端与 API，设置 `STUDIO_LOGIN_TEST_URL`、`STUDIO_LOGIN_TEST_DB`、Playwright/Chrome 路径；测试数据库必须为空，会由脚本发一张 bootstrap 邀请，然后在浏览器实际完成注册登录和云项目上传。测试放宽自签证书验证，不可用于生产。
 

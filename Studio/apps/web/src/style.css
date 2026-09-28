@@ -21,7 +21,7 @@
 .admin-account-list { padding:0; list-style:none; }
 .admin-account-list li { display:flex; flex-direction:column; gap:6px; padding:12px 0; border-bottom:1px solid #ffffff20; overflow-wrap:anywhere; }
 .admin-account-list span { color:#aaa; font-size:12px; }
-.admin-invitation{display:grid;gap:16px;padding:20px 0;color:#bbb;font-size:12px;line-height:1.8}.admin-invitation label{display:flex;align-items:center;gap:8px}.admin-invitation code{display:block;overflow-wrap:anywhere;color:#fac03d;padding:12px;background:#161616;border:1px solid #ffffff20;border-radius:6px}.admin-invitation>div{display:grid;gap:10px}
+.admin-invitation{display:grid;gap:16px;padding:20px 0;color:#bbb;font-size:12px;line-height:1.8}.admin-invitation label{display:flex;align-items:center;gap:8px}.admin-invitation label.model-config-select{display:grid;margin:0}.admin-invitation input[type=number]{width:140px}.admin-invitation code{display:block;overflow-wrap:anywhere;color:#fac03d;padding:12px;background:#161616;border:1px solid #ffffff20;border-radius:6px}.admin-invitation>div{display:grid;gap:10px}.admin-invitation .admin-account-list li>div{display:flex;flex-wrap:wrap;justify-content:flex-start}.admin-invitation .admin-account-list p{overflow-wrap:anywhere}
 
 /* Fixed-height Studio workspace: preview remains visible while the adjacent tools switch. */
 html,body,#root{height:100%;overflow:hidden}

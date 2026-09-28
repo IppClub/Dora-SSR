@@ -23,7 +23,7 @@ const setLabel=(label,value)=>evaluate(`(()=>{const label=[...document.querySele
 const setAria=(label,value)=>evaluate(`(()=>{const input=document.querySelector('[aria-label=${JSON.stringify(label)}]');if(!input)return false;const previous=input.value;const setter=Object.getOwnPropertyDescriptor(Object.getPrototypeOf(input),'value').set;setter.call(input,${JSON.stringify(value)});input._valueTracker?.setValue(previous);input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));return true})()`);
 const typeAria=async(label,value)=>{const point=await evaluate(`(()=>{const input=document.querySelector('[aria-label=${JSON.stringify(label)}]');if(!input)return null;const rect=input.getBoundingClientRect();return {x:rect.left+rect.width/2,y:rect.top+rect.height/2}})()`);if(!point)return false;await send('Input.dispatchMouseEvent',{type:'mousePressed',x:point.x,y:point.y,button:'left',clickCount:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:point.x,y:point.y,button:'left',clickCount:1});await send('Input.dispatchKeyEvent',{type:'rawKeyDown',key:'a',code:'KeyA',modifiers:4});await send('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',modifiers:4});await send('Input.insertText',{text:value});return true};
 const step=message=>process.stderr.write(`[acceptance] ${message}\n`);
-const report={registered:false,created:false,saved:false,reopened:false,adminAccounts:false,modelSettings:false,agentPanel:false,loggedOut:false,consoleErrors:[]};
+const report={registered:false,created:false,saved:false,reopened:false,adminAccounts:false,invitationManagement:false,modelSettings:false,agentPanel:false,loggedOut:false,consoleErrors:[]};
 try{
   step('enable browser instrumentation');
   await send('Runtime.enable');await send('Page.enable');await send('Log.enable');
@@ -41,7 +41,17 @@ try{
   step('return home and reopen project');
   if(!await evaluate(`(()=>{const node=document.querySelector('[aria-label="返回首页"]');node?.click();return !!node})()`))throw new Error('Home navigation missing');await until('project catalog',`document.body.innerText.includes('Go 后端验收项目')`);if(!await evaluate(`(()=>{const node=[...document.querySelectorAll('button')].find(item=>item.textContent.includes('Go 后端验收项目'));node?.click();return !!node})()`))throw new Error('Saved project missing from catalog');await until('reopened project',`document.querySelector('.project-header h1')?.textContent.includes('Go 后端验收项目')`);if(await click('资源'))await until('reopened source',`document.querySelector('[aria-label="项目代码"]')?.value?.length>0`);report.reopened=true;
   step('exercise administration and model settings');
-  if(await click('账号管理')){await until('account manager',`document.body.innerText.includes('邀请新账号')||document.querySelector('[aria-label="账号管理"]')`);report.adminAccounts=true;await click('关闭账号管理')}
+  if(await click('账号管理')){
+    await until('account manager',`document.body.innerText.includes('邀请新账号')||document.querySelector('[aria-label="账号管理"]')`);report.adminAccounts=true;
+    if(!await click('邀请新账号'))throw new Error('Invitation management tab missing');
+    await until('invitation form',`document.body.innerText.includes('最多注册人数')&&document.body.innerText.includes('有效天数')`);
+    if(!await setLabel('用途备注','浏览器验收共享邀请')||!await setLabel('最多注册人数','2')||!await setLabel('有效天数','2'))throw new Error('Invitation fields missing');
+    if(!await click('生成邀请码'))throw new Error('Invitation submit missing');
+    await until('shared invitation receipt',`document.querySelector('.admin-invitation code')?.textContent.length===43&&document.body.innerText.includes('浏览器验收共享邀请')&&document.body.innerText.includes('0/2 人')`);
+    if(!await click('撤销邀请码'))throw new Error('Invitation revoke missing');
+    await until('revoked invitation',`document.body.innerText.includes('0/2 人 · 已撤销')`);report.invitationManagement=true;
+    await click('关闭账号管理');
+  }
   if(await click('共享 API 管理')){await until('shared model manager',`document.body.innerText.includes('导入共享 API 配置')`);report.modelSettings=true;await evaluate(`(()=>{const dialog=[...document.querySelectorAll('dialog')].find(item=>item.textContent.includes('共享 API'));const close=[...dialog.querySelectorAll('button')].find(item=>item.textContent.includes('关闭'));close?.click();return !!close})()`)}
   if(!report.modelSettings&&await click('模型与用量')){await until('model settings',`document.body.innerText.includes('自带 API Key')||document.body.innerText.includes('共享模型')`);report.modelSettings=true;await evaluate(`(()=>{const dialog=[...document.querySelectorAll('dialog')].at(-1);const close=[...dialog.querySelectorAll('button')].find(item=>item.textContent.includes('关闭'));close?.click();return !!close})()`)}
   step('open Agent workspace');

@@ -81,8 +81,10 @@ func (s *Server) serveHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch {
-	case r.URL.Path == "/api/auth/register" || r.URL.Path == "/api/auth/login" || r.URL.Path == "/api/admin/invitations":
+	case r.URL.Path == "/api/auth/register" || r.URL.Path == "/api/auth/login":
 		s.authRoutes(w, r)
+	case r.URL.Path == "/api/admin/invitations" || strings.HasPrefix(r.URL.Path, "/api/admin/invitations/"):
+		s.adminInvitationRoutes(w, r)
 	case r.URL.Path == "/api/session":
 		s.sessionRoute(w, r)
 	case r.URL.Path == "/api/session/logout":
@@ -243,26 +245,6 @@ func (s *Server) authRoutes(w http.ResponseWriter, r *http.Request) {
 		empty(w, 403)
 		return
 	}
-	if r.URL.Path == "/api/admin/invitations" {
-		a, t, ok := s.requireAdmin(w, r)
-		if !ok {
-			return
-		}
-		var b struct {
-			Administrator bool `json:"administrator"`
-		}
-		if err := jsonBody(r, 2048, &b); err != nil {
-			empty(w, 400)
-			return
-		}
-		code, expires, err := s.store.IssueInvite(r.Context(), t, a.AccountID, b.Administrator, 7*24*time.Hour)
-		if err != nil {
-			writeStoreError(w, err)
-			return
-		}
-		jsonResponse(w, 201, map[string]any{"version": 1, "code": code, "expiresAt": expires})
-		return
-	}
 	if r.URL.Path == "/api/auth/register" {
 		var b struct{ Code, AccountID, Password string }
 		if err := jsonBody(r, 2048, &b); err != nil {
@@ -321,6 +303,127 @@ func (s *Server) authRoutes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.issueCookie(w, r, b.AccountID)
+}
+
+func (s *Server) adminInvitationRoutes(w http.ResponseWriter, r *http.Request) {
+	write := r.Method != "GET"
+	if r.TLS == nil || !sameOrigin(r, s.cfg.PublicOrigin, write) {
+		empty(w, 403)
+		return
+	}
+	a, token, ok := s.requireAdmin(w, r)
+	if !ok {
+		return
+	}
+	if r.URL.Path == "/api/admin/invitations" {
+		switch r.Method {
+		case "POST":
+			if r.URL.RawQuery != "" {
+				empty(w, 400)
+				return
+			}
+			var body struct {
+				Administrator bool   `json:"administrator"`
+				MaxUses       int    `json:"maxUses"`
+				ValidDays     int    `json:"validDays"`
+				Label         string `json:"label"`
+			}
+			if err := jsonBody(r, 2048, &body); err != nil {
+				empty(w, 400)
+				return
+			}
+			if body.MaxUses == 0 {
+				body.MaxUses = 1
+			}
+			if body.ValidDays == 0 {
+				body.ValidDays = 7
+			}
+			if body.ValidDays < 1 || body.ValidDays > 30 || body.MaxUses < 1 || body.MaxUses > 1000 || body.Administrator && body.MaxUses != 1 || !validInvitationLabel(strings.TrimSpace(body.Label)) {
+				empty(w, 400)
+				return
+			}
+			code, expires, err := s.store.IssueManagedInvite(r.Context(), token, a.AccountID, body.Administrator, time.Duration(body.ValidDays)*24*time.Hour, body.MaxUses, body.Label)
+			if err != nil {
+				writeStoreError(w, err)
+				return
+			}
+			jsonResponse(w, 201, map[string]any{"version": 1, "code": code, "invitationId": digestString(code), "expiresAt": expires, "maxUses": body.MaxUses})
+		case "GET":
+			after, limit, err := page(r, 20, 100)
+			if err != nil || after != "" && len(after) != 64 {
+				empty(w, 400)
+				return
+			}
+			items, more, err := s.store.ListInvitations(r.Context(), token, a.AccountID, after, limit)
+			if err != nil {
+				writeStoreError(w, err)
+				return
+			}
+			var next any
+			if more {
+				next = items[len(items)-1].InvitationID
+			}
+			jsonResponse(w, 200, map[string]any{"version": 1, "items": items, "nextCursor": next})
+		default:
+			method(w, "GET, POST")
+		}
+		return
+	}
+	rest := strings.TrimPrefix(r.URL.Path, "/api/admin/invitations/")
+	registrations := strings.HasSuffix(rest, "/registrations")
+	id := strings.TrimSuffix(rest, "/registrations")
+	if len(id) != 64 || strings.Contains(id, "/") {
+		http.NotFound(w, r)
+		return
+	}
+	if registrations {
+		if r.Method != "GET" {
+			method(w, "GET")
+			return
+		}
+		after, limit, err := page(r, 50, 100)
+		if err != nil {
+			empty(w, 400)
+			return
+		}
+		items, more, err := s.store.InvitationRegistrations(r.Context(), token, a.AccountID, id, after, limit)
+		if err != nil {
+			writeStoreError(w, err)
+			return
+		}
+		var next any
+		if more {
+			next = items[len(items)-1].AccountID
+		}
+		jsonResponse(w, 200, map[string]any{"version": 1, "items": items, "nextCursor": next})
+		return
+	}
+	if r.Method != "PUT" {
+		method(w, "PUT")
+		return
+	}
+	if r.URL.RawQuery != "" {
+		empty(w, 400)
+		return
+	}
+	var body struct {
+		MaxUses int  `json:"maxUses"`
+		Revoke  bool `json:"revoke"`
+	}
+	if err := jsonBody(r, 2048, &body); err != nil {
+		empty(w, 400)
+		return
+	}
+	if body.MaxUses < 1 || body.MaxUses > 1000 {
+		empty(w, 400)
+		return
+	}
+	invitation, err := s.store.UpdateInvitation(r.Context(), token, a.AccountID, id, body.MaxUses, body.Revoke)
+	if err != nil {
+		writeStoreError(w, err)
+		return
+	}
+	jsonResponse(w, 200, invitation)
 }
 
 func remoteAddress(r *http.Request) string {

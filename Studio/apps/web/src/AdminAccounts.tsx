@@ -49,23 +49,74 @@ function AdminAccountsDialog({onClose,accountId,onAccessChanged}:{onClose:()=>vo
       </>}
     </>}</div></dialog>;
 }
+type Invitation={invitationId:string;label:string;administrator:boolean;expiresAt:number;maxUses:number;useCount:number;revokedAt:number|null;createdBy:string;createdAt:number};
+type Registration={accountId:string;registeredAt:number};
+function decodeInvitation(value:unknown):Invitation{
+  const row=value as Invitation;
+  if(!row||typeof row.invitationId!=='string'||!/^[a-f0-9]{64}$/.test(row.invitationId)||typeof row.label!=='string'||row.label.length>100||typeof row.administrator!=='boolean'||!Number.isSafeInteger(row.expiresAt)||!Number.isSafeInteger(row.maxUses)||row.maxUses<1||row.maxUses>1000||!Number.isSafeInteger(row.useCount)||row.useCount<0||row.useCount>row.maxUses||row.revokedAt!==null&&!Number.isSafeInteger(row.revokedAt)||typeof row.createdBy!=='string'||!Number.isSafeInteger(row.createdAt))throw new Error('Invalid invitation');
+  return {...row};
+}
+async function loadInvitations(signal:AbortSignal){
+  const items:Invitation[]=[];let after='';
+  for(let page=0;page<10;page++){
+    const value=await requestConfiguration(`/api/admin/invitations?limit=100&after=${encodeURIComponent(after)}`,signal);
+    if(value?.version!==1||!Array.isArray(value.items)||value.items.length>100||value.nextCursor!==null&&typeof value.nextCursor!=='string')throw new Error('Invalid invitation page');
+    items.push(...value.items.map(decodeInvitation));
+    if(value.nextCursor===null)return items;
+    if(!/^[a-f0-9]{64}$/.test(value.nextCursor)||value.nextCursor===after)throw new Error('Invalid invitation cursor');after=value.nextCursor;
+  }
+  throw new Error('Too many invitations');
+}
+async function loadInvitationRegistrations(id:string,signal:AbortSignal){
+  const items:Registration[]=[];let after='';
+  for(let page=0;page<10;page++){
+    const value=await requestConfiguration(`/api/admin/invitations/${id}/registrations?limit=100&after=${encodeURIComponent(after)}`,signal);
+    if(value?.version!==1||!Array.isArray(value.items)||value.items.length>100||value.nextCursor!==null&&typeof value.nextCursor!=='string')throw new Error('Invalid registrations');
+    for(const row of value.items as Registration[]){if(!row||typeof row.accountId!=='string'||!Number.isSafeInteger(row.registeredAt))throw new Error('Invalid registration');items.push(row);}
+    if(value.nextCursor===null)return items;
+    if(!value.nextCursor||value.nextCursor===after)throw new Error('Invalid registration cursor');after=value.nextCursor;
+  }
+  throw new Error('Too many registrations');
+}
 function AdminInvitation(){
-  const [administrator,setAdministrator]=useState(false),[busy,setBusy]=useState(false),[result,setResult]=useState<{code:string;expiresAt:number}>(),[error,setError]=useState(false);
+  const [administrator,setAdministrator]=useState(false),[maxUses,setMaxUses]=useState(10),[validDays,setValidDays]=useState(7),[label,setLabel]=useState('');
+  const [busy,setBusy]=useState(false),[result,setResult]=useState<{code:string;expiresAt:number;maxUses:number}>(),[error,setError]=useState(false),[refresh,setRefresh]=useState(0);
   const create=async()=>{
     if(busy)return;setBusy(true);setError(false);setResult(undefined);
     try{
-      const response=await fetch('/api/admin/invitations',{method:'POST',credentials:'same-origin',cache:'no-store',redirect:'error',headers:{'Content-Type':'application/json'},body:JSON.stringify({administrator}),signal:AbortSignal.timeout(10000)});
+      const response=await fetch('/api/admin/invitations',{method:'POST',credentials:'same-origin',cache:'no-store',redirect:'error',headers:{'Content-Type':'application/json'},body:JSON.stringify({administrator,maxUses:administrator?1:maxUses,validDays,label:label.trim()}),signal:AbortSignal.timeout(10000)});
       if(response.status!==201)throw new Error('Invitation failed');
-      const value=await response.json();if(value?.version!==1||typeof value.code!=='string'||!/^[A-Za-z0-9_-]{43}$/.test(value.code)||!Number.isSafeInteger(value.expiresAt))throw new Error('Invalid invitation');
-      setResult({code:value.code,expiresAt:value.expiresAt});
+      const value=await response.json();if(value?.version!==1||typeof value.code!=='string'||!/^[A-Za-z0-9_-]{43}$/.test(value.code)||!Number.isSafeInteger(value.expiresAt)||!Number.isSafeInteger(value.maxUses))throw new Error('Invalid invitation');
+      setResult({code:value.code,expiresAt:value.expiresAt,maxUses:value.maxUses});setRefresh(value=>value+1);
     }catch{setError(true);}finally{setBusy(false);}
   };
-  return <section className="admin-invitation"><p>邀请码只显示一次，有效期 7 天。请通过可信渠道发给受邀人；拥有邀请码的人可以自行创建账号。管理员邀请会授予管理权限。</p>
-    <label><input type="checkbox" checked={administrator} onChange={event=>setAdministrator(event.target.checked)} disabled={busy}/> 邀请管理员</label>
-    <button className="primary" onClick={()=>void create()} disabled={busy}>{busy?'正在创建…':'生成邀请码'}</button>
+  return <section className="admin-invitation"><p>创作者邀请码可由多人共享，到期、名额用完或管理员撤销后失效；管理员邀请码始终只能使用一次。邀请码明文只显示一次。</p>
+    <label className="model-config-select">用途备注<input value={label} maxLength={100} disabled={busy} onChange={event=>setLabel(event.target.value)} placeholder="例如：秋季测试群"/></label>
+    <label><input type="checkbox" checked={administrator} onChange={event=>setAdministrator(event.target.checked)} disabled={busy}/> 邀请管理员（强制一次性）</label>
+    <label className="model-config-select">最多注册人数<input type="number" min={1} max={1000} value={administrator?1:maxUses} disabled={busy||administrator} onChange={event=>setMaxUses(Number(event.target.value))}/></label>
+    <label className="model-config-select">有效天数<input type="number" min={1} max={30} value={validDays} disabled={busy} onChange={event=>setValidDays(Number(event.target.value))}/></label>
+    <button className="primary" onClick={()=>void create()} disabled={busy||(!administrator&&(maxUses<1||maxUses>1000))||validDays<1||validDays>30}>{busy?'正在创建…':'生成邀请码'}</button>
     {error&&<p role="alert">未能确认邀请码创建，请重新核对账号权限。</p>}
-    {result&&<div><p>邀请码（仅此一次可见）</p><code>{result.code}</code><p>有效期至 {new Date(result.expiresAt).toLocaleString()}</p><button onClick={()=>void navigator.clipboard.writeText(result.code)}>复制邀请码</button></div>}
+    {result&&<div><p>邀请码（仅此一次可见，可供最多 {result.maxUses} 人注册）</p><code>{result.code}</code><p>有效期至 {new Date(result.expiresAt).toLocaleString()}</p><button onClick={()=>void navigator.clipboard.writeText(result.code)}>复制邀请码</button></div>}
+    <InvitationList refresh={refresh}/>
   </section>;
+}
+function InvitationList({refresh}:{refresh:number}){
+  const [items,setItems]=useState<Invitation[]>(),[failed,setFailed]=useState(false);
+  useEffect(()=>{let active=true;const controller=new AbortController();setFailed(false);void loadInvitations(controller.signal).then(value=>{if(active)setItems(value);}).catch(()=>{if(active)setFailed(true);});return()=>{active=false;controller.abort();};},[refresh]);
+  if(!items)return <p role="status">{failed?'无法读取邀请码列表，请稍后重试。':'正在读取邀请码列表…'}</p>;
+  return <div><h3>已签发邀请码</h3>{!items.length?<p>尚未签发邀请码。</p>:<ul className="admin-account-list">{items.map(item=><InvitationRow key={`${item.invitationId}:${item.maxUses}:${item.useCount}:${item.revokedAt??0}`} item={item} onSaved={saved=>setItems(current=>current?.map(row=>row.invitationId===saved.invitationId?saved:row))}/>)}</ul>}</div>;
+}
+function InvitationRow({item,onSaved}:{item:Invitation;onSaved:(item:Invitation)=>void}){
+  const [limit,setLimit]=useState(item.maxUses),[busy,setBusy]=useState(false),[registrations,setRegistrations]=useState<Registration[]>(),[error,setError]=useState(false);
+  const expired=item.expiresAt<=Date.now(),state=item.revokedAt!==null?'已撤销':expired?'已过期':item.useCount>=item.maxUses?'名额已满':'可使用';
+  const save=async(revoke:boolean)=>{if(busy)return;setBusy(true);setError(false);const controller=new AbortController();try{const value=await requestConfiguration(`/api/admin/invitations/${item.invitationId}`,controller.signal,{maxUses:limit,revoke});onSaved(decodeInvitation(value));}catch{setError(true);}finally{setBusy(false);}};
+  const loadRegistrations=async()=>{if(busy)return;setBusy(true);setError(false);const controller=new AbortController();try{setRegistrations(await loadInvitationRegistrations(item.invitationId,controller.signal));}catch{setError(true);}finally{setBusy(false);}};
+  return <li><strong>{item.label||'未命名邀请'}</strong><span>{item.administrator?'管理员':'创作者'} · {item.useCount}/{item.maxUses} 人 · {state}</span><span>创建者：{item.createdBy} · 到期：{new Date(item.expiresAt).toLocaleString()}</span>
+    {!item.administrator&&item.revokedAt===null&&<label>人数上限 <input type="number" min={item.useCount||1} max={1000} value={limit} disabled={busy} onChange={event=>setLimit(Number(event.target.value))}/></label>}
+    <div className="model-config-toolbar"><button disabled={busy} onClick={()=>void loadRegistrations()}>{busy?'正在处理…':'查看注册账号'}</button>{!item.administrator&&item.revokedAt===null&&<button disabled={busy||limit<item.useCount||limit<1||limit>1000||limit===item.maxUses} onClick={()=>void save(false)}>保存人数上限</button>}{item.revokedAt===null&&<button disabled={busy} onClick={()=>void save(true)}>撤销邀请码</button>}</div>
+    {registrations&&<p>{registrations.length?registrations.map(row=>`${row.accountId}（${new Date(row.registeredAt).toLocaleString()}）`).join('、'):'尚无账号使用此邀请码。'}</p>}{error&&<p role="alert">操作未能确认，请刷新列表后核对。</p>}
+  </li>;
 }
 function AccountToggle({row,onSaved}:{row:Account;onSaved:(row:Account)=>void}){
   const [field,setField]=useState<'enabled'|'administrator'>('enabled');

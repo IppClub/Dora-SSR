@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -123,6 +125,27 @@ func TestLoginRateLimitIsSharedAndExpires(t *testing.T) {
 	mustStatus(t, status, 200)
 }
 
+func TestObsoleteInvitationSchemaRequiresDatabaseRebuild(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "studio.db")
+	db, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec(`CREATE TABLE studio_invites(code_hash TEXT PRIMARY KEY,administrator INTEGER NOT NULL,expires_at INTEGER NOT NULL,consumed_at INTEGER,created_by TEXT NOT NULL)`); err != nil {
+		t.Fatal(err)
+	}
+	if err = db.Close(); err != nil {
+		t.Fatal(err)
+	}
+	store, err := OpenStore(path, bytes.Repeat([]byte{7}, 32))
+	if store != nil {
+		store.Close()
+	}
+	if err == nil || !strings.Contains(err.Error(), "rebuild it") {
+		t.Fatalf("obsolete schema returned %v", err)
+	}
+}
+
 func TestUserProjectLifecycle(t *testing.T) {
 	a := newTestApp(t)
 	code, _, err := a.store.IssueInvite(context.Background(), "", "bootstrap", true, time.Hour)
@@ -162,6 +185,93 @@ func TestUserProjectLifecycle(t *testing.T) {
 	mustStatus(t, status, 204)
 	status, _, _ = a.do(t, "GET", "/api/projects", nil, false)
 	mustStatus(t, status, 401)
+}
+
+func TestInvitationQuotaManagement(t *testing.T) {
+	a := newTestApp(t)
+	bootstrap, _, err := a.store.IssueInvite(context.Background(), "", "bootstrap", true, time.Hour)
+	if err != nil {
+		t.Fatal(err)
+	}
+	register(t, a, bootstrap, "admin-user")
+	status, created, _ := a.do(t, "POST", "/api/admin/invitations", map[string]any{"administrator": false, "maxUses": 2, "validDays": 14, "label": "秋季测试群"}, true)
+	mustStatus(t, status, 201)
+	code, _ := created["code"].(string)
+	id, _ := created["invitationId"].(string)
+	if len(code) != 43 || len(id) != 64 || created["maxUses"] != float64(2) {
+		t.Fatalf("unexpected invitation receipt: %#v", created)
+	}
+	if err = a.store.Register(context.Background(), code, "creator-one", "correct horse battery staple"); err != nil {
+		t.Fatal(err)
+	}
+	if err = a.store.Register(context.Background(), code, "creator-two", "correct horse battery staple"); err != nil {
+		t.Fatal(err)
+	}
+	if err = a.store.Register(context.Background(), code, "creator-over-limit", "correct horse battery staple"); !errors.Is(err, errConflict) {
+		t.Fatalf("quota registration returned %v", err)
+	}
+	status, page, _ := a.do(t, "GET", "/api/admin/invitations?limit=20", nil, false)
+	mustStatus(t, status, 200)
+	items := page["items"].([]any)
+	if len(items) != 1 || items[0].(map[string]any)["useCount"] != float64(2) || items[0].(map[string]any)["label"] != "秋季测试群" {
+		t.Fatalf("unexpected invitation page: %#v", page)
+	}
+	status, registrations, _ := a.do(t, "GET", "/api/admin/invitations/"+id+"/registrations?limit=20", nil, false)
+	mustStatus(t, status, 200)
+	if len(registrations["items"].([]any)) != 2 {
+		t.Fatalf("unexpected invitation registrations: %#v", registrations)
+	}
+	status, updated, _ := a.do(t, "PUT", "/api/admin/invitations/"+id, map[string]any{"maxUses": 3, "revoke": false}, true)
+	mustStatus(t, status, 200)
+	if updated["maxUses"] != float64(3) {
+		t.Fatalf("unexpected invitation update: %#v", updated)
+	}
+	if err = a.store.Register(context.Background(), code, "creator-three", "correct horse battery staple"); err != nil {
+		t.Fatal(err)
+	}
+	status, _, _ = a.do(t, "PUT", "/api/admin/invitations/"+id, map[string]any{"maxUses": 2, "revoke": false}, true)
+	mustStatus(t, status, 409)
+	status, revoked, _ := a.do(t, "PUT", "/api/admin/invitations/"+id, map[string]any{"maxUses": 4, "revoke": true}, true)
+	mustStatus(t, status, 200)
+	if revoked["revokedAt"] == nil {
+		t.Fatalf("invitation was not revoked: %#v", revoked)
+	}
+	if err = a.store.Register(context.Background(), code, "creator-after-revoke", "correct horse battery staple"); !errors.Is(err, errConflict) {
+		t.Fatalf("revoked invitation registration returned %v", err)
+	}
+	status, _, _ = a.do(t, "POST", "/api/admin/invitations", map[string]any{"administrator": true, "maxUses": 2, "validDays": 7, "label": "unsafe"}, true)
+	mustStatus(t, status, 400)
+}
+
+func TestInvitationQuotaIsAtomic(t *testing.T) {
+	a := newTestApp(t)
+	code, _, err := a.store.IssueInvite(context.Background(), "", "bootstrap", false, time.Hour)
+	if err != nil {
+		t.Fatal(err)
+	}
+	start := make(chan struct{})
+	results := make(chan error, 2)
+	for _, accountID := range []string{"concurrent-one", "concurrent-two"} {
+		go func(id string) {
+			<-start
+			results <- a.store.Register(context.Background(), code, id, "correct horse battery staple")
+		}(accountID)
+	}
+	close(start)
+	successes, conflicts := 0, 0
+	for range 2 {
+		err = <-results
+		if err == nil {
+			successes++
+		} else if errors.Is(err, errConflict) {
+			conflicts++
+		} else {
+			t.Fatalf("concurrent registration returned %v", err)
+		}
+	}
+	if successes != 1 || conflicts != 1 {
+		t.Fatalf("concurrent registrations: %d successes, %d conflicts", successes, conflicts)
+	}
 }
 
 func TestAdministrationModelsAndBYOK(t *testing.T) {

@@ -48,6 +48,23 @@ type Account struct {
 	Version       int64  `json:"version"`
 }
 
+type Invitation struct {
+	InvitationID  string `json:"invitationId"`
+	Label         string `json:"label"`
+	Administrator bool   `json:"administrator"`
+	ExpiresAt     int64  `json:"expiresAt"`
+	MaxUses       int    `json:"maxUses"`
+	UseCount      int    `json:"useCount"`
+	RevokedAt     *int64 `json:"revokedAt"`
+	CreatedBy     string `json:"createdBy"`
+	CreatedAt     int64  `json:"createdAt"`
+}
+
+type InvitationRegistration struct {
+	AccountID    string `json:"accountId"`
+	RegisteredAt int64  `json:"registeredAt"`
+}
+
 type Session struct {
 	AccountID string
 	ExpiresAt int64
@@ -129,8 +146,10 @@ CREATE TABLE IF NOT EXISTS studio_sessions(token_hash TEXT PRIMARY KEY,account_i
 CREATE INDEX IF NOT EXISTS studio_account_sessions ON studio_sessions(account_id);
 CREATE TABLE IF NOT EXISTS studio_accounts(id TEXT PRIMARY KEY,enabled INTEGER NOT NULL,version INTEGER NOT NULL,administrator INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE IF NOT EXISTS studio_account_audit(sequence INTEGER PRIMARY KEY AUTOINCREMENT,data TEXT NOT NULL);
-CREATE TABLE IF NOT EXISTS studio_invites(code_hash TEXT PRIMARY KEY,administrator INTEGER NOT NULL,expires_at INTEGER NOT NULL,consumed_at INTEGER,created_by TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS studio_invites(code_hash TEXT PRIMARY KEY,administrator INTEGER NOT NULL,expires_at INTEGER NOT NULL,created_by TEXT NOT NULL,max_uses INTEGER NOT NULL,use_count INTEGER NOT NULL,revoked_at INTEGER,label TEXT NOT NULL,created_at INTEGER NOT NULL);
 CREATE UNIQUE INDEX IF NOT EXISTS studio_one_bootstrap_invite ON studio_invites(created_by) WHERE created_by='bootstrap';
+CREATE TABLE IF NOT EXISTS studio_invite_registrations(invitation_id TEXT NOT NULL,account_id TEXT NOT NULL UNIQUE,registered_at INTEGER NOT NULL,PRIMARY KEY(invitation_id,account_id));
+CREATE INDEX IF NOT EXISTS studio_invite_registration_accounts ON studio_invite_registrations(invitation_id,account_id);
 CREATE TABLE IF NOT EXISTS studio_passwords(account_id TEXT PRIMARY KEY,salt TEXT NOT NULL,verifier TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS studio_login_attempts(key TEXT PRIMARY KEY,started_at INTEGER NOT NULL,count INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS studio_projects(owner TEXT NOT NULL,project TEXT NOT NULL,revision INTEGER NOT NULL,name TEXT NOT NULL,data TEXT NOT NULL,updated_at INTEGER NOT NULL,PRIMARY KEY(owner,project,revision));
@@ -147,7 +166,14 @@ CREATE TABLE IF NOT EXISTS model_requests(id TEXT PRIMARY KEY,data TEXT NOT NULL
 CREATE TABLE IF NOT EXISTS model_audit(sequence INTEGER PRIMARY KEY AUTOINCREMENT,data TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS byok_requests(id TEXT PRIMARY KEY,account_id TEXT NOT NULL,data TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS byok_account_requests ON byok_requests(account_id,id);`)
-	return err
+	if err != nil {
+		return err
+	}
+	rows, err := s.db.Query(`SELECT max_uses,use_count,revoked_at,label,created_at FROM studio_invites LIMIT 0`)
+	if err != nil {
+		return fmt.Errorf("studio database uses an obsolete invitation schema; rebuild it: %w", err)
+	}
+	return rows.Close()
 }
 
 func validIdentity(v string, max int) bool {
@@ -363,7 +389,19 @@ func requireAdminTx(ctx context.Context, tx *sql.Tx, token, actor string, now in
 }
 
 func (s *Store) IssueInvite(ctx context.Context, token, actor string, administrator bool, ttl time.Duration) (string, int64, error) {
+	return s.IssueManagedInvite(ctx, token, actor, administrator, ttl, 1, "")
+}
+
+func validInvitationLabel(label string) bool {
+	return label == "" || validIdentity(label, 100)
+}
+
+func (s *Store) IssueManagedInvite(ctx context.Context, token, actor string, administrator bool, ttl time.Duration, maxUses int, label string) (string, int64, error) {
 	if ttl < time.Minute || ttl > 30*24*time.Hour {
+		return "", 0, errors.New("invalid invitation")
+	}
+	label = strings.TrimSpace(label)
+	if maxUses < 1 || maxUses > 1000 || administrator && maxUses != 1 || !validInvitationLabel(label) {
 		return "", 0, errors.New("invalid invitation")
 	}
 	code, err := randomToken()
@@ -388,7 +426,7 @@ func (s *Store) IssueInvite(ctx context.Context, token, actor string, administra
 	} else if err = requireAdminTx(ctx, tx, token, actor, now); err != nil {
 		return "", 0, err
 	}
-	_, err = tx.ExecContext(ctx, `INSERT INTO studio_invites VALUES(?,?,?,NULL,?)`, digestString(code), boolInt(administrator), expires, actor)
+	_, err = tx.ExecContext(ctx, `INSERT INTO studio_invites(code_hash,administrator,expires_at,created_by,max_uses,use_count,revoked_at,label,created_at) VALUES(?,?,?,?,?,0,NULL,?,?)`, digestString(code), boolInt(administrator), expires, actor, maxUses, label, now)
 	if err != nil {
 		return "", 0, err
 	}
@@ -396,6 +434,124 @@ func (s *Store) IssueInvite(ctx context.Context, token, actor string, administra
 		return "", 0, err
 	}
 	return code, expires, nil
+}
+
+func scanInvitation(row interface{ Scan(...any) error }) (*Invitation, error) {
+	var invitation Invitation
+	var administrator int
+	var revoked sql.NullInt64
+	if err := row.Scan(&invitation.InvitationID, &invitation.Label, &administrator, &invitation.ExpiresAt, &invitation.MaxUses, &invitation.UseCount, &revoked, &invitation.CreatedBy, &invitation.CreatedAt); err != nil {
+		return nil, err
+	}
+	invitation.Administrator = administrator == 1
+	if revoked.Valid {
+		invitation.RevokedAt = &revoked.Int64
+	}
+	return &invitation, nil
+}
+
+func (s *Store) ListInvitations(ctx context.Context, token, actor, after string, limit int) ([]Invitation, bool, error) {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, false, err
+	}
+	defer tx.Rollback()
+	if err = requireAdminTx(ctx, tx, token, actor, s.now().UnixMilli()); err != nil {
+		return nil, false, err
+	}
+	rows, err := tx.QueryContext(ctx, `SELECT code_hash,label,administrator,expires_at,max_uses,use_count,revoked_at,created_by,created_at FROM studio_invites WHERE code_hash>? AND created_by<>'bootstrap' ORDER BY code_hash LIMIT ?`, after, limit+1)
+	if err != nil {
+		return nil, false, err
+	}
+	defer rows.Close()
+	items := []Invitation{}
+	for rows.Next() {
+		invitation, err := scanInvitation(rows)
+		if err != nil {
+			return nil, false, err
+		}
+		items = append(items, *invitation)
+	}
+	more := len(items) > limit
+	if more {
+		items = items[:limit]
+	}
+	return items, more, rows.Err()
+}
+
+func (s *Store) UpdateInvitation(ctx context.Context, token, actor, id string, maxUses int, revoke bool) (*Invitation, error) {
+	if len(id) != 64 || maxUses < 1 || maxUses > 1000 {
+		return nil, errors.New("invalid invitation")
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	now := s.now().UnixMilli()
+	if err = requireAdminTx(ctx, tx, token, actor, now); err != nil {
+		return nil, err
+	}
+	current, err := scanInvitation(tx.QueryRowContext(ctx, `SELECT code_hash,label,administrator,expires_at,max_uses,use_count,revoked_at,created_by,created_at FROM studio_invites WHERE code_hash=? AND created_by<>'bootstrap'`, id))
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, errNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	if maxUses < current.UseCount || current.Administrator && maxUses != 1 {
+		return nil, errConflict
+	}
+	if _, err = tx.ExecContext(ctx, `UPDATE studio_invites SET max_uses=?,revoked_at=CASE WHEN ?=1 AND revoked_at IS NULL THEN ? ELSE revoked_at END WHERE code_hash=?`, maxUses, boolInt(revoke), now, id); err != nil {
+		return nil, err
+	}
+	updated, err := scanInvitation(tx.QueryRowContext(ctx, `SELECT code_hash,label,administrator,expires_at,max_uses,use_count,revoked_at,created_by,created_at FROM studio_invites WHERE code_hash=?`, id))
+	if err != nil {
+		return nil, err
+	}
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return updated, nil
+}
+
+func (s *Store) InvitationRegistrations(ctx context.Context, token, actor, id, after string, limit int) ([]InvitationRegistration, bool, error) {
+	if len(id) != 64 {
+		return nil, false, errors.New("invalid invitation")
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, false, err
+	}
+	defer tx.Rollback()
+	if err = requireAdminTx(ctx, tx, token, actor, s.now().UnixMilli()); err != nil {
+		return nil, false, err
+	}
+	var exists int
+	if err = tx.QueryRowContext(ctx, `SELECT 1 FROM studio_invites WHERE code_hash=? AND created_by<>'bootstrap'`, id).Scan(&exists); errors.Is(err, sql.ErrNoRows) {
+		return nil, false, errNotFound
+	}
+	if err != nil {
+		return nil, false, err
+	}
+	rows, err := tx.QueryContext(ctx, `SELECT account_id,registered_at FROM studio_invite_registrations WHERE invitation_id=? AND account_id>? ORDER BY account_id LIMIT ?`, id, after, limit+1)
+	if err != nil {
+		return nil, false, err
+	}
+	defer rows.Close()
+	items := []InvitationRegistration{}
+	for rows.Next() {
+		var item InvitationRegistration
+		if err = rows.Scan(&item.AccountID, &item.RegisteredAt); err != nil {
+			return nil, false, err
+		}
+		items = append(items, item)
+	}
+	more := len(items) > limit
+	if more {
+		items = items[:limit]
+	}
+	return items, more, rows.Err()
 }
 
 func validAccountID(v string) bool {
@@ -434,8 +590,9 @@ func (s *Store) Register(ctx context.Context, code, accountID, password string) 
 	}
 	defer tx.Rollback()
 	now := s.now().UnixMilli()
+	codeHash := digestString(code)
 	var admin int
-	if err = tx.QueryRowContext(ctx, `SELECT administrator FROM studio_invites WHERE code_hash=? AND consumed_at IS NULL AND expires_at>?`, digestString(code), now).Scan(&admin); errors.Is(err, sql.ErrNoRows) {
+	if err = tx.QueryRowContext(ctx, `SELECT administrator FROM studio_invites WHERE code_hash=? AND revoked_at IS NULL AND expires_at>? AND use_count<max_uses`, codeHash, now).Scan(&admin); errors.Is(err, sql.ErrNoRows) {
 		return errConflict
 	}
 	if err != nil {
@@ -447,7 +604,15 @@ func (s *Store) Register(ctx context.Context, code, accountID, password string) 
 	if _, err = tx.ExecContext(ctx, `INSERT INTO studio_passwords VALUES(?,?,?)`, accountID, hex.EncodeToString(salt[:]), hex.EncodeToString(verifier)); err != nil {
 		return err
 	}
-	if _, err = tx.ExecContext(ctx, `UPDATE studio_invites SET consumed_at=? WHERE code_hash=? AND consumed_at IS NULL`, now, digestString(code)); err != nil {
+	result, err := tx.ExecContext(ctx, `UPDATE studio_invites SET use_count=use_count+1 WHERE code_hash=? AND revoked_at IS NULL AND expires_at>? AND use_count<max_uses`, codeHash, now)
+	if err != nil {
+		return err
+	}
+	changed, err := result.RowsAffected()
+	if err != nil || changed != 1 {
+		return errConflict
+	}
+	if _, err = tx.ExecContext(ctx, `INSERT INTO studio_invite_registrations(invitation_id,account_id,registered_at) VALUES(?,?,?)`, codeHash, accountID, now); err != nil {
 		return err
 	}
 	a := Account{AccountID: accountID, Enabled: true, Administrator: admin == 1, Version: 1}
