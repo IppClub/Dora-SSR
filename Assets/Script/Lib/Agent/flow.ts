@@ -90,7 +90,7 @@ class Node<S = unknown, P extends NonIterableObject = NonIterableObject> extends
 }
 class BatchNode<S = unknown, P extends NonIterableObject = NonIterableObject> extends Node<S, P> {
 	async _exec(items: unknown[]): Promise<unknown[]> {
-		if (!items || !Array.isArray(items)) return [];
+		if (items === undefined || !Array.isArray(items)) return [];
 		const results = [];
 		for (const item of items) {
 			results.push(await super._exec(item));
@@ -100,7 +100,7 @@ class BatchNode<S = unknown, P extends NonIterableObject = NonIterableObject> ex
 }
 class ParallelBatchNode<S = unknown, P extends NonIterableObject = NonIterableObject> extends Node<S, P> {
 	async _exec(items: unknown[]): Promise<unknown[]> {
-		if (!items || !Array.isArray(items)) return [];
+		if (items === undefined || !Array.isArray(items)) return [];
 		return Promise.all(items.map((item) => super._exec(item)));
 	}
 }

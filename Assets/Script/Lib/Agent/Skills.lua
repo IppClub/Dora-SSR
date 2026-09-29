@@ -73,7 +73,7 @@ local function escapeXMLText(text) -- 41
 	return result -- 47
 end -- 41
 local function parseSimpleYAML(text) -- 50
-	if not text or __TS__StringTrim(text) == "" then -- 50
+	if __TS__StringTrim(text) == "" then -- 50
 		return nil -- 52
 	end -- 52
 	local result = {} -- 55
@@ -153,7 +153,7 @@ local function parseSimpleYAML(text) -- 50
 	return result -- 132
 end -- 50
 local function parseYAMLFrontmatter(content) -- 135
-	if not content or __TS__StringTrim(content) == "" then -- 135
+	if __TS__StringTrim(content) == "" then -- 135
 		return {metadata = nil, body = "", error = "empty content"} -- 141
 	end -- 141
 	local trimmed = __TS__StringTrim(content) -- 144
@@ -222,7 +222,7 @@ function SkillsLoader.prototype.loadSkillsFromDir(self, dir, priority) -- 258
 		return -- 260
 	end -- 260
 	local subdirs = Content:getDirs(dir) -- 263
-	if not subdirs or #subdirs == 0 then -- 263
+	if #subdirs == 0 then -- 263
 		return -- 265
 	end -- 265
 	for ____, subdir in ipairs(subdirs) do -- 268
@@ -254,7 +254,7 @@ function SkillsLoader.prototype.loadSkillsFromDir(self, dir, priority) -- 258
 end -- 258
 function SkillsLoader.prototype.loadSkillFile(self, skillPath) -- 295
 	local content = Content:load(skillPath) -- 296
-	if not content then -- 296
+	if type(content) ~= "string" or content == "" then -- 296
 		Log("Warn", "[SkillsLoader] Failed to read " .. skillPath) -- 298
 		return nil -- 299
 	end -- 299
@@ -373,7 +373,7 @@ function SkillsLoader.prototype.loadSkillContent(self, name) -- 423
 		return skill.body -- 430
 	end -- 430
 	local content = Content:load(skill.sourcePath) -- 433
-	if not content then -- 433
+	if type(content) ~= "string" or content == "" then -- 433
 		return nil -- 435
 	end -- 435
 	local parsed = parseYAMLFrontmatter(content) -- 438

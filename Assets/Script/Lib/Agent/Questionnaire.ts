@@ -160,7 +160,7 @@ export function validateQuestionnaireAnswers(schema: AgentQuestionnaireSchema, v
 	for (let i = 0; i < schema.questions.length; i++) {
 		const question = schema.questions[i];
 		const raw = byQuestionId[question.id];
-		if (!raw) return { success: false, message: `question ${question.id} is missing` };
+		if (raw === undefined) return { success: false, message: `question ${question.id} is missing` };
 		const status = raw.status === "skipped" ? "skipped" : (raw.status === "answered" ? "answered" : "");
 		if (status === "") return { success: false, message: `question ${question.id} has invalid status` };
 		if (status === "skipped") {

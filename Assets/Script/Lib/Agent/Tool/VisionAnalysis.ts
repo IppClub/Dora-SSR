@@ -68,9 +68,9 @@ export async function analyzeImage(req: AnalyzeImageRequest): Promise<Record<str
 		const images=[];
 		for (let i=0;i<req.paths.length;i++) {
 			const fullPath = resolveWorkspaceFilePath(req.workingDir, req.paths[i]);
-			if (!fullPath) error(`image path escapes the project: ${req.paths[i]}`);
+			if (fullPath === undefined) error(`image path escapes the project: ${req.paths[i]}`);
 			const data = Content.load(fullPath);
-			if (!data) error(`image not found: ${req.paths[i]}`);
+			if (typeof data !== "string" || data === "") error(`image not found: ${req.paths[i]}`);
 			const inspected = inspectImage(data);
 			const [encoded]=mime.b64(data);
 			if (!encoded) error("Unable to encode image");

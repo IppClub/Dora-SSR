@@ -48,7 +48,7 @@ function escapeXMLText(text: string): string {
 }
 
 function parseSimpleYAML(text: string): Record<string, unknown> | undefined {
-	if (!text || text.trim() === "") {
+	if (text.trim() === "") {
 		return undefined;
 	}
 
@@ -137,7 +137,7 @@ function parseYAMLFrontmatter(content: string): {
 	body: string;
 	error?: string;
 } {
-	if (!content || content.trim() === "") {
+	if (content.trim() === "") {
 		return { metadata: undefined, body: "", error: "empty content" };
 	}
 
@@ -261,7 +261,7 @@ export class SkillsLoader {
 		}
 
 		const subdirs = Content.getDirs(dir);
-		if (!subdirs || subdirs.length === 0) {
+		if (subdirs.length === 0) {
 			return;
 		}
 
@@ -294,7 +294,7 @@ export class SkillsLoader {
 
 	private loadSkillFile(skillPath: string): Skill | undefined {
 		const content = Content.load(skillPath);
-		if (!content) {
+		if (typeof content !== "string" || content === "") {
 			Log("Warn", `[SkillsLoader] Failed to read ${skillPath}`);
 			return undefined;
 		}
@@ -431,7 +431,7 @@ export class SkillsLoader {
 		}
 
 		const content = Content.load(skill.sourcePath);
-		if (!content) {
+		if (typeof content !== "string" || content === "") {
 			return undefined;
 		}
 

@@ -15,7 +15,7 @@ function ____exports.getAgentDownloadTempRoot() -- 13
 	return Path(Content.writablePath, ENGINE_LOG_DOWNLOAD_DIR, AGENT_DOWNLOAD_TEMP_DIR) -- 14
 end -- 13
 function ____exports.cleanupPath(path) -- 17
-	if not path or path == "" or not Content:exist(path) then -- 17
+	if path == "" or not Content:exist(path) then -- 17
 		return nil -- 18
 	end -- 18
 	if Content:remove(path) then -- 18

@@ -199,7 +199,7 @@ function ____exports.validateQuestionnaireAnswers(schema, value) -- 146
 			do -- 160
 				local question = schema.questions[i + 1] -- 161
 				local raw = byQuestionId[question.id] -- 162
-				if not raw then -- 162
+				if raw == nil then -- 162
 					return {success = false, message = ("question " .. question.id) .. " is missing"} -- 163
 				end -- 163
 				local status = raw.status == "skipped" and "skipped" or (raw.status == "answered" and "answered" or "") -- 164

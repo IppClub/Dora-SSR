@@ -19,7 +19,7 @@ function canWriteStepLLMDebug(shared: AgentStepDebugContext, stepId = shared.ste
 }
 
 function ensureDirRecursive(dir: string): boolean {
-	if (!dir) return false;
+	if (dir === "") return false;
 	if (Content.exist(dir)) return Content.isdir(dir);
 	const parent = Path.getPath(dir);
 	if (parent !== "" && parent !== dir && !Content.exist(parent) && !ensureDirRecursive(parent)) {

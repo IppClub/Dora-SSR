@@ -522,7 +522,7 @@ local function loadGitProfile() -- 382
 			return ____returnValue -- 384
 		end -- 384
 	end -- 384
-	if not rows or not rows[1] then -- 384
+	if rows == nil or rows[1] == nil then -- 384
 		return nil -- 389
 	end -- 389
 	local name = toStr(rows[1][1]) -- 390

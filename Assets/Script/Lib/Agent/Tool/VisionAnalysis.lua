@@ -97,11 +97,11 @@ function ____exports.analyzeImage(req) -- 50
 				local i = 0 -- 69
 				while i < #req.paths do -- 69
 					local fullPath = resolveWorkspaceFilePath(req.workingDir, req.paths[i + 1]) -- 70
-					if not fullPath then -- 70
+					if fullPath == nil then -- 70
 						error("image path escapes the project: " .. req.paths[i + 1]) -- 71
 					end -- 71
 					local data = Content:load(fullPath) -- 72
-					if not data then -- 72
+					if type(data) ~= "string" or data == "" then -- 72
 						error("image not found: " .. req.paths[i + 1]) -- 73
 					end -- 73
 					local inspected = inspectImage(data) -- 74

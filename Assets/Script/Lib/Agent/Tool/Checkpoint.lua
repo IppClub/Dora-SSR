@@ -407,7 +407,7 @@ function ____exports.summarizeTaskChangeSet(taskId) -- 436
 				while j < #entries do -- 454
 					local entry = entries[j + 1] -- 455
 					local item = filesByPath[entry.path] -- 456
-					if not item then -- 456
+					if item == nil then -- 456
 						item = {path = entry.path, beforeExists = entry.beforeExists, afterExists = entry.afterExists, checkpointIds = {}} -- 458
 						filesByPath[entry.path] = item -- 464
 					end -- 464
@@ -459,7 +459,7 @@ function ____exports.getTaskChangeSetDiff(taskId) -- 491
 			local entryId = row[1] -- 515
 			local path = toStr(row[2]) -- 516
 			local item = filesByPath[path] -- 517
-			if not item then -- 517
+			if item == nil then -- 517
 				item = { -- 519
 					path = path, -- 520
 					firstEntryId = entryId, -- 521

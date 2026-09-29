@@ -693,7 +693,7 @@ function getPromptCommand(prompt: string): AgentPromptCommand | undefined {
 }
 
 export function truncateAgentUserPrompt(prompt: string): string {
-	if (!prompt) return "";
+	if (prompt === "") return "";
 	const offset = utf8.offset(prompt, AgentConfig.AGENT_LIMITS.userPromptMaxChars + 1);
 	if (offset === undefined) return prompt;
 	return string.sub(prompt, 1, offset - 1);
@@ -1657,7 +1657,7 @@ function buildAgentSystemPrompt(shared: AgentShared, includeToolDefinitions = fa
 }
 
 function buildSkillsSection(shared: AgentShared): string {
-	if (!shared.skills?.loader) {
+	if (shared.skills === undefined || shared.skills.loader === undefined) {
 		return "";
 	}
 	return shared.skills.loader.buildSkillsPromptSection();
@@ -2529,8 +2529,8 @@ function createAgentToolExecutionContext(
 			});
 		},
 		services: {
-			spawnSubAgent: shared.spawnSubAgent,
-			listSubAgents: shared.listSubAgents,
+			spawnSubAgent: shared.spawnSubAgent !== undefined ? request => shared.spawnSubAgent!(request) : undefined,
+			listSubAgents: shared.listSubAgents !== undefined ? request => shared.listSubAgents!(request) : undefined,
 			publishQuestionnaire: shared.publishQuestionnaire !== undefined
 				? request => shared.publishQuestionnaire!({
 					sessionId: request.sessionId,
@@ -2915,14 +2915,14 @@ function emitAgentTaskFinishEvent(shared: AgentShared, success: boolean, message
 }
 
 async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<CodingAgentRunResult> {
-	if (!options.workDir || !Content.isAbsolutePath(options.workDir) || !Content.exist(options.workDir) || !Content.isdir(options.workDir)) {
+	if (options.workDir === "" || !Content.isAbsolutePath(options.workDir) || !Content.exist(options.workDir) || !Content.isdir(options.workDir)) {
 		return { success: false, message: "workDir must be an existing absolute directory path" };
 	}
 	const normalizedPrompt = truncateAgentUserPrompt(options.prompt);
 	const llmConfigRes = options.llmConfig
 		? { success: true as const, config: options.llmConfig }
 		: AgentUtils.getActiveLLMConfig();
-	if (!llmConfigRes.success) {
+	if (llmConfigRes.success === false) {
 		return { success: false, message: llmConfigRes.message };
 	}
 	const llmConfig = {...llmConfigRes.config};

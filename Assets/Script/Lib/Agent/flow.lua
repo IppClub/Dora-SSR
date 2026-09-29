@@ -190,7 +190,7 @@ BatchNode.name = "BatchNode" -- 91
 __TS__ClassExtends(BatchNode, Node) -- 91
 function BatchNode.prototype._exec(self, items) -- 92
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 92
-		if not items or not __TS__ArrayIsArray(items) then -- 92
+		if items == nil or not __TS__ArrayIsArray(items) then -- 92
 			return ____awaiter_resolve(nil, {}) -- 92
 		end -- 92
 		local results = {} -- 94
@@ -205,7 +205,7 @@ ParallelBatchNode.name = "ParallelBatchNode" -- 101
 __TS__ClassExtends(ParallelBatchNode, Node) -- 101
 function ParallelBatchNode.prototype._exec(self, items) -- 102
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 102
-		if not items or not __TS__ArrayIsArray(items) then -- 102
+		if items == nil or not __TS__ArrayIsArray(items) then -- 102
 			return ____awaiter_resolve(nil, {}) -- 102
 		end -- 102
 		return ____awaiter_resolve( -- 102

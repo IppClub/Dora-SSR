@@ -143,24 +143,20 @@ function ____exports.isSafePublicHttpUrl(url) -- 64
 	) then -- 74
 		return false -- 75
 	end -- 75
-	-- Browsers do not expose synchronous DNS resolution to the embedded Lua -- 77
-	-- runtime. Fetch is already subject to the browser's origin/CORS policy, so -- 77
-	-- retain the URL and literal-address checks above and leave hostname -- 77
-	-- resolution to the browser network stack. -- 77
-	if App.platform == "Web" then -- 77
-		return true -- 77
-	end -- 77
-	local ____socket = require("socket") -- 78
-	local dns = ____socket.dns -- 78
-	local addresses = dns.getaddrinfo(host) -- 79
-	if not addresses or #addresses == 0 then -- 77
-		return false -- 78
-	end -- 78
-	for ____, address in ipairs(addresses) do -- 79
-		if ____exports.isPrivateNetworkAddress(address.addr) then -- 79
-			return false -- 80
-		end -- 80
-	end -- 80
-	return true -- 82
+	if App.platform == "Web" then -- 75
+		return true -- 81
+	end -- 81
+	local ____require_result_0 = require("socket") -- 84
+	local dns = ____require_result_0.dns -- 84
+	local addresses = dns.getaddrinfo(host) -- 87
+	if not addresses or #addresses == 0 then -- 87
+		return false -- 88
+	end -- 88
+	for ____, address in ipairs(addresses) do -- 89
+		if ____exports.isPrivateNetworkAddress(address.addr) then -- 89
+			return false -- 90
+		end -- 90
+	end -- 90
+	return true -- 92
 end -- 64
 return ____exports -- 64

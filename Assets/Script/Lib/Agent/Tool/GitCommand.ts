@@ -386,7 +386,7 @@ function loadGitProfile(): { name: string; email: string } | undefined {
 	} catch {
 		return undefined;
 	}
-	if (!rows || !rows[0]) return undefined;
+	if (rows === undefined || rows[0] === undefined) return undefined;
 	const name = toStr(rows[0][0]);
 	const email = toStr(rows[0][1]);
 	if (name === "" && email === "") return undefined;

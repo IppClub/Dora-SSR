@@ -18,7 +18,7 @@ local function canWriteStepLLMDebug(shared, stepId) -- 13
 	return App.debugging == true and shared.sessionId ~= nil and shared.sessionId > 0 and shared.taskId > 0 and stepId > 0 -- 14
 end -- 13
 local function ensureDirRecursive(dir) -- 21
-	if not dir then -- 21
+	if dir == "" then -- 21
 		return false -- 22
 	end -- 22
 	if Content:exist(dir) then -- 22

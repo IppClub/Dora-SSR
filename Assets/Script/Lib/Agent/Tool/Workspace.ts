@@ -203,7 +203,7 @@ function isAbsolutePathLike(path: string): boolean {
 }
 
 export function isValidWorkspacePath(path: string): boolean {
-	if (!path || path.length === 0) return false;
+	if (path === "") return false;
 	if (isAbsolutePathLike(path)) return false;
 	const parts = path.split("\\").join("/").split("/");
 	if (parts.indexOf("..") >= 0) return false;
@@ -211,7 +211,7 @@ export function isValidWorkspacePath(path: string): boolean {
 }
 
 export function isValidWorkDir(workDir: string): boolean {
-	if (!workDir || workDir.length === 0) return false;
+	if (workDir === "") return false;
 	if (!Content.isAbsolutePath(workDir)) return false;
 	if (!Content.exist(workDir) || !Content.isdir(workDir)) return false;
 	return true;
@@ -220,7 +220,6 @@ export function isValidWorkDir(workDir: string): boolean {
 function isValidSearchPath(path: string): boolean {
 	if (path === "") return true;
 	if (isAbsolutePathLike(path)) return false;
-	if (!path || path.length === 0) return false;
 	const parts = path.split("\\").join("/").split("/");
 	if (parts.indexOf("..") >= 0) return false;
 	return true;
@@ -239,7 +238,7 @@ export function resolveWorkspaceSearchPath(workDir: string, path: string): strin
 }
 
 export function toWorkspaceRelativePath(workDir: string, path: string): string {
-	if (!path || path.length === 0) return path;
+	if (path === "") return path;
 	if (!Content.isAbsolutePath(path)) return path;
 	return Path.getRelative(path, workDir);
 }
@@ -280,7 +279,7 @@ export function resolveWorkspaceDirectoryPath(workDir: string, path?: string): {
 const AGENT_SKILL_PREFIX = "@agent-skill/";
 
 export function toDocRelativePath(baseRoot: string, path: string, docType: DoraDocSearchType): string {
-	if (!path || path.length === 0) return path;
+	if (path === "") return path;
 	const relative = Content.isAbsolutePath(path) ? Path.getRelative(path, baseRoot) : path;
 	return `${AGENT_DORA_DOC_PREFIX}${docType}/${relative}`;
 }
@@ -351,7 +350,7 @@ function resolveAgentSkillFilePath(workDir: string, path: string): string | unde
 }
 
 export function ensureDirPath(dir: string): boolean {
-	if (!dir || dir === "." || dir === "") return true;
+	if (dir === "." || dir === "") return true;
 	if (Content.exist(dir)) return Content.isdir(dir);
 	const parent = Path.getPath(dir);
 	if (parent !== dir && parent !== "." && parent !== "") {
@@ -507,11 +506,11 @@ export function listFiles(req: {
 }): ListFilesResult {
 	const root = req.path ?? "";
 	const searchRoot = resolveWorkspaceSearchPath(req.workDir, root);
-	if (!searchRoot) {
+	if (searchRoot === undefined) {
 		return { success: false, message: "invalid path or workDir" };
 	}
 	try {
-		const userGlobs = req.globs && req.globs.length > 0 ? req.globs : ["**"];
+		const userGlobs = req.globs !== undefined && req.globs.length > 0 ? req.globs : ["**"];
 		const globs = ensureSafeSearchGlobs(userGlobs);
 		let files = Content.glob(searchRoot, globs, req.preferSourceVariants === false ? {} : extensionLevels);
 		files = toWorkspaceRelativeFileList(req.workDir, files);
@@ -739,19 +738,19 @@ export async function searchFiles(req: {
 	const virtualDocPath = isVirtualDoc
 		? resolveAgentDoraDocFilePath(requestedPath, req.docLanguage ?? "en")
 		: undefined;
-	if (isVirtualDoc && !virtualDocPath) {
+	if (isVirtualDoc && virtualDocPath === undefined) {
 		return { success: false, message: "virtual document not found or outside its documentation scope" };
 	}
 	const resolvedPath = virtualDocPath ?? resolveWorkspaceSearchPath(req.workDir, requestedPath);
-	if (!resolvedPath) {
+	if (resolvedPath === undefined) {
 		return { success: false, message: "invalid path or workDir" as string };
 	}
 	const searchIsSingleFile = Content.exist(resolvedPath) && !Content.isdir(resolvedPath);
 	const searchRoot = searchIsSingleFile ? Path.getPath(resolvedPath) : resolvedPath;
-	if (!searchRoot) {
+	if (searchRoot === "") {
 		return { success: false, message: "invalid path or workDir" as string };
 	}
-	if (!req.pattern || req.pattern.trim() === "") {
+	if (req.pattern === "" || req.pattern.trim() === "") {
 		return { success: false, message: "empty pattern" as string };
 	}
 	const patterns = splitSearchPatterns(req.pattern);

@@ -347,7 +347,7 @@ function encodeJson(value: unknown): string {
 }
 
 function decodeJsonObject(text: string): Record<string, unknown> | undefined {
-	if (!text || text === "") return undefined;
+	if (text === "") return undefined;
 	const [value] = safeJsonDecode(text);
 	if (value && !Array.isArray(value) && type(value) === "table") {
 		return value as Record<string, unknown>;
@@ -356,7 +356,7 @@ function decodeJsonObject(text: string): Record<string, unknown> | undefined {
 }
 
 function decodeJsonFiles(text: string): { path: string; op: string }[] | undefined {
-	if (!text || text === "") return undefined;
+	if (text === "") return undefined;
 	const [value] = safeJsonDecode(text);
 	if (!value || !Array.isArray(value)) return undefined;
 	const files: { path: string; op: string }[] = [];
@@ -596,7 +596,7 @@ function reconcileCompletionWithHandoffEvidence(
 }
 
 function isValidProjectRoot(path: string): boolean {
-	return !!path && Content.isAbsolutePath(path) && Content.exist(path) && Content.isdir(path);
+	return path !== "" && Content.isAbsolutePath(path) && Content.exist(path) && Content.isdir(path);
 }
 
 function rowToSession(row: unknown[]): AgentSessionItem {
@@ -996,7 +996,7 @@ function rebaseProjectRoot(projectRoot: string, oldRoot: string, newRoot: string
 }
 
 function ensureDirRecursive(dir: string): boolean {
-	if (!dir || dir === "") return false;
+	if (dir === "") return false;
 	if (Content.exist(dir)) return Content.isdir(dir);
 	const parent = Path.getPath(dir);
 	if (parent !== "" && parent !== dir && !Content.exist(parent)) {
@@ -1027,7 +1027,7 @@ function readSpawnInfo(projectRoot: string, memoryScope: string): Record<string,
 	const path = Path(projectRoot, ".agent", memoryScope, SPAWN_INFO_FILE);
 	if (!Content.exist(path)) return undefined;
 	const text = Content.load(path) as string;
-	if (!text || text.trim() === "") return undefined;
+	if (typeof text !== "string" || text.trim() === "") return undefined;
 	const [value] = safeJsonDecode(text);
 	if (value && !Array.isArray(value) && type(value) === "table") {
 		return value as Record<string, unknown>;
@@ -1052,11 +1052,11 @@ function getResultPath(projectRoot: string, memoryScope: string): string {
 }
 
 function readSubAgentResultSummary(projectRoot: string, resultFilePath: string): string {
-	if (!resultFilePath || resultFilePath === "") return "";
+	if (resultFilePath === "") return "";
 	const path = Path(projectRoot, resultFilePath);
 	if (!Content.exist(path)) return "";
 	const text = sanitizeUTF8(Content.load(path) as string);
-	if (!text || text.trim() === "") return "";
+	if (text.trim() === "") return "";
 	const marker = "\n## Summary\n";
 	const [start] = string.find(text, marker, 1, true);
 	if (start !== undefined) {
@@ -1245,7 +1245,7 @@ function listPendingHandoffs(projectRoot: string, memoryScope: string): PendingS
 		const path = Content.isAbsolutePath(rawPath) ? rawPath : Path(dir, rawPath);
 		if (!path.endsWith(".json") || !Content.exist(path)) continue;
 		const text = Content.load(path);
-		if (!text || text.trim() === "") continue;
+		if (typeof text !== "string" || text.trim() === "") continue;
 		const [obj] = safeJsonDecode(text);
 		if (!obj || Array.isArray(obj) || type(obj) !== "table") continue;
 		const value = obj as AnyTable;
@@ -2258,7 +2258,7 @@ async function spawnSubAgentSession(request: {
 }
 
 export function deleteSessionsByProjectRoot(projectRoot: string) {
-	if (!projectRoot || !Content.isAbsolutePath(projectRoot)) {
+	if (projectRoot === "" || !Content.isAbsolutePath(projectRoot)) {
 		return { success: false as const, message: "invalid projectRoot" };
 	}
 	const rows = queryRows(`SELECT id FROM ${TABLE_SESSION} WHERE project_root = ?`, [projectRoot]) ?? [];
@@ -2272,7 +2272,7 @@ export function deleteSessionsByProjectRoot(projectRoot: string) {
 }
 
 export function renameSessionsByProjectRoot(oldRoot: string, newRoot: string) {
-	if (!oldRoot || !newRoot || !Content.isAbsolutePath(oldRoot) || !Content.isAbsolutePath(newRoot)) {
+	if (oldRoot === "" || newRoot === "" || !Content.isAbsolutePath(oldRoot) || !Content.isAbsolutePath(newRoot)) {
 		return { success: false as const, message: "invalid projectRoot" };
 	}
 	const rows = queryRows(`SELECT id, project_root, root_session_id FROM ${TABLE_SESSION}`) ?? [];
@@ -3194,12 +3194,12 @@ export function stopSessionTask(sessionId: number) {
 	}
 	const normalizedSession = normalizeSessionRuntimeState(session);
 	const localControl = activeLocalAgentControls[session.currentTaskId];
-	if (localControl) {
+	if (localControl !== undefined) {
 		localControl.stop();
 		return { success: true as const, stopping: true };
 	}
 	const stopToken = activeStopTokens[session.currentTaskId];
-	if (!stopToken) {
+	if (stopToken === undefined) {
 		if (normalizedSession.currentTaskStatus === "STOPPED") {
 			return { success: true as const, recovered: true };
 		}
@@ -3392,7 +3392,7 @@ export async function listRunningSubAgents(request: {
 				continue;
 			}
 			const current = latestCompletedByKey[key];
-			if (!current || item.updatedAt > current.updatedAt) {
+			if (current === undefined || item.updatedAt > current.updatedAt) {
 				latestCompletedByKey[key] = item;
 			}
 		}

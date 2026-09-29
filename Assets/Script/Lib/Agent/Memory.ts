@@ -578,7 +578,7 @@ function parsePromptPackMarkdown(text: string): {
 	removed: string[];
 	error?: string;
 } {
-	if (!text || text.trim() === "") {
+	if (typeof text !== "string" || text.trim() === "") {
 		return {
 			value: {},
 			missing: [...EXPOSED_PROMPT_PACK_KEYS],
@@ -701,7 +701,7 @@ export function loadAgentPromptPack(projectRoot: string): { pack: AgentPromptPac
 		};
 	}
 	const text = Content.load(path) as string;
-	if (!text || text.trim() === "") {
+	if (typeof text !== "string" || text.trim() === "") {
 		const rewriteWarning = rewriteDefaultPromptPackConfig(path);
 		if (rewriteWarning) {
 			warnings.push(rewriteWarning);
@@ -1034,7 +1034,7 @@ function utf8TakeTail(text: string, maxChars: number): string {
 }
 
 function ensureDirRecursive(dir: string): boolean {
-	if (!dir || dir === "") return false;
+	if (dir === "") return false;
 	if (Content.exist(dir)) return Content.isdir(dir);
 	const parent = Path.getPath(dir);
 	if (parent !== "" && parent !== dir && !Content.exist(parent)) {
@@ -1326,7 +1326,7 @@ export class DualLayerStorage {
 	private readSpawnInfo(path: string): Record<string, unknown> | undefined {
 		if (!Content.exist(path)) return undefined;
 		const text = Content.load(path) as string;
-		if (!text || text.trim() === "") return undefined;
+		if (typeof text !== "string" || text.trim() === "") return undefined;
 		const [value] = safeJsonDecode(text);
 		if (value && !isArray(value) && isRecord(value)) {
 			return value;
@@ -1496,7 +1496,7 @@ export class DualLayerStorage {
 			return [];
 		}
 		const text = Content.load(this.historyPath) as string;
-		if (!text || text.trim() === "") {
+		if (typeof text !== "string" || text.trim() === "") {
 			return [];
 		}
 		const lines = text.split("\n");
@@ -1631,7 +1631,7 @@ export class DualLayerStorage {
 			return { messages: [], lastConsolidatedIndex: 0 };
 		}
 		const text = Content.load(this.sessionPath) as string;
-		if (!text || text.trim() === "") {
+		if (typeof text !== "string" || text.trim() === "") {
 			return { messages: [], lastConsolidatedIndex: 0 };
 		}
 		const lines = text.split("\n");

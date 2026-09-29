@@ -62,13 +62,12 @@ export function getSessionVisionImageFromPath(sessionId: number, path: string): 
 		if (typeof path !== "string" || path.trim() === "") error("invalid image path");
 		const projectRoot = sessionProjectRoot(sessionId);
 		const fullPath = resolveWorkspaceFilePath(projectRoot, path.trim());
-		if (!fullPath) error("path escapes the project");
+		if (fullPath === undefined) error("path escapes the project");
 		const data = Content.load(fullPath);
-		if (!data) error("image is unavailable");
+		if (typeof data !== "string" || data === "") error("image is unavailable");
 		const inspected = inspectImage(data);
 		return {success: true, path: path.trim(), format: inspected.format, width: inspected.width, height: inspected.height, dataUrl: encodeDataUrl(data)};
 	} catch (_) {
 		return {success: false, message: "Vision image is unavailable, invalid, or outside the project"};
 	}
 }
-

@@ -454,7 +454,7 @@ export function summarizeTaskChangeSet(taskId: number): TaskChangeSetSummary {
 		for (let j = 0; j < entries.length; j++) {
 			const entry = entries[j];
 			let item = filesByPath[entry.path];
-			if (!item) {
+			if (item === undefined) {
 				item = {
 					path: entry.path,
 					beforeExists: entry.beforeExists,
@@ -515,7 +515,7 @@ export function getTaskChangeSetDiff(taskId: number): CheckpointDiffResult {
 		const entryId = row[0] as number;
 		const path = toStr(row[1]);
 		let item = filesByPath[path];
-		if (!item) {
+		if (item === undefined) {
 			item = {
 				path,
 				firstEntryId: entryId,

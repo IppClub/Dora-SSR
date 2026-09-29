@@ -86,6 +86,7 @@
 		"test:agent-render-window": "node scripts/test-agent-render-window.mjs",
 		"test:agent-session-snapshot": "node scripts/test-agent-session-snapshot.mjs",
 		"test:agent-step-budget": "node scripts/test-agent-step-budget.mjs",
+		"test:agent-service-callbacks": "node scripts/test-agent-service-callbacks.mjs",
 		"test:file-search-index": "node scripts/test-file-search-index.mjs",
 		"test:resource-tree-sync": "node scripts/test-resource-tree-sync.mjs",
 		"test:agent-doc-search": "node scripts/test-agent-doc-search.mjs",

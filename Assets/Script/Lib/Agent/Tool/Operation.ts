@@ -15,7 +15,7 @@ export function getAgentDownloadTempRoot(): string {
 }
 
 export function cleanupPath(path: string): string | undefined {
-	if (!path || path === "" || !Content.exist(path)) return undefined;
+	if (path === "" || !Content.exist(path)) return undefined;
 	if (Content.remove(path)) return undefined;
 	return `failed to remove temporary path: ${path}`;
 }

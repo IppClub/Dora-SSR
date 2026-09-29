@@ -97,11 +97,11 @@ function ____exports.getSessionVisionImageFromPath(sessionId, path) -- 60
 				projectRoot, -- 64
 				__TS__StringTrim(path) -- 64
 			) -- 64
-			if not fullPath then -- 64
+			if fullPath == nil then -- 64
 				error("path escapes the project") -- 65
 			end -- 65
 			local data = Content:load(fullPath) -- 66
-			if not data then -- 66
+			if type(data) ~= "string" or data == "" then -- 66
 				error("image is unavailable") -- 67
 			end -- 67
 			local inspected = ____exports.inspectImage(data) -- 68
