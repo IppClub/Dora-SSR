@@ -10,27 +10,27 @@ OpenCode、Codex、ZCode、Claude Code 的本地执行后端已经完成开发�
 
 本功能属于 Dora SSR 本地引擎的 Dora Agent / Web IDE，与 `Studio/` 下的 Dora Studio 无关。本次实现和新增测试均未放入或依赖 Studio。
 
-Windows、Linux 已采用相同的桌面条件编译和 xrt 跨平台 subprocess 实现，但本轮没有对应真机，因此状态只记为“实现完成，待平台验证”，不把 macOS 结果外推为跨平台通过。
+Linux Lima ARM64 与 Windows 11 ARM64 Parallels 虚拟机已完成 OpenCode `1.18.33` 真实跨平台验收：配置检测、DeepSeek V4 Pro 最小调用、项目 Skill 注入、`dora cli agent command` 引擎调用和同一 external session 续接均通过。该结论只覆盖本次已执行路径；两平台的 stop/kill-tree、Unicode/空格路径等发布矩阵仍待补证。
 
 ## 2. 交付状态
 
 | 范围 | 状态 | 实现与证据 |
 | --- | --- | --- |
-| Dora CLI Tool Bridge、Entry FIFO、Agent 抢占用户游戏 | 已完成（macOS） | `dora cli agent status/preview/log/command`；command 复用现有 Lua/Git 引擎实现且模块延迟加载；真实 Lua、Git、音乐生成通过 |
-| 桌面 subprocess Bridge | 已完成（macOS） | `Process.spawn/read/write/stop/destroy`；参数数组启动、增量 stdout/stderr、stdin 关闭、中断和进程树终止；macOS Debug 原生构建通过 |
-| LocalAgent 配置与验证 | 已完成（macOS） | 独立 `LocalAgentConfig` 表、CRUD、版本探针、隔离临时目录中的真实最小 Prompt 验证与清理；修改 executable/provider/args 会清除验证状态 |
-| OpenCode Adapter | 已完成（macOS） | `run --format json --auto --dir`，支持 `--session`；真实 fresh/resume 通过 |
+| Dora CLI Tool Bridge、Entry FIFO、Agent 抢占用户游戏 | 已完成；Command Bridge 已跨平台实测 | `dora cli agent status/preview/log/command`；command 复用现有 Lua/Git 引擎实现且模块延迟加载；macOS 的 Lua、Git、音乐生成以及 Linux/Windows 的 Lua command 均真实通过 |
+| 桌面 subprocess Bridge | 已完成；OpenCode 启动已跨平台实测 | `Process.spawn/read/write/stop/destroy`；参数数组启动、增量 stdout/stderr、stdin 关闭、中断和进程树终止；macOS、Linux、Windows 原生构建通过，跨平台 stop/kill-tree 仍待专项补证 |
+| LocalAgent 配置与验证 | 已完成；OpenCode 已跨平台实测 | 独立 `LocalAgentConfig` 表、CRUD、版本探针、隔离临时目录中的真实最小 Prompt 验证与清理；修改 executable/provider/args 会清除验证状态；OpenCode `1.18.33` 在 Linux/Windows 返回验证成功 |
+| OpenCode Adapter | 已完成（三平台真实） | `run --format json --auto --dir`，支持 `--session`；macOS、Linux ARM64、Windows 11 ARM64 真实 fresh/resume 通过 |
 | Codex Adapter | 已完成（macOS） | `exec --json --dangerously-bypass-approvals-and-sandbox`，支持 `exec resume`；真实 fresh/resume 通过 |
 | ZCode Adapter | 已完成（macOS） | `--prompt --json --mode yolo --cwd`，支持 `--resume`；真实 fresh/resume 与多行 JSON `response` 解析通过 |
 | Claude Code Adapter | 已完成（macOS） | `-p --output-format stream-json --verbose --dangerously-skip-permissions`，支持 `--resume`；assistant/tool/result 解析、协议错误识别及真实 fresh/resume 通过 |
-| Dora 会话接入 | 已完成（macOS） | `/agent/session/send-local` 独立路径不读取 LLM 配置；消息和有界 transcript 进入 `local_agent_message` Step；停止状态持久化 |
+| Dora 会话接入 | 已完成；OpenCode 已跨平台实测 | `/agent/session/send-local` 独立路径不读取 LLM 配置；消息和有界 transcript 进入 `local_agent_message` Step；macOS 验证停止状态持久化，Linux/Windows 验证 DONE 与 resume |
 | 消息反显与 Composer | 已完成（本地） | verified local backend 出现在选择器；本地模式隐藏 LLM 工具控件和 context window，仅保留靠左的“新会话”按钮；Step List 将本地 Agent 事件逐条渲染为独立卡片 |
-| external session | 已完成（macOS） | 默认 resume、切换配置弃用映射、显式 New session、resume ID 持久化、missing session 单次 fresh 重建 |
-| Dora 命令环境与项目 Skill | 已完成（macOS） | v5 私有 `dora` shim；每轮提示 Engine Coding、Command、Music 三项 Skill；Claude 写入 `.claude/skills`，其余写入 `.agents/skills`；用户自定义内容保留 |
+| external session | 已完成；OpenCode 已跨平台实测 | 默认 resume、切换配置弃用映射、显式 New session、resume ID 持久化、missing session 单次 fresh 重建；Linux/Windows 第二轮均复用首轮 OpenCode session ID |
+| Dora 命令环境与项目 Skill | 已完成；Command Skill 已跨平台实测 | v5 私有 `dora` shim；每轮提示 Engine Coding、Command、Music 三项 Skill；Claude 写入 `.claude/skills`，其余写入 `.agents/skills`；Linux/Windows OpenCode 均读取 Skill 并成功调用注入的 `dora`；用户自定义内容保留 |
 | 停止与清理 | 已完成（macOS） | 受控进程验收：RUNNING → STOPPED，Step 为 STOPPED，exit code 130，resume ID/已收消息保留，进程不存在 |
 | 真实游戏创作 | 已完成（macOS） | 三种 Agent 分别从空目录创作独立游戏，使用 Dora CLI build/preview 完成自检，并以原 session 续轮到 DONE |
-| Windows 真机 | 待平台验证 | 需验证 GUI PATH、Unicode/空格路径、interrupt/kill-tree 和真实 CLI |
-| Linux 真机 | 待平台验证 | 需验证发行包环境、GUI PATH、信号/进程组和真实 CLI |
+| Windows 11 ARM64 VM | OpenCode 主链路已通过 | OpenCode `1.18.33` + DeepSeek V4 Pro；当前源码 Debug 构建 0 error；配置检测、Skill、Dora Lua command、DONE 和同 session resume 通过；Unicode/空格路径、interrupt/kill-tree 待补 |
+| Linux ARM64 VM | OpenCode 主链路已通过 | Lima `dora-love-linux`；OpenCode `1.18.33` + DeepSeek V4 Pro；当前原生引擎构建、配置检测、Skill、Dora Lua command、DONE 和同 session resume 通过；发行包 GUI PATH、信号/进程组待补 |
 
 ## 3. 主要实现位置
 
@@ -117,6 +117,34 @@ Skill v5 与 command/music bridge 真实验收：`dora cli agent command` 的 Lu
 
 2026-09-29 模拟用户端到端验收：在 `LocalAgentUserAcceptance/{OpenCode,Codex,ZCode,ClaudeCode}` 四个隔离目录中分别从 Dora `/agent/session/send-local` 启动真实 Agent。四者均读取各自项目级 `dora-agent-command` Skill、通过注入的 `dora cli agent command` 执行 Lua，并以 DONE 结束：OpenCode `DORA_OPENCODE_RETRY_OK`、Codex `DORA_CODEX_USER_OK`、ZCode `DORA_ZCODE_USER_OK`、Claude Code `DORA_CLAUDE_USER_OK`，平台均为 macOS，且各自产生可恢复 resume ID。Web IDE 实际界面确认整数 Step、STATUS/心跳、ASSISTANT、DONE 与结束摘要正常。验收发现 OpenCode 会主动探测帮助并尝试裸 `dora help`，旧 shim 因而启动第二个 Dora 主程序并阻塞；现已限制项目级 shim 只接受 `dora cli ...`，裸调用立即以 exit 2 拒绝，同时补齐 `dora cli agent command --help`。停止接口成功清理首次卡住的进程树，重试通过；最终 `/agent/task/running` 为空且四种 CLI 无残留进程。
 
+### 4.5 2026-09-29 Linux/Windows OpenCode 真实验收
+
+共同条件：
+
+- 两个平台均安装官方 OpenCode `1.18.33`，使用 `--model deepseek/deepseek-v4-pro`。
+- DeepSeek API Key 只通过环境提供给 OpenCode/Dora 进程，未写入项目、Agent Step 或本文。Linux 本轮采用进程级注入；Windows 验收机采用机器环境配置。
+- 先直接运行 OpenCode 最小 Prompt，再通过 Dora `/local-agent/verify`、`/agent/session/send-local` 和 `/agent/session/get` 验证完整链路；不能用直接 CLI 成功替代 Dora 集成验收。
+
+Linux Lima ARM64：
+
+- VM：`dora-love-linux`；OpenCode 路径 `/home/lima.guest/.opencode/bin/opencode`。
+- 直接模型调用返回 `LINUX_OPENCODE_DIRECT_OK`。
+- VM 中原有 Dora 二进制缺少当前 `Process.spawn` 绑定，因此以当前源码重建原生 Dora；最终 `[100%] Built target dora-ssr`。
+- `/local-agent/verify` 返回 `success=true`、`version=1.18.33`。
+- OpenCode 读取 `.agents/skills/dora-agent-command/SKILL.md`，通过注入的 `dora cli agent command` 返回 `DORA_LINUX_ENGINE_AGENT_OK` 与 `App.platform=Linux`，任务最终返回 `DORA_LINUX_AGENT_DONE`。
+- 第二轮在同一 Dora session 中返回 `DORA_LINUX_RESUME_OK`，resume ID 与首轮一致。
+
+Windows 11 ARM64 Parallels：
+
+- OpenCode 官方 ARM64 ZIP 安装到 `C:\Tools\OpenCode\opencode.exe`，SHA-256 与官方发布产物一致；直接模型调用返回 `WINDOWS_OPENCODE_DIRECT_OK`。
+- 当前源码 Debug 构建结果为 `51 warnings / 0 errors`。Parallels 共享目录不支持 Cargo 临时 archive 的完整语义，若 target 位于共享盘会出现 `os error 87`；保留源码在共享盘并设置 `CARGO_TARGET_DIR=C:\DoraBuild\RustTarget` 后构建通过。
+- `prlctl exec` 默认 SYSTEM 身份看不到用户映射盘；构建和启动必须使用 `--current-user`。
+- `/local-agent/verify` 返回 `success=true`、`version=1.18.33`。
+- OpenCode 读取 Command Skill，并执行 `dora cli agent command -p C:\DoraAgentAcceptance\Windows --input .agent/command.json`；引擎返回 `DORA_WINDOWS_ENGINE_AGENT_OK` 与 `App.platform=Windows`，任务最终返回 `DORA_WINDOWS_AGENT_DONE`。
+- 第二轮返回 `DORA_WINDOWS_RESUME_OK`，两轮复用 `ses_f14c14be8ffewhrY3vBIOVHkdb`。
+
+验收完成后停止两边 Dora 进程和虚拟机；OpenCode 安装保留，临时 Windows 安装包移入废纸篓。仓库未因验收产生额外源码变更。
+
 ## 5. 真实游戏创作验收
 
 三种 Agent 分别获得独立空目录和开放式游戏创作任务，要求自行编写 `init.ts`、调用 Dora CLI 构建和预览、查看截图、修复问题并提交验收报告；没有预置游戏源码。
@@ -148,7 +176,8 @@ Skill v5 与 command/music bridge 真实验收：`dora cli agent command` 的 Lu
 
 ## 6. 已知边界与后续项
 
-- Windows/Linux 真机验收未执行；发布前应按第 2 节逐项补证。
+- Windows/Linux 已完成 OpenCode 主链路验收，但还未逐项覆盖 stop/kill-tree、Unicode/空格项目路径、Windows GUI PATH、Linux 发行包 GUI PATH 与信号/进程组；发布前仍应补齐这些平台矩阵。
+- Linux/Windows 本轮只验证 OpenCode；Codex、ZCode、Claude Code 的跨平台结论仍来自参数契约、fixture 和 macOS 真实 CLI，不应宣称三平台均已实测。
 - 首版验证探针会产生第三方模型用量；配置界面应继续明确这一点。
 - Codex 运行日志中可能出现用户全局配置或其它 skill 的警告；本次验收只确认 Dora 注入 skill 的 frontmatter 告警已消失。
 - ZCode CLI 当前输出模式本身会长时间缓冲；Dora 已增加状态与心跳，但若需要实时展示推理/工具调用，仍取决于 ZCode 后续提供稳定的增量事件协议。

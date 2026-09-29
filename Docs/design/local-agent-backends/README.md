@@ -1,6 +1,6 @@
 # Dora Agent 本地第三方 Agent 执行后端设计
 
-状态：OpenCode、Codex、ZCode、Claude Code 本地执行后端已完成 macOS 开发和真实 CLI 验收；前三种 Agent 已完成真实 Dora 引擎与游戏创作验收，Claude Code 的新版 Dora 进程端到端浏览器验收待补。Windows/Linux 的实现已纳入桌面平台条件编译，仍待对应真机验证。实施顺序见 [PLAN.md](./PLAN.md)，实际状态和证据以 [开发进度跟踪表](./PROGRESS.md) 为准。
+状态：OpenCode、Codex、ZCode、Claude Code 本地执行后端已完成 macOS 开发和真实 CLI 验收；前三种 Agent 已完成真实 Dora 引擎与游戏创作验收，Claude Code 的新版 Dora 进程端到端浏览器验收待补。Linux ARM64 与 Windows 11 ARM64 已完成 OpenCode 主链路真实验收，平台边界矩阵仍待补齐。实施顺序见 [PLAN.md](./PLAN.md)，实际状态和证据以 [开发进度跟踪表](./PROGRESS.md) 为准。
 
 创建：2026-09-28；最后更新：2026-09-29
 
@@ -97,6 +97,8 @@ Dora 不把完整历史重新发送给第三方 Agent。每一轮重新启动 CL
 
 GUI 应用获得的 `PATH` 可能与用户终端不同，因此配置必须允许自动检测和显式可执行文件路径。实际验证和运行必须使用完全相同的 executable、参数、环境处理和工作目录策略。
 
+截至 2026-09-29，macOS 已完成四种 Adapter 的真实 CLI 验收；Linux ARM64 和 Windows 11 ARM64 已分别使用 OpenCode `1.18.33` 完成真实模型、Dora Command Skill 和 resume 验收。该证据证明三种桌面实现共享的主链路可工作，但不替代每个平台的 stop/kill-tree、路径和 GUI 环境边界矩阵。
+
 ### 4.2 配置结构
 
 ```ts
@@ -160,8 +162,8 @@ interface LocalAgentAdapter {
 | --- | --- | --- | --- |
 | Codex | `codex exec --json --dangerously-bypass-approvals-and-sandbox` | `codex exec … resume <thread-id> <prompt>` | `$dora-engine-coding …` |
 | Claude Code | `claude -p --dangerously-skip-permissions --output-format stream-json --verbose`，fresh 时指定 session ID | `claude -p --resume <id> …` | `/dora-engine-coding …` |
-| OpenCode | `opencode run --format json --dir <project>` | `opencode run --session <id> …` | `Use the dora-engine-coding skill: …` |
-| ZCode | 使用其 app-server 结构化协议 | 使用协议的 session resume/load | `Use the dora-engine-coding skill: …` |
+| OpenCode | `opencode run --format json --auto --dir <project>` | 在同一命令追加 `--session <id>` | `Use the dora-engine-coding skill: …` |
+| ZCode | `zcode --prompt <prompt> --json --mode yolo --cwd <project>` | 在同一命令追加 `--resume <id>` | `Use the dora-engine-coding skill: …` |
 
 具体参数以实现时安装版本的 `--help` 和真实运行验证为准，不能只依据本文长期假设。用户配置的显式参数优先时，Adapter 不得追加互相冲突的 fresh/resume 参数。
 
@@ -496,6 +498,16 @@ Dora Agent
 8. 第三方 Agent 能依据 Skill 使用 `dora cli doc/build/agent preview/agent command` 完成一次真实游戏修改、Lua/Git 引擎命令和音乐生成验证。
 9. Agent preview 打断用户游戏、多个 Agent 请求 FIFO 排队、失败清理和队列超时通过真实引擎验证。
 10. 现有本地 Dora LLM Agent、模型切换、计划模式、Step List 和 checkpoint 无回归；Dora Studio 不在本功能验收范围内，也不得因此产生依赖或行为变化。
+
+### 15.1 当前跨平台证据
+
+| 平台 | 已验证 Agent | 已验证链路 | 尚未据此宣称完成的项目 |
+| --- | --- | --- | --- |
+| macOS | OpenCode、Codex、ZCode、Claude Code | 真实 CLI fresh/resume、Dora session、消息反显、停止和新 session；前三者完成独立游戏创作 | Claude Code 新版配置卡片的完整浏览器交互仍需补证 |
+| Linux ARM64 | OpenCode `1.18.33` | DeepSeek V4 Pro 直接调用、`/local-agent/verify`、Skill 注入、`dora cli agent command`、DONE、同 session resume | 发行包 GUI PATH、stop/kill-tree、信号/进程组、Unicode/空格路径 |
+| Windows 11 ARM64 | OpenCode `1.18.33` | DeepSeek V4 Pro 直接调用、当前源码 Debug 构建、`/local-agent/verify`、Skill 注入、`dora cli agent command`、DONE、同 session resume | GUI PATH、stop/kill-tree、Unicode/空格路径 |
+
+Linux/Windows 验收时，凭据只通过环境传递，不进入项目或 Agent Step。Windows Parallels 从共享目录构建时必须把 Cargo target 放在本地 NTFS（例如 `C:\DoraBuild\RustTarget`），并以 `prlctl exec --current-user` 访问用户映射盘；这些是验证环境约束，不应硬编码进产品实现。
 
 ## 16. ai4kanban 参考与取舍
 
