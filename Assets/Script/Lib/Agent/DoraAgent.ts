@@ -3000,6 +3000,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 			loader: AgentSkills.createSkillsLoader({
 				projectDir: options.workDir,
 				disabledAgentTools,
+				workMode: options.workMode ?? "code",
 				allowedAgentTools: AgentToolRegistry.getAllowedToolsForRole(options.role ?? "main", {
 					workMode: options.workMode ?? "code",
 					disabledAgentTools,

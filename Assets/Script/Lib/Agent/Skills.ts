@@ -1,12 +1,14 @@
 // @preview-file off clear
 import { Content, Path } from 'Dora';
 import { Log } from 'Agent/Utils';
+import type { AgentWorkMode } from 'Agent/Tool/Types';
 
 interface SkillMetadata {
 	name: string;
 	description: string;
 	always?: boolean;
 	requiredTools?: string[];
+	workModes?: AgentWorkMode[];
 }
 
 interface Skill extends SkillMetadata {
@@ -19,6 +21,7 @@ export interface SkillsLoaderConfig {
 	projectDir: string;
 	disabledAgentTools?: string[];
 	allowedAgentTools?: string[];
+	workMode?: AgentWorkMode;
 }
 
 enum SkillPriority {
@@ -198,6 +201,20 @@ function validateSkillMetadata(
 
 	const always = metadata.always === true;
 	const requiredTools = normalizeStringList(metadata.requiredTools);
+	const rawWorkModes = normalizeStringList(metadata.workModes);
+	let workModes: AgentWorkMode[] | undefined = undefined;
+	if (rawWorkModes !== undefined) {
+		workModes = [];
+		for (const mode of rawWorkModes) {
+			if (mode !== "code" && mode !== "plan") {
+				return {
+					metadata: { name, description, always, requiredTools },
+					error: `invalid work mode in frontmatter: ${mode}`,
+				};
+			}
+			workModes.push(mode);
+		}
+	}
 
 	return {
 		metadata: {
@@ -205,6 +222,7 @@ function validateSkillMetadata(
 			description,
 			always,
 			requiredTools,
+			workModes,
 		},
 	};
 }
@@ -463,6 +481,10 @@ export class SkillsLoader {
 	}
 
 	private isSkillEnabled(skill: Skill): boolean {
+		const workModes = skill.workModes ?? [];
+		if (workModes.length > 0 && workModes.indexOf(this.config.workMode ?? "code") < 0) {
+			return false;
+		}
 		const requiredTools = skill.requiredTools ?? [];
 		if (requiredTools.length === 0) {
 			return true;

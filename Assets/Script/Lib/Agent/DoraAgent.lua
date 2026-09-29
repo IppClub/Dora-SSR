@@ -2845,165 +2845,166 @@ local function runCodingAgentAsync(options) -- 2917
 			skills = {loader = AgentSkills.createSkillsLoader({ -- 2999
 				projectDir = options.workDir, -- 3001
 				disabledAgentTools = disabledAgentTools, -- 3002
-				allowedAgentTools = AgentToolRegistry.getAllowedToolsForRole(options.role or "main", {workMode = options.workMode or "code", disabledAgentTools = disabledAgentTools}) -- 3003
-			})}, -- 3003
-			spawnSubAgent = options.spawnSubAgent, -- 3009
-			listSubAgents = options.listSubAgents, -- 3010
-			publishQuestionnaire = options.publishQuestionnaire, -- 3011
-			disabledAgentTools = disabledAgentTools, -- 3012
-			tokenUsage = options.initialTokenUsage -- 3013
-		} -- 3013
-		local ____hasReturned, ____returnValue -- 3013
-		local ____try = __TS__AsyncAwaiter(function() -- 3013
-			if shared.workMode == "plan" then -- 3013
-				local planDocuments = AgentRuntimePolicy.ensureAgentPlanDocuments(shared.workingDir) -- 3018
-				if not planDocuments.success then -- 3018
-					Tools.setTaskStatus(shared.taskId, "FAILED") -- 3020
-					____hasReturned = true -- 3021
-					____returnValue = {success = false, taskId = shared.taskId, message = planDocuments.message} -- 3021
-					return -- 3021
-				end -- 3021
-			end -- 3021
-			emitAgentEvent(shared, { -- 3024
-				type = "task_started", -- 3025
-				sessionId = shared.sessionId, -- 3026
-				taskId = shared.taskId, -- 3027
-				prompt = shared.userQuery, -- 3028
-				workDir = shared.workingDir, -- 3029
-				maxSteps = shared.maxSteps, -- 3030
-				resumed = options.resumeTask == true -- 3031
-			}) -- 3031
-			if shared.stopToken.stopped then -- 3031
-				Tools.setTaskStatus(shared.taskId, "STOPPED") -- 3034
-				____hasReturned = true -- 3035
-				____returnValue = emitAgentTaskFinishEvent( -- 3035
-					shared, -- 3035
-					false, -- 3035
-					getCancelledReason(shared) -- 3035
-				) -- 3035
-				return -- 3035
-			end -- 3035
-			Tools.setTaskStatus(shared.taskId, "RUNNING") -- 3037
-			local ____temp_109 -- 3038
-			if options.resumeConversation == true then -- 3038
-				____temp_109 = nil -- 3038
-			else -- 3038
-				____temp_109 = getPromptCommand(shared.userQuery) -- 3038
-			end -- 3038
-			local promptCommand = ____temp_109 -- 3038
-			if promptCommand == "clear" then -- 3038
-				____hasReturned = true -- 3040
-				____returnValue = clearSessionHistory(shared) -- 3040
-				return -- 3040
-			end -- 3040
-			if promptCommand == "compact" then -- 3040
-				if shared.role == "sub" then -- 3040
-					Tools.setTaskStatus(shared.taskId, "FAILED") -- 3044
-					____hasReturned = true -- 3045
-					____returnValue = emitAgentTaskFinishEvent(shared, false, shared.useChineseResponse and "子代理会话不支持 /compact。" or "Sub-agent sessions do not support /compact.") -- 3045
-					return -- 3045
-				end -- 3045
-				____hasReturned = true -- 3053
-				____returnValue = __TS__Await(compactAllHistory(shared)) -- 3053
-				return -- 3053
-			end -- 3053
-			__TS__Await(maybeCompressHistory(shared, true, options.resumeConversation == true and "" or normalizedPrompt)) -- 3055
-			if shared.stopToken.stopped then -- 3055
-				Tools.setTaskStatus(shared.taskId, "STOPPED") -- 3057
-				____hasReturned = true -- 3058
-				____returnValue = emitAgentTaskFinishEvent( -- 3058
-					shared, -- 3058
-					false, -- 3058
-					getCancelledReason(shared) -- 3058
-				) -- 3058
-				return -- 3058
-			end -- 3058
-			if options.resumeConversation ~= true then -- 3058
-				appendConversationMessage(shared, {role = "user", content = normalizedPrompt}) -- 3061
-				persistHistoryState(shared) -- 3065
-			end -- 3065
-			local flow = __TS__New(CodingAgentFlow, shared.role) -- 3067
-			__TS__Await(flow:run(shared)) -- 3068
-			if shared.stopToken.stopped then -- 3068
-				Tools.setTaskStatus(shared.taskId, "STOPPED") -- 3070
-				____hasReturned = true -- 3071
-				____returnValue = emitAgentTaskFinishEvent( -- 3071
-					shared, -- 3071
-					false, -- 3071
-					getCancelledReason(shared) -- 3071
-				) -- 3071
-				return -- 3071
-			end -- 3071
-			if shared.error then -- 3071
-				____hasReturned = true -- 3074
-				____returnValue = finalizeAgentFailure(shared, shared.response and shared.response ~= "" and shared.response or shared.error) -- 3074
-				return -- 3074
-			end -- 3074
-			if shared.workflow.waitingQuestionnaireId ~= nil then -- 3074
-				Tools.setTaskStatus(shared.taskId, "WAITING_USER") -- 3078
-				emitAgentEvent(shared, { -- 3079
-					type = "task_waiting_for_user", -- 3080
-					sessionId = shared.sessionId, -- 3081
-					taskId = shared.taskId, -- 3082
-					step = shared.step, -- 3083
-					questionnaireId = shared.workflow.waitingQuestionnaireId -- 3084
-				}) -- 3084
-				____hasReturned = true -- 3086
-				____returnValue = { -- 3086
-					success = true, -- 3087
-					taskId = shared.taskId, -- 3088
-					message = shared.useChineseResponse and "等待用户填写调查问卷。" or "Waiting for questionnaire feedback.", -- 3089
-					steps = shared.step, -- 3090
-					waitingForUser = true, -- 3091
-					questionnaireId = shared.workflow.waitingQuestionnaireId -- 3092
-				} -- 3092
-				return -- 3086
-			end -- 3086
-			local ____isFinalDecisionTurn_result_112 = isFinalDecisionTurn(shared) -- 3095
-			if ____isFinalDecisionTurn_result_112 then -- 3095
-				local ____opt_110 = shared.completion -- 3095
-				____isFinalDecisionTurn_result_112 = (____opt_110 and ____opt_110.outcome) == "partial" -- 3095
-			end -- 3095
-			if ____isFinalDecisionTurn_result_112 then -- 3095
-				Tools.setTaskStatus(shared.taskId, "FAILED") -- 3096
-				____hasReturned = true -- 3097
-				____returnValue = emitAgentTaskFinishEvent(shared, false, shared.response or (shared.useChineseResponse and "本轮达到处理上限，工作尚未完成。" or "This task reached its processing limit with work remaining.")) -- 3097
-				return -- 3097
-			end -- 3097
-			Tools.setTaskStatus(shared.taskId, "DONE") -- 3100
-			____hasReturned = true -- 3101
-			____returnValue = emitAgentTaskFinishEvent(shared, true, shared.response or (shared.useChineseResponse and "任务完成。" or "Task completed.")) -- 3101
-			return -- 3101
-		end) -- 3101
-		____try = ____try.catch( -- 3101
-			____try, -- 3101
-			function(____, e) -- 3101
-				return __TS__AsyncAwaiter(function() -- 3101
-					____hasReturned = true -- 3104
-					____returnValue = finalizeAgentFailure( -- 3104
-						shared, -- 3104
-						tostring(e) -- 3104
-					) -- 3104
-					return -- 3104
-				end) -- 3104
-			end -- 3104
-		) -- 3104
-		__TS__Await(____try) -- 3016
-		if ____hasReturned then -- 3016
-			return ____awaiter_resolve(nil, ____returnValue) -- 3016
-		end -- 3016
-	end) -- 3016
+				workMode = options.workMode or "code", -- 3003
+				allowedAgentTools = AgentToolRegistry.getAllowedToolsForRole(options.role or "main", {workMode = options.workMode or "code", disabledAgentTools = disabledAgentTools}) -- 3004
+			})}, -- 3004
+			spawnSubAgent = options.spawnSubAgent, -- 3010
+			listSubAgents = options.listSubAgents, -- 3011
+			publishQuestionnaire = options.publishQuestionnaire, -- 3012
+			disabledAgentTools = disabledAgentTools, -- 3013
+			tokenUsage = options.initialTokenUsage -- 3014
+		} -- 3014
+		local ____hasReturned, ____returnValue -- 3014
+		local ____try = __TS__AsyncAwaiter(function() -- 3014
+			if shared.workMode == "plan" then -- 3014
+				local planDocuments = AgentRuntimePolicy.ensureAgentPlanDocuments(shared.workingDir) -- 3019
+				if not planDocuments.success then -- 3019
+					Tools.setTaskStatus(shared.taskId, "FAILED") -- 3021
+					____hasReturned = true -- 3022
+					____returnValue = {success = false, taskId = shared.taskId, message = planDocuments.message} -- 3022
+					return -- 3022
+				end -- 3022
+			end -- 3022
+			emitAgentEvent(shared, { -- 3025
+				type = "task_started", -- 3026
+				sessionId = shared.sessionId, -- 3027
+				taskId = shared.taskId, -- 3028
+				prompt = shared.userQuery, -- 3029
+				workDir = shared.workingDir, -- 3030
+				maxSteps = shared.maxSteps, -- 3031
+				resumed = options.resumeTask == true -- 3032
+			}) -- 3032
+			if shared.stopToken.stopped then -- 3032
+				Tools.setTaskStatus(shared.taskId, "STOPPED") -- 3035
+				____hasReturned = true -- 3036
+				____returnValue = emitAgentTaskFinishEvent( -- 3036
+					shared, -- 3036
+					false, -- 3036
+					getCancelledReason(shared) -- 3036
+				) -- 3036
+				return -- 3036
+			end -- 3036
+			Tools.setTaskStatus(shared.taskId, "RUNNING") -- 3038
+			local ____temp_109 -- 3039
+			if options.resumeConversation == true then -- 3039
+				____temp_109 = nil -- 3039
+			else -- 3039
+				____temp_109 = getPromptCommand(shared.userQuery) -- 3039
+			end -- 3039
+			local promptCommand = ____temp_109 -- 3039
+			if promptCommand == "clear" then -- 3039
+				____hasReturned = true -- 3041
+				____returnValue = clearSessionHistory(shared) -- 3041
+				return -- 3041
+			end -- 3041
+			if promptCommand == "compact" then -- 3041
+				if shared.role == "sub" then -- 3041
+					Tools.setTaskStatus(shared.taskId, "FAILED") -- 3045
+					____hasReturned = true -- 3046
+					____returnValue = emitAgentTaskFinishEvent(shared, false, shared.useChineseResponse and "子代理会话不支持 /compact。" or "Sub-agent sessions do not support /compact.") -- 3046
+					return -- 3046
+				end -- 3046
+				____hasReturned = true -- 3054
+				____returnValue = __TS__Await(compactAllHistory(shared)) -- 3054
+				return -- 3054
+			end -- 3054
+			__TS__Await(maybeCompressHistory(shared, true, options.resumeConversation == true and "" or normalizedPrompt)) -- 3056
+			if shared.stopToken.stopped then -- 3056
+				Tools.setTaskStatus(shared.taskId, "STOPPED") -- 3058
+				____hasReturned = true -- 3059
+				____returnValue = emitAgentTaskFinishEvent( -- 3059
+					shared, -- 3059
+					false, -- 3059
+					getCancelledReason(shared) -- 3059
+				) -- 3059
+				return -- 3059
+			end -- 3059
+			if options.resumeConversation ~= true then -- 3059
+				appendConversationMessage(shared, {role = "user", content = normalizedPrompt}) -- 3062
+				persistHistoryState(shared) -- 3066
+			end -- 3066
+			local flow = __TS__New(CodingAgentFlow, shared.role) -- 3068
+			__TS__Await(flow:run(shared)) -- 3069
+			if shared.stopToken.stopped then -- 3069
+				Tools.setTaskStatus(shared.taskId, "STOPPED") -- 3071
+				____hasReturned = true -- 3072
+				____returnValue = emitAgentTaskFinishEvent( -- 3072
+					shared, -- 3072
+					false, -- 3072
+					getCancelledReason(shared) -- 3072
+				) -- 3072
+				return -- 3072
+			end -- 3072
+			if shared.error then -- 3072
+				____hasReturned = true -- 3075
+				____returnValue = finalizeAgentFailure(shared, shared.response and shared.response ~= "" and shared.response or shared.error) -- 3075
+				return -- 3075
+			end -- 3075
+			if shared.workflow.waitingQuestionnaireId ~= nil then -- 3075
+				Tools.setTaskStatus(shared.taskId, "WAITING_USER") -- 3079
+				emitAgentEvent(shared, { -- 3080
+					type = "task_waiting_for_user", -- 3081
+					sessionId = shared.sessionId, -- 3082
+					taskId = shared.taskId, -- 3083
+					step = shared.step, -- 3084
+					questionnaireId = shared.workflow.waitingQuestionnaireId -- 3085
+				}) -- 3085
+				____hasReturned = true -- 3087
+				____returnValue = { -- 3087
+					success = true, -- 3088
+					taskId = shared.taskId, -- 3089
+					message = shared.useChineseResponse and "等待用户填写调查问卷。" or "Waiting for questionnaire feedback.", -- 3090
+					steps = shared.step, -- 3091
+					waitingForUser = true, -- 3092
+					questionnaireId = shared.workflow.waitingQuestionnaireId -- 3093
+				} -- 3093
+				return -- 3087
+			end -- 3087
+			local ____isFinalDecisionTurn_result_112 = isFinalDecisionTurn(shared) -- 3096
+			if ____isFinalDecisionTurn_result_112 then -- 3096
+				local ____opt_110 = shared.completion -- 3096
+				____isFinalDecisionTurn_result_112 = (____opt_110 and ____opt_110.outcome) == "partial" -- 3096
+			end -- 3096
+			if ____isFinalDecisionTurn_result_112 then -- 3096
+				Tools.setTaskStatus(shared.taskId, "FAILED") -- 3097
+				____hasReturned = true -- 3098
+				____returnValue = emitAgentTaskFinishEvent(shared, false, shared.response or (shared.useChineseResponse and "本轮达到处理上限，工作尚未完成。" or "This task reached its processing limit with work remaining.")) -- 3098
+				return -- 3098
+			end -- 3098
+			Tools.setTaskStatus(shared.taskId, "DONE") -- 3101
+			____hasReturned = true -- 3102
+			____returnValue = emitAgentTaskFinishEvent(shared, true, shared.response or (shared.useChineseResponse and "任务完成。" or "Task completed.")) -- 3102
+			return -- 3102
+		end) -- 3102
+		____try = ____try.catch( -- 3102
+			____try, -- 3102
+			function(____, e) -- 3102
+				return __TS__AsyncAwaiter(function() -- 3102
+					____hasReturned = true -- 3105
+					____returnValue = finalizeAgentFailure( -- 3105
+						shared, -- 3105
+						tostring(e) -- 3105
+					) -- 3105
+					return -- 3105
+				end) -- 3105
+			end -- 3105
+		) -- 3105
+		__TS__Await(____try) -- 3017
+		if ____hasReturned then -- 3017
+			return ____awaiter_resolve(nil, ____returnValue) -- 3017
+		end -- 3017
+	end) -- 3017
 end -- 2917
-function ____exports.runCodingAgent(options, callback) -- 3108
-	local ____self_113 = runCodingAgentAsync(options) -- 3108
-	____self_113["then"]( -- 3108
-		____self_113, -- 3108
-		function(____, result) return callback(result) end, -- 3110
-		function(____, errorValue) return callback({ -- 3111
-			success = false, -- 3112
-			taskId = options.taskId, -- 3113
-			message = "coding agent failed before finalization: " .. tostring(errorValue) -- 3114
-		}) end -- 3114
-	) -- 3114
-end -- 3108
-return ____exports -- 3108
+function ____exports.runCodingAgent(options, callback) -- 3109
+	local ____self_113 = runCodingAgentAsync(options) -- 3109
+	____self_113["then"]( -- 3109
+		____self_113, -- 3109
+		function(____, result) return callback(result) end, -- 3111
+		function(____, errorValue) return callback({ -- 3112
+			success = false, -- 3113
+			taskId = options.taskId, -- 3114
+			message = "coding agent failed before finalization: " .. tostring(errorValue) -- 3115
+		}) end -- 3115
+	) -- 3115
+end -- 3109
+return ____exports -- 3109

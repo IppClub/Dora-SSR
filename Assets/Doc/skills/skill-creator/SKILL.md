@@ -30,6 +30,7 @@ The entry file must be named `SKILL.md`. Do not use any other filename.
 6. Optional field:
    - `always: true`, only add this when the skill should always be active.
    - `requiredTools: [...]`, only add this when the skill should be visible only if specific agent tools are enabled.
+   - `workModes: [code]` or `workModes: [plan]`, only add this when the skill applies exclusively in those Agent work modes.
 
 ## Required Metadata Template
 
@@ -64,6 +65,19 @@ requiredTools:
 ```
 
 When any listed tool is disabled, the skill is hidden from both active skill content and the skill summary.
+
+If a skill should be active only in specific Agent work modes, add `workModes`:
+
+```md
+---
+name: your-skill-name
+description: One-sentence description of when this skill should be used.
+workModes:
+  - plan
+---
+```
+
+Supported values are `code` and `plan`. When `workModes` is omitted, the skill is eligible in both modes.
 
 ## Writing Requirements
 
