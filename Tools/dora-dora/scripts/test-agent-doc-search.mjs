@@ -4,6 +4,7 @@ import path from "node:path";
 
 const repo = path.resolve("../..");
 const read = relative => readFile(path.join(repo, relative), "utf8");
+const EXPECTED_LOVE_ENUM_COUNT = 47;
 
 const tools = await read("Assets/Script/Lib/Agent/Tools.ts");
 const workspaceTools = await read("Assets/Script/Lib/Agent/Tool/Workspace.ts");
@@ -94,7 +95,7 @@ for (const language of ["en", "zh-Hans"]) {
 	const tsDefinition = await read(`Assets/Script/Lib/Dora/${language}/love.d.ts`);
 	const tealDefinition = await read(`Assets/Script/Lib/Dora/${language}/love.d.tl`);
 	const stringEnums = [...tsDefinition.matchAll(/^\s*type\s+(\w+)\s*=\s*((?:"[^"]+"\s*\|\s*)*"[^"]+");$/gm)];
-	assert.equal(stringEnums.length, 46, `${language}/love.d.ts string enum inventory changed unexpectedly`);
+	assert.equal(stringEnums.length, EXPECTED_LOVE_ENUM_COUNT, `${language}/love.d.ts string enum inventory changed unexpectedly`);
 	const enumNames = stringEnums.map(([, name]) => name);
 	const containsEnum = type => enumNames.some(name => new RegExp(`\\b${name}\\b`).test(type));
 	assert.match(tealDefinition, /^local record LoveEnums$/m);
@@ -162,7 +163,7 @@ for (const [language, enumDocPath] of [
 	const enumDoc = await read(enumDocPath);
 	const tsDefinition = await read(`Assets/Script/Lib/Dora/${language}/love.d.ts`);
 	const expectedEnumNames = [...tsDefinition.matchAll(/^\s*type\s+(\w+)\s*=\s*(?:"[^"]+"\s*\|\s*)*"[^"]+";$/gm)].map(match => match[1]);
-	assert.equal(expectedEnumNames.length, 46, `${language} Love enum inventory changed unexpectedly`);
+	assert.equal(expectedEnumNames.length, EXPECTED_LOVE_ENUM_COUNT, `${language} Love enum inventory changed unexpectedly`);
 	const enumerationLabel = language === "en" ? "\\*\\*Type:\\*\\* Enumeration\\." : "\\*\\*类型：\\*\\* 枚举。";
 	assert.equal((enumDoc.match(new RegExp(enumerationLabel, "g")) ?? []).length, expectedEnumNames.length, `${language} Love page must document every enumeration`);
 	for (const enumName of expectedEnumNames) {
