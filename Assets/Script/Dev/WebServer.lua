@@ -5628,6 +5628,66 @@ HttpServer:postSchedule("/agent/preview", function(req)
 		message = "invalid call"
 	}
 end)
+HttpServer:postSchedule("/agent/command", function(req)
+	if type(req) == "table" or type(req) == "userdata" then
+		local body = req.body
+		if type(body) == "table" or type(body) == "userdata" then
+			local projectRoot = body.projectRoot
+			if not getProjectSourceRoot(projectRoot) then
+				return {
+					success = false,
+					code = "INVALID_PROJECT",
+					message = "projectRoot must be an existing absolute directory"
+				}
+			end
+			local AgentValidation = require("Agent.Tool.Validation")
+			local validated = AgentValidation.validateAgentToolInput("execute_command", body)
+			if not validated.success then
+				return {
+					success = false,
+					code = "INVALID_COMMAND",
+					message = validated.message
+				}
+			end
+			local input = validated.value
+			local AgentCommand = require("Agent.Tool.Command")
+			local result = nil
+			local failure = nil
+			local promise = AgentCommand.executeCommand({
+				workDir = projectRoot,
+				mode = input.mode,
+				code = input.code,
+				command = input.command,
+				cwd = input.cwd,
+				timeoutSeconds = input.timeoutSeconds
+			})
+			promise:addCallbacks((function(_, value)
+				result = value
+			end), (function(_, err)
+				failure = tostring(err)
+			end))
+			wait(function()
+				return result ~= nil or failure ~= nil
+			end)
+			if failure then
+				return {
+					success = false,
+					code = "COMMAND_BRIDGE_FAILED",
+					message = failure
+				}
+			end
+			if not result.success then
+				result.code = "COMMAND_FAILED"
+			end
+			return result
+		end
+	end
+	return {
+		success = false,
+		code = "INVALID_COMMAND",
+		message = "invalid call"
+	}
+end)
 HttpServer:postSchedule("/stop", function()
 	local Entry = require("Script.Dev.Entry")
 	return {

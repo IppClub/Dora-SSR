@@ -8,11 +8,11 @@ local emit = ____Dora.emit -- 2
 local json = ____Dora.json -- 2
 local MusicGenerator = Audio -- 222
 local function notifyWebIDE(path) -- 224
-	if not HttpServer or HttpServer.wsConnectionCount == 0 then -- 224
+	if HttpServer == nil or HttpServer.wsConnectionCount == 0 then -- 224
 		return -- 228
 	end -- 228
 	local payload = json.encode({name = "UpdateFile", file = path, exists = true, content = ""}) -- 229
-	if payload then -- 229
+	if payload ~= nil then -- 229
 		emit("AppWS", "Send", payload) -- 230
 	end -- 230
 end -- 224

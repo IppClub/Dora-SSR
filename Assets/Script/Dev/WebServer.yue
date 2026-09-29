@@ -2287,6 +2287,31 @@ HttpServer\postSchedule "/agent/preview", (req): success: false, message: "inval
 			files: result.files
 			frames: result.frames
 
+HttpServer\postSchedule "/agent/command", (req): success: false, code: "INVALID_COMMAND", message: "invalid call" ->
+	switch req when {body: body}
+		projectRoot = body.projectRoot
+		return success: false, code: "INVALID_PROJECT", message: "projectRoot must be an existing absolute directory" unless getProjectSourceRoot projectRoot
+		import "Agent.Tool.Validation" as AgentValidation
+		validated = AgentValidation.validateAgentToolInput "execute_command", body
+		return success: false, code: "INVALID_COMMAND", message: validated.message unless validated.success
+		input = validated.value
+		import "Agent.Tool.Command" as AgentCommand
+		result = nil
+		failure = nil
+		promise = AgentCommand.executeCommand
+			workDir: projectRoot
+			mode: input.mode
+			code: input.code
+			command: input.command
+			cwd: input.cwd
+			timeoutSeconds: input.timeoutSeconds
+		promise\addCallbacks ((_, value) -> result = value), ((_, err) -> failure = tostring err)
+		wait -> result ~= nil or failure ~= nil
+		return success: false, code: "COMMAND_BRIDGE_FAILED", message: failure if failure
+		unless result.success
+			result.code = "COMMAND_FAILED"
+		return result
+
 HttpServer\postSchedule "/stop", ->
 	import "Script.Dev.Entry"
 	success: Entry.stop!

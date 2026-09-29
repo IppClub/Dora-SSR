@@ -19,14 +19,28 @@ const bindingHeader = await readFile(join(repo, 'Tools/tolua++/Dora.h'), 'utf8')
 const doraTypes = await readFile(join(repo, 'Assets/Script/Lib/Dora/en/Dora.d.ts'), 'utf8');
 const processBridge = await readFile(join(repo, 'Source/Lua/LuaManual.cpp'), 'utf8');
 const xrtBridge = await readFile(join(repo, 'Source/Http/XrtNetwork.c'), 'utf8');
+const commandSkill = await readFile(join(repo, 'Assets/Doc/local-agent-skills/dora-agent-command/SKILL.md'), 'utf8');
+const musicSkill = await readFile(join(repo, 'Assets/Doc/local-agent-skills/music-generation/SKILL.md'), 'utf8');
 
-assert.match(source, /"opencode" \| "codex" \| "zcode"/);
+assert.match(source, /"opencode" \| "codex" \| "zcode" \| "claude-code"/);
 assert.match(source, /\["run", "--format", "json", "--auto"/);
 assert.match(source, /\["exec", "--json", "--dangerously-bypass-approvals-and-sandbox"/);
 assert.match(source, /\["--prompt", prompt, "--json", "--mode", "yolo"/);
-assert.match(source, /\.agents", "skills", "dora-engine-coding"/);
-assert.match(source, /const SKILL_VERSION = 4/);
+assert.match(source, /\["-p", "--output-format", "stream-json", "--verbose", "--dangerously-skip-permissions"/);
+assert.match(source, /provider === "claude-code" && message/);
+assert.match(source, /blockType === "tool_use"/);
+assert.match(source, /blockType === "tool_result"/);
+assert.match(source, /eventType === "result"/);
+assert.match(source, /event\.raw\.is_error === true/);
+assert.match(source, /Path\(projectRoot, "\.agents", "skills", skill\.name\)/);
+assert.match(source, /Path\(projectRoot, "\.claude", "skills", skill\.name\)/);
+assert.match(source, /const SKILL_VERSION = 5/);
 assert.match(source, /function buildSkillContent\(\)/);
+assert.match(source, /function ensureSkills\(/);
+assert.match(source, /"dora-agent-command"/);
+assert.match(source, /"music-generation"/);
+assert.match(source, /GeneralUserGS-Presets\.md/);
+assert.match(source, /Dora project skills available: dora-engine-coding, dora-agent-command, music-generation/);
 assert.match(source, /App\.executablePath/);
 assert.match(source, /Content\.assetPath/);
 assert.match(source, /--asset \$\{quoteCommandArg\(assetPath\)\} cli/);
@@ -36,8 +50,10 @@ assert.match(source, /For this turn, invoke Dora CLI only with this exact prefix
 assert.match(source, /local-agent-bin/);
 assert.match(source, /program: "\/bin\/chmod", args: \["700", shimPath\]/);
 assert.match(source, /PATH: inheritedPath === "" \? shimDir/);
+assert.match(source, /This project-scoped Dora command only supports: dora cli/);
+assert.match(source, /if \[ "\$1" != "cli" \]/);
 assert.match(source, /spec\.env = doraCommand\.env/);
-assert.match(generatedSource, /local SKILL_VERSION = 4/);
+assert.match(generatedSource, /local SKILL_VERSION = 5/);
 assert.match(generatedSource, /local executablePath = App\.executablePath/);
 assert.match(generatedSource, /For this turn, invoke Dora CLI only with this exact prefix/);
 assert.match(bindingHeader, /string executablePath/);
@@ -87,12 +103,18 @@ assert.match(i18n, /newSession: "新会话"/);
 assert.match(i18n, /localAgentCompleted: "Agent 任务已完成"/);
 assert.match(llmConfigDialog, /const LOCAL_AGENT_TEMPLATES/);
 assert.match(llmConfigDialog, /extraArgs: \['--skip-git-repo-check'\]/);
+assert.match(llmConfigDialog, /'claude-code': \{/);
+assert.match(llmConfigDialog, /executable: 'claude'/);
+assert.match(llmConfigDialog, /data-local-agent-card=\{provider\}/);
+assert.match(llmConfigDialog, /verifyAndActivateLocal/);
+assert.doesNotMatch(llmConfigDialog, /const localColumns/);
 assert.match(llmConfigDialog, /applyLocalAgentTemplate/);
 assert.match(llmConfigDialog, /localCommandPreview/);
 assert.doesNotMatch(llmConfigDialog, />Agent Configuration</);
 assert.doesNotMatch(llmConfigDialog, /label="Provider"/);
 assert.match(i18n, /localTemplate: "Agent 模板"/);
 assert.match(i18n, /localCommandPreviewHint: "Dora 会自动添加这些必需参数/);
+assert.match(i18n, /localVerifyActivate: "验证并激活"/);
 assert.match(agentPanel, /localId !== undefined\s*\? await stopProjectRunBeforeAgent\(\)/);
 assert.match(agentStepList, /data-local-agent-events="true"/);
 assert.match(agentStepList, /function LocalAgentEventRows/);
@@ -107,6 +129,14 @@ assert.doesNotMatch(agentStepList, /tool content truncated/);
 assert.match(agentStepList, /\{index \+ 1\}/);
 assert.doesNotMatch(agentStepList, /\{step\.step\}\.\{index \+ 1\}/);
 assert.match(agentStepList, /data-local-agent-transcript="true"/);
+assert.match(webServer, /postSchedule "\/agent\/command"/);
+assert.match(webServer, /import "Agent\.Tool\.Command" as AgentCommand/);
+assert.match(webServer, /import "Agent\.Tool\.Validation" as AgentValidation/);
+assert.match(commandSkill, /dora cli agent command -p <project> --input \.agent\/command\.json/);
+assert.match(commandSkill, /mode.*lua/);
+assert.match(commandSkill, /mode.*git/);
+assert.match(musicSkill, /requireProjectModule\('Agent\.Gen\.Music'\)/);
+assert.match(musicSkill, /references\/Music\.d\.ts/);
 
 function run(program, args, cwd, timeoutMs = 180_000) {
 	return new Promise((resolveRun, reject) => {
@@ -167,6 +197,11 @@ if (process.argv.includes('--real')) {
 			name: 'zcode',
 			fresh: ['--prompt', prompt, '--json', '--mode', 'yolo', '--cwd', cwd],
 			resume: id => ['--prompt', resumePrompt, '--json', '--mode', 'yolo', '--cwd', cwd, '--resume', id],
+		},
+		{
+			name: 'claude',
+			fresh: ['-p', '--output-format', 'stream-json', '--verbose', '--dangerously-skip-permissions', prompt],
+			resume: id => ['-p', '--output-format', 'stream-json', '--verbose', '--dangerously-skip-permissions', '--resume', id, resumePrompt],
 		},
 	];
 	for (const agent of agents) {

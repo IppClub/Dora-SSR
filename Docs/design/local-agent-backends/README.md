@@ -1,14 +1,14 @@
 # Dora Agent 本地第三方 Agent 执行后端设计
 
-状态：首版 OpenCode、Codex、ZCode 本地执行后端已完成 macOS 开发与验收；Windows/Linux 的实现已纳入桌面平台条件编译，仍待对应真机验证。实施顺序见 [PLAN.md](./PLAN.md)，实际状态和证据以 [开发进度跟踪表](./PROGRESS.md) 为准。
+状态：OpenCode、Codex、ZCode、Claude Code 本地执行后端已完成 macOS 开发和真实 CLI 验收；前三种 Agent 已完成真实 Dora 引擎与游戏创作验收，Claude Code 的新版 Dora 进程端到端浏览器验收待补。Windows/Linux 的实现已纳入桌面平台条件编译，仍待对应真机验证。实施顺序见 [PLAN.md](./PLAN.md)，实际状态和证据以 [开发进度跟踪表](./PROGRESS.md) 为准。
 
-创建：2026-09-28；最后更新：2026-09-28
+创建：2026-09-28；最后更新：2026-09-29
 
 产品边界：本功能属于 Dora SSR 本地引擎自带的 Dora Agent / Web IDE，代码范围是 `Assets/Script/Dev`、`Assets/Script/Lib/Agent` 和 `Tools/dora-dora`。它与 `Studio/` 下的 Dora Studio 产品、云端 Agent 服务、浏览器 Studio 工作区及其发布路线无关；实现和验收不得以 Dora Studio 作为依赖或交付入口。
 
 ## 1. 目标与范围
 
-在 Windows、macOS 和 Linux 桌面设备上，Dora Agent 可以把 Composer 中的用户任务交给本机已经安装的第三方命令行 Agent。首版实现 OpenCode、Codex 和 ZCode；Claude Code 保留为后续扩展。第三方 Agent 直接完成代码编辑、构建和游戏验证，Dora Agent 本身不再为该任务发起任何 LLM 请求。
+在 Windows、macOS 和 Linux 桌面设备上，Dora Agent 可以把 Composer 中的用户任务交给本机已经安装的第三方命令行 Agent。当前实现 OpenCode、Codex、ZCode 和 Claude Code。第三方 Agent 直接完成代码编辑、构建和游戏验证，Dora Agent 本身不再为该任务发起任何 LLM 请求。
 
 首版目标：
 
@@ -52,7 +52,7 @@ Dora UI
 
 Dora 只向第三方 Agent 发送一次 Prompt，之后只观察进程输出和退出状态。第三方 Agent 不回调 Dora Agent，也不会把自己的工具调用映射为 Dora Agent 工具调用。
 
-`dora cli agent` 只提供引擎状态、受控预览和日志，不启动 Dora Agent 或第三方 Agent，因此第三方 Agent 调用它不会形成递归调用。
+`dora cli agent` 只提供引擎状态、受控预览、日志和单向 command bridge，不启动 Dora Agent 或第三方 Agent，因此第三方 Agent 调用它不会形成递归调用。
 
 ### 2.2 执行后端而非伪模型
 
@@ -85,8 +85,8 @@ Dora 不把完整历史重新发送给第三方 Agent。每一轮重新启动 CL
 | Local Agent Runner | 参数拼装、进程生命周期、输出读取、session 捕获和错误归一化 | Dora LLM 调用和游戏引擎实现 |
 | Local Agent Adapter | 每种 CLI 的检测、验证、fresh/resume 参数、输出解析、权限参数和 Skill 调用语法 | UI 与持久化 |
 | Session Store | Dora session 与 external resumeId 的映射、代次和弃用状态 | 保存第三方完整隐藏上下文 |
-| Skill Installer | 按项目和 Agent 安装/升级 Dora Engine Skill | 修改用户的 AGENTS.md/CLAUDE.md |
-| Dora CLI Tool Bridge | 引擎状态、构建、文档、预览和日志访问 | 启动或编排任何 Agent |
+| Skill Installer | 按项目和 Agent 安装/升级 Engine Coding、Command 和 Music Skill | 修改用户的 AGENTS.md/CLAUDE.md |
+| Dora CLI Tool Bridge | 引擎状态、构建、文档、预览、日志及 Lua/Git command 访问 | 启动或编排任何 Agent |
 | EntryRunQueue / EntryLease | Agent 预览 FIFO、Entry 互斥、Agent 优先和清理 | 第三方 Agent session 管理 |
 
 ## 4. 本地 Agent 配置与验证
@@ -121,7 +121,7 @@ interface LocalAgentConfig {
 - `LLM API`
 - `本地 Agent`
 
-本地 Agent 列表显示名称、类型、命令、检测版本、验证时间和状态：未安装、未验证、验证中、可用、验证失败。只有验证成功且当前仍可找到 executable 的配置出现在 Composer 中。
+本地 Agent 页直接显示 OpenCode、Codex、ZCode、Claude Code Logo 卡片与激活状态。选择卡片后载入真实默认命令，用户可以直接验证或调整 executable/额外参数；“验证并激活”成功后配置才出现在 Composer 中。已有配置可从同一卡片进入修改、重新验证或移除。
 
 ### 4.4 验证流程
 
@@ -199,6 +199,7 @@ Runner 记录 stdout/stderr 的最后活动时间。长时间完全没有任何�
 dora cli agent status [-p project]
 dora cli agent preview [-p project] [--entry init.lua]
                        [--capture-at 0.5,2] [--queue-timeout 30]
+dora cli agent command [-p project] --input request.json
 dora cli agent log [-n lines]
 ```
 
@@ -221,19 +222,26 @@ dora cli log …
 - 结果返回 `interruptedUserRun`，让 UI/日志说明用户游戏已被打断。
 - 完成、失败和异常路径只清理当前请求拥有的 Entry，并释放队列。
 - WebServer 只在收到 `/agent/preview` 时延迟加载 `EntryRunQueue`、`Operation` 和 `CommandPreview`。
+- WebServer 只在收到 `/agent/command` 时延迟加载 `Validation` 与 `Command`；JSON 请求使用 `mode: "lua"` + `code`，或 `mode: "git"` + `command/cwd`。
+- Command bridge 复用 Dora Agent 已有 `executeCommand()` 的校验、超时、沙箱、EntryLease 和 Web IDE 刷新，不复制实现。音乐生成通过 Lua mode 调用 `Agent.Gen.Music.generateMusicAsync`，不增加独立的音乐 CLI/RPC。
+- 普通 Git 可直接调用本地 `git`；Dora Git mode 为统一 JSON、项目根约束和 Web IDE 同步而保留。
 
 ## 8. 项目级 Dora Engine Skill
 
 ### 8.1 安装时机和路径
 
-配置验证不绑定具体项目。每次本地 Agent turn 启动前，Runner 对当前 projectRoot 执行幂等的 `ensureDoraSkillInstalled`：
+配置验证不绑定具体项目。每次本地 Agent turn 启动前，Runner 对当前 projectRoot 幂等安装三项 Skill：
 
 ```text
 Claude Code:
   .claude/skills/dora-engine-coding/SKILL.md
+  .claude/skills/dora-agent-command/SKILL.md
+  .claude/skills/music-generation/{SKILL.md,references/*}
 
 Codex / OpenCode / ZCode:
   .agents/skills/dora-engine-coding/SKILL.md
+  .agents/skills/dora-agent-command/SKILL.md
+  .agents/skills/music-generation/{SKILL.md,references/*}
 ```
 
 只安装当前 Adapter 需要的路径；切换到另一类 Agent 时再补充对应路径。
@@ -244,11 +252,13 @@ Codex / OpenCode / ZCode:
 
 - Dora runtime、入口文件、TypeScript 转 Lua和模块导入规则。
 - 禁止在 Dora 游戏代码中生成 DOM、Canvas、Node.js 专用代码。
-- 不依赖用户 shell 中已有 `dora` 命令、alias 或 PATH 配置。运行中的引擎根据 `App.executablePath` 和 `Content.assetPath` 在 writable path 生成私有 `dora` shim，并只为第三方 Agent 进程树把 shim 目录置于 PATH 首位；不会修改全局环境。shim 创建失败时才在当前 Prompt 中提供完整绝对命令作为降级。
+- 不依赖用户 shell 中已有 `dora` 命令、alias 或 PATH 配置。运行中的引擎根据 `App.executablePath` 和 `Content.assetPath` 在 writable path 生成私有 `dora` shim，并只为第三方 Agent 进程树把 shim 目录置于 PATH 首位；不会修改全局环境。该 shim 只接受 `dora cli ...`，避免 Agent 的裸 `dora help` 等探测意外启动第二个引擎进程；shim 创建失败时才在当前 Prompt 中提供完整绝对命令作为降级。
 - 不猜测 Dora API；使用 `dora cli doc search/read` 查证。
 - 使用 Agent 自己的文件工具修改源码。
 - 使用 `dora cli build` 做编译验证。
 - 使用 `dora cli agent preview/status/log` 做受控运行和画面验证。
+- 使用 `dora-agent-command` 的 JSON 请求调用引擎 Lua/Git mode；明确它不会启动 Dora Agent。
+- 使用 `music-generation` 编写 typed definition、构建并通过同一 command bridge 生成音频；详细类型与 SoundFont 预设放在 references 中按需读取。
 - 说明 preview 会抢占用户游戏并进入 Agent FIFO。
 - 说明 `dora cli agent` 只连接引擎，不会启动 Agent，禁止自行构造嵌套 Agent 调度。
 - 以 stdout JSON 判断 CLI 结果，stderr 只作为诊断。
@@ -259,7 +269,7 @@ Codex / OpenCode / ZCode:
 - 文件缺失时创建；已知 Dora 管理版本可原子升级。Skill 不保存机器相关路径，因此 Dora 安装位置或 Asset 根目录改变时无需改写。
 - 没有管理标记的用户文件不得覆盖，状态显示为“自定义 Skill”。
 - 不删除整个 skill 目录，不修改 `AGENTS.md`、`CLAUDE.md` 或其他 Agent 的配置。
-- session 记录启动时的 skillVersion；Skill 升级后，下一轮显式要求重新读取 Skill，或开启新 external session。
+- 每轮 Prompt（包括 resume）都会列出当前三项 Skill 并要求按需重新读取，因此已有 external session 也能发现升级后的能力。
 
 ## 9. 第三方 Session 管理
 
@@ -483,7 +493,7 @@ Dora Agent
 5. Fresh → resume → stop → resume → new session → fresh 的 session 状态链通过。
 6. session 丢失只自动重建一次，认证/网络错误不误触发重建。
 7. Skill 在对应 Agent 目录正确安装、升级并保护用户修改。
-8. 第三方 Agent 能依据 Skill 使用 `dora cli doc/build/agent preview` 完成一次真实游戏修改和验证。
+8. 第三方 Agent 能依据 Skill 使用 `dora cli doc/build/agent preview/agent command` 完成一次真实游戏修改、Lua/Git 引擎命令和音乐生成验证。
 9. Agent preview 打断用户游戏、多个 Agent 请求 FIFO 排队、失败清理和队列超时通过真实引擎验证。
 10. 现有本地 Dora LLM Agent、模型切换、计划模式、Step List 和 checkpoint 无回归；Dora Studio 不在本功能验收范围内，也不得因此产生依赖或行为变化。
 

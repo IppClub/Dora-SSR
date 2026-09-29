@@ -67,6 +67,7 @@ Usage: dora cli <command> [options]
 Commands:
 	agent status [-p project]
 	agent preview [-p project] [--entry init.lua] [--capture-at 0.5,2] [--queue-timeout 30]
+	agent command [-p project] --input request.json
 	agent log [-n lines]
 	ts install [-p project] [-l zh-Hans|en]
 	wa install [-p project]
@@ -94,9 +95,23 @@ Usage: dora cli agent <command> [options]
 Commands:
 	status [-p project]
 	preview [-p project] [--entry init.lua] [--capture-at 0.5,2] [--queue-timeout 30]
+	command [-p project] --input request.json
 	log [-n lines]
 
+The command request is a JSON object with mode lua or git and the corresponding code or command.
 Agent commands always emit one JSON object on stdout. Diagnostics are written to stderr.
+]])
+end
+
+local function agentCommandHelp()
+	print([[
+Usage: dora cli agent command [-p project] --input request.json
+
+The request must be a JSON object using one of these forms:
+  {"mode":"lua","code":"print(App.platform)","timeoutSeconds":30}
+  {"mode":"git","command":"status","cwd":".","timeoutSeconds":600}
+
+The command emits one JSON object on stdout. Diagnostics are written to stderr.
 ]])
 end
 
@@ -315,6 +330,7 @@ local function parseOptions(args, index)
 		json = false,
 		captureAtSeconds = {0.5},
 		queueTimeoutSeconds = 30,
+		commandInput = nil,
 		startLine = nil,
 		endLine = nil,
 		files = {},
@@ -402,6 +418,11 @@ local function parseOptions(args, index)
 			index = index + 1
 			if index > #args then fail("--queue-timeout expects a value") end
 			options.queueTimeoutSeconds = tonumber(args[index]) or fail("--queue-timeout expects a number")
+			index = index + 1
+		elseif arg == "--input" then
+			index = index + 1
+			if index > #args then fail("--input expects a value") end
+			options.commandInput = args[index]
 			index = index + 1
 		elseif arg == "--run" then
 			options.runAfterUpload = true
@@ -919,8 +940,8 @@ local function printAgentResult(doc)
 	return type(doc) == "table" and doc.success == true and 0 or 1
 end
 
-local function requestAgentJson(options, path, body)
-	local doc, err = tryPostJson(options, path, body)
+local function requestAgentJson(options, path, body, timeout)
+	local doc, err = tryPostJson(options, path, body, timeout)
 	if doc == nil then
 		return printAgentResult({
 			success = false,
@@ -937,6 +958,10 @@ local function runAgentCommand(args)
 		agentHelp()
 		return action == nil and 1 or 0
 	end
+	if action == "command" and isHelpArg(args[3]) and #args == 3 then
+		agentCommandHelp()
+		return 0
+	end
 	local options = parseOptionsExact(args, 3)
 	if action == "status" then
 		return requestAgentJson(options, "/status", {projectRoot = options.project})
@@ -950,6 +975,26 @@ local function runAgentCommand(args)
 			captureAtSeconds = options.captureAtSeconds,
 			queueTimeoutSeconds = options.queueTimeoutSeconds,
 		})
+	elseif action == "command" then
+		if not CLI.exists(options.project) or not CLI.isDir(options.project) then
+			return printAgentResult({success = false, code = "INVALID_PROJECT", message = "Project directory does not exist: " .. options.project})
+		end
+		if not options.commandInput then
+			return printAgentResult({success = false, code = "MISSING_COMMAND_INPUT", message = "command requires --input <request.json>"})
+		end
+		local inputPath = CLI.absolute(options.commandInput)
+		if not CLI.exists(inputPath) or CLI.isDir(inputPath) then
+			return printAgentResult({success = false, code = "INVALID_COMMAND_INPUT", message = "Command input file does not exist: " .. inputPath})
+		end
+		local content = CLI.readFile(inputPath)
+		local body, decodeError = json.decode(content or "")
+		if type(body) ~= "table" then
+			return printAgentResult({success = false, code = "INVALID_COMMAND_INPUT", message = "Command input must be a JSON object: " .. tostring(decodeError)})
+		end
+		body.projectRoot = options.project
+		local commandTimeout = tonumber(body.timeoutSeconds) or (body.mode == "git" and 600 or 30)
+		local requestTimeout = math.max(options.timeout, math.min(1810, math.max(1, commandTimeout) + 10))
+		return requestAgentJson(options, "/agent/command", body, requestTimeout)
 	elseif action == "log" then
 		local count = options.logLines or 20
 		if count < 1 or count ~= math.floor(count) then

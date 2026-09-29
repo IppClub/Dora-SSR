@@ -2,7 +2,7 @@
 import { App, Content, DB, Director, Node, Path, Process, sleep } from "Dora";
 import { safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from "Agent/Utils";
 
-export type LocalAgentProvider = "opencode" | "codex" | "zcode";
+export type LocalAgentProvider = "opencode" | "codex" | "zcode" | "claude-code";
 
 export interface LocalAgentConfig {
 	id: number;
@@ -36,8 +36,9 @@ export interface LocalAgentRunControl {
 
 const CONFIG_TABLE = "LocalAgentConfig";
 const SESSION_TABLE = "LocalAgentSession";
-const SKILL_VERSION = 4;
+const SKILL_VERSION = 5;
 const SKILL_MARKER = `<!-- dora-managed-skill:v${SKILL_VERSION} -->`;
+const MANAGED_SKILL_MARKER = "<!-- dora-managed-skill:";
 const supportedPlatforms = ["Windows", "macOS", "Linux"];
 
 function encodeJson(value: unknown): string {
@@ -90,8 +91,8 @@ function prepareDoraCommandEnvironment(): DoraCommandEnvironment | undefined {
 	const windows = App.platform === "Windows";
 	const shimPath = Path(shimDir, windows ? "dora.cmd" : "dora");
 	const shimContent = windows
-		? `@echo off\r\n"${executablePath.split("%").join("%%")}" --asset "${assetPath.split("%").join("%%")}" %*\r\n`
-		: `#!/bin/sh\nexec ${quoteCommandArg(executablePath)} --asset ${quoteCommandArg(assetPath)} "$@"\n`;
+		? `@echo off\r\nif /I not "%~1"=="cli" (\r\n  >&2 echo This project-scoped Dora command only supports: dora cli ...\r\n  exit /b 2\r\n)\r\n"${executablePath.split("%").join("%%")}" --asset "${assetPath.split("%").join("%%")}" %*\r\n`
+		: `#!/bin/sh\nif [ "$1" != "cli" ]; then\n  echo "This project-scoped Dora command only supports: dora cli ..." >&2\n  exit 2\nfi\nexec ${quoteCommandArg(executablePath)} --asset ${quoteCommandArg(assetPath)} "$@"\n`;
 	if (!Content.save(shimPath, shimContent)) return {command: fallback, shim: false};
 	if (!windows) {
 		const chmod = Process.spawn({program: "/bin/chmod", args: ["700", shimPath]});
@@ -161,7 +162,7 @@ function ensureTables() {
 
 function rowToConfig(row: (string | number | boolean)[]): LocalAgentConfig | undefined {
 	const provider = tostring(row[2]) as LocalAgentProvider;
-	if (provider !== "opencode" && provider !== "codex" && provider !== "zcode") return undefined;
+	if (provider !== "opencode" && provider !== "codex" && provider !== "zcode" && provider !== "claude-code") return undefined;
 	const [decoded] = safeJsonDecode(tostring(row[4] ?? "[]"));
 	const extraArgs = Array.isArray(decoded) ? decoded.filter(value => typeof value === "string") as string[] : [];
 	const verifiedAt = tonumber(row[5]);
@@ -172,8 +173,8 @@ function rowToConfig(row: (string | number | boolean)[]): LocalAgentConfig | und
 		executable: tostring(row[3]),
 		extraArgs,
 		verifiedAt: verifiedAt && verifiedAt > 0 ? verifiedAt : undefined,
-		verifiedVersion: tostring(row[6] ?? "") || undefined,
-		verifiedFingerprint: tostring(row[7] ?? "") || undefined,
+		verifiedVersion: tostring(row[6] ?? "") !== "" ? tostring(row[6] ?? "") : undefined,
+		verifiedFingerprint: tostring(row[7] ?? "") !== "" ? tostring(row[7] ?? "") : undefined,
 	};
 }
 
@@ -198,7 +199,7 @@ export function getConfig(id: unknown): LocalAgentConfig | undefined {
 }
 
 function normalizeProvider(value: unknown): LocalAgentProvider | undefined {
-	return value === "opencode" || value === "codex" || value === "zcode" ? value : undefined;
+	return value === "opencode" || value === "codex" || value === "zcode" || value === "claude-code" ? value : undefined;
 }
 
 function normalizeArgs(value: unknown): string[] {
@@ -250,6 +251,10 @@ function buildSpec(config: LocalAgentConfig, cwd: string, prompt: string, resume
 		args = resumeId
 			? ["exec", "resume", "--json", "--dangerously-bypass-approvals-and-sandbox", ...config.extraArgs, resumeId, prompt]
 			: ["exec", "--json", "--dangerously-bypass-approvals-and-sandbox", "-C", cwd, ...config.extraArgs, prompt];
+	} else if (config.provider === "claude-code") {
+		args = ["-p", "--output-format", "stream-json", "--verbose", "--dangerously-skip-permissions", ...config.extraArgs];
+		if (resumeId) args.push("--resume", resumeId);
+		args.push(prompt);
 	} else if (config.provider === "opencode") {
 		args = ["run", "--format", "json", "--auto", "--dir", cwd, ...config.extraArgs];
 		if (resumeId) args.push("--session", resumeId);
@@ -269,6 +274,21 @@ function getString(record: Record<string, unknown>, ...keys: string[]): string |
 	return undefined;
 }
 
+function getClaudeBlockText(value: unknown): string | undefined {
+	if (typeof value === "string" && value !== "") return value;
+	if (!Array.isArray(value)) return undefined;
+	const parts: string[] = [];
+	for (let i = 0; i < value.length; i++) {
+		const block = value[i];
+		if (typeof block === "string" && block !== "") parts.push(block);
+		else if (block && typeof block === "object") {
+			const text = getString(block as Record<string, unknown>, "text", "content");
+			if (text) parts.push(text);
+		}
+	}
+	return parts.length > 0 ? parts.join("\n") : undefined;
+}
+
 function parseRecord(provider: LocalAgentProvider, record: Record<string, unknown>): LocalAgentEvent[] {
 	const events: LocalAgentEvent[] = [];
 	const eventType = getString(record, "type", "event", "kind") ?? "activity";
@@ -285,8 +305,8 @@ function parseRecord(provider: LocalAgentProvider, record: Record<string, unknow
 			const status = getString(itemRecord, "status") ?? eventType;
 			const details = [`${server}.${tool} (${status})`];
 			if (itemRecord.arguments !== undefined) details.push(`arguments: ${encodeJson(itemRecord.arguments)}`);
-			if (itemRecord.result !== undefined && itemRecord.result !== null) details.push(`result:\n${typeof itemRecord.result === "string" ? itemRecord.result : encodeJson(itemRecord.result)}`);
-			if (itemRecord.error !== undefined && itemRecord.error !== null) details.push(`error:\n${typeof itemRecord.error === "string" ? itemRecord.error : encodeJson(itemRecord.error)}`);
+			if (itemRecord.result !== undefined) details.push(`result:\n${typeof itemRecord.result === "string" ? itemRecord.result : encodeJson(itemRecord.result)}`);
+			if (itemRecord.error !== undefined) details.push(`error:\n${typeof itemRecord.error === "string" ? itemRecord.error : encodeJson(itemRecord.error)}`);
 			events.push({kind: "command", text: details.join("\n"), resumeId, raw: record});
 			handledTool = true;
 		}
@@ -296,6 +316,30 @@ function parseRecord(provider: LocalAgentProvider, record: Record<string, unknow
 				const kind = itemType.includes("agent") || itemType.includes("text") || itemType.includes("message") ? "assistant"
 					: itemType.includes("command") || itemType.includes("tool") ? "command" : "activity";
 				events.push({kind, text, resumeId, raw: record});
+			}
+		}
+	}
+	const message = record.message;
+	if (provider === "claude-code" && message && typeof message === "object") {
+		const content = (message as Record<string, unknown>).content;
+		if (Array.isArray(content)) {
+			for (let i = 0; i < content.length; i++) {
+				const block = content[i];
+				if (!block || typeof block !== "object") continue;
+				const blockRecord = block as Record<string, unknown>;
+				const blockType = getString(blockRecord, "type") ?? "";
+				if (blockType === "text") {
+					const text = getString(blockRecord, "text");
+					if (text) events.push({kind: "assistant", text, resumeId, raw: record});
+				} else if (blockType === "tool_use") {
+					const name = getString(blockRecord, "name") ?? "tool";
+					const details = [name];
+					if (blockRecord.input !== undefined) details.push(`input: ${encodeJson(blockRecord.input)}`);
+					events.push({kind: "command", text: details.join("\n"), resumeId, raw: record});
+				} else if (blockType === "tool_result") {
+					const text = getClaudeBlockText(blockRecord.content) ?? encodeJson(blockRecord.content);
+					events.push({kind: "command", text: `tool result${text !== undefined && text !== "" ? `\n${text}` : ""}`, resumeId, raw: record});
+				}
 			}
 		}
 	}
@@ -322,7 +366,7 @@ function parseRecord(provider: LocalAgentProvider, record: Record<string, unknow
 	}
 	const text = getString(record, "text", "content", "message", "output", "result", "response");
 	if (text && events.length === 0) {
-		const kind = provider === "zcode" && typeof record.response === "string" ? "assistant"
+		const kind = (provider === "zcode" && typeof record.response === "string") || (provider === "claude-code" && eventType === "result") ? "assistant"
 			: eventType.includes("command") || eventType.includes("tool") ? "command"
 			: eventType.includes("assistant") || eventType.includes("message") || eventType.includes("text") ? "assistant" : "activity";
 		events.push({kind, text, resumeId, raw: record});
@@ -363,31 +407,80 @@ function parseCompleteOutput(provider: LocalAgentProvider, output: string, onEve
 	parseLines(provider, `${text}\n`, onEvent);
 }
 
-function ensureSkill(projectRoot: string): {success: boolean; state: "installed" | "current" | "custom" | "failed"; message?: string} {
-	const skillContent = buildSkillContent();
-	const dir = Path(projectRoot, ".agents", "skills", "dora-engine-coding");
+interface ManagedSkill {
+	name: string;
+	content: string;
+	resources?: {source: string; target: string}[];
+}
+
+function loadManagedSkills(): ManagedSkill[] | undefined {
+	const sourceRoot = Path(Content.assetPath, "Doc", "local-agent-skills");
+	const commandContent = Content.load(Path(sourceRoot, "dora-agent-command", "SKILL.md"));
+	const musicContent = Content.load(Path(sourceRoot, "music-generation", "SKILL.md"));
+	if (commandContent === "" || musicContent === "") return undefined;
+	return [
+		{name: "dora-engine-coding", content: buildSkillContent()},
+		{name: "dora-agent-command", content: commandContent},
+		{
+			name: "music-generation",
+			content: musicContent,
+			resources: [
+				{source: Path(Content.assetPath, "Script", "Lib", "Agent", "Gen", "Music.d.ts"), target: Path("references", "Music.d.ts")},
+				{source: Path(Content.assetPath, "Doc", "skills", "music-generation", "GeneralUserGS-Presets.md"), target: Path("references", "GeneralUserGS-Presets.md")},
+			],
+		},
+	];
+}
+
+function installSkill(projectRoot: string, provider: LocalAgentProvider, skill: ManagedSkill): {success: boolean; state: "installed" | "current" | "custom" | "failed"; message?: string} {
+	const dir = provider === "claude-code"
+		? Path(projectRoot, ".claude", "skills", skill.name)
+		: Path(projectRoot, ".agents", "skills", skill.name);
 	const target = Path(dir, "SKILL.md");
-	if (Content.exist(target)) {
+	const targetExisted = Content.exist(target);
+	if (targetExisted) {
 		const existing = Content.load(target);
-		if (existing === skillContent) return {success: true, state: "current"};
-		if (!existing.includes("<!-- dora-managed-skill:v")) {
-			return {success: true, state: "custom", message: "custom Dora skill preserved"};
+		if (!existing.includes("<!-- dora-managed-skill:v") && !existing.includes(MANAGED_SKILL_MARKER)) {
+			return {success: true, state: "custom", message: `custom ${skill.name} skill preserved`};
 		}
 	}
 	if (!Content.exist(dir) && !Content.mkdir(dir)) return {success: false, state: "failed", message: "failed to create Dora skill directory"};
 	const temp = `${target}.tmp`;
-	if (!Content.save(temp, skillContent) || !Content.move(temp, target)) {
+	if (!Content.save(temp, skill.content) || !Content.move(temp, target)) {
 		if (Content.exist(temp)) Content.remove(temp);
-		return {success: false, state: "failed", message: "failed to install Dora skill"};
+		return {success: false, state: "failed", message: `failed to install ${skill.name} skill`};
 	}
-	return {success: true, state: "installed"};
+	for (const resource of skill.resources ?? []) {
+		const content = Content.load(resource.source);
+		if (content === "") return {success: false, state: "failed", message: `failed to load ${skill.name} resource ${resource.source}`};
+		const resourceTarget = Path(dir, resource.target);
+		const resourceDir = Path.getPath(resourceTarget);
+		if (!Content.exist(resourceDir) && !Content.mkdir(resourceDir)) return {success: false, state: "failed", message: `failed to create ${skill.name} resource directory`};
+		const resourceTemp = `${resourceTarget}.tmp`;
+		if (!Content.save(resourceTemp, content) || !Content.move(resourceTemp, resourceTarget)) {
+			if (Content.exist(resourceTemp)) Content.remove(resourceTemp);
+			return {success: false, state: "failed", message: `failed to install ${skill.name} resource`};
+		}
+	}
+	return {success: true, state: targetExisted ? "current" : "installed"};
+}
+
+function ensureSkills(projectRoot: string, provider: LocalAgentProvider): {success: boolean; message?: string} {
+	const skills = loadManagedSkills();
+	if (!skills) return {success: false, message: "failed to load Dora local Agent skills"};
+	for (const skill of skills) {
+		const result = installSkill(projectRoot, provider, skill);
+		if (!result.success) return result;
+	}
+	return {success: true};
 }
 
 function getExternalSession(doraSessionId: number, config: LocalAgentConfig): {resumeId?: string; generation: number} {
 	ensureTables();
 	const rows = DB.query(`SELECT config_id,provider,resume_id,generation FROM ${SESSION_TABLE} WHERE dora_session_id=?`, [doraSessionId]) ?? [];
 	if (rows.length > 0 && tonumber(rows[0][0]) === config.id && tostring(rows[0][1]) === config.provider) {
-		return {resumeId: tostring(rows[0][2]) || undefined, generation: tonumber(rows[0][3]) ?? 1};
+		const storedResumeId = tostring(rows[0][2]);
+		return {resumeId: storedResumeId !== "" ? storedResumeId : undefined, generation: tonumber(rows[0][3]) ?? 1};
 	}
 	DB.exec(`INSERT INTO ${SESSION_TABLE}(dora_session_id,config_id,provider,resume_id,generation,updated_at) VALUES(?,?,?,?,1,?) ON CONFLICT(dora_session_id) DO UPDATE SET config_id=excluded.config_id,provider=excluded.provider,resume_id='',generation=generation+1,abandoned_at=?,updated_at=excluded.updated_at`, [doraSessionId, config.id, config.provider, "", os.time(), os.time()]);
 	return {generation: 1};
@@ -433,9 +526,9 @@ export function run(
 ): LocalAgentRunControl {
 	let stopRequested = false;
 	let handle: number | undefined;
-	const skill = ensureSkill(projectRoot);
-	if (!skill.success) {
-		onDone({success: false, exitCode: -1, message: skill.message ?? "failed to install Dora skill"});
+	const skills = ensureSkills(projectRoot, config.provider);
+	if (!skills.success) {
+		onDone({success: false, exitCode: -1, message: skills.message ?? "failed to install Dora skills"});
 		return {stop() { stopRequested = true; }};
 	}
 	const external = getExternalSession(doraSessionId, config);
@@ -466,7 +559,7 @@ export function run(
 			const commandPrompt = doraCommand.shim
 				? `Dora CLI is available in this Agent environment as \`dora cli\`.\n\n${prompt}`
 				: `For this turn, invoke Dora CLI only with this exact prefix (do not use a bare dora command):\n${doraCommand.command}\n\n${prompt}`;
-			const skillPrompt = resumeId ? commandPrompt : `Use the dora-engine-coding skill for this task.\n\n${commandPrompt}`;
+			const skillPrompt = `Dora project skills available: dora-engine-coding, dora-agent-command, music-generation. Read the relevant skill before using Dora engine commands or generating music.\n\n${commandPrompt}`;
 			const spec = buildSpec(config, projectRoot, skillPrompt, resumeId);
 			spec.env = doraCommand.env;
 			handle = Process.spawn(spec);
@@ -484,7 +577,11 @@ export function run(
 			const startedAt = App.runningTime;
 			let lastProgressNotice = App.runningTime;
 			let retryFresh = false;
+			let protocolFailure: string | undefined;
 			const emitEvent = (event: LocalAgentEvent) => {
+				if (config.provider === "claude-code" && event.raw?.type === "result" && event.raw.is_error === true) {
+					protocolFailure = getString(event.raw, "result", "subtype") ?? "Claude Code reported an error";
+				}
 				if (event.resumeId && event.resumeId !== resumeId) {
 					resumeId = event.resumeId;
 					saveResumeId(doraSessionId, config, resumeId);
@@ -516,7 +613,8 @@ export function run(
 					const exitCode = chunk.exit.exitCode ?? -1;
 					Process.destroy(handle);
 					handle = undefined;
-					if (exitCode !== 0 && external.resumeId && !retriedMissingSession && isMissingExternalSession(diagnostic)) {
+					const failureText = protocolFailure ?? diagnostic;
+					if ((exitCode !== 0 || protocolFailure !== undefined) && external.resumeId && !retriedMissingSession && isMissingExternalSession(failureText)) {
 						retriedMissingSession = true;
 						resumeId = undefined;
 						saveResumeId(doraSessionId, config, "");
@@ -524,7 +622,8 @@ export function run(
 						retryFresh = true;
 						break;
 					}
-					finish({success: exitCode === 0 && !stopRequested, exitCode, message: exitCode === 0 ? "completed" : `local Agent exited with code ${exitCode}`, resumeId, stopped: stopRequested});
+					const success = exitCode === 0 && protocolFailure === undefined && !stopRequested;
+					finish({success, exitCode, message: protocolFailure ?? (exitCode === 0 ? "completed" : `local Agent exited with code ${exitCode}`), resumeId, stopped: stopRequested});
 					return;
 				}
 				if (stopRequested) {
@@ -593,13 +692,19 @@ export function verifyConfig(id: unknown, projectRoot?: unknown): Record<string,
 	};
 	const versionArgs = config.provider === "zcode" ? ["version"] : ["--version"];
 	const versionProbe = runProbe(config, versionArgs, cwd, 15);
-	if (versionProbe.exitCode !== 0) return finish({success: false, code: "DETECT_FAILED", message: versionProbe.stderr || versionProbe.stdout || "version probe failed"});
-	const version = (versionProbe.stdout || versionProbe.stderr).trim().split("\n")[0];
+	if (versionProbe.exitCode !== 0) {
+		const message = versionProbe.stderr !== "" ? versionProbe.stderr : versionProbe.stdout !== "" ? versionProbe.stdout : "version probe failed";
+		return finish({success: false, code: "DETECT_FAILED", message});
+	}
+	const version = (versionProbe.stdout !== "" ? versionProbe.stdout : versionProbe.stderr).trim().split("\n")[0];
 	const prompt = "Reply with exactly DORA_LOCAL_AGENT_OK and do not edit files or run tools.";
 	const spec = buildSpec(config, cwd, prompt);
 	const probe = runProbe(config, spec.args, cwd, 180);
 	const output = `${probe.stdout}\n${probe.stderr}`;
-	if (probe.exitCode !== 0 || !output.includes("DORA_LOCAL_AGENT_OK")) return finish({success: false, code: "VERIFY_FAILED", version, message: output.slice(0, 4000) || `Agent exited with code ${probe.exitCode}`});
+	if (probe.exitCode !== 0 || !output.includes("DORA_LOCAL_AGENT_OK")) {
+		const preview = output.slice(0, 4000);
+		return finish({success: false, code: "VERIFY_FAILED", version, message: preview !== "" ? preview : `Agent exited with code ${probe.exitCode}`});
+	}
 	const fingerprint = `${config.provider}:${config.executable}:${encodeJson(config.extraArgs)}`;
 	DB.exec(`UPDATE ${CONFIG_TABLE} SET verified_at=?,verified_version=?,verified_fingerprint=?,updated_at=? WHERE id=?`, [os.time(), version, fingerprint, os.time(), config.id]);
 	return finish({success: true, version, verifiedAt: os.time()});

@@ -708,7 +708,7 @@ export const deleteLLMConfig = (id: number) => {
 	return post<LLMConfigWriteResponse>("/llm/delete", { id });
 };
 
-export type LocalAgentProvider = "opencode" | "codex" | "zcode";
+export type LocalAgentProvider = "opencode" | "codex" | "zcode" | "claude-code";
 export interface LocalAgentConfigItem {
 	id: number;
 	name: string;

@@ -342,14 +342,14 @@ export function findIndentTolerantReplacement(
 }
 
 function previewText(text: string, maxLen = 200): string {
-	if (!text) return "";
+	if (text === "") return "";
 	const compact = text.replace("\r", "\\r").replace("\n", "\\n");
 	if (compact.length <= maxLen) return compact;
 	return `${compact.slice(0, maxLen)}...`;
 }
 
 export function sanitizeUTF8(text: string): string {
-	if (!text) return "";
+	if (text === "") return "";
 	let remaining = text;
 	let output = "";
 	while (remaining !== "") {
@@ -426,7 +426,7 @@ function utf8TakeTail(text: string, maxChars: number): string {
 }
 
 export function estimateTextTokens(text: string): number {
-	if (!text) return 0;
+	if (text === "") return 0;
 	return App.estimateTokens(text);
 }
 
