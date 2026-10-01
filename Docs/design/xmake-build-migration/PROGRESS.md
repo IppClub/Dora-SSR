@@ -771,6 +771,21 @@ Release/APK/AAB 复验：`xmake dora-package --platform=android --mode=release` 
 - 本地 macOS 验证：contract 9/9、完整 Web IDE 31/31、嵌套目录 Studio 293/293 通过；AppImage 失败入口对应的 `pnpm test:web-runtime-preparation` 及另一个 pnpm 单测入口通过。证据：`build/ci-contract-fixed.log`、`build/ci-webide-fixed.log`、`build/ci-studio-entrypoint-fixed.log`、`build/ci-runtime-preparation-fixed.log`。
 - 两仓 diff check、外部 runner JS syntax 和双方 actionlint 通过。本轮修复尚未提交/推送；Windows 虚拟机 Tools 无法建立执行会话，未声称 Windows 本机复验通过；远端 CI 仍需重跑验收。
 
+### 2026-10-01 / M9 Studio 干净 CI 前置依赖修复
+
+- 第二轮基线 Dora-SSR `27fd2132c` / Dora-Example `a8e0486`：UI CI 已通过入口/契约阶段，随后在 Studio 构建中因未生成 `Assets/Doc/en/Tutorial` 失败（run `36824076363`）。这是干净 checkout 前置条件缺失，不是旧 Node 测试复发。
+- `dora-test --suite=studio` 默认在独立 `build/studio-tests/.xmake-config` 配置 xmake 托管 Emscripten，不编译完整 Player；辅助 Lua 入口从 host-tools 获取 SDK 环境并设置 `STUDIO_EMCC` / `STUDIO_EMXX`，避免下一阶段依赖开发机全局 emcc。
+- 同一入口先执行规范 Docs 生成器，再运行完整 Studio build/test。`-- --no-build` 与 `--list` 不安装 SDK 或重新生成产物，继续要求调用者已有有效构建。
+- 外部测试仓新增真实回归：在没有 Assets/Doc 的临时 checkout 中运行规范教程生成器，检查双语 Lua 教程输出；原有参数顺序和嵌套目录列表回归继续通过。
+- macOS 实测：默认完整 Studio 流程 293/293 通过（含实际 Go race 验收）；入口/干净文档回归 3/3 通过，证据 `build/ci-studio-prerequisites-fixed.log`。本轮修复尚未提交/推送，远端复验待后续提交。
+
+### 2026-10-01 / M9 统一测试 CI 归属
+
+- 按用户最新决定，删除 Dora-Example 的 `.github/workflows/engine-tests.yml`，结束外部测试仓的独立 CI；历史双仓 CI 记录保留追溯，以本条为当前归属。
+- Dora-Example 继续保存测试源与本地 runner，Dora-SSR 保留现有构建、打包及测试工作流并拉取最新测试版本。本次不迁移 GitHub runner 或配置 GPU 测试机。
+- 只改测试仓不会自动触发主仓 CI；需本地验证或手动触发 Dora-SSR 对应 workflow。方案与测试 README 已同步说明该边界。
+- 本次删除的是 workflow 配置，不删除测试代码；可通过 Git 恢复。尚未提交/推送，因此远端已运行的旧任务不受本地删除影响。
+
 每次更新进度时追加一条：
 
 ```text

@@ -33,11 +33,24 @@ for _, name in ipairs({"dora-test", "dora-test-deps"}) do
             if option.get("list") then table.insert(args, "--list") end
             table.insert(args, "--")
             table.join2(args, option.get("arguments") or {})
-            os.execv(node.program, args, {curdir = root, envs = {
+            local test_envs = {
                 DORA_ENGINE_ROOT = root, DORA_TEST_REPO = tests.directory,
                 DORA_TEST_SCRIPTS = tests.scripts, DORA_TEST_WEB = tests.web,
                 DORA_TEST_SHA = tests.sha, DORA_XMAKE = os.programfile()
-            }})
+            }
+            if not option.get("list") and option.get("suite") == "studio"
+                and not table.contains(option.get("arguments") or {}, "--no-build") then
+                local directory = path.join(root, "build/studio-tests")
+                test_envs.XMAKE_CONFIGDIR = path.join(directory, ".xmake-config")
+                os.vrunv(os.programfile(), {"f", "-y", "-p", "wasm", "-a", "wasm32", "-m", "release",
+                    "--builddir=" .. path.join(directory, "build"), "--dora_web_outdir=" .. path.join(directory, "artifacts"),
+                    "--dora_web_engine=n", "--dora_web_link_player=n", "--dora_web_love_probe=n"},
+                    {curdir = root, envs = test_envs})
+                os.execv(os.programfile(), table.join({"lua", "Projects/xmake/testing/studio.lua", node.program}, args),
+                    {curdir = root, envs = test_envs})
+                return
+            end
+            os.execv(node.program, args, {curdir = root, envs = test_envs})
         end)
     task_end()
 end
