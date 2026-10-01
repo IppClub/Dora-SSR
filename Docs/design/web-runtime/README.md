@@ -93,7 +93,7 @@ Workspace 是独立构建产物，不能通过给 Player 无条件加入全部�
 | `web-workspace` | full + 项目导入和编译工具 | Wa、Love 开发工具 | 浏览器内开发和预览 |
 | `love-pthread-player` | Love 11.5 adapter、pthread、`.dora` 导入、IDBFS | 项目最近列表 | 运行需要 `love.thread` 的 Love 项目 |
 
-模块通过 CMake cache 和统一 feature manifest 管理。`DORA_WEB_PROFILE` 可选 `core`、`dora-preset`、`custom`，默认值为 `dora-preset`；`DORA_WEB_FEATURE_PHYSICS_2D`、`DORA_WEB_FEATURE_ENTITY`、`DORA_WEB_FEATURE_PLATFORMER`、`DORA_WEB_FEATURE_BUILTIN_LIBS` 均接受 `AUTO`、`ON`、`OFF`。`AUTO` 跟随所选 profile，显式值用于进一步裁剪；Platformer 配置必须同时启用 Entity 和 2D Physics。构建产物通过 `dora-web-features.json` v2 记录实际能力，浏览器宿主从 `DoraWebPlatform.features` 查询同一对象。
+模块通过 xmake 配置和统一 feature manifest 管理。`DORA_WEB_PROFILE` 可选 `core`、`dora-preset`、`custom`，默认值为 `dora-preset`；`DORA_WEB_FEATURE_PHYSICS_2D`、`DORA_WEB_FEATURE_ENTITY`、`DORA_WEB_FEATURE_PLATFORMER`、`DORA_WEB_FEATURE_BUILTIN_LIBS` 均接受 `AUTO`、`ON`、`OFF`。`AUTO` 跟随所选 profile，显式值用于进一步裁剪；Platformer 配置必须同时启用 Entity 和 2D Physics。构建产物通过 `dora-web-features.json` v2 记录实际能力，浏览器宿主从 `DoraWebPlatform.features` 查询同一对象。
 
 当前 minimal Player 使用共享 Dora API binding 加编译期 guard：裁剪掉的模块不会注册，避免手工维护一套不断漂移的缩减 API。默认 `dora-preset` 包含 Lua 基础库、常用 2D 渲染与动画、输入、音频、Particle、Spine、DragonBones、NanoVG、ImGui、PlayRho 2D、Entity、Platformer、标准 Lua 库及默认字体，并包含 AI Fighter 动态学习所需的 ML 与 Yue 编译器；仍排除 Teal 运行期编译器、Wa/Wasm runtime、LoveNode、3D 物理、3D 节点、视频、Workspace 和 Rust Dora bridge。全部 Dora-Demo 游戏的共享 Player 打包和文档站验证入口见 [GALLERY.md](./GALLERY.md)。普通项目仍优先执行预生成 Lua。
 
@@ -145,45 +145,46 @@ Source/Web/
 
 ### 6.1 可复现构建
 
-Web 构建必须从干净 checkout 完成以下步骤：
+Web 构建由仓库根目录的 `xmake.lua` 和 `Projects/xmake/web/` 统一维护。共享引擎源清单位于 `Projects/xmake/manifests/engine.lua`，Web/Love 源清单与探针位于 `Projects/xmake/web/manifest.lua` 和 `targets.lua`；不再使用独立的 Web/Linux CMake 构建入口。Android Studio 保留由 xmake 导出构建图的 CMake/Gradle/NDK 桥接层，见 [Android 集成说明](../../../Projects/xmake/android/README.md)，不属于 Web 构建链。
 
-1. 固定 Emscripten、Rust、Go、Node 和 CMake 版本。
-2. 运行 `Tools/tolua++/build.sh` 或等价的跨平台绑定生成 target。
-3. 构建 `wasm32-unknown-emscripten` Rust static library。
-4. 按 profile 构建 Dora engine target。
-5. 构建可选的 Wa Worker/WASM。
-6. 生成带内容哈希的资源 manifest。
-7. 检查产物大小、导出符号和禁止依赖。
-8. 启动静态服务器并运行浏览器测试。
+从仓库根目录运行：
 
-Web CMake 不解析 Linux CMake 文件文本来获得源文件。推荐把跨平台源文件定义为共享的 CMake target/source list，再由 Linux 和 Web 平台分别链接。
-
-当前 P0 构建入口会同时生成工具链探针和真实 Dora Web Player：
-
-```bash
-Tools/build-scripts/build_web.sh
-node Tools/build-scripts/check_web_output.mjs result/dora-web-build-probe
-node Tools/build-scripts/check_web_loader.mjs
-node Tools/build-scripts/check_web_package.mjs
-node Tools/build-scripts/check_web_player_output.mjs result/dora-web-player
-node Tools/build-scripts/check_web_forbidden_deps.mjs result/dora-web-player
-node Tools/build-scripts/check_web_browser.mjs result/dora-web-player
+```sh
+xmake dora-web
 ```
+
+默认构建 Release、`dora-preset`、单线程 Player。使用 `--mode=debug`、`--profile=core|dora-preset|custom` 和 `--jobs=N` 调整配置。xmake 管理 Emscripten、Go、Rust/rustup，并自动生成 Lua bindings；主机需有 Python，JavaScript 测试还需 Node.js。Rust static library 仅在启用 MODEL_3D 或 MUSIC 时构建。SDK 解析、隔离构建目录和完整选项见 [Web 构建说明](../../../Projects/xmake/web/README.md)。
+
+工具链探针输出到 `result/dora-web-build-probe`，Player 输出到 `result/dora-web-player`。普通构建不下载测试仓库；需要外置 fixtures 和 Love probes 时使用：
+
+```sh
+xmake dora-web --tests
+xmake dora-test --case=check_web_output -- result/dora-web-build-probe
+xmake dora-test --case=check_web_loader
+xmake dora-test --case=check_web_package
+xmake dora-test --case=check_web_player_output -- result/dora-web-player
+xmake dora-test --case=check_web_forbidden_deps -- result/dora-web-player
+xmake dora-test --case=check_web_browser -- result/dora-web-player
+```
+
+测试脚本和 fixtures 已迁至 [Dora-Example](https://github.com/IppClub/Dora-Example) 的 `Test/BuildScripts/`、`Test/Web/`，由 `Test/manifest.json` 和 `Test/run.mjs` 管理。`xmake dora-test` 支持 `--suite`、`--case`、`--list`、`--repo`，`--` 后的参数传给所选测试。默认解析远端默认分支的最新 HEAD，并使用版本隔离的测试快照；获取失败会报错，不回退到缓存。使用现有本地 checkout 时，可给测试命令传 `--repo=/path/to/Dora-Example`；构建 fixtures 和测试共用本地来源时，设置 `DORA_TEST_REPO=/path/to/Dora-Example`，不会重置该 checkout 的修改。`--list` 仅列出用例，但仍需解析测试仓库和 Node.js。浏览器用例还需要可用的 Chromium/Chrome 及其测试依赖；静态检查不能替代真实浏览器验收。
 
 需要 Love thread 的项目使用独立的正式 player，不改变默认单线程 Dora Player：
 
-```bash
-DORA_WEB_PTHREADS=1 Tools/build-scripts/build_web.sh
-node Tools/build-scripts/check_web_love_player_output.mjs result/love-pthread-player
+```sh
+xmake dora-web --pthreads
+xmake dora-test --case=check_web_love_player_output -- result/love-pthread-player
 ```
+
+`--pthreads` 默认同时构建外置 Love probes 和 Love pthread Player，因此也会解析 Dora-Example 测试仓库；Dora pthread Player 输出到 `result/dora-web-player-pthreads`。
 
 产物位于 `result/love-pthread-player`。页面要求托管端返回
 `Cross-Origin-Opener-Policy: same-origin` 和
 `Cross-Origin-Embedder-Policy: require-corp`；满足 cross-origin isolation 后，用户可选择或拖入含根 `main.lua` 的 `.dora` Love 包。浏览器会在完整 ZIP 路径、大小、CRC、加密、ZIP64、symlink 与私密文件检查后原子安装到 `/user/projects`，项目与 Love 存档通过 IDBFS 持久化。相同内容使用稳定 SHA-256 项目 ID，不会重复解包。正式产物不预载测试游戏，也不包含 Balatro；`DORA_WEB_LOVE_COMPLEX_PACKAGE` 只保留给诊断 probe。
 
-版本锁位于 `Projects/Web/toolchain.env`。本地诊断其他工具链版本时可临时设置 `DORA_WEB_ALLOW_TOOLCHAIN_DRIFT=1`；该开关不得用于 CI 或发布验收。`dora-web-build-probe` 隔离验证工具链和异步队列，`dora-web-player` 则链接真实引擎并运行最小 Lua/DrawNode 场景。当前 Player 仍是功能裁剪中的开发工件，不代表资源、输入、音频和浏览器矩阵已经验收。
+`Projects/Web/toolchain.env` 仅保留兼容性元数据，实际 SDK/主机包解析由 xmake 管理；CI 使用 xmake latest 并记录工具版本，不再使用旧的 `DORA_WEB_ALLOW_TOOLCHAIN_DRIFT` 开关。`dora-web-build-probe` 隔离验证工具链和异步队列，`dora-web-player` 链接真实引擎。构建通过不代表资源、输入、音频和浏览器矩阵已经验收；历史验证结果和剩余门禁见 [开发进度](./PROGRESS.md) 与 [xmake 迁移进度](../xmake-build-migration/PROGRESS.md)。
 
-示例游戏通过 `package_web_game.mjs` 生成内容哈希资产和 v1 manifest。Player 在执行 Dora `main` 前校验 manifest 与启动文件，并挂载到 `/game`；通用 `.data` 只保留 `/builtin` bootstrap，不包含完整 `Assets/` 或游戏内容。构建会先清理受控的打包目录，静态门禁要求 `assets/` 与 manifest 精确一致，防止旧内容哈希文件混入发布包。
+示例游戏通过 `xmake dora-web-game -- <game-dir> <output-dir> [entry]` 生成内容哈希资产和 v1 manifest。Player 在执行 Dora `main` 前校验 manifest 与启动文件，并挂载到 `/game`；通用 `.data` 只保留 `/builtin` bootstrap，不包含完整 `Assets/` 或游戏内容。构建会先清理受控的打包目录，静态门禁要求 `assets/` 与 manifest 精确一致，防止旧内容哈希文件混入发布包。
 
 普通脚本项目按“源码随包、Lua 执行”的方式发布：Lua 文件直接执行；YueScript 与 Teal 在构建前生成 Lua，源文件和生成文件都进入 manifest，浏览器只加载生成 Lua，因此 minimal profile 不需要携带两个编译器。当前兼容集包含 Lua Sprite、YueScript DrawNode 和 Teal Label 三个独立示例；浏览器测试会检查源码/生成来源、唯一完成日志和各自的像素区域。运行期编辑与编译仍属于后续 Web Workspace，不在 Player minimal 能力内。
 
@@ -445,9 +446,9 @@ LoveNode Web 适配建立在稳定的 Dora Web Player 之上：
 4. 建立资源释放、reload 和长时间运行门禁。
 5. 最后使用复杂项目验证兼容覆盖。
 
-`Projects/Web/love-capabilities.json` 是 P5 的机器可读能力基线。它覆盖 `LoveRuntime` 实际注册的 19 个模块，但顶层保持 `available: false`：原生 Dora adapter 存在只证明候选实现，不等于已经进入 Web full profile。CI 同时检查模块完整性、milestone/reason、minimal CMake 排除规则和 `loveNode=false` feature 声明。
+`Projects/Web/love-capabilities.json` 是 P5 的机器可读能力基线。它覆盖 `LoveRuntime` 实际注册的 19 个模块，但顶层保持 `available: false`：原生 Dora adapter 存在只证明候选实现，不等于已经进入 Web full profile。CI 同时检查模块完整性、milestone/reason、minimal xmake 源清单排除规则和 `loveNode=false` feature 声明。
 
-P5-02 已建立独立的非发布运行边界。`DoraLoveSources.cmake` 将 Love runtime/support 与 vendored Box2D 收入可复用静态库，`dora-web-love-compile-probe` 编译完整 `LoveRuntime.cpp` 和视频输入适配，`dora-web-love-link-probe` 再与 Dora engine/Web 链接依赖组成可执行 Wasm；Love module include 使用 target-local `BEFORE` 顺序消除大小写不敏感文件系统上的 `physics/Body.h` 冲突。Love 的平台配置在 `__EMSCRIPTEN__` 下复用 POSIX/Linux 路径并额外定义 `LOVE_EMSCRIPTEN`。标准 Lua fixture 不调用 Dora API，实际验证 Runtime open/configure/start/update/draw/stop/close、load/update/draw 与键鼠触摸回调、2×2 ImageData 像素、TrueType 默认字体 rasterizer、math random generator 和 data SHA-256；Node 与 Chrome 152 均通过，Chrome 连续 20 次 reload 无页面异常。该探针仍不链接进 minimal Player，`loveNode=false` 和顶层 `available=false` 保持不变；filesystem、完整输入矩阵和其余发布门槛继续由后续 P5 项验收。
+P5-02 已建立独立的非发布运行边界。当前 `Projects/xmake/web/manifest.lua` 和 `targets.lua` 将 Love runtime/support 与 vendored Box2D 收入 Web 构建图（取代已删除的 `DoraLoveSources.cmake`），`dora-web-love-compile-probe` 编译完整 `LoveRuntime.cpp` 和视频输入适配，`dora-web-love-link-probe` 再与 Dora engine/Web 链接依赖组成可执行 Wasm；Love module include 使用 target-local `BEFORE` 顺序消除大小写不敏感文件系统上的 `physics/Body.h` 冲突。Love 的平台配置在 `__EMSCRIPTEN__` 下复用 POSIX/Linux 路径并额外定义 `LOVE_EMSCRIPTEN`。标准 Lua fixture 不调用 Dora API，实际验证 Runtime open/configure/start/update/draw/stop/close、load/update/draw 与键鼠触摸回调、2×2 ImageData 像素、TrueType 默认字体 rasterizer、math random generator 和 data SHA-256；Node 与 Chrome 152 均通过，Chrome 连续 20 次 reload 无页面异常。该探针仍不链接进 minimal Player，`loveNode=false` 和顶层 `available=false` 保持不变；filesystem、完整输入矩阵和其余发布门槛继续由后续 P5 项验收。
 
 P5-03 将 Web 启动改为明确的增量契约。Emscripten 下的 `LoveNode` 只在创建时调用 `beginStart()`，随后由场景更新循环以每帧 50,000 条 Lua 指令的预算恢复 `love.load` coroutine；原生平台仍走同步 `start()`。纯 Lua 计算达到预算时由 count hook 自动让出，项目也可在确定的批量加载边界调用 Dora 扩展 `love.bootYield()`。每个加载切片保持 graphics begin/end frame 成对，完成后才进入 update/draw；异常保留 Lua traceback，关闭待完成实例会释放 coroutine。不可让出的长时间原生 C 调用不在自动抢占范围内，仍须使用异步 API 或拆分工作。非发布浏览器 fixture 同时覆盖自动预算、显式让出、错误和 pending-close，并以计时器心跳证明事件循环在加载期间继续前进；Chrome 152 首次运行及 20 次 reload 共 21 次通过，最少 208 个加载切片、269 次心跳，最长约 1.545 秒。`available=false` 与发布 profile 排除保持不变。
 
@@ -484,7 +485,7 @@ P5-09 的 opt-in probe 只有在显式设置 `DORA_WEB_LOVE_COMPLEX_PACKAGE` 且
 - 文件、网络和解码 API 应保持异步，并在等待资源时 yield；长时间原生 C 调用不能由 Lua 指令 hook 抢占。
 - 大型项目可调用 Dora 扩展 `love.bootYield()` 主动划分加载阶段，并须在项目兼容性记录中声明该非标准扩展。
 
-任何 Balatro 验收都必须记录游戏版本、是否修改源码、是否调用 Dora 扩展、测试流程和持续运行时间。当前 P5-08 输入是用户指定的本地 `.dora` 包，来源基线未记录且内容不得随 Dora-SSR 分发；只有设置 `DORA_WEB_LOVE_COMPLEX_PACKAGE` 并通过 `node Tools/build-scripts/check_web_love_complex_input.mjs` 后，才可把后续结果计入 P5-09。
+任何 Balatro 验收都必须记录游戏版本、是否修改源码、是否调用 Dora 扩展、测试流程和持续运行时间。当前 P5-08 输入是用户指定的本地 `.dora` 包，来源基线未记录且内容不得随 Dora-SSR 分发；只有设置 `DORA_WEB_LOVE_COMPLEX_PACKAGE` 并通过 `xmake dora-test --case=check_web_love_complex_input` 后，才可把后续结果计入 P5-09。
 
 ## 16. 安全边界
 
@@ -531,9 +532,9 @@ P4-07 已把预算落实为自动化门禁。`check_web_browser.mjs` 在清空�
 
 ### 18.1 版本目录、缓存与回滚
 
-Web preview 不覆盖已发布文件。`package_web_preview.mjs <player-dir> <deployment-dir> <release-id>` 将完整 Player 复制到不可变的 `releases/<release-id>/`，为每个文件记录大小和 SHA-256，然后才用原子 rename 更新根目录的 `dora-web-current.json`。稳定的 `index.html`/`dora-web-entry.js` 每次以 `no-store` 读取该指针并跳转到版本目录，因此版本切换只依赖一个原子文件。上传顺序必须同样遵循“版本目录全部成功 → current pointer 最后切换”，不得先让入口指向尚未完整上传的目录。
+Web preview 不覆盖已发布文件。`xmake dora-web-preview -- <player-dir> <deployment-dir> <release-id>` 将完整 Player 复制到不可变的 `releases/<release-id>/`，为每个文件记录大小和 SHA-256，然后才用原子 rename 更新根目录的 `dora-web-current.json`。稳定的 `index.html`/`dora-web-entry.js` 每次以 `no-store` 读取该指针并跳转到版本目录，因此版本切换只依赖一个原子文件。上传顺序必须同样遵循“版本目录全部成功 → current pointer 最后切换”，不得先让入口指向尚未完整上传的目录。
 
-根目录的 `dora-web-deployment.json` 是托管契约：入口 loader 和 current pointer 使用 `no-cache`，版本目录使用一年 `immutable`，WASM 必须返回 `application/wasm`，根入口和每个 release 使用各自记录的 CSP。工件自带 `README.md` 与 `README.zh-CN.md`，说明上传顺序、回滚、安全边界和 minimal profile 限制。`check_web_preview.mjs` 会创建两个版本、验证所有哈希、拒绝覆盖既有版本、检查 HTTP 缓存/MIME/CSP 行为并执行一次回滚。`rollback_web_preview.mjs <deployment-dir>` 只原子交换 current/previous 指针，不修改任一不可变版本目录。部署平台必须把该契约转换为自己的 header 配置并在公共 URL 再验证；本地通过不等同于 P4-10 已公开发布。
+根目录的 `dora-web-deployment.json` 是托管契约：入口 loader 和 current pointer 使用 `no-cache`，版本目录使用一年 `immutable`，WASM 必须返回 `application/wasm`，根入口和每个 release 使用各自记录的 CSP。工件自带 `README.md` 与 `README.zh-CN.md`，说明上传顺序、回滚、安全边界和 minimal profile 限制。`check_web_preview.mjs` 会创建两个版本、验证所有哈希、拒绝覆盖既有版本、检查 HTTP 缓存/MIME/CSP 行为并执行一次回滚。`xmake dora-web-rollback -- <deployment-dir>` 只原子交换 current/previous 指针，不修改任一不可变版本目录。部署平台必须把该契约转换为自己的 header 配置并在公共 URL 再验证；本地通过不等同于 P4-10 已公开发布。
 
 ## 19. CI 与验收
 
@@ -582,7 +583,7 @@ P0—P2 完成后即可发布普通 Dora Web 游戏的开发预览；P3—P4 构
 
 | PR | 主要内容 | 明确排除 |
 | --- | --- | --- |
-| 1 | 共享 CMake source target、绑定生成、最小 Emscripten 构建 | IDBFS、Love、Workspace |
+| 1 | 共享 xmake 源清单、绑定生成、最小 Emscripten 构建 | IDBFS、Love、Workspace |
 | 2 | WebApplication、主循环、Canvas、Sprite 冒烟 | 网络、音频、高级渲染 |
 | 3 | manifest、WebContent、Fetch、Cache、存档 | 项目编辑器、Git |
 | 4 | 输入、音频、页面生命周期 | Love shader |
