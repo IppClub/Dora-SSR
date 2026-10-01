@@ -5,8 +5,9 @@ on:
     branches: [ main ]
     paths:
       - 'Assets/Script/Lib/**'
-      - 'Projects/CMake/**'
       - 'Projects/Web/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
       - 'Source/**'
       - 'Tools/build-scripts/build_web.sh'
       - 'Tools/build-scripts/check_web_build_env.sh'
@@ -31,8 +32,9 @@ on:
     branches: [ main ]
     paths:
       - 'Assets/Script/Lib/**'
-      - 'Projects/CMake/**'
       - 'Projects/Web/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
       - 'Source/**'
       - 'Tools/build-scripts/build_web.sh'
       - 'Tools/build-scripts/check_web_build_env.sh'
@@ -67,30 +69,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Setup Emscripten
-        uses: emscripten-core/setup-emsdk@v15
+      - name: Setup xmake
+        uses: xmake-io/github-action-setup-xmake@v1
         with:
-          version: 5.0.5
-          actions-cache-folder: emsdk-cache
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-emscripten
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.3'
+          xmake-version: latest
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '22.14.0'
-      - name: Setup CMake
-        run: |
-          python3 -m venv "$RUNNER_TEMP/cmake-venv"
-          "$RUNNER_TEMP/cmake-venv/bin/python" -m pip install 'cmake==3.30.5'
-          echo "$RUNNER_TEMP/cmake-venv/bin" >> "$GITHUB_PATH"
       - name: Build Web packages
-        run: Tools/build-scripts/build_web.sh
+        run: xmake dora-web
       - name: Verify Web package
         run: node Tools/build-scripts/check_web_output.mjs result/dora-web-build-probe
       - name: Verify Web Player package
@@ -131,32 +119,18 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Setup Emscripten
-        uses: emscripten-core/setup-emsdk@v15
+      - name: Setup xmake
+        uses: xmake-io/github-action-setup-xmake@v1
         with:
-          version: 5.0.5
-          actions-cache-folder: emsdk-cache
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-emscripten
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.3'
+          xmake-version: latest
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '22.14.0'
-      - name: Setup CMake
-        run: |
-          python3 -m venv "$RUNNER_TEMP/cmake-venv"
-          "$RUNNER_TEMP/cmake-venv/bin/python" -m pip install 'cmake==3.30.5'
-          echo "$RUNNER_TEMP/cmake-venv/bin" >> "$GITHUB_PATH"
       - name: Build Love pthread Player
         env:
           DORA_WEB_PTHREADS: 1
-        run: Tools/build-scripts/build_web.sh
+        run: xmake dora-web
       - name: Verify Love pthread Player
         run: node Tools/build-scripts/check_web_love_player_output.mjs result/love-pthread-player
       - name: Upload Love pthread Player

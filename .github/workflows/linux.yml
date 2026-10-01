@@ -10,9 +10,10 @@ on:
       - 'Tools/tolua\+\+/**'
       - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
+      - 'Tools/dora-wa/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
       # Platform-specific code
-      - 'Projects/CMake/**'
-      - 'Projects/Linux/**'
   pull_request:
     branches: [ main ]
     paths:
@@ -21,8 +22,9 @@ on:
       - 'Tools/tolua\+\+/**'
       - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
-      - 'Projects/CMake/**'
-      - 'Projects/Linux/**'
+      - 'Tools/dora-wa/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
   workflow_dispatch:
 
 jobs:
@@ -41,26 +43,19 @@ jobs:
           sudo mv "$chrome_source" "$chrome_source.disabled"
         done
         sudo apt-get update
-        sudo apt-get install -y cmake pkg-config libgl1-mesa-dev libssl-dev libdbus-1-dev \
+        sudo apt-get install -y pkg-config libgl1-mesa-dev libssl-dev libdbus-1-dev \
           libasound2-dev libjack-jackd2-dev libpulse-dev libpipewire-0.3-dev libsamplerate0-dev libsndio-dev \
           libibus-1.0-dev libudev-dev libusb-1.0-0-dev \
           libx11-dev libxext-dev libxcursor-dev libxi-dev libxfixes-dev libxrandr-dev libxrender-dev libxss-dev \
           libdrm-dev libgbm-dev libegl1-mesa-dev libwayland-dev libwayland-bin wayland-protocols \
           libxkbcommon-dev libdecor-0-dev
-    - name: Generate Lua bindings
-      run: |
-        sudo apt-get install lua5.1
-        sudo apt-get install -y luarocks
-        sudo luarocks install luafilesystem
-        cd ./Tools/tolua++
-        lua tolua++.lua
-    - uses: actions/setup-go@v5
-      with:
-        go-version: '1.24.3'
-    - uses: dtolnay/rust-toolchain@stable
     - name: Setup xmake
       uses: xmake-io/github-action-setup-xmake@v1
       with:
-        xmake-version: v2.9.4
-    - name: Make
-      run: Tools/build-scripts/build_linux.sh debug
+        xmake-version: latest
+    - name: Record xmake version
+      run: xmake --version
+    - name: Build Linux debug
+      run: |
+        xmake f -y -p linux -a x86_64 -m debug
+        xmake build Dora

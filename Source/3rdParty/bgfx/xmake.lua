@@ -47,6 +47,15 @@ local function get_embedded_bgfx_shader_sources()
     }
 end
 
+local function write_bin2c_header(fs, pathmod, binutils, sourcefile, outputfile)
+    local source_mtime = fs.mtime(sourcefile)
+    if fs.isfile(outputfile) and fs.mtime(outputfile) >= source_mtime then
+        return
+    end
+    fs.mkdir(pathmod.directory(outputfile))
+    binutils.bin2c(sourcefile, outputfile, {linewidth = 32, nozeroend = true})
+end
+
 local function add_bgfx_renderer_config()
     if is_plat("windows") then
         add_defines("BGFX_CONFIG_RENDERER_DIRECT3D11=1")
@@ -574,10 +583,10 @@ local function add_platform_links()
         -- GENie 脚本中的完整框架列表
         add_frameworks("Cocoa", "IOKit", "OpenGL", "QuartzCore")
         -- Metal 框架使用 weak linking（旧系统可能没有）
-        add_ldflags("-weak_framework", "Metal", "-weak_framework", "MetalKit", {force = true})
+        add_ldflags("-Wl,-weak_framework,Metal", "-Wl,-weak_framework,MetalKit", {force = true})
     elseif is_plat("iphoneos") then
         add_frameworks("Foundation", "QuartzCore", "UIKit")
-        add_ldflags("-weak_framework", "Metal", "-weak_framework", "MetalKit", {force = true})
+        add_ldflags("-Wl,-weak_framework,Metal", "-Wl,-weak_framework,MetalKit", {force = true})
     elseif is_plat("windows") then
         add_syslinks("gdi32", "psapi", "dxgi", "d3d11", "d3d12", "opengl32")
     elseif is_plat("android") then
@@ -1102,17 +1111,11 @@ target("glsl_optimizer")
 target("shaderc-lib")
     set_kind("static")
     add_common_target_settings()
-    add_rules("utils.bin2c", {extensions = {".sh"}})
-    add_files(
-        path.join(BGFX_DIR, "src/bgfx_shader.sh"),
-        path.join(BGFX_DIR, "src/bgfx_compute.sh")
-    )
-    after_build(function (target)
+    before_build(function (target)
+        local binutils = import("core.base.binutils")
         local embedded = get_embedded_bgfx_shader_sources()
-        local autogen_dir = path.join(target:autogendir(), "rules", "utils", "bin2c")
-        os.mkdir(embedded.generated_dir)
-        os.cp(path.join(autogen_dir, "bgfx_shader.sh.h"), embedded.shader_output)
-        os.cp(path.join(autogen_dir, "bgfx_compute.sh.h"), embedded.compute_output)
+        write_bin2c_header(os, path, binutils, path.join(BGFX_DIR, "src/bgfx_shader.sh"), embedded.shader_output)
+        write_bin2c_header(os, path, binutils, path.join(BGFX_DIR, "src/bgfx_compute.sh"), embedded.compute_output)
     end)
 
     if is_plat("windows") then
@@ -1169,7 +1172,11 @@ target("shaderc-lib")
     
     if is_plat("macosx") then
         add_frameworks("Cocoa")
-    elseif is_plat("linux", "android") then
+    elseif is_plat("linux") then
         add_syslinks("pthread")
+        add_cxxflags("-fPIC", {force = true})
+    elseif is_plat("android") then
+        -- Android's pthread API is part of libc; the NDK intentionally does
+        -- not ship a separate libpthread to link with.
         add_cxxflags("-fPIC", {force = true})
     end

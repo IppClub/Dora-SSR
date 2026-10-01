@@ -1,23 +1,14 @@
-set SCRIPT_DIR=%~dp0
-set BUILD_MODE=%~1
-if "%BUILD_MODE%"=="" set BUILD_MODE=debug
-if /I "%BUILD_MODE%"=="--debug" set BUILD_MODE=debug
-if /I "%BUILD_MODE%"=="-d" set BUILD_MODE=debug
-if /I "%BUILD_MODE%"=="--release" set BUILD_MODE=release
-if /I "%BUILD_MODE%"=="-r" set BUILD_MODE=release
-if /I "%BUILD_MODE%"=="release" (
-	set MSBUILD_CONFIGURATION=Release
-) else if /I "%BUILD_MODE%"=="debug" (
-	set MSBUILD_CONFIGURATION=Debug
-) else (
-	echo Usage: %~nx0 [debug^|release]
-	exit /b 1
-)
-
-call "%SCRIPT_DIR%build_lib_windows.bat" %BUILD_MODE%
-if errorlevel 1 exit /b %errorlevel%
-
-msbuild ..\..\Projects\Windows\Dora.sln -p:Configuration=%MSBUILD_CONFIGURATION%
-if errorlevel 1 exit /b %errorlevel%
-
-echo Built APP in 'Projects\Windows\build\%MSBUILD_CONFIGURATION%'
+@echo off
+setlocal
+set "MODE=%~1"
+if "%MODE%"=="" set MODE=debug
+if /I "%MODE%"=="--debug" set MODE=debug
+if /I "%MODE%"=="-d" set MODE=debug
+if /I "%MODE%"=="--release" set MODE=release
+if /I "%MODE%"=="-r" set MODE=release
+pushd "%~dp0..\.."
+if errorlevel 1 exit /b 1
+xmake dora-build --platform=windows --arch=x86 --mode=%MODE%
+set "BUILD_RESULT=%ERRORLEVEL%"
+popd
+exit /b %BUILD_RESULT%

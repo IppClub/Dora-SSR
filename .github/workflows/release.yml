@@ -21,22 +21,10 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Setup Emscripten
-        uses: emscripten-core/setup-emsdk@v15
+      - name: Setup xmake
+        uses: xmake-io/github-action-setup-xmake@v1
         with:
-          version: 5.0.5
-          actions-cache-folder: emsdk-cache
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-emscripten
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.3'
-
+          xmake-version: latest
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
@@ -49,11 +37,6 @@ jobs:
           cache: pnpm
           cache-dependency-path: Tools/dora-dora/pnpm-lock.yaml
 
-      - name: Setup CMake
-        run: |
-          python3 -m venv "$RUNNER_TEMP/cmake-venv"
-          "$RUNNER_TEMP/cmake-venv/bin/python" -m pip install 'cmake==3.30.5'
-          echo "$RUNNER_TEMP/cmake-venv/bin" >> "$GITHUB_PATH"
 
       - name: Build and verify Web IDE
         working-directory: Tools/dora-dora
@@ -105,11 +88,6 @@ jobs:
         with:
           xmake-version: latest
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.3'
-
-      - uses: dtolnay/rust-toolchain@stable
 
       - name: Generate tutorial docs
         run: node Docs/scripts/generate-language-docs.js
@@ -118,11 +96,8 @@ jobs:
         run: |
           cp Tools/dora-wa/wa.mod Assets/dora-wa
           cp -r Tools/dora-wa/vendor Assets/dora-wa
-          Tools/tolua++/build.sh
-          Tools/build-scripts/build_macos.sh release
-          cd Projects/macOS/build/Release/dora.xcarchive/Products/Applications
-          zip -qry Dora.zip Dora.app
-          mv Dora.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-universal.zip"
+          xmake dora-package --platform=macosx --mode=release
+          cp build/package/macosx/release/dora-ssr-macos-universal.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-universal.zip"
 
       - name: Upload macOS package
         uses: actions/upload-artifact@v4
@@ -152,10 +127,6 @@ jobs:
         with:
           xmake-version: latest
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.3'
-
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW32
@@ -171,32 +142,16 @@ jobs:
           echo "${mingw32_bin}" >> "${GITHUB_PATH}"
           echo "CC=${mingw32_gcc}" >> "${GITHUB_ENV}"
 
-      - uses: dtolnay/rust-toolchain@stable
-
-      - name: Setup msbuild
-        uses: microsoft/setup-msbuild@v1.0.2
-
-      - name: Build native release
-        run: Tools\build-scripts\build_windows.bat release
+      - name: Record xmake version
+        run: xmake --version
 
       - name: Generate tutorial docs
         run: node Docs/scripts/generate-language-docs.js
 
       - name: Package Windows
         run: |
-          xcopy Tools\dora-wa\wa.mod Assets\dora-wa\ /I /Y
-          xcopy Tools\dora-wa\vendor Assets\dora-wa\vendor /I /E /Y
-          Push-Location Assets
-          7z a -tzip ..\dora-ssr-windows-x86.zip www dora-wa Audio Doc Font Image gamecontrollerdb.txt LICENSES Script Shader\Love\varying.def.sc
-          Pop-Location
-          Push-Location Projects\Windows\build\Release
-          if (!(Test-Path Dora.exe)) { throw "Dora.exe was not produced by the Windows build" }
-          if (!(Test-Path wa.dll)) { throw "wa.dll was not copied by the Windows build" }
-          7z a -tzip ..\..\..\..\dora-ssr-windows-x86.zip Dora.exe wa.dll
-          Pop-Location
-          if (!(7z l dora-ssr-windows-x86.zip www\web-player\runtime.json | Select-String -SimpleMatch "runtime.json")) { throw "Web export runtime is missing from the Windows package" }
-          if (!(7z l dora-ssr-windows-x86.zip Shader\Love\varying.def.sc | Select-String -SimpleMatch "varying.def.sc")) { throw "Love shader varying definition is missing from the Windows package" }
-          Rename-Item dora-ssr-windows-x86.zip dora-ssr-${{ github.ref_name }}-windows-x86.zip
+          xmake dora-package --platform=windows --mode=release
+          Move-Item build\package\windows\x86\release\dora-ssr-windows-x86.zip dora-ssr-${{ github.ref_name }}-windows-x86.zip
 
       - name: Upload Windows package
         uses: actions/upload-artifact@v4
@@ -227,33 +182,17 @@ jobs:
         with:
           xmake-version: latest
 
-      - name: Generate Lua bindings
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y lua5.1 luarocks
-          sudo luarocks install luafilesystem
-          cd Tools/tolua++
-          lua tolua++.lua
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.3'
-
-      - name: Setup gomobile
-        run: |
-          go install golang.org/x/mobile/cmd/gomobile@v0.0.0-20250606033058-a2a15c67f36f
-          gomobile init
-
-      - uses: dtolnay/rust-toolchain@stable
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: '17'
 
-      - name: Build native libraries
-        run: Tools/build-scripts/build_lib_android.sh release
+      - name: Install Android native toolchain
+        run: sdkmanager --install 'ndk;26.1.10909125' 'cmake;3.22.1' 'platforms;android-34' 'build-tools;34.0.0'
+
+      - name: Record xmake version
+        run: xmake --version
 
       - name: Generate tutorial docs
         run: node Docs/scripts/generate-language-docs.js
@@ -266,15 +205,12 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           echo "$KEYSTORE_B64" | base64 -d > "$GITHUB_WORKSPACE/signing-key.jks"
-          cp Tools/dora-wa/wa.mod Assets/dora-wa
-          cp -r Tools/dora-wa/vendor Assets/dora-wa
-          cd Projects/Android/Dora
-          ./gradlew assembleRelease \
-            "-Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/signing-key.jks" \
-            "-Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD" \
-            "-Pandroid.injected.signing.key.alias=$KEY_ALIAS" \
-            "-Pandroid.injected.signing.key.password=$KEY_PASSWORD"
-          cd app/build/outputs/apk/release
+          DORA_ANDROID_SIGNING_STORE_FILE="$GITHUB_WORKSPACE/signing-key.jks" \
+          DORA_ANDROID_SIGNING_STORE_PASSWORD="$KEYSTORE_PASSWORD" \
+          DORA_ANDROID_SIGNING_KEY_ALIAS="$KEY_ALIAS" \
+          DORA_ANDROID_SIGNING_KEY_PASSWORD="$KEY_PASSWORD" \
+            xmake dora-package --platform=android --mode=release
+          cd Projects/Android/Dora/app/build/outputs/apk/release
           mv app-release.apk dora-ssr-${{ github.ref_name }}-android.apk
           unzip -l dora-ssr-${{ github.ref_name }}-android.apk | grep -F 'assets/www/web-player/runtime.json'
           zip -q dora-ssr-${{ github.ref_name }}-android.zip dora-ssr-${{ github.ref_name }}-android.apk
@@ -296,8 +232,10 @@ jobs:
       matrix:
         include:
           - arch: x86_64
+            xmake_arch: x86_64
             runner: ubuntu-22.04
           - arch: aarch64
+            xmake_arch: arm64
             runner: ubuntu-22.04-arm
     runs-on: ${{ matrix.runner }}
     steps:
@@ -318,41 +256,33 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake pkg-config patchelf pax-utils curl \
+          sudo apt-get install -y pkg-config patchelf pax-utils curl \
             libgl1-mesa-dev libssl-dev libdbus-1-dev libasound2-dev \
             libjack-jackd2-dev libpulse-dev libpipewire-0.3-dev \
             libsamplerate0-dev libsndio-dev libibus-1.0-dev libudev-dev \
             libusb-1.0-0-dev libx11-dev libxext-dev libxcursor-dev libxi-dev \
             libxfixes-dev libxrandr-dev libxrender-dev libxss-dev libdrm-dev \
             libgbm-dev libegl1-mesa-dev libwayland-dev libwayland-bin \
-            wayland-protocols libxkbcommon-dev libdecor-0-dev lua5.1 luarocks
-          sudo luarocks install luafilesystem
-
-      - name: Generate Lua bindings
-        run: |
-          cd Tools/tolua++
-          lua tolua++.lua
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.3'
-
-      - uses: dtolnay/rust-toolchain@stable
+            wayland-protocols libxkbcommon-dev libdecor-0-dev
 
       - uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
 
+      - name: Record xmake version
+        run: xmake --version
+
       - name: Generate tutorial docs
         run: node Docs/scripts/generate-language-docs.js
-
-      - name: Build Linux release
-        run: Tools/build-scripts/build_linux.sh release
 
       - name: Package AppImage
         env:
           APPIMAGE_ARCH: ${{ matrix.arch }}
-        run: Tools/build-scripts/package_appimage.sh "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-linux-${{ matrix.arch }}.AppImage"
+          XMAKE_ARCH: ${{ matrix.xmake_arch }}
+        run: |
+          xmake dora-package --platform=linux --arch="$XMAKE_ARCH" --mode=release
+          cp "build/package/linux/$XMAKE_ARCH/release/dora-ssr-linux-${APPIMAGE_ARCH}.AppImage" \
+            "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-linux-${APPIMAGE_ARCH}.AppImage"
 
       - name: Upload Linux package
         uses: actions/upload-artifact@v4

@@ -86,14 +86,25 @@ class Cdp {
 		});
 		this.socket.addEventListener("message", (event) => {
 			const message = JSON.parse(event.data), pending = this.pending.get(message.id);
+			if (process.env.DORA_WEB_SMOKE_LOG === "1" && message.method === "Runtime.consoleAPICalled")
+				console.log("[BROWSER]", message.params.args.map((arg) => arg.value ?? arg.description).join(" "));
+			if (message.method === "Runtime.exceptionThrown")
+				console.error("[BROWSER]", message.params.exceptionDetails.exception?.description || message.params.exceptionDetails.text);
 			if (!pending) return;
 			this.pending.delete(message.id);
+			clearTimeout(pending.timer);
 			message.error ? pending.reject(new Error(message.error.message)) : pending.resolve(message.result);
 		});
 	}
 	async send(method, params = {}) {
 		await this.ready;
-		const id = ++this.id, result = new Promise((resolve, reject) => this.pending.set(id, {resolve, reject}));
+		const id = ++this.id, result = new Promise((resolve, reject) => {
+			const timer = setTimeout(() => {
+				this.pending.delete(id);
+				reject(new Error(`CDP request timed out: ${method}`));
+			}, 15000);
+			this.pending.set(id, {resolve, reject, timer});
+		});
 		this.socket.send(JSON.stringify({id, method, params}));
 		return result;
 	}
@@ -164,7 +175,7 @@ try {
 		(value) => !value.busy && !value.running && value.status === 3 && value.faulted === "true", "failed project cleanup");
 	assert.match(recovered.message, /does not exist/i);
 	assert.equal(await evaluate("DoraLovePthreadPlayer.startProject(DoraLovePthreadPlayer.state.projects[0])"), true);
-	await waitFor(() => evaluate("DoraLovePthreadPlayer.state.running"), Boolean, "project restart after failure");
+	await waitFor(() => evaluate(`({running:DoraLovePthreadPlayer.state.running,busy:DoraLovePthreadPlayer.state.busy,message:document.getElementById('player-status').textContent})`), (value) => value.running, "project restart after failure");
 	assert.equal(await evaluate("DoraLovePthreadPlayer.stopProject()"), true);
 	console.log(`[INFO] Love pthread Player browser import/start/stop passed: ${running.project}`);
 } finally {

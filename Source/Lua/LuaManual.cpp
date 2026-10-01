@@ -29,8 +29,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 extern "C" {
 int colibc_json_decode(lua_State* L);
 int colibc_json_encode(lua_State* L);
+#if !defined(DORA_WEB_MINIMAL) || defined(DORA_WEB_MUSIC)
 char* dora_music_render(const char* requestJson, const char* soundFontPath, void (*progress)(float, void*), void* userData);
 void dora_music_string_free(char* value);
+#endif
 }
 
 NS_DORA_BEGIN
@@ -71,6 +73,7 @@ void pushProcessExitInfo(lua_State* L, const DoraXrtProcessReadResult& info) {
 	}
 }
 
+#if !defined(DORA_WEB_MINIMAL) || defined(DORA_WEB_MUSIC)
 struct MusicRenderProgress {
 	std::atomic<float> value{0.0f};
 	std::atomic_bool finished{false};
@@ -128,6 +131,7 @@ std::string resolveMusicSoundFontPath(const std::string& request) {
 	return SharedContent.getFullPath(
 		std::string(file.GetString(), file.GetStringLength()));
 }
+#endif
 
 } // namespace
 
@@ -284,6 +288,7 @@ int Process_destroy(lua_State* L) {
 #endif
 }
 
+#if !defined(DORA_WEB_MINIMAL) || defined(DORA_WEB_MUSIC)
 int dora_audio_render_music_async(lua_State* L) {
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
@@ -357,6 +362,7 @@ tolua_lerror:
 	return 0;
 #endif
 }
+#endif
 
 /* Event */
 

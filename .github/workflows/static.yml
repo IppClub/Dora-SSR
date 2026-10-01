@@ -10,8 +10,9 @@ on:
       - 'Docs/**'
       - 'Assets/**'
       - 'Source/**'
-      - 'Projects/CMake/**'
       - 'Projects/Web/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
       - 'Tools/build-scripts/**'
       - 'Tools/tolua\+\+/**'
       - '.github/workflows/static.yml'
@@ -21,8 +22,9 @@ on:
       - 'Docs/**'
       - 'Assets/**'
       - 'Source/**'
-      - 'Projects/CMake/**'
       - 'Projects/Web/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
       - 'Tools/build-scripts/**'
       - 'Tools/tolua\+\+/**'
       - '.github/workflows/static.yml'
@@ -52,30 +54,17 @@ jobs:
         uses: pnpm/action-setup@v6
         with:
           package_json_file: 'Docs/package.json'
-      - name: Setup Emscripten
-        uses: emscripten-core/setup-emsdk@v15
+      - name: Setup xmake
+        uses: xmake-io/github-action-setup-xmake@v1
         with:
-          version: 5.0.5
-          actions-cache-folder: emsdk-cache
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-emscripten
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.3'
+          xmake-version: latest
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22.14.0'
           cache: 'pnpm'
           cache-dependency-path: 'Docs/pnpm-lock.yaml'
-      - name: Setup CMake
-        run: |
-          python3 -m venv "$RUNNER_TEMP/cmake-venv"
-          "$RUNNER_TEMP/cmake-venv/bin/python" -m pip install 'cmake==3.30.5'
-          echo "$RUNNER_TEMP/cmake-venv/bin" >> "$GITHUB_PATH"
       - name: Build shared Web Player and all latest demos
         run: |
           node Tools/build-scripts/test_web_gallery.mjs

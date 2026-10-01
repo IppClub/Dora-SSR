@@ -6,13 +6,15 @@ import path from "node:path";
 import {spawn} from "node:child_process";
 
 const galleryMode = process.argv[2] === '--gallery';
+const expectedProfile = process.env.DORA_WEB_SMOKE_PROFILE || "dora-preset";
+assert.ok(["core", "dora-preset", "custom"].includes(expectedProfile), "Invalid expected Web smoke profile");
 const roots = process.argv.slice(galleryMode ? 3 : 2).map((item) => path.resolve(item));
 if (roots.length === 0) throw new Error("usage: check_web_game_smoke.mjs <player-dir> [...]");
 for (const root of roots) {
 	if (galleryMode) continue;
 	assert.ok(fs.statSync(path.join(root, "index.html"), {throwIfNoEntry: false})?.isFile(), `Web Player is missing: ${root}`);
 	const manifest = JSON.parse(fs.readFileSync(path.join(root, "dora-web-manifest.json"), "utf8"));
-	assert.equal(manifest.profile, "dora-preset", `${root} does not use the default Dora preset`);
+    assert.equal(manifest.profile, expectedProfile, `${root} does not use the expected Web profile`);
 }
 
 function chromeExecutable() {

@@ -4,10 +4,37 @@ local IOS_TARGET_MINVER = "13.0"
 
 set_project("sdl2")
 set_version(SDL_VERSION)
-set_languages("c11", "cxx17")
+if is_plat("android") then
+    -- Android's hidapi backend contains one genuine C++ translation unit.
+    set_languages("c11", "cxx17")
+else
+    set_languages("c11")
+end
 add_rules("mode.debug", "mode.release")
 
 local SDL_DIR = os.scriptdir()
+
+rule("sdl2.wayland-protocols")
+    on_load(function (target)
+        if not target:is_plat("linux") then
+            return
+        end
+        import("lib.detect.find_tool")
+        local scanner = find_tool("wayland-scanner")
+        assert(scanner, "wayland-scanner is required to build Dora's vendored SDL2 on Linux")
+        local output_dir = path.join(os.projectdir(), "build/autogen/SDL2/wayland")
+        os.mkdir(output_dir)
+        for _, xml in ipairs(os.files(path.join(SDL_DIR, "wayland-protocols/*.xml"))) do
+            local basename = path.basename(xml)
+            local header = path.join(output_dir, basename .. "-client-protocol.h")
+            local source = path.join(output_dir, basename .. "-protocol.c")
+            os.execv(scanner.program, {"client-header", xml, header})
+            os.execv(scanner.program, {"private-code", xml, source})
+            target:add("files", source)
+        end
+        target:add("includedirs", output_dir)
+    end)
+rule_end()
 
 local function add_source_includes()
     add_includedirs("include", "src", {public = true})
@@ -67,7 +94,7 @@ local function add_apple_common_sources()
         "src/thread/pthread/*.c",
         "src/timer/unix/*.c"
     )
-    add_frameworks("AudioToolbox", "AVFoundation", "CoreAudio", "CoreFoundation", "CoreGraphics", "CoreHaptics", "CoreVideo", "ForceFeedback", "GameController", "IOKit", "Metal", "QuartzCore")
+    add_frameworks("AudioToolbox", "AVFoundation", "CoreAudio", "CoreFoundation", "CoreGraphics", "CoreHaptics", "CoreVideo", "GameController", "Metal", "QuartzCore")
 end
 
 local function add_macos_sources()
@@ -79,7 +106,7 @@ local function add_macos_sources()
         "src/misc/macosx/*.m",
         "src/video/cocoa/*.m"
     )
-    add_frameworks("AppKit", "Carbon", "Cocoa")
+    add_frameworks("AppKit", "Carbon", "Cocoa", "ForceFeedback", "IOKit")
 end
 
 local function add_ios_sources()
@@ -164,7 +191,72 @@ local function add_windows_sources()
         "src/video/windows/*.c"
     )
     add_defines("WIN32", "_WINDOWS", "_CRT_SECURE_NO_WARNINGS", "SDL_MAIN_HANDLED")
+    add_cxflags("/utf-8", {tools = "cl", force = true})
     add_syslinks("advapi32", "cfgmgr32", "dinput8", "dxguid", "gdi32", "imm32", "ole32", "oleaut32", "setupapi", "shell32", "user32", "uuid", "version", "winmm")
+end
+
+local function add_linux_sources()
+    add_defines("HAVE_GCC_ATOMICS=1", "HAVE_LINUX_INPUT_H=1")
+    add_files(
+        "src/audio/alsa/*.c",
+        "src/audio/pipewire/*.c",
+        "src/audio/pulseaudio/*.c",
+        "src/core/unix/*.c",
+        "src/core/linux/SDL_dbus.c",
+        "src/core/linux/SDL_evdev.c",
+        "src/core/linux/SDL_evdev_capabilities.c",
+        "src/core/linux/SDL_evdev_kbd.c",
+        "src/core/linux/SDL_fcitx.c",
+        "src/core/linux/SDL_ime.c",
+        "src/core/linux/SDL_sandbox.c",
+        "src/core/linux/SDL_threadprio.c",
+        "src/filesystem/unix/*.c",
+        "src/haptic/linux/*.c",
+        "src/hidapi/SDL_hidapi.c",
+        "src/joystick/linux/*.c",
+        "src/joystick/steam/*.c",
+        "src/loadso/dlopen/*.c",
+        "src/locale/unix/*.c",
+        "src/misc/unix/*.c",
+        "src/power/linux/*.c",
+        "src/render/opengl/*.c",
+        "src/render/opengles/*.c",
+        "src/render/opengles2/*.c",
+        "src/thread/pthread/*.c",
+        "src/timer/unix/*.c",
+        "src/video/wayland/*.c",
+        "src/video/x11/*.c"
+    )
+    local linux_triplet = is_arch("arm64", "aarch64") and "aarch64-linux-gnu" or "x86_64-linux-gnu"
+    add_includedirs(
+        "/usr/include/dbus-1.0",
+        "/usr/include/libdecor-0",
+        "/usr/include/pipewire-0.3",
+        "/usr/include/spa-0.2",
+        path.join("/usr/lib", linux_triplet, "dbus-1.0/include")
+    )
+    add_rules("sdl2.wayland-protocols")
+    add_syslinks("dl", "m", "pthread", "rt")
+end
+
+local function add_emscripten_sources()
+    add_files(
+        "src/audio/emscripten/*.c",
+        "src/filesystem/emscripten/*.c",
+        "src/joystick/emscripten/*.c",
+        "src/loadso/dlopen/*.c",
+        "src/locale/emscripten/*.c",
+        "src/misc/emscripten/*.c",
+        "src/power/emscripten/*.c",
+        "src/render/opengles2/*.c",
+        "src/timer/unix/*.c",
+        "src/video/emscripten/*.c"
+    )
+    if has_config("dora_web_pthreads") then
+        add_files("src/thread/pthread/*.c")
+        add_cxflags("-pthread", {force = true})
+    end
+    add_cxflags("-Wno-warn-absolute-paths", {force = true})
 end
 
 local function add_platform_sources()
@@ -176,10 +268,14 @@ local function add_platform_sources()
         add_android_sources()
     elseif is_plat("windows") then
         add_windows_sources()
+    elseif is_plat("linux") then
+        add_linux_sources()
+    elseif is_plat("wasm") then
+        add_emscripten_sources()
     else
         local plat = get_config("plat")
         if plat then
-            raise("Unsupported SDL2 platform for Dora: %s", plat)
+            assert(false, string.format("Unsupported SDL2 platform for Dora: %s", plat))
         end
     end
 end

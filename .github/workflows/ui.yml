@@ -9,6 +9,8 @@ on:
       - 'Studio/packages/compiler/**'
       - 'Studio/packages/tstl/**'
       - 'Projects/Web/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
       - 'Source/**'
       - 'Tools/build-scripts/build_web.sh'
       - 'Tools/build-scripts/check_web_build_env.sh'
@@ -20,6 +22,8 @@ on:
       - 'Studio/packages/compiler/**'
       - 'Studio/packages/tstl/**'
       - 'Projects/Web/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
       - 'Source/**'
       - 'Tools/build-scripts/build_web.sh'
       - 'Tools/build-scripts/check_web_build_env.sh'
@@ -47,27 +51,10 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: 'Tools/dora-dora/pnpm-lock.yaml'
 
-      - name: Setup Emscripten
-        uses: emscripten-core/setup-emsdk@v15
+      - name: Setup xmake
+        uses: xmake-io/github-action-setup-xmake@v1
         with:
-          version: 5.0.5
-          actions-cache-folder: emsdk-cache
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-emscripten
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.3'
-
-      - name: Setup CMake
-        run: |
-          python3 -m venv "$RUNNER_TEMP/cmake-venv"
-          "$RUNNER_TEMP/cmake-venv/bin/python" -m pip install 'cmake==3.30.5'
-          echo "$RUNNER_TEMP/cmake-venv/bin" >> "$GITHUB_PATH"
+          xmake-version: latest
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

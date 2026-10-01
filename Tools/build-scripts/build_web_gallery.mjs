@@ -20,18 +20,12 @@ if (!process.env.DORA_DEMO_DIR) {
 const build = path.resolve(process.env.DORA_WEB_BUILD_DIR || path.join(root, 'build/web'));
 const requiredFeatures = ['PHYSICS_2D', 'ENTITY', 'PLATFORMER', 'BUILTIN_LIBS', 'ML', 'YUE', 'MODEL_3D'];
 const builtinFont = path.join(root, 'Assets/Font/sarasa-mono-sc-regular.ttf');
-if (!fs.existsSync(path.join(build, 'CMakeCache.txt'))) {
-	execFileSync('bash', ['Tools/build-scripts/build_web.sh'], {cwd: root, stdio: 'inherit', env: {...process.env,
-		DORA_WEB_BUILD_ENGINE: '1', DORA_WEB_LINK_PLAYER: '1', DORA_WEB_BUILD_LOVE_PROBE: '0', DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER: '0', DORA_WEB_PTHREADS: '0', DORA_WEB_PROFILE: 'dora-preset',
-		DORA_WEB_BUILTIN_FONT: builtinFont,
-		...Object.fromEntries(requiredFeatures.map(feature => [`DORA_WEB_FEATURE_${feature}`, 'ON']))}});
-} else {
-	// Reconfigure existing caches too: the gallery requires every demo capability.
-	run('cmake', ['-S', path.join(root, 'Projects/Web'), '-B', build, '-DDORA_WEB_BUILD_ENGINE=ON', '-DDORA_WEB_LINK_PLAYER=ON', '-DDORA_WEB_PTHREADS=OFF', '-DDORA_WEB_PROFILE=dora-preset',
-		...requiredFeatures.map(feature => `-DDORA_WEB_FEATURE_${feature}=ON`),
-		`-DDORA_WEB_BUILTIN_FONT=${builtinFont}`]);
-	run('cmake', ['--build', build, '--target', 'dora-web-player', '-j', process.env.DORA_WEB_JOBS || '8']);
-}
+// Reconfigure every invocation; xmake handles incremental builds and profile isolation.
+execFileSync('xmake', ['dora-web', '--jobs', process.env.DORA_WEB_JOBS || '8'], {cwd: root, stdio: 'inherit', env: {...process.env,
+  DORA_WEB_BUILD_DIR: build,
+  DORA_WEB_BUILD_ENGINE: '1', DORA_WEB_LINK_PLAYER: '1', DORA_WEB_BUILD_LOVE_PROBE: '0', DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER: '0', DORA_WEB_PTHREADS: '0', DORA_WEB_PROFILE: 'dora-preset',
+  DORA_WEB_FEATURE_LOVE: 'OFF', DORA_WEB_FEATURE_MUSIC: 'OFF', DORA_WEB_BUILTIN_FONT: builtinFont,
+  ...Object.fromEntries(requiredFeatures.map(feature => [`DORA_WEB_FEATURE_${feature}`, 'ON']))}});
 const features = JSON.parse(fs.readFileSync(path.join(build, 'dora-web-features.json')));
 if (features.activeProfile !== 'dora-preset' || features.modules.crossOriginIsolationRequired
 	|| !features.modules.machineLearning || !features.modules.yueCompiler

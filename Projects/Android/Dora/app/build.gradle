@@ -1,5 +1,29 @@
 apply plugin: 'com.android.application'
 
+// Studio launched from Finder may not inherit Homebrew's PATH. Explicit
+// overrides also support Windows/Linux and CI without a machine-specific path.
+def xmakeExecutable = project.findProperty('dora.xmake') ?: System.getenv('DORA_XMAKE')
+if (!xmakeExecutable) {
+	def names = System.getProperty('os.name').startsWith('Windows') ? ['xmake.exe'] : ['xmake']
+	def directories = (System.getenv('PATH') ?: '').split(File.pathSeparator).toList()
+	directories.addAll(['/opt/homebrew/bin', '/usr/local/bin'])
+	xmakeExecutable = directories.collectMany { directory -> names.collect { new File(directory, it) } }
+		.find { it.isFile() }?.absolutePath
+}
+if (!xmakeExecutable || !new File(xmakeExecutable.toString()).isFile()) {
+	throw new GradleException('Install xmake or set DORA_XMAKE / -Pdora.xmake to its executable path')
+}
+def doraAbis = (project.findProperty('dora.android.abis') ?: 'armeabi-v7a,arm64-v8a,x86_64')
+	.toString().split(',').collect { it.trim() }
+if (doraAbis.isEmpty() || !doraAbis.every { it in ['armeabi-v7a', 'arm64-v8a', 'x86_64'] }) {
+	throw new GradleException('dora.android.abis must contain supported Dora Android ABIs')
+}
+
+def prepareXmakeAndroid = tasks.register('prepareXmakeAndroid', Exec) {
+	workingDir rootProject.file('../../..')
+	commandLine xmakeExecutable, 'dora-android-prepare', "--sdk=${android.sdkDirectory}"
+}
+
 android {
 	compileSdk 34
 	buildToolsVersion = '34.0.0'
@@ -10,11 +34,13 @@ android {
 		versionCode 121
 		versionName "1.9.3"
 		testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+		ndk {
+			abiFilters.addAll(doraAbis)
+		}
 		externalNativeBuild {
 			cmake {
-				arguments "-DANDROID_STL=c++_shared", "-DANDROID_ARM_NEON=TRUE"
-				abiFilters "armeabi-v7a", "arm64-v8a", "x86_64"
-				cppFlags "-std=c++20", "-frtti", "-fexceptions", "-Wno-deprecated-declarations"
+				arguments '-DANDROID_STL=c++_shared', "-DDORA_XMAKE=${xmakeExecutable}"
+				targets 'Dora', 'SDL2'
 			}
 		}
 		javaCompileOptions
@@ -27,15 +53,12 @@ android {
 	}
 	externalNativeBuild {
 		cmake {
-			path "CMakeLists.txt"
+			path 'CMakeLists.txt'
+			version '3.22.1'
 		}
 	}
 	sourceSets {
-		main {
-			jniLibs.srcDirs = [
-				'../../../../Source/3rdParty/SDL2/Lib/Android',
-			]
-		}
+		main.assets.srcDirs = [rootProject.file('../../../Assets')]
 	}
 	packagingOptions {
 		jniLibs {
@@ -53,9 +76,20 @@ android {
 	namespace 'org.ippclub.dorassr'
 }
 
+// AGP's Studio model resolves local AARs without executing their builtBy tasks.
+// Bootstrap only a missing artifact so a clean checkout can Sync immediately.
+// Normal builds still run prepareXmakeAndroid to pick up Go/module changes.
+if (!file("$buildDir/xmake-aar/wa.aar").isFile()) {
+	logger.lifecycle('Preparing xmake-managed Android Wa runtime for Gradle Sync')
+	project.exec {
+		workingDir rootProject.file('../../..')
+		commandLine xmakeExecutable, 'dora-android-prepare', "--sdk=${android.sdkDirectory}"
+	}
+}
+
 dependencies {
 	implementation fileTree(include: ['*.jar'], dir: 'libs')
-	implementation fileTree(include: ['*.aar'], dir: '../../../../Source/3rdParty/Wa/Lib/Android')
+	implementation files("$buildDir/xmake-aar/wa.aar").builtBy(prepareXmakeAndroid)
 	androidTestImplementation('androidx.test.ext:junit:1.1.5')
 	androidTestImplementation('androidx.test.espresso:espresso-core:3.4.0', {
 		exclude group: 'com.android.support', module: 'support-annotations'
@@ -64,4 +98,10 @@ dependencies {
 	implementation "androidx.appcompat:appcompat:$appcompat_version"
 	implementation "androidx.appcompat:appcompat-resources:$appcompat_version"
 	testImplementation 'junit:junit:4.13.2'
+}
+
+tasks.configureEach {
+	if (name == 'preBuild') {
+		dependsOn prepareXmakeAndroid
+	}
 }

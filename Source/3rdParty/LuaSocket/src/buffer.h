@@ -16,7 +16,7 @@
 * timeout management is done with the timeout.h interface.
 \*=========================================================================*/
 #include "luasocket.h"
-#include "io.h"
+#include "luasocket_io.h"
 #include "timeout.h"
 
 /* buffer size in bytes */

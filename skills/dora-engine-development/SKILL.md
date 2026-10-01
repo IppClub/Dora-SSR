@@ -181,9 +181,9 @@ When dev-service state is suspect, restore service health first, then rerun the 
 
 Prefer the repo's wrapper scripts over entering third-party subdirectories manually.
 
-- Fast local desktop loop: use `Tools/build-scripts/run_macos.sh`, `Tools\build-scripts\run_windows.bat`, or `Tools/build-scripts/run_linux.sh`. These check tools, build missing native dependencies, rebuild the Rust runtime and app, stop the old Dora process, and launch the Debug runtime with the repo `Assets`.
+- Fast local desktop loop: use `xmake dora-run` or the compatibility `run_macos.sh`/`run_windows.bat`/`run_linux.sh` scripts. The xmake graph manages tool packages, vendor libraries, generated bindings and runtimes, then launches with repository `Assets`; it does not forcibly terminate other Dora processes.
 - Platform app build without launching: use `Tools/build-scripts/build_macos.sh`, `build_windows.bat`, `build_linux.sh`, `build_android.sh`, or `build_ios.sh` with `debug` or `release`.
-- Native dependency rebuilds: use `Tools/build-scripts/build_lib_<platform>.*`. These are for missing/stale dependencies, CI/release preparation, or explicit dependency work.
+- Native dependency work: configure the intended platform and build its xmake targets (`SDL2`, `bgfx`, `love`, `dora-rust-runtime`, `dora-wa-runtime`); old `build_lib_*` scripts have been removed. Use `xmake dora-package` for distribution and `xmake dora-ide` for ignored IDE projects under `build/ide/`.
 - Do not manually build bgfx, SDL2, Wa, or Rust runtime from their nested directories unless the wrapper script is the thing being debugged.
 
 When validating a local engine change, choose the script for the platform actually affected. Do not run expensive cross-platform builds unless the change touches shared build logic or release packaging.

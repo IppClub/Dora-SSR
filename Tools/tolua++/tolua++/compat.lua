@@ -195,14 +195,14 @@ function writeto(name)
 		_OUTPUT = io.stdout
 		return f, err, cod
 	else
-		local f, err, cod = io.open(name, "w")
+		local f, err, cod = io.open(name, "wb")
 		_OUTPUT = f or _OUTPUT
 		return f, err, cod
 	end
 end
 
 function appendto(name)
-	local f, err, cod = io.open(name, "a")
+	local f, err, cod = io.open(name, "ab")
 	_OUTPUT = f or _OUTPUT
 	return f, err, cod
 end
@@ -224,4 +224,3 @@ function write(...)
 	end
 	return f:write(unpack(args))
 end
-

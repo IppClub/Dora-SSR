@@ -50,7 +50,9 @@ local function configure_luasocket_target()
 end
 
 target("luasocket-objects")
-    set_kind("object")
+    -- Xcode project generation needs a concrete product kind; the generated
+    -- build phase invokes normal xmake, which restores the object kind.
+    set_kind(os.getenv("XMAKE_IN_PROJECT_GENERATOR") and "static" or "object")
     configure_luasocket_target()
 
 target("luasocket")

@@ -60,6 +60,8 @@
 	}
 
 	global.doraLoveAudioSnapshot = function() {
+		// pre-js installs this function before Wasm exports are initialized.
+		if (!probe.started) return null;
 		const context = Module.doraAudio?.ready ? Module.doraAudio.context : Module.SDL2?.audioContext;
 		return {
 			state: call("dora_web_love_audio_probe_status"),

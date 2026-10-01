@@ -3,7 +3,7 @@
 * LuaSocket toolkit
 \*=========================================================================*/
 #include "luasocket.h"
-#include "io.h"
+#include "luasocket_io.h"
 
 /*-------------------------------------------------------------------------*\
 * Initializes C structure

@@ -14,8 +14,10 @@ on:
       - 'Tools/dora-dora/**'
       - 'Tools/dora-wa/**'
       - 'Assets/**'
-      - 'Projects/Linux/**'
-      - 'packaging/appimage/**'
+      - 'Projects/packaging/appimage/**'
+      - 'Projects/Web/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
   pull_request:
     branches: [ main ]
     paths:
@@ -27,8 +29,10 @@ on:
       - 'Tools/dora-dora/**'
       - 'Tools/dora-wa/**'
       - 'Assets/**'
-      - 'Projects/Linux/**'
-      - 'packaging/appimage/**'
+      - 'Projects/packaging/appimage/**'
+      - 'Projects/Web/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
   workflow_dispatch:
 
 permissions:
@@ -49,21 +53,10 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Setup Emscripten
-        uses: emscripten-core/setup-emsdk@v15
+      - name: Setup xmake
+        uses: xmake-io/github-action-setup-xmake@v1
         with:
-          version: 5.0.5
-          actions-cache-folder: emsdk-cache
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-emscripten
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.3'
+          xmake-version: latest
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
@@ -76,12 +69,6 @@ jobs:
           node-version: '22.14.0'
           cache: pnpm
           cache-dependency-path: Tools/dora-dora/pnpm-lock.yaml
-
-      - name: Setup CMake
-        run: |
-          python3 -m venv "$RUNNER_TEMP/cmake-venv"
-          "$RUNNER_TEMP/cmake-venv/bin/python" -m pip install 'cmake==3.30.5'
-          echo "$RUNNER_TEMP/cmake-venv/bin" >> "$GITHUB_PATH"
 
       - name: Verify Web build tools
         run: bash Tools/build-scripts/check_web_build_env.sh
@@ -118,8 +105,10 @@ jobs:
       matrix:
         include:
           - arch: x86_64
+            xmake_arch: x86_64
             runner: ubuntu-22.04
           - arch: aarch64
+            xmake_arch: arm64
             runner: ubuntu-22.04-arm
     runs-on: ${{ matrix.runner }}
     steps:
@@ -146,47 +135,38 @@ jobs:
             sudo mv "$chrome_source" "$chrome_source.disabled"
           done
           sudo apt-get update
-          sudo apt-get install -y cmake pkg-config patchelf pax-utils curl \
+          sudo apt-get install -y pkg-config patchelf pax-utils curl \
             libgl1-mesa-dev libssl-dev libdbus-1-dev libasound2-dev \
             libjack-jackd2-dev libpulse-dev libpipewire-0.3-dev \
             libsamplerate0-dev libsndio-dev libibus-1.0-dev libudev-dev \
             libusb-1.0-0-dev libx11-dev libxext-dev libxcursor-dev libxi-dev \
             libxfixes-dev libxrandr-dev libxrender-dev libxss-dev libdrm-dev \
             libgbm-dev libegl1-mesa-dev libwayland-dev libwayland-bin \
-            wayland-protocols libxkbcommon-dev libdecor-0-dev lua5.1 luarocks
-          sudo luarocks install luafilesystem
-
-      - name: Generate Lua bindings
-        run: |
-          cd Tools/tolua++
-          lua tolua++.lua
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.3'
-
-      - uses: dtolnay/rust-toolchain@stable
+            wayland-protocols libxkbcommon-dev libdecor-0-dev
 
       - uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
 
+      - name: Record xmake version
+        run: xmake --version
+
       - name: Build Linux debug
         if: github.ref == 'refs/heads/main'
-        run: Tools/build-scripts/build_linux.sh debug
-
-      - name: Build Linux release
-        if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
-        run: Tools/build-scripts/build_linux.sh release
+        run: |
+          xmake f -y -p linux -a ${{ matrix.xmake_arch }} -m debug
+          xmake build Dora
 
       - name: Package AppImage
         id: package
         if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/ci/')
         env:
           APPIMAGE_ARCH: ${{ matrix.arch }}
+          XMAKE_ARCH: ${{ matrix.xmake_arch }}
         run: |
           filename="dora-ssr-linux-${APPIMAGE_ARCH}.AppImage"
-          Tools/build-scripts/package_appimage.sh "$GITHUB_WORKSPACE/$filename"
+          xmake dora-package --platform=linux --arch="$XMAKE_ARCH" --mode=release
+          cp "build/package/linux/$XMAKE_ARCH/release/$filename" "$GITHUB_WORKSPACE/$filename"
           echo "path=$filename" >> "$GITHUB_OUTPUT"
 
       - name: Upload AppImage artifact

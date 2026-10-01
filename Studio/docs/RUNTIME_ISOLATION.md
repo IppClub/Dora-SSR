@@ -77,17 +77,16 @@ Edge 复测：Microsoft Edge 153.0.4234.32 使用同一实验产物和相同探�
 
 实验构建使用独立 `build/studio-main-worker` 目录、本机 Emscripten 5.0.5、Release、MODEL_3D=OFF、LOVE_PROBE=OFF，不引入外部游戏包。启动探针为 `Studio/tests/runtime-worker.browser.mjs`，从 Studio 目录执行，使用既有 `STUDIO_PLAYWRIGHT_MODULE`/`STUDIO_CHROME_PATH` 环境变量；测试服务提供 COOP/COEP，输出到 `apps/web/artifacts/runtime-worker/startup.json`。启动通过不等于隔离通过，音频跨线程调用、输入、终止及重建仍必须验证。
 
-实验配置（仓库根目录；使用已安装 SDK 的 `emcmake`）：
+实验配置（仓库根目录；2026-10-01 已迁移到 xmake，旧 CMake 描述已移除，对应补丁位于 `Projects/xmake/web/runtime.lua`）：
 
 ```sh
-emcmake cmake -S Projects/Web -B build/studio-main-worker \
-  -DCMAKE_BUILD_TYPE=Release -DDORA_WEB_BUILD_ENGINE=ON \
-  -DDORA_WEB_LINK_PLAYER=ON -DDORA_WEB_PTHREADS=ON \
-  -DDORA_WEB_EXPERIMENTAL_MAIN_WORKER=ON \
-  -DDORA_WEB_BUILTIN_FONT="$PWD/Assets/Font/sarasa-mono-sc-regular.ttf" \
-  -DDORA_WEB_SDL2_PORT_SOURCE_DIR=/path/to/active-sdk/cache/ports/sdl2/SDL-release-2.32.10 \
-  -DDORA_WEB_FEATURE_MODEL_3D=OFF -DDORA_WEB_BUILD_LOVE_PROBE=OFF
-cmake --build build/studio-main-worker --target dora-web-player -j 6
+DORA_WEB_BUILD_DIR=build/studio-main-worker \
+DORA_WEB_PLAYER_PACKAGE_DIR=result/studio-main-worker \
+DORA_WEB_EXPERIMENTAL_MAIN_WORKER=1 \
+DORA_WEB_BUILTIN_FONT="$PWD/Assets/Font/sarasa-mono-sc-regular.ttf" \
+DORA_WEB_SDL2_PORT_SOURCE_DIR=/path/to/active-sdk/cache/ports/sdl2/SDL-release-2.32.10 \
+DORA_WEB_FEATURE_MODEL_3D=OFF DORA_WEB_BUILD_LOVE_PROBE=0 \
+DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER=0 xmake dora-web --pthreads
 ```
 
 Studio 试玩必须使用 `Assets/Font` 中的完整中文字库；Web preset 目录中的精简字体只覆盖基础字符，会使 Agent 生成游戏里的中文标签显示为方框。

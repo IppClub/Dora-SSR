@@ -127,84 +127,62 @@ main()
 |------|----------|----------|----------|----------|
 | Windows | Visual Studio | .exe | 可选 | Steam、官网、其他平台 |
 | macOS | Xcode | .app | 必需 | App Store、官网 |
-| Linux | CMake | 二进制 | 可选 | Steam、官网 |
+| Linux | xmake | 二进制 | 可选 | Steam、官网 |
 | iOS | Xcode | .ipa | 必需 | App Store |
 | Android | Android Studio | .apk/.aab | 必需 | Google Play、其他商店 |
 | Web | Emscripten + Node.js（引擎构建脚本） | 静态网站目录 | 无 | itch.io（HTML）、GitHub Pages、任意静态托管 |
 
-### 4.2 不同平台的打包操作
+### 4.2 各平台的打包操作
 
 <Tabs groupId="platform-select">
 <TabItem value="windows" label="Windows">
 
-#### 步骤 1：配置项目
-1. 打开 `Projects/Windows/Dora.sln`
-2. 在 Visual Studio 中配置项目属性：
-   - 应用名称
-   - 版本号
-   - 图标文件
-   - 目标平台（x86/x64）
-
-#### 步骤 2：构建项目
-```bash
-# 通过 Visual Studio 图形界面或是使用下面的命令构建
-msbuild Projects/Windows/Dora.sln /p:Configuration=Release /p:Platform=x64
+```sh
+xmake dora-package --platform=windows --mode=release
 ```
 
-#### 步骤 3：打包应用
-构建完成后，在 `Projects/Windows/Release/` 目录下会生成可执行文件和相关资源。
+产物位于 `build/package/` 的对应平台目录；Android 位于 `Projects/Android/Dora/app/build/outputs/`。应用名称、版本、图标与平台资源在 `Projects/` 中修改，构建参数在 `Projects/xmake/` 中修改，不修改生成的 IDE 工程。
 
 </TabItem>
 <TabItem value="macos" label="macOS">
 
-#### 步骤 1：配置项目
-1. 打开 `Projects/macOS/Dora.xcodeproj`
-2. 在 Xcode 中设置：
-   - Bundle Identifier
-   - 应用名称
-   - 版本号
-   - 开发者证书
-
-#### 步骤 2：构建项目
-```bash
-# 通过 Xcode 图形界面或是使用下面命令构建
-xcodebuild -project Projects/macOS/Dora.xcodeproj -scheme Dora -configuration Release
+```sh
+xmake dora-package --platform=macosx --mode=release
 ```
+
+产物位于 `build/package/` 的对应平台目录；Android 位于 `Projects/Android/Dora/app/build/outputs/`。应用名称、版本、图标与平台资源在 `Projects/` 中修改，构建参数在 `Projects/xmake/` 中修改，不修改生成的 IDE 工程。
+
+</TabItem>
+<TabItem value="linux" label="Linux">
+
+```sh
+xmake dora-package --platform=linux --mode=release
+```
+
+产物位于 `build/package/` 的对应平台目录；Android 位于 `Projects/Android/Dora/app/build/outputs/`。应用名称、版本、图标与平台资源在 `Projects/` 中修改，构建参数在 `Projects/xmake/` 中修改，不修改生成的 IDE 工程。
 
 </TabItem>
 <TabItem value="ios" label="iOS">
 
-#### 步骤 1：配置项目
-1. 打开 `Projects/iOS/Dora.xcodeproj`
-2. 设置 Bundle Identifier 和开发者证书
-3. 配置应用图标和启动画面
-
-#### 步骤 2：构建和打包
-```bash
-# 通过 Xcode 图形界面或是使用下面命令构建
-xcodebuild -project Projects/iOS/Dora.xcodeproj -scheme Dora -configuration Release -destination generic/platform=iOS
+```sh
+xmake dora-package --platform=ios --mode=release --appledev=device
 ```
+
+产物位于 `build/package/` 的对应平台目录；Android 位于 `Projects/Android/Dora/app/build/outputs/`。应用名称、版本、图标与平台资源在 `Projects/` 中修改，构建参数在 `Projects/xmake/` 中修改，不修改生成的 IDE 工程。
+
+默认 iOS device IPA 为 ad-hoc，不可直接安装/分发。设置已安装的 `DORA_IOS_SIGN_IDENTITY` 和 `DORA_IOS_PROVISION` 后另行验收正式签名。
 
 </TabItem>
 <TabItem value="android" label="Android">
 
-#### 步骤 1：配置项目
-1. 打开 `Projects/Android/` 目录
-2. 修改 `app/build.gradle` 中的配置：
-   ```gradle
-   android {
-       defaultConfig {
-           applicationId "com.yourcompany.yourgame"
-           versionCode 1
-           versionName "1.0"
-       }
-   }
-   ```
+```sh
+xmake dora-package --platform=android --mode=release
+```
 
-#### 步骤 2：构建 APK
-```bash
-# 通过 Android Studio 图形界面或是使用下面命令构建
-./gradlew assembleRelease
+产物位于 `build/package/` 的对应平台目录；Android 位于 `Projects/Android/Dora/app/build/outputs/`。应用名称、版本、图标与平台资源在 `Projects/` 中修改，构建参数在 `Projects/xmake/` 中修改，不修改生成的 IDE 工程。
+
+```sh
+xmake dora-package --platform=android --mode=release --format=aab
 ```
 
 </TabItem>
@@ -214,10 +192,10 @@ xcodebuild -project Projects/iOS/Dora.xcodeproj -scheme Dora -configuration Rele
 
 #### 步骤 1：构建 Web Player
 
-在引擎仓库中构建一次 Web Player，脚本会自行检查 Emscripten 工具链（版本固定在 `Projects/Web/toolchain.env`）：
+在引擎仓库中构建一次 Web Player，脚本会自行检查 Emscripten 工具链（由 xmake 受管依赖安装）：
 
 ```bash
-Tools/build-scripts/build_web.sh
+xmake dora-web
 ```
 
 脚本会在 `result/dora-web-player` 下生成一个自包含的 Player 包，包含 `index.html`、Player 运行时以及一个内置示例游戏。默认的 `dora-preset` 配置覆盖常见 2D 游戏；构建前可以通过 `DORA_WEB_PROFILE`（`core`、`dora-preset` 或 `custom`）以及诸如 `DORA_WEB_FEATURE_MODEL_3D=ON` 的功能开关调整运行时。

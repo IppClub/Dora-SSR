@@ -127,7 +127,7 @@ main()
 |----------|------------------|---------------|----------------------|----------------------|
 | Windows | Visual Studio | .exe | Optional | Steam, official website, other platforms |
 | macOS | Xcode | .app | Required | App Store, official website |
-| Linux | CMake | Binary | Optional | Steam, official website |
+| Linux | xmake | Binary | Optional | Steam, official website |
 | iOS | Xcode | .ipa | Required | App Store |
 | Android | Android Studio | .apk/.aab | Required | Google Play, other stores |
 | Web | Emscripten + Node.js (engine build scripts) | Static site directory | None | itch.io (HTML), GitHub Pages, any static hosting |
@@ -137,74 +137,52 @@ main()
 <Tabs groupId="platform-select">
 <TabItem value="windows" label="Windows">
 
-#### Step 1: Configure Project
-1. Open `Projects/Windows/Dora.sln`
-2. Configure project properties in Visual Studio:
-   - Application name
-   - Version number
-   - Icon file
-   - Target platform (x86/x64)
-
-#### Step 2: Build Project
-```bash
-# Build through Visual Studio GUI or use the command below
-msbuild Projects/Windows/Dora.sln /p:Configuration=Release /p:Platform=x64
+```sh
+xmake dora-package --platform=windows --mode=release
 ```
 
-#### Step 3: Package Application
-After building, executable files and related resources will be generated in the `Projects/Windows/Release/` directory.
+Outputs are under the platform directory in `build/package/`; Android outputs remain under `Projects/Android/Dora/app/build/outputs/`. Edit app metadata/resources under `Projects/` and build settings under `Projects/xmake/`, not generated IDE projects.
 
 </TabItem>
 <TabItem value="macos" label="macOS">
 
-#### Step 1: Configure Project
-1. Open `Projects/macOS/Dora.xcodeproj`
-2. Set in Xcode:
-   - Bundle Identifier
-   - Application name
-   - Version number
-   - Developer certificate
-
-#### Step 2: Build Project
-```bash
-# Build through Xcode GUI or use the command below
-xcodebuild -project Projects/macOS/Dora.xcodeproj -scheme Dora -configuration Release
+```sh
+xmake dora-package --platform=macosx --mode=release
 ```
+
+Outputs are under the platform directory in `build/package/`; Android outputs remain under `Projects/Android/Dora/app/build/outputs/`. Edit app metadata/resources under `Projects/` and build settings under `Projects/xmake/`, not generated IDE projects.
+
+</TabItem>
+<TabItem value="linux" label="Linux">
+
+```sh
+xmake dora-package --platform=linux --mode=release
+```
+
+Outputs are under the platform directory in `build/package/`; Android outputs remain under `Projects/Android/Dora/app/build/outputs/`. Edit app metadata/resources under `Projects/` and build settings under `Projects/xmake/`, not generated IDE projects.
 
 </TabItem>
 <TabItem value="ios" label="iOS">
 
-#### Step 1: Configure Project
-1. Open `Projects/iOS/Dora.xcodeproj`
-2. Set Bundle Identifier and developer certificate
-3. Configure app icons and launch screen
-
-#### Step 2: Build and Package
-```bash
-# Build through Xcode GUI or use the command below
-xcodebuild -project Projects/iOS/Dora.xcodeproj -scheme Dora -configuration Release -destination generic/platform=iOS
+```sh
+xmake dora-package --platform=ios --mode=release --appledev=device
 ```
+
+Outputs are under the platform directory in `build/package/`; Android outputs remain under `Projects/Android/Dora/app/build/outputs/`. Edit app metadata/resources under `Projects/` and build settings under `Projects/xmake/`, not generated IDE projects.
+
+Default iOS device IPA signing is ad-hoc, not installable/distributable. Set installed `DORA_IOS_SIGN_IDENTITY` and `DORA_IOS_PROVISION` and separately validate distribution signing.
 
 </TabItem>
 <TabItem value="android" label="Android">
 
-#### Step 1: Configure Project
-1. Open the `Projects/Android/` directory
-2. Modify the configuration in `app/build.gradle`:
-   ```gradle
-   android {
-       defaultConfig {
-           applicationId "com.yourcompany.yourgame"
-           versionCode 1
-           versionName "1.0"
-       }
-   }
-   ```
+```sh
+xmake dora-package --platform=android --mode=release
+```
 
-#### Step 2: Build APK
-```bash
-# Build through Android Studio GUI or use the command below
-./gradlew assembleRelease
+Outputs are under the platform directory in `build/package/`; Android outputs remain under `Projects/Android/Dora/app/build/outputs/`. Edit app metadata/resources under `Projects/` and build settings under `Projects/xmake/`, not generated IDE projects.
+
+```sh
+xmake dora-package --platform=android --mode=release --format=aab
 ```
 
 </TabItem>
@@ -214,10 +192,10 @@ xcodebuild -project Projects/iOS/Dora.xcodeproj -scheme Dora -configuration Rele
 
 #### Step 1: Build the Web Player
 
-From the engine repository, build the Web Player once. The script checks the Emscripten toolchain itself (pinned in `Projects/Web/toolchain.env`):
+From the engine repository, build the Web Player once. The script checks the Emscripten toolchain itself (managed by xmake):
 
 ```bash
-Tools/build-scripts/build_web.sh
+xmake dora-web
 ```
 
 The script produces a self-contained Player package in `result/dora-web-player`, containing `index.html`, the Player runtime, and a built-in demo game. The default `dora-preset` profile covers common 2D games; before building, the runtime can be tuned with `DORA_WEB_PROFILE` (`core`, `dora-preset` or `custom`) and feature switches such as `DORA_WEB_FEATURE_MODEL_3D=ON`.

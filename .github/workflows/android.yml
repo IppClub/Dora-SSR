@@ -10,6 +10,9 @@ on:
       - 'Tools/tolua\+\+/**'
       - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
+      - 'Tools/dora-wa/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
       # Platform-specific code
       - 'Projects/Android/**'
   pull_request:
@@ -20,6 +23,9 @@ on:
       - 'Tools/tolua\+\+/**'
       - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
+      - 'Tools/dora-wa/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
       - 'Projects/Android/**'
   workflow_dispatch:
 
@@ -40,36 +46,18 @@ jobs:
       - uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
-      - name: Generate Lua bindings
-        run: |
-          shopt -s nullglob
-          for chrome_source in /etc/apt/sources.list.d/google-chrome*.list /etc/apt/sources.list.d/google-chrome*.sources; do
-            sudo mv "$chrome_source" "$chrome_source.disabled"
-          done
-          sudo apt-get update
-          sudo apt-get install -y lua5.1 luarocks
-          sudo luarocks install luafilesystem
-          cd Tools/tolua++
-          lua tolua++.lua
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.3'
-      - name: Setup gomobile
-        run: |
-          go install golang.org/x/mobile/cmd/gomobile@v0.0.0-20250606033058-a2a15c67f36f
-          gomobile init
-      - uses: dtolnay/rust-toolchain@stable
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
+      - name: Install Android native toolchain
+        run: sdkmanager --install 'ndk;26.1.10909125' 'cmake;3.22.1' 'platforms;android-34' 'build-tools;34.0.0'
+      - name: Record xmake version
+        run: xmake --version
       - name: Build Android
         if: "!startsWith(github.ref, 'refs/tags/')"
-        run: Tools/build-scripts/build_android.sh debug
-      - name: Build native libraries
-        if: startsWith(github.ref, 'refs/tags/')
-        run: Tools/build-scripts/build_lib_android.sh release
+        run: xmake dora-package --platform=android --mode=debug
       - name: Generate tutorial docs
         if: startsWith(github.ref, 'refs/tags/')
         run: node Docs/scripts/generate-language-docs.js
@@ -83,15 +71,12 @@ jobs:
         run: |
           cd Tools/dora-dora && pnpm install && pnpm build && cd ../..
           echo "$KEYSTORE_B64" | base64 -d > "$GITHUB_WORKSPACE/signing-key.jks"
-          cp Tools/dora-wa/wa.mod Assets/dora-wa
-          cp -r Tools/dora-wa/vendor Assets/dora-wa
-          cd Projects/Android/Dora
-          ./gradlew assembleRelease \
-            "-Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/signing-key.jks" \
-            "-Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD" \
-            "-Pandroid.injected.signing.key.alias=$KEY_ALIAS" \
-            "-Pandroid.injected.signing.key.password=$KEY_PASSWORD"
-          cd app/build/outputs/apk/release
+          DORA_ANDROID_SIGNING_STORE_FILE="$GITHUB_WORKSPACE/signing-key.jks" \
+          DORA_ANDROID_SIGNING_STORE_PASSWORD="$KEYSTORE_PASSWORD" \
+          DORA_ANDROID_SIGNING_KEY_ALIAS="$KEY_ALIAS" \
+          DORA_ANDROID_SIGNING_KEY_PASSWORD="$KEY_PASSWORD" \
+            xmake dora-package --platform=android --mode=release
+          cd Projects/Android/Dora/app/build/outputs/apk/release
           mv app-release.apk dora-ssr-${{ github.ref_name }}-android.apk
           zip dora-ssr-${{ github.ref_name }}-android.zip dora-ssr-${{ github.ref_name }}-android.apk
           mv dora-ssr-${{ github.ref_name }}-android.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-android.zip"

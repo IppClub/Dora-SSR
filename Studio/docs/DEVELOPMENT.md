@@ -1,5 +1,7 @@
 # Studio 开发与验证
 
+2026-10-01 构建入口更新：Web 源清单和 profile 现由 `Projects/xmake/web/targets.lua` 管理，`build_studio_agent_host.sh` 经兼容入口调用 `xmake dora-web`。下文 CMake/旧工具链描述为当时验证记录，当前操作参见 `Projects/xmake/web/README.md`。
+
 ## Go 后端迁移验证（2026-09-19）
 
 Studio 可部署后端已全部迁移到 `cmd/studio-server` 与 `internal/studio`，旧 `apps/server/*.mjs` 实现已删除。服务端回归使用 `go test -race ./...`，覆盖真实 TLS Cookie 注册/登录、持久限流、项目快照、管理员与模型配置、密钥、额度、BYOK 兼容投影、Agent Host、真实 HTTPS 供应商代理、SSE 完整性、账务结算与并发排队。`pnpm build` 同时构建 Web、Agent Host 和 Go 二进制。

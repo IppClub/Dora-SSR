@@ -6,7 +6,10 @@ set_languages("cxx20")
 add_rules("mode.debug", "mode.release")
 
 target("openmpt")
-    set_kind("object")
+    -- xmake 3.1.1's Xcode generator has no object-library product type. The
+    -- generated shell phase runs a fresh xmake process, so this static kind is
+    -- metadata-only and normal builds continue to use object-library semantics.
+    set_kind(os.getenv("XMAKE_IN_PROJECT_GENERATOR") and "static" or "object")
     set_languages("c99", "cxx17")
     add_files(
         "../libopenmpt/common/*.cpp",
@@ -51,8 +54,16 @@ target("openmpt")
 -- object target so love.physics uses the exact upstream implementation while
 -- Dora's native physics API continues to use PlayRho.
 target("love-box2d")
-    set_kind("object")
-    set_languages("cxx11")
+    set_kind(os.getenv("XMAKE_IN_PROJECT_GENERATOR") and "static" or "object")
+    -- MSVC has no C++11 language switch. xmake's generic cxx11 mapping emits
+    -- `-std:c++11` for cl, which is ignored as D9002 and makes the effective
+    -- language mode depend on the installed Visual Studio default. C++14 is
+    -- the oldest explicit MSVC mode and remains source-compatible here.
+    if is_plat("windows") then
+        set_languages("cxx14")
+    else
+        set_languages("cxx11")
+    end
     add_files("src/libraries/Box2D/**/*.cpp")
     add_includedirs("src", "src/libraries")
 

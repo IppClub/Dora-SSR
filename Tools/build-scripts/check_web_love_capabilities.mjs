@@ -105,32 +105,22 @@ const touchDispatcher = fs.readFileSync("Source/Input/TouchDispather.cpp", "utf8
 assert.match(touchDispatcher, /BX_PLATFORM_EMSCRIPTEN[\s\S]*Touch::FromMouseAndTouch/,
 	"Dora Web input source does not enable both mouse and touch");
 
-const webCMake = fs.readFileSync("Projects/Web/CMakeLists.txt", "utf8");
-assert.ok(webCMake.includes('list(FILTER DORA_WEB_ENGINE_SOURCES EXCLUDE REGEX "/Love/[^/]+\\\\.cpp$")'), "Web minimal no longer explicitly excludes Love sources");
-assert.match(webCMake, /DORA_WEB_BUILD_LOVE_PROBE/, "Love Web compile probe option is missing");
-assert.match(webCMake, /dora-web-love-compile-probe/, "Love Web compile probe target is missing");
-assert.match(webCMake, /dora-web-love-node-compile-probe/, "LoveNode Web host compile probe target is missing");
-assert.match(webCMake, /dora-web-love-support/, "Love Web support source target is missing");
-assert.match(webCMake, /dora-web-love-link-probe/, "Love Web link probe target is missing");
-assert.match(webCMake, /dora-web-love-graphics-probe/, "Love Web graphics probe target is missing");
-assert.match(webCMake, /dora-web-love-shader-probe/, "Love Web shader probe target is missing");
-assert.match(webCMake, /dora-web-love-audio-probe/, "Love Web audio probe target is missing");
-assert.match(webCMake, /dora-web-love-complex-probe/, "Love Web opt-in complex-project probe target is missing");
-assert.match(webCMake, /dora-web-love-pthread-player/, "Love Web formal pthread Player target is missing");
-assert.match(webCMake, /DORA_WEB_LOVE_COMPLEX_PACKAGE/, "Love Web complex-package path gate is missing");
-assert.match(webCMake, /option\(DORA_WEB_PTHREADS/, "Love Web opt-in pthread profile is missing");
-assert.match(webCMake, /USE_PTHREADS=1/, "Love Web pthread profile does not enable Emscripten threads");
-assert.match(webCMake, /USE_PTHREADS=0/, "Love Web default profile no longer explicitly disables pthreads");
-assert.match(webCMake, /DoraLoveSources\.cmake/, "Love Web support source manifest is missing");
-const buildScript = fs.readFileSync("Tools/build-scripts/build_web.sh", "utf8");
-assert.match(buildScript, /BUILD_LOVE_PROBE=.*BUILD_ENGINE/, "Love Web compile probe is not enabled with engine CI builds");
-assert.match(buildScript, /BUILD_TARGETS\+=\(dora-web-love-support dora-web-love-compile-probe dora-web-love-node-compile-probe\)/, "Love Web support and compile probes are not part of the build target set");
-assert.match(buildScript, /BUILD_TARGETS\+=\(dora-web-love-link-probe dora-web-love-graphics-probe dora-web-love-shader-probe dora-web-love-audio-probe\)/,
-	"Love Web link, graphics, shader and audio probes are not part of linked Player builds");
-assert.match(buildScript, /BUILD_TARGETS\+=\(dora-web-love-complex-probe\)/,
-	"Love Web complex-project probe is not connected to the opt-in build");
-assert.match(buildScript, /DORA_WEB_PTHREADS/, "Love Web build script does not forward the pthread profile");
-assert.match(buildScript, /LOVE_PLAYER_PACKAGE_DIR/, "Love Web formal Player is not packaged independently");
+const webTargets = fs.readFileSync("Projects/xmake/web/targets.lua", "utf8");
+const webManifest = fs.readFileSync("Projects/xmake/web/manifest.lua", "utf8");
+const webOptions = fs.readFileSync("Projects/xmake/web/options.lua", "utf8");
+const buildTask = fs.readFileSync("Projects/xmake/tasks/web.lua", "utf8");
+assert.ok(webTargets.includes('s:match("^Source/Love/[^/]+%.cpp$")'), "Web minimal no longer excludes native Love sources");
+for (const target of ["dora-web-love-support", "dora-web-love-link-probe", "dora-web-love-graphics-probe",
+  "dora-web-love-shader-probe", "dora-web-love-audio-probe", "dora-web-love-complex-probe", "dora-web-love-pthread-player"]) {
+  assert.ok((webTargets + webManifest).includes(target), `Love Web target is missing: ${target}`);
+}
+assert.match(webTargets, /"compile-probe", "node-compile-probe"/, "Love compile probes are missing");
+assert.match(webTargets, /USE_PTHREADS=1/, "pthread profile does not enable Emscripten threads");
+assert.match(webTargets, /USE_PTHREADS=0/, "default profile does not explicitly disable pthreads");
+assert.match(webOptions, /love_probe = true/, "Love probes are not enabled by default");
+assert.match(buildTask, /LOVE_COMPLEX_PACKAGE/, "Complex-package gate is missing");
+assert.match(buildTask, /LOVE_PLAYER_PACKAGE_DIR/, "Love Player is not packaged independently");
+assert.match(fs.readFileSync("Tools/build-scripts/build_web.sh", "utf8"), /exec xmake dora-web/, "legacy Web entry must delegate to xmake");
 const formalPlayerRunner = fs.readFileSync("Projects/Web/love-pthread-player.js", "utf8");
 for (const evidence of ["inspectLovePackage", "installPackage", "dora_web_love_player_start", "doraSyncUserStorage", "crossOriginIsolated"]) {
 	assert.ok(formalPlayerRunner.includes(evidence), `Love Web formal Player evidence is missing: ${evidence}`);
@@ -156,8 +146,8 @@ const loveConfig = fs.readFileSync("Source/3rdParty/Love/src/common/config.h", "
 assert.match(loveConfig, /defined\(__EMSCRIPTEN__\)/, "Love does not recognize Emscripten as a target platform");
 const webFeatures = fs.readFileSync("Projects/Web/web-features.json.in", "utf8");
 assert.match(webFeatures, /"loveNode": @DORA_WEB_FEATURE_LOVE_JSON@/, "Web feature profile does not expose configured LoveNode support");
-assert.match(webCMake, /DORA_WEB_FEATURE_LOVE/, "LoveNode is not a selectable production Web feature");
-assert.match(webCMake, /TARGET_OBJECTS:dora-web-love-runtime/, "Production Web Player does not link the Love runtime");
+assert.match(webOptions, /"love"/, "LoveNode is not a selectable production Web feature");
+assert.match(webTargets, /t:add\("deps", "dora-web-love-runtime", "dora-web-love-support"\)/, "Production Web Player does not link the Love runtime");
 assert.match(loveNode, /validateLoveWebGLProgram/, "Love Web shader driver preflight is missing");
 assert.match(loveNode, /Shader source line/, "Love Web shader source-line diagnostic is missing");
 assert.match(graphicsChecker, /no silent fallback/, "Love Web shader failure fixture is missing its fallback assertion");

@@ -402,8 +402,9 @@ function assertFixture(image) {
 	const physicsDynamic = findColor(image, (r, g, b, x, y) => x >= 990 && x <= 1090 && y >= 145 && y <= 220 && Math.abs(r - g) <= 3 && Math.abs(g - b) <= 3 && r >= 45 && r <= 60);
 	assert.ok(physicsDynamic.count > 1200, `PlayRho dynamic debug fixture is missing: ${JSON.stringify(physicsDynamic)}`);
 	const imguiWindow = findColor(image, (r, g, b, x, y) => x >= 15 && x <= 245 && y >= 255 && y <= 425 && Math.abs(r - 51) <= 2 && Math.abs(g - 65) <= 2 && Math.abs(b - 91) <= 2);
-	assert.ok(imguiWindow.count > 25000, `ImGui window fixture is missing: ${JSON.stringify(imguiWindow)}`);
-	assert.deepEqual([imguiWindow.minX, imguiWindow.minY, imguiWindow.maxX, imguiWindow.maxY], [20, 283, 239, 419], `ImGui window bounds changed: ${JSON.stringify(imguiWindow)}`);
+	// Captured after the DPI round-trip/reload: ImGui has baked the title font.
+	assert.ok(imguiWindow.count > 24000, `ImGui window fixture is missing: ${JSON.stringify(imguiWindow)}`);
+	assert.deepEqual([imguiWindow.minX, imguiWindow.minY, imguiWindow.maxX, imguiWindow.maxY], [20, 290, 239, 419], `ImGui window bounds changed: ${JSON.stringify(imguiWindow)}`);
 	const imguiButton = findColor(image, (r, g, b, x, y) => x >= 20 && x <= 180 && y >= 300 && y <= 380 && Math.abs(r - 210) <= 2 && Math.abs(g - 81) <= 2 && Math.abs(b - 136) <= 2);
 	assert.ok(imguiButton.count > 2800, `ImGui clipped button fixture is missing: ${JSON.stringify(imguiButton)}`);
 	assert.ok(imguiButton.minX === 30 && imguiButton.maxX === 101, `ImGui button clipping bounds changed: ${JSON.stringify(imguiButton)}`);
@@ -422,8 +423,10 @@ function assertDpr2Fixture(image) {
 	assert.equal(image.width, 2560, "DPR=2 screenshot width changed");
 	assert.equal(image.height, 1440, "DPR=2 screenshot height changed");
 	const imguiWindow = findColor(image, (r, g, b, x, y) => x >= 30 && x <= 490 && y >= 510 && y <= 850 && Math.abs(r - 51) <= 2 && Math.abs(g - 65) <= 2 && Math.abs(b - 91) <= 2);
-	assert.ok(imguiWindow.count > 100000, `DPR=2 ImGui window fixture is missing: ${JSON.stringify(imguiWindow)}`);
-	assert.deepEqual([imguiWindow.minX, imguiWindow.minY, imguiWindow.maxX, imguiWindow.maxY], [41, 567, 478, 838], `DPR=2 ImGui window bounds changed: ${JSON.stringify(imguiWindow)}`);
+	// Current ImGui's DPI-scaled title font makes the title row taller. The
+	// retained CMake build and xmake build produce these same exact bounds.
+	assert.ok(imguiWindow.count > 95000, `DPR=2 ImGui window fixture is missing: ${JSON.stringify(imguiWindow)}`);
+	assert.deepEqual([imguiWindow.minX, imguiWindow.minY, imguiWindow.maxX, imguiWindow.maxY], [41, 581, 478, 838], `DPR=2 ImGui window bounds changed: ${JSON.stringify(imguiWindow)}`);
 	const imguiButton = findColor(image, (r, g, b, x, y) => x >= 40 && x <= 360 && y >= 600 && y <= 760 && Math.abs(r - 210) <= 2 && Math.abs(g - 81) <= 2 && Math.abs(b - 136) <= 2);
 	assert.ok(imguiButton.count > 11000, `DPR=2 ImGui clipped button fixture is missing: ${JSON.stringify(imguiButton)}`);
 	assert.ok(imguiButton.minX === 61 && imguiButton.maxX === 203, `DPR=2 ImGui button clipping bounds changed: ${JSON.stringify(imguiButton)}`);
@@ -789,12 +792,14 @@ try {
 	await cdp.send("Input.dispatchMouseEvent", {type: "mouseReleased", x: 640, y: 360, button: "left", buttons: 0, clickCount: 1});
 	await cdp.send("Runtime.evaluate", {expression: "Module.canvas.focus()"});
 	await new Promise((resolve) => setTimeout(resolve, 100));
-	await cdp.send("Input.dispatchKeyEvent", {type: "keyDown", key: "a", code: "KeyA", windowsVirtualKeyCode: 65, nativeVirtualKeyCode: 65});
+	// Native key codes are platform-specific (65 is NumpadDecimal on macOS).
+	// Let Chrome translate the portable virtual key and physical code.
+	await cdp.send("Input.dispatchKeyEvent", {type: "keyDown", key: "a", code: "KeyA", windowsVirtualKeyCode: 65});
 	await waitForConsole(consoleMessages, (message) => message.includes("Dora Web input key=A pressed=true"), "Dora key-down state");
-	await cdp.send("Input.dispatchKeyEvent", {type: "keyUp", key: "A", code: "KeyA", windowsVirtualKeyCode: 65, nativeVirtualKeyCode: 65});
+	await cdp.send("Input.dispatchKeyEvent", {type: "keyUp", key: "a", code: "KeyA", windowsVirtualKeyCode: 65});
 	await waitForConsole(consoleMessages, (message) => message.includes("Dora Web input key=A pressed=false"), "Dora key-up state");
 	const keyDownCount = consoleMessages.filter((message) => message.includes("Dora Web input key=A pressed=true")).length;
-	await cdp.send("Input.dispatchKeyEvent", {type: "keyDown", key: "a", code: "KeyA", windowsVirtualKeyCode: 65, nativeVirtualKeyCode: 65});
+	await cdp.send("Input.dispatchKeyEvent", {type: "keyDown", key: "a", code: "KeyA", windowsVirtualKeyCode: 65});
 	const secondKeyDeadline = Date.now() + 5000;
 	while (consoleMessages.filter((message) => message.includes("Dora Web input key=A pressed=true")).length <= keyDownCount && Date.now() < secondKeyDeadline) {
 		await new Promise((resolve) => setTimeout(resolve, 25));
@@ -807,8 +812,8 @@ try {
 		await new Promise((resolve) => setTimeout(resolve, 25));
 	}
 	assert.ok(consoleMessages.filter((message) => message.includes("Dora Web input key=A pressed=false")).length > keyUpCount, "blur did not synthesize Dora key release");
-	const releasedInput = await cdp.send("Runtime.evaluate", {expression: "DoraWebPlatform.state.pressedKeys", returnByValue: true});
-	assert.equal(releasedInput.result.value, 0, "host key state remained pressed after blur");
+	const releasedInput = await cdp.send("Runtime.evaluate", {expression: "DoraWebPlatform.state", returnByValue: true});
+	assert.equal(releasedInput.result.value.pressedKeys, 0, `host key state remained pressed after blur: ${JSON.stringify(releasedInput.result.value)}`);
 
 	const mouseDownCount = consoleMessages.filter((message) => message.includes("Dora Web input mouse-left=true")).length;
 	await cdp.send("Input.dispatchMouseEvent", {type: "mouseMoved", x: 320, y: 240});

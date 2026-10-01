@@ -9,6 +9,9 @@ on:
       - 'Tools/tolua\+\+/**'
       - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
+      - 'Tools/dora-wa/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
       # Platform-specific code
       - 'Projects/macOS/**'
   pull_request:
@@ -18,6 +21,9 @@ on:
       - 'Tools/tolua\+\+/**'
       - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
+      - 'Tools/dora-wa/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
       - 'Projects/macOS/**'
   workflow_dispatch:
 
@@ -37,15 +43,12 @@ jobs:
       - uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.3'
-      - uses: dtolnay/rust-toolchain@stable
       - name: macOS build
         if: "!startsWith(github.ref, 'refs/tags/')"
         run: |
-          Tools/tolua++/build.sh
-          Tools/build-scripts/build_macos.sh debug
+          xmake --version
+          xmake f -y -p macosx -a "$(uname -m)" -m debug
+          xmake build Dora
       - name: Generate tutorial docs
         if: startsWith(github.ref, 'refs/tags/')
         run: node Docs/scripts/generate-language-docs.js
@@ -57,11 +60,8 @@ jobs:
           cd "$GITHUB_WORKSPACE"
           cp Tools/dora-wa/wa.mod Assets/dora-wa
           cp -r Tools/dora-wa/vendor Assets/dora-wa
-          Tools/tolua++/build.sh
-          Tools/build-scripts/build_macos.sh release
-          cd Projects/macOS/build/Release/dora.xcarchive/Products/Applications
-          zip -vr Dora.zip Dora.app
-          mv Dora.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-universal.zip"
+          xmake dora-package --platform=macosx --mode=release
+          cp build/package/macosx/release/dora-ssr-macos-universal.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-universal.zip"
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')

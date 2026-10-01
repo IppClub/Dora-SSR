@@ -251,7 +251,7 @@ try {
 		assert.equal(report.backend, 'sdl-fallback');
 		assert.equal(report.ready, false);
 	} else {
-	assert.equal(report.crossOriginIsolated, false, 'must work without COOP/COEP');
+	assert.equal(report.crossOriginIsolated, isolatedMode, 'unexpected COOP/COEP isolation state');
 	assert.ok(report.blocked.frames > 24000, 'audio must advance during main-thread block');
 	assert.equal(report.blocked.zeroBlocks, 0, 'no silent blocks during main-thread stall');
 	assert.ok(report.blocked.maxJump < 0.05, 'no waveform discontinuity during main-thread stall');
