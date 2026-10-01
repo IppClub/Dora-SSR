@@ -131,6 +131,12 @@ if is_plat("android") then
                     })
                 end
                 os.vrunv(gomobile, {"init"}, {envs = envs, curdir = DORA_ROOT})
+                -- gomobile invokes gobind by name, not relative to its own
+                -- executable. Do not depend on a pre-existing user Go bin.
+                os.vrunv("go", {"install", "golang.org/x/mobile/cmd/gobind@" .. gomobile_version}, {
+                    envs = envs, curdir = DORA_ROOT
+                })
+                envs.PATH = tools_dir .. path.envsep() .. envs.PATH
                 os.rm(work_dir)
                 os.mkdir(work_dir)
                 os.cp(wa_dir, source_dir)
