@@ -40,6 +40,9 @@ for _, name in ipairs({"dora-test", "dora-test-deps"}) do
             }
             if not option.get("list") and option.get("suite") == "studio"
                 and not table.contains(option.get("arguments") or {}, "--no-build") then
+                -- Go acceptance serves the real isolated Agent engine assets.
+                -- Do not rely on a developer's previous Web build.
+                os.vrunv(os.programfile(), {"dora-studio"}, {curdir = root})
                 local directory = path.join(root, "build/studio-tests")
                 test_envs.XMAKE_CONFIGDIR = path.join(directory, ".xmake-config")
                 os.vrunv(os.programfile(), {"f", "-y", "-p", "wasm", "-a", "wasm32", "-m", "release",

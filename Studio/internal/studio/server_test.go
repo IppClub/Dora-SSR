@@ -489,7 +489,7 @@ func TestAgentLaunchAssetsModelAndLedger(t *testing.T) {
 	if _, _, err = store.SaveProject(ctx, token, "admin-user", "upload-1", 0, "Agent project", snapshot); err != nil {
 		t.Fatal(err)
 	}
-	agent, err := NewAgentService(store, testOrigin, "https://agent.test", filepath.Join("..", "..", "..", "build", "studio-agent-host"), filepath.Join("..", "..", "dist", "agent-host"))
+	agent, err := NewAgentService(store, testOrigin, "https://agent.test", filepath.Join("..", "..", "..", "result", "dora-studio-agent-engine"), filepath.Join("..", "..", "dist", "agent-host"))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -815,6 +815,12 @@ Release/APK/AAB 复验：`xmake dora-package --platform=android --mode=release` 
 - macOS ARM64：暂时移开整个 `Studio/dist`，使用空 `GOMODCACHE`，执行 `xmake dora-test --repo=/Users/Jin/Workspace/Dora/Dora-Example --suite=studio`，293/293 通过，含真实 Go race 契约；原有 dist 已恢复。日志：`build/ci-studio-clean-host-go.log`。契约套件 9/9 通过，新增入口夹具 4/4 通过；未跳过原有测试。
 - Dora-Example 测试入口修复提交 `b8642b6`；本轮按用户授权重新推送两个仓库全部配置远程，并停止被新提交替代的旧 CI。远端 Linux UI CI 的修复后结果仍须独立验证。
 
+### 2026-10-01 / M9 远端 Agent 引擎前置补齐
+
+- 推送 `25913331d` / 测试 `b8642b6` 后，UI run `36827184477` 通过原先产物与 Go 下载问题，293 项中剩 1 项 Go 契约失败：`TestAgentLaunchAssetsModelAndLedger` 引用旧 `build/studio-agent-host`，且入口未构建真实 Agent 引擎。
+- 默认 Studio 测试先执行正式 `xmake dora-studio`，验证真实 Agent 引擎，再准备前端/宿主支持；Go 测试改用当前发布产物 `result/dora-studio-agent-engine`。未使用虚假引擎或跳过验收。
+- macOS ARM64：`xmake dora-studio` 通过，`go test -race -count=1 ./...` 通过；修复后完整 `xmake dora-test --repo=/Users/Jin/Workspace/Dora/Dora-Example --suite=studio` 293/293 通过。日志 `build/ci-studio-engine-prerequisite.log`、`build/ci-studio-real-engine.log`。新远端 CI 仍须独立验收。
+
 ## 10. 更新规则
 
 - 任务开始时改为 🟡，不要预先标记完成；
