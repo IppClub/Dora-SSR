@@ -9,32 +9,44 @@ import TabItem from '@theme/TabItem';
 <TabItem value="github" label="GitHub">
 
 ```sh
-git clone https://github.com/ippclub/Dora-SSR.git
+git clone --recurse-submodules https://github.com/ippclub/Dora-SSR.git
 ```
 
 </TabItem>
 <TabItem value="gitee" label="Gitee">
 
 ```sh
-git clone https://gitee.com/ippclub/Dora-SSR.git
+git clone --recurse-submodules https://gitee.com/ippclub/Dora-SSR.git
 ```
 
 </TabItem>
 <TabItem value="gitcode" label="GitCode">
 
 ```sh
-git clone https://gitcode.com/ippclub/Dora-SSR.git
+git clone --recurse-submodules https://gitcode.com/ippclub/Dora-SSR.git
 ```
 
 </TabItem>
 </Tabs>
 
 
+After cloning, run all `xmake` commands below from `Dora-SSR/`. For an existing checkout, initialize its submodules with `git submodule update --init --recursive`.
+
 ## 2. Build Game Engine Runtime
 
 Install the latest stable xmake and the native platform tools: Xcode for macOS/iOS, Visual Studio C++ tools for Windows, a compiler and SDL system development libraries for Linux, or Android Studio/SDK and JDK 17 for Android. On Windows ARM64, install the native ARM64 xmake distribution, not an emulated x64 build, so managed host tools resolve to the correct architecture. xmake manages Go, Rust/rustup and Emscripten; no separate dependency build scripts are required. Linux system packages are listed in `.github/workflows/linux.yml`.
 
 Run from the repository root:
+
+```sh
+cd Dora-SSR
+xmake --version
+xmake doctor
+```
+
+`xmake doctor` diagnoses the host tools; it does not replace installing platform SDKs or accepting their licenses. Use `xmake doctor --platform=android`, `--platform=iphoneos` or `--platform=wasm` for another target. First builds download managed dependencies and can take significantly longer than incremental builds.
+
+Choose the build command for your target, rather than running every line:
 
 ```sh
 xmake dora-build --platform=macosx --mode=debug
@@ -61,9 +73,22 @@ xmake dora-ide --platform=linux --kind=compile_commands
 
 Generated projects live under ignored `build/ide/<platform>/<native|simulator|device>/<arch>/`; do not commit or hand-maintain them. Windows uses vsxmake, Apple uses the Xcode generator, and Linux can use compile_commands. Android Studio still opens `Projects/Android/Dora`: Gradle/NDK CMake compiles C/C++, with the build graph exported from xmake.
 
+Android retains CMake as the Android Studio/NDK integration layer, not a second manually maintained source list. Gradle Sync generates the native model; Run/Debug automatically prepares the xmake-managed runtime dependencies and rebuilds native code through CMake/Ninja. Use the real `Source/` paths when opening C++ sources. If Studio cannot find xmake, set `DORA_XMAKE` or Gradle property `dora.xmake` to its absolute executable path. For C++-only debugging, select **Native Only**. See the [Android integration guide](https://github.com/IppClub/Dora-SSR/blob/main/Projects/xmake/android/README.md).
+
 ### Mobile and Web
 
-Android pins NDK `26.1.10909125` and CMake `3.22.1`. Default ad-hoc iOS device packages are not installable/distributable; see `Projects/xmake/ios/README.md` for signing. See `Projects/xmake/web/README.md` for core/preset/custom, feature overrides and pthreads. Node.js/pnpm are still used for frontend tooling and JS tests; Emscripten bootstrap requires host Python.
+Android pins NDK `26.1.10909125` and CMake `3.22.1`. Default ad-hoc iOS device packages are not installable/distributable; see the [iOS signing guide](https://github.com/IppClub/Dora-SSR/blob/main/Projects/xmake/ios/README.md). Node.js/pnpm are still used for frontend tooling and JS tests; Emscripten bootstrap requires host Python.
+
+iOS applications are under `build/iphoneos/<device|simulator>/<arch>/<mode>/Dora.app`; simulator ZIP/device IPA packages are under the matching `build/package/iphoneos/` tree. Android APK/AAB output is under `Projects/Android/Dora/app/build/outputs/`.
+
+Web defaults to Release, `dora-preset`, single-threaded, and stages a standalone Player in `result/dora-web-player`. To choose a smaller runtime or pthreads:
+
+```sh
+xmake dora-web --profile=core
+xmake dora-web --pthreads
+```
+
+Pthread output is `result/dora-web-player-pthreads` and needs COOP/COEP HTTP response headers. Serve Web packages over HTTP, not `file://`. See the [Web build guide](https://github.com/IppClub/Dora-SSR/blob/main/Projects/xmake/web/README.md) for feature switches and packaging paths.
 
 ## 3. Build Web IDE
 
@@ -121,4 +146,27 @@ Android pins NDK `26.1.10909125` and CMake `3.22.1`. Default ad-hoc iOS device p
 
 ## 4. Unified Build Flow
 
-All entries use one xmake graph: dependency checks/installation → incremental Lua bindings and runtimes → vendor/engine compilation → platform packaging. `dora-run` builds and launches, `dora-ide` generates disposable IDE projects, and `dora-package` creates distribution packages. Do not maintain separate prebuilt-library or manual-project source lists.
+All entries use one xmake graph: dependency checks/installation → incremental Lua bindings and runtimes → vendor/engine compilation → platform packaging. `dora-run` builds and launches, `dora-ide` generates disposable IDE projects, and `dora-package` creates distribution packages. Do not maintain separate prebuilt-library or manual-project source lists. Packaging resources live in `Projects/packaging/`; implementation lives in `Projects/xmake/`. See [Game Application Packaging](./130.game-app-pack.mdx) for distribution commands and signing requirements.
+
+## 5. Run Tests
+
+Tests are maintained in Dora-Example. The test task fetches its latest default-branch HEAD; normal engine builds do not fetch the test repository. No historical engine/test commit pairing is required.
+
+```sh
+xmake dora-test
+xmake dora-test --suite=studio
+xmake dora-test --suite=web-ide
+xmake dora-test --list
+```
+
+The default suite checks engine contracts. Before the Studio suite, install its frontend dependencies with `pnpm --dir Studio install --frozen-lockfile`. That suite builds the real isolated Agent engine, generates tutorials and trusted-host support, then runs frontend tests and real Go backend contracts with race detection. Before the full Web IDE suite, install `Tools/dora-dora` dependencies; the task prepares the native CLI and production Web IDE assets. JavaScript suites require Node.js/pnpm, and the default contracts also require a host Lua interpreter.
+
+For local test development, use `xmake dora-test --repo=/absolute/path/to/Dora-Example --suite=studio`. `--no-build` is only for explicitly prepared current Studio artifacts: `xmake dora-test --suite=studio -- --no-build`. From a nested directory, keep the task before project options, for example `xmake dora-test -P ../..`; putting `-P` first selects xmake's default build command.
+
+## 6. Build the Studio Agent Engine
+
+```sh
+xmake dora-studio
+```
+
+This builds and validates the dedicated Agent Web engine in `result/dora-studio-agent-engine`. It is distinct from the public game Player; do not deploy it as a public game runtime. Building the Studio frontend and Go server remains a separate workspace build: install Studio dependencies, then run `pnpm --dir Studio build` with a suitable host Go toolchain. That command builds the frontend, trusted host support and server, not the dedicated engine itself.

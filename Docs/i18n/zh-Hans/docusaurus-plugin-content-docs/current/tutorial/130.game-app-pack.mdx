@@ -125,20 +125,22 @@ main()
 
 | 平台 | 开发工具 | 输出格式 | 签名要求 | 发布渠道 |
 |------|----------|----------|----------|----------|
-| Windows | Visual Studio | .exe | 可选 | Steam、官网、其他平台 |
-| macOS | Xcode | .app | 必需 | App Store、官网 |
-| Linux | xmake | 二进制 | 可选 | Steam、官网 |
-| iOS | Xcode | .ipa | 必需 | App Store |
-| Android | Android Studio | .apk/.aab | 必需 | Google Play、其他商店 |
-| Web | Emscripten + Node.js（引擎构建脚本） | 静态网站目录 | 无 | itch.io（HTML）、GitHub Pages、任意静态托管 |
+| Windows | xmake + Visual Studio C++ 工具 | 包含 .exe 的 ZIP | 可选 | Steam、官网、其他平台 |
+| macOS | xmake + Xcode | 包含 .app 的 ZIP | 分发时必需 | App Store、官网 |
+| Linux | xmake + 系统开发包 | AppImage | 可选 | Steam、官网 |
+| iOS | xmake + Xcode | 模拟器 ZIP / 真机 .ipa | 真机分发时必需 | App Store |
+| Android | xmake + Android Studio SDK/Gradle/CMake | .apk/.aab | 分发时必需 | Google Play、其他商店 |
+| Web | xmake 管理的 Emscripten + Node.js | 静态网站目录 | 无 | itch.io（HTML）、GitHub Pages、任意静态托管 |
 
 ### 4.2 各平台的打包操作
+
+安装[构建前置依赖](./120.dev-configuration.mdx)后，在 Dora-SSR 仓库根目录执行以下命令。应用元数据和资源维护在 `Projects/` 下，其中打包资源位于 `Projects/packaging/`；不要修改生成的 IDE 工程来配置打包。Release 模式本身不会提供正式发布的签名凭据。
 
 <Tabs groupId="platform-select">
 <TabItem value="windows" label="Windows">
 
 ```sh
-xmake dora-package --platform=windows --mode=release
+xmake dora-package --platform=windows --arch=x86 --mode=release
 ```
 
 产物位于 `build/package/` 的对应平台目录；Android 位于 `Projects/Android/Dora/app/build/outputs/`。应用名称、版本、图标与平台资源在 `Projects/` 中修改，构建参数在 `Projects/xmake/` 中修改，不修改生成的 IDE 工程。
@@ -192,13 +194,13 @@ xmake dora-package --platform=android --mode=release --format=aab
 
 #### 步骤 1：构建 Web Player
 
-在引擎仓库中构建一次 Web Player，脚本会自行检查 Emscripten 工具链（由 xmake 受管依赖安装）：
+在引擎仓库根目录构建一次 Web Player，xmake 任务会按需安装受管 Emscripten 工具链：
 
 ```bash
 xmake dora-web
 ```
 
-脚本会在 `result/dora-web-player` 下生成一个自包含的 Player 包，包含 `index.html`、Player 运行时以及一个内置示例游戏。默认的 `dora-preset` 配置覆盖常见 2D 游戏；构建前可以通过 `DORA_WEB_PROFILE`（`core`、`dora-preset` 或 `custom`）以及诸如 `DORA_WEB_FEATURE_MODEL_3D=ON` 的功能开关调整运行时。
+任务会在 `result/dora-web-player` 下生成一个自包含的 Player 包，包含 `index.html`、Player 运行时以及一个内置示例游戏。默认的 `dora-preset` 配置覆盖常见 2D 游戏；可使用 `--profile=core` 或 `--profile=custom`（也可设置 `DORA_WEB_PROFILE`）选择其他配置，并在构建前启用诸如 `DORA_WEB_FEATURE_MODEL_3D=ON` 的可选功能。pthread 版本使用 `xmake dora-web --pthreads`，通过带 COOP/COEP 响应头的服务访问 `result/dora-web-player-pthreads`。
 
 #### 步骤 2：打包游戏
 

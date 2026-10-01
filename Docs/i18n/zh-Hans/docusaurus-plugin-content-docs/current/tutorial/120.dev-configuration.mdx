@@ -9,31 +9,43 @@ import TabItem from '@theme/TabItem';
 <TabItem value="github" label="GitHub">
 
 ```sh
-git clone https://github.com/ippclub/Dora-SSR.git
+git clone --recurse-submodules https://github.com/ippclub/Dora-SSR.git
 ```
 
 </TabItem>
 <TabItem value="gitee" label="Gitee">
 
 ```sh
-git clone https://gitee.com/ippclub/Dora-SSR.git
+git clone --recurse-submodules https://gitee.com/ippclub/Dora-SSR.git
 ```
 
 </TabItem>
 <TabItem value="gitcode" label="GitCode">
 
 ```sh
-git clone https://gitcode.com/ippclub/Dora-SSR.git
+git clone --recurse-submodules https://gitcode.com/ippclub/Dora-SSR.git
 ```
 
 </TabItem>
 </Tabs>
+
+克隆后，以下 `xmake` 命令均在 `Dora-SSR/` 仓库根目录执行。已有 checkout 可运行 `git submodule update --init --recursive` 初始化子模块。
 
 ## 2. 构建游戏引擎运行时
 
 安装最新稳定版 xmake，以及平台原生工具：macOS/iOS 使用 Xcode，Windows 使用 Visual Studio C++ 工具，Linux 使用编译器及 SDL 所需系统开发库，Android 使用 Android Studio/SDK 和 JDK 17。Windows ARM64 应安装原生 ARM64 版 xmake，而不是模拟运行的 x64 版，以便受管宿主工具解析到正确架构。Go、Rust/rustup 与 Emscripten 由 xmake 受管依赖安装，不再单独执行依赖构建脚本。Linux 系统包清单参见 `.github/workflows/linux.yml`。
 
 在仓库根目录执行：
+
+```sh
+cd Dora-SSR
+xmake --version
+xmake doctor
+```
+
+`xmake doctor` 用于诊断宿主工具，不会代替平台 SDK 安装或接受 SDK 许可。检查其他目标可使用 `xmake doctor --platform=android`、`--platform=iphoneos` 或 `--platform=wasm`。首次构建会下载受管依赖，耗时通常明显长于后续增量构建。
+
+按目标平台选择一条构建命令，不要逐行执行全部命令：
 
 ```sh
 xmake dora-build --platform=macosx --mode=debug
@@ -60,9 +72,22 @@ xmake dora-ide --platform=linux --kind=compile_commands
 
 生成工程放在被忽略的 `build/ide/<platform>/<native|simulator|device>/<arch>/`，不要提交或手工维护。Windows 使用 vsxmake，Apple 使用 Xcode generator；Linux 可使用 compile_commands。Android Studio 仍打开 `Projects/Android/Dora`：Gradle/NDK CMake 编译 C/C++，其构建清单由 xmake 自动导出。
 
+Android 保留 CMake 作为 Android Studio/NDK 的集成层，不是第二份手工维护的源文件清单。Gradle Sync 生成原生代码模型，Run/Debug 自动准备 xmake 管理的 runtime 依赖，并通过 CMake/Ninja 重建原生代码。打开 C++ 源码时使用真实的 `Source/` 路径。如果 Studio 找不到 xmake，可设置 `DORA_XMAKE` 或 Gradle 属性 `dora.xmake` 为其绝对路径。仅调试 C++ 时选择 **Native Only**。详见 [Android 集成说明](https://github.com/IppClub/Dora-SSR/blob/main/Projects/xmake/android/README.md)。
+
 ### 移动与 Web
 
-Android 固定 NDK `26.1.10909125`、CMake `3.22.1`。iOS 默认 ad-hoc device 包不能用于真机安装或发布；正式签名说明见 `Projects/xmake/ios/README.md`。Web 的 core/preset/custom、feature overrides 和 pthread 参数见 `Projects/xmake/web/README.md`。Node.js/pnpm 仍用于前端与 JS 测试；Emscripten 自举需要主机 Python。
+Android 固定 NDK `26.1.10909125`、CMake `3.22.1`。iOS 默认 ad-hoc device 包不能用于真机安装或发布；详见 [iOS 签名说明](https://github.com/IppClub/Dora-SSR/blob/main/Projects/xmake/ios/README.md)。Node.js/pnpm 仍用于前端与 JS 测试；Emscripten 自举需要主机 Python。
+
+iOS App 位于 `build/iphoneos/<device|simulator>/<arch>/<mode>/Dora.app`；模拟器 ZIP、真机 IPA 位于对应的 `build/package/iphoneos/` 目录树。Android APK/AAB 位于 `Projects/Android/Dora/app/build/outputs/`。
+
+Web 默认构建 Release、`dora-preset`、单线程版本，独立 Player 位于 `result/dora-web-player`。如需精简 runtime 或 pthread 版本：
+
+```sh
+xmake dora-web --profile=core
+xmake dora-web --pthreads
+```
+
+pthread 产物为 `result/dora-web-player-pthreads`，服务端需提供 COOP/COEP 响应头。Web 包应通过 HTTP 访问，不能直接使用 `file://`。功能开关与打包路径详见 [Web 构建说明](https://github.com/IppClub/Dora-SSR/blob/main/Projects/xmake/web/README.md)。
 
 ## 3. 构建 Web IDE
 
@@ -117,4 +142,27 @@ Android 固定 NDK `26.1.10909125`、CMake `3.22.1`。iOS 默认 ad-hoc device �
 
 ## 4. 统一构建流程
 
-所有构建入口最终调用同一 xmake graph：依赖检查/安装 → Lua bindings 与 runtime 的增量生成 → vendor/engine 编译 → 平台打包。`dora-run` 构建后启动，`dora-ide` 生成可丢弃的 IDE 工程，`dora-package` 负责分发包。不要单独维护第三方预编译库或手工工程清单。
+所有构建入口最终调用同一 xmake graph：依赖检查/安装 → Lua bindings 与 runtime 的增量生成 → vendor/engine 编译 → 平台打包。`dora-run` 构建后启动，`dora-ide` 生成可丢弃的 IDE 工程，`dora-package` 负责分发包。不要单独维护第三方预编译库或手工工程清单。打包资源位于 `Projects/packaging/`，构建实现位于 `Projects/xmake/`。分发命令与签名要求见[游戏应用打包](./130.game-app-pack.mdx)。
+
+## 5. 执行测试
+
+测试代码统一维护在 Dora-Example。测试任务自动获取其默认分支最新 HEAD；普通引擎构建不会下载测试仓库，也不需要维护历史引擎与测试 commit 的配对。
+
+```sh
+xmake dora-test
+xmake dora-test --suite=studio
+xmake dora-test --suite=web-ide
+xmake dora-test --list
+```
+
+默认套件检查引擎契约。执行 Studio 套件前，先用 `pnpm --dir Studio install --frozen-lockfile` 安装前端依赖。该套件会构建真实的隔离 Agent 引擎、生成教程和受信任宿主支持，再运行前端测试及带 race detection 的真实 Go 后端契约。完整 Web IDE 套件执行前需安装 `Tools/dora-dora` 依赖；测试入口会准备原生 CLI 和生产版 Web IDE 产物。JS 套件需要 Node.js/pnpm，默认契约测试还需要宿主 Lua 解释器。
+
+开发本地测试可使用 `xmake dora-test --repo=/absolute/path/to/Dora-Example --suite=studio`。仅在明确已准备好当前 Studio 产物时使用 `--no-build`：`xmake dora-test --suite=studio -- --no-build`。从子目录调用时，任务名必须位于项目参数之前，例如 `xmake dora-test -P ../..`；把 `-P` 放在前面会选择 xmake 默认构建命令。
+
+## 6. 构建 Studio Agent 引擎
+
+```sh
+xmake dora-studio
+```
+
+该任务构建并校验专用 Agent Web 引擎，产物为 `result/dora-studio-agent-engine`。它与公开游戏 Player 隔离，不能作为公开游戏 runtime 部署。Studio 前端及 Go 服务器仍通过独立 workspace 构建：安装 Studio 依赖后，在具备宿主 Go 工具链的环境中执行 `pnpm --dir Studio build`。这条命令构建前端、受信任宿主支持和服务器，不构建专用引擎本身。

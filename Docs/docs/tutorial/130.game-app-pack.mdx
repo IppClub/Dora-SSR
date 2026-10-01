@@ -125,20 +125,22 @@ main()
 
 | Platform | Development Tools | Output Format | Signature Requirements | Distribution Channels |
 |----------|------------------|---------------|----------------------|----------------------|
-| Windows | Visual Studio | .exe | Optional | Steam, official website, other platforms |
-| macOS | Xcode | .app | Required | App Store, official website |
-| Linux | xmake | Binary | Optional | Steam, official website |
-| iOS | Xcode | .ipa | Required | App Store |
-| Android | Android Studio | .apk/.aab | Required | Google Play, other stores |
-| Web | Emscripten + Node.js (engine build scripts) | Static site directory | None | itch.io (HTML), GitHub Pages, any static hosting |
+| Windows | xmake + Visual Studio C++ tools | ZIP containing .exe | Optional | Steam, official website, other platforms |
+| macOS | xmake + Xcode | ZIP containing .app | Required for distribution | App Store, official website |
+| Linux | xmake + system development packages | AppImage | Optional | Steam, official website |
+| iOS | xmake + Xcode | Simulator ZIP / device .ipa | Required for device distribution | App Store |
+| Android | xmake + Android Studio SDK/Gradle/CMake | .apk/.aab | Required for distribution | Google Play, other stores |
+| Web | xmake-managed Emscripten + Node.js | Static site directory | None | itch.io (HTML), GitHub Pages, any static hosting |
 
 ### 4.2 Packaging Operations for Different Platforms
+
+Run these commands from the Dora-SSR repository root after installing the [build prerequisites](./120.dev-configuration.mdx). Package metadata and resources are maintained under `Projects/`, including `Projects/packaging/`; generated IDE projects are not packaging inputs to edit. Release mode does not by itself provide production signing credentials.
 
 <Tabs groupId="platform-select">
 <TabItem value="windows" label="Windows">
 
 ```sh
-xmake dora-package --platform=windows --mode=release
+xmake dora-package --platform=windows --arch=x86 --mode=release
 ```
 
 Outputs are under the platform directory in `build/package/`; Android outputs remain under `Projects/Android/Dora/app/build/outputs/`. Edit app metadata/resources under `Projects/` and build settings under `Projects/xmake/`, not generated IDE projects.
@@ -192,13 +194,13 @@ xmake dora-package --platform=android --mode=release --format=aab
 
 #### Step 1: Build the Web Player
 
-From the engine repository, build the Web Player once. The script checks the Emscripten toolchain itself (managed by xmake):
+From the engine repository root, build the Web Player once. The xmake task installs its managed Emscripten toolchain as needed:
 
 ```bash
 xmake dora-web
 ```
 
-The script produces a self-contained Player package in `result/dora-web-player`, containing `index.html`, the Player runtime, and a built-in demo game. The default `dora-preset` profile covers common 2D games; before building, the runtime can be tuned with `DORA_WEB_PROFILE` (`core`, `dora-preset` or `custom`) and feature switches such as `DORA_WEB_FEATURE_MODEL_3D=ON`.
+The task produces a self-contained Player package in `result/dora-web-player`, containing `index.html`, the Player runtime, and a built-in demo game. The default `dora-preset` profile covers common 2D games; choose another profile with `--profile=core` or `--profile=custom` (or `DORA_WEB_PROFILE`), and enable optional features such as `DORA_WEB_FEATURE_MODEL_3D=ON` before building. For pthreads, use `xmake dora-web --pthreads` and serve `result/dora-web-player-pthreads` with COOP/COEP response headers.
 
 #### Step 2: Package the Game
 
