@@ -9,6 +9,12 @@ function main(node, ...)
     local python = assert(find_tool(os.host() == "windows" and "python" or "python3", {system = true}),
         "Studio compiler tests require host Python for Emscripten")
     envs.EMSDK_PYTHON = python.program
+    -- The managed Go SDK can omit go.env. Fresh test runners still need
+    -- standard module download defaults; preserve explicit user overrides.
+    local go_proxy = os.getenv("GOPROXY")
+    envs.GOPROXY = go_proxy and #go_proxy > 0 and go_proxy or "https://proxy.golang.org,direct"
+    local go_sumdb = os.getenv("GOSUMDB")
+    envs.GOSUMDB = go_sumdb and #go_sumdb > 0 and go_sumdb or "sum.golang.org"
     envs.STUDIO_EMCC = os.getenv("STUDIO_EMCC") or assert(find_tool("emcc", {envs = envs}), "managed emcc is missing").program
     envs.STUDIO_EMXX = os.getenv("STUDIO_EMXX") or assert(find_tool("em++", {envs = envs}), "managed em++ is missing").program
     -- Tutorials are generated/ignored assets, not files in a clean checkout.

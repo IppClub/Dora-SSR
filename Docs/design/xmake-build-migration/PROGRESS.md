@@ -807,6 +807,14 @@ Release/APK/AAB 复验：`xmake dora-package --platform=android --mode=release` 
 未验证项：<明确列出>
 ```
 
+### 2026-10-01 / M9 Studio 干净产物与 Go 模块缓存补验
+
+- 最新 UI CI `36826053282`（引擎 `85ee0c77f` / 测试 `59ce752`）失败 3 项：两项需要未生成的 `Studio/dist/agent-host`，一项 Go 后端因托管 SDK 缺少模块代理默认值而无法下载模块。
+- Dora-Example Studio 入口在建立测试镜像之前执行 `pnpm -r build` 和 `pnpm build:agent-host`，确保干净 checkout 新建的 `dist` 也进入镜像；不额外构建正式 Go 服务器。新增空产物目录入口回归。
+- xmake Studio 环境为托管 Go 补齐标准 `GOPROXY` / `GOSUMDB`，保留非空用户设置（含 `off` / `direct`）。
+- macOS ARM64：暂时移开整个 `Studio/dist`，使用空 `GOMODCACHE`，执行 `xmake dora-test --repo=/Users/Jin/Workspace/Dora/Dora-Example --suite=studio`，293/293 通过，含真实 Go race 契约；原有 dist 已恢复。日志：`build/ci-studio-clean-host-go.log`。契约套件 9/9 通过，新增入口夹具 4/4 通过；未跳过原有测试。
+- Dora-Example 测试入口修复提交 `b8642b6`；本轮按用户授权重新推送两个仓库全部配置远程，并停止被新提交替代的旧 CI。远端 Linux UI CI 的修复后结果仍须独立验证。
+
 ## 10. 更新规则
 
 - 任务开始时改为 🟡，不要预先标记完成；
