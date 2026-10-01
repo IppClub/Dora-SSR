@@ -105,6 +105,12 @@ if is_plat("android") then
                 local unpack_dir = path.join(work_dir, "aar")
                 local envs = with_host_path(target:pkgenvs())
                 envs.GOBIN = tools_dir
+                -- xmake's Go package may omit go.env, so a fresh host has no
+                -- module proxy default. Keep explicit user settings, but give
+                -- gomobile's network install the standard Go proxy fallback.
+                local go_proxy = os.getenv("GOPROXY")
+                envs.GOPROXY = go_proxy and #go_proxy > 0 and go_proxy
+                    or "https://proxy.golang.org,direct"
                 envs.GOSUMDB = os.getenv("GOSUMDB") or "sum.golang.org"
                 envs.ANDROID_HOME = os.getenv("ANDROID_HOME")
                     or os.getenv("ANDROID_SDK_ROOT") or get_config("android_sdk")
