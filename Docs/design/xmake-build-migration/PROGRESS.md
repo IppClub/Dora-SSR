@@ -664,6 +664,14 @@ Release/APK/AAB 复验：`xmake dora-package --platform=android --mode=release` 
 
 验证：全 workflows `actionlint`、路径过滤去重、AppRun shell syntax、`git diff --check` 通过；仓库现有引用全部使用新路径。Linux arm64 Release 实际 `xmake dora-package --platform=linux --arch=arm64 --mode=release` 打包成功，AppDir 中两份资源与新位置源文件逐字节一致，生成 AppImage 的 `--appimage-extract-and-run cli --help` 返回 0 并输出 CLI 帮助。日志为 `build/xmake-packaging-relocation-{linux,cli}.log`。验证后关闭本次启动的 Lima VM；未提交、推送或执行远端 CI。
 
+### 2026-10-01 / Android 干净 checkout 绑定生成修复
+
+远端 Android CI `36803673281`（提交 `280db5fa7`）在 CMake 配置阶段失败：`missing Android native source: Source/Lua/LuaBinding.cpp`。Go/gomobile 准备已越过此前失败点。导出器此前依赖 `target:fileconfig(file).always_added` 判断缺失绑定，未能识别干净 checkout 中不存在的生成文件；改为直接检查 `dora-lua-bindings` 声明的五份输出，缺失时先执行生成，再导出 CMake target 图。
+
+本地复验使用待提交 Git tree 的隔离归档（约 256 MiB），没有原工作区的生成文件或构建缓存：首次 xmake export 自动生成全部绑定，导出 14 个 Android target；将五份输出移到测试备份后，直接配置正式 Android CMake 入口，NDK 26.1 / CMake 3.22.1 / arm64-v8a Debug 再次自动生成，配置与 Ninja 图生成成功。五份输出均非空，排除生成时间注释后与首次输出一致，Touch source 检查通过。日志：`build/android-clean-export-config.log`、`build/android-clean-export.log`、`build/android-clean-cmake.log`。本次没有在隔离目录重编完整 APK；完整 Linux host APK 交由新提交的 Android CI 复验。
+
+用户授权将剩余变更一起提交：Touch 鼠标来源/按键/连击声明及 tolua header、LoveNode 失败初始化生命周期修复随本次修正提交；其他 detached worktree 的变更不在本次工作区范围内。
+
 ## 9. 证据记录模板
 
 每次更新进度时追加一条：

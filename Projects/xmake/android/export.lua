@@ -55,15 +55,15 @@ function main(output)
     end
     collect(assert(project.target("Dora")))
 
-    -- Regenerate missing tracked bindings before CMake configures its graph.
+    -- Bootstrap bindings from the generator's declared outputs, not per-file
+    -- metadata: xmake does not retain always_added in target:fileconfig().
     -- Do not mark source-tree files GENERATED: `ninja clean` must not delete
-    -- committed source files or subsequent developer edits to them.
+    -- these shared outputs or subsequent developer edits to them.
     local missing_bindings = false
-    for _, target in ipairs(targets) do
-        for _, file in ipairs(target:sourcefiles()) do
-            if not os.isfile(file) and (target:fileconfig(file) or {}).always_added then
-                missing_bindings = true
-            end
+    for _, file in ipairs(binding_outputs) do
+        if not os.isfile(file) then
+            missing_bindings = true
+            break
         end
     end
     if missing_bindings then

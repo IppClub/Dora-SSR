@@ -805,6 +805,9 @@ class Touch : public Object
 {
 	tolua_property__bool bool enabled;
 	tolua_readonly tolua_property__bool bool first;
+	tolua_readonly tolua_property__bool bool fromMouse;
+	tolua_readonly tolua_property__common int mouseButton;
+	tolua_readonly tolua_property__common int clickCount;
 	tolua_readonly tolua_property__common int id;
 	tolua_readonly tolua_property__common Vec2 delta;
 	tolua_readonly tolua_property__common Vec2 location;

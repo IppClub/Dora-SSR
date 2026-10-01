@@ -2040,6 +2040,13 @@ class Touch extends Object {
 	 */
 	readonly first: boolean;
 
+	/** Whether this event originated from a mouse button. */
+	readonly fromMouse: boolean;
+	/** Mouse button number, or 0 for touch input. */
+	readonly mouseButton: number;
+	/** Number of consecutive clicks (1 for touch input). */
+	readonly clickCount: number;
+
 	/**
 	 * The unique identifier assigned to this touch event.
 	 */

@@ -13,6 +13,15 @@ local record Touch
 	-- Whether this is the first touch event when multi-touches exist.
 	const first: boolean
 
+	-- Whether this event originated from a mouse button.
+	const fromMouse: boolean
+
+	-- Mouse button number, or 0 for touch input.
+	const mouseButton: integer
+
+	-- Number of consecutive clicks (1 for touch input).
+	const clickCount: integer
+
 	-- The unique identifier assigned to this touch event.
 	const id: integer
 

@@ -5916,7 +5916,12 @@ LoveNode *LoveNode::createProbe(String bootFile, std::string &error)
 		return node;
 	}
 	error = node->getLastError().toString();
-	delete node;
+	// Node's constructor registers a retained reference with Director. A raw
+	// delete here leaves that reference dangling; the next frame releases it
+	// again and corrupts the heap before a project can be restarted.
+	node->setAsManaged();
+	node->cleanup();
+	if (node->getRefCount() == 0) delete node;
 	return nullptr;
 }
 

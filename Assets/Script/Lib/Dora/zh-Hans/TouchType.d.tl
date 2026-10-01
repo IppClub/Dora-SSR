@@ -13,6 +13,15 @@ local record Touch
 	-- 如果存在多点触控，则此事件是否为第一个触摸事件。
 	const first: boolean
 
+	-- 此事件是否来自鼠标按键。
+	const fromMouse: boolean
+
+	-- 鼠标按键编号；触摸输入为 0。
+	const mouseButton: integer
+
+	-- 连续点击次数；触摸输入为 1。
+	const clickCount: integer
+
 	-- 分配给此触摸事件的唯一标识符。
 	const id: integer
 
