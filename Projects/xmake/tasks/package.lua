@@ -60,10 +60,11 @@ local function package_linux(mode, arch, api)
     for _, name in ipairs({"curl", "patchelf"}) do
         ensure(find_tool(name), "Linux AppImage packaging requires " .. name)
     end
-    -- Distro lddtree uses /usr/bin/env python3 and distro pyelftools. A
-    -- hosted SDK Python ahead of /usr/bin cannot import that system module.
+    -- Newer distro lddtree uses Python/pyelftools; prefer distro Python over
+    -- hosted SDKs. Ubuntu 22.04 ships a shell lddtree that only accepts -V,
+    -- not find_tool's default --version. -V also works with the Python one.
     local lddtree_envs = {PATH = "/usr/bin:/bin:" .. os.getenv("PATH")}
-    local lddtree = ensure(find_tool("lddtree", {envs = lddtree_envs, force = true}),
+    local lddtree = ensure(find_tool("lddtree", {envs = lddtree_envs, force = true, check = {"-V"}}),
         "Linux AppImage packaging requires lddtree (pax-utils and system pyelftools)")
 
     local projectdir = os.projectdir()

@@ -786,6 +786,13 @@ Release/APK/AAB 复验：`xmake dora-package --platform=android --mode=release` 
 - 只改测试仓不会自动触发主仓 CI；需本地验证或手动触发 Dora-SSR 对应 workflow。方案与测试 README 已同步说明该边界。
 - 本次删除的是 workflow 配置，不删除测试代码；可通过 Git 恢复。尚未提交/推送，因此远端已运行的旧任务不受本地删除影响。
 
+### 2026-10-01 / M9 AppImage 工具探测兼容修复
+
+- 发布 Studio 前置依赖修复及测试 CI 归属调整：Dora-SSR `4d344a4c5`、Dora-Example `59ce752`，各配置远程分支 SHA 已核对一致。
+- 查看上一轮 `27fd2132c` CI：Windows、Linux、macOS、Web、Docs 已通过；AppImage 在两种架构的打包工具探测失败（run `36824076439`），不是编译失败。
+- 核对 runner 的 Ubuntu 22.04 `pax-utils_1.2.9-1` 官方 deb：其中 `/usr/bin/lddtree` 为 Bash 实现，仅支持 `-V`。xmake `find_tool` 默认调用 `--version`，导致已安装工具被误判缺失。探测改为 `-V`，同时兼容较新 Python 实现；实际依赖收集仍用原有 `-l`。
+- 本地验证限于真实发行版脚本的版本探测及 xmake 探测链路，完整 Linux AppImage 需远端 CI 验收，不能以主机 macOS 检查代替。
+
 每次更新进度时追加一条：
 
 ```text
