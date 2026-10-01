@@ -5,6 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'Tools/dora-dora/**'
+      - 'Studio/**'
       - 'Studio/packages/agent-ui/**'
       - 'Studio/packages/compiler/**'
       - 'Studio/packages/tstl/**'
@@ -12,12 +13,11 @@ on:
       - 'xmake.lua'
       - 'Projects/xmake/**'
       - 'Source/**'
-      - 'Tools/build-scripts/build_web.sh'
-      - 'Tools/build-scripts/check_web_build_env.sh'
   pull_request:
     branches: [ main ]
     paths:
       - 'Tools/dora-dora/**'
+      - 'Studio/**'
       - 'Studio/packages/agent-ui/**'
       - 'Studio/packages/compiler/**'
       - 'Studio/packages/tstl/**'
@@ -25,8 +25,6 @@ on:
       - 'xmake.lua'
       - 'Projects/xmake/**'
       - 'Source/**'
-      - 'Tools/build-scripts/build_web.sh'
-      - 'Tools/build-scripts/check_web_build_env.sh'
   workflow_dispatch:
 
 jobs:
@@ -56,8 +54,25 @@ jobs:
         with:
           xmake-version: latest
 
+      - name: Setup current Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache-dependency-path: Studio/go.sum
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Test current engine contracts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.4
+          xmake -P ../.. dora-test
+
+      - name: Test Studio current frontend and Go backend
+        run: |
+          pnpm --dir ../../Studio install --frozen-lockfile
+          xmake -P ../.. dora-test --suite=studio
 
       - name: Lint (oxlint)
         # oxlint exits 0 for warnings, 1 for errors — only errors block the build

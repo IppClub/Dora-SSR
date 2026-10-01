@@ -45,7 +45,7 @@ xmake dora-package --platform=android --mode=debug
 xmake dora-web
 ```
 
-只运行当前主机平台对应的命令。构建实现位于 `Projects/xmake/`，根目录 `xmake.lua` 为入口。桌面产物为 `build/<platform>/<arch>/<mode>/Dora`（Windows 为 `Dora.exe`；macOS 为 `Dora.app`）。现有 `build_*`/`run_*` 脚本仅作兼容转发；`run_*` 使用仓库 Assets，不会强制结束其他 Dora 进程。
+只运行当前主机平台对应的命令。构建实现位于 `Projects/xmake/`，根目录 `xmake.lua` 为入口。桌面产物为 `build/<platform>/<arch>/<mode>/Dora`（Windows 为 `Dora.exe`；macOS 为 `Dora.app`）。旧构建/运行脚本已移除；`xmake dora-run` 使用仓库 Assets，不会强制结束其他 Dora 进程。
 
 Windows x86 还需要 32 位 MinGW GCC 来构建 Wa 的 Go cgo runtime。将 `i686-w64-mingw32-gcc` 或 MSYS2 MINGW32 的 `gcc` 放入 PATH，或设置 `CC` 为其可执行文件路径。即使仓库位于共享目录，Rust 产物也会放在本地磁盘的 `LOCALAPPDATA` 下，或使用自定义 `CARGO_TARGET_DIR`。
 

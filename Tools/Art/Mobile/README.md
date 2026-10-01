@@ -9,7 +9,7 @@
 ```sh
 python3 -m pip install -r Tools/Art/Mobile/requirements.txt
 python3 Tools/Art/Mobile/rebuild_mascot.py --evidence /tmp/dora-mascot-evidence
-python3 Tools/Art/Mobile/test_mascot.py
+xmake dora-test --suite=art
 ```
 
 默认更新运行时图集和 `Assets/Script/Dev/Mobile/MascotFrames.ts`，不覆盖原图备份。使用 `--output /tmp/candidate.png` 可输出候选图，其布局文件默认写入证据目录；也可用 `--layout-output` 显式指定。TS 布局与播放器修改后须通过 Dora Web IDE 编译为 Lua。

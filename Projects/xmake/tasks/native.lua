@@ -11,13 +11,15 @@ local function settings(option, api)
     return platform, arch, mode
 end
 
-local function configure(platform, arch, mode, envs, appledev, api)
+local function configure(platform, arch, mode, envs, appledev, api, tests)
     local os = api.os
     if os.host() == "windows" and os.arch() ~= "arm64"
         and (os.getenv("PROCESSOR_IDENTIFIER") or ""):find("ARM", 1, true) then
         api.ensure(false, "Windows ARM64 requires native ARM64 xmake; install the official ARM64 distribution instead of emulated x64 xmake")
     end
     local args = {"f", "-y", "-p", platform, "-a", arch, "-m", mode, "--ccache=n"}
+    table.insert(args, "--dora_native_tests=" .. (tests and "y" or "n"))
+    table.insert(args, "--dora_test_repo=" .. (tests and tests.directory or ""))
     if platform == "iphoneos" then table.insert(args, "--appledev=" .. (appledev or "simulator")) end
     os.execv(os.programfile(), args, {curdir = os.projectdir(), envs = envs})
 end
@@ -30,7 +32,8 @@ for _, name in ipairs({"dora-build", "dora-run"}) do
             description = "Build the native engine from the single xmake graph" .. (name == "dora-run" and " and launch it" or ""),
             options = {{nil, "platform", "kv", nil, "Native platform"}, {nil, "arch", "kv", nil, "Target architecture"},
                 {nil, "mode", "kv", "debug", "debug or release"}, {nil, "jobs", "kv", "6", "Compilation jobs"},
-                {nil, "appledev", "kv", "simulator", "iOS SDK"}, {nil, "arguments", "vs", nil, "Engine arguments (after --)"}}
+                {nil, "appledev", "kv", "simulator", "iOS SDK"}, {nil, "tests", "k", nil, "Include external native tests"},
+                {nil, "arguments", "vs", nil, "Engine arguments (after --)"}}
         }
         local run = name == "dora-run"
         on_run(function ()
@@ -43,7 +46,8 @@ for _, name in ipairs({"dora-build", "dora-run"}) do
             local root = os.projectdir()
             local sdk = platform == "iphoneos" and option.get("appledev") or "native"
             local envs = {XMAKE_CONFIGDIR = path.join(root, "build/native-config", platform, sdk, arch, mode)}
-            configure(platform, arch, mode, envs, option.get("appledev"), api)
+            local tests = option.get("tests") and import("Projects.xmake.testing.repository", {rootdir = root, anonymous = true})()
+            configure(platform, arch, mode, envs, option.get("appledev"), api, tests)
             os.execv(os.programfile(), {"build", "-j", tostring(jobs), "Dora"}, {curdir = root, envs = envs})
             if run then
                 local binary = path.join(root, "build", platform, arch, mode, platform == "windows" and "Dora.exe" or "Dora")

@@ -197,7 +197,7 @@ prepare_engines() {
 	runtime="${STUDIO_PACKAGE_RUNTIME_DIR:-$ROOT_DIR/build/studio-runtime}"
 	if [[ "${STUDIO_PACKAGE_REBUILD_ENGINES:-0}" == 1 ]] || ! valid_agent_engine "$agent_engine"; then
 		info 'Building the dedicated Studio Agent Web engine...'
-		(cd "$ROOT_DIR" && bash Tools/build-scripts/build_studio_agent_host.sh)
+		(cd "$ROOT_DIR" && xmake dora-studio)
 		agent_engine="$ROOT_DIR/result/dora-studio-agent-engine"
 	fi
 	if [[ "${STUDIO_PACKAGE_REBUILD_ENGINES:-0}" == 1 ]] || ! valid_runtime "$runtime"; then
@@ -216,7 +216,7 @@ prepare_engines() {
 			DORA_WEB_PROFILE=dora-preset DORA_WEB_FEATURE_YUE=OFF DORA_WEB_FEATURE_MUSIC=ON \
 			DORA_WEB_FEATURE_PHYSICS_2D=ON DORA_WEB_FEATURE_ENTITY=ON DORA_WEB_FEATURE_PLATFORMER=ON \
 			DORA_WEB_FEATURE_BUILTIN_LIBS=ON DORA_WEB_FEATURE_ML=ON DORA_WEB_FEATURE_LOVE=ON DORA_WEB_FEATURE_MODEL_3D=ON \
-			bash Tools/build-scripts/build_web.sh
+			xmake dora-web
 		)
 		(cd "$STUDIO_DIR" && STUDIO_RUNTIME_DIR="$source_player" node apps/web/scripts/prepare-runtime.mjs)
 		runtime="$ROOT_DIR/build/studio-runtime"

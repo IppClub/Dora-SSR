@@ -6,6 +6,7 @@ task("dora-web")
         options = {{nil, "mode", "kv", "release", "debug or release"},
             {nil, "profile", "kv", nil, "core, dora-preset or custom"},
             {nil, "pthreads", "k", nil, "Enable pthreads and the Love pthread Player"},
+            {nil, "tests", "k", nil, "Build external test fixtures and Love probes"},
             {nil, "jobs", "kv", nil, "Parallel compilation jobs"}}
     }
     on_run(function ()
@@ -19,7 +20,7 @@ task("dora-web")
         local threads = option.get("pthreads") or enabled("PTHREADS", "0")
         local engine = enabled("BUILD_ENGINE", "1")
         local player = enabled("LINK_PLAYER", engine and "1" or "0")
-        local probes = enabled("BUILD_LOVE_PROBE", engine and "1" or "0")
+        local probes = enabled("BUILD_LOVE_PROBE", (option.get("tests") or threads) and "1" or "0")
         local love_player = enabled("BUILD_LOVE_PTHREAD_PLAYER", threads and "1" or "0")
         local studio = enabled("STUDIO_AGENT_HOST", "0")
         local out = path.absolute(env("BUILD_DIR", path.join(root, "build/web-xmake", profile, threads and "pthread" or "single", mode)), root)
@@ -65,9 +66,18 @@ task("dora-web")
         local jobs = option.get("jobs") or os.getenv("JOBS") or "6"
         local job_count = tonumber(jobs)
         assert(job_count and job_count > 0 and job_count == math.floor(job_count), "jobs must be a positive integer")
-        local envs = {XMAKE_CONFIGDIR = configdir, BINARYEN_CORES = tostring(job_count)}
+        local envs = {XMAKE_CONFIGDIR = configdir, BINARYEN_CORES = tostring(job_count),
+            DORA_TEST_WEB = "", DORA_TEST_SCRIPTS = ""}
+        if option.get("tests") or probes or env("LOVE_COMPLEX_PACKAGE", "") ~= "" then
+            local tests = import("Projects.xmake.testing.repository", {rootdir = root, anonymous = true})()
+            envs.DORA_TEST_REPO = tests.directory
+            envs.DORA_TEST_SCRIPTS = tests.scripts
+            envs.DORA_TEST_WEB = tests.web
+            envs.DORA_ENGINE_ROOT = root
+        end
         local args = {"f", "-y", "-p", "wasm", "-a", "wasm32", "-m", mode, "--ccache=n", "--builddir=" .. path.join(out, "build"),
-            "--dora_web_outdir=" .. out, "--dora_web_profile=" .. profile}
+            "--dora_web_outdir=" .. out, "--dora_web_profile=" .. profile,
+            "--dora_web_testdir=" .. envs.DORA_TEST_WEB}
         for key, value in pairs({engine = engine, link_player = player, love_probe = probes, love_pthread_player = love_player,
             pthreads = threads, diagnostics = enabled("DIAGNOSTICS", "0"), studio_agent_host = studio,
             experimental_main_worker = not studio and enabled("EXPERIMENTAL_MAIN_WORKER", "0")}) do

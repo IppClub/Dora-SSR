@@ -13,7 +13,6 @@ on:
       - 'Projects/Web/**'
       - 'xmake.lua'
       - 'Projects/xmake/**'
-      - 'Tools/build-scripts/**'
       - 'Tools/tolua\+\+/**'
       - '.github/workflows/static.yml'
   pull_request:
@@ -25,7 +24,6 @@ on:
       - 'Projects/Web/**'
       - 'xmake.lua'
       - 'Projects/xmake/**'
-      - 'Tools/build-scripts/**'
       - 'Tools/tolua\+\+/**'
       - '.github/workflows/static.yml'
   workflow_dispatch:
@@ -67,18 +65,18 @@ jobs:
           cache-dependency-path: 'Docs/pnpm-lock.yaml'
       - name: Build shared Web Player and all latest demos
         run: |
-          node Tools/build-scripts/test_web_gallery.mjs
-          node Tools/build-scripts/build_web_gallery.mjs
-          node Tools/build-scripts/test_web_audio_worklet.mjs build/web
-          node Tools/build-scripts/test_web_audio_state.mjs
-          node Tools/build-scripts/check_web_gallery.mjs Docs/static/play build/Dora-Demo
+          xmake dora-test --case=test_web_gallery
+          xmake dora-gallery
+          xmake dora-test --case=test_web_audio_worklet -- build/web
+          xmake dora-test --case=test_web_audio_state
+          xmake dora-test --case=check_web_gallery -- Docs/static/play build/Dora-Demo
       - name: Build docs
         run: |
           cd Docs
           pnpm install --frozen-lockfile
           pnpm build
       - name: Verify deployed gallery assets
-        run: node Tools/build-scripts/check_web_gallery.mjs Docs/build/play build/Dora-Demo
+        run: xmake dora-test --case=check_web_gallery -- Docs/build/play build/Dora-Demo
       - name: Upload artifact
         if: github.event_name != 'pull_request' && github.repository == 'IppClub/Dora-SSR'
         uses: actions/upload-pages-artifact@v3

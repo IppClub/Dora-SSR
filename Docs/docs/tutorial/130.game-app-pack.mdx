@@ -203,7 +203,7 @@ The script produces a self-contained Player package in `result/dora-web-player`,
 #### Step 2: Package the Game
 
 ```bash
-node Tools/build-scripts/package_web_game.mjs <game-dir> <output-dir> [entry]
+xmake dora-web-game -- <game-dir> <output-dir> [entry]
 ```
 
 `<game-dir>` is the streamlined game directory containing the entry file (`init.lua` by default). The script writes a `dora-web-manifest.json` plus content-hashed files under `assets/` into `<output-dir>`; every file is SHA-256 verified when loaded in the browser. A game package holds up to 4096 files and 256 MB in total.

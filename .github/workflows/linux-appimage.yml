@@ -8,7 +8,6 @@ on:
       - '.github/workflows/linux-appimage.yml'
       - 'Source/**'
       - 'Tools/tolua\+\+/**'
-      - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
       - 'Tools/dora-dora/**'
       - 'Tools/dora-wa/**'
@@ -23,7 +22,6 @@ on:
       - '.github/workflows/linux-appimage.yml'
       - 'Source/**'
       - 'Tools/tolua\+\+/**'
-      - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
       - 'Tools/dora-dora/**'
       - 'Tools/dora-wa/**'
@@ -69,7 +67,7 @@ jobs:
           cache-dependency-path: Tools/dora-dora/pnpm-lock.yaml
 
       - name: Verify Web build tools
-        run: bash Tools/build-scripts/check_web_build_env.sh
+        run: xmake dora-web-env
 
       - name: Build and verify Web IDE
         working-directory: Tools/dora-dora

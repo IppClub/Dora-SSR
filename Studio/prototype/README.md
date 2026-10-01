@@ -46,8 +46,7 @@ BYOK 不扣平台额度，以输入/输出 Token 与调用次数记录消耗；�
 静态服务运行后，使用已安装 Playwright 的 Node 环境：
 
 ```sh
-node Studio/prototype/test.cjs
-node Studio/prototype/money-test.cjs
+xmake dora-test --suite=prototype
 ```
 
 若 Playwright 不在默认模块搜索路径，可设置 `STUDIO_PLAYWRIGHT_MODULE` 为其绝对模块路径；缺少 bundled 浏览器时用 `STUDIO_CHROME_PATH` 指定已安装 Chrome 可执行文件；`STUDIO_PROTOTYPE_URL` 可覆盖本地服务地址。截图写入忽略目录 `artifacts/`。检查覆盖核心交互、错误状态和 1024/736/390/320 宽度页面溢出，不代替真实移动设备或 Dora 引擎验证。

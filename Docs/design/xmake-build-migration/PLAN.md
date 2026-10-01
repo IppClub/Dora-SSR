@@ -1,12 +1,37 @@
 # Dora-SSR xmake 单一构建定义迁移方案
 
-> 状态：方案已实施，本地收尾完成；远端 CI 与生产发布门禁待验收
+> 状态：M1–M8 已实施；M9 任务与测试迁移及本地红灯修复已落地，双仓发布与远端 CI 待验收
 > 更新日期：2026-10-01
 > 配套进度表：[PROGRESS.md](./PROGRESS.md)
 
-2026-10-01 收尾范围：移除旧手工 Xcode/VS/Linux CMake 工程和冗余依赖脚本，保留 Apple/Windows 平台资源、Android Gradle 与薄 CMake 适配器，以及独立测试/资源生成工具。根目录 `xmake.lua` 保留；实现集中在 `Projects/xmake/`。桌面统一使用 `xmake dora-build` / `dora-run`，IDE 使用 `dora-ide` 生成至被忽略的 `build/ide/`，发行包使用 `dora-package`。旧 shell/batch 公共入口仅作兼容转发，不再维护构建图。下文旧文件统计为迁移前基线，不代表仍保留这些工程。
+2026-10-01 收尾范围：移除旧手工 Xcode/VS/Linux CMake 工程和冗余依赖脚本，保留 Apple/Windows 平台资源、Android Gradle 与薄 CMake 适配器。根目录 `xmake.lua` 保留；实现集中在 `Projects/xmake/`。桌面统一使用 `xmake dora-build` / `dora-run`，IDE 使用 `dora-ide` 生成至被忽略的 `build/ide/`，发行包使用 `dora-package`。M9 进一步删除 shell/batch 兼容入口，将测试迁入 Dora-Example。下文旧文件统计为迁移前基线，不代表仍保留这些工程。
 
 ## 1. 背景
+
+### 2026-10-01 / M9 统一任务入口与外部测试仓库
+
+新增收尾范围：移除 `Tools/build-scripts`，流程编排由根目录 xmake task 提供，正式 Web 打包实现归入 `Projects/xmake/tools/`。测试脚本、浏览器驱动和 Web 夹具迁入 Dora-Example；Go/Rust 源码内单元测试、第三方自带测试及正式运行时工具不强行外移。测试时获取 Dora-Example 远端默认分支最新 HEAD（当前 master），失败不得回退旧缓存；支持显式本地仓库路径联调。日志记录两个仓库实际 SHA，不锁版本，不维护旧引擎矩阵。普通生产构建不得为了测试而获取外部仓库。两个仓库的 CI 都验证当前主引擎与当前测试套件；主仓库不能在测试迁移前删除仍被构建依赖的资源。
+
+M9 公共入口（均从引擎根目录运行）：
+
+| 命令 | 职责 |
+| --- | --- |
+| `xmake dora-build` / `dora-run` / `dora-ide` | Native 构建、启动、生成 IDE |
+| `xmake dora-package --platform=...` | 桌面、iOS、Android、Web 发行包 |
+| `xmake dora-web` / `dora-studio` / `dora-wa-web` | Web Player、独立 Studio Agent 宿主、Wa Web |
+| `xmake dora-wa-sync --source=... [--dry-run]` | 显式同步上游 Wa，原版本备份至 build |
+| `xmake dora-web-game -- ...` / `dora-web-preview -- ...` / `dora-web-rollback -- ...` / `dora-gallery` | 正式 Web 打包、预览版本、回滚、演示画廊 |
+| `xmake dora-test [--suite=contract\|web\|web-ide\|studio\|prototype\|art] [--case=名称] [-- 参数]` | 外部契约、Web、IDE、Studio、原型、图集测试 |
+| `xmake dora-test-deps` / `dora-test --list` | 获取最新测试、查看可执行用例 |
+| `xmake dora-web --tests` / `dora-build --tests` | 编译外部 Web 夹具 / C++ 回归测试 |
+
+本地联调用 `DORA_TEST_REPO=/path/to/Dora-Example`，或仅测试任务的 `--repo=...`，不修改、更新或清理该 checkout。默认每次任务从远端默认分支获取最新测试并使用 SHA 独立目录，避免并发 fetch 改写正在编译的输入；这些目录只是缓存，不是固定测试版本。运行结果写入 `build/test-results/`，包含两个 SHA、dirty 标记及逐用例退出状态。Node.js 是测试脚本运行依赖，Lua 契约用例另需 Lua 5.4；Web 编译仍使用 Emscripten 受管 Node。
+
+Native C++ 测试实体与内嵌测试块迁至 `Test/Native`。`Source/Test/Test.{cpp,h}` 是 Lua API 的测试注册桥，`Http/XrtNetwork.h` 的开发断言开关属于内部运行时机制，保留主仓库。内嵌测试通过显式宏下的外部 `.inc` 接入，普通 Debug/Release 均设置 `DORA_TEST=0`。字体及最小 Player 启动资源是正式运行时输入，继续保留；不将生产资源误当夹具删除。
+
+发布顺序：先发布 Dora-Example 的测试迁移，再发布主引擎；过渡期间只使用明确的本地路径验证。两个仓库当前已有未提交修改，不能用旧远端测试分支证明本次测试迁移已经上线。
+
+`studio` 调用已有 Dora-Example Studio runner，支持 `-- --no-build [用例文件名]`；保留其现有本地改动。`prototype` 需要先启动静态原型服务和准备 Playwright/Chrome；`art` 需要 Pillow，读取主仓库正式图集及重建工具。Studio Go 和 Dora Rust/Wa 的源码内测试或可运行模板遵循各自生态结构，不搬走生产工具或破坏语言包布局。历史进度日志内的旧命令只作为原验收证据保留，当前使用入口以本节为准。
 
 Dora-SSR 在迁移开始时（2026-09-30）同时维护多套 Native 构建描述和平台编排逻辑：
 

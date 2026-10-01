@@ -8,6 +8,7 @@ local function setup(kind, callback)
     set_optimize(is_mode("release") and "fastest" or "none")
     on_load(function (target)
         local c = import("Projects.xmake.web.config", {rootdir = os.projectdir(), anonymous = true})()
+        c.ensure = assert
         local m = import("Projects.xmake.web.manifest", {rootdir = os.projectdir(), anonymous = true})()
         -- Relative linker output avoids embedding the host's absolute path
         -- in Emscripten's generated PACKAGE_NAME/datafile dependency names.
@@ -25,7 +26,13 @@ local function setup(kind, callback)
     end)
 end
 local function files(t, c, list, options)
-    for _, source in ipairs(list) do t:add("files", path.join(c.root, source), options) end
+    for _, source in ipairs(list) do
+        if source:startswith("@testweb@") then
+            c.ensure(c.testweb, "test targets require xmake dora-web --tests")
+            source = source:gsub("@testweb@", c.testweb)
+        end
+        t:add("files", path.absolute(source, c.root), options)
+    end
 end
 local function engine_flags(t, c)
     t:add("cxflags", "-fwasm-exceptions", {force = true})
@@ -54,6 +61,10 @@ local function engine_flags(t, c)
 end
 local function linkflag(t, c, flag)
     flag = flag:gsub("@root@", c.root):gsub("@web@", c.web):gsub("@out@", c.out)
+    if flag:find("@testweb@", 1, true) then
+        c.ensure(c.testweb, "test assets require xmake dora-web --tests")
+        flag = flag:gsub("@testweb@", c.testweb)
+    end
     local option, argument = flag:match("^(%-%-[%w%-]+) (.+)$")
     if option then
         -- Keep each option/value pair atomic: xmake deduplicates bare flags,
@@ -240,6 +251,7 @@ target_end()
 
 -- Probe descriptors carry only exports, JS adapters and fixture paths.
 -- Their engine and vendor source lists are shared with the production Player.
+if has_config("dora_web_love_probe") then
 for _, name in ipairs({"link-probe", "graphics-probe", "shader-probe", "audio-probe", "pthread-player", "complex-probe"}) do
     target("dora-web-love-" .. name)
         add_deps("dora-web-engine", "dora-web-link-deps", "dora-web-love-support", "dora-web-love-compile-probe", "dora-web-love-node-compile-probe")
@@ -268,6 +280,7 @@ for _, name in ipairs({"link-probe", "graphics-probe", "shader-probe", "audio-pr
         end)
         executable_hooks()
     target_end()
+end
 end
 
 includes("runtime.lua")

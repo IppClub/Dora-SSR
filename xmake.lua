@@ -37,6 +37,9 @@ includes("Projects/xmake/tasks/package.lua")
 includes("Projects/xmake/tasks/android.lua")
 includes("Projects/xmake/tasks/web.lua")
 includes("Projects/xmake/tasks/native.lua")
+includes("Projects/xmake/tasks/test.lua")
+includes("Projects/xmake/tasks/tools.lua")
+includes("Projects/xmake/tasks/wa.lua")
 
 target("dora-build-info")
     -- xmake 3.1.1's Xcode generator only models static/shared/binary

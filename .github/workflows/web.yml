@@ -9,23 +9,6 @@ on:
       - 'xmake.lua'
       - 'Projects/xmake/**'
       - 'Source/**'
-      - 'Tools/build-scripts/build_web.sh'
-      - 'Tools/build-scripts/check_web_build_env.sh'
-      - 'Tools/build-scripts/check_web_output.mjs'
-      - 'Tools/build-scripts/check_web_player_output.mjs'
-      - 'Tools/build-scripts/check_web_builtin_libraries*'
-      - 'Tools/build-scripts/check_web_forbidden_deps.mjs'
-      - 'Tools/build-scripts/check_web_loader.mjs'
-      - 'Tools/build-scripts/check_web_love_capabilities.mjs'
-      - 'Tools/build-scripts/check_web_love_complex_input.mjs'
-      - 'Tools/build-scripts/check_web_love_complex.mjs'
-      - 'Tools/build-scripts/stage_web_love_complex_input.mjs'
-      - 'Tools/build-scripts/check_web_love_player_output.mjs'
-      - 'Tools/build-scripts/check_web_package.mjs'
-      - 'Tools/build-scripts/check_web_preview.mjs'
-      - 'Tools/build-scripts/package_web_game.mjs'
-      - 'Tools/build-scripts/package_web_preview.mjs'
-      - 'Tools/build-scripts/rollback_web_preview.mjs'
       - 'Tools/tolua\+\+/**'
       - '.github/workflows/web.yml'
   pull_request:
@@ -36,23 +19,6 @@ on:
       - 'xmake.lua'
       - 'Projects/xmake/**'
       - 'Source/**'
-      - 'Tools/build-scripts/build_web.sh'
-      - 'Tools/build-scripts/check_web_build_env.sh'
-      - 'Tools/build-scripts/check_web_output.mjs'
-      - 'Tools/build-scripts/check_web_player_output.mjs'
-      - 'Tools/build-scripts/check_web_builtin_libraries*'
-      - 'Tools/build-scripts/check_web_forbidden_deps.mjs'
-      - 'Tools/build-scripts/check_web_loader.mjs'
-      - 'Tools/build-scripts/check_web_love_capabilities.mjs'
-      - 'Tools/build-scripts/check_web_love_complex_input.mjs'
-      - 'Tools/build-scripts/check_web_love_complex.mjs'
-      - 'Tools/build-scripts/stage_web_love_complex_input.mjs'
-      - 'Tools/build-scripts/check_web_love_player_output.mjs'
-      - 'Tools/build-scripts/check_web_package.mjs'
-      - 'Tools/build-scripts/check_web_preview.mjs'
-      - 'Tools/build-scripts/package_web_game.mjs'
-      - 'Tools/build-scripts/package_web_preview.mjs'
-      - 'Tools/build-scripts/rollback_web_preview.mjs'
       - 'Tools/tolua\+\+/**'
       - '.github/workflows/web.yml'
   workflow_dispatch:
@@ -78,22 +44,22 @@ jobs:
         with:
           node-version: '22.14.0'
       - name: Build Web packages
-        run: xmake dora-web
+        run: xmake dora-web --tests
       - name: Verify Web package
-        run: node Tools/build-scripts/check_web_output.mjs result/dora-web-build-probe
+        run: xmake dora-test --case=check_web_output -- result/dora-web-build-probe
       - name: Verify Web Player package
         run: |
-          node --test Tools/build-scripts/check_web_builtin_libraries.test.mjs
-          node Tools/build-scripts/check_web_loader.mjs
-          node Tools/build-scripts/check_web_love_capabilities.mjs
-          node Tools/build-scripts/check_web_package.mjs
-          node Tools/build-scripts/check_web_player_output.mjs result/dora-web-player
-          node Tools/build-scripts/check_web_forbidden_deps.mjs result/dora-web-player
+          xmake dora-test --case=check_web_builtin_libraries.test
+          xmake dora-test --case=check_web_loader
+          xmake dora-test --case=check_web_love_capabilities
+          xmake dora-test --case=check_web_package
+          xmake dora-test --case=check_web_player_output -- result/dora-web-player
+          xmake dora-test --case=check_web_forbidden_deps -- result/dora-web-player
       - name: Package deployable Web Player preview
         if: runner.os == 'Linux' && startsWith(github.ref, 'refs/tags/')
         run: |
-          node Tools/build-scripts/check_web_preview.mjs result/dora-web-player
-          node Tools/build-scripts/package_web_preview.mjs result/dora-web-player result/dora-web-preview "$GITHUB_SHA"
+          xmake dora-test --case=check_web_preview -- result/dora-web-player
+          xmake dora-web-preview -- result/dora-web-player result/dora-web-preview "$GITHUB_SHA"
       - name: Upload Web package
         if: runner.os == 'Linux' && startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v4
@@ -130,9 +96,9 @@ jobs:
       - name: Build Love pthread Player
         env:
           DORA_WEB_PTHREADS: 1
-        run: xmake dora-web
+        run: xmake dora-web --tests
       - name: Verify Love pthread Player
-        run: node Tools/build-scripts/check_web_love_player_output.mjs result/love-pthread-player
+        run: xmake dora-test --case=check_web_love_player_output -- result/love-pthread-player
       - name: Upload Love pthread Player
         if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v4

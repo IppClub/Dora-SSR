@@ -203,7 +203,7 @@ xmake dora-web
 #### 步骤 2：打包游戏
 
 ```bash
-node Tools/build-scripts/package_web_game.mjs <游戏目录> <输出目录> [入口文件]
+xmake dora-web-game -- <游戏目录> <输出目录> [入口文件]
 ```
 
 `<游戏目录>` 是精简后、包含入口文件（默认为 `init.lua`）的游戏目录。脚本会向 `<输出目录>` 写入 `dora-web-manifest.json` 以及带内容哈希的 `assets/` 文件；每个文件在浏览器加载时都会做 SHA-256 校验。单个游戏包最多包含 4096 个文件、总计 256 MB。

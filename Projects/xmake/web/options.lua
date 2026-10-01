@@ -10,7 +10,7 @@ for _, feature in ipairs({"physics_2d", "entity", "platformer", "builtin_libs", 
         set_showmenu(true)
     option_end()
 end
-for name, default in pairs({engine = true, link_player = true, love_probe = true,
+for name, default in pairs({engine = true, link_player = true, love_probe = false,
     love_pthread_player = false, diagnostics = false, studio_agent_host = false,
     experimental_main_worker = false}) do
     option("dora_web_" .. name)
@@ -23,3 +23,8 @@ for _, name in ipairs({"outdir", "builtin_font", "love_complex_package", "sdl2_p
         set_showmenu(true)
     option_end()
 end
+option("dora_web_testdir")
+    set_default("")
+    set_showmenu(true)
+    set_description("Resolved external Web fixture directory; empty for production builds")
+option_end()

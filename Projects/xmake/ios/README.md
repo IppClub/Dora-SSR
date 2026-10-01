@@ -17,7 +17,8 @@ arm64 and x86_64 (`--arch=x86_64`). The default deployment target remains iOS 13
 Apps are under `build/iphoneos/<device|simulator>/<arch>/<mode>/Dora.app`.
 Packages are under `build/package/iphoneos/<device|simulator>/<arch>/<mode>`:
 ZIP for simulator, IPA with `Payload/Dora.app` for device. `--format=zip` can
-also package a device App. The old `build_ios.sh` forwards to simulator packaging.
+also package a device App. Use these root tasks directly; old shell wrappers
+have been removed.
 
 For an editable IDE workspace, generate it rather than maintaining a second
 source list:

@@ -13,7 +13,8 @@ xmake dora-package --platform=web --mode=release
 Emscripten (including its Node runtime), Go and Rust/rustup are xmake-managed
 host packages. Host Python is required to bootstrap Emscripten; install Node.js
 separately only when running the retained JavaScript checks/frontend tooling.
-`Tools/build-scripts/build_web.sh` is a compatibility dispatcher to `dora-web`.
+Root xmake tasks are the supported entry points; shell compatibility wrappers
+have been removed. Normal builds do not download the test repository.
 
 The default is Release, `dora-preset`, single-threaded. Set `--profile=core` or
 `custom`, and `DORA_WEB_FEATURE_<NAME>=AUTO|ON|OFF` for PHYSICS_2D, ENTITY,
@@ -44,13 +45,15 @@ directories and cannot overwrite public output paths. They expose Agent
 callbacks and must never be distributed as public game Players.
 
 Serve packages over HTTP. Pthread packages require COOP/COEP response headers.
-Static checkers and real-browser fixtures remain under `Tools/build-scripts`:
+Static checkers and real-browser fixtures live in Dora-Example latest default-branch HEAD.
+Use `xmake dora-web --tests` to build with those fixtures, and
+`DORA_TEST_REPO=/path/to/Dora-Example` for local test development:
 
 ```sh
-node Tools/build-scripts/check_web_player_output.mjs result/dora-web-player
-node Tools/build-scripts/check_web_forbidden_deps.mjs result/dora-web-player
-node Tools/build-scripts/check_web_browser.mjs result/dora-web-player
-node Tools/build-scripts/check_web_love_player_output.mjs result/love-pthread-player
+xmake dora-test --case=check_web_player_output -- result/dora-web-player
+xmake dora-test --case=check_web_forbidden_deps -- result/dora-web-player
+xmake dora-test --case=check_web_browser -- result/dora-web-player
+xmake dora-test --case=check_web_love_player_output -- result/love-pthread-player
 ```
 
 Pre-JS, shell and preload input changes invalidate the executable link; fixture

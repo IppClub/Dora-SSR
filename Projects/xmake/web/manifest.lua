@@ -163,7 +163,7 @@ function main()
             "Source/3rdParty/theora/TheoraSources.c",
         },
         probes = {
-            {name = "dora-web-love-link-probe", source = "Projects/Web/LoveLinkProbe.cpp", output = "dora-love-runtime-probe", flags = {
+            {name = "dora-web-love-link-probe", source = "@testweb@/LoveLinkProbe.cpp", output = "dora-love-runtime-probe", flags = {
                 "--ignore-dynamic-linking",
                 "--no-entry",
                 "-fwasm-exceptions",
@@ -179,10 +179,10 @@ function main()
                 "-sFETCH=1",
                 "-sEXPORTED_FUNCTIONS=['_dora_web_love_link_probe','_dora_web_love_link_probe_error','_dora_web_love_incremental_probe_begin','_dora_web_love_incremental_probe_step','_dora_web_love_incremental_probe_steps']",
                 "-sEXPORTED_RUNTIME_METHODS=['ccall','UTF8ToString']",
-                "--preload-file @web@/demo-game/Font/web-fixture.ttf@/love-fixture.ttf",
-                "--pre-js @web@/love-link-probe-runner.js",
+                "--preload-file @testweb@/demo-game/Font/web-fixture.ttf@/love-fixture.ttf",
+                "--pre-js @testweb@/love-link-probe-runner.js",
             }},
-            {name = "dora-web-love-graphics-probe", source = "Projects/Web/LoveGraphicsProbe.cpp", output = "dora-love-graphics-probe", flags = {
+            {name = "dora-web-love-graphics-probe", source = "@testweb@/LoveGraphicsProbe.cpp", output = "dora-love-graphics-probe", flags = {
                 "--ignore-dynamic-linking",
                 "-fwasm-exceptions",
                 "-sSUPPORT_LONGJMP=wasm",
@@ -198,14 +198,14 @@ function main()
                 "-sFETCH=1",
                 "-sEXPORTED_FUNCTIONS=['_main','_dora_web_stop','_dora_web_set_suspended','_dora_web_release_input','_dora_web_love_graphics_probe_start','_dora_web_love_graphics_probe_status','_dora_web_love_graphics_probe_release','_dora_web_love_graphics_probe_error']",
                 "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','UTF8ToString']",
-                "--pre-js @web@/love-graphics-probe-runner.js",
+                "--pre-js @testweb@/love-graphics-probe-runner.js",
                 "--preload-file @root@/Assets/Script/Lib/lualib_bundle.lua@/game/Script/Lib/lualib_bundle.lua",
-                "--preload-file @web@/love-graphics-fixture@/love-graphics",
+                "--preload-file @testweb@/love-graphics-fixture@/love-graphics",
                 "--shell-file @web@/player-shell.html",
                 "-sASSERTIONS=1",
                 "--profiling-funcs",
             }},
-            {name = "dora-web-love-shader-probe", source = "Projects/Web/LoveShaderProbe.cpp", output = "dora-love-shader-probe", flags = {
+            {name = "dora-web-love-shader-probe", source = "@testweb@/LoveShaderProbe.cpp", output = "dora-love-shader-probe", flags = {
                 "--ignore-dynamic-linking",
                 "-fwasm-exceptions",
                 "-sSUPPORT_LONGJMP=wasm",
@@ -221,15 +221,15 @@ function main()
                 "-sFETCH=1",
                 "-sEXPORTED_FUNCTIONS=['_main','_dora_web_stop','_dora_web_set_suspended','_dora_web_release_input','_dora_web_love_shader_probe_start','_dora_web_love_shader_probe_status','_dora_web_love_shader_probe_release','_dora_web_love_shader_probe_error']",
                 "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','UTF8ToString']",
-                "--pre-js @web@/love-shader-probe-runner.js",
+                "--pre-js @testweb@/love-shader-probe-runner.js",
                 "--preload-file @root@/Assets/Script/Lib/lualib_bundle.lua@/game/Script/Lib/lualib_bundle.lua",
                 "--preload-file @root@/Assets/Shader/Love/varying.def.sc@/game/Shader/Love/varying.def.sc",
-                "--preload-file @web@/love-shader-fixture@/love-shader",
+                "--preload-file @testweb@/love-shader-fixture@/love-shader",
                 "--shell-file @web@/player-shell.html",
                 "-sASSERTIONS=1",
                 "--profiling-funcs",
             }},
-            {name = "dora-web-love-audio-probe", source = "Projects/Web/LoveAudioProbe.cpp", output = "dora-love-audio-probe", flags = {
+            {name = "dora-web-love-audio-probe", source = "@testweb@/LoveAudioProbe.cpp", output = "dora-love-audio-probe", flags = {
                 "--ignore-dynamic-linking",
                 "-fwasm-exceptions",
                 "-sSUPPORT_LONGJMP=wasm",
@@ -245,7 +245,7 @@ function main()
                 "-sFETCH=1",
                 "-sEXPORTED_FUNCTIONS=['_main','_dora_web_stop','_dora_web_set_suspended','_dora_web_release_input','_dora_web_love_audio_probe_start','_dora_web_love_audio_probe_status','_dora_web_love_audio_probe_restart_first','_dora_web_love_audio_probe_release_first','_dora_web_love_audio_probe_release','_dora_web_love_audio_probe_instance_count','_dora_web_love_audio_probe_source_count','_dora_web_love_audio_probe_playing_count','_dora_web_love_audio_probe_audio_file_delta','_dora_web_love_audio_probe_voice_delta','_dora_web_love_audio_probe_frame','_dora_web_love_audio_probe_error']",
                 "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','UTF8ToString']",
-                "--pre-js @web@/love-audio-probe-runner.js",
+                "--pre-js @testweb@/love-audio-probe-runner.js",
                 "--preload-file @root@/Assets/Script/Lib/lualib_bundle.lua@/game/Script/Lib/lualib_bundle.lua",
                 "--preload-file @out@/love-audio-fixture@/love-audio",
                 "--shell-file @web@/player-shell.html",
@@ -277,7 +277,7 @@ function main()
                 "--preload-file @root@/Assets/Shader/Love/varying.def.sc@/game/Shader/Love/varying.def.sc",
                 "--shell-file @web@/love-pthread-player-shell.html",
             }},
-            {name = "dora-web-love-complex-probe", source = "Projects/Web/LoveComplexProbe.cpp", output = "dora-love-complex-probe", flags = {
+            {name = "dora-web-love-complex-probe", source = "@testweb@/LoveComplexProbe.cpp", output = "dora-love-complex-probe", flags = {
                 "--ignore-dynamic-linking",
                 "-fwasm-exceptions",
                 "-sSUPPORT_LONGJMP=wasm",
@@ -295,7 +295,7 @@ function main()
                 "-sEXPORTED_FUNCTIONS=['_main','_dora_web_stop','_dora_web_set_suspended','_dora_web_release_input','_dora_web_love_complex_probe_start','_dora_web_love_complex_probe_status','_dora_web_love_complex_probe_release','_dora_web_love_complex_probe_frame','_dora_web_love_complex_probe_has_graphics','_dora_web_love_complex_probe_is_updating','_dora_web_love_complex_probe_runtime_status','_dora_web_love_complex_probe_audio_sources','_dora_web_love_complex_probe_audio_file_delta','_dora_web_love_complex_probe_voice_delta','_dora_web_love_complex_probe_pointer_presses','_dora_web_love_complex_probe_pointer_button','_dora_web_love_complex_probe_pointer_from_mouse','_dora_web_love_complex_probe_pointer_x','_dora_web_love_complex_probe_pointer_y','_dora_web_love_complex_probe_game_state','_dora_web_love_complex_probe_skip_tutorial','_dora_web_love_complex_probe_force_save','_dora_web_love_complex_probe_error']",
                 "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','UTF8ToString']",
                 "--pre-js @web@/web-platform.js",
-                "--pre-js @web@/love-complex-probe-runner.js",
+                "--pre-js @testweb@/love-complex-probe-runner.js",
                 "--pre-js @web@/web-loader.js",
                 "--preload-file @root@/Assets/Script/Lib/lualib_bundle.lua@/game/Script/Lib/lualib_bundle.lua",
                 "--preload-file @root@/Assets/Shader/Love/varying.def.sc@/game/Shader/Love/varying.def.sc",

@@ -10,7 +10,7 @@ Go 后端 `pnpm server` 必需环境：`STUDIO_DB_PATH`（绝对路径，持久�
 
 前端 `pnpm --filter @dora-studio/web dev` 在提供 `STUDIO_API_URL`（后端 HTTPS origin）及相同或适当的 `STUDIO_TLS_KEY`/`STUDIO_TLS_CERT` 时启用 HTTPS 与 `/api` 代理。生产环境应由站点反向代理完成同源 API 转发，并使用受信证书；Vite 自签证书只供本地联调。
 
-启用项目 Agent 会话时，先运行 `bash Tools/build-scripts/build_studio_agent_host.sh` 生成独立专用引擎（默认目录 `result/dora-studio-agent-engine`），不能使用普通游戏 Player。后端额外设置 `STUDIO_AGENT_ENGINE_DIR`、`STUDIO_AGENT_HOST_ORIGIN`（与前端不同的 HTTPS origin）和 `STUDIO_AGENT_HOST_PORT`，会同时开启独立的宿主监听器；启动时校验引擎能力清单、版本及可信宿主支持文件，校验失败即拒绝开启。前端构建/启动时设置公开的 `VITE_STUDIO_AGENT_HOST_ORIGIN` 为同一宿主 origin，正式页面才显示“连接项目 Agent”与首页“新建并准备生成”。空白/导入项目手动连接时需先保存并手动上传云端；一句描述入口会原子保存项目及描述元数据、自动幂等上传后连接。后端以当前受邀会话和云项目所有权签发临时启动记录；连接后可同步本机作者文件。它尚不投递描述或调用模型。
+启用项目 Agent 会话时，先运行 `xmake dora-studio` 生成独立专用引擎（默认目录 `result/dora-studio-agent-engine`），不能使用普通游戏 Player。后端额外设置 `STUDIO_AGENT_ENGINE_DIR`、`STUDIO_AGENT_HOST_ORIGIN`（与前端不同的 HTTPS origin）和 `STUDIO_AGENT_HOST_PORT`，会同时开启独立的宿主监听器；启动时校验引擎能力清单、版本及可信宿主支持文件，校验失败即拒绝开启。前端构建/启动时设置公开的 `VITE_STUDIO_AGENT_HOST_ORIGIN` 为同一宿主 origin，正式页面才显示“连接项目 Agent”与首页“新建并准备生成”。空白/导入项目手动连接时需先保存并手动上传云端；一句描述入口会原子保存项目及描述元数据、自动幂等上传后连接。后端以当前受邀会话和云项目所有权签发临时启动记录；连接后可同步本机作者文件。它尚不投递描述或调用模型。
 
 当前宿主仍用 `__Host-dora-studio-session` 主机限定 Cookie 验证私有资源，因此前端、API 和独立宿主需要同一 HTTPS 主机名、不同端口/来源，并由前端同源代理 `/api`；仅换成不同子域名并不能复用该 Cookie。多节点/不同域名的宿主身份传递尚未设计与验收。开发机若工具链与项目锁定版本不同，脚本只允许以 `DORA_WEB_ALLOW_TOOLCHAIN_DRIFT=1` 作本地诊断，不能把漂移构建当作发布证据。
 

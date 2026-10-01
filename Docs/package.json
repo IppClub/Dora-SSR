@@ -4,8 +4,8 @@
   "private": true,
   "packageManager": "pnpm@10.13.0",
   "scripts": {
-    "build:games": "node ../Tools/build-scripts/build_web_gallery.mjs",
-		"build:gitee": "pnpm run typecheck && pnpm run build:games && pnpm run update-version && GITEE=1 docusaurus build && node ../Tools/build-scripts/check_web_gallery.mjs build/play ../build/Dora-Demo",
+    "build:games": "xmake -P .. dora-gallery",
+		"build:gitee": "pnpm run typecheck && pnpm run build:games && pnpm run update-version && GITEE=1 docusaurus build && xmake -P .. dora-test --case=check_web_gallery -- Docs/build/play build/Dora-Demo",
     "docusaurus": "docusaurus",
     "start": "pnpm run update-version && docusaurus start",
     "build": "pnpm run update-version && docusaurus build",

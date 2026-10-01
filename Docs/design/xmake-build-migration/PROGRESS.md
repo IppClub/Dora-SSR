@@ -680,6 +680,87 @@ Release/APK/AAB 复验：`xmake dora-package --platform=android --mode=release` 
 
 ## 9. 证据记录模板
 
+### M9 / 统一任务入口与外部测试迁移：🟡 进行中
+
+- 盘点主项目构建、测试及隐藏路径引用；保留 Dora-Example 已有未提交 Studio 测试改动。
+- 接入远端默认分支最新 HEAD 的测试依赖、统一 xmake 构建/打包/测试命令，迁移 Web/IDE 脚本与夹具。
+- 更新双方 CI、内部调用和操作文档；逐套件实际验证，未通过前不标记完成。
+
+2026-10-01 实施与验收记录（本地未提交）：
+
+- 已删除整个 `Tools/build-scripts`，无兼容 wrapper；四个正式 Web 打包/画廊工具位于 `Projects/xmake/tools/web`，Wa 构建/同步编排改用 Lua task + 受管 Go target，源码收集 Python 属于正式工具。
+- 109 个测试/夹具文件迁至 `/Users/Jin/Workspace/Dora/Dora-Example/Test`；其中 Native 包含 18 个 C++ 测试入口，主体及原内嵌测试块外移。`Source/Test/Test.{cpp,h}` 注册接口保留。独立 Node/Lua/Python/原型浏览器测试外移；生态包内测试及生产模板保持原结构。
+- Dora-Example 原有 `.gitignore`、DoraStudio runner 与多项测试文件的本地改动保持原样；新增文件不覆盖既有文件。主引擎基线 `f608c863d46ccf7ea9d51a5dc52ddb571fbfee69`，测试基线 `4cc17420a53b7501370a0b19389b263c26a9678a`，均含本次未提交修改，结果 JSON 另记录 dirty 标记。
+- `git ls-remote --symref ... HEAD` 证实外部默认分支为 master；获取逻辑跟随远端 HEAD，不硬编码 main、不锁 commit、不回退旧缓存。显式本地路径保持 dirty checkout；受管输入按本次最新 SHA 建独立 worktree，避免并发更新正在编译的输入。
+- 主仓库 9 个 CI 工作流与实际消费方（Studio、Web IDE、Docs、当前教程及工程开发 Skill）已改用根 task。外部新增 `engine-tests.yml`：master 的测试变化验证主引擎最新 main，PR 验证提议中的测试代码，无旧引擎矩阵。
+
+本机 macOS ARM64，xmake v3.1.1+20260827；外部套件使用 `DORA_TEST_REPO=/Users/Jin/Workspace/Dora/Dora-Example`：
+
+| 验证 | 实际结果 / 日志（均在主仓库 build 下） |
+| --- | --- |
+| `xmake dora-test` | 7 个契约用例全部通过，含 Lua UTF-8；`xmake-external-contract.log` |
+| `xmake dora-web --jobs=4` | 普通 preset Release 构建、链接、分发通过，未获取测试仓库；`xmake-web-production.log` |
+| `xmake dora-web --tests --jobs=4` | 外部夹具与 Love probes 实际编译、链接通过；`xmake-web-external.log` |
+| `xmake dora-test --suite=web` | 4 项全部通过，WebAssembly、Player 包、能力及 forbidden deps；`xmake-external-web-checks.log` |
+| `DORA_WEB_RELOADS=1 xmake dora-test --case=check_web_browser -- result/dora-web-player build/xmake-external-web-browser.png` | Chrome 154，渲染/输入/音频/网络/存储/stop/reload 全流程通过，unexpected errors=0，lifecycle warnings=0；`xmake-external-browser.log` |
+| `xmake dora-wa-web` + `dora-test --case=check_wa_web -- result/dora-wa-web` | 真正生成 wasm 并通过浏览器 Wa smoke；`xmake-wa-web.log` |
+| `xmake dora-wa-sync --source=/Users/Jin/Workspace/wa --dry-run` | 验证源路径通过；未替换 vendor 源码，真实同步未执行；`xmake-wa-sync.log` |
+| `xmake dora-studio` | 专用引擎构建与宿主 manifest/导出/Fetch streaming 门禁通过；`xmake-studio.log` |
+| `xmake dora-build --tests --jobs=4` | 外部 C++ / .inc 编译、完整 Debug 链接及 App 生成通过，117.068 秒；不代表 18 项交互/压力测试逐项运行；`xmake-native-external.log` |
+| `xmake dora-build --mode=debug --jobs=4` | 无外部测试的 Native 完整 Debug 重编/链接通过，113.084 秒；`xmake-native-production.log` |
+| `xmake dora-ide --platform=macosx --kind=xcode` | 包含新增工具 target 的 IDE 工程生成成功；`xmake-ide-migration.log` |
+| Android arm64-v8a Debug 图导出 | 14 个 C/C++ target，`DORA_TEST=0`，无外部测试源路径；`xmake-android-migration.log`；未重建 APK |
+| `dora-web-game` / `dora-web-preview` / `dora-web-rollback` | 真实生成游戏包和两版预览，回滚到前版通过；缺少前版时明确拒绝；相应 packaging/preview/rollback 日志 |
+| `dora-test --case=check_web_preview -- result/dora-web-player` | release/hash/MIME/cache/atomic pointer/rollback 门禁全部通过；`xmake-external-preview.log` |
+| `dora-test --suite=art` | 3 项 Python 图集回归全部通过；`xmake-art-tests.log` |
+| `xmake dora-web-env` / `audit-manifests` | 受管工具 0 errors / 0 warnings，579 个唯一且存在的引擎源；`xmake-web-env.log` |
+| 静态检查 | 两仓 `git diff --check`、所有迁移 JS/CJS 的 Node syntax、manifest 路径存在性、双方 actionlint 通过 |
+
+保留的红灯与未验收项：
+
+- Web IDE 完整套件初跑 31 项，29 通过；原 CLI 用例路径修复后最终完整复验 31 项，30 通过、1 失败（`xmake-external-webide-final.log`）。剩余 `test-agent-render-window` 断言 composer 使用 `Color.Background`，当前正式组件使用 `Color.BackgroundDark`；不改正式 UI、不降低断言来伪装绿色。
+- 既有 `studio -- --no-build` 测试 337 项，265 通过、72 失败，包括旧 `Studio/apps/server/*.mjs` 路径及缺少构建输出；属于现有测试与当前 Go 服务结构/产物不一致，不是迁移 runner 路径丢失。其既有未提交测试改动未改写。
+- 附加浏览器 API 契约能够找到迁移后的工具、打包并启动，但在默认 MUSIC=OFF preset 上要求 `Dora.Audio.renderMusicAsync` 而失败；需单独处理 profile-aware API 预期，不删除断言。
+- 原型浏览器套件已迁移并接入 task，未重新启动静态服务/准备 Playwright 后跑全套；现有 DoraStudio 完整 build/browser 未验收；C++ 测试此轮只验证编译接入。
+- 真实 Wa 同步、发行画廊全量重建、iOS/Windows/Linux 完整平台构建及远端 CI 未在此轮重新执行；已有 M8 证据与本次验证分开。
+- 必须先发布 Dora-Example 再发布引擎；未提交/推送，不能将改过的 CI 标成远端通过。M9 的实现已落地，验收因上述既有测试红灯与发布门禁保持进行中。
+- `xmake dora-test-deps` 已实际下载远端默认分支 HEAD `4cc17420...` 并创建独立 worktree；由于远端尚无本次 `Test/manifest.json`，按设计明确失败并提示发布或使用本地路径，没有退回旧测试套件。首次 main 分支假设通过实际 fetch 被纠正为跟随 remote HEAD；clone/worktree 缓存约 108 MiB，位于忽略的 build/tests。
+
+### 2026-10-01 / M9 测试红灯修复（替代上述本地失败状态）
+
+没有改正式 UI 或降低运行时安全门禁；修复的是测试与当前实现、构建输入的契约漂移：
+
+- Web IDE 样式断言对齐 `56668eb67` 的当前设计：外层 composer 与 transcript 共用 Background，带边框的输入面保持 BackgroundDark。分别验证两层，不再把旧内层颜色当当前产品契约。
+- Web API 期望按实际 `modules.musicGenerator` 声明生成，仅在关闭 Music 时排除条件注册的 `Audio.renderMusicAsync`。开启时仍严格要求存在；缺失 capability 声明直接失败。新增回归测试验证 ON/OFF 与缺失声明，其他必需 API 不减少。
+- Studio runner 默认先 `pnpm -r build`，刷新文档、合同、编译器及 Web 产物；不把正式宿主/服务器发布打包当作单元测试前置条件。`--no-build` 明确只用于已有当前产物。
+- 45 个导入已删除 Node 服务模块的实现级测试完整保留至外部 `Test/DoraStudio/legacy-node`，包括原有 agent-model-route 和 queue 未提交改动；没有删除内容或恢复旧 Node 服务。当前后端由新增 `backend-go.test.mjs` 调用真实 `go test -race -count=1 -json ./...` 验收，并按 `backend-contract.json` 强制检查 15 个当前服务测试分组确实通过。这不是每条旧 Node 内部断言一对一保留的声明。
+- 前端 harness 统一 React 解析，消除两个 React 实例造成的假 hook 错误；夹具补齐三层额度、可信 Music 支持文件与 Player engineVersion。更新租约主动中断用户运行、草稿可编辑但发送受限、显式产物必须匹配当前 revision 等已实现行为，并保留负向检查。TSTL 禁止引用 IDE 源码，但不误拒绝 pnpm 共用 node_modules 的物理路径。
+- 主仓 UI CI 与外部测试 CI 新增 Studio 全套检查、稳定版 Go 和 Studio 冻结依赖安装。只更新配置，未推送或声称远端运行通过。
+
+最终本地证据（测试库仍使用明确的本地路径，两个仓库均未提交）：
+
+| 命令 / 套件 | 结果 | 日志 |
+| --- | --- | --- |
+| `xmake dora-test` | 8/8 个用例通过，包括新 API profile 正反向测试 | `build/contract-tests-fixed.log` |
+| `xmake dora-test --suite=web-ide` | 31/31，通过真实 CLI、编译协议、运行时准备等 | `build/webide-tests-fixed.log` |
+| `xmake dora-test --suite=studio -- --no-build`（预先已构建） | 293/293，0 failed / 0 skipped；其中 Go wrapper 实际验收 15 个 race 分组 | `build/studio-tests-fixed-final.log` |
+| `pnpm --dir Studio install --frozen-lockfile` + `xmake dora-test --suite=studio` | 冻结安装、默认 workspace 全构建后再验收，293/293；Go 15 组实际通过（10.155 秒） | `build/studio-test-install.log`、`build/studio-tests-build-final.log` |
+| `xmake dora-test --suite=web` | 4/4，Player/WASM/能力/依赖门禁复验通过 | `build/web-tests-fixed.log` |
+| 独立 `go test -race -count=1 ./...` | 当前 Go 服务测试通过（10.209 秒） | `build/studio-go-tests.log` |
+| `check_web_api_contract -- result/dora-web-player` | MUSIC=OFF，真实 Chrome 运行并输出 `DORA_WEB_API_CONTRACT_PASSED` | `build/web-api-contract-fixed.log` |
+| `check_web_api_contract -- result/dora-studio-agent-engine` | MUSIC=ON，同一 API 检查器真实 Chrome 通过，未遗漏 Music API | `build/web-api-music-on-fixed.log` |
+| 静态检查 | 两仓 diff check、全部迁移/当前测试 JS syntax、45 个 archive 文件存在性及双方 actionlint 通过 | 本地命令输出 |
+
+本次解决的是已报告红灯；不把单元/集成测试等同完整 Studio 浏览器验收，也不改变上一条的跨平台、生产发布及真实 Wa 同步证据边界。旧失败日志保留用于追溯，当前状态以此条为准。
+
+### 2026-10-01 / M9 删除失效 Node 后端测试
+
+- 按用户确认，删除 Dora-Example 中 45 个依赖已移除 Node 服务模块的测试，不再保留 `Test/DoraStudio/legacy-node/`；上条存档状态由本条取代。
+- 删除前核对目录文件与登记清单完全一致，并确认每个文件仍引用旧 `apps/server/` 模块。有效前端测试及当前 Go 验收组未删除；Go 的旧数据/失效 schema 拒绝测试仍属于有效安全回归。
+- 清理 `backend-contract.json` 中的旧测试清单，更新 README 和 Go 验收输出。包含此前未提交修改的完整删除前副本移入本机废纸篓 `/Users/Jin/.Trash/dora-obsolete-tests-zAICL7/legacy-node`，可恢复，不属于项目源码。
+- 复验：`DORA_TEST_REPO=/Users/Jin/Workspace/Dora/Dora-Example xmake dora-test --suite=studio -- --no-build`，293/293 通过、0 失败、0 跳过；其中实际执行 15 组 Go 验收并启用 race detection。证据：`build/studio-tests-obsolete-removed.log`。
+- 两仓 `git diff --check` 及 Go 验收入口 JS 语法检查通过；本次未提交、未推送，远程 CI 未验证。
+
 每次更新进度时追加一条：
 
 ```text

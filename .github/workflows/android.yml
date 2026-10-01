@@ -8,7 +8,6 @@ on:
       # Shared engine code — triggers all platforms
       - 'Source/**'
       - 'Tools/tolua\+\+/**'
-      - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
       - 'Tools/dora-wa/**'
       - 'xmake.lua'
@@ -21,7 +20,6 @@ on:
       - '.github/workflows/android.yml'
       - 'Source/**'
       - 'Tools/tolua\+\+/**'
-      - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
       - 'Tools/dora-wa/**'
       - 'xmake.lua'

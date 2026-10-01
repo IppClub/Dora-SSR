@@ -131,7 +131,6 @@ function main()
     "Source/Lua/Xml/DoraTag.cpp",
     "Source/Lua/Xml/XmlResolver.cpp",
     "Source/Test/Test.cpp",
-    "Source/Test/HelloWorldCpp.cpp",
     "Source/3rdParty/yuescript/yue_compiler.cpp",
     "Source/3rdParty/yuescript/ast.cpp",
     "Source/3rdParty/yuescript/yue_ast.cpp",

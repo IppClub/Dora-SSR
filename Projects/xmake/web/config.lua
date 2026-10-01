@@ -19,6 +19,8 @@ function main()
     assert(not (c.studio_agent_host and c.experimental_main_worker), "Studio host cannot enable experimental main worker")
     c.root = os.projectdir()
     c.web = path.join(c.root, "Projects/Web")
+    c.testweb = config.get("dora_web_testdir")
+    if c.testweb == "" then c.testweb = nil end
     c.out = path.absolute(config.get("dora_web_outdir") or path.join(config.builddir(), "web"), c.root)
     local ancestor = c.root
     while true do

@@ -1,3 +1,13 @@
+option("dora_native_tests")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Compile external native regression tests")
+option_end()
+option("dora_test_repo")
+    set_showmenu(true)
+    set_description("Resolved Dora-Example checkout for native tests")
+option_end()
+
 option("dora_love")
     set_default(true)
     set_showmenu(true)

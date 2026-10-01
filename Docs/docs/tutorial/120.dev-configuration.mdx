@@ -46,7 +46,7 @@ xmake dora-package --platform=android --mode=debug
 xmake dora-web
 ```
 
-Run only the command for the intended platform. Build implementation lives in `Projects/xmake/`, with `xmake.lua` as the root entry. Desktop output is `build/<platform>/<arch>/<mode>/Dora` (`Dora.exe` on Windows; `Dora.app` on macOS). Existing `build_*`/`run_*` scripts are compatibility dispatchers; run commands use repository Assets and do not forcibly terminate other Dora processes.
+Run only the command for the intended platform. Build implementation lives in `Projects/xmake/`, with `xmake.lua` as the root entry. Desktop output is `build/<platform>/<arch>/<mode>/Dora` (`Dora.exe` on Windows; `Dora.app` on macOS). Old build/run wrappers have been removed; `xmake dora-run` uses repository Assets and does not forcibly terminate other Dora processes.
 
 Windows x86 also needs a 32-bit MinGW GCC for Wa's Go cgo runtime. Put `i686-w64-mingw32-gcc`/the MSYS2 MINGW32 `gcc` on PATH, or set `CC` to its executable. Rust output is placed on a local disk (`LOCALAPPDATA`, or a custom `CARGO_TARGET_DIR`) even when the repository is on a shared drive.
 

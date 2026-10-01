@@ -48,8 +48,16 @@ target("Dora")
     end
     add_includedirs(table.unpack(dora_includedirs))
     add_defines("WITH_SDL2_STATIC", "d_m3HasWASI", "SPDLOG_FMT_EXTERNAL")
+    add_defines(has_config("dora_native_tests") and "DORA_TEST=1" or "DORA_TEST=0")
 
     on_load(function (target)
+        import("core.project.config")
+        if config.get("dora_native_tests") then
+            local repo = assert(config.get("dora_test_repo"), "native tests require a resolved Dora-Example checkout")
+            assert(os.isfile(path.join(repo, "Test/Native/HelloWorldCpp.cpp")), "external native test sources are missing")
+            target:add("includedirs", path.join(repo, "Test"))
+            target:add("files", path.join(repo, "Test/Native/HelloWorldCpp.cpp"))
+        end
         local manifest = import("Projects.xmake.manifests.engine", {rootdir = os.projectdir(), anonymous = true})()
         for _, source in ipairs(manifest.sources) do
             local config

@@ -8,7 +8,6 @@ on:
       # Shared engine code — triggers all platforms
       - 'Source/**'
       - 'Tools/tolua\+\+/**'
-      - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
       - 'Tools/dora-wa/**'
       - 'Assets/**'
@@ -22,7 +21,6 @@ on:
       - '.github/workflows/windows.yml'
       - 'Source/**'
       - 'Tools/tolua\+\+/**'
-      - 'Tools/build-scripts/**'
       - 'Tools/dora-rust/**'
       - 'Tools/dora-wa/**'
       - 'Assets/**'
@@ -61,7 +59,7 @@ jobs:
       - name: Record xmake version
         run: xmake --version
       - name: Check touch input sources
-        run: node Tools/build-scripts/check_touch_input_sources.mjs
+        run: xmake dora-test --case=check_touch_input_sources
       - name: Windows build
         run: |
           Remove-Item Env:MSYSTEM -ErrorAction SilentlyContinue
