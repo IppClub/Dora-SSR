@@ -150,6 +150,7 @@ jobs:
 
       - name: Package Windows
         run: |
+          Remove-Item Env:MSYSTEM -ErrorAction SilentlyContinue
           xmake dora-package --platform=windows --mode=release
           Move-Item build\package\windows\x86\release\dora-ssr-windows-x86.zip dora-ssr-${{ github.ref_name }}-windows-x86.zip
 
@@ -187,6 +188,8 @@ jobs:
         with:
           distribution: zulu
           java-version: '17'
+
+      - uses: android-actions/setup-android@v3
 
       - name: Install Android native toolchain
         run: sdkmanager --install 'ndk;26.1.10909125' 'cmake;3.22.1' 'platforms;android-34' 'build-tools;34.0.0'

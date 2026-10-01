@@ -64,5 +64,6 @@ jobs:
         run: node Tools/build-scripts/check_touch_input_sources.mjs
       - name: Windows build
         run: |
+          Remove-Item Env:MSYSTEM -ErrorAction SilentlyContinue
           xmake f -y -p windows -a x86 -m debug
           xmake build Dora

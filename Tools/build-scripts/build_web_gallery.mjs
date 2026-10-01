@@ -21,7 +21,7 @@ const build = path.resolve(process.env.DORA_WEB_BUILD_DIR || path.join(root, 'bu
 const requiredFeatures = ['PHYSICS_2D', 'ENTITY', 'PLATFORMER', 'BUILTIN_LIBS', 'ML', 'YUE', 'MODEL_3D'];
 const builtinFont = path.join(root, 'Assets/Font/sarasa-mono-sc-regular.ttf');
 // Reconfigure every invocation; xmake handles incremental builds and profile isolation.
-execFileSync('xmake', ['dora-web', '--jobs', process.env.DORA_WEB_JOBS || '8'], {cwd: root, stdio: 'inherit', env: {...process.env,
+execFileSync('xmake', ['dora-web', `--jobs=${process.env.DORA_WEB_JOBS || '8'}`], {cwd: root, stdio: 'inherit', env: {...process.env,
   DORA_WEB_BUILD_DIR: build,
   DORA_WEB_BUILD_ENGINE: '1', DORA_WEB_LINK_PLAYER: '1', DORA_WEB_BUILD_LOVE_PROBE: '0', DORA_WEB_BUILD_LOVE_PTHREAD_PLAYER: '0', DORA_WEB_PTHREADS: '0', DORA_WEB_PROFILE: 'dora-preset',
   DORA_WEB_FEATURE_LOVE: 'OFF', DORA_WEB_FEATURE_MUSIC: 'OFF', DORA_WEB_BUILTIN_FONT: builtinFont,
