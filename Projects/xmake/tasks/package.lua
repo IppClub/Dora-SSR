@@ -57,9 +57,14 @@ local function package_linux(mode, arch, api)
     ensure(arch == "x86_64" or arch == "arm64",
         "Linux AppImage architecture must be x86_64 or arm64")
 
-    for _, name in ipairs({"curl", "lddtree", "patchelf"}) do
+    for _, name in ipairs({"curl", "patchelf"}) do
         ensure(find_tool(name), "Linux AppImage packaging requires " .. name)
     end
+    -- Distro lddtree uses /usr/bin/env python3 and distro pyelftools. A
+    -- hosted SDK Python ahead of /usr/bin cannot import that system module.
+    local lddtree_envs = {PATH = "/usr/bin:/bin:" .. os.getenv("PATH")}
+    local lddtree = ensure(find_tool("lddtree", {envs = lddtree_envs, force = true}),
+        "Linux AppImage packaging requires lddtree (pax-utils and system pyelftools)")
 
     local projectdir = os.projectdir()
     local xmake = os.programfile()
@@ -99,7 +104,7 @@ local function package_linux(mode, arch, api)
         end
     end
 
-    local dependencies = os.iorunv("lddtree", {"-l", staged_binary})
+    local dependencies = os.iorunv(lddtree.program, {"-l", staged_binary}, {envs = lddtree_envs})
     for dependency in dependencies:gmatch("[^\r\n]+") do
         local name = path.filename(dependency)
         local system_runtime = name:find("^ld%-linux")

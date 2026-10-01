@@ -672,6 +672,12 @@ Release/APK/AAB 复验：`xmake dora-package --platform=android --mode=release` 
 
 用户授权将剩余变更一起提交：Touch 鼠标来源/按键/连击声明及 tolua header、LoveNode 失败初始化生命周期修复随本次修正提交；其他 detached worktree 的变更不在本次工作区范围内。
 
+### 2026-10-01 / 验证统一到 main
+
+`ci/xmake-migration` 的提交已全部包含于 `main`，`git merge --ff-only` 返回 Already up to date，不创建无意义的 merge commit。AppImage workflow 移除 `ci/**` push 入口及仅验证分支打包的条件；main / PR / 手动触发统一构建、校验并下载当前提交的 Web IDE 资产，双架构执行 Release AppImage 打包及上传。Debug 继续由独立 Linux workflow 验证，避免在 AppImage workflow 冗余构建。旧远端验证分支保留历史，后续不再用它触发验证。
+
+同步修复 lddtree 探测和执行的 Python 环境：优先系统 bin 路径，避免 hosted Python 缺少发行版 pyelftools。用前置 `python3 -S` 的隔离 wrapper 复现 `ModuleNotFoundError: elftools`；同一环境下新 task 实际 arm64 Release AppImage 打包成功，自解包运行 CLI help 返回 0。日志：`build/lddtree-hosted-python-negative.log`、`build/xmake-main-appimage-validation.log`、`build/xmake-main-appimage-cli.log`。actionlint、main/PR/manual workflow 路径检查、diff whitespace 检查通过。新 main CI 的远端 AppImage 产物仍须独立验收。
+
 ## 9. 证据记录模板
 
 每次更新进度时追加一条：
