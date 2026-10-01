@@ -67,12 +67,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y lua5.4
-          xmake -P ../.. dora-test
+          xmake dora-test -P ../..
 
       - name: Test Studio current frontend and Go backend
         run: |
           pnpm --dir ../../Studio install --frozen-lockfile
-          xmake -P ../.. dora-test --suite=studio
+          xmake dora-test -P ../.. --suite=studio
 
       - name: Lint (oxlint)
         # oxlint exits 0 for warnings, 1 for errors — only errors block the build

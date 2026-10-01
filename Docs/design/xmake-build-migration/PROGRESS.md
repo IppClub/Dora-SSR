@@ -761,6 +761,16 @@ Release/APK/AAB 复验：`xmake dora-package --platform=android --mode=release` 
 - 复验：`DORA_TEST_REPO=/Users/Jin/Workspace/Dora/Dora-Example xmake dora-test --suite=studio -- --no-build`，293/293 通过、0 失败、0 跳过；其中实际执行 15 组 Go 验收并启用 race detection。证据：`build/studio-tests-obsolete-removed.log`。
 - 两仓 `git diff --check` 及 Go 验收入口 JS 语法检查通过；本次未提交、未推送，远程 CI 未验证。
 
+### 2026-10-01 / M9 首轮远端 CI 入口修复
+
+- 已发布基线：Dora-SSR `73176014d`、Dora-Example `6396cca`。主仓首轮 Android、iOS、macOS、Linux、Web、Docs 通过；Windows、UI CI、Linux AppImage 失败。测试仓 Web 通过，contracts 在原生测试引擎成功编译后因 Web IDE 产物缺失失败。
+- Windows：外部 runner 的 Node `--import` 路径改用 `pathToFileURL(...).href`，修复盘符被当作 `d:` URL scheme 的错误。
+- UI/AppImage：真实复现 `xmake -P ../.. dora-test` 被解析为默认 build；改为任务名先行的 `xmake dora-test -P ../..`，同步修复 UI workflow、所有 Web IDE package scripts 与 Docs gallery/test 入口。不通过安装无关 SDL2/Rust 依赖来掩盖解析错误。
+- 外部 Web IDE 完整验收：xmake 自动执行 `pnpm build`，准备 Web runtime 与 Vite 产物后才运行套件，修复干净 CI 缺失 `build/index.html` 和 HTML runtime 的问题；保留全部 31 个检查。
+- 新增外部契约回归：扫描嵌套入口参数顺序，并在独立临时配置目录从 Web IDE 子目录执行测试列表，确认不触发平台探测/引擎依赖安装。
+- 本地 macOS 验证：contract 9/9、完整 Web IDE 31/31、嵌套目录 Studio 293/293 通过；AppImage 失败入口对应的 `pnpm test:web-runtime-preparation` 及另一个 pnpm 单测入口通过。证据：`build/ci-contract-fixed.log`、`build/ci-webide-fixed.log`、`build/ci-studio-entrypoint-fixed.log`、`build/ci-runtime-preparation-fixed.log`。
+- 两仓 diff check、外部 runner JS syntax 和双方 actionlint 通过。本轮修复尚未提交/推送；Windows 虚拟机 Tools 无法建立执行会话，未声称 Windows 本机复验通过；远端 CI 仍需重跑验收。
+
 每次更新进度时追加一条：
 
 ```text

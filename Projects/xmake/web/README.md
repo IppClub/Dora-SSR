@@ -46,6 +46,12 @@ callbacks and must never be distributed as public game Players.
 
 Serve packages over HTTP. Pthread packages require COOP/COEP response headers.
 Static checkers and real-browser fixtures live in Dora-Example latest default-branch HEAD.
+The complete `xmake dora-test --suite=web-ide` acceptance run first builds the
+native CLI and runs `pnpm build` in `Tools/dora-dora` to prepare the Web runtime
+and Vite assets. Install the package dependencies before that run. Individual
+`--case` checks retain their explicit prerequisites. From a nested directory,
+put the task first: `xmake dora-test -P ../.. --case=check_web_loader`;
+putting `-P` first selects xmake's default build command instead.
 Use `xmake dora-web --tests` to build with those fixtures, and
 `DORA_TEST_REPO=/path/to/Dora-Example` for local test development:
 

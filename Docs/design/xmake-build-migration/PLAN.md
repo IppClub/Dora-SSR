@@ -1,6 +1,6 @@
 # Dora-SSR xmake 单一构建定义迁移方案
 
-> 状态：M1–M8 已实施；M9 任务与测试迁移及本地红灯修复已落地，双仓发布与远端 CI 待验收
+> 状态：M1–M8 已实施；M9 已双仓发布，首轮远端 CI 暴露入口问题，修复中，远端全绿待验收
 > 更新日期：2026-10-01
 > 配套进度表：[PROGRESS.md](./PROGRESS.md)
 
@@ -26,6 +26,8 @@ M9 公共入口（均从引擎根目录运行）：
 | `xmake dora-web --tests` / `dora-build --tests` | 编译外部 Web 夹具 / C++ 回归测试 |
 
 本地联调用 `DORA_TEST_REPO=/path/to/Dora-Example`，或仅测试任务的 `--repo=...`，不修改、更新或清理该 checkout。默认每次任务从远端默认分支获取最新测试并使用 SHA 独立目录，避免并发 fetch 改写正在编译的输入；这些目录只是缓存，不是固定测试版本。运行结果写入 `build/test-results/`，包含两个 SHA、dirty 标记及逐用例退出状态。Node.js 是测试脚本运行依赖，Lua 契约用例另需 Lua 5.4；Web 编译仍使用 Emscripten 受管 Node。
+
+嵌套目录入口必须写成 `xmake dora-test -P ../..`（任务名先于 `-P`），避免被解析为默认 build。完整 `--suite=web-ide` 必须自动准备原生 CLI、Web runtime 与 Vite 构建产物，不依赖开发机残留文件；单用例保留明确前置条件。Windows 的 Node ESM `--import` 入口使用 `file:` URL，不能直接传盘符绝对路径。
 
 Native C++ 测试实体与内嵌测试块迁至 `Test/Native`。`Source/Test/Test.{cpp,h}` 是 Lua API 的测试注册桥，`Http/XrtNetwork.h` 的开发断言开关属于内部运行时机制，保留主仓库。内嵌测试通过显式宏下的外部 `.inc` 接入，普通 Debug/Release 均设置 `DORA_TEST=0`。字体及最小 Player 启动资源是正式运行时输入，继续保留；不将生产资源误当夹具删除。
 

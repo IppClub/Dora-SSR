@@ -21,6 +21,12 @@ for _, name in ipairs({"dora-test", "dora-test-deps"}) do
                 or (option.get("suite") == "web-ide" and not option.get("case"))) then
                 os.vrunv(os.programfile(), {"dora-build", "--mode=debug"}, {curdir = root})
             end
+            if not option.get("list") and option.get("suite") == "web-ide" and not option.get("case") then
+                local pnpm = assert(find_tool("pnpm", {system = true}), "Web IDE acceptance requires pnpm")
+                -- Asset/package acceptance needs a freshly prepared runtime and
+                -- Vite output, not artifacts left over from a developer build.
+                os.vrunv(pnpm.program, {"build"}, {curdir = path.join(root, "Tools/dora-dora")})
+            end
             local node = assert(find_tool("node"), "test runner requires Node.js")
             local args = {path.join(tests.directory, "Test/run.mjs"), "--suite=" .. option.get("suite")}
             if option.get("case") then table.insert(args, "--case=" .. option.get("case")) end
