@@ -1,7 +1,7 @@
 // @preview-file off
 import { App, Content, json, Path } from "Dora";
-import { loadCatalog, type CatalogLoadResult } from "Script/Tools/ResourceDownloader/Catalog";
-import { gitHeadFromStatus, quoteGitArgument, runGit, type GitOperationStatus } from "Script/Tools/ResourceDownloader/Git";
+import { loadCatalog, type CatalogLoadResult } from "Tools/ResourceDownloader/Catalog";
+import { gitHeadFromStatus, quoteGitArgument, runGit, type GitOperationStatus } from "Tools/ResourceDownloader/Git";
 
 const GITHUB_CATALOG_REMOTE = "https://github.com/ippclub/Dora-Catalog.git";
 const ATOMGIT_CATALOG_REMOTE = "https://gitcode.com/ippclub/Dora-Catalog.git";

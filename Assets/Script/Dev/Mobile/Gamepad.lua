@@ -7,6 +7,8 @@ local claimedFrame = -1
 local claimedButton = ""
 local targets = {
 	["mobile-feed-play"] = true, ["mobile-feed-remix"] = true,
+	["mobile-feed-manage"] = true, ["mobile-feed-share"] = true,
+	["mobile-feed-sync"] = true, ["mobile-feed-sync-cancel"] = true, ["mobile-feed-sync-force"] = true,
 	["mobile-feed-create"] = true,
 	["mobile-project-index-back"] = true,
 	["mobile-project-create-input"] = true, ["mobile-project-create-cancel"] = true,
@@ -51,6 +53,8 @@ end
 local function collect(host)
 	local result = {}
 	local sheet = exports.findGamepadNode(host, "mobile-project-create-sheet")
+		or exports.findGamepadNode(host, "mobile-feed-sync-confirmation")
+		or exports.findGamepadNode(host, "mobile-feed-management-menu")
 	local function visit(node)
 		if not node.visible then return end
 		local tag = node.tag
@@ -104,7 +108,7 @@ function exports.attachGamepad(host, options)
 	end
 	local function selection()
 		local nextScope = host.tag
-		for _, tag in ipairs({"mobile-project-create-sheet", "mobile-llm-detail-key", "mobile-llm-detail-delete", "mobile-llm-detail", "mobile-llm-list", "remix-questionnaire"}) do
+		for _, tag in ipairs({"mobile-project-create-sheet", "mobile-feed-sync-confirmation", "mobile-feed-management-menu", "mobile-llm-detail-key", "mobile-llm-detail-delete", "mobile-llm-detail", "mobile-llm-list", "remix-questionnaire"}) do
 			local container = exports.findGamepadNode(host, tag)
 			if container and (tag ~= "mobile-llm-detail-delete" or not container.touchEnabled) then nextScope = tag; break end
 		end

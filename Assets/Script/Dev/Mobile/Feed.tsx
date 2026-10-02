@@ -10,9 +10,10 @@ import { roundedRectVerts, RoundedStencil, RoundedSurface, VerticalGradient } fr
 import { startPackagePanel } from "Dev/Mobile/PackagePanel";
 import { ProjectIndex } from "Dev/Mobile/ProjectIndex";
 import type { MobileProjectLanguage } from "Dev/Mobile/ProjectCreate";
+import type { ResourceInfo } from "Tools/ResourceDownloader/Catalog";
 
 interface FeedEntry extends ModelFeedEntry {
-	resource?: unknown;
+	resource?: ResourceInfo;
 	catalogCommit?: string;
 	launchError?: string;
 }
@@ -30,6 +31,7 @@ interface MobileFeedOptions {
 	createProject?: (this: void, name: string, language: MobileProjectLanguage) => { success: true; entry: FeedEntry } | { success: false; error: string };
 	onSwitchMode?: (this: void) => void;
 	prepare: (this: void, entry: FeedEntry, repairIncomplete: boolean, onProgress: (this: void, progress: number, message: string, transferredBytes?: number) => void, onDone: (this: void, success: boolean, ready?: { fileName: string; workDir: string }, message?: string, repairable?: boolean) => void, isCanceled: (this: void) => boolean) => void;
+	sync?: (this: void, entry: FeedEntry, force: boolean, onProgress: (this: void, progress: number, message: string, transferredBytes?: number) => void, onDone: (this: void, success: boolean, ready?: { workDir: string }, message?: string, forceable?: boolean) => void, isCanceled: (this: void) => boolean) => void;
 }
 
 const colors = {
@@ -47,6 +49,17 @@ const fontName = "sarasa-mono-sc-regular";
 const createSheetHeight = 304;
 const createInputHeight = 44;
 const createInputTop = 140;
+
+// Overlay controls share a render group with Sprite text. Native surfaces keep
+// their opaque backgrounds above the card while following MobileButton styling.
+function OverlayActionButton(props: { key?: string; tag: string; x: number; y?: number; width: number; text: string; fontSize?: number; danger?: boolean; onTapped(): void }) {
+	return <node key={props.key} tag={props.tag} x={props.x} y={props.y ?? 20} width={props.width} height={48} anchorX={0} anchorY={0}
+		touchEnabled={true} swallowTouches={true} onTapped={props.onTapped}>
+		<draw-node renderOrder={2}><polygon-shape verts={roundedRectVerts(props.width, 48, 14)}
+			fillColor={props.danger ? 0xffdf4e56 : 0xff293140} borderWidth={1} borderColor={props.danger ? 0xffff8585 : colors.border} /></draw-node>
+		<label x={props.width / 2} y={24} fontName={fontName} fontSize={props.fontSize ?? 17} text={props.text} color3={0xf4f1e8} renderOrder={3} />
+	</node>;
+}
 
 function conciseDescription(text: string, limit: number) {
 	const length = utf8.len(text)[0] ?? 0;
@@ -126,6 +139,10 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	let prepareProgress = 0;
 	let prepareTransferredBytes = 0;
 	let prepareCanceled = false;
+	let synchronizing = false;
+	let syncConfirmation: FeedEntry | undefined;
+	let syncFailure = "";
+	let managementOpen = false;
 	let catalogSyncing = false;
 	let catalogStatus = "";
 	let catalogStatusView: ((message: string) => void) | undefined;
@@ -169,7 +186,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	const isActive = () => active && !leaving && host.parent !== undefined;
 
 	const entries = () => tab === "discover" ? discover : local;
-	const current = () => entries()[normalizeFeedIndex(index, entries().length)];
+	const current = (): FeedEntry | undefined => entries()[normalizeFeedIndex(index, entries().length)];
 	let rememberedEntryKey = "";
 	const rememberCurrent = () => {
 		const item = current();
@@ -201,7 +218,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		render();
 	};
 	const openCreate = () => {
-		if (!options.createProject || preparing || transitioning || creating || createOpen || HttpServer.wsConnectionCount > 0) return;
+		if (!options.createProject || preparing || transitioning || creating || createOpen || syncConfirmation || managementOpen || HttpServer.wsConnectionCount > 0) return;
 		projectIndexOpen = false;
 		createOpen = true;
 		createLanguage = "typescript";
@@ -212,7 +229,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		createInput.deferFocus();
 	};
 	const openProjectIndex = () => {
-		if (preparing || transitioning || creating || createOpen || HttpServer.wsConnectionCount > 0) return;
+		if (preparing || transitioning || creating || createOpen || syncConfirmation || managementOpen || HttpServer.wsConnectionCount > 0) return;
 		if (tab === "local") local = getLocalEntries();
 		projectIndexOpen = true;
 		render();
@@ -277,7 +294,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		receiveElapsed += dt;
 		if (receiveElapsed < 0.5) return false;
 		receiveElapsed = 0;
-		if (isActive() && host.visible && !packagePanel && !createOpen && !projectIndexOpen && !preparing && !transitioning && HttpServer.wsConnectionCount === 0) {
+		if (isActive() && host.visible && !packagePanel && !createOpen && !projectIndexOpen && !managementOpen && !syncConfirmation && !preparing && !transitioning && HttpServer.wsConnectionCount === 0) {
 			const path = options.takeReceivedFile ? options.takeReceivedFile() : App.takeReceivedFile();
 			if (path !== "") openPackage("receive", path);
 		}
@@ -285,7 +302,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	});
 
 	const setTab = (next: FeedTab) => {
-		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || preparing || creating) return;
+		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || preparing || creating || syncConfirmation || managementOpen) return;
 		userSelectedTab = true;
 		returnEntry = undefined;
 		if (tab === next) return;
@@ -303,7 +320,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	};
 	const activate = (action: "play" | "remix") => {
 		const item = current();
-		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || !item || preparing) return;
+		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || !item || preparing || syncConfirmation || managementOpen) return;
 		if (item.webPlayUrl) {
 			const url = action === "play" ? item.webPlayUrl : item.sourceUrl;
 			if (url) App.openURL(url);
@@ -349,9 +366,57 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		prepareStatus = zh ? "正在中断下载…" : "Canceling download…";
 		render();
 	};
+	const closeManagement = () => { managementOpen = false; render(); };
+	const openManagement = () => {
+		const item = current();
+		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || !item || item.kind !== "local"
+			|| preparing || transitioning || creating || createOpen || packagePanel || syncConfirmation) return;
+		managementOpen = !managementOpen;
+		render();
+	};
+	const dismissSyncConfirmation = () => { syncConfirmation = undefined; render(); };
+	const synchronize = (item: FeedEntry, force: boolean) => {
+		if (!options.sync || !item.resource || item.kind !== "local" || preparing || !isActive()
+			|| !host.visible || HttpServer.wsConnectionCount > 0) return;
+		syncConfirmation = undefined;
+		managementOpen = false;
+		preparing = true;
+		synchronizing = true;
+		prepareProgress = 0;
+		prepareTransferredBytes = 0;
+		prepareCanceled = false;
+		prepareStatus = zh ? "正在同步…" : "Synchronizing…";
+		render();
+		options.sync(item, force, (progress, message, transferredBytes) => {
+			if (!isActive()) return;
+			prepareProgress = math.max(0, math.min(1, progress));
+			prepareTransferredBytes = transferredBytes ?? prepareTransferredBytes;
+			prepareStatus = message;
+			render();
+		}, (success, ready, message, forceable) => {
+			if (!isActive()) return;
+			preparing = false;
+			synchronizing = false;
+			if (success && ready) {
+				local = getLocalEntries(ready.workDir);
+				discover = getDiscoverEntries();
+				const sameEntry = local.findIndex(entry => entry.fileName === item.fileName);
+				const sameResource = local.findIndex(entry => entry.resource?.id === item.resource?.id);
+				index = normalizeFeedIndex(sameEntry >= 0 ? sameEntry : sameResource >= 0 ? sameResource : index, local.length);
+				prepareStatus = message ?? (zh ? "同步完成" : "Synchronized");
+			} else {
+				prepareStatus = message ?? (zh ? "同步失败" : "Synchronization failed");
+				if (!force && forceable && !prepareCanceled) {
+					syncFailure = prepareStatus;
+					syncConfirmation = item;
+				}
+			}
+			render();
+		}, () => prepareCanceled || !isActive());
+	};
 
 	const commit = (action: FeedAction) => {
-		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || preparing || transitioning) return;
+		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || preparing || transitioning || syncConfirmation || managementOpen) return;
 		if (action === "play" || action === "remix") {
 			const card = cardRef.current;
 			if (card) card.position = Vec2.zero;
@@ -389,7 +454,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	};
 
 	const switchMode = () => {
-		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || preparing || creating || createOpen || packagePanel || transitioning || !options.onSwitchMode) return;
+		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || preparing || creating || createOpen || packagePanel || transitioning || syncConfirmation || managementOpen || !options.onSwitchMode) return;
 		leaving = true;
 		options.onSwitchMode();
 	};
@@ -442,6 +507,8 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		const metadataY = infoTop - (wide ? 136 : 118);
 		const actionsY = bottom + (compactLandscape ? 18 : 24);
 		const gestureHintY = bottom + (compactLandscape ? 88 : 92);
+		const canSync = item?.kind === "local" && item.resource !== undefined && options.sync !== undefined;
+		const canManage = item?.kind === "local" && (canShare || canSync);
 		const buttonWidth = wide ? math.min(190, (infoWidth - 12) / 2) : (infoWidth - 12) / 2;
 		const fontScale = mobileFontScale;
 		const cardIndices = getReusableCardIndices(index, data.length);
@@ -517,8 +584,8 @@ export function startMobileFeed(options: MobileFeedOptions) {
 						<label x={24} y={13} fontName={fontName} fontSize={11} text={`${index + 1} / ${data.length}`} color3={0xd7dbe3} />
 					</node>
 					<label tag="mobile-feed-current-title" x={infoX} y={infoTop} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={math.floor((wide ? 30 : 25) * fontScale)}
-						text={item.title} textWidth={infoWidth - (item.kind === "local" && canShare ? 92 : 0)} alignment={TextAlign.Left} color3={0xf4f1e8} />
-					{item.kind === "local" && canShare ? <MobileButton tag="mobile-feed-share" x={infoX + infoWidth - 84} y={infoTop - 18} width={84} height={36} text={zh ? "分享作品" : "Share"} fontSize={13} onTapped={() => openPackage("share")} /> : undefined}
+						text={item.title} textWidth={infoWidth - (canManage ? 92 : 0)} alignment={TextAlign.Left} color3={0xf4f1e8} />
+					{canManage ? <MobileButton tag="mobile-feed-manage" x={infoX + infoWidth - 84} y={infoTop - 18} width={84} height={36} text={zh ? "管理" : "Manage"} fontSize={13} onTapped={openManagement} /> : undefined}
 					<label tag="mobile-feed-description" x={infoX} y={descriptionY} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={math.floor(15 * fontScale)}
 						text={conciseDescription(item.description, wide ? 80 : compact ? 28 : 42)} textWidth={infoWidth} alignment={TextAlign.Left} color3={0xa8afbd} />
 					{compact || shortLandscape ? undefined : <node x={infoX} y={metadataY} width={wide ? 176 : 164} height={28} anchorX={0} anchorY={0}>
@@ -528,7 +595,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 							textWidth={(wide ? 176 : 164) - 24} alignment={TextAlign.Left} color3={0xdce1ea} />
 					</node>}
 				{preparing ? <node tag="mobile-feed-download" x={infoX} y={actionsY} width={infoWidth} height={48} anchorX={0} anchorY={0}>
-					<label x={0} y={38} anchorX={0} fontName={fontName} fontSize={14} text={zh ? "正在下载" : "Downloading"} color3={0xffcc33} />
+					<label x={0} y={38} anchorX={0} fontName={fontName} fontSize={14} text={synchronizing ? (zh ? "正在同步" : "Synchronizing") : (zh ? "正在下载" : "Downloading")} color3={0xffcc33} />
 					<label tag="mobile-feed-download-percent" x={infoWidth - 92} y={38} anchorX={1} fontName={fontName} fontSize={14}
 						text={`${math.floor(prepareProgress * 100)}%${prepareTransferredBytes > 0 ? ` · ${formatTransferBytes(prepareTransferredBytes)}` : ""}`} color3={0xffcc33} />
 					<node tag="mobile-feed-download-track" width={infoWidth - 92} height={8} y={8} anchorX={0} anchorY={0}>
@@ -567,7 +634,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 			</node> : undefined}
 			{!item && tab === "discover" && syncDiscover ? <MobileButton tag="mobile-feed-empty-index" x={left + (usableWidth - 160) / 2} y={bottom + 24} width={160}
 				text={zh ? "作品目录" : "Game index"} onTapped={openProjectIndex} /> : undefined}
-			<node tag="mobile-feed-header" order={headerRenderOrder}>
+			<node tag="mobile-feed-header" order={headerRenderOrder} visible={!syncConfirmation}>
 				{options.onSwitchMode ? <node tag="mobile-ui-mode-switch" x={left + 12} y={bottom + usableHeight - 58 + landscapeTopLift} width={72} height={48}
 					anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={switchMode}>
 					<label x={0} y={30} anchorX={0} fontName={fontName} fontSize={16} text="DORA" color3={preparing ? 0x777e8c : 0xffcc33} />
@@ -584,6 +651,47 @@ export function startMobileFeed(options: MobileFeedOptions) {
 					x={left + usableWidth - 82} y={bottom + usableHeight - 56 + landscapeTopLift}
 					text={zh ? "+ 新建" : "+ New"} renderOrder={headerRenderOrder + 1} onTapped={() => openPackage("add")} /> : undefined}
 			</node>
+			{managementOpen && canManage && item ? (() => {
+				const menuWidth = math.min(208, infoWidth);
+				const actions = [
+					...(canShare ? [{ tag: "mobile-feed-share", text: zh ? "分享作品" : "Share game", action: () => { closeManagement(); openPackage("share"); } }] : []),
+					...(canSync ? [{ tag: "mobile-feed-sync", text: zh ? "同步上游" : "Sync upstream", action: () => { managementOpen = false; synchronize(item, false); } }] : []),
+				];
+				const menuPadding = 12;
+				const actionGap = 8;
+				const menuHeight = menuPadding * 2 + actions.length * 48 + (actions.length - 1) * actionGap;
+				return <node tag="mobile-feed-management-menu" order={1500} renderOrder={1500} renderGroup={true}
+					width={width} height={height} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={closeManagement}>
+					<draw-node x={width / 2} y={height / 2}><rect-shape width={width} height={height} fillColor={0x33000000} /></draw-node>
+					<node x={infoX + infoWidth - menuWidth} y={math.max(bottom + 16, infoTop - 26 - menuHeight)}
+						width={menuWidth} height={menuHeight} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true}>
+						<draw-node renderOrder={1}><polygon-shape verts={roundedRectVerts(menuWidth, menuHeight, 16)} fillColor={colors.panelRaised} borderWidth={1} borderColor={colors.border} /></draw-node>
+						{actions.map((action, i) => <OverlayActionButton key={action.tag} tag={action.tag} x={menuPadding}
+							y={menuHeight - menuPadding - 48 - i * (48 + actionGap)} width={menuWidth - menuPadding * 2}
+							text={action.text} fontSize={15} onTapped={action.action} />)}
+					</node>
+				</node>;
+			})() : undefined}
+			{syncConfirmation ? <node tag="mobile-feed-sync-confirmation" order={2000} renderOrder={2000} renderGroup={true}
+				width={width} height={height} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={() => {}}>
+				<draw-node><rect-shape centerX={width / 2} centerY={height / 2} width={width} height={height} fillColor={0xd0080a0f} /></draw-node>
+				<node x={left + (usableWidth - math.min(440, usableWidth - 24)) / 2} y={bottom + (usableHeight - math.min(310, usableHeight - 24)) / 2}
+					width={math.min(440, usableWidth - 24)} height={math.min(310, usableHeight - 24)} anchorX={0} anchorY={0}>
+					<draw-node renderOrder={1}><polygon-shape verts={roundedRectVerts(math.min(440, usableWidth - 24), math.min(310, usableHeight - 24), 24)}
+						fillColor={0xff151922} borderWidth={1} borderColor={0xff4a5568} /></draw-node>
+					<label x={20} y={math.min(310, usableHeight - 24) - 32} anchorX={0} fontName={fontName} fontSize={20}
+						text={zh ? "同步失败，是否强制同步？" : "Sync failed. Force sync?"} textWidth={math.min(440, usableWidth - 24) - 40} alignment={TextAlign.Left} renderOrder={2} />
+					<label x={20} y={math.min(310, usableHeight - 24) - 82} anchorX={0} fontName={fontName} fontSize={13} color3={0xa8afbd}
+						text={conciseDescription(syncFailure, 90)} textWidth={math.min(440, usableWidth - 24) - 40} alignment={TextAlign.Left} renderOrder={2} />
+					<label x={20} y={math.min(310, usableHeight - 24) - 158} anchorX={0} fontName={fontName} fontSize={14} color3={0xffb3b3}
+						text={zh ? "将放弃本地所有修改、提交和新增文件，用当前 Catalog 的工程替换。此操作无法撤销。" : "Discard all local edits, commits and added files, replacing this project from the current Catalog. This cannot be undone."}
+						textWidth={math.min(440, usableWidth - 24) - 40} alignment={TextAlign.Left} renderOrder={2} />
+					<OverlayActionButton tag="mobile-feed-sync-cancel" x={20} width={(math.min(440, usableWidth - 24) - 52) / 2}
+						text={zh ? "保留本地" : "Keep local"} onTapped={dismissSyncConfirmation} />
+					<OverlayActionButton tag="mobile-feed-sync-force" x={32 + (math.min(440, usableWidth - 24) - 52) / 2} width={(math.min(440, usableWidth - 24) - 52) / 2}
+						text={zh ? "强制同步" : "Force sync"} danger={true} onTapped={() => { if (syncConfirmation) synchronize(syncConfirmation, true); }} />
+				</node>
+			</node> : undefined}
 			{createOpen ? (() => {
 				const sheetHeight = math.min(createSheetHeight, usableHeight - 64);
 				const sheetWidth = usableWidth;
@@ -656,7 +764,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 		initialTag: "mobile-feed-play",
 		isEnabled: () => isActive() && !packagePanel && !preparing && !transitioning && !creating,
 		onActive: () => { gamepadUsed = true; render(); },
-		onBack: () => { if (createInput.isFocused()) blurCreateInput(); else if (createOpen) closeCreate(); else switchMode(); },
+		onBack: () => { if (managementOpen) closeManagement(); else if (syncConfirmation) dismissSyncConfirmation(); else if (createInput.isFocused()) blurCreateInput(); else if (createOpen) closeCreate(); else switchMode(); },
 		onActivate: target => {
 			if (target.tag === "mobile-project-create-input") target.emit("GamepadActivate");
 			else {
@@ -667,7 +775,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 			}
 		},
 		onButton: button => {
-			if (createOpen) return false;
+			if (createOpen || syncConfirmation || managementOpen) return false;
 			switch (button) {
 				case "dpup": commit("previous"); return true;
 				case "dpdown": commit("next"); return true;
@@ -683,6 +791,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	host.onAppChange(setting => {
 		if (setting === "Locale") {
 			const activeEntry = current();
+			managementOpen = false;
 			zh = string.match(App.locale, "^zh")[0] !== undefined;
 			local = getLocalEntries();
 			discover = getDiscoverEntries();
@@ -694,13 +803,16 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	});
 	host.onAppEvent(event => {
 		if (event === "BackButton") {
-			if (projectIndexOpen) { projectIndexOpen = false; render(); }
+			if (managementOpen) closeManagement();
+			else if (syncConfirmation) dismissSyncConfirmation();
+			else if (projectIndexOpen) { projectIndexOpen = false; render(); }
 			else if (createOpen && !creating) closeCreate();
 		} else if (event === "WillEnterBackground" || event === "DidEnterBackground") blurCreateInput();
 	});
 	host.onCleanup(() => { blurCreateInput(); active = false; packagePanel?.removeFromParent(true); packagePanel = undefined; });
 	host.slot("RestoreFeedEntry", (entry: FeedEntry) => {
 		if (!isActive() || HttpServer.wsConnectionCount > 0) return;
+		managementOpen = false;
 		returnEntry = entry;
 		local = getLocalEntries();
 		discover = getDiscoverEntries();

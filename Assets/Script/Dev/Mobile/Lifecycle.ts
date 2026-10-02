@@ -1,6 +1,7 @@
 import { Content, Path } from "Dora";
 import type { ResourceInfo } from "Tools/ResourceDownloader/Catalog";
-import { getResourceInstallPath, installResource, isResourceInstalled } from "Tools/ResourceDownloader/GitInstaller";
+import { getResourceInstallPath, installResource, isResourceInstalled, syncResource } from "Tools/ResourceDownloader/GitInstaller";
+import { loadCachedCatalog } from "Tools/ResourceDownloader/CatalogSync";
 
 export interface MobileReadyEntry {
 	fileName: string;
@@ -18,7 +19,45 @@ export interface MobilePrepareResult {
 	entry?: MobileReadyEntry;
 	message?: string;
 	repairable?: boolean;
+	forceable?: boolean;
 }
+
+export interface MobileSyncResult {
+	success: boolean;
+	entry?: { workDir: string };
+	message?: string;
+	forceable?: boolean;
+}
+
+export const syncMobileResource = (
+	resourceId: string,
+	force: boolean,
+	onProgress: (progress: number, message: string, transferredBytes?: number) => void,
+	onDone: (result: MobileSyncResult) => void,
+	isCanceled?: () => boolean,
+) => {
+	const synchronize = async (): Promise<MobileSyncResult> => {
+		// Resolve from the current cache rather than a potentially stale card.
+		// Updating the Catalog remains a separate action in the game index.
+		const catalog = loadCachedCatalog();
+		if (!catalog.success || !catalog.snapshot) {
+			return { success: false, message: catalog.message ?? "Catalog is unavailable" };
+		}
+		const resource = catalog.snapshot.catalog.resources.find(item => item.id === resourceId);
+		const version = resource?.versions[math.max(1, resource.selectedVersion) - 1];
+		if (!resource || !version) {
+			return { success: false, message: "project is no longer available in Catalog" };
+		}
+		const result = await syncResource(resource, version, {
+			catalogCommit: catalog.snapshot.commit, isCanceled,
+			onProgress: status => onProgress(status.progress, status.message, status.transferredBytes),
+		}, force);
+		// Sync refreshes the project card; it does not launch a Catalog entrypoint.
+		// Older Catalog resources may have no declared entrypoints at all.
+		return { ...result, entry: result.success ? { workDir: result.targetPath ?? getResourceInstallPath(resource.id) } : undefined };
+	};
+	synchronize().then(result => onDone(result), error => onDone({ success: false, message: tostring(error) }));
+};
 
 const installedEntry = (resource: ResourceInfo): MobileReadyEntry => {
 	const workDir = getResourceInstallPath(resource.id);
@@ -38,7 +77,7 @@ export const resolveMobileLaunchEntry = (entry: MobileLaunchEntry): MobileLaunch
 
 export const isMobileResourceReady = (resource: ResourceInfo) => {
 	const entrypoint = resource.entrypoints[0];
-	if (!entrypoint || !isResourceInstalled(resource.id)) return false;
+	if (entrypoint === undefined || !isResourceInstalled(resource.id)) return false;
 	const entryPath = Path(getResourceInstallPath(resource.id), entrypoint.path);
 	if (Content.exist(entryPath)) return true;
 	if (Path.getExt(entrypoint.path) !== "") return false;
@@ -74,7 +113,7 @@ export const prepareMobileResource = (
 	}
 	const index = math.max(1, math.min(resource.selectedVersion, resource.versions.length));
 	const version = resource.versions[index - 1];
-	if (!version) {
+	if (version === undefined) {
 		onDone({ success: false, message: "resource version is unavailable" });
 		return;
 	}

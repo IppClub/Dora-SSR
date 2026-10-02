@@ -22,7 +22,11 @@ export interface ResourceInstallResult {
 	source?: string;
 	message?: string;
 	canceled?: boolean;
+	forceable?: boolean;
 }
+
+const activeProjects = new Set<string>();
+let operationSequence = 0;
 
 const emitProgress = (
 	options: ResourceInstallOptions,
@@ -92,17 +96,41 @@ export const getResourceInstallPath = (resourceId: string) =>
 export const isResourceInstalled = (resourceId: string) =>
 	Content.isdir(getResourceInstallPath(resourceId));
 
-export const installResource = async (
+// Both Git and legacy archive installations must carry matching Catalog identity.
+// Entries can be nested below the repository root.
+export const getInstalledCatalogResource = (workDir: string, resources: ResourceInfo[]) => {
+	const prefix = Path(Content.writablePath, "Download").split("\\").join("/") + "/";
+	const normalized = workDir.split("\\").join("/");
+	if (!normalized.startsWith(prefix)) return undefined;
+	const resourceId = normalized.slice(prefix.length).split("/")[0];
+	const resource = resources.find(item => item.id === resourceId);
+	if (!resource) return undefined;
+	const installPath = getResourceInstallPath(resourceId);
+	if (!Content.isdir(installPath)) return undefined;
+	const stateFile = Path(installPath, ".dora", "resource-state.json");
+	const hasState = Content.exist(stateFile);
+	// Older archive downloads stored the Catalog id as repo.name. A present but
+	// invalid Git state must never fall back to legacy identity.
+	const file = hasState ? stateFile : Path(installPath, ".dora", "repo.json");
+	if (!Content.exist(file)) return undefined;
+	const [state, err] = json.decode(Content.load(file));
+	if (err === undefined && typeof state === "object" && state !== undefined
+		&& (hasState ? (state as { resourceId?: string }).resourceId : (state as { name?: string }).name) === resourceId) return resource;
+	return undefined;
+};
+
+const installResourceInternal = async (
 	resource: ResourceInfo,
 	version: ResourceVersion,
 	options: ResourceInstallOptions,
+	replaceExisting = false,
 ): Promise<ResourceInstallResult> => {
 	const downloadPath = Path(Content.writablePath, "Download");
 	if (!Content.mkdir(downloadPath) && !Content.isdir(downloadPath)) {
 		return { success: false, message: "failed to create Download directory" };
 	}
 	const targetPath = getResourceInstallPath(resource.id);
-	if (Content.exist(targetPath)) {
+	if (Content.exist(targetPath) && !replaceExisting) {
 		return {
 			success: false,
 			message: "target directory already exists; use Git tools to maintain the installed project",
@@ -121,7 +149,7 @@ export const installResource = async (
 			return { success: false, message: "installation canceled", canceled: true };
 		}
 		const source = version.sources[sourceIndex];
-		const operationId = `${os.time()}-${sourceIndex + 1}`;
+		const operationId = `${os.time()}-${++operationSequence}-${sourceIndex + 1}`;
 		const tempName = `.resource-${resource.id}-${operationId}`;
 		const tempPath = Path(stagingRoot, tempName);
 		if (Content.exist(tempPath)) Content.remove(tempPath);
@@ -187,7 +215,11 @@ export const installResource = async (
 			lastMessage = metadataError;
 			continue;
 		}
-		if (Content.exist(targetPath)) {
+		if (options.isCanceled?.()) {
+			Content.remove(tempPath);
+			return { success: false, message: "synchronization canceled", canceled: true };
+		}
+		if (Content.exist(targetPath) && !replaceExisting) {
 			Content.remove(tempPath);
 			return {
 				success: false,
@@ -195,14 +227,92 @@ export const installResource = async (
 			};
 		}
 		emitProgress(options, 0.97, "Installing project", source.url);
+		// Keep the original until the replacement is verified and ready. No await
+		// occurs between the two moves; a failed replacement restores the original.
+		const backupPath = Path(stagingRoot, `${tempName}-previous`);
+		const hadOriginal = Content.exist(targetPath);
+		if (hadOriginal && !Content.move(targetPath, backupPath)) {
+			Content.remove(tempPath);
+			return { success: false, message: "failed to preserve the previous project" };
+		}
 		if (!Content.move(tempPath, targetPath)) {
 			Content.remove(tempPath);
-			lastMessage = "failed to move the project into Download";
-			continue;
+			// Content.move may fall back to copying and leave a partial target.
+			// Remove that replacement before restoring the intact original.
+			const cleared = !Content.exist(targetPath) || Content.remove(targetPath);
+			const restored = cleared && (!hadOriginal || Content.move(backupPath, targetPath));
+			return { success: false, message: restored
+				? "failed to replace the project; previous project restored"
+				: `failed to replace the project; previous project remains at ${backupPath}` };
 		}
+		const cleanupMessage = hadOriginal && !Content.remove(backupPath)
+			? `synchronized; previous project could not be removed from ${backupPath}` : undefined;
+		Content.clearPathCache();
 		Director.postNode.emit("UpdateEntries");
 		emitProgress(options, 1, "Installed", source.url);
-		return { success: true, targetPath, source: source.url };
+		return { success: true, targetPath, source: source.url, message: cleanupMessage };
 	}
 	return { success: false, message: lastMessage };
 };
+
+const withProjectOperation = async (resource: ResourceInfo, operation: () => Promise<ResourceInstallResult>) => {
+	const path = getResourceInstallPath(resource.id);
+	if (activeProjects.has(path)) return { success: false, message: "project operation already in progress" };
+	activeProjects.add(path);
+	try {
+		return await operation();
+	} finally {
+		activeProjects.delete(path);
+	}
+};
+
+export const installResource = (resource: ResourceInfo, version: ResourceVersion, options: ResourceInstallOptions) =>
+	withProjectOperation(resource, () => installResourceInternal(resource, version, options));
+
+export const syncResource = (resource: ResourceInfo, version: ResourceVersion, options: ResourceInstallOptions, force = false) =>
+	withProjectOperation(resource, async (): Promise<ResourceInstallResult> => {
+		const targetPath = getResourceInstallPath(resource.id);
+		if (!getInstalledCatalogResource(targetPath, [resource])) {
+			return { success: false, message: "project has no matching Catalog installation state" };
+		}
+		if (resource.status !== "active" && resource.status !== "deprecated") {
+			return { success: false, message: `resource status ${resource.status} cannot be synchronized` };
+		}
+		if (force) return installResourceInternal(resource, version, options, true);
+		const remotes = await runGit(targetPath, "remote -v", { isCanceled: options.isCanceled });
+		if (!remotes.success) return { ...remotes, forceable: !remotes.canceled };
+		const origin = (remotes.status?.data?.remotes as { name: string; urls: string[] }[] | undefined)
+			?.find(remote => remote.name === "origin");
+		let lastMessage = "no resource source is available";
+		for (const source of version.sources) {
+			if (options.isCanceled?.()) return { success: false, message: "synchronization canceled", canceled: true };
+			emitProgress(options, 0.05, "Pulling from Catalog repository", source.url);
+			const configured = await runGit(targetPath,
+				`remote ${origin ? "set-url" : "add"} origin ${quoteGitArgument(source.url)}`);
+			if (!configured.success) return { success: false, message: configured.message, forceable: true };
+			const pulled = await runGit(targetPath, "pull origin", {
+					timeout: 1800, isCanceled: options.isCanceled,
+					onStatus: status => emitProgress(options, math.max(0.05, status.progress * 0.85),
+						status.message ?? "Pulling project", source.url, status.transferredBytes),
+				});
+			if (!pulled.success) {
+				await runGit(targetPath, origin
+					? `remote set-url origin ${quoteGitArgument(origin.urls[0])}` : "remote remove origin");
+				lastMessage = pulled.message ?? "Git pull failed";
+				if (pulled.canceled) return { success: false, message: lastMessage, canceled: true };
+				continue;
+			}
+			const verified = await runGit(targetPath, "verify-resource");
+			const commit = verified.status?.data?.commit;
+			if (!verified.success || typeof commit !== "string") return {
+				success: false, message: verified.message ?? "resource verification failed", forceable: true,
+			};
+			const metadataError = installMetadata(resource, version, commit, options.catalogCommit, source.url, targetPath);
+			if (metadataError) return { success: false, message: metadataError, forceable: true };
+			Content.clearPathCache();
+			Director.postNode.emit("UpdateEntries");
+			emitProgress(options, 1, "Synchronized", source.url);
+			return { success: true, targetPath, source: source.url };
+		}
+		return { success: false, message: lastMessage, forceable: true };
+	});
