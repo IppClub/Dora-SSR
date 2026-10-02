@@ -9,11 +9,8 @@ import { toCommandString as toStr, truncateCommandOutput, truncateCommandError }
 import { executeGitCommand } from 'Agent/Tool/GitCommand';
 import { createOperationId } from 'Agent/Tool/Operation';
 import { refreshWorkspaceTree } from 'Agent/Tool/WebIDESync';
-import {
-	isValidWorkspacePath,
-	resolveWorkspaceFilePath,
-	inspectReadableFile,
-} from 'Agent/Tool/Workspace';
+import { isValidWorkspacePath, type DoraDocLanguage } from 'Agent/Tool/Workspace';
+import { createCommandContent } from 'Agent/Tool/CommandContent';
 
 import { acquireEntryLease, recordEntryLeaseRun, ownsEntryLease, releaseEntryLease, type DevEntryModule } from 'Agent/Tool/EntryLease';
 import { createPreviewGameInjection, type CommandPreviewGameResult } from 'Agent/Tool/CommandPreview';
@@ -101,6 +98,7 @@ function executeStudioLuaCommand(req: {
 
 function executeLuaCommand(req: {
 	workDir: string;
+	docLanguage?: DoraDocLanguage;
 	code: string;
 	timeoutSeconds: number;
 	operationId: string;
@@ -215,34 +213,12 @@ function executeLuaCommand(req: {
 		}
 		return refreshWorkspaceTree(req.workDir, path as string);
 	};
-	const resolveLuaContentPath = (first: unknown, second?: unknown): string => {
-		const value = typeof second === "string" ? second : first;
-		if (typeof value !== "string") {
-			error("Content path must be a project-relative string");
-		}
-		const fullPath = resolveWorkspaceFilePath(req.workDir, value as string);
-		if (!fullPath) {
-			error("Content path must stay inside projectDir");
-		}
-		return fullPath;
-	};
-	const scopedContent = {
-		exist: (first: unknown, second?: unknown) => Content.exist(resolveLuaContentPath(first, second)),
-		isdir: (first: unknown, second?: unknown) => Content.isdir(resolveLuaContentPath(first, second)),
-		getAttr: (first: unknown, second?: unknown) => Content.getAttr(resolveLuaContentPath(first, second)),
-		load: (first: unknown, second?: unknown) => {
-			const fullPath = resolveLuaContentPath(first, second);
-			const inspected = inspectReadableFile(fullPath);
-			if (!inspected.success) error(inspected.message ?? "file is not readable");
-			return Content.load(fullPath);
-		},
-	};
 	const blockedDoraGlobals: Record<string, boolean> = {
-		Content: true,
 		DB: true,
 		HttpClient: true,
 		HttpServer: true,
 	};
+	const scopedContent = createCommandContent(req.workDir, req.docLanguage);
 	const env = setmetatable({
 		projectDir: req.workDir,
 		previewGame: createPreviewGameInjection({
@@ -557,6 +533,7 @@ function executeLuaCommand(req: {
 
 export async function executeCommand(req: {
 	workDir: string;
+	docLanguage?: DoraDocLanguage;
 	mode: ExecuteCommandMode;
 	code?: string;
 	command?: string;
@@ -573,6 +550,7 @@ export async function executeCommand(req: {
 	if (mode === "lua") {
 		return executeLuaCommand({
 			workDir: req.workDir,
+			docLanguage: req.docLanguage,
 			code: req.code ?? "",
 			timeoutSeconds: math.max(1, math.floor(Number(req.timeoutSeconds ?? LUA_COMMAND_DEFAULT_TIMEOUT_SECONDS))),
 			operationId: createOperationId(),

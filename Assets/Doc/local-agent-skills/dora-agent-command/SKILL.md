@@ -45,9 +45,10 @@ The command prints one JSON result to stdout; stderr is diagnostic output. The b
 
 Lua runs in a temporary bounded environment:
 
-- Dora API globals are available, except unrestricted `Content`, `DB`, `HttpClient`, and `HttpServer`.
+- Dora API globals are available, except `DB`, `HttpClient`, and `HttpServer`.
 - `projectDir` is the current project root.
-- `Content` can inspect and read project-relative files only.
+- `Content` exposes all engine methods through a project-scoped facade, including writes and async operations. All filesystem path arguments must be project-relative, without `..` or absolute paths. Both source and destination are checked for copy, move, ZIP, and unzip operations. Use `Content:getDirs(".")` for the project root; colon and dot calls are supported. Text `load`/`loadAsync` retain readable-file checks. `@dora-doc/...`, `@agent-skill/...`, and `@dora_full_logs.txt` preserve their read-only virtual meanings; they cannot be written, moved, or used as root/search directories. Virtual search results retain their virtual file identifiers. Agent tasks use their documentation language; the CLI defaults to English.
+- `Content.assetPath`, `writablePath`, and `appPath` initially return `"."`; `appPath` is read-only. Set `assetPath`, `writablePath`, or `searchPaths` to project-relative directories to configure this command only. Reads use local search paths and `assetPath`; writes use local `writablePath`. These settings never modify the engine singleton. `clearPathCache` is local, and `isAbsolutePath` only inspects its string argument.
 - `requireProjectModule(name, reload?)` loads a module from the project or engine Asset search paths.
 - `reportProgress({progress?, stage?, message?})` reports meaningful stages.
 - `refreshTree(path?)` refreshes the Web IDE tree.

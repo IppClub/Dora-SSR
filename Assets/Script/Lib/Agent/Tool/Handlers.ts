@@ -242,6 +242,7 @@ const executeCommand: AgentToolHandler = async (context, input) => {
 	const mode = typeof input.mode === "string" ? input.mode : "";
 	const output = await Tools.executeCommand({
 		workDir: context.workingDir,
+		docLanguage: context.useChineseResponse ? "zh" : "en",
 		taskId: context.taskId,
 		mode: mode as Tools.ExecuteCommandMode,
 		code: typeof input.code === "string" ? input.code : undefined,

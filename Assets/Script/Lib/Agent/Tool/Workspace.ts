@@ -349,6 +349,23 @@ function resolveAgentSkillFilePath(workDir: string, path: string): string | unde
 	return candidate;
 }
 
+// Share the read-only virtual namespaces with the command Content facade.
+export function resolveAgentContentVirtualPath(workDir: string, path: string, docLanguage: DoraDocLanguage = "en"): string | undefined {
+	if (path.startsWith(AGENT_DORA_DOC_PREFIX)) {
+		return resolveAgentDoraDocFilePath(path, docLanguage);
+	}
+	if (path.startsWith(AGENT_SKILL_PREFIX)) return resolveAgentSkillFilePath(workDir, path);
+	if (isEngineLogFilePath(path)) {
+		if (getEngineLogText() === undefined) return undefined;
+		return Path(Content.writablePath, ENGINE_LOG_DOWNLOAD_DIR, ENGINE_LOG_FILE);
+	}
+	return undefined;
+}
+
+export function isAgentContentVirtualPath(path: string): boolean {
+	return path.startsWith(AGENT_DORA_DOC_PREFIX) || path.startsWith(AGENT_SKILL_PREFIX) || isEngineLogFilePath(path);
+}
+
 export function ensureDirPath(dir: string): boolean {
 	if (dir === "." || dir === "") return true;
 	if (Content.exist(dir)) return Content.isdir(dir);

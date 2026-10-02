@@ -35,773 +35,751 @@ local createOperationId = ____Operation.createOperationId -- 10
 local ____WebIDESync = require("Agent.Tool.WebIDESync") -- 11
 local refreshWorkspaceTree = ____WebIDESync.refreshWorkspaceTree -- 11
 local ____Workspace = require("Agent.Tool.Workspace") -- 12
-local isValidWorkspacePath = ____Workspace.isValidWorkspacePath -- 13
-local resolveWorkspaceFilePath = ____Workspace.resolveWorkspaceFilePath -- 14
-local inspectReadableFile = ____Workspace.inspectReadableFile -- 15
-local ____EntryLease = require("Agent.Tool.EntryLease") -- 18
-local acquireEntryLease = ____EntryLease.acquireEntryLease -- 18
-local recordEntryLeaseRun = ____EntryLease.recordEntryLeaseRun -- 18
-local ownsEntryLease = ____EntryLease.ownsEntryLease -- 18
-local releaseEntryLease = ____EntryLease.releaseEntryLease -- 18
-local ____CommandPreview = require("Agent.Tool.CommandPreview") -- 19
-local createPreviewGameInjection = ____CommandPreview.createPreviewGameInjection -- 19
-local ____VisionBudget = require("Agent.Tool.VisionBudget") -- 20
-local getVisionBudgetState = ____VisionBudget.getVisionBudgetState -- 21
-local getVisionTaskUsage = ____VisionBudget.getVisionTaskUsage -- 22
-local VISION_MAX_CAPTURE_BATCHES = ____VisionBudget.VISION_MAX_CAPTURE_BATCHES -- 24
-local VISION_MAX_CAPTURE_FRAMES = ____VisionBudget.VISION_MAX_CAPTURE_FRAMES -- 25
-local LUA_COMMAND_DEFAULT_TIMEOUT_SECONDS = 30 -- 29
-local function executeStudioLuaCommand(req) -- 38
-	local usesPreviewGame = (string.match(req.code, "%f[%a_]previewGame%f[^%w_]%s*%(")) ~= nil -- 50
-	if type(_studio_agent_tool_begin) ~= "function" or usesPreviewGame then -- 50
-		return nil -- 51
-	end -- 51
-	local onProgress = req.onProgress -- 52
-	local isCancelled = req.isCancelled -- 53
-	return __TS__New( -- 54
-		__TS__Promise, -- 54
-		function(____, resolve) -- 54
-			local requestId -- 55
-			local settled = false -- 56
-			local function finish(result) -- 57
-				if settled then -- 57
-					return -- 58
-				end -- 58
-				settled = true -- 59
-				resolve(nil, result) -- 60
-			end -- 57
-			if onProgress ~= nil then -- 57
-				onProgress(nil, { -- 62
-					state = "pending", -- 62
-					mode = "lua", -- 62
-					operationId = req.operationId, -- 62
-					stage = "player", -- 62
-					message = "Lua command pending in isolated game Player" -- 62
-				}) -- 62
-			end -- 62
-			local routine = once(function() -- 63
-				do -- 63
-					local function ____catch(e) -- 63
-						if requestId then -- 63
-							if _studio_agent_tool_cancel ~= nil then -- 63
-								_studio_agent_tool_cancel(requestId) -- 87
-							end -- 87
-							requestId = nil -- 87
-						end -- 87
-						local message = truncateCommandError(toStr(e)) -- 88
-						local ____message_9 = message -- 89
-						local ____temp_10 = (string.find(message, "timed out", nil, true) or 0) - 1 >= 0 and "timeout" or "execute" -- 89
-						local ____temp_8 -- 89
-						if (string.find(message, "canceled", nil, true) or 0) - 1 >= 0 then -- 89
-							____temp_8 = true -- 89
-						else -- 89
-							____temp_8 = nil -- 89
-						end -- 89
-						finish({ -- 89
-							success = false, -- 89
-							mode = "lua", -- 89
-							output = "", -- 89
-							message = ____message_9, -- 89
-							phase = ____temp_10, -- 89
-							interrupted = ____temp_8 -- 89
-						}) -- 89
-					end -- 89
-					local ____try, ____hasReturned = pcall(function() -- 89
-						local options = safeJsonEncode({code = req.code, timeoutSeconds = req.timeoutSeconds}) -- 65
-						if not options then -- 65
-							error("failed to encode Studio Agent Lua command") -- 66
-						end -- 66
-						requestId = _studio_agent_tool_begin( -- 67
-							"execute-lua", -- 67
-							Path(req.workDir, ".agent", "command.lua"), -- 67
-							options, -- 67
-							req.workDir -- 67
-						) -- 67
-						if onProgress ~= nil then -- 67
-							onProgress(nil, { -- 68
-								state = "running", -- 68
-								mode = "lua", -- 68
-								operationId = req.operationId, -- 68
-								stage = "player", -- 68
-								message = "Lua command running in isolated game Player" -- 68
-							}) -- 68
-						end -- 68
-						local deadline = App.runningTime + req.timeoutSeconds -- 69
-						local answer -- 70
-						while not answer do -- 70
-							if isCancelled and isCancelled(nil) then -- 70
-								error("Lua command canceled") -- 72
+local isValidWorkspacePath = ____Workspace.isValidWorkspacePath -- 12
+local ____CommandContent = require("Agent.Tool.CommandContent") -- 13
+local createCommandContent = ____CommandContent.createCommandContent -- 13
+local ____EntryLease = require("Agent.Tool.EntryLease") -- 15
+local acquireEntryLease = ____EntryLease.acquireEntryLease -- 15
+local recordEntryLeaseRun = ____EntryLease.recordEntryLeaseRun -- 15
+local ownsEntryLease = ____EntryLease.ownsEntryLease -- 15
+local releaseEntryLease = ____EntryLease.releaseEntryLease -- 15
+local ____CommandPreview = require("Agent.Tool.CommandPreview") -- 16
+local createPreviewGameInjection = ____CommandPreview.createPreviewGameInjection -- 16
+local ____VisionBudget = require("Agent.Tool.VisionBudget") -- 17
+local getVisionBudgetState = ____VisionBudget.getVisionBudgetState -- 18
+local getVisionTaskUsage = ____VisionBudget.getVisionTaskUsage -- 19
+local VISION_MAX_CAPTURE_BATCHES = ____VisionBudget.VISION_MAX_CAPTURE_BATCHES -- 21
+local VISION_MAX_CAPTURE_FRAMES = ____VisionBudget.VISION_MAX_CAPTURE_FRAMES -- 22
+local LUA_COMMAND_DEFAULT_TIMEOUT_SECONDS = 30 -- 26
+local function executeStudioLuaCommand(req) -- 35
+	local usesPreviewGame = (string.match(req.code, "%f[%a_]previewGame%f[^%w_]%s*%(")) ~= nil -- 47
+	if type(_studio_agent_tool_begin) ~= "function" or usesPreviewGame then -- 47
+		return nil -- 48
+	end -- 48
+	local onProgress = req.onProgress -- 49
+	local isCancelled = req.isCancelled -- 50
+	return __TS__New( -- 51
+		__TS__Promise, -- 51
+		function(____, resolve) -- 51
+			local requestId -- 52
+			local settled = false -- 53
+			local function finish(result) -- 54
+				if settled then -- 54
+					return -- 55
+				end -- 55
+				settled = true -- 56
+				resolve(nil, result) -- 57
+			end -- 54
+			if onProgress ~= nil then -- 54
+				onProgress(nil, { -- 59
+					state = "pending", -- 59
+					mode = "lua", -- 59
+					operationId = req.operationId, -- 59
+					stage = "player", -- 59
+					message = "Lua command pending in isolated game Player" -- 59
+				}) -- 59
+			end -- 59
+			local routine = once(function() -- 60
+				do -- 60
+					local function ____catch(e) -- 60
+						if requestId then -- 60
+							if _studio_agent_tool_cancel ~= nil then -- 60
+								_studio_agent_tool_cancel(requestId) -- 84
+							end -- 84
+							requestId = nil -- 84
+						end -- 84
+						local message = truncateCommandError(toStr(e)) -- 85
+						local ____message_9 = message -- 86
+						local ____temp_10 = (string.find(message, "timed out", nil, true) or 0) - 1 >= 0 and "timeout" or "execute" -- 86
+						local ____temp_8 -- 86
+						if (string.find(message, "canceled", nil, true) or 0) - 1 >= 0 then -- 86
+							____temp_8 = true -- 86
+						else -- 86
+							____temp_8 = nil -- 86
+						end -- 86
+						finish({ -- 86
+							success = false, -- 86
+							mode = "lua", -- 86
+							output = "", -- 86
+							message = ____message_9, -- 86
+							phase = ____temp_10, -- 86
+							interrupted = ____temp_8 -- 86
+						}) -- 86
+					end -- 86
+					local ____try, ____hasReturned = pcall(function() -- 86
+						local options = safeJsonEncode({code = req.code, timeoutSeconds = req.timeoutSeconds}) -- 62
+						if not options then -- 62
+							error("failed to encode Studio Agent Lua command") -- 63
+						end -- 63
+						requestId = _studio_agent_tool_begin( -- 64
+							"execute-lua", -- 64
+							Path(req.workDir, ".agent", "command.lua"), -- 64
+							options, -- 64
+							req.workDir -- 64
+						) -- 64
+						if onProgress ~= nil then -- 64
+							onProgress(nil, { -- 65
+								state = "running", -- 65
+								mode = "lua", -- 65
+								operationId = req.operationId, -- 65
+								stage = "player", -- 65
+								message = "Lua command running in isolated game Player" -- 65
+							}) -- 65
+						end -- 65
+						local deadline = App.runningTime + req.timeoutSeconds -- 66
+						local answer -- 67
+						while not answer do -- 67
+							if isCancelled and isCancelled(nil) then -- 67
+								error("Lua command canceled") -- 69
+							end -- 69
+							if App.runningTime >= deadline then -- 69
+								error(("Lua command timed out after " .. tostring(req.timeoutSeconds)) .. " seconds") -- 70
+							end -- 70
+							answer = _studio_agent_tool_poll and _studio_agent_tool_poll(requestId) -- 71
+							if not answer then -- 71
+								sleep() -- 72
 							end -- 72
-							if App.runningTime >= deadline then -- 72
-								error(("Lua command timed out after " .. tostring(req.timeoutSeconds)) .. " seconds") -- 73
-							end -- 73
-							answer = _studio_agent_tool_poll and _studio_agent_tool_poll(requestId) -- 74
-							if not answer then -- 74
-								sleep() -- 75
-							end -- 75
+						end -- 72
+						requestId = nil -- 74
+						if not answer.success then -- 74
+							error(answer.message or "Studio Agent Lua Player failed") -- 75
 						end -- 75
-						requestId = nil -- 77
-						if not answer.success then -- 77
-							error(answer.message or "Studio Agent Lua Player failed") -- 78
-						end -- 78
-						local decoded = safeJsonDecode(answer.resultJSON or "") -- 79
-						local value = decoded -- 80
-						if not value or type(value.success) ~= "boolean" or type(value.output) ~= "string" or value.message ~= nil and type(value.message) ~= "string" or value.phase ~= nil and value.phase ~= "compile" and value.phase ~= "execute" and value.phase ~= "timeout" and value.phase ~= "validate" then -- 80
-							error("Invalid Studio Agent Lua Player result") -- 83
-						end -- 83
-						if value.success then -- 83
-							finish({ -- 84
-								success = true, -- 84
-								mode = "lua", -- 84
-								output = truncateCommandOutput(value.output) -- 84
-							}) -- 84
-						else -- 84
-							finish({ -- 85
-								success = false, -- 85
-								mode = "lua", -- 85
-								output = truncateCommandOutput(value.output), -- 85
-								message = truncateCommandError(value.message or "Lua command failed"), -- 85
-								phase = value.phase or "execute" -- 85
-							}) -- 85
-						end -- 85
-					end) -- 85
-					if not ____try then -- 85
-						____catch(____hasReturned) -- 85
-					end -- 85
-				end -- 85
-			end) -- 63
-			Director.systemScheduler:schedule(function() -- 92
-				if settled then -- 92
-					return true -- 93
-				end -- 93
-				local ok, result = coroutine.resume(routine) -- 94
-				if not ok then -- 94
-					finish({ -- 95
-						success = false, -- 95
-						mode = "lua", -- 95
-						output = "", -- 95
-						message = truncateCommandError(toStr(result)), -- 95
-						phase = "execute" -- 95
-					}) -- 95
-					return true -- 95
-				end -- 95
-				return settled or result == true -- 96
-			end) -- 92
-		end -- 54
-	) -- 54
-end -- 38
-local function executeLuaCommand(req) -- 102
-	local code = __TS__StringTrim(req.code or "") -- 111
-	if code == "" then -- 111
-		return __TS__Promise.resolve({ -- 113
-			success = false, -- 113
-			mode = "lua", -- 113
-			output = "", -- 113
-			message = "missing code", -- 113
-			phase = "validate" -- 113
-		}) -- 113
-	end -- 113
-	local studioResult = executeStudioLuaCommand(__TS__ObjectAssign({}, req, {code = code})) -- 115
-	if studioResult then -- 115
-		return studioResult -- 116
-	end -- 116
-	local output = {} -- 117
-	local entry = require("Script.Dev.Entry") -- 118
-	local ownsEntryRuntime = false -- 119
-	local contentAccessed = false -- 120
-	local refreshTreeCalled = false -- 121
-	local entryObjectBaseline = 0 -- 122
-	local entryLuaRefBaseline = 0 -- 123
-	local persistedVisionUsage -- 124
-	local capturedBatches = 0 -- 125
-	local capturedFrames = 0 -- 126
-	local lastPreviewResult -- 127
-	local previewCleanup -- 128
-	local restorePrint -- 129
-	local function currentVisionUsage() -- 130
-		if persistedVisionUsage == nil then -- 130
-			persistedVisionUsage = getVisionTaskUsage(req.taskId) -- 131
-		end -- 131
-		return __TS__ObjectAssign({}, persistedVisionUsage, {captureBatchCount = persistedVisionUsage.captureBatchCount + capturedBatches, captureFrameCount = persistedVisionUsage.captureFrameCount + capturedFrames}) -- 132
-	end -- 130
-	local function reserveCapture(frameCount) -- 138
-		local current = currentVisionUsage() -- 139
-		if current.captureBatchCount >= VISION_MAX_CAPTURE_BATCHES or current.captureFrameCount + frameCount > VISION_MAX_CAPTURE_FRAMES then -- 139
-			return { -- 141
-				success = false, -- 142
-				message = ((("Vision capture budget exhausted: " .. tostring(current.captureBatchCount)) .. " batches and ") .. tostring(current.captureFrameCount)) .. " frames already reserved", -- 143
-				budget = getVisionBudgetState(current) -- 144
-			} -- 144
-		end -- 144
-		capturedBatches = capturedBatches + 1 -- 147
-		capturedFrames = capturedFrames + frameCount -- 148
-		return { -- 149
-			success = true, -- 149
-			budget = getVisionBudgetState(currentVisionUsage()) -- 149
-		} -- 149
-	end -- 138
-	local function acquireEntryRuntime() -- 151
-		acquireEntryLease(req.operationId, entry) -- 152
-		ownsEntryRuntime = true -- 153
-	end -- 151
-	local function stopOwnedEntry() -- 155
-		if not ownsEntryRuntime then -- 155
-			return nil -- 156
-		end -- 156
-		ownsEntryRuntime = false -- 157
-		return releaseEntryLease(req.operationId, entry) -- 158
-	end -- 155
-	local function startEntryWatchdog() -- 160
-		entryObjectBaseline = Dora.Object.count -- 161
-		entryLuaRefBaseline = Dora.Object.luaRefCount -- 162
-	end -- 160
-	local function checkEntryWatchdog() -- 164
-		if not ownsEntryRuntime then -- 164
-			return nil -- 165
-		end -- 165
-		local objectCount = Dora.Object.count -- 166
-		local luaRefCount = Dora.Object.luaRefCount -- 167
-		local objectGrowth = math.max(0, objectCount - entryObjectBaseline) -- 168
-		local luaRefGrowth = math.max(0, luaRefCount - entryLuaRefBaseline) -- 169
-		local exceededTotal = objectGrowth >= AgentConfig.AGENT_LIMITS.executeCommandMaxObjectGrowth or luaRefGrowth >= AgentConfig.AGENT_LIMITS.executeCommandMaxLuaRefGrowth -- 170
-		if not exceededTotal then -- 170
-			return nil -- 173
-		end -- 173
-		return ("Entry watchdog stopped the test and cleaned up after abnormal object growth: " .. ((("live objects +" .. tostring(objectGrowth)) .. ", Lua references +") .. tostring(luaRefGrowth)) .. ". ") .. "Use a bounded test with a strict entity limit and only a few fixed simulation steps." -- 174
-	end -- 164
-	local function normalizeEntryFile(value) -- 178
-		if not value or type(value) ~= "table" then -- 178
-			error("enterEntryAsync expects a table with an optional project-relative fileName") -- 180
-		end -- 180
-		local descriptor = value -- 182
-		local relativeFile = type(descriptor.fileName) == "string" and __TS__StringTrim(descriptor.fileName) or "" -- 183
-		if relativeFile == "" then -- 183
-			relativeFile = "init" -- 184
+						local decoded = safeJsonDecode(answer.resultJSON or "") -- 76
+						local value = decoded -- 77
+						if not value or type(value.success) ~= "boolean" or type(value.output) ~= "string" or value.message ~= nil and type(value.message) ~= "string" or value.phase ~= nil and value.phase ~= "compile" and value.phase ~= "execute" and value.phase ~= "timeout" and value.phase ~= "validate" then -- 77
+							error("Invalid Studio Agent Lua Player result") -- 80
+						end -- 80
+						if value.success then -- 80
+							finish({ -- 81
+								success = true, -- 81
+								mode = "lua", -- 81
+								output = truncateCommandOutput(value.output) -- 81
+							}) -- 81
+						else -- 81
+							finish({ -- 82
+								success = false, -- 82
+								mode = "lua", -- 82
+								output = truncateCommandOutput(value.output), -- 82
+								message = truncateCommandError(value.message or "Lua command failed"), -- 82
+								phase = value.phase or "execute" -- 82
+							}) -- 82
+						end -- 82
+					end) -- 82
+					if not ____try then -- 82
+						____catch(____hasReturned) -- 82
+					end -- 82
+				end -- 82
+			end) -- 60
+			Director.systemScheduler:schedule(function() -- 89
+				if settled then -- 89
+					return true -- 90
+				end -- 90
+				local ok, result = coroutine.resume(routine) -- 91
+				if not ok then -- 91
+					finish({ -- 92
+						success = false, -- 92
+						mode = "lua", -- 92
+						output = "", -- 92
+						message = truncateCommandError(toStr(result)), -- 92
+						phase = "execute" -- 92
+					}) -- 92
+					return true -- 92
+				end -- 92
+				return settled or result == true -- 93
+			end) -- 89
+		end -- 51
+	) -- 51
+end -- 35
+local function executeLuaCommand(req) -- 99
+	local code = __TS__StringTrim(req.code or "") -- 109
+	if code == "" then -- 109
+		return __TS__Promise.resolve({ -- 111
+			success = false, -- 111
+			mode = "lua", -- 111
+			output = "", -- 111
+			message = "missing code", -- 111
+			phase = "validate" -- 111
+		}) -- 111
+	end -- 111
+	local studioResult = executeStudioLuaCommand(__TS__ObjectAssign({}, req, {code = code})) -- 113
+	if studioResult then -- 113
+		return studioResult -- 114
+	end -- 114
+	local output = {} -- 115
+	local entry = require("Script.Dev.Entry") -- 116
+	local ownsEntryRuntime = false -- 117
+	local contentAccessed = false -- 118
+	local refreshTreeCalled = false -- 119
+	local entryObjectBaseline = 0 -- 120
+	local entryLuaRefBaseline = 0 -- 121
+	local persistedVisionUsage -- 122
+	local capturedBatches = 0 -- 123
+	local capturedFrames = 0 -- 124
+	local lastPreviewResult -- 125
+	local previewCleanup -- 126
+	local restorePrint -- 127
+	local function currentVisionUsage() -- 128
+		if persistedVisionUsage == nil then -- 128
+			persistedVisionUsage = getVisionTaskUsage(req.taskId) -- 129
+		end -- 129
+		return __TS__ObjectAssign({}, persistedVisionUsage, {captureBatchCount = persistedVisionUsage.captureBatchCount + capturedBatches, captureFrameCount = persistedVisionUsage.captureFrameCount + capturedFrames}) -- 130
+	end -- 128
+	local function reserveCapture(frameCount) -- 136
+		local current = currentVisionUsage() -- 137
+		if current.captureBatchCount >= VISION_MAX_CAPTURE_BATCHES or current.captureFrameCount + frameCount > VISION_MAX_CAPTURE_FRAMES then -- 137
+			return { -- 139
+				success = false, -- 140
+				message = ((("Vision capture budget exhausted: " .. tostring(current.captureBatchCount)) .. " batches and ") .. tostring(current.captureFrameCount)) .. " frames already reserved", -- 141
+				budget = getVisionBudgetState(current) -- 142
+			} -- 142
+		end -- 142
+		capturedBatches = capturedBatches + 1 -- 145
+		capturedFrames = capturedFrames + frameCount -- 146
+		return { -- 147
+			success = true, -- 147
+			budget = getVisionBudgetState(currentVisionUsage()) -- 147
+		} -- 147
+	end -- 136
+	local function acquireEntryRuntime() -- 149
+		acquireEntryLease(req.operationId, entry) -- 150
+		ownsEntryRuntime = true -- 151
+	end -- 149
+	local function stopOwnedEntry() -- 153
+		if not ownsEntryRuntime then -- 153
+			return nil -- 154
+		end -- 154
+		ownsEntryRuntime = false -- 155
+		return releaseEntryLease(req.operationId, entry) -- 156
+	end -- 153
+	local function startEntryWatchdog() -- 158
+		entryObjectBaseline = Dora.Object.count -- 159
+		entryLuaRefBaseline = Dora.Object.luaRefCount -- 160
+	end -- 158
+	local function checkEntryWatchdog() -- 162
+		if not ownsEntryRuntime then -- 162
+			return nil -- 163
+		end -- 163
+		local objectCount = Dora.Object.count -- 164
+		local luaRefCount = Dora.Object.luaRefCount -- 165
+		local objectGrowth = math.max(0, objectCount - entryObjectBaseline) -- 166
+		local luaRefGrowth = math.max(0, luaRefCount - entryLuaRefBaseline) -- 167
+		local exceededTotal = objectGrowth >= AgentConfig.AGENT_LIMITS.executeCommandMaxObjectGrowth or luaRefGrowth >= AgentConfig.AGENT_LIMITS.executeCommandMaxLuaRefGrowth -- 168
+		if not exceededTotal then -- 168
+			return nil -- 171
+		end -- 171
+		return ("Entry watchdog stopped the test and cleaned up after abnormal object growth: " .. ((("live objects +" .. tostring(objectGrowth)) .. ", Lua references +") .. tostring(luaRefGrowth)) .. ". ") .. "Use a bounded test with a strict entity limit and only a few fixed simulation steps." -- 172
+	end -- 162
+	local function normalizeEntryFile(value) -- 176
+		if not value or type(value) ~= "table" then -- 176
+			error("enterEntryAsync expects a table with an optional project-relative fileName") -- 178
+		end -- 178
+		local descriptor = value -- 180
+		local relativeFile = type(descriptor.fileName) == "string" and __TS__StringTrim(descriptor.fileName) or "" -- 181
+		if relativeFile == "" then -- 181
+			relativeFile = "init" -- 182
+		end -- 182
+		if not isValidWorkspacePath(relativeFile) then -- 182
+			error("enterEntryAsync fileName must be a project-relative path without '..'") -- 184
 		end -- 184
-		if not isValidWorkspacePath(relativeFile) then -- 184
-			error("enterEntryAsync fileName must be a project-relative path without '..'") -- 186
-		end -- 186
-		local fileName = Path(req.workDir, relativeFile) -- 188
-		local ext = Path:getExt(fileName) -- 189
-		if ext ~= "" then -- 189
-			fileName = Path:replaceExt(fileName, "") -- 190
-		end -- 190
-		local luaFile = Path:replaceExt(fileName, "lua") -- 191
-		if not Content:exist(luaFile) then -- 191
-			error("Agent test entry was not built: " .. luaFile) -- 193
-		end -- 193
-		local requestedName = type(descriptor.entryName) == "string" and __TS__StringTrim(descriptor.entryName) or "" -- 195
-		return { -- 196
-			fileName = fileName, -- 197
-			entryName = requestedName ~= "" and requestedName or Path:getName(fileName) -- 198
-		} -- 198
-	end -- 178
-	local function capturePrint(...) -- 201
-		local values = {...} -- 201
-		local parts = {} -- 202
-		do -- 202
-			local i = 0 -- 203
-			while i < #values do -- 203
-				parts[#parts + 1] = tostring(values[i + 1]) -- 204
-				i = i + 1 -- 203
-			end -- 203
-		end -- 203
-		output[#output + 1] = table.concat(parts, "\t") -- 206
-	end -- 201
-	local function refreshTree(path) -- 208
-		refreshTreeCalled = true -- 209
-		if path == nil then -- 209
-			return refreshWorkspaceTree(req.workDir) -- 211
-		end -- 211
-		if type(path) ~= "string" then -- 211
-			error("refreshTree expects a project-relative file path string or no argument") -- 214
-		end -- 214
-		return refreshWorkspaceTree(req.workDir, path) -- 216
-	end -- 208
-	local function resolveLuaContentPath(first, second) -- 218
-		local value = type(second) == "string" and second or first -- 219
-		if type(value) ~= "string" then -- 219
-			error("Content path must be a project-relative string") -- 221
-		end -- 221
-		local fullPath = resolveWorkspaceFilePath(req.workDir, value) -- 223
-		if not fullPath then -- 223
-			error("Content path must stay inside projectDir") -- 225
-		end -- 225
-		return fullPath -- 227
-	end -- 218
-	local scopedContent = { -- 229
-		exist = function(first, second) return Content:exist(resolveLuaContentPath(first, second)) end, -- 230
-		isdir = function(first, second) return Content:isdir(resolveLuaContentPath(first, second)) end, -- 231
-		getAttr = function(first, second) return Content:getAttr(resolveLuaContentPath(first, second)) end, -- 232
-		load = function(first, second) -- 233
-			local fullPath = resolveLuaContentPath(first, second) -- 234
-			local inspected = inspectReadableFile(fullPath) -- 235
-			if not inspected.success then -- 235
-				error(inspected.message or "file is not readable") -- 236
-			end -- 236
-			return Content:load(fullPath) -- 237
-		end -- 233
-	} -- 233
-	local blockedDoraGlobals = {Content = true, DB = true, HttpClient = true, HttpServer = true} -- 240
-	local env = setmetatable( -- 246
-		{ -- 246
-			projectDir = req.workDir, -- 247
-			previewGame = createPreviewGameInjection( -- 248
-				{ -- 248
-					workDir = req.workDir, -- 249
-					operationId = req.operationId, -- 250
-					isCancelled = req.isCancelled, -- 251
-					print = function(line) return capturePrint(line) end, -- 252
-					reserveCapture = reserveCapture, -- 253
-					registerCleanup = function(cleanup) -- 254
-						previewCleanup = cleanup -- 254
-					end, -- 254
-					onResult = function(result) -- 255
-						lastPreviewResult = result -- 256
-					end -- 255
-				}, -- 255
-				entry -- 258
-			), -- 258
-			requireProjectModule = function(moduleNameValue, reloadModulesValue) -- 259
-				if type(moduleNameValue) ~= "string" then -- 259
-					error("requireProjectModule expects a project module name string") -- 261
-				end -- 261
-				local moduleName = __TS__StringTrim(moduleNameValue) -- 263
-				if moduleName == "" or (string.find(moduleName, "..", nil, true) or 0) - 1 >= 0 or (string.find(moduleName, "/", nil, true) or 0) - 1 == 0 then -- 263
-					error("requireProjectModule expects a non-empty project module name without '..' or an absolute path") -- 265
-				end -- 265
-				local reloadModules = {moduleName} -- 267
-				if reloadModulesValue ~= nil then -- 267
-					if not __TS__ArrayIsArray(reloadModulesValue) then -- 267
-						error("requireProjectModule reloadModules must be an array of module names") -- 270
+		local fileName = Path(req.workDir, relativeFile) -- 186
+		local ext = Path:getExt(fileName) -- 187
+		if ext ~= "" then -- 187
+			fileName = Path:replaceExt(fileName, "") -- 188
+		end -- 188
+		local luaFile = Path:replaceExt(fileName, "lua") -- 189
+		if not Content:exist(luaFile) then -- 189
+			error("Agent test entry was not built: " .. luaFile) -- 191
+		end -- 191
+		local requestedName = type(descriptor.entryName) == "string" and __TS__StringTrim(descriptor.entryName) or "" -- 193
+		return { -- 194
+			fileName = fileName, -- 195
+			entryName = requestedName ~= "" and requestedName or Path:getName(fileName) -- 196
+		} -- 196
+	end -- 176
+	local function capturePrint(...) -- 199
+		local values = {...} -- 199
+		local parts = {} -- 200
+		do -- 200
+			local i = 0 -- 201
+			while i < #values do -- 201
+				parts[#parts + 1] = tostring(values[i + 1]) -- 202
+				i = i + 1 -- 201
+			end -- 201
+		end -- 201
+		output[#output + 1] = table.concat(parts, "\t") -- 204
+	end -- 199
+	local function refreshTree(path) -- 206
+		refreshTreeCalled = true -- 207
+		if path == nil then -- 207
+			return refreshWorkspaceTree(req.workDir) -- 209
+		end -- 209
+		if type(path) ~= "string" then -- 209
+			error("refreshTree expects a project-relative file path string or no argument") -- 212
+		end -- 212
+		return refreshWorkspaceTree(req.workDir, path) -- 214
+	end -- 206
+	local blockedDoraGlobals = {DB = true, HttpClient = true, HttpServer = true} -- 216
+	local scopedContent = createCommandContent(req.workDir, req.docLanguage) -- 221
+	local env = setmetatable( -- 222
+		{ -- 222
+			projectDir = req.workDir, -- 223
+			previewGame = createPreviewGameInjection( -- 224
+				{ -- 224
+					workDir = req.workDir, -- 225
+					operationId = req.operationId, -- 226
+					isCancelled = req.isCancelled, -- 227
+					print = function(line) return capturePrint(line) end, -- 228
+					reserveCapture = reserveCapture, -- 229
+					registerCleanup = function(cleanup) -- 230
+						previewCleanup = cleanup -- 230
+					end, -- 230
+					onResult = function(result) -- 231
+						lastPreviewResult = result -- 232
+					end -- 231
+				}, -- 231
+				entry -- 234
+			), -- 234
+			requireProjectModule = function(moduleNameValue, reloadModulesValue) -- 235
+				if type(moduleNameValue) ~= "string" then -- 235
+					error("requireProjectModule expects a project module name string") -- 237
+				end -- 237
+				local moduleName = __TS__StringTrim(moduleNameValue) -- 239
+				if moduleName == "" or (string.find(moduleName, "..", nil, true) or 0) - 1 >= 0 or (string.find(moduleName, "/", nil, true) or 0) - 1 == 0 then -- 239
+					error("requireProjectModule expects a non-empty project module name without '..' or an absolute path") -- 241
+				end -- 241
+				local reloadModules = {moduleName} -- 243
+				if reloadModulesValue ~= nil then -- 243
+					if not __TS__ArrayIsArray(reloadModulesValue) then -- 243
+						error("requireProjectModule reloadModules must be an array of module names") -- 246
+					end -- 246
+					local items = reloadModulesValue -- 248
+					do -- 248
+						local i = 0 -- 249
+						while i < #items do -- 249
+							local item = items[i + 1] -- 250
+							if type(item) ~= "string" or __TS__StringTrim(item) == "" or (string.find(item, "..", nil, true) or 0) - 1 >= 0 then -- 250
+								error("requireProjectModule reloadModules contains an invalid module name") -- 252
+							end -- 252
+							if __TS__ArrayIndexOf(reloadModules, item) < 0 then -- 252
+								reloadModules[#reloadModules + 1] = item -- 254
+							end -- 254
+							i = i + 1 -- 249
+						end -- 249
+					end -- 249
+				end -- 249
+				local luaPackage = _G.package -- 257
+				local previousPath = luaPackage.path -- 261
+				local previousSearchPaths = Content.searchPaths -- 262
+				local scopedSearchPaths = {req.workDir} -- 263
+				do -- 263
+					local i = 0 -- 264
+					while i < #previousSearchPaths do -- 264
+						local searchPath = previousSearchPaths[i + 1] -- 265
+						if searchPath ~= req.workDir then -- 265
+							scopedSearchPaths[#scopedSearchPaths + 1] = searchPath -- 266
+						end -- 266
+						i = i + 1 -- 264
+					end -- 264
+				end -- 264
+				luaPackage.path = (((Path(req.workDir, "?.lua") .. ";") .. Path(req.workDir, "?", "init.lua")) .. ";") .. previousPath -- 268
+				Content.searchPaths = scopedSearchPaths -- 269
+				do -- 269
+					local ____try, ____hasReturned, ____returnValue = pcall(function() -- 269
+						do -- 269
+							local i = 0 -- 271
+							while i < #reloadModules do -- 271
+								local reloadName = reloadModules[i + 1] -- 272
+								luaPackage.loaded[reloadName] = nil -- 273
+								luaPackage.loaded[table.concat( -- 274
+									__TS__StringSplit(reloadName, "/"), -- 274
+									"." -- 274
+								)] = nil -- 274
+								luaPackage.loaded[table.concat( -- 275
+									__TS__StringSplit(reloadName, "."), -- 275
+									"/" -- 275
+								)] = nil -- 275
+								i = i + 1 -- 271
+							end -- 271
+						end -- 271
+						return true, require(table.concat( -- 277
+							__TS__StringSplit(moduleName, "/"), -- 277
+							"." -- 277
+						)) -- 277
+					end) -- 277
+					do -- 277
+						Content.searchPaths = previousSearchPaths -- 279
+						luaPackage.path = previousPath -- 280
+					end -- 280
+					if not ____try then -- 280
+						error(____hasReturned, 0) -- 280
+					end -- 280
+					if ____try and ____hasReturned then -- 280
+						return ____returnValue -- 270
 					end -- 270
-					local items = reloadModulesValue -- 272
-					do -- 272
-						local i = 0 -- 273
-						while i < #items do -- 273
-							local item = items[i + 1] -- 274
-							if type(item) ~= "string" or __TS__StringTrim(item) == "" or (string.find(item, "..", nil, true) or 0) - 1 >= 0 then -- 274
-								error("requireProjectModule reloadModules contains an invalid module name") -- 276
-							end -- 276
-							if __TS__ArrayIndexOf(reloadModules, item) < 0 then -- 276
-								reloadModules[#reloadModules + 1] = item -- 278
-							end -- 278
-							i = i + 1 -- 273
-						end -- 273
-					end -- 273
-				end -- 273
-				local luaPackage = _G.package -- 281
-				local previousPath = luaPackage.path -- 285
-				local previousSearchPaths = Content.searchPaths -- 286
-				local scopedSearchPaths = {req.workDir} -- 287
-				do -- 287
-					local i = 0 -- 288
-					while i < #previousSearchPaths do -- 288
-						local searchPath = previousSearchPaths[i + 1] -- 289
-						if searchPath ~= req.workDir then -- 289
-							scopedSearchPaths[#scopedSearchPaths + 1] = searchPath -- 290
-						end -- 290
-						i = i + 1 -- 288
-					end -- 288
-				end -- 288
-				luaPackage.path = (((Path(req.workDir, "?.lua") .. ";") .. Path(req.workDir, "?", "init.lua")) .. ";") .. previousPath -- 292
-				Content.searchPaths = scopedSearchPaths -- 293
-				do -- 293
-					local ____try, ____hasReturned, ____returnValue = pcall(function() -- 293
-						do -- 293
-							local i = 0 -- 295
-							while i < #reloadModules do -- 295
-								local reloadName = reloadModules[i + 1] -- 296
-								luaPackage.loaded[reloadName] = nil -- 297
-								luaPackage.loaded[table.concat( -- 298
-									__TS__StringSplit(reloadName, "/"), -- 298
-									"." -- 298
-								)] = nil -- 298
-								luaPackage.loaded[table.concat( -- 299
-									__TS__StringSplit(reloadName, "."), -- 299
-									"/" -- 299
-								)] = nil -- 299
-								i = i + 1 -- 295
-							end -- 295
-						end -- 295
-						return true, require(table.concat( -- 301
-							__TS__StringSplit(moduleName, "/"), -- 301
-							"." -- 301
-						)) -- 301
-					end) -- 301
-					do -- 301
-						Content.searchPaths = previousSearchPaths -- 303
-						luaPackage.path = previousPath -- 304
-					end -- 304
-					if not ____try then -- 304
-						error(____hasReturned, 0) -- 304
-					end -- 304
-					if ____try and ____hasReturned then -- 304
-						return ____returnValue -- 294
-					end -- 294
-				end -- 294
-			end, -- 259
-			print = capturePrint, -- 307
-			getEntryStatus = function() return entry.getCurrentEntryStatus() end, -- 308
-			enterEntryAsync = function(value) -- 309
-				local normalized = normalizeEntryFile(value) -- 310
-				acquireEntryRuntime() -- 311
-				entry.allClear() -- 312
-				startEntryWatchdog() -- 313
-				recordEntryLeaseRun(req.operationId, entry) -- 314
-				local success, message = entry.enterEntryAsync({ -- 315
-					entryName = normalized.entryName, -- 316
-					fileName = normalized.fileName, -- 317
-					workDir = req.workDir, -- 318
-					projectRoot = req.workDir, -- 319
-					runKind = "agent_test" -- 320
-				}) -- 320
-				return success, message -- 322
-			end, -- 309
-			stopEntry = function() -- 324
-				if not ownsEntryRuntime or not ownsEntryLease(req.operationId, entry) then -- 324
-					return false -- 325
-				end -- 325
-				return entry.stop() -- 326
-			end, -- 324
-			reportProgress = function(value, callbackValue) -- 328
-				local ____callbackValue_11 = callbackValue -- 329
-				if ____callbackValue_11 == nil then -- 329
-					____callbackValue_11 = value -- 329
-				end -- 329
-				local actualValue = ____callbackValue_11 -- 329
-				if not req.onProgress or not actualValue or type(actualValue) ~= "table" then -- 329
-					return -- 330
-				end -- 330
-				local progress = actualValue -- 331
-				local amount = type(progress.progress) == "number" and math.min( -- 332
-					1, -- 333
-					math.max(0, progress.progress) -- 333
-				) or nil -- 333
-				req:onProgress({ -- 335
-					state = "running", -- 336
-					mode = "lua", -- 337
-					operationId = req.operationId, -- 338
-					progress = amount, -- 339
-					stage = type(progress.stage) == "string" and progress.stage or "lua", -- 340
-					message = type(progress.message) == "string" and progress.message or "Lua command running" -- 341
-				}) -- 341
-			end -- 328
-		}, -- 328
-		{__index = function(_table, key) -- 344
-			if key == "Content" then -- 344
-				contentAccessed = true -- 347
-				return scopedContent -- 348
-			end -- 348
-			if key == "refreshTree" then -- 348
-				return refreshTree -- 351
-			end -- 351
-			local name = tostring(key) -- 353
-			if blockedDoraGlobals[name] then -- 353
-				return nil -- 354
-			end -- 354
-			return Dora[name] -- 355
-		end} -- 345
-	) -- 345
-	local fn, compileErr = load(code, "=(agent_command)", "t", env) -- 358
-	if not fn then -- 358
-		return __TS__Promise.resolve({ -- 360
-			success = false, -- 361
-			mode = "lua", -- 362
-			output = truncateCommandOutput(table.concat(output, "\n")), -- 363
-			message = truncateCommandError(toStr(compileErr)), -- 364
-			phase = "compile" -- 365
-		}) -- 365
-	end -- 365
-	return __TS__New( -- 368
-		__TS__Promise, -- 368
-		function(____, resolve) -- 368
-			local settled = false -- 369
-			local commandRoutine -- 370
-			local startedAt = App.runningTime -- 371
-			local onProgress = req.onProgress -- 372
-			local isCancelled = req.isCancelled -- 373
-			local function finish(result) -- 374
-				if settled then -- 374
-					return -- 375
-				end -- 375
-				settled = true -- 376
-				local cleanupError -- 377
-				local cleanup = previewCleanup -- 378
-				previewCleanup = nil -- 379
-				do -- 379
-					local function ____catch(e) -- 379
-						cleanupError = "failed to release Agent preview: " .. tostring(e) -- 381
-					end -- 381
-					local ____try, ____hasReturned = pcall(function() -- 381
-						if cleanup ~= nil then -- 381
-							cleanup() -- 380
-						end -- 380
-					end) -- 380
-					if not ____try then -- 380
-						____catch(____hasReturned) -- 380
-					end -- 380
-				end -- 380
-				if restorePrint ~= nil then -- 380
-					restorePrint() -- 382
-				end -- 382
-				restorePrint = nil -- 383
-				if not result.success and (result.interrupted == true or result.phase == "timeout") and (not entry.getCurrentEntryStatus().running or ownsEntryLease(req.operationId, entry)) then -- 383
-					do -- 383
-						local function ____catch(e) -- 383
-							cleanupError = "failed to clear interrupted Lua command runtime: " .. tostring(e) -- 389
-						end -- 389
-						local ____try, ____hasReturned = pcall(function() -- 389
-							entry.allClear() -- 387
-						end) -- 387
-						if not ____try then -- 387
-							____catch(____hasReturned) -- 387
-						end -- 387
-					end -- 387
-				end -- 387
-				local entryCleanupError = stopOwnedEntry() -- 392
-				if cleanupError == nil then -- 392
-					cleanupError = entryCleanupError -- 393
-				end -- 393
-				if contentAccessed and not refreshTreeCalled and not refreshWorkspaceTree(req.workDir) then -- 393
-					Log("Warn", "[execute_command] failed to refresh Web IDE tree after Lua command workDir=" .. req.workDir) -- 395
-				end -- 395
-				local ____lastPreviewResult_21 -- 397
-				if lastPreviewResult then -- 397
-					local ____lastPreviewResult_success_18 = lastPreviewResult.success -- 398
-					local ____lastPreviewResult_message_19 = lastPreviewResult.message -- 399
-					local ____lastPreviewResult_files_20 = lastPreviewResult.files -- 400
-					local ____opt_16 = lastPreviewResult.frames -- 400
-					____lastPreviewResult_21 = {success = ____lastPreviewResult_success_18, message = ____lastPreviewResult_message_19, files = ____lastPreviewResult_files_20, frameCount = ____opt_16 and #____opt_16} -- 397
-				else -- 397
-					____lastPreviewResult_21 = nil -- 402
-				end -- 402
-				local previewGame = ____lastPreviewResult_21 -- 397
-				local visionFields = __TS__ObjectAssign( -- 403
-					{}, -- 403
-					previewGame and ({previewGame = previewGame}) or ({}), -- 404
-					capturedBatches > 0 and ({ -- 405
-						visionCapture = {batchCount = capturedBatches, frameCount = capturedFrames}, -- 406
-						visionBudget = getVisionBudgetState(currentVisionUsage()) -- 407
-					}) or ({}) -- 407
-				) -- 407
-				if not result.success and cleanupError ~= nil then -- 407
-					result.cleanupError = cleanupError -- 411
-				elseif result.success and cleanupError ~= nil then -- 411
-					resolve( -- 413
-						nil, -- 413
-						__TS__ObjectAssign({ -- 413
-							success = false, -- 414
-							mode = "lua", -- 415
-							output = result.output, -- 416
-							message = cleanupError, -- 417
-							phase = "execute", -- 418
-							cleanupError = cleanupError -- 419
-						}, visionFields) -- 419
-					) -- 419
-					return -- 422
-				end -- 422
-				if result.success and lastPreviewResult and not lastPreviewResult.success then -- 422
-					resolve( -- 425
-						nil, -- 425
-						__TS__ObjectAssign({ -- 425
-							success = false, -- 426
-							mode = "lua", -- 427
-							output = result.output, -- 428
-							message = "previewGame failed: " .. (lastPreviewResult.message or "unknown error"), -- 429
-							phase = "execute" -- 430
-						}, visionFields) -- 430
-					) -- 430
-					return -- 433
+				end -- 270
+			end, -- 235
+			print = capturePrint, -- 283
+			getEntryStatus = function() return entry.getCurrentEntryStatus() end, -- 284
+			enterEntryAsync = function(value) -- 285
+				local normalized = normalizeEntryFile(value) -- 286
+				acquireEntryRuntime() -- 287
+				entry.allClear() -- 288
+				startEntryWatchdog() -- 289
+				recordEntryLeaseRun(req.operationId, entry) -- 290
+				local success, message = entry.enterEntryAsync({ -- 291
+					entryName = normalized.entryName, -- 292
+					fileName = normalized.fileName, -- 293
+					workDir = req.workDir, -- 294
+					projectRoot = req.workDir, -- 295
+					runKind = "agent_test" -- 296
+				}) -- 296
+				return success, message -- 298
+			end, -- 285
+			stopEntry = function() -- 300
+				if not ownsEntryRuntime or not ownsEntryLease(req.operationId, entry) then -- 300
+					return false -- 301
+				end -- 301
+				return entry.stop() -- 302
+			end, -- 300
+			reportProgress = function(value, callbackValue) -- 304
+				local ____callbackValue_11 = callbackValue -- 305
+				if ____callbackValue_11 == nil then -- 305
+					____callbackValue_11 = value -- 305
+				end -- 305
+				local actualValue = ____callbackValue_11 -- 305
+				if not req.onProgress or not actualValue or type(actualValue) ~= "table" then -- 305
+					return -- 306
+				end -- 306
+				local progress = actualValue -- 307
+				local amount = type(progress.progress) == "number" and math.min( -- 308
+					1, -- 309
+					math.max(0, progress.progress) -- 309
+				) or nil -- 309
+				req:onProgress({ -- 311
+					state = "running", -- 312
+					mode = "lua", -- 313
+					operationId = req.operationId, -- 314
+					progress = amount, -- 315
+					stage = type(progress.stage) == "string" and progress.stage or "lua", -- 316
+					message = type(progress.message) == "string" and progress.message or "Lua command running" -- 317
+				}) -- 317
+			end -- 304
+		}, -- 304
+		{__index = function(_table, key) -- 320
+			if key == "Content" then -- 320
+				contentAccessed = true -- 323
+				return scopedContent -- 324
+			end -- 324
+			if key == "refreshTree" then -- 324
+				return refreshTree -- 327
+			end -- 327
+			local name = tostring(key) -- 329
+			if blockedDoraGlobals[name] then -- 329
+				return nil -- 330
+			end -- 330
+			return Dora[name] -- 331
+		end} -- 321
+	) -- 321
+	local fn, compileErr = load(code, "=(agent_command)", "t", env) -- 334
+	if not fn then -- 334
+		return __TS__Promise.resolve({ -- 336
+			success = false, -- 337
+			mode = "lua", -- 338
+			output = truncateCommandOutput(table.concat(output, "\n")), -- 339
+			message = truncateCommandError(toStr(compileErr)), -- 340
+			phase = "compile" -- 341
+		}) -- 341
+	end -- 341
+	return __TS__New( -- 344
+		__TS__Promise, -- 344
+		function(____, resolve) -- 344
+			local settled = false -- 345
+			local commandRoutine -- 346
+			local startedAt = App.runningTime -- 347
+			local onProgress = req.onProgress -- 348
+			local isCancelled = req.isCancelled -- 349
+			local function finish(result) -- 350
+				if settled then -- 350
+					return -- 351
+				end -- 351
+				settled = true -- 352
+				local cleanupError -- 353
+				local cleanup = previewCleanup -- 354
+				previewCleanup = nil -- 355
+				do -- 355
+					local function ____catch(e) -- 355
+						cleanupError = "failed to release Agent preview: " .. tostring(e) -- 357
+					end -- 357
+					local ____try, ____hasReturned = pcall(function() -- 357
+						if cleanup ~= nil then -- 357
+							cleanup() -- 356
+						end -- 356
+					end) -- 356
+					if not ____try then -- 356
+						____catch(____hasReturned) -- 356
+					end -- 356
+				end -- 356
+				if restorePrint ~= nil then -- 356
+					restorePrint() -- 358
+				end -- 358
+				restorePrint = nil -- 359
+				if not result.success and (result.interrupted == true or result.phase == "timeout") and (not entry.getCurrentEntryStatus().running or ownsEntryLease(req.operationId, entry)) then -- 359
+					do -- 359
+						local function ____catch(e) -- 359
+							cleanupError = "failed to clear interrupted Lua command runtime: " .. tostring(e) -- 365
+						end -- 365
+						local ____try, ____hasReturned = pcall(function() -- 365
+							entry.allClear() -- 363
+						end) -- 363
+						if not ____try then -- 363
+							____catch(____hasReturned) -- 363
+						end -- 363
+					end -- 363
+				end -- 363
+				local entryCleanupError = stopOwnedEntry() -- 368
+				if cleanupError == nil then -- 368
+					cleanupError = entryCleanupError -- 369
+				end -- 369
+				if contentAccessed and not refreshTreeCalled and not refreshWorkspaceTree(req.workDir) then -- 369
+					Log("Warn", "[execute_command] failed to refresh Web IDE tree after Lua command workDir=" .. req.workDir) -- 371
+				end -- 371
+				local ____lastPreviewResult_21 -- 373
+				if lastPreviewResult then -- 373
+					local ____lastPreviewResult_success_18 = lastPreviewResult.success -- 374
+					local ____lastPreviewResult_message_19 = lastPreviewResult.message -- 375
+					local ____lastPreviewResult_files_20 = lastPreviewResult.files -- 376
+					local ____opt_16 = lastPreviewResult.frames -- 376
+					____lastPreviewResult_21 = {success = ____lastPreviewResult_success_18, message = ____lastPreviewResult_message_19, files = ____lastPreviewResult_files_20, frameCount = ____opt_16 and #____opt_16} -- 373
+				else -- 373
+					____lastPreviewResult_21 = nil -- 378
+				end -- 378
+				local previewGame = ____lastPreviewResult_21 -- 373
+				local visionFields = __TS__ObjectAssign( -- 379
+					{}, -- 379
+					previewGame and ({previewGame = previewGame}) or ({}), -- 380
+					capturedBatches > 0 and ({ -- 381
+						visionCapture = {batchCount = capturedBatches, frameCount = capturedFrames}, -- 382
+						visionBudget = getVisionBudgetState(currentVisionUsage()) -- 383
+					}) or ({}) -- 383
+				) -- 383
+				if not result.success and cleanupError ~= nil then -- 383
+					result.cleanupError = cleanupError -- 387
+				elseif result.success and cleanupError ~= nil then -- 387
+					resolve( -- 389
+						nil, -- 389
+						__TS__ObjectAssign({ -- 389
+							success = false, -- 390
+							mode = "lua", -- 391
+							output = result.output, -- 392
+							message = cleanupError, -- 393
+							phase = "execute", -- 394
+							cleanupError = cleanupError -- 395
+						}, visionFields) -- 395
+					) -- 395
+					return -- 398
+				end -- 398
+				if result.success and lastPreviewResult and not lastPreviewResult.success then -- 398
+					resolve( -- 401
+						nil, -- 401
+						__TS__ObjectAssign({ -- 401
+							success = false, -- 402
+							mode = "lua", -- 403
+							output = result.output, -- 404
+							message = "previewGame failed: " .. (lastPreviewResult.message or "unknown error"), -- 405
+							phase = "execute" -- 406
+						}, visionFields) -- 406
+					) -- 406
+					return -- 409
+				end -- 409
+				resolve( -- 411
+					nil, -- 411
+					__TS__ObjectAssign({}, result, visionFields) -- 411
+				) -- 411
+			end -- 350
+			if onProgress then -- 350
+				onProgress(nil, { -- 417
+					state = "pending", -- 418
+					mode = "lua", -- 419
+					operationId = req.operationId, -- 420
+					stage = "lua", -- 421
+					message = "Lua command pending" -- 422
+				}) -- 422
+			end -- 422
+			commandRoutine = once(function() -- 425
+				if settled then -- 425
+					return -- 426
+				end -- 426
+				if onProgress then -- 426
+					onProgress(nil, { -- 428
+						state = "running", -- 429
+						mode = "lua", -- 430
+						operationId = req.operationId, -- 431
+						stage = "lua", -- 432
+						message = "Lua command running" -- 433
+					}) -- 433
 				end -- 433
-				resolve( -- 435
-					nil, -- 435
-					__TS__ObjectAssign({}, result, visionFields) -- 435
-				) -- 435
-			end -- 374
-			if onProgress then -- 374
-				onProgress(nil, { -- 441
-					state = "pending", -- 442
-					mode = "lua", -- 443
-					operationId = req.operationId, -- 444
-					stage = "lua", -- 445
-					message = "Lua command pending" -- 446
-				}) -- 446
-			end -- 446
-			commandRoutine = once(function() -- 449
-				if settled then -- 449
-					return -- 450
-				end -- 450
-				if onProgress then -- 450
-					onProgress(nil, { -- 452
-						state = "running", -- 453
-						mode = "lua", -- 454
-						operationId = req.operationId, -- 455
-						stage = "lua", -- 456
-						message = "Lua command running" -- 457
-					}) -- 457
+				local previousGlobalPrint = _G.print -- 436
+				restorePrint = function() -- 437
+					if _G.print == capturePrint then -- 437
+						_G.print = previousGlobalPrint -- 437
+					end -- 437
+				end -- 437
+				local previousHook, previousHookMask, previousHookCount = debug.gethook() -- 438
+				local frameTimedOut = false -- 439
+				local watchdogMessage -- 439
+				_G.print = capturePrint -- 440
+				debug.sethook( -- 441
+					function() -- 441
+						if watchdogMessage == nil then -- 441
+							watchdogMessage = checkEntryWatchdog() -- 442
+						end -- 442
+						if watchdogMessage ~= nil then -- 442
+							error(watchdogMessage) -- 443
+						end -- 443
+						if App.elapsedTime >= AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds then -- 443
+							frameTimedOut = true -- 445
+							error(("Lua command exceeded " .. tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)) .. " seconds in one game frame") -- 446
+						end -- 446
+					end, -- 441
+					"", -- 448
+					AgentConfig.AGENT_LIMITS.executeCommandHookInstructionCount -- 448
+				) -- 448
+				local ok, runtimeErr = pcall(fn) -- 449
+				if previousHook ~= nil and previousHookMask ~= nil and previousHookCount ~= nil then -- 449
+					debug.sethook(previousHook, previousHookMask, previousHookCount) -- 451
+				else -- 451
+					debug.sethook() -- 457
 				end -- 457
-				local previousGlobalPrint = _G.print -- 460
-				restorePrint = function() -- 461
-					if _G.print == capturePrint then -- 461
-						_G.print = previousGlobalPrint -- 461
-					end -- 461
-				end -- 461
-				local previousHook, previousHookMask, previousHookCount = debug.gethook() -- 462
-				local frameTimedOut = false -- 463
-				local watchdogMessage -- 463
-				_G.print = capturePrint -- 464
-				debug.sethook( -- 465
-					function() -- 465
-						if watchdogMessage == nil then -- 465
-							watchdogMessage = checkEntryWatchdog() -- 466
-						end -- 466
-						if watchdogMessage ~= nil then -- 466
-							error(watchdogMessage) -- 467
-						end -- 467
-						if App.elapsedTime >= AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds then -- 467
-							frameTimedOut = true -- 469
-							error(("Lua command exceeded " .. tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)) .. " seconds in one game frame") -- 470
-						end -- 470
-					end, -- 465
-					"", -- 472
-					AgentConfig.AGENT_LIMITS.executeCommandHookInstructionCount -- 472
-				) -- 472
-				local ok, runtimeErr = pcall(fn) -- 473
-				if previousHook ~= nil and previousHookMask ~= nil and previousHookCount ~= nil then -- 473
-					debug.sethook(previousHook, previousHookMask, previousHookCount) -- 475
-				else -- 475
-					debug.sethook() -- 481
-				end -- 481
-				_G.print = previousGlobalPrint -- 483
-				if not ok then -- 483
-					local ____truncateCommandOutput_result_23 = truncateCommandOutput(table.concat(output, "\n")) -- 488
-					local ____temp_24 = watchdogMessage or (frameTimedOut and ("Lua command exceeded " .. tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)) .. " seconds in one game frame" or truncateCommandError(toStr(runtimeErr))) -- 489
-					local ____temp_25 = frameTimedOut and "timeout" or "execute" -- 490
-					local ____temp_22 -- 491
-					if watchdogMessage ~= nil or frameTimedOut then -- 491
-						____temp_22 = true -- 491
-					else -- 491
-						____temp_22 = nil -- 491
-					end -- 491
-					finish({ -- 485
-						success = false, -- 486
-						mode = "lua", -- 487
-						output = ____truncateCommandOutput_result_23, -- 488
-						message = ____temp_24, -- 489
-						phase = ____temp_25, -- 490
-						interrupted = ____temp_22 -- 491
-					}) -- 491
-					return -- 493
-				end -- 493
-				finish({ -- 495
-					success = true, -- 495
-					mode = "lua", -- 495
-					output = truncateCommandOutput(table.concat(output, "\n")) -- 495
-				}) -- 495
-			end) -- 449
-			Director.systemScheduler:schedule(function() -- 497
-				if settled then -- 497
-					return true -- 498
-				end -- 498
-				local watchdogMessage = checkEntryWatchdog() -- 499
-				if watchdogMessage ~= nil then -- 499
-					finish({ -- 501
-						success = false, -- 502
-						mode = "lua", -- 503
-						output = truncateCommandOutput(table.concat(output, "\n")), -- 504
-						message = watchdogMessage, -- 505
-						phase = "execute", -- 506
-						interrupted = true -- 507
-					}) -- 507
-					return true -- 509
-				end -- 509
-				if isCancelled and isCancelled(nil) then -- 509
-					finish({ -- 512
-						success = false, -- 513
-						mode = "lua", -- 514
-						output = truncateCommandOutput(table.concat(output, "\n")), -- 515
-						message = "Lua command canceled", -- 516
-						phase = "execute", -- 517
-						interrupted = true -- 518
-					}) -- 518
-					return true -- 520
-				end -- 520
-				if App.runningTime - startedAt >= req.timeoutSeconds then -- 520
-					finish({ -- 523
-						success = false, -- 524
-						mode = "lua", -- 525
-						output = truncateCommandOutput(table.concat(output, "\n")), -- 526
-						message = ("Lua command timed out after " .. tostring(req.timeoutSeconds)) .. " seconds", -- 527
-						phase = "timeout" -- 528
-					}) -- 528
-					return true -- 530
-				end -- 530
-				if commandRoutine == nil then -- 530
-					finish({ -- 533
-						success = false, -- 534
-						mode = "lua", -- 535
-						output = truncateCommandOutput(table.concat(output, "\n")), -- 536
-						message = "Lua command coroutine is unavailable", -- 537
-						phase = "execute" -- 538
-					}) -- 538
-					return true -- 540
-				end -- 540
-				local resumeSuccess, resumeResult = coroutine.resume(commandRoutine) -- 542
-				if not resumeSuccess then -- 542
-					finish({ -- 544
-						success = false, -- 545
-						mode = "lua", -- 546
-						output = truncateCommandOutput(table.concat(output, "\n")), -- 547
-						message = truncateCommandError(toStr(resumeResult)), -- 548
-						phase = "execute" -- 549
-					}) -- 549
-					return true -- 551
-				end -- 551
-				return settled or resumeResult == true -- 553
-			end) -- 497
-		end -- 368
-	) -- 368
-end -- 102
-function ____exports.executeCommand(req) -- 558
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 558
-		local mode = req.mode -- 569
-		if mode ~= "lua" and mode ~= "git" then -- 569
-			return ____awaiter_resolve(nil, {success = false, message = "mode must be lua or git", phase = "validate"}) -- 569
-		end -- 569
-		if mode == "lua" then -- 569
-			return ____awaiter_resolve( -- 569
-				nil, -- 569
-				executeLuaCommand({ -- 574
-					workDir = req.workDir, -- 575
-					code = req.code or "", -- 576
-					timeoutSeconds = math.max( -- 577
-						1, -- 577
-						math.floor(__TS__Number(req.timeoutSeconds or LUA_COMMAND_DEFAULT_TIMEOUT_SECONDS)) -- 577
-					), -- 577
-					operationId = createOperationId(), -- 578
-					taskId = req.taskId or 0, -- 579
-					onProgress = req.onProgress, -- 580
-					isCancelled = req.isCancelled -- 581
-				}) -- 581
-			) -- 581
-		end -- 581
-		local operationId = createOperationId() -- 584
-		return ____awaiter_resolve( -- 584
-			nil, -- 584
-			executeGitCommand({ -- 585
-				workDir = req.workDir, -- 586
-				command = req.command or "", -- 587
-				cwd = req.cwd, -- 588
-				timeoutSeconds = math.max( -- 589
-					1, -- 589
-					math.floor(__TS__Number(req.timeoutSeconds or 600)) -- 589
-				), -- 589
-				operationId = operationId, -- 590
-				onProgress = req.onProgress, -- 591
-				isCancelled = req.isCancelled -- 592
-			}) -- 592
-		) -- 592
-	end) -- 592
-end -- 558
-return ____exports -- 558
+				_G.print = previousGlobalPrint -- 459
+				if not ok then -- 459
+					local ____truncateCommandOutput_result_23 = truncateCommandOutput(table.concat(output, "\n")) -- 464
+					local ____temp_24 = watchdogMessage or (frameTimedOut and ("Lua command exceeded " .. tostring(AgentConfig.AGENT_LIMITS.executeCommandFrameTimeoutSeconds)) .. " seconds in one game frame" or truncateCommandError(toStr(runtimeErr))) -- 465
+					local ____temp_25 = frameTimedOut and "timeout" or "execute" -- 466
+					local ____temp_22 -- 467
+					if watchdogMessage ~= nil or frameTimedOut then -- 467
+						____temp_22 = true -- 467
+					else -- 467
+						____temp_22 = nil -- 467
+					end -- 467
+					finish({ -- 461
+						success = false, -- 462
+						mode = "lua", -- 463
+						output = ____truncateCommandOutput_result_23, -- 464
+						message = ____temp_24, -- 465
+						phase = ____temp_25, -- 466
+						interrupted = ____temp_22 -- 467
+					}) -- 467
+					return -- 469
+				end -- 469
+				finish({ -- 471
+					success = true, -- 471
+					mode = "lua", -- 471
+					output = truncateCommandOutput(table.concat(output, "\n")) -- 471
+				}) -- 471
+			end) -- 425
+			Director.systemScheduler:schedule(function() -- 473
+				if settled then -- 473
+					return true -- 474
+				end -- 474
+				local watchdogMessage = checkEntryWatchdog() -- 475
+				if watchdogMessage ~= nil then -- 475
+					finish({ -- 477
+						success = false, -- 478
+						mode = "lua", -- 479
+						output = truncateCommandOutput(table.concat(output, "\n")), -- 480
+						message = watchdogMessage, -- 481
+						phase = "execute", -- 482
+						interrupted = true -- 483
+					}) -- 483
+					return true -- 485
+				end -- 485
+				if isCancelled and isCancelled(nil) then -- 485
+					finish({ -- 488
+						success = false, -- 489
+						mode = "lua", -- 490
+						output = truncateCommandOutput(table.concat(output, "\n")), -- 491
+						message = "Lua command canceled", -- 492
+						phase = "execute", -- 493
+						interrupted = true -- 494
+					}) -- 494
+					return true -- 496
+				end -- 496
+				if App.runningTime - startedAt >= req.timeoutSeconds then -- 496
+					finish({ -- 499
+						success = false, -- 500
+						mode = "lua", -- 501
+						output = truncateCommandOutput(table.concat(output, "\n")), -- 502
+						message = ("Lua command timed out after " .. tostring(req.timeoutSeconds)) .. " seconds", -- 503
+						phase = "timeout" -- 504
+					}) -- 504
+					return true -- 506
+				end -- 506
+				if commandRoutine == nil then -- 506
+					finish({ -- 509
+						success = false, -- 510
+						mode = "lua", -- 511
+						output = truncateCommandOutput(table.concat(output, "\n")), -- 512
+						message = "Lua command coroutine is unavailable", -- 513
+						phase = "execute" -- 514
+					}) -- 514
+					return true -- 516
+				end -- 516
+				local resumeSuccess, resumeResult = coroutine.resume(commandRoutine) -- 518
+				if not resumeSuccess then -- 518
+					finish({ -- 520
+						success = false, -- 521
+						mode = "lua", -- 522
+						output = truncateCommandOutput(table.concat(output, "\n")), -- 523
+						message = truncateCommandError(toStr(resumeResult)), -- 524
+						phase = "execute" -- 525
+					}) -- 525
+					return true -- 527
+				end -- 527
+				return settled or resumeResult == true -- 529
+			end) -- 473
+		end -- 344
+	) -- 344
+end -- 99
+function ____exports.executeCommand(req) -- 534
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 534
+		local mode = req.mode -- 546
+		if mode ~= "lua" and mode ~= "git" then -- 546
+			return ____awaiter_resolve(nil, {success = false, message = "mode must be lua or git", phase = "validate"}) -- 546
+		end -- 546
+		if mode == "lua" then -- 546
+			return ____awaiter_resolve( -- 546
+				nil, -- 546
+				executeLuaCommand({ -- 551
+					workDir = req.workDir, -- 552
+					docLanguage = req.docLanguage, -- 553
+					code = req.code or "", -- 554
+					timeoutSeconds = math.max( -- 555
+						1, -- 555
+						math.floor(__TS__Number(req.timeoutSeconds or LUA_COMMAND_DEFAULT_TIMEOUT_SECONDS)) -- 555
+					), -- 555
+					operationId = createOperationId(), -- 556
+					taskId = req.taskId or 0, -- 557
+					onProgress = req.onProgress, -- 558
+					isCancelled = req.isCancelled -- 559
+				}) -- 559
+			) -- 559
+		end -- 559
+		local operationId = createOperationId() -- 562
+		return ____awaiter_resolve( -- 562
+			nil, -- 562
+			executeGitCommand({ -- 563
+				workDir = req.workDir, -- 564
+				command = req.command or "", -- 565
+				cwd = req.cwd, -- 566
+				timeoutSeconds = math.max( -- 567
+					1, -- 567
+					math.floor(__TS__Number(req.timeoutSeconds or 600)) -- 567
+				), -- 567
+				operationId = operationId, -- 568
+				onProgress = req.onProgress, -- 569
+				isCancelled = req.isCancelled -- 570
+			}) -- 570
+		) -- 570
+	end) -- 570
+end -- 534
+return ____exports -- 534
