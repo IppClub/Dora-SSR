@@ -59,6 +59,7 @@ export interface ResourceInfo {
 	bannerPath?: string;
 	selectedVersion: number;
 	mobileOrder?: number;
+	playUrl?: string;
 }
 
 export interface CatalogIssue {
@@ -305,6 +306,9 @@ export const parseResourceJSON = (
 	if (typeof decoded.runnable !== "boolean") errors.push("runnable must be boolean");
 	const entrypoints = parseEntrypoints(decoded.entrypoints, errors);
 	const versions = parseVersions(decoded.versions, errors);
+	if (decoded.playUrl !== undefined && (typeof decoded.playUrl !== "string" || !isSafeHttpsGitUrl(decoded.playUrl))) {
+		errors.push("playUrl must be a safe HTTPS URL");
+	}
 	if (errors.length > 0
 		|| !title
 		|| !description
@@ -332,6 +336,7 @@ export const parseResourceJSON = (
 		bannerPath,
 		selectedVersion: 1,
 		mobileOrder: typeof decoded.mobileOrder === "number" ? decoded.mobileOrder : undefined,
+		playUrl: decoded.playUrl as string | undefined,
 	}, []);
 };
 
@@ -404,8 +409,7 @@ export const isMinigame = (resource: ResourceInfo) => resource.tags.indexOf("min
 
 export const isMobileFeedResource = (resource: ResourceInfo) =>
 	resource.status === "active"
-	&& resource.runnable
-	&& resource.entrypoints.length > 0
+	&& ((resource.runnable && resource.entrypoints.length > 0) || resource.playUrl !== undefined)
 	&& resource.tags.indexOf("mobile-feed") >= 0;
 
 export const getMobileFeedResources = (resources: ResourceInfo[]) =>

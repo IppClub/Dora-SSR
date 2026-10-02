@@ -10,6 +10,8 @@ export interface FeedEntry {
 	workDir?: string;
 	bannerFile?: string;
 	installed?: boolean;
+	webPlayUrl?: string;
+	sourceUrl?: string;
 }
 
 export interface FeedProjectGroup {

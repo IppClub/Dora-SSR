@@ -112,6 +112,10 @@ flowchart LR
 
 ## 5. 资源目录仓库
 
+移动端发现列表使用 `mobile-feed` 标签。原生作品需满足 `runnable: true` 且有运行入口；没有可直接加载的原生入口时，可使用 `runnable: false`、空 `entrypoints` 和可选 HTTPS `playUrl`。后一种条目显示“查看源码”和“在线试玩”，分别通过 `App.openURL` 打开上游仓库和试玩页面，不执行原生安装流程。`playUrl` 与 Git 来源使用相同的 HTTPS、长度、空白及用户信息检查。
+
+2026-10-02 收录小游戏征集活动全部 106 个公开作品：96 个仓库提供原生 `init` 入口，10 个仅提交 TypeScript 源码并使用在线试玩。数据及原始链接记录位于 Dora-Catalog 的 `events/minigame-2026.md`，封面存放在对应项目的 `banner.jpg`。
+
 ### 5.1 推荐目录结构
 
 ```text

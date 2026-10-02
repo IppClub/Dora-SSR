@@ -304,6 +304,11 @@ export function startMobileFeed(options: MobileFeedOptions) {
 	const activate = (action: "play" | "remix") => {
 		const item = current();
 		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || !item || preparing) return;
+		if (item.webPlayUrl) {
+			const url = action === "play" ? item.webPlayUrl : item.sourceUrl;
+			if (url) App.openURL(url);
+			return;
+		}
 		item.launchError = undefined;
 		const done = () => { returnEntry = item; return action === "play" ? onPlay(item) : onRemix(item); };
 		if (item.kind === "local" || item.installed) { done(); return; }
@@ -519,7 +524,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 					{compact || shortLandscape ? undefined : <node x={infoX} y={metadataY} width={wide ? 176 : 164} height={28} anchorX={0} anchorY={0}>
 						<RoundedSurface width={wide ? 176 : 164} height={28} radius={14} topColor={0x66303a4b} bottomColor={0x6618202b} borderWidth={1} borderColor={0x88606b7d} />
 						<label x={12} y={14} anchorX={0} fontName={fontName} fontSize={12}
-							text={item.kind === "local" ? (zh ? "本地作品  ·  可 Remix" : "Local  ·  Remixable") : item.installed ? (zh ? "发现  ·  已安装" : "Discover  ·  Installed") : (zh ? "发现  ·  可安装" : "Discover  ·  Installable")}
+							text={item.webPlayUrl ? (zh ? "发现  ·  在线试玩" : "Discover  ·  Web game") : item.kind === "local" ? (zh ? "本地作品  ·  可 Remix" : "Local  ·  Remixable") : item.installed ? (zh ? "发现  ·  已安装" : "Discover  ·  Installed") : (zh ? "发现  ·  可安装" : "Discover  ·  Installable")}
 							textWidth={(wide ? 176 : 164) - 24} alignment={TextAlign.Left} color3={0xdce1ea} />
 					</node>}
 				{preparing ? <node tag="mobile-feed-download" x={infoX} y={actionsY} width={infoWidth} height={48} anchorX={0} anchorY={0}>
@@ -535,9 +540,9 @@ export function startMobileFeed(options: MobileFeedOptions) {
 					<MobileButton tag="mobile-feed-download-cancel" x={infoWidth - 80} y={0} width={80} height={48}
 						text={prepareCanceled ? (zh ? "中断中…" : "Canceling…") : (zh ? "中断" : "Cancel")} fontSize={13} danger={true} onTapped={cancelPrepare} />
 				</node> : <node>
-				<MobileButton tag="mobile-feed-remix" x={infoX} y={actionsY} width={buttonWidth} text={zh ? "Remix 作品" : "Remix game"} fontSize={math.floor(16 * fontScale)}
+				<MobileButton tag="mobile-feed-remix" x={infoX} y={actionsY} width={buttonWidth} text={item.webPlayUrl ? (zh ? "查看源码" : "View source") : (zh ? "Remix 作品" : "Remix game")} fontSize={math.floor(16 * fontScale)}
 					primary={true} onTapped={() => activate("remix")} />
-				<MobileButton tag="mobile-feed-play" x={infoX + buttonWidth + 12} y={actionsY} width={buttonWidth} text={zh ? "试玩" : "Play"} fontSize={math.floor(17 * fontScale)}
+				<MobileButton tag="mobile-feed-play" x={infoX + buttonWidth + 12} y={actionsY} width={buttonWidth} text={item.webPlayUrl ? (zh ? "在线试玩" : "Play online") : (zh ? "试玩" : "Play")} fontSize={math.floor(17 * fontScale)}
 					onTapped={() => activate("play")} />
 				</node>}
 				{preparing ? <clip-node tag="mobile-feed-download-message-clip" x={infoX} y={gestureHintY - 10} width={infoWidth} height={20} anchorX={0} anchorY={0}
@@ -546,7 +551,7 @@ export function startMobileFeed(options: MobileFeedOptions) {
 						text={string.gsub(prepareStatus, "[\r\n]+", " ")[0]} textWidth={-1} color3={0xa8afbd} />
 				</clip-node> :
 					<label tag="mobile-feed-gesture-hint" x={infoX} y={gestureHintY} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={gamepadUsed ? 11 : 14}
-					text={prepareStatus !== "" ? prepareStatus : item.launchError !== undefined ? item.launchError : gamepadUsed ? (zh ? "↑↓ 浏览 · A 确认 · X Remix · Start 列表 · Y 新建" : "↑↓ Browse · A Select · X Remix · Start List · Y New") : (zh ? "上滑浏览  ·  右滑 Remix  ·  左滑试玩" : "Swipe up  ·  right Remix  ·  left Play")}
+					text={prepareStatus !== "" ? prepareStatus : item.launchError !== undefined ? item.launchError : item.webPlayUrl ? (gamepadUsed ? (zh ? "↑↓ 浏览 · A 在线试玩 · X 查看源码 · Start 列表" : "↑↓ Browse · A Play online · X Source · Start List") : (zh ? "上滑浏览  ·  右滑源码  ·  左滑在线试玩" : "Swipe up  ·  right Source  ·  left Web play")) : gamepadUsed ? (zh ? "↑↓ 浏览 · A 确认 · X Remix · Start 列表 · Y 新建" : "↑↓ Browse · A Select · X Remix · Start List · Y New") : (zh ? "上滑浏览  ·  右滑 Remix  ·  左滑试玩" : "Swipe up  ·  right Remix  ·  left Play")}
 						textWidth={infoWidth} alignment={TextAlign.Left} color3={item.launchError !== undefined ? 0xff6b6b : 0xa8afbd} />}
 			</node> : <node>
 				<label x={left + usableWidth / 2} y={bottom + usableHeight / 2 + 20} fontName={fontName} fontSize={22}

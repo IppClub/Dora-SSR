@@ -1800,6 +1800,8 @@ startMobileUI = ->
 					description: resource.description[useChinese and "zh-Hans" or "en"]
 					kind: "discover"
 					bannerFile: resource.bannerPath
+					webPlayUrl: not (resource.runnable and #resource.entrypoints > 0) and resource.playUrl or nil
+					sourceUrl: resource.versions[1].sources[1].url
 					workDir: installed and installPath or nil
 					fileName: installed and Path(installPath, Path\replaceExt(resource.entrypoints[1].path, "")) or nil
 					:installed
