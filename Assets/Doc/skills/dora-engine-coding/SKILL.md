@@ -217,8 +217,12 @@ Baseline mapping:
 - Scene root: `Director.entry`, not HTML body/canvas.
 - Main loop: `Node.schedule((dt) => false)` or `node.onUpdate`, not `requestAnimationFrame`.
 - Timers: accumulate `dt` in scheduled updates, not `setInterval`/`setTimeout`.
-- Primitive drawing: `DrawNode.drawDot`, `drawSegment`, `drawPolygon`.
-- `DrawNode` has no `drawRect`; draw rectangles with four `Vec2` vertices passed to `drawPolygon`.
+- Primitive drawing: `DrawNode.drawCircle`, `drawRect`, `drawRoundedRect`, `drawEllipse`, `drawRing`, `drawSector`, `drawSegment`, `drawPolyline`, `drawArc`, `drawQuadraticBezier`, `drawCubicBezier`, and `drawPolygon`.
+- `DrawNode.drawPolygon` accepts simple convex or concave polygons. Keep vertices in boundary order and do not pass self-intersecting outlines.
+- Stroke radii (`drawSegment`, `drawPolyline`, `drawArc`) and polygon `borderWidth` are half widths. Polygon borders are centered on the outline. Open strokes have round caps, and long miter joins are beveled.
+- `drawArc` uses degrees from +X toward +Y. Its signed sweep is limited to one revolution; full circles close without caps. Commands with non-finite coordinates or sizes are ignored; insufficient vertex capacity rejects the entire command.
+- `drawRoundedRect(rect, cornerRadius, fillColor?, borderWidth?, borderColor?)` clamps the corner radius to half the smaller dimension. `drawRing(center, innerRadius, outerRadius, fillColor?, borderWidth?, borderColor?)` preserves its center hole and requires `0 <= innerRadius < outerRadius`. `drawSector(center, radius, startAngle, endAngle, fillColor?, borderWidth?, borderColor?)` uses the same angle conventions as `drawArc`.
+- Bezier strokes use positional arguments: `drawQuadraticBezier(from, control, to, radius, color?)` and `drawCubicBezier(from, control1, control2, to, radius, color?)`. Radius is half the stroke width; subdivision is automatic (target error is the smaller of 0.25 local units and 1% of the control hull diagonal, at most 1024 segments).
 - Text: `Label('sarasa-mono-sc-regular', size)` and guard because `Label(...)` may return `undefined`.
 - Text anchoring uses the inherited `anchor = Vec2(x, y)` property. There is no `anchorX`. Do not assign string values such as `'Left'`, `'Center'`, or `'Right'` to `Label.alignment`.
 - For safe screen-edge HUD text, use `View.size`, put left labels at `-View.size.width / 2 + margin` with `anchor = Vec2(0, 0.5)`, and right labels at `View.size.width / 2 - margin` with `anchor = Vec2(1, 0.5)`.

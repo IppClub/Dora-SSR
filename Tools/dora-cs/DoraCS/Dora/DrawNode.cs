@@ -28,7 +28,27 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void drawnode_draw_dot(int64_t self, int64_t pos, float radius, int32_t color);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void drawnode_draw_circle(int64_t self, int64_t center, float radius, int32_t color);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void drawnode_draw_rect(int64_t self, int64_t rect, int32_t fillColor, float borderWidth, int32_t borderColor);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void drawnode_draw_ellipse(int64_t self, int64_t center, float radiusX, float radiusY, int32_t color);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void drawnode_draw_segment(int64_t self, int64_t from, int64_t to, float radius, int32_t color);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void drawnode_draw_polyline(int64_t self, int64_t verts, float radius, int32_t color, int32_t closed);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void drawnode_draw_arc(int64_t self, int64_t center, float radius, float startAngle, float endAngle, float lineRadius, int32_t color);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void drawnode_draw_rounded_rect(int64_t self, int64_t rect, float cornerRadius, int32_t fillColor, float borderWidth, int32_t borderColor);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void drawnode_draw_ring(int64_t self, int64_t center, float innerRadius, float outerRadius, int32_t fillColor, float borderWidth, int32_t borderColor);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void drawnode_draw_sector(int64_t self, int64_t center, float radius, float startAngle, float endAngle, int32_t fillColor, float borderWidth, int32_t borderColor);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void drawnode_draw_quadratic_bezier(int64_t self, int64_t from, int64_t control, int64_t to, float radius, int32_t color);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void drawnode_draw_cubic_bezier(int64_t self, int64_t from, int64_t control1, int64_t control2, int64_t to, float radius, int32_t color);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void drawnode_draw_polygon(int64_t self, int64_t verts, int32_t fillColor, float borderWidth, int32_t borderColor);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -87,6 +107,38 @@ namespace Dora
 			Native.drawnode_draw_dot(Raw, pos.Raw, radius, (int)color.ToARGB());
 		}
 		/// <summary>
+		/// Draws a circle at a specified center with a specified radius and color.
+		/// </summary>
+		/// <param name="center">The center of the circle.</param>
+		/// <param name="radius">The radius of the circle.</param>
+		/// <param name="color">The color of the circle.</param>
+		public void DrawCircle(Vec2 center, float radius, Color color)
+		{
+			Native.drawnode_draw_circle(Raw, center.Raw, radius, (int)color.ToARGB());
+		}
+		/// <summary>
+		/// Draws a rectangle with an optional border.
+		/// </summary>
+		/// <param name="rect">The rectangle to draw.</param>
+		/// <param name="fillColor">The fill color of the rectangle.</param>
+		/// <param name="borderWidth">Half of the border width, extending to both sides of the outline.</param>
+		/// <param name="borderColor">The color of the border.</param>
+		public void DrawRect(Rect rect, Color fillColor, float borderWidth, Color borderColor)
+		{
+			Native.drawnode_draw_rect(Raw, rect.Raw, (int)fillColor.ToARGB(), borderWidth, (int)borderColor.ToARGB());
+		}
+		/// <summary>
+		/// Draws a filled ellipse at a specified center.
+		/// </summary>
+		/// <param name="center">The center of the ellipse.</param>
+		/// <param name="radiusX">The horizontal radius of the ellipse.</param>
+		/// <param name="radiusY">The vertical radius of the ellipse.</param>
+		/// <param name="color">The color of the ellipse.</param>
+		public void DrawEllipse(Vec2 center, float radiusX, float radiusY, Color color)
+		{
+			Native.drawnode_draw_ellipse(Raw, center.Raw, radiusX, radiusY, (int)color.ToARGB());
+		}
+		/// <summary>
 		/// Draws a line segment between two points with a specified radius and color.
 		/// </summary>
 		/// <param name="from">The starting point of the line.</param>
@@ -98,11 +150,60 @@ namespace Dora
 			Native.drawnode_draw_segment(Raw, from.Raw, to.Raw, radius, (int)color.ToARGB());
 		}
 		/// <summary>
-		/// Draws a polygon defined by a list of vertices with a specified fill color and border.
+		/// Draws a connected stroke with round caps and miter joins, beveling long miters. Radius is half the width; adjacent duplicates are ignored.
+		/// </summary>
+		/// <param name="verts">The vertices of the polyline.</param>
+		/// <param name="radius">Half of the line width.</param>
+		/// <param name="color">The color of the polyline.</param>
+		/// <param name="closed">Whether to connect the last vertex back to the first.</param>
+		public void DrawPolyline(IEnumerable<Vec2> verts, float radius, Color color, bool closed)
+		{
+			Native.drawnode_draw_polyline(Raw, Bridge.FromArray(verts), radius, (int)color.ToARGB(), closed ? 1 : 0);
+		}
+		/// <summary>
+		/// Draws an arc in degrees: zero points along +X and increasing angles turn toward +Y. The signed sweep is limited to one revolution; full circles close without caps. Line radius is half the width.
+		/// </summary>
+		/// <param name="center">The center of the arc.</param>
+		/// <param name="radius">The radius from the center to the arc.</param>
+		/// <param name="startAngle">The starting angle in degrees.</param>
+		/// <param name="endAngle">The ending angle in degrees.</param>
+		/// <param name="lineRadius">Half of the line width.</param>
+		/// <param name="color">The color of the arc.</param>
+		public void DrawArc(Vec2 center, float radius, float startAngle, float endAngle, float lineRadius, Color color)
+		{
+			Native.drawnode_draw_arc(Raw, center.Raw, radius, startAngle, endAngle, lineRadius, (int)color.ToARGB());
+		}
+		/// <summary>Draws a rounded rectangle. The corner radius is clamped to half the smaller dimension; zero draws a rectangle. Border width is a half width centered on the outline.</summary>
+		public void DrawRoundedRect(Rect rect, float cornerRadius, Color fillColor, float borderWidth, Color borderColor)
+		{
+			Native.drawnode_draw_rounded_rect(Raw, rect.Raw, cornerRadius, (int)fillColor.ToARGB(), borderWidth, (int)borderColor.ToARGB());
+		}
+		/// <summary>Draws a ring with 0 <= innerRadius < outerRadius. Zero inner radius fills the center. Optional centered borders surround both contours; border width is a half width.</summary>
+		public void DrawRing(Vec2 center, float innerRadius, float outerRadius, Color fillColor, float borderWidth, Color borderColor)
+		{
+			Native.drawnode_draw_ring(Raw, center.Raw, innerRadius, outerRadius, (int)fillColor.ToARGB(), borderWidth, (int)borderColor.ToARGB());
+		}
+		/// <summary>Draws a filled sector in degrees from +X toward +Y. Signed sweep is limited to one revolution. Full circles omit radial edges; equal angles draw nothing. Border width is a half width.</summary>
+		public void DrawSector(Vec2 center, float radius, float startAngle, float endAngle, Color fillColor, float borderWidth, Color borderColor)
+		{
+			Native.drawnode_draw_sector(Raw, center.Raw, radius, startAngle, endAngle, (int)fillColor.ToARGB(), borderWidth, (int)borderColor.ToARGB());
+		}
+		/// <summary>Draws a quadratic Bezier stroke with round caps; coincident endpoints close the stroke. Radius is half the width. Adaptive subdivision targets 0.25 local units, with at most 1024 segments.</summary>
+		public void DrawQuadraticBezier(Vec2 from, Vec2 control, Vec2 to, float radius, Color color)
+		{
+			Native.drawnode_draw_quadratic_bezier(Raw, from.Raw, control.Raw, to.Raw, radius, (int)color.ToARGB());
+		}
+		/// <summary>Draws a cubic Bezier stroke with round caps; coincident endpoints close the stroke. Radius is half the width. Adaptive subdivision targets 0.25 local units, with at most 1024 segments.</summary>
+		public void DrawCubicBezier(Vec2 from, Vec2 control1, Vec2 control2, Vec2 to, float radius, Color color)
+		{
+			Native.drawnode_draw_cubic_bezier(Raw, from.Raw, control1.Raw, control2.Raw, to.Raw, radius, (int)color.ToARGB());
+		}
+		/// <summary>
+		/// Draws a simple convex or concave polygon in boundary order with either winding. Self-intersections and holes are unsupported; the border is centered on the outline.
 		/// </summary>
 		/// <param name="verts">The vertices of the polygon.</param>
 		/// <param name="fillColor">The fill color of the polygon.</param>
-		/// <param name="borderWidth">The width of the border.</param>
+		/// <param name="borderWidth">Half of the border width, extending to both sides of the outline.</param>
 		/// <param name="borderColor">The color of the border.</param>
 		public void DrawPolygon(IEnumerable<Vec2> verts, Color fillColor, float borderWidth, Color borderColor)
 		{

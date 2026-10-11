@@ -62,7 +62,20 @@ public:
 	virtual void render() override;
 	virtual const Matrix& getWorld() override;
 	void drawDot(const Vec2& pos, float radius, Color color);
+	void drawCircle(const Vec2& center, float radius, Color color);
+	void drawRect(const Rect& rect, Color fillColor, float borderWidth, Color borderColor);
+	void drawRoundedRect(const Rect& rect, float cornerRadius, Color fillColor, float borderWidth, Color borderColor);
+	void drawRing(const Vec2& center, float innerRadius, float outerRadius, Color fillColor, float borderWidth, Color borderColor);
+	void drawSector(const Vec2& center, float radius, float startAngle, float endAngle, Color fillColor, float borderWidth, Color borderColor);
+	void drawEllipse(const Vec2& center, float radiusX, float radiusY, Color color);
 	void drawSegment(const Vec2& from, const Vec2& to, float radius, Color color);
+	// Radius is half the width. Open strokes have round caps; long miters are beveled.
+	void drawPolyline(const std::vector<Vec2>& verts, float radius, Color color, bool closed);
+	void drawPolyline(const Vec2* verts, uint32_t count, float radius, Color color, bool closed = false);
+	// Degrees from +X toward +Y, with signed sweep limited to one revolution.
+	void drawArc(const Vec2& center, float radius, float startAngle, float endAngle, float lineRadius, Color color);
+	void drawQuadraticBezier(const Vec2& from, const Vec2& control, const Vec2& to, float radius, Color color);
+	void drawCubicBezier(const Vec2& from, const Vec2& control1, const Vec2& control2, const Vec2& to, float radius, Color color);
 	void drawPolygon(const std::vector<Vec2>& verts, Color fillColor, float borderWidth, Color borderColor);
 	void drawPolygon(const Vec2* verts, uint32_t count, Color fillColor, float borderWidth = 0.0f, Color borderColor = Color());
 	void drawVertices(const std::vector<VertexColor>& verts);

@@ -2459,6 +2459,32 @@ object class DrawNode : public INode
 	/// * `radius` - The radius of the dot.
 	/// * `color` - The color of the dot.
 	void drawDot(Vec2 pos, float radius, Color color);
+	/// Draws a circle at a specified center with a specified radius and color.
+	///
+	/// # Arguments
+	///
+	/// * `center` - The center of the circle.
+	/// * `radius` - The radius of the circle.
+	/// * `color` - The color of the circle.
+	void drawCircle(Vec2 center, float radius, Color color);
+	/// Draws a rectangle with an optional border.
+	///
+	/// # Arguments
+	///
+	/// * `rect` - The rectangle to draw.
+	/// * `fill_color` - The fill color of the rectangle.
+	/// * `border_width` - Half of the border width, extending to both sides of the outline.
+	/// * `border_color` - The color of the border.
+	void drawRect(Rect rect, Color fillColor, float borderWidth, Color borderColor);
+	/// Draws a filled ellipse at a specified center.
+	///
+	/// # Arguments
+	///
+	/// * `center` - The center of the ellipse.
+	/// * `radius_x` - The horizontal radius of the ellipse.
+	/// * `radius_y` - The vertical radius of the ellipse.
+	/// * `color` - The color of the ellipse.
+	void drawEllipse(Vec2 center, float radiusX, float radiusY, Color color);
 	/// Draws a line segment between two points with a specified radius and color.
 	///
 	/// # Arguments
@@ -2468,13 +2494,43 @@ object class DrawNode : public INode
 	/// * `radius` - The radius of the line.
 	/// * `color` - The color of the line.
 	void drawSegment(Vec2 from, Vec2 to, float radius, Color color);
-	/// Draws a polygon defined by a list of vertices with a specified fill color and border.
+	/// Draws a connected stroke with round caps and miter joins, beveling long miters. Radius is half the width; adjacent duplicates are ignored.
+	///
+	/// # Arguments
+	///
+	/// * `verts` - The vertices of the polyline.
+	/// * `radius` - Half of the line width.
+	/// * `color` - The color of the polyline.
+	/// * `closed` - Whether to connect the last vertex back to the first.
+	void drawPolyline(VecVec2 verts, float radius, Color color, bool closed);
+	/// Draws an arc in degrees: zero points along +X and increasing angles turn toward +Y. The signed sweep is limited to one revolution; full circles close without caps. Line radius is half the width.
+	///
+	/// # Arguments
+	///
+	/// * `center` - The center of the arc.
+	/// * `radius` - The radius from the center to the arc.
+	/// * `start_angle` - The starting angle in degrees.
+	/// * `end_angle` - The ending angle in degrees.
+	/// * `line_radius` - Half of the line width.
+	/// * `color` - The color of the arc.
+	void drawArc(Vec2 center, float radius, float startAngle, float endAngle, float lineRadius, Color color);
+	/// Draws a rounded rectangle. The corner radius is clamped to half the smaller dimension; zero draws a rectangle. Border width is a half width centered on the outline.
+	void drawRoundedRect(Rect rect, float cornerRadius, Color fillColor, float borderWidth, Color borderColor);
+	/// Draws a ring with 0 <= innerRadius < outerRadius. Zero inner radius fills the center. Optional centered borders surround both contours; border width is a half width.
+	void drawRing(Vec2 center, float innerRadius, float outerRadius, Color fillColor, float borderWidth, Color borderColor);
+	/// Draws a filled sector in degrees from +X toward +Y. Signed sweep is limited to one revolution. Full circles omit radial edges; equal angles draw nothing. Border width is a half width.
+	void drawSector(Vec2 center, float radius, float startAngle, float endAngle, Color fillColor, float borderWidth, Color borderColor);
+	/// Draws a quadratic Bezier stroke with round caps; coincident endpoints close the stroke. Radius is half the width. Adaptive subdivision targets 0.25 local units, with at most 1024 segments.
+	void drawQuadraticBezier(Vec2 from, Vec2 control, Vec2 to, float radius, Color color);
+	/// Draws a cubic Bezier stroke with round caps; coincident endpoints close the stroke. Radius is half the width. Adaptive subdivision targets 0.25 local units, with at most 1024 segments.
+	void drawCubicBezier(Vec2 from, Vec2 control1, Vec2 control2, Vec2 to, float radius, Color color);
+	/// Draws a simple convex or concave polygon in boundary order with either winding. Self-intersections and holes are unsupported; the border is centered on the outline.
 	///
 	/// # Arguments
 	///
 	/// * `verts` - The vertices of the polygon.
 	/// * `fill_color` - The fill color of the polygon.
-	/// * `border_width` - The width of the border.
+	/// * `border_width` - Half of the border width, extending to both sides of the outline.
 	/// * `border_color` - The color of the border.
 	void drawPolygon(VecVec2 verts, Color fillColor, float borderWidth, Color borderColor);
 	/// Draws a set of vertices as triangles, each vertex with its own color.

@@ -26,8 +26,38 @@ DORA_EXPORT int64_t drawnode_get_blend_func(int64_t self) {
 DORA_EXPORT void drawnode_draw_dot(int64_t self, int64_t pos, float radius, int32_t color) {
 	r_cast<DrawNode*>(self)->drawDot(Vec2_From(pos), radius, Color(s_cast<uint32_t>(color)));
 }
+DORA_EXPORT void drawnode_draw_circle(int64_t self, int64_t center, float radius, int32_t color) {
+	r_cast<DrawNode*>(self)->drawCircle(Vec2_From(center), radius, Color(s_cast<uint32_t>(color)));
+}
+DORA_EXPORT void drawnode_draw_rect(int64_t self, int64_t rect, int32_t fill_color, float border_width, int32_t border_color) {
+	r_cast<DrawNode*>(self)->drawRect(*r_cast<Rect*>(rect), Color(s_cast<uint32_t>(fill_color)), border_width, Color(s_cast<uint32_t>(border_color)));
+}
+DORA_EXPORT void drawnode_draw_ellipse(int64_t self, int64_t center, float radius_x, float radius_y, int32_t color) {
+	r_cast<DrawNode*>(self)->drawEllipse(Vec2_From(center), radius_x, radius_y, Color(s_cast<uint32_t>(color)));
+}
 DORA_EXPORT void drawnode_draw_segment(int64_t self, int64_t from, int64_t to, float radius, int32_t color) {
 	r_cast<DrawNode*>(self)->drawSegment(Vec2_From(from), Vec2_From(to), radius, Color(s_cast<uint32_t>(color)));
+}
+DORA_EXPORT void drawnode_draw_polyline(int64_t self, int64_t verts, float radius, int32_t color, int32_t closed) {
+	r_cast<DrawNode*>(self)->drawPolyline(Vec_FromVec2(verts), radius, Color(s_cast<uint32_t>(color)), closed != 0);
+}
+DORA_EXPORT void drawnode_draw_arc(int64_t self, int64_t center, float radius, float start_angle, float end_angle, float line_radius, int32_t color) {
+	r_cast<DrawNode*>(self)->drawArc(Vec2_From(center), radius, start_angle, end_angle, line_radius, Color(s_cast<uint32_t>(color)));
+}
+DORA_EXPORT void drawnode_draw_rounded_rect(int64_t self, int64_t rect, float corner_radius, int32_t fill_color, float border_width, int32_t border_color) {
+	r_cast<DrawNode*>(self)->drawRoundedRect(*r_cast<Rect*>(rect), corner_radius, Color(s_cast<uint32_t>(fill_color)), border_width, Color(s_cast<uint32_t>(border_color)));
+}
+DORA_EXPORT void drawnode_draw_ring(int64_t self, int64_t center, float inner_radius, float outer_radius, int32_t fill_color, float border_width, int32_t border_color) {
+	r_cast<DrawNode*>(self)->drawRing(Vec2_From(center), inner_radius, outer_radius, Color(s_cast<uint32_t>(fill_color)), border_width, Color(s_cast<uint32_t>(border_color)));
+}
+DORA_EXPORT void drawnode_draw_sector(int64_t self, int64_t center, float radius, float start_angle, float end_angle, int32_t fill_color, float border_width, int32_t border_color) {
+	r_cast<DrawNode*>(self)->drawSector(Vec2_From(center), radius, start_angle, end_angle, Color(s_cast<uint32_t>(fill_color)), border_width, Color(s_cast<uint32_t>(border_color)));
+}
+DORA_EXPORT void drawnode_draw_quadratic_bezier(int64_t self, int64_t from, int64_t control, int64_t to, float radius, int32_t color) {
+	r_cast<DrawNode*>(self)->drawQuadraticBezier(Vec2_From(from), Vec2_From(control), Vec2_From(to), radius, Color(s_cast<uint32_t>(color)));
+}
+DORA_EXPORT void drawnode_draw_cubic_bezier(int64_t self, int64_t from, int64_t control_1, int64_t control_2, int64_t to, float radius, int32_t color) {
+	r_cast<DrawNode*>(self)->drawCubicBezier(Vec2_From(from), Vec2_From(control_1), Vec2_From(control_2), Vec2_From(to), radius, Color(s_cast<uint32_t>(color)));
 }
 DORA_EXPORT void drawnode_draw_polygon(int64_t self, int64_t verts, int32_t fill_color, float border_width, int32_t border_color) {
 	r_cast<DrawNode*>(self)->drawPolygon(Vec_FromVec2(verts), Color(s_cast<uint32_t>(fill_color)), border_width, Color(s_cast<uint32_t>(border_color)));
@@ -50,7 +80,17 @@ static void linkDrawNode(wasm3::module3& mod) {
 	mod.link_optional("*", "drawnode_set_blend_func", drawnode_set_blend_func);
 	mod.link_optional("*", "drawnode_get_blend_func", drawnode_get_blend_func);
 	mod.link_optional("*", "drawnode_draw_dot", drawnode_draw_dot);
+	mod.link_optional("*", "drawnode_draw_circle", drawnode_draw_circle);
+	mod.link_optional("*", "drawnode_draw_rect", drawnode_draw_rect);
+	mod.link_optional("*", "drawnode_draw_ellipse", drawnode_draw_ellipse);
 	mod.link_optional("*", "drawnode_draw_segment", drawnode_draw_segment);
+	mod.link_optional("*", "drawnode_draw_polyline", drawnode_draw_polyline);
+	mod.link_optional("*", "drawnode_draw_arc", drawnode_draw_arc);
+	mod.link_optional("*", "drawnode_draw_rounded_rect", drawnode_draw_rounded_rect);
+	mod.link_optional("*", "drawnode_draw_ring", drawnode_draw_ring);
+	mod.link_optional("*", "drawnode_draw_sector", drawnode_draw_sector);
+	mod.link_optional("*", "drawnode_draw_quadratic_bezier", drawnode_draw_quadratic_bezier);
+	mod.link_optional("*", "drawnode_draw_cubic_bezier", drawnode_draw_cubic_bezier);
 	mod.link_optional("*", "drawnode_draw_polygon", drawnode_draw_polygon);
 	mod.link_optional("*", "drawnode_draw_vertices", drawnode_draw_vertices);
 	mod.link_optional("*", "drawnode_clear", drawnode_clear);
