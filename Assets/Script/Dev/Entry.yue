@@ -19,7 +19,10 @@ oldRequire = _G.require
 const require = (path) ->
 	loaded = package.loaded[path]
 	if loaded == nil
-		moduleCache[] = path
+		-- AgentHost owns these caches across scene run/stop and runtime reloads.
+		-- Do not accumulate their generations in the game module cleanup list.
+		unless path == "Script.Dev.AgentHost" or path\match "^Agent[./]"
+			moduleCache[] = path
 		return oldRequire path
 	loaded
 _G.require = require

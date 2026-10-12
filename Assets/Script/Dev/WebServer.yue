@@ -137,8 +137,17 @@ HttpServer\post "/agent/project-root", (req): invalidArguments ->
 		else
 			return success: true, found: false, message: err
 
-import "Agent.Tools" as AgentTools
-import "Agent.Session" as AgentSession
+import "Script.Dev.AgentHost" as AgentHost
+AgentTools = AgentHost.proxy "Agent.Tools"
+AgentSession = AgentHost.proxy "Agent.Session"
+AgentLocalAgent = AgentHost.proxy "Agent.LocalAgent"
+AgentVisionAssets = AgentHost.proxy "Agent.Tool.VisionAssets"
+
+HttpServer\post "/agent/runtime/status", -> AgentHost.status!
+HttpServer\post "/agent/runtime/reload", -> AgentHost.reload!
+HttpServer\post "/agent/runtime/automatic", (req): invalidArguments ->
+	switch req when {body: {:enabled}}
+		return AgentHost.setAutomatic enabled if type(enabled) == "boolean"
 
 GitJobs = []
 
@@ -742,7 +751,7 @@ HttpServer\post "/agent/session/get", (req): invalidArguments ->
 
 HttpServer\post "/agent/vision/asset", (req): invalidArguments ->
 	switch req when {body: {sessionId: sessionId, path: path}}
-		return (require "Agent.Tool.VisionAssets").getSessionVisionImageFromPath sessionId, path
+		return AgentVisionAssets.getSessionVisionImageFromPath sessionId, path
 
 HttpServer\post "/agent/session/mode", (req): invalidArguments ->
 	switch req when {body: {:sessionId, :workMode}}
@@ -758,11 +767,11 @@ HttpServer\post "/agent/session/send-local", (req): invalidArguments ->
 
 HttpServer\post "/agent/session/local/new", (req): invalidArguments ->
 	switch req when {body: {:sessionId}}
-		return (require "Agent.LocalAgent").abandonSession sessionId
+		return AgentLocalAgent.abandonSession sessionId
 
 HttpServer\post "/agent/session/local/info", (req): invalidArguments ->
 	switch req when {body: {:sessionId}}
-		info = (require "Agent.LocalAgent").getSessionInfo sessionId
+		info = AgentLocalAgent.getSessionInfo sessionId
 		return success: true, :info
 
 HttpServer\post "/agent/session/continue", (req): invalidArguments ->
@@ -1627,20 +1636,19 @@ HttpServer\post "/llm/delete", (req): invalidArguments ->
 		return success: affected >= 0
 
 HttpServer\post "/local-agent/list", ->
-	LocalAgent = require "Agent.LocalAgent"
-	return success: true, supported: LocalAgent.isLocalAgentSupported!, items: LocalAgent.listConfigs!
+	return success: true, supported: AgentLocalAgent.isLocalAgentSupported!, items: AgentLocalAgent.listConfigs!
 
 HttpServer\post "/local-agent/save", (req): invalidArguments ->
 	switch req when {body: body}
-		return (require "Agent.LocalAgent").saveConfig body
+		return AgentLocalAgent.saveConfig body
 
 HttpServer\post "/local-agent/delete", (req): invalidArguments ->
 	switch req when {body: {:id}}
-		return (require "Agent.LocalAgent").deleteConfig id
+		return AgentLocalAgent.deleteConfig id
 
 HttpServer\postSchedule "/local-agent/verify", (req): invalidArguments ->
 	switch req when {body: {:id}}
-		return (require "Agent.LocalAgent").verifyConfig id, req.body.projectRoot
+		return AgentLocalAgent.verifyConfig id, req.body.projectRoot
 
 HttpServer\post "/stat", (req): success: false, message: "failed to stat" ->
 	switch req when {body: {:path}}
@@ -2006,17 +2014,25 @@ compileFileAsync = (inputFile, sourceCodes, projectRoot = nil): nil ->
 		return nil, resultError
 
 HttpServer\postSchedule "/write", (req): success: false ->
+	finishUpdate = AgentHost.holdSourceUpdate (req.body or {}).path
+	buildSucceeded = false
+	close _ = <close>: -> finishUpdate buildSucceeded
 	switch req when {body: {:path, :content}}
 		if Content\saveAsync path, content
 			switch Path\getExt path when "tl", "yue", "xml"
 				if '' == Path\getExt Path\getName path
 					resultCodes = compileFileAsync path, content
+					buildSucceeded = resultCodes ~= nil
 					return success: true, :resultCodes
+			buildSucceeded = true
 			return success: true
 
 getWaProjectDirFromFile = nil
 
 HttpServer\postSchedule "/build", (req): success: false ->
+	finishUpdate = AgentHost.holdSourceUpdate (req.body or {}).path
+	buildSucceeded = false
+	close _ = <close>: -> finishUpdate buildSucceeded
 	switch req when {body: {:path}}
 		projectRoot = req.body.projectRoot
 		if Content\isdir path
@@ -2031,6 +2047,7 @@ HttpServer\postSchedule "/build", (req): success: false ->
 				if '' == Path\getExt Path\getName path
 					if content := Content\loadAsync path
 						if resultCodes := compileFileAsync path, content, projectRoot
+							buildSucceeded = true
 							return success: true, :resultCodes
 			when "wa"
 				if projDir := getWaProjectDirFromFile path
@@ -2239,9 +2256,9 @@ HttpServer\postSchedule "/run", (req): success: false ->
 		success, err = Entry.enterEntryAsync entry
 		return :success, :err
 
-agentEntryRunQueue = nil
-
 HttpServer\postSchedule "/agent/preview", (req): success: false, message: "invalid call" ->
+	releaseAgent = AgentHost.acquire!
+	close _ = <close>: -> releaseAgent!
 	switch req when {body: {:projectRoot}}
 		return success: false, code: "INVALID_PROJECT", message: "projectRoot must be an existing absolute directory" unless getProjectSourceRoot projectRoot
 		entryFile = req.body.entry or "init.lua"
@@ -2251,7 +2268,7 @@ HttpServer\postSchedule "/agent/preview", (req): success: false, message: "inval
 		return success: false, code: "INVALID_QUEUE_TIMEOUT", message: "queueTimeoutSeconds must be between 1 and 300" unless type(queueTimeoutSeconds) == "number" and queueTimeoutSeconds >= 1 and queueTimeoutSeconds <= 300
 		import "Agent.Tool.EntryRunQueue" as AgentEntryRunQueue
 		import "Agent.Tool.Operation" as AgentOperation
-		agentEntryRunQueue or= AgentEntryRunQueue.sharedEntryRunQueue
+		agentEntryRunQueue = AgentEntryRunQueue.sharedEntryRunQueue
 		requestId = AgentOperation.createOperationId!
 		enqueued = agentEntryRunQueue\enqueue requestId
 		return success: false, code: "ENTRY_QUEUE_REJECTED", message: enqueued.message unless enqueued.success
@@ -2288,6 +2305,8 @@ HttpServer\postSchedule "/agent/preview", (req): success: false, message: "inval
 			frames: result.frames
 
 HttpServer\postSchedule "/agent/command", (req): success: false, code: "INVALID_COMMAND", message: "invalid call" ->
+	releaseAgent = AgentHost.acquire!
+	close _ = <close>: -> releaseAgent!
 	switch req when {body: body}
 		projectRoot = body.projectRoot
 		return success: false, code: "INVALID_PROJECT", message: "projectRoot must be an existing absolute directory" unless getProjectSourceRoot projectRoot
@@ -2762,6 +2781,9 @@ transpileTSFile = (file, content, sourceRoot, files, isCancelled) ->
 	transpileTSFileWithWebIDE file, content, sourceRoot, files
 
 HttpServer\postSchedule "/ts/build", (req): success: false ->
+	finishUpdate = AgentHost.holdSourceUpdate (req.body or {}).path
+	buildSucceeded = false
+	close _ = <close>: -> finishUpdate buildSucceeded
 	switch req when {body: {:path}}
 		if App.platform ~= "Android" and HttpServer.wsConnectionCount == 0
 			return success: false, message: "Web IDE not connected"
@@ -2769,10 +2791,10 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 		sourceRoot = getProjectSourceRoot projectRoot
 		unless Content\exist path
 			return success: false, message: "path not existed"
+		messages = []
 		if not Content\isdir path
 			unless Path\getExt(path) in ["ts", "tsx"]
 				return success: false, message: "expecting a TypeScript file"
-			messages = []
 			content = Content\load path
 			unless content
 				return success: false, message: "failed to read file"
@@ -2780,10 +2802,8 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 			if "d" ~= Path\getExt Path\getName path
 				files = collectTSVirtualFiles sourceRoot or Path\getPath path
 				messages[] = transpileTSFile path, content, sourceRoot, files
-			return success: true, :messages
 		else
 			fileData = {}
-			messages = []
 			for subFile in *Content\glob path, tsBuildGlobs
 				file = Path path, subFile
 				if content := Content\load file
@@ -2795,7 +2815,13 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 			for file, content in pairs fileData
 				continue if "d" == Path\getExt Path\getName file
 				messages[] = transpileTSFile file, content, sourceRoot, files
-			return success: true, :messages
+		success = true
+		for item in *messages
+			success = false unless item.success
+		message = nil
+		message = "TypeScript compilation failed" unless success
+		buildSucceeded = success
+		return :success, :messages, :message
 
 HttpServer\post "/download", (req): success: false ->
 	switch req when body: {:url, :target}
