@@ -18,6 +18,7 @@ import { setMonacoRuntime } from './MonacoRuntimeAccess';
 import { isPathWithin } from './PathUtils';
 import { createSnapshotProgram, doraCompilerOptions } from '@dora-studio/compiler';
 import { toFilePath } from './MonacoPath';
+import { promoteCompilerWarnings } from './TranspileDiagnostics';
 
 setMonacoRuntime({
 	monaco,
@@ -619,7 +620,10 @@ export async function transpileTypescript(
 		program,
 		writeFile: collector.writeFile
 	});
-	diagnostics = [...diagnostics, ...res.diagnostics].filter(d => d.code !== 2497 && d.code !== 2666);
+	diagnostics = promoteCompilerWarnings(
+		[...diagnostics, ...res.diagnostics].filter(d => d.code !== 2497 && d.code !== 2666),
+		ts.DiagnosticCategory,
+	);
 
 	const otherFileDiagnostics = diagnostics.filter(d => {
 		try {
@@ -633,6 +637,9 @@ export async function transpileTypescript(
 	}
 
 	const success = diagnostics.length === 0;
+	if (!success) {
+		return { success, luaCode: undefined as string | undefined, diagnostics, extraError: otherFileDiagnostics.length > 0 };
+	}
 	const file = collector.files.find(({ sourceFiles }) => sourceFiles.some(f => {
 		return Info.path.relative(f.fileName, fileName) === "";
 	}));
@@ -659,10 +666,15 @@ export async function transpileTypescript(
 					return line + ` -- ${lineToUse}`;
 				}).filter(l => l !== "").join('\n');
 			});
-			return { success, luaCode: modifiedLuaCode, diagnostics, extraError: otherFileDiagnostics.length > 0 };
+			if (modifiedLuaCode !== undefined && modifiedLuaCode.trim() !== "") {
+				return { success, luaCode: modifiedLuaCode, diagnostics, extraError: otherFileDiagnostics.length > 0 };
+			}
 		}
 	}
-	return { success, luaCode: undefined as string | undefined, diagnostics, extraError: otherFileDiagnostics.length > 0 };
+	diagnostics.push({ category: ts.DiagnosticCategory.Error, code: 0,
+		file: program.getSourceFile(fileName), start: 0, length: 0,
+		messageText: "Compiler produced no Lua output for this source file." });
+	return { success: false, luaCode: undefined as string | undefined, diagnostics, extraError: otherFileDiagnostics.length > 0 };
 }
 
 export async function revalidateModel(model: monaco.editor.ITextModel) {

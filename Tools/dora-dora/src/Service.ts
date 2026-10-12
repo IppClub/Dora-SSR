@@ -250,7 +250,7 @@ const handleTranspileTS = async (item: TranspileTSQueueItem) => {
 		}
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
-		sendTranspileTSResponse(item, { name: WsEvent.TranspileTS, success: false, file: item.file, luaCode: "", message });
+		sendTranspileTSResponse(item, { name: WsEvent.TranspileTS, success: false, failureKind: "tool", file: item.file, luaCode: "", message });
 	}
 };
 
