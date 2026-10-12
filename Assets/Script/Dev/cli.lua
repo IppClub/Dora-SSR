@@ -65,7 +65,8 @@ local function help()
 Usage: dora cli <command> [options]
 
 Commands:
-	agent status [-p project]
+	agent status
+	agent reload
 	agent preview [-p project] [--entry init.lua] [--capture-at 0.5,2] [--queue-timeout 30]
 	agent command [-p project] --input request.json
 	agent log [-n lines]
@@ -93,7 +94,8 @@ local function agentHelp()
 Usage: dora cli agent <command> [options]
 
 Commands:
-	status [-p project]
+	status
+	reload
 	preview [-p project] [--entry init.lua] [--capture-at 0.5,2] [--queue-timeout 30]
 	command [-p project] --input request.json
 	log [-n lines]
@@ -584,8 +586,6 @@ local function buildTs(options, project, target)
 		path = buildTarget:gsub("\\", "/"),
 		projectRoot = typescriptRootFor(project, buildTarget, CLI.isDir(buildTarget)):gsub("\\", "/"),
 	})
-	expectSuccess(doc, "Compilation failed.")
-	print("Compilation complete.")
 	if type(doc.messages) == "table" then
 		for _, item in ipairs(doc.messages) do
 			if item.success and item.file then
@@ -595,6 +595,8 @@ local function buildTs(options, project, target)
 			end
 		end
 	end
+	expectSuccess(doc, "Compilation failed.")
+	print("Compilation complete.")
 end
 
 local function buildScriptFile(options, project, kind, target)
@@ -962,9 +964,15 @@ local function runAgentCommand(args)
 		agentCommandHelp()
 		return 0
 	end
+	if (action == "reload" or action == "status") and isHelpArg(args[3]) and #args == 3 then
+		agentHelp()
+		return 0
+	end
 	local options = parseOptionsExact(args, 3)
-	if action == "status" then
-		return requestAgentJson(options, "/status", {projectRoot = options.project})
+	if action == "reload" then
+		return requestAgentJson(options, "/agent/runtime/reload", {})
+	elseif action == "status" then
+		return requestAgentJson(options, "/agent/runtime/status", {})
 	elseif action == "preview" then
 		if not CLI.exists(options.project) or not CLI.isDir(options.project) then
 			return printAgentResult({success = false, code = "INVALID_PROJECT", message = "Project directory does not exist: " .. options.project})
