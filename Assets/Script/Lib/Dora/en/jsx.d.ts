@@ -535,7 +535,7 @@ class Rectangle {
 	fillColor?: number;
 
 	/**
-	 * The width of the border (default is 0).
+	 * Half the centered border width (default is 0).
 	 */
 	borderWidth?: number;
 
@@ -543,6 +543,81 @@ class Rectangle {
 	 * The color of the border in format 0xffffffff (ARGB, default is white).
 	 */
 	borderColor?: number;
+}
+
+/** Center coordinates default to zero. Shape tags only work under <draw-node>. */
+class CenteredShape {
+	centerX?: number;
+	centerY?: number;
+}
+
+/** ARGB fill and border colors default to white. Border width defaults to zero and is half the centered stroke width. */
+class FilledShape extends CenteredShape {
+	fillColor?: number;
+	borderWidth?: number;
+	borderColor?: number;
+}
+
+/** Filled circle; color defaults to white. */
+class Circle extends CenteredShape {
+	radius: number;
+	color?: number;
+}
+
+/** Filled ellipse; color defaults to white. */
+class Ellipse extends CenteredShape {
+	radiusX: number;
+	radiusY: number;
+	color?: number;
+}
+
+/** Corner radius is clamped to half the smaller dimension. */
+class RoundedRectangle extends Rectangle {
+	cornerRadius: number;
+}
+
+/** Requires 0 <= innerRadius < outerRadius. Fill and border colors default to white. */
+class Ring extends FilledShape {
+	innerRadius: number;
+	outerRadius: number;
+}
+
+/** Degrees from +X toward +Y, signed sweep limited to one turn. Equal angles draw nothing; full circles omit radial borders. */
+class Sector extends FilledShape {
+	radius: number;
+	startAngle: number;
+	endAngle: number;
+}
+
+/** Connected stroke with round caps, beveling long miters. Radius is half the width; adjacent duplicate points are ignored. */
+class Polyline {
+	verts: Dora.Vec2.Type[];
+	radius: number;
+	color?: number;
+	/** Defaults to false. */
+	closed?: boolean;
+}
+
+/** Degrees from +X toward +Y, signed sweep limited to one turn. A full turn closes without caps. */
+class Arc extends Circle {
+	startAngle: number;
+	endAngle: number;
+	/** Half the stroke width. */
+	lineRadius: number;
+}
+
+/** Quadratic Bezier with automatic subdivision. Radius is half the width; coincident endpoints close the stroke. */
+class QuadraticBezier extends Segment {
+	controlX: number;
+	controlY: number;
+}
+
+/** Cubic Bezier with automatic subdivision. Radius is half the width; coincident endpoints close the stroke. */
+class CubicBezier extends Segment {
+	control1X: number;
+	control1Y: number;
+	control2X: number;
+	control2Y: number;
 }
 
 class Verts {
@@ -1838,6 +1913,24 @@ interface IntrinsicElements {
 	 * Can only be used as a child element of `<draw-node>`.
 	 */
 	'dot-shape': Dot;
+	/** Only works as a child of <draw-node>; see JSX.Circle for properties. */
+	'circle-shape': Circle;
+	/** Only works as a child of <draw-node>; see JSX.Ellipse for properties. */
+	'ellipse-shape': Ellipse;
+	/** Only works as a child of <draw-node>; see JSX.RoundedRectangle for properties. */
+	'rounded-rect-shape': RoundedRectangle;
+	/** Only works as a child of <draw-node>; see JSX.Ring for properties. */
+	'ring-shape': Ring;
+	/** Only works as a child of <draw-node>; see JSX.Sector for properties. */
+	'sector-shape': Sector;
+	/** Only works as a child of <draw-node>; see JSX.Polyline for properties. */
+	'polyline-shape': Polyline;
+	/** Only works as a child of <draw-node>; see JSX.Arc for properties. */
+	'arc-shape': Arc;
+	/** Only works as a child of <draw-node>; see JSX.QuadraticBezier for properties. */
+	'quadratic-bezier-shape': QuadraticBezier;
+	/** Only works as a child of <draw-node>; see JSX.CubicBezier for properties. */
+	'cubic-bezier-shape': CubicBezier;
 	/**
 	 * Draws a line segment between two points with a specified radius and color.
 	 * Can only be used as a child element of `<draw-node>`.

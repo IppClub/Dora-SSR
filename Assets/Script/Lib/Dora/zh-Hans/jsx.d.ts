@@ -534,7 +534,7 @@ class Rectangle {
 	fillColor?: number;
 
 	/**
-	 * 边框的宽度（默认为0）。
+	 * 居中边框宽度的一半（默认为0）。
 	 */
 	borderWidth?: number;
 
@@ -542,6 +542,81 @@ class Rectangle {
 	 * 边框的颜色，格式为0xffffffff（ARGB），默认为白色。
 	 */
 	borderColor?: number;
+}
+
+/** 中心坐标默认为零。图形标签仅在 <draw-node> 下生效。 */
+class CenteredShape {
+	centerX?: number;
+	centerY?: number;
+}
+
+/** 颜色使用 ARGB 数值。borderWidth 为居中边框宽度的一半；填充和边框颜色默认白色，边框半宽默认零。 */
+class FilledShape extends CenteredShape {
+	fillColor?: number;
+	borderWidth?: number;
+	borderColor?: number;
+}
+
+/** 填充圆，颜色默认白色。 */
+class Circle extends CenteredShape {
+	radius: number;
+	color?: number;
+}
+
+/** 填充椭圆，颜色默认白色。 */
+class Ellipse extends CenteredShape {
+	radiusX: number;
+	radiusY: number;
+	color?: number;
+}
+
+/** 圆角半径限制为较短边的一半。 */
+class RoundedRectangle extends Rectangle {
+	cornerRadius: number;
+}
+
+/** 要求 0 <= innerRadius < outerRadius，内半径为零时填充中心。 */
+class Ring extends FilledShape {
+	innerRadius: number;
+	outerRadius: number;
+}
+
+/** 角度以度为单位，从 +X 朝向 +Y 增大；正负角度差最多绘制一圈。角度相同不绘制，整圈不绘制径向边框。 */
+class Sector extends FilledShape {
+	radius: number;
+	startAngle: number;
+	endAngle: number;
+}
+
+/** 连续折线使用圆头端点，过长尖角斜切。radius 为线宽的一半，忽略相邻重复点。 */
+class Polyline {
+	verts: Dora.Vec2.Type[];
+	radius: number;
+	color?: number;
+	/** 默认为 false。 */
+	closed?: boolean;
+}
+
+/** 角度以度为单位，从 +X 朝向 +Y 增大；正负角度差最多绘制一圈，整圈自动闭合且不绘制端帽。 */
+class Arc extends Circle {
+	startAngle: number;
+	endAngle: number;
+	/** 描边宽度的一半。 */
+	lineRadius: number;
+}
+
+/** 自适应细分的二次贝塞尔曲线。radius 为线宽的一半，端点重合时自动闭合。 */
+class QuadraticBezier extends Segment {
+	controlX: number;
+	controlY: number;
+}
+
+/** 自适应细分的三次贝塞尔曲线。radius 为线宽的一半，端点重合时自动闭合。 */
+class CubicBezier extends Segment {
+	control1X: number;
+	control1Y: number;
+	control2X: number;
+	control2Y: number;
 }
 
 class Verts {
@@ -1836,6 +1911,24 @@ interface IntrinsicElements {
 	 * 在指定位置绘制指定半径和颜色的点。只能作为`<draw-node>`的子标签来使用。
 	 */
 	'dot-shape': Dot;
+	/** 仅作为 <draw-node> 的子元素生效；属性见 JSX.Circle。 */
+	'circle-shape': Circle;
+	/** 仅作为 <draw-node> 的子元素生效；属性见 JSX.Ellipse。 */
+	'ellipse-shape': Ellipse;
+	/** 仅作为 <draw-node> 的子元素生效；属性见 JSX.RoundedRectangle。 */
+	'rounded-rect-shape': RoundedRectangle;
+	/** 仅作为 <draw-node> 的子元素生效；属性见 JSX.Ring。 */
+	'ring-shape': Ring;
+	/** 仅作为 <draw-node> 的子元素生效；属性见 JSX.Sector。 */
+	'sector-shape': Sector;
+	/** 仅作为 <draw-node> 的子元素生效；属性见 JSX.Polyline。 */
+	'polyline-shape': Polyline;
+	/** 仅作为 <draw-node> 的子元素生效；属性见 JSX.Arc。 */
+	'arc-shape': Arc;
+	/** 仅作为 <draw-node> 的子元素生效；属性见 JSX.QuadraticBezier。 */
+	'quadratic-bezier-shape': QuadraticBezier;
+	/** 仅作为 <draw-node> 的子元素生效；属性见 JSX.CubicBezier。 */
+	'cubic-bezier-shape': CubicBezier;
 	/**
 	 * 用指定的半径和颜色绘制两点之间的线段。只能作为`<draw-node>`的子标签来使用。
 	 */

@@ -383,23 +383,59 @@ let getDrawNode: (this: void, enode: React.Element) => Dora.DrawNode.Type;
 					);
 					break;
 				}
-				case 'rect-shape': {
+				case 'circle-shape': {
+					const circle = child.props as JSX.Circle;
+					node.drawCircle(Dora.Vec2(circle.centerX ?? 0, circle.centerY ?? 0), circle.radius, Dora.Color(circle.color ?? 0xffffffff));
+					break;
+				}
+				case 'ellipse-shape': {
+					const ellipse = child.props as JSX.Ellipse;
+					node.drawEllipse(Dora.Vec2(ellipse.centerX ?? 0, ellipse.centerY ?? 0), ellipse.radiusX, ellipse.radiusY, Dora.Color(ellipse.color ?? 0xffffffff));
+					break;
+				}
+				case 'rect-shape':
+				case 'rounded-rect-shape': {
 					const rect = child.props as JSX.Rectangle;
-					const centerX = rect.centerX ?? 0;
-					const centerY = rect.centerY ?? 0;
-					const hw = rect.width / 2.0;
-					const hh = rect.height / 2.0;
-					node.drawPolygon(
-						[
-							Dora.Vec2(centerX - hw, centerY + hh),
-							Dora.Vec2(centerX + hw, centerY + hh),
-							Dora.Vec2(centerX + hw, centerY - hh),
-							Dora.Vec2(centerX - hw, centerY - hh),
-						],
-						Dora.Color(rect.fillColor ?? 0xffffffff),
-						rect.borderWidth ?? 0,
-						Dora.Color(rect.borderColor ?? 0xffffffff)
-					);
+					const bounds = Dora.Rect((rect.centerX ?? 0) - rect.width / 2, (rect.centerY ?? 0) - rect.height / 2, rect.width, rect.height);
+					const fill = Dora.Color(rect.fillColor ?? 0xffffffff);
+					const border = Dora.Color(rect.borderColor ?? 0xffffffff);
+					if (child.type === 'rounded-rect-shape') {
+						node.drawRoundedRect(bounds, (child.props as JSX.RoundedRectangle).cornerRadius, fill, rect.borderWidth ?? 0, border);
+					} else {
+						node.drawRect(bounds, fill, rect.borderWidth ?? 0, border);
+					}
+					break;
+				}
+				case 'ring-shape': {
+					const ring = child.props as JSX.Ring;
+					node.drawRing(Dora.Vec2(ring.centerX ?? 0, ring.centerY ?? 0), ring.innerRadius, ring.outerRadius,
+						Dora.Color(ring.fillColor ?? 0xffffffff), ring.borderWidth ?? 0, Dora.Color(ring.borderColor ?? 0xffffffff));
+					break;
+				}
+				case 'sector-shape': {
+					const sector = child.props as JSX.Sector;
+					node.drawSector(Dora.Vec2(sector.centerX ?? 0, sector.centerY ?? 0), sector.radius, sector.startAngle, sector.endAngle,
+						Dora.Color(sector.fillColor ?? 0xffffffff), sector.borderWidth ?? 0, Dora.Color(sector.borderColor ?? 0xffffffff));
+					break;
+				}
+				case 'polyline-shape': {
+					const line = child.props as JSX.Polyline;
+					node.drawPolyline(line.verts, line.radius, Dora.Color(line.color ?? 0xffffffff), line.closed ?? false);
+					break;
+				}
+				case 'arc-shape': {
+					const arc = child.props as JSX.Arc;
+					node.drawArc(Dora.Vec2(arc.centerX ?? 0, arc.centerY ?? 0), arc.radius, arc.startAngle, arc.endAngle, arc.lineRadius, Dora.Color(arc.color ?? 0xffffffff));
+					break;
+				}
+				case 'quadratic-bezier-shape': {
+					const curve = child.props as JSX.QuadraticBezier;
+					node.drawQuadraticBezier(Dora.Vec2(curve.startX, curve.startY), Dora.Vec2(curve.controlX, curve.controlY), Dora.Vec2(curve.stopX, curve.stopY), curve.radius, Dora.Color(curve.color ?? 0xffffffff));
+					break;
+				}
+				case 'cubic-bezier-shape': {
+					const curve = child.props as JSX.CubicBezier;
+					node.drawCubicBezier(Dora.Vec2(curve.startX, curve.startY), Dora.Vec2(curve.control1X, curve.control1Y), Dora.Vec2(curve.control2X, curve.control2Y), Dora.Vec2(curve.stopX, curve.stopY), curve.radius, Dora.Color(curve.color ?? 0xffffffff));
 					break;
 				}
 				case 'polygon-shape': {
@@ -1035,6 +1071,15 @@ const elementMap: ElementMap = {
 		addChild(nodeStack, getDrawNode(enode), enode);
 	},
 	'dot-shape': drawNodeCheck,
+	'circle-shape': drawNodeCheck,
+	'ellipse-shape': drawNodeCheck,
+	'rounded-rect-shape': drawNodeCheck,
+	'ring-shape': drawNodeCheck,
+	'sector-shape': drawNodeCheck,
+	'polyline-shape': drawNodeCheck,
+	'arc-shape': drawNodeCheck,
+	'quadratic-bezier-shape': drawNodeCheck,
+	'cubic-bezier-shape': drawNodeCheck,
 	'segment-shape': drawNodeCheck,
 	'rect-shape': drawNodeCheck,
 	'polygon-shape': drawNodeCheck,
@@ -1597,6 +1642,15 @@ function getPrimitiveLabelText(this: void, enode: React.Element): string {
 function isDrawShapeElement(this: void, element: React.Element): boolean {
 	switch (element.type as keyof JSX.IntrinsicElements) {
 		case "dot-shape":
+		case "circle-shape":
+		case "ellipse-shape":
+		case "rounded-rect-shape":
+		case "ring-shape":
+		case "sector-shape":
+		case "polyline-shape":
+		case "arc-shape":
+		case "quadratic-bezier-shape":
+		case "cubic-bezier-shape":
 		case "segment-shape":
 		case "rect-shape":
 		case "polygon-shape":
@@ -2275,13 +2329,7 @@ function mountElement(this: void, parent: Dora.Node.Type, enode: React.Element):
 	if (node === undefined) {
 		return undefined;
 	}
-	if (
-		enode.type === "dot-shape" ||
-		enode.type === "segment-shape" ||
-		enode.type === "rect-shape" ||
-		enode.type === "polygon-shape" ||
-		enode.type === "verts-shape"
-	) {
+	if (isDrawShapeElement(enode)) {
 		return undefined;
 	}
 	const props = enode.props as JSX.Node;
