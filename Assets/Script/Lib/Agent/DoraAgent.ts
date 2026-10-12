@@ -14,7 +14,7 @@ import * as AgentSkills from 'Agent/Skills';
 import * as AgentConfig from 'Agent/Config';
 import * as AgentRuntimePolicy from 'Agent/Runtime/Policy';
 import { executeRegisteredAgentTool } from 'Agent/Tool/Executor';
-import type { AgentToolControl, AgentToolExecutionContext, AgentToolWorkflowState } from 'Agent/Tool/Types';
+import type { AgentToolControl, AgentToolExecutionContext, AgentToolWorkflowState, AgentToolExecutionMetadata } from 'Agent/Tool/Types';
 import { getPlainTextCompletionBudgetState, getRemainingAgentWorkSteps, isFinalAgentDecisionTurn } from 'Agent/Runtime/StepBudget';
 import { getAuthoredCompletionBlocker } from 'Agent/Runtime/CompletionPolicy';
 import { areAgentToolParamsEqual, cloneAgentToolParams, partitionAgentToolCalls } from 'Agent/Tool/Batch';
@@ -35,6 +35,7 @@ import {
 	sanitizeSearchResultForHistory,
 	sanitizeListFilesResultForHistory,
 	sanitizeBuildResultForHistory,
+	projectBuildResultForModel,
 	sanitizeActionParamsForHistory,
 	projectMessagesForLLMContext,
 	projectMessagesForCompression,
@@ -261,6 +262,7 @@ export type CodingAgentEvent =
 	}
 	| {
 		type: "tool_finished";
+		execution: AgentToolExecutionMetadata;
 		sessionId?: number;
 		taskId: number;
 		step: number;
@@ -385,6 +387,7 @@ export interface AgentActionRecord {
 	params: Record<string, unknown>;
 	truncatedEditRecovery?: Tools.TruncatedEditRecoveryNotice;
 	result?: Record<string, unknown>;
+	execution?: AgentToolExecutionMetadata;
 	control?: AgentToolControl;
 	timestamp: string;
 }
@@ -595,6 +598,7 @@ function emitAgentFinishEvent(shared: AgentShared, action: AgentActionRecord) {
 		step: action.step,
 		tool: action.tool,
 		result: action.result ?? {},
+		execution: action.execution ?? { status: "DONE" },
 	});
 }
 
@@ -819,6 +823,7 @@ async function startPreExecutedToolAction(shared: AgentShared, action: AgentActi
 	} catch (err) {
 		const message = tostring(err);
 		AgentUtils.Log("Error", `[CodingAgent] streaming pre-exec failed tool=${action.tool} id=${action.toolCallId}: ${message}`);
+		action.execution = { status: "FAILED" };
 		return { success: false, code: "TOOL_EXECUTION_FAILED", message };
 	}
 }
@@ -843,6 +848,7 @@ async function executeToolActionWithPreExecution(shared: AgentShared, action: Ag
 		if (preResult.matches(action)) {
 			AgentUtils.Log("Info", `[CodingAgent] using streaming pre-exec result tool=${action.tool} id=${action.toolCallId}`);
 			result = await preResult.promise;
+			action.execution = preResult.action.execution;
 		} else {
 			AgentUtils.Log("Warn", `[CodingAgent] discard stale streaming pre-exec result tool=${action.tool} id=${action.toolCallId}`);
 			result = await executeToolAction(shared, action);
@@ -1424,7 +1430,7 @@ function appendToolResultMessage(shared: AgentShared, action: AgentActionRecord)
 		role: "tool",
 		tool_call_id: action.toolCallId,
 		name: action.providerToolName ?? action.tool,
-		content: action.result ? toJson(action.result, false) : "",
+		content: action.result ? toJson(action.tool === "build" ? projectBuildResultForModel(action.result, action.execution) : action.result, false) : "",
 	});
 }
 
@@ -2546,6 +2552,7 @@ function createAgentToolExecutionContext(
 
 async function executeToolAction(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
 	if (action.preExecutionFailure !== undefined) {
+		action.execution = { status: "FAILED" };
 		return {
 			success: false,
 			code: action.preExecutionFailure.code,
@@ -2563,6 +2570,7 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 		schemaContext: { searchDoraDocLimitMax: AgentConfig.AGENT_LIMITS.searchDoraDocLimitMax },
 	});
 	action.control = execution.control;
+	action.execution = execution.execution;
 	if (action.tool === "analyze_image") {
 		const total = getVisionTaskUsage(shared.taskId);
 		if (execution.output.requestIssued === true) total.requestCount++;
@@ -2592,6 +2600,7 @@ async function executeToolActionSafely(shared: AgentShared, action: AgentActionR
 	} catch (err) {
 		const message = tostring(err);
 		AgentUtils.Log("Error", `[CodingAgent] tool action failed unexpectedly tool=${action.providerToolName ?? action.tool} id=${action.toolCallId}: ${message}`);
+		action.execution = { status: "FAILED" };
 		return { success: false, code: "TOOL_EXECUTION_FAILED", message };
 	}
 }
@@ -2749,6 +2758,7 @@ function sanitizeToolActionResultForHistory(action: AgentActionRecord, result: R
 function completeStoppedToolAction(shared: AgentShared, action: AgentActionRecord): void {
 	action.params = sanitizeActionParamsForHistory(action.tool, action.params);
 	if (!action.result) {
+		action.execution = { status: "STOPPED" };
 		action.result = { success: false, code: "TOOL_CANCELLED", message: getCancelledReason(shared) };
 	}
 	appendToolResultMessage(shared, action);
@@ -2787,6 +2797,7 @@ class BatchToolAction extends Node<AgentShared> {
 				}
 				await Promise.all(batch.actions.map(async action => {
 					if (shared.stopToken.stopped) {
+						action.execution = { status: "STOPPED" };
 						action.result = { success: false, code: "TOOL_CANCELLED", message: getCancelledReason(shared) };
 						return action;
 					}
@@ -2798,6 +2809,7 @@ class BatchToolAction extends Node<AgentShared> {
 				for (let i = 0; i < batch.actions.length; i++) {
 					const action = batch.actions[i];
 					if (!action.result) {
+						action.execution = { status: "FAILED" };
 						action.result = { success: false, message: "tool did not produce a result" };
 					}
 					appendToolResultMessage(shared, action);

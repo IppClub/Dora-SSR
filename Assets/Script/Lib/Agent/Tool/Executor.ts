@@ -7,6 +7,7 @@ import type {
 	AgentToolDefinition,
 	AgentToolExecutionContext,
 	AgentToolHandlerResult,
+	AgentToolExecutionResult,
 	AgentToolSchemaContext,
 } from 'Agent/Tool/Types';
 
@@ -17,8 +18,9 @@ export interface AgentToolExecutionRequest {
 	schemaContext: AgentToolSchemaContext;
 }
 
-function failure(code: string, message: string): AgentToolHandlerResult {
+function failure(code: string, message: string): AgentToolExecutionResult {
 	return {
+		execution: { status: code === "TOOL_CANCELLED" ? "STOPPED" : "FAILED" },
 		output: {
 			success: false,
 			code,
@@ -41,7 +43,7 @@ export async function executeAgentToolDefinition(
 	context: AgentToolExecutionContext,
 	schemaContext: AgentToolSchemaContext,
 	guards?: AgentToolGuard[]
-): Promise<AgentToolHandlerResult> {
+): Promise<AgentToolExecutionResult> {
 	if (context.cancellation.isCancelled()) {
 		return failure("TOOL_CANCELLED", getCancellationReason(context));
 	}
@@ -79,6 +81,9 @@ export async function executeAgentToolDefinition(
 	try {
 		result = await definition.handler(context, normalizedInput);
 	} catch (error) {
+		if (context.cancellation.isCancelled()) {
+			return failure("TOOL_CANCELLED", getCancellationReason(context));
+		}
 		return failure("TOOL_EXECUTION_FAILED", tostring(error));
 	}
 	if (context.cancellation.isCancelled()) {
@@ -93,10 +98,10 @@ export async function executeAgentToolDefinition(
 	if (!outputResult.valid) {
 		return failure("INVALID_TOOL_OUTPUT", formatValidationErrors(outputResult.errors));
 	}
-	return result;
+	return { ...result, execution: { status: "DONE" } };
 }
 
-export async function executeRegisteredAgentTool(request: AgentToolExecutionRequest): Promise<AgentToolHandlerResult> {
+export async function executeRegisteredAgentTool(request: AgentToolExecutionRequest): Promise<AgentToolExecutionResult> {
 	const definition = getToolDefinition(request.tool);
 	if (definition === undefined) {
 		return failure("UNKNOWN_TOOL", `Unknown Agent tool: ${request.tool}`);

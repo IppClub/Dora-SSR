@@ -51,9 +51,18 @@ export interface AgentToolControl {
 	spawnedSubAgent?: boolean;
 }
 
+export interface AgentToolExecutionMetadata {
+	status: "DONE" | "FAILED" | "STOPPED";
+}
+
 export interface AgentToolHandlerResult {
 	output: Record<string, unknown>;
 	control?: AgentToolControl;
+}
+
+export interface AgentToolExecutionResult extends AgentToolHandlerResult {
+	/** Internal step lifecycle, never part of the model-facing output. */
+	execution: AgentToolExecutionMetadata;
 }
 
 export type AgentToolSemanticValidationResult =

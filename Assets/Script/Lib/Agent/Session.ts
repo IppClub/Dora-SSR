@@ -333,6 +333,15 @@ interface PendingSubAgentHandoffItem {
 const activeStopTokens: Record<number, StopToken> = {};
 const activeLocalAgentControls: Record<number, LocalAgent.LocalAgentRunControl> = {};
 const finalizingSubSessionTaskIds: Record<number, boolean> = {};
+let activePromptRuns = 0;
+
+/** Runtime ownership, including asynchronous completion after task status changes. */
+export function isRuntimeIdle(): boolean {
+	return activePromptRuns === 0
+		&& Object.keys(activeStopTokens).length === 0
+		&& Object.keys(activeLocalAgentControls).length === 0
+		&& Object.keys(finalizingSubSessionTaskIds).length === 0;
+}
 const SESSION_SELECT_COLUMNS = "id, project_root, title, kind, root_session_id, parent_session_id, memory_scope, status, current_task_id, current_task_status, created_at, updated_at, metrics_json, work_mode";
 const now = () => os.time();
 
@@ -1967,13 +1976,11 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 			});
 			break;
 		case "tool_finished": {
-			const stopped = event.result.success !== true
-				&& activeStopTokens[event.taskId]?.stopped === true;
 			upsertStep(sessionId, event.taskId, event.step, event.tool, {
 				// A tool returning success=false is still a completed observation for the
 				// agent (for example, a compiler diagnostic it can act on). Reserve the
 				// step status for lifecycle state; keep the outcome in result.success.
-				status: stopped ? "STOPPED" : "DONE",
+				status: event.execution.status,
 				reason: event.reason,
 				result: event.result,
 			});
@@ -2755,6 +2762,7 @@ function startPromptTask(
 	if (previousTaskId && previousTaskId !== taskId) {
 		cleanupTaskHeavyData(previousTaskId);
 	}
+	activePromptRuns++;
 	runCodingAgent({
 		prompt: normalizedPrompt,
 		resumeConversation: options?.resumeConversation,
@@ -2782,62 +2790,66 @@ function startPromptTask(
 		stopToken,
 		onEvent: event => applyEvent(session.id, event),
 	}, async (result: CodingAgentRunResult) => {
-		const nextSession = getSessionItem(session.id);
-		if (nextSession && nextSession.kind === "sub") {
-			if (normalizedPrompt.trim() === "/clear") {
-				const stopped = stopClearedSubSession(nextSession, taskId);
-				if (!stopped.success) {
-					Log("Warn", `[AgentSession] sub session clear stop failed session=${nextSession.id} error=${stopped.message}`);
+		try {
+			const nextSession = getSessionItem(session.id);
+			if (nextSession && nextSession.kind === "sub") {
+				if (normalizedPrompt.trim() === "/clear") {
+					const stopped = stopClearedSubSession(nextSession, taskId);
+					if (!stopped.success) {
+						Log("Warn", `[AgentSession] sub session clear stop failed session=${nextSession.id} error=${stopped.message}`);
+						emitAgentSessionPatch(session.id, {
+							session: getSessionItem(session.id),
+						});
+					}
+					delete activeStopTokens[taskId];
+					return;
+				}
+				setSessionState(session.id, "RUNNING", taskId, "RUNNING");
+				emitAgentSessionPatch(session.id, {
+					session: getSessionItem(session.id),
+				});
+				const finalized = await finalizeSubSession(
+					nextSession,
+					taskId,
+					result.success,
+					result.message,
+					result.completion,
+					options?.forceSubAgentHandoff === true
+				);
+				if (!finalized.success) {
+					Log("Warn", `[AgentSession] sub session finalize failed session=${nextSession.id} error=${finalized.message}`);
+				}
+				const finalizedSession = getSessionItem(session.id);
+				if (finalizedSession) {
+					const stopped = stopToken.stopped === true;
+					const finalStatus: AgentSessionStatus = result.success
+						? "DONE"
+						: (stopped ? "STOPPED" : "FAILED");
+					setSessionState(session.id, finalStatus, taskId, finalStatus);
 					emitAgentSessionPatch(session.id, {
 						session: getSessionItem(session.id),
 					});
 				}
 				delete activeStopTokens[taskId];
-				return;
+				delete finalizingSubSessionTaskIds[taskId];
 			}
-			setSessionState(session.id, "RUNNING", taskId, "RUNNING");
-			emitAgentSessionPatch(session.id, {
-				session: getSessionItem(session.id),
-			});
-			const finalized = await finalizeSubSession(
-				nextSession,
-				taskId,
-				result.success,
-				result.message,
-				result.completion,
-				options?.forceSubAgentHandoff === true
-			);
-			if (!finalized.success) {
-				Log("Warn", `[AgentSession] sub session finalize failed session=${nextSession.id} error=${finalized.message}`);
-			}
-			const finalizedSession = getSessionItem(session.id);
-			if (finalizedSession) {
-				const stopped = stopToken.stopped === true;
-				const finalStatus: AgentSessionStatus = result.success
-					? "DONE"
-					: (stopped ? "STOPPED" : "FAILED");
-				setSessionState(session.id, finalStatus, taskId, finalStatus);
-				emitAgentSessionPatch(session.id, {
-					session: getSessionItem(session.id),
+			const fallbackSession = getSessionItem(session.id);
+			if (!result.success
+				&& (!nextSession || nextSession.kind !== "sub")
+				&& fallbackSession !== undefined
+				&& fallbackSession.currentTaskId === result.taskId
+				&& fallbackSession.currentTaskStatus === "RUNNING") {
+				applyEvent(session.id, {
+					type: "task_finished",
+					sessionId: session.id,
+					taskId: result.taskId,
+					success: false,
+					message: result.message,
+					steps: result.steps,
 				});
 			}
-			delete activeStopTokens[taskId];
-			delete finalizingSubSessionTaskIds[taskId];
-		}
-		const fallbackSession = getSessionItem(session.id);
-		if (!result.success
-			&& (!nextSession || nextSession.kind !== "sub")
-			&& fallbackSession !== undefined
-			&& fallbackSession.currentTaskId === result.taskId
-			&& fallbackSession.currentTaskStatus === "RUNNING") {
-			applyEvent(session.id, {
-				type: "task_finished",
-				sessionId: session.id,
-				taskId: result.taskId,
-				success: false,
-				message: result.message,
-				steps: result.steps,
-			});
+		} finally {
+			activePromptRuns--;
 		}
 	});
 	return { success: true, sessionId: session.id, taskId };

@@ -17,6 +17,7 @@ export type BuildMessage = {
 	file: string;
 	message: string;
 	interrupted?: boolean;
+	failureKind?: "tool";
 };
 
 export type BuildResult = {
@@ -34,6 +35,7 @@ export type BuildResult = {
 	failed?: number;
 	messages?: BuildMessage[];
 	interrupted?: boolean;
+	failureKind?: "tool";
 };
 
 function isDtsFile(path: string): boolean {
@@ -65,9 +67,9 @@ function encodeJSON(obj: object): string | undefined {
 
 async function runSingleNonTsBuild(file: string, projectRoot?:string, isCancelled?:()=>boolean): Promise<BuildMessage> {
 	if(typeof _studio_agent_tool_begin==="function") {
-		if(!projectRoot)return {success:false,file,message:"Studio project root is unavailable"};
+		if(!projectRoot)return {success:false,file,failureKind:"tool",message:"Studio project root is unavailable"};
 		const kind=getSupportedBuildKind(file);
-		if(kind!=="teal"&&kind!=="lua"&&kind!=="yarn"&&kind!=="yue"&&kind!=="xml")return {success:false,file,message:`Studio Agent ${kind??"unknown"} build tool is not connected`};
+		if(kind!=="teal"&&kind!=="lua"&&kind!=="yarn"&&kind!=="yue"&&kind!=="xml")return {success:false,file,failureKind:"tool",message:`Studio Agent ${kind??"unknown"} build tool is not connected`};
 		const content=Content.load(file);
 		if(content===undefined)return {success:false,file,message:"failed to read file"};
 		// The original Yue/XML compiler saves generated Lua within the dedicated
@@ -88,6 +90,7 @@ async function runSingleNonTsBuild(file: string, projectRoot?:string, isCancelle
 let transpileRequestSeq = 0;
 const TRANSPILE_READY_TIMEOUT_SECONDS = 5;
 const TRANSPILE_BUILD_TIMEOUT_SECONDS = 30;
+const MISSING_LUA_OUTPUT_MESSAGE = "Compiler returned no Lua output";
 
 // Installed only by the dedicated Studio Agent host. Native Dora/Web IDE
 // continues to use its original WebSocket transpile flow below.
@@ -96,11 +99,11 @@ declare const _studio_agent_tool_poll: ((requestId:string)=>{success:boolean;lua
 declare const _studio_agent_tool_cancel: ((requestId:string)=>void)|undefined;
 
 async function runStudioBuild(file:string,content:string,projectRoot:string,operation:"transpile-ts"|"build-script",saveLua:boolean,isCancelled?:()=>boolean):Promise<BuildMessage> {
-	let result:BuildMessage={success:false,file,message:"Studio Agent build tool is unavailable"};
+	let result:BuildMessage={success:false,file,failureKind:"tool",message:"Studio Agent build tool is unavailable"};
 	if(typeof _studio_agent_tool_begin!=="function"||typeof _studio_agent_tool_poll!=="function")return result;
 	let requestId:string;
 	try{requestId=_studio_agent_tool_begin(operation,file,content,projectRoot);}
-	catch(error){return {success:false,file,message:tostring(error)};}
+	catch(error){return {success:false,file,failureKind:"tool",message:tostring(error)};}
 	await new Promise<void>(resolve=>{
 		Director.systemScheduler.schedule(once(()=>{
 			const deadline=App.runningTime+TRANSPILE_BUILD_TIMEOUT_SECONDS;
@@ -110,14 +113,14 @@ async function runStudioBuild(file:string,content:string,projectRoot:string,oper
 				answer=_studio_agent_tool_poll?.(requestId);
 				return answer!==undefined;
 			});
-			if(isCancelled?.()===true)result={success:false,file,message:"build canceled",interrupted:true};
-			else if(!answer)result={success:false,file,message:"Studio Agent build tool timed out"};
-			else if(answer.success&&typeof answer.luaCode==="string"){
+			if(isCancelled?.()===true)result={success:false,file,failureKind:"tool",message:"build canceled",interrupted:true};
+			else if(!answer)result={success:false,file,failureKind:"tool",message:"Studio Agent build tool timed out"};
+			else if(answer.success&&typeof answer.luaCode==="string"&&answer.luaCode.trim()!==""){
 				if(saveLua){
 					const luaFile=Path.replaceExt(file,"lua");
 					result=Content.save(luaFile,answer.luaCode)?{success:true,file}:{success:false,file,message:`failed to save ${luaFile}`};
 				}else result={success:true,file};
-			}else result={success:false,file,message:answer.message??"Studio Agent build tool failed"};
+			}else result={success:false,file,message:answer.message??(answer.success ? MISSING_LUA_OUTPUT_MESSAGE : "Studio Agent build tool failed")};
 			resolve();
 		}));
 	});
@@ -132,7 +135,7 @@ export async function runSingleTsTranspile(
 	isCancelled?: () => boolean,
 ): Promise<BuildMessage> {
 	if(typeof _studio_agent_tool_begin==="function") {
-		if(!projectRoot)return {success:false,file,message:"Studio project root is unavailable"};
+		if(!projectRoot)return {success:false,file,failureKind:"tool",message:"Studio project root is unavailable"};
 		return runStudioBuild(file,content,projectRoot,"transpile-ts",true,isCancelled);
 	}
 	if (App.platform === "Android") {
@@ -160,6 +163,7 @@ export async function runSingleTsTranspile(
 	let result: BuildMessage = {
 		success: false,
 		file,
+		failureKind: "tool",
 		message: "Web IDE not connected",
 	};
 	if (HttpServer.wsConnectionCount === 0) {
@@ -177,7 +181,7 @@ export async function runSingleTsTranspile(
 			return;
 		}
 		if (payload.name !== "TranspileTS") return;
-		if (payload.success) {
+		if (payload.success && typeof payload.luaCode === "string" && payload.luaCode.trim() !== "") {
 			const luaFile = Path.replaceExt(file, "lua");
 			if (Content.save(luaFile, tostring(payload.luaCode))) {
 				result = { success: true, file };
@@ -185,7 +189,7 @@ export async function runSingleTsTranspile(
 				result = { success: false, file, message: `failed to save ${luaFile}` };
 			}
 		} else {
-			result = { success: false, file, message: tostring(payload.message) };
+			result = { success: false, file, message: payload.success ? MISSING_LUA_OUTPUT_MESSAGE : tostring(payload.message), failureKind: payload.failureKind === "tool" ? "tool" : undefined };
 		}
 		done = true;
 	});
@@ -199,7 +203,7 @@ export async function runSingleTsTranspile(
 	});
 	if (!probePayload || !buildPayload) {
 		listener.removeFromParent();
-		return { success: false, file, message: "failed to encode transpile request" };
+		return { success: false, file, failureKind: "tool", message: "failed to encode transpile request" };
 	}
 	await new Promise<void>(resolve => {
 		Director.systemScheduler.schedule(once(() => {
@@ -212,11 +216,11 @@ export async function runSingleTsTranspile(
 			if (!ready) {
 				listener.removeFromParent();
 				if (isCancelled?.() === true) {
-					result = { success: false, file, message: "build canceled", interrupted: true };
+					result = { success: false, file, failureKind: "tool", message: "build canceled", interrupted: true };
 				} else if (HttpServer.wsConnectionCount === 0) {
-					result = { success: false, file, message: "Web IDE disconnected" };
+					result = { success: false, file, failureKind: "tool", message: "Web IDE disconnected" };
 				} else {
-					result = { success: false, file, message: "TypeScript transpiler is not ready" };
+					result = { success: false, file, failureKind: "tool", message: "TypeScript transpiler is not ready" };
 				}
 				resolve();
 				return;
@@ -230,11 +234,11 @@ export async function runSingleTsTranspile(
 			if (!done) {
 				listener.removeFromParent();
 				if (isCancelled?.() === true) {
-					result = { success: false, file, message: "build canceled", interrupted: true };
+					result = { success: false, file, failureKind: "tool", message: "build canceled", interrupted: true };
 				} else if (HttpServer.wsConnectionCount === 0) {
-					result = { success: false, file, message: "Web IDE disconnected" };
+					result = { success: false, file, failureKind: "tool", message: "Web IDE disconnected" };
 				} else {
-					result = { success: false, file, message: "TypeScript transpile timed out" };
+					result = { success: false, file, failureKind: "tool", message: "TypeScript transpile timed out" };
 				}
 			}
 			resolve();
@@ -244,10 +248,9 @@ export async function runSingleTsTranspile(
 }
 
 function finalizeBuildResult(workDir: string, messages: BuildMessage[]): BuildResult {
-	const normalized = messages.map(m => m.success
-		? ({ ...m, file: toWorkspaceRelativePath(workDir, m.file) })
-		: ({ ...m, file: toWorkspaceRelativePath(workDir, m.file) }));
+	const normalized = messages.map(m => ({ ...m, file: toWorkspaceRelativePath(workDir, m.file) }));
 	const total = normalized.length;
+	if (total === 0) return { success: false, message: "No code files were compiled; declarations and skipped files do not count as a build.", total: 0, passed: 0, failed: 0 };
 	let failed = 0;
 	for (let i = 0; i < normalized.length; i++) {
 		if (!normalized[i].success) failed += 1;
@@ -255,14 +258,16 @@ function finalizeBuildResult(workDir: string, messages: BuildMessage[]): BuildRe
 	const passed = total - failed;
 	if (failed > 0) {
 		const interrupted = normalized.some(message => !message.success && message.interrupted === true);
+		const toolFailures = normalized.filter((m): m is Extract<BuildMessage, {success: false}> => !m.success && m.failureKind === "tool");
 		return {
 			success: false,
-			message: interrupted ? "Build canceled." : `Build failed: ${failed}/${total} file(s) failed.`,
+			message: toolFailures.length > 0 ? toolFailures.map(m => m.message).join("; ") : `Build failed: ${failed}/${total} file(s) failed.`,
 			total,
 			passed,
 			failed,
 			messages: normalized,
 			interrupted: interrupted || undefined,
+			failureKind: toolFailures.length > 0 ? "tool" : undefined,
 		};
 	}
 	return {
@@ -277,7 +282,7 @@ function finalizeBuildResult(workDir: string, messages: BuildMessage[]): BuildRe
 
 export async function build(req: { workDir: string; path: string; isCancelled?: () => boolean }): Promise<BuildResult> {
 	if (req.isCancelled?.() === true) {
-		return { success: false, message: "Build canceled.", interrupted: true };
+		return { success: false, failureKind: "tool", message: "Build canceled.", interrupted: true };
 	}
 	const targetRel = req.path ?? "";
 	const target = resolveWorkspaceSearchPath(req.workDir, targetRel);
@@ -303,7 +308,7 @@ export async function build(req: { workDir: string; path: string; isCancelled?: 
 				return finalizeBuildResult(req.workDir, messages);
 			}
 			if (!sendWebIDEFileUpdate(target, true, content)) {
-				return { success: false, message: "failed to encode UpdateFile request" };
+				return { success: false, failureKind: "tool", message: "failed to encode UpdateFile request" };
 			}
 			if (!isDtsFile(target)) {
 				messages.push(await runSingleTsTranspile(target, content, req.workDir, req.isCancelled));
@@ -345,7 +350,7 @@ export async function build(req: { workDir: string; path: string; isCancelled?: 
 	}
 	for (let i = 0; i < buildQueue.length; i++) {
 		if (req.isCancelled?.() === true) {
-			return { success: false, message: "Build canceled.", messages, interrupted: true };
+			return { success: false, failureKind: "tool", message: "Build canceled.", messages, interrupted: true };
 		}
 		const { file, kind } = buildQueue[i];
 		if (kind === "ts") {
@@ -354,7 +359,7 @@ export async function build(req: { workDir: string; path: string; isCancelled?: 
 				continue;
 			}
 			if (!sendWebIDEFileUpdate(file, true, content)) {
-				messages.push({ success: false, file, message: "failed to encode UpdateFile request" });
+				messages.push({ success: false, file, failureKind: "tool", message: "failed to encode UpdateFile request" });
 				continue;
 			}
 			messages.push(await runSingleTsTranspile(file, content, req.workDir, req.isCancelled));

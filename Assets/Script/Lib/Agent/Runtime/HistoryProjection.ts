@@ -1,3 +1,4 @@
+import type { AgentToolExecutionMetadata } from 'Agent/Tool/Types';
 import * as AgentUtils from 'Agent/Utils';
 import type { Message } from 'Agent/Utils';
 import * as AgentConfig from 'Agent/Config';
@@ -369,6 +370,11 @@ function projectOneBuildResultForLLM(result: Record<string, unknown>): Record<st
 }
 
 function projectBuildResultForLLM(result: Record<string, unknown>): Record<string, unknown> {
+	// New messages are normalized when appended. Only legacy persisted tool
+	// failures need compatibility projection here; ordinary results are just clipped.
+	if (typeof result.code === "string" || result.failureKind === "tool") {
+		return projectBuildResultForModel(result);
+	}
 	if (!isArray(result.results)) return projectOneBuildResultForLLM(result);
 	const projected: Record<string, unknown> = {};
 	for (const key in result) {
@@ -590,4 +596,12 @@ export function sanitizeMessagesForLLMInput(messages: Message[]): Message[] {
 		sanitized.push(message);
 	}
 	return sanitized;
+}
+
+/** Frontend lifecycle stays on the step; the model receives only the build outcome. */
+export function projectBuildResultForModel(result: Record<string, unknown>, execution?: AgentToolExecutionMetadata): Record<string, unknown> {
+	if ((execution !== undefined && execution.status !== "DONE") || result.failureKind === "tool" || typeof result.code === "string") {
+		return { message: `Build tool call failed: ${typeof result.message === "string" ? result.message : "unknown failure"}` };
+	}
+	return result;
 }

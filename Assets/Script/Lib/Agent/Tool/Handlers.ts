@@ -113,18 +113,24 @@ const searchDoraDoc: AgentToolHandler = async (context, input) => {
 const build: AgentToolHandler = async (context, input) => {
 	const paths = input.paths as string[];
 	const results: Record<string, unknown>[] = [];
-	const rawResults: Record<string, unknown>[] = [];
+	const rawResults: Tools.BuildResult[] = [];
+	const callFailureMessages: string[] = [];
 	let succeeded = 0;
 	for (let i = 0; i < paths.length; i++) {
-		const result = await Tools.build({
-			workDir: context.workingDir,
-			path: paths[i],
-			isCancelled: () => context.cancellation.isCancelled(),
-		});
-		const rawResult = result as unknown as Record<string, unknown>;
+		let result: Tools.BuildResult;
+		try {
+			result = await Tools.build({
+				workDir: context.workingDir,
+				path: paths[i],
+				isCancelled: () => context.cancellation.isCancelled(),
+			});
+		} catch (err) {
+			result = { success: false, failureKind: "tool", message: tostring(err) };
+		}
 		if (result.success) succeeded++;
-		rawResults.push(rawResult);
-		results.push({ index: i, path: paths[i], ...rawResult });
+		else if (result.failureKind === "tool") callFailureMessages.push(result.message);
+		rawResults.push(result);
+		results.push({ index: i, path: paths[i], ...result });
 		if (context.cancellation.isCancelled()) break;
 	}
 	const output: Record<string, unknown> = {
@@ -138,6 +144,8 @@ const build: AgentToolHandler = async (context, input) => {
 		skippedBuildCount: paths.length - results.length,
 		results,
 	};
+	// Update completion state before propagating invocation errors. A failed
+	// build attempt must block completion even when no compiler result was returned.
 	context.workflow.unbuiltEdits = false;
 	context.workflow.editsSinceBuild = 0;
 	context.workflow.editedPathsSinceBuild = [];
@@ -162,6 +170,9 @@ const build: AgentToolHandler = async (context, input) => {
 	if (output.success === true && context.workflow.failedTestNeedsBuild === true && context.workflow.failedTestHasSourceEdit === true) {
 		context.workflow.failedTestNeedsBuild = false;
 		context.workflow.failedTestHasSourceEdit = false;
+	}
+	if (callFailureMessages.length > 0) {
+		error(callFailureMessages.join("; "));
 	}
 	return { output: output as unknown as Record<string, unknown> };
 };
