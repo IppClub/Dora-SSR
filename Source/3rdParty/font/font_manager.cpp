@@ -308,6 +308,22 @@ void FontManager::destroyFont(FontHandle _handle) {
 
 	font.cachedGlyphs.clear();
 	m_fontHandles.free(_handle.idx);
+
+	// GlyphInfo stores raw Atlas pointers. Keep every live font's pages and
+	// the fallback page; unused pages otherwise survive font-cache eviction.
+	std::unordered_set<Atlas*> usedAtlases{m_fallbackGlyph.atlas};
+	for (uint16_t index = 0; index < MAX_OPENED_FONT; ++index) {
+		for (const auto& glyph : m_cachedFonts.get()[index].cachedGlyphs) {
+			usedAtlases.insert(glyph.second.atlas);
+		}
+	}
+	if (usedAtlases.find(m_currentAtlas) == usedAtlases.end()) {
+		m_currentAtlas = m_fallbackGlyph.atlas;
+	}
+	m_atlases.erase(std::remove_if(m_atlases.begin(), m_atlases.end(),
+		[&usedAtlases](const Own<Atlas>& atlas) {
+			return usedAtlases.find(atlas.get()) == usedAtlases.end();
+		}), m_atlases.end());
 }
 
 bool FontManager::preloadGlyph(FontHandle _handle, CodePoint _codePoint) {
