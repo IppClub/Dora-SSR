@@ -647,6 +647,10 @@ local record Node
 
 		-- 应用程序已进入前台。
 		"DidEnterForeground"
+		"WindowFocusLost"
+		"WindowFocusGained"
+		"WindowHidden"
+		"WindowShown"
 	end
 
 	-- 注册应用程序事件发生时触发的回调函数。

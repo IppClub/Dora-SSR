@@ -645,6 +645,10 @@ local record Node
 
 		-- The application has entered the foreground.
 		"DidEnterForeground"
+		"WindowFocusLost"
+		"WindowFocusGained"
+		"WindowHidden"
+		"WindowShown"
 	end
 
 	-- Registers callback for event triggered when an application event occurs.

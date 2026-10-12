@@ -3000,7 +3000,7 @@ const enum GlobalEvent {
 
 export {GlobalEvent as GSlot};
 
-type AppEventType = "Quit" | "LowMemory" | "WillEnterBackground" | "DidEnterBackground" | "WillEnterForeground" | "DidEnterForeground" | "Shutdown" | "BackButton";
+type AppEventType = "Quit" | "LowMemory" | "WillEnterBackground" | "DidEnterBackground" | "WillEnterForeground" | "DidEnterForeground" | "Shutdown" | "BackButton" | "WindowFocusLost" | "WindowFocusGained" | "WindowHidden" | "WindowShown";
 type AppSettingName = "Locale" | "Theme" | "FullScreen" | "Position" | "Size";
 type AppWSEventType = "Open" | "Close" | "Send" | "Receive";
 type AppWSMessage = {
