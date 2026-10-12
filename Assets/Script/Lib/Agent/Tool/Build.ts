@@ -138,7 +138,7 @@ export async function runSingleTsTranspile(
 		if(!projectRoot)return {success:false,file,failureKind:"tool",message:"Studio project root is unavailable"};
 		return runStudioBuild(file,content,projectRoot,"transpile-ts",true,isCancelled);
 	}
-	if (App.platform === "Android") {
+	if (App.platform === "Android" || App.platform === "macOS" || App.platform === "Windows") {
 		return new Promise<BuildMessage>((resolve) => {
 			const moduleName = "Script.Dev.WebServer";
 			const webServer = require(moduleName) as {
@@ -177,7 +177,7 @@ export async function runSingleTsTranspile(
 		const payload = res as AnyTable;
 		if (payload.id !== requestId) return;
 		if (payload.name === "TranspileTSProbe") {
-			ready = true;
+			ready = payload.success === true;
 			return;
 		}
 		if (payload.name !== "TranspileTS") return;

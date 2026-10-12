@@ -25,6 +25,87 @@ NS_DORA_END
 
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_IOS
 
+#if BX_PLATFORM_OSX
+#import <Cocoa/Cocoa.h>
+#import <WebKit/WebKit.h>
+#include "SDL.h"
+#include "SDL_syswm.h"
+#include "Event/Event.h"
+
+static void compilerFailure(NSString* message) {
+	std::string reason = message.UTF8String;
+	Dora::Singleton<Dora::Application>::shared().invokeInLogic([reason]() {
+		Dora::Event::send(std::string_view("AppCompilerFailure"), reason);
+	});
+}
+
+@interface DoraCompilerNavigation : NSObject <WKNavigationDelegate, WKScriptMessageHandler>
+@end
+@implementation DoraCompilerNavigation
+- (void)userContentController:(WKUserContentController*)controller didReceiveScriptMessage:(WKScriptMessage*)message {
+	Info("compiler: {}", std::string([[message.body description] UTF8String]));
+}
+- (void)webView:(WKWebView*)view didFailProvisionalNavigation:(WKNavigation*)navigation withError:(NSError*)error {
+	compilerFailure(error.localizedDescription);
+}
+- (void)webView:(WKWebView*)view didFailNavigation:(WKNavigation*)navigation withError:(NSError*)error {
+	compilerFailure(error.localizedDescription);
+}
+- (void)webViewWebContentProcessDidTerminate:(WKWebView*)view {
+	compilerFailure(@"TypeScript compiler WebView process terminated");
+}
+- (void)webView:(WKWebView*)view decidePolicyForNavigationAction:(WKNavigationAction*)action decisionHandler:(void (^)(WKNavigationActionPolicy))handler {
+	NSURL* url = action.request.URL;
+	BOOL allowed = [url.host isEqualToString:@"localhost"] && url.port.intValue == 8866 && [url.path isEqualToString:@"/compiler.html"];
+	handler(allowed ? WKNavigationActionPolicyAllow : WKNavigationActionPolicyCancel);
+}
+@end
+
+static WKWebView* compilerWebView;
+static DoraCompilerNavigation* compilerNavigation;
+NS_DORA_BEGIN
+void Application::closeCompilerWebView() {
+	if (!compilerWebView) return;
+	[compilerWebView.configuration.userContentController removeScriptMessageHandlerForName:@"compilerLog"];
+	compilerWebView.navigationDelegate = nil;
+	[compilerWebView stopLoading];
+	[compilerWebView removeFromSuperview];
+	compilerWebView = nil;
+	compilerNavigation = nil;
+	Info("TypeScript compiler WebView closed");
+}
+
+void Application::setCompilerWebView(const std::string& path, bool enabled) {
+	if (path != "/compiler.html") return;
+	if (!enabled) { closeCompilerWebView(); return; }
+	if (compilerWebView) return;
+	@autoreleasepool {
+		SDL_SysWMinfo info;
+		SDL_VERSION(&info.version);
+		if (!SDL_GetWindowWMInfo(_sdlWindow, &info)) {
+			compilerFailure(@"Cannot find compiler WebView host window");
+			return;
+		}
+		WKWebViewConfiguration* config = [[WKWebViewConfiguration alloc] init];
+		config.websiteDataStore = [WKWebsiteDataStore nonPersistentDataStore];
+		if (@available(macOS 14.0, *)) {
+			config.preferences.inactiveSchedulingPolicy = WKInactiveSchedulingPolicyNone;
+		}
+		compilerNavigation = [[DoraCompilerNavigation alloc] init];
+		[config.userContentController addScriptMessageHandler:compilerNavigation name:@"compilerLog"];
+		NSString* logging = @"for (const level of ['info','warn','error']) { const original = console[level]; console[level] = (...args) => { window.webkit.messageHandlers.compilerLog.postMessage(level + ': ' + args.map(String).join(' ')); original.apply(console, args); }; } window.addEventListener('error', e => window.webkit.messageHandlers.compilerLog.postMessage('error: ' + e.message));";
+		[config.userContentController addUserScript:[[WKUserScript alloc] initWithSource:logging injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:YES]];
+		compilerWebView = [[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 1, 1) configuration:config];
+		compilerWebView.navigationDelegate = compilerNavigation;
+		compilerWebView.alphaValue = 0;
+		[info.info.cocoa.window.contentView addSubview:compilerWebView];
+		[compilerWebView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"http://localhost:8866/compiler.html"]]];
+		Info("TypeScript compiler WebView started");
+	}
+}
+NS_DORA_END
+#endif
+
 #if BX_PLATFORM_IOS
 
 #include "SDL.h"

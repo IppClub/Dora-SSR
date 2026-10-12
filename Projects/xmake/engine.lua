@@ -28,6 +28,10 @@ local dora_includedirs = {
     rootpath("Source/3rdParty/bx/include")
 }
 
+if is_plat("windows") then
+    add_requires("dora-webview2 1.0.2903.40")
+end
+
 target("Dora")
     set_kind(is_plat("android") and "shared" or "binary")
     if is_plat("android") then
@@ -113,7 +117,7 @@ target("Dora")
         add_frameworks(
             "AudioToolbox", "AudioUnit", "Carbon", "Cocoa", "CoreAudio",
             "CoreFoundation", "CoreHaptics", "CoreVideo", "ForceFeedback",
-            "GameController", "IOKit", "Metal", "QuartzCore", "Security"
+            "GameController", "IOKit", "Metal", "QuartzCore", "Security", "WebKit"
         )
     elseif is_plat("iphoneos") then
         add_rules("mode.debug", "mode.release")
@@ -197,6 +201,8 @@ target("Dora")
         set_runargs("--asset", rootpath("Assets"))
         set_rundir(DORA_ROOT)
     elseif is_plat("windows") then
+        add_packages("dora-webview2")
+        add_files(rootpath("Source/Basic/CompilerWebViewWin.cpp"))
         add_files(rootpath("Projects/Windows/Dora/Resource.rc"))
         add_includedirs(rootpath("Projects/Windows/Dora"))
         add_includedirs(rootpath("Source/3rdParty/bx/include/compat/msvc"))

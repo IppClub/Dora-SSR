@@ -1169,6 +1169,9 @@ int Application::run(MainFunc mainFunc) {
 	while (bgfx::RenderFrame::NoContext != bgfx::renderFrame());
 	_logicThread.shutdown();
 
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+	closeCompilerWebView();
+#endif
 	if (_sdlGLContext) {
 		SDL_GL_DeleteContext(_sdlGLContext);
 		_sdlGLContext = nullptr;
@@ -1469,15 +1472,19 @@ int Application::mainLogic(Application* app) {
 	}
 
 	SharedPoolManager.push();
-#if BX_PLATFORM_ANDROID
-	app->_appWebViewListener = Listener::create("AppWebView"s, [](Event* event) {
+#if BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+	app->_appWebViewListener = Listener::create("AppWebView"s, [app](Event* event) {
 		std::string path;
 		bool visible = false;
 		if (event->get(path, visible)) {
+#if BX_PLATFORM_ANDROID
 			setAndroidAppWebView(path, visible);
+#else
+			app->invokeInRender([app, path, visible]() { app->setCompilerWebView(path, visible); });
+#endif
 		}
 	});
-#endif // BX_PLATFORM_ANDROID
+#endif // BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 	if (!SharedDirector.init()) {
 		Error("Director failed to initialize!");
 		return 1;
@@ -1576,6 +1583,9 @@ int Application::mainLogic(Application* app) {
 		app->makeTimeNow();
 	}
 
+#if BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+	app->_appWebViewListener = nullptr;
+#endif
 #ifdef DORA_AS_LIB
 	bgfx::shutdown();
 #else // DORA_AS_LIB

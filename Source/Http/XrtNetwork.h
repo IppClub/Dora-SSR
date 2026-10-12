@@ -107,6 +107,7 @@ typedef int (*DoraXrtHttpServerRequestHandler)(void* userData, const DoraXrtHttp
 typedef void (*DoraXrtServerErrorHandler)(void* userData, int error);
 
 typedef struct DoraXrtHttpServerEvents {
+	int (*shouldDefer)(void* userData, const char* path);
 	DoraXrtHttpServerRequestHandler onRequest;
 	DoraXrtServerErrorHandler onError;
 } DoraXrtHttpServerEvents;

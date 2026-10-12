@@ -233,6 +233,7 @@ static void DoraXrtNetworkEngineDestroy(void* engine) {
 }
 
 struct DoraXrtHttpServer {
+	volatile long activeRequests;
 	xhttpdserver* native;
 	DoraXrtHttpServerEvents events;
 	void* userData;
@@ -298,6 +299,88 @@ static bool DoraXrtHttpServerOnRequest(
 	return server->events.onRequest(server->userData, &request, &response) != 0;
 }
 
+/* Scheduled Lua handlers cannot block the shared network worker: a TS build
+ * needs that worker to serve its own compiler assets and result requests. */
+typedef struct DoraXrtDeferredRequest {
+	DoraXrtHttpServer* server;
+	xhttpdrequest request;
+} DoraXrtDeferredRequest;
+
+static void DoraXrtDeferredRequestFree(DoraXrtDeferredRequest* task) {
+	uint32 index;
+	for (index = 0; index < task->request.iHeaderCount; ++index) {
+		free(task->request.arrHeaders[index].sName);
+		free(task->request.arrHeaders[index].sValue);
+	}
+	free(task->request.pBody);
+	free(task);
+}
+
+static char* DoraXrtDeferredString(const char* text) {
+	size_t size = strlen(text) + 1;
+	char* result = (char*)malloc(size);
+	if (result) memcpy(result, text, size);
+	return result;
+}
+
+static int32 DoraXrtDeferredRequestRun(ptr arg, xfuture_result* result) {
+	DoraXrtDeferredRequest* task = (DoraXrtDeferredRequest*)arg;
+	DoraXrtHttpServer* server = task->server;
+	xhttpdresponse* response = xrtHttpdResponseCreate();
+	if (response && !DoraXrtHttpServerOnRequest(server, NULL, NULL, &task->request, response)) {
+		xrtHttpdResponseSetStatus(response, 404u, NULL);
+	}
+	result->pValue = response;
+	DoraXrtDeferredRequestFree(task);
+	__xnetAtomicAddFetch32(&server->activeRequests, -1);
+	return response ? XRT_NET_OK : XRT_NET_ERROR;
+}
+
+static xfuture* DoraXrtHttpServerOnRequestAsync(ptr owner, xhttpdserver* nativeServer, xhttpdconn* connection, const xhttpdrequest* request) {
+	DoraXrtHttpServer* server = (DoraXrtHttpServer*)owner;
+	DoraXrtDeferredRequest* task;
+	xfuture* future;
+	uint32 index;
+	(void)nativeServer;
+	(void)connection;
+	if (request->iMethod != XHTTPD_METHOD_POST || !server->events.shouldDefer || !server->events.shouldDefer(server->userData, request->sPath)) return NULL;
+	task = (DoraXrtDeferredRequest*)calloc(1, sizeof(*task));
+	if (!task) return NULL;
+	task->server = server;
+	task->request = *request;
+	for (index = 0; index < request->iHeaderCount; ++index) {
+		task->request.arrHeaders[index].sName = NULL;
+		task->request.arrHeaders[index].sValue = NULL;
+	}
+	task->request.pBody = NULL;
+	for (index = 0; index < request->iHeaderCount; ++index) {
+		task->request.arrHeaders[index].sName = DoraXrtDeferredString(request->arrHeaders[index].sName);
+		task->request.arrHeaders[index].sValue = DoraXrtDeferredString(request->arrHeaders[index].sValue);
+		if (!task->request.arrHeaders[index].sName || !task->request.arrHeaders[index].sValue) { DoraXrtDeferredRequestFree(task); return NULL; }
+	}
+	if (request->iBodyLen) {
+		task->request.pBody = (char*)malloc(request->iBodyLen);
+		if (!task->request.pBody) { DoraXrtDeferredRequestFree(task); return NULL; }
+		memcpy(task->request.pBody, request->pBody, request->iBodyLen);
+	}
+	if (__xnetAtomicAddFetch32(&server->activeRequests, 1) > 32) {
+		xhttpdresponse busy;
+		__xnetAtomicAddFetch32(&server->activeRequests, -1);
+		DoraXrtDeferredRequestFree(task);
+		xrtHttpdResponseInit(&busy);
+		xrtHttpdResponseSetStatus(&busy, 503u, NULL);
+		xrtHttpdConnRespond(connection, &busy);
+		xrtHttpdResponseUnit(&busy);
+		return NULL;
+	}
+	future = xTaskRunThread(DoraXrtDeferredRequestRun, task, 0);
+	if (!future) {
+		__xnetAtomicAddFetch32(&server->activeRequests, -1);
+		DoraXrtDeferredRequestFree(task);
+	}
+	return future;
+}
+
 static void DoraXrtHttpServerOnError(ptr owner, xhttpdserver* nativeServer, xhttpdconn* connection, int error) {
 	DoraXrtHttpServer* server = (DoraXrtHttpServer*)owner;
 	(void)nativeServer;
@@ -331,6 +414,7 @@ DoraXrtHttpServer* DoraXrtHttpServerCreate(unsigned int port, size_t receiveLimi
 	config.iBodyLimit = (uint32)receiveLimit;
 	memset(&nativeEvents, 0, sizeof(nativeEvents));
 	nativeEvents.OnRequest = DoraXrtHttpServerOnRequest;
+	nativeEvents.OnRequestAsync = DoraXrtHttpServerOnRequestAsync;
 	nativeEvents.OnError = DoraXrtHttpServerOnError;
 	server->native = xrtHttpdCreate(engine, &config, &nativeEvents, server);
 	if (!server->native || xrtHttpdStart(server->native) != XRT_NET_OK) {
@@ -351,6 +435,7 @@ void DoraXrtHttpServerDestroy(DoraXrtHttpServer* server) {
 		xrtHttpdDestroy(server->native);
 		server->native = NULL;
 	}
+	while (__xnetAtomicLoad32(&server->activeRequests) != 0) xrtSleep(1u);
 	free(server);
 }
 

@@ -2636,47 +2636,76 @@ collectTSVirtualFiles = (sourceRoot) ->
 			addFile Path(lualibRoot, file), nil, virtualFile
 	files
 
+supportsCompilerWebView = -> App.platform in ["Android", "macOS", "Windows"]
+webIDECompilerReady = false
+webIDEConnectionGeneration = 0
+tsProbeId = 0
+
+probeWebIDECompiler = (isCancelled) ->
+	return false if HttpServer.wsConnectionCount == 0
+	tsProbeId += 1
+	requestId = "compiler-probe-#{tsProbeId}"
+	generation = webIDEConnectionGeneration
+	done, ready = false, false
+	responses, expectedResponses = 0, HttpServer.wsConnectionCount
+	listener = Node!
+	listener\gslot "AppWS", (event) ->
+		if event.type == "Receive"
+			if res := json.decode event.msg
+				if res.name == "TranspileTSProbe" and res.id == requestId
+					responses += 1
+					ready = ready or res.success == true
+					done = ready or responses >= expectedResponses
+	emit "AppWS", "Send", json.encode name: "TranspileTSProbe", id: requestId
+	deadline = App.runningTime + 5
+	wait -> done or HttpServer.wsConnectionCount == 0 or generation ~= webIDEConnectionGeneration or App.runningTime >= deadline or (isCancelled and isCancelled!)
+	listener\removeFromParent!
+	ready = ready and generation == webIDEConnectionGeneration and HttpServer.wsConnectionCount > 0
+	webIDECompilerReady = ready if generation == webIDEConnectionGeneration
+	ready
+
+compilerConnectionListener = Node!
+compilerConnectionListener\gslot "AppWS", (event) ->
+	if event.type in ["Open", "Close"]
+		webIDEConnectionGeneration += 1
+		webIDECompilerReady = false
+		if HttpServer.wsConnectionCount > 0
+			thread -> probeWebIDECompiler!
+
 transpileTSFileWithWebIDE = do
-	const tsReadyTimeout = 5
-	const tsBuildTimeout = 30
 	tsBuildRequestId = 0
-	(file, content, sourceRoot, files) ->
+	(file, content, sourceRoot, files, isCancelled) ->
+		unless probeWebIDECompiler isCancelled
+			if isCancelled and isCancelled!
+				return success: false, :file, message: "build canceled", interrupted: true
+			return success: false, :file, message: "TypeScript transpiler is not ready", failureKind: "tool"
 		tsBuildRequestId += 1
-		requestId = tsBuildRequestId
+		requestId = "server-build-#{tsBuildRequestId}"
 		done = false
-		ready = false
 		result = nil
 		listener = Node!
 		listener\gslot "AppWS", (event) ->
 			if event.type == "Receive"
 				if res := json.decode event.msg
-					if res.name == "TranspileTSProbe" and res.id == requestId
-						ready = true
-					elseif res.name == "TranspileTS" and res.id == requestId
-						listener\removeFromParent!
-						if res.success
+					if res.name == "TranspileTS" and res.id == requestId
+						if res.success and type(res.luaCode) == "string" and res.luaCode\match "%S"
 							luaFile = Path\replaceExt file, "lua"
-							Content\save luaFile, res.luaCode
-							result = success: true, :file
+							result = if Content\save luaFile, res.luaCode
+								success: true, :file
+							else
+								success: false, :file, message: "failed to save #{luaFile}"
 						else
-							result = success: false, :file, message: res.message
+							result = success: false, :file, message: res.message or "Compiler returned no Lua output", failureKind: if res.success then "tool" else res.failureKind
 						done = true
-		emit "AppWS", "Send", json.encode name: "TranspileTSProbe", id: requestId
-		readyDeadline = App.runningTime + tsReadyTimeout
-		wait -> ready or HttpServer.wsConnectionCount == 0 or App.runningTime >= readyDeadline
-		unless ready
-			listener\removeFromParent!
-			if HttpServer.wsConnectionCount == 0
-				return success: false, :file, message: "Web IDE disconnected"
-			return success: false, :file, message: "TypeScript transpiler is not ready"
 		emit "AppWS", "Send", json.encode name: "TranspileTS", id: requestId, :file, :content, projectRoot: sourceRoot, :files
-		deadline = App.runningTime + tsBuildTimeout
-		wait -> done or HttpServer.wsConnectionCount == 0 or App.runningTime >= deadline
+		deadline = App.runningTime + 30
+		wait -> done or HttpServer.wsConnectionCount == 0 or App.runningTime >= deadline or (isCancelled and isCancelled!)
+		listener\removeFromParent!
 		unless done
-			listener\removeFromParent!
-			if HttpServer.wsConnectionCount == 0
-				return success: false, :file, message: "Web IDE disconnected"
-			return success: false, :file, message: "TypeScript transpile timed out"
+			webIDECompilerReady = false
+			if isCancelled and isCancelled!
+				return success: false, :file, message: "build canceled", interrupted: true
+			return success: false, :file, message: "TypeScript transpile timed out or Web IDE disconnected", failureKind: "tool"
 		result
 
 const compilerReadyTimeout = 15
@@ -2684,6 +2713,7 @@ const compilerBuildTimeout = 30
 const compilerIdleCloseSeconds = 8
 compilerReady = false
 compilerRequested = false
+compilerFailure = nil
 compilerUsers = 0
 compilerCloseGeneration = 0
 compilerJobId = 0
@@ -2692,11 +2722,24 @@ compilerResults = {}
 compilerInFlight = {}
 
 HttpServer\post "/compiler/ready", ->
+	return success: false unless compilerRequested
 	compilerReady = true
 	success: true
 
-HttpServer\post "/compiler/poll", ->
+HttpServer\post "/compiler/failure", (req): success: false ->
+	return success: false unless compilerRequested
+	switch req when {body: {:message}}
+		if type(message) == "string"
+			compilerFailure = message
+			compilerReady = false
+			return success: true
+
+HttpServer\postSchedule "/compiler/poll", ->
+	return success: false unless compilerRequested
 	compilerReady = true
+	deadline = App.runningTime + 5
+	wait -> #compilerJobs > 0 or not compilerRequested or compilerFailure or App.runningTime >= deadline
+	return success: false unless compilerRequested and not compilerFailure
 	job = table.remove compilerJobs, 1
 	if job
 		compilerInFlight[job.id] = true
@@ -2716,6 +2759,7 @@ acquireCompiler = ->
 	unless compilerRequested
 		compilerRequested = true
 		compilerReady = false
+		compilerFailure = nil
 		emit "AppWebView", "/compiler.html", true
 
 releaseCompiler = ->
@@ -2728,7 +2772,8 @@ releaseCompiler = ->
 		wait ->
 			compilerUsers > 0 or
 			compilerCloseGeneration ~= closeGeneration or
-			HttpServer.wsConnectionCount > 0 or
+			webIDECompilerReady or
+			compilerFailure or
 			App.runningTime >= closeDeadline
 		if compilerUsers == 0 and compilerCloseGeneration == closeGeneration and compilerRequested
 			compilerRequested = false
@@ -2745,12 +2790,12 @@ removeCompilerJob = (id) ->
 transpileTSFileWithCompiler = (file, content, sourceRoot, files, isCancelled) ->
 	acquireCompiler!
 	readyDeadline = App.runningTime + compilerReadyTimeout
-	wait -> compilerReady or App.runningTime >= readyDeadline or (isCancelled and isCancelled!)
+	wait -> compilerReady or compilerFailure or App.runningTime >= readyDeadline or (isCancelled and isCancelled!)
 	unless compilerReady
 		releaseCompiler!
 		if isCancelled and isCancelled!
 			return success: false, :file, message: "build canceled", interrupted: true
-		return success: false, :file, message: "TypeScript compiler WebView is not ready"
+		return success: false, :file, message: compilerFailure or "TypeScript compiler WebView is not ready", failureKind: "tool"
 	compilerJobId += 1
 	jobId = compilerJobId
 	compilerJobs[] =
@@ -2760,32 +2805,43 @@ transpileTSFileWithCompiler = (file, content, sourceRoot, files, isCancelled) ->
 		projectRoot: sourceRoot
 		:files
 	deadline = App.runningTime + compilerBuildTimeout
-	wait -> compilerResults[jobId] or App.runningTime >= deadline or (isCancelled and isCancelled!)
+	wait -> compilerResults[jobId] or compilerFailure or App.runningTime >= deadline or (isCancelled and isCancelled!)
 	response = compilerResults[jobId]
 	removeCompilerJob jobId
 	releaseCompiler!
 	unless response
 		if isCancelled and isCancelled!
 			return success: false, :file, message: "build canceled", interrupted: true
-		return success: false, :file, message: "TypeScript transpile timed out"
-	if response.success
+		return success: false, :file, message: compilerFailure or "TypeScript transpile timed out", failureKind: "tool"
+	if response.success and type(response.luaCode) == "string" and response.luaCode\match "%S"
 		luaFile = Path\replaceExt file, "lua"
 		if Content\save luaFile, response.luaCode
 			return success: true, :file
 		return success: false, :file, message: "failed to save #{luaFile}"
 	success: false, :file, message: response.message or "TypeScript transpile failed"
 
+compilerFailureListener = Node!
+compilerFailureListener\gslot "AppCompilerFailure", (message) ->
+	compilerFailure = message
+	compilerReady = false
+
 transpileTSFile = (file, content, sourceRoot, files, isCancelled) ->
-	if App.platform == "Android" and HttpServer.wsConnectionCount == 0
+	if supportsCompilerWebView! and not files
+		files = collectTSVirtualFiles sourceRoot or Path\getPath file
+	if HttpServer.wsConnectionCount > 0
+		result = transpileTSFileWithWebIDE file, content, sourceRoot, files, isCancelled
+		return result if result.success or result.interrupted or result.failureKind ~= "tool" or not supportsCompilerWebView!
+		webIDECompilerReady = false
+	if supportsCompilerWebView!
 		return transpileTSFileWithCompiler file, content, sourceRoot, files, isCancelled
-	transpileTSFileWithWebIDE file, content, sourceRoot, files
+	success: false, :file, message: "Web IDE compiler not connected", failureKind: "tool"
 
 HttpServer\postSchedule "/ts/build", (req): success: false ->
 	finishUpdate = AgentHost.holdSourceUpdate (req.body or {}).path
 	buildSucceeded = false
 	close _ = <close>: -> finishUpdate buildSucceeded
 	switch req when {body: {:path}}
-		if App.platform ~= "Android" and HttpServer.wsConnectionCount == 0
+		if not supportsCompilerWebView! and HttpServer.wsConnectionCount == 0
 			return success: false, message: "Web IDE not connected"
 		projectRoot = req.body.projectRoot
 		sourceRoot = getProjectSourceRoot projectRoot
@@ -2845,6 +2901,14 @@ getServerStatus = ->
 		url: "http://localhost:8866"
 		:wsConnectionCount
 		webIDEConnected: wsConnectionCount > 0
+		typescriptCompiler:
+			webIDEReady: webIDECompilerReady
+			embeddedSupported: supportsCompilerWebView!
+			embeddedRequested: compilerRequested
+			embeddedReady: compilerReady
+			users: compilerUsers
+			queuedJobs: #compilerJobs
+			failure: compilerFailure
 		assetPath: Content.assetPath
 		writablePath: Content.writablePath
 		appPath: Content.appPath
@@ -2956,7 +3020,9 @@ thread ->
 		heavyAssetsContent = if Content\exist heavyAssets then Content\load heavyAssets else ""
 		runtimeIndex = Path Content.assetPath, "www", "web-player", "runtime.json"
 		runtimeIndexContent = if Content\exist runtimeIndex then Content\load runtimeIndex else ""
-		readyContent = App.version .. "\n" .. Content\load(doraWeb) .. "\n" .. heavyAssetsContent .. "\n" .. runtimeIndexContent
+		compilerIndex = Path Content.assetPath, "www", "compiler.html"
+		compilerIndexContent = if Content\exist compilerIndex then Content\load compilerIndex else ""
+		readyContent = App.version .. "\n" .. Content\load(doraWeb) .. "\n" .. heavyAssetsContent .. "\n" .. runtimeIndexContent .. "\n" .. compilerIndexContent
 		needReload = if Content\exist doraReady
 			readyContent ~= Content\load doraReady
 		else true

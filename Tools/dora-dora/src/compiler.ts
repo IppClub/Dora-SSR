@@ -20,6 +20,8 @@ SOFTWARE. */
 
 import { getDiagnosticMessage, transpileTypescript, warmupTypescriptTranspiler } from './TranspileTS';
 import type { TranspileTSVirtualFile } from './Service';
+import Info from './Info';
+import Path from './3rdParty/Path';
 
 type CompilerJob = {
 	id: number;
@@ -80,6 +82,12 @@ const runJob = async (job: CompilerJob) => {
 };
 
 const main = async () => {
+	// The compiler page does not load the IDE's index.tsx bootstrap. Select
+	// paths from the engine platform before warming up the shared TSTL module.
+	const { platform } = await post<{ platform: string }>('/status');
+	Info.platform = platform;
+	Info.path = platform === 'Windows' ? Path.win32 : Path.posix;
+	Path.setPath(Info.path);
 	console.info('Dora compiler warmup started');
 	await warmupTypescriptTranspiler();
 	console.info('Dora compiler warmup completed');
@@ -88,10 +96,13 @@ const main = async () => {
 	for (;;) {
 		try {
 			const response = await post<PollResponse>('/compiler/poll');
+			if (!response.success) return;
 			if (response.job) {
 				await runJob(response.job);
-				continue;
 			}
+			// The server holds idle polls. Avoid background WebView timer
+			// throttling between jobs while keeping idle requests bounded.
+			continue;
 		} catch (error) {
 			console.error('Compiler polling failed:', error);
 		}
@@ -99,6 +110,13 @@ const main = async () => {
 	}
 };
 
-void main().catch((error) => {
+void main().catch(async (error) => {
 	console.error('Failed to initialize the Dora TypeScript compiler:', error);
+	try {
+		await post('/compiler/failure', {
+			message: error instanceof Error ? error.message : String(error),
+		});
+	} catch (reportError) {
+		console.error('Failed to report compiler initialization failure:', reportError);
+	}
 });

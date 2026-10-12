@@ -219,7 +219,7 @@ function ____exports.runSingleTsTranspile(file, content, projectRoot, isCancelle
 				) -- 139
 			) -- 139
 		end -- 139
-		if App.platform == "Android" then -- 139
+		if App.platform == "Android" or App.platform == "macOS" or App.platform == "Windows" then -- 139
 			return ____awaiter_resolve( -- 139
 				nil, -- 139
 				__TS__New( -- 142
@@ -267,7 +267,7 @@ function ____exports.runSingleTsTranspile(file, content, projectRoot, isCancelle
 					return -- 178
 				end -- 178
 				if payload.name == "TranspileTSProbe" then -- 178
-					ready = true -- 180
+					ready = payload.success == true -- 180
 					return -- 181
 				end -- 181
 				if payload.name ~= "TranspileTS" then -- 181

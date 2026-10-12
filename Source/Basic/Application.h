@@ -78,6 +78,10 @@ public:
 	void shutdown();
 	void invokeInRender(const std::function<void()>& func);
 	void invokeInLogic(const std::function<void()>& func);
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+	void setCompilerWebView(const std::string& path, bool enabled);
+	void closeCompilerWebView();
+#endif
 #if BX_PLATFORM_EMSCRIPTEN
 	uint32_t setWebSuspended(bool value);
 #endif
@@ -166,9 +170,9 @@ private:
 	std::mt19937 _randomEngine;
 	bgfx::PlatformData _platformData;
 	MainFunc _mainFunc;
-#if BX_PLATFORM_ANDROID
+#if BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 	Ref<Listener> _appWebViewListener;
-#endif // BX_PLATFORM_ANDROID
+#endif
 	SINGLETON_REF(Application, Logger, AsyncLogThread);
 };
 

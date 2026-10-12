@@ -269,9 +269,8 @@ export function openWebSocket() {
 		}
 		void (async () => {
 			try {
-				// Do not publish a WebSocket connection until all transpiler chunks
-				// are ready. The native build endpoint synchronously waits for the
-				// socket response and cannot serve lazy asset requests meanwhile.
+				// Warm transpiler chunks before publishing the connection so a
+				// compiler probe can report actual readiness immediately.
 				try {
 					const { warmupTypescriptTranspiler } = await import('./TranspileTS');
 					await warmupTypescriptTranspiler();
@@ -340,7 +339,14 @@ export function openWebSocket() {
 								break;
 							}
 							case WsEvent.TranspileTSProbe: {
-								sendWebSocketMessage({ name: WsEvent.TranspileTSProbe, id: result.id });
+								try {
+									const { warmupTypescriptTranspiler } = await import('./TranspileTS');
+									await warmupTypescriptTranspiler();
+									sendWebSocketMessage({ name: WsEvent.TranspileTSProbe, id: result.id, success: true });
+								} catch (error) {
+									sendWebSocketMessage({ name: WsEvent.TranspileTSProbe, id: result.id, success: false,
+										message: error instanceof Error ? error.message : String(error) });
+								}
 								break;
 							}
 							case WsEvent.TranspileTS: {

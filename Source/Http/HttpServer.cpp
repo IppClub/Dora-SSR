@@ -1056,6 +1056,15 @@ static RangeParseResult parse_byte_range(const HttpServer::Request& request, siz
 bool HttpServer::start(int port) {
 	if (_server) return false;
 	DoraXrtHttpServerEvents events{};
+	// Scheduled routes may wait for further HTTP requests (compiler startup,
+	// polling and results). Keep that wait off XRT's network worker.
+	events.shouldDefer = [](void* owner, const char* path) -> int {
+		auto self = r_cast<HttpServer*>(owner);
+		for (const auto& route : self->_postScheduled) {
+			if (route_matches(route.pattern, path)) return 1;
+		}
+		return 0;
+	};
 	events.onRequest = [](void* owner, const DoraXrtHttpServerRequest* nativeRequest, DoraXrtHttpServerResponse* nativeResponse) -> int {
 		auto self = r_cast<HttpServer*>(owner);
 		const auto requestGeneration = self->_generation.load(std::memory_order_acquire);
