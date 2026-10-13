@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 
 #include "Basic/Application.h"
+#include "Basic/IDEInput.h"
 
 #include "Basic/AutoreleasePool.h"
 #include "Basic/Content.h"
@@ -87,6 +88,21 @@ JNIEXPORT void JNICALL Java_org_ippclub_dorassr_MainActivity_nativeSetPath(JNIEn
 }
 static float g_androidScreenDensity;
 extern "C" {
+JNIEXPORT void JNICALL Java_org_ippclub_dorassr_MainActivity_nativeIDEState(JNIEnv* env, jclass, jstring state, jstring message) {
+ const char* value = env->GetStringUTFChars(state, nullptr);
+ const char* reason = env->GetStringUTFChars(message, nullptr);
+ std::string stateText(value ? value : ""), messageText(reason ? reason : "");
+ if (value) env->ReleaseStringUTFChars(state, value);
+ if (reason) env->ReleaseStringUTFChars(message, reason);
+ Dora::Singleton<Dora::Application>::shared().invokeInLogic([stateText, messageText]() {
+  Dora::Event::send(std::string_view("AppIDEState"), stateText, messageText);
+ });
+}
+
+JNIEXPORT void JNICALL Java_org_ippclub_dorassr_MainActivity_nativeIDEInputFocus(JNIEnv*, jclass, jboolean ideFocused) {
+	Dora::notifyIDEInputFocus(ideFocused);
+}
+
 JNIEXPORT void JNICALL Java_org_ippclub_dorassr_MainActivity_nativeSetScreenDensity(JNIEnv* env, jclass cls, jfloat screenDensity) {
 	g_androidScreenDensity = s_cast<float>(screenDensity);
 }
@@ -169,6 +185,24 @@ static void setAndroidAppWebView(const std::string& path, bool visible) {
 #endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX
 
 NS_DORA_BEGIN
+void notifyIDEInputFocus(bool ideFocused) {
+	SharedApplication.invokeInLogic([ideFocused]() {
+		SDL_Event event{};
+		event.type = SDL_WINDOWEVENT;
+		// Cancel consumers before clearStates emits synthetic key releases.
+		event.window.event = SDL_WINDOWEVENT_FOCUS_LOST;
+		SharedDirector.handleSDLEvent(event);
+		SharedApplication.eventHandler(event);
+		if (!ideFocused) {
+			event.window.event = SDL_WINDOWEVENT_FOCUS_GAINED;
+			SharedDirector.handleSDLEvent(event);
+			SharedApplication.eventHandler(event);
+		}
+	});
+	// Native browser children do not send their key-up events through SDL.
+	// Reset its raw modifier state too, on the thread that pumps SDL events.
+	SharedApplication.invokeInRender(SDL_ResetKeyboard);
+}
 
 namespace {
 
@@ -805,6 +839,16 @@ bool Application::isIdled() const noexcept {
 	return _idled;
 }
 
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+bool Application::isIDEWebViewVisible() const {
+	return _ideWebViewVisible.load(std::memory_order_relaxed);
+}
+
+void Application::setIDEWebViewVisible(bool visible) {
+	_ideWebViewVisible.store(visible, std::memory_order_relaxed);
+}
+#endif
+
 void Application::setFPSLimited(bool var) {
 	_fpsLimited = var;
 }
@@ -1055,8 +1099,14 @@ int Application::run(MainFunc mainFunc) {
 #endif
 	while (_renderRunning) {
 		// do render staff and swap buffers
+		bool frameReady = true;
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+		// Browser input must not wait for the logic thread to submit a frame.
+		frameReady = bgfx::renderFrame(isIDEWebViewVisible() ? 1 : -1) == bgfx::RenderFrame::Render;
+#else
 		bgfx::renderFrame();
-		if (_sdlGLContext) {
+#endif
+		if (_sdlGLContext && frameReady) {
 			SDL_GL_SwapWindow(_sdlWindow);
 		}
 
@@ -1175,6 +1225,10 @@ int Application::run(MainFunc mainFunc) {
 					break;
 			}
 		}
+
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+		if (isIDEWebViewVisible()) pumpIDEWebViewEvents();
+#endif
 	}
 
 	// wait for render process to stop
@@ -1582,7 +1636,12 @@ int Application::mainLogic(Application* app) {
 		app->_frame = bgfx::frame();
 
 		double targetDeltaTime = 1.0 / app->_targetFPS;
-		if (app->_idled) {
+		bool idleForIDE = false;
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+		idleForIDE = app->isIDEWebViewVisible();
+#endif
+		// Visible native IDEs must also yield when foreground rendering is unlimited.
+		if (app->_idled || idleForIDE) {
 			app->updateDeltaTime();
 			double idleTime = targetDeltaTime - app->getDeltaTime();
 			if (idleTime > 0) {

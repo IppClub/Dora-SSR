@@ -32,6 +32,10 @@ import android.util.Base64;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.inputmethod.InputConnection;
+import android.view.inputmethod.InputMethodManager;
+import android.view.inputmethod.EditorInfo;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -92,6 +96,8 @@ public class MainActivity extends SDLActivity {
 	private static native void nativeSetPath(String path);
 	private static native void nativeSetScreenDensity(float density);
 	private static native String nativeGetInstallFile();
+	private static native void nativeIDEInputFocus(boolean ideFocused);
+	private static native void nativeIDEState(String state, String message);
 	private static native void nativeSetMainActivityClass(Class<?> cls);
 	private Button sideHandleButton;
 	private LinearLayout sideMenu;
@@ -105,6 +111,9 @@ public class MainActivity extends SDLActivity {
 	private TextView ideStatusView;
 	private boolean ideLoaded = false;
 	private boolean ideVisible = false;
+	private boolean ideRequestedVisible = false;
+	private final java.util.ArrayDeque<Runnable> ideInputActions = new java.util.ArrayDeque<>();
+	private boolean ideToggleHeld = false;
 	private boolean sideMenuExpanded = false;
 	private ValueCallback<Uri[]> fileChooserCallback;
 	private final Map<String, String> pendingBlobFileNames = new HashMap<>();
@@ -325,6 +334,16 @@ public class MainActivity extends SDLActivity {
 	@Keep
 	public void setAppWebView(String path, boolean visible) {
 		runOnUiThread(() -> {
+			if (path.startsWith("/ide/")) {
+				switch (path.substring(5)) {
+					case "toggle": toggleIde(); break;
+					case "show": showIde(); collapseSideMenu(); break;
+					case "hide": showEngine(); collapseSideMenu(); break;
+					case "stop": stopIdeSession(); collapseSideMenu(); break;
+					case "reload": reloadIde(); collapseSideMenu(); break;
+				}
+				return;
+			}
 			if (!"/compiler.html".equals(path)) {
 				Log.w(TAG, "ignored unsupported AppWebView path: " + path);
 				return;
@@ -421,6 +440,7 @@ public class MainActivity extends SDLActivity {
 	@Override
 	public void onWindowFocusChanged(boolean hasFocus) {
 		super.onWindowFocusChanged(hasFocus);
+		if (!hasFocus) ideToggleHeld = false;
 		if (hasFocus) {
 			hideSystemUI();
 		}
@@ -543,7 +563,7 @@ public class MainActivity extends SDLActivity {
 		statusParams.gravity = android.view.Gravity.TOP | android.view.Gravity.CENTER_HORIZONTAL;
 		ideContainer.addView(ideStatusView, statusParams);
 
-		ideWebView = new WebView(this);
+		ideWebView = new IdeWebView(this);
 		ideWebView.setBackgroundColor(0x0);
 		configureIdeWebView();
 		ideContainer.addView(ideWebView, new FrameLayout.LayoutParams(
@@ -573,12 +593,7 @@ public class MainActivity extends SDLActivity {
 
 		switchModeButton = makeOverlayButton("IDE");
 		switchModeButton.setOnClickListener(v -> {
-			if (ideVisible) {
-				showEngine();
-			} else {
-				showIde();
-			}
-			collapseSideMenu();
+			toggleIde();
 		});
 		sideMenu.addView(switchModeButton);
 
@@ -591,11 +606,7 @@ public class MainActivity extends SDLActivity {
 
 		reloadButton = makeOverlayButton("Reload");
 		reloadButton.setOnClickListener(v -> {
-			if (ideWebView != null) {
-				ideStatusView.setVisibility(View.VISIBLE);
-				ideStatusView.setText("Reloading Web IDE...");
-				ideWebView.reload();
-			}
+			reloadIde();
 			collapseSideMenu();
 		});
 		sideMenu.addView(reloadButton);
@@ -733,6 +744,7 @@ public class MainActivity extends SDLActivity {
 				Log.d(TAG, "page finished: " + url);
 				ideStatusView.setVisibility(View.GONE);
 				injectBlobDownloadHook();
+				((IdeWebView)ideWebView).installCompositionTracking();
 			}
 
 			@Override
@@ -1027,12 +1039,111 @@ public class MainActivity extends SDLActivity {
 		sideHandleButton.bringToFront();
 	}
 
+	// Keep the active connection, and track DOM composition rather than only Java
+	// IME calls: renderer shortcuts can finish it without notifying the connection.
+	private class IdeWebView extends WebView {
+		private volatile InputConnection connection;
+		IdeWebView(Context context) { super(context); }
+		@Override public boolean onKeyPreIme(int keyCode, KeyEvent event) {
+			return handleIdeToggleKey(event) || super.onKeyPreIme(keyCode, event);
+		}
+		@Override public InputConnection onCreateInputConnection(EditorInfo attrs) {
+			connection = super.onCreateInputConnection(attrs);
+			return connection;
+		}
+		void installCompositionTracking() {
+			evaluateJavascript("(function(){if(window.__doraIDEIMEInstalled)return;"
+				+ "window.__doraIDEIMEInstalled=true;window.__doraIDEComposing=false;"
+				+ "document.addEventListener('compositionstart',function(){window.__doraIDEComposing=true;},true);"
+				+ "document.addEventListener('compositionend',function(){window.__doraIDEComposing=false;},true);"
+				+ "})()", null);
+		}
+		void cancelComposition(Runnable complete) {
+			// Native WebView focus alone does not restore Monaco's blurred textarea.
+			evaluateJavascript("(function(){var e=document.activeElement;"
+				+ "if(e && (e.tagName==='TEXTAREA' || e.tagName==='INPUT' || e.isContentEditable))"
+				+ "window.__doraIDEFocus=e;return window.__doraIDEComposing===true;})()",
+				result -> cancelOnInputThread("true".equals(result), complete));
+		}
+		private void cancelOnInputThread(boolean browserComposing, Runnable complete) {
+			InputConnection current = connection;
+			if (current == null) { complete.run(); return; }
+			// Chromium's threaded connection asserts if edited on the UI thread.
+			// Wait for its batch acknowledgement before blur/restartInput can commit.
+			Runnable cancel = () -> {
+				if (connection == current && browserComposing) {
+					current.beginBatchEdit();
+					try {
+						current.setComposingText("", 1);
+						current.finishComposingText();
+					} finally { current.endBatchEdit(); }
+				}
+				uiHandler.post(complete);
+			};
+			Handler handler = current.getHandler();
+			if (handler != null && handler.getLooper() != Looper.myLooper()) handler.post(cancel);
+			else cancel.run();
+		}
+	}
+	private boolean handleIdeToggleKey(KeyEvent event) {
+		if (ideContainer == null || event.getKeyCode() != KeyEvent.KEYCODE_H) return false;
+		if (ideToggleHeld) {
+			if (event.getAction() == KeyEvent.ACTION_UP) ideToggleHeld = false;
+			return true;
+		}
+		if (event.getAction() != KeyEvent.ACTION_DOWN || !event.isCtrlPressed() || !event.isShiftPressed()
+			|| event.isAltPressed() || event.isMetaPressed()) return false;
+		if (event.getRepeatCount() == 0) { ideToggleHeld = true; toggleIde(); }
+		return true;
+	}
+	@Override public boolean handleAppShortcut(KeyEvent event) { return handleIdeToggleKey(event); }
+	@Override public boolean dispatchKeyEvent(KeyEvent event) {
+		return handleIdeToggleKey(event) || super.dispatchKeyEvent(event);
+	}
+	private void toggleIde() {
+		if (ideRequestedVisible) showEngine(); else showIde();
+		collapseSideMenu();
+	}
+	private void enqueueIdeInputAction(Runnable action) {
+		ideInputActions.add(action);
+		if (ideInputActions.size() == 1) drainIdeInputAction();
+	}
+	private void drainIdeInputAction() {
+		Runnable complete = () -> {
+			cancelKeyboard();
+			ideInputActions.remove().run();
+			if (!ideInputActions.isEmpty()) drainIdeInputAction();
+		};
+		if (ideWebView instanceof IdeWebView) ((IdeWebView)ideWebView).cancelComposition(complete);
+		else complete.run();
+	}
+	private void cancelKeyboard() {
+		View focused = getCurrentFocus();
+		SDLActivity.cancelTextInputComposition();
+		InputMethodManager input = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+		if (input != null) {
+			if (focused != null) {
+				input.restartInput(focused);
+				input.hideSoftInputFromWindow(focused.getWindowToken(), 0);
+			}
+			if (ideWebView != null) input.hideSoftInputFromWindow(ideWebView.getWindowToken(), 0);
+		}
+	}
 	private void showIde() {
+		ideRequestedVisible = true;
+		enqueueIdeInputAction(this::showIdeAfterCancel);
+	}
+	private void showIdeAfterCancel() {
 		if (ideContainer == null) {
 			return;
 		}
+		if (!ideVisible) nativeIDEInputFocus(true);
 		ideVisible = true;
 		ideContainer.setVisibility(View.VISIBLE);
+		ideWebView.requestFocus();
+		ideWebView.evaluateJavascript("(function(){var e=window.__doraIDEFocus;"
+			+ "if(e && e.isConnected)e.focus({preventScroll:true});})()", null);
+		nativeIDEState("visible", "");
 		if (!ideLoaded) {
 			ideLoaded = true;
 			ideStatusView.setVisibility(View.VISIBLE);
@@ -1044,20 +1155,47 @@ public class MainActivity extends SDLActivity {
 	}
 
 	private void showEngine() {
+		ideRequestedVisible = false;
+		enqueueIdeInputAction(this::showEngineAfterCancel);
+	}
+	private void showEngineAfterCancel() {
+		if (ideVisible) nativeIDEInputFocus(false);
 		ideVisible = false;
 		if (ideContainer != null) {
 			ideContainer.setVisibility(View.GONE);
 		}
+		if (mSurface != null) mSurface.requestFocus();
+		nativeIDEState("hidden", "");
 		updateSideControls();
 	}
 
+	private void reloadIde() {
+		ideRequestedVisible = true;
+		enqueueIdeInputAction(this::reloadIdeAfterCancel);
+	}
+	private void reloadIdeAfterCancel() {
+		boolean wasLoaded = ideLoaded;
+		showIdeAfterCancel();
+		// A stopped/new view needs loadUrl, not reload of its old about:blank.
+		if (wasLoaded && ideWebView != null) {
+			ideStatusView.setVisibility(View.VISIBLE);
+			ideStatusView.setText("Reloading Web IDE...");
+			ideWebView.reload();
+		}
+	}
 	private void stopIdeSession() {
+		ideRequestedVisible = false;
+		enqueueIdeInputAction(this::stopIdeAfterCancel);
+	}
+	private void stopIdeAfterCancel() {
+		showEngineAfterCancel();
 		if (ideWebView != null) {
 			ideWebView.stopLoading();
 			ideWebView.loadUrl("about:blank");
 		}
 		ideLoaded = false;
 		ideVisible = false;
+		nativeIDEState("stopped", "");
 		if (ideContainer != null) {
 			ideContainer.setVisibility(View.GONE);
 		}

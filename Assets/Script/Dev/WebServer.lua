@@ -7128,7 +7128,7 @@ nativeIDEListener:gslot("AppIDEState", function(state, message) -- 2893
 end) -- 2893
 local _anon_func_11 = function() -- 2897
 	local _val_0 = App.platform -- 2897
-	return "macOS" == _val_0 or "Windows" == _val_0 -- 2897
+	return "Android" == _val_0 or "macOS" == _val_0 or "Windows" == _val_0 -- 2897
 end -- 2897
 HttpServer:post("/ide", function(req) -- 2896
 	if not (_anon_func_11()) then -- 2897
@@ -7150,7 +7150,7 @@ HttpServer:post("/ide", function(req) -- 2896
 				end -- 2898
 			end -- 2898
 			if action ~= nil then -- 2898
-				if ("show" == action or "hide" == action or "stop" == action or "reload" == action) then -- 2899
+				if ("show" == action or "hide" == action or "stop" == action or "reload" == action or "toggle" == action) then -- 2899
 					emit("AppWebView", "/ide/" .. action, true) -- 2900
 					return { -- 2901
 						success = true -- 2901
@@ -7166,7 +7166,7 @@ HttpServer:post("/ide", function(req) -- 2896
 end) -- 2896
 local _anon_func_12 = function() -- 2917
 	local _val_0 = App.platform -- 2917
-	return "macOS" == _val_0 or "Windows" == _val_0 -- 2917
+	return "Android" == _val_0 or "macOS" == _val_0 or "Windows" == _val_0 -- 2917
 end -- 2917
 local getServerStatus -- 2903
 getServerStatus = function() -- 2903

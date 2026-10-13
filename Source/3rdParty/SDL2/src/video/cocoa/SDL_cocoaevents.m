@@ -84,10 +84,17 @@ static BOOL Cocoa_IsNativeUI(NSResponder *responder)
     return NO;
 }
 
+#include <objc/runtime.h>
+
 static void Cocoa_DispatchEvent(NSEvent *theEvent)
 {
     SDL_VideoDevice *_this = SDL_GetVideoDevice();
 
+    if (theEvent.type == NSEventTypeKeyDown || theEvent.type == NSEventTypeKeyUp) {
+        BOOL (^consumeKey)(NSEvent *) = objc_getAssociatedObject(theEvent.window,
+            NSSelectorFromString(@"doraIDEKeyEvent:"));
+        if (consumeKey && consumeKey(theEvent)) return;
+    }
     switch ([theEvent type]) {
         case NSEventTypeLeftMouseDown:
         case NSEventTypeOtherMouseDown:

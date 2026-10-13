@@ -9,6 +9,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 
 #include "Basic/Application.h"
+#include "Basic/IDEInput.h"
+#include <objc/runtime.h>
 
 #if BX_PLATFORM_OSX || BX_PLATFORM_IOS
 
@@ -93,6 +95,8 @@ static void ideState(NSString* state, NSString* message = @"") {
 @property BOOL loaded;
 @property BOOL visible;
 @property(strong) id keyMonitor;
+@property BOOL toggleKeyHeld;
+@property unsigned short toggleKeyCode;
 - (instancetype)initWithWindow:(NSWindow*)window;
 - (void)show;
 - (void)hide;
@@ -168,24 +172,48 @@ static void ideState(NSString* state, NSString* message = @"") {
 		[NSApp.mainMenu insertItem:editItem atIndex:1];
 	}
 
+ [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(windowResigned:) name:NSWindowDidResignKeyNotification object:_window];
  __weak DoraIDEHost* weakSelf = self;
- _keyMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown handler:^NSEvent*(NSEvent* event) {
+ NSEvent*(^keyHandler)(NSEvent*) = ^NSEvent*(NSEvent* event) {
   DoraIDEHost* host = weakSelf;
-  if (!host || !host.visible || event.window != host.window || !(event.modifierFlags & NSEventModifierFlagCommand)) return event;
+  if (!host || event.window != host.window) return event;
+  if (host.toggleKeyHeld && event.keyCode == host.toggleKeyCode) {
+   if (event.type == NSEventTypeKeyUp) host.toggleKeyHeld = NO;
+   return nil;
+  }
+  if (event.type != NSEventTypeKeyDown) return event;
+  NSString* key = event.charactersIgnoringModifiers.lowercaseString;
+  NSEventModifierFlags mods = event.modifierFlags & (NSEventModifierFlagCommand | NSEventModifierFlagShift | NSEventModifierFlagControl | NSEventModifierFlagOption);
+  if (mods == (NSEventModifierFlagCommand | NSEventModifierFlagShift) && [key isEqualToString:@"h"]) {
+   if (!event.isARepeat) { host.toggleKeyHeld = YES; host.toggleKeyCode = event.keyCode; [host switchMode]; }
+   return nil;
+  }
+  if (!host.visible || !(event.modifierFlags & NSEventModifierFlagCommand)) return event;
   id responder = host.window.firstResponder;
   if ([responder conformsToProtocol:@protocol(NSTextInputClient)] && [(id<NSTextInputClient>)responder hasMarkedText]) return event;
-  NSString* key = event.charactersIgnoringModifiers.lowercaseString;
   BOOL shift = (event.modifierFlags & NSEventModifierFlagShift) != 0;
-  if (shift && [key isEqualToString:@"h"]) { [host hide]; return nil; }
   if (shift && [key isEqualToString:@"l"]) { [host reload]; return nil; }
   if ([key isEqualToString:@"w"]) {
    NSString* script = [NSString stringWithFormat:@"document.activeElement.dispatchEvent(new KeyboardEvent('keydown', {key:'w',code:'KeyW',metaKey:true,shiftKey:%@,bubbles:true,cancelable:true}))", shift ? @"true" : @"false"];
    [host.view evaluateJavaScript:script completionHandler:nil]; return nil;
   }
   return event;
- }];
+ };
+ const void* key = NSSelectorFromString(@"doraIDEKeyEvent:");
+ BOOL(^consumeKey)(NSEvent*) = ^BOOL(NSEvent* event) {
+  if (objc_getAssociatedObject(event, key)) return YES;
+  if (keyHandler(event)) return NO;
+  objc_setAssociatedObject(event, key, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  return YES;
+ };
+ // SDL translates keys before NSApplication's local monitors. Give it the
+ // same handler so reserved keys never enter either the engine or WebKit.
+ objc_setAssociatedObject(_window, key, consumeKey, OBJC_ASSOCIATION_COPY_NONATOMIC);
+ _keyMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:(NSEventMaskKeyDown | NSEventMaskKeyUp)
+  handler:^NSEvent*(NSEvent* event) { return consumeKey(event) ? nil : event; }];
  return self;
 }
+- (void)windowResigned:(NSNotification*)notification { _toggleKeyHeld = NO; }
 - (void)updateControls {
  BOOL zh = [NSLocale.preferredLanguages.firstObject hasPrefix:@"zh"];
  [self setTitle:_visible ? (zh ? @"引擎" : @"Engine") : @"IDE" forButton:_switchButton];
@@ -217,15 +245,30 @@ static void ideState(NSString* state, NSString* message = @"") {
  _view.navigationDelegate = self; _view.UIDelegate = self;
  [root addSubview:_view positioned:NSWindowBelow relativeTo:_overlay];
 }
+- (void)cancelComposition {
+ id responder = _window.firstResponder;
+ NSTextInputContext* context = [responder isKindOfClass:[NSView class]] ? [(NSView*)responder inputContext] : nil;
+ id<NSTextInputClient> client = context.client;
+ if (!client && [responder conformsToProtocol:@protocol(NSTextInputClient)]) client = responder;
+ if ([client hasMarkedText]) {
+  [client setMarkedText:@"" selectedRange:NSMakeRange(0, 0) replacementRange:NSMakeRange(NSNotFound, 0)];
+  [client unmarkText];
+ }
+ [context discardMarkedText];
+}
 - (void)show {
+ if (!_visible) { [self cancelComposition]; Dora::notifyIDEInputFocus(true); }
  [self ensureView]; _visible = YES; _view.hidden = NO;
+ Dora::Singleton<Dora::Application>::shared().setIDEWebViewVisible(true);
  [NSApp activateIgnoringOtherApps:YES];
  [_window makeKeyAndOrderFront:nil]; [_window makeFirstResponder:_view];
  if (!_loaded) { _loaded = YES; [_view loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"http://localhost:8866/"]]]; }
  [self updateControls]; [self collapseMenu]; ideState(@"visible");
 }
 - (void)hide {
+ if (_visible) { [self cancelComposition]; Dora::notifyIDEInputFocus(false); }
  _visible = NO; _view.hidden = YES;
+ Dora::Singleton<Dora::Application>::shared().setIDEWebViewVisible(false);
  [self updateControls]; [self collapseMenu]; ideState(@"hidden");
 }
 - (void)stop {
@@ -235,6 +278,8 @@ static void ideState(NSString* state, NSString* message = @"") {
 }
 - (void)reload { _loaded = NO; [self show]; }
 - (void)detach {
+ objc_setAssociatedObject(_window, NSSelectorFromString(@"doraIDEKeyEvent:"), nil, OBJC_ASSOCIATION_ASSIGN);
+ [NSNotificationCenter.defaultCenter removeObserver:self];
  [NSObject cancelPreviousPerformRequestsWithTarget:self];
  if (_keyMonitor) [NSEvent removeMonitor:_keyMonitor]; _keyMonitor = nil;
  _view.navigationDelegate = nil; _view.UIDelegate = nil;
@@ -305,7 +350,8 @@ static void ideState(NSString* state, NSString* message = @"") {
 @end
 static DoraIDEHost* ideHost;
 NS_DORA_BEGIN
-void Application::setIDEWebView(const std::string& action) {
+void Application::setIDEWebView(const std::string& requestedAction) {
+ const std::string action = requestedAction == "toggle" ? (isIDEWebViewVisible() ? "hide" : "show") : requestedAction;
  if (!ideHost && (action == "attach" || action == "show" || action == "reload")) {
   SDL_SysWMinfo info; SDL_VERSION(&info.version);
   if (!SDL_GetWindowWMInfo(_sdlWindow, &info)) return;
@@ -316,8 +362,15 @@ void Application::setIDEWebView(const std::string& action) {
  else if (action == "stop") [ideHost stop];
  else if (action == "reload") [ideHost reload];
 }
-void Application::closeIDEWebView() { [ideHost detach]; ideHost = nil; }
-bool Application::isIDEWebViewVisible() const { return ideHost.visible; }
+void Application::closeIDEWebView() { [ideHost detach]; ideHost = nil; setIDEWebViewVisible(false); }
+void Application::pumpIDEWebViewEvents() {
+	@autoreleasepool {
+		// SDL's nonblocking event poll does not give WebKit/CA a waiting run-loop
+		// turn. Service native sources and commit layers independently of bgfx.
+		[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
+			beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.001]];
+	}
+}
 NS_DORA_END
 NS_DORA_BEGIN
 void Application::closeCompilerWebView() {

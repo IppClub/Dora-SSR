@@ -1,12 +1,27 @@
 // Run with a native Dora instance and usable external Web IDEs disconnected.
 // Exercises the real embedded IDE, rather than a mocked WebSocket compiler.
+// Set DORA_REMOTE_FIXTURE=1 for a guest/device; DORA_COMPILER_URL selects its service.
 import assert from 'node:assert/strict';
 import {mkdtemp, writeFile, readFile, rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
-import {join} from 'node:path';
+import {join, win32, posix} from 'node:path';
+import {randomUUID, createHash, createHmac} from 'node:crypto';
 const base = process.env.DORA_COMPILER_URL ?? 'http://localhost:8866';
+// Optional approved session file; credentials are never printed or committed.
+const auth = process.env.DORA_IDE_AUTH_FILE
+ ? JSON.parse(await readFile(process.env.DORA_IDE_AUTH_FILE,'utf8')) : null;
+if (auth) { assert.ok(auth.sessionId); assert.ok(auth.sessionSecret); }
 const post = async (path, body = {}) => {
- const response = await fetch(base + path, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(45000)});
+ const encoded = JSON.stringify(body);
+ const headers = {'Content-Type':'application/json'};
+ if (auth) {
+  const timestamp = Math.floor(Date.now()/1000).toString(), nonce = randomUUID();
+  const hash = createHash('sha256').update(encoded).digest('hex');
+  const payload = [auth.sessionId,'POST',path,timestamp,nonce,hash].join('\n');
+  Object.assign(headers, {'X-Dora-Session':auth.sessionId,'X-Dora-Timestamp':timestamp,
+   'X-Dora-Nonce':nonce,'X-Dora-Signature':createHmac('sha256',auth.sessionSecret).update(payload).digest('hex')});
+ }
+ const response = await fetch(base + path, {method:'POST',headers,body:encoded,signal:AbortSignal.timeout(45000)});
  assert.equal(response.status,200,path); return response.json();
 };
 const waitFor = async (predicate, label, seconds = 20) => {
@@ -23,12 +38,25 @@ const initial = await post('/status');
 assert.equal(initial.nativeIDE.supported,true);
 assert.equal(initial.typescriptCompiler.webIDEReady,false,'Disconnect usable external IDEs first');
 const externalCount = initial.wsConnectionCount;
-const root = await mkdtemp(join(tmpdir(),'dora-native-ide-'));
+// Remote fixtures also allow Android/emulators and Windows guests to use the
+// same real compilation verifier without sharing the host's filesystem.
+const remote = process.env.DORA_REMOTE_FIXTURE === '1';
+const nativeJoin = initial.platform === 'Windows' ? win32.join : posix.join;
+const root = remote ? nativeJoin(initial.writablePath,`.native-ide-${randomUUID()}`)
+ : await mkdtemp(join(tmpdir(),'dora-native-ide-'));
+if (remote) assert.equal((await post('/new',{path:root,content:'',folder:true})).success,true);
+const fixtureJoin = remote ? nativeJoin : join;
 try {
- const file = join(root,'init.ts'); await writeFile(file,'export const value = 42;\n');
+ const file = fixtureJoin(root,'init.ts');
+ if (remote) assert.equal((await post('/write',{path:file,content:'export const value = 42;\n'})).success,true);
+ else await writeFile(file,'export const value = 42;\n');
  const build = async () => {
   assert.equal((await post('/ts/build',{path:file,projectRoot:root})).success,true);
-  assert.match(await readFile(join(root,'init.lua'),'utf8'),/42/);
+  const output = fixtureJoin(root,'init.lua');
+  if (remote) {
+   const result = await post('/read',{path:output}); assert.equal(result.success,true);
+   assert.match(result.content,/42/);
+  } else assert.match(await readFile(output,'utf8'),/42/);
  };
  await build();
  assert.equal((await post('/status')).typescriptCompiler.embeddedReady,true);
@@ -43,6 +71,13 @@ try {
  await build();
  assert.equal((await post('/status')).typescriptCompiler.embeddedRequested,false);
  console.log('PASS: hidden IDE retains compiler session');
+ const hiddenGeneration = (await post('/status')).typescriptCompiler.webIDEGeneration;
+ await action('toggle'); await waitFor(s=>s.nativeIDE.state==='visible','toggle to IDE');
+ await build();
+ await action('toggle'); await waitFor(s=>s.nativeIDE.state==='hidden','toggle to engine');
+ await build();
+ assert.equal((await post('/status')).typescriptCompiler.webIDEGeneration,hiddenGeneration,'toggle retains page and compiler generation');
+ console.log('PASS: bidirectional toggle preserves IDE and compiler session');
  await action('show'); await waitFor(s=>s.nativeIDE.state==='visible','reopen');
  const generation = (await post('/status')).typescriptCompiler.webIDEGeneration;
  await action('reload'); await waitFor(s=>s.typescriptCompiler.webIDEGeneration > generation && s.typescriptCompiler.webIDEReady && s.wsConnectionCount===externalCount + 1,'reload reconnects');
@@ -57,5 +92,7 @@ try {
  assert.equal((await post('/ide',{action:'invalid'})).success,false);
  console.log(`Native IDE verification passed (${initial.platform}).`);
 } finally {
- await action('stop'); await rm(root,{recursive:true,force:true});
+ await action('stop');
+ if (remote) assert.equal((await post('/delete',{path:root})).success,true);
+ else await rm(root,{recursive:true,force:true});
 }

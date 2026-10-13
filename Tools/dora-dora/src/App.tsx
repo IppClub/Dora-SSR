@@ -25,6 +25,7 @@ import NewFileDialog, { DoraFileType } from './NewFileDialog';
 import logo from './logo.svg';
 import { TransitionGroup } from 'react-transition-group';
 import * as Service from './Service';
+import { EditorDebounce } from './EditorDebounce';
 import { AppBar, DrawerHeader, Entry, Main, PlayControl, PlayControlMode, StyledStack } from './Frame';
 import { Color } from './Theme';
 import { MacScrollbar } from 'mac-scrollbar';
@@ -93,7 +94,6 @@ const monaco = new Proxy({} as typeof Monaco, {
 	get: (_target, property) => Reflect.get(getMonacoRuntime(), property),
 });
 
-let lastEditorActionTime = Date.now();
 let lastUploadedTime = Date.now();
 let isSaving = false;
 
@@ -544,7 +544,7 @@ const Editor = memo((props: {
 	minimap: boolean,
 	tourTarget?: boolean,
 	onMount: (editor: Monaco.editor.IStandaloneCodeEditor) => void,
-	onUnmount: (editor: Monaco.editor.IStandaloneCodeEditor) => void,
+	onUnmount: (file: EditingFile, editor: Monaco.editor.IStandaloneCodeEditor) => void,
 	onModified: (editingFile: EditingFile, content: string, lastChange?: Monaco.editor.IModelContentChange) => void,
 	onValidate: (markers: Monaco.editor.IMarker[], key: string) => void,
 }) => {
@@ -569,6 +569,32 @@ const Editor = memo((props: {
 		if (content === undefined) return;
 		onModified(editingFile, content, ev.changes.at(-1));
 	}, [onModified, editingFile]);
+	const handleUnmount = useCallback((editor: Monaco.editor.IStandaloneCodeEditor) =>
+		onUnmount(editingFile, editor), [onUnmount, editingFile]);
+	const options = useMemo<Monaco.editor.IStandaloneEditorConstructionOptions>(() => ({
+		readOnly,
+		padding: { top: 20 },
+		wordWrap: 'on',
+		wordBreak: 'keepAll',
+		selectOnLineNumbers: true,
+		matchBrackets: 'near',
+		fontSize: 18,
+		useTabStops: false,
+		insertSpaces: false,
+		renderWhitespace: 'all',
+		tabSize: 2,
+		minimap: {
+			enabled: minimap,
+		},
+		definitionLinkOpensInPeek: true,
+	}), [readOnly, minimap]);
+	const handleMount = useCallback((editor: Monaco.editor.IStandaloneCodeEditor) => {
+		// The shared model-change hook initially protects definition/peek editors.
+		// Apply this workspace editor's policy explicitly; stable options should
+		// not rely on an incidental parent rerender to make it editable again.
+		editor.updateOptions(options);
+		onMount(editor);
+	}, [onMount, options]);
 	return (
 		<div
 			hidden={hidden}
@@ -581,29 +607,13 @@ const Editor = memo((props: {
 					height={height}
 					language={language}
 					theme={EditorTheme}
-					onMount={onMount}
-					onUnmount={onUnmount}
+					onMount={handleMount}
+					onUnmount={handleUnmount}
 					loading={editorBackground}
 					onChange={onChange}
 					onValidate={language === "typescript" ? doValidate : undefined}
 					filePath={editingFile.key}
-					options={{
-						readOnly,
-						padding: { top: 20 },
-						wordWrap: 'on',
-						wordBreak: 'keepAll',
-						selectOnLineNumbers: true,
-						matchBrackets: 'near',
-						fontSize: 18,
-						useTabStops: false,
-						insertSpaces: false,
-						renderWhitespace: 'all',
-						tabSize: 2,
-						minimap: {
-							enabled: minimap,
-						},
-						definitionLinkOpensInPeek: true,
-					}}
+					options={options}
 				/>
 			</Suspense>
 		</div>
@@ -826,7 +836,12 @@ export default function PersistentDrawerLeft() {
 	const [openLog, setOpenLog] = useState<{ title: string, stopOnClose: boolean } | null>(null);
 	const [openBottomLog, setOpenBottomLog] = useState(false);
 	const [waitForSave, setWaitForSave] = useState(false);
+	const pendingSaveKeys = useRef(new Set<string>());
 	const [isEditorActioning, setIsEditorActioning] = useState(false);
+	const editorDebounce = useMemo(() => new EditorDebounce(setIsEditorActioning), [setIsEditorActioning]);
+	useEffect(() => () => editorDebounce.dispose(), [editorDebounce]);
+	const checkFileRef = useRef<(file: EditingFile, content: string, model: Monaco.editor.ITextModel,
+		lastChange?: Monaco.editor.IModelContentChange) => void>(() => {});
 	const [isProjectBuilding, setIsProjectBuilding] = useState(false);
 	const filesRef = useRef(files);
 	const treeDataRef = useRef(treeData);
@@ -1358,19 +1373,13 @@ export default function PersistentDrawerLeft() {
 			// Otherwise a quick tab round-trip can remount the editor with the
 			// previous snapshot and overwrite the retained Monaco model.
 			editingFile.contentModified = content !== editingFile.content ? content : null;
-			lastEditorActionTime = Date.now();
-			setIsEditorActioning(true);
-			new Promise((resolve) => {
-				setTimeout(resolve, 500);
-			}).then(() => {
-				if (Date.now() - lastEditorActionTime >= 500) {
-					setModified({ key: editingFile.key, content });
-					checkFile(editingFile, content, model, lastChange);
-					setIsEditorActioning(false);
-				}
+			editorDebounce.schedule(editingFile.key, () => {
+				if (model.isDisposed()) return;
+				setModified({ key: editingFile.key, content });
+				checkFileRef.current(editingFile, content, model, lastChange);
 			});
 		}
-	}, [checkFileReadonly, setModified]);
+	}, [checkFileReadonly, setModified, editorDebounce]);
 
 	const handleDrawerOpen = () => {
 		setDrawerOpen(open => !open);
@@ -2154,7 +2163,7 @@ export default function PersistentDrawerLeft() {
 			}
 		}
 	}, [t, checkFileReadonly, revalidateActiveTypeScriptModel]);
-	const onEditorWillUnmount = useCallback((file: EditingFile) => (editor: Monaco.editor.IStandaloneCodeEditor) => {
+	const onEditorWillUnmount = useCallback((file: EditingFile, editor: Monaco.editor.IStandaloneCodeEditor) => {
 		if (file.editor !== editor) return;
 		file.viewState = editor.saveViewState();
 		file.editor = undefined;
@@ -2918,7 +2927,7 @@ export default function PersistentDrawerLeft() {
 					Service.write({ path: file.key, content: contentModified }).then((res) => {
 						if (res.success) {
 							file.content = contentModified;
-							file.contentModified = null;
+							if (file.contentModified === contentModified) file.contentModified = null;
 							const ext = path.extname(file.key).toLowerCase();
 							if (ext === '.yue' || ext === '.tl' || ext === '.xml') {
 								const { key } = file;
@@ -4665,6 +4674,8 @@ export default function PersistentDrawerLeft() {
 		});
 	};
 
+	checkFileRef.current = checkFile;
+
 	const onStopRunning = useCallback(() => {
 		setOpenBottomLog(false);
 		if (tabIndex !== null) {
@@ -4762,36 +4773,49 @@ export default function PersistentDrawerLeft() {
 		});
 	}, [addAlert, openLog, t, onStopRunning, saveAllTabs, onPlayControlRun, files, tabIndex, isProjectBuilding, startFirstProjectTour, firstProjectTourOpen, firstProjectTourCurrent, firstProjectTourFile, currentFileKey]);
 
-	const saveCurrentTab = useCallback(async () => {
-		if (tabIndex === null) return;
-		if (isEditorActioning) {
-			setWaitForSave(true);
-			return;
-		}
-		if (isSaving) {
-			return;
-		}
+	const saveQueuedTabs = useCallback(async () => {
+		if (isSaving || pendingSaveKeys.current.size === 0) return;
+		const keys = [...pendingSaveKeys.current];
+		pendingSaveKeys.current.clear();
+		setWaitForSave(false);
 		isSaving = true;
-		const file = files[tabIndex];
 		try {
-			const filesChanged = await saveFileInTab(file, true);
-			setFiles(prev => prev.map(f => {
-				const changed = filesChanged.find(c => c.key === f.key);
-				return changed !== undefined ? changed : f;
-			}));
+			for (const key of keys) {
+				const file = filesRef.current.find(f => f.key === key);
+				if (file === undefined) continue;
+				const filesChanged = await saveFileInTab(file, true);
+				setFiles(prev => prev.map(f => filesChanged.find(c => c.key === f.key) ?? f));
+			}
 		} catch (reason) {
-			console.error(`failed to save current tab, due to: ${reason}`);
+			console.error(`failed to save requested tabs, due to: ${reason}`);
 		} finally {
 			isSaving = false;
+			if (pendingSaveKeys.current.size !== 0) setWaitForSave(true);
 		}
-	}, [saveFileInTab, isEditorActioning, tabIndex, files]);
+	}, [saveFileInTab]);
+
+	const saveCurrentTab = useCallback(async () => {
+		if (tabIndex === null) return;
+		const file = files[tabIndex];
+		if (file === undefined) return;
+		// Keep the user's target while checks finish, even if they switch tabs.
+		pendingSaveKeys.current.add(file.key);
+		if (isEditorActioning || isSaving) { setWaitForSave(true); return; }
+		await saveQueuedTabs();
+	}, [saveQueuedTabs, isEditorActioning, tabIndex, files]);
 
 	useEffect(() => {
-		if (waitForSave && !isEditorActioning) {
-			saveCurrentTab();
-			setWaitForSave(false);
-		}
-	}, [waitForSave, isEditorActioning, saveCurrentTab]);
+		if (!waitForSave || isEditorActioning) return;
+		// A write already in flight can finish without changing React state.
+		// Keep the queued request alive until that write releases the save lock.
+		let retry: ReturnType<typeof setTimeout> | undefined;
+		const flush = () => {
+			if (isSaving) retry = setTimeout(flush, 50);
+			else void saveQueuedTabs();
+		};
+		flush();
+		return () => { if (retry !== undefined) clearTimeout(retry); };
+	}, [waitForSave, isEditorActioning, saveQueuedTabs]);
 
 	const onTabMenuClick = useCallback((event: TabMenuEvent) => {
 		switch (event) {
@@ -5148,7 +5172,7 @@ export default function PersistentDrawerLeft() {
 
 	const onValidate = useCallback((markers: Monaco.editor.IMarker[], key: string) => {
 		if (checkFileReadonly(key, false)) return;
-		const file = files.find(f => f.key === key);
+		const file = filesRef.current.find(f => f.key === key);
 		if (file === undefined) return;
 		let status: TabStatus = "normal";
 		let severity = 0;
@@ -5183,9 +5207,9 @@ export default function PersistentDrawerLeft() {
 		}
 		if (file.status !== status) {
 			file.status = status;
-			setFiles([...files]);
+			setFiles(prev => [...prev]);
 		}
-	}, [files, checkFileReadonly]);
+	}, [checkFileReadonly]);
 
 	const onFileFilterClose = useCallback((value: FilterOption | null) => {
 		setOpenFilter(false);
@@ -6359,7 +6383,7 @@ export default function PersistentDrawerLeft() {
 										language={language}
 										minimap={!isResizing}
 										onMount={file.onMount}
-										onUnmount={onEditorWillUnmount(file)}
+										onUnmount={onEditorWillUnmount}
 										onModified={onModified}
 										onValidate={onValidate}
 										readOnly={readOnly}

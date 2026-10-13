@@ -189,6 +189,12 @@ public class SDLSurface extends SurfaceView implements SurfaceHolder.Callback,
 
     // Key events
     @Override
+    public boolean onKeyPreIme(int keyCode, KeyEvent event) {
+        return (SDLActivity.mSingleton != null && SDLActivity.mSingleton.handleAppShortcut(event))
+            || super.onKeyPreIme(keyCode, event);
+    }
+
+    @Override
     public boolean onKey(View v, int keyCode, KeyEvent event) {
         return SDLActivity.handleKeyEvent(v, keyCode, event, null);
     }

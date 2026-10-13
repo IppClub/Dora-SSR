@@ -1620,6 +1620,22 @@ Texture2D* ImGuiDora::createTexture(uint8_t* data, int width, int height, bgfx::
 
 void ImGuiDora::handleEvent(const SDL_Event& event) {
 	switch (event.type) {
+		case SDL_WINDOWEVENT:
+			if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+				_inputs.remove_if([](const std::any& value) {
+					const auto* input = std::any_cast<SDL_Event>(&value);
+					return input && (input->type == SDL_KEYDOWN || input->type == SDL_KEYUP);
+				});
+				auto& io = ImGui::GetIO();
+				std::fill(std::begin(_mousePressed), std::end(_mousePressed), false);
+				io.ClearEventsQueue();
+				io.ClearInputKeys();
+				io.ClearInputMouse();
+				io.AddFocusEvent(false);
+			} else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+				ImGui::GetIO().AddFocusEvent(true);
+			}
+			break;
 		case SDL_MOUSEWHEEL: {
 			if (event.wheel.y > 0) {
 				_mouseWheel.y = 1;

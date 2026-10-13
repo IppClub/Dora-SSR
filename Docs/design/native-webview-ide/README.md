@@ -22,11 +22,12 @@ Native IDE and background compiler views have separate lifetimes.
   eight seconds, or earlier when an IDE becomes ready.
 - Stop appears over the engine once the IDE has been loaded; Reload appears
   over the IDE. Host shortcuts are
-  Command/Ctrl+Shift+H and Command/Ctrl+Shift+L. Editor save, run, build, close
+  Command/Ctrl+Shift+H toggles Engine/IDE in either direction;
+  Command/Ctrl+Shift+L reloads the visible IDE. Editor save, run, build, close
   tab, undo/redo and clipboard commands retain their existing bindings.
 - Window size, fullscreen, DPI and always-on-top settings apply to both views
   because they share the engine window.
-- `POST /ide` accepts `show`, `hide`, `stop`, `reload`; `/status.nativeIDE`
+- `POST /ide` accepts `show`, `hide`, `stop`, `reload`, `toggle`; `/status.nativeIDE`
   reports support, state and error text. Compiler connection generation is
   reported to distinguish a fresh reload handshake from a prior connection.
 
@@ -64,6 +65,61 @@ rules are retained. Application shutdown releases both native views and overlay 
 SDL destroys the engine window.
 The frontend ignores shortcut dispatch during IME composition, including the
 legacy keyCode 229 case, before preventing browser defaults.
+
+## Toggle shortcut and input ownership
+
+Command+Shift+H on macOS and Ctrl+Shift+H on Windows/Android switch directly
+between Engine and IDE. Android supports hardware keyboards; the floating
+button remains available for touch input. Only the Dora window handles the
+shortcut. Repeated key-down events and the corresponding key-up are consumed.
+The shortcut and side-menu switch use the same show/hide paths, preserving the
+page, unsaved buffers and compiler session. Stop and Reload remain separate.
+
+Switching cancels unconfirmed IME text before transferring focus, retaining
+confirmed text and ordinary selections. macOS clears the marked range and
+ends the Cocoa conversion session. Windows cancels IMM candidates and awaits
+Chromium composition cancellation before hiding the browser. Android uses the
+active input connection on its designated handler thread, waits for cancellation
+before changing focus, protects ordinary selections, intercepts
+hardware shortcuts before the IME, and hides the soft keyboard. Focus returns
+to the native browser or engine surface. The logic thread cancels engine input
+consumers before releasing pressed keys, and clears queued ImGui key state.
+
+Android also supports the same `/ide` actions and native IDE status reports.
+For guest/device compilation verification, set `DORA_REMOTE_FIXTURE=1` and
+`DORA_COMPILER_URL` when invoking the retained verifier; it creates and removes
+its project through the existing file APIs. When access verification is enabled,
+set `DORA_IDE_AUTH_FILE` to a local JSON file containing an approved session's
+`sessionId` and `sessionSecret`; the verifier signs requests using the existing
+Web IDE protocol. Never commit that session file.
+
+Windows declares Per-Monitor V2 DPI awareness in its embedded application
+manifest, with PerMonitor and legacy true/pm fallbacks. WebView2 retains its
+normal automatic monitor scaling and uses raw pixel bounds from the parent
+client area; no page zoom is used to simulate high-DPI rendering.
+
+## Desktop responsiveness
+
+While the IDE is visible, the render thread uses a 1 ms timeout when waiting
+for a submitted bgfx frame before polling native events. macOS also services the Cocoa RunLoop;
+Windows yields through the native message queue. This bounds the frame semaphore
+wait, not GPU submission or presentation time. Visibility is atomic because the
+main and logic threads both read it.
+
+The engine skips scene drawing while the opaque IDE covers it. Simulation,
+services and bgfx resource processing continue; explicit game captures request
+fresh drawing. Presentation temporarily omits VSync without changing the
+requested View.vsync setting. Returning to Engine restores normal presentation
+and drawing. While the IDE is visible, the engine sleeps to its target FPS even
+when the requested unlimited mode is enabled, avoiding empty-frame flooding.
+Hidden/stopped IDEs restore the usual engine scheduling and requested settings.
+
+The editor keeps one pending validation timer per file and checks the latest
+snapshot after 500 ms of inactivity. Stable Monaco options and callbacks avoid
+repeated option updates during typing. Workspace editors apply their editable
+policy explicitly on mount; definition/peek protection remains in place.
+Deferred saves remember the requested file across tab changes and wait for an
+in-flight save. A successful write does not clear edits made after its snapshot.
 
 ## Validation
 

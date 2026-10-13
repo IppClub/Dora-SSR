@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 #if BX_PLATFORM_WINDOWS
 #include "Basic/Application.h"
+#include "Basic/IDEInput.h"
 #include "Basic/Content.h"
 #include "Event/Event.h"
 #include "SDL.h"
@@ -22,6 +23,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <WebView2EnvironmentOptions.h>
 #include <wrl.h>
 #include <shellapi.h>
+#include <imm.h>
 #include <shobjidl.h>
 #pragma pop_macro("interface")
 #include <filesystem>
@@ -160,6 +162,8 @@ namespace {
 HWND ideWindow = nullptr, ideHandle = nullptr, ideMenu = nullptr, ideStatus = nullptr;
 WNDPROC ideOriginalProc = nullptr;
 bool ideVisible = false;
+bool ideToggleHeld = false;
+uint64_t ideSwitchSerial = 0;
 constexpr UINT_PTR ideMenuTimer = 0xD04A;
 HFONT ideFont = nullptr;
 ComPtr<ICoreWebView2Controller> ideController;
@@ -182,6 +186,7 @@ UINT ideWindowDPI(HWND window) {
 }
 
 void ideState(const std::string& state, const std::string& message = {}) {
+	Dora::Singleton<Dora::Application>::shared().setIDEWebViewVisible(ideVisible);
 	Dora::Singleton<Dora::Application>::shared().invokeInLogic([state, message]() {
 		Dora::Event::send(std::string_view("AppIDEState"), state, message);
 	});
@@ -292,11 +297,33 @@ void ideSaveDownload(IDEDownload& task) {
 	task.args->put_Handled(TRUE);
 	task.deferral->Complete();
 }
+bool ideToggleKey(UINT key, bool down, bool repeated) {
+ if (key != 'H') return false;
+ if (ideToggleHeld) { if (!down) ideToggleHeld = false; return true; }
+ if (!down || !(GetKeyState(VK_CONTROL) & 0x8000) || !(GetKeyState(VK_SHIFT) & 0x8000)
+  || (GetKeyState(VK_MENU) & 0x8000) || (GetKeyState(VK_LWIN) & 0x8000) || (GetKeyState(VK_RWIN) & 0x8000)) return false;
+ if (!repeated) { ideToggleHeld = true; PostMessageW(ideWindow, WM_COMMAND, 101, 0); }
+ return true;
+}
+void ideCancelNativeIME() {
+ HWND focused = GetFocus();
+ if (!focused || (focused != ideWindow && !IsChild(ideWindow, focused))) return;
+ HIMC context = ImmGetContext(focused);
+ if (context) {
+  ImmNotifyIME(context, NI_COMPOSITIONSTR, CPS_CANCEL, 0);
+  ImmNotifyIME(context, NI_CLOSECANDIDATE, 0, 0);
+  ImmReleaseContext(focused, context);
+ }
+}
 LRESULT CALLBACK ideWindowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam) {
  switch (message) {
+  case WM_KEYDOWN: case WM_SYSKEYDOWN: case WM_KEYUP: case WM_SYSKEYUP:
+   if (ideToggleKey(static_cast<UINT>(wParam), message == WM_KEYDOWN || message == WM_SYSKEYDOWN, (lParam & (1L << 30)) != 0)) return 0;
+   break;
+  case WM_ACTIVATEAPP: if (!wParam) ideToggleHeld = false; break;
   case WM_TIMER: if (wParam == ideMenuTimer) { ideCollapseMenu(); return 0; } break;
   case WM_COMMAND:
-   if (LOWORD(wParam) == 101) { ideAction("hide"); return 0; }
+   if (LOWORD(wParam) == 101) { Dora::Singleton<Dora::Application>::shared().setIDEWebView("toggle"); return 0; }
    if (LOWORD(wParam) == 103) { Dora::Singleton<Dora::Application>::shared().setIDEWebView("reload"); return 0; }
    break;
   case WM_SIZE: case WM_DPICHANGED: {
@@ -328,17 +355,43 @@ LRESULT CALLBACK ideWindowProc(HWND window, UINT message, WPARAM wParam, LPARAM 
 }
 void ideAction(const std::string& action) {
  if (!ideWindow) return;
+ const auto serial = ++ideSwitchSerial;
  if (action == "hide" || action == "stop") {
+  const bool changing = ideVisible;
   ideVisible = false;
-  if (action == "stop") {
-   ideSessionRequested = false; ideLoaded = false;
-   if (ideView) { ideView->Stop(); ideView->Navigate(L"about:blank"); }
+  if (action == "stop") { ideSessionRequested = false; ideLoaded = false; }
+  ideCancelNativeIME();
+  const auto generation = ideGeneration;
+  auto finish = [serial, generation, changing, action]() {
+   if (serial != ideSwitchSerial || generation != ideGeneration || !ideWindow) return;
+   if (action == "stop" && ideView) { ideView->Stop(); ideView->Navigate(L"about:blank"); }
+   if (ideController) ideController->put_IsVisible(FALSE);
+   ShowWindow(ideStatus, SW_HIDE);
+   SetFocus(ideWindow);
+   if (changing) Dora::notifyIDEInputFocus(false);
+   ideLayout(); ideCollapseMenu(); ideState(action == "stop" ? "stopped" : "hidden");
+  };
+  // Cancel Chromium's TSF composition BEFORE blur, which otherwise may commit it.
+  // No remote debugging listener or browser kernel is needed for this API.
+  if (ideView && changing) {
+   auto failed = [serial, generation]() {
+    if (serial != ideSwitchSerial || generation != ideGeneration) return;
+    ideVisible = true;
+    ideLayout();
+    ideState("failed", "Cannot cancel Web IDE composition; reload the IDE before switching.");
+   };
+   HRESULT result = ideView->CallDevToolsProtocolMethod(L"Input.imeSetComposition",
+    LR"({"text":"","selectionStart":0,"selectionEnd":0})",
+    Callback<ICoreWebView2CallDevToolsProtocolMethodCompletedHandler>([finish, failed](HRESULT result, LPCWSTR) -> HRESULT {
+     if (SUCCEEDED(result)) finish(); else failed(); return S_OK;
+    }).Get());
+   if (FAILED(result)) failed();
+   return;
   }
-  if (ideController) ideController->put_IsVisible(FALSE);
-  ShowWindow(ideStatus, SW_HIDE);
-  ideLayout(); ideCollapseMenu(); ideState(action == "stop" ? "stopped" : "hidden"); return;
+  finish(); return;
  }
  if (action == "show" || action == "reload") {
+  if (!ideVisible) { ideCancelNativeIME(); Dora::notifyIDEInputFocus(true); }
   ideSessionRequested = true; ideVisible = true;
   ShowWindow(ideWindow, SW_SHOW); SetForegroundWindow(ideWindow);
   if (ideController) { ideController->put_IsVisible(TRUE); ideController->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC); }
@@ -354,8 +407,12 @@ void ideExternalURL(const std::wstring& url) {
 }
 }
 NS_DORA_BEGIN
-bool Application::isIDEWebViewVisible() const { return ideVisible; }
+void Application::pumpIDEWebViewEvents() {
+	// Yield without consuming messages; the next SDL poll dispatches them.
+	MsgWaitForMultipleObjectsEx(0, nullptr, 1, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
+}
 void Application::closeIDEWebView() {
+ ++ideSwitchSerial; ideToggleHeld = false;
 	++ideGeneration;
 	for (auto& task : ideDownloads) { task.args->put_Cancel(TRUE); task.deferral->Complete(); }
 	ideDownloads.clear();
@@ -369,12 +426,14 @@ void Application::closeIDEWebView() {
  if (ideMenu) DestroyWindow(ideMenu);
  if (ideStatus) DestroyWindow(ideStatus);
  ideHandle = ideMenu = ideStatus = nullptr; ideOriginalProc = nullptr; ideVisible = false;
+	setIDEWebViewVisible(false);
 	if (ideFont) DeleteObject(ideFont);
 	ideFont = nullptr;
 	ideWindow = nullptr; ideStarting = false; ideLoaded = false; ideSessionRequested = false;
 	if (ideCOM) { CoUninitialize(); ideCOM = false; }
 }
-void Application::setIDEWebView(const std::string& action) {
+void Application::setIDEWebView(const std::string& requestedAction) {
+ const std::string action = requestedAction == "toggle" ? (ideVisible ? "hide" : "show") : requestedAction;
 	if (action != "attach" && action != "show" && action != "reload") { ideAction(action); return; }
 	if (!ideWindow) {
 		if (FAILED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED))) { ideState("failed", "Cannot initialize Web IDE on the window STA thread"); return; }
@@ -454,9 +513,12 @@ void Application::setIDEWebView(const std::string& action) {
 						if (generation != ideGeneration) return S_OK;
 						COREWEBVIEW2_KEY_EVENT_KIND kind; UINT key;
 						args->get_KeyEventKind(&kind); args->get_VirtualKey(&key);
+                        const bool down = kind == COREWEBVIEW2_KEY_EVENT_KIND_KEY_DOWN || kind == COREWEBVIEW2_KEY_EVENT_KIND_SYSTEM_KEY_DOWN;
+                        COREWEBVIEW2_PHYSICAL_KEY_STATUS status{}; args->get_PhysicalKeyStatus(&status);
+                        if (ideToggleKey(key, down, status.WasKeyDown != 0)) { args->put_Handled(TRUE); return S_OK; }
 						if ((kind == COREWEBVIEW2_KEY_EVENT_KIND_KEY_DOWN || kind == COREWEBVIEW2_KEY_EVENT_KIND_SYSTEM_KEY_DOWN) && (GetKeyState(VK_CONTROL) & 0x8000) && !(GetKeyState(VK_MENU) & 0x8000)) {
 							const bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
-							if (shift && (key == 'H' || key == 'L')) { args->put_Handled(TRUE); PostMessageW(ideWindow, WM_COMMAND, key == 'H' ? 101 : 103, 0); }
+							if (shift && key == 'L' && !status.WasKeyDown) { args->put_Handled(TRUE); PostMessageW(ideWindow, WM_COMMAND, 103, 0); }
 						}
 						return S_OK;
 					}).Get(), &token);

@@ -16,6 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #endif
 
 #include <random>
+#include <atomic>
 #include <thread>
 
 struct SDL_Window;
@@ -84,6 +85,8 @@ public:
 	void setIDEWebView(const std::string& action);
 	void closeIDEWebView();
 	bool isIDEWebViewVisible() const;
+	void setIDEWebViewVisible(bool visible);
+	void pumpIDEWebViewEvents();
 #endif
 #if BX_PLATFORM_EMSCRIPTEN
 	uint32_t setWebSuspended(bool value);
@@ -133,6 +136,9 @@ private:
 	bool _fpsLimited;
 	bool _renderRunning;
 	bool _logicRunning;
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+	std::atomic<bool> _ideWebViewVisible{false};
+#endif
 #if BX_PLATFORM_EMSCRIPTEN
 	bool _webSuspended;
 	bool _webContextLost = false;

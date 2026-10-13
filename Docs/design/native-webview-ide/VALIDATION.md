@@ -17,6 +17,125 @@
 - Windows reuses the installed stable Runtime and existing SDK/static loader;
   no browser kernel, Runtime installer or loader DLL was added.
 
+## Responsiveness optimization (local validation)
+
+- macOS arm64 and Windows x86 debug builds passed. Windows ran locally in the
+  Windows 11 VM with the installed WebView2 Runtime; package dependencies did
+  not change. Both repeated real TSTL takeover, hidden compilation, reload,
+  Stop fallback and idle recycling successfully.
+- A 2,000-line TS file passed native macOS typing, save and scrolling. The
+  source file contained the saved marker; scrolling visibly advanced the view.
+- Warmed, visible IDEs were measured for 20 seconds, with a 300 ms logic-thread
+  busy loop requested every two seconds. These are `requestAnimationFrame`
+  interval measurements, not physical input latency or a hardware benchmark.
+
+| Platform/build | Frame p50 / p95 | Maximum interval | Intervals over 100 ms |
+| --- | --- | --- | --- |
+| macOS baseline | 20 / 22 ms | 335 ms | 9 |
+| macOS optimized | 17 / 18 ms | 33 ms | 0 |
+| Windows optimized VM | 8.3 / 12.1 ms | 48.6 ms | 0 |
+
+- Windows completed all ten stress requests without command errors. There is
+  no Windows baseline measurement; different refresh rates prevent direct
+  cross-platform comparison. A run overlapping hide/show was discarded because
+  hidden browsers suspend animation frames. Cold-start samples were excluded.
+- Two-second native counters (logic ticks / scene draws): macOS visible 97/26,
+  hidden 102/101; Windows visible 98/25, hidden 97/96. Covered drawing stays
+  below 15 FPS and ordinary drawing resumes when the IDE is hidden. macOS also
+  passed with App.idled=false (103 ticks / 26 draws), exercising IDE sleep pacing.
+  Fresh game capture callbacks succeeded on both platforms with the IDE visible.
+- macOS main-thread sampling moved from predominantly bgfx semaphore waiting
+  to servicing the Cocoa RunLoop. The short timeout bounds only frame waiting;
+  GPU submission, presentation and page-side synchronous work can still stall.
+- The user confirmed noticeably smoother macOS editing and scrolling. Windows
+  native input/scrolling was not independently confirmed in this round. These
+  changes have local build/runtime validation, not a new remote CI result.
+- The retained `Tools/dora-dora/scripts/native-ide-responsiveness-probe.js`
+  reproduces the warm-up and stress measurement in a disposable native QA page.
+  Define `window.DORA_NATIVE_IDE_PROBE.outputPath` before loading it; keep the
+  IDE visible throughout and restore the normal served page afterward.
+- Disposable QA builds, probe pages and fixtures were removed; prior editor
+  entries were restored. The ordinary local debug build remains available.
+
+## Second responsiveness pass (local validation)
+
+- macOS arm64 and Windows x86 debug builds passed. The frontend production
+  build and four per-file debounce regressions passed. No new CI was run.
+- Covered scene draws now stop; explicit capture still draws fresh frames.
+  Requested VSync and FPS settings survive the temporary presentation/pacing
+  changes. With IDE visible and fpsLimited=false, macOS measured 104 logic
+  ticks in 2.011 seconds (51.7 Hz at target 60); original settings were restored.
+- macOS final native lifecycle passed: real TSTL handover, hidden compilation,
+  bidirectional toggle, reload, Stop fallback and eight-second idle recycling.
+  Two IDE-visible captures showed the moving fixture at different positions.
+- Native macOS checks saved edits to two files while switching tabs immediately
+  after the save shortcut. Read-only files remained unchanged. Monaco mount
+  explicitly restores each workspace editor's policy; deferred saves retain
+  the requested file and preserve newer edits while a write is in flight.
+- Matched 120-second runs with a 2,000-line TS file on the same native build
+  recorded 28 input events each: input-to-next-frame p50/p95 was 11/14 ms
+  before and 8/13 ms after the frontend changes. This is page event timing,
+  not hardware input latency. rAF p95 was 18/19 ms; wheel event counts differed
+  greatly (379/4), so these samples do not establish a scrolling improvement.
+  Concurrent build/copy work can confound the observed long stalls. Final
+  deferred-save and unlimited-pacing fixes were functional checks, not a new
+  controlled performance comparison.
+- Windows final build and the subsequent DPI manifest build passed. SHA-256
+  confirmed the running QA executable matched the native build. After the user
+  launched it on the desktop and bypassed access verification, both builds
+  passed real TSTL handover, hidden compilation, toggle preserving generation,
+  reload, Stop fallback and idle recycling. The validation did not change the
+  user's access-verification preference.
+- Windows high-DPI diagnosis measured PROCESS_DPI_UNAWARE (0). The embedded
+  application manifest now requests PerMonitorV2 with PerMonitor fallback and
+  legacy true/pm. Runtime measured Per-Monitor awareness (2) and WebView
+  devicePixelRatio=2 (3024 buffer pixels / 1512 visual units); the user
+  confirmed the display became clear. No browser
+  kernel, Runtime installer or loader DLL was added. Cross-monitor DPI changes
+  have not been physically exercised.
+- Windows optimized high-DPI VM: warmed 20-second measurement accepted all ten
+  300 ms engine busy-loop requests. rAF p50/p95/max was 8.3/10.1/26.3 ms,
+  with zero intervals over 100 ms; 20 ms timer p50/p95/max was 20/22/52.1 ms.
+  No keyboard/wheel events were recorded, so this proves neither physical
+  interaction latency nor a scrolling improvement. There is no controlled
+  Windows baseline for this round. Two fresh IDE-visible game captures showed
+  the moving green fixture at different positions.
+
+## Bidirectional shortcut (local validation)
+
+- macOS uses Command-Shift-H; Windows and Android use Ctrl-Shift-H.
+  Native input routing reserves both down/up, consumes repeats, restores the
+  destination focus and clears SDL/engine/ImGui pressed input state.
+- macOS arm64, Windows x86 and Android arm64-v8a debug builds passed.
+  macOS and Android repeated the real TSTL lifecycle verifier; Windows passed
+  its guest-local equivalent. Toggle preserved compiler generation; hidden
+  compilation, reload, Stop fallback and idle recycling passed.
+- macOS native automation verified both directions and a 1.5-second hold.
+  The user confirmed Simplified Pinyin cancellation: candidate UI closed,
+  pending text disappeared and previously confirmed Chinese text survived.
+- The user confirmed Windows Ctrl-Shift-H in both directions, Microsoft
+  Pinyin cancellation, saved confirmed Chinese text and editing after return.
+  The saved fixture was read back successfully. VM automation input remains
+  unreliable; this IME acceptance is manual.
+- Android API 34 emulator ADB input is explicitly user-authorized. A real
+  Gboard composing-input test exposed Chromium's input-thread assertion;
+  cancellation now runs on InputConnection.getHandler(), with a completion
+  fence before focus loss and a FIFO for rapid switching/reload/Stop.
+  Final Android lifecycle verifier passed after the fixes.
+  Gboard Simplified Pinyin retest passed: unconfirmed ni hao and
+  candidate UI disappeared, the soft keyboard was hidden in Engine, and
+  confirmed Chinese text survived save/readback. Ctrl-A selection survived
+  toggle; continued typing and save after return passed without another
+  editor click. DOM composition tracking prevents stale Java input state
+  from deleting ordinary selections, and the remembered editor element is
+  refocused on return.
+- A later Windows restart restored required authentication; the user later
+  bypassed access verification for local testing. The second responsiveness
+  pass above records the completed Windows lifecycle reruns separately from
+  the earlier manual shortcut/IME acceptance.
+- These changes have local validation; no new CI was run. Android physical
+  hardware and older Android API levels have not been exercised.
+
 ## Earlier native IDE baseline
 
 - Both platforms passed native file import/export with matching bytes,
@@ -40,8 +159,8 @@ suite (293 tests). Relevant final runs:
 
 ## Limits and reproduction
 
-- Manual OS IME acceptance predates the single-window input routing revision;
-  it was not repeated for that revision. Cross-monitor DPI was not exercised.
+- Cross-monitor DPI was not exercised. Shortcut IME acceptance for the current
+  single-window working tree is recorded above.
 - Windows Ctrl-Shift-L was not physically verified; native/API reload passed.
   Automated VM clicks and macOS clipboard injection were unreliable; manual
   acceptance above is recorded separately.
@@ -54,6 +173,11 @@ suite (293 tests). Relevant final runs:
 
 Temporary validation files and test builds are disposable; this document and
 source verification scripts retain the reproducible conclusions.
+Shortcut QA fixtures and temporary screenshots on macOS/Android were removed;
+prior editor entries were restored. The second responsiveness pass restored
+the macOS editor entries (also preserving a newly opened user tab) and Windows
+editor entries; its probe copies and capture fixtures were removed. The current
+Windows QA application remains available for the user.
 Cleanup removed macOS/repository artifacts (about 1.15 GiB), the Windows QA
 application, fixture and build configuration (about 143 MiB), and stale QA
 editor entries. Source, verification scripts, toolchains and user data remain.

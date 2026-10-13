@@ -466,6 +466,13 @@ void Director::bindGameCaptureView(bgfx::ViewId viewId) {
 }
 
 void Director::doRender() {
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+	// The opaque native IDE covers the engine. Keep logic and GPU resource
+	// processing alive, but only draw on explicit capture requests.
+	const bool covered = SharedApplication.isIDEWebViewVisible();
+	SharedView.setPresentationVSyncSuppressed(covered);
+	if (covered && !_captureCallback) return;
+#endif
 	if (_paused || _stoped) return;
 
 	// Capture only the requested frame. All ordinary scene passes keep their

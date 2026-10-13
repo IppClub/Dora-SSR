@@ -654,6 +654,21 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         super.onBackPressed();
     }
 
+    // Host shortcuts can run before an IME commits its pending composition.
+    public boolean handleAppShortcut(KeyEvent event) { return false; }
+
+    public static void cancelTextInputComposition() {
+        if (!(mTextEdit instanceof DummyEdit) || !mTextEdit.isFocused()) return;
+        InputConnection active = ((DummyEdit)mTextEdit).ic;
+        if (!(active instanceof SDLInputConnection)) return;
+        SDLInputConnection connection = (SDLInputConnection)active;
+        Editable text = connection.getEditable();
+        if (text != null && BaseInputConnection.getComposingSpanStart(text) >= 0) {
+            connection.setComposingText("", 1);
+            connection.finishComposingText();
+        }
+    }
+
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
 
@@ -1925,6 +1940,7 @@ class DummyEdit extends View implements View.OnKeyListener {
     //
     @Override
     public boolean onKeyPreIme (int keyCode, KeyEvent event) {
+        if (SDLActivity.mSingleton != null && SDLActivity.mSingleton.handleAppShortcut(event)) return true;
         // As seen on StackOverflow: http://stackoverflow.com/questions/7634346/keyboard-hide-event
         // FIXME: Discussion at http://bugzilla.libsdl.org/show_bug.cgi?id=1639
         // FIXME: This is not a 100% effective solution to the problem of detecting if the keyboard is showing or not

@@ -35,6 +35,8 @@ public:
 	PROPERTY_READONLY_CREF_EXCEPT(std::string, Name);
 	void clear();
 	void reset();
+	// Preserve the requested VSync setting while a native IDE covers the surface.
+	void setPresentationVSyncSuppressed(bool suppressed);
 
 	template <typename Func>
 	inline void pushFront(String viewName, const Func& workHere) {
@@ -72,6 +74,8 @@ private:
 	void pushInner(String viewName);
 	int _id;
 	std::stack<std::pair<bgfx::ViewId, std::string>> _views;
+	void resetRenderer();
+	bool _presentationVSyncSuppressed = false;
 	uint32_t _flag;
 	bool _frustumCulling;
 	float _nearPlaneDistance;

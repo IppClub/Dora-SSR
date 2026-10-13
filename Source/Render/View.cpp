@@ -149,11 +149,7 @@ void View::setVSync(bool var) {
 		} else {
 			_flag &= ~BGFX_RESET_VSYNC;
 		}
-		Size bufferSize = SharedApplication.getBufferSize();
-		bgfx::reset(
-			s_cast<uint32_t>(bufferSize.width),
-			s_cast<uint32_t>(bufferSize.height),
-			_flag);
+		resetRenderer();
 	}
 }
 
@@ -231,12 +227,21 @@ SpriteEffect* View::getPostEffect() const noexcept {
 	return _effect;
 }
 
+void View::setPresentationVSyncSuppressed(bool suppressed) {
+	if (_presentationVSyncSuppressed == suppressed) return;
+	_presentationVSyncSuppressed = suppressed;
+	if (_flag & BGFX_RESET_VSYNC) resetRenderer();
+}
+
+void View::resetRenderer() {
+	const auto bufferSize = SharedApplication.getBufferSize();
+	const auto flags = _presentationVSyncSuppressed ? (_flag & ~BGFX_RESET_VSYNC) : _flag;
+	bgfx::reset(s_cast<uint32_t>(bufferSize.width), s_cast<uint32_t>(bufferSize.height), flags);
+}
+
 void View::reset() {
 	Size bufferSize = SharedApplication.getBufferSize();
-	bgfx::reset(
-		s_cast<uint32_t>(bufferSize.width),
-		s_cast<uint32_t>(bufferSize.height),
-		_flag);
+	resetRenderer();
 	_size = {
 		std::floor(bufferSize.width / _scale),
 		std::floor(bufferSize.height / _scale)};

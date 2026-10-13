@@ -2894,9 +2894,9 @@ nativeIDEListener\gslot "AppIDEState", (state, message) ->
 	nativeIDEState, nativeIDEMessage = state, message
 
 HttpServer\post "/ide", (req): success: false, message: "invalid IDE action" ->
-	return success: false, message: "Native IDE is unavailable" unless App.platform in ["macOS", "Windows"]
+	return success: false, message: "Native IDE is unavailable" unless App.platform in ["Android", "macOS", "Windows"]
 	switch req when {body: {:action}}
-		if action in ["show", "hide", "stop", "reload"]
+		if action in ["show", "hide", "stop", "reload", "toggle"]
 			emit "AppWebView", "/ide/" .. action, true
 			return success: true
 
@@ -2914,7 +2914,7 @@ getServerStatus = ->
 		:wsConnectionCount
 		webIDEConnected: wsConnectionCount > 0
 		nativeIDE:
-			supported: App.platform in ["macOS", "Windows"]
+			supported: App.platform in ["Android", "macOS", "Windows"]
 			state: nativeIDEState
 			message: nativeIDEMessage
 		typescriptCompiler:
