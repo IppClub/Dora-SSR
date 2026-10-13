@@ -1,6 +1,7 @@
 // @preview-file off clear
 import { json, HttpClient, DB, emit, Log as DoraLog, Director, once, App } from 'Dora';
 import * as AgentConfig from 'Agent/Config';
+import { upgradeLLMConfig } from 'Agent/LLMConfigMigration';
 
 let LOG_LEVEL = App.debugging ? 3 : 2;
 export function setLogLevel(level: number) {
@@ -1204,7 +1205,7 @@ function normalizeLLMMaxTokens(value: unknown): number {
 	if (typeof value === "number") {
 		return math.max(1, math.floor(value));
 	}
-	return 8192;
+	return AgentConfig.AGENT_DEFAULTS.llmMaxTokens;
 }
 
 function normalizeReasoningEffort(value: unknown): string | undefined {
@@ -1242,6 +1243,7 @@ export function applyCustomLLMOptions(
 }
 
 function getLLMConfigRecords(): Record<string, unknown>[] {
+	upgradeLLMConfig();
 	const rows = DB.query("select * from LLMConfig", true);
 	const records: Record<string, unknown>[] = [];
 	if (rows && rows.length > 1) {

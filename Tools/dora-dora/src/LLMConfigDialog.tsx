@@ -39,10 +39,8 @@ type LLMConfigFormState = Omit<Service.LLMConfigItem, "contextWindow" | "tempera
 
 const DEFAULT_CONTEXT_WINDOW = 128000;
 const DEFAULT_TEMPERATURE = 0.1;
-const DEFAULT_MAX_TOKENS = 8192;
-const DEFAULT_AUXILIARY_MAX_TOKENS = 8192;
+const DEFAULT_MAX_TOKENS = 64000;
 const DEEPSEEK_CONTEXT_WINDOW = 1_000_000;
-const DEEPSEEK_MAX_TOKENS = 64_000;
 
 const customOptionsWithAuxiliary = (
 	auxiliaryOptions: Record<string, unknown>,
@@ -121,9 +119,8 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		url: 'https://api.deepseek.com/v1/chat/completions',
 		model: 'deepseek-v4-pro',
 		contextWindow: DEEPSEEK_CONTEXT_WINDOW,
-		maxTokens: DEEPSEEK_MAX_TOKENS,
+		maxTokens: DEFAULT_MAX_TOKENS,
 		customOptions: customOptionsWithAuxiliary({
-			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: null,
 			thinking: { type: 'disabled' },
 		}),
@@ -135,7 +132,6 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		model: 'kimi-k3',
 		// Kimi K3 cannot disable thinking; low is its smallest supported effort.
 		customOptions: customOptionsWithAuxiliary({
-			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: 'low',
 		}),
 	},
@@ -145,7 +141,6 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		url: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
 		model: 'qwen3.7-max',
 		customOptions: customOptionsWithAuxiliary({
-			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: null,
 			enable_thinking: false,
 		}),
@@ -156,7 +151,6 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		url: 'https://openrouter.ai/api/v1/chat/completions',
 		model: '~anthropic/claude-sonnet-latest',
 		customOptions: customOptionsWithAuxiliary({
-			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: null,
 			reasoning: { effort: 'none' },
 		}),
@@ -167,8 +161,6 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		url: 'https://api.openai.com/v1/chat/completions',
 		model: 'gpt-5.6',
 		customOptions: customOptionsWithAuxiliary({
-			max_tokens: null,
-			max_completion_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: 'none',
 		}),
 	},
@@ -178,8 +170,6 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		url: 'https://aihubmix.com/v1/chat/completions',
 		model: 'gpt-5.6-luna',
 		customOptions: customOptionsWithAuxiliary({
-			max_tokens: null,
-			max_completion_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: 'none',
 		}),
 	},
@@ -189,7 +179,6 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		url: 'https://api.siliconflow.cn/v1/chat/completions',
 		model: 'deepseek-ai/DeepSeek-V4-Pro',
 		customOptions: customOptionsWithAuxiliary({
-			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: null,
 			enable_thinking: false,
 		}),
@@ -200,7 +189,6 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		url: 'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
 		model: 'doubao-seed-2-0-pro-260215',
 		customOptions: customOptionsWithAuxiliary({
-			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: null,
 			thinking: { type: 'disabled' },
 		}),
@@ -211,7 +199,6 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		url: 'https://ark.cn-beijing.volces.com/api/coding/v3/chat/completions',
 		model: 'ark-code-latest',
 		customOptions: customOptionsWithAuxiliary({
-			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: null,
 			thinking: { type: 'disabled' },
 		}),
@@ -222,7 +209,6 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		url: 'https://ark.ap-southeast.bytepluses.com/api/v3/chat/completions',
 		model: 'dola-seed-2-1-turbo-260628',
 		customOptions: customOptionsWithAuxiliary({
-			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: null,
 			thinking: { type: 'disabled' },
 		}),
@@ -233,7 +219,6 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		url: 'https://ark.ap-southeast.bytepluses.com/api/coding/v3/chat/completions',
 		model: 'ark-code-latest',
 		customOptions: customOptionsWithAuxiliary({
-			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: null,
 			thinking: { type: 'disabled' },
 		}),
@@ -245,7 +230,6 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		model: 'MiniMax-M2.7',
 		// MiniMax M2.7 does not expose a supported switch for disabling reasoning.
 		customOptions: customOptionsWithAuxiliary({
-			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: null,
 		}),
 	},
@@ -255,7 +239,6 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		url: 'https://api.minimaxi.com/v1/chat/completions',
 		model: 'MiniMax-M2.7',
 		customOptions: customOptionsWithAuxiliary({
-			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: null,
 		}),
 	},
@@ -265,8 +248,6 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		url: 'https://api.xiaomimimo.com/v1/chat/completions',
 		model: 'mimo-v2.5-pro',
 		customOptions: customOptionsWithAuxiliary({
-			max_tokens: null,
-			max_completion_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: null,
 			thinking: { type: 'disabled' },
 		}, {
@@ -281,7 +262,6 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		url: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
 		model: 'glm-5.2',
 		customOptions: customOptionsWithAuxiliary({
-			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: null,
 			thinking: { type: 'disabled' },
 		})
@@ -292,7 +272,6 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		url: 'https://open.bigmodel.cn/api/coding/paas/v4/chat/completions',
 		model: 'glm-5.2',
 		customOptions: customOptionsWithAuxiliary({
-			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: null,
 			thinking: { type: 'disabled' },
 		})
@@ -303,7 +282,6 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		url: 'http://localhost:11434/v1/chat/completions',
 		model: 'llama3.2',
 		customOptions: customOptionsWithAuxiliary({
-			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: 'none',
 		}),
 	},
@@ -313,7 +291,6 @@ const BUILTIN_TEMPLATES: LLMTemplate[] = [
 		url: 'http://localhost:8000/v1/chat/completions',
 		model: 'meta-llama/Llama-3.1-8B-Instruct',
 		customOptions: customOptionsWithAuxiliary({
-			max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS,
 			reasoning_effort: 'none',
 			chat_template_kwargs: { enable_thinking: false },
 		}),
@@ -329,7 +306,7 @@ const getDefaultAuxiliaryOptions = (config?: Pick<Service.LLMConfigItem, 'url'>)
 	if (auxiliaryOptions !== null && typeof auxiliaryOptions === 'object' && !Array.isArray(auxiliaryOptions)) {
 		return auxiliaryOptions as Record<string, unknown>;
 	}
-	return { max_tokens: DEFAULT_AUXILIARY_MAX_TOKENS };
+	return { reasoning_effort: "minimal" };
 };
 
 const ensureAuxiliaryOptions = (

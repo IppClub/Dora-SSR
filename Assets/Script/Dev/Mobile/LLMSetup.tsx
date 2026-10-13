@@ -1,6 +1,8 @@
 import { React, reference, toNode } from "DoraX";
 import { attachGamepad } from "Dev/Mobile/Gamepad";
 import { App, DB, Director, HttpServer, Node, TextAlign } from "Dora";
+import { upgradeLLMConfig } from 'Agent/LLMConfigMigration';
+import { AGENT_DEFAULTS } from 'Agent/Config';
 import { mobileFontScale } from "Dev/Mobile/Accessibility";
 import { MobileButton, MobilePanelSurface } from "Dev/Mobile/Controls";
 import { createTextInput } from "Dev/Mobile/TextInput";
@@ -33,24 +35,24 @@ export interface MobileLLMManagerOptions {
 
 const auxiliary = (body: string) => `{"auxiliaryOptions":${body}}`;
 export const mobileLLMPresets: MobileLLMPreset[] = [
-	{ id: "deepseek", name: "DeepSeek", url: "https://api.deepseek.com/v1/chat/completions", model: "deepseek-v4-pro", contextWindow: 1000000, maxTokens: 64000, customOptions: auxiliary('{"max_tokens":8192,"reasoning_effort":null,"thinking":{"type":"disabled"}}') },
-	{ id: "moonshot", name: "Moonshot", url: "https://api.moonshot.cn/v1/chat/completions", model: "kimi-k3", contextWindow: 128000, maxTokens: 8192, customOptions: auxiliary('{"max_tokens":8192,"reasoning_effort":"low"}') },
-	{ id: "qwen", name: "Qwen", url: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions", model: "qwen3.7-max", contextWindow: 128000, maxTokens: 8192, customOptions: auxiliary('{"max_tokens":8192,"reasoning_effort":null,"enable_thinking":false}') },
-	{ id: "openrouter", name: "OpenRouter", url: "https://openrouter.ai/api/v1/chat/completions", model: "~anthropic/claude-sonnet-latest", contextWindow: 128000, maxTokens: 8192, customOptions: auxiliary('{"max_tokens":8192,"reasoning_effort":null,"reasoning":{"effort":"none"}}') },
-	{ id: "openai", name: "OpenAI", url: "https://api.openai.com/v1/chat/completions", model: "gpt-5.6", contextWindow: 128000, maxTokens: 8192, customOptions: auxiliary('{"max_tokens":null,"max_completion_tokens":8192,"reasoning_effort":"none"}') },
-	{ id: "aihubmix", name: "AiHubMix", url: "https://aihubmix.com/v1/chat/completions", model: "gpt-5.6-luna", contextWindow: 128000, maxTokens: 8192, customOptions: auxiliary('{"max_tokens":null,"max_completion_tokens":8192,"reasoning_effort":"none"}') },
-	{ id: "siliconflow", name: "SiliconFlow", url: "https://api.siliconflow.cn/v1/chat/completions", model: "deepseek-ai/DeepSeek-V4-Pro", contextWindow: 128000, maxTokens: 8192, customOptions: auxiliary('{"max_tokens":8192,"reasoning_effort":null,"enable_thinking":false}') },
-	{ id: "volcengine", name: "VolcEngine", url: "https://ark.cn-beijing.volces.com/api/v3/chat/completions", model: "doubao-seed-2-0-pro-260215", contextWindow: 128000, maxTokens: 8192, customOptions: auxiliary('{"max_tokens":8192,"reasoning_effort":null,"thinking":{"type":"disabled"}}') },
-	{ id: "volcengine-coding-plan", name: "VolcEngine Coding Plan", url: "https://ark.cn-beijing.volces.com/api/coding/v3/chat/completions", model: "ark-code-latest", contextWindow: 128000, maxTokens: 8192, customOptions: auxiliary('{"max_tokens":8192,"reasoning_effort":null,"thinking":{"type":"disabled"}}') },
-	{ id: "byteplus", name: "BytePlus", url: "https://ark.ap-southeast.bytepluses.com/api/v3/chat/completions", model: "dola-seed-2-1-turbo-260628", contextWindow: 128000, maxTokens: 8192, customOptions: auxiliary('{"max_tokens":8192,"reasoning_effort":null,"thinking":{"type":"disabled"}}') },
-	{ id: "byteplus-coding-plan", name: "BytePlus Coding Plan", url: "https://ark.ap-southeast.bytepluses.com/api/coding/v3/chat/completions", model: "ark-code-latest", contextWindow: 128000, maxTokens: 8192, customOptions: auxiliary('{"max_tokens":8192,"reasoning_effort":null,"thinking":{"type":"disabled"}}') },
-	{ id: "minimax", name: "MiniMax", url: "https://api.minimax.io/v1/chat/completions", model: "MiniMax-M2.7", contextWindow: 128000, maxTokens: 8192, customOptions: auxiliary('{"max_tokens":8192,"reasoning_effort":null}') },
-	{ id: "minimax-cn", name: "MiniMax (CN)", url: "https://api.minimaxi.com/v1/chat/completions", model: "MiniMax-M2.7", contextWindow: 128000, maxTokens: 8192, customOptions: auxiliary('{"max_tokens":8192,"reasoning_effort":null}') },
-	{ id: "mimo", name: "Xiaomi MiMo", url: "https://api.xiaomimimo.com/v1/chat/completions", model: "mimo-v2.5-pro", contextWindow: 128000, maxTokens: 8192, customOptions: '{"max_tokens":null,"max_completion_tokens":8192,"top_p":0.95,"auxiliaryOptions":{"max_tokens":null,"max_completion_tokens":8192,"reasoning_effort":null,"thinking":{"type":"disabled"}}}' },
-	{ id: "zai", name: "ZAI", url: "https://open.bigmodel.cn/api/paas/v4/chat/completions", model: "glm-5.2", contextWindow: 128000, maxTokens: 8192, customOptions: auxiliary('{"max_tokens":8192,"reasoning_effort":null,"thinking":{"type":"disabled"}}') },
-	{ id: "zai-coding-plan", name: "ZAI Coding Plan", url: "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions", model: "glm-5.2", contextWindow: 128000, maxTokens: 8192, customOptions: auxiliary('{"max_tokens":8192,"reasoning_effort":null,"thinking":{"type":"disabled"}}') },
-	{ id: "ollama", name: "Ollama", url: "http://localhost:11434/v1/chat/completions", model: "llama3.2", contextWindow: 128000, maxTokens: 8192, customOptions: auxiliary('{"max_tokens":8192,"reasoning_effort":"none"}') },
-	{ id: "vllm", name: "vLLM", url: "http://localhost:8000/v1/chat/completions", model: "meta-llama/Llama-3.1-8B-Instruct", contextWindow: 128000, maxTokens: 8192, customOptions: auxiliary('{"max_tokens":8192,"reasoning_effort":"none","chat_template_kwargs":{"enable_thinking":false}}') },
+	{ id: "deepseek", name: "DeepSeek", url: "https://api.deepseek.com/v1/chat/completions", model: "deepseek-v4-pro", contextWindow: 1000000, maxTokens: AGENT_DEFAULTS.llmMaxTokens, customOptions: auxiliary('{"reasoning_effort":null,"thinking":{"type":"disabled"}}') },
+	{ id: "moonshot", name: "Moonshot", url: "https://api.moonshot.cn/v1/chat/completions", model: "kimi-k3", contextWindow: 128000, maxTokens: AGENT_DEFAULTS.llmMaxTokens, customOptions: auxiliary('{"reasoning_effort":"low"}') },
+	{ id: "qwen", name: "Qwen", url: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions", model: "qwen3.7-max", contextWindow: 128000, maxTokens: AGENT_DEFAULTS.llmMaxTokens, customOptions: auxiliary('{"reasoning_effort":null,"enable_thinking":false}') },
+	{ id: "openrouter", name: "OpenRouter", url: "https://openrouter.ai/api/v1/chat/completions", model: "~anthropic/claude-sonnet-latest", contextWindow: 128000, maxTokens: AGENT_DEFAULTS.llmMaxTokens, customOptions: auxiliary('{"reasoning_effort":null,"reasoning":{"effort":"none"}}') },
+	{ id: "openai", name: "OpenAI", url: "https://api.openai.com/v1/chat/completions", model: "gpt-5.6", contextWindow: 128000, maxTokens: AGENT_DEFAULTS.llmMaxTokens, customOptions: auxiliary('{"reasoning_effort":"none"}') },
+	{ id: "aihubmix", name: "AiHubMix", url: "https://aihubmix.com/v1/chat/completions", model: "gpt-5.6-luna", contextWindow: 128000, maxTokens: AGENT_DEFAULTS.llmMaxTokens, customOptions: auxiliary('{"reasoning_effort":"none"}') },
+	{ id: "siliconflow", name: "SiliconFlow", url: "https://api.siliconflow.cn/v1/chat/completions", model: "deepseek-ai/DeepSeek-V4-Pro", contextWindow: 128000, maxTokens: AGENT_DEFAULTS.llmMaxTokens, customOptions: auxiliary('{"reasoning_effort":null,"enable_thinking":false}') },
+	{ id: "volcengine", name: "VolcEngine", url: "https://ark.cn-beijing.volces.com/api/v3/chat/completions", model: "doubao-seed-2-0-pro-260215", contextWindow: 128000, maxTokens: AGENT_DEFAULTS.llmMaxTokens, customOptions: auxiliary('{"reasoning_effort":null,"thinking":{"type":"disabled"}}') },
+	{ id: "volcengine-coding-plan", name: "VolcEngine Coding Plan", url: "https://ark.cn-beijing.volces.com/api/coding/v3/chat/completions", model: "ark-code-latest", contextWindow: 128000, maxTokens: AGENT_DEFAULTS.llmMaxTokens, customOptions: auxiliary('{"reasoning_effort":null,"thinking":{"type":"disabled"}}') },
+	{ id: "byteplus", name: "BytePlus", url: "https://ark.ap-southeast.bytepluses.com/api/v3/chat/completions", model: "dola-seed-2-1-turbo-260628", contextWindow: 128000, maxTokens: AGENT_DEFAULTS.llmMaxTokens, customOptions: auxiliary('{"reasoning_effort":null,"thinking":{"type":"disabled"}}') },
+	{ id: "byteplus-coding-plan", name: "BytePlus Coding Plan", url: "https://ark.ap-southeast.bytepluses.com/api/coding/v3/chat/completions", model: "ark-code-latest", contextWindow: 128000, maxTokens: AGENT_DEFAULTS.llmMaxTokens, customOptions: auxiliary('{"reasoning_effort":null,"thinking":{"type":"disabled"}}') },
+	{ id: "minimax", name: "MiniMax", url: "https://api.minimax.io/v1/chat/completions", model: "MiniMax-M2.7", contextWindow: 128000, maxTokens: AGENT_DEFAULTS.llmMaxTokens, customOptions: auxiliary('{"reasoning_effort":null}') },
+	{ id: "minimax-cn", name: "MiniMax (CN)", url: "https://api.minimaxi.com/v1/chat/completions", model: "MiniMax-M2.7", contextWindow: 128000, maxTokens: AGENT_DEFAULTS.llmMaxTokens, customOptions: auxiliary('{"reasoning_effort":null}') },
+	{ id: "mimo", name: "Xiaomi MiMo", url: "https://api.xiaomimimo.com/v1/chat/completions", model: "mimo-v2.5-pro", contextWindow: 128000, maxTokens: AGENT_DEFAULTS.llmMaxTokens, customOptions: '{"max_tokens":null,"max_completion_tokens":64000,"top_p":0.95,"auxiliaryOptions":{"reasoning_effort":null,"thinking":{"type":"disabled"}}}' },
+	{ id: "zai", name: "ZAI", url: "https://open.bigmodel.cn/api/paas/v4/chat/completions", model: "glm-5.2", contextWindow: 128000, maxTokens: AGENT_DEFAULTS.llmMaxTokens, customOptions: auxiliary('{"reasoning_effort":null,"thinking":{"type":"disabled"}}') },
+	{ id: "zai-coding-plan", name: "ZAI Coding Plan", url: "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions", model: "glm-5.2", contextWindow: 128000, maxTokens: AGENT_DEFAULTS.llmMaxTokens, customOptions: auxiliary('{"reasoning_effort":null,"thinking":{"type":"disabled"}}') },
+	{ id: "ollama", name: "Ollama", url: "http://localhost:11434/v1/chat/completions", model: "llama3.2", contextWindow: 128000, maxTokens: AGENT_DEFAULTS.llmMaxTokens, customOptions: auxiliary('{"reasoning_effort":"none"}') },
+	{ id: "vllm", name: "vLLM", url: "http://localhost:8000/v1/chat/completions", model: "meta-llama/Llama-3.1-8B-Instruct", contextWindow: 128000, maxTokens: AGENT_DEFAULTS.llmMaxTokens, customOptions: auxiliary('{"reasoning_effort":"none","chat_template_kwargs":{"enable_thinking":false}}') },
 ];
 
 const fontName = "sarasa-mono-sc-regular";
@@ -62,10 +64,11 @@ function ensureLLMConfigTable() {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		name TEXT NOT NULL, url TEXT NOT NULL, model TEXT NOT NULL, api_key TEXT NOT NULL,
 		context_window INTEGER NOT NULL DEFAULT 64000, temperature REAL NOT NULL DEFAULT 0.1,
-		max_tokens INTEGER NOT NULL DEFAULT 8192, reasoning_effort TEXT NOT NULL DEFAULT '',
+		max_tokens INTEGER NOT NULL DEFAULT 64000, reasoning_effort TEXT NOT NULL DEFAULT '',
 		custom_options TEXT NOT NULL DEFAULT '', supports_function_calling INTEGER NOT NULL DEFAULT 1,
 		active INTEGER NOT NULL DEFAULT 1, created_at INTEGER, updated_at INTEGER
 	)`);
+	upgradeLLMConfig();
 }
 
 function uniqueConfigName(base: string) {

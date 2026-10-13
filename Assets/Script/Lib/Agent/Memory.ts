@@ -1,5 +1,6 @@
 // @preview-file off clear
 import { App, Content, Path } from 'Dora';
+import { AGENT_DEFAULTS } from 'Agent/Config';
 import { Message, applyCustomLLMOptions, callLLM, Log, clipTextToTokenBudget, extractLLMTokenUsage, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import { getActiveLLMConfig } from 'Agent/Utils';
 import type { LLMConfig, LLMTokenUsage, ToolCall, StopToken } from 'Agent/Utils';
@@ -7,8 +8,6 @@ import { sendWebIDEFileUpdate } from 'Agent/Tool/WebIDESync';
 import { AGENT_TOOL_DEFINITIONS_DETAILED, MAIN_AGENT_TOOL_DEFINITIONS_DETAILED, XML_TOOL_DEFINITIONS_DETAILED } from 'Agent/Tool/Registry';
 
 const MEMORY_DEFAULT_LLM_TEMPERATURE = 0.1;
-const MEMORY_DEFAULT_LLM_MAX_TOKENS = 8192;
-const COMPRESSION_MAX_OUTPUT_TOKENS = 32768;
 const MEMORY_DEFAULT_CONTEXT_WINDOW = 64000;
 const AGENT_MEMORY_CONTEXT_MIN_TOKENS = 1200;
 const AGENT_MEMORY_CONTEXT_WINDOW_RATIO = 0.08;
@@ -29,7 +28,7 @@ const COMPRESSION_SECTION_HISTORY_RATIO = 0.45;
 function buildMemoryLLMOptions(llmConfig: LLMConfig, overrides?: Record<string, unknown>): Record<string, unknown> {
 	const options: Record<string, unknown> = {
 		temperature: llmConfig.temperature ?? MEMORY_DEFAULT_LLM_TEMPERATURE,
-		max_tokens: llmConfig.maxTokens ?? MEMORY_DEFAULT_LLM_MAX_TOKENS,
+		max_tokens: llmConfig.maxTokens ?? AGENT_DEFAULTS.llmMaxTokens,
 	};
 	if (llmConfig.reasoningEffort) {
 		options.reasoning_effort = llmConfig.reasoningEffort;
@@ -48,36 +47,27 @@ function buildMemoryLLMOptions(llmConfig: LLMConfig, overrides?: Record<string, 
 
 function getAuxiliaryLLMOptions(llmConfig: LLMConfig): Record<string, unknown> {
 	const value = llmConfig.customOptions?.auxiliaryOptions;
-	return isRecord(value) ? value : {};
+	if (!isRecord(value)) return {};
+	const options = { ...value };
+	// Output budget belongs to the main configuration, including its provider
+	// field selection. Ignore legacy auxiliary budgets; keep reasoning options.
+	delete options.max_tokens;
+	delete options.max_completion_tokens;
+	return options;
 }
 
-function getCompressionOutputTokenLimit(llmConfig: LLMConfig): number {
-	const options = getAuxiliaryLLMOptions(llmConfig);
-	const maxTokens = options.max_tokens;
-	if (typeof maxTokens === "number" && maxTokens > 0) return math.min(COMPRESSION_MAX_OUTPUT_TOKENS, math.max(MEMORY_DEFAULT_LLM_MAX_TOKENS, math.floor(maxTokens)));
-	const maxCompletionTokens = options.max_completion_tokens;
-	if (typeof maxCompletionTokens === "number" && maxCompletionTokens > 0) {
-		return math.min(COMPRESSION_MAX_OUTPUT_TOKENS, math.max(MEMORY_DEFAULT_LLM_MAX_TOKENS, math.floor(maxCompletionTokens)));
-	}
-	return MEMORY_DEFAULT_LLM_MAX_TOKENS;
+function getSharedOutputTokenLimit(llmConfig: LLMConfig): number {
+	const options = applyCustomLLMOptions(buildMemoryLLMOptions(llmConfig), llmConfig.customOptions);
+	const value = options.max_tokens ?? options.max_completion_tokens;
+	return typeof value === "number" && value > 0 ? math.floor(value) : AGENT_DEFAULTS.llmMaxTokens;
 }
 
 function buildCompressionLLMConfig(llmConfig: LLMConfig): LLMConfig {
-	const baseCustomOptions: Record<string, unknown> = {};
-	const customOptions = llmConfig.customOptions;
-	if (customOptions) {
-		for (const key in customOptions) {
-			if (key === "auxiliaryOptions" || key === "max_tokens" || key === "max_completion_tokens" || key === "reasoning_effort") continue;
-			baseCustomOptions[key] = customOptions[key];
-		}
-	}
-	// Budget and reasoning come from the per-attempt options, so provider
-	// custom fields cannot silently override adaptive retries.
-	const wireOptions = { ...baseCustomOptions, ...getAuxiliaryLLMOptions(llmConfig) };
-	delete wireOptions.max_tokens;
-	delete wireOptions.max_completion_tokens;
-	delete wireOptions.reasoning_effort;
-	return { ...llmConfig, customOptions: wireOptions };
+	// All provider options were resolved before retries. Applying them again at
+	// the HTTP boundary can restore fields intentionally removed by compression.
+	const resolved = { ...llmConfig };
+	delete resolved.customOptions;
+	return resolved;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -1790,18 +1780,13 @@ export class MemoryCompressor {
 		const historyText = this.formatMessagesForCompression(chunk);
 
 		try {
-			// Compression is an auxiliary request with its own output and reasoning
-			// budget. The provider-specific wire fields live in auxiliaryOptions.
+			// Share the main request's effective output budget. Compression can
+			// still override reasoning independently, including explicit null removal.
 			const auxiliaryOptions = getAuxiliaryLLMOptions(this.config.llmConfig);
-			const compressionLLMOptions = applyCustomLLMOptions(llmOptions, auxiliaryOptions);
-			// Keep the provider's selected output-budget field, but isolate it
-			// from the main decision budget and custom-option overrides.
-			const outputField = typeof auxiliaryOptions.max_completion_tokens === "number"
-				&& typeof auxiliaryOptions.max_tokens !== "number" ? "max_completion_tokens" : "max_tokens";
-			delete compressionLLMOptions.max_tokens;
-			delete compressionLLMOptions.max_completion_tokens;
-			compressionLLMOptions[outputField] = getCompressionOutputTokenLimit(this.config.llmConfig);
-			compressionLLMOptions.reasoning_effort = auxiliaryOptions.reasoning_effort ?? "minimal";
+			const compressionLLMOptions = applyCustomLLMOptions({
+				...applyCustomLLMOptions(llmOptions, this.config.llmConfig.customOptions),
+				reasoning_effort: "minimal",
+			}, auxiliaryOptions);
 			if (context?.stopToken?.stopped) throw new Error("Memory compression cancelled");
 			const result = await this.callLLMForCompression(
 				currentMemory,
@@ -2088,7 +2073,7 @@ export class MemoryCompressor {
 		const contextWindow = this.getContextWindow();
 		const reservedOutputTokens = math.max(
 			COMPRESSION_RESERVED_OUTPUT_MIN_TOKENS,
-			getCompressionOutputTokenLimit(this.config.llmConfig)
+			getSharedOutputTokenLimit(this.config.llmConfig)
 		);
 		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionStaticPrompt("tool_calling"));
 		const memoryTokens = TokenEstimator.estimate(currentMemory);
@@ -2126,7 +2111,7 @@ export class MemoryCompressor {
 		const contextWindow = this.getContextWindow();
 		const reservedOutputTokens = math.max(
 			COMPRESSION_RESERVED_OUTPUT_MIN_TOKENS,
-			getCompressionOutputTokenLimit(this.config.llmConfig)
+			getSharedOutputTokenLimit(this.config.llmConfig)
 		);
 		const staticPromptTokens = TokenEstimator.estimate(this.buildCompressionStaticPrompt("tool_calling"));
 		const dynamicBudget = math.max(
@@ -2202,7 +2187,7 @@ export class MemoryCompressor {
 		let outputBudgetExhausted = false;
 		for (let i = 0; i < maxLLMTry; i++) {
 			if (context?.stopToken?.stopped) throw new Error("Memory compression cancelled");
-			if (outputBudgetExhausted) throw new Error("Memory compression still truncated at maximum output budget");
+			if (outputBudgetExhausted) throw new Error("Memory compression truncated at configured output budget");
 			const feedback = i > 0
 				? `\n\nPrevious response was invalid (${lastError}). You must call the save_memory tool. Do not write prose. Required arguments: history_entry and memory_update. Optional arguments: project_memory_update and session_summary_update.`
 				: "";
@@ -2248,10 +2233,8 @@ export class MemoryCompressor {
 				? choice.finish_reason
 				: "";
 			if (finishReason === "length") {
-				const outputField = typeof llmOptions.max_completion_tokens === "number" ? "max_completion_tokens" : "max_tokens";
-				const budget = llmOptions[outputField] as number;
-				outputBudgetExhausted = budget >= COMPRESSION_MAX_OUTPUT_TOKENS;
-				llmOptions[outputField] = math.min(COMPRESSION_MAX_OUTPUT_TOKENS, budget * 2);
+				// Never silently increase the shared user-configured output budget.
+				outputBudgetExhausted = true;
 			}
 			const toolCalls = message && message.tool_calls;
 			const toolCall = toolCalls && toolCalls[0];
@@ -2307,7 +2290,7 @@ export class MemoryCompressor {
 			}
 		}
 
-		if (outputBudgetExhausted) throw new Error("Memory compression still truncated at maximum output budget");
+		if (outputBudgetExhausted) throw new Error("Memory compression truncated at configured output budget");
 		Log("Warn", `[Memory] compression tool-calling exhausted ${maxLLMTry} retries, falling back to XML: ${lastError}`);
 		return this.callLLMForCompressionByXML(
 			currentMemory,
@@ -2331,7 +2314,7 @@ export class MemoryCompressor {
 
 		for (let i = 0; i < maxLLMTry; i++) {
 			if (context?.stopToken?.stopped) throw new Error("Memory compression cancelled");
-			if (outputBudgetExhausted) throw new Error("Memory compression still truncated at maximum output budget");
+			if (outputBudgetExhausted) throw new Error("Memory compression truncated at configured output budget");
 			const feedback = i > 0
 				? `\n\n${replaceTemplateVars(this.config.promptPack.memoryCompressionXmlRetryPrompt, {
 					LAST_ERROR: lastError,
@@ -2364,10 +2347,8 @@ export class MemoryCompressor {
 				? choice.finish_reason
 				: "";
 			if (finishReason === "length") {
-				const outputField = typeof llmOptions.max_completion_tokens === "number" ? "max_completion_tokens" : "max_tokens";
-				const budget = llmOptions[outputField] as number;
-				outputBudgetExhausted = budget >= COMPRESSION_MAX_OUTPUT_TOKENS;
-				llmOptions[outputField] = math.min(COMPRESSION_MAX_OUTPUT_TOKENS, budget * 2);
+				// Never silently increase the shared user-configured output budget.
+				outputBudgetExhausted = true;
 			}
 			const text = message && typeof message.content === "string" ? message.content : "";
 			context?.onOutput?.("memory_compression_xml", text !== "" ? text : encodeCompressionDebugJSON(response.response), { success: true });

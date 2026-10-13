@@ -4,7 +4,7 @@ ____exports.AGENT_DEFAULTS = { -- 3
 	maxSteps = 999, -- 4
 	llmMaxTry = 5, -- 5
 	llmTemperature = 0.1, -- 6
-	llmMaxTokens = 8192, -- 7
+	llmMaxTokens = 64000, -- 7
 	delegatedForegroundBatchLimit = 3 -- 8
 } -- 8
 ____exports.AGENT_LIMITS = { -- 11

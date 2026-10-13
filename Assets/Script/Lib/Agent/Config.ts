@@ -4,7 +4,7 @@ export const AGENT_DEFAULTS = {
 	maxSteps: 999,
 	llmMaxTry: 5,
 	llmTemperature: 0.1,
-	llmMaxTokens: 8192,
+	llmMaxTokens: 64000,
 	delegatedForegroundBatchLimit: 3,
 };
 

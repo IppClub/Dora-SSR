@@ -88,6 +88,7 @@ config = Config(
 	"showPreview"
 	"mobileFeed"
 	"mobileFeedCurrentCard"
+	"agentLLMConfigVersion"
 	"mobileRemixLLMConfigId"
 	"mobileLargeText"
 	"authRequired"

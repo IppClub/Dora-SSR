@@ -1481,7 +1481,7 @@ ensureLLMConfigTable = ->
 			unless existing.temperature
 				DB\exec "ALTER TABLE LLMConfig ADD COLUMN temperature REAL NOT NULL DEFAULT 0.1"
 			unless existing.max_tokens
-				DB\exec "ALTER TABLE LLMConfig ADD COLUMN max_tokens INTEGER NOT NULL DEFAULT 8192"
+				DB\exec "ALTER TABLE LLMConfig ADD COLUMN max_tokens INTEGER NOT NULL DEFAULT 64000"
 			unless existing.reasoning_effort
 				DB\exec "ALTER TABLE LLMConfig ADD COLUMN reasoning_effort TEXT NOT NULL DEFAULT ''"
 			unless existing.custom_options
@@ -1499,7 +1499,7 @@ ensureLLMConfigTable = ->
 			api_key TEXT NOT NULL,
 			context_window INTEGER NOT NULL DEFAULT 64000,
 			temperature REAL NOT NULL DEFAULT 0.1,
-			max_tokens INTEGER NOT NULL DEFAULT 8192,
+			max_tokens INTEGER NOT NULL DEFAULT 64000,
 			reasoning_effort TEXT NOT NULL DEFAULT '',
 			custom_options TEXT NOT NULL DEFAULT '',
 			supports_function_calling INTEGER NOT NULL DEFAULT 1,
@@ -1508,6 +1508,8 @@ ensureLLMConfigTable = ->
 			updated_at INTEGER
 		);
 	]]
+
+	require("Agent.LLMConfigMigration").upgradeLLMConfig!
 
 normalizeContextWindow = (value) ->
 	contextWindow = tonumber value
@@ -1524,7 +1526,7 @@ normalizeTemperature = (value) ->
 normalizeMaxTokens = (value) ->
 	maxTokens = tonumber value
 	if maxTokens == nil or maxTokens < 1
-		return 8192
+		return 64000
 	return math.max 1, math.floor maxTokens
 
 normalizeReasoningEffort = (value) ->
