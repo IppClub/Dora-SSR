@@ -874,9 +874,14 @@ void Content::searchFilesAsync(String path, std::vector<std::string>&& exts, std
 						int m = re_matchp(re, text, &matchLen);
 						while (m >= 0) {
 							if (stoped()) break;
-							size_t pos = lineStart + basePos + s_cast<size_t>(m);
+							size_t offset = basePos + s_cast<size_t>(m);
 							size_t len = matchLen > 0 ? s_cast<size_t>(matchLen) : 0;
-							pushResult(pos, len);
+							if (offset > targetLine.size() || len > targetLine.size() - offset) break;
+							pushResult(lineStart + offset, len);
+							// A zero-width match at end-of-line must not advance beyond
+							// the terminating NUL. Anchors refer to the original line,
+							// rather than each progressively shortened suffix.
+							if (offset == targetLine.size() || (!targetPattern.empty() && targetPattern.front() == '^')) break;
 							size_t advance = len > 0 ? len : 1;
 							basePos += s_cast<size_t>(m) + advance;
 							text += m + s_cast<int>(advance);
