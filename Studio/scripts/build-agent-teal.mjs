@@ -1,3 +1,4 @@
+import { buildLuaCheckSource } from './agent-teal-source.mjs';
 import { mkdir, readFile, writeFile, readdir } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -10,32 +11,7 @@ const source = await readFile(new URL('Source/Lua/Builtin/tl.lua', root));
 await writeFile(new URL('teal-source.h', output), `static const unsigned char teal_source[] = {${[...source].join(',')}};`);
 const webServer = await readFile(new URL('Assets/Script/Dev/WebServer.lua', root), 'utf8');
 const utils = await readFile(new URL('Assets/Script/Lib/Utils.lua', root), 'utf8');
-const ticStart = utils.indexOf('local tic80APIs');
-const ticEnd = utils.indexOf('_module_0["CheckTIC80Code"]', ticStart);
-if (ticStart < 0 || ticEnd < 0) throw new Error('Original TIC80 detector changed');
-const ticDetector = utils.slice(ticStart, ticEnd);
-const substitutions = webServer.split('\n').map(line => line.trim()).filter(line => line.startsWith('content = content:gsub(') && line.includes('tic80'));
-if (!substitutions.length || new Set(substitutions).size !== 1) throw new Error('Original TIC80 substitutions require review');
-function extract(start, end) {
-  const a = webServer.indexOf(start), b = webServer.indexOf(end, a);
-  if (a < 0 || b < 0) throw new Error(`Original Lua check shape changed: ${start}`);
-  return webServer.slice(a, b);
-}
-const luaCheck = Buffer.from(`local teal = {checkAsync = studio_teal.dora_check}\n` +
-  ticDetector + '\n' +
-  extract('local disabledCheckForLua = {', 'local yueCheck\n') +
-  extract('local luaCheck\nluaCheck = function(', 'local luaCheckWithLineInfo\n') +
-  `\nfunction studio_lua_check(content, filename)
-    if CheckTIC80Code(content) then ${substitutions[0]} end
-    local result = luaCheck(filename, content); return result.success, result.info
-  end
-  function studio_tl_compile(content, filename)
-    local isTIC80 = not not CheckTIC80Code(content)
-    if isTIC80 then ${substitutions[0]} end
-    local codes, err = studio_teal.dora_to_lua(content, filename, "")
-    if codes and isTIC80 then codes = codes:gsub('^require%("tic80"%)', '-- tic80') end
-    return codes, err, isTIC80
-  end\n`);
+const luaCheck = Buffer.from(buildLuaCheckSource(webServer, utils));
 await writeFile(new URL('lua-check-source.h', output), `static const unsigned char lua_check_source[] = {${[...luaCheck].join(',')}};`);
 const files = (await readdir(lua)).filter(name => name.endsWith('.c')).sort();
 execFileSync(process.env.STUDIO_EMCC || 'emcc', [fileURLToPath(new URL('teal-host.c', import.meta.url)),

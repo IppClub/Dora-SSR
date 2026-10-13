@@ -28,6 +28,9 @@ for _, name in ipairs({"dora-test", "dora-test-deps"}) do
                 os.vrunv(pnpm.program, {"build"}, {curdir = path.join(root, "Tools/dora-dora")})
             end
             local node = assert(find_tool("node"), "test runner requires Node.js")
+            if not option.get("list") and option.get("suite") == "studio" then
+                os.vrunv(node.program, {"--test", path.join(root, "Studio/scripts/agent-teal-source.test.mjs")}, {curdir = root})
+            end
             local args = {path.join(tests.directory, "Test/run.mjs"), "--suite=" .. option.get("suite")}
             if option.get("case") then table.insert(args, "--case=" .. option.get("case")) end
             if option.get("list") then table.insert(args, "--list") end
