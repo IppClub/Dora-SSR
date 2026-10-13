@@ -3,8 +3,9 @@ import { resolveVisionBinding } from 'Agent/Tool/VisionBinding';
 import { getVisionTaskUsage, type VisionTaskUsage } from 'Agent/Tool/VisionAnalysis';
 import { Path, Content } from 'Dora';
 import { Flow, Node } from 'Agent/flow';
+import { RepeatedOutputRecovery, type DecisionOutput } from 'Agent/Runtime/RepeatedOutput';
 import * as AgentUtils from 'Agent/Utils';
-import type { LLMConfig, LLMTokenUsage, Message, StopToken, ToolCall } from 'Agent/Utils';
+import type { LLMConfig, LLMTokenUsage, Message, StopToken } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
 import { MemoryCompressor } from 'Agent/Memory';
 import type { AgentPromptPack, AgentConversationMessage } from 'Agent/Memory';
@@ -17,7 +18,7 @@ import { executeRegisteredAgentTool } from 'Agent/Tool/Executor';
 import type { AgentToolControl, AgentToolExecutionContext, AgentToolWorkflowState, AgentToolExecutionMetadata } from 'Agent/Tool/Types';
 import { getPlainTextCompletionBudgetState, getRemainingAgentWorkSteps, isFinalAgentDecisionTurn } from 'Agent/Runtime/StepBudget';
 import { getAuthoredCompletionBlocker } from 'Agent/Runtime/CompletionPolicy';
-import { areAgentToolParamsEqual, cloneAgentToolParams, partitionAgentToolCalls } from 'Agent/Tool/Batch';
+import { partitionAgentToolCalls } from 'Agent/Tool/Batch';
 import type {
 	AgentCompletionOutcome,
 	AgentValidationKind,
@@ -392,12 +393,6 @@ export interface AgentActionRecord {
 	timestamp: string;
 }
 
-interface PreExecutedToolResult {
-	action: AgentActionRecord;
-	matches(action: AgentActionRecord): boolean;
-	promise: Promise<Record<string, unknown>>;
-}
-
 interface AgentFileContextItem {
 	path: string;
 	op: Tools.FileOp;
@@ -442,7 +437,8 @@ interface AgentShared {
 	promptPack: AgentPromptPack;
 	history: AgentActionRecord[];
 	pendingToolActions?: AgentActionRecord[];
-	preExecutedResults?: Map<string, PreExecutedToolResult>;
+	repeatedOutput: RepeatedOutputRecovery;
+	repeatRecoveryRetry?: boolean;
 	messages: AgentConversationMessage[];
 	lastConsolidatedIndex: number;
 	carryMessageIndex?: number;
@@ -813,49 +809,9 @@ function isToolAllowedForRole(shared: AgentShared, tool: AgentToolName): boolean
 	}).indexOf(tool) >= 0;
 }
 
-function clearPreExecutedResults(shared: AgentShared): void {
-	shared.preExecutedResults = undefined;
-}
-
-async function startPreExecutedToolAction(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
-	try {
-		return await executeToolAction(shared, action);
-	} catch (err) {
-		const message = tostring(err);
-		AgentUtils.Log("Error", `[CodingAgent] streaming pre-exec failed tool=${action.tool} id=${action.toolCallId}: ${message}`);
-		action.execution = { status: "FAILED" };
-		return { success: false, code: "TOOL_EXECUTION_FAILED", message };
-	}
-}
-
-function createPreExecutedToolResult(shared: AgentShared, action: AgentActionRecord): PreExecutedToolResult {
-	const params = cloneAgentToolParams(action.params);
-	return {
-		action,
-		matches(nextAction: AgentActionRecord): boolean {
-			return action.tool === nextAction.tool && areAgentToolParamsEqual(params, nextAction.params);
-		},
-		promise: startPreExecutedToolAction(shared, action),
-	};
-}
-
-async function executeToolActionWithPreExecution(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
+async function executeToolActionWithGuidance(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
 	const wasResumeNarrowReadMode = shared.workflow.resumeNarrowReadMode === true;
-	const preResult = shared.preExecutedResults?.get(action.toolCallId);
-	let result: Record<string, unknown>;
-	if (preResult) {
-		shared.preExecutedResults?.delete(action.toolCallId);
-		if (preResult.matches(action)) {
-			AgentUtils.Log("Info", `[CodingAgent] using streaming pre-exec result tool=${action.tool} id=${action.toolCallId}`);
-			result = await preResult.promise;
-			action.execution = preResult.action.execution;
-		} else {
-			AgentUtils.Log("Warn", `[CodingAgent] discard stale streaming pre-exec result tool=${action.tool} id=${action.toolCallId}`);
-			result = await executeToolAction(shared, action);
-		}
-	} else {
-		result = await executeToolAction(shared, action);
-	}
+	let result = await executeToolAction(shared, action);
 	const guidance: string[] = [];
 	if (action.truncatedEditRecovery !== undefined) {
 		const recovery = action.truncatedEditRecovery;
@@ -1053,6 +1009,7 @@ async function maybeCompressHistory(
 			shared.llmMaxTry,
 			shared.decisionMode,
 			{
+				stopToken: shared.stopToken,
 				onInput: (phase, messages, options) => {
 					saveStepLLMDebugInput(shared, stepId, phase, messages, options);
 				},
@@ -1130,14 +1087,13 @@ async function maybeCompressHistory(
 	}
 }
 
-async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunResult> {
+async function compactActiveHistory(shared: AgentShared, repeatedOutput = false): Promise<{ rounds: number; totalCompressed: number }> {
 	const { memory } = shared;
 	let rounds = 0;
 	let totalCompressed = 0;
 	while (getActiveRealMessageCount(shared) > 0) {
 		if (shared.stopToken.stopped) {
-			Tools.setTaskStatus(shared.taskId, "STOPPED");
-			return emitAgentTaskFinishEvent(shared, false, getCancelledReason(shared));
+			throw new Error(getCancelledReason(shared));
 		}
 		rounds += 1;
 		shared.step += 1;
@@ -1150,12 +1106,15 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 			taskId: shared.taskId,
 			step: stepId,
 			tool: "compress_memory",
-			reason: getMemoryCompressionStartReason(shared),
+			reason: repeatedOutput
+				? (shared.useChineseResponse ? "检测到连续相同输出，暂停工具执行并整理上下文。" : "Repeated output detected; holding tool execution while compacting context.")
+				: getMemoryCompressionStartReason(shared),
 			params: {
 				round: rounds,
 				maxRounds: 0,
 				pendingMessages,
 				fullCompaction: true,
+				repeatedOutput,
 			},
 		});
 		const result = await memory.compressor.compress(
@@ -1164,6 +1123,7 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 			shared.llmMaxTry,
 			shared.decisionMode,
 			{
+				stopToken: shared.stopToken,
 				onInput: (phase, messages, options) => {
 					saveStepLLMDebugInput(shared, stepId, phase, messages, options);
 				},
@@ -1176,7 +1136,11 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 			},
 			"budget_max"
 		);
-		if (!(result && result.success && result.compressedCount > 0)) {
+		const effectiveCompressedCount = result?.success ? math.min(
+			getActiveRealMessageCount(shared),
+			math.max(0, result.compressedCount - (typeof shared.carryMessageIndex === "number" ? 1 : 0))
+		) : 0;
+		if (!(result && result.success && effectiveCompressedCount > 0)) {
 			emitAgentEvent(shared, {
 				type: "memory_compression_finished",
 				sessionId: shared.sessionId,
@@ -1193,24 +1157,12 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 					error: result?.error ?? "compression returned no changes",
 					compressedCount: result?.compressedCount ?? 0,
 					fullCompaction: true,
+					repeatedOutput,
 				},
 			});
-			return finalizeAgentFailure(shared,
-				result?.error ?? (shared.useChineseResponse
+			throw new Error(result?.error ?? (shared.useChineseResponse
 					? "记忆压缩未产生可推进的结果。"
 					: "Memory compression produced no progress."));
-		}
-		const effectiveCompressedCount = math.max(
-			0,
-			result.compressedCount - (typeof shared.carryMessageIndex === "number" ? 1 : 0)
-		);
-		if (effectiveCompressedCount <= 0) {
-			return finalizeAgentFailure(
-				shared,
-				shared.useChineseResponse
-					? "记忆压缩未产生可推进的结果。"
-					: "Memory compression produced no progress."
-			);
 		}
 		emitAgentEvent(shared, {
 			type: "memory_compression_finished",
@@ -1225,6 +1177,7 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 				compressedCount: effectiveCompressedCount,
 				historyEntryPreview: summarizeHistoryEntryPreview(result.summary ?? ""),
 				fullCompaction: true,
+				repeatedOutput,
 				partialRecovered: result.partialRecovered === true,
 				recoveredFields: result.recoveredFields ?? [],
 				finishReason: result.finishReason,
@@ -1237,14 +1190,48 @@ async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunRes
 		persistHistoryState(shared);
 		AgentUtils.Log("Info", `[Memory] Full compaction compressed ${effectiveCompressedCount} messages (round ${rounds})`);
 	}
-	Tools.setTaskStatus(shared.taskId, "DONE");
-	return emitAgentTaskFinishEvent(
-		shared,
-		true,
-		shared.useChineseResponse
+	return { rounds, totalCompressed };
+}
+
+async function compactAllHistory(shared: AgentShared): Promise<CodingAgentRunResult> {
+	try {
+		const { rounds, totalCompressed } = await compactActiveHistory(shared);
+		if (shared.stopToken.stopped) return finalizeAgentFailure(shared, getCancelledReason(shared));
+		Tools.setTaskStatus(shared.taskId, "DONE");
+		return emitAgentTaskFinishEvent(shared, true, shared.useChineseResponse
 			? `会话整理完成，共整理 ${totalCompressed} 条消息，耗时 ${rounds} 轮。`
-			: `Session compaction completed. Consolidated ${totalCompressed} messages in ${rounds} rounds.`
-	);
+			: `Session compaction completed. Consolidated ${totalCompressed} messages in ${rounds} rounds.`);
+	} catch (err) {
+		return finalizeAgentFailure(shared, tostring(err));
+	}
+}
+
+async function interceptRepeatedOutput(shared: AgentShared, message: DecisionOutput): Promise<DecisionFailure | undefined> {
+	const action = shared.repeatedOutput.observe(message);
+	if (action === "accept") return undefined;
+	let reason = shared.useChineseResponse
+		? "压缩后再次出现相同输出，恢复无效，任务已暂停。发送继续可恢复任务。"
+		: "The same output recurred after compaction; recovery was ineffective. Task paused. Send continue to resume.";
+	if (action === "compact") {
+		try {
+			const result = await compactActiveHistory(shared, true);
+			if (result.totalCompressed <= 0) throw new Error("Memory compression produced no progress.");
+			if (!shared.stopToken.stopped) {
+				shared.repeatRecoveryRetry = true;
+				return { success: false, message: "Repeated output intercepted; context compacted. Re-decide before executing tools.", requestFailed: true };
+			}
+		} catch (err) {
+			reason = shared.useChineseResponse
+				? `重复输出恢复的压缩失败，任务已暂停：${tostring(err)}`
+				: `Repeated-output compaction failed; task paused: ${tostring(err)}`;
+		}
+	}
+	// STOPPED is resumable through the existing session continue path, not FAILED.
+	if (!shared.stopToken.stopped) {
+		shared.stopToken.reason = reason;
+		shared.stopToken.stopped = true;
+	}
+	return { success: false, message: getCancelledReason(shared), requestFailed: true };
 }
 
 function clearSessionHistory(shared: AgentShared): CodingAgentRunResult {
@@ -1500,12 +1487,14 @@ async function llm(
 			? AgentUtils.sanitizeUTF8(message.reasoning_content)
 			: undefined;
 		if (text) {
+			saveStepLLMDebugOutput(shared, stepId, phase, text, { success: true, usage });
+			const intercepted = await interceptRepeatedOutput(shared, { content: text, reasoning_content: reasoningContent });
+			if (intercepted) return { success: false, message: intercepted.message };
 			const parsed = tryParseAndValidateDecision(text, shared);
 			if (parsed.success) {
 				const reason = parsed.reason ?? "";
 				emitAssistantMessageUpdated(shared, "", reason !== "" ? reason : undefined);
 			}
-			saveStepLLMDebugOutput(shared, stepId, phase, text, { success: true, usage });
 			return { success: true, text, reasoningContent };
 		} else {
 			saveStepLLMDebugOutput(shared, stepId, phase, "empty LLM response", { success: false, usage });
@@ -1576,29 +1565,6 @@ function parseAndValidateToolCallDecision(
 	decision.params = validation.params;
 	return decision;
 }
-
-function createPreExecutableActionFromStream(shared: AgentShared, toolCall: ToolCall): AgentActionRecord | undefined {
-	const functionName = toolCall.function?.name;
-	const argsText = toolCall.function?.arguments ?? "";
-	const toolCallId = typeof toolCall.id === "string" ? toolCall.id : undefined;
-	if (!functionName || !toolCallId) return undefined;
-	const rawArgs = parseToolCallArguments(functionName, argsText);
-	if (isRecord(rawArgs) && rawArgs.success === false) return undefined;
-	const decision = parseDecisionToolCall(functionName, rawArgs);
-	if (!decision.success || !AgentToolRegistry.canPreExecuteTool(decision.tool)) return undefined;
-	const validation = validateDecision(decision.tool, decision.params);
-	if (!validation.success) return undefined;
-	if (!validateDecisionForShared(shared, decision.tool, validation.params).success) return undefined;
-	return {
-		step: shared.step + 1,
-		toolCallId,
-		tool: decision.tool,
-		reason: "",
-		params: validation.params,
-		timestamp: os.date("!%Y-%m-%dT%H:%M:%SZ"),
-	};
-}
-
 
 function validateDecisionForShared(
 	shared: AgentShared,
@@ -1867,33 +1833,6 @@ class MainDecisionAgent extends Node<AgentShared> {
 		return { shared };
 	}
 
-	private commitPreExecutedDecision(shared: AgentShared): DecisionSuccess | DecisionBatchSuccess | undefined {
-		const preExecuted = shared.preExecutedResults;
-		if (!preExecuted || preExecuted.size === 0) return undefined;
-		const decisions: DecisionSuccess[] = [];
-		preExecuted.forEach(preResult => {
-			const action = preResult.action;
-			decisions.push({
-				success: true,
-				tool: action.tool,
-				params: action.params,
-				toolCallId: action.toolCallId,
-				reason: action.reason,
-				reasoningContent: action.reasoningContent,
-			});
-		});
-		if (decisions.length === 0) return undefined;
-		AgentUtils.Log("Warn", `[CodingAgent] committing pre-executed tools after incomplete stream tools=${decisions.map(decision => decision.tool).join(",")}`);
-		if (decisions.length === 1) {
-			return decisions[0];
-		}
-		return {
-			success: true,
-			kind: "batch",
-			decisions,
-		};
-	}
-
 	private async callDecisionByToolCalling(
 		shared: AgentShared,
 		lastError?: string,
@@ -1922,9 +1861,8 @@ class MainDecisionAgent extends Node<AgentShared> {
 		saveStepLLMDebugInput(shared, stepId, "decision_tool_calling", messages, llmOptions);
 		let lastStreamContent = "";
 		let lastStreamReasoning = "";
-		const preExecutedResults = new Map<string, PreExecutedToolResult>();
-		shared.preExecutedResults = preExecutedResults;
 		const remainingWorkSteps = getRemainingAgentWorkSteps(shared.agentStepCount, shared.maxSteps);
+		// Complete-output repetition must be checked before any tool is allowed to run.
 		const res = await AgentUtils.callLLMStreamAggregated(
 			messages,
 			llmOptions,
@@ -1945,17 +1883,8 @@ class MainDecisionAgent extends Node<AgentShared> {
 				lastStreamReasoning = nextReasoning;
 				emitAssistantMessageUpdated(shared, nextContent, nextReasoning !== "" ? nextReasoning : undefined);
 			},
-			(tc) => {
-				if (shared.stopToken.stopped) return;
-				if (preExecutedResults.size >= remainingWorkSteps) return;
-				const action = createPreExecutableActionFromStream(shared, tc);
-				if (!action || preExecutedResults.has(action.toolCallId)) return;
-				AgentUtils.Log("Info", `[CodingAgent] streaming pre-exec tool=${action.tool} id=${action.toolCallId}`);
-				preExecutedResults.set(action.toolCallId, createPreExecutedToolResult(shared, action));
-			}
 		);
 		if (shared.stopToken.stopped) {
-			clearPreExecutedResults(shared);
 			return { success: false, message: getCancelledReason(shared) };
 		}
 		if (!res.success) {
@@ -1963,9 +1892,6 @@ class MainDecisionAgent extends Node<AgentShared> {
 			recordLLMTokenUsage(shared, stepId, "decision_tool_calling", usage);
 			saveStepLLMDebugOutput(shared, stepId, "decision_tool_calling", res.raw ?? res.message, { success: false, usage });
 			AgentUtils.Log("Error", `[CodingAgent] tool-calling request failed: ${res.message}`);
-			const committed = this.commitPreExecutedDecision(shared);
-			if (committed) return committed;
-			clearPreExecutedResults(shared);
 			return { success: false, message: res.message, raw: res.raw, requestFailed: true };
 		}
 		const usage = res.tokenUsage;
@@ -1973,6 +1899,10 @@ class MainDecisionAgent extends Node<AgentShared> {
 		saveStepLLMDebugOutput(shared, stepId, "decision_tool_calling", encodeDebugJSON(res.response), { success: true, usage });
 		const choice = res.response.choices && res.response.choices[0];
 		const message = choice && choice.message;
+		if (message) {
+			const intercepted = await interceptRepeatedOutput(shared, message);
+			if (intercepted) return intercepted;
+		}
 		const toolCalls = message && message.tool_calls;
 		const finishReason = choice && typeof choice.finish_reason === "string"
 			? choice.finish_reason
@@ -1988,22 +1918,18 @@ class MainDecisionAgent extends Node<AgentShared> {
 			const terminalDecision = classifyToolCallingTurnWithoutCalls(shared.role, finishReason, messageContent, reasoningContent);
 			if (terminalDecision) {
 				if (!terminalDecision.success) {
-					clearPreExecutedResults(shared);
-					return terminalDecision;
+						return terminalDecision;
 				}
 				if (isDecisionPlainTextCompletion(terminalDecision)) {
 					const blocker = getAuthoredCompletionBlocker(shared.workflow);
 					if (blocker !== undefined) {
-						clearPreExecutedResults(shared);
 						return { success: false, message: blocker, raw: terminalDecision.content };
 					}
 					AgentUtils.Log("Info", `[CodingAgent] ${shared.role} agent completed with plain text`);
 				}
-				clearPreExecutedResults(shared);
 				return terminalDecision;
 			}
 			AgentUtils.Log("Error", `[CodingAgent] missing tool call and plain-text fallback`);
-			clearPreExecutedResults(shared);
 			return {
 				success: false,
 				message: "missing tool call",
@@ -2125,6 +2051,7 @@ class MainDecisionAgent extends Node<AgentShared> {
 			if (shared.stopToken.stopped) {
 				return { success: false, message: getCancelledReason(shared) };
 			}
+			if (shared.repeatRecoveryRetry) return { success: false, message: "Repeated output recovery", requestFailed: true };
 			if (!llmRes.success) {
 				return { success: false, message: llmRes.message, raw: llmRes.text ?? "", requestFailed: true };
 			}
@@ -2301,6 +2228,10 @@ class MainDecisionAgent extends Node<AgentShared> {
 	}
 
 	async post(shared: AgentShared, _prepRes: unknown, execRes: unknown): Promise<string | undefined> {
+		if (shared.repeatRecoveryRetry) {
+			shared.repeatRecoveryRetry = false;
+			return "main";
+		}
 		const result = execRes as DecisionResult;
 		if (!result.success) {
 			if (shared.stopToken.stopped) {
@@ -2596,7 +2527,7 @@ async function executeToolAction(shared: AgentShared, action: AgentActionRecord)
 
 async function executeToolActionSafely(shared: AgentShared, action: AgentActionRecord): Promise<Record<string, unknown>> {
 	try {
-		return await executeToolActionWithPreExecution(shared, action);
+		return await executeToolActionWithGuidance(shared, action);
 	} catch (err) {
 		const message = tostring(err);
 		AgentUtils.Log("Error", `[CodingAgent] tool action failed unexpectedly tool=${action.providerToolName ?? action.tool} id=${action.toolCallId}: ${message}`);
@@ -2774,7 +2705,6 @@ class BatchToolAction extends Node<AgentShared> {
 	async exec(input: { shared: AgentShared; actions: AgentActionRecord[] }): Promise<AgentActionRecord[]> {
 		const shared = input.shared;
 		const spawnedBeforeBatch = shared.workflow.hasSpawnedSubAgentThisTask === true;
-		const preExecuted = shared.preExecutedResults;
 		const batches = partitionAgentToolCalls(input.actions, AgentToolRegistry.canRunToolInParallel);
 		const parallelBatchCount = batches.filter(b => b.isConcurrencySafe).length;
 		const serialBatchCount = batches.filter(b => !b.isConcurrencySafe).length;
@@ -2790,8 +2720,7 @@ class BatchToolAction extends Node<AgentShared> {
 			}
 
 			if (batch.isConcurrencySafe && batch.actions.length > 1) {
-				const preExecCount = batch.actions.filter(a => preExecuted?.has(a.toolCallId)).length;
-				AgentUtils.Log("Info", `[CodingAgent] batch ${batchIdx + 1}/${batches.length} parallel count=${batch.actions.length} pre_executed=${preExecCount}`);
+				AgentUtils.Log("Info", `[CodingAgent] batch ${batchIdx + 1}/${batches.length} parallel count=${batch.actions.length}`);
 				for (let i = 0; i < batch.actions.length; i++) {
 					emitAgentStartEvent(shared, batch.actions[i]);
 				}
@@ -2858,7 +2787,6 @@ class BatchToolAction extends Node<AgentShared> {
 
 	async post(shared: AgentShared, _prepRes: unknown, _execRes: unknown): Promise<string | undefined> {
 		shared.pendingToolActions = undefined;
-		shared.preExecutedResults = undefined;
 		persistHistoryState(shared);
 		// Keep the ask_user call/result pair active so the submitted answer can
 		// replace the waiting result before any memory summary covers it.
@@ -2981,6 +2909,7 @@ async function runCodingAgentAsync(options: CodingAgentRunOptions): Promise<Codi
 		agentStepCount: math.max(0, math.floor(options.initialAgentStepCount ?? 0)),
 		done: false,
 		stopToken: options.stopToken ?? { stopped: false },
+		repeatedOutput: new RepeatedOutputRecovery(),
 		response: "",
 		userQuery: effectiveUserQuery,
 		workingDir: options.workDir,

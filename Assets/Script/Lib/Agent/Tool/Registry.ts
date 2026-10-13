@@ -102,7 +102,7 @@ function createInputSchemaFromParameters(
 }
 
 function createFunctionToolSchemaFromDefinition(tool: AgentToolDefinition, context: AgentToolSchemaContext): AgentFunctionToolSchema {
-	const parameters = tool.inputSchema(context);
+	const parameters = (tool.modelInputSchema ?? tool.inputSchema)(context);
 	const rules = getToolRules(tool, context);
 	return {
 		type: "function",
@@ -115,12 +115,9 @@ function createFunctionToolSchemaFromDefinition(tool: AgentToolDefinition, conte
 }
 
 const READ_FILE_PARAMETERS: AgentToolParameterDefinition[] = [
-	{ name: "path", type: "string", description: "Single-read form: workspace-relative file path, the virtual @dora_full_logs.txt engine log, or an exact @dora-doc/... path returned by search_dora_doc." },
-	{ name: "startLine", type: "number", description: "Single-read starting line number. Positive values are 1-based; negative values count from the end. Defaults to 1. 0 is invalid." },
-	{ name: "endLine", type: "number", description: "Single-read ending line number. Positive values are 1-based; negative values count from the end. If omitted, defaults to 300 for positive startLine, or -1 for negative startLine. 0 is invalid." },
 	{
-		name: "reads", type: "array", minItems: 1,
-		description: "Batch-read form: a non-empty ordered list of independent file ranges. There is no artificial item limit.",
+		name: "reads", type: "array", required: true, minItems: 1,
+		description: "A required non-empty ordered list of file ranges. For one file, supply a one-element array. There is no artificial item limit.",
 		items: {
 			type: "object",
 			properties: {
@@ -135,8 +132,7 @@ const READ_FILE_PARAMETERS: AgentToolParameterDefinition[] = [
 ];
 
 const BUILD_PARAMETERS: AgentToolParameterDefinition[] = [
-	{ name: "paths", type: "array", minItems: 1, items: { type: "string" }, description: "Preferred form: a non-empty ordered list of files or directories to build sequentially. Use '.' for the project root. There is no artificial item limit." },
-	{ name: "path", type: "string", description: "Single-target compatibility form for existing sessions. New calls should prefer paths." },
+	{ name: "paths", type: "array", required: true, minItems: 1, items: { type: "string" }, description: "A required non-empty ordered list of files or directories to build sequentially. Use '.' for the project root, including when building one target. There is no artificial item limit." },
 ];
 
 const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
@@ -146,23 +142,25 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 		workModes: ["code", "plan"],
 		description: "Read one file range or an ordered batch of independent file ranges from the workspace, built-in documents, or the virtual engine log.",
 		parameters: READ_FILE_PARAMETERS,
-		inputSchema: context => {
-			const generated = createInputSchemaFromParameters(READ_FILE_PARAMETERS, context);
-			const properties = generated.properties as Record<string, JsonSchema>;
-			const schema: JsonSchemaObject = {
-				type: "object",
-				properties,
-				additionalProperties: false,
-				anyOf: [
-					{ required: ["path"] },
-					{ required: ["reads"] },
-				],
-			};
-			return schema;
-		},
+		modelInputSchema: context => ({
+			...createInputSchemaFromParameters(READ_FILE_PARAMETERS, context),
+			additionalProperties: false,
+		}),
+		// Persisted callers may still use path; validateInput checks that at least
+		// one form is supplied, without an alternative-form JSON schema.
+		inputSchema: context => ({
+			type: "object",
+			properties: {
+				...createInputSchemaFromParameters(READ_FILE_PARAMETERS, context).properties,
+				path: { type: "string" },
+				startLine: { type: "number" },
+				endLine: { type: "number" },
+			},
+			additionalProperties: false,
+		}),
 		rules: [
-			"Use path/startLine/endLine for one range, reads for a batch, or combine both forms. When combined, the top-level path range is read first, followed by reads in array order.",
-			"When several independent files or ranges are already known, either use reads or return multiple read_file tool calls in the same response.",
+			"Always supply reads as a non-empty array. Each entry contains path and optional startLine/endLine. For example: {\"reads\":[{\"path\":\"init.ts\"}]}.",
+			"Put independent files or ranges in the same reads array, in the order their results are needed.",
 			"Batch ranges are independent and ordered. A failed read remains in results and does not discard successful reads.",
 			"startLine defaults to 1. If endLine is omitted, it defaults to 300 when startLine is positive, or -1 when startLine is negative.",
 			"Read @dora_full_logs.txt to inspect the current Dora engine log snapshot; it is a read-only virtual path, not a workspace file.",
@@ -286,23 +284,21 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 		workModes: ["code"],
 		description: "Do compiling and static checks for ts/tsx, teal, lua, yue, yarn.",
 		parameters: BUILD_PARAMETERS,
-		inputSchema: context => {
-			const generated = createInputSchemaFromParameters(BUILD_PARAMETERS, context);
-			const properties = generated.properties as Record<string, JsonSchema>;
-			const schema: JsonSchemaObject = {
-				type: "object",
-				properties,
-				additionalProperties: false,
-				anyOf: [
-					{ required: ["paths"] },
-					{ required: ["path"] },
-				],
-			};
-			return schema;
-		},
+		modelInputSchema: context => ({
+			...createInputSchemaFromParameters(BUILD_PARAMETERS, context),
+			additionalProperties: false,
+		}),
+		// validateInput requires paths or the legacy path and normalizes both.
+		inputSchema: context => ({
+			type: "object",
+			properties: {
+				...createInputSchemaFromParameters(BUILD_PARAMETERS, context).properties,
+				path: { type: "string" },
+			},
+			additionalProperties: false,
+		}),
 		rules: [
-			"Prefer paths for all new calls, including one target. Use paths: ['.'] to build the project root.",
-			"The single path form remains accepted for existing sessions and may be combined with paths. When combined, path builds first, followed by paths in array order.",
+			"Always supply paths as a non-empty array, including one target. Use {\"paths\":[\".\"]} to build the project root.",
 			"Prefer one common directory target when edited files share a root; otherwise include the required targets in order.",
 			"Targets build sequentially and best-effort. A failed target does not discard earlier successful results.",
 			"Read the result and then decide whether another action is needed.",

@@ -82,6 +82,8 @@ export interface AgentToolDefinition {
 	parameters?: AgentToolParameterDefinition[];
 	rules?: (string | ((context: AgentToolSchemaContext) => string))[];
 	inputSchema: (context: AgentToolSchemaContext) => JsonSchemaObject;
+	/** Optional narrower contract advertised to the model; inputSchema still accepts legacy calls. */
+	modelInputSchema?: (context: AgentToolSchemaContext) => JsonSchemaObject;
 	outputSchema: JsonSchema;
 	validateInput?: AgentToolInputValidator;
 	preExecutable?: boolean;
