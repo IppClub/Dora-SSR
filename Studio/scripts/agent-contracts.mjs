@@ -39,11 +39,12 @@ const AGENT_TOOL_DEFINITIONS = AGENT_TOOL_DEFINITION_SOURCES.map(source => ({
   outputSchema: DEFAULT_TOOL_OUTPUT_SCHEMA,
 }));
 export function contracts(context) {
-  return AGENT_TOOL_DEFINITION_SOURCES.map(({parameters, inputSchema, ...source}) => ({
+  return AGENT_TOOL_DEFINITION_SOURCES.map(({parameters, inputSchema, modelInputSchema, ...source}) => ({
     ...source,
     description: resolveText(source.description, context),
     rules: (source.rules ?? []).map(rule => resolveText(rule, context)),
     inputSchema: inputSchema ? inputSchema(context) : createInputSchemaFromParameters(parameters, context),
+    ...(modelInputSchema ? {modelInputSchema: modelInputSchema(context)} : {}),
     outputSchema: DEFAULT_TOOL_OUTPUT_SCHEMA,
   }));
 }`, loader: 'ts', resolveDir: new URL('../../Assets/Script/Lib/', import.meta.url).pathname },

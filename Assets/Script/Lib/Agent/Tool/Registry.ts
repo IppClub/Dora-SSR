@@ -146,8 +146,8 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 			...createInputSchemaFromParameters(READ_FILE_PARAMETERS, context),
 			additionalProperties: false,
 		}),
-		// Persisted callers may still use path; validateInput checks that at least
-		// one form is supplied, without an alternative-form JSON schema.
+		// Require a batch or the persisted legacy path before semantic validation.
+		// The model schema above advertises only the strict batch form.
 		inputSchema: context => ({
 			type: "object",
 			properties: {
@@ -156,6 +156,7 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 				startLine: { type: "number" },
 				endLine: { type: "number" },
 			},
+			anyOf: [{ required: ["path"] }, { required: ["reads"] }],
 			additionalProperties: false,
 		}),
 		rules: [
@@ -288,13 +289,14 @@ const AGENT_TOOL_DEFINITION_SOURCES: AgentToolDefinitionSource[] = [
 			...createInputSchemaFromParameters(BUILD_PARAMETERS, context),
 			additionalProperties: false,
 		}),
-		// validateInput requires paths or the legacy path and normalizes both.
+		// Require a batch or the legacy path before validateInput normalizes both.
 		inputSchema: context => ({
 			type: "object",
 			properties: {
 				...createInputSchemaFromParameters(BUILD_PARAMETERS, context).properties,
 				path: { type: "string" },
 			},
+			anyOf: [{ required: ["path"] }, { required: ["paths"] }],
 			additionalProperties: false,
 		}),
 		rules: [
