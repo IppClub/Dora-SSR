@@ -1050,6 +1050,9 @@ int Application::run(MainFunc mainFunc) {
 	_logicThread.init(Application::mainLogic, this);
 
 	SDL_Event event;
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+	bool nativeIDEAttached = false;
+#endif
 	while (_renderRunning) {
 		// do render staff and swap buffers
 		bgfx::renderFrame();
@@ -1057,8 +1060,17 @@ int Application::run(MainFunc mainFunc) {
 			SDL_GL_SwapWindow(_sdlWindow);
 		}
 
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+		if (!nativeIDEAttached) { setIDEWebView("attach"); nativeIDEAttached = true; }
+#endif
 		// handle SDL event in this main thread only
 		while (SDL_PollEvent(&event)) {
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+			if (isIDEWebViewVisible() && (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP
+				|| event.type == SDL_TEXTINPUT || event.type == SDL_TEXTEDITING
+				|| event.type == SDL_MOUSEMOTION || event.type == SDL_MOUSEBUTTONDOWN
+				|| event.type == SDL_MOUSEBUTTONUP || event.type == SDL_MOUSEWHEEL)) continue;
+#endif
 			bool suppressKeyboardEvent = false;
 			switch (event.type) {
 				case SDL_DROPFILE:
@@ -1170,6 +1182,7 @@ int Application::run(MainFunc mainFunc) {
 	_logicThread.shutdown();
 
 #if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+	closeIDEWebView();
 	closeCompilerWebView();
 #endif
 	if (_sdlGLContext) {
@@ -1480,7 +1493,10 @@ int Application::mainLogic(Application* app) {
 #if BX_PLATFORM_ANDROID
 			setAndroidAppWebView(path, visible);
 #else
-			app->invokeInRender([app, path, visible]() { app->setCompilerWebView(path, visible); });
+			app->invokeInRender([app, path, visible]() {
+				if (path == "/compiler.html") app->setCompilerWebView(path, visible);
+				else if (path.starts_with("/ide/")) app->setIDEWebView(path.substr(5));
+			});
 #endif
 		}
 	});
@@ -1715,7 +1731,13 @@ void Application::setupSdlWindow() {
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX || BX_PLATFORM_EMSCRIPTEN
 
 void Application::openURL(String url) {
-	invokeInRender([url = url.toString()]() {
+	invokeInRender([this, url = url.toString()]() {
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+		if (url == "http://localhost:8866" || url == "http://localhost:8866/") {
+			setIDEWebView("show");
+			return;
+		}
+#endif
 		if (SDL_OpenURL(url.c_str()) != 0) {
 			Error("failed to open url due to: {}", SDL_GetError());
 		}

@@ -74,6 +74,16 @@ static SDL_Window *FindSDLWindowForNSWindow(NSWindow *win)
 
 static SDL_bool s_bShouldHandleEventsInSDLApplication = SDL_FALSE;
 
+/* Embedded native views own their input even inside an SDL window. */
+static BOOL Cocoa_IsNativeUI(NSResponder *responder)
+{
+    if (![responder isKindOfClass:[NSView class]]) return NO;
+    for (NSView *view = (NSView *)responder; view; view = view.superview) {
+        if ([view.identifier isEqualToString:@"DoraNativeUI"]) return YES;
+    }
+    return NO;
+}
+
 static void Cocoa_DispatchEvent(NSEvent *theEvent)
 {
     SDL_VideoDevice *_this = SDL_GetVideoDevice();
@@ -90,12 +100,21 @@ static void Cocoa_DispatchEvent(NSEvent *theEvent)
         case NSEventTypeOtherMouseDragged: /* usually middle mouse dragged */
         case NSEventTypeMouseMoved:
         case NSEventTypeScrollWheel:
-            Cocoa_HandleMouseEvent(_this, theEvent);
+            if (!Cocoa_IsNativeUI([[theEvent window].contentView hitTest:
+                [[theEvent window].contentView convertPoint:theEvent.locationInWindow fromView:nil]])) {
+                Cocoa_HandleMouseEvent(_this, theEvent);
+            }
             break;
         case NSEventTypeKeyDown:
         case NSEventTypeKeyUp:
         case NSEventTypeFlagsChanged:
-            Cocoa_HandleKeyEvent(_this, theEvent);
+            /* Native auxiliary windows (WebKit, file panels) own their text
+             * input context. Feeding their keys to SDL's translator as well
+             * interprets characters/IME twice and leaks keys into the game. */
+            if (FindSDLWindowForNSWindow([theEvent window] ?: [NSApp keyWindow])
+                && !Cocoa_IsNativeUI(([theEvent window] ?: [NSApp keyWindow]).firstResponder)) {
+                Cocoa_HandleKeyEvent(_this, theEvent);
+            }
             break;
         default:
             break;

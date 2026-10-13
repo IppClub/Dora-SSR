@@ -63,6 +63,262 @@ static void compilerFailure(NSString* message) {
 
 static WKWebView* compilerWebView;
 static DoraCompilerNavigation* compilerNavigation;
+
+static void ideState(NSString* state, NSString* message = @"") {
+	std::string value = state.UTF8String, reason = message.UTF8String;
+	Dora::Singleton<Dora::Application>::shared().invokeInLogic([value, reason]() {
+		Dora::Event::send(std::string_view("AppIDEState"), value, reason);
+	});
+}
+
+// This marker lets SDL leave embedded browser/control events to Cocoa.
+@interface DoraIDEOverlay : NSView
+@end
+@implementation DoraIDEOverlay
+- (NSView*)hitTest:(NSPoint)point {
+ NSView* hit = [super hitTest:point];
+ return hit == self ? nil : hit;
+}
+@end
+
+@interface DoraIDEHost : NSObject <WKNavigationDelegate, WKUIDelegate, WKDownloadDelegate>
+@property(weak) NSWindow* window;
+@property(strong) WKWebView* view;
+@property(strong) DoraIDEOverlay* overlay;
+@property(strong) NSStackView* menu;
+@property(strong) NSButton* handle;
+@property(strong) NSButton* switchButton;
+@property(strong) NSButton* stopButton;
+@property(strong) NSButton* reloadButton;
+@property BOOL loaded;
+@property BOOL visible;
+@property(strong) id keyMonitor;
+- (instancetype)initWithWindow:(NSWindow*)window;
+- (void)show;
+- (void)hide;
+- (void)stop;
+- (void)reload;
+- (void)detach;
+@end
+
+@implementation DoraIDEHost
+- (NSButton*)button:(NSString*)title action:(SEL)action {
+ NSButton* button = [NSButton buttonWithTitle:title target:self action:action];
+ button.bordered = NO; button.wantsLayer = YES;
+ button.identifier = @"DoraNativeUI";
+ button.layer.backgroundColor = [NSColor colorWithWhite:0.21 alpha:1].CGColor;
+ button.layer.cornerRadius = 6;
+ button.attributedTitle = [[NSAttributedString alloc] initWithString:title attributes:@{NSForegroundColorAttributeName:NSColor.whiteColor, NSFontAttributeName:[NSFont systemFontOfSize:12]}];
+ [button.heightAnchor constraintEqualToConstant:38].active = YES;
+ return button;
+}
+- (void)setTitle:(NSString*)title forButton:(NSButton*)button {
+ button.title = title;
+ button.attributedTitle = [[NSAttributedString alloc] initWithString:title attributes:@{NSForegroundColorAttributeName:NSColor.whiteColor, NSFontAttributeName:[NSFont systemFontOfSize:button == _handle ? 8 : 12]}];
+}
+- (instancetype)initWithWindow:(NSWindow*)window {
+ self = [super init];
+ if (!self) return nil;
+ _window = window;
+ NSView* root = window.contentView;
+ _overlay = [[DoraIDEOverlay alloc] initWithFrame:root.bounds];
+ _overlay.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+ _menu = [NSStackView stackViewWithViews:@[]];
+ _menu.orientation = NSUserInterfaceLayoutOrientationVertical;
+ _menu.spacing = 8; _menu.edgeInsets = NSEdgeInsetsMake(12, 8, 12, 8);
+ _menu.wantsLayer = YES;
+ _menu.layer.backgroundColor = [NSColor colorWithWhite:0.17 alpha:0.53].CGColor;
+ _menu.layer.cornerRadius = 18;
+ _menu.identifier = @"DoraNativeUI"; _menu.hidden = YES;
+ _switchButton = [self button:@"IDE" action:@selector(switchMode)];
+ BOOL zh = [NSLocale.preferredLanguages.firstObject hasPrefix:@"zh"];
+ _stopButton = [self button:zh ? @"停止" : @"Stop" action:@selector(stop)];
+ _reloadButton = [self button:zh ? @"重载" : @"Reload" action:@selector(reload)];
+ for (NSButton* button in @[_switchButton, _stopButton, _reloadButton]) {
+  [_menu addArrangedSubview:button];
+  [button.widthAnchor constraintEqualToAnchor:_menu.widthAnchor constant:-16].active = YES;
+ }
+ _handle = [NSButton buttonWithTitle:@"I\nD\nE" target:self action:@selector(toggleMenu)];
+ _handle.bordered = NO; _handle.identifier = @"DoraNativeUI";
+ _handle.wantsLayer = YES; _handle.layer.backgroundColor = [NSColor colorWithWhite:0.21 alpha:0.8].CGColor;
+ _handle.layer.cornerRadius = 16; _handle.alphaValue = 0.24;
+ [self setTitle:@"I\nD\nE" forButton:_handle];
+ for (NSView* view in @[_menu, _handle]) { view.translatesAutoresizingMaskIntoConstraints = NO; [_overlay addSubview:view]; }
+ [NSLayoutConstraint activateConstraints:@[
+  [_handle.trailingAnchor constraintEqualToAnchor:_overlay.trailingAnchor],
+  [_handle.centerYAnchor constraintEqualToAnchor:_overlay.centerYAnchor],
+  [_handle.widthAnchor constraintEqualToConstant:20], [_handle.heightAnchor constraintEqualToConstant:60],
+  [_menu.trailingAnchor constraintEqualToAnchor:_handle.leadingAnchor constant:-2],
+  [_menu.centerYAnchor constraintEqualToAnchor:_overlay.centerYAnchor], [_menu.widthAnchor constraintEqualToConstant:94]]];
+ [root addSubview:_overlay];
+ [self updateControls];
+	// SDL supplies application/window menus, but no Edit menu. Use the Cocoa
+	// responder chain for WebKit's clipboard and undo operations.
+	if (![NSApp.mainMenu itemWithTitle:@"Edit"] && ![NSApp.mainMenu itemWithTitle:@"编辑"]) {
+		NSMenuItem* editItem = [[NSMenuItem alloc] initWithTitle:zh ? @"编辑" : @"Edit" action:nil keyEquivalent:@""];
+		NSMenu* edit = [[NSMenu alloc] initWithTitle:editItem.title];
+		NSArray* titles = zh ? @[@"撤销", @"重做", @"剪切", @"复制", @"粘贴", @"全选"] : @[@"Undo", @"Redo", @"Cut", @"Copy", @"Paste", @"Select All"];
+		NSArray* keys = @[@"z", @"z", @"x", @"c", @"v", @"a"];
+		SEL selectors[] = {@selector(undo:), @selector(redo:), @selector(cut:), @selector(copy:), @selector(paste:), @selector(selectAll:)};
+		for (NSUInteger i = 0; i < titles.count; ++i) {
+			NSMenuItem* item = [edit addItemWithTitle:titles[i] action:selectors[i] keyEquivalent:keys[i]];
+			if (i == 1) item.keyEquivalentModifierMask = NSEventModifierFlagCommand | NSEventModifierFlagShift;
+		}
+		editItem.submenu = edit;
+		[NSApp.mainMenu insertItem:editItem atIndex:1];
+	}
+
+ __weak DoraIDEHost* weakSelf = self;
+ _keyMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown handler:^NSEvent*(NSEvent* event) {
+  DoraIDEHost* host = weakSelf;
+  if (!host || !host.visible || event.window != host.window || !(event.modifierFlags & NSEventModifierFlagCommand)) return event;
+  id responder = host.window.firstResponder;
+  if ([responder conformsToProtocol:@protocol(NSTextInputClient)] && [(id<NSTextInputClient>)responder hasMarkedText]) return event;
+  NSString* key = event.charactersIgnoringModifiers.lowercaseString;
+  BOOL shift = (event.modifierFlags & NSEventModifierFlagShift) != 0;
+  if (shift && [key isEqualToString:@"h"]) { [host hide]; return nil; }
+  if (shift && [key isEqualToString:@"l"]) { [host reload]; return nil; }
+  if ([key isEqualToString:@"w"]) {
+   NSString* script = [NSString stringWithFormat:@"document.activeElement.dispatchEvent(new KeyboardEvent('keydown', {key:'w',code:'KeyW',metaKey:true,shiftKey:%@,bubbles:true,cancelable:true}))", shift ? @"true" : @"false"];
+   [host.view evaluateJavaScript:script completionHandler:nil]; return nil;
+  }
+  return event;
+ }];
+ return self;
+}
+- (void)updateControls {
+ BOOL zh = [NSLocale.preferredLanguages.firstObject hasPrefix:@"zh"];
+ [self setTitle:_visible ? (zh ? @"引擎" : @"Engine") : @"IDE" forButton:_switchButton];
+ [self setTitle:_visible ? @"M\nE\nN\nU" : @"I\nD\nE" forButton:_handle];
+ _stopButton.hidden = _visible || !_loaded;
+ _reloadButton.hidden = !_visible;
+}
+- (void)collapseMenu {
+ [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(collapseMenu) object:nil];
+ _menu.hidden = YES;
+ if (_visible) [_window makeFirstResponder:_view];
+ else [_window makeFirstResponder:_window.contentView];
+}
+- (void)toggleMenu {
+ if (!_menu.hidden) { [self collapseMenu]; return; }
+ [self updateControls]; _menu.hidden = NO;
+ [self performSelector:@selector(collapseMenu) withObject:nil afterDelay:3.5];
+}
+- (void)switchMode { if (_visible) [self hide]; else [self show]; }
+- (void)ensureView {
+ if (_view) return;
+ WKWebViewConfiguration* config = [[WKWebViewConfiguration alloc] init];
+ config.websiteDataStore = [WKWebsiteDataStore defaultDataStore];
+ if (@available(macOS 14.0, *)) config.preferences.inactiveSchedulingPolicy = WKInactiveSchedulingPolicyNone;
+ NSView* root = _window.contentView;
+ _view = [[WKWebView alloc] initWithFrame:root.bounds configuration:config];
+ _view.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+ _view.identifier = @"DoraNativeUI";
+ _view.navigationDelegate = self; _view.UIDelegate = self;
+ [root addSubview:_view positioned:NSWindowBelow relativeTo:_overlay];
+}
+- (void)show {
+ [self ensureView]; _visible = YES; _view.hidden = NO;
+ [NSApp activateIgnoringOtherApps:YES];
+ [_window makeKeyAndOrderFront:nil]; [_window makeFirstResponder:_view];
+ if (!_loaded) { _loaded = YES; [_view loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"http://localhost:8866/"]]]; }
+ [self updateControls]; [self collapseMenu]; ideState(@"visible");
+}
+- (void)hide {
+ _visible = NO; _view.hidden = YES;
+ [self updateControls]; [self collapseMenu]; ideState(@"hidden");
+}
+- (void)stop {
+ _loaded = NO; [_view stopLoading];
+ [_view loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"about:blank"]]];
+ [self hide]; ideState(@"stopped");
+}
+- (void)reload { _loaded = NO; [self show]; }
+- (void)detach {
+ [NSObject cancelPreviousPerformRequestsWithTarget:self];
+ if (_keyMonitor) [NSEvent removeMonitor:_keyMonitor]; _keyMonitor = nil;
+ _view.navigationDelegate = nil; _view.UIDelegate = nil;
+ [_view stopLoading]; [_view removeFromSuperview]; [_overlay removeFromSuperview];
+}
+- (void)webView:(WKWebView*)view didFailProvisionalNavigation:(WKNavigation*)navigation withError:(NSError*)error {
+	if (error.code != NSURLErrorCancelled) ideState(@"failed", error.localizedDescription);
+}
+- (void)webView:(WKWebView*)view didFailNavigation:(WKNavigation*)navigation withError:(NSError*)error {
+	if (error.code != NSURLErrorCancelled) ideState(@"failed", error.localizedDescription);
+}
+- (void)webViewWebContentProcessDidTerminate:(WKWebView*)view {
+	_loaded = NO;
+	ideState(@"failed", @"Web IDE process terminated; reload to reconnect.");
+}
+- (void)webView:(WKWebView*)view decidePolicyForNavigationAction:(WKNavigationAction*)action decisionHandler:(void (^)(WKNavigationActionPolicy))handler {
+	NSURL* url = action.request.URL;
+	BOOL local = [url.host isEqualToString:@"localhost"] && url.port.intValue == 8866 && [url.scheme isEqualToString:@"http"];
+	if ([url.absoluteString isEqualToString:@"about:blank"]) { handler(WKNavigationActionPolicyAllow); return; }
+	if (@available(macOS 11.3, *)) {
+		if (action.shouldPerformDownload && (local || [url.scheme isEqualToString:@"blob"])) { handler(WKNavigationActionPolicyDownload); return; }
+	}
+	if (local) handler(WKNavigationActionPolicyAllow);
+	else {
+		if ([url.scheme isEqualToString:@"https"] || [url.scheme isEqualToString:@"http"]) [[NSWorkspace sharedWorkspace] openURL:url];
+		handler(WKNavigationActionPolicyCancel);
+	}
+}
+- (void)webView:(WKWebView*)view decidePolicyForNavigationResponse:(WKNavigationResponse*)response decisionHandler:(void (^)(WKNavigationResponsePolicy))handler {
+	if (@available(macOS 11.3, *)) {
+		if (!response.canShowMIMEType) { handler(WKNavigationResponsePolicyDownload); return; }
+	}
+	handler(WKNavigationResponsePolicyAllow);
+}
+- (WKWebView*)webView:(WKWebView*)view createWebViewWithConfiguration:(WKWebViewConfiguration*)configuration forNavigationAction:(WKNavigationAction*)action windowFeatures:(WKWindowFeatures*)features {
+	NSURL* url = action.request.URL;
+	if ([url.host isEqualToString:@"localhost"] && url.port.intValue == 8866) [view loadRequest:action.request];
+	else if ([url.scheme isEqualToString:@"http"] || [url.scheme isEqualToString:@"https"]) [[NSWorkspace sharedWorkspace] openURL:url];
+	return nil;
+}
+- (void)webView:(WKWebView*)view runOpenPanelWithParameters:(WKOpenPanelParameters*)parameters initiatedByFrame:(WKFrameInfo*)frame completionHandler:(void (^)(NSArray<NSURL*>*))completionHandler {
+	NSOpenPanel* panel = [NSOpenPanel openPanel];
+	panel.allowsMultipleSelection = parameters.allowsMultipleSelection;
+	panel.canChooseDirectories = parameters.allowsDirectories;
+	panel.canChooseFiles = YES;
+	[panel beginSheetModalForWindow:_window completionHandler:^(NSModalResponse result) { completionHandler(result == NSModalResponseOK ? panel.URLs : nil); }];
+}
+- (void)webView:(WKWebView*)view navigationAction:(WKNavigationAction*)action didBecomeDownload:(WKDownload*)download API_AVAILABLE(macos(11.3)) { download.delegate = self; }
+- (void)webView:(WKWebView*)view navigationResponse:(WKNavigationResponse*)response didBecomeDownload:(WKDownload*)download API_AVAILABLE(macos(11.3)) { download.delegate = self; }
+- (void)download:(WKDownload*)download decideDestinationUsingResponse:(NSURLResponse*)response suggestedFilename:(NSString*)filename completionHandler:(void (^)(NSURL*))completionHandler API_AVAILABLE(macos(11.3)) {
+	NSSavePanel* panel = [NSSavePanel savePanel];
+	panel.nameFieldStringValue = filename.lastPathComponent;
+	[panel beginSheetModalForWindow:_window completionHandler:^(NSModalResponse result) { completionHandler(result == NSModalResponseOK ? panel.URL : nil); }];
+}
+- (void)download:(WKDownload*)download didFailWithError:(NSError*)error resumeData:(NSData*)resumeData API_AVAILABLE(macos(11.3)) {
+	if (![error.domain isEqualToString:NSURLErrorDomain] || error.code != NSURLErrorCancelled)
+		ideState(@"failed", error.localizedDescription);
+}
+- (void)webView:(WKWebView*)view runJavaScriptAlertPanelWithMessage:(NSString*)message initiatedByFrame:(WKFrameInfo*)frame completionHandler:(void (^)(void))completionHandler {
+	NSAlert* alert = [[NSAlert alloc] init]; alert.messageText = message;
+	[alert beginSheetModalForWindow:_window completionHandler:^(NSModalResponse response) { completionHandler(); }];
+}
+- (void)webView:(WKWebView*)view runJavaScriptConfirmPanelWithMessage:(NSString*)message initiatedByFrame:(WKFrameInfo*)frame completionHandler:(void (^)(BOOL))completionHandler {
+	NSAlert* alert = [[NSAlert alloc] init]; alert.messageText = message;
+	[alert addButtonWithTitle:@"OK"]; [alert addButtonWithTitle:@"Cancel"];
+	[alert beginSheetModalForWindow:_window completionHandler:^(NSModalResponse response) { completionHandler(response == NSAlertFirstButtonReturn); }];
+}
+@end
+static DoraIDEHost* ideHost;
+NS_DORA_BEGIN
+void Application::setIDEWebView(const std::string& action) {
+ if (!ideHost && (action == "attach" || action == "show" || action == "reload")) {
+  SDL_SysWMinfo info; SDL_VERSION(&info.version);
+  if (!SDL_GetWindowWMInfo(_sdlWindow, &info)) return;
+  ideHost = [[DoraIDEHost alloc] initWithWindow:info.info.cocoa.window];
+ }
+ if (action == "show") [ideHost show];
+ else if (action == "hide") [ideHost hide];
+ else if (action == "stop") [ideHost stop];
+ else if (action == "reload") [ideHost reload];
+}
+void Application::closeIDEWebView() { [ideHost detach]; ideHost = nil; }
+bool Application::isIDEWebViewVisible() const { return ideHost.visible; }
+NS_DORA_END
 NS_DORA_BEGIN
 void Application::closeCompilerWebView() {
 	if (!compilerWebView) return;

@@ -340,6 +340,15 @@ void Cocoa_StartTextInput(_THIS)
         nswindow = ((__bridge SDL_WindowData*)window->driverdata).nswindow;
     }
 
+    /* Embedded native views own their text input and IME responder. */
+    if ([nswindow.firstResponder isKindOfClass:[NSView class]]) {
+        for (NSView *view = (NSView *)nswindow.firstResponder; view; view = view.superview) {
+            if ([view.identifier isEqualToString:@"DoraNativeUI"]) {
+                return;
+            }
+        }
+    }
+
     parentView = [nswindow contentView];
 
     /* We only keep one field editor per process, since only the front most

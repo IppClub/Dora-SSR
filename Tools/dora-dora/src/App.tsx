@@ -1230,6 +1230,7 @@ export default function PersistentDrawerLeft() {
 		}
 		addAlert(t("alert.platform", { platform: Info.platform }), "success");
 		document.addEventListener("keydown", (event: KeyboardEvent) => {
+			if (event.isComposing || event.keyCode === 229) return;
 			if (event.key === "Escape") {
 				setKeyEvent(event);
 				return;
@@ -4838,6 +4839,7 @@ export default function PersistentDrawerLeft() {
 	}, [switchTab, t, files, tabIndex]);
 
 	const onKeyDown = (event: KeyboardEvent) => {
+		if (event.isComposing || event.keyCode === 229) return;
 		if (disconnected) {
 			return;
 		}

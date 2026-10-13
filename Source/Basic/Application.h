@@ -81,6 +81,9 @@ public:
 #if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 	void setCompilerWebView(const std::string& path, bool enabled);
 	void closeCompilerWebView();
+	void setIDEWebView(const std::string& action);
+	void closeIDEWebView();
+	bool isIDEWebViewVisible() const;
 #endif
 #if BX_PLATFORM_EMSCRIPTEN
 	uint32_t setWebSuspended(bool value);
