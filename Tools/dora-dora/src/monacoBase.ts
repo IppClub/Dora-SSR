@@ -1,30 +1,16 @@
-import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+import type { MonacoTypeScript } from './MonacoRuntimeAccess';
+import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 
 // Register only the language contributions we need to keep the bundle smaller.
-import * as tsContribution from 'monaco-editor/esm/vs/language/typescript/monaco.contribution';
-import 'monaco-editor/esm/vs/basic-languages/xml/xml.contribution';
-import 'monaco-editor/esm/vs/basic-languages/markdown/markdown.contribution';
-import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution';
-import 'monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution';
+import * as tsContribution from 'monaco-editor/esm/vs/language/typescript/monaco.contribution.js';
+import 'monaco-editor/esm/vs/basic-languages/xml/xml.contribution.js';
+import 'monaco-editor/esm/vs/basic-languages/markdown/markdown.contribution.js';
+import 'monaco-editor/esm/vs/basic-languages/ini/ini.contribution.js';
+import 'monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution.js';
 
-// monaco-editor full builds expose monaco.languages.typescript; reattach the
-// minimal API surface for our usage when using editor.api.
-const languages = monaco.languages as any;
-const tsAny = tsContribution as any;
-
-if (!languages.typescript) {
-	languages.typescript = {
-		typescriptDefaults: tsAny.typescriptDefaults,
-		javascriptDefaults: tsAny.javascriptDefaults,
-		getTypeScriptWorker: tsAny.getTypeScriptWorker,
-		getJavaScriptWorker: tsAny.getJavaScriptWorker,
-		JsxEmit: tsAny.JsxEmit,
-		ModuleKind: tsAny.ModuleKind,
-		ModuleResolutionKind: tsAny.ModuleResolutionKind,
-		ScriptTarget: tsAny.ScriptTarget,
-	};
-}
+// The ESM contribution ships empty declarations; its exports implement the
+// public TypeScript API declared by monaco-editor's top-level namespace.
+export const monacoTypescript = tsContribution as MonacoTypeScript;
 
 export default monaco;
 export { monaco };
-export const monacoTypescript = languages.typescript;

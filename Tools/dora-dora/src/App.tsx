@@ -14,7 +14,7 @@ import IconButton from '@mui/material/IconButton';
 import Fullscreen from '@mui/icons-material/Fullscreen';
 import FullscreenExit from '@mui/icons-material/FullscreenExit';
 import CloseIcon from '@mui/icons-material/Close';
-import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
+import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 import FileTree, { TreeDataType, TreeMenuEvent } from "./FileTree";
 import FileTabBar, { TabMenuEvent, TabStatus } from './FileTabBar';
 import Info from './Info';
@@ -5362,7 +5362,7 @@ export default function PersistentDrawerLeft() {
 				slotProps={{
 					transition: transitionProps,
 					paper: {
-						"data-first-project-dialog": "true",
+						...{ "data-first-project-dialog": "true" },
 					},
 				}}
 			>

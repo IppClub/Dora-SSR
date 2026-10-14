@@ -74,7 +74,7 @@ if (enabled) {
 				originalRemove.call(optionBag.signal, "abort", current.abort);
 			}
 		};
-		const wrapped: EventListener = function (event) {
+		const wrapped: EventListener = function (this: EventTarget, event) {
 			if (optionBag?.once) cleanup();
 			if (typeof listener === "function") {
 				listener.call(this, event);

@@ -45,7 +45,6 @@ const SpinePlayer = memo((props: SpinePlayerProps) => {
 					preserveDrawingBuffer: false,
 					skeleton: skelUrl,
 					atlasUrl: atlasUrl,
-					premultipliedAlpha: false,
 					showControls: true,
 					success: (player) => {
 						if (player.skeleton?.data.findAnimation("idle")) {

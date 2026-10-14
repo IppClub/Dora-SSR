@@ -26,11 +26,12 @@ function getExplicitAnyDiagnostics(program: ts.Program, sourceFiles?: readonly t
         if (node.kind === ts.SyntaxKind.AnyKeyword) {
             diagnostics.push(explicitAnyTypeNotAllowed(node, sourceFile));
         }
+        ts.forEachChild(node, child => visit(sourceFile, child));
     };
 
     for (const sourceFile of files) {
         if (sourceFile !== undefined && !sourceFile.isDeclarationFile) {
-            ts.forEachChildRecursively(sourceFile, node => visit(sourceFile, node));
+            visit(sourceFile, sourceFile);
         }
     }
 

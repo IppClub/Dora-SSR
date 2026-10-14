@@ -14,17 +14,15 @@
 		"forceConsistentCasingInFileNames": true,
 		"noFallthroughCasesInSwitch": true,
 		"module": "esnext",
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"noEmit": true,
 		"jsx": "react-jsx",
-		"baseUrl": ".",
 		"types": [
 			"node",
 			"react-transition-group"
 		],
-		"ignoreDeprecations": "6.0",
 	},
 	"include": [
 		"src"

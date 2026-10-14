@@ -774,8 +774,8 @@ export default memo(function FileTree(props: FileTreeProps) {
 							icon: false,
 							nodeDraggable: (node) => !(
 								props.firstProjectTourWorkspaceRightClickOnly
-								&& node.root
-								&& !node.builtin
+								&& "root" in node && node.root === true
+								&& !("builtin" in node && node.builtin === true)
 							),
 						}}
 					onDrop={onDrop}

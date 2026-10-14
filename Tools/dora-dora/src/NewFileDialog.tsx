@@ -177,7 +177,7 @@ function NewFileDialog(props: NewFileDialogProps) {
 			slotProps={{
 				transition: transitionProps,
 				paper: {
-					"data-first-project-new-dialog": "true",
+					...{ "data-first-project-new-dialog": "true" },
 					sx: compact ? {
 						width: "calc(100% - 24px)",
 						maxHeight: "calc(var(--dora-viewport-height, 100dvh) - 24px)",

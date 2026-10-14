@@ -113,6 +113,7 @@
 		"test:auth-signature": "xmake dora-test -P ../.. --suite=web-ide --case=test-auth-signature",
 		"preview": "vite preview",
 		"lint": "oxlint src",
+		"typecheck": "tsc --noEmit",
 		"postinstall": "node scripts/copy-typescript.js"
 	},
 	"browserslist": {

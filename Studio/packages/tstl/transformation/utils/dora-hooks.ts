@@ -264,7 +264,7 @@ export function validateDoraHookDependencies(context: TransformationContext, nod
     }
 
     const sourceFileName = getNodeSourceFileName(context, node);
-    if (sourceFileName === "DoraX.ts" || sourceFileName.endsWith("/DoraX.ts")) {
+    if (sourceFileName === "DoraX.ts" || sourceFileName?.endsWith("/DoraX.ts")) {
         return;
     }
 

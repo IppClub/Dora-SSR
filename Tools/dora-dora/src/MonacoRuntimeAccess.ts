@@ -1,8 +1,6 @@
-import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
+import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 
-type MonacoTypeScript = typeof import(
-	'monaco-editor/esm/vs/language/typescript/monaco.contribution'
-);
+export type MonacoTypeScript = typeof import('monaco-editor').typescript;
 
 export interface MonacoRuntime {
 	monaco: typeof Monaco;

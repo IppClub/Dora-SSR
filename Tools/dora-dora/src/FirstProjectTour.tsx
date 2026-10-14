@@ -61,10 +61,13 @@ export const FirstProjectTourStep = {
 
 export type FirstProjectTourStep = typeof FirstProjectTourStep[keyof typeof FirstProjectTourStep];
 
-const target = (selector: string) => () =>
-	document.querySelector<HTMLElement>(selector);
+type TourTarget = NonNullable<TourProps['steps']>[number]['target'];
+// The library handles missing targets at runtime, but types nullable callbacks
+// as a union of two functions instead of one function with a nullable result.
+const target = (selector: string): TourTarget => (() =>
+	document.querySelector<HTMLElement>(selector)) as TourTarget;
 
-const playControlTarget = (mode: string) => () =>
+const playControlTarget = (mode: string): TourTarget => (() =>
 	Array.from(document.querySelectorAll<HTMLElement>(
 		`[data-play-control-mode="${mode}"]`
 	)).find((element) => {
@@ -72,7 +75,7 @@ const playControlTarget = (mode: string) => () =>
 		return rect.width > 0
 			&& rect.height > 0
 			&& element.closest('[data-play-control-strip="true"]') !== null;
-	}) ?? null;
+	}) ?? null) as TourTarget;
 
 export default function FirstProjectTour(props: FirstProjectTourProps) {
 	const { t } = useTranslation();
@@ -195,7 +198,6 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 				mask={{ color: "rgba(0, 0, 0, 0.58)" }}
 				scrollIntoViewOptions={{ block: "nearest", behavior: "smooth" }}
 				zIndex={1500}
-				width={compact ? Math.min(280, window.innerWidth - 24) : 320}
 				onChange={() => undefined}
 				onClose={props.onClose}
 				actionsRender={(_, info) => {
@@ -279,6 +281,7 @@ export default function FirstProjectTour(props: FirstProjectTourProps) {
 				}}
 				styles={{
 					section: {
+						width: compact ? Math.min(280, window.innerWidth - 24) : 320,
 						maxWidth: 320,
 						background: Color.BackgroundDark,
 						border: `1px solid ${Color.Line}`,
