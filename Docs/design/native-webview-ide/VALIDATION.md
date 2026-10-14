@@ -174,6 +174,23 @@ suite (293 tests). Relevant final runs:
 Temporary validation files and test builds are disposable; this document and
 source verification scripts retain the reproducible conclusions.
 
+2026-10-14 follow-up: Windows switching controls now fit the measured IDE/MENU
+text with equal vertical padding; Windows debug build passed and the user
+confirmed the button display. Shared Web IDE authentication rechecks the server
+before prompting and while a PIN dialog is open; a confirmed unauthenticated
+response removes the dialog and stale session. Five production-bootstrap
+regressions, TypeScript checking, lint (one existing Archive.ts warning), and
+Vite production build passed. A headless Chrome run of the built frontend with
+controlled HTTP/WebSocket responses passed PIN login, disconnect, offline/500
+retaining the dialog, disabled mode dismissing it, unsigned requests and reload
+with stale credentials. The automated browser run uses controlled responses.
+Windows follow-up found an automation-started session-0 test process still
+serving the old page with authentication enabled. After terminating that owned
+process, the user launched the updated application from the desktop with
+authentication disabled and confirmed the embedded IDE no longer prompted for
+PIN. The live unsigned /info request returned 200, and the served main script
+matched the updated build. Other platforms were not exercised for this fix.
+
 2026-10-14 runtime opt-in: macOS debug, Windows x86 debug and Android debug
 (arm64-v8a, armeabi-v7a, x86_64) builds passed. Lua syntax checks, frontend type
 checking and the eight Teal source checks passed. A macOS application with its

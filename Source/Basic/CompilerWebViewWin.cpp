@@ -184,6 +184,16 @@ UINT ideWindowDPI(HWND window) {
 	const UINT dpi = getDPI ? getDPI(window) : 96;
 	return dpi ? dpi : 96;
 }
+const wchar_t* ideHandleText() { return ideVisible ? L"M\nE\nN\nU" : L"I\nD\nE"; }
+HFONT ideHandleFont(UINT dpi) {
+ return CreateFontW(-MulDiv(8, dpi, 96),0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,DEFAULT_CHARSET,
+  OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,DEFAULT_PITCH,L"Segoe UI");
+}
+RECT ideHandleTextBounds(HDC dc) {
+ RECT text{};
+ DrawTextW(dc, ideHandleText(), -1, &text, DT_CENTER | DT_CALCRECT);
+ return text;
+}
 
 void ideState(const std::string& state, const std::string& message = {}) {
 	Dora::Singleton<Dora::Application>::shared().setIDEWebViewVisible(ideVisible);
@@ -216,7 +226,12 @@ void ideLayout() {
   }
  }
  const int rows = ideVisible || ideLoaded ? 2 : 1;
- SetWindowPos(ideHandle, HWND_TOP, visible.right - dip(20), (visible.top + visible.bottom - dip(60)) / 2, dip(20), dip(60), SWP_NOACTIVATE);
+ HDC dc = GetDC(ideHandle);
+ HFONT handleFont = ideHandleFont(dpi);
+ HGDIOBJ previousFont = SelectObject(dc, handleFont);
+ const int handleHeight = ideHandleTextBounds(dc).bottom + dip(12);
+ SelectObject(dc, previousFont); DeleteObject(handleFont); ReleaseDC(ideHandle, dc);
+ SetWindowPos(ideHandle, HWND_TOP, visible.right - dip(20), (visible.top + visible.bottom - handleHeight) / 2, dip(20), handleHeight, SWP_NOACTIVATE);
  SetWindowPos(ideMenu, HWND_TOP, std::max(visible.left, visible.right - dip(116)), (visible.top + visible.bottom - dip(24 + 46 * rows)) / 2, dip(94), dip(24 + 46 * rows), SWP_NOACTIVATE);
  SetWindowPos(ideStatus, HWND_TOP, dip(24), dip(12), std::max(1L, bounds.right - dip(48)), dip(32), SWP_NOACTIVATE);
  if (ideFont) DeleteObject(ideFont);
@@ -242,9 +257,14 @@ LRESULT CALLBACK ideOverlayProc(HWND window, UINT message, WPARAM wParam, LPARAM
    HBRUSH background = CreateSolidBrush(RGB(43, 43, 43));
    FillRect(dc, &bounds, background); DeleteObject(background);
    SetBkMode(dc, TRANSPARENT); SetTextColor(dc, RGB(242, 242, 242));
-   HFONT font = menu ? ideFont : CreateFontW(-dip(8),0,0,0,FW_NORMAL,FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,DEFAULT_PITCH,L"Segoe UI");
+   HFONT font = menu ? ideFont : ideHandleFont(dpi);
    HGDIOBJ previous = SelectObject(dc, font);
-   if (!menu) DrawTextW(dc, ideVisible ? L"M\nE\nN\nU" : L"I\nD\nE", -1, &bounds, DT_CENTER | DT_NOCLIP);
+   if (!menu) {
+    RECT text = ideHandleTextBounds(dc);
+    text.left = bounds.left; text.right = bounds.right;
+    OffsetRect(&text, 0, (bounds.bottom - text.bottom) / 2);
+    DrawTextW(dc, ideHandleText(), -1, &text, DT_CENTER);
+   }
    else {
     const bool zh = std::string(Dora::Singleton<Dora::Application>::shared().getLocale()).starts_with("zh");
     const wchar_t* labels[] = {ideVisible ? (zh ? L"引擎" : L"Engine") : L"IDE", ideVisible ? (zh ? L"重载" : L"Reload") : (zh ? L"停止" : L"Stop")};
