@@ -114,6 +114,7 @@ public class MainActivity extends SDLActivity {
 	private boolean ideRequestedVisible = false;
 	private final java.util.ArrayDeque<Runnable> ideInputActions = new java.util.ArrayDeque<>();
 	private boolean ideToggleHeld = false;
+	private boolean ideEnabled = false;
 	private boolean sideMenuExpanded = false;
 	private ValueCallback<Uri[]> fileChooserCallback;
 	private final Map<String, String> pendingBlobFileNames = new HashMap<>();
@@ -160,7 +161,6 @@ public class MainActivity extends SDLActivity {
 		MainActivity.nativeSetPath(this.getApplicationInfo().sourceDir);
 		MainActivity.nativeSetScreenDensity(this.getResources().getDisplayMetrics().density);
 		MainActivity.nativeSetMainActivityClass(MainActivity.class);
-		installIdeSwitcher();
 		hideSystemUI();
 		receiveGameIntent(getIntent());
 	}
@@ -335,6 +335,8 @@ public class MainActivity extends SDLActivity {
 	public void setAppWebView(String path, boolean visible) {
 		runOnUiThread(() -> {
 			if (path.startsWith("/ide/")) {
+				if (path.equals("/ide/enable")) { setIdeEnabled(visible); return; }
+				if (!ideEnabled) return;
 				switch (path.substring(5)) {
 					case "toggle": toggleIde(); break;
 					case "show": showIde(); collapseSideMenu(); break;
@@ -535,6 +537,35 @@ public class MainActivity extends SDLActivity {
 				| View.SYSTEM_UI_FLAG_FULLSCREEN);
 	}
 
+	private void setIdeEnabled(boolean enabled) {
+		ideEnabled = enabled;
+		if (enabled) {
+			if (ideContainer == null) installIdeSwitcher();
+			return;
+		}
+		ideRequestedVisible = false;
+		ideToggleHeld = false;
+		if (sideHandleButton != null) sideHandleButton.setVisibility(View.GONE);
+		collapseSideMenu();
+		enqueueIdeInputAction(() -> {
+			showEngineAfterCancel();
+			if (fileChooserCallback != null) { fileChooserCallback.onReceiveValue(null); fileChooserCallback = null; }
+			if (ideWebView != null) {
+				ideWebView.setWebViewClient(null); ideWebView.setWebChromeClient(null);
+				ideWebView.stopLoading(); ideWebView.destroy();
+			}
+			for (View view : new View[] {ideContainer, sideHandleButton, sideMenu}) {
+				if (view != null && view.getParent() instanceof android.view.ViewGroup)
+					((android.view.ViewGroup)view.getParent()).removeView(view);
+			}
+			ideContainer = null; ideWebView = null; ideStatusView = null;
+			sideHandleButton = null; sideMenu = null;
+			switchModeButton = null; stopIdeButton = null; reloadButton = null;
+			ideLoaded = false; sideMenuExpanded = false;
+			nativeIDEState("stopped", "");
+			if (ideEnabled) installIdeSwitcher();
+		});
+	}
 	private void installIdeSwitcher() {
 		View content = SDLActivity.getContentView();
 		if (!(content instanceof RelativeLayout)) {
@@ -734,6 +765,7 @@ public class MainActivity extends SDLActivity {
 
 			@Override
 			public void onPageStarted(WebView view, String url, Bitmap favicon) {
+				if (view != ideWebView || !ideEnabled) return;
 				Log.d(TAG, "page started: " + url);
 				ideStatusView.setVisibility(View.VISIBLE);
 				ideStatusView.setText("Loading Web IDE...");
@@ -741,6 +773,7 @@ public class MainActivity extends SDLActivity {
 
 			@Override
 			public void onPageFinished(WebView view, String url) {
+				if (view != ideWebView || !ideEnabled) return;
 				Log.d(TAG, "page finished: " + url);
 				ideStatusView.setVisibility(View.GONE);
 				injectBlobDownloadHook();
@@ -1086,7 +1119,7 @@ public class MainActivity extends SDLActivity {
 		}
 	}
 	private boolean handleIdeToggleKey(KeyEvent event) {
-		if (ideContainer == null || event.getKeyCode() != KeyEvent.KEYCODE_H) return false;
+		if (!ideEnabled || ideContainer == null || event.getKeyCode() != KeyEvent.KEYCODE_H) return false;
 		if (ideToggleHeld) {
 			if (event.getAction() == KeyEvent.ACTION_UP) ideToggleHeld = false;
 			return true;
@@ -1134,7 +1167,7 @@ public class MainActivity extends SDLActivity {
 		enqueueIdeInputAction(this::showIdeAfterCancel);
 	}
 	private void showIdeAfterCancel() {
-		if (ideContainer == null) {
+		if (!ideEnabled || ideContainer == null) {
 			return;
 		}
 		if (!ideVisible) nativeIDEInputFocus(true);

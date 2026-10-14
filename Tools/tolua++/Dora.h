@@ -173,6 +173,7 @@ class Application
 	tolua_property__bool bool fullScreen;
 	tolua_property__bool bool alwaysOnTop;
 	tolua_property__bool bool devMode;
+	tolua_property__bool bool webIDEEnabled;
 	void openURL(String url);
 	void vibrate(double seconds);
 	void setClipboardText(String text);

@@ -176,7 +176,7 @@ static void ideState(NSString* state, NSString* message = @"") {
  __weak DoraIDEHost* weakSelf = self;
  NSEvent*(^keyHandler)(NSEvent*) = ^NSEvent*(NSEvent* event) {
   DoraIDEHost* host = weakSelf;
-  if (!host || event.window != host.window) return event;
+  if (!host || !Dora::Singleton<Dora::Application>::shared().isWebIDEEnabled() || event.window != host.window) return event;
   if (host.toggleKeyHeld && event.keyCode == host.toggleKeyCode) {
    if (event.type == NSEventTypeKeyUp) host.toggleKeyHeld = NO;
    return nil;
@@ -351,6 +351,8 @@ static void ideState(NSString* state, NSString* message = @"") {
 static DoraIDEHost* ideHost;
 NS_DORA_BEGIN
 void Application::setIDEWebView(const std::string& requestedAction) {
+ if (requestedAction == "disable") { [ideHost hide]; closeIDEWebView(); ideState(@"stopped"); return; }
+ if (!isWebIDEEnabled()) return;
  const std::string action = requestedAction == "toggle" ? (isIDEWebViewVisible() ? "hide" : "show") : requestedAction;
  if (!ideHost && (action == "attach" || action == "show" || action == "reload")) {
   SDL_SysWMinfo info; SDL_VERSION(&info.version);

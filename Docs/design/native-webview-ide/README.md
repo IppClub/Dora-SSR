@@ -2,9 +2,37 @@
 
 macOS and Windows mount the local Web IDE inside the existing engine window.
 A translucent handle at the right edge opens a small switching menu, following
-Android. Opening `http://localhost:8866/` shows this embedded IDE; other URLs
+Android. When enabled, opening `http://localhost:8866/` shows this embedded IDE; other URLs
 retain their normal behavior. The engine continues running behind the IDE.
 Native IDE and background compiler views have separate lifetimes.
+
+## Runtime opt-in
+
+`App.webIDEEnabled` defaults to `false` on each engine launch. A packaged game
+that supplies its own startup script gets no switching handle or host toggle
+shortcut. It does not inherit the development launcher's saved preference.
+The normal Dora development entry enables this feature by default and exposes
+the **Embedded Web IDE / 内嵌 Web IDE** checkbox in its settings.
+
+Custom startup scripts can opt in explicitly:
+
+```ts
+import { App } from "Dora";
+App.webIDEEnabled = true;
+```
+
+```lua
+Dora.App.webIDEEnabled = true
+```
+
+Set the property to `false` to cancel composition, restore engine input focus,
+disconnect and release the IDE, remove the switching controls and unregister
+the host shortcut. Re-enabling recreates the controls and lazily creates a new
+IDE session. Save editor changes before disabling. The local Web IDE server
+and frontend assets must be available for a custom application to open the IDE.
+This switch does not stop or disable the independent background TS compiler.
+`/status.nativeIDE.enabled` reports the runtime setting, and `/ide` rejects
+actions when it is disabled.
 
 ## Window and session behavior
 

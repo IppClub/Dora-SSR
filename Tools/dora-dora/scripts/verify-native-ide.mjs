@@ -36,6 +36,11 @@ const waitFor = async (predicate, label, seconds = 20) => {
 const action = async name => assert.equal((await post('/ide',{action:name})).success,true,name);
 const initial = await post('/status');
 assert.equal(initial.nativeIDE.supported,true);
+assert.equal(typeof initial.nativeIDE.enabled,'boolean');
+const setEnabled = async enabled => {
+ assert.equal((await post('/command',{code:`App.webIDEEnabled = ${enabled}`,log:false})).success,true);
+ await waitFor(s=>s.nativeIDE.enabled===enabled && (enabled || s.nativeIDE.state==='stopped'),'runtime IDE configuration');
+};
 assert.equal(initial.typescriptCompiler.webIDEReady,false,'Disconnect usable external IDEs first');
 const externalCount = initial.wsConnectionCount;
 // Remote fixtures also allow Android/emulators and Windows guests to use the
@@ -47,6 +52,7 @@ const root = remote ? nativeJoin(initial.writablePath,`.native-ide-${randomUUID(
 if (remote) assert.equal((await post('/new',{path:root,content:'',folder:true})).success,true);
 const fixtureJoin = remote ? nativeJoin : join;
 try {
+ await setEnabled(true);
  const file = fixtureJoin(root,'init.ts');
  if (remote) assert.equal((await post('/write',{path:file,content:'export const value = 42;\n'})).success,true);
  else await writeFile(file,'export const value = 42;\n');
@@ -89,10 +95,24 @@ try {
  assert.equal((await post('/status')).typescriptCompiler.embeddedReady,true);
  await waitFor(s=>!s.typescriptCompiler.embeddedRequested,'idle compiler recycled',12);
  console.log('PASS: stop falls back to background compiler and idle recycling');
+ assert.equal((await post('/run',{file:fixtureJoin(root,'init.lua'),asProj:true,projectRoot:root})).success,true);
+ assert.equal((await post('/stop')).success,true);
+ await action('show'); await waitFor(s=>s.nativeIDE.state==='visible','show before disabling');
+ await setEnabled(false);
+ await waitFor(s=>s.wsConnectionCount===externalCount,'disable disconnects IDE');
+ for(const name of ['show','reload','toggle']) assert.equal((await post('/ide',{action:name})).success,false,'disabled '+name);
+ await build();
+ assert.equal((await post('/status')).typescriptCompiler.embeddedReady,true);
+ await waitFor(s=>!s.typescriptCompiler.embeddedRequested,'disabled IDE compiler recycling',12);
+ await setEnabled(true); await action('show');
+ await waitFor(s=>s.nativeIDE.state==='visible' && s.typescriptCompiler.webIDEReady,'re-enable recreates IDE');
+ await build(); await action('stop');
+ console.log('PASS: service listeners survive game run/stop; runtime disable releases IDE, blocks opening and retains background compilation; re-enable works');
  assert.equal((await post('/ide',{action:'invalid'})).success,false);
  console.log(`Native IDE verification passed (${initial.platform}).`);
 } finally {
- await action('stop');
+ if ((await post('/status')).nativeIDE.enabled) await action('stop');
+ await setEnabled(initial.nativeIDE.enabled);
  if (remote) assert.equal((await post('/delete',{path:root})).success,true);
  else await rm(root,{recursive:true,force:true});
 }

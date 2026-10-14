@@ -750,6 +750,13 @@ interface App {
 	devMode: boolean;
 
 	/**
+	 * 在 macOS、Windows 和 Android 上启用内嵌 Web IDE、悬浮按钮和切换快捷键。
+	 * 默认关闭，Dora 开发入口会按设置启用。打包作品需显式开启。
+	 * 关闭时释放 IDE 界面并恢复引擎焦点；按需运行的后台编译器不受此配置影响。
+	 */
+	webIDEEnabled: boolean;
+
+	/**
 	 * 应用程序窗口大小。
 	 * 由于显示设备的DPI不同，可能会与实际的可视大小有差异。
 	 * 在Android和iOS平台上无法设置此属性。

@@ -73,6 +73,7 @@ public:
 	PROPERTY_BOOL(FullScreen);
 	PROPERTY_BOOL(AlwaysOnTop);
 	PROPERTY_BOOL(DevMode);
+	PROPERTY_BOOL(WebIDEEnabled);
 	SDLEventHandler eventHandler;
 	QuitHandler quitHandler;
 	int run(MainFunc mainFunc = nullptr);
@@ -132,6 +133,7 @@ protected:
 #endif
 
 private:
+	std::atomic<bool> _webIDEEnabled{false};
 	bool _idled;
 	bool _fpsLimited;
 	bool _renderRunning;

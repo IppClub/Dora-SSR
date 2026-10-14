@@ -298,6 +298,7 @@ void ideSaveDownload(IDEDownload& task) {
 	task.deferral->Complete();
 }
 bool ideToggleKey(UINT key, bool down, bool repeated) {
+ if (!Dora::Singleton<Dora::Application>::shared().isWebIDEEnabled()) return false;
  if (key != 'H') return false;
  if (ideToggleHeld) { if (!down) ideToggleHeld = false; return true; }
  if (!down || !(GetKeyState(VK_CONTROL) & 0x8000) || !(GetKeyState(VK_SHIFT) & 0x8000)
@@ -356,10 +357,10 @@ LRESULT CALLBACK ideWindowProc(HWND window, UINT message, WPARAM wParam, LPARAM 
 void ideAction(const std::string& action) {
  if (!ideWindow) return;
  const auto serial = ++ideSwitchSerial;
- if (action == "hide" || action == "stop") {
+ if (action == "hide" || action == "stop" || action == "disable") {
   const bool changing = ideVisible;
   ideVisible = false;
-  if (action == "stop") { ideSessionRequested = false; ideLoaded = false; }
+  if (action == "stop" || action == "disable") { ideSessionRequested = false; ideLoaded = false; }
   ideCancelNativeIME();
   const auto generation = ideGeneration;
   auto finish = [serial, generation, changing, action]() {
@@ -369,13 +370,29 @@ void ideAction(const std::string& action) {
    ShowWindow(ideStatus, SW_HIDE);
    SetFocus(ideWindow);
    if (changing) Dora::notifyIDEInputFocus(false);
+   if (action == "disable") {
+    auto& app = Dora::Singleton<Dora::Application>::shared();
+    app.closeIDEWebView();
+    ideState("stopped");
+    if (app.isWebIDEEnabled()) app.setIDEWebView("attach");
+    return;
+   }
    ideLayout(); ideCollapseMenu(); ideState(action == "stop" ? "stopped" : "hidden");
   };
   // Cancel Chromium's TSF composition BEFORE blur, which otherwise may commit it.
   // No remote debugging listener or browser kernel is needed for this API.
   if (ideView && changing) {
-   auto failed = [serial, generation]() {
+   auto failed = [serial, generation, action]() {
     if (serial != ideSwitchSerial || generation != ideGeneration) return;
+    if (action == "disable") {
+     Dora::notifyIDEInputFocus(false);
+     auto& app = Dora::Singleton<Dora::Application>::shared();
+     HWND parent = ideWindow;
+     app.closeIDEWebView(); SetFocus(parent);
+     ideState("stopped");
+     if (app.isWebIDEEnabled()) app.setIDEWebView("attach");
+     return;
+    }
     ideVisible = true;
     ideLayout();
     ideState("failed", "Cannot cancel Web IDE composition; reload the IDE before switching.");
@@ -383,7 +400,12 @@ void ideAction(const std::string& action) {
    HRESULT result = ideView->CallDevToolsProtocolMethod(L"Input.imeSetComposition",
     LR"({"text":"","selectionStart":0,"selectionEnd":0})",
     Callback<ICoreWebView2CallDevToolsProtocolMethodCompletedHandler>([finish, failed](HRESULT result, LPCWSTR) -> HRESULT {
-     if (SUCCEEDED(result)) finish(); else failed(); return S_OK;
+     // Closing the controller or uninitializing COM inside its completion
+     // callback can tear down WebView2 while the Runtime is still on the stack.
+     Dora::Singleton<Dora::Application>::shared().invokeInRender([finish, failed, result]() {
+      if (SUCCEEDED(result)) finish(); else failed();
+     });
+     return S_OK;
     }).Get());
    if (FAILED(result)) failed();
    return;
@@ -433,6 +455,11 @@ void Application::closeIDEWebView() {
 	if (ideCOM) { CoUninitialize(); ideCOM = false; }
 }
 void Application::setIDEWebView(const std::string& requestedAction) {
+ if (requestedAction == "disable") {
+  if (ideVisible) ideAction("disable"); else { closeIDEWebView(); ideState("stopped"); }
+  return;
+ }
+ if (!isWebIDEEnabled()) return;
  const std::string action = requestedAction == "toggle" ? (ideVisible ? "hide" : "show") : requestedAction;
 	if (action != "attach" && action != "show" && action != "reload") { ideAction(action); return; }
 	if (!ideWindow) {

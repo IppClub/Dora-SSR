@@ -2667,6 +2667,8 @@ probeWebIDECompiler = (isCancelled) ->
 	ready
 
 compilerConnectionListener = Node!
+-- Service listeners must survive Entry.allClear when a game runs or stops.
+compilerConnectionListener\addTo Director.systemUI
 compilerConnectionListener\gslot "AppWS", (event) ->
 	if event.type in ["Open", "Close"]
 		webIDEConnectionGeneration += 1
@@ -2892,11 +2894,13 @@ isDesktopPlatform = ->
 
 nativeIDEState, nativeIDEMessage = "stopped", ""
 nativeIDEListener = Node!
+nativeIDEListener\addTo Director.systemUI
 nativeIDEListener\gslot "AppIDEState", (state, message) ->
 	nativeIDEState, nativeIDEMessage = state, message
 
 HttpServer\post "/ide", (req): success: false, message: "invalid IDE action" ->
 	return success: false, message: "Native IDE is unavailable" unless App.platform in ["Android", "macOS", "Windows"]
+	return success: false, message: "Embedded Web IDE is disabled" unless App.webIDEEnabled
 	switch req when {body: {:action}}
 		if action in ["show", "hide", "stop", "reload", "toggle"]
 			emit "AppWebView", "/ide/" .. action, true
@@ -2917,6 +2921,7 @@ getServerStatus = ->
 		webIDEConnected: wsConnectionCount > 0
 		nativeIDE:
 			supported: App.platform in ["Android", "macOS", "Windows"]
+			enabled: App.webIDEEnabled
 			state: nativeIDEState
 			message: nativeIDEMessage
 		typescriptCompiler:

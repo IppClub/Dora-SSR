@@ -173,6 +173,33 @@ suite (293 tests). Relevant final runs:
 
 Temporary validation files and test builds are disposable; this document and
 source verification scripts retain the reproducible conclusions.
+
+2026-10-14 runtime opt-in: macOS debug, Windows x86 debug and Android debug
+(arm64-v8a, armeabi-v7a, x86_64) builds passed. Lua syntax checks, frontend type
+checking and the eight Teal source checks passed. A macOS application with its
+own startup script asserted the default flag was false; native UI inspection
+confirmed no handle initially, creation on opt-in and removal on disable.
+The disabled macOS shortcut did not reopen the IDE. The retained native verifier
+passed on macOS and the Android API 35 emulator, including real TS compilation,
+hide/toggle/reload, game run/stop, disabling a visible IDE, rejected IDE actions,
+background compilation and idle recycling while disabled, and recreation on
+re-enable. Android UI inspection found no buttons or visible WebViews after
+disable; injected Ctrl-Shift-H kept the disabled/stopped state. The verifier
+restored the initial runtime flag and removed its fixtures. The user confirmed
+on Windows that disabling the development setting removes the handle and blocks
+Ctrl-Shift-H, and re-enabling restores switching. Windows initially crashed in
+EmbeddedBrowserWebView.dll (0xc0000005) while
+disabling a visible IDE. Controller teardown was moved out of the IME completion
+callback to a queued render action; the Windows x86 rebuild passed. After a
+desktop restart, the full retained verifier passed, including real TS builds,
+hide/toggle/reload, compiler takeover, stop/idle recycling, game run/stop, visible
+IDE disable, rejected disabled actions, background compilation while disabled
+and recreation on re-enable. The service remained responsive with zero compiler
+users, jobs and connections, and both compilers recycled. Three additional visible
+IDE disable/recreate cycles passed; the initial enabled flag was restored and
+the earlier crash fixture removed. No session-0 engine process was launched for
+this check. Temporary macOS test bundles were removed.
+
 Shortcut QA fixtures and temporary screenshots on macOS/Android were removed;
 prior editor entries were restored. The second responsiveness pass restored
 the macOS editor entries (also preserving a newly opened user tab) and Windows

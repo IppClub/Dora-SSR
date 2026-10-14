@@ -747,6 +747,14 @@ interface App {
 	devMode: boolean;
 
 	/**
+	 * Enables the embedded Web IDE, floating switcher and toggle shortcut on macOS, Windows and Android.
+	 * Defaults to false. The Dora development launcher enables it according to its settings.
+	 * Packaged games must opt in explicitly. Disabling releases the IDE UI and restores engine focus;
+	 * the on-demand background compiler is independent of this setting.
+	 */
+	webIDEEnabled: boolean;
+
+	/**
 	 * The application window size.
 	 * May differ from visual size due to the different DPIs of display devices.
 	 * It is not available to set this property on platform Android and iOS.

@@ -839,6 +839,23 @@ bool Application::isIdled() const noexcept {
 	return _idled;
 }
 
+bool Application::isWebIDEEnabled() const noexcept {
+	return _webIDEEnabled.load(std::memory_order_relaxed);
+}
+
+void Application::setWebIDEEnabled(bool enabled) {
+	if (_webIDEEnabled.exchange(enabled, std::memory_order_relaxed) == enabled) return;
+#if BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+	invokeInRender([this]() {
+#if BX_PLATFORM_ANDROID
+		setAndroidAppWebView("/ide/enable", isWebIDEEnabled());
+#elif BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+		setIDEWebView(isWebIDEEnabled() ? "attach" : "disable");
+#endif
+	});
+#endif
+}
+
 #if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 bool Application::isIDEWebViewVisible() const {
 	return _ideWebViewVisible.load(std::memory_order_relaxed);
@@ -1094,9 +1111,6 @@ int Application::run(MainFunc mainFunc) {
 	_logicThread.init(Application::mainLogic, this);
 
 	SDL_Event event;
-#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
-	bool nativeIDEAttached = false;
-#endif
 	while (_renderRunning) {
 		// do render staff and swap buffers
 		bool frameReady = true;
@@ -1110,9 +1124,6 @@ int Application::run(MainFunc mainFunc) {
 			SDL_GL_SwapWindow(_sdlWindow);
 		}
 
-#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
-		if (!nativeIDEAttached) { setIDEWebView("attach"); nativeIDEAttached = true; }
-#endif
 		// handle SDL event in this main thread only
 		while (SDL_PollEvent(&event)) {
 #if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
@@ -1792,7 +1803,7 @@ void Application::setupSdlWindow() {
 void Application::openURL(String url) {
 	invokeInRender([this, url = url.toString()]() {
 #if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
-		if (url == "http://localhost:8866" || url == "http://localhost:8866/") {
+		if (isWebIDEEnabled() && (url == "http://localhost:8866" || url == "http://localhost:8866/")) {
 			setIDEWebView("show");
 			return;
 		}

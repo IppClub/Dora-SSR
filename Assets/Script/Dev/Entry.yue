@@ -92,8 +92,13 @@ config = Config(
 	"mobileRemixLLMConfigId"
 	"mobileLargeText"
 	"authRequired"
+	"webIDEEnabled"
 )
 config\load!
+
+unless config.webIDEEnabled?
+	config.webIDEEnabled = true
+App.webIDEEnabled = config.webIDEEnabled
 
 unless config.writablePath?
 	config.writablePath = Content.appPath
@@ -1032,6 +1037,10 @@ When enabled, regular key and text input events are suppressed; mapped keys are 
 				thread ->
 					collectgarbage!
 					Cache\removeUnused "Texture"
+		if App.platform == "Android" or App.platform == "macOS" or App.platform == "Windows"
+			if changed, webIDEEnabled := Checkbox zh and "内嵌 Web IDE" or "Embedded Web IDE", App.webIDEEnabled
+				config.webIDEEnabled = webIDEEnabled
+				App.webIDEEnabled = webIDEEnabled
 		if changed, authRequired := Checkbox zh and "访问验证" or "Auth Required", authRequired
 			config.authRequired = authRequired
 			HttpServer.authRequired = authRequired
