@@ -12,7 +12,7 @@ code = r'''
 int main() {
  using Dora::HttpPolicy::ifNoneMatch;
  const char* tag="\"abc-100\"";
- for(auto value:{"\"abc-100\"", "W/\"abc-100\"", "*", " \t*\t ", "\"other\", W/\"abc-100\"", ",,\"abc-100\",,"}) assert(ifNoneMatch(value,tag));
+ for(auto value:{"\"abc-100\"", "W/\"abc-100\"", "*", " \t*\t ", "\"other\", W/\"abc-100\"", ",,\"abc-100\",,", "\"abc-100\", ", "\"abc-100\", , ",}) assert(ifNoneMatch(value,tag));
  for(auto value:{"\"*\"", "\"unrelated*tag\"", "\"abc-100x\"", "\"other\"", "", "W/*", "*,\"other\"", "\"abc-100\"junk", "\"abc-100\",broken", "\"abc-100\", *", "w/\"abc-100\"", "\"abc 100\"", "\"unterminated"}) assert(!ifNoneMatch(value,tag));
  assert(ifNoneMatch("\"other,tag\", \"a,b\"", "\"a,b\""));
  assert(!ifNoneMatch("\"prefix,abc-100\"",tag));

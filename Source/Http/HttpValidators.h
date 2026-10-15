@@ -15,6 +15,7 @@ inline bool ifNoneMatch(std::string_view value, std::string_view selectedTag) {
 	bool matched = false;
 	while (!value.empty()) {
 		value = trim(value);
+		if (value.empty()) break;
 		if (value.front() == ',') { value.remove_prefix(1); continue; }
 		if (value.substr(0, 2) == "W/") value.remove_prefix(2);
 		if (value.empty() || value.front() != '"') return false;
