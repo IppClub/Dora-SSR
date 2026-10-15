@@ -111,6 +111,8 @@
 		"test:lodash-amd": "xmake dora-test -P ../.. --suite=web-ide --case=test-lodash-amd",
 		"test:xrt-network-wrapper": "xmake dora-test -P ../.. --suite=web-ide --case=test-xrt-network-wrapper",
 		"test:auth-reconnect": "node --test scripts/auth-reconnect.test.mjs",
+		"test:native-ide-run": "node --test scripts/native-ide-run.test.mjs",
+		"test:websocket-lifecycle": "node --test scripts/websocket-lifecycle.test.mjs",
 		"test:auth-signature": "xmake dora-test -P ../.. --suite=web-ide --case=test-auth-signature",
 		"preview": "vite preview",
 		"lint": "oxlint src",

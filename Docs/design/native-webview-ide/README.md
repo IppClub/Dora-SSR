@@ -1,9 +1,10 @@
 # Desktop application Web IDE
 
 macOS and Windows mount the local Web IDE inside the existing engine window.
-A translucent handle at the right edge opens a small switching menu, following
-Android. When enabled, opening `http://localhost:8866/` shows this embedded IDE; other URLs
-retain their normal behavior. The engine continues running behind the IDE.
+On macOS, Windows and Android, the translucent left-edge IDE handle always
+opens the editor directly. Inside the IDE, MENU offers Engine, Reload and Close.
+The desktop engine address link opens the external browser through `App.openURL`.
+The engine continues running behind the IDE.
 Native IDE and background compiler views have separate lifetimes.
 
 ## Runtime opt-in
@@ -37,19 +38,31 @@ actions when it is disabled.
 ## Window and session behavior
 
 - Show lazily opens the IDE and focuses the browser's native text input view.
-- The menu switches between IDE and Engine. Switching to Engine hides the
+- Engine in the IDE menu hides the
   browser, retaining the page, editor buffers and WebSocket compiler connection.
   The handle reads IDE over the engine and MENU over the IDE. The menu closes
   automatically after 3.5 seconds. Closing the main window exits Dora.
-- Stop IDE navigates to `about:blank`, returns to the engine and disconnects its
-  session. The next TS build can start the background compiler.
+- A successful Run / Run This from the embedded IDE hides it and returns focus
+  to the engine, retaining the page and compiler session. Compile/startup errors
+  leave the IDE visible. Remote browser runs do not switch the embedded view.
+  Switching, stopping or reloading while a run is pending cancels its automatic
+  return; later runtime errors retain the existing handling.
+- Close returns to the engine and disconnects its IDE session without disabling
+  the IDE entry. macOS explicitly closes the page's WebSocket lifecycle, then
+  releases the WKWebView and its message handlers, rather than retaining a page
+  navigated to `about:blank`; Windows and Android navigate
+  to `about:blank`. Clicking IDE opens a new session.
+  The next TS build can start the background compiler.
+  Page unload cancels reconnect timers and pending transpiler warmup, so an old
+  document cannot reconnect after Close. A restored browser-cache page starts
+  a fresh connection lifecycle.
 - Reload loads the local IDE again. Persistent browser storage retains IDE
   preferences and authentication state; unsaved buffers should be saved first.
 - A ready IDE takes new build requests. Existing background jobs finish before
   their last user releases the compiler. Idle background views close after
   eight seconds, or earlier when an IDE becomes ready.
-- Stop appears over the engine once the IDE has been loaded; Reload appears
-  over the IDE. Host shortcuts are
+- The engine handle never opens a menu. The IDE menu lists Engine, Reload and
+  Close in that order and has no additional actions. Host shortcuts are
   Command/Ctrl+Shift+H toggles Engine/IDE in either direction;
   Command/Ctrl+Shift+L reloads the visible IDE. Editor save, run, build, close
   tab, undo/redo and clipboard commands retain their existing bindings.
@@ -101,7 +114,7 @@ between Engine and IDE. Android supports hardware keyboards; the floating
 button remains available for touch input. Only the Dora window handles the
 shortcut. Repeated key-down events and the corresponding key-up are consumed.
 The shortcut and side-menu switch use the same show/hide paths, preserving the
-page, unsaved buffers and compiler session. Stop and Reload remain separate.
+page, unsaved buffers and compiler session. Close and Reload remain separate.
 
 Switching cancels unconfirmed IME text before transferring focus, retaining
 confirmed text and ordinary selections. macOS clears the marked range and
@@ -130,7 +143,9 @@ client area; no page zoom is used to simulate high-DPI rendering.
 
 While the IDE is visible, the render thread uses a 1 ms timeout when waiting
 for a submitted bgfx frame before polling native events. macOS also services the Cocoa RunLoop;
-Windows yields through the native message queue. This bounds the frame semaphore
+Windows yields through the native message queue. macOS also dispatches ready
+RunLoop sources while the IDE is hidden or closed, without waiting, so WebKit
+can complete socket teardown and background work. This bounds the frame semaphore
 wait, not GPU submission or presentation time. Visibility is atomic because the
 main and logic threads both read it.
 

@@ -1237,7 +1237,10 @@ int Application::run(MainFunc mainFunc) {
 			}
 		}
 
-#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+#if BX_PLATFORM_OSX
+		// WebKit still needs run-loop turns to finish disconnecting after Close.
+		pumpIDEWebViewEvents();
+#elif BX_PLATFORM_WINDOWS
 		if (isIDEWebViewVisible()) pumpIDEWebViewEvents();
 #endif
 	}
@@ -1801,13 +1804,7 @@ void Application::setupSdlWindow() {
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX || BX_PLATFORM_EMSCRIPTEN
 
 void Application::openURL(String url) {
-	invokeInRender([this, url = url.toString()]() {
-#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
-		if (isWebIDEEnabled() && (url == "http://localhost:8866" || url == "http://localhost:8866/")) {
-			setIDEWebView("show");
-			return;
-		}
-#endif
+	invokeInRender([url = url.toString()]() {
 		if (SDL_OpenURL(url.c_str()) != 0) {
 			Error("failed to open url due to: {}", SDL_GetError());
 		}

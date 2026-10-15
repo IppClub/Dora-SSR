@@ -164,6 +164,7 @@ WNDPROC ideOriginalProc = nullptr;
 bool ideVisible = false;
 bool ideToggleHeld = false;
 uint64_t ideSwitchSerial = 0;
+std::wstring idePendingRun;
 constexpr UINT_PTR ideMenuTimer = 0xD04A;
 HFONT ideFont = nullptr;
 ComPtr<ICoreWebView2Controller> ideController;
@@ -225,14 +226,14 @@ void ideLayout() {
    visible = clipped;
   }
  }
- const int rows = ideVisible || ideLoaded ? 2 : 1;
+ constexpr int rows = 3;
  HDC dc = GetDC(ideHandle);
  HFONT handleFont = ideHandleFont(dpi);
  HGDIOBJ previousFont = SelectObject(dc, handleFont);
  const int handleHeight = ideHandleTextBounds(dc).bottom + dip(12);
  SelectObject(dc, previousFont); DeleteObject(handleFont); ReleaseDC(ideHandle, dc);
- SetWindowPos(ideHandle, HWND_TOP, visible.right - dip(20), (visible.top + visible.bottom - handleHeight) / 2, dip(20), handleHeight, SWP_NOACTIVATE);
- SetWindowPos(ideMenu, HWND_TOP, std::max(visible.left, visible.right - dip(116)), (visible.top + visible.bottom - dip(24 + 46 * rows)) / 2, dip(94), dip(24 + 46 * rows), SWP_NOACTIVATE);
+ SetWindowPos(ideHandle, HWND_TOP, visible.left, (visible.top + visible.bottom - handleHeight) / 2, dip(20), handleHeight, SWP_NOACTIVATE);
+ SetWindowPos(ideMenu, HWND_TOP, std::min(visible.left + dip(22), std::max(visible.left, visible.right - dip(94))), (visible.top + visible.bottom - dip(24 + 46 * rows)) / 2, dip(94), dip(24 + 46 * rows), SWP_NOACTIVATE);
  SetWindowPos(ideStatus, HWND_TOP, dip(24), dip(12), std::max(1L, bounds.right - dip(48)), dip(32), SWP_NOACTIVATE);
  if (ideFont) DeleteObject(ideFont);
  ideFont = CreateFontW(-dip(12), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
@@ -267,8 +268,8 @@ LRESULT CALLBACK ideOverlayProc(HWND window, UINT message, WPARAM wParam, LPARAM
    }
    else {
     const bool zh = std::string(Dora::Singleton<Dora::Application>::shared().getLocale()).starts_with("zh");
-    const wchar_t* labels[] = {ideVisible ? (zh ? L"引擎" : L"Engine") : L"IDE", ideVisible ? (zh ? L"重载" : L"Reload") : (zh ? L"停止" : L"Stop")};
-    for (int i = 0; i < (ideVisible || ideLoaded ? 2 : 1); ++i) {
+    const wchar_t* labels[] = {zh ? L"引擎" : L"Engine", zh ? L"重载" : L"Reload", zh ? L"关闭" : L"Close"};
+    for (int i = 0; i < 3; ++i) {
      RECT row{dip(8),dip(12+46*i),bounds.right-dip(8),dip(50+46*i)};
      HBRUSH button = CreateSolidBrush(RGB(54,54,54)); FillRect(dc,&row,button); DeleteObject(button);
      DrawTextW(dc, labels[i],-1,&row,DT_CENTER|DT_VCENTER|DT_SINGLELINE);
@@ -279,13 +280,16 @@ LRESULT CALLBACK ideOverlayProc(HWND window, UINT message, WPARAM wParam, LPARAM
   }
   case WM_LBUTTONUP:
    if (!menu) {
-    if (IsWindowVisible(ideMenu)) ideCollapseMenu();
+    if (!ideVisible) Dora::Singleton<Dora::Application>::shared().setIDEWebView("show");
+    else if (IsWindowVisible(ideMenu)) ideCollapseMenu();
     else { ideLayout(); ShowWindow(ideMenu, SW_SHOWNOACTIVATE); SetTimer(ideWindow,ideMenuTimer,3500,nullptr); }
    } else {
     const int y = (short)HIWORD(lParam);
     const int row = (y - dip(12)) / dip(46);
-    if (y >= dip(12) && row == 0) Dora::Singleton<Dora::Application>::shared().setIDEWebView(ideVisible ? "hide" : "show");
-    else if (row == 1 && (ideVisible || ideLoaded)) Dora::Singleton<Dora::Application>::shared().setIDEWebView(ideVisible ? "reload" : "stop");
+    if (ideVisible && y >= dip(12) && row >= 0 && row < 3 && y < dip(50 + 46 * row)) {
+     const char* actions[] = {"hide", "reload", "stop"};
+     Dora::Singleton<Dora::Application>::shared().setIDEWebView(actions[row]);
+    }
     ideCollapseMenu();
    }
    return 0;
@@ -375,6 +379,7 @@ LRESULT CALLBACK ideWindowProc(HWND window, UINT message, WPARAM wParam, LPARAM 
  return CallWindowProcW(ideOriginalProc, window, message, wParam, lParam);
 }
 void ideAction(const std::string& action) {
+ idePendingRun.clear();
  if (!ideWindow) return;
  const auto serial = ++ideSwitchSerial;
  if (action == "hide" || action == "stop" || action == "disable") {
@@ -454,6 +459,7 @@ void Application::pumpIDEWebViewEvents() {
 	MsgWaitForMultipleObjectsEx(0, nullptr, 1, QS_ALLINPUT, MWMO_INPUTAVAILABLE);
 }
 void Application::closeIDEWebView() {
+ idePendingRun.clear();
  ++ideSwitchSerial; ideToggleHeld = false;
 	++ideGeneration;
 	for (auto& task : ideDownloads) { task.args->put_Cancel(TRUE); task.deferral->Complete(); }
@@ -534,10 +540,34 @@ void Application::setIDEWebView(const std::string& requestedAction) {
 					}
 					ideLayout();
 					EventRegistrationToken token;
+                    ideView->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>([generation](ICoreWebView2*, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
+                     LPWSTR source = nullptr, value = nullptr;
+                     args->get_Source(&source); args->TryGetWebMessageAsString(&value);
+                     std::wstring url = source ? source : L"", message = value ? value : L"";
+                     CoTaskMemFree(source); CoTaskMemFree(value);
+                     if (generation != ideGeneration || !url.starts_with(L"http://localhost:8866/")) return S_OK;
+                     const std::wstring prefix = L"dora-ide-run:";
+                     if (!message.starts_with(prefix)) return S_OK;
+                     auto separator = message.find(L':', prefix.size());
+                     if (separator == std::wstring::npos || separator + 1 == message.size()) return S_OK;
+                     auto action = message.substr(prefix.size(), separator - prefix.size()), id = message.substr(separator + 1);
+                     if (action == L"start") { idePendingRun = ideVisible ? id : L""; return S_OK; }
+                     if (id != idePendingRun) return S_OK;
+                     if (action == L"cancel") { idePendingRun.clear(); return S_OK; }
+                     if (action == L"success") {
+                      const auto serial = ideSwitchSerial;
+                      Dora::Singleton<Dora::Application>::shared().invokeInRender([generation, serial, id]() {
+                       if (generation == ideGeneration && serial == ideSwitchSerial && id == idePendingRun && ideVisible
+                        && Dora::Singleton<Dora::Application>::shared().isWebIDEEnabled()) ideAction("hide");
+                      });
+                     }
+                     return S_OK;
+                    }).Get(), &token);
 					ideView->add_NavigationStarting(Callback<ICoreWebView2NavigationStartingEventHandler>([generation](ICoreWebView2*, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
 						if (generation != ideGeneration) { args->put_Cancel(TRUE); return S_OK; }
 						LPWSTR uri = nullptr; args->get_Uri(&uri); std::wstring url = uri ? uri : L""; CoTaskMemFree(uri);
 						if (!ideLocalURL(url)) { args->put_Cancel(TRUE); ideExternalURL(url); }
+                        else idePendingRun.clear();
 						return S_OK;
 					}).Get(), &token);
 					ideView->add_NewWindowRequested(Callback<ICoreWebView2NewWindowRequestedEventHandler>([generation](ICoreWebView2*, ICoreWebView2NewWindowRequestedEventArgs* args) -> HRESULT {

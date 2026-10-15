@@ -109,6 +109,7 @@ public class MainActivity extends SDLActivity {
 	private WebView compilerWebView;
 	private String compilerWebViewPath;
 	private TextView ideStatusView;
+	private String pendingIdeRun;
 	private boolean ideLoaded = false;
 	private boolean ideVisible = false;
 	private boolean ideRequestedVisible = false;
@@ -538,6 +539,7 @@ public class MainActivity extends SDLActivity {
 	}
 
 	private void setIdeEnabled(boolean enabled) {
+		pendingIdeRun = null;
 		ideEnabled = enabled;
 		if (enabled) {
 			if (ideContainer == null) installIdeSwitcher();
@@ -610,7 +612,7 @@ public class MainActivity extends SDLActivity {
 		GradientDrawable menuBg = new GradientDrawable();
 		menuBg.setColor(0x882B2B2B);
 		menuBg.setCornerRadii(new float[] {
-			dp(18), dp(18), 0, 0, 0, 0, dp(18), dp(18)
+			0, 0, dp(18), dp(18), dp(18), dp(18), 0, 0
 		});
 		sideMenu.setBackground(menuBg);
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -620,7 +622,6 @@ public class MainActivity extends SDLActivity {
 			dp(94),
 			RelativeLayout.LayoutParams.WRAP_CONTENT);
 		menuParams.addRule(RelativeLayout.CENTER_VERTICAL);
-		menuParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
 
 		switchModeButton = makeOverlayButton("IDE");
 		switchModeButton.setOnClickListener(v -> {
@@ -628,12 +629,11 @@ public class MainActivity extends SDLActivity {
 		});
 		sideMenu.addView(switchModeButton);
 
-		stopIdeButton = makeOverlayButton("Stop");
+		stopIdeButton = makeOverlayButton("Close");
 		stopIdeButton.setOnClickListener(v -> {
 			stopIdeSession();
 			collapseSideMenu();
 		});
-		sideMenu.addView(stopIdeButton);
 
 		reloadButton = makeOverlayButton("Reload");
 		reloadButton.setOnClickListener(v -> {
@@ -641,6 +641,7 @@ public class MainActivity extends SDLActivity {
 			collapseSideMenu();
 		});
 		sideMenu.addView(reloadButton);
+		sideMenu.addView(stopIdeButton);
 
 		sideHandleButton = new Button(this);
 		sideHandleButton.setId(View.generateViewId());
@@ -662,7 +663,7 @@ public class MainActivity extends SDLActivity {
 		GradientDrawable buttonBg = new GradientDrawable();
 		buttonBg.setColor(0xCC353535);
 		buttonBg.setCornerRadii(new float[] {
-			dp(16), dp(16), 0, 0, 0, 0, dp(16), dp(16)
+			0, 0, dp(16), dp(16), dp(16), dp(16), 0, 0
 		});
 		sideHandleButton.setBackground(buttonBg);
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -674,12 +675,12 @@ public class MainActivity extends SDLActivity {
 		RelativeLayout.LayoutParams buttonParams = new RelativeLayout.LayoutParams(
 			dp(20),
 			dp(60));
-		buttonParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+		buttonParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
 		buttonParams.addRule(RelativeLayout.CENTER_VERTICAL);
-		buttonParams.rightMargin = 0;
+		buttonParams.leftMargin = 0;
 		root.addView(sideHandleButton, buttonParams);
-		menuParams.addRule(RelativeLayout.LEFT_OF, sideHandleButton.getId());
-		menuParams.rightMargin = dp(2);
+		menuParams.addRule(RelativeLayout.RIGHT_OF, sideHandleButton.getId());
+		menuParams.leftMargin = dp(2);
 		root.addView(sideMenu, menuParams);
 		updateSideControls();
 	}
@@ -696,6 +697,21 @@ public class MainActivity extends SDLActivity {
 		settings.setDisplayZoomControls(false);
 		settings.setSupportMultipleWindows(true);
 		ideWebView.addJavascriptInterface(new BlobDownloadBridge(), "DoraBlobDownloader");
+		final WebView runView = ideWebView;
+		ideWebView.addJavascriptInterface(new Object() {
+			@JavascriptInterface
+			public void postMessage(String message) {
+				runOnUiThread(() -> {
+					if (runView != ideWebView || !ideEnabled || !(WEB_IDE_URL.equals(runView.getUrl()) || (WEB_IDE_URL + "/").equals(runView.getUrl()))) return;
+					String[] parts = message.split(":", -1);
+					if (parts.length != 3 || !parts[0].equals("dora-ide-run") || parts[2].isEmpty()) return;
+					if (parts[1].equals("start")) { pendingIdeRun = ideVisible && ideRequestedVisible ? parts[2] : null; return; }
+					if (!parts[2].equals(pendingIdeRun)) return;
+					if (parts[1].equals("cancel")) pendingIdeRun = null;
+					else if (parts[1].equals("success") && ideVisible && ideRequestedVisible) showEngine();
+				});
+			}
+		}, "DoraIDERun");
 		WebView.setWebContentsDebuggingEnabled(false);
 		ideWebView.setWebChromeClient(new WebChromeClient() {
 			@Override
@@ -766,6 +782,7 @@ public class MainActivity extends SDLActivity {
 			@Override
 			public void onPageStarted(WebView view, String url, Bitmap favicon) {
 				if (view != ideWebView || !ideEnabled) return;
+				pendingIdeRun = null;
 				Log.d(TAG, "page started: " + url);
 				ideStatusView.setVisibility(View.VISIBLE);
 				ideStatusView.setText("Loading Web IDE...");
@@ -1030,6 +1047,7 @@ public class MainActivity extends SDLActivity {
 	}
 
 	private void toggleSideMenu() {
+		if (!ideVisible) { showIde(); collapseSideMenu(); return; }
 		if (sideMenuExpanded) {
 			collapseSideMenu();
 		} else {
@@ -1049,7 +1067,7 @@ public class MainActivity extends SDLActivity {
 		sideMenu.requestLayout();
 		sideMenu.invalidate();
 		sideMenu.setVisibility(View.VISIBLE);
-		sideMenu.setTranslationX(dp(8));
+		sideMenu.setTranslationX(-dp(8));
 		sideMenu.animate().cancel();
 		sideMenu.animate()
 			.alpha(1.0f)
@@ -1067,7 +1085,7 @@ public class MainActivity extends SDLActivity {
 		uiHandler.removeCallbacks(autoHideSideMenu);
 		sideMenu.animate().cancel();
 		sideMenu.setAlpha(0.0f);
-		sideMenu.setTranslationX(dp(8));
+		sideMenu.setTranslationX(-dp(8));
 		sideMenu.setVisibility(View.INVISIBLE);
 		sideHandleButton.bringToFront();
 	}
@@ -1163,6 +1181,7 @@ public class MainActivity extends SDLActivity {
 		}
 	}
 	private void showIde() {
+		pendingIdeRun = null;
 		ideRequestedVisible = true;
 		enqueueIdeInputAction(this::showIdeAfterCancel);
 	}
@@ -1188,6 +1207,7 @@ public class MainActivity extends SDLActivity {
 	}
 
 	private void showEngine() {
+		pendingIdeRun = null;
 		ideRequestedVisible = false;
 		enqueueIdeInputAction(this::showEngineAfterCancel);
 	}
@@ -1203,6 +1223,7 @@ public class MainActivity extends SDLActivity {
 	}
 
 	private void reloadIde() {
+		pendingIdeRun = null;
 		ideRequestedVisible = true;
 		enqueueIdeInputAction(this::reloadIdeAfterCancel);
 	}
@@ -1217,6 +1238,7 @@ public class MainActivity extends SDLActivity {
 		}
 	}
 	private void stopIdeSession() {
+		pendingIdeRun = null;
 		ideRequestedVisible = false;
 		enqueueIdeInputAction(this::stopIdeAfterCancel);
 	}
@@ -1248,7 +1270,7 @@ public class MainActivity extends SDLActivity {
 			applyOverlayButtonStyle(switchModeButton, false);
 		}
 		if (stopIdeButton != null) {
-			stopIdeButton.setVisibility(!ideVisible && ideLoaded ? View.VISIBLE : View.GONE);
+			stopIdeButton.setVisibility(ideVisible ? View.VISIBLE : View.GONE);
 			applyOverlayButtonStyle(stopIdeButton, false);
 		}
 		if (reloadButton != null) {

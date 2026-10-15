@@ -225,3 +225,43 @@ Windows QA application remains available for the user.
 Cleanup removed macOS/repository artifacts (about 1.15 GiB), the Windows QA
 application, fixture and build configuration (about 143 MiB), and stale QA
 editor entries. Source, verification scripts, toolchains and user data remain.
+
+2026-10-15 embedded Run and switching interactions:
+- macOS debug, Windows x86 debug and Android three-ABI debug builds passed;
+  frontend production build and TypeScript checking passed. Six native-run,
+  five WebSocket lifecycle and five authentication regressions passed.
+- Actual embedded Run This actions on macOS, Windows and Android started a
+  successfully compiled TS fixture and returned to Engine. Compilation/startup
+  failures stayed in IDE. On macOS and Windows, manual hide/show during a delayed
+  run cancelled the automatic return. Ordinary browser and external HTTP runs did not switch views.
+- All platforms place the handle at the left edge. IDE opens the editor directly
+  from Engine, including an already-loaded session. Inside IDE, MENU lists Engine,
+  Reload and Close. Engine retains the page/session; Close ends it while keeping
+  the IDE entry available. macOS and Android native menu/reopen checks passed.
+  Windows screenshots confirmed placement, but VM mouse delivery was unreliable;
+  native Windows menu click acceptance remains unverified.
+- The desktop address callback uses restored App.openURL behavior; invoking it
+  opened external Edge on macOS and Windows with embedded IDE support enabled.
+
+2026-10-15 compiler and session regression:
+The retained native verifier passed on macOS, Windows and Android: real TS
+compilation, ready-IDE takeover, hidden compilation, bidirectional toggle, reload,
+Close/stop fallback, idle recycling, game run/stop, runtime disable/re-enable and
+background compilation while IDE controls are disabled. The final macOS run also
+passed three immediate reload/Close cycles followed by idle waits without
+reconnection. Windows launch/test keys used temporary interactive desktop tasks.
+Original editor entries were restored after Run QA; all fixtures, temporary tasks
+and Android UI captures were removed. No editor files changed for menu checks.
+
+2026-10-15 macOS Close/disconnect repair:
+A stopped IDE could retain a live WebKit connection. Close now stops navigation,
+marks the document closed, disposes its WebSocket/reconnect lifecycle and clears
+the document before releasing WKWebView. Late initialization/warmup cannot connect;
+pagehide cancels retries, and cached browser pages resume a fresh lifecycle on
+pageshow. The engine continues polling ready RunLoop sources after hiding/closing
+so asynchronous teardown can finish. Final macOS build, frontend build, typecheck
+and the full native verifier passed. Actual MENU -> Close returned to Engine;
+after an idle wait, nativeIDE.state=stopped, wsConnectionCount=0,
+webIDEConnected=false and webIDEReady=false. No TCP client remained on port 8868,
+compiler users/jobs were zero and both compiler views were recycled. The repaired
+macOS application remains running.

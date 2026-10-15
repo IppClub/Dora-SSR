@@ -10,6 +10,7 @@ import type { TreeDataType } from "./FileTree";
 import { ProfilerInfo } from "./ProfilerInfo";
 import { TypedEmitter } from "./utils/typedEmitter";
 import { LogBuffer } from "./LogBuffer";
+import { runWithNativeIDE } from "./NativeIDERun";
 import { canonicalizeAuthPath } from "./AuthSignature";
 
 let authRequired = false;
@@ -254,16 +255,38 @@ const handleTranspileTS = async (item: TranspileTSQueueItem) => {
 	}
 };
 
+const nativeIDEClosed = () => (window as Window & {__doraIDEClosed?: boolean}).__doraIDEClosed === true;
+let stopWebSocket: (() => void) | undefined;
+export const closeWebSocket = () => stopWebSocket?.();
+window.addEventListener('dora-ide-close', closeWebSocket);
+window.addEventListener('pagehide', closeWebSocket);
+window.addEventListener('pageshow', event => { if (event.persisted) openWebSocket(); });
+
 export function openWebSocket() {
+	closeWebSocket();
+	if (nativeIDEClosed()) return;
+	let disposed = false;
+	let retry: ReturnType<typeof setTimeout> | undefined;
+	let socket: WebSocket | undefined;
 	let connected = false;
+	stopWebSocket = () => {
+		disposed = true;
+		clearTimeout(retry);
+		if (socket) {
+			socket.onopen = socket.onmessage = socket.onerror = socket.onclose = null;
+			socket.close(1000, 'IDE closed');
+		}
+	};
+	const reconnect = () => { if (!disposed) retry = setTimeout(connect, 1000); };
 	const connect = () => {
+		if (disposed || nativeIDEClosed()) return;
 		connected = false;
 		let session: AuthSession | null = null;
 		if (authRequired) {
 			const storageKey = 'doraWebAuthSession';
 			session = parseSession(localStorage.getItem(storageKey));
 			if (!session) {
-				setTimeout(connect, 1000);
+				reconnect();
 				return;
 			}
 		}
@@ -277,13 +300,12 @@ export function openWebSocket() {
 				} catch (error) {
 					console.error("Failed to warm the TypeScript transpiler:", error);
 				}
-				if (session) {
-					const signedUrl = await buildWebSocketUrl(wsUrl(), session);
-					webSocket = new WebSocket(signedUrl);
-				} else {
-					webSocket = new WebSocket(wsUrl());
-				}
-				webSocket.onmessage = async function (evt: MessageEvent) {
+				if (disposed || nativeIDEClosed()) return;
+				const url = session ? await buildWebSocketUrl(wsUrl(), session) : wsUrl();
+				if (disposed || nativeIDEClosed()) return;
+				socket = new WebSocket(url);
+				webSocket = socket;
+				socket.onmessage = async function (evt: MessageEvent) {
 					let dataStr: string;
 					if (evt.data instanceof ArrayBuffer) {
 						const decoder = new TextDecoder("utf-8");
@@ -374,23 +396,23 @@ export function openWebSocket() {
 						}
 					}
 				};
-				webSocket.onopen = () => {
+				socket.onopen = () => {
 					connected = true;
 					eventEmitter.emit(WsOpenEvent);
 				};
-				webSocket.onclose = () => {
+				socket.onclose = () => {
 					if (connected) {
 						connected = false;
 						eventEmitter.emit(WsCloseEvent);
 					}
-					setTimeout(connect, 1000);
+					reconnect();
 				};
-				webSocket.onerror = () => {
-					webSocket.close();
+				socket.onerror = () => {
+					socket?.close();
 				};
 			} catch (err) {
 				void err;
-				setTimeout(connect, 1000);
+				reconnect();
 			}
 		})();
 	};
@@ -890,7 +912,7 @@ export interface RunResponse {
 	err?: string;
 };
 export const run = (req: RunRequest) => {
-	return post<RunResponse>("/run", req);
+	return runWithNativeIDE(() => post<RunResponse>("/run", req));
 };
 
 export type RunStatusResponse = {

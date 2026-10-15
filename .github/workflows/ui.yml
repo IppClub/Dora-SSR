@@ -69,6 +69,8 @@ jobs:
           sudo apt-get install -y lua5.4
           xmake dora-test -P ../..
           pnpm test:auth-reconnect
+          pnpm test:native-ide-run
+          pnpm test:websocket-lifecycle
 
       - name: Test Studio current frontend and Go backend
         run: |

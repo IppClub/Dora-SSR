@@ -83,7 +83,7 @@ static void ideState(NSString* state, NSString* message = @"") {
 }
 @end
 
-@interface DoraIDEHost : NSObject <WKNavigationDelegate, WKUIDelegate, WKDownloadDelegate>
+@interface DoraIDEHost : NSObject <WKNavigationDelegate, WKUIDelegate, WKDownloadDelegate, WKScriptMessageHandler>
 @property(weak) NSWindow* window;
 @property(strong) WKWebView* view;
 @property(strong) DoraIDEOverlay* overlay;
@@ -92,6 +92,7 @@ static void ideState(NSString* state, NSString* message = @"") {
 @property(strong) NSButton* switchButton;
 @property(strong) NSButton* stopButton;
 @property(strong) NSButton* reloadButton;
+@property(copy) NSString* pendingRun;
 @property BOOL loaded;
 @property BOOL visible;
 @property(strong) id keyMonitor;
@@ -101,6 +102,7 @@ static void ideState(NSString* state, NSString* message = @"") {
 - (void)show;
 - (void)hide;
 - (void)stop;
+- (void)releaseView;
 - (void)reload;
 - (void)detach;
 @end
@@ -136,9 +138,9 @@ static void ideState(NSString* state, NSString* message = @"") {
  _menu.identifier = @"DoraNativeUI"; _menu.hidden = YES;
  _switchButton = [self button:@"IDE" action:@selector(switchMode)];
  BOOL zh = [NSLocale.preferredLanguages.firstObject hasPrefix:@"zh"];
- _stopButton = [self button:zh ? @"停止" : @"Stop" action:@selector(stop)];
+ _stopButton = [self button:zh ? @"关闭" : @"Close" action:@selector(stop)];
  _reloadButton = [self button:zh ? @"重载" : @"Reload" action:@selector(reload)];
- for (NSButton* button in @[_switchButton, _stopButton, _reloadButton]) {
+ for (NSButton* button in @[_switchButton, _reloadButton, _stopButton]) {
   [_menu addArrangedSubview:button];
   [button.widthAnchor constraintEqualToAnchor:_menu.widthAnchor constant:-16].active = YES;
  }
@@ -149,10 +151,10 @@ static void ideState(NSString* state, NSString* message = @"") {
  [self setTitle:@"I\nD\nE" forButton:_handle];
  for (NSView* view in @[_menu, _handle]) { view.translatesAutoresizingMaskIntoConstraints = NO; [_overlay addSubview:view]; }
  [NSLayoutConstraint activateConstraints:@[
-  [_handle.trailingAnchor constraintEqualToAnchor:_overlay.trailingAnchor],
+  [_handle.leadingAnchor constraintEqualToAnchor:_overlay.leadingAnchor],
   [_handle.centerYAnchor constraintEqualToAnchor:_overlay.centerYAnchor],
   [_handle.widthAnchor constraintEqualToConstant:20], [_handle.heightAnchor constraintEqualToConstant:60],
-  [_menu.trailingAnchor constraintEqualToAnchor:_handle.leadingAnchor constant:-2],
+  [_menu.leadingAnchor constraintEqualToAnchor:_handle.trailingAnchor constant:2],
   [_menu.centerYAnchor constraintEqualToAnchor:_overlay.centerYAnchor], [_menu.widthAnchor constraintEqualToConstant:94]]];
  [root addSubview:_overlay];
  [self updateControls];
@@ -218,7 +220,7 @@ static void ideState(NSString* state, NSString* message = @"") {
  BOOL zh = [NSLocale.preferredLanguages.firstObject hasPrefix:@"zh"];
  [self setTitle:_visible ? (zh ? @"引擎" : @"Engine") : @"IDE" forButton:_switchButton];
  [self setTitle:_visible ? @"M\nE\nN\nU" : @"I\nD\nE" forButton:_handle];
- _stopButton.hidden = _visible || !_loaded;
+ _stopButton.hidden = !_visible;
  _reloadButton.hidden = !_visible;
 }
 - (void)collapseMenu {
@@ -228,6 +230,7 @@ static void ideState(NSString* state, NSString* message = @"") {
  else [_window makeFirstResponder:_window.contentView];
 }
 - (void)toggleMenu {
+ if (!_visible) { [self show]; return; }
  if (!_menu.hidden) { [self collapseMenu]; return; }
  [self updateControls]; _menu.hidden = NO;
  [self performSelector:@selector(collapseMenu) withObject:nil afterDelay:3.5];
@@ -237,6 +240,7 @@ static void ideState(NSString* state, NSString* message = @"") {
  if (_view) return;
  WKWebViewConfiguration* config = [[WKWebViewConfiguration alloc] init];
  config.websiteDataStore = [WKWebsiteDataStore defaultDataStore];
+ [config.userContentController addScriptMessageHandler:self name:@"doraIDERun"];
  if (@available(macOS 14.0, *)) config.preferences.inactiveSchedulingPolicy = WKInactiveSchedulingPolicyNone;
  NSView* root = _window.contentView;
  _view = [[WKWebView alloc] initWithFrame:root.bounds configuration:config];
@@ -257,6 +261,7 @@ static void ideState(NSString* state, NSString* message = @"") {
  [context discardMarkedText];
 }
 - (void)show {
+ _pendingRun = nil;
  if (!_visible) { [self cancelComposition]; Dora::notifyIDEInputFocus(true); }
  [self ensureView]; _visible = YES; _view.hidden = NO;
  Dora::Singleton<Dora::Application>::shared().setIDEWebViewVisible(true);
@@ -266,37 +271,68 @@ static void ideState(NSString* state, NSString* message = @"") {
  [self updateControls]; [self collapseMenu]; ideState(@"visible");
 }
 - (void)hide {
+ _pendingRun = nil;
  if (_visible) { [self cancelComposition]; Dora::notifyIDEInputFocus(false); }
  _visible = NO; _view.hidden = YES;
  Dora::Singleton<Dora::Application>::shared().setIDEWebViewVisible(false);
  [self updateControls]; [self collapseMenu]; ideState(@"hidden");
 }
+- (void)releaseView {
+ WKWebView* closing = _view;
+ _view = nil; _loaded = NO;
+ [closing stopLoading];
+ [closing.configuration.userContentController removeScriptMessageHandlerForName:@"doraIDERun"];
+ closing.navigationDelegate = nil; closing.UIDelegate = nil;
+ [closing removeFromSuperview];
+ // Stop reconnect timers and in-flight warmup before releasing the document.
+ // WebKit can retain an old document while navigation/teardown is pending.
+ [closing evaluateJavaScript:@"window.__doraIDEClosed=true;window.dispatchEvent(new Event('dora-ide-close'))"
+  completionHandler:^(id value, NSError* error) {
+   [closing stopLoading]; [closing loadHTMLString:@"" baseURL:nil];
+  }];
+}
 - (void)stop {
- _loaded = NO; [_view stopLoading];
- [_view loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"about:blank"]]];
- [self hide]; ideState(@"stopped");
+ [self hide]; [self releaseView]; ideState(@"stopped");
 }
 - (void)reload { _loaded = NO; [self show]; }
 - (void)detach {
+ _pendingRun = nil;
  objc_setAssociatedObject(_window, NSSelectorFromString(@"doraIDEKeyEvent:"), nil, OBJC_ASSOCIATION_ASSIGN);
  [NSNotificationCenter.defaultCenter removeObserver:self];
  [NSObject cancelPreviousPerformRequestsWithTarget:self];
  if (_keyMonitor) [NSEvent removeMonitor:_keyMonitor]; _keyMonitor = nil;
- _view.navigationDelegate = nil; _view.UIDelegate = nil;
- [_view stopLoading]; [_view removeFromSuperview]; [_overlay removeFromSuperview];
+ [self releaseView]; [_overlay removeFromSuperview];
+}
+- (void)userContentController:(WKUserContentController*)controller didReceiveScriptMessage:(WKScriptMessage*)message {
+ if (message.webView != _view || !message.frameInfo.mainFrame || ![message.body isKindOfClass:NSString.class]) return;
+ NSURL* url = message.frameInfo.request.URL;
+ if (![url.host isEqualToString:@"localhost"] || url.port.intValue != 8866 || ![url.scheme isEqualToString:@"http"]) return;
+ NSArray<NSString*>* parts = [message.body componentsSeparatedByString:@":"];
+ if (parts.count != 3 || ![parts[0] isEqualToString:@"dora-ide-run"] || parts[2].length == 0) return;
+ if ([parts[1] isEqualToString:@"start"]) { _pendingRun = _visible ? parts[2] : nil; return; }
+ if (![_pendingRun isEqualToString:parts[2]]) return;
+ if ([parts[1] isEqualToString:@"cancel"]) { _pendingRun = nil; return; }
+ if (![parts[1] isEqualToString:@"success"]) return;
+ // Leave the browser callback before changing focus and cancelling composition.
+ dispatch_async(dispatch_get_main_queue(), ^{
+  if (self.visible && [self.pendingRun isEqualToString:parts[2]] && Dora::Singleton<Dora::Application>::shared().isWebIDEEnabled()) [self hide];
+ });
 }
 - (void)webView:(WKWebView*)view didFailProvisionalNavigation:(WKNavigation*)navigation withError:(NSError*)error {
-	if (error.code != NSURLErrorCancelled) ideState(@"failed", error.localizedDescription);
+	if (view == _view && error.code != NSURLErrorCancelled) ideState(@"failed", error.localizedDescription);
 }
 - (void)webView:(WKWebView*)view didFailNavigation:(WKNavigation*)navigation withError:(NSError*)error {
-	if (error.code != NSURLErrorCancelled) ideState(@"failed", error.localizedDescription);
+	if (view == _view && error.code != NSURLErrorCancelled) ideState(@"failed", error.localizedDescription);
 }
 - (void)webViewWebContentProcessDidTerminate:(WKWebView*)view {
+ if (view != _view) return;
 	_loaded = NO;
 	ideState(@"failed", @"Web IDE process terminated; reload to reconnect.");
 }
 - (void)webView:(WKWebView*)view decidePolicyForNavigationAction:(WKNavigationAction*)action decisionHandler:(void (^)(WKNavigationActionPolicy))handler {
+	if (view != _view) { handler(WKNavigationActionPolicyCancel); return; }
 	NSURL* url = action.request.URL;
+ if (action.targetFrame.mainFrame) _pendingRun = nil;
 	BOOL local = [url.host isEqualToString:@"localhost"] && url.port.intValue == 8866 && [url.scheme isEqualToString:@"http"];
 	if ([url.absoluteString isEqualToString:@"about:blank"]) { handler(WKNavigationActionPolicyAllow); return; }
 	if (@available(macOS 11.3, *)) {
@@ -369,8 +405,14 @@ void Application::pumpIDEWebViewEvents() {
 	@autoreleasepool {
 		// SDL's nonblocking event poll does not give WebKit/CA a waiting run-loop
 		// turn. Service native sources and commit layers independently of bgfx.
-		[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
-			beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.001]];
+		// Keep servicing pending WebKit completions after hiding/closing the IDE.
+		// Poll without waiting when the engine owns the screen.
+		if (isIDEWebViewVisible()) {
+			[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
+				beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.001]];
+		} else {
+			CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
+		}
 	}
 }
 NS_DORA_END

@@ -107,6 +107,21 @@ try {
  await setEnabled(true); await action('show');
  await waitFor(s=>s.nativeIDE.state==='visible' && s.typescriptCompiler.webIDEReady,'re-enable recreates IDE');
  await build(); await action('stop');
+ if (initial.platform === 'macOS') {
+  for (let cycle = 0; cycle < 3; cycle++) {
+   await action('show');
+   await waitFor(s=>s.nativeIDE.state==='visible' && s.typescriptCompiler.webIDEReady && s.wsConnectionCount===externalCount + 1,'fresh IDE ready');
+   // Close while a reload is still settling, then leave the native UI idle.
+   await action('reload'); await action('stop');
+   await waitFor(s=>s.nativeIDE.state==='stopped' && s.wsConnectionCount===externalCount,'Close disconnects during reload');
+   await new Promise(resolve=>setTimeout(resolve,1500));
+   const closed = await post('/status');
+   assert.equal(closed.wsConnectionCount,externalCount,'closed page must not reconnect');
+   assert.equal(closed.webIDEConnected,externalCount > 0);
+   assert.equal(closed.typescriptCompiler.webIDEReady,false);
+  }
+  console.log('PASS: macOS Close during reload disconnects and cannot reconnect while engine is idle');
+ }
  console.log('PASS: service listeners survive game run/stop; runtime disable releases IDE, blocks opening and retains background compilation; re-enable works');
  assert.equal((await post('/ide',{action:'invalid'})).success,false);
  console.log(`Native IDE verification passed (${initial.platform}).`);
