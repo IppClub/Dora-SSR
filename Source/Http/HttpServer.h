@@ -34,6 +34,8 @@ public:
 	PROPERTY_READONLY(std::string, LocalIP);
 	PROPERTY_READONLY(int, WSConnectionCount);
 	struct Request {
+		// Shared backing storage keeps asynchronous requests valid after a timeout.
+		std::shared_ptr<void> storage;
 		Slice method;
 		Slice path;
 		std::vector<Slice> headers;
