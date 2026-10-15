@@ -44,6 +44,7 @@ import os
 import re
 import sys
 import zipfile
+from urllib.parse import quote, unquote
 
 ENGINE_KEEP_FILES = [
     'dora-player-runtime.js', 'dora-web-features.json', 'dora-logo.png',
@@ -54,9 +55,37 @@ ENGINE_KEEP_FILES = [
 # index.html compatibility patches applied by default (all discovered while
 # shipping real games; disable with --no-compat-patches):
 #  * mobile viewport lock + touch handling
-#  * requestAnimationFrame watchdog shim for embedded/older WebViews
 #  * audio unlock on first user gesture (browser autoplay policies)
-#  * canvas size bridge for responsive games
+
+
+def validate_path(path):
+    if (not path or re.search(r'[\\\x00-\x1f]', path) or re.match(r'^[A-Za-z]:', path)
+            or any(part in ('', '.', '..') for part in path.split('/'))):
+        raise SystemExit('invalid package path: %s' % path)
+
+
+def verify_project(template, names):
+    """Check manifest-to-chunk delivery as well as the outer file checksums."""
+    loader = read_template_file(template, 'html-loader.js').decode('utf-8')
+    config = json.loads(re.search(r'\}\)\((\{.*\})\);?\s*$', loader, re.S).group(1))
+    problems = []
+    for item in config['manifest']['files']:
+        validate_path(item['path'])
+        url = unquote(item['url'])
+        record = config['records'].get(url)
+        if not record or record['script'] not in names:
+            problems.append('missing project chunk: ' + item['path'])
+            continue
+        script = read_template_file(template, record['script']).decode('utf-8')
+        match = re.fullmatch(r'DoraHtmlPackage\.deliver\(("(?:[^"\\]|\\.)*"),("[A-Za-z0-9+/=]*")\);\s*', script)
+        if not match or json.loads(match.group(1)) != url:
+            problems.append('invalid project delivery: ' + item['path'])
+            continue
+        data = base64.b64decode(json.loads(match.group(2)), validate=True)
+        if any(meta['size'] != len(data) or meta['sha256'] != sha256_bytes(data)
+               for meta in (item, record)):
+            problems.append('project content mismatch: ' + item['path'])
+    return problems
 
 
 def sha256_bytes(data):
@@ -103,7 +132,7 @@ def load_engine_chunks(template, names):
     source_commit = None
     if 'runtime.json' in names:
         runtime = json.loads(read_template_file(template, 'runtime.json'))
-        source_commit = runtime.get('sourceCommit') or runtime.get('sourceFingerprint')
+        source_commit = runtime.get('sourceCommit')
         engine_version = engine_version or runtime.get('engineVersion')
     if not engine_version:
         raise SystemExit('template: engine version not found (html-loader.js / runtime.json)')
@@ -113,7 +142,9 @@ def load_engine_chunks(template, names):
 def collect_project_files(entry_path, entry_src, audio_dir, extra, lualib, names):
     """Project files in manifest order: audio first, extras, entry, lualib last."""
     project = {}
-    if audio_dir and os.path.isdir(audio_dir):
+    if audio_dir and not os.path.isdir(audio_dir):
+        raise SystemExit('audio directory not found: %s' % audio_dir)
+    if audio_dir:
         for name in sorted(os.listdir(audio_dir)):
             if name.lower().endswith('.wav'):
                 with open(os.path.join(audio_dir, name), 'rb') as handle:
@@ -129,7 +160,7 @@ def collect_project_files(entry_path, entry_src, audio_dir, extra, lualib, names
                     walk.append(os.path.relpath(os.path.join(root, name), source))
             for relative in sorted(walk):
                 with open(os.path.join(source, relative), 'rb') as handle:
-                    project[relative.replace('\\', '/')] = handle.read()
+                    project[os.path.basename(os.path.normpath(source)) + '/' + relative.replace('\\', '/')] = handle.read()
         else:
             raise SystemExit('extra asset path not found: %s' % source)
     with open(entry_path, 'rb') as handle:
@@ -148,11 +179,13 @@ def collect_project_files(entry_path, entry_src, audio_dir, extra, lualib, names
             raise SystemExit('lualib bundle not found: %s' % lib_path)
     if not project:
         raise SystemExit('no project files collected')
+    for path in project:
+        validate_path(path)
     return project
 
 
 def chunk_script(url, data):
-    return 'DoraHtmlPackage.deliver("%s","%s");\n' % (url, base64.b64encode(data).decode('ascii'))
+    return 'DoraHtmlPackage.deliver(%s,"%s");\n' % (json.dumps(url, ensure_ascii=True), base64.b64encode(data).decode('ascii'))
 
 
 def apply_compat_patches(html):
@@ -165,13 +198,6 @@ def apply_compat_patches(html):
         'canvas { display: block; }',
         'canvas { display: block; touch-action: none; -webkit-user-select: none; '
         'user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }')
-    html = html.replace('</head>',
-        '<script>(function(){var n=0,f=0,shimmed=false;'
-        'var raw=window.requestAnimationFrame?window.requestAnimationFrame.bind(window):null;if(!raw)return;'
-        'var shim=function(cb){return setTimeout(function(){cb(Date.now())},16)};'
-        'window.requestAnimationFrame=function(cb){if(shimmed)return shim(cb);'
-        'n++;var done=false;raw(function(t){done=true;f++;cb(t)});'
-        'setTimeout(function(){if(!done&&n>1)shimmed=true},450)};})();</script></head>', 1)
     html = html.replace('</body>',
         '<script>(function(){'
         'var u=function(){try{window.DoraWebPlatform&&DoraWebPlatform.unlockAudio&&DoraWebPlatform.unlockAudio()}catch(e){}'
@@ -212,7 +238,7 @@ def build(args):
         url = 'assets/%s/%s' % (digest, path)
         script = 'html-assets/%d.js' % chunk_index
         records[url] = {'script': script, 'size': len(data), 'sha256': digest}
-        manifest_files.append({'path': path, 'url': url, 'size': len(data),
+        manifest_files.append({'path': path, 'url': '/'.join(quote(part, safe="~!*'()") for part in url.split('/')), 'size': len(data),
                                'sha256': digest, 'startup': True})
         chunk_index += 1
 
@@ -235,13 +261,13 @@ def build(args):
             files['index.html'].decode('utf-8')).encode('utf-8')
 
     for manifest_entry in manifest_files:
-        script = records[manifest_entry['url']]['script']
-        files[script] = chunk_script(manifest_entry['url'],
+        script = records[unquote(manifest_entry['url'])]['script']
+        files[script] = chunk_script(unquote(manifest_entry['url']),
                                      project[manifest_entry['path']]).encode('utf-8')
 
     # Rule 3: runtime.json is generated last and must match everything else.
     runtime = {'version': 1, 'engineVersion': engine_version,
-               'sourceFingerprint': source_commit or engine_version,
+               'sourceFingerprint': json.loads(read_template_file(template, 'runtime.json')).get('sourceFingerprint', source_commit or engine_version),
                'files': {name: {'size': len(data), 'sha256': sha256_bytes(data)}
                          for name, data in files.items()},
                'format': 'html'}
@@ -250,6 +276,8 @@ def build(args):
     files['runtime.json'] = json.dumps(runtime, separators=(',', ':'),
                                        ensure_ascii=False).encode('utf-8')
 
+    if os.path.exists(args.out) and (not os.path.isdir(args.out) or os.listdir(args.out)):
+        raise SystemExit('output directory must be empty: %s' % args.out)
     os.makedirs(args.out, exist_ok=True)
     for name, data in files.items():
         path = os.path.join(args.out, name)
@@ -268,9 +296,9 @@ def build(args):
 
 def verify(zip_path, quiet=False):
     """Same checks as the Dora platform preflight: runtime.json vs ZIP content."""
-    archive = zipfile.ZipFile(zip_path)
-    names = {n for n in archive.namelist() if not n.endswith('/')}
-    runtime = json.loads(archive.read('runtime.json'))
+    archive = zip_path if os.path.isdir(zip_path) else zipfile.ZipFile(zip_path)
+    names = template_names(archive)
+    runtime = json.loads(read_template_file(archive, 'runtime.json'))
     listed = set(runtime['files'].keys())
     names.discard('runtime.json')  # official format: runtime.json does not list itself
     problems = []
@@ -279,9 +307,12 @@ def verify(zip_path, quiet=False):
                         % (sorted(listed - names)[:5], sorted(names - listed)[:5]))
     for name, meta in runtime['files'].items():
         if name in names:
-            data = archive.read(name)
+            data = read_template_file(archive, name)
             if len(data) != meta['size'] or hashlib.sha256(data).hexdigest() != meta['sha256']:
                 problems.append('content mismatch: %s' % name)
+    problems.extend(verify_project(archive, names))
+    if isinstance(archive, zipfile.ZipFile):
+        archive.close()
     if not quiet:
         print(('VERIFY OK: ' + zip_path) if not problems
               else ('VERIFY FAIL: ' + '; '.join(problems)))
@@ -313,10 +344,8 @@ def main(argv=None):
     if not os.path.isfile(args.entry):
         raise SystemExit('entry file not found: %s' % args.entry)
     build(args)
-    if args.zip:
-        problems = verify(args.zip, args.quiet)
-        return 1 if problems else 0
-    return 0
+    problems = verify(args.zip or args.out, args.quiet)
+    return 1 if problems else 0
 
 
 if __name__ == '__main__':

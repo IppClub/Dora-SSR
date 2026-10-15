@@ -49,15 +49,17 @@ python3 Tools/WebBuilder/webbuild.py \
 | `--entry` | Compiled project entry file, shipped as `init.lua`. |
 | `--entry-src` | Optional source-tree copy of the entry (IDE convention: `Script/Game/init.lua`). |
 | `--audio` | Directory of `.wav` files, shipped as `Audio/*` through the engine audio channel (playable via the engine on the web build). |
-| `--extra` | Additional asset file or directory (repeatable; directory trees keep relative paths). |
+| `--extra` | Additional asset file or directory (repeatable; directory trees keep their top-level directory (e.g. `Image/hero.png`)). |
 | `--lualib` | `auto` (default: `lualib_bundle.lua` next to the entry), `none`, or an explicit path. Shipped last in the manifest. |
 | `--no-compat-patches` | Skip the `index.html` device compatibility patches (see below). |
 | `--zip` | Also write a distributable ZIP. |
 
 Every build ends with a built-in verification pass that reproduces the
 Dora platform preflight: the ZIP content must match `runtime.json` exactly
-(file list, sizes, sha256 hashes). The tool exits non-zero if anything
-mismatches.
+(file list, sizes, sha256 hashes). The tool also checks manifest URLs, chunk delivery, sizes and hashes, including
+Unicode and escaped filenames. Directory-only builds are verified too. The tool
+exits non-zero if anything mismatches. The output directory must be empty; existing
+files are never silently mixed into a new package.
 
 ## Format rules encoded in the tool
 
@@ -86,9 +88,7 @@ ship real games; pass `--no-compat-patches` to keep the template's page
 untouched:
 
 - mobile viewport lock and touch handling (`touch-action`, tap highlight),
-- a `requestAnimationFrame` watchdog shim for embedded/older WebViews,
 - audio unlock on the first user gesture (browser autoplay policies),
-- a canvas-size bridge for responsive games.
 
 ## Production validation
 
