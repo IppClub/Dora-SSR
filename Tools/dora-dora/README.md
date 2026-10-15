@@ -72,7 +72,9 @@ fixed by the request source; there is no `authRequired` setting or script proper
 
 Browser requests without Origin can use the local exemption only with
 `Sec-Fetch-Site: same-origin` and a real loopback peer and Host. Public static
-GET/HEAD navigation remains available without Origin. `/auth` and `/auth/confirm`
+GET/HEAD navigation remains available without Origin. Cross-site and same-site
+subresource requests identified by Fetch Metadata still require authentication,
+even when the browser omits Origin. `/auth` and `/auth/confirm`
 remain public bootstrap endpoints; PIN/session approval still controls issuing a
 session. Opaque (`null`), malformed or duplicate origins and untrusted Hosts are
 rejected even with authentication. No forwarded header grants local access.
@@ -98,7 +100,8 @@ must authenticate; clients without Origin retain authenticated CLI semantics.
 Signatures cover the engine path without the development prefix. HMR is separate.
 
 A TLS reverse proxy must preserve the external browser Origin when forwarding to
-the engine and must not turn remote traffic into local same-origin traffic by
+the engine, overwrite `Sec-Fetch-Site` with `cross-site` for remote clients, and
+must not turn remote traffic into local same-origin traffic by
 rewriting Origin to the loopback engine origin. The engine ignores client-supplied
 forwarded headers for authentication exemptions.
 

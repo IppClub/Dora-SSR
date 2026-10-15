@@ -49,7 +49,7 @@ for (const [index, proxy] of proxies.entries()) {
   assert.equal(headers['sec-fetch-site'],'cross-site');
  });
  test(`proxy ${index} keeps local CLI requests authenticated`, () => {
-  const headers={host:'localhost:3000','sec-fetch-site':'same-origin'};
+  const headers={host:'localhost:3000'};
   proxy.bypass({headers,rawHeaders:['Host',headers.host],socket:{remoteAddress:'127.0.0.1'}},{});
   assert.equal(headers.origin,undefined);
   assert.equal(headers['sec-fetch-site'],'cross-site');
@@ -72,5 +72,14 @@ for (const proxy of proxies) {
   proxy.bypass({headers,rawHeaders:['Host',headers.host,'Origin',headers.origin],socket:{remoteAddress:'127.0.0.1'}},{});
   assert.equal(headers.origin,'http://127.0.0.1:8866');
   assert.equal(headers['sec-fetch-site'],'cross-site');
+ });
+}
+
+for (const proxy of proxies) {
+ test('local same-origin browser GET metadata survives without Origin', () => {
+  const headers={host:'localhost:3000','sec-fetch-site':'same-origin'};
+  proxy.bypass({headers,rawHeaders:['Host',headers.host,'Sec-Fetch-Site','same-origin'],socket:{remoteAddress:'127.0.0.1'}},{});
+  assert.equal(headers.origin,undefined);
+  assert.equal(headers['sec-fetch-site'],'same-origin');
  });
 }

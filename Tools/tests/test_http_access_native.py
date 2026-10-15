@@ -114,6 +114,8 @@ print('HTTP_ACCESS_NATIVE_READY')
             assert 'X-Dora-Signature' in preflight['Access-Control-Allow-Headers']
             call('/test.txt', body=None, origin=foreign, method='GET', want=401)
             call('/test.txt', body=None, origin=None, method='GET')
+            for site in ['cross-site', 'same-site']:
+                call('/test.txt', body=None, origin=None, method='GET', headers={'Sec-Fetch-Site':site}, want=401)
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as route:
                 route.connect(('192.0.2.1', 1))
                 lan = route.getsockname()[0]

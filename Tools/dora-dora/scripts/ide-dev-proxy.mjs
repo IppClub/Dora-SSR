@@ -24,7 +24,8 @@ export function ideDevProxy() {
 				&& target.pathname === '/' && !target.search && !target.hash && !target.username && !target.password
 				&& validOrigin;
 			local = loopback(target.hostname) && loopback(req.socket?.remoteAddress ?? '')
-				&& origin === target.origin && req.headers['sec-fetch-site'] !== 'cross-site';
+				&& (origin === target.origin || (origin === undefined && req.headers['sec-fetch-site'] === 'same-origin'))
+				&& req.headers['sec-fetch-site'] !== 'cross-site';
 		} catch { /* Fail closed for malformed Host/Origin. */ }
 		if (!allowed) {
 			if (res) { res.statusCode = 403; res.end('Forbidden'); }

@@ -66,6 +66,9 @@ inline std::optional<Authority> parseAuthority(std::string_view text, unsigned d
 // cross-origin. Only an actual loopback peer using the loopback page origin can
 // bypass authentication. Missing Origin never establishes a browser origin.
 enum class Access { Denied, Authenticate, Local };
+inline bool needsAuthentication(Access access, bool publicRead, bool hasOrigin, std::string_view fetchSite) {
+	return access != Access::Local && (!publicRead || hasOrigin || fetchSite == "cross-site" || fetchSite == "same-site");
+}
 inline bool isLoopback(std::string_view host) {
 	if (host == "localhost" || host == "::1") return true;
 	unsigned char address[4];

@@ -1178,8 +1178,12 @@ bool HttpServer::start(int port) {
 		// Echo only the validated concrete Origin. Preflights contain no session;
 		// the actual request must still authenticate before reaching a handler.
 		auto origin = find_header(request, "Origin"_slice);
-		DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin");
-		if (origin && access == HttpPolicy::Access::Authenticate) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Cache-Control", "no-store");
+		auto fetchSite = find_header(request, "Sec-Fetch-Site"_slice);
+		const bool authenticationRequired = HttpPolicy::needsAuthentication(access,
+			nativeRequest->method == DORA_XRT_HTTP_METHOD_GET || nativeRequest->method == DORA_XRT_HTTP_METHOD_HEAD,
+			origin.has_value(), fetchSite ? fetchSite->toString() : ""s);
+		DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site");
+		if (authenticationRequired) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Cache-Control", "no-store");
 		if (origin) {
 			auto value = origin->toString();
 			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Access-Control-Allow-Origin", value.c_str());
@@ -1189,8 +1193,7 @@ bool HttpServer::start(int port) {
 		}
 		if (nativeRequest->method != DORA_XRT_HTTP_METHOD_OPTIONS
 			&& path != "/auth"sv && path != "/auth/confirm"sv
-			&& access != HttpPolicy::Access::Local
-			&& (origin || (nativeRequest->method != DORA_XRT_HTTP_METHOD_GET && nativeRequest->method != DORA_XRT_HTTP_METHOD_HEAD))
+			&& authenticationRequired
 			&& !self->isAuthorized(request)) {
 			set_unauthorized(nativeResponse);
 			return true;
@@ -1198,7 +1201,7 @@ bool HttpServer::start(int port) {
 		const bool gzipAccepted = accepts_gzip(request);
 		auto respond = [&](HttpServer::Response&& response) {
 			auto prepared = prepare_dynamic_response(std::move(response), gzipAccepted);
-			if (prepared.varyAcceptEncoding) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Accept-Encoding");
+			if (prepared.varyAcceptEncoding) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site, Accept-Encoding");
 			if (prepared.gzipEncoded) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Encoding", "gzip");
 			set_response(nativeResponse, prepared.response.status > 0 ? prepared.response.status : 200, prepared.response.content, prepared.response.contentType);
 		};
@@ -1265,9 +1268,9 @@ bool HttpServer::start(int port) {
 			const auto etag = fmt::format("\"{:08x}-{}{}\"",
 				crc32(0, r_cast<const Bytef*>(content->data.data()), s_cast<uInt>(content->data.size())),
 				content->data.size(), content->gzipEncoded ? "-g"sv : ""sv);
-			auto cacheControl = origin && access == HttpPolicy::Access::Authenticate ? "no-store"s : self->getStaticCacheControl(requestPath);
+			auto cacheControl = authenticationRequired ? "no-store"s : self->getStaticCacheControl(requestPath);
 			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Type", contentType);
-			if (compressible) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Accept-Encoding");
+			if (compressible) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site, Accept-Encoding");
 			if (content->gzipEncoded) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Encoding", "gzip");
 			if (!cacheControl.empty()) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Cache-Control", cacheControl.c_str());
 			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Accept-Ranges", "bytes");

@@ -44,6 +44,11 @@ int main() {
  duplicate[1]={"Sec-Fetch-Site","same-origin"};duplicate[2]=duplicate[1];
  assert(web_request_access(duplicate,3,8866,8866,hosts,true)==Access::Denied);
  assert(web_request_access(nullptr,0,8866,8866,hosts)==Access::Denied);
+ for (auto site : {"same-site", "cross-site"}) assert(needsAuthentication(Access::Authenticate,true,false,site));
+ assert(!needsAuthentication(Access::Authenticate,true,false,"none"));
+ assert(!needsAuthentication(Access::Local,false,false,"same-origin"));
+ assert(needsAuthentication(Access::Authenticate,false,false,""));
+ assert(needsAuthentication(Access::Authenticate,true,true,""));
  std::cout<<"HTTP/WS local, LAN, CLI, cross-origin policy: all cases passed\n";
 }
 '''.replace('HEADERS',headers)
