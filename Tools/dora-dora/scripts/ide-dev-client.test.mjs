@@ -10,10 +10,10 @@ const ast=ts.createSourceFile('Service.ts',source,ts.ScriptTarget.Latest,true);
 const names=new Set(['wsUrl','addr','hmacHex','buildWebSocketUrl']);
 const declarations=ast.statements.filter(s=>(ts.isFunctionDeclaration(s)&&names.has(s.name?.getText(ast)))||(ts.isVariableStatement(s)&&s.declarationList.declarations.some(d=>names.has(d.name.getText(ast)))));
 assert.equal(declarations.length,4);
-const {outputFiles}=await build({stdin:{contents:`import {canonicalizeAuthPath} from './src/AuthSignature';\n${declarations.map(s=>s.getText(ast)).join('\n')}\nexport {wsUrl,buildWebSocketUrl};`,loader:'ts',resolveDir:new URL('../',import.meta.url).pathname},bundle:true,write:false,format:'cjs'});
+const {outputFiles}=await build({stdin:{contents:`import {canonicalizeAuthPath,createAuthHeaders,signAuthPayload,authNonce} from './src/AuthSignature';\n${declarations.map(s=>s.getText(ast)).join('\n')}\nexport {wsUrl,buildWebSocketUrl};`,loader:'ts',resolveDir:new URL('../',import.meta.url).pathname},bundle:true,write:false,format:'cjs'});
 test('development WebSocket signs the engine target and keeps browser transport same-origin',async()=>{
  const exports={};const module={exports};
- vm.runInNewContext(outputFiles[0].text,{module,exports,window:{location:new URL('http://localhost:3000/')},process:{env:{NODE_ENV:'development'}},URL,URLSearchParams,crypto:webcrypto,TextEncoder});
+ vm.runInNewContext(outputFiles[0].text,{module,exports,window:{location:new URL('http://localhost:3000/')},process:{env:{NODE_ENV:'development'}},URL,URLSearchParams,crypto:{getRandomValues:array=>webcrypto.getRandomValues(array)},TextEncoder});
  const service=module.exports;
  assert.equal(service.addr('/auth'),'/__dora/api/auth');
  assert.equal(service.wsUrl(),'ws://localhost:3000/__dora/ws');

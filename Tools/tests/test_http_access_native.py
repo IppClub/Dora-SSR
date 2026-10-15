@@ -79,6 +79,7 @@ with tempfile.TemporaryDirectory(prefix='dora-native-access-') as temp:
 local H = D.HttpServer
 H.wwwPath = WWW
 H:post('/ping', function(req) return {success=true} end)
+H:get('/read-sync', function(req) return {success=true} end)
 H:postSchedule('/deferred', function(req) D.sleep(0.01); return {success=true} end)
 H:post('/auth', function(req) H.authToken = req.body.token or ''; return {success=true} end)
 H:post('/quit', function() D.thread(function() D.sleep(0.2); D.App:shutdown() end); return {success=true} end)

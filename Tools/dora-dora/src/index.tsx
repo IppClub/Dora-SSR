@@ -16,7 +16,7 @@ import i18n from './i18n';
 import Info from './Info';
 import Path from './3rdParty/Path';
 import AuthDialog, { AuthDialogProps, AuthSession } from './AuthDialog';
-import { canonicalizeAuthPath } from './AuthSignature';
+import { createAuthHeaders } from './AuthSignature';
 
 const origFetch = window.fetch.bind(window);
 
@@ -93,7 +93,6 @@ const setupAuth = async (): Promise<void> => {
 	};
 	let session = parseSession(localStorage.getItem(storageKey));
 	let authInFlight: Promise<AuthSession | null> | null = null;
-	let signingKeyPromise: Promise<CryptoKey> | null = null;
 
 	const normalizeSession = (nextSession: AuthSession | null) => {
 		if (nextSession && nextSession.sessionId && nextSession.sessionSecret) {
@@ -104,7 +103,6 @@ const setupAuth = async (): Promise<void> => {
 
 	const setSession = (nextSession: AuthSession | null) => {
 		session = normalizeSession(nextSession);
-		signingKeyPromise = null;
 		if (session) {
 			localStorage.setItem(storageKey, JSON.stringify(session));
 		} else {
@@ -176,33 +174,6 @@ const setupAuth = async (): Promise<void> => {
 		return authInFlight;
 	};
 
-	const encoder = new TextEncoder();
-
-	const bufferToHex = (buffer: ArrayBuffer) =>
-		Array.from(new Uint8Array(buffer))
-			.map((byte) => byte.toString(16).padStart(2, '0'))
-			.join('');
-
-	const sha256Hex = async (data: Uint8Array) => {
-		if (!data.length) return '';
-		const hash = await crypto.subtle.digest('SHA-256', data as BufferSource);
-		return bufferToHex(hash);
-	};
-
-	const getSigningKey = async () => {
-		if (!session) return null;
-		if (!signingKeyPromise) {
-			signingKeyPromise = crypto.subtle.importKey(
-				'raw',
-				encoder.encode(session.sessionSecret),
-				{ name: 'HMAC', hash: 'SHA-256' },
-				false,
-				['sign'],
-			);
-		}
-		return signingKeyPromise;
-	};
-
 	const getBodyBytes = async (request: Request) => {
 		if (request.method === 'GET' || request.method === 'HEAD') {
 			return new Uint8Array();
@@ -229,26 +200,8 @@ const setupAuth = async (): Promise<void> => {
 	const buildAuthHeaders = async (request: Request) => {
 		const signingSession = session;
 		if (!signingSession) return null;
-		const key = await getSigningKey();
-		if (!key) return null;
-		const url = new URL(request.url, window.location.href);
-		// Vite removes this reserved transport prefix before engine authentication.
-		if ((!process.env.NODE_ENV || process.env.NODE_ENV === 'development') && url.pathname.startsWith('/__dora/api/')) {
-			url.pathname = url.pathname.slice('/__dora/api'.length);
-		}
-		const path = canonicalizeAuthPath(url);
-		const timestamp = Math.floor(Date.now() / 1000).toString();
-		const nonce = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(16).slice(2);
-		const bodyBytes = await getBodyBytes(request);
-		const bodyHash = await sha256Hex(bodyBytes);
-		const payload = [signingSession.sessionId, request.method.toUpperCase(), path, timestamp, nonce, bodyHash].join('\n');
-		const signature = bufferToHex(await crypto.subtle.sign('HMAC', key, encoder.encode(payload)));
-		return {
-			'X-Dora-Session': signingSession.sessionId,
-			'X-Dora-Timestamp': timestamp,
-			'X-Dora-Nonce': nonce,
-			'X-Dora-Signature': signature,
-		};
+		return createAuthHeaders(signingSession, request.method, new URL(request.url, window.location.href),
+			await getBodyBytes(request), !process.env.NODE_ENV || process.env.NODE_ENV === 'development');
 	};
 
 	window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {

@@ -70,7 +70,7 @@ jobs:
         run: |
           python3 ../../Tools/tests/test_http_origin.py
           python3 ../../Tools/tests/test_http_origin_wire.py
-          node --test scripts/ide-dev-proxy.test.mjs scripts/ide-dev-proxy-wire.test.mjs scripts/ide-dev-client.test.mjs
+          node --test scripts/ide-dev-proxy.test.mjs scripts/ide-dev-proxy-wire.test.mjs scripts/ide-dev-client.test.mjs scripts/auth-client-modes.test.mjs
 
       - name: Test HTTP logic responsiveness and request lifetime
         run: python3 ../../Tools/tests/test_http_pending.py

@@ -11,7 +11,7 @@ import { ProfilerInfo } from "./ProfilerInfo";
 import { TypedEmitter } from "./utils/typedEmitter";
 import { LogBuffer } from "./LogBuffer";
 import { runWithNativeIDE } from "./NativeIDERun";
-import { canonicalizeAuthPath } from "./AuthSignature";
+import { canonicalizeAuthPath, createAuthHeaders, signAuthPayload, authNonce } from "./AuthSignature";
 
 let authRequired = false;
 export const setAuthRequired = (required: boolean) => {
@@ -76,25 +76,12 @@ const parseSession = (raw: string | null): AuthSession | null => {
 	return null;
 };
 
-const hmacHex = async (secret: string, payload: string) => {
-	const encoder = new TextEncoder();
-	const key = await crypto.subtle.importKey(
-		'raw',
-		encoder.encode(secret),
-		{ name: 'HMAC', hash: 'SHA-256' },
-		false,
-		['sign'],
-	);
-	const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
-	return Array.from(new Uint8Array(signature))
-		.map((byte) => byte.toString(16).padStart(2, '0'))
-		.join('');
-};
+const hmacHex = async (secret: string, payload: string) => signAuthPayload(secret, payload);
 
 const buildWebSocketUrl = async (baseUrl: string, session: AuthSession) => {
 	const url = new URL(baseUrl, window.location.href);
 	const timestamp = Math.floor(Date.now() / 1000).toString();
-	const nonce = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(16).slice(2);
+	const nonce = authNonce();
 	const params = new URLSearchParams(url.searchParams);
 	params.set('session', session.sessionId);
 	params.set('ts', timestamp);
@@ -501,7 +488,15 @@ async function post<T>(url: string, data: any = {}) {
 
 function getSync<T>(url: string, params: URLSearchParams): T | null {
 	const xhr = new XMLHttpRequest();
-	xhr.open('GET', addr(url) + '?' + params.toString(), false);
+	const target = addr(url) + '?' + params.toString();
+	xhr.open('GET', target, false);
+	if (authRequired) {
+		const session = parseSession(localStorage.getItem('doraWebAuthSession'));
+		if (!session) throw new Error('Authentication is required before synchronous file reads');
+		const headers = createAuthHeaders(session, 'GET', new URL(target, window.location.href), new Uint8Array(),
+			!process.env.NODE_ENV || process.env.NODE_ENV === 'development');
+		for (const [name, value] of Object.entries(headers)) xhr.setRequestHeader(name, value);
+	}
 	xhr.send();
 	if (xhr.status === 200) {
 		try {

@@ -12,9 +12,9 @@ const ast=ts.createSourceFile('index.tsx',source,ts.ScriptTarget.Latest,true,ts.
 const names=new Set(['origFetch','checkAuthRequired','showAuthDialog','setupAuth']);
 const declarations=ast.statements.filter(s=>ts.isVariableStatement(s)&&s.declarationList.declarations.some(d=>names.has(d.name.getText(ast))));
 assert.equal(declarations.length,names.size,'Authentication bootstrap boundary changed');
-const {outputFiles}=await build({stdin:{contents:`import {canonicalizeAuthPath} from './src/AuthSignature';\n${declarations.map(s=>s.getText(ast)).join('\n')}\nwindow.setupAuth=setupAuth;`,loader:'tsx',resolveDir:new URL('../',import.meta.url).pathname},bundle:true,write:false,format:'iife',jsxFactory:'React.createElement'});
+const {outputFiles}=await build({stdin:{contents:`import {canonicalizeAuthPath,createAuthHeaders,signAuthPayload,authNonce} from './src/AuthSignature';\n${declarations.map(s=>s.getText(ast)).join('\n')}\nwindow.setupAuth=setupAuth;`,loader:'tsx',resolveDir:new URL('../',import.meta.url).pathname},bundle:true,write:false,format:'iife',jsxFactory:'React.createElement'});
 const newSession={sessionId:'new-session',sessionSecret:'new-secret'};
-function fixture({enabled=true,cached=true,mode="production"}={}) {
+function fixture({enabled=true,cached=true,mode="production",insecure=false}={}) {
  const state={enabled,probeStatus:null,offline:false,dialog:null,shown:0,required:null,requests:[]};
  const storage=new Map(cached?[['doraWebAuthSession',JSON.stringify({sessionId:'old-session',sessionSecret:'old-secret'})]]:[]);
  const timers=new Set();
@@ -29,7 +29,7 @@ function fixture({enabled=true,cached=true,mode="production"}={}) {
   state.requests.push(request);
   return new Response('{}',{status:!state.enabled||request.headers.get('X-Dora-Session')===newSession.sessionId?200:401});
  }};
- vm.runInNewContext(outputFiles[0].text,{window,URL,Request,Headers,TextEncoder,Uint8Array,crypto:webcrypto,console,process:{env:{NODE_ENV:mode}},
+ vm.runInNewContext(outputFiles[0].text,{window,URL,Request,Headers,TextEncoder,Uint8Array,crypto:insecure?{getRandomValues:array=>webcrypto.getRandomValues(array)}:webcrypto,console,process:{env:{NODE_ENV:mode}},
   localStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},
   Service:{addr:path=>'http://localhost:8866'+path,setAuthRequired:value=>{state.required=value;},getWebSocket:()=>null},
   document:{body:{appendChild(){}},createElement:()=>({remove(){}})},AuthDialog:()=>{},React:{createElement:(type,props)=>({type,props})},
@@ -98,4 +98,14 @@ test('development proxy signs the upstream engine path',async()=>{
  const expected=Buffer.from(await webcrypto.subtle.sign('HMAC',key,new TextEncoder().encode(payload))).toString('hex');
  assert.equal(request.headers.get('X-Dora-Signature'),expected);
  } finally { state.dispose(); }
+});
+
+test('HTTP LAN bootstrap and fetch retry work without crypto.subtle',async()=>{
+ const f=fixture({insecure:true});try {
+  await f.window.setupAuth();
+  const pending=f.window.fetch('http://localhost:8866/test',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+  await until(()=>f.state.dialog);f.state.dialog.onToken(newSession);
+  assert.equal((await pending).status,200);
+  assert.match(f.state.requests.at(-1).headers.get('X-Dora-Signature'),/^[a-f0-9]{64}$/);
+ }finally{f.dispose();}
 });

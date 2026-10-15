@@ -110,7 +110,7 @@ Regression checks (from this directory):
 ```sh
 python3 ../../Tools/tests/test_http_origin.py
 python3 ../../Tools/tests/test_http_origin_wire.py
-node --test scripts/ide-dev-{proxy,proxy-wire,client}.test.mjs
+node --test scripts/ide-dev-{proxy,proxy-wire,client}.test.mjs scripts/auth-client-modes.test.mjs
 pnpm test:auth-reconnect
 pnpm test:websocket-lifecycle
 ```
@@ -128,3 +128,12 @@ asynchronous handlers. Add `--hold` to keep the fixture running for the browser
 page at `http://127.0.0.1:8866/browser.html`. Serve `Tools/tests/fixtures` with the
 Vite proxy on 18736 and open `/http-access.html` for browser CORS/WS verification.
 The fixture's known token is test data only and never enters the normal runtime.
+
+HTTP LAN pages use the shared synchronous SHA-256/HMAC implementation, so signing
+works without `crypto.subtle`. Synchronous compiler XHR reads attach the same
+session headers as fetch; log reloads use the authenticated fetch wrapper.
+To exercise these client paths in a real HTTP LAN browser, bundle the production
+fixture with `node scripts/build-http-client-fixture.mjs /absolute/path/client-auth.js`,
+serve that file alongside `Tools/tests/fixtures/http-access-lan.html` through Vite
+with the development proxy on 18736, and open the page using the machine LAN IP.
+Keep the isolated native fixture running with `--hold` during acceptance.
