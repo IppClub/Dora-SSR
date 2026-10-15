@@ -1,0 +1,119 @@
+/* Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+import "runtime"
+
+#wa:import dora bodydef3d_type
+func bodydef3d_type() => i32
+
+#wa:import dora bodydef3d_set_type
+func bodydef3d_set_type(slf: i64, val: i32)
+
+#wa:import dora bodydef3d_get_type
+func bodydef3d_get_type(slf: i64) => i32
+
+#wa:import dora bodydef3d_set_collision_layer
+func bodydef3d_set_collision_layer(slf: i64, val: i32)
+
+#wa:import dora bodydef3d_get_collision_layer
+func bodydef3d_get_collision_layer(slf: i64) => i32
+
+#wa:import dora bodydef3d_set_collision_mask
+func bodydef3d_set_collision_mask(slf: i64, val: i32)
+
+#wa:import dora bodydef3d_get_collision_mask
+func bodydef3d_get_collision_mask(slf: i64) => i32
+
+#wa:import dora bodydef3d_set_sensor
+func bodydef3d_set_sensor(slf: i64, val: i32)
+
+#wa:import dora bodydef3d_is_sensor
+func bodydef3d_is_sensor(slf: i64) => i32
+
+#wa:import dora bodydef3d_attach
+func bodydef3d_attach(slf: i64, fixture: i64, position: i64, angles: i64) => i32
+
+#wa:import dora bodydef3d_new
+func bodydef3d_new() => i64
+
+type BodyDef3D :struct{ Object }
+
+func BodyDef3DFrom(raw: i64) => *BodyDef3D {
+	if raw == 0 {
+		return nil
+	}
+	object := BodyDef3D{}
+	object.raw = &raw
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func BodyDef3D.GetTypeId() => i32 {
+	return bodydef3d_type()
+}
+func ObjectAsBodyDef3D(object: Object) => *BodyDef3D {
+	if object.GetTypeId() == bodydef3d_type() {
+		ObjectRetain(object.GetRaw())
+		return BodyDef3DFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Sets the body's motion type.
+func BodyDef3D.SetType(val: BodyType3D) {
+	bodydef3d_set_type(*this.raw, val.ToValue())
+}
+
+/// Gets the body's motion type.
+func BodyDef3D.GetType() => BodyType3D {
+	return BodyType3D{value: bodydef3d_get_type(*this.raw)}
+}
+
+/// Sets the collision layer in the range 0 through 31.
+func BodyDef3D.SetCollisionLayer(val: i32) {
+	bodydef3d_set_collision_layer(*this.raw, val)
+}
+
+/// Gets the collision layer in the range 0 through 31.
+func BodyDef3D.GetCollisionLayer() => i32 {
+	return bodydef3d_get_collision_layer(*this.raw)
+}
+
+/// Sets the bit mask of collision layers accepted by this body.
+func BodyDef3D.SetCollisionMask(val: i32) {
+	bodydef3d_set_collision_mask(*this.raw, val)
+}
+
+/// Gets the bit mask of collision layers accepted by this body.
+func BodyDef3D.GetCollisionMask() => i32 {
+	return bodydef3d_get_collision_mask(*this.raw)
+}
+
+/// Sets whether fixtures report contacts without collision response.
+func BodyDef3D.SetSensor(val: bool) {
+	bodydef3d_set_sensor(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether fixtures report contacts without collision response.
+func BodyDef3D.IsSensor() => bool {
+	return bodydef3d_is_sensor(*this.raw) != 0
+}
+
+/// Attaches a fixture with a local transform.
+func BodyDef3D.Attach(fixture: FixtureDef3D, position: Vec3, angles: Vec3) => bool {
+	return bodydef3d_attach(*this.raw, fixture.GetRaw(), position.GetRaw(), angles.GetRaw()) != 0
+}
+
+/// Creates an empty body definition.
+func NewBodyDef3D() => BodyDef3D {
+	raw := bodydef3d_new()
+	object := BodyDef3D{}
+	object.raw = &raw
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

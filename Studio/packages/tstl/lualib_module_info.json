@@ -1,0 +1,790 @@
+{
+  "ArrayAt": {
+    "exports": [
+      "__TS__ArrayAt"
+    ]
+  },
+  "ArrayConcat": {
+    "exports": [
+      "__TS__ArrayConcat"
+    ],
+    "dependencies": [
+      "ArrayIsArray"
+    ]
+  },
+  "ArrayEntries": {
+    "exports": [
+      "__TS__ArrayEntries"
+    ],
+    "dependencies": [
+      "Symbol"
+    ]
+  },
+  "ArrayEvery": {
+    "exports": [
+      "__TS__ArrayEvery"
+    ]
+  },
+  "ArrayFill": {
+    "exports": [
+      "__TS__ArrayFill"
+    ]
+  },
+  "ArrayFilter": {
+    "exports": [
+      "__TS__ArrayFilter"
+    ]
+  },
+  "ArrayForEach": {
+    "exports": [
+      "__TS__ArrayForEach"
+    ]
+  },
+  "ArrayFind": {
+    "exports": [
+      "__TS__ArrayFind"
+    ]
+  },
+  "ArrayFindIndex": {
+    "exports": [
+      "__TS__ArrayFindIndex"
+    ]
+  },
+  "ArrayFrom": {
+    "exports": [
+      "__TS__ArrayFrom"
+    ],
+    "dependencies": [
+      "Iterator"
+    ]
+  },
+  "ArrayIncludes": {
+    "exports": [
+      "__TS__ArrayIncludes"
+    ]
+  },
+  "ArrayIndexOf": {
+    "exports": [
+      "__TS__ArrayIndexOf"
+    ]
+  },
+  "ArrayIsArray": {
+    "exports": [
+      "__TS__ArrayIsArray"
+    ]
+  },
+  "ArrayJoin": {
+    "exports": [
+      "__TS__ArrayJoin"
+    ]
+  },
+  "ArrayMap": {
+    "exports": [
+      "__TS__ArrayMap"
+    ]
+  },
+  "ArrayPush": {
+    "exports": [
+      "__TS__ArrayPush"
+    ]
+  },
+  "ArrayPushArray": {
+    "exports": [
+      "__TS__ArrayPushArray"
+    ]
+  },
+  "ArrayReduce": {
+    "exports": [
+      "__TS__ArrayReduce"
+    ],
+    "dependencies": [
+      "CountVarargs"
+    ]
+  },
+  "ArrayReduceRight": {
+    "exports": [
+      "__TS__ArrayReduceRight"
+    ],
+    "dependencies": [
+      "CountVarargs"
+    ]
+  },
+  "ArrayReverse": {
+    "exports": [
+      "__TS__ArrayReverse"
+    ]
+  },
+  "ArrayUnshift": {
+    "exports": [
+      "__TS__ArrayUnshift"
+    ]
+  },
+  "ArraySort": {
+    "exports": [
+      "__TS__ArraySort"
+    ]
+  },
+  "ArraySlice": {
+    "exports": [
+      "__TS__ArraySlice"
+    ]
+  },
+  "ArraySome": {
+    "exports": [
+      "__TS__ArraySome"
+    ]
+  },
+  "ArraySplice": {
+    "exports": [
+      "__TS__ArraySplice"
+    ],
+    "dependencies": [
+      "CountVarargs"
+    ]
+  },
+  "ArrayToObject": {
+    "exports": [
+      "__TS__ArrayToObject"
+    ]
+  },
+  "ArrayFlat": {
+    "exports": [
+      "__TS__ArrayFlat"
+    ],
+    "dependencies": [
+      "ArrayIsArray",
+      "ArrayFlat"
+    ]
+  },
+  "ArrayFlatMap": {
+    "exports": [
+      "__TS__ArrayFlatMap"
+    ],
+    "dependencies": [
+      "ArrayIsArray"
+    ]
+  },
+  "ArraySetLength": {
+    "exports": [
+      "__TS__ArraySetLength"
+    ]
+  },
+  "ArrayToReversed": {
+    "exports": [
+      "__TS__ArrayToReversed"
+    ],
+    "dependencies": [
+      "Unpack",
+      "ArrayReverse"
+    ]
+  },
+  "ArrayToSorted": {
+    "exports": [
+      "__TS__ArrayToSorted"
+    ],
+    "dependencies": [
+      "Unpack",
+      "ArraySort"
+    ]
+  },
+  "ArrayToSpliced": {
+    "exports": [
+      "__TS__ArrayToSpliced"
+    ],
+    "dependencies": [
+      "Unpack",
+      "ArraySplice"
+    ]
+  },
+  "ArrayWith": {
+    "exports": [
+      "__TS__ArrayWith"
+    ],
+    "dependencies": [
+      "Unpack"
+    ]
+  },
+  "Await": {
+    "exports": [
+      "__TS__AsyncAwaiter",
+      "__TS__Await"
+    ],
+    "dependencies": [
+      "Promise",
+      "New"
+    ]
+  },
+  "Class": {
+    "exports": [
+      "__TS__Class"
+    ]
+  },
+  "ClassExtends": {
+    "exports": [
+      "__TS__ClassExtends"
+    ]
+  },
+  "CloneDescriptor": {
+    "exports": [
+      "__TS__CloneDescriptor"
+    ]
+  },
+  "CountVarargs": {
+    "exports": [
+      "__TS__CountVarargs"
+    ]
+  },
+  "Decorate": {
+    "exports": [
+      "__TS__Decorate"
+    ]
+  },
+  "DecorateLegacy": {
+    "exports": [
+      "__TS__DecorateLegacy"
+    ],
+    "dependencies": [
+      "ObjectAssign",
+      "ObjectGetOwnPropertyDescriptor",
+      "SetDescriptor"
+    ]
+  },
+  "DecorateParam": {
+    "exports": [
+      "__TS__DecorateParam"
+    ],
+    "dependencies": [
+      "DecorateLegacy"
+    ]
+  },
+  "Delete": {
+    "exports": [
+      "__TS__Delete"
+    ],
+    "dependencies": [
+      "Error",
+      "New",
+      "ObjectGetOwnPropertyDescriptors"
+    ]
+  },
+  "DelegatedYield": {
+    "exports": [
+      "__TS__DelegatedYield"
+    ],
+    "dependencies": [
+      "StringAccess",
+      "Symbol"
+    ]
+  },
+  "DescriptorGet": {
+    "exports": [
+      "__TS__DescriptorGet"
+    ]
+  },
+  "DescriptorSet": {
+    "exports": [
+      "__TS__DescriptorSet"
+    ]
+  },
+  "Error": {
+    "exports": [
+      "Error",
+      "RangeError",
+      "ReferenceError",
+      "SyntaxError",
+      "TypeError",
+      "URIError"
+    ],
+    "dependencies": [
+      "StringIncludes",
+      "New",
+      "Error",
+      "Class",
+      "ClassExtends"
+    ]
+  },
+  "FunctionBind": {
+    "exports": [
+      "__TS__FunctionBind"
+    ],
+    "dependencies": [
+      "Unpack",
+      "ArrayUnshift"
+    ]
+  },
+  "Generator": {
+    "exports": [
+      "__TS__Generator"
+    ],
+    "dependencies": [
+      "Symbol",
+      "CountVarargs",
+      "Unpack"
+    ]
+  },
+  "InstanceOf": {
+    "exports": [
+      "__TS__InstanceOf"
+    ],
+    "dependencies": [
+      "Symbol"
+    ]
+  },
+  "InstanceOfObject": {
+    "exports": [
+      "__TS__InstanceOfObject"
+    ]
+  },
+  "Iterator": {
+    "exports": [
+      "__TS__Iterator"
+    ],
+    "dependencies": [
+      "Symbol"
+    ]
+  },
+  "LuaIteratorSpread": {
+    "exports": [
+      "__TS__LuaIteratorSpread"
+    ],
+    "dependencies": [
+      "Unpack"
+    ]
+  },
+  "Map": {
+    "exports": [
+      "Map"
+    ],
+    "dependencies": [
+      "Class",
+      "Symbol",
+      "Iterator"
+    ]
+  },
+  "MapGroupBy": {
+    "exports": [
+      "__TS__MapGroupBy"
+    ],
+    "dependencies": [
+      "Map",
+      "New",
+      "Iterator"
+    ]
+  },
+  "Match": {
+    "exports": [
+      "__TS__Match"
+    ]
+  },
+  "MathAtan2": {
+    "exports": [
+      "__TS__MathAtan2"
+    ]
+  },
+  "MathModf": {
+    "exports": [
+      "__TS__MathModf"
+    ]
+  },
+  "MathSign": {
+    "exports": [
+      "__TS__MathSign"
+    ],
+    "dependencies": [
+      "NumberIsNaN"
+    ]
+  },
+  "MathTrunc": {
+    "exports": [
+      "__TS__MathTrunc"
+    ],
+    "dependencies": [
+      "NumberIsFinite"
+    ]
+  },
+  "New": {
+    "exports": [
+      "__TS__New"
+    ]
+  },
+  "Number": {
+    "exports": [
+      "__TS__Number"
+    ]
+  },
+  "NumberIsFinite": {
+    "exports": [
+      "__TS__NumberIsFinite"
+    ]
+  },
+  "NumberIsInteger": {
+    "exports": [
+      "__TS__NumberIsInteger"
+    ],
+    "dependencies": [
+      "NumberIsFinite"
+    ]
+  },
+  "NumberIsNaN": {
+    "exports": [
+      "__TS__NumberIsNaN"
+    ]
+  },
+  "ParseInt": {
+    "exports": [
+      "__TS__ParseInt"
+    ],
+    "dependencies": [
+      "StringSubstring",
+      "Match"
+    ]
+  },
+  "ParseFloat": {
+    "exports": [
+      "__TS__ParseFloat"
+    ],
+    "dependencies": [
+      "StringAccess",
+      "Match"
+    ]
+  },
+  "NumberToString": {
+    "exports": [
+      "__TS__NumberToString"
+    ],
+    "dependencies": [
+      "StringAccess",
+      "MathModf"
+    ]
+  },
+  "NumberToFixed": {
+    "exports": [
+      "__TS__NumberToFixed"
+    ]
+  },
+  "ObjectAssign": {
+    "exports": [
+      "__TS__ObjectAssign"
+    ]
+  },
+  "ObjectDefineProperty": {
+    "exports": [
+      "__TS__ObjectDefineProperty"
+    ],
+    "dependencies": [
+      "SetDescriptor"
+    ]
+  },
+  "ObjectEntries": {
+    "exports": [
+      "__TS__ObjectEntries"
+    ]
+  },
+  "ObjectFromEntries": {
+    "exports": [
+      "__TS__ObjectFromEntries"
+    ],
+    "dependencies": [
+      "Symbol"
+    ]
+  },
+  "ObjectGetOwnPropertyDescriptor": {
+    "exports": [
+      "__TS__ObjectGetOwnPropertyDescriptor"
+    ]
+  },
+  "ObjectGetOwnPropertyDescriptors": {
+    "exports": [
+      "__TS__ObjectGetOwnPropertyDescriptors"
+    ]
+  },
+  "ObjectGroupBy": {
+    "exports": [
+      "__TS__ObjectGroupBy"
+    ],
+    "dependencies": [
+      "Iterator"
+    ]
+  },
+  "ObjectKeys": {
+    "exports": [
+      "__TS__ObjectKeys"
+    ]
+  },
+  "ObjectRest": {
+    "exports": [
+      "__TS__ObjectRest"
+    ]
+  },
+  "ObjectValues": {
+    "exports": [
+      "__TS__ObjectValues"
+    ]
+  },
+  "Promise": {
+    "exports": [
+      "__TS__Promise"
+    ],
+    "dependencies": [
+      "Promise",
+      "New",
+      "InstanceOf",
+      "Class"
+    ]
+  },
+  "PromiseAll": {
+    "exports": [
+      "__TS__PromiseAll"
+    ],
+    "dependencies": [
+      "InstanceOf",
+      "Promise",
+      "Iterator",
+      "New"
+    ]
+  },
+  "PromiseAllSettled": {
+    "exports": [
+      "__TS__PromiseAllSettled"
+    ],
+    "dependencies": [
+      "InstanceOf",
+      "Iterator",
+      "Promise",
+      "New"
+    ]
+  },
+  "PromiseAny": {
+    "exports": [
+      "__TS__PromiseAny"
+    ],
+    "dependencies": [
+      "InstanceOf",
+      "Promise",
+      "Iterator",
+      "New"
+    ]
+  },
+  "PromiseRace": {
+    "exports": [
+      "__TS__PromiseRace"
+    ],
+    "dependencies": [
+      "InstanceOf",
+      "Promise",
+      "Iterator",
+      "New"
+    ]
+  },
+  "Set": {
+    "exports": [
+      "Set"
+    ],
+    "dependencies": [
+      "Class",
+      "Symbol",
+      "Iterator",
+      "New"
+    ]
+  },
+  "SetDescriptor": {
+    "exports": [
+      "__TS__SetDescriptor"
+    ],
+    "dependencies": [
+      "CloneDescriptor",
+      "DescriptorGet",
+      "DescriptorSet"
+    ]
+  },
+  "SparseArrayNew": {
+    "exports": [
+      "__TS__SparseArrayNew"
+    ],
+    "dependencies": [
+      "CountVarargs"
+    ]
+  },
+  "SparseArrayPush": {
+    "exports": [
+      "__TS__SparseArrayPush"
+    ],
+    "dependencies": [
+      "CountVarargs"
+    ]
+  },
+  "SparseArraySpread": {
+    "exports": [
+      "__TS__SparseArraySpread"
+    ]
+  },
+  "WeakMap": {
+    "exports": [
+      "WeakMap"
+    ],
+    "dependencies": [
+      "Class",
+      "Symbol"
+    ]
+  },
+  "WeakSet": {
+    "exports": [
+      "WeakSet"
+    ],
+    "dependencies": [
+      "Class",
+      "Symbol"
+    ]
+  },
+  "SourceMapTraceBack": {
+    "exports": [
+      "__TS__SourceMapTraceBack"
+    ],
+    "dependencies": [
+      "StringIncludes",
+      "Match"
+    ]
+  },
+  "Spread": {
+    "exports": [
+      "__TS__Spread"
+    ],
+    "dependencies": [
+      "StringAccess",
+      "Iterator",
+      "Unpack"
+    ]
+  },
+  "StringAccess": {
+    "exports": [
+      "__TS__StringAccess"
+    ]
+  },
+  "StringCharAt": {
+    "exports": [
+      "__TS__StringCharAt"
+    ]
+  },
+  "StringCharCodeAt": {
+    "exports": [
+      "__TS__StringCharCodeAt"
+    ]
+  },
+  "StringEndsWith": {
+    "exports": [
+      "__TS__StringEndsWith"
+    ]
+  },
+  "StringIncludes": {
+    "exports": [
+      "__TS__StringIncludes"
+    ]
+  },
+  "StringPadEnd": {
+    "exports": [
+      "__TS__StringPadEnd"
+    ]
+  },
+  "StringPadStart": {
+    "exports": [
+      "__TS__StringPadStart"
+    ]
+  },
+  "StringReplace": {
+    "exports": [
+      "__TS__StringReplace"
+    ]
+  },
+  "StringReplaceAll": {
+    "exports": [
+      "__TS__StringReplaceAll"
+    ],
+    "dependencies": [
+      "StringSplit"
+    ]
+  },
+  "StringSlice": {
+    "exports": [
+      "__TS__StringSlice"
+    ]
+  },
+  "StringSplit": {
+    "exports": [
+      "__TS__StringSplit"
+    ]
+  },
+  "StringStartsWith": {
+    "exports": [
+      "__TS__StringStartsWith"
+    ]
+  },
+  "StringSubstr": {
+    "exports": [
+      "__TS__StringSubstr"
+    ]
+  },
+  "StringSubstring": {
+    "exports": [
+      "__TS__StringSubstring"
+    ]
+  },
+  "StringTrim": {
+    "exports": [
+      "__TS__StringTrim"
+    ]
+  },
+  "StringTrimEnd": {
+    "exports": [
+      "__TS__StringTrimEnd"
+    ]
+  },
+  "StringTrimStart": {
+    "exports": [
+      "__TS__StringTrimStart"
+    ]
+  },
+  "Symbol": {
+    "exports": [
+      "__TS__Symbol",
+      "Symbol"
+    ]
+  },
+  "SymbolRegistry": {
+    "exports": [
+      "__TS__SymbolRegistryFor",
+      "__TS__SymbolRegistryKeyFor"
+    ],
+    "dependencies": [
+      "Symbol"
+    ]
+  },
+  "TypeOf": {
+    "exports": [
+      "__TS__TypeOf"
+    ]
+  },
+  "Unpack": {
+    "exports": [
+      "__TS__Unpack"
+    ]
+  },
+  "Using": {
+    "exports": [
+      "__TS__Using"
+    ],
+    "dependencies": [
+      "Unpack",
+      "Symbol"
+    ]
+  },
+  "UsingAsync": {
+    "exports": [
+      "__TS__UsingAsync"
+    ],
+    "dependencies": [
+      "Unpack",
+      "Symbol",
+      "Await"
+    ]
+  }
+}

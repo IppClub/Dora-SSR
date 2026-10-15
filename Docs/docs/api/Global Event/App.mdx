@@ -1,0 +1,122 @@
+# App Global Event
+
+**Description:**
+
+&emsp;&emsp;The global signal slot (event system) communication features.
+This is just a demonstration record showing the global signal slot names and callbacks.
+
+**Usage:**
+```tl
+-- Register for these events using codes:
+local node = Node():addTo(Director.entry)
+node:gslot("AppEvent", function(eventType: string)
+	print("App event triggered: " .. eventType)
+end)
+```
+
+## AppEvent
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when the application receives an event. The event type could be "Quit", "LowMemory", "WillEnterBackground", "DidEnterBackground", "WillEnterForeground", "DidEnterForeground", "Shutdown".
+
+**Signature:**
+```tl
+["AppEvent"]: function(eventType: string)
+```
+
+## AppLowMemory
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when the application receives a low memory warning.
+
+**Signature:**
+```tl
+["AppLowMemory"]: function()
+```
+
+## AppWillEnterBackground
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when the application is about to enter the background.
+
+**Signature:**
+```tl
+["AppWillEnterBackground"]: function()
+```
+
+## AppDidEnterBackground
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when the application has entered the background.
+
+**Signature:**
+```tl
+["AppDidEnterBackground"]: function()
+```
+
+## AppWillEnterForeground
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when the application is about to enter the foreground.
+
+**Signature:**
+```tl
+["AppWillEnterForeground"]: function()
+```
+
+## AppDidEnterForeground
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when the application has entered the foreground.
+
+**Signature:**
+```tl
+["AppDidEnterForeground"]: function()
+```
+
+## AppChange
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when the application settings change. The setting name could be "Locale", "Theme", "FullScreen", "Position", "Size".
+
+**Signature:**
+```tl
+["AppChange"]: function(settingName: string)
+```
+
+## AppWS
+
+**Type:** Global Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when a websocket connection gets an event.
+The callback receives one object argument:
+	`event.type` could be "Open", "Close", "Send", "Receive".
+	`event.msg` contains the message payload.
+
+**Signature:**
+```tl
+["AppWS"]: function(event: Dictionary)
+```

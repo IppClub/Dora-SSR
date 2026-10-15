@@ -1,0 +1,865 @@
+import { React, reference, toNode } from "DoraX";
+import { App, Director, Ease, HttpServer, Move, Node, PlatformType, sleep, Sprite, TextAlign, thread, Vec2 } from "Dora";
+import { DoraMascot } from "Dev/Mobile/Mascot";
+import { attachGamepad, findGamepadNode } from "Dev/Mobile/Gamepad";
+import { mobileFontScale } from "Dev/Mobile/Accessibility";
+import { getCoverScales, getReusableCardIndices, normalizeFeedIndex, resolveDiscoverRefreshTab, resolveFeedGesture, resolveFeedLocation, stableCoverColor, type FeedAction, type FeedEntry as ModelFeedEntry, type FeedTab } from "Dev/Mobile/FeedModel";
+import { createTextInput } from "Dev/Mobile/TextInput";
+import { MobileButton, MobileChoiceButton, MobileNewButton, MobilePanelSurface } from "Dev/Mobile/Controls";
+import { roundedRectVerts, RoundedStencil, RoundedSurface, VerticalGradient } from "Dev/Mobile/Visual";
+import { startPackagePanel } from "Dev/Mobile/PackagePanel";
+import { ProjectIndex } from "Dev/Mobile/ProjectIndex";
+import type { MobileProjectLanguage } from "Dev/Mobile/ProjectCreate";
+import type { ResourceInfo } from "Tools/ResourceDownloader/Catalog";
+
+interface FeedEntry extends ModelFeedEntry {
+	resource?: ResourceInfo;
+	catalogCommit?: string;
+	launchError?: string;
+}
+
+interface MobileFeedOptions {
+	initialEntry?: FeedEntry;
+	initialEntries?: { local?: FeedEntry; discover?: FeedEntry };
+	getLocalEntries: (this: void, dirtyProjectPath?: string) => FeedEntry[];
+	takeReceivedFile?: (this: void) => string;
+	getDiscoverEntries: (this: void) => FeedEntry[];
+	syncDiscover?: (this: void, onProgress: (this: void, message: string) => void, onDone: (this: void, success: boolean, message?: string) => void, force?: boolean) => void;
+	onPlay: (this: void, entry: FeedEntry) => void;
+	onRemix: (this: void, entry: FeedEntry) => void;
+	onCurrentEntryChanged?: (this: void, entry: FeedEntry) => void;
+	createProject?: (this: void, name: string, language: MobileProjectLanguage) => { success: true; entry: FeedEntry } | { success: false; error: string };
+	onSwitchMode?: (this: void) => void;
+	prepare: (this: void, entry: FeedEntry, repairIncomplete: boolean, onProgress: (this: void, progress: number, message: string, transferredBytes?: number) => void, onDone: (this: void, success: boolean, ready?: { fileName: string; workDir: string }, message?: string, repairable?: boolean) => void, isCanceled: (this: void) => boolean) => void;
+	sync?: (this: void, entry: FeedEntry, force: boolean, onProgress: (this: void, progress: number, message: string, transferredBytes?: number) => void, onDone: (this: void, success: boolean, ready?: { workDir: string }, message?: string, forceable?: boolean) => void, isCanceled: (this: void) => boolean) => void;
+}
+
+const colors = {
+	background: 0xff0b0d12,
+	panel: 0xff151922,
+	panelRaised: 0xff202632,
+	text: 0xfff4f1e8,
+	muted: 0xffa8afbd,
+	brand: 0xffffcc33,
+	border: 0xff343b48,
+	danger: 0xffff6b6b,
+};
+
+const fontName = "sarasa-mono-sc-regular";
+const createSheetHeight = 304;
+const createInputHeight = 44;
+const createInputTop = 140;
+
+// Overlay controls share a render group with Sprite text. Native surfaces keep
+// their opaque backgrounds above the card while following MobileButton styling.
+function OverlayActionButton(props: { key?: string; tag: string; x: number; y?: number; width: number; text: string; fontSize?: number; danger?: boolean; onTapped(): void }) {
+	return <node key={props.key} tag={props.tag} x={props.x} y={props.y ?? 20} width={props.width} height={48} anchorX={0} anchorY={0}
+		touchEnabled={true} swallowTouches={true} onTapped={props.onTapped}>
+		<draw-node renderOrder={2}><polygon-shape verts={roundedRectVerts(props.width, 48, 14)}
+			fillColor={props.danger ? 0xffdf4e56 : 0xff293140} borderWidth={1} borderColor={props.danger ? 0xffff8585 : colors.border} /></draw-node>
+		<label x={props.width / 2} y={24} fontName={fontName} fontSize={props.fontSize ?? 17} text={props.text} color3={0xf4f1e8} renderOrder={3} />
+	</node>;
+}
+
+function conciseDescription(text: string, limit: number) {
+	const length = utf8.len(text)[0] ?? 0;
+	if (length <= limit) return text;
+	const stop = utf8.offset(text, limit + 1) ?? text.length + 1;
+	return string.sub(text, 1, stop - 1) + "…";
+}
+
+function formatTransferBytes(bytes: number) {
+	if (bytes < 1024) return `${math.floor(bytes)} B`;
+	let value = bytes;
+	const units = ["KiB", "MiB", "GiB", "TiB"];
+	for (const unit of units) {
+		value /= 1024;
+		if (value < 1024 || unit === "TiB") return `${string.format("%.1f", value)} ${unit}`;
+	}
+	return `${math.floor(bytes)} B`;
+}
+
+function Cover(props: { key?: string; entry: FeedEntry; x: number; y: number; width: number; height: number }) {
+	const file = props.entry.bannerFile;
+	const scaleSprite = (sprite: Sprite.Type, mode: "contain" | "cover") => {
+		const scales = getCoverScales(sprite.width, sprite.height, props.width, props.height);
+		sprite.scaleX = scales[mode];
+		sprite.scaleY = scales[mode];
+	};
+	return <node x={props.x} y={props.y} width={props.width} height={props.height} anchorX={0} anchorY={0}>
+		<RoundedSurface width={props.width} height={props.height} radius={22}
+			topColor={stableCoverColor(props.entry.id)} bottomColor={0xff111723} shadow={true} />
+		{file ? <clip-node width={props.width} height={props.height} anchorX={0} anchorY={0} stencil={<RoundedStencil width={props.width} height={props.height} radius={22} />}>
+			<sprite file={file} x={props.width / 2 - 5} y={props.height / 2} opacity={0.08} onMount={sprite => scaleSprite(sprite, "cover")} />
+			<sprite file={file} x={props.width / 2 + 5} y={props.height / 2} opacity={0.08} onMount={sprite => scaleSprite(sprite, "cover")} />
+			<sprite file={file} x={props.width / 2} y={props.height / 2 - 5} opacity={0.08} onMount={sprite => scaleSprite(sprite, "cover")} />
+			<draw-node x={props.width / 2} y={props.height / 2}>
+				<rect-shape width={props.width} height={props.height} fillColor={0xb00b0d12} />
+			</draw-node>
+			<sprite file={file} x={props.width / 2} y={props.height / 2} onMount={sprite => scaleSprite(sprite, "contain")} />
+		</clip-node> : <label
+			x={props.width / 2}
+			y={props.height / 2 + 10}
+			fontName={fontName}
+			fontSize={math.floor(math.max(22, math.min(34, props.width / 12)))}
+			text={props.entry.title}
+			textWidth={props.width - 40}
+			color3={0xf4f1e8}
+		/>}
+		{file ? undefined : <label
+			x={props.width / 2}
+			y={30}
+			fontName={fontName}
+			fontSize={14}
+			text="DORA SSR · REMIXABLE"
+			color3={0xffcc33}
+		/>}
+		{file ? undefined : <DoraMascot state="idle" x={props.width - 46} y={64} size={42} />}
+		<RoundedSurface width={props.width} height={props.height} radius={22} fillColor={0x00000000} borderWidth={1} borderColor={0xff3b4556} />
+	</node>;
+}
+
+export function startMobileFeed(options: MobileFeedOptions) {
+	const getLocalEntries = options.getLocalEntries;
+	const getDiscoverEntries = options.getDiscoverEntries;
+	const onPlay = options.onPlay;
+	const onRemix = options.onRemix;
+	const prepare = options.prepare;
+	const syncDiscover = options.syncDiscover;
+	const canShare = App.platform === PlatformType.Android || App.platform === PlatformType.iOS;
+	let zh = string.match(App.locale, "^zh")[0] !== undefined;
+	let tab: FeedTab = "local";
+	let index = 0;
+	let drag = Vec2.zero;
+	let dragAxis: "none" | "horizontal" | "vertical" = "none";
+	let discoverError = "";
+	let preparing = false;
+	let transitioning = false;
+	let prepareStatus = "";
+	let prepareProgress = 0;
+	let prepareTransferredBytes = 0;
+	let prepareCanceled = false;
+	let synchronizing = false;
+	let syncConfirmation: FeedEntry | undefined;
+	let syncFailure = "";
+	let managementOpen = false;
+	let catalogSyncing = false;
+	let catalogStatus = "";
+	let catalogStatusView: ((message: string) => void) | undefined;
+	let repairResourceId = "";
+	let userSelectedTab = false;
+	let active = true;
+	let leaving = false;
+	let packagePanel: Node.Type | undefined;
+	let createOpen = false;
+	let projectIndexOpen = false;
+	let creating = false;
+	let createName = "";
+	let createLanguage: MobileProjectLanguage = "typescript";
+	let dismissedCreateComposition = false;
+	let createError = "";
+	let gamepadUsed = false;
+	let returnEntry = options.initialEntry;
+	const rememberedEntries: { local?: FeedEntry; discover?: FeedEntry } = {
+		local: options.initialEntries?.local,
+		discover: options.initialEntries?.discover,
+	};
+	const cardRef = reference<Node.Type>();
+	const indexRef = reference<Node.Type>();
+	let createInputRef = reference<Node.Type>();
+	let discover = getDiscoverEntries();
+	let local = getLocalEntries();
+
+	if (discover.length === 0) {
+		discoverError = zh ? "资源目录暂不可用" : "Catalog is unavailable";
+	}
+	const initialLocation = resolveFeedLocation(local, discover, returnEntry);
+	tab = initialLocation.tab;
+	index = initialLocation.index;
+
+	const host = Node();
+	host.tag = "mobile-feed";
+	host.scaleX = App.devicePixelRatio;
+	host.scaleY = App.devicePixelRatio;
+	host.addTo(Director.systemUI);
+	// Cleanup is posted for a later frame; detachment must invalidate callbacks now.
+	const isActive = () => active && !leaving && host.parent !== undefined;
+
+	const entries = () => tab === "discover" ? discover : local;
+	const current = (): FeedEntry | undefined => entries()[normalizeFeedIndex(index, entries().length)];
+	let rememberedEntryKey = "";
+	const rememberCurrent = () => {
+		const item = current();
+		if (!item || !options.onCurrentEntryChanged) return;
+		const key = `${item.kind}\n${item.id}\n${item.workDir ?? ""}\n${item.fileName ?? ""}`;
+		if (key === rememberedEntryKey) return;
+		rememberedEntryKey = key;
+		rememberedEntries[item.kind] = item;
+		options.onCurrentEntryChanged(item);
+	};
+	const canEditCreate = () => createOpen && !creating && isActive() && host.visible && HttpServer.wsConnectionCount === 0;
+	const createInput = createTextInput({
+		fontSize: math.floor(16 * mobileFontScale),
+		singleLine: true,
+		background: colors.background,
+		getText: () => createName,
+		setText: text => { createName = text; },
+		getPlaceholder: () => zh ? "例如：星际花园" : "For example: Star Garden",
+		isEnabled: canEditCreate,
+		onReturn: () => { submitCreate(); return true; },
+	});
+	const blurCreateInput = createInput.blur;
+	const closeCreate = () => {
+		if (creating) return;
+		blurCreateInput();
+		createOpen = false;
+		createName = "";
+		createError = "";
+		render();
+	};
+	const openCreate = () => {
+		if (!options.createProject || preparing || transitioning || creating || createOpen || syncConfirmation || managementOpen || HttpServer.wsConnectionCount > 0) return;
+		projectIndexOpen = false;
+		createOpen = true;
+		createLanguage = "typescript";
+		createName = "";
+		dismissedCreateComposition = false;
+		createError = "";
+		render();
+		createInput.deferFocus();
+	};
+	const openProjectIndex = () => {
+		if (preparing || transitioning || creating || createOpen || syncConfirmation || managementOpen || HttpServer.wsConnectionCount > 0) return;
+		if (tab === "local") local = getLocalEntries();
+		projectIndexOpen = true;
+		render();
+	};
+	const createErrorText = (error: string) => {
+		switch (error) {
+			case "invalid-name": return zh ? "请输入不含路径分隔符的项目名称" : "Enter a project name without path separators";
+			case "target-existed": return zh ? "已有同名项目，请换一个名称" : "A project with that name already exists";
+			case "create-folder-failed": return zh ? "无法创建项目目录，请检查工作目录后重试" : "Could not create the project folder; check the workspace and retry";
+			case "create-entry-failed": return zh ? "无法写入项目入口，未完成项目已回滚" : "Could not write the project entry; the incomplete project was rolled back";
+			case "created-project-not-found": return zh ? "项目已创建，但本地列表未能找到它，请返回后重试" : "The project was created but could not be found in Local; return and retry";
+			default: return zh ? "创建失败，请重试" : "Project creation failed; try again";
+		}
+	};
+	const submitCreate = () => {
+		if (!options.createProject || creating || !createOpen || !isActive() || !host.visible || HttpServer.wsConnectionCount > 0) return;
+		if (createInput.isComposing()) return;
+		creating = true;
+		createError = "";
+		blurCreateInput();
+		render();
+		const result = options.createProject(createName, createLanguage);
+		if (!isActive()) return;
+		creating = false;
+		if (!result.success) {
+			createError = createErrorText(result.error);
+			render();
+			return;
+		}
+		createOpen = false;
+		createName = "";
+		local = getLocalEntries();
+		returnEntry = result.entry;
+		const location = resolveFeedLocation(local, discover, result.entry);
+		tab = location.tab;
+		index = location.index;
+		render();
+		onRemix(result.entry);
+	};
+
+	const openPackage = (mode: "add" | "share" | "receive", path?: string, pickOnOpen = false) => {
+		if (!isActive() || !host.visible || packagePanel || preparing || transitioning || creating || createOpen || HttpServer.wsConnectionCount > 0) return;
+		projectIndexOpen = false;
+		packagePanel = startPackagePanel({
+			mode, path, pickOnOpen, entry: current(),
+			onNew: openCreate,
+			onClosed: () => { packagePanel = undefined; },
+			onImported: (entry, play) => {
+				if (!isActive()) return;
+				local = getLocalEntries(entry.workDir);
+				const imported = local.find(item => item.workDir === entry.workDir) ?? entry;
+				returnEntry = imported;
+				const location = resolveFeedLocation(local, discover, imported);
+				tab = "local"; index = location.index;
+				render();
+				if (play) onPlay(imported);
+			},
+		});
+	};
+	let receiveElapsed = 0;
+	host.schedule(dt => {
+		receiveElapsed += dt;
+		if (receiveElapsed < 0.5) return false;
+		receiveElapsed = 0;
+		if (isActive() && host.visible && !packagePanel && !createOpen && !projectIndexOpen && !managementOpen && !syncConfirmation && !preparing && !transitioning && HttpServer.wsConnectionCount === 0) {
+			const path = options.takeReceivedFile ? options.takeReceivedFile() : App.takeReceivedFile();
+			if (path !== "") openPackage("receive", path);
+		}
+		return false;
+	});
+
+	const setTab = (next: FeedTab) => {
+		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || preparing || creating || syncConfirmation || managementOpen) return;
+		userSelectedTab = true;
+		returnEntry = undefined;
+		if (tab === next) return;
+		if (createOpen) {
+			blurCreateInput();
+			createOpen = false;
+			createName = "";
+			createError = "";
+		}
+		tab = next;
+		const target = rememberedEntries[next];
+		const location = target === undefined ? undefined : resolveFeedLocation(local, discover, target);
+		index = location?.tab === next ? location.index : 0;
+		render();
+	};
+	const activate = (action: "play" | "remix") => {
+		const item = current();
+		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || !item || preparing || syncConfirmation || managementOpen) return;
+		if (item.webPlayUrl) {
+			const url = action === "play" ? item.webPlayUrl : item.sourceUrl;
+			if (url) App.openURL(url);
+			return;
+		}
+		item.launchError = undefined;
+		const done = () => { returnEntry = item; return action === "play" ? onPlay(item) : onRemix(item); };
+		if (item.kind === "local" || item.installed) { done(); return; }
+		preparing = true;
+		prepareProgress = 0;
+		prepareTransferredBytes = 0;
+		prepareCanceled = false;
+		prepareStatus = zh ? "准备安装…" : "Preparing install…";
+		render();
+		const repairIncomplete = repairResourceId === item.id;
+		repairResourceId = "";
+		prepare(item, repairIncomplete, (progress, message, transferredBytes) => {
+			if (!isActive()) return;
+			prepareProgress = math.max(0, math.min(1, progress));
+			if (transferredBytes !== undefined) prepareTransferredBytes = math.max(prepareTransferredBytes, transferredBytes);
+			prepareStatus = message;
+			render();
+		}, (success, ready, message, repairable) => {
+			if (!isActive()) return;
+			preparing = false;
+			if (!success || !ready) {
+				repairResourceId = repairable ? item.id : "";
+				prepareStatus = message ?? (zh ? "安装失败，点击按钮重试" : "Install failed; tap to retry");
+				render();
+				return;
+			}
+			item.fileName = ready.fileName;
+			item.workDir = ready.workDir;
+			item.installed = true;
+			prepareStatus = "";
+			if (HttpServer.wsConnectionCount === 0 && host.visible) done();
+			else render();
+		}, () => prepareCanceled);
+	};
+	const cancelPrepare = () => {
+		if (!preparing || prepareCanceled) return;
+		prepareCanceled = true;
+		prepareStatus = zh ? "正在中断下载…" : "Canceling download…";
+		render();
+	};
+	const closeManagement = () => { managementOpen = false; render(); };
+	const openManagement = () => {
+		const item = current();
+		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || !item || item.kind !== "local"
+			|| preparing || transitioning || creating || createOpen || packagePanel || syncConfirmation) return;
+		managementOpen = !managementOpen;
+		render();
+	};
+	const dismissSyncConfirmation = () => { syncConfirmation = undefined; render(); };
+	const synchronize = (item: FeedEntry, force: boolean) => {
+		if (!options.sync || !item.resource || item.kind !== "local" || preparing || !isActive()
+			|| !host.visible || HttpServer.wsConnectionCount > 0) return;
+		syncConfirmation = undefined;
+		managementOpen = false;
+		preparing = true;
+		synchronizing = true;
+		prepareProgress = 0;
+		prepareTransferredBytes = 0;
+		prepareCanceled = false;
+		prepareStatus = zh ? "正在同步…" : "Synchronizing…";
+		render();
+		options.sync(item, force, (progress, message, transferredBytes) => {
+			if (!isActive()) return;
+			prepareProgress = math.max(0, math.min(1, progress));
+			prepareTransferredBytes = transferredBytes ?? prepareTransferredBytes;
+			prepareStatus = message;
+			render();
+		}, (success, ready, message, forceable) => {
+			if (!isActive()) return;
+			preparing = false;
+			synchronizing = false;
+			if (success && ready) {
+				local = getLocalEntries(ready.workDir);
+				discover = getDiscoverEntries();
+				const sameEntry = local.findIndex(entry => entry.fileName === item.fileName);
+				const sameResource = local.findIndex(entry => entry.resource?.id === item.resource?.id);
+				index = normalizeFeedIndex(sameEntry >= 0 ? sameEntry : sameResource >= 0 ? sameResource : index, local.length);
+				prepareStatus = message ?? (zh ? "同步完成" : "Synchronized");
+			} else {
+				prepareStatus = message ?? (zh ? "同步失败" : "Synchronization failed");
+				if (!force && forceable && !prepareCanceled) {
+					syncFailure = prepareStatus;
+					syncConfirmation = item;
+				}
+			}
+			render();
+		}, () => prepareCanceled || !isActive());
+	};
+
+	const commit = (action: FeedAction) => {
+		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || preparing || transitioning || syncConfirmation || managementOpen) return;
+		if (action === "play" || action === "remix") {
+			const card = cardRef.current;
+			if (card) card.position = Vec2.zero;
+		}
+		switch (action) {
+			case "previous":
+			case "next": {
+				returnEntry = undefined;
+				const target = normalizeFeedIndex(index + (action === "next" ? 1 : -1), entries().length);
+				if (target === index) {
+					const card = cardRef.current;
+					if (card) card.perform(Move(App.reducedMotion ? 0 : 0.16, card.position, Vec2.zero, Ease.OutQuad));
+					return;
+				}
+				const duration = App.reducedMotion ? 0 : 0.18;
+				const finish = () => {
+					if (!isActive()) return;
+					index = target;
+					transitioning = false;
+					App.vibrate(0.012);
+					render();
+				};
+				const card = cardRef.current;
+				if (duration > 0 && card) {
+					transitioning = true;
+					card.perform(Move(duration, card.position, Vec2(0, (action === "next" ? 1 : -1) * App.safeArea.height), Ease.OutQuad));
+					thread(() => { sleep(duration); finish(); });
+				} else finish();
+				return;
+			}
+			case "play": activate("play"); return;
+			case "remix": activate("remix"); return;
+			default: return;
+		}
+	};
+
+	const switchMode = () => {
+		if (!isActive() || !host.visible || HttpServer.wsConnectionCount > 0 || preparing || creating || createOpen || packagePanel || transitioning || syncConfirmation || managementOpen || !options.onSwitchMode) return;
+		leaving = true;
+		options.onSwitchMode();
+	};
+	host.slot("SwitchUIMode", switchMode);
+	const render = () => {
+		if (!isActive()) return;
+		catalogStatusView = undefined;
+		// Catalog updates must not replace an active IME target or discard its preedit.
+		const safeContentWidth = App.safeArea.width - 40;
+		const shortLandscapeInputWidth = safeContentWidth - 12 - math.min(300, math.floor(safeContentWidth * 0.42));
+		const expectedInputWidth = App.safeArea.width >= 760 && App.safeArea.height < 500 ? shortLandscapeInputWidth : safeContentWidth;
+		const keptInput = createOpen && createInputRef.current?.width === expectedInputWidth ? createInputRef.current : undefined;
+		const restoreFocus = createInput.isFocused();
+		keptInput?.removeFromParent(false);
+		if (!keptInput) {
+			createInput.unmount();
+			createInputRef = reference<Node.Type>();
+		}
+		const createPanelRef = reference<Node.Type>();
+		host.removeAllChildren();
+		host.scaleX = App.devicePixelRatio;
+		host.scaleY = App.devicePixelRatio;
+		const { width, height } = App.visualSize;
+		const safe = App.safeArea;
+		const left = safe.left;
+		const bottom = safe.bottom;
+		const usableWidth = safe.width;
+		const usableHeight = safe.height;
+		const wide = usableWidth >= 760;
+		const shortLandscape = wide && usableHeight < 500;
+		const compact = !wide && usableHeight < 700;
+		const compactLandscape = compact && usableWidth > usableHeight && usableHeight < 520;
+		const landscapeTopLift = shortLandscape ? 28 : 0;
+		const data = entries();
+		index = normalizeFeedIndex(index, data.length);
+		const item = current();
+		rememberCurrent();
+		const coverWidth = wide ? math.min(usableWidth * 0.54, 680) : usableWidth - 32;
+		const coverHeight = wide
+			? math.min(usableHeight - 118, coverWidth * 0.72)
+			: compact
+				? math.min(usableHeight * (compactLandscape ? 0.43 : 0.49), coverWidth * 0.72)
+				: math.min(usableHeight * 0.54, coverWidth * 1.12);
+		const coverX = left + 16;
+		const coverY = wide ? bottom + (usableHeight - coverHeight) / 2 - 12 + landscapeTopLift : bottom + usableHeight - coverHeight - 82;
+		const infoX = wide ? coverX + coverWidth + 28 : left + 20;
+		const infoWidth = wide ? usableWidth - coverWidth - 72 : usableWidth - 40;
+		const infoTop = wide ? bottom + usableHeight - 122 + landscapeTopLift : coverY - (compactLandscape ? 28 : 30);
+		const descriptionY = infoTop - (compactLandscape ? 38 : 58);
+		const metadataY = infoTop - (wide ? 136 : 118);
+		const actionsY = bottom + (compactLandscape ? 18 : 24);
+		const gestureHintY = bottom + (compactLandscape ? 88 : 92);
+		const canSync = item?.kind === "local" && item.resource !== undefined && options.sync !== undefined;
+		const canManage = item?.kind === "local" && (canShare || canSync);
+		const buttonWidth = wide ? math.min(190, (infoWidth - 12) / 2) : (infoWidth - 12) / 2;
+		const fontScale = mobileFontScale;
+		const cardIndices = getReusableCardIndices(index, data.length);
+		const headerRenderOrder = 1000;
+
+		const scene = toNode(<node
+			tag="mobile-feed-scene"
+			x={-width / 2}
+			y={-height / 2}
+			width={width}
+			height={height}
+				anchorX={0}
+				anchorY={0}
+			touchEnabled={true}
+			onTapBegan={() => {
+				drag = Vec2.zero;
+				dragAxis = "none";
+				cardRef.current?.stopAllActions();
+				if (indexRef.current) indexRef.current.opacity = 1;
+			}}
+			onTapMoved={touch => {
+				drag = drag.add(touch.delta);
+				if (dragAxis === "none" && math.max(math.abs(drag.x), math.abs(drag.y)) >= 12) {
+					dragAxis = math.abs(drag.x) > math.abs(drag.y) * 1.2 ? "horizontal" : "vertical";
+				}
+				if (cardRef.current) {
+					const offset = dragAxis === "horizontal" ? Vec2(drag.x * 0.18, 0) : dragAxis === "vertical" ? Vec2(0, drag.y * 0.12) : Vec2.zero;
+					cardRef.current.position = offset;
+					if (indexRef.current) {
+						const headerBottom = bottom + usableHeight - 72;
+						const indexTop = coverY + coverHeight - 14 + offset.y;
+						indexRef.current.opacity = dragAxis === "vertical"
+							? math.max(0, math.min(1, (headerBottom - indexTop) / 16))
+							: 1;
+					}
+				}
+			}}
+			onTapEnded={() => {
+				const action = resolveFeedGesture(drag.x, drag.y, usableWidth, usableHeight);
+				drag = Vec2.zero;
+				dragAxis = "none";
+				if (indexRef.current) indexRef.current.opacity = 1;
+				if (action === "none" && cardRef.current) {
+					const card = cardRef.current;
+					card.perform(Move(App.reducedMotion ? 0 : 0.16, card.position, Vec2.zero, Ease.OutQuad));
+				}
+				commit(action);
+			}}
+			onMouseWheel={delta => commit(delta.y > 0 ? "previous" : "next")}
+		>
+			<VerticalGradient width={width} height={height} topColor={0xff111725} bottomColor={0xff080a0f} />
+			<node visible={!projectIndexOpen}>
+				{createOpen ? undefined : item !== undefined ? <node tag={`mobile-feed-card-${item.id}`} ref={cardRef} key={`${tab}-${item.id}`}>
+					{cardIndices.map(cardIndex => <Cover
+						key={`${tab}-${data[cardIndex].id}`}
+						entry={data[cardIndex]}
+						x={coverX}
+						y={coverY + (index - cardIndex) * usableHeight}
+						width={coverWidth}
+						height={coverHeight}
+					/>)}
+					<node tag="mobile-feed-index" ref={indexRef} order={10} renderGroup={true} x={coverX + coverWidth - 62} y={coverY + coverHeight - 40} width={48} height={26} anchorX={0} anchorY={0}
+						touchEnabled={true} swallowTouches={true} onTapped={openProjectIndex}>
+						{/* Scene geometry keeps the entire badge above Sprite covers; NanoVG surfaces render before them. */}
+						<clip-node width={48} height={26} anchorX={0} anchorY={0} stencil={<RoundedStencil width={48} height={26} radius={13} />}>
+							<draw-node><verts-shape verts={[
+								[Vec2(0, 0), 0xe012161e], [Vec2(48, 0), 0xe012161e], [Vec2(48, 26), 0xe028303d],
+								[Vec2(0, 0), 0xe012161e], [Vec2(48, 26), 0xe028303d], [Vec2(0, 26), 0xe028303d],
+							]} /></draw-node>
+						</clip-node>
+						<draw-node x={0.5} y={0.5}><polygon-shape verts={roundedRectVerts(47, 25, 12.5)} fillColor={0x00000000} borderWidth={0.5} borderColor={0x88505a6c} /></draw-node>
+						<draw-node x={18} y={2}><polygon-shape verts={roundedRectVerts(12, 2, 1)} fillColor={colors.brand} /></draw-node>
+						<label x={24} y={13} fontName={fontName} fontSize={11} text={`${index + 1} / ${data.length}`} color3={0xd7dbe3} />
+					</node>
+					<label tag="mobile-feed-current-title" x={infoX} y={infoTop} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={math.floor((wide ? 30 : 25) * fontScale)}
+						text={item.title} textWidth={infoWidth - (canManage ? 92 : 0)} alignment={TextAlign.Left} color3={0xf4f1e8} />
+					{canManage ? <MobileButton tag="mobile-feed-manage" x={infoX + infoWidth - 84} y={infoTop - 18} width={84} height={36} text={zh ? "管理" : "Manage"} fontSize={13} onTapped={openManagement} /> : undefined}
+					<label tag="mobile-feed-description" x={infoX} y={descriptionY} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={math.floor(15 * fontScale)}
+						text={conciseDescription(item.description, wide ? 80 : compact ? 28 : 42)} textWidth={infoWidth} alignment={TextAlign.Left} color3={0xa8afbd} />
+					{compact || shortLandscape ? undefined : <node x={infoX} y={metadataY} width={wide ? 176 : 164} height={28} anchorX={0} anchorY={0}>
+						<RoundedSurface width={wide ? 176 : 164} height={28} radius={14} topColor={0x66303a4b} bottomColor={0x6618202b} borderWidth={1} borderColor={0x88606b7d} />
+						<label x={12} y={14} anchorX={0} fontName={fontName} fontSize={12}
+							text={item.webPlayUrl ? (zh ? "发现  ·  在线试玩" : "Discover  ·  Web game") : item.kind === "local" ? (zh ? "本地作品  ·  可 Remix" : "Local  ·  Remixable") : item.installed ? (zh ? "发现  ·  已安装" : "Discover  ·  Installed") : (zh ? "发现  ·  可安装" : "Discover  ·  Installable")}
+							textWidth={(wide ? 176 : 164) - 24} alignment={TextAlign.Left} color3={0xdce1ea} />
+					</node>}
+				{preparing ? <node tag="mobile-feed-download" x={infoX} y={actionsY} width={infoWidth} height={48} anchorX={0} anchorY={0}>
+					<label x={0} y={38} anchorX={0} fontName={fontName} fontSize={14} text={synchronizing ? (zh ? "正在同步" : "Synchronizing") : (zh ? "正在下载" : "Downloading")} color3={0xffcc33} />
+					<label tag="mobile-feed-download-percent" x={infoWidth - 92} y={38} anchorX={1} fontName={fontName} fontSize={14}
+						text={`${math.floor(prepareProgress * 100)}%${prepareTransferredBytes > 0 ? ` · ${formatTransferBytes(prepareTransferredBytes)}` : ""}`} color3={0xffcc33} />
+					<node tag="mobile-feed-download-track" width={infoWidth - 92} height={8} y={8} anchorX={0} anchorY={0}>
+						<RoundedSurface width={infoWidth - 92} height={8} radius={4} fillColor={0xff293140} />
+						<node tag="mobile-feed-download-fill" width={(infoWidth - 92) * prepareProgress} height={8} anchorX={0} anchorY={0}>
+							{prepareProgress > 0 ? <RoundedSurface width={(infoWidth - 92) * prepareProgress} height={8} radius={4} topColor={0xffffdf6b} bottomColor={0xffffbd2e} /> : undefined}
+						</node>
+					</node>
+					<MobileButton tag="mobile-feed-download-cancel" x={infoWidth - 80} y={0} width={80} height={48}
+						text={prepareCanceled ? (zh ? "中断中…" : "Canceling…") : (zh ? "中断" : "Cancel")} fontSize={13} danger={true} onTapped={cancelPrepare} />
+				</node> : <node>
+				<MobileButton tag="mobile-feed-remix" x={infoX} y={actionsY} width={buttonWidth} text={item.webPlayUrl ? (zh ? "查看源码" : "View source") : (zh ? "Remix 作品" : "Remix game")} fontSize={math.floor(16 * fontScale)}
+					primary={true} onTapped={() => activate("remix")} />
+				<MobileButton tag="mobile-feed-play" x={infoX + buttonWidth + 12} y={actionsY} width={buttonWidth} text={item.webPlayUrl ? (zh ? "在线试玩" : "Play online") : (zh ? "试玩" : "Play")} fontSize={math.floor(17 * fontScale)}
+					onTapped={() => activate("play")} />
+				</node>}
+				{preparing ? <clip-node tag="mobile-feed-download-message-clip" x={infoX} y={gestureHintY - 10} width={infoWidth} height={20} anchorX={0} anchorY={0}
+					stencil={<RoundedStencil width={infoWidth} height={20} radius={0} />}>
+					<label tag="mobile-feed-download-message" x={0} y={10} anchorX={0} fontName={fontName} fontSize={12}
+						text={string.gsub(prepareStatus, "[\r\n]+", " ")[0]} textWidth={-1} color3={0xa8afbd} />
+				</clip-node> :
+					<label tag="mobile-feed-gesture-hint" x={infoX} y={gestureHintY} anchorX={0} anchorY={0.5} fontName={fontName} fontSize={gamepadUsed ? 11 : 14}
+					text={prepareStatus !== "" ? prepareStatus : item.launchError !== undefined ? item.launchError : item.webPlayUrl ? (gamepadUsed ? (zh ? "↑↓ 浏览 · A 在线试玩 · X 查看源码 · Start 列表" : "↑↓ Browse · A Play online · X Source · Start List") : (zh ? "上滑浏览  ·  右滑源码  ·  左滑在线试玩" : "Swipe up  ·  right Source  ·  left Web play")) : gamepadUsed ? (zh ? "↑↓ 浏览 · A 确认 · X Remix · Start 列表 · Y 新建" : "↑↓ Browse · A Select · X Remix · Start List · Y New") : (zh ? "上滑浏览  ·  右滑 Remix  ·  左滑试玩" : "Swipe up  ·  right Remix  ·  left Play")}
+						textWidth={infoWidth} alignment={TextAlign.Left} color3={item.launchError !== undefined ? 0xff6b6b : 0xa8afbd} />}
+			</node> : <node>
+				<label x={left + usableWidth / 2} y={bottom + usableHeight / 2 + 20} fontName={fontName} fontSize={22}
+					text={tab === "discover" ? (zh ? "暂无移动作品" : "No mobile games yet") : (zh ? "没有可运行的本地作品" : "No runnable local games")}
+					color3={0xf4f1e8} />
+				<label x={left + usableWidth / 2} y={bottom + usableHeight / 2 - 28} fontName={fontName} fontSize={14}
+					text={tab === "discover" && discoverError !== "" ? discoverError : (zh ? "切换标签或稍后重试" : "Switch tabs or retry later")}
+					textWidth={usableWidth - 48} color3={tab === "discover" && discoverError !== "" ? 0xff6b6b : 0xa8afbd} />
+			</node>}
+			{!createOpen && !item && tab === "local" ? <node>
+				<MobileButton tag="mobile-empty-new" x={left + 20} y={bottom + 24} width={(usableWidth - 52) / 2} text={zh ? "新建作品" : "New game"} onTapped={openCreate} />
+				<MobileButton tag="mobile-empty-import" x={left + 32 + (usableWidth - 52) / 2} y={bottom + 24} width={(usableWidth - 52) / 2} text={zh ? "导入作品包" : "Import package"} fontSize={15} primary={true} onTapped={() => openPackage("add", undefined, true)} />
+			</node> : undefined}
+			{!item && tab === "discover" && syncDiscover ? <MobileButton tag="mobile-feed-empty-index" x={left + (usableWidth - 160) / 2} y={bottom + 24} width={160}
+				text={zh ? "作品目录" : "Game index"} onTapped={openProjectIndex} /> : undefined}
+			<node tag="mobile-feed-header" order={headerRenderOrder} visible={!syncConfirmation}>
+				{options.onSwitchMode ? <node tag="mobile-ui-mode-switch" x={left + 12} y={bottom + usableHeight - 58 + landscapeTopLift} width={72} height={48}
+					anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={switchMode}>
+					<label x={0} y={30} anchorX={0} fontName={fontName} fontSize={16} text="DORA" color3={preparing ? 0x777e8c : 0xffcc33} />
+					<label x={0} y={10} anchorX={0} fontName={fontName} fontSize={10} text={zh ? "切换传统界面" : "Classic UI"} color3={0x777e8c} />
+				</node> : undefined}
+				<label tag="mobile-feed-discover-tab" x={left + usableWidth / 2 - 44} y={bottom + usableHeight - 34 + landscapeTopLift} fontName={fontName} fontSize={math.floor(17 * fontScale)}
+					text={zh ? "发现" : "Discover"} color3={tab === "discover" ? 0xffcc33 : 0xa8afbd}
+					touchEnabled={true} swallowTouches={true} onTapped={() => setTab("discover")} />
+				<label tag="mobile-feed-local-tab" x={left + usableWidth / 2 + 44} y={bottom + usableHeight - 34 + landscapeTopLift} fontName={fontName} fontSize={math.floor(17 * fontScale)}
+					text={zh ? "本地" : "Local"} color3={tab === "local" ? 0xffcc33 : 0xa8afbd}
+					touchEnabled={true} swallowTouches={true} onTapped={() => { local = getLocalEntries(); setTab("local"); }} />
+				<RoundedSurface x={left + usableWidth / 2 + (tab === "discover" ? -58 : 30)} y={bottom + usableHeight - 56 + landscapeTopLift} width={28} height={3} radius={1.5} fillColor={colors.brand} renderOrder={headerRenderOrder + 1} />
+				{tab === "local" && options.createProject ? <MobileNewButton tag="mobile-feed-create"
+					x={left + usableWidth - 82} y={bottom + usableHeight - 56 + landscapeTopLift}
+					text={zh ? "+ 新建" : "+ New"} renderOrder={headerRenderOrder + 1} onTapped={() => openPackage("add")} /> : undefined}
+			</node>
+			{managementOpen && canManage && item ? (() => {
+				const menuWidth = math.min(208, infoWidth);
+				const actions = [
+					...(canShare ? [{ tag: "mobile-feed-share", text: zh ? "分享作品" : "Share game", action: () => { closeManagement(); openPackage("share"); } }] : []),
+					...(canSync ? [{ tag: "mobile-feed-sync", text: zh ? "同步上游" : "Sync upstream", action: () => { managementOpen = false; synchronize(item, false); } }] : []),
+				];
+				const menuPadding = 12;
+				const actionGap = 8;
+				const menuHeight = menuPadding * 2 + actions.length * 48 + (actions.length - 1) * actionGap;
+				return <node tag="mobile-feed-management-menu" order={1500} renderOrder={1500} renderGroup={true}
+					width={width} height={height} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={closeManagement}>
+					<draw-node x={width / 2} y={height / 2}><rect-shape width={width} height={height} fillColor={0x33000000} /></draw-node>
+					<node x={infoX + infoWidth - menuWidth} y={math.max(bottom + 16, infoTop - 26 - menuHeight)}
+						width={menuWidth} height={menuHeight} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true}>
+						<draw-node renderOrder={1}><polygon-shape verts={roundedRectVerts(menuWidth, menuHeight, 16)} fillColor={colors.panelRaised} borderWidth={1} borderColor={colors.border} /></draw-node>
+						{actions.map((action, i) => <OverlayActionButton key={action.tag} tag={action.tag} x={menuPadding}
+							y={menuHeight - menuPadding - 48 - i * (48 + actionGap)} width={menuWidth - menuPadding * 2}
+							text={action.text} fontSize={15} onTapped={action.action} />)}
+					</node>
+				</node>;
+			})() : undefined}
+			{syncConfirmation ? <node tag="mobile-feed-sync-confirmation" order={2000} renderOrder={2000} renderGroup={true}
+				width={width} height={height} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true} onTapped={() => {}}>
+				<draw-node><rect-shape centerX={width / 2} centerY={height / 2} width={width} height={height} fillColor={0xd0080a0f} /></draw-node>
+				<node x={left + (usableWidth - math.min(440, usableWidth - 24)) / 2} y={bottom + (usableHeight - math.min(310, usableHeight - 24)) / 2}
+					width={math.min(440, usableWidth - 24)} height={math.min(310, usableHeight - 24)} anchorX={0} anchorY={0}>
+					<draw-node renderOrder={1}><polygon-shape verts={roundedRectVerts(math.min(440, usableWidth - 24), math.min(310, usableHeight - 24), 24)}
+						fillColor={0xff151922} borderWidth={1} borderColor={0xff4a5568} /></draw-node>
+					<label x={20} y={math.min(310, usableHeight - 24) - 32} anchorX={0} fontName={fontName} fontSize={20}
+						text={zh ? "同步失败，是否强制同步？" : "Sync failed. Force sync?"} textWidth={math.min(440, usableWidth - 24) - 40} alignment={TextAlign.Left} renderOrder={2} />
+					<label x={20} y={math.min(310, usableHeight - 24) - 82} anchorX={0} fontName={fontName} fontSize={13} color3={0xa8afbd}
+						text={conciseDescription(syncFailure, 90)} textWidth={math.min(440, usableWidth - 24) - 40} alignment={TextAlign.Left} renderOrder={2} />
+					<label x={20} y={math.min(310, usableHeight - 24) - 158} anchorX={0} fontName={fontName} fontSize={14} color3={0xffb3b3}
+						text={zh ? "将放弃本地所有修改、提交和新增文件，用当前 Catalog 的工程替换。此操作无法撤销。" : "Discard all local edits, commits and added files, replacing this project from the current Catalog. This cannot be undone."}
+						textWidth={math.min(440, usableWidth - 24) - 40} alignment={TextAlign.Left} renderOrder={2} />
+					<OverlayActionButton tag="mobile-feed-sync-cancel" x={20} width={(math.min(440, usableWidth - 24) - 52) / 2}
+						text={zh ? "保留本地" : "Keep local"} onTapped={dismissSyncConfirmation} />
+					<OverlayActionButton tag="mobile-feed-sync-force" x={32 + (math.min(440, usableWidth - 24) - 52) / 2} width={(math.min(440, usableWidth - 24) - 52) / 2}
+						text={zh ? "强制同步" : "Force sync"} danger={true} onTapped={() => { if (syncConfirmation) synchronize(syncConfirmation, true); }} />
+				</node>
+			</node> : undefined}
+			{createOpen ? (() => {
+				const sheetHeight = math.min(createSheetHeight, usableHeight - 64);
+				const sheetWidth = usableWidth;
+				const contentWidth = sheetWidth - 40;
+				const actionGap = 12;
+				const actionsWidth = shortLandscape ? math.min(300, math.floor(contentWidth * 0.42)) : contentWidth;
+				const inputWidth = shortLandscape ? contentWidth - actionGap - actionsWidth : contentWidth;
+				const actionX = shortLandscape ? 20 + inputWidth + actionGap : 20;
+				const actionY = shortLandscape ? sheetHeight - createInputTop - createInputHeight : 20;
+				const cancelWidth = math.floor((actionsWidth - actionGap) * (shortLandscape ? 0.34 : 0.38));
+					return <node tag="mobile-project-create-sheet" order={10000} width={width} height={height} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true}>
+					<node tag="mobile-project-create-focus-observer" order={1000} width={width} height={height} anchorX={0} anchorY={0}
+						touchEnabled={true} swallowTouches={false} swallowMouseWheel={false} onTapFilter={touch => {
+							touch.enabled = false;
+							if (!canEditCreate()) return;
+							const input = createInputRef.current;
+							const point = input?.convertToNodeSpace(touch.worldLocation);
+							const inside = input && point && point.x >= 0 && point.y >= 0 && point.x <= input.width && point.y <= input.height;
+							dismissedCreateComposition = !inside && createInput.isComposing();
+							if (!inside) blurCreateInput();
+						}} />
+					<draw-node tag="mobile-project-create-backdrop" order={0} renderOrder={0} x={width / 2} y={bottom + sheetHeight + (height - bottom - sheetHeight) / 2}>
+						<rect-shape width={width} height={height - bottom - sheetHeight} fillColor={0x8c000000} />
+					</draw-node>
+					<node ref={createPanelRef} order={10} renderOrder={10} x={left} y={bottom} width={sheetWidth} height={sheetHeight} anchorX={0} anchorY={0} touchEnabled={true} swallowTouches={true}>
+						<MobilePanelSurface width={sheetWidth} height={sheetHeight} renderOrder={10} />
+						<label x={20} y={sheetHeight - 24} anchorX={0} anchorY={1} fontName={fontName} fontSize={22} text={zh ? "新建项目" : "New project"} color3={0xf4f1e8} />
+						{(["typescript", "lua"] as MobileProjectLanguage[]).map((language, i) => <MobileChoiceButton
+							tag={`mobile-project-create-language-${language}`} x={20 + i * 144} y={sheetHeight - 98} width={language === "lua" ? 84 : 132}
+							text={language === "lua" ? "Lua" : "TypeScript"}
+							selected={createLanguage === language} renderOrder={10} onTapped={() => {
+								if (!canEditCreate()) return;
+								blurCreateInput(); createLanguage = language; render();
+							}} />)}
+						<label x={20} y={sheetHeight - 110} anchorX={0} anchorY={1} fontName={fontName} fontSize={14} text={zh ? "项目名称" : "Project name"} color3={0xa8afbd} />
+							{keptInput ? undefined : <node tag="mobile-project-create-input" ref={createInputRef} renderOrder={10} x={20} y={sheetHeight - createInputTop - createInputHeight} width={inputWidth} height={createInputHeight} anchorX={0} anchorY={0}
+							onMount={createInput.mount} />}
+						<label tag="mobile-project-create-error" x={20} y={shortLandscape ? sheetHeight - createInputTop + 12 : sheetHeight - createInputTop - createInputHeight - 12} anchorX={0} anchorY={1} fontName={fontName} fontSize={12}
+							text={createError !== "" ? createError : (zh ? `将创建可运行的 ${createLanguage === "lua" ? "Lua" : "TypeScript"} 起始项目` : `Creates a runnable ${createLanguage === "lua" ? "Lua" : "TypeScript"} starter project`)}
+							textWidth={inputWidth} alignment={TextAlign.Left} color3={createError !== "" ? 0xff6b6b : 0xa8afbd} />
+							<MobileButton tag="mobile-project-create-cancel" x={actionX} y={actionY} width={cancelWidth} text={zh ? "取消" : "Cancel"} renderOrder={10} onTapped={closeCreate} />
+							<MobileButton tag="mobile-project-create-submit" x={actionX + cancelWidth + actionGap} y={actionY} width={actionsWidth - cancelWidth - actionGap}
+								text={creating ? (zh ? "创建中…" : "Creating…") : (zh ? "创建并进入 Remix" : "Create and Remix")} primary={true} renderOrder={10} onTapped={() => { if (!dismissedCreateComposition) submitCreate(); dismissedCreateComposition = false; }} />
+					</node>
+				</node>;
+			})() : undefined}
+			</node>
+			{projectIndexOpen ? <ProjectIndex entries={entries()} kind={tab} current={current()} x={left} y={bottom} width={usableWidth} height={usableHeight} zh={zh}
+				refreshing={catalogSyncing} refreshStatus={catalogStatus}
+				onRefresh={syncDiscover ? () => refreshDiscover(true) : undefined}
+				onStatusReady={update => { catalogStatusView = update; }}
+				onClose={() => { projectIndexOpen = false; render(); }}
+				onSelect={entry => {
+					projectIndexOpen = false;
+					const location = resolveFeedLocation(local, discover, entry);
+					tab = location.tab; index = location.index;
+					render();
+				}} /> : undefined}
+		</node>);
+		if (scene !== undefined) host.addChild(scene);
+		if (keptInput && createPanelRef.current) {
+			keptInput.position = Vec2(20, math.min(createSheetHeight, usableHeight - 64) - createInputTop - createInputHeight);
+			createPanelRef.current.addChild(keptInput);
+		}
+		createInput.refresh();
+		if (restoreFocus && !keptInput && createOpen) createInput.focus(false);
+	};
+
+	attachGamepad(host, {
+		initialTag: "mobile-feed-play",
+		isEnabled: () => isActive() && !packagePanel && !preparing && !transitioning && !creating,
+		onActive: () => { gamepadUsed = true; render(); },
+		onBack: () => { if (managementOpen) closeManagement(); else if (syncConfirmation) dismissSyncConfirmation(); else if (createInput.isFocused()) blurCreateInput(); else if (createOpen) closeCreate(); else switchMode(); },
+		onActivate: target => {
+			if (target.tag === "mobile-project-create-input") target.emit("GamepadActivate");
+			else {
+				if (createInput.isComposing()) { blurCreateInput(); return; }
+				blurCreateInput();
+				dismissedCreateComposition = false;
+				target.emit("Tapped");
+			}
+		},
+		onButton: button => {
+			if (createOpen || syncConfirmation || managementOpen) return false;
+			switch (button) {
+				case "dpup": commit("previous"); return true;
+				case "dpdown": commit("next"); return true;
+				case "leftshoulder": setTab("discover"); return true;
+				case "rightshoulder": setTab("local"); return true;
+				case "x": commit("remix"); return true;
+				case "y": findGamepadNode(host, "mobile-feed-create")?.emit("Tapped"); return true;
+				case "start": openProjectIndex(); return true;
+				default: return false;
+			}
+		},
+	});
+	host.onAppChange(setting => {
+		if (setting === "Locale") {
+			const activeEntry = current();
+			managementOpen = false;
+			zh = string.match(App.locale, "^zh")[0] !== undefined;
+			local = getLocalEntries();
+			discover = getDiscoverEntries();
+			const location = resolveFeedLocation(local, discover, activeEntry);
+			tab = location.tab;
+			index = location.index;
+			render();
+		} else if (setting === "Size") render();
+	});
+	host.onAppEvent(event => {
+		if (event === "BackButton") {
+			if (managementOpen) closeManagement();
+			else if (syncConfirmation) dismissSyncConfirmation();
+			else if (projectIndexOpen) { projectIndexOpen = false; render(); }
+			else if (createOpen && !creating) closeCreate();
+		} else if (event === "WillEnterBackground" || event === "DidEnterBackground") blurCreateInput();
+	});
+	host.onCleanup(() => { blurCreateInput(); active = false; packagePanel?.removeFromParent(true); packagePanel = undefined; });
+	host.slot("RestoreFeedEntry", (entry: FeedEntry) => {
+		if (!isActive() || HttpServer.wsConnectionCount > 0) return;
+		managementOpen = false;
+		returnEntry = entry;
+		local = getLocalEntries();
+		discover = getDiscoverEntries();
+		const location = resolveFeedLocation(local, discover, entry);
+		tab = location.tab;
+		index = location.index;
+		render();
+	});
+	host.slot("SuspendLocalUI", blurCreateInput);
+	host.slot("ResumeLocalUI", () => { leaving = false; render(); });
+	const refreshDiscover = (force: boolean) => {
+		if (!syncDiscover || catalogSyncing || !isActive()) return;
+		catalogSyncing = true;
+		catalogStatus = zh ? "正在同步资源目录…" : "Syncing Catalog…";
+		if (discover.length === 0) {
+			discoverError = catalogStatus;
+		}
+		render();
+		syncDiscover(message => {
+			if (!isActive()) return;
+			catalogStatus = message;
+			catalogStatusView?.(message);
+			if (projectIndexOpen || discover.length > 0) return;
+			discoverError = message;
+			render();
+		}, (success, message) => {
+			if (!isActive()) return;
+			catalogSyncing = false;
+			catalogStatus = success ? (zh ? "目录已更新" : "Catalog updated") : ((zh ? "刷新失败：" : "Refresh failed: ") + (message ?? (zh ? "请重试" : "Try again")));
+			const selected = force ? current() : returnEntry ?? rememberedEntries[tab] ?? current();
+			const previousCount = discover.length;
+			discover = getDiscoverEntries();
+			discoverError = success
+				? (discover.length === 0 ? (zh ? "目录中暂无可运行作品" : "No runnable Catalog games") : "")
+				: (message ?? (zh ? "资源目录同步失败" : "Catalog sync failed"));
+			// A catalog refresh updates the current list; it must not navigate to
+			// Local when the old Discover entry disappeared or matches an installed copy.
+			if (!force && !projectIndexOpen) tab = resolveDiscoverRefreshTab(tab, userSelectedTab, previousCount, discover.length, local.length);
+			if (selected !== undefined) {
+				const location = resolveFeedLocation(local, discover, selected);
+				if (location.tab === tab) index = location.index;
+			}
+			index = normalizeFeedIndex(index, entries().length);
+			render();
+		}, force);
+	};
+	render();
+	refreshDiscover(false);
+	return host;
+}

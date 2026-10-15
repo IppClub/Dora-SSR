@@ -1,0 +1,32 @@
+# Observer
+
+**Description:**
+
+&emsp;&emsp;A record representing an observer of entity changes in the game systems.
+
+**Class Object:** [Observer Class](/docs/api/Class%20Object/Observer).
+
+## watch
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Watches the components changes to entities that match the observer's component filter.
+
+**Signature:**
+```tl
+watch: function(self: Observer, func: function(Entity): boolean): Observer
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The function to call when a change occurs. Returns true to stop watching. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Observer | The same observer, for method chaining. |

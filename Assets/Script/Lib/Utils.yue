@@ -1,0 +1,375 @@
+--[[ Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. ]]
+
+_ENV = Dora
+import insert, concat, remove, sort from table
+import ceil, floor from math
+import global
+
+StructUpdated = =>
+	update = rawget @, "__updateThread"
+	if not update
+		rawset @, "__updateThread", thread ->
+			notify! if notify := rawget @, "__updated"
+			rawset @, "__updateThread", nil
+StructToString = =>
+	structDef = getmetatable @
+	content = []
+	ordered = true
+	count = if #structDef == 0 then #@ else #structDef + 1
+	for i = 1, count
+		value = @[i]
+		if value == nil
+			ordered = false
+			continue
+		else
+			value = (type(value) == 'string' and "\"#{value}\"" or tostring value)
+			if ordered
+				content[] = value
+			else
+				content[] = "[#{i}]=#{value}"
+	"{" .. (concat content, ',') .. "}"
+StructDefMeta = {
+	set: (index, item) =>
+		index += 1
+		if 1 <= index and index <= #@
+			@[index] = item
+			if notify := rawget @, "__changed"
+				notify index - 1, item
+				StructUpdated @
+		else
+			error "Access index out of range."
+	get: (index) =>
+		if 1 <= index and index < #@
+			@[index + 1]
+		else
+			nil
+	insert: (argA, argB) =>
+		local item, index
+		if argB
+			item = argB
+			index = argA + 1
+			if index > #@
+				index = #@ + 1
+			elseif index < 1
+				index = 1
+		else
+			item = argA
+			index = #@ + 1
+		insert @, index, item
+		if notify := rawget @, "__added"
+			notify index - 1, item
+			StructUpdated @
+		item
+	remove: (arg) =>
+		local item, index
+		for i = 2, #@
+			if @[i] == arg
+				item = arg
+				index = i
+				remove @, index
+				break
+		if index
+			if notify := rawget @, "__removed"
+				notify index - 1, item
+				StructUpdated @
+		item
+	removeAt: (index) =>
+		length = #@
+		item = if index
+			if 0 < index and index < length
+				index += 1
+				remove @, index
+			else
+				nil
+		else
+			if length > 1
+				index = length
+				remove @, index
+			else
+				nil
+		if item
+			if notify := rawget @, "__removed"
+				notify index - 1, item
+				StructUpdated @
+		item
+	clear: =>
+		notify = rawget @, "__removed"
+		for index = #@, 2, -1
+			item = remove @
+			if notify
+				notify index - 1, item
+				StructUpdated @
+	each: (handler) =>
+		for index = 2, #@
+			if true == handler @[index], index - 1
+				return true
+		false
+	eachAttr: (handler) =>
+		for i, v in ipairs getmetatable @
+			handler v, @[i + 1]
+	contains: (item) =>
+		for index = 2, #@
+			if item == @[index]
+				return true
+		false
+	toArray: => [item for item in *@[2,]]
+	count: => #@ - 1
+	sort: (comparer) =>
+		arr = @toArray!
+		sort arr, comparer
+		for i = 1, #arr
+			@set i, arr[i]
+	__tostring: =>
+		content = {}
+		for k, v in pairs @
+			if "number" == type v
+				content[v - 1] = k
+		if #content > 1
+			concat {"Struct.", @__name, "{\"", concat(content, "\",\""), "\"}"}
+		else
+			"Struct.#{@__name}()"
+	__call: (data) =>
+		item = {@__name}
+		if data
+			for k, v in pairs data
+				key = @[k]
+				if key
+					item[key] = v
+				elseif type(k) == "number"
+					item[k + 1] = v
+				else
+					error "Initialize to an invalid field named \"#{k}\" for \"#{@}\"."
+		setmetatable item, @
+		item
+}
+StructDefs = {}
+StructHelper = {
+	__call: (...) =>
+		structName = @path .. @name
+		local tupleDef
+		tupleDef = setmetatable {
+			__name: structName
+			__index: (key) =>
+				item = tupleDef[key]
+				if item
+					rawget @, item
+				else
+					StructDefMeta[key]
+			__newindex: (key, value) =>
+				index = tupleDef[key]
+				if index
+					oldValue = rawget @, index
+					return if oldValue == value
+					rawset @, index, value
+					if notify := rawget @, "__modified"
+						notify key, value
+						StructUpdated @
+				elseif "number" == type key
+					rawset @, key, value
+				elseif value? and key in ["__added", "__modified"]
+					rawset @, key, value
+					if key == "__added"
+						if #tupleDef == 0
+							initVar = false
+							for i = 2, #@
+								value i - 1, @[i]
+								initVar = true
+							StructUpdated @ if initVar
+					else
+						initVar = false
+						for key in *tupleDef
+							v = @[key]
+							if v?
+								value key, v
+								initVar = true
+						StructUpdated @ if initVar
+				elseif key in ["__updated", "__removed", "__changed"]
+					rawset @, key, value
+				else
+					error "Access invalid key \"#{ key }\" for #{ tupleDef }"
+			__tostring: StructToString
+		}, StructDefMeta
+		count = select "#", ...
+		if count > 0
+			arg = select 1, ...
+			if "table" == type arg
+				for i, name in ipairs arg
+					tupleDef[i] = name
+					tupleDef[name] = i + 1
+			else
+				for i = 1, count
+					name = select i, ...
+					tupleDef[i] = name
+					tupleDef[name] = i + 1
+		StructDefs[structName] = tupleDef
+		tupleDef
+	__index: (key) =>
+		@path ..= @name
+		@path ..= "."
+		@name = key
+		@
+	__tostring: =>
+		content = {}
+		path = @path .. @name .. "."
+		i = 1
+		for k, v in pairs StructDefs
+			if k\find path, 1, true
+				content[i] = tostring v
+				i += 1
+		concat content, "\n"
+}
+setmetatable StructHelper, StructHelper
+local Struct
+StructLoad = (data) ->
+	if "table" == type data
+		if "string" == type data[1]
+			mt = StructDefs[data[1]]
+			assert mt, "Struct started with \"#{data[1]}\" is not defined."
+			setmetatable data, mt
+		for item in *data
+			StructLoad item
+export Struct = setmetatable {
+	load: (_self, ...) ->
+		count = select "#", ...
+		if count > 1
+			name = select 1, ...
+			data = select 2, ...
+			insert data, 1, name
+			StructLoad data
+			data
+		else
+			arg = select 1, ...
+			data = switch type arg
+				when "string"
+					if arg\sub(1, 6) ~= "return"
+						arg = "return " .. arg
+					(load arg)!
+				when "table"
+					arg
+			StructLoad data
+			data
+	clear: (_self) ->
+		StructDefs = {}
+	has: (_self, name) -> StructDefs[name]?
+}, {
+	__index: (_self, name) ->
+		def = StructDefs[name]
+		if not def
+			StructHelper.name = name
+			StructHelper.path = ""
+			def = StructHelper
+		def
+	__tostring: (_self) ->
+		concat [tostring v for _, v in pairs StructDefs], "\n"
+}
+
+export Set = (list) -> {item, true for item in *list}
+
+export CompareTable = (olds, news) ->
+	itemsToDel = []
+	itemSet = Set news
+	for item in *olds
+		if not itemSet[item]
+			itemsToDel[] = item
+	itemsToAdd = []
+	itemSet = Set olds
+	for item in *news
+		if not itemSet[item]
+			itemsToAdd[] = item
+	return itemsToAdd, itemsToDel
+
+export Round = (val) ->
+	if type(val) == "number"
+		val > 0 and floor(val + 0.5) or ceil(val - 0.5)
+	else
+		Vec2(
+			val.x > 0 and floor(val.x + 0.5) or ceil(val.x - 0.5)
+			val.y > 0 and floor(val.y + 0.5) or ceil(val.y - 0.5)
+		)
+
+export IsValidPath = (filename) -> not filename\match "[\\/|:*?<>\"]"
+
+local tic80APIs
+export CheckTIC80Code = (codes) ->
+	isTIC80 = codes\match "^%-%-[ \t]*tic80[ \t]*[$\r\n]"
+	if isTIC80
+		unless tic80APIs
+			tic80APIs = {api, true for api in "btn,btnp,key,keyp,mouse,clip,cls,circ,circb,elli,ellib,line,pix,rect,rectb,spr,tri,trib,ttri,font,map,mget,mset,fget,fset,sfx,music,peek,peek1,peek2,peek4,poke,poke1,poke2,poke4,pmem,memcpy,memset,exit,reset,sync,time,tstamp,trace,vbank"\gmatch "[^,]+"}
+	isTIC80, tic80APIs
+
+allowedUseOfGlobals = Set
+	* "Dora"
+	* "require"
+	* "_G"
+
+export LintYueGlobals = (luaCodes, globals, globalInLocal = true, extraGlobals = nil) ->
+	errors = []
+	requireModules = []
+	luaCodes = luaCodes\gsub "^local _module_[^\r\n]*[^\r\n]+", ""
+	importCodes = luaCodes\match "^%s*local%s*_ENV%s*=%s*Dora%(([^%)]-)%)"
+	importItems = if importCodes
+		for item in importCodes\gmatch "%s*([^,\n\r]+)%s*"
+			getImport = load "return #{item}"
+			importItem = if success, result := try getImport! then result
+			continue if not importItem or "table" ~= type importItem
+			[importItem, item]
+	else []
+	importCodes ??= luaCodes\match "^%s*local%s*_ENV%s*=%s*Dora[^%w_$]"
+	importSet = {}
+	globalSet = {}
+	for globalVar in *globals
+		[name,] = globalVar
+		continue if globalSet[name]
+		globalSet[name] = true
+		continue if allowedUseOfGlobals[name]
+		if _G[name] or (extraGlobals and extraGlobals[name])
+			if globalInLocal
+				requireModules[] = "local #{name} = _G.#{name} -- 1"
+			continue
+		findModule = false
+		if importCodes
+			if Dora[name]
+				requireModules[] = "local #{name} = Dora.#{name} -- 1"
+				findModule = true
+			else
+				for i, [mod, modName] in ipairs importItems
+					if mod[name]?
+						moduleName = "_module_#{i - 1}"
+						if not importSet[mod]
+							importSet[mod] = true
+							requireModules[] = "local #{moduleName} = #{modName} -- 1"
+						requireModules[] = "local #{name} = #{moduleName}.#{name} -- 1"
+						findModule = true
+						break
+		if not findModule
+			errors[] = globalVar
+	if #errors > 0
+		false, errors
+	else
+		true, table.concat requireModules, "\n"
+
+export GSplit = (text, pattern, plain) ->
+	splitStart, length = 1, #text
+	->
+		if splitStart
+			sepStart, sepEnd = string.find text, pattern, splitStart, plain
+			local ret
+			if not sepStart
+				ret = string.sub text, splitStart
+				splitStart = nil
+			elseif sepEnd < sepStart
+				ret = string.sub text, splitStart, sepStart
+				splitStart = if sepStart < length
+					sepStart + 1
+				else
+					nil
+			else
+				ret = sepStart > splitStart and string.sub(text, splitStart, sepStart - 1) or ''
+				splitStart = sepEnd + 1
+			ret

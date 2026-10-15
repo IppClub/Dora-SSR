@@ -1,0 +1,437 @@
+# Mouse
+
+**Description:**
+
+&emsp;&emsp;Provides an interface to the user's mouse.
+
+## getPosition
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the current position of the mouse.
+
+**Signature:**
+```tl
+getPosition: function(): number, number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The position of the mouse along the x-axis. |
+| number | The position of the mouse along the y-axis. |
+
+## getX
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the current x-position of the mouse.
+
+**Signature:**
+```tl
+getX: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The position of the mouse along the x-axis. |
+
+## getY
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the current y-position of the mouse.
+
+**Signature:**
+```tl
+getY: function(): number
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The position of the mouse along the y-axis. |
+
+## setPosition
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the current position of the mouse. Non-integer values are floored.
+
+**Signature:**
+```tl
+setPosition: function(x: number, y: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The new position of the mouse along the x-axis. |
+| y | number | The new position of the mouse along the y-axis. |
+
+## setX
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the current X position of the mouse.
+Non-integer values are floored.
+
+**Signature:**
+```tl
+setX: function(x: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The new position of the mouse along the x-axis. |
+
+## setY
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the current Y position of the mouse.
+Non-integer values are floored.
+
+**Signature:**
+```tl
+setY: function(y: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| y | number | The new position of the mouse along the y-axis. |
+
+## isDown
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether a certain mouse button is down.
+
+	-- This function does not detect mouse wheel scrolling; you must use the love.wheelmoved (or love.mousepressed in version 0.9.2 and older) callback for that.
+
+**Signature:**
+```tl
+isDown: function(buttons: number...): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| buttons | number... | The index of a button to check. 1 is the primary mouse button, 2 is the secondary mouse button and 3 is the middle button. Further buttons are mouse dependant. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | down — True if any specified button is down. |
+
+## isDown
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether a certain mouse button is down.
+
+	-- This function does not detect mouse wheel scrolling; you must use the love.wheelmoved (or love.mousepressed in version 0.9.2 and older) callback for that.
+
+**Signature:**
+```tl
+isDown: function(buttons: {number}): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| buttons | \{number} | The index of a button to check. 1 is the primary mouse button, 2 is the secondary mouse button and 3 is the middle button. Further buttons are mouse dependant. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | down — True if any specified button is down. |
+
+## setVisible
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the current visibility of the cursor.
+
+**Signature:**
+```tl
+setVisible: function(visible: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| visible | boolean | True to set the cursor to visible, false to hide the cursor. |
+
+## isVisible
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks if the cursor is visible.
+
+**Signature:**
+```tl
+isVisible: function(): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the cursor to visible, false if the cursor is hidden. |
+
+## setGrabbed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Grabs the mouse and confines it to the window.
+
+**Signature:**
+```tl
+setGrabbed: function(grabbed: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| grabbed | boolean | True to confine the mouse, false to let it leave the window. |
+
+## isGrabbed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks if the mouse is grabbed.
+
+**Signature:**
+```tl
+isGrabbed: function(): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the cursor is grabbed, false if it is not. |
+
+## setRelativeMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets whether relative mode is enabled for the mouse.
+When relative mode is enabled, the cursor is hidden and doesn't move when the mouse does, but relative mouse
+motion events are still generated via love.mousemoved. This lets the mouse move in any direction indefinitely
+without the cursor getting stuck at the edges of the screen.
+The reported position of the mouse may not be updated while relative mode is enabled, even when relative mouse
+motion events are generated.
+
+**Signature:**
+```tl
+setRelativeMode: function(relative: boolean): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| relative | boolean | True to enable relative mode, false to disable it. |
+
+## getRelativeMode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether relative mode is enabled for the mouse.
+If relative mode is enabled, the cursor is hidden and doesn't move when the mouse does, but relative mouse motion
+events are still generated via love.mousemoved. This lets the mouse move in any direction indefinitely without the
+cursor getting stuck at the edges of the screen.
+The reported position of the mouse is not updated while relative mode is enabled, even when relative mouse motion
+events are generated.
+
+**Signature:**
+```tl
+getRelativeMode: function(): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if relative mode is enabled, false if it's disabled. |
+
+## newCursor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new hardware Cursor object from an image file or ImageData.
+Hardware cursors are framerate-independent and work the same way as normal operating system cursors. Unlike
+drawing an image at the mouse's current coordinates, hardware cursors never have visible lag between when the
+mouse is moved and when the cursor position updates, even at low framerates.
+The hot spot is the point the operating system uses to determine what was clicked and at what position the mouse
+cursor is. For example, the normal arrow pointer normally has its hot spot at the top left of the image, but a
+crosshair cursor might have it in the middle.
+
+**Signature:**
+```tl
+newCursor: function(image: ImageData | FileData | string, hot_x?: integer, hot_y?: integer): Cursor
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| image | ImageData or FileData or string | The ImageData to use for the new Cursor. Depending on the overload: Path to the image to use for the new Cursor. Depending on the overload: Data representing the image to use for the new Cursor. |
+| hot_x | integer | The x-coordinate in the ImageData of the cursor's hot spot. (Default: 0.) Depending on the overload: The x-coordinate in the image of the cursor's hot spot. (Default: 0.) |
+| hot_y | integer | The y-coordinate in the ImageData of the cursor's hot spot. (Default: 0.) Depending on the overload: The y-coordinate in the image of the cursor's hot spot. (Default: 0.) |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Cursor | The new Cursor object. |
+
+## getSystemCursor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets a Cursor object representing a system-native hardware cursor.
+Hardware cursors are framerate-independent and work the same way as normal operating system cursors. Unlike
+drawing an image at the mouse's current coordinates, hardware cursors never have visible lag between when the
+mouse is moved and when the cursor position updates, even at low framerates.
+Overload details:
+1. The 'image' CursorType is not a valid argument. Use love.mouse.newCursor to create a hardware cursor using a
+custom image.
+
+**Signature:**
+```tl
+getSystemCursor: function(cursor_type: SystemCursor): Cursor
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| cursor_type | SystemCursor | The type of system cursor to get. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Cursor | The Cursor object representing the system cursor type. |
+
+## setCursor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the current mouse cursor.
+
+**Signature:**
+```tl
+setCursor: function()
+```
+
+## setCursor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the current mouse cursor.
+
+**Signature:**
+```tl
+setCursor: function(cursor: Cursor)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| cursor | Cursor | The Cursor object to use as the current mouse cursor. |
+
+## getCursor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current Cursor.
+
+**Signature:**
+```tl
+getCursor: function(): Cursor | nil
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Cursor or nil | The current cursor, or nil if no cursor is set. |
+
+## isCursorSupported
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether cursor functionality is supported.
+If it isn't supported, calling love.mouse.newCursor and love.mouse.getSystemCursor will cause an error. Mobile
+devices do not support cursors.
+
+**Signature:**
+```tl
+isCursorSupported: function(): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the system has cursor functionality. |

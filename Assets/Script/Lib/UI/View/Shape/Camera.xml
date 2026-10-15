@@ -1,0 +1,33 @@
+<!-- params: X, Y, Scale -->
+<Dora>
+	<Import Module="UI.View.Shape.LineCircle"/>
+	<Import Module="UI.View.Shape.LineRect"/>
+
+	<Node X="{ x or 0 }" Y="{ y or 0 }" ScaleX="{ scale or 1 }" ScaleY="{ scale or 1 }">
+		<DrawNode Opacity="0.5" RenderOrder="{ fillOrder or 0 }">
+			<Polygon FillColor="{ color }">
+				<Vec2 X="-20" Y="-10"/>
+				<Vec2 X="20" Y="-10"/>
+				<Vec2 X="20" Y="10"/>
+				<Vec2 X="-20" Y="10"/>
+			</Polygon>
+			<Polygon FillColor="{ color }">
+				<Vec2 X="20" Y="3"/>
+				<Vec2 X="32" Y="10"/>
+				<Vec2 X="32" Y="-10"/>
+				<Vec2 X="20" Y="-3"/>
+			</Polygon>
+			<Dot X="-11" Y="20" Radius="10" Color="{ color }"/>
+			<Dot X="11" Y="20" Radius="10" Color="{ color }"/>
+		</DrawNode>
+		<LineRect X="-20" Y="-10" Width="40" Height="20" Color="{ color }" LineOrder="{ lineOrder or 0 }"/>
+		<LineCircle X="-21" Y="10" Radius="10" Color="{ color }" LineOrder="{ lineOrder or 0 }"/>
+		<LineCircle X="1" Y="10" Radius="10" Color="{ color }" LineOrder="{ lineOrder or 0 }"/>
+		<Line Color="{ color }" LineOrder="{ lineOrder or 0 }">
+			<Vec2 X="20" Y="3"/>
+			<Vec2 X="32" Y="10"/>
+			<Vec2 X="32" Y="-10"/>
+			<Vec2 X="20" Y="-3"/>
+		</Line>
+	</Node>
+</Dora>

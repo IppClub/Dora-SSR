@@ -1,0 +1,6 @@
+<!-- params: X=0, Y=0, Radius, Color -->
+<Dora>
+	<DrawNode X="{ x or 0 }" Y="{ y or 0 }" RenderOrder="{ renderOrder or 0 }">
+		<Dot X="{ radius }" Y="{ radius }" Radius="{ radius }" Color="{ color or 0xffffffff }"/>
+	</DrawNode>
+</Dora>

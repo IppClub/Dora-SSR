@@ -1,0 +1,18 @@
+<!-- params: X, Y, Width, Height, Tag -->
+<Dora>
+	<Node X="{ x or 0 }" Y="{ y or 0 }" Width="{ width }" Height="{ height }" Color3="{ App.themeColor:toARGB() }" Tag="{ tag or '' }" TouchEnabled="True">
+		<!-- Animations -->
+		<Action>
+			<Sequence Name="scaleAction">
+				<Scale Time="0.08" Start="1.0" Stop="0.3"/>
+				<Scale Time="0.3" Start="0.3" Stop="1" Ease="OutBack"/>
+			</Sequence>
+		</Action>
+
+		<!-- Face Node -->
+		<Node Name="face" X="{ $X }" Y="{ $Y }" Width="{ width }" Height="{ height }" Ref="True"/>
+
+		<!-- Tap Event -->
+		<Slot Name="Tapped" Target="face" Perform="scaleAction"/>
+	</Node>
+</Dora>

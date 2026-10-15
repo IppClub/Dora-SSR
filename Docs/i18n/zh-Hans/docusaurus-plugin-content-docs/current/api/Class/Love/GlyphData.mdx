@@ -1,0 +1,341 @@
+# GlyphData
+
+**描述：**
+
+&emsp;&emsp;GlyphData 表示字体光栅化器的可绘制符号。
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: GlyphData): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: GlyphData): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: GlyphData, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## getString
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的完整数据。
+
+**签名：**
+```tl
+getString: function(self: GlyphData): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 原始数据。 |
+
+## getSize
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取数据的大小（以字节为单位）。
+
+**签名：**
+```tl
+getSize: function(self: GlyphData): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 数据的大小（以字节为单位）。 |
+
+## getPointer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取指向数据的指针。可以与 LuaJIT 的 FFI 等库一起使用。
+
+**签名：**
+```tl
+getPointer: function(self: GlyphData): any
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| any | 指向数据的原始指针。 |
+
+## getFFIPointer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取指向数据的 FFI 指针。
+这个函数应该是首选，而不是 Data:getPointer ，因为后者使用轻量用户数据，当使用 LuaJIT 时，它无法在一些新的 ARM64 架构上存储更多所有可能的内存地址。
+
+**签名：**
+```tl
+getFFIPointer: function(self: GlyphData): nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| nil | 指向数据的原始 void* 指针，如果 FFI 不可用则为零。 |
+
+## clone
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建数据对象的新副本。
+
+**签名：**
+```tl
+clone: function(self: GlyphData): GlyphData
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| GlyphData | 新副本。 |
+
+## getWidth
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字形宽度。
+
+**签名：**
+```tl
+getWidth: function(self: GlyphData): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 字形宽度。 |
+
+## getHeight
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字形高度。
+
+**签名：**
+```tl
+getHeight: function(self: GlyphData): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 字形高度。 |
+
+## getDimensions
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字形尺寸。
+
+**签名：**
+```tl
+getDimensions: function(self: GlyphData): integer, integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 字形宽度。 |
+| integer | 字形高度。 |
+
+## getGlyph
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字形编号。
+
+**签名：**
+```tl
+getGlyph: function(self: GlyphData): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 字形编号。 |
+
+## getGlyphString
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字形字符串。
+
+**签名：**
+```tl
+getGlyphString: function(self: GlyphData): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字形字符串。 |
+
+## getAdvance
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字形提前。
+
+**签名：**
+```tl
+getAdvance: function(self: GlyphData): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 字形前进。 |
+
+## getBearing
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字形方位。
+
+**签名：**
+```tl
+getBearing: function(self: GlyphData): integer, integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 字形轴承 X. |
+| integer | 字形轴承 Y。 |
+
+## getBoundingBox
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字形边界框。
+
+**签名：**
+```tl
+getBoundingBox: function(self: GlyphData): integer, integer, integer, integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 字形位置 x。 |
+| integer | 字形位置 y。 |
+| integer | 字形宽度。 |
+| integer | 字形高度。 |
+
+## getFormat
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字形像素格式。
+
+**签名：**
+```tl
+getFormat: function(self: GlyphData): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字形像素格式。 |

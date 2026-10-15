@@ -1,0 +1,267 @@
+# Model3D
+
+**Description:**
+
+&emsp;&emsp;Class used for rendering a glTF 3D model.
+
+**Inherits from:** [Node3D](/docs/api/Class/Node3D).
+
+## speed
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The playback speed multiplier of the current animation.
+
+**Signature:**
+```tl
+speed: number
+```
+
+## duration
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The duration of the current animation in seconds.
+
+**Signature:**
+```tl
+const duration: number
+```
+
+## elapsed
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The elapsed playback time of the current animation in seconds.
+
+**Signature:**
+```tl
+const elapsed: number
+```
+
+## playing
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;Whether an animation is currently playing.
+
+**Signature:**
+```tl
+const playing: boolean
+```
+
+## paused
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the current animation is paused.
+
+**Signature:**
+```tl
+const paused: boolean
+```
+
+## animationCount
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The number of animation clips in this model.
+
+**Signature:**
+```tl
+const animationCount: integer
+```
+
+## materialCount
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The number of per-instance material slots.
+
+**Signature:**
+```tl
+const materialCount: integer
+```
+
+## getAnimationName
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets an animation clip name by zero-based index.
+
+**Signature:**
+```tl
+getAnimationName: function(self: Model3D, index: integer): string
+```
+
+## hasNode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether an imported glTF node with the given name exists.
+
+**Signature:**
+```tl
+hasNode: function(self: Model3D, name: string): boolean
+```
+
+## attachToNode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Attaches a user-owned Node3D below an imported node.
+
+**Signature:**
+```tl
+attachToNode: function(self: Model3D, name: string, child: Node3D): boolean
+```
+
+## getLocalBoundsMin
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current model-space bounds minimum.
+
+**Signature:**
+```tl
+getLocalBoundsMin: function(self: Model3D): Vec3
+```
+
+## getLocalBoundsMax
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current model-space bounds maximum.
+
+**Signature:**
+```tl
+getLocalBoundsMax: function(self: Model3D): Vec3
+```
+
+## getWorldBoundsMin
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current world-space bounds minimum.
+
+**Signature:**
+```tl
+getWorldBoundsMin: function(self: Model3D): Vec3
+```
+
+## getWorldBoundsMax
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current world-space bounds maximum.
+
+**Signature:**
+```tl
+getWorldBoundsMax: function(self: Model3D): Vec3
+```
+
+## getMaterial
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets a per-instance material slot by zero-based index.
+
+**Signature:**
+```tl
+getMaterial: function(self: Model3D, index: integer): Material3D | nil
+```
+
+## play
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Plays an animation by name.
+
+**Signature:**
+```tl
+play: function(self: Model3D, name?: string, loop?: boolean --[[false]]): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| name | string | [optional] The animation name. Uses the default animation when omitted. |
+| loop | boolean | [optional] Whether the animation should loop. Default is false. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The animation duration in seconds, or 0 when not found. |
+
+## stop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Stops the current animation.
+
+**Signature:**
+```tl
+stop: function(self: Model3D)
+```
+
+## pause
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Pauses the current animation.
+
+**Signature:**
+```tl
+pause: function(self: Model3D)
+```
+
+## resume
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Resumes the paused animation.
+
+**Signature:**
+```tl
+resume: function(self: Model3D)
+```

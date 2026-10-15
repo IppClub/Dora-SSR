@@ -1,0 +1,1801 @@
+// @preview-file off clear
+import { json, HttpClient, DB, emit, Log as DoraLog, Director, once, App } from 'Dora';
+import * as AgentConfig from 'Agent/Config';
+import { upgradeLLMConfig } from 'Agent/LLMConfigMigration';
+
+let LOG_LEVEL = App.debugging ? 3 : 2;
+export function setLogLevel(level: number) {
+	LOG_LEVEL = level;
+}
+
+const LLM_TIMEOUT = 600;
+const LLM_STREAM_TIMEOUT = 600;
+const LLM_STREAM_RAW_DEBUG_MAX = 12000;
+const LLM_STREAM_CHUNK_DEBUG_LOG_LIMIT = 5;
+
+export const Log = (type: "Info" | "Warn" | "Error", msg: string) => {
+	if (LOG_LEVEL < 1) return;
+	else if (LOG_LEVEL < 2 && (type === "Info" || type === "Warn")) return;
+	else if (LOG_LEVEL < 3 && type === "Info") return;
+	DoraLog(type, msg);
+};
+
+export interface ToolCallFunction {
+	name?: string;
+	arguments?: string;
+}
+
+export interface ToolCall {
+	id?: string;
+	type?: string;
+	function?: ToolCallFunction;
+}
+
+export interface Message {
+	role: string;
+	content?: string;
+	name?: string;
+	tool_call_id?: string;
+	reasoning_content?: string;
+	tool_calls?: ToolCall[];
+}
+
+export type SimpleXMLParseResult =
+	| { success: true; obj: Record<string, unknown> }
+	| { success: false; message: string };
+
+const TOOL_CALL_ID_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
+let TOOL_CALL_ID_COUNTER = 0;
+let STUDIO_MODEL_REQUEST_COUNTER = 0;
+
+function toBase36(value: number): string {
+	if (value <= 0) return "0";
+	let remaining = math.floor(value);
+	let out = "";
+	while (remaining > 0) {
+		const digit = remaining % 36;
+		out = string.sub(TOOL_CALL_ID_ALPHABET, digit + 1, digit + 1) + out;
+		remaining = math.floor(remaining / 36);
+	}
+	return out;
+}
+
+export function createLocalToolCallId(): string {
+	TOOL_CALL_ID_COUNTER += 1;
+	const timePart = toBase36(os.time());
+	const counterPart = toBase36(TOOL_CALL_ID_COUNTER);
+	return `tc${timePart}${counterPart}`;
+}
+
+export function createStudioModelRequestId(): string {
+	STUDIO_MODEL_REQUEST_COUNTER += 1;
+	// An identity, never an authorization token. The Studio server binds it to
+	// the live launch and fingerprints the exact request before any dispatch.
+	return `mr${toBase36(os.time())}${toBase36(STUDIO_MODEL_REQUEST_COUNTER)}${toBase36(math.floor(math.random() * 1000000000))}${toBase36(math.floor(math.random() * 1000000000))}`;
+}
+
+export interface StopToken {
+	stopped: boolean;
+	reason?: string;
+}
+
+export type AgentCompletionOutcome = "completed" | "partial" | "blocked";
+export type AgentValidationKind = "build" | "runtime" | "manual";
+export type AgentValidationResult = "passed" | "failed" | "not_run";
+
+export interface AgentValidationReportItem {
+	kind: AgentValidationKind;
+	result: AgentValidationResult;
+	evidence: string[];
+}
+
+export interface AgentLearningCandidateItem {
+	claim: string;
+	scope: "file" | "project" | "engine";
+	evidence: string[];
+	confidence: "observed" | "inferred";
+}
+
+export interface AgentCompletionReport {
+	outcome: AgentCompletionOutcome;
+	budgetExhausted: boolean;
+	validation: AgentValidationReportItem[];
+	knownIssues: string[];
+	assumptions: string[];
+	learningCandidates: AgentLearningCandidateItem[];
+}
+
+function normalizeCompletionText(value: unknown): string {
+	if (typeof value !== "string") return "";
+	return sanitizeUTF8(value).trim().slice(0, AgentConfig.AGENT_LIMITS.completionTextMaxChars);
+}
+
+function normalizeCompletionTextList(
+	value: unknown,
+	maxItems = AgentConfig.AGENT_LIMITS.completionListMaxItems
+): string[] {
+	if (!Array.isArray(value)) return [];
+	const items: string[] = [];
+	for (let i = 0; i < value.length && items.length < maxItems; i++) {
+		const item = normalizeCompletionText(value[i]);
+		if (item !== "" && items.indexOf(item) < 0) items.push(item);
+	}
+	return items;
+}
+
+export function normalizeAgentCompletionReport(value: unknown): AgentCompletionReport {
+	const row = value && !Array.isArray(value) && typeof value === "object"
+		? value as Record<string, unknown>
+		: {};
+	const outcome: AgentCompletionOutcome = row.outcome === "partial" || row.outcome === "blocked"
+		? row.outcome
+		: "completed";
+	const validation: AgentValidationReportItem[] = [];
+	if (Array.isArray(row.validation)) {
+		for (let i = 0; i < row.validation.length && validation.length < AgentConfig.AGENT_LIMITS.completionListMaxItems; i++) {
+			const raw = row.validation[i];
+			if (!raw || Array.isArray(raw) || typeof raw !== "object") continue;
+			const item = raw as Record<string, unknown>;
+			const kind = item.kind === "runtime" || item.kind === "manual" ? item.kind : (item.kind === "build" ? "build" : undefined);
+			const result = item.result === "passed" || item.result === "failed" || item.result === "not_run" ? item.result : undefined;
+			if (kind === undefined || result === undefined) continue;
+			validation.push({
+				kind,
+				result,
+				evidence: normalizeCompletionTextList(item.evidence, AgentConfig.AGENT_LIMITS.completionEvidenceMaxItems),
+			});
+		}
+	}
+	const learningCandidates: AgentLearningCandidateItem[] = [];
+	if (Array.isArray(row.learningCandidates)) {
+		for (let i = 0; i < row.learningCandidates.length && learningCandidates.length < AgentConfig.AGENT_LIMITS.completionListMaxItems; i++) {
+			const raw = row.learningCandidates[i];
+			if (!raw || Array.isArray(raw) || typeof raw !== "object") continue;
+			const item = raw as Record<string, unknown>;
+			const claim = normalizeCompletionText(item.claim);
+			if (claim === "") continue;
+			learningCandidates.push({
+				claim,
+				scope: item.scope === "file" || item.scope === "engine" ? item.scope : "project",
+				evidence: normalizeCompletionTextList(item.evidence, AgentConfig.AGENT_LIMITS.completionEvidenceMaxItems),
+				confidence: item.confidence === "inferred" ? "inferred" : "observed",
+			});
+		}
+	}
+	return {
+		outcome,
+		budgetExhausted: row.budgetExhausted === true,
+		validation,
+		knownIssues: normalizeCompletionTextList(row.knownIssues),
+		assumptions: normalizeCompletionTextList(row.assumptions),
+		learningCandidates,
+	};
+}
+
+export type TextReplacementResult =
+	| { success: true; content: string }
+	| { success: false; message: string };
+
+export function replaceFirst(text: string, oldStr: string, newStr: string): string {
+	if (oldStr === "") return text;
+	const idx = text.indexOf(oldStr);
+	if (idx < 0) return text;
+	return text.substring(0, idx) + newStr + text.substring(idx + oldStr.length);
+}
+
+function getLeadingWhitespace(text: string): string {
+	let i = 0;
+	while (i < text.length) {
+		const ch = text[i];
+		if (ch !== " " && ch !== "\t") break;
+		i += 1;
+	}
+	return text.substring(0, i);
+}
+
+function getCommonIndentPrefix(lines: string[]): string {
+	let common: string | undefined;
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i];
+		if (line.trim() === "") continue;
+		const indent = getLeadingWhitespace(line);
+		if (common === undefined) {
+			common = indent;
+			continue;
+		}
+		let j = 0;
+		const maxLen = math.min(common.length, indent.length);
+		while (j < maxLen && common[j] === indent[j]) {
+			j += 1;
+		}
+		common = common.substring(0, j);
+		if (common === "") break;
+	}
+	return common ?? "";
+}
+
+function removeIndentPrefix(line: string, indent: string): string {
+	if (indent !== "" && line.startsWith(indent)) {
+		return line.substring(indent.length);
+	}
+	const lineIndent = getLeadingWhitespace(line);
+	let j = 0;
+	const maxLen = math.min(lineIndent.length, indent.length);
+	while (j < maxLen && lineIndent[j] === indent[j]) {
+		j += 1;
+	}
+	return line.substring(j);
+}
+
+function dedentLines(lines: string[]): { indent: string; lines: string[] } {
+	const indent = getCommonIndentPrefix(lines);
+	return {
+		indent,
+		lines: lines.map(line => removeIndentPrefix(line, indent)),
+	};
+}
+
+function findWhitespaceTolerantReplacement(
+	content: string,
+	oldStr: string,
+	newStr: string
+): TextReplacementResult {
+	type FoldedWhitespaceChar = { char: string; start: number; end: number };
+	const foldWhitespace = (text: string, withMap: boolean): { text: string; map: FoldedWhitespaceChar[] } => {
+		const parts: string[] = [];
+		const map: FoldedWhitespaceChar[] = [];
+		let i = 0;
+		while (i < text.length) {
+			const ch = text[i];
+			if (ch === " " || ch === "\t" || ch === "\n" || ch === "\r") {
+				const start = i;
+				while (i < text.length) {
+					const next = text[i];
+					if (next !== " " && next !== "\t" && next !== "\n" && next !== "\r") break;
+					i += 1;
+				}
+				parts.push(" ");
+				if (withMap) map.push({ char: " ", start, end: i });
+			} else {
+				parts.push(ch);
+				if (withMap) map.push({ char: ch, start: i, end: i + 1 });
+				i += 1;
+			}
+		}
+		return { text: parts.join(""), map };
+	};
+	const foldedContent = foldWhitespace(content, true);
+	const foldedOld = foldWhitespace(oldStr, false).text.trim();
+	if (foldedOld === "") {
+		return { success: false, message: "old_str not found in file" };
+	}
+	const matches: { start: number; end: number }[] = [];
+	let pos = 0;
+	while (true) {
+		const idx = foldedContent.text.indexOf(foldedOld, pos);
+		if (idx < 0) break;
+		const lastIdx = idx + foldedOld.length - 1;
+		const startMap = foldedContent.map[idx];
+		const endMap = foldedContent.map[lastIdx];
+		if (startMap !== undefined && endMap !== undefined) {
+			matches.push({ start: startMap.start, end: endMap.end });
+		}
+		pos = idx + foldedOld.length;
+	}
+	if (matches.length === 0) {
+		return { success: false, message: "old_str not found in file" };
+	}
+	if (matches.length > 1) {
+		return {
+			success: false,
+			message: `old_str appears ${matches.length} times in file after whitespace normalization. Please provide more context to uniquely identify the target location.`,
+		};
+	}
+	const match = matches[0];
+	return {
+		success: true,
+		content: content.substring(0, match.start) + newStr + content.substring(match.end),
+	};
+}
+
+export function findIndentTolerantReplacement(
+	content: string,
+	oldStr: string,
+	newStr: string
+): TextReplacementResult {
+	const contentLines = content.split("\n");
+	const oldLines = oldStr.split("\n");
+	if (oldLines.length === 0) {
+		return { success: false, message: "old_str not found in file" };
+	}
+	const dedentedOld = dedentLines(oldLines);
+	const dedentedOldText = dedentedOld.lines.join("\n");
+	const dedentedNew = dedentLines(newStr.split("\n"));
+	const matches: { start: number; end: number; indent: string }[] = [];
+	for (let start = 0; start <= contentLines.length - oldLines.length; start++) {
+		const candidateLines = contentLines.slice(start, start + oldLines.length);
+		const dedentedCandidate = dedentLines(candidateLines);
+		if (dedentedCandidate.lines.join("\n") === dedentedOldText) {
+			matches.push({
+				start,
+				end: start + oldLines.length,
+				indent: dedentedCandidate.indent,
+			});
+		}
+	}
+	if (matches.length === 0) {
+		return findWhitespaceTolerantReplacement(content, oldStr, newStr);
+	}
+	if (matches.length > 1) {
+		return {
+			success: false,
+			message: `old_str appears ${matches.length} times in file after indentation normalization. Please provide more context to uniquely identify the target location.`,
+		};
+	}
+	const match = matches[0];
+	const rebuiltNewLines = dedentedNew.lines.map(line => line === "" ? "" : match.indent + line);
+	const nextLines = [
+		...contentLines.slice(0, match.start),
+		...rebuiltNewLines,
+		...contentLines.slice(match.end),
+	];
+	return { success: true, content: nextLines.join("\n") };
+}
+
+function previewText(text: string, maxLen = 200): string {
+	if (text === "") return "";
+	const compact = text.replace("\r", "\\r").replace("\n", "\\n");
+	if (compact.length <= maxLen) return compact;
+	return `${compact.slice(0, maxLen)}...`;
+}
+
+export function sanitizeUTF8(text: string): string {
+	if (text === "") return "";
+	let remaining = text;
+	let output = "";
+	while (remaining !== "") {
+		const [len, invalidPos] = utf8.len(remaining);
+		if (len !== undefined) {
+			output += remaining;
+			break;
+		}
+		const badPos = typeof invalidPos === "number" ? invalidPos : 1;
+		if (badPos > 1) {
+			output += remaining.substring(0, badPos - 1);
+		}
+		remaining = remaining.substring(badPos);
+	}
+	return output;
+}
+
+function sanitizeJSONValue(value: unknown): unknown {
+	if (typeof value === "string") return sanitizeUTF8(value);
+	if (Array.isArray(value)) {
+		return value.map(item => sanitizeJSONValue(item));
+	}
+	if (value && type(value) === "table") {
+		const result: Record<string, unknown> = {};
+		for (const key in value as Record<string, unknown>) {
+			result[key] = sanitizeJSONValue((value as Record<string, unknown>)[key]);
+		}
+		return result;
+	}
+	return value;
+}
+
+export function safeJsonEncode(value: unknown, format: boolean = false, emptyAsArray = true, numAsStr: boolean = false, maxDepth: number = 128) {
+	return json.encode(
+		sanitizeJSONValue(value) as object,
+		format,
+		emptyAsArray,
+		numAsStr,
+		maxDepth,
+	);
+}
+
+export function safeJsonDecode(text: string) {
+	const [value, err] = json.decode(sanitizeUTF8(text));
+	if (value === undefined) {
+		return $multi(value, err);
+	}
+	return $multi(sanitizeJSONValue(value), err);
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== undefined && !Array.isArray(value);
+}
+
+function normalizeLLMJSONResponse(text: string): string {
+	return text.trim();
+}
+
+function utf8TakeHead(text: string, maxChars: number): string {
+	if (maxChars <= 0 || text === "") return "";
+	const nextPos = utf8.offset(text, maxChars + 1);
+	if (nextPos === undefined) return text;
+	return string.sub(text, 1, nextPos - 1);
+}
+
+function utf8TakeTail(text: string, maxChars: number): string {
+	if (maxChars <= 0 || text === "") return "";
+	const [charLen] = utf8.len(text);
+	if (charLen === undefined || charLen <= maxChars) return text;
+	const startChar = math.max(1, charLen - maxChars + 1);
+	const startPos = utf8.offset(text, startChar);
+	if (startPos === undefined) return text;
+	return string.sub(text, startPos);
+}
+
+export function estimateTextTokens(text: string): number {
+	if (text === "") return 0;
+	return App.estimateTokens(text);
+}
+
+function estimateMessagesTokens(messages: Message[]): number {
+	let total = 0;
+	for (let i = 0; i < messages.length; i++) {
+		const message = messages[i];
+		total += 8;
+		total += estimateTextTokens(message.role ?? "");
+		total += estimateTextTokens(message.content ?? "");
+		total += estimateTextTokens(message.name ?? "");
+		total += estimateTextTokens(message.tool_call_id ?? "");
+		total += estimateTextTokens(message.reasoning_content ?? "");
+		const [toolCallsText] = safeJsonEncode((message.tool_calls ?? []) as object);
+		total += estimateTextTokens(toolCallsText ?? "");
+	}
+	return total;
+}
+
+function estimateOptionsTokens(options: Record<string, unknown>): number {
+	const [text] = safeJsonEncode(options as object);
+	return text ? estimateTextTokens(text) : 0;
+}
+
+function getReservedOutputTokens(options: Record<string, unknown>, contextWindow: number): number {
+	const explicitMax = typeof options.max_tokens === "number"
+		? math.floor(options.max_tokens)
+		: (typeof options.max_completion_tokens === "number"
+			? math.floor(options.max_completion_tokens)
+			: 0);
+	if (explicitMax > 0) return math.max(256, explicitMax);
+	return math.max(1024, math.floor(contextWindow * 0.2));
+}
+
+function getInputTokenBudget(messages: Message[], options: Record<string, unknown>, config: LLMConfig): number {
+	const contextWindow = config.contextWindow > 0
+		? math.floor(config.contextWindow)
+		: 64000;
+	const reservedOutputTokens = getReservedOutputTokens(options, contextWindow);
+	const optionTokens = estimateOptionsTokens(options);
+	const structuralOverhead = math.max(256, messages.length * 16);
+	return math.max(512, contextWindow - reservedOutputTokens - optionTokens - structuralOverhead);
+}
+
+export function clipTextToTokenBudget(text: string, budgetTokens: number): string {
+	if (budgetTokens <= 0 || text === "") return "";
+	const estimated = estimateTextTokens(text);
+	if (estimated <= budgetTokens) return text;
+	const charsPerToken = estimated > 0 ? text.length / estimated : 4;
+	const targetChars = math.max(200, math.floor(budgetTokens * charsPerToken));
+	const keepHead = math.max(0, math.floor(targetChars * 0.35));
+	const keepTail = math.max(0, targetChars - keepHead);
+	const head = keepHead > 0 ? utf8TakeHead(text, keepHead) : "";
+	const tail = keepTail > 0 ? utf8TakeTail(text, keepTail) : "";
+	return `${head}\n...\n${tail}`;
+}
+
+function isXMLWhitespaceChar(ch: string): boolean {
+	return ch === " " || ch === "\t" || ch === "\n" || ch === "\r";
+}
+
+function findLineStart(value: string, from: number): number {
+	let i = from;
+	while (i >= 0) {
+		if (value[i] === "\n") return i + 1;
+		i -= 1;
+	}
+	return 0;
+}
+
+function findLastLiteral(text: string, needle: string): number {
+	if (needle === "") return text.length;
+	let last = -1;
+	let from = 0;
+	while (from <= text.length - needle.length) {
+		const pos = text.indexOf(needle, from);
+		if (pos < 0) break;
+		last = pos;
+		from = pos + 1;
+	}
+	return last;
+}
+
+function unwrapXMLRawText(text: string): string {
+	const trimmed = text.trim();
+	if (trimmed.startsWith("<![CDATA[") && trimmed.endsWith("]]>")) {
+		return trimmed.slice(9, trimmed.length - 3);
+	}
+	return text;
+}
+
+function readSimpleXMLTagName(source: string, openStart: number, openEnd: number): { success: true; tagName: string; selfClosing: boolean } | { success: false; message: string } {
+	const rawTag = source.slice(openStart + 1, openEnd).trim();
+	if (rawTag === "") {
+		return { success: false, message: `invalid xml: empty tag at offset ${tostring(openStart)}` };
+	}
+	let selfClosing = false;
+	let tagText = rawTag;
+	if (tagText.endsWith("/")) {
+		selfClosing = true;
+		tagText = tagText.slice(0, tagText.length - 1).trim();
+	}
+	let tagName = "";
+	for (let i = 0; i < tagText.length; i++) {
+		const ch = tagText[i];
+		if (isXMLWhitespaceChar(ch) || ch === "/") break;
+		tagName += ch;
+	}
+	if (tagName === "") {
+		return { success: false, message: `invalid xml: unsupported tag syntax <${rawTag}>` };
+	}
+	return { success: true, tagName, selfClosing };
+}
+
+function findMatchingXMLClose(source: string, tagName: string, contentStart: number): { success: true; closeStart: number } | { success: false; message: string } {
+	const sameOpenPrefix = `<${tagName}`;
+	const sameCloseToken = `</${tagName}>`;
+	let pos = contentStart;
+	let depth = 1;
+	while (pos < source.length) {
+		const lt = source.indexOf("<", pos);
+		if (lt < 0) break;
+		if (source.startsWith("<![CDATA[", lt)) {
+			const cdataEnd = source.indexOf("]]>", lt + 9);
+			if (cdataEnd < 0) return { success: false, message: "invalid xml: unterminated CDATA" };
+			pos = cdataEnd + 3;
+			continue;
+		}
+		if (source.startsWith("<!--", lt)) {
+			const commentEnd = source.indexOf("-->", lt + 4);
+			if (commentEnd < 0) return { success: false, message: "invalid xml: unterminated comment" };
+			pos = commentEnd + 3;
+			continue;
+		}
+		if (source.startsWith(sameCloseToken, lt)) {
+			depth -= 1;
+			if (depth === 0) return { success: true, closeStart: lt };
+			pos = lt + sameCloseToken.length;
+			continue;
+		}
+		if (source.startsWith(sameOpenPrefix, lt)) {
+			const openEnd = source.indexOf(">", lt);
+			if (openEnd < 0) return { success: false, message: "invalid xml: unterminated opening tag" };
+			const tagInfo = readSimpleXMLTagName(source, lt, openEnd);
+			if (!tagInfo.success) return tagInfo;
+			if (tagInfo.tagName === tagName && !tagInfo.selfClosing) {
+				depth += 1;
+			}
+			pos = openEnd + 1;
+			continue;
+		}
+		const genericEnd = source.indexOf(">", lt);
+		if (genericEnd < 0) return { success: false, message: "invalid xml: unterminated nested tag" };
+		pos = genericEnd + 1;
+	}
+	return { success: false, message: `invalid xml: missing closing tag </${tagName}>` };
+}
+
+export function extractXMLFromText(text: string): string {
+	const source = text.trim();
+	const extractFencedBlock = (fence: string): string | undefined => {
+		if (!source.startsWith(fence)) return undefined;
+		const firstLineEnd = source.indexOf("\n", 0);
+		if (firstLineEnd < 0) return undefined;
+		let searchPos = firstLineEnd + 1;
+		const closingFencePositions: number[] = [];
+		while (searchPos < source.length) {
+			const end = source.indexOf("```", searchPos);
+			if (end < 0) break;
+			const lineStart = findLineStart(source, end - 1);
+			const lineEnd = source.indexOf("\n", end);
+			const actualLineEnd = lineEnd >= 0 ? lineEnd : source.length;
+			if (source.slice(lineStart, actualLineEnd).trim() === "```") {
+				closingFencePositions.push(end);
+			}
+			searchPos = end + 1;
+		}
+		for (let i = closingFencePositions.length - 1; i >= 0; i--) {
+			const closingFencePos = closingFencePositions[i];
+			const afterFence = source.slice(closingFencePos + 3).trim();
+			if (afterFence !== "") continue;
+			return source.slice(firstLineEnd + 1, closingFencePos).trim();
+		}
+		return undefined;
+	};
+	const xmlBlock = extractFencedBlock("```xml");
+	if (xmlBlock !== undefined) return xmlBlock;
+	const genericBlock = extractFencedBlock("```");
+	if (genericBlock !== undefined) return genericBlock;
+	return source;
+}
+
+export function parseSimpleXMLChildren(source: string): SimpleXMLParseResult {
+	const result: Record<string, unknown> = {};
+	let pos = 0;
+	while (pos < source.length) {
+		while (pos < source.length && isXMLWhitespaceChar(source[pos])) pos += 1;
+		if (pos >= source.length) break;
+		if (source[pos] !== "<") {
+			return { success: false, message: `invalid xml: expected tag at offset ${tostring(pos)}` };
+		}
+		if (source.startsWith("</", pos)) {
+			return { success: false, message: `invalid xml: unexpected closing tag at offset ${tostring(pos)}` };
+		}
+		const openEnd = source.indexOf(">", pos);
+		if (openEnd < 0) {
+			return { success: false, message: "invalid xml: unterminated opening tag" };
+		}
+		const tagInfo = readSimpleXMLTagName(source, pos, openEnd);
+		if (!tagInfo.success) return tagInfo;
+		if (tagInfo.selfClosing) {
+			result[tagInfo.tagName] = "";
+			pos = openEnd + 1;
+			continue;
+		}
+		const closeRes = findMatchingXMLClose(source, tagInfo.tagName, openEnd + 1);
+		if (!closeRes.success) return closeRes;
+		const closeToken = `</${tagInfo.tagName}>`;
+		result[tagInfo.tagName] = unwrapXMLRawText(source.slice(openEnd + 1, closeRes.closeStart));
+		pos = closeRes.closeStart + closeToken.length;
+	}
+	return { success: true, obj: result };
+}
+
+export function parseXMLObjectFromText(text: string, rootTag: string): SimpleXMLParseResult {
+	const xmlText = extractXMLFromText(text);
+	const rootOpen = `<${rootTag}>`;
+	const rootClose = `</${rootTag}>`;
+	const start = xmlText.indexOf(rootOpen);
+	const end = findLastLiteral(xmlText, rootClose);
+	if (start < 0 || end < start) {
+		return { success: false, message: `invalid xml: missing <${rootTag}> root` };
+	}
+	const beforeRoot = xmlText.slice(0, start).trim();
+	const afterRoot = xmlText.slice(end + rootClose.length).trim();
+	if (beforeRoot !== "" || afterRoot !== "") {
+		return { success: false, message: "invalid xml: root must be the only top-level block" };
+	}
+	const rootContent = xmlText.slice(start + rootOpen.length, end);
+	return parseSimpleXMLChildren(rootContent);
+}
+
+export function fitMessagesToContext(messages: Message[], options: Record<string, unknown>, config: LLMConfig): {
+	messages: Message[];
+	trimmed: boolean;
+	originalTokens: number;
+	fittedTokens: number;
+	budgetTokens: number;
+} {
+	const modelName = config.model.toLowerCase();
+	const shouldEchoReasoningContent = messages.some(message => typeof message.reasoning_content === "string")
+		|| (normalizeReasoningEffort(config.reasoningEffort) ?? "") !== ""
+		|| modelName.includes("reasoner")
+		|| modelName.includes("thinking");
+	const cloned = messages.map(message => {
+		const clonedMessage = { ...message };
+		if (
+			shouldEchoReasoningContent
+			&& clonedMessage.role === "assistant"
+			&& typeof clonedMessage.reasoning_content !== "string"
+		) {
+			clonedMessage.reasoning_content = "";
+		}
+		return clonedMessage;
+	});
+	const budgetTokens = getInputTokenBudget(cloned, options, config);
+	const originalTokens = estimateMessagesTokens(cloned);
+	if (originalTokens <= budgetTokens) {
+		return {
+			messages: cloned,
+			trimmed: false,
+			originalTokens,
+			fittedTokens: originalTokens,
+			budgetTokens,
+		};
+	}
+
+	const roleOverhead = (message: Message) => estimateTextTokens(message.role ?? "") + 8;
+	let fixedOverhead = 0;
+	const contentIndexes: number[] = [];
+	for (let i = 0; i < cloned.length; i++) {
+		fixedOverhead += roleOverhead(cloned[i]);
+		contentIndexes.push(i);
+	}
+	const contentBudget = math.max(64, budgetTokens - fixedOverhead);
+	if (contentIndexes.length === 1) {
+		const idx = contentIndexes[0];
+		cloned[idx].content = clipTextToTokenBudget(cloned[idx].content ?? "", contentBudget);
+		const fittedTokens = estimateMessagesTokens(cloned);
+		return {
+			messages: cloned,
+			trimmed: true,
+			originalTokens,
+			fittedTokens,
+			budgetTokens,
+		};
+	}
+
+	const nonSystemIndexes: number[] = [];
+	const systemIndexes: number[] = [];
+	for (let i = 0; i < cloned.length; i++) {
+		if (cloned[i].role === "system") systemIndexes.push(i);
+		else nonSystemIndexes.push(i);
+	}
+	const priorityIndexes = [...nonSystemIndexes, ...systemIndexes];
+	let remainingContentBudget = contentBudget;
+	for (let i = priorityIndexes.length - 1; i >= 0; i--) {
+		const idx = priorityIndexes[i];
+		const message = cloned[idx];
+		const minBudget = message.role === "system" ? 96 : 192;
+		const target = math.max(minBudget, math.floor(remainingContentBudget / math.max(1, i + 1)));
+		message.content = clipTextToTokenBudget(message.content ?? "", target);
+		remainingContentBudget -= estimateTextTokens(message.content ?? "");
+		remainingContentBudget = math.max(0, remainingContentBudget);
+	}
+
+	let fittedTokens = estimateMessagesTokens(cloned);
+	if (fittedTokens > budgetTokens) {
+		for (let i = 0; i < priorityIndexes.length && fittedTokens > budgetTokens; i++) {
+			const idx = priorityIndexes[i];
+			const message = cloned[idx];
+			const currentTokens = estimateTextTokens(message.content ?? "");
+			const excess = fittedTokens - budgetTokens;
+			const nextBudget = math.max(message.role === "system" ? 48 : 96, currentTokens - excess - 16);
+			message.content = clipTextToTokenBudget(message.content ?? "", nextBudget);
+			fittedTokens = estimateMessagesTokens(cloned);
+		}
+	}
+	if (fittedTokens > budgetTokens) {
+		for (let i = 0; i < priorityIndexes.length && fittedTokens > budgetTokens; i++) {
+			const idx = priorityIndexes[i];
+			if (cloned[idx].role === "system") continue;
+			cloned[idx].content = clipTextToTokenBudget(cloned[idx].content ?? "", 48);
+			fittedTokens = estimateMessagesTokens(cloned);
+		}
+	}
+	return {
+		messages: cloned,
+		trimmed: true,
+		originalTokens,
+		fittedTokens,
+		budgetTokens,
+	};
+}
+
+const postLLM = (
+	messages: Message[],
+	url: string,
+	apiKey: string,
+	model: string,
+	options: Record<string, unknown>,
+	stream: boolean,
+	customOptions?: Record<string, unknown>,
+	receiver?: (this: void, data: string) => boolean,
+	stopToken?: StopToken,
+	studioGateway?: boolean
+) => {
+	const requestTimeout = stream ? LLM_STREAM_TIMEOUT : LLM_TIMEOUT;
+	const requestOptions = applyCustomLLMOptions(options, customOptions);
+	const data: Record<string, unknown> = {
+		...requestOptions,
+		model,
+		messages,
+		stream,
+	};
+	const studioRequestId = studioGateway ? createStudioModelRequestId() : undefined;
+	stopToken ??= { stopped: false };
+	return new Promise<string>((resolve, reject) => {
+		let requestId = 0;
+		let settled = false;
+		const finishResolve = (text: string) => {
+			if (settled) return;
+			settled = true;
+			resolve(text);
+		};
+		const finishReject = (err: unknown) => {
+			if (settled) return;
+			settled = true;
+			reject(err);
+		};
+		Director.systemScheduler.schedule(() => {
+			if (!settled) {
+				if (stopToken.stopped) {
+					if (requestId !== 0) {
+						HttpClient.cancel(requestId);
+						requestId = 0;
+					}
+					finishReject("request cancelled");
+					return true;
+				}
+				return false;
+			}
+			return true;
+		});
+		Director.systemScheduler.schedule(once(() => {
+			emit("LLM_IN", messages.map((m, i) => i.toString() + ": " + m.content).join('\n'));
+			const [jsonStr, err] = safeJsonEncode(data);
+			if (jsonStr !== undefined) {
+				const headers = [
+					`Authorization: Bearer ${apiKey}`,
+					"Content-Type: application/json",
+					receiver ? "Accept: text/event-stream" : "Accept: application/json",
+					...(studioRequestId ? [`X-Studio-Model-Request-Id: ${studioRequestId}`] : []),
+				];
+				requestId = receiver
+					? HttpClient.post(url, headers, jsonStr, requestTimeout, (data) => {
+						if (stopToken.stopped) return true;
+						return receiver(data);
+					}, (data) => {
+						requestId = 0;
+						if (data !== undefined) {
+							finishResolve(data);
+						} else {
+							finishReject("failed to get http response");
+						}
+					})
+					: HttpClient.post(url, headers, jsonStr, requestTimeout, (data) => {
+						requestId = 0;
+						if (stopToken.stopped) {
+							finishReject("request cancelled");
+							return;
+						}
+						if (data !== undefined) {
+							finishResolve(data);
+						} else {
+							finishReject("failed to get http response");
+						}
+					});
+				if (requestId === 0) {
+					finishReject("failed to schedule http request");
+				} else if (stopToken.stopped) {
+					HttpClient.cancel(requestId);
+					requestId = 0;
+					finishReject("request cancelled");
+				}
+			} else {
+				finishReject(err);
+			}
+		}));
+	});
+};
+
+type OnJSON = (this: void, obj: unknown, raw: string) => void;
+type OnDone = (this: void, text: string) => void;
+type OnError = (this: void, err: unknown, context?: { raw?: string }) => void;
+
+export function createSSEJSONParser(opts: {
+	onJSON: OnJSON;
+	onDone?: OnDone;
+	onError?: OnError;
+}) {
+	let buffer = "";
+	let eventDataLines: string[] = [];
+
+	function flushEventIfAny() {
+		if (eventDataLines.length === 0) return;
+
+		const dataPayload = eventDataLines.join("\n");
+		eventDataLines = [];
+
+		if (dataPayload === "[DONE]") {
+			opts.onDone?.(dataPayload);
+			return;
+		}
+
+		const [obj, err] = safeJsonDecode(dataPayload);
+		if (err === undefined) {
+			opts.onJSON(obj, dataPayload);
+		} else {
+			opts.onError?.(err, { raw: dataPayload });
+		}
+	}
+
+	function append(chunk: string) {
+		buffer += chunk;
+	}
+
+	function drain(maxLines?: number) {
+		let processedLines = 0;
+		while (maxLines === undefined || processedLines < maxLines) {
+			const nl = buffer.indexOf("\n");
+			if (nl < 0) break;
+			processedLines++;
+
+			let line = buffer.slice(0, nl);
+			buffer = buffer.slice(nl + 1);
+
+			if (line.endsWith("\r")) line = line.slice(0, -1);
+
+			if (line === "") {
+				flushEventIfAny();
+				continue;
+			}
+
+			// skip comments
+			if (line.startsWith(":")) continue;
+
+			if (line.startsWith("data:")) {
+				let v = line.slice(5);
+				if (v.startsWith(" ")) v = v.slice(1);
+				eventDataLines.push(v);
+				continue;
+			}
+		}
+		return buffer.indexOf("\n") >= 0;
+	}
+
+	function feed(chunk: string) {
+		append(chunk);
+		drain();
+	}
+
+	function end() {
+		if (buffer.length > 0) {
+			let line = buffer;
+			buffer = "";
+			if (line.endsWith("\r")) line = line.slice(0, -1);
+
+			if (line.startsWith("data:")) {
+				let v = line.slice(5);
+				if (v.startsWith(" ")) v = v.slice(1);
+				eventDataLines.push(v);
+			}
+		}
+		flushEventIfAny();
+	}
+
+	function discard() {
+		buffer = "";
+		eventDataLines = [];
+	}
+
+	return { append, drain, feed, end, discard };
+}
+
+const SSE_PARSE_LINES_PER_FRAME = 256;
+
+function createScheduledSSEJSONParser(
+	opts: Parameters<typeof createSSEJSONParser>[0],
+	isCancelled?: () => boolean
+) {
+	const parser = createSSEJSONParser(opts);
+	let inputFinished = false;
+	let settled = false;
+	let resolveFinished: (() => void) | undefined;
+	const finished = new Promise<void>((resolve) => {
+		resolveFinished = resolve;
+	});
+	const settle = () => {
+		if (settled) return;
+		settled = true;
+		resolveFinished?.();
+	};
+	Director.systemScheduler.schedule(() => {
+		if (settled) return true;
+		if (isCancelled?.()) {
+			parser.discard();
+			settle();
+			return true;
+		}
+		const hasMoreCompleteLines = parser.drain(SSE_PARSE_LINES_PER_FRAME);
+		if (inputFinished && !hasMoreCompleteLines) {
+			parser.end();
+			settle();
+			return true;
+		}
+		return false;
+	});
+	return {
+		append: parser.append,
+		finish: async () => {
+			inputFinished = true;
+			await finished;
+		},
+		cancel: () => {
+			parser.discard();
+			settle();
+		},
+	};
+}
+
+export interface LLMStreamData {
+	id: string;
+	created: number;
+	object: string;
+	model: string;
+	choices: Choice[];
+}
+
+interface Choice {
+	index: number;
+	delta: Delta;
+	message?: NonStreamMessage;
+	finish_reason?: string;
+}
+
+interface Delta {
+	role?: string;
+	reasoning_content?: string;
+	content?: string;
+	tool_calls?: StreamDeltaToolCall[];
+}
+
+interface StreamDeltaToolCallFunction {
+	name?: string;
+	arguments?: string;
+}
+
+interface StreamDeltaToolCall {
+	index?: number;
+	id?: string;
+	type?: string;
+	function?: StreamDeltaToolCallFunction;
+}
+
+interface NonStreamMessage {
+	role?: string;
+	content?: string;
+	reasoning_content?: string;
+	tool_calls?: ToolCall[];
+}
+
+interface NonStreamChoice {
+	index?: number;
+	message?: NonStreamMessage;
+	finish_reason?: string;
+}
+
+export interface LLMResponseData {
+	id?: string;
+	created?: number;
+	object?: string;
+	model?: string;
+	choices?: NonStreamChoice[];
+	usage?: LLMResponseUsage;
+	error?: {
+		message?: string;
+		type?: string;
+		code?: string | number;
+	};
+}
+
+export interface LLMResponseUsage {
+	prompt_tokens?: number;
+	completion_tokens?: number;
+	total_tokens?: number;
+	prompt_cache_hit_tokens?: number;
+	prompt_cache_miss_tokens?: number;
+	input_tokens?: number;
+	output_tokens?: number;
+	cache_read_input_tokens?: number;
+	cache_creation_input_tokens?: number;
+	prompt_tokens_details?: {
+		cached_tokens?: number;
+	};
+	input_tokens_details?: {
+		cached_tokens?: number;
+	};
+	completion_tokens_details?: {
+		reasoning_tokens?: number;
+	};
+}
+
+export interface LLMTokenUsage {
+	inputTokens: number;
+	outputTokens: number;
+	totalTokens?: number;
+	cachedInputTokens?: number;
+	cacheMissInputTokens?: number;
+	reasoningOutputTokens?: number;
+}
+
+export function extractLLMTokenUsage(response?: LLMResponseData): LLMTokenUsage | undefined {
+	const usage = response?.usage;
+	if (!usage || type(usage) !== "table") return undefined;
+	const inputTokens = typeof usage.prompt_tokens === "number"
+		? usage.prompt_tokens
+		: usage.input_tokens;
+	const outputTokens = typeof usage.completion_tokens === "number"
+		? usage.completion_tokens
+		: usage.output_tokens;
+	if (typeof inputTokens !== "number" || typeof outputTokens !== "number") return undefined;
+	const cachedInputTokens = typeof usage.prompt_cache_hit_tokens === "number"
+		? usage.prompt_cache_hit_tokens
+		: (typeof usage.prompt_tokens_details?.cached_tokens === "number"
+			? usage.prompt_tokens_details.cached_tokens
+			: (typeof usage.input_tokens_details?.cached_tokens === "number"
+				? usage.input_tokens_details.cached_tokens
+				: usage.cache_read_input_tokens));
+	return {
+		inputTokens,
+		outputTokens,
+		totalTokens: typeof usage.total_tokens === "number" ? usage.total_tokens : undefined,
+		cachedInputTokens: typeof cachedInputTokens === "number" ? cachedInputTokens : undefined,
+		cacheMissInputTokens: typeof usage.prompt_cache_miss_tokens === "number"
+			? usage.prompt_cache_miss_tokens
+			: undefined,
+		reasoningOutputTokens: typeof usage.completion_tokens_details?.reasoning_tokens === "number"
+			? usage.completion_tokens_details.reasoning_tokens
+			: undefined,
+	};
+}
+
+type LLMProviderError = NonNullable<LLMResponseData["error"]>;
+
+interface CallEvent {
+	id: undefined;
+	stopToken?: StopToken;
+	onData: (this: void, data: LLMStreamData) => boolean;
+	onCancel?: (this: void, reason: string) => void;
+	onDone?: (this: void, content: string) => void;
+}
+
+interface CallStream {
+	id: number;
+	stopToken: StopToken;
+}
+
+interface StreamChoiceAccumulator {
+	index: number;
+	message: NonStreamMessage;
+	finish_reason?: string;
+}
+
+export type LLMConfig = {
+	url: string;
+	model: string;
+	apiKey: string;
+	contextWindow: number;
+	temperature: number;
+	maxTokens: number;
+	reasoningEffort?: string;
+	customOptions?: Record<string, unknown>;
+	supportsFunctionCalling: boolean;
+	studioGateway?: boolean;
+	studioVision?: {
+		provider: "deepseek" | "glm-coding-cn";
+		model: string;
+		url: string;
+	};
+};
+
+export function validateAgentLLMConfig(config: LLMConfig): { success: true } | { success: false; message: string } {
+	const auxiliaryOptions = config.customOptions?.auxiliaryOptions;
+	if (isPlainRecord(auxiliaryOptions)) {
+		for (const _key in auxiliaryOptions) {
+			return { success: true };
+		}
+	}
+	return {
+		success: false,
+		message: "LLM 配置的 customOptions 必须包含非空 auxiliaryOptions，请检查 LLM 配置",
+	};
+}
+
+function normalizeContextWindow(value: unknown): number {
+	if (typeof value === "number" && value > 0) {
+		return math.floor(value);
+	}
+	return 64000;
+}
+
+function normalizeSupportsFunctionCalling(value: unknown): boolean {
+	return value === undefined || value !== 0;
+}
+
+function normalizeLLMTemperature(value: unknown): number {
+	if (typeof value === "number") {
+		return math.max(0, math.min(2, value));
+	}
+	return 0.1;
+}
+
+function normalizeLLMMaxTokens(value: unknown): number {
+	if (typeof value === "number") {
+		return math.max(1, math.floor(value));
+	}
+	return AgentConfig.AGENT_DEFAULTS.llmMaxTokens;
+}
+
+function normalizeReasoningEffort(value: unknown): string | undefined {
+	if (typeof value !== "string") return undefined;
+	const normalized = sanitizeUTF8(value).trim();
+	return normalized !== "" ? normalized : undefined;
+}
+
+function normalizeLLMCustomOptions(value: unknown): Record<string, unknown> | undefined {
+	if (typeof value !== "string") return undefined;
+	const text = sanitizeUTF8(value).trim();
+	if (text === "") return undefined;
+	const [decoded] = safeJsonDecode(text);
+	return isPlainRecord(decoded) ? decoded : undefined;
+}
+
+export function applyCustomLLMOptions(
+	options: Record<string, unknown>,
+	customOptions?: Record<string, unknown>
+): Record<string, unknown> {
+	if (!customOptions) return options;
+	const merged: Record<string, unknown> = { ...options };
+	for (const key in customOptions) {
+		// Dora-owned auxiliary request settings are consumed by MemoryCompressor.
+		// They are not provider API fields and must never leak into normal calls.
+		if (key === "auxiliaryOptions") continue;
+		const value = customOptions[key];
+		if (value === json.null) {
+			delete merged[key];
+		} else {
+			merged[key] = value;
+		}
+	}
+	return merged;
+}
+
+function getLLMConfigRecords(): Record<string, unknown>[] {
+	upgradeLLMConfig();
+	const rows = DB.query("select * from LLMConfig", true);
+	const records: Record<string, unknown>[] = [];
+	if (rows && rows.length > 1) {
+		for (let i = 1; i < rows.length; i++) {
+			const record: Record<string, unknown> = {};
+			for (let c = 0; c < rows[i].length; c++) {
+				record[rows[0][c] as string] = rows[i][c];
+			}
+			records.push(record);
+		}
+	}
+	return records;
+}
+
+export interface LLMConfigSummary {
+	id: number;
+	name: string;
+	model: string;
+	active: boolean;
+}
+
+export function getLLMConfigSummaries(): LLMConfigSummary[] {
+	return getLLMConfigRecords().flatMap(record => {
+		const id = record["id"];
+		const name = record["name"];
+		const model = record["model"];
+		if (typeof id !== "number" || typeof name !== "string" || typeof model !== "string") return [];
+		return [{ id, name, model, active: record["active"] !== 0 }];
+	});
+}
+
+function parseLLMConfig(config: Record<string, unknown> | undefined): { success: true; id: number; config: LLMConfig } | { success: false; message: string } {
+	if (!config) {
+		return { success: false, message: "LLM config not found" };
+	}
+	const { id, url, model, api_key } = config;
+	if (typeof id !== "number" || "string" !== typeof url || "string" !== typeof model || "string" !== typeof api_key) {
+		return { success: false, message: "got invalid LLM config" };
+	}
+	return {
+		success: true,
+		id,
+		config: {
+			url,
+			model,
+			apiKey: api_key,
+			contextWindow: normalizeContextWindow(config["context_window"]),
+			temperature: normalizeLLMTemperature(config["temperature"]),
+			maxTokens: normalizeLLMMaxTokens(config["max_tokens"]),
+			reasoningEffort: normalizeReasoningEffort(config["reasoning_effort"]),
+			customOptions: normalizeLLMCustomOptions(config["custom_options"]),
+			supportsFunctionCalling: normalizeSupportsFunctionCalling(config["supports_function_calling"]),
+		},
+	};
+}
+
+export function getLLMConfig(configId: unknown): { success: true; id: number; config: LLMConfig } | { success: false; message: string } {
+	const normalizedId = typeof configId === "number" ? math.floor(configId) : tonumber(configId);
+	if (normalizedId === undefined || normalizedId <= 0) {
+		return { success: false, message: "LLM config is not selected" };
+	}
+	return parseLLMConfig(getLLMConfigRecords().find(record => record["id"] === normalizedId));
+}
+
+export function getActiveLLMConfig(): { success: true; id: number; config: LLMConfig } | { success: false; message: string } {
+	const records = getLLMConfigRecords();
+	const config = records.find(r => r["active"] !== 0);
+	if (!config) {
+		return { success: false, message: "no active LLM config" };
+	}
+	return parseLLMConfig(config);
+}
+
+export const callLLMStream = (
+	messages: Message[],
+	options: Record<string, unknown>,
+	event: CallEvent | CallStream,
+	llmConfig?: LLMConfig
+): { success: true } | { success: false, message: string } => {
+	let callEvent: CallEvent;
+	if (event.id !== undefined) {
+		const id = event.id;
+		callEvent = {
+			id: undefined,
+			onData: (data) => {
+				emit("AppWS", "Send", { name: "LLMContent", id, data });
+				return event.stopToken.stopped;
+			},
+			onCancel: (reason) => {
+				emit("AppWS", "Send", { name: "LLMCancel", id, reason });
+			},
+			onDone: () => {
+				emit("AppWS", "Send", { name: "LLMDone", id });
+			}
+		};
+	} else {
+		callEvent = event;
+	}
+	const { onData, onDone } = callEvent;
+	let { onCancel } = callEvent;
+	const config = llmConfig ?? (() => {
+		const configRes = getActiveLLMConfig();
+		if (!configRes.success) {
+			if (onCancel) onCancel(configRes.message);
+			return undefined;
+		}
+		return configRes.config;
+	})();
+	if (!config) {
+		return { success: false, message: "no active LLM config" };
+	}
+	const { url, model, apiKey } = config;
+	const fitted = fitMessagesToContext(messages, options, config);
+	if (fitted.trimmed) {
+		Log("Warn", `[Agent.Utils] callLLMStream trimmed input tokens=${fitted.originalTokens} budget=${fitted.budgetTokens} fitted=${fitted.fittedTokens}`);
+	}
+	let stopLLM = false;
+	const streamStopToken: StopToken = "stopToken" in event && event.stopToken
+		? event.stopToken
+		: { stopped: false };
+	const parser = createScheduledSSEJSONParser({
+		onJSON: (obj) => {
+			const result = onData(obj as LLMStreamData);
+			if (result) {
+				stopLLM = true;
+				streamStopToken.stopped = true;
+				streamStopToken.reason = "LLM Stopped";
+			}
+		}
+	}, () => streamStopToken.stopped);
+	(async () => {
+		try {
+			const result = await postLLM(fitted.messages, url, apiKey, model, options, true, config.customOptions, (data) => {
+				if (stopLLM) {
+					if (onCancel) {
+						onCancel("LLM Stopped");
+						onCancel = undefined;
+					}
+					return true;
+				}
+				parser.append(data);
+				return false;
+			}, streamStopToken, config.studioGateway);
+			await parser.finish();
+			if (onDone) {
+				onDone(result);
+			}
+		} catch (e) {
+			parser.cancel();
+			stopLLM = true;
+			if (onCancel) {
+				onCancel(tostring(e));
+				onCancel = undefined;
+			}
+		}
+	})();
+	return { success: true };
+}
+
+function mergeStreamToolCall(target: ToolCall, delta: StreamDeltaToolCall) {
+	if (typeof delta.id === "string" && delta.id !== "") {
+		target.id = delta.id;
+	}
+	if (typeof delta.type === "string" && delta.type !== "") {
+		target.type = delta.type;
+	}
+	if (delta.function) {
+		target.function ??= {};
+		if (typeof delta.function.name === "string" && delta.function.name !== "") {
+			target.function.name = (target.function.name ?? "") + delta.function.name;
+		}
+		if (typeof delta.function.arguments === "string" && delta.function.arguments !== "") {
+			target.function.arguments = (target.function.arguments ?? "") + delta.function.arguments;
+		}
+	}
+}
+
+function isToolCallComplete(tc: ToolCall): boolean {
+	if (typeof tc.id !== "string" || tc.id === "") return false;
+	if (!tc.function || typeof tc.function.name !== "string" || tc.function.name === "") return false;
+	if (typeof tc.function.arguments !== "string" || tc.function.arguments === "") return false;
+	const args = tc.function.arguments;
+	if (args.charCodeAt(args.length - 1) !== 125) return false; // not '}'
+	const [decoded] = safeJsonDecode(args);
+	return decoded !== undefined;
+}
+
+function mergeStreamChoice(acc: StreamChoiceAccumulator, choice: Choice, onToolCallReady?: (tc: ToolCall) => void, emittedToolCallIds?: Record<string, boolean>) {
+	const delta = choice.delta ?? {};
+	const fullMessage = choice.message ?? {};
+	const message = acc.message;
+	const role = typeof delta.role === "string" && delta.role !== ""
+		? delta.role
+		: (typeof fullMessage.role === "string" ? fullMessage.role : undefined);
+	if (typeof role === "string" && role !== "") {
+		message.role = role;
+	}
+	const content = typeof delta.content === "string" && delta.content !== ""
+		? delta.content
+		: (typeof fullMessage.content === "string" ? fullMessage.content : undefined);
+	if (typeof content === "string" && content !== "") {
+		message.content = (message.content ?? "") + content;
+	}
+	const reasoningContent = typeof delta.reasoning_content === "string" && delta.reasoning_content !== ""
+		? delta.reasoning_content
+		: (typeof fullMessage.reasoning_content === "string" ? fullMessage.reasoning_content : undefined);
+	if (typeof reasoningContent === "string" && reasoningContent !== "") {
+		message.reasoning_content = (message.reasoning_content ?? "") + reasoningContent;
+	}
+	const toolCalls = (delta.tool_calls && delta.tool_calls.length > 0)
+		? delta.tool_calls
+		: (fullMessage.tool_calls ?? []);
+	if (toolCalls.length > 0) {
+		message.tool_calls ??= [];
+		for (let i = 0; i < toolCalls.length; i++) {
+			const item: StreamDeltaToolCall = toolCalls[i] as StreamDeltaToolCall;
+			const index = typeof item.index === "number" && item.index >= 0
+				? math.floor(item.index)
+				: i;
+			message.tool_calls[index] ??= {};
+			mergeStreamToolCall(message.tool_calls[index], item);
+			if (onToolCallReady && emittedToolCallIds) {
+				const tc = message.tool_calls[index];
+				if (isToolCallComplete(tc) && !emittedToolCallIds[tc.id!]) {
+					emittedToolCallIds[tc.id!] = true;
+					onToolCallReady(tc);
+				}
+			}
+		}
+	}
+	if (typeof choice.finish_reason === "string" && choice.finish_reason !== "") {
+		acc.finish_reason = choice.finish_reason;
+	}
+}
+
+function buildStreamResponse(
+	states: Record<number, StreamChoiceAccumulator>,
+	model?: string,
+	id?: string,
+	created?: number,
+	object?: string,
+	providerError?: LLMProviderError,
+	usage?: LLMResponseUsage
+): LLMResponseData {
+	const indexes = Object.keys(states)
+		.map(key => Number(key))
+		.filter(index => Number.isFinite(index))
+		.sort((a, b) => a - b);
+	return {
+		id,
+		created,
+		object,
+		model,
+		choices: indexes.map(index => {
+			const state = states[index];
+			return {
+				index,
+				message: {
+					role: state.message.role ?? "assistant",
+					content: state.message.content,
+					reasoning_content: state.message.reasoning_content,
+					tool_calls: state.message.tool_calls,
+				},
+				finish_reason: state.finish_reason,
+			};
+		}),
+		usage,
+		error: providerError,
+	};
+}
+
+export async function callLLMStreamAggregated(
+	messages: Message[],
+	options: Record<string, unknown>,
+	stopTokenOrConfig?: StopToken | LLMConfig,
+	llmConfig?: LLMConfig,
+	onChunk?: (response: LLMResponseData, chunk: LLMStreamData) => void,
+	onToolCallReady?: (toolCall: ToolCall) => void
+): Promise<
+	| { success: true; response: LLMResponseData; tokenUsage?: LLMTokenUsage }
+	| { success: false; message: string; raw?: string; response?: LLMResponseData; tokenUsage?: LLMTokenUsage }
+> {
+	const stopToken = stopTokenOrConfig && "stopped" in stopTokenOrConfig ? stopTokenOrConfig : undefined;
+	const config = stopTokenOrConfig && "url" in stopTokenOrConfig
+		? stopTokenOrConfig
+		: llmConfig;
+	const resolvedConfig = config ?? (() => {
+		const configRes = getActiveLLMConfig();
+		if (!configRes.success) {
+			Log("Error", `[Agent.Utils] callLLMStreamAggregated config error: ${configRes.message}`);
+			return undefined;
+		}
+		return configRes.config;
+	})();
+	if (!resolvedConfig) {
+		return { success: false, message: "no active LLM config" };
+	}
+	const { url, model, apiKey } = resolvedConfig;
+	const fitted = fitMessagesToContext(messages, options, resolvedConfig);
+	const toolCount = Array.isArray(options.tools) ? options.tools.length : 0;
+	const toolChoice = typeof options.tool_choice === "string"
+		? options.tool_choice
+		: (options.tool_choice !== undefined ? "object" : "unset");
+	Log("Info", `[Agent.Utils] callLLMStreamAggregated request model=${model} url=${url} messages=${messages.length} tools=${toolCount} tool_choice=${toolChoice} max_tokens=${tostring(options.max_tokens ?? "unset")} temperature=${tostring(options.temperature ?? "unset")}${fitted.trimmed ? ` trimmed_tokens=${fitted.originalTokens}->${fitted.fittedTokens}/${fitted.budgetTokens}` : ""}`);
+	if (stopToken?.stopped) {
+		const reason = stopToken.reason ?? "request cancelled";
+		Log("Info", `[Agent.Utils] callLLMStreamAggregated cancelled before request: ${reason}`);
+		return { success: false, message: reason };
+	}
+	try {
+		const states: Record<number, StreamChoiceAccumulator> = {};
+		const emittedToolCallIds: Record<string, boolean> = {};
+		let responseId: string | undefined = undefined;
+		let responseCreated: number | undefined = undefined;
+		let responseObject: string | undefined = undefined;
+		let providerError: LLMProviderError | undefined;
+		let responseUsage: LLMResponseUsage | undefined;
+		let httpChunkCount = 0;
+		let rawStreamBytes = 0;
+		let rawStreamPreview = "";
+		let sseJSONChunkCount = 0;
+		let choiceJSONChunkCount = 0;
+		let emptyChoicesChunkCount = 0;
+		let missingChoicesChunkCount = 0;
+		let parseErrorCount = 0;
+		let doneChunkSeen = false;
+		let lastJSONPreview = "";
+		const parser = createScheduledSSEJSONParser({
+			onJSON: (obj, raw) => {
+				sseJSONChunkCount++;
+				lastJSONPreview = previewText(raw, 500);
+				if (!obj || type(obj) !== "table") {
+					return;
+				}
+				const chunk = obj as LLMStreamData & LLMResponseData;
+				if (chunk.error) {
+					providerError = chunk.error;
+					Log("Warn", `[Agent.Utils] callLLMStreamAggregated provider error chunk: ${previewText(raw, 300)}`);
+					return;
+				}
+				responseId = typeof chunk.id === "string" ? chunk.id : responseId;
+				responseCreated = typeof chunk.created === "number" ? chunk.created : responseCreated;
+				responseObject = typeof chunk.object === "string" ? chunk.object : responseObject;
+				if (chunk.usage && type(chunk.usage) === "table") {
+					responseUsage = chunk.usage;
+				}
+				const choices = Array.isArray(chunk.choices) ? chunk.choices : [];
+				if (!Array.isArray(chunk.choices)) {
+					missingChoicesChunkCount++;
+					if (missingChoicesChunkCount <= LLM_STREAM_CHUNK_DEBUG_LOG_LIMIT) {
+						Log("Warn", `[Agent.Utils] callLLMStreamAggregated chunk missing choices raw=${previewText(raw, 300)}`);
+					}
+				} else if (choices.length === 0) {
+					emptyChoicesChunkCount++;
+					if (emptyChoicesChunkCount <= LLM_STREAM_CHUNK_DEBUG_LOG_LIMIT) {
+						Log("Warn", `[Agent.Utils] callLLMStreamAggregated chunk empty choices raw=${previewText(raw, 300)}`);
+					}
+				} else {
+					choiceJSONChunkCount++;
+				}
+				for (let i = 0; i < choices.length; i++) {
+					const choice = choices[i] as Choice;
+					const index = typeof choice.index === "number" ? choice.index : i;
+					states[index] ??= {
+						index,
+						message: { role: "assistant" },
+					};
+					mergeStreamChoice(states[index], choice, onToolCallReady, emittedToolCallIds);
+				}
+				onChunk?.(
+					buildStreamResponse(states, model, responseId, responseCreated, responseObject, providerError, responseUsage),
+					{
+						id: chunk.id ?? "",
+						created: chunk.created ?? 0,
+						object: chunk.object ?? "",
+						model: chunk.model ?? model,
+						choices,
+					}
+				);
+			},
+			onDone: () => {
+				doneChunkSeen = true;
+			},
+			onError: (err, context) => {
+				parseErrorCount++;
+				Log("Warn", `[Agent.Utils] callLLMStreamAggregated parse error: ${tostring(err)} raw=${previewText(context?.raw ?? "", 300)}`);
+			},
+		}, () => stopToken?.stopped === true);
+		try {
+			await postLLM(fitted.messages, url, apiKey, model, options, true, resolvedConfig.customOptions, (data) => {
+				if (stopToken?.stopped) return true;
+				httpChunkCount++;
+				rawStreamBytes += data.length;
+				if (rawStreamPreview.length < LLM_STREAM_RAW_DEBUG_MAX) {
+					rawStreamPreview += data.slice(0, LLM_STREAM_RAW_DEBUG_MAX - rawStreamPreview.length);
+				}
+				parser.append(data);
+				return false;
+			}, stopToken, resolvedConfig.studioGateway);
+			await parser.finish();
+		} catch (e) {
+			parser.cancel();
+			throw e;
+		}
+		if (sseJSONChunkCount === 0 && rawStreamPreview.trim() !== "") {
+			const [rawResponse] = safeJsonDecode(normalizeLLMJSONResponse(rawStreamPreview));
+			if (rawResponse && type(rawResponse) === "table") {
+				const rawResponseObj = rawResponse as LLMResponseData;
+				if (rawResponseObj.error) {
+					providerError = rawResponseObj.error;
+					lastJSONPreview = previewText(normalizeLLMJSONResponse(rawStreamPreview), 500);
+					Log("Warn", `[Agent.Utils] callLLMStreamAggregated non-SSE provider error raw=${previewText(rawStreamPreview, 500)}`);
+				}
+				if (rawResponseObj.usage && type(rawResponseObj.usage) === "table") {
+					responseUsage = rawResponseObj.usage;
+				}
+			}
+		}
+		const response = buildStreamResponse(states, model, responseId, responseCreated, responseObject, providerError, responseUsage);
+		const tokenUsage = extractLLMTokenUsage(response);
+		const choiceCount = response.choices ? response.choices.length : 0;
+		const streamStats = `http_chunks=${httpChunkCount} raw_bytes=${rawStreamBytes} sse_json_chunks=${sseJSONChunkCount} choice_chunks=${choiceJSONChunkCount} empty_choice_chunks=${emptyChoicesChunkCount} missing_choice_chunks=${missingChoicesChunkCount} parse_errors=${parseErrorCount} done=${doneChunkSeen ? "true" : "false"}`;
+		Log("Info", `[Agent.Utils] callLLMStreamAggregated decoded response choices=${choiceCount} ${streamStats}`);
+		if (!doneChunkSeen) {
+			const rawPreview = previewText(sanitizeUTF8(rawStreamPreview), 1200);
+			const lastJSON = lastJSONPreview !== "" ? ` last_json=${lastJSONPreview}` : "";
+			const message = `stream incomplete: missing [DONE]; ${streamStats}; raw=${rawPreview}${lastJSON}`;
+			Log("Error", `[Agent.Utils] callLLMStreamAggregated incomplete stream ${streamStats} raw_preview=${rawPreview}${lastJSON}`);
+			return {
+				success: false,
+				message,
+				raw: rawStreamPreview,
+				response,
+				tokenUsage,
+			};
+		}
+		if (!response.choices || response.choices.length === 0) {
+			const providerMessage = providerError?.message ?? "";
+			const providerType = providerError?.type ?? "";
+			const providerCode = providerError && (typeof providerError.code === "string" || typeof providerError.code === "number")
+				? tostring(providerError.code)
+				: "";
+			const details = [providerType, providerCode].filter(part => part !== "").join("/");
+			const rawPreview = previewText(sanitizeUTF8(rawStreamPreview), 1200);
+			const lastJSON = lastJSONPreview !== "" ? ` last_json=${lastJSONPreview}` : "";
+			const message = providerMessage !== ""
+				? `LLM returned no choices: ${providerMessage}${details !== "" ? ` (${details})` : ""}; ${streamStats}; raw=${rawPreview}${lastJSON}`
+				: `LLM returned no choices; ${streamStats}; raw=${rawPreview}${lastJSON}`;
+			Log("Error", `[Agent.Utils] callLLMStreamAggregated empty choices ${streamStats} raw_preview=${rawPreview}${lastJSON}`);
+			return {
+				success: false,
+				message,
+				raw: rawStreamPreview,
+				tokenUsage,
+			};
+		}
+		return {
+			success: true,
+			response,
+			tokenUsage,
+		};
+	} catch (e) {
+		if (stopToken?.stopped) {
+			const reason = stopToken.reason ?? "request cancelled";
+			Log("Info", `[Agent.Utils] callLLMStreamAggregated cancelled during request: ${reason}`);
+			return { success: false, message: reason };
+		}
+		Log("Error", `[Agent.Utils] callLLMStreamAggregated exception: ${tostring(e)}`);
+		return { success: false, message: tostring(e) };
+	}
+}
+
+export async function callLLM(
+	messages: Message[],
+	options: Record<string, unknown>,
+	stopTokenOrConfig?: StopToken | LLMConfig,
+	llmConfig?: LLMConfig
+): Promise<{ success: true; response: LLMResponseData } | { success: false; message: string; raw?: string }> {
+	const stopToken = stopTokenOrConfig && "stopped" in stopTokenOrConfig ? stopTokenOrConfig : undefined;
+	const config = stopTokenOrConfig && "url" in stopTokenOrConfig
+		? stopTokenOrConfig
+		: llmConfig;
+	const resolvedConfig = config ?? (() => {
+		const configRes = getActiveLLMConfig();
+		if (!configRes.success) {
+			Log("Error", `[Agent.Utils] callLLMOnce config error: ${configRes.message}`);
+			return undefined;
+		}
+		return configRes.config;
+	})();
+	if (!resolvedConfig) {
+		return { success: false, message: "no active LLM config" };
+	}
+	const { url, model, apiKey } = resolvedConfig;
+	const fitted = fitMessagesToContext(messages, options, resolvedConfig);
+	Log("Info", `[Agent.Utils] callLLMOnce request model=${model} url=${url} messages=${messages.length}${fitted.trimmed ? ` trimmed_tokens=${fitted.originalTokens}->${fitted.fittedTokens}/${fitted.budgetTokens}` : ""}`);
+	if (stopToken?.stopped) {
+		const reason = stopToken.reason ?? "request cancelled";
+		Log("Info", `[Agent.Utils] callLLMOnce cancelled before request: ${reason}`);
+		return { success: false, message: reason };
+	}
+	try {
+		const raw = sanitizeUTF8(await postLLM(fitted.messages, url, apiKey, model, options, false, resolvedConfig.customOptions, undefined, stopToken, resolvedConfig.studioGateway));
+		const normalizedRaw = normalizeLLMJSONResponse(raw);
+		Log("Info", `[Agent.Utils] callLLMOnce raw response length=${raw.length}${normalizedRaw.length !== raw.length ? ` normalized=${normalizedRaw.length}` : ""}`);
+		const [response, err] = safeJsonDecode(normalizedRaw);
+		if (err !== undefined || response === undefined || type(response) !== "table") {
+			const rawPreview = previewText(raw);
+			Log("Error", `[Agent.Utils] callLLMOnce invalid JSON: ${tostring(err)} raw_preview=${rawPreview}`);
+			return {
+				success: false,
+				message: `invalid LLM response JSON: ${tostring(err)}; raw=${rawPreview}`,
+				raw,
+			};
+		}
+		const responseObj = response as LLMResponseData;
+		const choiceCount = responseObj.choices ? responseObj.choices.length : 0;
+		Log("Info", `[Agent.Utils] callLLMOnce decoded response choices=${choiceCount}`);
+		if (!responseObj.choices || responseObj.choices.length === 0) {
+			const providerError = responseObj.error;
+			const providerMessage = providerError && typeof providerError.message === "string"
+				? providerError.message
+				: "";
+			const providerType = providerError && typeof providerError.type === "string"
+				? providerError.type
+				: "";
+			const providerCode = providerError && (typeof providerError.code === "string" || typeof providerError.code === "number")
+				? tostring(providerError.code)
+				: "";
+			const details = [providerType, providerCode].filter(part => part !== "").join("/");
+			const rawPreview = previewText(raw, 400);
+			const message = providerMessage !== ""
+				? `LLM returned no choices: ${providerMessage}${details !== "" ? ` (${details})` : ""}`
+				: `LLM returned no choices; raw=${rawPreview}`;
+			Log("Error", `[Agent.Utils] callLLMOnce empty choices raw_preview=${rawPreview}`);
+			return {
+				success: false,
+				message,
+				raw,
+			};
+		}
+		return {
+			success: true,
+			response: responseObj,
+		};
+	} catch (e) {
+		if (stopToken?.stopped) {
+			const reason = stopToken.reason ?? "request cancelled";
+			Log("Info", `[Agent.Utils] callLLMOnce cancelled during request: ${reason}`);
+			return { success: false, message: reason };
+		}
+		Log("Error", `[Agent.Utils] callLLMOnce exception: ${tostring(e)}`);
+		return { success: false, message: tostring(e) };
+	}
+}

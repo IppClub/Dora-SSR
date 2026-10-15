@@ -1,0 +1,245 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Using Love2D Node
+
+Dora SSR can host Love2D 11.5-style projects as scene nodes. Each `LoveNode`
+owns an isolated Lua 5.5 state, virtual window surface, event queue, physics
+world, and audio bus. The node is rendered into Dora's scene graph, so a Dora
+project can place, scale, hide, restart, or run several Love projects without
+giving any of them control of the application window or main loop.
+
+This is source and API compatibility for Love projects. It is not LuaJIT ABI
+compatibility and it does not embed SDL's application loop.
+
+## Create a LoveNode
+
+Put the Love project under a Dora content search path. A minimal project can use
+the normal Love callbacks in any of Dora's supported source languages:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua title="LoveGame/main.lua"
+local love = require("love")
+local message = ""
+
+function love.load()
+	message = "Hello from an isolated Love state"
+end
+
+function love.update(dt)
+	-- Update this Love instance.
+end
+
+function love.draw()
+	love.graphics.clear(0.05, 0.08, 0.12, 1)
+	love.graphics.print(message, 24, 24)
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title="LoveGame/main.tl"
+local love = require("love")
+local message = ""
+
+love.load = function()
+	message = "Hello from an isolated Love state"
+end
+
+love.update = function(_dt: number)
+	-- Update this Love instance.
+end
+
+love.draw = function()
+	love.graphics.clear(0.05, 0.08, 0.12, 1)
+	love.graphics.print(message, 24, 24)
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="LoveGame/main.ts"
+import "love";
+
+let message = "";
+
+love.load = () => {
+	message = "Hello from an isolated Love state";
+};
+
+love.update = (_dt: number) => {
+	// Update this Love instance.
+};
+
+love.draw = () => {
+	love.graphics.clear(0.05, 0.08, 0.12, 1);
+	love.graphics.print(message, 24, 24);
+};
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="LoveGame/main.yue"
+love = require "love"
+message = ""
+
+love.load = ->
+	message = "Hello from an isolated Love state"
+
+love.update = (dt) ->
+	-- Update this Love instance.
+
+love.draw = ->
+	love.graphics.clear 0.05, 0.08, 0.12, 1
+	love.graphics.print message, 24, 24
+```
+
+</TabItem>
+</Tabs>
+
+Create the node from a normal Dora program:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua title="Script/init.lua"
+local _ENV = Dora
+
+local game = LoveNode("LoveGame/main.lua")
+if game then
+	game.position = game.position + Vec2(80, 40)
+	game.scaleX = 0.75
+	game.scaleY = 0.75
+	game:addTo(Director.entry)
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title="Script/init.tl"
+local Director <const> = require("Director")
+local LoveNode <const> = require("LoveNode")
+local Vec2 <const> = require("Vec2")
+
+local game = LoveNode("LoveGame")
+if not game is nil then
+	game.position = game.position + Vec2(80, 40)
+	game.scaleX = 0.75
+	game.scaleY = 0.75
+	game:addTo(Director.entry)
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="Script/init.ts"
+import {Director, LoveNode, Vec2} from "Dora";
+
+const game = LoveNode("LoveGame");
+if (game) {
+	game.position = game.position.add(Vec2(80, 40));
+	game.scaleX = 0.75;
+	game.scaleY = 0.75;
+	game.addTo(Director.entry);
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="Script/init.yue"
+_ENV = Dora
+
+with? LoveNode "LoveGame"
+	.position += Vec2 80, 40
+	.scaleX = .scaleY = 0.75
+	\addTo Director.entry
+```
+
+</TabItem>
+</Tabs>
+
+For an extensionless relative path, `LoveNode("LoveGame")` searches for an
+existing file at that exact path first, followed by `LoveGame.love`,
+`LoveGame.zip`, and `LoveGame/main.lua`. Explicit paths with an extension and
+absolute paths are used as-is.
+
+`conf.lua`, `main.lua`, and project modules are resolved relative to the Love
+source root. A `.love` or `.zip` ZIP package can also be used as a source. Reads,
+writes, mounts, module loading, and package staging all go through Dora's
+`Content` system; the isolated state cannot use native Lua modules or bypass the
+content policy with host filesystem paths.
+
+`game:restart()` closes the old state and all instance-owned resources before
+booting a new state. An error or ordinary `love.event.quit()` stops only that
+node. `love.event.quit("restart")` performs the same full restart on the current
+LoveNode after `love.quit()` returns; returning a truthy value cancels it.
+
+## Editor and language support
+
+Love definitions are opt-in and use the existing Dora compilation pipeline:
+
+- Lua, Teal, and YueScript: `local love = require("love")`
+- TypeScript and TSX: `import "love"`
+
+There is no file comment, project profile, special TSX transform, or default
+`love` declaration in ordinary Dora files. This lets one project mix Dora and
+Love sources without polluting the other files' globals. TypeScript, Teal, and
+YueScript errors are mapped back to their original source locations.
+
+The declaration files shipped with the current engine are the authoritative
+list of callable functions and object methods. The table below describes the
+broader module boundary.
+
+## Compatibility status
+
+The ratios below are counts, not percentages. **API methods** means implemented
+and declaration-checked methods divided by the fixed Love 11.5 target methods.
+**Compatibility cases** means passed cases divided by selected cases in the
+pinned compatibility snapshot; explicit skips are shown separately. Dedicated
+workflows are named when that snapshot has no meaningful case count.
+
+The last column intentionally lists only missing behavior, intentional host
+boundaries, or work that still needs device verification.
+
+| Module | API methods | Compatibility cases | Missing or pending verification only |
+| --- | ---: | ---: | --- |
+| Root callbacks | Dedicated verification | Dedicated workflows | Dora remains the main-loop owner; physical input callbacks still require per-device certification. |
+| `love.graphics` | `294/294` | `75/107`, 32 skips | Compressed formats remain renderer-dependent. Non-target GLSL `layout` forms, layered/mipmapped Canvas, and several extended batching paths are unsupported. |
+| `love.window` | `29/37` | `28/36`, 8 skips | Eight host-window actions are intentionally unavailable: close, move, minimize, maximize, restore, attention, icon, and message box. |
+| `love.event` | `6/6` | `4/6`, 2 infrastructure skips | Empty `wait` returns immediately so a Love instance cannot block Dora's host thread. |
+| `love.timer` | `6/6` | `6/6` | No known Love 11.5 API gap. |
+| `love.keyboard` | `9/9` | Dedicated workflow | Additional physical layouts, OS repeat, and real IME candidate placement remain device checks. |
+| `love.mouse` | `19/19` | Dedicated physical-input workflow | Physical input remains to be certified on Windows, Linux, and mobile devices. |
+| `love.touch` | `3/3` | Dedicated injection workflow | Routed pressure is currently 1; physical multi-touch remains a device check. |
+| `love.joystick` | `27/27` | Dedicated virtual-device workflow | Physical controllers and rumble output remain device certification items. |
+| `love.filesystem` | `55/59` | `26/32`, 6 skips | C require-path control and host symlink control are the four intentional API gaps. |
+| `love.audio` | `78/78` | `28/29`, 1 upstream placeholder | The backend is a SoLoud approximation. Physical recording, permissions, hotplug, and audible output remain device checks. |
+| `love.sound` | `23/23` | `4/4` | No known Love 11.5 API gap. |
+| `love.image` | `26/26` | `5/5` | Availability of each compressed format remains renderer-dependent. |
+| `love.font` | `27/27` | `7/7` | Binary AngelCode BMFont is outside the target; stb hinting is not pixel-identical to FreeType. |
+| `love.data` | `25/25` | `8/8` | LuaJIT FFI pointers are unavailable. |
+| `love.math` | `43/43` | `6/8`, 2 Love 12 skips | Love 12-only noise names are outside the target. |
+| `love.physics` | Dedicated verification | `21/28`, 6 upstream placeholders and 1 Love 12 skip | Box2D 3 and Love 12 semantics are outside the Love 11.5 target. |
+| `love.system` | `8/8` | `6/8`, 2 physical-side-effect skips | Physical vibration remains a device certification item. |
+| `love.thread` | `16/16` | `5/5` | No known Love 11.5 API gap. |
+| `love.video` | `9/9` | `2/2` | Additional codec/container support is outside the Ogg/Theora target. |
+
+## Lua compatibility boundary
+
+Love states run Lua 5.5. Source code, current Lua 5.5 bytecode, `unpack`,
+`loadstring`, `package.loaders`, and the 32-bit `bit` compatibility module are
+supported. `getfenv` and `setfenv` have limited source compatibility for Lua
+functions and positive stack levels. `getfenv(0)` returns the isolated state's
+global table, while replacing a Lua 5.1-style thread environment with
+`setfenv(0, env)` is not supported by Lua 5.5 and produces a targeted error.
+LuaJIT `ffi`, `jit`, LuaJIT/Lua 5.1 bytecode, and Lua 5.1 ABI native modules are
+also rejected with targeted diagnostics. Supply source code or compile bytecode
+with the Lua 5.5 version shipped by Dora.

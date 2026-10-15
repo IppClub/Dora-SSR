@@ -1,0 +1,15 @@
+<!-- params: X=0, Y=0, Width, Height, FillColor, BorderColor -->
+<Dora>
+	<Import Module="UI.View.Shape.SolidRect"/>
+	<Import Module="UI.View.Shape.LineRect"/>
+
+	<Node X="{ x or 0 }" Y="{ y or 0 }" Width="{ width }" Height="{ height }">
+		<Lua>if fillColor then</Lua>
+			<SolidRect Width="{ width }" Height="{ height }" Color="{ fillColor }" RenderOrder="{ fillOrder or 0 }"/>
+		<Lua>end</Lua>
+
+		<Lua>if borderColor then</Lua>
+			<LineRect Width="{ width }" Height="{ height }" Color="{ borderColor }" RenderOrder="{ lineOrder or 0 }"/>
+		<Lua>end</Lua>
+	</Node>
+</Dora>

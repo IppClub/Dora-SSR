@@ -1,0 +1,37 @@
+<!-- params: X, Y, Radius, FontSize, Text -->
+<Dora>
+	<Import Module="UI.View.Control.Basic.ButtonBase"/>
+	<Import Module="UI.View.Shape.SolidCircle"/>
+	<Import Module="UI.View.Shape.LineCircle"/>
+
+	<ButtonBase X="{ x }" Y="{ y }" Width="{ radius*2 }" Height="{ radius*2 }">
+		<Item Name="face">
+			<Action>
+				<Spawn Name="show">
+					<Show/>
+					<Opacity Start="0.6"/>
+				</Spawn>
+				<Sequence Name="hide">
+					<Show/>
+					<Opacity Time="0.8" Start="0.6" Stop="0"/>
+					<Hide/>
+				</Sequence>
+			</Action>
+
+			<Node PassColor="False">
+				<SolidCircle Radius="{ radius }" Color="{ backColor or 0x88000000 }" RenderOrder="1"/>
+			</Node>
+
+			<Lua>if text then</Lua>
+				<Label Name="label" X="{ $X }" Y="{ $Y }" Text="{ text }" FontName="{ fontName or 'sarasa-mono-sc-regular'}" FontSize="{ math.floor((fontSize or 18) * App.devicePixelRatio) }" RenderOrder="2" ScaleX="{ 1 / App.devicePixelRatio }" ScaleY="{ 1 / App.devicePixelRatio }" TextAlign="Center" Ref="True"/>
+			<Lua>end</Lua>
+
+			<LineCircle Radius="{ radius }" Color="0xffffffff" RenderOrder="3"/>
+			<SolidCircle Name="light" Radius="{ radius }" Color="{ App.themeColor:toARGB() }" RenderOrder="4"/>
+			<Lua>light.visible = false</Lua>
+		</Item>
+
+		<Slot Name="TapBegan" Target="light" Perform="show"/>
+		<Slot Name="TapEnded" Target="light" Perform="hide"/>
+	</ButtonBase>
+</Dora>

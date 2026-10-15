@@ -1,0 +1,110 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Organizing Your Game Project
+
+In the world of game development, project management and code organization are crucial. This tutorial is designed to introduce how to organize and manage your game project directory using the Dora SSR open-source game engine.
+
+## 1. Understanding Dora SSR's Project Management Mechanism
+
+Dora SSR engine manages game projects based on directory structures. In this system, any directory containing a file named `init` will automatically be recognized as the root directory of the game project. This `init` file could have extensions such as `.yue`, `.lua`, `.ts`, `.tsx`, `.tl`, or `.wasm`.
+
+## 2. Identifying the Game Project Directory
+
+When using Dora SSR's Web IDE for development, if you open any code file for preview or editing and execute the project run command, the IDE will automatically search upward from the directory of the currently opened file until it finds the root directory containing the `init` file. The game testing run will start from this `init` file.
+
+## 3. Suggestions for Organizing Project Directories
+
+To standardize your game project organization, it is suggested (but not mandatory) to organize your game project directory as follows:
+
+- **Game Project Root Directory**
+	- **Audio**: For storing game audio resources.
+	- **Data**: For static game data files such as Excel spreadsheets, script configuration tables, etc.
+	- **Font**: For storing game font files.
+	- **Image**: For storing game image resources.
+	- **Script**: For storing script files, such as Lua, YueScript, Teal, or TS code.
+	- **Spine**: For storing game animation resources.
+	- **init.yue | lua | tl | ts | tsx | wasm**: The project startup file, chosen according to the scripting language used.
+
+This structure is not only clear but also easy to manage and maintain.
+
+## 4. Code Module Search Paths
+
+When writing Lua, YueScript, or Teal code, if you need to import external modules, the Dora SSR engine runtime and Web IDE will search for code modules in the following order:
+
+1. **"Game Project Root Directory"/Script**
+2. **"Game Project Root Directory"**
+3. **"Engine Built-in Resource Root Directory"/Script/Lib**
+4. **"Engine Built-in Resource Root Directory"/Script/Lib/Dora/en**
+5. **"Engine Built-in Resource Root Directory"**
+
+For path **Number 3**, ensure you are familiar with the use of Dora SSR’s supportive development libraries. Path **Number 4** is mainly used for providing type definition files for various statically-typed scripting languages interfacing with the Dora SSR engine. Make sure your module's storage path complies with the above search logic for seamless project integration.
+
+#### Example of Module Import
+
+```text
+project/
+├── init.lua
+└── Script/
+	 ├── moduleA.lua
+	 └── moduleB.lua
+```
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+-- Import local modules
+local moduleA = require("moduleA") -- Uses search path `Number 1`: project/Script/moduleA.lua
+local moduleB = require("Script.moduleB") -- Uses search path `Number 2`: project/Script/moduleB.lua
+
+-- Import engine built-in modules
+local Utils = require("Utils") -- Uses search path `Number 3`: "Engine built-in resource root directory"/Script/Lib/Utils.lua
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title="init.tl"
+-- Import local modules
+local moduleA = require("moduleA") -- Uses search path `Number 1`: project/Script/moduleA.tl
+local moduleB = require("Script.moduleB") -- Uses search path `Number 2`: project/Script/moduleB.tl
+
+-- Import engine built-in modules
+local Utils = require("Utils") -- Uses search path `Number 3`: "Engine built-in resource root directory"/Script/Lib/Utils.tl
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+// Import local modules
+import moduleA from "moduleA"; // Uses search path `Number 1`: project/Script/moduleA.ts
+import moduleB from "Script/moduleB"; // Uses search path `Number 2`: project/Script/moduleB.ts
+
+// Import engine built-in modules
+import * as Utils from "Utils"; // Uses search path `Number 3`: "Engine built-in resource root directory"/Script/Lib/Utils.lua
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+-- Import local modules
+import "moduleA" -- Uses search path `Number 1`: project/Script/moduleA.yue
+import "Script.moduleB" -- Uses search path `Number 2`: project/Script/moduleB.yue
+
+-- Import engine built-in modules
+local Utils = require("Utils") -- Uses search path `Number 3`: "Engine built-in resource root directory"/Script/Lib/Utils.lua
+```
+
+</TabItem>
+</Tabs>
+
+## 5. Best Practices
+
+- Keep your code and resources well organized to facilitate team collaboration and project maintenance.
+- Utilize the code inspection features of the Dora SSR Web IDE to instantly see the effects of module imports.
+- Check whether the correctly named `init` file exists in the project directory to ensure the project can be loaded and run correctly.
+
+By following these guidelines, you can effectively manage and run your game project. We wish you the best in creating compelling game experiences with the powerful capabilities of the Dora SSR engine.

@@ -1,0 +1,117 @@
+# Mouse
+
+**描述：**
+
+&emsp;&emsp;用于处理鼠标输入的单例类接口。
+
+## position
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;鼠标在可视窗口逻辑坐标系中的位置，原点位于左上角。
+在 2D 场景中，应先将其映射到 `View.size`，应用 Camera2D 的逆变换，再调用 `node:convertToNodeSpace()`。
+摄像机缩放需要做除法而不是乘法。对于节点 3D 变换或自定义投影，请改用 `node:onMouseMove()` 并读取 `touch.location`。
+
+**签名：**
+```tl
+const position: Vec2
+```
+
+**用法示例：**
+```tl
+local node = Node()
+local camera = Director.currentCamera as Camera2D.Type
+local mouse = Mouse.position
+local visualSize = App.visualSize
+local viewSize = View.size
+local viewPos = Vec2(
+	mouse.x * viewSize.width / visualSize.width - viewSize.width / 2,
+	viewSize.height / 2 - mouse.y * viewSize.height / visualSize.height
+) / camera.zoom
+local angle = math.rad(camera.rotation)
+local worldPos = Vec2(
+	viewPos.x * math.cos(angle) - viewPos.y * math.sin(angle),
+	viewPos.x * math.sin(angle) + viewPos.y * math.cos(angle)
+) + camera.position
+local nodePos = node:convertToNodeSpace(worldPos)
+```
+
+## delta
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;从上一帧开始累计的鼠标移动量。
+
+**签名：**
+```tl
+const delta: Vec2
+```
+
+## relativeMode
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;是否启用相对鼠标模式。相对模式会隐藏并捕获鼠标光标。
+
+**签名：**
+```tl
+relativeMode: boolean
+```
+
+## leftButtonPressed
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;鼠标左键是否正在被按下。
+
+**签名：**
+```tl
+const leftButtonPressed: boolean
+```
+
+## rightButtonPressed
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;鼠标右键是否正在被按下。
+
+**签名：**
+```tl
+const rightButtonPressed: boolean
+```
+
+## middleButtonPressed
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;鼠标中键是否正在被按下。
+
+**签名：**
+```tl
+const middleButtonPressed: boolean
+```
+
+## wheel
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;鼠标滚轮的滚动值。
+
+**签名：**
+```tl
+const wheel: Vec2
+```

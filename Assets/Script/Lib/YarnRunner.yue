@@ -1,0 +1,178 @@
+--[[ Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. ]]
+
+import "yarncompile"
+import "Content"
+import global
+
+rewriteError = (err, luaCode, title) ->
+	line, msg = err\match ".*:(%d+):%s*(.*)"
+	line = tonumber line
+	current = 1
+	lastLine = 1
+	lineMap = {}
+	for lineCode in luaCode\gmatch "([^\r\n]*)\r?\n?"
+		num = lineCode\match "--%s*(%d+)%s*$"
+		lastLine = tonumber num if num
+		lineMap[current] = lastLine
+		current += 1
+	line = lineMap[line] or line
+	"#{title}:#{line}: #{msg}"
+
+parseVariables = (yarnText): variables ->
+	variables = []
+	in_variables = false
+	current_var = key: nil, value: nil
+	for line in yarnText\gmatch "([^\r\n]*)\r?\n?"
+		break unless line\match "^%s*//"
+		raw = line\gsub("^%s*//%s*", "")\gsub "%s+$", ""
+		if raw == "variables:"
+			in_variables = true
+		elseif in_variables and raw\match "^%-%s*key:"
+			if next(current_var) ~= nil
+				variables[] = current_var
+				current_var = {}
+			current_var.key = raw\match "^%-%s*key:%s*(.+)"
+		elseif in_variables and raw\match "^value:"
+			current_var.value = raw\match "^value:%s*(.+)"
+	if next(current_var) ~= nil
+		variables[] = current_var
+
+extractYarnText = (yarnCode): nodes ->
+	nodes = []
+	count = 1
+	for body in yarnCode\gmatch "(.-)%s*===%s*[\n$]"
+		meta, nodeBody = body\match "(.-)%s*---%s*\n(.*)"
+		if meta and nodeBody
+			title = meta\match "title%s*:%s*(%S+)"
+			node = :title, body: nodeBody\match "^%s*(.-)%s*$"
+			nodes[] = node
+		else
+			error "missing title for node #{count}"
+		count += 1
+
+class YarnRunner
+	gotoStory: (title) =>
+		storyFunc = @funcs[title]
+		unless storyFunc
+			yarnCode = @codes[title]
+			unless yarnCode
+				err = "node \"#{title}\" is not exist"
+				if @startTitle
+					return false, err
+				else
+					coroutine.yield "Error", err
+					return
+			luaCode, err = yarncompile yarnCode
+			unless luaCode
+				if @startTitle
+					return false, "#{title}:#{err}"
+				else
+					coroutine.yield "Error", "#{title}:#{err}"
+					return
+			@codes[title] = luaCode
+			luaFunc, err = load luaCode, title
+			unless luaFunc
+				err = rewriteError err, luaCode, title
+				if @startTitle
+					return false, err
+				else
+					coroutine.yield "Error", err
+					return
+			storyFunc = luaFunc!
+			@funcs[title] = storyFunc
+		visitedCount = @visited[title] ?? 0
+		@visited[title] = 1 + visitedCount
+		@stories[] = [title, coroutine.create ->
+			storyFunc title, @state, @command, @yarn, @\gotoStory
+		]
+		true
+
+	new: (filename, startTitle, state = {}, command = {}, testing = false) =>
+		yarnCode = Content\load filename
+		error "failed to read yarn file \"#{filename}\"" unless yarnCode
+		nodes = extractYarnText yarnCode
+		error "failed to load yarn code" unless #nodes > 0
+
+		@codes = {}
+		@funcs = {}
+		@state = state
+		@command = {
+			stop: -> coroutine.yield "Stop"
+			...command
+		}
+		@command.<> = command.<>
+		@stories = []
+		@visited = {}
+		@yarn = {
+			dice: (num) -> math.random num
+			random: -> math.random!
+			random_range: (start, stop) -> math.random start, stop
+			visited: (name) -> @visited[name]?
+			visited_count: (name) -> @visited[name] ?? 0
+		}
+		@startTitle = startTitle
+		if testing
+			if variables := parseVariables yarnCode
+				for :key, :value in *variables
+					switch value when "true"
+						state[key] = true
+					when "false"
+						state[key] = false
+					else
+						if num := tonumber value
+							state[key] = num
+						else
+							state[key] = value
+		for :title, :body in *nodes
+			@codes[title] = body
+
+	advance: (choice) =>
+		if @startTitle
+			success, err = @gotoStory @startTitle
+			@startTitle = nil
+			return "Error", err unless success
+		if choice
+			unless @option
+				return "Error", "there is no option to choose"
+			:title, :branches = @option
+			if not (1 <= choice <= #branches)
+				return "Error", "choice #{choice} is out of range"
+			optionBranch = branches[choice]
+			@option = nil
+			@stories[] = [title, coroutine.create optionBranch]
+		elseif @option
+			return "Error", "required a choice to continue"
+		local title
+		success, resultType, body, branches = if [title, story] := @stories[#@stories]
+			coroutine.resume story
+		if not success and #@stories > 0
+			@stories = []
+			err = rewriteError resultType, @codes[title], title
+			return "Error", err
+		unless resultType
+			if #@stories > 0
+				@stories[#@stories] = nil
+				return @advance!
+		switch resultType
+			when "Dialog"
+				"Text", body
+			when "Option"
+				@option = :title, :branches
+				"Option", body
+			when "Goto"
+				@advance!
+			when "Command"
+				"Command", body
+			when "Error", "Stop"
+				@stories = []
+				"Error", body
+			else
+				nil, "end of the story"
+
+export default YarnRunner

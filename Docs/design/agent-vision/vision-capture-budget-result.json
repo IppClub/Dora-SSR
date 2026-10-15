@@ -1,0 +1,1 @@
+{"success":true,"checks":[{"name":"command_completed","success":true},{"name":"three_batches_reserved","success":true},{"name":"three_frames_captured","success":true},{"name":"batch_budget_exhausted","success":true},{"name":"first_three_captures_succeeded","success":true},{"name":"fourth_capture_rejected","success":true}]}

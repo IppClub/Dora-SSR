@@ -1,0 +1,100 @@
+# Bullet
+
+**Description:**
+
+&emsp;&emsp;A record that defines the properties and behavior of a bullet object instance in the game.
+
+**Class Object:** [Platformer.Bullet Class](/docs/api/Class%20Object/Platformer/Bullet).
+
+**Inherits from:** [Body](/docs/api/Class/Body).
+
+## targetAllow
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The value from a `Platformer.TargetAllow` object for the bullet object.
+
+**Signature:**
+```tl
+targetAllow: integer
+```
+
+## faceRight
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the bullet object is facing right.
+
+**Signature:**
+```tl
+const faceRight: boolean
+```
+
+## hitStop
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the bullet object should stop on impact.
+
+**Signature:**
+```tl
+hitStop: boolean
+```
+
+## emitter
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The `Unit` object that fired the bullet.
+
+**Signature:**
+```tl
+const emitter: Unit
+```
+
+## bulletDef
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The `BulletDef` object that defines the bullet's properties and behavior.
+
+**Signature:**
+```tl
+const bulletDef: BulletDef
+```
+
+## face
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The `Node` object that appears as the bullet's visual item.
+
+**Signature:**
+```tl
+face: Node
+```
+
+## destroy
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Destroys the bullet object instance.
+
+**Signature:**
+```tl
+destroy: function(self: Bullet)
+```

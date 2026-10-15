@@ -1,0 +1,19 @@
+<!-- params: X=0, Y=0, Width, Height -->
+<Dora>
+	<Import Module="UI.View.Shape.SolidRect"/>
+
+	<Node Name="panel" X="{ x or 0 }" Y="{ y or 0 }" TouchEnabled="True" SwallowTouches="True" Visible="{ visible == nil or visible }">
+		<Lua>if clipping or clipping == nil then</Lua>
+			<ClipNode Name="area" Width="{ width or 0 }" Height="{ height or 0 }" TouchEnabled="True" SwallowMouseWheel="True" Ref="True">
+				<Stencil>
+					<SolidRect Width="{ width or 0 }" Height="{ height or 0 }" Ref="True"/>
+				</Stencil>
+				<Menu Name="view" AnchorX="0" AnchorY="0" Width="{ width or 0 }" Height="{ height or 0 }" RenderGroup="True" Ref="True"/>
+			</ClipNode>
+		<Lua>else</Lua>
+			<Node Name="area" Width="{ width or 0 }" Height="{ height or 0 }" TouchEnabled="True" SwallowMouseWheel="True" Ref="True">
+				<Menu Name="view" AnchorX="0" AnchorY="0" Width="{ width or 0 }" Height="{ height or 0 }" RenderGroup="True" Ref="True"/>
+			</Node>
+		<Lua>end</Lua>
+	</Node>
+</Dora>

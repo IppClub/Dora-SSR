@@ -1,0 +1,38 @@
+{
+  "item.label.Play": {
+    "message": "在线试玩",
+    "description": "Navbar item with label Play"
+  },
+  "title": {
+    "message": "Dora SSR",
+    "description": "The title in the navbar"
+  },
+  "logo.alt": {
+    "message": "Dora SSR 的 Logo",
+    "description": "The alt text of navbar logo"
+  },
+  "item.label.Tutorial": {
+    "message": "教程",
+    "description": "Navbar item with label Tutorial"
+  },
+  "item.label.Blog": {
+    "message": "博客",
+    "description": "Navbar item with label Blog"
+  },
+  "item.label.Reference": {
+    "message": "参考手册",
+    "description": "Navbar item with label Reference"
+  },
+  "item.label.Example": {
+    "message": "示例",
+    "description": "Navbar item with label Example"
+  },
+  "item.label.Creative": {
+    "message": "文创",
+    "description": "Navbar item with label Creative"
+  },
+  "item.label.Git": {
+    "message": "Git",
+    "description": "Navbar item with label Git"
+  }
+}

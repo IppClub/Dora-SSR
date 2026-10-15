@@ -1,0 +1,15 @@
+packages:
+  - .
+  - ../../Studio/packages/agent-contracts
+  - ../../Studio/packages/agent-ui
+  - ../../Studio/packages/compiler
+  - ../../Studio/packages/contracts
+  - ../../Studio/packages/tstl
+
+allowBuilds:
+  '@fortawesome/fontawesome-free': true
+  esbuild: true
+
+patchedDependencies:
+  mac-scrollbar@0.13.8: patches/mac-scrollbar@0.13.8.patch
+  vite-plugin-monaco-editor@1.1.0: patches/vite-plugin-monaco-editor@1.1.0.patch

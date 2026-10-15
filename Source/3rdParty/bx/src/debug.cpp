@@ -1,0 +1,567 @@
+/*
+ * Copyright 2010-2025 Branimir Karadzic. All rights reserved.
+ * License: https://github.com/bkaradzic/bx/blob/master/LICENSE
+ */
+
+#include <bx/debug.h>
+#include <bx/string.h>       // isPrint
+#include <bx/readerwriter.h> // WriterI
+#include <bx/os.h>           // exit
+
+#include <inttypes.h>        // PRIx*
+
+#ifndef BX_CONFIG_CALLSTACK_USE_LIB_BACKTRACE
+#	define BX_CONFIG_CALLSTACK_USE_LIB_BACKTRACE 0
+#elif BX_CONFIG_CALLSTACK_USE_LIB_BACKTRACE
+#	if !BX_PLATFORM_LINUX || !BX_COMPILER_GCC
+#		error "libbackrace is only supported on GCC/Linux."
+#	endif // BX_PLATFORM_LINUX && BX_COMPILER_GCC
+#endif // BX_CONFIG_CALLSTACK_USE_LIB_BACKTRACE
+
+#if BX_CONFIG_CALLSTACK_USE_LIB_BACKTRACE
+#	include <execinfo.h>  // backtrace
+#	include <backtrace.h> // backtrace_syminfo
+#	include <cxxabi.h>    // abi::__cxa_demangle
+#endif // BX_CONFIG_CALLSTACK_*
+
+#ifndef BX_CONFIG_EXCEPTION_HANDLING_USE_WINDOWS_SEH
+#	define BX_CONFIG_EXCEPTION_HANDLING_USE_WINDOWS_SEH BX_PLATFORM_WINDOWS
+#endif // BX_CONFIG_EXCEPTION_HANDLING_USE_WINDOWS_SEH
+
+#ifndef BX_CONFIG_EXCEPTION_HANDLING_USE_POSIX_SIGNALS
+#	define BX_CONFIG_EXCEPTION_HANDLING_USE_POSIX_SIGNALS 0 \
+		| (BX_PLATFORM_LINUX && !BX_CRT_NONE)
+#endif // BX_CONFIG_EXCEPTION_HANDLING_USE_POSIX_SIGNALS
+
+#if BX_CONFIG_EXCEPTION_HANDLING_USE_POSIX_SIGNALS
+#	include <signal.h>
+#elif BX_CONFIG_EXCEPTION_HANDLING_USE_WINDOWS_SEH
+
+struct ExceptionRecord
+{
+    uint32_t exceptionCode;
+    uint32_t exceptionFlags;
+
+    ExceptionRecord* exceptionRecord;
+
+    uintptr_t exceptionAddress;
+    uint32_t  numberParameters;
+    uintptr_t exceptionInformation[15];
+};
+
+struct ExceptionPointers
+{
+    ExceptionRecord* exceptionRecord;
+    void* contextRecord;
+};
+
+typedef uint32_t (__stdcall* TopLevelExceptionFilterFn)(ExceptionPointers* _exceptionInfo);
+
+extern "C" __declspec(dllimport) TopLevelExceptionFilterFn __stdcall SetUnhandledExceptionFilter(TopLevelExceptionFilterFn _topLevelExceptionFilter);
+#endif // BX_CONFIG_EXCEPTION_HANDLING_*
+
+#if BX_CRT_NONE
+#	include <bx/crt0.h>
+#elif BX_PLATFORM_ANDROID
+#	include <android/log.h>
+#elif  BX_PLATFORM_WINDOWS \
+	|| BX_PLATFORM_WINRT   \
+	|| BX_PLATFORM_XBOXONE
+extern "C" __declspec(dllimport) void __stdcall OutputDebugStringA(const char* _str);
+#elif BX_PLATFORM_IOS || BX_PLATFORM_OSX || BX_PLATFORM_VISIONOS
+#	if defined(__OBJC__)
+#		import <Foundation/NSObjCRuntime.h>
+#	else
+#		include <CoreFoundation/CFString.h>
+extern "C" void NSLog(CFStringRef _format, ...);
+#	endif // defined(__OBJC__)
+#elif BX_PLATFORM_EMSCRIPTEN
+#	include <emscripten/emscripten.h>
+#else
+#	include <stdio.h> // fputs, fflush
+#endif // BX_PLATFORM_WINDOWS
+
+namespace bx
+{
+	void debugBreak()
+	{
+#if BX_COMPILER_MSVC
+		__debugbreak();
+#elif BX_CPU_ARM
+		__builtin_trap();
+//		asm("bkpt 0");
+#elif BX_CPU_X86 && (BX_COMPILER_GCC || BX_COMPILER_CLANG)
+		// NaCl doesn't like int 3:
+		// NativeClient: NaCl module load failed: Validation failure. File violates Native Client safety rules.
+		__asm__ ("int $3");
+#elif BX_PLATFORM_EMSCRIPTEN
+		emscripten_log(0
+			| EM_LOG_CONSOLE
+			| EM_LOG_ERROR
+			| EM_LOG_C_STACK
+			| EM_LOG_JS_STACK
+			, "debugBreak!"
+			);
+		// Doing emscripten_debugger() disables asm.js validation due to an emscripten bug
+		//emscripten_debugger();
+		EM_ASM({ debugger; });
+#else // cross platform implementation
+		int* int3 = (int*)3L;
+		*int3 = 3;
+#endif // BX
+	}
+
+	void debugOutput(const char* _out)
+	{
+#if BX_CRT_NONE
+		crt0::debugOutput(_out);
+#elif BX_PLATFORM_ANDROID
+#	ifndef BX_ANDROID_LOG_TAG
+#		define BX_ANDROID_LOG_TAG ""
+#	endif // BX_ANDROID_LOG_TAG
+		__android_log_write(ANDROID_LOG_DEBUG, BX_ANDROID_LOG_TAG, _out);
+#elif  BX_PLATFORM_WINDOWS \
+	|| BX_PLATFORM_WINRT   \
+	|| BX_PLATFORM_XBOXONE
+		OutputDebugStringA(_out);
+#elif  BX_PLATFORM_IOS \
+	|| BX_PLATFORM_OSX   \
+	|| BX_PLATFORM_VISIONOS
+#	if defined(__OBJC__)
+		NSLog(@"%s", _out);
+#	else
+		NSLog(__CFStringMakeConstantString("%s"), _out);
+#	endif // defined(__OBJC__)
+#elif BX_PLATFORM_EMSCRIPTEN
+		emscripten_log(EM_LOG_CONSOLE, "%s", _out);
+#else
+		fputs(_out, stdout);
+		fflush(stdout);
+#endif // BX_PLATFORM_
+	}
+
+	void debugOutput(const StringView& _str)
+	{
+#if BX_CRT_NONE
+		crt0::debugOutput(_str);
+#else
+		const char* data = _str.getPtr();
+		int32_t size = _str.getLength();
+
+		char temp[4096];
+		while (0 != size)
+		{
+			uint32_t len = uint32_min(sizeof(temp)-1, size);
+			memCopy(temp, data, len);
+			temp[len] = '\0';
+			data += len;
+			size -= len;
+			debugOutput(temp);
+		}
+#endif // BX_CRT_NONE
+	}
+
+	void debugPrintfVargs(const char* _format, va_list _argList)
+	{
+		char temp[8192];
+		char* out = temp;
+		int32_t len = vsnprintf(out, sizeof(temp), _format, _argList);
+		if ( (int32_t)sizeof(temp) < len)
+		{
+			out = (char*)BX_STACK_ALLOC(len+1);
+			len = vsnprintf(out, len, _format, _argList);
+		}
+		out[len] = '\0';
+		debugOutput(out);
+	}
+
+	void debugPrintf(const char* _format, ...)
+	{
+		va_list argList;
+		va_start(argList, _format);
+		debugPrintfVargs(_format, argList);
+		va_end(argList);
+	}
+
+#define DBG_ADDRESS "%" PRIxPTR
+
+	void debugPrintfData(const void* _data, uint32_t _size, const char* _format, ...)
+	{
+#define HEX_DUMP_WIDTH 16
+#define HEX_DUMP_SPACE_WIDTH 48
+#define HEX_DUMP_FORMAT "%-" BX_STRINGIZE(HEX_DUMP_SPACE_WIDTH) "." BX_STRINGIZE(HEX_DUMP_SPACE_WIDTH) "s"
+
+		va_list argList;
+		va_start(argList, _format);
+		debugPrintfVargs(_format, argList);
+		va_end(argList);
+
+		debugPrintf("\ndata: " DBG_ADDRESS ", size: %d\n", _data, _size);
+
+		if (NULL != _data)
+		{
+			const uint8_t* data = (const uint8_t*)_data;
+			char hex[HEX_DUMP_WIDTH*3+1];
+			char ascii[HEX_DUMP_WIDTH+1];
+			uint32_t hexPos = 0;
+			uint32_t asciiPos = 0;
+			for (uint32_t ii = 0; ii < _size; ++ii)
+			{
+				snprintf(&hex[hexPos], sizeof(hex)-hexPos, "%02x ", data[asciiPos]);
+				hexPos += 3;
+
+				ascii[asciiPos] = isPrint(data[asciiPos]) ? data[asciiPos] : '.';
+				asciiPos++;
+
+				if (HEX_DUMP_WIDTH == asciiPos)
+				{
+					ascii[asciiPos] = '\0';
+					debugPrintf("\t" DBG_ADDRESS "\t" HEX_DUMP_FORMAT "\t%s\n", data, hex, ascii);
+					data += asciiPos;
+					hexPos   = 0;
+					asciiPos = 0;
+				}
+			}
+
+			if (0 != asciiPos)
+			{
+				ascii[asciiPos] = '\0';
+				debugPrintf("\t" DBG_ADDRESS "\t" HEX_DUMP_FORMAT "\t%s\n", data, hex, ascii);
+			}
+		}
+
+#undef HEX_DUMP_WIDTH
+#undef HEX_DUMP_SPACE_WIDTH
+#undef HEX_DUMP_FORMAT
+	}
+
+	class DebugWriter : public WriterI
+	{
+		virtual int32_t write(const void* _data, int32_t _size, Error* _err) override
+		{
+			BX_UNUSED(_err);
+			debugOutput(StringView( (const char*)_data, _size) );
+			return _size;
+		}
+	};
+
+	WriterI* getDebugOut()
+	{
+		static DebugWriter s_debugOut;
+		return &s_debugOut;
+	}
+
+#if BX_CONFIG_CALLSTACK_USE_LIB_BACKTRACE
+	uint32_t getCallStack(uint32_t _skip, uint32_t _max, uintptr_t* _outStack)
+	{
+		const uint32_t max = _skip+_max+1;
+		void** tmp = (void**)BX_STACK_ALLOC(sizeof(uintptr_t)*max);
+
+		const uint32_t numFull = backtrace(tmp, max);
+		const uint32_t skip    = min(_skip + 1 /* skip self */, numFull);
+		const uint32_t num     = numFull - skip;
+
+		memCopy(_outStack, tmp + skip, sizeof(uintptr_t)*num);
+
+		return num;
+	}
+
+	struct StackTraceContext
+	{
+		StackTraceContext()
+		{
+			state = backtrace_create_state(NULL, 0, NULL, NULL);
+		}
+
+		struct backtrace_state* state;
+	};
+
+	static StackTraceContext s_stCtx;
+
+	struct CallbackData
+	{
+		StringView resolvedName;
+		StringView fileName;
+		int32_t line;
+	};
+
+	static void backtraceSymInfoCb(void* _data, uintptr_t _pc, const char* _symName, uintptr_t _symVal, uintptr_t _symSize)
+	{
+		BX_UNUSED(_pc, _symVal);
+
+		CallbackData* cbData = (CallbackData*)_data;
+		cbData->resolvedName.set(_symName, _symSize);
+	}
+
+	static int backtraceFullCb(void* _data, uintptr_t _pc, const char* _fileName, int32_t _lineNo, const char* _function)
+	{
+		BX_UNUSED(_pc, _function);
+
+		CallbackData* cbData = (CallbackData*)_data;
+		if (NULL == _fileName)
+		{
+			cbData->fileName.set("<Unknown?>");
+			cbData->line = -1;
+		}
+		else
+		{
+			cbData->fileName.set(_fileName);
+			cbData->line = _lineNo;
+		}
+
+		return 1;
+	}
+
+	int32_t writeCallstack(WriterI* _writer, uintptr_t* _stack, uint32_t _num, Error* _err)
+	{
+		BX_ERROR_SCOPE(_err);
+
+		char   demangleBuf[4096];
+		size_t demangleLen = BX_COUNTOF(demangleBuf);
+
+		int32_t total = write(_writer, _err, "Callstack (%d):\n", _num);
+
+		constexpr uint32_t kWidth = 40;
+		total += write(_writer, _err, "\t #: %-*s  Line: PC ---     Function ---\n", kWidth, "File ---");
+
+		CallbackData cbData;
+
+		for (uint32_t ii = 0; ii < _num && _err->isOk(); ++ii)
+		{
+			backtrace_pcinfo(s_stCtx.state, _stack[ii], backtraceFullCb, NULL, &cbData);
+
+			StringView demangledName;
+
+			if (1 == backtrace_syminfo(s_stCtx.state, _stack[ii], backtraceSymInfoCb, NULL, &cbData) )
+			{
+				demangleLen = BX_COUNTOF(demangleBuf);
+				int32_t demangleStatus;
+				abi::__cxa_demangle(cbData.resolvedName.getPtr(), demangleBuf, &demangleLen, &demangleStatus);
+
+				if (0 == demangleStatus)
+				{
+					demangledName.set(demangleBuf, demangleLen);
+				}
+				else
+				{
+					demangledName = cbData.resolvedName;
+				}
+			}
+			else
+			{
+				demangledName = "???";
+			}
+
+			const StringView fn = strTail(cbData.fileName, kWidth);
+
+			total += write(_writer, _err
+				, "\t%2d: %-*S % 5d: %p %S\n"
+				, ii
+				, kWidth
+				, &fn
+				, cbData.line
+				, _stack[ii]
+				, &demangledName
+				);
+
+			if (0 == strCmp(demangledName, "main", 4) )
+			{
+				if (0 != _num-1-ii)
+				{
+					total += write(_writer, _err
+						, "\t... %d more stack frames below 'main'.\n"
+						, _num-1-ii
+						);
+				}
+				break;
+			}
+		}
+
+		return total;
+	}
+
+#else
+
+	uint32_t getCallStack(uint32_t _skip, uint32_t _max, uintptr_t* _outStack)
+	{
+		BX_UNUSED(_skip, _max, _outStack);
+		return 0;
+	}
+
+	int32_t writeCallstack(WriterI* _writer, uintptr_t* _stack, uint32_t _num, Error* _err)
+	{
+		BX_UNUSED(_writer, _stack, _num, _err);
+		return 0;
+	}
+
+#endif // BX_CONFIG_CALLSTACK_*
+
+	void debugOutputCallstack(uint32_t _skip)
+	{
+		uintptr_t stack[32];
+		const uint32_t num = getCallStack(_skip + 1 /* skip self */, BX_COUNTOF(stack), stack);
+		writeCallstack(getDebugOut(), stack, num, ErrorIgnore{});
+	}
+
+#if BX_CONFIG_EXCEPTION_HANDLING_USE_POSIX_SIGNALS
+	struct SignalInfo
+	{
+		int32_t signalId;
+		const char* name;
+	};
+
+	static const SignalInfo s_signalInfo[] =
+	{   // Linux
+		{ /*  4 */ SIGILL,  "SIGILL - Illegal instruction signal."     },
+		{ /*  6 */ SIGABRT, "SIGABRT - Abort signal."                  },
+		{ /*  8 */ SIGFPE,  "SIGFPE - Floating point error signal."    },
+		{ /* 11 */ SIGSEGV, "SIGSEGV - Segmentation violation signal." },
+	};
+
+	struct ExceptionHandler
+	{
+		ExceptionHandler()
+		{
+			BX_TRACE("ExceptionHandler - POSIX");
+
+			stack_t stack;
+			stack.ss_sp    = s_stack;
+			stack.ss_size  = sizeof(s_stack);
+			stack.ss_flags = 0;
+			sigaltstack(&stack, &m_oldStack);
+
+			struct sigaction sa;
+			sa.sa_handler   = NULL;
+			sa.sa_sigaction = signalActionHandler;
+			sa.sa_mask      = { 0 };
+			sa.sa_flags     = SA_ONSTACK | SA_SIGINFO;
+			sa.sa_restorer  = NULL;
+
+			for (uint32_t ii = 0; ii < BX_COUNTOF(s_signalInfo); ++ii)
+			{
+				sigaction(s_signalInfo[ii].signalId, &sa, &m_oldSignalAction[ii]);
+			}
+		}
+
+		~ExceptionHandler()
+		{
+		}
+
+		static void signalActionHandler(int32_t _signalId, siginfo_t* _info, void* _context)
+		{
+			BX_UNUSED(_context);
+
+			const char* name = "Unknown signal?";
+
+			for (uint32_t ii = 0; ii < BX_COUNTOF(s_signalInfo); ++ii)
+			{
+				const SignalInfo& signalInfo = s_signalInfo[ii];
+
+				if (signalInfo.signalId == _signalId)
+				{
+					name = signalInfo.name;
+					break;
+				}
+			}
+
+			if (assertFunction(Location("Exception Handler", UINT32_MAX), 2
+				, "%s SIGNAL %d, ERRNO %d, CODE %d"
+				, name
+				, _info->si_signo
+				, _info->si_errno
+				, _info->si_code
+				) )
+			{
+				exit(kExitFailure, false);
+			}
+		}
+
+		static constexpr uint32_t kExceptionStackSize = 64<<10;
+
+		static char s_stack[kExceptionStackSize];
+
+		stack_t m_oldStack;
+		struct sigaction m_oldSignalAction[BX_COUNTOF(s_signalInfo)];
+	};
+
+	char ExceptionHandler::s_stack[kExceptionStackSize];
+
+#elif BX_CONFIG_EXCEPTION_HANDLING_USE_WINDOWS_SEH
+
+	struct ExceptionInfo
+	{
+		uint32_t exceptionCode;
+		const char* name;
+	};
+
+	static const ExceptionInfo s_exceptionInfo[] =
+	{   // Windows
+		{ /* EXCEPTION_ACCESS_VIOLATION    */ 0xc0000005u, "Access violation."    },
+		{ /* EXCEPTION_ILLEGAL_INSTRUCTION */ 0xc000001du, "Illegal instruction." },
+		{ /* EXCEPTION_STACK_OVERFLOW      */ 0xc00000fdu, "Stack overflow."      },
+	};
+
+	struct ExceptionHandler
+	{
+		ExceptionHandler()
+		{
+			BX_TRACE("ExceptionHandler - Windows SEH");
+			SetUnhandledExceptionFilter(topLevelExceptionFilter);
+		}
+
+		static uint32_t __stdcall topLevelExceptionFilter(ExceptionPointers* _info)
+		{
+			const char* name = "Unknown signal?";
+
+			const uint32_t exceptionCode = _info->exceptionRecord->exceptionCode;
+
+			for (uint32_t ii = 0; ii < BX_COUNTOF(s_exceptionInfo); ++ii)
+			{
+				const ExceptionInfo& signal = s_exceptionInfo[ii];
+
+				if (signal.exceptionCode == exceptionCode)
+				{
+					name = signal.name;
+					break;
+				}
+			}
+
+			if (assertFunction(Location("Exception Handler", UINT32_MAX), 2
+				, "%s Exception Code %x"
+				, name
+				, _info->exceptionRecord->exceptionCode
+				) )
+			{
+				exit(kExitFailure, false);
+			}
+
+			return 0 /* EXCEPTION_CONTINUE_SEARCH */;
+		}
+	};
+
+#else // Noop exception handler
+
+	class ExceptionHandler
+	{
+	public:
+		ExceptionHandler()
+		{
+			BX_TRACE("ExceptionHandler - Noop");
+		}
+	};
+
+#endif // BX_CONFIG_EXCEPTION_HANDLING_*
+
+	void installExceptionHandler()
+	{
+		static bool s_installed = false;
+
+		if (!s_installed)
+		{
+			s_installed = true;
+
+			static ExceptionHandler s_exceptionHandler;
+		}
+	}
+
+} // namespace bx

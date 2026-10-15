@@ -1,0 +1,14 @@
+$#include "Const/Header.h"
+$#include "Lua/ToLua/tolua++.h"
+$#include "Lua/LuaManual.h"
+$#include "GUI/ImGuiBinding.h"
+$using namespace Dora;
+$using string = std::string;
+$#define NewVec2(x,y) Vec2{x,y}
+
+// The Web binding is generated from the canonical API declarations. C++
+// compile guards in basic.lua remove features disabled by the selected Web
+// runtime preset, keeping native and Web signatures from drifting apart.
+$pfile "Dora.h"
+$pfile "ImGui.h"
+$pfile "NanoVG.h"

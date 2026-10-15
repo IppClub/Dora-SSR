@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en" data-dora-state="booting">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Dora Love Web Player</title>
+	<style>
+		:root { color-scheme: dark; font-family: ui-sans-serif, system-ui, sans-serif; }
+		html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #101216; }
+		body { display: grid; place-items: center; }
+		canvas { width: 100%; height: 100%; display: block; }
+		canvas[hidden], [hidden] { display: none !important; }
+		#player-panel { position: fixed; z-index: 1; width: min(560px, calc(100% - 48px)); padding: 34px; border: 1px solid #303744;
+			border-radius: 18px; background: #181c23; box-shadow: 0 24px 80px #0008; text-align: center; }
+		h1 { margin: 0 0 8px; font-size: 24px; } p { color: #aeb7c7; line-height: 1.5; }
+		label, button { border: 0; border-radius: 10px; padding: 11px 16px; color: #fff; background: #526df2;
+			font: inherit; cursor: pointer; }
+		input[type=file] { position: absolute; inline-size: 1px; block-size: 1px; opacity: 0; }
+		#recent-projects { margin-top: 20px; border-top: 1px solid #303744; padding-top: 16px; }
+		.recent-project { margin: 4px; background: #2b3340; }
+		#player-status[data-faulted=true] { color: #ff9d9d; }
+		#stop-project { position: fixed; top: 12px; right: 12px; z-index: 2; background: #202630cc; }
+		html[data-dragging=true] #player-panel { outline: 3px solid #7288ff; }
+	</style>
+</head>
+<body>
+	<canvas id="canvas" tabindex="0"></canvas>
+	<main id="player-panel">
+		<h1>Love pthread player</h1>
+		<p id="player-status" role="status">Loading Dora SSR…</p>
+		<label for="package-picker">Open .dora package</label>
+		<input id="package-picker" type="file" accept=".dora,application/zip">
+		<div id="recent-projects" hidden></div>
+	</main>
+	<button id="stop-project" type="button" hidden>Stop</button>
+	<script>
+		window.doraSetState = function(state, detail) {
+			document.documentElement.dataset.doraState = state;
+			window.dispatchEvent(new CustomEvent("dora-statechange", {detail: {state, message: detail || ""}}));
+			if (state === "faulted") {
+				const status = document.getElementById("player-status");
+				status.textContent = detail || "Dora SSR failed to start.";
+				status.dataset.faulted = "true";
+			}
+		};
+		var Module = {
+			canvas: document.getElementById("canvas"),
+			onRuntimeInitialized: function() { window.doraSetState("ready"); },
+			onAbort: function(reason) { window.doraSetState("faulted", String(reason || "Runtime aborted")); }
+		};
+		Module.canvas.addEventListener("dblclick", function() {
+			const action = document.fullscreenElement ? document.exitFullscreen() : Module.canvas.requestFullscreen();
+			if (action && typeof action.catch === "function") action.catch(function() {});
+		});
+		window.doraStop = function() { return window.DoraLovePthreadPlayer?.stopProject() || false; };
+	</script>
+	{{{ SCRIPT }}}
+</body>
+</html>

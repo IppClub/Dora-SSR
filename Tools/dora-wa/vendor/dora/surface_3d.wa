@@ -1,0 +1,107 @@
+/* Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+import "runtime"
+
+#wa:import dora surface3d_type
+func surface3d_type() => i32
+
+#wa:import dora surface3d_set_content
+func surface3d_set_content(slf: i64, val: i64)
+
+#wa:import dora surface3d_get_content
+func surface3d_get_content(slf: i64) => i64
+
+#wa:import dora surface3d_set_size
+func surface3d_set_size(slf: i64, val: i64)
+
+#wa:import dora surface3d_get_size
+func surface3d_get_size(slf: i64) => i64
+
+#wa:import dora surface3d_set_pixel_size
+func surface3d_set_pixel_size(slf: i64, val: i64)
+
+#wa:import dora surface3d_get_pixel_size
+func surface3d_get_pixel_size(slf: i64) => i64
+
+#wa:import dora surface3d_set_billboard
+func surface3d_set_billboard(slf: i64, val: i32)
+
+#wa:import dora surface3d_get_billboard
+func surface3d_get_billboard(slf: i64) => i32
+
+#wa:import dora surface3d_is_using_texture
+func surface3d_is_using_texture(slf: i64) => i32
+
+#wa:import dora surface3d_new
+func surface3d_new(content: i64, size: i64, pixel_size: i64) => i64
+
+type Surface3D :struct{ Node3D }
+
+func Surface3DFrom(raw: i64) => *Surface3D {
+	if raw == 0 {
+		return nil
+	}
+	object := Surface3D{}
+	object.raw = &raw
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Surface3D.GetTypeId() => i32 {
+	return surface3d_type()
+}
+func ObjectAsSurface3D(object: Object) => *Surface3D {
+	if object.GetTypeId() == surface3d_type() {
+		ObjectRetain(object.GetRaw())
+		return Surface3DFrom(object.GetRaw())
+	}
+	return nil
+}
+func Surface3D.SetContent(val: Node) {
+	surface3d_set_content(*this.raw, val.GetRaw())
+}
+func Surface3D.GetContent() => Node {
+	return *NodeFrom(surface3d_get_content(*this.raw))
+}
+
+/// Sets Physical width and height in world units.
+func Surface3D.SetSize(val: Size) {
+	surface3d_set_size(*this.raw, val.ToValue())
+}
+
+/// Gets Physical width and height in world units.
+func Surface3D.GetSize() => Size {
+	return SizeFromValue(surface3d_get_size(*this.raw))
+}
+
+/// Sets Raster size used by the automatic render-target fallback.
+func Surface3D.SetPixelSize(val: Size) {
+	surface3d_set_pixel_size(*this.raw, val.ToValue())
+}
+
+/// Gets Raster size used by the automatic render-target fallback.
+func Surface3D.GetPixelSize() => Size {
+	return SizeFromValue(surface3d_get_pixel_size(*this.raw))
+}
+func Surface3D.SetBillboard(val: Billboard) {
+	surface3d_set_billboard(*this.raw, val.ToValue())
+}
+func Surface3D.GetBillboard() => Billboard {
+	return Billboard{value: surface3d_get_billboard(*this.raw)}
+}
+func Surface3D.IsUsingTexture() => bool {
+	return surface3d_is_using_texture(*this.raw) != 0
+}
+func NewSurface3D(content: Node, size: Size, pixel_size: Size) => Surface3D {
+	raw := surface3d_new(content.GetRaw(), size.ToValue(), pixel_size.ToValue())
+	object := Surface3D{}
+	object.raw = &raw
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

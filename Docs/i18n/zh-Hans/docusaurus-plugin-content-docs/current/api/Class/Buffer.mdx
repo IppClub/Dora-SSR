@@ -1,0 +1,67 @@
+# Buffer
+
+**描述：**
+
+&emsp;&emsp;用于ImGui输入组件的字符串缓冲区类。
+
+**类对象：**[Buffer Class](/docs/api/Class%20Object/Buffer)。
+
+**继承自：**[Object](/docs/api/Class/Object)。
+
+## size
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;缓冲区的大小。
+
+**签名：**
+```tl
+const size: integer
+```
+
+## text
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;设置或获取缓冲区存储的文本。
+
+**签名：**
+```tl
+text: string
+```
+
+## resize
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;更改缓冲区的大小。
+
+**签名：**
+```tl
+resize: function(self: Buffer, size: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| size | integer | 缓冲区的新大小。 |
+
+## zeroMemory
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将缓冲区中的所有字节设置为零。
+
+**签名：**
+```tl
+zeroMemory: function(self: Buffer)
+```

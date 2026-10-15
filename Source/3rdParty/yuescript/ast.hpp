@@ -1,0 +1,696 @@
+/* Copyright (c) 2012, Achilleas Margaritis, modified by Li Jin
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.*/
+
+#pragma once
+
+#include <array>
+#include <cassert>
+#include <cstddef>
+#include <deque>
+#include <iterator>
+#include <list>
+#include <memory>
+#include <stdexcept>
+#include <string_view>
+#include <type_traits>
+#include <vector>
+
+#include "yuescript/parser.hpp"
+
+namespace parserlib {
+
+using namespace std::string_view_literals;
+
+class ast_node;
+class ast_arena;
+template <bool Required, class T>
+class ast_ptr;
+template <bool Required, class T>
+class ast_list;
+template <class T>
+class ast;
+
+/** type of AST node stack.
+ */
+typedef std::vector<ast_node*> ast_stack;
+typedef std::deque<ast_node*> node_container;
+
+template <size_t Num>
+struct Counter {
+	enum { value = Counter<Num - 1>::value };
+};
+template <>
+struct Counter<0> {
+	enum { value = 0 };
+};
+
+#define COUNTER_READ Counter<__LINE__>::value
+#define COUNTER_INC \
+	template <> \
+	struct Counter<__LINE__> { \
+		enum { value = Counter<__LINE__ - 1>::value + 1 }; \
+	}
+
+template <class T>
+constexpr typename std::enable_if<std::is_base_of<ast_node, T>::value, int>::type
+id();
+
+enum class traversal {
+	Continue,
+	Return,
+	Stop
+};
+
+class ast_arena {
+public:
+	ast_arena() = default;
+	ast_arena(const ast_arena&) = delete;
+	ast_arena& operator=(const ast_arena&) = delete;
+
+	void* allocate(size_t size, size_t alignment);
+
+private:
+	struct block {
+		std::unique_ptr<std::byte[]> data;
+		size_t size = 0;
+		size_t used = 0;
+	};
+	std::vector<block> _blocks;
+};
+
+class ast_arena_scope {
+public:
+	explicit ast_arena_scope(ast_arena& arena);
+	~ast_arena_scope();
+	ast_arena_scope(const ast_arena_scope&) = delete;
+	ast_arena_scope& operator=(const ast_arena_scope&) = delete;
+
+private:
+	ast_arena* _previous = nullptr;
+};
+
+/** Base class for AST nodes.
+ */
+class ast_node : public input_range {
+public:
+	static void* operator new(size_t size);
+	static void operator delete(void* ptr) noexcept;
+
+	ast_node()
+		: _ref(0) { }
+
+	void retain() {
+		++_ref;
+	}
+
+	void release() {
+		--_ref;
+		if (_ref == 0) {
+			delete this;
+		}
+	}
+
+	/** interface for filling the contents of the node
+		from a node stack.
+		@param st stack.
+	*/
+	virtual void construct(ast_stack&) { }
+
+	/** interface for visiting AST tree use.
+	 */
+	virtual traversal traverse(const std::function<traversal(ast_node*)>& func);
+
+	template <typename... Ts>
+	struct select_last {
+		using type = typename decltype((std::enable_if<true, Ts>{}, ...))::type;
+	};
+	template <typename... Ts>
+	using select_last_t = typename select_last<Ts...>::type;
+
+	template <class... Args>
+	select_last_t<Args...>* get_by_path() {
+		int types[] = {id<Args>()...};
+		return static_cast<select_last_t<Args...>*>(get_by_type_ids(std::begin(types), std::end(types)));
+	}
+
+	virtual bool visit_child(const std::function<bool(ast_node*)>& func);
+
+	virtual int get_id() const = 0;
+
+	virtual const std::string_view get_name() const = 0;
+
+	virtual std::string to_string(void*) const { return {}; }
+
+	template <class T>
+	inline ast_ptr<false, T> new_ptr() const {
+		auto item = new T;
+		item->m_begin.m_line = m_begin.m_line;
+		item->m_begin.m_col = m_begin.m_col;
+		item->m_end.m_line = m_end.m_line;
+		item->m_end.m_col = m_end.m_col;
+		return ast_ptr<false, T>(item);
+	}
+
+private:
+	int _ref;
+	ast_node* get_by_type_ids(int* begin, int* end);
+};
+
+template <class T>
+constexpr typename std::enable_if<std::is_base_of<ast_node, T>::value, int>::type
+id() { return 0; }
+
+template <class T>
+T* ast_cast(ast_node* node) {
+	return node && id<T>() == node->get_id() ? static_cast<T*>(node) : nullptr;
+}
+
+template <class T>
+T* ast_to(ast_node* node) {
+	assert(node->get_id() == id<T>());
+	return static_cast<T*>(node);
+}
+
+template <class... Args>
+bool ast_is(ast_node* node) {
+	if (!node) return false;
+	bool result = false;
+	int i = node->get_id();
+	using swallow = bool[];
+	(void)swallow{result || (result = id<Args>() == i)...};
+	return result;
+}
+
+class ast_member;
+
+class ast_member_vector {
+public:
+	using iterator = ast_member**;
+	using const_iterator = ast_member* const*;
+	using reverse_iterator = std::reverse_iterator<iterator>;
+	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+	void reserve(size_t size) {
+		if (size <= InlineCapacity) return;
+		if (_heap) {
+			_overflow.reserve(size);
+		} else {
+			_overflow.reserve(size);
+			for (size_t i = 0; i < _size; i++) _overflow.push_back(_inlineStorage[i]);
+			_heap = true;
+		}
+	}
+
+	void push_back(ast_member* member) {
+		if (_heap) {
+			_overflow.push_back(member);
+		} else if (_size < InlineCapacity) {
+			_inlineStorage[_size] = member;
+		} else {
+			reserve(_size + 1);
+			_overflow.push_back(member);
+		}
+		_size++;
+	}
+
+	iterator begin() { return _heap ? _overflow.data() : _inlineStorage.data(); }
+	iterator end() { return begin() + _size; }
+	const_iterator begin() const { return _heap ? _overflow.data() : _inlineStorage.data(); }
+	const_iterator end() const { return begin() + _size; }
+	reverse_iterator rbegin() { return reverse_iterator(end()); }
+	reverse_iterator rend() { return reverse_iterator(begin()); }
+	const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
+	const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
+
+private:
+	static constexpr size_t InlineCapacity = 3;
+	std::array<ast_member*, InlineCapacity> _inlineStorage{};
+	std::vector<ast_member*> _overflow;
+	size_t _size = 0;
+	bool _heap = false;
+};
+
+/** base class for AST nodes with children.
+ */
+class ast_container : public ast_node {
+public:
+	void add_members(std::initializer_list<ast_member*> members) {
+		m_members.reserve(members.size());
+		for (auto member : members) {
+			m_members.push_back(member);
+		}
+	}
+
+	/** returns the vector of AST members.
+		@return the vector of AST members.
+	*/
+	const ast_member_vector& members() const {
+		return m_members;
+	}
+
+	/** Asks all members to construct themselves from the stack.
+		The members are asked to construct themselves in reverse order.
+		from a node stack.
+		@param st stack.
+	*/
+	virtual void construct(ast_stack& st) override;
+
+	virtual traversal traverse(const std::function<traversal(ast_node*)>& func) override;
+
+	virtual bool visit_child(const std::function<bool(ast_node*)>& func) override;
+
+private:
+	ast_member_vector m_members;
+
+	friend class ast_member;
+};
+
+enum class ast_holder_type {
+	Pointer,
+	List
+};
+
+/** Base class for children of ast_container.
+ */
+class ast_member {
+public:
+	virtual ~ast_member() { }
+
+	/** interface for filling the the member from a node stack.
+		@param st stack.
+	*/
+	virtual void construct(ast_stack& st) = 0;
+
+	virtual bool accept(ast_node* node) = 0;
+
+	virtual ast_holder_type get_type() const = 0;
+};
+
+class _ast_ptr : public ast_member {
+public:
+	_ast_ptr(ast_node* node)
+		: m_ptr(node) {
+		if (node) node->retain();
+	}
+
+	virtual ~_ast_ptr() {
+		if (m_ptr) {
+			m_ptr->release();
+			m_ptr = nullptr;
+		}
+	}
+
+	ast_node* get() const {
+		return m_ptr;
+	}
+
+	template <class T>
+	T* as() const {
+		return ast_cast<T>(m_ptr);
+	}
+
+	template <class T>
+	T* to() const {
+		assert(m_ptr && m_ptr->get_id() == id<T>());
+		return static_cast<T*>(m_ptr);
+	}
+
+	template <class T>
+	bool is() const {
+		return m_ptr && m_ptr->get_id() == id<T>();
+	}
+
+	void set(ast_node* node) {
+		if (node == m_ptr) {
+			return;
+		} else if (!node) {
+			if (m_ptr) m_ptr->release();
+			m_ptr = nullptr;
+		} else {
+			assert(accept(node));
+			node->retain();
+			if (m_ptr) m_ptr->release();
+			m_ptr = node;
+		}
+	}
+
+	virtual ast_holder_type get_type() const override {
+		return ast_holder_type::Pointer;
+	}
+
+protected:
+	ast_node* m_ptr;
+};
+
+/** pointer to an AST object.
+	It assumes ownership of the object.
+	It pops an object of the given type from the stack.
+	@tparam Required if true, the object is required.
+	@tparam T type of object to control.
+*/
+template <bool Required, class T>
+class ast_ptr : public _ast_ptr {
+public:
+	ast_ptr(T* node = nullptr)
+		: _ast_ptr(node) { }
+
+	ast_ptr(const ast_ptr& other)
+		: _ast_ptr(other.get()) { }
+
+	ast_ptr& operator=(const ast_ptr& other) {
+		set(other.get());
+		return *this;
+	}
+
+	/** gets the underlying ptr value.
+		@return the underlying ptr value.
+	*/
+	T* get() const {
+		return static_cast<T*>(m_ptr);
+	}
+
+	/** auto conversion to the underlying object ptr.
+		@return the underlying ptr value.
+	*/
+	operator T*() const {
+		return static_cast<T*>(m_ptr);
+	}
+
+	/** member access.
+		@return the underlying ptr value.
+	*/
+	T* operator->() const {
+		assert(m_ptr);
+		return static_cast<T*>(m_ptr);
+	}
+
+	/** Pops a node from the stack.
+		@param st stack.
+		@exception std::logic_error thrown if the node is not of the appropriate type;
+			thrown only if Required == true or if the stack is empty.
+	*/
+	virtual void construct(ast_stack& st) override {
+		// check the stack node
+		if (st.empty()) {
+			if (!Required) return;
+			throw std::logic_error("Invalid AST stack.");
+		}
+		ast_node* node = st.back();
+		if (!ast_ptr::accept(node)) {
+			// if the object is not required, simply return
+			if (!Required) return;
+			// else if the object is mandatory, throw an exception
+			throw std::logic_error("Invalid AST node.");
+		}
+		st.pop_back();
+		m_ptr = node;
+		node->retain();
+	}
+
+private:
+	virtual bool accept(ast_node* node) override {
+		return node && (std::is_same<ast_node, T>() || id<T>() == node->get_id());
+	}
+};
+
+template <bool Required, class... Args>
+class ast_sel : public _ast_ptr {
+public:
+	ast_sel()
+		: _ast_ptr(nullptr) { }
+
+	ast_sel(const ast_sel& other)
+		: _ast_ptr(other.get()) { }
+
+	ast_sel& operator=(const ast_sel& other) {
+		set(other.get());
+		return *this;
+	}
+
+	operator ast_node*() const {
+		return m_ptr;
+	}
+
+	ast_node* operator->() const {
+		assert(m_ptr);
+		return m_ptr;
+	}
+
+	virtual void construct(ast_stack& st) override {
+		if (st.empty()) {
+			if (!Required) return;
+			throw std::logic_error("Invalid AST stack.");
+		}
+		ast_node* node = st.back();
+		if (!ast_sel::accept(node)) {
+			if (!Required) return;
+			throw std::logic_error("Invalid AST node.");
+		}
+		st.pop_back();
+		m_ptr = node;
+		node->retain();
+	}
+
+private:
+	virtual bool accept(ast_node* node) override {
+		if (!node) return false;
+		using swallow = bool[];
+		bool result = false;
+		(void)swallow{result || (result = id<Args>() == node->get_id())...};
+		return result;
+	}
+};
+
+class _ast_list : public ast_member {
+public:
+	~_ast_list() {
+		clear();
+	}
+
+	inline ast_node* back() const {
+		return m_objects.back();
+	}
+
+	inline ast_node* front() const {
+		return m_objects.front();
+	}
+
+	inline size_t size() const {
+		return m_objects.size();
+	}
+
+	inline bool empty() const {
+		return m_objects.empty();
+	}
+
+	void push_back(ast_node* node) {
+		assert(node && accept(node));
+		m_objects.push_back(node);
+		node->retain();
+	}
+
+	void push_front(ast_node* node) {
+		assert(node && accept(node));
+		m_objects.push_front(node);
+		node->retain();
+	}
+
+	void pop_front() {
+		auto node = m_objects.front();
+		m_objects.pop_front();
+		node->release();
+	}
+
+	void pop_back() {
+		auto node = m_objects.back();
+		m_objects.pop_back();
+		node->release();
+	}
+
+	bool swap(ast_node* node, ast_node* other) {
+		for (auto it = m_objects.begin(); it != m_objects.end(); ++it) {
+			if (*it == node) {
+				*it = other;
+				other->retain();
+				node->release();
+				return true;
+			}
+		}
+		return false;
+	}
+
+	const node_container& objects() const {
+		return m_objects;
+	}
+
+	void clear() {
+		for (ast_node* obj : m_objects) {
+			if (obj) obj->release();
+		}
+		m_objects.clear();
+	}
+
+	void dup(const _ast_list& src) {
+		for (ast_node* obj : src.m_objects) {
+			push_back(obj);
+		}
+	}
+
+	virtual ast_holder_type get_type() const override {
+		return ast_holder_type::List;
+	}
+
+protected:
+	node_container m_objects;
+};
+
+/** A list of objects.
+	It pops objects of the given type from the ast stack, until no more objects can be popped.
+	It assumes ownership of objects.
+	@tparam Required if true, the object is required.
+	@tparam T type of object to control.
+*/
+template <bool Required, class T>
+class ast_list : public _ast_list {
+public:
+	ast_list() { }
+
+	ast_list(const ast_list& other) {
+		dup(other);
+	}
+
+	ast_list& operator=(const ast_list& other) {
+		clear();
+		dup(other);
+		return *this;
+	}
+
+	/** Pops objects of type T from the stack until no more objects can be popped.
+		@param st stack.
+	*/
+	virtual void construct(ast_stack& st) override {
+		while (!st.empty()) {
+			ast_node* node = st.back();
+			// if the object was not not of the appropriate type,
+			// end the list parsing
+			if (!ast_list::accept(node)) {
+				if (Required && m_objects.empty()) {
+					throw std::logic_error("Invalid AST node.");
+				}
+				return;
+			}
+			st.pop_back();
+			// insert the object in the list, in reverse order
+			m_objects.push_front(node);
+			node->retain();
+		}
+		if (Required && m_objects.empty()) {
+			throw std::logic_error("Invalid AST stack.");
+		}
+	}
+
+private:
+	virtual bool accept(ast_node* node) override {
+		return node && (std::is_same<ast_node, T>() || id<T>() == node->get_id());
+	}
+};
+
+template <bool Required, class... Args>
+class ast_sel_list : public _ast_list {
+public:
+	ast_sel_list() { }
+
+	ast_sel_list(const ast_sel_list& other) {
+		dup(other);
+	}
+
+	ast_sel_list& operator=(const ast_sel_list& other) {
+		clear();
+		dup(other);
+		return *this;
+	}
+
+	virtual void construct(ast_stack& st) override {
+		while (!st.empty()) {
+			ast_node* node = st.back();
+			if (!ast_sel_list::accept(node)) {
+				if (Required && m_objects.empty()) {
+					throw std::logic_error("Invalid AST node.");
+				}
+				return;
+			}
+			st.pop_back();
+			m_objects.push_front(node);
+			node->retain();
+		}
+		if (Required && m_objects.empty()) {
+			throw std::logic_error("Invalid AST stack.");
+		}
+	}
+
+private:
+	virtual bool accept(ast_node* node) override {
+		if (!node) return false;
+		using swallow = bool[];
+		bool result = false;
+		(void)swallow{result || (result = id<Args>() == node->get_id())...};
+		return result;
+	}
+};
+
+/** AST function which creates an object of type T
+	and pushes it to the node stack.
+*/
+template <class T>
+class ast {
+public:
+	/** constructor.
+		@param r rule to attach the AST function to.
+	*/
+	ast(rule& r) {
+		r.set_parse_proc(&_parse_proc);
+	}
+
+private:
+	// parse proc
+	static void _parse_proc(const pos& b, const pos& e, void* d) {
+		ast_stack* st = reinterpret_cast<ast_stack*>(d);
+		T* obj = new T;
+		obj->m_begin = b;
+		obj->m_end = e;
+		obj->construct(*st);
+		st->push_back(obj);
+	}
+};
+
+/** parses the given input.
+	@param i input.
+	@param g root rule of grammar.
+	@param el list of errors.
+	@param ud user data, passed to the parse procedures.
+	@param resolveLeftRecursion enables the general left-recursion resolver.
+	@return pointer to ast node created, or null if there was an error.
+		The return object must be deleted by the caller.
+*/
+ast_node* parse(input& i, rule& g, error_list& el, void* ud, bool resolveLeftRecursion = true);
+
+/** check if the start part of given input matches grammar.
+	The parse procedures of each rule parsed are executed
+	before this function returns, if parsing succeeds.
+	@param i input.
+	@param g root rule of grammar.
+	@param ud user data, passed to the parse procedures.
+	@param resolveLeftRecursion enables the general left-recursion resolver.
+	@return true on parsing success, false on failure.
+*/
+ast_node* start_with(input& i, rule& g, error_list& el, void* ud, bool resolveLeftRecursion = true);
+
+} // namespace parserlib

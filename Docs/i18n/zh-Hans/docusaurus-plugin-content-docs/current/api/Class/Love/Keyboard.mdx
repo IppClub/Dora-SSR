@@ -1,0 +1,287 @@
+# Keyboard
+
+**描述：**
+
+&emsp;&emsp;提供用户键盘的接口。
+
+## setKeyRepeat
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;启用或禁用 love.keypressed. 的按键重复 默认情况下禁用。
+重载说明：
+1. 重复之间的间隔取决于用户的系统设置。此函数不会影响按住某个键时是否多次调用 love.textinput 。
+
+**签名：**
+```tl
+setKeyRepeat: function(enabled: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| enabled | boolean | 按住某个键时是否应启用重复按键事件。 |
+
+## hasKeyRepeat
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取是否启用按键重复。
+
+**签名：**
+```tl
+hasKeyRepeat: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 是否启用按键重复。 |
+
+## isDown
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查某个键是否按下。不要与 love.keypressed 或 love.keyreleased.
+
+**签名：**
+```tl
+isDown: function(keys: string...): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| keys | string... | 包含要检查的键的表。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | down — 如果按键按下则为 True，否则为 false。 |
+
+## isDown
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查某个键是否按下。不要与 love.keypressed 或 love.keyreleased.
+
+**签名：**
+```tl
+isDown: function(keys: {string}): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| keys | \{string} | 包含要检查的键的表。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | down — 如果按键按下则为 True，否则为 false。 |
+
+## isScancodeDown
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查指定的扫描码是否被按下。不要与 love.keypressed 或 love.keyreleased.
+
+	-- 与常规的 KeyConstants 不同，扫描码与键盘布局无关。如果按下与美式键盘上的 'w' 键相同位置的键，则使用扫描码 'w'，无论该键的标签是什么或用户的操作系统设置是什么。
+
+**签名：**
+```tl
+isScancodeDown: function(scancodes: string...): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| scancodes | string... | 要检查的扫描码。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | down — 如果提供的任何扫描码已关闭，则为 True，否则为 false。 |
+
+## isScancodeDown
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查指定的扫描码是否被按下。不要与 love.keypressed 或 love.keyreleased.
+
+	-- 与常规的 KeyConstants 不同，扫描码与键盘布局无关。如果按下与美式键盘上的 'w' 键相同位置的键，则使用扫描码 'w'，无论该键的标签是什么或用户的操作系统设置是什么。
+
+**签名：**
+```tl
+isScancodeDown: function(scancodes: {string}): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| scancodes | \{string} | 要检查的扫描码。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | down — 如果提供的任何扫描码已关闭，则为 True，否则为 false。 |
+
+## getScancodeFromKey
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取给定按键对应的硬件扫描码。
+与按键常量不同，扫描码与键盘布局无关。例如，如果按下与美式键盘上的 'w' 键相同位置的键，则无论该键的标签是什么或用户的操作系统设置是什么，都会生成扫描码 'w' 。
+扫描码对于创建在所有系统上具有相同物理位置的默认控件非常有用。
+
+**签名：**
+```tl
+getScancodeFromKey: function(key: string): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| key | string | 获取扫描码的密钥。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 与给定键对应的扫描码，如果给定键在当前系统上没有已知的物理表示，则为 'unknown' 。 |
+
+## getKeyFromScancode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取与给定硬件扫描码对应的密钥。
+与按键常量不同，扫描码与键盘布局无关。例如，如果按下与美式键盘上的 'w' 键相同位置的键，则无论该键的标签是什么或用户的操作系统设置是什么，都会生成扫描码 'w' 。
+扫描码对于创建在所有系统上具有相同物理位置的默认控件非常有用。
+
+**签名：**
+```tl
+getKeyFromScancode: function(scancode: string): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| scancode | string | 用于获取密钥的扫描码。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 与给定扫描码相对应的键，如果扫描码未映射到当前系统上的 KeyConstant，则为 'unknown' 。 |
+
+## setTextInput
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;启用或禁用文本输入事件。它在 Windows、Mac 和 Linux 上默认启用，在 iOS 和 Android 上默认禁用。
+
+	-- 在触摸设备上，这会在启用时显示系统的本机屏幕键盘。
+
+**签名：**
+```tl
+setTextInput: function(enabled: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| enabled | boolean | 是否应启用文本输入事件。 |
+
+## setTextInput
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;启用或禁用文本输入事件。它在 Windows、Mac 和 Linux 上默认启用，在 iOS 和 Android 上默认禁用。
+
+	-- 在触摸设备上，这会在启用时显示系统的本机屏幕键盘。
+
+**签名：**
+```tl
+setTextInput: function(enabled: boolean, x: number, y: number, width: number, height: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| enabled | boolean | 是否应启用文本输入事件。 |
+| x | number | 文本矩形 x 位置。 |
+| y | number | 文本矩形 y 位置。 |
+| width | number | 文本矩形宽度。 |
+| height | number | 文本矩形高度。 |
+
+## hasTextInput
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取是否启用文本输入事件。
+
+**签名：**
+```tl
+hasTextInput: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 是否启用文本输入事件。 |
+
+## hasScreenKeyboard
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取是否支持屏幕键盘。
+
+**签名：**
+```tl
+hasScreenKeyboard: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 是否支持屏幕键盘。 |

@@ -1,0 +1,78 @@
+# Shader
+
+**Description:**
+
+&emsp;&emsp;The `Shader` record is a singleton object used to compile Dora shaders at runtime.
+
+**Usage:**
+```tl
+local Shader = require("Shader")
+local ok, err = Shader:compile("vs_sprite.sc", "compiled/vs_sprite.bin", "Vertex")
+```
+
+## compile
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Compiles a shader source file and writes the compiled bytecode to the target file.
+
+**Signature:**
+```tl
+compile: function(
+		self: Shader,
+		sourceFile: string,
+		targetFile: string,
+		stage: StageName
+	): boolean, string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sourceFile | string | Shader source file path. |
+| targetFile | string | Output file path for the compiled shader bytecode. Use the `.bin` suffix. |
+| stage | StageName | Shader stage name. One of `"Vertex"`, `"Fragment"` or `"Compute"`. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | `true` if compilation succeeded, or `false` if compilation failed. |
+| string \| nil | The compilation error message, or `nil` if compilation succeeded. |
+
+## compileAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Compiles a shader source file asynchronously and writes the compiled bytecode to the target file.
+This method should be run in a coroutine thread.
+
+**Signature:**
+```tl
+compileAsync: function(
+		self: Shader,
+		sourceFile: string,
+		targetFile: string,
+		stage: StageName
+	): boolean, string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| sourceFile | string | Shader source file path. |
+| targetFile | string | Output file path for the compiled shader bytecode. Use the `.bin` suffix. |
+| stage | StageName | Shader stage name. One of `"Vertex"`, `"Fragment"` or `"Compute"`. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | `true` if compilation succeeded, or `false` if compilation failed. |
+| string \| nil | The compilation error message, or `nil` if compilation succeeded. |

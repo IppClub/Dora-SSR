@@ -1,0 +1,223 @@
+/* Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+import "runtime"
+
+#wa:import dora renderstats3d_release
+func renderstats3d_release(raw: i64)
+
+#wa:import dora renderstats3d_get_scene_nodes
+func renderstats3d_get_scene_nodes(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_visible_visuals
+func renderstats3d_get_visible_visuals(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_culled_visuals
+func renderstats3d_get_culled_visuals(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_opaque_items
+func renderstats3d_get_opaque_items(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_transparent_items
+func renderstats3d_get_transparent_items(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_draw_calls
+func renderstats3d_get_draw_calls(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_triangles
+func renderstats3d_get_triangles(slf: i64) => i64
+
+#wa:import dora renderstats3d_get_program_switches
+func renderstats3d_get_program_switches(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_material_switches
+func renderstats3d_get_material_switches(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_texture_switches
+func renderstats3d_get_texture_switches(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_mesh_switches
+func renderstats3d_get_mesh_switches(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_node_count
+func renderstats3d_get_node_count(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_visual_count
+func renderstats3d_get_visual_count(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_model_count
+func renderstats3d_get_model_count(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_model_instance_count
+func renderstats3d_get_model_instance_count(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_mesh_count
+func renderstats3d_get_mesh_count(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_static_mesh_count
+func renderstats3d_get_static_mesh_count(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_dynamic_mesh_count
+func renderstats3d_get_dynamic_mesh_count(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_material_count
+func renderstats3d_get_material_count(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_texture_count
+func renderstats3d_get_texture_count(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_animation_count
+func renderstats3d_get_animation_count(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_environment_count
+func renderstats3d_get_environment_count(slf: i64) => i32
+
+#wa:import dora renderstats3d_get_model_resident_bytes
+func renderstats3d_get_model_resident_bytes(slf: i64) => i64
+
+#wa:import dora renderstats3d_get_mesh_resident_bytes
+func renderstats3d_get_mesh_resident_bytes(slf: i64) => i64
+
+#wa:import dora renderstats3d_get_texture_resident_bytes
+func renderstats3d_get_texture_resident_bytes(slf: i64) => i64
+
+#wa:import dora renderstats3d_get_collect_micros
+func renderstats3d_get_collect_micros(slf: i64) => i64
+
+#wa:import dora renderstats3d_get_sort_micros
+func renderstats3d_get_sort_micros(slf: i64) => i64
+
+#wa:import dora renderstats3d_get_submit_micros
+func renderstats3d_get_submit_micros(slf: i64) => i64
+
+#wa:import dora renderstats3d_get_upload_commands
+func renderstats3d_get_upload_commands(slf: i64) => i64
+
+#wa:import dora renderstats3d_get_upload_bytes
+func renderstats3d_get_upload_bytes(slf: i64) => i64
+
+#wa:import dora renderstats3d_get_upload_micros
+func renderstats3d_get_upload_micros(slf: i64) => i64
+
+#wa:import dora renderstats3d_get_upload_max_command_micros
+func renderstats3d_get_upload_max_command_micros(slf: i64) => i64
+
+type RenderStats3D :struct{ raw: *i64 }
+
+func RenderStats3D.GetRaw() => i64 {
+	return *this.raw
+}
+func render_stats_3d_finalizer(ptr: u32) {
+	renderstats3d_release(GetPtr(ptr))
+}
+func RenderStats3DFrom(raw: i64) => *RenderStats3D {
+	if raw == 0 {
+		return nil
+	}
+	item := RenderStats3D{}
+	item.raw = &raw
+	runtime.SetFinalizer(item.raw, render_stats_3d_finalizer)
+	result := &item
+	return result
+}
+func RenderStats3D.GetSceneNodes() => i32 {
+	return renderstats3d_get_scene_nodes(*this.raw)
+}
+func RenderStats3D.GetVisibleVisuals() => i32 {
+	return renderstats3d_get_visible_visuals(*this.raw)
+}
+func RenderStats3D.GetCulledVisuals() => i32 {
+	return renderstats3d_get_culled_visuals(*this.raw)
+}
+func RenderStats3D.GetOpaqueItems() => i32 {
+	return renderstats3d_get_opaque_items(*this.raw)
+}
+func RenderStats3D.GetTransparentItems() => i32 {
+	return renderstats3d_get_transparent_items(*this.raw)
+}
+func RenderStats3D.GetDrawCalls() => i32 {
+	return renderstats3d_get_draw_calls(*this.raw)
+}
+func RenderStats3D.GetTriangles() => i64 {
+	return renderstats3d_get_triangles(*this.raw)
+}
+func RenderStats3D.GetProgramSwitches() => i32 {
+	return renderstats3d_get_program_switches(*this.raw)
+}
+func RenderStats3D.GetMaterialSwitches() => i32 {
+	return renderstats3d_get_material_switches(*this.raw)
+}
+func RenderStats3D.GetTextureSwitches() => i32 {
+	return renderstats3d_get_texture_switches(*this.raw)
+}
+func RenderStats3D.GetMeshSwitches() => i32 {
+	return renderstats3d_get_mesh_switches(*this.raw)
+}
+func RenderStats3D.GetNodeCount() => i32 {
+	return renderstats3d_get_node_count(*this.raw)
+}
+func RenderStats3D.GetVisualCount() => i32 {
+	return renderstats3d_get_visual_count(*this.raw)
+}
+func RenderStats3D.GetModelCount() => i32 {
+	return renderstats3d_get_model_count(*this.raw)
+}
+func RenderStats3D.GetModelInstanceCount() => i32 {
+	return renderstats3d_get_model_instance_count(*this.raw)
+}
+func RenderStats3D.GetMeshCount() => i32 {
+	return renderstats3d_get_mesh_count(*this.raw)
+}
+func RenderStats3D.GetStaticMeshCount() => i32 {
+	return renderstats3d_get_static_mesh_count(*this.raw)
+}
+func RenderStats3D.GetDynamicMeshCount() => i32 {
+	return renderstats3d_get_dynamic_mesh_count(*this.raw)
+}
+func RenderStats3D.GetMaterialCount() => i32 {
+	return renderstats3d_get_material_count(*this.raw)
+}
+func RenderStats3D.GetTextureCount() => i32 {
+	return renderstats3d_get_texture_count(*this.raw)
+}
+func RenderStats3D.GetAnimationCount() => i32 {
+	return renderstats3d_get_animation_count(*this.raw)
+}
+func RenderStats3D.GetEnvironmentCount() => i32 {
+	return renderstats3d_get_environment_count(*this.raw)
+}
+func RenderStats3D.GetModelResidentBytes() => i64 {
+	return renderstats3d_get_model_resident_bytes(*this.raw)
+}
+func RenderStats3D.GetMeshResidentBytes() => i64 {
+	return renderstats3d_get_mesh_resident_bytes(*this.raw)
+}
+func RenderStats3D.GetTextureResidentBytes() => i64 {
+	return renderstats3d_get_texture_resident_bytes(*this.raw)
+}
+func RenderStats3D.GetCollectMicros() => i64 {
+	return renderstats3d_get_collect_micros(*this.raw)
+}
+func RenderStats3D.GetSortMicros() => i64 {
+	return renderstats3d_get_sort_micros(*this.raw)
+}
+func RenderStats3D.GetSubmitMicros() => i64 {
+	return renderstats3d_get_submit_micros(*this.raw)
+}
+func RenderStats3D.GetUploadCommands() => i64 {
+	return renderstats3d_get_upload_commands(*this.raw)
+}
+func RenderStats3D.GetUploadBytes() => i64 {
+	return renderstats3d_get_upload_bytes(*this.raw)
+}
+func RenderStats3D.GetUploadMicros() => i64 {
+	return renderstats3d_get_upload_micros(*this.raw)
+}
+func RenderStats3D.GetUploadMaxCommandMicros() => i64 {
+	return renderstats3d_get_upload_max_command_micros(*this.raw)
+}

@@ -1,0 +1,169 @@
+/* Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#pragma once
+
+#include <chrono>
+#include <atomic>
+#include <memory>
+#include <mutex>
+#include <regex>
+#if !BX_PLATFORM_EMSCRIPTEN
+#include <thread>
+#endif
+#include <unordered_map>
+#include <vector>
+
+NS_DORA_BEGIN
+
+class WebSocketServer;
+class Async;
+class Listener;
+
+class HttpServer : public NonCopyable {
+public:
+	virtual ~HttpServer();
+	PROPERTY_STRING(WWWPath);
+	PROPERTY_STRING(AuthToken);
+	PROPERTY_BOOL(AuthRequired);
+	PROPERTY_READONLY(std::string, LocalIP);
+	PROPERTY_READONLY(int, WSConnectionCount);
+	struct Request {
+		Slice method;
+		Slice path;
+		std::vector<Slice> headers;
+		std::vector<Slice> params;
+		Slice contentType;
+		Slice body;
+	};
+	struct Response {
+		Response(int status = -1)
+			: status(status) { }
+		Response(Response&& res);
+		void operator=(Response&& res);
+		std::string content;
+		std::string contentType;
+		int status;
+	};
+
+	using ServiceHandler = std::function<Response(const Request&)>;
+	struct Service {
+		std::string pattern;
+		ServiceHandler handler;
+	};
+	void post(String pattern, const ServiceHandler& handler);
+	void get(String pattern, const ServiceHandler& handler);
+
+	using PostScheduledFunc = std::function<std::optional<Response>()>;
+	using PostScheduledHandler = std::function<PostScheduledFunc(const Request&)>;
+	struct PostScheduled {
+		std::string pattern;
+		PostScheduledHandler handler;
+	};
+	void postSchedule(String pattern, const PostScheduledHandler& handler);
+
+	using FileAcceptHandler = std::function<std::optional<std::string>(const Request&, const std::string&)>;
+	using FileDoneHandler = std::function<bool(const Request&, const std::string&)>;
+	struct File {
+		std::string pattern;
+		FileAcceptHandler acceptHandler;
+		FileDoneHandler doneHandler;
+	};
+
+	void upload(String pattern, const FileAcceptHandler& acceptHandler, const FileDoneHandler& doneHandler);
+	bool setStaticCacheControl(String cacheControl);
+	bool addStaticCacheControl(String pattern, String cacheControl);
+	void clearStaticCacheControls();
+	bool start(int port);
+	bool startWS(int port);
+	void stop();
+
+	static const char* getVersion();
+
+protected:
+	HttpServer();
+
+private:
+	friend class WebSocketServer;
+	std::string _wwwPath;
+	std::string _authToken;
+	std::string _authSessionId;
+	std::string _authSessionSecret;
+	bool _authRequired;
+	bool _authTokenHasExpiry;
+	std::atomic_bool _stopping{true};
+	std::atomic_uint64_t _generation{0};
+	std::chrono::steady_clock::time_point _authTokenExpiry;
+	static constexpr int AuthTokenTTLSeconds = 12 * 60 * 60;
+	static constexpr int AuthSignatureTTLSeconds = 60;
+	std::unordered_map<std::string, std::chrono::steady_clock::time_point> _authNonces;
+	std::mutex _authNonceMutex;
+	bool isAuthorized(const Request& req);
+	bool isTokenValid(const std::string& token);
+	bool isWebSocketAuthorized(const std::string& resource);
+	std::list<Service> _posts;
+	std::list<Service> _gets;
+	std::list<PostScheduled> _postScheduled;
+	std::list<File> _files;
+	struct StaticCacheControlRule {
+		std::regex pattern;
+		std::string cacheControl;
+	};
+	std::string getStaticCacheControl(String requestPath);
+	std::string _staticCacheControl;
+	std::vector<StaticCacheControlRule> _staticCacheControlRules;
+	std::mutex _staticCacheControlMutex;
+	void* _server = nullptr;
+	Own<WebSocketServer> _webSocketServer;
+	Ref<Listener> _webSocketListener;
+	SINGLETON_REF(HttpServer, AsyncThread, Director);
+};
+
+#define SharedHttpServer \
+	Dora::Singleton<Dora::HttpServer>::shared()
+
+class HttpClient : public NonCopyable {
+public:
+	using RequestId = uint64_t;
+	using ContentPartHandler = std::function<bool(String)>;
+	using ContentHandler = std::function<void(std::optional<Slice>)>;
+	PROPERTY_BOOL(Stopped);
+	virtual ~HttpClient();
+	void stop();
+	bool cancel(RequestId requestId);
+	bool isRequestActive(RequestId requestId) const;
+	RequestId postAsync(String url, String json, float timeout, const ContentHandler& callback);
+	RequestId postAsync(String url, std::span<Slice> headers, String json, float timeout, const ContentPartHandler& partCallback, const ContentHandler& callback);
+	RequestId postAsync(String url, const std::vector<std::string>& headers, String json, float timeout, const ContentPartHandler& partCallback, const ContentHandler& callback);
+	RequestId postAsync(String url, const std::vector<std::string>& headers, String json, float timeout, const ContentHandler& callback);
+	RequestId postAsync(String url, Slice headers[], int count, String json, float timeout, const ContentPartHandler& partCallback, const ContentHandler& callback);
+	RequestId postAsync(String url, Slice headers[], int count, String json, float timeout, const ContentHandler& callback);
+	RequestId getAsync(String url, float timeout, const ContentHandler& callback);
+	RequestId downloadAsync(String url, String filePath, float timeout, const std::function<bool(bool interrupted, uint64_t current, uint64_t total)>& progress);
+
+protected:
+	HttpClient();
+
+private:
+#if !BX_PLATFORM_EMSCRIPTEN
+	struct DownloadWorker {
+		std::thread thread;
+		std::shared_ptr<std::atomic_bool> completed;
+	};
+	void reapDownloadWorkers(bool all);
+	std::mutex _downloadWorkersMutex;
+	std::vector<DownloadWorker> _downloadWorkers;
+#endif
+	std::atomic_bool _stopped;
+	SINGLETON_REF(HttpClient, AsyncThread, Director);
+};
+
+#define SharedHttpClient \
+	Dora::Singleton<Dora::HttpClient>::shared()
+
+NS_DORA_END

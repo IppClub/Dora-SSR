@@ -1,0 +1,190 @@
+# Dora CLI 模式
+
+Dora CLI 模式是 Dora 引擎可执行文件的一种特殊执行模式。当命令行参数中包含 `cli` 时，二进制会从正常的引擎启动流程切换为执行 Dora 游戏开发辅助命令所需的最小环境。
+
+在这个模式下，Dora 不会启动常规游戏运行流程。它只加载 CLI Lua 脚本，以及命令行开发任务需要的最小辅助能力。它用于配合一个正在运行的 Dora SSR 引擎和 Web IDE。
+
+CLI 模式只支持 Windows、macOS 和 Linux。
+
+下面示例中的 `Dora` 表示 Dora 可执行文件名。如果它不在 `PATH` 中，请替换为实际可执行文件路径。
+
+## 1. 启动 Dora SSR
+
+先正常启动 Dora SSR，并保持 Web IDE 可用。大多数 CLI 命令会调用 Web IDE 的 HTTP 服务；如果地址不是 `127.0.0.1`，请传入 Web IDE 显示的 host。
+
+如果使用本机引擎但服务还没有运行，`doctor --fix` 可以按当前桌面平台启动 native Dora 引擎。如果 Web IDE 还没有连接，它会先短暂等待已有浏览器标签页重连，仍未连接时才在本地浏览器中打开 `http://localhost:8866`。
+
+```sh
+Dora cli --help
+```
+
+当 CLI 需要使用不同的 Dora 资源根目录时，可以把 `--asset` 作为全局参数使用。它可以放在 `cli` 前面或后面：
+
+```sh
+Dora --asset /path/to/Assets cli status
+Dora cli status --asset /path/to/Assets
+```
+
+常用连接参数：
+
+```sh
+--host 127.0.0.1
+--port 8866
+--timeout 10
+```
+
+检查本地服务状态：
+
+```sh
+Dora cli status
+Dora cli doctor
+Dora cli doctor --fix
+```
+
+`status` 输出当前服务状态。`doctor` 输出相同的核心状态，并在异常时给出修复提示。`doctor --fix` 可以在需要时启动本地 native 引擎并打开 Web IDE。
+
+读取最近的引擎日志：
+
+```sh
+Dora cli log
+Dora cli log -n 100
+```
+
+`log` 默认输出最后 100 行日志。使用 `-n` 可以指定其它正整数行数。
+
+## 2. 命令速查
+
+`Dora cli --help` 输出的命令列表如下：
+
+```text
+Usage: dora cli <command> [options]
+
+Commands:
+  ts install [-p project] [-l zh-Hans|en]
+  wa install [-p project]
+  build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa|yarn]
+  run [-p project] [--entry init.lua]
+  buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
+  stop
+  status [-p project]
+  doctor [-p project] [--fix]
+  log [-n lines]
+  doc search <pattern> [-l zh-Hans|en] [--source dora-api|dora-tutorial|love-api|tic80-api] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
+  doc read <file> [-l zh-Hans|en] [--start line] [--end line]
+  rust build [-p project]
+  rust run <target-path> [-p project]
+  rust upload <target-path> [-p project] [--run]
+
+Connection options: --host, --port, --timeout
+```
+
+在分组命令后使用 `-h` 或 `--help` 可以查看详细说明：
+
+```sh
+Dora cli ts --help
+Dora cli wa install -h
+Dora cli rust run --help
+```
+
+## 3. 文档搜索
+
+通过正在运行的 Web IDE 服务搜索 Dora SSR 文档：
+
+```sh
+Dora cli doc search Sprite --source tutorial --lang ts
+Dora cli doc search "Sprite|Node" --source api --lang tsx -n 20
+```
+
+搜索结果会输出文档文件路径和命中的行。可以用 `doc read` 读取返回的文件：
+
+```sh
+Dora cli doc read ts/using-sprite.md --start 1 --end 80
+```
+
+`doc search` 和 `doc read` 的 `-l` 默认是 `en`。搜索时 `--source` 精确选择一类文档：`dora-api`、`dora-tutorial`、`love-api` 或 `tic80-api`。`--lang` 用来选择 TypeScript/TSX 或 Teal 定义版本（选择 `dora-tutorial` 时则决定教程语言目录）。`teal` 和 `tl` 都会使用 Teal 文档。
+
+## 4. TypeScript 和脚本项目
+
+安装 TypeScript 支持。新项目会创建 `tsconfig.json`，并把 Dora API 定义写入 `API` 目录。已有项目会刷新 API 定义，并保留已有的 `tsconfig.json`。
+
+```sh
+Dora cli ts install -p /path/to/project -l zh-Hans
+```
+
+构建项目。不指定语言时，Dora CLI 会扫描支持的源码文件，并按每个文件的后缀逐个编译或检查。只有需要限定某一类语言时才使用 `--lang`。
+
+```sh
+Dora cli build -p /path/to/project
+Dora cli build --lang ts -p /path/to/project
+Dora cli build --lang yarn -p /path/to/project
+Dora cli build -f src/main.ts -p /path/to/project
+```
+
+运行或停止项目：
+
+```sh
+Dora cli run -p /path/to/project
+Dora cli run --entry Script/main.lua -p /path/to/project
+Dora cli stop
+```
+
+构建并运行：
+
+```sh
+Dora cli buildrun -p /path/to/project
+Dora cli buildrun -f src/main.ts -p /path/to/project
+```
+
+支持的构建语言包括 `all`、`ts`、`yue`、`tl`、`xml`、`wa` 和 `yarn`。`all` 是默认值。Yarn 文件会通过同一个构建命令执行语法检查，因此项目构建可以和其它源码一起报告 Yarn 语法错误。
+
+## 5. Wa 项目
+
+安装 Wa 支持。新项目会基于当前 Dora 引擎版本写入 `wa.mod`、`src/main.wa` 和 `vendor/dora`。已有 Wa 项目会刷新 `vendor/dora`。
+
+```sh
+Dora cli wa install -p /path/to/wa-project --host 127.0.0.1
+cd /path/to/wa-project
+```
+
+引擎版本变化后，可以更新 `vendor/dora`：
+
+```sh
+Dora cli wa install --host 127.0.0.1
+```
+
+使用通用构建命令：
+
+```sh
+Dora cli build --host 127.0.0.1
+```
+
+使用通用运行命令：
+
+```sh
+Dora cli run --host 127.0.0.1
+```
+
+Dora SSR 的 Wa 项目应使用引擎内置的 Wa 编译器。不要使用单独安装的 Wa 工具链构建 Dora Wa 项目。
+
+## 6. Rust WASM 项目
+
+使用本地 Rust 工具链构建 Rust WASM 项目：
+
+```sh
+Dora cli rust build -p /path/to/rust-project
+```
+
+构建、上传并运行到 Dora 资源树目录：
+
+```sh
+Dora cli rust run Hello --host 127.0.0.1 -p /path/to/rust-project
+```
+
+上传已经构建好的 WASM 文件，也可以上传后立即运行：
+
+```sh
+Dora cli rust upload Hello --host 127.0.0.1 -p /path/to/rust-project
+Dora cli rust upload Hello --run --host 127.0.0.1 -p /path/to/rust-project
+```
+
+`Hello` 必须是 Dora SSR 资源树中已经存在的目录。

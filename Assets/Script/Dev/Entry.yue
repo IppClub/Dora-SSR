@@ -1,0 +1,1867 @@
+--[[ Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. ]]
+
+_ENV = Dora Dora.ImGui
+import "ImGuiEnum" as :$WindowFlag, :$SetCond
+import global
+
+App.idled = true
+App.devMode = true
+ShowConsole true
+
+moduleCache = []
+oldRequire = _G.require
+const require = (path) ->
+	loaded = package.loaded[path]
+	if loaded == nil
+		-- AgentHost owns these caches across scene run/stop and runtime reloads.
+		-- Do not accumulate their generations in the game module cleanup list.
+		unless path == "Script.Dev.AgentHost" or path\match "^Agent[./]"
+			moduleCache[] = path
+		return oldRequire path
+	loaded
+_G.require = require
+Dora.require = require
+
+:searchPaths = Content
+
+useChinese = App.locale\match("^zh")?
+updateLocale = ->
+	useChinese = App.locale\match("^zh")?
+	searchPaths[#searchPaths] = Path Content.assetPath, "Script", "Lib", "Dora", useChinese and "zh-Hans" or "en"
+	Content.searchPaths = searchPaths
+
+isDesktop = App.platform in ["Windows", "macOS", "Linux"]
+
+if DB\exist "Config"
+	switch DB\query "select value_str from Config where name = 'locale'"
+		when [ [locale,], ] then if App.locale ~= locale
+			App.locale = locale
+			updateLocale!
+	if isDesktop
+		switch DB\query "select value_str from Config where name = 'writablePath'"
+			when [ [writablePath,], ]
+				if writablePath ~= "" and Content\exist(writablePath) and Content\isdir(writablePath)
+					Content.writablePath = writablePath
+				else
+					Log "Warning", "saved writable path \"#{writablePath}\" is unavailable; using \"#{Content.writablePath}\" instead"
+					unless DB\exec "update Config set value_str = ? where name = ?", {Content.writablePath, "writablePath"}
+						Log "Warning", "failed to persist the fallback writable path"
+
+import "Config"
+
+Dora.globals.webProjects = oldRequire "Script.Dev.WebProjects" if App.platform == "Emscripten"
+
+config = Config(
+	""
+	"fpsLimited"
+	"targetFPS"
+	"fixedFPS"
+	"vsync"
+	"fullScreen"
+	"alwaysOnTop"
+	"virtualGamepadEnabled"
+	"winX"
+	"winY"
+	"winWidth"
+	"winHeight"
+	"themeColor"
+	"locale"
+	"editingInfo"
+	"showStats"
+	"showConsole"
+	"showFooter"
+	"filter"
+	"engineDev"
+	"webProfiler"
+	"drawerWidth"
+	"lastUpdateCheck"
+	"updateNotification"
+	"writablePath"
+	"webIDEConnected"
+	"webIDETourCompleted"
+	"showPreview"
+	"mobileFeed"
+	"mobileFeedCurrentCard"
+	"agentLLMConfigVersion"
+	"mobileRemixLLMConfigId"
+	"mobileLargeText"
+	"authRequired"
+	"webIDEEnabled"
+)
+config\load!
+
+unless config.webIDEEnabled?
+	config.webIDEEnabled = true
+App.webIDEEnabled = config.webIDEEnabled
+
+unless config.writablePath?
+	config.writablePath = Content.appPath
+
+unless config.webIDEConnected?
+	config.webIDEConnected = false
+
+if config.fpsLimited?
+	App.fpsLimited = config.fpsLimited
+else
+	config.fpsLimited = App.fpsLimited
+
+if config.targetFPS?
+	App.targetFPS = math.floor config.targetFPS
+else
+	config.targetFPS = App.targetFPS
+
+if config.vsync?
+	View.vsync = config.vsync
+else
+	config.vsync = View.vsync
+
+if config.fixedFPS?
+	Director.scheduler.fixedFPS = math.floor config.fixedFPS
+else
+	config.fixedFPS = Director.scheduler.fixedFPS
+
+unless config.showPreview?
+	config.showPreview = true
+
+unless config.mobileFeed?
+	config.mobileFeed = App.platform in ["Android", "iOS"]
+
+unless config.webIDETourCompleted?
+	config.webIDETourCompleted = false
+
+unless config.authRequired?
+	config.authRequired = App.platform not in ["Android", "iOS"]
+HttpServer.authRequired = config.authRequired
+
+showEntry = true
+
+isDesktop = false
+if App.platform in ["Linux", "Windows", "macOS"]
+	isDesktop = true
+	if config.fullScreen
+		App.fullScreen = true
+	elseif config.winWidth? and config.winHeight?
+		size = Size config.winWidth, config.winHeight
+		if App.winSize ~= size
+			App.winSize = size
+		x: winX, y: winY = App.winPosition
+		if config.winX?
+			winX = config.winX
+		else
+			config.winX = -1
+		if config.winY?
+			winY = config.winY
+		else
+			config.winY = -1
+		App.winPosition = Vec2 winX, winY
+	if config.alwaysOnTop?
+		App.alwaysOnTop = config.alwaysOnTop
+	else
+		config.alwaysOnTop = false
+	if config.virtualGamepadEnabled?
+		Controller.virtualGamepadEnabled = config.virtualGamepadEnabled
+	else
+		config.virtualGamepadEnabled = Controller.virtualGamepadEnabled
+
+if config.themeColor?
+	App.themeColor = Color config.themeColor
+else
+	config.themeColor = App.themeColor\toARGB!
+
+if not config.locale?
+	config.locale = App.locale
+
+showStats = false
+if config.showStats?
+	showStats = config.showStats
+else
+	config.showStats = showStats
+
+showConsole = false
+if config.showConsole?
+	showConsole = config.showConsole
+else
+	config.showConsole = showConsole
+
+showFooter = true
+if config.showFooter?
+	showFooter = config.showFooter
+else
+	config.showFooter = showFooter
+
+export setFooterVisible = (visible = true) ->
+	showFooter = visible
+	config.showFooter = showFooter
+
+filterBuf = Buffer 20
+if config.filter?
+	filterBuf.text = config.filter
+else
+	config.filter = ""
+
+engineDev = false
+if config.engineDev?
+	engineDev = config.engineDev
+else
+	config.engineDev = engineDev
+
+if config.webProfiler?
+	Director.profilerSending = config.webProfiler
+else
+	config.webProfiler = true
+	Director.profilerSending = true
+
+unless config.drawerWidth?
+	config.drawerWidth = 200
+
+export.getConfig = -> config
+export.getEngineDev = ->
+	return false unless App.debugging
+	config.engineDev
+
+export.connectWebIDE = ->
+	unless config.webIDEConnected
+		config.webIDEConnected = true
+		if App.platform in ["Windows", "Linux", "macOS"]
+			ratio = App.winSize.width / App.visualSize.width
+			App.winSize = Size 640 * ratio, 480 * ratio
+
+updateCheck = -> thread ->
+	if res := HttpClient\getAsync "https://api.github.com/repos/IppClub/Dora-SSR/releases/latest"
+		if data := json.decode res
+			major, minor, patch = App.version\match "(%d+)%.(%d+)%.(%d+)%.(%d+)"
+			a, b, c = tonumber(major), tonumber(minor), tonumber patch
+			sa, sb, sc = data.tag_name\match "v(%d+)%.(%d+)%.(%d+)"
+			na, nb, nc = tonumber(sa), tonumber(sb), tonumber sc
+			if na < a
+				goto not_new_version
+			if na == a
+				if nb < b
+					goto not_new_version
+				if nb == b
+					if nc < c
+						goto not_new_version
+					if nc == c
+						goto not_new_version
+			config.updateNotification = true
+			::not_new_version::
+			config.lastUpdateCheck = os.time!
+
+if config.lastUpdateCheck?
+	diffSeconds = os.difftime os.time!, config.lastUpdateCheck
+	if diffSeconds >= 7 * 24 * 60 * 60
+		updateCheck!
+else
+	updateCheck!
+
+from "Utils" import Set, Struct, LintYueGlobals, GSplit
+options: {extension: yueext} = yue
+
+SetDefaultFont "sarasa-mono-sc-regular", 20
+
+building = false
+
+export getAllFiles = (path, exts, recursive = true) ->
+	filters = Set exts
+	files = if recursive
+		Content\getAllFiles path
+	else
+		Content\getFiles path
+	return for file in *files
+		continue if not filters[Path\getExt file]
+		file
+
+getFileEntries = (path, recursive = true, excludeFiles = nil) ->
+	entries = {}
+	excludes = if excludeFiles
+		Set excludeFiles
+	for file in *getAllFiles path, ["lua", "xml", yueext, "tl"], recursive
+		entryName = Path\getName file
+		if excludes and excludes[entryName]
+			continue
+		fileName = Path\replaceExt file, ""
+		fileName = Path path, fileName
+		entryAdded = for {entryName: ename, fileName: efile} in *entries
+			break true if entryName == ename and efile == fileName
+		continue if entryAdded
+		entry = :entryName, :fileName
+		entries[] = entry
+	table.sort entries, (a, b) -> a.entryName < b.entryName
+	entries
+
+local allEntries = {dirty: {}, hasDirty: false, runId: 0}
+
+allEntries.scanDir = (path, dir, noPreview = false) ->
+	entries = []
+	unless dir\match "^%."
+		for file in *getAllFiles Path(path, dir), ["lua", "xml", yueext, "tl", "wasm"]
+			if "init" == Path\getName(file)\lower!
+				fileName = Path\replaceExt file, ""
+				fileName = Path path, dir, fileName
+				projectPath = Path\getPath fileName
+				repoFile = Path projectPath, ".dora", "repo.json"
+				repo = nil
+				if Content\exist repoFile
+					if str := Content\load repoFile
+						repo = json.decode str
+				entryName = Path\getName projectPath
+				entryAdded = for {entryName: ename, fileName: efile} in *entries
+					break true if entryName == ename and efile == fileName
+				continue if entryAdded
+				examples = []
+				tests = []
+				examplePath = Path path, dir, Path\getPath(file), "Example"
+				if Content\exist examplePath
+					for {entryName: name, fileName: ePath} in *getFileEntries examplePath
+						entry = {
+							entryName: name
+							fileName: Path path, dir, Path\getPath(file), ePath
+							workDir: projectPath
+						}
+						examples[] = entry
+				testPath = Path path, dir, Path\getPath(file), "Test"
+				if Content\exist testPath
+					for {entryName: name, fileName: tPath} in *getFileEntries testPath
+						entry = {
+							entryName: name
+							fileName: Path path, dir, Path\getPath(file), tPath
+							workDir: projectPath
+						}
+						tests[] = entry
+				entry = :entryName, :fileName, :projectPath, :examples, :tests, :repo
+				bannerFile = repeat
+					break nil if noPreview
+					break nil unless config.showPreview
+					f = Path projectPath, ".dora", "banner.jpg"
+					break f if Content\exist f
+					f = Path projectPath, ".dora", "banner.png"
+					break f if Content\exist f
+					f = Path projectPath, "Image", "banner.jpg"
+					break f if Content\exist f
+					f = Path projectPath, "Image", "banner.png"
+					break f if Content\exist f
+					f = Path Content.assetPath, "Image", "banner.jpg"
+					break f if Content\exist f
+				until true
+				if bannerFile
+					-- Publish the path with the first scan so Mobile Feed can render it immediately.
+					-- The async texture remains an optimization for the traditional preview UI.
+					entry.bannerFile = bannerFile
+					thread ->
+						if Cache\loadAsync bannerFile
+							if bannerTex := Texture2D bannerFile
+								entry.bannerTex = bannerTex
+				entries[] = entry
+	entries
+
+export getProjectEntries = (path, noPreview = false) ->
+	entries = []
+	for dir in *Content\getDirs path
+		for entry in *allEntries.scanDir path, dir, noPreview
+			entries[] = entry
+	table.sort entries, (a, b) -> a.entryName < b.entryName
+	entries
+
+local gamesInDev
+local doraTools
+
+isToolEntry = (entry): false ->
+	switch entry when repo: :categories
+		for category in *categories
+			if "string" == type(category) and category\lower! == "tool"
+				return true
+
+getEntryTitle = (entry) ->
+	title = if repo := entry.repo
+		if repo.title and "table" == type repo.title
+			if useChinese then repo.title.zh else repo.title.en
+	title ?? entry.entryName
+
+allEntries.rebuildEntries = ->
+	gamesInDev = []
+	doraTools = [tool for tool in *allEntries.builtinTools]
+	for entry in *allEntries.projectEntries
+		if isToolEntry entry
+			entry.kind = "tool"
+			doraTools[] = entry
+		else
+			entry.kind = "game"
+			gamesInDev[] = entry
+	for i = #allEntries, 1, -1
+		allEntries[i] = nil
+	for game in *gamesInDev
+		allEntries[] = game
+		:examples, :tests = game
+		for example in *examples
+			allEntries[] = example
+		for test in *tests
+			allEntries[] = test
+
+updateEntries = ->
+	allEntries.projectEntries = getProjectEntries Content.writablePath
+	allEntries.builtinTools = getFileEntries Path(Content.assetPath, "Script", "Tools"), false
+	for tool in *allEntries.builtinTools
+		tool.kind = "tool"
+		tool.builtin = true
+	allEntries.rebuildEntries!
+
+allEntries.refreshDirtyProjects = ->
+	return unless allEntries.hasDirty
+	dirty = allEntries.dirty
+	allEntries.dirty = {}
+	allEntries.hasDirty = false
+	for projectPath in pairs dirty
+		allEntries.projectEntries = [entry for entry in *allEntries.projectEntries when entry.projectPath ~= projectPath]
+		parentPath = Path\getPath projectPath
+		dir = Path\getFilename projectPath
+		for entry in *allEntries.scanDir parentPath, dir
+			if entry.projectPath == projectPath
+				allEntries.projectEntries[] = entry
+				break
+	table.sort allEntries.projectEntries, (a, b) -> a.entryName < b.entryName
+	allEntries.rebuildEntries!
+
+updateEntries!
+
+export getLaunchEntries = (refresh = false) ->
+	updateEntries! if refresh
+	toInfo = (entry, kind) ->
+		file = entry.fileName
+		asProj = not entry.builtin
+		{
+			name: getEntryTitle entry
+			:file
+			:kind
+			:asProj
+		}
+	games = [toInfo game, "game" for game in *gamesInDev]
+	tools = [toInfo tool, "tool" for tool in *doraTools]
+	:games, :tools
+
+export getMobileFeedEntries = (refresh = false, dirtyProjectPath = nil) ->
+	if dirtyProjectPath and dirtyProjectPath ~= ""
+		allEntries.dirty[dirtyProjectPath] = true
+		allEntries.hasDirty = true
+	if refresh
+		allEntries.dirty = {}
+		allEntries.hasDirty = false
+		updateEntries!
+	else
+		allEntries.refreshDirtyProjects!
+	items = []
+	for entry in *gamesInDev
+		items[] = {
+			id: entry.entryName
+			title: getEntryTitle entry
+			description: entry.repo?.description?[useChinese and "zh" or "en"] or (useChinese and "本地 Dora 游戏作品" or "Local Dora game")
+			fileName: entry.fileName
+			workDir: Path\getPath entry.fileName
+			bannerFile: entry.bannerFile
+			kind: "local"
+		}
+	items
+
+doCompile = (minify) ->
+	return if building
+	building = true
+	startTime = App.runningTime
+	luaFiles = []
+	yueFiles = []
+	xmlFiles = []
+	tlFiles = []
+	:writablePath = Content
+	buildPaths = [
+		[
+			Content.assetPath
+			Path writablePath, ".build"
+			""
+		],
+	]
+	for :fileName in *gamesInDev
+		gamePath = Path\getPath Path\getRelative fileName, writablePath
+		buildPaths[] =
+			* Path writablePath, gamePath
+			* Path writablePath, ".build", gamePath
+			* Path(writablePath, gamePath, "Script", "?.lua") .. ";" .. Path writablePath, gamePath, "?.lua"
+			* gamePath
+	for [inputPath, outputPath, searchPath, gamePath] in *buildPaths
+		continue unless Content\exist inputPath
+
+		for file in *getAllFiles inputPath, ["lua",]
+			luaFiles[] =
+				* file
+				* Path inputPath, file
+				* Path outputPath, file
+				* gamePath
+
+		for file in *getAllFiles inputPath, [yueext,]
+			yueFiles[] =
+				* file
+				* Path inputPath, file
+				* Path outputPath, Path\replaceExt file, "lua"
+				* searchPath
+				* gamePath
+
+		for file in *getAllFiles inputPath, ["xml",]
+			xmlFiles[] =
+				* file
+				* Path inputPath, file
+				* Path outputPath, Path\replaceExt file, "lua"
+				* gamePath
+
+		for file in *getAllFiles inputPath, ["tl",]
+			if not file\match ".*%.d%.tl$"
+				tlFiles[] =
+					* file
+					* Path inputPath, file
+					* Path outputPath, Path\replaceExt file, "lua"
+					* searchPath
+					* gamePath
+
+	paths = {Path\getPath(file[3]), true \
+		for files in *[luaFiles, yueFiles, xmlFiles, tlFiles] \
+		for file in *files}
+
+	Content\mkdir path for path in pairs paths
+
+	totalFiles = #yueFiles + #xmlFiles + #tlFiles
+	fileCount = 0
+	errors = []
+	for [file, input, output, searchPath, gamePath] in *yueFiles
+		filename = if gamePath then Path gamePath, file else file
+		(success) <- yue.compile input, output, searchPath, (codes, err, globals) ->
+			if not codes
+				errors[] = "Compile errors in #{filename}.\n#{err}"
+				return
+			success, result = LintYueGlobals codes, globals
+			local yueCodes
+			unless success
+				if yueCodes := Content\load input
+					import CheckTIC80Code from "Utils"
+					isTIC80, tic80APIs = CheckTIC80Code yueCodes
+					if isTIC80
+						success, result = LintYueGlobals codes, globals, true, tic80APIs
+			if success
+				"-- [yue]: #{file}\n#{codes}"
+			else
+				if yueCodes
+					globalErrors = []
+					for [name, line, col] in *result
+						countLine = 1
+						code = ""
+						for lineCode in yueCodes\gmatch "([^\r\n]*)\r?\n?"
+							if countLine == line
+								code = lineCode
+								break
+							countLine += 1
+						globalErrors[] = "invalid global variable \"#{name}\"\nin \"#{filename}\", at line #{line}, col #{col}.\n#{code\gsub("\t", " ") .. '\n' .. string.rep(" ", col - 1) .. "^"}"
+					errors[] = table.concat globalErrors, "\n" if #globalErrors > 0
+				else
+					errors[] = "failed to load file #{input}"
+				codes if #errors == 0
+		print "Yue compiled: #{filename}" if success
+		fileCount += 1
+
+	thread ->
+		for [file, input, output, gamePath] in *xmlFiles
+			filename = if gamePath then Path gamePath, file else file
+			sourceCodes = Content\loadAsync input
+			codes, err = xml.tolua sourceCodes
+			if not codes
+				errors[] = "Compile errors in #{filename}.\n#{err}"
+			else
+				Content\saveAsync output, "-- [xml]: #{file}\n#{codes}"
+				print "Xml compiled: #{filename}"
+			fileCount += 1
+
+	thread ->
+		for [file, input, output, searchPath, gamePath] in *tlFiles
+			filename = if gamePath then Path gamePath, file else file
+			sourceCodes = Content\loadAsync input
+			codes, err = teal.toluaAsync sourceCodes, file, searchPath
+			if not codes
+				errors[] = "Compile errors in #{filename}.\n#{err}"
+			else
+				Content\saveAsync output, codes
+				print "Teal compiled: #{filename}"
+			fileCount += 1
+
+	thread ->
+		wait -> fileCount == totalFiles
+		if minify
+			for files in *[yueFiles, xmlFiles, tlFiles] do for file in *files
+				output = Path\replaceExt file[3], "lua"
+				luaFiles[] =
+					* Path\replaceExt file[1], "lua"
+					* output
+					* output
+
+			from "luaminify" import FormatMini
+			for [file, input, output] in *luaFiles
+				if Content\exist input
+					sourceCodes = Content\loadAsync input
+					res, err = FormatMini sourceCodes
+					if res
+						Content\saveAsync output, res
+						print "Minify: #{file}"
+					else
+						errors[] = "Minify errors in #{file}.\n#{err}"
+				else
+					errors[] = "Minify errors in #{file}.\nTarget file is not exist!"
+			package.loaded["luaminify.FormatMini"] = nil
+			package.loaded["luaminify.ParseLua"] = nil
+			package.loaded["luaminify.Scope"] = nil
+			package.loaded["luaminify.Util"] = nil
+		errorMessage = table.concat errors, "\n"
+		print errorMessage if errorMessage ~= ""
+		builtFiles = totalFiles + (minify and #luaFiles or 0) - #errors
+		print "#{builtFiles} #{builtFiles == 1 and 'file' or 'files'} built! Cost #{string.format '%.2f', App.runningTime - startTime}s"
+		print "#{#errors} #{#errors == 1 and 'file failed' or 'files failed'} to build."
+		Content\clearPathCache!
+		teal.clear!
+		yue.clear!
+		building = false
+
+doClean = ->
+	return if building
+	:writablePath = Content
+	targetDir = Path writablePath, ".build"
+	Content\clearPathCache!
+	if Content\remove targetDir
+		print "Cleaned: #{targetDir}"
+
+screenScale = 2.0 -- App.devicePixelRatio
+scaleContent = false
+isInEntry = true
+currentEntry = nil
+
+footerWindow = nil
+entryWindow = nil
+testingThread = nil
+mobileMode = config.mobileFeed
+pendingUIMode = nil
+feedHost = nil
+remixHost = nil
+startMobileUI = nil
+webControlled = false
+mobileHosts = []
+suspendedMobileHosts = {}
+
+trackMobileHost = (host) ->
+	mobileHosts = [item for item in *mobileHosts when item.parent]
+	mobileHosts[] = host
+	host
+
+clearMobileUI = ->
+	for host in *mobileHosts
+		host\removeFromParent true if host.parent
+	mobileHosts = []
+	suspendedMobileHosts = {}
+	feedHost = nil
+	remixHost = nil
+
+syncWebIDEControl = ->
+	connected = HttpServer.wsConnectionCount > 0
+	if connected
+		pendingUIMode = nil
+		for host in *mobileHosts
+			continue unless host.parent
+			unless suspendedMobileHosts[host]?
+				suspendedMobileHosts[host] = host.visible
+				host\emit "SuspendLocalUI"
+			host.visible = false
+	elseif webControlled
+		for host, visible in pairs suspendedMobileHosts
+			if host.parent
+				host.visible = visible
+				host\emit "ResumeLocalUI"
+		suspendedMobileHosts = {}
+	webControlled = connected
+	connected
+
+export getUIMode = -> mobileMode and "mobile" or "traditional"
+export setUIMode = (mode) ->
+	return false unless mode in ["mobile", "traditional"]
+	return false if HttpServer.wsConnectionCount > 0
+	return false if pendingUIMode? or not isInEntry or testingThread
+	wantsMobile = mode == "mobile"
+	return true if wantsMobile == mobileMode
+	if mobileMode
+		return false unless feedHost and feedHost.visible
+		-- Let Feed reject a switch while an installation or card transition is active.
+		feedHost\emit "SwitchUIMode"
+		return pendingUIMode == false
+	pendingUIMode = true
+	true
+
+applyUIMode = (enabled) ->
+	-- Web IDE may connect after the local switch was queued.
+	return false if HttpServer.wsConnectionCount > 0
+	if enabled
+		ok, err = pcall startMobileUI
+		unless ok
+			feedHost\removeFromParent true if feedHost
+			feedHost = nil
+			mobileMode = false
+			Log "Error", "Failed to start Mobile UI: #{err}"
+			return false
+	else
+		clearMobileUI!
+		updateEntries!
+	mobileMode = enabled
+	config.mobileFeed = enabled
+	true
+
+setupEventHandlers = nil
+
+export allClear = ->
+	-- Remote runs own the scene: do not retain stale local HUDs across run/stop.
+	clearMobileUI! if webControlled or HttpServer.wsConnectionCount > 0
+	-- Mirror Director.cleanup's system UI boundary in the Lua userdata sweep.
+	-- Clip stencils are owned nodes but are not children, so include them explicitly.
+	systemNodes = {}
+	preserveSystemNode = (node) ->
+		return if systemNodes[node]
+		systemNodes[node] = true
+		if clip := tolua.cast node, "ClipNode"
+			preserveSystemNode clip.stencil if clip.stencil
+		node\eachChild (child) ->
+			preserveSystemNode child
+			false
+	for routine in *Routine
+		switch routine
+			when footerWindow, entryWindow, testingThread
+				continue
+			else
+				Routine\remove routine
+	for module in *moduleCache
+		package.loaded[module] = nil
+	moduleCache = []
+	Director\cleanup!
+	Entity\clear!
+	Platformer.Data\clear!
+	Platformer.UnitAction\clear!
+	Audio\stopAll 0.2
+	Struct\clear!
+	-- A 3D entry can change the shared projection and clip the next 2D scene.
+	-- Restore the defaults from View before rebuilding the entry/UI cameras.
+	View.nearPlaneDistance = 0.1
+	View.farPlaneDistance = 10000
+	View.fieldOfView = 45
+	View.postEffect = nil
+	View.scale = scaleContent and screenScale or 1
+	Director.clearColor = Color 0xff1a1a1a
+	teal.clear!
+	yue.clear!
+	-- Resetting View.scale can synchronously rebuild UI in AppChange("Size").
+	-- Capture the current tree after those callbacks, not before scene cleanup.
+	preserveSystemNode Director.systemUI
+	for _, item in pairs ubox!
+		if node := tolua.cast item, "Node"
+			node\cleanup! unless systemNodes[node]
+	collectgarbage!
+	collectgarbage!
+	Wasm\clear!
+	thread ->
+		sleep!
+		Cache\removeUnused!
+	setupEventHandlers!
+	Content.searchPaths = searchPaths
+	App.idled = true
+
+clearTempFiles = ->
+	:writablePath = Content
+	Content\remove Path writablePath, ".upload" if Content\exist Path writablePath, ".upload"
+	Content\remove Path writablePath, ".download" if Content\exist Path writablePath, ".download"
+
+waitForWebStart = true
+thread ->
+	sleep 2
+	waitForWebStart = false
+
+reloadDevEntry = -> thread ->
+	waitForWebStart = true
+	doClean!
+	allClear!
+	_G.require = oldRequire
+	Dora.require = oldRequire
+	package.loaded["Script.Dev.Entry"] = nil
+	package.loaded["Script.Dev.WebServer"] = nil
+	Director.systemScheduler\schedule ->
+		Routine\clear!
+		oldRequire "Script.Dev.Entry"
+		true
+
+export setWorkspace = (path) ->
+	clearTempFiles!
+	Content.writablePath = path
+	config.writablePath = Content.writablePath
+	thread ->
+		sleep!
+		reloadDevEntry!
+
+quit = false
+
+activeSearchId = 0
+
+handleSearchFiles = (payload) ->
+	return unless payload
+	:id = payload
+	return if id == nil
+	activeSearchId = id
+	{
+		:path = ""
+		:exts = []
+		:globs = []
+		:extensionLevels = []
+		:pattern = ""
+	} = payload
+	return if pattern == ""
+	useRegex = payload.useRegex == true
+	caseSensitive = payload.caseSensitive == true
+	includeContent = payload.includeContent != false
+	contentWindow = payload.contentWindow or 0
+	Director.systemScheduler\schedule once ->
+		stopped = false
+		Content\searchFilesAsync path, exts, extensionLevels, globs, pattern, useRegex, caseSensitive, includeContent, contentWindow, (result) ->
+			if activeSearchId != id
+				stopped = true
+				return true
+			emit "AppWS", "Send", json.encode {
+				name: "SearchFilesResult", :id, :result
+			}
+			false
+		emit "AppWS", "Send", json.encode {
+			name: "SearchFilesDone", :id, stopped: stopped
+		}
+
+export stop = ->
+	return false if isInEntry
+	allClear!
+	isInEntry = true
+	currentEntry = nil
+	true
+
+export getCurrentEntryStatus = ->
+	entry = currentEntry
+	return success: true, running: false, runId: allEntries.runId unless entry and not isInEntry
+	status =
+		success: true
+		running: true
+		kind: entry.runKind or "file"
+		runId: allEntries.runId
+		entryName: entry.entryName
+		fileName: entry.fileName
+	status.workDir = entry.workDir if entry.workDir
+	status.projectRoot = entry.projectRoot if entry.projectRoot
+	status
+
+setupEventHandlers = ->
+	with Director.postNode
+		\onAppEvent (eventType) -> switch eventType
+			when "Quit"
+				quit = true
+				allClear!
+				clearTempFiles!
+			when "Shutdown"
+				stop!
+		\onAppChange (settingName) -> switch settingName
+			when "Theme"
+				config.themeColor = App.themeColor\toARGB!
+			when "Locale"
+				config.locale = App.locale
+				updateLocale!
+				teal.clear true
+			when "FullScreen", "Size", "Position"
+				if App.platform in ["Linux", "Windows", "macOS"]
+					switch settingName
+						when "FullScreen" then config.fullScreen = App.fullScreen
+						when "Position" then x: config.winX, y: config.winY = App.winPosition
+						when "Size"
+							:width, :height = App.winSize
+							config.winWidth = width
+							config.winHeight = height
+		\onAppWS (event) ->
+			if event.type == "Close"
+				if HttpServer.wsConnectionCount == 0
+					updateEntries!
+				return
+			return unless event.type == "Receive"
+			data = json.decode event.msg
+			return unless data
+			switch data.name
+				when "SearchFiles"
+					handleSearchFiles data
+				when "SearchFilesStop"
+					if data.id == nil or data.id == activeSearchId
+						activeSearchId = 0
+		\slot "UpdateEntries", -> updateEntries!
+
+setupEventHandlers!
+clearTempFiles!
+
+export downloadFile = (url, target) -> Director.systemScheduler\schedule once ->
+	success = HttpClient\downloadAsync url, target, 30, (current, total): false ->
+		return true if quit
+		emit "AppWS", "Send", json.encode {
+			name: "Download", :url, status: "downloading"
+			progress: current / total
+		}
+	emit "AppWS", "Send", json.encode success and {
+		name: "Download", :url, status: "completed"
+		progress: 1.0
+	} or {
+		name: "Download", :url, status: "failed"
+		progress: 0.0
+	}
+
+export enterEntryAsync = (entry) ->
+	allEntries.runId += 1
+	isInEntry = false
+	App.idled = false
+	emit Profiler.EventName, "ClearLoader"
+	currentEntry = entry
+	fileName: file, :workDir = entry
+	sleep!
+	try
+		workDir ??= Path\getPath file
+		Content\insertSearchPath 1, workDir
+		scriptPath = Path workDir, "Script"
+		if Content\exist scriptPath
+			Content\insertSearchPath 1, scriptPath
+		result = require file
+		result! if "function" == type result
+		nil
+	catch msg
+		err = debug.traceback msg
+		Log "Error", err
+		allClear!
+		import "UI.Control.Basic.ScrollArea"
+		width: viewWidth, height: viewHeight = View.size
+		width, height = viewWidth - 20, viewHeight - 20
+		fontSize = math.floor 20 * App.devicePixelRatio
+		Director.ui\addChild with root := AlignNode!
+			:width, :height = App.bufferSize
+			\css "width: #{width}; height: #{height}"
+			\onAppChange (settingName) -> if settingName == "Size"
+				:width, :height = App.bufferSize
+				\css "width: #{width}; height: #{height}"
+			\addChild with ScrollArea {
+					:width
+					:height
+					paddingX: 0
+					paddingY: 50
+					viewWidth: height
+					viewHeight: height
+				}
+				root\onAlignLayout (w, h) ->
+					.position = Vec2 w / 2, h / 2
+					w -= 20
+					h -= 20
+					.view.children.first.textWidth = w - fontSize
+					\adjustSizeWithAlign "Auto", 10, Size w, h
+				.view\addChild with label := Label "sarasa-mono-sc-regular", fontSize
+					.alignment = "Left"
+					.textWidth = width - fontSize
+					.text = err
+		err
+
+enterDemoEntry = (entry) -> thread -> enterEntryAsync entry
+
+reloadCurrentEntry = ->
+	if currentEntry
+		allClear!
+		enterDemoEntry currentEntry
+
+Director.clearColor = Color 0xff1a1a1a
+descColor = Color 0xffa1a1a1
+
+extraOperations = do
+	isOSSLicenseExist = Content\exist "LICENSES"
+	ossLicenses = nil
+	ossLicensePopup = "#{useChinese and '开源协议' or 'OSS Licenses'}##ossLicenses"
+	failedSetFolder = false
+	statusFlags = $WindowFlag(
+		NoResize
+		NoMove
+		NoCollapse
+		AlwaysAutoResize
+		NoSavedSettings
+	)
+	->
+		zh = useChinese
+		if isDesktop
+			:alwaysOnTop = config
+			if changed, alwaysOnTop := Checkbox zh and "窗口置顶" or "Always On Top", alwaysOnTop
+				App.alwaysOnTop = alwaysOnTop
+				config.alwaysOnTop = alwaysOnTop
+			:virtualGamepadEnabled = Controller
+			if changed, virtualGamepadEnabled := Checkbox zh and "键盘模拟手柄" or "Keyboard as Gamepad", virtualGamepadEnabled
+				Controller.virtualGamepadEnabled = virtualGamepadEnabled
+				config.virtualGamepadEnabled = virtualGamepadEnabled
+			SameLine!
+			TextColored descColor, "(?)"
+			if IsItemHovered!
+				<- BeginTooltip
+				<- PushTextWrapPos 360
+				Text zh and [[键盘映射：
+方向键 / WASD → 十字键
+J / K / U / I → A / B / X / Y
+Tab / Ctrl → Back
+Q / E → LB / RB
+Enter → Start
+
+启用后，普通按键和文本输入事件都会被屏蔽；以上映射键仅作为虚拟手柄输入。]] or [[Keyboard mapping:
+Arrow keys / WASD → D-pad
+J / K / U / I → A / B / X / Y
+Tab / Ctrl → Back
+Q / E → LB / RB
+Enter → Start
+
+When enabled, regular key and text input events are suppressed; mapped keys are delivered only as virtual gamepad input.]]
+		{
+			:showPreview
+			:authRequired
+			:webIDETourCompleted
+		} = config
+		if changed, showPreview := Checkbox zh and "显示预览图" or "Show Preview", showPreview
+			config.showPreview = showPreview
+			updateEntries!
+			unless showPreview
+				thread ->
+					collectgarbage!
+					Cache\removeUnused "Texture"
+		if App.platform == "Android" or App.platform == "macOS" or App.platform == "Windows"
+			if changed, webIDEEnabled := Checkbox zh and "内嵌 Web IDE" or "Embedded Web IDE", App.webIDEEnabled
+				config.webIDEEnabled = webIDEEnabled
+				App.webIDEEnabled = webIDEEnabled
+		if changed, authRequired := Checkbox zh and "访问验证" or "Auth Required", authRequired
+			config.authRequired = authRequired
+			HttpServer.authRequired = authRequired
+		SameLine!
+		TextColored descColor, "(?)"
+		if IsItemHovered!
+			<- BeginTooltip
+			<- PushTextWrapPos 280
+			Text zh and '请勿在不安全的网络中关闭该选项' or 'Do not turn off this option on an insecure network'
+		do
+			:themeColor = App
+			:writablePath = config
+			SeparatorText zh and "工作目录" or "Workspace"
+			PushTextWrapPos 400, ->
+				TextColored themeColor, writablePath
+			goto skipSetting unless isDesktop
+			popupName = "#{zh and '工作目录错误' or 'Invalid Workspace Path'}##failedSetFolder"
+			if Button zh and "改变目录" or "Set Folder"
+				App\openFileDialog true, (path) ->
+					return if path == ""
+					relPath = Path\getRelative Content.assetPath, path
+					if "" == relPath or ".." == relPath\sub 1, 2
+						setWorkspace path
+					else
+						failedSetFolder = true
+			if failedSetFolder
+				failedSetFolder = false
+				OpenPopup popupName
+			SetNextWindowPosCenter $SetCond(Always), Vec2 0.5, 0.5
+			BeginPopupModal popupName, statusFlags, ->
+				TextWrapped zh and "工作目录不能包含引擎内置资源目录" or "Built-in assets path should not be under the workspace path"
+				if Button "#{zh and '确认' or 'Confirm'}##closeErrorPopup", Vec2 240, 30
+					CloseCurrentPopup!
+			SameLine!
+			if Button zh and "使用默认" or "Use Default"
+				setWorkspace Content.appPath
+			Separator!
+			::skipSetting::
+		if isOSSLicenseExist
+			if Button zh and '开源协议' or 'OSS Licenses'
+				unless ossLicenses
+					if licenseText := Content\load "LICENSES"
+						ossLicenses = []
+						licenseText = licenseText\gsub "\r\n", "\n"
+						for license in GSplit licenseText, "\n--------\n", true
+							if name, text := license\match "[%s\n]*([^\n]*)[\n]*(.*)"
+								ossLicenses[] = [name, text]
+				OpenPopup ossLicensePopup if ossLicenses
+			visualSize: {:width, :height}, :themeColor = App
+			SetNextWindowPosCenter $SetCond(Appearing), Vec2 0.5, 0.5
+			SetNextWindowSize Vec2(math.min(width * 0.8, 750), height * 0.8), $SetCond Appearing
+			PushStyleVar "WindowPadding", Vec2(20, 10), -> BeginPopupModal(
+				ossLicensePopup
+				true -- let the native title-bar close button dismiss the popup
+				["NoSavedSettings",]
+				->
+					for [firstLine, text] in *ossLicenses
+						-- ignore separators without a "name: license" header
+						if name, license := firstLine\match "(.+): (.+)"
+							TextColored themeColor, name
+							SameLine!
+							TreeNode "#{license}###{name}", -> TextWrapped text
+
+			)
+		return unless App.debugging
+		<- TreeNode zh and "开发操作" or "Development"
+		OpenPopup "build" if Button zh and "脚本编译测试" or "Script Build Test"
+		PushStyleVar "WindowPadding", Vec2(10, 10), -> BeginPopup "build", ->
+			doCompile false if Selectable zh and "编译" or "Compile"
+			Separator!
+			doCompile true if Selectable zh and "压缩" or "Minify"
+			Separator!
+			doClean! if Selectable zh and "清理" or "Clean"
+		if isInEntry
+			if waitForWebStart
+				BeginDisabled -> Button zh and "重载开发程序(Ctrl+Z)" or "Reload Dev Entry(Ctrl+Z)"
+			elseif Button zh and "重载开发程序(Ctrl+Z)" or "Reload Dev Entry(Ctrl+Z)"
+				reloadDevEntry!
+		if changed, scaleContent := Checkbox string.format("%.1fx #{zh and '屏幕缩放' or 'Screen'}", screenScale), scaleContent
+			View.scale = scaleContent and screenScale or 1
+		if changed, engineDev := Checkbox zh and '引擎开发模式' or 'Engine Dev Mode', engineDev
+			config.engineDev = engineDev
+		if changed, webIDETourCompleted := Checkbox zh and "导览已完成" or "User Tour Done", webIDETourCompleted
+			config.webIDETourCompleted = webIDETourCompleted
+		if testingThread
+			BeginDisabled -> Button zh and "开始自动测试" or "Test automatically"
+		elseif Button zh and "开始自动测试" or "Test automatically"
+			testingThread = thread ->
+				close _ = <close>: ->
+					allClear!
+					testingThread = nil
+					isInEntry = true
+					currentEntry = nil
+					print "Testing done!"
+				for _, entry in ipairs allEntries
+					allClear!
+					print "Start #{entry.entryName}"
+					enterDemoEntry entry
+					sleep 2
+					print "Stop #{entry.entryName}"
+
+icon = Path "Script", "Dev", "icon_s.png"
+iconTex = nil
+thread -> iconTex = Texture2D icon if Cache\loadAsync icon
+
+webStatus = nil
+urlClicked = nil
+
+authCode = string.format "%06d", math.random 0, 999999
+macro MaxAuthCodeTTL = -> 30.0
+authCodeTTL = $MaxAuthCodeTTL
+export.getAuthCode = -> authCode
+export.invalidateAuthCode = ->
+	authCode = string.format "%06d", math.random 0, 999999
+	authCodeTTL = $MaxAuthCodeTTL
+
+export AuthSession = do
+	pending = nil
+	session = nil
+	{
+		beginPending: (sessionId, confirmCode, expiresAt, ttl) ->
+			pending =
+				:sessionId
+				:confirmCode
+				:expiresAt
+				:ttl
+				approved: false
+
+		getPending: -> pending
+
+		approvePending: (sessionId) ->
+			if pending and pending.sessionId == sessionId
+				pending.approved = true
+				return true
+			false
+
+		clearPending: -> pending = nil
+
+		setSession: (sessionId, sessionSecret) ->
+			session =
+				:sessionId
+				:sessionSecret
+
+		getSession: -> session
+	}
+
+transparant = Color 0x0
+windowFlags = $WindowFlag(
+	NoTitleBar
+	NoResize
+	NoMove
+	NoCollapse
+	NoSavedSettings
+	NoFocusOnAppearing
+	NoBringToFrontOnFocus
+)
+statusFlags = $WindowFlag(
+	NoTitleBar
+	NoResize
+	NoMove
+	NoCollapse
+	AlwaysAutoResize
+	NoSavedSettings
+)
+displayWindowFlags = $WindowFlag(
+	NoDecoration
+	NoSavedSettings
+	NoMove
+	NoScrollWithMouse
+	AlwaysAutoResize
+	NoFocusOnAppearing
+)
+gamepadInputWindowFlags = $WindowFlag(
+	NoDecoration
+	NoSavedSettings
+	NoMove
+	NoScrollbar
+	NoScrollWithMouse
+	NoFocusOnAppearing
+	NoBringToFrontOnFocus
+)
+initFooter = true
+gamepadInputFocused = false
+footerWindow = threadLoop ->
+	return if mobileMode
+	zh = useChinese
+	authCodeTTL = math.max 0, authCodeTTL - App.deltaTime
+	if authCodeTTL <= 0
+		authCodeTTL = $MaxAuthCodeTTL
+		authCode = string.format "%06d", math.random 0, 999999
+	if HttpServer.wsConnectionCount > 0
+		return
+	if isInEntry and Keyboard\isKeyDown "Escape"
+		if App.platform == "Emscripten"
+			-- With no project running, keep the browser runtime alive.
+			stop!
+		else
+			allClear!
+			App.devMode = false
+			App\shutdown!
+	do
+		ctrl = Keyboard\isKeyPressed "LCtrl"
+		if ctrl and Keyboard\isKeyDown "Q"
+			stop!
+		if ctrl and Keyboard\isKeyDown "Z"
+			reloadCurrentEntry!
+		if ctrl and Keyboard\isKeyDown ","
+			showStats = if showFooter then not showStats else true
+			showFooter = true
+			config.showFooter = showFooter
+			config.showStats = showStats
+		if ctrl and Keyboard\isKeyDown "."
+			showConsole = if showFooter then not showConsole else true
+			showFooter = true
+			config.showFooter = showFooter
+			config.showConsole = showConsole
+		if ctrl and Keyboard\isKeyDown "/"
+			showFooter = not showFooter
+			config.showFooter = showFooter
+		left = ctrl and Keyboard\isKeyDown "Left"
+		right = ctrl and Keyboard\isKeyDown "Right"
+		currentIndex = nil
+		for i, entry in ipairs allEntries
+			if currentEntry == entry
+				currentIndex = i
+		if left
+			allClear!
+			currentIndex ??= #allEntries + 1
+			enterDemoEntry if currentIndex > 1
+				allEntries[currentIndex - 1]
+			else
+				allEntries[#allEntries]
+		if right
+			allClear!
+			currentIndex ??= 0
+			enterDemoEntry if currentIndex < #allEntries
+				allEntries[currentIndex + 1]
+			else
+				allEntries[1]
+	return unless showEntry
+
+	if isInEntry and
+		not waitForWebStart and
+		Keyboard\isKeyPressed("LCtrl") and
+		Keyboard\isKeyDown "Z"
+		reloadDevEntry!
+	if initFooter
+		initFooter = false
+
+	:width, :height = App.visualSize
+	if isInEntry
+		gamepadInputFocused = false
+	else
+		SetNextWindowBgAlpha 0.0
+		SetNextWindowSize Vec2(1, 1), $SetCond Always
+		SetNextWindowPos Vec2.zero, $SetCond Always
+		<- PushStyleVar "WindowPadding", Vec2.zero
+		<- PushStyleVar "WindowMinSize", Vec2 1, 1
+		Begin "DoraGamepadInput", gamepadInputWindowFlags, ->
+			unless gamepadInputFocused
+				SetWindowFocus "DoraGamepadInput"
+				gamepadInputFocused = true
+
+	if isInEntry or showFooter
+		SetNextWindowSize Vec2 width, 50
+		SetNextWindowPos Vec2 0, height - 50
+		<- PushStyleVar "WindowPadding", Vec2 10, 0
+		<- PushStyleVar "WindowRounding", 0
+		<- Begin "Footer", windowFlags
+		Separator!
+		if iconTex
+			if ImageButton "sideBtn", icon, Vec2 20, 20
+				showStats = not showStats
+				config.showStats = showStats
+			SameLine!
+			if Button ">_", Vec2 30, 30
+				showConsole = not showConsole
+				config.showConsole = showConsole
+		if isInEntry and config.updateNotification
+			SameLine!
+			if ImGui.Button zh and "更新可用" or "Update"
+				allClear!
+				config.updateNotification = false
+				enterDemoEntry
+					entryName: "SelfUpdater"
+					fileName: Path Content.assetPath, "Script", "Tools", "SelfUpdater"
+		unless isInEntry
+			SameLine!
+			back = Button zh and "退出" or "Quit", Vec2 70, 30
+			currentIndex = nil
+			for i, entry in ipairs allEntries
+				if currentEntry == entry
+					currentIndex = i
+			if currentIndex
+				if currentIndex > 1
+					SameLine!
+					if Button "<<", Vec2 30, 30
+						allClear!
+						enterDemoEntry allEntries[currentIndex - 1]
+				if currentIndex < #allEntries
+					SameLine!
+					if Button ">>", Vec2 30, 30
+						allClear!
+						enterDemoEntry allEntries[currentIndex + 1]
+			SameLine!
+			if Button zh and "刷新" or "Reload", Vec2 70, 30
+				reloadCurrentEntry!
+			if back
+				allClear!
+				isInEntry = true
+				currentEntry = nil
+
+	if isInEntry
+		showURL = true
+		webIDEWidth = do
+			base = if config.updateNotification then 460 else 360
+			extra = if config.authRequired then 35 else 0
+			base + extra
+		showURL = false if width < webIDEWidth
+		SetNextWindowBgAlpha 0.0
+		SetNextWindowPos Vec2(width, height - 50), $SetCond(Always), Vec2 1, 0
+		Begin "Web IDE", displayWindowFlags, ->
+			pending = AuthSession.getPending!
+			hovered = false
+			if not pending and showURL
+				if url := webStatus?.url
+					if isDesktop and not config.fullScreen
+						if urlClicked
+							BeginDisabled -> Button url
+						elseif Button url
+							urlClicked = once -> sleep 5
+							App\openURL "http://localhost:8866"
+					else
+						TextColored descColor, url
+				else
+					TextColored descColor, zh and '不可用' or 'not available'
+				hovered = IsItemHovered!
+			else
+				TextColored descColor, "(?)"
+				hovered = IsItemHovered!
+			SameLine!
+			:themeColor = App
+			if pending
+				unless pending.approved
+					remaining = math.max 0, pending.expiresAt - os.time!
+					ttl = pending.ttl or 1
+					PushStyleColor "Text", themeColor, ->
+						ImGui.ProgressBar remaining / ttl, Vec2(40, 30), pending.confirmCode
+						hovered or= IsItemHovered!
+					SameLine!
+					if Button zh and "确认" or "Approve", Vec2 70, 30
+						AuthSession.approvePending pending.sessionId
+					if hovered
+						BeginTooltip ->
+							PushTextWrapPos 280, ->
+								Text zh and 'Web IDE 正在等待确认，请核对浏览器中的会话码并点击确认' or 'Web IDE is waiting for confirmation. Match the session code in the browser and click approve.'
+			else
+				if config.authRequired
+					PushStyleColor "Text", themeColor, ->
+						ImGui.ProgressBar authCodeTTL / $MaxAuthCodeTTL, Vec2(60, 30), authCode
+						hovered or= IsItemHovered!
+					if hovered
+						BeginTooltip ->
+							PushTextWrapPos 280, ->
+								if url := webStatus?.url
+									address = if showURL then "Web IDE" else url
+									Text zh and "在本机或是本地局域网连接的其他设备上，使用浏览器访问 #{address} 并输入后面的 PIN 码进行使用 （PIN 仅用于一次认证）" or "Open #{address} in a browser on this machine or another device on the local network and enter the PIN below to start (PIN is one-time)"
+								else
+									Text zh and 'Web IDE 不可用' or 'Web IDE not available'
+				else
+					if hovered
+						BeginTooltip ->
+							PushTextWrapPos 280, ->
+								if url := webStatus?.url
+									address = if showURL then "Web IDE" else url
+									Text zh and "在本机或是本地局域网连接的其他设备上，使用浏览器访问 #{address}" or "Open #{address} in a browser on this machine or another device on the local network"
+								else
+									Text zh and 'Web IDE 不可用' or 'Web IDE not available'
+
+	unless isInEntry
+		SetNextWindowSize Vec2 50, 50
+		SetNextWindowPos Vec2 width - 50, height - 50
+		PushStyleColor "WindowBg", transparant, -> Begin "Show", displayWindowFlags, ->
+			if width >= 370
+				if changed, showFooter := Checkbox "##dev", showFooter
+					config.showFooter = showFooter
+
+	if isInEntry or showFooter
+		if showStats
+			<- PushStyleVar "WindowRounding", 0
+			SetNextWindowPos Vec2(0, 0), $SetCond Always
+			SetNextWindowSize Vec2 0, height - 50
+			showStats = ShowStats showStats, statusFlags, extraOperations
+			config.showStats = showStats
+		if showConsole
+			SetNextWindowPos Vec2(width - 425, height - 375), $SetCond FirstUseEver
+			<- PushStyleVar "WindowRounding", 6
+			ShowConsole!
+
+const MaxWidth = 960
+
+toolOpen = false
+filterText = nil
+allEntries.anyEntryMatched = false
+allEntries.match = (name) ->
+	res = not filterText or name\lower!\match filterText
+	allEntries.anyEntryMatched = true if res
+	res
+
+allEntries.thinSep = -> PushStyleVar "SeparatorTextBorderSize", 1, -> SeparatorText ""
+
+entryWindow = threadLoop ->
+	connected = syncWebIDEControl!
+	-- External packages wait for an idle launcher; do not interrupt a game or Agent.
+	if not connected and not mobileMode and isInEntry and not testingThread
+		unless allEntries.pendingPackagePath
+			path = App\takeReceivedFile!
+			allEntries.pendingPackagePath = path if path ~= ""
+		pendingUIMode = true if allEntries.pendingPackagePath
+	-- Apply outside ImGui and touch callbacks; keep the server and Agent services alive.
+	if pendingUIMode?
+		nextMode = pendingUIMode
+		pendingUIMode = nil
+		applyUIMode nextMode
+	if mobileMode and not connected
+		applyUIMode true if isInEntry and not feedHost
+		return
+	if App.fpsLimited ~= config.fpsLimited
+		config.fpsLimited = App.fpsLimited
+	if App.targetFPS ~= config.targetFPS
+		config.targetFPS = App.targetFPS
+	if View.vsync ~= config.vsync
+		config.vsync = View.vsync
+	if Director.scheduler.fixedFPS ~= config.fixedFPS
+		config.fixedFPS = Director.scheduler.fixedFPS
+	if Director.profilerSending ~= config.webProfiler
+		config.webProfiler = Director.profilerSending
+	if urlClicked
+		_, result = coroutine.resume urlClicked
+		if result
+			coroutine.close urlClicked
+			urlClicked = nil
+	return unless isInEntry
+	zh = useChinese
+	:themeColor = App
+	if connected
+		:width, :height = App.visualSize
+		SetNextWindowBgAlpha 0.5
+		SetNextWindowPos Vec2(width / 2, height / 2), $SetCond(Always), Vec2 0.5, 0.5
+		Begin "Web IDE Connected", displayWindowFlags, ->
+			Separator!
+			TextColored themeColor, "#{zh and 'Web IDE 已连接 ……' or 'Web IDE connected ...'}"
+			if iconTex
+				Image icon, Vec2 24, 24
+				SameLine!
+			slogon = zh and 'Dora 启动！' or 'Dora Start!'
+			TextColored descColor, slogon
+			Separator!
+		return
+	return unless showEntry
+
+	width: fullWidth, :height = App.visualSize
+	width = math.min MaxWidth, fullWidth
+	paddingX = math.max 10, fullWidth / 2 - width / 2 - 10
+	maxColumns = math.max math.floor(width / 200), 1
+	SetNextWindowPos Vec2.zero
+	SetNextWindowBgAlpha 0
+	SetNextWindowSize Vec2 fullWidth, 51
+	do
+		<- PushStyleVar "WindowPadding", Vec2 10, 0
+		<- Begin "Dora Dev", windowFlags
+		Dummy Vec2 fullWidth - 20, 0
+		TextColored themeColor, "Dora SSR #{zh and '开发' or 'Dev'}"
+		SameLine!
+		if Button zh and "Go 模式" or "Go Mode"
+			setUIMode "mobile"
+		if fullWidth >= 540
+			SameLine!
+			Dummy Vec2 fullWidth - 540, 0
+			SameLine!
+			SetNextItemWidth zh and -95 or -140
+			if InputText zh and '筛选' or 'Filter', filterBuf, ["AutoSelectAll",]
+				config.filter = filterBuf.text
+			SameLine!
+			if Button zh and '下载' or 'Download'
+				allClear!
+				enterDemoEntry
+					entryName: "ResourceDownloader"
+					fileName: Path Content.assetPath, "Script", "Tools", "ResourceDownloader"
+		Separator!
+
+	allEntries.anyEntryMatched = false
+	SetNextWindowPos Vec2 0, 50
+	SetNextWindowSize Vec2 fullWidth, height - 100
+	do
+		<- PushStyleColor "WindowBg", transparant
+		<- PushStyleVar "WindowPadding", Vec2 paddingX, 10
+		<- PushStyleVar "Alpha", 1
+		<- Begin "Content", windowFlags
+		const DemoViewWidth = 220
+		filterText = filterBuf.text\match "[^%%%.%[]+"
+		filterText = filterText\lower! if filterText
+		if App.platform == "Emscripten"
+			Dora.globals.webProjects.draw zh, themeColor
+			allEntries.anyEntryMatched = true
+		if #gamesInDev > 0
+			columns = math.max math.floor(width / DemoViewWidth), 1
+			Columns columns, false
+			realViewWidth = GetColumnWidth! - 50
+			for game in *gamesInDev
+				{
+					entryName: gameName
+					:fileName
+					:examples
+					:tests
+					:repo
+					:bannerFile
+					:bannerTex
+				} = game
+				displayName = if repo
+					if zh then repo.title.zh else repo.title.en
+				displayName ??= gameName
+				if allEntries.match displayName
+					TextColored themeColor, zh and "项目：" or "Project:"
+					SameLine!
+					TextWrapped displayName
+					if columns > 1
+						if bannerFile and bannerTex
+							width: texWidth, height: texHeight = bannerTex
+							const displayWidth = realViewWidth
+							texHeight = displayWidth * texHeight / texWidth
+							texWidth = displayWidth
+							Dummy Vec2.zero
+							SameLine!
+							Image bannerFile, Vec2 texWidth + 10, texHeight
+						if Button "#{zh and "开始测试" or "Game Test"}###{fileName}", Vec2 -1, 40
+							enterDemoEntry game
+					else
+						if bannerFile and bannerTex
+							width: texWidth, height: texHeight = bannerTex
+							displayWidth = (fullWidth / 2 - paddingX) * 2 - 35
+							sizing = 0.8
+							texHeight = displayWidth * sizing * texHeight / texWidth
+							texWidth = displayWidth * sizing
+							if texWidth > 500
+								sizing = 0.6
+								texHeight = displayWidth * sizing * texHeight / texWidth
+								texWidth = displayWidth * sizing
+							padding = displayWidth * (1 - sizing) / 2 - 10
+							Dummy Vec2 padding, 0
+							SameLine!
+							Image bannerFile, Vec2 texWidth, texHeight
+						if Button "#{zh and "开始测试" or "Game Test"}###{fileName}", Vec2 -1, 40
+							enterDemoEntry game
+					if #tests == 0 and #examples == 0
+						allEntries.thinSep!
+					NextColumn!
+				showSep = false
+				if #examples > 0
+					showExample = false
+					showExample = for :entryName in *examples
+						break true if allEntries.match entryName
+					if showExample
+						showSep = true
+						Columns 1, false
+						TextColored themeColor, zh and "示例：" or "Example:"
+						SameLine!
+						opened = if filterText? then showExample else false
+						game.exampleOpen ??= opened
+						SetNextItemOpen game.exampleOpen
+						TreeNode "#{gameName}##example-#{fileName}", ->
+							<- PushStyleVar "ItemSpacing", Vec2 20, 10
+							Columns maxColumns, false
+							for example in *examples
+								:entryName = example
+								continue unless allEntries.match entryName
+								PushID "#{gameName} #{entryName} example", ->
+									if Button entryName, Vec2 -1, 40
+										enterDemoEntry example
+									NextColumn!
+								opened = true
+						game.exampleOpen = opened
+				if #tests > 0
+					showTest = false
+					showTest = for :entryName in *tests
+						break true if allEntries.match entryName
+					if showTest
+						showSep = true
+						Columns 1, false
+						TextColored themeColor, zh and "测试：" or "Test:"
+						SameLine!
+						opened = if filterText? then showTest else false
+						game.testOpen ??= opened
+						SetNextItemOpen game.testOpen
+						TreeNode "#{gameName}##test-#{fileName}", ->
+							<- PushStyleVar "ItemSpacing", Vec2 20, 10
+							Columns maxColumns, false
+							for test in *tests
+								:entryName = test
+								continue unless allEntries.match entryName
+								PushID "#{gameName} #{entryName} test", ->
+									if Button entryName, Vec2 -1, 40
+										enterDemoEntry test
+									NextColumn!
+								opened = true
+						game.testOpen = opened
+				if showSep
+					Columns 1, false
+					allEntries.thinSep!
+					Columns columns, false
+		if #doraTools > 0
+			showTool = false
+			showTool = for {:entryName, :repo} in *doraTools
+				displayName = if repo
+					if zh then repo.title.zh else repo.title.en
+				displayName ??= entryName
+				break true if allEntries.match displayName
+			goto endEntry unless showTool
+			Columns 1, false
+			TextColored themeColor, "Dora SSR:"
+			SameLine!
+			Text zh and "开发支持" or "Development Support"
+			Separator!
+			if #doraTools > 0
+				opened = if filterText? then showTool else false
+				SetNextItemOpen toolOpen
+				TreeNode zh and "引擎工具" or "Engine Tools", ->
+					<- PushStyleVar "ItemSpacing", Vec2 20, 10
+					Columns maxColumns, false
+					for tool in *doraTools
+						:entryName, :repo = tool
+						displayName = if repo
+							if zh then repo.title.zh else repo.title.en
+						displayName ??= entryName
+						continue unless allEntries.match displayName
+						if Button displayName, Vec2 -1, 40
+							enterDemoEntry tool
+						NextColumn!
+					Columns 1, false
+					opened = true
+				toolOpen = opened
+		::endEntry::
+		unless allEntries.anyEntryMatched
+			SetNextWindowBgAlpha 0
+			SetNextWindowPos Vec2(fullWidth / 2, height / 2), $SetCond(Always), Vec2 0.5, 0.5
+			Begin "Entries Not Found", displayWindowFlags, ->
+				Separator!
+				TextColored themeColor, zh and "多萝：" or "Dora:"
+				TextColored descColor, zh and '别担心，改变一些咒语，我们会找到新的冒险～' or 'Don\'t worry, more magic words and we\'ll find a new adventure!'
+				Separator!
+		Columns 1, false
+		Dummy Vec2 100, 80
+		ScrollWhenDraggingOnVoid!
+
+-- Keep the server and its dependencies in the same persistent module lifetime.
+-- Unloading Agent.Session while the server retains it creates two task registries:
+-- the stale one interprets the other's running task as interrupted.
+unless App.platform == "Emscripten"
+	sceneModuleCache = moduleCache
+	moduleCache = []
+	webStatus = oldRequire "Script.Dev.WebServer"
+	moduleCache = sceneModuleCache
+
+startMobileUI = ->
+	mobileFeed = oldRequire "Script.Dev.Mobile.Feed"
+	mobileCatalog = oldRequire "Script.Dev.Mobile.MobileCatalog"
+	projectCreate = oldRequire "Script.Dev.Mobile.ProjectCreate"
+	from "Script.Tools.ResourceDownloader.Catalog" import getMobileFeedResources
+	from "Script.Tools.ResourceDownloader.CatalogSync" import loadCachedCatalog
+	from "Script.Tools.ResourceDownloader.GitInstaller" import getResourceInstallPath, getInstalledCatalogResource
+	lifecycle = oldRequire "Script.Dev.Mobile.Lifecycle"
+	playOverlay = oldRequire "Script.Dev.Mobile.PlayOverlay"
+	feedOptions = nil
+	mobileLaunchErrors = {}
+	withMobileLaunchErrors = (items) ->
+		for item in *items
+			item.launchError = mobileLaunchErrors[item.id]
+		items
+	rememberedMobileFeedData = config.mobileFeedCurrentCard
+	loadRememberedMobileFeedState = ->
+		raw = rememberedMobileFeedData
+		return unless type(raw) == "string" and raw ~= ""
+		ok, saved = pcall json.decode, raw
+		return unless ok and type(saved) == "table"
+		if type(saved.id) == "string" and saved.kind in ["local", "discover"]
+			state = activeTab: saved.kind
+			state[saved.kind] = saved
+			return state
+		state = activeTab: saved.activeTab in ["local", "discover"] and saved.activeTab or "local"
+		for kind in *["local", "discover"]
+			entry = saved[kind]
+			state[kind] = entry if type(entry) == "table" and type(entry.id) == "string" and entry.kind == kind
+		state
+	rememberedMobileFeedState = loadRememberedMobileFeedState! or {activeTab: "local"}
+	rememberMobileFeedEntry = (entry) ->
+		rememberedMobileFeedState.activeTab = entry.kind
+		rememberedMobileFeedState[entry.kind] = {
+			id: entry.id
+			kind: entry.kind
+			workDir: entry.workDir
+			fileName: entry.fileName
+		}
+		rememberedMobileFeedData = json.encode rememberedMobileFeedState
+		rawset config, getmetatable(config).mobileFeedCurrentCard, rememberedMobileFeedData
+		DB\exec "insert or replace into Config(name, value_num, value_str, value_bool) values('mobileFeedCurrentCard', NULL, ?, NULL)", [rememberedMobileFeedData,]
+	restartMobileFeed = (entry) ->
+		feedHost\removeFromParent true if feedHost
+		feedOptions.initialEntry = entry or rememberedMobileFeedState[rememberedMobileFeedState.activeTab]
+		initialEntries = {}
+		initialEntries["local"] = rememberedMobileFeedState["local"]
+		initialEntries["discover"] = rememberedMobileFeedState["discover"]
+		feedOptions.initialEntries = initialEntries
+		feedHost = trackMobileHost mobileFeed.startMobileFeed feedOptions
+	startMobilePlay = (entry) ->
+		return if HttpServer.wsConnectionCount > 0
+		originFeed = feedHost
+		remixHost\removeFromParent true if remixHost
+		remixHost = nil
+		mobileLaunchErrors[entry.id] = nil
+		entry.launchError = nil
+		playActive = true
+		restoreMobileFeed = ->
+			return unless playActive
+			playActive = false
+			allClear!
+			isInEntry = true
+			currentEntry = nil
+			restartMobileFeed entry
+		trackMobileHost playOverlay.startMobilePlayOverlay {
+			onExit: -> restoreMobileFeed!
+			onRuntimeError: ->
+				mobileLaunchErrors[entry.id] = useChinese and "作品运行异常，已安全返回作品卡，请修改后重试。" or "The game stopped after a runtime error. Fix it and try again."
+				restoreMobileFeed!
+		}
+		thread ->
+			-- enterEntryAsync yields once before constructing the game. Keep the
+			-- complete Feed visible through that boundary, then hide it only when
+			-- the replacement scene is ready to render as a whole.
+			success, err = enterEntryAsync lifecycle.resolveMobileLaunchEntry entry
+			return unless playActive
+			if success
+				originFeed.visible = false if originFeed and originFeed.parent
+				return
+			mobileLaunchErrors[entry.id] = useChinese and "作品启动失败，已返回作品卡，请修改后重试。" or "The game failed to start. Fix it and try again."
+			restoreMobileFeed!
+	feedOptions = {
+		takeReceivedFile: ->
+			if allEntries.pendingPackagePath
+				path = allEntries.pendingPackagePath
+				allEntries.pendingPackagePath = nil
+				return path
+			App\takeReceivedFile!
+		onSwitchMode: -> pendingUIMode = false if HttpServer.wsConnectionCount == 0
+		onCurrentEntryChanged: rememberMobileFeedEntry
+		getLocalEntries: (importedProjectPath) ->
+			dirtyProjectPath = importedProjectPath or feedOptions.dirtyProjectPath
+			feedOptions.dirtyProjectPath = nil
+			items = withMobileLaunchErrors getMobileFeedEntries false, dirtyProjectPath
+			cached = loadCachedCatalog!
+			if cached.success and cached.snapshot
+				for entry in *items
+					resource = getInstalledCatalogResource entry.workDir, cached.snapshot.catalog.resources
+					if resource
+						entry.resource = resource
+						entry.catalogCommit = cached.snapshot.commit
+			items
+		syncDiscover: (onProgress, onDone, force) -> mobileCatalog.syncMobileCatalog onProgress, onDone, nil, force
+		getDiscoverEntries: ->
+			cached = loadCachedCatalog!
+			return [] unless cached.success and cached.snapshot
+			items = []
+			for resource in *getMobileFeedResources cached.snapshot.catalog.resources
+				installed = lifecycle.isMobileResourceReady resource
+				installPath = getResourceInstallPath resource.id
+				items[] = {
+					id: resource.id
+					title: resource.title[useChinese and "zh-Hans" or "en"]
+					description: resource.description[useChinese and "zh-Hans" or "en"]
+					kind: "discover"
+					bannerFile: resource.bannerPath
+					webPlayUrl: not (resource.runnable and #resource.entrypoints > 0) and resource.playUrl or nil
+					sourceUrl: resource.versions[1].sources[1].url
+					workDir: installed and installPath or nil
+					fileName: installed and Path(installPath, Path\replaceExt(resource.entrypoints[1].path, "")) or nil
+					:installed
+					:resource
+					catalogCommit: cached.snapshot.commit
+					launchError: mobileLaunchErrors[resource.id]
+				}
+			items
+		prepare: (entry, repairIncomplete, onProgress, onDone, isCanceled) ->
+			lifecycle.prepareMobileResource entry.resource, entry.catalogCommit, onProgress, ((result) ->
+				onDone result.success, result.entry, result.message, result.repairable
+			), repairIncomplete, isCanceled
+		sync: (entry, force, onProgress, onDone, isCanceled) ->
+			lifecycle.syncMobileResource entry.resource.id, force, onProgress, ((result) ->
+				onDone result.success, result.entry, result.message, result.forceable
+			), isCanceled
+		createProject: (name, language) ->
+			result = projectCreate.createMobileProject name, language
+			return result unless result.success
+			for entry in *getMobileFeedEntries false, result.workDir
+				if entry.workDir == result.workDir
+					return success: true, :entry
+			success: false, error: "created-project-not-found"
+		onPlay: (entry) -> startMobilePlay entry
+		onRemix: (entry) ->
+			return if HttpServer.wsConnectionCount > 0
+			remix = oldRequire "Script.Dev.Mobile.Remix"
+			originFeed = feedHost
+			feedHost.visible = false
+			remixHost = trackMobileHost remix.startMobileRemix {
+				:entry
+				onProjectChanged: (current) -> feedOptions.dirtyProjectPath = current.workDir
+				onBack: ->
+					if mobileMode and feedHost == originFeed and originFeed.parent
+						originFeed\emit "RestoreFeedEntry", entry
+						originFeed.visible = true
+				onPlay: (current) -> startMobilePlay current
+			}
+	}
+	restartMobileFeed!
+
+applyUIMode true if mobileMode

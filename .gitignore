@@ -1,0 +1,125 @@
+# Ignore thumbnails created by windows
+*.db
+
+# Ignore files build by Visual Studio
+*.obj
+*.exe
+*.pdb
+*.aps
+*.vcproj.*.user
+*.vspscc
+*_i.c
+*.i
+*.icf
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.bak
+*.cache
+*.ilk
+*.log
+[Bb]in
+[Dd]ebug*/
+*.sbr
+*.sdf
+obj/
+[Rr]elease*/
+_ReSharper*/
+[Tt]est[Rr]esult*
+ipch/
+.vs/
+*.opensdf
+*.opendb
+
+# Ignore files build by xcode
+*.nib
+*.mode*v*
+*.pbxuser
+*.xcbkptlist
+*.xcscheme
+*.xcworkspacedata
+*.xcuserstate
+xcschememanagement.plist
+build/
+result/
+emsdk-cache/
+.DS_Store
+Thumbs.db
+._.*
+xcuserdata/
+DerivedData/
+Assets/*.icns
+Assets/*.car
+Projects/macOS/Dora.app
+
+# Ignore vim swaps
+*.swp
+
+# Ignore lua binding generated codes
+LuaCode.cpp
+LuaBinding.cpp
+TealCompiler.cpp
+LuaCodeWeb.cpp
+LuaBindingWeb.cpp
+
+# Ignore imgui ini file
+imgui.ini
+
+# Ignore vscode file
+.vscode/
+
+# Ignore dev files
+Assets/www/
+Assets/dora-wa/
+Tools/dora-dora/public/typescript.js
+Tools/dora-dora/public/web-player/
+Tools/dora-dora/public/web-player.tmp-*/
+
+# Ignore Linux lib files
+Projects/Linux/3rdParty/
+
+# Ignore rust files
+Source/Rust/lib/*
+Source/Rust/target/*
+Source/Rust/target-web-pthreads/*
+
+# Ignore tolua++ files
+Tools/tolua++/**/*.o
+Tools/tolua++/**/*.a
+Tools/tolua++/**/*.dll
+Tools/tolua++/**/*.exp
+Tools/tolua++/**/*.lib
+Tools/tolua++/**/lua
+Tools/tolua++/**/luac
+Tools/tolua++/**/*.so
+
+# Ignore generated docs in assets
+Assets/Doc/zh-Hans
+Assets/Doc/en
+
+# xmake build cache
+.xmake/
+Source/3rdParty/Love/Artifacts/
+Source/3rdParty/theora/Lib/
+Source/Love/build*/
+Projects/*/build-love*/
+Projects/Linux/build-theora-check/
+Docs/design/evidence/
+Source/3rdParty/bgfx/dora/generated
+Source/3rdParty/SDL2/Lib/
+Source/3rdParty/Wa/Lib/
+Source/3rdParty/Wa/Source/.build/
+!Source/3rdParty/Wa/Source/waroot/src/debug/
+!Source/3rdParty/Wa/Source/waroot/src/debug/**
+.omo
+.agent
+/.claude
+/.agents
+Docs/kanban
+.codex*
+Docs/design/agent-vision/validation/
+Docs/static/play/
+# Delivery state — worktrees and the like. Never committed.
+.akb/

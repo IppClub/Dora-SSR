@@ -1,0 +1,42 @@
+# Vec3 Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating Vec3 objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new Vec3 object with the given x, y and z components.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: Vec3Class,
+		x: number,
+		y: number,
+		z: number
+	): Vec3
+```
+
+**Usage:**
+```tl
+local newVec = Vec3(10, 20, 30)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| x | number | The x-component of the new vector. |
+| y | number | The y-component of the new vector. |
+| z | number | The z-component of the new vector. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Vec3 | The new Vec3 object. |

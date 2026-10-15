@@ -1,0 +1,31 @@
+# VideoModule
+
+**Description:**
+
+&emsp;&emsp;This module is responsible for decoding, controlling, and streaming video files.
+
+## newVideoStream
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a new VideoStream. Currently only Ogg Theora video files are supported. VideoStreams can't draw videos,
+see love.graphics.newVideo for that.
+
+**Signature:**
+```tl
+newVideoStream: function(filename: string): VideoStream
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The file path to the Ogg Theora video file. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| VideoStream | A new VideoStream. |

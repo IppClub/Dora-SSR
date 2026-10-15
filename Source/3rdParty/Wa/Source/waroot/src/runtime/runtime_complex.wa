@@ -1,0 +1,70 @@
+// Copyright (C) 2024 武汉凹语言科技有限公司
+// SPDX-License-Identifier: MIT
+
+#wa:linkname $wa.runtime.complex64_Add
+func complex64_Add(a, ai, b, bi: f32) => (f32, f32) {
+	return a + b, ai + bi
+}
+
+#wa:linkname $wa.runtime.complex64_Sub
+func complex64_Sub(a, ai, b, bi: f32) => (f32, f32) {
+	return a - b, ai - bi
+}
+
+#wa:linkname $wa.runtime.complex64_Mul
+func complex64_Mul(a, ai, b, bi: f32) => (f32, f32) {
+	return a*b - ai*bi, ai*b + a*bi
+}
+
+#wa:linkname $wa.runtime.complex64_Print
+func complex64_Print(a, ai: f32) {
+	print("(", a, ai, "i)")
+}
+
+#wa:linkname $wa.runtime.complex64_Div
+func complex64_Div(a, ai, b, bi: f32) => (f32, f32) {
+	c := (a*b + ai*bi) / (b*b + bi*bi)
+	ci := (ai*b - a*bi) / (b*b + bi*bi)
+	return c, ci
+}
+
+#wa:linkname $wa.runtime.complex128_Add
+func complex128_Add(a, ai, b, bi: f64) => (f64, f64) {
+	return a + b, ai + bi
+}
+
+#wa:linkname $wa.runtime.complex128_Sub
+func complex128_Sub(a, ai, b, bi: f64) => (f64, f64) {
+	return a - b, ai - bi
+}
+
+#wa:linkname $wa.runtime.complex128_Mul
+func complex128_Mul(a, ai, b, bi: f64) => (f64, f64) {
+	return a*b - ai*bi, ai*b + a*bi
+}
+
+#wa:linkname $wa.runtime.complex128_Div
+func complex128_Div(a, ai, b, bi: f64) => (f64, f64) {
+	c := (a*b + ai*bi) / (b*b + bi*bi)
+	ci := (ai*b - a*bi) / (b*b + bi*bi)
+	return c, ci
+}
+
+#wa:linkname $wa.runtime.complex128_Print
+func complex128_Print(a, ai: f64) {
+	printString("(")
+	if x := i64(a); f64(x) == a {
+		printI64(x)
+	} else {
+		printF64(a)
+	}
+	if ai >= 0 {
+		printString("+")
+	}
+	if xi := i64(ai); f64(xi) == ai {
+		printI64(xi)
+	} else {
+		printF64(ai)
+	}
+	printString("i)")
+}

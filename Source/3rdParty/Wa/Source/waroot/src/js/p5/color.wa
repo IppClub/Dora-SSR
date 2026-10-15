@@ -1,0 +1,12 @@
+// Copyright (C) 2024 武汉凹语言科技有限公司
+// SPDX-License-Identifier: MIT
+
+import (
+	"image/color"
+)
+
+global (
+	RED   = color.RGBAFrom(u8(255), u8(0), u8(0), 0xff)
+	GREEN = color.RGBAFrom(u8(0), u8(255), u8(0), 0xff)
+	BLUE  = color.RGBAFrom(u8(0), u8(0), u8(255), 0xff)
+)

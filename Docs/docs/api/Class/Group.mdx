@@ -1,0 +1,110 @@
+# Group
+
+**Description:**
+
+&emsp;&emsp;A record representing a group of entities in the ECS game systems.
+
+**Class Object:** [Group Class](/docs/api/Class%20Object/Group).
+
+**Inherits from:** [Object](/docs/api/Class/Object).
+
+## count
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The number of entities in the group.
+
+**Signature:**
+```tl
+const count: integer
+```
+
+## first
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The first entity in the group, or nil if the group is empty.
+
+**Signature:**
+```tl
+const first: Entity
+```
+
+## each
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Calls a function for each entity in the group.
+
+**Signature:**
+```tl
+each: function(self: Group, func: function(Entity): boolean): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The function to call for each entity.<br/>Returning true inside the function to stop iteration. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | False if all entities were processed, True if the iteration was interrupted. |
+
+## find
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Finds the first entity in the group that satisfies a predicate function.
+
+**Signature:**
+```tl
+find: function(self: Group, func: function(Entity): boolean): Entity
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The predicate function to test each entity with. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Entity | The first entity that satisfies the predicate, or nil if no entity does. |
+
+## watch
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Watches the group for changes to its entities, calling a function whenever an entity is added or changed.
+
+**Signature:**
+```tl
+watch: function(self: Group, func: function(Entity): boolean): Group
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The function to call when an entity is added or changed. Returns true to stop watching. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Group | The same group, for method chaining. |

@@ -1,0 +1,310 @@
+# SoundData
+
+**描述：**
+
+&emsp;&emsp;包含原始音频样本。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: SoundData): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: SoundData, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: SoundData): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## getString
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的完整数据。
+
+**签名：**
+```tl
+getString: function(self: SoundData): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 原始数据。 |
+
+## getSize
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取数据的大小（以字节为单位）。
+
+**签名：**
+```tl
+getSize: function(self: SoundData): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 数据的大小（以字节为单位）。 |
+
+## getPointer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取指向数据的指针。可以与 LuaJIT 的 FFI 等库一起使用。
+
+**签名：**
+```tl
+getPointer: function(self: SoundData): any
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| any | 指向数据的原始指针。 |
+
+## getFFIPointer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取指向数据的 FFI 指针。
+这个函数应该是首选，而不是 Data:getPointer ，因为后者使用轻量用户数据，当使用 LuaJIT 时，它无法在一些新的 ARM64 架构上存储更多所有可能的内存地址。
+
+**签名：**
+```tl
+getFFIPointer: function(self: SoundData): nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| nil | 指向数据的原始 void* 指针，如果 FFI 不可用则为零。 |
+
+## clone
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建数据对象的新副本。
+
+**签名：**
+```tl
+clone: function(self: SoundData): SoundData
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| SoundData | 新副本。 |
+
+## getChannelCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回 SoundData 中的通道数。
+
+**签名：**
+```tl
+getChannelCount: function(self: SoundData): integer
+	getChannels: function(self: SoundData): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 1 用于单声道，2 用于立体声。 |
+
+## getBitDepth
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回每个样本的位数。
+
+**签名：**
+```tl
+getBitDepth: function(self: SoundData): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 8 或 16。 |
+
+## getSampleRate
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回声音数据的采样率。
+
+**签名：**
+```tl
+getSampleRate: function(self: SoundData): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 每秒的样本数。 |
+
+## getSampleCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回 SoundData 每个通道的样本数。
+
+**签名：**
+```tl
+getSampleCount: function(self: SoundData): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 样本总数。 |
+
+## getDuration
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取声音数据的持续时间。
+
+**签名：**
+```tl
+getDuration: function(self: SoundData): number
+	getSample: function(self: SoundData, index: integer, channel?: integer): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | index 参数。 |
+| channel | integer | channel 参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 声音数据的持续时间（以秒为单位）。 |
+
+## setSample
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置指定位置的采样点值。对于立体声 SoundData 对象，来自左声道和右声道的数据按该顺序交错。
+
+**签名：**
+```tl
+setSample: function(self: SoundData, index: integer, sample: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 指定样本位置的整数值（从 0 开始）。 |
+| sample | number | 归一化采样点（范围 -1.0 到 1.0）。 |
+
+## setSample
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置指定位置的采样点值。对于立体声 SoundData 对象，来自左声道和右声道的数据按该顺序交错。
+
+**签名：**
+```tl
+setSample: function(self: SoundData, index: integer, channel: number, sample: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | 指定样本位置的整数值（从 0 开始）。 |
+| channel | number | 在给定样本中设置的通道索引。 |
+| sample | number | 归一化采样点（范围 -1.0 到 1.0）。 |

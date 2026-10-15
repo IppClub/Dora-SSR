@@ -1,0 +1,3077 @@
+--[[ Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. ]]
+
+_ENV = Dora
+import global
+
+HttpServer\stop!
+
+HttpServer.wwwPath = Path Content.appPath, ".www"
+
+HttpServer.authToken = ""
+
+authFailedCount = 0
+authLockedUntil = 0.0
+
+PendingTTL = 60
+
+genAuthToken = -> table.concat for _ = 1, 4
+	string.format "%08x", math.random 0, 0x7fffffff
+
+genSessionId = -> table.concat for _ = 1, 2
+	string.format "%08x", math.random 0, 0x7fffffff
+
+genConfirmCode = -> string.format "%04d", math.random 0, 9999
+
+HttpServer\post "/auth", (req) ->
+	import "Script.Dev.Entry"
+	:AuthSession = Entry
+	authCode = Entry.getAuthCode!
+	now = os.time!
+	if now < authLockedUntil
+		return success: false, message: "locked", retryAfter: authLockedUntil - now
+	code = nil
+	switch req
+		when {body: {:code}}
+			code = code
+	if code and tostring(code) == authCode
+		authFailedCount = 0
+		Entry.invalidateAuthCode!
+		if pending := AuthSession.getPending!
+			if now < pending.expiresAt and not pending.approved
+				return success: true, pending: true, sessionId: pending.sessionId, confirmCode: pending.confirmCode, expiresIn: pending.expiresAt - now
+		sessionId = genSessionId!
+		confirmCode = genConfirmCode!
+		AuthSession.beginPending sessionId, confirmCode, now + PendingTTL, PendingTTL
+		return success: true, pending: true, sessionId: sessionId, confirmCode: confirmCode, expiresIn: PendingTTL
+	else
+		authFailedCount += 1
+		if authFailedCount >= 3
+			authFailedCount = 0
+			authLockedUntil = now + 30
+			return success: false, message: "locked", retryAfter: 30
+		return success: false, message: "invalid code"
+
+HttpServer\post "/auth/confirm", (req) ->
+	now = os.time!
+	sessionId = nil
+	switch req
+		when {body: {:sessionId}}
+			sessionId = sessionId
+	unless sessionId
+		return success: false, message: "invalid session"
+	import "Script.Dev.Entry"
+	:AuthSession = Entry
+	if pending := AuthSession.getPending!
+		if pending.sessionId ~= sessionId
+			return success: false, message: "invalid session"
+		if now >= pending.expiresAt
+			AuthSession.clearPending!
+			return success: false, message: "expired"
+		if pending.approved
+			secret = genAuthToken!
+			HttpServer.authToken = "#{sessionId}:#{secret}"
+			AuthSession.setSession sessionId, secret
+			AuthSession.clearPending!
+			return success: true, sessionId: sessionId, sessionSecret: secret
+		return success: false, message: "pending", retryAfter: 2
+	return success: false, message: "invalid session"
+
+from "Utils" import LintYueGlobals, CheckTIC80Code
+
+getProjectDirFromFile = (file) ->
+	:writablePath, :assetPath = Content
+	parent, current = if (".." ~= Path\getRelative(file, writablePath)\sub 1, 2) and writablePath == file\sub 1, #writablePath
+		writablePath, Path\getRelative file, writablePath
+	elseif (".." ~= Path\getRelative(file, assetPath)\sub 1, 2) and assetPath == file\sub 1, #assetPath
+		dir = Path assetPath, "Script"
+		dir, Path\getRelative file, dir
+	else
+		nil, nil
+	return nil unless current
+	repeat
+		current = Path\getPath current
+		break if current == ""
+		for f in *Content\getFiles Path parent, current
+			if Path\getName(f)\lower! == "init"
+				return Path parent, current, Path\getPath f
+	until false
+	nil
+
+relativeToRoot = (file, root) ->
+	return nil unless file and file ~= "" and root and root ~= ""
+	relative = Path\getRelative file, root
+	return nil if relative == "" or relative == ".." or relative\sub(1, 3) == "../" or relative\sub(1, 3) == "..\\"
+	return "" if relative == "."
+	relative
+
+getProjectSourceRoot = (projectRoot) ->
+	return nil unless projectRoot and projectRoot ~= "" and Content\exist(projectRoot) and Content\isdir(projectRoot)
+	projectRoot
+
+isProjectRootDir = (dir) ->
+	return false unless dir and dir ~= "" and Content\exist(dir) and Content\isdir(dir)
+	for f in *Content\getFiles dir
+		if Path\getName(f)\lower! == "init"
+			return true
+	false
+
+getProjectRootFromPath = (target, isDir = false) ->
+	return nil, "invalid path" unless target and target ~= "" and Content\isAbsolutePath(target)
+	if isDir
+		return target if target == Content.writablePath or isProjectRootDir target
+		return getProjectDirFromFile Path(target, "__dora_project_root_search__.lua"), "current directory does not belong to any project"
+	return getProjectDirFromFile target, "current file does not belong to any project"
+
+invalidArguments = success: false, message: "invalid arguments"
+
+HttpServer\post "/agent/project-root", (req): invalidArguments ->
+	switch req when {body: {:path, :isDir}}
+		if projectRoot, err := getProjectRootFromPath path, isDir
+			return success: true, found: true, projectRoot: projectRoot, title: Path\getFilename projectRoot
+		else
+			return success: true, found: false, message: err
+
+import "Script.Dev.AgentHost" as AgentHost
+AgentTools = AgentHost.proxy "Agent.Tools"
+AgentSession = AgentHost.proxy "Agent.Session"
+AgentLocalAgent = AgentHost.proxy "Agent.LocalAgent"
+AgentVisionAssets = AgentHost.proxy "Agent.Tool.VisionAssets"
+
+HttpServer\post "/agent/runtime/status", -> AgentHost.status!
+HttpServer\post "/agent/runtime/reload", -> AgentHost.reload!
+HttpServer\post "/agent/runtime/automatic", (req): invalidArguments ->
+	switch req when {body: {:enabled}}
+		return AgentHost.setAutomatic enabled if type(enabled) == "boolean"
+
+GitJobs = []
+
+gitTerminalState = (status) ->
+	return false unless status and status.state
+	status.state in ["done", "error", "canceled"]
+
+gitInvalidRepoPath = (repoPath) ->
+	not repoPath or repoPath == "" or not Content\isAbsolutePath repoPath
+
+gitShellSplit = (command) ->
+	args = {}
+	current = {}
+	quote = nil
+	escape = false
+	for i = 1, #command
+		ch = command\sub i, i
+		if escape
+			current[] = ch
+			escape = false
+		elseif ch == "\\"
+			escape = true
+		elseif quote
+			if ch == quote
+				quote = nil
+			else
+				current[] = ch
+		elseif ch == "'" or ch == '"'
+			quote = ch
+		elseif ch\match "%s"
+			if #current > 0
+				args[] = table.concat current
+				current = {}
+		else
+			current[] = ch
+	if #current > 0
+		args[] = table.concat current
+	if args[1] == "git"
+		table.remove args, 1
+	args
+
+gitQuote = (value) ->
+	text = tostring value
+	if text\match "^[%w%._%-%/]+$"
+		return text
+	"\"" .. text\gsub("\\", "\\\\")\gsub("\"", "\\\"") .. "\""
+
+gitDirNonEmpty = (targetPath) ->
+	return false unless Content\exist targetPath
+	return false unless Content\isdir targetPath
+	#Content\getFiles(targetPath) > 0 or #Content\getDirs(targetPath) > 0
+
+gitSafeChildPath = (parentPath, childPath) ->
+	return nil unless parentPath and childPath and childPath ~= ""
+	return nil if childPath\sub(1, 1) == "/" or childPath\match "^%a:[/\\]"
+	return nil if childPath == "." or childPath\match "^%.%.[/\\]?" or childPath\match "[/\\]%.%.[/\\]"
+	targetPath = Path parentPath, childPath
+	relative = Path\getRelative targetPath, parentPath
+	return nil if relative == ".." or relative\sub(1, 3) == "../" or relative\sub(1, 3) == "..\\"
+	targetPath
+
+gitCloneDirFromURL = (url) ->
+	return nil unless url and url ~= ""
+	text = tostring(url)\match "^%s*(.-)%s*$"
+	return nil if text == ""
+	text = text\gsub "[/\\]+$", ""
+	name = text\match "([^/:]+)$"
+	return nil unless name and name ~= ""
+	name = name\gsub "%.git$", ""
+	return nil if name == "" or name == "." or name == ".."
+	name
+
+gitCloneTargetPath = (repoPath, command) ->
+	args = gitShellSplit command
+	return nil unless args[1] == "clone"
+	url = args[2]
+	index = 3
+	while index <= #args
+		arg = args[index]
+		if arg in ["-b", "--branch", "--depth"]
+			index += 2
+		elseif arg\sub(1, 1) == "-"
+			index += 1
+		else
+			return gitSafeChildPath repoPath, arg
+	if dirName := gitCloneDirFromURL url
+		return gitSafeChildPath repoPath, dirName
+	nil
+
+gitPathInsideRepo = (repoPath, relPath) ->
+	return false unless repoPath and relPath and relPath ~= ""
+	return false if relPath\sub(1, 1) == "/" or relPath\match "^%a:[/\\]"
+	return false if relPath == "." or relPath\match "^%.%.[/\\]?" or relPath\match "[/\\]%.%.[/\\]"
+	targetPath = Path repoPath, relPath
+	relative = Path\getRelative targetPath, repoPath
+	relative ~= ".." and relative\sub(1, 3) ~= "../" and relative\sub(1, 3) ~= "..\\"
+
+gitHostFromURL = (url) ->
+	return nil unless url and url ~= ""
+	text = tostring(url)\match "^%s*(.-)%s*$"
+	return nil if text == ""
+	host = text\match "^[%w_%-]+://([^/:]+)"
+	host = text\match "@([^:/]+)[:/]" unless host
+	host = text\match "^([^:/]+):[^/]" unless host
+	return nil unless host and host ~= ""
+	string.lower host
+
+ensureGitTables = ->
+	DB\exec [[
+		CREATE TABLE IF NOT EXISTS GitCredential(
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			host TEXT NOT NULL,
+			label TEXT NOT NULL,
+			type TEXT NOT NULL,
+			username TEXT NOT NULL DEFAULT '',
+			secret TEXT NOT NULL DEFAULT '',
+			created_at INTEGER,
+			updated_at INTEGER,
+			last_used_at INTEGER
+		);
+	]]
+	DB\exec "CREATE INDEX IF NOT EXISTS idx_git_credential_host ON GitCredential(host);"
+	DB\exec [[
+		CREATE TABLE IF NOT EXISTS GitProfile(
+			id INTEGER PRIMARY KEY CHECK(id = 1),
+			name TEXT NOT NULL DEFAULT '',
+			email TEXT NOT NULL DEFAULT '',
+			updated_at INTEGER
+		);
+	]]
+
+gitCredentialToPublic = (row) ->
+	[id, host, label, typeName, username, createdAt, updatedAt, lastUsedAt] = row
+	:id, :host, :label, type: typeName, :username, :createdAt, :updatedAt, :lastUsedAt
+
+gitLoadCredential = (id) ->
+	ensureGitTables!
+	credentialId = tonumber(id) or 0
+	rows = DB\query "select id, host, label, type, username, secret from GitCredential where id = ? limit 1", [credentialId,]
+	return nil unless rows and rows[1]
+	row = rows[1]
+	id: row[1], host: row[2], label: row[3], type: row[4], username: row[5], secret: row[6]
+
+gitAuthOptionsJSON = (credential) ->
+	return nil unless credential
+	auth = if credential.type == "token"
+		{
+			type: "token"
+			token: credential.secret
+			username: credential.username ~= "" and credential.username or "token"
+		}
+	else
+		{
+			type: "basic"
+			username: credential.username
+			password: credential.secret
+		}
+	json.encode :auth
+
+gitLoadProfile = ->
+	ensureGitTables!
+	rows = DB\query "select name, email from GitProfile where id = 1 limit 1"
+	return nil unless rows and rows[1]
+	name = tostring(rows[1][1] or "")
+	email = tostring(rows[1][2] or "")
+	return nil if name == "" and email == ""
+	:name, :email
+
+gitApplyProfileToCommit = (command) ->
+	args = gitShellSplit command
+	return command unless args[1] == "commit"
+	hasName = false
+	hasEmail = false
+	for arg in *args
+		hasName = true if arg == "--author-name"
+		hasEmail = true if arg == "--author-email"
+	return command if hasName and hasEmail
+	profile = gitLoadProfile!
+	return command unless profile
+	if not hasName and profile.name ~= ""
+		args[] = "--author-name"
+		args[] = profile.name
+	if not hasEmail and profile.email ~= ""
+		args[] = "--author-email"
+		args[] = profile.email
+	table.concat [gitQuote arg for arg in *args], " "
+
+gitStartJob = (repoPath, command, optionsJSON = nil) ->
+	return nil, "invalid repoPath" if gitInvalidRepoPath repoPath
+	return nil, "invalid command" unless command and command ~= ""
+	optionsJSON = "" unless optionsJSON
+	command = gitApplyProfileToCommit command
+	if targetPath := gitCloneTargetPath repoPath, command
+		if gitDirNonEmpty targetPath
+			return nil, "clone target directory is not empty"
+	elseif (gitShellSplit command)[1] == "clone"
+		return nil, "invalid clone target"
+	statusRef = nil
+	startGit = ->
+		Git\run repoPath, command, ((status) ->
+			statusRef = status
+			GitJobs[status.id] =
+				command: command
+				status: status
+				updatedAt: os.time!
+		), optionsJSON
+	success, jobId = pcall startGit
+	return nil, tostring(jobId) unless success
+	return nil, "Git.run did not return a job id" unless jobId
+	GitJobs[jobId] =
+		command: command
+		status: statusRef or {
+			id: jobId
+			state: "queued"
+			kind: gitShellSplit(command)[1] or "status"
+			repoPath: repoPath
+			progress: 0
+			message: "queued"
+		}
+		updatedAt: os.time!
+	return jobId
+
+gitRunSync = (repoPath, command, optionsJSON = nil, timeout = 20) ->
+	jobId, err = gitStartJob repoPath, command, optionsJSON
+	return success: false, message: err unless jobId
+	startedAt = os.time!
+	wait ->
+		job = GitJobs[jobId]
+		status = job and job.status
+		gitTerminalState(status) or os.time! - startedAt >= timeout
+	status = GitJobs[jobId] and GitJobs[jobId].status
+	unless gitTerminalState status
+		Git\cancel jobId
+		return success: false, message: "git command timed out", :jobId, :status
+	return success: status.state == "done", :jobId, :status, message: status.error or status.message
+
+gitCredentialsForHost = (host) ->
+	return {} unless host and host ~= ""
+	ensureGitTables!
+	rows = DB\query "select id, host, label, type, username, created_at, updated_at, last_used_at from GitCredential where host = ? order by last_used_at desc, label asc, id asc", [host,]
+	if rows
+		[gitCredentialToPublic row for row in *rows]
+	else {}
+
+gitFirstRemoteURL = (repoPath, remoteName = nil) ->
+	remoteRes = gitRunSync repoPath, "remote -v", nil, 10
+	data = remoteRes.status and remoteRes.status.data
+	return nil unless data and data.remotes
+	for remote in *data.remotes
+		if (not remoteName or remote.name == remoteName) and remote.urls and remote.urls[1]
+			return remote.urls[1]
+	nil
+
+gitConfigRemoteURL = (repoPath, remoteName = nil) ->
+	return nil if gitInvalidRepoPath repoPath
+	configPath = Path repoPath, ".git/config"
+	return nil unless Content\exist configPath
+	content = Content\load configPath
+	return nil unless content and content ~= ""
+	currentRemote = nil
+	for line in content\gmatch "[^\r\n]+"
+		sectionRemote = line\match '^%s*%[remote%s+"([^"]+)"%]%s*$'
+		if sectionRemote
+			currentRemote = sectionRemote
+		elseif currentRemote and (not remoteName or currentRemote == remoteName)
+			url = line\match "^%s*url%s*=%s*(.-)%s*$"
+			return url if url and url ~= ""
+	nil
+
+gitCommandRemoteArg = (args, startIndex = 2) ->
+	index = startIndex
+	while index <= #args
+		arg = args[index]
+		if arg in ["-u", "--set-upstream", "-f", "--force", "--all", "--prune"]
+			index += 1
+		elseif arg in ["--depth", "-b", "--branch"]
+			index += 2
+		elseif arg and arg\sub(1, 1) == "-"
+			index += 1
+		else
+			return arg
+	nil
+
+gitCommandHost = (repoPath, command) ->
+	args = gitShellSplit command
+	return nil unless args[1]
+	switch args[1]
+		when "clone", "ls-remote"
+			return gitHostFromURL args[2]
+		when "fetch", "pull", "push"
+			remoteArg = gitCommandRemoteArg args, 2
+			return nil unless remoteArg
+			url = gitHostFromURL remoteArg
+			return url if url
+			return gitHostFromURL gitConfigRemoteURL repoPath, remoteArg
+	nil
+
+gitAuthSelectionForCommand = (repoPath, command) ->
+	host = gitCommandHost repoPath, command
+	return nil unless host
+	items = gitCredentialsForHost host
+	return nil if #items == 0
+	:host, :items
+
+gitDefaultRemote = (remoteStatus) ->
+	data = remoteStatus and remoteStatus.data
+	return nil unless data and data.remotes and data.remotes[1]
+	data.remotes[1]
+
+gitCurrentBranch = (branchStatus) ->
+	data = branchStatus and branchStatus.data
+	if data and data.current and data.current ~= ""
+		return data.current
+	if data and data.branches
+		for branch in *data.branches
+			return branch.name if branch.current
+	nil
+
+gitHeadBranch = (repoPath) ->
+	return nil if gitInvalidRepoPath repoPath
+	headPath = Path repoPath, ".git", "HEAD"
+	return nil unless Content\exist headPath
+	head = Content\load headPath
+	return nil unless head
+	branch = head\match "^ref:%s*refs/heads/(.-)%s*$"
+	return branch if branch and branch ~= ""
+	nil
+
+gitBranchesWithHead = (branchStatus, currentBranch) ->
+	branches = branchStatus and branchStatus.data and branchStatus.data.branches or {}
+	return branches unless currentBranch and currentBranch ~= ""
+	for branch in *branches
+		return branches if branch.name == currentBranch
+	withHead = [branch for branch in *branches]
+	withHead[] = name: currentBranch, current: true, unborn: true
+	withHead
+
+gitStatusMeansNotRepo = (statusRes) ->
+	message = statusRes and (statusRes.message or statusRes.status and (statusRes.status.error or statusRes.status.message)) or ""
+	message = tostring(message)\lower!
+	message\find("repository does not exist", 1, true) or message\find("not a git repository", 1, true)
+
+gitSummary = (repoPath) ->
+	statusRes = gitRunSync repoPath, "status", nil, 120
+	unless statusRes.success
+		if gitStatusMeansNotRepo statusRes
+			return success: true, isRepo: false, message: statusRes.message, status: statusRes.status
+		return success: false, message: statusRes.message or statusRes.status and (statusRes.status.error or statusRes.status.message) or "failed to check Git repository", status: statusRes.status
+	branchRes = gitRunSync repoPath, "branch", nil, 120
+	remoteRes = gitRunSync repoPath, "remote -v", nil, 120
+	status = statusRes.status
+	branchStatus = branchRes.status
+	remoteStatus = remoteRes.status
+	currentBranch = gitCurrentBranch(branchStatus) or gitHeadBranch(repoPath)
+	branches = gitBranchesWithHead branchStatus, currentBranch
+	logRes = gitRunSync repoPath, "log --metadata-only -n 100", nil, 120
+	logStatus = if logRes.success
+		logRes.status
+	else
+		{
+			state: "done"
+			kind: "log"
+			repoPath: repoPath
+			progress: 1
+			message: "git log completed"
+			data: commits: {}
+		}
+	hasCommit = logStatus and logStatus.data and logStatus.data.commits and logStatus.data.commits[1] ~= nil
+	tagStatus = if hasCommit
+		(gitRunSync repoPath, "tag", nil, 120).status
+	else
+		{
+			state: "done"
+			kind: "tag"
+			repoPath: repoPath
+			progress: 1
+			message: "git tag completed"
+			data: tags: {}
+		}
+	defaultRemote = gitDefaultRemote remoteStatus
+	lastCommit = nil
+	if logStatus and logStatus.data and logStatus.data.commits and logStatus.data.commits[1]
+		lastCommit = logStatus.data.commits[1]
+	return
+		success: true
+		isRepo: true
+		clean: status.data and status.data.clean or false
+		:currentBranch
+		:defaultRemote
+		remotes: remoteStatus and remoteStatus.data and remoteStatus.data.remotes or {}
+		:branches
+		:lastCommit
+		:status
+		:branchStatus
+		:remoteStatus
+		historyStatus: logStatus
+		:tagStatus
+
+HttpServer\post "/git/run", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :command, :authId, :optionsJSON} = body
+		if authId and not optionsJSON
+			if credential := gitLoadCredential authId
+				optionsJSON = gitAuthOptionsJSON credential
+				DB\exec "update GitCredential set last_used_at = ? where id = ?", [os.time!, credential.id]
+		elseif not optionsJSON
+			authOk, authSelection = pcall gitAuthSelectionForCommand, repoPath, command
+			authSelection = nil unless authOk
+			if authSelection
+				if #authSelection.items == 1
+					credential = gitLoadCredential authSelection.items[1].id
+					optionsJSON = gitAuthOptionsJSON credential
+					DB\exec "update GitCredential set last_used_at = ? where id = ?", [os.time!, credential.id]
+				else
+					return success: false, message: "select a Git credential", needsCredentialSelection: true, host: authSelection.host, credentials: authSelection.items
+		jobId, err = gitStartJob repoPath, command, optionsJSON
+		return success: false, message: err unless jobId
+		return success: true, :jobId
+
+HttpServer\post "/git/status", (req): invalidArguments ->
+	switch req when {body: {:jobId}}
+		job = GitJobs[tonumber(jobId) or 0]
+		return success: false, message: "git job not found" unless job
+		return success: true, status: job.status, command: job.command
+
+HttpServer\post "/git/cancel", (req): invalidArguments ->
+	switch req when {body: {:jobId}}
+		id = tonumber jobId
+		return success: false, message: "invalid jobId" unless id
+		return success: Git\cancel id
+
+HttpServer\postSchedule "/git/summary", (req): invalidArguments ->
+	switch req when {body: {:repoPath}}
+		return success: false, message: "invalid repoPath" if gitInvalidRepoPath repoPath
+		return gitSummary repoPath
+
+HttpServer\postSchedule "/git/status-files", (req): invalidArguments ->
+	switch req when {body: {:repoPath}}
+		return gitRunSync repoPath, "status", nil, 120
+
+HttpServer\postSchedule "/git/discard-untracked", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :paths} = body
+		return success: false, message: "invalid repoPath" if gitInvalidRepoPath repoPath
+		return success: false, message: "invalid paths" unless type(paths) == "table"
+		statusRes = gitRunSync repoPath, "status", nil, 10
+		return statusRes unless statusRes.success
+		untracked = {}
+		for file in *(statusRes.status.data and statusRes.status.data.files or {})
+			if file.staging == "?" or file.worktree == "?"
+				untracked[file.path] = true
+		removed = {}
+		for relPath in *paths
+			relPath = tostring relPath
+			return success: false, message: "unsafe path: #{relPath}" unless gitPathInsideRepo repoPath, relPath
+			return success: false, message: "path is not untracked: #{relPath}" unless untracked[relPath]
+		for relPath in *paths
+			targetPath = Path repoPath, tostring(relPath)
+			if Content\exist targetPath
+				Content\remove targetPath
+				removed[] = tostring relPath
+		return success: true, :removed
+
+HttpServer\postSchedule "/git/file-diff", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :path, :staged} = body
+		return success: false, message: "invalid repoPath" if gitInvalidRepoPath repoPath
+		return success: false, message: "unsafe path" unless gitPathInsideRepo repoPath, tostring path
+		command = if staged == true
+			"diff --staged -- #{gitQuote path}"
+		else
+			"diff -- #{gitQuote path}"
+		res = gitRunSync repoPath, command, nil, 10
+		return res unless res.success
+		return success: true, status: res.status, data: res.status and res.status.data
+
+HttpServer\postSchedule "/git/commit-file-diff", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :commit, :path} = body
+		return success: false, message: "invalid repoPath" if gitInvalidRepoPath repoPath
+		return success: false, message: "invalid commit" unless type(commit) == "string" and commit\match "^[0-9a-fA-F]+$"
+		return success: false, message: "unsafe path" unless gitPathInsideRepo repoPath, tostring path
+		res = gitRunSync repoPath, "diff #{gitQuote commit} -- #{gitQuote path}", nil, 10
+		return res unless res.success
+		return success: true, status: res.status, data: res.status and res.status.data
+
+HttpServer\postSchedule "/git/history", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :limit} = body
+		limit = math.max 1, math.min 100, tonumber(limit) or 20
+		return gitRunSync repoPath, "log --metadata-only -n #{limit}", nil, 10
+
+HttpServer\postSchedule "/git/remotes", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :command} = body
+		command = command or "remote -v"
+		return gitRunSync repoPath, command, nil, 10
+
+HttpServer\postSchedule "/git/branches", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :command} = body
+		command = command or "branch"
+		return gitRunSync repoPath, command, nil, 10
+
+HttpServer\postSchedule "/git/tags", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :command} = body
+		command = command or "tag"
+		return gitRunSync repoPath, command, nil, 10
+
+HttpServer\post "/git/profile/get", ->
+	ensureGitTables!
+	rows = DB\query "select name, email from GitProfile where id = 1 limit 1"
+	profile = if rows and rows[1]
+		name: rows[1][1], email: rows[1][2]
+	else
+		name: "", email: ""
+	return success: true, :profile
+
+HttpServer\post "/git/profile/save", (req): invalidArguments ->
+	switch req when {body: {:name, :email}}
+		ensureGitTables!
+		DB\exec "insert into GitProfile(id, name, email, updated_at) values(1, ?, ?, ?) on conflict(id) do update set name = excluded.name, email = excluded.email, updated_at = excluded.updated_at", [
+			tostring(name or "")
+			tostring(email or "")
+			os.time!
+		]
+		return success: true
+
+HttpServer\post "/git/auth/list", (req) ->
+	ensureGitTables!
+	host = nil
+	switch req when {body: body}
+		host = body.host
+	rows = if host and host ~= ""
+		DB\query "select id, host, label, type, username, created_at, updated_at, last_used_at from GitCredential where host = ? order by host asc, label asc, id asc", [tostring(host)\lower!,]
+	else
+		DB\query "select id, host, label, type, username, created_at, updated_at, last_used_at from GitCredential order by host asc, label asc, id asc"
+	items = if rows then [gitCredentialToPublic row for row in *rows] else []
+	return success: true, :items
+
+HttpServer\postSchedule "/git/auth/match", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :command, :url} = body
+		host = if url and url ~= "" then gitHostFromURL url else gitCommandHost repoPath, command
+		return success: false, message: "git host is required" unless host
+		items = gitCredentialsForHost host
+		return success: true, :host, :items, needsSelection: #items > 1, authId: (#items == 1 and items[1].id or nil)
+
+HttpServer\post "/git/auth/save", (req): invalidArguments ->
+	switch req when {body: body}
+		{:id, :host, :label, :username, :password, :token} = body
+		host = tostring(host or "")\lower!\match "^%s*(.-)%s*$"
+		label = tostring(label or "")\match "^%s*(.-)%s*$"
+		credentialType = tostring(body.type or "token")
+		username = tostring(username or "")
+		secret = if credentialType == "basic" then tostring(password or "") else tostring(token or password or "")
+		return success: false, message: "host is required" if host == ""
+		return success: false, message: "label is required" if label == ""
+		return success: false, message: "secret is required" if secret == ""
+		return success: false, message: "invalid type" unless credentialType in ["basic", "token"]
+		ensureGitTables!
+		now = os.time!
+		if id
+			DB\exec "update GitCredential set host = ?, label = ?, type = ?, username = ?, secret = ?, updated_at = ? where id = ?", [
+				host, label, credentialType, username, secret, now, (tonumber(id) or 0)
+			]
+			return success: true, id: tonumber(id)
+		else
+			DB\exec "insert into GitCredential(host, label, type, username, secret, created_at, updated_at) values(?, ?, ?, ?, ?, ?, ?)", [
+				host, label, credentialType, username, secret, now, now
+			]
+			rows = DB\query "select last_insert_rowid()"
+			return success: true, id: rows and rows[1] and rows[1][1]
+
+HttpServer\post "/git/auth/delete", (req): invalidArguments ->
+	switch req when {body: {:id}}
+		ensureGitTables!
+		credentialId = tonumber(id) or 0
+		DB\exec "delete from GitCredential where id = ?", [credentialId,]
+		return success: true
+
+HttpServer\postSchedule "/git/auth/test", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :url, :authId} = body
+		credential = gitLoadCredential authId
+		optionsJSON = gitAuthOptionsJSON credential
+		return gitRunSync repoPath, "ls-remote #{gitQuote url}", optionsJSON, 20
+
+HttpServer\post "/agent/session/create", (req): invalidArguments ->
+	switch req when {body: {:projectRoot, :title}}
+		return AgentSession.createSession projectRoot, title
+
+HttpServer\post "/agent/session/create-sub", (req): invalidArguments ->
+	switch req when {body: {:parentSessionId, :title}}
+		return AgentSession.createSubSession parentSessionId, title
+
+HttpServer\post "/agent/session/get", (req): invalidArguments ->
+	switch req when {body: {:sessionId}}
+		return AgentSession.getSession sessionId
+
+HttpServer\post "/agent/vision/asset", (req): invalidArguments ->
+	switch req when {body: {sessionId: sessionId, path: path}}
+		return AgentVisionAssets.getSessionVisionImageFromPath sessionId, path
+
+HttpServer\post "/agent/session/mode", (req): invalidArguments ->
+	switch req when {body: {:sessionId, :workMode}}
+		return AgentSession.setWorkMode sessionId, workMode
+
+HttpServer\post "/agent/session/send", (req): invalidArguments ->
+	switch req when {body: {:sessionId, :prompt}}
+		return AgentSession.sendPrompt sessionId, prompt, req.body.disabledAgentTools, req.body.workMode, req.body.llmConfigId
+
+HttpServer\post "/agent/session/send-local", (req): invalidArguments ->
+	switch req when {body: {:sessionId, :prompt, :localAgentConfigId}}
+		return AgentSession.sendLocalPrompt sessionId, prompt, localAgentConfigId
+
+HttpServer\post "/agent/session/local/new", (req): invalidArguments ->
+	switch req when {body: {:sessionId}}
+		return AgentLocalAgent.abandonSession sessionId
+
+HttpServer\post "/agent/session/local/info", (req): invalidArguments ->
+	switch req when {body: {:sessionId}}
+		info = AgentLocalAgent.getSessionInfo sessionId
+		return success: true, :info
+
+HttpServer\post "/agent/session/continue", (req): invalidArguments ->
+	switch req when {body: {:sessionId}}
+		return AgentSession.continuePrompt sessionId, req.body.disabledAgentTools, req.body.llmConfigId
+
+HttpServer\post "/agent/session/finish-handoff", (req): invalidArguments ->
+	switch req when {body: {:sessionId}}
+		return AgentSession.finishSubSessionHandoff sessionId, req.body.llmConfigId
+
+HttpServer\post "/agent/session/resend", (req): invalidArguments ->
+	switch req when {body: {:sessionId, :messageId, :prompt}}
+		return AgentSession.resendPrompt sessionId, messageId, prompt, req.body.disabledAgentTools, req.body.workMode, req.body.llmConfigId
+
+HttpServer\post "/agent/session/questionnaire/respond", (req): invalidArguments ->
+	switch req when {body: {:sessionId, :questionnaireId, :answers}}
+		return AgentSession.respondQuestionnaire sessionId, questionnaireId, answers, req.body.llmConfigId
+
+HttpServer\post "/agent/session/questionnaire/cancel", (req): invalidArguments ->
+	switch req when {body: {:sessionId, :questionnaireId}}
+		return AgentSession.cancelQuestionnaire sessionId, questionnaireId, req.body.llmConfigId
+
+HttpServer\post "/agent/task/status", (req): invalidArguments ->
+	switch req when {body: {:sessionId}}
+		res = AgentSession.getSession sessionId
+		return res unless res.success
+		taskId = res.session.currentTaskId
+		checkpoints = if taskId then AgentTools.listCheckpoints taskId else []
+		return
+			success: true
+			session: res.session
+			relatedSessions: res.relatedSessions
+			spawnInfo: res.spawnInfo
+			messages: res.messages
+			steps: res.steps
+			checkpoints: checkpoints
+			pendingQuestionnaire: res.pendingQuestionnaire
+			hasActivePlan: res.hasActivePlan
+
+HttpServer\post "/agent/task/running", ->
+	res = AgentSession.listRunningSessions!
+	if res.success and #res.sessions == 0
+		res.sessions = nil
+	res
+
+HttpServer\post "/agent/task/stop", (req): invalidArguments ->
+	switch req when {body: {:sessionId}}
+		return AgentSession.stopSessionTask sessionId
+
+HttpServer\post "/agent/checkpoint/list", (req): invalidArguments ->
+	switch req when {body: {:taskId = nil, :sessionId}}
+		if not taskId and sessionId
+			taskId = AgentSession.getCurrentTaskId sessionId
+		return success: false, message: "task not found" unless taskId
+		access = AgentSession.validateTaskAccess sessionId, taskId
+		return access unless access.success
+		return
+			success: true
+			taskId: taskId
+			checkpoints: AgentTools.listCheckpoints taskId
+
+HttpServer\post "/agent/checkpoint/diff", (req): invalidArguments ->
+	switch req when {body: {:sessionId, :checkpointId}}
+		return success: false, message: "invalid checkpointId" unless checkpointId > 0
+		access = AgentSession.validateCheckpointAccess sessionId, checkpointId
+		return access unless access.success
+		return AgentTools.getCheckpointDiff checkpointId
+
+HttpServer\post "/agent/task/diff", (req): invalidArguments ->
+	switch req when {body: {:sessionId, :taskId}}
+		return success: false, message: "invalid taskId" unless taskId > 0
+		access = AgentSession.validateTaskAccess sessionId, taskId
+		return access unless access.success
+		return AgentTools.getTaskChangeSetDiff taskId
+
+HttpServer\post "/agent/checkpoint/rollback", (req): invalidArguments ->
+	switch req when {body: {:sessionId, :checkpointId}}
+		return success: false, message: "invalid checkpointId" unless checkpointId > 0
+		access = AgentSession.validateCheckpointAccess sessionId, checkpointId
+		return access unless access.success
+		rollbackRes = AgentTools.rollbackCheckpoint checkpointId, access.session.projectRoot
+		return rollbackRes unless rollbackRes.success
+		return
+			success: true
+			checkpointId: rollbackRes.checkpointId
+
+HttpServer\post "/agent/task/rollback", (req): invalidArguments ->
+	switch req when {body: {:sessionId, :taskId}}
+		return success: false, message: "invalid taskId" unless taskId > 0
+		access = AgentSession.validateTaskAccess sessionId, taskId
+		return access unless access.success
+		rollbackRes = AgentTools.rollbackTaskChangeSet taskId, access.session.projectRoot
+		return rollbackRes unless rollbackRes.success
+		return
+			success: true
+			taskId: rollbackRes.taskId
+			checkpointId: rollbackRes.checkpointId
+			checkpointCount: rollbackRes.checkpointCount
+
+getSearchPath = (file): "" ->
+	if dir := getProjectDirFromFile file
+		return Path(dir, "Script", "?.lua") .. ";" .. Path dir, "?.lua"
+
+getSearchFolders = (file): [] ->
+	if dir := getProjectDirFromFile file
+		return
+			* Path dir, "Script"
+			* dir
+
+disabledCheckForLua =
+	* "incompatible number of returns"
+	* "unknown"
+	* "cannot index"
+	* "module not found"
+	* "don't know how to resolve"
+	* "ContainerItem"
+	* "cannot resolve a type"
+	* "invalid key"
+	* "inconsistent index type"
+	* "cannot use operator"
+	* "attempting ipairs loop"
+	* "expects record or nominal"
+	* "variable is not being assigned"
+	* "<invalid type>"
+	* "<any type>"
+	* "using the '#' operator"
+	* "can't match a record"
+	* "redeclaration of variable"
+	* "cannot apply pairs"
+	* "not a function"
+	* "to%-be%-closed"
+
+yueCheck = (file, content, lax) ->
+	isTIC80, tic80APIs = CheckTIC80Code content
+	if isTIC80
+		content = content\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
+	searchPath = getSearchPath file
+	checkResult, luaCodes = yue.checkAsync content, searchPath, lax
+	info = []
+	globals = []
+	for [t, msg, line, col] in *checkResult
+		switch t when "error"
+			info[] = ["syntax", file, line, col, msg]
+		when "global"
+			globals[] = [msg, line, col]
+	if luaCodes
+		success, lintResult = LintYueGlobals luaCodes, globals, false
+		if success
+			luaCodes = luaCodes\gsub "%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
+			lintResult ..= "\n" unless lintResult == ""
+			luaCodes = "-- [yue]: #{file}\n#{lintResult}" .. luaCodes
+		else for [name, line, col] in *lintResult
+			continue if isTIC80 and tic80APIs[name]
+			info[] = ["syntax", file, line, col, "invalid global variable"]
+	luaCodes, info
+
+luaCheck = (file, content) ->
+	res, err = load content, "check"
+	if not res
+		line, msg = err\match ".*:(%d+):%s*(.*)"
+		return success: false, info: [ ["syntax", file, tonumber(line), 0, msg],]
+	success, info = teal.checkAsync content, file, true, ""
+	if info
+		info = for item in *info
+			useCheck = true
+			if not item[5]\match "unused"
+				for check in *disabledCheckForLua
+					if item[5]\match check
+						useCheck = false
+			continue unless useCheck
+			switch item[1]
+				when "type"
+					item[1] = "warning"
+				when "parsing", "syntax"
+					continue
+			item
+		if #info == 0
+			info = nil
+			success = true
+	return :success, :info
+
+luaCheckWithLineInfo = (file, luaCodes) ->
+	res = luaCheck file, luaCodes
+	info = []
+	if not res.success
+		current = 1
+		lastLine = 1
+		lineMap = {}
+		for lineCode in luaCodes\gmatch "([^\r\n]*)\r?\n?"
+			num = lineCode\match "--%s*(%d+)%s*$"
+			if num
+				lastLine = tonumber num
+			lineMap[current] = lastLine
+			current += 1
+		for item in *res.info
+			item[3] = lineMap[item[3]] or 0
+			item[4] = 0
+			info[] = item
+		return false, info
+	return true, info
+
+getCompiledYueLine = (content, line, row, file, lax) ->
+	luaCodes = yueCheck file, content, lax
+	return nil unless luaCodes
+	current = 1
+	lastLine = 1
+	targetLine = line\gsub("::", "\\")\gsub(":", "=")\gsub("\\", ":")\match "[%w_%.:]+$"
+	targetRow = nil
+	lineMap = {}
+	for lineCode in luaCodes\gmatch "([^\r\n]*)\r?\n?"
+		num = lineCode\match "--%s*(%d+)%s*$"
+		lastLine = tonumber num if num
+		lineMap[current] = lastLine
+		if row <= lastLine and not targetRow
+			targetRow = current
+			break
+		current += 1
+	targetRow = current
+	if targetLine and targetRow
+		luaCodes, targetLine, targetRow, lineMap
+	else
+		nil
+
+HttpServer\postSchedule "/check", (req): success: true ->
+	switch req when {body: {:file, :content}}
+		ext = Path\getExt file
+		switch ext when "tl"
+			searchPath = getSearchPath file
+			if isTIC80 := CheckTIC80Code content
+				content = content\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
+			success, info = teal.checkAsync content, file, false, searchPath
+			return :success, :info
+		when "lua"
+			if isTIC80 := CheckTIC80Code content
+				content = content\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
+			return luaCheck file, content
+		when "yue"
+			luaCodes, info = yueCheck file, content, false
+			success = luaCodes ~= nil
+			if luaCodes
+				luaSuccess, luaInfo = luaCheckWithLineInfo file, luaCodes
+				info = [...info, ...luaInfo]
+				success and= luaSuccess
+			return if #info > 0
+				:success, :info
+			else
+				:success
+		when "xml"
+			success, result = xml.check content
+			if success
+				success, info = luaCheckWithLineInfo file, result
+				return if #info > 0
+					:success, :info
+				else
+					:success
+			else
+				info = for [row, err] in *result
+					["syntax", file, row, 0, err]
+				return success: false, :info
+
+HttpServer\post "/body/parse", (req): success: false, phase: "request", message: "invalid request" ->
+	switch req when {body: {:file, :content}}
+		unless file\sub(-6) == ".b.lua"
+			return success: false, phase: "request", message: "only .b.lua files can be converted"
+		loader, err = load "_ENV = {}\n" .. content
+		unless loader
+			return success: false, phase: "parse", message: tostring err
+		ok, data = pcall loader
+		unless ok
+			return success: false, phase: "execute", message: tostring data
+		unless "table" == type(data) and data[1] == "Array"
+			return success: false, phase: "validate", message: "body lua root must be {\"Array\", ...}"
+		text, jsonErr = json.encode data, false, true
+		unless text
+			return success: false, phase: "encode", message: tostring jsonErr
+		return success: true, json: text
+
+updateInferedDesc = (infered) ->
+	return if not infered.key or infered.key == "" or infered.desc\match "^polymorphic function %(with types "
+	:key, :row = infered
+	if codes := Content\loadAsync key
+		comments = []
+		line = 0
+		skipping = false
+		for lineCode in codes\gmatch "([^\r\n]*)\r?\n?"
+			line += 1
+			break if line >= row
+			if lineCode\match "^%s*%-%- @"
+				skipping = true
+				continue
+			if result := lineCode\match "^%s*%-%- (.+)"
+				comments[] = result unless skipping
+			elseif #comments > 0
+				comments = []
+				skipping = false
+		infered.doc = table.concat comments, "\n"
+
+HttpServer\postSchedule "/infer", (req): success: false ->
+	switch req when {body: {:lang, :file, :content, :line, :row}}
+		searchPath = getSearchPath file
+		switch lang when "tl", "lua"
+			if CheckTIC80Code content
+				content = content\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
+			infered = teal.inferAsync content, line, row, searchPath
+			if infered?
+				updateInferedDesc infered
+				return success: true, :infered
+		when "yue"
+			luaCodes, targetLine, targetRow, lineMap = getCompiledYueLine content, line, row, file, true
+			return success: false unless luaCodes
+			infered = teal.inferAsync luaCodes, targetLine, targetRow, searchPath
+			if infered?
+				:file, :row, :col = infered
+				if file == "" and row > 0 and col > 0
+					infered.row = lineMap[row] or 0
+					infered.col = 0
+				updateInferedDesc infered
+				return success: true, :infered
+
+getParamDocs = (signatures) ->
+	return nil unless signatures and #signatures > 0
+	docs = {}
+	if codes := Content\loadAsync signatures[1].file
+		comments = []
+		params = []
+		line = 0
+		returnType = nil
+		for lineCode in codes\gmatch "([^\r\n]*)\r?\n?"
+			line += 1
+			needBreak = true
+			for i, {:row} in ipairs signatures
+				if line >= row and not docs[i]?
+					if #comments > 0 or #params > 0 or returnType
+						docs[i] = {
+							doc: table.concat comments, "  \n"
+							:returnType
+						}
+						docs[i].params = params if #params > 0
+					else
+						docs[i] = false
+				needBreak = false if not docs[i]
+			break if needBreak
+			if result := lineCode\match "%s*%-%- (.+)"
+				name, typ, desc = result\match "^@param%s*([%w_]+)%s*%(([^%)]-)%)%s*(.+)"
+				if not name
+					name, typ, desc = result\match "^@param%s*(%.%.%.)%s*%(([^%)]-)%)%s*(.+)"
+				if name
+					pname = name
+					pname ..= "?" if desc\match("%[optional%]") or desc\match "%[可选%]"
+					params[] = {
+						name: "#{pname}: #{typ}"
+						desc: "**#{name}**: #{desc}"
+					}
+				else
+					if typ := result\match "^@return%s*%(([^%)]-)%)"
+						returnType = if returnType
+							returnType .. ", " .. typ
+						else
+							typ
+						result = result\gsub "@return", "**return:**"
+					comments[] = result
+			elseif #comments > 0
+				comments = []
+				params = []
+				returnType = nil
+	results = []
+	for i, signature in ipairs signatures
+		item = {
+			desc: signature.desc
+			doc: ""
+			file: signature.file
+			row: signature.row
+			col: signature.col
+		}
+		if doc := docs[i]
+			item.doc = doc.doc
+			if doc.params
+				item.params = doc.params
+				item.desc = "function(#{table.concat [param.name for param in *doc.params], ', '})"
+			elseif doc.returnType
+				item.desc = "function()"
+			item.desc ..= ": #{doc.returnType}" if doc.returnType
+		results[] = item
+	return results
+
+HttpServer\postSchedule "/signature", (req): success: false ->
+	switch req when {body: {:lang, :file, :content, :line, :row}}
+		searchPath = getSearchPath file
+		switch lang when "tl", "lua"
+			if CheckTIC80Code content
+				content = content\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
+			if signatures := teal.getSignatureAsync content, line, row, searchPath
+				if signatures := getParamDocs signatures
+					return success: true, :signatures
+		when "yue"
+			luaCodes, targetLine, targetRow, _lineMap = getCompiledYueLine content, line, row, file, true
+			return success: false unless luaCodes
+			if chainOp, chainCall := line\match "[^%w_]([%.\\])([^%.\\]+)$"
+				if withVar := luaCodes\match "([%w_]+)%.___DUMMY_CALL___%(%)"
+					targetLine = withVar .. (chainOp == '\\' and ':' or '.') .. chainCall
+			if signatures := teal.getSignatureAsync luaCodes, targetLine, targetRow, searchPath
+				if signatures := getParamDocs signatures
+					return success: true, :signatures
+			elseif signatures := teal.getSignatureAsync luaCodes, "Dora.#{targetLine}", targetRow, searchPath
+				if signatures := getParamDocs signatures
+					return success: true, :signatures
+
+luaKeywords = [
+	'and'
+	'break'
+	'do'
+	'else'
+	'elseif'
+	'end'
+	'false'
+	'for'
+	'function'
+	'goto'
+	'if'
+	'in'
+	'local'
+	'nil'
+	'not'
+	'or'
+	'repeat'
+	'return'
+	'then'
+	'true'
+	'until'
+	'while'
+]
+
+tealKeywords = [
+	'record'
+	'as'
+	'is'
+	'type'
+	'embed'
+	'enum'
+	'global'
+	'any'
+	'boolean'
+	'integer'
+	'number'
+	'string'
+	'thread'
+]
+
+yueKeywords = [
+	"and"
+	"break"
+	"do"
+	"else"
+	"elseif"
+	"false"
+	"for"
+	"goto"
+	"if"
+	"in"
+	"local"
+	"nil"
+	"not"
+	"or"
+	"repeat"
+	"return"
+	"then"
+	"true"
+	"until"
+	"while"
+	"as"
+	"class"
+	"continue"
+	"export"
+	"extends"
+	"from"
+	"global"
+	"import"
+	"macro"
+	"switch"
+	"try"
+	"unless"
+	"using"
+	"when"
+	"with"
+]
+
+HttpServer\postSchedule "/complete", (req): success: false ->
+	switch req when {body: {:lang, :file, :content, :line, :row}}
+		searchPath = getSearchPath file
+		repeat
+			item = line\match "require%s*%(%s*['\"]([%w%d-_%./ ]*)$"
+			if lang == "yue"
+				item = line\match "require%s*['\"]([%w%d-_%./ ]*)$" unless item
+				item = line\match "import%s*['\"]([%w%d-_%.]*)$" unless item
+			searchType = nil
+			if not item
+				item = line\match "Sprite%s*%(%s*['\"]([%w%d-_/ ]*)$"
+				if lang == "yue"
+					item = line\match "Sprite%s*['\"]([%w%d-_/ ]*)$"
+				searchType = "Image" if item?
+			if not item
+				item = line\match "Label%s*%(%s*['\"]([%w%d-_/ ]*)$"
+				if lang == "yue"
+					item = line\match "Label%s*['\"]([%w%d-_/ ]*)$"
+				searchType = "Font" if item?
+			break unless item
+			:searchPaths = Content
+			for folder in *getSearchFolders file
+				searchPaths[] = folder
+			searchPaths[] = Content.assetPath if searchType
+			tokens = [mod for mod in item\gmatch "([%w%d-_ ]+)[%./]"]
+			suggestions = []
+			for path in *searchPaths
+				sPath = Path path, table.unpack tokens
+				continue unless Content\exist sPath
+				if searchType == "Font"
+					fontPath = Path sPath, "Font"
+					if Content\exist fontPath
+						for f in *Content\getFiles fontPath
+							if Path\getExt(f) in ["ttf", "otf"]
+								continue if "." == f\sub 1, 1
+								suggestions[] = [Path\getName(f), "font", "field"]
+				for f in *Content\getFiles sPath
+					switch searchType when "Image"
+						switch Path\getExt f when "clip", "jpg", "png", "dds", "pvr", "ktx"
+							continue if "." == f\sub 1, 1
+							suggestions[] = [f, "image", "field"]
+						continue
+					when "Font"
+						switch Path\getExt f when "ttf", "otf"
+							continue if "." == f\sub 1, 1
+							suggestions[] = [f, "font", "field"]
+						continue
+					switch Path\getExt f when "lua", "tl", "yue", "xml"
+						name = Path\getName f
+						continue if "d" == Path\getExt name
+						continue if "." == name\sub 1, 1
+						suggestions[] = [name, "module", "field"]
+				for dir in *Content\getDirs sPath
+					continue if "." == dir\sub 1, 1
+					suggestions[] = [dir, "folder", "variable"]
+			if item == "" and not searchType
+				for [name,] in *teal.completeAsync "", "Dora.", 1, searchPath
+					suggestions[] = [name, "dora module", "function"]
+			if #suggestions > 0
+				suggestions = [v for _, v in pairs {item[1] .. item[2], item for item in *suggestions}]
+				return success: true, :suggestions
+			else
+				return success: false
+		until true
+		switch lang when "tl", "lua"
+			if isTIC80 := CheckTIC80Code content
+				content = content\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
+			suggestions = teal.completeAsync content, line, row, searchPath
+			if not line\match "[%.:]$"
+				checkSet = {name, true for [name,] in *suggestions}
+				for item in *teal.completeAsync "", "Dora.", 1, searchPath
+					suggestions[] = item if not checkSet[item[1]]
+				for word in *luaKeywords
+					suggestions[] = [word, "keyword", "keyword"]
+				if lang == "tl"
+					for word in *tealKeywords
+						suggestions[] = [word, "keyword", "keyword"]
+			if #suggestions > 0
+				return success: true, :suggestions
+		when "yue"
+			suggestions = []
+			gotGlobals = false
+			if luaCodes, targetLine, targetRow := getCompiledYueLine content, line, row, file, true
+				gotGlobals = true
+				if chainOp := line\match "[^%w_]([%.\\])$"
+					withVar = luaCodes\match "([%w_]+)%.___DUMMY_CALL___%(%)"
+					return success: false unless withVar
+					targetLine = "#{withVar}#{chainOp == '\\' and ':' or '.'}"
+				elseif line\match "^([%.\\])$"
+					return success: false
+				suggestions[] = item for item in *teal.completeAsync luaCodes, targetLine, targetRow, searchPath
+				if #suggestions == 0
+					suggestions[] = item for item in *teal.completeAsync luaCodes, "Dora.#{targetLine}", targetRow, searchPath
+			if not line\match("[%.:\\][%w_]+[%.\\]?$") and not line\match "[%.\\]$"
+				checkSet = {name, true for {name} in *suggestions}
+				for item in *teal.completeAsync "", "Dora.", 1, searchPath
+					suggestions[] = item if not checkSet[item[1]]
+				if not gotGlobals
+					for item in *teal.completeAsync "", "x", 1, searchPath
+						suggestions[] = item if not checkSet[item[1]]
+				for word in *yueKeywords
+					if not checkSet[word]
+						suggestions[] = [word, "keyword", "keyword"]
+			if #suggestions > 0
+				return success: true, :suggestions
+		when "xml"
+			items = xml.complete content
+			if #items > 0
+				suggestions = for [label, insertText] in *items
+					[label, insertText, "field"]
+				return success: true, :suggestions
+
+getUploadFilename = (req, multipartFilename) ->
+	filename = req.params.name
+	filename = multipartFilename unless type(filename) == "string" and filename ~= ""
+	return unless type(filename) == "string" and filename ~= ""
+	-- Folder uploads intentionally contain forward slashes. Reject alternate
+	-- separators and traversal before joining the staging directory.
+	return if filename\sub(1, 1) == "/" or filename\sub(-1) == "/" or filename\find("//", 1, true) or filename\find("\\", 1, true) or filename\find(":", 1, true) or filename\find("\0", 1, true)
+	parts = [part for part in filename\gmatch "[^/]+"]
+	return if #parts == 0
+	for part in *parts
+		return if part == "." or part == ".." or part == ""
+	filename
+
+HttpServer\upload(
+	"/upload"
+	(req, multipartFilename): nil ->
+		switch req when {params: {:path}}
+			if filename := getUploadFilename req, multipartFilename
+				uploadPath = Path Content.writablePath, ".upload"
+				if not Content\exist uploadPath
+					Content\mkdir uploadPath
+				targetPath = Path uploadPath, filename
+				Content\mkdir Path\getPath targetPath
+				return targetPath
+	(req, file): false ->
+		switch req when {params: {:path}}
+			path = Path Content.writablePath, path
+			if Content\exist path
+				uploadPath = Path Content.writablePath, ".upload"
+				targetPath = Path path, Path\getRelative file, uploadPath
+				Content\mkdir Path\getPath targetPath
+				if Content\move file, targetPath
+					return true
+)
+
+HttpServer\post "/list", (req): success: false ->
+	switch req when {body: {:path}}
+		if Content\exist path
+			files = {}
+			visitAssets = (path, folder) ->
+				dirs = Content\getDirs path
+				for dir in *dirs
+					continue if dir\match("^%.") or dir == "node_modules"
+					current = if folder == ""
+						dir
+					else
+						Path folder, dir
+					files[] = current
+					visitAssets Path(path, dir), current
+				fs = Content\getFiles path
+				for f in *fs
+					if f in [".DS_Store",]
+						continue
+					files[] = if folder == ""
+						f
+					else
+						Path folder, f
+			visitAssets path, ""
+			files = nil if #files == 0
+			return success: true, :files
+
+HttpServer\post "/info", (req) ->
+	import "Script.Dev.Entry"
+	config = Entry.getConfig!
+	switch req when {body: {:webIDETourCompleted}}
+		config.webIDETourCompleted = webIDETourCompleted == true
+	:webProfiler, :drawerWidth, :webIDETourCompleted = config
+	engineDev = Entry.getEngineDev!
+	Entry.connectWebIDE!
+	return
+		platform: App.platform
+		locale: App.locale
+		version: App.version
+		:engineDev
+		:webProfiler
+		:drawerWidth
+		webIDETourCompleted: webIDETourCompleted == true
+
+ensureLLMConfigTable = ->
+	columns = DB\query "PRAGMA table_info(LLMConfig)"
+	if columns and #columns > 0
+		expected = {
+			id: true
+			name: true
+			url: true
+			model: true
+			api_key: true
+			context_window: true
+			temperature: true
+			max_tokens: true
+			reasoning_effort: true
+			custom_options: true
+			supports_function_calling: true
+			active: true
+			created_at: true
+			updated_at: true
+		}
+		existing = {}
+		valid = true
+		for row in *columns
+			columnName = tostring row[2]
+			existing[columnName] = true
+			if not expected[columnName]
+				valid = false
+				break
+		if valid
+			unless existing.context_window
+				DB\exec "ALTER TABLE LLMConfig ADD COLUMN context_window INTEGER NOT NULL DEFAULT 64000"
+			unless existing.temperature
+				DB\exec "ALTER TABLE LLMConfig ADD COLUMN temperature REAL NOT NULL DEFAULT 0.1"
+			unless existing.max_tokens
+				DB\exec "ALTER TABLE LLMConfig ADD COLUMN max_tokens INTEGER NOT NULL DEFAULT 64000"
+			unless existing.reasoning_effort
+				DB\exec "ALTER TABLE LLMConfig ADD COLUMN reasoning_effort TEXT NOT NULL DEFAULT ''"
+			unless existing.custom_options
+				DB\exec "ALTER TABLE LLMConfig ADD COLUMN custom_options TEXT NOT NULL DEFAULT ''"
+			unless existing.supports_function_calling
+				DB\exec "ALTER TABLE LLMConfig ADD COLUMN supports_function_calling INTEGER NOT NULL DEFAULT 1"
+		else
+			DB\exec "DROP TABLE IF EXISTS LLMConfig"
+	DB\exec [[
+		CREATE TABLE IF NOT EXISTS LLMConfig(
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT NOT NULL,
+			url TEXT NOT NULL,
+			model TEXT NOT NULL,
+			api_key TEXT NOT NULL,
+			context_window INTEGER NOT NULL DEFAULT 64000,
+			temperature REAL NOT NULL DEFAULT 0.1,
+			max_tokens INTEGER NOT NULL DEFAULT 64000,
+			reasoning_effort TEXT NOT NULL DEFAULT '',
+			custom_options TEXT NOT NULL DEFAULT '',
+			supports_function_calling INTEGER NOT NULL DEFAULT 1,
+			active INTEGER NOT NULL DEFAULT 1,
+			created_at INTEGER,
+			updated_at INTEGER
+		);
+	]]
+
+	require("Agent.LLMConfigMigration").upgradeLLMConfig!
+
+normalizeContextWindow = (value) ->
+	contextWindow = tonumber value
+	if contextWindow == nil or contextWindow < 64000
+		return 64000
+	return math.max 64000, math.floor contextWindow
+
+normalizeTemperature = (value) ->
+	temperature = tonumber value
+	if temperature == nil
+		return 0.1
+	return math.max 0, math.min 2, temperature
+
+normalizeMaxTokens = (value) ->
+	maxTokens = tonumber value
+	if maxTokens == nil or maxTokens < 1
+		return 64000
+	return math.max 1, math.floor maxTokens
+
+normalizeReasoningEffort = (value) ->
+	if value == nil
+		return ""
+	effort = tostring value
+	return effort\match("^%s*(.-)%s*$") or ""
+
+normalizeCustomOptions = (value) ->
+	if value == nil
+		return ""
+	options = tostring value
+	options = options\match("^%s*(.-)%s*$") or ""
+	return options
+
+validateCustomOptions = (value) ->
+	options = normalizeCustomOptions value
+	return true if options == ""
+	return false unless options\match "^%s*{"
+	decoded = json.decode options
+	return type(decoded) == "table"
+
+HttpServer\post "/llm/list", ->
+	ensureLLMConfigTable!
+	rows = DB\query "
+		select id, name, url, model, api_key, context_window, temperature, max_tokens, reasoning_effort, custom_options, supports_function_calling
+		from LLMConfig
+		order by id asc"
+	items = if rows and #rows > 0
+		for [id, name, url, model, key, contextWindow, temperature, maxTokens, reasoningEffort, customOptions, supportsFunctionCalling] in *rows
+			:id, :name, :url, :model, :key, contextWindow: normalizeContextWindow(contextWindow), temperature: normalizeTemperature(temperature), maxTokens: normalizeMaxTokens(maxTokens), reasoningEffort: normalizeReasoningEffort(reasoningEffort), customOptions: normalizeCustomOptions(customOptions), supportsFunctionCalling: supportsFunctionCalling ~= 0
+	return success: true, :items
+
+HttpServer\post "/llm/create", (req): invalidArguments ->
+	ensureLLMConfigTable!
+	switch req when {body: body}
+		{:name, :url, :model, :key, :contextWindow, :temperature, :maxTokens, :reasoningEffort, :customOptions, :supportsFunctionCalling} = body
+		now = os.time!
+		if name == nil or url == nil or model == nil or key == nil
+			return invalidArguments
+		contextWindow = normalizeContextWindow contextWindow
+		temperature = normalizeTemperature temperature
+		maxTokens = normalizeMaxTokens maxTokens
+		reasoningEffort = normalizeReasoningEffort reasoningEffort
+		customOptions = normalizeCustomOptions customOptions
+		return success: false, message: "customOptions must be a JSON object" unless validateCustomOptions customOptions
+		supportsFunctionCalling = if supportsFunctionCalling == false then 0 else 1
+		affected = DB\exec "
+			insert into LLMConfig (
+				name, url, model, api_key, context_window, temperature, max_tokens, reasoning_effort, custom_options, supports_function_calling, active, created_at, updated_at
+			) values (
+				?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+			)", [
+			tostring name
+			tostring url
+			tostring model
+			tostring key
+			contextWindow
+			temperature
+			maxTokens
+			reasoningEffort
+			customOptions
+			supportsFunctionCalling
+			1
+			now
+			now
+		]
+		return success: affected >= 0
+
+HttpServer\post "/llm/update", (req): invalidArguments ->
+	ensureLLMConfigTable!
+	switch req when {body: body}
+		{:id, :name, :url, :model, :key, :contextWindow, :temperature, :maxTokens, :reasoningEffort, :customOptions, :supportsFunctionCalling} = body
+		now = os.time!
+		id = tonumber id
+		return invalidArguments if id == nil
+		contextWindow = normalizeContextWindow contextWindow
+		temperature = normalizeTemperature temperature
+		maxTokens = normalizeMaxTokens maxTokens
+		reasoningEffort = normalizeReasoningEffort reasoningEffort
+		customOptions = normalizeCustomOptions customOptions
+		return success: false, message: "customOptions must be a JSON object" unless validateCustomOptions customOptions
+		supportsFunctionCalling = if supportsFunctionCalling == false then 0 else 1
+		affected = DB\exec "
+			update LLMConfig
+			set name = ?, url = ?, model = ?, api_key = ?, context_window = ?, temperature = ?, max_tokens = ?, reasoning_effort = ?, custom_options = ?, supports_function_calling = ?, updated_at = ?
+			where id = ?", [
+			tostring name
+			tostring url
+			tostring model
+			tostring key
+			contextWindow
+			temperature
+			maxTokens
+			reasoningEffort
+			customOptions
+			supportsFunctionCalling
+			now
+			id
+		]
+		return success: affected >= 0
+
+HttpServer\post "/llm/delete", (req): invalidArguments ->
+	ensureLLMConfigTable!
+	switch req when {body: {:id}}
+		id = tonumber id
+		return invalidArguments if id == nil
+		affected = DB\exec "delete from LLMConfig where id = ?", [id,]
+		return success: affected >= 0
+
+HttpServer\post "/local-agent/list", ->
+	return success: true, supported: AgentLocalAgent.isLocalAgentSupported!, items: AgentLocalAgent.listConfigs!
+
+HttpServer\post "/local-agent/save", (req): invalidArguments ->
+	switch req when {body: body}
+		return AgentLocalAgent.saveConfig body
+
+HttpServer\post "/local-agent/delete", (req): invalidArguments ->
+	switch req when {body: {:id}}
+		return AgentLocalAgent.deleteConfig id
+
+HttpServer\postSchedule "/local-agent/verify", (req): invalidArguments ->
+	switch req when {body: {:id}}
+		return AgentLocalAgent.verifyConfig id, req.body.projectRoot
+
+HttpServer\post "/stat", (req): success: false, message: "failed to stat" ->
+	switch req when {body: {:path}}
+		unless Content\exist path
+			return success: false, message: "target not existed"
+		if Content\isdir path
+			return success: false, message: "failed to stat a directory"
+		if size, isBinary := Content\getAttr path
+			return success: true, :size, :isBinary
+
+HttpServer\post "/new", (req): success: false, message: "Failed" ->
+	switch req when {body: {:path, :content, :folder}}
+		if Content\exist path
+			return success: false, message: "TargetExisted"
+		parent = Path\getPath path
+		files = Content\getFiles parent
+		if folder
+			name = Path\getFilename(path)\lower!
+			for file in *files
+				if name == Path\getFilename(file)\lower!
+					return success: false, message: "TargetExisted"
+			if Content\mkdir path
+				return success: true
+		else
+			name = Path\getName(path)\lower!
+			for file in *files
+				if name == Path\getName(file)\lower!
+					ext = Path\getExt file
+					if ext not in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml", "lua"]
+						continue
+					elseif ("d" == Path\getExt name) and (ext ~= Path\getExt path)
+						continue
+					return success: false, message: "SourceExisted"
+			if Content\save path, content
+				return success: true
+
+deleteAsset = (path) ->
+	return false unless Content\exist path
+	projectRoot = if Content\isdir(path) and isProjectRootDir(path) then path else nil
+	parent = Path\getPath path
+	files = Content\getFiles parent
+	name = Path\getName(path)\lower!
+	ext = Path\getExt path
+	for file in *files
+		if name == Path\getName(file)\lower!
+			switch Path\getExt file when "tl" then if ext in ["vs",]
+				Content\remove Path parent, file
+			when "lua" then if ext in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml"]
+				Content\remove Path parent, file
+	if Content\remove path
+		if projectRoot
+			AgentSession.deleteSessionsByProjectRoot projectRoot
+		return true
+	false
+
+moveAsset = (old, new) ->
+	return false unless Content\exist(old) and not Content\exist new
+	renamedDir = Content\isdir old
+	parent = Path\getPath new
+	files = Content\getFiles parent
+	if renamedDir
+		name = Path\getFilename(new)\lower!
+		for file in *files
+			if name == Path\getFilename(file)\lower!
+				return false
+	else
+		name = Path\getName(new)\lower!
+		ext = Path\getExt new
+		for file in *files
+			if name == Path\getName(file)\lower!
+				if ext not in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml", "lua"]
+					continue
+				elseif ("d" == Path\getExt name) and (Path\getExt(file) ~= ext)
+					continue
+				return false
+	return false unless Content\move old, new
+	if renamedDir
+		AgentSession.renameSessionsByProjectRoot old, new
+	newParent = Path\getPath new
+	parent = Path\getPath old
+	files = Content\getFiles parent
+	newName = Path\getName new
+	oldName = Path\getName old
+	name = oldName\lower!
+	ext = Path\getExt old
+	for file in *files
+		if name == Path\getName(file)\lower!
+			switch Path\getExt file when "tl" then if ext in ["vs",]
+				Content\move Path(parent, file), Path newParent, newName .. ".tl"
+			when "lua" then if ext in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml"]
+				Content\move Path(parent, file), Path newParent, newName .. ".lua"
+	true
+
+HttpServer\post "/delete", (req): success: false ->
+	switch req when {body: {:path}}
+		return success: true if deleteAsset path
+
+HttpServer\post "/rename", (req): success: false ->
+	switch req when {body: {:old, :new}}
+		return success: true if moveAsset old, new
+
+normalizeAssetPaths = (paths) ->
+	return nil unless type(paths) == "table"
+	unique = {}
+	candidates = {}
+	for path in *paths
+		return nil unless type(path) == "string"
+		relative = relativeToRoot path, Content.writablePath
+		return nil if relative == nil or relative == "" or not Content\exist path
+		unless unique[path]
+			unique[path] = true
+			candidates[] = path
+	table.sort candidates, (a, b) -> #a < #b
+	result = {}
+	for path in *candidates
+		contained = false
+		for parent in *result
+			if relativeToRoot(path, parent) ~= nil
+				contained = true
+				break
+		result[] = path unless contained
+	result
+
+HttpServer\postSchedule "/assets/batch", (req): success: false, message: "invalid request" ->
+	switch req when {body: {:operation, :sources}}
+		return success: false, message: "invalid operation" unless operation in ["delete", "copy", "move"]
+		sources = normalizeAssetPaths sources
+		return success: false, message: "invalid sources" unless sources and #sources > 0
+		target = req.body.target
+		destinations = {}
+		if operation ~= "delete"
+			return success: false, message: "invalid target" unless type(target) == "string"
+			targetRelative = relativeToRoot target, Content.writablePath
+			return success: false, message: "invalid target" if targetRelative == nil
+			return success: false, message: "invalid target" unless Content\exist(target) and Content\isdir target
+			for source in *sources
+				if Content\isdir(source) and relativeToRoot(target, source) ~= nil
+					return success: false, message: "target inside source"
+				destination = Path target, Path\getFilename source
+				return success: false, message: "target existed" if Content\exist destination
+				return success: false, message: "duplicate target" if destinations[destination]
+				destinations[destination] = true
+		changes = {}
+		affectedSet = {}
+		affectedDirectories = {}
+		addAffected = (dir) ->
+			return if affectedSet[dir]
+			affectedSet[dir] = true
+			affectedDirectories[] = dir
+		addAffected target if operation ~= "delete"
+		for source in *sources
+			addAffected Path\getPath source
+			if operation == "delete"
+				return success: false, message: "delete failed", :changes, :affectedDirectories unless deleteAsset source
+				changes[] = old: source
+			else
+				destination = Path target, Path\getFilename source
+				ok = if operation == "copy"
+					Content\copyAsync source, destination
+				else
+					moveAsset source, destination
+				return success: false, message: operation .. " failed", :changes, :affectedDirectories unless ok
+				changes[] = old: source, new: destination
+		return success: true, :changes, :affectedDirectories
+
+withProjectSearchPaths = (projectRoot, projFile, fn) ->
+	fallbackPaths = {}
+	addFallback = (dir) -> fallbackPaths[] = dir if dir and dir ~= "" and Content\exist(dir) and Content\isdir(dir)
+	if projectRoot and projectRoot ~= ""
+		addFallback Path projectRoot, "Script"
+		addFallback projectRoot
+	if projFile
+		if projDir := getProjectDirFromFile projFile
+			addFallback Path projDir, "Script"
+			addFallback projDir
+		else
+			addFallback Path\getPath projFile
+	return fn! unless #fallbackPaths > 0
+	:searchPaths = Content
+	Content\addSearchPath dir for dir in *fallbackPaths
+	close _ = <close>: -> Content.searchPaths = searchPaths
+	fn!
+HttpServer\post "/exist", (req): success: false ->
+	switch req when {body: {:file}}
+		return withProjectSearchPaths req.body.projectRoot, req.body.projFile, ->
+			success: Content\exist file
+HttpServer\postSchedule "/read", (req): success: false ->
+	switch req when {body: {:path}}
+		readFile = (): nil ->
+			if Content\exist(path) and not Content\isdir(path)
+				if content := Content\loadAsync path
+					return :content, success: true, fullPath: Content\getFullPath path
+		return result if result := withProjectSearchPaths req.body.projectRoot, req.body.projFile, readFile
+
+agentDocLanguage = (language) ->
+	if language == "zh-Hans" then "zh" else "en"
+
+HttpServer\postSchedule "/doc/search", (req): success: false, message: "invalid call" ->
+	body = req.body or {}
+	language = body.docLanguage
+	return success: false, message: "unsupported doc language" unless language in ["en", "zh-Hans"]
+	docType = body.docType
+	return success: false, message: "unsupported doc type" unless docType in ["dora-tutorial", "dora-api", "love-api", "tic80-api"]
+	codeLanguage = body.programmingLanguage
+	return success: false, message: "unsupported programming language" unless codeLanguage in ["ts", "tsx", "lua", "yue", "tl", "wa"]
+	return success: false, message: "missing pattern" unless body.pattern
+	result = nil
+	AgentTools.searchDoraDocHttp {
+		pattern: body.pattern
+		docLanguage: agentDocLanguage language
+		:docType
+		programmingLanguage: codeLanguage
+		limit: body.limit
+		useRegex: body.useRegex
+		caseSensitive: body.caseSensitive
+		includeContent: body.includeContent
+		contentWindow: body.contentWindow
+	}, (res) ->
+		result = res
+	wait -> result ~= nil
+	if result and result.success
+		result.docLanguage = language
+	if result
+		return result
+	else
+		return success: false, message: "doc search failed"
+
+HttpServer\postSchedule "/doc/read", (req) ->
+	body = req.body or {}
+	language = body.docLanguage
+	return success: false, message: "unsupported doc language" unless language in ["en", "zh-Hans"]
+	return success: false, message: "missing file" unless body.file
+	result = AgentTools.readDoraDoc
+		docLanguage: agentDocLanguage language
+		file: body.file
+		startLine: body.startLine
+		endLine: body.endLine
+	if result and result.success
+		result.docLanguage = language
+	result
+
+HttpServer\get "/read-sync", (req): success: false ->
+	switch req when :params
+		:path = params
+		exts = if params.exts
+			[ext for ext in params.exts\gmatch "[^|]*"]
+		else ["",]
+		readFileAt = (targetPath): nil ->
+			if Content\exist targetPath
+				if content := Content\load targetPath
+					return :content, success: true, fullPath: Content\getFullPath targetPath
+		readFile = (fallbackPaths): nil ->
+			for ext in *exts
+				targetPath = path .. ext
+				unless Content\isAbsolutePath targetPath
+					for fallback in *fallbackPaths
+						if fallbackResult := readFileAt Path fallback, targetPath
+							return fallbackResult
+				if fileResult := readFileAt targetPath
+					return fileResult
+		fallbackPaths = []
+		fallbackCandidates = []
+		if projectRoot := req.params.projectRoot
+			if projectRoot ~= "" and Content\exist(projectRoot) and Content\isdir(projectRoot)
+				fallbackCandidates[] = Path projectRoot, "Script"
+				fallbackCandidates[] = projectRoot
+		if projFile := req.params.projFile
+			if projDir := getProjectDirFromFile projFile
+				fallbackCandidates[] = Path projDir, "Script"
+				fallbackCandidates[] = projDir
+			else
+				projDir = Path\getPath projFile
+				fallbackCandidates[] = projDir
+		for dir in *fallbackCandidates
+			if dir and dir ~= "" and Content\exist(dir) and Content\isdir(dir)
+				exists = false
+				for fallback in *fallbackPaths
+					if fallback == dir
+						exists = true
+						break
+				fallbackPaths[] = dir unless exists
+		if readResult := readFile fallbackPaths
+			return readResult
+
+addGeneratedSourceHeader = (codes, language, file, preserveTIC80 = false) ->
+	header = "-- [#{language}]: #{file}"
+	if preserveTIC80
+		if codes\match "^%-%-[ \t]*tic80[ \t]*[\r\n]"
+			return (codes\gsub "^([^\r\n]*\r?\n)", "%1#{header}\n", 1)
+		return "-- tic80\n#{header}\n#{codes}"
+	"#{header}\n#{codes}"
+
+compileFileAsync = (inputFile, sourceCodes, projectRoot = nil): nil ->
+	file = inputFile
+	searchPath = if projectRoot and projectRoot ~= "" and Content\exist(projectRoot) and Content\isdir(projectRoot)
+		file = relativeToRoot(inputFile, projectRoot) or
+			relativeToRoot(inputFile, Content.assetPath) or
+			relativeToRoot(inputFile, projectRoot) or
+			inputFile
+		Path(projectRoot, "Script", "?.lua") .. ";" .. Path projectRoot, "?.lua"
+	elseif not Content\isAbsolutePath inputFile
+		""
+	elseif dir := getProjectDirFromFile inputFile
+		file = relativeToRoot(inputFile, dir) or
+			relativeToRoot(inputFile, Content.writablePath) or
+			relativeToRoot(inputFile, Content.assetPath) or
+			inputFile
+		Path(dir, "Script", "?.lua") .. ";" .. Path dir, "?.lua"
+	else
+		file = relativeToRoot(inputFile, Content.writablePath) or
+			relativeToRoot(inputFile, Content.assetPath) or
+			inputFile
+		""
+	outputFile = Path\replaceExt inputFile, "lua"
+	options: {extension: yueext} = yue
+	resultCodes = nil
+	resultError = nil
+	switch Path\getExt inputFile when yueext
+		isTIC80, tic80APIs = CheckTIC80Code sourceCodes
+		(success) <- yue.compile inputFile, outputFile, searchPath, (codes, err, globals) ->
+			unless codes
+				resultError = err
+				return
+			extraGlobal = if isTIC80 then tic80APIs else nil
+			success, message = LintYueGlobals codes, globals, true, extraGlobal
+			unless success
+				resultError = message
+				return
+			if codes == ""
+				resultCodes = ""
+				return nil
+			resultCodes = addGeneratedSourceHeader codes, "yue", file, isTIC80
+			resultCodes
+		if not success
+			Content\remove outputFile
+			if resultCodes == nil
+				resultCodes = false
+	when "tl"
+		isTIC80 = CheckTIC80Code sourceCodes
+		if isTIC80
+			sourceCodes = sourceCodes\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
+		if codes, err := teal.toluaAsync sourceCodes, file, searchPath
+			if isTIC80
+				codes = codes\gsub "^require%(\"tic80\"%)", "-- tic80"
+			resultCodes = addGeneratedSourceHeader codes, "tl", file, isTIC80
+			Content\saveAsync outputFile, resultCodes
+		else
+			Content\remove outputFile
+			resultCodes = false
+			resultError = err
+	when "xml"
+		if codes, err := xml.tolua sourceCodes
+			resultCodes = "-- [xml]: #{file}\n#{codes}"
+			Content\saveAsync outputFile, resultCodes
+		else
+			Content\remove outputFile
+			resultCodes = false
+			resultError = err
+	wait -> resultCodes ~= nil
+	if resultCodes
+		return resultCodes
+	else
+		return nil, resultError
+
+HttpServer\postSchedule "/write", (req): success: false ->
+	finishUpdate = AgentHost.holdSourceUpdate (req.body or {}).path
+	buildSucceeded = false
+	close _ = <close>: -> finishUpdate buildSucceeded
+	switch req when {body: {:path, :content}}
+		if Content\saveAsync path, content
+			switch Path\getExt path when "tl", "yue", "xml"
+				if '' == Path\getExt Path\getName path
+					resultCodes = compileFileAsync path, content
+					buildSucceeded = resultCodes ~= nil
+					return success: true, :resultCodes
+			buildSucceeded = true
+			return success: true
+
+getWaProjectDirFromFile = nil
+
+HttpServer\postSchedule "/build", (req): success: false ->
+	finishUpdate = AgentHost.holdSourceUpdate (req.body or {}).path
+	buildSucceeded = false
+	close _ = <close>: -> finishUpdate buildSucceeded
+	switch req when {body: {:path}}
+		projectRoot = req.body.projectRoot
+		if Content\isdir path
+			if projDir := getWaProjectDirFromFile path
+				message = Wasm\buildWaAsync projDir
+				return if message == ""
+					success: true
+				else
+					success: false, :message
+		switch Path\getExt path
+			when "tl", "yue", "xml"
+				if '' == Path\getExt Path\getName path
+					if content := Content\loadAsync path
+						if resultCodes := compileFileAsync path, content, projectRoot
+							buildSucceeded = true
+							return success: true, :resultCodes
+			when "wa"
+				if projDir := getWaProjectDirFromFile path
+					message = Wasm\buildWaAsync projDir
+					return if message == ""
+						success: true
+					else
+						success: false, :message
+				else
+					return success: false, message: 'Wa file needs a project'
+
+extentionLevels =
+	vs: 2
+	bl: 2
+	ts: 1
+	tsx: 1
+	tl: 1
+	yue: 1
+	xml: 1
+	lua: 0
+
+visitAssets = (path, workspace, builtin, recursive = true) ->
+	children = nil
+	dirs = Content\getDirs path
+	for dir in *dirs
+		if workspace
+			if dir in [".upload", ".download", ".www", ".build", ".git", ".cache", "node_modules"]
+				continue
+		elseif dir == ".git"
+			continue
+		children = [] unless children
+		dirPath = Path path, dir
+		if recursive
+			children[] = visitAssets dirPath, workspace, builtin
+		else
+			children[] = {
+				key: dirPath
+				dir: true
+				title: dir
+				:builtin
+				isLeaf: false
+			}
+	files = Content\getFiles path
+	names = {}
+	for file in *files
+		if file in [".DS_Store",]
+			continue
+		name = Path\getName file
+		if ext := names[name]
+			lv1 = extentionLevels[ext] ?? -1
+			ext = Path\getExt file
+			lv2 = extentionLevels[ext] ?? -1
+			if lv2 > lv1
+				names[name] = ext
+			elseif lv2 == lv1
+				names[name .. '.' .. ext] = ""
+		else
+			ext = Path\getExt file
+			if not extentionLevels[ext]
+				names[file] = ""
+			else
+				names[name] = ext
+	files = [ext == '' and name or name .. '.' .. ext for name, ext in pairs names]
+	for file in *files
+		children = [] unless children
+		children[] = {
+			key: Path path, file
+			dir: false
+			title: file
+			:builtin
+		}
+	if children
+		table.sort children, (a, b) ->
+			if a.dir == b.dir
+				a.title < b.title
+			else
+				a.dir
+	{
+		key: path
+		dir: true
+		title: Path\getFilename path
+		:builtin
+		isLeaf: not children
+		:children
+	}
+
+HttpServer\post "/assets/children", (req): success: false ->
+	switch req when {body: {:path}}
+		workspace, builtin = relativeToRoot(path, Content.writablePath) ~= nil, relativeToRoot(path, Content.assetPath) ~= nil
+		return success: false unless (workspace or builtin) and Content\exist(path) and Content\isdir(path)
+		node = visitAssets path, workspace, builtin, false
+		return success: true, children: node.children or {}
+
+HttpServer\post "/assets/files", (req): success: false ->
+	switch req when {body: {:path}}
+		workspace = relativeToRoot(path, Content.writablePath) ~= nil
+		builtin = relativeToRoot(path, Content.assetPath) ~= nil
+		return success: false unless workspace or builtin
+		return success: false unless Content\exist(path) and Content\isdir(path)
+		globs = {"**", "!**/.DS_Store"}
+		if workspace
+			globs = {
+				"**", "!**/.DS_Store"
+				"!**/.upload/**", "!**/.download/**"
+				"!**/.www/**", "!**/.build/**"
+				"!**/.git/**", "!**/.cache/**"
+				"!**/node_modules/**"
+			}
+		files = [Path(path, file) for file in *Content\glob(path, globs, extentionLevels)]
+		return success: true, :files
+
+HttpServer\post "/assets", ->
+	import "Script.Dev.Entry"
+	engineDev = Entry.getEngineDev!
+	workspace = visitAssets Content.writablePath, true, nil, false
+	zh = App.locale\match("^zh")?
+	readme = visitAssets (Path Content.assetPath, "Doc", zh and "zh-Hans" or "en"), false, true
+	readme.title = zh and "说明文档" or "Readme"
+	apiDoc = visitAssets (Path Content.assetPath, "Script", "Lib", "Dora", zh and "zh-Hans" or "en"), false, true
+	apiDoc.title = zh and "接口文档" or "API Doc"
+	tools = visitAssets (Path Content.assetPath, "Script", "Tools"), false, true
+	tools.title = zh and "开发工具" or "Tools"
+	font = visitAssets (Path Content.assetPath, "Font"), false, true
+	font.title = zh and "字体" or "Font"
+	lib = visitAssets (Path Content.assetPath, "Script", "Lib"), false, true
+	lib.title = zh and "程序库" or "Lib"
+	if engineDev
+		for child in *lib.children
+			continue unless child.title == "Dora"
+			title = zh and "zh-Hans" or "en"
+			child.children = [c for c in *child.children when c.title ~= title]
+			break
+	else
+		lib.children = [child for child in *lib.children when child.title ~= "Dora"]
+	builtinChildren = [readme, apiDoc, tools, font, lib]
+	if engineDev
+		dev = visitAssets (Path Content.assetPath, "Script", "Dev"), false, true
+		dev.children[] = {
+			key: Path Content.assetPath, "Script", "init.yue"
+			dir: false
+			builtin: true
+			title: "init.yue"
+		}
+		builtinChildren[] = dev
+	{
+		key: Content.writablePath
+		dir: true
+		root: true
+		title: "Assets"
+		children: [
+			{
+				key: Path Content.assetPath
+				dir: true
+				builtin: true
+				title: zh and "内置资源" or "Built-in"
+				children: builtinChildren
+			}
+			...workspace.children or {}
+		]
+	}
+
+HttpServer\post "/entry/list", (req) ->
+	import "Script.Dev.Entry"
+	res = Entry.getLaunchEntries (req and req.body and req.body.refresh == true)
+	res.success = true
+	res
+
+HttpServer\post "/run/status", ->
+	import "Script.Dev.Entry"
+	Entry.getCurrentEntryStatus!
+
+HttpServer\postSchedule "/run", (req): success: false ->
+	switch req when {body: {:file, :asProj}}
+		if not Content\isAbsolutePath file
+			devFile = Path Content.writablePath, file
+			file = devFile if Content\exist devFile
+		import "Script.Dev.Entry"
+		local workDir
+		if asProj
+			projectRoot = req.body.projectRoot
+			workDir = if projectRoot and projectRoot ~= "" and Content\exist(projectRoot) and Content\isdir(projectRoot)
+				projectRoot
+			else
+				getProjectDirFromFile file
+			if workDir
+				Entry.allClear!
+				target = Path workDir, "init"
+				success, err = Entry.enterEntryAsync entryName: "Project", fileName: target, workDir: workDir, projectRoot: workDir, runKind: "project"
+				target = target |> Path\getPath |> Path\getName
+				return :success, :target, :err
+		else
+			workDir = getProjectDirFromFile file
+			if not workDir and Path\getExt(file) == "wasm"
+				parent = Path\getPath file
+				if Content\exist Path(parent, "wa.mod")
+					workDir = parent
+		Entry.allClear!
+		file = Path\replaceExt file, ""
+		entry =
+			entryName: Path\getName file
+			fileName: file
+			runKind: "file"
+		if workDir
+			entry.workDir = workDir
+			entry.projectRoot = workDir
+		success, err = Entry.enterEntryAsync entry
+		return :success, :err
+
+HttpServer\postSchedule "/agent/preview", (req): success: false, message: "invalid call" ->
+	releaseAgent = AgentHost.acquire!
+	close _ = <close>: -> releaseAgent!
+	switch req when {body: {:projectRoot}}
+		return success: false, code: "INVALID_PROJECT", message: "projectRoot must be an existing absolute directory" unless getProjectSourceRoot projectRoot
+		entryFile = req.body.entry or "init.lua"
+		return success: false, code: "INVALID_ENTRY", message: "entry must be a non-empty project-relative path" unless type(entryFile) == "string" and entryFile ~= ""
+		captureAtSeconds = req.body.captureAtSeconds or {0.5}
+		queueTimeoutSeconds = req.body.queueTimeoutSeconds or 30
+		return success: false, code: "INVALID_QUEUE_TIMEOUT", message: "queueTimeoutSeconds must be between 1 and 300" unless type(queueTimeoutSeconds) == "number" and queueTimeoutSeconds >= 1 and queueTimeoutSeconds <= 300
+		import "Agent.Tool.EntryRunQueue" as AgentEntryRunQueue
+		import "Agent.Tool.Operation" as AgentOperation
+		agentEntryRunQueue = AgentEntryRunQueue.sharedEntryRunQueue
+		requestId = AgentOperation.createOperationId!
+		enqueued = agentEntryRunQueue\enqueue requestId
+		return success: false, code: "ENTRY_QUEUE_REJECTED", message: enqueued.message unless enqueued.success
+		queuedAt = App.runningTime
+		while not agentEntryRunQueue\tryAcquire requestId
+			if App.runningTime - queuedAt >= queueTimeoutSeconds
+				state = agentEntryRunQueue\get requestId
+				agentEntryRunQueue\cancel requestId
+				return
+					success: false
+					code: "ENTRY_QUEUE_TIMEOUT"
+					message: "timed out waiting for the Dora entry runtime"
+					requestId: requestId
+					queuePosition: state.position
+			sleep!
+		queueWaitSeconds = App.runningTime - queuedAt
+		close _ = <close>: -> agentEntryRunQueue\release requestId
+		import "Agent.Tool.CommandPreview" as AgentCommandPreview
+		import "Script.Dev.Entry"
+		preview = AgentCommandPreview.createPreviewGameInjection {
+			workDir: projectRoot
+			operationId: requestId
+			print: ->
+		}, Entry
+		result = preview entry: entryFile, :captureAtSeconds
+		return
+			success: result.success
+			code: if result.success then nil else "PREVIEW_FAILED"
+			message: result.message
+			requestId: requestId
+			queueWaitSeconds: queueWaitSeconds
+			interruptedUserRun: result.interruptedUserRun
+			files: result.files
+			frames: result.frames
+
+HttpServer\postSchedule "/agent/command", (req): success: false, code: "INVALID_COMMAND", message: "invalid call" ->
+	releaseAgent = AgentHost.acquire!
+	close _ = <close>: -> releaseAgent!
+	switch req when {body: body}
+		projectRoot = body.projectRoot
+		return success: false, code: "INVALID_PROJECT", message: "projectRoot must be an existing absolute directory" unless getProjectSourceRoot projectRoot
+		import "Agent.Tool.Validation" as AgentValidation
+		validated = AgentValidation.validateAgentToolInput "execute_command", body
+		return success: false, code: "INVALID_COMMAND", message: validated.message unless validated.success
+		input = validated.value
+		import "Agent.Tool.Command" as AgentCommand
+		result = nil
+		failure = nil
+		promise = AgentCommand.executeCommand
+			workDir: projectRoot
+			mode: input.mode
+			code: input.code
+			command: input.command
+			cwd: input.cwd
+			timeoutSeconds: input.timeoutSeconds
+		promise\addCallbacks ((_, value) -> result = value), ((_, err) -> failure = tostring err)
+		wait -> result ~= nil or failure ~= nil
+		return success: false, code: "COMMAND_BRIDGE_FAILED", message: failure if failure
+		unless result.success
+			result.code = "COMMAND_FAILED"
+		return result
+
+HttpServer\postSchedule "/stop", ->
+	import "Script.Dev.Entry"
+	success: Entry.stop!
+
+minifyAsync = (sourcePath, minifyPath) ->
+	return unless Content\exist sourcePath
+	import "Script.Dev.Entry"
+	errors = []
+	files = Entry.getAllFiles sourcePath, ["lua",], true
+	files = [file for file in *files when file\sub(1, 1) ~= '.']
+	paths = {Path\getPath(file), true for file in *files}
+	Content\mkdir Path(minifyPath, path) for path in pairs paths
+	close _ = <close>: ->
+		package.loaded["luaminify.FormatMini"] = nil
+		package.loaded["luaminify.ParseLua"] = nil
+		package.loaded["luaminify.Scope"] = nil
+		package.loaded["luaminify.Util"] = nil
+	from "luaminify" import FormatMini
+	fileCount = #files
+	count = 0
+	for file in *files
+		thread ->
+			close _ = <close>: -> count += 1
+			input = Path sourcePath, file
+			output = Path minifyPath, Path\replaceExt file, "lua"
+			if Content\exist input
+					sourceCodes = Content\loadAsync input
+					res, err = FormatMini sourceCodes
+					if res
+						Content\saveAsync output, res
+						print "Minify #{file}"
+					else
+						errors[] = "Minify errors in #{file}.\n#{err}"
+			else
+				errors[] = "Minify errors in #{file}.\nTarget file is not exist!"
+		sleep!
+	wait -> count == fileCount
+	if #errors > 0
+		print table.concat errors, '\n'
+	print "Obfuscation done."
+	files
+
+zipping = false
+
+HttpServer\postSchedule "/zip", (req): success: false ->
+	switch req when {body: {:path, :zipFile, :obfuscated}}
+		goto failed if zipping
+		zipping = true
+		close _ = <close>: -> zipping = false
+		goto failed unless Content\exist path
+		Content\mkdir Path\getPath zipFile
+		if obfuscated
+			scriptPath = Path Content.writablePath, ".download", ".script"
+			obfuscatedPath = Path Content.writablePath, ".download", ".obfuscated"
+			tempPath = Path Content.writablePath, ".download", ".temp"
+			Content\remove scriptPath
+			Content\remove obfuscatedPath
+			Content\remove tempPath
+			Content\mkdir scriptPath
+			Content\mkdir obfuscatedPath
+			Content\mkdir tempPath
+			goto failed unless Content\copyAsync path, tempPath
+			import "Script.Dev.Entry"
+			luaFiles = minifyAsync tempPath, obfuscatedPath
+			scriptFiles = Entry.getAllFiles tempPath, ["tl", "yue", "lua", "ts", "tsx", "vs", "bl", "xml", "wa", "mod"], true
+			for file in *scriptFiles
+				Content\remove Path tempPath, file
+			for file in *luaFiles
+				Content\move Path(obfuscatedPath, file), Path tempPath, file
+			goto failed unless Content\zipAsync tempPath, zipFile, (file) ->
+				not (file\match('^%.') or file\match "[\\/]%.")
+			return success: true
+		else
+			return success: Content\zipAsync path, zipFile, (file) ->
+				not (file\match('^%.') or file\match "[\\/]%.")
+	::failed::
+
+HttpServer\postSchedule "/unzip", (req): success: false ->
+	switch req when {body: {:zipFile, :path}}
+		return success: Content\unzipAsync zipFile, path, (file) ->
+			not (file\match('^%.') or file\match("[\\/]%.") or file\match "__MACOSX")
+
+HttpServer\post "/editing-info", (req) ->
+	import "Script.Dev.Entry"
+	config = Entry.getConfig!
+	switch req when {body: {:editingInfo}}
+		config.editingInfo = editingInfo
+		success: true
+	else
+		if not config.editingInfo?
+			folder = if App.locale\match '^zh' then 'zh-Hans' else 'en'
+			config.editingInfo = json.encode {
+				index: 0
+				files: [
+					{
+						key: Path Content.assetPath, 'Doc', folder, 'welcome.md'
+						title: "welcome.md"
+					}
+				]
+			}
+		success: true, editingInfo: config.editingInfo
+
+HttpServer\post "/command", (req): success: false ->
+	switch req when {body: {:code, :log}}
+		emit "AppCommand", code, log
+		return success: true
+
+HttpServer\post "/log/save", (): success: false ->
+	folder = ".download"
+	fullLogFile = "dora_full_logs.txt"
+	fullFolder = Path Content.writablePath, folder
+	Content\mkdir fullFolder
+	logPath = Path fullFolder, fullLogFile
+	if App\saveLog logPath
+		return success: true, path: Path folder, fullLogFile
+
+tailLines = (text, count) ->
+	lines = {}
+	text = text\gsub "\r\n", "\n"
+	for line in (text .. "\n")\gmatch "(.-)\n"
+		lines[#lines + 1] = line
+	if #lines > 0 and lines[#lines] == "" and text\sub(#text) == "\n"
+		table.remove lines
+	start = math.max 1, #lines - count + 1
+	out = {}
+	for i = start, #lines
+		out[#out + 1] = lines[i]
+	table.concat out, "\n"
+
+HttpServer\post "/log", (req): success: false ->
+	count = 100
+	if req and req.body and req.body.count ~= nil
+		count = req.body.count
+	unless type(count) == "number" and count >= 1 and count == math.floor(count)
+		return success: false, message: "count must be a positive integer"
+	folder = ".download"
+	fullLogFile = "dora_full_logs.txt"
+	fullFolder = Path Content.writablePath, folder
+	Content\mkdir fullFolder
+	logPath = Path fullFolder, fullLogFile
+	if App\saveLog logPath
+		text = Content\load logPath
+		if text
+			return success: true, log: tailLines text, count
+		else
+			return success: false, message: "failed to read log"
+	else
+		return success: false, message: "failed to save log"
+
+HttpServer\post "/yarn/check", (req): success: false ->
+	import "yarncompile"
+	switch req when {body: {:code}}
+		if jsonObject := json.decode code
+			errors = []
+			for node in *jsonObject.nodes
+				:title, :body = node
+				unless luaCode, err := yarncompile body
+					errors[] = title .. ":" .. err
+			return success: true, syntaxError: table.concat errors, "\n\n"
+
+HttpServer\post "/yarn/check-file", (req): success: true ->
+	import "yarncompile"
+	switch req when {body: {:code}}
+		unless res, _, err := yarncompile code, true
+			[message, line, column, node] = err
+			return success: false, :message, :line, :column, :node
+
+getWaProjectDirFromFile = (file) ->
+	current = if Content\isdir file then file else Path\getPath file
+	return nil if current == ""
+	repeat
+		modPath = Path current, "wa.mod"
+		if Content\exist modPath
+			return current, modPath
+		parent = Path\getPath current
+		break if parent == "" or parent == current
+		current = parent
+	until false
+	nil
+
+HttpServer\postSchedule "/wa/update_dora", (req): {success: false, message: "invalid call"} ->
+	switch req when {body: {:path}}
+		if projDir := getWaProjectDirFromFile path
+			sourceDoraPath = Path Content.assetPath, "dora-wa", "vendor", "dora"
+			unless Content\exist sourceDoraPath
+				return success: false, message: "missing dora template"
+			targetVendorPath = Path projDir, "vendor"
+			targetDoraPath = Path targetVendorPath, "dora"
+			unless Content\exist targetVendorPath
+				unless Content\mkdir targetVendorPath
+					return success: false, message: "failed to create vendor folder"
+			elseif not Content\isdir targetVendorPath
+				return success: false, message: "vendor path is not a folder"
+			if Content\exist targetDoraPath
+				unless Content\remove targetDoraPath
+					return success: false, message: "failed to remove old dora"
+			unless Content\copyAsync sourceDoraPath, targetDoraPath
+				return success: false, message: "failed to copy dora"
+			return success: true
+		else
+			return success: false, message: 'Wa file needs a project'
+
+HttpServer\postSchedule "/wa/build", (req) ->
+	switch req when {body: {:path}}
+		if projDir := getWaProjectDirFromFile path
+			message = Wasm\buildWaAsync projDir
+			return if message == ""
+				success: true
+			else
+				success: false, :message
+		else
+			return success: false, message: 'Wa file needs a project'
+	success: false, message: 'failed to build'
+
+HttpServer\postSchedule "/wa/format", (req) ->
+	switch req when {body: {:file}}
+		code = Wasm\formatWaAsync file
+		return if code == ""
+			success: false
+		else
+			success: true, :code
+	success: false
+
+HttpServer\postSchedule "/wa/create", (req): {success: false, message: "invalid call"} ->
+	switch req when {body: {:path}}
+		unless Content\exist Path\getPath path
+			return success: false, message: "target path not existed"
+		if Content\exist path
+			return success: false, message: "target project folder existed"
+		srcPath = Path Content.assetPath, "dora-wa", "src"
+		vendorPath = Path Content.assetPath, "dora-wa", "vendor"
+		modPath = Path Content.assetPath, "dora-wa", "wa.mod"
+		if not Content\exist(srcPath) or
+			not Content\exist(vendorPath) or
+			not Content\exist modPath
+			return success: false, message: "missing template project"
+		unless Content\mkdir path
+			return success: false, message: "failed to create project folder"
+		unless Content\copyAsync srcPath, Path path, "src"
+			Content\remove path
+			return success: false, message: "failed to copy template"
+		unless Content\copyAsync vendorPath, Path path, "vendor"
+			Content\remove path
+			return success: false, message: "failed to copy template"
+		unless Content\copyAsync modPath, Path path, "wa.mod"
+			Content\remove path
+			return success: false, message: "failed to copy template"
+		return success: true
+
+tsBuildGlobs =
+	- "**/*.ts"
+	- "**/*.tsx"
+	- "!**/.*/**"
+	- "!**/node_modules/**"
+
+tsSnapshotGlobs =
+	- "**/*.ts"
+	- "**/*.tsx"
+	- "**/*.lua"
+	- "!**/.*/**"
+	- "!**/node_modules/**"
+
+collectTSVirtualFiles = (sourceRoot) ->
+	files = []
+	seen = {}
+	addFile = (file, moduleName = nil, virtualFile = nil) ->
+		targetFile = virtualFile or file
+		if entry := seen[targetFile]
+			entry.moduleName = moduleName if moduleName and moduleName ~= ""
+			return
+		if content := Content\load file
+			entry = file: targetFile, :content
+			entry.moduleName = moduleName if moduleName and moduleName ~= ""
+			seen[targetFile] = entry
+			files[] = entry
+	if sourceRoot and Content\exist(sourceRoot) and Content\isdir(sourceRoot)
+		for subFile in *Content\glob sourceRoot, tsSnapshotGlobs
+			addFile Path sourceRoot, subFile
+		libraryRoots =
+			- Path sourceRoot, "Script", "Lib"
+			- Path sourceRoot, "Lib"
+			- Path Content.assetPath, "Script", "Lib"
+		for libraryRoot in *libraryRoots
+			if Content\exist(libraryRoot) and Content\isdir(libraryRoot)
+				for subFile in *Content\glob libraryRoot, tsSnapshotGlobs
+					file = Path libraryRoot, subFile
+					virtualFile = Path sourceRoot, subFile
+					addFile file, nil, virtualFile
+	locale = if App.locale\match '^zh' then 'zh-Hans' else 'en'
+	declarationRoot = Path Content.assetPath, "Script", "Lib", "Dora", locale
+	for file in *Content\getFiles declarationRoot
+		if Path\getExt(file) == "ts" and Path\getExt(Path\getName(file)) == "d"
+			fullPath = Path declarationRoot, file
+			moduleName = Path\getName Path\getName file
+			addFile fullPath, moduleName
+	lualibBundle = Path Content.assetPath, "Script", "Lib", "lualib_bundle.lua"
+	lualibBundleTarget = if sourceRoot then Path(sourceRoot, "lualib_bundle.lua") else "lualib_bundle.lua"
+	addFile lualibBundle, nil, lualibBundleTarget
+	lualibRoot = Path Content.assetPath, "Script", "Lib", "lualib"
+	for file in *Content\getFiles lualibRoot
+		if Path\getExt(file) == "lua"
+			virtualFile = if sourceRoot then Path(sourceRoot, "lualib", file) else Path("lualib", file)
+			addFile Path(lualibRoot, file), nil, virtualFile
+	files
+
+supportsCompilerWebView = -> App.platform in ["Android", "macOS", "Windows"]
+webIDECompilerReady = false
+webIDEConnectionGeneration = 0
+tsProbeId = 0
+
+probeWebIDECompiler = (isCancelled) ->
+	return false if HttpServer.wsConnectionCount == 0
+	tsProbeId += 1
+	requestId = "compiler-probe-#{tsProbeId}"
+	generation = webIDEConnectionGeneration
+	done, ready = false, false
+	responses, expectedResponses = 0, HttpServer.wsConnectionCount
+	listener = Node!
+	listener\gslot "AppWS", (event) ->
+		if event.type == "Receive"
+			if res := json.decode event.msg
+				if res.name == "TranspileTSProbe" and res.id == requestId
+					responses += 1
+					ready = ready or res.success == true
+					done = ready or responses >= expectedResponses
+	emit "AppWS", "Send", json.encode name: "TranspileTSProbe", id: requestId
+	deadline = App.runningTime + 5
+	wait -> done or HttpServer.wsConnectionCount == 0 or generation ~= webIDEConnectionGeneration or App.runningTime >= deadline or (isCancelled and isCancelled!)
+	listener\removeFromParent!
+	ready = ready and generation == webIDEConnectionGeneration and HttpServer.wsConnectionCount > 0
+	webIDECompilerReady = ready if generation == webIDEConnectionGeneration
+	ready
+
+compilerConnectionListener = Node!
+-- Service listeners must survive Entry.allClear when a game runs or stops.
+compilerConnectionListener\addTo Director.systemUI
+compilerConnectionListener\gslot "AppWS", (event) ->
+	if event.type in ["Open", "Close"]
+		webIDEConnectionGeneration += 1
+		webIDECompilerReady = false
+		if HttpServer.wsConnectionCount > 0
+			thread -> probeWebIDECompiler!
+
+transpileTSFileWithWebIDE = do
+	tsBuildRequestId = 0
+	(file, content, sourceRoot, files, isCancelled) ->
+		unless probeWebIDECompiler isCancelled
+			if isCancelled and isCancelled!
+				return success: false, :file, message: "build canceled", interrupted: true
+			return success: false, :file, message: "TypeScript transpiler is not ready", failureKind: "tool"
+		tsBuildRequestId += 1
+		requestId = "server-build-#{tsBuildRequestId}"
+		done = false
+		result = nil
+		listener = Node!
+		listener\gslot "AppWS", (event) ->
+			if event.type == "Receive"
+				if res := json.decode event.msg
+					if res.name == "TranspileTS" and res.id == requestId
+						if res.success and type(res.luaCode) == "string" and res.luaCode\match "%S"
+							luaFile = Path\replaceExt file, "lua"
+							result = if Content\save luaFile, res.luaCode
+								success: true, :file
+							else
+								success: false, :file, message: "failed to save #{luaFile}"
+						else
+							result = success: false, :file, message: res.message or "Compiler returned no Lua output", failureKind: if res.success then "tool" else res.failureKind
+						done = true
+		emit "AppWS", "Send", json.encode name: "TranspileTS", id: requestId, :file, :content, projectRoot: sourceRoot, :files
+		deadline = App.runningTime + 30
+		wait -> done or HttpServer.wsConnectionCount == 0 or App.runningTime >= deadline or (isCancelled and isCancelled!)
+		listener\removeFromParent!
+		unless done
+			webIDECompilerReady = false
+			if isCancelled and isCancelled!
+				return success: false, :file, message: "build canceled", interrupted: true
+			return success: false, :file, message: "TypeScript transpile timed out or Web IDE disconnected", failureKind: "tool"
+		result
+
+const compilerReadyTimeout = 15
+const compilerBuildTimeout = 30
+const compilerIdleCloseSeconds = 8
+compilerReady = false
+compilerRequested = false
+compilerFailure = nil
+compilerUsers = 0
+compilerCloseGeneration = 0
+compilerJobId = 0
+compilerJobs = {}
+compilerResults = {}
+compilerInFlight = {}
+
+HttpServer\post "/compiler/ready", ->
+	return success: false unless compilerRequested
+	compilerReady = true
+	success: true
+
+HttpServer\post "/compiler/failure", (req): success: false ->
+	return success: false unless compilerRequested
+	switch req when {body: {:message}}
+		if type(message) == "string"
+			compilerFailure = message
+			compilerReady = false
+			return success: true
+
+HttpServer\postSchedule "/compiler/poll", ->
+	return success: false unless compilerRequested
+	compilerReady = true
+	deadline = App.runningTime + 5
+	wait -> #compilerJobs > 0 or not compilerRequested or compilerFailure or App.runningTime >= deadline
+	return success: false unless compilerRequested and not compilerFailure
+	job = table.remove compilerJobs, 1
+	if job
+		compilerInFlight[job.id] = true
+	success: true, :job
+
+HttpServer\post "/compiler/result", (req): success: false ->
+	switch req when {body: body}
+		id = body.id
+		return success: false, message: "invalid compiler job" unless id and compilerInFlight[id]
+		compilerInFlight[id] = nil
+		compilerResults[id] = body
+		return success: true
+
+acquireCompiler = ->
+	compilerUsers += 1
+	compilerCloseGeneration += 1
+	unless compilerRequested
+		compilerRequested = true
+		compilerReady = false
+		compilerFailure = nil
+		emit "AppWebView", "/compiler.html", true
+
+releaseCompiler = ->
+	compilerUsers = math.max compilerUsers - 1, 0
+	compilerCloseGeneration += 1
+	return unless compilerUsers == 0
+	closeGeneration = compilerCloseGeneration
+	thread ->
+		closeDeadline = App.runningTime + compilerIdleCloseSeconds
+		wait ->
+			compilerUsers > 0 or
+			compilerCloseGeneration ~= closeGeneration or
+			webIDECompilerReady or
+			compilerFailure or
+			App.runningTime >= closeDeadline
+		if compilerUsers == 0 and compilerCloseGeneration == closeGeneration and compilerRequested
+			compilerRequested = false
+			compilerReady = false
+			emit "AppWebView", "/compiler.html", false
+
+removeCompilerJob = (id) ->
+	for index = #compilerJobs, 1, -1
+		if compilerJobs[index].id == id
+			table.remove compilerJobs, index
+	compilerInFlight[id] = nil
+	compilerResults[id] = nil
+
+transpileTSFileWithCompiler = (file, content, sourceRoot, files, isCancelled) ->
+	acquireCompiler!
+	readyDeadline = App.runningTime + compilerReadyTimeout
+	wait -> compilerReady or compilerFailure or App.runningTime >= readyDeadline or (isCancelled and isCancelled!)
+	unless compilerReady
+		releaseCompiler!
+		if isCancelled and isCancelled!
+			return success: false, :file, message: "build canceled", interrupted: true
+		return success: false, :file, message: compilerFailure or "TypeScript compiler WebView is not ready", failureKind: "tool"
+	compilerJobId += 1
+	jobId = compilerJobId
+	compilerJobs[] =
+		id: jobId
+		:file
+		:content
+		projectRoot: sourceRoot
+		:files
+	deadline = App.runningTime + compilerBuildTimeout
+	wait -> compilerResults[jobId] or compilerFailure or App.runningTime >= deadline or (isCancelled and isCancelled!)
+	response = compilerResults[jobId]
+	removeCompilerJob jobId
+	releaseCompiler!
+	unless response
+		if isCancelled and isCancelled!
+			return success: false, :file, message: "build canceled", interrupted: true
+		return success: false, :file, message: compilerFailure or "TypeScript transpile timed out", failureKind: "tool"
+	if response.success and type(response.luaCode) == "string" and response.luaCode\match "%S"
+		luaFile = Path\replaceExt file, "lua"
+		if Content\save luaFile, response.luaCode
+			return success: true, :file
+		return success: false, :file, message: "failed to save #{luaFile}"
+	success: false, :file, message: response.message or "TypeScript transpile failed"
+
+compilerFailureListener = Node!
+compilerFailureListener\gslot "AppCompilerFailure", (message) ->
+	compilerFailure = message
+	compilerReady = false
+
+transpileTSFile = (file, content, sourceRoot, files, isCancelled) ->
+	if supportsCompilerWebView! and not files
+		files = collectTSVirtualFiles sourceRoot or Path\getPath file
+	if HttpServer.wsConnectionCount > 0
+		result = transpileTSFileWithWebIDE file, content, sourceRoot, files, isCancelled
+		return result if result.success or result.interrupted or result.failureKind ~= "tool" or not supportsCompilerWebView!
+		webIDECompilerReady = false
+	if supportsCompilerWebView!
+		return transpileTSFileWithCompiler file, content, sourceRoot, files, isCancelled
+	success: false, :file, message: "Web IDE compiler not connected", failureKind: "tool"
+
+HttpServer\postSchedule "/ts/build", (req): success: false ->
+	finishUpdate = AgentHost.holdSourceUpdate (req.body or {}).path
+	buildSucceeded = false
+	close _ = <close>: -> finishUpdate buildSucceeded
+	switch req when {body: {:path}}
+		if not supportsCompilerWebView! and HttpServer.wsConnectionCount == 0
+			return success: false, message: "Web IDE not connected"
+		projectRoot = req.body.projectRoot
+		sourceRoot = getProjectSourceRoot projectRoot
+		unless Content\exist path
+			return success: false, message: "path not existed"
+		messages = []
+		if not Content\isdir path
+			unless Path\getExt(path) in ["ts", "tsx"]
+				return success: false, message: "expecting a TypeScript file"
+			content = Content\load path
+			unless content
+				return success: false, message: "failed to read file"
+			emit "AppWS", "Send", json.encode name: "UpdateFile", file: path, exists: true, :content, projectRoot: sourceRoot
+			if "d" ~= Path\getExt Path\getName path
+				files = collectTSVirtualFiles sourceRoot or Path\getPath path
+				messages[] = transpileTSFile path, content, sourceRoot, files
+		else
+			fileData = {}
+			for subFile in *Content\glob path, tsBuildGlobs
+				file = Path path, subFile
+				if content := Content\load file
+					fileData[file] = content
+					emit "AppWS", "Send", json.encode name: "UpdateFile", :file, exists: true, :content, projectRoot: sourceRoot
+				else
+					messages[] = success: false, :file, message: "failed to read file"
+			files = collectTSVirtualFiles sourceRoot or path
+			for file, content in pairs fileData
+				continue if "d" == Path\getExt Path\getName file
+				messages[] = transpileTSFile file, content, sourceRoot, files
+		success = true
+		for item in *messages
+			success = false unless item.success
+		message = nil
+		message = "TypeScript compilation failed" unless success
+		buildSucceeded = success
+		return :success, :messages, :message
+
+HttpServer\post "/download", (req): success: false ->
+	switch req when body: {:url, :target}
+		import "Script.Dev.Entry"
+		Entry.downloadFile url, target
+		return success: true
+
+isDesktopPlatform = ->
+	App.platform in ["Linux", "Windows", "macOS"]
+
+nativeIDEState, nativeIDEMessage = "stopped", ""
+nativeIDEListener = Node!
+nativeIDEListener\addTo Director.systemUI
+nativeIDEListener\gslot "AppIDEState", (state, message) ->
+	nativeIDEState, nativeIDEMessage = state, message
+
+HttpServer\post "/ide", (req): success: false, message: "invalid IDE action" ->
+	return success: false, message: "Native IDE is unavailable" unless App.platform in ["Android", "macOS", "Windows"]
+	return success: false, message: "Embedded Web IDE is disabled" unless App.webIDEEnabled
+	switch req when {body: {:action}}
+		if action in ["show", "hide", "stop", "reload", "toggle"]
+			emit "AppWebView", "/ide/" .. action, true
+			return success: true
+
+getServerStatus = ->
+	import "Script.Dev.Entry"
+	running = Entry.getCurrentEntryStatus!
+	waTemplateReady = Content\exist Path Content.assetPath, "dora-wa", "wa.mod"
+	wsConnectionCount = HttpServer.wsConnectionCount
+	{
+		success: true
+		platform: App.platform
+		locale: App.locale
+		version: App.version
+		url: "http://localhost:8866"
+		:wsConnectionCount
+		webIDEConnected: wsConnectionCount > 0
+		nativeIDE:
+			supported: App.platform in ["Android", "macOS", "Windows"]
+			enabled: App.webIDEEnabled
+			state: nativeIDEState
+			message: nativeIDEMessage
+		typescriptCompiler:
+			webIDEReady: webIDECompilerReady
+			webIDEGeneration: webIDEConnectionGeneration
+			embeddedSupported: supportsCompilerWebView!
+			embeddedRequested: compilerRequested
+			embeddedReady: compilerReady
+			users: compilerUsers
+			queuedJobs: #compilerJobs
+			failure: compilerFailure
+		assetPath: Content.assetPath
+		writablePath: Content.writablePath
+		appPath: Content.appPath
+		:waTemplateReady
+		:running
+	}
+
+HttpServer\post "/status", ->
+	getServerStatus!
+
+HttpServer\postSchedule "/doctor/fix", (req): success: false, message: "invalid call" ->
+	switch req when {body: {:openWebIDE}}
+		unless openWebIDE
+			return success: false, message: "nothing to fix"
+		status = getServerStatus!
+		if status.webIDEConnected
+			return success: true, fixed: false, message: "Web IDE already connected.", :status
+		waitSeconds = math.max 0, math.min 10, tonumber(req.body.waitSeconds) or 3
+		if waitSeconds > 0
+			deadline = os.time! + waitSeconds
+			repeat
+				sleep 0.2
+				status = getServerStatus!
+				if status.webIDEConnected
+					return success: true, fixed: false, reconnected: true, message: "Web IDE reconnected.", :status
+			until os.time! >= deadline
+		unless isDesktopPlatform!
+			return success: false, message: "opening Web IDE is only supported on desktop platforms", :status
+		url = "http://localhost:8866"
+		App\openURL url
+		status.openedURL = url
+		return success: true, fixed: true, message: "Opened Web IDE in the local browser.", :url, :status
+
+status = {}
+export default status
+
+status.transpileTSFile = transpileTSFile
+
+status.buildAsync = (path) ->
+	if not Content\exist path
+		return success: false, file: path, message: "file not existed"
+	switch Path\getExt path when "tl", "yue", "xml"
+		if '' == Path\getExt Path\getName path
+			if content := Content\loadAsync path
+				if resultCodes, err := compileFileAsync path, content
+					return success: true, file: path
+				else
+					return success: false, file: path, message: err
+	when "lua"
+		if content := Content\loadAsync path
+			if isTIC80 := CheckTIC80Code content
+				content = content\gsub "^%-%-[ \t]*tic80[ \t]*", "require(\"tic80\")"
+			:success, :info = luaCheck path, content
+			if success
+				return success: true, file: path
+			elseif info and #info > 0
+				messages = []
+				for [_type, _file, line, column, message] in *info
+					lineText = ""
+					if line
+						currentLine = 1
+						for text in content\gmatch "([^\r\n]*)\r?\n?"
+							if currentLine == line
+								lineText = text
+								break
+							currentLine += 1
+					messages[] = if line
+						"line #{line}, col #{column}: #{lineText}\nerror: #{message}"
+					else
+						message
+				return success: false, file: path, message: table.concat messages, "\n"
+			else
+				return success: false, file: path, message: "lua check failed"
+	when "yarn"
+		if content := Content\loadAsync path
+			if res, _, err := yarncompile content, true
+				return success: true, file: path
+			else
+				[message, line, column, node] = err
+				lineText = ""
+				if line
+					currentLine = 1
+					for text in content\gmatch "([^\r\n]*)\r?\n?"
+						if currentLine == line
+							lineText = text
+							break
+						currentLine += 1
+				node = if node ~= ""
+					"node: #{node}, "
+				else ""
+				message = "#{node}line #{line}, col #{column}: #{lineText}\nerror: #{message}"
+				return success: false, file: path, :message
+	return success: false, file: path, message: "invalid file to build"
+
+HttpServer\postSchedule "/git/commit-files", (req): invalidArguments ->
+	switch req when {body: body}
+		{:repoPath, :commit} = body
+		return success: false, message: "invalid repoPath" if gitInvalidRepoPath repoPath
+		return success: false, message: "invalid commit" unless type(commit) == "string" and commit\match "^[0-9a-fA-F]+$"
+		res = gitRunSync repoPath, "log --changed-files #{gitQuote commit}", nil, 10
+		return res unless res.success
+		return success: true, status: res.status, data: res.status and res.status.data
+
+thread ->
+	doraWeb = Path Content.assetPath, "www", "index.html"
+	doraReady = Path Content.appPath, ".www", "dora-ready"
+	if Content\exist doraWeb
+		heavyAssets = Path Content.assetPath, "www", "heavy-assets.json"
+		heavyAssetsContent = if Content\exist heavyAssets then Content\load heavyAssets else ""
+		runtimeIndex = Path Content.assetPath, "www", "web-player", "runtime.json"
+		runtimeIndexContent = if Content\exist runtimeIndex then Content\load runtimeIndex else ""
+		compilerIndex = Path Content.assetPath, "www", "compiler.html"
+		compilerIndexContent = if Content\exist compilerIndex then Content\load compilerIndex else ""
+		readyContent = App.version .. "\n" .. Content\load(doraWeb) .. "\n" .. heavyAssetsContent .. "\n" .. runtimeIndexContent .. "\n" .. compilerIndexContent
+		needReload = if Content\exist doraReady
+			readyContent ~= Content\load doraReady
+		else true
+		if needReload
+			Content\remove Path Content.appPath, ".www"
+			Content\copyAsync(
+				Path Content.assetPath, "www"
+				Path Content.appPath, ".www"
+			)
+			Content\save doraReady, readyContent
+			print "Dora Dora is ready!"
+	if App.platform == "Emscripten"
+		status.url = nil
+		return print "HttpServer is unavailable in the browser; use the hosting web server."
+	HttpServer\clearStaticCacheControls!
+	HttpServer\setStaticCacheControl "no-cache"
+	HttpServer\addStaticCacheControl(
+		"^/((assets|monacoeditorwork)/.*|typescript)-[A-Za-z0-9_-]{8,}[.][^/]+$"
+		"public, max-age=31536000, immutable"
+	)
+	if HttpServer\start 8866
+		:localIP = HttpServer
+		localIP = "localhost" if localIP == ""
+		status.url = "http://#{localIP}:8866"
+		HttpServer\startWS 8868
+	else
+		status.url = nil
+		print "8866 Port not available!"

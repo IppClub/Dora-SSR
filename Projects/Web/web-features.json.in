@@ -1,0 +1,57 @@
+{
+  "format": "dora-web-features",
+  "version": 2,
+  "activeProfile": "@DORA_WEB_PROFILE@",
+  "studioAgentHost": @DORA_WEB_STUDIO_AGENT_HOST_JSON@,
+  "profiles": {
+    "core": {
+      "available": true,
+      "description": "Smallest configurable Dora Web Player base"
+    },
+    "dora-preset": {
+      "available": true,
+      "description": "Default runtime for all Dora-Demo games"
+    },
+    "custom": {
+      "available": true,
+      "description": "Feature-switch configured runtime"
+    }
+  },
+  "modules": {
+    "lua": true,
+    "content": true,
+    "http": true,
+    "idbfs": true,
+    "doraPackage": true,
+    "input": true,
+    "audio": true,
+    "musicGenerator": @DORA_WEB_FEATURE_MUSIC_JSON@,
+    "drawNode": true,
+    "sprite": true,
+    "label": true,
+    "renderTarget": true,
+    "particle": true,
+    "spine": true,
+    "dragonBones": true,
+    "nanoVG": true,
+    "playRho2D": @DORA_WEB_FEATURE_PHYSICS_2D_JSON@,
+    "entity": @DORA_WEB_FEATURE_ENTITY_JSON@,
+    "platformer": @DORA_WEB_FEATURE_PLATFORMER_JSON@,
+    "builtinLuaLibraries": @DORA_WEB_FEATURE_BUILTIN_LIBS_JSON@,
+    "imGui": true,
+    "threads": @DORA_WEB_THREADS_JSON@,
+    "crossOriginIsolationRequired": @DORA_WEB_CROSS_ORIGIN_ISOLATION_JSON@,
+    "dynamicLinking": false,
+    "rustBridge": @DORA_WEB_RUST_BRIDGE_JSON@,
+    "wasmRuntime": false,
+    "yueCompiler": @DORA_WEB_FEATURE_YUE_JSON@,
+    "machineLearning": @DORA_WEB_FEATURE_ML_JSON@,
+    "tealCompiler": false,
+    "xmlCompiler": false,
+    "loveNode": @DORA_WEB_FEATURE_LOVE_JSON@,
+    "model3D": @DORA_WEB_FEATURE_MODEL_3D_JSON@,
+    "jolt3D": @DORA_WEB_FEATURE_MODEL_3D_JSON@,
+    "video": false,
+    "workspace": false
+  }
+}

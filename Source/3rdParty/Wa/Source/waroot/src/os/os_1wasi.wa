@@ -1,0 +1,8 @@
+// Copyright (C) 2024 武汉凹语言科技有限公司
+// SPDX-License-Identifier: MIT
+
+#wa:build !wasi
+
+func waenvs {}
+
+func exit(code: i32) {}

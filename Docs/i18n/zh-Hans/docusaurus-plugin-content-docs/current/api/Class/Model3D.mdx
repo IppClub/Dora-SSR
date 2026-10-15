@@ -1,0 +1,267 @@
+# Model3D
+
+**描述：**
+
+&emsp;&emsp;用于渲染 glTF 3D 模型的类。
+
+**继承自：**[Node3D](/docs/api/Class/Node3D)。
+
+## speed
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;当前动画的播放速度倍率。
+
+**签名：**
+```tl
+speed: number
+```
+
+## duration
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;当前动画的时长，单位为秒。
+
+**签名：**
+```tl
+const duration: number
+```
+
+## elapsed
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;当前动画已经播放的时间，单位为秒。
+
+**签名：**
+```tl
+const elapsed: number
+```
+
+## playing
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;当前是否正在播放动画。
+
+**签名：**
+```tl
+const playing: boolean
+```
+
+## paused
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;当前动画是否暂停。
+
+**签名：**
+```tl
+const paused: boolean
+```
+
+## animationCount
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;此模型中的动画片段数量。
+
+**签名：**
+```tl
+const animationCount: integer
+```
+
+## materialCount
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;当前实例中的材质槽数量。
+
+**签名：**
+```tl
+const materialCount: integer
+```
+
+## getAnimationName
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;按从零开始的索引获取动画名称。
+
+**签名：**
+```tl
+getAnimationName: function(self: Model3D, index: integer): string
+```
+
+## hasNode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查是否存在指定名称的导入 glTF 节点。
+
+**签名：**
+```tl
+hasNode: function(self: Model3D, name: string): boolean
+```
+
+## attachToNode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将用户持有的 Node3D 挂到指定导入节点下。
+
+**签名：**
+```tl
+attachToNode: function(self: Model3D, name: string, child: Node3D): boolean
+```
+
+## getLocalBoundsMin
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前模型空间包围盒的最小点。
+
+**签名：**
+```tl
+getLocalBoundsMin: function(self: Model3D): Vec3
+```
+
+## getLocalBoundsMax
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前模型空间包围盒的最大点。
+
+**签名：**
+```tl
+getLocalBoundsMax: function(self: Model3D): Vec3
+```
+
+## getWorldBoundsMin
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前世界空间包围盒的最小点。
+
+**签名：**
+```tl
+getWorldBoundsMin: function(self: Model3D): Vec3
+```
+
+## getWorldBoundsMax
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前世界空间包围盒的最大点。
+
+**签名：**
+```tl
+getWorldBoundsMax: function(self: Model3D): Vec3
+```
+
+## getMaterial
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;按从零开始的索引获取逐实例材质槽。
+
+**签名：**
+```tl
+getMaterial: function(self: Model3D, index: integer): Material3D | nil
+```
+
+## play
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;按名称播放动画。
+
+**签名：**
+```tl
+play: function(self: Model3D, name?: string, loop?: boolean --[[false]]): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | [可选] 动画名称。省略时使用默认动画。 |
+| loop | boolean | [可选] 动画是否循环播放。默认为 false。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 动画时长，单位为秒。未找到时返回 0。 |
+
+## stop
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;停止当前动画。
+
+**签名：**
+```tl
+stop: function(self: Model3D)
+```
+
+## pause
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;暂停当前动画。
+
+**签名：**
+```tl
+pause: function(self: Model3D)
+```
+
+## resume
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;恢复暂停的动画。
+
+**签名：**
+```tl
+resume: function(self: Model3D)
+```

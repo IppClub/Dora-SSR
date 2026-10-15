@@ -1,0 +1,44 @@
+# TextResult
+
+**Description:**
+
+&emsp;&emsp;Record to define textual results with optional markup.
+
+## text
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Textual content.
+
+**Signature:**
+```tl
+text: string
+```
+
+## marks
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Optional markup for the text.
+
+**Signature:**
+```tl
+marks: nil | {Markup}
+```
+
+## optionsFollowed
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;A flag indicating that advancing will yield an OptionResult as the next result.
+
+**Signature:**
+```tl
+optionsFollowed: nil | boolean
+```

@@ -1,0 +1,9 @@
+// Copyright (C) 2024 武汉凹语言科技有限公司
+// SPDX-License-Identifier: MIT
+
+// Copysign returns a value with the magnitude
+// of x and the sign of y.
+func Copysign(x, y: f64) => f64 {
+	const sign = 1 << 63
+	return Float64frombits(Float64bits(x)&^sign | Float64bits(y)&sign)
+}

@@ -1,0 +1,106 @@
+# Sprite Class
+
+**Description:**
+
+&emsp;&emsp;A class used for creating `Sprite` object.
+
+**Usage:**
+```tl
+local Sprite = require("Sprite")
+local sprite = Sprite("Image/file.png")
+```
+
+## getClips
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the clip names and rectangles from the clip file.
+
+**Signature:**
+```tl
+getClips: function(self: SpriteClass, clipFile: string): {string: Rect} | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| clipFile | string | The clip file name to load, should end with ".clip". |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{string: Rect} \| nil | A table containing the clip names and rectangles. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod for creating Sprite object.
+
+**Signature:**
+```tl
+metamethod __call: function(self: SpriteClass, clipStr: string): Sprite | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| clipStr | string | The string containing format for loading a texture file.<br/>Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Sprite \| nil | A new instance of the Sprite class. If the texture file is not found, it will return nil. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod for creating Sprite object.
+
+**Signature:**
+```tl
+metamethod __call: function(self: SpriteClass): Sprite
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Sprite | A new instance of the Sprite class. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod for creating Sprite object.
+
+**Signature:**
+```tl
+metamethod __call: function(self: SpriteClass, texture: Texture2D, textureRect?: Rect): Sprite
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| texture | Texture2D | The texture to be used for the sprite. |
+| textureRect | Rect | [optional] The rectangle defining the portion of the texture to use for the sprite, if not provided, the whole texture will be used for rendering. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Sprite | A new instance of the Sprite class. |

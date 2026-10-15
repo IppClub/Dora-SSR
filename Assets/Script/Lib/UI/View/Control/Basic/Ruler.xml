@@ -1,0 +1,23 @@
+<!-- params: X, Y, Width, Height -->
+<Dora>
+	<Import Module="UI.View.Shape.LineRect"/>
+	<Import Module="UI.View.Shape.SolidRect"/>
+
+	<Node Name="ruler" X="{ x or 0 }" Y="{ y or 0 }" Opacity="0" Visible="False" SwallowTouches="True" TouchEnabled="True">
+		<SolidRect X="{ -width / 2 }" Y="{ -height / 2 }" Width="{ width }" Height="{ height }" Color="0xcc000000"/>
+
+		<ClipNode>
+			<Stencil>
+				<SolidRect X="{ -width / 2 }" Y="{ -height / 2 }" Width="{ width }" Height="{ height }"/>
+			</Stencil>
+			<Line Name="intervalNode" Width="{ width }" Height="{ height }" Ref="True"/>
+		</ClipNode>
+
+		<LineRect Name="border" X="{ -width / 2 }" Y="{ -height / 2 }" Width="{ width }" Height="{ height }"/>
+
+		<Line Name="cursor" Color="{ cursorColor or App.themeColor:toARGB() }">
+			<Vec2 X="0" Y="{ -height / 2 }"/>
+			<Vec2 X="0" Y="{ height / 2 }"/>
+		</Line>
+	</Node>
+</Dora>

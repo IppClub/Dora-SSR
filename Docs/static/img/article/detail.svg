@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 960 350" role="img" aria-labelledby="title desc">
+  <title id="title">Dora SSR: engine on device, development in browser</title>
+  <desc id="desc">Run the Dora engine on a target device, connect its browser Web IDE over the local network, and build with cross-platform 2D and 3D, multi-language scripting, and instant preview.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="var(--canvas-start)"/><stop offset="1" stop-color="var(--canvas-end)"/></linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1"><stop stop-color="var(--card-start)"/><stop offset="1" stop-color="var(--card-end)"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f7b733"/><stop offset="1" stop-color="#ffd86b"/></linearGradient>
+    <marker id="arrow" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 7 4 1 7" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <filter id="shadow" x="-20%" y="-25%" width="140%" height="160%"><feDropShadow dy="8" stdDeviation="10" flood-color="var(--shadow)" flood-opacity=".24"/></filter>
+    <style>
+      :root {
+        --canvas-start: #fffaf0; --canvas-end: #f5f1e8;
+        --card-start: #ffffff; --card-end: #fbf7ee; --border: #e6d5ad;
+        --text: #252525; --text-soft: #5d5d60;
+        --accent: #e1ad03; --accent-text: #936b00; --accent-pale: #fff0c2;
+        --network: #fff7dc; --chip: #fffdf8; --shadow: #8f7b4b;
+        --device: #27272a; --device-screen: #35353a; --device-border: #77777d;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --canvas-start: #202021; --canvas-end: #181819;
+          --card-start: #2b2b2d; --card-end: #242426; --border: #514832;
+          --text: #f3f3f4; --text-soft: #d0d0d2;
+          --accent: #fac03d; --accent-text: #ffd66b; --accent-pale: #3b321e;
+          --network: #2b2518; --chip: #28282a; --shadow: #000000;
+          --device: #151516; --device-screen: #242426; --device-border: #6f6f74;
+        }
+      }
+      text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .headline { font-size: 25px; font-weight: 760; fill: var(--text); }
+      .eyebrow { font-size: 11px; font-weight: 750; letter-spacing: 1.3px; }
+      .card-title { font-size: 20px; font-weight: 740; fill: var(--text); }
+      .feature { font-size: 13px; font-weight: 680; fill: var(--text-soft); }
+    </style>
+  </defs>
+
+  <rect x="8" y="8" width="944" height="334" rx="30" fill="url(#bg)"/>
+  <path d="M734 8h188a30 30 0 0 1 30 30v154c-82-16-151-57-190-111-18-25-28-50-28-73Z" fill="var(--accent)" opacity=".06"/>
+  <circle cx="884" cy="66" r="54" fill="none" stroke="var(--accent)" stroke-width="1.5" opacity=".14"/><circle cx="884" cy="66" r="33" fill="none" stroke="var(--accent)" stroke-width="1.5" opacity=".14"/>
+
+  <g transform="translate(46 31)">
+    <rect width="99" height="25" rx="12.5" fill="var(--accent-pale)"/><circle cx="15" cy="12.5" r="4" fill="var(--accent)"/>
+    <text x="26" y="17" class="eyebrow" fill="var(--accent-text)">DORA SSR</text>
+    <text y="59" class="headline">Engine on device. Development in browser.</text>
+  </g>
+
+  <g filter="url(#shadow)"><rect x="46" y="112" width="276" height="144" rx="22" fill="url(#card)" stroke="var(--border)"/><rect x="638" y="112" width="276" height="144" rx="22" fill="url(#card)" stroke="var(--border)"/></g>
+  <path d="M333 184H627" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+
+  <g transform="translate(72 131)">
+    <rect width="66" height="106" rx="15" fill="var(--device)" stroke="var(--device-border)" stroke-width="2"/><rect x="7" y="9" width="52" height="79" rx="9" fill="var(--device-screen)"/>
+    <image href="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+Cjxzdmcgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEwMjkgMTAzOSIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxuczpzZXJpZj0iaHR0cDovL3d3dy5zZXJpZi5jb20vIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjI7Ij4KICAgIDxnIHRyYW5zZm9ybT0ibWF0cml4KDEsMCwwLDEsLTEzLjM4LC0yLjM0NSkiPgogICAgICAgIDxwYXRoIGQ9Ik01NDQuMDEsNjUuMjM1TDkxNi44NSwyODAuNDQ1TDkxNi44NSw3NjIuODc1TDU0NC4wMSw5NzguMDg1TDE3MS4xNyw3NjIuODc1TDE3MS4xNywyODAuNTI1TDU0NC4wMSw2NS4zMTVNNTQ0LjAxLDIuNDI1TDUxNi43NywxOC4xNDVMMTQzLjkzLDIzMy4zNTVMMTE2LjY5LDI0OS4wNzVMMTE2LjY5LDc5NC4zOTVMMTQzLjkzLDgxMC4xMTVMNTE2Ljc3LDEwMjUuMzNMNTQ0LjAxLDEwNDEuMDVMNTcxLjI1LDEwMjUuMzNMOTQ0LjA5LDgxMC4xMTVMOTcxLjMzLDc5NC4zOTVMOTcxLjMzLDI0OS4wNzVMOTQ0LjA5LDIzMy4zNTVMNTcxLjI1LDE4LjA2NUw1NDQuMDEsMi4zNDVMNTQ0LjAxLDIuNDI1WiIgc3R5bGU9ImZpbGw6cmdiKDI1MCwxOTIsNjEpO2ZpbGwtcnVsZTpub256ZXJvOyIvPgogICAgICAgIDxwYXRoIGQ9Ik0xMDM2LjkyLDUxLjg5NUMxMDM2LjkyLDUxLjg5NSAxMDIyLjg2LDc1LjAwNSA5ODEuNTcsNzUuMDA1Qzk3MC43Nyw3NS4wMDUgOTU4LjE0LDczLjQxNSA5NDMuMzcsNjkuNDQ1QzkwMy4wMyw1OS41MTUgODc0LjY4LDUxLjg5NSA4MzEuNjQsNTIuNDU1Qzc1OC40Miw1Mi40NTUgNjkxLjQ4LDk1LjI1NSA2NjIuMzMsMTU2Ljk2NUM2MzQuNjksMTUxLjcyNSA2MDUuNzksMTQ5LjAyNSA1NzUuNzcsMTQ5LjAyNUM1NjIuMTksMTQ5LjAyNSA1NDguMTMsMTQ5LjU4NSA1MzQuMTYsMTUwLjYxNUM1MjEuNDUsMTUxLjMyNSA0MTkuNjUsMTU5LjI3NSAzMTUuODYsMjI5LjM5NUMyNDAuMzQsMjA0Ljg1NSAxOTAuOTUsMTU0LjExNSAxNjcuOTIsNzcuMDA1QzE0NC4yNSwxNTYuMzI1IDkyLjcxLDIwNy43ODUgMTMuMzgsMjMxLjUyNUM5Mi43MSwyNTUuMTg1IDE0Ny41OSwzMTQuMTE1IDE2Ny4wNCwzOTMuMDQ1QzE2Ny4wNCwzOTMuMDQ1IDE2Ny4xMiwzOTMuMDQ1IDE2Ny4yLDM5Mi45NjVDMTE2LjMsNDg5LjUyNSAxMTYuMTQsNjA0LjUxNSAxNjguMzEsNjk4LjYyNUMyMjguOSw4MDcuOTc1IDM0OC44OSw4NzAuNjM1IDQ5Ny40Nyw4NzAuNjM1QzUzMS4xNCw4NzAuNjM1IDU2Ni42NCw4NjcuNDU1IDYwMi45Myw4NjEuMTg1Qzc5Mi44LDgyOC41NDUgODc3LjYyLDczNi4zNDUgOTE1LjM0LDY2NC43OTVDOTc5LjQzLDU0My4xMzUgOTUwLjc2LDQxMS4xNTUgOTIzLjc2LDM1Mi4zMDVDOTIyLjczLDM1MC4wODUgOTIxLjU0LDM0Ny45MzUgOTIwLjQyLDM0NS43MTVDOTYwLjkyLDMyNC41OTUgMTAwOC42NSwyODcuNTg1IDEwMzMuNSwyMjQuNTM1QzEwMzMuNSwyMjQuNTM1IDEwMDguMDksMjM5LjMwNSA5OTAuNTQsMjQxLjUyNUM5OTAuNTQsMjQxLjUyNSAxMDYxLjIyLDE0OS45NjUgMTAzNi44NCw1MS45NjVMMTAzNi45Miw1MS44ODVMMTAzNi45Miw1MS44OTVaIiBzdHlsZT0iZmlsbDpyZ2IoMzUsMjQsMjEpO2ZpbGwtcnVsZTpub256ZXJvOyIvPgogICAgICAgIDxwYXRoIGQ9Ik01OTYuOSw4MTIuMDI1QzU2Mi40NCw4MTcuOTg1IDUzMC4xMSw4MjAuNjg1IDQ5OS45NCw4MjAuNjg1QzMwNS44Niw4MjAuNjg1IDE5OS42LDcwNi4zMzUgMTgzLjg4LDU3OS40MzVDMjEzLjQyLDU3MS45NzUgMzIyLjkzLDU0MS4zOTUgNDQyLjc2LDQ3Mi4zMDVDNDQyLjc2LDQ3Mi4zMDUgNDUwLjcsNDQ5LjAzNSA0NTQuMTIsNDA1LjM2NUM0NTQuMTIsNDA1LjM2NSA1NDIuNDMsNTIzLjg0NSA0OTAuMDksNzM1LjA4NUM0OTAuMDksNzM1LjA4NSA1ODEuODksNjk2LjQxNSA2MjEuMiw1NzguNDg1QzYzMi40OCw1NjkuNDM1IDY1OC4xMyw1NTMuMzE1IDY4Mi44Miw1NjkuNTk1QzY5OC42Miw1NzkuOTE1IDcwNC42Niw2MDQuNzc1IDY5Ny4xMSw2MjguNTE1QzY4Ny4yNiw2NTkuNDg1IDY1OC43NSw2NzcuMTE1IDYyMC43Miw2NzUuOTI1TDYxOS42OSw3MDYuMzM1QzYyMS40NCw3MDYuMzM1IDYyMy4xLDcwNi40MTUgNjI0Ljc3LDcwNi40MTVDNjM1LjAxLDcwNi40MTUgNjQ0LjM4LDcwNS4zMDUgNjUzLjEyLDcwMy4zMTVDNjYyLjMzLDcyNy4yOTUgNjg0LjU3LDc1OS4zNzUgNzI0LjI3LDc3NC43MDVDNjg4LjYxLDc5MC42NjUgNjQ2LjUzLDgwMy40NTUgNTk3LjA1LDgxMS45NDVMNTk2Ljg5LDgxMi4wMjVMNTk2LjksODEyLjAyNVoiIHN0eWxlPSJmaWxsOnJnYigyNTEsMjMzLDIzNik7ZmlsbC1ydWxlOm5vbnplcm87Ii8+CiAgICAgICAgPHBhdGggZD0iTTg4MC4zMiwzNzkuODY1QzkxNy4xNyw0NjAuMDc1IDkzOS4wOCw2NTIuMDg1IDc2OC41MSw3NTcuNTQ1QzcxMS4yNSw3NTUuMjQ1IDY4OS40Miw3MTQuMzQ1IDY4Mi45LDY5Ny44MjVDNzA1LjUzLDY4NC40ODUgNzE5LjU5LDY2My45OTUgNzI1Ljk0LDY0My45ODVDNzM3LjY5LDYwNi44MjUgNzI2LjczLDU2OC4zODUgNjk5LjM0LDU1MC40MzVDNjc1LjkxLDUzNS4xMDUgNjUxLjY5LDUzNi41MzUgNjMxLjYsNTQ0LjA4NUM2MzcuODcsNTExLjY4NSA2NDAuMzQsNDc0LjY3NSA2MzYuOTIsNDMyLjE5NUM2MzYuOTIsNDMyLjE5NSA2MTQuMjksNTcwLjY4NSA1MzguMjEsNjUxLjg0NUM1MzguMjEsNjUxLjg0NSA1NjMuMzQsNDI1LjE1NSA0MzAuNjQsMzUyLjQ5NUM0MzAuNjQsMzUyLjQ5NSA0MjcuMjMsNDA1LjU0NSA0MTIuODUsNDU0LjUzNUM0MTIuODUsNDU0LjUzNSAzMzMuMDQsNTAxLjIyNSAxODAuODksNTM4LjcxNUMxODMuMDMsNDkyLjI1NSAxOTguMDksNDQ2Ljg4NSAyMjQuMTQsNDA1LjE5NUMzNDEuOTksMjE2LjM1NSA1MzkuNzIsMjA3LjQ1NSA1MzkuNzIsMjA3LjQ1NUM1NTIuODIsMjA2LjQyNSA1NjUuNjEsMjA1Ljk0NSA1NzguMDgsMjA1Ljk0NUM2MDMuNzMsMjA1Ljk0NSA2MjcuNzksMjA4LjI0NSA2NTAuNSwyMTIuMjE1QzYzOS42MiwyOTkuODA1IDcwNS42MSwzNzUuNDA1IDc5OS41NiwzODEuOTk1QzgwMy44NSwzODIuMzE1IDgwOC4xNCwzODIuNDc1IDgxMi40MiwzODIuNDc1QzgyNi4yNCwzODIuNDc1IDgzOS45LDM4MC45NjUgODUzLjA4LDM3OC4wMjVDODY2LjI2LDM3NS4wODUgODYyLjEzLDM3Ni4zNTUgODc2LjI3LDM3MS44MzVDODc3LjYyLDM3NC41MzUgODc5LjEzLDM3Ny4yMzUgODgwLjQsMzgwLjAxNUw4ODAuMzIsMzc5Ljg1NUw4ODAuMzIsMzc5Ljg2NVoiIHN0eWxlPSJmaWxsOnJnYigyNTAsMTkyLDYxKTtmaWxsLXJ1bGU6bm9uemVybzsiLz4KICAgICAgICA8cGF0aCBkPSJNODk1LjQ5LDI4MS4xNTVMOTI5LjA4LDI4NC4xNzVDOTAxLjM3LDMwMy42MzUgODczLjAyLDMxMy4wMDUgODU3Ljg1LDMxNy4wNTVMODQ0LjAzLDMyMC4wNzVDODM0LjE4LDMyMi4yMTUgODI0LjI2LDMyMy4zMzUgODE0LjQxLDMyMy4zMzVDODExLjMxLDMyMy4zMzUgODA4LjIyLDMyMy4yNTUgODA1LjEyLDMyMy4wMTVDNzcxLjY5LDMyMC43MTUgNzQyLjc4LDMwNi40MTUgNzIzLjgsMjgyLjc1NUM3MDcuMDQsMjYxLjk0NSA3MDAuMDYsMjM1Ljc0NSA3MDQuMDMsMjA4LjgyNUM3MTIuNzcsMTQ5LjY2NSA3NjkuMzksMTAzLjkyNSA4MzQuNTgsMTAzLjM2NUM4NzEuOTgsMTAzLjA0NSA5MDcuNDgsMTEzLjEzNSA5MzQuMTYsMTE4LjYxNUM5NTIuNSwxMjIuMzQ1IDk2OS41OCwxMjUuOTI1IDk4NS43OCwxMjUuOTI1Qzk4Ny42MSwxMjUuOTI1IDk4OS4zNSwxMjUuOTI1IDk5MS4xLDEyNS44NDVDOTc3LjQ0LDIwNi4wNTUgODk1LjU3LDI4MS4xNzUgODk1LjU3LDI4MS4xNzVMODk1LjQ5LDI4MS4xNzVMODk1LjQ5LDI4MS4xNTVaIiBzdHlsZT0iZmlsbDpyZ2IoMjUwLDE5Miw2MSk7ZmlsbC1ydWxlOm5vbnplcm87Ii8+CiAgICAgICAgPHBhdGggZD0iTTkzNC4xNiwxMTguNjA1QzkwNy40OCwxMTMuMjA1IDg3MS45OCwxMDMuMDQ1IDgzNC41OCwxMDMuMzU1Qzc2OS4zLDEwMy45MTUgNzEyLjY4LDE0OS42NTUgNzA0LjAzLDIwOC44MTVDNzAwLjA2LDIzNS42NTUgNzA3LjEzLDI2MS45NDUgNzIzLjgsMjgyLjc0NUM3NDIuNzgsMzA2LjMzNSA3NzEuNjksMzIwLjYyNSA4MDUuMTIsMzIzLjAwNUw4MDYuNDcsMzIzLjAwNUM3OTIuMSwzMTkuMTE1IDc1NS45NiwzMDUuNjE1IDczOC43MywyNjQuOTU1QzcxMi42OCwyMDMuNDk1IDc1NC4wNiwxMTQuNTQ1IDg4MS44MywxMjguMjA1Qzk0OS4xNywxMzUuNDM1IDk3OC41NSwxMzEuNzc1IDk5MS4wMiwxMjYuMjk1Qzk5MS4wMiwxMjYuMTM1IDk5MS4wMiwxMjUuOTc1IDk5MS4xLDEyNS44MTVDOTg5LjM1LDEyNS44MTUgOTg3LjYxLDEyNS44OTUgOTg1Ljc4LDEyNS44OTVDOTY5LjU4LDEyNS44OTUgOTUyLjUxLDEyMi4zMjUgOTM0LjE2LDExOC41ODVMOTM0LjE2LDExOC42MDVaIiBzdHlsZT0iZmlsbDp3aGl0ZTtmaWxsLXJ1bGU6bm9uemVybzsiLz4KICAgICAgICA8cGF0aCBkPSJNNDgyLjUsNjQ0LjE4NUM0OTEuMjcsNjU2Ljc3NSA0NzkuNTIsNjgwLjExNSA0NTYuMjYsNjk2LjI5NUM0MzMsNzEyLjQ3NSA0MDcuMDQsNzE1LjM3NSAzOTguMjcsNzAyLjc4NUMzODkuNSw2OTAuMTg1IDQwMS4yNSw2NjYuODU1IDQyNC41MSw2NTAuNjY1QzQ0Ny43Nyw2MzQuNDc1IDQ3My43Myw2MzEuNTg1IDQ4Mi41LDY0NC4xODVaIiBzdHlsZT0iZmlsbDpyZ2IoMjM3LDEyMiwxNDkpO2ZpbGwtcnVsZTpub256ZXJvOyIvPgogICAgICAgIDxwYXRoIGQ9Ik00NDkuNDMsNTMxLjg2NUM0NTguMzIsNTgzLjgwNSA0MTYuMzIsNjM5LjcwNSAzNTUuNjQsNjU2LjcwNUMzMDIuNzUsNjcxLjU1NSAyNTMuMiw2NTEuODY1IDIzNS40MSw2MTIuMjM1TDQ0NC45OCw1MTYuMzA1QzQ0Ni44OSw1MjEuMjI1IDQ0OC40Nyw1MjYuMzk1IDQ0OS40Myw1MzEuNzk1TDQ0OS40Myw1MzEuODc1TDQ0OS40Myw1MzEuODY1WiIgc3R5bGU9ImZpbGw6cmdiKDM1LDI0LDIxKTtmaWxsLXJ1bGU6bm9uemVybzsiLz4KICAgICAgICA8cGF0aCBkPSJNMzg2LjM4LDU2OS44MjVDMzg2LjM4LDU2OS44MjUgMzkwLjUxLDU5Ni44MjUgMzYyLjc5LDYyNy42MzVDMzYyLjc5LDYyNy42MzUgNDEzLjMsNjExLjkxNSA0MTYuNDcsNTU2LjE2NUwzODYuMzcsNTY5LjgyNUwzODYuMzgsNTY5LjgyNVoiIHN0eWxlPSJmaWxsOndoaXRlO2ZpbGwtcnVsZTpub256ZXJvOyIvPgogICAgICAgIDxwYXRoIGQ9Ik0xNjguMTI4LDMwNi4yMDlDMTU2LjY4OCwyNjcuNzY5IDEzMS43NTgsMjQyLjgzOSA5My4zMTgsMjMxLjM5OUMxMzEuNzU4LDIxOS45NTkgMTU2LjY4OCwxOTUuMDI5IDE2OC4xMjgsMTU2LjU4OUMxNzkuNTY4LDE5NS4wMjkgMjA0LjQ5OCwyMTkuOTU5IDI0Mi45MzgsMjMxLjM5OUMyMDQuNDk4LDI0Mi44MzkgMTc5LjU2OCwyNjcuNzY5IDE2OC4xMjgsMzA2LjIwOVoiIHN0eWxlPSJmaWxsOnJnYigyNTAsMTkyLDYxKTtmaWxsLXJ1bGU6bm9uemVybzsiLz4KICAgICAgICA8cGF0aCBkPSJNNDMwLjY0LDM1Mi41MDVDNDMwLjY0LDM1Mi41MDUgNDA5LjA0LDQxNC45MjUgMzk1Ljg2LDQzMi41NTVDMzk1Ljg2LDQzMi41NTUgMzAzLjAzLDQ3MC44MzUgMjQxLjcyLDQ4My4xNDVDMjQxLjcyLDQ4My4xNDUgMjk1LjY1LDIwOC4zMzUgNjQ5LjgyLDIxOC44MTVDNjQ5Ljk4LDIxNi4yNzUgNjUwLjE4LDIxNC43NzUgNjUwLjUsMjEyLjIzNUM2MjcuNzksMjA4LjI2NSA2MDIuNjUsMjA0LjgwNSA1NzcsMjA0LjgwNUM1NjQuNTMsMjA0LjgwNSA1NTEuODMsMjA1LjI4NSA1MzguNjQsMjA2LjMxNUM1MzguNjQsMjA2LjMxNSAzNDAuOSwyMTUuMjA1IDIyMy4wNiw0MDQuMDU1QzE5Ny4wMSw0NDUuODI1IDE4My4wNCw0OTIuMjg1IDE4MC44OSw1MzguNzM1QzE4NS42NSw1MzcuNTQ1IDIzMy4wNCw1MjUuNjk1IDI4Ni40Miw1MDguMDU1QzM5My44NSw0NjkuNDQ1IDQxMi44NSw0NTQuNTY1IDQxMi44NSw0NTQuNTY1QzQyNy4yMiw0MDUuNTY1IDQzMC42NCwzNTIuNTI1IDQzMC42NCwzNTIuNTI1IiBzdHlsZT0iZmlsbDp3aGl0ZTtmaWxsLXJ1bGU6bm9uemVybzsiLz4KICAgIDwvZz4KPC9zdmc+Cg==" x="10" y="18" width="46" height="47" preserveAspectRatio="xMidYMid meet"/><circle cx="33" cy="97" r="3" fill="#70819c"/>
+  </g>
+  <g transform="translate(162 158)">
+    <text class="eyebrow" fill="var(--accent-text)">DORA ENGINE</text><text y="35" class="card-title">Run on target</text>
+    <rect y="55" width="120" height="25" rx="12.5" fill="var(--accent-pale)"/><text x="60" y="72" text-anchor="middle" font-size="11" font-weight="650" fill="var(--accent-text)">TARGET DEVICE</text>
+  </g>
+
+  <circle cx="480" cy="184" r="54" fill="var(--network)" stroke="var(--accent)"/>
+  <path d="M452 177c16-17 40-17 56 0M462 188c10-11 26-11 36 0M473 199c4-4 10-4 14 0" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/><circle cx="480" cy="207" r="3.5" fill="var(--accent)"/>
+  <rect x="406" y="222" width="148" height="23" rx="11.5" fill="var(--accent-pale)"/><text x="480" y="238" text-anchor="middle" class="eyebrow" fill="var(--accent-text)">LOCAL NETWORK</text>
+
+  <g transform="translate(662 134)">
+    <rect width="84" height="80" rx="10" fill="#f8fafc"/><path d="M0 10A10 10 0 0 1 10 0h64a10 10 0 0 1 10 10v9H0Z" fill="#dce4ef"/>
+    <circle cx="10" cy="10" r="3" fill="#ff6b6b"/><circle cx="19" cy="10" r="3" fill="#f7b733"/><circle cx="28" cy="10" r="3" fill="#4ade80"/>
+    <rect x="9" y="29" width="21" height="41" rx="4" fill="#ececec"/><rect x="38" y="30" width="33" height="4" rx="2" fill="#77777d"/><rect x="38" y="40" width="25" height="4" rx="2" fill="#fac03d"/><rect x="38" y="50" width="30" height="4" rx="2" fill="#c8a64b"/><rect x="38" y="60" width="20" height="4" rx="2" fill="#929298"/><path d="M27 80h30l6 8H21Z" fill="#77777d"/>
+  </g>
+  <g transform="translate(760 158)">
+    <text class="eyebrow" fill="var(--accent-text)">WEB IDE</text><text y="35" class="card-title" style="font-size:18px">Build in browser</text>
+    <rect y="55" width="105" height="25" rx="12.5" fill="var(--accent-pale)"/><text x="13" y="72" font-size="11" font-weight="650" fill="var(--accent-text)">FULL TOOLSET</text>
+  </g>
+
+  <g transform="translate(46 278)">
+    <rect width="276" height="44" rx="15" fill="var(--chip)" stroke="var(--border)"/><circle cx="25" cy="22" r="12" fill="var(--accent-pale)"/>
+    <path d="M19 18h12M19 22h12M22 15c-4 5-4 10 0 14M28 15c4 5 4 10 0 14" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/><text x="45" y="27" class="feature">Cross-platform 2D / 3D</text>
+  </g>
+  <g transform="translate(342 278)">
+    <rect width="276" height="44" rx="15" fill="var(--chip)" stroke="var(--border)"/><circle cx="25" cy="22" r="12" fill="var(--accent-pale)"/>
+    <path d="m22 16-5 6 5 6M29 16l5 6-5 6" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><text x="45" y="27" class="feature">Multi-language scripting</text>
+  </g>
+  <g transform="translate(638 278)">
+    <rect width="276" height="44" rx="15" fill="var(--chip)" stroke="var(--border)"/><circle cx="25" cy="22" r="12" fill="var(--accent-pale)"/>
+    <path d="M25 14a8 8 0 1 0 7 4M25 14v7h7" fill="none" stroke="var(--accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><text x="45" y="27" class="feature">Instant run &amp; preview</text>
+  </g>
+</svg>

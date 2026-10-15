@@ -1,0 +1,124 @@
+/* Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#include "Const/Header.h"
+
+#include "Render/Renderer.h"
+
+#include "Node/Node.h"
+
+NS_DORA_BEGIN
+
+void Renderer::render() {
+	uint32_t stencilState = SharedRendererManager.getCurrentStencilState();
+	bgfx::setStencil(stencilState);
+	RendererManager::ScissorState scissor;
+	if (SharedRendererManager.getCurrentScissorState(scissor))
+		bgfx::setScissor(scissor.x, scissor.y, scissor.width, scissor.height);
+	else
+		bgfx::setScissor(UINT16_MAX);
+}
+
+RendererManager::RendererManager()
+	: _currentRenderer(nullptr) { }
+
+void RendererManager::setCurrent(Renderer* var) {
+	if (_currentRenderer && _currentRenderer != var) {
+		_currentRenderer->render();
+	}
+	_currentRenderer = var;
+}
+
+Renderer* RendererManager::getCurrent() const noexcept {
+	return _currentRenderer;
+}
+
+uint32_t RendererManager::getCurrentStencilState() const noexcept {
+	return _stencilStates.empty() ? BGFX_STENCIL_NONE : _stencilStates.top();
+}
+
+void RendererManager::flush() {
+	if (_currentRenderer) {
+		_currentRenderer->render();
+		_currentRenderer = nullptr;
+	}
+}
+
+uint64_t RendererManager::applyState(uint64_t state) const noexcept {
+	for (const auto& overrideState : _stateOverrides)
+		state = (state & ~overrideState.mask) | (overrideState.state & overrideState.mask);
+	return state;
+}
+
+bool RendererManager::getCurrentScissorState(ScissorState& state) const noexcept {
+	if (_scissorStates.empty()) return false;
+	state = _scissorStates.back();
+	return true;
+}
+
+void RendererManager::pushStencilState(uint32_t stencilState) {
+	_stencilStates.push(stencilState);
+}
+
+void RendererManager::popStencilState() {
+	_stencilStates.pop();
+}
+
+void RendererManager::pushScissorState(ScissorState scissorState) {
+	_scissorStates.push_back(scissorState);
+}
+
+void RendererManager::popScissorState() {
+	AssertIf(_scissorStates.empty(), "pop invalid renderer scissor scope.");
+	_scissorStates.pop_back();
+}
+
+bool RendererManager::isGrouping() const noexcept {
+	return !_renderGroups.empty();
+}
+
+void RendererManager::pushGroupItem(Node* item) {
+	std::vector<Node*>* renderGroup = _renderGroups.top().get();
+	renderGroup->push_back(item);
+}
+
+void RendererManager::pushGroup(uint32_t capacity) {
+	_renderGroups.push(New<std::vector<Node*>>());
+	_renderGroups.top()->reserve(s_cast<size_t>(capacity));
+}
+
+void RendererManager::popGroup() {
+	std::vector<Node*>* renderGroup = _renderGroups.top().get();
+	std::stable_sort(renderGroup->begin(), renderGroup->end(), [](Node* nodeA, Node* nodeB) {
+		return nodeA->getRenderOrder() < nodeB->getRenderOrder();
+	});
+	for (Node* node : *renderGroup) {
+		node->render();
+	}
+	_renderGroups.pop();
+}
+
+void RendererManager::pushState(uint64_t state) {
+	constexpr uint64_t depthState = BGFX_STATE_DEPTH_TEST_MASK | BGFX_STATE_WRITE_Z;
+	pushStateOverride(depthState, state);
+}
+
+void RendererManager::popState() {
+	popStateOverride();
+}
+
+void RendererManager::pushStateOverride(uint64_t mask, uint64_t state) {
+	_stateOverrides.push_back({mask, state});
+}
+
+void RendererManager::popStateOverride() {
+	AssertIf(_stateOverrides.empty(), "pop invalid renderer state scope.");
+	_stateOverrides.pop_back();
+}
+
+NS_DORA_END

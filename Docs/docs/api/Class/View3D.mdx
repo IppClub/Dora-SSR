@@ -1,0 +1,149 @@
+# View3D
+
+**Description:**
+
+&emsp;&emsp;Class used for rendering 3D content inside the 2D scene tree.
+
+**Inherits from:** [Node](/docs/api/Class/Node).
+
+## scene
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The root node of the 3D scene.
+
+**Signature:**
+```tl
+const scene: Node3D
+```
+
+## stats
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;Statistics from the most recent 3D render and current 3D registries.
+
+**Signature:**
+```tl
+const stats: RenderStats3D
+```
+
+## showAABB
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether current world AABBs are drawn for debugging.
+
+**Signature:**
+```tl
+showAABB: boolean
+```
+
+## shadowMapSize
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The shadow map side length. The value is normalized to 256, 512, 1024, 2048, or 4096.
+
+**Signature:**
+```tl
+shadowMapSize: number
+```
+
+## getRayOrigin
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the world-space origin of the picking ray through a view point.
+
+**Signature:**
+```tl
+getRayOrigin: function(self: View3D, viewPoint: Vec2): Vec3
+```
+
+## getRayDirection
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the world-space direction of the picking ray through a view point.
+
+**Signature:**
+```tl
+getRayDirection: function(self: View3D, viewPoint: Vec2): Vec3
+```
+
+## pick
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Returns the nearest visible model intersected by a view point.
+
+**Signature:**
+```tl
+pick: function(self: View3D, viewPoint: Vec2): Model3D | nil
+```
+
+## setEnvironmentMap
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Loads an environment map for image based lighting.
+
+**Signature:**
+```tl
+setEnvironmentMap: function(self: View3D, path: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| path | string | The environment texture path. Empty string clears the environment map. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True when the environment map is loaded or cleared successfully. |
+
+## setEnvironmentIntensity
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets diffuse, specular and exposure intensity for environment lighting.
+
+**Signature:**
+```tl
+setEnvironmentIntensity: function(
+		self: View3D,
+		diffuse: number,
+		specular: number,
+		exposure?: number --[[1.0]]
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| diffuse | number | The diffuse lighting intensity. |
+| specular | number | The specular lighting intensity. |
+| exposure | number | [optional] The exposure value. Default is 1.0. |
