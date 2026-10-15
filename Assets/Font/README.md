@@ -19,4 +19,8 @@ atlases alive across `Cache:removeUnused()` and font-cache unloads. A full font
 cache unload also clears a failed fallback-file lookup so a subsequently
 installed font can be loaded.
 
+The Web preset bundles the fallback font and its license alongside the default
+font. Custom/core Web profiles without built-in libraries must include
+`Font/NotoEmoji.ttf` and its license as project assets to enable this fallback.
+
 Noto Emoji is distributed under [SIL OFL 1.1](NotoEmoji-OFL.txt).
