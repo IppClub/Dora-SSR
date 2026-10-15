@@ -468,6 +468,15 @@ static void set_service_unavailable(DoraXrtHttpServerResponse* response) {
 	set_response(response, 503, R"({"success":false,"message":"server shutting down"})"s, "application/json"s);
 }
 
+static void set_logic_busy(DoraXrtHttpServerResponse* response) {
+	DoraXrtHttpServerResponseSetHeader(response, "Retry-After", "2");
+	set_response(response, 503, R"({"success":false,"message":"engine logic thread did not respond in time"})"s, "application/json"s);
+}
+
+// Requests parked on the logic thread give up after this long, so a wedged
+// logic loop fails fast with a retryable 503 instead of hanging the client.
+constexpr double LogicDispatchTimeoutSeconds = 10.0;
+
 template <class T>
 class PendingLogicResult {
 public:
@@ -481,7 +490,8 @@ public:
 		_ready.post();
 	}
 
-	std::optional<T> wait(const std::atomic_bool& stopping, const std::atomic_uint64_t& generation, uint64_t requestGeneration) {
+	std::optional<T> wait(const std::atomic_bool& stopping, const std::atomic_uint64_t& generation, uint64_t requestGeneration, double timeoutSeconds = LogicDispatchTimeoutSeconds) {
+		const auto deadline = std::chrono::steady_clock::now() + std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(timeoutSeconds));
 		while (!_ready.wait(50)) {
 			if (stopping.load(std::memory_order_acquire)
 				|| generation.load(std::memory_order_acquire) != requestGeneration
@@ -489,12 +499,22 @@ public:
 				_cancelled.store(true, std::memory_order_release);
 				return std::nullopt;
 			}
+			if (timeoutSeconds > 0.0 && std::chrono::steady_clock::now() >= deadline) {
+				_timedOut.store(true, std::memory_order_release);
+				_cancelled.store(true, std::memory_order_release);
+				return std::nullopt;
+			}
 		}
 		return std::move(_result);
 	}
 
+	bool timedOut() const noexcept {
+		return _timedOut.load(std::memory_order_acquire);
+	}
+
 private:
 	std::atomic_bool _cancelled{false};
+	std::atomic_bool _timedOut{false};
 	bx::Semaphore _ready;
 	std::optional<T> _result;
 };
@@ -1093,7 +1113,9 @@ bool HttpServer::start(int port) {
 						if (!pending->isCancelled()) pending->complete(route->handler(request));
 					});
 					auto response = pending->wait(self->_stopping, self->_generation, requestGeneration);
-					if (!response) set_service_unavailable(nativeResponse); else respond(std::move(*response));
+					if (!response) {
+						if (pending->timedOut()) set_logic_busy(nativeResponse); else set_service_unavailable(nativeResponse);
+					} else respond(std::move(*response));
 					return true;
 				}
 			}
@@ -1134,7 +1156,7 @@ bool HttpServer::start(int port) {
 			});
 			auto content = pending->wait(self->_stopping, self->_generation, requestGeneration);
 			if (!content) {
-				set_service_unavailable(nativeResponse);
+				if (pending->timedOut()) set_logic_busy(nativeResponse); else set_service_unavailable(nativeResponse);
 				return true;
 			}
 			if (content->data.empty()) return false;
@@ -1180,7 +1202,9 @@ bool HttpServer::start(int port) {
 				if (!pending->isCancelled()) pending->complete(route->handler(request));
 			});
 			auto response = pending->wait(self->_stopping, self->_generation, requestGeneration);
-			if (!response) set_service_unavailable(nativeResponse); else respond(std::move(*response));
+			if (!response) {
+				if (pending->timedOut()) set_logic_busy(nativeResponse); else set_service_unavailable(nativeResponse);
+			} else respond(std::move(*response));
 			return true;
 		}
 		for (const auto& route : self->_postScheduled) {
@@ -1198,7 +1222,9 @@ bool HttpServer::start(int port) {
 				});
 			});
 			auto response = pending->wait(self->_stopping, self->_generation, requestGeneration);
-			if (!response) set_service_unavailable(nativeResponse); else respond(std::move(*response));
+			if (!response) {
+				if (pending->timedOut()) set_logic_busy(nativeResponse); else set_service_unavailable(nativeResponse);
+			} else respond(std::move(*response));
 			return true;
 		}
 		for (const auto& route : self->_files) {
@@ -1232,7 +1258,7 @@ bool HttpServer::start(int port) {
 					});
 					auto acceptedPath = accepted->wait(context->server->_stopping, context->server->_generation, context->requestGeneration);
 					if (!acceptedPath) {
-						set_service_unavailable(context->response);
+						if (accepted->timedOut()) set_logic_busy(context->response); else set_service_unavailable(context->response);
 						return 0;
 					}
 					if (!acceptedPath->has_value()) {
@@ -1264,7 +1290,9 @@ bool HttpServer::start(int port) {
 				done->complete(success);
 			});
 			auto success = done->wait(self->_stopping, self->_generation, requestGeneration);
-			if (!success) set_service_unavailable(nativeResponse); else set_response(nativeResponse, *success ? 200 : 500, {}, {});
+			if (!success) {
+				if (done->timedOut()) set_logic_busy(nativeResponse); else set_service_unavailable(nativeResponse);
+			} else set_response(nativeResponse, *success ? 200 : 500, {}, {});
 			return true;
 		}
 		return false;
