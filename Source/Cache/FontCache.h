@@ -89,10 +89,12 @@ protected:
 
 private:
 	std::tuple<std::string, int, bool> getArgsFromStr(String fontStr);
+	Font* getCharFont(Font* font, bgfx::CodePoint character);
 	Ref<SpriteEffect> _defaultEffect;
 	Ref<SpriteEffect> _sdfEffect;
 	StringMap<Ref<TrueTypeFile>> _fontFiles;
 	StringMap<Ref<Font>> _fonts;
+	bool _emojiFontUnavailable = false;
 	SINGLETON_REF(FontCache, FontManager, BGFXDora);
 };
 

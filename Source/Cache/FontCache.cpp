@@ -306,7 +306,26 @@ void FontCache::loadAync(String fontName, uint32_t fontSize, bool sdf, const std
 	}
 }
 
+Font* FontCache::getCharFont(Font* font, bgfx::CodePoint character) {
+	if (SharedFontManager.hasGlyph(font->getHandle(), character)) {
+		return font;
+	}
+	if (!_emojiFontUnavailable) {
+		const bgfx::FontInfo& info = font->getInfo();
+		Font* emoji = load("NotoEmoji"s, info.pixelSize, info.sdf);
+		if (emoji) {
+			if (SharedFontManager.hasGlyph(emoji->getHandle(), character)) {
+				return emoji;
+			}
+		} else {
+			_emojiFontUnavailable = true;
+		}
+	}
+	return font;
+}
+
 Sprite* FontCache::createCharacter(Font* font, bgfx::CodePoint character) {
+	font = getCharFont(font, character);
 	Texture2D* texture;
 	Rect rect;
 	std::tie(texture, rect) = getCharacterInfo(font, character);
@@ -315,6 +334,7 @@ Sprite* FontCache::createCharacter(Font* font, bgfx::CodePoint character) {
 }
 
 std::tuple<Texture2D*, Rect> FontCache::getCharacterInfo(Font* font, bgfx::CodePoint character) {
+	font = getCharFont(font, character);
 	const bgfx::GlyphInfo* glyphInfo = SharedFontManager.getGlyphInfo(font->getHandle(), character);
 	bgfx::Atlas* atlas = glyphInfo->atlas;
 	const bgfx::AtlasRegion& region = atlas->getRegion(glyphInfo->regionIndex);
@@ -325,10 +345,12 @@ std::tuple<Texture2D*, Rect> FontCache::getCharacterInfo(Font* font, bgfx::CodeP
 }
 
 const bgfx::GlyphInfo* FontCache::getGlyphInfo(Font* font, bgfx::CodePoint character) {
+	font = getCharFont(font, character);
 	return SharedFontManager.getGlyphInfo(font->getHandle(), character);
 }
 
 const bgfx::GlyphInfo* FontCache::updateCharacter(Sprite* sp, Font* font, bgfx::CodePoint character) {
+	font = getCharFont(font, character);
 	const bgfx::GlyphInfo* glyphInfo = SharedFontManager.getGlyphInfo(font->getHandle(), character);
 	bgfx::Atlas* atlas = glyphInfo->atlas;
 	const bgfx::AtlasRegion& region = atlas->getRegion(glyphInfo->regionIndex);

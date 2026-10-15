@@ -28,6 +28,15 @@ static float GetFontScale(uint32_t fontSize, bool sdf) {
 	return sdf ? s_cast<float>(fontSize) / s_cast<float>(DORA_SDF_FONT_BASE_SIZE) : 1.0f;
 }
 
+static bool IsEmojiMark(uint32_t ch) {
+	return ch == 0xFE0E || ch == 0xFE0F
+		|| ch == 0x200D
+		|| ch == 0x20E3
+		|| (ch >= 0x1F3FB && ch <= 0x1F3FF)
+		|| ch == 0xE0001
+		|| (ch >= 0xE0020 && ch <= 0xE007F);
+}
+
 static float GetFontScale(String fontStr) {
 	auto tokens = fontStr.split(";"_slice);
 	if (tokens.size() == 3 && tokens.back() == "true"_slice) {
@@ -435,6 +444,9 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars) {
 void Label::updateLabel() {
 	if (!_font) return;
 	_text = CodeCvt::utf8_get_characters(_textUTF8.c_str());
+	std::erase_if(_text, [](uint32_t ch) {
+		return IsEmojiMark(ch);
+	});
 	_text.push_back('\0');
 
 	if (_flags.isOn(Label::TextBatched)) {
