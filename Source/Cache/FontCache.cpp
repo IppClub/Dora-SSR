@@ -119,6 +119,7 @@ std::tuple<std::string, int, bool> FontCache::getArgsFromStr(String fontStr) {
 }
 
 bool FontCache::unload() {
+	_emojiFontUnavailable = false;
 	if (_fonts.empty() && _fontFiles.empty()) {
 		return false;
 	}
@@ -306,6 +307,29 @@ void FontCache::loadAync(String fontName, uint32_t fontSize, bool sdf, const std
 	}
 }
 
+Font* FontCache::getCharFont(Font* font, bgfx::CodePoint character) {
+	if (character == 0 || SharedFontManager.hasGlyph(font->getHandle(), character)) {
+		return font;
+	}
+	if (font->_emojiFallback) {
+		auto emoji = font->_emojiFallback.get();
+		return SharedFontManager.hasGlyph(emoji->getHandle(), character) ? emoji : font;
+	}
+	if (!_emojiFontUnavailable) {
+		const bgfx::FontInfo& info = font->getInfo();
+		Font* emoji = load("NotoEmoji"s, info.pixelSize, info.sdf);
+		if (emoji) {
+			if (emoji != font) font->_emojiFallback = emoji;
+			if (SharedFontManager.hasGlyph(emoji->getHandle(), character)) {
+				return emoji;
+			}
+		} else {
+			_emojiFontUnavailable = true;
+		}
+	}
+	return font;
+}
+
 Sprite* FontCache::createCharacter(Font* font, bgfx::CodePoint character) {
 	Texture2D* texture;
 	Rect rect;
@@ -315,6 +339,7 @@ Sprite* FontCache::createCharacter(Font* font, bgfx::CodePoint character) {
 }
 
 std::tuple<Texture2D*, Rect> FontCache::getCharacterInfo(Font* font, bgfx::CodePoint character) {
+	font = getCharFont(font, character);
 	const bgfx::GlyphInfo* glyphInfo = SharedFontManager.getGlyphInfo(font->getHandle(), character);
 	bgfx::Atlas* atlas = glyphInfo->atlas;
 	const bgfx::AtlasRegion& region = atlas->getRegion(glyphInfo->regionIndex);
@@ -325,10 +350,12 @@ std::tuple<Texture2D*, Rect> FontCache::getCharacterInfo(Font* font, bgfx::CodeP
 }
 
 const bgfx::GlyphInfo* FontCache::getGlyphInfo(Font* font, bgfx::CodePoint character) {
+	font = getCharFont(font, character);
 	return SharedFontManager.getGlyphInfo(font->getHandle(), character);
 }
 
 const bgfx::GlyphInfo* FontCache::updateCharacter(Sprite* sp, Font* font, bgfx::CodePoint character) {
+	font = getCharFont(font, character);
 	const bgfx::GlyphInfo* glyphInfo = SharedFontManager.getGlyphInfo(font->getHandle(), character);
 	bgfx::Atlas* atlas = glyphInfo->atlas;
 	const bgfx::AtlasRegion& region = atlas->getRegion(glyphInfo->regionIndex);

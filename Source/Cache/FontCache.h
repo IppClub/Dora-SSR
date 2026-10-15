@@ -50,6 +50,9 @@ protected:
 private:
 	bgfx::FontHandle _handle;
 	Ref<TrueTypeFile> _file;
+	// Keep fallback glyph atlases alive for labels that retain this font.
+	Ref<Font> _emojiFallback;
+	friend class FontCache;
 };
 
 class FontManager : public bgfx::FontManager {
@@ -89,10 +92,12 @@ protected:
 
 private:
 	std::tuple<std::string, int, bool> getArgsFromStr(String fontStr);
+	Font* getCharFont(Font* font, bgfx::CodePoint character);
 	Ref<SpriteEffect> _defaultEffect;
 	Ref<SpriteEffect> _sdfEffect;
 	StringMap<Ref<TrueTypeFile>> _fontFiles;
 	StringMap<Ref<Font>> _fonts;
+	bool _emojiFontUnavailable = false;
 	SINGLETON_REF(FontCache, FontManager, BGFXDora);
 };
 
