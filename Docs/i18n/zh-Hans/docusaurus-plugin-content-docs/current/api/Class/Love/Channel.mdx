@@ -1,0 +1,273 @@
+# Channel
+
+**描述：**
+
+&emsp;&emsp;可用于在不同线程之间发送和接收数据的对象。
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: Channel): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: Channel): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: Channel, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## push
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;向线程Channel发送消息。
+有关受支持类型的列表，请参阅变体。
+
+**签名：**
+```tl
+push: function(self: Channel, value: any): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| value | any | 消息的内容。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 可以提供给Channel:hasRead |
+
+## supply
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;向线程Channel发送消息并等待线程接受它。
+有关受支持类型的列表，请参阅变体。
+
+**签名：**
+```tl
+supply: function(self: Channel, value: any, timeout?: number): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| value | any | 消息的内容。 |
+| timeout | number | 等待的最长时间。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 消息是否已成功提供（始终为真）。取决于过载：在超时到期之前消息是否成功提供。 |
+
+## pop
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检索 Channel 消息的值并将其从消息队列中删除。
+如果队列中没有消息，则返回 nil。
+
+**签名：**
+```tl
+pop: function(self: Channel): any
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| any | 消息的内容。 |
+
+## demand
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检索 Channel 消息的值并将其从消息队列中删除。
+它会等待消息进入队列，然后返回消息值。
+
+**签名：**
+```tl
+demand: function(self: Channel, timeout?: number): any
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| timeout | number | 等待的最长时间。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| any | 消息的内容。取决于过载：消息的内容或 nil（如果超时）。 |
+
+## peek
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检索 Channel 消息的值，但将其保留在队列中。
+如果队列中没有消息，则返回 nil。
+
+**签名：**
+```tl
+peek: function(self: Channel): any
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| any | 消息的内容。 |
+
+## getCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检索线程 Channel 队列中的消息数。
+
+**签名：**
+```tl
+getCount: function(self: Channel): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 队列中的消息数。 |
+
+## hasRead
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取推送的值是否已被弹出或以其他方式从通道中删除。
+
+**签名：**
+```tl
+hasRead: function(self: Channel, id: number): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| id | number | Channel:push 之前返回的 id 值。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | id 表示的值是否已通过 Channel:pop、Channel:demand 或 Channel:clear 从 Channel 中删除。 |
+
+## clear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;清除Channel队列中的所有消息。
+
+**签名：**
+```tl
+clear: function(self: Channel)
+```
+
+## performAtomic
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;相对于此 Channel 以原子方式执行指定的函数。
+在同一个 Channel 上连续调用多个方法通常很有用。但是，如果多个线程同时调用此 Channel 的方法，则每个线程上的不同调用可能最终会交错（例如，第二个线程的一个或多个调用可能发生在第一个线程的调用之间。）
+此方法通过确保调用该方法的线程在指定函数返回之前具有对 Channel 的独占访问权来避免该问题。
+
+**签名：**
+```tl
+performAtomic: function(self: Channel, callback: any, args: any...): any
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | any | 要调用的函数，形式为 function(channel, arg1, arg2, ...) end。调用函数时，通道将作为第一个参数传递给该函数。 |
+| args | any... | 调用给定函数时将收到的附加参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| any | 给定函数的第一个返回值（如果有）。 |

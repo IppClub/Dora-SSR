@@ -1,0 +1,35 @@
+# VideoNode Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating VideoNode objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;The constructor function for creating a VideoNode instance.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: VideoNodeClass,
+		filename: string,
+		looped?: boolean --[[false]]
+	): VideoNode | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The path to an Ogg (`.ogv`) file containing a Theora video stream. VideoNode reads it through Dora Content, renders video only, supports Theora 4:2:0/4:2:2/4:4:4, and decodes in software; play audio separately. |
+| looped | boolean | [optional] Whether the video should loop. Default is false. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| VideoNode \| nil | The created VideoNode instance. If creation fails, returns nil. |

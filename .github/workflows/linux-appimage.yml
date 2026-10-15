@@ -1,0 +1,162 @@
+name: Linux AppImage
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/linux-appimage.yml'
+      - 'Source/**'
+      - 'Tools/tolua\+\+/**'
+      - 'Tools/dora-rust/**'
+      - 'Tools/dora-dora/**'
+      - 'Tools/dora-wa/**'
+      - 'Assets/**'
+      - 'Projects/packaging/appimage/**'
+      - 'Projects/Web/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/linux-appimage.yml'
+      - 'Source/**'
+      - 'Tools/tolua\+\+/**'
+      - 'Tools/dora-rust/**'
+      - 'Tools/dora-dora/**'
+      - 'Tools/dora-wa/**'
+      - 'Assets/**'
+      - 'Projects/packaging/appimage/**'
+      - 'Projects/Web/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web-assets:
+    name: Build shared Web IDE assets
+    if: >-
+      (github.event_name != 'push' ||
+        (!contains(github.event.head_commit.message, '[skip CI]') &&
+         !contains(github.event.head_commit.message, '[skip Linux]')))
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          package_json_file: Tools/dora-dora/package.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+          cache: pnpm
+          cache-dependency-path: Tools/dora-dora/pnpm-lock.yaml
+
+      - name: Verify Web build tools
+        run: xmake dora-web-env
+
+      - name: Build and verify Web IDE
+        working-directory: Tools/dora-dora
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm test:web-runtime-preparation
+          pnpm build
+          pnpm test:web-package
+          pnpm verify:web-release-assets
+
+      - name: Upload shared Web IDE assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-ide-assets-${{ github.sha }}
+          path: Assets/www
+          if-no-files-found: error
+          retention-days: 3
+
+  build:
+    needs: web-assets
+    if: >-
+      always() &&
+      (github.event_name != 'push' ||
+        (!contains(github.event.head_commit.message, '[skip CI]') &&
+         !contains(github.event.head_commit.message, '[skip Linux]'))) &&
+      needs.web-assets.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            xmake_arch: x86_64
+            runner: ubuntu-22.04
+          - arch: aarch64
+            xmake_arch: arm64
+            runner: ubuntu-22.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Download shared Web IDE assets
+        uses: actions/download-artifact@v5
+        with:
+          name: web-ide-assets-${{ github.sha }}
+          path: Assets/www
+
+      - name: Verify shared Web IDE assets
+        run: node Tools/dora-dora/scripts/verify-web-release-assets.mjs Assets/www
+
+      - name: Install dependencies
+        run: |
+          shopt -s nullglob
+          for chrome_source in /etc/apt/sources.list.d/google-chrome*.list /etc/apt/sources.list.d/google-chrome*.sources; do
+            sudo mv "$chrome_source" "$chrome_source.disabled"
+          done
+          sudo apt-get update
+          sudo apt-get install -y pkg-config patchelf pax-utils curl \
+            libgl1-mesa-dev libssl-dev libdbus-1-dev libasound2-dev \
+            libjack-jackd2-dev libpulse-dev libpipewire-0.3-dev \
+            libsamplerate0-dev libsndio-dev libibus-1.0-dev libudev-dev \
+            libusb-1.0-0-dev libx11-dev libxext-dev libxcursor-dev libxi-dev \
+            libxfixes-dev libxrandr-dev libxrender-dev libxss-dev libdrm-dev \
+            libgbm-dev libegl1-mesa-dev libwayland-dev libwayland-bin \
+            wayland-protocols libxkbcommon-dev libdecor-0-dev
+
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+
+      - name: Record xmake version
+        run: xmake --version
+
+      - name: Package AppImage
+        id: package
+        env:
+          APPIMAGE_ARCH: ${{ matrix.arch }}
+          XMAKE_ARCH: ${{ matrix.xmake_arch }}
+        run: |
+          filename="dora-ssr-linux-${APPIMAGE_ARCH}.AppImage"
+          xmake dora-package --platform=linux --arch="$XMAKE_ARCH" --mode=release
+          cp "build/package/linux/$XMAKE_ARCH/release/$filename" "$GITHUB_WORKSPACE/$filename"
+          echo "path=$filename" >> "$GITHUB_OUTPUT"
+
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dora-ssr-linux-appimage-${{ matrix.arch }}
+          path: ${{ steps.package.outputs.path }}
+          if-no-files-found: error

@@ -1,0 +1,194 @@
+local Size = require("Size").Type
+local Vec2 = require("Vec2").Type
+local Color = require("Color").Type
+local Dictionary = require("Dictionary").Type
+
+-- 管理应用程序信息的单例类。
+local record App
+	userdata
+
+	-- 引擎运行到当前时间经过的帧数。
+	const frame: integer
+
+	-- 渲染主帧的缓冲纹理的大小。
+	const bufferSize: Size
+
+	-- 屏幕的逻辑视觉大小。
+	-- 视觉大小仅在应用程序窗口大小更改时更改。
+	const visualSize: Size
+
+	-- 设备显示的像素密度比。
+	-- 等于渲染缓冲纹理的像素大小除以应用程序窗口的大小。
+	const devicePixelRatio: number
+
+	-- 游戏引擎运行的平台类型。
+	enum Platform
+		"Windows"
+		"Android"
+		"macOS"
+		"iOS"
+		"Linux"
+		"Web"
+		"Unknown"
+	end
+
+	-- 游戏引擎当前运行的平台。
+	const platform: Platform
+
+	-- 游戏引擎的版本字符串。
+	-- 格式为“v0.0.0.0”。
+	const version: string
+
+	-- 游戏引擎的第三方依赖库的版本信息。
+	const deps: string
+
+	-- 自从上一帧游戏更新以来间隔的时间（以秒为单位）。
+	const deltaTime: number
+
+	-- 从当前游戏帧开始到本次API调用经过的时间（以秒为单位）。
+	const elapsedTime: number
+
+	-- 游戏引擎直到上一帧结束为止，已经运行的总时间（以秒为单位）。
+	-- 在同一个游戏帧中多次调用时得到的是一个常数。
+	const totalTime: number
+
+	-- 直到调用该API为止，游戏引擎已经运行的总时间（以秒为单位）。
+	-- 在同一个游戏帧中多次调用时得到一个递增的数字。
+	const runningTime: number
+
+	-- Mersenne Twister 引擎生成的均匀分布 32 位无符号整数，取值范围为 0 到 4,294,967,295（含两端）。
+	-- 该值不是 [0, 1] 范围的归一化随机数。如需归一化随机值，请将其除以 4,294,967,295。
+	-- 相同的种子会在所有平台上生成相同的随机数序列。
+	const rand: integer
+
+	-- 游戏引擎可以运行的最大有效帧率。
+	-- 最大有效帧率是通过设备屏幕的最大刷新率推断出来的。
+	const maxFPS: integer
+
+	-- 游戏引擎是否运行在调试模式下。
+	const debugging: boolean
+
+	-- 引擎内置的C++测试的测试名称（用于辅助引擎本身开发）。
+	const testNames: {string}
+
+	-- 当前系统的语言环境字符串，格式例如：`zh-Hans`，`en`.
+	locale: string
+
+	-- Dora SSR的主题颜色。
+	themeColor: Color
+
+	-- Dora SSR的随机数种子。
+	seed: integer
+
+	-- 游戏引擎应该运行的目标帧率。
+	-- 仅在`fpsLimited`设置为true时有效。
+	targetFPS: integer
+
+	-- 游戏引擎是否自动限制帧率。
+	-- 将`fpsLimited`设置为true，会使引擎通过执行一个忙等待的死循环以获取更加精准的机器时间，并计算切换到下一帧的时间点。
+	-- 这是在PC机Windows系统上的通常做法，以提升CPU占用率来提升游戏的性能。但这也会导致额外的芯片热量产生和电力消耗。
+	fpsLimited: boolean
+
+	-- 游戏引擎当前是否处于闲置状态。
+	-- 将`idled`设置为true，将使游戏逻辑线程使用`sleep`系统调用来等待进入下一个游戏帧的时间点。
+	-- 由于操作系统定时器存在一定程度的误差，可能导致游戏引擎睡眠过头而错过几个游戏帧。
+	-- 闲置状态可以减少额外的CPU占用。
+	idled: boolean
+
+	-- 游戏引擎是否运行在全屏模式下。
+	-- 在Android和iOS平台上无法设置此属性。
+	fullScreen: boolean
+
+	-- 游戏引擎是否运行在窗口置顶模式下。
+	-- 在Android和iOS平台上无法设置此属性。
+	alwayOnTop: boolean
+
+	-- 游戏引擎是否运行在开发模式下。
+	-- 在开发模式下 `App:shutdown()` 函数会发出一个 "AppEvent" 全局事件，类型为 "Shutdown" 而不是关闭游戏引擎。
+	devMode: boolean
+
+	-- 应用程序窗口大小。
+	-- 由于显示设备的DPI不同，可能会与实际的可视大小有差异。
+	-- 在Android和iOS平台上无法设置此属性。
+	winSize: Size
+
+	-- 应用程序窗口位置。
+	-- 在Android和iOS平台上无法设置此属性。
+	winPosition: Vec2
+
+	-- 运行特定的包含在引擎中的C++测试函数。
+	-- @param name (string) 要运行的测试的名称。
+	-- @return (boolean) 测试是否成功运行。
+	runTest: function(self: App, name: string): boolean
+
+	-- 在系统默认的浏览器中打开指定的URL地址。
+	-- @param url (string) 要打开的URL地址。
+	openURL: function(self: App, url: string)
+
+	-- 用于自更新游戏引擎。
+	-- @param path (string) 新版本引擎文件的路径。
+	install: function(self: App, path: string)
+
+	-- 保存所有引擎日志到指定的文件路径为单个文件。
+	-- @param path (string) 要保存日志文件的路径。
+	-- @return (boolean) 日志文件是否保存成功。
+	saveLog: function(self: App, path: string): boolean
+
+	-- 请求保存主backbuffer截图。
+	-- @param filename (string) 输出路径，可带.tga扩展名。
+	-- @return (string) 实际TGA输出路径，失败时返回空字符串。
+	saveScreenshot: function(self: App, filename: string): string
+
+	-- 打开文件对话框。移动端支持选择 ZIP 文件；文件夹选择仅限桌面端。
+	-- @param folderOnly (boolean) 是否仅允许选择文件夹。
+	-- @param callback (function) 当文件对话框关闭时调用的回调函数。回调函数应接受一个字符串参数，该参数为选中的文件或文件夹的路径。如果用户取消对话框，则返回空字符串。
+	-- @param extensions (string, optional) 桌面端扩展名筛选，不带点、以逗号分隔（如 "zip" 或 "png,jpg"）；省略时保留默认筛选。选择文件夹及移动端忽略此参数。
+	openFileDialog: function(self: App, folderOnly: boolean, callback: function(path: string), extensions?: string)
+
+	-- 发起系统分享，桌面端打开所在目录。返回值不代表已送达。
+	shareFile: function(self: App, path: string): boolean
+	-- 发起文件导出，桌面端打开所在目录。返回值不代表已保存。
+	saveFileDialog: function(self: App, path: string): boolean
+	-- 取出下一个外部文件路径，无文件时返回空字符串。使用前应验证文件。
+	takeReceivedFile: function(self: App): string
+
+
+	-- 估算一段文本大致会消耗多少 LLM token。
+	-- 默认情况下，ASCII 字符按约 0.4 token/字符估算，非 ASCII 字符按 2 token/字符估算。
+	-- @param text (string) 要估算的文本。
+	-- @param asciiTokensPerChar (number) 可选的 ASCII 字符系数，默认 0.4。
+	-- @param nonAsciiTokensPerChar (number) 可选的非 ASCII 字符系数，默认 2.0。
+	-- @return (integer) 估算得到的 token 数量。
+	estimateTokens: function(self: App, text: string, asciiTokensPerChar?: number --[[0.4]], nonAsciiTokensPerChar?: number --[[2.0]]): integer
+
+	-- 关闭并退出游戏引擎。
+	-- 当 `devMode` 设置为 true 时，该函数只会发出一个 "AppEvent" 全局事件，类型为 "Shutdown"，而不是关闭游戏引擎。
+	-- 该函数在Android和iOS平台不会真正关闭游戏引擎，以遵循移动平台上应用程序规范。
+	shutdown: function(self: App)
+end
+
+-- 全局事件的定义。
+-- 这只是一个事件定义的展示，包含所有全局事件名称和回调函数的定义。
+-- @usage
+-- -- 可以使用如下示例代码注册这些事件：
+-- local node = Node():addTo(Director.entry)
+-- node:gslot("AppEvent", function(eventType: string)
+-- 	print("接收到系统事件：" .. eventType)
+-- end)
+local record __GSLOT__
+
+	-- 应用收到系统事件时触发。事件类型可以是 "Quit"、"LowMemory"、"WillEnterBackground"、"DidEnterBackground"、"WillEnterForeground"、"DidEnterForeground"、"Shutdown"。
+	["AppEvent"]: function(eventType: string)
+
+	-- 应用设置发生变化时触发。设置名称可以是 "Locale"、"Theme"、"FullScreen"、"Position"、"Size"。
+	["AppChange"]: function(settingName: string)
+
+	-- 当一个客户端和应用建立 Websocket 连接并收发消息时触发。
+	-- 回调接收一个对象参数：
+	-- 	`event.type` 事件类型，可为 "Open"、"Close"、"Send"、"Receive"。
+	-- 	`event.msg` 消息内容。
+	["AppWS"]: function(event: Dictionary)
+end
+
+local app: App
+return app

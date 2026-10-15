@@ -1,0 +1,235 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 使用 Love2D Node
+
+Dora SSR 可以把兼容 Love2D 11.5 的项目作为场景节点运行。每个
+`LoveNode` 都拥有独立的 Lua 5.5 state、虚拟窗口表面、事件队列、物理世界和
+音频总线。节点最终进入 Dora 场景树，因此 Dora 项目可以放置、缩放、隐藏、
+重启或同时运行多个 Love 项目，而不会把宿主窗口和应用主循环交给 Love。
+
+这里提供的是 Love 项目的源码与 API 兼容，不是 LuaJIT ABI 兼容，也不会嵌入
+SDL 的应用主循环。
+
+## 创建 LoveNode
+
+把 Love 项目放在 Dora Content 搜索路径中。Dora 支持的各源码语言都可以编写
+标准 Love callback：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua title="LoveGame/main.lua"
+local love = require("love")
+local message = ""
+
+function love.load()
+	message = "来自独立 Love state 的问候"
+end
+
+function love.update(dt)
+	-- 只更新当前 Love 实例。
+end
+
+function love.draw()
+	love.graphics.clear(0.05, 0.08, 0.12, 1)
+	love.graphics.print(message, 24, 24)
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title="LoveGame/main.tl"
+local love = require("love")
+local message = ""
+
+love.load = function()
+	message = "来自独立 Love state 的问候"
+end
+
+love.update = function(_dt: number)
+	-- 只更新当前 Love 实例。
+end
+
+love.draw = function()
+	love.graphics.clear(0.05, 0.08, 0.12, 1)
+	love.graphics.print(message, 24, 24)
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="LoveGame/main.ts"
+import "love";
+
+let message = "";
+
+love.load = () => {
+	message = "来自独立 Love state 的问候";
+};
+
+love.update = (_dt: number) => {
+	// 只更新当前 Love 实例。
+};
+
+love.draw = () => {
+	love.graphics.clear(0.05, 0.08, 0.12, 1);
+	love.graphics.print(message, 24, 24);
+};
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="LoveGame/main.yue"
+love = require "love"
+message = ""
+
+love.load = ->
+	message = "来自独立 Love state 的问候"
+
+love.update = (dt) ->
+	-- 只更新当前 Love 实例。
+
+love.draw = ->
+	love.graphics.clear 0.05, 0.08, 0.12, 1
+	love.graphics.print message, 24, 24
+```
+
+</TabItem>
+</Tabs>
+
+在普通 Dora 程序中创建节点：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua title="Script/init.lua"
+local _ENV = Dora
+
+local game = LoveNode("LoveGame/main.lua")
+if game then
+	game.position = game.position + Vec2(80, 40)
+	game.scaleX = 0.75
+	game.scaleY = 0.75
+	game:addTo(Director.entry)
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title="Script/init.tl"
+local Director <const> = require("Director")
+local LoveNode <const> = require("LoveNode")
+local Vec2 <const> = require("Vec2")
+
+local game = LoveNode("LoveGame")
+if not game is nil then
+	game.position = game.position + Vec2(80, 40)
+	game.scaleX = 0.75
+	game.scaleY = 0.75
+	game:addTo(Director.entry)
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="Script/init.ts"
+import {Director, LoveNode, Vec2} from "Dora";
+
+const game = LoveNode("LoveGame");
+if (game) {
+	game.position = game.position.add(Vec2(80, 40));
+	game.scaleX = 0.75;
+	game.scaleY = 0.75;
+	game.addTo(Director.entry);
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="Script/init.yue"
+_ENV = Dora
+
+with? LoveNode "LoveGame"
+	.position += Vec2 80, 40
+	.scaleX = .scaleY = 0.75
+	\addTo Director.entry
+```
+
+</TabItem>
+</Tabs>
+
+对于不带扩展名的相对路径，`LoveNode("LoveGame")` 会依次搜索同名文件、
+`LoveGame.love`、`LoveGame.zip` 和 `LoveGame/main.lua`。带扩展名的显式路径和
+绝对路径保持原样。
+
+`conf.lua`、`main.lua` 和项目模块相对 Love source root 解析，也可以加载
+`.love` 或 `.zip` ZIP 包。读取、写入、mount、模块加载和包 staging 全部经过 Dora
+`Content`；隔离 state 不能加载 native Lua module，也不能用宿主绝对路径绕过
+Content 策略。
+
+`game:restart()` 会先关闭旧 state 及其实例资源，再启动一个全新的 state。
+运行错误或普通 `love.event.quit()` 只停止当前节点。`love.event.quit("restart")`
+会在 `love.quit()` 返回后对当前 LoveNode 执行同样的完整重启；callback 返回真值可取消请求。
+
+## 编辑器与多语言支持
+
+Love 定义按需启用，并继续使用 Dora 现有编译流程：
+
+- Lua、Teal、YueScript：`local love = require("love")`
+- TypeScript 和 TSX：`import "love"`
+
+普通 Dora 文件不会默认获得 `love` 定义，也没有首行注释、项目 profile、Love
+专属 TSX 转换等特殊规则。因此同一个项目可以混合 Dora 与 Love 源码，而不会
+污染其他文件的全局定义。TypeScript、Teal、YueScript 的运行错误会映射回原始
+源码位置。
+
+引擎随附的声明文件是当前可调用函数和对象方法的权威清单。下表描述更高层的
+模块支持边界。
+
+## 兼容状态
+
+下表中的比值都是数量比，不是百分比。**API 方法**表示“已实现并通过声明对账的
+方法数 / 固定 Love 11.5 目标方法数”；**兼容用例**表示“通过数 / 选中用例数”，
+明确 skip 的数量单独列出。固定兼容快照没有合适数字时，只标记对应专项工作流。
+
+最后一列只列尚未实现、宿主有意限制或仍待设备验证的事项，不再重复已经实现的功能。
+
+| 模块 | API 方法 | 兼容用例 | 仅列未实现或待验证项 |
+| --- | ---: | ---: | --- |
+| Root callbacks | 专项验证 | 专项工作流 | Dora 始终拥有主循环；物理输入 callback 仍需逐设备认证。 |
+| `love.graphics` | `294/294` | `75/107`，32 项 skip | 压缩格式仍取决于 renderer；非目标 GLSL `layout`、layered/mipmap Canvas 和部分扩展 batch 路径未支持。 |
+| `love.window` | `29/37` | `28/36`，8 项 skip | 关闭、移动、最小化、最大化、恢复、attention、icon 和 message box 八个宿主窗口动作有意不开放。 |
+| `love.event` | `6/6` | `4/6`，2 项基础设施 skip | 空 `wait` 会立即返回，避免单个 Love 实例阻塞 Dora 宿主线程。 |
+| `love.timer` | `6/6` | `6/6` | 无已知 Love 11.5 API 缺口。 |
+| `love.keyboard` | `9/9` | 专项工作流 | 更多物理布局、OS repeat 和真实 IME 候选窗位置仍待设备验证。 |
+| `love.mouse` | `19/19` | 物理输入专项 | Windows、Linux 和移动设备上的物理输入仍待认证。 |
+| `love.touch` | `3/3` | 注入专项 | 当前路由压力固定为 1；物理多点触摸仍待设备验证。 |
+| `love.joystick` | `27/27` | 虚拟设备专项 | 物理控制器和 rumble 输出仍待设备认证。 |
+| `love.filesystem` | `55/59` | `26/32`，6 项 skip | C require path 与宿主 symlink 控制是四个有意保留的 API 缺口。 |
+| `love.audio` | `78/78` | `28/29`，1 个上游占位 | 后端是 SoLoud 近似适配；物理录音、权限、热插拔和可听输出仍待设备验证。 |
+| `love.sound` | `23/23` | `4/4` | 无已知 Love 11.5 API 缺口。 |
+| `love.image` | `26/26` | `5/5` | 每种压缩格式是否可用仍取决于 renderer。 |
+| `love.font` | `27/27` | `7/7` | Binary AngelCode BMFont 不在目标内；stb hinting 不保证与 FreeType 逐像素一致。 |
+| `love.data` | `25/25` | `8/8` | 不提供 LuaJIT FFI pointer。 |
+| `love.math` | `43/43` | `6/8`，2 项 Love 12 skip | Love 12-only noise 名称不在目标内。 |
+| `love.physics` | 专项验证 | `21/28`，6 个上游占位及 1 项 Love 12 skip | Box2D 3 与 Love 12 语义不在 Love 11.5 目标内。 |
+| `love.system` | `8/8` | `6/8`，2 项物理副作用 skip | 物理震动仍待设备认证。 |
+| `love.thread` | `16/16` | `5/5` | 无已知 Love 11.5 API 缺口。 |
+| `love.video` | `9/9` | `2/2` | Ogg/Theora 之外的 codec/container 不在当前目标内。 |
+
+## Lua 兼容边界
+
+Love state 使用 Lua 5.5。支持源代码、当前 Lua 5.5 bytecode、`unpack`、
+`loadstring`、`package.loaders` 和 32-bit `bit` 兼容模块。`getfenv/setfenv`
+对 Lua 函数和正数调用栈层级提供有限源码兼容；`getfenv(0)` 返回隔离 state
+的全局表，而 Lua 5.5 无法等价支持 `setfenv(0, env)` 替换 Lua 5.1 thread
+environment，因此会返回定向错误。LuaJIT `ffi`、`jit`、LuaJIT/Lua 5.1
+bytecode 以及 Lua 5.1 ABI native module 同样会被定向拒绝。请提供源码，
+或使用 Dora 随附的 Lua 5.5 重新编译 bytecode。

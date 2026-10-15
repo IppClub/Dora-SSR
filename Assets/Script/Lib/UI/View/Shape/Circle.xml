@@ -1,0 +1,15 @@
+<!-- params: X=0, Y=0, Radius, FillColor, BorderColor -->
+<Dora>
+	<Import Module="UI.View.Shape.SolidCircle"/>
+	<Import Module="UI.View.Shape.LineCircle"/>
+
+	<Node X="{ x or 0 }" Y="{ y or 0 }" Width="{ radius * 2 }" Height="{ radius * 2 }">
+		<Lua>if fillColor then</Lua>
+			<SolidCircle Radius="{ radius }" Color="{ fillColor }" RenderOrder="{ fillOrder or 0 }"/>
+		<Lua>end</Lua>
+
+		<Lua>if borderColor then</Lua>
+			<LineCircle Radius="{ radius }" Color="{ borderColor }" RenderOrder="{ lineOrder or 0 }"/>
+		<Lua>end</Lua>
+	</Node>
+</Dora>

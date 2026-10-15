@@ -1,0 +1,1123 @@
+import React from 'react';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
+import Collapse from '@mui/material/Collapse';
+import CircularProgress from '@mui/material/CircularProgress';
+import LinearProgress from '@mui/material/LinearProgress';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import { MacScrollbar } from 'mac-scrollbar';
+import { useTranslation } from 'react-i18next';
+import type { AgentChangeSetSummary, AgentCheckpointDiffFile, AgentCheckpointItem, AgentSessionStep } from './Service';
+import { Color } from './Theme';
+import AgentChangeSetSummaryCard from './AgentChangeSetSummary';
+import { recordAgentRowRender } from './AgentRenderDiagnostics';
+import Markdown from './Markdown';
+import AgentVisionEvidence from './AgentVisionEvidence';
+import './github-markdown-dark.css';
+
+const AgentFileDiff = React.lazy(() => import('./AgentFileDiff'));
+
+interface AgentStepListProps {
+	steps: AgentSessionStep[];
+	checkpointMap: Map<number, AgentCheckpointItem>;
+	diffs: Record<number, AgentCheckpointDiffFile[]>;
+	taskDiffs: Record<number, AgentCheckpointDiffFile[]>;
+	diffLoadingId: number | null;
+	taskDiffLoadingId: number | null;
+	openedDiffId: number | null;
+	openedTaskDiffId: number | null;
+	running: boolean;
+	rollingBack: number | null;
+	onToggleDiff: (step: AgentSessionStep) => void;
+	onToggleTaskDiff: (taskId: number) => void;
+	onRollback: (step: AgentSessionStep) => void;
+	onRollbackTaskChangeSet: (taskId: number) => void;
+	onOpenFile?: (filePath: string) => void;
+}
+
+type ParamItem = {
+	label: string;
+	value?: string;
+	newLine?: boolean;
+};
+
+type SubAgentListItem = {
+	sessionId?: number;
+	title?: string;
+	status?: string;
+	goal?: string;
+	summary?: string;
+	resultFilePath?: string;
+	artifactDir?: string;
+	finishedAt?: string;
+};
+
+type ExecuteCommandDetails = {
+	scriptLabelKey: string;
+	script: string;
+	output?: string;
+};
+
+type LocalAgentDisplayEvent = {
+	kind: string;
+	text: string;
+};
+
+function getLocalAgentDisplayEvents(step: AgentSessionStep): LocalAgentDisplayEvent[] {
+	if (step.tool !== "local_agent_message" || !Array.isArray(step.result?.events)) return [];
+	return step.result.events
+		.filter((event): event is {kind: string; text: string} => (
+			typeof event === "object" && event !== null
+			&& typeof (event as {kind?: unknown}).kind === "string"
+			&& typeof (event as {text?: unknown}).text === "string"
+		))
+		.map(event => ({
+			kind: event.kind === "activity" && event.text.includes('"mcp_tool_call"') ? "command" : event.kind,
+			text: event.kind === "stderr"
+				? event.text.replace(/^\d{4}-\d{2}-\d{2}T\S+\s+/, "")
+				: event.text,
+		}));
+}
+
+const stepActionButtonSx = {
+	color: Color.TextSecondary,
+	borderColor: Color.Line,
+	borderRadius: 999,
+	"&.Mui-disabled": {
+		color: Color.TextSecondary,
+		borderColor: Color.Line,
+	},
+	"&:hover": {
+		borderColor: Color.Line,
+		backgroundColor: "rgba(255,255,255,0.03)",
+	},
+} as const;
+
+function formatLineLabel(
+	line: number,
+	t: (key: string, options?: Record<string, unknown>) => string
+): string {
+	return line < 0
+		? t("agent.lineFromEnd", { count: Math.abs(line) })
+		: String(line);
+}
+
+function formatLineRange(
+	startLine: number,
+	endLine: number,
+	t: (key: string, options?: Record<string, unknown>) => string
+): string {
+	return `${formatLineLabel(startLine, t)} - ${formatLineLabel(endLine, t)}`;
+}
+
+function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: Record<string, unknown>) => string): ParamItem[] {
+	const params = step.params ?? {};
+	const items: ParamItem[] = [];
+	const push = (label: string, value?: string, newLine = false) => {
+		if (value === undefined || value === "") return;
+		items.push({ label, value, newLine });
+	};
+	const pushFlag = (label: string, enabled: boolean) => {
+		if (!enabled) return;
+		items.push({ label });
+	};
+	switch (step.tool) {
+		case "read_file": {
+			const reads: Record<string, unknown>[] = [];
+			if (typeof params.path === "string") reads.push(params);
+			if (Array.isArray(params.reads)) {
+				reads.push(...(params.reads as unknown[]).filter(
+					(item): item is Record<string, unknown> => item !== null && typeof item === "object"
+				));
+			}
+			for (let i = 0; i < reads.length; i++) {
+				const read = reads[i];
+				const path = typeof read.path === "string" ? read.path : "";
+				const startLine = typeof read.startLine === "number" ? read.startLine : 1;
+				const endLine = typeof read.endLine === "number"
+					? read.endLine
+					: (startLine < 0 ? -1 : 300);
+				push(t("agent.paramLabels.file"), path, i > 0);
+				push(t("agent.paramLabels.lines"), formatLineRange(startLine, endLine, t));
+			}
+			return items;
+		}
+		case "glob_files": {
+			let path = typeof params.path === "string" ? params.path : ".";
+			if (path === ".") {
+				path = t("agent.workspace");
+			}
+			const globs = Array.isArray(params.globs)
+				? (params.globs as unknown[]).filter(item => typeof item === "string").join(", ")
+				: "";
+			push(t("agent.paramLabels.basePath"), path);
+			push(t("agent.paramLabels.fileFilter"), globs);
+			return items;
+		}
+		case "grep_files": {
+			let path = typeof params.path === "string" ? params.path : ".";
+			if (path === ".") {
+				path = t("agent.workspace");
+			}
+			const pattern = typeof params.pattern === "string" ? params.pattern : "";
+			const useRegex = params.useRegex === true;
+			const caseSensitive = params.caseSensitive === true;
+			const limit = typeof params.limit === "number" ? params.limit : undefined;
+			const offset = typeof params.offset === "number" ? params.offset : undefined;
+			const groupByFile = params.groupByFile === true;
+			const globs = Array.isArray(params.globs)
+				? (params.globs as unknown[]).filter(item => typeof item === "string").join(", ")
+				: "";
+			push(t("agent.paramLabels.basePath"), path);
+			push(t("agent.paramLabels.contentPattern"), pattern);
+			push(t("agent.paramLabels.fileFilter"), globs);
+			pushFlag(t("agent.regex"), useRegex);
+			pushFlag(t("agent.caseSensitive"), caseSensitive);
+			pushFlag(t("agent.groupByFile"), groupByFile);
+			if (limit !== undefined) push(t("agent.paramLabels.limit"), String(limit));
+			if (offset !== undefined && offset > 0) push(t("agent.paramLabels.offset"), String(offset));
+			return items;
+		}
+		case "search_dora_doc": {
+			const pattern = typeof params.pattern === "string" ? params.pattern : "";
+		const docType = typeof params.docType === "string" ? params.docType : "dora-api";
+			const programmingLanguage = typeof params.programmingLanguage === "string"
+				? params.programmingLanguage
+				: "";
+			const limit = typeof params.limit === "number"
+				? params.limit
+				: (typeof params.topK === "number" ? params.topK : undefined);
+			const useRegex = params.useRegex === true;
+			const caseSensitive = params.caseSensitive === true;
+			push(t("agent.paramLabels.pattern"), pattern);
+			push(t("agent.paramLabels.docType"), t(`agent.docTypes.${docType}`, { defaultValue: docType }));
+			push(t("agent.paramLabels.language"), programmingLanguage);
+			if (limit !== undefined) push(t("agent.paramLabels.limit"), String(limit));
+			pushFlag(t("agent.regex"), useRegex);
+			pushFlag(t("agent.caseSensitive"), caseSensitive);
+			return items;
+		}
+		case "build": {
+			const paths: string[] = [];
+			if (typeof params.path === "string") paths.push(params.path);
+			if (Array.isArray(params.paths)) {
+				paths.push(...(params.paths as unknown[]).filter((path): path is string => typeof path === "string"));
+			}
+			for (let i = 0; i < paths.length; i++) {
+				const path = paths[i];
+				push(t("agent.paramLabels.buildTarget"), path === "." ? t("agent.workspace") : path, i > 0);
+			}
+			return items;
+		}
+		case "fetch_url": {
+			const url = typeof params.url === "string" ? params.url : "";
+			const target = typeof params.target === "string" ? params.target : "";
+			push(t("agent.paramLabels.url"), url);
+			push(t("agent.paramLabels.target"), target);
+			return items;
+		}
+		case "execute_command": {
+			const mode = typeof params.mode === "string" ? params.mode : "";
+			const cwd = typeof params.cwd === "string" ? params.cwd : "";
+			const command = typeof params.command === "string" ? params.command : "";
+			const timeoutSeconds = typeof params.timeoutSeconds === "number" ? params.timeoutSeconds : undefined;
+			push(t("agent.paramLabels.mode"), mode !== "" ? t(`agent.executeCommandModes.${mode}`, { defaultValue: mode }) : "");
+			if (mode === "git") {
+				push(t("agent.paramLabels.command"), command);
+			}
+			push(t("agent.paramLabels.cwd"), cwd);
+			if (timeoutSeconds !== undefined) push(t("agent.paramLabels.timeout"), String(timeoutSeconds));
+			return items;
+		}
+		case "list_sub_agents": {
+			const status = typeof params.status === "string" ? params.status : "";
+			const limit = typeof params.limit === "number" ? params.limit : undefined;
+			const offset = typeof params.offset === "number" ? params.offset : undefined;
+			const query = typeof params.query === "string" ? params.query : "";
+			push(t("agent.paramLabels.status"), status);
+			if (limit !== undefined) push(t("agent.paramLabels.limit"), String(limit));
+			if (offset !== undefined && offset > 0) push(t("agent.paramLabels.offset"), String(offset));
+			push(t("agent.paramLabels.query"), query);
+			return items;
+		}
+		case "compress_memory": {
+			const round = typeof params.round === "number" ? params.round : undefined;
+			const pendingMessages = typeof params.pendingMessages === "number" ? params.pendingMessages : undefined;
+			if (round !== undefined) push(t("agent.paramLabels.round"), String(round));
+			if (pendingMessages !== undefined) push(t("agent.paramLabels.messages"), String(pendingMessages));
+			return items;
+		}
+		default:
+			return items;
+	}
+}
+
+function getListedSubAgents(step: AgentSessionStep): SubAgentListItem[] {
+	if (step.tool !== "list_sub_agents" || !step.result || typeof step.result !== "object") {
+		return [];
+	}
+	const result = step.result as { sessions?: unknown };
+	if (!Array.isArray(result.sessions)) {
+		return [];
+	}
+	return result.sessions
+		.filter(item => item && typeof item === "object")
+		.map(item => item as Record<string, unknown>)
+		.map(item => ({
+			sessionId: typeof item.sessionId === "number" ? item.sessionId : undefined,
+			title: typeof item.title === "string" ? item.title : "",
+			status: typeof item.status === "string" ? item.status : "",
+			goal: typeof item.goal === "string" ? item.goal : "",
+			summary: typeof item.summary === "string" ? item.summary : "",
+			resultFilePath: typeof item.resultFilePath === "string" ? item.resultFilePath : "",
+			artifactDir: typeof item.artifactDir === "string" ? item.artifactDir : "",
+			finishedAt: typeof item.finishedAt === "string" ? item.finishedAt : "",
+		}));
+}
+
+function getSubAgentHandoffMeta(step: AgentSessionStep): {
+	summary: string;
+	resultFilePath: string;
+	artifactDir: string;
+	finishedAt: string;
+	success?: boolean;
+	sourceTaskId?: number;
+	changeSet?: AgentChangeSetSummary;
+} | null {
+	if (step.tool !== "sub_agent_handoff" || !step.result || typeof step.result !== "object") {
+		return null;
+	}
+	const result = step.result as Record<string, unknown>;
+	return {
+		summary: typeof result.summary === "string" ? result.summary : step.reason,
+		resultFilePath: typeof result.resultFilePath === "string" ? result.resultFilePath : "",
+		artifactDir: typeof result.artifactDir === "string" ? result.artifactDir : "",
+		finishedAt: typeof result.finishedAt === "string" ? result.finishedAt : "",
+		success: result.success === true ? true : (result.success === false ? false : undefined),
+		sourceTaskId: typeof result.sourceTaskId === "number" ? result.sourceTaskId : undefined,
+		changeSet: result.changeSet && typeof result.changeSet === "object" && (result.changeSet as Record<string, unknown>).success === true
+			? result.changeSet as AgentChangeSetSummary
+			: undefined,
+	};
+}
+
+function getStatusChipColor(status: string) {
+	switch (status) {
+		case "RUNNING":
+			return { borderColor: "rgba(120,170,255,0.35)", color: "rgb(140,188,255)" };
+		case "DONE":
+			return { borderColor: "rgba(120,200,140,0.35)", color: "rgb(140,220,160)" };
+		case "FAILED":
+			return { borderColor: "rgba(255,140,140,0.35)", color: "rgb(255,170,170)" };
+		default:
+			return { borderColor: Color.Line, color: Color.TextSecondary };
+	}
+}
+
+function getBuildItems(step: AgentSessionStep): { file: string; message: string; success: boolean }[] {
+	const result = step.result;
+	if (!result || typeof result !== "object" || !Array.isArray((result as { results?: unknown[] }).results)) return [];
+	const items: { file: string; message: string; success: boolean }[] = [];
+	for (const value of (result as { results: unknown[] }).results) {
+		if (!value || typeof value !== "object") continue;
+		const buildResult = value as Record<string, unknown>;
+		const path = typeof buildResult.path === "string" ? buildResult.path : "";
+		const messages = Array.isArray(buildResult.messages) ? buildResult.messages : [];
+		if (messages.length === 0) {
+			items.push({
+				file: path,
+				message: typeof buildResult.message === "string" ? buildResult.message : "",
+				success: buildResult.success === true,
+			});
+			continue;
+		}
+		for (const value of messages) {
+			if (!value || typeof value !== "object") continue;
+			const message = value as Record<string, unknown>;
+			items.push({
+				file: typeof message.file === "string" ? message.file : path,
+				message: typeof message.message === "string" ? message.message : "",
+				success: message.success === true,
+			});
+		}
+	}
+	return items;
+}
+
+function getExecuteCommandDetails(step: AgentSessionStep): ExecuteCommandDetails | null {
+	if (step.tool !== "execute_command") return null;
+	const params = step.params ?? {};
+	const result = step.result ?? {};
+	const mode = typeof params.mode === "string" ? params.mode : "";
+	const script = mode === "lua" && typeof params.code === "string" ? params.code : "";
+	const output = typeof result.output === "string" ? result.output : undefined;
+	return {
+		scriptLabelKey: "agent.executeCommandDetails.script",
+		script,
+		output,
+	};
+}
+
+function getToolProgress(step: AgentSessionStep): {
+	mode: string;
+	label: string;
+	message: string;
+	progress?: number;
+	hasDeterminateProgress: boolean;
+	stage?: string;
+	gitState?: string;
+	jobId?: number;
+} | undefined {
+	if (step.tool !== "fetch_url" && step.tool !== "execute_command") return undefined;
+	if (step.status !== "RUNNING") return undefined;
+	const result = step.result;
+	if (!result || typeof result !== "object") return undefined;
+	const mode = typeof result.mode === "string"
+		? result.mode
+		: (step.tool === "fetch_url" ? "download" : (typeof step.params?.mode === "string" ? step.params.mode : ""));
+	const progress = typeof result.progress === "number" && Number.isFinite(result.progress)
+		? Math.max(0, Math.min(1, result.progress))
+		: undefined;
+	const label = step.tool === "fetch_url"
+		? "agent.fetchUrl.downloading"
+		: (mode === "git" ? "agent.executeCommandRunning.git" : "agent.executeCommandRunning.lua");
+	const message = typeof result.message === "string" && result.message !== ""
+		? result.message
+		: (step.tool === "fetch_url" ? "downloading" : "running");
+	const stage = typeof result.gitKind === "string" && result.gitKind !== ""
+		? result.gitKind
+		: (typeof result.stage === "string" && result.stage !== "" ? result.stage : undefined);
+	const gitState = typeof result.gitState === "string" && result.gitState !== "" ? result.gitState : undefined;
+	const jobId = typeof result.jobId === "number" ? result.jobId : undefined;
+	const hasDeterminateProgress = step.tool === "execute_command" && mode === "git"
+		? progress !== undefined && progress > 0
+		: progress !== undefined;
+	return { mode, label, message, progress, hasDeterminateProgress, stage, gitState, jobId };
+}
+
+function ExpandableCommandBlock(props: {
+	title: string;
+	content: string;
+	emptyText?: string;
+	language?: string;
+	open: boolean;
+	onToggle: () => void;
+}) {
+	const content = props.content !== "" ? props.content : (props.emptyText ?? "");
+	const markdownContent = props.language ? `~~~${props.language}\n${content}\n~~~` : "";
+	return (
+		<Box>
+			<Button
+				size="small"
+				variant="text"
+				onClick={props.onToggle}
+				sx={{
+					px: 0,
+					minWidth: 0,
+					color: Color.TextSecondary,
+					textTransform: "none",
+					"&:hover": {
+						backgroundColor: "transparent",
+						color: Color.TextPrimary,
+					},
+				}}
+			>
+				{props.open ? "▾" : "▸"} {props.title}
+			</Button>
+			<Collapse in={props.open} timeout="auto" unmountOnExit>
+				<Box
+					sx={{
+						border: `0.5px solid ${Color.Line}`,
+						borderRadius: 2,
+						backgroundColor: "rgba(255,255,255,0.025)",
+						color: Color.TextPrimary,
+						fontSize: 12,
+						lineHeight: 1.55,
+						overflow: "hidden",
+						"& .markdown-body pre": {
+							m: 0,
+							backgroundColor: "transparent",
+						},
+						"& .markdown-body pre > div": {
+							overflow: "visible !important",
+						},
+						"& .markdown-body pre code": {
+							display: "block",
+							padding: "8px",
+						},
+					}}
+				>
+					<MacScrollbar skin="dark" style={{ width: "100%", maxHeight: 320, padding: props.language ? undefined : "8px 10px" }}>
+						{props.language ? (
+							<Markdown content={markdownContent} contentPadding={0} inheritTypography />
+						) : (
+							<Box
+								component="pre"
+								sx={{
+									m: 0,
+									fontFamily: 'Menlo, Monaco, Consolas, "Liberation Mono", monospace',
+									fontSize: "inherit",
+									lineHeight: "inherit",
+									whiteSpace: "pre-wrap",
+									wordBreak: "break-word",
+								}}
+							>
+								{content}
+							</Box>
+						)}
+					</MacScrollbar>
+				</Box>
+			</Collapse>
+		</Box>
+	);
+}
+
+function AgentStepListBody(props: AgentStepListProps) {
+	const { t } = useTranslation();
+	const [openedBuildErrors, setOpenedBuildErrors] = React.useState<Record<number, boolean>>({});
+	const [openedCommandBlocks, setOpenedCommandBlocks] = React.useState<Record<string, boolean>>({});
+	const {
+		steps,
+		checkpointMap,
+		diffs,
+		taskDiffs,
+		diffLoadingId,
+		taskDiffLoadingId,
+		openedDiffId,
+		openedTaskDiffId,
+		running,
+		rollingBack,
+		onToggleDiff,
+		onToggleTaskDiff,
+		onRollback,
+		onRollbackTaskChangeSet,
+		onOpenFile,
+	} = props;
+	return (
+		<Stack spacing={2} sx={{ width: "100%", maxWidth: "100%", minWidth: 0, overflowX: "hidden" }}>
+			{steps.map(step => {
+				const checkpoint = step.checkpointId ? checkpointMap.get(step.checkpointId) : undefined;
+				const questionnaireAnswer = step.tool === "questionnaire_answer"
+					&& (step.result?.status === "answered" || step.result?.status === "dismissed")
+					&& typeof step.result.displayText === "string"
+					? step.result.displayText
+					: undefined;
+				if (questionnaireAnswer !== undefined) {
+					return (
+						<Box
+							key={step.id}
+							data-agent-step-id={step.id}
+							sx={{ display: "flex", justifyContent: "flex-end", minWidth: 0 }}
+						>
+							<Box sx={{
+								maxWidth: "78%",
+								width: "auto",
+								minWidth: 0,
+								borderRadius: 3,
+								px: 2,
+								py: 1.5,
+								backgroundColor: "rgba(255,255,255,0.06)",
+								boxShadow: "inset 0 1px 0 rgba(255,255,255,0.02)",
+							}}>
+								<Typography sx={{ color: Color.TextPrimary, whiteSpace: "pre-wrap", fontSize: 16, lineHeight: 1.75 }}>
+									{questionnaireAnswer}
+								</Typography>
+							</Box>
+						</Box>
+					);
+				}
+				const questionnaireSummary = step.tool === "ask_user"
+					&& (step.result?.status === "answered" || step.result?.status === "dismissed")
+					? {
+						title: typeof step.result.title === "string" && step.result.title.trim() !== ""
+							? step.result.title
+							: t("agent.questionnaire.titleFallback"),
+						dismissed: step.result.status === "dismissed",
+					}
+					: undefined;
+				const paramItems = summarizeToolParams(step, t);
+				const canViewDiff = step.tool !== "delete_file";
+				const buildItems = step.tool === "build" ? getBuildItems(step) : [];
+				const buildTotal = buildItems.length;
+				const buildResultsTruncated = buildTotal > buildItems.length;
+				const showBuildResults = buildItems.length > 0;
+				const buildErrorsOpened = openedBuildErrors[step.id] === true;
+				const toolProgress = getToolProgress(step);
+				const executeCommandDetails = getExecuteCommandDetails(step);
+				const hasReasoning = step.reasoningContent.trim() !== "";
+				const primaryContent = step.reason || (hasReasoning ? step.reasoningContent : "");
+				const handoffMeta = getSubAgentHandoffMeta(step);
+				const visiblePrimaryContent = step.tool === "sub_agent_handoff" ? "" : primaryContent;
+					// A completed visual answer replaces the agent's reasoning text.
+					const hasVisionAnswer = step.tool === "analyze_image"
+					&& typeof step.result?.report === "string"
+					&& (step.result.report as string).trim() !== "";
+				const suppressedPrimaryContent = visiblePrimaryContent !== "" && hasVisionAnswer ? "" : visiblePrimaryContent;
+				const listedSubAgents = getListedSubAgents(step);
+				const historyEntryPreview = step.tool === "compress_memory" && typeof step.result?.historyEntryPreview === "string"
+					? step.result.historyEntryPreview
+					: "";
+				const localAgentTranscript = step.tool === "local_agent_message" && typeof step.result?.transcript === "string"
+					? step.result.transcript
+					: "";
+				const isSystemStep = step.tool === "compress_memory" || step.tool === "merge_memory" || step.tool === "sub_agent_handoff";
+				const hasCompletedToolOutcome = step.status === "FAILED"
+					&& !isSystemStep
+					&& step.result?.success === false
+					&& step.result?.interrupted !== true;
+				const toolFailureMessage = hasCompletedToolOutcome && typeof step.result?.message === "string"
+					? step.result.message.trim()
+					: "";
+				return (
+					<Box key={step.id} data-agent-step-id={step.id} sx={{
+						borderLeft: `2px solid ${isSystemStep ? "rgba(255,196,110,0.32)" : Color.Line}`,
+						pl: 1.5,
+						py: 0.25,
+						width: "100%",
+						maxWidth: "100%",
+						minWidth: 0,
+						boxSizing: "border-box",
+						overflowWrap: "anywhere",
+						wordBreak: "break-word",
+					}}>
+						<Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+							<Typography variant="caption" sx={{ color: Color.TextSecondary }}>
+								{step.step}
+							</Typography>
+							<Chip
+								size="small"
+								label={t(`agent.toolNames.${step.tool}`, { defaultValue: step.tool })}
+								variant="outlined"
+								sx={{
+									borderColor: isSystemStep ? "rgba(255,196,110,0.32)" : Color.Line,
+									color: isSystemStep ? "rgb(255,214,153)" : Color.TextPrimary,
+								}}
+							/>
+							{step.status !== "DONE" && !hasCompletedToolOutcome ? (
+								<Chip size="small" label={step.status} variant="outlined" sx={{ borderColor: Color.Line, color: Color.TextSecondary }} />
+							) : null}
+						</Stack>
+						{questionnaireSummary ? (
+							<Typography sx={{ color: Color.TextPrimary, fontSize: 16, lineHeight: 1.65, mt: 1 }}>
+								{questionnaireSummary.title}
+							</Typography>
+						) : null}
+						{suppressedPrimaryContent !== "" ? (
+							<Box
+								sx={{
+									mt: 1,
+									padding: 0,
+									width: '100%',
+									maxWidth: '100%',
+									minWidth: 0,
+									minHeight: 0,
+									backgroundColor: "transparent",
+									color: Color.TextPrimary,
+									fontSize: 16,
+									lineHeight: 1.65,
+									'& .markdown-body p': { whiteSpace: 'pre-wrap' },
+									'& .markdown-body > :first-of-type': { marginTop: 0 },
+									'& .markdown-body > :last-child': { marginBottom: 0 },
+								}}
+							>
+								<Markdown content={suppressedPrimaryContent} contentPadding={0} inheritTypography />
+							</Box>
+						) : null}
+						{historyEntryPreview !== "" ? (
+							<Typography variant="body2" sx={{ color: Color.TextSecondary, whiteSpace: "pre-wrap", lineHeight: 1.6, mt: 0.75 }}>
+								{historyEntryPreview}
+							</Typography>
+						) : null}
+						{localAgentTranscript !== "" ? (
+							<Box component="pre" data-local-agent-transcript="true" sx={{mt: 1, mb: 0, p: 1.25, maxHeight: 420, overflow: 'auto', whiteSpace: 'pre-wrap', color: Color.TextSecondary, backgroundColor: Color.BackgroundDark, borderRadius: 1.5, fontSize: 13, lineHeight: 1.55}}>
+								{localAgentTranscript}
+							</Box>
+						) : null}
+						{handoffMeta ? (
+							<Box sx={{ mt: 1.25 }}>
+								<Stack spacing={1}>
+									{handoffMeta.summary ? (
+										<Box
+											sx={{
+												padding: 0,
+												width: '100%',
+												maxWidth: '100%',
+												minWidth: 0,
+												backgroundColor: "transparent",
+												color: Color.TextPrimary,
+												fontSize: 16,
+												lineHeight: 1.65,
+												'& .markdown-body p': { whiteSpace: 'pre-wrap' },
+												'& .markdown-body > :first-of-type': { marginTop: 0 },
+												'& .markdown-body > :last-child': { marginBottom: 0 },
+											}}
+										>
+											<Markdown content={handoffMeta.summary} contentPadding={0} inheritTypography />
+										</Box>
+									) : null}
+									<Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
+										{handoffMeta.success !== undefined ? (
+											<Chip
+												size="small"
+												label={handoffMeta.success ? t("agent.subAgentResult.done") : t("agent.subAgentResult.failed")}
+												variant="outlined"
+												sx={{
+													height: 22,
+													...(handoffMeta.success
+														? { borderColor: "rgba(120,200,140,0.35)", color: "rgb(140,220,160)" }
+														: { borderColor: "rgba(255,140,140,0.35)", color: "rgb(255,170,170)" }),
+												}}
+											/>
+										) : null}
+										{handoffMeta.finishedAt ? (
+											<Typography variant="caption" sx={{ color: Color.TextSecondary }}>
+												{handoffMeta.finishedAt}
+											</Typography>
+										) : null}
+									</Stack>
+									{handoffMeta.artifactDir ? (
+										<Typography variant="body2" sx={{ color: Color.TextSecondary, lineHeight: 1.6 }}>
+											{t("agent.subAgentResult.artifactDir")}: {handoffMeta.artifactDir}
+										</Typography>
+									) : null}
+									{handoffMeta.changeSet && handoffMeta.sourceTaskId ? (
+										<AgentChangeSetSummaryCard
+											changeSet={handoffMeta.changeSet}
+											diffs={taskDiffs[handoffMeta.sourceTaskId] ?? []}
+											diffOpen={openedTaskDiffId === handoffMeta.sourceTaskId}
+											diffLoading={taskDiffLoadingId === handoffMeta.sourceTaskId}
+											rollbackLoading={rollingBack === -handoffMeta.sourceTaskId}
+											running={running}
+											rollbackLabel={t("agent.rollbackSubTaskChanges")}
+											onToggleDiff={() => onToggleTaskDiff(handoffMeta.sourceTaskId!)}
+											onRollback={() => onRollbackTaskChangeSet(handoffMeta.sourceTaskId!)}
+											onOpenFile={onOpenFile}
+										/>
+									) : null}
+								</Stack>
+							</Box>
+						) : null}
+						{listedSubAgents.length > 0 ? (
+							<Stack spacing={1} sx={{ mt: 1.25 }}>
+								{listedSubAgents.map((item, index) => {
+									const chipSx = getStatusChipColor(item.status ?? "");
+									return (
+										<Box
+											key={`${item.sessionId ?? 0}:${item.title ?? ""}:${index}`}
+											sx={{
+												border: `0.5px solid ${Color.Line}`,
+												borderRadius: 2,
+												px: 1.25,
+												py: 1,
+												backgroundColor: "rgba(255,255,255,0.02)",
+											}}
+										>
+											<Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
+												<Chip
+													size="small"
+													label={item.status ?? "UNKNOWN"}
+													variant="outlined"
+													sx={{ height: 22, ...chipSx }}
+												/>
+												<Typography variant="body2" sx={{ color: Color.TextPrimary }}>
+													{item.title || `sub agent ${item.sessionId ?? "?"}`}
+												</Typography>
+											</Stack>
+											{item.resultFilePath ? (
+												<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block", mt: 0.75 }}>
+													{t("agent.subAgentResult.resultFile")}:{" "}
+													{onOpenFile ? (
+														<Box
+															component="button"
+															type="button"
+															onClick={() => onOpenFile(item.resultFilePath!)}
+															sx={{
+																display: "inline",
+																p: 0,
+																m: 0,
+																border: "none",
+																background: "none",
+																color: Color.TextPrimary,
+																cursor: "pointer",
+																font: "inherit",
+																textDecoration: "underline",
+																textUnderlineOffset: "2px",
+															}}
+														>
+															{item.resultFilePath}
+														</Box>
+													) : item.resultFilePath}
+												</Typography>
+											) : null}
+										</Box>
+									);
+								})}
+							</Stack>
+						) : null}
+						<AgentVisionEvidence step={step} />
+						{paramItems.length > 0 ? (
+							<Typography variant="caption" sx={{
+								color: Color.TextSecondary,
+								display: "block",
+								maxWidth: "100%",
+								mt: step.reason ? 0.75 : 1,
+								lineHeight: 1.6,
+								whiteSpace: "normal",
+								overflowWrap: "anywhere",
+								wordBreak: "break-word",
+							}}>
+							{paramItems.map((item, index) => (
+								<React.Fragment key={`${item.label}:${item.value ?? ""}:${index}`}>
+									{index > 0 ? (item.newLine ? <br /> : " · ") : null}
+										{item.value !== undefined ? `${item.label}: ${item.value}` : item.label}
+									</React.Fragment>
+								))}
+							</Typography>
+						) : null}
+						{toolFailureMessage !== "" ? (
+							<Typography variant="body2" sx={{ color: "rgb(255,170,170)", whiteSpace: "pre-wrap", lineHeight: 1.6, mt: 0.75 }}>
+								{toolFailureMessage}
+							</Typography>
+						) : null}
+						{questionnaireSummary ? (
+							<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block", mt: 0.75, lineHeight: 1.6 }}>
+								{t("agent.paramLabels.status")}:{" "}
+								{t(questionnaireSummary.dismissed
+									? "agent.questionnaire.dismissedStatus"
+									: "agent.questionnaire.answeredStatus")}
+							</Typography>
+						) : null}
+						{executeCommandDetails ? (
+							<Stack spacing={0.25} sx={{ mt: 1 }}>
+								{executeCommandDetails.script !== "" ? (
+									<ExpandableCommandBlock
+										title={t(executeCommandDetails.scriptLabelKey)}
+										content={executeCommandDetails.script}
+										language="lua"
+										open={openedCommandBlocks[`${step.id}:script`] === true}
+										onToggle={() => setOpenedCommandBlocks(prev => ({
+											...prev,
+											[`${step.id}:script`]: prev[`${step.id}:script`] !== true,
+										}))}
+									/>
+								) : null}
+								{executeCommandDetails.output !== undefined ? (
+									<ExpandableCommandBlock
+										title={t("agent.executeCommandDetails.output")}
+										content={executeCommandDetails.output}
+										emptyText={t("agent.executeCommandDetails.noOutput")}
+										open={openedCommandBlocks[`${step.id}:output`] === true}
+										onToggle={() => setOpenedCommandBlocks(prev => ({
+											...prev,
+											[`${step.id}:output`]: prev[`${step.id}:output`] !== true,
+										}))}
+									/>
+								) : null}
+							</Stack>
+						) : null}
+						{toolProgress ? (
+							<Box sx={{ mt: 1.25 }}>
+								<Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.75 }}>
+									<Typography variant="caption" sx={{ color: Color.TextSecondary }}>
+										{t(toolProgress.label)}
+									</Typography>
+									<Typography variant="caption" sx={{ color: Color.TextSecondary }}>
+										{[
+											toolProgress.stage,
+											toolProgress.gitState,
+											toolProgress.jobId !== undefined ? `#${toolProgress.jobId}` : undefined,
+											toolProgress.message,
+											toolProgress.hasDeterminateProgress && toolProgress.progress !== undefined ? `${Math.round(toolProgress.progress * 100)}%` : undefined,
+										].filter(Boolean).join(" · ")}
+									</Typography>
+								</Stack>
+								<LinearProgress
+									variant={toolProgress.hasDeterminateProgress ? "determinate" : "indeterminate"}
+									value={toolProgress.hasDeterminateProgress && toolProgress.progress !== undefined ? toolProgress.progress * 100 : undefined}
+									sx={{
+										height: 3,
+										backgroundColor: `${Color.Theme}1f`,
+										"& .MuiLinearProgress-bar": {
+											backgroundColor: `${Color.Theme}b3`,
+										},
+									}}
+								/>
+							</Box>
+						) : null}
+						{showBuildResults ? (
+							<Box sx={{ mt: 1.25 }}>
+								<Button
+									size="small"
+									variant="text"
+									onClick={() => setOpenedBuildErrors(prev => ({ ...prev, [step.id]: !buildErrorsOpened }))}
+									sx={{
+										px: 0,
+										minWidth: 0,
+										color: Color.TextSecondary,
+										textTransform: "none",
+										"&:hover": {
+											backgroundColor: "transparent",
+											color: Color.TextPrimary,
+										},
+										}}
+									>
+										{buildErrorsOpened
+											? t(buildResultsTruncated ? "agent.hideBuildResultsPartial" : "agent.hideBuildResults", { count: buildItems.length, total: buildTotal })
+											: t(buildResultsTruncated ? "agent.showBuildResultsPartial" : "agent.showBuildResults", { count: buildItems.length, total: buildTotal })}
+									</Button>
+								<Collapse in={buildErrorsOpened} timeout="auto" unmountOnExit>
+									<Stack spacing={1} sx={{ mt: 1 }}>
+										{buildItems.map((item, index) => (
+											<Box
+												key={`${item.file}:${index}`}
+												sx={{
+													border: `0.5px solid ${Color.Line}`,
+													borderRadius: 2,
+													px: 1.25,
+													py: 1,
+													backgroundColor: "rgba(255,255,255,0.02)",
+												}}
+											>
+												<Stack direction="row" spacing={1} alignItems="center" sx={{ mb: item.message !== "" ? 0.5 : 0 }}>
+													<Chip
+														size="small"
+														label={item.success ? t("agent.buildItemStatus.success") : t("agent.buildItemStatus.failed")}
+														variant="outlined"
+														sx={{
+															height: 22,
+															borderColor: item.success ? "rgba(120,200,140,0.35)" : Color.Line,
+															color: item.success ? "rgb(140,220,160)" : Color.TextSecondary,
+														}}
+													/>
+													<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block" }}>
+														{item.file}
+													</Typography>
+												</Stack>
+												{item.message !== "" ? (
+													<Typography variant="body2" sx={{ color: Color.TextPrimary, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+														{item.message}
+													</Typography>
+												) : null}
+											</Box>
+										))}
+									</Stack>
+								</Collapse>
+							</Box>
+						) : null}
+						{step.checkpointSeq ? (
+							<Box sx={{ mt: 1.25 }}>
+								<Typography variant="caption" sx={{ color: Color.TextSecondary, display: "block", mb: 1 }}>
+									{t("agent.checkpointLabel", { seq: step.checkpointSeq })}{" "}
+									{step.files?.map((file, index) => (
+										<React.Fragment key={`${file.path}:${index}`}>
+											{index > 0 ? ", " : null}
+											{onOpenFile ? (
+												<Box
+													component="button"
+													type="button"
+													onClick={() => onOpenFile(file.path)}
+													sx={{
+														display: "inline",
+														p: 0,
+														m: 0,
+														border: "none",
+														background: "none",
+														color: Color.TextSecondary,
+														cursor: "pointer",
+														font: "inherit",
+														textDecoration: "underline",
+														textUnderlineOffset: "2px",
+														"&:hover": {
+															color: Color.TextPrimary,
+														},
+													}}
+												>
+													{file.path}
+												</Box>
+											) : file.path}
+										</React.Fragment>
+									))}
+								</Typography>
+								<Stack direction="row" spacing={1} alignItems="center">
+									{canViewDiff ? (
+										<Button
+											size="small"
+											variant="outlined"
+											onClick={() => onToggleDiff(step)}
+											disabled={diffLoadingId === step.checkpointId}
+											sx={stepActionButtonSx}
+										>
+											{openedDiffId === step.checkpointId ? t("agent.hideDiff") : t("agent.viewDiff")}
+										</Button>
+									) : null}
+									<Button
+										size="small"
+										variant="outlined"
+										color="warning"
+										onClick={() => onRollback(step)}
+										disabled={running || rollingBack === step.checkpointSeq}
+										sx={stepActionButtonSx}
+									>
+										{t("agent.rollback")}
+									</Button>
+									{checkpoint?.status ? (
+										<Chip
+											size="small"
+											label={t(`agent.checkpointStatus.${checkpoint.status.toLowerCase()}`)}
+											variant="outlined"
+										/>
+									) : null}
+									{canViewDiff && diffLoadingId === step.checkpointId ? <CircularProgress size={16} /> : null}
+								</Stack>
+								{canViewDiff && openedDiffId === step.checkpointId ? (
+									<Box sx={{ mt: 1.25 }}>
+										<React.Suspense fallback={<CircularProgress size={16} />}>
+											<Stack spacing={1}>
+												{(diffs[step.checkpointId!] ?? []).map(file => (
+													<AgentFileDiff key={`${file.path}:${file.op}`} file={file} />
+												))}
+											</Stack>
+										</React.Suspense>
+									</Box>
+								) : null}
+							</Box>
+						) : null}
+					</Box>
+				)
+			})}
+		</Stack>
+	);
+}
+
+type AgentStepRowProps = Omit<AgentStepListProps, "steps"> & {
+	step: AgentSessionStep;
+};
+
+function LocalAgentEventRow({event, index, isLast, step}: {
+	event: LocalAgentDisplayEvent;
+	index: number;
+	isLast: boolean;
+	step: AgentSessionStep;
+}) {
+	const {t} = useTranslation();
+	const [toolCallOpen, setToolCallOpen] = React.useState(false);
+	const eventColor = event.kind === "stderr" ? Color.Error : Color.TextSecondary;
+	const isToolCall = event.kind === "command";
+	const toolPreview = event.text.slice(0, 520).replace(/\s+/g, " ").trim();
+	const collapsedPreview = event.text.length > 520 || toolPreview.length > 260 ? `${toolPreview.slice(0, 260)}…` : toolPreview;
+	return (
+		<Box
+			data-agent-step-id={`${step.id}:${index}`}
+			data-local-agent-event-kind={event.kind}
+			sx={{
+				borderLeft: `2px solid ${event.kind === "stderr" ? "rgba(255,120,120,0.4)" : Color.Line}`,
+				pl: 1.5,
+				py: 0.25,
+				width: "100%",
+				maxWidth: "100%",
+				minWidth: 0,
+				boxSizing: "border-box",
+				overflowWrap: "anywhere",
+				wordBreak: "break-word",
+			}}
+		>
+			<Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+				<Typography variant="caption" sx={{color: Color.TextSecondary}}>
+					{index + 1}
+				</Typography>
+				<Chip
+					size="small"
+					label={event.kind}
+					variant="outlined"
+					sx={{borderColor: event.kind === "stderr" ? "rgba(255,120,120,0.4)" : Color.Line, color: eventColor, textTransform: "uppercase"}}
+				/>
+				{index === 0 ? (
+					<Typography variant="caption" sx={{color: Color.TextSecondary}}>{step.reason}</Typography>
+				) : null}
+				{isLast ? (
+					<Chip size="small" label={step.status} variant="outlined" sx={{borderColor: Color.Line, color: Color.TextSecondary}} />
+				) : null}
+			</Stack>
+			{event.kind === "assistant" ? (
+				<Box sx={{mt: 1, color: Color.TextPrimary, fontSize: 16, lineHeight: 1.65, '& .markdown-body > :first-of-type': {marginTop: 0}, '& .markdown-body > :last-child': {marginBottom: 0}}}>
+					<Markdown content={event.text} contentPadding={0} inheritTypography />
+				</Box>
+			) : isToolCall ? (
+				<Box sx={{mt: 0.5, minWidth: 0}}>
+					<Button
+						data-local-agent-tool-toggle="true"
+						size="small"
+						variant="text"
+						onClick={() => setToolCallOpen(open => !open)}
+						aria-expanded={toolCallOpen}
+						sx={{px: 0, minWidth: 0, maxWidth: "100%", color: Color.TextSecondary, textTransform: "none", justifyContent: "flex-start", textAlign: "left", '&:hover': {backgroundColor: "transparent", color: Color.TextPrimary}}}
+					>
+						<Box component="span" sx={{mr: 0.75, flex: "0 0 auto"}}>{toolCallOpen ? "▾" : "▸"}</Box>
+						<Box component="span" sx={{minWidth: 0, fontFamily: 'Menlo, Monaco, Consolas, "Liberation Mono", monospace', fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}>
+							{toolCallOpen ? t("agent.hideToolCall") : collapsedPreview}
+						</Box>
+					</Button>
+					<Collapse in={toolCallOpen} timeout="auto" unmountOnExit>
+						<Box sx={{mt: 0.5, border: `0.5px solid ${Color.Line}`, borderRadius: 1.5, backgroundColor: "rgba(255,255,255,0.025)", overflow: "hidden"}}>
+							<MacScrollbar skin="dark" style={{width: "100%", maxHeight: 360, padding: "8px 10px"}}>
+								<Typography component="pre" sx={{m: 0, minWidth: 0, whiteSpace: "pre-wrap", overflowWrap: "anywhere", color: eventColor, fontFamily: 'Menlo, Monaco, Consolas, "Liberation Mono", monospace', fontSize: 12, lineHeight: 1.55}}>
+									{event.text}
+								</Typography>
+							</MacScrollbar>
+						</Box>
+					</Collapse>
+				</Box>
+			) : (
+				<Typography component="pre" sx={{mt: 1, mb: 0, minWidth: 0, whiteSpace: "pre-wrap", overflowWrap: "anywhere", color: eventColor, fontFamily: "inherit", fontSize: 13, lineHeight: 1.55}}>
+					{event.text}
+				</Typography>
+			)}
+		</Box>
+	);
+}
+
+function LocalAgentEventRows({step}: {step: AgentSessionStep}) {
+	const events = getLocalAgentDisplayEvents(step);
+	return (
+		<Stack data-local-agent-events="true" spacing={2}>
+			{events.map((event, index) => (
+				<LocalAgentEventRow key={`${step.id}:${index}`} event={event} index={index} isLast={index === events.length - 1} step={step} />
+			))}
+		</Stack>
+	);
+}
+
+const AgentStepRow = React.memo(function AgentStepRow(props: AgentStepRowProps) {
+	const { step, ...listProps } = props;
+	const renderCount = recordAgentRowRender("step", step.id);
+	const localAgentEvents = getLocalAgentDisplayEvents(step);
+	return (
+		<Box
+			data-agent-step-row-id={step.id}
+			data-agent-step-render-count={renderCount}
+		>
+			{localAgentEvents.length > 0
+				? <LocalAgentEventRows step={step} />
+				: <AgentStepListBody {...listProps} steps={[step]} />}
+		</Box>
+	);
+});
+
+function AgentStepList(props: AgentStepListProps) {
+	const { steps, ...rowProps } = props;
+	return (
+		<Stack spacing={2}>
+			{steps.map(step => (
+				<AgentStepRow
+					key={step.id}
+					step={step}
+					{...rowProps}
+				/>
+			))}
+		</Stack>
+	);
+}
+
+export default React.memo(AgentStepList);

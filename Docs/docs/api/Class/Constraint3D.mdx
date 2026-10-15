@@ -1,0 +1,57 @@
+# Constraint3D
+
+**Description:**
+
+&emsp;&emsp;A two-body constraint owned by a PhysicsWorld3D.
+
+## world
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The owning world. Nil after the constraint is destroyed.
+
+**Signature:**
+```tl
+const world: PhysicsWorld3D | nil
+```
+
+## firstBody
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The first constrained body. Nil after the constraint is destroyed.
+
+**Signature:**
+```tl
+const firstBody: Body3D | nil
+```
+
+## secondBody
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The second constrained body. Nil after the constraint is destroyed.
+
+**Signature:**
+```tl
+const secondBody: Body3D | nil
+```
+
+## destroy
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes the constraint from its world and turns this into an empty object.
+
+**Signature:**
+```tl
+destroy: function(self: Constraint3D)
+```

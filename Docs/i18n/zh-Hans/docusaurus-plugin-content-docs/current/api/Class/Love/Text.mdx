@@ -1,0 +1,462 @@
+# Text
+
+**描述：**
+
+&emsp;&emsp;可绘制文本。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: Text): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: Text, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: Text): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## set
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;用新的未格式化字符串替换 Text 对象的内容。
+
+**签名：**
+```tl
+set: function(self: Text, text: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | string | 要使用的新文本字符串。 |
+
+## set
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;用新的未格式化字符串替换 Text 对象的内容。
+
+**签名：**
+```tl
+set: function(self: Text, text: {string | Color})
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | \{string | Color} | 包含用作新文本的颜色和字符串的表，格式为 \{color1, string1, color2, string2, ...}。 |
+
+## setf
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;用新的格式化字符串替换 Text 对象的内容。
+
+**签名：**
+```tl
+setf: function(self: Text, text: string, wrap_limit: number, align: AlignMode)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | string | 要使用的新文本字符串。 |
+| wrap_limit | number | 自动换行之前文本的最大宽度（以像素为单位）。 |
+| align | AlignMode | 文本的对齐方式。 |
+
+## setf
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;用新的格式化字符串替换 Text 对象的内容。
+
+**签名：**
+```tl
+setf: function(self: Text, text: {string | Color}, wrap_limit: number, align: AlignMode)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | \{string | Color} | 包含用作新文本的颜色和字符串的表，格式为 \{color1, string1, color2, string2, ...}。 |
+| wrap_limit | number | 自动换行之前文本的最大宽度（以像素为单位）。 |
+| align | AlignMode | 文本的对齐方式。 |
+
+## add
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将附加彩色文本添加到 Text 对象的指定位置。
+
+**签名：**
+```tl
+add: function(self: Text, text: ColoredText, transform: Transform): integer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | ColoredText | 要添加到对象的文本。 |
+| transform | Transform | 新文本在 x 轴上的位置。 （默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | index — 可与 Text:getWidth 或 Text:getHeight 一起使用的索引号。 |
+
+## add
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将附加彩色文本添加到 Text 对象的指定位置。
+
+**签名：**
+```tl
+add: function(self: Text, text: ColoredText, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number): integer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | ColoredText | 包含要添加到对象的颜色和字符串的表，格式为 \{color1, string1, color2, string2, ...}。 |
+| x | number | 新文本在 x 轴上的位置。 （默认值：0。） |
+| y | number | 新文本在 y 轴上的位置。 （默认值：0。） |
+| angle | number | 新文本的方向（以弧度表示）。 （默认值：0。） |
+| scale_x | number | x 轴上的比例因子。 （默认值：1。） |
+| scale_y | number | y 轴的比例因子。 （默认值：sx。） |
+| origin_x | number | x 轴上的原点偏移。 （默认值：0。） |
+| origin_y | number | y 轴上的原点偏移。 （默认值：0。） |
+| shear_x | number | x 轴上的剪切/倾斜因子。 （默认值：0。） |
+| shear_y | number | y 轴上的剪切/倾斜因子。 （默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | index — 可与 Text:getWidth 或 Text:getHeight 一起使用的索引号。 |
+
+## addf
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将附加格式化/彩色文本添加到 Text 对象的指定位置。
+
+	-- 在任何缩放、旋转和其他坐标转换之前应用自动换行限制。因此，即使比例参数发生变化，在给定相同的换行限制的情况下，每行的文本量也保持不变。
+
+**签名：**
+```tl
+addf: function(self: Text, text: ColoredText, wrap_limit: number, align: AlignMode, transform: Transform): integer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | ColoredText | 要添加到对象的文本。 |
+| wrap_limit | number | 自动换行之前文本的最大宽度（以像素为单位）。 |
+| align | AlignMode | 文本的对齐方式。 |
+| transform | Transform | 新文本的位置（x 轴）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | index — 可与 Text:getWidth 或 Text:getHeight 一起使用的索引号。 |
+
+## addf
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将附加格式化/彩色文本添加到 Text 对象的指定位置。
+
+	-- 在任何缩放、旋转和其他坐标转换之前应用自动换行限制。因此，即使比例参数发生变化，在给定相同的换行限制的情况下，每行的文本量也保持不变。
+
+**签名：**
+```tl
+addf: function(self: Text, text: ColoredText, wrap_limit: number, align: AlignMode, x?: number, y?: number, angle?: number, scale_x?: number, scale_y?: number, origin_x?: number, origin_y?: number, shear_x?: number, shear_y?: number): integer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | ColoredText | 包含要添加到对象的颜色和字符串的表，格式为 \{color1, string1, color2, string2, ...}。 |
+| wrap_limit | number | 自动换行之前文本的最大宽度（以像素为单位）。 |
+| align | AlignMode | 文本的对齐方式。 |
+| x | number | 新文本的位置（x 轴）。 |
+| y | number | 新文本的位置（y 轴）。 |
+| angle | number | 方向（弧度）。 （默认值：0。） |
+| scale_x | number | 比例因子（x 轴）。 （默认值：1。） |
+| scale_y | number | 比例因子（y 轴）。 （默认值：sx。） |
+| origin_x | number | 原点偏移（x 轴）。 （默认值：0。） |
+| origin_y | number | 原点偏移（y 轴）。 （默认值：0。） |
+| shear_x | number | 剪切/倾斜因子（x 轴）。 （默认值：0。） |
+| shear_y | number | 剪切/倾斜因子（y 轴）。 （默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | index — 可与 Text:getWidth 或 Text:getHeight 一起使用的索引号。 |
+
+## clear
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;清除文本对象的内容。
+
+**签名：**
+```tl
+clear: function(self: Text)
+```
+
+## setFont
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;替换文本使用的字体。
+
+**签名：**
+```tl
+setFont: function(self: Text, font: Font)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| font | Font | 与此 Text 对象一起使用的新字体。 |
+
+## getFont
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取与 Text 对象一起使用的 Font。
+
+**签名：**
+```tl
+getFont: function(self: Text): Font
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Font | 此文本对象使用的字体。 |
+
+## getWidth
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取文本的宽度（以像素为单位）。
+
+**签名：**
+```tl
+getWidth: function(self: Text): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | width — 文本的宽度。如果使用 Text:add 添加了多个子字符串，则返回最后一个子字符串的宽度。 |
+
+## getWidth
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取文本的宽度（以像素为单位）。
+
+**签名：**
+```tl
+getWidth: function(self: Text, index: integer): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | Text:add 或 Text:addf 返回的索引号。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 子字符串的宽度（在缩放和其他转换之前）。 |
+
+## getHeight
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取文本的高度（以像素为单位）。
+
+**签名：**
+```tl
+getHeight: function(self: Text): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | height  — 文本的高度。如果使用 Text:add 添加了多个子字符串，则返回最后一个子字符串的高度。 |
+
+## getHeight
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取文本的高度（以像素为单位）。
+
+**签名：**
+```tl
+getHeight: function(self: Text, index: integer): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | Text:add 或 Text:addf 返回的索引号。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | height  — 文本的高度。如果使用 Text:add 添加了多个子字符串，则返回最后一个子字符串的高度。 |
+
+## getDimensions
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取文本的宽度和高度（以像素为单位）。
+
+**签名：**
+```tl
+getDimensions: function(self: Text): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | width — 文本的宽度。如果使用 Text:add 添加了多个子字符串，则返回最后一个子字符串的宽度。 |
+| number | height — 文本的高度。如果使用 Text:add 添加了多个子字符串，则返回最后一个子字符串的高度。 |
+
+## getDimensions
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取文本的宽度和高度（以像素为单位）。
+
+**签名：**
+```tl
+getDimensions: function(self: Text, index: integer): number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| index | integer | Text:add 或 Text:addf 返回的索引号。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 子字符串的宽度（在缩放和其他转换之前）。 |
+| number | 子字符串的高度（在缩放和其他转换之前）。 |

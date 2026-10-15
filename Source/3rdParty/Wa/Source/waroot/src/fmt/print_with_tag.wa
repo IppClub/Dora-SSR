@@ -1,0 +1,8 @@
+// Copyright (C) 2024 武汉凹语言科技有限公司
+// SPDX-License-Identifier: MIT
+
+#wa:build fmt_tag
+
+func Println(x: int) {
+	println("fmt_tag:", x)
+}

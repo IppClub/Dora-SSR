@@ -1,0 +1,648 @@
+{
+  "feature_title_one": {
+    "message": "创作即享乐",
+    "description": "The feature title one in front page"
+  },
+  "feature_description_one": {
+    "message": "做游戏才是真正的玩游戏！",
+    "description": "The feature description one in front page"
+  },
+  "feature_title_two": {
+    "message": "不限设备，或场地",
+    "description": "The feature title two in front page"
+  },
+  "feature_description_two": {
+    "message": "在任何电子设备上极速提供开箱即用的游戏开发环境。",
+    "description": "The feature description two in front page"
+  },
+  "feature_title_three": {
+    "message": "编程游乐场",
+    "description": "The feature title three in front page"
+  },
+  "feature_description_three": {
+    "message": "提供多元的编程语言支持，满足你多样的编程口味！",
+    "description": "The feature description three in front page"
+  },
+  "theme.ErrorPageContent.title": {
+    "message": "页面已崩溃。",
+    "description": "The title of the fallback page when the page crashed"
+  },
+  "theme.NotFound.title": {
+    "message": "找不到页面",
+    "description": "The title of the 404 page"
+  },
+  "theme.NotFound.p1": {
+    "message": "我们找不到您要找的页面。",
+    "description": "The first paragraph of the 404 page"
+  },
+  "theme.NotFound.p2": {
+    "message": "请联系原始链接来源网站的所有者，并告知他们链接已损坏。",
+    "description": "The 2nd paragraph of the 404 page"
+  },
+  "theme.admonition.note": {
+    "message": "备注",
+    "description": "The default label used for the Note admonition (:::note)"
+  },
+  "theme.admonition.tip": {
+    "message": "提示",
+    "description": "The default label used for the Tip admonition (:::tip)"
+  },
+  "theme.admonition.danger": {
+    "message": "危险",
+    "description": "The default label used for the Danger admonition (:::danger)"
+  },
+  "theme.admonition.info": {
+    "message": "信息",
+    "description": "The default label used for the Info admonition (:::info)"
+  },
+  "theme.admonition.caution": {
+    "message": "警告",
+    "description": "The default label used for the Caution admonition (:::caution)"
+  },
+  "theme.BackToTopButton.buttonAriaLabel": {
+    "message": "回到顶部",
+    "description": "The ARIA label for the back to top button"
+  },
+  "theme.blog.archive.title": {
+    "message": "历史博文",
+    "description": "The page & hero title of the blog archive page"
+  },
+  "theme.blog.archive.description": {
+    "message": "历史博文",
+    "description": "The page & hero description of the blog archive page"
+  },
+  "theme.blog.paginator.navAriaLabel": {
+    "message": "博文列表分页导航",
+    "description": "The ARIA label for the blog pagination"
+  },
+  "theme.blog.paginator.newerEntries": {
+    "message": "较新的博文",
+    "description": "The label used to navigate to the newer blog posts page (previous page)"
+  },
+  "theme.blog.paginator.olderEntries": {
+    "message": "较旧的博文",
+    "description": "The label used to navigate to the older blog posts page (next page)"
+  },
+  "theme.blog.post.paginator.navAriaLabel": {
+    "message": "博文分页导航",
+    "description": "The ARIA label for the blog posts pagination"
+  },
+  "theme.blog.post.paginator.newerPost": {
+    "message": "较新一篇",
+    "description": "The blog post button label to navigate to the newer/previous post"
+  },
+  "theme.blog.post.paginator.olderPost": {
+    "message": "较旧一篇",
+    "description": "The blog post button label to navigate to the older/next post"
+  },
+  "theme.blog.post.plurals": {
+    "message": "{count} 篇博文",
+    "description": "Pluralized label for \"{count} posts\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+  },
+  "theme.blog.tagTitle": {
+    "message": "{nPosts} 含有标签「{tagName}」",
+    "description": "The title of the page for a blog tag"
+  },
+  "theme.tags.tagsPageLink": {
+    "message": "查看所有标签",
+    "description": "The label of the link targeting the tag list page"
+  },
+  "theme.colorToggle.ariaLabel": {
+    "message": "切换浅色/暗黑模式（当前为{mode}）",
+    "description": "The ARIA label for the color mode toggle"
+  },
+  "theme.colorToggle.ariaLabel.mode.dark": {
+    "message": "暗黑模式",
+    "description": "The name for the dark color mode"
+  },
+  "theme.colorToggle.ariaLabel.mode.light": {
+    "message": "浅色模式",
+    "description": "The name for the light color mode"
+  },
+  "theme.docs.breadcrumbs.navAriaLabel": {
+    "message": "页面路径",
+    "description": "The ARIA label for the breadcrumbs"
+  },
+  "theme.docs.paginator.navAriaLabel": {
+    "message": "文档分页导航",
+    "description": "The ARIA label for the docs pagination"
+  },
+  "theme.docs.paginator.previous": {
+    "message": "上一页",
+    "description": "The label used to navigate to the previous doc"
+  },
+  "theme.docs.paginator.next": {
+    "message": "下一页",
+    "description": "The label used to navigate to the next doc"
+  },
+  "theme.docs.tagDocListPageTitle.nDocsTagged": {
+    "message": "{count} 篇文档带有标签",
+    "description": "Pluralized label for \"{count} docs tagged\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+  },
+  "theme.docs.tagDocListPageTitle": {
+    "message": "{nDocsTagged}「{tagName}」",
+    "description": "The title of the page for a docs tag"
+  },
+  "theme.docs.versionBadge.label": {
+    "message": "版本：{versionLabel}"
+  },
+  "theme.docs.versions.unreleasedVersionLabel": {
+    "message": "此为 {siteTitle} {versionLabel} 版尚未发行的文档。",
+    "description": "The label used to tell the user that he's browsing an unreleased doc version"
+  },
+  "theme.docs.versions.unmaintainedVersionLabel": {
+    "message": "此为 {siteTitle} {versionLabel} 版的文档，现已不再积极维护。",
+    "description": "The label used to tell the user that he's browsing an unmaintained doc version"
+  },
+  "theme.docs.versions.latestVersionSuggestionLabel": {
+    "message": "最新的文档请参阅 {latestVersionLink} ({versionLabel})。",
+    "description": "The label used to tell the user to check the latest version"
+  },
+  "theme.docs.versions.latestVersionLinkLabel": {
+    "message": "最新版本",
+    "description": "The label used for the latest version suggestion link label"
+  },
+  "theme.common.editThisPage": {
+    "message": "编辑此页",
+    "description": "The link label to edit the current page"
+  },
+  "theme.common.headingLinkTitle": {
+    "message": "{heading}的直接链接",
+    "description": "Title for link to heading"
+  },
+  "theme.lastUpdated.atDate": {
+    "message": "于 {date} ",
+    "description": "The words used to describe on which date a page has been last updated"
+  },
+  "theme.lastUpdated.byUser": {
+    "message": "由 {user} ",
+    "description": "The words used to describe by who the page has been last updated"
+  },
+  "theme.lastUpdated.lastUpdatedAtBy": {
+    "message": "最后{byUser}{atDate}更新",
+    "description": "The sentence used to display when a page has been last updated, and by who"
+  },
+  "theme.navbar.mobileVersionsDropdown.label": {
+    "message": "选择版本",
+    "description": "The label for the navbar versions dropdown on mobile view"
+  },
+  "theme.AnnouncementBar.closeButtonAriaLabel": {
+    "message": "关闭",
+    "description": "The ARIA label for close button of announcement bar"
+  },
+  "theme.tags.tagsListLabel": {
+    "message": "标签：",
+    "description": "The label alongside a tag list"
+  },
+  "theme.blog.sidebar.navAriaLabel": {
+    "message": "最近博文导航",
+    "description": "The ARIA label for recent posts in the blog sidebar"
+  },
+  "theme.CodeBlock.copied": {
+    "message": "复制成功",
+    "description": "The copied button label on code blocks"
+  },
+  "theme.CodeBlock.copyButtonAriaLabel": {
+    "message": "复制代码到剪贴板",
+    "description": "The ARIA label for copy code blocks button"
+  },
+  "theme.CodeBlock.copy": {
+    "message": "复制",
+    "description": "The copy button label on code blocks"
+  },
+  "theme.CodeBlock.wordWrapToggle": {
+    "message": "切换自动换行",
+    "description": "The title attribute for toggle word wrapping button of code block lines"
+  },
+  "theme.NavBar.navAriaLabel": {
+    "message": "主导航",
+    "description": "The ARIA label for the main navigation"
+  },
+  "theme.navbar.mobileLanguageDropdown.label": {
+    "message": "选择语言",
+    "description": "The label for the mobile language switcher dropdown"
+  },
+  "theme.blog.post.readMore": {
+    "message": "阅读更多",
+    "description": "The label used in blog post item excerpts to link to full blog posts"
+  },
+  "theme.blog.post.readMoreLabel": {
+    "message": "阅读 {title} 的全文",
+    "description": "The ARIA label for the link to full blog posts from excerpts"
+  },
+  "theme.TOCCollapsible.toggleButtonLabel": {
+    "message": "本页总览",
+    "description": "The label used by the button on the collapsible TOC component"
+  },
+  "theme.blog.post.readingTime.plurals": {
+    "message": "阅读需 {readingTime} 分钟",
+    "description": "Pluralized label for \"{readingTime} min read\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+  },
+  "theme.docs.breadcrumbs.home": {
+    "message": "主页面",
+    "description": "The ARIA label for the home page in the breadcrumbs"
+  },
+  "theme.docs.sidebar.collapseButtonTitle": {
+    "message": "收起侧边栏",
+    "description": "The title attribute for collapse button of doc sidebar"
+  },
+  "theme.docs.sidebar.collapseButtonAriaLabel": {
+    "message": "收起侧边栏",
+    "description": "The title attribute for collapse button of doc sidebar"
+  },
+  "theme.docs.sidebar.navAriaLabel": {
+    "message": "文档侧边栏",
+    "description": "The ARIA label for the sidebar navigation"
+  },
+  "theme.docs.sidebar.closeSidebarButtonAriaLabel": {
+    "message": "关闭导航栏",
+    "description": "The ARIA label for close button of mobile sidebar"
+  },
+  "theme.navbar.mobileSidebarSecondaryMenu.backButtonLabel": {
+    "message": "← 回到主菜单",
+    "description": "The label of the back button to return to main menu, inside the mobile navbar sidebar secondary menu (notably used to display the docs sidebar)"
+  },
+  "theme.docs.sidebar.toggleSidebarButtonAriaLabel": {
+    "message": "切换导航栏",
+    "description": "The ARIA label for hamburger menu button of mobile navigation"
+  },
+  "theme.docs.sidebar.expandButtonTitle": {
+    "message": "展开侧边栏",
+    "description": "The ARIA label and title attribute for expand button of doc sidebar"
+  },
+  "theme.docs.sidebar.expandButtonAriaLabel": {
+    "message": "展开侧边栏",
+    "description": "The ARIA label and title attribute for expand button of doc sidebar"
+  },
+  "theme.ErrorPageContent.tryAgain": {
+    "message": "重试",
+    "description": "The label of the button to try again rendering when the React error boundary captures an error"
+  },
+  "theme.common.skipToMainContent": {
+    "message": "跳到主要内容",
+    "description": "The skip to content label used for accessibility, allowing to rapidly navigate to main content with keyboard tab/enter navigation"
+  },
+  "theme.tags.tagsPageTitle": {
+    "message": "标签",
+    "description": "The title of the tag list page"
+  },
+  "dora_enter_tutorial_button": {
+    "message": "快速上手",
+    "description": "The tutorial button in front page"
+  },
+  "theme.SearchPage.existingResultsTitle": {
+    "message": "“{query}” 的搜索结果",
+    "description": "The search page title for non-empty query"
+  },
+  "theme.SearchPage.emptyResultsTitle": {
+    "message": "搜索文档",
+    "description": "The search page title for empty query"
+  },
+  "theme.SearchPage.searchContext.everywhere": {
+    "message": "任何位置"
+  },
+  "theme.SearchPage.documentsFound.plurals": {
+    "message": "共找到 {count} 篇文档",
+    "description": "Pluralized label for \"{count} documents found\". Use as much plural forms (separated by \"|\") as your language support (see https://www.unicode.org/cldr/cldr-aux/charts/34/supplemental/language_plural_rules.html)"
+  },
+  "theme.SearchPage.noResultsText": {
+    "message": "没有找到任何文档",
+    "description": "The paragraph for empty search result"
+  },
+  "theme.SearchBar.noResultsText": {
+    "message": "没有找到任何文档"
+  },
+  "theme.SearchBar.seeAll": {
+    "message": "查看全部结果"
+  },
+  "theme.SearchBar.seeAllOutsideContext": {
+    "message": "在 {context} 以外搜索"
+  },
+  "theme.SearchBar.searchInContext": {
+    "message": "在 {context} 中搜索"
+  },
+  "theme.SearchBar.label": {
+    "message": "搜索",
+    "description": "The ARIA label and placeholder for search button"
+  },
+  "theme.admonition.warning": {
+    "message": "注意",
+    "description": "The default label used for the Warning admonition (:::warning)"
+  },
+  "theme.DocSidebarItem.expandCategoryAriaLabel": {
+    "message": "展开侧边栏分类 '{label}'",
+    "description": "The ARIA label to expand the sidebar category"
+  },
+  "theme.DocSidebarItem.collapseCategoryAriaLabel": {
+    "message": "折叠侧边栏分类 '{label}'",
+    "description": "The ARIA label to collapse the sidebar category"
+  },
+  "theme.docs.DocCard.categoryDescription.plurals": {
+    "message": "{count} 个项目",
+    "description": "The default description for a category card in the generated index about how many items this category includes"
+  },
+  "engine_feature_title_code_editor": {
+    "message": "强大的代码编辑器",
+    "description": "The engine feature title Powerful Code Editor in front page"
+  },
+  "engine_feature_description_code_editor": {
+    "message": "Dora SSR 的 Web IDE 提供了多种编程语言和文件类型的支持，具备语法高亮、自动补全和文档跳转等功能，让开发更加高效和便捷。",
+    "description": "The engine feature description Powerful Code Editor in front page"
+  },
+  "engine_feature_title_yarn_spinner_editor": {
+    "message": "直观的剧本编辑器",
+    "description": "The engine feature description Intuitive Yarn Spinner Script Editor in front page"
+  },
+  "engine_feature_description_yarn_spinner_editor": {
+    "message": "通过集成的可视化节点编辑器设计分支对话和游戏叙事，并直接接入可运行的 Yarn 工作流。",
+    "description": "The engine feature description Intuitive Yarn Spinner Script Editor"
+  },
+  "engine_feature_title_visual_script_editor": {
+    "message": "可视化脚本编辑器",
+    "description": "The engine feature title Visual Script Editor in front page"
+  },
+  "engine_feature_description_visual_script_editor": {
+    "message": "提供简单易上手的可视化脚本编辑器，通过图形化编程方式降低编程门槛，帮助培养逻辑思维和问题解决能力。",
+    "description": "The engine feature description Visual Script Editor in front page"
+  },
+  "engine_feature_title_tsx_reactive_ui": {
+    "message": "声明式 TSX 场景与响应式 UI",
+    "description": "The engine feature title Declarative TSX Scenes and Reactive UI in front page"
+  },
+  "engine_feature_description_tsx_reactive_ui": {
+    "message": "使用 TypeScript 与 TSX 组件构建游戏场景和界面，引擎内置支持 ReactJS 风格的 API，把现代前端开发体验带入原生游戏运行时。",
+    "description": "The engine feature description Declarative TSX Scenes and Reactive UI in front page"
+  },
+  "engine_feature_title_skeletal_animation": {
+    "message": "对骨骼动画的支持",
+    "description": "The engine feature title Skeletal Animation Support in front page"
+  },
+  "engine_feature_description_skeletal_animation": {
+    "message": "使用 Spine2D、DragonBones 和 Dora 内置骨骼动画格式，并通过集成预览完成换肤和动画播放。",
+    "description": "The engine feature description Skeletal Animation Support in front page"
+  },
+  "engine_feature_title_tiled_map": {
+    "message": "支持瓦片地图渲染",
+    "description": "The engine feature title Tiled Map Rendering Support in front page"
+  },
+  "engine_feature_description_tiled_map": {
+    "message": "通过紧凑的引擎 API 加载和渲染 Tiled 地图，快速搭建具有多个图层的 2D 世界。",
+    "description": "The engine feature description Tiled Map Rendering Support in front page"
+  },
+  "engine_feature_platformer_game_support": {
+    "message": "支持平台游戏开发",
+    "description": "The engine feature title Platformer Game Support in front page"
+  },
+  "engine_feature_description_platformer_game_support": {
+    "message": "Dora SSR 提供专门为平台游戏开发设计的功能模块，包括物理引擎、碰撞检测和动画系统等，使开发者能够轻松创建流畅且富有表现力的平台游戏。",
+    "description": "The engine feature description Platformer Game Support in front page"
+  },
+  "engine_feature_ml_and_ai_framework": {
+    "message": "内置机器学习和 AI 开发框架",
+    "description": "The engine feature title Built-in ML and AI Framework in front page"
+  },
+  "engine_feature_description_ml_and_ai_framework": {
+    "message": "Dora SSR 提供内置的机器学习算法框架和 AI 开发框架，帮助开发者在游戏中轻松实现智能化行为和高级数据处理，使游戏更加智能和互动。",
+    "description": "The engine feature description Built-in ML and AI Framework in front page"
+  },
+  "engine_feature_open_art_assets_and_game_ip": {
+    "message": "开放美术素材和游戏 IP",
+    "description": "The engine feature title Open Art Assets and Game IP in front page"
+  },
+  "engine_feature_description_open_art_assets_and_game_ip": {
+    "message": "Dora SSR 提供可用于制作自己游戏的开放美术素材和游戏 IP——《灵数奇缘》。开发者可以自由使用这些资源进行创作，快速构建出色的游戏体验。",
+    "description": "The engine feature description Open Art Assets and Game IP in front page"
+  },
+  "engine_feature_lua_scripting_support": {
+    "message": "Lua 脚本支持",
+    "description": "The engine feature title Lua Scripting Support in front page"
+  },
+  "engine_feature_description_lua_scripting_support": {
+    "message": "Dora SSR 提供升级的 Lua 绑定，支持继承和扩展底层 C++ 对象。",
+    "description": "The engine feature description Lua Scripting Support in front page"
+  },
+  "engine_feature_yuescript_scripting_support": {
+    "message": "YueScript 脚本支持",
+    "description": "The engine feature title YueScript Scripting Support in front page"
+  },
+  "engine_feature_description_yuescript_scripting_support": {
+    "message": "Dora SSR 支持使用 YueScript 语言，一门强表达力且简洁的 Lua 方言，作为脚本语言开发游戏。",
+    "description": "The engine feature description YueScript Scripting Support in front page"
+  },
+  "engine_feature_teal_scripting_support": {
+    "message": "Teal 脚本支持",
+    "description": "The engine feature title Teal Scripting Support in front page"
+  },
+  "engine_feature_description_teal_scripting_support": {
+    "message": "Dora SSR 支持使用 Teal 语言，一门编译到 Lua 的静态类型语言，作为脚本语言开发游戏。",
+    "description": "The engine feature description Teal Scripting Support in front page"
+  },
+  "engine_feature_typescript_scripting_support": {
+    "message": "TypeScript 脚本支持",
+    "description": "The engine feature title TypeScript Scripting Support in front page"
+  },
+  "engine_feature_description_typescript_scripting_support": {
+    "message": "Dora SSR 支持 TypeScript 作为脚本开发语言，这是一种 JavaScript 的静态类型超集，增加了强大的类型检查功能，并允许在脚本中嵌入类似 XML/HTML 的 TSX 文本，提升了代码的可靠性和编写体验。",
+    "description": "The engine feature description TypeScript Scripting Support in front page"
+  },
+  "engine_feature_rust_scripting_support": {
+    "message": "Rust 脚本支持",
+    "description": "The engine feature title Rust Scripting Support in front page"
+  },
+  "engine_feature_description_rust_scripting_support": {
+    "message": "Dora SSR 支持 Rust 作为脚本开发语言，运行在内置的 WASM 绑定和 VM 上，提供高性能和安全性的编程体验，适用于对性能要求高的游戏开发场景。",
+    "description": "The engine feature description Rust Scripting Support in front page"
+  },
+  "engine_feature_csharp_scripting_support": {
+    "message": "C# 脚本支持",
+    "description": "The engine feature title C# Scripting Support in front page"
+  },
+  "engine_feature_description_csharp_scripting_support": {
+    "message": "Dora SSR 支持通过动态库方式调用引擎进行 C# 开发，结合 C# 绑定使用接近原生的开发流程。",
+    "description": "The engine feature description C# Scripting Support in front page"
+  },
+  "promotion_section_title": {
+    "message": "为啥要玩 Dora",
+    "description": "The promotion section title in front page"
+  },
+  "feature_section_title": {
+    "message": "部分引擎功能",
+    "description": "The feature section title in front page"
+  },
+  "engine_feature_title_cross_platform_game_dev_support": {
+    "message": "在最终设备上直接开发",
+    "description": "The engine feature title Cross-Platform Game Dev Support in front page"
+  },
+  "engine_feature_description_cross_platform_game_dev_support": {
+    "message": "让 Dora SSR 直接运行在手机、开源掌机、桌面或平板上，再从本机或局域网中的浏览器接入，形成快速而直接的开发闭环。",
+    "description": "The engine feature description Cross-Platform Game Dev Support in front page"
+  },
+  "engine_feature_profiling_and_debugging_tools": {
+    "message": "实用的性能分析与调试工具",
+    "description": "The engine feature title Profiling and Debugging Tools in front page"
+  },
+  "engine_feature_description_profiling_and_debugging_tools": {
+    "message": "在真实场景运行时检查帧耗时、渲染负载、常驻资源、物理状态、灯光、视锥和包围盒。",
+    "description": "The engine feature description Profiling and Debugging Tools in front page"
+  },
+  "theme.blog.author.pageTitle": {
+    "message": "{authorName} - {nPosts}",
+    "description": "The title of the page for a blog author"
+  },
+  "theme.blog.authorsList.pageTitle": {
+    "message": "作者",
+    "description": "The title of the authors page"
+  },
+  "theme.blog.authorsList.viewAll": {
+    "message": "查看所有作者",
+    "description": "The label of the link targeting the blog authors page"
+  },
+  "theme.contentVisibility.unlistedBanner.title": {
+    "message": "未列出页",
+    "description": "The unlisted content banner title"
+  },
+  "theme.contentVisibility.unlistedBanner.message": {
+    "message": "此页面未列出。搜索引擎不会对其索引，只有拥有直接链接的用户才能访问。",
+    "description": "The unlisted content banner message"
+  },
+  "theme.contentVisibility.draftBanner.title": {
+    "message": "草稿页面",
+    "description": "The draft content banner title"
+  },
+  "theme.contentVisibility.draftBanner.message": {
+    "message": "此页面是草稿。它仅在开发环境中可见，并将在生产构建中被排除。",
+    "description": "The draft content banner message"
+  },
+  "theme.blog.author.noPosts": {
+    "message": "此作者尚未发表任何博文。",
+    "description": "The text for authors with 0 blog post"
+  },
+  "engine_feature_wa_scripting_support": {
+    "message": "凹语言脚本支持",
+    "description": "The engine feature title Wa Scripting Support in front page"
+  },
+  "engine_feature_description_wa_scripting_support": {
+    "message": "Dora SSR 支持凹语言，一门简单、可靠且静态类型的语言，运行在内置的 WASM 绑定和 VM 上。适合作为便捷易上手的高性能 WASM 语言开发游戏。",
+    "description": "The engine feature description Wa Scripting Support in front page"
+  },
+  "hero_title": {
+    "message": "多萝珍奇",
+    "description": "The title in front page"
+  },
+  "hero_subtitle": {
+    "message": "游戏引擎",
+    "description": "The subtitle in front page"
+  },
+  "home_meta_description": {
+    "message": "一款支持跨设备快速开发的游戏引擎，内置 Web IDE 与直观的工具链。",
+    "description": "The meta description of the front page"
+  },
+  "engine_feature_title_blockly": {
+    "message": "积木脚本系统",
+    "description": "The engine feature title Blockly Scripting in front page"
+  },
+  "engine_feature_description_blockly": {
+    "message": "通过易于理解的拼图式积木创建游戏行为，适用于教学、原型制作和初次接触游戏开发的创作者。",
+    "description": "The engine feature description Blockly Scripting for Beginners in front page"
+  },
+  "engine_feature_title_dora_animation_editor": {
+    "message": "动画编辑器",
+    "description": "The engine feature title Animation Editor in front page"
+  },
+  "engine_feature_description_dora_animation_editor": {
+    "message": "在同一工作流中使用可视化树、关键帧、动画片段、播放预览和变换工具创建与编辑 2D 模型动画。",
+    "description": "The engine feature description Animation Editor in front page"
+  },
+  "engine_feature_title_physics_editor": {
+    "message": "物理编辑器"
+  },
+  "engine_feature_description_physics_editor": {
+    "message": "在 Web IDE 中可视化创建 2D 刚体与关节，编辑碰撞形状和物理参数、预览运动效果，并保存为可复用的 .b.lua 定义。"
+  },
+  "engine_feature_title_particle_editor": {
+    "message": "粒子编辑器"
+  },
+  "engine_feature_description_particle_editor": {
+    "message": "通过实时预览调整发射、生命周期、颜色、尺寸、旋转、纹理、混合模式和重力等参数，使用丰富预设快速起步，并保存为可直接运行的 .par 效果。"
+  },
+  "engine_feature_title_git_client": {
+    "message": "内置 Git 客户端"
+  },
+  "engine_feature_description_git_client": {
+    "message": "直接在项目中查看本地变更、提交历史和逐行差异，管理分支、远端与标签，并完成获取、拉取和推送操作。"
+  },
+  "engine_feature_title_tic80": {
+    "message": "内置 TIC-80 运行时与编辑器"
+  },
+  "engine_feature_description_tic80": {
+    "message": "直接在 Web IDE 中打开、运行和编辑 TIC-80 幻想主机卡带，使用内置运行时以及代码、精灵、地图、音效和音乐创作工具。在你的现代 2D/3D 游戏作品中嵌入一个复古游戏终端吧！"
+  },
+  "engine_feature_title_dora_agent": {
+    "message": "编码智能体",
+    "description": "The engine feature title Coding Agent in front page"
+  },
+  "engine_feature_description_dora_agent": {
+    "message": "编码智能体把基于 LLM 的 AI 辅助开发直接集成进引擎，结合项目技能、持久记忆、安全编辑、构建检查、运行验证和子智能体派发完成多步骤任务。",
+    "description": "The engine feature description Coding Agent in front page"
+  },
+  "core_feature_section_title": {
+    "message": "完整的游戏制作闭环"
+  },
+  "core_feature_section_description": {
+    "message": "编写代码、向智能体求助、在目标设备上运行、检查结果并继续迭代——全部在一套相互连接的工作流中完成。"
+  },
+  "core_feature_title_web_ide": {
+    "message": "与运行时直连的 Web IDE"
+  },
+  "core_feature_description_web_ide": {
+    "message": "无需离开浏览器，即可编辑带类型的游戏代码、浏览项目资源、查看日志、构建并运行。引擎始终运行在目标设备上，每次迭代都面对真实运行时。"
+  },
+  "core_feature_title_3d": {
+    "message": "面向实际玩法的轻量 3D"
+  },
+  "core_feature_description_3d": {
+    "message": "使用 glTF、PBR 与 IBL、骨骼与 Morph 动画、实时灯光阴影、Jolt 物理和拾取功能构建可玩的 3D 场景，并将 2D 界面直接放进 3D 世界。"
+  },
+  "tool_feature_section_title": {
+    "message": "为真实项目准备的内置工具"
+  },
+  "tool_group_editors_title": {
+    "message": "可视化编辑器"
+  },
+  "tool_group_runtime_title": {
+    "message": "引擎与运行时"
+  },
+  "tool_group_workflow_title": {
+    "message": "工作流与生态"
+  },
+  "language_feature_section_title": {
+    "message": "选择适合项目的语言"
+  },
+  "language_feature_section_description": {
+    "message": "无论是轻量的 Lua 语言家族、带类型的 TypeScript 与 TSX、WebAssembly 语言，还是接近原生体验的 C# 绑定，都可以留在同一个 Dora 生态中。"
+  },
+  "not_found_title": {
+    "message": "页面走丢了",
+    "description": "The title of the 404 page"
+  },
+  "not_found_description": {
+    "message": "Dora 和 Toto 没能找到这个页面——它可能被移动或删除了。",
+    "description": "The description of the 404 page"
+  },
+  "not_found_back_home": {
+    "message": "回到首页",
+    "description": "The back-to-home button of the 404 page"
+  },
+  "theme.colorToggle.ariaLabel.mode.system": {
+    "message": "系统模式",
+    "description": "The name for the system color mode"
+  },
+  "theme.navbar.mobileDropdown.collapseButton.expandAriaLabel": {
+    "message": "展开下拉菜单",
+    "description": "The ARIA label of the button to expand the mobile dropdown navbar item"
+  },
+  "theme.navbar.mobileDropdown.collapseButton.collapseAriaLabel": {
+    "message": "折叠下拉菜单",
+    "description": "The ARIA label of the button to collapse the mobile dropdown navbar item"
+  }
+}

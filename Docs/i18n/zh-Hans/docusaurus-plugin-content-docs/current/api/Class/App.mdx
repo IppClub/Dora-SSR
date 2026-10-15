@@ -1,0 +1,561 @@
+# App
+
+**描述：**
+
+&emsp;&emsp;管理应用程序信息的单例类。
+
+## frame
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;引擎运行到当前时间经过的帧数。
+
+**签名：**
+```tl
+const frame: integer
+```
+
+## bufferSize
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;渲染主帧的缓冲纹理的大小。
+
+**签名：**
+```tl
+const bufferSize: Size
+```
+
+## visualSize
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;屏幕的逻辑视觉大小。
+视觉大小仅在应用程序窗口大小更改时更改。
+
+**签名：**
+```tl
+const visualSize: Size
+```
+
+## devicePixelRatio
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;设备显示的像素密度比。
+等于渲染缓冲纹理的像素大小除以应用程序窗口的大小。
+
+**签名：**
+```tl
+const devicePixelRatio: number
+```
+
+## App.Platform
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎运行的平台类型。
+
+**签名：**
+```tl
+enum Platform
+	"Windows"
+	"Android"
+	"macOS"
+	"iOS"
+	"Linux"
+	"Web"
+	"Unknown"
+end
+```
+
+## platform
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎当前运行的平台。
+
+**签名：**
+```tl
+const platform: Platform
+```
+
+## version
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎的版本字符串。
+格式为“v0.0.0.0”。
+
+**签名：**
+```tl
+const version: string
+```
+
+## deps
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎的第三方依赖库的版本信息。
+
+**签名：**
+```tl
+const deps: string
+```
+
+## deltaTime
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;自从上一帧游戏更新以来间隔的时间（以秒为单位）。
+
+**签名：**
+```tl
+const deltaTime: number
+```
+
+## elapsedTime
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;从当前游戏帧开始到本次API调用经过的时间（以秒为单位）。
+
+**签名：**
+```tl
+const elapsedTime: number
+```
+
+## totalTime
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎直到上一帧结束为止，已经运行的总时间（以秒为单位）。
+在同一个游戏帧中多次调用时得到的是一个常数。
+
+**签名：**
+```tl
+const totalTime: number
+```
+
+## runningTime
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;直到调用该API为止，游戏引擎已经运行的总时间（以秒为单位）。
+在同一个游戏帧中多次调用时得到一个递增的数字。
+
+**签名：**
+```tl
+const runningTime: number
+```
+
+## rand
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;Mersenne Twister 引擎生成的均匀分布 32 位无符号整数，取值范围为 0 到 4,294,967,295（含两端）。
+该值不是 [0, 1] 范围的归一化随机数。如需归一化随机值，请将其除以 4,294,967,295。
+相同的种子会在所有平台上生成相同的随机数序列。
+
+**签名：**
+```tl
+const rand: integer
+```
+
+## maxFPS
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎可以运行的最大有效帧率。
+最大有效帧率是通过设备屏幕的最大刷新率推断出来的。
+
+**签名：**
+```tl
+const maxFPS: integer
+```
+
+## debugging
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎是否运行在调试模式下。
+
+**签名：**
+```tl
+const debugging: boolean
+```
+
+## testNames
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;引擎内置的C++测试的测试名称（用于辅助引擎本身开发）。
+
+**签名：**
+```tl
+const testNames: {string}
+```
+
+## locale
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;当前系统的语言环境字符串，格式例如：`zh-Hans`，`en`.
+
+**签名：**
+```tl
+locale: string
+```
+
+## themeColor
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;Dora SSR的主题颜色。
+
+**签名：**
+```tl
+themeColor: Color
+```
+
+## seed
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;Dora SSR的随机数种子。
+
+**签名：**
+```tl
+seed: integer
+```
+
+## targetFPS
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎应该运行的目标帧率。
+仅在`fpsLimited`设置为true时有效。
+
+**签名：**
+```tl
+targetFPS: integer
+```
+
+## fpsLimited
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎是否自动限制帧率。
+将`fpsLimited`设置为true，会使引擎通过执行一个忙等待的死循环以获取更加精准的机器时间，并计算切换到下一帧的时间点。
+这是在PC机Windows系统上的通常做法，以提升CPU占用率来提升游戏的性能。但这也会导致额外的芯片热量产生和电力消耗。
+
+**签名：**
+```tl
+fpsLimited: boolean
+```
+
+## idled
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎当前是否处于闲置状态。
+将`idled`设置为true，将使游戏逻辑线程使用`sleep`系统调用来等待进入下一个游戏帧的时间点。
+由于操作系统定时器存在一定程度的误差，可能导致游戏引擎睡眠过头而错过几个游戏帧。
+闲置状态可以减少额外的CPU占用。
+
+**签名：**
+```tl
+idled: boolean
+```
+
+## fullScreen
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎是否运行在全屏模式下。
+在Android和iOS平台上无法设置此属性。
+
+**签名：**
+```tl
+fullScreen: boolean
+```
+
+## alwayOnTop
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎是否运行在窗口置顶模式下。
+在Android和iOS平台上无法设置此属性。
+
+**签名：**
+```tl
+alwayOnTop: boolean
+```
+
+## devMode
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎是否运行在开发模式下。
+在开发模式下 `App:shutdown()` 函数会发出一个 "AppEvent" 全局事件，类型为 "Shutdown" 而不是关闭游戏引擎。
+
+**签名：**
+```tl
+devMode: boolean
+```
+
+## winSize
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;应用程序窗口大小。
+由于显示设备的DPI不同，可能会与实际的可视大小有差异。
+在Android和iOS平台上无法设置此属性。
+
+**签名：**
+```tl
+winSize: Size
+```
+
+## winPosition
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;应用程序窗口位置。
+在Android和iOS平台上无法设置此属性。
+
+**签名：**
+```tl
+winPosition: Vec2
+```
+
+## runTest
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;运行特定的包含在引擎中的C++测试函数。
+
+**签名：**
+```tl
+runTest: function(self: App, name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 要运行的测试的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 测试是否成功运行。 |
+
+## openURL
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;在系统默认的浏览器中打开指定的URL地址。
+
+**签名：**
+```tl
+openURL: function(self: App, url: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| url | string | 要打开的URL地址。 |
+
+## install
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;用于自更新游戏引擎。
+
+**签名：**
+```tl
+install: function(self: App, path: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 新版本引擎文件的路径。 |
+
+## saveLog
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;保存所有引擎日志到指定的文件路径为单个文件。
+
+**签名：**
+```tl
+saveLog: function(self: App, path: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要保存日志文件的路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 日志文件是否保存成功。 |
+
+## saveScreenshot
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;请求保存主backbuffer截图。
+
+**签名：**
+```tl
+saveScreenshot: function(self: App, filename: string): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 输出路径，可带.tga扩展名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 实际TGA输出路径，失败时返回空字符串。 |
+
+## openFileDialog
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;打开文件对话框。桌面端可指定扩展名筛选；移动端仅选择 ZIP 文件。文件夹选择仅限桌面端。
+
+**签名：**
+```tl
+openFileDialog: function(self: App, folderOnly: boolean, callback: function(path: string), extensions?: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| folderOnly | boolean | 是否仅允许选择文件夹。 |
+| extensions | string（可选） | 不带点、以逗号分隔的扩展名，如 `"zip"`、`"png,jpg"`；省略时保留默认筛选。选择文件夹及移动端忽略此参数。 |
+| callback | function | 当文件对话框关闭时调用的回调函数。回调函数应接受一个字符串参数，该参数为选中的文件或文件夹的路径。如果用户取消对话框，则返回空字符串。 |
+
+## estimateTokens
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;估算一段文本大致会消耗多少 LLM token。
+默认情况下，ASCII 字符按约 0.4 token/字符估算，非 ASCII 字符按 2 token/字符估算。
+
+**签名：**
+```tl
+estimateTokens: function(self: App, text: string, asciiTokensPerChar?: number --[[0.4]], nonAsciiTokensPerChar?: number --[[2.0]]): integer
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| text | string | 要估算的文本。 |
+| asciiTokensPerChar | number | 可选的 ASCII 字符系数，默认 0.4。 |
+| nonAsciiTokensPerChar | number | 可选的非 ASCII 字符系数，默认 2.0。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 估算得到的 token 数量。 |
+
+## shutdown
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;关闭并退出游戏引擎。
+当 `devMode` 设置为 true 时，该函数只会发出一个 "AppEvent" 全局事件，类型为 "Shutdown"，而不是关闭游戏引擎。
+该函数在Android和iOS平台不会真正关闭游戏引擎，以遵循移动平台上应用程序规范。
+
+**签名：**
+```tl
+shutdown: function(self: App)
+```

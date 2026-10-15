@@ -1,0 +1,27 @@
+#include "../3rdParty/vorbis/lib/mdct.c"
+#include "../3rdParty/vorbis/lib/smallft.c"
+#include "../3rdParty/vorbis/lib/block.c"
+#include "../3rdParty/vorbis/lib/envelope.c"
+#include "../3rdParty/vorbis/lib/window.c"
+#include "../3rdParty/vorbis/lib/lsp.c"
+#include "../3rdParty/vorbis/lib/lpc.c"
+#include "../3rdParty/vorbis/lib/analysis.c"
+#include "../3rdParty/vorbis/lib/synthesis.c"
+#include "../3rdParty/vorbis/lib/psy.c"
+#include "../3rdParty/vorbis/lib/info.c"
+#define FLOOR1_fromdB_LOOKUP FLOOR1_fromdB_LOOKUP_floor1
+#include "../3rdParty/vorbis/lib/floor1.c"
+#undef FLOOR1_fromdB_LOOKUP
+#include "../3rdParty/vorbis/lib/floor0.c"
+#include "../3rdParty/vorbis/lib/cpu.c"
+#include "../3rdParty/vorbis/lib/xmmlib.c"
+#include "../3rdParty/vorbis/lib/res0.c"
+#include "../3rdParty/vorbis/lib/mapping0.c"
+#include "../3rdParty/vorbis/lib/registry.c"
+#include "../3rdParty/vorbis/lib/codebook.c"
+#define bitreverse bitreverse_sharedbook
+#include "../3rdParty/vorbis/lib/sharedbook.c"
+#undef bitreverse
+#include "../3rdParty/vorbis/lib/lookup.c"
+#include "../3rdParty/vorbis/lib/bitrate.c"
+#include "../3rdParty/vorbis/lib/vorbisenc.c"

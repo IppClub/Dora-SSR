@@ -1,0 +1,278 @@
+# Channel
+
+**Description:**
+
+&emsp;&emsp;An object which can be used to send and receive data between different threads.
+
+## release
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Destroys the object's Lua reference. The object will be completely deleted if it's not referenced by any other
+LÖVE object or thread.
+This method can be used to immediately clean up resources without waiting for Lua's garbage collector.
+
+**Signature:**
+```tl
+release: function(self: Channel): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the object was released by this call, false if it had been previously released. |
+
+## type
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the type of the object as a string.
+
+**Signature:**
+```tl
+type: function(self: Channel): string
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The type as a string. |
+
+## Of
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether an object is of a certain type. If the object has the type with the specified name in its
+hierarchy, this function will return true.
+
+**Signature:**
+```tl
+typeOf: function(self: Channel, type_name: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| type_name | string | The name of the type to check for. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | True if the object is of the specified type, false otherwise. |
+
+## push
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Send a message to the thread Channel.
+See Variant for the list of supported types.
+
+**Signature:**
+```tl
+push: function(self: Channel, value: any): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| value | any | The contents of the message. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | Identifier which can be supplied to Channel:hasRead |
+
+## supply
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Send a message to the thread Channel and wait for a thread to accept it.
+See Variant for the list of supported types.
+
+**Signature:**
+```tl
+supply: function(self: Channel, value: any, timeout?: number): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| value | any | The contents of the message. |
+| timeout | number | The maximum amount of time to wait. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the message was successfully supplied (always true). Depending on the overload: Whether the message was successfully supplied before the timeout expired. |
+
+## pop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Retrieves the value of a Channel message and removes it from the message queue.
+It returns nil if there are no messages in the queue.
+
+**Signature:**
+```tl
+pop: function(self: Channel): any
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| any | The contents of the message. |
+
+## demand
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Retrieves the value of a Channel message and removes it from the message queue.
+It waits until a message is in the queue then returns the message value.
+
+**Signature:**
+```tl
+demand: function(self: Channel, timeout?: number): any
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| timeout | number | The maximum amount of time to wait. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| any | The contents of the message. Depending on the overload: The contents of the message or nil if the timeout expired. |
+
+## peek
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Retrieves the value of a Channel message, but leaves it in the queue.
+It returns nil if there's no message in the queue.
+
+**Signature:**
+```tl
+peek: function(self: Channel): any
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| any | The contents of the message. |
+
+## getCount
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Retrieves the number of messages in the thread Channel queue.
+
+**Signature:**
+```tl
+getCount: function(self: Channel): integer
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| integer | The number of messages in the queue. |
+
+## hasRead
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets whether a pushed value has been popped or otherwise removed from the Channel.
+
+**Signature:**
+```tl
+hasRead: function(self: Channel, id: number): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| id | number | An id value previously returned by Channel:push. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the value represented by the id has been removed from the Channel via Channel:pop, |
+
+## clear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Clears all the messages in the Channel queue.
+
+**Signature:**
+```tl
+clear: function(self: Channel)
+```
+
+## performAtomic
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Executes the specified function atomically with respect to this Channel.
+Calling multiple methods in a row on the same Channel is often useful. However if multiple Threads are calling
+this Channel's methods at the same time, the different calls on each Thread might end up interleaved (e.g. one or
+more of the second thread's calls may happen in between the first thread's calls.)
+This method avoids that issue by making sure the Thread calling the method has exclusive access to the Channel
+until the specified function has returned.
+
+**Signature:**
+```tl
+performAtomic: function(self: Channel, callback: any, args: any...): any
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | any | The function to call, the form of function(channel, arg1, arg2, ...) end. The Channel is passed as the first argument to the function when it is called. |
+| args | any... | Additional arguments that the given function will receive when it is called. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| any | The first return value of the given function (if any.) |

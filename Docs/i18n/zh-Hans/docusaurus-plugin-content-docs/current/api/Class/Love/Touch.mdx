@@ -1,0 +1,80 @@
+# Touch
+
+**描述：**
+
+&emsp;&emsp;提供触摸屏按键的界面。
+
+## getTouches
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取所有活动触摸按键的列表。
+重载说明：
+1. id 值与用作 love.touchpressed、love.touchmoved 和 love.touchreleased. 参数的 id 值相同。特定触摸按下的 id 值仅保证在该触摸按下期间是唯一的。一旦使用该
+ID 调用 love.touchreleased，它就可以通过 love.touchpressed.
+
+**签名：**
+```tl
+getTouches: function(): {TouchID}
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{TouchID} | 活动触摸按键 ID 值列表，可与 love.touch.getPosition. |
+
+## getPosition
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取指定触摸的当前位置（以像素为单位）。
+重载说明：
+1. LÖVE 0.9.2 的非官方 Android 和 iOS 端口将触摸位置报告为 1 范围内的标准化值，而此 API 报告的位置以像素为单位。
+
+**签名：**
+```tl
+getPosition: function(id: TouchID): number, number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| id | TouchID | 触摸按键的标识符。使用 love.touch.getTouches、love.touchpressed 或 love.touchmoved 获取触摸 ID 值。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 窗口内触摸按键沿 x 轴的位置（以像素为单位）。 |
+| number | 窗口内触摸按键沿 y 轴的位置（以像素为单位）。 |
+
+## getPressure
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取指定触摸的当前压力。
+
+**签名：**
+```tl
+getPressure: function(id: TouchID): number
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| id | TouchID | 触摸按键的标识符。使用 love.touch.getTouches、love.touchpressed 或 love.touchmoved 获取触摸 ID 值。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 触摸压力。大多数触摸屏对压力不敏感，在这种情况下压力将为 1。 |

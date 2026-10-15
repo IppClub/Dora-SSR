@@ -1,0 +1,545 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 加载和运行 Yarn 叙事脚本
+
+&emsp;&emsp;欢迎来到 YarnRunner 功能库使用教程。在本教程中，我们将指导您如何加载和运行您在[前一教程](/docs/tutorial/Writing%20Game%20Dialogue/introduction-to-yarn)中编写的 Yarn 叙事脚本。
+
+## 1. 初始化 YarnRunner
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+&emsp;&emsp;首先确保您已正确地导入所有必需的模块。以下是本教程示例中我们需要的模块：
+
+```lua title="init.lua"
+local Content <const> = require("Content")
+local Path <const> = require("Path")
+local Node <const> = require("Node")
+local Director <const> = require("Director")
+local YarnRunner <const> = require("YarnRunner")
+```
+
+&emsp;&emsp;为了确保我们可以找到 Yarn 脚本，我们需要设置正确的搜索路径。如果 Yarn 脚本和程序模块在同一个目录下时我们可以增加如下代码：
+
+```lua title="init.lua"
+local path = Path:getScriptPath(...)
+Content:insertSearchPath(1, path)
+```
+
+&emsp;&emsp;接下来，假设我们要加载的 Yarn 文件名为 "tutorial.yarn"，起始节点的标题名称为 "Start"，则编写如下代码：
+
+```lua title="init.lua"
+local runner = YarnRunner("tutorial.yarn", "Start")
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+&emsp;&emsp;首先确保您已正确地导入所有必需的模块。以下是本教程示例中我们需要的模块：
+
+```tl title="init.tl"
+local Content <const> = require("Content")
+local Path <const> = require("Path")
+local Node <const> = require("Node")
+local Director <const> = require("Director")
+local YarnRunner <const> = require("YarnRunner")
+```
+
+&emsp;&emsp;为了确保我们可以找到 Yarn 脚本，我们需要设置正确的搜索路径。如果 Yarn 脚本和程序模块在同一个目录下时我们可以增加如下代码：
+
+```tl title="init.tl"
+local path = Path:getScriptPath(...)
+Content:insertSearchPath(1, path)
+```
+
+&emsp;&emsp;接下来，假设我们要加载的 Yarn 文件名为 "tutorial.yarn"，起始节点的标题名称为 "Start"，则编写如下代码：
+
+```tl title="init.tl"
+local runner = YarnRunner("tutorial.yarn", "Start")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+&emsp;&emsp;首先确保您已正确地导入所有必需的模块。以下是本教程示例中我们需要的模块：
+
+```ts title="init.ts"
+import { Content, Path, Node, Director } from "Dora";
+import * as YarnRunner from "YarnRunner";
+```
+
+&emsp;&emsp;为了确保我们可以找到 Yarn 脚本，我们需要设置正确的搜索路径。如果 Yarn 脚本和程序模块在同一个目录下时我们可以增加如下代码：
+
+```ts title="init.ts"
+const path = Path.getScriptPath(...);
+Content.insertSearchPath(1, path);
+```
+
+&emsp;&emsp;接下来，假设我们要加载的 Yarn 文件名为 "tutorial.yarn"，起始节点的标题名称为 "Start"，则编写如下代码：
+
+```ts title="init.ts"
+const runner = YarnRunner("tutorial.yarn", "Start");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+&emsp;&emsp;首先确保您已经导入所有必需的模块。
+
+```yue title="init.yue"
+_ENV = Dora
+import "YarnRunner"
+```
+
+&emsp;&emsp;为了确保我们可以找到 Yarn 脚本，我们需要设置正确的搜索路径。如果 Yarn 脚本和程序模块在同一个目录下时我们可以增加如下代码：
+
+```yue title="init.yue"
+path = Path\getScriptPath ...
+Content\insertSearchPath 1, path
+```
+
+&emsp;&emsp;接下来，假设我们要加载的 Yarn 文件名为 "tutorial.yarn"，起始节点的标题名称为 "Start"，则编写如下代码：
+
+```yue title="init.yue"
+runner = YarnRunner "tutorial.yarn", "Start"
+```
+
+</TabItem>
+</Tabs>
+
+## 2. 执行和展示叙事内容
+
+&emsp;&emsp;我们定义了一个 `advance` 函数，该函数可以读取并展示 Yarn 脚本中的文本内容或选项。根据叙事的内容，它还可以展示角色的名字：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+-- advance 函数的参数是一个可选的整数，代表玩家选择的选项索引。
+-- 当第一次调用此函数或在不需要选择时，我们将传递 nil
+local function advance(option)
+
+	-- 函数首先调用 runner:advance(option) 来获取 Yarn 脚本的下一部分内容。
+	-- 这将返回两个值：一个动作类型和一个结果。
+	local action, result = runner:advance(option)
+
+	-- 根据动作类型，选择如何处理结果。
+	if action == "Text" then
+
+		-- 如果动作是 "Text"，则结果会是一个 TextResult 对象，
+		-- 其中包含文本内容和任何相关的标记（例如角色名）。
+		-- 检查标记，提取角色名（如果存在）并打印出文本内容。
+		local characterName = ""
+		local marks = result.marks
+		if marks then
+			for i = 1, #marks do
+				local mark = marks[i]
+				if mark.name == "char" then
+					characterName = mark.attrs.name .. ": "
+				end
+			end
+		end
+		print(characterName .. result.text)
+
+	elseif action == "Option" then
+
+		-- 如果动作是 "Option"，则结果会是一个 OptionResult 对象，
+		-- 其中包含了一个或多个选项。函数会遍历这些选项并打印它们，
+		-- 玩家稍后可以选择它们。
+		for i, op in ipairs(result) do
+			if op then
+				print("[" .. tostring(i) .. "]: " .. op.text)
+			end
+		end
+
+	else
+
+		-- 对于其他动作（例如错误），函数将直接打印结果。
+		print(result)
+
+	end
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title="init.tl"
+-- advance 函数的参数是一个可选的整数，代表玩家选择的选项索引。
+-- 当第一次调用此函数或在不需要选择时，我们将传递 nil
+local function advance(option?: integer)
+
+	-- 函数首先调用 runner:advance(option) 来获取 Yarn 脚本的下一部分内容。
+	-- 这将返回两个值：一个动作类型和一个结果。
+	local action, result = runner:advance(option)
+
+	-- 根据动作类型，选择如何处理结果。
+	if action == "Text" then
+
+		-- 如果动作是 "Text"，则结果会是一个 TextResult 对象，
+		-- 其中包含文本内容和任何相关的标记（例如角色名）。
+		local textResult = result as YarnRunner.TextResult
+
+		-- 检查标记，提取角色名（如果存在）并打印出文本内容。
+		local characterName = ""
+		local marks = textResult.marks
+		if not (marks is nil) then
+			for i = 1, #marks do
+				local mark = marks[i]
+				if mark.name == "char" then
+					characterName = tostring(mark.attrs.name) .. ": "
+				end
+			end
+		end
+		print(characterName .. textResult.text)
+
+	elseif action == "Option" then
+
+		-- 如果动作是 "Option"，则结果会是一个 OptionResult 对象，
+		-- 其中包含了一个或多个选项。函数会遍历这些选项并打印它们，
+		-- 玩家稍后可以选择它们。
+		local optionResult = result as YarnRunner.OptionResult
+		for i, op in ipairs(optionResult) do
+			if op and not (op is boolean) then
+				print("[" .. tostring(i) .. "]: " .. op.text)
+			end
+		end
+
+	else
+
+		-- 对于其他动作（例如错误），函数将直接打印结果。
+		print(result)
+
+	end
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+// advance 函数的参数是一个可选的整数，代表玩家选择的选项索引。
+// 当第一次调用此函数或在不需要选择时，我们将传递 null
+function advance(option?: number): void {
+
+	// 函数首先调用 runner.advance(option) 来获取 Yarn 脚本的下一部分内容。
+	// 这将返回两个值：一个动作类型和一个结果。
+	const [action, result] = runner.advance(option);
+
+	// 根据动作类型，选择如何处理结果。
+	switch (action) {
+		case "Text":
+
+			// 如果动作是 "Text"，则结果会是一个 TextResult 对象，
+			// 其中包含文本内容和任何相关的标记（例如角色名）。
+			// 检查标记，提取角色名（如果存在）并打印出文本内容。
+			let characterName = "";
+			const marks = result.marks;
+			if (marks) {
+				for (const mark of marks) {
+					if (mark.name === "char") {
+						characterName = `${mark.attrs?.name}: `;
+					}
+				}
+			}
+			print(characterName + result.text);
+			break;
+
+		case "Option":
+
+			// 如果动作是 "Option"，则结果会是一个 OptionResult 对象，
+			// 其中包含了一个或多个选项。函数会遍历这些选项并打印它们，
+			// 玩家稍后可以选择它们。
+			const optionResult = result;
+			for (let i = 0; i < optionResult.length; i++) {
+				const op = optionResult[i];
+				if (op && op !== true) {
+					print(`[${i}]: ${op.text}`);
+				}
+			}
+			break;
+
+		default:
+
+			// 对于其他动作（例如错误），函数将直接打印结果。
+			print(result);
+			break;
+	}
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+-- advance 函数的参数是一个可选的整数，代表玩家选择的选项索引。
+-- 当第一次调用此函数或在不需要选择时，我们将传递 nil
+advance = (option) ->
+
+	-- 函数首先调用 runner\advance 来获取 Yarn 脚本的下一部分内容。
+	-- 这将返回两个值：一个动作类型和一个结果。
+	action, result = runner\advance option
+
+	-- 根据动作类型，选择如何处理结果。
+	switch action when "Text"
+
+		-- 如果动作是 "Text"，则结果会是一个 TextResult 对象，
+		-- 其中包含文本内容和任何相关的标记（例如角色名）。
+		-- 检查标记，提取角色名（如果存在）并打印出文本内容。
+		charName = ""
+		if result.marks
+			for mark in *result.marks
+				switch mark when {name: attr, attrs: {:name}}
+					charName = "#{name}: " if attr == "char"
+		print charName .. result.text
+
+	when "Option"
+
+		-- 如果动作是 "Option"，则结果会是一个 OptionResult 对象，
+		-- 其中包含了一个或多个选项。函数会遍历这些选项并打印它们，
+		-- 玩家稍后可以选择它们。
+		for i, op in ipairs result
+			print "[#{i}]: #{op.text}" if op
+
+	else
+
+		-- 对于其他动作（例如错误），函数将直接打印结果。
+		print result
+```
+
+</TabItem>
+</Tabs>
+
+## 3. 启动叙事
+
+&emsp;&emsp;要启动叙事，我们只需调用 `advance` 函数，不带任何参数：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+advance()
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title="init.tl"
+advance()
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+advance();
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+advance!
+```
+
+</TabItem>
+</Tabs>
+
+## 4. 响应用户输入
+
+&emsp;&emsp;为了能够让玩家与叙事互动，我们需要一个节点来捕获和响应用户的输入。我们创建一个节点，并为其指定一个名为 "go" 的信号槽。当这个信号被触发时，它将再次调用 `advance` 函数，并传递玩家选择的选项：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local node = Node()
+node:gslot("go", function(option)
+	advance(option)
+end)
+node:addTo(Director.entry)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title="init.tl"
+local node = Node()
+node:gslot("go", function(option: nil | integer)
+	advance(option)
+end)
+node:addTo(Director.entry)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+const node = Node();
+node.gslot("go", (option: number | null) => {
+	advance(option);
+});
+node.addTo(Director.entry);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+with Node!
+	\gslot "go", (option) -> advance option
+	\addTo Director.entry
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;这里只是为了能快速进行测试而注册了一个全局的事件监听器。在实际的游戏开发中会需要通过编写UI交互的逻辑来完成使用。有了这个名叫“go”的全局事件监听器后。我们就可以通过打开 Dora SSR 的控制台界面，在下面的命令行中输入 `emit 'go'` 来继续推进对话，输入 `emit 'go', 1` 来选择对话分支完成交互式的测试运行了。
+
+## 5. 添加自定义命令和状态
+
+&emsp;&emsp;您可以通过给 `YarnRunner` 传递 `command` 和 `state` 参数来添加自定义命令和初始状态的变量。`command` 参数是一个包含可以执行命令的回调函数的 Lua 表，`state` 参数是一个包含预定义变量的表格。以下是一个示例：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local runner = YarnRunner("tutorial.yarn", "Start", {
+	playerScore = 100
+}, {
+	print = print
+})
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title="init.tl"
+local runner = YarnRunner("tutorial.yarn", "Start", {
+	playerScore = 100
+}, {
+	print = print
+})
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+const runner = YarnRunner("tutorial.yarn", "Start", {
+	playerScore: 100
+}, {
+	print: print
+})
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+runner = YarnRunner "tutorial.yarn", "Start", {
+	playerScore: 100
+}, {
+	print: print
+}
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;然后在 Yarn 脚本中，您就可以通过使用 `<<set $变量名 = 表达式>>` 命令来改变初始变量的值，并通过自定义的命令 `<<print $变量名>>` 命令来打印变量的值：
+
+```html title="测试对话节点"
+<<set $playerScore = $playerScore + 200>>
+<<print $playerScore>>
+```
+
+## 6. 调试和错误排查
+
+Yarn 脚本通常会在剧情仍然变化时反复修改。Dora SSR 提供了两条快速反馈路径：在 Web IDE 中编辑时进行语法检查，以及使用 Yarn Tester 运行保存后的 `.yarn` 文件。
+
+### 6.1 在 Web IDE 中检查 Yarn 文件
+
+以文本方式编辑 `.yarn` 文件时，Web IDE 会使用 Yarn 编译器检查文件，并在编辑器中标记语法错误。错误结果包含消息、行号、列号和节点名，因此标记可以回到源文本中的对应位置。
+
+使用可视化 Yarn 编辑器时，编辑器会按节点分别检查每个 node body。如果某个节点包含无效的 Yarn 语法，检查结果会在编译器错误前带上节点标题，方便定位是哪一个节点出错。
+
+### 6.2 使用 Yarn Tester 运行文件
+
+保存 `.yarn` 文件后，可以从 Dora SSR 的开发工具中打开 **Yarn Tester**。测试器会扫描可写项目路径下所有以 `.yarn` 结尾的文件。如果测试器已经打开后才新增 Yarn 文件，请重新加载测试器，让文件列表重新扫描。
+
+在 Yarn Tester 中：
+
+- 使用 **Filter** 缩小文件列表。
+- 使用 **File** 选择要运行的 `.yarn` 文件。
+- 修改并保存文件后，点击 **Reload** 重新创建 runner。
+- 测试器会从 `Start` 节点开始运行。
+- 文本会显示在滚动区域中，选项会显示为编号选择，命令会显示为 `[command]: commandName args`。
+- **Variables** 区域会显示 runner 的状态。测试模式下，初始变量可以从 Yarn 文件开头的 `// variables:` 注释中读取。
+
+### 6.3 常见错误现象
+
+**缺少节点**：如果脚本跳转到不存在的节点，`YarnRunner` 会返回类似 `node "MissingNode" is not exist` 的错误。检查 `<<jump ...>>` 的目标，并确认文件里存在同名的 `title:` 节点。节点标题按名称匹配，拼写需要一致。
+
+**选项越界**：如果当前只有两个选项，但代码调用了 `runner:advance(3)`，runner 会返回 `choice 3 is out of range`。显示 `"Option"` 动作返回的选项列表，只把用户实际看到的编号传回 runner。
+
+**没有选项却传入选择**：如果剧情正在显示普通文本，但代码传入了选择编号，runner 会返回 `there is no option to choose`。普通文本继续时调用不带参数的 `advance()`；只有在 runner 返回 `"Option"` 后才传入数字。
+
+**需要选择却直接继续**：如果剧情正在等待玩家选择，但代码调用了不带参数的 `advance()`，runner 会返回 `required a choice to continue`。此时应保持选项 UI，直到玩家选择一个可用分支。
+
+**脚本语法错误**：无效 Yarn 语法会被编辑器检查发现，或在 Yarn Tester 重新加载文件时出现。在 Yarn Tester 中，加载失败会显示 `failed to load file ...`，后面跟着编译器错误。优先修复报错节点和报错行，保存文件后再点击 **Reload**。
+
+### 6.4 运行时错误行号如何映射回 Yarn 文本
+
+有些错误会在节点已经编译完成、剧情运行过程中才发生。`YarnRunner` 内部会把每个 Yarn 节点正文编译为 Lua。生成的 Lua 代码会保留记录原始 Yarn 行号的注释。发生 Lua 运行时错误时，`YarnRunner` 会把 Lua 错误行号改写回 Yarn 节点中的行号，并返回如下形式的错误：
+
+```text
+NodeTitle:line: message
+```
+
+例如，`Start:5: attempt to call a nil value` 表示 `Start` 节点正文中的第 5 行，不一定是整个 `.yarn` 文件的第 5 行。定位时先找到 `title: Start`，再从该节点的 `---` 分隔线之后开始数行。Web IDE 对完整 `.yarn` 文件做检查时，也可能直接提供源文件行号、列号和节点名。
+
+### 6.5 最小错误样例
+
+下面的文件有两个问题：它跳转到了一个不存在的节点，并且只有两个选项。如果游戏代码之后尝试选择选项 `3`，就会发生选项越界。
+
+```html title="broken.yarn"
+title: Start
+---
+你看到一扇锁住的门。
+-> 打开它
+	<<jump OpenDoor>>
+-> 离开
+	你退后了一步。
+===
+```
+
+你可能会看到：
+
+- 选择选项 `1` 后：`node "OpenDoor" is not exist`。
+- 如果代码对这个选项列表调用 `advance(3)`：`choice 3 is out of range`。
+
+下面是修复后的版本：
+
+```html title="fixed.yarn"
+title: Start
+---
+你看到一扇锁住的门。
+-> 打开它
+	<<jump OpenDoor>>
+-> 离开
+	你退后了一步。
+===
+
+title: OpenDoor
+---
+门发出轻响，慢慢打开了。
+===
+```
+
+保存修复后的文件，在 Yarn Tester 中重新加载，再次选择选项 `1`。此时剧情应该会继续进入 `OpenDoor` 节点。
+
+## 7. 结论
+
+&emsp;&emsp;现在，您已经设置好了所有必要的代码来加载和运行 Yarn 叙事脚本。您可以运行上述脚本来开始您的互动叙事，玩家可以通过选择选项来与叙事互动。祝您创作愉快！

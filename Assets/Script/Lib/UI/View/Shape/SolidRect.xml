@@ -1,0 +1,12 @@
+<!-- params: X=0, Y=0, Width, Height, Color -->
+<Dora>
+	<DrawNode X="{ x or 0 }" Y="{ y or 0 }" RenderOrder="{ renderOrder or 0 }">
+		<Polygon FillColor="{ color or 0xffffffff }">
+			<Vec2 X="0" Y="0"/>
+			<Vec2 X="{ width }" Y="0"/>
+			<Vec2 X="{ width }" Y="{ height }"/>
+			<Vec2 X="0" Y="{ height }"/>
+		</Polygon>
+	</DrawNode>
+</Dora>
+

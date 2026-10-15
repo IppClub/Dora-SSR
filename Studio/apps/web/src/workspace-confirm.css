@@ -1,0 +1,6 @@
+.workspace-confirm{box-sizing:border-box;width:min(440px,calc(100vw - 24px));max-height:calc(100dvh - 24px);padding:24px;border:1px solid #ffffff30;border-radius:8px;background:#1d1d1d;color:#eee;box-shadow:0 24px 70px #0009}
+.workspace-confirm::backdrop{background:#000b}
+.workspace-confirm h2{font-size:18px;font-weight:550;margin:0 0 12px}
+.workspace-confirm p{font-size:13px;line-height:1.8;color:#aaa;margin:0;overflow-wrap:anywhere}
+.workspace-confirm-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
+@media(max-width:480px){.workspace-confirm{padding:18px}.workspace-confirm-actions button{flex:1}}

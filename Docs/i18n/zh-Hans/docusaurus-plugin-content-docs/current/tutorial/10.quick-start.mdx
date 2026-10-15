@@ -1,0 +1,364 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import { version } from '@site/src/version';
+
+# Dora 启动！
+
+## 1. Dora SSR 是什么？
+
+![Dora SSR Intro](@site/static/img/article/detail-zh.svg)
+
+:::info 引擎简介
+&emsp;&emsp;Dora SSR 是一个用于多种设备上快速开发游戏的游戏引擎。它内置易用的 Web IDE 开发工具链，支持在手机、开源掌机等设备上直接进行游戏开发。
+:::
+
+:::tip 先在浏览器里试一试
+无需安装任何东西：打开[网页游戏画廊](https://dora-ssr.net/zh-Hans/play)，直接在浏览器中试玩由 Dora SSR 导出的游戏。
+:::
+
+## 2. 安装
+
+<Tabs groupId="platform-select">
+<TabItem value="android" label="Android">
+
+1. 在游戏的运行终端下载并安装 APK 包。
+
+	<Dropdown
+		label="下载 APK"
+		items={[
+			{ label: 'GitHub', to: 'https://github.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+			{ label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
+	]}/>
+
+2. 运行软件。如果显示 Mobile 界面，先点击 Feed 左上角的「传统模式」。通过局域网内的 PC（平板或其他开发设备）的浏览器访问传统界面显示的服务器地址。
+3. 开始游戏开发。
+
+</TabItem>
+<TabItem value="windows" label="Windows">
+
+1. 下载并安装适用于 Visual Studio 2017-2026 的最新版 X86 Visual C++ v14 可再发行组件包（即包含 MSVC 编译的程序所需运行时的 vc_redist.x86 补丁）。您可以从这里[下载](https://aka.ms/vc14/vc_redist.x86.exe)（更多详情请参阅[微软官网](https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist?view=msvc-170)）。
+
+2. 下载并运行软件。
+
+	<Dropdown
+		label="下载软件"
+		items={[
+			{ label: 'GitHub', to: 'https://github.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+			{ label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
+	]}/>
+
+3. 通过浏览器访问软件显示的服务器地址。
+4. 开始游戏开发。
+
+</TabItem>
+<TabItem value="macos" label="macOS">
+
+1. 下载并运行软件。
+
+	<Dropdown
+		label="下载软件"
+		items={[
+			{ label: 'GitHub', to: 'https://github.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+			{ label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
+	]}/>
+
+	或者您也可以通过 [Homebrew](https://brew.sh) 使用以下命令安装：
+	```sh
+	brew install --cask ippclub/tap/dora-ssr
+	```
+	后续更新请使用以下命令：
+	```sh
+	brew update
+	brew upgrade dora-ssr
+	# 或者也可以尝试下面的命令来更新同一版本下的 bug 修订版
+	brew reinstall dora-ssr
+	```
+
+	首次运行软件时，您可能会看到“Dora 无法打开”的提示。请前往“系统偏好设置” > “安全性与隐私”并点击“仍要打开”。
+
+2. 通过浏览器访问软件显示的服务器地址。
+3. 开始游戏开发。
+
+</TabItem>
+<TabItem value="linux" label="Linux">
+
+1. 安装软件：
+	- Ubuntu
+		```sh
+		sudo add-apt-repository ppa:ippclub/dora-ssr
+		sudo apt update
+		sudo apt install dora-ssr
+		```
+	- Debian Bookworm
+		```sh
+		sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
+		sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
+		sudo apt update
+		sudo apt install dora-ssr
+		```
+2. 运行软件，通过浏览器访问软件显示的服务器地址。
+3. 开始游戏开发。
+
+</TabItem>
+</Tabs>
+
+### 切换 Mobile 与传统界面
+
+Android、iOS、Windows、macOS 和 Linux 都可以使用两种界面。首次使用时，Android/iOS 默认进入 Mobile 模式，桌面平台默认进入传统模式；手动选择会保存在当前设备的应用配置中，重启或切换工作目录后继续生效。
+
+- 在传统模式首页顶部点击「Mobile 模式」，进入游戏 Feed。
+- Web IDE 连接优先于两种本地模式：没有作品运行时，引擎统一显示固定的「Web IDE 已连接」界面，不提供模式切换。本地 Feed、Remix 和试玩控件暂停交互，并收起输入法；Web IDE 仍可正常运行和停止作品。最后一个 Web IDE 连接断开后恢复先前的本地界面，不改写保存的偏好；如果远程运行已替换场景，则在作品停止后恢复到 Mobile Feed。
+- 在 Mobile Feed 左上角点击「传统模式」，返回项目、工具列表与 Web IDE 连接信息界面。
+- 切换即时生效，无需重启应用或 Web 服务，不改变工作目录、项目文件或模型配置。
+- Remix 编辑或试玩时请先返回首页再切换。安装进行中开关暂时不可用，请等待操作完成。
+
+Mobile 模式跟随当前窗口尺寸或设备方向布局；在桌面上使用时不会强制窗口变为竖屏。
+
+Mobile 界面统一使用大号字体，不再提供字号切换。Feed 有可运行本地项目时默认进入「本地」，本地为空时进入「发现」。从 Remix 或试玩返回时，恢复到该项目的卡片和原页签，不因列表重排或目录刷新跳到其他项目；原发现条目不再可用时，优先匹配已安装的本地项目。
+
+### 从 Mobile Feed 新建项目
+
+进入「本地」，点击顶部「+ 新建」，在底部面板中输入一个文件夹名称，再点击「创建并进入 Remix」。Mobile 会在当前工作目录创建带 `init.ts` 及初始可运行输出的 TypeScript 项目，刷新本地列表、定位新项目并打开它的 Remix 对话；即使本地列表为空，新建入口也仍然可用。
+
+名称为空、包含路径分隔符，或与现有文件或文件夹存在不区分大小写的重名时，面板会保留，修改后可重试。目录或 `init.ts` 写入失败也会显示可恢复提示；本次创建产生的未完成目录会回滚，但不会删除任何既有内容。点击「取消」或使用系统返回键，可不创建项目并回到 Feed。
+
+项目名称使用单行输入框，长文本横向滚动。它与 Remix 的多行提示词框共用输入组件，聚焦时边框变为金色，失焦后恢复灰色。
+
+### 查看 Remix 工作进度
+
+点击 Remix 右上角「返回」，或在对话区域向左划，可回到 Feed。拖动时整个 Remix 界面以和 Feed 卡片相同的阻尼跟手移动，短划松手后回弹，达到返回距离后直接切回 Feed，不额外播放画面移出动画。输入编辑、按钮操作和纵向滚动不会触发此手势；仍保留运行保护，Agent 工作时需先停止才能离开。
+
+多行输入框聚焦时显示闪烁光标并隐藏占位提示。点击文字可定位光标，方向键可移动，回车换行，Ctrl/Cmd+Enter 发送。长文本在框内自动换行、滚动，不会遮住其他控件；也可拖动或用滚轮查看，继续编辑时自动显示光标所在位置。
+
+点击输入框外或按 Esc 可收起输入法和光标，保留已确认输入的草稿；空输入框重新显示占位提示，再次点击即可继续编辑。应用退到后台或 Web IDE 接管时也会释放焦点。若点击取消了尚未确认的输入法组字，不会同时把草稿发送出去。
+
+与 Web IDE 一样，通过输入框上方的「计划 / 执行」手动选择 Agent 工作模式。新会话默认执行，已有会话沿用保存的模式，并与 Web IDE 共享。模式按各项目的主会话保存，重启应用后仍会还原；存在计划文件不等于开启计划模式。发送消息或重新进入 Remix 都不会重置模式。切换时保留草稿，不会自动发送请求，也不要求先计划再点击「开始 Remix」。任务运行中、等待回答或收尾时，暂时禁用模式切换和新请求发送。
+
+Remix 的对话历史和简短工作卡片显示在可滚动区域内，页头与输入控件保持固定。Agent 工作时，卡片正文和状态会持续更新。停留在底部时自动跟随最新内容；向上翻阅历史时保留阅读位置，不会被新消息拉回底部。点击「有新内容 · 回到最新」可恢复跟随。
+
+轻量界面只加载最近 **10 轮对话**，包含当前轮。一轮是一次用户请求及其后续回复，不是单条消息。只有当前任务展示工作卡片，历史轮次只展示提问和答复。超过上限时，列表顶部提示「仅展示最近 10 轮，更早记录可在 Web IDE 查看」，Remix 暂不提供加载更多。此限制不删除历史，也不改变 Agent 的上下文策略。
+
+输入框旁的同一个按钮在空闲时显示「发送」，Agent 工作时切换为「停止」；停止处理中或任务收尾时暂时禁用，结束后恢复「发送」，并保留下一轮草稿。本地 Agent 运行、停止作品进行验证时，会保留 Remix 对话和输入区；执行完成后继续展示结果及「立即试玩」，计划回复后可以继续讨论或手动切换到执行。连接 Web IDE 后仍以 Web IDE 接管为准，在同一作品的「Dora」页签中可以查看共享对话和详细执行结果。
+
+## 3. 编写游戏
+
+1. 第一步：创建一个新项目
+
+	- 在浏览器中，鼠标右键点击 Dora Dora 编辑器左侧资源树的“工作空间”菜单。
+	- 点击菜单项 `新建`，选择新建文件夹，命名为 `Hello`。
+	- 如果您在尝试使用凹语言开发游戏，也可以跳过文件夹的创建，直接创建一个新的凹语言游戏项目，通过在新建文件对话框中选择 `Wa` 语言，然后再勾选 “创建为 Wa 项目” 选项来新建为凹语言工程目录。
+
+2. 第二步：编写游戏代码
+
+	- 在项目文件夹下新建游戏入口代码文件，选择 Lua 语言（或 Teal、TypeScript、YueScript）命名为 `init`。
+	- 如果您创建的是凹语言工程，可以直接复用 `main.wa` 文件作为游戏入口代码文件。
+	- 如果您是在 Web IDE 之外开发凹语言工程，请先启动 Dora SSR 和 Web IDE，然后使用引擎内置 CLI 模式创建、构建并直接运行项目。如果需要，请将 `Dora` 替换为实际的 Dora 可执行文件路径。
+
+	```sh
+	Dora cli wa init hello_dora --host <web_ide_host>
+	cd hello_dora
+	Dora cli wa run --host <web_ide_host>
+	```
+	- 编写代码：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua title="Hello/init.lua"
+-- 导入功能模块
+local Sprite <const> = require("Sprite")
+local Node <const> = require("Node")
+local Move <const> = require("Move")
+local Ease <const> = require("Ease")
+
+-- 创建图片精灵
+local sprite = Sprite("Image/logo.png")
+
+-- 创建游戏场景树根节点
+local root = Node()
+
+-- 挂载图片精灵到游戏场景树根节点
+root:addChild(sprite)
+
+-- 接收并处理点击事件移动图片精灵
+root:onTapBegan(function(touch)
+	sprite:perform(
+		Move(
+			1, -- 持续时间，单位为秒
+			sprite.position, -- 开始位置
+			touch.location, -- 结束位置
+			Ease.OutBack -- 缓动函数
+		)
+	)
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal title="Hello/init.tl"
+-- 导入功能模块
+local Sprite <const> = require("Sprite")
+local Node <const> = require("Node")
+local Move <const> = require("Move")
+local Ease <const> = require("Ease")
+local type Touch = require("Touch")
+
+-- 创建游戏场景树根节点
+local root = Node()
+
+-- 创建图片精灵
+local sprite = Sprite("Image/logo.png")
+
+if not sprite is nil then
+	-- 挂载图片精灵到游戏场景树根节点
+	root:addChild(sprite)
+
+	-- 接收并处理点击事件移动图片精灵
+	root:onTapBegan(function(touch: Touch.Type)
+		sprite:perform(
+			Move(
+				1, -- 持续时间，单位为秒
+				sprite.position, -- 开始位置
+				touch.location, -- 结束位置
+				Ease.OutBack -- 缓动函数
+			)
+		)
+	end)
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="Hello/init.ts"
+// 导入功能模块
+import {Ease, Move, Node, Slot, Sprite} from 'Dora';
+
+// 创建游戏场景树根节点
+const root = Node();
+
+// 创建图片精灵
+const sprite = Sprite("Image/logo.png");
+
+if (sprite) {
+	// 挂载图片精灵到游戏场景树根节点
+	root.addChild(sprite);
+
+	// 接收并处理点击事件移动图片精灵
+	root.onTapBegan(touch => {
+		sprite.perform(
+			Move(
+				1, // 持续时间，单位为秒
+				sprite.position, // 开始位置
+				touch.location, // 结束位置
+				Ease.OutBack // 缓动函数
+			)
+		);
+	});
+}
+```
+
+</TabItem>
+<TabItem value="tsx" label="TSX">
+
+```tsx title="Hello/init.tsx"
+// @preview-file on
+import {React, toNode, toAction, useRef} from 'DoraX';
+import {Ease, Sprite, Touch} from 'Dora';
+
+const sprite = useRef<Sprite.Type>();
+
+// 点击事件处理函数
+const onTapBegan = (touch: Touch.Type) => {
+	const {current} = sprite;
+	if (current) {
+		const {x, y} = touch.location;
+		current.perform(toAction(
+			<move time={1}
+				startX={current.x} startY={current.y}
+				stopX={x} stopY={y}
+				easing={Ease.OutBack}
+			/>
+		));
+	}
+};
+
+// 创建游戏场景树根节点
+// 以及一个图片精灵作为子节点
+toNode(
+	<node onTapBegan={onTapBegan}>
+		<sprite ref={sprite} file='Image/logo.png'/>
+	</node>
+);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="Hello/init.yue"
+-- 导入功能模块
+_ENV = Dora
+
+-- 创建图片精灵
+sprite = Sprite "Image/logo.png"
+
+-- 创建游戏场景树根节点
+with Node!
+
+	-- 挂载图片精灵到游戏场景树根节点
+	\addChild sprite
+
+	-- 接收并处理点击事件移动图片精灵
+	\onTapBegan (touch) ->
+		sprite\perform Move(
+			1 -- 持续时间，单位为秒
+			sprite.position -- 开始位置
+			touch.location -- 结束位置
+			Ease.OutBack -- 缓动函数
+		)
+```
+
+</TabItem>
+<TabItem value="wa" label="Wa">
+
+```go title="Hello/main.wa"
+// 导入功能模块
+import "dora"
+
+func init {
+	// 创建图片精灵
+	sprite := dora.NewSpriteWithFile("Image/logo.png")
+
+	// 创建游戏场景树根节点
+	root := dora.NewNode()
+
+	// 挂载图片精灵到游戏场景树根节点
+	root.AddChild(sprite.Node)
+
+	// 接收并处理点击事件移动图片精灵
+	root.OnTapBegan(func(touch: dora.Touch) {
+		sprite.PerformDef(dora.ActionDefMoveTo(
+			1.0,                  // 持续时间，单位为秒
+			sprite.GetPosition(), // 开始位置
+			touch.GetLocation(),  // 结束位置
+			dora.EaseOutBack,     // 缓动函数
+		), false)
+	})
+}
+```
+
+</TabItem>
+</Tabs>
+
+3. 第三步：运行游戏
+
+&emsp;&emsp;点击编辑器右下角 `🎮` 图标，然后点击菜单项 `运行`。或者按下组合键 `Ctrl + r`。
+
+## 4. 发布游戏
+
+1. 通过编辑器左侧游戏资源树，打开刚才新建的项目文件夹的右键菜单，点击 `下载` 选项。
+2. 等待浏览器弹出已打包项目文件的下载提示。

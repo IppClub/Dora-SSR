@@ -1,0 +1,401 @@
+# Node3D
+
+**描述：**
+
+&emsp;&emsp;用于构建 3D 对象层级树的类。
+
+**继承自：**[Object](/docs/api/Class/Object)。
+
+## order
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点在父节点子节点数组中的顺序。
+
+**签名：**
+```tl
+order: integer
+```
+
+## tag
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的字符串标签。
+
+**签名：**
+```tl
+tag: string
+```
+
+## visible
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点是否可见。
+
+**签名：**
+```tl
+visible: boolean
+```
+
+## parent
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;父 3D 节点。
+
+**签名：**
+```tl
+const parent: Node3D | nil
+```
+
+## hasChildren
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点是否拥有 3D 子节点。
+
+**签名：**
+```tl
+const hasChildren: boolean
+```
+
+## position
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点位置。
+
+**签名：**
+```tl
+position: Vec3
+```
+
+## scale
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点缩放。
+
+**签名：**
+```tl
+scale: Vec3
+```
+
+## rotation
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点旋转。
+
+**签名：**
+```tl
+rotation: any
+```
+
+## angles
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点欧拉角旋转，单位为度。
+
+**签名：**
+```tl
+angles: Vec3
+```
+
+## worldMatrix
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的世界变换矩阵。
+
+**签名：**
+```tl
+const worldMatrix: any
+```
+
+## x
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的 X 轴位置。
+
+**签名：**
+```tl
+x: number
+```
+
+## y
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的 Y 轴位置。
+
+**签名：**
+```tl
+y: number
+```
+
+## z
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的 Z 轴位置。
+
+**签名：**
+```tl
+z: number
+```
+
+## angleX
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点绕 X 轴的旋转角度，单位为度。
+
+**签名：**
+```tl
+angleX: number
+```
+
+## angleY
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点绕 Y 轴的旋转角度，单位为度。
+
+**签名：**
+```tl
+angleY: number
+```
+
+## angleZ
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点绕 Z 轴的旋转角度，单位为度。
+
+**签名：**
+```tl
+angleZ: number
+```
+
+## scaleX
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的 X 轴缩放系数。
+
+**签名：**
+```tl
+scaleX: number
+```
+
+## scaleY
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的 Y 轴缩放系数。
+
+**签名：**
+```tl
+scaleY: number
+```
+
+## scaleZ
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;节点的 Z 轴缩放系数。
+
+**签名：**
+```tl
+scaleZ: number
+```
+
+## addChild
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;添加子 3D 节点。
+
+**签名：**
+```tl
+addChild: function(
+		self: Node3D,
+		child: Node3D,
+		order?: integer --[[0]],
+		tag?: string --[[""]]
+	)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| child | Node3D | 要添加的子节点。 |
+| order | integer | [可选] 子节点的绘制顺序。默认为 0。 |
+| tag | string | [可选] 子节点的标签。默认为空字符串。 |
+
+## removeChild
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;移除子 3D 节点。
+
+**签名：**
+```tl
+removeChild: function(self: Node3D, child: Node3D, cleanup?: boolean --[[true]])
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| child | Node3D | 要移除的子节点。 |
+| cleanup | boolean | [可选] 是否清理子节点。默认为 true。 |
+
+## removeAllChildren
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;移除所有子 3D 节点。
+
+**签名：**
+```tl
+removeAllChildren: function(self: Node3D, cleanup?: boolean --[[true]])
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| cleanup | boolean | [可选] 是否清理子节点。默认为 true。 |
+
+## removeFromParent
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从父节点中移除当前节点。
+
+**签名：**
+```tl
+removeFromParent: function(self: Node3D, cleanup?: boolean --[[true]])
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| cleanup | boolean | [可选] 是否清理当前节点。默认为 true。 |
+
+## cleanup
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;清理当前节点并释放 3D 资源。
+
+**签名：**
+```tl
+cleanup: function(self: Node3D)
+```
+
+## convertToWorldSpace
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将本地坐标点转换到世界坐标空间。
+
+**签名：**
+```tl
+convertToWorldSpace: function(self: Node3D, localPoint: Vec3): Vec3
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| localPoint | Vec3 | 本地坐标点。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Vec3 | 转换后的世界坐标点。 |
+
+## convertToNodeSpace
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将世界坐标点转换到本地坐标空间。
+
+**签名：**
+```tl
+convertToNodeSpace: function(self: Node3D, worldPoint: Vec3): Vec3
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| worldPoint | Vec3 | 世界坐标点。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Vec3 | 转换后的本地坐标点。 |

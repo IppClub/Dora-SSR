@@ -1,0 +1,283 @@
+R"dora_tag(
+Ease:Linear,InQuad,OutQuad,InOutQuad,OutInQuad,InCubic,OutCubic,InOutCubic,OutInCubic,InQuart,OutQuart,InOutQuart,OutInQuart,InQuint,OutQuint,InOutQuint,OutInQuint,InSine,OutSine,InOutSine,OutInSine,InExpo,OutExpo,InOutExpo,OutInExpo,InCirc,OutCirc,InOutCirc,OutInCirc,InElastic,OutElastic,InOutElastic,OutInElastic,InBack,OutBack,InOutBack,OutInBack,InBounce,OutBounce,InOutBounce,OutInBounce
+
+ActionParent:Action,Sequence,Spawn
+
+NodeParent:Node,DrawNode,Line,Sprite,Grid,ClipNode,Label,Menu,Playable,Item,Dora
+
+BaseParent:Node,DrawNode,Line,Sprite,Grid,ClipNode,Label,Menu,Playable,Item,Dora,Stencil
+
+ScriptParent:Node,DrawNode,Line,Sprite,Grid,ClipNode,Label,Menu,Playable,Item,Dora,Slot
+
+Blend:One,Zero,SrcColor,SrcAlpha,DstColor,DstAlpha,InvSrcColor,InvSrcAlpha,InvDstColor,InvDstAlpha
+
+Boolean:True,False
+
+LayerParent:Menu
+
+BuiltInSlots:AnimationEnd,ActionEnd,TapFilter,TapBegan,TapEnded,Tapped,TapMoved,MouseMove,MouseWheel,Gesture,Enter,Exit,Cleanup,KeyDown,KeyUp,KeyPressed,AttachIME,DetachIME,TextInput,TextEditing,ButtonDown,ButtonUp,Axis
+
+Import
+	Base:No
+	Parent:NodeParent
+	Module
+	Name
+Lua
+	Base:No
+	Parent:ScriptParent
+Yue
+	Base:No
+	Parent:ScriptParent
+Slot
+	Base:No
+	Parent:NodeParent
+	Name:BuiltInSlots
+	Args
+	Target
+	Perform
+	Loop:Boolean
+Item
+	Base:No
+	Parent:Node,DrawNode,Line,Sprite,ClipNode,Label,Menu,Playable,Item
+	Name
+	Width
+	Height
+	X
+	Y
+	Z
+	AnchorX
+	AnchorY
+	PassColor:Boolean
+	PassOpacity:Boolean
+	Color3
+	Opacity
+	Angle
+	AngleX
+	AngleY
+	ScaleX
+	ScaleY
+	SkewX
+	SkewY
+	Order
+	Tag
+	TransformTarget
+	Visible:Boolean
+	TouchEnabled:Boolean
+	SwallowTouches:Boolean
+	SwallowMouseWheel:Boolean
+	RenderGroup:Boolean
+	RenderOrder
+	Ref:Boolean
+Vec2
+	Base:No
+	Parent:Polygon,Line
+	X
+	Y
+Object
+	Base:No
+	Parent:No
+	Name
+	Ref:Boolean
+Delay
+	Base:Object
+	Parent:ActionParent
+	Time
+	Def:Boolean
+Scale
+	Base:Object
+	Parent:ActionParent
+	Time
+	Start
+	Stop
+	Ease:Ease
+	Def:Boolean
+Move
+	Base:Object
+	Parent:ActionParent
+	Time
+	StartX
+	StartY
+	StopX
+	StopY
+	Ease:Ease
+	Def:Boolean
+Angle
+	Base:Object
+	Parent:ActionParent
+	Time
+	Start
+	Stop
+	Ease:Ease
+	Def:Boolean
+AngleX
+	Base:Object
+	Parent:ActionParent
+	Time
+	Start
+	Stop
+	Ease:Ease
+	Def:Boolean
+AngleY
+	Base:Object
+	Parent:ActionParent
+	Time
+	Start
+	Stop
+	Ease:Ease
+	Def:Boolean
+Opacity
+	Base:Object
+	Parent:ActionParent
+	Time
+	Start
+	Stop
+	Ease:Ease
+	Def:Boolean
+SkewX
+	Base:Object
+	Parent:ActionParent
+	Time
+	Start
+	Stop
+	Ease:Ease
+	Def:Boolean
+SkewY
+	Base:Object
+	Parent:ActionParent
+	Time
+	Start
+	Stop
+	Ease:Ease
+	Def:Boolean
+Show
+	Base:Object
+	Parent:ActionParent
+	Def:Boolean
+Hide
+	Base:Object
+	Parent:ActionParent
+	Def:Boolean
+Event
+	Base:Object
+	Parent:ActionParent
+	Type
+	Def:Boolean
+Sequence
+	Base:Object
+	Parent:ActionParent
+	Def:Boolean
+Spawn
+	Base:Object
+	Parent:ActionParent
+	Def:Boolean
+Action
+	Base:Object
+	Parent:NodeParent
+Node
+	Base:Object
+	Parent:BaseParent
+	Width
+	Height
+	X
+	Y
+	Z
+	AnchorX
+	AnchorY
+	PassColor:Boolean
+	PassOpacity:Boolean
+	Color3
+	Opacity
+	Angle
+	AngleX
+	AngleY
+	ScaleX
+	ScaleY
+	SkewX
+	SkewY
+	Order
+	Tag
+	TransformTarget
+	Visible:Boolean
+	TouchEnabled:Boolean
+	ControllerEnabled:Boolean
+	SwallowTouches:Boolean
+	SwallowMouseWheel:Boolean
+	RenderGroup:Boolean
+	RenderOrder
+Dora
+	Base:Node
+	Parent:No
+DrawNode
+	Base:Node
+	Parent:BaseParent
+Dot
+	Base:No
+	Parent:DrawNode,
+	X
+	Y
+	Radius
+	Color
+Polygon
+	Base:No
+	Parent:DrawNode,
+	FillColor
+	BorderWidth
+	BorderColor
+Segment
+	Base:No
+	Parent:DrawNode,
+	BeginX
+	BeginY
+	EndX
+	EndY
+	Radius
+	Color
+Line
+	Base:Node
+	Parent:BaseParent
+ClipNode
+	Base:Node
+	Parent:BaseParent
+	AlphaThreshold
+	Inverted:Boolean
+Stencil
+	Base:No
+	Parent:ClipNode,
+Label
+	Base:Node
+	Parent:BaseParent
+	Text
+	FontName
+	FontSize
+	TextAlign:Center,Left,Right
+	TextWidth
+	Spacing
+	LineGap
+Sprite
+	Base:Node
+	Parent:BaseParent
+	File
+	BlendSrc:Blend
+	BlendDst:Blend
+Grid
+	Base:Node
+	Parent:BaseParent
+	File
+	GridX
+	GridY
+	BlendSrc:Blend
+	BlendDst:Blend
+Menu
+	Base:Node
+	Parent:BaseParent
+	Enabled:Boolean
+Playable
+	Base:Node
+	Parent:BaseParent
+	File
+	Look
+	Loop:Boolean
+	Play
+	Fliped:Boolean
+	Speed
+)dora_tag";

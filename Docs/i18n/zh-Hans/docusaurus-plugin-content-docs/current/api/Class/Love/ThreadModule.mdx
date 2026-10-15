@@ -1,0 +1,75 @@
+# ThreadModule
+
+**描述：**
+
+&emsp;&emsp;允许您使用线程。
+
+## newThread
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从包含 Lua 代码的文件名、字符串或 FileData 对象创建一个新线程。
+
+**签名：**
+```tl
+newThread: function(code_or_filename: string | any): Thread
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| code_or_filename | string or any | 用作源的 Lua 文件的名称。取决于重载：包含用作源的 Lua 代码的 FileData。取决于重载：包含用作源的 Lua 代码的字符串。它的长度至少需要 1024 个字符，或者至少包含一个换行符。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Thread | 尚未启动的新线程。 |
+
+## newChannel
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的未命名线程通道。
+它们的一种用途是通过命名通道上的 Channel:push 将新的未命名通道传递到其他线程。
+
+**签名：**
+```tl
+newChannel: function(): Channel
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Channel | 新的 Channel 对象。 |
+
+## getChannel
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建或检索命名线程通道。
+
+**签名：**
+```tl
+getChannel: function(name: string): Channel
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| name | string | 您要创建或检索的频道的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Channel | 与名称关联的 Channel 对象。 |

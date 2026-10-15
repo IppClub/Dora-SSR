@@ -1,0 +1,211 @@
+/* Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+import "runtime"
+
+#wa:import dora material3d_type
+func material3d_type() => i32
+
+#wa:import dora material3d_set_base_color
+func material3d_set_base_color(slf: i64, val: i32)
+
+#wa:import dora material3d_get_base_color
+func material3d_get_base_color(slf: i64) => i32
+
+#wa:import dora material3d_set_emissive
+func material3d_set_emissive(slf: i64, val: i32)
+
+#wa:import dora material3d_get_emissive
+func material3d_get_emissive(slf: i64) => i32
+
+#wa:import dora material3d_set_metallic
+func material3d_set_metallic(slf: i64, val: f32)
+
+#wa:import dora material3d_get_metallic
+func material3d_get_metallic(slf: i64) => f32
+
+#wa:import dora material3d_set_roughness
+func material3d_set_roughness(slf: i64, val: f32)
+
+#wa:import dora material3d_get_roughness
+func material3d_get_roughness(slf: i64) => f32
+
+#wa:import dora material3d_set_alpha_mode
+func material3d_set_alpha_mode(slf: i64, val: i32)
+
+#wa:import dora material3d_get_alpha_mode
+func material3d_get_alpha_mode(slf: i64) => i32
+
+#wa:import dora material3d_set_alpha_cutoff
+func material3d_set_alpha_cutoff(slf: i64, val: f32)
+
+#wa:import dora material3d_get_alpha_cutoff
+func material3d_get_alpha_cutoff(slf: i64) => f32
+
+#wa:import dora material3d_set_base_color_texture
+func material3d_set_base_color_texture(slf: i64, texture: i64)
+
+#wa:import dora material3d_clear_base_color_texture
+func material3d_clear_base_color_texture(slf: i64)
+
+#wa:import dora material3d_set_metallic_roughness_texture
+func material3d_set_metallic_roughness_texture(slf: i64, texture: i64)
+
+#wa:import dora material3d_clear_metallic_roughness_texture
+func material3d_clear_metallic_roughness_texture(slf: i64)
+
+#wa:import dora material3d_set_normal_texture
+func material3d_set_normal_texture(slf: i64, texture: i64)
+
+#wa:import dora material3d_clear_normal_texture
+func material3d_clear_normal_texture(slf: i64)
+
+#wa:import dora material3d_set_emissive_texture
+func material3d_set_emissive_texture(slf: i64, texture: i64)
+
+#wa:import dora material3d_clear_emissive_texture
+func material3d_clear_emissive_texture(slf: i64)
+
+#wa:import dora material3d_set_occlusion_texture
+func material3d_set_occlusion_texture(slf: i64, texture: i64)
+
+#wa:import dora material3d_clear_occlusion_texture
+func material3d_clear_occlusion_texture(slf: i64)
+
+type Material3D :struct{ Object }
+
+func Material3DFrom(raw: i64) => *Material3D {
+	if raw == 0 {
+		return nil
+	}
+	object := Material3D{}
+	object.raw = &raw
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Material3D.GetTypeId() => i32 {
+	return material3d_type()
+}
+func ObjectAsMaterial3D(object: Object) => *Material3D {
+	if object.GetTypeId() == material3d_type() {
+		ObjectRetain(object.GetRaw())
+		return Material3DFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Sets the base color tint.
+func Material3D.SetBaseColor(val: Color) {
+	material3d_set_base_color(*this.raw, val.ToARGB())
+}
+
+/// Gets the base color tint.
+func Material3D.GetBaseColor() => Color {
+	return NewColor(material3d_get_base_color(*this.raw))
+}
+
+/// Sets the emissive color factor.
+func Material3D.SetEmissive(val: Color3) {
+	material3d_set_emissive(*this.raw, val.ToRGB())
+}
+
+/// Gets the emissive color factor.
+func Material3D.GetEmissive() => Color3 {
+	return NewColor3(material3d_get_emissive(*this.raw))
+}
+
+/// Sets the metallic factor.
+func Material3D.SetMetallic(val: f32) {
+	material3d_set_metallic(*this.raw, val)
+}
+
+/// Gets the metallic factor.
+func Material3D.GetMetallic() => f32 {
+	return material3d_get_metallic(*this.raw)
+}
+
+/// Sets the roughness factor.
+func Material3D.SetRoughness(val: f32) {
+	material3d_set_roughness(*this.raw, val)
+}
+
+/// Gets the roughness factor.
+func Material3D.GetRoughness() => f32 {
+	return material3d_get_roughness(*this.raw)
+}
+
+/// Sets the alpha rendering mode.
+func Material3D.SetAlphaMode(val: MaterialAlphaMode3D) {
+	material3d_set_alpha_mode(*this.raw, val.ToValue())
+}
+
+/// Gets the alpha rendering mode.
+func Material3D.GetAlphaMode() => MaterialAlphaMode3D {
+	return MaterialAlphaMode3D{value: material3d_get_alpha_mode(*this.raw)}
+}
+
+/// Sets the alpha mask cutoff.
+func Material3D.SetAlphaCutoff(val: f32) {
+	material3d_set_alpha_cutoff(*this.raw, val)
+}
+
+/// Gets the alpha mask cutoff.
+func Material3D.GetAlphaCutoff() => f32 {
+	return material3d_get_alpha_cutoff(*this.raw)
+}
+
+/// Replaces or clears the base color texture.
+func Material3D.SetBaseColorTexture(texture: Texture2D) {
+	material3d_set_base_color_texture(*this.raw, texture.GetRaw())
+}
+
+/// Clears the base color texture override.
+func Material3D.ClearBaseColorTexture() {
+	material3d_clear_base_color_texture(*this.raw)
+}
+
+/// Replaces or clears the metallic-roughness texture.
+func Material3D.SetMetallicRoughnessTexture(texture: Texture2D) {
+	material3d_set_metallic_roughness_texture(*this.raw, texture.GetRaw())
+}
+
+/// Clears the metallic-roughness texture override.
+func Material3D.ClearMetallicRoughnessTexture() {
+	material3d_clear_metallic_roughness_texture(*this.raw)
+}
+
+/// Replaces or clears the normal texture.
+func Material3D.SetNormalTexture(texture: Texture2D) {
+	material3d_set_normal_texture(*this.raw, texture.GetRaw())
+}
+
+/// Clears the normal texture override.
+func Material3D.ClearNormalTexture() {
+	material3d_clear_normal_texture(*this.raw)
+}
+
+/// Replaces or clears the emissive texture.
+func Material3D.SetEmissiveTexture(texture: Texture2D) {
+	material3d_set_emissive_texture(*this.raw, texture.GetRaw())
+}
+
+/// Clears the emissive texture override.
+func Material3D.ClearEmissiveTexture() {
+	material3d_clear_emissive_texture(*this.raw)
+}
+
+/// Replaces or clears the occlusion texture.
+func Material3D.SetOcclusionTexture(texture: Texture2D) {
+	material3d_set_occlusion_texture(*this.raw, texture.GetRaw())
+}
+
+/// Clears the occlusion texture override.
+func Material3D.ClearOcclusionTexture() {
+	material3d_clear_occlusion_texture(*this.raw)
+}

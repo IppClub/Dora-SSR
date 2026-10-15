@@ -1,0 +1,1749 @@
+#!yue -e
+
+licenseText = [[/* Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */]]
+
+import "lulpeg"
+
+lulpeg\global _G
+
+nonObjectTypes = {}
+
+cppTypes =
+	int: "int32_t"
+	long: "int64_t"
+	float: "float"
+	double: "double"
+
+callbackDefs =
+	string: "String"
+
+basicTypes =
+	bool: -- passingType, convertFrom, convertTo, argType, returnType, fromRust, toRust, cReturn, cPass
+		* --[[1: passing type]] "int"
+		* --[[2: convert from cpp]] (name)-> "#{name} != 0"
+		* --[[3: convert to cpp]] (name)-> "#{name} ? 1 : 0"
+		* --[[4: function argument type]] "bool"
+		* --[[5: function return type]] "bool"
+		* --[[6: convert from rust]] (name)-> "#{name} ? 1 : 0"
+		* --[[7: convert to rust]] (name)-> "#{name} != 0"
+		* --[[8: callback return]] (fnArgId)-> "stack#{fnArgId}.PopBool()"
+		* --[[9: callback pass in]] (name, fnArgId)-> "stack#{fnArgId}.Push(#{name});"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "#{name} != 0"
+			convertTo: (name)-> "ToDoraBool(#{name})"
+			argType: "bool"
+			returnType: "bool"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopBool()"
+			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		}
+	uint8_t:
+		* "int"
+		* (name)-> "s_cast<uint8_t>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "int"
+		* "int"
+		* (name)-> name
+		* (name)-> name
+		* (fnArgId)-> "stack#{fnArgId}.PopI32()"
+		* (name, fnArgId)-> "stack#{fnArgId}.Push(#{name});"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> name
+			convertTo: (name)-> name
+			argType: "i32"
+			returnType: "i32"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopI32()"
+			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		}
+	uint16_t:
+		* "int"
+		* (name)-> "s_cast<uint16_t>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "int"
+		* "int"
+		* (name)-> name
+		* (name)-> name
+		* (fnArgId)-> "stack#{fnArgId}.PopI32()"
+		* (name, fnArgId)-> "stack#{fnArgId}.Push(#{name});"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> name
+			convertTo: (name)-> name
+			argType: "i32"
+			returnType: "i32"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopI32()"
+			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		}
+	uint32_t:
+		* "int"
+		* (name)-> "s_cast<uint32_t>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "int"
+		* "int"
+		* (name)-> name
+		* (name)-> name
+		* (fnArgId)-> "stack#{fnArgId}.PopI32()"
+		* (name, fnArgId)-> "stack#{fnArgId}.Push(#{name});"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> name
+			convertTo: (name)-> name
+			argType: "i32"
+			returnType: "i32"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopI32()"
+			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		}
+	int32_t:
+		* "int"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "int"
+		* "int"
+		* (name)-> name
+		* (name)-> name
+		* (fnArgId)-> "stack#{fnArgId}.PopI32()"
+		* (name, fnArgId)-> "stack#{fnArgId}.Push(#{name});"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> name
+			convertTo: (name)-> name
+			argType: "i32"
+			returnType: "i32"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopI32()"
+			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		}
+	int:
+		* "int"
+		* (name)-> "s_cast<int>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "int"
+		* "int"
+		* (name)-> name
+		* (name)-> name
+		* (fnArgId)-> "stack#{fnArgId}.PopI32()"
+		* (name, fnArgId)-> "stack#{fnArgId}.Push(#{name});"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> name
+			convertTo: (name)-> name
+			argType: "i32"
+			returnType: "i32"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopI32()"
+			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		}
+	uint64_t:
+		* "long"
+		* (name)-> "s_cast<uint64_t>(#{name})"
+		* (name)-> "s_cast<int64_t>(#{name})"
+		* "long"
+		* "long"
+		* (name)-> name
+		* (name)-> name
+		* (fnArgId)-> "stack#{fnArgId}.PopI64()"
+		* (name, fnArgId)-> "stack#{fnArgId}.Push(#{name});"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> name
+			convertTo: (name)-> name
+			argType: "i64"
+			returnType: "i64"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopI64()"
+			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		}
+	int64_t:
+		* "long"
+		* (name)-> "s_cast<int64_t>(#{name})"
+		* (name)-> "s_cast<int64_t>(#{name})"
+		* "long"
+		* "long"
+		* (name)-> name
+		* (name)-> name
+		* (fnArgId)-> "stack#{fnArgId}.PopI64()"
+		* (name, fnArgId)-> "stack#{fnArgId}.Push(#{name});"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> name
+			convertTo: (name)-> name
+			argType: "i64"
+			returnType: "i64"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopI64()"
+			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		}
+	size_t:
+		* "long"
+		* (name)-> "s_cast<int64_t>(#{name})"
+		* (name)-> "s_cast<int64_t>(#{name})"
+		* "long"
+		* "long"
+		* (name)-> name
+		* (name)-> name
+		* (fnArgId)-> "stack#{fnArgId}.PopI64()"
+		* (name, fnArgId)-> "stack#{fnArgId}.Push(#{name});"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> name
+			convertTo: (name)-> name
+			argType: "i64"
+			returnType: "i64"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopI64()"
+			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		}
+	float:
+		* "float"
+		* (name)-> "s_cast<float>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "float"
+		* "float"
+		* (name)-> name
+		* (name)-> name
+		* (fnArgId)-> "stack#{fnArgId}.PopF32()"
+		* (name, fnArgId)-> "stack#{fnArgId}.Push(#{name});"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> name
+			convertTo: (name)-> name
+			argType: "f32"
+			returnType: "f32"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopF32()"
+			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		}
+	double:
+		* "double"
+		* (name)-> "s_cast<double>(#{name})"
+		* (name)-> "s_cast<double>(#{name})"
+		* "double"
+		* "double"
+		* (name)-> name
+		* (name)-> name
+		* (fnArgId)-> "stack#{fnArgId}.PopF64()"
+		* (name, fnArgId)-> "stack#{fnArgId}.Push(#{name});"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> name
+			convertTo: (name)-> name
+			argType: "f64"
+			returnType: "f64"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopF64()"
+			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		}
+	string:
+		* "long"
+		* (name)-> "*Str_From(#{name})"
+		* (name)-> "Str_Retain(#{name})"
+		* "string"
+		* "string"
+		* (name)-> "Bridge.FromString(#{name})"
+		* (name)-> "Bridge.ToString(#{name})"
+		* (fnArgId)-> "stack#{fnArgId}.PopString()"
+		* (name, fnArgId)-> "stack#{fnArgId}.Push(#{name});"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "FromDoraString(#{name})"
+			convertTo: (name)-> "ToDoraString(#{name})"
+			argType: "string"
+			returnType: "string"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopStr()"
+			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		}
+	Vec2:
+		* "long"
+		* (name)-> "Vec2_From(#{name})"
+		* (name)-> "Vec2_Retain(#{name})"
+		* "Vec2"
+		* "Vec2"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "Vec2.From(#{name})"
+		* (fnArgId)-> "stack#{fnArgId}.PopVec2()"
+		* (name, fnArgId)-> "stack#{fnArgId}.Push(#{name});"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "Vec2FromValue(#{name})"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "Vec2"
+			returnType: "Vec2"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopVec2()"
+			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		}
+	Vec3:
+		* "long"
+		* (name)-> "Vec3_From(#{name})"
+		* (name)-> "Vec3_Retain(#{name})"
+		* "Vec3"
+		* "Vec3"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "Vec3.From(#{name})"
+		* (fnArgId)-> "stack#{fnArgId}.PopVec3()"
+		* (name, fnArgId)-> "stack#{fnArgId}.Push(#{name});"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*Vec3From(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "Vec3"
+			returnType: "Vec3"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopVec3()"
+			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		}
+	Size:
+		* "long"
+		* (name)-> "Size_From(#{name})"
+		* (name)-> "Size_Retain(#{name})"
+		* "Size"
+		* "Size"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "Size.From(#{name})"
+		* (fnArgId)-> "stack#{fnArgId}.PopSize()"
+		* (name, fnArgId)-> "stack#{fnArgId}.Push(#{name});"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "SizeFromValue(#{name})"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "Size"
+			returnType: "Size"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopSize()"
+			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		}
+	Color:
+		* "int"
+		* (name)-> "Color(s_cast<uint32_t>(#{name}))"
+		* (name)-> "#{name}.toARGB()"
+		* "Color"
+		* "Color"
+		* (name)-> "(int)#{name}.ToARGB()"
+		* (name)-> "new Color((uint)#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "NewColor(#{name})"
+			convertTo: (name)-> "#{name}.ToARGB()"
+			argType: "Color"
+			returnType: "Color"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	Color3:
+		* "int"
+		* (name)-> "Color3(s_cast<uint32_t>(#{name}))"
+		* (name)-> "#{name}.toRGB()"
+		* "Color3"
+		* "Color3"
+		* (name)-> "(int)#{name}.ToRGB()"
+		* (name)-> "new Color3((uint)#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "NewColor3(#{name})"
+			convertTo: (name)-> "#{name}.ToRGB()"
+			argType: "Color3"
+			returnType: "Color3"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	Rect:
+		* "long"
+		* (name)-> "*r_cast<Rect*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new Rect{#{name}})"
+		* "Rect"
+		* "Rect"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "Dora.Rect.From(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*RectFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "Rect"
+			returnType: "Rect"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	RenderStats3D:
+		* "long"
+		* (name)-> "*r_cast<RenderStats3D*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new RenderStats3D{#{name}})"
+		* "RenderStats3D"
+		* "RenderStats3D"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "Dora.RenderStats3D.From(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*RenderStats3DFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "RenderStats3D"
+			returnType: "RenderStats3D"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	OptString:
+		* "long"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* "string?"
+		* "string"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* (fnArgId)-> "stack#{fnArgId}.PopOptString()"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: -> error "unsupported"
+			convertTo: -> error "unsupported"
+			argType: "*string"
+			returnType: "*string"
+			creturn: (name, fnArgId) -> "#{name}: *string = nil
+		#{name}_, #{name}_ok := stack#{fnArgId}.PopStr()
+		if #{name}_ok {
+			#{name} = &#{name}_
+		}"
+			cpass: -> error "unsupported"
+		}
+	NVGpaint:
+		* "long"
+		* (name)-> "*r_cast<NVGpaint*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new NVGpaint{#{name}})"
+		* "VGPaint"
+		* "VGPaint"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "VGPaint.From(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*VGPaintFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "VGPaint"
+			returnType: "VGPaint"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	DBParams:
+		* "long"
+		* (name)-> "*r_cast<DBParams*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new DBParams{})"
+		* "DBParams"
+		* "DBParams"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "DBParams.From(#{name})"
+		* (fnArgId)-> "DBParams.From(stack#{fnArgId}.PopI64())"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*DBParamsFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "DBParams"
+			returnType: "DBParams"
+			creturn: (name, fnArgId)-> "#{name}_raw, _ := stack#{fnArgId}.PopI64()\n\t\t#{name} := *DBParamsFrom(#{name}_raw)"
+			cpass: -> error "unsupported"
+		}
+	DBRecord:
+		* "long"
+		* (name)-> "*r_cast<DBRecord*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new DBRecord{#{name}})"
+		* "DBRecord"
+		* "DBRecord"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "DBRecord.From(#{name})"
+		* (fnArgId)-> "DBRecord.From(stack#{fnArgId}.PopI64())"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*DBRecordFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "DBRecord"
+			returnType: "DBRecord"
+			creturn: (name, fnArgId)-> "#{name}_raw, _ := stack#{fnArgId}.PopI64()\n\t\t#{name} := *DBRecordFrom(#{name}_raw)"
+			cpass: -> error "unsupported"
+		}
+	DBQuery:
+		* "long"
+		* (name)-> "*r_cast<DBQuery*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new DBQuery{})"
+		* "DBQuery"
+		* "DBQuery"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "DBQuery.From(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*DBQueryFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "DBQuery"
+			returnType: "DBQuery"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	WorkBook:
+		* "long"
+		* (name)-> "*r_cast<WorkBook*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new WorkBook{#{name}})"
+		* "WorkBook"
+		* "WorkBook"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "WorkBook.From(#{name})"
+		* (fnArgId)-> "WorkBook.From(stack#{fnArgId}.PopI64())"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*WorkBookFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "WorkBook"
+			returnType: "WorkBook"
+		}
+	WorkSheet:
+		* "long"
+		* (name)-> "*r_cast<WorkSheet*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new WorkSheet{#{name}})"
+		* "WorkSheet"
+		* "WorkSheet"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "WorkSheet.From(#{name})"
+		* (fnArgId)-> "WorkSheet.From(stack#{fnArgId}.PopI64())"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*WorkSheetFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "WorkSheet"
+			returnType: "WorkSheet"
+		}
+	VecStr:
+		* "long"
+		* (name)-> "Vec_FromStr(#{name})"
+		* (name)-> "Vec_To(#{name})"
+		* "IEnumerable<string>"
+		* "string[]"
+		* (name)-> "Bridge.FromArray(#{name})"
+		* (name)-> "Bridge.ToStringArray(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "FromDoraStrBuf(#{name})"
+			convertTo: (name)-> "ToDoraStrBuf(#{name})"
+			argType: "*[]string"
+			returnType: "*[]string"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	VecVec2:
+		* "long"
+		* (name)-> "Vec_FromVec2(#{name})"
+		* (name)-> "Vec_To(#{name})"
+		* "IEnumerable<Vec2>"
+		* "Vec2[]"
+		* (name)-> "Bridge.FromArray(#{name})"
+		* (name)-> "Bridge.ToVec2Array(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "FromDoraVec2Buf(#{name})"
+			convertTo: (name)-> "ToDoraVec2Buf(#{name})"
+			argType: "*[]Vec2"
+			returnType: "*[]Vec2"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	VecUint32:
+		* "long"
+		* (name)-> "Vec_FromUint32(#{name})"
+		* (name)-> "Vec_To(#{name})"
+		* "IEnumerable<int>"
+		* "int[]"
+		* (name)-> "Bridge.FromArray(#{name})"
+		* (name)-> "Bridge.ToI32Array(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "FromDoraI32Buf(#{name})"
+			convertTo: (name)-> "ToDoraI32Buf(#{name})"
+			argType: "*[]i32"
+			returnType: "*[]i32"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	VecFloat:
+		* "long"
+		* (name)-> "Vec_FromFloat(#{name})"
+		* (name)-> "Vec_To(#{name})"
+		* "IEnumerable<float>"
+		* "float[]"
+		* (name)-> "Bridge.FromArray(#{name})"
+		* (name)-> "Bridge.ToF32Array(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "FromDoraF32Buf(#{name})"
+			convertTo: (name)-> "ToDoraF32Buf(#{name})"
+			argType: "*[]f32"
+			returnType: "*[]f32"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	VertexColor:
+		* "long"
+		* (name)-> "*r_cast<VertexColor*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new VertexColor{#{name}})"
+		* "VertexColor"
+		* "VertexColor"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "VertexColor.From(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*VertexColor(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "VertexColor"
+			returnType: "VertexColor"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	VecVertexColor:
+		* "long"
+		* (name)-> "Vec_FromVertexColor(#{name})"
+		* (name)-> "Vec_To(#{name})"
+		* "IEnumerable<VertexColor>"
+		* "VertexColor[]"
+		* (name)-> "Bridge.FromArray(#{name})"
+		* (name)-> "Bridge.ToVertexColorArray(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "FromDoraVertexColorBuf(#{name})"
+			convertTo: (name)-> "ToDoraVertexColorBuf(#{name})"
+			argType: "*[]VertexColor"
+			returnType: "*[]VertexColor"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	ActionDef:
+		* "long"
+		* (name)-> "std::move(*r_cast<ActionDef*>(#{name}))"
+		* (name)-> "r_cast<int64_t>(new ActionDef{#{name}})"
+		* "ActionDef"
+		* "ActionDef"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "ActionDef.From(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*ActionDefFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "ActionDef"
+			returnType: "ActionDef"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	VecActionDef:
+		* "long"
+		* (name)-> "Vec_FromActionDef(#{name})"
+		* (name)-> "Vec_To(#{name})"
+		* "IEnumerable<ActionDef>"
+		* "ActionDef[]"
+		* (name)-> "Bridge.FromArray(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: -> error "unsupported"
+			convertTo: (name)-> "ToDoraActionDefBuf(#{name})"
+			argType: "*[]ActionDef"
+			returnType: "*[]ActionDef"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	VecBTree:
+		* "long"
+		* (name)-> "Vec_FromBtree(#{name})"
+		* (name)-> "Vec_To(#{name})"
+		* "IEnumerable<Platformer.Behavior.Tree>"
+		* "Platformer.Behavior.Tree[]"
+		* (name)-> "Bridge.FromArray(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: -> error "unsupported"
+			convertTo: (name)-> "ToDoraPlatformerBehaviorTreeBuf(#{name})"
+			argType: "*[]PlatformerBehaviorTree"
+			returnType: "*[]PlatformerBehaviorTree"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	VecDTree:
+		* "long"
+		* (name)-> "Vec_FromDtree(#{name})"
+		* (name)-> "Vec_To(#{name})"
+		* "IEnumerable<Platformer.Decision.Tree>"
+		* "Platformer.Decision.Tree[]"
+		* (name)-> "Bridge.FromArray(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: -> error "unsupported"
+			convertTo: (name)-> "ToDoraPlatformerDecisionTreeBuf(#{name})"
+			argType: "*[]PlatformerDecisionTree"
+			returnType: "*[]PlatformerDecisionTree"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	BlendFunc:
+		* "long"
+		* (name)-> "BlendFunc(s_cast<uint64_t>(#{name}))"
+		* (name)-> "s_cast<int64_t>(#{name}.toValue())"
+		* "BlendFunc"
+		* "BlendFunc"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "BlendFunc.From(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "BlendFuncFrom(#{name})"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "BlendFunc"
+			returnType: "BlendFunc"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	MLQState:
+		* "long"
+		* (name)-> "s_cast<MLQState>(#{name})"
+		* (name)-> "s_cast<int64_t>(#{name})"
+		* "long"
+		* "long"
+		* (name)-> "#{name}"
+		* (name)-> "#{name}"
+		* (fnArgId)-> "stack#{fnArgId}.PopI64()"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> name
+			convertTo: (name)-> name
+			argType: "i64"
+			returnType: "i64"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopI64()"
+			cpass: -> error "unsupported"
+		}
+	MLQAction:
+		* "int"
+		* (name)-> "s_cast<MLQAction>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "int"
+		* "int"
+		* (name)-> "#{name}"
+		* (name)-> "#{name}"
+		* (fnArgId)-> "stack#{fnArgId}.PopI32()"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> name
+			convertTo: (name)-> name
+			argType: "i32"
+			returnType: "i32"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopI32()"
+			cpass: -> error "unsupported"
+		}
+	EntityEvent:
+		* "int"
+		* (name)-> "s_cast<int>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "EntityEvent"
+		* "EntityEvent"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(EntityEvent)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "EntityEvent{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "EntityEvent"
+			returnType: "EntityEvent"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	Billboard:
+		* "int"
+		* (name)-> "s_cast<Billboard>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "Billboard"
+		* "Billboard"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(Billboard)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "Billboard{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "Billboard"
+			returnType: "Billboard"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	TextureWrap:
+		* "int"
+		* (name)-> "s_cast<TextureWrap>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "TextureWrap"
+		* "TextureWrap"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(TextureWrap)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "TextureWrap{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "TextureWrap"
+			returnType: "TextureWrap"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	TextureFilter:
+		* "int"
+		* (name)-> "s_cast<TextureFilter>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "TextureFilter"
+		* "TextureFilter"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(TextureFilter)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "TextureFilter{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "TextureFilter"
+			returnType: "TextureFilter"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	EaseType:
+		* "int"
+		* (name)-> "s_cast<Ease::Enum>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "EaseType"
+		* "EaseType"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(EaseType)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "EaseType{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "EaseType"
+			returnType: "EaseType"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	Property:
+		* "int"
+		* (name)-> "s_cast<Property::Enum>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "Property"
+		* "Property"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(Property)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "Property{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "Property"
+			returnType: "Property"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	TextAlign:
+		* "int"
+		* (name)-> "s_cast<TextAlign>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "TextAlign"
+		* "TextAlign"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(TextAlign)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "TextAlign{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "TextAlign"
+			returnType: "TextAlign"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	BodyType:
+		* "int"
+		* (name)-> name
+		* (name)-> name
+		* "BodyType"
+		* "BodyType"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(BodyType)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "BodyType{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "BodyType"
+			returnType: "BodyType"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	BodyType3D:
+		* "int"
+		* (name)-> "s_cast<BodyType3D>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "BodyType3D"
+		* "BodyType3D"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(BodyType3D)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "BodyType3D{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "BodyType3D"
+			returnType: "BodyType3D"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	MaterialAlphaMode3D:
+		* "int"
+		* (name)-> "s_cast<MaterialAlphaMode3D>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "MaterialAlphaMode3D"
+		* "MaterialAlphaMode3D"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(MaterialAlphaMode3D)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "MaterialAlphaMode3D{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "MaterialAlphaMode3D"
+			returnType: "MaterialAlphaMode3D"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	ShaderStage:
+		* "int"
+		* (name)-> "s_cast<ShaderStage>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "ShaderStage"
+		* "ShaderStage"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(ShaderStage)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "ShaderStage{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "ShaderStage"
+			returnType: "ShaderStage"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	"Platformer::Relation":
+		* "int"
+		* (name)-> "s_cast<Platformer::Relation>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "Platformer.Relation"
+		* "Platformer.Relation"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(Platformer.Relation)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "PlatformerRelation{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "PlatformerRelation"
+			returnType: "PlatformerRelation"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	"Platformer::Behavior::Blackboard":
+		* "long"
+		* (name)-> "*r_cast<Platformer::Behavior::Blackboard*>(#{name})"
+		* (name)-> "r_cast<int64_t>(#{name})"
+		* "Platformer.Behavior.Blackboard"
+		* "Platformer.Behavior.Blackboard"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "Blackboard.From(#{name})"
+		* (fnArgId)-> "Platformer.Behavior.Blackboard.From(stack#{fnArgId}.PopI64())"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*PlatformerBehaviorBlackboardFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "PlatformerBehaviorBlackboard"
+			returnType: "PlatformerBehaviorBlackboard"
+			creturn: (name, fnArgId)-> "#{name}_raw, _ := stack#{fnArgId}.PopI64()\n\t\t#{name} := *PlatformerBehaviorBlackboardFrom(#{name}_raw)"
+			cpass: -> error "unsupported"
+		}
+	"Platformer::UnitAction":
+		* "long"
+		* (name)-> "*r_cast<Platformer::UnitAction*>(#{name})"
+		* (name)-> "r_cast<int64_t>(#{name})"
+		* "Platformer.UnitAction"
+		* "Platformer.UnitAction"
+		* (name)-> "#{name}.Raw"
+		* (name, isOptional)-> "Platformer.UnitAction.From(#{name})"
+		* (fnArgId)-> "Platformer.UnitAction.From(stack#{fnArgId}.PopI64())"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name, isOptional)-> "#{isOptional and '' or '*'}PlatformerUnitActionFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "PlatformerUnitAction"
+			returnType: "PlatformerUnitAction"
+			creturn: (name, fnArgId)-> "#{name}_raw, _ := stack#{fnArgId}.PopI64()\n\t\t#{name} := *PlatformerUnitActionFrom(#{name}_raw)"
+			cpass: -> error "unsupported"
+		}
+	"Platformer::TargetAllow":
+		* "long"
+		* (name)-> "*r_cast<Platformer::TargetAllow*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new Platformer::TargetAllow{#{name}})"
+		* "Platformer.TargetAllow"
+		* "Platformer.TargetAllow"
+		* (name)-> "#{name}.Raw"
+		* (name)-> "Platformer.TargetAllow.From(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*PlatformerTargetAllowFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "PlatformerTargetAllow"
+			returnType: "PlatformerTargetAllow"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+	"AttenuationModel":
+		* "int"
+		* (name)-> "s_cast<AudioSource::AttenuationModel>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "AttenuationModel"
+		* "AttenuationModel"
+		* (name)-> "(int)#{name}"
+		* (name)-> "(AttenuationModel)#{name}"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "AttenuationModel{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "AttenuationModel"
+			returnType: "AttenuationModel"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+
+	void: {}
+
+
+toSnakeCase = (name)-> table.concat [sub\lower! for sub in (name\sub(1, 1)\lower! .. name\sub(2))\gsub("%d", "_%1")\gsub("%u", "_%1")\gsub("(%d)_", "%1")\gmatch "[^_]*"], "_"
+
+snakeToPascal = (snakeStr)->
+	prefix = if "_" == snakeStr\sub 1,1 then "_" else ""
+	pascalName = prefix .. snakeStr
+		\gsub "_([%a%d])", (letter) -> letter\upper!
+		\gsub "^%l", (first) -> first\upper!
+	if pascalName\match "^(.+)With[%w_]*$"
+		if pascalName\sub(1, 1) != '_'
+			noPostfix = pascalName\gsub "^(.+)With[%w_]*$", "%1"
+			if pascalName\sub(-5, -1) == 'Async'
+				pascalName = noPostfix .. 'Async'
+			elseif pascalName not in ['GetTextLineHeightWithSpacing', 'ImageWithBg']
+				pascalName = noPostfix
+	if pascalName == 'PerformDef'
+		pascalName = "Perform"
+	pascalName\gsub("3d", "3D")\gsub("Ui", "UI")\gsub("Ssr", "SSR")
+
+const WaTypeIndex = 10
+getWaType = (dataType, waName): t ->
+	if dataType == "void"
+		return nil
+	t = basicTypes[dataType]?[WaTypeIndex]
+	if not waName
+		if "*" == dataType\sub -1
+			waName = dataType\match "[^ \t*]+"
+	if waName
+		waName = snakeToPascal waName\gsub "::", "_"
+	elseif not t
+		print "missing type def:", dataType
+	t ??= {
+		convertFrom: (name)-> "*#{waName}From(#{name})"
+		convertTo: (name)-> "#{name}.GetRaw()"
+		argType: waName
+		returnType: waName and "#{waName}" or ""
+		creturn: (name, fnArgId)-> "#{name}_obj := stack#{fnArgId}.PopObject()
+		ObjectRetain(#{name}_obj.GetRaw())
+		#{name} := *#{waName}From(#{name}_obj.GetRaw())"
+		cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name}.Object)"
+	}
+
+lastPos = 1
+
+Newline = Cmt P"\r"^-1 * P"\n", (str, pos)->
+	lastPos = pos
+	true
+
+White = (S" \t" + Newline)^0
+
+AlphaNum = R "az", "AZ", "09", "__"
+
+Indent = R("az", "AZ", "__") * AlphaNum^0
+
+Name = C R("az", "AZ", "__") * (AlphaNum + ":")^0
+
+DefValue = C (AlphaNum + '"' + '.')^1 * ("(" * (-P")")^0 * ")")^-1
+
+ClassName = C (Indent * White * P"::" * White)^0 * Indent
+
+ClassLabel = C(P"singleton") + (C(P"interface")^-1 * White * C(P"object")) + C(P"value") + P""
+
+FieldLabel = C(P"static")^-1 * White * C(P"optional")^-1 * White * C(P"readonly")^-1 * White * C(P"common" + P"boolean")^-1 * White * C(P"hide")^-1
+
+MethodLabel = C(P"static")^-1 * White * C(P"outside")^-1 * White * C(P"optional")^-1 * White * C(P"hide")^-1
+
+FuncLabel = C(P"def_true" + P"def_false" + P"")^-1
+
+Type = C (Indent * White * P"::" * White)^0 * Indent * (White * P"*")^-1
+
+Doc = C P"///" * (-Newline * P(1))^0
+
+Docs = White * Ct (Doc * White)^0
+
+mark = (name) -> (...) -> {name, ...}
+
+Param = P {
+	"Param"
+	Param: V"Func" * White * Name / mark"callback" + Type * White * Name * (White * "=" * White * DefValue)^-1 / mark"variable"
+	Func: Ct P"function<" * White * FuncLabel * White * Type * White * Ct P"(" * White * (V"Param" * (White * P"," * White * V"Param")^0 * White)^-1 * P")" * White * P">"
+}
+
+Method = Docs * Ct(White * MethodLabel) * White * Type * White * (C(P"operator==") + Name) * White * (P"@" * White * Name + Cc false) * White * Ct(P"(" * White * (Param * (White * P"," * White * Param)^0 * White)^-1 * P")") * White * C(P"const")^-1 * White * P";" / mark"method"
+
+Field = Docs * Ct(White * FieldLabel) * White * Type * White * Name * White * (P"@" * White * Name + Cc false) * White * P";" / mark"field"
+Class = White * Ct Docs * Ct(White * ClassLabel) * White * (P"class" + P"struct") * White * Ct(Name * White * (P"@" * White * Name + Cc false) * White * (P":" * White * (P"public")^-1 * White * ClassName * White + Cc false)) *
+	P"{" *
+		Ct (White * (Method + Field))^0 * White *
+	P"}" * White * P";"
+
+ModStart = White * P"namespace" * White * Name * White * P"{"
+ModStop = White * P"}" * Cc false
+
+File = Ct (ModStart + Class + ModStop)^1 * White * -1
+
+codes = ""
+with io.open "Dora.h", "r"
+	codes = \read "*a"
+	\close!
+
+result = match File, codes
+
+if not result
+	if lastPos > #codes
+		lastPos = #codes - 1
+
+	line = 1
+	begin = 0
+	for i = 1, #codes
+		break if i > lastPos
+		if codes\sub(i, i) == '\n'
+			line += 1
+			begin = i
+
+	following = codes\sub begin + 1
+	lineStr = following\match("(.-)\n") or following\match ".*$"
+
+	print "#{line}: syntax error:"
+	print lineStr
+else
+	nameMap = {}
+	csNative = []
+	csBinding = []
+	csImports = []
+	getObjectType = (dataType, rustName, isCreate, isOptional) ->
+		if isCreate
+			return -- rt, cast, castFrom, rtTypeIn, rtTypeOut, rtCast, rtCastFrom, popArg, pushArg
+				* --[[1: rt]] "long"
+				* --[[2: cast]] (name)-> "r_cast<#{dataType}*>(#{name})"
+				* --[[3: castFrom]] (name)-> nonObjectTypes[rustName] and "r_cast<int64_t>(#{name})" or "Object_From(#{name})"
+				* --[[4: rtTypeIn]] "#{rustName}"
+				* --[[5: rtTypeOut]] isOptional and "#{rustName}?" or rustName
+				* --[[6: rtCast]] (name)-> "#{name}.Raw"
+				* --[[7: rtCastFrom]] (name)-> isOptional and "#{rustName}.FromOpt(#{name})" or "#{rustName}.From(#{name})"
+				* --[[8: popArg]] -> error "unsupported"
+				* --[[9: pushArg]] -> error "unsupported"
+		elseif isOptional
+			return
+				* "long"
+				* (name)-> "r_cast<#{dataType}*>(#{name})"
+				* (name)-> nonObjectTypes[rustName] and "r_cast<int64_t>(#{name})" or "Object_From(#{name})"
+				* rustName
+				* "#{rustName}?"
+				* (name)-> "#{name}.Raw"
+				* (name)-> "#{rustName}.FromOpt(#{name})"
+				* (fnArgId)-> "stack#{fnArgId}.PopObject() as #{rustName}"
+				* (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		else
+			return
+				* "long"
+				* (name)-> "r_cast<#{dataType}*>(#{name})"
+				* (name)-> nonObjectTypes[rustName] and "r_cast<int64_t>(#{name})" or "Object_From(#{name})"
+				* "#{rustName}"
+				* "#{rustName}"
+				* (name)-> "#{name}.Raw"
+				* (name)-> "#{rustName}.From(#{name})"
+				* (fnArgId)-> "(#{rustName})stack#{fnArgId}.PopObject()"
+				* (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+	moduleScopes = {}
+	for cls in *result
+		if "string" == type cls
+			moduleScopes[] = cls
+			continue
+		elseif not cls
+			table.remove moduleScopes, #moduleScopes
+			continue
+		[_, _, clsNames] = cls
+		[clsName, clsNewName] = clsNames
+		clsNewName or= clsName
+		if #moduleScopes > 0
+			moduleScope = table.concat moduleScopes, "::"
+			csModuleScope = table.concat moduleScopes, "."
+			nameMap[moduleScope .. "::" .. clsName] = csModuleScope .. "." .. clsNewName
+		else
+			nameMap[clsName] = clsNewName
+	moduleScopes = {}
+	clsCount = 0
+	funcCount = 0
+	for cls in *result
+		if "string" == type cls
+			moduleScopes[] = cls
+			continue
+		elseif not cls
+			table.remove moduleScopes, #moduleScopes
+			continue
+		clsCount += 1
+		namespace = if #moduleScopes > 0
+			table.concat([toSnakeCase(mod) for mod in *moduleScopes], "_") .. "_"
+		else
+			""
+		cppNamespace = if #moduleScopes > 0
+			table.concat(moduleScopes, "::") .. "::"
+		else
+			""
+		csNamespace = if #moduleScopes > 0
+			table.concat moduleScopes, "."
+		else
+			""
+		[clsDocs, clsLabels, clsNames, clsBody] = cls
+		[clsName, clsNewName, clsParent] = clsNames
+		clsNewName or= clsName
+		isSingleton = false
+		isObject = false
+		isValue = false
+		isTrait = false
+		singletonName = nil
+		for label in *clsLabels
+			switch label
+				when "singleton"
+					isSingleton = true
+					singletonName = "Shared#{clsName}"
+				when "object"
+					isObject = true
+				when "value"
+					isValue = true
+				when "interface"
+					isTrait = true
+		if clsParent
+			clsParent = nameMap[clsParent] or clsParent
+		elseif isObject
+			clsParent = "Object"
+		clsNameL = clsName\lower!
+		clsNewNameL = clsNewName\lower!
+		cppModuleName = clsName
+		clsName = cppNamespace .. clsName
+		csBinding[] = if namespace ~= "" then "namespace Dora.#{csNamespace}\n{" else "namespace Dora\n{"
+		if #clsDocs > 0
+			csBinding[] = '\t' .. table.concat clsDocs, '\n\t'
+		if isObject
+			csNative[] = "\t\t[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+\t\tpublic static extern int32_t #{namespace}#{clsNewNameL}_type();"
+			csBinding[] = "\tpublic partial class #{clsNewName} : #{clsParent}
+	{
+		public static new (int typeId, CreateFunc func) GetTypeInfo()
+		{
+			return (Native.#{namespace}#{clsNewNameL}_type(), From);
+		}
+		protected #{clsNewName}(long raw) : base(raw) { }
+		internal static new #{clsNewName} From(long raw)
+		{
+			return new #{clsNewName}(raw);
+		}
+		internal static new #{clsNewName}? FromOpt(long raw)
+		{
+			return raw == 0 ? null : new #{clsNewName}(raw);
+		}"
+		elseif isSingleton
+			csBinding[] = "\tpublic static partial class #{clsNewName}
+	{"
+		elseif isValue
+			csNative[] = "\t\t[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+\t\tpublic static extern void #{namespace}#{clsNewNameL}_release(int64_t raw);"
+			csBinding[] = "\tpublic partial class #{clsNewName}
+	{
+		private #{clsNewName}(long raw)
+		{
+			if (raw == 0) throw new InvalidOperationException(\"failed to create #{clsNewName}\");
+			Raw = raw;
+		}
+		~#{clsNewName}()
+		{
+			Native.#{namespace}#{clsNewNameL}_release(Raw);
+		}
+		internal long Raw { get; private set; }
+		internal static #{clsNewName} From(long raw)
+		{
+			return new #{clsNewName}(raw);
+		}"
+		else
+			csBinding[] = "\tpublic partial class #{clsNewName}
+	{
+		private #{clsNewName}(long raw)
+		{
+			if (raw == 0) throw new InvalidOperationException(\"failed to create #{clsNewName}\");
+			Raw = raw;
+		}
+		internal long Raw { get; private set; }
+		internal static #{clsNewName} From(long raw)
+		{
+			return new #{clsNewName}(raw);
+		}"
+		for clsItem in *clsBody
+			pub = "public"
+			[itemType,] = clsItem
+			switch itemType
+				when "field"
+					const [_, docs, labels, dataType, name, newName] = clsItem
+					funcName = name\sub(1, 1)\lower! .. name\sub 2
+					funcName = table.concat [sub\lower! for sub in funcName\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
+					funcNewName = newName or name
+					funcNewName = funcNewName\sub(1, 1)\lower! .. funcNewName\sub 2
+					funcNewName = table.concat [sub\lower! for sub in funcNewName\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
+					isReadonly = false
+					isStatic = false
+					isOptional = false
+					isHide = false
+					fieldType = "primitive"
+					for label in *labels
+						switch label
+							when "readonly"
+								isReadonly = true
+							when "common", "boolean"
+								fieldType = label
+							when "static"
+								isStatic = true
+							when "optional"
+								isOptional = true
+							when "hide"
+								isHide = true
+					funcCount += if isReadonly
+						1
+					else
+						2
+					rustType = basicTypes[dataType]
+					waName = nil
+					if rustType == nil and "*" == dataType\sub -1
+						dataTypeName = dataType\match "[^ \t*]+"
+						rustName = nameMap[dataTypeName] or dataTypeName
+						waName = rustName
+						rustType = getObjectType dataTypeName, rustName, false, isOptional
+					if rustType
+						[rt, cast, castFrom, rtTypeIn, rtTypeOut, rtCast, rtCastFrom] = rustType
+						cppType = cppTypes[rt]
+						prefix = switch fieldType
+							when "primitive"
+								"get"
+							when "common"
+								"get"
+							when "boolean"
+								"is"
+						csBinding[] = "\t\t#{table.concat docs, '\n\t\t'}" if #docs > 0
+						csBinding[] = "\t\tpublic #{isSingleton and 'static ' or ''}#{isHide and 'new ' or ''}#{rtTypeOut or rt} #{prefix == 'is' and 'Is' or ''}#{snakeToPascal funcNewName}\n\t\t{"
+						if not isReadonly
+							cppSetterName = "#{namespace}#{clsNameL}_set_#{funcNewName}"
+							if isSingleton
+								csNative[] = "\t\t[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+\t\tpublic static extern void #{cppSetterName}(#{cppType} val);"
+								if isOptional
+									csNative[] = "\t\t[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+\t\tpublic static extern void #{cppSetterName}_null();"
+									csBinding[] = "\t\t\tset
+			{
+				if (value == null) Native.#{cppSetterName}_null();
+				else Native.#{cppSetterName}(#{rtCast and rtCast('value') or 'value'});
+			}"
+								else
+									csBinding[] = "\t\t\tset => Native.#{cppSetterName}(#{rtCast and rtCast('value') or 'value'});"
+							else
+								slf = isStatic and "" or "int64_t self, "
+								csNative[] = "\t\t[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+\t\tpublic static extern void #{cppSetterName}(#{slf}#{cppType} val);"
+								if isOptional
+									csNative[] = "\t\t[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+\t\tpublic static extern void #{cppSetterName}_null(#{isStatic and "" or "int64_t self"});"
+									csBinding[] = "\t\t\tset
+			{
+				if (value == null) Native.#{cppSetterName}_null(Raw);
+				else Native.#{cppSetterName}(#{isStatic and '' or 'Raw, '}#{rtCast and rtCast('value') or 'value'});
+			}"
+								else
+									csBinding[] = "\t\t\tset => Native.#{cppSetterName}(#{isStatic and '' or 'Raw, '}#{rtCast and rtCast('value') or 'value'});"
+						if dataType == cppType
+							castFrom = (name)-> name
+						cppGetterName = "#{namespace}#{clsNameL}_#{prefix}_#{funcNewName}"
+						rustGetterName = "#{prefix}_#{funcNewName}"
+						if isSingleton
+							csNative[] = "\t\t[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+\t\tpublic static extern #{cppType} #{cppGetterName}();"
+							item = "Native.#{cppGetterName}()"
+							csBinding[] = "\t\t\tget => #{rtCastFrom and rtCastFrom(item) or item};"
+						else
+							slf = isStatic and "" or "int64_t self"
+							csNative[] = "\t\t[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+\t\tpublic static extern #{cppType} #{cppGetterName}(#{slf});"
+							item = "Native.#{cppGetterName}(#{isStatic and "" or "Raw"})"
+							csBinding[] = "\t\t\tget => #{rtCastFrom and rtCastFrom(item) or item};"
+						csBinding[] = "\t\t}"
+					else
+						error "\"#{dataType}\" is not supported."
+				when "method"
+					funcCount += 1
+					const [_, docs, labels, dataType, name, newName, args, constFlag] = clsItem
+					funcNewName = newName or name
+					funcName = name\sub(1, 1)\lower! .. name\sub 2
+					funcName = table.concat [sub\lower! for sub in funcName\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
+					isCreate = false
+					if "static" in labels and "create" == funcNewName\sub 1, 6
+						isCreate = true
+						funcNewName = if #funcNewName > 6
+							"with" .. funcNewName\sub 7
+						else
+							"new"
+						pub = "pub "
+					funcNewName = funcNewName\sub(1, 1)\lower! .. funcNewName\sub 2
+					funcNewName = table.concat [sub\lower! for sub in funcNewName\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
+					isStatic = false
+					isOutside = false
+					isOptional = false
+					isHide = false
+					isConst = constFlag == "const"
+					for label in *labels
+						switch label
+							when "outside"
+								isOutside = true
+							when "static"
+								isStatic = true
+							when "optional"
+								isOptional = true
+							when "hide"
+								isHide = true
+					if isStatic
+						pub = if funcNewName\sub(1,1) == "_"
+							"pub(crate) "
+						else
+							"pub "
+					elseif pub\sub(1, 3) == "pub"
+						if funcNewName\sub(1,1) == "_"
+							pub = "pub(crate) "
+					rustType = basicTypes[dataType]
+					waName = nil
+					if rustType == nil and "*" == dataType\sub -1
+						dataTypeName = dataType\match "[^ \t*]+"
+						rustName = if isCreate
+							waName = (cppNamespace .. clsNewName)\gsub "::", ""
+							clsNewName
+						else
+							waName = nameMap[dataTypeName] or dataTypeName
+							waName
+						rustType = getObjectType dataTypeName, rustName, isCreate, isOptional
+					if rustType
+						[rt, cast, castFrom, _, rtTypeOut, _, rtCastFrom] = rustType
+						cppType = cppTypes[rt] ?? "void"
+						funcArgCount = -1
+						argItems = for arg in *args
+							[argKind, argType, argName, defValue] = arg
+							switch argKind
+								when "variable"
+									rustTypeA = basicTypes[argType]
+									if rustTypeA == nil and "*" == argType\sub -1
+										argTypeName = argType\match "[^ \t*]+"
+										rustArgName = nameMap[argTypeName] or argTypeName
+										rustTypeA = getObjectType argTypeName, rustArgName
+									if rustTypeA
+										[rtA, castA, _, rtTypeInA, _, rtCastA] = rustTypeA
+										cppTypeA = cppTypes[rtA]
+										[
+											--[[1]] "#{cppTypeA} #{argName}"
+											--[[2]] (argType == cppTypeA and argName or castA argName)
+											--[[3]] "#{rtA} #{argName}"
+											--[[4]] "#{rtTypeInA or rtA} #{argName}#{defValue and ' = ' .. defValue or ''}"
+											--[[5]] "#{rtCastA and rtCastA(argName) or argName}"
+											--[[6]] false
+											--[[7]] false
+											--[[8]] "#{argName}"
+										]
+									else
+										error "\"#{argType}\" is not supported."
+								when "callback"
+									funcArgCount += 1
+									fnArgId = tostring funcArgCount
+									[_, func, fname] = arg
+									[flabel, freturnType, fargs] = func
+									items = for farg in *fargs
+										[fargKind, fargType, fargName] = farg
+										if fargKind ~= "variable"
+											error "\"#{fargKind}\" is not supported in function argument."
+										frustType = basicTypes[fargType]
+										if frustType == nil and "*" == fargType\sub -1
+											fargTypeName = fargType\match "[^ \t*]+"
+											frustName = nameMap[fargTypeName] or fargTypeName
+											frustType = getObjectType fargTypeName, frustName
+										if frustType
+											{frt, _2, _3, frtTypeIn, _5, _6, _7, fpopArg} = frustType
+											fcppType = callbackDefs[fargType] or fargType
+											switch fargType\match "[^ \t*]+"
+												when "Event"
+													[
+														"Event* #{fargName}"
+														"\t\t#{fargName}->pushArgsToWasm(args#{fnArgId});"
+														"CallStack"
+														"stack#{fnArgId}"
+													]
+												when "Platformer::Behavior::Blackboard", "Platformer::UnitAction"
+													[
+														"#{fcppType}* #{fargName}"
+														"\t\targs#{fnArgId}->push(r_cast<int64_t>(#{fargName}));"
+														frtTypeIn
+														fpopArg fnArgId
+													]
+												when "DBRecord"
+													[
+														"#{fcppType}& #{fargName}"
+														"\t\targs#{fnArgId}->push(r_cast<int64_t>(new DBRecord{std::move(#{fargName})}));"
+														frtTypeIn
+														fpopArg fnArgId
+													]
+												when "MLQState", "MLQAction"
+													[
+														"#{fcppType} #{fargName}"
+														"\t\targs#{fnArgId}->push(s_cast<int64_t>(#{fargName}));"
+														frtTypeIn
+														fpopArg fnArgId
+													]
+												when nil
+													error "\"#{fargType}\" is not supported."
+												else
+													[
+														"#{fcppType} #{fargName}"
+														"\t\targs#{fnArgId}->push(#{fargName});"
+														frtTypeIn
+														fpopArg fnArgId
+													]
+									argPassed = #items > 0
+									cppArgDef = table.concat [item[1] for item in *items], ", "
+									cppArgPass = table.concat [item[2] for item in *items], "\n"
+									if cppArgPass ~= ""
+										cppArgPass = "#{cppArgPass}\n"
+									callbackType = "<#{table.concat [item[3] for item in *items], ', '}"
+									callback = "#{fname}(#{table.concat [item[4] for item in *items], ', '})"
+									callbackReturn = ""
+									frRetType = basicTypes[freturnType]
+									if frRetType == nil and "*" == freturnType\sub -1
+										freturnType = freturnType\sub 1, -2
+										frustName = nameMap[freturnType] or freturnType
+										frRetType = getObjectType freturnType, frustName
+									if frRetType
+										{frt, _2, _3, _4, frtTypeOut, _6, _7, _8, frPush} = frRetType
+										callbackType = if frtTypeOut
+											"Func#{callbackType == '<' and '<' or callbackType .. ', '}#{frtTypeOut}>"
+										else
+											"System.Action#{callbackType == '<' and '' or callbackType .. '>'}"
+										if frCppType := cppTypes[frt]
+											callbackReturn = switch freturnType
+												when "Node"
+													"\t\treturn args#{fnArgId}->empty() ? Node::create() : s_cast<Node*>(std::get<Object*>(args#{fnArgId}->pop()));\n"
+												when "string"
+													"\t\treturn args#{fnArgId}->empty() ? \"\"s : std::get<std::string>(args#{fnArgId}->pop());\n"
+												when "Platformer::WasmActionUpdate"
+													defItem = "Platformer::WasmActionUpdate::create([](Platformer::Unit*, Platformer::UnitAction*, float) { return true; })"
+													"\t\treturn args#{fnArgId}->empty()? #{defItem} : s_cast<Platformer::WasmActionUpdate*>(std::get<Object*>(args#{fnArgId}->pop()));\n"
+												when "bool"
+													switch flabel
+														when "def_true"
+															"\t\treturn args#{fnArgId}->pop_bool_or(true);\n"
+														when "def_false"
+															"\t\treturn args#{fnArgId}->pop_bool_or(false);\n"
+														else
+															print "missing [def_true|def_false] for callback return in #{funcNewName}"
+															"\t\treturn args#{fnArgId}->pop_bool_or(false);\n"
+												else
+													print "callback return type \"#{freturnType}\" not handled in #{funcNewName}"
+													"\t\treturn std::get<#{freturnType}>(args#{fnArgId}->pop());\n"
+											callback = "var result = #{callback};\n\t\t\t\t#{frPush 'result', fnArgId}"
+											argPassed = true
+									[
+										"int32_t func#{fnArgId}#{argPassed and ', int64_t stack' .. fnArgId or ''}"
+										"[func#{fnArgId}, #{argPassed and 'args' .. fnArgId .. ', ' or ''}deref#{fnArgId}](#{cppArgDef}) {
+#{argPassed and '\t\targs' .. fnArgId .. '->clear();\n' .. cppArgPass or ''}\t\tSharedWasmRuntime.invoke(func#{fnArgId});
+#{callbackReturn}	}"
+										"func#{fnArgId}: i32#{argPassed and ', stack' .. fnArgId .. ': i64' or ''}"
+										"#{callbackType} #{fname}"
+										"func_id#{fnArgId}#{argPassed and ', stack_raw' .. fnArgId or ''}"
+										"
+	std::shared_ptr<void> deref#{fnArgId}(nullptr, [func#{fnArgId}](auto) {
+		SharedWasmRuntime.deref(func#{fnArgId});
+	});#{argPassed and '\n\tauto args' .. fnArgId .. ' = r_cast<CallStack*>(stack' .. fnArgId .. ');' or ''}"
+										(argPassed and "\t\t\tvar stack#{fnArgId} = new CallStack();
+			var stack_raw#{fnArgId} = stack#{fnArgId}.Raw;\n" or '') .. "\t\t\tvar func_id#{fnArgId} = Bridge.PushFunction(() =>
+			{
+				#{callback}#{callback\sub(-1, -1) == ';' and '' or ';'}
+			});
+"
+										"#{fname}"
+									]
+						argDefs = table.concat [item[1] for item in *argItems], ", "
+						argPass = table.concat [item[2] for item in *argItems], ", "
+						argRtDefs = table.concat [item[3] for item in *argItems], ", "
+						argRtInDefs = table.concat [item[4] for item in *argItems], ", "
+						argRtPass = table.concat [item[5] for item in *argItems], ", "
+						argPrepare = table.concat [item[6] for item in *argItems when item[6]]
+						argRtPrepare = table.concat [item[7] for item in *argItems when item[7]]
+						argRtPassR = table.concat [item[8] for item in *argItems], ", "
+						if dataType == cppType
+							castFrom = (name)-> name
+						prefix = if cppType == "void" then "" else "return "
+						cppFuncName = "#{namespace}#{clsNameL}_#{funcNewName}"
+						csFuncName = snakeToPascal funcNewName
+						if clsNewName == "View3D" and funcNewName == "add_child_3d"
+							csFuncName = "AddChild"
+						rustFuncName = funcNewName
+						if isSingleton
+							csNative[] = "\t\t[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+\t\tpublic static extern #{cppType} #{cppFuncName}(#{argDefs});"
+						else
+							slf = isStatic and "" or "int64_t self"
+							if slf ~= "" then argDefs = slf .. (argDefs ~= "" and ", " or "") .. argDefs
+							csNative[] = "\t\t[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+\t\tpublic static extern #{cppType} #{cppFuncName}(#{argDefs});"
+						if isCreate
+							item = "Native.#{cppFuncName}(#{argRtPass})"
+							if argRtPrepare ~= ""
+								csBinding[] = "\t\tprivate static long New#{clsNewName}(#{argRtInDefs})
+		{\n#{argRtPrepare}\t\t\t#{prefix}#{item};\n\t\t}"
+								csBinding[] = "\t\t#{table.concat docs, '\n\t\t'}" if #docs > 0
+								csBinding[] = "\t\tpublic #{clsNewName}(#{argRtInDefs}) : this(New#{clsNewName}(#{argRtPassR})) { }"
+								if isOptional
+									csBinding[] = "\t\tpublic static #{isHide and 'new ' or ''}#{clsNewName}? TryCreate(#{argRtInDefs})
+		{
+			var raw = New#{clsNewName}(#{argRtPassR});
+			return raw == 0 ? null : new #{clsNewName}(raw);
+		}"
+							else
+								csBinding[] = "\t\t#{table.concat docs, '\n\t\t'}" if #docs > 0
+								csBinding[] = "\t\tpublic #{clsNewName}(#{argRtInDefs}) : this(#{item}) { }"
+								if isOptional
+									csBinding[] = "\t\tpublic static #{isHide and 'new ' or ''}#{clsNewName}? TryCreate(#{argRtInDefs})
+		{
+			var raw = #{item};
+			return raw == 0 ? null : new #{clsNewName}(raw);
+		}"
+						else
+							if not isSingleton and not isStatic
+								argRtPass = argRtPass == "" and "Raw" or "Raw, #{argRtPass}"
+							item = "Native.#{cppFuncName}(#{argRtPass})"
+							rtOut = rtTypeOut or rt
+							csBinding[] = "\t\t#{table.concat docs, '\n\t\t'}" if #docs > 0
+							csBinding[] = "\t\tpublic #{(isStatic or isSingleton) and 'static ' or ''}#{rtOut and rtOut or "void"} #{csFuncName}(#{argRtInDefs})
+		{\n#{argRtPrepare}\t\t\t#{prefix}#{rtCastFrom and rtCastFrom(item, isOptional) or item};\n\t\t}"
+						prepareArgs = []
+						funcArgCount = -1
+						argItems = for arg in *args
+							[argKind, argType, argName, defValue] = arg
+							switch argKind when "variable"
+								fargTypeName = argType\match "[^ \t*]+"
+								fargTypeName = nameMap[fargTypeName] or fargTypeName
+								wType = getWaType argType, fargTypeName
+								{
+									:argName
+									argType: wType.argType
+									converted: wType.convertTo argName
+								}
+							when "callback"
+								callbackName = nil
+								callbackType = nil
+								callbackConverted = nil
+								funcArgCount += 1
+								fnArgId = tostring funcArgCount
+								[_, func, fname] = arg
+								[flabel, freturnType, fargs] = func
+								freturnTypeName = freturnType\match "[^ \t*]+"
+								freturnName = nameMap[freturnTypeName] or freturnTypeName
+								rtpObj = getWaType freturnType, freturnName
+								rtp = freturnType == "void" and "" or " => #{rtpObj.returnType}"
+								callbackConverted = "func_id#{funcArgCount}"
+								callbackConverted ..= ", *stack#{funcArgCount}.raw" if #fargs > 0 or rtp ~= ""
+								argTypeStrs = []
+								popArgs = []
+								popArgNames = []
+								for farg in *fargs
+									[_, fargType, fargName] = farg
+									fargTypeName = fargType\match "[^ \t*]+"
+									atp = switch fargTypeName
+										when "Event"
+											{
+												convertFrom: -> error "unsupported"
+												convertTo: -> error "unsupported"
+												argType: "CallStack"
+												returnType: "CallStack"
+												creturn: (name, fnArgId)-> "#{name} := stack#{fnArgId}"
+												cpass: -> error "unsupported"
+											}
+										when nil
+											error "\"#{fargType}\" is not supported."
+										else
+											getWaType fargType, nameMap[fargTypeName] or fargTypeName
+									argTypeStrs[] = "#{toSnakeCase fargName}: #{atp.argType}"
+									if atp.creturn == nil
+										print fargType
+									else
+										popArgs[] = "\t\t#{atp.creturn fargName, fnArgId}"
+									popArgNames[] = fargName
+								popArgStr = table.concat popArgs, "\n"
+								popArgStr = popArgStr == "" and "" or "#{popArgStr}\n"
+								callFunc = if rtp == ""
+									"#{fname}(#{table.concat popArgNames, ', ' })"
+								else
+									"result_ := #{fname}(#{table.concat popArgNames, ', ' })\n\t\t#{rtpObj.cpass 'result_', fnArgId}"
+								if #fargs > 0 or rtp ~= ""
+									prepareArgs[] = "	stack#{funcArgCount} := NewCallStack()"
+								prepareArgs[] = "	func_id#{funcArgCount} := PushFunction(func() {
+#{popArgStr}		#{callFunc}
+	})"
+								callbackName = fname
+								callbackType = "func(#{table.concat argTypeStrs, ', '})#{rtp}"
+								{
+									argName: callbackName
+									argType: callbackType
+									converted: callbackConverted
+								}
+							else
+								error "unknown method argument kind"
+						argsList = table.concat ["#{item.argName}: #{item.argType}" for item in *argItems], ", "
+						argsConverted = table.concat ["#{item.converted}" for item in *argItems], ", "
+						prepareStr = table.concat prepareArgs, "\n"
+						prepareStr = prepareStr == "" and "" or "#{prepareStr}\n"
+					else
+						error "\"#{dataType}\" is not supported."
+		moduleScope = table.concat moduleScopes, "/"
+		csBinding[] = "	}"
+		csBinding[] = if namespace ~= "" then "} // namespace Dora.#{csNamespace}\n" else "} // namespace Dora\n"
+		moduleScope = table.concat moduleScopes, "/"
+		close _f1 = with io.open "../DoraCS/Dora/#{moduleScope ~= '' and moduleScope .. "/" .. clsNewName or clsNewName}.cs", "w"
+			\write licenseText
+			\write "\n\n"
+			\write table.concat csImports, "\n"
+			\write "\n"
+			\write "using System.Runtime.InteropServices;\n"
+			\write "using int64_t = long;\n"
+			\write "using int32_t = int;\n\n"
+			\write "namespace Dora\n{\n"
+			\write "\tinternal static partial class Native\n"
+			\write "\t{\n"
+			\write table.concat csNative, "\n"
+			\write "\n\t}\n"
+			\write "} // namespace Dora\n\n"
+			\write table.concat csBinding, "\n"
+		csImports = []
+		csNative = []
+		csBinding = []
+	print "#{clsCount} classes, #{funcCount} functions Done!"

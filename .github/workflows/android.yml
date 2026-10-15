@@ -1,0 +1,92 @@
+name: Android
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/android.yml'
+      # Shared engine code — triggers all platforms
+      - 'Source/**'
+      - 'Tools/tolua\+\+/**'
+      - 'Tools/dora-rust/**'
+      - 'Tools/dora-wa/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
+      # Platform-specific code
+      - 'Projects/Android/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/android.yml'
+      - 'Source/**'
+      - 'Tools/tolua\+\+/**'
+      - 'Tools/dora-rust/**'
+      - 'Tools/dora-wa/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
+      - 'Projects/Android/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: "startsWith(github.ref, 'refs/tags/') || (!contains(github.event.head_commit.message, '[skip CI]') && !contains(github.event.head_commit.message, '[skip Android]'))"
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: pnpm/action-setup@v6
+        with:
+          package_json_file: 'Tools/dora-dora/package.json'
+          cache: true
+          cache_dependency_path: 'Tools/dora-dora/pnpm-lock.yaml'
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - name: Install Android native toolchain
+        run: sdkmanager --install 'ndk;26.1.10909125' 'cmake;3.22.1' 'platforms;android-34' 'build-tools;34.0.0'
+      - name: Record xmake version
+        run: xmake --version
+      - name: Build Android
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        run: xmake dora-package --platform=android --mode=debug
+      - name: Generate tutorial docs
+        if: startsWith(github.ref, 'refs/tags/')
+        run: node Docs/scripts/generate-language-docs.js
+      - name: Pack Android
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          cd Tools/dora-dora && pnpm install && pnpm build && cd ../..
+          echo "$KEYSTORE_B64" | base64 -d > "$GITHUB_WORKSPACE/signing-key.jks"
+          DORA_ANDROID_SIGNING_STORE_FILE="$GITHUB_WORKSPACE/signing-key.jks" \
+          DORA_ANDROID_SIGNING_STORE_PASSWORD="$KEYSTORE_PASSWORD" \
+          DORA_ANDROID_SIGNING_KEY_ALIAS="$KEY_ALIAS" \
+          DORA_ANDROID_SIGNING_KEY_PASSWORD="$KEY_PASSWORD" \
+            xmake dora-package --platform=android --mode=release
+          cd Projects/Android/Dora/app/build/outputs/apk/release
+          mv app-release.apk dora-ssr-${{ github.ref_name }}-android.apk
+          zip dora-ssr-${{ github.ref_name }}-android.zip dora-ssr-${{ github.ref_name }}-android.apk
+          mv dora-ssr-${{ github.ref_name }}-android.zip "$GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-android.zip"
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            dora-ssr-${{ github.ref_name }}-android.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

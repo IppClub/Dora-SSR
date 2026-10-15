@@ -1,0 +1,423 @@
+# Mouse
+
+**描述：**
+
+&emsp;&emsp;提供用户鼠标的接口。
+
+## getPosition
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回鼠标的当前位置。
+
+**签名：**
+```tl
+getPosition: function(): number, number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 鼠标沿 x 轴的位置。 |
+| number | 鼠标沿 y 轴的位置。 |
+
+## getX
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回鼠标当前的 x 位置。
+
+**签名：**
+```tl
+getX: function(): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 鼠标沿 x 轴的位置。 |
+
+## getY
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回鼠标当前的 y 位置。
+
+**签名：**
+```tl
+getY: function(): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 鼠标沿 y 轴的位置。 |
+
+## setPosition
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置鼠标的当前位置。非整数值被下限。
+
+**签名：**
+```tl
+setPosition: function(x: number, y: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 鼠标沿 x 轴的新位置。 |
+| y | number | 鼠标沿 y 轴的新位置。 |
+
+## setX
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置鼠标当前的 X 位置。
+非整数值被下限。
+
+**签名：**
+```tl
+setX: function(x: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 鼠标沿 x 轴的新位置。 |
+
+## setY
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置鼠标当前的 Y 位置。
+非整数值被下限。
+
+**签名：**
+```tl
+setY: function(y: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| y | number | 鼠标沿 y 轴的新位置。 |
+
+## isDown
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查某个鼠标按钮是否按下。
+
+	-- 该函数不检测鼠标滚轮滚动；您必须使用 love.wheelmoved （或 0.9.2 及更早版本中的 love.mousepressed ）回调。
+
+**签名：**
+```tl
+isDown: function(buttons: number...): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| buttons | number... | 要检查的按钮的索引。 1 是鼠标主按钮，2 是鼠标辅助按钮，3 是中间按钮。其他按钮取决于鼠标。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | down — 如果任何指定的按钮被按下，则为真。 |
+
+## isDown
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查某个鼠标按钮是否按下。
+
+	-- 该函数不检测鼠标滚轮滚动；您必须使用 love.wheelmoved （或 0.9.2 及更早版本中的 love.mousepressed ）回调。
+
+**签名：**
+```tl
+isDown: function(buttons: {number}): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| buttons | \{number} | 要检查的按钮的索引。 1 是鼠标主按钮，2 是鼠标辅助按钮，3 是中间按钮。其他按钮取决于鼠标。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | down — 如果任何指定的按钮被按下，则为真。 |
+
+## setVisible
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置光标的当前可见性。
+
+**签名：**
+```tl
+setVisible: function(visible: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| visible | boolean | true 将光标设置为可见， false 将隐藏光标。 |
+
+## isVisible
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查光标是否可见。
+
+**签名：**
+```tl
+isVisible: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果光标可见则为 true，如果光标隐藏则为 false。 |
+
+## setGrabbed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;抓住鼠标并将其限制在窗口内。
+
+**签名：**
+```tl
+setGrabbed: function(grabbed: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| grabbed | boolean | True 限制鼠标，False 让它离开窗口。 |
+
+## isGrabbed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查鼠标是否被抓住。
+
+**签名：**
+```tl
+isGrabbed: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果光标被抓取则为 true，否则为 false。 |
+
+## setRelativeMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置鼠标是否启用相对模式。
+当启用相对模式时，光标被隐藏，并且在鼠标移动时不会移动，但仍然通过 love.mousemoved. 生成相对鼠标运动事件，这使得鼠标可以无限期地向任何方向移动，而光标不会卡在屏幕边缘。
+在启用相对模式时，即使生成了相对鼠标运动事件，报告的鼠标位置也可能不会更新。
+
+**签名：**
+```tl
+setRelativeMode: function(relative: boolean): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| relative | boolean | true 则启用相对模式， false 则禁用它。 |
+
+## getRelativeMode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取鼠标是否启用相对模式。
+如果启用相对模式，光标将被隐藏，并且在鼠标移动时不会移动，但仍然通过 love.mousemoved. 生成相对鼠标运动事件，这使鼠标可以无限期地向任何方向移动，而光标不会卡在屏幕边缘。
+在启用相对模式时，即使生成了相对鼠标运动事件，报告的鼠标位置也不会更新。
+
+**签名：**
+```tl
+getRelativeMode: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果启用相对模式则为 True，如果禁用则为 false。 |
+
+## newCursor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从图像文件或 ImageData 创建新的硬件 Cursor 对象。
+硬件光标与帧速率无关，并且与普通操作系统光标的工作方式相同。与在鼠标的当前坐标处绘制图像不同，即使在低帧速率下，硬件光标在鼠标移动和光标位置更新之间也不会出现明显的滞后。
+热点是操作系统用来确定单击的内容以及鼠标光标所在位置的点。例如，普通箭头指针通常将其热点放在图像的左上角，但十字光标可能将其放在中间。
+
+**签名：**
+```tl
+newCursor: function(image: ImageData | FileData | string, hot_x?: integer, hot_y?: integer): Cursor
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| image | ImageData or FileData or string | 用于新 Cursor 的 ImageData。根据重载：用于新光标的图像路径。取决于重载：表示用于新光标的图像的数据。 |
+| hot_x | integer | 光标热点的 ImageData 中的 x 坐标。 （默认值：0。）取决于重载：光标热点图像中的 x 坐标。 （默认值：0。） |
+| hot_y | integer | 光标热点的 ImageData 中的 y 坐标。 （默认值：0。）取决于过载：光标热点图像中的 y 坐标。 （默认值：0。） |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Cursor | 新的 Cursor 对象。 |
+
+## getSystemCursor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取表示系统本机硬件光标的 Cursor 对象。
+硬件光标与帧速率无关，并且与普通操作系统光标的工作方式相同。与在鼠标的当前坐标处绘制图像不同，即使在低帧速率下，硬件光标在鼠标移动和光标位置更新之间也不会出现明显的滞后。
+重载说明：
+1. 'image' CursorType 不是有效参数。使用 love.mouse.newCursor 使用自定义图像创建硬件光标。
+
+**签名：**
+```tl
+getSystemCursor: function(cursor_type: SystemCursor): Cursor
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| cursor_type | SystemCursor | 要获取的系统光标的类型。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Cursor | 表示系统游标类型的 Cursor 对象。 |
+
+## setCursor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置当前鼠标光标。
+
+**签名：**
+```tl
+setCursor: function()
+```
+
+## setCursor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置当前鼠标光标。
+
+**签名：**
+```tl
+setCursor: function(cursor: Cursor)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| cursor | Cursor | 用作当前鼠标光标的 Cursor 对象。 |
+
+## getCursor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前光标。
+
+**签名：**
+```tl
+getCursor: function(): Cursor | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Cursor or nil | 当前光标，如果未设置光标则为零。 |
+
+## isCursorSupported
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取是否支持光标功能。
+如果不支持，调用 love.mouse.newCursor 和 love.mouse.getSystemCursor 会出错。移动设备不支持光标。
+
+**签名：**
+```tl
+isCursorSupported: function(): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 系统是否有光标功能。 |

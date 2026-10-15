@@ -1,0 +1,554 @@
+--[[ Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. ]]
+
+_ENV = Dora
+import "Utils" as :Struct
+import global
+
+Struct.Array!
+
+Struct.Phyx.Rect(
+	"name"
+	"type"
+	"position"
+	"angle"
+	"center"
+	"size"
+	"density"
+	"friction"
+	"restitution"
+	"linearDamping"
+	"angularDamping"
+	"fixedRotation"
+	"linearAcceleration"
+	"bullet"
+	"sensor"
+	"sensorTag"
+	"subShapes"
+	"face"
+	"facePos"
+	"faceScale"
+)
+Struct.Phyx.Disk(
+	"name"
+	"type"
+	"position"
+	"angle"
+	"center"
+	"radius"
+	"density"
+	"friction"
+	"restitution"
+	"linearDamping"
+	"angularDamping"
+	"fixedRotation"
+	"linearAcceleration"
+	"bullet"
+	"sensor"
+	"sensorTag"
+	"subShapes"
+	"face"
+	"facePos"
+	"faceScale"
+)
+Struct.Phyx.Poly(
+	"name"
+	"type"
+	"position"
+	"angle"
+	"vertices"
+	"density"
+	"friction"
+	"restitution"
+	"linearDamping"
+	"angularDamping"
+	"fixedRotation"
+	"linearAcceleration"
+	"bullet"
+	"sensor"
+	"sensorTag"
+	"subShapes"
+	"face"
+	"facePos"
+	"faceScale"
+	"convexes"
+)
+Struct.Phyx.Chain(
+	"name"
+	"type"
+	"position"
+	"angle"
+	"vertices"
+	"friction"
+	"restitution"
+	"linearDamping"
+	"angularDamping"
+	"fixedRotation"
+	"linearAcceleration"
+	"bullet"
+	"subShapes"
+	"face"
+	"facePos"
+	"faceScale"
+)
+Struct.Phyx.SubRect(
+	"center"
+	"angle"
+	"size"
+	"density"
+	"friction"
+	"restitution"
+	"sensor"
+	"sensorTag"
+)
+Struct.Phyx.SubDisk(
+	"center"
+	"radius"
+	"density"
+	"friction"
+	"restitution"
+	"sensor"
+	"sensorTag"
+)
+Struct.Phyx.SubPoly(
+	"vertices"
+	"density"
+	"friction"
+	"restitution"
+	"sensor"
+	"sensorTag"
+	"convexes"
+)
+Struct.Phyx.SubChain(
+	"vertices"
+	"friction"
+	"restitution"
+)
+Struct.Phyx.Distance(
+	"name"
+	"collision"
+	"bodyA"
+	"bodyB"
+	"anchorA"
+	"anchorB"
+	"frequency"
+	"damping"
+)
+Struct.Phyx.Friction(
+	"name"
+	"collision"
+	"bodyA"
+	"bodyB"
+	"worldPos"
+	"maxForce"
+	"maxTorque"
+)
+Struct.Phyx.Gear(
+	"name"
+	"collision"
+	"jointA"
+	"jointB"
+	"ratio"
+)
+Struct.Phyx.Spring(
+	"name"
+	"collision"
+	"bodyA"
+	"bodyB"
+	"linearOffset"
+	"angularOffset"
+	"maxForce"
+	"maxTorque"
+	"correctionFactor"
+)
+Struct.Phyx.Prismatic(
+	"name"
+	"collision"
+	"bodyA"
+	"bodyB"
+	"worldPos"
+	"axis"
+	"lowerTranslation"
+	"upperTranslation"
+	"maxMotorForce"
+	"motorSpeed"
+)
+Struct.Phyx.Pulley(
+	"name"
+	"collision"
+	"bodyA"
+	"bodyB"
+	"anchorA"
+	"anchorB"
+	"groundAnchorA"
+	"groundAnchorB"
+	"ratio"
+)
+Struct.Phyx.Revolute(
+	"name"
+	"collision"
+	"bodyA"
+	"bodyB"
+	"worldPos"
+	"lowerAngle"
+	"upperAngle"
+	"maxMotorTorque"
+	"motorSpeed"
+)
+Struct.Phyx.Rope(
+	"name"
+	"collision"
+	"bodyA"
+	"bodyB"
+	"anchorA"
+	"anchorB"
+	"maxLength"
+)
+Struct.Phyx.Weld(
+	"name"
+	"collision"
+	"bodyA"
+	"bodyB"
+	"worldPos"
+	"frequency"
+	"damping"
+)
+Struct.Phyx.Wheel(
+	"name"
+	"collision"
+	"bodyA"
+	"bodyB"
+	"worldPos"
+	"axis"
+	"maxMotorTorque"
+	"motorSpeed"
+	"frequency"
+	"damping"
+)
+
+loadFuncs = nil
+
+loadBodyData = (bodyData) ->
+	data = switch type bodyData when "string"
+		file = repeat
+			break bodyData if Content\exist bodyData
+			file = bodyData .. ".b.lua"
+			break file if Content\exist file
+		until true
+		if file
+			fullPath = Content\getFullPath file
+			require fullPath
+		else
+			error "failed to locate body data file: \"#{bodyData}\""
+			nil
+	when "table"
+		bodyData
+	Struct\load data
+
+toVec = (value) ->
+	return value unless "table" == type value
+	Vec2 value.x or value[1] or 0, value.y or value[2] or 0
+
+toVecArray = (values) ->
+	if values.toArray
+		values = values\toArray!
+	start = if values[1] == "Array" then 2 else 1
+	[toVec values[i] for i = start, #values]
+
+copyVec = (value) -> Vec2 value.x, value.y
+
+toVecParts = (values, vertices) ->
+	return {toVecArray vertices} unless values
+	values = values\toArray! if values.toArray
+	return {toVecArray vertices} if #values == 0
+	start = if values[1] == "Array" then 2 else 1
+	return {toVecArray vertices} if start > #values
+	parts = {}
+	for i = start, #values
+		table.insert parts, toVecArray values[i]
+	error "polygon convex data must contain at least one convex part" if #parts == 0
+	parts
+
+encodeMultiParts = (parts) ->
+	result = {}
+	for i, part in ipairs parts
+		for point in *part
+			table.insert result, copyVec point
+		if i < #parts and #part > 0
+			table.insert result, copyVec part[#part]
+	result
+
+attachPolygonParts = (bodyDef, data) ->
+	parts = toVecParts data.convexes, data.vertices
+	if data.sensor
+		for part in *parts
+			bodyDef\attachPolygonSensor data.sensorTag, part
+	else if #parts == 1
+		bodyDef\attachPolygon parts[1], data.density, data.friction, data.restitution
+	else
+		bodyDef\attachMulti encodeMultiParts(parts), data.density, data.friction, data.restitution
+
+axisToAngle = (value) ->
+	axis = toVec value
+	return 0 unless axis and axis.x ~= nil and axis.y ~= nil
+	-math.deg math.atan axis.y, axis.x
+
+sizeDims = (size) ->
+	return size.width, size.height if size.width ~= nil and size.height ~= nil
+	size[1] or 0, size[2] or 0
+
+arrayCount = (values) ->
+	return values\count! if values.count
+	if values[1] == "Array" then #values - 1 else #values
+
+arrayGet = (values, index) ->
+	return values\get index if values.get
+	if values[1] == "Array" then values[index + 1] else values[index]
+
+loadData = (data, item) ->
+	loadFuncs[data[1]] data, item
+
+toDef = (data) -> with BodyDef!
+	.type = data.type
+	.bullet = data.bullet
+	.linearAcceleration = toVec data.linearAcceleration
+	.fixedRotation = data.fixedRotation
+	.linearDamping = data.linearDamping
+	.angularDamping = data.angularDamping
+	.position = toVec data.position
+	.angle = data.angle
+	.face = data.face
+	.facePos = toVec data.facePos
+	.faceScale = data.faceScale or 1
+
+loadFuncs =
+	"Array": (data, itemDict) ->
+		for i = 1, arrayCount data
+			loadData arrayGet(data, i), itemDict
+
+	"Phyx.Rect": (data, itemDict) ->
+		bodyDef = toDef data
+		width, height = sizeDims data.size
+		if data.sensor
+			bodyDef\attachPolygonSensor data.sensorTag, toVec(data.center), width, height
+		else
+			bodyDef\attachPolygon(
+				toVec(data.center), width, height, 0,
+				data.density, data.friction, data.restitution
+			)
+		if subShapes := data.subShapes
+			for i = 1, arrayCount subShapes
+				loadData arrayGet(subShapes, i), bodyDef
+		itemDict[data.name] = bodyDef
+
+	"Phyx.Disk": (data, itemDict) ->
+		bodyDef = toDef data
+		if data.sensor
+			bodyDef\attachDiskSensor data.sensorTag, toVec(data.center), data.radius
+		else
+			bodyDef\attachDisk(
+				toVec(data.center), data.radius,
+				data.density, data.friction, data.restitution
+			)
+		if subShapes := data.subShapes
+			for i = 1, arrayCount subShapes
+				loadData arrayGet(subShapes, i), bodyDef
+		itemDict[data.name] = bodyDef
+
+	"Phyx.Poly": (data, itemDict) ->
+		bodyDef = toDef data
+		attachPolygonParts bodyDef, data
+		if subShapes := data.subShapes
+			for i = 1, arrayCount subShapes
+				loadData arrayGet(subShapes, i), bodyDef
+		itemDict[data.name] = bodyDef
+
+	"Phyx.Chain": (data, itemDict) ->
+		bodyDef = toDef data
+		bodyDef\attachChain toVecArray(data.vertices), data.friction, data.restitution
+		if subShapes := data.subShapes
+			for i = 1, arrayCount subShapes
+				loadData arrayGet(subShapes, i), bodyDef
+		itemDict[data.name] = bodyDef
+
+	"Phyx.SubRect": (data, bodyDef) ->
+		width, height = sizeDims data.size
+		if data.sensor
+			bodyDef\attachPolygonSensor data.sensorTag, toVec(data.center), width, height
+		else
+			bodyDef\attachPolygon(
+				toVec(data.center), width, height,
+				data.angle, data.density, data.friction, data.restitution
+			)
+
+	"Phyx.SubDisk": (data, bodyDef) ->
+		if data.sensor
+			bodyDef\attachDiskSensor data.sensorTag, toVec(data.center), data.radius
+		else
+			bodyDef\attachDisk(
+				toVec(data.center), data.radius,
+				data.density, data.friction, data.restitution
+			)
+
+	"Phyx.SubPoly": (data, bodyDef) ->
+		attachPolygonParts bodyDef, data
+
+	"Phyx.SubChain": (data, bodyDef) ->
+		bodyDef\attachChain toVecArray(data.vertices), data.friction, data.restitution
+
+	"Phyx.Distance": (data, itemDict) ->
+		itemDict[data.name] = JointDef\distance(
+			data.collision
+			data.bodyA
+			data.bodyB
+			toVec data.anchorA
+			toVec data.anchorB
+			data.frequency
+			data.damping
+		)
+
+	"Phyx.Friction": (data, itemDict) ->
+		itemDict[data.name] = JointDef\friction(
+			data.collision
+			data.bodyA
+			data.bodyB
+			toVec data.worldPos
+			data.maxForce
+			data.maxTorque
+		)
+
+	"Phyx.Gear": (data, itemDict) ->
+		itemDict[data.name] = JointDef\gear(
+			data.collision
+			data.jointA
+			data.jointB
+			data.ratio
+		)
+
+	"Phyx.Spring": (data, itemDict) ->
+		itemDict[data.name] = JointDef\spring(
+			data.collision
+			data.bodyA
+			data.bodyB
+			toVec data.linearOffset
+			data.angularOffset
+			data.maxForce
+			data.maxTorque
+			data.correctionFactor
+		)
+
+	"Phyx.Prismatic": (data, itemDict) ->
+		itemDict[data.name] = JointDef\prismatic(
+			data.collision
+			data.bodyA
+			data.bodyB
+			toVec data.worldPos
+			axisToAngle data.axis
+			data.lowerTranslation
+			data.upperTranslation
+			data.maxMotorForce
+			data.motorSpeed
+		)
+
+	"Phyx.Pulley": (data, itemDict) ->
+		itemDict[data.name] = JointDef\pulley(
+			data.collision
+			data.bodyA
+			data.bodyB
+			toVec data.anchorA
+			toVec data.anchorB
+			toVec data.groundAnchorA
+			toVec data.groundAnchorB
+			data.ratio
+		)
+
+	"Phyx.Revolute": (data, itemDict) ->
+		itemDict[data.name] = JointDef\revolute(
+			data.collision
+			data.bodyA
+			data.bodyB
+			toVec data.worldPos
+			data.lowerAngle
+			data.upperAngle
+			data.maxMotorTorque
+			data.motorSpeed
+		)
+
+	"Phyx.Rope": (data, itemDict) ->
+		itemDict[data.name] = JointDef\rope(
+			data.collision
+			data.bodyA
+			data.bodyB
+			toVec data.anchorA
+			toVec data.anchorB
+			data.maxLength
+		)
+
+	"Phyx.Weld": (data, itemDict) ->
+		itemDict[data.name] = JointDef\weld(
+			data.collision
+			data.bodyA
+			data.bodyB
+			toVec data.worldPos
+			data.frequency
+			data.damping
+		)
+
+	"Phyx.Wheel": (data, itemDict) ->
+		itemDict[data.name] = JointDef\wheel(
+			data.collision
+			data.bodyA
+			data.bodyB
+			toVec data.worldPos
+			axisToAngle data.axis
+			data.maxMotorTorque
+			data.motorSpeed
+			data.frequency
+			data.damping
+		)
+
+export default (bodyData, world, pos = Vec2.zero, angle = 0) ->
+	root = Node!
+	itemDict = Dictionary!
+	try
+		loadData loadBodyData(bodyData), itemDict
+		items = root.data
+		center = Vec2.zero
+		jointDefs = []
+		itemDict\each (itemDef, key) ->
+			if "BodyDef" == tolua.type itemDef
+				body = Body itemDef, world, pos, angle
+				body.owner = root
+				root\addChild body
+				faceStr = itemDef.face
+				if faceStr ~= ""
+					face = if faceStr\match ":"
+						Playable faceStr
+					else
+						Sprite faceStr
+					if face
+						face.position = itemDef.facePos
+						face.scaleX = itemDef.faceScale
+						face.scaleY = itemDef.faceScale
+						body\addChild face
+				items[key] = body
+			else
+				jointDefs[] = [key, itemDef]
+		for [key, itemDef] in *jointDefs
+			if center
+				itemDef.center = center
+				itemDef.position = pos
+				itemDef.angle = angle
+			if joint := Joint itemDef, items
+				items[key] = joint
+	catch err
+		Log "Error", "failed to load body data due to: \"#{err}\""
+		root\cleanup!
+		itemDict\clear!
+		root = nil
+	root

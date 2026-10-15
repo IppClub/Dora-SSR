@@ -1,0 +1,191 @@
+# VideoStream
+
+**描述：**
+
+&emsp;&emsp;解码、流式传输和控制视频的对象。
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: VideoStream): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: VideoStream): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: VideoStream, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## play
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;播放视频流。
+
+**签名：**
+```tl
+play: function(self: VideoStream)
+```
+
+## pause
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;暂停视频流。
+
+**签名：**
+```tl
+pause: function(self: VideoStream)
+```
+
+## seek
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置VideoStream的当前播放位置。
+
+**签名：**
+```tl
+seek: function(self: VideoStream, seconds: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| seconds | number | 自视频流开始以来的时间（以秒为单位）。 |
+
+## rewind
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;倒带视频流。与 VideoStream:seek(0) 同义词。
+
+**签名：**
+```tl
+rewind: function(self: VideoStream)
+```
+
+## tell
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取VideoStream的当前播放位置。
+
+**签名：**
+```tl
+tell: function(self: VideoStream): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 视频流开始处的秒数。 |
+
+## isPlaying
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取VideoStream是否正在播放。
+
+**签名：**
+```tl
+isPlaying: function(self: VideoStream): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | VideoStream是否正在播放。 |
+
+## getFilename
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取视频流的文件名。
+
+**签名：**
+```tl
+getFilename: function(self: VideoStream): string
+	setSync: function(self: VideoStream, source?: Source)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| source | Source | source 参数。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 视频流的文件名 |

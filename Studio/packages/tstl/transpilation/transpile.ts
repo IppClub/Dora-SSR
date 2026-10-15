@@ -1,0 +1,159 @@
+import path from "path";
+import * as ts from "typescript";
+import { CompilerOptions, LuaLibImportKind, validateOptions } from "../CompilerOptions";
+import { createPrinter } from "../LuaPrinter";
+import { createVisitorMap, transformSourceFile } from "../transformation";
+import { explicitAnyTypeNotAllowed } from "./diagnostics";
+import { getTransformers } from "./transformers";
+import { EmitHost, ProcessedFile } from "./utils";
+
+export interface TranspileOptions {
+    program: ts.Program;
+    sourceFiles?: ts.SourceFile[];
+    customTransformers?: ts.CustomTransformers;
+}
+
+export interface TranspileResult {
+    diagnostics: ts.Diagnostic[];
+    transpiledFiles: ProcessedFile[];
+}
+
+function getExplicitAnyDiagnostics(program: ts.Program, sourceFiles?: readonly ts.SourceFile[]): ts.Diagnostic[] {
+    const diagnostics: ts.Diagnostic[] = [];
+    const files = sourceFiles ?? program.getRootFileNames().map(fileName => program.getSourceFile(fileName));
+
+    const visit = (sourceFile: ts.SourceFile, node: ts.Node) => {
+        if (node.kind === ts.SyntaxKind.AnyKeyword) {
+            diagnostics.push(explicitAnyTypeNotAllowed(node, sourceFile));
+        }
+        ts.forEachChild(node, child => visit(sourceFile, child));
+    };
+
+    for (const sourceFile of files) {
+        if (sourceFile !== undefined && !sourceFile.isDeclarationFile) {
+            visit(sourceFile, sourceFile);
+        }
+    }
+
+    return diagnostics;
+}
+
+export function getProgramTranspileResult(
+    emitHost: EmitHost,
+    writeFileResult: ts.WriteFileCallback,
+    { program, sourceFiles: targetSourceFiles, customTransformers = {} }: TranspileOptions
+): TranspileResult {
+
+    const options = program.getCompilerOptions() as CompilerOptions;
+
+    if (options.tstlVerbose) {
+        console.log("Parsing project settings");
+    }
+
+    const diagnostics = validateOptions(options);
+    const explicitAnyDiagnostics = getExplicitAnyDiagnostics(program, targetSourceFiles);
+    diagnostics.push(...explicitAnyDiagnostics);
+    let transpiledFiles: ProcessedFile[] = [];
+
+    if (explicitAnyDiagnostics.length > 0) {
+        return { diagnostics, transpiledFiles };
+    }
+
+    if (options.noEmitOnError) {
+        const preEmitDiagnostics = [
+            ...diagnostics,
+            ...program.getOptionsDiagnostics(),
+            ...program.getGlobalDiagnostics(),
+        ];
+
+        if (targetSourceFiles) {
+            for (const sourceFile of targetSourceFiles) {
+                preEmitDiagnostics.push(...program.getSyntacticDiagnostics(sourceFile));
+                preEmitDiagnostics.push(...program.getSemanticDiagnostics(sourceFile));
+            }
+        } else {
+            preEmitDiagnostics.push(...program.getSyntacticDiagnostics());
+            preEmitDiagnostics.push(...program.getSemanticDiagnostics());
+        }
+
+        if (preEmitDiagnostics.length === 0 && (options.declaration || options.composite)) {
+            preEmitDiagnostics.push(...program.getDeclarationDiagnostics());
+        }
+
+        if (preEmitDiagnostics.length > 0) {
+            return { diagnostics: preEmitDiagnostics, transpiledFiles };
+        }
+    }
+
+    const visitorMap = createVisitorMap([]);
+    const printer = createPrinter([]);
+
+    const processSourceFile = (sourceFile: ts.SourceFile) => {
+        if (options.tstlVerbose) {
+            console.log(`Transforming ${sourceFile.fileName}`);
+        }
+
+        const { file, diagnostics: transformDiagnostics, isTIC80 } = transformSourceFile(program, sourceFile, visitorMap);
+        diagnostics.push(...transformDiagnostics);
+
+        if (isTIC80) {
+            options.luaLibImport = LuaLibImportKind.Inline;
+        } else {
+            options.luaLibImport = LuaLibImportKind.Require;
+        }
+
+        if (!options.noEmit && !options.emitDeclarationOnly) {
+            if (options.tstlVerbose) {
+                console.log(`Printing ${sourceFile.fileName}`);
+            }
+
+            const printResult = printer(program, emitHost, sourceFile.fileName, file);
+            transpiledFiles.push({
+                sourceFiles: [sourceFile],
+                fileName: path.normalize(sourceFile.fileName),
+                luaAst: file,
+                ...printResult,
+            });
+        }
+    };
+
+    const transformers = getTransformers(program, diagnostics, customTransformers, processSourceFile);
+
+    const isEmittableJsonFile = (sourceFile: ts.SourceFile) =>
+        sourceFile.flags & ts.NodeFlags.JsonFile &&
+        !options.emitDeclarationOnly &&
+        !program.isSourceFileFromExternalLibrary(sourceFile);
+
+    // We always have to run transformers to get diagnostics
+    const oldNoEmit = options.noEmit;
+    options.noEmit = false;
+
+    const writeFile: ts.WriteFileCallback = (fileName, ...rest) => {
+        if (!fileName.endsWith(".js") && !fileName.endsWith(".js.map") && !fileName.endsWith(".json")) {
+            writeFileResult(fileName, ...rest);
+        }
+    };
+
+    if (targetSourceFiles) {
+        for (const file of targetSourceFiles) {
+            if (isEmittableJsonFile(file)) {
+                processSourceFile(file);
+            } else {
+                diagnostics.push(...program.emit(file, writeFile, undefined, false, transformers).diagnostics);
+            }
+        }
+    } else {
+        diagnostics.push(...program.emit(undefined, writeFile, undefined, false, transformers).diagnostics);
+
+        // JSON files don't get through transformers and aren't written when outDir is the same as rootDir
+        program.getSourceFiles().filter(isEmittableJsonFile).forEach(processSourceFile);
+    }
+
+    options.noEmit = oldNoEmit;
+
+    if (options.noEmit || (options.noEmitOnError && diagnostics.length > 0)) {
+        transpiledFiles = [];
+    }
+
+    return { diagnostics, transpiledFiles };
+}

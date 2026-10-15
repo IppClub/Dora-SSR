@@ -1,0 +1,68 @@
+# Particle
+
+**Description:**
+
+&emsp;&emsp;Represents a particle system node that emits and animates particles.
+
+**Class Object:** [Particle Class](/docs/api/Class%20Object/Particle).
+
+**Inherits from:** [Node](/docs/api/Class/Node).
+
+## active
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the particle system is active.
+
+**Signature:**
+```tl
+const active: boolean
+```
+
+## start
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Starts emitting particles.
+
+**Signature:**
+```tl
+start: function(self: Particle)
+```
+
+## stop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Stops emitting particles and wait for all active particles to end their lives.
+
+**Signature:**
+```tl
+stop: function(self: Particle)
+```
+
+## onFinished
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers a callback function for when the particle system ends.
+Triggered after a Particle node started a stop action and then all the active particles end their lives.
+
+**Signature:**
+```tl
+onFinished: function(self: Particle, callback: function())
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function for when the particle system ends. |

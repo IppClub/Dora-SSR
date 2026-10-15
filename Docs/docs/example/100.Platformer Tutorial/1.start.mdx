@@ -1,0 +1,21 @@
+# Series Introduction
+
+&emsp;&emsp;Welcome to the Dora SSR Game Engine 2D Side-Scrolling Game Development Tutorial! In this tutorial series, we will guide you step-by-step to create your own 2D side-scrolling game using the Dora SSR Game Engine. Whether you are a beginner in game development or an experienced developer, this tutorial will provide you with valuable guidance and practical experience.
+
+&emsp;&emsp;Dora SSR is a feature-rich game engine that provides a comprehensive toolset, including behavior tree framework, decision tree framework, global data storage, 2D platform game camera, physics simulation for 2D platform game worlds, game unit action classes, game character node classes, and bullet object classes, which can help you easily create rich and colorful 2D games.
+
+&emsp;&emsp;In this tutorial series, we will use a simple 2D side-scrolling game as an example to demonstrate how to create a game scene using the Dora SSR Game Engine. We will use the Teal scripting language to write the game character's action, AI, and input control code, as well as implement interactive features for scene props. We will divide this process into the following parts:
+
+	1. [Writing the Configuration Module](/docs/example/Platformer%20Tutorial/config)(Config)
+	2. [Writing the Scene Creation Module](/docs/example/Platformer%20Tutorial/scene)(Scene)
+	3. [Writing the Game Character Action Module](/docs/example/Platformer%20Tutorial/action)(Action)
+	4. [Writing the Game Character AI Module](/docs/example/Platformer%20Tutorial/ai)(AI)
+	5. [Writing the Game Character Attribute Definition Module](/docs/example/Platformer%20Tutorial/unit)(Unit)
+	6. [Writing the Game Processing Logic Module](/docs/example/Platformer%20Tutorial/logic)(Logic)
+	7. [Writing Excel Configuration File Loading Module](/docs/example/Platformer%20Tutorial/loader)(Loader)
+	8. [Writing the Game UI Module](ui)(UI)
+	9. [Writing the Game Entry Program Module](/docs/example/Platformer%20Tutorial/init)(init)
+
+&emsp;&emsp;Each tutorial will explain in detail the functionality and writing methods of each module, as well as how to integrate them together to create a complete game.
+
+&emsp;&emsp;We hope that through this tutorial series, you will not only learn how to use the Dora SSR Game Engine but also enhance your game development skills, ultimately being able to independently complete the development of a 2D side-scrolling game. Let's get started!

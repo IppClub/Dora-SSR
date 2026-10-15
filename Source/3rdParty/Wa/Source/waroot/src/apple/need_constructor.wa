@@ -1,0 +1,15 @@
+// Copyright (C) 2024 武汉凹语言科技有限公司
+// SPDX-License-Identifier: MIT
+
+#wa:need-constructor
+type Object :struct {
+	name: string
+}
+
+func NewObject(name: string) => Object {
+	return Object{name: name}
+}
+
+func Object.Name => string {
+	return this.name
+}

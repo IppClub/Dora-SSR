@@ -1,0 +1,99 @@
+/* Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+import "runtime"
+
+#wa:import dora vec3_release
+func vec3_release(raw: i64)
+
+#wa:import dora vec3_set_x
+func vec3_set_x(slf: i64, val: f32)
+
+#wa:import dora vec3_get_x
+func vec3_get_x(slf: i64) => f32
+
+#wa:import dora vec3_set_y
+func vec3_set_y(slf: i64, val: f32)
+
+#wa:import dora vec3_get_y
+func vec3_get_y(slf: i64) => f32
+
+#wa:import dora vec3_set_z
+func vec3_set_z(slf: i64, val: f32)
+
+#wa:import dora vec3_get_z
+func vec3_get_z(slf: i64) => f32
+
+#wa:import dora vec3_new
+func vec3_new(x: f32, y: f32, z: f32) => i64
+
+#wa:import dora vec3_zero
+func vec3_zero() => i64
+
+type Vec3 :struct{ raw: *i64 }
+
+func Vec3.GetRaw() => i64 {
+	return *this.raw
+}
+func vec_3finalizer(ptr: u32) {
+	vec3_release(GetPtr(ptr))
+}
+func Vec3From(raw: i64) => *Vec3 {
+	if raw == 0 {
+		return nil
+	}
+	item := Vec3{}
+	item.raw = &raw
+	runtime.SetFinalizer(item.raw, vec_3finalizer)
+	result := &item
+	return result
+}
+
+/// Sets the x component.
+func Vec3.SetX(val: f32) {
+	vec3_set_x(*this.raw, val)
+}
+
+/// Gets the x component.
+func Vec3.GetX() => f32 {
+	return vec3_get_x(*this.raw)
+}
+
+/// Sets the y component.
+func Vec3.SetY(val: f32) {
+	vec3_set_y(*this.raw, val)
+}
+
+/// Gets the y component.
+func Vec3.GetY() => f32 {
+	return vec3_get_y(*this.raw)
+}
+
+/// Sets the z component.
+func Vec3.SetZ(val: f32) {
+	vec3_set_z(*this.raw, val)
+}
+
+/// Gets the z component.
+func Vec3.GetZ() => f32 {
+	return vec3_get_z(*this.raw)
+}
+
+/// Creates a new 3D vector.
+func NewVec3(x: f32, y: f32, z: f32) => Vec3 {
+	raw := vec3_new(x, y, z)
+	object := Vec3{}
+	object.raw = &raw
+	runtime.SetFinalizer(object.raw, vec_3finalizer)
+	return object
+}
+
+/// Gets a zero 3D vector.
+func Vec3Zero() => Vec3 {
+	return *Vec3From(vec3_zero())
+}

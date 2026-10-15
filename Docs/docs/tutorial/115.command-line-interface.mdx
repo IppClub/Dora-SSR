@@ -1,0 +1,190 @@
+# Dora CLI Mode
+
+Dora CLI mode is a special execution mode of the Dora engine executable. When the command-line arguments include `cli`, the executable switches from running the normal engine startup flow to running the minimum required Dora game development helper environment.
+
+In this mode, Dora does not start the normal game runtime. It only loads the CLI Lua script and the minimum helper capabilities needed for command-line development tasks. It is intended to work together with a running Dora SSR engine and Web IDE.
+
+CLI mode is supported on Windows, macOS, and Linux only.
+
+Use `Dora` in the examples below as the Dora executable name. If it is not on `PATH`, replace it with the full executable path.
+
+## 1. Start Dora SSR
+
+Start Dora SSR normally and keep the Web IDE available. Most CLI commands call the Web IDE HTTP service, so pass the host shown by the Web IDE if it is not `127.0.0.1`.
+
+If you are working with the local engine and the service is not running, `doctor --fix` can start the native Dora engine for the current desktop platform. If the Web IDE is not connected, it waits briefly for an existing browser tab to reconnect before opening `http://localhost:8866` in the local browser.
+
+```sh
+Dora cli --help
+```
+
+Use `--asset` as a global option when the CLI should use a different Dora asset root. The option can be placed before or after `cli`:
+
+```sh
+Dora --asset /path/to/Assets cli status
+Dora cli status --asset /path/to/Assets
+```
+
+Common connection options:
+
+```sh
+--host 127.0.0.1
+--port 8866
+--timeout 10
+```
+
+Check the local service:
+
+```sh
+Dora cli status
+Dora cli doctor
+Dora cli doctor --fix
+```
+
+`status` reports the current service state. `doctor` reports the same core state with recovery hints. `doctor --fix` can start the local native engine and open the Web IDE when needed.
+
+Read the latest engine logs:
+
+```sh
+Dora cli log
+Dora cli log -n 100
+```
+
+`log` prints the latest 100 log lines by default. Use `-n` to choose another positive line count.
+
+## 2. Command Reference
+
+The command list from `Dora cli --help`:
+
+```text
+Usage: dora cli <command> [options]
+
+Commands:
+  ts install [-p project] [-l zh-Hans|en]
+  wa install [-p project]
+  build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa|yarn]
+  run [-p project] [--entry init.lua]
+  buildrun [-p project] [-f file] [--lang ...] [--entry init.lua]
+  stop
+  status [-p project]
+  doctor [-p project] [--fix]
+  log [-n lines]
+  doc search <pattern> [-l zh-Hans|en] [--source dora-api|dora-tutorial|love-api|tic80-api] [--lang ts|tsx|lua|yue|tl|wa] [-n limit]
+  doc read <file> [-l zh-Hans|en] [--start line] [--end line]
+  rust build [-p project]
+  rust run <target-path> [-p project]
+  rust upload <target-path> [-p project] [--run]
+
+Connection options: --host, --port, --timeout
+```
+
+Use `-h` or `--help` after a grouped command for details:
+
+```sh
+Dora cli ts --help
+Dora cli wa install -h
+Dora cli rust run --help
+```
+
+## 3. Documentation Search
+
+Search Dora SSR docs through the running Web IDE service:
+
+```sh
+Dora cli doc search Sprite --source tutorial --lang ts
+Dora cli doc search "Sprite|Node" --source api --lang tsx -n 20
+```
+
+Search results print doc file paths and matching lines. Read a returned file with `doc read`:
+
+```sh
+Dora cli doc read ts/using-sprite.md --start 1 --end 80
+```
+
+`-l` defaults to `en` for `doc search` and `doc read`. `--source` selects exactly one documentation set: `dora-api`, `dora-tutorial`, `love-api`, or `tic80-api`. `--lang` selects the TypeScript/TSX or Teal declaration variant (and the tutorial language directory for `dora-tutorial`). `teal` and `tl` both use the Teal docs.
+
+## 4. TypeScript and Script Projects
+
+Install TypeScript support. On a new project this creates `tsconfig.json` and writes Dora API definitions under `API`. On an existing project it refreshes the API definitions and keeps an existing `tsconfig.json` unchanged.
+
+```sh
+Dora cli ts install -p /path/to/project -l en
+```
+
+Build the project. When the language is not specified, Dora CLI scans supported source files and builds or checks each one by extension. Use `--lang` only when you want to build one language family.
+
+```sh
+Dora cli build -p /path/to/project
+Dora cli build --lang ts -p /path/to/project
+Dora cli build --lang yarn -p /path/to/project
+Dora cli build -f src/main.ts -p /path/to/project
+```
+
+Run or stop the project:
+
+```sh
+Dora cli run -p /path/to/project
+Dora cli run --entry Script/main.lua -p /path/to/project
+Dora cli stop
+```
+
+Build and run in one command:
+
+```sh
+Dora cli buildrun -p /path/to/project
+Dora cli buildrun -f src/main.ts -p /path/to/project
+```
+
+Supported build languages are `all`, `ts`, `yue`, `tl`, `xml`, `wa`, and `yarn`. `all` is the default. Yarn files are checked through the same build command, so a project build can report Yarn syntax errors together with the other source files.
+
+## 5. Wa Projects
+
+Install Wa support. On a new project this writes `wa.mod`, `src/main.wa`, and `vendor/dora` using the Dora engine's current Wa bindings. On an existing Wa project it refreshes `vendor/dora`.
+
+```sh
+Dora cli wa install -p /path/to/wa-project --host 127.0.0.1
+cd /path/to/wa-project
+```
+
+Update `vendor/dora` later when the engine version changes:
+
+```sh
+Dora cli wa install --host 127.0.0.1
+```
+
+Build with the common build command:
+
+```sh
+Dora cli build --host 127.0.0.1
+```
+
+Run with the common run command:
+
+```sh
+Dora cli run --host 127.0.0.1
+```
+
+Wa projects for Dora SSR should use the Wa compiler integrated in the engine. Do not build Dora Wa projects with a separately installed Wa toolchain.
+
+## 6. Rust WASM Projects
+
+Build a Rust WASM project with the local Rust toolchain:
+
+```sh
+Dora cli rust build -p /path/to/rust-project
+```
+
+Build, upload, and run it in a Dora resource tree folder:
+
+```sh
+Dora cli rust run Hello --host 127.0.0.1 -p /path/to/rust-project
+```
+
+Upload an already-built WASM file, optionally running it after upload:
+
+```sh
+Dora cli rust upload Hello --host 127.0.0.1 -p /path/to/rust-project
+Dora cli rust upload Hello --run --host 127.0.0.1 -p /path/to/rust-project
+```
+
+`Hello` must already exist in the Dora SSR resource tree.

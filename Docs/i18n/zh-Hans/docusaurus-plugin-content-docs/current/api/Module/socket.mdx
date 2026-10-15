@@ -1,0 +1,27 @@
+# socket
+
+**描述：**
+
+&emsp;&emsp;LuaSocket 3.1.0 的 TCP、UDP、DNS、超时、数据源和数据接收器接口。
+
+**签名：**
+```tl
+local type Source = function(): string | nil, string | nil
+local type Sink = function(chunk?: string, err?: string): integer | nil, string | nil
+local type Filter = function(chunk?: string): string | nil
+```
+
+## getfd
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回 socket.select 使用的原生描述符。
+
+**签名：**
+```tl
+getfd: function(self: Selectable): number
+	-- 返回未读缓冲数据是否使套接字处于立即可读状态。
+	dirty: function(self: Selectable): boolean
+```

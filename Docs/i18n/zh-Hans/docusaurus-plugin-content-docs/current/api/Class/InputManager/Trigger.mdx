@@ -1,0 +1,877 @@
+# Trigger
+
+**描述：**
+
+&emsp;&emsp;输入触发器的管理类，定义了键盘键、游戏手柄按钮和摇杆的各种输入触发器。
+
+## state
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;当前触发器状态。
+
+**签名：**
+```tl
+state: TriggerState
+```
+
+## value
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;当前触发器的值。
+
+**签名：**
+```tl
+value: InputValue
+```
+
+## progress
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;当前触发器进度，适用时取值范围为0到1。
+
+**签名：**
+```tl
+progress: number
+```
+
+## onChange
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;旧的单个变化回调。需要多个监听器时优先使用 `addListener()`。
+
+**签名：**
+```tl
+onChange: function()
+```
+
+## addListener
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;添加一个监听器，不会替换已有监听器。
+
+**签名：**
+```tl
+addListener: function(self: Trigger, listener: TriggerListener)
+```
+
+## removeListener
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;移除通过 `addListener()` 添加的监听器。
+
+**签名：**
+```tl
+removeListener: function(self: Trigger, listener: TriggerListener)
+```
+
+## Down
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个键盘或手柄按下触发器。传入多个绑定时，任一绑定完成都会触发。
+
+**签名：**
+```tl
+Down: function(input: InputBinding): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| input | InputBinding | 输入绑定。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## Down
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个键盘或手柄按下触发器。传入多个绑定时，任一绑定完成都会触发。
+
+**签名：**
+```tl
+Down: function(input: {InputBinding}): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| input | \{InputBinding} | 输入绑定数组。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## Up
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个键盘或手柄释放触发器。传入多个绑定时，任一绑定完成都会触发。
+
+**签名：**
+```tl
+Up: function(input: InputBinding): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| input | InputBinding | 输入绑定。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## Up
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个键盘或手柄释放触发器。传入多个绑定时，任一绑定完成都会触发。
+
+**签名：**
+```tl
+Up: function(input: {InputBinding}): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| input | \{InputBinding} | 输入绑定数组。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## Pressed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个键盘或手柄持续按下触发器。传入多个绑定时，任一绑定完成都会触发。
+
+**签名：**
+```tl
+Pressed: function(input: InputBinding): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| input | InputBinding | 输入绑定。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## Pressed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个键盘或手柄持续按下触发器。传入多个绑定时，任一绑定完成都会触发。
+
+**签名：**
+```tl
+Pressed: function(input: {InputBinding}): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| input | \{InputBinding} | 输入绑定数组。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## Hold
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个键盘或手柄长按触发器。传入多个绑定时，任一绑定完成都会触发。
+
+**签名：**
+```tl
+Hold: function(input: InputBinding, holdTime: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| input | InputBinding | 输入绑定。 |
+| holdTime | number | 持续时间，以秒为单位。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## Hold
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个键盘或手柄长按触发器。传入多个绑定时，任一绑定完成都会触发。
+
+**签名：**
+```tl
+Hold: function(input: {InputBinding}, holdTime: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| input | \{InputBinding} | 输入绑定数组。 |
+| holdTime | number | 持续时间，以秒为单位。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## Double
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个键盘或手柄双击触发器。传入多个绑定时，任一绑定完成都会触发。
+
+**签名：**
+```tl
+Double: function(input: InputBinding, threshold?: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| input | InputBinding | 输入绑定。 |
+| threshold | number | [可选] 两次按下之间的时间阈值，以秒为单位。默认为0.3。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## Double
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个键盘或手柄双击触发器。传入多个绑定时，任一绑定完成都会触发。
+
+**签名：**
+```tl
+Double: function(input: {InputBinding}, threshold?: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| input | \{InputBinding} | 输入绑定数组。 |
+| threshold | number | [可选] 两次按下之间的时间阈值，以秒为单位。默认为0.3。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## KeyDown
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当所有指定的键被按下时触发。
+
+**签名：**
+```tl
+KeyDown: function(combineKeys: KeyName | {KeyName}): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| combineKeys | KeyName | \{KeyName} | 要检查的单个键或组合键。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## KeyUp
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当所有指定的键被按下并且其中任何一个被释放时触发。
+
+**签名：**
+```tl
+KeyUp: function(combineKeys: KeyName | {KeyName}): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| combineKeys | KeyName | \{KeyName} | 要检查的单个键或组合键。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## KeyPressed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当所有指定的键正在被按下时触发。
+
+**签名：**
+```tl
+KeyPressed: function(combineKeys: KeyName | {KeyName}): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| combineKeys | KeyName | \{KeyName} | 要检查的单个键或组合键。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## KeyHold
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当特定键被按下并且保持按下指定的持续时间时触发。
+
+**签名：**
+```tl
+KeyHold: function(keyName: KeyName, holdTime: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| keyName | KeyName | 要检查的键。 |
+| holdTime | number | 持续时间，以秒为单位。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## KeyTimed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当特定键在指定的时间窗口内被按下时触发。
+
+**签名：**
+```tl
+KeyTimed: function(keyName: KeyName, timeWindow: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| keyName | KeyName | 要检查的键。 |
+| timeWindow | number | 时间窗口，以秒为单位。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## KeyDoubleDown
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当特定键被双击时触发。
+
+**签名：**
+```tl
+KeyDoubleDown: function(key: KeyName, threshold?: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| key | KeyName | 要检查的键。 |
+| threshold | number | [可选] 双击的时间阈值，以秒为单位。默认为0.3。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## AnyKeyPressed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当任何键被持续按下时触发。
+
+**签名：**
+```tl
+AnyKeyPressed: function(): Trigger
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## ButtonDown
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当所有指定的游戏手柄按钮被按下时触发。
+
+**签名：**
+```tl
+ButtonDown: function(combineButtons: ButtonName | {ButtonName}, controllerId?: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| combineButtons | ButtonName | \{ButtonName} | 要检查的游戏手柄按钮或组合按钮。 |
+| controllerId | number | [可选] 游戏手柄控制器的ID。默认为0。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## ButtonUp
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当所有指定的游戏手柄按钮被按下并且其中任何一个被释放时触发。
+
+**签名：**
+```tl
+ButtonUp: function(combineButtons: ButtonName | {ButtonName}, controllerId?: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| combineButtons | ButtonName | \{ButtonName} | 要检查的游戏手柄按钮或组合按钮。 |
+| controllerId | number | [可选] 游戏手柄控制器的ID。默认为0。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## ButtonPressed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当所有指定的游戏手柄按钮正在被按下时触发。
+
+**签名：**
+```tl
+ButtonPressed: function(combineButtons: ButtonName | {ButtonName}, controllerId?: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| combineButtons | ButtonName | \{ButtonName} | 要检查的游戏手柄按钮或组合按钮。 |
+| controllerId | number | [可选] 游戏手柄控制器的ID。默认为0。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## ButtonHold
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当特定的游戏手柄按钮被按下并且保持按下指定的持续时间后触发。
+
+**签名：**
+```tl
+ButtonHold: function(buttonName: ButtonName, holdTime: number, controllerId?: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| buttonName | ButtonName | 要检查的游戏手柄按钮。 |
+| holdTime | number | 持续时间，以秒为单位。 |
+| controllerId | number | [可选] 游戏手柄控制器的ID。默认为0。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## ButtonTimed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当特定的游戏手柄按钮在指定的时间窗口内被按下时触发。
+
+**签名：**
+```tl
+ButtonTimed: function(buttonName: ButtonName, timeWindow: number, controllerId?: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| buttonName | ButtonName | 要检查的游戏手柄按钮。 |
+| timeWindow | number | 时间窗口，以秒为单位。 |
+| controllerId | number | [可选] 游戏手柄控制器的ID。默认为0。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## ButtonDoubleDown
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当特定的游戏手柄按钮被双击时触发。
+
+**签名：**
+```tl
+ButtonDoubleDown: function(button: ButtonName, threshold?: number, controllerId?: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| button | ButtonName | 要检查的游戏手柄按钮。 |
+| threshold | number | [可选] 双击的时间阈值，以秒为单位。默认为0.3。 |
+| controllerId | number | [可选] 游戏手柄控制器的ID。默认为0。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## AnyButtonPressed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当任何游戏手柄按钮被持续按下时触发。
+
+**签名：**
+```tl
+AnyButtonPressed: function(controllerId?: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| controllerId | number | [可选] 游戏手柄控制器的ID。默认为0。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## JoyStick
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当特定的游戏手柄轴被移动时触发。
+
+**签名：**
+```tl
+JoyStick: function(joyStickType: JoyStickType, controllerId?: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| joyStickType | JoyStickType | 要检查的操纵杆类型。 |
+| controllerId | number | [可选] 游戏手柄控制器的ID。默认为0。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## JoyStickThreshold
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当操纵杆移动超过指定阈值时触发。
+
+**签名：**
+```tl
+JoyStickThreshold: function(joyStickType: JoyStickType, threshold: number, controllerId?: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| joyStickType | JoyStickType | 要检查的操纵杆类型。 |
+| threshold | number | 阈值，取值范围为0到1。 |
+| controllerId | number | [可选] 游戏手柄控制器的ID。默认为0。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## JoyStickDirectional
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当操纵杆在容忍的偏差角度内朝特定方向移动时触发。
+
+**签名：**
+```tl
+JoyStickDirectional: function(joyStickType: JoyStickType, angle: number, tolerance: number, controllerId?: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| joyStickType | JoyStickType | 要检查的操纵杆类型。 |
+| angle | number | 方向的角度，以度为单位。 |
+| tolerance | number | 容忍角度，以度为单位。 |
+| controllerId | number | [可选] 游戏手柄控制器的ID。默认为0。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## JoyStickRange
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当操纵杆在指定范围内时触发。
+
+**签名：**
+```tl
+JoyStickRange: function(joyStickType: JoyStickType, minRange: number, maxRange: number, controllerId?: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| joyStickType | JoyStickType | 要检查的操纵杆类型。 |
+| minRange | number | 最小范围值，取值范围为0到1。 |
+| maxRange | number | 最大范围值，取值范围为0到1。 |
+| controllerId | number | [可选] 游戏手柄控制器的ID。默认为0。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## Sequence
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当一组其他触发器同时进入完成状态时触发。
+
+**签名：**
+```tl
+Sequence: function(triggers: {Trigger}): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| triggers | \{Trigger} | 要检查的触发器。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## Selector
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当一组其他触发器中的任何一个进入完成状态时触发。
+
+**签名：**
+```tl
+Selector: function(triggers: {Trigger}): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| triggers | \{Trigger} | 要检查的触发器。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## Block
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;当子触发器处于完成状态时，它将反过来报告为取消状态，用于阻塞触发器的事件。
+
+**签名：**
+```tl
+Block: function(trigger: Trigger): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| trigger | Trigger | 要被阻塞的触发器。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |

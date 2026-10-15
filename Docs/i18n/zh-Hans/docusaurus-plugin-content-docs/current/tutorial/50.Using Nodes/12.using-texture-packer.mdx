@@ -1,0 +1,177 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 使用 TexturePacker 打包 Sprite 图片
+
+TexturePacker 是 Dora SSR 内置的纹理打包工具，用于把多张小图合并成一张图集。工具遵循界面 tooltip 中说明的规则：把图片文件放入一个以 `.clips` 结尾的文件夹中，重新加载 TexturePacker 让工具找到该文件夹，然后生成一个打包后的 `.png` 图像和一个对应的 `.clip` 描述文件。
+
+例如，`items.clips` 文件夹会被打包成 `items.png` 和 `items.clip`。`.png` 保存合并后的图集图片，`.clip` 保存原始图片名称和矩形区域，之后 `Sprite` 就可以通过它加载图集中的图片。
+
+## 1. 准备 `.clips` 文件夹
+
+在项目资源目录中创建一个以 `.clips` 结尾的文件夹。TexturePacker 会扫描可写项目路径下的文件夹，并列出扩展名为 `clips` 的目录。
+
+```text
+Image/
+└── items.clips/
+    ├── coin.png
+    ├── key.png
+    └── potion.png
+```
+
+支持的输入图片格式包括：
+
+- `png`
+- `jpg`
+- `dds`
+- `pvr`
+- `ktx`
+
+去掉扩展名后的图片文件名会成为切片名称。以上示例生成的图集中会包含 `coin`、`key` 和 `potion` 三个切片。
+
+## 2. 生成 `.png` 和 `.clip`
+
+从 Dora SSR 的开发工具中打开 TexturePacker。如果 `.clips` 文件夹是在工具打开后创建的，请重新加载 TexturePacker，让工具重新扫描目录列表。
+
+然后选择对应文件夹，点击 `Generate Clip`。
+
+```text
+Image/
+├── items.clips/
+│   ├── coin.png
+│   ├── key.png
+│   └── potion.png
+├── items.png
+└── items.clip
+```
+
+TexturePacker 会为每张图片加入 padding，把图片排布到一个渲染目标中，将图集保存为 `items.png`，并把切片元数据写入 `items.clip`。
+
+## 3. 通过 `Sprite` 使用图集
+
+可以直接用 `Sprite` 加载生成的 `.clip` 文件。加载 `.clip` 文件本身会显示整张图集；在路径后追加 `|切片名` 可以加载图集中的某一张小图。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Sprite <const> = require("Sprite")
+local Vec2 <const> = require("Vec2")
+local Director <const> = require("Director")
+
+-- 显示整张生成后的图集。
+local atlas = Sprite("Image/items.clip")
+if atlas then
+	atlas.position = Vec2(-160, 0)
+	Director.entry:addChild(atlas)
+end
+
+-- 显示图集中的某一张图片。
+local coin = Sprite("Image/items.clip|coin")
+if coin then
+	coin.position = Vec2(80, 40)
+	Director.entry:addChild(coin)
+end
+
+local key = Sprite("Image/items.clip|key")
+if key then
+	key.position = Vec2(160, 40)
+	Director.entry:addChild(key)
+end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Sprite <const> = require("Sprite")
+local Vec2 <const> = require("Vec2")
+local Director <const> = require("Director")
+
+-- 显示整张生成后的图集。
+local atlas = Sprite("Image/items.clip")
+if not atlas is nil then
+	atlas.position = Vec2(-160, 0)
+	Director.entry:addChild(atlas)
+end
+
+-- 显示图集中的某一张图片。
+local coin = Sprite("Image/items.clip|coin")
+if not coin is nil then
+	coin.position = Vec2(80, 40)
+	Director.entry:addChild(coin)
+end
+
+local key = Sprite("Image/items.clip|key")
+if not key is nil then
+	key.position = Vec2(160, 40)
+	Director.entry:addChild(key)
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Director, Sprite, Vec2 } from "Dora";
+
+// 显示整张生成后的图集。
+const atlas = Sprite("Image/items.clip");
+if (atlas !== undefined) {
+	atlas.position = Vec2(-160, 0);
+	Director.entry.addChild(atlas);
+}
+
+// 显示图集中的某一张图片。
+const coin = Sprite("Image/items.clip|coin");
+if (coin !== undefined) {
+	coin.position = Vec2(80, 40);
+	Director.entry.addChild(coin);
+}
+
+const key = Sprite("Image/items.clip|key");
+if (key !== undefined) {
+	key.position = Vec2(160, 40);
+	Director.entry.addChild(key);
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- 显示整张生成后的图集。
+atlas = Sprite "Image/items.clip"
+if atlas
+	atlas.position = Vec2 -160, 0
+	Director.entry\addChild atlas
+
+-- 显示图集中的某一张图片。
+coin = Sprite "Image/items.clip|coin"
+if coin
+	coin.position = Vec2 80, 40
+	Director.entry\addChild coin
+
+key = Sprite "Image/items.clip|key"
+if key
+	key.position = Vec2 160, 40
+	Director.entry\addChild key
+```
+
+</TabItem>
+</Tabs>
+
+路径写法和其他项目资源保持一致。如果 `items.clip` 位于 `Image` 目录下，就使用 `Image/items.clip`；如果放在其他资源目录中，请按实际路径调整。
+
+## 4. 常见情况
+
+- **没有看到 `.clips` 文件夹**：TexturePacker 会在工具启动时扫描目录。创建或重命名 `.clips` 文件夹后，请重新加载工具。
+- **文件夹为空**：点击 `Generate Clip` 后会显示 `No content.`，表示没有找到可打包的支持格式图片。
+- **文件被忽略**：只有 `png`、`jpg`、`dds`、`pvr` 和 `ktx` 文件会被打包，其他文件会被跳过。
+- **预览显示 `Needs generating.`**：当前 `.clips` 文件夹存在，但同名 `.png` 和 `.clip` 文件没有同时存在。点击 `Generate Clip` 生成它们。
+- **预览显示 `Failed to load .clip file.`**：`.clip` 文件存在，但无法作为 Sprite 图集加载。请重新生成图集，并确认对应的 `.png` 文件仍与它位于同一目录。
+- **生成后没有正常预览**：生成流程至少需要一张能被 Dora SSR 作为 `Sprite` 加载的支持格式图片。请检查图片格式、文件路径，以及源图片是否能被 Dora SSR 打开。
+
+TexturePacker 只负责准备图集资源。它不会修改游戏代码或 Sprite API；按照这个流程使用也不需要修改打包算法本身。

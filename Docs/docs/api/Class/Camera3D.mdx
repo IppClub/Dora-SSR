@@ -1,0 +1,67 @@
+# Camera3D
+
+**Description:**
+
+&emsp;&emsp;A class for 3D camera object in the game engine.
+
+**Inherits from:** [Camera](/docs/api/Class/Camera).
+
+## position
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The camera position.
+
+**Signature:**
+```tl
+position: Vec3
+```
+
+## target
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The camera target point.
+
+**Signature:**
+```tl
+target: Vec3
+```
+
+## up
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The camera up vector.
+
+**Signature:**
+```tl
+up: Vec3
+```
+
+## lookAt
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the camera position, target and up vector.
+
+**Signature:**
+```tl
+lookAt: function(self: Camera3D, position: Vec3, target: Vec3, up?: Vec3)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| position | Vec3 | The camera position. |
+| target | Vec3 | The camera target point. |
+| up | Vec3 | [optional] The camera up vector. Defaults to Vec3(0, 1, 0). |

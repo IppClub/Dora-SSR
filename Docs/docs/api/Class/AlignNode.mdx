@@ -1,0 +1,52 @@
+# AlignNode
+
+**Description:**
+
+&emsp;&emsp;AlignNode is a layout node that aligns its children.
+
+**Class Object:** [AlignNode Class](/docs/api/Class%20Object/AlignNode).
+
+**Inherits from:** [Node](/docs/api/Class/Node).
+
+## css
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the layout style of the node.
+
+**Signature:**
+```tl
+css: function(self: AlignNode, style: string)
+```
+
+**Usage:**
+```tl
+alignNode:css("flex-direction: column; justify-content: center; align-items: center;")
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| style | string | The layout style.<br/>The following properties can be set through a CSS style string:<br/>## Layout direction and alignment<br/>* direction: Sets the direction (ltr, rtl, inherit).<br/>* align-items, align-self, align-content: Sets the alignment of different items (flex-start, center, stretch, flex-end, auto).<br/>* flex-direction: Sets the layout direction (column, row, column-reverse, row-reverse).<br/>* justify-content: Sets the arrangement of child items (flex-start, center, flex-end, space-between, space-around, space-evenly).<br/>## Flex properties<br/>* flex: Sets the overall size of the flex container.<br/>* flex-grow: Sets the flex growth value.<br/>* flex-shrink: Sets the flex shrink value.<br/>* flex-wrap: Sets whether to wrap (nowrap, wrap, wrap-reverse).<br/>* flex-basis: Sets the flex basis value or percentage.<br/>## Margins and dimensions<br/>* margin: Can be set by a single value or multiple values separated by commas, percentages or auto for each side.<br/>* margin-top, margin-right, margin-bottom, margin-left, margin-inline-start, margin-inline-end, margin-inline: Sets the margin values, percentages or auto.<br/>* padding: Can be set by a single value or multiple values separated by commas or percentages for each side.<br/>* padding-top, padding-right, padding-bottom, padding-left: Sets the padding values or percentages.<br/>* border: Can be set by a single value or multiple values separated by commas for each side.<br/>* width, height, min-width, min-height, max-width, max-height: Sets the dimension values or percentage properties.<br/>## Positioning<br/>* top, right, bottom, left, start, end, horizontal, vertical: Sets the positioning property values or percentages.<br/>## Other properties<br/>* position: Sets the positioning type (absolute, relative, static).<br/>* overflow: Sets the overflow property (visible, hidden, scroll).<br/>* display: Controls whether to display (flex, none, contents).<br/>* box-sizing: Sets the box sizing type (border-box, content-box). |
+
+## onAlignLayout
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers a callback function for when the layout is updated.
+
+**Signature:**
+```tl
+onAlignLayout: function(self: AlignNode, callback: function(width: number, height: number))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function for when the layout is updated. |

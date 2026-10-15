@@ -1,0 +1,871 @@
+# Trigger
+
+**Description:**
+
+&emsp;&emsp;`Trigger` is a record that defines various input triggers for keyboard keys, gamepad buttons, and joysticks.
+
+## state
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The current trigger state.
+
+**Signature:**
+```tl
+state: TriggerState
+```
+
+## value
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The current trigger value.
+
+**Signature:**
+```tl
+value: InputValue
+```
+
+## progress
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The current trigger progress, from 0 to 1 when applicable.
+
+**Signature:**
+```tl
+progress: number
+```
+
+## onChange
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Legacy single change callback. Prefer `addListener()` for multiple listeners.
+
+**Signature:**
+```tl
+onChange: function()
+```
+
+## addListener
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds a listener without replacing existing listeners.
+
+**Signature:**
+```tl
+addListener: function(self: Trigger, listener: TriggerListener)
+```
+
+## removeListener
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes a listener added by `addListener()`.
+
+**Signature:**
+```tl
+removeListener: function(self: Trigger, listener: TriggerListener)
+```
+
+## Down
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button down trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Down: function(input: InputBinding): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | InputBinding | The input binding. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Down
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button down trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Down: function(input: {InputBinding}): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | \{InputBinding} | The input bindings. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Up
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button up trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Up: function(input: InputBinding): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | InputBinding | The input binding. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Up
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button up trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Up: function(input: {InputBinding}): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | \{InputBinding} | The input bindings. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Pressed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button pressed trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Pressed: function(input: InputBinding): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | InputBinding | The input binding. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Pressed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button pressed trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Pressed: function(input: {InputBinding}): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | \{InputBinding} | The input bindings. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Hold
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button hold trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Hold: function(input: InputBinding, holdTime: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | InputBinding | The input binding. |
+| holdTime | number | The duration in seconds. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Hold
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button hold trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Hold: function(input: {InputBinding}, holdTime: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | \{InputBinding} | The input bindings. |
+| holdTime | number | The duration in seconds. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Double
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button double-press trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Double: function(input: InputBinding, threshold?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | InputBinding | The input binding. |
+| threshold | number | [optional] The time window in seconds. Default is 0.3. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Double
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a key or button double-press trigger. Pass multiple bindings to trigger when any binding is completed.
+
+**Signature:**
+```tl
+Double: function(input: {InputBinding}, threshold?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| input | \{InputBinding} | The input bindings. |
+| threshold | number | [optional] The time window in seconds. Default is 0.3. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## KeyDown
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when all of the specified keys are pressed down.
+
+**Signature:**
+```tl
+KeyDown: function(combineKeys: KeyName | {KeyName}): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| combineKeys | KeyName | \{KeyName} | The key or combined keys to be checked. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## KeyUp
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when all of the specified keys are pressed down and then any of them is released.
+
+**Signature:**
+```tl
+KeyUp: function(combineKeys: KeyName | {KeyName}): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| combineKeys | KeyName | \{KeyName} | The key or combined keys to be checked. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## KeyPressed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when all of the specified keys are being pressed.
+
+**Signature:**
+```tl
+KeyPressed: function(combineKeys: KeyName | {KeyName}): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| combineKeys | KeyName | \{KeyName} | The key or combined keys to be checked. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## KeyHold
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when a specific key is held down for a specified duration.
+
+**Signature:**
+```tl
+KeyHold: function(keyName: KeyName, holdTime: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| keyName | KeyName | The key to be checked. |
+| holdTime | number | The duration in seconds. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## KeyTimed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when a specific key is pressed within a specified time window.
+
+**Signature:**
+```tl
+KeyTimed: function(keyName: KeyName, timeWindow: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| keyName | KeyName | The key to be checked. |
+| timeWindow | number | The time window in seconds. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## KeyDoubleDown
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when a specific key is double-pressed within a specified time window.
+
+**Signature:**
+```tl
+KeyDoubleDown: function(key: KeyName, threshold?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| key | KeyName | The key to be checked. |
+| threshold | number | [optional] The time window in seconds. Default is 0.3. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## AnyKeyPressed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when any key is being pressed down.
+
+**Signature:**
+```tl
+AnyKeyPressed: function(): Trigger
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## ButtonDown
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when all of the specified gamepad buttons are pressed down.
+
+**Signature:**
+```tl
+ButtonDown: function(combineButtons: ButtonName | {ButtonName}, controllerId?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| combineButtons | ButtonName | \{ButtonName} | The gamepad button or combined buttons to be checked. |
+| controllerId | number | [optional] The ID of the gamepad controller. Default is 0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## ButtonUp
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when all of the specified gamepad buttons are pressed down and then any of them is released.
+
+**Signature:**
+```tl
+ButtonUp: function(combineButtons: ButtonName | {ButtonName}, controllerId?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| combineButtons | ButtonName | \{ButtonName} | The gamepad button or combined buttons to be checked. |
+| controllerId | number | [optional] The ID of the gamepad controller. Default is 0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## ButtonPressed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when all of the specified gamepad buttons are being pressed.
+
+**Signature:**
+```tl
+ButtonPressed: function(combineButtons: ButtonName | {ButtonName}, controllerId?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| combineButtons | ButtonName | \{ButtonName} | The gamepad button or combined buttons to be checked. |
+| controllerId | number | [optional] The ID of the gamepad controller. Default is 0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## ButtonHold
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when a specific gamepad button is held down for a specified duration.
+
+**Signature:**
+```tl
+ButtonHold: function(buttonName: ButtonName, holdTime: number, controllerId?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| buttonName | ButtonName | The gamepad button to be checked. |
+| holdTime | number | The duration in seconds. |
+| controllerId | number | [optional] The ID of the gamepad controller. Default is 0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## ButtonTimed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when a specific gamepad button is pressed within a specified time window.
+
+**Signature:**
+```tl
+ButtonTimed: function(buttonName: ButtonName, timeWindow: number, controllerId?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| buttonName | ButtonName | The gamepad button to be checked. |
+| timeWindow | number | The time window in seconds. |
+| controllerId | number | [optional] The ID of the gamepad controller. Default is 0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## ButtonDoubleDown
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when a specific gamepad button is double-pressed within a specified time window.
+
+**Signature:**
+```tl
+ButtonDoubleDown: function(button: ButtonName, threshold?: number, controllerId?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| button | ButtonName | The gamepad button to be checked. |
+| threshold | number | [optional] The time window in seconds. Default is 0.3. |
+| controllerId | number | [optional] The ID of the gamepad controller. Default is 0. |
+
+## AnyButtonPressed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when any gamepad button is being pressed down.
+
+**Signature:**
+```tl
+AnyButtonPressed: function(controllerId?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| controllerId | number | [optional] The ID of the gamepad controller. Default is 0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## JoyStick
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers based on joystick movement.
+
+**Signature:**
+```tl
+JoyStick: function(joyStickType: JoyStickType, controllerId?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| joyStickType | JoyStickType | The type of joystick to be checked. |
+| controllerId | number | [optional] The ID of the gamepad controller. Default is 0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## JoyStickThreshold
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when a joystick moves beyond a specified threshold.
+
+**Signature:**
+```tl
+JoyStickThreshold: function(joyStickType: JoyStickType, threshold: number, controllerId?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| joyStickType | JoyStickType | The type of joystick to be checked. |
+| threshold | number | The threshold value, ranging from 0 to 1. |
+| controllerId | number | [optional] The ID of the gamepad controller. Default is 0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## JoyStickDirectional
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when a joystick is moved in a specific direction within a tolerance angle.
+
+**Signature:**
+```tl
+JoyStickDirectional: function(joyStickType: JoyStickType, angle: number, tolerance: number, controllerId?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| joyStickType | JoyStickType | The type of joystick to be checked. |
+| angle | number | The angle of the direction in degrees. |
+| tolerance | number | The tolerance angle in degrees. |
+| controllerId | number | [optional] The ID of the gamepad controller. Default is 0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## JoyStickRange
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when a joystick is within a specified range.
+
+**Signature:**
+```tl
+JoyStickRange: function(joyStickType: JoyStickType, minRange: number, maxRange: number, controllerId?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| joyStickType | JoyStickType | The type of joystick to be checked. |
+| minRange | number | The minimum range value, ranging from 0 to 1. |
+| maxRange | number | The maximum range value, ranging from 0 to 1. |
+| controllerId | number | [optional] The ID of the gamepad controller. Default is 0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Sequence
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when a sequence of other triggers are completed at the same time.
+
+**Signature:**
+```tl
+Sequence: function(triggers: {Trigger}): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| triggers | \{Trigger} | The triggers to be checked. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Selector
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when any of the specified triggers is completed.
+
+**Signature:**
+```tl
+Selector: function(triggers: {Trigger}): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| triggers | \{Trigger} | The triggers to be checked. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
+## Block
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger when a sub-trigger is in completed state, it will report canceled state instead for blocking.
+
+**Signature:**
+```tl
+Block: function(trigger: Trigger): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| trigger | Trigger | The trigger to be blocked. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |

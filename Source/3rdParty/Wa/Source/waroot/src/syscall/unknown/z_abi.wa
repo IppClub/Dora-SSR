@@ -1,0 +1,5 @@
+// Copyright (C) 2024 武汉凹语言科技有限公司
+// SPDX-License-Identifier: MIT
+
+#wa:linkname $syscall/unknown.__linkname__string_to_ptr
+func __linkname__string_to_ptr(s: string) => i32

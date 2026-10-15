@@ -1,0 +1,59 @@
+/* Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#pragma once
+
+#include "Common/Async.h"
+#include "Node/Sprite.h"
+
+NS_DORA_BEGIN
+
+class VideoDataImpl {
+public:
+	virtual ~VideoDataImpl() { }
+};
+
+class VideoNode : public Sprite {
+public:
+	virtual ~VideoNode();
+	virtual bool init() override;
+	virtual void cleanup() override;
+	virtual bool update(double deltaTime) override;
+
+	void pause();
+	void resume();
+	bool isPaused() const;
+
+	CREATE_FUNC_NULLABLE(VideoNode);
+
+protected:
+	VideoNode(String filename, bool looped);
+
+private:
+	void cleanupResources();
+	enum class UpdateFlag {
+		Wait,
+		Done,
+		Stop
+	};
+	UpdateFlag updateTexture();
+
+	std::shared_ptr<VideoDataImpl> _videoData;
+
+	double _frameAccumulator;
+
+	std::string _filename;
+	bool _looped;
+	bool _paused;
+
+	Own<Async> _thread;
+
+	DORA_TYPE_OVERRIDE(VideoNode);
+};
+
+NS_DORA_END

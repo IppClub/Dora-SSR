@@ -1,0 +1,93 @@
+name: UI CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Tools/dora-dora/**'
+      - 'Studio/**'
+      - 'Studio/packages/agent-ui/**'
+      - 'Studio/packages/compiler/**'
+      - 'Studio/packages/tstl/**'
+      - 'Projects/Web/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
+      - 'Source/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'Tools/dora-dora/**'
+      - 'Studio/**'
+      - 'Studio/packages/agent-ui/**'
+      - 'Studio/packages/compiler/**'
+      - 'Studio/packages/tstl/**'
+      - 'Projects/Web/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
+      - 'Source/**'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Tools/dora-dora
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          package_json_file: 'Tools/dora-dora/package.json'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+          cache: 'pnpm'
+          cache-dependency-path: 'Tools/dora-dora/pnpm-lock.yaml'
+
+      - name: Setup xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+
+      - name: Setup current Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache-dependency-path: Studio/go.sum
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test current engine contracts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.4
+          xmake dora-test -P ../..
+          pnpm test:auth-reconnect
+          pnpm test:native-ide-run
+          pnpm test:websocket-lifecycle
+
+      - name: Test Studio current frontend and Go backend
+        run: |
+          pnpm --dir ../../Studio install --frozen-lockfile
+          xmake dora-test -P ../.. --suite=studio
+
+      - name: Lint (oxlint)
+        # oxlint exits 0 for warnings, 1 for errors — only errors block the build
+        run: pnpm lint
+
+      - name: Test Web runtime preparation
+        run: pnpm test:web-runtime-preparation
+
+      - name: Build (Vite)
+        run: pnpm build
+
+      - name: Verify Web export assets
+        run: |
+          pnpm test:web-package
+          pnpm verify:web-release-assets

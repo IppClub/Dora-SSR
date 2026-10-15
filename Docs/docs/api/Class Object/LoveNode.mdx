@@ -1,0 +1,30 @@
+# LoveNode Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating LoveNode objects.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a LoveNode from a boot Lua file, `.love` package, or ZIP package. An extensionless relative path also resolves to the corresponding `.love`, `.zip`, or `main.lua` project entry.
+
+**Signature:**
+```tl
+metamethod __call: function(self: LoveNodeClass, bootFile: string): LoveNode | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| bootFile | string | The Dora Content path to a boot Lua file, `.love` package, ZIP package, or extensionless Love project path. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| LoveNode \| nil | The created LoveNode, or nil when the project cannot be loaded. |

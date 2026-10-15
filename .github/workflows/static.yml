@@ -1,0 +1,101 @@
+# Build and deploy the Docusaurus documentation site to GitHub Pages.
+# PRs only run the build to verify the site compiles; deployment happens
+# automatically on push to main, or manually via workflow_dispatch.
+name: Docs
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Docs/**'
+      - 'Assets/**'
+      - 'Source/**'
+      - 'Projects/Web/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
+      - 'Tools/tolua\+\+/**'
+      - '.github/workflows/static.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'Docs/**'
+      - 'Assets/**'
+      - 'Source/**'
+      - 'Projects/Web/**'
+      - 'xmake.lua'
+      - 'Projects/xmake/**'
+      - 'Tools/tolua\+\+/**'
+      - '.github/workflows/static.yml'
+  workflow_dispatch:
+
+# Only allow one concurrent deployment; let in-progress runs finish.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Always build — serves as CI check on PRs, and feeds the deploy job.
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    env:
+      JOBS: '2'
+      DORA_WEB_JOBS: '2'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          package_json_file: 'Docs/package.json'
+      - name: Setup xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+          cache: 'pnpm'
+          cache-dependency-path: 'Docs/pnpm-lock.yaml'
+      - name: Build shared Web Player and all latest demos
+        run: |
+          xmake dora-test --case=test_web_gallery
+          xmake dora-gallery
+          xmake dora-test --case=test_web_audio_worklet -- build/web
+          xmake dora-test --case=test_web_audio_state
+          xmake dora-test --case=check_web_gallery -- Docs/static/play build/Dora-Demo
+      - name: Build docs
+        run: |
+          cd Docs
+          pnpm install --frozen-lockfile
+          pnpm build
+      - name: Verify deployed gallery assets
+        run: xmake dora-test --case=check_web_gallery -- Docs/build/play build/Dora-Demo
+      - name: Upload artifact
+        if: github.event_name != 'pull_request' && github.repository == 'IppClub/Dora-SSR'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'Docs/build'
+
+  # Only deploy on push to main or manual dispatch from the upstream repo (skip PRs and forks).
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request' && github.repository == 'IppClub/Dora-SSR'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

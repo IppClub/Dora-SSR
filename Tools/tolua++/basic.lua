@@ -1,0 +1,288 @@
+TOLUA_VERSION = "1.0.92+dora"
+local output_change = lfs.attributes(flags.o, "modification")
+local rebuild = output_change == nil
+
+if not rebuild then
+	local input_changes = {
+		lfs.attributes(flags.f, "modification"),
+		lfs.attributes("tolua++.lua", "modification"),
+		lfs.attributes("basic.lua", "modification"),
+		lfs.attributes("tolua++/compat.lua", "modification"),
+		lfs.attributes("tolua++/basic.lua", "modification"),
+		lfs.attributes("tolua++/feature.lua", "modification"),
+		lfs.attributes("tolua++/verbatim.lua", "modification"),
+		lfs.attributes("tolua++/code.lua", "modification"),
+		lfs.attributes("tolua++/typedef.lua", "modification"),
+		lfs.attributes("tolua++/container.lua", "modification"),
+		lfs.attributes("tolua++/package.lua", "modification"),
+		lfs.attributes("tolua++/module.lua", "modification"),
+		lfs.attributes("tolua++/namespace.lua", "modification"),
+		lfs.attributes("tolua++/define.lua", "modification"),
+		lfs.attributes("tolua++/enumerate.lua", "modification"),
+		lfs.attributes("tolua++/declaration.lua", "modification"),
+		lfs.attributes("tolua++/variable.lua", "modification"),
+		lfs.attributes("tolua++/array.lua", "modification"),
+		lfs.attributes("tolua++/function.lua", "modification"),
+		lfs.attributes("tolua++/operator.lua", "modification"),
+		lfs.attributes("tolua++/template_class.lua", "modification"),
+		lfs.attributes("tolua++/class.lua", "modification"),
+		lfs.attributes("tolua++/clean.lua", "modification"),
+		lfs.attributes("tolua++/doit.lua", "modification")
+	}
+	local inputFile = io.open(flags.f, "r")
+	local content = inputFile:read("*a")
+	inputFile:close()
+	for file in content:gmatch('file%s*"([^"]+)') do
+		input_changes[#input_changes + 1] = lfs.attributes(file, "modification")
+	end
+	for _, change in ipairs(input_changes) do
+		if output_change < change then
+			rebuild = true
+			break
+		end
+	end
+end
+
+if not rebuild then
+	print(string.format('C++ codes for "%s" are updated.', flags.f))
+	flags.skip_build = true
+else
+	print(string.format('Generating C++ codes for "%s"...', flags.f))
+end
+
+_push_functions = _push_functions or {}
+_collect_functions = _collect_functions or {}
+_to_functions = _to_functions or {}
+_is_functions = _is_functions or {}
+
+-- Keep one generated binding source usable by feature-reduced targets. The
+-- named C++ define removes both support code and registration for a class,
+-- while native builds without the define retain the existing API.
+_compile_guards = {
+	LoveNode = "DORA_WEB_NO_LOVE",
+	VideoNode = "DORA_WEB_MINIMAL",
+	HttpServer = "DORA_WEB_MINIMAL",
+	WasmRuntime = "DORA_WEB_MINIMAL",
+	Cache = "DORA_WEB_MINIMAL",
+	TIC80Node = "DORA_WEB_MINIMAL",
+	Git = "DORA_WEB_MINIMAL",
+	ML = "DORA_WEB_NO_ML",
+	Platformer = "DORA_WEB_NO_PLATFORMER",
+	["ML::QLearner"] = "DORA_WEB_NO_ML",
+	Node3D = "DORA_WEB_NO_MODEL_3D",
+	Surface3D = "DORA_WEB_NO_MODEL_3D",
+	Light3D = "DORA_WEB_NO_MODEL_3D",
+	DirectionalLight3D = "DORA_WEB_NO_MODEL_3D",
+	PointLight3D = "DORA_WEB_NO_MODEL_3D",
+	Camera3D = "DORA_WEB_NO_MODEL_3D",
+	Material3D = "DORA_WEB_NO_MODEL_3D",
+	Model3D = "DORA_WEB_NO_MODEL_3D",
+	Visual3D = "DORA_WEB_NO_MODEL_3D",
+	View3D = "DORA_WEB_NO_MODEL_3D",
+	Body3D = "DORA_WEB_NO_MODEL_3D",
+	CharacterController3D = "DORA_WEB_NO_MODEL_3D",
+	FixtureDef3D = "DORA_WEB_NO_MODEL_3D",
+	BodyDef3D = "DORA_WEB_NO_MODEL_3D",
+	Constraint3D = "DORA_WEB_NO_MODEL_3D",
+	PhysicsWorld3D = "DORA_WEB_NO_MODEL_3D",
+	Entity = "DORA_WEB_NO_ENTITY",
+	EntityGroup = "DORA_WEB_NO_ENTITY",
+	EntityObserver = "DORA_WEB_NO_ENTITY",
+	PhysicsWorld = "DORA_WEB_NO_PHYSICS_2D",
+	FixtureDef = "DORA_WEB_NO_PHYSICS_2D",
+	BodyDef = "DORA_WEB_NO_PHYSICS_2D",
+	Body = "DORA_WEB_NO_PHYSICS_2D",
+	Joint = "DORA_WEB_NO_PHYSICS_2D",
+	JointDef = "DORA_WEB_NO_PHYSICS_2D",
+	MotorJoint = "DORA_WEB_NO_PHYSICS_2D",
+	MoveJoint = "DORA_WEB_NO_PHYSICS_2D",
+	Sensor = "DORA_WEB_NO_PHYSICS_2D",
+	["Platformer::Unit"] = "DORA_WEB_NO_PLATFORMER",
+	["Platformer::Face"] = "DORA_WEB_NO_PLATFORMER",
+	["Platformer::PlatformCamera"] = "DORA_WEB_NO_PLATFORMER",
+	["Platformer::Visual"] = "DORA_WEB_NO_PLATFORMER",
+	["Platformer::UnitDef"] = "DORA_WEB_NO_PLATFORMER",
+	["Platformer::BulletDef"] = "DORA_WEB_NO_PLATFORMER",
+	["Platformer::Decision::Leaf"] = "DORA_WEB_NO_PLATFORMER",
+	["Platformer::Behavior::Leaf"] = "DORA_WEB_NO_PLATFORMER",
+	["Platformer::Behavior::Blackboard"] = "DORA_WEB_NO_PLATFORMER",
+	["Platformer::Bullet"] = "DORA_WEB_NO_PLATFORMER",
+	["Platformer::UnitAction"] = "DORA_WEB_NO_PLATFORMER",
+	["Platformer::PlatformWorld"] = "DORA_WEB_NO_PLATFORMER",
+	["Platformer::TargetAllow"] = "DORA_WEB_NO_PLATFORMER",
+	["Platformer::Data"] = "DORA_WEB_NO_PLATFORMER",
+	["Platformer::Decision::AI"] = "DORA_WEB_NO_PLATFORMER"
+}
+
+local objects = {
+	"Object",
+	"Scheduler",
+	"Listener",
+	"Array",
+	"Dictionary",
+	"PhysicsWorld",
+	"DrawNode",
+	"VGNode",
+	"Effect",
+	"Pass",
+	"ParticleNode",
+	"Camera",
+	"Playable",
+	"Model",
+	"Spine",
+	"DragonBone",
+	"OthoCamera",
+	"FixtureDef",
+	"BodyDef",
+	"Buffer",
+	"Camera2D",
+	"Sprite",
+	"Grid",
+	"MotorJoint",
+	"Menu",
+	"Action",
+	"Array",
+	"Body",
+	"Dictionary",
+	"Entity",
+	"EntityGroup",
+	"EntityObserver",
+	"Joint",
+	"Sensor",
+	"Scheduler",
+	"RenderTarget",
+	"SpriteEffect",
+	"MoveJoint",
+	"ClipNode",
+	"ScissorNode",
+	"Texture2D",
+	"Camera3D",
+	"Material3D",
+	"Model3D",
+	"Node3D",
+	"View3D",
+	"Body3D",
+	"CharacterController3D",
+	"FixtureDef3D",
+	"BodyDef3D",
+	"Constraint3D",
+	"PhysicsWorld3D",
+	"JointDef",
+	"Node",
+	"Node::Grabber",
+	"Line",
+	"Touch",
+	"Label",
+	"ML::QLearner",
+	"SVGDef",
+	"AlignNode",
+	"EffekNode",
+	"TileNode",
+	"AudioBus",
+	"AudioSource",
+	"VideoNode",
+	"TIC80Node",
+	"LoveNode",
+	"Platformer::Unit",
+	"Platformer::Face",
+	"Platformer::PlatformCamera",
+	"Platformer::Visual",
+	"Platformer::UnitDef",
+	"Platformer::BulletDef",
+	"Platformer::Decision::Leaf",
+	"Platformer::Behavior::Leaf",
+	"Platformer::Bullet",
+	"Platformer::PlatformWorld"
+}
+_push_object_func_name = "tolua_pushobject"
+_is_object_func_name = "tolua_isobject"
+for i = 1, #objects do
+	_is_functions[objects[i]] = _is_object_func_name
+	_push_functions[objects[i]] = _push_object_func_name
+	_collect_functions[objects[i]] = "tolua_collect_object"
+end
+
+_light_object = "Vec2"
+_push_light_func_name = "tolua_pushlight"
+_push_functions[_light_object] = _push_light_func_name
+_to_functions[_light_object] = "tolua_tolight"
+
+-- Name -> push'name'
+_basic["Slice"] = "slice"
+_basic["int8_t"] = "integer"
+_basic["uint8_t"] = "integer"
+_basic["int16_t"] = "integer"
+_basic["uint16_t"] = "integer"
+_basic["int32_t"] = "integer"
+_basic["uint32_t"] = "integer"
+_basic["int64_t"] = "integer"
+_basic["uint64_t"] = "integer"
+_basic["size_t"] = "integer"
+_basic["string"] = "slice"
+_basic["std::string"] = "slice"
+
+-- c types
+_basic_ctype.slice = "Slice"
+
+local toWrite = {}
+local currentString = ""
+local out
+local WRITE, OUTPUT = write, output
+
+function output(s)
+	out = _OUTPUT
+	output = OUTPUT -- restore
+	output(s)
+end
+
+function write(a)
+	if out == _OUTPUT then
+		currentString = currentString .. a
+		if string.sub(currentString, -1) == "\n" then
+			toWrite[#toWrite + 1] = currentString
+			currentString = ""
+		end
+	else
+		WRITE(a)
+	end
+end
+
+function post_output_hook(package)
+	local result = table.concat(toWrite)
+	local function replace(pattern, replacement)
+		local k = 0
+		local nxt, currentString = 1, ""
+		repeat
+			local s, e = string.find(result, pattern, nxt, true)
+			if e then
+				currentString = currentString .. string.sub(result, nxt, s - 1) .. replacement
+				nxt = e + 1
+				k = k + 1
+			end
+		until not e
+		result = currentString .. string.sub(result, nxt)
+		if k == 0 then
+			print("Pattern not replaced", pattern)
+		end
+	end
+
+	--replace("","")
+
+	WRITE(result)
+end
+
+function get_property_methods_hook(ptype, name)
+	--tolua_property__common
+	if ptype == "common" then
+		local newName = string.upper(string.sub(name, 1, 1)) .. string.sub(name, 2, string.len(name))
+		return "get" .. newName, "set" .. newName
+	end
+	--tolua_property__bool
+	if ptype == "bool" then
+		--local temp = string.sub(name,3,string.len(name)-2)
+		--local newName = string.upper(string.sub(str1,1,1))..string.sub(str1,2,string.len(str1)-1)
+		local newName = string.upper(string.sub(name, 1, 1)) .. string.sub(name, 2, string.len(name))
+		return "is" .. newName, "set" .. newName
+	end
+	-- etc
+end

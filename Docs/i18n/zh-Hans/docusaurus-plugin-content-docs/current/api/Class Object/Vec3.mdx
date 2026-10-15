@@ -1,0 +1,42 @@
+# Vec3的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建 Vec3 对象的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;使用给定的 x、y 和 z 分量创建一个新的 3D 向量对象。
+
+**签名：**
+```tl
+metamethod __call: function(
+		self: Vec3Class,
+		x: number,
+		y: number,
+		z: number
+	): Vec3
+```
+
+**用法示例：**
+```tl
+local newVec = Vec3(10, 20, 30)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| x | number | 新向量的 x 分量。 |
+| y | number | 新向量的 y 分量。 |
+| z | number | 新向量的 z 分量。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Vec3 | 新的 Vec3 对象。 |

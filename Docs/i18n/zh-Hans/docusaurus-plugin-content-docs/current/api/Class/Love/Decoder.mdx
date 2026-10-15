@@ -1,0 +1,204 @@
+# Decoder
+
+**描述：**
+
+&emsp;&emsp;一个可以逐步解码声音文件的对象。
+
+## type
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取字符串形式的对象类型。
+
+**签名：**
+```tl
+type: function(self: Decoder): string
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 字符串类型。 |
+
+## Of
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查对象是否属于某种类型。如果对象的层次结构中具有指定名称的类型，则此函数将返回 true。
+
+**签名：**
+```tl
+typeOf: function(self: Decoder, type_name: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| type_name | string | 要检查的类型的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象属于指定类型，则为 true，否则为 false。 |
+
+## release
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁对象的 Lua 引用。如果该对象未被任何其他 LÖVE 对象或线程引用，则该对象将被完全删除。
+这个方法可以用来立即清理资源，而不需要等待Lua的垃圾收集器。
+
+**签名：**
+```tl
+release: function(self: Decoder): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果对象已通过此调用释放，则为 true；如果先前已释放过该对象，则为 false。 |
+
+## clone
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建当前解码器的新副本。
+新解码器将从音频流的开头开始解码。
+
+**签名：**
+```tl
+clone: function(self: Decoder): Decoder
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Decoder | 解码器的新副本。 |
+
+## getChannelCount
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回流中的通道数。
+
+**签名：**
+```tl
+getChannelCount: function(self: Decoder): integer
+	getChannels: function(self: Decoder): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 1 用于单声道，2 用于立体声。 |
+
+## getBitDepth
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回每个样本的位数。
+
+**签名：**
+```tl
+getBitDepth: function(self: Decoder): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 8 或 16。 |
+
+## getSampleRate
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;返回解码器的采样率。
+
+**签名：**
+```tl
+getSampleRate: function(self: Decoder): integer
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| integer | 每秒的样本数。 |
+
+## getDuration
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取声音文件的持续时间。它可能并不总是样本准确的，如果根本无法确定持续时间，它可能会返回 -1。
+
+**签名：**
+```tl
+getDuration: function(self: Decoder): number
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| number | 声音文件的持续时间（以秒为单位），如果无法确定则为 -1。 |
+
+## decode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;解码音频并返回包含解码后的音频数据的 SoundData 对象。
+
+**签名：**
+```tl
+decode: function(self: Decoder): SoundData | nil
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| SoundData or nil | 解码的音频数据。 |
+
+## seek
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置解码器当前的播放位置。
+
+**签名：**
+```tl
+seek: function(self: Decoder, offset: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| offset | number | 要寻找的位置，以秒为单位。 |

@@ -1,0 +1,67 @@
+# Buffer
+
+**Description:**
+
+&emsp;&emsp;A buffer of string for the use of ImGui widget.
+
+**Class Object:** [Buffer Class](/docs/api/Class%20Object/Buffer).
+
+**Inherits from:** [Object](/docs/api/Class/Object).
+
+## size
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The size of the buffer.
+
+**Signature:**
+```tl
+const size: integer
+```
+
+## text
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Getting or setting the text stored in the buffer.
+
+**Signature:**
+```tl
+text: string
+```
+
+## resize
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Changing the size of the buffer.
+
+**Signature:**
+```tl
+resize: function(self: Buffer, size: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| size | integer | The new size of the buffer. |
+
+## zeroMemory
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Setting all bytes in the buffer to zero.
+
+**Signature:**
+```tl
+zeroMemory: function(self: Buffer)
+```

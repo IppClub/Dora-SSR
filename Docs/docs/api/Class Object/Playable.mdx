@@ -1,0 +1,30 @@
+# Playable Class
+
+**Description:**
+
+&emsp;&emsp;A class for creating instances of the 'Playable' record.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new instance of 'Playable' from the specified animation file.
+
+**Signature:**
+```tl
+metamethod __call: function(self: PlayableClass, filename: string): Playable | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | the filename of the animation file to load.<br/>Supports DragonBone, Spine2D and Dora Model files.<br/>Should be one of the formats below:<br/>	"model:" + modelFile<br/>	"spine:" + spineStr<br/>	"bone:" + dragonBoneStr |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Playable | a new instance of 'Playable'. If the file could not be loaded, then nil is returned. |

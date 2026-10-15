@@ -1,0 +1,154 @@
+# Writing Yarn Scripts
+
+In this tutorial, we will be creating a narrative script where the player takes on the role of Alex, a rebel in a futuristic society. In this society, a large corporation has developed advanced cyber technology to control the population.
+
+We will be using a language called [Yarn](https://docs.yarnspinner.dev/beginners-guide/syntax-basics) to write our story. Yarn is a language that is easy to read and write, even for non-programmers. It allows authors to create branching dialogues, set and check variables, and execute commands that interact with the game.
+
+## 1. Getting Prepared
+
+First, ensure you have prepared and opened the Dora SSR Web IDE environment. If you haven't already, you can follow the steps [here](/docs/tutorial/quick-start). Then, in the file resource directory on the left side of the Web IDE, create a new file with the Yarn language type.
+
+## 2. Understanding the Structure of Yarn
+
+Dialogues in games written with Yarn are a series of structured 'nodes,' with each node containing a part of the story. When you open the Yarn language file you just created, you should see an initial node named `Start`. We will start writing from this initial node:
+
+```html title="Node: Start"
+Alex, you've finally decided to join the rebellion against the Cybertech Corp. The future of humanity is at stake!
+
+-> Continue
+
+<<jump Decision>>
+```
+
+Statements starting with `->` represent options that pause and wait for player interaction. `<<jump Decision>>` is a command statement that indicates jumping to the next story node named `Decision`. Other statements are regular text paragraphs. Remember that while writing the dialogue, you can test it at any time using the play button in the top right corner of the dialogue text editing interface in the Web IDE and catch any syntax errors in your script. For a full play-through check, you can also open the Yarn Tester from Dora SSR's development tools after saving the `.yarn` file.
+
+## 3. Adding Choices
+
+Choices are crucial in branching narratives. Let's give Alex a decision:
+
+```html title="Node: Decision"
+Do you want to:
+-> Infiltrate the Cybertech Corp headquarters.
+	<<jump Infiltrate>>
+-> Spread propaganda against cybernetics.
+	<<jump Propaganda>>
+```
+
+In this story node, we provide two options. Each option is followed by indented text to represent the branch content associated with that option.
+
+## 4. Adding Variables
+
+Variables allow us to remember the choices the player makes or events that occur:
+
+```html title="Node: Infiltrate"
+You've decided to infiltrate the Cybertech Corp. This is risky, but if successful, it could end their reign.
+
+<<set $infiltrate = true>>
+
+-> Continue
+
+<<jump Outcome>>
+```
+
+```html title="Node: Propaganda"
+You've chosen to spread the word about the dangers of Cybertech's cybernetics. Information is power.
+
+<<set $infiltrate = false>>
+
+-> Continue
+
+<<jump Outcome>>
+```
+
+The format for using variables is `<<set $variable_name = expression>>`.
+
+## 5. Checking Variables
+
+Now, let's see how the story unfolds based on Alex's decisions:
+
+```html title="Node: Outcome"
+<<if $infiltrate>>
+You sneak into the Cybertech Corp's main facility. It's eerily quiet.
+-> Attempt to hack their mainframe.
+	Hacking...
+-> Search for documents.
+<<else>>
+You start broadcasting messages across the city, warning citizens. The resistance grows stronger every day.
+-> Organize a protest.
+-> Stay underground and plan.
+<<endif>>
+
+-> to be continued
+```
+
+## 6. Further Branching and Conclusion
+
+You can continue this pattern, creating nodes for "hack," "search," "protest," and "plan," each with its consequences, choices, and outcomes. Eventually, you'll want to conclude the story, summarizing the narrative.
+
+## 7. Using Markup
+
+Markup in the Yarn language is a special syntax used to add additional information to dialogue. These can be read by the program and used to control how the dialogue is displayed, add visual effects, or trigger specific game events.
+
+* Character Markup
+
+	```html
+	[Character name=Alex] I am a rebel.
+	```
+
+	In the dialogue, `[Character name=Alex]` is a display markup used to specify that the speaker of the dialogue is Alex. As markup, it does not appear in the dialogue text. You can also equivalently simplify this special character markup as:
+
+	```html
+	Alex: I am a rebel.
+	```
+
+* General Markup
+
+	```html
+	Alex: I am a [color=red]rebel[/color].
+	```
+
+	In the dialogue, `[color=red]rebel[/color]` is a general markup used to specify that the text color of "rebel" is red. Similarly, as markup, it does not appear in the dialogue text. It can only be read by the program, which then performs the corresponding actions based on the markup's instructions.
+
+## 8. Writing Multiple Dialogue Nodes in a Single File
+
+In Yarn, you can write multiple dialogue nodes in a single file (with a `.yarn` extension). Each node is separated by the `===` marker, and each node's metadata is separated by the `---` marker. Here's an example of how to structure your complete Yarn file:
+
+```html title="File: tutorial.yarn"
+title: Start
+---
+Alex, you've finally decided to join the rebellion against the Cybertech Corp. The future of humanity is at stake!
+-> Continue
+<<jump Decision>>
+===
+
+title: Decision
+---
+You want to:
+-> Infiltrate the Cybertech Corp headquarters.
+	<<jump Infiltrate>>
+-> Spread propaganda against cybernetics.
+	<<jump Propaganda>>
+===
+
+title: Propaganda
+---
+……
+===
+
+title: Infiltrate
+---
+……
+===
+```
+
+Key points:
+1. Nodes are separated by a single line `===` marker.
+2. Each node's metadata is separated by the `---` marker.
+3. The actual dialogue content follows the metadata.
+4. You can use `<<jump XXX>>` commands to jump between nodes.
+
+This file structure allows you to manually create complex branching dialogue trees while organizing all content into a single file.
+
+## 9. Conclusion
+
+That's the basic structure of writing branching narratives using the Yarn language! With these tools, you can create stories filled with choices, consequences, multiple endings, and even large, complex narratives. So, here's wishing you happy writing and success in your rebellion!

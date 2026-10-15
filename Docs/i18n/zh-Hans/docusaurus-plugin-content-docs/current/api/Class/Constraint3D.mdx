@@ -1,0 +1,57 @@
+# Constraint3D
+
+**描述：**
+
+&emsp;&emsp;A two-body constraint owned by a PhysicsWorld3D.
+
+## world
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;The owning world. Nil after the constraint is destroyed.
+
+**签名：**
+```tl
+const world: PhysicsWorld3D | nil
+```
+
+## firstBody
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;The first constrained body. Nil after the constraint is destroyed.
+
+**签名：**
+```tl
+const firstBody: Body3D | nil
+```
+
+## secondBody
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;The second constrained body. Nil after the constraint is destroyed.
+
+**签名：**
+```tl
+const secondBody: Body3D | nil
+```
+
+## destroy
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;Removes the constraint from its world and turns this into an empty object.
+
+**签名：**
+```tl
+destroy: function(self: Constraint3D)
+```

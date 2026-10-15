@@ -1,0 +1,75 @@
+# Using the Log and Profiler Panels
+
+Dora SSR's Web IDE includes a log panel for checking runtime output and a profiler panel for watching frame time, rendering cost, resource loading time, object counts, and memory usage. Together they are useful when a script does not run, a resource fails to load, or a game becomes slow after adding new content.
+
+## 1. Open the Log Panel
+
+Open the play control menu in the lower-right corner of the Web IDE and choose **View Log**. You can also use the `Mod+.` shortcut shown in the menu. When a build or runtime error is reported by the IDE, the alert message can also include a **View Log** link that opens the same panel.
+
+The panel shows the active log stream. Log entries marked with `[error]`, `[warning]`, or `[info]` are highlighted, and the log view supports selecting text and searching inside the visible log.
+
+## 2. Clear, Reload, and Save Logs
+
+Use **Clear** to remove the current text from the log panel. This is useful before rerunning a scene so the next error is easier to find.
+
+Use **Reload** when the panel is out of date or you want to recover the full runtime log. The IDE asks the runtime to save the current log snapshot, then reloads that saved text back into the panel. The log panel does not have a separate **Save** button; this save step is part of **Reload**.
+
+If you need to save logs from your own script or command, use the engine log saving API and give it a path for the output file:
+
+```lua
+local App <const> = require("App")
+
+App:saveLog("debug.log")
+```
+
+## 3. Run Commands from the Panel
+
+The command input at the bottom of the log panel sends code to the running Dora SSR runtime. Type a command and press `Enter` to run it. The command is also written to the log, so you can see what was executed.
+
+The panel keeps up to 20 recent commands. Press the up arrow to move to older commands and the down arrow to move toward newer commands. This is helpful when you are repeatedly checking a variable, changing a runtime setting, or rerunning the same diagnostic command.
+
+Examples:
+
+```lua
+Log("Info", "checking player state")
+Director.profilerSending = true
+App.targetFPS = 60
+```
+
+Avoid sending commands that reset global state unless you are ready to rerun the scene.
+
+## 4. Use the Profiler Panel
+
+Use the icon button in the log panel to switch between the log-only view and the profiler view. When the profiler is hidden, the chart icon opens it; when the profiler is visible, the terminal icon returns to the log-only view. The profiler switch sends `Director.profilerSending = true` or `false` to the runtime.
+
+The profiler is split into several areas:
+
+- **Basic**: renderer name, whether multi-threaded rendering is enabled, back buffer size, draw calls, triangles, lines, visual size, VSync, FPS limit, target FPS, current FPS, and fixed update FPS.
+- **Time**: average CPU time and GPU time in milliseconds. The frame-time chart compares CPU, GPU, and delta time against the target-frame baseline. For 60 FPS, the baseline is about `16.67 ms`; values above the baseline mean the frame may miss the target.
+- **Object**: counts for C++ objects, Lua objects, Lua callbacks, textures, fonts, and audio resources. Rising counts after leaving a scene may indicate leaked nodes, callbacks, or cached resources.
+- **Memory**: memory pool, Lua, Teal, Wasm, texture, font, and audio memory. Watch these while loading scenes or swapping large assets.
+- **Loader Time Costs**: resource/module loading cost rows with order, time, depth, and module name. Sort by **Time** to find slow modules and large resource loads. Depth shows nested load relationships; top-level rows are also summed above the table.
+
+The profiler also lets you change `App.targetFPS`, `Director.scheduler.fixedFPS`, `View.vsync`, and `App.fpsLimited` from the panel. Use these controls to compare performance under the same target frame rate.
+
+## 5. Common Problems
+
+### Script Error After Running
+
+Look for the first `[error]` entry after the scene starts. Script syntax and runtime errors usually include a file path and line number. Open that file, fix the reported line first, then clear the log and rerun. If the same error repeats after editing, make sure the file is saved before running again.
+
+### Resource Fails to Load
+
+Errors such as missing images, fonts, audio, `.clip` files, or model files usually point to a wrong resource path or an unsupported file format. Check the path spelling, letter case, extension, and whether the file is under the project resource root. If a generated resource was changed outside the IDE, reload logs after regenerating it so you are reading the latest runtime output.
+
+### Frame Rate Drops or Stutters
+
+Open the profiler and compare `Current FPS`, `Avg CPU`, `Avg GPU`, and the frame-time chart. High CPU time usually points to update logic, scripting work, physics, or resource loading. High GPU time usually points to rendering cost such as too many draw calls, large textures, expensive effects, or too much overdraw. Sort **Loader Time Costs** by time if the stutter happens when a scene opens or when assets appear for the first time.
+
+### Memory Keeps Growing
+
+Watch the Object and Memory sections while entering and leaving the same scene several times. If Lua objects, callbacks, textures, or audio resources keep rising, check whether nodes are removed, callbacks are disconnected, and temporary resources are unloaded or reused.
+
+### Command Does Not Seem to Work
+
+Confirm that the game is still running and that the command is valid code for the runtime. Use command history to recall the last command, edit it, and run again. If the command changes profiler settings, keep the profiler panel open so you can immediately see whether the value changed.
