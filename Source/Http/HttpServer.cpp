@@ -527,6 +527,14 @@ static void set_unauthorized(DoraXrtHttpServerResponse* response) {
 	set_response(response, 401, R"({"success":false,"message":"unauthorized"})"s, "application/json"s);
 }
 
+// A 304 has no body, but any Content-Length must describe the selected 200
+// representation. Set it explicitly so XRT does not infer zero from the body.
+static void set_not_modified(DoraXrtHttpServerResponse* response, size_t representationSize) {
+	auto length = std::to_string(representationSize);
+	DoraXrtHttpServerResponseSetHeader(response, "Content-Length", length.c_str());
+	set_response(response, 304, {}, {});
+}
+
 static void set_service_unavailable(DoraXrtHttpServerResponse* response) {
 	set_response(response, 503, R"({"success":false,"message":"server shutting down"})"s, "application/json"s);
 }
@@ -1264,7 +1272,7 @@ bool HttpServer::start(int port) {
 			if (auto ifNoneMatch = find_header(request, "If-None-Match"_slice)) {
 				const auto matchValue = ifNoneMatch->toString();
 				if (HttpPolicy::ifNoneMatch(matchValue, etag)) {
-					set_response(nativeResponse, 304, {}, {});
+					set_not_modified(nativeResponse, content->data.size());
 					return true;
 				}
 			}
