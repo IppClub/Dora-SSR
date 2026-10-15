@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Http/HttpServer.h"
 #include "Http/HttpOriginPolicy.h"
+#include "Http/HttpValidators.h"
 
 #include "Http/XrtNetwork.h"
 
@@ -1250,12 +1251,23 @@ bool HttpServer::start(int port) {
 				return true;
 			}
 			if (content->data.empty()) return false;
+			const auto etag = fmt::format("\"{:08x}-{}{}\"",
+				crc32(0, r_cast<const Bytef*>(content->data.data()), s_cast<uInt>(content->data.size())),
+				content->data.size(), content->gzipEncoded ? "-g"sv : ""sv);
+			auto cacheControl = self->getStaticCacheControl(requestPath);
 			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Type", contentType);
 			if (compressible) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Accept-Encoding");
 			if (content->gzipEncoded) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Encoding", "gzip");
-			auto cacheControl = self->getStaticCacheControl(requestPath);
 			if (!cacheControl.empty()) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Cache-Control", cacheControl.c_str());
 			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Accept-Ranges", "bytes");
+			DoraXrtHttpServerResponseSetHeader(nativeResponse, "ETag", etag.c_str());
+			if (auto ifNoneMatch = find_header(request, "If-None-Match"_slice)) {
+				const auto matchValue = ifNoneMatch->toString();
+				if (HttpPolicy::ifNoneMatch(matchValue, etag)) {
+					set_response(nativeResponse, 304, {}, {});
+					return true;
+				}
+			}
 			ByteRange range;
 			auto rangeResult = parse_byte_range(request, content->data.size(), range);
 			if (rangeResult == RangeParseResult::Unsatisfiable) {

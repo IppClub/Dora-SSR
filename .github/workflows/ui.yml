@@ -49,6 +49,9 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: 'Tools/dora-dora/pnpm-lock.yaml'
 
+      - name: Test HTTP conditional requests
+        run: python3 ../../Tools/tests/test_http_validators.py
+
       - name: Setup xmake
         uses: xmake-io/github-action-setup-xmake@v1
         with:
