@@ -119,6 +119,7 @@ std::tuple<std::string, int, bool> FontCache::getArgsFromStr(String fontStr) {
 }
 
 bool FontCache::unload() {
+	_emojiFontUnavailable = false;
 	if (_fonts.empty() && _fontFiles.empty()) {
 		return false;
 	}
@@ -307,13 +308,18 @@ void FontCache::loadAync(String fontName, uint32_t fontSize, bool sdf, const std
 }
 
 Font* FontCache::getCharFont(Font* font, bgfx::CodePoint character) {
-	if (SharedFontManager.hasGlyph(font->getHandle(), character)) {
+	if (character == 0 || SharedFontManager.hasGlyph(font->getHandle(), character)) {
 		return font;
+	}
+	if (font->_emojiFallback) {
+		auto emoji = font->_emojiFallback.get();
+		return SharedFontManager.hasGlyph(emoji->getHandle(), character) ? emoji : font;
 	}
 	if (!_emojiFontUnavailable) {
 		const bgfx::FontInfo& info = font->getInfo();
 		Font* emoji = load("NotoEmoji"s, info.pixelSize, info.sdf);
-		if (emoji) {
+		if (emoji && emoji != font) {
+			font->_emojiFallback = emoji;
 			if (SharedFontManager.hasGlyph(emoji->getHandle(), character)) {
 				return emoji;
 			}
@@ -325,7 +331,6 @@ Font* FontCache::getCharFont(Font* font, bgfx::CodePoint character) {
 }
 
 Sprite* FontCache::createCharacter(Font* font, bgfx::CodePoint character) {
-	font = getCharFont(font, character);
 	Texture2D* texture;
 	Rect rect;
 	std::tie(texture, rect) = getCharacterInfo(font, character);

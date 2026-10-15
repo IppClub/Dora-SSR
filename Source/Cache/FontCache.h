@@ -50,6 +50,9 @@ protected:
 private:
 	bgfx::FontHandle _handle;
 	Ref<TrueTypeFile> _file;
+	// Keep fallback glyph atlases alive for labels that retain this font.
+	Ref<Font> _emojiFallback;
+	friend class FontCache;
 };
 
 class FontManager : public bgfx::FontManager {
