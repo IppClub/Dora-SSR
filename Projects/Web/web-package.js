@@ -10,6 +10,7 @@
 	});
 	const runtimeEntries = Object.freeze(["init.lua", "init.yue", "init.tl", "init.xml", "init.wasm"]);
 	const decoder = new TextDecoder("utf-8", {fatal: true});
+	let legacyDecoder;
 
 	function toBytes(input) {
 		if (input instanceof Uint8Array) return Promise.resolve(input);
@@ -29,9 +30,16 @@
 		return left + right;
 	}
 
-	function decodeName(bytes) {
+	function decodeName(bytes, utf8Flagged) {
 		let name;
-		try { name = decoder.decode(bytes); } catch (_) { throw new Error("ZIP entry name is not valid UTF-8"); }
+		try { name = decoder.decode(bytes); } catch (_) {
+			// Unflagged, non-UTF-8 entry names are treated as GB18030, matching what ZIP writers on zh-CN Windows produce.
+			if (utf8Flagged) throw new Error("ZIP entry name is not valid UTF-8");
+			try {
+				if (!legacyDecoder) legacyDecoder = new TextDecoder("gb18030");
+				name = legacyDecoder.decode(bytes);
+			} catch (_ignored) { throw new Error("ZIP entry name is not valid UTF-8"); }
+		}
 		if (name.normalize("NFC") !== name) name = name.normalize("NFC");
 		return name;
 	}
@@ -134,7 +142,7 @@
 			if ([compressedBytes, unpackedBytes, localOffset].includes(0xffffffff)) throw new Error("ZIP64 entries are unsupported");
 			const rawName = bytes.subarray(offset + 46, offset + 46 + nameBytes);
 			if (hasExtraField(bytes, offset + 46 + nameBytes, extraBytes, 0x0001)) throw new Error("ZIP64 entries are unsupported");
-			const decodedName = decodeName(rawName);
+			const decodedName = decodeName(rawName, (flags & 0x800) !== 0);
 			const directory = decodedName.endsWith("/");
 			const path = validateEntryPath(decodedName, directory);
 			const key = path.toLocaleLowerCase("en-US");
