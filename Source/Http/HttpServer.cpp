@@ -473,8 +473,8 @@ static void set_logic_busy(DoraXrtHttpServerResponse* response) {
 	set_response(response, 503, R"({"success":false,"message":"engine logic thread did not respond in time"})"s, "application/json"s);
 }
 
-// Requests parked on the logic thread give up after this long, so a wedged
-// logic loop fails fast with a retryable 503 instead of hanging the client.
+// Bound time without a logic-thread heartbeat, not the total duration of a
+// scheduled operation (compilation and Git commands can legitimately take longer).
 constexpr double LogicDispatchTimeoutSeconds = 10.0;
 
 template <class T>
@@ -491,13 +491,28 @@ public:
 	}
 
 	std::optional<T> wait(const std::atomic_bool& stopping, const std::atomic_uint64_t& generation, uint64_t requestGeneration, double timeoutSeconds = LogicDispatchTimeoutSeconds) {
-		const auto deadline = std::chrono::steady_clock::now() + std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(timeoutSeconds));
+		auto deadline = std::chrono::steady_clock::now() + std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(timeoutSeconds));
+		struct Heartbeat {
+			std::atomic_bool queued{false};
+			std::atomic_bool responded{false};
+		};
+		auto heartbeat = std::make_shared<Heartbeat>();
 		while (!_ready.wait(50)) {
 			if (stopping.load(std::memory_order_acquire)
 				|| generation.load(std::memory_order_acquire) != requestGeneration
 				|| !SharedApplication.isLogicRunning()) {
 				_cancelled.store(true, std::memory_order_release);
 				return std::nullopt;
+			}
+			if (heartbeat->responded.exchange(false, std::memory_order_acq_rel)) {
+				deadline = std::chrono::steady_clock::now() + std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(timeoutSeconds));
+			}
+			// At most one outstanding probe per request, even if the logic loop is stuck.
+			if (!heartbeat->queued.exchange(true, std::memory_order_acq_rel)) {
+				SharedApplication.invokeInLogic([heartbeat]() {
+					heartbeat->responded.store(true, std::memory_order_release);
+					heartbeat->queued.store(false, std::memory_order_release);
+				});
 			}
 			if (timeoutSeconds > 0.0 && std::chrono::steady_clock::now() >= deadline) {
 				_timedOut.store(true, std::memory_order_release);
@@ -843,25 +858,35 @@ static bool route_matches(const std::string& pattern, const std::string& path) {
 	}
 }
 
-static HttpServer::Request make_request(const DoraXrtHttpServerRequest* nativeRequest, std::vector<std::string>& paramStorage) {
+static HttpServer::Request make_request(const DoraXrtHttpServerRequest* nativeRequest) {
 	HttpServer::Request request;
-	request.method = nativeRequest->methodText;
-	request.path = nativeRequest->path;
+	// A timeout may return while a handler is still executing. Every Slice must
+	// therefore own backing data through copies of Request, including query data.
+	auto params = parse_query_pairs(nativeRequest->target);
+	auto storage = std::make_shared<std::vector<std::string>>();
+	storage->reserve(4u + nativeRequest->headerCount * 2u + params.size() * 2u);
+	request.storage = storage;
+	auto copy = [&](const char* text) -> Slice {
+		storage->emplace_back(text ? text : "");
+		return storage->back();
+	};
+	request.method = copy(nativeRequest->methodText);
+	request.path = copy(nativeRequest->path);
 	request.headers.reserve(nativeRequest->headerCount * 2u);
 	for (size_t i = 0; i < nativeRequest->headerCount; ++i) {
-		request.headers.emplace_back(nativeRequest->headers[i].name);
-		request.headers.emplace_back(nativeRequest->headers[i].value);
+		request.headers.emplace_back(copy(nativeRequest->headers[i].name));
+		request.headers.emplace_back(copy(nativeRequest->headers[i].value));
 	}
-	auto params = parse_query_pairs(nativeRequest->target);
-	paramStorage.reserve(params.size() * 2u);
+	request.params.reserve(params.size() * 2u);
 	for (auto& [name, value] : params) {
-		paramStorage.push_back(std::move(name));
-		paramStorage.push_back(std::move(value));
+		storage->push_back(std::move(name));
+		request.params.emplace_back(storage->back());
+		storage->push_back(std::move(value));
+		request.params.emplace_back(storage->back());
 	}
-	request.params.reserve(paramStorage.size());
-	for (const auto& value : paramStorage) request.params.emplace_back(value);
-	if (auto contentType = DoraXrtHttpServerRequestHeader(nativeRequest, "Content-Type")) request.contentType = contentType;
-	if (nativeRequest->body && nativeRequest->bodyLen > 0u) request.body = Slice(r_cast<const char*>(nativeRequest->body), nativeRequest->bodyLen);
+	request.contentType = copy(DoraXrtHttpServerRequestHeader(nativeRequest, "Content-Type"));
+	storage->emplace_back(nativeRequest->body ? r_cast<const char*>(nativeRequest->body) : "", nativeRequest->body ? nativeRequest->bodyLen : 0u);
+	request.body = storage->back();
 	return request;
 }
 
@@ -1090,8 +1115,7 @@ bool HttpServer::start(int port) {
 		const auto requestGeneration = self->_generation.load(std::memory_order_acquire);
 		DoraXrtHttpServerResponseSetHeader(nativeResponse, "Access-Control-Allow-Origin", "*");
 		DoraXrtHttpServerResponseSetHeader(nativeResponse, "Access-Control-Allow-Headers", "*");
-		std::vector<std::string> paramStorage;
-		auto request = make_request(nativeRequest, paramStorage);
+		auto request = make_request(nativeRequest);
 		auto path = request.path.toString();
 		const bool gzipAccepted = accepts_gzip(request);
 		auto respond = [&](HttpServer::Response&& response) {

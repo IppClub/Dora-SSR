@@ -63,6 +63,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Test HTTP logic responsiveness and request lifetime
+        run: python3 ../../Tools/tests/test_http_pending.py
+
       - name: Test current engine contracts
         run: |
           sudo apt-get update
