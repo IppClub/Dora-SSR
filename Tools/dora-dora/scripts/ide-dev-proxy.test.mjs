@@ -25,3 +25,9 @@ test('proxy paths preserve engine targets and signed WebSocket queries',()=>{
 	assert.equal(proxies[1].rewrite('/__dora/ws?session=a&sig=b'),'/?session=a&sig=b');
 	assert.equal(proxies[0].target,'http://127.0.0.1:8866');assert.equal(proxies[1].target,'ws://127.0.0.1:8868');
 });
+
+test('default HTTP port is normalized without allowing malformed authorities',()=>{
+ const proxy=proxies[0];
+ const headers={host:'localhost:80',origin:'http://localhost'};
+ assert.equal(proxy.bypass({headers,rawHeaders:['Host',headers.host,'Origin',headers.origin]},{}),undefined);
+});

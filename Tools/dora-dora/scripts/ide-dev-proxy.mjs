@@ -15,7 +15,8 @@ export function ideDevProxy() {
 			const hostCount = req.rawHeaders.filter((_, i) => i % 2 === 0 && req.rawHeaders[i].toLowerCase() === 'host').length;
 			const originCount = req.rawHeaders.filter((_, i) => i % 2 === 0 && req.rawHeaders[i].toLowerCase() === 'origin').length;
 			allowed = hostCount === 1 && originCount <= 1 && hosts.has(target.hostname)
-				&& target.host === host?.toLowerCase() && target.pathname === '/' && !target.username && !target.password
+				&& (target.host === host?.toLowerCase() || `${target.hostname}:80` === host?.toLowerCase())
+				&& target.pathname === '/' && !target.search && !target.hash && !target.username && !target.password
 				&& req.headers['sec-fetch-site'] !== 'cross-site'
 				&& (origin === undefined || origin === target.origin);
 		} catch { /* Fail closed for malformed Host/Origin. */ }
