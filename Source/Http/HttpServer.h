@@ -90,6 +90,8 @@ protected:
 
 private:
 	friend class WebSocketServer;
+	unsigned _httpPort = 0;
+	std::vector<std::string> _webAllowedHosts;
 	std::string _wwwPath;
 	std::string _authToken;
 	std::string _authSessionId;

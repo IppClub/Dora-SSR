@@ -5,6 +5,7 @@ import { createRequire } from 'node:module';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import monacoEditorPlugin from 'vite-plugin-monaco-editor';
+import { ideDevProxy } from './scripts/ide-dev-proxy.mjs';
 import { commonjsLodashPlugin } from './scripts/commonjs-lodash-plugin.mjs';
 
 const require = createRequire(import.meta.url);
@@ -527,6 +528,7 @@ export default defineConfig(async ({ command, mode }) => {
 			'process.env.NODE_ENV': JSON.stringify(mode),
 		},
 		server: {
+			proxy: ideDevProxy(),
 			host: true,
 			port: Number(env.PORT) || 3000,
 			fs: {

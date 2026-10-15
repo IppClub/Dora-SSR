@@ -1,0 +1,77 @@
+// Copyright (c) 2026 Li Jin. Licensed under the MIT License.
+#pragma once
+#include <algorithm>
+#include <charconv>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <vector>
+#if defined(_WIN32)
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <arpa/inet.h>
+#endif
+
+namespace Dora::HttpPolicy {
+inline std::string lowerAscii(std::string_view text) {
+	std::string result(text);
+	for (auto& c : result) if (c >= 'A' && c <= 'Z') c += 'a' - 'A';
+	return result;
+}
+inline std::optional<std::string> normalizeHost(std::string_view text) {
+	if (text.empty()) return std::nullopt;
+	auto host = lowerAscii(text);
+	unsigned char address[16];
+	char buffer[INET6_ADDRSTRLEN];
+	for (auto family : {AF_INET, AF_INET6}) {
+		if (inet_pton(family, host.c_str(), address) == 1 && inet_ntop(family, address, buffer, sizeof(buffer))) return std::string(buffer);
+	}
+	// Hostnames are exact configured names, never suffixes or DNS resolutions.
+	if (host.size() > 253 || host.front() == '.' || host.back() == '.') return std::nullopt;
+	for (auto c : host) if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '.')) return std::nullopt;
+	return host;
+}
+struct Authority {
+	std::string host;
+	unsigned port;
+};
+inline std::optional<Authority> parseAuthority(std::string_view text, unsigned defaultPort = 80) {
+	std::string_view host, port;
+	if (text.empty()) return std::nullopt;
+	if (text.front() == '[') {
+		auto close = text.find(']');
+		if (close == std::string_view::npos) return std::nullopt;
+		host = text.substr(1, close - 1);
+		unsigned char address[16];
+		if (inet_pton(AF_INET6, std::string(host).c_str(), address) != 1) return std::nullopt;
+		text.remove_prefix(close + 1);
+	} else {
+		auto colon = text.find(':');
+		host = text.substr(0, colon);
+		text = colon == std::string_view::npos ? std::string_view{} : text.substr(colon);
+	}
+	unsigned number = defaultPort;
+	if (!text.empty()) {
+		if (text.front() != ':') return std::nullopt;
+		port = text.substr(1);
+		auto result = std::from_chars(port.data(), port.data() + port.size(), number);
+		if (port.empty() || result.ec != std::errc{} || result.ptr != port.data() + port.size() || number == 0 || number > 65535) return std::nullopt;
+	}
+	auto normalized = normalizeHost(host);
+	if (!normalized) return std::nullopt;
+	return Authority{std::move(*normalized), number};
+}
+// HTTP and WS listeners are plain HTTP. Trusted TLS terminators must validate
+// their external Origin before rewriting it, just like the development proxy.
+inline bool allowRequest(std::string_view host, const std::optional<std::string_view>& origin,
+	unsigned listenerPort, unsigned pagePort, const std::vector<std::string>& allowedHosts) {
+	auto target = parseAuthority(host);
+	if (!target || target->port != listenerPort || std::find(allowedHosts.begin(), allowedHosts.end(), target->host) == allowedHosts.end()) return false;
+	if (!origin) return true; // Non-browser clients still need the existing authentication.
+	auto scheme = origin->find("://");
+	if (scheme == std::string_view::npos || lowerAscii(origin->substr(0, scheme)) != "http") return false;
+	auto source = parseAuthority(origin->substr(scheme + 3));
+	return source && source->host == target->host && source->port == pagePort;
+}
+}

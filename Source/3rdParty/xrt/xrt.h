@@ -4139,6 +4139,8 @@
 		} xwsclientevents;
 		typedef struct {
 			bool (*OnAuthorize)(ptr pOwner, xwsserver* pServer, xwsconn* pConn, const char* sTarget);
+		/* Optional request-aware authorization: 0 accepts; otherwise reply with this HTTP status. */
+		uint32 (*OnAuthorizeRequest)(ptr pOwner, xwsserver* pServer, xwsconn* pConn, const xcodechttp1msg* pRequest);
 			void (*OnOpen)(ptr pOwner, xwsserver* pServer, xwsconn* pConn);
 			void (*OnText)(ptr pOwner, xwsserver* pServer, xwsconn* pConn, const char* pData, size_t iLen);
 			void (*OnBinary)(ptr pOwner, xwsserver* pServer, xwsconn* pConn, const void* pData, size_t iLen);
@@ -61141,6 +61143,8 @@ typedef struct {
 } xwsclientevents;
 typedef struct {
 	bool (*OnAuthorize)(ptr pOwner, xwsserver* pServer, xwsconn* pConn, const char* sTarget);
+		/* Optional request-aware authorization: 0 accepts; otherwise reply with this HTTP status. */
+		uint32 (*OnAuthorizeRequest)(ptr pOwner, xwsserver* pServer, xwsconn* pConn, const xcodechttp1msg* pRequest);
 	void (*OnOpen)(ptr pOwner, xwsserver* pServer, xwsconn* pConn);
 	void (*OnText)(ptr pOwner, xwsserver* pServer, xwsconn* pConn, const char* pData, size_t iLen);
 	void (*OnBinary)(ptr pOwner, xwsserver* pServer, xwsconn* pConn, const void* pData, size_t iLen);
@@ -62316,6 +62320,14 @@ static void __xwsServerStreamOnRecv(ptr pOwner, xnetstream* pStream, xnetchain* 
 			(void)__xwsSendHttpReply(pStream, 400u, "Bad Request", NULL, NULL, true);
 			if ( iParse == XCODEC_STATUS_FRAME ) { xrtCodecHttp1MessageUnit(&tMsg); }
 			return;
+		}
+		if ( pServer->tEvents.OnAuthorizeRequest ) {
+			uint32 iStatus = pServer->tEvents.OnAuthorizeRequest(pServer->pUserData, pServer, pConn, &tMsg);
+			if ( iStatus != 0u ) {
+				(void)__xwsSendHttpReply(pStream, iStatus, iStatus == 403u ? "Forbidden" : "Unauthorized", NULL, NULL, true);
+				xrtCodecHttp1MessageUnit(&tMsg);
+				return;
+			}
 		}
 		if ( pServer->tEvents.OnAuthorize && !pServer->tEvents.OnAuthorize(pServer->pUserData, pServer, pConn, tMsg.sTarget) ) {
 			(void)__xwsSendHttpReply(pStream, 401u, "Unauthorized", NULL, NULL, true);

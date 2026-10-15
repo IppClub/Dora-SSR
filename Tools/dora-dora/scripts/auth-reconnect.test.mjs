@@ -14,7 +14,7 @@ const declarations=ast.statements.filter(s=>ts.isVariableStatement(s)&&s.declara
 assert.equal(declarations.length,names.size,'Authentication bootstrap boundary changed');
 const {outputFiles}=await build({stdin:{contents:`import {canonicalizeAuthPath} from './src/AuthSignature';\n${declarations.map(s=>s.getText(ast)).join('\n')}\nwindow.setupAuth=setupAuth;`,loader:'tsx',resolveDir:new URL('../',import.meta.url).pathname},bundle:true,write:false,format:'iife',jsxFactory:'React.createElement'});
 const newSession={sessionId:'new-session',sessionSecret:'new-secret'};
-function fixture({enabled=true,cached=true}={}) {
+function fixture({enabled=true,cached=true,mode="production"}={}) {
  const state={enabled,probeStatus:null,offline:false,dialog:null,shown:0,required:null,requests:[]};
  const storage=new Map(cached?[['doraWebAuthSession',JSON.stringify({sessionId:'old-session',sessionSecret:'old-secret'})]]:[]);
  const timers=new Set();
@@ -29,7 +29,7 @@ function fixture({enabled=true,cached=true}={}) {
   state.requests.push(request);
   return new Response('{}',{status:!state.enabled||request.headers.get('X-Dora-Session')===newSession.sessionId?200:401});
  }};
- vm.runInNewContext(outputFiles[0].text,{window,URL,Request,Headers,TextEncoder,Uint8Array,crypto:webcrypto,console,
+ vm.runInNewContext(outputFiles[0].text,{window,URL,Request,Headers,TextEncoder,Uint8Array,crypto:webcrypto,console,process:{env:{NODE_ENV:mode}},
   localStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},
   Service:{addr:path=>'http://localhost:8866'+path,setAuthRequired:value=>{state.required=value;},getWebSocket:()=>null},
   document:{body:{appendChild(){}},createElement:()=>({remove(){}})},AuthDialog:()=>{},React:{createElement:(type,props)=>({type,props})},
@@ -82,4 +82,20 @@ test('socket loss while engine is offline does not open a speculative PIN',async
   new f.window.WebSocket('ws://localhost:8868').close();
   await until(()=>f.state.required===false);assert.equal(f.state.shown,0);
  }finally{f.dispose();}
+});
+
+test('development proxy signs the upstream engine path',async()=>{
+ const state=fixture({mode:'development'});
+ try {
+ await state.window.setupAuth();
+ state.window.__setDoraAuthToken(newSession);
+ await state.window.fetch('http://localhost:3000/__dora/api/read', {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+ const request=state.state.requests.at(-1);
+ const ts=request.headers.get('X-Dora-Timestamp'), nonce=request.headers.get('X-Dora-Nonce');
+ const bodyHash=Buffer.from(await webcrypto.subtle.digest('SHA-256',new TextEncoder().encode('{}'))).toString('hex');
+ const payload=[newSession.sessionId,'POST','/read',ts,nonce,bodyHash].join('\n');
+ const key=await webcrypto.subtle.importKey('raw',new TextEncoder().encode(newSession.sessionSecret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+ const expected=Buffer.from(await webcrypto.subtle.sign('HMAC',key,new TextEncoder().encode(payload))).toString('hex');
+ assert.equal(request.headers.get('X-Dora-Signature'),expected);
+ } finally { state.dispose(); }
 });
