@@ -56,7 +56,7 @@ int main() {
  {PendingLogicResult<int> p; p.complete(42); assert(p.wait(stopping,generation,1,.2)==42);}
  {PendingLogicResult<int> p; std::atomic_bool finished{false};
   std::thread logic([&]{auto until=std::chrono::steady_clock::now()+600ms;while(std::chrono::steady_clock::now()<until){SharedApplication.tick();std::this_thread::sleep_for(5ms);}p.complete(7);finished=true;});
-  auto value=p.wait(stopping,generation,1,.2); logic.join();assert(value==7);assert(!p.timedOut());}
+  auto value=p.wait(stopping,generation,1,.2); logic.join();SharedApplication.tick();assert(value==7);assert(!p.timedOut());}
  {PendingLogicResult<int> p; assert(!p.wait(stopping,generation,1,.15));assert(p.timedOut());p.complete(3);assert(p.isCancelled());
   {std::lock_guard<std::mutex> lock(SharedApplication.mutex);assert(SharedApplication.queue.size()<=1);}SharedApplication.tick();}
  {PendingLogicResult<int> p;stopping=true;assert(!p.wait(stopping,generation,1,.2));assert(!p.timedOut());stopping=false;}
