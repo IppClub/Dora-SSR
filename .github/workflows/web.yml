@@ -6,6 +6,7 @@ on:
     paths:
       - 'Assets/Script/Lib/**'
       - 'Projects/Web/**'
+      - 'Tools/tests/web-package-names.test.mjs'
       - 'xmake.lua'
       - 'Projects/xmake/**'
       - 'Source/**'
@@ -16,6 +17,7 @@ on:
     paths:
       - 'Assets/Script/Lib/**'
       - 'Projects/Web/**'
+      - 'Tools/tests/web-package-names.test.mjs'
       - 'xmake.lua'
       - 'Projects/xmake/**'
       - 'Source/**'
@@ -43,6 +45,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.14.0'
+      - name: Test ZIP filename decoding
+        run: node --test Tools/tests/web-package-names.test.mjs
       - name: Build Web packages
         run: xmake dora-web --tests
       - name: Verify Web package
