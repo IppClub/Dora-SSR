@@ -36,7 +36,7 @@
 			// Unflagged, non-UTF-8 entry names are treated as GB18030, matching what ZIP writers on zh-CN Windows produce.
 			if (utf8Flagged) throw new Error("ZIP entry name is not valid UTF-8");
 			try {
-				if (!legacyDecoder) legacyDecoder = new TextDecoder("gb18030");
+				if (!legacyDecoder) legacyDecoder = new TextDecoder("gb18030", {fatal: true});
 				name = legacyDecoder.decode(bytes);
 			} catch (_ignored) { throw new Error("ZIP entry name is not valid UTF-8"); }
 		}
