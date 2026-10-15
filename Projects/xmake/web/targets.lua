@@ -239,6 +239,8 @@ target("dora-web-player")
                 linkflag(t, c, "--preload-file @root@/Assets/Script/Lib/" .. module .. "@/builtin/Script/Lib/" .. module)
             end
             linkflag(t, c, "--preload-file " .. c.font .. "@/builtin/Font/sarasa-mono-sc-regular.ttf")
+            linkflag(t, c, "--preload-file @root@/Assets/Font/NotoEmoji.ttf@/builtin/Font/NotoEmoji.ttf")
+            linkflag(t, c, "--preload-file @root@/Assets/Font/NotoEmoji-OFL.txt@/builtin/Font/NotoEmoji-OFL.txt")
         end
         if c.diagnostics then t:add("ldflags", "-sASSERTIONS=1", "--profiling-funcs", {force = true}) end
         if c.experimental_main_worker then
