@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 
 #include "Http/HttpServer.h"
+#include "Http/HttpValidators.h"
 
 #include "Http/XrtNetwork.h"
 
@@ -1150,7 +1151,7 @@ bool HttpServer::start(int port) {
 			DoraXrtHttpServerResponseSetHeader(nativeResponse, "ETag", etag.c_str());
 			if (auto ifNoneMatch = find_header(request, "If-None-Match"_slice)) {
 				const auto matchValue = ifNoneMatch->toString();
-				if (matchValue.find(etag) != std::string::npos || matchValue.find('*') != std::string::npos) {
+				if (HttpPolicy::ifNoneMatch(matchValue, etag)) {
 					set_response(nativeResponse, 304, {}, {});
 					return true;
 				}
