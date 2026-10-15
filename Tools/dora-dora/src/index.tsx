@@ -232,6 +232,10 @@ const setupAuth = async (): Promise<void> => {
 		const key = await getSigningKey();
 		if (!key) return null;
 		const url = new URL(request.url, window.location.href);
+		// Vite removes this reserved transport prefix before engine authentication.
+		if ((!process.env.NODE_ENV || process.env.NODE_ENV === 'development') && url.pathname.startsWith('/__dora/api/')) {
+			url.pathname = url.pathname.slice('/__dora/api'.length);
+		}
 		const path = canonicalizeAuthPath(url);
 		const timestamp = Math.floor(Date.now() / 1000).toString();
 		const nonce = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(16).slice(2);

@@ -28,7 +28,7 @@ type GitJobStatusResponse = {
 
 const pollGitStatus = async (jobId: number): Promise<GitJobStatusResponse> => {
 	const url = !process.env.NODE_ENV || process.env.NODE_ENV === "development"
-		? "http://localhost:8866/git/status"
+		? "/__dora/api/git/status"
 		: "/git/status";
 	const response = await fetch(url, {
 		method: "POST",

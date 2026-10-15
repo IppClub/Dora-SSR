@@ -51,9 +51,9 @@ const eventEmitter = new TypedEmitter<ServiceEvents>();
 function wsUrl() {
 	let url: string;
 	if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
-		url = "ws://localhost:8868";
+		url = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/__dora/ws`;
 	} else {
-		url = `ws://${window.location.hostname}:8868`;
+		url = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.hostname}:8868`;
 	}
 	return url;
 }
@@ -99,7 +99,9 @@ const buildWebSocketUrl = async (baseUrl: string, session: AuthSession) => {
 	params.set('session', session.sessionId);
 	params.set('ts', timestamp);
 	params.set('nonce', nonce);
-	const path = canonicalizeAuthPath(new URL(`${url.origin}${url.pathname}?${params.toString()}`));
+	// Sign the engine's target, before Vite's development-only path prefix.
+	const targetPath = (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') ? '/' : url.pathname;
+	const path = canonicalizeAuthPath(new URL(`${url.origin}${targetPath}?${params.toString()}`));
 	const payload = [session.sessionId, 'GET', path, timestamp, nonce, ''].join('\n');
 	const signature = await hmacHex(session.sessionSecret, payload);
 	params.set('sig', signature);
@@ -480,7 +482,7 @@ export const removeSearchFilesDoneListener = (listener: (message: SearchFilesDon
 
 export function addr(url: string) {
 	if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
-		return "http://localhost:8866" + url;
+		return "/__dora/api" + url;
 	}
 	return url;
 };

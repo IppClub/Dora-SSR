@@ -518,10 +518,16 @@ int DoraXrtMultipartForEachFile(const char* contentType, const void* body, size_
 	return 1;
 }
 
-static bool DoraXrtWebSocketOnAuthorize(ptr owner, xwsserver* nativeServer, xwsconn* connection, const char* target) {
+static uint32 DoraXrtWebSocketOnAuthorize(ptr owner, xwsserver* nativeServer, xwsconn* connection, const xcodechttp1msg* request) {
 	DoraXrtWebSocketServer* server = (DoraXrtWebSocketServer*)owner;
+	DoraXrtHttpHeaderView headers[XCODEC_HTTP1_MAX_HEADERS];
 	(void)nativeServer;
-	return !server || !server->events.onAuthorize || server->events.onAuthorize(server->userData, (DoraXrtWebSocketConnection*)connection, target) != 0;
+	if (!server || !server->events.onAuthorize) return 0;
+	for (size_t i = 0; i < request->iHeaderCount; ++i) {
+		headers[i].name = request->arrHeaders[i].sName;
+		headers[i].value = request->arrHeaders[i].sValue;
+	}
+	return (uint32)server->events.onAuthorize(server->userData, (DoraXrtWebSocketConnection*)connection, request->sTarget, headers, request->iHeaderCount);
 }
 
 static void DoraXrtWebSocketOnOpen(ptr owner, xwsserver* nativeServer, xwsconn* connection) {
@@ -587,7 +593,7 @@ DoraXrtWebSocketServer* DoraXrtWebSocketServerCreate(unsigned int port, size_t r
 	xrtNetAddrInitAny(&config.tBindAddr, AF_INET, (uint16)port);
 	config.iRecvLimit = (uint32)receiveLimit;
 	memset(&nativeEvents, 0, sizeof(nativeEvents));
-	nativeEvents.OnAuthorize = DoraXrtWebSocketOnAuthorize;
+	nativeEvents.OnAuthorizeRequest = DoraXrtWebSocketOnAuthorize;
 	nativeEvents.OnOpen = DoraXrtWebSocketOnOpen;
 	nativeEvents.OnText = DoraXrtWebSocketOnText;
 	nativeEvents.OnBinary = DoraXrtWebSocketOnBinary;

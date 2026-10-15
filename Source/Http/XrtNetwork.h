@@ -112,7 +112,8 @@ typedef struct DoraXrtHttpServerEvents {
 	DoraXrtServerErrorHandler onError;
 } DoraXrtHttpServerEvents;
 
-typedef int (*DoraXrtWebSocketAuthorizeHandler)(void* userData, DoraXrtWebSocketConnection* connection, const char* target);
+// Returns zero to accept, or an HTTP error status before upgrading.
+typedef int (*DoraXrtWebSocketAuthorizeHandler)(void* userData, DoraXrtWebSocketConnection* connection, const char* target, const DoraXrtHttpHeaderView* headers, size_t headerCount);
 typedef void (*DoraXrtWebSocketOpenHandler)(void* userData, DoraXrtWebSocketConnection* connection);
 typedef void (*DoraXrtWebSocketMessageHandler)(void* userData, DoraXrtWebSocketConnection* connection, const void* data, size_t dataLen);
 typedef void (*DoraXrtWebSocketCloseHandler)(void* userData, DoraXrtWebSocketConnection* connection, int reason);

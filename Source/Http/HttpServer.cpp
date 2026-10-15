@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Const/Header.h"
 
 #include "Http/HttpServer.h"
+#include "Http/HttpOriginPolicy.h"
 #include "Http/HttpValidators.h"
 
 #include "Http/XrtNetwork.h"
@@ -240,6 +241,64 @@ static Dictionary* makeAppWSMessage(String type, std::string&& msg = std::string
 	return payload;
 }
 
+// Build a DNS-independent set of names the server actually serves. Extra
+// hostnames are opt-in (e.g. a configured mDNS name), never learned from Host.
+static std::vector<std::string> web_ide_hosts() {
+	std::vector<std::string> hosts{"localhost", "127.0.0.1", "::1"};
+	auto add = [&](const char* address) {
+		if (address) if (auto host = HttpPolicy::normalizeHost(address)) hosts.push_back(*host);
+	};
+#if BX_PLATFORM_WINDOWS
+	char hostname[256]{};
+	if (gethostname(hostname, sizeof(hostname)) == 0) {
+		addrinfo hints{}, *addresses = nullptr;
+		hints.ai_family = AF_UNSPEC;
+		if (getaddrinfo(hostname, nullptr, &hints, &addresses) == 0) {
+			for (auto p = addresses; p; p = p->ai_next) {
+				char buffer[INET6_ADDRSTRLEN]{};
+				if (p->ai_family == AF_INET) add(inet_ntop(AF_INET, &r_cast<sockaddr_in*>(p->ai_addr)->sin_addr, buffer, sizeof(buffer)));
+				else if (p->ai_family == AF_INET6) add(inet_ntop(AF_INET6, &r_cast<sockaddr_in6*>(p->ai_addr)->sin6_addr, buffer, sizeof(buffer)));
+			}
+			freeaddrinfo(addresses);
+		}
+	}
+#else
+	ifaddrs* addresses = nullptr;
+	if (getifaddrs(&addresses) == 0) {
+		for (auto p = addresses; p; p = p->ifa_next) {
+			if (!p->ifa_addr) continue;
+			char buffer[INET6_ADDRSTRLEN]{};
+			if (p->ifa_addr->sa_family == AF_INET) add(inet_ntop(AF_INET, &r_cast<sockaddr_in*>(p->ifa_addr)->sin_addr, buffer, sizeof(buffer)));
+			else if (p->ifa_addr->sa_family == AF_INET6) add(inet_ntop(AF_INET6, &r_cast<sockaddr_in6*>(p->ifa_addr)->sin6_addr, buffer, sizeof(buffer)));
+		}
+		freeifaddrs(addresses);
+	}
+#endif
+	if (const char* configured = std::getenv("DORA_WEB_IDE_HOSTS")) {
+		std::string_view names(configured);
+		while (!names.empty()) {
+			auto comma = names.find(',');
+			if (auto host = HttpPolicy::normalizeHost(names.substr(0, comma))) hosts.push_back(*host);
+			if (comma == std::string_view::npos) break;
+			names.remove_prefix(comma + 1);
+		}
+	}
+	return hosts;
+}
+
+static bool allow_web_request(const DoraXrtHttpHeaderView* headers, size_t count,
+	unsigned listenerPort, unsigned pagePort, const std::vector<std::string>& hosts) {
+	std::string_view host;
+	std::optional<std::string_view> origin;
+	unsigned hostCount = 0, originCount = 0;
+	for (size_t i = 0; i < count; ++i) {
+		auto name = HttpPolicy::lowerAscii(headers[i].name);
+		if (name == "host") { host = headers[i].value; ++hostCount; }
+		else if (name == "origin") { origin = headers[i].value; ++originCount; }
+	}
+	return hostCount == 1 && originCount <= 1 && HttpPolicy::allowRequest(host, origin, listenerPort, pagePort, hosts);
+}
+
 class WebSocketServer {
 	struct Connection {
 		explicit Connection(DoraXrtWebSocketConnection* ws)
@@ -293,10 +352,12 @@ public:
 	}
 
 	bool start(int port) {
+		_port = port;
 		DoraXrtWebSocketServerEvents events{};
-		events.onAuthorize = [](void* owner, DoraXrtWebSocketConnection*, const char* target) -> int {
+		events.onAuthorize = [](void* owner, DoraXrtWebSocketConnection*, const char* target, const DoraXrtHttpHeaderView* headers, size_t count) -> int {
 			auto self = r_cast<WebSocketServer*>(owner);
-			return !self->_owner || self->_owner->isWebSocketAuthorized(target ? target : "/"s);
+			if (!self->_owner || !allow_web_request(headers, count, self->_port, self->_owner->_httpPort, self->_owner->_webAllowedHosts)) return 403;
+			return self->_owner->isWebSocketAuthorized(target ? target : "/"s) ? 0 : 401;
 		};
 		events.onOpen = [](void* owner, DoraXrtWebSocketConnection* ws) {
 			auto self = r_cast<WebSocketServer*>(owner);
@@ -381,6 +442,7 @@ private:
 	}
 
 private:
+	int _port = 0;
 	HttpServer* _owner;
 	DoraXrtWebSocketServer* _server = nullptr;
 	ConnectionMap _connections;
@@ -1109,6 +1171,8 @@ static RangeParseResult parse_byte_range(const HttpServer::Request& request, siz
 
 bool HttpServer::start(int port) {
 	if (_server) return false;
+	_httpPort = port;
+	_webAllowedHosts = web_ide_hosts();
 	DoraXrtHttpServerEvents events{};
 	// Scheduled routes may wait for further HTTP requests (compiler startup,
 	// polling and results). Keep that wait off XRT's network worker.
@@ -1122,8 +1186,10 @@ bool HttpServer::start(int port) {
 	events.onRequest = [](void* owner, const DoraXrtHttpServerRequest* nativeRequest, DoraXrtHttpServerResponse* nativeResponse) -> int {
 		auto self = r_cast<HttpServer*>(owner);
 		const auto requestGeneration = self->_generation.load(std::memory_order_acquire);
-		DoraXrtHttpServerResponseSetHeader(nativeResponse, "Access-Control-Allow-Origin", "*");
-		DoraXrtHttpServerResponseSetHeader(nativeResponse, "Access-Control-Allow-Headers", "*");
+		if (!allow_web_request(nativeRequest->headers, nativeRequest->headerCount, self->_httpPort, self->_httpPort, self->_webAllowedHosts)) {
+			set_response(nativeResponse, 403, R"({"success":false,"message":"request host or origin is not allowed"})"s, "application/json"s);
+			return true;
+		}
 		auto request = make_request(nativeRequest);
 		auto path = request.path.toString();
 		const bool gzipAccepted = accepts_gzip(request);

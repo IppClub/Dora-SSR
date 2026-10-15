@@ -56,3 +56,40 @@ After preparing the runtime, run `pnpm test:web-package` to verify both ZIP form
 Run `pnpm test:web-runtime-preparation` to check the automatic local build, cache reuse, corruption repair, ignored compiler shells, and explicit override checksum handling in an isolated temporary directory.
 
 For a reproducible runtime override, set `DORA_WEB_RUNTIME_LOCK` to an absolute path to a separate JSON lock containing `engineVersion`, `baseUrl`, and a `files` map of `{size, sha256}` entries. Its `baseUrl` may be a `file:///` directory or an HTTP(S) URL containing the player files. This is the only mode that reads a runtime from a URL. Size and SHA-256 checks still apply; an `index.html` entry in an older lock is ignored. Use that environment variable for every prepare/build invocation. Overrides do not bypass the HTML runtime structure checks.
+
+### Web IDE origin protection and local development
+
+The engine validates HTTP and WebSocket handshake Host/Origin before dispatch.
+HTTP origins include scheme, host and effective port. WebSocket connections on
+8868 accept the IDE page's HTTP origin on 8866, then apply existing session
+authentication. CLI and server-side requests without Origin remain supported;
+authentication still applies. Opaque (`null`), malformed, duplicate and foreign
+origins are rejected. Responses do not advertise wildcard CORS access.
+
+Allowed hosts are localhost, loopback and interface addresses at server startup.
+Arbitrary DNS names are rejected even when Origin and Host agree. For an explicit
+name such as `dora.local`, start the engine with `DORA_WEB_IDE_HOSTS=dora.local`
+(comma-separated exact names, no scheme or port). Restart the server after
+changing its interfaces or this setting. Mobile authentication defaults remain
+unchanged; origin validation does not authenticate native network clients.
+
+Run the frontend with the usual `pnpm dev`. Development HTTP requests use
+`/__dora/api/…`, and WebSocket requests use `/__dora/ws`. Vite validates the
+original local page Host/Origin before proxying to fixed loopback engine ports;
+only then does it rewrite upstream Origin. Signatures cover the engine path,
+without the development prefix. The engine needs no production exception for
+port 3000. These paths are reserved; Vite's HMR socket remains separate.
+
+A TLS reverse proxy must validate its external browser origin before rewriting
+Host/Origin to the upstream HTTP origin. The engine does not trust forwarded
+headers supplied by clients.
+
+Regression checks (from this directory):
+
+```sh
+python3 ../../Tools/tests/test_http_origin.py
+python3 ../../Tools/tests/test_http_origin_wire.py
+node --test scripts/ide-dev-{proxy,proxy-wire,client}.test.mjs
+pnpm test:auth-reconnect
+pnpm test:websocket-lifecycle
+```
