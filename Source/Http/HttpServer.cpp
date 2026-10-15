@@ -1070,10 +1070,29 @@ bool HttpServer::start(int port) {
 		const auto requestGeneration = self->_generation.load(std::memory_order_acquire);
 		DoraXrtHttpServerResponseSetHeader(nativeResponse, "Access-Control-Allow-Origin", "*");
 		DoraXrtHttpServerResponseSetHeader(nativeResponse, "Access-Control-Allow-Headers", "*");
-		std::vector<std::string> paramStorage;
-		auto request = make_request(nativeRequest, paramStorage);
-		auto path = request.path.toString();
-		const bool gzipAccepted = accepts_gzip(request);
+			std::vector<std::string> paramStorage;
+			auto request = make_request(nativeRequest, paramStorage);
+			auto path = request.path.toString();
+			// The Web IDE is served from this server itself, so a browser client is always
+			// same-origin. A mismatching Origin header means a page on another origin is
+			// trying to reach the IDE API; non-browser clients (CLI, scripts) send no Origin.
+			if (auto origin = find_header(request, "Origin"_slice)) {
+				auto authority = origin->toString();
+				if (const auto schemeEnd = authority.find("://"); schemeEnd != std::string::npos) {
+					authority = authority.substr(schemeEnd + 3);
+				}
+				auto host = find_header(request, "Host"_slice);
+				const auto hostText = host ? host->toString() : std::string{};
+				const auto sameHost = authority.size() == hostText.size()
+					&& std::equal(authority.begin(), authority.end(), hostText.begin(), [](char a, char b) {
+						return std::tolower(s_cast<unsigned char>(a)) == std::tolower(s_cast<unsigned char>(b));
+					});
+				if (authority.empty() || !sameHost) {
+					set_response(nativeResponse, 403, R"({"success":false,"message":"cross-origin requests are not allowed"})"s, "application/json"s);
+					return true;
+				}
+			}
+			const bool gzipAccepted = accepts_gzip(request);
 		auto respond = [&](HttpServer::Response&& response) {
 			auto prepared = prepare_dynamic_response(std::move(response), gzipAccepted);
 			if (prepared.varyAcceptEncoding) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Accept-Encoding");
