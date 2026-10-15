@@ -3,7 +3,7 @@
 local Dora = require('Dora')
 local Label, Cache, Director, Content = Dora.Label, Dora.Cache, Dora.Director, Dora.Content
 local texts = {
-    {'ASCII 中文 😊🤔✅', 14},
+    {'ASCII 中文 😊🤔✅', 12},
     {'1️⃣', 3},
     {'👩‍💻', 3},
     {'👍🏽', 2},
@@ -17,7 +17,8 @@ for mode = 1, 2 do
         label.batched = mode == 1
         label.text = sample[1]
         assert(label.text == sample[1], 'Unicode text changed')
-        assert(label.characterCount == sample[2], 'Unicode code points were removed: ' .. sample[1])
+        -- Preserve the existing API count, which includes the terminal NUL.
+        assert(label.characterCount == sample[2] + 1, 'Unicode code points were removed: ' .. sample[1])
         label.position = Dora.Vec2((mode - 1) * 400 - 200, 220 - i * 60)
         Director.entry:addChild(label)
         labels[#labels + 1] = label

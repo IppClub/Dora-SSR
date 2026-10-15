@@ -318,8 +318,8 @@ Font* FontCache::getCharFont(Font* font, bgfx::CodePoint character) {
 	if (!_emojiFontUnavailable) {
 		const bgfx::FontInfo& info = font->getInfo();
 		Font* emoji = load("NotoEmoji"s, info.pixelSize, info.sdf);
-		if (emoji && emoji != font) {
-			font->_emojiFallback = emoji;
+		if (emoji) {
+			if (emoji != font) font->_emojiFallback = emoji;
 			if (SharedFontManager.hasGlyph(emoji->getHandle(), character)) {
 				return emoji;
 			}
