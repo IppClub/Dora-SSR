@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 root=Path(__file__).resolve().parents[2]
 source=(root/'Source/Http/HttpServer.cpp').read_text()
-headers=source[source.index('static bool allow_web_request('):source.index('\nclass WebSocketServer')]
+headers=source[source.index('static HttpPolicy::Access web_request_access('):source.index('\nclass WebSocketServer')]
 code=r'''
 #include "Source/Http/HttpOriginPolicy.h"
 #include "Source/Http/XrtNetwork.h"
@@ -23,14 +23,17 @@ int main(int argc,char** argv){
  DoraXrtHttpServerEvents h{};
  h.shouldDefer=[](void*,const char* path) -> int {return std::string_view(path)=="/deferred";};
  h.onRequest=[](void*,const DoraXrtHttpServerRequest* req,DoraXrtHttpServerResponse* res){
-  unsigned status=allow_web_request(req->headers,req->headerCount,hp,hp,hosts)?200:403;
+  auto access=web_request_access(req->headers,req->headerCount,hp,hp,hosts,req->loopbackPeer);
+  const char* token=DoraXrtHttpServerRequestHeader(req,"X-Dora-Auth");
+  unsigned status=access==HttpPolicy::Access::Denied?403:access==HttpPolicy::Access::Local || token && std::string_view(token)=="wire-secret"?200:401;
   DoraXrtHttpServerResponseSetStatus(res,status,nullptr);
   DoraXrtHttpServerResponseSetBodyCopy(res,"ok",2,"text/plain");return 1;
  };
  DoraXrtWebSocketServerEvents w{};
- w.onAuthorize=[](void*,DoraXrtWebSocketConnection*,const char* target,const DoraXrtHttpHeaderView* headers,size_t count){
-  if(!allow_web_request(headers,count,wp,hp,hosts))return 403;
-  return std::string_view(target)=="/?auth=required"?401:0;
+ w.onAuthorize=[](void*,DoraXrtWebSocketConnection* connection,const char* target,const DoraXrtHttpHeaderView* headers,size_t count){
+  auto access=web_request_access(headers,count,wp,hp,hosts,DoraXrtWebSocketIsLoopback(connection));
+  if(access==HttpPolicy::Access::Denied)return 403;
+  return access==HttpPolicy::Access::Local || std::string_view(target)=="/?auth=wire-secret"?0:401;
  };
  auto http=DoraXrtHttpServerCreate(hp,1024*1024,&h,nullptr);
  auto ws=DoraXrtWebSocketServerCreate(wp,1024*1024,&w,nullptr);
@@ -53,7 +56,7 @@ with tempfile.TemporaryDirectory(prefix='dora-http-wire-') as temp:
         assert proc.stdout.readline().strip()=='READY'
         cases=0
         for path,method in [('/', 'GET'),('/auth','POST'),('/','OPTIONS'),('/deferred','POST')]:
-            for origin,want in [(None,200),(f'http://127.0.0.1:{hp}',200),('http://evil.test',403),('null',403)]:
+            for origin,want in [(None,401),(f'http://127.0.0.1:{hp}',200),('http://evil.test',401),('null',403)]:
                 conn=http.client.HTTPConnection('127.0.0.1',hp,timeout=5)
                 conn.request(method,path,headers={} if origin is None else {'Origin':origin})
                 response=conn.getresponse();assert response.status==want,(path,origin,response.status);assert response.getheader('Access-Control-Allow-Origin') is None
@@ -65,12 +68,16 @@ with tempfile.TemporaryDirectory(prefix='dora-http-wire-') as temp:
                 sock.sendall((request+extra+'\r\n').encode());reply=sock.recv(4096)
                 assert reply.startswith(f'HTTP/1.1 {want} '.encode()),reply
         handshake(f'http://127.0.0.1:{hp}',want=101)
-        handshake(None,want=101)
-        handshake('http://evil.test');handshake('null')
+        handshake(None,want=401)
+        handshake('http://evil.test',want=401);handshake('null')
         handshake(f'http://evil.test:{hp}',host=f'evil.test:{wp}')
-        handshake(f'http://127.0.0.1:{wp}')
-        handshake(f'http://127.0.0.1:{hp}',target='/?auth=required',want=401)
+        handshake(f'http://127.0.0.1:{wp}',want=401)
+        handshake('http://evil.test',target='/?auth=wire-secret',want=101)
         handshake(f'http://127.0.0.1:{hp}',extra='Origin: http://evil.test\r\n')
+        for origin in [None,'http://evil.test','https://dev.example']:
+            conn=http.client.HTTPConnection('127.0.0.1',hp,timeout=5)
+            conn.request('POST','/deferred',headers={'X-Dora-Auth':'wire-secret',**({'Origin':origin} if origin else {})})
+            response=conn.getresponse();assert response.status==200;response.read();conn.close();cases+=1
         print(f'XRT wire regression: {cases+8} HTTP/WS cases passed')
     finally:
         proc.communicate('\n',timeout=10)

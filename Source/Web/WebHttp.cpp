@@ -53,8 +53,7 @@ void HttpServer::Response::operator=(Response&& res) {
 }
 
 HttpServer::HttpServer()
-	: _authRequired(false)
-	, _authTokenHasExpiry(false)
+	: _authTokenHasExpiry(false)
 	, _staticCacheControl("no-cache") { }
 
 HttpServer::~HttpServer() { stop(); }
@@ -75,8 +74,6 @@ void HttpServer::clearStaticCacheControls() { _staticCacheControlRules.clear(); 
 
 void HttpServer::setAuthToken(String var) { _authToken = var.toString(); }
 const std::string& HttpServer::getAuthToken() const noexcept { return _authToken; }
-void HttpServer::setAuthRequired(bool var) { _authRequired = var; }
-bool HttpServer::isAuthRequired() const noexcept { return _authRequired; }
 
 void HttpServer::post(String pattern, const ServiceHandler& handler) {
 	_posts.push_back({pattern.toString(), handler});

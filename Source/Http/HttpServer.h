@@ -30,7 +30,6 @@ public:
 	virtual ~HttpServer();
 	PROPERTY_STRING(WWWPath);
 	PROPERTY_STRING(AuthToken);
-	PROPERTY_BOOL(AuthRequired);
 	PROPERTY_READONLY(std::string, LocalIP);
 	PROPERTY_READONLY(int, WSConnectionCount);
 	struct Request {
@@ -98,7 +97,6 @@ private:
 	std::string _authToken;
 	std::string _authSessionId;
 	std::string _authSessionSecret;
-	bool _authRequired;
 	bool _authTokenHasExpiry;
 	std::atomic_bool _stopping{true};
 	std::atomic_uint64_t _generation{0};
