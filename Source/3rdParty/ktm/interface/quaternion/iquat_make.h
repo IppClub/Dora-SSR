@@ -93,28 +93,28 @@ struct iquat_make<Father, quat<T>> : Father
         if (m_trace >= zero<T>)
         {
             T r = static_cast<T>(2) * sqrt(one<T> + m_trace);
-            T rinv = one<T> / r;
+            T rinv = recip(r);
             return quat<T>(rinv * (m[1][2] - m[2][1]), rinv * (m[2][0] - m[0][2]), rinv * (m[0][1] - m[1][0]),
                            r / static_cast<T>(4));
         }
         else if (m[0][0] >= m[1][1] && m[0][0] >= m[2][2])
         {
             T r = static_cast<T>(2) * sqrt(one<T> - m[1][1] - m[2][2] + m[0][0]);
-            T rinv = one<T> / r;
+            T rinv = recip(r);
             return quat<T>(r / static_cast<T>(4), rinv * (m[0][1] + m[1][0]), rinv * (m[0][2] + m[2][0]),
                            rinv * (m[1][2] - m[2][1]));
         }
         else if (m[1][1] >= m[2][2])
         {
             T r = static_cast<T>(2) * sqrt(one<T> - m[0][0] - m[2][2] + m[1][1]);
-            T rinv = one<T> / r;
+            T rinv = recip(r);
             return quat<T>(rinv * (m[0][1] + m[1][0]), r / static_cast<T>(4), rinv * (m[1][2] + m[2][1]),
                            rinv * (m[2][0] - m[0][2]));
         }
         else
         {
             T r = static_cast<T>(2) * sqrt(one<T> - m[0][0] - m[1][1] + m[2][2]);
-            T rinv = one<T> / r;
+            T rinv = recip(r);
             return quat<T>(rinv * (m[0][2] + m[2][0]), rinv * (m[1][2] + m[2][1]), r / static_cast<T>(4),
                            rinv * (m[0][1] - m[1][0]));
         }

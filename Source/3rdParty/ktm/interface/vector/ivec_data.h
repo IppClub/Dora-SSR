@@ -8,14 +8,20 @@
 #ifndef _KTM_I_VEC_DATA_H_
 #define _KTM_I_VEC_DATA_H_
 
-#include <utility>
 #include "../../setup.h"
-#include "../../type/basic.h"
 #include "../../type/vec_fwd.h"
 #include "../../detail/vector/vec_data_fwd.h"
 
 namespace ktm
 {
+
+#define KTM_SWIZZLE_VEC(n)                                                                             \
+    template <size_t... Ns, typename = std::enable_if_t<((Ns < n) && ...)>>                            \
+    KTM_CORE_FUNC std::enable_if_t<sizeof...(Ns) <= n, vec<sizeof...(Ns), T>> swizzle() const noexcept \
+    {                                                                                                  \
+        return detail::vec_data_implement::vec_swizzle<sizeof...(Ns), n, T>::template call<Ns...>(     \
+            reinterpret_cast<const vec<n, T>&>(*this));                                                \
+    }
 
 #define KTM_VEC_DATA_ENUM_NAME(x) vec_data_##x
 #define KTM_VEC_DATA_ENUM_IMPL(x, n)                                                  \
@@ -30,83 +36,66 @@ namespace ktm
     KTM_VEC_DATA_ENUM_IMPL(w, 3)
 #define KTM_VEC_DATA_ENUM_GET(x) detail::vec_enum::KTM_VEC_DATA_ENUM_NAME(x)()
 
-#define KTM_PERMUTATION_2_2(x, y, n)                                                                      \
-    KTM_CORE_FUNC vec<2, T> x##y() const noexcept                                                         \
-    {                                                                                                     \
-        return detail::vec_data_implement::vec_swizzle<2, n, T>::template call<KTM_VEC_DATA_ENUM_GET(x),  \
-                                                                               KTM_VEC_DATA_ENUM_GET(y)>( \
-            reinterpret_cast<const vec<n, T>&>(*this));                                                   \
-    }                                                                                                     \
-    KTM_CORE_FUNC vec<2, T> y##x() const noexcept                                                         \
-    {                                                                                                     \
-        return detail::vec_data_implement::vec_swizzle<2, n, T>::template call<KTM_VEC_DATA_ENUM_GET(y),  \
-                                                                               KTM_VEC_DATA_ENUM_GET(x)>( \
-            reinterpret_cast<const vec<n, T>&>(*this));                                                   \
+#define KTM_PERMUTATION_2_2(x, y, n)                                          \
+    KTM_CORE_FUNC vec<2, T> x##y() const noexcept                             \
+    {                                                                         \
+        return swizzle<KTM_VEC_DATA_ENUM_GET(x), KTM_VEC_DATA_ENUM_GET(y)>(); \
+    }                                                                         \
+    KTM_CORE_FUNC vec<2, T> y##x() const noexcept                             \
+    {                                                                         \
+        return swizzle<KTM_VEC_DATA_ENUM_GET(y), KTM_VEC_DATA_ENUM_GET(x)>(); \
     }
-
-#define KTM_PERMUTATION_3_2(x, y, z, n)                                                    \
-    KTM_CORE_FUNC vec<3, T> x##y##z() const noexcept                                       \
-    {                                                                                      \
-        return detail::vec_data_implement::vec_swizzle<3, n, T>::template call<            \
-            KTM_VEC_DATA_ENUM_GET(x), KTM_VEC_DATA_ENUM_GET(y), KTM_VEC_DATA_ENUM_GET(z)>( \
-            reinterpret_cast<const vec<n, T>&>(*this));                                    \
-    }                                                                                      \
-    KTM_CORE_FUNC vec<3, T> x##z##y() const noexcept                                       \
-    {                                                                                      \
-        return detail::vec_data_implement::vec_swizzle<3, n, T>::template call<            \
-            KTM_VEC_DATA_ENUM_GET(x), KTM_VEC_DATA_ENUM_GET(z), KTM_VEC_DATA_ENUM_GET(y)>( \
-            reinterpret_cast<const vec<n, T>&>(*this));                                    \
+#define KTM_PERMUTATION_3_2(x, y, z, n)                                                                 \
+    KTM_CORE_FUNC vec<3, T> x##y##z() const noexcept                                                    \
+    {                                                                                                   \
+        return swizzle<KTM_VEC_DATA_ENUM_GET(x), KTM_VEC_DATA_ENUM_GET(y), KTM_VEC_DATA_ENUM_GET(z)>(); \
+    }                                                                                                   \
+    KTM_CORE_FUNC vec<3, T> x##z##y() const noexcept                                                    \
+    {                                                                                                   \
+        return swizzle<KTM_VEC_DATA_ENUM_GET(x), KTM_VEC_DATA_ENUM_GET(z), KTM_VEC_DATA_ENUM_GET(y)>(); \
     }
-
-#define KTM_PERMUTATION_4_2(x, y, z, w, n)                                                                           \
-    KTM_CORE_FUNC vec<4, T> x##y##z##w() const noexcept                                                              \
-    {                                                                                                                \
-        return detail::vec_data_implement::vec_swizzle<4, n, T>::template call<                                      \
-            KTM_VEC_DATA_ENUM_GET(x), KTM_VEC_DATA_ENUM_GET(y), KTM_VEC_DATA_ENUM_GET(z), KTM_VEC_DATA_ENUM_GET(w)>( \
-            reinterpret_cast<const vec<n, T>&>(*this));                                                              \
-    }                                                                                                                \
-    KTM_CORE_FUNC vec<4, T> x##y##w##z() const noexcept                                                              \
-    {                                                                                                                \
-        return detail::vec_data_implement::vec_swizzle<4, n, T>::template call<                                      \
-            KTM_VEC_DATA_ENUM_GET(x), KTM_VEC_DATA_ENUM_GET(y), KTM_VEC_DATA_ENUM_GET(w), KTM_VEC_DATA_ENUM_GET(z)>( \
-            reinterpret_cast<const vec<n, T>&>(*this));                                                              \
+#define KTM_PERMUTATION_4_2(x, y, z, w, n)                                                           \
+    KTM_CORE_FUNC vec<4, T> x##y##z##w() const noexcept                                              \
+    {                                                                                                \
+        return swizzle<KTM_VEC_DATA_ENUM_GET(x), KTM_VEC_DATA_ENUM_GET(y), KTM_VEC_DATA_ENUM_GET(z), \
+                       KTM_VEC_DATA_ENUM_GET(w)>();                                                  \
+    }                                                                                                \
+    KTM_CORE_FUNC vec<4, T> x##y##w##z() const noexcept                                              \
+    {                                                                                                \
+        return swizzle<KTM_VEC_DATA_ENUM_GET(x), KTM_VEC_DATA_ENUM_GET(y), KTM_VEC_DATA_ENUM_GET(w), \
+                       KTM_VEC_DATA_ENUM_GET(z)>();                                                  \
     }
-
 #define KTM_PERMUTATION_3_3(x, y, z, n) \
     KTM_PERMUTATION_3_2(x, y, z, n)     \
     KTM_PERMUTATION_3_2(y, z, x, n)     \
     KTM_PERMUTATION_3_2(z, x, y, n)
-
 #define KTM_PERMUTATION_4_3(x, y, z, w, n) \
     KTM_PERMUTATION_4_2(x, y, z, w, n)     \
     KTM_PERMUTATION_4_2(x, z, w, y, n)     \
     KTM_PERMUTATION_4_2(x, w, y, z, n)
-
 #define KTM_PERMUTATION_4_4(x, y, z, w, n) \
     KTM_PERMUTATION_4_3(x, y, z, w, n)     \
     KTM_PERMUTATION_4_3(y, z, w, x, n)     \
     KTM_PERMUTATION_4_3(z, w, x, y, n)     \
     KTM_PERMUTATION_4_3(w, x, y, z, n)
 
-#define KTM_SWIZZLE_VEC2(x, y) KTM_PERMUTATION_2_2(x, y, 2)
-
-#define KTM_SWIZZLE_VEC3(x, y, z)   \
-    KTM_PERMUTATION_3_3(x, y, z, 3) \
-    KTM_PERMUTATION_2_2(x, y, 3)    \
-    KTM_PERMUTATION_2_2(x, z, 3)    \
+#define KTM_SWIZZLE_COMPONENT2(x, y) KTM_PERMUTATION_2_2(x, y, 2)
+#define KTM_SWIZZLE_COMPONENT3(x, y, z) \
+    KTM_PERMUTATION_3_3(x, y, z, 3)     \
+    KTM_PERMUTATION_2_2(x, y, 3)        \
+    KTM_PERMUTATION_2_2(x, z, 3)        \
     KTM_PERMUTATION_2_2(y, z, 3)
-
-#define KTM_SWIZZLE_VEC4(x, y, z, w)   \
-    KTM_PERMUTATION_4_4(x, y, z, w, 4) \
-    KTM_PERMUTATION_3_3(x, y, z, 4)    \
-    KTM_PERMUTATION_3_3(x, y, w, 4)    \
-    KTM_PERMUTATION_3_3(x, z, w, 4)    \
-    KTM_PERMUTATION_3_3(y, z, w, 4)    \
-    KTM_PERMUTATION_2_2(x, y, 4)       \
-    KTM_PERMUTATION_2_2(x, z, 4)       \
-    KTM_PERMUTATION_2_2(x, w, 4)       \
-    KTM_PERMUTATION_2_2(y, z, 4)       \
-    KTM_PERMUTATION_2_2(y, w, 4)       \
+#define KTM_SWIZZLE_COMPONENT4(x, y, z, w) \
+    KTM_PERMUTATION_4_4(x, y, z, w, 4)     \
+    KTM_PERMUTATION_3_3(x, y, z, 4)        \
+    KTM_PERMUTATION_3_3(x, y, w, 4)        \
+    KTM_PERMUTATION_3_3(x, z, w, 4)        \
+    KTM_PERMUTATION_3_3(y, z, w, 4)        \
+    KTM_PERMUTATION_2_2(x, y, 4)           \
+    KTM_PERMUTATION_2_2(x, z, 4)           \
+    KTM_PERMUTATION_2_2(x, w, 4)           \
+    KTM_PERMUTATION_2_2(y, z, 4)           \
+    KTM_PERMUTATION_2_2(y, w, 4)           \
     KTM_PERMUTATION_2_2(z, w, 4)
 
 KTM_VEC_DATA_ENUM_PACKAGE(x, y, z, w)
@@ -145,12 +134,41 @@ struct ivec_data<Father, vec<N, T>> : Father
     ivec_data& operator=(const ivec_data&) = default;
     ivec_data& operator=(ivec_data&&) = default;
 
-    template <size_t... Ns, typename = std::enable_if_t<((Ns < N) && ...)>>
-    KTM_CORE_FUNC std::enable_if_t<sizeof...(Ns) <= N, vec<sizeof...(Ns), T>> swizzle() noexcept
+    KTM_SWIZZLE_VEC(N)
+};
+
+template <class Father, typename T>
+struct ivec_data<Father, vec<1, T>> : Father
+{
+    using Father::Father;
+
+    union
     {
-        return detail::vec_data_implement::vec_swizzle<sizeof...(Ns), N, T>::template call<Ns...>(
-            reinterpret_cast<const vec<N, T>&>(*this));
+        struct
+        {
+            T x;
+        };
+
+        struct
+        {
+            T r;
+        };
+
+        typename detail::vec_data_implement::vec_storage<1, T>::type st = {};
+    };
+
+    KTM_CORE_FUNC constexpr ivec_data(T xi) noexcept : x(xi) {}
+
+    template <typename U, typename = std::enable_if_t<!std::is_same_v<U, T>>>
+    KTM_CORE_FUNC constexpr ivec_data(const vec<1, U>& v) noexcept : x(static_cast<T>(v.x))
+    {
     }
+
+    ivec_data() = default;
+    ivec_data(const ivec_data&) = default;
+    ivec_data(ivec_data&&) = default;
+    ivec_data& operator=(const ivec_data&) = default;
+    ivec_data& operator=(ivec_data&&) = default;
 };
 
 template <class Father, typename T>
@@ -173,8 +191,6 @@ struct ivec_data<Father, vec<2, T>> : Father
         typename detail::vec_data_implement::vec_storage<2, T>::type st = {};
     };
 
-    KTM_CORE_FUNC constexpr ivec_data() noexcept : st() {}
-
     KTM_CORE_FUNC constexpr ivec_data(T xi) noexcept : x(xi), y(xi) {}
 
     KTM_CORE_FUNC constexpr ivec_data(T xi, T yi) noexcept : x(xi), y(yi) {}
@@ -184,13 +200,15 @@ struct ivec_data<Father, vec<2, T>> : Father
     {
     }
 
+    ivec_data() = default;
     ivec_data(const ivec_data&) = default;
     ivec_data(ivec_data&&) = default;
     ivec_data& operator=(const ivec_data&) = default;
     ivec_data& operator=(ivec_data&&) = default;
 
-    KTM_SWIZZLE_VEC2(x, y)
-    KTM_SWIZZLE_VEC2(r, g)
+    KTM_SWIZZLE_VEC(2)
+    KTM_SWIZZLE_COMPONENT2(x, y)
+    KTM_SWIZZLE_COMPONENT2(r, g)
 };
 
 template <class Father, typename T>
@@ -231,8 +249,9 @@ struct ivec_data<Father, vec<3, T>> : Father
     ivec_data& operator=(const ivec_data&) = default;
     ivec_data& operator=(ivec_data&&) = default;
 
-    KTM_SWIZZLE_VEC3(x, y, z)
-    KTM_SWIZZLE_VEC3(r, g, b)
+    KTM_SWIZZLE_VEC(3)
+    KTM_SWIZZLE_COMPONENT3(x, y, z)
+    KTM_SWIZZLE_COMPONENT3(r, g, b)
 };
 
 template <class Father, typename T>
@@ -273,9 +292,12 @@ struct ivec_data<Father, vec<4, T>> : Father
     ivec_data& operator=(const ivec_data&) = default;
     ivec_data& operator=(ivec_data&&) = default;
 
-    KTM_SWIZZLE_VEC4(x, y, z, w)
-    KTM_SWIZZLE_VEC4(r, g, b, a)
+    KTM_SWIZZLE_VEC(4)
+    KTM_SWIZZLE_COMPONENT4(x, y, z, w)
+    KTM_SWIZZLE_COMPONENT4(r, g, b, a)
 };
+
+#undef KTM_SWIZZLE_VEC
 
 #undef KTM_VEC_DATA_ENUM_NAME
 #undef KTM_VEC_DATA_ENUM_IMPL
@@ -289,9 +311,9 @@ struct ivec_data<Father, vec<4, T>> : Father
 #undef KTM_PERMUTATION_4_3
 #undef KTM_PERMUTATION_4_4
 
-#undef KTM_SWIZZLE_VEC2
-#undef KTM_SWIZZLE_VEC3
-#undef KTM_SWIZZLE_VEC4
+#undef KTM_SWIZZLE_COMPONENT2
+#undef KTM_SWIZZLE_COMPONENT3
+#undef KTM_SWIZZLE_COMPONENT4
 
 } // namespace ktm
 

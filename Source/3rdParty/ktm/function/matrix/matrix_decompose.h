@@ -33,7 +33,7 @@ reduce_hessenberg(const M& m) noexcept
     // reduce matrix to hessenberg by householder transformation
     M trans = M::from_eye(), a { m };
 
-    for (int i = 0; i < N - 2; ++i)
+    for (int i = 0; i < static_cast<int>(N) - 2; ++i)
     {
         T v_start = i + 1;
         T length = zero<T>;
@@ -98,7 +98,7 @@ reduce_tridiagonal(const M& m) noexcept
     // reduce matrix to tridiagonal by householder transformation(matrix must be symmetric matrix)
     M trans = M::from_eye(), a { m };
 
-    for (int i = 0; i < N - 2; ++i)
+    for (int i = 0; i < static_cast<int>(N) - 2; ++i)
     {
         T v_start = i + 1;
         T length = zero<T>;
@@ -453,6 +453,9 @@ decompose_edv_shiftqr(const M& m) noexcept
     constexpr size_t N = mat_traits_col_v<M>;
     using T = mat_traits_base_t<M>;
 
+    if constexpr (N == 1)
+        return { M::from_eye(), diagonal(m) };
+
     // qr iteration for calc matrix eigenvectors and eigenvalues(matrix must be symmetric matrix)
     reduce_component<M> tridiagonal = reduce_tridiagonal(m);
     M a { tridiagonal.get_reduce() }, eigen_vec = M::from_eye();
@@ -493,6 +496,9 @@ decompose_edv_jacobi(const M& m) noexcept
 {
     constexpr size_t N = mat_traits_col_v<M>;
     using T = mat_traits_base_t<M>;
+
+    if constexpr (N == 1)
+        return { M::from_eye(), diagonal(m) };
 
     // jacobi iteration for matrix eigenvectors and eigenvalues(matrix must be symmetric matrix)
     M a { m }, eigen_vec = M::from_eye();
@@ -654,10 +660,11 @@ decompose_affine(const M& m) noexcept
     using T = mat_traits_base_t<M>;
 
     // calc matrix affine decomposition(translation * rotation * shear * scale)
-    if constexpr (N == 2)
+    if constexpr (N <= 2)
     {
         M translate_matrix = M::from_eye();
-        translate_matrix[1][0] = m[1][0];
+        if constexpr (N == 2)
+            translate_matrix[1][0] = m[1][0];
         M scale_matrix = M::from_eye();
         scale_matrix[0][0] = m[0][0];
         return { translate_matrix, M::from_eye(), M::from_eye(), scale_matrix };

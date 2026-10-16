@@ -74,27 +74,27 @@ template <class Q>
 KTM_CORE_NI_FUNC std::enable_if_t<is_quaternion_v<Q>, Q> log(const Q& q) noexcept
 {
     using T = quat_traits_base_t<Q>;
-    T real = log(length_squared(*q)) / static_cast<T>(2);
+    T real = log(length_squared(*q)) * static_cast<T>(0.5);
     vec<3, T> q_imag = q.imag();
     if (equal_zero(q_imag))
         return Q(zero<T>, zero<T>, zero<T>, real);
-    vec<3, T> imag = acos(q.real() / length(q)) * normalize(q_imag);
+    vec<3, T> imag = acos(q.real() * recip(length(q))) * normalize(q_imag);
     return Q::real_imag(real, imag);
 }
 
 template <class Q>
-KTM_CORE_NI_FUNC std::enable_if_t<is_quaternion_v<Q>, Q> slerp_internal(const Q& x, const Q& y,
-                                                                        quat_traits_base_t<Q> t) noexcept
+KTM_CORE_FUNC std::enable_if_t<is_quaternion_v<Q>, Q> slerp_internal(const Q& x, const Q& y,
+                                                                     quat_traits_base_t<Q> t) noexcept
 {
     using T = quat_traits_base_t<Q>;
     T s = one<T> - t;
     T a = static_cast<T>(2) * atan2(length(x - y), length(x + y)); // angel
-    T r = one<T> / sinc(a);
+    T r = recip(sinc(a));
     return normalize(Q(sinc(s * a) * r * s * (*x) + sinc(t * a) * r * t * (*y)));
 }
 
 template <class Q>
-KTM_CORE_NI_FUNC std::enable_if_t<is_quaternion_v<Q>, Q> slerp(const Q& x, const Q& y, quat_traits_base_t<Q> t) noexcept
+KTM_CORE_FUNC std::enable_if_t<is_quaternion_v<Q>, Q> slerp(const Q& x, const Q& y, quat_traits_base_t<Q> t) noexcept
 {
     if (dot(x, y) >= 0)
         return slerp_internal(x, y, t);
@@ -102,8 +102,8 @@ KTM_CORE_NI_FUNC std::enable_if_t<is_quaternion_v<Q>, Q> slerp(const Q& x, const
 }
 
 template <class Q>
-KTM_CORE_NI_FUNC std::enable_if_t<is_quaternion_v<Q>, Q> slerp_longest(const Q& x, const Q& y,
-                                                                       quat_traits_base_t<Q> t) noexcept
+KTM_CORE_FUNC std::enable_if_t<is_quaternion_v<Q>, Q> slerp_longest(const Q& x, const Q& y,
+                                                                    quat_traits_base_t<Q> t) noexcept
 {
     if (dot(x, y) >= 0)
         return slerp_internal(x, -y, t);

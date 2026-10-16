@@ -342,7 +342,7 @@ KTM_SIMD_FUNC int radd_sv3(sv4 a) noexcept
 {
     sv4 shuf = _shuffo128_s32(a, 1, 1, 1, 1);
     sv4 add = _add128_s32(a, shuf);
-    shuf = _shuffo128_s32(add, 2, 2, 2, 2);
+    shuf = _shuffo128_s32(a, 2, 2, 2, 2);
     add = _add128_s32(add, shuf);
 
     union

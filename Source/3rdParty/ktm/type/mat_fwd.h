@@ -15,7 +15,7 @@ namespace ktm
 {
 
 template <size_t Row, size_t Col, typename T,
-          typename = std::enable_if_t<(Row > 1) && (Col > 1) && std::is_arithmetic_v<T>>>
+          typename = std::enable_if_t<(Row > 0) && (Col > 0) && std::is_arithmetic_v<T>>>
 struct mat;
 
 }
