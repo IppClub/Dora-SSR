@@ -1207,9 +1207,18 @@ bool HttpServer::start(int port) {
 		// Only static navigation/bootstrap reads may be public without Origin.
 		const bool publicRead = (nativeRequest->method == DORA_XRT_HTTP_METHOD_GET || nativeRequest->method == DORA_XRT_HTTP_METHOD_HEAD)
 			&& std::none_of(self->_gets.begin(), self->_gets.end(), [&](const auto& route) { return route_matches(route.pattern, path); });
+		auto fetchMode = find_header(request, "Sec-Fetch-Mode"_slice);
+		auto fetchDest = find_header(request, "Sec-Fetch-Dest"_slice);
+		const bool documentNavigation = fetchMode && fetchDest && *fetchMode == "navigate"_slice && *fetchDest == "document"_slice;
+		// Module scripts use CORS mode even on the same LAN origin. They must
+		// bootstrap the login UI before a session exists. This never exempts an
+		// API route or a cross-origin static read from authentication.
+		auto host = find_header(request, "Host"_slice);
+		const bool sameOriginBootstrap = publicRead && origin && host && (!fetchSite || *fetchSite == "same-origin"_slice)
+			&& HttpPolicy::sameHttpOrigin(host->toString(), origin->toString(), self->_httpPort);
 		const bool authenticationRequired = HttpPolicy::needsAuthentication(access, publicRead,
-			origin.has_value(), fetchSite ? fetchSite->toString() : ""s);
-		DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site");
+			origin.has_value() && !sameOriginBootstrap, fetchSite ? fetchSite->toString() : ""s, documentNavigation);
+		DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site, Sec-Fetch-Mode, Sec-Fetch-Dest");
 		if (authenticationRequired) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Cache-Control", "no-store");
 		if (origin) {
 			auto value = origin->toString();
@@ -1228,7 +1237,7 @@ bool HttpServer::start(int port) {
 		const bool gzipAccepted = accepts_gzip(request);
 		auto respond = [&](HttpServer::Response&& response) {
 			auto prepared = prepare_dynamic_response(std::move(response), gzipAccepted);
-			if (prepared.varyAcceptEncoding) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site, Accept-Encoding");
+			if (prepared.varyAcceptEncoding) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site, Sec-Fetch-Mode, Sec-Fetch-Dest, Accept-Encoding");
 			if (prepared.gzipEncoded) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Encoding", "gzip");
 			set_response(nativeResponse, prepared.response.status > 0 ? prepared.response.status : 200, prepared.response.content, prepared.response.contentType);
 		};
@@ -1293,7 +1302,7 @@ bool HttpServer::start(int port) {
 				content->data.size(), content->gzipEncoded ? "-g"sv : ""sv);
 			auto cacheControl = authenticationRequired ? "no-store"s : self->getStaticCacheControl(requestPath);
 			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Type", contentType);
-			if (compressible) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site, Accept-Encoding");
+			if (compressible) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site, Sec-Fetch-Mode, Sec-Fetch-Dest, Accept-Encoding");
 			if (content->gzipEncoded) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Encoding", "gzip");
 			if (!cacheControl.empty()) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Cache-Control", cacheControl.c_str());
 			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Accept-Ranges", "bytes");

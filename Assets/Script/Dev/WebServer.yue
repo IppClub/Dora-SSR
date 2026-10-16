@@ -691,7 +691,11 @@ HttpServer\post "/git/auth/list", (req) ->
 
 HttpServer\postSchedule "/git/auth/match", (req): invalidArguments ->
 	switch req when {body: body}
+		return invalidArguments unless type(body) == "table"
 		{:repoPath, :command, :url} = body
+		return invalidArguments if url ~= nil and type(url) ~= "string"
+		unless type(url) == "string" and url ~= ""
+			return invalidArguments unless type(repoPath) == "string" and type(command) == "string"
 		host = if url and url ~= "" then gitHostFromURL url else gitCommandHost repoPath, command
 		return success: false, message: "git host is required" unless host
 		items = gitCredentialsForHost host
@@ -1895,6 +1899,7 @@ HttpServer\postSchedule "/doc/read", (req) ->
 HttpServer\get "/read-sync", (req): success: false ->
 	switch req when :params
 		:path = params
+		return success: false, message: "invalid path" unless type(path) == "string" and path ~= ""
 		exts = if params.exts
 			[ext for ext in params.exts\gmatch "[^|]*"]
 		else ["",]

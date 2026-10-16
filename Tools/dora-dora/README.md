@@ -181,3 +181,54 @@ run to close both listener ports. The automated LAN cases connect through the
 machine's own non-loopback address, so they validate peer classification without
 claiming a separate physical-device test. UI CI additionally runs the real XRT
 HTTP/WS policy fixture through a non-loopback interface with `--require-lan`.
+
+### Full native Web IDE service acceptance
+
+`Tools/tests/test_webide_services.py` discovers every route in the real
+`WebServer.yue`, verifies its cross-origin authentication gate and empty-input
+contract, then exercises file CRUD, Unicode paths, batch operations, multipart
+upload, ZIP round trips, language services, TS/Wa builds, run/stop, preview,
+logs, Git, credentials, model configuration, Agent sessions, and a streamed
+loopback model response. Its JSON report separates route coverage from actual
+functional scenarios. A negative-input/authentication check does not establish
+that every successful provider or tool workflow was tested.
+
+Run it against a **disposable application profile**, with the real Web IDE open
+and its compiler ready. On macOS, quit existing Dora instances and start an
+isolated instance directly so Launch Services does not drop the environment:
+
+```sh
+qa_root="$(mktemp -d /tmp/dora-webide-qa.XXXXXX)"
+mkdir -p "$qa_root/home"
+printf 'disposable\n' > "$qa_root/home/.dora-webide-acceptance"
+CFFIXED_USER_HOME="$qa_root/home" \
+  build/macosx/arm64/debug/Dora.app/Contents/MacOS/Dora --asset "$PWD/Assets"
+# In another terminal, use the exact qa_root printed/created above:
+python3 Tools/tests/test_webide_services.py \
+  --app-root "$qa_root/home" --report "$qa_root/services.json"
+```
+
+The test refuses the normal user home and requires the disposable-profile
+marker. Do not run UI run/stop operations concurrently with its preview/run
+scenarios: both correctly require ownership of the same native runtime. Keep
+the profile and report for inspection, then close its IDE tabs and engine.
+
+For explicitly authorized paid-provider acceptance,
+`Tools/tests/test_webide_paid_models.py --allow-paid` reads existing active model
+configurations from `--config-db` in read-only mode, copies them temporarily into
+the isolated service, and verifies streamed Agent execution, a fixture file edit,
+message persistence, task completion and the resulting change set. `--model-id`
+can limit the selected existing configurations. It requires `--app-root` and
+`--report`, deletes temporary model configurations afterward, and redacts keys
+from its output. It never modifies the original configuration database.
+After paid tests, stop the isolated engine and remove its disposable `home`
+directory; deleted SQLite records and Agent snapshots can retain copied model
+credentials. Keep reports and screenshots outside that directory.
+
+Also exercise the actual browser UI: new/edit/save, diagnostics and recovery,
+compile/run/stop, log display, browser refresh, engine restart/reconnect, and LAN
+PIN plus native confirmation. Static top-level navigation and same-origin IDE
+bootstrap resources must load before login; LAN API/WS and cross-origin static
+reads remain authenticated. HTTP LAN browsers can omit Fetch Metadata headers,
+and module scripts still send an Origin, so test the production distribution
+rather than only a custom authentication fixture.
