@@ -179,6 +179,9 @@ func parseGitCommand(repoPath, command string) (gitCommand, error) {
 }
 
 func splitGitCommand(command string) ([]string, error) {
+	if !utf8.ValidString(command) {
+		return nil, errors.New("git command must be valid UTF-8")
+	}
 	var args []string
 	var b strings.Builder
 	var quote rune

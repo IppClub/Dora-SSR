@@ -74,3 +74,9 @@ func TestRunDoesNotTrimCommandData(t *testing.T) {
 		t.Fatalf("unexpected init: %v", err)
 	}
 }
+
+func TestCommandRejectsInvalidUTF8(t *testing.T) {
+	if _, err := splitGitCommand("clone https://example/repo.git name\xff"); err == nil {
+		t.Fatal("invalid UTF-8 must not be rewritten to a different destination")
+	}
+}
