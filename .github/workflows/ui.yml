@@ -8,6 +8,8 @@ on:
       - 'Tools/dora-dora/**'
       - 'Tools/tests/test_http_*.py'
       - 'Tools/tests/test_agent_stream_updates.lua'
+      - 'Tools/tests/test_web_asset_bootstrap.lua'
+      - 'Assets/Script/Dev/WebServer.*'
       - 'Assets/Script/Lib/Agent/**'
       - 'Studio/**'
       - 'Studio/packages/agent-ui/**'
@@ -24,6 +26,8 @@ on:
       - 'Tools/dora-dora/**'
       - 'Tools/tests/test_http_*.py'
       - 'Tools/tests/test_agent_stream_updates.lua'
+      - 'Tools/tests/test_web_asset_bootstrap.lua'
+      - 'Assets/Script/Dev/WebServer.*'
       - 'Assets/Script/Lib/Agent/**'
       - 'Studio/**'
       - 'Studio/packages/agent-ui/**'
@@ -95,6 +99,7 @@ jobs:
           sudo apt-get install -y lua5.4
           xmake dora-test -P ../..
           lua ../../Tools/tests/test_agent_stream_updates.lua ../..
+          lua ../../Tools/tests/test_web_asset_bootstrap.lua ../..
           pnpm test:auth-reconnect
           pnpm test:native-ide-run
           pnpm test:websocket-lifecycle
