@@ -400,7 +400,7 @@ struct ktm::detail::vector_arithmetic_implement::step<N, float, std::enable_if_t
     static KTM_CORE_FUNC V call(const V& edge, const V& x) noexcept
     {
         V ret;
-        skv::fv4 cmp = _cmplt128_f32(x.st, edge.st);
+        skv::fv4 cmp = _cmpge128_f32(x.st, edge.st);
         ret.st = _and128_f32(_dup128_f32(1.f), cmp);
         return ret;
     }

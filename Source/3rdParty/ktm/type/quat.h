@@ -24,14 +24,15 @@ namespace ktm
 {
 
 template <class Child>
-using quat_components = single_extends_t<Child, iquat_data, iquat_make, iquat_array, iquat_mul, iarray_tostring,
-                                         iarray_io, iarray_madd_scalar, iarray_mul_scalar, iarray_add, iarray_util>;
+using quat_components =
+    single_extends_t<Child, iquat_data, iquat_make, iquat_array, iquat_mul, iarray_tostring, iarray_io, iarray_add_calc,
+                     iarray_madd_scalar, iarray_mul_scalar, iarray_util>;
 
 template <typename T>
 struct quat<T> : quat_components<quat<T>>
 {
-    using fater_type = quat_components<quat<T>>;
-    using fater_type::fater_type;
+    using father_type = quat_components<quat<T>>;
+    using father_type::father_type;
 };
 
 } // namespace ktm

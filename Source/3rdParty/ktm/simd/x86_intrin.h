@@ -68,6 +68,15 @@ KTM_SIMD_FUNC __m128 madd128_f32(__m128 a, __m128 b, __m128 c) noexcept
 #    endif
 }
 
+KTM_SIMD_FUNC __m128 msub128_f32(__m128 a, __m128 b, __m128 c) noexcept
+{
+#    if KTM_SIMD_ENABLE(KTM_SIMD_FMA)
+    return _mm_fnmadd_ps(b, c, a);
+#    else
+    return _mm_sub_ps(a, _mm_mul_ps(b, c));
+#    endif
+}
+
 KTM_SIMD_FUNC __m128 neg128_f32(__m128 a) noexcept
 {
     constexpr union
@@ -262,6 +271,11 @@ KTM_SIMD_FUNC __m128i mul128_s32(__m128i a, __m128i b) noexcept { return _mm_mul
 KTM_SIMD_FUNC __m128i madd128_s32(__m128i a, __m128i b, __m128i c) noexcept
 {
     return _mm_add_epi32(a, _mm_mullo_epi32(b, c));
+}
+
+KTM_SIMD_FUNC __m128i msub128_s32(__m128i a, __m128i b, __m128i c) noexcept
+{
+    return _mm_sub_epi32(a, _mm_mullo_epi32(b, c));
 }
 
 KTM_SIMD_FUNC __m128i max128_s32(__m128i a, __m128i b) noexcept { return _mm_max_epi32(a, b); }

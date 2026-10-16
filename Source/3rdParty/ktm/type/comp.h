@@ -24,14 +24,15 @@ namespace ktm
 {
 
 template <class Child>
-using comp_components = single_extends_t<Child, icomp_data, icomp_make, icomp_array, icomp_mul, iarray_tostring,
-                                         iarray_io, iarray_madd_scalar, iarray_mul_scalar, iarray_add, iarray_util>;
+using comp_components =
+    single_extends_t<Child, icomp_data, icomp_make, icomp_array, icomp_mul, iarray_tostring, iarray_io, iarray_add_calc,
+                     iarray_madd_scalar, iarray_mul_scalar, iarray_util>;
 
 template <typename T>
 struct comp<T> : comp_components<comp<T>>
 {
-    using fater_type = comp_components<comp<T>>;
-    using fater_type::fater_type;
+    using father_type = comp_components<comp<T>>;
+    using father_type::father_type;
 };
 
 } // namespace ktm

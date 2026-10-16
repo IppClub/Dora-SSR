@@ -72,6 +72,14 @@ private:
 };
 
 template <typename T>
+struct ktm::detail::matrix_algebra_implement::determinant<1, T>
+{
+    using M = mat<1, 1, T>;
+
+    static KTM_CORE_FUNC T call(const M& m) noexcept { return m[0][0]; }
+};
+
+template <typename T>
 struct ktm::detail::matrix_algebra_implement::determinant<2, T>
 {
     using M = mat<2, 2, T>;
@@ -168,6 +176,19 @@ struct ktm::detail::matrix_algebra_implement::determinant<N, T,
             det += i & 0x1 ? -sub_det : sub_det;
         }
         return det;
+    }
+};
+
+template <typename T>
+struct ktm::detail::matrix_algebra_implement::inverse<1, T>
+{
+    using M = mat<1, 1, T>;
+
+    static KTM_CORE_FUNC M call(const M& m) noexcept
+    {
+        M ret;
+        ret[0][0] = one<T> / m[0][0];
+        return ret;
     }
 };
 

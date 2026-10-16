@@ -28,8 +28,8 @@ using vec_components =
 template <size_t N, typename T>
 struct vec<N, T> : vec_components<vec<N, T>>
 {
-    using fater_type = vec_components<vec<N, T>>;
-    using fater_type::fater_type;
+    using father_type = vec_components<vec<N, T>>;
+    using father_type::father_type;
 };
 
 } // namespace ktm
