@@ -64,6 +64,6 @@ with tempfile.TemporaryDirectory(prefix='dora-git-path-policy-') as temporary:
 server = (root / 'Assets/Script/Dev/WebServer.yue').read_text()
 assert 'not Git\\isRepoPathAllowed repoPath' in server
 assert '"invalid clone target" if gitInvalidRepoPath targetPath' in server
-binding = (root / 'Source/Lua/LuaBinding.cpp').read_text()
-assert 'Git::isRepoPathAllowed(repoPath)' in binding
+binding = (root / 'Tools/tolua++/Dora.h').read_text()
+assert 'Git::isRepoPathAllowed @ isRepoPathAllowed(String repoPath)' in binding
 print('Web Git repository and clone-target policy wiring passed')
