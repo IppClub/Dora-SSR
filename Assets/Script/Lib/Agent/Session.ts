@@ -2068,10 +2068,12 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 			pending.deltas++;
 			pending.content = event.content;
 			pending.reasoningContent = event.reasoningContent;
-			if (pending.deltas === 1
+			const contentLength = pending.content?.length ?? 0;
+			if (pending.lastFlushedLength < 0
 				|| pending.deltas >= STREAM_UPDATE_MAX_DELTAS
-				|| (pending.content?.length ?? 0) - pending.lastFlushedLength >= STREAM_UPDATE_MIN_BYTES) {
-				delete pendingStreamUpdates[pendingKey];
+				|| contentLength - pending.lastFlushedLength >= STREAM_UPDATE_MIN_BYTES) {
+				pending.deltas = 0;
+				pending.lastFlushedLength = contentLength;
 				upsertStep(sessionId, event.taskId, event.step, "message", {
 					status: "RUNNING",
 					reason: event.content,
