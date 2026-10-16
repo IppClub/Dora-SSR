@@ -945,7 +945,7 @@ static HttpServer::Request make_request(const DoraXrtHttpServerRequest* nativeRe
 }
 
 static bool valid_static_path(const std::string& path) {
-	if (path.empty() || path.front() != '/' || path.find('\0') != std::string::npos) return false;
+	if (path.empty() || path.front() != '/' || path.find('\0') != std::string::npos || path.find('\\') != std::string::npos) return false;
 	size_t start = 1;
 	while (start <= path.size()) {
 		auto end = path.find('/', start);
