@@ -121,7 +121,7 @@ Native acceptance (graphical desktop, ports 8866/8868 free), from the repository
 
 ```sh
 xmake build Dora
-python3 Tools/tests/test_http_access_native.py --engine build/macosx/arm64/debug/Dora.app/Contents/MacOS/Dora
+python3 Tools/tests/test_http_access_native.py --engine build/macosx/arm64/debug/Dora.app/Contents/MacOS/Dora --require-lan
 ```
 
 This uses isolated assets and exercises real session signatures, preflights,
@@ -139,3 +139,45 @@ fixture with `node scripts/build-http-client-fixture.mjs /absolute/path/client-a
 serve that file alongside `Tools/tests/fixtures/http-access-lan.html` through Vite
 with the development proxy on 18736, and open the page using the machine LAN IP.
 Keep the isolated native fixture running with `--hold` during acceptance.
+
+### Diagnosing native LAN timeouts on macOS
+
+Use the generated `.app` executable above. `--require-lan` refuses to report a
+complete run without a non-loopback IPv4 interface; `--lan-address <local-ip>`
+selects another address assigned to this machine. The test covers LAN HTTP/WS
+with no credentials, legacy credentials, session signatures, replay and bad
+signatures, spoofed loopback/forwarded headers, CORS, and gzip/Range access.
+It also refuses occupied ports and incomplete/misidentified application bundles.
+
+A TCP connection can succeed while macOS Application Firewall waits for an
+incoming-connection decision, so an HTTP receive timeout is not evidence of an
+authentication failure. Check **System Settings → Network → Firewall → Options**
+and allow the exact Dora application being tested. Keep the firewall enabled;
+there is no need to weaken the engine's auth policy or disable the firewall.
+Ad-hoc debug binaries and different worktree paths can require fresh approval.
+[Apple's firewall guide](https://support.apple.com/guide/mac-help/mh34041/mac)
+describes application-specific incoming-connection approval.
+
+The bundle must have `Contents/Info.plist`, `CFBundleIdentifier=IppClub.DoraSSR`,
+and a matching code-signing identifier. `codesign --verify --deep --strict` alone
+can accept an incomplete bundle with no bound Info.plist; inspect `codesign -dv`
+as well. The macOS xmake pre-build hook restores missing plist/catalog outputs,
+refreshes changed resource files, removes stale Web IDE representations, and
+forces signing after those changes. It does not grant firewall permission.
+
+```sh
+/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate
+codesign -dv build/macosx/arm64/debug/Dora.app
+/usr/bin/log show --last 5m --style compact \
+  --predicate 'process == "socketfilterfw" AND eventMessage CONTAINS "Dora"'
+python3 Tools/tests/test_macos_bundle.py --bundle build/macosx/arm64/debug/Dora.app
+```
+
+The bundle regression deliberately recreates only this generated build output;
+quit that build before running it. The native test uses temporary assets and
+stops its own engine. For another physical LAN client, `--hold` retains the
+isolated fixture and its test-only session for browser verification; finish the
+run to close both listener ports. The automated LAN cases connect through the
+machine's own non-loopback address, so they validate peer classification without
+claiming a separate physical-device test. UI CI additionally runs the real XRT
+HTTP/WS policy fixture through a non-loopback interface with `--require-lan`.
