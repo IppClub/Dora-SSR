@@ -231,6 +231,13 @@ print('HTTP_ACCESS_NATIVE_READY')
             call('/read-sync', body=None, origin=None, method='GET', headers={'Sec-Fetch-Site':'same-origin'})
             for site in ['cross-site', 'same-site']:
                 call('/test.txt', body=None, origin=None, method='GET', headers={'Sec-Fetch-Site':site}, want=401)
+                navigation = {'Sec-Fetch-Site':site, 'Sec-Fetch-Mode':'navigate', 'Sec-Fetch-Dest':'document'}
+                _, response_headers = call('/browser.html', body=None, origin=None, method='GET', headers=navigation)
+                assert {'Sec-Fetch-Mode', 'Sec-Fetch-Dest'}.issubset(set(response_headers.get('Vary', '').split(', '))), response_headers
+                call('/read-sync', body=None, origin=None, method='GET', headers=navigation, want=401)
+                call('/browser.html', body=None, origin=foreign, method='GET', headers=navigation, want=401)
+                for dest in ['iframe', 'script', 'empty']:
+                    call('/browser.html', body=None, origin=None, method='GET', headers={**navigation, 'Sec-Fetch-Dest':dest}, want=401)
             if lan:
                 lan_origin = f'http://{lan}:8866'
                 for origin in [None, lan_origin, foreign, local]:
@@ -243,9 +250,19 @@ print('HTTP_ACCESS_NATIVE_READY')
                 ws(local, host='127.0.0.1:8868', address=lan, want=401)
                 # The public static navigation is needed to open the login UI.
                 call('/only.js', body=None, origin=None, method='GET', address=lan)
-                call('/only.js', body=None, origin=lan_origin, method='GET', address=lan, want=401)
+                call('/only.js', body=None, origin=lan_origin, method='GET', address=lan)
+                call('/only.js', body=None, origin=foreign, method='GET', address=lan, want=401)
+                module = {'Sec-Fetch-Site':'same-origin', 'Sec-Fetch-Mode':'cors', 'Sec-Fetch-Dest':'script'}
+                call('/only.js', body=None, origin=lan_origin, method='GET', headers=module, address=lan)
+                call('/only.js', body=None, origin=foreign, method='GET', headers=module, address=lan, want=401)
+                call('/read-sync', body=None, origin=lan_origin, method='GET', headers=module, address=lan, want=401)
                 for site in ['cross-site', 'same-site']:
                     call('/only.js', body=None, origin=None, method='GET', headers={'Sec-Fetch-Site':site}, address=lan, want=401)
+                    navigation = {'Sec-Fetch-Site':site, 'Sec-Fetch-Mode':'navigate', 'Sec-Fetch-Dest':'document'}
+                    call('/browser.html', body=None, origin=None, method='GET', headers=navigation, address=lan)
+                    call('/read-sync', body=None, origin=None, method='GET', headers=navigation, address=lan, want=401)
+                    call('/browser.html', body=None, origin=foreign, method='GET', headers=navigation, address=lan, want=401)
+                    call('/browser.html', body=None, origin=None, method='GET', headers={**navigation, 'Sec-Fetch-Dest':'iframe'}, address=lan, want=401)
                 _, out = call(origin=foreign, method='OPTIONS', address=lan, headers={'Access-Control-Request-Method':'POST', 'Access-Control-Request-Headers':'x-dora-signature,content-type'})
                 assert out['Access-Control-Allow-Origin'] == foreign and 'X-Dora-Signature' in out['Access-Control-Allow-Headers']
                 call(origin='null', address=lan, want=403)

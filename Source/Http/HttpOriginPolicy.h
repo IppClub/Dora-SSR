@@ -66,8 +66,17 @@ inline std::optional<Authority> parseAuthority(std::string_view text, unsigned d
 // cross-origin. Only an actual loopback peer using the loopback page origin can
 // bypass authentication. Missing Origin never establishes a browser origin.
 enum class Access { Denied, Authenticate, Local };
-inline bool needsAuthentication(Access access, bool publicRead, bool hasOrigin, std::string_view fetchSite) {
-	return access != Access::Local && (!publicRead || hasOrigin || fetchSite == "cross-site" || fetchSite == "same-site");
+inline bool sameHttpOrigin(std::string_view host, std::string_view origin, unsigned port) {
+	if (origin.substr(0, 7) != "http://") return false;
+	auto target = parseAuthority(host);
+	auto source = parseAuthority(origin.substr(7));
+	return target && source && target->port == port && source->host == target->host && source->port == port;
+}
+inline bool needsAuthentication(Access access, bool publicRead, bool hasOrigin, std::string_view fetchSite, bool documentNavigation = false) {
+	// A link from another site must be able to open the login page. This only
+	// exempts static top-level navigation; cross-origin reads and GET APIs stay
+	// protected, including iframe/script/fetch requests without Origin.
+	return access != Access::Local && (!publicRead || hasOrigin || (!documentNavigation && (fetchSite == "cross-site" || fetchSite == "same-site")));
 }
 inline bool isLoopback(std::string_view host) {
 	if (host == "localhost" || host == "::1") return true;

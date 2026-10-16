@@ -1341,7 +1341,7 @@ local function uploadFile(options, file, targetPath)
 	local res = CLI.http(
 		"POST",
 		baseUrl(options) .. "/upload?path=" .. urlEncode(targetPath),
-		{["Content-Type"] = "multipart/form-data; boundary=" .. boundary},
+		{["Content-Type"] = "multipart/form-data; boundary=" .. boundary, ["Sec-Fetch-Site"] = "same-origin"},
 		body,
 		options.timeout)
 	if res.netStatus ~= 0 or res.statusCode < 200 or res.statusCode >= 400 then
