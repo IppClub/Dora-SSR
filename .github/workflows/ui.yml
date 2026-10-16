@@ -7,6 +7,11 @@ on:
       - '.github/workflows/ui.yml'
       - 'Tools/dora-dora/**'
       - 'Tools/tests/test_http_*.py'
+      - 'Tools/tests/test_git_path_policy.py'
+      - 'Tools/tests/test_git_job_pruning.lua'
+      - 'Tools/tests/test_git_clone_paths.lua'
+      - 'Tools/tests/test_cli_local_auth.lua'
+      - 'Assets/Script/Dev/cli.lua'
       - 'Tools/tests/test_agent_stream_updates.lua'
       - 'Tools/tests/test_web_asset_bootstrap.lua'
       - 'Assets/Script/Dev/WebServer.*'
@@ -25,6 +30,11 @@ on:
       - '.github/workflows/ui.yml'
       - 'Tools/dora-dora/**'
       - 'Tools/tests/test_http_*.py'
+      - 'Tools/tests/test_git_path_policy.py'
+      - 'Tools/tests/test_git_job_pruning.lua'
+      - 'Tools/tests/test_git_clone_paths.lua'
+      - 'Tools/tests/test_cli_local_auth.lua'
+      - 'Assets/Script/Dev/cli.lua'
       - 'Tools/tests/test_agent_stream_updates.lua'
       - 'Tools/tests/test_web_asset_bootstrap.lua'
       - 'Assets/Script/Dev/WebServer.*'
@@ -64,6 +74,9 @@ jobs:
       - name: Test HTTP conditional requests
         run: python3 ../../Tools/tests/test_http_validators.py
 
+      - name: Test Git repository path boundaries
+        run: python3 ../../Tools/tests/test_git_path_policy.py
+
       - name: Setup xmake
         uses: xmake-io/github-action-setup-xmake@v1
         with:
@@ -74,6 +87,10 @@ jobs:
         with:
           go-version: stable
           cache-dependency-path: Studio/go.sum
+
+      - name: Test literal Git paths in native backend
+        working-directory: Source/3rdParty/Wa/Source
+        run: go test -mod=vendor ./internal/gitjobs
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -103,6 +120,13 @@ jobs:
           pnpm test:auth-reconnect
           pnpm test:native-ide-run
           pnpm test:websocket-lifecycle
+
+      - name: Test Git job retention and CLI local authentication
+        working-directory: .
+        run: |
+          lua Tools/tests/test_git_clone_paths.lua
+          lua Tools/tests/test_git_job_pruning.lua
+          lua Tools/tests/test_cli_local_auth.lua
 
       - name: Test Studio current frontend and Go backend
         run: |

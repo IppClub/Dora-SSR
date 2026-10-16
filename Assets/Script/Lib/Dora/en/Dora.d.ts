@@ -9256,6 +9256,8 @@ type GitStatus = GitQueuedStatus | GitRunningStatus | GitErrorStatus | GitCancel
  * An interface that provides Git command functions.
  */
 interface Git {
+	/** Checks whether an absolute path without dot segments resolves inside the writable or asset root, including existing symlinks. Nonexistent descendants are allowed. */
+	isRepoPathAllowed(repoPath: string): boolean;
 	/**
 	 * Runs a supported Git command and polls status automatically.
 	 *
