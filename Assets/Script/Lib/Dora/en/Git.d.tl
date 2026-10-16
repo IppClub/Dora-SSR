@@ -1,5 +1,7 @@
 -- A record that provides Git command functions.
 local record Git
+	-- Checks whether an absolute path resolves inside the writable or asset root, including existing symlinks. Nonexistent descendants are allowed.
+	isRepoPathAllowed: function(self: Git, repoPath: string): boolean
 
 	enum JobState
 		"queued"

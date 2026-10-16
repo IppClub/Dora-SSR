@@ -45,10 +45,18 @@ int main() {
  assert(web_request_access(duplicate,3,8866,8866,hosts,true)==Access::Denied);
  assert(web_request_access(nullptr,0,8866,8866,hosts)==Access::Denied);
  for (auto site : {"same-site", "cross-site"}) assert(needsAuthentication(Access::Authenticate,true,false,site));
+ for (auto site : {"same-site", "cross-site"}) {
+  assert(!needsAuthentication(Access::Authenticate,true,false,site,true));
+  assert(needsAuthentication(Access::Authenticate,false,false,site,true));
+  assert(needsAuthentication(Access::Authenticate,true,true,site,true));
+ }
  assert(!needsAuthentication(Access::Authenticate,true,false,"none"));
  assert(!needsAuthentication(Access::Local,false,false,"same-origin"));
  assert(needsAuthentication(Access::Authenticate,false,false,""));
  assert(needsAuthentication(Access::Authenticate,true,true,""));
+ assert(sameHttpOrigin("192.168.1.2:8866", "http://192.168.1.2:8866", 8866));
+ for (auto origin : {"https://192.168.1.2:8866", "http://192.168.1.2:18736", "http://evil.test:8866", "http://192.168.1.2:8866/", "http://user@192.168.1.2:8866"})
+  assert(!sameHttpOrigin("192.168.1.2:8866", origin, 8866));
  std::cout<<"HTTP/WS local, LAN, CLI, cross-origin policy: all cases passed\n";
 }
 '''.replace('HEADERS',headers)

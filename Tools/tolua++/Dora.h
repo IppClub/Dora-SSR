@@ -1597,6 +1597,7 @@ struct WasmRuntime @ Wasm
 
 struct Git
 {
+	static tolua_outside bool Git::isRepoPathAllowed @ isRepoPathAllowed(String repoPath);
 	static tolua_outside int64_t Git::run @ run(String repoPath, String command, tolua_function_void callback, String optionsJSON = "");
 	static tolua_outside bool Git::cancel @ cancel(int64_t jobId);
 };

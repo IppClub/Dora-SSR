@@ -155,19 +155,9 @@ gitTerminalState = (status) ->
 	return false unless status and status.state
 	status.state in ["done", "error", "canceled"]
 
-isUnderPath = (path, root) ->
-	return false unless root and root ~= ""
-	return true if path == root
-	prefix = root\sub(-1) == "/" and root or (root .. "/")
-	path\sub(1, #prefix) == prefix
-
 gitInvalidRepoPath = (repoPath) ->
-	return true if not repoPath or repoPath == "" or not Content\isAbsolutePath repoPath
-	normalized = repoPath\gsub("\\", "/")
-	for root in *{Content.writablePath, Content.assetPath}
-		continue unless root and root ~= ""
-		return false if isUnderPath(normalized, root\gsub("\\", "/"))
-	true
+	return true unless type(repoPath) == "string" and repoPath ~= ""
+	not Git\isRepoPathAllowed repoPath
 
 gitShellSplit = (command) ->
 	args = {}
@@ -352,6 +342,7 @@ gitStartJob = (repoPath, command, optionsJSON = nil) ->
 	optionsJSON = "" unless optionsJSON
 	command = gitApplyProfileToCommit command
 	if targetPath := gitCloneTargetPath repoPath, command
+		return nil, "invalid clone target" if gitInvalidRepoPath targetPath
 		if gitDirNonEmpty targetPath
 			return nil, "clone target directory is not empty"
 	elseif (gitShellSplit command)[1] == "clone"
@@ -702,7 +693,11 @@ HttpServer\post "/git/auth/list", (req) ->
 
 HttpServer\postSchedule "/git/auth/match", (req): invalidArguments ->
 	switch req when {body: body}
+		return invalidArguments unless type(body) == "table"
 		{:repoPath, :command, :url} = body
+		return invalidArguments if url ~= nil and type(url) ~= "string"
+		unless type(url) == "string" and url ~= ""
+			return invalidArguments unless type(repoPath) == "string" and type(command) == "string"
 		host = if url and url ~= "" then gitHostFromURL url else gitCommandHost repoPath, command
 		return success: false, message: "git host is required" unless host
 		items = gitCredentialsForHost host
@@ -1906,6 +1901,7 @@ HttpServer\postSchedule "/doc/read", (req) ->
 HttpServer\get "/read-sync", (req): success: false ->
 	switch req when :params
 		:path = params
+		return success: false, message: "invalid path" unless type(path) == "string" and path ~= ""
 		exts = if params.exts
 			[ext for ext in params.exts\gmatch "[^|]*"]
 		else ["",]
@@ -3050,14 +3046,27 @@ HttpServer\postSchedule "/git/commit-files", (req): invalidArguments ->
 thread ->
 	doraWeb = Path Content.assetPath, "www", "index.html"
 	doraReady = Path Content.appPath, ".www", "dora-ready"
-	if Content\exist doraWeb
+	if Content\exist(doraWeb) or Content\exist(doraWeb .. ".gz")
+		-- The distribution can contain gzip only. Compare stored bytes rather
+		-- than inflating resources just to decide whether the copy is current.
+		storedAsset = (file) ->
+			if Content\exist file
+				Content\load file
+			elseif Content\exist file .. ".gz"
+				Content\load file .. ".gz"
+			else ""
 		heavyAssets = Path Content.assetPath, "www", "heavy-assets.json"
-		heavyAssetsContent = if Content\exist heavyAssets then Content\load heavyAssets else ""
 		runtimeIndex = Path Content.assetPath, "www", "web-player", "runtime.json"
-		runtimeIndexContent = if Content\exist runtimeIndex then Content\load runtimeIndex else ""
 		compilerIndex = Path Content.assetPath, "www", "compiler.html"
-		compilerIndexContent = if Content\exist compilerIndex then Content\load compilerIndex else ""
-		readyContent = App.version .. "\n" .. Content\load(doraWeb) .. "\n" .. heavyAssetsContent .. "\n" .. runtimeIndexContent .. "\n" .. compilerIndexContent
+		manifest = Path Content.assetPath, "www", "precompressed-assets.json"
+		readyContent = table.concat {
+			App.version
+			storedAsset doraWeb
+			storedAsset heavyAssets
+			storedAsset runtimeIndex
+			storedAsset compilerIndex
+			storedAsset manifest
+		}, "\n"
 		needReload = if Content\exist doraReady
 			readyContent ~= Content\load doraReady
 		else true

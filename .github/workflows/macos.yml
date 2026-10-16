@@ -13,6 +13,8 @@ on:
       - 'Projects/xmake/**'
       # Platform-specific code
       - 'Projects/macOS/**'
+      - '.github/workflows/macos.yml'
+      - 'Tools/tests/test_macos_bundle.py'
   pull_request:
     branches: [ main ]
     paths:
@@ -23,6 +25,8 @@ on:
       - 'xmake.lua'
       - 'Projects/xmake/**'
       - 'Projects/macOS/**'
+      - '.github/workflows/macos.yml'
+      - 'Tools/tests/test_macos_bundle.py'
   workflow_dispatch:
 
 jobs:
@@ -47,6 +51,9 @@ jobs:
           xmake --version
           xmake f -y -p macosx -a "$(uname -m)" -m debug
           xmake build Dora
+      - name: Test incremental macOS application identity and resources
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        run: python3 Tools/tests/test_macos_bundle.py --bundle "build/macosx/$(uname -m)/debug/Dora.app"
       - name: Generate tutorial docs
         if: startsWith(github.ref, 'refs/tags/')
         run: node Docs/scripts/generate-language-docs.js

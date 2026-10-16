@@ -22,6 +22,7 @@ class WasmRuntime;
 
 class Git {
 public:
+	static bool isRepoPathAllowed(String repoPath);
 	static int64_t run(String repoPath, String command, const std::function<void(String)>& callback, String optionsJSON = Slice::Empty);
 	static bool cancel(int64_t jobId);
 

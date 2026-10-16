@@ -81,7 +81,8 @@ local function package_linux(mode, arch, api)
 
     local binary = path.join(projectdir, "build/linux", arch, mode, "Dora")
     ensure(os.isfile(binary), "missing xmake Linux output: " .. binary)
-    ensure(os.isfile(path.join(projectdir, "Assets/www/index.html")),
+    ensure(os.isfile(path.join(projectdir, "Assets/www/index.html"))
+        or os.isfile(path.join(projectdir, "Assets/www/index.html.gz")),
         "missing Web IDE assets: build Tools/dora-dora first")
 
     local package_dir = path.join(projectdir, "build/package/linux", arch, mode)
@@ -195,7 +196,8 @@ local function package_windows(mode, api)
     for _, name in ipairs({"Dora.exe", "wa.dll"}) do
         ensure(os.isfile(path.join(targetdir, name)), "missing Windows output: " .. name)
     end
-    ensure(os.isfile(path.join(assets, "www/web-player/runtime.json")),
+    ensure(os.isfile(path.join(assets, "www/web-player/runtime.json"))
+        or os.isfile(path.join(assets, "www/web-player/runtime.json.gz")),
         "missing Web Player runtime: build Tools/dora-dora first")
 
     os.rm(package_dir)

@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Http/HttpServer.h"
 #include "Http/HttpOriginPolicy.h"
 #include "Http/HttpValidators.h"
+#include "Http/HttpStaticContent.h"
 
 #include "Http/XrtNetwork.h"
 
@@ -944,7 +945,7 @@ static HttpServer::Request make_request(const DoraXrtHttpServerRequest* nativeRe
 }
 
 static bool valid_static_path(const std::string& path) {
-	if (path.empty() || path.front() != '/' || path.find('\0') != std::string::npos) return false;
+	if (path.empty() || path.front() != '/' || path.find('\0') != std::string::npos || path.find('\\') != std::string::npos) return false;
 	size_t start = 1;
 	while (start <= path.size()) {
 		auto end = path.find('/', start);
@@ -989,7 +990,8 @@ static bool is_compressible_content_type(std::string_view contentType) {
 		|| mimeType == "application/rss+xml"sv
 		|| mimeType == "application/atom+xml"sv
 		|| mimeType == "application/xslt+xml"sv
-		|| mimeType == "application/protobuf"sv;
+		|| mimeType == "application/protobuf"sv
+		|| mimeType == "application/wasm"sv;
 }
 
 static std::string_view trim_http_token(std::string_view value) {
@@ -1075,10 +1077,32 @@ static std::optional<std::string> gzip_compress(std::string_view content) {
 	return compressed;
 }
 
-struct StaticContent {
-	std::string data;
-	bool gzipEncoded = false;
-};
+using StaticContent = HttpPolicy::StaticContent;
+
+// Resolve the original once so a companion cannot come from another Content
+// search path. Content handles disk files, ZIP mounts and Android APK assets.
+static StaticContent loadStaticContent(const std::string& path, bool useGzip) {
+	if (!SharedContent.exist(path)) {
+		auto companion = SharedContent.getFullPath(path + ".gz");
+		auto packed = SharedContent.loadUnsafe(companion);
+		if (useGzip && HttpPolicy::isPrecompressedGzip(packed)) return {std::move(packed), true};
+		if (auto data = HttpPolicy::decodePrecompressedGzip(packed)) return {std::move(*data), false};
+		return {};
+	}
+	auto file = SharedContent.getFullPath(path);
+	auto data = SharedContent.loadUnsafe(file);
+	if (!useGzip || data.empty()) return {std::move(data), false};
+	auto companion = file + ".gz";
+	if (SharedContent.exist(companion)) {
+		auto packed = SharedContent.loadUnsafe(companion);
+		if (HttpPolicy::matchesPrecompressedGzip(data, packed)) return {std::move(packed), true};
+	}
+	// Custom/development assets need no build step. Retain the existing gzip
+	// fallback, without keeping either representation alive between requests.
+	if (auto packed = gzip_compress(data); packed && packed->size() < data.size())
+		return {std::move(*packed), true};
+	return {std::move(data), false};
+}
 
 constexpr size_t DynamicResponseCompressionThreshold = 1024;
 
@@ -1183,9 +1207,18 @@ bool HttpServer::start(int port) {
 		// Only static navigation/bootstrap reads may be public without Origin.
 		const bool publicRead = (nativeRequest->method == DORA_XRT_HTTP_METHOD_GET || nativeRequest->method == DORA_XRT_HTTP_METHOD_HEAD)
 			&& std::none_of(self->_gets.begin(), self->_gets.end(), [&](const auto& route) { return route_matches(route.pattern, path); });
+		auto fetchMode = find_header(request, "Sec-Fetch-Mode"_slice);
+		auto fetchDest = find_header(request, "Sec-Fetch-Dest"_slice);
+		const bool documentNavigation = fetchMode && fetchDest && *fetchMode == "navigate"_slice && *fetchDest == "document"_slice;
+		// Module scripts use CORS mode even on the same LAN origin. They must
+		// bootstrap the login UI before a session exists. This never exempts an
+		// API route or a cross-origin static read from authentication.
+		auto host = find_header(request, "Host"_slice);
+		const bool sameOriginBootstrap = publicRead && origin && host && (!fetchSite || *fetchSite == "same-origin"_slice)
+			&& HttpPolicy::sameHttpOrigin(host->toString(), origin->toString(), self->_httpPort);
 		const bool authenticationRequired = HttpPolicy::needsAuthentication(access, publicRead,
-			origin.has_value(), fetchSite ? fetchSite->toString() : ""s);
-		DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site");
+			origin.has_value() && !sameOriginBootstrap, fetchSite ? fetchSite->toString() : ""s, documentNavigation);
+		DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site, Sec-Fetch-Mode, Sec-Fetch-Dest");
 		if (authenticationRequired) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Cache-Control", "no-store");
 		if (origin) {
 			auto value = origin->toString();
@@ -1204,7 +1237,7 @@ bool HttpServer::start(int port) {
 		const bool gzipAccepted = accepts_gzip(request);
 		auto respond = [&](HttpServer::Response&& response) {
 			auto prepared = prepare_dynamic_response(std::move(response), gzipAccepted);
-			if (prepared.varyAcceptEncoding) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site, Accept-Encoding");
+			if (prepared.varyAcceptEncoding) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site, Sec-Fetch-Mode, Sec-Fetch-Dest, Accept-Encoding");
 			if (prepared.gzipEncoded) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Encoding", "gzip");
 			set_response(nativeResponse, prepared.response.status > 0 ? prepared.response.status : 200, prepared.response.content, prepared.response.contentType);
 		};
@@ -1235,31 +1268,27 @@ bool HttpServer::start(int port) {
 			if (decodedPath.back() == '/') decodedPath += "index.html";
 			auto requestPath = decodedPath;
 			decodedPath.erase(decodedPath.begin());
-			if (!SharedContent.exist(decodedPath)) {
+			auto exists = [](const std::string& file) { return SharedContent.exist(file) || SharedContent.exist(file + ".gz"); };
+			if (!exists(decodedPath)) {
 				bool found = false;
 				if (!self->_wwwPath.empty()) {
 					auto checkPath = Path::concat({self->_wwwPath, decodedPath});
-					if (SharedContent.exist(checkPath)) { decodedPath = checkPath; found = true; }
+					if (exists(checkPath)) { decodedPath = checkPath; found = true; }
 				}
 				if (!found) {
 					auto checkPath = Path::concat({SharedContent.getWritablePath(), decodedPath});
-					if (SharedContent.exist(checkPath)) { decodedPath = checkPath; found = true; }
+					if (exists(checkPath)) { decodedPath = checkPath; found = true; }
 				}
 				if (!found) return false;
 			}
 			const auto* contentType = content_type_for_path(decodedPath);
-			const bool compressible = is_compressible_content_type(contentType);
+			const bool compressible = is_compressible_content_type(contentType)
+				|| !SharedContent.exist(decodedPath);
 			const bool useGzip = compressible && !find_header(request, "Range"_slice) && accepts_gzip(request);
 			auto pending = std::make_shared<PendingLogicResult<StaticContent>>();
 			SharedContent.getThread()->run([pending, file = decodedPath, useGzip]() {
 				if (pending->isCancelled()) return;
-				StaticContent result{SharedContent.loadUnsafe(file)};
-				if (useGzip && !result.data.empty()) {
-					if (auto compressed = gzip_compress(result.data); compressed && compressed->size() < result.data.size()) {
-						result.data = std::move(*compressed);
-						result.gzipEncoded = true;
-					}
-				}
+				StaticContent result = loadStaticContent(file, useGzip);
 				if (!pending->isCancelled()) pending->complete(std::move(result));
 			});
 			auto content = pending->wait(self->_stopping, self->_generation, requestGeneration);
@@ -1273,7 +1302,7 @@ bool HttpServer::start(int port) {
 				content->data.size(), content->gzipEncoded ? "-g"sv : ""sv);
 			auto cacheControl = authenticationRequired ? "no-store"s : self->getStaticCacheControl(requestPath);
 			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Type", contentType);
-			if (compressible) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site, Accept-Encoding");
+			if (compressible) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site, Sec-Fetch-Mode, Sec-Fetch-Dest, Accept-Encoding");
 			if (content->gzipEncoded) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Encoding", "gzip");
 			if (!cacheControl.empty()) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Cache-Control", cacheControl.c_str());
 			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Accept-Ranges", "bytes");
