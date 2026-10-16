@@ -4,6 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
+      - '.github/workflows/ui.yml'
       - 'Tools/dora-dora/**'
       - 'Studio/**'
       - 'Studio/packages/agent-ui/**'
@@ -16,6 +17,7 @@ on:
   pull_request:
     branches: [ main ]
     paths:
+      - '.github/workflows/ui.yml'
       - 'Tools/dora-dora/**'
       - 'Studio/**'
       - 'Studio/packages/agent-ui/**'
@@ -92,6 +94,11 @@ jobs:
       - name: Lint (oxlint)
         # oxlint exits 0 for warnings, 1 for errors — only errors block the build
         run: pnpm lint
+
+      - name: Typecheck full Web IDE with linked Studio packages
+        # Studio tests prepare the generated shared contract declarations.
+        # Check after both installs to catch duplicate React type identities.
+        run: pnpm typecheck
 
       - name: Test Web runtime preparation
         run: pnpm test:web-runtime-preparation
