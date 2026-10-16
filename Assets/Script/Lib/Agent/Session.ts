@@ -335,6 +335,22 @@ const activeLocalAgentControls: Record<number, LocalAgent.LocalAgentRunControl> 
 const finalizingSubSessionTaskIds: Record<number, boolean> = {};
 let activePromptRuns = 0;
 
+interface PendingStreamUpdate {
+	deltas: number;
+	lastFlushedLength: number;
+	content?: string;
+	reasoningContent?: string;
+}
+const pendingStreamUpdates: Record<string, PendingStreamUpdate> = {};
+/** Streaming updates are coalesced: each delta persists and broadcasts the
+ * full accumulated text, so writing every delta is quadratic in response
+ * length on the logic thread. Flush the first delta immediately, then only
+ * when enough new content arrived; the finished event writes the final text. */
+const STREAM_UPDATE_MAX_DELTAS = 32;
+const STREAM_UPDATE_MIN_BYTES = 4096;
+const streamUpdateKey = (sessionId: number, taskId: number | undefined, step: number): string =>
+	`${sessionId}:${taskId}:${step}`;
+
 /** Runtime ownership, including asynchronous completion after task status changes. */
 export function isRuntimeIdle(): boolean {
 	return activePromptRuns === 0
@@ -2043,17 +2059,34 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 			break;
 		}
 		case "assistant_message_updated": {
-			upsertStep(sessionId, event.taskId, event.step, "message", {
-				status: "RUNNING",
-				reason: event.content,
-				reasoningContent: event.reasoningContent,
-			});
-			emitAgentSessionPatch(sessionId, {
-				step: getStepItem(sessionId, event.taskId, event.step),
-			});
+			const pendingKey = streamUpdateKey(sessionId, event.taskId, event.step);
+			let pending = pendingStreamUpdates[pendingKey];
+			if (pending === undefined) {
+				pending = {deltas: 0, lastFlushedLength: -1};
+				pendingStreamUpdates[pendingKey] = pending;
+			}
+			pending.deltas++;
+			pending.content = event.content;
+			pending.reasoningContent = event.reasoningContent;
+			const contentLength = pending.content?.length ?? 0;
+			if (pending.lastFlushedLength < 0
+				|| pending.deltas >= STREAM_UPDATE_MAX_DELTAS
+				|| contentLength - pending.lastFlushedLength >= STREAM_UPDATE_MIN_BYTES) {
+				pending.deltas = 0;
+				pending.lastFlushedLength = contentLength;
+				upsertStep(sessionId, event.taskId, event.step, "message", {
+					status: "RUNNING",
+					reason: event.content,
+					reasoningContent: event.reasoningContent,
+				});
+				emitAgentSessionPatch(sessionId, {
+					step: getStepItem(sessionId, event.taskId, event.step),
+				});
+			}
 			break;
 		}
 		case "assistant_message_finished": {
+			delete pendingStreamUpdates[streamUpdateKey(sessionId, event.taskId, event.step)];
 			upsertStep(sessionId, event.taskId, event.step, "message", {
 				status: "DONE",
 				reason: event.content,
