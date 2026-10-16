@@ -1,5 +1,6 @@
 // @preview-file off clear
-import { App, Content, DB, Path, HttpServer, emit } from 'Dora';
+import { App, Content, DB, Director, Path, HttpServer, emit } from 'Dora';
+import { StreamUpdates } from 'Agent/Runtime/StreamUpdates';
 import { publishSessionPatch } from 'Agent/Runtime/SessionEvents';
 import { holdProjectTaskAdmission, isProjectTaskAdmissionClosed } from 'Agent/Runtime/TaskAdmission';
 import type { SQL } from 'Dora';
@@ -335,21 +336,24 @@ const activeLocalAgentControls: Record<number, LocalAgent.LocalAgentRunControl> 
 const finalizingSubSessionTaskIds: Record<number, boolean> = {};
 let activePromptRuns = 0;
 
-interface PendingStreamUpdate {
-	deltas: number;
-	lastFlushedLength: number;
-	content?: string;
-	reasoningContent?: string;
+const streamUpdates = new StreamUpdates((sessionId, taskId, step, value) => {
+	if (getSessionItem(sessionId)?.currentTaskId !== taskId) return;
+	upsertStep(sessionId, taskId, step, "message", {
+		status: "RUNNING", reason: value.content, reasoningContent: value.reasoningContent,
+	});
+	emitAgentSessionPatch(sessionId, {step: getStepItem(sessionId, taskId, step)});
+});
+let streamFlushScheduled = false;
+function scheduleStreamFlush() {
+	if (streamFlushScheduled || !streamUpdates.hasPending()) return;
+	streamFlushScheduled = true;
+	Director.systemScheduler.schedule(() => {
+		streamUpdates.flushDue(App.runningTime);
+		if (streamUpdates.hasPending()) return false;
+		streamFlushScheduled = false;
+		return true;
+	});
 }
-const pendingStreamUpdates: Record<string, PendingStreamUpdate> = {};
-/** Streaming updates are coalesced: each delta persists and broadcasts the
- * full accumulated text, so writing every delta is quadratic in response
- * length on the logic thread. Flush the first delta immediately, then only
- * when enough new content arrived; the finished event writes the final text. */
-const STREAM_UPDATE_MAX_DELTAS = 32;
-const STREAM_UPDATE_MIN_BYTES = 4096;
-const streamUpdateKey = (sessionId: number, taskId: number | undefined, step: number): string =>
-	`${sessionId}:${taskId}:${step}`;
 
 /** Runtime ownership, including asynchronous completion after task status changes. */
 export function isRuntimeIdle(): boolean {
@@ -901,6 +905,7 @@ function countRunningSubSessions(rootSessionId: number): number {
 }
 
 function deleteSessionRecords(sessionId: number, preserveArtifacts = false) {
+	streamUpdates.clear(sessionId);
 	const session = getSessionItem(sessionId);
 	const taskRows = queryRows(
 		`SELECT current_task_id FROM ${TABLE_SESSION} WHERE id = ? AND current_task_id > 0
@@ -1949,6 +1954,7 @@ type AgentRuntimeEvent = CodingAgentEvent | {
 
 function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 	if (!getSessionItem(sessionId)) {
+		streamUpdates.clear(sessionId);
 		if ((event.type === "task_finished" || event.type === "task_waiting_for_user") && event.taskId !== undefined) {
 			delete activeStopTokens[event.taskId];
 			delete finalizingSubSessionTaskIds[event.taskId];
@@ -1957,6 +1963,7 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 	}
 	switch (event.type) {
 		case "task_started":
+			streamUpdates.clear(sessionId);
 			setSessionStateForTaskEvent(sessionId, event.taskId, "RUNNING", "RUNNING");
 			const metrics = event.resumed
 				? getSessionItem(sessionId)?.metrics
@@ -2059,34 +2066,19 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 			break;
 		}
 		case "assistant_message_updated": {
-			const pendingKey = streamUpdateKey(sessionId, event.taskId, event.step);
-			let pending = pendingStreamUpdates[pendingKey];
-			if (pending === undefined) {
-				pending = {deltas: 0, lastFlushedLength: -1};
-				pendingStreamUpdates[pendingKey] = pending;
+			const session = getSessionItem(sessionId);
+			if (session?.currentTaskId !== event.taskId) {
+				streamUpdates.clear(sessionId, event.taskId); break;
 			}
-			pending.deltas++;
-			pending.content = event.content;
-			pending.reasoningContent = event.reasoningContent;
-			const contentLength = pending.content?.length ?? 0;
-			if (pending.lastFlushedLength < 0
-				|| pending.deltas >= STREAM_UPDATE_MAX_DELTAS
-				|| contentLength - pending.lastFlushedLength >= STREAM_UPDATE_MIN_BYTES) {
-				pending.deltas = 0;
-				pending.lastFlushedLength = contentLength;
-				upsertStep(sessionId, event.taskId, event.step, "message", {
-					status: "RUNNING",
-					reason: event.content,
-					reasoningContent: event.reasoningContent,
-				});
-				emitAgentSessionPatch(sessionId, {
-					step: getStepItem(sessionId, event.taskId, event.step),
-				});
-			}
+			streamUpdates.update(sessionId, event.taskId, event.step, event, App.runningTime);
+			scheduleStreamFlush();
 			break;
 		}
 		case "assistant_message_finished": {
-			delete pendingStreamUpdates[streamUpdateKey(sessionId, event.taskId, event.step)];
+			if (getSessionItem(sessionId)?.currentTaskId !== event.taskId) {
+				streamUpdates.clear(sessionId, event.taskId); break;
+			}
+			streamUpdates.finish(sessionId, event.taskId, event.step);
 			upsertStep(sessionId, event.taskId, event.step, "message", {
 				status: "DONE",
 				reason: event.content,
@@ -2099,6 +2091,10 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 			break;
 		}
 		case "task_waiting_for_user": {
+			if (getSessionItem(sessionId)?.currentTaskId !== event.taskId) {
+				streamUpdates.clear(sessionId, event.taskId); break;
+			}
+			streamUpdates.clear(sessionId, event.taskId, App.runningTime);
 			setSessionStateForTaskEvent(sessionId, event.taskId, "WAITING_USER", "WAITING_USER");
 			delete activeStopTokens[event.taskId];
 			emitAgentSessionPatch(sessionId, {
@@ -2111,9 +2107,11 @@ function applyEvent(sessionId: number, event: AgentRuntimeEvent) {
 			const session = getSessionItem(sessionId);
 			if (session && event.taskId !== undefined && session.currentTaskId !== event.taskId) {
 				delete activeStopTokens[event.taskId];
+				streamUpdates.clear(sessionId, event.taskId);
 				Log("Info", `[AgentSession] ignore stale task finish session=${sessionId} eventTask=${event.taskId} currentTask=${tostring(session.currentTaskId)}`);
 				break;
 			}
+			streamUpdates.clear(sessionId, event.taskId, App.runningTime);
 			const stopped = activeStopTokens[event.taskId ?? -1]?.stopped === true
 				|| (session !== undefined && session.currentTaskId === event.taskId && session.currentTaskStatus === "STOPPED");
 			const finalStatus: AgentSessionStatus = event.success
@@ -3237,6 +3235,7 @@ export function stopSessionTask(sessionId: number) {
 	if (session.currentTaskFinalizing === true || finalizingSubSessionTaskIds[session.currentTaskId] === true) {
 		return { success: false as const, message: "session task is finalizing" };
 	}
+	streamUpdates.clear(sessionId, session.currentTaskId, App.runningTime);
 	const normalizedSession = normalizeSessionRuntimeState(session);
 	const localControl = activeLocalAgentControls[session.currentTaskId];
 	if (localControl !== undefined) {

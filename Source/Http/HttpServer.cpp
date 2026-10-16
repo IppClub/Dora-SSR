@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Http/HttpServer.h"
 #include "Http/HttpOriginPolicy.h"
 #include "Http/HttpValidators.h"
+#include "Http/HttpStaticCache.h"
 
 #include "Http/XrtNetwork.h"
 
@@ -1075,69 +1076,31 @@ static std::optional<std::string> gzip_compress(std::string_view content) {
 	return compressed;
 }
 
-struct StaticContent {
-	std::string data;
-	bool gzipEncoded = false;
-};
+using StaticContent = HttpPolicy::StaticContent;
 
-struct CachedStatic {
-	std::string data;
-	std::string gzipped;
-	bool gzipComputed = false;
-};
-
-// Engine and Web IDE assets do not change while the server runs; only files under
-// the writable path (live project files) stay uncached. Accessed only from
-// SharedContent's worker thread, the single thread that already serializes
-// static loads, so no locking is needed.
-static std::unordered_map<std::string, CachedStatic> staticCache;
-static size_t staticCacheBytes = 0;
-constexpr size_t StaticCacheByteLimit = 64u * 1024u * 1024u;
-
-static CachedStatic& staticCacheEntry(const std::string& path) {
-	auto it = staticCache.find(path);
-	if (it != staticCache.end()) return it->second;
-	CachedStatic entry;
-	entry.data = SharedContent.loadUnsafe(path);
-	if (!entry.data.empty()) {
-		if (staticCacheBytes + entry.data.size() > StaticCacheByteLimit) {
-			staticCache.clear();
-			staticCacheBytes = 0;
-		}
-		staticCacheBytes += entry.data.size();
-	}
-	std::tie(it, std::ignore) = staticCache.emplace(path, std::move(entry));
-	return it->second;
+// Resolve Content search paths before checking the writable root: relative URLs
+// can resolve to live project files. Canonicalization also accounts for symlinks.
+static std::optional<std::string> static_file_version(const std::string& path) {
+	std::error_code error;
+	auto file = fs::canonical(path, error);
+	if (error || !fs::is_regular_file(file, error) || error) return std::nullopt;
+	auto writable = fs::weakly_canonical(SharedContent.getWritablePath(), error);
+	if (error) return std::nullopt;
+	auto relative = file.lexically_relative(writable);
+	if (relative.empty() || relative == "." || *relative.begin() != "..") return std::nullopt;
+	auto size = fs::file_size(file, error);
+	if (error) return std::nullopt;
+	auto modified = fs::last_write_time(file, error);
+	if (error) return std::nullopt;
+	return file.generic_string() + ":" + std::to_string(size) + ":" + std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(modified.time_since_epoch()).count());
 }
 
-static StaticContent loadStaticContent(const std::string& path, bool useGzip, bool cacheable) {
-	if (!cacheable) {
-		StaticContent result{SharedContent.loadUnsafe(path)};
-		if (useGzip && !result.data.empty()) {
-			if (auto compressed = gzip_compress(result.data); compressed && compressed->size() < result.data.size()) {
-				result.data = std::move(*compressed);
-				result.gzipEncoded = true;
-			}
-		}
-		return result;
-	}
-	CachedStatic& entry = staticCacheEntry(path);
-	if (entry.data.empty()) return {};
-	if (useGzip && !entry.gzipComputed) {
-		entry.gzipComputed = true;
-		if (auto compressed = gzip_compress(entry.data); compressed && compressed->size() < entry.data.size()) {
-			staticCacheBytes += compressed->size();
-			entry.gzipped = std::move(*compressed);
-		}
-	}
-	StaticContent result;
-	if (useGzip && !entry.gzipped.empty()) {
-		result.data = entry.gzipped;
-		result.gzipEncoded = true;
-	} else {
-		result.data = entry.data;
-	}
-	return result;
+static StaticContent loadStaticContent(const std::string& path, bool useGzip) {
+	// All access, including version inspection, is serialized on Content's worker.
+	static HttpPolicy::StaticCache cache;
+	auto file = SharedContent.getFullPath(path);
+	return cache.load(file, static_file_version(file), useGzip,
+		[&] { return SharedContent.loadUnsafe(file); }, gzip_compress);
 }
 
 constexpr size_t DynamicResponseCompressionThreshold = 1024;
@@ -1311,9 +1274,9 @@ bool HttpServer::start(int port) {
 			const bool compressible = is_compressible_content_type(contentType);
 			const bool useGzip = compressible && !find_header(request, "Range"_slice) && accepts_gzip(request);
 			auto pending = std::make_shared<PendingLogicResult<StaticContent>>();
-			SharedContent.getThread()->run([pending, file = decodedPath, useGzip, cacheable = decodedPath.rfind(SharedContent.getWritablePath(), 0) != 0]() {
+			SharedContent.getThread()->run([pending, file = decodedPath, useGzip]() {
 				if (pending->isCancelled()) return;
-				StaticContent result = loadStaticContent(file, useGzip, cacheable);
+				StaticContent result = loadStaticContent(file, useGzip);
 				if (!pending->isCancelled()) pending->complete(std::move(result));
 			});
 			auto content = pending->wait(self->_stopping, self->_generation, requestGeneration);
