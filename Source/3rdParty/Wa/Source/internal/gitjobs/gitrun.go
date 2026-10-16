@@ -80,12 +80,12 @@ type gitCommand struct {
 }
 
 func StartRun(repoPath, command, optionsJSON string) int64 {
-	repoPath = strings.TrimSpace(repoPath)
-	command = strings.TrimSpace(command)
-	if repoPath == "" {
+	// Paths and quoted arguments must retain their literal bytes. Trimming them
+	// after the caller validates a path can select a different symlink.
+	if strings.TrimSpace(repoPath) == "" {
 		return createRejectedJob(repoPath, "run", "repo path is required")
 	}
-	if command == "" {
+	if strings.TrimSpace(command) == "" {
 		return createRejectedJob(repoPath, "run", "git command is required")
 	}
 	var options runOptions
@@ -2393,9 +2393,7 @@ func firstNonEmpty(values ...string) string {
 }
 
 func cloneTargetPath(parentPath, url, dir string) (string, error) {
-	parentPath = strings.TrimSpace(parentPath)
-	dir = strings.TrimSpace(dir)
-	if parentPath == "" {
+	if strings.TrimSpace(parentPath) == "" {
 		return "", errors.New("clone parent path is required")
 	}
 	if dir == "" {
@@ -2411,7 +2409,6 @@ func cloneTargetPath(parentPath, url, dir string) (string, error) {
 }
 
 func repoNameFromURL(url string) string {
-	url = strings.TrimSpace(url)
 	url = strings.TrimRight(url, "/")
 	if url == "" {
 		return ""

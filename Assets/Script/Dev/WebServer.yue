@@ -177,7 +177,7 @@ gitShellSplit = (command) ->
 		if escape
 			current[] = ch
 			escape = false
-		elseif ch == "\\"
+		elseif ch == "\\" and quote ~= "'"
 			escape = true
 		elseif quote
 			if ch == quote
@@ -186,7 +186,7 @@ gitShellSplit = (command) ->
 				current[] = ch
 		elseif ch == "'" or ch == '"'
 			quote = ch
-		elseif ch\match "%s"
+		elseif ch == " " or ch == "\t" or ch == "\n" or ch == "\r"
 			if #current > 0
 				args[] = table.concat current
 				current = {}
@@ -220,31 +220,35 @@ gitSafeChildPath = (parentPath, childPath) ->
 
 gitCloneDirFromURL = (url) ->
 	return nil unless url and url ~= ""
-	text = tostring(url)\match "^%s*(.-)%s*$"
-	return nil if text == ""
-	text = text\gsub "[/\\]+$", ""
-	name = text\match "([^/:]+)$"
-	return nil unless name and name ~= ""
-	name = name\gsub "%.git$", ""
+	-- Match the backend's repoNameFromURL without changing literal whitespace.
+	text = tostring(url)\gsub "/+$", ""
+	text = text\match(".*:([^/]+)$") or text
+	name = Path\getFilename(text)\gsub "%.git$", ""
 	return nil if name == "" or name == "." or name == ".."
 	name
 
 gitCloneTargetPath = (repoPath, command) ->
 	args = gitShellSplit command
 	return nil unless args[1] == "clone"
-	url = args[2]
-	index = 3
+	url, target = nil, nil
+	index = 2
 	while index <= #args
 		arg = args[index]
 		if arg in ["-b", "--branch", "--depth"]
+			return nil unless args[index + 1]
 			index += 2
-		elseif arg\sub(1, 1) == "-"
-			index += 1
 		else
-			return gitSafeChildPath repoPath, arg
-	if dirName := gitCloneDirFromURL url
-		return gitSafeChildPath repoPath, dirName
-	nil
+			return nil if arg\sub(1, 1) == "-"
+			if not url
+				url = arg
+			elseif not target
+				target = arg
+			else
+				return nil
+			index += 1
+	return nil unless url
+	target or= gitCloneDirFromURL url
+	gitSafeChildPath repoPath, target
 
 gitPathInsideRepo = (repoPath, relPath) ->
 	return false unless repoPath and relPath and relPath ~= ""
