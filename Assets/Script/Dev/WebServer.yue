@@ -155,6 +155,14 @@ gitTerminalState = (status) ->
 	return false unless status and status.state
 	status.state in ["done", "error", "canceled"]
 
+GIT_JOB_TTL = 600
+
+gitPruneJobs = ->
+	time = os.time!
+	for id, job in pairs GitJobs
+		if gitTerminalState(job.status) and time - (job.updatedAt or time) > GIT_JOB_TTL
+			GitJobs[id] = nil
+
 gitInvalidRepoPath = (repoPath) ->
 	return true unless type(repoPath) == "string" and repoPath ~= ""
 	not Git\isRepoPathAllowed repoPath
@@ -337,6 +345,7 @@ gitApplyProfileToCommit = (command) ->
 	table.concat [gitQuote arg for arg in *args], " "
 
 gitStartJob = (repoPath, command, optionsJSON = nil) ->
+	gitPruneJobs!
 	return nil, "invalid repoPath" if gitInvalidRepoPath repoPath
 	return nil, "invalid command" unless command and command ~= ""
 	optionsJSON = "" unless optionsJSON
