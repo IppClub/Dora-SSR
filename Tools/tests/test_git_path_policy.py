@@ -19,11 +19,14 @@ int main(int argc, char** argv) {
  auto outside = temp / "outside";
  fs::create_directories(base / "nested");
  fs::create_directories(outside);
+ fs::create_directories(base / "deep" / "sub");
+ fs::create_directory_symlink(base / "deep" / "sub", base / "walk");
+ fs::create_directory_symlink(outside, base / "alias");
  auto allowed = [&](const fs::path& path) { return isWithin(path.string(), base.string()); };
  assert(allowed(base));
  assert(allowed(base / "nested"));
  assert(allowed(base / "new" / "repo"));
- assert(allowed(base / "nested" / ".." / "new"));
+ assert(!allowed(base / "nested" / ".." / "new"));
  assert(allowed(base.string() + "/"));
  assert(!allowed(outside));
  assert(!allowed(base.string() + "-sibling"));
@@ -39,12 +42,14 @@ int main(int argc, char** argv) {
  fs::create_directory_symlink(outside / "missing", base / "dangling");
  fs::create_directory_symlink(base, temp / "root-alias");
  assert(!allowed(base / "escape"));
+ assert(!allowed(base / "walk" / ".." / "alias"));
+ assert(!allowed(base / "." / "nested"));
  assert(!allowed(base / "escape" / "new"));
  assert(!allowed(base / "escape" / ".." / "outside"));
  assert(!allowed(base / "dangling"));
  assert(allowed(base / "inside" / "new"));
  assert(isWithin((base / "nested").string(), (temp / "root-alias").string()));
- std::cout << "Git path policy: 20 root, traversal, new-directory and symlink cases passed\n";
+ std::cout << "Git path policy: 22 root, traversal, new-directory and symlink cases passed\n";
 }
 '''
 with tempfile.TemporaryDirectory(prefix='dora-git-path-policy-') as temporary:

@@ -1,6 +1,6 @@
 -- 提供 Git 命令功能的记录。
 local record Git
-	-- 检查绝对路径解析后是否位于可写目录或资源目录内，包含现有符号链接的解析；允许尚未创建的子目录。
+	-- 检查不含 . 或 .. 分段的绝对路径解析后是否位于可写目录或资源目录内，包含现有符号链接的解析；允许尚未创建的子目录。
 	isRepoPathAllowed: function(self: Git, repoPath: string): boolean
 
 	enum JobState

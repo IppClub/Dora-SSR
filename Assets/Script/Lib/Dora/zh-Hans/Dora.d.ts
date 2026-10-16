@@ -9247,7 +9247,7 @@ type GitStatus = GitQueuedStatus | GitRunningStatus | GitErrorStatus | GitCancel
  * 一个提供 Git 命令功能的接口。
  */
 interface Git {
-	/** 检查绝对路径解析后是否位于可写目录或资源目录内，包含现有符号链接的解析；允许尚未创建的子目录。 */
+	/** 检查不含 . 或 .. 分段的绝对路径解析后是否位于可写目录或资源目录内，包含现有符号链接的解析；允许尚未创建的子目录。 */
 	isRepoPathAllowed(repoPath: string): boolean;
 	/**
 	 * 运行支持的 Git 命令，并自动轮询状态。

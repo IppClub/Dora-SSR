@@ -21,7 +21,12 @@ inline bool isWithin(const std::string& value, const std::string& root) try {
 	std::error_code error;
 	const fs::path candidate(value), base(root);
 	if (!candidate.is_absolute() || !base.is_absolute()) return false;
-	// Resolve before comparing: lexical normalization alone misses symlink/..
+	// Go's filesystem normalizes dot segments before opening a repository.
+	// Reject them so validation and execution cannot resolve different symlinks.
+	for (const auto& part : candidate) {
+		if (part == "." || part == "..") return false;
+	}
+	// Resolve before comparing: lexical normalization alone misses symlink
 	// escapes. weakly_canonical also supports clone/init into new directories.
 	const auto resolvedBase = fs::canonical(base, error);
 	if (error) return false;
