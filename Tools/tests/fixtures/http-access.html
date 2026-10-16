@@ -1,0 +1,57 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>HTTP access development acceptance</title>
+<style>body{font:18px system-ui;margin:3em;line-height:1.6}pre{white-space:pre-wrap}</style>
+<h1>HTTP / WebSocket development acceptance</h1>
+<pre id="result">Running…</pre>
+<script type="module">
+const lines=[];
+const result=document.querySelector('#result');
+const encoder=new TextEncoder();
+const hex=b=>Array.from(new Uint8Array(b),v=>v.toString(16).padStart(2,'0')).join('');
+const hash=async text=>hex(await crypto.subtle.digest('SHA-256',encoder.encode(text)));
+const mac=async text=>hex(await crypto.subtle.sign('HMAC',await crypto.subtle.importKey('raw',encoder.encode('qa-secret'),{name:'HMAC',hash:'SHA-256'},false,['sign']),encoder.encode(text)));
+async function headers(path,body='{}') {
+ const ts=String(Math.floor(Date.now()/1000)),nonce=crypto.randomUUID();
+ return {'Content-Type':'application/json','X-Dora-Session':'qa-session','X-Dora-Timestamp':ts,'X-Dora-Nonce':nonce,'X-Dora-Signature':await mac(['qa-session','POST',path,ts,nonce,await hash(body)].join('\n'))};
+}
+async function http(url,want,auth=false) {
+ const path=new URL(url,location.href).pathname.replace(/^\/__dora\/api/,'');
+ const res=await fetch(url,{method:'POST',headers:auth?await headers(path):{'Content-Type':'application/json'},body:'{}'});
+ if(res.status!==want)throw new Error(`${url}: expected ${want}, got ${res.status}`);
+ lines.push(`PASS HTTP ${auth?'signed':'unsigned'} ${url} → ${want}`);result.textContent=lines.join('\n');
+}
+async function ws(url,allowed,auth=false) {
+ if(auth) {
+  const ts=String(Math.floor(Date.now()/1000)),nonce=crypto.randomUUID();
+  const query=new URLSearchParams({nonce,session:'qa-session',ts}).toString();
+  url+='?'+query+'&sig='+await mac(['qa-session','GET','/?'+query,ts,nonce,''].join('\n'));
+ }
+ await new Promise((resolve,reject)=>{
+  const socket=new WebSocket(url);
+  const timer=setTimeout(()=>{socket.close();reject(new Error('WS timeout'));},5000);
+  socket.onopen=()=>{clearTimeout(timer);socket.close();allowed?resolve():reject(new Error('unsigned cross-origin WS accepted'));};
+  socket.onerror=()=>{clearTimeout(timer);allowed?reject(new Error('WS refused')):resolve();};
+ });
+ lines.push(`PASS WS ${auth?'signed':'unsigned'} ${allowed?'accepted':'rejected'}`);result.textContent=lines.join('\n');
+}
+try {
+ const proxy=location.port!=='8866';
+ await http(proxy?'/__dora/api/ping':'/ping',200);
+ await ws(proxy?`ws://${location.host}/__dora/ws`:'ws://127.0.0.1:8868/',true);
+ if(proxy) {
+  await http('http://127.0.0.1:8866/ping',401);
+  await http('http://127.0.0.1:8866/ping',200,true);
+  await ws('ws://127.0.0.1:8868/',false);
+  await ws('ws://127.0.0.1:8868/',true,true);
+ } else {
+  // The engine Origin is cross-origin relative to Vite; it must not be
+  // mistaken for local proxy traffic after forwarding back to the engine.
+  await http('http://127.0.0.1:18736/__dora/api/ping',401);
+  await http('http://127.0.0.1:18736/__dora/api/ping',200,true);
+  await ws('ws://127.0.0.1:18736/__dora/ws',false);
+  await ws('ws://127.0.0.1:18736/__dora/ws',true,true);
+ }
+ result.textContent+='\nALL PASSED';
+} catch(error) {result.textContent+='\nFAIL '+error.stack;}
+</script>

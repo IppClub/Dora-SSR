@@ -163,14 +163,11 @@ const LogView = memo((props: LogViewProps) => {
 			const res = await Service.saveLog();
 			if (res.success) {
 				const assetPath = res.path;
-				const x = new XMLHttpRequest();
-				x.open("GET", Service.addr("/" + assetPath), true);
-				x.responseType = 'text';
-				x.onload = function () {
-					Service.clearLog();
-					Service.addLog(x.response);
-				};
-				x.send();
+				const response = await fetch(Service.addr("/" + assetPath));
+				if (!response.ok) throw new Error(`Failed to reload log: ${response.status}`);
+				const log = await response.text();
+				Service.clearLog();
+				Service.addLog(log);
 			}
 		} catch (err) {
 			console.error(err);

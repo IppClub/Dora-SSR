@@ -62,16 +62,32 @@ inline std::optional<Authority> parseAuthority(std::string_view text, unsigned d
 	if (!normalized) return std::nullopt;
 	return Authority{std::move(*normalized), number};
 }
-// HTTP and WS listeners are plain HTTP. Trusted TLS terminators must validate
-// their external Origin before rewriting it, just like the development proxy.
-inline bool allowRequest(std::string_view host, const std::optional<std::string_view>& origin,
-	unsigned listenerPort, unsigned pagePort, const std::vector<std::string>& allowedHosts) {
+// A valid source may require authentication; it is not rejected just for being
+// cross-origin. Only an actual loopback peer using the loopback page origin can
+// bypass authentication. Missing Origin never establishes a browser origin.
+enum class Access { Denied, Authenticate, Local };
+inline bool needsAuthentication(Access access, bool publicRead, bool hasOrigin, std::string_view fetchSite) {
+	return access != Access::Local && (!publicRead || hasOrigin || fetchSite == "cross-site" || fetchSite == "same-site");
+}
+inline bool isLoopback(std::string_view host) {
+	if (host == "localhost" || host == "::1") return true;
+	unsigned char address[4];
+	return inet_pton(AF_INET, std::string(host).c_str(), address) == 1 && address[0] == 127;
+}
+inline Access access(std::string_view host, const std::optional<std::string_view>& origin,
+	unsigned listenerPort, unsigned pagePort, const std::vector<std::string>& allowedHosts,
+	bool loopbackPeer = false, std::string_view fetchSite = {}) {
 	auto target = parseAuthority(host);
-	if (!target || target->port != listenerPort || std::find(allowedHosts.begin(), allowedHosts.end(), target->host) == allowedHosts.end()) return false;
-	if (!origin) return true; // Non-browser clients still need the existing authentication.
+	if (!target || target->port != listenerPort || std::find(allowedHosts.begin(), allowedHosts.end(), target->host) == allowedHosts.end()) return Access::Denied;
+	if (!origin) return loopbackPeer && isLoopback(target->host) && fetchSite == "same-origin" ? Access::Local : Access::Authenticate;
 	auto scheme = origin->find("://");
-	if (scheme == std::string_view::npos || lowerAscii(origin->substr(0, scheme)) != "http") return false;
-	auto source = parseAuthority(origin->substr(scheme + 3));
-	return source && source->host == target->host && source->port == pagePort;
+	if (scheme == std::string_view::npos) return Access::Denied;
+	auto protocol = lowerAscii(origin->substr(0, scheme));
+	if (protocol != "http" && protocol != "https") return Access::Denied;
+	auto source = parseAuthority(origin->substr(scheme + 3), protocol == "https" ? 443 : 80);
+	if (!source) return Access::Denied;
+	return loopbackPeer && isLoopback(target->host) && protocol == "http"
+	 && source->host == target->host && source->port == pagePort && fetchSite != "cross-site"
+	 ? Access::Local : Access::Authenticate;
 }
 }

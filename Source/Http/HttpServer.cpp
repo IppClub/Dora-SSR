@@ -286,17 +286,20 @@ static std::vector<std::string> web_ide_hosts() {
 	return hosts;
 }
 
-static bool allow_web_request(const DoraXrtHttpHeaderView* headers, size_t count,
-	unsigned listenerPort, unsigned pagePort, const std::vector<std::string>& hosts) {
+static HttpPolicy::Access web_request_access(const DoraXrtHttpHeaderView* headers, size_t count,
+	unsigned listenerPort, unsigned pagePort, const std::vector<std::string>& hosts, bool loopbackPeer = false) {
 	std::string_view host;
 	std::optional<std::string_view> origin;
-	unsigned hostCount = 0, originCount = 0;
+	std::string_view fetchSite;
+	unsigned hostCount = 0, originCount = 0, fetchSiteCount = 0;
 	for (size_t i = 0; i < count; ++i) {
 		auto name = HttpPolicy::lowerAscii(headers[i].name);
 		if (name == "host") { host = headers[i].value; ++hostCount; }
 		else if (name == "origin") { origin = headers[i].value; ++originCount; }
+		else if (name == "sec-fetch-site") { fetchSite = headers[i].value; ++fetchSiteCount; }
 	}
-	return hostCount == 1 && originCount <= 1 && HttpPolicy::allowRequest(host, origin, listenerPort, pagePort, hosts);
+	return hostCount == 1 && originCount <= 1 && fetchSiteCount <= 1
+		? HttpPolicy::access(host, origin, listenerPort, pagePort, hosts, loopbackPeer, fetchSite) : HttpPolicy::Access::Denied;
 }
 
 class WebSocketServer {
@@ -354,9 +357,12 @@ public:
 	bool start(int port) {
 		_port = port;
 		DoraXrtWebSocketServerEvents events{};
-		events.onAuthorize = [](void* owner, DoraXrtWebSocketConnection*, const char* target, const DoraXrtHttpHeaderView* headers, size_t count) -> int {
+		events.onAuthorize = [](void* owner, DoraXrtWebSocketConnection* connection, const char* target, const DoraXrtHttpHeaderView* headers, size_t count) -> int {
 			auto self = r_cast<WebSocketServer*>(owner);
-			if (!self->_owner || !allow_web_request(headers, count, self->_port, self->_owner->_httpPort, self->_owner->_webAllowedHosts)) return 403;
+			if (!self->_owner) return 403;
+			auto access = web_request_access(headers, count, self->_port, self->_owner->_httpPort, self->_owner->_webAllowedHosts, DoraXrtWebSocketIsLoopback(connection));
+			if (access == HttpPolicy::Access::Denied) return 403;
+			if (access == HttpPolicy::Access::Local) return 0;
 			return self->_owner->isWebSocketAuthorized(target ? target : "/"s) ? 0 : 401;
 		};
 		events.onOpen = [](void* owner, DoraXrtWebSocketConnection* ws) {
@@ -606,8 +612,7 @@ private:
 };
 
 HttpServer::HttpServer()
-	: _authRequired(false)
-	, _authTokenHasExpiry(false)
+	: _authTokenHasExpiry(false)
 	, _staticCacheControl("no-cache") { }
 
 HttpServer::~HttpServer() {
@@ -703,24 +708,7 @@ const std::string& HttpServer::getAuthToken() const noexcept {
 	return _authToken;
 }
 
-void HttpServer::setAuthRequired(bool var) {
-	_authRequired = var;
-	if (!_authRequired) {
-		_authTokenHasExpiry = false;
-	} else if (!_authToken.empty()) {
-		_authTokenHasExpiry = true;
-		_authTokenExpiry = std::chrono::steady_clock::now() + std::chrono::seconds(AuthTokenTTLSeconds);
-	}
-}
-
-bool HttpServer::isAuthRequired() const noexcept {
-	return _authRequired;
-}
-
 bool HttpServer::isAuthorized(const Request& req) {
-	if (!_authRequired) {
-		return true;
-	}
 	if (_authToken.empty()) {
 		return false;
 	}
@@ -789,9 +777,6 @@ bool HttpServer::isAuthorized(const Request& req) {
 }
 
 bool HttpServer::isTokenValid(const std::string& token) {
-	if (!_authRequired) {
-		return true;
-	}
 	if (_authToken.empty()) {
 		return false;
 	}
@@ -814,9 +799,6 @@ bool HttpServer::isTokenValid(const std::string& token) {
 }
 
 bool HttpServer::isWebSocketAuthorized(const std::string& resource) {
-	if (!_authRequired) {
-		return true;
-	}
 	if (_authToken.empty()) {
 		return false;
 	}
@@ -1186,16 +1168,43 @@ bool HttpServer::start(int port) {
 	events.onRequest = [](void* owner, const DoraXrtHttpServerRequest* nativeRequest, DoraXrtHttpServerResponse* nativeResponse) -> int {
 		auto self = r_cast<HttpServer*>(owner);
 		const auto requestGeneration = self->_generation.load(std::memory_order_acquire);
-		if (!allow_web_request(nativeRequest->headers, nativeRequest->headerCount, self->_httpPort, self->_httpPort, self->_webAllowedHosts)) {
+		auto access = web_request_access(nativeRequest->headers, nativeRequest->headerCount, self->_httpPort, self->_httpPort, self->_webAllowedHosts, nativeRequest->loopbackPeer);
+		if (access == HttpPolicy::Access::Denied) {
 			set_response(nativeResponse, 403, R"({"success":false,"message":"request host or origin is not allowed"})"s, "application/json"s);
 			return true;
 		}
 		auto request = make_request(nativeRequest);
 		auto path = request.path.toString();
+		// Echo only the validated concrete Origin. Preflights contain no session;
+		// the actual request must still authenticate before reaching a handler.
+		auto origin = find_header(request, "Origin"_slice);
+		auto fetchSite = find_header(request, "Sec-Fetch-Site"_slice);
+		// GET APIs (notably synchronous compiler reads) are protected too.
+		// Only static navigation/bootstrap reads may be public without Origin.
+		const bool publicRead = (nativeRequest->method == DORA_XRT_HTTP_METHOD_GET || nativeRequest->method == DORA_XRT_HTTP_METHOD_HEAD)
+			&& std::none_of(self->_gets.begin(), self->_gets.end(), [&](const auto& route) { return route_matches(route.pattern, path); });
+		const bool authenticationRequired = HttpPolicy::needsAuthentication(access, publicRead,
+			origin.has_value(), fetchSite ? fetchSite->toString() : ""s);
+		DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site");
+		if (authenticationRequired) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Cache-Control", "no-store");
+		if (origin) {
+			auto value = origin->toString();
+			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Access-Control-Allow-Origin", value.c_str());
+			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Access-Control-Allow-Methods", "GET, HEAD, POST, OPTIONS");
+			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Access-Control-Allow-Headers", "Content-Type, Authorization, X-Dora-Auth, If-None-Match, Range, X-Dora-Session, X-Dora-Timestamp, X-Dora-Nonce, X-Dora-Signature");
+			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Access-Control-Expose-Headers", "ETag, Content-Range, Retry-After");
+		}
+		if (nativeRequest->method != DORA_XRT_HTTP_METHOD_OPTIONS
+			&& path != "/auth"sv && path != "/auth/confirm"sv
+			&& authenticationRequired
+			&& !self->isAuthorized(request)) {
+			set_unauthorized(nativeResponse);
+			return true;
+		}
 		const bool gzipAccepted = accepts_gzip(request);
 		auto respond = [&](HttpServer::Response&& response) {
 			auto prepared = prepare_dynamic_response(std::move(response), gzipAccepted);
-			if (prepared.varyAcceptEncoding) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Accept-Encoding");
+			if (prepared.varyAcceptEncoding) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site, Accept-Encoding");
 			if (prepared.gzipEncoded) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Encoding", "gzip");
 			set_response(nativeResponse, prepared.response.status > 0 ? prepared.response.status : 200, prepared.response.content, prepared.response.contentType);
 		};
@@ -1262,9 +1271,9 @@ bool HttpServer::start(int port) {
 			const auto etag = fmt::format("\"{:08x}-{}{}\"",
 				crc32(0, r_cast<const Bytef*>(content->data.data()), s_cast<uInt>(content->data.size())),
 				content->data.size(), content->gzipEncoded ? "-g"sv : ""sv);
-			auto cacheControl = self->getStaticCacheControl(requestPath);
+			auto cacheControl = authenticationRequired ? "no-store"s : self->getStaticCacheControl(requestPath);
 			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Type", contentType);
-			if (compressible) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Accept-Encoding");
+			if (compressible) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site, Accept-Encoding");
 			if (content->gzipEncoded) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Content-Encoding", "gzip");
 			if (!cacheControl.empty()) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Cache-Control", cacheControl.c_str());
 			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Accept-Ranges", "bytes");
@@ -1301,10 +1310,6 @@ bool HttpServer::start(int port) {
 			return true;
 		}
 		if (nativeRequest->method != DORA_XRT_HTTP_METHOD_POST) return false;
-		if (path != "/auth"sv && path != "/auth/confirm"sv && !self->isAuthorized(request)) {
-			set_unauthorized(nativeResponse);
-			return true;
-		}
 		for (const auto& route : self->_posts) {
 			if (!route_matches(route.pattern, path)) continue;
 			auto pending = std::make_shared<PendingLogicResult<HttpServer::Response>>();

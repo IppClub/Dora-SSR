@@ -59,37 +59,82 @@ For a reproducible runtime override, set `DORA_WEB_RUNTIME_LOCK` to an absolute 
 
 ### Web IDE origin protection and local development
 
-The engine validates HTTP and WebSocket handshake Host/Origin before dispatch.
-HTTP origins include scheme, host and effective port. WebSocket connections on
-8868 accept the IDE page's HTTP origin on 8866, then apply existing session
-authentication. CLI and server-side requests without Origin remain supported;
-authentication still applies. Opaque (`null`), malformed, duplicate and foreign
-origins are rejected. Responses do not advertise wildcard CORS access.
+The engine validates Host and parses Origin before dispatch. Authentication is
+fixed by the request source; there is no `authRequired` setting or script property.
 
-Allowed hosts are localhost, loopback and interface addresses at server startup.
-Arbitrary DNS names are rejected even when Origin and Host agree. For an explicit
-name such as `dora.local`, start the engine with `DORA_WEB_IDE_HOSTS=dora.local`
-(comma-separated exact names, no scheme or port). Restart the server after
-changing its interfaces or this setting. Mobile authentication defaults remain
-unchanged; origin validation does not authenticate native network clients.
+| Client | Protected HTTP APIs and WebSocket |
+| --- | --- |
+| Loopback peer, loopback Host and matching HTTP page Origin | No authentication |
+| HTTP page on 8866 connecting to WS on 8868 | Same policy as the page |
+| LAN device or configured domain, including same-origin pages | Authentication required |
+| Direct cross-origin HTTP(S) page, including another localhost port | Authentication required |
+| CLI/server-side client without Origin | Authentication required |
 
-Run the frontend with the usual `pnpm dev`. Development HTTP requests use
-`/__dora/api/…`, and WebSocket requests use `/__dora/ws`. Vite validates the
-original local page Host/Origin before proxying to fixed loopback engine ports;
-only then does it rewrite upstream Origin. Signatures cover the engine path,
-without the development prefix. The engine needs no production exception for
-port 3000. These paths are reserved; Vite's HMR socket remains separate.
+Browser requests without Origin can use the local exemption only with
+`Sec-Fetch-Site: same-origin` and a real loopback peer and Host. Public static
+GET/HEAD static navigation remains available without Origin; registered GET APIs
+(such as `/read-sync`) still require authentication for nonlocal clients. Cross-site and same-site
+subresource requests identified by Fetch Metadata still require authentication,
+even when the browser omits Origin. `/auth` and `/auth/confirm`
+remain public bootstrap endpoints; PIN/session approval still controls issuing a
+session. Opaque (`null`), malformed or duplicate origins and untrusted Hosts are
+rejected even with authentication. No forwarded header grants local access.
 
-A TLS reverse proxy must validate its external browser origin before rewriting
-Host/Origin to the upstream HTTP origin. The engine does not trust forwarded
-headers supplied by clients.
+For a valid concrete cross-origin request, CORS echoes that Origin, allows the
+session-signature headers and handles OPTIONS without authentication. The actual
+request, including cross-origin static GET/HEAD, must authenticate. Responses vary
+by Origin, and authenticated cross-origin responses use `Cache-Control: no-store`.
+WS upgrades require the existing session signature too. Local access remains
+available after remote sessions expire; cross-origin access does not bypass expiry
+or nonce replay protection.
+
+Allowed Hosts are localhost, loopback and interface addresses at startup.
+For an explicit DNS name, set `DORA_WEB_IDE_HOSTS=dora.local` (comma-separated exact
+names, no scheme or port) and restart. This allows the Host; it never exempts the
+client from authentication. The policy is identical on desktop and mobile.
+
+Run the frontend with `pnpm dev`. HTTP uses `/__dora/api/…`, and WebSocket uses
+`/__dora/ws`. Vite validates the original Host and concrete Origin before proxying to fixed
+loopback engine ports. Only local loopback clients get their validated Origin
+rewritten to the engine page Origin. LAN clients keep their original Origin and
+must authenticate; clients without Origin retain authenticated CLI semantics.
+Signatures cover the engine path without the development prefix. HMR is separate.
+
+A TLS reverse proxy must preserve the external browser Origin when forwarding to
+the engine, overwrite `Sec-Fetch-Site` with `cross-site` for remote clients, and
+must not turn remote traffic into local same-origin traffic by
+rewriting Origin to the loopback engine origin. The engine ignores client-supplied
+forwarded headers for authentication exemptions.
 
 Regression checks (from this directory):
 
 ```sh
 python3 ../../Tools/tests/test_http_origin.py
 python3 ../../Tools/tests/test_http_origin_wire.py
-node --test scripts/ide-dev-{proxy,proxy-wire,client}.test.mjs
+node --test scripts/ide-dev-{proxy,proxy-wire,client}.test.mjs scripts/auth-client-modes.test.mjs
 pnpm test:auth-reconnect
 pnpm test:websocket-lifecycle
 ```
+
+Native acceptance (graphical desktop, ports 8866/8868 free), from the repository root:
+
+```sh
+xmake build Dora
+python3 Tools/tests/test_http_access_native.py --engine build/macosx/arm64/debug/Dora.app/Contents/MacOS/Dora
+```
+
+This uses isolated assets and exercises real session signatures, preflights,
+static access, HTTP/WS replay rejection, loopback and LAN source checks, and
+asynchronous handlers. Add `--hold` to keep the fixture running for the browser
+page at `http://127.0.0.1:8866/browser.html`. Serve `Tools/tests/fixtures` with the
+Vite proxy on 18736 and open `/http-access.html` for browser CORS/WS verification.
+The fixture's known token is test data only and never enters the normal runtime.
+
+HTTP LAN pages use the shared synchronous SHA-256/HMAC implementation, so signing
+works without `crypto.subtle`. Synchronous compiler XHR reads attach the same
+session headers as fetch; log reloads use the authenticated fetch wrapper.
+To exercise these client paths in a real HTTP LAN browser, bundle the production
+fixture with `node scripts/build-http-client-fixture.mjs /absolute/path/client-auth.js`,
+serve that file alongside `Tools/tests/fixtures/http-access-lan.html` through Vite
+with the development proxy on 18736, and open the page using the machine LAN IP.
+Keep the isolated native fixture running with `--hold` during acceptance.

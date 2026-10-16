@@ -266,12 +266,18 @@ static int DoraXrtStringEqualNoCase(const char* left, const char* right) {
 	return *left == '\0' && *right == '\0';
 }
 
-static bool DoraXrtHttpServerOnRequest(
+static int DoraXrtStreamIsLoopback(xnetstream* stream) {
+ const xnetaddr* addr = xrtNetStreamRemoteAddr(stream);
+ return addr && ((addr->iFamily == AF_INET && addr->aAddr[0] == 127)
+  || (addr->iFamily == AF_INET6 && memcmp(addr->aAddr, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\1", 16) == 0));
+}
+
+static bool DoraXrtHttpServerHandleRequest(
 	ptr owner,
 	xhttpdserver* nativeServer,
 	xhttpdconn* connection,
 	const xhttpdrequest* nativeRequest,
-	xhttpdresponse* nativeResponse) {
+	xhttpdresponse* nativeResponse, int loopbackPeer) {
 	DoraXrtHttpServer* server = (DoraXrtHttpServer*)owner;
 	DoraXrtHttpHeaderView headers[XHTTPD_MAX_HEADERS];
 	DoraXrtHttpServerRequest request;
@@ -287,6 +293,7 @@ static bool DoraXrtHttpServerOnRequest(
 		headers[index].value = nativeRequest->arrHeaders[index].sValue;
 	}
 	memset(&request, 0, sizeof(request));
+	request.loopbackPeer = loopbackPeer;
 	request.method = (DoraXrtHttpMethod)nativeRequest->iMethod;
 	request.methodText = nativeRequest->sMethod;
 	request.target = nativeRequest->sTarget;
@@ -299,11 +306,18 @@ static bool DoraXrtHttpServerOnRequest(
 	return server->events.onRequest(server->userData, &request, &response) != 0;
 }
 
+static bool DoraXrtHttpServerOnRequest(ptr owner, xhttpdserver* server, xhttpdconn* connection,
+ const xhttpdrequest* request, xhttpdresponse* response) {
+ return DoraXrtHttpServerHandleRequest(owner, server, connection, request, response,
+  connection && DoraXrtStreamIsLoopback(connection->pStream));
+}
+
 /* Scheduled Lua handlers cannot block the shared network worker: a TS build
  * needs that worker to serve its own compiler assets and result requests. */
 typedef struct DoraXrtDeferredRequest {
 	DoraXrtHttpServer* server;
 	xhttpdrequest request;
+	int loopbackPeer;
 } DoraXrtDeferredRequest;
 
 static void DoraXrtDeferredRequestFree(DoraXrtDeferredRequest* task) {
@@ -327,7 +341,7 @@ static int32 DoraXrtDeferredRequestRun(ptr arg, xfuture_result* result) {
 	DoraXrtDeferredRequest* task = (DoraXrtDeferredRequest*)arg;
 	DoraXrtHttpServer* server = task->server;
 	xhttpdresponse* response = xrtHttpdResponseCreate();
-	if (response && !DoraXrtHttpServerOnRequest(server, NULL, NULL, &task->request, response)) {
+	if (response && !DoraXrtHttpServerHandleRequest(server, NULL, NULL, &task->request, response, task->loopbackPeer)) {
 		xrtHttpdResponseSetStatus(response, 404u, NULL);
 	}
 	result->pValue = response;
@@ -346,6 +360,7 @@ static xfuture* DoraXrtHttpServerOnRequestAsync(ptr owner, xhttpdserver* nativeS
 	if (request->iMethod != XHTTPD_METHOD_POST || !server->events.shouldDefer || !server->events.shouldDefer(server->userData, request->sPath)) return NULL;
 	task = (DoraXrtDeferredRequest*)calloc(1, sizeof(*task));
 	if (!task) return NULL;
+	task->loopbackPeer = connection && DoraXrtStreamIsLoopback(connection->pStream);
 	task->server = server;
 	task->request = *request;
 	for (index = 0; index < request->iHeaderCount; ++index) {
@@ -516,6 +531,11 @@ int DoraXrtMultipartForEachFile(const char* contentType, const void* body, size_
 		}
 	}
 	return 1;
+}
+
+int DoraXrtWebSocketIsLoopback(DoraXrtWebSocketConnection* connection) {
+ xwsconn* native = (xwsconn*)connection;
+ return native && DoraXrtStreamIsLoopback(native->pStream);
 }
 
 static uint32 DoraXrtWebSocketOnAuthorize(ptr owner, xwsserver* nativeServer, xwsconn* connection, const xcodechttp1msg* request) {

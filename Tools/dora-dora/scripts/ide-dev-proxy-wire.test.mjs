@@ -23,7 +23,7 @@ test('Vite validates HTTP/WS sources and preserves signed upstream targets', {ti
 		assert.equal(response.status,200);assert.equal(await response.text(),'ok');
 		assert.equal(received[0].url,'/read?x=1');assert.equal(received[0].headers.origin,'http://127.0.0.1:8866');assert.equal(received[0].headers['x-dora-signature'],'unchanged');
 		response=await fetch(`${origin}/__dora/api/auth`,{method:'POST',headers:{Origin:'http://evil.test'},body:'{}'});
-		assert.equal(response.status,403);assert.equal(received.length,1);
+		assert.equal(response.status,200);await response.text();assert.equal(received.length,2);assert.equal(received[1].headers.origin,'http://evil.test');
 		async function upgrade(source) {
 			return new Promise((resolve,reject)=>{
 				const socket=net.connect(port,'127.0.0.1',()=>socket.write(`GET /__dora/ws?session=a&sig=b HTTP/1.1\r\nHost: 127.0.0.1:${port}\r\nOrigin: ${source}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n`));
@@ -32,8 +32,8 @@ test('Vite validates HTTP/WS sources and preserves signed upstream targets', {ti
 			});
 		}
 		assert.match(await upgrade(origin),/^HTTP\/1.1 101 /);
-		assert.equal(received[1].url,'/?session=a&sig=b');assert.equal(received[1].headers.origin,'http://127.0.0.1:8866');
-		assert.match(await upgrade('http://evil.test'),/^HTTP\/1.1 403 /);assert.equal(received.length,2);
+		assert.equal(received[2].url,'/?session=a&sig=b');assert.equal(received[2].headers.origin,'http://127.0.0.1:8866');
+		assert.match(await upgrade('http://evil.test'),/^HTTP\/1.1 101 /);assert.equal(received.length,4);assert.equal(received[3].headers.origin,'http://evil.test');
 	} finally {
 		await vite.close();await new Promise(resolve=>backend.close(resolve));
 	}

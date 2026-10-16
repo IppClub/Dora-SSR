@@ -93,6 +93,7 @@ typedef struct DoraXrtHttpHeaderView {
 } DoraXrtHttpHeaderView;
 
 typedef struct DoraXrtHttpServerRequest {
+	int loopbackPeer;
 	DoraXrtHttpMethod method;
 	const char* methodText;
 	const char* target;
@@ -111,6 +112,8 @@ typedef struct DoraXrtHttpServerEvents {
 	DoraXrtHttpServerRequestHandler onRequest;
 	DoraXrtServerErrorHandler onError;
 } DoraXrtHttpServerEvents;
+
+int DoraXrtWebSocketIsLoopback(DoraXrtWebSocketConnection* connection);
 
 // Returns zero to accept, or an HTTP error status before upgrading.
 typedef int (*DoraXrtWebSocketAuthorizeHandler)(void* userData, DoraXrtWebSocketConnection* connection, const char* target, const DoraXrtHttpHeaderView* headers, size_t headerCount);
