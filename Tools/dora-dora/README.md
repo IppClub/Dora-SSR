@@ -72,7 +72,8 @@ fixed by the request source; there is no `authRequired` setting or script proper
 
 Browser requests without Origin can use the local exemption only with
 `Sec-Fetch-Site: same-origin` and a real loopback peer and Host. Public static
-GET/HEAD navigation remains available without Origin. Cross-site and same-site
+GET/HEAD static navigation remains available without Origin; registered GET APIs
+(such as `/read-sync`) still require authentication for nonlocal clients. Cross-site and same-site
 subresource requests identified by Fetch Metadata still require authentication,
 even when the browser omits Origin. `/auth` and `/auth/confirm`
 remain public bootstrap endpoints; PIN/session approval still controls issuing a

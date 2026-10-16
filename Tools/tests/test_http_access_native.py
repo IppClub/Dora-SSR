@@ -115,6 +115,8 @@ print('HTTP_ACCESS_NATIVE_READY')
             assert 'X-Dora-Signature' in preflight['Access-Control-Allow-Headers']
             call('/test.txt', body=None, origin=foreign, method='GET', want=401)
             call('/test.txt', body=None, origin=None, method='GET')
+            call('/read-sync', body=None, origin=None, method='GET', want=401)
+            call('/read-sync', body=None, origin=None, method='GET', headers={'Sec-Fetch-Site':'same-origin'})
             for site in ['cross-site', 'same-site']:
                 call('/test.txt', body=None, origin=None, method='GET', headers={'Sec-Fetch-Site':site}, want=401)
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as route:
@@ -122,6 +124,8 @@ print('HTTP_ACCESS_NATIVE_READY')
                 lan = route.getsockname()[0]
             if not lan.startswith('127.'):
                 call(origin=f'http://{lan}:8866', address=lan, want=401)
+                call('/read-sync', body=None, origin=None, method='GET', address=lan, want=401)
+                call('/read-sync', body=None, origin=None, method='GET', headers={'Sec-Fetch-Site':'same-origin'}, address=lan, want=401)
                 call(origin=local, headers={'Host':'127.0.0.1:8866'}, address=lan, want=401)
             call('/auth', body='{"token":"legacy-token"}', origin=foreign)
             call(origin=foreign, headers={'Authorization': 'Bearer legacy-token'})
@@ -137,6 +141,7 @@ print('HTTP_ACCESS_NATIVE_READY')
                 call(origin=origin, headers=hs, want=401)
                 ws(origin, authenticated=True)
             call('/deferred', origin=foreign, headers=signed('/deferred'))
+            call('/read-sync', body=None, origin=None, method='GET', headers=signed('/read-sync','',method='GET'))
             call(origin=foreign, headers=signed('/wrong'), want=401)
             stale = signed()
             stale['X-Dora-Timestamp'] = '1'

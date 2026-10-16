@@ -1179,8 +1179,11 @@ bool HttpServer::start(int port) {
 		// the actual request must still authenticate before reaching a handler.
 		auto origin = find_header(request, "Origin"_slice);
 		auto fetchSite = find_header(request, "Sec-Fetch-Site"_slice);
-		const bool authenticationRequired = HttpPolicy::needsAuthentication(access,
-			nativeRequest->method == DORA_XRT_HTTP_METHOD_GET || nativeRequest->method == DORA_XRT_HTTP_METHOD_HEAD,
+		// GET APIs (notably synchronous compiler reads) are protected too.
+		// Only static navigation/bootstrap reads may be public without Origin.
+		const bool publicRead = (nativeRequest->method == DORA_XRT_HTTP_METHOD_GET || nativeRequest->method == DORA_XRT_HTTP_METHOD_HEAD)
+			&& std::none_of(self->_gets.begin(), self->_gets.end(), [&](const auto& route) { return route_matches(route.pattern, path); });
+		const bool authenticationRequired = HttpPolicy::needsAuthentication(access, publicRead,
 			origin.has_value(), fetchSite ? fetchSite->toString() : ""s);
 		DoraXrtHttpServerResponseSetHeader(nativeResponse, "Vary", "Origin, Sec-Fetch-Site");
 		if (authenticationRequired) DoraXrtHttpServerResponseSetHeader(nativeResponse, "Cache-Control", "no-store");
