@@ -155,8 +155,19 @@ gitTerminalState = (status) ->
 	return false unless status and status.state
 	status.state in ["done", "error", "canceled"]
 
+isUnderPath = (path, root) ->
+	return false unless root and root ~= ""
+	return true if path == root
+	prefix = root\sub(-1) == "/" and root or (root .. "/")
+	path\sub(1, #prefix) == prefix
+
 gitInvalidRepoPath = (repoPath) ->
-	not repoPath or repoPath == "" or not Content\isAbsolutePath repoPath
+	return true if not repoPath or repoPath == "" or not Content\isAbsolutePath repoPath
+	normalized = repoPath\gsub("\\", "/")
+	for root in *{Content.writablePath, Content.assetPath}
+		continue unless root and root ~= ""
+		return false if isUnderPath(normalized, root\gsub("\\", "/"))
+	true
 
 gitShellSplit = (command) ->
 	args = {}
