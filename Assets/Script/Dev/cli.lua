@@ -492,7 +492,7 @@ end
 
 local function tryPostJson(options, path, data, timeout)
 	local body = json.encode(data or {})
-	local res = CLI.http("POST", baseUrl(options) .. path, {["Content-Type"] = "application/json"}, body, timeout or options.timeout)
+	local res = CLI.http("POST", baseUrl(options) .. path, {["Content-Type"] = "application/json", ["Sec-Fetch-Site"] = "same-origin"}, body, timeout or options.timeout)
 	if res.netStatus ~= 0 or res.statusCode < 200 or res.statusCode >= 400 then
 		return nil, ("Request failed: %s%s (network=%s, http=%d)"):format(baseUrl(options), path, res.netStatusName, res.statusCode)
 	end
@@ -1341,7 +1341,7 @@ local function uploadFile(options, file, targetPath)
 	local res = CLI.http(
 		"POST",
 		baseUrl(options) .. "/upload?path=" .. urlEncode(targetPath),
-		{["Content-Type"] = "multipart/form-data; boundary=" .. boundary},
+		{["Content-Type"] = "multipart/form-data; boundary=" .. boundary, ["Sec-Fetch-Site"] = "same-origin"},
 		body,
 		options.timeout)
 	if res.netStatus ~= 0 or res.statusCode < 200 or res.statusCode >= 400 then
