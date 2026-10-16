@@ -38,3 +38,7 @@ run(pnpmCmd, ["exec", "vite", "build"], { env: buildEnv });
 run(process.execPath, [path.join("scripts", "minify-javascript-codes.js")], { shell: false });
 run(process.execPath, [path.join("scripts", "version-heavy-assets.js")], { shell: false });
 run(process.execPath, [path.join("scripts", "sync-build-to-assets.js")], { shell: false });
+
+// Keep the Vite output usable by standard preview servers; distribution assets
+// store only gzip when it saves space. Dora negotiates/decompresses on demand.
+run(process.execPath, [path.join("scripts", "precompress-assets.mjs"), path.join("..", "..", "Assets", "www")], { shell: false });

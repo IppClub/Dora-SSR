@@ -21,6 +21,7 @@ Full production build pipeline for Dora Dora Web IDE. It will:
 1. Run `vite build`, including the YarnEditor page and assets
 2. Minify generated JavaScript helper outputs
 3. Copy the final `build` output to `../../Assets/www`
+4. Precompress worthwhile text, WASM and runtime data assets, keeping only gzip in the distribution directory. Dora serves these at their original URLs and decompresses on demand for identity/Range requests. `build` retains ordinary files for standard Vite preview/static hosting.
 
 The final `../../Assets/www` output is refreshed automatically.
 

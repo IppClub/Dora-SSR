@@ -80,11 +80,11 @@ jobs:
           python3 ../../Tools/tests/test_http_origin_wire.py
           node --test scripts/ide-dev-proxy.test.mjs scripts/ide-dev-proxy-wire.test.mjs scripts/ide-dev-client.test.mjs scripts/auth-client-modes.test.mjs
 
-      - name: Test static cache and streaming connection pool
+      - name: Test precompressed assets and streaming connection pool
         run: |
-          python3 ../../Tools/tests/test_http_static_cache.py
+          python3 ../../Tools/tests/test_http_precompressed.py
           python3 ../../Tools/tests/test_http_pool.py
-          node --test scripts/agent-stream-updates.test.mjs
+          node --test scripts/agent-stream-updates.test.mjs scripts/precompress-assets.test.mjs
 
       - name: Test HTTP logic responsiveness and request lifetime
         run: python3 ../../Tools/tests/test_http_pending.py

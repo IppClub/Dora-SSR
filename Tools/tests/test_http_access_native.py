@@ -4,20 +4,24 @@
 Requires a graphical desktop and unused ports 8866/8868. Assets are isolated.
 """
 import argparse
+import gzip
 import hashlib
 import hmac
 import http.client
 import json
 from pathlib import Path
 import socket
+import shutil
 import subprocess
 import tempfile
 import time
 import urllib.parse
 import uuid
+import zipfile
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--engine', required=True, type=Path)
+parser.add_argument('--web-assets', type=Path, help='Also verify the real gzip-only Web IDE distribution')
 parser.add_argument('--hold', action='store_true', help='Keep fixture alive for browser acceptance until Enter')
 args = parser.parse_args()
 engine = args.engine.resolve()
@@ -72,10 +76,22 @@ with tempfile.TemporaryDirectory(prefix='dora-native-access-') as temp:
     root = Path(temp)
     assets, www = root / 'Assets', root / 'www'
     (assets / 'Script').mkdir(parents=True)
-    www.mkdir()
+    if args.web_assets:
+        shutil.copytree(args.web_assets.resolve(), www)
+    else:
+        www.mkdir()
     (www / 'test.txt').write_text('native access fixture\n' * 100)
+    packed_source = b'console.log("gzip-only native fixture");\n' * 200
+    packed = gzip.compress(packed_source, mtime=0)
+    (www / 'only.js.gz').write_bytes(packed)
+    (www / 'only.data.gz').write_bytes(packed)
+    assert not (www / 'only.js').exists()
     (www / 'browser.html').write_text((Path(__file__).parent / 'fixtures/http-access.html').read_text())
+    mounted = root / 'gzip-assets.zip'
+    with zipfile.ZipFile(mounted, 'w', compression=zipfile.ZIP_STORED) as archive:
+        archive.writestr('zip-only.js.gz', packed)
     script = """local D = require('Dora')
+D.Content:insertSearchPath(1, MOUNTED)
 local H = D.HttpServer
 H.wwwPath = WWW
 H:post('/ping', function(req) return {success=true} end)
@@ -85,7 +101,7 @@ H:post('/auth', function(req) H.authToken = req.body.token or ''; return {succes
 H:post('/quit', function() D.thread(function() D.sleep(0.2); D.App:shutdown() end); return {success=true} end)
 assert(H:start(8866)); assert(H:startWS(8868))
 print('HTTP_ACCESS_NATIVE_READY')
-""".replace('WWW', json.dumps(str(www)))
+""".replace('WWW', json.dumps(str(www))).replace('MOUNTED', json.dumps(str(mounted)))
     (assets / 'Script/init.lua').write_text(script)
     with (root / 'engine.log').open('w') as log:
         proc = subprocess.Popen([str(engine), '--asset', str(assets)], stdout=log, stderr=subprocess.STDOUT)
@@ -115,6 +131,40 @@ print('HTTP_ACCESS_NATIVE_READY')
             assert 'X-Dora-Signature' in preflight['Access-Control-Allow-Headers']
             call('/test.txt', body=None, origin=foreign, method='GET', want=401)
             call('/test.txt', body=None, origin=None, method='GET')
+            if args.web_assets:
+                manifest = json.loads((www / 'precompressed-assets.json').read_text())
+                for name, expected in manifest['files'].items():
+                    assert not (www / name).exists(), name
+                    encoded, headers = call('/' + urllib.parse.quote(name, safe='/'), body=None, origin=None, method='GET', headers={'Accept-Encoding':'gzip'})
+                    assert headers['Content-Encoding'] == 'gzip', name
+                    assert len(encoded) == expected['gzipSize'] and hashlib.sha256(encoded).hexdigest() == expected['gzipSha256'], name
+                    decoded = gzip.decompress(encoded)
+                    assert len(decoded) == expected['size'] and hashlib.sha256(decoded).hexdigest() == expected['sha256'], name
+                index, _ = call('/', body=None, origin=None, method='GET', headers={'Accept-Encoding':'identity'})
+                assert hashlib.sha256(index).hexdigest() == manifest['files']['index.html']['sha256']
+                print(f"Actual Web IDE: {len(manifest['files'])} gzip-only assets served at their original URLs", flush=True)
+            data, headers = call('/zip-only.js', body=None, origin=None, method='GET', headers={'Accept-Encoding':'gzip'})
+            assert data == packed and headers['Content-Encoding'] == 'gzip'
+            data, headers = call('/zip-only.js', body=None, origin=None, method='GET', headers={'Accept-Encoding':'identity'})
+            assert data == packed_source and 'Content-Encoding' not in headers
+            # Distribution contains only gzip; logical URLs keep MIME and validators.
+            encoded, headers = call('/only.js', body=None, origin=None, method='GET', headers={'Accept-Encoding':'gzip'})
+            assert encoded == packed and gzip.decompress(encoded) == packed_source
+            assert headers['Content-Encoding'] == 'gzip' and 'javascript' in headers['Content-Type']
+            gzip_etag = headers['ETag']
+            identity, headers = call('/only.js', body=None, origin=None, method='GET', headers={'Accept-Encoding':'gzip;q=0'})
+            assert identity == packed_source and 'Content-Encoding' not in headers and headers['ETag'] != gzip_etag
+            part, headers = call('/only.js', body=None, origin=None, method='GET', headers={'Accept-Encoding':'gzip','Range':'bytes=2-9'}, want=206)
+            assert part == packed_source[2:10] and 'Content-Encoding' not in headers
+            assert headers['Content-Range'] == f'bytes 2-9/{len(packed_source)}'
+            empty, headers = call('/only.js', body=None, origin=None, method='HEAD', headers={'Accept-Encoding':'gzip'})
+            assert not empty and headers['Content-Length'] == str(len(packed)) and headers['Content-Encoding'] == 'gzip'
+            empty, headers = call('/only.js', body=None, origin=None, method='GET', headers={'Accept-Encoding':'gzip','If-None-Match':gzip_etag}, want=304)
+            assert not empty
+            data, headers = call('/only.data', body=None, origin=None, method='GET', headers={'Accept-Encoding':'gzip'})
+            assert data == packed and headers['Content-Type'] == 'application/octet-stream' and headers['Content-Encoding'] == 'gzip'
+            data, headers = call('/only.js', body=None, origin=None, method='GET')
+            assert data == packed_source and 'Content-Encoding' not in headers
             call('/read-sync', body=None, origin=None, method='GET', want=401)
             call('/read-sync', body=None, origin=None, method='GET', headers={'Sec-Fetch-Site':'same-origin'})
             for site in ['cross-site', 'same-site']:
