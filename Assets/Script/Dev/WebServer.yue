@@ -3039,14 +3039,27 @@ HttpServer\postSchedule "/git/commit-files", (req): invalidArguments ->
 thread ->
 	doraWeb = Path Content.assetPath, "www", "index.html"
 	doraReady = Path Content.appPath, ".www", "dora-ready"
-	if Content\exist doraWeb
+	if Content\exist(doraWeb) or Content\exist(doraWeb .. ".gz")
+		-- The distribution can contain gzip only. Compare stored bytes rather
+		-- than inflating resources just to decide whether the copy is current.
+		storedAsset = (file) ->
+			if Content\exist file
+				Content\load file
+			elseif Content\exist file .. ".gz"
+				Content\load file .. ".gz"
+			else ""
 		heavyAssets = Path Content.assetPath, "www", "heavy-assets.json"
-		heavyAssetsContent = if Content\exist heavyAssets then Content\load heavyAssets else ""
 		runtimeIndex = Path Content.assetPath, "www", "web-player", "runtime.json"
-		runtimeIndexContent = if Content\exist runtimeIndex then Content\load runtimeIndex else ""
 		compilerIndex = Path Content.assetPath, "www", "compiler.html"
-		compilerIndexContent = if Content\exist compilerIndex then Content\load compilerIndex else ""
-		readyContent = App.version .. "\n" .. Content\load(doraWeb) .. "\n" .. heavyAssetsContent .. "\n" .. runtimeIndexContent .. "\n" .. compilerIndexContent
+		manifest = Path Content.assetPath, "www", "precompressed-assets.json"
+		readyContent = table.concat {
+			App.version
+			storedAsset doraWeb
+			storedAsset heavyAssets
+			storedAsset runtimeIndex
+			storedAsset compilerIndex
+			storedAsset manifest
+		}, "\n"
 		needReload = if Content\exist doraReady
 			readyContent ~= Content\load doraReady
 		else true

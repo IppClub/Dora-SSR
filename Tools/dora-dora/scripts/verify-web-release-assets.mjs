@@ -1,18 +1,20 @@
 import {createHash} from 'node:crypto';
-import {readFile, stat} from 'node:fs/promises';
+import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {runtimeSourceState} from './web-runtime-source.mjs';
+import {verifyPrecompressedAssets, readAsset} from './precompress-assets.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const webRoot = path.resolve(process.argv[2] || path.join(root, 'Assets/www'));
 const playerRoot = path.join(webRoot, 'web-player');
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
-const loadJson = async file => JSON.parse(await readFile(file, 'utf8'));
+const loadBytes = file => readAsset(webRoot, path.relative(webRoot, file).split(path.sep).join('/'));
+const loadJson = async file => JSON.parse((await loadBytes(file)).toString('utf8'));
 
 for (const name of ['index.html', 'heavy-assets.json']) {
-	const info = await stat(path.join(webRoot, name));
-	if (!info.isFile() || info.size === 0) throw new Error(`Missing Web IDE asset: ${name}`);
+	const bytes = await loadBytes(path.join(webRoot, name));
+	if (bytes.length === 0) throw new Error(`Missing Web IDE asset: ${name}`);
 }
 
 const metadata = await loadJson(path.join(playerRoot, 'runtime.json'));
@@ -44,7 +46,7 @@ for (const name of required) {
 	if (!expected || !Number.isSafeInteger(expected.size) || !/^[0-9a-f]{64}$/.test(expected.sha256)) {
 		throw new Error(`Missing Web export runtime metadata: ${name}`);
 	}
-	const bytes = await readFile(path.join(playerRoot, name));
+	const bytes = await loadBytes(path.join(playerRoot, name));
 	if (bytes.length !== expected.size || digest(bytes) !== expected.sha256) {
 		throw new Error(`Web export runtime checksum mismatch: ${name}`);
 	}
@@ -61,4 +63,5 @@ if (metadata.engineVersion !== sourceVersion) {
 	throw new Error(`Web runtime engine version ${metadata.engineVersion} does not match source ${sourceVersion}`);
 }
 
-console.log(`Verified Web release assets for Dora SSR ${metadata.engineVersion} at ${metadata.sourceCommit.slice(0, 12)}${metadata.sourceDirty ? ' (dirty)' : ''}: ${required.length} runtime files`);
+const compressedFiles = await verifyPrecompressedAssets(webRoot);
+console.log(`Verified Web release assets for Dora SSR ${metadata.engineVersion} at ${metadata.sourceCommit.slice(0, 12)}${metadata.sourceDirty ? ' (dirty)' : ''}: ${required.length} runtime files, ${compressedFiles} gzip companions`);

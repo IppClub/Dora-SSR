@@ -7455,59 +7455,59 @@ end) -- 3030
 thread(function() -- 3039
 	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 3040
 	local doraReady = Path(Content.appPath, ".www", "dora-ready") -- 3041
-	if Content:exist(doraWeb) then -- 3042
-		local heavyAssets = Path(Content.assetPath, "www", "heavy-assets.json") -- 3043
-		local heavyAssetsContent -- 3044
-		if Content:exist(heavyAssets) then -- 3044
-			heavyAssetsContent = Content:load(heavyAssets) -- 3044
-		else -- 3044
-			heavyAssetsContent = "" -- 3044
-		end -- 3044
-		local runtimeIndex = Path(Content.assetPath, "www", "web-player", "runtime.json") -- 3045
-		local runtimeIndexContent -- 3046
-		if Content:exist(runtimeIndex) then -- 3046
-			runtimeIndexContent = Content:load(runtimeIndex) -- 3046
-		else -- 3046
-			runtimeIndexContent = "" -- 3046
-		end -- 3046
-		local compilerIndex = Path(Content.assetPath, "www", "compiler.html") -- 3047
-		local compilerIndexContent -- 3048
-		if Content:exist(compilerIndex) then -- 3048
-			compilerIndexContent = Content:load(compilerIndex) -- 3048
-		else -- 3048
-			compilerIndexContent = "" -- 3048
-		end -- 3048
-		local readyContent = App.version .. "\n" .. Content:load(doraWeb) .. "\n" .. heavyAssetsContent .. "\n" .. runtimeIndexContent .. "\n" .. compilerIndexContent -- 3049
-		local needReload -- 3050
-		if Content:exist(doraReady) then -- 3050
-			needReload = readyContent ~= Content:load(doraReady) -- 3051
-		else -- 3052
-			needReload = true -- 3052
-		end -- 3050
-		if needReload then -- 3053
-			Content:remove(Path(Content.appPath, ".www")) -- 3054
-			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 3055
-			Content:save(doraReady, readyContent) -- 3059
-			print("Dora Dora is ready!") -- 3060
-		end -- 3053
+	if Content:exist(doraWeb) or Content:exist(doraWeb .. ".gz") then -- 3042
+		local storedAsset -- 3045
+		storedAsset = function(file) -- 3045
+			if Content:exist(file) then -- 3046
+				return Content:load(file) -- 3047
+			elseif Content:exist(file .. ".gz") then -- 3048
+				return Content:load(file .. ".gz") -- 3049
+			else -- 3050
+				return "" -- 3050
+			end -- 3046
+		end -- 3045
+		local heavyAssets = Path(Content.assetPath, "www", "heavy-assets.json") -- 3051
+		local runtimeIndex = Path(Content.assetPath, "www", "web-player", "runtime.json") -- 3052
+		local compilerIndex = Path(Content.assetPath, "www", "compiler.html") -- 3053
+		local manifest = Path(Content.assetPath, "www", "precompressed-assets.json") -- 3054
+		local readyContent = table.concat({ -- 3056
+			App.version, -- 3056
+			storedAsset(doraWeb), -- 3057
+			storedAsset(heavyAssets), -- 3058
+			storedAsset(runtimeIndex), -- 3059
+			storedAsset(compilerIndex), -- 3060
+			storedAsset(manifest) -- 3061
+		}, "\n") -- 3055
+		local needReload -- 3063
+		if Content:exist(doraReady) then -- 3063
+			needReload = readyContent ~= Content:load(doraReady) -- 3064
+		else -- 3065
+			needReload = true -- 3065
+		end -- 3063
+		if needReload then -- 3066
+			Content:remove(Path(Content.appPath, ".www")) -- 3067
+			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 3068
+			Content:save(doraReady, readyContent) -- 3072
+			print("Dora Dora is ready!") -- 3073
+		end -- 3066
 	end -- 3042
-	if App.platform == "Emscripten" then -- 3061
-		status.url = nil -- 3062
-		return print("HttpServer is unavailable in the browser; use the hosting web server.") -- 3063
-	end -- 3061
-	HttpServer:clearStaticCacheControls() -- 3064
-	HttpServer:setStaticCacheControl("no-cache") -- 3065
-	HttpServer:addStaticCacheControl("^/((assets|monacoeditorwork)/.*|typescript)-[A-Za-z0-9_-]{8,}[.][^/]+$", "public, max-age=31536000, immutable") -- 3066
-	if HttpServer:start(8866) then -- 3070
-		local localIP = HttpServer.localIP -- 3071
-		if localIP == "" then -- 3072
-			localIP = "localhost" -- 3072
-		end -- 3072
-		status.url = "http://" .. tostring(localIP) .. ":8866" -- 3073
-		return HttpServer:startWS(8868) -- 3074
-	else -- 3076
-		status.url = nil -- 3076
-		return print("8866 Port not available!") -- 3077
-	end -- 3070
+	if App.platform == "Emscripten" then -- 3074
+		status.url = nil -- 3075
+		return print("HttpServer is unavailable in the browser; use the hosting web server.") -- 3076
+	end -- 3074
+	HttpServer:clearStaticCacheControls() -- 3077
+	HttpServer:setStaticCacheControl("no-cache") -- 3078
+	HttpServer:addStaticCacheControl("^/((assets|monacoeditorwork)/.*|typescript)-[A-Za-z0-9_-]{8,}[.][^/]+$", "public, max-age=31536000, immutable") -- 3079
+	if HttpServer:start(8866) then -- 3083
+		local localIP = HttpServer.localIP -- 3084
+		if localIP == "" then -- 3085
+			localIP = "localhost" -- 3085
+		end -- 3085
+		status.url = "http://" .. tostring(localIP) .. ":8866" -- 3086
+		return HttpServer:startWS(8868) -- 3087
+	else -- 3089
+		status.url = nil -- 3089
+		return print("8866 Port not available!") -- 3090
+	end -- 3083
 end) -- 3039
 return _module_0 -- 1

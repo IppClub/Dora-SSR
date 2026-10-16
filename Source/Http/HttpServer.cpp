@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Http/HttpServer.h"
 #include "Http/HttpOriginPolicy.h"
 #include "Http/HttpValidators.h"
+#include "Http/HttpStaticContent.h"
 
 #include "Http/XrtNetwork.h"
 
@@ -989,7 +990,8 @@ static bool is_compressible_content_type(std::string_view contentType) {
 		|| mimeType == "application/rss+xml"sv
 		|| mimeType == "application/atom+xml"sv
 		|| mimeType == "application/xslt+xml"sv
-		|| mimeType == "application/protobuf"sv;
+		|| mimeType == "application/protobuf"sv
+		|| mimeType == "application/wasm"sv;
 }
 
 static std::string_view trim_http_token(std::string_view value) {
@@ -1075,10 +1077,32 @@ static std::optional<std::string> gzip_compress(std::string_view content) {
 	return compressed;
 }
 
-struct StaticContent {
-	std::string data;
-	bool gzipEncoded = false;
-};
+using StaticContent = HttpPolicy::StaticContent;
+
+// Resolve the original once so a companion cannot come from another Content
+// search path. Content handles disk files, ZIP mounts and Android APK assets.
+static StaticContent loadStaticContent(const std::string& path, bool useGzip) {
+	if (!SharedContent.exist(path)) {
+		auto companion = SharedContent.getFullPath(path + ".gz");
+		auto packed = SharedContent.loadUnsafe(companion);
+		if (useGzip && HttpPolicy::isPrecompressedGzip(packed)) return {std::move(packed), true};
+		if (auto data = HttpPolicy::decodePrecompressedGzip(packed)) return {std::move(*data), false};
+		return {};
+	}
+	auto file = SharedContent.getFullPath(path);
+	auto data = SharedContent.loadUnsafe(file);
+	if (!useGzip || data.empty()) return {std::move(data), false};
+	auto companion = file + ".gz";
+	if (SharedContent.exist(companion)) {
+		auto packed = SharedContent.loadUnsafe(companion);
+		if (HttpPolicy::matchesPrecompressedGzip(data, packed)) return {std::move(packed), true};
+	}
+	// Custom/development assets need no build step. Retain the existing gzip
+	// fallback, without keeping either representation alive between requests.
+	if (auto packed = gzip_compress(data); packed && packed->size() < data.size())
+		return {std::move(*packed), true};
+	return {std::move(data), false};
+}
 
 constexpr size_t DynamicResponseCompressionThreshold = 1024;
 
@@ -1235,31 +1259,27 @@ bool HttpServer::start(int port) {
 			if (decodedPath.back() == '/') decodedPath += "index.html";
 			auto requestPath = decodedPath;
 			decodedPath.erase(decodedPath.begin());
-			if (!SharedContent.exist(decodedPath)) {
+			auto exists = [](const std::string& file) { return SharedContent.exist(file) || SharedContent.exist(file + ".gz"); };
+			if (!exists(decodedPath)) {
 				bool found = false;
 				if (!self->_wwwPath.empty()) {
 					auto checkPath = Path::concat({self->_wwwPath, decodedPath});
-					if (SharedContent.exist(checkPath)) { decodedPath = checkPath; found = true; }
+					if (exists(checkPath)) { decodedPath = checkPath; found = true; }
 				}
 				if (!found) {
 					auto checkPath = Path::concat({SharedContent.getWritablePath(), decodedPath});
-					if (SharedContent.exist(checkPath)) { decodedPath = checkPath; found = true; }
+					if (exists(checkPath)) { decodedPath = checkPath; found = true; }
 				}
 				if (!found) return false;
 			}
 			const auto* contentType = content_type_for_path(decodedPath);
-			const bool compressible = is_compressible_content_type(contentType);
+			const bool compressible = is_compressible_content_type(contentType)
+				|| !SharedContent.exist(decodedPath);
 			const bool useGzip = compressible && !find_header(request, "Range"_slice) && accepts_gzip(request);
 			auto pending = std::make_shared<PendingLogicResult<StaticContent>>();
 			SharedContent.getThread()->run([pending, file = decodedPath, useGzip]() {
 				if (pending->isCancelled()) return;
-				StaticContent result{SharedContent.loadUnsafe(file)};
-				if (useGzip && !result.data.empty()) {
-					if (auto compressed = gzip_compress(result.data); compressed && compressed->size() < result.data.size()) {
-						result.data = std::move(*compressed);
-						result.gzipEncoded = true;
-					}
-				}
+				StaticContent result = loadStaticContent(file, useGzip);
 				if (!pending->isCancelled()) pending->complete(std::move(result));
 			});
 			auto content = pending->wait(self->_stopping, self->_generation, requestGeneration);

@@ -6,6 +6,11 @@ on:
     paths:
       - '.github/workflows/ui.yml'
       - 'Tools/dora-dora/**'
+      - 'Tools/tests/test_http_*.py'
+      - 'Tools/tests/test_agent_stream_updates.lua'
+      - 'Tools/tests/test_web_asset_bootstrap.lua'
+      - 'Assets/Script/Dev/WebServer.*'
+      - 'Assets/Script/Lib/Agent/**'
       - 'Studio/**'
       - 'Studio/packages/agent-ui/**'
       - 'Studio/packages/compiler/**'
@@ -19,6 +24,11 @@ on:
     paths:
       - '.github/workflows/ui.yml'
       - 'Tools/dora-dora/**'
+      - 'Tools/tests/test_http_*.py'
+      - 'Tools/tests/test_agent_stream_updates.lua'
+      - 'Tools/tests/test_web_asset_bootstrap.lua'
+      - 'Assets/Script/Dev/WebServer.*'
+      - 'Assets/Script/Lib/Agent/**'
       - 'Studio/**'
       - 'Studio/packages/agent-ui/**'
       - 'Studio/packages/compiler/**'
@@ -74,6 +84,12 @@ jobs:
           python3 ../../Tools/tests/test_http_origin_wire.py
           node --test scripts/ide-dev-proxy.test.mjs scripts/ide-dev-proxy-wire.test.mjs scripts/ide-dev-client.test.mjs scripts/auth-client-modes.test.mjs
 
+      - name: Test precompressed assets and streaming connection pool
+        run: |
+          python3 ../../Tools/tests/test_http_precompressed.py
+          python3 ../../Tools/tests/test_http_pool.py
+          node --test scripts/agent-stream-updates.test.mjs scripts/precompress-assets.test.mjs
+
       - name: Test HTTP logic responsiveness and request lifetime
         run: python3 ../../Tools/tests/test_http_pending.py
 
@@ -82,6 +98,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y lua5.4
           xmake dora-test -P ../..
+          lua ../../Tools/tests/test_agent_stream_updates.lua ../..
+          lua ../../Tools/tests/test_web_asset_bootstrap.lua ../..
           pnpm test:auth-reconnect
           pnpm test:native-ide-run
           pnpm test:websocket-lifecycle
