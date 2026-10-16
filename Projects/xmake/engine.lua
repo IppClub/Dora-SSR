@@ -95,6 +95,9 @@ target("Dora")
 
     if is_plat("macosx") then
         add_rules("xcode.application")
+        before_build(function (target)
+            import("Projects.xmake.tools.macos_bundle", {rootdir = DORA_ROOT})(target)
+        end)
         set_values("xcode.bundle_identifier", "IppClub.DoraSSR")
         set_toolchains("xcode", {target_minver = "12.0"})
         add_files(rootpath("Projects/macOS/Dora/Info.plist"), rootpath("Projects/macOS/Dora/Assets.xcassets"))
