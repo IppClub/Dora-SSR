@@ -54,6 +54,10 @@ public:
 	static int execUnsafe(SQLite::Database* db, String sql, const std::deque<std::vector<Own<Value>>>& rows);
 	static bool existDBUnsafe(SQLite::Database* db, String name);
 	void stop();
+#if !BX_PLATFORM_EMSCRIPTEN
+	// Does not initialize DB, and remains safe after its worker is destroyed.
+	static void stopForShutdown();
+#endif
 
 protected:
 	DB();
@@ -63,7 +67,7 @@ private:
 	std::string getMainPath() const;
 	Own<SQLite::Database> _database;
 	std::string _openError;
-	Async* _thread;
+	Own<Async> _thread;
 	SINGLETON_REF(DB, Application);
 };
 
