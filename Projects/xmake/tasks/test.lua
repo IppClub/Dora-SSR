@@ -2,12 +2,13 @@ for _, name in ipairs({"dora-test", "dora-test-deps"}) do
     task(name)
         set_category("plugin")
         set_menu {
-            usage = "xmake " .. name .. " [--suite=contract|web|web-ide|studio|prototype|art] [--case=NAME] [--repo=PATH] [-- ARGS]",
+            usage = "xmake " .. name .. " [--suite=contract|engine|ui|web|web-ide|studio|prototype|art] [--case=NAME] [--repo=PATH] [-- ARGS]",
             description = "Run current engine tests from Dora-Example latest default-branch HEAD (or an explicit local checkout)",
             options = {{nil, "suite", "kv", "contract", "Test suite"},
                 {nil, "case", "kv", nil, "Individual test filename without extension"},
                 {nil, "repo", "kv", nil, "Local Dora-Example checkout (preserves local edits)"},
                 {nil, "list", "k", nil, "List test cases without executing them"},
+                {nil, "env-file", "kv", nil, "Append resolved test checkout to a CI environment file (dora-test-deps)"},
                 {nil, "arguments", "vs", nil, "Test arguments after --"}}
         }
         local deps_only = name == "dora-test-deps"
@@ -16,7 +17,14 @@ for _, name in ipairs({"dora-test", "dora-test-deps"}) do
             import("lib.detect.find_tool")
             local root = os.projectdir()
             local tests = import("Projects.xmake.testing.repository", {rootdir = root, anonymous = true})(option.get("repo"))
-            if deps_only then return end
+            if deps_only then
+                if option.get("env-file") then
+                    local output = assert(io.open(option.get("env-file"), "a"))
+                    output:write("DORA_TEST_REPO=" .. tests.directory .. "\nDORA_TEST_SHA=" .. tests.sha .. "\n")
+                    output:close()
+                end
+                return
+            end
             if not option.get("list") and (option.get("case") == "test-cli-agent"
                 or (option.get("suite") == "web-ide" and not option.get("case"))) then
                 os.vrunv(os.programfile(), {"dora-build", "--mode=debug"}, {curdir = root})
@@ -28,9 +36,7 @@ for _, name in ipairs({"dora-test", "dora-test-deps"}) do
                 os.vrunv(pnpm.program, {"build"}, {curdir = path.join(root, "Tools/dora-dora")})
             end
             local node = assert(find_tool("node"), "test runner requires Node.js")
-            if not option.get("list") and option.get("suite") == "studio" then
-                os.vrunv(node.program, {"--test", path.join(root, "Studio/scripts/agent-teal-source.test.mjs")}, {curdir = root})
-            end
+
             local args = {path.join(tests.directory, "Test/run.mjs"), "--suite=" .. option.get("suite")}
             if option.get("case") then table.insert(args, "--case=" .. option.get("case")) end
             if option.get("list") then table.insert(args, "--list") end

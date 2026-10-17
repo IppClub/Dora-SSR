@@ -1,0 +1,86 @@
+name: Engine Tests
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/**'
+      - 'Source/**'
+      - 'Tools/dora-wa/**'
+      - 'Tools/dora-rust/**'
+      - 'Assets/Script/**'
+      - 'Tools/tolua\+\+/**'
+      - 'Tools/dora-dora/package.json'
+      - 'Tools/dora-dora/scripts/**'
+      - 'Docs/package.json'
+      - 'Docs/scripts/**'
+      - 'Projects/Web/**'
+      - 'Projects/xmake/**'
+      - 'xmake.lua'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/**'
+      - 'Source/**'
+      - 'Tools/dora-wa/**'
+      - 'Tools/dora-rust/**'
+      - 'Assets/Script/**'
+      - 'Tools/tolua\+\+/**'
+      - 'Tools/dora-dora/package.json'
+      - 'Tools/dora-dora/scripts/**'
+      - 'Docs/package.json'
+      - 'Docs/scripts/**'
+      - 'Projects/Web/**'
+      - 'Projects/xmake/**'
+      - 'xmake.lua'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regressions:
+    runs-on: ubuntu-latest
+    env:
+      DORA_LUA: lua5.4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+      - name: Setup xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+      - name: Install native test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential zlib1g-dev lua5.4
+      - name: Resolve Dora-Example tests once
+        working-directory: .
+        run: xmake dora-test-deps --env-file="$GITHUB_ENV"
+      - name: Test engine contracts
+        run: xmake dora-test --suite=contract
+      - name: Test native networking, shutdown and Lua services
+        run: xmake dora-test --suite=engine
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-test-results
+          path: build/test-results/*.json
+          if-no-files-found: ignore
+
+  git-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache-dependency-path: Source/3rdParty/Wa/Source/go.sum
+      - name: Test literal Git paths in native backend
+        working-directory: Source/3rdParty/Wa/Source
+        run: go test -mod=vendor ./internal/gitjobs

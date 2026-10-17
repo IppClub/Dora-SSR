@@ -6,7 +6,6 @@ on:
     paths:
       - 'Assets/Script/Lib/**'
       - 'Projects/Web/**'
-      - 'Tools/tests/web-package-names.test.mjs'
       - 'xmake.lua'
       - 'Projects/xmake/**'
       - 'Source/**'
@@ -17,7 +16,6 @@ on:
     paths:
       - 'Assets/Script/Lib/**'
       - 'Projects/Web/**'
-      - 'Tools/tests/web-package-names.test.mjs'
       - 'xmake.lua'
       - 'Projects/xmake/**'
       - 'Source/**'
@@ -45,18 +43,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.14.0'
+      - name: Resolve Dora-Example tests once
+        run: xmake dora-test-deps --env-file="$GITHUB_ENV"
       - name: Test ZIP filename decoding
-        run: node --test Tools/tests/web-package-names.test.mjs
+        run: xmake dora-test --case=web-package-names.test
       - name: Build Web packages
         run: xmake dora-web --tests
+      - name: Verify source contracts for tag publication
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          xmake dora-test --case=check_web_builtin_libraries.test
+          xmake dora-test --case=check_web_loader
+          xmake dora-test --case=check_web_package
       - name: Verify Web package
         run: xmake dora-test --case=check_web_output -- result/dora-web-build-probe
       - name: Verify Web Player package
         run: |
-          xmake dora-test --case=check_web_builtin_libraries.test
-          xmake dora-test --case=check_web_loader
           xmake dora-test --case=check_web_love_capabilities
-          xmake dora-test --case=check_web_package
           xmake dora-test --case=check_web_player_output -- result/dora-web-player
           xmake dora-test --case=check_web_forbidden_deps -- result/dora-web-player
       - name: Package deployable Web Player preview

@@ -63,12 +63,12 @@ jobs:
           node-version: '22.14.0'
           cache: 'pnpm'
           cache-dependency-path: 'Docs/pnpm-lock.yaml'
+      - name: Resolve Dora-Example tests once
+        run: xmake dora-test-deps --env-file="$GITHUB_ENV"
       - name: Build shared Web Player and all latest demos
         run: |
-          xmake dora-test --case=test_web_gallery
           xmake dora-gallery
           xmake dora-test --case=test_web_audio_worklet -- build/web
-          xmake dora-test --case=test_web_audio_state
           xmake dora-test --case=check_web_gallery -- Docs/static/play build/Dora-Demo
       - name: Build docs
         run: |

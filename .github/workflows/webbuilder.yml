@@ -20,4 +20,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: python3 -m unittest discover -s Tools/WebBuilder -v
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+      - name: Resolve Dora-Example tests once
+        run: xmake dora-test-deps --env-file="$GITHUB_ENV"
+      - name: Test WebBuilder from Dora-Example
+        run: xmake dora-test --case=test_webbuild

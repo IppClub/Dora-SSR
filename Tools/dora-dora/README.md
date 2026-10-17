@@ -110,24 +110,22 @@ forwarded headers for authentication exemptions.
 Regression checks (from this directory):
 
 ```sh
-python3 ../../Tools/tests/test_http_origin.py
-python3 ../../Tools/tests/test_http_origin_wire.py
-node --test scripts/ide-dev-{proxy,proxy-wire,client}.test.mjs scripts/auth-client-modes.test.mjs
-pnpm test:auth-reconnect
-pnpm test:websocket-lifecycle
+xmake dora-test -P ../.. --case=test_http_origin
+xmake dora-test -P ../.. --case=test_http_origin_wire
+xmake dora-test -P ../.. --suite=ui
 ```
 
 Native acceptance (graphical desktop, ports 8866/8868 free), from the repository root:
 
 ```sh
 xmake build Dora
-python3 Tools/tests/test_http_access_native.py --engine build/macosx/arm64/debug/Dora.app/Contents/MacOS/Dora --require-lan
+xmake dora-test --case=test_http_access_native -- --engine build/macosx/arm64/debug/Dora.app/Contents/MacOS/Dora --require-lan
 ```
 
 This uses isolated assets and exercises real session signatures, preflights,
 static access, HTTP/WS replay rejection, loopback and LAN source checks, and
 asynchronous handlers. Add `--hold` to keep the fixture running for the browser
-page at `http://127.0.0.1:8866/browser.html`. Serve `Tools/tests/fixtures` with the
+page at `http://127.0.0.1:8866/browser.html`. Serve `$DORA_TEST_REPO/Test/Engine/fixtures` with the
 Vite proxy on 18736 and open `/http-access.html` for browser CORS/WS verification.
 The fixture's known token is test data only and never enters the normal runtime.
 
@@ -136,7 +134,7 @@ works without `crypto.subtle`. Synchronous compiler XHR reads attach the same
 session headers as fetch; log reloads use the authenticated fetch wrapper.
 To exercise these client paths in a real HTTP LAN browser, bundle the production
 fixture with `node scripts/build-http-client-fixture.mjs /absolute/path/client-auth.js`,
-serve that file alongside `Tools/tests/fixtures/http-access-lan.html` through Vite
+serve that file alongside `$DORA_TEST_REPO/Test/Engine/fixtures/http-access-lan.html` through Vite
 with the development proxy on 18736, and open the page using the machine LAN IP.
 Keep the isolated native fixture running with `--hold` during acceptance.
 
@@ -170,7 +168,7 @@ forces signing after those changes. It does not grant firewall permission.
 codesign -dv build/macosx/arm64/debug/Dora.app
 /usr/bin/log show --last 5m --style compact \
   --predicate 'process == "socketfilterfw" AND eventMessage CONTAINS "Dora"'
-python3 Tools/tests/test_macos_bundle.py --bundle build/macosx/arm64/debug/Dora.app
+xmake dora-test --case=test_macos_bundle -- --bundle build/macosx/arm64/debug/Dora.app
 ```
 
 The bundle regression deliberately recreates only this generated build output;
@@ -184,7 +182,7 @@ HTTP/WS policy fixture through a non-loopback interface with `--require-lan`.
 
 ### Full native Web IDE service acceptance
 
-`Tools/tests/test_webide_services.py` discovers every route in the real
+`xmake dora-test --case=test_webide_services` discovers every route in the real
 `WebServer.yue`, verifies its cross-origin authentication gate and empty-input
 contract, then exercises file CRUD, Unicode paths, batch operations, multipart
 upload, ZIP round trips, language services, TS/Wa builds, run/stop, preview,
@@ -204,7 +202,7 @@ printf 'disposable\n' > "$qa_root/home/.dora-webide-acceptance"
 CFFIXED_USER_HOME="$qa_root/home" \
   build/macosx/arm64/debug/Dora.app/Contents/MacOS/Dora --asset "$PWD/Assets"
 # In another terminal, use the exact qa_root printed/created above:
-python3 Tools/tests/test_webide_services.py \
+xmake dora-test --case=test_webide_services -- \
   --app-root "$qa_root/home" --report "$qa_root/services.json"
 ```
 
@@ -214,7 +212,7 @@ scenarios: both correctly require ownership of the same native runtime. Keep
 the profile and report for inspection, then close its IDE tabs and engine.
 
 For explicitly authorized paid-provider acceptance,
-`Tools/tests/test_webide_paid_models.py --allow-paid` reads existing active model
+`xmake dora-test --case=test_webide_paid_models -- --allow-paid` reads existing active model
 configurations from `--config-db` in read-only mode, copies them temporarily into
 the isolated service, and verifies streamed Agent execution, a fixture file edit,
 message persistence, task completion and the resulting change set. `--model-id`

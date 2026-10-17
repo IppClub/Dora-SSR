@@ -44,5 +44,7 @@ function main(directory)
     cprint("${bright}Dora-Example tests${clear}: %s (%s)", repo, sha)
     assert(os.isfile(path.join(repo, "Test/manifest.json")),
         "Dora-Example latest HEAD does not contain the migrated test suite yet; publish it or use --repo/DORA_TEST_REPO")
+    assert(os.isfile(path.join(repo, "Test/suites.json")),
+        "Dora-Example tests lack CI suite metadata; publish the test migration before the engine CI changes, or use --repo for local development")
     return {directory = repo, sha = sha, scripts = path.join(repo, "Test/BuildScripts"), web = path.join(repo, "Test/Web")}
 end
