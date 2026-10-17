@@ -80,6 +80,7 @@ jobs:
       - name: Generate shared declarations for linked UI packages
         working-directory: .
         run: |
+          node Docs/scripts/generate-language-docs.js
           node Studio/packages/agent-contracts/build.mjs
           node Tools/dora-dora/scripts/build-studio-compiler.cjs
       - name: Test Web IDE frontend and development proxy
