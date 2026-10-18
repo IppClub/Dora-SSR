@@ -41,3 +41,30 @@ Publish the Dora-Example test migration **before** the corresponding engine CI
 changes. An external test-only change does not generate an engine repository
 push event: use the workflows' manual dispatch to validate it immediately, or
 let the next matching engine push/PR resolve the latest tests.
+
+## Network resource acceptance
+
+`xmake dora-test --case=test_http_resource_limits` runs native HTTP/WebSocket
+wire tests under ASan/UBSan. To also exercise a freshly built desktop engine and
+its real IDE upload/read/save routes (requires unused ports 8866 and 8868):
+
+```sh
+xmake dora-test --case=test_http_resource_limits -- --engine /absolute/path/Dora
+```
+
+The server admits 64 HTTP and 16 WebSocket connections. Ordinary request bodies
+are capped at 8 MiB with a shared 32 MiB ingress buffer budget (higher-level
+request copies are bounded by those same leases). Known Content-Length bodies
+reserve their actual size; chunked bodies reserve the full 8 MiB cap. Upload
+routes retain the 512 MiB total multipart-body limit, with two concurrent uploads
+spooled into anonymous files in the app's writable directory. Multipart parsing
+and file copying use fixed windows and run off the shared network worker.
+Oversized bodies receive 413, exhausted body/upload slots receive 503, and a
+spool-file creation/write failure receives 507. Excess TCP connections close at
+admission; there is no HTTP request to return a 429 to at that point.
+
+Incomplete/idle HTTP requests and unfinished WS handshakes expire after 15
+seconds of inactivity (WS uses a fixed handshake deadline). Partial ordinary
+requests also have a 30-second total deadline; uploads have a ten-minute total
+receive deadline. Established WebSockets are not closed merely for being idle.
+Disconnects, rejection and shutdown release body leases and anonymous files.
