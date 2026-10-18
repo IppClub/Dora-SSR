@@ -498,26 +498,35 @@ static std::string auth_body_hash(const HttpServer::Request& req) {
 	return sha256_hex(req.body.toString());
 }
 
+static bool constant_time_equal(std::string_view left, std::string_view right) {
+	if (left.size() != right.size()) return false;
+	unsigned char diff = 0;
+	for (size_t i = 0; i < left.size(); i++) {
+		diff |= static_cast<unsigned char>(left[i]) ^ static_cast<unsigned char>(right[i]);
+	}
+	return diff == 0;
+}
+
 static bool has_valid_auth(const HttpServer::Request& req, const std::string& token) {
-	if (auto value = find_header(req, "X-Dora-Auth"_slice); value && *value == token) {
+	if (auto value = find_header(req, "X-Dora-Auth"_slice); value && constant_time_equal(value->toString(), token)) {
 		return true;
 	}
 	if (auto value = find_header(req, "Authorization"_slice)) {
 		const auto auth = value->toString();
-		if (auth == token) {
+		if (constant_time_equal(auth, token)) {
 			return true;
 		}
 		const std::string bearer = "Bearer "s;
-		if (auth.rfind(bearer, 0) == 0 && auth.substr(bearer.size()) == token) {
+		if (auth.rfind(bearer, 0) == 0 && constant_time_equal(std::string_view(auth).substr(bearer.size()), token)) {
 			return true;
 		}
 		const std::string dora = "Dora "s;
-		if (auth.rfind(dora, 0) == 0 && auth.substr(dora.size()) == token) {
+		if (auth.rfind(dora, 0) == 0 && constant_time_equal(std::string_view(auth).substr(dora.size()), token)) {
 			return true;
 		}
 	}
 	for (size_t i = 0; i + 1 < req.params.size(); i += 2) {
-		if (req.params[i] == "auth"_slice && req.params[i + 1] == token) {
+		if (req.params[i] == "auth"_slice && constant_time_equal(req.params[i + 1].toString(), token)) {
 			return true;
 		}
 	}
@@ -750,7 +759,7 @@ bool HttpServer::isAuthorized(const Request& req) {
 		auto bodyHash = auth_body_hash(req);
 		auto payload = fmt::format("{}\n{}\n{}\n{}\n{}\n{}", sessionId, req.method.toString(), path, timestampHeader->toString(), nonce, bodyHash);
 		auto expected = hmac_sha256_hex(_authSessionSecret, payload);
-		if (expected != signatureHeader->toString()) {
+		if (!constant_time_equal(expected, signatureHeader->toString())) {
 			return false;
 		}
 		{
@@ -790,7 +799,7 @@ bool HttpServer::isTokenValid(const std::string& token) {
 	}
 	if (!_authSessionId.empty()) {
 		return false;
-	} else if (token != _authToken) {
+	} else if (!constant_time_equal(token, _authToken)) {
 		return false;
 	}
 	if (_authTokenHasExpiry) {
@@ -864,7 +873,7 @@ bool HttpServer::isWebSocketAuthorized(const std::string& resource) {
 	}
 	auto payload = fmt::format("{}\nGET\n{}\n{}\n{}\n{}", sessionId, canonicalPath, timestamp, nonce, ""s);
 	auto expected = hmac_sha256_hex(_authSessionSecret, payload);
-	if (expected != signature) {
+	if (!constant_time_equal(expected, signature)) {
 		return false;
 	}
 	{
