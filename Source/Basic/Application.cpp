@@ -28,6 +28,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "SDL.h"
 #include "SDL_syswm.h"
+#if (BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
+#include <atomic>
+#include <csignal>
+#include <system_error>
+#endif
 #if BX_PLATFORM_ANDROID
 #include "SDL_system.h"
 #endif
@@ -58,6 +63,61 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #define DORA_REVISION "12"_slice
 
 namespace {
+#if (BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
+// Standalone POSIX applications only. The watchdog deliberately lives until
+// process exit, including SDL shutdown and static destruction. Only database
+// work may delay forced exit; render/logic-thread acknowledgement is not needed.
+class ShutdownWatchdog {
+public:
+	static bool start(void (*beforeExit)()) {
+		static const bool started = [beforeExit] {
+			struct sigaction action{};
+			action.sa_handler = handleSignal;
+			sigemptyset(&action.sa_mask);
+			struct sigaction oldTerm{};
+			struct sigaction oldInt{};
+			if (sigaction(SIGTERM, &action, &oldTerm) != 0) return false;
+			if (sigaction(SIGINT, &action, &oldInt) != 0) {
+				sigaction(SIGTERM, &oldTerm, nullptr);
+				return false;
+			}
+			try {
+				std::thread([beforeExit] {
+					int signal;
+					do {
+						std::this_thread::sleep_for(std::chrono::milliseconds(20));
+						signal = requestedSignal.load(std::memory_order_relaxed);
+					} while (signal == 0);
+					// Drain SQLite first; the grace period starts only after it stops.
+					beforeExit();
+					std::this_thread::sleep_for(std::chrono::seconds(3));
+					std::_Exit(128 + signal);
+				}).detach();
+			} catch (const std::system_error&) {
+				sigaction(SIGINT, &oldInt, nullptr);
+				sigaction(SIGTERM, &oldTerm, nullptr);
+				return false;
+			}
+			return true;
+		}();
+		return started;
+	}
+
+	static bool isRequested() {
+		return requestedSignal.load(std::memory_order_relaxed) != 0;
+	}
+
+private:
+	static_assert(std::atomic<int>::is_always_lock_free,
+		"Signal handling requires lock-free atomics");
+	inline static std::atomic<int> requestedSignal{0};
+	static void handleSignal(int signal) {
+		int expected = 0;
+		requestedSignal.compare_exchange_strong(expected, signal, std::memory_order_relaxed);
+	}
+};
+#endif
+
 std::mutex receivedFileMutex;
 std::deque<std::string> receivedFiles;
 #if BX_PLATFORM_EMSCRIPTEN
@@ -1003,6 +1063,15 @@ int Application::run(MainFunc mainFunc) {
 		return 1;
 	}
 
+#if (BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
+	// Replace SDL's cooperative signal handlers after SDL installs them.
+	if (!ShutdownWatchdog::start(Dora::DB::stopForShutdown)) {
+		Error("Failed to install shutdown signal handlers");
+		SDL_Quit();
+		return 1;
+	}
+#endif
+
 	SharedController.initInRender();
 
 	SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
@@ -1111,7 +1180,17 @@ int Application::run(MainFunc mainFunc) {
 	_logicThread.init(Application::mainLogic, this);
 
 	SDL_Event event;
+#if (BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
+	bool signalQuitPosted = false;
+#endif
 	while (_renderRunning) {
+#if (BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
+		if (!signalQuitPosted && ShutdownWatchdog::isRequested()) {
+			SDL_Event quitEvent{};
+			quitEvent.type = SDL_QUIT;
+			signalQuitPosted = SDL_PushEvent(&quitEvent) > 0;
+		}
+#endif
 		// do render staff and swap buffers
 		bool frameReady = true;
 #if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS

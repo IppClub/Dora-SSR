@@ -6,48 +6,45 @@ on:
     paths:
       - '.github/workflows/ui.yml'
       - 'Tools/dora-dora/**'
-      - 'Tools/tests/test_http_*.py'
-      - 'Tools/tests/test_git_path_policy.py'
-      - 'Tools/tests/test_git_job_pruning.lua'
-      - 'Tools/tests/test_git_clone_paths.lua'
-      - 'Tools/tests/test_cli_local_auth.lua'
-      - 'Assets/Script/Dev/cli.lua'
-      - 'Tools/tests/test_agent_stream_updates.lua'
-      - 'Tools/tests/test_web_asset_bootstrap.lua'
+      - 'Studio/package.json'
+      - 'Studio/pnpm-lock.yaml'
+      - 'Studio/pnpm-workspace.yaml'
+      - 'Studio/packages/**'
+      - 'Studio/scripts/agent-*.mjs'
+      - 'Studio/scripts/build-agent-*.mjs'
+      - 'Assets/Script/Lib/**'
       - 'Assets/Script/Dev/WebServer.*'
-      - 'Assets/Script/Lib/Agent/**'
-      - 'Studio/**'
-      - 'Studio/packages/agent-ui/**'
-      - 'Studio/packages/compiler/**'
-      - 'Studio/packages/tstl/**'
       - 'Projects/Web/**'
-      - 'xmake.lua'
       - 'Projects/xmake/**'
+      - 'xmake.lua'
       - 'Source/**'
+      - 'Tools/dora-wa/**'
+      - 'Tools/dora-rust/**'
+      - 'Tools/tolua\+\+/**'
   pull_request:
     branches: [ main ]
     paths:
       - '.github/workflows/ui.yml'
       - 'Tools/dora-dora/**'
-      - 'Tools/tests/test_http_*.py'
-      - 'Tools/tests/test_git_path_policy.py'
-      - 'Tools/tests/test_git_job_pruning.lua'
-      - 'Tools/tests/test_git_clone_paths.lua'
-      - 'Tools/tests/test_cli_local_auth.lua'
-      - 'Assets/Script/Dev/cli.lua'
-      - 'Tools/tests/test_agent_stream_updates.lua'
-      - 'Tools/tests/test_web_asset_bootstrap.lua'
+      - 'Studio/package.json'
+      - 'Studio/pnpm-lock.yaml'
+      - 'Studio/pnpm-workspace.yaml'
+      - 'Studio/packages/**'
+      - 'Studio/scripts/agent-*.mjs'
+      - 'Studio/scripts/build-agent-*.mjs'
+      - 'Assets/Script/Lib/**'
       - 'Assets/Script/Dev/WebServer.*'
-      - 'Assets/Script/Lib/Agent/**'
-      - 'Studio/**'
-      - 'Studio/packages/agent-ui/**'
-      - 'Studio/packages/compiler/**'
-      - 'Studio/packages/tstl/**'
       - 'Projects/Web/**'
-      - 'xmake.lua'
       - 'Projects/xmake/**'
+      - 'xmake.lua'
       - 'Source/**'
+      - 'Tools/dora-wa/**'
+      - 'Tools/dora-rust/**'
+      - 'Tools/tolua\+\+/**'
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   check:
@@ -56,99 +53,52 @@ jobs:
       run:
         working-directory: Tools/dora-dora
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
           package_json_file: 'Tools/dora-dora/package.json'
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22.14.0'
-          cache: 'pnpm'
-          cache-dependency-path: 'Tools/dora-dora/pnpm-lock.yaml'
-
-      - name: Test HTTP conditional requests
-        run: python3 ../../Tools/tests/test_http_validators.py
-
-      - name: Test Git repository path boundaries
-        run: python3 ../../Tools/tests/test_git_path_policy.py
-
+          cache: pnpm
+          cache-dependency-path: |
+            Tools/dora-dora/pnpm-lock.yaml
+            Studio/pnpm-lock.yaml
       - name: Setup xmake
         uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
-
-      - name: Setup current Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: stable
-          cache-dependency-path: Studio/go.sum
-
-      - name: Test literal Git paths in native backend
-        working-directory: Source/3rdParty/Wa/Source
-        run: go test -mod=vendor ./internal/gitjobs
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Test Web IDE origin policy and development proxy
+      - name: Resolve Dora-Example tests once
+        working-directory: .
+        run: xmake dora-test-deps --env-file="$GITHUB_ENV"
+      - name: Install frontend dependencies
         run: |
-          python3 ../../Tools/tests/test_http_origin.py
-          python3 ../../Tools/tests/test_http_origin_wire.py --require-lan
-          node --test scripts/ide-dev-proxy.test.mjs scripts/ide-dev-proxy-wire.test.mjs scripts/ide-dev-client.test.mjs scripts/auth-client-modes.test.mjs
-
-      - name: Test precompressed assets and streaming connection pool
-        run: |
-          python3 ../../Tools/tests/test_http_precompressed.py
-          python3 ../../Tools/tests/test_http_pool.py
-          node --test scripts/agent-stream-updates.test.mjs scripts/precompress-assets.test.mjs
-
-      - name: Test HTTP logic responsiveness and request lifetime
-        run: python3 ../../Tools/tests/test_http_pending.py
-
-      - name: Test current engine contracts
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y lua5.4
-          xmake dora-test -P ../..
-          lua ../../Tools/tests/test_agent_stream_updates.lua ../..
-          lua ../../Tools/tests/test_web_asset_bootstrap.lua ../..
-          pnpm test:auth-reconnect
-          pnpm test:native-ide-run
-          pnpm test:websocket-lifecycle
-
-      - name: Test Git job retention and CLI local authentication
+          pnpm install --frozen-lockfile
+          pnpm --dir ../../Studio install --frozen-lockfile
+      - name: Generate shared declarations for linked UI packages
         working-directory: .
         run: |
-          lua Tools/tests/test_git_clone_paths.lua
-          lua Tools/tests/test_git_job_pruning.lua
-          lua Tools/tests/test_cli_local_auth.lua
-
-      - name: Test Studio current frontend and Go backend
-        run: |
-          pnpm --dir ../../Studio install --frozen-lockfile
-          xmake dora-test -P ../.. --suite=studio
-
+          node Docs/scripts/generate-language-docs.js
+          node Studio/packages/agent-contracts/build.mjs
+          node Tools/dora-dora/scripts/build-studio-compiler.cjs
+      - name: Test Web IDE frontend and development proxy
+        run: xmake dora-test -P ../.. --suite=ui
       - name: Lint (oxlint)
-        # oxlint exits 0 for warnings, 1 for errors — only errors block the build
         run: pnpm lint
-
-      - name: Typecheck full Web IDE with linked Studio packages
-        # Studio tests prepare the generated shared contract declarations.
-        # Check after both installs to catch duplicate React type identities.
+      - name: Typecheck linked Web IDE UI
         run: pnpm typecheck
-
-      - name: Test Web runtime preparation
-        run: pnpm test:web-runtime-preparation
-
       - name: Build (Vite)
         run: pnpm build
-
       - name: Verify Web export assets
         run: |
-          pnpm test:web-package
+          xmake dora-test -P ../.. --case=test-web-package
           pnpm verify:web-release-assets
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-results
+          path: build/test-results/*.json
+          if-no-files-found: ignore

@@ -21,6 +21,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <array>
 #include <chrono>
+#include <mutex>
 
 #ifdef SQLITECPP_ENABLE_ASSERT_HANDLER
 namespace SQLite {
@@ -36,6 +37,19 @@ void assertion_failed(const char* apFile, const int apLine, const char* apFunc, 
 NS_DORA_BEGIN
 
 namespace {
+
+#if !BX_PLATFORM_EMSCRIPTEN
+struct DatabaseShutdownState {
+	std::mutex mutex;
+	Async* thread = nullptr;
+};
+
+DatabaseShutdownState& databaseShutdownState() {
+	// The signal watchdog can run during static destruction.
+	static auto* state = new DatabaseShutdownState;
+	return *state;
+}
+#endif
 
 constexpr size_t TextCompressThreshold = 512;
 // Keep the temporary inflater buffer small: Web callbacks can enter this
@@ -175,7 +189,14 @@ void registerTextCodecs(SQLite::Database& database) {
 } // namespace
 
 DB::DB()
-	: _thread(SharedAsyncThread.newThread()) {
+	: _thread(New<Async>()) {
+#if !BX_PLATFORM_EMSCRIPTEN
+	auto& state = databaseShutdownState();
+	{
+		std::lock_guard<std::mutex> guard(state.mutex);
+		state.thread = _thread.get();
+	}
+#endif
 	open(_openError);
 }
 
@@ -204,7 +225,15 @@ bool DB::open(std::string& error) {
 	}
 }
 
-DB::~DB() { }
+DB::~DB() {
+#if !BX_PLATFORM_EMSCRIPTEN
+	auto& state = databaseShutdownState();
+	std::lock_guard<std::mutex> guard(state.mutex);
+	// Join before destroying SQLite, then make late shutdown requests harmless.
+	_thread->stop();
+	state.thread = nullptr;
+#endif
+}
 
 bool DB::isReady() const noexcept {
 	return _database != nullptr;
@@ -280,7 +309,7 @@ std::pair<bool, std::string> DB::recover() {
 }
 
 Async* DB::getThread() const noexcept {
-	return _thread;
+	return _thread.get();
 }
 
 SQLite::Database* DB::getDatabase() const noexcept {
@@ -608,5 +637,15 @@ Own<Value> DB::col(const Col& c) {
 void DB::stop() {
 	_thread->stop();
 }
+
+#if !BX_PLATFORM_EMSCRIPTEN
+void DB::stopForShutdown() {
+	auto& state = databaseShutdownState();
+	std::lock_guard<std::mutex> guard(state.mutex);
+	// stop() rejects new submissions and joins after accepted work has drained.
+	// SQLite COMMIT/ROLLBACK does not need a logic-thread finisher.
+	if (state.thread) state.thread->stop();
+}
+#endif
 
 NS_DORA_END

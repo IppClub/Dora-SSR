@@ -58,8 +58,6 @@ jobs:
           echo "CC=${mingw32_gcc}" >> "${GITHUB_ENV}"
       - name: Record xmake version
         run: xmake --version
-      - name: Check touch input sources
-        run: xmake dora-test --case=check_touch_input_sources
       - name: Windows build
         run: |
           Remove-Item Env:MSYSTEM -ErrorAction SilentlyContinue

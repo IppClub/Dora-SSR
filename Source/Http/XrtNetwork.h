@@ -20,6 +20,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 #pragma once
 
 #include <stddef.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,6 +103,8 @@ typedef struct DoraXrtHttpServerRequest {
 	size_t headerCount;
 	const void* body;
 	size_t bodyLen;
+	FILE* bodyFile;
+	int uploadAuthorized;
 } DoraXrtHttpServerRequest;
 
 typedef int (*DoraXrtHttpServerRequestHandler)(void* userData, const DoraXrtHttpServerRequest* request, DoraXrtHttpServerResponse* response);
@@ -111,6 +114,9 @@ typedef struct DoraXrtHttpServerEvents {
 	int (*shouldDefer)(void* userData, const char* path);
 	DoraXrtHttpServerRequestHandler onRequest;
 	DoraXrtServerErrorHandler onError;
+	/* 1 accepts a file upload, 0 selects an ordinary body, >=400 rejects. */
+	int (*onUploadHead)(void*, const DoraXrtHttpServerRequest*);
+	const char* temporaryDirectory;
 } DoraXrtHttpServerEvents;
 
 int DoraXrtWebSocketIsLoopback(DoraXrtWebSocketConnection* connection);
@@ -139,6 +145,8 @@ typedef struct DoraXrtMultipartFileView {
 	size_t fileNameLen;
 	const void* body;
 	size_t bodyLen;
+	FILE* bodyFile;
+	size_t bodyOffset;
 } DoraXrtMultipartFileView;
 
 typedef int (*DoraXrtMultipartFileHandler)(void* userData, const DoraXrtMultipartFileView* file);
@@ -192,6 +200,7 @@ const char* DoraXrtHttpServerRequestHeader(const DoraXrtHttpServerRequest* reque
 void DoraXrtHttpServerResponseSetStatus(DoraXrtHttpServerResponse* response, unsigned int statusCode, const char* reason);
 int DoraXrtHttpServerResponseSetHeader(DoraXrtHttpServerResponse* response, const char* name, const char* value);
 int DoraXrtHttpServerResponseSetBodyCopy(DoraXrtHttpServerResponse* response, const void* body, size_t bodyLen, const char* contentType);
+int DoraXrtMultipartFileForEachFile(const char* contentType, FILE* body, size_t bodyLen, size_t maxBytes, DoraXrtMultipartFileHandler handler, void* userData);
 int DoraXrtMultipartForEachFile(const char* contentType, const void* body, size_t bodyLen, size_t maxBytes, DoraXrtMultipartFileHandler handler, void* userData);
 
 DoraXrtWebSocketServer* DoraXrtWebSocketServerCreate(unsigned int port, size_t receiveLimit, const DoraXrtWebSocketServerEvents* events, void* userData);

@@ -140,6 +140,7 @@ HttpServer\post "/agent/project-root", (req): invalidArguments ->
 import "Script.Dev.AgentHost" as AgentHost
 AgentTools = AgentHost.proxy "Agent.Tools"
 AgentSession = AgentHost.proxy "Agent.Session"
+AgentStorage = AgentHost.proxy "Agent.Storage.Database"
 AgentLocalAgent = AgentHost.proxy "Agent.LocalAgent"
 AgentVisionAssets = AgentHost.proxy "Agent.Tool.VisionAssets"
 
@@ -755,6 +756,9 @@ HttpServer\postSchedule "/git/auth/test", (req): invalidArguments ->
 		credential = gitLoadCredential authId
 		optionsJSON = gitAuthOptionsJSON credential
 		return gitRunSync repoPath, "ls-remote #{gitQuote url}", optionsJSON, 20
+
+-- Read-only database allocation/payload statistics; chat history is retained.
+HttpServer\post "/agent/storage/usage", -> AgentStorage.getStorageUsage!
 
 HttpServer\post "/agent/session/create", (req): invalidArguments ->
 	switch req when {body: {:projectRoot, :title}}
@@ -1529,6 +1533,7 @@ ensureLLMConfigTable = ->
 	]]
 
 	require("Agent.LLMConfigMigration").upgradeLLMConfig!
+	require("Agent.LLMConfigNames").upgradeLLMConfigNames!
 
 normalizeContextWindow = (value) ->
 	contextWindow = tonumber value
@@ -1586,6 +1591,11 @@ HttpServer\post "/llm/create", (req): invalidArguments ->
 		now = os.time!
 		if name == nil or url == nil or model == nil or key == nil
 			return invalidArguments
+		names = require "Agent.LLMConfigNames"
+		name = names.normalizeLLMConfigName name
+		return success: false, code: "INVALID_LLM_CONFIG_NAME", message: "LLM configuration name must be a non-empty string" unless name
+		nameCheck = names.checkLLMConfigName name
+		return nameCheck unless nameCheck.success
 		contextWindow = normalizeContextWindow contextWindow
 		temperature = normalizeTemperature temperature
 		maxTokens = normalizeMaxTokens maxTokens
@@ -1613,7 +1623,10 @@ HttpServer\post "/llm/create", (req): invalidArguments ->
 			now
 			now
 		]
-		return success: affected >= 0
+		if affected < 0
+			nameCheck = names.checkLLMConfigName name
+			return nameCheck unless nameCheck.success
+		return success: affected > 0
 
 HttpServer\post "/llm/update", (req): invalidArguments ->
 	ensureLLMConfigTable!
@@ -1621,7 +1634,12 @@ HttpServer\post "/llm/update", (req): invalidArguments ->
 		{:id, :name, :url, :model, :key, :contextWindow, :temperature, :maxTokens, :reasoningEffort, :customOptions, :supportsFunctionCalling} = body
 		now = os.time!
 		id = tonumber id
-		return invalidArguments if id == nil
+		return invalidArguments if id == nil or id <= 0 or id ~= math.floor id
+		names = require "Agent.LLMConfigNames"
+		name = names.normalizeLLMConfigName name
+		return success: false, code: "INVALID_LLM_CONFIG_NAME", message: "LLM configuration name must be a non-empty string" unless name
+		nameCheck = names.checkLLMConfigName name, id
+		return nameCheck unless nameCheck.success
 		contextWindow = normalizeContextWindow contextWindow
 		temperature = normalizeTemperature temperature
 		maxTokens = normalizeMaxTokens maxTokens
@@ -1646,7 +1664,10 @@ HttpServer\post "/llm/update", (req): invalidArguments ->
 			now
 			id
 		]
-		return success: affected >= 0
+		if affected < 0
+			nameCheck = names.checkLLMConfigName name, id
+			return nameCheck unless nameCheck.success
+		return success: affected > 0
 
 HttpServer\post "/llm/delete", (req): invalidArguments ->
 	ensureLLMConfigTable!

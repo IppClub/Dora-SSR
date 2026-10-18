@@ -4037,6 +4037,8 @@
 		#define XHTTPD_REQ_F_KEEPALIVE    0x00000001u
 		#define XHTTPD_REQ_F_CHUNKED      0x00000002u
 		#define XHTTPD_REQ_F_UPGRADE      0x00000004u
+		#define XHTTPD_REQ_F_SPOOL        0x00000008u
+		#define XHTTPD_REQ_F_AUTHORIZED   0x00000010u
 		#define XHTTPD_RESP_F_NONE        0x00000000u
 		#define XHTTPD_RESP_F_CLOSE       0x00000001u
 		typedef enum {
@@ -4066,6 +4068,9 @@
 			xhttpdheader arrHeaders[XHTTPD_MAX_HEADERS];
 			char* pBody;
 			size_t iBodyLen;
+			FILE* pBodyFile;
+			ptr pBodyLease;
+			void (*ReleaseBodyLease)(ptr);
 		} xhttpdrequest;
 		typedef struct {
 			uint32 iStatusCode;
@@ -4083,6 +4088,9 @@
 			uint32 iRecvLimit;
 			uint32 iBodyLimit;
 			const xtlsconfig* pTlsConfig;
+			uint32 iMaxConns, iIdleTimeoutMs, iSpoolBodyLimit, iBufferedBodyBudget, iSpoolBodySlots;
+			FILE* (*OpenSpoolFile)(ptr);
+			ptr pSpoolContext;
 		} xhttpdconfig;
 		typedef struct {
 			void (*OnOpen)(ptr pOwner, xhttpdserver* pServer, xhttpdconn* pConn);
@@ -4090,6 +4098,7 @@
 			xfuture* (*OnRequestAsync)(ptr pOwner, xhttpdserver* pServer, xhttpdconn* pConn, const xhttpdrequest* pReq);
 			void (*OnClose)(ptr pOwner, xhttpdserver* pServer, xhttpdconn* pConn, xnet_result iReason);
 			void (*OnError)(ptr pOwner, xhttpdserver* pServer, xhttpdconn* pConn, int iSysErr);
+			uint32 (*OnRequestHead)(ptr, xhttpdserver*, xhttpdconn*, xhttpdrequest*);
 		} xhttpdevents;
 		
 	#endif
@@ -4127,6 +4136,7 @@
 			uint32 iRecvLimit;
 			const xtlsconfig* pTlsConfig;
 			char sProtocol[XWS_PROTOCOL_CAP];
+			uint32 iMaxConns, iHandshakeTimeoutMs;
 		} xwsserverconfig;
 		typedef struct {
 			void (*OnOpen)(ptr pOwner, xwsclient* pClient);
@@ -35330,7 +35340,7 @@ XXAPI size_t xrtCodecHttp1CopyBody(const xnetchain* pInput, const xcodecframe* p
 	return iCopied;
 }
 /* ============================== HTTP/1 parser ============================== */
-XXAPI xcodecstatus xrtCodecHttp1Parse(const xnetchain* pInput, xcodecframe* pFrame, xcodechttp1msg* pMsg)
+static xcodecstatus __xcodecHttp1Parse(const xnetchain* pInput, xcodecframe* pFrame, xcodechttp1msg* pMsg, bool bHeadOnly)
 {
 	static const uint8 aHeadEnd[] = { '\r', '\n', '\r', '\n' };
 	char* sHeadBuf;
@@ -35529,6 +35539,7 @@ XXAPI xcodecstatus xrtCodecHttp1Parse(const xnetchain* pInput, xcodecframe* pFra
 	pFrame->iKind = XCODEC_KIND_HTTP1;
 	pFrame->iHeaderBytes = iHeadBytes;
 	pFrame->iPayloadOffset = iHeadBytes;
+	if (bHeadOnly) { pFrame->iFrameBytes = iHeadBytes; XNET_FREE(sHeadBuf); return XCODEC_STATUS_FRAME; }
 	// 处理 chunked 传输编码的消息体
 	if ( pMsg->iFlags & XCODEC_HTTP1_F_CHUNKED ) {
 		size_t iChunkBodyBytes = 0u;
@@ -35560,6 +35571,9 @@ XXAPI xcodecstatus xrtCodecHttp1Parse(const xnetchain* pInput, xcodecframe* pFra
 	}
 	XNET_FREE(sHeadBuf);
 	return XCODEC_STATUS_FRAME;
+}
+XXAPI xcodecstatus xrtCodecHttp1Parse(const xnetchain* pInput, xcodecframe* pFrame, xcodechttp1msg* pMsg) {
+	return __xcodecHttp1Parse(pInput, pFrame, pMsg, false);
 }
 #endif
 
@@ -59008,6 +59022,8 @@ XXAPI xhttpresponse* xrtHttpExecuteSync(xnetengine* pEngine, const xhttprequest*
 #define XHTTPD_REQ_F_KEEPALIVE    0x00000001u
 #define XHTTPD_REQ_F_CHUNKED      0x00000002u
 #define XHTTPD_REQ_F_UPGRADE      0x00000004u
+#define XHTTPD_REQ_F_SPOOL        0x00000008u
+#define XHTTPD_REQ_F_AUTHORIZED   0x00000010u
 #define XHTTPD_RESP_F_NONE        0x00000000u
 #define XHTTPD_RESP_F_CLOSE       0x00000001u
 typedef enum {
@@ -59039,6 +59055,9 @@ typedef struct {
 	xhttpdheader arrHeaders[XHTTPD_MAX_HEADERS];
 	char* pBody;
 	size_t iBodyLen;
+	FILE* pBodyFile;
+	ptr pBodyLease;
+	void (*ReleaseBodyLease)(ptr);
 } xhttpdrequest;
 typedef struct {
 	uint32 iStatusCode;
@@ -59056,6 +59075,13 @@ typedef struct {
 	uint32 iRecvLimit;
 	uint32 iBodyLimit;
 	const xtlsconfig* pTlsConfig;
+	uint32 iMaxConns;
+	uint32 iIdleTimeoutMs;
+	uint32 iSpoolBodyLimit;
+	uint32 iBufferedBodyBudget;
+	uint32 iSpoolBodySlots;
+	FILE* (*OpenSpoolFile)(ptr);
+	ptr pSpoolContext;
 } xhttpdconfig;
 typedef struct {
 	void (*OnOpen)(ptr pOwner, xhttpdserver* pServer, xhttpdconn* pConn);
@@ -59063,6 +59089,7 @@ typedef struct {
 	xfuture* (*OnRequestAsync)(ptr pOwner, xhttpdserver* pServer, xhttpdconn* pConn, const xhttpdrequest* pReq);
 	void (*OnClose)(ptr pOwner, xhttpdserver* pServer, xhttpdconn* pConn, xnet_result iReason);
 	void (*OnError)(ptr pOwner, xhttpdserver* pServer, xhttpdconn* pConn, int iSysErr);
+	uint32 (*OnRequestHead)(ptr, xhttpdserver*, xhttpdconn*, xhttpdrequest*);
 } xhttpdevents;
 #endif
 struct xrt_httpd_conn {
@@ -59073,6 +59100,13 @@ struct xrt_httpd_conn {
 	xhttpdserver* pServer;
 	xnetstream* pStream;
 	xhttpdrequest* pRequest;
+	xhttpdrequest* pIncoming;
+	size_t iBodyRemaining;
+	size_t iIncomingLimit;
+	uint32 iChunkState;
+	size_t iTrailerBytes;
+	double tLastReceive;
+	double tRequestStarted;
 	bool bResponseInFlight;
 	bool bResponseCommitted;
 	bool bResponseDrained;
@@ -59082,6 +59116,12 @@ struct xrt_httpd_conn {
 	bool bKeepAlive;
 	bool bContinueSent;
 };
+typedef struct {
+	volatile long refs;
+	volatile long buffered;
+	volatile long spooled;
+} __xhttpd_body_budget;
+typedef struct { __xhttpd_body_budget* budget; long amount; bool spool; } __xhttpd_body_lease;
 struct xrt_httpd_server {
 	xnetengine* pEngine;
 	xnetlistener* pListener;
@@ -59092,6 +59132,8 @@ struct xrt_httpd_server {
 	volatile long iConnLock;
 	volatile long bRunning;
 	xhttpdconn* pConnHead;
+	uint32 iAdmissionCount;
+	__xhttpd_body_budget* pBodyBudget;
 	bool bHasTlsConfig;
 	char* sTlsCertFile;
 	char* sTlsKeyFile;
@@ -59380,6 +59422,7 @@ static void __xhttpdConnRelease(xhttpdconn* pConn)
 	if ( !pConn ) { return; }
 	if ( __xhttpdAtomicAdd(&pConn->iRefCount, -1) != 0 ) { return; }
 	__xhttpdRequestDestroy(pConn->pRequest);
+	__xhttpdRequestDestroy(pConn->pIncoming);
 	pConn->pRequest = NULL;
 	XNET_FREE(pConn);
 }
@@ -59395,9 +59438,11 @@ static const char* __xhttpdStatusText(uint32 iStatusCode)
 		case 405: return "Method Not Allowed";
 		case 408: return "Request Timeout";
 		case 413: return "Payload Too Large";
+		case 431: return "Request Header Fields Too Large";
 		case 500: return "Internal Server Error";
 		case 501: return "Not Implemented";
 		case 503: return "Service Unavailable";
+		case 507: return "Insufficient Storage";
 		default: return "Unknown Status";
 	}
 }
@@ -59471,6 +59516,8 @@ XXAPI void xrtHttpdRequestInit(xhttpdrequest* pReq)
 	XXAPI void xrtHttpdRequestUnit(xhttpdrequest* pReq)
 	{
 		if ( !pReq ) { return; }
+		if (pReq->pBodyFile) fclose(pReq->pBodyFile);
+		if (pReq->ReleaseBodyLease) pReq->ReleaseBodyLease(pReq->pBodyLease);
 		__xhttpdHeadersUnit(pReq->arrHeaders, pReq->iHeaderCount);
 		pReq->iHeaderCount = 0;
 		if ( pReq->pBody ) {
@@ -59929,6 +59976,7 @@ static xhttpdrequest* __xhttpdConnDetachRequestLocked(xhttpdconn* pConn)
 	pConn->bAsyncPending = false;
 	pConn->bKeepAlive = false;
 	pConn->bContinueSent = false;
+	pConn->tRequestStarted = pConn->tLastReceive = xrtTimer();
 	return pReq;
 }
 // 内部函数：__xhttpdRecvKickTask
@@ -60406,6 +60454,7 @@ static void __xhttpdServerRemoveConn(xhttpdserver* pServer, xhttpdconn* pConn)
 	while ( *ppNode ) {
 		if ( *ppNode == pConn ) {
 			*ppNode = pConn->pNext;
+			if (pServer->iAdmissionCount) --pServer->iAdmissionCount;
 			break;
 		}
 		ppNode = &(*ppNode)->pNext;
@@ -60421,6 +60470,7 @@ static xhttpdconn* __xhttpdServerDetachAllConns(xhttpdserver* pServer)
 	__xhttpdLock(&pServer->iConnLock);
 	pHead = pServer->pConnHead;
 	pServer->pConnHead = NULL;
+	pServer->iAdmissionCount = 0;
 	__xhttpdUnlock(&pServer->iConnLock);
 	return pHead;
 }
@@ -60444,6 +60494,8 @@ static void __xhttpdConnCleanupTask(xnetworker* pWorker, ptr pArg)
 	}
 	__xhttpdUnlock(&pConn->iConnLock);
 	if ( pStream ) { xrtNetStreamDestroy(pStream); }
+	__xhttpdRequestDestroy(pConn->pIncoming);
+	pConn->pIncoming = NULL;
 	__xhttpdRequestDestroy(pReq);
 	__xhttpdConnRelease(pConn);
 }
@@ -60666,6 +60718,7 @@ static bool __xhttpdAttachAsyncRequest(xhttpdconn* pConn, xfuture* pFuture)
 	xFutureRelease(pHook);
 	return true;
 }
+static void __xhttpdStartIngressTimer(xhttpdconn* pConn);
 // 内部函数：__xhttpdListenerOnAccept
 static bool __xhttpdListenerOnAccept(ptr pOwner, xnetlistener* pListener, xnetstream* pStream)
 {
@@ -60673,19 +60726,31 @@ static bool __xhttpdListenerOnAccept(ptr pOwner, xnetlistener* pListener, xnetst
 	xhttpdconn* pConn;
 	(void)pListener;
 	if ( !pServer || !pStream ) { return false; }
+	__xhttpdLock(&pServer->iConnLock);
+	if (pServer->tConfig.iMaxConns && pServer->iAdmissionCount >= pServer->tConfig.iMaxConns) {
+		__xhttpdUnlock(&pServer->iConnLock); return false;
+	}
+	++pServer->iAdmissionCount;
+	__xhttpdUnlock(&pServer->iConnLock);
 	pConn = (xhttpdconn*)xrtNetStreamGetUserData(pStream);
 	if ( !pConn ) {
 		pConn = (xhttpdconn*)XNET_ALLOC(sizeof(xhttpdconn));
-		if ( !pConn ) { return false; }
+		if ( !pConn ) {
+			__xhttpdLock(&pServer->iConnLock); --pServer->iAdmissionCount;
+			__xhttpdUnlock(&pServer->iConnLock); return false;
+		}
 		memset(pConn, 0, sizeof(xhttpdconn));
 		pConn->iRefCount = 1;
 		xrtNetStreamSetUserData(pStream, pConn);
 	}
 	pConn->pServer = pServer;
 	pConn->pStream = pStream;
+	pConn->tLastReceive = pConn->tRequestStarted = xrtTimer();
 	__xhttpdServerAddConn(pServer, pConn);
+	if (pServer->tConfig.iIdleTimeoutMs) __xhttpdStartIngressTimer(pConn);
 	return true;
 }
+#include "xrt_http_ingress.h"
 // 内部函数：__xhttpdStreamOnOpen
 static void __xhttpdStreamOnOpen(ptr pOwner, xnetstream* pStream)
 {
@@ -60719,6 +60784,11 @@ static void __xhttpdStreamOnRecv(ptr pOwner, xnetstream* pStream, xnetchain* pCh
 		return;
 	}
 	__xhttpdUnlock(&pConn->iConnLock);
+	pConn->tLastReceive = xrtTimer();
+	if (pServer->tConfig.iBufferedBodyBudget) {
+		int ingress = __xhttpdReadIngress(pConn, pStream, pChain, &pReq);
+		if (ingress != 1) return;
+	} else {
 	// 解析 HTTP/1.1 请求
 	iParse = xrtCodecHttp1Parse(pChain, &tFrame, &tMsg);
 	if ( iParse == XCODEC_STATUS_NEED_MORE ) {
@@ -60755,6 +60825,7 @@ static void __xhttpdStreamOnRecv(ptr pOwner, xnetstream* pStream, xnetchain* pCh
 	xrtCodecHttp1MessageUnit(&tMsg);
 	// 消费已解析的帧数据
 	xrtCodecFrameConsume(pChain, &tFrame);
+	}
 	// 将请求绑定到连接，标记响应进行中
 	__xhttpdLock(&pConn->iConnLock);
 	if ( __xhttpdAtomicLoad(&pConn->iCleanupPosted) != 0 || pConn->pRequest != NULL || pConn->bResponseInFlight ) {
@@ -60986,6 +61057,9 @@ XXAPI xhttpdserver* xrtHttpdCreate(xnetengine* pEngine, const xhttpdconfig* pCfg
 	if ( !pServer ) { return NULL; }
 	memset(pServer, 0, sizeof(xhttpdserver));
 	pServer->pEngine = pEngine;
+	pServer->pBodyBudget = (__xhttpd_body_budget*)calloc(1, sizeof(__xhttpd_body_budget));
+	if (!pServer->pBodyBudget) { XNET_FREE(pServer); return NULL; }
+	pServer->pBodyBudget->refs = 1;
 	if ( pCfg ) {
 		pServer->tConfig = *pCfg;
 	} else {
@@ -60993,6 +61067,7 @@ XXAPI xhttpdserver* xrtHttpdCreate(xnetengine* pEngine, const xhttpdconfig* pCfg
 	}
 	pServer->tConfig.pTlsConfig = NULL;
 	if ( pCfg && pCfg->pTlsConfig && !__xhttpdServerCopyTlsConfig(pServer, pCfg->pTlsConfig) ) {
+		free(pServer->pBodyBudget);
 		XNET_FREE(pServer);
 		return NULL;
 	}
@@ -61076,6 +61151,7 @@ XXAPI void xrtHttpdDestroy(xhttpdserver* pServer)
 	if ( !pServer ) { return; }
 	xrtHttpdStop(pServer);
 	__xhttpdServerClearTlsConfig(pServer);
+	if (__xnetAtomicAddFetch32(&pServer->pBodyBudget->refs, -1) == 0) free(pServer->pBodyBudget);
 	XNET_FREE(pServer);
 }
 #endif
@@ -61131,6 +61207,8 @@ typedef struct {
 	uint32 iRecvLimit;
 	const xtlsconfig* pTlsConfig;
 	char sProtocol[XWS_PROTOCOL_CAP];
+	uint32 iMaxConns;
+	uint32 iHandshakeTimeoutMs;
 } xwsserverconfig;
 typedef struct {
 	void (*OnOpen)(ptr pOwner, xwsclient* pClient);
@@ -61203,6 +61281,7 @@ struct xrt_ws_server {
 	volatile long iConnLock;
 	volatile long bRunning;
 	xwsconn* pConnHead;
+	uint32 iAdmissionCount;
 };
 /* ============================== WebSocket handshake crypto hooks ============================== */
 extern void xrtRandomBytes(uint8* pBuf, size_t iLen);
@@ -62078,6 +62157,7 @@ static void __xwsServerRemoveConn(xwsserver* pServer, xwsconn* pConn)
 	while ( *ppNode ) {
 		if ( *ppNode == pConn ) {
 			*ppNode = pConn->pNext;
+			if (pServer->iAdmissionCount) --pServer->iAdmissionCount;
 			break;
 		}
 		ppNode = &(*ppNode)->pNext;
@@ -62092,6 +62172,7 @@ static xwsconn* __xwsServerDetachAllConns(xwsserver* pServer)
 	__xwsLock(&pServer->iConnLock);
 	pHead = pServer->pConnHead;
 	pServer->pConnHead = NULL;
+	pServer->iAdmissionCount = 0;
 	__xwsUnlock(&pServer->iConnLock);
 	return pHead;
 }
@@ -62274,6 +62355,21 @@ static void __xwsServerConsumeFrames(xwsconn* pConn, xnetchain* pChain)
 		XNET_FREE(pPayload);
 	}
 }
+typedef struct { xnetstream* stream; double deadline; } __xws_handshake_timeout;
+static void __xwsHandshakeTimeout(xnetworker* worker, ptr arg) {
+	__xws_handshake_timeout* task = (__xws_handshake_timeout*)arg;
+	xnetstream* stream = task->stream;
+	(void)worker;
+	if (!stream->bClosing) {
+		xwsconn* conn = (xwsconn*)xrtNetStreamGetUserData(stream);
+		if (conn && !__xwsAtomicLoad(&conn->iOpen)) {
+			if (xrtTimer() >= task->deadline) xrtNetStreamClose(stream, XNET_CLOSE_F_ABORT);
+			else if (xrtNetEnginePostDelayed(stream->pEngine, stream->pWorker->iId, 1000, __xwsHandshakeTimeout, task) == XRT_NET_OK) return;
+		}
+	}
+	__xnetStreamReleaseAsyncHold(stream);
+	XNET_FREE(task);
+}
 // 内部函数：__xwsListenerOnAccept
 static bool __xwsListenerOnAccept(ptr pOwner, xnetlistener* pListener, xnetstream* pStream)
 {
@@ -62281,16 +62377,37 @@ static bool __xwsListenerOnAccept(ptr pOwner, xnetlistener* pListener, xnetstrea
 	xwsconn* pConn;
 	(void)pListener;
 	if ( !pServer || !pStream ) { return false; }
+	__xwsLock(&pServer->iConnLock);
+	if (pServer->tConfig.iMaxConns && pServer->iAdmissionCount >= pServer->tConfig.iMaxConns) {
+		__xwsUnlock(&pServer->iConnLock); return false;
+	}
+	++pServer->iAdmissionCount;
+	__xwsUnlock(&pServer->iConnLock);
 	pConn = (xwsconn*)xrtNetStreamGetUserData(pStream);
 	if ( !pConn ) {
 		pConn = (xwsconn*)XNET_ALLOC(sizeof(xwsconn));
-		if ( !pConn ) { return false; }
+		if ( !pConn ) {
+			__xwsLock(&pServer->iConnLock); --pServer->iAdmissionCount;
+			__xwsUnlock(&pServer->iConnLock); return false;
+		}
 		memset(pConn, 0, sizeof(xwsconn));
 		xrtNetStreamSetUserData(pStream, pConn);
 	}
 	pConn->pServer = pServer;
 	pConn->pStream = pStream;
 	__xwsServerAddConn(pServer, pConn);
+	if (pServer->tConfig.iHandshakeTimeoutMs) {
+		__xws_handshake_timeout* task = (__xws_handshake_timeout*)XNET_ALLOC(sizeof(*task));
+		if (task) {
+			task->stream = pStream;
+			task->deadline = xrtTimer() + pServer->tConfig.iHandshakeTimeoutMs / 1000.0;
+			__xnetStreamAddAsyncHold(pStream);
+			if (xrtNetEnginePostDelayed(pStream->pEngine, pStream->pWorker->iId, 1000, __xwsHandshakeTimeout, task) != XRT_NET_OK) {
+				__xnetStreamReleaseAsyncHold(pStream); XNET_FREE(task);
+				xrtNetStreamClose(pStream, XNET_CLOSE_F_ABORT);
+			}
+		} else xrtNetStreamClose(pStream, XNET_CLOSE_F_ABORT);
+	}
 	return true;
 }
 // 内部函数：__xwsServerStreamOnOpen
@@ -62309,7 +62426,19 @@ static void __xwsServerStreamOnRecv(ptr pOwner, xnetstream* pStream, xnetchain* 
 	if ( __xwsAtomicLoad(&pConn->iOpen) == 0 ) {
 		xcodecframe tFrame;
 		xcodechttp1msg tMsg;
-		xcodecstatus iParse = xrtCodecHttp1Parse(pChain, &tFrame, &tMsg);
+		/* Handshakes must never buffer an advertised HTTP body or an
+		 * unbounded header block before authorization. WS messages retain
+		 * their independently configured receive limit after upgrading. */
+		if (xrtNetChainBytes(pChain) > 65536) {
+			(void)__xwsSendHttpReply(pStream, 431u, "Request Header Fields Too Large", NULL, NULL, true);
+			return;
+		}
+		xcodecstatus iParse = __xcodecHttp1Parse(pChain, &tFrame, &tMsg, true);
+		if (iParse == XCODEC_STATUS_FRAME && (tMsg.iContentLength > 0 || (tMsg.iFlags & XCODEC_HTTP1_F_CHUNKED))) {
+			xrtCodecHttp1MessageUnit(&tMsg);
+			(void)__xwsSendHttpReply(pStream, 400u, "Bad Request", NULL, NULL, true);
+			return;
+		}
 		const char* sKey = NULL;
 		char sAccept[64];
 		const char* sClientProtocol;

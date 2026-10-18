@@ -602,7 +602,7 @@ const LLMConfigDialog = ({ open, onClose }: LLMConfigDialogProps) => {
 			? await Service.createLLMConfig(payload)
 			: await Service.updateLLMConfig({ ...payload, id: form.id });
 		if (!res.success) {
-			setError(res.message ?? t('llm.saveFailed'));
+			setError(res.code === 'LLM_CONFIG_NAME_EXISTS' ? t('llm.nameExists') : res.message ?? t('llm.saveFailed'));
 			return;
 		}
 		window.dispatchEvent(new Event('llm-configs-changed'));

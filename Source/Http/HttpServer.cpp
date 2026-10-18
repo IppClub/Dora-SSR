@@ -1196,7 +1196,28 @@ bool HttpServer::start(int port) {
 		for (const auto& route : self->_postScheduled) {
 			if (route_matches(route.pattern, path)) return 1;
 		}
+		// Disk upload parsing/copying also runs off the shared network worker.
+		for (const auto& route : self->_files) {
+			if (route_matches(route.pattern, path)) return 1;
+		}
 		return 0;
+	};
+	events.temporaryDirectory = SharedContent.getWritablePath().c_str();
+	events.onUploadHead = [](void* owner, const DoraXrtHttpServerRequest* nativeRequest) -> int {
+		auto self = r_cast<HttpServer*>(owner);
+		if (nativeRequest->method != DORA_XRT_HTTP_METHOD_POST) return 0;
+		const auto path = std::string(nativeRequest->path);
+		if (std::none_of(self->_files.begin(), self->_files.end(), [&](const auto& route) { return route_matches(route.pattern, path); })) return 0;
+		auto contentType = DoraXrtHttpServerRequestHeader(nativeRequest, "Content-Type");
+		if (!contentType || !starts_with_ignore_ascii_case(contentType, "multipart/form-data"sv)) return 400;
+		auto access = web_request_access(nativeRequest->headers, nativeRequest->headerCount, self->_httpPort, self->_httpPort, self->_webAllowedHosts, nativeRequest->loopbackPeer);
+		if (access == HttpPolicy::Access::Denied) return 403;
+		auto request = make_request(nativeRequest);
+		auto origin = find_header(request, "Origin"_slice);
+		auto fetchSite = find_header(request, "Sec-Fetch-Site"_slice);
+		if (HttpPolicy::needsAuthentication(access, false, origin.has_value(), fetchSite ? fetchSite->toString() : ""s, false)
+			&& !self->isAuthorized(request)) return 401;
+		return 1;
 	};
 	events.onRequest = [](void* owner, const DoraXrtHttpServerRequest* nativeRequest, DoraXrtHttpServerResponse* nativeResponse) -> int {
 		auto self = r_cast<HttpServer*>(owner);
@@ -1239,7 +1260,7 @@ bool HttpServer::start(int port) {
 		if (nativeRequest->method != DORA_XRT_HTTP_METHOD_OPTIONS
 			&& path != "/auth"sv && path != "/auth/confirm"sv
 			&& authenticationRequired
-			&& !self->isAuthorized(request)) {
+			&& !nativeRequest->uploadAuthorized && !self->isAuthorized(request)) {
 			set_unauthorized(nativeResponse);
 			return true;
 		}
@@ -1383,7 +1404,7 @@ bool HttpServer::start(int port) {
 		for (const auto& route : self->_files) {
 			if (!route_matches(route.pattern, path)) continue;
 			auto contentType = DoraXrtHttpServerRequestHeader(nativeRequest, "Content-Type");
-			if (!contentType || !nativeRequest->body) {
+			if (!contentType || (!nativeRequest->body && !nativeRequest->bodyFile)) {
 				set_response(nativeResponse, 403, {}, {});
 				return true;
 			}
@@ -1397,37 +1418,49 @@ bool HttpServer::start(int port) {
 				uint64_t requestGeneration;
 			};
 			MultipartContext context{self, &route, &request, nativeResponse, &acceptedFiles, requestGeneration};
-			auto multipartResult = DoraXrtMultipartForEachFile(
-				contentType,
-				nativeRequest->body,
-				nativeRequest->bodyLen,
-				512u * 1024u * 1024u,
-				[](void* userData, const DoraXrtMultipartFileView* part) {
-					auto context = r_cast<MultipartContext*>(userData);
-					std::string filename(part->fileName, part->fileNameLen);
-					auto accepted = std::make_shared<PendingLogicResult<std::optional<std::string>>>();
-					SharedApplication.invokeInLogic([accepted, route = context->route, request = *context->request, filename = std::move(filename)]() {
-						if (!accepted->isCancelled()) accepted->complete(route->acceptHandler(request, filename));
-					});
-					auto acceptedPath = accepted->wait(context->server->_stopping, context->server->_generation, context->requestGeneration);
-					if (!acceptedPath) {
-						if (accepted->timedOut()) set_logic_busy(context->response); else set_service_unavailable(context->response);
-						return 0;
+			auto writePart = [](void* userData, const DoraXrtMultipartFileView* part) {
+				auto context = r_cast<MultipartContext*>(userData);
+				std::string filename(part->fileName, part->fileNameLen);
+				auto accepted = std::make_shared<PendingLogicResult<std::optional<std::string>>>();
+				SharedApplication.invokeInLogic([accepted, route = context->route, request = *context->request, filename = std::move(filename)]() {
+					if (!accepted->isCancelled()) accepted->complete(route->acceptHandler(request, filename));
+				});
+				auto acceptedPath = accepted->wait(context->server->_stopping, context->server->_generation, context->requestGeneration);
+				if (!acceptedPath) {
+					if (accepted->timedOut()) set_logic_busy(context->response); else set_service_unavailable(context->response);
+					return 0;
+				}
+				if (!acceptedPath->has_value()) {
+					set_response(context->response, 403, {}, {});
+					return 0;
+				}
+				auto file = std::move(acceptedPath->value());
+				auto stream = std::unique_ptr<SDL_RWops, decltype(&SDL_RWclose)>(SDL_RWFromFile(file.c_str(), "wb+"), SDL_RWclose);
+				bool written = stream != nullptr;
+				if (written && part->bodyFile) {
+					written = fseek(part->bodyFile, s_cast<long>(part->bodyOffset), SEEK_SET) == 0;
+					char buffer[65536];
+					for (size_t remaining = part->bodyLen; written && remaining;) {
+						auto bytes = std::min(remaining, sizeof(buffer));
+						written = fread(buffer, 1, bytes, part->bodyFile) == bytes && SDL_RWwrite(stream.get(), buffer, 1, bytes) == bytes;
+						remaining -= bytes;
 					}
-					if (!acceptedPath->has_value()) {
-						set_response(context->response, 403, {}, {});
-						return 0;
-					}
-					auto file = std::move(acceptedPath->value());
-					auto stream = std::unique_ptr<SDL_RWops, decltype(&SDL_RWclose)>(SDL_RWFromFile(file.c_str(), "wb+"), SDL_RWclose);
-					if (!stream || SDL_RWwrite(stream.get(), part->body, 1, part->bodyLen) != part->bodyLen) {
-						set_response(context->response, 500, {}, {});
-						return 0;
-					}
-					context->acceptedFiles->emplace_back(std::move(file));
-					return 1;
-				},
-				&context);
+				} else if (written) written = SDL_RWwrite(stream.get(), part->body, 1, part->bodyLen) == part->bodyLen;
+				if (!written) {
+					stream.reset();
+					SharedContent.remove(file);
+					set_response(context->response, 500, {}, {});
+					return 0;
+				}
+				context->acceptedFiles->emplace_back(std::move(file));
+				return 1;
+			};
+			auto multipartResult = nativeRequest->bodyFile
+				? DoraXrtMultipartFileForEachFile(contentType, nativeRequest->bodyFile, nativeRequest->bodyLen, 512u * 1024u * 1024u, writePart, &context)
+				: DoraXrtMultipartForEachFile(contentType, nativeRequest->body, nativeRequest->bodyLen, 512u * 1024u * 1024u, writePart, &context);
+			if (multipartResult <= 0) {
+				for (const auto& file : acceptedFiles) SharedContent.remove(file);
+			}
 			if (multipartResult == 0) {
 				set_response(nativeResponse, 400, {}, {});
 				return true;

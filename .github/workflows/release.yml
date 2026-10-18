@@ -38,6 +38,8 @@ jobs:
           cache-dependency-path: Tools/dora-dora/pnpm-lock.yaml
 
 
+      - name: Resolve Dora-Example tests once
+        run: xmake dora-test-deps --env-file="$GITHUB_ENV"
       - name: Build and verify Web IDE
         working-directory: Tools/dora-dora
         run: |

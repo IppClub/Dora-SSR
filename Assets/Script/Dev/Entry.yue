@@ -21,7 +21,7 @@ const require = (path) ->
 	if loaded == nil
 		-- AgentHost owns these caches across scene run/stop and runtime reloads.
 		-- Do not accumulate their generations in the game module cleanup list.
-		unless path == "Script.Dev.AgentHost" or path\match "^Agent[./]"
+		unless path == "Script.Dev.AgentHost" or path == "Script.Dev.AgentStoragePanel" or path\match "^Agent[./]"
 			moduleCache[] = path
 		return oldRequire path
 	loaded
@@ -979,6 +979,7 @@ Director.clearColor = Color 0xff1a1a1a
 descColor = Color 0xffa1a1a1
 
 extraOperations = do
+	renderAgentStorage = require "Script.Dev.AgentStoragePanel"
 	isOSSLicenseExist = Content\exist "LICENSES"
 	ossLicenses = nil
 	ossLicensePopup = "#{useChinese and '开源协议' or 'OSS Licenses'}##ossLicenses"
@@ -1065,6 +1066,7 @@ When enabled, regular key and text input events are suppressed; mapped keys are 
 				setWorkspace Content.appPath
 			Separator!
 			::skipSetting::
+		renderAgentStorage zh
 		if isOSSLicenseExist
 			if Button zh and '开源协议' or 'OSS Licenses'
 				unless ossLicenses

@@ -1,0 +1,8 @@
+name: Setup engine Lua
+description: Build the test interpreter from the engine's Lua sources
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      working-directory: ${{ github.workspace }}
+      run: bash .github/actions/setup-engine-lua/setup.sh

@@ -1,0 +1,84 @@
+name: Studio CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/studio.yml'
+      - '.github/actions/setup-engine-lua/**'
+      - 'Studio/**'
+      - 'Source/**'
+      - 'Assets/**'
+      - 'Tools/dora-dora/**'
+      - 'Tools/tolua\+\+/**'
+      - 'Tools/dora-rust/**'
+      - 'Tools/dora-wa/**'
+      - 'Projects/xmake/**'
+      - 'Projects/Web/**'
+      - 'xmake.lua'
+      - 'Docs/scripts/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/studio.yml'
+      - '.github/actions/setup-engine-lua/**'
+      - 'Studio/**'
+      - 'Source/**'
+      - 'Assets/**'
+      - 'Tools/dora-dora/**'
+      - 'Tools/tolua\+\+/**'
+      - 'Tools/dora-rust/**'
+      - 'Tools/dora-wa/**'
+      - 'Projects/xmake/**'
+      - 'Projects/Web/**'
+      - 'xmake.lua'
+      - 'Docs/scripts/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          package_json_file: 'Tools/dora-dora/package.json'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+          cache: pnpm
+          cache-dependency-path: |
+            Studio/pnpm-lock.yaml
+            Tools/dora-dora/pnpm-lock.yaml
+      - name: Setup xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache-dependency-path: Studio/go.sum
+      - name: Install Studio test dependencies
+        run: |
+          pnpm --dir Tools/dora-dora install --frozen-lockfile
+          pnpm --dir Studio install --frozen-lockfile
+      - name: Setup engine Lua for tests
+        uses: ./.github/actions/setup-engine-lua
+      - name: Resolve Dora-Example tests once
+        working-directory: .
+        run: xmake dora-test-deps --env-file="$GITHUB_ENV"
+      - name: Test Studio frontend and Go backend with built Agent host
+        run: xmake dora-test --suite=studio
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: studio-test-results
+          path: build/test-results/*.json
+          if-no-files-found: ignore

@@ -714,6 +714,7 @@ export interface LLMConfigListResponse {
 
 export interface LLMConfigWriteResponse {
 	success: boolean;
+	code?: string;
 	message?: string;
 };
 
@@ -1686,6 +1687,16 @@ export const projectRoot = (req: { path: string; isDir: boolean; }) => {
 };
 
 export const agentProjectRoot = projectRoot;
+
+export interface AgentStorageUsage {
+	database: {allocatedBytes: number; freeBytes: number; usedBytes: number; pageSize: number; pageCount: number; freePageCount: number};
+	records: {sessions: number; messages: number; tasks: number; steps: number; checkpoints: number; entries: number; references: number};
+	payload: {messageBytes: number; taskPromptBytes: number; stepBytes: number; checkpointRawBytes: number; checkpointStoredBytes: number};
+	orphanHeavyData: {success: boolean; taskCount: number; checkpointCount: number; entryCount: number; stepCount: number; referenceCount: number; rawBytes: number; candidateTaskIds: number[]};
+}
+
+/** agent.db allocation and logical payload sizes; excludes project .agent files. */
+export const agentStorageUsage = () => post<{success: true; usage: AgentStorageUsage} | {success: false; message: string}>("/agent/storage/usage");
 
 export const agentSessionCreate = (req: { projectRoot: string; title?: string; }) => {
 	return post<{
