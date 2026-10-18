@@ -714,6 +714,7 @@ export interface LLMConfigListResponse {
 
 export interface LLMConfigWriteResponse {
 	success: boolean;
+	code?: string;
 	message?: string;
 };
 
