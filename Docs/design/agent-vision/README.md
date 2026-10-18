@@ -53,7 +53,7 @@
 | [Command.ts](../../../Assets/Script/Lib/Agent/Tool/Command.ts) `agentEntryRuntimeOwner` / `stopOwnedEntry` | 测试入口由命令独占，命令完成、异常等路径会清理自己启动的入口 | 不能先执行启动命令、等其返回后再独立取景 |
 | [Utils.ts](../../../Assets/Script/Lib/Agent/Utils.ts) `Message` / `postLLM` / `LLMConfig` | content 是字符串；发送 messages 型请求；配置包含 supportsFunctionCalling | 需补充附件及模型协议配置，不应把工具调用能力当成图像能力 |
 | [DoraAgent.ts](../../../Assets/Script/Lib/Agent/DoraAgent.ts) `appendToolResultMessage` | 工具结果编码为 JSON 文本写入会话 | 返回路径不会自动成为图像输入 |
-| [Memory.ts](../../../Assets/Script/Lib/Agent/Memory.ts) `decodeConversationMessage` / `TokenEstimator` | 恢复仅接收字符串 content；预算按文本估算 | 新附件须显式保存与恢复，不能仅修改请求 JSON |
+| [Memory.ts](../../../Assets/Script/Lib/Agent/Runtime/Memory.ts) `decodeConversationMessage` / `TokenEstimator` | 恢复仅接收字符串 content；预算按文本估算 | 新附件须显式保存与恢复，不能仅修改请求 JSON |
 | [HistoryProjection.ts](../../../Assets/Script/Lib/Agent/Runtime/HistoryProjection.ts) | 工具历史投影、裁剪按文本结果处理 | 附件要绕开普通文本截断，保持工具关联 |
 | [StepDebugLog.ts](../../../Assets/Script/Lib/Agent/Runtime/StepDebugLog.ts) | 调试输入序列化消息 | 在请求物化图片字节之前做日志投影，防止 Base64 放大日志 |
 

@@ -6,8 +6,8 @@ local ____Dora = require("Dora") -- 2
 local DB = ____Dora.DB -- 2
 local json = ____Dora.json -- 2
 local Log = ____Dora.Log -- 2
-local ____Config = require("Agent.Config") -- 3
-local AGENT_DEFAULTS = ____Config.AGENT_DEFAULTS -- 3
+local ____Defaults = require("Agent.Config.Defaults") -- 3
+local AGENT_DEFAULTS = ____Defaults.AGENT_DEFAULTS -- 3
 ____exports.LLM_CONFIG_VERSION = 1 -- 6
 local VERSION_KEY = "agentLLMConfigVersion" -- 7
 function ____exports.upgradeLLMConfig() -- 9

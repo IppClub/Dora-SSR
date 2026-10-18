@@ -816,7 +816,7 @@ AgentTask.work_mode
   - 持久化模式、问卷、`WAITING_USER` 和回答续接；不保存方案路径或状态。
 - `Assets/Script/Lib/Agent/Tools.ts`
   - 扩展 task status/work mode 数据，保持 checkpoint 行为不变。
-- `Assets/Script/Lib/Agent/Memory.ts`
+- `Assets/Script/Lib/Agent/Runtime/Memory.ts`
   - 增加 Plan 角色提示词，不把固定方案文件混入 Memory 自动维护。
 - `Assets/Script/Lib/Agent/AgentSkills.ts`
   - 按最终工具投影过滤依赖不可用工具的 Skill。

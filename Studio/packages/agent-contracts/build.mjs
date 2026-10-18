@@ -174,7 +174,7 @@ const readHandlerParts = handlerSource.statements.filter(statement =>
   (ts.isFunctionDeclaration(statement) && statement.name?.text === 'readOneFile') ||
   (ts.isVariableStatement(statement) && statement.declarationList.declarations.some(d => d.name.getText(handlerSource) === 'readFile')));
 if (readHandlerParts.length !== 2) throw new Error('Upstream read handler changed; review required');
-await build({ stdin: { contents: `import * as AgentConfig from 'Agent/Config';
+await build({ stdin: { contents: `import * as AgentConfig from 'Agent/Config/Defaults';
 export function createReadHandler(readBackend) {
   const Tools = {readFile: readBackend};
   ${readHandlerParts.map(statement => statement.getText(handlerSource)).join('\n')}
@@ -182,7 +182,7 @@ export function createReadHandler(readBackend) {
 }`, loader: 'ts' }, outfile: new URL('read-handler.js', output).pathname,
   bundle: true, format: 'esm', platform: 'neutral',
   plugins: [{ name: 'agent-read-handler-config', setup(builder) {
-    builder.onResolve({ filter: /^Agent\/Config$/ }, () => ({ path: new URL('../../../Assets/Script/Lib/Agent/Config.ts', import.meta.url).pathname }));
+    builder.onResolve({ filter: /^Agent\/Config\/Defaults$/ }, () => ({ path: new URL('../../../Assets/Script/Lib/Agent/Config/Defaults.ts', import.meta.url).pathname }));
   } }] });
 const validationPath = new URL('../../../Assets/Script/Lib/Agent/Tool/Validation.ts', import.meta.url);
 const validationSource = ts.createSourceFile(validationPath.pathname, await readFile(validationPath, 'utf8'), ts.ScriptTarget.Latest, true);
@@ -201,7 +201,7 @@ const searchHandlers = ['grepFiles', 'globFiles', 'searchDoraDoc'].map(name => {
   if (!statement) throw new Error(`Upstream search handler changed: ${name}`);
   return statement.getText(handlerSource);
 });
-await build({ stdin: { contents: `import * as AgentConfig from 'Agent/Config';
+await build({ stdin: { contents: `import * as AgentConfig from 'Agent/Config/Defaults';
 const math = Math;
 ${clampInteger.getText(validationSource)}
 export function validateSearchInput(tool, input) {
@@ -214,7 +214,7 @@ export function createSearchHandlers(Tools) {
   return {grep_files: grepFiles, glob_files: globFiles, search_dora_doc: searchDoraDoc};
 }`, loader: 'ts' }, outfile: new URL('search-tools.js', output).pathname, bundle: true, format: 'esm', platform: 'neutral',
   plugins: [{ name: 'agent-search-config', setup(builder) {
-    builder.onResolve({ filter: /^Agent\/Config$/ }, () => ({ path: new URL('../../../Assets/Script/Lib/Agent/Config.ts', import.meta.url).pathname }));
+    builder.onResolve({ filter: /^Agent\/Config\/Defaults$/ }, () => ({ path: new URL('../../../Assets/Script/Lib/Agent/Config/Defaults.ts', import.meta.url).pathname }));
   } }] });
 const buildBranch = semanticFunction?.body?.statements.find(statement => ts.isIfStatement(statement) && statement.expression.getText(validationSource) === 'tool === "build"');
 const buildHandler = handlerSource.statements.find(statement => ts.isVariableStatement(statement) && statement.declarationList.declarations.some(d => d.name.getText(handlerSource) === 'build'));
@@ -246,7 +246,7 @@ const readHelpers = ['parseReadLine', 'normalizeReadRange'].map(name => {
   return fn.getText(validationSource);
 });
 if (!readBranch) throw new Error('Upstream read validator changed; review required');
-await build({ stdin: { contents: `import * as AgentConfig from 'Agent/Config';
+await build({ stdin: { contents: `import * as AgentConfig from 'Agent/Config/Defaults';
 const math = Math;
 ${readHelpers.join('\n')}
 export function validateReadFile(input) {
@@ -255,7 +255,7 @@ export function validateReadFile(input) {
 }`, loader: 'ts' }, outfile: new URL('read-validation.js', output).pathname,
   bundle: true, format: 'esm', platform: 'neutral',
   plugins: [{ name: 'agent-read-config', setup(builder) {
-    builder.onResolve({ filter: /^Agent\/Config$/ }, () => ({ path: new URL('../../../Assets/Script/Lib/Agent/Config.ts', import.meta.url).pathname }));
+    builder.onResolve({ filter: /^Agent\/Config\/Defaults$/ }, () => ({ path: new URL('../../../Assets/Script/Lib/Agent/Config/Defaults.ts', import.meta.url).pathname }));
   } }] });
 await build({ stdin: { contents: editParser.getText(validationSource), loader: 'ts' },
   outfile: new URL('file-edits.js', output).pathname, format: 'esm', platform: 'neutral' });
@@ -346,7 +346,7 @@ await build({ entryPoints: [new URL('../../../Assets/Script/Lib/Agent/Tool/Guard
       }};\n` + policyParts.join('\n') }));
   } }] });
 await build({
-  entryPoints: [new URL('../../../Assets/Script/Lib/Agent/JsonSchema.ts', import.meta.url).pathname],
+  entryPoints: [new URL('../../../Assets/Script/Lib/Agent/Tool/JsonSchema.ts', import.meta.url).pathname],
   outfile: new URL('json-schema.js', output).pathname,
   bundle: true, format: 'esm', platform: 'neutral',
   banner: { js: 'const math = Math; const tostring = String; const utf8 = {len: value => [Array.from(value).length]};' },
@@ -360,7 +360,7 @@ await build({
   outfile: new URL('executor.js', output).pathname,
   bundle: true, format: 'esm', platform: 'neutral', banner: { js: 'const tostring = String;' },
   plugins: [{ name: 'agent-executor-dependencies', setup(builder) {
-    const modules = { 'Agent/JsonSchema': './json-schema.js', 'Agent/Tool/Registry': './index.js', 'Agent/Tool/Guards': './guards.js' };
+    const modules = { 'Agent/Tool/JsonSchema': './json-schema.js', 'Agent/Tool/Registry': './index.js', 'Agent/Tool/Guards': './guards.js' };
     builder.onResolve({ filter: /^Agent\// }, args => {
       const path = modules[args.path];
       if (!path) throw new Error(`Unadapted Agent executor dependency: ${args.path}`);

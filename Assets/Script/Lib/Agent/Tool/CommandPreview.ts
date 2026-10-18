@@ -1,6 +1,6 @@
 // @preview-file off clear
 import { App, Content, Director, Object as DoraObject, Path, sleep } from 'Dora';
-import * as Config from 'Agent/Config';
+import * as Config from 'Agent/Config/Defaults';
 import { acquireEntryLease, recordEntryLeaseRun, ownsEntryLease, releaseEntryLease, type DevEntryModule } from 'Agent/Tool/EntryLease';
 import { createOperationId } from 'Agent/Tool/Operation';
 import { isValidWorkspacePath, ensureDirPath } from 'Agent/Tool/Workspace';

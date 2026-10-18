@@ -17,7 +17,7 @@ local __TS__SparseArrayPush = ____lualib.__TS__SparseArrayPush -- 1
 local __TS__SparseArraySpread = ____lualib.__TS__SparseArraySpread -- 1
 local ____exports = {} -- 1
 local resolveText, getToolDescription, getToolRules, createFunctionToolSchemaFromDefinition -- 1
-local ____JsonSchema = require("Agent.JsonSchema") -- 2
+local ____JsonSchema = require("Agent.Tool.JsonSchema") -- 2
 local compileJsonSchema = ____JsonSchema.compileJsonSchema -- 2
 local ____Handlers = require("Agent.Tool.Handlers") -- 3
 local AGENT_TOOL_HANDLERS = ____Handlers.AGENT_TOOL_HANDLERS -- 3

@@ -1,7 +1,7 @@
 import type { AgentToolExecutionMetadata } from 'Agent/Tool/Types';
 import * as AgentUtils from 'Agent/Utils';
 import type { Message } from 'Agent/Utils';
-import * as AgentConfig from 'Agent/Config';
+import * as AgentConfig from 'Agent/Config/Defaults';
 import type { AgentToolName } from 'Agent/Tool/Registry';
 
 function isRecord(value: unknown): value is Record<string, unknown> {

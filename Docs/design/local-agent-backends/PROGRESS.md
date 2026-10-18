@@ -36,7 +36,7 @@ Linux Lima ARM64 与 Windows 11 ARM64 Parallels 虚拟机已完成 OpenCode `1.1
 
 - `Source/Http/XrtNetwork.c/.h`：xrt subprocess 窄封装；只在 Windows、macOS、桌面 Linux 启用。
 - `Source/Lua/LuaManual.cpp/.h`、`Source/Lua/LuaEngine.cpp`：桌面 Lua `Process` API。
-- `Assets/Script/Lib/Agent/LocalAgent.ts/.lua`：配置、验证、四种 Adapter、输出解析、Skill、session 与进程生命周期。
+- `Assets/Script/Lib/Agent/Runtime/LocalAgent.ts/.lua`：配置、验证、四种 Adapter、输出解析、Skill、session 与进程生命周期。
 - `Assets/Doc/local-agent-skills/`：第三方 Agent 专用 Command/Music Skill 模板；音乐类型与预设以 references 渐进加载。
 - `Assets/Script/Lib/Agent/Session.ts/.lua`：local turn、Step、消息、停止与运行态恢复。
 - `Assets/Script/Dev/WebServer.yue/.lua`：本地配置、验证、发送和 session API；相关模块延迟加载。

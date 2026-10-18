@@ -1,7 +1,7 @@
 // @preview-file off clear
 import { analyzeImage } from 'Agent/Tool/VisionAnalysis';
-import * as AgentConfig from 'Agent/Config';
-import { normalizeQuestionnaire } from 'Agent/Questionnaire';
+import * as AgentConfig from 'Agent/Config/Defaults';
+import { normalizeQuestionnaire } from 'Agent/Runtime/Questionnaire';
 import * as AgentRuntimePolicy from 'Agent/Runtime/Policy';
 import { getAgentFileEditPlanGuardDenial } from 'Agent/Tool/Guards';
 import { getAgentFileEditInputs } from 'Agent/Tool/Validation';

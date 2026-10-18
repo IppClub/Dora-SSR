@@ -1,7 +1,7 @@
 // @preview-file off clear
 import { json, HttpClient, DB, emit, Log as DoraLog, Director, once, App } from 'Dora';
-import * as AgentConfig from 'Agent/Config';
-import { upgradeLLMConfig } from 'Agent/LLMConfigMigration';
+import * as AgentConfig from 'Agent/Config/Defaults';
+import { upgradeLLMConfig } from 'Agent/Config/LLMConfigMigration';
 
 let LOG_LEVEL = App.debugging ? 3 : 2;
 export function setLogLevel(level: number) {

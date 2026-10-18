@@ -2,17 +2,17 @@
 import { resolveVisionBinding } from 'Agent/Tool/VisionBinding';
 import { getVisionTaskUsage, type VisionTaskUsage } from 'Agent/Tool/VisionAnalysis';
 import { Path, Content } from 'Dora';
-import { Flow, Node } from 'Agent/flow';
+import { Flow, Node } from 'Agent/Runtime/Flow';
 import { RepeatedOutputRecovery, type DecisionOutput } from 'Agent/Runtime/RepeatedOutput';
 import * as AgentUtils from 'Agent/Utils';
 import type { LLMConfig, LLMTokenUsage, Message, StopToken } from 'Agent/Utils';
 import * as Tools from 'Agent/Tools';
-import { MemoryCompressor } from 'Agent/Memory';
-import type { AgentPromptPack, AgentConversationMessage } from 'Agent/Memory';
+import { MemoryCompressor } from 'Agent/Runtime/Memory';
+import type { AgentPromptPack, AgentConversationMessage } from 'Agent/Runtime/Memory';
 import * as AgentToolRegistry from 'Agent/Tool/Registry';
 import type { AgentDecisionMode, AgentRole, AgentToolName, AgentWorkMode } from 'Agent/Tool/Registry';
-import * as AgentSkills from 'Agent/Skills';
-import * as AgentConfig from 'Agent/Config';
+import * as AgentSkills from 'Agent/Runtime/Skills';
+import * as AgentConfig from 'Agent/Config/Defaults';
 import * as AgentRuntimePolicy from 'Agent/Runtime/Policy';
 import { executeRegisteredAgentTool } from 'Agent/Tool/Executor';
 import type { AgentToolControl, AgentToolExecutionContext, AgentToolWorkflowState, AgentToolExecutionMetadata } from 'Agent/Tool/Types';
@@ -27,7 +27,7 @@ import type {
 	AgentLearningCandidateItem,
 	AgentCompletionReport,
 } from 'Agent/Utils';
-import type { AgentQuestionnaireSchema } from 'Agent/Questionnaire';
+import type { AgentQuestionnaireSchema } from 'Agent/Runtime/Questionnaire';
 import { encodeDebugJSON, saveStepLLMDebugInput, saveStepLLMDebugOutput } from 'Agent/Runtime/StepDebugLog';
 import {
 	toJson,

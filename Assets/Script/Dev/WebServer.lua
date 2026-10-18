@@ -345,7 +345,7 @@ local AgentHost = require("Script.Dev.AgentHost") -- 140
 local AgentTools = AgentHost.proxy("Agent.Tools") -- 141
 local AgentSession = AgentHost.proxy("Agent.Session") -- 142
 local AgentStorage = AgentHost.proxy("Agent.Storage.Database") -- 143
-local AgentLocalAgent = AgentHost.proxy("Agent.LocalAgent") -- 144
+local AgentLocalAgent = AgentHost.proxy("Agent.Runtime.LocalAgent") -- 144
 local AgentVisionAssets = AgentHost.proxy("Agent.Tool.VisionAssets") -- 145
 HttpServer:post("/agent/runtime/status", function() -- 147
 	return AgentHost.status() -- 147
@@ -3872,8 +3872,8 @@ ensureLLMConfigTable = function() -- 1474
 			updated_at INTEGER
 		);
 	]]) -- 1516
-	require("Agent.LLMConfigMigration").upgradeLLMConfig() -- 1535
-	return require("Agent.LLMConfigNames").upgradeLLMConfigNames() -- 1536
+	require("Agent.Config.LLMConfigMigration").upgradeLLMConfig() -- 1535
+	return require("Agent.Config.LLMConfigNames").upgradeLLMConfigNames() -- 1536
 end -- 1474
 local normalizeContextWindow -- 1538
 normalizeContextWindow = function(value) -- 1538
@@ -3973,7 +3973,7 @@ HttpServer:post("/llm/create", function(req) -- 1587
 				if name == nil or url == nil or model == nil or key == nil then -- 1592
 					return invalidArguments -- 1593
 				end -- 1592
-				local names = require("Agent.LLMConfigNames") -- 1594
+				local names = require("Agent.Config.LLMConfigNames") -- 1594
 				name = names.normalizeLLMConfigName(name) -- 1595
 				if not name then -- 1596
 					return { -- 1596
@@ -4045,7 +4045,7 @@ HttpServer:post("/llm/update", function(req) -- 1631
 				if id == nil or id <= 0 or id ~= math.floor(id) then -- 1637
 					return invalidArguments -- 1637
 				end -- 1637
-				local names = require("Agent.LLMConfigNames") -- 1638
+				local names = require("Agent.Config.LLMConfigNames") -- 1638
 				name = names.normalizeLLMConfigName(name) -- 1639
 				if not name then -- 1640
 					return { -- 1640

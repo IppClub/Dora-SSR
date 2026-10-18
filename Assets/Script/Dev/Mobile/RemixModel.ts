@@ -1,4 +1,4 @@
-import type { AgentQuestion, AgentQuestionnaireAnswers } from "Agent/Questionnaire";
+import type { AgentQuestion, AgentQuestionnaireAnswers } from "Agent/Runtime/Questionnaire";
 import type { AgentSessionStepItem } from "Agent/Session";
 
 export type RemixPhase = "idle" | "planning" | "plan-ready" | "working" | "waiting" | "done" | "failed" | "stopped";

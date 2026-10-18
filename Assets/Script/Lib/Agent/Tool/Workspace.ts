@@ -1,7 +1,7 @@
 // @preview-file off clear
 import { Content, Path, App, Director, once } from 'Dora';
 import type { SearchFilesResult } from 'Dora';
-import * as AgentConfig from 'Agent/Config';
+import * as AgentConfig from 'Agent/Config/Defaults';
 import { Log } from 'Agent/Utils';
 
 export type ListFilesResult = {

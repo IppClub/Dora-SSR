@@ -1,9 +1,9 @@
 // @preview-file off clear
-import { compileJsonSchema } from 'Agent/JsonSchema';
+import { compileJsonSchema } from 'Agent/Tool/JsonSchema';
 import { AGENT_TOOL_HANDLERS } from 'Agent/Tool/Handlers';
 import { AGENT_TOOL_VALIDATORS } from 'Agent/Tool/Validation';
 import { ANALYZE_IMAGE_TIMEOUT_SECONDS } from 'Agent/Tool/ToolBudgets';
-import type { JsonSchema, JsonSchemaObject, JsonSchemaType } from 'Agent/JsonSchema';
+import type { JsonSchema, JsonSchemaObject, JsonSchemaType } from 'Agent/Tool/JsonSchema';
 import type {
 	AgentDecisionMode,
 	AgentRole,

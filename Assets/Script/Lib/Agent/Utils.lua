@@ -42,8 +42,8 @@ local DoraLog = ____Dora.Log -- 2
 local Director = ____Dora.Director -- 2
 local once = ____Dora.once -- 2
 local App = ____Dora.App -- 2
-local AgentConfig = require("Agent.Config") -- 3
-local ____LLMConfigMigration = require("Agent.LLMConfigMigration") -- 4
+local AgentConfig = require("Agent.Config.Defaults") -- 3
+local ____LLMConfigMigration = require("Agent.Config.LLMConfigMigration") -- 4
 local upgradeLLMConfig = ____LLMConfigMigration.upgradeLLMConfig -- 4
 function ____exports.sanitizeUTF8(text) -- 352
 	if text == "" then -- 352

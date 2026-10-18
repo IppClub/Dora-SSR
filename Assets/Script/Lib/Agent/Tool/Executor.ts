@@ -1,5 +1,5 @@
 // @preview-file off clear
-import { compileJsonSchema } from 'Agent/JsonSchema';
+import { compileJsonSchema } from 'Agent/Tool/JsonSchema';
 import { getToolDefinition } from 'Agent/Tool/Registry';
 import { runAgentToolGuards } from 'Agent/Tool/Guards';
 import type { AgentToolGuard } from 'Agent/Tool/Guards';

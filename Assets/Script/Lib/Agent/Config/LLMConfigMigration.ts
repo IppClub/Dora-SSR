@@ -1,6 +1,6 @@
 // @preview-file off clear
 import { DB, json, SQL, Log } from 'Dora';
-import { AGENT_DEFAULTS } from 'Agent/Config';
+import { AGENT_DEFAULTS } from 'Agent/Config/Defaults';
 
 // Data version, independent of agent.db's schema version. No tables are changed.
 export const LLM_CONFIG_VERSION = 1;

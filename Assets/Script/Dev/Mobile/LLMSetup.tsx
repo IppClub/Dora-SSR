@@ -1,8 +1,8 @@
 import { React, reference, toNode } from "DoraX";
 import { attachGamepad } from "Dev/Mobile/Gamepad";
 import { App, DB, Director, HttpServer, Node, TextAlign } from "Dora";
-import { upgradeLLMConfig } from 'Agent/LLMConfigMigration';
-import { AGENT_DEFAULTS } from 'Agent/Config';
+import { upgradeLLMConfig } from 'Agent/Config/LLMConfigMigration';
+import { AGENT_DEFAULTS } from 'Agent/Config/Defaults';
 import { mobileFontScale } from "Dev/Mobile/Accessibility";
 import { MobileButton, MobilePanelSurface } from "Dev/Mobile/Controls";
 import { createTextInput } from "Dev/Mobile/TextInput";

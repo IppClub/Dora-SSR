@@ -1,6 +1,6 @@
 // @preview-file off clear
 import { App, Content, Path } from 'Dora';
-import { AGENT_DEFAULTS } from 'Agent/Config';
+import { AGENT_DEFAULTS } from 'Agent/Config/Defaults';
 import { Message, applyCustomLLMOptions, callLLM, Log, clipTextToTokenBudget, extractLLMTokenUsage, parseXMLObjectFromText, safeJsonDecode, safeJsonEncode, sanitizeUTF8 } from 'Agent/Utils';
 import { getActiveLLMConfig } from 'Agent/Utils';
 import type { LLMConfig, LLMTokenUsage, ToolCall, StopToken } from 'Agent/Utils';

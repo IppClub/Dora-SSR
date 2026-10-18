@@ -141,7 +141,7 @@ import "Script.Dev.AgentHost" as AgentHost
 AgentTools = AgentHost.proxy "Agent.Tools"
 AgentSession = AgentHost.proxy "Agent.Session"
 AgentStorage = AgentHost.proxy "Agent.Storage.Database"
-AgentLocalAgent = AgentHost.proxy "Agent.LocalAgent"
+AgentLocalAgent = AgentHost.proxy "Agent.Runtime.LocalAgent"
 AgentVisionAssets = AgentHost.proxy "Agent.Tool.VisionAssets"
 
 HttpServer\post "/agent/runtime/status", -> AgentHost.status!
@@ -1532,8 +1532,8 @@ ensureLLMConfigTable = ->
 		);
 	]]
 
-	require("Agent.LLMConfigMigration").upgradeLLMConfig!
-	require("Agent.LLMConfigNames").upgradeLLMConfigNames!
+	require("Agent.Config.LLMConfigMigration").upgradeLLMConfig!
+	require("Agent.Config.LLMConfigNames").upgradeLLMConfigNames!
 
 normalizeContextWindow = (value) ->
 	contextWindow = tonumber value
@@ -1591,7 +1591,7 @@ HttpServer\post "/llm/create", (req): invalidArguments ->
 		now = os.time!
 		if name == nil or url == nil or model == nil or key == nil
 			return invalidArguments
-		names = require "Agent.LLMConfigNames"
+		names = require "Agent.Config.LLMConfigNames"
 		name = names.normalizeLLMConfigName name
 		return success: false, code: "INVALID_LLM_CONFIG_NAME", message: "LLM configuration name must be a non-empty string" unless name
 		nameCheck = names.checkLLMConfigName name
@@ -1635,7 +1635,7 @@ HttpServer\post "/llm/update", (req): invalidArguments ->
 		now = os.time!
 		id = tonumber id
 		return invalidArguments if id == nil or id <= 0 or id ~= math.floor id
-		names = require "Agent.LLMConfigNames"
+		names = require "Agent.Config.LLMConfigNames"
 		name = names.normalizeLLMConfigName name
 		return success: false, code: "INVALID_LLM_CONFIG_NAME", message: "LLM configuration name must be a non-empty string" unless name
 		nameCheck = names.checkLLMConfigName name, id

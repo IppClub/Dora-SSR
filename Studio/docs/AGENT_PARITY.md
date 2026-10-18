@@ -110,7 +110,7 @@ Studio 构建通过 AST 将原 editFile 中唯一的 Tools.applyFileChanges 调�
 
 ## Schema 校验器接入增量
 
-工作区包新增 `./json-schema` 导出，直接打包原 `Agent/JsonSchema.ts`，局部绑定 Dora json.null、math、tostring 和 utf8.len，不污染宿主全局，也不加载引擎。当前绑定覆盖 JSON 标量及有效 Unicode 码点计数；非法 UTF-16/UTF-8 的跨运行时行为还需单独对照。
+工作区包新增 `./json-schema` 导出，直接打包原 `Agent/Tool/JsonSchema.ts`，局部绑定 Dora json.null、math、tostring 和 utf8.len，不污染宿主全局，也不加载引擎。当前绑定覆盖 JSON 标量及有效 Unicode 码点计数；非法 UTF-16/UTF-8 的跨运行时行为还需单独对照。
 
 完整构建与 47 项测试通过：全部角色/模式下暴露的 schema 均可编译，read_file 批输入/空输入/额外字段、null、中文与 emoji 字符长度、非整数/Infinity、循环引用和错误数量限制通过。尚未执行原生 Lua 同输入对照；这不是工具语义验证、guard 或实际执行器的迁移完成证明。
 

@@ -1,4 +1,4 @@
--- [ts]: Config.ts
+-- [ts]: Defaults.ts
 local ____exports = {} -- 1
 ____exports.AGENT_DEFAULTS = { -- 3
 	maxSteps = 999, -- 4

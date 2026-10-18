@@ -10,7 +10,7 @@ local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf -- 1
 local __TS__ArrayPush = ____lualib.__TS__ArrayPush -- 1
 local ____exports = {} -- 1
 local AgentUtils = require("Agent.Utils") -- 2
-local AgentConfig = require("Agent.Config") -- 4
+local AgentConfig = require("Agent.Config.Defaults") -- 4
 --- Frontend lifecycle stays on the step; the model receives only the build outcome.
 function ____exports.projectBuildResultForModel(result, execution) -- 602
 	if execution ~= nil and execution.status ~= "DONE" or result.failureKind == "tool" or type(result.code) == "string" then -- 602

@@ -1,4 +1,4 @@
--- [ts]: flow.ts
+-- [ts]: Flow.ts
 local ____lualib = require("lualib_bundle") -- 1
 local __TS__Class = ____lualib.__TS__Class -- 1
 local Map = ____lualib.Map -- 1

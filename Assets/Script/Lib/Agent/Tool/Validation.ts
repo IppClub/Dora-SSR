@@ -1,7 +1,7 @@
 // @preview-file off clear
 import { Path } from 'Dora';
-import * as AgentConfig from 'Agent/Config';
-import { normalizeQuestionnaire } from 'Agent/Questionnaire';
+import * as AgentConfig from 'Agent/Config/Defaults';
+import { normalizeQuestionnaire } from 'Agent/Runtime/Questionnaire';
 import * as AgentUtils from 'Agent/Utils';
 import type { AgentToolInputValidator, AgentToolName, AgentToolSemanticValidationResult } from 'Agent/Tool/Types';
 import { isValidWorkspacePath } from 'Agent/Tool/Workspace';

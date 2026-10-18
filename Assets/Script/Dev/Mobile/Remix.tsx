@@ -4,7 +4,7 @@ import { App, DB, Director, Ease, HttpServer, Label, Move, Node, PlatformType, s
 import * as AgentSession from "Agent/Session";
 import { getActiveLLMConfig, getLLMConfig, getLLMConfigSummaries, safeJsonEncode } from "Agent/Utils";
 import type { LLMConfig, LLMConfigSummary } from "Agent/Utils";
-import type { AgentQuestionnaireAnswers } from "Agent/Questionnaire";
+import type { AgentQuestionnaireAnswers } from "Agent/Runtime/Questionnaire";
 import { buildQuestionnaireAnswers, canLeaveRemix, isQuestionAnswered, resolveRemixPhase, resolveRemixThinkingStatus, resolveRemixWorkMode } from "Dev/Mobile/RemixModel";
 import { DoraMascot, type DoraMascotState } from "Dev/Mobile/Mascot";
 import { mobileFontScale } from "Dev/Mobile/Accessibility";

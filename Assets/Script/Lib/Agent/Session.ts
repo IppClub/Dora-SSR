@@ -7,10 +7,10 @@ import type { SQL } from 'Dora';
 import { runCodingAgent, CodingAgentEvent, CodingAgentRunResult, truncateAgentUserPrompt } from 'Agent/DoraAgent';
 import type { AgentCompletionReport, AgentTokenUsageMetric } from 'Agent/DoraAgent';
 import type { VisionTaskUsage } from 'Agent/Tool/VisionAnalysis';
-import * as AgentConfig from 'Agent/Config';
+import * as AgentConfig from 'Agent/Config/Defaults';
 import * as AgentToolRegistry from 'Agent/Tool/Registry';
 import * as AgentRuntimePolicy from 'Agent/Runtime/Policy';
-import * as LocalAgent from 'Agent/LocalAgent';
+import * as LocalAgent from 'Agent/Runtime/LocalAgent';
 import * as Tools from 'Agent/Tools';
 import {
 	TABLE_SESSION,
@@ -23,13 +23,13 @@ import {
 	getSessionOperableTaskIds,
 	requireAgentStorage,
 } from 'Agent/Storage/Database';
-import { DualLayerStorage } from 'Agent/Memory';
+import { DualLayerStorage } from 'Agent/Runtime/Memory';
 import { Log, getLLMConfig, normalizeAgentCompletionReport, safeJsonDecode, safeJsonEncode, sanitizeUTF8, validateAgentLLMConfig } from 'Agent/Utils';
 import type { LLMConfig, StopToken } from 'Agent/Utils';
 import type { AgentToolName } from 'Agent/Tool/Registry';
 import type { AgentWorkMode } from 'Agent/Tool/Registry';
-import { validateQuestionnaireAnswers } from 'Agent/Questionnaire';
-import type { AgentQuestionnaireAnswers, AgentQuestionnaireSchema } from 'Agent/Questionnaire';
+import { validateQuestionnaireAnswers } from 'Agent/Runtime/Questionnaire';
+import type { AgentQuestionnaireAnswers, AgentQuestionnaireSchema } from 'Agent/Runtime/Questionnaire';
 import { getLastInsertRowId, queryOne, queryRows, toStr } from 'Agent/Storage/Support';
 
 export type AgentSessionStatus = "IDLE" | "RUNNING" | "WAITING_USER" | "DONE" | "FAILED" | "STOPPED";

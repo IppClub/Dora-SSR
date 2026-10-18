@@ -1,7 +1,7 @@
 // @preview-file off clear
 import type { VisionBinding } from 'Agent/Tool/VisionBinding';
 import type { AgentCompletionReport, StopToken } from 'Agent/Utils';
-import type { JsonSchema, JsonSchemaObject } from 'Agent/JsonSchema';
+import type { JsonSchema, JsonSchemaObject } from 'Agent/Tool/JsonSchema';
 
 export type AgentDecisionMode = "tool_calling" | "xml";
 export type AgentRole = "main" | "sub";
