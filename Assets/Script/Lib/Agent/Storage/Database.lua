@@ -4,6 +4,8 @@ local __TS__SparseArrayNew = ____lualib.__TS__SparseArrayNew -- 1
 local __TS__SparseArrayPush = ____lualib.__TS__SparseArrayPush -- 1
 local __TS__SparseArraySpread = ____lualib.__TS__SparseArraySpread -- 1
 local __TS__ArrayIndexOf = ____lualib.__TS__ArrayIndexOf -- 1
+local __TS__ArrayFindIndex = ____lualib.__TS__ArrayFindIndex -- 1
+local __TS__ObjectAssign = ____lualib.__TS__ObjectAssign -- 1
 local ____exports = {} -- 1
 local ____Dora = require("Dora") -- 2
 local App = ____Dora.App -- 2
@@ -406,116 +408,191 @@ local function getTaskStatus(taskId) -- 409
 	local rows = DB:query(("SELECT status FROM " .. ____exports.TABLE_TASK) .. " WHERE id = ?", {taskId}) -- 410
 	return rows and #rows > 0 and toStr(rows[1][1]) or "" -- 411
 end -- 409
-function ____exports.cleanupTaskHeavyData(taskId) -- 414
-	if taskId <= 0 then -- 414
-		return false -- 415
-	end -- 415
-	local status = getTaskStatus(taskId) -- 416
-	if status == "" then -- 416
-		return false -- 417
-	end -- 417
-	if status == "RUNNING" or status == "WAITING_USER" then -- 417
-		return false -- 418
-	end -- 418
-	if __TS__ArrayIndexOf( -- 418
-		____exports.getAllOperableTaskIds(), -- 419
-		taskId -- 419
-	) >= 0 then -- 419
-		return false -- 419
-	end -- 419
-	local targets = normalizeTaskIds(DB:query(("SELECT target_task_id FROM " .. ____exports.TABLE_TASK_REFERENCE) .. " WHERE owner_task_id = ?", {taskId})) -- 420
-	local success = DB:transaction({ -- 424
-		((((("DELETE FROM " .. ____exports.TABLE_CHECKPOINT_ENTRY) .. "\n\t\t\tWHERE checkpoint_id IN (SELECT id FROM ") .. ____exports.TABLE_CHECKPOINT) .. " WHERE task_id = ") .. tostring(math.floor(taskId))) .. ");", -- 424
-		((("DELETE FROM " .. ____exports.TABLE_CHECKPOINT) .. " WHERE task_id = ") .. tostring(math.floor(taskId))) .. ";", -- 424
-		((("DELETE FROM " .. ____exports.TABLE_STEP) .. " WHERE task_id = ") .. tostring(math.floor(taskId))) .. ";", -- 424
-		((((("DELETE FROM " .. ____exports.TABLE_TASK_REFERENCE) .. "\n\t\t\tWHERE owner_task_id = ") .. tostring(math.floor(taskId))) .. "\n\t\t\t\tOR target_task_id = ") .. tostring(math.floor(taskId))) .. ";", -- 424
-		((((((((((("DELETE FROM " .. ____exports.TABLE_TASK) .. "\n\t\t\tWHERE id = ") .. tostring(math.floor(taskId))) .. "\n\t\t\t\tAND NOT EXISTS (\n\t\t\t\t\tSELECT 1 FROM ") .. ____exports.TABLE_MESSAGE) .. " WHERE task_id = ") .. tostring(math.floor(taskId))) .. "\n\t\t\t\t)\n\t\t\t\tAND NOT EXISTS (\n\t\t\t\t\tSELECT 1 FROM ") .. ____exports.TABLE_SESSION) .. " WHERE current_task_id = ") .. tostring(math.floor(taskId))) .. "\n\t\t\t\t)\n\t\t\t\t;" -- 424
-	}) -- 424
-	if not success then -- 424
-		return false -- 442
-	end -- 442
-	Log( -- 443
-		"Info", -- 443
-		"[AgentStorage] cleaned heavy data task=" .. tostring(taskId) -- 443
-	) -- 443
-	do -- 443
-		local i = 0 -- 444
-		while i < #targets do -- 444
-			____exports.cleanupTaskHeavyData(targets[i + 1]) -- 445
-			i = i + 1 -- 444
-		end -- 444
-	end -- 444
-	return true -- 447
-end -- 414
-function ____exports.auditOrphanHeavyData() -- 460
-	local operable = ____exports.getAllOperableTaskIds() -- 461
-	local rows = DB:query(((((((((((((((((("SELECT t.id,\n\t\t\t(SELECT COUNT(*) FROM " .. ____exports.TABLE_CHECKPOINT) .. " c WHERE c.task_id = t.id),\n\t\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_CHECKPOINT_ENTRY) .. " e\n\t\t\t\tJOIN ") .. ____exports.TABLE_CHECKPOINT) .. " c ON c.id = e.checkpoint_id WHERE c.task_id = t.id),\n\t\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_STEP) .. " s WHERE s.task_id = t.id),\n\t\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_TASK_REFERENCE) .. " r WHERE r.owner_task_id = t.id),\n\t\t\t(SELECT COALESCE(SUM(e.bytes_before + e.bytes_after), 0) FROM ") .. ____exports.TABLE_CHECKPOINT_ENTRY) .. " e\n\t\t\t\tJOIN ") .. ____exports.TABLE_CHECKPOINT) .. " c ON c.id = e.checkpoint_id WHERE c.task_id = t.id),\n\t\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_MESSAGE) .. " m WHERE m.task_id = t.id)\n\t\tFROM ") .. ____exports.TABLE_TASK) .. " t\n\t\tWHERE t.status NOT IN ('RUNNING', 'WAITING_USER')") or ({}) -- 462
-	local audit = { -- 475
-		taskCount = 0, -- 476
-		checkpointCount = 0, -- 477
-		entryCount = 0, -- 478
-		stepCount = 0, -- 479
-		referenceCount = 0, -- 480
-		rawBytes = 0, -- 481
-		candidateTaskIds = {} -- 482
-	} -- 482
-	do -- 482
-		local i = 0 -- 484
-		while i < #rows do -- 484
-			do -- 484
-				local taskId = rows[i + 1][1] -- 485
-				if __TS__ArrayIndexOf(operable, taskId) >= 0 then -- 485
-					goto __continue66 -- 486
-				end -- 486
-				local checkpointCount = rows[i + 1][2] or 0 -- 487
-				local entryCount = rows[i + 1][3] or 0 -- 488
-				local stepCount = rows[i + 1][4] or 0 -- 489
-				local referenceCount = rows[i + 1][5] or 0 -- 490
-				local messageCount = rows[i + 1][7] or 0 -- 491
-				if checkpointCount <= 0 and entryCount <= 0 and stepCount <= 0 and referenceCount <= 0 and messageCount > 0 then -- 491
-					goto __continue66 -- 499
-				end -- 499
-				audit.taskCount = audit.taskCount + 1 -- 501
-				audit.checkpointCount = audit.checkpointCount + checkpointCount -- 502
-				audit.entryCount = audit.entryCount + entryCount -- 503
-				audit.stepCount = audit.stepCount + stepCount -- 504
-				audit.referenceCount = audit.referenceCount + referenceCount -- 505
-				audit.rawBytes = audit.rawBytes + (rows[i + 1][6] or 0) -- 506
-				local ____audit_candidateTaskIds_3 = audit.candidateTaskIds -- 506
-				____audit_candidateTaskIds_3[#____audit_candidateTaskIds_3 + 1] = taskId -- 507
-			end -- 507
-			::__continue66:: -- 507
-			i = i + 1 -- 484
-		end -- 484
-	end -- 484
-	return audit -- 509
+local function getProtectedTaskIds() -- 416
+	local rows = DB:query(((((("WITH RECURSIVE protected(id) AS (\n\t\tSELECT current_task_id FROM " .. ____exports.TABLE_SESSION) .. " WHERE current_task_id > 0\n\t\tUNION SELECT id FROM ") .. ____exports.TABLE_TASK) .. " WHERE status IN ('RUNNING', 'WAITING_USER')\n\t\tUNION SELECT r.target_task_id FROM ") .. ____exports.TABLE_TASK_REFERENCE) .. " r\n\t\t\tJOIN protected p ON r.owner_task_id = p.id\n\t) SELECT id FROM protected") -- 417
+	return rows and normalizeTaskIds(rows) or nil -- 423
+end -- 416
+local function cleanupTaskHeavyDataRecord(taskId) -- 427
+	if taskId <= 0 then -- 427
+		return nil -- 428
+	end -- 428
+	local status = getTaskStatus(taskId) -- 429
+	if status == "" or status == "RUNNING" or status == "WAITING_USER" then -- 429
+		return nil -- 430
+	end -- 430
+	local protectedIds = getProtectedTaskIds() -- 431
+	if not protectedIds or __TS__ArrayIndexOf(protectedIds, taskId) >= 0 then -- 431
+		return nil -- 432
+	end -- 432
+	local targets = normalizeTaskIds(DB:query(("SELECT target_task_id FROM " .. ____exports.TABLE_TASK_REFERENCE) .. " WHERE owner_task_id = ?", {taskId})) -- 433
+	local success = DB:transaction({ -- 437
+		((((("DELETE FROM " .. ____exports.TABLE_CHECKPOINT_ENTRY) .. "\n\t\t\tWHERE checkpoint_id IN (SELECT id FROM ") .. ____exports.TABLE_CHECKPOINT) .. " WHERE task_id = ") .. tostring(math.floor(taskId))) .. ");", -- 437
+		((("DELETE FROM " .. ____exports.TABLE_CHECKPOINT) .. " WHERE task_id = ") .. tostring(math.floor(taskId))) .. ";", -- 437
+		((("DELETE FROM " .. ____exports.TABLE_STEP) .. " WHERE task_id = ") .. tostring(math.floor(taskId))) .. ";", -- 437
+		((((("DELETE FROM " .. ____exports.TABLE_TASK_REFERENCE) .. "\n\t\t\tWHERE owner_task_id = ") .. tostring(math.floor(taskId))) .. "\n\t\t\t\tOR target_task_id = ") .. tostring(math.floor(taskId))) .. ";", -- 437
+		((((((((((("DELETE FROM " .. ____exports.TABLE_TASK) .. "\n\t\t\tWHERE id = ") .. tostring(math.floor(taskId))) .. "\n\t\t\t\tAND NOT EXISTS (\n\t\t\t\t\tSELECT 1 FROM ") .. ____exports.TABLE_MESSAGE) .. " WHERE task_id = ") .. tostring(math.floor(taskId))) .. "\n\t\t\t\t)\n\t\t\t\tAND NOT EXISTS (\n\t\t\t\t\tSELECT 1 FROM ") .. ____exports.TABLE_SESSION) .. " WHERE current_task_id = ") .. tostring(math.floor(taskId))) .. "\n\t\t\t\t)\n\t\t\t\t;" -- 437
+	}) -- 437
+	if not success then -- 437
+		return nil -- 455
+	end -- 455
+	Log( -- 456
+		"Info", -- 456
+		"[AgentStorage] cleaned heavy data task=" .. tostring(taskId) -- 456
+	) -- 456
+	return targets -- 457
+end -- 427
+function ____exports.cleanupTaskHeavyData(taskId) -- 460
+	local targets = cleanupTaskHeavyDataRecord(taskId) -- 461
+	if not targets then -- 461
+		return false -- 462
+	end -- 462
+	do -- 462
+		local i = 0 -- 463
+		while i < #targets do -- 463
+			____exports.cleanupTaskHeavyData(targets[i + 1]) -- 463
+			i = i + 1 -- 463
+		end -- 463
+	end -- 463
+	return true -- 464
 end -- 460
-function ____exports.cleanupOrphanHeavyDataBatch(maxTasks) -- 512
-	if maxTasks == nil then -- 512
-		maxTasks = 4 -- 512
-	end -- 512
-	local audit = ____exports.auditOrphanHeavyData() -- 513
-	local limit = math.max( -- 514
-		0, -- 514
-		math.floor(maxTasks) -- 514
-	) -- 514
-	local cleaned = 0 -- 515
-	do -- 515
-		local i = 0 -- 516
-		while i < #audit.candidateTaskIds and cleaned < limit do -- 516
-			if ____exports.cleanupTaskHeavyData(audit.candidateTaskIds[i + 1]) then -- 516
-				cleaned = cleaned + 1 -- 518
-			end -- 518
-			i = i + 1 -- 516
-		end -- 516
-	end -- 516
-	if audit.taskCount > 0 then -- 516
-		Log( -- 522
-			"Info", -- 523
-			(((((((((((("[AgentStorage] orphan audit tasks=" .. tostring(audit.taskCount)) .. " checkpoints=") .. tostring(audit.checkpointCount)) .. " entries=") .. tostring(audit.entryCount)) .. " steps=") .. tostring(audit.stepCount)) .. " refs=") .. tostring(audit.referenceCount)) .. " raw_bytes=") .. tostring(audit.rawBytes)) .. " cleaned=") .. tostring(cleaned) -- 523
-		) -- 523
-	end -- 523
-	return audit -- 527
-end -- 512
-initializeAgentStorage() -- 530
-return ____exports -- 530
+function ____exports.auditOrphanHeavyData() -- 478
+	local protectedIds = getProtectedTaskIds() -- 479
+	local ____protectedIds_3 -- 482
+	if protectedIds then -- 482
+		____protectedIds_3 = DB:query(((((((((((((("WITH\n\t\tcp AS (SELECT task_id, COUNT(*) AS n FROM " .. ____exports.TABLE_CHECKPOINT) .. " GROUP BY task_id),\n\t\tentries AS (SELECT c.task_id, COUNT(*) AS n, SUM(e.bytes_before + e.bytes_after) AS raw_bytes\n\t\t\tFROM ") .. ____exports.TABLE_CHECKPOINT_ENTRY) .. " e JOIN ") .. ____exports.TABLE_CHECKPOINT) .. " c ON c.id = e.checkpoint_id GROUP BY c.task_id),\n\t\tsteps AS (SELECT task_id, COUNT(*) AS n FROM ") .. ____exports.TABLE_STEP) .. " GROUP BY task_id),\n\t\trefs AS (SELECT owner_task_id, COUNT(*) AS n FROM ") .. ____exports.TABLE_TASK_REFERENCE) .. " GROUP BY owner_task_id),\n\t\tmessages AS (SELECT task_id, COUNT(*) AS n FROM ") .. ____exports.TABLE_MESSAGE) .. " GROUP BY task_id)\n\t\tSELECT t.id, COALESCE(cp.n, 0), COALESCE(entries.n, 0), COALESCE(steps.n, 0),\n\t\t\tCOALESCE(refs.n, 0), COALESCE(entries.raw_bytes, 0), COALESCE(messages.n, 0)\n\t\tFROM ") .. ____exports.TABLE_TASK) .. " t\n\t\tLEFT JOIN cp ON cp.task_id = t.id\n\t\tLEFT JOIN entries ON entries.task_id = t.id\n\t\tLEFT JOIN steps ON steps.task_id = t.id\n\t\tLEFT JOIN refs ON refs.owner_task_id = t.id\n\t\tLEFT JOIN messages ON messages.task_id = t.id\n\t\tWHERE t.status NOT IN ('RUNNING', 'WAITING_USER') ORDER BY t.id") -- 482
+	else -- 482
+		____protectedIds_3 = nil -- 497
+	end -- 497
+	local rows = ____protectedIds_3 -- 482
+	local audit = { -- 498
+		success = protectedIds ~= nil and rows ~= nil, -- 499
+		taskCount = 0, -- 500
+		checkpointCount = 0, -- 501
+		entryCount = 0, -- 502
+		stepCount = 0, -- 503
+		referenceCount = 0, -- 504
+		rawBytes = 0, -- 505
+		candidateTaskIds = {} -- 506
+	} -- 506
+	if not rows or not protectedIds then -- 506
+		return audit -- 508
+	end -- 508
+	local protectedTasks = {} -- 509
+	for ____, id in ipairs(protectedIds) do -- 510
+		protectedTasks[id] = true -- 510
+	end -- 510
+	do -- 510
+		local i = 0 -- 511
+		while i < #rows do -- 511
+			do -- 511
+				local taskId = rows[i + 1][1] -- 512
+				if protectedTasks[taskId] then -- 512
+					goto __continue71 -- 513
+				end -- 513
+				local checkpointCount = rows[i + 1][2] or 0 -- 514
+				local entryCount = rows[i + 1][3] or 0 -- 515
+				local stepCount = rows[i + 1][4] or 0 -- 516
+				local referenceCount = rows[i + 1][5] or 0 -- 517
+				local messageCount = rows[i + 1][7] or 0 -- 518
+				if checkpointCount <= 0 and entryCount <= 0 and stepCount <= 0 and referenceCount <= 0 and messageCount > 0 then -- 518
+					goto __continue71 -- 526
+				end -- 526
+				audit.taskCount = audit.taskCount + 1 -- 528
+				audit.checkpointCount = audit.checkpointCount + checkpointCount -- 529
+				audit.entryCount = audit.entryCount + entryCount -- 530
+				audit.stepCount = audit.stepCount + stepCount -- 531
+				audit.referenceCount = audit.referenceCount + referenceCount -- 532
+				audit.rawBytes = audit.rawBytes + (rows[i + 1][6] or 0) -- 533
+				local ____audit_candidateTaskIds_4 = audit.candidateTaskIds -- 533
+				____audit_candidateTaskIds_4[#____audit_candidateTaskIds_4 + 1] = taskId -- 534
+			end -- 534
+			::__continue71:: -- 534
+			i = i + 1 -- 511
+		end -- 511
+	end -- 511
+	return audit -- 536
+end -- 478
+local orphanSweepCursor = 0 -- 544
+function ____exports.cleanupOrphanHeavyDataBatch(maxTasks) -- 546
+	if maxTasks == nil then -- 546
+		maxTasks = 4 -- 546
+	end -- 546
+	local audit = ____exports.auditOrphanHeavyData() -- 547
+	local limit = math.max( -- 548
+		0, -- 548
+		math.min( -- 548
+			16, -- 548
+			math.floor(maxTasks) -- 548
+		) -- 548
+	) -- 548
+	local cleanedTaskCount = 0 -- 549
+	local failedTaskCount = 0 -- 550
+	local ids = audit.candidateTaskIds -- 551
+	local nextIndex = __TS__ArrayFindIndex( -- 552
+		ids, -- 552
+		function(____, id) return id > orphanSweepCursor end -- 552
+	) -- 552
+	local start = nextIndex >= 0 and nextIndex or 0 -- 553
+	do -- 553
+		local i = 0 -- 554
+		while audit.success and i < #ids and i < limit do -- 554
+			local taskId = ids[(start + i) % #ids + 1] -- 555
+			orphanSweepCursor = taskId -- 558
+			if cleanupTaskHeavyDataRecord(taskId) ~= nil then -- 558
+				cleanedTaskCount = cleanedTaskCount + 1 -- 559
+			else -- 559
+				failedTaskCount = failedTaskCount + 1 -- 560
+			end -- 560
+			i = i + 1 -- 554
+		end -- 554
+	end -- 554
+	if not audit.success or audit.taskCount > 0 then -- 554
+		Log( -- 563
+			audit.success and "Info" or "Warn", -- 563
+			(((((((((((((("[AgentStorage] orphan audit success=" .. tostring(audit.success)) .. " tasks=") .. tostring(audit.taskCount)) .. " checkpoints=") .. tostring(audit.checkpointCount)) .. " entries=") .. tostring(audit.entryCount)) .. " steps=") .. tostring(audit.stepCount)) .. " raw_bytes=") .. tostring(audit.rawBytes)) .. " cleaned=") .. tostring(cleanedTaskCount)) .. " failed=") .. tostring(failedTaskCount) -- 563
+		) -- 563
+	end -- 563
+	return __TS__ObjectAssign({}, audit, {cleanedTaskCount = cleanedTaskCount, failedTaskCount = failedTaskCount}) -- 566
+end -- 546
+function ____exports.getStorageUsage() -- 577
+	local ready = ____exports.requireAgentStorage() -- 578
+	if not ready.success then -- 578
+		return ready -- 579
+	end -- 579
+	local pageSize = DB:query("PRAGMA agent.page_size") -- 580
+	local pageCount = DB:query("PRAGMA agent.page_count") -- 581
+	local freeCount = DB:query("PRAGMA agent.freelist_count") -- 582
+	local rows = DB:query(((((((((((((((((((((((("SELECT\n\t\t(SELECT COUNT(*) FROM " .. ____exports.TABLE_SESSION) .. "),\n\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_MESSAGE) .. "),\n\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_TASK) .. "),\n\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_STEP) .. "),\n\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_CHECKPOINT) .. "),\n\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_CHECKPOINT_ENTRY) .. "),\n\t\t(SELECT COUNT(*) FROM ") .. ____exports.TABLE_TASK_REFERENCE) .. "),\n\t\t(SELECT COALESCE(SUM(length(CAST(content AS BLOB)) + length(CAST(display_content AS BLOB))), 0) FROM ") .. ____exports.TABLE_MESSAGE) .. "),\n\t\t(SELECT COALESCE(SUM(length(CAST(prompt AS BLOB))), 0) FROM ") .. ____exports.TABLE_TASK) .. "),\n\t\t(SELECT COALESCE(SUM(length(CAST(reason AS BLOB)) + length(CAST(reasoning_content AS BLOB))\n\t\t\t+ length(CAST(params_json AS BLOB)) + length(CAST(result_json AS BLOB)) + length(CAST(files_json AS BLOB))), 0) FROM ") .. ____exports.TABLE_STEP) .. "),\n\t\t(SELECT COALESCE(SUM(bytes_before + bytes_after), 0) FROM ") .. ____exports.TABLE_CHECKPOINT_ENTRY) .. "),\n\t\t(SELECT COALESCE(SUM(COALESCE(length(CAST(before_data AS BLOB)), 0) + COALESCE(length(CAST(after_data AS BLOB)), 0)), 0) FROM ") .. ____exports.TABLE_CHECKPOINT_ENTRY) .. ")") -- 583
+	local orphanHeavyData = ____exports.auditOrphanHeavyData() -- 597
+	if not (pageSize and pageSize[1]) or not (pageCount and pageCount[1]) or not (freeCount and freeCount[1]) or not (rows and rows[1]) or not orphanHeavyData.success then -- 597
+		return {success = false, message = "failed to read Agent storage usage"} -- 599
+	end -- 599
+	local size = pageSize[1][1] -- 601
+	local pages = pageCount[1][1] -- 602
+	local free = freeCount[1][1] -- 603
+	local r = rows[1] -- 604
+	return {success = true, usage = {database = { -- 605
+		allocatedBytes = size * pages, -- 606
+		freeBytes = size * free, -- 606
+		usedBytes = size * (pages - free), -- 606
+		pageSize = size, -- 606
+		pageCount = pages, -- 606
+		freePageCount = free -- 606
+	}, records = { -- 606
+		sessions = r[1], -- 607
+		messages = r[2], -- 607
+		tasks = r[3], -- 607
+		steps = r[4], -- 607
+		checkpoints = r[5], -- 607
+		entries = r[6], -- 607
+		references = r[7] -- 607
+	}, payload = { -- 607
+		messageBytes = r[8], -- 608
+		taskPromptBytes = r[9], -- 608
+		stepBytes = r[10], -- 608
+		checkpointRawBytes = r[11], -- 608
+		checkpointStoredBytes = r[12] -- 608
+	}, orphanHeavyData = orphanHeavyData}} -- 608
+end -- 577
+initializeAgentStorage() -- 613
+return ____exports -- 613

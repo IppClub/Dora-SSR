@@ -140,6 +140,7 @@ HttpServer\post "/agent/project-root", (req): invalidArguments ->
 import "Script.Dev.AgentHost" as AgentHost
 AgentTools = AgentHost.proxy "Agent.Tools"
 AgentSession = AgentHost.proxy "Agent.Session"
+AgentStorage = AgentHost.proxy "Agent.Storage.Database"
 AgentLocalAgent = AgentHost.proxy "Agent.LocalAgent"
 AgentVisionAssets = AgentHost.proxy "Agent.Tool.VisionAssets"
 
@@ -755,6 +756,9 @@ HttpServer\postSchedule "/git/auth/test", (req): invalidArguments ->
 		credential = gitLoadCredential authId
 		optionsJSON = gitAuthOptionsJSON credential
 		return gitRunSync repoPath, "ls-remote #{gitQuote url}", optionsJSON, 20
+
+-- Read-only database allocation/payload statistics; chat history is retained.
+HttpServer\post "/agent/storage/usage", -> AgentStorage.getStorageUsage!
 
 HttpServer\post "/agent/session/create", (req): invalidArguments ->
 	switch req when {body: {:projectRoot, :title}}

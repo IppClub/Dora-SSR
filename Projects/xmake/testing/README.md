@@ -68,3 +68,33 @@ seconds of inactivity (WS uses a fixed handshake deadline). Partial ordinary
 requests also have a 30-second total deadline; uploads have a ten-minute total
 receive deadline. Established WebSockets are not closed merely for being idle.
 Disconnects, rejection and shutdown release body leases and anonymous files.
+
+## Agent storage maintenance
+
+`xmake dora-test --case=test_agent_storage` runs the production storage Lua
+against real SQLite through a small Dora boundary adapter. The engine suite
+owns this regression; implementations and fixtures remain in Dora-Example.
+For native codec, manual cleanup, HTTP and actual file rollback acceptance:
+
+```sh
+xmake dora-test --case=test_agent_storage --repo=/path/to/Dora-Example -- --engine /absolute/path/Dora
+```
+
+The native test requires free ports 8866/8868 and uses a disposable profile.
+Add `--hold` to leave that window open for actual settings-panel button acceptance.
+Storage maintenance is manual: open Status / Settings > Misc > Agent storage,
+then click Clean orphan data. There is no startup or periodic cleanup job. A
+user-triggered operation processes at most four tasks per frame and stops when
+its initial attempt budget is exhausted. Usage is cached while the section is
+open; Refresh usage reads it again. The cleaner protects every session's
+current task, all RUNNING/WAITING_USER tasks, and the transitive closure of
+their task references. Cycles terminate; failed transactions can be retried
+manually, and failed reachability queries prevent deletion. It retains all chat messages and
+current/referenced task checkpoints; it does not trim history or vacuum files.
+
+The authenticated `POST /agent/storage/usage` endpoint is read-only. It reports
+agent.db page allocation, used/free pages, row counts, UTF-8 payload byte counts,
+raw/stored checkpoint bytes, and orphan candidates. These are database-only
+statistics: project `.agent` files and transient journal files are excluded.
+Free pages remain available for SQLite reuse, so reclaimed payload does not
+imply an immediate reduction in database file size.
