@@ -68,8 +68,8 @@ return function(zh)
 			ImGui.Text((zh and "检查点原文：" or "Checkpoint originals: ") .. bytes(payload.checkpointRawBytes))
 			ImGui.Text(zh and string.format("工具记录：%d 条，%s", records.steps, bytes(payload.stepBytes))
 				or string.format("Tool steps: %d, %s", records.steps, bytes(payload.stepBytes)))
-			ImGui.Text(zh and string.format("可清理：%d 个孤立任务", orphan.taskCount)
-				or string.format("Can clean: %d orphan tasks", orphan.taskCount))
+			ImGui.Text(zh and string.format("可清理：%d 个旧轮次的数据", orphan.taskCount)
+				or string.format("Previous turns with cleanable data: %d", orphan.taskCount))
 		end
 		if readError then
 			ImGui.TextWrapped((zh and "读取用量失败：" or "Cannot read usage: ") .. readError)
@@ -78,7 +78,7 @@ return function(zh)
 			if ImGui.Button(zh and "刷新用量" or "Refresh usage") then notice = nil; refresh() end
 			ImGui.SameLine()
 			local function cleanButton()
-				if ImGui.Button(zh and "清理孤立数据" or "Clean orphan data") then startCleanup(zh) end
+				if ImGui.Button(zh and "清理旧轮次数据" or "Clean previous turn data") then startCleanup(zh) end
 			end
 			if not usage or usage.orphanHeavyData.taskCount == 0 then ImGui.BeginDisabled(cleanButton)
 			else cleanButton() end
@@ -89,8 +89,8 @@ return function(zh)
 		if ImGui.IsItemHovered() then
 			ImGui.BeginTooltip(function()
 				ImGui.PushTextWrapPos(360, function()
-					ImGui.TextWrapped(zh and "仅清理不再被引用的旧任务数据，保留聊天历史和当前任务的完整回滚记录。"
-						or "Cleans unreferenced old task data. Keeps chat history and complete rollback for current tasks.")
+					ImGui.TextWrapped(zh and "仅清理不再被引用的工具记录和回滚快照，保留聊天历史和当前任务的完整回滚能力。"
+						or "Only cleans unreferenced tool records and rollback snapshots. Preserves chat history and full rollback capability for the current task.")
 					ImGui.TextWrapped(zh and "统计仅包含 Agent 数据库。清理后空间可复用，数据库文件不会立即缩小。"
 						or "Usage covers the Agent database. Cleaned space is reusable; the database file does not shrink immediately.")
 				end)

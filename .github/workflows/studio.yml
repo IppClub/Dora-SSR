@@ -5,6 +5,7 @@ on:
     branches: [ main ]
     paths:
       - '.github/workflows/studio.yml'
+      - '.github/actions/setup-engine-lua/**'
       - 'Studio/**'
       - 'Source/**'
       - 'Assets/**'
@@ -20,6 +21,7 @@ on:
     branches: [ main ]
     paths:
       - '.github/workflows/studio.yml'
+      - '.github/actions/setup-engine-lua/**'
       - 'Studio/**'
       - 'Source/**'
       - 'Assets/**'
@@ -39,8 +41,6 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    env:
-      DORA_LUA: lua5.4
     steps:
       - uses: actions/checkout@v4
       - name: Setup pnpm
@@ -66,10 +66,10 @@ jobs:
           cache-dependency-path: Studio/go.sum
       - name: Install Studio test dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y lua5.4
           pnpm --dir Tools/dora-dora install --frozen-lockfile
           pnpm --dir Studio install --frozen-lockfile
+      - name: Setup engine Lua for tests
+        uses: ./.github/actions/setup-engine-lua
       - name: Resolve Dora-Example tests once
         working-directory: .
         run: xmake dora-test-deps --env-file="$GITHUB_ENV"

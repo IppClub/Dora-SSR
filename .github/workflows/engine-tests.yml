@@ -5,6 +5,7 @@ on:
     branches: [ main ]
     paths:
       - '.github/workflows/**'
+      - '.github/actions/setup-engine-lua/**'
       - 'Source/**'
       - 'Tools/dora-wa/**'
       - 'Tools/dora-rust/**'
@@ -21,6 +22,7 @@ on:
     branches: [ main ]
     paths:
       - '.github/workflows/**'
+      - '.github/actions/setup-engine-lua/**'
       - 'Source/**'
       - 'Tools/dora-wa/**'
       - 'Tools/dora-rust/**'
@@ -41,8 +43,6 @@ permissions:
 jobs:
   regressions:
     runs-on: ubuntu-latest
-    env:
-      DORA_LUA: lua5.4
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js
@@ -56,7 +56,9 @@ jobs:
       - name: Install native test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential zlib1g-dev lua5.4
+          sudo apt-get install -y build-essential zlib1g-dev
+      - name: Setup engine Lua for tests
+        uses: ./.github/actions/setup-engine-lua
       - name: Resolve Dora-Example tests once
         working-directory: .
         run: xmake dora-test-deps --env-file="$GITHUB_ENV"
