@@ -799,7 +799,7 @@ bool HttpServer::isTokenValid(const std::string& token) {
 	}
 	if (!_authSessionId.empty()) {
 		return false;
-	} else if (token != _authToken) {
+	} else if (!constant_time_equal(token, _authToken)) {
 		return false;
 	}
 	if (_authTokenHasExpiry) {
@@ -873,7 +873,7 @@ bool HttpServer::isWebSocketAuthorized(const std::string& resource) {
 	}
 	auto payload = fmt::format("{}\nGET\n{}\n{}\n{}\n{}", sessionId, canonicalPath, timestamp, nonce, ""s);
 	auto expected = hmac_sha256_hex(_authSessionSecret, payload);
-	if (expected != signature) {
+	if (!constant_time_equal(expected, signature)) {
 		return false;
 	}
 	{
