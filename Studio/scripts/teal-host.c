@@ -55,7 +55,8 @@ int teal_compile(const char* source, unsigned length, const char* filename) {
   lua_settop(state, 0); lua_getglobal(state, "studio_tl_compile");
   lua_pushlstring(state, source, length); lua_pushstring(state, filename);
   if (lua_pcall(state, 2, 3, 0)) return 2;
-  return lua_isnil(state, 1) ? 1 : 0;
+  if (lua_isnil(state, 1)) { lua_settop(state, 2); return 1; }
+  return 0;
 }
 const char* teal_compiled_source(void) { return lua_tostring(state, 1); }
 int teal_compiled_tic80(void) { return lua_toboolean(state, 3); }

@@ -65,6 +65,7 @@ target("dora-lua-bindings")
         local lock = assert(io.openlock(path.join(state_dir, "generate.lock")))
         lock:lock()
         local inputs = os.files(path.join(TOLUA_DIR, "**.lua"))
+        table.join2(inputs, os.files(path.join(os.projectdir(), "Source/Lua/Builtin/**.lua")))
         table.join2(inputs, {path.join(os.projectdir(), "Projects/xmake/tools/tolua_main.c"),
             path.join(os.projectdir(), "Projects/xmake/rules/generated_lua.lua")})
         table.join2(inputs, os.files(path.join(TOLUA_DIR, "tolua++build/**.c")))

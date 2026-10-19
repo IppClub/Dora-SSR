@@ -960,12 +960,14 @@ luaCheck = (file, content) ->
 	if info
 		info = for item in *info
 			useCheck = true
-			if not item[5]\match "unused"
+			if item[1] ~= "global" and not item[5]\match "unused"
 				for check in *disabledCheckForLua
 					if item[5]\match check
 						useCheck = false
 			continue unless useCheck
 			switch item[1]
+				when "global"
+					item[1] = "syntax"
 				when "type"
 					item[1] = "warning"
 				when "parsing", "syntax"

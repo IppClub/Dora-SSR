@@ -30,7 +30,7 @@ export function doraCompilerOptions<L extends string, I extends string>(
   ts: typeof TS,
   luaTarget: L,
   luaLibImport: I,
-): TS.CompilerOptions & { luaTarget: L; luaLibImport: I; noHeader: boolean; noImplicitSelf: boolean; luaExternalModules: string[] } {
+): TS.CompilerOptions & { luaTarget: L; luaLibImport: I; noHeader: boolean; noImplicitSelf: boolean; noImplicitGlobalVariables: boolean; luaExternalModules: string[] } {
   return {
     strict: true,
     jsx: ts.JsxEmit.React,
@@ -40,6 +40,7 @@ export function doraCompilerOptions<L extends string, I extends string>(
     noHeader: true,
     sourceMap: true,
     noImplicitSelf: true,
+    noImplicitGlobalVariables: true,
     moduleResolution: ts.ModuleResolutionKind.Classic,
     target: ts.ScriptTarget.ESNext,
     module: ts.ModuleKind.ESNext,

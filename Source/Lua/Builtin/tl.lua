@@ -10776,6 +10776,169 @@ tl.dora_to_lua = function(input, filename, search_path)
 	return code
 end
 
+-- Dora Lua permits shared state through `globals`, not new fields in the
+-- engine environment. Inspect the original AST before type checking: lax Teal
+-- accepts global functions and its unknown-variable warnings also cover reads.
+local function dora_check_global_writes(program, env, filename)
+	local diagnostics, local_functions = {}, {}
+	local scopes = { {_ENV = "global"} }
+	local function lookup(name)
+		for i = #scopes, 1, -1 do
+			if scopes[i][name] ~= nil then return scopes[i][name], scopes[i] end
+		end
+	end
+	local function environment()
+		return lookup("_ENV") or "global"
+	end
+	local classify
+	classify = function(node)
+		if not node then return "unknown" end
+		if node.kind == "paren" then return classify(node.e1) end
+		if node.kind == "table_literal" then return "open" end
+		if node.kind == "string" then return "key:" .. node.conststr end
+		if node.kind == "variable" or node.kind == "type_identifier" then
+			local binding = lookup(node.tk)
+			if binding then return binding end
+			if environment() == "global" or environment() == "dora" or environment() == "proxy" then
+				if node.tk == "_G" then return "global" end
+				if node.tk == "_ENV" then return environment() end
+				if node.tk == "Dora" then return "dora" end
+			end
+		elseif node.kind == "op" and node.op.op == "@funcall" then
+			if classify(node.e1) == "dora" then return "proxy" end
+		end
+		return "unknown"
+	end
+	local function report(node, owner, name)
+		if owner ~= "global" and owner ~= "dora" and owner ~= "proxy" then return end
+		local dora = env.modules.Dora
+		local fields = owner == "dora" and dora and (dora.fields or dora.def and dora.def.fields)
+		if owner ~= "proxy" and name and (env.globals[name] or fields and fields[name]) then return end
+		table.insert(diagnostics, {"global", filename, node.y, node.x,
+			name and ("cannot create global variable '" .. name .. "'; use a local declaration, a module table, or globals")
+				or "cannot validate a dynamic write to the engine global environment; use a local table or globals"})
+	end
+	local function field_key(node)
+		if node.kind == "identifier" then return node.tk end
+		local value = classify(node)
+		return value:sub(1, 4) == "key:" and value:sub(5) or nil
+	end
+	local function write(node)
+		if node.kind == "variable" or node.kind == "identifier" then
+			if not lookup(node.tk) then report(node, environment(), node.tk) end
+		elseif node.kind == "op" and (node.op.op == "." or node.op.op == "@index") then
+			report(node.e2, classify(node.e1), field_key(node.e2))
+		end
+	end
+	local function copy_scopes()
+		local copy = {}
+		for i, scope in ipairs(scopes) do
+			copy[i] = {}; for name, value in pairs(scope) do copy[i][name] = value end
+		end
+		return copy
+	end
+	local function merge_scopes(states)
+		for i, scope in ipairs(scopes) do
+			for name in pairs(scope) do
+				local value = states[1][i][name]
+				for j = 2, #states do
+					local other = states[j][i][name]
+					if value ~= other then
+						if value == "proxy" or other == "proxy" then value = "proxy"
+						elseif value == "global" or other == "global" then value = "global"
+						elseif value == "dora" or other == "dora" then value = "dora"
+						else value = "unknown" end
+					end
+				end
+				scope[name] = value
+			end
+		end
+	end
+	local visit
+	local function block(body, bindings, condition)
+		scopes[#scopes + 1] = bindings or {}
+		visit(body)
+		visit(condition)
+		scopes[#scopes] = nil
+	end
+	visit = function(node)
+		if not node then return end
+		local kind = node.kind
+		if kind == "op" and node.op.op == "@funcall"
+			and node.e1.kind == "variable" and node.e1.tk == "require" and not lookup("require")
+			and environment() == "global" and node.e2[1] and node.e2[1].conststr == "tic80" then
+			-- The explicit TIC80 import installs its declared API/callback globals.
+			-- Read declarations only; never execute the imported module here.
+			require_module("tic80", true, env)
+		end
+		if kind == "local_declaration" then
+			visit(node.exps)
+			local values = {}
+			for i in ipairs(node.vars) do values[i] = classify(node.exps and node.exps[i]) end
+			for i, var in ipairs(node.vars) do scopes[#scopes][var.tk] = values[i] end
+		elseif kind == "assignment" then
+			visit(node.exps)
+			local values = {}
+			for i, var in ipairs(node.vars) do write(var); visit(var); values[i] = classify(node.exps[i]) end
+			for i, var in ipairs(node.vars) do
+				if var.kind == "variable" then
+					local _, scope = lookup(var.tk)
+					if scope then scope[var.tk] = values[i] end
+				end
+			end
+		elseif kind == "local_function" or kind == "global_function" or kind == "record_function" or kind == "function" then
+			if kind == "local_function" then
+				scopes[#scopes][node.name.tk] = "unknown"
+			elseif kind == "global_function" then
+				if lookup(node.name.tk) then local_functions[node.y .. ":" .. node.x] = true end
+				write(node.name)
+			elseif kind == "record_function" then
+				report(node.name, classify(node.fn_owner), node.name.tk)
+			end
+			local bindings = {}
+			for _, arg in ipairs(node.args) do bindings[arg.tk] = "unknown" end
+			-- Function-body assignments are not executed at declaration time.
+			local saved = scopes
+			scopes = {}
+			for i, scope in ipairs(saved) do
+				scopes[i] = {}; for name, value in pairs(scope) do scopes[i][name] = value end
+			end
+			block(node.body, bindings)
+			scopes = saved
+		elseif kind == "forin" or kind == "fornum" then
+			visit(node.exps); visit(node.from); visit(node.to); visit(node.step)
+			local bindings = {}
+			for _, var in ipairs(node.vars or {node.var}) do bindings[var.tk] = "unknown" end
+			local before = copy_scopes()
+			block(node.body, bindings)
+			merge_scopes({before, copy_scopes()})
+		elseif kind == "repeat" then block(node.body, nil, node.exp)
+		elseif kind == "if" then
+			local original, states = scopes, {}
+			for _, branch in ipairs(node.if_blocks) do
+				scopes = original; scopes = copy_scopes()
+				visit(branch.exp); block(branch.body)
+				states[#states + 1] = scopes
+			end
+			scopes = original
+			if node.if_blocks[#node.if_blocks].exp then states[#states + 1] = original end
+			merge_scopes(states)
+		elseif kind == "while" then
+			visit(node.exp)
+			local before = copy_scopes()
+			block(node.body)
+			merge_scopes({before, copy_scopes()})
+		elseif kind == "do" then block(node.body)
+		else
+			-- Only syntax children; never follow parent links or type-check metadata.
+			for _, child in ipairs(node) do visit(child) end
+			visit(node.e1); visit(node.e2); visit(node.key); visit(node.value); visit(node.exps)
+		end
+	end
+	visit(program)
+	return diagnostics, local_functions
+end
+
 tl.dora_check = function(input, filename, lax, search_path)
 	local prev_path = package.path
 	if search_path and search_path ~= "" then
@@ -10798,6 +10961,8 @@ tl.dora_check = function(input, filename, lax, search_path)
 			return nil, info
 		end
 		local env = tl.dora_new_env()
+		local local_functions = {}
+		if lax then info, local_functions = dora_check_global_writes(program, env, filename) end
 		local res = tl.type_check(program, {
 			lax = lax,
 			filename = filename,
@@ -10815,7 +10980,12 @@ tl.dora_check = function(input, filename, lax, search_path)
 		if res.type_errors and #res.type_errors > 0 then
 			for i = 1, #res.type_errors do
 				local err = res.type_errors[i]
-				table.insert(info, {"type", err.filename, err.y, err.x, err.msg})
+				-- Teal treats `local f; function f()` as a global definition in lax
+				-- mode even though Lua assigns to the existing lexical local.
+				if not (lax and local_functions[err.y .. ":" .. err.x]
+					and err.msg == "cannot define a global when a local with the same name is in scope") then
+					table.insert(info, {"type", err.filename, err.y, err.x, err.msg})
+				end
 			end
 		end
 		if res.warnings and #res.warnings > 0 then
