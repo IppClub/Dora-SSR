@@ -31,8 +31,8 @@ android {
 		applicationId "org.ippclub.dorassr"
 		minSdkVersion 28
 		targetSdkVersion 34
-		versionCode 121
-		versionName "1.9.3"
+		versionCode 122
+		versionName "1.9.4"
 		testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 		ndk {
 			abiFilters.addAll(doraAbis)

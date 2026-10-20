@@ -59,8 +59,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <unistd.h>
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_ANDROID
 
-#define DORA_VERSION "1.9.3"_slice
-#define DORA_REVISION "12"_slice
+#define DORA_VERSION "1.9.4"_slice
+#define DORA_REVISION "1"_slice
 
 namespace {
 #if (BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
