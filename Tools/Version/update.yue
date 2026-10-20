@@ -46,4 +46,22 @@ with io.open "../../Projects/Android/Dora/app/build.gradle", "r"
 		\write content
 		\close!
 
+-- Keep shipped Web metadata and the documentation version in sync with Apps.
+for {file, pattern} in *{
+	{"Projects/Web/web-loader.js", '(input.engineVersion !== ")[^"]+(")'}
+	{"Projects/Web/web-package.js", '(options.currentEngineVersion || ")[^"]+(")'}
+	{"Projects/xmake/tools/web/package_web_game.mjs", '(engineVersion: ")[^"]+(")'}
+	{"Docs/src/version.js", "(version: ')[^']+(')"}
+	{"Docs/i18n/zh-Hans/docusaurus-plugin-content-docs/current.json", '(版本 )%d+%.%d+%.%d+()'}
+}
+	file = "../../" .. file
+	with io.open file, "rb"
+		content = \read "*a"
+		\close!
+		content, count = content\gsub pattern, "%1#{version}%2"
+		assert count == 1, "expected one version field in #{file}"
+		with io.open file, "w+"
+			\write content
+			\close!
+
 print "version updated to #{version}"
