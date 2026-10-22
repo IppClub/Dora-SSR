@@ -147,12 +147,12 @@ The button beside the input switches between **Send** when idle and **Stop** whi
 ## 3. Write the Game
 
 1. Step One: Create a new project
-	- In the browser, right click on the menu "Workspace" of the resource tree on the left side of the Dora Dora editor.
-	- Click the `New` menu item, select "New Folder", and name it `Hello`.
+	- Right-click the **Workspace** root in the Web IDE resource tree on the left (or touch and hold on a touchscreen).
+	- Select **New** → **Folder**, enter `Hello`, enable **Create as Project**, and select Lua under **Project Type** (or TypeScript, TSX, Teal, or YueScript). Select **OK** to create the project and its `init` entry file. The default project type is TypeScript.
 	- If you are trying to use Wa language to develop games, you can skip the step of creating the project folder and create a new game project in Wa language named `Hello`, by selecting the `Wa` language in the new file dialog and then checking the "create as Wa project" option.
 2. Step Two: Write the game code
-	- Create a new game entry code file in the project folder, select the Lua language (or Teal, TypeScript, YueScript), and name it `init`.
-	- If you are using the Wa language project, you can just reuse the `main.wa` file as the game entry code file.
+	- The project opens in its **Dora** conversation tab. Expand `Hello` in the resource tree, open the generated `init` file, and replace its contents with the matching language example below. If you did not enable **Create as Project**, right-click the folder, select **New** and a language, then enter `init`. When creating a TypeScript file, use the switch beside the name field to choose `.ts` or `.tsx`.
+	- If you are using the Wa language project, you can just reuse the `src/main.wa` file as the game entry code file.
 	- If you are developing a Wa project outside the Web IDE, first start Dora SSR and its Web IDE, then use the built-in Dora CLI mode to create, build, and run it directly. Replace `Dora` with the path to your Dora executable if needed.
 
 	```sh
@@ -323,7 +323,7 @@ with Node!
 </TabItem>
 <TabItem value="wa" label="Wa">
 
-```go title="Hello/main.wa"
+```go title="Hello/src/main.wa"
 // import module
 import "dora"
 
@@ -354,9 +354,14 @@ func init {
 
 3. Step Three: Run the game
 
-Click the `🎮` icon in the lower right corner of the editor, then click the `Run` menu item. Alternatively, press the `Ctrl + r` key combination.
+Open the project's entry file and save with `Ctrl + S` (`⌘ + S` on macOS). Click the triangular **Run** button in the toolbar, or press `Ctrl + R` (`⌘ + R` on macOS), to run the project containing the current file. The toolbar is at the bottom right on wide desktop layouts and at the top in compact layouts.
 
-## 4. Publish the Game
+Click or touch the scene in the Dora SSR engine window to move the sprite. Use the square **Stop** button to end the game. **Run This** runs a single file rather than the whole project.
 
-1. Open the right-click menu of the newly created project folder in the game resource tree on the left side of the editor.
-2. Click the `Download` option and wait for the browser to prompt for downloading the packaged project file.
+## 4. Export and Publish the Game
+
+1. Right-click the `Hello` project folder in the resource tree (or touch and hold), then select **Export**.
+2. Select **Export ZIP** to download the complete project for backup, sharing, or further development in Dora SSR. **Export obfuscated ZIP** is also available.
+3. To share a browser-playable game, select **Export HTML** for a self-contained Web game that can be opened directly. For website hosting, select **Export server HTML**, extract the archive, and deploy its contents to an HTTP server.
+
+Your browser downloads the resulting file when the export finishes. Exporting does not automatically upload or publish the game to a website.
