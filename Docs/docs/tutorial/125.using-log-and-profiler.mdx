@@ -4,7 +4,7 @@ Dora SSR's Web IDE includes a log panel for checking runtime output and a profil
 
 ## 1. Open the Log Panel
 
-Open the play control menu in the lower-right corner of the Web IDE and choose **View Log**. You can also use the `Mod+.` shortcut shown in the menu. When a build or runtime error is reported by the IDE, the alert message can also include a **View Log** link that opens the same panel.
+Click the terminal icon (**View Log**) in the Web IDE toolbar. The toolbar is at the bottom right on wide desktop layouts and at the top in compact layouts. You can also press `Ctrl + .` (`⌘ + .` on macOS). When a build or runtime error is reported by the IDE, the alert message can also include a **View Log** link that opens the same panel.
 
 The panel shows the active log stream. Log entries marked with `[error]`, `[warning]`, or `[info]` are highlighted, and the log view supports selecting text and searching inside the visible log.
 
@@ -24,14 +24,14 @@ App:saveLog("debug.log")
 
 ## 3. Run Commands from the Panel
 
-The command input at the bottom of the log panel sends code to the running Dora SSR runtime. Type a command and press `Enter` to run it. The command is also written to the log, so you can see what was executed.
+The command input at the bottom of the log panel sends YueScript code to the running Dora SSR runtime, with Dora APIs already available in the command environment. Type a command and press `Enter` to run it. The command is also written to the log, so you can see what was executed.
 
 The panel keeps up to 20 recent commands. Press the up arrow to move to older commands and the down arrow to move toward newer commands. This is helpful when you are repeatedly checking a variable, changing a runtime setting, or rerunning the same diagnostic command.
 
 Examples:
 
-```lua
-Log("Info", "checking player state")
+```yue
+Log "Info", "checking player state"
 Director.profilerSending = true
 App.targetFPS = 60
 ```
@@ -40,7 +40,7 @@ Avoid sending commands that reset global state unless you are ready to rerun the
 
 ## 4. Use the Profiler Panel
 
-Use the icon button in the log panel to switch between the log-only view and the profiler view. When the profiler is hidden, the chart icon opens it; when the profiler is visible, the terminal icon returns to the log-only view. The profiler switch sends `Director.profilerSending = true` or `false` to the runtime.
+Use the **Performance** or **Log** button at the bottom of the log panel to switch between the log-only view and the profiler view. When the profiler is hidden, the chart icon opens it; when the profiler is visible, the terminal icon returns to the log-only view. The profiler switch sends `Director.profilerSending = true` or `false` to the runtime.
 
 The profiler is split into several areas:
 

@@ -19,7 +19,7 @@ Dora is an open-source, cross-platform game engine designed to help developers q
 Dora offers flexible installation methods depending on your operating system. Please follow the steps below according to your device's system.
 
 1. Download and install the Dora SSR software on your gaming terminal. For detailed installation steps, please refer to the [installation guide here](/docs/tutorial/quick-start#2-installation).
-2. Run the application, and it will display a local network server address.
+2. Run the application. If Mobile UI opens, select **Classic UI** at the top left of the Feed to find the Web IDE server address.
 3. On a PC, tablet, or other development devices within the same network, access the server address through your browser.
 4. Now, you can start game development directly in the browser.
 
@@ -30,13 +30,13 @@ After the installation, you can write and run games using Dora's Web IDE. Below 
 ### Step 1: Create a New Project
 
 1. Open the browser and visit the server address displayed when you launched the software to access Dora's Web IDE.
-2. In the Web IDE, right-click the "Resource Root Directory" menu on the left resource tree.
-3. Click "New," select "New Folder," and name the folder `Hello` to serve as the project's root folder.
+2. Right-click the **Workspace** root in the Web IDE resource tree on the left (or touch and hold).
+3. Select **New** → **Folder**, enter `Hello`, enable **Create as Project**, set **Project Type** to `TSX`, and select **OK**. The editor creates `Hello/init.tsx` and opens the **Dora** conversation tab.
 
 ### Step 2: Write Game Code
 
-1. In the `Hello` folder, create a game entry code file. Right-click the `Hello` folder, select "New File," and name the file `init`.
-2. Choose TypeScript as the language and use the `.tsx` file extension. Write the following simple example code:
+1. Expand `Hello` in the resource tree and open the generated `init.tsx`.
+2. Replace its contents with the following example:
 
 	```tsx title="Hello/init.tsx"
 	// @preview-file on clear
@@ -51,12 +51,12 @@ After the installation, you can write and run games using Dora's Web IDE. Below 
 	toNode(<HelloDora/>);
 	```
 
-3. After writing the code, press `Ctrl + S` to save the file. At this point, the Dora engine window should automatically refresh, and you should see the text "Hello, Dora!" displayed, indicating that you have successfully run your first simple game program.
+3. Save with `Ctrl + S` (`⌘ + S` on macOS). The example's `// @preview-file on clear` directive runs the current file and clears the log when you save changes, displaying "Hello, Dora!" in the engine window. Files without a preview directive need to be run manually.
 
 ### Step 3: Run the Game Again
 
-1. Click the 🎮 icon in the lower-right corner of the editor to open the run menu.
-2. In the menu, click "Run," or press the shortcut `Ctrl + R`.
+1. Keep `Hello/init.tsx` open and locate the triangular **Run** toolbar button. The toolbar is at the bottom right on wide desktop layouts and at the top in compact layouts.
+2. Click **Run**, or press `Ctrl + R` (`⌘ + R` on macOS), to run the whole project. The square **Stop** button ends the game.
 3. The program will automatically recompile and run, and you should see the text "Hello, Dora!" in the game window.
 
 ---
@@ -66,8 +66,8 @@ After the installation, you can write and run games using Dora's Web IDE. Below 
 Dora's Web IDE provides developers with features such as code editing, resource management, and real-time preview:
 
 - **Resource Tree**: Displays the project's files and folders on the left, making it easy to organize the project structure.
-- **Code Editor**: Supports syntax highlighting and error提示 for multiple languages, including Lua, Teal, TypeScript, and YueScript.
-- **Real-Time Preview**: After modifying code, you can instantly view the results, making it ideal for quick debugging and adjustments.
+- **Code Editor**: Supports syntax highlighting and error messages for multiple languages, including Lua, Teal, TypeScript, and YueScript.
+- **Real-Time Preview**: Enable `@preview-file on` or `@preview-project on` to run the current file or its project automatically when saving changes.
 
 With these features, you can easily write, debug, and run your games.
 

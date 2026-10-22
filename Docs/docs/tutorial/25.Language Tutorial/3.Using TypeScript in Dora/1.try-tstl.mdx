@@ -40,7 +40,7 @@ const sprite = Sprite("assets/image.png");
 scene.addChild(sprite);
 ```
 
-5. **Run the Code**: After saving the code, Dora SSR's Web IDE will automatically compile it using TSTL and run the generated Lua code locally. You can view the output and error messages via the Web IDE's editor interface and console.
+5. **Run the Code**: Save the code to compile it with TSTL, then click the triangular **Run** toolbar button or press `Ctrl + R` (`⌘ + R` on macOS) to run its project. Automatic execution on saving changes requires `// @preview-file on` for the current file or `// @preview-project on` for its project. Use **View Log** to inspect output and errors.
 
 ## 4. Debugging and Error Checking
 
@@ -81,7 +81,7 @@ scene.onUpdate(() => {
 });
 ```
 
-Once you save the code, the Web IDE will automatically compile it and run the game in the emulator.
+This example includes `// @preview-file on`, so saving changes automatically compiles and runs the current file in the Dora SSR engine window. Without that directive, click **Run** manually.
 
 ## 6. Importing Modules from the Project
 

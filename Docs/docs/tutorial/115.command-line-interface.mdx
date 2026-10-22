@@ -60,6 +60,11 @@ The command list from `Dora cli --help`:
 Usage: dora cli <command> [options]
 
 Commands:
+  agent status
+  agent reload
+  agent preview [-p project] [--entry init.lua] [--capture-at 0.5,2] [--queue-timeout 30]
+  agent command [-p project] --input request.json
+  agent log [-n lines]
   ts install [-p project] [-l zh-Hans|en]
   wa install [-p project]
   build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa|yarn]
@@ -81,10 +86,13 @@ Connection options: --host, --port, --timeout
 Use `-h` or `--help` after a grouped command for details:
 
 ```sh
+Dora cli agent --help
 Dora cli ts --help
 Dora cli wa install -h
 Dora cli rust run --help
 ```
+
+The `agent` commands use the isolated Agent engine: `status` reports its state, `reload` reloads it, `preview` runs a project and captures screenshots at specified times, `command` reads a Lua or Git request from a JSON file, and `log` reads the service log. These commands return JSON on stdout. Agent runtime operations are separate from the interactive runtime controlled by ordinary `run` and `stop`.
 
 ## 3. Documentation Search
 

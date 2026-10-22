@@ -60,6 +60,11 @@ Dora cli log -n 100
 Usage: dora cli <command> [options]
 
 Commands:
+  agent status
+  agent reload
+  agent preview [-p project] [--entry init.lua] [--capture-at 0.5,2] [--queue-timeout 30]
+  agent command [-p project] --input request.json
+  agent log [-n lines]
   ts install [-p project] [-l zh-Hans|en]
   wa install [-p project]
   build [-p project] [-f file] [--lang all|ts|yue|tl|xml|wa|yarn]
@@ -81,10 +86,13 @@ Connection options: --host, --port, --timeout
 在分组命令后使用 `-h` 或 `--help` 可以查看详细说明：
 
 ```sh
+Dora cli agent --help
 Dora cli ts --help
 Dora cli wa install -h
 Dora cli rust run --help
 ```
+
+`agent` 命令用于隔离的 Agent 引擎：`status` 查看状态，`reload` 重载，`preview` 运行项目并按指定时间截图，`command` 从 JSON 文件读取 Lua 或 Git 请求，`log` 查看服务日志。这组命令在标准输出返回 JSON；其中 Agent 运行时操作与普通 `run`、`stop` 控制的交互引擎相互独立。
 
 ## 3. 文档搜索
 

@@ -40,7 +40,7 @@ const sprite = Sprite("assets/image.png");
 scene.addChild(sprite);
 ```
 
-- 5. **运行代码**：保存代码后，Dora SSR 的 Web IDE 会自动进行 TSTL 编译，并在本地运行生成的 Lua 代码。你可以通过 Web IDE 的编辑器界面和控制台查看输出信息和错误提示。
+- 5. **运行代码**：保存代码后，Web IDE 会进行 TSTL 编译。点击工具栏的三角形「运行」按钮，或按 `Ctrl + R`（macOS 为 `⌘ + R`），运行当前文件所属的项目。只有启用 `// @preview-file on` 或 `// @preview-project on` 的文件，才会在保存修改时自动运行当前文件或项目；输出和错误可通过「查看日志」按钮查看。
 
 ## 4. 调试与错误检查
 
@@ -81,7 +81,7 @@ scene.onUpdate(() => {
 });
 ```
 
-&emsp;&emsp;保存代码后，Web IDE 将会自动编译并在模拟器中运行此游戏。
+&emsp;&emsp;本例包含 `// @preview-file on`，因此保存修改后会自动编译并在 Dora SSR 引擎窗口中运行当前文件；移除该标记后，请手动点击「运行」。
 
 ## 6. 导入项目下的模块
 
