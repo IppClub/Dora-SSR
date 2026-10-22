@@ -549,7 +549,7 @@ export function listFiles(req: {
 function formatReadSlice(
 	content: string,
 	startLine: number,
-	endLine: number
+	endLine?: number
 ): ReadFileResult {
 	const lines = content.split("\n");
 	const totalLines = lines.length;
@@ -564,7 +564,7 @@ function formatReadSlice(
 		};
 	}
 	const rawStart = math.floor(startLine);
-	const rawEnd = math.floor(endLine);
+	const rawEnd = endLine === undefined ? undefined : math.floor(endLine);
 	if (rawStart === 0) {
 		return { success: false, message: "startLine cannot be 0" };
 	}
@@ -579,7 +579,9 @@ function formatReadSlice(
 	}
 	const end = math.min(
 		totalLines,
-		rawEnd > 0
+		rawEnd === undefined
+			? start + AgentConfig.AGENT_LIMITS.readFileDefaultLimit - 1
+			: rawEnd > 0
 			? rawEnd
 			: math.max(1, totalLines + rawEnd + 1)
 	);
@@ -621,11 +623,10 @@ export function readFile(
 	const fallback = readFileRaw(workDir, path, docLanguage);
 	if (!fallback.success || fallback.content === undefined) return fallback;
 	const resolvedStartLine = startLine ?? 1;
-	const resolvedEndLine = endLine ?? (resolvedStartLine < 0 ? -1 : 300);
 	return formatReadSlice(
 		fallback.content,
 		resolvedStartLine,
-		resolvedEndLine
+		endLine
 	);
 }
 

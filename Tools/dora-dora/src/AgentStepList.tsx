@@ -136,11 +136,10 @@ function summarizeToolParams(step: AgentSessionStep, t: (key: string, options?: 
 				const read = reads[i];
 				const path = typeof read.path === "string" ? read.path : "";
 				const startLine = typeof read.startLine === "number" ? read.startLine : 1;
-				const endLine = typeof read.endLine === "number"
-					? read.endLine
-					: (startLine < 0 ? -1 : 300);
 				push(t("agent.paramLabels.file"), path, i > 0);
-				push(t("agent.paramLabels.lines"), formatLineRange(startLine, endLine, t));
+				push(t("agent.paramLabels.lines"), typeof read.endLine === "number"
+					? formatLineRange(startLine, read.endLine, t)
+					: t("agent.defaultReadRange", { start: formatLineLabel(startLine, t), count: 300 }));
 			}
 			return items;
 		}

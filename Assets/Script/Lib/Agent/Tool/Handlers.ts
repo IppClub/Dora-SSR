@@ -11,13 +11,14 @@ import type { AgentToolHandler, AgentToolName } from 'Agent/Tool/Types';
 
 function readOneFile(context: Parameters<AgentToolHandler>[0], input: Record<string, unknown>): Record<string, unknown> {
 	const startLine = Number(input.startLine ?? 1);
-	let endLine = Number(input.endLine ?? AgentConfig.AGENT_LIMITS.readFileDefaultLimit);
+	let endLine = input.endLine === undefined ? undefined : Number(input.endLine);
+	const effectiveEndLine = endLine ?? (startLine + AgentConfig.AGENT_LIMITS.readFileDefaultLimit - 1);
 	let clippedAfterCompression = false;
 	if (
 		context.workflow.resumeNarrowReadMode === true
 		&& startLine > 0
-		&& endLine >= startLine
-		&& endLine - startLine + 1 > 160
+		&& effectiveEndLine >= startLine
+		&& effectiveEndLine - startLine + 1 > 160
 	) {
 		endLine = startLine + 159;
 		clippedAfterCompression = true;
@@ -33,7 +34,7 @@ function readOneFile(context: Parameters<AgentToolHandler>[0], input: Record<str
 		endLine,
 		context.useChineseResponse ? "zh" : "en"
 	) as unknown as Record<string, unknown>;
-	if (clippedAfterCompression && output.success === true) {
+	if (clippedAfterCompression && endLine !== undefined && output.success === true) {
 		output.clipped = true;
 		output.message = context.useChineseResponse
 			? `压缩恢复阶段已自动截取为第 ${startLine}-${endLine} 行（最多 160 行）。如仍需后续内容，请从第 ${endLine + 1} 行继续窄读。`

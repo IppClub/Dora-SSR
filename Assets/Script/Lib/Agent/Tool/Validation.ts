@@ -71,9 +71,11 @@ function normalizeReadRange(value: unknown, index?: number): AgentToolSemanticVa
 	if (path === "") return { success: false, message: `read_file requires path${suffix}` };
 	const start = parseReadLine(input.startLine, 1, "startLine");
 	if (start.success === false) return { success: false, message: `${start.message}${suffix}` };
-	const end = parseReadLine(input.endLine, start.value < 0 ? -1 : AgentConfig.AGENT_LIMITS.readFileDefaultLimit, "endLine");
-	if (end.success === false) return { success: false, message: `${end.message}${suffix}` };
-	return { success: true, value: { path, startLine: start.value, endLine: end.value } };
+	// Keep an omitted end unresolved until the file length and negative start are known.
+	const end = input.endLine === undefined ? undefined : parseReadLine(input.endLine,
+		start.value < 0 ? -1 : start.value + AgentConfig.AGENT_LIMITS.readFileDefaultLimit - 1, "endLine");
+	if (end?.success === false) return { success: false, message: `${end.message}${suffix}` };
+	return { success: true, value: { path, startLine: start.value, endLine: end?.value } };
 }
 
 function getFinishMessage(input: Record<string, unknown>): string {

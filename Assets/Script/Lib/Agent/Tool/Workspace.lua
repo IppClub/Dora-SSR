@@ -24,6 +24,7 @@ local Path = ____Dora.Path -- 2
 local App = ____Dora.App -- 2
 local Director = ____Dora.Director -- 2
 local once = ____Dora.once -- 2
+local AgentConfig = require("Agent.Config.Defaults") -- 4
 local ____Utils = require("Agent.Utils") -- 5
 local Log = ____Utils.Log -- 5
 function isEngineLogFilePath(path) -- 443
@@ -40,27 +41,27 @@ function getEngineLogText() -- 495
 	end -- 502
 	return Content:load(logPath) -- 504
 end -- 504
-function ____exports.ensureSafeSearchGlobs(globs) -- 644
-	local result = {} -- 645
-	do -- 645
-		local i = 0 -- 646
-		while i < #globs do -- 646
-			result[#result + 1] = globs[i + 1] -- 647
-			i = i + 1 -- 646
-		end -- 646
-	end -- 646
-	local requiredExcludes = {"!**/.*/**", "!**/node_modules/**"} -- 649
-	do -- 649
-		local i = 0 -- 650
-		while i < #requiredExcludes do -- 650
-			if __TS__ArrayIndexOf(result, requiredExcludes[i + 1]) == -1 then -- 650
-				result[#result + 1] = requiredExcludes[i + 1] -- 652
-			end -- 652
-			i = i + 1 -- 650
-		end -- 650
-	end -- 650
-	return result -- 655
-end -- 644
+function ____exports.ensureSafeSearchGlobs(globs) -- 645
+	local result = {} -- 646
+	do -- 646
+		local i = 0 -- 647
+		while i < #globs do -- 647
+			result[#result + 1] = globs[i + 1] -- 648
+			i = i + 1 -- 647
+		end -- 647
+	end -- 647
+	local requiredExcludes = {"!**/.*/**", "!**/node_modules/**"} -- 650
+	do -- 650
+		local i = 0 -- 651
+		while i < #requiredExcludes do -- 651
+			if __TS__ArrayIndexOf(result, requiredExcludes[i + 1]) == -1 then -- 651
+				result[#result + 1] = requiredExcludes[i + 1] -- 653
+			end -- 653
+			i = i + 1 -- 651
+		end -- 651
+	end -- 651
+	return result -- 656
+end -- 645
 local function getDoraDocDefinitionRoot(docLanguage) -- 110
 	local zhDir = Path( -- 111
 		Content.assetPath, -- 111
@@ -624,7 +625,13 @@ local function formatReadSlice(content, startLine, endLine) -- 549
 		} -- 563
 	end -- 563
 	local rawStart = math.floor(startLine) -- 566
-	local rawEnd = math.floor(endLine) -- 567
+	local ____temp_4 -- 567
+	if endLine == nil then -- 567
+		____temp_4 = nil -- 567
+	else -- 567
+		____temp_4 = math.floor(endLine) -- 567
+	end -- 567
+	local rawEnd = ____temp_4 -- 567
 	if rawStart == 0 then -- 567
 		return {success = false, message = "startLine cannot be 0"} -- 569
 	end -- 569
@@ -640,282 +647,281 @@ local function formatReadSlice(content, startLine, endLine) -- 549
 	end -- 578
 	local ____end = math.min( -- 580
 		totalLines, -- 581
-		rawEnd > 0 and rawEnd or math.max(1, totalLines + rawEnd + 1) -- 582
+		rawEnd == nil and start + AgentConfig.AGENT_LIMITS.readFileDefaultLimit - 1 or (rawEnd > 0 and rawEnd or math.max(1, totalLines + rawEnd + 1)) -- 582
 	) -- 582
 	if ____end < start then -- 582
-		return { -- 587
-			success = false, -- 588
-			message = (("resolved endLine " .. tostring(____end)) .. " is before startLine ") .. tostring(start) -- 589
-		} -- 589
-	end -- 589
-	local slice = {} -- 592
-	do -- 592
-		local i = start -- 593
-		while i <= ____end do -- 593
-			slice[#slice + 1] = lines[i] -- 594
-			i = i + 1 -- 593
-		end -- 593
-	end -- 593
-	local truncated = start > 1 or ____end < totalLines -- 596
-	local hint = ____end < totalLines and ((((((("(Showing lines " .. tostring(start)) .. "-") .. tostring(____end)) .. " of ") .. tostring(totalLines)) .. ". Use startLine=") .. tostring(____end + 1)) .. " to continue.)" or (truncated and ((((("(Showing lines " .. tostring(start)) .. "-") .. tostring(____end)) .. " of ") .. tostring(totalLines)) .. ".)" or ("(End of file - " .. tostring(totalLines)) .. " lines total)") -- 597
-	local body = table.concat(slice, "\n") -- 602
-	local output = body == "" and hint or (body .. "\n\n") .. hint -- 603
-	return { -- 604
-		success = true, -- 605
-		content = output, -- 606
-		totalLines = totalLines, -- 607
-		startLine = start, -- 608
-		endLine = ____end, -- 609
-		truncated = truncated -- 610
-	} -- 610
+		return { -- 589
+			success = false, -- 590
+			message = (("resolved endLine " .. tostring(____end)) .. " is before startLine ") .. tostring(start) -- 591
+		} -- 591
+	end -- 591
+	local slice = {} -- 594
+	do -- 594
+		local i = start -- 595
+		while i <= ____end do -- 595
+			slice[#slice + 1] = lines[i] -- 596
+			i = i + 1 -- 595
+		end -- 595
+	end -- 595
+	local truncated = start > 1 or ____end < totalLines -- 598
+	local hint = ____end < totalLines and ((((((("(Showing lines " .. tostring(start)) .. "-") .. tostring(____end)) .. " of ") .. tostring(totalLines)) .. ". Use startLine=") .. tostring(____end + 1)) .. " to continue.)" or (truncated and ((((("(Showing lines " .. tostring(start)) .. "-") .. tostring(____end)) .. " of ") .. tostring(totalLines)) .. ".)" or ("(End of file - " .. tostring(totalLines)) .. " lines total)") -- 599
+	local body = table.concat(slice, "\n") -- 604
+	local output = body == "" and hint or (body .. "\n\n") .. hint -- 605
+	return { -- 606
+		success = true, -- 607
+		content = output, -- 608
+		totalLines = totalLines, -- 609
+		startLine = start, -- 610
+		endLine = ____end, -- 611
+		truncated = truncated -- 612
+	} -- 612
 end -- 549
-function ____exports.readFile(workDir, path, startLine, endLine, docLanguage) -- 614
-	local fallback = ____exports.readFileRaw(workDir, path, docLanguage) -- 621
-	if not fallback.success or fallback.content == nil then -- 621
-		return fallback -- 622
-	end -- 622
-	local resolvedStartLine = startLine or 1 -- 623
-	local resolvedEndLine = endLine or (resolvedStartLine < 0 and -1 or 300) -- 624
-	return formatReadSlice(fallback.content, resolvedStartLine, resolvedEndLine) -- 625
-end -- 614
-____exports.codeExtensions = { -- 632
-	".lua", -- 632
-	".tl", -- 632
-	".yue", -- 632
-	".ts", -- 632
-	".tsx", -- 632
-	".xml", -- 632
-	".md", -- 632
-	".yarn", -- 632
-	".wa", -- 632
-	".mod" -- 632
-} -- 632
-extensionLevels = { -- 633
-	vs = 2, -- 634
-	bl = 2, -- 635
-	ts = 1, -- 636
-	tsx = 1, -- 637
-	tl = 1, -- 638
-	yue = 1, -- 639
-	xml = 1, -- 640
-	lua = 0 -- 641
-} -- 641
-function ____exports.splitSearchPatterns(pattern) -- 658
-	local trimmed = __TS__StringTrim(pattern or "") -- 659
-	if trimmed == "" then -- 659
-		return {} -- 660
-	end -- 660
-	local out = {} -- 661
-	local seen = __TS__New(Set) -- 662
-	for p0 in string.gmatch(trimmed, "([^|]+)") do -- 663
-		local p = __TS__StringTrim(tostring(p0)) -- 664
-		if p ~= "" and not seen:has(p) then -- 664
-			seen:add(p) -- 666
-			out[#out + 1] = p -- 667
-		end -- 667
-	end -- 667
-	return out -- 670
-end -- 658
-function ____exports.splitWhitespaceSearchPatterns(pattern) -- 673
-	local out = {} -- 674
-	local seen = __TS__New(Set) -- 675
-	for p0 in string.gmatch(pattern, "(%S+)") do -- 676
-		local p = __TS__StringTrim(tostring(p0)) -- 677
-		local key = string.lower(p) -- 678
-		if p ~= "" and not seen:has(key) then -- 678
-			seen:add(key) -- 680
-			out[#out + 1] = p -- 681
-		end -- 681
-	end -- 681
-	return out -- 684
-end -- 673
-local function mergeSearchFileResultsUnique(resultsList) -- 687
-	local merged = {} -- 688
-	local seen = __TS__New(Set) -- 689
-	do -- 689
-		local i = 0 -- 690
-		while i < #resultsList do -- 690
-			local list = resultsList[i + 1] -- 691
-			do -- 691
-				local j = 0 -- 692
-				while j < #list do -- 692
-					do -- 692
-						local row = list[j + 1] -- 693
-						local key = (((((row.file .. ":") .. tostring(row.pos)) .. ":") .. tostring(row.line)) .. ":") .. tostring(row.column) -- 694
-						if seen:has(key) then -- 694
-							goto __continue154 -- 695
-						end -- 695
-						seen:add(key) -- 696
-						merged[#merged + 1] = list[j + 1] -- 697
-					end -- 697
-					::__continue154:: -- 697
-					j = j + 1 -- 692
-				end -- 692
-			end -- 692
-			i = i + 1 -- 690
-		end -- 690
-	end -- 690
-	return merged -- 700
-end -- 687
-local function buildGroupedSearchResults(results) -- 703
-	local order = {} -- 708
-	local grouped = __TS__New(Map) -- 709
-	do -- 709
-		local i = 0 -- 714
-		while i < #results do -- 714
-			local row = results[i + 1] -- 715
-			local file = row.file -- 716
-			local key = file ~= "" and file or ("(unknown:" .. tostring(i)) .. ")" -- 717
-			local bucket = grouped:get(key) -- 718
-			if not bucket then -- 718
-				bucket = {file = file ~= "" and file or "(unknown)", totalMatches = 0, matches = {}} -- 720
-				grouped:set(key, bucket) -- 721
-				order[#order + 1] = key -- 722
-			end -- 722
-			bucket.totalMatches = bucket.totalMatches + 1 -- 724
-			local ____bucket_matches_4 = bucket.matches -- 724
-			____bucket_matches_4[#____bucket_matches_4 + 1] = results[i + 1] -- 725
-			i = i + 1 -- 714
-		end -- 714
-	end -- 714
-	local out = {} -- 727
-	do -- 727
-		local i = 0 -- 732
-		while i < #order do -- 732
-			local bucket = grouped:get(order[i + 1]) -- 733
-			if bucket then -- 733
-				out[#out + 1] = bucket -- 734
-			end -- 734
-			i = i + 1 -- 732
-		end -- 732
-	end -- 732
-	return out -- 736
-end -- 703
-function ____exports.searchFiles(req) -- 739
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 739
-		local requestedPath = __TS__StringTrim(req.path or "") -- 753
-		local isVirtualDoc = __TS__StringStartsWith(requestedPath, ____exports.AGENT_DORA_DOC_PREFIX) -- 754
-		local ____isVirtualDoc_5 -- 755
-		if isVirtualDoc then -- 755
-			____isVirtualDoc_5 = resolveAgentDoraDocFilePath(requestedPath, req.docLanguage or "en") -- 756
-		else -- 756
-			____isVirtualDoc_5 = nil -- 757
-		end -- 757
-		local virtualDocPath = ____isVirtualDoc_5 -- 755
-		if isVirtualDoc and virtualDocPath == nil then -- 755
-			return ____awaiter_resolve(nil, {success = false, message = "virtual document not found or outside its documentation scope"}) -- 755
-		end -- 755
-		local resolvedPath = virtualDocPath or ____exports.resolveWorkspaceSearchPath(req.workDir, requestedPath) -- 761
-		if resolvedPath == nil then -- 761
-			return ____awaiter_resolve(nil, {success = false, message = "invalid path or workDir"}) -- 761
-		end -- 761
-		local searchIsSingleFile = Content:exist(resolvedPath) and not Content:isdir(resolvedPath) -- 765
-		local searchRoot = searchIsSingleFile and Path:getPath(resolvedPath) or resolvedPath -- 766
-		if searchRoot == "" then -- 766
-			return ____awaiter_resolve(nil, {success = false, message = "invalid path or workDir"}) -- 766
-		end -- 766
-		if req.pattern == "" or __TS__StringTrim(req.pattern) == "" then -- 766
-			return ____awaiter_resolve(nil, {success = false, message = "empty pattern"}) -- 766
-		end -- 766
-		local patterns = ____exports.splitSearchPatterns(req.pattern) -- 773
-		if #patterns == 0 then -- 773
-			return ____awaiter_resolve(nil, {success = false, message = "empty pattern"}) -- 773
-		end -- 773
-		return ____awaiter_resolve( -- 773
-			nil, -- 773
-			__TS__New( -- 777
-				__TS__Promise, -- 777
-				function(____, resolve) -- 777
-					Director.systemScheduler:schedule(once(function() -- 778
-						do -- 778
-							local function ____catch(e) -- 778
-								resolve( -- 822
-									nil, -- 822
-									{ -- 822
-										success = false, -- 822
-										message = tostring(e) -- 822
-									} -- 822
-								) -- 822
-							end -- 822
-							local ____try, ____hasReturned = pcall(function() -- 822
-								local searchGlobs = searchIsSingleFile and ({Path:getFilename(resolvedPath)}) or ____exports.ensureSafeSearchGlobs(req.globs or ({"**"})) -- 780
-								local allResults = {} -- 783
-								do -- 783
-									local i = 0 -- 784
-									while i < #patterns do -- 784
-										local ____Content_10 = Content -- 785
-										local ____Content_searchFilesAsync_11 = Content.searchFilesAsync -- 785
-										local ____patterns_index_9 = patterns[i + 1] -- 790
-										local ____req_useRegex_6 = req.useRegex -- 791
-										if ____req_useRegex_6 == nil then -- 791
-											____req_useRegex_6 = false -- 791
-										end -- 791
-										local ____req_caseSensitive_7 = req.caseSensitive -- 792
-										if ____req_caseSensitive_7 == nil then -- 792
-											____req_caseSensitive_7 = false -- 792
+function ____exports.readFile(workDir, path, startLine, endLine, docLanguage) -- 616
+	local fallback = ____exports.readFileRaw(workDir, path, docLanguage) -- 623
+	if not fallback.success or fallback.content == nil then -- 623
+		return fallback -- 624
+	end -- 624
+	local resolvedStartLine = startLine or 1 -- 625
+	return formatReadSlice(fallback.content, resolvedStartLine, endLine) -- 626
+end -- 616
+____exports.codeExtensions = { -- 633
+	".lua", -- 633
+	".tl", -- 633
+	".yue", -- 633
+	".ts", -- 633
+	".tsx", -- 633
+	".xml", -- 633
+	".md", -- 633
+	".yarn", -- 633
+	".wa", -- 633
+	".mod" -- 633
+} -- 633
+extensionLevels = { -- 634
+	vs = 2, -- 635
+	bl = 2, -- 636
+	ts = 1, -- 637
+	tsx = 1, -- 638
+	tl = 1, -- 639
+	yue = 1, -- 640
+	xml = 1, -- 641
+	lua = 0 -- 642
+} -- 642
+function ____exports.splitSearchPatterns(pattern) -- 659
+	local trimmed = __TS__StringTrim(pattern or "") -- 660
+	if trimmed == "" then -- 660
+		return {} -- 661
+	end -- 661
+	local out = {} -- 662
+	local seen = __TS__New(Set) -- 663
+	for p0 in string.gmatch(trimmed, "([^|]+)") do -- 664
+		local p = __TS__StringTrim(tostring(p0)) -- 665
+		if p ~= "" and not seen:has(p) then -- 665
+			seen:add(p) -- 667
+			out[#out + 1] = p -- 668
+		end -- 668
+	end -- 668
+	return out -- 671
+end -- 659
+function ____exports.splitWhitespaceSearchPatterns(pattern) -- 674
+	local out = {} -- 675
+	local seen = __TS__New(Set) -- 676
+	for p0 in string.gmatch(pattern, "(%S+)") do -- 677
+		local p = __TS__StringTrim(tostring(p0)) -- 678
+		local key = string.lower(p) -- 679
+		if p ~= "" and not seen:has(key) then -- 679
+			seen:add(key) -- 681
+			out[#out + 1] = p -- 682
+		end -- 682
+	end -- 682
+	return out -- 685
+end -- 674
+local function mergeSearchFileResultsUnique(resultsList) -- 688
+	local merged = {} -- 689
+	local seen = __TS__New(Set) -- 690
+	do -- 690
+		local i = 0 -- 691
+		while i < #resultsList do -- 691
+			local list = resultsList[i + 1] -- 692
+			do -- 692
+				local j = 0 -- 693
+				while j < #list do -- 693
+					do -- 693
+						local row = list[j + 1] -- 694
+						local key = (((((row.file .. ":") .. tostring(row.pos)) .. ":") .. tostring(row.line)) .. ":") .. tostring(row.column) -- 695
+						if seen:has(key) then -- 695
+							goto __continue154 -- 696
+						end -- 696
+						seen:add(key) -- 697
+						merged[#merged + 1] = list[j + 1] -- 698
+					end -- 698
+					::__continue154:: -- 698
+					j = j + 1 -- 693
+				end -- 693
+			end -- 693
+			i = i + 1 -- 691
+		end -- 691
+	end -- 691
+	return merged -- 701
+end -- 688
+local function buildGroupedSearchResults(results) -- 704
+	local order = {} -- 709
+	local grouped = __TS__New(Map) -- 710
+	do -- 710
+		local i = 0 -- 715
+		while i < #results do -- 715
+			local row = results[i + 1] -- 716
+			local file = row.file -- 717
+			local key = file ~= "" and file or ("(unknown:" .. tostring(i)) .. ")" -- 718
+			local bucket = grouped:get(key) -- 719
+			if not bucket then -- 719
+				bucket = {file = file ~= "" and file or "(unknown)", totalMatches = 0, matches = {}} -- 721
+				grouped:set(key, bucket) -- 722
+				order[#order + 1] = key -- 723
+			end -- 723
+			bucket.totalMatches = bucket.totalMatches + 1 -- 725
+			local ____bucket_matches_5 = bucket.matches -- 725
+			____bucket_matches_5[#____bucket_matches_5 + 1] = results[i + 1] -- 726
+			i = i + 1 -- 715
+		end -- 715
+	end -- 715
+	local out = {} -- 728
+	do -- 728
+		local i = 0 -- 733
+		while i < #order do -- 733
+			local bucket = grouped:get(order[i + 1]) -- 734
+			if bucket then -- 734
+				out[#out + 1] = bucket -- 735
+			end -- 735
+			i = i + 1 -- 733
+		end -- 733
+	end -- 733
+	return out -- 737
+end -- 704
+function ____exports.searchFiles(req) -- 740
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 740
+		local requestedPath = __TS__StringTrim(req.path or "") -- 754
+		local isVirtualDoc = __TS__StringStartsWith(requestedPath, ____exports.AGENT_DORA_DOC_PREFIX) -- 755
+		local ____isVirtualDoc_6 -- 756
+		if isVirtualDoc then -- 756
+			____isVirtualDoc_6 = resolveAgentDoraDocFilePath(requestedPath, req.docLanguage or "en") -- 757
+		else -- 757
+			____isVirtualDoc_6 = nil -- 758
+		end -- 758
+		local virtualDocPath = ____isVirtualDoc_6 -- 756
+		if isVirtualDoc and virtualDocPath == nil then -- 756
+			return ____awaiter_resolve(nil, {success = false, message = "virtual document not found or outside its documentation scope"}) -- 756
+		end -- 756
+		local resolvedPath = virtualDocPath or ____exports.resolveWorkspaceSearchPath(req.workDir, requestedPath) -- 762
+		if resolvedPath == nil then -- 762
+			return ____awaiter_resolve(nil, {success = false, message = "invalid path or workDir"}) -- 762
+		end -- 762
+		local searchIsSingleFile = Content:exist(resolvedPath) and not Content:isdir(resolvedPath) -- 766
+		local searchRoot = searchIsSingleFile and Path:getPath(resolvedPath) or resolvedPath -- 767
+		if searchRoot == "" then -- 767
+			return ____awaiter_resolve(nil, {success = false, message = "invalid path or workDir"}) -- 767
+		end -- 767
+		if req.pattern == "" or __TS__StringTrim(req.pattern) == "" then -- 767
+			return ____awaiter_resolve(nil, {success = false, message = "empty pattern"}) -- 767
+		end -- 767
+		local patterns = ____exports.splitSearchPatterns(req.pattern) -- 774
+		if #patterns == 0 then -- 774
+			return ____awaiter_resolve(nil, {success = false, message = "empty pattern"}) -- 774
+		end -- 774
+		return ____awaiter_resolve( -- 774
+			nil, -- 774
+			__TS__New( -- 778
+				__TS__Promise, -- 778
+				function(____, resolve) -- 778
+					Director.systemScheduler:schedule(once(function() -- 779
+						do -- 779
+							local function ____catch(e) -- 779
+								resolve( -- 823
+									nil, -- 823
+									{ -- 823
+										success = false, -- 823
+										message = tostring(e) -- 823
+									} -- 823
+								) -- 823
+							end -- 823
+							local ____try, ____hasReturned = pcall(function() -- 823
+								local searchGlobs = searchIsSingleFile and ({Path:getFilename(resolvedPath)}) or ____exports.ensureSafeSearchGlobs(req.globs or ({"**"})) -- 781
+								local allResults = {} -- 784
+								do -- 784
+									local i = 0 -- 785
+									while i < #patterns do -- 785
+										local ____Content_11 = Content -- 786
+										local ____Content_searchFilesAsync_12 = Content.searchFilesAsync -- 786
+										local ____patterns_index_10 = patterns[i + 1] -- 791
+										local ____req_useRegex_7 = req.useRegex -- 792
+										if ____req_useRegex_7 == nil then -- 792
+											____req_useRegex_7 = false -- 792
 										end -- 792
-										local ____req_includeContent_8 = req.includeContent -- 793
-										if ____req_includeContent_8 == nil then -- 793
-											____req_includeContent_8 = true -- 793
+										local ____req_caseSensitive_8 = req.caseSensitive -- 793
+										if ____req_caseSensitive_8 == nil then -- 793
+											____req_caseSensitive_8 = false -- 793
 										end -- 793
-										allResults[#allResults + 1] = ____Content_searchFilesAsync_11( -- 785
-											____Content_10, -- 785
-											searchRoot, -- 786
-											____exports.codeExtensions, -- 786
-											extensionLevels, -- 788
-											searchGlobs, -- 789
-											____patterns_index_9, -- 790
-											____req_useRegex_6, -- 791
-											____req_caseSensitive_7, -- 792
-											____req_includeContent_8, -- 793
-											req.contentWindow or 120 -- 794
-										) -- 794
-										i = i + 1 -- 784
-									end -- 784
-								end -- 784
-								local results = mergeSearchFileResultsUnique(allResults) -- 797
-								local totalResults = #results -- 798
-								local limit = math.max( -- 799
-									1, -- 799
-									math.floor(req.limit or 20) -- 799
-								) -- 799
-								local offset = math.max( -- 800
-									0, -- 800
-									math.floor(req.offset or 0) -- 800
+										local ____req_includeContent_9 = req.includeContent -- 794
+										if ____req_includeContent_9 == nil then -- 794
+											____req_includeContent_9 = true -- 794
+										end -- 794
+										allResults[#allResults + 1] = ____Content_searchFilesAsync_12( -- 786
+											____Content_11, -- 786
+											searchRoot, -- 787
+											____exports.codeExtensions, -- 787
+											extensionLevels, -- 789
+											searchGlobs, -- 790
+											____patterns_index_10, -- 791
+											____req_useRegex_7, -- 792
+											____req_caseSensitive_8, -- 793
+											____req_includeContent_9, -- 794
+											req.contentWindow or 120 -- 795
+										) -- 795
+										i = i + 1 -- 785
+									end -- 785
+								end -- 785
+								local results = mergeSearchFileResultsUnique(allResults) -- 798
+								local totalResults = #results -- 799
+								local limit = math.max( -- 800
+									1, -- 800
+									math.floor(req.limit or 20) -- 800
 								) -- 800
-								local paged = offset >= totalResults and ({}) or __TS__ArraySlice(results, offset, offset + limit) -- 801
-								local nextOffset = offset + #paged -- 802
-								local hasMore = nextOffset < totalResults -- 803
-								local truncated = offset > 0 or hasMore -- 804
-								local relativeResults = virtualDocPath and __TS__ArrayMap( -- 805
-									paged, -- 806
-									function(____, row) return __TS__ObjectAssign({}, row, {file = requestedPath}) end -- 806
-								) or toWorkspaceRelativeSearchResults(req.workDir, paged) -- 806
-								local groupByFile = req.groupByFile == true -- 808
-								resolve( -- 809
-									nil, -- 809
-									{ -- 809
-										success = true, -- 810
-										results = relativeResults, -- 811
-										groupedResults = groupByFile and buildGroupedSearchResults(relativeResults) or nil, -- 812
-										totalResults = totalResults, -- 813
-										truncated = truncated, -- 814
-										limit = limit, -- 815
-										offset = offset, -- 816
-										nextOffset = nextOffset, -- 817
-										hasMore = hasMore, -- 818
-										groupByFile = groupByFile -- 819
-									} -- 819
-								) -- 819
-							end) -- 819
-							if not ____try then -- 819
-								____catch(____hasReturned) -- 819
-							end -- 819
-						end -- 819
-					end)) -- 778
-				end -- 777
-			) -- 777
-		) -- 777
-	end) -- 777
-end -- 739
-return ____exports -- 739
+								local offset = math.max( -- 801
+									0, -- 801
+									math.floor(req.offset or 0) -- 801
+								) -- 801
+								local paged = offset >= totalResults and ({}) or __TS__ArraySlice(results, offset, offset + limit) -- 802
+								local nextOffset = offset + #paged -- 803
+								local hasMore = nextOffset < totalResults -- 804
+								local truncated = offset > 0 or hasMore -- 805
+								local relativeResults = virtualDocPath and __TS__ArrayMap( -- 806
+									paged, -- 807
+									function(____, row) return __TS__ObjectAssign({}, row, {file = requestedPath}) end -- 807
+								) or toWorkspaceRelativeSearchResults(req.workDir, paged) -- 807
+								local groupByFile = req.groupByFile == true -- 809
+								resolve( -- 810
+									nil, -- 810
+									{ -- 810
+										success = true, -- 811
+										results = relativeResults, -- 812
+										groupedResults = groupByFile and buildGroupedSearchResults(relativeResults) or nil, -- 813
+										totalResults = totalResults, -- 814
+										truncated = truncated, -- 815
+										limit = limit, -- 816
+										offset = offset, -- 817
+										nextOffset = nextOffset, -- 818
+										hasMore = hasMore, -- 819
+										groupByFile = groupByFile -- 820
+									} -- 820
+								) -- 820
+							end) -- 820
+							if not ____try then -- 820
+								____catch(____hasReturned) -- 820
+							end -- 820
+						end -- 820
+					end)) -- 779
+				end -- 778
+			) -- 778
+		) -- 778
+	end) -- 778
+end -- 740
+return ____exports -- 740

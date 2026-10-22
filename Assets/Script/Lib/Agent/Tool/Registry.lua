@@ -111,7 +111,7 @@ local READ_FILE_PARAMETERS = {{ -- 117
 	required = true, -- 119
 	minItems = 1, -- 119
 	description = "A required non-empty ordered list of file ranges. For one file, supply a one-element array. There is no artificial item limit.", -- 120
-	items = {type = "object", properties = {path = {type = "string", description = "Workspace or virtual path to read."}, startLine = {type = "number", description = "Starting line; defaults to 1."}, endLine = {type = "number", description = "Ending line; default follows startLine."}}, required = {"path"}, additionalProperties = false} -- 121
+	items = {type = "object", properties = {path = {type = "string", description = "Workspace or virtual path to read."}, startLine = {type = "number", description = "Starting line; defaults to 1."}, endLine = {type = "number", description = "Inclusive ending line. If omitted, read at most 300 lines from the resolved startLine, capped at EOF."}}, required = {"path"}, additionalProperties = false} -- 121
 }} -- 121
 local BUILD_PARAMETERS = {{ -- 134
 	name = "paths", -- 135
@@ -147,7 +147,7 @@ local AGENT_TOOL_DEFINITION_SOURCES = { -- 138
 			"Always supply reads as a non-empty array. Each entry contains path and optional startLine/endLine. For example: {\"reads\":[{\"path\":\"init.ts\"}]}.", -- 163
 			"Put independent files or ranges in the same reads array, in the order their results are needed.", -- 164
 			"Batch ranges are independent and ordered. A failed read remains in results and does not discard successful reads.", -- 165
-			"startLine defaults to 1. If endLine is omitted, it defaults to 300 when startLine is positive, or -1 when startLine is negative.", -- 166
+			"startLine defaults to 1. If endLine is omitted, read at most 300 lines from the resolved starting line (start + 299), capped at EOF. Negative indices count backward from EOF; explicit endLine=-1 reads through EOF. Line 0 is invalid.", -- 166
 			"Read @dora_full_logs.txt to inspect the current Dora engine log snapshot; it is a read-only virtual path, not a workspace file.", -- 167
 			"Paths returned by search_dora_doc are authoritative built-in documentation paths and can be read directly without modifying them." -- 168
 		}, -- 168
