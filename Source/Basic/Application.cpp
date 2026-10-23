@@ -768,6 +768,14 @@ bool BGFXDora::init(const bgfx::PlatformData& data) {
 #endif // BX_PLATFORM_LINUX
 	bx::memCopy(&init.platformData, &data, sizeof(bgfx::PlatformData));
 	_initialized = bgfx::init(init);
+#if BX_PLATFORM_EMSCRIPTEN
+	// bgfx may fall back to Noop after WebGL context creation fails. That
+	// cannot display a game, so report initialization failure to the Player.
+	if (_initialized && bgfx::getRendererType() == bgfx::RendererType::Noop) {
+		bgfx::shutdown();
+		_initialized = false;
+	}
+#endif
 	return _initialized;
 }
 
@@ -1135,6 +1143,9 @@ int Application::run(MainFunc mainFunc) {
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		_winWidth, _winHeight, windowFlags);
 	if (!_sdlWindow) {
+#if BX_PLATFORM_EMSCRIPTEN
+		setWebRuntimeState("faulted", SDL_GetError());
+#endif
 		Error("SDL failed to create window! {}", SDL_GetError());
 		return 1;
 	}
@@ -1154,6 +1165,7 @@ int Application::run(MainFunc mainFunc) {
 #if BX_PLATFORM_EMSCRIPTEN
 	_logicThreadID = std::this_thread::get_id();
 	if (!SharedBGFX.init(_platformData)) {
+		setWebRuntimeState("faulted", "Failed to initialize the Web renderer");
 		Error("bgfx failed to initialize!");
 		SDL_DestroyWindow(_sdlWindow);
 		_sdlWindow = nullptr;

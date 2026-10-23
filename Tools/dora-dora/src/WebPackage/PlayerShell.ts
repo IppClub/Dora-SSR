@@ -1,7 +1,6 @@
 import type {WebPackageFormat} from './Archive';
 
-// The export page owns its markup and boot callbacks, independently of the
-// gallery and Emscripten-generated HTML. Both formats share this template.
+// Keep the boot policy in sync with Projects/Web/player-shell.html.
 export function createPlayerShell(format: WebPackageFormat): string {
   return String.raw`<!doctype html>
 <html lang="en" data-dora-state="booting">
@@ -45,6 +44,7 @@ export function createPlayerShell(format: WebPackageFormat): string {
 			const root = document.documentElement;
 			const bar = document.getElementById("progress-bar");
 			const message = document.getElementById("status-message");
+			if (root.dataset.doraState === "faulted") return;
 			if (detail) message.textContent = detail;
 			if (!Number.isFinite(value)) {
 				root.dataset.doraProgress = "indeterminate";
@@ -60,7 +60,11 @@ export function createPlayerShell(format: WebPackageFormat): string {
 		};
 		window.doraSetState = function(state, detail) {
 			performance.mark("dora-state-" + state);
-			if (document.documentElement.dataset.doraState === "faulted" && state === "stopped") return;
+			if (document.documentElement.dataset.doraState === "faulted") return;
+			if (state === "faulted") {
+				console.error("[DoraWeb] Runtime failed:", detail || "Dora SSR failed to start.");
+				if (typeof Module !== "undefined") Module.doraStartupFailed = true;
+			}
 			document.documentElement.dataset.doraState = state;
 			const message = document.getElementById("status-message");
 			if (state === "faulted") message.textContent = detail || "Dora SSR failed to start.";
@@ -71,6 +75,16 @@ export function createPlayerShell(format: WebPackageFormat): string {
 				setTimeout(function() { window.doraStop(); }, 0);
 			}
 		};
+		const startupError = function(event) {
+			const state = document.documentElement.dataset.doraState;
+			if (state !== "booting" && state !== "ready") return;
+			// Only an uncaught exception from the engine script owns startup.
+			// Optional host integrations must not turn an unrelated rejection fatal.
+			if (event.filename !== new URL("dora-player-runtime.js", document.baseURI).href) return;
+			const error = event.error;
+			window.doraSetState("faulted", String(error?.message || error || event.message || "Dora SSR failed to start."));
+		};
+		window.addEventListener("error", startupError);
 		var Module = {
 			canvas: document.getElementById("canvas"),
 			setStatus: function(status) {
@@ -82,7 +96,12 @@ export function createPlayerShell(format: WebPackageFormat): string {
 				window.doraSetProgress(total > 0 ? 0.5 + (loaded / total) * 0.48 : NaN, detail || "Loading game resources…");
 			},
 			onRuntimeInitialized: function() { window.doraSetState("ready"); },
-			onAbort: function(reason) { window.doraSetState("faulted", String(reason || "Runtime aborted")); }
+			onAbort: function(reason) { window.doraSetState("faulted", String(reason || "Runtime aborted")); },
+			onExit: function(status) {
+				if (status !== 0 && document.documentElement.dataset.doraState !== "faulted") {
+					window.doraSetState("faulted", "Dora SSR exited with code " + status);
+				}
+			}
 		};
 		window.doraSetProgress(0, "Loading Dora runtime…");
 		window.doraStop = function() {

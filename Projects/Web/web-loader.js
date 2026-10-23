@@ -376,6 +376,9 @@
 				}));
 			} else if (!Module.doraSkipManifestMount) mounts.push(api.mountStartup(Module, manifestUrl));
 			Promise.all(mounts).then(function() {
+				// A late storage callback must not start main after another fatal
+				// startup error. Reloading creates a fresh initialization instead.
+				if (Module.doraStartupFailed) return;
 				scope.performance?.mark?.("dora-content-ready");
 				removeRunDependency(dependency);
 			}).catch(function(error) {
