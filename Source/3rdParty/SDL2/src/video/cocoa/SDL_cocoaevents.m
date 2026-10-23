@@ -143,7 +143,9 @@ static void Cocoa_DispatchEvent(NSEvent *theEvent)
 + (void)registerUserDefaults
 {
     NSDictionary *appDefaults = [[NSDictionary alloc] initWithObjectsAndKeys:
-                                 [NSNumber numberWithBool:NO], @"AppleMomentumScrollSupported",
+                                 /* WKWebView shares these application defaults. Allow Cocoa
+                                  * to deliver momentum; filter it only at the SDL boundary. */
+                                 [NSNumber numberWithBool:YES], @"AppleMomentumScrollSupported",
                                  [NSNumber numberWithBool:NO], @"ApplePressAndHoldEnabled",
                                  [NSNumber numberWithBool:YES], @"ApplePersistenceIgnoreState",
                                  nil];

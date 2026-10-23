@@ -408,8 +408,10 @@ void Application::pumpIDEWebViewEvents() {
 		// Keep servicing pending WebKit completions after hiding/closing the IDE.
 		// Poll without waiting when the engine owns the screen.
 		if (isIDEWebViewVisible()) {
-			[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
-				beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.001]];
+			// Native input and WebKit IPC can wake this wait immediately. The
+			// short deadline also keeps engine frames and render commands moving
+			// without alternating a bgfx timeout with a second Cocoa timeout.
+			CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.004, true);
 		} else {
 			CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
 		}

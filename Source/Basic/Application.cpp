@@ -60,7 +60,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_ANDROID
 
 #define DORA_VERSION "1.9.4"_slice
-#define DORA_REVISION "1"_slice
+#define DORA_REVISION "2"_slice
 
 namespace {
 #if (BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
@@ -1193,7 +1193,11 @@ int Application::run(MainFunc mainFunc) {
 #endif
 		// do render staff and swap buffers
 		bool frameReady = true;
-#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
+#if BX_PLATFORM_OSX
+		// Let Cocoa own the idle wait while the IDE is visible. Waiting on
+		// bgfx's semaphore cannot be interrupted by WebKit or native input.
+		frameReady = bgfx::renderFrame(isIDEWebViewVisible() ? 0 : -1) == bgfx::RenderFrame::Render;
+#elif BX_PLATFORM_WINDOWS
 		// Browser input must not wait for the logic thread to submit a frame.
 		frameReady = bgfx::renderFrame(isIDEWebViewVisible() ? 1 : -1) == bgfx::RenderFrame::Render;
 #else

@@ -232,6 +232,41 @@ export default memo(function FileTree(props: FileTreeProps) {
 	}, [treeData]);
 	const scrollContainerRef = useRef<HTMLElement>(null);
 	const treeRef = useRef<React.ComponentRef<typeof Tree>>(null);
+	const [viewport, setViewport] = useState({ height: 1, width: 0, font: "14px sans-serif" });
+	useEffect(() => {
+		const container = scrollContainerRef.current;
+		if (!container) return;
+		const measure = () => {
+			const style = getComputedStyle(container.querySelector(".dora-resource-tree") ?? container);
+			const next = {
+				height: Math.max(1, container.clientHeight),
+				width: container.clientWidth,
+				font: `${style.fontSize} ${style.fontFamily}`,
+			};
+			setViewport(previous => previous.height === next.height && previous.width === next.width && previous.font === next.font
+				? previous : next);
+		};
+		measure();
+		const observer = new ResizeObserver(measure);
+		observer.observe(container);
+		return () => observer.disconnect();
+	}, []);
+	// Virtual rows cannot measure offscreen titles. Supply their width explicitly
+	// so long filenames remain horizontally scrollable without mounting every row.
+	const treeScrollWidth = useMemo(() => {
+		const context = document.createElement("canvas").getContext("2d");
+		if (!context) return viewport.width;
+		context.font = viewport.font;
+		let width = viewport.width;
+		const visit = (nodes: TreeDataType[], depth: number) => {
+			for (const node of nodes) {
+				width = Math.max(width, Math.ceil(context.measureText(node.title).width) + depth * 18 + (multiSelectMode ? 100 : 80));
+				if (node.children) visit(node.children, depth + 1);
+			}
+		};
+		visit(visibleTreeData, 0);
+		return width;
+	}, [visibleTreeData, viewport.width, viewport.font, multiSelectMode]);
 	const touchLongPressTimerRef = useRef<number | null>(null);
 	const touchStartRef = useRef<{
 		identifier: number;
@@ -383,13 +418,6 @@ export default memo(function FileTree(props: FileTreeProps) {
 					align: "auto",
 				});
 			}
-			const selectedItem = scrollContainerRef.current?.querySelector<HTMLElement>(
-				'[role="treeitem"][aria-selected="true"]'
-			);
-			selectedItem?.scrollIntoView({
-				block: "nearest",
-				inline: "nearest",
-			});
 		});
 		return () => window.cancelAnimationFrame(frame);
 	}, [scrollRequest, selectedKeys]);
@@ -518,8 +546,10 @@ export default memo(function FileTree(props: FileTreeProps) {
 		>
 			<MacScrollbar
 				ref={scrollContainerRef}
+				suppressScrollX
+				suppressScrollY
 				className={suppressResizeScrollbar ? "dora-resource-tree-scrollbar-resizing" : undefined}
-				onScroll={() => {
+				onScrollCapture={() => {
 					if (!resizing) setSuppressResizeScrollbar(false);
 				}}
 				skin='dark'
@@ -761,6 +791,8 @@ export default memo(function FileTree(props: FileTreeProps) {
 					showIcon
 					showLine
 					virtual
+					height={viewport.height}
+					scrollWidth={treeScrollWidth}
 					motion={false}
 					checkable={multiSelectMode}
 					checkStrictly

@@ -390,7 +390,8 @@ code {
 	background: rgba(250, 192, 61, 0.8) !important;
 }
 
-.dora-resource-tree-scrollbar-resizing .ms-track.ms-y {
+.dora-resource-tree-scrollbar-resizing .ms-track.ms-y,
+.dora-resource-tree-scrollbar-resizing .ant-tree-list-scrollbar-vertical {
 	opacity: 0 !important;
 	pointer-events: none;
 	transition: none !important;

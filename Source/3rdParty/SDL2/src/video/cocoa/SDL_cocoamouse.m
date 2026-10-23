@@ -508,6 +508,12 @@ void Cocoa_HandleMouseEvent(_THIS, NSEvent *event)
 
 void Cocoa_HandleMouseWheel(SDL_Window *window, NSEvent *event)
 {
+    /* Native views need system momentum scrolling, but game controls should
+       still stop when fingers leave the trackpad, as before. */
+    if ([event momentumPhase] != NSEventPhaseNone) {
+        return;
+    }
+
     SDL_MouseID mouseID;
     SDL_MouseWheelDirection direction;
     CGFloat x, y;
