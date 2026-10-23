@@ -1058,10 +1058,26 @@ int Application::run(MainFunc mainFunc) {
 	_mainFunc = mainFunc;
 	Application::setSeed(s_cast<uint32_t>(std::time(nullptr)));
 
-	if (SDL_Init(SDL_INIT_GAMECONTROLLER) != 0) {
+#if BX_PLATFORM_EMSCRIPTEN
+	// Gamepad support is optional in embedded WebViews. Initialize SDL first
+	// so a missing or blocked Gamepad API cannot prevent video startup.
+	const uint32_t initFlags = 0;
+#else
+	const uint32_t initFlags = SDL_INIT_GAMECONTROLLER;
+#endif
+	if (SDL_Init(initFlags) != 0) {
+#if BX_PLATFORM_EMSCRIPTEN
+		setWebRuntimeState("faulted", SDL_GetError());
+#endif
 		Error("SDL failed to initialize! {}", SDL_GetError());
 		return 1;
 	}
+#if BX_PLATFORM_EMSCRIPTEN
+	if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) != 0) {
+		MAIN_THREAD_EM_ASM({ console.warn('[DoraWeb] Gamepad unavailable; continuing without controllers:', UTF8ToString($0)); }, SDL_GetError());
+		SDL_ClearError();
+	}
+#endif
 
 #if (BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
 	// Replace SDL's cooperative signal handlers after SDL installs them.
