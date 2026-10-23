@@ -77,3 +77,16 @@ storage/audio/lifecycle checks, and independent Worklet DSP tests. See
 `Docs/design/xmake-build-migration/PROGRESS.md` for exact evidence and remaining
 release gates; remote CI, licensed complex games and experimental main-worker
 runtime are not implied by local builds.
+
+## Web startup compatibility
+
+IDBFS keeps its original read request. After 10 seconds of foreground waiting,
+the Player offers Keep waiting or a full-page reload; this is not a save-data
+deadline. No automatic retry, replacement storage or empty-save write occurs.
+Hosts can adjust `Module.doraStorageWaitNoticeMs`. Unused Emscripten Fetch
+IndexedDB caching is disabled independently of IDBFS saves.
+
+Worklet failure tries legacy Web Audio; if both fail, the game continues muted.
+HTML mixer/worklet resources retain integrity checks but may fall back after
+the existing 15-second audio initialization budget. Game WASM/data/assets remain
+required; optional browser API failures retain their normal return semantics.

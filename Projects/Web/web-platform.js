@@ -30,6 +30,12 @@ SOFTWARE. */
 	let active = true;
 	let suspended = false;
 	let audioUnlocked = false;
+	const warnedFeatures = new Set();
+	function warnOptional(feature, error) {
+		if (warnedFeatures.has(feature)) return;
+		warnedFeatures.add(feature);
+		console.warn("[DoraWeb] Optional " + feature + " failed; continuing without this operation:", error);
+	}
 
 	function listen(target, type, handler, options) {
 		if (!target?.addEventListener) return;
@@ -38,10 +44,12 @@ SOFTWARE. */
 	}
 
 	function audioContext() {
-		return module.SDL2?.audioContext || null;
+		return module.doraLegacyAudio?.context || module.SDL2?.audioContext
+			|| (module.doraAudio?.ready ? module.doraAudio.context : null);
 	}
 
 	function cancelAudioCallback() {
+		if (module.doraLegacyAudio) { module.doraLegacyAudio.dispose(); return true; }
 		const node = module.SDL2?.audio?.scriptProcessorNode;
 		if (!node) return false;
 		node.onaudioprocess = () => {};
@@ -55,15 +63,16 @@ SOFTWARE. */
 
 	async function unlockAudio() {
 		if (!active) return {supported: false, state: "disposed"};
-		module.doraAudio?.resume();
 		const context = audioContext();
-		if (!context) return {supported: false, state: "unavailable"};
 		try {
+			module.doraAudio?.resume();
+			if (!context) return {supported: false, state: "unavailable"};
 			if (context.state !== "running") await context.resume();
 			audioUnlocked = context.state === "running";
 			return {supported: true, state: context.state, unlocked: audioUnlocked};
 		} catch (error) {
-			return {supported: true, state: context.state, unlocked: false, error: String(error)};
+			warnOptional("audio resume", error);
+			return {supported: true, state: context?.state || "unavailable", unlocked: false, error: String(error)};
 		}
 	}
 
@@ -180,19 +189,25 @@ SOFTWARE. */
 	}
 
 	async function writeClipboard(text) {
-		if (!global.navigator?.clipboard?.writeText) throw new Error("clipboard write is unsupported");
-		await global.navigator.clipboard.writeText(String(text));
+		try {
+			if (!global.navigator?.clipboard?.writeText) throw new Error("clipboard write is unsupported");
+			await global.navigator.clipboard.writeText(String(text));
+		} catch (error) { warnOptional("clipboard write", error); throw error; }
 	}
 
 	async function readClipboard() {
-		if (!global.navigator?.clipboard?.readText) throw new Error("clipboard read is unsupported");
-		return global.navigator.clipboard.readText();
+		try {
+			if (!global.navigator?.clipboard?.readText) throw new Error("clipboard read is unsupported");
+			return await global.navigator.clipboard.readText();
+		} catch (error) { warnOptional("clipboard read", error); throw error; }
 	}
 
 	async function requestPointerLock(options) {
-		if (!canvas?.requestPointerLock) return false;
-		await canvas.requestPointerLock(options);
-		return global.document.pointerLockElement === canvas;
+		if (!canvas?.requestPointerLock) { warnOptional("pointer lock", new Error("unsupported")); return false; }
+		try {
+			await canvas.requestPointerLock(options);
+			return global.document.pointerLockElement === canvas;
+		} catch (error) { warnOptional("pointer lock", error); throw error; }
 	}
 
 	function dispose({notifyEngine = true} = {}) {

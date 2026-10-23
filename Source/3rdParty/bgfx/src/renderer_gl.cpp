@@ -2304,6 +2304,13 @@ namespace bgfx { namespace gl
 			bx::memSet(&m_resolution, 0, sizeof(m_resolution) );
 
 			setRenderContextSize(_init.resolution.width, _init.resolution.height, _init.resolution.reset);
+			if (!m_glctx.isValid() )
+			{
+				BX_TRACE("Init error: failed to create a GL context.");
+				m_glctx.destroy();
+				unloadRenderDoc(m_renderdocdll);
+				return false;
+			}
 
 			m_vendor      = getGLString(GL_VENDOR);
 			m_renderer    = getGLString(GL_RENDERER);

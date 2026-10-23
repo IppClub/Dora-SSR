@@ -221,9 +221,11 @@ target("dora-web-player")
         t:set("filename", "dora-player-runtime.html")
         if c.features.love then t:add("deps", "dora-web-love-runtime", "dora-web-love-support") end
         if c.rust then t:add("deps", "dora-web-rust"); t:add("links", path.join(c.out, "libdora_runtime.a")) end
+        -- WebHttp uses in-memory/streamed responses, not Fetch's persistent
+        -- cache. Do not let an unused cache database block runtime startup.
         for _, flag in ipairs({"--ignore-dynamic-linking", "-fwasm-exceptions", "-sSUPPORT_LONGJMP=wasm", "-sUSE_SDL=2", "-sUSE_WEBGL2=1",
             "-sFULL_ES3=1", "-sALLOW_MEMORY_GROWTH=1", "-sSTACK_SIZE=8MB", "-sINITIAL_MEMORY=64MB", "-sMAXIMUM_MEMORY=1GB", "-sEXIT_RUNTIME=0",
-            "-sFILESYSTEM=1", "-lidbfs.js", "-sFETCH=1", "-sFETCH_STREAMING=1", "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','FS','IDBFS']",
+            "-sFILESYSTEM=1", "-lidbfs.js", "-sFETCH=1", "-sFETCH_SUPPORT_INDEXEDDB=0", "-sFETCH_STREAMING=1", "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','FS','IDBFS']",
             "--pre-js @out@/dora-web-features.js", "--pre-js @web@/web-audio.js", "--pre-js @web@/web-platform.js",
             "--pre-js @web@/web-network.js", "--pre-js @web@/web-package.js", "--pre-js @web@/web-loader.js",
             "--preload-file @web@/runtime-assets@/builtin", "--shell-file @web@/player-shell.html"}) do linkflag(t, c, flag) end

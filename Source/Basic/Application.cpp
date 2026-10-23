@@ -768,6 +768,14 @@ bool BGFXDora::init(const bgfx::PlatformData& data) {
 #endif // BX_PLATFORM_LINUX
 	bx::memCopy(&init.platformData, &data, sizeof(bgfx::PlatformData));
 	_initialized = bgfx::init(init);
+#if BX_PLATFORM_EMSCRIPTEN
+	// bgfx may fall back to Noop after WebGL context creation fails. That
+	// cannot display a game, so report initialization failure to the Player.
+	if (_initialized && bgfx::getRendererType() == bgfx::RendererType::Noop) {
+		bgfx::shutdown();
+		_initialized = false;
+	}
+#endif
 	return _initialized;
 }
 
@@ -1058,10 +1066,26 @@ int Application::run(MainFunc mainFunc) {
 	_mainFunc = mainFunc;
 	Application::setSeed(s_cast<uint32_t>(std::time(nullptr)));
 
-	if (SDL_Init(SDL_INIT_GAMECONTROLLER) != 0) {
+#if BX_PLATFORM_EMSCRIPTEN
+	// Gamepad support is optional in embedded WebViews. Initialize SDL first
+	// so a missing or blocked Gamepad API cannot prevent video startup.
+	const uint32_t initFlags = 0;
+#else
+	const uint32_t initFlags = SDL_INIT_GAMECONTROLLER;
+#endif
+	if (SDL_Init(initFlags) != 0) {
+#if BX_PLATFORM_EMSCRIPTEN
+		setWebRuntimeState("faulted", SDL_GetError());
+#endif
 		Error("SDL failed to initialize! {}", SDL_GetError());
 		return 1;
 	}
+#if BX_PLATFORM_EMSCRIPTEN
+	if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) != 0) {
+		MAIN_THREAD_EM_ASM({ console.warn('[DoraWeb] Gamepad unavailable; continuing without controllers:', UTF8ToString($0)); }, SDL_GetError());
+		SDL_ClearError();
+	}
+#endif
 
 #if (BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
 	// Replace SDL's cooperative signal handlers after SDL installs them.
@@ -1119,6 +1143,9 @@ int Application::run(MainFunc mainFunc) {
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		_winWidth, _winHeight, windowFlags);
 	if (!_sdlWindow) {
+#if BX_PLATFORM_EMSCRIPTEN
+		setWebRuntimeState("faulted", SDL_GetError());
+#endif
 		Error("SDL failed to create window! {}", SDL_GetError());
 		return 1;
 	}
@@ -1138,6 +1165,7 @@ int Application::run(MainFunc mainFunc) {
 #if BX_PLATFORM_EMSCRIPTEN
 	_logicThreadID = std::this_thread::get_id();
 	if (!SharedBGFX.init(_platformData)) {
+		setWebRuntimeState("faulted", "Failed to initialize the Web renderer");
 		Error("bgfx failed to initialize!");
 		SDL_DestroyWindow(_sdlWindow);
 		_sdlWindow = nullptr;

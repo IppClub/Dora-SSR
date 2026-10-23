@@ -144,7 +144,15 @@ namespace bgfx { namespace gl
 		for (int version = 2; version >= 1; --version)
 		{
 			s_attrs.majorVersion = version;
-			EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context = emscripten_webgl_create_context(canvas, &s_attrs);
+			// Treat a throwing host implementation like an unavailable context.
+			// Catch at the browser boundary, before it escapes bgfx initialization.
+			EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context = MAIN_THREAD_EM_ASM_INT({
+				try { return dynCall('ipp', $2, [$0, $1]); }
+				catch (error) {
+					console.error('[DoraWeb] WebGL context creation failed:', error);
+					return 0;
+				}
+			}, canvas, &s_attrs, emscripten_webgl_create_context);
 
 			if (context > 0)
 			{

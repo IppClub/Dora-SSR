@@ -41,6 +41,9 @@ namespace SoLoud
 #include <stdint.h>
 #include <string.h>
 #include <math.h>
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 namespace SoLoud
 {
@@ -50,6 +53,9 @@ namespace SoLoud
 		SDL_AudioDeviceID audioDeviceID;
 		SoLoud::Soloud *soloud;
 		uint64_t generation;
+#ifdef __EMSCRIPTEN__
+		float *webBuffer;
+#endif
 	};
 
 	static uint64_t gNextBackendGeneration = 0;
@@ -80,6 +86,10 @@ namespace SoLoud
 		SDL2StaticBackendData *backend = (SDL2StaticBackendData *)aSoloud->mBackendData;
 		if (!backend)
 			return;
+#ifdef __EMSCRIPTEN__
+		MAIN_THREAD_EM_ASM({ Module.doraLegacyAudio?.dispose(); });
+		SDL_free(backend->webBuffer);
+#endif
 		if (backend->audioDeviceID)
 		{
 			// SDL holds the device lock while invoking the callback. Taking it here
@@ -97,6 +107,76 @@ namespace SoLoud
 
 	result sdl2static_init(SoLoud::Soloud *aSoloud, unsigned int aFlags, unsigned int aSamplerate, unsigned int aBuffer, unsigned int aChannels)
 	{
+#ifdef __EMSCRIPTEN__
+		// Dora's Web backend owns the JS boundary: browser exceptions must become
+		// a failed optional backend, rather than unwind through SDL's device locks.
+		SDL2StaticBackendData *backend = new SDL2StaticBackendData();
+		backend->soloud = aSoloud;
+		backend->generation = ++gNextBackendGeneration;
+		backend->activeAudioSpec.format = AUDIO_F32;
+		backend->activeAudioSpec.channels = aChannels;
+		backend->webBuffer = (float *)SDL_malloc(aBuffer * aChannels * sizeof(float));
+		if (!backend->webBuffer) { delete backend; return OUT_OF_MEMORY; }
+		int rate = MAIN_THREAD_EM_ASM_INT({
+			return (() => {
+			const workletReady = Module.doraAudio?.ready;
+			let context, node, timer;
+			let warned = false, disposed = false;
+			const warn = error => {
+				if (warned) return;
+				warned = true;
+				console.warn(workletReady ? '[DoraAudio] Legacy audio unavailable; continuing with AudioWorklet:' : '[DoraAudio] Legacy audio unavailable; continuing muted:', error);
+			};
+			const resume = () => {
+				try { if (!disposed && context.state === 'suspended') Promise.resolve(context.resume()).catch(warn); }
+				catch (error) { warn(error); }
+			};
+			const dispose = () => {
+				if (disposed) return;
+				disposed = true;
+				clearInterval(timer);
+				globalThis.removeEventListener('pointerdown', resume, true);
+				globalThis.removeEventListener('keydown', resume, true);
+				if (node) node.onaudioprocess = null;
+				try { node?.disconnect(); } catch (error) { warn(error); }
+				try { if (context) Promise.resolve(context.close()).catch(warn); } catch (error) { warn(error); }
+			};
+			try {
+				const Context = globalThis.AudioContext || globalThis.webkitAudioContext;
+				if (!Context) throw new Error('Web Audio API is unavailable');
+				context = new Context();
+				node = context.createScriptProcessor($2, 0, $4);
+				const mix = () => { dynCall('vppi', $3, [$0, $1, $2 * $4 * 4]); };
+				node.onaudioprocess = event => {
+					if (disposed) return;
+					mix();
+					for (let channel = 0; channel < $4; channel++) {
+						const output = event.outputBuffer.getChannelData(channel);
+						for (let frame = 0; frame < output.length; frame++) output[frame] = HEAPF32[($1 >> 2) + frame * $4 + channel];
+					}
+				};
+				node.connect(context.destination);
+				// Match SDL: advance voices while autoplay is suspended, discarding PCM.
+				timer = setInterval(() => { if (!disposed && context.state === 'suspended') mix(); }, $2 * 1000 / context.sampleRate);
+				globalThis.addEventListener('pointerdown', resume, true);
+				globalThis.addEventListener('keydown', resume, true);
+				Module.doraLegacyAudio = {dispose, context, get state() { return context.state; }};
+				return context.sampleRate;
+			} catch (error) {
+				warn(error);
+				dispose();
+				Module.doraAudioDisabled = !workletReady;
+				return workletReady ? $5 : 0;
+			}
+			})();
+		}, backend, backend->webBuffer, aBuffer, soloud_sdl2static_audiomixer, aChannels, aSamplerate);
+		if (!rate) { SDL_free(backend->webBuffer); delete backend; return UNKNOWN_ERROR; }
+		aSoloud->postinit_internal(rate, aBuffer, aFlags, aChannels);
+		aSoloud->mBackendData = backend;
+		aSoloud->mBackendCleanupFunc = soloud_sdl2static_deinit;
+		aSoloud->mBackendString = "Dora Web Audio";
+		return 0;
+#else
 		if (!SDL_WasInit(SDL_INIT_AUDIO))
 		{
 			if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0)
@@ -139,6 +219,7 @@ namespace SoLoud
 		SDL_PauseAudioDevice(backend->audioDeviceID, 0);
 		aSoloud->mBackendString = "SDL2 (static)";
 		return 0;
+#endif
 	}	
 };
 #endif

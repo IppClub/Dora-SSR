@@ -1,7 +1,6 @@
 import type {WebPackageFormat} from './Archive';
 
-// The export page owns its markup and boot callbacks, independently of the
-// gallery and Emscripten-generated HTML. Both formats share this template.
+// Keep the boot policy in sync with Projects/Web/player-shell.html.
 export function createPlayerShell(format: WebPackageFormat): string {
   return String.raw`<!doctype html>
 <html lang="en" data-dora-state="booting">
@@ -16,6 +15,9 @@ export function createPlayerShell(format: WebPackageFormat): string {
 		#status { position: fixed; inset: 0; display: grid; place-items: center; color: #ddd; background: #181818; font: 14px system-ui, sans-serif; }
 		#status-content { width: min(320px, calc(100% - 48px)); text-align: center; }
 		#status-message { min-height: 1.4em; }
+		[hidden] { display: none !important; }
+		#storage-wait { margin-top: 16px; line-height: 1.5; }
+		#storage-wait button { margin: 4px; padding: 8px 12px; cursor: pointer; }
 		#progress-track { height: 4px; margin-top: 12px; overflow: hidden; border-radius: 2px; background: rgba(255, 255, 255, 0.14); }
 		#progress-bar { width: 100%; height: 100%; border-radius: inherit; background: #d7b044; transform: scaleX(0); transform-origin: left; transition: transform 120ms ease-out; }
 		html[data-dora-progress="indeterminate"] #progress-bar { width: 38%; animation: dora-progress 1.15s ease-in-out infinite; }
@@ -36,6 +38,11 @@ export function createPlayerShell(format: WebPackageFormat): string {
 	<div id="status" role="status">
 		<div id="status-content"><div id="engine-brand"><img id="engine-logo" src="dora-logo.png" alt="" width="128" height="128"></div>
 			<div id="status-message">Loading Dora SSR…</div>
+			<div id="storage-wait" hidden>
+				<p>Loading saved data is taking longer than usual. Another page may be using it. You can keep waiting or reload this page to retry.</p>
+				<button id="storage-continue" type="button">Keep waiting</button>
+				<button id="storage-reload" type="button">Reload page</button>
+			</div>
 			<div id="progress-track"><div id="progress-bar" role="progressbar" aria-label="Loading game resources"></div></div>
 		</div>
 	</div>
@@ -45,6 +52,7 @@ export function createPlayerShell(format: WebPackageFormat): string {
 			const root = document.documentElement;
 			const bar = document.getElementById("progress-bar");
 			const message = document.getElementById("status-message");
+			if (root.dataset.doraState === "faulted") return;
 			if (detail) message.textContent = detail;
 			if (!Number.isFinite(value)) {
 				root.dataset.doraProgress = "indeterminate";
@@ -60,7 +68,14 @@ export function createPlayerShell(format: WebPackageFormat): string {
 		};
 		window.doraSetState = function(state, detail) {
 			performance.mark("dora-state-" + state);
-			if (document.documentElement.dataset.doraState === "faulted" && state === "stopped") return;
+			if (document.documentElement.dataset.doraState === "faulted") return;
+			if (state === "faulted") {
+				console.error("[DoraWeb] Runtime failed:", detail || "Dora SSR failed to start.");
+				if (typeof Module !== "undefined") Module.doraStartupFailed = true;
+			}
+			if (state === "faulted" || state === "running" || state === "stopped") {
+				document.getElementById("storage-wait").hidden = true;
+			}
 			document.documentElement.dataset.doraState = state;
 			const message = document.getElementById("status-message");
 			if (state === "faulted") message.textContent = detail || "Dora SSR failed to start.";
@@ -71,6 +86,28 @@ export function createPlayerShell(format: WebPackageFormat): string {
 				setTimeout(function() { window.doraStop(); }, 0);
 			}
 		};
+		window.addEventListener("dora-storage-wait", function(event) {
+			const state = document.documentElement.dataset.doraState;
+			document.getElementById("storage-wait").hidden = event.detail?.state !== "slow"
+				|| (state !== "booting" && state !== "ready");
+		});
+		document.getElementById("storage-continue").addEventListener("click", function() {
+			window.dispatchEvent(new Event("dora-storage-wait-continue"));
+		});
+		document.getElementById("storage-reload").addEventListener("click", function() {
+			// A full navigation discards the old initialization and its callbacks.
+			window.location.reload();
+		});
+		const startupError = function(event) {
+			const state = document.documentElement.dataset.doraState;
+			if (state !== "booting" && state !== "ready") return;
+			// Only an uncaught exception from the engine script owns startup.
+			// Optional host integrations must not turn an unrelated rejection fatal.
+			if (event.filename !== new URL("dora-player-runtime.js", document.baseURI).href) return;
+			const error = event.error;
+			window.doraSetState("faulted", String(error?.message || error || event.message || "Dora SSR failed to start."));
+		};
+		window.addEventListener("error", startupError);
 		var Module = {
 			canvas: document.getElementById("canvas"),
 			setStatus: function(status) {
@@ -82,7 +119,12 @@ export function createPlayerShell(format: WebPackageFormat): string {
 				window.doraSetProgress(total > 0 ? 0.5 + (loaded / total) * 0.48 : NaN, detail || "Loading game resources…");
 			},
 			onRuntimeInitialized: function() { window.doraSetState("ready"); },
-			onAbort: function(reason) { window.doraSetState("faulted", String(reason || "Runtime aborted")); }
+			onAbort: function(reason) { window.doraSetState("faulted", String(reason || "Runtime aborted")); },
+			onExit: function(status) {
+				if (status !== 0 && document.documentElement.dataset.doraState !== "faulted") {
+					window.doraSetState("faulted", "Dora SSR exited with code " + status);
+				}
+			}
 		};
 		window.doraSetProgress(0, "Loading Dora runtime…");
 		window.doraStop = function() {
