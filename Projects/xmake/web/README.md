@@ -85,3 +85,8 @@ the Player offers Keep waiting or a full-page reload; this is not a save-data
 deadline. No automatic retry, replacement storage or empty-save write occurs.
 Hosts can adjust `Module.doraStorageWaitNoticeMs`. Unused Emscripten Fetch
 IndexedDB caching is disabled independently of IDBFS saves.
+
+Worklet failure tries legacy Web Audio; if both fail, the game continues muted.
+HTML mixer/worklet resources retain integrity checks but may fall back after
+the existing 15-second audio initialization budget. Game WASM/data/assets remain
+required; optional browser API failures retain their normal return semantics.

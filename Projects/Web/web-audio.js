@@ -26,9 +26,12 @@
 	}
 	function fail(error) {
 		for (const id of [...voices.keys()]) ended(id);
+		const wasReady = ready;
 		dispose();
-		stats = {backend: 'sdl-fallback', error: String(error)};
-		console.warn('[DoraAudio] Worklet unavailable; using SDL:', error);
+		const muted = wasReady && !module.doraLegacyAudio;
+		if (muted) module.doraAudioDisabled = true;
+		stats = {backend: muted ? 'muted' : 'sdl-fallback', error: String(error)};
+		console.warn(muted ? '[DoraAudio] Worklet failed; continuing muted:' : '[DoraAudio] Worklet unavailable; trying legacy audio:', error);
 	}
 	async function initialize() {
 		if (module.doraAudioWorklet === false) throw new Error('disabled by host');
@@ -86,12 +89,16 @@
 	}
 	function dispose() {
 		if (disposed) return;
-		send({type: 'dispose'});
+		const cleanup = action => {
+			try { Promise.resolve(action()).catch(error => console.warn('[DoraAudio] Cleanup failed:', error)); }
+			catch (error) { console.warn('[DoraAudio] Cleanup failed:', error); }
+		};
+		cleanup(() => send({type: 'dispose'}));
 		disposed = true;
 		ready = false;
-		node?.disconnect();
-		node?.port.close();
-		void context?.close().catch(() => {});
+		cleanup(() => node?.disconnect());
+		cleanup(() => node?.port.close());
+		cleanup(() => context?.close());
 		cache.clear(); cacheBytes = 0;
 		voices.clear();
 		globalThis.removeEventListener('pointerdown', resume, true);
@@ -100,7 +107,7 @@
 	module.doraAudio = {
 		get ready() { return ready; },
 		get context() { return context; },
-		get state() { return {...stats, ready, cacheBytes, context: context?.state}; },
+		get state() { return {...stats, ...(module.doraAudioDisabled ? {backend: 'muted'} : {}), ready, cacheBytes, context: context?.state}; },
 		has: key => cache.has(key),
 		bus(id, op, a, b, c, d) { if (ready) send({type: 'bus', id: id >>> 0, op, a, b, c, d}); },
 		play(key, bytes, loop, fade, background = false, config = null, bus = 0, isStatic = false) {

@@ -7,6 +7,7 @@ export const htmlPlayer = String.raw`async function(config) {
   const pending = new Map();
   const queue = [];
   const cancelLoads = new Set();
+  const optionalAudio = new Set(['dora-audio-mixer.wasm', 'audio-worklet.js']);
   let failure = null;
   let clearResources = () => {};
   let active = 0, loaded = 0;
@@ -42,7 +43,9 @@ export const htmlPlayer = String.raw`async function(config) {
         pump();
       };
       const cancel = error => { reject(error); finish(); };
-      const timer = setTimeout(() => { reject(new Error('Timed out loading ' + record.script)); finish(); }, 120000);
+      // Audio has the same optional initialization budget as the Worklet host.
+      // A stalled audio payload must not hold the game behind the full asset timeout.
+      const timer = setTimeout(() => { reject(new Error('Timed out loading ' + record.script)); finish(); }, optionalAudio.has(name) ? 15000 : 120000);
       cancelLoads.add(cancel);
       pending.set(name, encoded => {
         if (delivered) return;
@@ -74,9 +77,16 @@ export const htmlPlayer = String.raw`async function(config) {
   try {
     if (!window.WebAssembly || !window.crypto?.subtle) throw new Error('Please use a modern browser with WebAssembly and Web Crypto support.');
     const names = Object.keys(config.records);
-    const values = await Promise.all(names.map(read));
-    const files = new Map(names.map((name, index) => [name, values[index]]));
-    delete window.DoraHtmlPackage;
+    const values = await Promise.all(names.map(name => read(name).catch(error => {
+      if (!optionalAudio.has(name)) throw error;
+      Module.doraAudioWorklet = false;
+      console.warn('[DoraAudio] Optional worklet resource unavailable; trying legacy audio:', name, error);
+      return null;
+    })));
+    const files = new Map(names.flatMap((name, index) => values[index] ? [[name, values[index]]] : []));
+    // An optional script may arrive after its timeout. Ignore that delivery;
+    // it must not resurrect audio setup or throw after the game has started.
+    window.DoraHtmlPackage = Object.freeze({deliver() {}});
     let preload = files.get('dora-player-runtime.data').buffer;
     clearResources = () => {
       preload = null;
@@ -93,6 +103,7 @@ export const htmlPlayer = String.raw`async function(config) {
     Module.doraStorageId = 'html-' + await checksum(new TextEncoder().encode(root.href));
     const audio = new Map();
     for (const [name, type] of [['dora-audio-mixer.wasm', 'application/wasm'], ['audio-worklet.js', 'text/javascript']]) {
+      if (!files.has(name)) continue;
       // A worklet module fetched from blob:null is rejected by Chromium on file://.
       // A data URL can be imported by the worklet without an origin or disk fetch.
       if (name === 'audio-worklet.js') {
