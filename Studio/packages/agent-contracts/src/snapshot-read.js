@@ -17,7 +17,7 @@ export function createSnapshotReadBackend(input, virtualFiles = []) {
     if (virtual.has(file.path)) throw new Error('Duplicate virtual document binding');
     virtual.set(file.path, file.text);
   }
-  return (workDir, path, startLine = 1, endLine = startLine < 0 ? -1 : 300) => {
+  return (workDir, path, startLine = 1, endLine) => {
     if (workDir !== snapshot.projectId) return { success: false, message: 'Project identity mismatch' };
     if (typeof path !== 'string') return { success: false, message: 'Invalid project path' };
     // Virtual namespaces are exact read-only bindings, never a project-file fallback.

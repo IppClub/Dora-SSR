@@ -164,8 +164,11 @@ export function createWorkspaceBuild(host) {
 }`, loader: 'ts' }, outfile: new URL('workspace-build.js', output).pathname, format: 'esm', platform: 'neutral' });
 const readSlice = workspaceSource.statements.find(statement => ts.isFunctionDeclaration(statement) && statement.name?.text === 'formatReadSlice');
 if (!readSlice) throw new Error('Upstream read formatter changed; review required');
-await build({ stdin: { contents: `const math = Math;\n${readSlice.getText(workspaceSource)}\nexport {formatReadSlice};`, loader: 'ts' },
-  outfile: new URL('read-slice.js', output).pathname, format: 'esm', platform: 'neutral' });
+await build({ stdin: { contents: `import * as AgentConfig from 'Agent/Config/Defaults';\nconst math = Math;\n${readSlice.getText(workspaceSource)}\nexport {formatReadSlice};`, loader: 'ts' },
+  outfile: new URL('read-slice.js', output).pathname, bundle: true, format: 'esm', platform: 'neutral',
+  plugins: [{ name: 'agent-read-slice-config', setup(builder) {
+    builder.onResolve({ filter: /^Agent\/Config\/Defaults$/ }, () => ({ path: new URL('../../../Assets/Script/Lib/Agent/Config/Defaults.ts', import.meta.url).pathname }));
+  } }] });
 await build({ entryPoints: [new URL('./src/snapshot-read.js', import.meta.url).pathname],
   outfile: new URL('snapshot-read.js', output).pathname, format: 'esm', platform: 'neutral' });
 const handlerPath = new URL('../../../Assets/Script/Lib/Agent/Tool/Handlers.ts', import.meta.url);
