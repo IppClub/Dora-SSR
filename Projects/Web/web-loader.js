@@ -327,14 +327,14 @@
 				notified = false;
 				notify("loading");
 			};
-			const timer = scope.setInterval(tick, Math.min(1000, Math.max(1, noticeMs)));
-			scope.document?.addEventListener("visibilitychange", visibilityChanged);
+			const timer = scope.setInterval?.(tick, Math.min(1000, Math.max(1, noticeMs)));
+			scope.document?.addEventListener?.("visibilitychange", visibilityChanged);
 			scope.addEventListener?.("dora-storage-wait-continue", keepWaiting);
 			const finish = (error) => {
 				if (settled) return;
 				settled = true;
-				scope.clearInterval(timer);
-				scope.document?.removeEventListener("visibilitychange", visibilityChanged);
+				scope.clearInterval?.(timer);
+				scope.document?.removeEventListener?.("visibilitychange", visibilityChanged);
 				scope.removeEventListener?.("dora-storage-wait-continue", keepWaiting);
 				module.doraStorageState = error ? `failed: ${error}` : "loaded";
 				notify(error ? "failed" : "loaded");
