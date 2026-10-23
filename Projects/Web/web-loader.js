@@ -295,10 +295,52 @@
 		}
 		module.doraStorageState = "loading";
 		await new Promise((resolve, reject) => {
-			fileSystem.syncfs(true, (error) => {
+			// This is a notice threshold, not a deadline: slow or blocked storage
+			// keeps its original request and can still finish without losing saves.
+			const noticeMs = Number.isFinite(module.doraStorageWaitNoticeMs) && module.doraStorageWaitNoticeMs >= 0
+				? module.doraStorageWaitNoticeMs : 10000;
+			const now = () => scope.performance?.now?.() ?? Date.now();
+			let lastTick = now(), elapsed = 0, settled = false, notified = false;
+			let visible = !scope.document?.hidden;
+			const notify = (state) => {
+				if (scope.dispatchEvent && typeof scope.CustomEvent === "function") {
+					scope.dispatchEvent(new scope.CustomEvent("dora-storage-wait", {detail: {state}}));
+				}
+			};
+			const tick = () => {
+				const current = now();
+				if (visible) elapsed += Math.max(0, current - lastTick);
+				lastTick = current;
+				if (!settled && !notified && visible && !scope.document?.hidden && elapsed >= noticeMs) {
+					notified = true;
+					notify("slow");
+				}
+			};
+			const visibilityChanged = () => {
+				tick();
+				visible = !scope.document.hidden;
+			};
+			const keepWaiting = () => {
+				if (settled) return;
+				elapsed = 0;
+				lastTick = now();
+				notified = false;
+				notify("loading");
+			};
+			const timer = scope.setInterval(tick, Math.min(1000, Math.max(1, noticeMs)));
+			scope.document?.addEventListener("visibilitychange", visibilityChanged);
+			scope.addEventListener?.("dora-storage-wait-continue", keepWaiting);
+			const finish = (error) => {
+				if (settled) return;
+				settled = true;
+				scope.clearInterval(timer);
+				scope.document?.removeEventListener("visibilitychange", visibilityChanged);
+				scope.removeEventListener?.("dora-storage-wait-continue", keepWaiting);
 				module.doraStorageState = error ? `failed: ${error}` : "loaded";
+				notify(error ? "failed" : "loaded");
 				error ? reject(error) : resolve();
-			});
+			};
+			try { fileSystem.syncfs(true, finish); } catch (error) { finish(error); }
 		});
 		for (const directory of ["/user/saves", "/user/settings", "/user/projects"]) fileSystem.mkdirTree(directory);
 		scope.performance?.mark?.("dora-storage-ready");
