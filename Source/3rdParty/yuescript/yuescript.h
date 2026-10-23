@@ -53,6 +53,28 @@ local function get_options(...)
 		return { }, ...
 	end
 end
+local function resolve_modulepath(extra_path, default_path)
+	if not extra_path or extra_path == "" then
+		return default_path
+	end
+	local start_pos, end_pos = extra_path:find(";;", 1, true)
+	if not start_pos then
+		return extra_path .. ";" .. default_path
+	end
+	local prefix = extra_path:sub(1, start_pos - 1)
+	local suffix = extra_path:sub(end_pos + 1)
+	if prefix ~= "" then
+		prefix = prefix .. ";"
+	end
+	if suffix ~= "" then
+		suffix = ";" .. suffix
+	end
+	return prefix .. default_path .. suffix
+end
+local function set_modulepath(extra_path)
+	yue._default_modulepath = yue._default_modulepath or package.path
+	package.path = resolve_modulepath(extra_path, yue._default_modulepath)
+end
 local function find_modulepath(name)
 	local suffix = "." .. yue.options.extension
 	local dirsep = yue.options.dirsep
@@ -64,19 +86,14 @@ local function find_modulepath(name)
 	end
 	local file_exist, file_path
 	local tried = {}
-	local paths = {}
-	paths[#paths + 1] = yue.options.path
-	paths[#paths + 1] = package.path
-	for i = 1, #paths do
-		local yue_path = paths[i]
-		for path in yue_path:gmatch("[^;]+") do
-			file_path = path:gsub("?", name_path):gsub("%.lua$", suffix)
-			file_exist = yue.file_exist(file_path)
-			if file_exist then
-				break
-			else
-				tried[#tried + 1] = file_path
-			end
+	local modulepath = resolve_modulepath(yue.options.path, yue._default_modulepath or package.path)
+	for path in modulepath:gmatch("[^;]+") do
+		file_path = path:gsub("?", name_path):gsub("%.lua$", suffix)
+		file_exist = yue.file_exist(file_path)
+		if file_exist then
+			break
+		else
+			tried[#tried + 1] = file_path
 		end
 	end
 	if file_exist then
@@ -214,6 +231,8 @@ local function p(...)
 	print(concat(args))
 end
 yue.find_modulepath = find_modulepath
+yue.resolve_modulepath = resolve_modulepath
+yue.set_modulepath = set_modulepath
 yue.insert_loader = insert_loader
 yue.dofile = yue_dofile
 yue.loadfile = yue_loadfile
