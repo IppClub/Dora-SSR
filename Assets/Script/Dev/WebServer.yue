@@ -1413,7 +1413,7 @@ HttpServer\upload(
 	(req, multipartFilename): nil ->
 		switch req when {params: {:path}}
 			if filename := getUploadFilename req, multipartFilename
-				uploadPath = Path Content.writablePath, ".upload"
+				uploadPath = Path Content.writablePath, ".upload", "files"
 				if not Content\exist uploadPath
 					Content\mkdir uploadPath
 				targetPath = Path uploadPath, filename
@@ -1423,7 +1423,7 @@ HttpServer\upload(
 		switch req when {params: {:path}}
 			path = Path Content.writablePath, path
 			if Content\exist path
-				uploadPath = Path Content.writablePath, ".upload"
+				uploadPath = Path Content.writablePath, ".upload", "files"
 				targetPath = Path path, Path\getRelative file, uploadPath
 				Content\mkdir Path\getPath targetPath
 				if Content\move file, targetPath

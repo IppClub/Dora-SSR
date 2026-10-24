@@ -3666,7 +3666,7 @@ HttpServer:upload("/upload", function(req, multipartFilename) -- 1413
 			if path ~= nil then -- 1414
 				local filename = getUploadFilename(req, multipartFilename) -- 1415
 				if filename then -- 1415
-					local uploadPath = Path(Content.writablePath, ".upload") -- 1416
+					local uploadPath = Path(Content.writablePath, ".upload", "files") -- 1416
 					if not Content:exist(uploadPath) then -- 1417
 						Content:mkdir(uploadPath) -- 1418
 					end -- 1417
@@ -3694,7 +3694,7 @@ end, function(req, file) -- 1422
 			if path ~= nil then -- 1423
 				path = Path(Content.writablePath, path) -- 1424
 				if Content:exist(path) then -- 1425
-					local uploadPath = Path(Content.writablePath, ".upload") -- 1426
+					local uploadPath = Path(Content.writablePath, ".upload", "files") -- 1426
 					local targetPath = Path(path, Path:getRelative(file, uploadPath)) -- 1427
 					Content:mkdir(Path:getPath(targetPath)) -- 1428
 					if Content:move(file, targetPath) then -- 1429

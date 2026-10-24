@@ -773,7 +773,13 @@ export allClear = ->
 
 clearTempFiles = ->
 	:writablePath = Content
-	Content\remove Path writablePath, ".upload" if Content\exist Path writablePath, ".upload"
+	uploadPath = Path writablePath, ".upload"
+	if Content\exist uploadPath
+		-- Keep resumable checkpoints; the upload store expires them after 24 hours.
+		for dir in *Content\getDirs uploadPath
+			Content\remove Path uploadPath, dir if dir ~= "resume"
+		for file in *Content\getFiles uploadPath
+			Content\remove Path uploadPath, file
 	Content\remove Path writablePath, ".download" if Content\exist Path writablePath, ".download"
 
 waitForWebStart = true

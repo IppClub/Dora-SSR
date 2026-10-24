@@ -2210,6 +2210,20 @@ static void DoraXrtToHex(const uint8* data, size_t len, char* outHex) {
 	outHex[len * 2u] = '\0';
 }
 
+int DoraXrtSha256FileHex(FILE* file, char outHex[65]) {
+	xsha256_ctx context;
+	uint8 digest[32];
+	char buffer[65536];
+	if (!file || !outHex || fseek(file, 0, SEEK_SET)) return 0;
+	xrtSHA256Init(&context);
+	size_t count;
+	while ((count = fread(buffer, 1, sizeof(buffer), file)) != 0) xrtSHA256Update(&context, buffer, count);
+	if (ferror(file)) return 0;
+	xrtSHA256Final(&context, digest);
+	DoraXrtToHex(digest, sizeof(digest), outHex);
+	return 1;
+}
+
 int DoraXrtSha256Hex(const void* data, size_t dataLen, char outHex[65]) {
 	uint8 digest[32];
 	if (!outHex || (!data && dataLen > 0u)) {

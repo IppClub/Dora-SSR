@@ -17,6 +17,7 @@ import type { RcFile, UploadFile } from 'antd/es/upload/interface';
 import { memo, useState, useEffect, useCallback, useRef } from 'react';
 import { Color } from './Theme';
 import Info from './Info';
+import { checkUploadSize, uploadFile, UploadError, type UploadPhase } from './UploadFile';
 
 const { Dragger } = Upload;
 const { TextArea } = Input;
@@ -127,6 +128,20 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 		setDownloadError('');
 	};
 
+	const reportUploadError = (error: unknown, name: string) => {
+		const failure = error instanceof UploadError ? error : new UploadError(name, 'unexpectedError');
+		notification.error({
+			title: t('upload.failed'),
+			message: `${failure.fileName ? failure.fileName + ': ' : ''}${t(`upload.${failure.reason}`, { status: failure.status })}`,
+			duration: 0,
+			placement: 'top',
+		});
+	};
+	const acceptUploadSize = (file: RcFile) => {
+		try { checkUploadSize(file); return true; }
+		catch (error) { reportUploadError(error, file.name); return false; }
+	};
+
 	const props: UploadProps = {
 		name: 'file',
 		directory: true,
@@ -134,42 +149,32 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 		showUploadList: false,
 		action: Service.addr(`/upload?path=${encodeURIComponent(prop.path)}`),
 		customRequest(options) {
-			let aborted = false;
+			const controller = new AbortController();
+			const file = options.file as RcFile;
 			void (async () => {
 				try {
 					const action = typeof options.action === 'string' ? options.action : Service.addr(`/upload?path=${encodeURIComponent(prop.path)}`);
-					const formData = new FormData();
-					const file = options.file as RcFile;
-					// Browser multipart filename encoding is not consistent across
-					// platforms. Send the authoritative UTF-8 path separately so CJK
-					// names do not depend on Content-Disposition compatibility decoding.
+					// Keep the authoritative UTF-8 path separate from multipart filename encoding.
 					const uploadAction = `${action}${action.includes('?') ? '&' : '?'}name=${encodeURIComponent(file.name)}`;
-					formData.append(options.filename ?? 'file', file, file.name);
 					options.onProgress?.({ percent: 0 });
-					const res = await fetch(uploadAction, {
-						method: 'POST',
-						body: formData,
+					await uploadFile(uploadAction, file, controller.signal, (percent, phase) => {
+						options.onProgress?.({ percent });
+						setDraggerFileList(prev => prev.map(item => item.name === file.name ? { ...item, phase } : item));
 					});
-					if (aborted) return;
-					if (!res.ok) {
-						options.onError?.(new Error(`upload failed: ${res.status}`));
-						return;
-					}
+					if (controller.signal.aborted) return;
 					options.onProgress?.({ percent: 100 });
 					options.onSuccess?.({}, undefined);
 				} catch (error) {
-					if (!aborted) {
+					if (!controller.signal.aborted) {
+						reportUploadError(error, file.name);
 						options.onError?.(error instanceof Error ? error : new Error('upload failed'));
 					}
 				}
 			})();
-			return {
-				abort() {
-					aborted = true;
-				},
-			};
+			return { abort() { controller.abort(); } };
 		},
 		beforeUpload(file: RcFile, fileList: RcFile[]) {
+			if (!acceptUploadSize(file)) return Upload.LIST_IGNORE;
 			if (fileList.length > 501) {
 				notification.error({
 					title: t('upload.exceeded'),
@@ -272,6 +277,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 	};
 	const [fileList, setFileList] = useState<UploadFile[]>([]);
 	const [uploading, setUploading] = useState(false);
+	const [uploadProgress, setUploadProgress] = useState({ percent: 0, phase: 'hashing' as UploadPhase });
 
 	// 文本创建文件相关状态
 	const [textContent, setTextContent] = useState('');
@@ -284,6 +290,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 		name: string;
 		status: 'uploading' | 'done' | 'error';
 		percent: number;
+		phase?: UploadPhase;
 	}
 	const [draggerFileList, setDraggerFileList] = useState<DraggerUploadFile[]>([]);
 	const draggerProgressCacheRef = useRef<Map<string, number>>(new Map());
@@ -319,27 +326,18 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 	const handleUpload = async () => {
 		setUploading(true);
 		try {
-			await Promise.all(fileList.map(async selectedFile => {
+			// Send sequentially: the server admits two disk uploads at a time.
+			// Remove each success immediately so a retry sends only pending files.
+			for (const selectedFile of fileList) {
 				const file = selectedFile as RcFile;
-				const formData = new FormData();
-				formData.append('file', file, file.name);
 				const uploadPath = Service.addr(`/upload?path=${encodeURIComponent(prop.path)}&name=${encodeURIComponent(file.name)}`);
-				const response = await fetch(uploadPath, {
-					method: 'POST',
-					body: formData,
-				});
-				if (!response.ok) {
-					throw new Error(`upload failed: ${response.status}`);
-				}
-			}));
-			fileList.forEach(file => {
-				const f = file as RcFile;
-				prop.onUploaded(prop.path, f.name, false);
-			});
-			setFileList([]);
+				await uploadFile(uploadPath, file, undefined, (percent, phase) => setUploadProgress({ percent, phase }));
+				prop.onUploaded(prop.path, file.name, false);
+				setFileList(prev => prev.filter(item => item.uid !== file.uid));
+			}
 			message.success(t('upload.success'));
-		} catch (_error) {
-			message.error(t('upload.failed'));
+		} catch (error) {
+			reportUploadError(error, '');
 		} finally {
 			setUploading(false);
 		}
@@ -353,7 +351,8 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 			setFileList(newFileList);
 		},
 		beforeUpload: (file) => {
-			setFileList([...fileList, file]);
+			if (!acceptUploadSize(file)) return Upload.LIST_IGNORE;
+			setFileList(prev => [...prev, file]);
 			return false;
 		},
 		fileList,
@@ -453,7 +452,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 											onClick={handleUpload}
 											loading={uploading}
 										>
-											{uploading ? t('upload.uploading') : `${t('upload.startUpload')} (${fileList.length})`}
+											{uploading ? `${t(`upload.${uploadProgress.phase}`)} ${uploadProgress.percent.toFixed(0)}%` : `${t('upload.startUpload')} (${fileList.length})`}
 										</Button>
 									) : null}
 								</Space>
@@ -523,7 +522,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 																	}}
 																	title={file.name}
 																>
-																	{file.name}
+																	{file.name}{file.status === 'uploading' && file.phase ? ` · ${t(`upload.${file.phase}`)}` : ''}
 																</Text>
 															</div>
 															{file.status === 'uploading' && (

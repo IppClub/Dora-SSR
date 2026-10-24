@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Http/HttpOriginPolicy.h"
 #include "Http/HttpValidators.h"
 #include "Http/HttpStaticContent.h"
+#include "Http/HttpUploadStore.h"
 
 #include "Http/XrtNetwork.h"
 
@@ -1197,6 +1198,7 @@ bool HttpServer::start(int port) {
 			if (route_matches(route.pattern, path)) return 1;
 		}
 		// Disk upload parsing/copying also runs off the shared network worker.
+		if (std::string_view(path) == "/upload/resumable") return 1;
 		for (const auto& route : self->_files) {
 			if (route_matches(route.pattern, path)) return 1;
 		}
@@ -1369,6 +1371,35 @@ bool HttpServer::start(int port) {
 			return true;
 		}
 		if (nativeRequest->method != DORA_XRT_HTTP_METHOD_POST) return false;
+		if (path == "/upload/resumable") {
+			if (std::none_of(self->_files.begin(), self->_files.end(), [](const auto& route) { return route_matches(route.pattern, "/upload"); })) {
+				set_response(nativeResponse, 404, {}, {});
+				return true;
+			}
+			auto param = [&](std::string_view name) -> std::string {
+				for (size_t i = 0; i + 1 < request.params.size(); i += 2) {
+					if (request.params[i].toString() == name) return request.params[i + 1].toString();
+				}
+				return {};
+			};
+			uint64_t size = 0, offset = 0;
+			if (!HttpUpload::number(param("size"), size) || !HttpUpload::number(param("offset"), offset)) {
+				set_response(nativeResponse, 400, {}, {});
+				return true;
+			}
+			auto pending = std::make_shared<PendingLogicResult<std::string>>();
+			SharedApplication.invokeInLogic([pending]() { if (!pending->isCancelled()) pending->complete(SharedContent.getWritablePath()); });
+			auto workspace = pending->wait(self->_stopping, self->_generation, requestGeneration);
+			if (!workspace) { set_logic_busy(nativeResponse); return true; }
+			HttpUpload::Store store;
+			auto result = store.handle(*workspace, param("path"), param("name"), param("id"), param("hash"),
+				size, param("action"), offset, request.body.toString(), param("chunkHash"));
+			std::string json = fmt::format(R"({{"offset":{},"complete":{}}})", result.offset, result.complete ? "true" : "false");
+			DoraXrtHttpServerResponseSetHeader(nativeResponse, "Cache-Control", "no-store");
+			set_response(nativeResponse, result.status, json, "application/json");
+			return true;
+		}
+
 		for (const auto& route : self->_posts) {
 			if (!route_matches(route.pattern, path)) continue;
 			auto pending = std::make_shared<PendingLogicResult<HttpServer::Response>>();
@@ -1420,6 +1451,10 @@ bool HttpServer::start(int port) {
 			MultipartContext context{self, &route, &request, nativeResponse, &acceptedFiles, requestGeneration};
 			auto writePart = [](void* userData, const DoraXrtMultipartFileView* part) {
 				auto context = r_cast<MultipartContext*>(userData);
+				if (part->bodyLen > DORA_HTTP_UPLOAD_FILE_LIMIT) {
+					set_response(context->response, 413, {}, {});
+					return 0;
+				}
 				std::string filename(part->fileName, part->fileNameLen);
 				auto accepted = std::make_shared<PendingLogicResult<std::optional<std::string>>>();
 				SharedApplication.invokeInLogic([accepted, route = context->route, request = *context->request, filename = std::move(filename)]() {
@@ -1438,7 +1473,11 @@ bool HttpServer::start(int port) {
 				auto stream = std::unique_ptr<SDL_RWops, decltype(&SDL_RWclose)>(SDL_RWFromFile(file.c_str(), "wb+"), SDL_RWclose);
 				bool written = stream != nullptr;
 				if (written && part->bodyFile) {
-					written = fseek(part->bodyFile, s_cast<long>(part->bodyOffset), SEEK_SET) == 0;
+#if BX_PLATFORM_WINDOWS
+					written = _fseeki64(part->bodyFile, s_cast<int64_t>(part->bodyOffset), SEEK_SET) == 0;
+#else
+					written = fseeko(part->bodyFile, s_cast<off_t>(part->bodyOffset), SEEK_SET) == 0;
+#endif
 					char buffer[65536];
 					for (size_t remaining = part->bodyLen; written && remaining;) {
 						auto bytes = std::min(remaining, sizeof(buffer));
@@ -1446,18 +1485,19 @@ bool HttpServer::start(int port) {
 						remaining -= bytes;
 					}
 				} else if (written) written = SDL_RWwrite(stream.get(), part->body, 1, part->bodyLen) == part->bodyLen;
+				// Closing flushes buffered writes; disk-full failures can surface here.
+				if (stream) written = SDL_RWclose(stream.release()) == 0 && written;
 				if (!written) {
-					stream.reset();
 					SharedContent.remove(file);
-					set_response(context->response, 500, {}, {});
+					set_response(context->response, 507, {}, {});
 					return 0;
 				}
 				context->acceptedFiles->emplace_back(std::move(file));
 				return 1;
 			};
 			auto multipartResult = nativeRequest->bodyFile
-				? DoraXrtMultipartFileForEachFile(contentType, nativeRequest->bodyFile, nativeRequest->bodyLen, 512u * 1024u * 1024u, writePart, &context)
-				: DoraXrtMultipartForEachFile(contentType, nativeRequest->body, nativeRequest->bodyLen, 512u * 1024u * 1024u, writePart, &context);
+				? DoraXrtMultipartFileForEachFile(contentType, nativeRequest->bodyFile, nativeRequest->bodyLen, DORA_HTTP_UPLOAD_BODY_LIMIT, writePart, &context)
+				: DoraXrtMultipartForEachFile(contentType, nativeRequest->body, nativeRequest->bodyLen, DORA_HTTP_UPLOAD_BODY_LIMIT, writePart, &context);
 			if (multipartResult <= 0) {
 				for (const auto& file : acceptedFiles) SharedContent.remove(file);
 			}
@@ -1484,7 +1524,7 @@ bool HttpServer::start(int port) {
 		return false;
 	};
 	events.onError = [](void*, int error) { Error("http server error: {}", error); };
-	auto server = DoraXrtHttpServerCreate(port, 512u * 1024u * 1024u, &events, this);
+	auto server = DoraXrtHttpServerCreate(port, DORA_HTTP_UPLOAD_BODY_LIMIT, &events, this);
 	if (!server) return false;
 	_server = server;
 	_stopping.store(false, std::memory_order_release);

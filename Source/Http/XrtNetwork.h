@@ -26,6 +26,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 extern "C" {
 #endif
 
+/* Legacy multipart requests remain bounded, with room for their envelope.
+ * Larger Web IDE files use separate 4 MiB resumable requests; these constants
+ * do not limit their total size. Keep the arithmetic unsigned on Windows. */
+#define DORA_HTTP_UPLOAD_FILE_LIMIT (2u * 1024u * 1024u * 1024u)
+#define DORA_HTTP_UPLOAD_BODY_LIMIT (DORA_HTTP_UPLOAD_FILE_LIMIT + 1024u * 1024u)
+
 typedef int (*DoraXrtHttpShouldCancel)(void* userData);
 typedef int (*DoraXrtHttpStreamHandler)(const char* data, size_t dataLen, size_t current, size_t total, void* userData);
 
@@ -185,6 +191,7 @@ int DoraXrtHttpExecuteStream(
 int DoraXrtHttpAbortCloseFallbackTest(void);
 #endif
 
+int DoraXrtSha256FileHex(FILE* file, char outHex[65]);
 int DoraXrtSha256Hex(const void* data, size_t dataLen, char outHex[65]);
 int DoraXrtHmacSha256Hex(const void* key, size_t keyLen, const void* data, size_t dataLen, char outHex[65]);
 
