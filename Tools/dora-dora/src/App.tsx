@@ -25,6 +25,7 @@ import NewFileDialog, { DoraFileType } from './NewFileDialog';
 import logo from './logo.svg';
 import { TransitionGroup } from 'react-transition-group';
 import * as Service from './Service';
+import { uploadFile } from './UploadFile';
 import { EditorDebounce } from './EditorDebounce';
 import { AppBar, DrawerHeader, Entry, Main, PlayControl, PlayControlMode, StyledStack } from './Frame';
 import { Color } from './Theme';
@@ -4076,11 +4077,31 @@ export default function PersistentDrawerLeft() {
 				const initFile = initExt ? path.join(newFile, `init${initExt}`) : null;
 				const initTemplate = initExt ? getNewFileTemplate(initExt) : null;
 				(async () => {
+					// Prepare the cartridge before creating a placeholder, and finish writing
+					// it before opening the editor (which may immediately request the file).
+					let ticCart: Blob | null = null;
+					if (ext === '.tic') {
+						const response = await fetch('/tic80/cart.tic', { cache: 'no-store' });
+						if (!response.ok) throw new Error('Failed to download cart.tic');
+						ticCart = await response.blob();
+						if (ticCart.size === 0) throw new Error('Empty cart.tic template');
+					}
 					const res = await Service.newFile({ path: newFile, content, folder });
 					if (!res.success) {
 						addAlert(t(`alert.new${res.message}`), "error");
 						callbacks?.onFailed?.();
 						return;
+					}
+					if (ticCart !== null) {
+						try {
+							await uploadFile(Service.addr(`/upload?path=${encodeURIComponent(dir)}&name=${encodeURIComponent(newName)}`), new File([ticCart], newName));
+						} catch (error) {
+							// Remove only the empty placeholder we just created. A lost response
+							// must not delete a cartridge that the server already wrote.
+							const info = await Service.stat({ path: newFile });
+							if (info.success && info.size === 0) await Service.deleteFile({ path: newFile });
+							throw error;
+						}
 					}
 					if (initFile !== null && initTemplate !== null) {
 						const initRes = await Service.newFile({
@@ -4124,32 +4145,7 @@ export default function PersistentDrawerLeft() {
 					setFiles([...files, newItem]);
 					switchTab(files.length, newItem);
 					callbacks?.onCreated?.(openedFile);
-				})().then(() => {
-					if (ext === ".tic") {
-						fetch('/tic80/cart.tic')
-							.then(res => {
-								if (!res.ok) throw new Error('Failed to download cart.tic');
-								return res.blob();
-							})
-							.then(blob => {
-								const formData = new FormData();
-								formData.append('file', blob, newFile);
-								const uploadPath = Service.addr(`/upload?path=${encodeURIComponent(newFile)}`);
-								return fetch(uploadPath, {
-									method: 'POST',
-									body: formData
-								});
-							})
-							.then(res => {
-								if (!res.ok) {
-									addAlert(t("alert.newFailed"), "error");
-								}
-							})
-							.catch(() => {
-								addAlert(t("alert.newFailed"), "error");
-							});
-					}
-				}).catch(() => {
+				})().catch(() => {
 					addAlert(t("alert.newFailed"), "error");
 					callbacks?.onFailed?.();
 				});

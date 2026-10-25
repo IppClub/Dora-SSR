@@ -18,6 +18,7 @@
 
         /* You can set custom dimensions here */
         .game { width: 100vw; height: 100vh; }
+        #canvas { outline: none; }
     </style>
 </head>
 <body style="margin:0; padding:0;">
@@ -35,107 +36,111 @@
     </div>
 
     <script type="text/javascript">
-        var Module = {canvas: document.getElementById('canvas')};
+        var cartPath = '/dora-ide/cart.tic';
+        var runtimePrepared = false;
+        var initializingCart = false;
+        var bridgeHooked = false;
+        var Module = {
+            canvas: document.getElementById('canvas'),
+            // Use a private MEMFS directory. Studio's persistent cache must never
+            // replace the cartridge supplied by the project being opened.
+            arguments: ['--skip', '--fs=/dora-ide', '--cmd=load cart.tic & edit'],
+            preRun: [function() {
+                hookModuleMethods();
+                addRunDependency('dora-cartridge');
+                runtimePrepared = true;
+                initializeCartridge();
+            }]
+        };
         var tic80FilePath = null;
+        var importingCart = false;
+        var cartImported = false;
+        var loadReported = false;
 
-        // Listen for messages from parent window
-        window.addEventListener('message', function(event) {
-            if (event.data && event.data.type) {
-                switch (event.data.type) {
-                    case 'TIC80_INIT':
-                        tic80FilePath = event.data.filePath;
-                        break;
-                    case 'TIC80_READ_FILE_RESPONSE':
-                        if (event.data.success && event.data.rom) {
-                            // Handle file content received from parent
-                            if (window.tic80FileReadCallback) {
-                                window.tic80FileReadCallback(event.data.rom);
-                                window.tic80FileReadCallback = null;
-                            }
-                        } else {
-                            if (window.tic80FileReadCallback) {
-                                window.tic80FileReadCallback(null);
-                                window.tic80FileReadCallback = null;
-                            }
-                        }
-                        break;
-                    case 'TIC80_WRITE_FILE_RESPONSE':
-                        if (window.tic80FileWriteCallback) {
-                            window.tic80FileWriteCallback(event.data.success);
-                            window.tic80FileWriteCallback = null;
-                        }
-                        break;
+        function postToEditor(data) {
+            window.parent.postMessage(data, window.location.origin);
+        }
+
+        function initializeCartridge() {
+            if (!runtimePrepared || !tic80FilePath || initializingCart) return;
+            initializingCart = true;
+            requestReadFile().then(function(rom) {
+                if (!rom || !rom.length) return; // Keep Studio blocked on a failed load.
+                importingCart = true;
+                try {
+                    FS.mkdirTree('/dora-ide');
+                    FS.writeFile(cartPath, rom);
+                    cartImported = true;
+                } finally {
+                    importingCart = false;
                 }
-            }
-        });
-
-        // Function to request file read from parent
-        function requestReadFile() {
-            return new Promise(function(resolve, reject) {
-                window.tic80FileReadCallback = function(rom) {
-                    resolve(rom);
-                };
-                window.parent.postMessage({ type: 'TIC80_READ_FILE' }, '*');
+                removeRunDependency('dora-cartridge');
+            }).catch(function(error) {
+                console.error('Error initializing TIC-80 cartridge:', error);
+                postToEditor({type: 'TIC80_LOAD_FAILED'});
             });
         }
 
-        // Function to request file write to parent
-        function requestWriteFile(blob, filename) {
-            window.parent.postMessage({ type: 'TIC80_WRITE_FILE', rom: blob, filename: filename }, '*');
+        window.addEventListener('message', function(event) {
+            if (event.source !== window.parent || event.origin !== window.location.origin) return;
+            switch (event.data && event.data.type) {
+                case 'TIC80_INIT':
+                    tic80FilePath = event.data.filePath;
+                    initializeCartridge();
+                    break;
+                case 'TIC80_READ_FILE_RESPONSE':
+                    if (window.tic80FileReadCallback) {
+                        var callback = window.tic80FileReadCallback;
+                        window.tic80FileReadCallback = null;
+                        callback(event.data.success ? event.data.rom : null);
+                    }
+                    break;
+            }
+        });
+
+        function requestReadFile() {
+            return new Promise(function(resolve) {
+                window.tic80FileReadCallback = resolve;
+                postToEditor({type: 'TIC80_READ_FILE'});
+            });
         }
 
-        // Hook Module methods after tic80.js loads
+        function requestWriteFile(blob, filename) {
+            postToEditor({type: 'TIC80_WRITE_FILE', rom: blob, filename: filename});
+        }
+
         function hookModuleMethods() {
-            if (!Module || typeof Module.showAddPopup !== 'function' || typeof Module.saveAs !== 'function') {
-                setTimeout(hookModuleMethods, 100);
-                return;
-            }
-
-            // Save original methods
-            var originalShowAddPopup = Module.showAddPopup;
+            if (bridgeHooked) return;
+            if (!Module || typeof Module.saveAs !== 'function' || typeof FS === 'undefined') return;
+            bridgeHooked = true;
             var originalSaveAs = Module.saveAs;
-
-            // Override showAddPopup
-            Module.showAddPopup = function(callback) {
-                if (!tic80FilePath) {
-                    if (originalShowAddPopup) {
-                        originalShowAddPopup.call(Module, callback);
-                    }
-                    return;
-                }
-
-                // Extract filename from file path
-                var filename = tic80FilePath.split('/').pop() || tic80FilePath.split('\\').pop() || 'cart.tic';
-
-                // If filename contains non-ASCII characters, set to 'cart.tic'
-                if (/[^\x00-\x7F]/.test(filename.replace(/\.[^/.]+$/, ""))) {
-                    filename = "cart.tic";
-                }
-
-                requestReadFile().then(function(rom) {
-                    if (rom && callback) {
-                        callback(filename, rom);
-                    } else if (callback) {
-                        callback(null, null);
-                    }
-                }).catch(function(error) {
-                    console.error("Error reading file:", error);
-                    if (callback) {
-                        callback(null, null);
-                    }
-                });
+            Module.saveAs = function(blob, filename) {
+                if (!tic80FilePath) return originalSaveAs.call(Module, blob, filename);
+                requestWriteFile(blob, filename);
             };
 
-            // Override saveAs
-            Module.saveAs = function(blob, filename) {
-                if (!tic80FilePath) {
-                    if (originalSaveAs) {
-                        originalSaveAs.call(Module, blob, filename);
+            // Ctrl+S saves the loaded cartridge through Studio's virtual FS.
+            // Mirror that completed binary write to the original project path.
+            var originalClose = FS.close;
+            FS.close = function(stream) {
+                var path = stream.path;
+                var writing = (stream.flags & 3) !== 0;
+                var result = originalClose.call(FS, stream);
+                if (cartImported && !importingCart && path === cartPath) {
+                    if (!writing && !loadReported) {
+                        loadReported = true;
+                        setTimeout(function() { postToEditor({type: 'TIC80_LOADED'}); }, 0);
                     }
-                    return;
+                    if (writing) {
+                        try {
+                            requestWriteFile(new Blob([FS.readFile(path)], {type: 'application/octet-stream'}), 'cart.tic');
+                        } catch (error) {
+                            console.error('Error exporting saved TIC-80 cartridge:', error);
+                            requestWriteFile(null, 'cart.tic');
+                        }
+                    }
                 }
-
-                requestWriteFile(blob, filename);
+                return result;
             };
         }
 
@@ -198,7 +203,7 @@
         firstScriptTag = document.getElementsByTagName('script')[0]; // find the first script tag in the document
         scriptTag.src = 'tic80.js'; // set the source of the script to your script
         scriptTag.onload = function() {
-            setTimeout(hookModuleMethods, 500);
+            hookModuleMethods();
         };
         firstScriptTag.parentNode.insertBefore(scriptTag, firstScriptTag); // append the script to the DOM
         // Focus canvas to ensure keyboard events are routed to the game

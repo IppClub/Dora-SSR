@@ -30,44 +30,33 @@ When running a TIC-80 cart through TIC80Node, you get:
 
 ## 2. Using Web IDE to Edit TIC-80 Carts
 
-Dora SSR's Web IDE provides integrated support for TIC80 Studio, making it easy to edit TIC-80 cart files directly within your development environment.
+Dora SSR's Web IDE embeds a TIC-80 cartridge editor. Opening a project `.tic` file automatically loads its latest contents and opens the code editor; no terminal commands are required.
 
-### 2.1 Opening TIC-80 Terminal
+### 2.1 Creating or Opening a Cart
 
-To edit a TIC-80 cart file:
+1. In the workspace, choose **New → TIC-80** to create a cart with a complete starter template, or click an existing `.tic` file in the file tree.
+2. Wait for the **Loaded** status above the editor. The code is ready to edit immediately. Use the editor's toolbar or F1–F5 to switch between code, graphics, maps, sound effects, and music.
+3. Filenames with spaces, Unicode, or special characters work the same way. Saving always targets the original project file.
 
-1. In the Web IDE file tree, click on a `.tic` file
-2. The TIC80 Studio terminal will open, allowing you to edit the cart
+### 2.2 Editing and Saving
 
-### 2.2 Uploading Cart to TIC80 Studio
+Edit the cartridge, then press **Ctrl+S** while the TIC-80 editor has focus. The Web IDE writes the saved cartridge back to the local project file automatically. There is no separate import or export step.
 
-Once the TIC80 terminal is open, you can upload your cart file for editing:
+The status above the editor shows **Unsaved changes**, **Saving…**, or **Saved**. Wait for **Saved** before closing the tab. If saving fails, the error remains visible; keep the editor open, resolve the connection or storage problem, and press Ctrl+S again to retry.
 
-1. Type the `add` command in the TIC80 terminal
-2. This will upload the currently opened `.tic` cart file to the TIC80 Studio environment
-3. You can now edit the code, graphics, and audio resources using TIC80 Studio's tools
+### 2.3 Closing and Reopening
 
-### 2.3 Saving Changes Back to File
+Close the editor tab after saving. Click the same `.tic` file again to automatically load its latest project contents, including your saved edits. A previous browser-side cartridge cache cannot override the project file.
 
-After editing your cart in TIC80 Studio:
-
-1. Type `get <filename>` in the TIC80 terminal, where `<filename>` is the name of the cart file
-2. This will synchronize the edited cart back to your project's `.tic` file
-3. The changes are saved to the file system, ready to be used in your game
+If loading fails, the editor shows **Load failed** and a **Retry loading** button. Resolve the problem and retry; an empty or failed read does not open a default cartridge that could overwrite the project file.
 
 ### 2.4 Workflow Example
 
-Here's a typical workflow for editing a TIC-80 cart:
-
-1. **Open the cart file**: Click on `TIC80/game.tic` in the file tree
-2. **Upload to Studio**: Type `add` in the TIC80 terminal
-3. **Edit in Studio**: Use TIC80 Studio's editor to modify code, sprites, maps, sounds, etc.
-4. **Save changes**: Type `get game.tic` to save your changes back to the file
-5. **Use in game**: The updated cart file is now ready to be loaded by TIC80Node
-
-:::tip Tip
-This integrated workflow allows you to iterate quickly on TIC-80 games without leaving the Dora SSR development environment. You can edit, test, and refine your carts seamlessly.
-:::
+1. **Create** `game.tic` using New → TIC-80.
+2. **Edit** the automatically loaded starter cartridge.
+3. **Save** with Ctrl+S and wait for **Saved**.
+4. **Close and reopen** `game.tic` from the file tree.
+5. **Continue editing** the automatically restored cartridge. The saved file is also ready to be loaded by TIC80Node.
 
 ### 2.5 Code Editing Support
 

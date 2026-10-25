@@ -1286,6 +1286,10 @@ i18n
 						binaryFile: "Binary file: {{oldSize}} -> {{newSize}}",
 					},
 					tic: {
+						workflow: "Ctrl+S to save",
+						retryLoad: "Retry loading",
+						status: { loading: "Loading…", ready: "Loaded", modified: "Unsaved changes", saving: "Saving…", saved: "Saved", loadFailed: "Load failed", saveFailed: "Save failed — press Ctrl+S to retry" },
+						loadFailed: "Failed to load {{filename}}",
 						overridden: "Overridden {{oldFilename}} to {{newFilename}}",
 						updated: "Updated {{filename}}",
 						updateFailed: "Update {{basename}} failed",
@@ -2563,6 +2567,10 @@ i18n
 						binaryFile: "二进制文件：{{oldSize}} -> {{newSize}}",
 					},
 					tic: {
+						workflow: "Ctrl+S 保存",
+						retryLoad: "重新加载",
+						status: { loading: "加载中…", ready: "已加载", modified: "未保存", saving: "保存中…", saved: "已保存", loadFailed: "加载失败", saveFailed: "保存失败，请按 Ctrl+S 重试" },
+						loadFailed: "加载 {{filename}} 失败",
 						overridden: "已覆盖 {{oldFilename}} 为 {{newFilename}}",
 						updated: "已更新 {{filename}}",
 						updateFailed: "更新 {{basename}} 失败",
