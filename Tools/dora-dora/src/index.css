@@ -138,6 +138,11 @@ body {
 	box-shadow: none;
 }
 
+.dora-upload-progress-list {
+	border-radius: 4px;
+	outline: none;
+}
+
 .dora-editor-toolbar button:focus-visible,
 .dora-editor-panel button:focus-visible,
 .dora-editor-tool-rail button:focus-visible {

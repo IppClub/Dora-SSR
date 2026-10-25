@@ -4,6 +4,7 @@ import { bytesToHex } from '@noble/hashes/utils.js';
 export const MAX_UPLOAD_FILE_BYTES = Number.MAX_SAFE_INTEGER;
 export const UPLOAD_CHUNK_BYTES = 4 * 1024 * 1024;
 export const RESUMABLE_UPLOAD_THRESHOLD = 32 * 1024 * 1024;
+export const MAX_CONCURRENT_UPLOADS = 2;
 export type UploadPhase = 'hashing' | 'uploading' | 'verifying' | 'resuming';
 export type UploadProgress = (percent: number, phase: UploadPhase) => void;
 
@@ -132,7 +133,7 @@ function acquireUploadSlot(signal?: AbortSignal): Promise<() => void> {
 			resolve(() => { activeUploads--; waitingUploads.shift()?.(); });
 		};
 		if (signal?.aborted) { abort(); return; }
-		if (activeUploads < 2) grant();
+		if (activeUploads < MAX_CONCURRENT_UPLOADS) grant();
 		else { waitingUploads.push(grant); signal?.addEventListener('abort', abort, { once: true }); }
 	});
 }

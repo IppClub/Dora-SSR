@@ -11,13 +11,15 @@ import { ConfigProvider, theme, UploadProps } from 'antd';
 import { AiOutlineUpload } from 'react-icons/ai';
 import * as Service from './Service';
 import { useTranslation } from 'react-i18next';
-import { UploadOutlined, DownloadOutlined, LinkOutlined, FileTextOutlined, CheckCircleOutlined, CloseCircleOutlined, LoadingOutlined } from '@ant-design/icons';
+import { UploadOutlined, DownloadOutlined, LinkOutlined, FileTextOutlined } from '@ant-design/icons';
 import { Button, App, Upload, Input, Progress, Space, Typography, Collapse } from 'antd';
 import type { RcFile, UploadFile } from 'antd/es/upload/interface';
 import { memo, useState, useEffect, useCallback, useRef } from 'react';
 import { Color } from './Theme';
 import Info from './Info';
 import { checkUploadSize, uploadFile, UploadError, type UploadPhase } from './UploadFile';
+import UploadProgressList, { type UploadProgressFile } from './UploadProgressList';
+import { FolderUploadQueue } from './FolderUploadQueue';
 
 const { Dragger } = Upload;
 const { TextArea } = Input;
@@ -29,6 +31,13 @@ export interface DoraUploadProp {
 	onUploaded: (path: string, file: string, open: boolean) => void;
 	hideTitle?: boolean;
 };
+
+interface FolderUploadJob {
+	uid: string;
+	file: File;
+	name: string;
+	path: string;
+}
 
 const DoraUploadInner = (prop: DoraUploadProp) => {
 	const { t } = useTranslation();
@@ -128,151 +137,76 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 		setDownloadError('');
 	};
 
-	const reportUploadError = (error: unknown, name: string) => {
+	const reportUploadError = useCallback((error: unknown, name: string) => {
 		const failure = error instanceof UploadError ? error : new UploadError(name, 'unexpectedError');
 		notification.error({
 			title: t('upload.failed'),
-			message: `${failure.fileName ? failure.fileName + ': ' : ''}${t(`upload.${failure.reason}`, { status: failure.status })}`,
+			description: `${failure.fileName ? failure.fileName + ': ' : ''}${t(`upload.${failure.reason}`, { status: failure.status })}`,
 			duration: 0,
 			placement: 'top',
 		});
-	};
+	}, [notification, t]);
 	const acceptUploadSize = (file: RcFile) => {
 		try { checkUploadSize(file); return true; }
 		catch (error) { reportUploadError(error, file.name); return false; }
 	};
 
-	const props: UploadProps = {
-		name: 'file',
-		directory: true,
-		multiple: true,
-		showUploadList: false,
-		action: Service.addr(`/upload?path=${encodeURIComponent(prop.path)}`),
-		customRequest(options) {
-			const controller = new AbortController();
-			const file = options.file as RcFile;
-			void (async () => {
-				try {
-					const action = typeof options.action === 'string' ? options.action : Service.addr(`/upload?path=${encodeURIComponent(prop.path)}`);
-					// Keep the authoritative UTF-8 path separate from multipart filename encoding.
-					const uploadAction = `${action}${action.includes('?') ? '&' : '?'}name=${encodeURIComponent(file.name)}`;
-					options.onProgress?.({ percent: 0 });
-					await uploadFile(uploadAction, file, controller.signal, (percent, phase) => {
-						options.onProgress?.({ percent });
-						setDraggerFileList(prev => prev.map(item => item.name === file.name ? { ...item, phase } : item));
-					});
-					if (controller.signal.aborted) return;
-					options.onProgress?.({ percent: 100 });
-					options.onSuccess?.({}, undefined);
-				} catch (error) {
-					if (!controller.signal.aborted) {
-						reportUploadError(error, file.name);
-						options.onError?.(error instanceof Error ? error : new Error('upload failed'));
+	const folderQueueRef = useRef<FolderUploadQueue<FolderUploadJob> | null>(null);
+	const folderCallbacksRef = useRef({ onUploaded: prop.onUploaded, reportError: reportUploadError });
+	useEffect(() => {
+		folderCallbacksRef.current = { onUploaded: prop.onUploaded, reportError: reportUploadError };
+	}, [prop.onUploaded, reportUploadError]);
+
+	useEffect(() => {
+		const finish = (job: FolderUploadJob, status: 'done' | 'error') => {
+			const entry = draggerFilesRef.current.get(job.uid);
+			if (!entry) return;
+			draggerFilesRef.current.set(job.uid, { ...entry, status, percent: status === 'done' ? 100 : entry.percent });
+			draggerExpiryRef.current.set(job.uid, Date.now() + (status === 'done' ? 2000 : 3000));
+			draggerDirtyRef.current = true;
+		};
+		const queue = new FolderUploadQueue<FolderUploadJob>({
+			admit(job) {
+				if (job.file.name === '.DS_Store') return false;
+				job.name = job.file.webkitRelativePath || job.file.name;
+				draggerFilesRef.current.set(job.uid, { uid: job.uid, name: job.name, status: 'uploading', percent: 0 });
+				draggerDirtyRef.current = true;
+			},
+			async upload(job, signal) {
+				// Only active uploads need a renamed File, a promise and progress callbacks.
+				const file = new File([job.file], job.name);
+				const action = Service.addr(`/upload?path=${encodeURIComponent(job.path)}&name=${encodeURIComponent(job.name)}`);
+				await uploadFile(action, file, signal, (percent, phase) => {
+					const entry = draggerFilesRef.current.get(job.uid);
+					if (entry && (entry.percent !== percent || entry.phase !== phase)) {
+						draggerFilesRef.current.set(job.uid, { ...entry, percent, phase });
+						draggerDirtyRef.current = true;
 					}
-				}
-			})();
-			return { abort() { controller.abort(); } };
-		},
-		beforeUpload(file: RcFile, fileList: RcFile[]) {
-			if (!acceptUploadSize(file)) return Upload.LIST_IGNORE;
-			if (fileList.length > 501) {
-				notification.error({
-					title: t('upload.exceeded'),
-					key: "upload-exceeded-error",
-					message: t('upload.failed'),
-					placement: "top"
 				});
-				return Upload.LIST_IGNORE;
-			}
+				if (signal.aborted) return;
+				finish(job, 'done');
+				folderCallbacksRef.current.onUploaded(job.path, job.name, false);
+			},
+			error(job, error) {
+				finish(job, 'error');
+				folderCallbacksRef.current.reportError(error, job.name);
+			},
+		});
+		folderQueueRef.current = queue;
+		return () => {
+			queue.dispose();
+			if (folderQueueRef.current === queue) folderQueueRef.current = null;
+		};
+	}, []);
 
-			if (file.name === ".DS_Store") {
-				return Upload.LIST_IGNORE;
-			}
-
-			// 添加到上传文件列表（使用文件名作为临时标识，antd 会在 onChange 中分配 uid）
-			const processedFile = new File([file], file.webkitRelativePath !== "" ? file.webkitRelativePath : file.name);
-			const fileName = processedFile.name;
-
-			setDraggerFileList(prevList => {
-				// 检查是否已存在同名且正在上传的文件（避免重复添加）
-				const existingFile = prevList.find(f => f.name === fileName && f.status === 'uploading');
-				if (existingFile) {
-					return prevList;
-				}
-				const tempUid = `temp-${Date.now()}-${Math.random()}-${fileName}`;
-				return [...prevList, {
-					uid: tempUid,
-					name: fileName,
-					status: 'uploading',
-					percent: 0,
-				}];
-			});
-
-			return processedFile;
-		},
-		onChange(info) {
-			const { status, percent, uid, name } = info.file;
-
-			// 更新进度缓存（使用 antd 分配的 uid）
-			if (percent !== undefined && uid) {
-				draggerProgressCacheRef.current.set(uid, percent);
-			}
-
-			// 更新文件状态
-			setDraggerFileList(prevList => {
-				// 先尝试通过 uid 匹配（如果之前已经更新过）
-				let fileIndex = prevList.findIndex(f => f.uid === uid);
-				// 如果没找到，通过文件名和上传状态匹配（临时文件）
-				if (fileIndex === -1) {
-					fileIndex = prevList.findIndex(f => f.name === name && f.status === 'uploading' && f.uid.startsWith('temp-'));
-				}
-
-				// 如果找不到匹配的文件，说明 beforeUpload 中已经添加了，这里不应该再添加
-				// 只有在 beforeUpload 没有添加的情况下才添加（这种情况不应该发生）
-				if (fileIndex === -1) {
-					return prevList;
-				}
-
-				const updatedList = [...prevList];
-				if (status === 'done') {
-					updatedList[fileIndex] = {
-						...updatedList[fileIndex],
-						uid: uid, // 更新为 antd 的 uid
-						status: 'done',
-						percent: 100,
-					};
-					draggerProgressCacheRef.current.set(uid, 100);
-					draggerDisplayProgressRef.current.set(uid, 100);
-					// 完成后延迟移除
-					setTimeout(() => {
-						setDraggerFileList(prev => prev.filter(f => f.uid !== uid));
-						draggerProgressCacheRef.current.delete(uid);
-						draggerDisplayProgressRef.current.delete(uid);
-					}, 2000);
-					prop.onUploaded(prop.path, name, false);
-				} else if (status === 'error') {
-					updatedList[fileIndex] = {
-						...updatedList[fileIndex],
-						uid: uid,
-						status: 'error',
-					};
-					// 错误后延迟移除
-					setTimeout(() => {
-						setDraggerFileList(prev => prev.filter(f => f.uid !== uid));
-						if (uid) {
-							draggerProgressCacheRef.current.delete(uid);
-							draggerDisplayProgressRef.current.delete(uid);
-						}
-					}, 3000);
-				} else if (status === 'uploading') {
-					updatedList[fileIndex] = {
-						...updatedList[fileIndex],
-						uid: uid, // 更新为 antd 的 uid
-						status: 'uploading',
-					};
-				}
-				return updatedList;
-			});
+	const props: UploadProps = {
+		name: 'file', directory: true, multiple: true, showUploadList: false,
+		beforeUpload(file: RcFile) {
+			// Read names/relative paths in admission batches; File.size is validated
+			// by uploadFile in a worker. Selecting a folder only queues references.
+			folderQueueRef.current?.enqueue({ uid: file.uid, file, name: '', path: prop.path });
+			// The picker must not create an antd-managed list or a request per queued file.
+			return Upload.LIST_IGNORE;
 		},
 	};
 	const [fileList, setFileList] = useState<UploadFile[]>([]);
@@ -284,42 +218,26 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 	const [textFileName, setTextFileName] = useState('');
 	const [textCreating, setTextCreating] = useState(false);
 
-	// Dragger 上传文件列表相关状态
-	interface DraggerUploadFile {
-		uid: string;
-		name: string;
-		status: 'uploading' | 'done' | 'error';
-		percent: number;
-		phase?: UploadPhase;
-	}
-	const [draggerFileList, setDraggerFileList] = useState<DraggerUploadFile[]>([]);
-	const draggerProgressCacheRef = useRef<Map<string, number>>(new Map());
-	const draggerDisplayProgressRef = useRef<Map<string, number>>(new Map());
+	const [draggerFileList, setDraggerFileList] = useState<UploadProgressFile[]>([]);
+	const draggerFilesRef = useRef(new Map<string, UploadProgressFile>());
+	const draggerExpiryRef = useRef(new Map<string, number>());
+	const draggerDirtyRef = useRef(false);
 
-	// 定时更新显示进度（每0.2秒）
+	// Coalesce a folder's start/progress/completion events into at most 5 renders/s.
+	// The same timer retires completed rows instead of scheduling one per file.
 	useEffect(() => {
 		const interval = setInterval(() => {
-			setDraggerFileList(prevList => {
-				let hasChanges = false;
-				const updatedList = prevList.map(file => {
-					// 只更新正在上传的文件
-					if (file.status === 'uploading') {
-						const cachedPercent = draggerProgressCacheRef.current.get(file.uid);
-						if (cachedPercent !== undefined) {
-							const currentDisplayPercent = draggerDisplayProgressRef.current.get(file.uid);
-							if (cachedPercent !== currentDisplayPercent) {
-								hasChanges = true;
-								draggerDisplayProgressRef.current.set(file.uid, cachedPercent);
-								return { ...file, percent: cachedPercent };
-							}
-						}
-					}
-					return file;
-				});
-				return hasChanges ? updatedList : prevList;
-			});
+			const now = Date.now();
+			for (const [uid, expiry] of draggerExpiryRef.current) {
+				if (expiry > now) continue;
+				draggerFilesRef.current.delete(uid);
+				draggerExpiryRef.current.delete(uid);
+				draggerDirtyRef.current = true;
+			}
+			if (!draggerDirtyRef.current) return;
+			draggerDirtyRef.current = false;
+			setDraggerFileList([...draggerFilesRef.current.values()]);
 		}, 200);
-
 		return () => clearInterval(interval);
 	}, []);
 
@@ -469,90 +387,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 										<Text type="secondary" style={{ display: 'block', marginBottom: 12, fontSize: 14 }}>
 											{t('upload.uploadingFiles')} ({draggerFileList.length})
 										</Text>
-										<div>
-											{draggerFileList.map((file, index) => (
-												<div
-													key={file.uid}
-													style={{
-														padding: '8px 0',
-														borderBottom: index < draggerFileList.length - 1 ? `1px solid ${Color.Line}` : 'none',
-													}}
-												>
-													<div style={{ width: '100%' }}>
-														<div style={{
-															display: 'flex',
-															alignItems: 'center',
-															justifyContent: 'space-between',
-															marginBottom: 6,
-														}}>
-															<div style={{
-																display: 'flex',
-																alignItems: 'center',
-																flex: 1,
-																minWidth: 0,
-															}}>
-																{file.status === 'done' && (
-																	<CheckCircleOutlined style={{
-																		color: '#52c41a',
-																		marginRight: 8,
-																		fontSize: 16,
-																	}} />
-																)}
-																{file.status === 'error' && (
-																	<CloseCircleOutlined style={{
-																		color: '#ff4d4f',
-																		marginRight: 8,
-																		fontSize: 16,
-																	}} />
-																)}
-																{file.status === 'uploading' && (
-																	<LoadingOutlined style={{
-																		color: Color.Primary,
-																		marginRight: 8,
-																		fontSize: 16,
-																	}} />
-																)}
-																<Text
-																	ellipsis
-																	style={{
-																		color: Color.TextPrimary,
-																		fontSize: 13,
-																		flex: 1,
-																		minWidth: 0,
-																	}}
-																	title={file.name}
-																>
-																	{file.name}{file.status === 'uploading' && file.phase ? ` · ${t(`upload.${file.phase}`)}` : ''}
-																</Text>
-															</div>
-															{file.status === 'uploading' && (
-																<Text
-																	type="secondary"
-																	style={{
-																		marginLeft: 12,
-																		fontSize: 12,
-																		minWidth: 45,
-																		textAlign: 'right',
-																	}}
-																>
-																	{Math.round(file.percent)}%
-																</Text>
-															)}
-														</div>
-														{file.status === 'uploading' && (
-															<Progress
-																percent={Math.round(file.percent)}
-																status="active"
-																strokeColor={Color.Primary}
-																showInfo={false}
-																size="small"
-																style={{ marginTop: 4 }}
-															/>
-														)}
-													</div>
-												</div>
-											))}
-										</div>
+										<UploadProgressList files={draggerFileList} />
 									</div>
 								)}
 							</Space>

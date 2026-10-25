@@ -4481,7 +4481,7 @@ export default function PersistentDrawerLeft() {
 		const key = path.join(dir, file);
 		updateCachedFileSearch(key, true);
 		const newFiles = files.filter(f => path.relative(f.key, key) !== "");
-		if (file.length !== newFiles.length) {
+		if (files.length !== newFiles.length) {
 			setFiles(newFiles);
 			if (tabIndex && tabIndex > newFiles.length) {
 				const newIndex = newFiles.length > 0 ? newFiles.length - 1 : null;
