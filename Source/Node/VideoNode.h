@@ -13,6 +13,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
+class AudioSource;
+
 class VideoDataImpl {
 public:
 	virtual ~VideoDataImpl() { }
@@ -23,6 +25,8 @@ public:
 	virtual ~VideoNode();
 	virtual bool init() override;
 	virtual void cleanup() override;
+	virtual void onEnter() override;
+	virtual void onExit() override;
 	virtual bool update(double deltaTime) override;
 
 	void pause();
@@ -39,17 +43,25 @@ private:
 	enum class UpdateFlag {
 		Wait,
 		Done,
+		Loop,
 		Stop
 	};
 	UpdateFlag updateTexture();
+	bool beginPlayback();
 
 	std::shared_ptr<VideoDataImpl> _videoData;
 
-	double _frameAccumulator;
+	Ref<AudioSource> _audioSource;
+	double _playbackTime = 0.0;
+	uint64_t _cycle = 0;
+	bool _started = false;
+	bool _videoEnded = false;
+	bool _decoderEnded = false;
+	bool _audioEnded = true;
 
 	std::string _filename;
 	bool _looped;
-	bool _paused;
+	bool _paused = false;
 
 	Own<Async> _thread;
 

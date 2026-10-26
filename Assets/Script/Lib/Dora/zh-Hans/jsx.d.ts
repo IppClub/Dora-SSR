@@ -822,7 +822,7 @@ class VideoNode extends Sprite {
 
 	/**
 	 * 包含 Theora 视频流的 Ogg（`.ogv`）文件路径。VideoNode 通过 Dora Content
-	 * 读取，仅渲染视频，支持 Theora 4:2:0/4:2:2/4:4:4 并使用软件解码；音频需单独播放。
+	 * 读取，支持 Theora 4:2:0/4:2:2/4:4:4 软件解码，并自动同步播放内嵌 Vorbis 音轨。
 	 */
 	file: string;
 

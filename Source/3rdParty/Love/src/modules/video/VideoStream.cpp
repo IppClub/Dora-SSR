@@ -18,6 +18,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  **/
 
+// Modified for Dora: synchronize DeltaSync reads and playback controls.
+
 #include "VideoStream.h"
 
 using love::thread::Lock;
@@ -105,6 +107,7 @@ VideoStream::DeltaSync::~DeltaSync()
 
 double VideoStream::DeltaSync::getPosition() const
 {
+	Lock l(mutex);
 	return position;
 }
 
@@ -117,11 +120,13 @@ void VideoStream::DeltaSync::update(double dt)
 
 void VideoStream::DeltaSync::play()
 {
+	Lock l(mutex);
 	playing = true;
 }
 
 void VideoStream::DeltaSync::pause()
 {
+	Lock l(mutex);
 	playing = false;
 }
 
@@ -133,6 +138,7 @@ void VideoStream::DeltaSync::seek(double time)
 
 bool VideoStream::DeltaSync::isPlaying() const
 {
+	Lock l(mutex);
 	return playing;
 }
 

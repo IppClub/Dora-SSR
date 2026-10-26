@@ -18,6 +18,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  **/
 
+// Modified for Dora: bounded decoding and indexed keyframe seeking.
+
 #ifndef LOVE_VIDEO_THEORA_VIDEOSTREAM_H
 #define LOVE_VIDEO_THEORA_VIDEOSTREAM_H
 
@@ -28,6 +30,7 @@
 #include "filesystem/File.h"
 #include "thread/threads.h"
 #include "OggDemuxer.h"
+#include <vector>
 
 // OGG/Theora
 #include <ogg/ogg.h>
@@ -45,19 +48,20 @@ class TheoraVideoStream : public love::video::VideoStream
 {
 public:
 	TheoraVideoStream(love::filesystem::File *file);
-	~TheoraVideoStream();
+	~TheoraVideoStream() override;
 
-	const void *getFrontBuffer() const;
-	size_t getSize() const;
-	void fillBackBuffer();
-	bool swapBuffers();
+	const void *getFrontBuffer() const override;
+	size_t getSize() const override;
+	void fillBackBuffer() override;
+	bool swapBuffers() override;
 
-	int getWidth() const;
-	int getHeight() const;
-	const std::string &getFilename() const;
-	void setSync(FrameSync *frameSync);
+	int getWidth() const override;
+	int getHeight() const override;
+	const std::string &getFilename() const override;
+	void setSync(FrameSync *frameSync) override;
+	void seek(double offset) override;
 
-	bool isPlaying() const;
+	bool isPlaying() const override;
 
 	void threadedFillBackBuffer(double dt);
 
@@ -70,6 +74,16 @@ private:
 
 	th_info videoInfo;
 	th_dec_ctx *decoder;
+	th_setup_info *setup = nullptr;
+	bool packetPending = false;
+	std::atomic<bool> seekRequested = false;
+	struct SeekPoint
+	{
+		OggDemuxer::PacketPosition position;
+		int64 frame;
+	};
+	std::vector<SeekPoint> seekPoints;
+	bool indexBuilt = false;
 
 	Frame *frontBuffer;
 	Frame *backBuffer;
@@ -83,8 +97,10 @@ private:
 
 	double lastFrame;
 	double nextFrame;
+	double previousPosition = 0.0;
 
 	void parseHeader();
+	void buildSeekIndex();
 	void seekDecoder(double target);
 }; // TheoraVideoStream
 

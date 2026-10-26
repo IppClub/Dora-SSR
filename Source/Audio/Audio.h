@@ -13,6 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <cstddef>
 #include <cstdint>
 #include <span>
+#include <vector>
 
 extern "C" int32_t dora_audio_encode_wav_to_ogg(
 	const char* inputPath,
@@ -37,6 +38,11 @@ class Filter;
 } // namespace SoLoud
 
 NS_DORA_BEGIN
+
+namespace AudioDetail {
+// Extract a Vorbis track from multiplexed OGV; empty means use the original input.
+std::vector<uint8_t> extractOggVorbis(std::span<const uint8_t> data);
+} // namespace AudioDetail
 
 class AudioFile : public Object {
 public:

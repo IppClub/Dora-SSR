@@ -16,10 +16,14 @@ VideoNode 接受包含 Theora 视频流的 Ogg 容器。文件统一通过 Dora 
 - **容器**：Ogg（`.ogv`）
 - **视频编码**：Theora
 - **色彩格式**：支持 Theora 4:2:0、4:2:2 和 4:4:4，并在渲染前转换为 RGBA
-- **音频**：VideoNode 只渲染视频；Love Video 可另外通过 Dora SoLoud 同步音频 `Source`
+- **音频**：通过 Dora SoLoud 自动播放内嵌 Vorbis 音轨，并以音频时钟同步画面；暂停和恢复同时作用于音画，循环时等待两条轨道结束后一起重启。无 Vorbis 音轨的文件静音播放
 - **分辨率/性能**：
   - 4K 和高码率流在纯软件解码时可能会占用大量 CPU
   - 为了在中等性能设备上流畅播放，推荐使用 720p/1080p 和适中的码率
+
+内嵌音轨由标签为 `VideoAudio` 的 `AudioSource` 子节点播放。可通过 `video:getChildByTag("VideoAudio")` 获取它并调整 `volume`；音画的暂停、恢复和循环由 VideoNode 统一管理。
+
+解码帧队列同时受两秒时长和约 32 MiB 的 RGBA 字节预算限制。若单帧已超过预算，仍保留一帧以便播放；此预算不包含解码器参考帧和正在上传的 GPU 数据。
 
 ### 1.2 使用 FFmpeg 转换视频
 
@@ -29,13 +33,13 @@ VideoNode 接受包含 Theora 视频流的 Ogg 容器。文件统一通过 Dora 
 
 ```bash
 # 基本转换
-ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -an output.ogv
+ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -c:a libvorbis -q:a 4 output.ogv
 
 # 指定分辨率和码率（推荐以获得更好的性能）
-ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -s 1280x720 -r 30 -an output.ogv
+ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -s 1280x720 -r 30 -c:a libvorbis -q:a 4 output.ogv
 
 # 1080p 视频
-ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -s 1920x1080 -r 30 -an output.ogv
+ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -s 1920x1080 -r 30 -c:a libvorbis -q:a 4 output.ogv
 ```
 
 **参数说明：**
@@ -44,16 +48,16 @@ ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -s 1920x1080 -r 30 -a
 - `-pix_fmt yuv420p`：设置像素格式为 YUV 4:2:0
 - `-s 1280x720`：设置分辨率（可选，根据需要调整）
 - `-r 30`：设置帧率为 30 fps（可选，根据需要调整）
-- `-an`：移除音频轨道
+- `-c:a libvorbis -q:a 4`：编码内嵌 Vorbis 音轨；如需静音视频，可改用 `-an`
 
 #### 转换其他格式
 
 ```bash
 # 从 AVI 转换
-ffmpeg -i input.avi -c:v libtheora -q:v 7 -pix_fmt yuv420p -an output.ogv
+ffmpeg -i input.avi -c:v libtheora -q:v 7 -pix_fmt yuv420p -c:a libvorbis -q:a 4 output.ogv
 
 # 从 MOV 转换
-ffmpeg -i input.mov -c:v libtheora -q:v 7 -pix_fmt yuv420p -an output.ogv
+ffmpeg -i input.mov -c:v libtheora -q:v 7 -pix_fmt yuv420p -c:a libvorbis -q:a 4 output.ogv
 ```
 
 :::tip 提示

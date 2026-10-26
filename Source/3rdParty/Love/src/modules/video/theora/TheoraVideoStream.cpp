@@ -18,8 +18,12 @@
  * 3. This notice may not be removed or altered from any source distribution.
  **/
 
+// Modified for Dora: bounded parsing, timestamped playback and keyframe-based seeking.
+
 // STL
 #include <iostream>
+#include <algorithm>
+#include <cmath>
 
 // LOVE
 #include "TheoraVideoStream.h"
@@ -53,12 +57,14 @@ TheoraVideoStream::TheoraVideoStream(love::filesystem::File *file)
 	{
 		parseHeader();
 	}
-	catch (love::Exception &ex)
+	catch (...)
 	{
+		if (decoder) th_decode_free(decoder);
+		if (setup) th_setup_free(setup);
 		delete backBuffer;
 		delete frontBuffer;
 		th_info_clear(&videoInfo);
-		throw ex;
+		throw;
 	}
 
 	frameSync.set(new DeltaSync(), Acquire::NORETAIN);
@@ -66,6 +72,7 @@ TheoraVideoStream::TheoraVideoStream(love::filesystem::File *file)
 
 TheoraVideoStream::~TheoraVideoStream()
 {
+	if (setup) th_setup_free(setup);
 	if (decoder)
 		th_decode_free(decoder);
 
@@ -132,161 +139,177 @@ inline void scaleFormat(th_pixel_fmt fmt, T &x, T &y)
 	}
 }
 
+
 void TheoraVideoStream::parseHeader()
 {
-	if (headerParsed)
-		return;
-
+	if (headerParsed) return;
 	th_comment comment;
-	th_setup_info *setupInfo = nullptr;
 	th_comment_init(&comment);
-	int ret;
-
-	demuxer.readPacket(packet);
-	ret = th_decode_headerin(&videoInfo, &comment, &setupInfo, &packet);
-
-	if (ret < 0)
+	try
+	{
+		int result;
+		do
+		{
+			demuxer.readPacket(packet, true);
+			result = th_decode_headerin(&videoInfo, &comment, &setup, &packet);
+			if (result < 0) throw love::Exception("Invalid Theora header");
+		} while (result > 0);
+		decoder = th_decode_alloc(&videoInfo, setup);
+		if (!decoder || videoInfo.pic_width == 0 || videoInfo.pic_height == 0
+			|| videoInfo.fps_numerator == 0 || videoInfo.fps_denominator == 0)
+			throw love::Exception("Invalid Theora video dimensions or frame rate");
+	}
+	catch (...)
 	{
 		th_comment_clear(&comment);
-		throw love::Exception("Could not find header");
+		throw;
 	}
-
-	while (ret > 0)
-	{
-		demuxer.readPacket(packet);
-		ret = th_decode_headerin(&videoInfo, &comment, &setupInfo, &packet);
-	}
-
 	th_comment_clear(&comment);
-
-	decoder = th_decode_alloc(&videoInfo, setupInfo);
-	th_setup_free(setupInfo);
-
 	Frame *buffers[2] = {backBuffer, frontBuffer};
-
 	yPlaneXOffset = cPlaneXOffset = videoInfo.pic_x;
 	yPlaneYOffset = cPlaneYOffset = videoInfo.pic_y;
-
 	scaleFormat(videoInfo.pixel_fmt, cPlaneXOffset, cPlaneYOffset);
-
-	for (int i = 0; i < 2; i++)
+	for (auto *buffer : buffers)
 	{
-		buffers[i]->cw = buffers[i]->yw = videoInfo.pic_width;
-		buffers[i]->ch = buffers[i]->yh = videoInfo.pic_height;
-
-		scaleFormat(videoInfo.pixel_fmt, buffers[i]->cw, buffers[i]->ch);
-
-		buffers[i]->yplane = new unsigned char[buffers[i]->yw * buffers[i]->yh];
-		buffers[i]->cbplane = new unsigned char[buffers[i]->cw * buffers[i]->ch];
-		buffers[i]->crplane = new unsigned char[buffers[i]->cw * buffers[i]->ch];
-
-		memset(buffers[i]->yplane, 16, buffers[i]->yw * buffers[i]->yh);
-		memset(buffers[i]->cbplane, 128, buffers[i]->cw * buffers[i]->ch);
-		memset(buffers[i]->crplane, 128, buffers[i]->cw * buffers[i]->ch);
+		buffer->cw = buffer->yw = videoInfo.pic_width;
+		buffer->ch = buffer->yh = videoInfo.pic_height;
+		scaleFormat(videoInfo.pixel_fmt, buffer->cw, buffer->ch);
+		buffer->yplane = new unsigned char[size_t(buffer->yw) * buffer->yh];
+		buffer->cbplane = new unsigned char[size_t(buffer->cw) * buffer->ch];
+		buffer->crplane = new unsigned char[size_t(buffer->cw) * buffer->ch];
+		memset(buffer->yplane, 16, size_t(buffer->yw) * buffer->yh);
+		memset(buffer->cbplane, 128, size_t(buffer->cw) * buffer->ch);
+		memset(buffer->crplane, 128, size_t(buffer->cw) * buffer->ch);
 	}
-
 	headerParsed = true;
-	th_decode_packetin(decoder, &packet, nullptr);
+	packetPending = true;
+}
+
+void TheoraVideoStream::buildSeekIndex()
+{
+	if (indexBuilt) return;
+	seekPoints.clear();
+	if (demuxer.findStream() != OggDemuxer::TYPE_THEORA)
+		throw love::Exception("Could not rewind Theora video");
+	int64 frame = -1;
+	size_t unanchored = 0;
+	while (!demuxer.readPacket(packet))
+	{
+		if (th_packet_isheader(&packet)) continue;
+		++frame;
+		if (th_packet_iskeyframe(&packet) == 1)
+			seekPoints.push_back({demuxer.getPacketPosition(), frame});
+		if (packet.granulepos >= 0)
+		{
+			const int64 actual = th_granule_frame(decoder, packet.granulepos);
+			const int64 correction = actual - frame;
+			// Granules timestamp the final packet of a page. Anchor keyframes
+			// preceding that packet too, including streams with an initial offset.
+			for (size_t i = unanchored; i < seekPoints.size(); ++i)
+				seekPoints[i].frame += correction;
+			unanchored = seekPoints.size();
+			frame = actual;
+		}
+	}
+	if (seekPoints.empty()) throw love::Exception("Theora video has no keyframe");
+	indexBuilt = true;
+}
+
+void TheoraVideoStream::seek(double offset)
+{
+	VideoStream::seek(offset);
+	seekRequested.store(true);
 }
 
 void TheoraVideoStream::seekDecoder(double target)
 {
-	bool success = demuxer.seek(packet, target, [this](int64 granulepos) {
-		return th_granule_time(decoder, granulepos);
-	});
-
-	if (!success)
-		return;
-
-	// Now update theora and our decoder on this new position of ours
-	lastFrame = nextFrame = -1;
-	th_decode_ctl(decoder, TH_DECCTL_SET_GRANPOS, &packet.granulepos, sizeof(packet.granulepos));
+	buildSeekIndex();
+	const double fps = double(videoInfo.fps_numerator) / videoInfo.fps_denominator;
+	auto point = std::upper_bound(seekPoints.begin(), seekPoints.end(), target,
+		[fps](double time, const SeekPoint &key) { return time < key.frame / fps; });
+	if (point != seekPoints.begin()) --point;
+	if (!demuxer.seek(packet, point->position))
+		throw love::Exception("Could not seek to Theora keyframe");
+	// A P-frame cannot be reconstructed from the frames of the old position.
+	// Recreate decoder reference images, then decode from the indexed keyframe.
+	th_decode_free(decoder);
+	decoder = th_decode_alloc(&videoInfo, setup);
+	if (!decoder) throw love::Exception("Could not reset Theora decoder");
+	const int shift = videoInfo.keyframe_granule_shift;
+	const int64 bias = 1 - th_granule_frame(decoder, int64(1) << shift);
+	ogg_int64_t granule = (point->frame + bias) << shift;
+	if (th_decode_ctl(decoder, TH_DECCTL_SET_GRANPOS, &granule, sizeof(granule)) != 0)
+		throw love::Exception("Invalid Theora keyframe timestamp");
+	packetPending = true;
+	lastFrame = nextFrame = point->frame / fps;
+	love::thread::Lock lock(bufferMutex);
+	frameReady = false;
 }
 
 void TheoraVideoStream::threadedFillBackBuffer(double dt)
 {
-	// Synchronize
-	frameSync->update(dt);
-	double position = frameSync->getPosition();
-
-	// Seeking backwards
-	if (position < lastFrame)
+	StrongRef<FrameSync> sync;
+	{
+		love::thread::Lock lock(bufferMutex);
+		sync = frameSync;
+	}
+	const bool requested = seekRequested.exchange(false);
+	sync->update(dt);
+	// Preserve the displayed image when paused or when an audio Source ends.
+	// An explicit paused seek still decodes and publishes its target frame.
+	if (!requested && !sync->isPlaying()) return;
+	const double position = sync->getPosition();
+	const double frameTime = double(videoInfo.fps_denominator) / videoInfo.fps_numerator;
+	const bool backwards = position < previousPosition;
+	previousPosition = position;
+	if (requested || backwards || (!demuxer.isEos() && position >= nextFrame + 6 * frameTime))
 		seekDecoder(position);
-
-	th_ycbcr_buffer bufferinfo;
 	bool hasFrame = false;
-
-	// Until we are at the end of the stream, or we are displaying the right frame
-	unsigned int framesBehind = 0;
-	bool failedSeek = false;
-	while (!demuxer.isEos() && position >= nextFrame)
+	while (!demuxer.isEos() && position + 1e-9 >= nextFrame)
 	{
-		// If we can't catch up, seek
-		if (framesBehind++ > 5 && !failedSeek)
+		if (!packetPending && demuxer.readPacket(packet)) break;
+		// A page granule can reveal a timestamp gap. Hold the current image
+		// until this packet's presentation time rather than displaying it early.
+		if (packet.granulepos >= 0)
 		{
-			seekDecoder(position);
-			framesBehind = 0;
-			failedSeek = true;
+			const double start = th_granule_time(decoder, packet.granulepos) - frameTime;
+			if (start > position + 1e-9)
+			{
+				packetPending = true;
+				nextFrame = start;
+				break;
+			}
 		}
-
-		th_decode_ycbcr_out(decoder, bufferinfo);
+		packetPending = false;
+		if (packet.granulepos >= 0)
+			th_decode_ctl(decoder, TH_DECCTL_SET_GRANPOS, &packet.granulepos, sizeof(packet.granulepos));
+		ogg_int64_t granule;
+		const int result = th_decode_packetin(decoder, &packet, &granule);
+		if (result < 0) throw love::Exception("Invalid Theora video packet");
+		// A duplicate image still occupies a complete frame interval.
+		nextFrame = th_granule_time(decoder, granule);
+		lastFrame = std::max(0.0, nextFrame - frameTime);
 		hasFrame = true;
-
-		ogg_int64_t decoderPosition;
-		do
-		{
-			if (demuxer.readPacket(packet))
-				return;
-
-			if (packet.granulepos > 0)
-				th_decode_ctl(decoder, TH_DECCTL_SET_GRANPOS, &packet.granulepos, sizeof(packet.granulepos));
-		} while (th_decode_packetin(decoder, &packet, &decoderPosition) != 0);
-
-		lastFrame = nextFrame;
-		nextFrame = th_granule_time(decoder, decoderPosition);
 	}
-
-	// Only swap once, even if we read many frames to get here
-	if (hasFrame)
+	if (!hasFrame) return;
+	th_ycbcr_buffer planes;
+	if (th_decode_ycbcr_out(decoder, planes) != 0)
+		throw love::Exception("Could not read Theora video frame");
+	// Copy only after all decoding: decoder-owned planes can rotate between packets.
+	love::thread::Lock lock(bufferMutex);
+	frameReady = false;
+	for (int y = 0; y < backBuffer->yh; ++y)
+		memcpy(backBuffer->yplane + backBuffer->yw * y,
+			planes[0].data + planes[0].stride * (y + yPlaneYOffset) + yPlaneXOffset, backBuffer->yw);
+	for (int y = 0; y < backBuffer->ch; ++y)
 	{
-		// Don't swap whilst we're writing to the backbuffer
-		{
-			love::thread::Lock l(bufferMutex);
-			frameReady = false;
-		}
-
-		for (int y = 0; y < backBuffer->yh; ++y)
-		{
-			memcpy(backBuffer->yplane+backBuffer->yw*y,
-					bufferinfo[0].data+
-						bufferinfo[0].stride*(y+yPlaneYOffset)+yPlaneXOffset,
-					backBuffer->yw);
-		}
-
-		for (int y = 0; y < backBuffer->ch; ++y)
-		{
-			memcpy(backBuffer->cbplane+backBuffer->cw*y,
-					bufferinfo[1].data+
-						bufferinfo[1].stride*(y+cPlaneYOffset)+cPlaneXOffset,
-					backBuffer->cw);
-		}
-
-		for (int y = 0; y < backBuffer->ch; ++y)
-		{
-			memcpy(backBuffer->crplane+backBuffer->cw*y,
-					bufferinfo[2].data+
-						bufferinfo[2].stride*(y+cPlaneYOffset)+cPlaneXOffset,
-					backBuffer->cw);
-		}
-
-		// Re-enable swapping
-		{
-			love::thread::Lock l(bufferMutex);
-			frameReady = true;
-		}
+		memcpy(backBuffer->cbplane + backBuffer->cw * y,
+			planes[1].data + planes[1].stride * (y + cPlaneYOffset) + cPlaneXOffset, backBuffer->cw);
+		memcpy(backBuffer->crplane + backBuffer->cw * y,
+			planes[2].data + planes[2].stride * (y + cPlaneYOffset) + cPlaneXOffset, backBuffer->cw);
 	}
+	frameReady = true;
 }
-
 void TheoraVideoStream::fillBackBuffer()
 {
 	// Done in worker thread
@@ -294,12 +317,6 @@ void TheoraVideoStream::fillBackBuffer()
 
 bool TheoraVideoStream::swapBuffers()
 {
-	if (demuxer.isEos())
-		return false;
-
-	if (!frameSync->isPlaying())
-		return false;
-
 	love::thread::Lock l(bufferMutex);
 	if (!frameReady)
 		return false;

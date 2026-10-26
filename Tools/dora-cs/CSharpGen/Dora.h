@@ -4398,7 +4398,7 @@ object class VideoNode : public Sprite
 	/// Creates a new VideoNode object for playing a video.
 	/// </summary>
 	/// <param name="filename">
-	/// The path to an Ogg (`.ogv`) file containing a Theora video stream. VideoNode reads it through Dora Content, renders video only, supports Theora 4:2:0/4:2:2/4:4:4, and decodes in software; play audio separately.
+	/// The path to an Ogg (`.ogv`) file containing a Theora video stream. VideoNode reads it through Dora Content, decodes Theora 4:2:0/4:2:2/4:4:4 in software, and automatically plays an embedded Vorbis track with synchronized pause, resume, and looping.
 	/// </param>
 	/// <param name="looped">
 	/// (Optional) Whether the video should loop. Default is false.

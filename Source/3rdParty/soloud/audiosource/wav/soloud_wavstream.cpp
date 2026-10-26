@@ -22,6 +22,9 @@ freely, subject to the following restrictions:
    distribution.
 */
 
+// Modified for Dora: detect Vorbis EOF even when its granule count includes
+// samples discarded by the decoder at the beginning of the stream.
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -306,11 +309,15 @@ namespace SoLoud
 					offset += b;
 					mOggFrameOffset += b;
 
-					if (mOffset >= mParent->mSampleCount || b == 0)
+					if (b == 0)
 					{
-						mOffset += offset;
+						// A Vorbis granule count can exceed the decoded PCM count.
+						// Mark EOF so hasEnded() cannot leave an empty voice alive.
+						mOffset = mParent->mSampleCount;
 						return offset;
 					}
+					if (mOffset >= mParent->mSampleCount)
+						return offset;
 				}
 			}
 			break;

@@ -29,11 +29,11 @@ impl VideoNode {
 			}
 		})
 	}
-	/// Pauses the video playback.
+	/// Pauses the video and embedded audio playback.
 	pub fn pause(&mut self) {
 		unsafe { videonode_pause(self.raw()); }
 	}
-	/// Resumes the video playback.
+	/// Resumes the video and embedded audio playback.
 	pub fn resume(&mut self) {
 		unsafe { videonode_resume(self.raw()); }
 	}
@@ -45,7 +45,7 @@ impl VideoNode {
 	///
 	/// # Arguments
 	///
-	/// * `filename` - The path to an Ogg (`.ogv`) file containing a Theora video stream. VideoNode reads it through Dora Content, renders video only, supports Theora 4:2:0/4:2:2/4:4:4, and decodes in software; play audio separately.
+	/// * `filename` - The path to an Ogg (`.ogv`) file containing a Theora video stream. VideoNode reads it through Dora Content, decodes Theora 4:2:0/4:2:2/4:4:4 in software, and automatically plays an embedded Vorbis track with synchronized pause, resume, and looping.
 	/// * `looped` - (optional) Whether the video should loop. Default is false.
 	///
 	/// # Returns

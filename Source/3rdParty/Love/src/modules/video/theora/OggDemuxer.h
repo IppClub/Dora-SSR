@@ -18,11 +18,14 @@
  * 3. This notice may not be removed or altered from any source distribution.
  **/
 
+// Modified for Dora: bounded decoding and indexed keyframe seeking.
+
 #ifndef LOVE_VIDEO_THEORA_OGGDEMUXER_H
 #define LOVE_VIDEO_THEORA_OGGDEMUXER_H
 
 // STL
-#include <functional>
+#include <atomic>
+#include <deque>
 
 // LOVE
 #include "filesystem/File.h"
@@ -48,13 +51,18 @@ public:
 
 	OggDemuxer(love::filesystem::File *file);
 	~OggDemuxer();
+	struct PacketPosition
+	{
+		uint64 offset = 0;
+		unsigned int skip = 0;
+	};
 
 	StreamType findStream();
 	bool readPacket(ogg_packet &packet, bool mustSucceed = false);
-	void resync();
 	bool isEos() const;
 	const std::string &getFilename() const;
-	bool seek(ogg_packet &packet, double target, std::function<double(int64)> getTime);
+	PacketPosition getPacketPosition() const;
+	bool seek(ogg_packet &packet, PacketPosition position);
 
 private:
 	StrongRef<love::filesystem::File> file;
@@ -65,9 +73,17 @@ private:
 
 	bool streamInited;
 	int videoSerial;
-	bool eos;
+	std::atomic<bool> eos;
+	uint64 pageOffset = 0;
+	bool pageValid = false;
+	PacketPosition packetPosition;
+	PacketPosition pendingPosition;
+	std::deque<PacketPosition> packetPositions;
+	bool packetPending = false;
+	long previousPage = -1;
 
-	bool readPage(bool erroreof = false);
+	bool readPage();
+	void trackPage();
 	StreamType determineType();
 }; // OggDemuxer
 

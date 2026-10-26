@@ -11,6 +11,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/VideoNode.h"
 
 #include "Basic/Content.h"
+#include "Audio/Audio.h"
+#include "Node/AudioSource.h"
 
 extern "C" {
 #include "3rdParty/ogg/ogg.h"
@@ -18,14 +20,31 @@ extern "C" {
 }
 
 #include <algorithm>
+#include <cmath>
 #include <condition_variable>
+#include <limits>
 
 NS_DORA_BEGIN
 
 namespace {
 
+constexpr size_t MaxBufferedBytes = 32 * 1024 * 1024;
+
+size_t bufferedFrameLimit(size_t width, size_t height, double frameRate) {
+	if (width == 0 || height == 0 || !std::isfinite(frameRate) || frameRate <= 0.0
+		|| width > std::numeric_limits<size_t>::max() / 4 / height) return 0;
+	const size_t frameBytes = width * height * 4;
+	const size_t timeLimit = static_cast<size_t>(std::clamp(std::ceil(frameRate * 2.0), 1.0, 240.0));
+	// Keep at least one frame for playback, including a frame larger than the
+	// queue budget. Decoder reference images and GPU uploads are separate.
+	return std::max<size_t>(1, std::min(timeLimit, MaxBufferedBytes / frameBytes));
+}
+
 struct VideoFrame {
 	std::vector<uint8_t> rgba;
+	double time = 0.0;
+	uint64_t cycle = 0;
+	bool final = false;
 };
 
 class VideoData : public VideoDataImpl {
@@ -49,6 +68,10 @@ public:
 		return true;
 	}
 
+	std::vector<uint8_t> extractAudio() const {
+		return AudioDetail::extractOggVorbis(fileData);
+	}
+
 	void decode() {
 		while (!stopped.load(std::memory_order_acquire)) {
 			{
@@ -61,27 +84,36 @@ public:
 
 			if (decodeNextFrame()) continue;
 
-			if (looped && !stopped.load(std::memory_order_acquire)) {
-				if (openStream()) continue;
+			const double duration = streamEndTime;
+			const bool repeat = looped && !stopped.load(std::memory_order_acquire) && openStream();
+			if (looped && !repeat && !stopped.load(std::memory_order_acquire))
 				Error("VideoNode: failed to rewind Ogg/Theora video");
-			}
 
 			{
 				std::scoped_lock lock(framesMutex);
-				frames.emplace_back();
+				frames.push_back({{}, duration, decodeCycle, !repeat});
 			}
 			framesChanged.notify_all();
-			break;
+			if (!repeat) break;
+			++decodeCycle;
 		}
 	}
 
-	std::optional<VideoFrame> getFrame() {
+	bool hasFrame() {
+		std::scoped_lock lock(framesMutex);
+		return !frames.empty();
+	}
+
+	std::optional<VideoFrame> getFrame(double time, uint64_t cycle) {
 		std::optional<VideoFrame> result;
 		{
 			std::scoped_lock lock(framesMutex);
-			if (!frames.empty()) {
+			while (!frames.empty() && frames.front().cycle == cycle && frames.front().time <= time) {
+				// Deliver the last image before its end marker, even when catching up.
+				if (result && frames.front().rgba.empty()) break;
 				result = std::move(frames.front());
 				frames.pop_front();
+				if (result->rgba.empty()) break;
 			}
 		}
 		if (result) framesChanged.notify_all();
@@ -155,6 +187,7 @@ private:
 		readPosition = 0;
 		pageValid = false;
 		pendingPacket = false;
+		streamEndTime = 0.0;
 
 		if (ogg_sync_init(&sync) != 0) return false;
 		syncInitialized = true;
@@ -188,7 +221,8 @@ private:
 			videoWidth = decodedWidth;
 			videoHeight = decodedHeight;
 			frameRate = decodedFrameRate;
-			maxBufferedFrames = std::clamp<size_t>(static_cast<size_t>(std::ceil(frameRate * 2.0)), 2, 240);
+			maxBufferedFrames = bufferedFrameLimit(videoWidth, videoHeight, frameRate);
+			if (maxBufferedFrames == 0) return false;
 		} else if (videoWidth != decodedWidth || videoHeight != decodedHeight
 			|| frameRate != decodedFrameRate) {
 			return false;
@@ -203,14 +237,20 @@ private:
 			pendingPacket = false;
 
 			ogg_int64_t granulePosition = -1;
+			if (packet.granulepos >= 0)
+				th_decode_ctl(decoder, TH_DECCTL_SET_GRANPOS, &packet.granulepos, sizeof(packet.granulepos));
 			const int result = th_decode_packetin(decoder, &packet, &granulePosition);
 			if (result < 0) continue;
-			if (result > 0) continue;
+			// TH_DUPFRAME keeps the previous image for another frame interval.
+			// Queue it too, otherwise static sections shorten the video timeline.
 
 			th_ycbcr_buffer planes{};
 			if (th_decode_ycbcr_out(decoder, planes) != 0) continue;
 
 			VideoFrame frame;
+			streamEndTime = th_granule_time(decoder, granulePosition);
+			frame.time = std::max(0.0, streamEndTime - 1.0 / frameRate);
+			frame.cycle = decodeCycle;
 			convertFrame(planes, frame.rgba);
 			{
 				std::scoped_lock lock(framesMutex);
@@ -300,6 +340,8 @@ private:
 	std::condition_variable framesChanged;
 	size_t maxBufferedFrames = 2;
 	std::atomic<bool> stopped = false;
+	double streamEndTime = 0.0;
+	uint64_t decodeCycle = 0;
 };
 
 void releaseFrame(void*, void* userData) {
@@ -310,9 +352,7 @@ void releaseFrame(void*, void* userData) {
 
 VideoNode::VideoNode(String filename, bool looped)
 	: _filename(filename.toString())
-	, _looped(looped)
-	, _frameAccumulator(0.0)
-	, _paused(false) { }
+	, _looped(looped) { }
 
 VideoNode::~VideoNode() {
 	cleanupResources();
@@ -325,6 +365,21 @@ bool VideoNode::init() {
 	videoData->looped = _looped;
 	if (!videoData->init(_filename)) return false;
 	_videoData = videoData;
+	auto audio = videoData->extractAudio();
+	if (!audio.empty()) {
+		auto bytes = NewArray<uint8_t>(audio.size());
+		std::memcpy(bytes.get(), audio.data(), audio.size());
+		if (auto file = WavStream::create(std::move(bytes), audio.size())) {
+			_audioSource = AudioSource::create(file, false);
+			if (_audioSource) {
+				WRef<VideoNode> self(this);
+				_audioSource->slot("AudioEnd"sv, [self](Event*) {
+					if (self) self->_audioEnded = true;
+				});
+				addChild(_audioSource, 0, "VideoAudio"sv);
+			}
+		}
+	}
 
 	setSize({s_cast<float>(videoData->videoWidth), s_cast<float>(videoData->videoHeight)});
 
@@ -340,6 +395,11 @@ void VideoNode::cleanup() {
 }
 
 void VideoNode::cleanupResources() {
+	if (_audioSource) {
+		_audioSource->stop();
+		_audioSource->removeFromParent(true);
+		_audioSource = nullptr;
+	}
 	if (_videoData) s_cast<VideoData*>(_videoData.get())->stop();
 	if (_thread) {
 		_thread->stop();
@@ -350,10 +410,22 @@ void VideoNode::cleanupResources() {
 
 void VideoNode::pause() {
 	_paused = true;
+	if (_audioSource) _audioSource->setPaused(true);
 }
 
 void VideoNode::resume() {
 	_paused = false;
+	if (_audioSource && isRunning()) _audioSource->setPaused(false);
+}
+
+void VideoNode::onEnter() {
+	Sprite::onEnter();
+	if (_audioSource && !_paused) _audioSource->setPaused(false);
+}
+
+void VideoNode::onExit() {
+	if (_audioSource) _audioSource->setPaused(true);
+	Sprite::onExit();
 }
 
 bool VideoNode::isPaused() const {
@@ -364,9 +436,9 @@ VideoNode::UpdateFlag VideoNode::updateTexture() {
 	auto videoData = s_cast<VideoData*>(_videoData.get());
 	if (!videoData) return UpdateFlag::Stop;
 
-	auto frame = videoData->getFrame();
+	auto frame = videoData->getFrame(_playbackTime, _cycle);
 	if (!frame) return UpdateFlag::Wait;
-	if (frame->rgba.empty()) return UpdateFlag::Stop;
+	if (frame->rgba.empty()) return frame->final ? UpdateFlag::Stop : UpdateFlag::Loop;
 
 	const uint32_t videoWidth = videoData->videoWidth;
 	const uint32_t videoHeight = videoData->videoHeight;
@@ -397,15 +469,46 @@ VideoNode::UpdateFlag VideoNode::updateTexture() {
 	return UpdateFlag::Done;
 }
 
-bool VideoNode::update(double deltaTime) {
+bool VideoNode::beginPlayback() {
 	auto videoData = s_cast<VideoData*>(_videoData.get());
-	if (!videoData) return true;
-	if (!_paused && videoData->frameRate > 0.0) {
-		_frameAccumulator += deltaTime;
-		const double frameTime = 1.0 / videoData->frameRate;
-		if (_frameAccumulator >= frameTime) {
-			_frameAccumulator = std::fmod(_frameAccumulator, frameTime);
-			if (updateTexture() == UpdateFlag::Stop) return true;
+	if (!videoData || !videoData->hasFrame()) return false;
+	_playbackTime = 0.0;
+	_started = true;
+	_audioEnded = false;
+	if (_audioSource && !_audioSource->play()) {
+		Warn("VideoNode: failed to start Vorbis audio, continuing video without audio");
+		_audioSource->removeFromParent(true);
+		_audioSource = nullptr;
+	}
+	return true;
+}
+
+bool VideoNode::update(double deltaTime) {
+	if (!_videoData) return true;
+	if (!_paused) {
+		if (!_started) {
+			if (!beginPlayback()) return Sprite::update(deltaTime);
+		} else if (_audioSource && _audioSource->isPlaying()) {
+			_playbackTime = _audioSource->getCurrentTime();
+		} else {
+			// Keep the remaining video tail if the audio track is shorter.
+			_playbackTime += deltaTime;
+		}
+		if (!_videoEnded) {
+			const auto result = updateTexture();
+			if (result == UpdateFlag::Stop || result == UpdateFlag::Loop) {
+				_videoEnded = true;
+				_decoderEnded = result == UpdateFlag::Stop;
+			}
+		}
+		// Let AudioSource deliver its end notification before replacing its voice.
+		if (_videoEnded && (!_audioSource || _audioEnded)) {
+			if (!_looped || _decoderEnded) return true;
+			// Restart both tracks together after the longer one finishes.
+			++_cycle;
+			_started = false;
+			_videoEnded = false;
+			if (beginPlayback()) updateTexture();
 		}
 	}
 	return Sprite::update(deltaTime);

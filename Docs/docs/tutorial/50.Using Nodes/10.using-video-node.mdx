@@ -16,10 +16,14 @@ VideoNode accepts an Ogg container with a Theora video stream. Files are read th
 - **Container**: Ogg (`.ogv`)
 - **Video codec**: Theora
 - **Color format**: Theora 4:2:0, 4:2:2, and 4:4:4 streams are accepted and converted to RGBA for rendering
-- **Audio**: VideoNode renders video only. Love Video may separately synchronize an audio `Source` through Dora SoLoud.
+- **Audio**: Embedded Vorbis audio is played automatically through Dora SoLoud. Video follows the audio clock; pause and resume affect both tracks, and loops restart them together after both have finished. Files without Vorbis play silently.
 - **Resolution/performance**:
   - 4K and high-bitrate streams may be CPU intensive for software decoding
   - For smooth playback on mid-range devices, 720p/1080p and moderate bitrates are recommended
+
+An embedded track creates an `AudioSource` child tagged `VideoAudio`. Use `video:getChildByTag("VideoAudio")` to adjust its `volume` when present. VideoNode manages pause, resume, and looping for both tracks.
+
+The decoded-frame queue is limited by both two seconds of video and a 32 MiB RGBA budget. A single frame larger than the budget is still allowed for playback. Decoder reference frames and in-flight GPU uploads are additional memory.
 
 ### 1.2 Converting Videos Using FFmpeg
 
@@ -29,13 +33,13 @@ Use an FFmpeg build with the `libtheora` encoder to create an Ogg/Theora file:
 
 ```bash
 # Basic conversion
-ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -an output.ogv
+ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -c:a libvorbis -q:a 4 output.ogv
 
 # With specific resolution and bitrate (recommended for better performance)
-ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -s 1280x720 -r 30 -an output.ogv
+ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -s 1280x720 -r 30 -c:a libvorbis -q:a 4 output.ogv
 
 # For 1080p video
-ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -s 1920x1080 -r 30 -an output.ogv
+ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -s 1920x1080 -r 30 -c:a libvorbis -q:a 4 output.ogv
 ```
 
 **Parameter explanations:**
@@ -44,16 +48,16 @@ ffmpeg -i input.mp4 -c:v libtheora -q:v 7 -pix_fmt yuv420p -s 1920x1080 -r 30 -a
 - `-pix_fmt yuv420p`: Set pixel format to YUV 4:2:0
 - `-s 1280x720`: Set resolution (optional, adjust as needed)
 - `-r 30`: Set frame rate to 30 fps (optional, adjust as needed)
-- `-an`: Remove audio track
+- `-c:a libvorbis -q:a 4`: Encode the embedded Vorbis audio track; use `-an` instead for silent video
 
 #### Converting Other Formats
 
 ```bash
 # Convert from AVI
-ffmpeg -i input.avi -c:v libtheora -q:v 7 -pix_fmt yuv420p -an output.ogv
+ffmpeg -i input.avi -c:v libtheora -q:v 7 -pix_fmt yuv420p -c:a libvorbis -q:a 4 output.ogv
 
 # Convert from MOV
-ffmpeg -i input.mov -c:v libtheora -q:v 7 -pix_fmt yuv420p -an output.ogv
+ffmpeg -i input.mov -c:v libtheora -q:v 7 -pix_fmt yuv420p -c:a libvorbis -q:a 4 output.ogv
 ```
 
 :::tip Tip

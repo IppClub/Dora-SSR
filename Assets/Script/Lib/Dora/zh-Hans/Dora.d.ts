@@ -8416,7 +8416,7 @@ export {audioSourceClass as AudioSource};
 class VideoNode extends Sprite {
 	private constructor();
 
-	/** 暂停视频播放。 */
+	/** 同时暂停视频和内嵌音轨。 */
 	pause(): void;
 
 	/** 继续视频播放。 */
@@ -8436,7 +8436,7 @@ export namespace VideoNode {
 interface VideoNodeClass {
 	/**
 	 * 创建一个新的 VideoNode 实例。
-	 * @param filename 视频文件路径，应为包含 Theora 视频流的 Ogg（`.ogv`）文件。VideoNode 通过 Dora Content 读取，仅渲染视频，支持 Theora 4:2:0/4:2:2/4:4:4 并使用软件解码；音频需单独播放。
+	 * @param filename 视频文件路径，应为包含 Theora 视频流的 Ogg（`.ogv`）文件。VideoNode 通过 Dora Content 读取，支持 Theora 4:2:0/4:2:2/4:4:4 软件解码，并自动播放内嵌 Vorbis 音轨；暂停、恢复和循环播放会同步控制音画。
 	 * @param looped [可选] 是否循环播放，默认为 false。
 	 * @returns 新创建的 VideoNode 实例。如果视频文件未加载成功，则返回 undefined。
 	 */

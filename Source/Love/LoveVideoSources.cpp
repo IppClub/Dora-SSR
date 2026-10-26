@@ -1,7 +1,8 @@
 /*
  * Backend-independent Love 11.5 video implementation used by Dora's Love
  * runtime. The Ogg demuxer, Theora stream state machine, seeking, frame
- * synchronization, and double buffering remain upstream Love code.
+ * synchronization, and double buffering derive from upstream Love code, with
+ * Dora fixes for bounded EOF handling, presentation timing and keyframe seeks.
  */
 
 #include "3rdParty/Love/src/common/Data.cpp"

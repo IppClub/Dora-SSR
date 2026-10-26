@@ -280,6 +280,77 @@ extern "C" EMSCRIPTEN_KEEPALIVE void dora_worklet_ended(uint32_t handle) {
 
 NS_DORA_BEGIN
 
+// SoLoud's stb_vorbis expects an audio-only Ogg stream. Select the Vorbis
+// pages from a multiplexed OGV without changing packets, granules or checksums.
+// An empty result leaves ordinary audio and unsupported input unchanged.
+std::vector<uint8_t> AudioDetail::extractOggVorbis(std::span<const uint8_t> data) {
+	if (data.size() < 4 || std::memcmp(data.data(), "OggS", 4) != 0) return {};
+
+	ogg_sync_state sync{};
+	if (ogg_sync_init(&sync) != 0) return {};
+	struct SyncGuard {
+		ogg_sync_state* state;
+		~SyncGuard() { ogg_sync_clear(state); }
+	} guard{&sync};
+
+	size_t position = 0;
+	ogg_page page{};
+	auto readPage = [&]() {
+		for (;;) {
+			const int result = ogg_sync_pageout(&sync, &page);
+			if (result == 1) return true;
+			if (result < 0) continue;
+			if (position == data.size()) return false;
+			const size_t count = std::min<size_t>(8192, data.size() - position);
+			char* buffer = ogg_sync_buffer(&sync, static_cast<long>(count));
+			if (!buffer) return false;
+			std::memcpy(buffer, data.data() + position, count);
+			position += count;
+			if (ogg_sync_wrote(&sync, static_cast<long>(count)) != 0) return false;
+		}
+	};
+
+	bool foundVorbis = false;
+	bool multiplexed = false;
+	int audioSerial = 0;
+	while (readPage()) {
+		if (!ogg_page_bos(&page)) break;
+		if (page.body_len >= 7 && page.body[0] == 1
+			&& std::memcmp(page.body + 1, "vorbis", 6) == 0) {
+			if (!foundVorbis) {
+				foundVorbis = true;
+				audioSerial = ogg_page_serialno(&page);
+			}
+		} else {
+			multiplexed = true;
+		}
+	}
+	// In particular, preserve chained audio-only Ogg files as supplied.
+	if (!foundVorbis || !multiplexed) return {};
+
+	ogg_sync_reset(&sync);
+	position = 0;
+	std::vector<uint8_t> audio;
+	while (readPage()) {
+		if (ogg_page_serialno(&page) != audioSerial) continue;
+		audio.insert(audio.end(), page.header, page.header + page.header_len);
+		audio.insert(audio.end(), page.body, page.body + page.body_len);
+		if (ogg_page_eos(&page)) return audio;
+	}
+	// Let the normal decoder report incomplete/invalid input rather than
+	// replacing it with a partial extracted track.
+	return {};
+}
+
+static void prepareOggAudio(OwnArray<uint8_t>& data, size_t& size) {
+	auto audio = AudioDetail::extractOggVorbis({data.get(), size});
+	if (audio.empty()) return;
+	auto bytes = NewArray<uint8_t>(audio.size());
+	std::memcpy(bytes.get(), audio.data(), audio.size());
+	data = std::move(bytes);
+	size = audio.size();
+}
+
 uint32_t AudioFile::_count = 0;
 uint64_t AudioFile::_storageSize = 0;
 
@@ -325,6 +396,7 @@ WavFile::WavFile(OwnArray<uint8_t>&& data, size_t size)
 	: _wav(nullptr)
 	, _data(std::move(data))
 	, _size(size) {
+	prepareOggAudio(_data, _size);
 	_count++;
 	_storageSize += _size;
 }
@@ -391,6 +463,7 @@ WavStream::WavStream(OwnArray<uint8_t>&& data, size_t size)
 	: _stream(nullptr)
 	, _data(std::move(data))
 	, _size(size) {
+	prepareOggAudio(_data, _size);
 	_count++;
 	_storageSize += _size;
 }

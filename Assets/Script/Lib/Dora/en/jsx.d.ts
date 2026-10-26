@@ -822,7 +822,7 @@ class VideoNode extends Sprite {
 	ref?: Ref<Dora.VideoNode.Type>;
 
 	/**
-	 * The path to an Ogg (`.ogv`) file containing a Theora video stream. VideoNode reads it through Dora Content, renders video only, supports Theora 4:2:0/4:2:2/4:4:4, and decodes in software; play audio separately.
+	 * The path to an Ogg (`.ogv`) file containing a Theora video stream. VideoNode reads it through Dora Content, decodes Theora 4:2:0/4:2:2/4:4:4 in software, and automatically plays an embedded Vorbis track with synchronized pause, resume, and looping.
 	 */
 	file: string;
 
