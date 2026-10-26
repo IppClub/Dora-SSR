@@ -216,13 +216,15 @@ EMSCRIPTEN_KEEPALIVE int audio_play(unsigned id, unsigned assetId, unsigned char
 			handle = config[Delay] < 0
 				? mixer.play3d(source, config[X], config[Y], config[Z], 0, 0, 0, config[Volume], false, busHandle)
 				: mixer.play3dClocked(config[Delay], source, config[X], config[Y], config[Z], 0, 0, 0, config[Volume], busHandle);
-			mixer.setInaudibleBehavior(handle, true, false);
 		} else if (config[Mode] == 1) handle = mixer.playBackground(source, config[Volume], false, busHandle);
 		else handle = config[Delay] > 0 ? mixer.playClocked(config[Delay], source, config[Volume], config[Pan], busHandle)
 			: mixer.play(source, config[Volume], config[Pan], false, busHandle);
 	} else handle = background ? mixer.playBackground(source, fade > 0 ? 0 : 1, false, busHandle)
 		: mixer.play(source, fade > 0 ? 0 : 1, 0, false, busHandle);
 	if (!handle) return 3;
+	// Controlled Sources also provide video clocks. Muting a 2D source must not
+	// virtualize it into a frozen clock or prevent its natural AudioEnd event.
+	if (config) mixer.setInaudibleBehavior(handle, true, false);
 	mixer.setLooping(handle, loop != 0);
 	if (background) mixer.setProtectVoice(handle, true);
 	if (fade > 0) mixer.fadeVolume(handle, 1, fade);

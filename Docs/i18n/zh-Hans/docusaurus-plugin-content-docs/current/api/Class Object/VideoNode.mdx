@@ -4,6 +4,8 @@
 
 &emsp;&emsp;用于创建 VideoNode 实例的类。
 
+Web 版的 dora-preset 默认支持 Ogg/Theora 视频及内嵌 Vorbis 音轨；core 配置需要启用 VIDEO。视频解码在主循环执行，不要求 pthreads 或 SharedArrayBuffer。音频播放需要满足浏览器的用户操作解锁规则。
+
 ## __call
 
 **类型：** 元方法。

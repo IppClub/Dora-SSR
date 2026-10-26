@@ -83,7 +83,7 @@ task("dora-web")
             experimental_main_worker = not studio and enabled("EXPERIMENTAL_MAIN_WORKER", "0")}) do
             table.insert(args, "--dora_web_" .. key .. "=" .. (value and "y" or "n"))
         end
-        for _, name in ipairs({"PHYSICS_2D", "ENTITY", "PLATFORMER", "BUILTIN_LIBS", "ML", "YUE", "LOVE", "MODEL_3D", "MUSIC"}) do
+        for _, name in ipairs({"PHYSICS_2D", "ENTITY", "PLATFORMER", "BUILTIN_LIBS", "ML", "YUE", "LOVE", "MODEL_3D", "MUSIC", "VIDEO"}) do
             table.insert(args, "--dora_web_feature_" .. name:lower() .. "=" .. env("FEATURE_" .. name, "AUTO"):upper())
         end
         for _, name in ipairs({"BUILTIN_FONT", "LOVE_COMPLEX_PACKAGE", "SDL2_PORT_SOURCE_DIR"}) do

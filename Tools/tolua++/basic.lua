@@ -60,7 +60,7 @@ _is_functions = _is_functions or {}
 -- while native builds without the define retain the existing API.
 _compile_guards = {
 	LoveNode = "DORA_WEB_NO_LOVE",
-	VideoNode = "DORA_WEB_MINIMAL",
+	VideoNode = "DORA_WEB_NO_VIDEO",
 	HttpServer = "DORA_WEB_MINIMAL",
 	WasmRuntime = "DORA_WEB_MINIMAL",
 	Cache = "DORA_WEB_MINIMAL",

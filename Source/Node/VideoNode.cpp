@@ -88,16 +88,19 @@ public:
 	}
 
 	void decode() {
-		bool atEnd = false;
 		while (!stopped.load(std::memory_order_acquire)) {
 			bool seeking = false;
 			double target = 0.0;
 			{
 				std::unique_lock lock(framesMutex);
+#ifdef DORA_EMSCRIPTEN
+				if (!seekPending && (atEnd || frames.size() >= maxBufferedFrames)) return;
+#else
 				framesChanged.wait(lock, [&]() {
 					return stopped.load(std::memory_order_acquire) || seekPending
 						|| (!atEnd && frames.size() < maxBufferedFrames);
 				});
+#endif
 				if (stopped.load(std::memory_order_acquire)) break;
 				if (seekPending) {
 					seeking = true;
@@ -112,7 +115,11 @@ public:
 				Error("VideoNode: failed to seek Ogg/Theora video");
 				atEnd = true;
 			} else if (decodeNextFrame()) {
+#ifdef DORA_EMSCRIPTEN
+				return;
+#else
 				continue;
+#endif
 			}
 			if (requestSerial.load() != activeSerial) continue;
 
@@ -126,8 +133,26 @@ public:
 			framesChanged.notify_all();
 			atEnd = !repeat;
 			if (repeat) ++decodeCycle;
+#ifdef DORA_EMSCRIPTEN
+			return;
+#endif
 		}
 	}
+
+#ifdef DORA_EMSCRIPTEN
+	// Browser decoding stays on the logic loop, including pthread builds: the
+	// AudioWorklet clock lives on that host. Keep only one frame of lookahead.
+	void pump(double time, uint64_t cycle) {
+		if (!seekPending && !atEnd && decodeCycle == cycle
+			&& streamEndTime + 6.0 / frameRate < std::min(time, duration))
+			seek(time, cycle);
+		for (int i = 0; i < 4; ++i) {
+			if (!seekPending && (atEnd || (!frames.empty()
+				&& (frames.back().cycle != cycle || frames.back().time > time + 1e-9)))) break;
+			decode();
+		}
+	}
+#endif
 
 	bool hasFrame() {
 		std::scoped_lock lock(framesMutex);
@@ -332,6 +357,9 @@ private:
 			videoHeight = decodedHeight;
 			frameRate = decodedFrameRate;
 			maxBufferedFrames = bufferedFrameLimit(videoWidth, videoHeight, frameRate);
+#ifdef DORA_EMSCRIPTEN
+			maxBufferedFrames = std::min<size_t>(maxBufferedFrames, 2);
+#endif
 			if (maxBufferedFrames == 0) return false;
 		} else if (videoWidth != decodedWidth || videoHeight != decodedHeight
 			|| frameRate != decodedFrameRate) {
@@ -465,6 +493,7 @@ private:
 	std::atomic<uint64_t> requestSerial = 0;
 	uint64_t activeSerial = 0;
 	bool seekPending = false;
+	bool atEnd = false;
 	double seekTarget = 0.0;
 	uint64_t seekCycle = 0;
 	double discardBefore = 0.0;
@@ -512,8 +541,10 @@ bool VideoNode::init() {
 
 	setSize({s_cast<float>(videoData->videoWidth), s_cast<float>(videoData->videoHeight)});
 
+#ifndef DORA_EMSCRIPTEN
 	_thread = New<Async>();
 	_thread->run([videoData]() { videoData->decode(); });
+#endif
 	scheduleUpdate();
 	return true;
 }
@@ -657,6 +688,9 @@ bool VideoNode::beginPlayback() {
 
 bool VideoNode::update(double deltaTime) {
 	if (!_videoData) return Sprite::update(deltaTime);
+#ifdef DORA_EMSCRIPTEN
+	s_cast<VideoData*>(_videoData.get())->pump(_playbackTime, _cycle);
+#endif
 	if (_seeking) {
 		const auto result = updateTexture();
 		if (result == UpdateFlag::Wait) return Sprite::update(deltaTime);
@@ -675,6 +709,9 @@ bool VideoNode::update(double deltaTime) {
 			_playbackTime = std::min(_duration, _playbackTime + deltaTime);
 		}
 		if (!_videoEnded) {
+#ifdef DORA_EMSCRIPTEN
+			s_cast<VideoData*>(_videoData.get())->pump(_playbackTime, _cycle);
+#endif
 			const auto result = updateTexture();
 			if (result == UpdateFlag::Stop || result == UpdateFlag::Loop) {
 				_videoEnded = true;

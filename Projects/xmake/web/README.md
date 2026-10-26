@@ -18,10 +18,27 @@ have been removed. Normal builds do not download the test repository.
 
 The default is Release, `dora-preset`, single-threaded. Set `--profile=core` or
 `custom`, and `DORA_WEB_FEATURE_<NAME>=AUTO|ON|OFF` for PHYSICS_2D, ENTITY,
-PLATFORMER, BUILTIN_LIBS, ML, YUE, LOVE, MODEL_3D and MUSIC. PLATFORMER requires
+PLATFORMER, BUILTIN_LIBS, ML, YUE, LOVE, MODEL_3D, MUSIC and VIDEO. PLATFORMER requires
 ENTITY and PHYSICS_2D. LOVE/MODEL_3D/MUSIC default OFF even in `dora-preset`.
 Rust is compiled only when MODEL_3D/MUSIC is enabled; pthread Rust rebuilds
 its standard library with atomics in a separate Cargo target directory.
+
+VIDEO enables `VideoNode` with Ogg/Theora video and embedded Vorbis audio. It is
+ON in `dora-preset` and OFF in `core` unless explicitly selected. Love's
+`love.graphics.newVideo` / `love.video.newVideoStream` are included when LOVE is
+ON, independently of VIDEO. Both video paths decode on the browser logic loop,
+including pthread builds, and use the AudioWorklet playback clock for embedded
+audio. Single-thread packages need neither SharedArrayBuffer nor COOP/COEP for
+video. Audio still follows browser user-gesture requirements; muted Sources
+continue advancing. VideoNode supports pause/resume, seek/rewind, looping and
+play after EOF; Love supports its corresponding Video/Source controls (set the
+Source looping flag to repeat, and rewind before replaying after EOF).
+
+Decoding and CPU colour conversion share the logic loop budget. Resolution,
+frame rate and simultaneous game work affect smoothness; browser video support
+does not imply hardware Theora decoding. Disable VIDEO to omit VideoNode, and
+disable LOVE as well to omit Love's video implementation. Neither switch embeds
+video media assets in the engine package.
 
 Build/config/object/generated files are isolated under
 `build/web-xmake/<profile>/<single|pthread>/<mode>`; override using

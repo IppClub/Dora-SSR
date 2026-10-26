@@ -140,7 +140,10 @@
 			const voice = voices.get(id);
 			if (!voice || voice.config?.every((v, i) => v === config[i])) return;
 			voice.config = config;
-			voice.revision = send({type: 'config', id, config});
+			// Spatial/volume changes do not invalidate the cursor. Only transport
+			// controls gate snapshots: otherwise per-frame movement can continually
+			// outrun the Worklet status messages and freeze a video Source's clock.
+			send({type: 'config', id, config});
 		},
 		listener(config) {
 			if (listener?.every((v, i) => v === config[i])) return;

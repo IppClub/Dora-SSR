@@ -43,7 +43,7 @@ local function engine_flags(t, c)
     if c.studio_agent_host then t:add("defines", "DORA_WEB_STUDIO_AGENT_HOST") end
     if c.features.music then t:add("defines", "DORA_WEB_MUSIC") end
     if c.features.yue then t:add("defines", "DORA_WEB_YUE") end
-    for _, name in ipairs({"physics_2d", "ml", "entity", "platformer", "love"}) do
+    for _, name in ipairs({"physics_2d", "ml", "entity", "platformer", "love", "video"}) do
         if not c.features[name] then t:add("defines", "DORA_WEB_NO_" .. name:upper()) end
     end
     t:add("defines", c.features.model_3d and "DORA_WEB_MODEL_3D" or "DORA_WEB_NO_MODEL_3D")
@@ -114,7 +114,7 @@ target("dora-web-engine")
             ["Source/Wasm/WasmRuntime.cpp"] = true }
         for _, s in ipairs(sources) do
             local reject = excluded[s] or s:find("/Test/", 1, true) or s:find("/Lua/Xml/", 1, true)
-                or s:match("^Source/Love/[^/]+%.cpp$") or s:match("/Node/VideoNode%.cpp$") or s:match("/Node/TIC80Node%.cpp$")
+                or s:match("^Source/Love/[^/]+%.cpp$") or (not c.features.video and s:match("/Node/VideoNode%.cpp$")) or s:match("/Node/TIC80Node%.cpp$")
                 or s:match("/Http/HttpServer%.cpp$") or s:match("/Http/XrtNetwork%.c$") or s:match("/nfd/nfd_portal%.cpp$")
                 or s:find("/soloud/backend/sdl/", 1, true)
             for _, dir in ipairs({"tic80", "JoltPhysics", "wasm3", "yarnflow"}) do reject = reject or s:find("/3rdParty/" .. dir .. "/", 1, true) end

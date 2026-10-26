@@ -3,7 +3,7 @@ function main()
     local c = {profile = config.get("dora_web_profile") or "dora-preset", features = {}}
     c.mode = config.mode()
     assert(c.profile == "core" or c.profile == "dora-preset" or c.profile == "custom", "invalid Web profile")
-    for _, name in ipairs({"physics_2d", "entity", "platformer", "builtin_libs", "ml", "yue", "love", "model_3d", "music"}) do
+    for _, name in ipairs({"physics_2d", "entity", "platformer", "builtin_libs", "ml", "yue", "love", "model_3d", "music", "video"}) do
         local value = (config.get("dora_web_feature_" .. name) or "AUTO"):upper()
         assert(value == "AUTO" or value == "ON" or value == "OFF", "invalid feature: " .. name)
         c.features[name] = value == "ON" or (value == "AUTO" and c.profile == "dora-preset"

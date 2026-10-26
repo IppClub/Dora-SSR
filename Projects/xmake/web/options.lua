@@ -3,7 +3,7 @@ option("dora_web_profile")
     set_values("core", "dora-preset", "custom")
     set_showmenu(true)
 option_end()
-for _, feature in ipairs({"physics_2d", "entity", "platformer", "builtin_libs", "ml", "yue", "love", "model_3d", "music"}) do
+for _, feature in ipairs({"physics_2d", "entity", "platformer", "builtin_libs", "ml", "yue", "love", "model_3d", "music", "video"}) do
     option("dora_web_feature_" .. feature)
         set_default("AUTO")
         set_values("AUTO", "ON", "OFF")

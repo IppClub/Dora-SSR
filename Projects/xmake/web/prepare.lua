@@ -3,7 +3,7 @@ function main(target)
     import("lib.detect.find_tool")
     local c = import("Projects.xmake.web.config", {rootdir = os.projectdir(), anonymous = true})()
     local values = {c.profile, tostring(c.pthreads), tostring(c.studio_agent_host), c.complex or "", tostring(c.link_player), tostring(c.love_probe), c.testweb or ""}
-    for _, name in ipairs({"physics_2d", "entity", "platformer", "builtin_libs", "ml", "yue", "love", "model_3d", "music"}) do
+    for _, name in ipairs({"physics_2d", "entity", "platformer", "builtin_libs", "ml", "yue", "love", "model_3d", "music", "video"}) do
         table.insert(values, tostring(c.features[name]))
     end
     local envs = target:pkgenvs()

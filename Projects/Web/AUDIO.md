@@ -112,6 +112,17 @@ Diagnostics: `Module.doraAudio.state` reports backend, sample rate, rendered
 frames, last-reported live voices/buses, cache sizes and context state. DSP statistics
 are sampled once per second, so counts may lag a stop command.
 
+## Video synchronization
+
+Ogg/Theora video uses the same independent mixer for its embedded Vorbis track.
+VideoNode and Love video decoding run on the browser logic loop, where the
+reported AudioWorklet Source position is available. Controlled 2D Sources keep
+ticking while muted so video synchronization and natural EOF remain valid.
+Pause/seek commands are asynchronous; status arrives at 1024-frame intervals
+(about 21 ms at 48 kHz), in addition to device output latency.
+Transport revisions reject stale pause/seek snapshots. Per-frame spatial or
+volume configuration does not block valid cursors from an earlier snapshot.
+
 ## Next phase
 
 Extend the command/resource protocol to custom AudioFile/PCM queues and tracker

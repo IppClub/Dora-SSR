@@ -2910,11 +2910,16 @@ struct VideoStreamState
 {
 	~VideoStreamState()
 	{
+#ifndef DORA_EMSCRIPTEN
 		stopping.store(true);
 		if (worker.joinable()) worker.join();
+#endif
 	}
 	void start()
 	{
+#ifdef DORA_EMSCRIPTEN
+		previous = std::chrono::steady_clock::now();
+#else
 		worker = std::thread([this]() {
 			auto previous = std::chrono::steady_clock::now();
 			while (!stopping.load())
@@ -2927,35 +2932,51 @@ struct VideoStreamState
 				std::this_thread::sleep_for(std::chrono::milliseconds(2));
 			}
 		});
+#endif
+	}
+	void pump()
+	{
+#ifdef DORA_EMSCRIPTEN
+		// The browser's audio state belongs to the logic host, not a decoding
+		// pthread. Driving both sync modes here also supports single-thread WASM.
+		const auto now = std::chrono::steady_clock::now();
+		const double delta = std::chrono::duration<double>(now - previous).count();
+		previous = now;
+		stream->threadedFillBackBuffer(delta);
+#endif
 	}
 
 	LoveRuntime *runtime = nullptr;
 	::love::StrongRef<ContentVideoFile> file;
 	::love::StrongRef<::love::video::theora::TheoraVideoStream> stream;
+#ifdef DORA_EMSCRIPTEN
+	std::chrono::steady_clock::time_point previous;
+#else
 	std::thread worker;
 	std::atomic<bool> stopping = false;
+#endif
 };
 
 struct VideoStreamUserdata final : ::love::video::VideoStream
 {
 	~VideoStreamUserdata() override = default;
-	void fillBackBuffer() override { state->stream->fillBackBuffer(); }
+	void fillBackBuffer() override { state->pump(); state->stream->fillBackBuffer(); }
 	const void *getFrontBuffer() const override { return state->stream->getFrontBuffer(); }
 	size_t getSize() const override { return state->stream->getSize(); }
-	bool swapBuffers() override { return state->stream->swapBuffers(); }
+	bool swapBuffers() override { state->pump(); return state->stream->swapBuffers(); }
 	int getWidth() const override { return state->stream->getWidth(); }
 	int getHeight() const override { return state->stream->getHeight(); }
 	const std::string &getFilename() const override { return state->stream->getFilename(); }
-	void play() override { state->stream->play(); }
-	void pause() override { state->stream->pause(); }
+	void play() override { state->pump(); state->stream->play(); }
+	void pause() override { state->pump(); state->stream->pause(); }
 	void seek(double offset) override
 	{
 		if (!std::isfinite(offset) || offset < 0.0)
 			throw ::love::Exception("seek offset must be a finite non-negative number");
 		state->stream->seek(offset);
 	}
-	double tell() const override { return state->stream->tell(); }
-	bool isPlaying() const override { return state->stream->isPlaying(); }
+	double tell() const override { state->pump(); return state->stream->tell(); }
+	bool isPlaying() const override { state->pump(); return state->stream->isPlaying(); }
 	void setSync(FrameSync *sync) override { state->stream->setSync(sync); }
 	FrameSync *getSync() const override { return state->stream->getSync(); }
 	std::shared_ptr<VideoStreamState> state;
