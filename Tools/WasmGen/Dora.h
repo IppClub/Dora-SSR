@@ -4538,10 +4538,23 @@ object class AudioSource : public INode
 
 object class VideoNode : public ISprite
 {
-	/// Pauses the video playback.
+	/// Starts or resumes playback; restarts from zero after the end.
+	void play();
+	/// Seeks both tracks in seconds, clamped to the duration. Preserves pause; non-finite values are ignored.
+	void seek(double seconds);
+	/// Seeks to zero while preserving the paused state.
+	void rewind();
+	/// Current playback position in seconds, including while paused or ended.
+	readonly common double currentTime;
+	/// Total playback duration in seconds, the longer of the video and audio tracks.
+	readonly common double duration;
+	/// Whether playback is requested in the running scene and has not paused or ended. Includes buffering.
+	readonly boolean bool playing;
+
+	/// Pauses the video and embedded audio playback.
 	void pause();
 
-	/// Resumes the video playback.
+	/// Resumes both tracks; restarts from zero after the end.
 	void resume();
 
 	/// Whether the video is currently paused.

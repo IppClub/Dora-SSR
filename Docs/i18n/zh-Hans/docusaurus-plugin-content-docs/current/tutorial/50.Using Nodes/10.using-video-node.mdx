@@ -498,3 +498,27 @@ with VideoNode "assets/background_video.ogv", true
 请记住，VideoNode 在挂载到场景时会自动开始播放，只要它保留在场景树中就会持续播放。这使得它非常适合背景视频、过场动画或任何需要在游戏中连续播放视频的场景。
 
 有关 VideoNode 的更多信息，请参阅 [VideoNode API 文档](/docs/api/Class/VideoNode)。
+
+
+### 播放位置与重播
+
+VideoNode 加入运行中的场景后自动播放。`play()` 和 `resume()` 继续播放，
+已经结束时从头播放；`pause()` 同时暂停音画。暂停、结束或离开运行场景时
+`playing` 为 false；请求播放后的初始缓冲和跳转缓冲也计入播放状态。
+
+`seek(seconds)` 将有限数值限制在 `[0, duration]` 内；负值按零处理，
+忽略非有限数值。跳转保持 `paused`，包括暂停时也会异步更新目标画面。
+跳转到 `duration` 会停留在最后画面并令 `playing` 为 false，循环视频也一样。
+`rewind()` 等价于 `seek(0)`，保持暂停状态。
+`currentTime` 和 `duration` 均以秒为单位；总时长取音画两条轨道中的较长值。
+视频较短时保留最后画面，音频较短时剩余画面静音播放。
+
+```lua
+local video = VideoNode("movie.ogv")
+video:addTo(Director.entry)
+video:pause()
+video:seek(12.5) -- 保持暂停，预览目标画面
+print(video.currentTime, video.duration, video.playing)
+video:play()
+video:rewind()
+```

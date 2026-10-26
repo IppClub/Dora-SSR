@@ -18,6 +18,18 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t videonode_type();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void videonode_play(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void videonode_seek(int64_t self, double seconds);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void videonode_rewind(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern double videonode_get_current_time(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern double videonode_get_duration(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t videonode_is_playing(int64_t self);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void videonode_pause(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void videonode_resume(int64_t self);
@@ -30,9 +42,6 @@ namespace Dora
 
 namespace Dora
 {
-	/// <summary>
-	/// A class that represents a video node.
-	/// </summary>
 	public partial class VideoNode : Sprite
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -48,6 +57,36 @@ namespace Dora
 		{
 			return raw == 0 ? null : new VideoNode(raw);
 		}
+		/// <summary>Starts or resumes playback; restarts from zero after the end.</summary>
+		public void Play()
+		{
+			Native.videonode_play(Raw);
+		}
+		/// <summary>Seeks both tracks in seconds, clamped to the duration. Preserves pause; non-finite values are ignored.</summary>
+		public void Seek(double seconds)
+		{
+			Native.videonode_seek(Raw, seconds);
+		}
+		/// <summary>Seeks to zero while preserving the paused state.</summary>
+		public void Rewind()
+		{
+			Native.videonode_rewind(Raw);
+		}
+		/// <summary>Current playback position in seconds, including while paused or ended.</summary>
+		public double CurrentTime
+		{
+			get => Native.videonode_get_current_time(Raw);
+		}
+		/// <summary>Total playback duration in seconds, the longer of the video and audio tracks.</summary>
+		public double Duration
+		{
+			get => Native.videonode_get_duration(Raw);
+		}
+		/// <summary>Whether playback is requested in the running scene and has not paused or ended. Includes buffering.</summary>
+		public bool IsPlaying
+		{
+			get => Native.videonode_is_playing(Raw) != 0;
+		}
 		/// <summary>
 		/// Pauses the video and embedded audio playback.
 		/// </summary>
@@ -56,7 +95,7 @@ namespace Dora
 			Native.videonode_pause(Raw);
 		}
 		/// <summary>
-		/// Resumes the video and embedded audio playback.
+		/// Resumes both tracks; restarts from zero after the end.
 		/// </summary>
 		public void Resume()
 		{

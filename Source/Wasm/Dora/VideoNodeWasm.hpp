@@ -11,6 +11,24 @@ using namespace Dora;
 DORA_EXPORT int32_t videonode_type() {
 	return DoraType<VideoNode>();
 }
+DORA_EXPORT void videonode_play(int64_t self) {
+	r_cast<VideoNode*>(self)->play();
+}
+DORA_EXPORT void videonode_seek(int64_t self, double seconds) {
+	r_cast<VideoNode*>(self)->seek(seconds);
+}
+DORA_EXPORT void videonode_rewind(int64_t self) {
+	r_cast<VideoNode*>(self)->rewind();
+}
+DORA_EXPORT double videonode_get_current_time(int64_t self) {
+	return r_cast<VideoNode*>(self)->getCurrentTime();
+}
+DORA_EXPORT double videonode_get_duration(int64_t self) {
+	return r_cast<VideoNode*>(self)->getDuration();
+}
+DORA_EXPORT int32_t videonode_is_playing(int64_t self) {
+	return r_cast<VideoNode*>(self)->isPlaying() ? 1 : 0;
+}
 DORA_EXPORT void videonode_pause(int64_t self) {
 	r_cast<VideoNode*>(self)->pause();
 }
@@ -27,6 +45,12 @@ DORA_EXPORT int64_t videonode_new(int64_t filename, int32_t looped) {
 
 static void linkVideoNode(wasm3::module3& mod) {
 	mod.link_optional("*", "videonode_type", videonode_type);
+	mod.link_optional("*", "videonode_play", videonode_play);
+	mod.link_optional("*", "videonode_seek", videonode_seek);
+	mod.link_optional("*", "videonode_rewind", videonode_rewind);
+	mod.link_optional("*", "videonode_get_current_time", videonode_get_current_time);
+	mod.link_optional("*", "videonode_get_duration", videonode_get_duration);
+	mod.link_optional("*", "videonode_is_playing", videonode_is_playing);
 	mod.link_optional("*", "videonode_pause", videonode_pause);
 	mod.link_optional("*", "videonode_resume", videonode_resume);
 	mod.link_optional("*", "videonode_is_paused", videonode_is_paused);

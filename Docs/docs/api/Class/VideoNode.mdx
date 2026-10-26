@@ -27,7 +27,7 @@ pause: function(self: VideoNode)
 
 **Description:**
 
-&emsp;&emsp;Resumes the video and embedded audio playback.
+&emsp;&emsp;Resumes both tracks; restarts from zero after the end.
 
 **Signature:**
 ```tl
@@ -45,4 +45,52 @@ resume: function(self: VideoNode)
 **Signature:**
 ```tl
 readonly paused: boolean
+```
+
+## play
+
+Starts or resumes both tracks; restarts from zero after the end.
+
+```tl
+play: function(self: VideoNode)
+```
+
+## seek
+
+Seeks both tracks in seconds, clamped to [0, duration]. Preserves pause and updates the paused image asynchronously. Non-finite values are ignored.
+
+```tl
+seek: function(self: VideoNode, seconds: number)
+```
+
+## rewind
+
+Seeks to zero while preserving the paused state.
+
+```tl
+rewind: function(self: VideoNode)
+```
+
+## currentTime
+
+Current playback position in seconds.
+
+```tl
+readonly currentTime: number
+```
+
+## duration
+
+Total playback duration in seconds, the longer of the audio and video tracks.
+
+```tl
+readonly duration: number
+```
+
+## playing
+
+Whether playback is requested in the running scene and has not paused or ended. Includes buffering.
+
+```tl
+readonly playing: boolean
 ```

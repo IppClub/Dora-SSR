@@ -498,3 +498,29 @@ In this tutorial, you learned how to:
 Remember that VideoNode will automatically start playing when mounted to the scene and continue playing as long as it remains in the scene tree. This makes it perfect for background videos, cutscenes, or any scenario where you need continuous video playback in your game.
 
 For more information about VideoNode, refer to the [VideoNode API documentation](/docs/api/Class/VideoNode).
+
+
+### Playback position and replay
+
+VideoNode starts automatically when added to the running scene. `play()` and
+`resume()` continue playback, or restart from zero after the end. `pause()`
+freezes both tracks. `playing` is false while paused, ended, or outside the
+running scene; it includes initial/seek buffering when playback is requested.
+
+`seek(seconds)` clamps finite positions to `[0, duration]`; negative positions
+become zero and non-finite positions are ignored. It preserves `paused` and
+updates the target image asynchronously, including while paused. Seeking to
+`duration` holds the final image and sets `playing` to false, even for a looped
+video. `rewind()` is equivalent to `seek(0)` and preserves pause.
+`currentTime` and `duration` use seconds; duration is the longer of the two tracks.
+A shorter video holds its final image; a shorter audio track leaves a silent tail.
+
+```lua
+local video = VideoNode("movie.ogv")
+video:addTo(Director.entry)
+video:pause()
+video:seek(12.5) -- preview the target frame while remaining paused
+print(video.currentTime, video.duration, video.playing)
+video:play()
+video:rewind()
+```

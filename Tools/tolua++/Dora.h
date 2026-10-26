@@ -1463,6 +1463,12 @@ class AudioSource : public Node
 
 class VideoNode : public Sprite
 {
+	void play();
+	void seek(double seconds);
+	void rewind();
+	tolua_readonly tolua_property__common double currentTime;
+	tolua_readonly tolua_property__common double duration;
+	tolua_readonly tolua_property__bool bool playing;
 	void pause();
 	void resume();
 	tolua_readonly tolua_property__bool bool paused;

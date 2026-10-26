@@ -8426,11 +8426,29 @@ class VideoNode extends Sprite {
 	/** Pauses the video and embedded audio playback. */
 	pause(): void;
 
-	/** Resumes the video and embedded audio playback. */
+	/** Resumes both tracks; restarts from zero after the end. */
 	resume(): void;
 
 	/** Whether the video is currently paused. */
 	readonly paused: boolean;
+
+	/** Starts or resumes both tracks; restarts from zero after the end. */
+	play(): void;
+
+	/** Seeks both tracks in seconds, clamped to [0, duration]. Preserves pause and updates the paused image asynchronously. Non-finite values are ignored. */
+	seek(seconds: number): void;
+
+	/** Seeks to zero while preserving the paused state. */
+	rewind(): void;
+
+	/** Current playback position in seconds. */
+	readonly currentTime: number;
+
+	/** Total playback duration in seconds, the longer of the audio and video tracks. */
+	readonly duration: number;
+
+	/** Whether playback is requested in the running scene and has not paused or ended. Includes buffering. */
+	readonly playing: boolean;
 }
 
 export namespace VideoNode {

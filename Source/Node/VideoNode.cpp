@@ -65,6 +65,7 @@ public:
 			Error("VideoNode: invalid or unsupported Ogg/Theora video: {}", filename.toString());
 			return false;
 		}
+		if (!buildSeekIndex() || !openStream()) return false;
 		return true;
 	}
 
@@ -72,30 +73,59 @@ public:
 		return AudioDetail::extractOggVorbis(fileData);
 	}
 
+	// Requests and decoded frames share one lock. A serial invalidates in-flight
+	// conversion too, so a superseded seek can never publish an old image.
+	void seek(double target, uint64_t cycle) {
+		{
+			std::scoped_lock lock(framesMutex);
+			seekTarget = target;
+			seekCycle = cycle;
+			seekPending = true;
+			++requestSerial;
+			frames.clear();
+		}
+		framesChanged.notify_all();
+	}
+
 	void decode() {
+		bool atEnd = false;
 		while (!stopped.load(std::memory_order_acquire)) {
+			bool seeking = false;
+			double target = 0.0;
 			{
 				std::unique_lock lock(framesMutex);
-				framesChanged.wait(lock, [this]() {
-					return stopped.load(std::memory_order_acquire) || frames.size() < maxBufferedFrames;
+				framesChanged.wait(lock, [&]() {
+					return stopped.load(std::memory_order_acquire) || seekPending
+						|| (!atEnd && frames.size() < maxBufferedFrames);
 				});
 				if (stopped.load(std::memory_order_acquire)) break;
+				if (seekPending) {
+					seeking = true;
+					target = seekTarget;
+					decodeCycle = seekCycle;
+					activeSerial = requestSerial.load();
+					seekPending = false;
+					atEnd = false;
+				}
 			}
+			if (seeking && !seekDecoder(target)) {
+				Error("VideoNode: failed to seek Ogg/Theora video");
+				atEnd = true;
+			} else if (decodeNextFrame()) {
+				continue;
+			}
+			if (requestSerial.load() != activeSerial) continue;
 
-			if (decodeNextFrame()) continue;
-
-			const double duration = streamEndTime;
-			const bool repeat = looped && !stopped.load(std::memory_order_acquire) && openStream();
-			if (looped && !repeat && !stopped.load(std::memory_order_acquire))
-				Error("VideoNode: failed to rewind Ogg/Theora video");
-
+			const double endTime = streamEndTime;
+			const bool repeat = !atEnd && looped && !stopped.load() && openStream();
 			{
 				std::scoped_lock lock(framesMutex);
-				frames.push_back({{}, duration, decodeCycle, !repeat});
+				if (requestSerial.load() != activeSerial) continue;
+				frames.push_back({{}, endTime, decodeCycle, !repeat});
 			}
 			framesChanged.notify_all();
-			if (!repeat) break;
-			++decodeCycle;
+			atEnd = !repeat;
+			if (repeat) ++decodeCycle;
 		}
 	}
 
@@ -108,7 +138,7 @@ public:
 		std::optional<VideoFrame> result;
 		{
 			std::scoped_lock lock(framesMutex);
-			while (!frames.empty() && frames.front().cycle == cycle && frames.front().time <= time) {
+			while (!frames.empty() && frames.front().cycle == cycle && frames.front().time <= time + 1e-9) {
 				// Deliver the last image before its end marker, even when catching up.
 				if (result && frames.front().rgba.empty()) break;
 				result = std::move(frames.front());
@@ -128,9 +158,37 @@ public:
 	uint32_t videoWidth = 0;
 	uint32_t videoHeight = 0;
 	double frameRate = 0.0;
+	double duration = 0.0;
 	bool looped = false;
 
 private:
+	struct PacketPosition {
+		size_t offset = 0;
+		unsigned skip = 0;
+	};
+	struct SeekPoint {
+		PacketPosition position;
+		int64_t frame;
+	};
+
+	void trackPage() {
+		bool discard = ogg_page_continued(&page) && !positionPending;
+		unsigned starts = 0;
+		for (int i = 0; i < page.header[26]; ++i) {
+			if (!positionPending && !discard) {
+				pendingPosition = {pageOffset, starts++};
+				positionPending = true;
+			}
+			if (page.header[27 + i] < 255) {
+				if (discard) discard = false;
+				else {
+					packetPositions.push_back(pendingPosition);
+					positionPending = false;
+				}
+			}
+		}
+	}
+
 	bool readPage() {
 		while (ogg_sync_pageout(&sync, &page) != 1) {
 			if (readPosition >= fileData.size()) return false;
@@ -141,6 +199,7 @@ private:
 			readPosition += count;
 			if (ogg_sync_wrote(&sync, s_cast<long>(count)) != 0) return false;
 		}
+		pageOffset = readPosition - (sync.fill - sync.returned) - page.header_len - page.body_len;
 		return true;
 	}
 
@@ -162,6 +221,7 @@ private:
 				streamInitialized = true;
 				videoSerial = ogg_page_serialno(&page);
 				pageValid = true;
+				trackPage();
 				return true;
 			}
 			ogg_stream_clear(&candidate);
@@ -171,14 +231,61 @@ private:
 
 	bool readPacket(ogg_packet& packet) {
 		if (!streamInitialized) return false;
-		while (ogg_stream_packetout(&stream, &packet) != 1) {
+		for (;;) {
+			const int result = ogg_stream_packetout(&stream, &packet);
+			if (result == 1) {
+				if (packetPositions.empty()) return false;
+				packetPosition = packetPositions.front();
+				packetPositions.pop_front();
+				return true;
+			}
+			if (result < 0) return false;
 			if (pageValid && ogg_page_serialno(&page) == videoSerial && ogg_page_eos(&page)) return false;
 			do {
 				if (!readPage()) return false;
 				pageValid = true;
 			} while (ogg_page_serialno(&page) != videoSerial);
+			trackPage();
 			if (ogg_stream_pagein(&stream, &page) != 0) return false;
 		}
+	}
+
+	bool buildSeekIndex() {
+		int64_t frame = -1;
+		size_t unanchored = 0;
+		do {
+			if (th_packet_isheader(&packet)) continue;
+			++frame;
+			if (th_packet_iskeyframe(&packet) == 1) seekPoints.push_back({packetPosition, frame});
+			if (packet.granulepos >= 0) {
+				const int64_t actual = th_granule_frame(decoder, packet.granulepos);
+				for (size_t i = unanchored; i < seekPoints.size(); ++i) seekPoints[i].frame += actual - frame;
+				unanchored = seekPoints.size();
+				frame = actual;
+			}
+			duration = std::max(duration, (frame + 1) / frameRate);
+		} while (readPacket(packet));
+		return !seekPoints.empty();
+	}
+
+	bool seekDecoder(double target) {
+		if (!openStream()) return false;
+		auto point = std::upper_bound(seekPoints.begin(), seekPoints.end(), target,
+			[this](double time, const SeekPoint& key) { return time < key.frame / frameRate; });
+		if (point != seekPoints.begin()) --point;
+		ogg_sync_reset(&sync);
+		ogg_stream_reset(&stream);
+		readPosition = point->position.offset;
+		pageValid = false;
+		positionPending = false;
+		packetPositions.clear();
+		for (unsigned i = 0; i <= point->position.skip; ++i) if (!readPacket(packet)) return false;
+		const int shift = info.keyframe_granule_shift;
+		const int64_t bias = 1 - th_granule_frame(decoder, int64_t(1) << shift);
+		ogg_int64_t granule = (point->frame + bias) << shift;
+		if (th_decode_ctl(decoder, TH_DECCTL_SET_GRANPOS, &granule, sizeof(granule)) != 0) return false;
+		pendingPacket = true;
+		discardBefore = target;
 		return true;
 	}
 
@@ -188,6 +295,9 @@ private:
 		pageValid = false;
 		pendingPacket = false;
 		streamEndTime = 0.0;
+		discardBefore = 0.0;
+		positionPending = false;
+		packetPositions.clear();
 
 		if (ogg_sync_init(&sync) != 0) return false;
 		syncInitialized = true;
@@ -232,7 +342,7 @@ private:
 	}
 
 	bool decodeNextFrame() {
-		while (!stopped.load(std::memory_order_acquire)) {
+		while (!stopped.load(std::memory_order_acquire) && requestSerial.load() == activeSerial) {
 			if (!pendingPacket && !readPacket(packet)) return false;
 			pendingPacket = false;
 
@@ -244,6 +354,10 @@ private:
 			// TH_DUPFRAME keeps the previous image for another frame interval.
 			// Queue it too, otherwise static sections shorten the video timeline.
 
+			streamEndTime = th_granule_time(decoder, granulePosition);
+			// Decode reference images but publish only the requested frame. Keep
+			// the final image even when seeking into a longer audio-only tail.
+			if (streamEndTime <= discardBefore + 1e-9 && streamEndTime < duration - 1e-9) continue;
 			th_ycbcr_buffer planes{};
 			if (th_decode_ycbcr_out(decoder, planes) != 0) continue;
 
@@ -254,6 +368,7 @@ private:
 			convertFrame(planes, frame.rgba);
 			{
 				std::scoped_lock lock(framesMutex);
+				if (requestSerial.load() != activeSerial) return false;
 				frames.emplace_back(std::move(frame));
 			}
 			framesChanged.notify_all();
@@ -342,6 +457,17 @@ private:
 	std::atomic<bool> stopped = false;
 	double streamEndTime = 0.0;
 	uint64_t decodeCycle = 0;
+	size_t pageOffset = 0;
+	PacketPosition packetPosition, pendingPosition;
+	bool positionPending = false;
+	std::deque<PacketPosition> packetPositions;
+	std::vector<SeekPoint> seekPoints;
+	std::atomic<uint64_t> requestSerial = 0;
+	uint64_t activeSerial = 0;
+	bool seekPending = false;
+	double seekTarget = 0.0;
+	uint64_t seekCycle = 0;
+	double discardBefore = 0.0;
 };
 
 void releaseFrame(void*, void* userData) {
@@ -365,11 +491,14 @@ bool VideoNode::init() {
 	videoData->looped = _looped;
 	if (!videoData->init(_filename)) return false;
 	_videoData = videoData;
+	_duration = videoData->duration;
 	auto audio = videoData->extractAudio();
 	if (!audio.empty()) {
 		auto bytes = NewArray<uint8_t>(audio.size());
 		std::memcpy(bytes.get(), audio.data(), audio.size());
 		if (auto file = WavStream::create(std::move(bytes), audio.size())) {
+			_audioDuration = file->getDuration();
+			_duration = std::max(_duration, _audioDuration);
 			_audioSource = AudioSource::create(file, false);
 			if (_audioSource) {
 				WRef<VideoNode> self(this);
@@ -409,13 +538,51 @@ void VideoNode::cleanupResources() {
 }
 
 void VideoNode::pause() {
+	_playbackTime = getCurrentTime();
 	_paused = true;
 	if (_audioSource) _audioSource->setPaused(true);
 }
 
 void VideoNode::resume() {
+	play();
+}
+
+void VideoNode::play() {
+	if (!_videoData) return;
+	if (_ended) seek(0.0);
 	_paused = false;
-	if (_audioSource && isRunning()) _audioSource->setPaused(false);
+	if (_audioSource && isRunning() && _started) _audioSource->setPaused(false);
+}
+
+void VideoNode::seek(double seconds) {
+	if (!_videoData || !std::isfinite(seconds)) return;
+	_playbackTime = _seekTime = std::clamp(seconds, 0.0, _duration);
+	if (_audioSource) _audioSource->stop();
+	_started = false;
+	_videoEnded = false;
+	_decoderEnded = false;
+	_audioEnded = false;
+	_ended = _playbackTime >= _duration;
+	_seeking = true;
+	s_cast<VideoData*>(_videoData.get())->seek(_playbackTime, ++_cycle);
+}
+
+void VideoNode::rewind() {
+	seek(0.0);
+}
+
+double VideoNode::getCurrentTime() const noexcept {
+	if (_started && !_paused && !_ended && isRunning() && _audioSource && _audioSource->isPlaying())
+		return std::clamp(std::max(_seekTime, _audioSource->getCurrentTime()), 0.0, _duration);
+	return _playbackTime;
+}
+
+double VideoNode::getDuration() const noexcept {
+	return _duration;
+}
+
+bool VideoNode::isPlaying() const noexcept {
+	return _videoData && isRunning() && !_paused && !_ended;
 }
 
 void VideoNode::onEnter() {
@@ -424,6 +591,7 @@ void VideoNode::onEnter() {
 }
 
 void VideoNode::onExit() {
+	_playbackTime = getCurrentTime();
 	if (_audioSource) _audioSource->setPaused(true);
 	Sprite::onExit();
 }
@@ -471,28 +639,40 @@ VideoNode::UpdateFlag VideoNode::updateTexture() {
 
 bool VideoNode::beginPlayback() {
 	auto videoData = s_cast<VideoData*>(_videoData.get());
-	if (!videoData || !videoData->hasFrame()) return false;
-	_playbackTime = 0.0;
+	if (!videoData || _seeking || (!videoData->hasFrame() && !_videoEnded)) return false;
 	_started = true;
-	_audioEnded = false;
-	if (_audioSource && !_audioSource->play()) {
-		Warn("VideoNode: failed to start Vorbis audio, continuing video without audio");
-		_audioSource->removeFromParent(true);
-		_audioSource = nullptr;
+	_audioEnded = !_audioSource || _playbackTime >= _audioDuration;
+	if (_audioSource && !_audioEnded) {
+		if (_audioSource->play()) {
+			if (_playbackTime > 0.0) _audioSource->seek(_playbackTime);
+		} else {
+			Warn("VideoNode: failed to start Vorbis audio, continuing video without audio");
+			_audioSource->removeFromParent(true);
+			_audioSource = nullptr;
+			_audioEnded = true;
+		}
 	}
 	return true;
 }
 
 bool VideoNode::update(double deltaTime) {
-	if (!_videoData) return true;
-	if (!_paused) {
+	if (!_videoData) return Sprite::update(deltaTime);
+	if (_seeking) {
+		const auto result = updateTexture();
+		if (result == UpdateFlag::Wait) return Sprite::update(deltaTime);
+		_seeking = false;
+		if (result == UpdateFlag::Stop || result == UpdateFlag::Loop) {
+			_videoEnded = true;
+			_decoderEnded = result == UpdateFlag::Stop;
+		}
+	}
+	if (!_paused && !_ended) {
 		if (!_started) {
 			if (!beginPlayback()) return Sprite::update(deltaTime);
 		} else if (_audioSource && _audioSource->isPlaying()) {
-			_playbackTime = _audioSource->getCurrentTime();
+			_playbackTime = getCurrentTime();
 		} else {
-			// Keep the remaining video tail if the audio track is shorter.
-			_playbackTime += deltaTime;
+			_playbackTime = std::min(_duration, _playbackTime + deltaTime);
 		}
 		if (!_videoEnded) {
 			const auto result = updateTexture();
@@ -501,16 +681,20 @@ bool VideoNode::update(double deltaTime) {
 				_decoderEnded = result == UpdateFlag::Stop;
 			}
 		}
-		// Let AudioSource deliver its end notification before replacing its voice.
 		if (_videoEnded && (!_audioSource || _audioEnded)) {
-			if (!_looped || _decoderEnded) return true;
-			// Restart both tracks together after the longer one finishes.
-			++_cycle;
-			_started = false;
-			_videoEnded = false;
-			if (beginPlayback()) updateTexture();
+			if (!_looped || _decoderEnded) {
+				_ended = true;
+				_playbackTime = _duration;
+			} else {
+				++_cycle;
+				_playbackTime = _seekTime = 0.0;
+				_started = false;
+				_videoEnded = false;
+				if (beginPlayback()) updateTexture();
+			}
 		}
 	}
+	// Keep lifecycle updates alive after EOF so play/seek can restart playback.
 	return Sprite::update(deltaTime);
 }
 

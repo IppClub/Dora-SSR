@@ -27,7 +27,7 @@ pause: function(self: VideoNode)
 
 **描述：**
 
-&emsp;&emsp;同时恢复视频和内嵌音轨播放。
+&emsp;&emsp;同时恢复视频和内嵌音轨播放，已结束时从头播放。
 
 **签名：**
 ```tl
@@ -45,4 +45,52 @@ resume: function(self: VideoNode)
 **签名：**
 ```tl
 readonly paused: boolean
+```
+
+## play
+
+开始或继续音画播放；已结束时从头播放。
+
+```tl
+play: function(self: VideoNode)
+```
+
+## seek
+
+以秒为单位同步跳转音画，限制在 [0, duration]。保持暂停状态，暂停画面会异步更新；忽略非有限数值。
+
+```tl
+seek: function(self: VideoNode, seconds: number)
+```
+
+## rewind
+
+跳转到开头，保持暂停状态。
+
+```tl
+rewind: function(self: VideoNode)
+```
+
+## currentTime
+
+当前播放位置，单位为秒。
+
+```tl
+readonly currentTime: number
+```
+
+## duration
+
+总播放时长，单位为秒，取音画两条轨道中的较长时长。
+
+```tl
+readonly duration: number
+```
+
+## playing
+
+节点在运行场景中请求播放且未暂停、未结束，包括缓冲过程。
+
+```tl
+readonly playing: boolean
 ```

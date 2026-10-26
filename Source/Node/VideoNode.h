@@ -29,6 +29,13 @@ public:
 	virtual void onExit() override;
 	virtual bool update(double deltaTime) override;
 
+	void play();
+	void seek(double seconds);
+	void rewind();
+	PROPERTY_READONLY(double, CurrentTime);
+	PROPERTY_READONLY(double, Duration);
+	PROPERTY_READONLY_BOOL(Playing);
+
 	void pause();
 	void resume();
 	bool isPaused() const;
@@ -53,6 +60,11 @@ private:
 
 	Ref<AudioSource> _audioSource;
 	double _playbackTime = 0.0;
+	double _duration = 0.0;
+	double _audioDuration = 0.0;
+	double _seekTime = 0.0;
+	bool _seeking = false;
+	bool _ended = false;
 	uint64_t _cycle = 0;
 	bool _started = false;
 	bool _videoEnded = false;

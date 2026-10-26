@@ -9,11 +9,29 @@ local record VideoNode
 	-- Pauses the video and embedded audio playback.
 	pause: function(self: VideoNode)
 
-	-- Resumes the video and embedded audio playback.
+	-- Resumes both tracks; restarts from zero after the end.
 	resume: function(self: VideoNode)
 
 	-- Whether the video is currently paused.
 	readonly paused: boolean
+
+	-- Starts or resumes both tracks; restarts from zero after the end.
+	play: function(self: VideoNode)
+
+	-- Seeks both tracks in seconds, clamped to [0, duration]. Preserves pause and updates the paused image asynchronously. Non-finite values are ignored.
+	seek: function(self: VideoNode, seconds: number)
+
+	-- Seeks to zero while preserving the paused state.
+	rewind: function(self: VideoNode)
+
+	-- Current playback position in seconds.
+	readonly currentTime: number
+
+	-- Total playback duration in seconds, the longer of the audio and video tracks.
+	readonly duration: number
+
+	-- Whether playback is requested in the running scene and has not paused or ended. Includes buffering.
+	readonly playing: boolean
 end
 
 -- A class for creating VideoNode objects.

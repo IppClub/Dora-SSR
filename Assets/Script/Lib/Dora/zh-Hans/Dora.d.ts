@@ -8419,11 +8419,29 @@ class VideoNode extends Sprite {
 	/** 同时暂停视频和内嵌音轨。 */
 	pause(): void;
 
-	/** 继续视频播放。 */
+	/** 继续音画播放，已结束时从头播放。 */
 	resume(): void;
 
 	/** 视频当前是否暂停。 */
 	readonly paused: boolean;
+
+	/** 开始或继续音画播放；已结束时从头播放。 */
+	play(): void;
+
+	/** 以秒为单位同步跳转音画，限制在 [0, duration]。保持暂停状态，暂停画面会异步更新；忽略非有限数值。 */
+	seek(seconds: number): void;
+
+	/** 跳转到开头，保持暂停状态。 */
+	rewind(): void;
+
+	/** 当前播放位置，单位为秒。 */
+	readonly currentTime: number;
+
+	/** 总播放时长，单位为秒，取音画两条轨道中的较长时长。 */
+	readonly duration: number;
+
+	/** 节点在运行场景中请求播放且未暂停、未结束，包括缓冲过程。 */
+	readonly playing: boolean;
 }
 
 export namespace VideoNode {

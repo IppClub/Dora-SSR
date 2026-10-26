@@ -8,6 +8,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn videonode_type() -> i32;
+	fn videonode_play(slf: i64);
+	fn videonode_seek(slf: i64, seconds: f64);
+	fn videonode_rewind(slf: i64);
+	fn videonode_get_current_time(slf: i64) -> f64;
+	fn videonode_get_duration(slf: i64) -> f64;
+	fn videonode_is_playing(slf: i64) -> i32;
 	fn videonode_pause(slf: i64);
 	fn videonode_resume(slf: i64);
 	fn videonode_is_paused(slf: i64) -> i32;
@@ -29,11 +35,35 @@ impl VideoNode {
 			}
 		})
 	}
+	/// Starts or resumes playback; restarts from zero after the end.
+	pub fn play(&mut self) {
+		unsafe { videonode_play(self.raw()); }
+	}
+	/// Seeks both tracks in seconds, clamped to the duration. Preserves pause; non-finite values are ignored.
+	pub fn seek(&mut self, seconds: f64) {
+		unsafe { videonode_seek(self.raw(), seconds); }
+	}
+	/// Seeks to zero while preserving the paused state.
+	pub fn rewind(&mut self) {
+		unsafe { videonode_rewind(self.raw()); }
+	}
+	/// Gets Current playback position in seconds, including while paused or ended.
+	pub fn get_current_time(&self) -> f64 {
+		return unsafe { videonode_get_current_time(self.raw()) };
+	}
+	/// Gets Total playback duration in seconds, the longer of the video and audio tracks.
+	pub fn get_duration(&self) -> f64 {
+		return unsafe { videonode_get_duration(self.raw()) };
+	}
+	/// Gets Whether playback is requested in the running scene and has not paused or ended. Includes buffering.
+	pub fn is_playing(&self) -> bool {
+		return unsafe { videonode_is_playing(self.raw()) != 0 };
+	}
 	/// Pauses the video and embedded audio playback.
 	pub fn pause(&mut self) {
 		unsafe { videonode_pause(self.raw()); }
 	}
-	/// Resumes the video and embedded audio playback.
+	/// Resumes both tracks; restarts from zero after the end.
 	pub fn resume(&mut self) {
 		unsafe { videonode_resume(self.raw()); }
 	}

@@ -4379,13 +4379,26 @@ object class AudioSource : public Node
 /// </summary>
 object class VideoNode : public Sprite
 {
+	/// <summary>Starts or resumes playback; restarts from zero after the end.</summary>
+	void play();
+	/// <summary>Seeks both tracks in seconds, clamped to the duration. Preserves pause; non-finite values are ignored.</summary>
+	void seek(double seconds);
+	/// <summary>Seeks to zero while preserving the paused state.</summary>
+	void rewind();
+	/// <summary>Current playback position in seconds, including while paused or ended.</summary>
+	readonly common double currentTime;
+	/// <summary>Total playback duration in seconds, the longer of the video and audio tracks.</summary>
+	readonly common double duration;
+	/// <summary>Whether playback is requested in the running scene and has not paused or ended. Includes buffering.</summary>
+	readonly boolean bool playing;
+
 	/// <summary>
-	/// Pauses the video playback.
+	/// Pauses the video and embedded audio playback.
 	/// </summary>
 	void pause();
 
 	/// <summary>
-	/// Resumes the video playback.
+	/// Resumes both tracks; restarts from zero after the end.
 	/// </summary>
 	void resume();
 

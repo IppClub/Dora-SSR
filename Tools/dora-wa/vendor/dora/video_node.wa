@@ -11,6 +11,24 @@ import "runtime"
 #wa:import dora videonode_type
 func videonode_type() => i32
 
+#wa:import dora videonode_play
+func videonode_play(slf: i64)
+
+#wa:import dora videonode_seek
+func videonode_seek(slf: i64, seconds: f64)
+
+#wa:import dora videonode_rewind
+func videonode_rewind(slf: i64)
+
+#wa:import dora videonode_get_current_time
+func videonode_get_current_time(slf: i64) => f64
+
+#wa:import dora videonode_get_duration
+func videonode_get_duration(slf: i64) => f64
+
+#wa:import dora videonode_is_playing
+func videonode_is_playing(slf: i64) => i32
+
 #wa:import dora videonode_pause
 func videonode_pause(slf: i64)
 
@@ -46,12 +64,42 @@ func ObjectAsVideoNode(object: Object) => *VideoNode {
 	return nil
 }
 
+/// Starts or resumes playback; restarts from zero after the end.
+func VideoNode.Play() {
+	videonode_play(*this.raw)
+}
+
+/// Seeks both tracks in seconds, clamped to the duration. Preserves pause; non-finite values are ignored.
+func VideoNode.Seek(seconds: f64) {
+	videonode_seek(*this.raw, seconds)
+}
+
+/// Seeks to zero while preserving the paused state.
+func VideoNode.Rewind() {
+	videonode_rewind(*this.raw)
+}
+
+/// Gets Current playback position in seconds, including while paused or ended.
+func VideoNode.GetCurrentTime() => f64 {
+	return videonode_get_current_time(*this.raw)
+}
+
+/// Gets Total playback duration in seconds, the longer of the video and audio tracks.
+func VideoNode.GetDuration() => f64 {
+	return videonode_get_duration(*this.raw)
+}
+
+/// Gets Whether playback is requested in the running scene and has not paused or ended. Includes buffering.
+func VideoNode.IsPlaying() => bool {
+	return videonode_is_playing(*this.raw) != 0
+}
+
 /// Pauses the video and embedded audio playback.
 func VideoNode.Pause() {
 	videonode_pause(*this.raw)
 }
 
-/// Resumes the video and embedded audio playback.
+/// Resumes both tracks; restarts from zero after the end.
 func VideoNode.Resume() {
 	videonode_resume(*this.raw)
 }
