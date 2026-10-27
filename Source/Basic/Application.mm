@@ -34,6 +34,23 @@ NS_DORA_END
 #include "SDL_syswm.h"
 #include "Event/Event.h"
 
+NS_DORA_BEGIN
+// SDL's minimized flag can lag Cocoa during window animations. Query the
+// native window so a repeated launch also restores a window in transition.
+void activateGuiWindowMac(SDL_Window* window) {
+	@autoreleasepool {
+		SDL_SysWMinfo info{};
+		SDL_VERSION(&info.version);
+		if (!SDL_GetWindowWMInfo(window, &info)) return;
+		NSWindow* native = info.info.cocoa.window;
+		[NSApp unhide:nil];
+		[NSApp activateIgnoringOtherApps:YES];
+		if ([native isMiniaturized]) [native deminiaturize:nil];
+		[native makeKeyAndOrderFront:nil];
+	}
+}
+NS_DORA_END
+
 static void compilerFailure(NSString* message) {
 	std::string reason = message.UTF8String;
 	Dora::Singleton<Dora::Application>::shared().invokeInLogic([reason]() {

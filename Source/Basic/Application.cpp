@@ -28,6 +28,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "SDL.h"
 #include "SDL_syswm.h"
+#if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
+#include "Basic/GuiInstance.h"
+#if BX_PLATFORM_OSX
+namespace Dora {
+void activateGuiWindowMac(SDL_Window* window);
+}
+#endif
+#endif
 #if (BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
 #include <atomic>
 #include <csignal>
@@ -63,6 +71,42 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #define DORA_REVISION "4"_slice
 
 namespace {
+#if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX) && !defined(DORA_AS_LIB)
+Dora::GuiInstance* guiInstance = nullptr;
+
+void activateGuiWindow(SDL_Window* window, const std::string& activationToken) {
+	(void)activationToken;
+#if BX_PLATFORM_OSX
+	Dora::activateGuiWindowMac(window);
+#else
+	SDL_ShowWindow(window);
+	// Restore only minimized windows; preserve maximized/fullscreen state.
+	if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED) SDL_RestoreWindow(window);
+	SDL_RaiseWindow(window);
+	SDL_SysWMinfo info{};
+	SDL_VERSION(&info.version);
+	if (SDL_GetWindowWMInfo(window, &info) && info.subsystem == SDL_SYSWM_WINDOWS) {
+		HWND native = info.info.win.window;
+		// A relaunch can arrive before SDL pumps the minimize notification.
+		if (IsIconic(native)) ShowWindow(native, SW_RESTORE);
+		SetForegroundWindow(native);
+		HWND foreground = GetForegroundWindow();
+		if (foreground && foreground != native) {
+			// A launcher without foreground permission cannot grant it to us.
+			// Temporarily share the foreground input queue for this explicit
+			// activation, without changing maximization or always-on-top state.
+			DWORD foregroundThread = GetWindowThreadProcessId(foreground, nullptr);
+			DWORD currentThread = GetCurrentThreadId();
+			if (foregroundThread != currentThread && AttachThreadInput(currentThread, foregroundThread, TRUE)) {
+				BringWindowToTop(native);
+				SetForegroundWindow(native);
+				AttachThreadInput(currentThread, foregroundThread, FALSE);
+			}
+		}
+	}
+#endif
+}
+#endif
 #if (BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
 // Standalone POSIX applications only. The watchdog deliberately lives until
 // process exit, including SDL shutdown and static destruction. Only database
@@ -1217,6 +1261,12 @@ int Application::run(MainFunc mainFunc) {
 			SDL_Event quitEvent{};
 			quitEvent.type = SDL_QUIT;
 			signalQuitPosted = SDL_PushEvent(&quitEvent) > 0;
+		}
+#endif
+#if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX) && !defined(DORA_AS_LIB)
+		std::string activationToken;
+		if (guiInstance && guiInstance->takeActivationRequest(activationToken)) {
+			activateGuiWindow(_sdlWindow, activationToken);
 		}
 #endif
 		// do render staff and swap buffers
@@ -2432,6 +2482,51 @@ extern "C" EMSCRIPTEN_KEEPALIVE void dora_web_capture_game(int requestId) {
 }
 #endif
 
+#ifndef DORA_AS_LIB
+namespace {
+int runGuiApplication() {
+#if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX) && !defined(DORA_AS_LIB)
+	Dora::GuiInstance instance;
+	const auto result = instance.acquire();
+	if (result != Dora::GuiInstance::Result::Primary) {
+		const bool notified = result == Dora::GuiInstance::Result::Notified;
+		const bool existing = notified || result == Dora::GuiInstance::Result::Existing;
+		const char* message = notified
+			? "Dora GUI is already running. Activation requested for the existing window.\n"
+			: existing ? "Dora GUI is already running. Please use the existing window.\n"
+			: "Failed to acquire the Dora GUI instance lock or notify the existing window.\n";
+#if BX_PLATFORM_WINDOWS
+		// GUI subsystem binaries have no CRT console streams. Write to inherited
+		// pipes/files directly, or attach to the launching terminal if available.
+		const DWORD stream = existing ? STD_OUTPUT_HANDLE : STD_ERROR_HANDLE;
+		HANDLE output = GetStdHandle(stream);
+		if ((!output || output == INVALID_HANDLE_VALUE) && AttachConsole(ATTACH_PARENT_PROCESS))
+			output = GetStdHandle(stream);
+		if (output && output != INVALID_HANDLE_VALUE) {
+			DWORD written = 0;
+			WriteFile(output, message, static_cast<DWORD>(std::strlen(message)), &written, nullptr);
+		}
+#else
+		(existing ? std::cout : std::cerr) << message << std::flush;
+#endif
+		if (existing) return 0;
+		return 1;
+	}
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX
+	guiInstance = &instance;
+#endif
+#endif
+	int exitCode = SharedApplication.run();
+	Dora::Life::destroy(Slice::Empty);
+#if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX) && !defined(DORA_AS_LIB)
+	guiInstance = nullptr;
+#endif
+	return exitCode;
+}
+}
+
+#endif // !DORA_AS_LIB
+
 // Entry functions needed by SDL2
 #if BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX || BX_PLATFORM_EMSCRIPTEN
 #ifndef DORA_AS_LIB
@@ -2446,9 +2541,7 @@ int main(int argc, char* argv[]) {
 	DORA_UNUSED_PARAM(argc);
 	DORA_UNUSED_PARAM(argv);
 #endif
-	int exitCode = SharedApplication.run();
-	Dora::Life::destroy(Slice::Empty);
-	return exitCode;
+	return runGuiApplication();
 }
 #endif // !DORA_AS_LIB
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX || BX_PLATFORM_EMSCRIPTEN
@@ -2515,9 +2608,7 @@ int CALLBACK WinMain(
 		Dora::Life::destroy(Slice::Empty);
 		return exitCode;
 	}
-	int exitCode = SharedApplication.run();
-	Dora::Life::destroy(Slice::Empty);
-	return exitCode;
+	return runGuiApplication();
 }
 #endif // !DORA_AS_LIB
 

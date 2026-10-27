@@ -98,3 +98,50 @@ raw/stored checkpoint bytes, and orphan candidates. These are database-only
 statistics: project `.agent` files and transient journal files are excluded.
 Free pages remain available for SQLite reuse, so reclaimed payload does not
 imply an immediate reduction in database file size.
+
+## Desktop GUI single instance
+
+Standalone desktop GUI launches share one instance per user (per Windows login
+session on Windows). CLI launches branch before this check and can run concurrently,
+including alongside the GUI. Mobile, Web, and `DORA_AS_LIB` retain their existing
+lifecycle. A duplicate exits with status 0; lock/notification failures exit with
+status 1.
+
+Windows and macOS queue activation, restore a minimized window, and print
+`Dora GUI is already running. Activation requested for the existing window.`
+Windows uses a named mutex, activation event, and PID mapping. If the launcher
+cannot transfer foreground permission, the owner briefly shares the foreground
+input queue. Native window state handles requests arriving before SDL pumps
+minimization events. macOS uses `flock` and a Unix datagram socket, and queries
+Cocoa's native window state during activation.
+
+Linux uses `flock` only and prints
+`Dora GUI is already running. Please use the existing window.`
+It deliberately performs no automatic window activation or restoration in either
+X11 or Wayland. Wayland compositors may reject activation without a valid token;
+the same explicit policy is used for both backends. No X11-specific activation
+code or vendored SDL activation patch is needed.
+
+Ownership lasts through engine teardown. OS locks are released automatically
+on crashes, and stale macOS IPC endpoints are replaced by the next owner.
+
+Tests live in Dora-Example. During development, pass its local checkout:
+
+```sh
+xmake dora-test --case=test_gui_single_instance --repo=/path/to/Dora-Example
+# Desktop integration: duplicate GUI processes and overlapping CLI executions.
+xmake dora-test --case=test_gui_single_instance --repo=/path/to/Dora-Example -- --engine /absolute/path/Dora
+# Native macOS/Windows activation test; use SDL2.lib and a VS developer prompt on Windows.
+xmake dora-test --case=test_gui_single_instance --repo=/path/to/Dora-Example -- --sdl-library /absolute/path/libSDL2.a
+# Run Linux GUI/CLI acceptance under both SDL backends.
+SDL_VIDEODRIVER=x11 xmake dora-test --case=test_gui_single_instance --repo=/path/to/Dora-Example -- --engine /absolute/path/Dora
+SDL_VIDEODRIVER=wayland xmake dora-test --case=test_gui_single_instance --repo=/path/to/Dora-Example -- --engine /absolute/path/Dora
+```
+
+The default test compiles the production instance module and exercises startup
+races, concurrent launches, clean/crash recovery, and the platform activation
+policy without a desktop. Optional macOS/Windows window tests require an unlocked
+desktop. Engine integration requires unused ports 8866 and 8868. On Windows it
+checks five minimize/relaunch cycles with foreground focus; on Linux X11 it
+checks that a duplicate leaves a minimized window unchanged. Both Linux backends
+check duplicate-launch messages and four overlapping CLI processes beside a GUI.
