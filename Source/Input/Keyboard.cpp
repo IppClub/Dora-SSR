@@ -16,8 +16,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Event/Event.h"
 
 #include "SDL.h"
+#if BX_PLATFORM_EMSCRIPTEN
+#include <emscripten.h>
+#endif
 
 NS_DORA_BEGIN
+
+#if BX_PLATFORM_EMSCRIPTEN
+static void setWebIMEActive(bool active, bool focus) {
+	EM_ASM({ Module['doraWebPlatform']?.setIMEActive(!!$0, !!$1); }, active, focus);
+}
+#endif
 
 Keyboard::Keyboard()
 	: _oldCodeStates(SDL_NUM_SCANCODES, false)
@@ -217,20 +226,23 @@ void Keyboard::attachIME(const KeyboardHandler& handler, bool showScreenKeyboard
 		SharedApplication.invokeInRender([showScreenKeyboard]() {
 			if (showScreenKeyboard) {
 				SDL_StartTextInput();
-				return;
+			} else {
+				const char* previousHint = SDL_GetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD);
+				const bool hadPreviousHint = previousHint != nullptr;
+				const std::string previousValue = previousHint ? previousHint : "";
+				// Match SDL's initial state: accept text events without opening the
+				// mobile screen keyboard or keeping Android's DummyEdit focused.
+				SDL_StopTextInput();
+				SDL_SetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD, "0");
+				SDL_StartTextInput();
+				if (hadPreviousHint)
+					SDL_SetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD, previousValue.c_str());
+				else
+					SDL_ResetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD);
 			}
-			const char* previousHint = SDL_GetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD);
-			const bool hadPreviousHint = previousHint != nullptr;
-			const std::string previousValue = previousHint ? previousHint : "";
-			// Match SDL's initial state: accept text events without opening the
-			// mobile screen keyboard or keeping Android's DummyEdit focused.
-			SDL_StopTextInput();
-			SDL_SetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD, "0");
-			SDL_StartTextInput();
-			if (hadPreviousHint)
-				SDL_SetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD, previousValue.c_str());
-			else
-				SDL_ResetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD);
+#if BX_PLATFORM_EMSCRIPTEN
+			setWebIMEActive(true, showScreenKeyboard);
+#endif
 		});
 	}
 	_imeHandler = handler;
@@ -243,7 +255,12 @@ void Keyboard::detachIME() {
 		Event detachEvent("DetachIME"_slice);
 		_imeHandler(&detachEvent);
 		_imeHandler = nullptr;
-		SharedApplication.invokeInRender(SDL_StopTextInput);
+		SharedApplication.invokeInRender([] {
+			SDL_StopTextInput();
+#if BX_PLATFORM_EMSCRIPTEN
+			setWebIMEActive(false, false);
+#endif
+		});
 	}
 }
 
@@ -261,6 +278,9 @@ void Keyboard::updateIMEPosHint(const Vec2& winPos) {
 	SDL_Rect rc = {s_cast<int>(winPos.x), s_cast<int>(winPos.y) + offsetY, 0, 0};
 	SharedApplication.invokeInRender([rc]() {
 		SDL_SetTextInputRect(c_cast<SDL_Rect*>(&rc));
+#if BX_PLATFORM_EMSCRIPTEN
+		EM_ASM({ Module['doraWebPlatform']?.setIMEPosition($0, $1); }, rc.x, rc.y);
+#endif
 	});
 }
 

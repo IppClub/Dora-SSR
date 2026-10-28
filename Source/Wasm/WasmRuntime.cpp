@@ -2010,6 +2010,7 @@ DORA_EXPORT float math_tan(float v) { return std::tan(v); }
 #include "Dora/Vec3Wasm.hpp"
 #include "Dora/VertexColorWasm.hpp"
 #include "Dora/VideoNodeWasm.hpp"
+#include "Dora/GodotNodeWasm.hpp"
 #include "Dora/View3DWasm.hpp"
 #include "Dora/ViewWasm.hpp"
 #include "Dora/WorkBookWasm.hpp"
@@ -2091,6 +2092,7 @@ static void linkAutoModule(wasm3::module3& mod) {
 	linkAudioBus(mod);
 	linkAudioSource(mod);
 	linkVideoNode(mod);
+	linkGodotNode(mod);
 	linkTIC80Node(mod);
 	linkKeyboard(mod);
 	linkController(mod);

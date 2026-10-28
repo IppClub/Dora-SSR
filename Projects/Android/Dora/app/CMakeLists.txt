@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.22.1)
 project(Dora-SSR LANGUAGES C CXX ASM)
+option(DORA_GODOT_NODE_TEST "Opt-in embedded Godot node acceptance entry" OFF)
+set(DORA_GODOT_TEST_ENV "")
+if(DORA_GODOT_NODE_TEST)
+    set(DORA_GODOT_TEST_ENV "DORA_BUILD_GODOT_NODE_TEST=1")
+endif()
 
 get_filename_component(DORA_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../../.." ABSOLUTE)
 if(NOT ANDROID)
@@ -21,7 +26,7 @@ set(DORA_XMAKE_EXPORT "${CMAKE_CURRENT_BINARY_DIR}/xmake-targets.cmake")
 file(MAKE_DIRECTORY "${DORA_ROOT}/build")
 file(LOCK "${DORA_ROOT}/build/android-xmake-prepare.lock" GUARD PROCESS TIMEOUT 900)
 execute_process(
-    COMMAND "${CMAKE_COMMAND}" -E env "XMAKE_CONFIGDIR=${DORA_XMAKE_CONFIG}"
+    COMMAND "${CMAKE_COMMAND}" -E env ${DORA_GODOT_TEST_ENV} "XMAKE_CONFIGDIR=${DORA_XMAKE_CONFIG}"
         "${DORA_XMAKE}" f -q -y -p android -a "${ANDROID_ABI}" -m "${DORA_XMAKE_MODE}"
         "--ndk=${ANDROID_NDK}" "--ndk_sdkver=${ANDROID_PLATFORM_LEVEL}"
         "--builddir=${DORA_XMAKE_CONFIG}/build" --ccache=n
@@ -31,7 +36,7 @@ if(NOT result EQUAL 0)
     message(FATAL_ERROR "xmake Android configuration failed: ${result}")
 endif()
 execute_process(
-    COMMAND "${CMAKE_COMMAND}" -E env "XMAKE_CONFIGDIR=${DORA_XMAKE_CONFIG}"
+    COMMAND "${CMAKE_COMMAND}" -E env ${DORA_GODOT_TEST_ENV} "XMAKE_CONFIGDIR=${DORA_XMAKE_CONFIG}"
         "${DORA_XMAKE}" l Projects/xmake/android/export.lua "${DORA_XMAKE_EXPORT}"
     WORKING_DIRECTORY "${DORA_ROOT}"
     RESULT_VARIABLE result)

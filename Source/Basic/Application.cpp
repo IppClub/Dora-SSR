@@ -19,6 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Event/Event.h"
 #include "Event/Listener.h"
 #include "GUI/ImGuiDora.h"
+#include "Godot/GodotNode.h"
 #include "Http/XrtNetwork.h"
 #include "Input/Controller.h"
 #include "Lua/BuiltinModules.h"
@@ -796,6 +797,10 @@ int runCliApplication(int, char*[]) {
 
 } // namespace
 
+#if BX_PLATFORM_IOS
+bool validateIOSMetalDevice(void *device, std::string &reason);
+#endif
+
 bool BGFXDora::init(const bgfx::PlatformData& data) {
 	bgfx::Init init{};
 	// Dora can render the host scene, Web IDE/ImGui, and embedded Love render
@@ -810,8 +815,26 @@ bool BGFXDora::init(const bgfx::PlatformData& data) {
 		init.type = bgfx::RendererType::OpenGLES;
 	}
 #endif // BX_PLATFORM_LINUX
+#if BX_PLATFORM_WINDOWS
+    // The experimental Godot WGL bridge shares native OpenGL textures. Keep
+    // the ordinary host's renderer selection unless this mode is requested.
+    if (const char *mode=std::getenv("DORA_GODOT_WINDOWS_GL"); mode && std::strcmp(mode,"1")==0)
+        init.type=bgfx::RendererType::OpenGL;
+#endif
 	bx::memCopy(&init.platformData, &data, sizeof(bgfx::PlatformData));
 	_initialized = bgfx::init(init);
+#if BX_PLATFORM_IOS
+    if (_initialized) {
+        std::string reason;
+        const bool metal = bgfx::getRendererType() == bgfx::RendererType::Metal;
+        if (!metal || !validateIOSMetalDevice(bgfx::getInternalData()->context, reason)) {
+            if (!metal) reason = "Dora requires the Metal renderer on iOS";
+            Error("{}", reason);
+            bgfx::shutdown();
+            _initialized = false;
+        }
+    }
+#endif
 #if BX_PLATFORM_EMSCRIPTEN
 	// bgfx may fall back to Noop after WebGL context creation fails. That
 	// cannot display a game, so report initialization failure to the Player.
@@ -1304,7 +1327,7 @@ int Application::run(MainFunc mainFunc) {
 					if (Singleton<DB>::isInitialized()) {
 						SharedDB.stop();
 					}
-#if defined(NDEBUG) && !defined(DORA_AS_LIB)
+#if defined(NDEBUG) && !defined(DORA_AS_LIB) && !defined(DORA_GODOT_NODE_TEST)
 					std::_Exit(EXIT_SUCCESS);
 #else
 					_renderRunning = false;
@@ -1409,6 +1432,7 @@ int Application::run(MainFunc mainFunc) {
 	// wait for render process to stop
 	while (bgfx::RenderFrame::NoContext != bgfx::renderFrame());
 	_logicThread.shutdown();
+	GodotNode::shutdownRuntime();
 
 #if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS
 	closeIDEWebView();
@@ -1912,6 +1936,12 @@ void Application::setupSdlWindow() {
 	_platformData.nwh = wmi.info.android.window;
 #elif BX_PLATFORM_LINUX
 	if (wmi.subsystem == SDL_SYSWM_WAYLAND) {
+		// A hidden Wayland surface has no frame callbacks. Map/configure it
+		// before bgfx's startup frames can call eglSwapBuffers; showing it
+		// after those frames would deadlock the render and logic threads.
+		SDL_ShowWindow(_sdlWindow);
+		SDL_PumpEvents();
+		SDL_GetWindowWMInfo(_sdlWindow, &wmi);
 		_platformData.ndt = wmi.info.wl.display;
 		_platformData.nwh = r_cast<void*>(wmi.info.wl.surface);
 		_platformData.type = bgfx::NativeWindowHandleType::Wayland;
@@ -2460,6 +2490,21 @@ extern "C" void dora_web_release_input() {
 	SharedController.releaseAllInRender();
 }
 
+extern "C" int dora_web_text_input(const char* text) {
+	if (!text || !*text || std::strlen(text) >= SDL_TEXTINPUTEVENT_TEXT_SIZE) return 0;
+	SDL_Event event{}; event.type = SDL_TEXTINPUT;
+	SDL_strlcpy(event.text.text, text, SDL_TEXTINPUTEVENT_TEXT_SIZE);
+	return SDL_PushEvent(&event) == 1;
+}
+
+extern "C" int dora_web_text_editing(const char* text, int start, int length) {
+	if (!text || std::strlen(text) >= SDL_TEXTEDITINGEVENT_TEXT_SIZE) return 0;
+	SDL_Event event{}; event.type = SDL_TEXTEDITING;
+	SDL_strlcpy(event.edit.text, text, SDL_TEXTEDITINGEVENT_TEXT_SIZE);
+	event.edit.start = start; event.edit.length = length;
+	return SDL_PushEvent(&event) == 1;
+}
+
 extern "C" void dora_web_stop() {
 	SharedApplication.shutdown();
 }
@@ -2480,6 +2525,16 @@ extern "C" EMSCRIPTEN_KEEPALIVE void dora_web_capture_game(int requestId) {
 		})) complete(false);
 	});
 }
+#endif
+
+#if (BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID) && defined(DORA_GODOT_NODE_TEST)
+extern "C" int dora_godot_node_test_main();
+extern "C" int dora_godot_node_test_finish();
+#endif
+
+#if BX_PLATFORM_OSX && defined(DORA_LIBGODOT_METAL_PROBE)
+extern "C" int dora_libgodot_metal_probe_main();
+extern "C" int dora_libgodot_metal_probe_finish();
 #endif
 
 #ifndef DORA_AS_LIB
@@ -2516,7 +2571,16 @@ int runGuiApplication() {
 	guiInstance = &instance;
 #endif
 #endif
+#if (BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_LINUX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID) && defined(DORA_GODOT_NODE_TEST)
+    int exitCode = SharedApplication.run(dora_godot_node_test_main);
+    if (!exitCode) exitCode = dora_godot_node_test_finish();
+#elif BX_PLATFORM_OSX && defined(DORA_LIBGODOT_METAL_PROBE)
+	const bool metalProbe = std::getenv("DORA_LIBGODOT_METAL_PROBE") != nullptr;
+	int exitCode = SharedApplication.run(metalProbe ? dora_libgodot_metal_probe_main : nullptr);
+	if (metalProbe) exitCode = dora_libgodot_metal_probe_finish();
+#else
 	int exitCode = SharedApplication.run();
+#endif
 	Dora::Life::destroy(Slice::Empty);
 #if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX) && !defined(DORA_AS_LIB)
 	guiInstance = nullptr;

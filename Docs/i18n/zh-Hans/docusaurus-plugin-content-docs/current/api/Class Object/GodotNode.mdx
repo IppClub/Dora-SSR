@@ -1,0 +1,41 @@
+# GodotNode 类
+
+**描述：**
+
+&emsp;&emsp;从原生 Godot 项目目录或导出的 `.pck` 文件创建实验性的 [GodotNode](/docs/api/Class/GodotNode)。
+
+## getUnsupportedReason
+
+```tl
+getUnsupportedReason: function(): string
+```
+
+当前 GPU／后端支持 GodotNode 时返回空字符串，否则返回拒绝原因。应在 Dora 初始化渲染器后调用，不会加载或检查可选运行库。iOS 上普通 Dora 要求 Apple2，GodotNode 要求 Apple4。生成绑定对应 Rust `GodotNode::get_unsupported_reason()`、Wa `dora.GodotNodeGetUnsupportedReason()` 和 C# `GodotNode.GetUnsupportedReason()`。
+
+## __call
+
+```tl
+metamethod __call: function(self: GodotNodeClass, projectPath: string, sceneFile?: string, width?: integer, height?: integer, buffers?: integer): GodotNode | nil
+```
+
+| 参数 | 描述 |
+| --- | --- |
+| projectPath | 包含 `project.godot` 的项目目录或导出的 `.pck` 文件，通过 Dora Content 解析。 |
+| sceneFile | Godot 场景路径，例如 `res://main.tscn`；默认空字符串表示项目主场景。 |
+| width / height | 离屏 Viewport 分辨率，默认 640 × 360，每个维度范围为 1–8192。 |
+| buffers | 共享 GPU 纹理数量，范围 2–4，默认 3。 |
+
+即时参数验证失败返回 `nil`。节点返回后仍需异步启动，请检查 `running` 和 `lastError`。需通过 `DORA_GODOT_LIBRARY` 指定匹配的原生运行库，或将库放在资源根目录的平台默认名称下（macOS 为 `libdora_godot.dylib`，Linux 为 `libdora_godot.so`，Windows 为 `dora_godot.dll`）。
+
+```lua
+local Dora = require("Dora")
+local node = Dora.GodotNode("/absolute/path/to/project", "", 640, 360, 3)
+assert(node)
+node:addTo(Dora.Director.ui)
+```
+
+Apple Silicon macOS Metal 和 Linux ARM64 EGL/OpenGL 已通过 GPU 测试。Windows WGL 已在 Parallels Windows 11 ARM64 的 x64 进程中通过源码项目和导入 PCK 的 GPU 测试，需在宿主启动前设置 `DORA_GODOT_WINDOWS_GL=1`。其他平台的具体范围见 GodotNode 实例接口说明。
+
+同一节点也通过生成绑定提供给 Rust（`GodotNode::new`）、Wa（`dora.NewGodotNode`）和 C#（`GodotNode.TryCreate`）。Rust／Wa 构造接口需显式传入全部五个参数；异步启动和后端要求与 Lua 一致。
+
+Web 还需启用可选适配层并提供匹配的独立 WASM 运行库与 COOP／COEP。项目目录／PCK资源需包含在 Dora 游戏清单中；启动时会预加载并复制 Godot 资源快照。Web DOM 输入、持久化与延迟尚未完整验收。

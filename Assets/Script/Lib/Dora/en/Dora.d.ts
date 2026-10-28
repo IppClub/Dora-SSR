@@ -8540,6 +8540,38 @@ interface TIC80NodeClass {
 const tic80NodeClass: TIC80NodeClass;
 export {tic80NodeClass as TIC80Node};
 
+/** A Godot project rendered into a Dora Sprite. Runtime startup is asynchronous. */
+class GodotNode extends Sprite {
+    private constructor();
+    readonly projectPath: string;
+    readonly sceneFile: string;
+    readonly lastError: string;
+    readonly running: boolean;
+    readonly paused: boolean;
+    /** Committed native pixel size; asynchronous resize updates this after texture publication. */
+    readonly viewportSize: Size;
+    pause(): void;
+    resume(): void;
+    /** Queues a scene reload; asynchronous failures appear in lastError. */
+    restart(sceneFile?: string): boolean;
+    /** Coordinates use the Godot viewport's top-left origin. Buttons: 1 left, 2 right, 3 middle. */
+    /** Preserve scene/audio while replacing viewport textures; requires a matching Metal/GL runtime extension. False when invalid, busy or unsupported. */
+    resizeViewport(width: number, height: number): boolean;
+    sendPointer(x: number, y: number, button: number, pressed: boolean): void;
+    sendPointerMove(x: number, y: number): void;
+    sendKey(name: string, pressed: boolean): void;
+    sendText(text: string): void;
+}
+export namespace GodotNode { export type Type = GodotNode; }
+interface GodotNodeClass {
+    /** Empty when the GPU/backend supports GodotNode. Does not check the runtime library. */
+    getUnsupportedReason(this: void): string;
+    /** Requires a matching native runtime library. Defaults: main scene, 640x360, three buffers. */
+    (this: void, projectPath: string, sceneFile?: string, width?: number, height?: number, buffers?: number): GodotNode | undefined;
+}
+const godotNodeClass: GodotNodeClass;
+export {godotNodeClass as GodotNode};
+
 /** A Dora scene node that owns and runs one isolated Love Lua state. */
 class LoveNode extends Sprite {
 	private constructor();

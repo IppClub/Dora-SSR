@@ -1,0 +1,22 @@
+Import("env")
+Import("env_modules")
+bridge_env = env_modules.Clone()
+bridge_env.Append(CPPDEFINES=["DORA_GODOT_BUILD_LIBRARY"])
+if env["platform"] in ("linuxbsd", "android"):
+    env.Append(LIBS=["EGL", "GLESv2"])
+    bridge_env.add_source_files(env.modules_sources, "register_types_gl.cpp")
+    bridge_env.add_source_files(env.modules_sources, "gl/egl_transport.cpp")
+    if env["platform"] == "android":
+        bridge_env.add_source_files(env.modules_sources, "android/libgodot_android.cpp")
+elif env["platform"] == "web":
+    bridge_env.add_source_files(env.modules_sources, "register_types_gl.cpp")
+    bridge_env.add_source_files(env.modules_sources, "web/*.cpp")
+elif env["platform"] == "windows":
+    env.Append(LIBS=["opengl32", "gdi32", "user32"])
+    bridge_env.Append(CPPPATH=["#thirdparty/glad"])
+    bridge_env.add_source_files(env.modules_sources, "register_types_gl.cpp")
+    bridge_env.add_source_files(env.modules_sources, "gl/wgl_transport.cpp")
+else:
+    bridge_env.add_source_files(env.modules_sources, "*.mm")
+    if env["platform"] == "ios":
+        bridge_env.add_source_files(env.modules_sources, "ios/libgodot_ios.mm")

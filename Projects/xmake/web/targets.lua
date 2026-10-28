@@ -39,6 +39,7 @@ local function engine_flags(t, c)
     t:add("defines", "BX_CONFIG_DEBUG=0", "BGFX_GL_CONFIG_TEXTURE_READ_BACK_EMULATION=1", "DORA_DEBUG=0",
         "DORA_EMSCRIPTEN", "DORA_NO_WA", "DORA_TEST=0", "DORA_WEB_MINIMAL", "DORA_WEB_TASK_AUTORELEASE_POOL",
         "WITH_SDL2_STATIC", "SPDLOG_FMT_EXTERNAL", "BGFX_CONFIG_RENDERER_OPENGLES=30", "d_m3HasWASI", "SQLITE_OMIT_LOAD_EXTENSION")
+    if not c.godot then t:add("defines", "DORA_WEB_NO_GODOT") end
     if c.pthreads then t:add("cxflags", "-pthread", {force = true}) end
     if c.studio_agent_host then t:add("defines", "DORA_WEB_STUDIO_AGENT_HOST") end
     if c.features.music then t:add("defines", "DORA_WEB_MUSIC") end
@@ -128,6 +129,7 @@ target("dora-web-engine")
             end
             if not reject then
                 local options
+                if c.godot_diagnostics and s=="Source/Godot/GodotAudio.cpp" then options={defines={"DORA_DISABLE_LOG=0"}} end
                 if s:match("/Physics/Jolt") then options = {force = {defines = {"JPH_NO_FORCE_INLINE"}, cxxflags = {"-fno-rtti", "-fno-exceptions", "-ffp-contract=off"}}} end
                 t:add("files", path.join(c.root, s), options)
             end
@@ -136,6 +138,7 @@ target("dora-web-engine")
         files(t, c, {"Source/Wasm/CallStack.cpp", "Source/Web/WebTaskQueue.cpp", "Source/Web/WebAssetLoader.cpp", "Source/Web/WebHttp.cpp",
             "Source/Lua/LuaManual.cpp", "Source/Web/WebXrtNetwork.cpp", "Source/3rdParty/soloud/backend/sdl2_static/soloud_sdl2_static.cpp",
             "Source/3rdParty/LuaSocket/src/compat.c", "Source/3rdParty/LuaSocket/src/mime.c"})
+        if c.godot then files(t,c,{"Source/Godot/GodotRuntimeGL.cpp","Source/Godot/GodotWebAPI.cpp"},c.godot_diagnostics and {defines={"DORA_DISABLE_LOG=0"}} or nil) end
         if c.diagnostics then t:add("files", path.join(c.root, "Source/Render/RenderTarget.cpp"), {defines = {"DORA_WEB_READBACK_TRACE"}}) end
     end)
 target_end()
@@ -225,11 +228,14 @@ target("dora-web-player")
         -- cache. Do not let an unused cache database block runtime startup.
         for _, flag in ipairs({"--ignore-dynamic-linking", "-fwasm-exceptions", "-sSUPPORT_LONGJMP=wasm", "-sUSE_SDL=2", "-sUSE_WEBGL2=1",
             "-sFULL_ES3=1", "-sALLOW_MEMORY_GROWTH=1", "-sSTACK_SIZE=8MB", "-sINITIAL_MEMORY=64MB", "-sMAXIMUM_MEMORY=1GB", "-sEXIT_RUNTIME=0",
-            "-sFILESYSTEM=1", "-lidbfs.js", "-sFETCH=1", "-sFETCH_SUPPORT_INDEXEDDB=0", "-sFETCH_STREAMING=1", "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','FS','IDBFS']",
+            "-sFILESYSTEM=1", "-lidbfs.js", "-sFETCH=1", "-sFETCH_SUPPORT_INDEXEDDB=0", "-sFETCH_STREAMING=1", (c.godot and "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','FS','IDBFS','GL','HEAPU8','HEAPU32','HEAPF32','UTF8ToString']" or "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','FS','IDBFS']"),
             "--pre-js @out@/dora-web-features.js", "--pre-js @web@/web-audio.js", "--pre-js @web@/web-platform.js",
             "--pre-js @web@/web-network.js", "--pre-js @web@/web-package.js", "--pre-js @web@/web-loader.js",
             "--preload-file @web@/runtime-assets@/builtin", "--shell-file @web@/player-shell.html"}) do linkflag(t, c, flag) end
-        local exports = "['_main','_dora_web_stop','_dora_web_set_suspended','_dora_web_release_input','_dora_web_asset_complete'"
+        if c.godot then
+            linkflag(t,c,"--pre-js @web@/web-godot.js")
+        end
+        local exports = "['_main','_dora_web_stop','_dora_web_set_suspended','_dora_web_release_input','_dora_web_text_input','_dora_web_text_editing','_dora_web_asset_complete'"
         if c.studio_agent_host then exports = exports .. ",'_dora_web_agent_request'" end
         linkflag(t, c, "-sEXPORTED_FUNCTIONS=" .. exports .. "]")
         thread_link(t, c)

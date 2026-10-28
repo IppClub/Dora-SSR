@@ -8531,6 +8531,38 @@ interface TIC80NodeClass {
 const tic80NodeClass: TIC80NodeClass;
 export {tic80NodeClass as TIC80Node};
 
+/** 将 Godot 项目离屏画面显示为 Dora Sprite，运行时启动异步完成。 */
+class GodotNode extends Sprite {
+    private constructor();
+    readonly projectPath: string;
+    readonly sceneFile: string;
+    readonly lastError: string;
+    readonly running: boolean;
+    readonly paused: boolean;
+    /** Committed native pixel size; asynchronous resize updates this after texture publication. */
+    readonly viewportSize: Size;
+    pause(): void;
+    resume(): void;
+    /** 请求重载场景，异步失败通过 lastError 报告。 */
+    restart(sceneFile?: string): boolean;
+    /** 坐标以 Godot Viewport 左上角为原点。按键编号：1 左键，2 右键，3 中键。 */
+    /** Preserve scene/audio while replacing viewport textures; requires a matching Metal/GL runtime extension. False when invalid, busy or unsupported. */
+    resizeViewport(width: number, height: number): boolean;
+    sendPointer(x: number, y: number, button: number, pressed: boolean): void;
+    sendPointerMove(x: number, y: number): void;
+    sendKey(name: string, pressed: boolean): void;
+    sendText(text: string): void;
+}
+export namespace GodotNode { export type Type = GodotNode; }
+interface GodotNodeClass {
+    /** Empty when the GPU/backend supports GodotNode. Does not check the runtime library. */
+    getUnsupportedReason(this: void): string;
+    /** 需要匹配的原生运行库。默认使用主场景、640×360 分辨率和三个缓冲。 */
+    (this: void, projectPath: string, sceneFile?: string, width?: number, height?: number, buffers?: number): GodotNode | undefined;
+}
+const godotNodeClass: GodotNodeClass;
+export {godotNodeClass as GodotNode};
+
 /** Dora 场景节点，每个实例拥有并运行一个隔离的 Love Lua State。 */
 class LoveNode extends Sprite {
 	private constructor();

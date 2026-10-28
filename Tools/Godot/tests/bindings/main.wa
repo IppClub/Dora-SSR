@@ -1,0 +1,102 @@
+// Real Wasm3 -> generated Wa bindings -> GodotNode GPU regression fixture.
+import "dora"
+func check(ok: bool) {
+    if !ok { panic("GodotNode binding assertion failed") }
+}
+func init {
+    check(dora.GodotNodeGetUnsupportedReason() == "")
+    if @CONSTRUCTOR_REJECTIONS@ {
+        check(dora.NewGodotNode("@PROJECT@", "", 0, 360, 3) == nil)
+        check(dora.NewGodotNode("@PROJECT@", "", 640, 0, 3) == nil)
+        check(dora.NewGodotNode("@PROJECT@", "", 8193, 360, 3) == nil)
+        check(dora.NewGodotNode("@PROJECT@", "", 640, 360, 1) == nil)
+        check(dora.NewGodotNode("@PROJECT@", "", 640, 360, 5) == nil)
+        check(dora.NewGodotNode("/dora-godot-intentionally-missing-project", "", 640, 360, 3) == nil)
+        println("GODOT_BINDING Wa constructor_rejections=6")
+    }
+    node := dora.NewGodotNode("@PROJECT@", "res://main.tscn", 640, 360, 3)
+    check(node != nil)
+    check(node.GetProjectPath() == "@PROJECT@")
+    check(node.GetSceneFile() == "res://main.tscn")
+    check(node.GetLastError() == "")
+    check(node.GetViewportSize().Width == 640)
+    check(node.GetViewportSize().Height == 360)
+    node.Pause()
+    check(node.IsPaused())
+    node.SetScaleX(1.25)
+    node.SetScaleY(1.25)
+    node.SetTag("GodotBindingNode")
+    node.AddTo(dora.Director.GetUI())
+    control := dora.NewNode()
+    control.SetTag("GodotBindingControl")
+    control.AddTo(dora.Director.GetUI())
+    control.Gslot("GodotBindingTest",func(stack: dora.CallStack) {
+        command, ok := stack.PopStr()
+        check(ok)
+        switch command {
+        case "probe":
+            node.SendKey("F9",true)
+            node.SendKey("F9",false)
+        case "resume":
+            node.Resume()
+            check(!node.IsPaused())
+        case "pause":
+            node.Pause()
+            check(node.IsPaused())
+        case "verify":
+            check(node.IsRunning())
+            check(node.GetLastError() == "")
+        case "input":
+            node.Resume()
+            node.SendPointerMove(240,310)
+            node.SendPointer(240,310,1,true)
+            node.SendPointer(240,310,1,false)
+            node.SendText("Dora")
+            node.SendKey("Space",true)
+            node.SendKey("Space",false)
+        case "held":
+            node.SendKey("F8",true)
+            node.SendPointer(20,20,1,true)
+        case "restart":
+            check(node.Restart(""))
+        case "resize_large":
+            check(node.ResizeViewport(800,450))
+            check(!node.ResizeViewport(801,450))
+        case "resize_small":
+            check(node.ResizeViewport(320,180))
+            check(!node.ResizeViewport(321,180))
+        case "resize_restore":
+            check(node.ResizeViewport(640,360))
+            check(!node.ResizeViewport(641,360))
+        case "verify_large":
+            size := node.GetViewportSize()
+            check(size.Width == 800 && size.Height == 450)
+            check(node.ResizeViewport(800,450))
+        case "verify_small":
+            size := node.GetViewportSize()
+            check(size.Width == 320 && size.Height == 180)
+            check(node.ResizeViewport(320,180))
+        case "verify_restore":
+            size := node.GetViewportSize()
+            check(size.Width == 640 && size.Height == 360)
+            check(node.ResizeViewport(640,360))
+        case "resize_pause":
+            node.Pause()
+            check(node.IsPaused())
+        case "resize_resume":
+            node.Resume()
+            check(!node.IsPaused())
+        case "resize_invalid":
+            check(!node.ResizeViewport(0,180))
+            check(!node.ResizeViewport(-1,360))
+            check(!node.ResizeViewport(640,8193))
+            check(node.IsRunning())
+        case "resize_cancel":
+            check(node.ResizeViewport(1024,576))
+        default:
+            panic("unknown Godot binding command")
+        }
+        println("GODOT_BINDING Wa command=" + command)
+    })
+    println("GODOT_BINDING Wa created=1")
+}

@@ -1,0 +1,14 @@
+config_version=5
+[application]
+config/name="Dora Web Shared Godot"
+run/main_scene="res://main.tscn"
+[display]
+window/size/viewport_width=64
+window/size/viewport_height=64
+window/size/window_width_override=64
+window/size/window_height_override=64
+[rendering]
+renderer/rendering_method="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
+[threading]
+worker_pool/max_threads=2

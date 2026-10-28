@@ -1,0 +1,85 @@
+name: Godot Integration
+
+on:
+  push:
+    branches: [main]
+    paths: ['Source/**', 'Tools/Godot/**', 'Tools/tolua\+\+/**', 'Projects/xmake/**', 'xmake.lua', '.github/workflows/godot.yml']
+  pull_request:
+    branches: [main]
+    paths: ['Source/**', 'Tools/Godot/**', 'Tools/tolua\+\+/**', 'Projects/xmake/**', 'xmake.lua', '.github/workflows/godot.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: godot-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  protocol:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-26]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: ABI, ownership, timing, PCM and embedded shader contracts
+        run: bash Tools/Godot/tests/protocol.sh
+      - name: Runtime package positive and negative checks
+        run: python3 Tools/Godot/tests/package_integrity.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: godot-protocol-${{ matrix.os }}
+          path: |
+            build/godot-runtime/protocol/verification.json
+            build/godot-runtime/protocol/embedded-shader.json
+          if-no-files-found: warn
+
+  linux-egl:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+      DORA_GODOT_SKIP_PREBOOT_ABI: '0'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: Source/3rdParty/Wa/Source/go.mod
+          cache-dependency-path: Source/3rdParty/Wa/Source/go.sum
+      - uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: '3.1.1'
+      - name: Install build and headless EGL dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config rsync libssl-dev libdbus-1-dev \
+            libasound2-dev libjack-jackd2-dev libpulse-dev libpipewire-0.3-dev libsamplerate0-dev libsndio-dev \
+            libibus-1.0-dev libudev-dev libusb-1.0-0-dev libx11-dev libxext-dev libxcursor-dev libxi-dev \
+            libxfixes-dev libxrandr-dev libxrender-dev libxss-dev libdrm-dev libgbm-dev libegl1-mesa-dev \
+            libgl1-mesa-dev libgles2-mesa-dev libwayland-dev libwayland-bin wayland-protocols \
+            libxkbcommon-dev libdecor-0-dev weston mesa-utils
+          python3 -m pip install Pillow==12.1.0
+      - name: Build runtime/hosts, run failure recovery, EGL matrix, cycles and ordinary-app checks
+        run: python3 Tools/Godot/tests/ci_linux.py --jobs 2
+      - name: Upload logs, screenshots and verification records
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-linux-egl
+          path: |
+            build/godot-runtime/ci-linux/
+            build/godot-linux/build.log
+          if-no-files-found: warn

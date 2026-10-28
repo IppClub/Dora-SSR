@@ -837,6 +837,7 @@ namespace Dora
                 SVG.GetTypeInfo(),
                 AudioBus.GetTypeInfo(),
                 AudioSource.GetTypeInfo(),
+                GodotNode.GetTypeInfo(),
                 QLearner.GetTypeInfo(),
                 Platformer.ActionUpdate.GetTypeInfo(),
                 Platformer.Face.GetTypeInfo(),

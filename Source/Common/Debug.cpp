@@ -148,7 +148,10 @@ public:
 	}
 
 	void logAsync(spdlog::level::level_enum level, const std::string& msg) {
-		if (Singleton<AsyncThread>::isDisposed()) {
+		// Quit cancels dedicated workers before the native host returns. Emit
+		// final GPU/audio shutdown diagnostics directly once logic has stopped.
+		if (Singleton<AsyncThread>::isDisposed()
+			|| (Singleton<Application>::isInitialized() && !SharedApplication.isLogicRunning())) {
 			_logger->log(level, msg);
 		} else {
 			_thread->run([this, level, msg]() {

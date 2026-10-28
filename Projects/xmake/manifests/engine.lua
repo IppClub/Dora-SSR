@@ -118,6 +118,8 @@ function main()
     "Source/Node/View3D.cpp",
     "Source/Node/VideoNode.cpp",
     "Source/Node/TIC80Node.cpp",
+    "Source/Godot/GodotNode.cpp",
+    "Source/Godot/GodotAudio.cpp",
     "Source/Event/EventType.cpp",
     "Source/Event/EventQueue.cpp",
     "Source/Event/Listener.cpp",

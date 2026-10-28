@@ -487,6 +487,7 @@ NS_DORA_END
 #import <AVFoundation/AVFoundation.h>
 #import <AudioToolbox/AudioServices.h>
 #import <QuartzCore/CAMetalLayer.h>
+#import <Metal/Metal.h>
 #import <UIKit/UIKit.h>
 
 
@@ -665,6 +666,20 @@ bool Application::setAudioMixWithSystem(bool mix) {
 		}
 		return true;
 	}
+}
+
+bool validateIOSMetalDevice(void *native, std::string &reason) {
+    id<MTLDevice> device = (__bridge id<MTLDevice>)native;
+    if (!device) {
+        reason = "Dora requires a Metal device on iOS";
+        return false;
+    }
+    if (![device supportsFamily:MTLGPUFamilyApple2]) {
+        reason = "Dora requires an Apple2 or newer Metal GPU on iOS";
+        return false;
+    }
+    // Optional embedded runtimes independently validate their GPU needs.
+    return true;
 }
 
 void Application::updateWindowSize() {

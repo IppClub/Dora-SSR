@@ -1,0 +1,14 @@
+config_version=5
+[application]
+config/name="Dora Godot render timing test"
+run/main_scene="res://main.tscn"
+[display]
+window/size/viewport_width=640
+window/size/viewport_height=360
+[physics]
+common/max_physics_steps_per_frame=64
+[rendering]
+renderer/rendering_method="mobile"
+shader_compiler/shader_cache/enabled=false
+[threading]
+worker_pool/max_threads=3

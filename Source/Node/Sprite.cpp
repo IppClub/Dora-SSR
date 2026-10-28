@@ -331,7 +331,11 @@ SpriteRenderer::SpriteRenderer()
 	, _lastState(0)
 	, _lastFlags(UINT32_MAX)
 	, _defaultEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_sprite"_slice))
-	, _alphaTestEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_spritealphatest"_slice)) { }
+	, _alphaTestEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_spritealphatest"_slice)) {
+	// Register the manager's BGFX lifetime before the first draw. A Sprite can
+	// fail initialization and exit without ever submitting a render batch.
+	(void)SharedRendererManager;
+}
 
 const SpriteRenderer::IndexType* SpriteRenderer::getIndices() const noexcept {
 	return _spriteIndices;

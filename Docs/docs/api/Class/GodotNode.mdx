@@ -1,0 +1,102 @@
+# GodotNode
+
+**Description:**
+
+&emsp;&emsp;A [Sprite](/docs/api/Class/Sprite) displaying an embedded Godot project's offscreen output. It retains the project's SceneTree root, current scene and autoloads. Startup and rendering are asynchronous.
+
+**Class Object:** [GodotNode Class](/docs/api/Class%20Object/GodotNode).
+
+This API is experimental. Apple Silicon macOS Metal, Linux ARM64 EGL (Mesa virgl), and Windows WGL (x64 process on Parallels Windows 11 ARM64) have passed native node GPU tests. Android API35 ARM64 emulator tests also passed shared EGL textures, 2/3/4 buffers, animation, resize, shader time, GPU particles and source-driven output. Android uses optional upstream Java services and a matching source-built native runtime; physical devices remain unverified. A matching native runtime library is required. The current implementation permits one active node and one process-owned project. Removing and recreating a node keeps that runtime and its autoloads alive until application exit.
+
+iOS integration requires Apple4 or newer Metal GPU capabilities. The current Apple simulator exposes an Apple2 profile and cannot run Godot’s required cube-map texture arrays. Its fail-fast capability rejection is tested separately and is not a shared-output GPU pass.
+
+Web support is opt-in with `DORA_WEB_GODOT=1` and requires COOP/COEP plus the matching separate Godot WASM runtime. Chrome 156, Firefox 153 and Playwright WebKit 26.5 on Apple M1 Pro passed 2/3/4-buffer node composition, lifecycle/resize/aliases, manual input and host PCM tests. Web PCM is mixed on demand on the window thread, without the former prefilled PCM queue. All three browsers passed a half-second rendered stereo-tone probe; this does not measure device audibility or end-to-end latency. Physical mobile browsers, actual Safari, full OS IME, long-duration audio continuity and latency remain acceptance gaps. See `Tools/Godot/TRACKING.md` for current evidence and limits.
+
+## Fields
+
+All fields below are read-only.
+
+| Name | Type | Description |
+| --- | --- | --- |
+| projectPath | string | Resolved Godot project directory or `.pck` path. |
+| sceneFile | string | Requested scene path; empty means the project main scene. |
+| lastError | string | Most recently reported runtime error; empty when none has been reported. |
+| running | boolean | Whether asynchronous startup has finished and the node is active. |
+| paused | boolean | Requested scene pause state. |
+| viewportSize | Size | Committed physical output texture size. Updates when a new output allocation is published. |
+
+## pause / resume
+
+Pause or resume the Godot SceneTree. Rendering continues so the current output can still be displayed. These methods queue work on the render thread and also work before asynchronous startup completes. Godot process modes remain active: `PROCESS_MODE_ALWAYS` nodes continue processing while paused.
+
+```tl
+pause: function(self: GodotNode)
+resume: function(self: GodotNode)
+```
+
+## restart
+
+Queue a scene reload. An empty path reloads the current scene. The return value indicates that the request was accepted; asynchronous failure appears in `lastError`. Autoloads are retained.
+
+```tl
+restart: function(self: GodotNode, sceneFile?: string): boolean
+```
+
+## resizeViewport
+
+```tl
+resizeViewport: function(self: GodotNode, width: integer, height: integer): boolean
+```
+
+Request a new native viewport resolution (1–8192 pixels per axis) on supported
+Metal/EGL/WGL backends with a matching native runtime extension.
+This asynchronous operation preserves SceneTree, autoloads, pause state and audio.
+An accepted request returns `true`; poll `viewportSize` for publication. Invalid,
+busy, not-yet-started or unsupported requests return `false`. A same-size request
+on a ready node succeeds without reallocating. Asynchronous errors appear in
+`lastError`. Older libraries without the viewport/GL-targets extension continue
+to render fixed-size nodes and return `false` for resize requests.
+
+The handshake drains GPU work before replacing textures; this can briefly stall
+rendering. On GL, bgfx owns the target textures and Godot borrows their names;
+on Metal, bgfx retains the imported native textures. Existing retained texture
+aliases remain valid frozen images of the
+previous allocation. New node publications use the new allocation. Sprite
+transforms continue to control display scale independently of viewport resolution.
+
+With a matching output extension, root Godot Window size changes also negotiate
+new textures automatically, including changes made during project startup.
+Window content scaling is resolved into the physical output texture using
+Godot's transforms; letterbox margins are transparent. A sequence of source size
+changes converges to the latest request without restarting the project.
+
+## sendPointer / sendPointerMove
+
+Forward pointer input in physical output-window pixels, with the origin at the top left, before Dora Sprite transforms. Godot applies its native content-scale transform to obtain logical scene coordinates. Buttons use Godot numbering: 1 left, 2 right, 3 middle. A press should be paired with a release. Node touch/mouse events also provide automatic forwarding.
+
+```tl
+sendPointer: function(self: GodotNode, x: number, y: number, button: integer, pressed: boolean)
+sendPointerMove: function(self: GodotNode, x: number, y: number)
+```
+
+## sendKey / sendText
+
+Forward a named key (for example `"Space"`) or committed UTF-8 text. Key presses should be paired with releases. Text forwarding does not provide a full IME composition bridge. Host focus loss releases held mouse and keyboard state.
+
+```tl
+sendKey: function(self: GodotNode, name: string, pressed: boolean)
+sendText: function(self: GodotNode, text: string)
+```
+
+Godot textures use premultiplied alpha. The default node shader and blend mode handle this encoding and node opacity; custom effects or blend modes must preserve those semantics.
+
+The optional audio ABI 2 uses a registered Godot worker to produce 48 kHz stereo
+PCM into a bounded queue for Dora's SoLoud mixer. The host callback only copies
+queued samples; Godot does not own an audio device. The three desktop environments and Android ARM64 emulator above have passed
+callback tests; physical speaker audibility and
+broader project coverage remain unverified. Device-loss recovery and multiple
+projects are still unsupported. Android Home/resume with surface destruction and
+recreation passed in the same native process; this does not establish recovery
+from forced EGL context loss.
+
+The inherited `texture` references one ring slot and can change when that slot is reused; it is not an immutable screenshot. Retained Sprite texture aliases, including after removing the source node, have passed GPU checks on the tested macOS Metal, Linux ARM64 EGL, Windows WGL and Android ARM64 emulator environments. Audio acceptance is recorded separately.

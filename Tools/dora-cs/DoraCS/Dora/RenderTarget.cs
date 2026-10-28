@@ -24,8 +24,6 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void rendertarget_set_camera(int64_t self, int64_t val);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void rendertarget_set_camera_null(int64_t self);
-		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t rendertarget_get_camera(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t rendertarget_get_texture(int64_t self);
@@ -83,7 +81,7 @@ namespace Dora
 		{
 			set
 			{
-				if (value == null) Native.rendertarget_set_camera_null(Raw);
+				if (value == null) Native.rendertarget_set_camera(Raw, 0);
 				else Native.rendertarget_set_camera(Raw, value.Raw);
 			}
 			get => Camera.FromOpt(Native.rendertarget_get_camera(Raw));

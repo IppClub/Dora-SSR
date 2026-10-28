@@ -1870,6 +1870,9 @@
     <ClCompile Include="..\..\..\Source\Node\TileNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\VGNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\VideoNode.cpp" />
+    <ClCompile Include="..\..\..\Source\Godot\GodotNode.cpp" />
+    <ClCompile Include="..\..\..\Source\Godot\GodotAudio.cpp" />
+    <ClCompile Include="..\..\..\Source\Godot\GodotRuntimeGL.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\Body.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\BodyDef.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\DebugDraw.cpp" />
@@ -2694,6 +2697,8 @@
     <ClInclude Include="..\..\..\Source\Node\TileNode.h" />
     <ClInclude Include="..\..\..\Source\Node\VGNode.h" />
     <ClInclude Include="..\..\..\Source\Node\VideoNode.h" />
+    <ClInclude Include="..\..\..\Source\Godot\GodotBridge.h" />
+    <ClInclude Include="..\..\..\Source\Godot\GodotNode.h" />
     <ClInclude Include="..\..\..\Source\Physics\Body.h" />
     <ClInclude Include="..\..\..\Source\Physics\BodyDef.h" />
     <ClInclude Include="..\..\..\Source\Physics\DebugDraw.h" />
@@ -2802,7 +2807,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;theoradec.lib;bgfx.lib;bimg.lib;bimg_decode.lib;bx.lib;shaderc-lib.lib;fcpp.lib;psapi.lib;setupapi.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;SDL2.lib;theoradec.lib;bgfx.lib;bimg.lib;bimg_decode.lib;bx.lib;shaderc-lib.lib;fcpp.lib;psapi.lib;setupapi.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcmt.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
@@ -2848,7 +2853,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;theoradec.lib;bgfx.lib;bimg.lib;bimg_decode.lib;bx.lib;fcpp.lib;shaderc-lib.lib;psapi.lib;msvcrt.lib;setupapi.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;SDL2.lib;theoradec.lib;bgfx.lib;bimg.lib;bimg_decode.lib;bx.lib;fcpp.lib;shaderc-lib.lib;psapi.lib;msvcrt.lib;setupapi.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;gdi32.lib;advapi32.lib;crypt32.lib;user32.lib;ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/NODEFAULTLIB:"libcmt.lib" /SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>

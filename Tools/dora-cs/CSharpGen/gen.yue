@@ -1355,11 +1355,9 @@ else
 								csNative[] = "\t\t[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 \t\tpublic static extern void #{cppSetterName}(#{cppType} val);"
 								if isOptional
-									csNative[] = "\t\t[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-\t\tpublic static extern void #{cppSetterName}_null();"
 									csBinding[] = "\t\t\tset
 			{
-				if (value == null) Native.#{cppSetterName}_null();
+				if (value == null) Native.#{cppSetterName}(0);
 				else Native.#{cppSetterName}(#{rtCast and rtCast('value') or 'value'});
 			}"
 								else
@@ -1369,11 +1367,9 @@ else
 								csNative[] = "\t\t[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 \t\tpublic static extern void #{cppSetterName}(#{slf}#{cppType} val);"
 								if isOptional
-									csNative[] = "\t\t[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-\t\tpublic static extern void #{cppSetterName}_null(#{isStatic and "" or "int64_t self"});"
 									csBinding[] = "\t\t\tset
 			{
-				if (value == null) Native.#{cppSetterName}_null(Raw);
+				if (value == null) Native.#{cppSetterName}(#{isStatic and '' or 'Raw, '}0);
 				else Native.#{cppSetterName}(#{isStatic and '' or 'Raw, '}#{rtCast and rtCast('value') or 'value'});
 			}"
 								else

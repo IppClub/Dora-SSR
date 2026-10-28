@@ -1,0 +1,40 @@
+<!doctype html><meta charset="utf-8"><link rel="icon" href="data:,"><title>Dora WebGL boundary probe</title><canvas id="canvas" width="64" height="64"></canvas><pre id="status">running</pre>
+<script src="godot-web-probe.js"></script><script type="module">
+import {SharedGLBoundary,sameGLState} from './shared_gl.mjs';
+const status=document.querySelector('#status'),canvas=document.querySelector('canvas');
+const assert=(value,message)=>{if(!value)throw new Error(message)};
+const next=()=>new Promise(resolve=>requestAnimationFrame(resolve));
+try {
+ const host=await createGLProbe({canvas}),producer=await createGLProbe({canvas});assert(host._boot(),'host context');assert(producer._boot(),'producer context');
+ const gl=host.GL.currentContext.GLctx;assert(gl===producer.GL.currentContext.GLctx,'WebGL context identity');assert(host.HEAPU8.buffer!==producer.HEAPU8.buffer,'heaps must be independent');
+ const boundary=new SharedGLBoundary(gl);boundary.activate('host');assert(host._setup(),'host setup');const nameOffset=host._texture_create();
+ boundary.scope('producer',()=>assert(producer._setup(),'producer setup'));
+ const debug=gl.getExtension('WEBGL_debug_renderer_info');let samples=0,states=0,deferred=0;const cases=[];
+ const waitFence=async fence=>{
+  const deadline=performance.now()+10000;
+  for(;;){const status=gl.clientWaitSync(fence,0,0);assert(status!==gl.WAIT_FAILED,'GPU fence wait failed');if(status===gl.ALREADY_SIGNALED||status===gl.CONDITION_SATISFIED)return;assert(performance.now()<deadline,'GPU fence timeout');deferred++;await next();}
+ };
+ for(const buffers of [2,3,4]) {
+  const slots=[];boundary.scope('producer',()=>{for(let i=0;i<buffers;i++){const id=producer._texture_create(),texture=producer.GL.textures[id];boundary.registerTexture('producer',texture,id);slots.push({id,texture,fence:null});}});
+  slots.forEach(slot=>slot.hostId=boundary.importTexture('host',host,slot.texture));boundary.activate('host');assert(slots.every(s=>s.hostId!==s.id),'Different native texture namespaces required');
+  for(let frame=1;frame<=240;frame++) {
+   const slot=slots[(frame-1)%buffers];
+   if(slot.fence)await waitFence(slot.fence);
+   if(slot.fence)gl.deleteSync(slot.fence);
+   host._poison();const state=boundary.capture(),cachedProgram=gl.currentProgram,cachedPack=gl.currentPixelPackBufferBinding,cachedUnpack=gl.currentPixelUnpackBufferBinding;
+   boundary.scope('producer',()=>assert(producer._produce(slot.id,frame,buffers),'producer GL render'));
+   sameGLState(state,boundary.capture());
+   assert(gl.currentProgram===cachedProgram && gl.currentPixelPackBufferBinding===cachedPack && gl.currentPixelUnpackBufferBinding===cachedUnpack,'Emscripten context shadow state');states++;
+   const capture=frame<=120||frame===240;
+   assert(host._consume(slot.hostId,capture),'host shader/GL error');assert(host._bound_texture()===slot.hostId,'host native texture name');
+   if(capture){const pixels=[...host.HEAPU8.subarray(host._result(),host._result()+20)],expected=[[255,0,0,255],[0,255,0,255],[0,0,255,255],[255,255,255,255],[frame%256,(frame*3)%256,buffers*37,255]].flat();
+   assert(pixels.every((p,i)=>Math.abs(p-expected[i])<=1),'GPU texture pixel oracle '+JSON.stringify({buffers,frame,pixels,expected}));samples+=5;}
+   slot.fence=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();if(frame<=120)await next();
+  }
+  for(const slot of slots){if(slot.fence)await waitFence(slot.fence);if(slot.fence)gl.deleteSync(slot.fence);boundary.forgetTexture(slot.texture);host.GL.textures[slot.hostId]=null;boundary.scope('producer',()=>producer._release_texture(slot.id));assert(gl.getError()===gl.NO_ERROR,'texture release GL error');}
+  cases.push({buffers,frames:240,oracle_frames:121,streamed_frames_without_readback:119});
+ }
+ const result={passed:true,scope:'Actual browser WebGL2 GPU sharing between two independent WASM runtimes only; no Godot or Dora node acceptance',same_webgl_context:true,independent_wasm_heaps:true,cases,frames:720,streamed_frames_without_readback:357,pixel_samples:samples,state_boundaries:states,distinct_native_texture_names:true,emscripten_shadow_state_restored:true,cached_shader_reused:true,deferred_fence_polls:deferred,renderer:debug?gl.getParameter(debug.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER),production_cpu_pixel_copy:false,readback_for_test_oracle_only:true};
+ status.textContent=JSON.stringify(result,null,2);window.result=result;
+} catch(error){const result={passed:false,error:String(error),stack:error.stack};status.textContent=JSON.stringify(result,null,2);window.result=result;}
+</script>

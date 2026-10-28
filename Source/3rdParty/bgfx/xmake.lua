@@ -58,7 +58,7 @@ end
 
 local function add_bgfx_renderer_config()
     if is_plat("windows") then
-        add_defines("BGFX_CONFIG_RENDERER_DIRECT3D11=1")
+        add_defines("BGFX_CONFIG_RENDERER_DIRECT3D11=1", "BGFX_CONFIG_RENDERER_OPENGL=33")
     elseif is_plat("android") then
         add_defines("BGFX_CONFIG_RENDERER_OPENGLES=30")
     elseif is_plat("linux") and is_arch("arm64", "aarch64") then
@@ -670,7 +670,14 @@ local function add_bgfx_sources()
         add_files(table.unpack(resolve_sources(BGFX_DIR, bgfx_windows_src)))
     end
     if is_plat("macosx", "iphoneos") then
-        add_files(table.unpack(resolve_sources(BGFX_DIR, bgfx_macos_src)))
+        for _, source in ipairs(bgfx_macos_src) do
+            local config
+            if is_plat("macosx") and source == "src/renderer_mtl.mm"
+                and os.getenv("DORA_BUILD_LIBGODOT_METAL_PROBE") == "1" then
+                config = {defines = {"DORA_LIBGODOT_METAL_PROBE=1"}}
+            end
+            add_files(path.join(BGFX_DIR, source), config)
+        end
         add_mxxflags("-fno-objc-arc", {force = true})
     end
 end
@@ -938,51 +945,23 @@ target("glsl_optimizer")
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl")
     )
 
-    -- 在 Windows 上所有 C 文件都用 C++ 模式编译
-    -- MSVC C 编译器不支持 void* 隐式转换
+    -- Keep the C entry points used by the optimizer's C++ translation units.
+    -- Compiling these as C++ on Windows mangles glcpp/mesa symbol names.
     if is_plat("windows") then
-        -- glcpp 预处理器 (C 文件，用 C++ 编译)
-        add_files(
-            path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/glcpp-lex.c"),
-            path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/glcpp-parse.c"),
-            path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/pp.c"),
-            {sourcekind = "cxx"}
-        )
-        -- strtod.c (用 C++ 编译)
-        add_files(
-            path.join(GLSL_OPTIMIZER_DIR, "src/glsl/strtod.c"),
-            {sourcekind = "cxx"}
-        )
-        -- mesa 支持 (C 文件，用 C++ 编译)
-        add_files(
-            path.join(GLSL_OPTIMIZER_DIR, "src/mesa/main/imports.c"),
-            path.join(GLSL_OPTIMIZER_DIR, "src/mesa/program/prog_hash_table.c"),
-            path.join(GLSL_OPTIMIZER_DIR, "src/mesa/program/symbol_table.c"),
-            path.join(GLSL_OPTIMIZER_DIR, "src/util/hash_table.c"),
-            path.join(GLSL_OPTIMIZER_DIR, "src/util/ralloc.c"),
-            {sourcekind = "cxx"}
-        )
-    else
-        -- glcpp 预处理器 (C 文件)
-        add_files(
-            path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/glcpp-lex.c"),
-            path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/glcpp-parse.c"),
-            path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/pp.c")
-        )
-        -- strtod.c
-        add_files(
-            path.join(GLSL_OPTIMIZER_DIR, "src/glsl/strtod.c")
-        )
-        -- mesa 支持 (C 文件)
-        add_files(
-            path.join(GLSL_OPTIMIZER_DIR, "src/mesa/main/imports.c"),
-            path.join(GLSL_OPTIMIZER_DIR, "src/mesa/program/prog_hash_table.c"),
-            path.join(GLSL_OPTIMIZER_DIR, "src/mesa/program/symbol_table.c"),
-            path.join(GLSL_OPTIMIZER_DIR, "src/util/hash_table.c"),
-            path.join(GLSL_OPTIMIZER_DIR, "src/util/ralloc.c")
-        )
+        set_languages("c11", CXX_LANGUAGE_STANDARD)
     end
-    
+    add_files(
+        path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/glcpp-lex.c"),
+        path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/glcpp-parse.c"),
+        path.join(GLSL_OPTIMIZER_DIR, "src/glsl/glcpp/pp.c"),
+        path.join(GLSL_OPTIMIZER_DIR, "src/glsl/strtod.c"),
+        path.join(GLSL_OPTIMIZER_DIR, "src/mesa/main/imports.c"),
+        path.join(GLSL_OPTIMIZER_DIR, "src/mesa/program/prog_hash_table.c"),
+        path.join(GLSL_OPTIMIZER_DIR, "src/mesa/program/symbol_table.c"),
+        path.join(GLSL_OPTIMIZER_DIR, "src/util/hash_table.c"),
+        path.join(GLSL_OPTIMIZER_DIR, "src/util/ralloc.c")
+    )
+
     -- glsl 优化器核心 (C++ 文件)
     add_files(
         path.join(GLSL_OPTIMIZER_DIR, "src/glsl/ast_array_index.cpp"),
@@ -1122,11 +1101,11 @@ target("shaderc-lib")
         add_defines(
             "SHADERC_CONFIG_CLI=0",
             "SHADERC_CONFIG_HLSL=1",
-            "SHADERC_CONFIG_GLSL=0",
+            "SHADERC_CONFIG_GLSL=1",
             "SHADERC_CONFIG_METAL=0",
             "SHADERC_CONFIG_SPIRV=0"
         )
-        add_deps("bx", "fcpp")
+        add_deps("bx", "fcpp", "glsl_optimizer")
     elseif is_plat("macosx", "iphoneos") then
         add_defines(
             "SHADERC_CONFIG_CLI=0",

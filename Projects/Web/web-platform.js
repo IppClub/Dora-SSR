@@ -28,14 +28,93 @@ SOFTWARE. */
 	const activePointers = new Map();
 	const pendingInputs = new Set();
 	let active = true;
+	let engineReady = false;
 	let suspended = false;
 	let audioUnlocked = false;
+	let imeInput = null;
+	let imeComposing = false;
+	let imeSkipCommit = "";
 	const warnedFeatures = new Set();
 	function warnOptional(feature, error) {
 		if (warnedFeatures.has(feature)) return;
 		warnedFeatures.add(feature);
 		console.warn("[DoraWeb] Optional " + feature + " failed; continuing without this operation:", error);
 	}
+
+	function callEngine(name, resultType, argumentTypes = [], arguments_ = []) {
+		if (!engineReady) return undefined;
+		return module.ccall?.(name, resultType, argumentTypes, arguments_);
+	}
+
+	function sendIMEText(value) {
+		if (!engineReady || !value) return false;
+		const encoder = new TextEncoder();
+		let chunk = "", sent = false;
+		for (const character of value) {
+			if (chunk && encoder.encode(chunk + character).length >= 32) {
+				sent = Boolean(callEngine("dora_web_text_input", "number", ["string"], [chunk])) || sent;
+				chunk = "";
+			}
+			if (encoder.encode(character).length >= 32) continue;
+			chunk += character;
+		}
+		if (chunk) sent = Boolean(callEngine("dora_web_text_input", "number", ["string"], [chunk])) || sent;
+		return sent;
+	}
+
+	function ensureIMEInput() {
+		if (imeInput || !global.document?.body) return imeInput;
+		imeInput = global.document.createElement("textarea");
+		imeInput.id = "dora-ime-input";
+		imeInput.setAttribute("aria-label", "Game text input");
+		imeInput.autocapitalize = "off"; imeInput.autocomplete = "off"; imeInput.spellcheck = false;
+		Object.assign(imeInput.style, {position: "fixed", left: "0px", top: "0px", width: "1px", height: "1px", opacity: "0.01", padding: "0", border: "0", zIndex: "-1"});
+		listen(imeInput, "compositionstart", () => { imeComposing = true; imeSkipCommit = ""; });
+		listen(imeInput, "compositionupdate", event => {
+			const text = event.data || "";
+			if (new TextEncoder().encode(text).length < 32)
+				callEngine("dora_web_text_editing", "number", ["string", "number", "number"], [text, 0, Array.from(text).length]);
+		});
+		listen(imeInput, "compositionend", event => {
+			imeComposing = false; imeSkipCommit = event.data || ""; sendIMEText(imeSkipCommit); imeInput.value = "";
+		});
+		listen(imeInput, "input", event => {
+			if (imeComposing) return;
+			const text = event.data || imeInput.value;
+			if (imeSkipCommit && text === imeSkipCommit) imeSkipCommit = "";
+			else sendIMEText(text);
+			imeInput.value = "";
+		});
+		// SDL's keypress path would duplicate textarea input. Keep keydown/up for
+		// shortcuts and modifier state while leaving the browser's default edit.
+		listen(global, "keypress", event => { if (event.target === imeInput) event.stopImmediatePropagation(); }, true);
+		global.document.body.appendChild(imeInput);
+		return imeInput;
+	}
+
+	function setIMEActive(value, focus = true) {
+		const input = ensureIMEInput();
+		if (!input) return false;
+		input.disabled = !value;
+		if (value && focus) input.focus({preventScroll: true});
+		else if (!value && global.document.activeElement === input) canvas?.focus?.({preventScroll: true});
+		return true;
+	}
+
+	function setIMEPosition(x, y) {
+		const input = ensureIMEInput(); if (!input) return false;
+		input.style.left = `${Math.max(0, Number(x) || 0)}px`;
+		input.style.top = `${Math.max(0, Number(y) || 0)}px`;
+		return true;
+	}
+	// Browser blur/visibility events can occur while preRun is downloading assets.
+	// Only enter native code after main has initialized the engine.
+	const previousPostRun = module.postRun;
+	module.postRun = [...(Array.isArray(previousPostRun) ? previousPostRun : previousPostRun ? [previousPostRun] : []), () => {
+		if (!active) return;
+		engineReady = true;
+		if (suspended) callEngine("dora_web_set_suspended", "number", ["number"], [1]);
+	}];
 
 	function listen(target, type, handler, options) {
 		if (!target?.addEventListener) return;
@@ -108,7 +187,7 @@ SOFTWARE. */
 			(canvas || global).dispatchEvent(event);
 		}
 		activePointers.clear();
-		if (notifyEngine) module.ccall?.("dora_web_release_input", null, [], []);
+		if (notifyEngine) callEngine("dora_web_release_input", null);
 		if (global.document?.pointerLockElement === canvas) global.document.exitPointerLock?.();
 		global.dispatchEvent?.(new CustomEvent("dora-inputrelease", {detail: {reason}}));
 	}
@@ -117,13 +196,13 @@ SOFTWARE. */
 		if (!active) return {suspended: true, audioState: "disposed"};
 		const next = Boolean(value);
 		if (next === suspended) {
-			const engineFrame = module.ccall?.("dora_web_set_suspended", "number", ["number"], [next ? 1 : 0]);
+			const engineFrame = callEngine("dora_web_set_suspended", "number", ["number"], [next ? 1 : 0]);
 			return {suspended, audioState: audioContext()?.state || "unavailable", engineFrame};
 		}
 		if (next) releaseInput(reason);
 		suspended = next;
 		module.doraAudio?.setSuspended(suspended);
-		const engineFrame = module.ccall?.("dora_web_set_suspended", "number", ["number"], [suspended ? 1 : 0]);
+		const engineFrame = callEngine("dora_web_set_suspended", "number", ["number"], [suspended ? 1 : 0]);
 		const context = audioContext();
 		const workletContext = module.doraAudio?.context;
 		if (workletContext && workletContext.state !== "closed") {
@@ -214,7 +293,9 @@ SOFTWARE. */
 		if (!active) return false;
 		active = false;
 		releaseInput("dispose", notifyEngine);
+		engineReady = false;
 		for (const remove of listeners.splice(0)) remove();
+		imeInput?.remove(); imeInput = null;
 		for (const cancel of [...pendingInputs]) cancel();
 		cancelAudioCallback();
 		module.doraAudio?.dispose();
@@ -249,14 +330,22 @@ SOFTWARE. */
 			clientY: event.clientY,
 		});
 	}, true);
-	listen(canvas, "pointerup", (event) => activePointers.delete(event.pointerId), true);
+	listen(canvas, "pointerup", (event) => {
+		activePointers.delete(event.pointerId);
+		// A canvas click transfers DOM focus away from the hidden text control.
+		// Restore it while Godot still owns IME; a subsequent Godot focus change
+		// disables the control through setIMEActive(false).
+		if (imeInput && !imeInput.disabled) imeInput.focus({preventScroll: true});
+	}, true);
 	listen(canvas, "pointercancel", (event) => activePointers.delete(event.pointerId), true);
 	listen(global, "blur", () => releaseInput("blur"));
 	listen(global.document, "visibilitychange", () => void setSuspended(global.document.hidden, "visibility"));
 	// Fault notifications can arrive while the runtime is aborted or its worker
 	// is synchronously waiting on this page. Cleanup must not re-enter Wasm.
 	listen(global, "dora-statechange", (event) => {
-		if (event.detail?.state === "faulted") dispose({notifyEngine: false});
+		if (event.detail?.state === "faulted" || event.detail?.state === "stopped") {
+			dispose({notifyEngine: false});
+		}
 	});
 
 	const probe = global.document?.createElement("audio");
@@ -286,6 +375,8 @@ SOFTWARE. */
 		writeClipboard,
 		readClipboard,
 		requestPointerLock,
+		setIMEActive,
+		setIMEPosition,
 		cancelAudioCallback,
 		dispose,
 		get state() {
