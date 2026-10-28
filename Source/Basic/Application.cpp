@@ -49,6 +49,7 @@ void activateGuiWindowMac(SDL_Window* window);
 #include "bx/timer.h"
 
 #if BX_PLATFORM_EMSCRIPTEN
+#include "Web/WebTaskQueue.h"
 #include <emscripten/emscripten.h>
 #include <emscripten/html5.h>
 #endif
@@ -1232,6 +1233,7 @@ int Application::run(MainFunc mainFunc) {
 #if BX_PLATFORM_EMSCRIPTEN
 	_logicThreadID = std::this_thread::get_id();
 	if (!SharedBGFX.init(_platformData)) {
+		Web::stopTaskQueue();
 		setWebRuntimeState("faulted", "Failed to initialize the Web renderer");
 		Error("bgfx failed to initialize!");
 		SDL_DestroyWindow(_sdlWindow);
@@ -1250,6 +1252,8 @@ int Application::run(MainFunc mainFunc) {
 	});
 	SharedPoolManager.push();
 	if (!SharedDirector.init() || (_mainFunc && !_mainFunc())) {
+		// Drop queued captures with both the startup pool and GPU still alive.
+		Web::stopTaskQueue();
 		SharedPoolManager.pop();
 		setWebRuntimeState("faulted", "Failed to initialize the Web runtime");
 		Error("Failed to initialize the Web runtime");
@@ -1717,6 +1721,7 @@ void Application::runEmscriptenFrame() {
 		makeTimeNow();
 	}
 	if (!_logicRunning || !_renderRunning) {
+		Web::stopTaskQueue();
 		if (Singleton<BGFXDora>::isInitialized()) Life::destroy("BGFXDora"_slice);
 		if (_sdlWindow) {
 			SDL_DestroyWindow(_sdlWindow);
@@ -2580,6 +2585,11 @@ int runGuiApplication() {
 	if (metalProbe) exitCode = dora_libgodot_metal_probe_finish();
 #else
 	int exitCode = SharedApplication.run();
+#endif
+#if BX_PLATFORM_EMSCRIPTEN
+	// Failed startup returns instead of entering the browser main loop. Cancel
+	// queued callbacks before PoolManager and other engine singletons disappear.
+	Dora::Web::stopTaskQueue();
 #endif
 	Dora::Life::destroy(Slice::Empty);
 #if (BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX) && !defined(DORA_AS_LIB)

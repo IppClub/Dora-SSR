@@ -1889,6 +1889,18 @@ real Home/resume surface recreation, ordinary APK build/package inspection).
 
 ## 2026-10-29 tracking checkpoint archive
 
+2026-10-29 Web故障清理实修：先复查现有失败包并获取完整wasm符号堆栈，确认drainOneTask在主入口返回/Life销毁后仍调用PoolManager::push导致越界。首次临时浏览器probe错误地只从console.error匹配Lua报错（实际记录为console.log中的[error]），保留failure.json后改为检查全部日志；旧包真实越界仍明确可见。独立plain-error旧包对照无排队任务时通过，加入print排队后的最小107字节fixture旧5881fded WASM稳定失败。不是原始浏览器只读赋值崩溃复现。
+
+增加WebTaskQueue.stopTaskQueue，启动失败时先在活动池/GPU存活期间清队列，普通退出/主入口返回幂等终止；晚到回调/新任务无操作。最终普通host4f1dfd0d...在三浏览器故障/普通生命周期通过，最终严格driver再验证无JS/Wasm/GL错误，输入/IME释放、音频context关闭；实际C++队列的外部/内部停止、捕获释放、后到回调CPU测试通过并接入protocol.sh。Web CI加入受控Lua print+error fixture及固定Playwright1.62.1 Chromium（npm元数据核实Node>=20），故障报告上传；actionlint与语法通过。
+
+Godot-enabled core Debug host重建为fda4fcc1c4144eb64122ac57cc912ec9e9677b46b2aa43ecc7eff9a5c29c4911，复用封存LibGodot WASM，三浏览器2/3/4矩阵5580帧/108PNG/990像素检查通过，GPU/PCM/pending=0、正常平台清理。第一轮自编驱动误给verify_node位置参数加--results，CLI退出2，实际case-2浏览器执行/图像未失败；三个旧failure.json与旧驱动保留，修正后校验既有case-2并继续新3/4用例，最终全部通过。没有重跑二缓冲掩盖失败、没有修改严格GPU校验器。task-stop-evidence/冻结源码、报告哈希、实际宿主/运行库哈希和图像哈希均核对。该构建来自主工作区（含无关Cache改动），不称纯候选构建。
+
+远程d60c48b现已观察Engine Tests/Windows/Linux完整工作流success，Godot协议Ubuntu/macOS成功，LinuxEGL主步骤仍在构建/测试；其他工作流继续跟踪。上述修复需要一个代码提交触发新CI，不把旧提交结果当作新修复通过；不因状态文档轮询单独推送。主工作区和真实索引仍保留无关改动。
+
+2026-10-29 远程推进：v5候选289文件、1334858字节，tree d9062744eead2c0065b5e430bcfdb773428f2e6c / patchSHA e45ae128f7f4c59b9800b93ea0a2eed9972cc4775379e153124829fa312032e9，Source相对v4无差异。临时索引应用/树检查通过，凭据形状字面量预检无命中（不等于完整安全审查），真实索引未变。远程main仍6a05611e，目标dev分支不存在；从候选tree用commit-tree生成d60c48b4e547e79ac67de02e4da75df3c8849622，仅创建dev/godot-runtime-integration分支并非强制推送，ls-remote核对一致；未切换主工作区HEAD，原文件/索引保留。publication.json保留提交与推送回执。
+
+GitHub连接确认IppClub/Dora-SSR写入权限后，通过连接工具创建draft PR159并立即attach_artifact，PR可合并但保持draft/未合并。触发12工作流，run列表保留godot-remote-ci-snapshot.json。Godot run40772555311：Ubuntu协议/包检查job123113307518 success；LinuxEGL job123113307056安装依赖中；macOS协议job123113307423 queued。其他工作流未终态，不能计为通过。first-jobs.json保留实际子job；不因工作流总体queued覆盖已运行子job。进展状态后续仅本地同步，避免每次文档状态推送导致取消并重启既有CI。初次保存快照脚本的btoa在编排环境不存在，尚未写文件即失败，改用结构化apply_patch成功保存，未重发创建PR或推送。
+
 2026-10-29 v4 Linux整套CI结束：bootstrap72659/worker72666及宿主session89158正常退出0，聚合769.982秒、build_skipped=false且复用编译缓存。测试宿主重建53.309秒、普通宿主17.647秒；实际测试宿主51ff851eff3d8f487746736493b4e876b04863d04d5570a728bf86e8ee1d5d1b、普通宿主541089e0a32bfdce494647ab37ab0f4122714d96e974844ef988c25a1b795110、LibGodot6997eb3c...。包括失败退出/恢复、2/3/4矩阵3000帧、100循环及普通宿主项目边界/随包/缺库。环境仍UbuntuARM64 VM/Mesa llvmpipe，不是物理GPU或远程CI。
 
 导出归档98294cc99868c28c45961660f70a8caf0ae6aaecea692778875731c1e55cfa87，117606985字节，606文件逐项SHA通过，实际三个原生产物映射匹配。369独立原生PNG；冻结严格校验器在宿主离线复验矩阵2/3/4、恢复阶段及100轮通过，普通用例保留原生报告和完整性证据，无额外原生运行。目录build/godot-linux-ci-local/ci-candidate-v4-export/。本轮过滤明确排除test-assets/assets/Assets及重复DLL/宿主，避免前轮metadata描述过宽；源HTTPsession16954与客体导出PID76537均停止。源码archive按.gitattributes生成，123项行尾转换已独立证明，无代码差异。

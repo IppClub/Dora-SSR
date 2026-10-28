@@ -40,6 +40,7 @@ jobs:
           path: |
             build/godot-runtime/protocol/verification.json
             build/godot-runtime/protocol/embedded-shader.json
+            build/godot-runtime/protocol/web-task-queue/verification.json
           if-no-files-found: warn
 
   linux-egl:

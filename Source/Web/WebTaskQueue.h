@@ -27,5 +27,8 @@ namespace Dora::Web {
 
 void postTask(std::function<void()> task);
 size_t pendingTaskCount();
+// Final runtime teardown: release queued captures while engine objects live.
+// Already scheduled callbacks become no-ops; this module requires a reload.
+void stopTaskQueue();
 
 } // namespace Dora::Web

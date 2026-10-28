@@ -6,6 +6,24 @@
 
 本文件维护当前结论、产品决策与待办；逐轮实验和失败记录见 [PLAN.md](PLAN.md)，构建与使用方法见 [README.md](README.md)。报告路径均相对于仓库根目录，build/ 中的本地证据不保证随源码分发。
 
+## 当前远程审查与 CI
+
+已建立并关联草稿PR [#159](https://github.com/IppClub/Dora-SSR/pull/159)，分支 `dev/godot-runtime-integration`，提交 `d60c48b4e547e79ac67de02e4da75df3c8849622`；已用git ls-remote核对远程提交。v5 tree `d9062744eead2c0065b5e430bcfdb773428f2e6c`，289文件，补丁1334858字节/SHA256 `e45ae128f7f4c59b9800b93ea0a2eed9972cc4775379e153124829fa312032e9`，Source与v4无差异。提交从独立临时树生成，主分支HEAD、工作区及真实索引保持原状，15个无关文件与5个共享接口中的无关片段未纳入。
+
+已触发12个远程工作流，具体run句柄保存在 `build/godot-runtime/godot-remote-ci-snapshot.json`。Godot Integration [run 40772555311](https://github.com/IppClub/Dora-SSR/actions/runs/40772555311)：Ubuntu协议/包校验job123113307518已success；Linux EGL job123113307056正在安装构建依赖，编译/GPU阶段尚未通过；macOS协议job123113307423排队。最新已观察Engine Tests、Windows、Linux工作流success，Godot的macOS协议job也success；其他工作流尚未取得终态，不能计为通过。PR为draft、未合并；本轮仅观察现有run，不重新触发或合并。后续先取实际终态与失败日志，再修复或归档。工作流总状态与子job可能不同，以上逐job状态以first-jobs.json记录为准。
+
+本节是当前状态入口；下文“未提交/未推送/远程未执行”属于候选与本地实验的历史检查点。进展文档后续更新先保留在本地，不为状态变化反复推送，以免取消并重启正在运行的CI。
+
+### Web 清理修复的本地验收
+
+实际复现：Lua先print排入异步日志、再主动error，旧普通host WASM `5881fded...`在faulted后继续执行WebTaskQueue::drainOneTask→PoolManager::push，访问已销毁池而越界；旧包报告bootstrap-fault-pending-red/verification.json为false并保留完整堆栈。仅error且无排队任务的对照旧包会通过，不能宣称所有Lua错误都会崩溃，也不是浏览器只读属性赋值错误的复现。
+
+现增加最终stopTaskQueue：在启动失败的活动池/GPU仍存活时释放排队捕获，正常停止和主入口返回时也幂等停止，晚到回调不再访问引擎对象。最终普通host WASM `4f1dfd0d350537e856138af5c1234afaf816a55a0e3f53b028cabd348916a6de`的Chrome/Firefox/Playwright WebKit故障与普通启动/停止均通过；严格故障用例无JS/Wasm越界、无GL错误，输入/IME清理且音频context关闭。CPU真实队列测试与整套协议也通过，见protocol-web-task-stop/及build/godot-web/task-stop-evidence/verification.json。
+
+含Godot的core Debug宿主也已重建，WASM `fda4fcc1c4144eb64122ac57cc912ec9e9677b46b2aa43ecc7eff9a5c29c4911`：三浏览器2/3/4矩阵5580帧/108截图/990像素检查通过，GPU错误/PCM欠载/pending=0、平台退出清理通过，报告build/godot-web/task-stop-godot-matrix-{chromium,firefox,webkit}/verification.json。复用封存LibGodot WASM，来自当前工作区，不称为纯PR源码/Release构建。第一轮仅因自编驱动给位置参数误加--results而停在verifier CLI（exit2），原始case-2实际执行通过；保留failure-before-cli-correction.json及旧驱动，修正后对原case-2图像离线严格校验，再实际执行3/4，没有重跑二缓冲或放宽校验。
+
+新增CPU检查、可复用Lua故障fixture/浏览器driver，以及Web CI的Chromium真实失败清理步骤，actionlint/脚本语法通过。该修复的远程验收须依据包含此变更的提交及新CI。新CI与旧d60c48b提交结果分别记录，不能把旧轮通过当作新修复通过。
+
 ## 当前结论
 
 Godot 4.6 运行时已嵌入 Dora 进程，持续动画可经共享 GPU 纹理、有界多缓冲和同步显示在 GodotNode 中。macOS 有原生 Metal 运行证据；Windows、Linux、Android 有虚拟机/模拟器范围的运行证据；Chrome、Firefox、Playwright WebKit 已通过 WebGL2 回归。
@@ -18,7 +36,7 @@ Godot 4.6 运行时已嵌入 Dora 进程，持续动画可经共享 GPU 纹理�
 - **核心路径已打通：** LibGodot 在 Dora 进程内运行，离屏 GPU 纹理显示到节点；持续动画、2/3/4 缓冲和同步已有实际运行报告。
 - **macOS 验证最完整：** 优化 Release 组合持续运行 38.36 分钟通过；同进程 100 轮创建/销毁通过，所测 Metal 分配量无增长。其他平台的证据范围见下表。
 - **iOS 当前只通过兼容边界：** Apple2 模拟器中普通 Dora 动画正常，Godot 安全拒绝；Apple4+ 真机的正向共享渲染仍未验证。
-- **下一步优先：** 审查包含三语言错误面测试的 v5 候选并启动远程 CI；v4 核心源码的 macOS/Linux 完整本地证据已归档复核；收口绑定错误面与公开 API 一致性，补真实浏览器、设备恢复和发布打包。需要真机的项目单独等待设备与签名，不以模拟器结果代替。
+- **下一步优先：** 跟进草稿PR #159的实际远程CI终态与失败日志；v4核心源码的macOS/Linux完整本地证据已归档复核；收口绑定错误面与公开 API 一致性，补真实浏览器、设备恢复和发布打包。需要真机的项目单独等待设备与签名，不以模拟器结果代替。
 
 ## 产品决策
 
@@ -192,7 +210,7 @@ BIND-01 C# 同组续验通过：`build/godot-bindings-constructor-rejections-csh
 
 | 顺序 | 对应任务 | 下一项具体工作 | 完成判据 / 外部条件 |
 | --- | --- | --- | --- |
-| 1 | CI-01、RUNTIME-01 | 审查v5候选并推进远程 CI | 前版Linux证据已导出复核；v4 macOS/Linux本地回归和导出复核均通过；三语言错误面已补，待独立远程 run ID及结果 |
+| 1 | CI-01、RUNTIME-01 | 跟进PR #159远程CI，按失败日志修复并归档 | 前版Linux证据已导出复核；v4 macOS/Linux本地回归和导出复核均通过；三语言错误面已补，已有Godot远程run40772555311；待全部job终态和产物核验 |
 | 2 | BIND-01 | 补绑定错误面、公开 API 一致性及其余平台覆盖 | Windows 新查询双生命周期已通过；继续核对各语言声明/生成结果与错误行为 |
 | 3 | WEB-01/02、AUDIO-01 | 真实 Safari、复杂混音与长期音频；追查 Android 软件渲染欠载 | Safari 自动化设置等待已提出的权限确认；真实设备另需准备，旧欠载不能因未复现而关闭 |
 | 4 | IOS-02、HW-01 | Apple4+ iOS 正向共享及其他物理硬件矩阵 | iOS 需开发者模式真机与有效签名；验证 2/3/4 缓冲、动画、前后台、触摸、音频及排空 |

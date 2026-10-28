@@ -289,6 +289,20 @@ Linux ARM64 已通过完整 GodotNode 720 帧测试及导入资源 PCK 测试。
 
 `build_linux_runtime.sh` 和 macOS 构建脚本会生成带上游 MIT 许可、第三方 notices 与二进制校验清单的 `package/` 目录。清单仅记录开发构建产物，不能替代平台运行验证。
 
+## Web 启动失败与队列清理
+
+Web最终停止（含启动失败）会先停止WebTaskQueue并释放排队捕获，再销毁自动释放池/GPU。已安排的回调随后为空操作，停止后不接受新任务；重新启动须创建新Module/重载页面。该路径不提供原地context恢复。
+
+`tests/web/task_queue_stop.py --output <directory>`用实际C++队列与确定性调度器检查外部停止、任务内部停止、捕获释放及晚到回调；已接入protocol.sh，不代表GPU执行。
+
+真实浏览器回归使用`tests/web/bootstrap_failure.lua`作为测试包init.lua：先排入日志任务再主动报错。复制普通Player到独立输出目录，使用`Projects/xmake/tools/web/package_web_game.mjs`打包该脚本，然后运行：
+
+```sh
+DORA_PLAYWRIGHT_MODULE=/absolute/path/to/node_modules/playwright node Tools/Godot/tests/web/run_bootstrap_failure.cjs /path/to/failure-player /path/to/fresh-results
+```
+
+依赖Playwright1.62.1（Node>=20）及浏览器；`DORA_BROWSER_ENGINE`可选chromium/firefox/webkit。脚本要求预期Lua错误、faulted状态、已释放输入/IME服务、无Wasm/JS异常或GL错误。Linux Web CI会安装Chromium并在真实Player上执行此项；只有该job实际通过才记为远程通过。该故障用例本身不证明Godot GPU输出，正常共享输出仍须另外运行node矩阵。
+
 ## Rust / Wa / C# 绑定
 
 节点接口也通过 Dora 的生成绑定提供给 Rust、Wa 和 C#。Rust 使用
