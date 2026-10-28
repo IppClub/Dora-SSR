@@ -3,6 +3,20 @@ assert(D.Director:beginGameCapture(), "Begin capture scope")
 local node, frame, waiting, pending = nil, 0, 0, false
 local aliases = {}
 local captures = { [15]="preboot", [55]="animated", [100]="key", [150]="paused", [170]="paused-again", [210]="resumed", [270]="restart", [350]="resize", [420]="aliases", [490]="removed", [500]="removed-again", [570]="recreated" }
+-- Acceptance coordinates are in the 1280x720 capture, while native Safari
+-- can expose a backing view twice that size. Scale geometry, not GPU pixels.
+local function layout()
+    local view = D.View.size
+    local factor = view.width / 1280
+    if node then node.scaleX, node.scaleY = factor, factor end
+    for index, alias in ipairs(aliases) do
+        alias.scaleX, alias.scaleY = 0.25 * factor, 0.25 * factor
+        alias.x, alias.y = -480 * factor, (index - 2) * 110 * factor
+    end
+    if frame == 15 then
+        print("DORA_WEB_LAYOUT view=" .. view.width .. "x" .. view.height .. " factor=" .. factor)
+    end
+end
 local function create()
     node = assert(D.GodotNode("/game/godot", "", 640, 360, 3), "GodotNode constructor")
     node:pause()
@@ -56,6 +70,7 @@ controller:schedule(function()
     if frame == 450 then node:removeFromParent(); node = nil end
     if frame == 510 then create() end
     if frame == 535 then node:resume() end
+    layout()
     local name = captures[frame]
     if name then
         pending = true

@@ -31,6 +31,9 @@ public:
     void sendKey(String name, bool pressed);
     void sendText(String text);
     static void shutdownRuntime(); // Application render thread, after bgfx drain.
+    // Once a session is accepted, process exit must drain the runtime even if
+    // its node has already been removed. Thread-safe; does not load the library.
+    static bool requiresRuntimeShutdown() noexcept;
     // GPU/backend capability only; does not load or validate the runtime library.
     static std::string getUnsupportedReason();
     static GodotNode *create(String projectPath, String sceneFile = Slice::Empty, int width = 640, int height = 360, int buffers = 3);

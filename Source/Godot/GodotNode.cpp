@@ -8,6 +8,7 @@
 #include "Effect/Effect.h"
 #include "Input/TouchDispather.h"
 #include "Input/Keyboard.h"
+#include <atomic>
 
 NS_DORA_BEGIN
 #if BX_PLATFORM_OSX || BX_PLATFORM_IOS
@@ -19,6 +20,7 @@ std::shared_ptr<GodotSession> createGodotGLSession(GodotNode *node);
 void shutdownGodotGLRuntime();
 #endif
 namespace {
+std::atomic<bool> runtimeShutdownRequired{false};
 bool validateGodotProject(std::string &project, int width, int height, int buffers) {
     if (width < 1 || height < 1 || width > 8192 || height > 8192 || buffers < 2 || buffers > DORA_GODOT_MAX_BUFFERS) {
         Error("GodotNode: invalid viewport dimensions or buffer count"); return false;
@@ -126,6 +128,7 @@ vec4 a_color0 : COLOR0;
     setEffect(effect);
     setBlendFunc(BlendFunc{BlendFunc::One,BlendFunc::InvSrcAlpha,BlendFunc::One,BlendFunc::InvSrcAlpha});
     if (!_session || !_session->start(_project, _scene, _pixelWidth, _pixelHeight, _buffers)) return false;
+    runtimeShutdownRequired.store(true, std::memory_order_release);
     setSize({static_cast<float>(_pixelWidth), static_cast<float>(_pixelHeight)});
     setupInput(); scheduleUpdate();
     initialized=true;
@@ -264,6 +267,9 @@ void GodotSession::releaseIME() {
         if (auto *target=node()) target->detachIME();
     }
     _imeAttached=false;
+}
+bool GodotNode::requiresRuntimeShutdown() noexcept {
+    return runtimeShutdownRequired.load(std::memory_order_acquire);
 }
 void GodotNode::shutdownRuntime() {
 #if BX_PLATFORM_OSX || BX_PLATFORM_IOS

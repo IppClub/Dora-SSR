@@ -11,8 +11,10 @@ if(!Number.isFinite(audioOutputSeconds)||audioOutputSeconds<0.5||audioOutputSeco
 if(audioDurationIndex>=0&&!process.argv.includes('--audio-output'))throw Error('--audio-output-seconds requires --audio-output');
 for(let i=4;i<process.argv.length;i++){
  if(process.argv[i]==='--audio-output-seconds'){i++;continue;}
- if(!['--ordinary','--audio-output','--suspend'].includes(process.argv[i]))throw Error('Unknown node acceptance option: '+process.argv[i]);
+ if(!['--ordinary','--audio-output','--suspend','--active-stop'].includes(process.argv[i]))throw Error('Unknown node acceptance option: '+process.argv[i]);
 }
+const activeStopMode=process.argv.includes('--active-stop');
+if(activeStopMode&&['--ordinary','--audio-output','--suspend'].some(flag=>process.argv.includes(flag)))throw Error('--active-stop must run independently');
 fs.mkdirSync(output,{recursive:true});
 for(const name of ['execution.json','verification.json','audio-output.json'])fs.rmSync(path.join(output,name),{force:true});
 // Shared build directories can be repackaged by other tests. Fail before opening
@@ -25,7 +27,7 @@ if(!process.argv.includes('--ordinary')){
  const file=path.resolve(directory,'.'+url.pathname);
  if(!file.startsWith(directory+path.sep))throw new Error('Invalid fixture path');
  const content=fs.readFileSync(file);
- if(crypto.createHash('sha256').update(content).digest('hex')!==entry.sha256 || !content.includes(Buffer.from('DORA_WEB_NODE_DONE')))
+ if(crypto.createHash('sha256').update(content).digest('hex')!==entry.sha256 || !content.includes(Buffer.from(activeStopMode?'DORA_WEB_ACTIVE_STOP_READY':'DORA_WEB_NODE_DONE')))
   throw new Error('Package is not the expected GodotNode fixture; run prepare_node_game.py in an owned directory');
 }
 function digest(file){const hash=crypto.createHash('sha256'),fd=fs.openSync(file,'r'),buffer=Buffer.alloc(1024*1024);try{for(;;){const count=fs.readSync(fd,buffer,0,buffer.length,null);if(!count)break;hash.update(buffer.subarray(0,count));}}finally{fs.closeSync(fd);}return hash.digest('hex');}
@@ -62,6 +64,13 @@ const types={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript
   const ordinary=process.argv.includes('--ordinary');
   if(ordinary&&Object.keys(artifacts).some(name=>name.startsWith('godot/')))throw new Error('Ordinary Web package unexpectedly contains Godot runtime files');
   if(ordinary){await page.waitForFunction(()=>document.documentElement.dataset.doraState==='running',null,{timeout:60000});await page.waitForTimeout(250);done=true;}
+  let activeStop=null;
+  if(activeStopMode){
+   await page.waitForFunction(()=>document.documentElement.dataset.doraState==='running',null,{timeout:60000});
+   await page.mouse.click(5,5);
+   await page.waitForFunction(()=>Module.FS.analyzePath('/user/active-stop.json').exists,null,{timeout:60000});
+   done=true;
+  }
   let suspension=null;
   if(process.argv.includes('--audio-output')){
    await page.waitForFunction(()=>Module.FS.analyzePath('/user/animated.png').exists,null,{timeout:60000});
@@ -110,7 +119,15 @@ const types={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript
   while(!done&&Date.now()<deadline){await page.waitForTimeout(250);if(errors.some(error=>!error.startsWith('Blocking on the main thread is very dangerous')))throw new Error('Native/browser error during node test');lastState=await page.evaluate(()=>({state:document.documentElement.dataset.doraState,status:document.querySelector('#status-message')?.textContent,calledRun:Module.calledRun,runtimeReady:Boolean(Module.doraGodotRuntime),dependencies:Module.runDependencies}));if(lastState.state==='faulted')throw new Error('Dora runtime faulted');}
   if(!done)throw new Error('Dora GodotNode controller timeout');
   const renderer=await page.evaluate(()=>{const gl=Module.canvas.getContext('webgl2'),ext=gl.getExtension('WEBGL_debug_renderer_info');return ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER);});
-  await page.waitForTimeout(250);await page.evaluate(()=>Module.ccall('dora_web_stop','number',[],[]));
+  await page.waitForTimeout(250);
+  if(activeStopMode){
+   if(logs.some(value=>/GodotRuntime (client closed|shutdown):/.test(value)))throw Error('Godot client already closed before host stop');
+   activeStop=await page.evaluate(()=>{
+    const proof=JSON.parse(new TextDecoder().decode(Module.FS.readFile('/user/active-stop.json')));
+    if(!proof.running||proof.frame<120||proof.aliases!==proof.buffers)throw Error('Godot node/aliases not live at host stop');
+    Module.ccall('dora_web_stop','number',[],[]);return proof;
+   });
+  }else await page.evaluate(()=>Module.ccall('dora_web_stop','number',[],[]));
   await page.waitForFunction(()=>document.documentElement.dataset.doraState==='stopped',{timeout:15000});
   const teardown=await page.evaluate(async()=>{
    const state=Module.doraWebPlatform.state;
@@ -121,7 +138,7 @@ const types={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript
   if(teardown.state.active||teardown.dispose_again||teardown.ime_present)throw new Error('Web platform services remained active after stop');
   for(const capture of captures){const bytes=await page.evaluate(name=>Array.from(Module.FS.readFile('/user/'+name+'.png')),capture.name);fs.writeFileSync(path.join(output,capture.name+'.png'),Buffer.from(bytes));}
   const audio_metrics=await page.evaluate(()=>Module.doraTestAudioMetrics);
-  const result={artifacts,renderer,audio_metrics,suspension,teardown,godot_packaged:Object.keys(artifacts).some(name=>name.startsWith('godot/')),passed:audio_metrics.underruns.length===0&&!errors.some(error=>!error.startsWith('Blocking on the main thread is very dangerous'))&&!warnings.some(value=>/GL_INVALID|INVALID_OPERATION|INVALID_VALUE|INVALID_ENUM/.test(value)),scope:'Actual Dora GodotNode Web execution; pixel/image verification is a separate required step',controller_frames:ordinary?0:620,ordinary,captures,browser_engine:browserEngine,browser_headless:launch.headless,browser:await browser.version(),browser_errors:errors,browser_warnings:warnings,logs};
+  const result={artifacts,renderer,audio_metrics,suspension,teardown,active_stop:activeStop,godot_packaged:Object.keys(artifacts).some(name=>name.startsWith('godot/')),passed:audio_metrics.underruns.length===0&&!errors.some(error=>!error.startsWith('Blocking on the main thread is very dangerous'))&&!warnings.some(value=>/GL_INVALID|INVALID_OPERATION|INVALID_VALUE|INVALID_ENUM/.test(value)),scope:'Actual Dora GodotNode Web execution; pixel/image verification is a separate required step',controller_frames:activeStop?activeStop.frame:ordinary?0:620,ordinary,captures,browser_engine:browserEngine,browser_headless:launch.headless,browser:await browser.version(),browser_errors:errors,browser_warnings:warnings,logs};
   fs.writeFileSync(report,JSON.stringify(result,null,2)+'\n');if(!result.passed)process.exitCode=1;
  }catch(error){fs.writeFileSync(report,JSON.stringify({passed:false,error:String(error),browser_engine:browserEngine,browser:browserVersion,capabilities,lastState,artifacts,captures,browser_errors:errors,browser_warnings:warnings,logs},null,2)+'\n');throw error;}
  finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}

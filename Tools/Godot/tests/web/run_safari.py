@@ -13,10 +13,10 @@ p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('--package',type=Path,required=True)
 p.add_argument('--output',type=Path,required=True)
 p.add_argument('--buffers',type=int,choices=[2,3,4],required=True)
-p.add_argument('--driver-port',type=int,default=18748)
+p.add_argument('--driver-port',type=int,default=0,help='WebDriver port; 0 selects a fresh available port')
 a=p.parse_args();package=a.package.resolve();out=a.output.resolve()
 assert not out.exists(),'Use a fresh output directory'
-assert 1024<=a.driver_port<=65535
+assert a.driver_port==0 or 1024<=a.driver_port<=65535
 out.mkdir(parents=True);session=None;driver=None;server=None
 endpoint=f'http://127.0.0.1:{a.driver_port}'
 def digest(path):
@@ -67,9 +67,13 @@ try:
     started=time.monotonic()
     # Refuse an occupied port; never attach to another task's WebDriver service.
     import socket
-    with socket.socket() as probe:probe.bind(('127.0.0.1',a.driver_port))
+    with socket.socket() as probe:
+        probe.bind(('127.0.0.1',a.driver_port))
+        driver_port=probe.getsockname()[1]
+    endpoint=f'http://127.0.0.1:{driver_port}'
+    result['driver_port']=driver_port
     driver_log=(out/'driver.log').open('w')
-    driver=subprocess.Popen(['/usr/bin/safaridriver','-p',str(a.driver_port)],stdout=driver_log,stderr=subprocess.STDOUT)
+    driver=subprocess.Popen(['/usr/bin/safaridriver','-p',str(driver_port)],stdout=driver_log,stderr=subprocess.STDOUT)
     for _ in range(100):
         assert driver.poll() is None,'SafariDriver exited'
         try:request('GET','/status');break

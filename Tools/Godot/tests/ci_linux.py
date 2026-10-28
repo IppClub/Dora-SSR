@@ -89,7 +89,8 @@ try:
         ordinary_reports.append({'case':name,'report':str(case/'verification.json'),'captures':captures})
     source_hashes={str(path.relative_to(root)):digest(path) for folder in ('Source/Godot','Tools/Godot') for path in (root/folder).rglob('*') if path.is_file() and '__pycache__' not in path.parts and '.godot' not in path.parts}
     source_hashes.update({name:digest(root/name) for name in (
-        'Source/Node/Sprite.cpp','Source/3rdParty/bgfx/dora/BgfxEmbeddedShaders.hpp','Projects/xmake/engine.lua')})
+        'Source/Node/Sprite.cpp','Source/3rdParty/bgfx/dora/BgfxEmbeddedShaders.hpp','Projects/xmake/engine.lua',
+        'Source/Basic/Application.cpp','Source/Common/Debug.cpp','Projects/xmake/manifests/engine.lua')})
     (out/'sources.json').write_text(json.dumps(source_hashes,indent=2)+'\n')
     report.write_text(json.dumps({'passed':True,'scope':'Actual Linux EGL GodotNode GPU API execution, invalid-shader teardown/recovery, repeated clients and ordinary-host bundled/missing-library/project-boundary checks; renderer/CPU recorded, not a physical-GPU or distribution claim','system':platform.platform(),'machine':platform.machine(),'build_skipped':a.skip_build,'runtime_seconds':time.monotonic()-started,'artifacts':artifacts,'init_failure_reports':init_failure_reports,'cases':cases,'cycles_report':str(cycle/'verification.json'),'ordinary_reports':ordinary_reports,'github':{key:os.environ.get(key) for key in ('GITHUB_ACTIONS','GITHUB_REPOSITORY','GITHUB_SHA','GITHUB_RUN_ID')}},indent=2)+'\n')
     print('Linux CI EGL matrix, 100 cycles and ordinary-host regressions: PASS',flush=True)

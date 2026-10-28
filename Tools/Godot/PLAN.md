@@ -1889,6 +1889,10 @@ real Home/resume surface recreation, ordinary APK build/package inspection).
 
 ## 2026-10-29 tracking checkpoint archive
 
+2026-10-29 Web清理修复推送：从d60c48b独立临时索引只加入12路径（Source仅Application.cpp、WebTaskQueue.cpp/.h），tree3ebfee0c4436878258d75fff575240e7144e3359，补丁29846字节/SHA fd840e664b803581cfcd8f3b51106907497cde8ef23dd6688a73b558f1fcbcee；commit6c4b7fdc963dce85421e23349fd13a150e00638d，非强制推送并ls-remote核实。主HEAD仍6a05611e，工作区和真实索引保留；PR159正文按最终代码重写，保持draft/未合并。因为实际源代码修复触发新12轮CI，旧Godot40772555311被并发策略取消，不是观察超时后重启、不计为验收失败或通过；旧提交9个工作流success保留，Web/AppImage未终态。旧/新run列表分别冻结，当前以6c4b7fd为准。
+
+新Godot run40776123749：Ubuntu协议job123125908681 success，含新Web队列CPU测试；macOS协议123125908395 queued，LinuxEGL123125908694准备工具中，GPU未执行通过。新Web run40776123603含Chromium真实启动失败清理步骤，待终态。GitHub插件下载返回云端文件引用，需本机字节校验，使用已授权本机GitHub客户端下载artifact12854148925；未回显/保存签名下载URL。ZIP SHA8c09ac975002380b841bbff725c02727bc3d0de5c31a9357977624913d349bbb与服务digest一致，解包检查路径，协议/四格式shader/Web队列JSON均passed，队列源码SHA匹配提交blob。结果build/godot-remote-ci/6c4b7fd/protocol-ubuntu/download-verification.json。仅远程CPU契约，不是原生GPU证据。源CPP/测试/矩阵冻结在task-stop-evidence/，严格浏览器故障三项为final-strict-fault，普通生命周期三项与Godot矩阵5580帧/108图/990像素报告都复核哈希通过。
+
 2026-10-29 Web故障清理实修：先复查现有失败包并获取完整wasm符号堆栈，确认drainOneTask在主入口返回/Life销毁后仍调用PoolManager::push导致越界。首次临时浏览器probe错误地只从console.error匹配Lua报错（实际记录为console.log中的[error]），保留failure.json后改为检查全部日志；旧包真实越界仍明确可见。独立plain-error旧包对照无排队任务时通过，加入print排队后的最小107字节fixture旧5881fded WASM稳定失败。不是原始浏览器只读赋值崩溃复现。
 
 增加WebTaskQueue.stopTaskQueue，启动失败时先在活动池/GPU存活期间清队列，普通退出/主入口返回幂等终止；晚到回调/新任务无操作。最终普通host4f1dfd0d...在三浏览器故障/普通生命周期通过，最终严格driver再验证无JS/Wasm/GL错误，输入/IME释放、音频context关闭；实际C++队列的外部/内部停止、捕获释放、后到回调CPU测试通过并接入protocol.sh。Web CI加入受控Lua print+error fixture及固定Playwright1.62.1 Chromium（npm元数据核实Node>=20），故障报告上传；actionlint与语法通过。
@@ -2256,3 +2260,91 @@ test tools. Original soak host/runtime binaries were not changed.
 3. 完成 PKG-01，把实验运行库变成可复现的可选产物。
 4. 获取设备后执行 IOS-02、HW-01，并把结果写回平台矩阵。
 5. 依次推进 REC-01、INPUT-01、AUDIO-01 和 CI-01，再评估正式发布门槛。
+
+
+## 2026-10-29 用户确认硬件边界与本地跟踪整理
+
+用户确认继续采用 Dora Apple2 / Godot Apple4，并要求将进展和待办整理到本地文档。TRACKING.md 为当前交接入口；本节保留整理依据。
+
+本次只读核对 Application.mm 的 Apple2 与 GodotRuntimeMetal.mm 的 Apple4 检查，未修改硬件策略代码。TRACKING 顶部补充能力边界、进展/缺口摘要和最新活动节点停止测试证据，并修正 CI-01 的旧“远程 CI 未执行”表述：PR #159 已推送且远程流程已启动，最终状态仍需按同一提交刷新，不能用旧检查点冒充实时结果。本次未查询远程、未提交或推送。
+
+读取并确认 Web active-stop-strict-audit/verification.json：9 个实际浏览器用例、18 张原生截图、不同别名槽/动画/48000帧音调与排空检查通过，两个反例均被拒绝；这是既有运行的离线严格复核，不增加实际运行次数。当前工作区 Debug 宿主的范围已注明。读取 macOS active-stop-macos-3/execution.json：普通 Release 宿主保留活动节点及三个别名，frame142 时请求停止，8.4134秒、退出0、产物哈希记录通过；尚无独立严格图像/GPU汇总验收，不将其提升为完整通过。未启动新测试或重跑已有用例。
+
+后续顺序保持：远程 CI/产物与错误面 → 真浏览器/音频 → Apple4+ iOS 和其他真实硬件 → 恢复/输入/控制器 → 普通 Release 分发、复杂项目和统一性能基线。模拟器 Apple2 普通 Dora 与 Godot 安全拒绝已验证，Apple4+ 真机正向共享仍待开发者模式设备及有效签名。
+
+
+## 2026-10-29 普通 Release 活动节点退出缺口与修复
+
+上一轮整理跟踪文档属于进展。本轮按 CI-01/RUNTIME-01 刷新同一远程提交6c4b7fd的实际状态：10工作流success，iOS/Godot仍in_progress；Linux EGL job123125908694仍在同一构建/测试步骤，未因观察超时重启。macOS CPU协议、Web Ubuntu Chromium故障清理均success，下载产物12855288710/12855464163并比对GitHub digest、检查内容；源码队列SHA匹配提交。Web关闭音频/释放输入/IME且无pageerror，不作为GodotGPU验收。产物证据见TRACKING当前远程节。
+
+读取已结束的active-stop-macos-3原生用例：exit0而无最终GPU/PCM记录。公共严格verifier拒绝；图像离线条码检查通过并单独记录，execution.json保留其仅执行范围。实际代码定位普通NDEBUG SDL_QUIT分支std::_Exit，跳过引擎显式清理。修复在GodotNode会话start被接受后设置进程内atomic标记，Application仅对使用过Godot的进程执行正常清理。标记不因节点移除重置；普通Dora无Godot使用保留快速退出。未改Apple2/Apple4策略。
+
+为保护已审计v4源码/二进制，以APFS复制创建active-stop-native-source，只叠加上述三文件修改。首次准备脚本把工作目录误当根目录，嵌套路径失败而后续依赖构建仍启动，确认任务PID22971后SIGINT主动结束130；未运行任何原生用例。改为绝对根路径、先准备成功再独立构建；最终session37093退出0，155.703秒、使用缓存，源文件前后SHA与active-stop-source-delta.json一致。不是当前远程PR tree原样构建，也没有重编封存LibGodot。
+
+新增run_active_stop_macos.py/verify_active_stop_macos.py；与Web共用精确的条码图像校验模块active_stop_images.py。复用原Web原生case做单次离线校验通过，未重跑浏览器。三个新的macOS原生用例（session44025、27844均退出0）分别保留2/3/4槽别名和活动节点至公开App.shutdown，最终严格报告全部通过：produced/completed149/149、153/153、152/152；读者pending0/错误0、PCM欠载0、48000帧双声道音调439/659、Metal验证无错误、6截图动画与槽差异通过。完整清理日志出现Director/BGFX、Godot shutdown与Logger释放。
+
+随后run_ordinary_macos.py（session52557退出0）对新普通Release宿主执行随包与缺库两项，共4截图通过；节点先移除后仍走正常清理，缺库时普通Dora继续动画。Python/Pillow getdata弃用提示不属于运行时错误，未据此重跑或改产品。
+
+active-stop-fixed-evidence/verification.json完成产物、日志、报告和10截图证据审计，封存测试源文件；旧Release缺排空和篡改pending1均被拒绝且无残留成功报告。初版审计误将active-a图像键当作完整文件名，生成报告前失败；补.png后离线完成，没有重跑原生测试。原始失败/日志均保留。
+
+修复和本轮测试尚未提交或推送。当前远程CI仍属于6c4b7fd，不继承其绿色结果。下一步补GL/移动普通Release的活动退出与启动中退出覆盖，收口候选后再推送必要代码修复并跟踪新CI；现有运行中的Linux job继续观察。跨平台、真机、恢复和正式分发总目标保持未完成。
+
+
+## 2026-10-29 Linux NDEBUG Release 构建启动与 macOS 启动中退出
+
+上一轮实际Release修复/回归属于进展。本轮从TRACKING继续RUNTIME-01/CI-01/DIST-01：当前PR6c4b7fd远程iOS现success，合计11个工作流success，仅Godot Integration未终态；同一Linux EGL job123125908694仍在构建/测试主步骤，未重启。记录godot-remote-ci-6c4b7fd-linux-release-checkpoint.json。
+
+Linux VM e241815e仍running，task-owner.txt精确Dora-Godot-CI-20261029，旧本地测试/编译均已结束。发现Dora Linux target未启用mode.release规则，模式名不构成优化/NDEBUG证明；在Projects/xmake/engine.lua的Linux分支补mode.debug/mode.release。源码直接导出6c4b7fd归档SHA89c745457c601175906f80f1424caf900962892b6bc3667bd90b76ee686db790，独立新目录active-stop-release/repo叠加8文件overlay，未改旧v4目录源码。新run_active_stop_linux.py/verify_active_stop_linux.py保留相同条码/别名/排空校验，记录实际OpenGL渲染器；使用SDL dummy音频，不能计真实音频输出。
+
+磁盘实测仅991166464空闲，无法直接克隆旧6.6GiB构建树。确认无旧checkout活动进程、核对四个保护SHA后，只删除本任务可重建的build/.objs、build/runtime/cargo及Godot bin/obj；清理后空闲3687526400，旧运行库6997eb3c、测试宿主51ff851e、普通宿主541089e0、源归档9a014676均哈希不变。没有删源码、运行库包、可执行文件或失败/成功报告。清单active-stop-linux-cache-cleanup.json。探测ccache时工具不存在、直接prlctl传Python-c参数被其拼接机制拒绝均仅发生在只读预检；后续改脚本文件调用，无测试重跑。
+
+新bootstrap/session19119已完成准备并启动runuser86996、真实worker87000，xmake87070，/proc启动标记分别1489051/1489388且命令身份真实存活。编译命令已观察-O3/-DNDEBUG；尚未完整构建或运行矩阵。worker随后自动执行三缓冲优先，再二/四缓冲和普通应用随包/缺库两项，全部通过后才写聚合报告。progress中的child_exit_code0在build时是此前configure结果，不能当作完成证据。watch-export脚本/session34046仅观察原PID和启动计数，终态0后才调用完整源文件/包/产物/图像导出审计；不自动重启、终止原任务。回执active-stop-linux-handoff.json记录同一句柄和下一步。
+
+等待期间实际执行macOS普通Release启动中退出：run_early_stop_macos.py复制旧已通过退出修复的普通Release应用，创建节点后立即断言running=false、调用公开App.shutdown。session40074退出0；Godot在退出事件处理前随后启动，produced/completed2/2、readers4/4、pending/错误0、PCM4096/0/欠载0，完整Director/BGFX/Logger清理，无Metal验证错误。报告early-stop-fixed-macos/verification.json。这不是持续图像/设备丢失验收。
+
+新增可复用verify_early_stop.py对同一原日志做独立严格GPU/PCM复核和pending1反例，early-stop-macos-strict-audit/verification.json通过；属于离线复核、无额外原生运行。旧普通Release同fixture/session72612实际被新runner拒绝，failure.json为Engine cleanup must actually run；旧程序即使exit0也没有清理记录。失败原目录保留，无成功报告。README补充Linux活动退出与macOS启动中退出命令，脚本语法和所改文件diff空白检查通过。
+
+本轮修复/构建规则/测试尚未提交或推送。下一步收集同一Linux本地/远程终态；本地通过后核验自动导出内容，再补GL启动中退出与NDEBUG CI，Windows普通EXE模式也需独立核实。整体多平台、真实硬件、恢复和发布条件仍未完成。
+
+
+## 2026-10-29 Linux Release 原生与新CI入口通过、Safari授权后的认证门槛
+
+上一轮真实修复/构建启动及macOS测试属于进展。本轮持续观察相同worker87000/xmake87070；完成后session19119退出0，导出观察34046退出0，没有重启。Linux优化NDEBUG普通宿主实际构建871.017秒，5进程/10截图连构建共906.887秒。2/3/4矩阵生产/完成93/93、78/78、80/80，读者/GPU/PCM排空且错误/欠载/pending0；随包/缺库各2截图也通过。复用6997eb3c运行库，不称为重编Release LibGodot。VM/llvmpipe、SDL dummy边界保留。
+
+自动导出全源10734项、两符号链接、产物/包/日志/报告/10截图；84件文件50734528字节归档SHA805c46d42022d3dfa8b5c9df974dfa0b7122a19798c3941da946fa76c738b4cd。宿主完整核对，三个冻结verifier离线逐字节复现报告，active-stop-release-export/host-verification.json通过。此审计不增加原生执行次数。
+
+新增ci_linux_release.py、run_early_stop_linux.py，复用verify_early_stop.py；Godot工作流在Debug整套后增加优化Release回归和产物上传。默认构建/检查-O3与NDEBUG，另支持必须有完整源码/编译命令/二进制回执的显式prebuilt复现。actionlint/脚本语法通过。为避免改变第一轮冻结产物，使用后一模式在相同已建宿主上实际执行新入口。
+
+首轮CI入口/session24826在源审计报告读取时PermissionError（root导出文件归属），尚未开始任何场景；保留ci-release-entry/failure.json。仅调整该任务报告归属给parallels，修正导出器后续归属处理，在新目录v2运行/session84443退出0。新入口6进程/10截图、34.052秒全部通过，GL创建后立即退出也通过生产/完成1/1、readers3/3、pending/错误0、PCM4096/0/欠载0。原生头less GTK键盘seat Gdk-CRITICAL六条保留，不称为完整输入系统无诊断。
+
+新CI入口68件文件43816字节归档SHA90c76c68b514e4609927bf582a45518a420c2160318d62abec25d936fbdf7529，宿主完整核对、映射第一归档的封存二进制、冻结verifier重现通过。首次离线比较tuple与JSON数组直接比较失败，改规范化结构后通过，无原生重跑；说明记录在host-verification.json。Linux早退出公开报告的范围文字随后仅澄清Dora/GPU检查与GTK诊断边界，校验逻辑不变。本地新入口使用prebuilt模式，不称为其默认构建分支或远程CI已完成。
+
+期间用户明确授权Safari开启远程自动化并测试。CUA在开发者设置观察开关0，点击后系统提示密码认证，用户回复已完成；实际UI仍为认证窗口，SafariDriver新会话明确拒绝未启用。该次执行safari-native-current-3在页面加载前失败，非Godot/GPU兼容结论。已置前同一窗口并请求用户完成本机认证、确认勾选，不再次要求授权。未读取或输入密码，未修改跨源/本地文件限制等其他安全设置。认证未实际生效前不重复启动测试；后台Linux工作继续。
+
+当前代码/新CI尚未推送；需要收口候选、取得旧远程Linux终态后按真实代码变更推进新CI。Windows普通EXE、移动退出、真实Safari/硬件/恢复/分发等仍未完成。
+
+
+## 2026-10-29 远程6c4b7fd全绿与退出修复候选准备
+
+远程Godot job123125908694现success，提交6c4b7fd全12工作流success。下载Linux artifact12858080284（167015071字节），zip SHA46765cfd5f590bcab7c341a737d487632121685df7d55753bc50d78a03ae2251匹配GitHub digest；16通过报告、203源文件SHA匹配提交，4674导出文件已哈希记录。实际原生x86_64 Azure / Mesa llvmpipe构建与测试2599.825秒、build_skipped=false，3000矩阵帧/100轮、失败退出恢复、普通宿主检查通过。按报告指定目录计369验收截图，另外35张为恢复副本/测试资产，总glob404不能都称原生独立采集。两份运行库字节SHA匹配；旧workflow没有上传宿主可执行文件，仅记录执行SHA，明确保留这个审计边界。
+
+PR元数据证明head6c4b7fd、base6a05611e、synthetic merge7790c152。仓库git commit API证明merge tree3ebfee0c与head tree完全相同，GITHUB_SHA是合并提交而非headSHA。连接器commit数据包含过大的diff，实际树字段另用GitHub git对象接口只读获取，没有改变任何分支。远程平台状态更新为原生Linuxx64完整Dora节点执行通过（仍是软件GL而非物理GPU）。后续workflow补上传测试/普通Debug/Release宿主和完整Godot包，ci_linux源清单补Application.cpp/Debug.cpp/构建manifest三项；均属证据保留改进，不据此重跑旧CI或称新工作流已验收。
+
+退出修复初版候选由私有索引基于6c4b7fd生成，显式21路径，tree16497bda38d41dd884dccc79b8bd8de96154388c，补丁99982字节/SHA dbc1c71a4eeced7f422fc8b3547d1235f177fb8e545a38871e2a5b60d6673924。另一私有索引应用后tree相同，真实索引和主HEAD不变，未纳入15个无关文件/共享接口缓存诊断。候选四个生产/构建文件与新LinuxRelease实际源SHA一致。
+
+初版CPU协议按部分tree导出时漏了bgfx_shader.sh和bgfx_compute.sh，前半协议完成但聚合未生成；保留release-stop-protocol-driver.log。补同一tree原始两blob并在新输出release-stop-protocol-results-complete全套通过，没有修改源代码或GPU重跑。此后再补远程成功记录和CI证据保留改进，最终提交需按最终树/发布回执标注，初版tree不能冒充最终树。Safari第二次本机认证确认仍等待实际开关勾选，原生驱动预检失败不作兼容结论；授权本身已获得。
+
+
+## 2026-10-29 原生Safari授权生效、DPR布局与端口预检修正
+
+用户第二次确认完成认证并看到勾选后，CUA确实观察Safari开发者设置Allow remote automation=1，其他安全项保持0；关闭设置后由已授权原生WebDriver测试。此前safari-native-current-3失败为认证未生效的会话创建拒绝，未进入页面。
+
+授权生效后的首个真实三缓冲safari-authorized-native-3实际620步/12图、GPU/PCM排空、输入API和平台清理完成，但严格像素校验在332,192处期望红色却读到背景，整轮passed=false保留。图像确认节点仅320×180，DPR2实际View2560×1440而截图1280×720。验收Lua原假定世界坐标等于截图像素；新增layout()按View.width/1280缩放节点与别名，只改GPU几何布局，不改像素采样要求或运行库。新日志确认factor2，红角标边长12→24；未放宽verify_node。
+
+safari-dpi-native-3/session12918实际通过。矩阵94746保留该三缓冲并实际完成二缓冲；四缓冲在固定18748端口bind时失败，尚无页面/Godot执行，旧目录/失败日志保留。当前端口监听检查未发现活动listener，不能据此断言失败时的具体TCP状态。run_safari默认改0由OS选空闲端口，保留显式指定及启动前拒绝机制；保存旧helper用于溯源。仅四缓冲以新目录safari-dpi-native-4-auto-port/session72194继续，实际通过，未重跑2/3。
+
+Safari矩阵1860步/36图/330检查，capabilities明确browser26.6.2/platformmacOS26.6.2/useSimulator=false/acceptInsecureCerts=false，Apple GPU，DPR2；6次客户端GPU/PCM排空、错误/欠载/pending0，48kHz音调440/660。DPR1 Chrome新布局另实际620步/12图/110检查通过/session84268，View1280×720 factor1；预期Emscripten主线程阻塞提示保留，不当成GPU错误或隐藏。
+
+safari-dpi-evidence/verification.json封存新旧helper、Lua、公共采集/strictverifier与48图/运行库SHA；旧DPI数据复制到专用负例，仅把harness旗标设true以到达像素oracle，原始文件不改，严格像素仍被正确拒绝。这个离线反例/哈希检查不增加原生运行次数。继续用封存GodotWASM80982084和工作区coreDebug宿主fda4fcc1，不是新候选/Release构建；原生DOM/IME、移动Safari/Chrome、长音频与设备恢复仍待做。
+
+授权已完成，后续不重复询问Safari自动化许可。当前新增node_game布局和Safari驱动端口修正须与退出修复/新CI一同收口最终候选。此前21路径tree为初版快照，不能当最终提交；真实主索引/HEAD和无关缓存/3D改动继续保留。

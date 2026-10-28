@@ -18,6 +18,14 @@ python3 Tools/Godot/tests/ci_linux.py --jobs 2
 
 系统依赖见 `.github/workflows/godot.yml`。入口依次构建运行库与 Dora 测试宿主，检查着色器构建失败后的立即退出/同进程恢复，再执行 EGL 2/3/4 缓冲矩阵和同进程 100 轮创建/销毁，最后构建普通宿主并执行项目拒绝/恢复、随包加载及缺库退化。测试宿主、普通宿主与运行库分别保存哈希，普通构建不能覆盖测试产物；全部阶段通过后才写聚合 verification.json，初始化失败/普通宿主报告索引分别位于 init_failure_reports、ordinary_reports。新增阶段的独立运行与新版聚合入口验收分开记录，详见 TRACKING.md。
 
+优化普通 Linux Release 的自动回归另有入口，复用已构建且清单校验通过的 Godot 运行库，不重编 LibGodot：
+
+```sh
+python3 Tools/Godot/tests/ci_linux_release.py --jobs 2
+```
+
+该入口构建普通优化宿主、从编译命令检查优化标志和 NDEBUG，然后执行 2/3/4 缓冲活动退出、创建后立即退出、随包/缺库退化。报告位于 `build/godot-runtime/ci-linux-release/`；Godot 工作流在原 Debug/循环回归后执行本入口并上传两组结果。本地复现可显式指定 `--source-root`、`--library`、`--output`；`--prebuilt-receipt` 仅用于原产物与完整 source-audit.json 均存在、源码/二进制哈希未变的复现，报告会标明跳过构建。该模式不能证明本轮重新编译或远程 CI 已通过。Ubuntu ARM64 VM/llvmpipe 与 SDL dummy 音频的边界见 TRACKING。
+
 日志、截图、产物哈希及严格报告保存到 `build/godot-runtime/ci-linux/`。需要 Weston 12+；软件渲染可设置 `LIBGL_ALWAYS_SOFTWARE=1`，验证范围为相应 EGL 驱动。仅复用明确已构建的本地产物时使用 `--skip-build --ordinary-binary /absolute/path/to/ordinary/Dora`，测试宿主/运行库仍由原环境选择器指定，报告会保留构建跳过标记。每次本地复验应选择新的 `--output` 目录。Linux 循环观察 bgfx 资源计数/估计字节，不包含 macOS 专用的 Metal 分配量查询。默认构建分支也可能使用编译缓存，不能据 build_skipped=false 推断再次全量编译。
 
 原生初始化失败回归（要求 `DORA_BUILD_GODOT_NODE_TEST=1` 构建的测试宿主）：
@@ -35,7 +43,7 @@ Linux 使用 `.so`，无显示会话时由 `tests/with_weston.py` 包裹。测�
 python3 Tools/Godot/tests/web/run_safari.py --package /absolute/path/to/prepared-node-player --buffers 3 --output /absolute/path/to/fresh-results
 ```
 
-输入包需由 `tests/web/prepare_node_game.py` 准备。脚本使用已安装的 `/usr/bin/safaridriver`，不修改 Safari 设置，复用严格像素/GPU/PCM 校验器；它只在所服务的测试页面加载公共采集脚本，不修改运行库文件。Playwright 与 Safari 共用 `acceptance_init.js`。准备好入口不等于 Safari 运行验收通过，当前状态见 WEB-02。
+输入包需由 `tests/web/prepare_node_game.py` 准备。脚本使用已安装的 `/usr/bin/safaridriver`，不修改 Safari 设置，复用严格像素/GPU/PCM 校验器；它只在所服务的测试页面加载公共采集脚本，不修改运行库文件。Playwright 与 Safari 共用 `acceptance_init.js`。原生Safari26.6.2的DPR2矩阵现已通过，当前范围见WEB-02。默认WebDriver端口0由系统选择空闲端口；显式端口不可bind时在启动前失败，不附着他人服务。
 
 macOS 普通应用的项目边界回归：
 
@@ -234,6 +242,34 @@ python3 Tools/Godot/tests/run_cycles_macos.py --app /absolute/path/Dora.app \
 及同一 MTLDevice 的 currentAllocatedSize。资源阈值不自动放宽，失败保留采样和日志。
 该指标不包含全部 CPU 堆或驱动分配，不能据此宣称所有项目均无内存泄漏。
 
+## 普通 Release 宿主的活动节点退出回归
+
+退出测试需保留正在运行的 GodotNode 和每个共享纹理槽的 Sprite 别名，再调用公开 App.shutdown。预先移除节点的正常退出用例不能覆盖这个路径。使用未编入 Godot 测试入口的 macOS Release 应用：
+
+```sh
+python3 Tools/Godot/tests/run_active_stop_macos.py --app /absolute/path/to/ordinary/Dora.app --library /absolute/path/to/libdora_godot.dylib --output /absolute/path/to/fresh-results --buffers 3
+```
+
+分别使用 2/3/4 缓冲和全新的输出目录。入口封存产物哈希、开启 Metal 验证、截取两张图像，并在节点和所有别名仍存活时请求停止。严格校验器要求动画条码推进、各别名槽内容不同、GPU 生产/消费排空且无错误、PCM 零欠载及 48kHz 双声道音调。execution.json 只证明子进程执行记录；仅当全部验收通过才生成 verification.json。异常时保留原日志，超时不自动重启仍活动的进程。
+
+普通 Release 原先在 SDL_QUIT 中直接 std::_Exit，无法提供此路径的最终排空证据。当前工作区修复为：一旦 Godot 会话被接受，该进程退出时走正常引擎清理；即使节点先被移除也保留该要求。未使用 Godot 的普通 Dora 内容保留原有快速退出。修复的实际验收与提交范围见 TRACKING.md，不据源码修改宣称已通过。
+
+Linux 的对应入口使用普通宿主可执行文件，并在隔离 Weston 中运行：
+
+```sh
+python3 Tools/Godot/tests/with_weston.py --logs /absolute/path/to/fresh-weston-logs -- python3 Tools/Godot/tests/run_active_stop_linux.py --binary /absolute/path/to/ordinary/Dora --library /absolute/path/to/libdora_godot.so --output /absolute/path/to/fresh-results --buffers 3
+```
+
+同样分别执行 2/3/4 缓冲。校验包含实际 Godot OpenGL 渲染器字符串、条码/别名、GPU 和 PCM 排空。虚拟机、软件 EGL 和 SDL dummy 音频仅证明对应接口路径，不能替代物理 GPU/音频输出验收。Linux Dora 宿主的 release 模式需启用 mode.release 规则；本地新增构建规则后，还需从实际编译命令确认优化标志及 NDEBUG，不能只依据输出目录名。
+
+macOS 启动中退出另有入口，在创建节点后、节点尚未 running 时立刻调用 App.shutdown：
+
+```sh
+python3 Tools/Godot/tests/run_early_stop_macos.py --app /absolute/path/to/ordinary/Dora.app --library /absolute/path/to/libdora_godot.dylib --output /absolute/path/to/fresh-results
+```
+
+校验要求实际引擎清理日志。若 Godot 在退出事件处理前已启动，仍必须有完整 GPU/PCM 排空；若尚未启动，则不应产生客户端排空记录。此用例不代替持续动画或设备丢失测试。
+
 ## 宿主音频接入（验证进行中）
 
 新增可选 `GodotBridgeAudio.h` 扩展表，提供 48 kHz 双声道 float32 PCM 拉取。
@@ -263,7 +299,7 @@ Godot 对象泄漏警告。Linux EGL 与 Windows WGL 的音频 ABI 2 实际运�
 
 ## 当前边界
 
-这是实验集成。运行库为标准原生 Godot 构建，未启用 Godot Mono/C# 项目运行时；Dora 的 C# 节点绑定属于宿主接口。macOS Metal 有原生运行证据，Linux、Windows、Android 的现有运行证据限虚拟机/模拟器；Web 已通过 Chrome、Firefox、Playwright WebKit，真实 Safari 和移动浏览器仍需单独验收。iOS 保持 Dora Apple2 / Godot Apple4，模拟器仅验证普通 Dora 与 Godot 安全拒绝边界。各平台最新范围与报告统一见 [TRACKING.md](TRACKING.md)。
+这是实验集成。运行库为标准原生 Godot 构建，未启用 Godot Mono/C# 项目运行时；Dora 的 C# 节点绑定属于宿主接口。macOS Metal 有原生运行证据，Linux、Windows、Android 的现有运行证据限虚拟机/模拟器；Web 已通过 Chrome、Firefox、Playwright WebKit，macOS原生Safari26.6.2的2/3/4矩阵也已通过；移动浏览器、完整DOM/IME和真实后台策略仍需单独验收。iOS 保持 Dora Apple2 / Godot Apple4，模拟器仅验证普通 Dora 与 Godot 安全拒绝边界。各平台最新范围与报告统一见 [TRACKING.md](TRACKING.md)。
 
 当前支持单运行时、单个活动 GodotNode、同一项目移除后重建；运行时驻留到进程退出。不同项目不能在该进程内切换；节点移除不卸载运行库，最终 shutdown 后不承诺再次初始化。GL 运行时还要求重建时缓冲数一致，内部目标模式需保持尺寸一致；外部目标尺寸协商另行处理。设备丢失恢复、多项目并行、完整 IME、物理控制器热插拔/震动及最终分发仍待完成。
 

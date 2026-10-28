@@ -1332,7 +1332,10 @@ int Application::run(MainFunc mainFunc) {
 						SharedDB.stop();
 					}
 #if defined(NDEBUG) && !defined(DORA_AS_LIB) && !defined(DORA_GODOT_NODE_TEST)
-					std::_Exit(EXIT_SUCCESS);
+					// Godot owns GPU work and audio callbacks beyond the node lifetime.
+					// Drain normal shutdown once used; ordinary Dora keeps fast exit.
+					if (!GodotNode::requiresRuntimeShutdown()) std::_Exit(EXIT_SUCCESS);
+					_renderRunning = false;
 #else
 					_renderRunning = false;
 #endif

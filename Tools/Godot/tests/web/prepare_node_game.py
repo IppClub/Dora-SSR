@@ -5,13 +5,17 @@ from pathlib import Path
 root=Path(__file__).resolve().parents[4]
 p=argparse.ArgumentParser(description=__doc__);p.add_argument('--package',type=Path,default=root/'build/godot-web/dora-player');p.add_argument('--buffers',type=int,choices=[2,3,4],default=3);p.add_argument('--pack',action='store_true');p.add_argument('--godot-editor',default=shutil.which('godot') or '/Applications/Godot.app/Contents/MacOS/Godot')
 p.add_argument('--audio-hold-seconds',type=float,default=0,help='Keep the first live animated scene running before input/lifecycle steps for an output audio observation')
+p.add_argument('--active-stop',action='store_true',help='Leave node and texture aliases alive for direct host shutdown')
 a=p.parse_args();package=a.package.resolve()
 # Concurrent browser matrices must not rewrite each other's source fixture
 # while package_web_game is reading it, even if both use the same buffer count.
 stage=root/'build/godot-web'/('node-game-'+str(a.buffers)+'-'+hashlib.sha256(str(package).encode()).hexdigest()[:12])
 assert 0<=a.audio_hold_seconds<=3600
 shutil.copytree(root/'Tools/Godot/tests/web/node_game',stage,dirs_exist_ok=True)
+assert not a.active_stop or a.audio_hold_seconds==0
+if a.active_stop:shutil.copy2(Path(__file__).with_name('active_stop.lua'),stage/'init.lua')
 lua=stage/'init.lua';text=lua.read_text().replace('640, 360, 3','640, 360, '+str(a.buffers)).replace('#aliases < 3','#aliases < '+str(a.buffers))
+if a.active_stop:text=text.replace('#aliases == 3','#aliases == '+str(a.buffers)).replace('"buffers":3','"buffers":'+str(a.buffers))
 text=text.replace('local aliases = {}','local aliases = {}\nlocal audioHold = '+str(a.audio_hold_seconds)).replace('controller:schedule(function()','controller:schedule(function(dt)')
 text=text.replace('    frame = frame + 1','    if frame == 55 and audioHold > 0 then audioHold = math.max(0, audioHold - dt); return false end\n    frame = frame + 1')
 lua.write_text(text)

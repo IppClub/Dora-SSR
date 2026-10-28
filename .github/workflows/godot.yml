@@ -75,6 +75,8 @@ jobs:
           python3 -m pip install Pillow==12.1.0
       - name: Build runtime/hosts, run failure recovery, EGL matrix, cycles and ordinary-app checks
         run: python3 Tools/Godot/tests/ci_linux.py --jobs 2
+      - name: Optimized ordinary Release shutdown and fallback checks
+        run: python3 Tools/Godot/tests/ci_linux_release.py --jobs 2
       - name: Upload logs, screenshots and verification records
         if: always()
         uses: actions/upload-artifact@v4
@@ -82,5 +84,10 @@ jobs:
           name: godot-linux-egl
           path: |
             build/godot-runtime/ci-linux/
+            build/godot-runtime/ci-linux-release/
             build/godot-linux/build.log
+            build/godot-linux/package/
+            build/godot-runtime/dora/Dora
+            build/linux/*/debug/Dora
+            build/linux/*/release/Dora
           if-no-files-found: warn

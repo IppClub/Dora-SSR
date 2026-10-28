@@ -227,6 +227,8 @@ target("Dora")
             "GameController", "Metal", "QuartzCore", "Security", "UIKit"
         )
     elseif is_plat("linux") then
+        -- Mode names alone do not enable optimization or the Release exit path.
+        add_rules("mode.debug", "mode.release")
         add_files(rootpath("Source/Godot/GodotRuntimeGL.cpp"))
         if os.getenv("DORA_BUILD_GODOT_NODE_TEST") == "1" then
             set_targetdir(os.getenv("DORA_GODOT_TEST_TARGETDIR")
