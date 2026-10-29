@@ -179,6 +179,12 @@ local function package_linux(mode, arch, api)
             or name:find("^libpthread") or name:find("^librt%.so")
             or name:find("^libdl%.so") or name:find("^libresolv%.so")
             or name:find("^libutil%.so") or name:find("^libnss_")
+            -- Keep the target distribution's C++ runtime paired with its
+            -- Mesa/LLVM graphics stack.  Bundling Ubuntu 22's libstdc++ or
+            -- libgcc into an AppImage makes newer distributions load those
+            -- older copies for system GPU libraries; Ubuntu 24 then aborts
+            -- on missing GLIBCXX symbols before bgfx can create EGL.
+            or name:find("^libstdc%+%+%.so") or name:find("^libgcc_s%.so")
         local graphics_runtime = name:find("^libGL") or name:find("^libEGL")
             or name:find("^libdrm") or name:find("^libgbm")
             or name:find("^libvulkan")
@@ -187,6 +193,10 @@ local function package_linux(mode, arch, api)
             ensure(os.isfile(dependency), "unresolved runtime dependency: " .. dependency)
             os.cp(dependency, path.join(appdir, "usr/lib", name), {symlink = false})
         end
+    end
+    for _, pattern in ipairs({"libstdc++.so*", "libgcc_s.so*"}) do
+        ensure(#os.files(path.join(appdir, "usr/lib", pattern)) == 0,
+            "AppImage must use the target system C++ runtime: " .. pattern)
     end
     os.vrunv("patchelf", {"--set-rpath", "$ORIGIN/../lib", staged_binary})
 
