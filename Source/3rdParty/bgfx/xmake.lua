@@ -1086,6 +1086,19 @@ target("glsl_optimizer")
         add_cflags("-Wno-deprecated-register", {force = true})
     end
 
+-- CMake consumers compile the target graph outside xmake and must also run
+-- the embedded-source preparation normally provided by shaderc-lib's hook.
+target("dora-bgfx-shader-sources")
+    set_kind(os.getenv("XMAKE_IN_PROJECT_GENERATOR") and "binary" or "phony")
+    set_default(false)
+    on_build(function ()
+        local binutils = import("core.base.binutils")
+        local embedded = get_embedded_bgfx_shader_sources()
+        write_bin2c_header(os, path, binutils, path.join(BGFX_DIR, "src/bgfx_shader.sh"), embedded.shader_output)
+        write_bin2c_header(os, path, binutils, path.join(BGFX_DIR, "src/bgfx_compute.sh"), embedded.compute_output)
+    end)
+target_end()
+
 -- shaderc-lib - 着色器编译静态库
 target("shaderc-lib")
     set_kind("static")

@@ -10,6 +10,7 @@ parser.add_argument('--library',type=Path,required=True)
 parser.add_argument('--output',type=Path,required=True)
 parser.add_argument('--library-name',help='Preserve a platform-required library basename, e.g. Android Java JNI loader')
 parser.add_argument('--build-target',choices=['template_debug','template_release'],help='Actual SCons target used to produce this library')
+parser.add_argument('--architecture',action='append',choices=['arm64','x86_64','x64'],default=[],help='Architecture slice present in the packaged library; repeat for universal libraries')
 parser.add_argument('--extra-directory',type=Path,action='append',default=[],help='Include a dependency tree under its basename, e.g. Android jni/')
 parser.add_argument('--license-file',type=Path,action='append',default=[],help='Additional dependency notice, copied by basename and included in license inventory')
 args=parser.parse_args()
@@ -46,6 +47,7 @@ if metal_driver.is_file():
     if '// Dora embedded Metal: no asynchronous library compilation past shutdown.' in metal_driver.read_text():
         manifest['embedded_metal_shader_loading'] = 'lazy'
 if args.build_target:manifest['build_target']=args.build_target
+if args.architecture:manifest['architectures']=sorted(set(args.architecture))
 (args.output/'manifest.json').write_text(json.dumps(seal(args.output,manifest),indent=2)+'\n')
 verify(args.output)
 print(args.output.resolve())

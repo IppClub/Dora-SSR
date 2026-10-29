@@ -67,8 +67,10 @@ function main(output)
         end
     end
     if missing_bindings then
-        os.vrunv(os.programfile(), {"build", "dora-lua-bindings"}, {curdir = root})
+        os.vrunv(os.programfile(), {"build", "-P", root, "dora-lua-bindings"}, {curdir = root})
     end
+
+    os.vrunv(os.programfile(), {"build", "-P", root, "dora-bgfx-shader-sources"}, {curdir = root})
 
     for _, target in ipairs(targets) do
         local name = target:name()
@@ -149,6 +151,11 @@ function main(output)
                 assert(language ~= "CXX" or path.extension(file):lower() ~= ".c",
                     "C++ sources must use a C++ extension instead of forcing .c to C++: " .. file)
                 table.insert(lines, "set_source_files_properties(" .. quote(absolute(file)) .. " PROPERTIES LANGUAGE " .. language .. ")")
+            end
+            if absolute(file) == absolute("Source/Shader/ShaderCompiler.cpp") then
+                for _, header in ipairs({"bgfx_shader.sh.h", "bgfx_compute.sh.h"}) do
+                    table.insert(lines, "set_property(SOURCE " .. quote(absolute(file)) .. " APPEND PROPERTY OBJECT_DEPENDS " .. quote(absolute("Source/3rdParty/bgfx/dora/generated/" .. header)) .. ")")
+                end
             end
             if binding_set[absolute(file)] then
                 table.insert(lines, "set_property(SOURCE " .. quote(absolute(file)) .. " APPEND PROPERTY OBJECT_DEPENDS \"${CMAKE_CURRENT_BINARY_DIR}/xmake-bindings.stamp\")")

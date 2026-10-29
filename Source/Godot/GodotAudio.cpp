@@ -127,6 +127,8 @@ bool GodotAudioStream::start() {
     if (!impl.started && impl.api.read_pcm && !impl.state->ended.load()) {
         auto *mixer=SharedAudio.getSoLoud();
         if (!mixer) return false;
+        if (!impl.state->capture.empty()) Info("GodotAudio host device: rate={}, bufferFrames={}",
+            mixer->getBackendSamplerate(),mixer->getBackendBufferSize());
         const auto voice=mixer->play(*impl.source);
         if (!voice) return false;
         SharedAudio.addRef(voice,nullptr,nullptr);

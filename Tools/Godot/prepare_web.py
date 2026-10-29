@@ -25,11 +25,14 @@ if marker not in s:
     s=s.replace(needle,'''if env["library_type"] != "executable":
     web_files.remove("web_main.cpp")
 
-'''+needle+'\n'+block,1)
+'''+needle+'\n'+block+'\n',1)
     needle='build = sys_env.add_program(build_targets, web_files + ["web_runtime.cpp"])';assert needle in s
     s=s.replace(needle,'build = sys_env.add_program(build_targets, web_files + (["web_runtime.cpp"] if env["library_type"] == "executable" else []))',1)
 else:
-    start=s.index(marker);end=s.index('\n\n',start);s=s[:start]+block+s[end:]
+    # Only replace our block. A first-time insertion may have one separating
+    # newline, so a blank-line delimiter can consume upstream JS libraries.
+    start=s.index(marker);end=s.index('\nsys_env.AddJSLibraries(',start)
+    s=s[:start]+block.rstrip()+'\n\n'+s[end+1:]
 p.write_text(s)
 
 # LibGodot iteration bypasses web_main.cpp, so OS_Web's normal dirty-file

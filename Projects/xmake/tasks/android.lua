@@ -18,10 +18,10 @@ task("dora-android-prepare")
         local configdir = path.join(root, "build/android-gradle/wa")
         local envs = {XMAKE_CONFIGDIR = configdir, ANDROID_HOME = sdk}
         os.vrunv(os.programfile(), {
-            "f", "-q", "-y", "-p", "android", "-a", "arm64-v8a", "-m", "release",
+            "f", "-P", root, "-q", "-y", "-p", "android", "-a", "arm64-v8a", "-m", "release",
             "--ndk=" .. ndk, "--ndk_sdkver=28", "--builddir=" .. path.join(configdir, "build"), "--ccache=n"
         }, {curdir = root, envs = envs})
-        os.vrunv(os.programfile(), {"build", "dora-wa-android"}, {curdir = root, envs = envs})
+        os.vrunv(os.programfile(), {"build", "-P", root, "dora-wa-android"}, {curdir = root, envs = envs})
         local aar = path.join(root, "build/runtime/android/wa.aar")
         assert(os.isfile(aar), "missing xmake Android Wa AAR: " .. aar)
         local destination = path.join(root, "Projects/Android/Dora/app/build/xmake-aar")

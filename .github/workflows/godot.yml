@@ -75,6 +75,11 @@ jobs:
           python3 -m pip install Pillow==12.1.0
       - name: Build runtime/hosts, run failure recovery, EGL matrix, cycles and ordinary-app checks
         run: python3 Tools/Godot/tests/ci_linux.py --jobs 2
+      - name: Fresh and repeated Web preparation preserves upstream JS libraries
+        run: >-
+          python3 Tools/Godot/tests/test_prepare_web.py
+          --archive build/godot-linux/deps/godot-4.6-stable.tar.gz
+          > build/godot-runtime/ci-linux/prepare-web-regression.log
       - name: Optimized ordinary Release shutdown and fallback checks
         run: python3 Tools/Godot/tests/ci_linux_release.py --jobs 2
       - name: Wasm initializer trap releases exported Object references

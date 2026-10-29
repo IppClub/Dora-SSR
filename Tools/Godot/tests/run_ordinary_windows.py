@@ -10,9 +10,13 @@ from PIL import Image,ImageChops
 root=Path(__file__).resolve().parents[3]
 p=argparse.ArgumentParser(description=__doc__)
 for name in ('binary','library','output'):p.add_argument('--'+name,type=Path,required=True)
+p.add_argument('--asset-root',type=Path,help='Copy this packaged asset root instead of the source Assets tree')
+p.add_argument('--use-bundled-library',action='store_true',help='Require the sealed runtime to already exist in --asset-root')
 a=p.parse_args();assert sys.platform=='win32'
 out=a.output.resolve();assert not out.exists(),'Use a fresh evidence directory'
 out.mkdir(parents=True);binary=a.binary.resolve();library=a.library.resolve()
+asset_root=a.asset_root.resolve() if a.asset_root else None
+assert not a.use_bundled_library or asset_root,'--use-bundled-library requires --asset-root'
 def digest(path):
     with path.open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
 def pixels(image):return image.get_flattened_data() if hasattr(image,'get_flattened_data') else image.getdata()
@@ -24,10 +28,17 @@ try:
     template=Path(__file__).with_name('ordinary_native.lua');cases=[]
     for missing in (False,True):
         case=out/('missing-library' if missing else 'bundled-runtime');case.mkdir()
-        assets=case/'assets';shutil.copytree(root/'Assets',assets)
+        assets=case/'assets';shutil.copytree(asset_root or root/'Assets',assets)
+        executed_binary=assets/binary.name if asset_root else binary
+        assert executed_binary.is_file() and digest(executed_binary)==digest(binary)
         bundled=assets/'dora_godot.dll'
         bundled.unlink(missing_ok=True)
-        if not missing:shutil.copy2(library,bundled)
+        if not missing:
+            packaged=asset_root/'dora_godot.dll' if asset_root else None
+            if a.use_bundled_library:
+                assert packaged.is_file() and digest(packaged)==digest(library)
+                shutil.copy2(packaged,bundled)
+            else:shutil.copy2(library,bundled)
         notices={}
         for name in manifest['licenses']:
             relative=Path(name);assert not relative.is_absolute() and '..' not in relative.parts
@@ -47,7 +58,7 @@ try:
         for key,value in [('OUTPUT',case.as_posix()),('PROJECT','GodotProject'),('LIBRARY_NAME',bundled.name),('EXPECTED_PROJECT_PATH',str(project))]:code=code.replace('@'+key+'@',json.dumps(value))
         code=code.replace('@MISSING@','true' if missing else 'false')
         startup=assets/'Script/init.lua';startup.write_text(code)
-        executed={str(path):digest(path) for path in (binary,startup)}
+        executed={str(path):digest(path) for path in (executed_binary,startup)}
         if not missing:executed[str(bundled)]=digest(bundled)
         projects={str(path):digest(path) for path in project.rglob('*') if path.is_file() and '.godot' not in path.parts}
         (case/'artifacts.json').write_text(json.dumps({'original':original,'executed':executed,'project':projects,'notices':notices,'fixture_sha256':digest(template)},indent=2)+'\n')
@@ -56,7 +67,7 @@ try:
             if key.startswith(('DORA_GODOT_','DORA_BUILD_')):env.pop(key)
         env.update(SDL_AUDIODRIVER='dummy',GODOT_SILENCE_ROOT_WARNING='1',DORA_GODOT_WINDOWS_GL='1')
         started=time.monotonic()
-        with (case/'run.log').open('w') as log:subprocess.run([str(binary),'--asset',str(assets)],cwd=root,env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=90)
+        with (case/'run.log').open('w') as log:subprocess.run([str(executed_binary),'--asset',str(assets)],cwd=assets,env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=90)
         runtime=time.monotonic()-started;log=(case/'run.log').read_text()
         assert 'GODOT_ORDINARY complete=1' in log
         assert 'GODOT_NODE_TEST' not in log and 'BGFX LEAK:' not in log and 'C++ objects leaks' not in log
@@ -87,7 +98,7 @@ try:
             assert all(sum(g>70 and b>70 and r<g*.65 for r,g,b in pixels(im))>100 for im in crops),'Godot cube missing'
             assert sum(max(pixel)>8 for pixel in pixels(ImageChops.difference(*crops)))>100,'Godot cube did not animate'
         assert all(digest(Path(path))==sha for path,sha in {**original,**executed,**projects,**notices}.items()),'Inputs changed during execution'
-        cases.append({'case':case.name,'passed':True,'runtime_seconds':runtime,'captures':2,'ordinary_green_centers':centers,'changed_pixels':changed,'godot_started':not missing,'relative_project_lookup':True,'runtime_lookup':'Default assets path; no library override','gpu_clients':clients,'gpu_readers':readers,'artifacts':executed,'notices':notices,'images_sha256':{f'frame-{i}.png':digest(case/f'frame-{i}.png') for i in (1,2)}})
+        cases.append({'case':case.name,'passed':True,'runtime_seconds':runtime,'captures':2,'ordinary_green_centers':centers,'changed_pixels':changed,'godot_started':not missing,'relative_project_lookup':True,'runtime_lookup':'Default assets path; no library override','runtime_origin':'input desktop package' if a.use_bundled_library else 'test staging copy','gpu_clients':clients,'gpu_readers':readers,'artifacts':executed,'notices':notices,'images_sha256':{f'frame-{i}.png':digest(case/f'frame-{i}.png') for i in (1,2)}})
     (out/'verification.json').write_text(json.dumps({'passed':True,'platform':'Windows WGL','scope':__doc__,'ordinary_host_without_test_entry':True,'cases':cases},indent=2)+'\n')
     print('Ordinary Windows bundled-runtime and missing-library fallback: PASS')
 except BaseException as error:

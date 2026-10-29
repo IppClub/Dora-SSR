@@ -21,6 +21,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--app', type=Path, required=True)
 parser.add_argument('--library', type=Path, required=True)
 parser.add_argument('--output', type=Path, required=True)
+parser.add_argument('--use-bundled-library', action='store_true', help='Require and preserve the runtime already present in the input app instead of copying it')
 parser.add_argument('--wait-pid', type=int, help='Wait for this currently live Dora process before taking the GUI lock')
 args = parser.parse_args()
 assert sys.platform == 'darwin'
@@ -39,6 +40,10 @@ def digest(path):
     with path.open('rb') as file:
         return hashlib.file_digest(file, 'sha256').hexdigest()
 
+def pixels(image):
+    """Return pixels without Pillow 14's deprecated getdata alias."""
+    return image.get_flattened_data() if hasattr(image, 'get_flattened_data') else image.getdata()
+
 def identity(pid):
     result = subprocess.run(['ps', '-p', str(pid), '-o', 'lstart=,comm='], capture_output=True, text=True)
     return result.stdout.strip() if result.returncode == 0 else None
@@ -56,13 +61,18 @@ staged = out / 'Dora.app'
 shutil.copytree(app, staged)
 resources = staged / 'Contents/Resources'
 bundled = resources / 'libdora_godot.dylib'
-shutil.copy2(library, bundled)
+if args.use_bundled_library:
+    assert bundled.is_file(), 'Input app does not contain the bundled Godot runtime'
+    assert digest(bundled) == digest(library), 'Bundled runtime does not match the sealed runtime package'
+else:
+    shutil.copy2(library, bundled)
 project = root / 'Tools/Godot/tests/project'
 (project / '.godot').mkdir(exist_ok=True)
 (project / '.godot/global_script_class_cache.cfg').write_text('list=[]\n')
 template = Path(__file__).with_name('ordinary_macos.lua').read_text()
 artifacts = {'host_sha256': digest(binary), 'runtime_sha256': digest(library),
-             'fixture_sha256': digest(Path(__file__).with_name('ordinary_macos.lua'))}
+             'fixture_sha256': digest(Path(__file__).with_name('ordinary_macos.lua')),
+             'runtime_origin': 'input application package' if args.use_bundled_library else 'test staging copy'}
 (out / 'artifacts.json').write_text(json.dumps(artifacts, indent=2) + '\n')
 cases = []
 try:
@@ -105,7 +115,7 @@ try:
             assert len(green) > 500, 'Ordinary Dora green content missing'
             centers.append(sum(x for x, _ in green) / len(green))
         assert centers[1] - centers[0] > 100, centers
-        changed = sum(max(pixel) > 20 for pixel in ImageChops.difference(*images).getdata())
+        changed = sum(max(pixel) > 20 for pixel in pixels(ImageChops.difference(*images)))
         assert changed > 1000
         if not missing:
             close = re.findall(r'GodotRuntime client closed: produced=(\d+), completed=(\d+), gpuErrors=(\d+)', log)
@@ -113,8 +123,8 @@ try:
             w, h = images[0].size
             box = (round(w*.4), round(h*.3), round(w*.6), round(h*.7))
             crops = [image.crop(box) for image in images]
-            assert all(sum(g > 70 and b > 70 and r < g*.65 for r, g, b in crop.getdata()) > 100 for crop in crops), 'Godot cube pixels missing'
-            assert sum(max(pixel) > 8 for pixel in ImageChops.difference(*crops).getdata()) > 100, 'Godot cube did not animate'
+            assert all(sum(g > 70 and b > 70 and r < g*.65 for r, g, b in pixels(crop)) > 100 for crop in crops), 'Godot cube pixels missing'
+            assert sum(max(pixel) > 8 for pixel in pixels(ImageChops.difference(*crops))) > 100, 'Godot cube did not animate'
             assert digest(bundled) == executed['runtime_sha256']
         else:
             assert not bundled.exists(), 'Missing-library case accidentally included the runtime'

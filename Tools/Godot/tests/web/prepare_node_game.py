@@ -4,6 +4,7 @@ import argparse,hashlib,json,os,shutil,subprocess
 from pathlib import Path
 root=Path(__file__).resolve().parents[4]
 p=argparse.ArgumentParser(description=__doc__);p.add_argument('--package',type=Path,default=root/'build/godot-web/dora-player');p.add_argument('--buffers',type=int,choices=[2,3,4],default=3);p.add_argument('--pack',action='store_true');p.add_argument('--godot-editor',default=shutil.which('godot') or '/Applications/Godot.app/Contents/MacOS/Godot')
+p.add_argument('--runtime-package',type=Path,default=root/'build/godot-web/package',help='Exact sealed Web runtime to stage, including Release packages')
 p.add_argument('--audio-hold-seconds',type=float,default=0,help='Keep the first live animated scene running before input/lifecycle steps for an output audio observation')
 p.add_argument('--active-stop',action='store_true',help='Leave node and texture aliases alive for direct host shutdown')
 a=p.parse_args();package=a.package.resolve()
@@ -28,7 +29,7 @@ if a.pack:
 else:(stage/'project.pck').unlink(missing_ok=True)
 environment=os.environ.copy();environment.update(DORA_WEB_GAME_PROFILE='core',DORA_WEB_EAGER_GAME_ASSETS='0',DORA_WEB_INCLUDE_GODOT_CACHE='1')
 subprocess.run(['node',str(root/'Projects/xmake/tools/web/package_web_game.mjs'),str(stage),str(package),'init.lua'],env=environment,check=True)
-runtime=root/'build/godot-web/package';manifest=json.loads((runtime/'manifest.json').read_text());target=package/'godot';target.mkdir(exist_ok=True)
+runtime=a.runtime_package.resolve();manifest=json.loads((runtime/'manifest.json').read_text());target=package/'godot';target.mkdir(exist_ok=True)
 for name,digest in manifest['artifacts'].items():assert hashlib.sha256((runtime/name).read_bytes()).hexdigest()==digest,name
 for file in runtime.iterdir():
  if file.is_file():shutil.copy2(file,target/file.name)

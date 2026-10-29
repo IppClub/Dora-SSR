@@ -14,6 +14,18 @@ local function with_host_path(envs)
     if host_path then
         envs.PATH = envs.PATH and (envs.PATH .. path.envsep() .. host_path) or host_path
     end
+    -- A managed rustup package can exceed the legacy Windows path limit when
+    -- xmake runs under a service account. Allow CI/VM jobs to use explicit
+    -- short Cargo/rustup homes without changing normal installs.
+    local cargo_home = os.getenv("DORA_CARGO_HOME")
+    local rustup_home = os.getenv("DORA_RUSTUP_HOME")
+    if cargo_home then
+        envs.CARGO_HOME = cargo_home
+        envs.PATH = path.join(cargo_home, "bin") .. path.envsep() .. (envs.PATH or "")
+    end
+    if rustup_home then
+        envs.RUSTUP_HOME = rustup_home
+    end
     -- Preserve optional rustup mirrors when xmake supplies an isolated package
     -- environment. This matters on build hosts where static.rust-lang.org is
     -- unavailable but an explicitly configured mirror is reachable.

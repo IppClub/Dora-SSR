@@ -2473,3 +2473,102 @@ Windows先用专用入口实际6PNG通过，生产218/218、读者227/227；后�
 
 
 同轮收口补充：新Metal运行库的小型glTF/空间Shader普通宿主回归通过6图、暂停与GPU排空。首次选用旧ordinary宿主的快速退出路径导致缺少Life销毁门槛，原图像/日志与校验失败保留；改用此前已验普通退出修复宿主才通过，不放宽校验器。候选首次协议导出缺少bgfx两个原始shader文件而在staging阶段失败，补同一tree源字节后新protocol-v2通过；不是生产代码失败。冻结SDK与生成检查最初有并发文件读写，随后另行从tree提取不可变SDK目录编译、生成器结束后编译输出，两者零警告/错误。候选5f7e972f为首个只读检查tree，后续仅文档整理生成最终候选；主HEAD和真实索引保留。
+
+
+候选发布：最终tree9b411418ff7bdacbece231c5ecacfab35d6f9138，49个显式增删路径（diff重命名显示为41项），由私有索引生成。只对CSharpGen/Dora.h基于父提交精确移除GodotNode，保留getLoadError等父版本接口，不混入主工作区getLoadDiagnostics；其他无关缓存/3D变化排除。检查tree5f7e972f与最终tree只有PLAN/TRACKING文档差异；冻结CPU协议与SDK编译通过。commit-tree生成9cfae189223036660581a02b6956596fc973bd8c，父9297c4b，CAS update-ref与非强制push成功、ls-remote/PR head再次核对，主HEAD6a05611e和真实索引哈希不变。PR #159仍draft，标题/正文按当前1.0范围改写，没有合并/发布。publication.json、remote-initial.json位于build/godot-rc1-candidate-final。自身12工作流已启动；Godot run40822400544，原run IDs保留，不重启或反复推送取消它们。后续状态文档先留本地。
+
+
+2026-10-29 DOC-01本地闭环：Tools/Godot/examples包含独立2D自绘小球、3D旋转立方体、标准Godot项目文件、共享host.lua、stage_native.py与快速开始README。无外部素材/编辑器导入依赖。普通已验macOS宿主加44a93683新Metal运行库分别实际运行，原host.lua由require执行，QA控制器仅在另一份复制app的init.lua中；2D7图/3D6图，运动变化13145/16549像素、暂停0、恢复13179/16168、移除绿色0，2D指针变橙、GPU排空与Director/BGFX/Logger退出通过。截图已人工查看。stage记录执行输入与运行库清单SHA；不把开发ad-hoc例包当作最终签名分发，也不声称其他平台例包已运行。聚合build/godot-user-examples/verification.json。为避免取消9cfae189正在运行的CI，新增示例及状态文档先保持本地。
+
+AUDIO-01继续：真实adb/进程确认Android模拟器已停止后，以既有Pixel_7_API_35_arm64-v8a任务AVD、CLI -gpu swiftshader/-no-window/-no-snapshot启动PID57925；不改AVD配置。优化测试APK c9b54f7b和封存运行库eb53c136，完整1000帧/15图无负载与压力续验均0欠载，SwiftShader实际renderer确认。前次CPU worker PID捕获因adb shell参数边界失败，但一个yes已启动；核对host58296 argv与device3644 /proc身份后接管，再增加两worker，时间线记录为一个起始、两个中途，不称全程3负载。用例完成后只停止三个精确核对的task workers。无重启运行中的测试。原历史欠载未因此关闭。
+
+新增隔离Android生产线程计时overlay，记录调度gap和mix_audio耗时/累计produced/queued，数组预分配，线程join后打印；不改变队列容量/目标4096、线程优先级、睡眠或音频ABI，不进入公共module。缓存Android runtime增量7.15秒，旧封存package保持eb53不变；新trace-runtime-package从旧包独立复制并封装实际SO。对c9b54f7b APK只替换Godot SO，保留libmain/Java/R8字节，zipalign并以现有开发签名重新签名/验证；不计最终发布APK。三个新任务CPUworker在trace测试前全部启动；run_node原句柄及记录见build/godot-audio-rc1-investigation。
+
+
+AUDIO-01实际复现：trace APK保留c9b54f7b优化host/Java/R8，仅替换Godot SO并重新开发签名。三个任务CPUworker全程在场，SwiftShader/3缓冲完整1000帧/15图原生流程结束result0，但严格音频验收拒绝512帧欠载。callback62请求512/收到0，gap1us、produced31232；生产事件同produced31232/queued0，gap75782us、mix12us，相关性用同一produced计数，不比较未校准时钟。underrun-correlation.json冻结原log；旧3072/512日志没有生产时序，不声称逐次因果证明。
+
+Godot Android Thread平台hook只有JNI attach/detach，未设置priority；现有SDL消费者通过Android Process.THREAD_PRIORITY_AUDIO。仅把PCM线程nice从继承-4改到-16虽实际成功，target4096仍在callback1286/间隔4us出现512欠载；原失败与priority-alone-result.json保留，未当作修复。最终组合Android目标6144帧/128ms（+2048帧即42.67ms预混音）与音频优先级；FIFO容量8192不变，其他原生4096、Web按需混音不变，不改变验收门槛，也不声称无限负载或端到端延迟。SDK源码默认SoLoud请求2048/44100，实际设备可协商；新增host测试日志为后续读取协商结果，当前Android保留host未包含该日志，不把请求值冒充实测设备配置。
+
+最终组合在同一三个worker下2/3/4各1000帧/15图共45图，六生命周期的JNI priority均-4→-16/failed0、PCM欠载/GPU错误/pending0，含Home/IME/控制器/resize/cancel/别名/竞争节点和250ms渲染停顿。Root公共runtime_audio.inc/register_types_gl.cpp已接入，prepare重新覆盖私有源后实际重编SO SHA3e9f0074a943b5141e872652077bf4e4496753c2823b02085b654e0c04c9c41a与已测组合完全一致；public-runtime-package单独封装并更新公共准备/模块来源，旧eb53包不改。macOS相同公共模块重新Release构建9.00秒、隔离host只新增设备日志构建5.067秒，Wa1000帧/15图及音频/resize/别名/stall/退出通过，PCM0、目标4096；实测Mac SDL44100/2048，maxProducerGap1567/1757us，mix23/24us。聚合build/godot-audio-rc1-investigation/verification.json限定本地范围。任务CPUworkers全部按/proc身份停止，最后原生测试完成/finish0后只关闭本轮headless emulator PID57925，不写AVD配置/快照。新修复/示例和状态文档继续本地，避免取消9cfae189自身CI；Godot CPU双job已success，Linux EGL构建中。
+
+### 2026-10-29 普通 Android Release 交付准备
+
+- `build/godot-rc1-delivery/` 从 PR `9cfae189` 的私有索引生成隔离源码，纳入已验音频修复/示例；排除主工作区无关 Cache/3D。当前构建树 `5d9bf31db1a4ad4825ddb3d9e87cdecfc7f4a8dd`，未提交/推送。
+- 普通 applicationId、`godot.test=false`、arm64-v8a、R8 Release；游戏/QA 数据独立于源 Assets，运行库沿用已封存公开音频修复包。Gradle新增独立assets目录和按manifest SHA核对的Godot/第三方/NDK许可随包任务。
+- 干净嵌套源码暴露 xmake 子进程向外层项目查找的问题：先缺 Wa AAR，再缺 LuaBinding；原始失败日志保留。Gradle、CMake、Wa准备、绑定导出/生成各级显式传 `-P`，修正后 Wa、Lua和Rust由隔离源码重新构建，未复制主工作区native预编译库。
+- `tests/android/{ordinary_release.lua,run_ordinary_release.py,verify_ordinary_release.py}` 添加普通发布变体的公开Lua QA与离线复核入口；其语法/帮助入口已检查，真实安装/截图/PCM/退出验收未完成，不据此勾选ANDROID-01。
+- 全量构建仍运行，句柄与产物来源见 `android-build-active.json`。Gradle旧Lint读取上游Kotlin 2.1元数据出现版本诊断，保留待构建终态后判断；没有关闭Lint。
+- 私有 `DoraGodotRC1_01a17dc1` AVD仅创建未启动；其他Windows/Linux/iOS/Android实例已关闭。验收后关闭本任务模拟器并保留证据。
+- 本轮核对 PR自身11工作流success；Godot Integration的Linux基础矩阵success，优化Release及新增步骤仍运行；快照 `ci-9cfae189-current.json`，不复用父提交绿灯。
+
+### 2026-10-29 Android Java工具链边界补齐
+
+- 全量普通Release构建继续（原树5d9bf31d；会话29121、Gradle67397/Ninja67773），实测原生编译持续推进；当前不能当作最终APK完成。
+- Godot AAR含Kotlin 2.1元数据，旧Lint31.2.2报告不兼容。查官方兼容表/R8替换说明后，用独立AGP8.2.2/Gradle8.2工程验证Godot启用时R8 8.6.17、显式Lint8.9.3；Lint31.9.3实际执行成功。关闭Godot的探针仍为原R8 8.2.47。证据：`build/godot-rc1-delivery/android-toolchain-verification.json`。
+- 公开settings.gradle为可选Godot固定R8，README要求Gradle传`-Pandroid.experimental.lint.version=8.9.3`；尚未复制到正在编译的冻结树，待本次终态后保留旧结果、更新候选并增量重建。settings动态startParameter和项目extra均未改变Lint实际选择，失败/无效探针日志保留，不纳入配置。
+- 专用AVD冷启动成功且普通Dora未安装；构建尚未完成，已关闭空闲AVD（android-owned-avd.json），APK准备好后再启。没有中断原生验收或重启正在运行的测试。
+
+### 2026-10-29 普通Android Release闭环与9cfa产物审计
+
+- `9cfae189`自身12工作流全部success，Godot Linux3个job终态success。623028620字节Linux产物ZIP与GitHub digest `5ee100f2...89d1412`匹配；249源码与提交一致，24报告、385验收图、3宿主/4运行库副本及10项离线复核通过，包含新增3D和Wasm Object trap。完整入口：`build/godot-remote-ci/9cfae189/linux-egl/download-verification.json`。非物理显卡/音频，不替代新增本地改动CI。
+- 普通Android优化Release（nondebuggable、正常appID、R8 8.6.17/Lint8.9.3、无原生Godot测试入口）真实全量构建与打包通过。源码隔离树`762b639bf30118556caf69c947fbc344876798b9`；包内运行库仍为公开音频修复的`3e9f0074...9c41a`。本地Android开发证书仅用于安装QA。
+- 干净构建实测补齐：Gradle许可证生成目录必须先于Lint模型/分析；Android CMake适配必须执行bgfx嵌入shader头生成，且ShaderCompiler对象显式依赖两个头。旧包缺头失败日志和APK保留；生成头后真实GPU共享通过。公开metadata目标另加入与现有Xcode生成器一致的kind适配，此一行仅属下一候选，不冒充已冻结树。
+- 真实验收驱动的adbd root断连与Android15 appId格式已修正；Lua fixture调用Wasm API改用接收对象。失败日志保留。首次7图/同步排空完成后发现App.shutdown在Android按既有语义不退出，不能当全局清理证据；其数据保留于`android-buffers-2-app-shutdown-noop`。
+- 独立Android framework instrumentation APK调用Activity.finish，不改交付App、不加入原生测试入口；控制器同测试证书，target继续nondebuggable。2/3/4各7图，缺库2图，四项均确认Director→BGFX→Logger完整退出及Activity销毁；正常用例预期一次Wasm trap后继续渲染/指针，PCM非零且欠载0，GPU pending/errors0。
+- 汇总`build/godot-rc1-delivery/android-release-verification.json`：23图、705控制步，四项离线重放、六类损坏证据拒绝。R8映射保留Godot/JNI类和restart名称，10779源码文件构建前后未改。已知模拟器无映射controller(0)及Godot缓存shader重编译警告保留并精确分类，其余警告不接受。
+- 专用AVD内目标/控制器均卸载，模拟器已关闭并核实adb空、Parallels全停止、无启动iOS模拟器。证据`android-matrix-cleanup.json`。生产签名、真机、最终RC冻结重打及下一候选自身CI仍未完成。
+
+### 2026-10-29 Web core双Release本地验收
+
+- 独立源码候选`784bff46093825bb3b0c22a3dd565837aa1ff3eb`从9cfae189加本地音频/Android交付/示例/Web工具构成；排除主工作区无关Cache/3D，主HEAD与索引未用于暂存。路径`build/godot-rc1-web-delivery/`，未提交/推送。测试观察器等工具在其后按实际文件另存SHA，最终RC仍待统一冻结。
+- Web构建脚本新增`--target template_release`和独立输出，默认Debug保留；可独立引导SCons。Dora core Release编译依赖收据实际为-O3/NDEBUG，Godot原生Info诊断关闭；Godot template_release optimize=speed成功，主WASM约7.4MiB/43MiB。运行库及许可封存清单通过。
+- 无原生Info的生产配置用测试侧观察器读取原有C ABI统计与PCM。已知Debug包的两个生命周期里，GPU等待/信号、生产完成数、PCM非零及440/660Hz计数与原生日志逐项吻合；该校准不算Release验收。首次观察器把前置静音算作音调，失败日志保留，已按连续有效音调窗口修复。
+- 新鲜固定归档比对暴露prepare_web的双空行边界不稳：重复预处理可能多空行；旧单换行形态会把上游JS库段吃掉。改用明确上游锚点，新增fresh/repeat/legacy回归，Linux CI在现成固定归档上执行。来源审计最终13874文件与新鲜上游加规定补丁一致；临时参考树已清理。实际编译缓存源码原本包含完整JS库，修复后SCons确认up-to-date，运行JS/WASM字节与已测包一致；失败参考审计保留，不伪装源文件从未发生差异。
+- 实际core双Release矩阵：Chromium、Firefox、Playwright WebKit、原生Safari各2/3/4，12case×620控制步/12图，共7440步/144图；暂停恢复、重启、resize、别名/节点重建、基础C ABI输入、GPU和PCM排空通过。普通配置的原生诊断Info确实未出现。
+- 三引擎各一秒真实浏览器数字音频输出、三引擎三缓冲活动node/alias宿主退出、Chrome trusted DOM键鼠/触摸/Unicode/焦点、三引擎意外bootstrap失败清理、真实WEBGL_lose_context安全停止和页面重载恢复通过。包含补充音频和活动退出，共186验收图。仅桌面数字音频/对应环境，非物理扬声器/移动端/端到端延迟。
+- 实际HTTP响应记录包含COOP/COEP、WASM/模块MIME及隔离能力；六类损坏证据（pending读者/GPU错误/PCM计数/音调/平台未清理/暂停图变化）拒绝。汇总`release-verification.json`。旧Debug与过渡混合包不计该汇总。
+- core为显式最小配置，未据此关闭WEB-01。默认dora-preset双Release配置已启动独立构建；后续仍有该默认配置验收、最终RC统一源码/产物/CI，Web局部结果不替代总收口。
+
+### 2026-10-29 Web默认dora-preset双Release本地验收
+
+- 隔离源码候选仍为`784bff46093825bb3b0c22a3dd565837aa1ff3eb`。默认`dora-preset`宿主Release构建完成；四个关键编译单元的实际依赖收据均含`-O3/-DNDEBUG/-DDORA_DEBUG=0/-DDORA_TEST=0`，未定义原生Godot诊断。功能清单确认GodotNode、Entity、Platformer、Yue、Video、ImGui、NanoVG、Spine与DragonBones等默认模块启用。宿主WASM SHA为`30ab3b2b...4701d0`，配套Godot 4.6 `template_release` WASM SHA为`7edd31cd...c2fd2`。
+- Chromium、Firefox、Playwright WebKit和已安装原生Safari各自完成2/3/4缓冲，共12项真实GodotNode用例、7440控制帧、144图、1320项像素检查。持续动画、暂停/恢复、重启、resize、别名、移除/重建、键鼠/控制器/焦点、GPU读者与客户端排空、PCM非零/440与660Hz音调、平台服务退出均通过；没有GPU pending、欠载或协议错误。
+- 浏览器既有非致命提示按原文保留：Chromium ScriptProcessor弃用、Firefox Wasm/WebGL性能/弃用提示、WebKit非便携扩展提示，以及Emscripten停止时主线程阻塞提示。严格验收仍拒绝GL_INVALID类错误；未放宽像素、GPU、PCM或清理门槛。
+- 汇总为`build/godot-rc1-web-delivery/preset-release-verification.json`，构建审计为`preset-release-build-verification.json`。本地默认配置验收完成；WEB-01仍待最终统一RC冻结后重打，并与同一源码、CI、运行库和包清单对齐。未增加物理音频回环、端到端延迟、移动浏览器或原地context恢复声明。
+
+### 2026-10-29 桌面最终包入口与macOS架构边界
+
+- `dora-package`新增可选`--godot-runtime`：先调用固定校验器验证版本1包、Godot 4.6、bridge ABI、文件哈希和许可；再将平台动态库放入默认资源根，并随包保存`GodotRuntimeNotices/manifest.json`及清单声明的许可。普通未启用Godot的打包路径保持原行为。Linux要求运行库清单架构与目标一致；Windows Godot模式强制x64；macOS Godot模式强制arm64。
+- 运行库清单新增可选、受校验的`architectures`字段；macOS/Windows/Linux构建入口写入实际架构。Windows打包任务现支持x64并在Godot模式默认选择x64，普通Dora仍默认x86。macOS arm64包使用独立输出路径和文件名，普通Dora仍默认universal。
+- 首次尝试构建macOS universal Godot Release时，arm64增量链接成功，x86_64在Godot Metal上下文类型不可用处编译失败；日志`build/godot-runtime/build-release-x86_64.log`保留。该结果不作运行失败结论，但证明当前Metal桥接不能承诺Intel。1.0范围据此明确为macOS Apple Silicon；不把universal Dora外壳冒充universal Godot运行时。
+- 首个冻结源码打包尝试发现`dora-package`内部xmake进程未显式传`-P`，实际绝对编译路径落到主工作区；立即中止且没有交付包。macOS/Linux/Windows配置与构建、Web包装转发均补`-P`。新冻结树`76d54d0e9ccb70ba0f15d42c934d28a1249b44b1`从9cfae189选择52路径，排除无关Cache/3D；当前macOS arm64包由该树重新构建，完成前不计PKG-01通过。
+
+### 2026-10-29 macOS arm64 冻结源码交付包验收
+
+- 冻结树`76d54d0e9ccb70ba0f15d42c934d28a1249b44b1`的Release Dora与密封Godot 4.6 Release运行库完成打包。ZIP为58,537,154字节，SHA-256 `ae2f41bb060525488b647c5aecd553b422548c8edd97b8721f05b7afffb6786f`；压缩完整性通过。Dora主程序与`libdora_godot.dylib`均为arm64，包内运行库SHA-256 `cad8126851ddd9c5a73646beaef055d0d9be62c2733a6271ce59c9c68549e55f`，清单SHA-256 `c41c4b7e3a0f13e4c6d2e848f2cb92a6695cb6495d54eff97a4659792e5b4c92`，与独立运行库包一致；声明许可逐字节一致。ad-hoc深度签名在原包及新鲜解包后均通过严格校验。
+- 从ZIP解到全新目录后，普通Release Dora不含Godot原生测试入口，也未设置`DORA_GODOT_*`覆盖。它从默认Resources路径启动Godot动画，13.19秒内生成2图、6451变化像素，GPU生产/完成排空且零错误；移除动态库的独立副本仍运行Dora动画、明确拒绝Godot并正常退出。报告为`build/godot-rc1-final-candidate-v2/macos-zip-runtime-verification/verification.json`，包布局报告为同目录`macos-package-layout-verification.json`和`macos-zip-layout-verification.json`。
+- 人工复核动态帧可见青色Godot 3D对象与绿色Dora节点。测试后没有遗留Dora进程；Parallels三台虚拟机均stopped，adb为空，iOS无booted模拟器。本项关闭macOS本地实包验收，不代表Apple分发签名、公证、Gatekeeper下载隔离或Windows/Linux包已完成。日志中的“universal”标签只是输出文案错误，已修正为实际`arm64`，不改变已验产物字节。
+
+### 2026-10-29 Linux ARM64 冻结源码 AppImage 验收
+
+- 当前源码候选v4冻结树为`310bfff044ca7d806bc7419fda58f12110aff7f8`，源码归档110,042,442字节、SHA-256 `e764bbbb01a3d15e9419410dd2297346e5f0244f381d7972b23648832a7f4c68`。Ubuntu ARM64虚拟机从该树构建Godot 4.6 `template_release`，运行库包校验通过；`libdora_godot.so`为aarch64，SHA-256 `3a5d1e5b9eca4c85c5304fd3e409f55320a1e9257f84038a09770ed3ba060f11`，清单SHA-256 `fc59573b5ce5bf273c275efc22e4db706596c5ba2aca6416cfe6d4f69abb769c`。
+- 虚拟机原xmake 2.8.7不满足工程要求，任务目录内源码构建xmake 3.1.1后使用，未改系统安装。首次包预检按设计拒绝缺失的Web IDE生成物；主机从与候选一致的`Tools/dora-dora`源码重新构建并通过7个运行时文件/183个gzip配套文件校验，归档SHA-256 `56b12d66ae0be50c99b582d357d0216f5fc3f606132f6179626cda21852d9f94`。Parallels命令最初把相对归档解到根目录，未进入候选；随后使用绝对目标重新解包。虚拟机直连GitHub下载appimagetool停滞，终止该单一curl后由主机下载并核对SHA-256 `a595ea34cd6136c7f595e9dcbb16f3e9725d7610efb9e43b38c3c6e86cafc270`再传入缓存。
+- 最终AppImage为aarch64、约90 MiB，SHA-256 `3982a9a85b5ee30d144422000ad781c0238660fa0a309508c8dd66092f474dfd`；AppDir主程序及运行库均为aarch64，包布局与运行库字节校验通过。从AppDir普通Release主程序、默认包内资产和运行库实际启动，未设置库覆盖：4.80秒内两图变化25,651像素，Godot启动、GPU生产/读取排空；缺库副本明确不启动Godot且Dora安全回退。Weston headless GL实际为Mesa 25.2.8、virgl `Apple M1 Pro (Compat)`，不是物理Linux显卡。人工复核两帧可见绿色Dora节点与旋转/位移的青色Godot对象。
+- 证据与AppImage已复制至`build/godot-rc1-final-candidate-v4/linux-arm64-evidence/`。本项只关闭Linux ARM64实包；Linux x86_64、Windows x64、最终统一RC对齐仍开放。Windows 11虚拟机本轮长时间停在开机旋转界面，未执行构建；终止精确虚拟机进程后状态为stopped，不记作Windows验收。验收后删除Ubuntu内2.7 GiB任务目录、误解包资源、传输归档和任务xmake目录，ACPI正常关机；最终三台Parallels虚拟机均stopped、adb为空、iOS无booted模拟器，未发现任务HTTP/Dora/Weston进程。
+
+### 2026-10-29 Linux x86_64 冻结源码 AppImage 与模拟动态验收
+
+- 仍使用v4冻结树`310bfff044ca7d806bc7419fda58f12110aff7f8`。Ubuntu 24.04 ARM64 VM中以交叉GCC完整构建Godot 4.6 `template_release`和Dora Release；宿主二进制SHA-256为`85b04a1249dcd6b24b0762c2d81da7edff242748941d2cdeff1c3fe7da76505d`，`libdora_godot.so`为`7bff0d2d6087be6b34a08f42602e385abd428f3a7f35d10a4f1f70bad6785f29`，运行库清单为`70d4f379e261513814f9babcb48049283b7a4ce01dd40dc5696ea36fa1387943`。
+- `dora-package`新增`DORA_APPIMAGETOOL`和`DORA_APPIMAGE_RUNTIME`显式输入，交叉打包可同时固定主机架构工具与目标架构runtime。本次appimagetool SHA-256为`a595ea34cd6136c7f595e9dcbb16f3e9725d7610efb9e43b38c3c6e86cafc270`，x86_64 runtime为`617aa77314d57c8b8e4fae9c3f0b35af7b30d5529cb69e98f64f92510ed98a46`。早期两次隐式下载/提取失败均保留；清理root所有的固定提取缓存后，正式入口使用两个固定输入成功。
+- 最终AppImage SHA-256为`5ac8de51d7a0e20df6513705c30a2ebecad366c6d2b5e0033d93df2b111527a7`。从squashfs偏移944632独立解包，主程序、运行库、manifest和两份许可与输入包逐字节一致，架构为x86_64。
+- Rosetta Linux虽在VM配置中启用，客户系统未注册执行处理器，不能直接运行x86_64 ELF。因此用任务目录内QEMU x86_64 user-static（SHA-256 `de72ec1143909f0f495a53c36d9215cb86e2952517aad87044c741a1088dc60f`）运行最终包内普通主程序，没有原生测试入口。首次在慢渲染器下暴露两次异步截图重叠；测试fixture改为等待前一回调后再提交下一帧，不改生产代码或验收门槛。
+- 最终随包运行库用例11.30秒完成：两帧变化24,433像素，客户端15/15、读者28/28，三缓冲、pending 0、GPU error 0；缺库回退用例6.91秒完成。Weston为virgl `Apple M1 Pro (Compat)`，Godot/OpenGL客户端为llvmpipe；这是ARM64 VM上的QEMU用户态执行，不冒充物理x86_64硬件验收。证据与AppImage保存在`build/godot-rc1-final-candidate-v4/linux-x86_64-evidence/`。
+- 证据复制后重置xmake任务搜索路径，删除客户内`/opt/dora-godot-x64-v4`、固定AppImage提取缓存和命令试验临时文件。ACPI关机30秒未结束后强制停止该精确VM；最终三台Parallels均stopped，adb为空、iOS无booted模拟器，无任务Dora/Weston/QEMU/HTTP进程。PKG-01剩余Windows x64实包与最终统一RC对齐。
+
+### 2026-10-29 Windows x64 冻结宿主 ZIP 与普通 WGL 验收
+
+- Windows 11 ARM64虚拟机使用v4冻结源码`310bfff044ca7d806bc7419fda58f12110aff7f8`及同一Web资产归档；源码归档SHA-256仍为`e764bbbb01a3d15e9419410dd2297346e5f0244f381d7972b23648832a7f4c68`，Web资产归档为`56b12d66ae0be50c99b582d357d0216f5fc3f606132f6179626cda21852d9f94`。运行库使用此前已实际动态验收的28b候选，DLL SHA-256 `c13761f608e82fcf08fc3c94bda4cac9b67fa074916dff20eb3c450ce5ce08f7`；为打包补架构声明后的manifest SHA-256为`e5f17c8b1a970f77ac0cdaa73f744097c6a5a5553bfdd47a3251ff84084e2e0c`。它不是从v4源码重建，最终统一RC对齐继续开放。
+- Windows服务账户下xmake托管Rust sysroot路径达到旧版260字符上限；目录联接会被Rust解析回真实长路径，不能解决。`native_runtime.lua`新增可选`DORA_CARGO_HOME`/`DORA_RUSTUP_HOME`传递和Cargo bin前置，默认构建行为不变；把完整`.cargo`/`.rustup`实体复制到`C:\DoraRustV4`后Rust/Wa及Dora Release构建完成。README记录这一边界。首次最终打包因计划任务PATH无Python而严格失败，原`scheduled-python-missing.log`保留；向任务PATH加入既有Python后只做增量打包成功。
+- 最终ZIP 89,434,499字节，SHA-256 `7d7d289a5da868f555fec342b1b17d029a44687028ceb5d8679119887a0b1a96`。包内`Dora.exe`、`wa.dll`分别为`35c3ef4917dd698446aa459cc02af3d3804d3e628216e8008cf9d67b7439bcdc`、`7cc01e2398f11bc398b41a1fe54223ea7474bd47d820d2204824536991da3cbc`；主程序和Godot DLL均独立确认PE32+ x86-64。ZIP完整性、全新解包布局、运行库/manifest/许可逐字节校验通过。
+- 在已登录用户的真实图形会话运行全新解包的普通Dora，不含Godot测试专用入口，不设置库路径覆盖。随包用例10.83秒、两图变化6470像素，客户端生产/完成152/152，三缓冲读者156/156、等待464/信号468、pending与GPU错误0；删除DLL的独立副本5.45秒安全回退且Dora动画继续。两帧人工复核可见绿色Dora节点与位置/姿态变化的青色Godot对象。环境为Parallels Windows 11 ARM64中的x64模拟进程和WGL，不冒充物理Windows x64 GPU。
+- 证据和ZIP位于`build/godot-rc1-final-candidate-v4/windows-x64-evidence/`，`hashes.txt`已离线复算，`provenance.json`明确候选不对齐边界。验收后删除三个计划任务、`C:\DoraGodotPackage-v4`、短路径Rust副本和只含目录联接的缓存入口，重置两套xmake全局`pkg_searchdirs`；主机四个Rust传输辅助文件也已删除。Windows正常关机，最终三台Parallels均stopped、adb为空、iOS无booted模拟器且无任务进程。PKG-01现在只剩最终统一RC源码/宿主/运行库/ABI/CI对齐以及分发签名边界。

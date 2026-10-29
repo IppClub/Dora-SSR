@@ -31,6 +31,14 @@ class PackageIntegrity(unittest.TestCase):
         self.manifest['bridge_abi']=99;self.save();self.rejects()
     def test_bad_source(self):
         self.manifest['source_archive_sha256']='0'*64;self.save();self.rejects()
+    def test_valid_architectures(self):
+        self.manifest['architectures']=['arm64','x86_64'];self.save();self.assertTrue(verify(self.root)['passed'])
+    def test_empty_architectures(self):
+        self.manifest['architectures']=[];self.save();self.rejects()
+    def test_duplicate_architectures(self):
+        self.manifest['architectures']=['arm64','arm64'];self.save();self.rejects()
+    def test_unknown_architecture(self):
+        self.manifest['architectures']=['mips64'];self.save();self.rejects()
     def test_seal_preserves_identity(self):
         with self.assertRaises(ValueError):seal(self.root,{'source_archive_sha256':'0'*64})
     def test_missing_payload(self):

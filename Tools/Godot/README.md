@@ -2,6 +2,8 @@
 
 将固定版本 Godot 4.6 的项目离屏输出作为 Dora Sprite 使用。Metal 后端已验证 Apple Silicon macOS、同一个 MTLDevice 和单个活动节点。Linux ARM64 EGL 和 Windows WGL 后端也已通过真实 GPU 节点测试。LibGodot、Godot 场景树与渲染器实际运行在 Dora 进程内。
 
+直接运行的2D/3D项目与简明操作步骤见 [示例快速开始](examples/README.md)。
+
 当前平台状态、产品决策和待办任务统一维护在 [`TRACKING.md`](TRACKING.md)。`PLAN.md` 保留详细实验过程，不作为当前任务状态的唯一依据。
 
 iOS 兼容策略：普通 Dora 保持 Apple2 GPU Family；可选 GodotNode 要求 Apple4 GPU Family，不满足时可查询原因并安全拒绝。模拟器兼容边界已验证，Apple4+ 真机共享渲染仍待验收，详见 TRACKING.md 的 D-001、IOS-01/02。
@@ -152,6 +154,22 @@ GPU 纹理与 fence 协议。`tests/particle_key.py` 单独检查材质键的填
 
 普通 macOS / Linux / Windows Dora 构建包含节点适配层。各平台的 LibGodot 是运行时可选依赖。必须使用本目录脚本构建的 Dora bridge 运行库；上游原版 LibGodot 没有此 C ABI，不能直接替换。指定 `DORA_GODOT_LIBRARY` 为 `build/godot-runtime/package/libdora_godot.dylib` 的绝对路径，或将匹配动态库放到资源根目录的 `libdora_godot.dylib`。Linux 对应 `build/godot-linux/package/libdora_godot.so`。请以构建脚本实际输出的 package 路径为准。
 
+正式桌面包使用版本1运行库目录，而不是只传单个动态库。打包入口先验证Godot 4.6、bridge ABI、逐文件哈希和许可清单，再把库放入默认资源根，将清单与许可放入`GodotRuntimeNotices/`：
+
+```sh
+DORA_GODOT_TARGET=template_release Tools/Godot/build_runtime.sh
+xmake dora-package --platform=macosx --arch=arm64 --mode=release \
+  --godot-runtime="$PWD/build/godot-runtime/release/package"
+```
+
+macOS Godot整合1.0限定Apple Silicon；普通Dora仍保留原有universal包。Windows Godot包使用`--arch=x64`，Linux使用与运行库清单一致的`--arch=x86_64`或`--arch=arm64`。未传`--godot-runtime`时，普通Dora的既有打包行为不变。
+
+Windows优化运行库使用`python Tools/Godot/build_windows_runtime.py --target template_release --arch x86_64`；Linux使用`DORA_GODOT_TARGET=template_release Tools/Godot/build_linux_runtime.sh`。Debug仍是两个入口的默认值，Release应使用独立build目录，避免把旧目标的产物误当成当前包。
+
+Linux在隔离或离线构建机上可用`DORA_APPIMAGETOOL=/absolute/path/to/appimagetool-<host-arch>.AppImage`显式指定已校验的主机架构工具，并用`DORA_APPIMAGE_RUNTIME=/absolute/path/to/runtime-<target-arch>`固定目标架构的AppImage runtime；未设置时仍由工具使用缓存或网络获取缺失项。交叉打包时工具自身架构必须匹配构建主机，输出架构由`--arch`决定。普通Linux随包测试可重复传`--runner`为目标二进制增加执行前缀；报告会保留该前缀，转译或模拟执行不能冒充原生硬件验收。
+
+桌面包布局可用`tests/verify_desktop_package.py`核对运行库、原清单和声明许可是否逐字节随包；macOS还应从ZIP解到全新目录，再用`tests/run_ordinary_macos.py --use-bundled-library`验证默认查找、动态画面和缺库安全路径。该本地流程使用ad-hoc签名，不替代分发签名、公证或Gatekeeper下载隔离验收。
+
 Lua 示例：
 
 ```lua
@@ -221,6 +239,9 @@ python3 Tools/Godot/build_android_runtime.py --sdk "$ANDROID_HOME" --target temp
 `-Pdora.godot.buildDir=<独立目录>` 隔离应用构建产物。测试驱动
 `Tools/Godot/tests/android/run_node.py --runtime-package <同一包路径>`
 先验证封存清单，再核对 APK 内运行库哈希；构建通过不表示模拟器或真机运行通过。
+Godot 4.6 Java AAR含Kotlin 2.1元数据：启用Godot时固定R8 8.6.17；Gradle命令同时传`-Pandroid.experimental.lint.version=8.9.3`，使用能读取该元数据的Lint。普通Dora沿用AGP自带R8。依据见[Android兼容表](https://developer.android.com/build/kotlin-support)和[独立Lint说明](https://googlesamples.github.io/android-custom-lint-rules/user-guide.html#configuring-the-lint-version)。
+启用Godot时，Gradle按运行库清单核对并将Godot/第三方/NDK许可写入APK的`assets/GodotRuntimeNotices/`，不改源Assets。
+普通Godot游戏可用`-Pdora.godot.assets=<资源目录绝对路径>`选择独立资源树，默认仍使用仓库Assets；该属性只在`dora.godot=true`时生效。`dora.godot.test=false`的Release不启用原生验收入口或debuggable，签名应在最终交付步骤单独处理。
 启用 `dora.godot.test=true` 时，专用 prototype 包的 Release 变体保留
 debuggable 并使用开发调试签名，以便 run-as 导出原生报告；普通 Release 包不受影响。
 此验收验证优化代码，不代表最终生产签名或分发包验收。
@@ -297,7 +318,12 @@ Wa 的公共 Emit 必须导入 dora_emit，与宿主导出一致。若刻意复�
 
 Godot 整合 1.0 不提供 C# GodotNode 绑定，也不启用 Godot .NET/Mono 项目脚本；Dora 原有 C# 功能保留。此前 C# 实验与测试入口仅作为历史保存在 [history/2026-10-29-pre-1.0](history/2026-10-29-pre-1.0/INDEX.md)。
 
-## 宿主音频接入（验证进行中）
+## 宿主音频接入
+
+原生PCM生产线程使用有界队列，宿主回调只复制数据。Android生产线程使用与SDL消费者相同的`THREAD_PRIORITY_AUDIO`，预混音目标6144帧（48kHz下128ms）；其他原生平台保持4096帧（85.3ms）。Android目标较先前增加42.7ms，用于覆盖实测的调度延迟及消费突发；该数值是预混音余量，不是端到端延迟测量。Web仍在宿主请求时按需混音。
+
+启用`DORA_GODOT_TEST_AUDIO=1`的测试宿主会在停止并join生产线程后输出有界生产调度/混音计时、宿主设备协商配置及欠载事件。性能诊断不在回调中分配内存或逐回调打印。软件渲染加三CPU负载的Android2/3/4矩阵及macOS共享代码回归已通过；物理设备、最终发布APK、长期复杂混音和输出延迟仍按TRACKING分别验收。
+
 
 新增可选 `GodotBridgeAudio.h` 扩展表，提供 48 kHz 双声道 float32 PCM 拉取。
 音频 ABI 2 使用无音频设备的 Dummy 驱动，由注册到 Godot 的专用线程生产 PCM，
@@ -461,6 +487,11 @@ Windows ARM64 上应使用原生 ARM64 xmake，以便正确选择宿主 Rust/Go 
 Dora 和 Godot 的目标架构仍为 x64。有完整工具包但不在 PATH 时，可使用
 `--xmake C:\path\to\xmake.exe`。已经构建 DLL 时，可用
 `--skip-runtime-build --library C:\path\to\dora_godot.dll` 只构建 Dora 并运行测试。
+若 CI 或虚拟机中的服务账户使 xmake 托管的 Rust sysroot 路径超过旧版 Windows
+路径上限，可将完整 `.cargo` 和 `.rustup` 目录复制到短路径，并分别设置
+`DORA_CARGO_HOME`、`DORA_RUSTUP_HOME`。构建入口会把它们传给 Cargo/rustup；普通
+交互构建不设置时仍沿用原有工具包路径。目录联接可能被 Rust 解析回真实长路径，
+因此不能替代短路径实体副本。
 
 上面的 `--skip-build` 需要事先构建测试宿主；也可直接运行
 `python Tools/Godot/test_windows.py`，由它构建运行库和测试宿主，并设置需要的
@@ -675,7 +706,7 @@ python3 Tools/Godot/prepare_android_aar.py
 python3 Tools/Godot/prepare_android_test_assets.py
 python3 Tools/Godot/build_android_runtime.py --sdk "$ANDROID_HOME" --jobs 2
 Projects/Android/Dora/gradlew -p Projects/Android/Dora :app:assembleDebug \
-  -Pdora.godot=true -Pdora.godot.test=true -Pdora.android.abis=arm64-v8a \
+  -Pdora.godot=true -Pandroid.experimental.lint.version=8.9.3 -Pdora.godot.test=true -Pdora.android.abis=arm64-v8a \
   -Pdora.android.jobs=2 --max-workers=2 --no-daemon
 python3 Tools/Godot/tests/android/run_node.py --serial emulator-5554 \
   --sdk "$ANDROID_HOME" \
@@ -713,6 +744,21 @@ API35 ARM64 模拟器通过 `--controller --audio --aliases` 联合回归。`a` 
 SHA-256 为 `20af7feb71feee0c2c1f943cc71deec70f1017f5aa7fb214d64b69bc53d9f389`，
 报告：`build/godot-runtime/android-controller-focus/verification.json`。这仍是模拟的 Dora
 标准控制器事件，不代表 Android 物理手柄、热插拔或震动验收。
+
+普通非debuggable Release验收使用独立资源树（`-Pdora.godot.assets=...`）与`dora.godot.test=false`，不含原生Godot测试入口。Android中的Godot项目需要先用Content.copy从APK资源解包到真实可写目录；公开Lua验收夹具见`tests/android/ordinary_release.lua`。
+
+普通包的生命周期控制器单独构建，不加入交付应用：
+
+```sh
+Projects/Android/Dora/gradlew -p Tools/Godot/tests/android/lifecycle :app:assembleDebug --no-daemon
+python3 Tools/Godot/tests/android/run_ordinary_release.py \
+  --sdk "$ANDROID_HOME" --serial emulator-5580 --owned-avd DoraGodotRC1_local \
+  --apk /path/to/locally-signed-release.apk --runtime-package /path/to/runtime-package \
+  --lifecycle-apk Tools/Godot/tests/android/lifecycle/app/build/outputs/apk/debug/app-debug.apk \
+  --output /path/to/new-evidence --buffers 3
+```
+
+目标和控制器需使用同一本地测试证书；驱动只允许`DoraGodotRC1_`命名的专用rootable模拟器。目标保持普通包名和nondebuggable，Android框架instrumentation在Lua用例完成后调用`Activity.finish()`，等待SDL/引擎清理。`App.shutdown()`在Android上不退出应用；不能用强停代替完整清理证据。动态用例检查7图、暂停/恢复、指针、Wasm trap后继续渲染、PCM和GPU排空；缺库APK使用`--missing`检查Dora继续运行及正常Activity退出。模拟器结束后须关闭，报告保留；不等同生产签名、真机或最终RC验收。
 
 Android 原生编译可使用 `-Pdora.android.jobs=2` 限制 Ninja 编译与链接并发（1–32）。
 Gradle `--max-workers` 只约束 Gradle 任务，不能约束每个 ABI 内部的 Ninja 并发。
@@ -843,7 +889,29 @@ Emscripten 的主线程阻塞诊断原文保留在 `browser_errors` / `browser_d
 第三方声明和来源／编译参数／文件哈希清单。构建通过与浏览器 GPU 通过分别报告。
 
 
-### 实际 Dora GodotNode Web 原型
+### Dora GodotNode Web
+
+#### Release 交付配置
+
+Godot与Dora的Release分别构建，运行库默认仍输出Debug包；Release不会覆盖该包：
+
+```sh
+python3 Tools/Godot/build_web_runtime.py --target template_release --jobs 2
+DORA_WEB_GODOT=1 DORA_WEB_GODOT_DIAGNOSTICS=0 \
+DORA_WEB_GODOT_RUNTIME_DIR="$PWD/build/godot-web/release/package" \
+DORA_WEB_BUILD_DIR="$PWD/build/godot-web/release-build" \
+DORA_WEB_PACKAGE_DIR="$PWD/build/godot-web/release-probe" \
+DORA_WEB_PLAYER_PACKAGE_DIR="$PWD/build/godot-web/release-player" \
+DORA_WEB_BUILD_LOVE_PROBE=0 xmake dora-web -P "$PWD" --mode=release --profile=dora-preset --jobs=2
+```
+
+`dora-preset`是默认交付配置，包含Dora Demo通常启用的模块。`core`只用于明确需要最小宿主的裁剪场景，不能用其验收结果替代默认配置。
+
+准备验收数据时，为`prepare_node_game.py`或`run_node_matrix.py`显式传入同一`--runtime-package build/godot-web/release/package`。关闭原生Info诊断时，使用`verify_node.py --cabi-observer`（矩阵入口也接受该参数）；测试脚本只观察原有C ABI和PCM，不向交付运行时加入测试入口。
+
+部署目录须完整包含Player、manifest、assets、AudioWorklet和godot运行库/许可。使用HTTPS或localhost；响应头要求`Cross-Origin-Opener-Policy: same-origin`与`Cross-Origin-Embedder-Policy: require-corp`。`.wasm`应为`application/wasm`，`.js/.mjs`应为JavaScript MIME；未散列的入口/运行库采用重新验证或禁用缓存的策略。实际服务器响应和浏览器`crossOriginIsolated`均需核验，不能只看静态文件。context loss按安全停止并重新加载页面恢复；不承诺原地恢复。
+
+原Debug实验命令保留如下：
 
 ```sh
 python3 Tools/Godot/build_web_runtime.py --jobs 2

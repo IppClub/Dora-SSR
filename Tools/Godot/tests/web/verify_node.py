@@ -3,7 +3,7 @@
 import argparse,hashlib,json,re
 from pathlib import Path
 from PIL import Image,ImageChops
-p=argparse.ArgumentParser(description=__doc__);p.add_argument('results',type=Path);p.add_argument('--buffers',type=int,choices=[2,3,4],required=True);a=p.parse_args()
+p=argparse.ArgumentParser(description=__doc__);p.add_argument('results',type=Path);p.add_argument('--buffers',type=int,choices=[2,3,4],required=True);p.add_argument('--cabi-observer',action='store_true',help='Use observed C ABI/PCM evidence when native Info diagnostics are disabled');a=p.parse_args()
 report=a.results/'verification.json';report.unlink(missing_ok=True)
 r=json.loads((a.results/'execution.json').read_text());assert r['passed']
 assert r['teardown']['state']['active'] is False and r['teardown']['dispose_again'] is False and r['teardown']['ime_present'] is False,r['teardown']
@@ -61,13 +61,36 @@ for text in ['DORA_WEB_GODOT_CONTROLLER_BUTTON device=7 pressed=1 state=1','DORA
  assert text in logs,text
 clients=re.findall(r'GodotRuntime client closed: produced=(\d+), completed=(\d+), gpuErrors=(\d+)',logs)
 readers=re.findall(r'GodotRuntime readers: buffers=(\d+), frames=(\d+), waits=(\d+), signals=(\d+), pending=(\d+), completed=(\d+), gpuErrors=(\d+)',logs)
-assert len(clients)==2 and len(readers)==2,(clients,readers)
-for produced,completed,errors in clients:assert int(produced)>0 and produced==completed and int(errors)==0
-for buffers,frames_count,waits,signals,pending,completed,errors in readers:assert int(buffers)==a.buffers and int(frames_count)>0 and 0<int(waits)<=int(signals) and int(signals)==int(frames_count)*a.buffers and pending=='0' and completed==frames_count and errors=='0'
-audio=re.findall(r'GodotAudio drained: produced=(\d+), consumed=(\d+), nonzeroProduced=(\d+), nonzeroConsumed=(\d+), underrunFrames=(\d+)',logs)
-tones=re.findall(r'GodotAudio tone: frames=(\d+), leftCrossings=(\d+), rightCrossings=(\d+)',logs)
-assert len(audio)==2 and len(tones)==2,(audio,tones)
-for produced,consumed,nonzero_in,nonzero_out,underruns in audio:assert int(produced)>=int(consumed)>0 and int(nonzero_in)>0 and int(nonzero_out)>0 and int(underruns)==0
-for count,left,right in tones:assert int(count)==48000 and abs(int(left)-440)<=2 and abs(int(right)-660)<=2
-r.update(passed=True,scope='Actual Dora GodotNode Web: composited GPU output, C ABI/manual pointer/key, standard controller button/axis/focus release, lifecycle/resize/retained aliases, GPU drain, PCM-to-SoLoud oracle and post-stop platform-service teardown; native DOM input and latency still pending',buffers=a.buffers,pixel_checks=checks,barcodes=frames,aliases=aliases,gpu_clients=clients,gpu_readers=readers,audio=audio,tones=tones,controller_button_axis_forwarding=True,controller_focus_loss_releases_held_input=True,platform_service_teardown=True,host_suspend_resume=bool(r.get('suspension')),images_sha256={name:hashlib.sha256((a.results/(name+'.png')).read_bytes()).hexdigest() for name in images})
+if a.cabi_observer:
+ metrics=r['audio_metrics'];assert not metrics['protocol_errors'],metrics['protocol_errors']
+ sessions=metrics['sessions'];assert len(sessions)==2
+ clients=[];readers=[];audio=[];tones=[]
+ for session in sessions:
+  produced,completed,errors,waits=session['close_stats']
+  assert produced>0 and produced==completed and errors==0
+  assert session['buffers']==a.buffers and session['pending_at_close']==0
+  assert session['begins']+session['empty_ends']==session['ends'] and session['begins']>0 and session['max_pending']>0
+  assert session['ends']%a.buffers==0
+  assert all(value==0 for value in session['pending'].values())
+  assert session['bindings']>0
+  native=session['audio_stats'];assert native is not None
+  made,used,nonzero,underruns=native
+  assert made>=used>0 and used==session['pcm_frames'] and nonzero>0 and underruns==0
+  assert session['nonzero_consumed']>0
+  assert session['tone_frames']==48000
+  left,right=session['tone_crossings'];assert abs(left-440)<=2 and abs(right-660)<=2,(left,right)
+  clients.append([produced,completed,errors])
+  readers.append({'buffers':session['buffers'],'begins':session['begins'],'ends':session['ends'],'pending':session['pending_at_close']})
+  audio.append([made,used,nonzero,session['nonzero_consumed'],underruns])
+  tones.append([session['tone_frames'],left,right])
+else:
+ assert len(clients)==2 and len(readers)==2,(clients,readers)
+ for produced,completed,errors in clients:assert int(produced)>0 and produced==completed and int(errors)==0
+ for buffers,frames_count,waits,signals,pending,completed,errors in readers:assert int(buffers)==a.buffers and int(frames_count)>0 and 0<int(waits)<=int(signals) and int(signals)==int(frames_count)*a.buffers and pending=='0' and completed==frames_count and errors=='0'
+ audio=re.findall(r'GodotAudio drained: produced=(\d+), consumed=(\d+), nonzeroProduced=(\d+), nonzeroConsumed=(\d+), underrunFrames=(\d+)',logs)
+ tones=re.findall(r'GodotAudio tone: frames=(\d+), leftCrossings=(\d+), rightCrossings=(\d+)',logs)
+ assert len(audio)==2 and len(tones)==2,(audio,tones)
+ for produced,consumed,nonzero_in,nonzero_out,underruns in audio:assert int(produced)>=int(consumed)>0 and int(nonzero_in)>0 and int(nonzero_out)>0 and int(underruns)==0
+ for count,left,right in tones:assert int(count)==48000 and abs(int(left)-440)<=2 and abs(int(right)-660)<=2
+r.update(passed=True,scope='Actual Dora GodotNode Web: composited GPU output, C ABI/manual pointer/key, standard controller button/axis/focus release, lifecycle/resize/retained aliases, GPU drain, PCM-to-SoLoud oracle and post-stop platform-service teardown; native DOM input and latency still pending',buffers=a.buffers,stats_evidence='Observed production C ABI and PCM' if a.cabi_observer else 'Native diagnostic logs',pixel_checks=checks,barcodes=frames,aliases=aliases,gpu_clients=clients,gpu_readers=readers,audio=audio,tones=tones,controller_button_axis_forwarding=True,controller_focus_loss_releases_held_input=True,platform_service_teardown=True,host_suspend_resume=bool(r.get('suspension')),images_sha256={name:hashlib.sha256((a.results/(name+'.png')).read_bytes()).hexdigest() for name in images})
 report.write_text(json.dumps(r,indent=2)+'\n');print(json.dumps({key:r[key] for key in ['passed','buffers','controller_frames','pixel_checks','audio','tones']}))

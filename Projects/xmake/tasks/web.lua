@@ -75,7 +75,7 @@ task("dora-web")
             envs.DORA_TEST_WEB = tests.web
             envs.DORA_ENGINE_ROOT = root
         end
-        local args = {"f", "-y", "-p", "wasm", "-a", "wasm32", "-m", mode, "--ccache=n", "--builddir=" .. path.join(out, "build"),
+        local args = {"f", "-P", root, "-y", "-p", "wasm", "-a", "wasm32", "-m", mode, "--ccache=n", "--builddir=" .. path.join(out, "build"),
             "--dora_web_outdir=" .. out, "--dora_web_profile=" .. profile,
             "--dora_web_testdir=" .. envs.DORA_TEST_WEB}
         for key, value in pairs({engine = engine, link_player = player, love_probe = probes, love_pthread_player = love_player,
@@ -99,7 +99,7 @@ task("dora-web")
             if env("LOVE_COMPLEX_PACKAGE", "") ~= "" then table.insert(targets, "dora-web-love-complex-probe") end
         end
         if love_player then table.insert(targets, "dora-web-love-pthread-player") end
-        for _, target in ipairs(targets) do os.vrunv(os.programfile(), {"build", "-j", jobs, target}, {curdir = root, envs = envs}) end
+        for _, target in ipairs(targets) do os.vrunv(os.programfile(), {"build", "-P", root, "-j", jobs, target}, {curdir = root, envs = envs}) end
         local function stage(destination, stem, extras)
             assert(destination ~= root and destination ~= out and destination ~= path.directory(root), "unsafe staging directory")
             os.mkdir(destination)

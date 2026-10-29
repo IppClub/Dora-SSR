@@ -1,25 +1,83 @@
-local function package_macos(mode, api)
+local function stage_godot_runtime(runtime_dir, asset_root, expected_library, required_architectures, api)
+    if not runtime_dir or runtime_dir == "" then return end
+    local ensure = api.ensure
+    local json = api.json
+    local os = api.os
+    local path = api.path
+    local projectdir = os.projectdir()
+    local runtime = path.absolute(runtime_dir, projectdir)
+    local manifest_file = path.join(runtime, "manifest.json")
+    ensure(os.isdir(runtime) and os.isfile(manifest_file),
+        "Godot runtime package must contain manifest.json: " .. runtime)
+    local python = ensure(api.find_tool("python3") or api.find_tool("python"),
+        "Godot runtime packaging requires Python")
+    os.vrunv(python.program, {
+        path.join(projectdir, "Tools/Godot/verify_package.py"), runtime
+    }, {curdir = projectdir})
+
+    local manifest = json.loadfile(manifest_file)
+    ensure(manifest.package_format == "dora-godot-runtime"
+        and manifest.package_version == 1 and manifest.bridge_abi == 1
+        and manifest.godot_version == "4.6-stable",
+        "unsupported Godot runtime package metadata")
+    ensure(manifest.library == expected_library,
+        "Godot runtime library does not match package platform: " .. tostring(manifest.library))
+    if required_architectures then
+        local present = {}
+        for _, architecture in ipairs(manifest.architectures or {}) do present[architecture] = true end
+        for _, architecture in ipairs(required_architectures) do
+            ensure(present[architecture], "Godot runtime is missing required architecture: " .. architecture)
+        end
+    end
+    ensure(type(manifest.licenses) == "table" and #manifest.licenses > 0,
+        "Godot runtime package has no license inventory")
+
+    os.mkdir(asset_root)
+    os.cp(path.join(runtime, manifest.library), path.join(asset_root, manifest.library))
+    local notices = path.join(asset_root, "GodotRuntimeNotices")
+    os.rm(notices)
+    os.mkdir(notices)
+    os.cp(manifest_file, path.join(notices, "manifest.json"))
+    for _, relative in ipairs(manifest.licenses) do
+        local source = path.join(runtime, relative)
+        local destination = path.join(notices, relative)
+        ensure(os.isfile(source), "missing Godot runtime notice: " .. relative)
+        os.mkdir(path.directory(destination))
+        os.cp(source, destination)
+    end
+    api.cprint("${green}Godot runtime staged: %s${clear}", path.join(asset_root, manifest.library))
+end
+
+local function package_macos(mode, arch, api)
     local ensure = api.ensure
     local cprint = api.cprint
     local os = api.os
     local path = api.path
-    ensure(os.host() == "macosx", "macOS universal packaging requires a macOS host")
+    ensure(os.host() == "macosx", "macOS packaging requires a macOS host")
+    ensure(arch == "arm64" or arch == "universal",
+        "macOS packaging architecture must be arm64 or universal")
+    if api.godot_runtime then
+        ensure(arch == "arm64", "Godot-enabled macOS 1.0 packages support Apple Silicon only")
+    end
 
     local projectdir = os.projectdir()
     local xmake = os.programfile()
     local apps = {}
-    for _, arch in ipairs({"arm64", "x86_64"}) do
-        cprint("${bright}building macOS %s %s with xmake${clear}", arch, mode)
-        os.vrunv(xmake, {"f", "-y", "-p", "macosx", "-a", arch, "-m", mode}, {
+    local build_architectures = arch == "universal" and {"arm64", "x86_64"} or {arch}
+    for _, build_arch in ipairs(build_architectures) do
+        cprint("${bright}building macOS %s %s with xmake${clear}", build_arch, mode)
+        os.vrunv(xmake, {"f", "-P", projectdir, "-y", "-p", "macosx", "-a", build_arch, "-m", mode}, {
             curdir = projectdir
         })
-        os.vrunv(xmake, {"build", "Dora"}, {curdir = projectdir})
-        local app = path.join(projectdir, "build/macosx", arch, mode, "Dora.app")
+        os.vrunv(xmake, {"build", "-P", projectdir, "Dora"}, {curdir = projectdir})
+        local app = path.join(projectdir, "build/macosx", build_arch, mode, "Dora.app")
         ensure(os.isdir(app), "missing xmake macOS output: " .. app)
-        apps[arch] = app
+        apps[build_arch] = app
     end
 
-    local package_dir = path.join(projectdir, "build/package/macosx", mode)
+    local package_dir = arch == "universal"
+        and path.join(projectdir, "build/package/macosx", mode)
+        or path.join(projectdir, "build/package/macosx", arch, mode)
     local universal_app = path.join(package_dir, "Dora.app")
     os.rm(package_dir)
     os.mkdir(package_dir)
@@ -27,11 +85,16 @@ local function package_macos(mode, api)
 
     local relative_binary = "Contents/MacOS/Dora"
     local arm64_binary = path.join(apps.arm64, relative_binary)
-    local x86_64_binary = path.join(apps.x86_64, relative_binary)
     local universal_binary = path.join(universal_app, relative_binary)
-    os.vrunv("lipo", {
-        "-create", arm64_binary, x86_64_binary, "-output", universal_binary
-    })
+    if arch == "universal" then
+        local x86_64_binary = path.join(apps.x86_64, relative_binary)
+        os.vrunv("lipo", {
+            "-create", arm64_binary, x86_64_binary, "-output", universal_binary
+        })
+    end
+
+    stage_godot_runtime(api.godot_runtime, path.join(universal_app, "Contents/Resources"),
+        "libdora_godot.dylib", api.godot_runtime and {"arm64"} or nil, api)
 
     -- Replacing the executable invalidates the copied thin bundle signature.
     -- Ad-hoc signing keeps local/CI verification deterministic; distribution
@@ -40,11 +103,11 @@ local function package_macos(mode, api)
     os.vrunv("codesign", {"--verify", "--deep", "--strict", "--verbose=2", universal_app})
     os.vrunv("lipo", {"-info", universal_binary})
 
-    local zip = path.join(package_dir, "dora-ssr-macos-universal.zip")
+    local zip = path.join(package_dir, "dora-ssr-macos-" .. arch .. ".zip")
     os.vrunv("ditto", {"-c", "-k", "--sequesterRsrc", "--keepParent", universal_app, zip})
     ensure(os.isfile(zip), "macOS packaging completed without the expected zip: " .. zip)
-    cprint("${green}macOS universal app: %s${clear}", universal_app)
-    cprint("${green}macOS universal package: %s${clear}", zip)
+    cprint("${green}macOS %s app: %s${clear}", arch, universal_app)
+    cprint("${green}macOS %s package: %s${clear}", arch, zip)
 end
 
 local function package_linux(mode, arch, api)
@@ -69,7 +132,7 @@ local function package_linux(mode, arch, api)
 
     local projectdir = os.projectdir()
     local xmake = os.programfile()
-    local config_args = {"f", "-y", "-p", "linux", "-a", arch, "-m", mode}
+    local config_args = {"f", "-P", projectdir, "-y", "-p", "linux", "-a", arch, "-m", mode}
     local host_arch = os.arch()
     if host_arch ~= arch and not (host_arch == "aarch64" and arch == "arm64") then
         table.insert(config_args, "--cross=" .. (arch == "x86_64"
@@ -77,7 +140,7 @@ local function package_linux(mode, arch, api)
     end
     cprint("${bright}building Linux %s %s with xmake${clear}", arch, mode)
     os.vrunv(xmake, config_args, {curdir = projectdir})
-    os.vrunv(xmake, {"build", "Dora"}, {curdir = projectdir})
+    os.vrunv(xmake, {"build", "-P", projectdir, "Dora"}, {curdir = projectdir})
 
     local binary = path.join(projectdir, "build/linux", arch, mode, "Dora")
     ensure(os.isfile(binary), "missing xmake Linux output: " .. binary)
@@ -95,6 +158,8 @@ local function package_linux(mode, arch, api)
     local staged_binary = path.join(appdir, "usr/bin/dora-ssr")
     os.cp(binary, staged_binary)
     os.cp(path.join(projectdir, "Assets"), path.join(appdir, "usr/share/dora-ssr"))
+    stage_godot_runtime(api.godot_runtime,
+        path.join(appdir, "usr/share/dora-ssr/Assets"), "libdora_godot.so", {arch}, api)
     local wa_mod = path.join(projectdir, "Tools/dora-wa/wa.mod")
     if os.isfile(wa_mod) then
         local wa_assets = path.join(appdir, "usr/share/dora-ssr/Assets/dora-wa")
@@ -144,25 +209,45 @@ local function package_linux(mode, arch, api)
         ensure(false, "unsupported Linux packaging host architecture: " .. host_arch)
     end
     local tool_cache_dir = path.join(projectdir, "build/tools")
-    local appimagetool = path.join(tool_cache_dir,
-        "appimagetool-" .. host_tool_arch .. ".AppImage")
-    if not os.isfile(appimagetool) then
-        os.mkdir(tool_cache_dir)
-        local download = appimagetool .. ".download"
-        os.rm(download)
-        os.vrunv("curl", {
-            "--fail", "--location", "--silent", "--show-error",
-            "--retry", "4", "--retry-all-errors", "--retry-delay", "2",
-            "-o", download,
-            "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-"
-                .. host_tool_arch .. ".AppImage"
-        })
-        os.mv(download, appimagetool)
+    local appimagetool = os.getenv("DORA_APPIMAGETOOL")
+    if appimagetool and #appimagetool > 0 then
+        appimagetool = path.absolute(appimagetool, projectdir)
+        ensure(os.isfile(appimagetool),
+            "DORA_APPIMAGETOOL does not name a file: " .. appimagetool)
+        cprint("${bright}using AppImage tool override: %s${clear}", appimagetool)
+    else
+        appimagetool = path.join(tool_cache_dir,
+            "appimagetool-" .. host_tool_arch .. ".AppImage")
+        if not os.isfile(appimagetool) then
+            os.mkdir(tool_cache_dir)
+            local download = appimagetool .. ".download"
+            os.rm(download)
+            os.vrunv("curl", {
+                "--fail", "--location", "--silent", "--show-error",
+                "--retry", "4", "--retry-all-errors", "--retry-delay", "2",
+                "-o", download,
+                "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-"
+                    .. host_tool_arch .. ".AppImage"
+            })
+            os.mv(download, appimagetool)
+        end
     end
     os.vrunv("chmod", {"a+rx", appimagetool})
     local output = path.join(package_dir,
         "dora-ssr-linux-" .. target_tool_arch .. ".AppImage")
-    os.vrunv(appimagetool, {"--appimage-extract-and-run", appdir, output}, {
+    local appimagetool_args = {"--appimage-extract-and-run"}
+    local appimage_runtime = os.getenv("DORA_APPIMAGE_RUNTIME")
+    if appimage_runtime and #appimage_runtime > 0 then
+        appimage_runtime = path.absolute(appimage_runtime, projectdir)
+        ensure(os.isfile(appimage_runtime),
+            "DORA_APPIMAGE_RUNTIME does not name a file: " .. appimage_runtime)
+        cprint("${bright}using AppImage runtime override: %s${clear}", appimage_runtime)
+        table.insert(appimagetool_args, "--runtime-file")
+        table.insert(appimagetool_args, appimage_runtime)
+    end
+    table.insert(appimagetool_args, appdir)
+    table.insert(appimagetool_args, output)
+    os.vrunv(appimagetool, appimagetool_args, {
         envs = {ARCH = target_tool_arch}
     })
     os.vrunv("chmod", {"+x", output})
@@ -170,29 +255,33 @@ local function package_linux(mode, arch, api)
     cprint("${green}Linux AppImage: %s${clear}", output)
 end
 
-local function package_windows(mode, api)
+local function package_windows(mode, arch, api)
     local ensure = api.ensure
     local cprint = api.cprint
     local find_tool = api.find_tool
     local os = api.os
     local path = api.path
     ensure(os.host() == "windows", "Windows ZIP packaging requires a Windows host")
+    ensure(arch == "x86" or arch == "x64", "Windows packaging architecture must be x86 or x64")
+    if api.godot_runtime then
+        ensure(arch == "x64", "Godot-enabled Windows packages require the verified x64 runtime")
+    end
     local seven_zip = find_tool("7z") or find_tool("7za")
     ensure(seven_zip, "Windows ZIP packaging requires 7-Zip")
 
     local projectdir = os.projectdir()
     local xmake = os.programfile()
-    cprint("${bright}building Windows x86 %s with xmake${clear}", mode)
-    os.vrunv(xmake, {"f", "-y", "-p", "windows", "-a", "x86", "-m", mode}, {
+    cprint("${bright}building Windows %s %s with xmake${clear}", arch, mode)
+    os.vrunv(xmake, {"f", "-P", projectdir, "-y", "-p", "windows", "-a", arch, "-m", mode}, {
         curdir = projectdir
     })
-    os.vrunv(xmake, {"build", "Dora"}, {curdir = projectdir})
+    os.vrunv(xmake, {"build", "-P", projectdir, "Dora"}, {curdir = projectdir})
 
-    local targetdir = path.join(projectdir, "build/windows/x86", mode)
+    local targetdir = path.join(projectdir, "build/windows", arch, mode)
     local assets = path.join(projectdir, "Assets")
-    local package_dir = path.join(projectdir, "build/package/windows/x86", mode)
+    local package_dir = path.join(projectdir, "build/package/windows", arch, mode)
     local stage = path.join(package_dir, "stage")
-    local output = path.join(package_dir, "dora-ssr-windows-x86.zip")
+    local output = path.join(package_dir, "dora-ssr-windows-" .. arch .. ".zip")
     for _, name in ipairs({"Dora.exe", "wa.dll"}) do
         ensure(os.isfile(path.join(targetdir, name)), "missing Windows output: " .. name)
     end
@@ -213,6 +302,8 @@ local function package_windows(mode, api)
         ensure(os.exists(source), "missing Windows package asset: " .. name)
         os.cp(source, path.join(stage, name))
     end
+    stage_godot_runtime(api.godot_runtime, stage, "dora_godot.dll",
+        api.godot_runtime and {"x86_64"} or nil, api)
     local shader = "Shader/Love/varying.def.sc"
     ensure(os.isfile(path.join(assets, shader)), "missing Love shader varying definition")
     os.mkdir(path.join(stage, "Shader/Love"))
@@ -239,23 +330,25 @@ task("dora-package")
         description = "Build and package Dora through the platform-native packager",
         options = {
             {nil, "platform", "kv", nil, "Package platform: android, ios, web, linux, macosx or windows"},
-            {nil, "arch", "kv", nil, "Target architecture (iOS: arm64 or simulator x86_64; Linux: arm64 or x86_64)"},
+            {nil, "arch", "kv", nil, "Target architecture (macOS: arm64 or universal; iOS/Linux: arm64 or x86_64; Windows: x86 or x64)"},
             {nil, "mode", "kv", "debug", "Build mode: debug or release"},
             {nil, "format", "kv", nil, "Package format: Android apk/aab, iOS zip/ipa"},
             {nil, "appledev", "kv", "simulator", "iOS SDK: simulator or device"},
             {nil, "profile", "kv", nil, "Web profile: core, dora-preset or custom"},
+            {nil, "godot-runtime", "kv", nil, "Optional verified Dora/Godot runtime package directory"},
             {nil, "pthreads", "k", nil, "Enable the pthread Web profile"}
         }
     }
     on_run(function ()
         import("core.base.option")
+        import("core.base.json")
         import("lib.detect.find_tool")
 
         local platform = option.get("platform")
         local mode = option.get("mode") or "debug"
         assert(mode == "debug" or mode == "release", "--mode must be debug or release")
         if platform == "web" or platform == "wasm" then
-            local args = {"dora-web", "--mode=" .. mode}
+            local args = {"dora-web", "-P", os.projectdir(), "--mode=" .. mode}
             if option.get("profile") then table.insert(args, "--profile=" .. option.get("profile")) end
             if option.get("pthreads") then table.insert(args, "--pthreads") end
             os.vrunv(os.programfile(), args, {curdir = os.projectdir()})
@@ -268,6 +361,7 @@ task("dora-package")
             return
         end
         local format = option.get("format") or "apk"
+        local godot_runtime = option.get("godot-runtime") or os.getenv("DORA_GODOT_RUNTIME_DIR")
         assert(platform == "android" or platform == "linux" or platform == "macosx"
             or platform == "windows",
             "dora-package supports android, linux, macosx and windows")
@@ -276,9 +370,12 @@ task("dora-package")
             "--format=aab is supported for Android release only")
 
         if platform == "macosx" then
-            package_macos(mode, {
+            package_macos(mode, option.get("arch") or (godot_runtime and "arm64" or "universal"), {
                 ensure = assert,
                 cprint = cprint,
+                find_tool = find_tool,
+                godot_runtime = godot_runtime,
+                json = json,
                 os = os,
                 path = path
             })
@@ -290,6 +387,8 @@ task("dora-package")
                 ensure = assert,
                 cprint = cprint,
                 find_tool = find_tool,
+                godot_runtime = godot_runtime,
+                json = json,
                 os = os,
                 path = path
             })
@@ -298,10 +397,12 @@ task("dora-package")
 
 
         if platform == "windows" then
-            package_windows(mode, {
+            package_windows(mode, option.get("arch") or (godot_runtime and "x64" or "x86"), {
                 ensure = assert,
                 cprint = cprint,
                 find_tool = find_tool,
+                godot_runtime = godot_runtime,
+                json = json,
                 os = os,
                 path = path
             })

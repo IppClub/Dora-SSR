@@ -27,7 +27,7 @@ file(MAKE_DIRECTORY "${DORA_ROOT}/build")
 file(LOCK "${DORA_ROOT}/build/android-xmake-prepare.lock" GUARD PROCESS TIMEOUT 900)
 execute_process(
     COMMAND "${CMAKE_COMMAND}" -E env ${DORA_GODOT_TEST_ENV} "XMAKE_CONFIGDIR=${DORA_XMAKE_CONFIG}"
-        "${DORA_XMAKE}" f -q -y -p android -a "${ANDROID_ABI}" -m "${DORA_XMAKE_MODE}"
+        "${DORA_XMAKE}" f -P "${DORA_ROOT}" -q -y -p android -a "${ANDROID_ABI}" -m "${DORA_XMAKE_MODE}"
         "--ndk=${ANDROID_NDK}" "--ndk_sdkver=${ANDROID_PLATFORM_LEVEL}"
         "--builddir=${DORA_XMAKE_CONFIG}/build" --ccache=n
     WORKING_DIRECTORY "${DORA_ROOT}"
@@ -37,7 +37,7 @@ if(NOT result EQUAL 0)
 endif()
 execute_process(
     COMMAND "${CMAKE_COMMAND}" -E env ${DORA_GODOT_TEST_ENV} "XMAKE_CONFIGDIR=${DORA_XMAKE_CONFIG}"
-        "${DORA_XMAKE}" l Projects/xmake/android/export.lua "${DORA_XMAKE_EXPORT}"
+        "${DORA_XMAKE}" l -P "${DORA_ROOT}" Projects/xmake/android/export.lua "${DORA_XMAKE_EXPORT}"
     WORKING_DIRECTORY "${DORA_ROOT}"
     RESULT_VARIABLE result)
 if(NOT result EQUAL 0)

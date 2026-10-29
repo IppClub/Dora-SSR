@@ -12,6 +12,7 @@ root=Path(__file__).resolve().parents[4]
 p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('--package',type=Path,required=True)
 p.add_argument('--output',type=Path,required=True)
+p.add_argument('--cabi-observer',action='store_true',help='Validate production C ABI counters when native Info logs are disabled')
 p.add_argument('--buffers',type=int,choices=[2,3,4],required=True)
 p.add_argument('--driver-port',type=int,default=0,help='WebDriver port; 0 selects a fresh available port')
 a=p.parse_args();package=a.package.resolve();out=a.output.resolve()
@@ -127,7 +128,7 @@ try:
                   logs=evidence['logs'],browser_errors=evidence['errors'],browser_warnings=evidence['warnings'],runtime_seconds=time.monotonic()-started,
                   godot_packaged=True,suspension=None)
     (out/'execution.json').write_text(json.dumps(result,indent=2)+'\n')
-    subprocess.run(['python3',str(Path(__file__).with_name('verify_node.py')),str(out),'--buffers',str(a.buffers)],check=True)
+    subprocess.run(['python3',str(Path(__file__).with_name('verify_node.py')),str(out),'--buffers',str(a.buffers)]+(['--cabi-observer'] if a.cabi_observer else []),check=True)
 except BaseException as error:
     result.update(passed=False,error=str(error))
     (out/'verification.json').unlink(missing_ok=True)

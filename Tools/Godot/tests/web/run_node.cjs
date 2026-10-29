@@ -42,13 +42,20 @@ const types={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript
   fs.readFile(file,(error,data)=>{response.writeHead(error?404:200,{'Content-Type':types[path.extname(file)]||'application/octet-stream','Cache-Control':'no-store','Cross-Origin-Opener-Policy':'same-origin','Cross-Origin-Embedder-Policy':'require-corp'});response.end(error?'Not found':data);});
  });
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let browser;
- const logs=[],errors=[],warnings=[],captures=[];let done=false,capabilities=null,browserVersion=null,lastState=null;
+ const logs=[],errors=[],warnings=[],captures=[],responses=[],responseReads=[];let done=false,capabilities=null,browserVersion=null,lastState=null;
  try{
   const launch={headless:process.env.DORA_BROWSER_HEADLESS!=='0'};
   if(browserEngine==='chromium')Object.assign(launch,{channel:process.env.DORA_BROWSER_CHANNEL||'chrome',args:['--use-angle=metal','--autoplay-policy=no-user-gesture-required']});
   browser=await browserType.launch(launch);
   browserVersion=await browser.version();
   const page=await browser.newPage({viewport:{width:1280,height:720},deviceScaleFactor:1});
+  page.on('response',response=>{
+    if(!response.url().startsWith(`http://127.0.0.1:${server.address().port}/`))return;
+    responseReads.push(response.allHeaders().then(headers=>responses.push({path:new URL(response.url()).pathname,
+      status:response.status(),content_type:headers['content-type']||null,
+      coop:headers['cross-origin-opener-policy']||null,coep:headers['cross-origin-embedder-policy']||null,
+      cache_control:headers['cache-control']||null})));
+  });
   page.on('pageerror',error=>errors.push(String(error)));
   page.on('console',message=>{
    const text=message.text();logs.push(text);console.log('BROWSER '+message.type()+': '+text);
@@ -121,7 +128,7 @@ const types={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript
   const renderer=await page.evaluate(()=>{const gl=Module.canvas.getContext('webgl2'),ext=gl.getExtension('WEBGL_debug_renderer_info');return ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER);});
   await page.waitForTimeout(250);
   if(activeStopMode){
-   if(logs.some(value=>/GodotRuntime (client closed|shutdown):/.test(value)))throw Error('Godot client already closed before host stop');
+   if(logs.some(value=>/GodotRuntime (client closed|shutdown):/.test(value)) || await page.evaluate(()=>Module.doraTestAudioMetrics.sessions.length!==0))throw Error('Godot client already closed before host stop');
    activeStop=await page.evaluate(()=>{
     const proof=JSON.parse(new TextDecoder().decode(Module.FS.readFile('/user/active-stop.json')));
     if(!proof.running||proof.frame<120||proof.aliases!==proof.buffers)throw Error('Godot node/aliases not live at host stop');
@@ -138,7 +145,8 @@ const types={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript
   if(teardown.state.active||teardown.dispose_again||teardown.ime_present)throw new Error('Web platform services remained active after stop');
   for(const capture of captures){const bytes=await page.evaluate(name=>Array.from(Module.FS.readFile('/user/'+name+'.png')),capture.name);fs.writeFileSync(path.join(output,capture.name+'.png'),Buffer.from(bytes));}
   const audio_metrics=await page.evaluate(()=>Module.doraTestAudioMetrics);
-  const result={artifacts,renderer,audio_metrics,suspension,teardown,active_stop:activeStop,godot_packaged:Object.keys(artifacts).some(name=>name.startsWith('godot/')),passed:audio_metrics.underruns.length===0&&!errors.some(error=>!error.startsWith('Blocking on the main thread is very dangerous'))&&!warnings.some(value=>/GL_INVALID|INVALID_OPERATION|INVALID_VALUE|INVALID_ENUM/.test(value)),scope:'Actual Dora GodotNode Web execution; pixel/image verification is a separate required step',controller_frames:activeStop?activeStop.frame:ordinary?0:620,ordinary,captures,browser_engine:browserEngine,browser_headless:launch.headless,browser:await browser.version(),browser_errors:errors,browser_warnings:warnings,logs};
+  await Promise.all(responseReads);
+  const result={artifacts,renderer,capabilities,deployment:{responses},audio_metrics,suspension,teardown,active_stop:activeStop,godot_packaged:Object.keys(artifacts).some(name=>name.startsWith('godot/')),passed:audio_metrics.underruns.length===0&&!errors.some(error=>!error.startsWith('Blocking on the main thread is very dangerous'))&&!warnings.some(value=>/GL_INVALID|INVALID_OPERATION|INVALID_VALUE|INVALID_ENUM/.test(value)),scope:'Actual Dora GodotNode Web execution; pixel/image verification is a separate required step',controller_frames:activeStop?activeStop.frame:ordinary?0:620,ordinary,captures,browser_engine:browserEngine,browser_headless:launch.headless,browser:await browser.version(),browser_errors:errors,browser_warnings:warnings,logs};
   fs.writeFileSync(report,JSON.stringify(result,null,2)+'\n');if(!result.passed)process.exitCode=1;
  }catch(error){fs.writeFileSync(report,JSON.stringify({passed:false,error:String(error),browser_engine:browserEngine,browser:browserVersion,capabilities,lastState,artifacts,captures,browser_errors:errors,browser_warnings:warnings,logs},null,2)+'\n');throw error;}
  finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}

@@ -11,6 +11,10 @@ def verify(package):
         raise ValueError('Unsupported package format; rebuild the package with current tools')
     if manifest.get('bridge_abi')!=1 or manifest.get('godot_version')!='4.6-stable' or manifest.get('source_archive_sha256')!=SOURCE_SHA256:
         raise ValueError('Runtime version, bridge ABI or pinned source mismatch')
+    architectures=manifest.get('architectures')
+    if architectures is not None and (not isinstance(architectures,list) or not architectures
+        or len(architectures)!=len(set(architectures)) or any(name not in {'arm64','x86_64','x64'} for name in architectures)):
+        raise ValueError('Invalid runtime architecture inventory')
     artifacts=manifest.get('artifacts')
     if not isinstance(artifacts,dict) or not artifacts:
         raise ValueError('Missing artifact inventory')

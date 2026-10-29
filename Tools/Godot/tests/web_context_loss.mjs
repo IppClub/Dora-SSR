@@ -11,6 +11,8 @@ const output = resolve(process.argv[3] || "build/godot-web/context-loss-results"
 const chromePath = process.env.CHROME || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const timeLimit = Number(process.env.DORA_CONTEXT_LOSS_TIMEOUT_MS || 120000);
 const verifyReloadRecovery = process.argv.includes("--reload-recovery");
+const observeCabi = process.argv.includes("--cabi-observer");
+if (observeCabi && !verifyReloadRecovery) throw new Error("C ABI drain observation requires --reload-recovery");
 const mime = new Map([
 	[".html", "text/html; charset=utf-8"], [".js", "text/javascript; charset=utf-8"],
 	[".mjs", "text/javascript; charset=utf-8"], [".json", "application/json"],
@@ -97,6 +99,11 @@ try {
 	};
 	await send("Runtime.enable");
 	await send("Page.enable");
+	if (observeCabi) {
+		await send("Page.addScriptToEvaluateOnNewDocument", {source: await readFile(new URL("./web/acceptance_init.js", import.meta.url), "utf8")});
+		consoleMessages.length = 0;
+		await send("Page.reload", {ignoreCache: true});
+	}
 	await waitFor(async () => await evaluate("document.documentElement.dataset.doraState") === "running", "Dora Web running");
 	await waitFor(() => consoleMessages.some(message => message.text.includes("DORA_WEB_NODE_CAPTURE animated")), "animated Godot frame before context loss");
 	const before = await evaluate(`({
@@ -153,10 +160,25 @@ try {
 	const unexpectedGraphicsErrors = consoleText.filter(value => /TypeError|incomplete shared texture framebuffer|WebGL transport error|gpuErrors=[1-9]/.test(value));
 	const readerMatch = consoleText.map(value => /GodotRuntime readers: buffers=(\d+), frames=(\d+), .*pending=0, completed=(\d+), gpuErrors=0/.exec(value)).find(Boolean);
 	const clientMatch = consoleText.map(value => /GodotRuntime client closed: produced=(\d+), completed=(\d+), gpuErrors=0/.exec(value)).find(Boolean);
-	const gpuDrain = readerMatch && clientMatch ? {
+	let gpuDrain = readerMatch && clientMatch ? {
 		buffers: Number(readerMatch[1]), readerFrames: Number(readerMatch[2]), readerCompleted: Number(readerMatch[3]),
 		produced: Number(clientMatch[1]), completed: Number(clientMatch[2]),
 	} : null;
+	let cabiSessions = null;
+	if (observeCabi) {
+		const metrics = await evaluate("Module.doraTestAudioMetrics");
+		if (metrics.protocol_errors.length || metrics.sessions.length !== 2) throw new Error("Invalid observed recovered C ABI lifecycle");
+		cabiSessions = metrics.sessions;
+		for (const session of cabiSessions) {
+			const [produced, completed, errors] = session.close_stats;
+			if (!(produced > 0 && produced === completed && errors === 0 && session.pending_at_close === 0
+				&& session.begins > 0 && session.begins + session.empty_ends === session.ends && session.ends % session.buffers === 0))
+				throw new Error("Recovered native C ABI did not drain");
+		}
+		const session = cabiSessions[0];
+		gpuDrain = {buffers: session.buffers, readerFrames: session.ends / session.buffers,
+			readerCompleted: session.ends / session.buffers, produced: session.close_stats[0], completed: session.close_stats[1]};
+	}
 	const drainedWithoutGpuErrors = Boolean(gpuDrain && gpuDrain.readerFrames >= 30
 		&& gpuDrain.readerCompleted === gpuDrain.readerFrames && gpuDrain.completed === gpuDrain.produced);
 	const passed = trigger.actualContextLost === true && after.state === "faulted" && after.contextLost === true
@@ -178,6 +200,8 @@ try {
 		trigger,
 		after,
 		reloadRecovery,
+		cabiSessions,
+		statsEvidence: observeCabi ? "Observed production C ABI after reload" : "Native diagnostic logs",
 		gpuDrain,
 		drainedWithoutGpuErrors,
 		unexpectedGraphicsErrors,

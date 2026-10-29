@@ -35,7 +35,9 @@ control:schedule(function(dt)
         ready = elapsed
     end
     local age = elapsed - ready
-    if phase < 2 and age > (phase == 0 and 1 or 2) then
+    -- A capture callback may arrive much later under a slow renderer or an
+    -- emulated CPU. Never submit the next capture until the prior one ended.
+    if phase < 2 and captured == phase and age > (phase == 0 and 1 or 2) then
         phase = phase + 1
         ordinary.x = phase == 1 and -220 or 220
         local name = "frame-" .. phase .. ".png"

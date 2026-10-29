@@ -1,3 +1,6 @@
+#ifdef ANDROID_ENABLED
+#include "platform/android/thread_jandroid.h"
+#endif
 // Only C ABI tables are exported. GL state lives in a separate shared context.
 #include "register_types.h"
 #include "GodotBridgeGL.h"

@@ -1,0 +1,12 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'org.dora.godotrc1'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'org.dora.godotrc1.lifecycle'
+        minSdk 28
+        targetSdk 34
+        versionCode 1
+        versionName '1'
+    }
+}

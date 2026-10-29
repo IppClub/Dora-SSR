@@ -1,1 +1,15 @@
+// Godot 4.6's Java AAR includes Kotlin 2.1 metadata. Use a compatible
+// shrinker only for the optional integration; ordinary Dora keeps AGP's R8.
+// https://developer.android.com/build/kotlin-support
+// https://r8.googlesource.com/r8#replacing-r8-in-android-gradle-plugin
+pluginManagement {
+    buildscript {
+        repositories { google(); mavenCentral() }
+        dependencies {
+            if (settings.providers.gradleProperty('dora.godot').orElse('false').get().toBoolean()) {
+                classpath 'com.android.tools:r8:8.6.17'
+            }
+        }
+    }
+}
 include ':app'
