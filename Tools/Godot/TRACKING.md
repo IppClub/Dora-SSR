@@ -6,6 +6,44 @@
 
 本文件维护当前结论、产品决策与待办；逐轮实验和失败记录见 [PLAN.md](PLAN.md)，构建与使用方法见 [README.md](README.md)。报告路径均相对于仓库根目录，build/ 中的本地证据不保证随源码分发。
 
+## 最新提交与待执行工作（2026-10-29）
+
+草稿PR [#159](https://github.com/IppClub/Dora-SSR/pull/159) 当前head **28b695edb7d3b097889dcf9b729f892e664e751b**，parent6c4b7fd，tree **d701bfa878251d4da7c55f38cfbc984d8b9aa1b2**。非强制推送及ls-remote已核实；24路径、3个Source文件加Linux构建规则、测试/CI/文档，补丁120424字节/SHA256 `53a9746a6603d0d9ccb91fee9c71e96db8af422b49aa59667627012e6c6acb11`。私有索引应用/tree检查、最终tree CPU协议及四个生产/构建文件与实际LinuxRelease源码比对通过；主HEAD仍6a05611e，真实索引不变，无关缓存/3D改动保留。回执 `build/godot-runtime/godot-release-stop-publication.json`，最终候选 `godot-release-stop-final-candidate.json`。
+
+当前提交28b695e的12工作流均success，Godot [run40787162202](https://github.com/IppClub/Dora-SSR/actions/runs/40787162202)三job及新增普通优化Release阶段均实际成功。终态快照 `build/godot-runtime/godot-remote-ci-28b695e-terminal.json`；本轮Linux实际产物已下载核验，独立于下文父提交6c4b7fd结果。Windows模式规则、Wa Emit与Sprite转换注册修复和后续测试/文档仍为本地改动，不能把本轮CI视为这些未推送内容的远程验收。
+
+本轮两份协议产物已下载并核对GitHub digest：macOS artifact12859614939，ZIP SHA256 `dc0a70c2d44e403ebc703ca0ea88878ba69d4101c09abf5259fe6bf5c0fabdbd`；Ubuntu artifact12858824983，`5f4620287b36fc1962774d305eba5604e820ed35c11d2897485503a81c3486ce`。每份三项CPU报告均passed，实际队列源码SHA与28b695e匹配，见 `build/godot-remote-ci/28b695e/{protocol-macos,protocol-ubuntu}/download-verification.json`；不计为GPU或本轮普通Release运行验收。
+
+本轮Web run40787158588的artifact12860991377亦已下载核验，ZIP SHA256 `74080d1cb1b90965e818c5499d5b4dcd1c7426d5b8e71c6c1a00c67e9fabdc09`与GitHub digest一致；普通Chromium宿主预期Lua启动故障后faulted、平台inactive、音频closed、输入/IME清理，无page error。保留ScriptProcessor弃用提示；产物只含报告与WASM报告SHA，未上传WASM字节，不声称独立复算宿主文件哈希或Godot GPU通过。证据 `build/godot-remote-ci/28b695e/web-bootstrap/download-verification.json`。
+
+当前优先：整理已验证的Windows模式规则、Wa Emit/Sprite转换修复和回归的隔离候选；继续C#托管/原生关闭原型、失败模块对象所有权、绑定一致性和其他明确缺口。当前远程CI与Windows构建/测试均已结束，不再等待或重启旧句柄。Apple4+ iOS真机、其他物理硬件、完整输入/恢复/复杂项目与正式分发等仍开放，总目标未完成。
+
+Windows 普通优化Release本地验收已完成：6个实际进程/10截图，包含2/3/4缓冲活动节点与全部别名直接退出、一次启动中退出、随包/缺库两项。GPU生产/完成分别154/154、151/151、156/156，读者160/160、163/163、163/163，pending/错误/PCM欠载=0，48kHz音调439/659；启动中退出生产1/1、读者1/1、PCM4096/0/欠载0。宿主SHA256 `d3332ce1c4b5ea3578b81c0d06ac7e2770affe6c6fdf8d04913ded9e83b2a4fb`，封存LibGodot仍 `c13761f608e82fcf08fc3c94bda4cac9b67fa074916dff20eb3c450ce5ce08f7` 未重编；实际Application编译命令-O2/-DNDEBUG，无DORA_AS_LIB或原生测试入口。平台为Windows11 ARM64 VM/x64 EXE/Parallels Metal转换WGL与SDL dummy，不代表物理GPU或音频输出。
+
+证据 `build/godot-windows/release-stop-completed/{verification,export-verification}.json`：10743个原始源内容SHA仍完全一致，21项实际执行输入在guest与host复算，包括EXE/库/启动Lua/项目与许可字节；宿主和完整库包均已导出。源码来自28b695e Git归档（255959040字节/SHA256 `b0fececd57bdc78ccf162ba3639e669acbc6e5c8ad20d8c94ee367911eb4621c`）加四项初始构建/测试overlay，两个Android专用符号链接省略并记录。后续仅在旁置测试文件适配Win32缺库错误126，不改生产加载器或原源码，保留所有原报告。
+
+原失败均保留：首驱动在编译后误只接受/O2拼写，而实际cl为-O2，未因此重编；续验三项活动退出通过，早退校验因Windows将Logger并入最后销毁组而拒绝。现严格按精确单例名和Director→BGFXDora→Logger顺序校验，原始早退日志离线通过；缺少Logger、假名称、错误顺序、pending=1与旧Release无清理五反例仍拒绝，没有重跑该原生用例。随后仅执行此前尚未运行的随包/缺库两项。聚合导出最初在结束前计算了progress.json的SHA，已保留旧清单并仅校正派生清单中的状态文件SHA；原生日志/图像/测试报告未改。原session98761/69186以对应驱动/校验失败结束，后续session78370/38310正常结束；全部原生测试和导出均终态，不再等待PID8704/2764/1500。
+
+本轮远程Linux artifact12862531095：622936599字节，ZIP SHA256 `a7e9d51a68d08ff1314d3101b7bc07395424f2e253e9223012ff6db4fee0dd33`匹配GitHub digest；22通过报告、217源SHA匹配28b695e，实际checkout d501533c的tree=d701bfa8与该head一致。Debug完整构建/测试1948.879秒，另普通优化Release完整构建/测试737.818秒，两个build_skipped均false，Release复用本轮已构建运行库。3×1000帧、100轮、故障/边界/普通应用与新Release退出合计379张验收截图；3份实际x86_64宿主字节和4份运行库副本已重算，9801个导出文件SHA已记录；不是旧产物仅报告宿主哈希的范围。按该提交冻结的校验器离线重验Debug/Release 2/3/4、100轮和早退共8检查通过，其中六个矩阵报告逐字节一致；不增加原生运行次数。证据 `build/godot-remote-ci/28b695e/linux-egl/download-verification.json`；渲染器为Mesa llvmpipe，音频SDL dummy，不替代物理硬件验收。
+
+等待期间补齐BIND-01的macOS错误面：Rust/Wa经真实Wasm3生成绑定，分别执行缺库、缺失场景，4项通过/8截图；起初请求被接受且error为空，随后各语言读取明确lastError、running=false，经公共事件通知Lua，Dora绿色图形继续运动且最终完整清理。严格检查仅接受精确预期诊断、GPU readers/pending/errors全0；不是有效Godot纹理共享或同进程恢复测试。证据 `build/godot-bindings-async-error-evidence/verification.json`，冻结源码/产物/日志/截图SHA和两个离线反例（额外错误、pending=1）均通过审计。
+
+实际暴露并修复一项Wa公共绑定缺陷：vendor/dora/dora.wa原Emit导入名为emit，而宿主导出dora_emit，原Wa用例真实报missing imported function并超时；保留 `build/godot-bindings-async-wa-missing-library/`，确认任务进程路径后SIGTERM结束，不计正常退出。现仅将该import改为dora_emit，旧隔离vendor树加显式单行overlay后，两种Wa错误用例实际通过；宿主/LibGodot未重编，仍使用既有隔离macOS普通Release与封存库，不称为当前PR整树构建。源码修复及新增错误回归尚未推送。C#、其他宿主、同进程恢复和完整公开API一致性仍开放。
+
+C#错误反馈续验已实际执行：Windows11 ARM64 VM / x64 .NET公开App.Run、生成P/Invoke与Event.Emit，在缺库/缺失场景两项中收到精确LastError、running=false，Dora继续运动并完成4张1280×720截图；`build/godot-bindings-async-csharp-windows/feedback-verification.json` 为该子项通过。原生DLL仍为7d1c6edc、LibGodot仍c13761f6；仅重编.NET fixture，未调用私有Godot测试入口，不是普通EXE或纯当前PR原生构建。113项实际编译绑定/执行输入已从访客复制并在两端复算字节SHA，包含两DLL、托管模块、启动脚本；导出审计与额外error反例见export-verification.json。
+
+C#完整清理门槛未通过：两项退出0却没有Director/SpriteRenderer/BGFXDora/Logger全局销毁记录，verification.json明确passed=false；不与反馈子项的passed混用。源码解释这一边界：DORA_AS_LIB逻辑退出直接bgfx::shutdown，dora_run返回Application.run结果，现有托管App.Run随后TerminateProcess；不能把缺少Life日志直接推断为GPU泄漏，也不能据进程退出声称完整对象清理已验收。本轮保留既有进程级宿主语义，未贸然在已关闭bgfx后调用Life::destroy（BGFXDora仍持初始化标记，另有CLR终结器/回调所有权待核查）。BIND-01/C#整项和相关运行时边界仍开放，待独立确定/验证适合这一宿主的关闭顺序。
+
+C#释放顺序已推进为隔离代码原型：`build/godot-managed-shutdown-prototype/{Lifetime.cs,Program.cs,verification.json}`。实际CLR终结器1000项、API线程延迟释放、强引用对象、关闭竞争、真实SafeHandle并发Dispose、晚到重复释放与关闭后拒绝注册均通过；最终1006个不透明句柄按预期各释放一次。回调栈先脱离托管包装，保留到模拟的原生闭包销毁后释放，避免仅禁用回调但C++仍访问已删除CallStack的问题。原型未接Dora DLL/Godot/GPU，不能计为C#原生清理通过。源码核查同时确认原生Object引用计数非原子，而当前CLR终结器直接object_release；后续接入须将释放提交到引擎API线程，并协调托管回调、对象/Value与SafeHandle所有权。
+
+Wa Sprite转换链接缺口已真实复现并本地修复：同一Wa模块SHA256 `46536dd7ddd7beb9c2ded2c92a071b69e80ab2136409d229ac82f9577259d7b5`，在旧宿主明确报missing imported function: dora.object_to_sprite并退出2，原始和空启动复现均保留；C++已有实现，仅补一行Wasm3 optional link注册。APFS克隆既有隔离源码、仅此源码增量，新目录Release宿主构建666.97秒（因路径变化重编多个单元，不称单文件编译），未重编LibGodot。使用与失败复现相同的封存Release运行库2e3f2ea6，在macOS Metal实际1000帧/15截图、双生命周期转换/拒绝普通Node各2次及完整resize/cancel、别名、音频/stall和竞争节点测试通过；生产/完成412/412、323/323，GPU读者481/481、531/531，pending/错误/PCM欠载=0。实际签名后宿主SHA `3971a2b84d26836d77e21ebac5a5dd6c00f03db44e46d0a917911e6aff2dd613`，验证前后产物SHA一致。聚合与两项缺失转换记录离线反例见 `build/godot-bindings-wa-sprite-cast-evidence/verification.json`，最终正例在 `build/godot-bindings-wa-sprite-cast-fixed-release/`。首次正例误选既有8a76b1e9运行库，独立保留在fixed/，随后才以相同Release库做上述比较；不合并成一次运行。生产源码/公开测试仍未推送。
+
+失败模块清理仍开放：旧宿主空启动复现也记录4个C++对象未释放，GPU已排空；`build/godot-bindings-wa-sprite-cast-red-clean/node-wa/reproduction.json` 明确保留该负面结果。成功路径无该对象泄漏记录，不据此关闭异常中断时的FFI句柄所有权缺口。原递归1747项Wa导入/1752登记名静态报告仍仅作线索，不能代替其他API实测。
+
+C#隔离原型已接入实际28b695e SDK源码并编译通过（零警告/错误），Object/Value/CallStack所有权与宿主阶段回调适配见 `build/godot-managed-shutdown-integration/sdk-compilation.json`。原生Application阶段回调仅已暂存于该隔离目录，尚未编译DLL或运行GPU，生产C# SDK/Application未改。额外源码检查发现原生闭包的deleter仍经SharedWasmRuntime.deref取得单例，而销毁日志中WasmRuntime可早于Director；只禁用托管回调指针不足以保证这一调用安全。下一步先处理回调分发与运行时单例的寿命边界，再以关闭时仍活动的C#回调/强引用/终结器及真实DLL测试验证，不以只编译SDK计完整清理通过。
+
+C#原生基线复现构建已启动：新Windows任务目录managed-shutdown-red-28b695e/repo，从28b归档加两项明确overlay（暂存Application清理回调、已验Windows模式规则），复用c13761f6运行库；原回调单例分发保留，先实测再判断。进度与10741文件原始清单位于 `build/godot-managed-shutdown-native-red/`，编译不计执行验收。实际SDK的活动回调fixture另已以零警告/错误编译；两种原生回调持续到关闭、1000组真实CLR终结器及强引用Object/Value/CallStack均纳入后续用例。隔离SDK还修正CallStack.Raw：SetHandleAsInvalid不会清零handle，改读独立_ownedRaw并在0时抛ObjectDisposedException，原SDK字节/首次编译结果保留，新增释放后拒绝读取检查，仍待原生执行。28路径静态分发提案保存在 `build/godot-managed-shutdown-static-dispatch/`，未应用/未编译，不算已证实修复。
+
 ## 本次整理与交接摘要（2026-10-29）
 
 - **硬件策略确认：** 普通 Dora iOS 内容继续要求 Apple2；启用 GodotNode 的 iOS Metal 路径独立要求 Apple4。代码中两处 GPU Family 检查已核对，不为 Godot 提高 Dora 的全局门槛。
@@ -106,7 +144,7 @@ Godot 4.6 运行时已嵌入 Dora 进程，持续动画可经共享 GPU 纹理�
 | Linux x86_64 | 原生Azure x86_64 CI / Mesa llvmpipe通过；旧Rosetta独立探针保留 | 完整运行库/宿主构建、2/3/4缓冲3000帧、100轮、失败恢复与普通Debug宿主，共369验收截图 | 物理GPU、普通Release新增退出修复的自身CI、恢复/完整输入与分发 |
 | Android EGL | API 35 ARM64 模拟器中实际 APK，含优化 Release 测试代码，受限运行通过 | Apple M1 Pro 硬件转换的 2/3/4 缓冲、resize/cancel、别名、IME 提交、音频/stall、Home/恢复、控制器与清理 | 手机/平板真机、强制 context loss、完整输入法、旋转/多点触控、软件渲染下既有欠载 |
 | iOS Metal | simulator/device 产物构建；模拟器兼容边界通过 | Dora Apple2 普通内容；Godot Apple4 安全拒绝与查询 | Apple4+ 真机共享、动画、多缓冲、生命周期、触摸、音频 |
-| WebGL2 | Chrome 156、Firefox 153、Playwright WebKit 26.5 运行通过 | 三浏览器 2/3/4 缓冲、动画/生命周期、输入/控制器、PCM；Chrome context loss 安全停止与重载恢复 | 实际 Safari/移动浏览器、原地恢复、完整 IME、真实后台页、长期音频及延迟 |
+| WebGL2 | Chrome156、Firefox153、Playwright WebKit26.5、macOS原生Safari26.6.2各自范围运行通过 | 三浏览器 2/3/4 缓冲、动画/生命周期、输入/控制器、PCM；Chrome context loss 安全停止与重载恢复 | 实际 Safari/移动浏览器、原地恢复、完整 IME、真实后台页、长期音频及延迟 |
 
 ### 主要报告索引
 
@@ -213,7 +251,7 @@ Linux 修正后的聚合入口也已完整通过并导出：`build/godot-linux-c
 
 Linux 资源采样也已结束，按 /proc 可执行路径和启动计数核实目标身份：`build/godot-linux-ci-local/linux-cycle-resources/resources.json`，387.39 秒/193 次采样，观察到进程退出，RSS 约 457～573 MiB；从循环中途附加，不含启动基线、实际 GPU 显存或泄漏判定。导出后再次核对原生二进制与清单哈希、300 张循环图像和普通宿主边界图像，见 export-final-verification.json、post-export-audit.json；这是离线复核，不是额外原生运行。临时文件服务已关闭。远程 GitHub CI 仍未执行，其他平台循环/长期资源与其他项目仍待做，CI-01 整项未完成。
 
-- [ ] **CI-01｜进行中：自动回归与耐久。** macOS 38.36 分钟、macOS/Linux 各 100 轮及 v4 隔离源码本地回归/导出复核已通过；PR #159 已推送，当前已记录提交为 6c4b7fd，远程 CI 已启动且 Ubuntu CPU 协议产物已核验，其他任务终态待刷新与归档。Web 活动节点直接停止的三浏览器 2/3/4 矩阵已在本地通过；新增普通 Release 退出修复在 macOS 2/3/4 严格矩阵及随包/缺库回归通过，尚未提交，GL/移动对应 Release 路径仍待验收。仍需其余平台循环/长运行、其他项目与更长期 CPU/GPU 内存观察，整项保持未完成。
+- [ ] **CI-01｜进行中：自动回归与耐久。** macOS 38.36分钟、macOS/Linux各100轮及本地Linux优化普通宿主/新入口prebuilt复现已通过；远程父提交6c4b7fd全12工作流success且Linux产物已核验。当前head28b695e的12工作流success，新增普通优化Release及实际宿主字节已验收，见本文件顶部及本轮Linux导出；其余平台循环/长运行、其他项目与长期CPU/GPU资源观察仍待做，整项不勾选完成。
 - [ ] **HW-01｜等待外部环境：物理硬件矩阵。** Android 手机/平板、物理 Windows x64 GPU、原生 Linux x86_64 Intel/AMD/NVIDIA、真实手柄。
 - [ ] **REC-01｜TODO：图形设备丢失恢复。** 桌面/Android 强制 device/context loss，评估 Web 原地恢复方案和失败降级。
 - [ ] **INPUT-01｜TODO：完整输入与移动生命周期。** IME composition/候选窗口、移动原生文本、旋转、多点触控、锁屏/来电与真实前后台。
@@ -254,8 +292,8 @@ BIND-01 C# 同组续验通过：`build/godot-bindings-constructor-rejections-csh
 
 | 顺序 | 对应任务 | 下一项具体工作 | 完成判据 / 外部条件 |
 | --- | --- | --- | --- |
-| 1 | CI-01、RUNTIME-01 | 跟进PR #159远程CI，按失败日志修复并归档 | 前版Linux证据已导出复核；v4 macOS/Linux本地回归和导出复核均通过；三语言错误面已补，当前Godot远程run40776123749；Web浏览器故障回归已通过并核验产物；iOS工作流已通过；远程基线6c4b7fd全绿且Linux产物已核验；本地Linux优化宿主及新CI入口prebuilt复现通过，下一步将Release退出修复、模式规则和新CI纳入新提交并独立远程执行 |
-| 2 | BIND-01 | 补绑定错误面、公开 API 一致性及其余平台覆盖 | Windows 新查询双生命周期已通过；继续核对各语言声明/生成结果与错误行为 |
+| 1 | CI-01、RUNTIME-01、BIND-01 | 将已验证Windows模式/Wa Emit/Sprite转换及回归整理入隔离候选，审查后推进新提交CI | 28b695e本轮12工作流与Linux实际产物已验收；本地新改动仍需独立提交与自身CI，保留无关缓存/3D改动 |
+| 2 | RUNTIME-01、DIST-01、BIND-01 | 推进C#释放协议/回调单例寿命的原生接入，诊断失败Wa模块保留对象 | Wa转换缺口已实际复现/修复并通过1000帧；C#实际SDK适配编译通过但原生DLL/活动回调关闭未验收；失败模块4个保留对象仍需所有权证明 |
 | 3 | WEB-01/02、AUDIO-01 | 真实 Safari、复杂混音与长期音频；追查 Android 软件渲染欠载 | macOS原生Safari矩阵已通过；继续移动真机、完整DOM/IME和长期音频；旧欠载不能因未复现而关闭 |
 | 4 | IOS-02、HW-01 | Apple4+ iOS 正向共享及其他物理硬件矩阵 | iOS 需开发者模式真机与有效签名；验证 2/3/4 缓冲、动画、前后台、触摸、音频及排空 |
 | 5 | REC-01、INPUT-01、CTRL-01 | 设备丢失、完整输入法、移动生命周期和物理手柄 | 故障注入与实际设备报告；区分安全停止、重载恢复与原地恢复 |

@@ -7,8 +7,12 @@ def verify(log, *, metal=False):
     if metal:
         assert 'Metal API Validation Enabled' in log
     assert not any(x in log for x in ('[error]', '[critical]', 'ERROR:', 'BGFX LEAK:', 'C++ objects leaks', 'Metal Validation Error', 'MTLCommandBufferError'))
-    assert re.search(r'destroy: .*Director.*BGFXDora', log), 'Engine cleanup must actually run'
-    assert 'destroy: Logger.' in log
+    destroyed = [name.strip() for group in re.findall(r'destroy: ([^\r\n]+)\.', log) for name in group.split(',')]
+    # Life may batch Logger with the remaining singletons on Windows. Require
+    # the exact singleton and its order, rather than a standalone log line.
+    for name in ('Director', 'BGFXDora', 'Logger'):
+        assert destroyed.count(name) == 1, ('Missing or duplicate engine cleanup', name, destroyed)
+    assert destroyed.index('Director') < destroyed.index('BGFXDora') < destroyed.index('Logger')
     assert log.index('DORA_EARLY_STOP') < log.index('destroy: ')
     clients = re.findall(r'GodotRuntime (?:client closed|shutdown): produced=(\d+), completed=(\d+), gpuErrors=(\d+)', log)
     readers = re.findall(r'GodotRuntime readers: buffers=(\d+), frames=(\d+), waits=(\d+), signals=(\d+), pending=(\d+), completed=(\d+), gpuErrors=(\d+)', log)

@@ -10,6 +10,7 @@ from web.active_stop_images import verify_images
 p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('results', type=Path)
 p.add_argument('--buffers', type=int, choices=[2, 3, 4], required=True)
+p.add_argument('--platform', choices=['linux', 'windows'], default='linux')
 a = p.parse_args()
 report = a.results / 'verification.json'
 report.unlink(missing_ok=True)
@@ -44,7 +45,8 @@ try:
     assert count == 48000 and abs(left - 440) <= 2 and abs(right - 660) <= 2
     assert log.index('DORA_NATIVE_ACTIVE_STOP_REQUESTED') < log.index('GodotAudio drained:')
     stamps, images = verify_images(a.results, a.buffers)
-    result = {'passed': True, 'scope': 'Ordinary Linux Release host stopped with live Godot node and all aliases; EGL GPU/PCM drain on reported renderer, not physical GPU or full distribution acceptance', 'platform': 'Linux EGL', 'godot_renderer': renderer.group(1), 'buffers': a.buffers, 'live_at_stop': proof, 'gpu_clients': clients, 'gpu_readers': readers, 'audio': audio, 'tones': tones, 'stamps': stamps, 'images_sha256': images, 'execution_sha256': hashlib.sha256((a.results / 'execution.json').read_bytes()).hexdigest(), 'log_sha256': hashlib.sha256((a.results / 'run.log').read_bytes()).hexdigest()}
+    platform = 'Windows WGL' if a.platform == 'windows' else 'Linux EGL'
+    result = {'passed': True, 'scope': 'Ordinary ' + platform + ' Release host stopped with live Godot node and all aliases; GPU/PCM drain on reported renderer, not physical GPU or full distribution acceptance', 'platform': platform, 'godot_renderer': renderer.group(1), 'buffers': a.buffers, 'live_at_stop': proof, 'gpu_clients': clients, 'gpu_readers': readers, 'audio': audio, 'tones': tones, 'stamps': stamps, 'images_sha256': images, 'execution_sha256': hashlib.sha256((a.results / 'execution.json').read_bytes()).hexdigest(), 'log_sha256': hashlib.sha256((a.results / 'run.log').read_bytes()).hexdigest()}
     report.write_text(json.dumps(result, indent=2) + '\n')
     print('Ordinary EGL host active-client shutdown: PASS')
 except BaseException as error:

@@ -2156,6 +2156,7 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "object_release", object_release);
 
 	mod.link_optional("*", "object_to_node", object_to_node);
+	mod.link_optional("*", "object_to_sprite", object_to_sprite);
 	mod.link_optional("*", "object_to_camera", object_to_camera);
 	mod.link_optional("*", "object_to_playable", object_to_playable);
 	mod.link_optional("*", "object_to_physics_world", object_to_physics_world);

@@ -270,6 +270,39 @@ python3 Tools/Godot/tests/run_early_stop_macos.py --app /absolute/path/to/ordina
 
 校验要求实际引擎清理日志。若 Godot 在退出事件处理前已启动，仍必须有完整 GPU/PCM 排空；若尚未启动，则不应产生客户端排空记录。此用例不代替持续动画或设备丢失测试。
 
+Windows 对应入口如下（新增，实际验收进度见 TRACKING.md）：
+
+```powershell
+py -3.12 Tools/Godot/tests/run_active_stop_windows.py --binary C:/path/to/ordinary/Dora.exe --library C:/path/to/dora_godot.dll --output C:/path/to/fresh-active-results --buffers 3
+py -3.12 Tools/Godot/tests/run_early_stop_windows.py --binary C:/path/to/ordinary/Dora.exe --library C:/path/to/dora_godot.dll --output C:/path/to/fresh-early-results
+py -3.12 Tools/Godot/tests/run_ordinary_windows.py --binary C:/path/to/ordinary/Dora.exe --library C:/path/to/package/dora_godot.dll --output C:/path/to/fresh-bundle-results
+```
+
+使用普通 Release EXE，编译时不要启用 DORA_BUILD_GODOT_NODE_TEST 或 DORA_BUILD_CSHARP_NATIVE。Windows target 同样需启用 mode.release，并从实际编译命令确认优化和 NDEBUG；运行入口设置 DORA_GODOT_WINDOWS_GL=1，选择待测 WGL 路径。活动退出的公共严格校验器沿用 verify_active_stop_linux.py，Windows 入口传入 --platform windows 以正确记录平台；像素、GPU 与 PCM 阈值相同。需要 Pillow；虚拟机和 SDL dummy 的限制同上。
+
+随包/缺库入口要求完整的 version-1 Windows 运行库包。分别将库和许可声明放入测试资产目录、以及省略可选库后运行普通 Dora 内容；不设置库路径覆盖，检查默认资产查找、相对项目路径、两次真实截图中的动画和缺库错误。该检查不覆盖安装器、签名或自动更新。
+
+## Rust / Wa 异步错误反馈回归
+
+以下入口使用普通 macOS Release 宿主、真实 Wasm3 和生成绑定，分别检查缺少可选库、Godot 场景启动失败时的 lastError/running，以及错误后的 Dora 动画和正常退出：
+
+```sh
+python3 Tools/Godot/tests/bindings/run_async_error_macos.py --app /absolute/path/to/ordinary/Dora.app --library /absolute/path/to/libdora_godot.dylib --source-root /absolute/path/to/binding-source --output /absolute/path/to/fresh-results --language Rust --case missing-library
+python3 Tools/Godot/tests/bindings/verify_async_error.py /absolute/path/to/fresh-results
+```
+
+分别使用 Rust / Wa 和 missing-library / missing-scene，在全新目录执行四项。运行器需要 Rust wasm32-wasip1 / Wa 编译器及 Pillow；source-root 指定实际参与编译的绑定源码，宿主和 LibGodot 可复用封存产物，不能因此称为重新构建整套源码。execution.json 只记录实际执行；严格诊断、截图、清理和产物哈希均通过后，校验器才生成 verification.json。
+
+Wa 的公共 Emit 必须导入 dora_emit，与宿主导出一致。若刻意复用修复前的封存 vendor 树，可显式传入 --wa-import-overlay /absolute/path/to/fixed/dora.wa；入口只接受这一行精确替换并记录前后 SHA，不改变封存源码。错误校验只接受当前封存运行库的精确预期诊断，额外错误或非零 pending 均拒绝。该回归覆盖错误反馈与 Dora 继续运行；有效 Godot 纹理共享、同进程场景恢复和 C# / 其他平台另行验收。
+
+C#对应实际入口使用公开App.Run与生成P/Invoke：
+
+```powershell
+py -3.12 Tools/Godot/tests/bindings/run_async_error_csharp_windows.py --source-root C:/path/to/source --native-library C:/path/to/Dora.dll --library C:/path/to/dora_godot.dll --output C:/path/to/fresh-results --dotnet C:/path/to/x64/dotnet.exe --compiler "C:/Program Files/dotnet/dotnet.exe"
+```
+
+入口重编托管fixture，分别执行两项，保留原生进程、输入和图像哈希。将报告和输入字节副本导出后，可用verify_async_error_csharp.py校验：feedback-verification.json记录错误反馈与Dora图像子项，verification.json另外要求完整引擎销毁；缺少销毁证据时该完整门槛返回非0，即使反馈正确且进程退出0。当前App.Run的进程级终止行为及本地执行范围见TRACKING.md，不使用普通EXE或Rust/Wa的清理结论代替C#宿主验收。
+
 ## 宿主音频接入（验证进行中）
 
 新增可选 `GodotBridgeAudio.h` 扩展表，提供 48 kHz 双声道 float32 PCM 拉取。
@@ -375,6 +408,13 @@ python3 Tools/Godot/tests/bindings/run.py --resize --cancel-resize --aliases --a
 移除时取消请求；每种语言运行 1000 帧并校验 15 张 GPU 截图。
 生成器在 `build/` 隔离目录运行，只回写 GodotNode 绑定及本轮 C# ABI 修复文件，保留其他生成文件。
 `--verify-only` 复核已有截图与完整命令名计数，不启动 GPU；失败会删除 PASS 报告。
+
+Wa 的 GodotNode → Sprite 转换可单独启用，要求原生宿主注册 `object_to_sprite`；每个生命周期检查转换保留同一原生对象、普通 Node 转换返回 nil。其余 GPU/音频条件保持与上述完整矩阵相同：
+
+```sh
+python3 Tools/Godot/tests/bindings/build.py --output build/godot-bindings-wa-sprite-cast --languages Wa --sprite-cast
+python3 Tools/Godot/tests/bindings/run.py --output build/godot-bindings-wa-sprite-cast --languages Wa --sprite-cast --app /path/to/test/Dora.app --library /path/to/libdora_godot.dylib --resize --cancel-resize --aliases --audio --audio-stall --reservation
+```
 
 构造错误与恢复可在独立目录验证。Rust/Wa 使用真实Wasm3：
 

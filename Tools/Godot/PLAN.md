@@ -2348,3 +2348,82 @@ Safari矩阵1860步/36图/330检查，capabilities明确browser26.6.2/platformma
 safari-dpi-evidence/verification.json封存新旧helper、Lua、公共采集/strictverifier与48图/运行库SHA；旧DPI数据复制到专用负例，仅把harness旗标设true以到达像素oracle，原始文件不改，严格像素仍被正确拒绝。这个离线反例/哈希检查不增加原生运行次数。继续用封存GodotWASM80982084和工作区coreDebug宿主fda4fcc1，不是新候选/Release构建；原生DOM/IME、移动Safari/Chrome、长音频与设备恢复仍待做。
 
 授权已完成，后续不重复询问Safari自动化许可。当前新增node_game布局和Safari驱动端口修正须与退出修复/新CI一同收口最终候选。此前21路径tree为初版快照，不能当最终提交；真实主索引/HEAD和无关缓存/3D改动继续保留。
+
+
+## 2026-10-29 最终24路径候选发布28b695e并跟踪新CI
+
+最终tree d701bfa878251d4da7c55f38cfbc984d8b9aa1b2，24路径/3个Source文件加Linux构建规则/测试/CI/文档，补丁120424字节/SHA53a9746a6603d0d9ccb91fee9c71e96db8af422b49aa59667627012e6c6acb11。另一私有索引应用tree一致，最终tree CPU协议release-stop-final-protocol-results通过，四个生产/构建文件与Linux实际优化宿主源SHA一致。初版21路径快照保留，不作最终版本。当前尚无新树完整Web/跨平台Release构建通过声明。
+
+首次发布预检ls-remote发生LibreSSL SSL_ERROR_SYSCALL，尚未commit/ref update/push，记录release-stop-publication-preflight-failure.json。单次命令HTTP/1.1只读重试成功，没有修改全局配置或TLS校验；随后创建commit28b695edb7d3b097889dcf9b729f892e664e751b、parent6c4b7fd，CAS更新原dev/godot-runtime-integration并非强制推送。远端ref、树、真实索引不变、主HEAD6a05611e不变均核对，回执godot-release-stop-publication.json。没有重置/覆盖无关工作区或混入缓存诊断/3D文件。
+
+PR159已更新最终描述并保持draft/未合并：增加NativeRelease排空、Linux真优化规则与新CI、实际原生SafariDPR2矩阵等；旧父head12workflow成功单独标注，新head必须独立验收。新12工作流句柄godot-remote-ci-28b695e-initial.json；Godot run40787162202、Ubuntu协议job123163114660 success、macOS协议123163114836 queued、Linux123163114682 in_progress；Web40787158588及其余工作流已启动。父head6c终态全success另存godot-remote-ci-6c4b7fd-terminal.json。
+
+后续先跟踪原句柄及产物，等待期间补Windows普通EXE与移动退出。Safari授权与本机矩阵已完成，不重复询问。工作区TRACKING在发布后继续同步最新head/句柄；这些状态更新只留本地，不为状态变化反复推送而取消新CI。硬件、恢复、完整输入、复杂项目/性能与正式分发仍未完成，目标保持进行中。
+
+
+### 2026-10-29：28b695e协议产物与Windows普通Release续验
+
+- 28b695e的Godot Ubuntu/macOS CPU协议job已成功；下载artifact12858824983/12859614939，ZIP SHA分别5f4620287b36fc1962774d305eba5604e820ed35c11d2897485503a81c3486ce、dc0a70c2d44e403ebc703ca0ea88878ba69d4101c09abf5259fe6bf5c0fabdbd，与GitHub digest一致。每包3项报告通过，队列源SHA匹配该提交。下载审计入口 build/godot-remote-ci/28b695e/；初次源路径查询误用了Source/Common，改为实际Source/Web后完成离线审计，未重跑远程检查。
+- 当前提交Engine Tests/Windows/Linux常规工作流成功；Godot Linux完整运行/新增Release阶段及其他工作流未取终态，不能继承父提交结果。
+- Windows主机普通target也缺少mode规则，本地补齐mode.debug/mode.release；创建全新task-owned源码副本，从28b Git归档及4项显式overlay构建，原源码/DLL/报告不改。x64 MSVC2026配置成功，编译仍运行，句柄在release-stop-handoff.json。运行库复用c13761f6，未重编。
+- 新增Windows活动退出/启动中退出与随包缺库入口；公共校验器增加平台标签参数，所有像素/GPU/PCM条件不改。原Linux证据离线重验通过、pending=1反例拒绝，不计Windows运行。源码/脚本语法通过，实际Windows普通EXE验收仍未完成。
+- 已知驱动审计细节：xmake cl使用-O2，首轮内存中驱动仅接受/O2，会在构建后、任何原生测试前停止。旧驱动副本保留，新保存版本接受cl两种等效拼写并保持NDEBUG要求。continue-release-stop.py只在旧驱动终态且PID不存活、旧源码全SHA仍匹配时使用同一产物，不重编或修改原日志，续验导出到新目录。未观察到该审计终态前不启动续验。
+
+
+### 2026-10-29：真实Wasm3异步错误反馈与Wa Emit修复
+
+等待既有Windows Release构建期间，新增async_error.rs/.wa与run_async_error_macos.py，在既有隔离普通macOS Release宿主实际执行缺库/缺失场景错误面。Rust初轮因args!只接受&str而编译失败，记录godot-bindings-async-rust-missing-library/，没有启动原生进程；改用error.as_str()并核实Lua公共名称Wasm后，在新目录Rust两项实际成功。
+
+Wa首轮确实读取到了缺库lastError，随后公共Emit触发missing imported function，Lua等不到事件而超时。源码核对发现Wa的#wa:import dora emit与宿主dora_emit不一致；只改该导入名，原始失败日志/超时报告保留，核对33992进程路径为任务副本后SIGTERM结束，不计正常退出。旧隔离vendor树上的显式单行overlay已记录前后SHA；宿主与LibGodot均未重编。修正后Wa缺库/缺失场景两项在全新目录实际通过。
+
+四项通过/8真实截图，另保留1项真实Wa失败；getLastError/running查询、公开事件、Dora图形继续运动与最终清理均由实际生成绑定执行。verify_async_error.py要求精确有界预期错误、零GPU工作/pending/errors、两张Dora动画与完整生命周期；不称为有效Godot GPU共享/恢复。聚合build/godot-bindings-async-error-evidence/verification.json冻结源文件/模块清单、产物/日志/图像SHA；插入非预期error与pending=1两项离线反例均拒绝，无残留成功报告。首次Rust新入口产生Pillow弃用提示后改用兼容像素读取，不修改图像或阈值，不为此重跑已通过用例。C#/其他平台/同进程有效场景恢复仍待做。
+
+28b695e的Web常规CI已success；bootstrap-cleanup artifact12860991377 ZIP SHA74080d1cb1b90965e818c5499d5b4dcd1c7426d5b8e71c6c1a00c67e9fabdc09匹配GitHub digest，普通Chromium预期启动故障后平台/音频/输入/IME清理通过，保留ScriptProcessor提示，无page error。该小包不含WASM字节或Godot GPU证据。当前8工作流success，Godot/iOS/AppImage/Android仍待终态；Windows独立编译及监督进程继续运行，无重启。
+
+
+### 2026-10-29：C#公开App.Run异步错误与清理边界
+
+新增async_error.cs与共用Lua观察fixture，在Windows11 ARM64 VM中经实际x64 .NET/PInvoke执行缺库和缺失场景；未调用私有GodotNode测试入口。仅重编.NET程序，C#源使用28b695e独立源码树，原生Dora.dll仍7d1c6edc、Godot DLL仍c13761f6。两次均在接受请求后收到精确LastError、running=false，公共Event.Emit送达Lua，随后Dora绿色内容运动并完成4张1280×720截图；进程退出0。
+
+build/godot-bindings-async-csharp-windows/feedback-verification.json为反馈/持续Dora子项通过。输入导出113项实际编译/执行文件，包含托管模块、两DLL、生成C#类与两个Lua启动脚本，guest和host均重算SHA，export-verification.json确认字节和额外error反例拒绝；离线审计不增加原生运行。
+
+完整清理校验verification.json为passed=false，原因是原始日志没有Director/SpriteRenderer/BGFXDora/Logger销毁；不是将退出0计为完整通过。进一步源码检查发现DORA_AS_LIB mainLogic直接bgfx::shutdown，dora_run只返回Application.run，托管App.Run随后TerminateProcess，故全局Life日志不存在有现有代码路径解释。未因此推断实际GPU泄漏。BGFXDora对象仍保持初始化标记且析构会再次shutdown，CLR对象终结器会调用object_release；在了解回调与对象所有权前，不能直接追加Life::destroy至dora_run以凑日志。未修改生产C++生命周期，本轮仅记录反馈证据与完整关闭缺口，留待独立验证合适的宿主关闭协议。
+
+既有Windows普通EXE Release构建和监督进程仍运行，未重启或改写其独立源码；当前head远程CI仍需自身Linux EGL/Release终态，不以C#两项执行代替这些验收。
+
+
+### 2026-10-29：28b695e远程终态/产物、Windows普通Release与托管释放原型
+
+28b695e的12个工作流均success，Godot run40787162202 Linux EGL job123163114682的新增优化普通Release步骤也success。artifact12862531095为622936599字节，ZIP SHAa7e9d51a68d08ff1314d3101b7bc07395424f2e253e9223012ff6db4fee0dd33匹配GitHub digest；下载和解包114.901秒。实际checkout d501533c tree与head d701bfa8一致，217源SHA匹配该提交，22报告通过。Debug聚合完整构建/测试1948.879秒，另Release完整构建/测试737.818秒，均build_skipped=false，Release复用本轮已构建运行库。379验收截图、100轮、3000矩阵帧；3份实际x86_64宿主（测试87fb0a1c、普通Debug891cddbe、普通Release0af89e51）与4份LibGodot副本已重算，9801导出文件SHA保留。按该提交冻结校验器离线重验Debug/Release 2/3/4、100轮与早退八检查通过，其中6矩阵报告字节完全一致；不计额外原生执行。报告build/godot-remote-ci/28b695e/linux-egl/download-verification.json，仍是llvmpipe/SDL dummy范围。
+
+Windows独立普通Release构建已完成，Application实际-O2/-DNDEBUG，无DORA_AS_LIB/原生测试入口。首驱动仅接受/O2而cl输出-O2，故构建后审计停止，原错误保留；guarded续验复用同一产物，实际2/3/4活动退出全部通过。早退原进程同样退出0且完整清理，但Logger和其余单例合并在最终一组日志，原校验器误要求独立Logger行而拒绝。改为解析精确单例名称并要求Director→BGFXDora→Logger顺序，对原日志离线严格验收；缺少Logger/假名称/错序/pending=1/旧Release无清理五反例仍拒绝，未重跑早退进程。
+
+随后只运行此前未执行的随包/缺库两项。Windows加载器现有错误为精确Win32 126，普通入口用旁置测试脚本适配这一诊断，不改变生产代码或原源内容。最终6进程/10截图通过；host SHA d3332ce1c4b5ea3578b81c0d06ac7e2770affe6c6fdf8d04913ded9e83b2a4fb，封存库c13761f6未重编。10743原源内容仍匹配，21项实际执行输入复制前后在guest/host复算；宿主、wa.dll与完整运行库包保留。最初派生聚合清单在progress最终更新前取SHA，仅该状态文件哈希变化；保留原清单并修正派生清单，未改原生日志/截图/测试报告。最终export-verification.json在build/godot-windows/release-stop-completed/。原session98761/69186终态失败为前述驱动/校验问题；session78370/38310终态0，全部测试/导出已结束，不等旧PID。
+
+C#生命周期调查确认：原生Object计数非原子，而当前托管finalizer直接object_release；Native节点/scheduler回调会在调用托管函数前访问CallStack，即使停用托管回调也不能立即删除栈。隔离Lifetime.cs/Program.cs所有权原型在build/godot-managed-shutdown-prototype/通过：1000实际CLR终结器、API线程队列、强引用、关闭竞争、实际SafeHandle并发Dispose、晚到释放和关闭后拒绝注册，最终1006个不透明句柄释放恰好一次。回调栈保留至模拟原生闭包退出后；代码/程序集/日志SHA记录，未接Dora DLL/Godot/GPU，不计C#原生清理通过。
+
+另有Wa导入声明静态扫描：顶层glob首次漏掉Platformer子目录导致假缺失；递归后1747项导入与1752个登记名仅object_to_sprite缺少optional link，C++实现存在。保存静态源SHA，未预处理宏、没有实际复现，不称修复；下一步以真实Wa ObjectCastToSprite调用验证后处理。主HEAD/真实索引仍未改，无关缓存/3D工作保留。
+
+
+### 2026-10-29：Wa真实Sprite转换修复、同库GPU回归与C#实际SDK适配
+
+旧隔离宿主两次实际执行同一Wa模块46536dd7后，于ObjectCastToSprite明确报missing imported function: dora.object_to_sprite并退出2；第二次复制并空启动/签名，原Mach-O代码段SHA不变，排除用户启动噪音。两次均无成功截图/报告，空启动仍记录4个C++对象未释放，GPU已排空。保留red/和red-clean/原始报告；该异常路径所有权仍待诊断，不能因后续正例通过而抹去。
+
+Source/Wasm/WasmRuntime.cpp在已有C++实现上仅补optional link一行，APFS克隆旧隔离源码到sprite-cast-native-source，源码增量清单保留；新路径导致多个单元实际重编，完整构建666.97秒，LibGodot未重编。公开Wa fixture/build/run增加可选--sprite-cast。首次正例fixed/误用既有8a76b1e9运行库，通过1000帧但不用于与red相同库比较；发现后新建fixed-release/，复用原Wa字节及失败复现相同封存2e3f2ea6库实际再跑，原报告不改。最终1000帧/15截图、双生命周期转换/拒绝各2次、resize/cancel、别名、PCM/stall、竞争节点全部通过，生产412/412、323/323，读者481/481、531/531，pending/errors/underruns=0，成功路径无对象泄漏记录。宿主签名后3971a2b8。聚合build/godot-bindings-wa-sprite-cast-evidence/verification.json冻结代码/模块/宿主/运行库/原始日志/截图SHA；两项移除转换标记的离线反例均被拒绝且无残留成功报告，不算额外原生运行。
+
+C#原型继续在隔离目录接入实际28b SDK：Object/Value/SafeHandle改为API线程队列与分阶段脱离，HostAdapter注册tick/begin/complete，实际全SDK以warnings-as-errors编译通过、零警告/错误；sdk-compilation.json保留实际程序集与源SHA。Application.cpp阶段回调只暂存隔离目录，未编译原生DLL、未改生产C# SDK/Application。源码检查进一步暴露闭包deleter经SharedWasmRuntime.deref取得已可销毁单例的风险：WasmRuntime日志先于Director，因此需先处理分发的单例依赖并增加关闭时仍活动的真实C#回调用例。不能把托管1006模拟句柄或SDK编译通过算作Dora/Godot原生清理完成。
+
+Safari授权与真实Safari矩阵已完成，无需重复请求。主HEAD6a05611e与真实索引SHA5c71dfe4仍一致，无关缓存/3D改动保留；本轮源码/测试/文档未提交，28b远程12项成功不覆盖新修改。
+
+
+### 2026-10-29：C#原生关闭基线构建与活动回调用例
+
+新建Windows任务源码managed-shutdown-red-28b695e/repo，从同一28b归档抽取10741文件（省略两个Android符号链接）；只覆盖暂存Application清理回调及已验Windows模式规则，清单/源SHA保存在build/godot-managed-shutdown-native-red/。API目标x64 Release DLL，明确-P与cwd，DORA_AS_LIB测试宿主，复用c13761f6库；原单例分发未改，先做实际基线。原生编译进行中，不计新DLL或GPU通过。
+
+隔离active-callback.cs使用公开App.Run/Node.Schedule/Gslot，关闭时保留两种原生回调、强引用Object/Value/CallStack，触发1000组真实CLR终结器；不会预先清空UI回避寿命边界。最初使用不存在的App.DevMode导致CS0117，保留编译失败说明，移除此行，由Lua公共devMode属性配置。随后实际SDK及fixture以warnings-as-errors编译通过，零警告/错误。
+
+发现隔离SDK初版CallStack仅SetHandleAsInvalid后，Raw仍按IsInvalid/handle取指针，失效标记不清零handle；保存原Dora.cs.before-ownedraw与原编译清单，改为读_ownedRaw、0时ObjectDisposedException，新增Dispose后拒绝读取检查，重新编译通过。新源/程序集SHA另记，不能将初版SHA当新版编译来源。
+
+备选静态分发方案从28b生成到build/godot-managed-shutdown-static-dispatch/，保留28项原字节和增量：C/static回调绕开WasmRuntime单例getter，Wasm分支仅在单例可用时取实例，同步两生成器/现有调用点；尚未应用或原生编译，不先宣称基线已失败或修复已验收。
+
+下一次候选只纳入已实测Windows模式/Wa Emit/Sprite转换与公开测试文档，不带入以上未验C#原型；CI Linux来源清单补WasmRuntime.cpp与Wa vendor主文件哈希，以便独立确认这些新增修复的来源。

@@ -10,7 +10,9 @@ parser.add_argument('--output',type=Path,default=root/'build/godot-bindings')
 parser.add_argument('--project',type=Path,default=root/'Tools/Godot/tests/project')
 parser.add_argument('--languages',nargs='+',choices=['Rust','Wa','CSharp'],default=['Rust','Wa','CSharp'])
 parser.add_argument('--constructor-rejections',action='store_true',help='Reject six invalid constructors before each successful node')
+parser.add_argument('--sprite-cast',action='store_true',help='Exercise Wa GodotNode-to-Sprite and plain-Node rejection through real imports')
 args=parser.parse_args();out=args.output.resolve();out.mkdir(parents=True,exist_ok=True)
+assert not args.sprite_cast or args.languages==['Wa'], '--sprite-cast currently applies to the Wa fixture'
 # Keep cross-host target paths lexical: macOS resolves /tmp to /private/tmp.
 project=str(args.project) if PureWindowsPath(str(args.project)).is_absolute() else str(args.project.absolute())
 report={}
@@ -30,7 +32,7 @@ for language in args.languages:
         stage=out/'wa';(stage/'src').mkdir(parents=True,exist_ok=True)
         (stage/'wa.mod').write_text('name="godot-bindings"\npkgpath="godot_bindings"\ntarget="wasi"\n')
         shutil.copytree(root/'Tools/dora-wa/vendor',stage/'vendor',dirs_exist_ok=True)
-        (stage/'src/main.wa').write_text(Path(__file__).with_name('main.wa').read_text().replace('"@PROJECT@"',json.dumps(project,ensure_ascii=False)).replace('@CONSTRUCTOR_REJECTIONS@','true' if args.constructor_rejections else 'false'))
+        (stage/'src/main.wa').write_text(Path(__file__).with_name('main.wa').read_text().replace('"@PROJECT@"',json.dumps(project,ensure_ascii=False)).replace('@CONSTRUCTOR_REJECTIONS@','true' if args.constructor_rejections else 'false').replace('@SPRITE_CAST@','true' if args.sprite_cast else 'false'))
         # Wa 1.2 project builds use output/<module name>.wasm, even with -o.
         artifact=stage/'output/godot-bindings.wasm';artifact.unlink(missing_ok=True)
         run(['wa','build','.'],'wa-build.log',cwd=stage)
@@ -51,6 +53,7 @@ for language in args.languages:
              'CSharp':root/'Tools/dora-cs/DoraCS/Dora/GodotNode.cs'}[language]
     report[language]={'compiled':True,'runtime_tested':False,'artifact':str(artifact),
         'constructor_rejections':args.constructor_rejections,
+        'sprite_cast':args.sprite_cast,
         'artifact_sha256':hashlib.sha256(artifact.read_bytes()).hexdigest(),
         'godot_binding_sha256':hashlib.sha256(binding.read_bytes()).hexdigest()}
 (out/'compilation.json').write_text(json.dumps({'scope':'language bindings compilation only; no GPU execution','languages':report},indent=2)+'\n')

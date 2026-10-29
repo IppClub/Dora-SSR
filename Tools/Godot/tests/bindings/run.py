@@ -15,9 +15,13 @@ parser.add_argument('--library',type=Path,help='Explicit runtime library; overri
 parser.add_argument('--languages',nargs='+',choices=['Rust','Wa'],default=['Rust','Wa'])
 parser.add_argument('--verify-only',action='store_true',help='Verify existing captures and binding command logs without rerunning the GPU test')
 parser.add_argument('--constructor-rejections',action='store_true',help='Verify opt-in Rust/Wa invalid constructors followed by normal GPU recovery')
+parser.add_argument('--sprite-cast',action='store_true',help='Require the opt-in Wa Sprite conversion checks in each lifetime')
 for flag in ('resize','cancel-resize','aliases','audio','audio-stall','reservation'):
     parser.add_argument('--'+flag,action='store_true')
 args=parser.parse_args()
+assert not args.sprite_cast or args.languages==['Wa'], '--sprite-cast currently applies to the Wa fixture'
+if args.sprite_cast:
+    assert json.loads((args.output/'compilation.json').read_text())['languages']['Wa']['sprite_cast']
 assert not args.cancel_resize or args.resize, '--cancel-resize requires --resize'
 assert not args.audio_stall or args.audio, '--audio-stall requires --audio'
 assert sys.platform in ('darwin','linux','win32'), 'This runner supports macOS, Linux and Windows'
@@ -74,6 +78,9 @@ for language in args.languages:
         subprocess.run([sys.executable,str(root/'Tools/Godot/tests/verify_macos.py'),'--platform',platform,'--results',str(verify_results)]+['--'+flag for flag in flags if getattr(args,flag.replace('-','_'))],check=True)
         log=(results/'run.log').read_text();prefix='GODOT_BINDING '+language+' '
         assert log.count(prefix+'created=1')==2
+        if args.sprite_cast:
+            assert log.count(prefix+'sprite_cast_begin=1')==2
+            assert log.count(prefix+'sprite_cast=1 rejected_plain_node=1')==2
         expected={'probe':2,'resume':2,'verify':2,'pause':1,'input':1,'held':1,'restart':1}
         if args.resize:
             expected.update({operation:1 for operation in ('resize_large','resize_small','resize_restore','verify_large','verify_small','verify_restore','resize_pause','resize_resume','resize_invalid')})
@@ -81,6 +88,7 @@ for language in args.languages:
         actual=collections.Counter(re.findall(re.escape(prefix)+r'command=([a-z_]+)(?=\r?$)',log,re.MULTILINE))
         assert actual==expected,(language,dict(actual),expected)
         report=json.loads((verify_results/'verification.json').read_text());report.update(binding_language=language,binding_transport='real Wasm3 generated imports',binding_commands=expected)
+        if args.sprite_cast:report.update(sprite_cast_to_godot_node=2,non_sprite_cast_rejections=2)
         if args.constructor_rejections:
             report.update(constructor_rejections=12,raw_log_sha256=hashlib.sha256((results/'run.log').read_bytes()).hexdigest(),recovery_scope='Six rejected constructors per lifetime, then complete normal GPU verification; only the twelve exact expected error lines excluded from recovered/run.log, raw log preserved')
         report['artifacts']=json.loads((results/'artifacts.json').read_text())

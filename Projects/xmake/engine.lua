@@ -259,6 +259,8 @@ target("Dora")
         set_runargs("--asset", rootpath("Assets"))
         set_rundir(DORA_ROOT)
     elseif is_plat("windows") then
+        -- Enable optimization and NDEBUG for the ordinary Release host too.
+        add_rules("mode.debug", "mode.release")
         add_files(rootpath("Source/Godot/GodotRuntimeGL.cpp"))
         add_syslinks("opengl32")
         if os.getenv("DORA_BUILD_GODOT_NODE_TEST") == "1" then
