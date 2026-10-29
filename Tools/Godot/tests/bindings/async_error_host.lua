@@ -13,7 +13,7 @@ control:gslot("GodotBindingAsyncError",function(language,message)
     observed = true
     print("GODOT_BINDING_ASYNC_HOST observed=1")
 end)
--- The public App.Run managed callback creates the C# node after Director initialization.
+-- The language fixture reports the asynchronous error through the public event.
 control:schedule(function(dt)
     assert(D.App.runningTime < 30, "Binding fault test timed out")
     if not observed then return false end

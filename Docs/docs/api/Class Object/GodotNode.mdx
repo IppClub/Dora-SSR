@@ -10,7 +10,7 @@
 getUnsupportedReason: function(): string
 ```
 
-Returns an empty string when the active GPU/backend supports GodotNode, or a reason for rejection. Call after Dora initializes its renderer. This does not load or check the optional runtime library. On iOS, ordinary Dora requires Apple2 while GodotNode requires Apple4. Generated equivalents are Rust `GodotNode::get_unsupported_reason()`, Wa `dora.GodotNodeGetUnsupportedReason()` and C# `GodotNode.GetUnsupportedReason()`.
+Returns an empty string when the active GPU/backend supports GodotNode, or a reason for rejection. Call after Dora initializes its renderer. This does not load or check the optional runtime library. On iOS, ordinary Dora requires Apple2 while GodotNode requires Apple4. Generated equivalents are Rust `GodotNode::get_unsupported_reason()`, Wa `dora.GodotNodeGetUnsupportedReason()`.
 
 ## __call
 
@@ -36,6 +36,8 @@ node:addTo(Dora.Director.ui)
 
 Apple Silicon macOS Metal and Linux ARM64 EGL/OpenGL have passed GPU tests. Windows WGL also passed source-project and imported-PCK GPU tests with x64 processes on Parallels Windows 11 ARM64; it requires `DORA_GODOT_WINDOWS_GL=1` before host startup. Other platform scopes are documented in the GodotNode instance API.
 
-The same node is available through generated Rust (`GodotNode::new`), Wa (`dora.NewGodotNode`) and C# (`GodotNode.TryCreate`) bindings. Rust/Wa constructors take all five arguments explicitly. These bindings retain the same asynchronous startup and backend requirements.
+The same node is available through generated Rust (`GodotNode::new`), Wa (`dora.NewGodotNode`) bindings. Rust/Wa constructors take all five arguments explicitly. These bindings retain the same asynchronous startup and backend requirements.
 
 Web additionally requires the opt-in adapter and a matching separate WASM runtime, served with COOP/COEP. Its source/PCK assets must be present in the Dora game manifest; startup preloads and copies the Godot resource snapshot. Web DOM input, persistence and latency are not yet fully validated.
+
+Godot integration 1.0 does not provide C# GodotNode bindings or Godot .NET/Mono scripts. Existing Dora C# features are retained.

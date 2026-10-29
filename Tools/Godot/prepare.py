@@ -162,3 +162,22 @@ if '// Dora particle-key semantic hashing' not in s:
               '\t\tbool operator<(const MaterialKey &p_key) const { return packed() < p_key.packed(); }']
     assert old in s
     p.write_text(s.replace(old,'\n'.join(lines),1))
+
+# The embedded runtime can shut down immediately after an initializer trap.
+# Godot's macOS IMMEDIATE strategy leaves Metal compiler completion blocks alive
+# past destruction of the driver's weak shader-cache entries. Use the existing
+# synchronous-on-first-use LAZY strategy for our display server (as on iOS).
+# This changes compilation scheduling, not shader/rendering capabilities.
+p = source / 'drivers/metal/rendering_device_driver_metal.mm'
+s = p.read_text()
+marker = '// Dora embedded Metal: no asynchronous library compilation past shutdown.'
+if marker not in s:
+    anchor = '#include "core/io/marshalls.h"'
+    assert s.count(anchor) == 1
+    s = s.replace(anchor, anchor + '\n#include "servers/display/display_server.h"', 1)
+    anchor = '\n}\n\nRenderingDeviceDriverMetal::~RenderingDeviceDriverMetal()'
+    assert s.count(anchor) == 1
+    s = s.replace(anchor, '\n\t' + marker + '\n'
+        '\tif (DisplayServer::get_singleton()->get_name() == "dora-metal") {\n'
+        '\t\t_shader_load_strategy = ShaderLoadStrategy::LAZY;\n\t}' + anchor, 1)
+    p.write_text(s)

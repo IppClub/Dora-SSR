@@ -1,0 +1,158 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "Dora Godot runtime glTF regression fixture"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "FixtureMesh",
+      "mesh": 0
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1
+          },
+          "indices": 2
+        }
+      ]
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 744,
+      "uri": "data:application/octet-stream;base64,MzMzvwAAAL+amZk+MzMzPwAAAL+amZk+MzMzPwAAAD+amZk+MzMzvwAAAD+amZk+MzMzPwAAAL+amZm+MzMzvwAAAL+amZm+MzMzvwAAAD+amZm+MzMzPwAAAD+amZm+MzMzPwAAAL+amZk+MzMzPwAAAL+amZm+MzMzPwAAAD+amZm+MzMzPwAAAD+amZk+MzMzvwAAAL+amZm+MzMzvwAAAL+amZk+MzMzvwAAAD+amZk+MzMzvwAAAD+amZm+MzMzvwAAAD+amZk+MzMzPwAAAD+amZk+MzMzPwAAAD+amZm+MzMzvwAAAD+amZm+MzMzvwAAAL+amZm+MzMzPwAAAL+amZm+MzMzPwAAAL+amZk+MzMzvwAAAL+amZk+AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIA/AAAAAAAAAAAAAIC/AAAAAAAAAAAAAIC/AAAAAAAAAAAAAIC/AAAAAAAAAAAAAIC/AACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAACAPwAAAAAAAAAAAACAvwAAAAAAAAAAAACAvwAAAAAAAAAAAACAvwAAAAAAAAAAAACAvwAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgD8AAAAAAAAAAAAAgL8AAAAAAAAAAAAAgL8AAAAAAAAAAAAAgL8AAAAAAAAAAAAAgL8AAAAAAAABAAIAAAACAAMABAAFAAYABAAGAAcACAAJAAoACAAKAAsADAANAA4ADAAOAA8AEAARABIAEAASABMAFAAVABYAFAAWABcAAAAAAAAAgD8AAABAAAAAAAAAAAAAAAAAAACAPwAAAADXs10/AAAAAAAAAD8AAAAA17NdPwAAAAAAAAC/mpmZvwAAAAAAAAAAmpmZPwAAAAAAAAAAmpmZvwAAAAAAAAAA"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 288
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 288,
+      "byteLength": 288
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 576,
+      "byteLength": 72
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 648,
+      "byteLength": 12
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 660,
+      "byteLength": 48
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 708,
+      "byteLength": 36
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 24,
+      "type": "VEC3",
+      "min": [
+        -0.7,
+        -0.5,
+        -0.3
+      ],
+      "max": [
+        0.7,
+        0.5,
+        0.3
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 24,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5123,
+      "count": 36,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 3,
+      "type": "SCALAR",
+      "min": [
+        0
+      ],
+      "max": [
+        2
+      ]
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 3,
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 3,
+      "type": "VEC3"
+    }
+  ],
+  "animations": [
+    {
+      "name": "Spin",
+      "samplers": [
+        {
+          "input": 3,
+          "output": 4,
+          "interpolation": "LINEAR"
+        },
+        {
+          "input": 3,
+          "output": 5,
+          "interpolation": "LINEAR"
+        }
+      ],
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "node": 0,
+            "path": "rotation"
+          }
+        },
+        {
+          "sampler": 1,
+          "target": {
+            "node": 0,
+            "path": "translation"
+          }
+        }
+      ]
+    }
+  ]
+}

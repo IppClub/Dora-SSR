@@ -40,6 +40,11 @@ manifest={'preparation_script_sha256':hashlib.sha256(Path(__file__).with_name('p
     'library':destination.name,'library_sha256':hashlib.sha256(destination.read_bytes()).hexdigest(),
     'licenses':['GODOT-LICENSE.txt','GODOT-THIRD-PARTY-NOTICES.txt',*[file.name for file in args.license_file]],
     'scope':'development runtime; platform output validation is recorded separately'}
+metal_driver = args.source / 'drivers/metal/rendering_device_driver_metal.mm'
+if metal_driver.is_file():
+    manifest['metal_driver_source_sha256'] = hashlib.sha256(metal_driver.read_bytes()).hexdigest()
+    if '// Dora embedded Metal: no asynchronous library compilation past shutdown.' in metal_driver.read_text():
+        manifest['embedded_metal_shader_loading'] = 'lazy'
 if args.build_target:manifest['build_target']=args.build_target
 (args.output/'manifest.json').write_text(json.dumps(seal(args.output,manifest),indent=2)+'\n')
 verify(args.output)

@@ -679,9 +679,20 @@ static void CallStack_PushValue(CallStack* stack, Value* v) {
 	}
 }
 
+static void Object_RetainForWasm(Object* obj) {
+	if (auto* instance = WasmInstance::current()) instance->retainObject(obj);
+	else obj->retain();
+}
+
 static int64_t Object_From(Object* obj) {
-	if (obj) obj->retain();
+	if (obj) Object_RetainForWasm(obj);
 	return r_cast<int64_t>(obj);
+}
+
+// Keep the shared native C ABI unchanged for Rust/C# hosts outside Wasm.
+static void Wasm_Object_Release(int64_t obj) {
+	if (auto* instance = WasmInstance::current()) instance->releaseObject(r_cast<Object*>(obj));
+	else object_release(obj);
 }
 
 /* Content */
@@ -1445,7 +1456,7 @@ DORA_EXPORT int32_t object_get_type(int64_t obj) {
 	return 0;
 }
 DORA_EXPORT void object_retain(int64_t obj) {
-	r_cast<Object*>(obj)->retain();
+	Object_RetainForWasm(r_cast<Object*>(obj));
 }
 DORA_EXPORT int64_t object_to_node(int64_t obj) {
 	if (auto target = d_cast<Node*>(r_cast<Object*>(obj))) {
@@ -1639,28 +1650,36 @@ DORA_EXPORT int32_t call_stack_pop(int64_t stack) {
 	return 1;
 }
 DORA_EXPORT int32_t call_stack_front_i64(int64_t stack) {
+	if (r_cast<CallStack*>(stack)->empty()) return 0;
 	return std::holds_alternative<int64_t>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 DORA_EXPORT int32_t call_stack_front_f64(int64_t stack) {
+	if (r_cast<CallStack*>(stack)->empty()) return 0;
 	const auto& v = r_cast<CallStack*>(stack)->front();
 	return std::holds_alternative<int64_t>(v) || std::holds_alternative<double>(v) ? 1 : 0;
 }
 DORA_EXPORT int32_t call_stack_front_bool(int64_t stack) {
+	if (r_cast<CallStack*>(stack)->empty()) return 0;
 	return std::holds_alternative<bool>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 DORA_EXPORT int32_t call_stack_front_str(int64_t stack) {
+	if (r_cast<CallStack*>(stack)->empty()) return 0;
 	return std::holds_alternative<std::string>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 DORA_EXPORT int32_t call_stack_front_object(int64_t stack) {
+	if (r_cast<CallStack*>(stack)->empty()) return 0;
 	return std::holds_alternative<Object*>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 DORA_EXPORT int32_t call_stack_front_vec2(int64_t stack) {
+	if (r_cast<CallStack*>(stack)->empty()) return 0;
 	return std::holds_alternative<Vec2>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 DORA_EXPORT int32_t call_stack_front_vec3(int64_t stack) {
+	if (r_cast<CallStack*>(stack)->empty()) return 0;
 	return std::holds_alternative<Vec3>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 DORA_EXPORT int32_t call_stack_front_size(int64_t stack) {
+	if (r_cast<CallStack*>(stack)->empty()) return 0;
 	return std::holds_alternative<Size>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 
@@ -2153,7 +2172,7 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "object_get_id", object_get_id);
 	mod.link_optional("*", "object_get_type", object_get_type);
 	mod.link_optional("*", "object_retain", object_retain);
-	mod.link_optional("*", "object_release", object_release);
+	mod.link_optional("*", "object_release", Wasm_Object_Release);
 
 	mod.link_optional("*", "object_to_node", object_to_node);
 	mod.link_optional("*", "object_to_sprite", object_to_sprite);
@@ -2297,6 +2316,23 @@ WasmRuntime::~WasmRuntime() { }
 static int s_callFromWasm = 0;
 
 WasmInstance::WasmInstance() { }
+
+WasmInstance::~WasmInstance() {
+	clear();
+}
+
+void WasmInstance::retainObject(Object* object) {
+	++_objectReferences[object];
+	object->retain();
+}
+
+void WasmInstance::releaseObject(Object* object) {
+	auto it = _objectReferences.find(object);
+	if (it != _objectReferences.end() && --it->second == 0) {
+		_objectReferences.erase(it);
+	}
+	object->release();
+}
 
 WasmInstance::Scope::Scope(WasmInstance* instance) {
 	if (instance) {
@@ -2666,6 +2702,13 @@ void WasmInstance::clear() {
 	_env = nullptr;
 	_runtime = nullptr;
 	_wasm = {nullptr, 0};
+	// A trapped initializer cannot run language destructors/finalizers. Detach
+	// the ledger before releasing: native destructors can invoke callbacks.
+	auto references = std::move(_objectReferences);
+	_objectReferences.clear();
+	for (const auto& [object, count] : references) {
+		for (uint32_t i = 0; i < count; ++i) object->release();
+	}
 }
 
 bool WasmRuntime::isInWasm() {

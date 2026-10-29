@@ -4422,42 +4422,6 @@ object class VideoNode : public Sprite
 	static optional VideoNode* create(string filename, bool looped = false);
 };
 
-object class GodotNode : public Sprite
-{
-    /// Empty when the current GPU/backend supports GodotNode; does not load the runtime library.
-    static string getUnsupportedReason();
-	/// <summary>Resolved Godot project directory or exported .pck path.</summary>
-	readonly common string projectPath;
-	/// <summary>Requested Godot scene path; empty uses the project main scene.</summary>
-	readonly common string sceneFile;
-	/// <summary>Most recent asynchronous runtime error, or an empty string.</summary>
-	readonly common string lastError;
-	/// <summary>Whether asynchronous startup completed and the node is active.</summary>
-	readonly boolean hide bool running;
-	/// <summary>Requested native SceneTree pause state.</summary>
-	readonly boolean bool paused;
-	/// <summary>Committed native viewport pixel size; updated after asynchronous texture publication.</summary>
-	readonly common Size viewportSize;
-	/// <summary>Request a native viewport resize; false when invalid, busy or unsupported.</summary>
-	bool resizeViewport(int width, int height);
-	/// <summary>Pause the SceneTree; Always-process nodes continue running. Works before startup completes.</summary>
-	void pause();
-	/// <summary>Resume the SceneTree without rebuilding the project.</summary>
-	void resume();
-	/// <summary>Request scene reload; empty reloads the current scene. Errors are asynchronous.</summary>
-	bool restart(string sceneFile = "");
-	/// <summary>Forward a pointer button in viewport pixels, with top-left origin. Godot button numbering applies.</summary>
-	void sendPointer(double x, double y, int button, bool pressed);
-	/// <summary>Forward pointer motion in viewport pixels, with top-left origin.</summary>
-	void sendPointerMove(double x, double y);
-	/// <summary>Forward a named key, such as Space. Pair presses with releases.</summary>
-	void sendKey(string name, bool pressed);
-	/// <summary>Forward committed UTF-8 text. IME composition is not implemented.</summary>
-	void sendText(string text);
-	/// <summary>Create an experimental embedded Godot node. Requires a matching optional runtime and supported GPU backend. Only one active node/project is supported.</summary>
-	static optional GodotNode* create(string projectPath, string sceneFile = "", int width = 640, int height = 360, int buffers = 3);
-};
-
 /// <summary>
 /// A class that represents a TIC-80 virtual machine node.
 /// </summary>

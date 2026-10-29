@@ -77,6 +77,21 @@ jobs:
         run: python3 Tools/Godot/tests/ci_linux.py --jobs 2
       - name: Optimized ordinary Release shutdown and fallback checks
         run: python3 Tools/Godot/tests/ci_linux_release.py --jobs 2
+      - name: Wasm initializer trap releases exported Object references
+        run: >-
+          python3 Tools/Godot/tests/with_weston.py
+          --logs build/godot-runtime/ci-ownership-trap/weston --
+          python3 Tools/Godot/tests/bindings/run_object_ownership_trap.py
+          --binary build/godot-runtime/dora/Dora --asset-source Assets
+          --output build/godot-runtime/ci-ownership-trap/case
+      - name: Runtime glTF animation and spatial shader project
+        run: >-
+          python3 Tools/Godot/tests/with_weston.py
+          --logs build/godot-runtime/ci-project-3d/weston --
+          python3 Tools/Godot/tests/run_project_3d_native.py
+          --binary build/linux/x86_64/release/Dora
+          --library build/godot-linux/package/libdora_godot.so
+          --asset-source Assets --output build/godot-runtime/ci-project-3d/case
       - name: Upload logs, screenshots and verification records
         if: always()
         uses: actions/upload-artifact@v4
@@ -85,6 +100,17 @@ jobs:
           path: |
             build/godot-runtime/ci-linux/
             build/godot-runtime/ci-linux-release/
+            build/godot-runtime/ci-ownership-trap/weston/
+            build/godot-runtime/ci-ownership-trap/case/*.json
+            build/godot-runtime/ci-ownership-trap/case/*.log
+            build/godot-runtime/ci-ownership-trap/case/*.wasm
+            build/godot-runtime/ci-project-3d/weston/
+            build/godot-runtime/ci-project-3d/case/*.json
+            build/godot-runtime/ci-project-3d/case/*.log
+            build/godot-runtime/ci-project-3d/case/*.png
+            build/godot-runtime/ci-project-3d/case/startup.lua
+            build/godot-runtime/ci-project-3d/case/assets/GodotProject/
+            build/godot-runtime/ci-project-3d/case/assets/GodotNotices/
             build/godot-linux/build.log
             build/godot-linux/package/
             build/godot-runtime/dora/Dora

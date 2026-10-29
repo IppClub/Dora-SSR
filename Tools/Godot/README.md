@@ -167,7 +167,7 @@ node:addTo(Dora.Director.ui)
 
 项目路径支持包含 `project.godot` 的目录或导出的 `.pck` 文件。空场景路径使用项目主场景。项目保持自身 SceneTree 根路径、current_scene 和 autoload。显式 `sendPointer` 坐标以 Godot 输出窗口左上角为原点，单位为输出纹理像素；Godot 按自身内容拉伸变换转换为场景坐标。
 
-创建前能力查询也提供给 Rust（`GodotNode::get_unsupported_reason()`）、Wa（`dora.GodotNodeGetUnsupportedReason()`）和 C#（`GodotNode.GetUnsupportedReason()`）。返回空字符串表示当前 GPU/后端支持，非空字符串解释拒绝原因；不会加载运行库，也不保证项目或可选库可用。这些语言的新增接口已编译，跨宿主运行验证状态见 TRACKING.md 的 BIND-01。
+创建前能力查询也提供给 Rust（`GodotNode::get_unsupported_reason()`）、Wa（`dora.GodotNodeGetUnsupportedReason()`）。返回空字符串表示当前 GPU/后端支持，非空字符串解释拒绝原因；不会加载运行库，也不保证项目或可选库可用。这些语言已有编译与运行验证，具体范围见 TRACKING.md。
 
 在异步启动完成前调用 `pause()` 也会生效。暂停使用 Godot SceneTree 原生语义，`PROCESS_MODE_ALWAYS` 节点仍持续处理；恢复不会重建项目。失焦会释放桥接层持有的按键、鼠标和标准手柄按钮／轴状态。
 
@@ -293,15 +293,9 @@ python3 Tools/Godot/tests/bindings/verify_async_error.py /absolute/path/to/fresh
 
 分别使用 Rust / Wa 和 missing-library / missing-scene，在全新目录执行四项。运行器需要 Rust wasm32-wasip1 / Wa 编译器及 Pillow；source-root 指定实际参与编译的绑定源码，宿主和 LibGodot 可复用封存产物，不能因此称为重新构建整套源码。execution.json 只记录实际执行；严格诊断、截图、清理和产物哈希均通过后，校验器才生成 verification.json。
 
-Wa 的公共 Emit 必须导入 dora_emit，与宿主导出一致。若刻意复用修复前的封存 vendor 树，可显式传入 --wa-import-overlay /absolute/path/to/fixed/dora.wa；入口只接受这一行精确替换并记录前后 SHA，不改变封存源码。错误校验只接受当前封存运行库的精确预期诊断，额外错误或非零 pending 均拒绝。该回归覆盖错误反馈与 Dora 继续运行；有效 Godot 纹理共享、同进程场景恢复和 C# / 其他平台另行验收。
+Wa 的公共 Emit 必须导入 dora_emit，与宿主导出一致。若刻意复用修复前的封存 vendor 树，可显式传入 --wa-import-overlay /absolute/path/to/fixed/dora.wa；入口只接受这一行精确替换并记录前后 SHA，不改变封存源码。错误校验只接受当前封存运行库的精确预期诊断，额外错误或非零 pending 均拒绝。该回归覆盖错误反馈与 Dora 继续运行；有效 Godot 纹理共享、同进程场景恢复和其他平台另行验收。
 
-C#对应实际入口使用公开App.Run与生成P/Invoke：
-
-```powershell
-py -3.12 Tools/Godot/tests/bindings/run_async_error_csharp_windows.py --source-root C:/path/to/source --native-library C:/path/to/Dora.dll --library C:/path/to/dora_godot.dll --output C:/path/to/fresh-results --dotnet C:/path/to/x64/dotnet.exe --compiler "C:/Program Files/dotnet/dotnet.exe"
-```
-
-入口重编托管fixture，分别执行两项，保留原生进程、输入和图像哈希。将报告和输入字节副本导出后，可用verify_async_error_csharp.py校验：feedback-verification.json记录错误反馈与Dora图像子项，verification.json另外要求完整引擎销毁；缺少销毁证据时该完整门槛返回非0，即使反馈正确且进程退出0。当前App.Run的进程级终止行为及本地执行范围见TRACKING.md，不使用普通EXE或Rust/Wa的清理结论代替C#宿主验收。
+Godot 整合 1.0 不提供 C# GodotNode 绑定，也不启用 Godot .NET/Mono 项目脚本；Dora 原有 C# 功能保留。此前 C# 实验与测试入口仅作为历史保存在 [history/2026-10-29-pre-1.0](history/2026-10-29-pre-1.0/INDEX.md)。
 
 ## 宿主音频接入（验证进行中）
 
@@ -332,7 +326,7 @@ Godot 对象泄漏警告。Linux EGL 与 Windows WGL 的音频 ABI 2 实际运�
 
 ## 当前边界
 
-这是实验集成。运行库为标准原生 Godot 构建，未启用 Godot Mono/C# 项目运行时；Dora 的 C# 节点绑定属于宿主接口。macOS Metal 有原生运行证据，Linux、Windows、Android 的现有运行证据限虚拟机/模拟器；Web 已通过 Chrome、Firefox、Playwright WebKit，macOS原生Safari26.6.2的2/3/4矩阵也已通过；移动浏览器、完整DOM/IME和真实后台策略仍需单独验收。iOS 保持 Dora Apple2 / Godot Apple4，模拟器仅验证普通 Dora 与 Godot 安全拒绝边界。各平台最新范围与报告统一见 [TRACKING.md](TRACKING.md)。
+这是实验集成。运行库为标准原生 Godot 构建，未启用 Godot Mono/C# 项目运行时；GodotNode 不提供 C# 宿主绑定；Dora 原有 C# 功能保留。macOS Metal 有原生运行证据，Linux、Windows、Android 的现有运行证据限虚拟机/模拟器；Web 已通过 Chrome、Firefox、Playwright WebKit，macOS原生Safari26.6.2的2/3/4矩阵也已通过；移动浏览器、完整DOM/IME和真实后台策略仍需单独验收。iOS 保持 Dora Apple2 / Godot Apple4，模拟器仅验证普通 Dora 与 Godot 安全拒绝边界。各平台最新范围与报告统一见 [TRACKING.md](TRACKING.md)。
 
 当前支持单运行时、单个活动 GodotNode、同一项目移除后重建；运行时驻留到进程退出。不同项目不能在该进程内切换；节点移除不卸载运行库，最终 shutdown 后不承诺再次初始化。GL 运行时还要求重建时缓冲数一致，内部目标模式需保持尺寸一致；外部目标尺寸协商另行处理。设备丢失恢复、多项目并行、完整 IME、物理控制器热插拔/震动及最终分发仍待完成。
 
@@ -372,12 +366,11 @@ DORA_PLAYWRIGHT_MODULE=/absolute/path/to/node_modules/playwright node Tools/Godo
 
 依赖Playwright1.62.1（Node>=20）及浏览器；`DORA_BROWSER_ENGINE`可选chromium/firefox/webkit。脚本要求预期Lua错误、faulted状态、已释放输入/IME服务、无Wasm/JS异常或GL错误。Linux Web CI会安装Chromium并在真实Player上执行此项；只有该job实际通过才记为远程通过。该故障用例本身不证明Godot GPU输出，正常共享输出仍须另外运行node矩阵。
 
-## Rust / Wa / C# 绑定
+## Rust / Wa 绑定
 
-节点接口也通过 Dora 的生成绑定提供给 Rust、Wa 和 C#。Rust 使用
+节点接口也通过 Dora 的生成绑定提供给 Rust 和 Wa。Rust 使用
 `GodotNode::new(project, scene, width, height, buffers)`；Wa 使用
-`dora.NewGodotNode(project, scene, width, height, buffers)`；C# 推荐使用
-`GodotNode.TryCreate(project)` 并检查返回值。它们使用同一个节点、异步状态与
+`dora.NewGodotNode(project, scene, width, height, buffers)`。它们使用同一个节点、异步状态与
 GPU 传输协议，后端支持范围与 Lua 一致。
 
 ```sh
@@ -387,7 +380,7 @@ DORA_BUILD_GODOT_NODE_TEST=1 xmake build -j2 Dora
 python3 Tools/Godot/tests/bindings/run.py
 ```
 
-第一步需要 Rust `wasm32-wasip1` 目标、Wa 和 .NET 8 SDK；只编译某些语言时
+生成需要 Yue；编译需要 Rust `wasm32-wasip1` 目标和 Wa；只编译某些语言时
 可用 `--languages Rust Wa`。macOS 需要先用 `build_runtime.sh` 构建运行库。
 Linux 需要先用 `build_linux_runtime.sh` 构建运行库；无桌面时将最后一步放在
 `tests/with_weston.py --` 后执行。修改项目路径时，构建和运行两步都应指定
@@ -406,7 +399,7 @@ python3 Tools/Godot/tests/bindings/run.py --resize --cancel-resize --aliases --a
 该模式由语言模块实际调用 `viewportSize` / `resizeViewport` 对应接口，覆盖
 800×450、暂停中的 320×180、恢复 640×360、忙时拒绝、非法尺寸、同尺寸空操作、
 移除时取消请求；每种语言运行 1000 帧并校验 15 张 GPU 截图。
-生成器在 `build/` 隔离目录运行，只回写 GodotNode 绑定及本轮 C# ABI 修复文件，保留其他生成文件。
+生成器在 `build/` 隔离目录运行，只回写 GodotNode 的 Wasm/Rust/Wa 绑定，保留其他生成文件。
 `--verify-only` 复核已有截图与完整命令名计数，不启动 GPU；失败会删除 PASS 报告。
 
 Wa 的 GodotNode → Sprite 转换可单独启用，要求原生宿主注册 `object_to_sprite`；每个生命周期检查转换保留同一原生对象、普通 Node 转换返回 nil。其余 GPU/音频条件保持与上述完整矩阵相同：
@@ -423,41 +416,7 @@ python3 Tools/Godot/tests/bindings/build.py --output build/godot-bindings-constr
 python3 Tools/Godot/tests/bindings/run.py --output build/godot-bindings-constructor-rejections --languages Rust Wa --constructor-rejections --app /path/to/test/Dora.app --library /path/to/libdora_godot.dylib --resize --cancel-resize --aliases --audio --audio-stall --reservation
 ```
 
-Windows C# 同组用例使用公开 `GodotNode.TryCreate`（返回null），运行前需构建匹配的原生C#测试宿主：
-
-```sh
-python Tools/Godot/tests/bindings/build.py --languages CSharp --constructor-rejections --output build/godot-bindings-constructor-rejections-csharp
-python Tools/Godot/tests/bindings/run_csharp.py --output build/godot-bindings-constructor-rejections-csharp --native-library C:/path/to/Dora.dll --library C:/path/to/dora_godot.dll --dotnet C:/path/to/x64/dotnet.exe --constructor-rejections
-```
-
-每轮通过真实生成绑定检查零宽、零高、过大宽度、1/5缓冲及缺失项目返回None/nil/null，再创建正常节点。两轮共12次拒绝后，仍要求完整1000帧/15截图回归。原始run.log保留全部预期错误；单独recovered/run.log只移除精确匹配的10条尺寸/缓冲错误及2条缺失项目错误，其他错误继续由原严格校验器拒绝。共同的constructor_rejections.py要求全部错误诊断精确匹配预期消息与次数；非预期错误、critical或warning均拒绝。该模式不能替代运行库缺失、异步启动失败或其他错误面的验收。
-
-C# 已通过 Parallels Windows11 ARM64 上的 x64 .NET / WGL 原生执行验证，
-使用公开 `App.Run` 和生成的 P/Invoke 控制节点，固定三缓冲，1000 个控制帧、
-15 张 GPU 截图。全部 1728 个 C# 导入符号已与实际 DLL 导出表核对；编译、
-导出检查和 GPU 报告分别记录。原生 C# 宿主仍限 Windows，Godot 运行库未启用 Mono。
-
-Windows 的 C# 原生 GPU 测试使用 xmake 生成的 64 位共享库，避免旧 Win32
-工程与 64 位 Godot 运行库混用。以下为 PowerShell 命令：
-
-```powershell
-$env:DORA_BUILD_CSHARP_NATIVE="1"
-$env:DORA_BUILD_GODOT_NODE_TEST="1"
-xmake f -y -p windows -a x64
-xmake build -j2 Dora
-python Tools/Godot/tests/bindings/build.py --languages CSharp --output build/godot-bindings-csharp
-python Tools/Godot/tests/bindings/run_csharp.py --library C:/path/to/dora_godot.dll
-```
-
-测试通过公开 `App.Run`、生成的 P/Invoke 绑定和原生反向回调创建节点，
-复用 1000 帧/15 张截图的完整尺寸、动画、输入、纹理别名和音频验收。
-编译需要 .NET 8 SDK；执行所用 .NET 主程序必须匹配 DLL 架构。在 ARM Windows
-测试 x64 DLL 时，可用 `--dotnet` 指定 x64 .NET 8 的 `dotnet.exe`。
-`--verify-only` 只复核已有结果；C# 的 GPU 报告与编译报告分别保存。
-原生结果位于 `node-csharp/verification.json`，DLL/程序集哈希位于 `artifacts.json`，
-静态导出核对位于 `exports.json`。本次实际结果保存在
-`build/godot-bindings-csharp/windows-results/node-csharp/`；复制真实截图并删去一条
-尺寸命令的负例会被拒绝，并删除旧的通过报告。
+每轮通过真实生成绑定检查零宽、零高、过大宽度、1/5缓冲及缺失项目返回 None/nil，再创建正常节点。两轮共12次拒绝后，仍要求完整1000帧/15截图回归。原始run.log保留全部预期错误；单独recovered/run.log只移除精确匹配的10条尺寸/缓冲错误及2条缺失项目错误，其他错误继续由原严格校验器拒绝。共同的constructor_rejections.py要求全部错误诊断精确匹配预期消息与次数；非预期错误、critical或warning均拒绝。该模式不能替代运行库缺失、异步启动失败或其他错误面的验收。
 
 无效项目与 Wasm 初始化失败的退出回归可单独运行：
 
@@ -589,7 +548,7 @@ C++／Lua（以及对应 Yue／Teal／TypeScript 接口）提供 `resizeViewport
 为 1–8192，忙碌或未启动时拒绝；就绪节点同尺寸请求不重新分配。可选 viewport ABI 1
 保持基础 ABI 不变，旧库仍可运行固定尺寸节点。GL 使用可选 GL targets ABI 1，
 由 bgfx 拥有目标纹理、Godot 借用 GL 名称；没有对应扩展时调整尺寸返回 false。
-Rust／Wa 和 Windows 原生 C# 的尺寸接口已完成实际运行验收，见语言绑定章节。
+Rust／Wa 的尺寸接口已完成实际运行验收，见语言绑定章节。
 
 尺寸切换暂停新图像生产，等待已提交消费者／生产者 GPU 工作完成后，更换共享槽位。
 场景、autoload、暂停和音频保持运行；宿主保留的旧纹理引用继续显示冻结画面。
@@ -1026,3 +985,45 @@ Metal 完整节点回归中通过，报告：
 零。报告位于 `build/godot-web/persistence-autopersist-results/verification.json`。持久化
 改动后的三缓冲节点回归仍通过 620 帧、12 张截图、110 个颜色采样、440／660 Hz 和
 零欠载，报告位于 `build/godot-web/node-persistence-regression-3/verification.json`。
+
+
+代表性 3D 项目可通过普通 macOS 宿主运行（必须没有原生测试入口）。该 fixture 运行时解析 glTF 网格与两条动画，加载空间着色器，严格验证实际图像中的运动、暂停、恢复、移除和 GPU 排空：
+
+```sh
+python3 Tools/Godot/tests/run_project_3d_macos.py --app /path/to/ordinary/Dora.app --library /path/to/libdora_godot.dylib --output build/godot-project-3d
+```
+
+每次使用新输出目录，保留执行来源、原始日志与六张截图；失败不会保留成功报告。此用例不覆盖大型场景、PCK、插件/GDExtension或其他平台，也不验证音频内容。
+
+Windows/Linux 普通宿主共用同一项目、图像和GPU条件（Linux命令需在有Weston的环境运行）：
+
+```sh
+# Windows: use an ordinary x64 EXE and its original asset tree.
+python Tools/Godot/tests/run_project_3d_windows.py --binary C:/path/to/Dora.exe --library C:/path/to/dora_godot.dll --asset-source C:/path/to/Assets --output build/godot-project-3d-windows
+# Linux: run one isolated headless EGL compositor.
+python3 Tools/Godot/tests/with_weston.py --logs build/godot-project-3d-linux-weston -- python3 Tools/Godot/tests/run_project_3d_native.py --binary /path/to/Dora --library /path/to/libdora_godot.so --asset-source /path/to/Assets --output build/godot-project-3d-linux
+```
+
+结果记录原生渲染器、实际宿主/运行库/启动/资源字节。虚拟机WGL转换、llvmpipe软件渲染须与物理GPU验收区分；只更换后端标签和渲染器诊断检查，模型、运动、暂停、移除和排空判据相同。
+
+## Wasm 初始化失败的对象所有权回归
+
+导出的原生 Object 引用按 Wasm 实例记账；模块清理或初始化异常时回收仍持有的引用。原生 Dora C# 的释放入口保持原有语义。这不等于对所有非 Object FFI 堆内存的全面泄漏验收。
+
+下列测试不需要 Rust/Wa 编译器，生成极小的可审计 Wasm：创建 Node、retain两次、release一次，再执行 unreachable。使用启用 DORA_BUILD_GODOT_NODE_TEST 的宿主：
+
+```sh
+python3 Tools/Godot/tests/bindings/run_object_ownership_trap.py --app /path/to/test/Dora.app --output /path/to/fresh-results
+# Linux：由 tests/with_weston.py 包裹，并改用 --binary /path/to/test/Dora --asset-source Assets
+```
+
+真实 GodotNode 的 Wa 失败路径另有重复引用用例：
+
+```sh
+python3 Tools/Godot/tests/bindings/build.py --languages Wa --ownership-failure --output build/godot-owned-failure
+python3 Tools/Godot/tests/bindings/run_ownership_failure_macos.py --app /path/to/test/Dora.app --module build/godot-owned-failure/wa.wasm --library /path/to/libdora_godot.dylib --output /path/to/fresh-results
+```
+
+预期模块失败码为2，必须完成原生生命周期清理且无对象泄漏、GPU错误或pending；GUI既有实例激活、崩溃或缺少预期故障均不算通过。Wa用例故意将Sprite转换导入改为缺失名称，触发创建节点之后的懒链接失败。
+
+macOS嵌入运行库对dora-metal显示后端固定使用Godot已有的lazy着色器库加载：首次使用时同步编译，避免初始化故障快速退出后仍遗留Metal库编译回调。iOS本来采用该策略。渲染能力不减少，首次使用着色器的耗时可能改变；这不是修复Godot所有异步编译路径的声明。prepare.py与包清单记录该配置及实际驱动源码哈希。

@@ -2427,3 +2427,49 @@ Safari授权与真实Safari矩阵已完成，无需重复请求。主HEAD6a05611
 备选静态分发方案从28b生成到build/godot-managed-shutdown-static-dispatch/，保留28项原字节和增量：C/static回调绕开WasmRuntime单例getter，Wasm分支仅在单例可用时取实例，同步两生成器/现有调用点；尚未应用或原生编译，不先宣称基线已失败或修复已验收。
 
 下一次候选只纳入已实测Windows模式/Wa Emit/Sprite转换与公开测试文档，不带入以上未验C#原型；CI Linux来源清单补WasmRuntime.cpp与Wa vendor主文件哈希，以便独立确认这些新增修复的来源。
+
+
+### 2026-10-29：23路径绑定/Windows候选发布9297c4b
+
+从28b建立23路径私有索引，tree b355ba341599bcc9e986a41880b01e8285e1496c，补丁105815字节/SHA8132819a42d61d9eb87948cfa7b7a8e6e4cd4e9854646f06eceaaaaf0a301c23，另一私有索引应用同tree；仅1项Source文件（WasmRuntime.cpp登记1行），另Windows mode规则、Wa Emit导入、公开回归/文档/CI来源清单。所有Python语法和冻结tree CPU协议通过，不含未验C#原型或无关缓存/3D内容。
+
+冻结候选SDK重新编译Wa时，原先假设与工作区vendor模块46536dd7字节相同的比较断言失败，实际50b8fc78，差异报告保留，未宣称原生等价。随后针对该候选模块实际执行完整1000帧/15截图，转换/拒绝各2次和全部resize/cancel/aliases/audio/stall/reservation通过，GPU474/474、518/518、读者482/482、531/531、pending/errors/underruns=0；宿主3971a2b8与2e3f2ea6封存Release库复用，不称整tree原生重建。最终候选记录模块/原生报告SHA与三组既有实测证据，不据孤立CPU协议声称GPU通过。
+
+非强制提交9297c4befc24cc365eb65d5b8a66171a872cea50，parent28b，CAS更新dev/godot-runtime-integration，push/ls-remote/PR head核对；主HEAD6a05611e、真实索引5c71dfe4不变。回执godot-binding-publication.json。PR159描述按最终实现重写，保持draft；明确C#反馈与完整清理差异、失败Wasm对象缺口和硬件边界。新12工作流初始快照godot-remote-ci-9297c4b-initial.json，Godot40799441795/Web40799441859；未取终态，父28b的12绿与产物不作为本提交验收。后台C#基线DLL继续原session54529/PID8456、xmake6304构建，未重启。
+
+9297c4b首次Godot job快照：Ubuntu CPU123203737317 success，Linux EGL123203737136仍安装依赖，macOS CPU123203737563 queued。新Linux完整构建/产物未验收。Windows原C#构建owner8456/xmake6304仍活跃且日志进展到第三方图像库；另监督PID5700/session1334每30秒确认原owner仍存在，仅在build-complete后运行已保存的真实活动回调用例，不重启构建或自动应用备选分发改动。handoff.json记录确切句柄、预期报告与驱动exit0不能代替native_exit_code的边界。
+
+
+### 2026-10-29：9297c4b Ubuntu产物与普通宿主3D项目实测
+
+9297自身Windows/Engine Tests/UI/Studio四工作流success，其余继续原run；Ubuntu CPU123203737317的artifact12865097335，1126字节、ZIP SHA24d1f74ddf4cb6f11932e9dbbdf9fea5dcddba41da74940172847358c312d62a匹配GitHub digest，3报告passed，生产WebTaskQueue.cpp SHA匹配head。初次审计把单一source_sha256字符串当成映射而失败，下载/解包已完成，原failure.json保留；另写audit-9297-ubuntu-protocol.py只离线复核原字节，通过后生成download-verification.json，无重下载/原生重跑。不计GPU。
+
+等待C#原DLL构建时，补PROJECT-01代表性3D项目：glTF24顶点/索引网格、原生导入AnimationPlayer的旋转和平移两track、运行时空间ShaderMaterial资源、正交倾斜Camera3D。普通Mac Release公共Lua启动与GodotNode，不调用私有测试入口；复用既有普通宿主及2e3f2ea6库，无引擎/LibGodot重编。首次纯旋转实际正常结束/6截图/GPU排空，但采样变化460/184少于原500像素门槛，严格拒绝；原godot-project-3d-macos/failure和PNG保留。加入真正glTF translation后v2通过（2668/0/1242），随后v3扩展空间着色器资源和倾斜相机，同门槛通过：8680/0/10962，移除后绿色0，204生产/完成、207读者/完成，pending/errors0，230控制tick/6截图、完整Life销毁。PIL读取改为新API带旧版fallback，未改像素条件；初版弃用提示保留。
+
+最终实际源/模块/宿主/库/原日志/6PNG SHA经聚合审计，四离线反例（模型缺失、暂停仍动、pending1、额外error）均拒绝且无残留PASS，build/godot-project-3d-evidence/verification.json。该项目PCM全0，不作音频内容验收。新增公开测试尚未提交，9297CI不涵盖；小型3D项目不是大型资源/PCK/GDExtension或跨平台通过。原Windows DLL仍原owner8456/xmake6304，已见WasmRuntime.cpp编译，未重启；监督5700保持等待原构建后执行C#真实回调用例。
+
+
+### 2026-10-29：三后端普通宿主3D项目及9297 CPU/Web产物
+
+Windows先用专用入口实际6PNG通过，生产218/218、读者227/227；后重构为Windows/Linux共用native runner，再实际Windows6PNG通过，215/215、229/229。Linux ARM64 VM普通Release d3c94e19与6997eb3c封存库，通过Weston EGL/Mesa llvmpipe6PNG，111/111、209/209。Mac原生Metal既有v3 204/204、207/207；三者主聚合3实际进程/18截图，三缓冲，暂停差异0、pending/errors0，运行时glTF网格24顶点、旋转/平移两轨、空间着色器与移除后模型消失。Windows原专用入口另6PNG不算另一平台。没有引擎/LibGodot重编、音频内容或物理Windows/LinuxGPU验收。
+
+两VM实际输入12/11项含宿主/库/waDLL（Windows）/启动/项目/许可，guest导出和host重算通过；PE x64/ELF ARM64核对。冻结校验器离线正例JSON等于guest，3反例每平台拒绝，Mac平台化校验器也对原始图像离线通过。原Mac/Windows入口字节各自冻结，未把后改代码冒作先前来源。初次host审计/最终聚合两处Windows反斜杠路径处理错误（POSIX相对路径、basename），原失败目录/脚本保留，仅新目录正确归一化复核原字节，无原生重跑或图像修改。最终build/godot-project-3d-platforms-v2/verification.json与windows-common-audit/linux-audit/verification.json。
+
+本地Godot CI新增普通Release后的glTF/空间shader 3D阶段；上传6PNG/JSON/log/启动/项目/许可/Weston，复用已有实际宿主/库上传，避免重复全资产树。Python AST和Ruby/Psych YAML解析通过；新测试/CI步骤尚未提交/远程执行，先保留9297原run继续完整验收。项目大型资源/PCK/GDExtension/复杂负载/专门2/4矩阵仍开放。
+
+9297当前8工作流success，Linux EGL主构建测试、Android/iOS/AppImage仍未终态，Mac/Ubuntu CPU均success。macOS artifact12865673345 ZIP d9d13a13a4e719bc2c9ba1428c0a63fc132f53fcab2edcde258d35474c1935e2与GitHub digest一致，3报告/队列源SHA匹配head；Web12866451218 ZIP a92a90e36daf00687a1344bf8b9dbb8b05d33753f676004309e1b8cf2d25f093匹配，普通Chromium预期bootstrap断言后faulted/inactive/audio closed/输入IME清理，无page errors、保留ScriptProcessor警告。只有报告WASM SHA00c84f1f、未上传字节，不称独立重算或GodotGPU通过。原C#构建仍session54529/PID8456/xmake6304，实际进展至DragonBones阶段且未见编译错误；监督session1334/PID5700仍确认原owner存活并等待。
+
+
+2026-10-29 1.0范围冻结与C#撤下：用户确认不交付Godot整合C#支持、保留Dora原有C#。收敛前TRACKING/README完整字节备份到history/2026-10-29-pre-1.0，PLAN原历史不改；TRACKING改为简洁范围/完成/待办清单。撤下CSharpGen的GodotNode声明、托管类与类型登记、7项专用fixture/driver/导出检查；原字节及SHA归档。Godot生成/构建入口只保留Wasm/Rust/Wa，中英文API与使用说明同步。保留通用C#生成器ABI修复、DORA_AS_LIB功能和原生工程依赖，不将隔离C#生命周期方案合入生产。保留SDK实际dotnet编译通过；隔离Yue生成105类/1514函数，未重新生成GodotNode；重新生成SDK另行实际编译，详见build/godot-rc1-no-csharp/。这些是编译/生成验证，不代表本轮原生C#运行。
+
+继续收口：对已经下载的9297c4b Linux产物执行audit-9297-linux-ci.py，无重下载/原生重跑。22报告、230源码SHA匹配提交、3实际x86_64宿主与4库副本复算、379验收截图、9801导出文件；冻结校验器离线重验Debug/Release 2/3/4、100轮与早退8项通过，六份矩阵报告字节一致。download-verification.json保存完整映射。当前源码CPU协议在新rc1-scope-protocol目录实际通过。FFI失败模块4对象未释放、历史音频欠载原因、最终候选自身CI/各平台交付包仍开放；本轮不推断已修复，不重复此前功能可行性测试。
+
+
+2026-10-29 FFI-01本地闭环：隔离源码按WasmInstance记账Object_From/object_retain的导出引用，Wasm object_release导入递减，clear/析构回收剩余引用；原生Rust/C# object_release C ABI不改。原始Wa模块的object_to_sprite等长改为object_to_spritX，旧宿主退出2且4对象泄漏再次复现。初期误选ordinary bundle/单实例激活与错误xmake参数均保留在godot-ffi-owner-fix/early-attempts.json，不算运行验收；最终test build58.563秒，复用编译缓存。
+
+修复宿主的首次真实失败用例在Metal编译队列SIGSEGV，crash.ips保留；对照lazy环境正常退出0泄漏。后来旧宿主额外retain用例也在默认策略崩溃，不能将该Metal缺陷归因于新所有权代码。源码显示macOS MDImmediateLibrary编译回调可跨驱动弱缓存条目的销毁，配置采用Godot已有lazy策略，限定dora-metal后端；不删着色器能力、不声称全面修复上游异步编译。prepare.py可重复应用，runtime首次增量因display_server头路径错误失败，原log保留；纠正为servers/display/display_server.h后6.64秒增量构建成功。新template_release运行库44a93683独立封装，旧封存包2e3f2ea6未覆盖。
+
+新运行库/所有权宿主：基础缺失导入、重复retain后部分release的真实Wa失败、公开build/runner生成的Wa失败、独立Python编码的plain Node unreachable故障共4正向清理用例通过。后者旧宿主实测也是4对象泄漏，初校验误预期1且未接受实际[trap]前缀，原报告失败保留、仅离线记录复现，再用同字节模块在新宿主通过。公开Wasm编码无需语言编译器，可在Linux CI运行；新增步骤与3D步骤同待新提交。新运行库Rust/Wa各1000帧/15图、resize/cancel、别名、音频/stall、竞争节点、退出通过；Rust另外12构造拒绝，GPU/PCM/pending均0。5离线反例（对象泄漏、pending、错误退出码、缺标记、缺Logger）拒绝。包校验正反例与prepare幂等通过。聚合build/godot-ffi-owner-fix/verification.json限定macOS、导出Object句柄与实际源码片段，非完整RC整树或全FFI堆证明。
+
+
+同轮收口补充：新Metal运行库的小型glTF/空间Shader普通宿主回归通过6图、暂停与GPU排空。首次选用旧ordinary宿主的快速退出路径导致缺少Life销毁门槛，原图像/日志与校验失败保留；改用此前已验普通退出修复宿主才通过，不放宽校验器。候选首次协议导出缺少bgfx两个原始shader文件而在staging阶段失败，补同一tree源字节后新protocol-v2通过；不是生产代码失败。冻结SDK与生成检查最初有并发文件读写，随后另行从tree提取不可变SDK目录编译、生成器结束后编译输出，两者零警告/错误。候选5f7e972f为首个只读检查tree，后续仅文档整理生成最终候选；主HEAD和真实索引保留。
