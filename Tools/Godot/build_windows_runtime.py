@@ -43,10 +43,19 @@ if mingw:command.append('use_mingw=yes')
 (build/'command.json').write_text(json.dumps(command,indent=2)+'\n')
 print('Building Windows '+args.arch+' runtime; log: '+str(build/'build.log'),flush=True)
 with (build/'build.log').open('w') as log:subprocess.run(command,cwd=source,stdout=log,stderr=subprocess.STDOUT,check=True)
-libraries=[path for path in list((source/'bin').glob('libgodot*.dll'))+list((source/'bin').glob('godot*.dll'))
-           if args.target in path.name]
-assert len(libraries)==1, 'Expected one runtime DLL, found '+str(libraries)
-subprocess.run([sys.executable,str(root/'Tools/Godot/package_runtime.py'),'--source',str(source),'--library',str(libraries[0]),'--output',str(build/'package'),'--architecture',args.arch],check=True)
+libraries=list((source/'bin').glob('libgodot*.dll'))+list((source/'bin').glob('godot*.dll'))
+target_libraries=[path for path in libraries if args.target in path.name]
+# Current Godot 4.6 shared-library builds on Windows use the unqualified
+# `godot.dll` name, while older/patched build graphs include the target name.
+# Prefer the qualified form when present, otherwise accept a sole exact DLL.
+if len(target_libraries)==1:
+    library=target_libraries[0]
+else:
+    exact=[path for path in libraries if path.name.lower()=='godot.dll']
+    assert not target_libraries and len(libraries)==len(exact)==1, \
+        'Expected one runtime DLL, found '+str(libraries)
+    library=exact[0]
+subprocess.run([sys.executable,str(root/'Tools/Godot/package_runtime.py'),'--source',str(source),'--library',str(library),'--output',str(build/'package'),'--architecture',args.arch],check=True)
 (build/'compilation.json').write_text(json.dumps({'compiled':True,'target':'Windows '+args.arch,
     'godot_target':args.target,'optimization':'speed' if release else 'none','bridge':'WGL / OpenGL 3.3',
     'gpu_tested':False,'scope':'full standard runtime; native window accessibility disabled; output validation recorded separately'},indent=2)+'\n')
