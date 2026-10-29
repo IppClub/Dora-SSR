@@ -549,6 +549,16 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'GodotNode',
+							id: 'api/Class/GodotNode',
+						},
+						{
+							type: 'doc',
+							label: 'GodotNode Class',
+							id: 'api/Class Object/GodotNode',
+						},
+						{
+							type: 'doc',
 							label: 'LoveNode',
 							id: 'api/Class/LoveNode',
 						},

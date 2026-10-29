@@ -17,6 +17,11 @@
 
 #import <Foundation/Foundation.h>
 
+#if defined(DORA_LIBGODOT_METAL_PROBE)
+// Experimental interop only: GPU waits before draws, completion signals after.
+extern "C" void dora_libgodot_metal_probe_encode(void*, uint32_t, bool);
+#endif
+
 #define UNIFORM_BUFFER_SIZE (8*1024*1024)
 
 namespace bgfx { namespace mtl
@@ -4293,6 +4298,12 @@ static_assert(BX_COUNTOF(s_accessNames) == Access::Count, "Invalid s_accessNames
 
 		updateResolution(_render->m_resolution);
 
+		encodeNativeFrame(RendererType::Metal, _render->m_frameNum, (void*)m_commandBuffer.m_obj, false);
+
+#if defined(DORA_LIBGODOT_METAL_PROBE)
+		dora_libgodot_metal_probe_encode((void*)m_commandBuffer.m_obj, _render->m_frameNum, false);
+#endif
+
 		if (0 != _render->m_numScreenShots
 		||  NULL != m_capture)
 		{
@@ -5529,6 +5540,10 @@ static_assert(BX_COUNTOF(s_accessNames) == Access::Count, "Invalid s_accessNames
 
 			rce.endEncoding();
 		}
+		encodeNativeFrame(RendererType::Metal, _render->m_frameNum, (void*)m_commandBuffer.m_obj, true);
+#if defined(DORA_LIBGODOT_METAL_PROBE)
+		dora_libgodot_metal_probe_encode((void*)m_commandBuffer.m_obj, _render->m_frameNum, true);
+#endif
 	}
 
 } /* namespace mtl */ } // namespace bgfx

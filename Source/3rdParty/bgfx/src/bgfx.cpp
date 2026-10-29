@@ -366,6 +366,53 @@ char DoraLoveTrace[96] = {};
 #endif // BGFX_CONFIG_MEMORY_TRACKING
 	}
 
+    static NativeShutdownCallback s_nativeShutdownCallback = NULL;
+    static void* s_nativeShutdownUserData = NULL;
+    void setNativeShutdownCallback(NativeShutdownCallback _callback, void* _userData)
+    {
+        s_nativeShutdownCallback = _callback;
+        s_nativeShutdownUserData = _userData;
+    }
+    void shutdownNativeInterop(RendererType::Enum _renderer)
+    {
+        if (s_nativeShutdownCallback)
+            s_nativeShutdownCallback(_renderer, s_nativeShutdownUserData);
+    }
+
+    static NativeFrameCallback s_nativeFrameCallback = NULL;
+    static void* s_nativeFrameUserData = NULL;
+    static uint32_t s_nativeFrameCallbackDepth = 0;
+
+    void setNativeFrameCallback(NativeFrameCallback _callback, void* _userData)
+    {
+        s_nativeFrameUserData = _userData;
+        s_nativeFrameCallback = _callback;
+    }
+
+    void encodeNativeFrame(RendererType::Enum _renderer, uint32_t _frame, void* _commandBuffer, bool _end)
+    {
+        if (s_nativeFrameCallback)
+        {
+            ++s_nativeFrameCallbackDepth;
+            s_nativeFrameCallback(_renderer, _frame, _commandBuffer, _end, s_nativeFrameUserData);
+            --s_nativeFrameCallbackDepth;
+        }
+    }
+
+    bool submitNativeFrame()
+    {
+        BGFX_CHECK_RENDER_THREAD();
+        if (NULL == s_ctx || s_nativeFrameCallbackDepth
+            || (RendererType::Metal != g_caps.rendererType
+                && RendererType::OpenGL != g_caps.rendererType
+                && RendererType::OpenGLES != g_caps.rendererType))
+            return false;
+        // Use Context::flip so m_flipped also prevents the normal render loop
+        // from presenting/advancing the native queue twice for the same frame.
+        s_ctx->flip();
+        return true;
+    }
+
 	void setPlatformData(const PlatformData& _data)
 	{
 		if (NULL != s_ctx)
@@ -384,6 +431,12 @@ char DoraLoveTrace[96] = {};
 	const InternalData* getInternalData()
 	{
 		return &g_internalData;
+	}
+
+	uintptr_t getNativeTexture(TextureHandle _handle)
+	{
+		BGFX_CHECK_RENDER_THREAD();
+		return s_ctx->m_renderCtx->getInternal(_handle);
 	}
 
 	uintptr_t overrideInternal(TextureHandle _handle, uintptr_t _ptr)

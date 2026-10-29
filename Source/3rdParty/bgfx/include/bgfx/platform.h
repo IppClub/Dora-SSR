@@ -52,6 +52,29 @@ namespace bgfx
 	///
 	RenderFrame::Enum renderFrame(int32_t _msecs = -1);
 
+    /// Native GPU frame interop. Install/remove only on the render thread.
+    /// Called before draw encoding and after all draw encoders have ended.
+    /// Metal: _commandBuffer is id<MTLCommandBuffer>. Other backends must
+    /// document their native payload before enabling this callback.
+    /// OpenGL/OpenGLES: payload is null; the host EGL context is current.
+    typedef void (*NativeFrameCallback)(RendererType::Enum _renderer, uint32_t _frame,
+        void* _commandBuffer, bool _end, void* _userData);
+    void setNativeFrameCallback(NativeFrameCallback _callback, void* _userData);
+    void encodeNativeFrame(RendererType::Enum _renderer, uint32_t _frame,
+        void* _commandBuffer, bool _end);
+    /// Render thread only, between frame encodings (never inside a native
+    /// callback). Submit/present an already encoded Metal or GL frame through
+    /// the normal renderer flip (including its configured swap interval).
+    /// The normal later flip becomes a no-op for that frame. Returns
+    /// false for unsupported renderers or callback reentrancy.
+    bool submitNativeFrame();
+
+    /// Called on the render thread before the native renderer/context is torn
+    /// down. Interop clients must release context-dependent resources here.
+    typedef void (*NativeShutdownCallback)(RendererType::Enum _renderer, void* _userData);
+    void setNativeShutdownCallback(NativeShutdownCallback _callback, void* _userData);
+    void shutdownNativeInterop(RendererType::Enum _renderer);
+
 	/// Set platform data.
 	///
 	/// @warning Must be called before `bgfx::init`.
@@ -98,6 +121,10 @@ namespace bgfx
 	/// @attention C99's equivalent binding is `bgfx_override_internal_texture_ptr`.
 	///
 	uintptr_t overrideInternal(TextureHandle _handle, uintptr_t _ptr);
+
+	/// Query the renderer's native texture pointer/name without changing ownership.
+	/// Returns 0 before resource creation. Render thread only.
+	uintptr_t getNativeTexture(TextureHandle _handle);
 
 	/// Override internal texture by creating new texture. Previously created
 	/// internal texture will released.

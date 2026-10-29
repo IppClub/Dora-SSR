@@ -12,7 +12,7 @@ for _, feature in ipairs({"physics_2d", "entity", "platformer", "builtin_libs", 
 end
 for name, default in pairs({engine = true, link_player = true, love_probe = false,
     love_pthread_player = false, diagnostics = false, studio_agent_host = false,
-    experimental_main_worker = false}) do
+    experimental_main_worker = false, godot = false, godot_diagnostics = false}) do
     option("dora_web_" .. name)
         set_default(default)
         set_showmenu(true)

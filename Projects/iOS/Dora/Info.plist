@@ -41,6 +41,8 @@
 	<string>Launch Screen</string>
 	<key>UIStatusBarHidden</key>
 	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

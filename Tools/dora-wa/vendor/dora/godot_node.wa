@@ -1,0 +1,170 @@
+/* Copyright (c) 2016-2026 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+import "runtime"
+
+#wa:import dora godotnode_type
+func godotnode_type() => i32
+
+#wa:import dora godotnode_get_unsupported_reason
+func godotnode_get_unsupported_reason() => i64
+
+#wa:import dora godotnode_get_project_path
+func godotnode_get_project_path(slf: i64) => i64
+
+#wa:import dora godotnode_get_scene_file
+func godotnode_get_scene_file(slf: i64) => i64
+
+#wa:import dora godotnode_get_last_error
+func godotnode_get_last_error(slf: i64) => i64
+
+#wa:import dora godotnode_is_running
+func godotnode_is_running(slf: i64) => i32
+
+#wa:import dora godotnode_is_paused
+func godotnode_is_paused(slf: i64) => i32
+
+#wa:import dora godotnode_get_viewport_size
+func godotnode_get_viewport_size(slf: i64) => i64
+
+#wa:import dora godotnode_resize_viewport
+func godotnode_resize_viewport(slf: i64, width: i32, height: i32) => i32
+
+#wa:import dora godotnode_pause
+func godotnode_pause(slf: i64)
+
+#wa:import dora godotnode_resume
+func godotnode_resume(slf: i64)
+
+#wa:import dora godotnode_restart
+func godotnode_restart(slf: i64, scene_file: i64) => i32
+
+#wa:import dora godotnode_send_pointer
+func godotnode_send_pointer(slf: i64, x: f64, y: f64, button: i32, pressed: i32)
+
+#wa:import dora godotnode_send_pointer_move
+func godotnode_send_pointer_move(slf: i64, x: f64, y: f64)
+
+#wa:import dora godotnode_send_key
+func godotnode_send_key(slf: i64, name: i64, pressed: i32)
+
+#wa:import dora godotnode_send_text
+func godotnode_send_text(slf: i64, text: i64)
+
+#wa:import dora godotnode_new
+func godotnode_new(project_path: i64, scene_file: i64, width: i32, height: i32, buffers: i32) => i64
+
+type GodotNode :struct{ Sprite }
+
+func GodotNodeFrom(raw: i64) => *GodotNode {
+	if raw == 0 {
+		return nil
+	}
+	object := GodotNode{}
+	object.raw = &raw
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func GodotNode.GetTypeId() => i32 {
+	return godotnode_type()
+}
+func ObjectAsGodotNode(object: Object) => *GodotNode {
+	if object.GetTypeId() == godotnode_type() {
+		ObjectRetain(object.GetRaw())
+		return GodotNodeFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Empty when the current GPU/backend supports GodotNode; does not load the runtime library.
+func GodotNodeGetUnsupportedReason() => string {
+	return FromDoraString(godotnode_get_unsupported_reason())
+}
+
+/// Gets Resolved Godot project directory or exported .pck path.
+func GodotNode.GetProjectPath() => string {
+	return FromDoraString(godotnode_get_project_path(*this.raw))
+}
+
+/// Gets Requested Godot scene path; empty uses the project main scene.
+func GodotNode.GetSceneFile() => string {
+	return FromDoraString(godotnode_get_scene_file(*this.raw))
+}
+
+/// Gets Most recent asynchronous runtime error, or an empty string.
+func GodotNode.GetLastError() => string {
+	return FromDoraString(godotnode_get_last_error(*this.raw))
+}
+
+/// Gets Whether asynchronous startup completed and the node is active.
+func GodotNode.IsRunning() => bool {
+	return godotnode_is_running(*this.raw) != 0
+}
+
+/// Gets Requested native SceneTree pause state.
+func GodotNode.IsPaused() => bool {
+	return godotnode_is_paused(*this.raw) != 0
+}
+
+/// Gets Committed native viewport pixel size; updated after asynchronous texture publication.
+func GodotNode.GetViewportSize() => Size {
+	return SizeFromValue(godotnode_get_viewport_size(*this.raw))
+}
+
+/// Request a native viewport resize; false when invalid, busy or unsupported.
+func GodotNode.ResizeViewport(width: i32, height: i32) => bool {
+	return godotnode_resize_viewport(*this.raw, width, height) != 0
+}
+
+/// Pause the SceneTree; Always-process nodes continue running. Works before startup completes.
+func GodotNode.Pause() {
+	godotnode_pause(*this.raw)
+}
+
+/// Resume the SceneTree without rebuilding the project.
+func GodotNode.Resume() {
+	godotnode_resume(*this.raw)
+}
+
+/// Request scene reload; empty reloads the current scene. Errors are asynchronous.
+func GodotNode.Restart(scene_file: string) => bool {
+	return godotnode_restart(*this.raw, ToDoraString(scene_file)) != 0
+}
+
+/// Forward a pointer button in viewport pixels, with top-left origin. Godot button numbering applies.
+func GodotNode.SendPointer(x: f64, y: f64, button: i32, pressed: bool) {
+	godotnode_send_pointer(*this.raw, x, y, button, ToDoraBool(pressed))
+}
+
+/// Forward pointer motion in viewport pixels, with top-left origin.
+func GodotNode.SendPointerMove(x: f64, y: f64) {
+	godotnode_send_pointer_move(*this.raw, x, y)
+}
+
+/// Forward a named key, such as Space. Pair presses with releases.
+func GodotNode.SendKey(name: string, pressed: bool) {
+	godotnode_send_key(*this.raw, ToDoraString(name), ToDoraBool(pressed))
+}
+
+/// Forward committed UTF-8 text. IME composition is not implemented.
+func GodotNode.SendText(text: string) {
+	godotnode_send_text(*this.raw, ToDoraString(text))
+}
+
+/// Create an experimental embedded Godot node. Requires a matching optional runtime and supported GPU backend. Only one active node/project is supported.
+func NewGodotNode(project_path: string, scene_file: string, width: i32, height: i32, buffers: i32) => *GodotNode {
+	raw := godotnode_new(ToDoraString(project_path), ToDoraString(scene_file), width, height, buffers)
+	if raw == 0 {
+		return nil
+	}
+	object := GodotNode{}
+	object.raw = &raw
+	runtime.SetFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}

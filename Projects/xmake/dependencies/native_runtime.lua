@@ -14,6 +14,39 @@ local function with_host_path(envs)
     if host_path then
         envs.PATH = envs.PATH and (envs.PATH .. path.envsep() .. host_path) or host_path
     end
+    -- A managed rustup package can exceed the legacy Windows path limit when
+    -- xmake runs under a service account. Allow CI/VM jobs to use explicit
+    -- short Cargo/rustup homes without changing normal installs.
+    local cargo_home = os.getenv("DORA_CARGO_HOME")
+    local rustup_home = os.getenv("DORA_RUSTUP_HOME")
+    if cargo_home then
+        envs.CARGO_HOME = cargo_home
+        envs.PATH = path.join(cargo_home, "bin") .. path.envsep() .. (envs.PATH or "")
+    end
+    if rustup_home then
+        envs.RUSTUP_HOME = rustup_home
+    end
+    -- Preserve optional rustup mirrors when xmake supplies an isolated package
+    -- environment. This matters on build hosts where static.rust-lang.org is
+    -- unavailable but an explicitly configured mirror is reachable.
+    for _, name in ipairs({"RUSTUP_DIST_SERVER", "RUSTUP_UPDATE_ROOT"}) do
+        local value = os.getenv(name)
+        if value then
+            envs[name] = value
+        end
+    end
+    return envs
+end
+
+local function with_cargo_network(envs)
+    for _, name in ipairs({
+        "CARGO_REGISTRIES_CRATES_IO_INDEX", "CARGO_REGISTRIES_CRATES_IO_PROTOCOL"
+    }) do
+        local value = os.getenv(name)
+        if value then
+            envs[name] = value
+        end
+    end
     return envs
 end
 
@@ -165,6 +198,13 @@ if is_plat("android") then
 end
 
 if is_plat("windows") then
+    -- Keep the established x86 build, and select matching native runtimes for
+    -- the x64 host needed by the Windows LibGodot bridge.
+    local windows_arches = {
+        x86 = {rust = "i686-pc-windows-msvc", go = "386", cc = "i686-w64-mingw32-gcc", machine = "i686"},
+        x64 = {rust = "x86_64-pc-windows-msvc", go = "amd64", cc = "x86_64-w64-mingw32-gcc", machine = "x86_64"}
+    }
+    windows_arches.x86_64 = windows_arches.x64
     target("dora-rust-runtime")
         set_kind(os.getenv("XMAKE_IN_PROJECT_GENERATOR") and "binary" or "phony")
         set_default(false)
@@ -174,7 +214,9 @@ if is_plat("windows") then
             import("core.project.config")
 
             local rust_dir = path.join(DORA_ROOT, "Source/Rust")
-            local triple = "i686-pc-windows-msvc"
+            local selected = assert(windows_arches[target:arch()],
+                "Windows native runtimes support x86/x64; unsupported architecture: " .. target:arch())
+            local triple = selected.rust
             local profile = config.mode() == "release" and "release" or "debug"
             local output = runtime_output("dora_runtime.lib")
             local cargo_target_dir = os.getenv("CARGO_TARGET_DIR")
@@ -224,6 +266,8 @@ if is_plat("windows") then
             import("core.project.depend")
             import("lib.detect.find_tool")
 
+            local selected = assert(windows_arches[target:arch()],
+                "Windows native runtimes support x86/x64; unsupported architecture: " .. target:arch())
             local wa_dir = path.join(DORA_ROOT, "Source/3rdParty/Wa/Source")
             local output = runtime_output("wa.dll")
             local inputs = {
@@ -236,15 +280,15 @@ if is_plat("windows") then
             depend.on_changed(function ()
                 local cc = os.getenv("CC")
                 if not cc then
-                    local gcc = find_tool("i686-w64-mingw32-gcc", {force = true})
+                    local gcc = find_tool(selected.cc, {force = true})
                         or find_tool("gcc", {force = true})
                     cc = gcc and gcc.program
                 end
-                assert(cc and os.iorunv(cc, {"-dumpmachine"}):find("i686"),
-                    "Windows x86 Wa build requires a 32-bit MinGW GCC; set CC")
+                assert(cc and os.iorunv(cc, {"-dumpmachine"}):find(selected.machine, 1, true),
+                    "Windows " .. target:arch() .. " Wa build requires matching MinGW GCC; set CC")
                 local envs = with_host_path(target:pkgenvs())
                 envs.GOOS = "windows"
-                envs.GOARCH = "386"
+                envs.GOARCH = selected.go
                 envs.CGO_ENABLED = "1"
                 envs.GOFLAGS = "-buildvcs=false -mod=vendor"
                 envs.CC = cc
@@ -256,7 +300,7 @@ if is_plat("windows") then
             end, {
                 dependfile = path.join(target:autogendir(), "rules", "dora-wa-runtime.d"),
                 files = inputs,
-                values = {"windows", "386", "c-shared"},
+                values = {"windows", selected.go, "c-shared"},
                 changed = not os.isfile(output)
             })
         end)
@@ -305,6 +349,12 @@ if is_plat("macosx", "linux") then
             depend.on_changed(function ()
                 local envs = with_host_path(target:pkgenvs())
                 envs.CARGO_TARGET_DIR = cargo_target_dir
+                -- A freshly installed rustup package may have no selected
+                -- default toolchain yet. Make the host toolchain explicit so
+                -- cross-target component installation is deterministic.
+                local host_toolchain = envs.RUSTUP_TOOLCHAIN
+                    or os.getenv("DORA_RUST_TOOLCHAIN") or "stable"
+                envs.RUSTUP_TOOLCHAIN = host_toolchain
                 if target:is_plat("macosx") then
                     envs.MACOSX_DEPLOYMENT_TARGET = "12.0"
                 elseif target:arch() == "x86_64" then
@@ -314,7 +364,16 @@ if is_plat("macosx", "linux") then
                     envs.CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER =
                         "aarch64-linux-gnu-gcc"
                 end
-                os.vrunv("rustup", {"target", "add", triple}, {envs = envs, curdir = rust_dir})
+                os.vrunv("rustup", {
+                    "toolchain", "install", host_toolchain, "--profile", "minimal"
+                }, {envs = envs, curdir = rust_dir})
+                local target_libdirs = os.dirs(path.join(envs.RUSTUP_HOME,
+                    "toolchains", host_toolchain .. "-*", "lib/rustlib", triple))
+                if #target_libdirs == 0 then
+                    os.vrunv("rustup", {"target", "add", triple},
+                        {envs = envs, curdir = rust_dir})
+                end
+                with_cargo_network(envs)
                 local argv = {"build", "--locked", "--target", triple}
                 if profile == "release" then
                     table.insert(argv, "--release")
@@ -328,6 +387,7 @@ if is_plat("macosx", "linux") then
                 values = {
                     triple,
                     profile,
+                    os.getenv("DORA_RUST_TOOLCHAIN") or "stable",
                     target:is_plat("macosx") and "macosx-min-12.0" or "linux"
                 },
                 changed = not os.isfile(output)

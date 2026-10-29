@@ -980,7 +980,7 @@ singleton class Director
 	/// </summary>
 	readonly common Node* uI3D @ ui_3d;
 	/// <summary>The persistent root node for system UI that survives regular scene cleanup.</summary>
-	readonly common Node* systemUI;
+	readonly common Node* systemUI @ system_ui;
 	/// <summary>
 	/// The root node for the starting point of a game.
 	/// </summary>
@@ -1027,7 +1027,7 @@ singleton class Director
 	/// </summary>
 	outside void Director_Cleanup @ cleanup();
 	/// <summary>Clears the persistent system UI explicitly.</summary>
-	void clearSystemUI();
+	void clearSystemUI @ clear_system_ui();
 };
 
 /// <summary>

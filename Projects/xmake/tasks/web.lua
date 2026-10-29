@@ -75,11 +75,11 @@ task("dora-web")
             envs.DORA_TEST_WEB = tests.web
             envs.DORA_ENGINE_ROOT = root
         end
-        local args = {"f", "-y", "-p", "wasm", "-a", "wasm32", "-m", mode, "--ccache=n", "--builddir=" .. path.join(out, "build"),
+        local args = {"f", "-P", root, "-y", "-p", "wasm", "-a", "wasm32", "-m", mode, "--ccache=n", "--builddir=" .. path.join(out, "build"),
             "--dora_web_outdir=" .. out, "--dora_web_profile=" .. profile,
             "--dora_web_testdir=" .. envs.DORA_TEST_WEB}
         for key, value in pairs({engine = engine, link_player = player, love_probe = probes, love_pthread_player = love_player,
-            pthreads = threads, diagnostics = enabled("DIAGNOSTICS", "0"), studio_agent_host = studio,
+            pthreads = threads, godot = enabled("GODOT", "0"), godot_diagnostics = enabled("GODOT_DIAGNOSTICS", "0"), diagnostics = enabled("DIAGNOSTICS", "0"), studio_agent_host = studio,
             experimental_main_worker = not studio and enabled("EXPERIMENTAL_MAIN_WORKER", "0")}) do
             table.insert(args, "--dora_web_" .. key .. "=" .. (value and "y" or "n"))
         end
@@ -99,7 +99,7 @@ task("dora-web")
             if env("LOVE_COMPLEX_PACKAGE", "") ~= "" then table.insert(targets, "dora-web-love-complex-probe") end
         end
         if love_player then table.insert(targets, "dora-web-love-pthread-player") end
-        for _, target in ipairs(targets) do os.vrunv(os.programfile(), {"build", "-j", jobs, target}, {curdir = root, envs = envs}) end
+        for _, target in ipairs(targets) do os.vrunv(os.programfile(), {"build", "-P", root, "-j", jobs, target}, {curdir = root, envs = envs}) end
         local function stage(destination, stem, extras)
             assert(destination ~= root and destination ~= out and destination ~= path.directory(root), "unsafe staging directory")
             os.mkdir(destination)
@@ -124,6 +124,15 @@ task("dora-web")
         end
         stage(probe_dir, "dora-player")
         if player then stage(player_dir, "dora-player-runtime", {"dora-player-runtime.data", "dora-web-manifest.json", "dora-web-features.json", "dora-audio-mixer.wasm", "audio-worklet.js", "assets"}) end
+        if player and enabled("GODOT", "0") then
+            local runtime = path.absolute(env("GODOT_RUNTIME_DIR", path.join(root,"build/godot-web/package")),root)
+            assert(os.isfile(path.join(runtime,"manifest.json")),"Build Tools/Godot/build_web_runtime.py first")
+            local destination=path.join(player_dir,"godot")
+            os.mkdir(destination)
+            for _, file in ipairs(os.files(path.join(runtime,"**"))) do
+                local target=path.join(destination,path.relative(file,runtime));os.mkdir(path.directory(target));os.cp(file,target)
+            end
+        end
         if love_player then stage(love_dir, "love-pthread-player", {"love-pthread-player.data", "dora-audio-mixer.wasm", "audio-worklet.js"}) end
     end)
 task_end()

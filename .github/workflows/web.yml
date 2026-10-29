@@ -9,6 +9,7 @@ on:
       - 'xmake.lua'
       - 'Projects/xmake/**'
       - 'Source/**'
+      - 'Tools/Godot/tests/web/**'
       - 'Tools/tolua\+\+/**'
       - '.github/workflows/web.yml'
   pull_request:
@@ -19,6 +20,7 @@ on:
       - 'xmake.lua'
       - 'Projects/xmake/**'
       - 'Source/**'
+      - 'Tools/Godot/tests/web/**'
       - 'Tools/tolua\+\+/**'
       - '.github/workflows/web.yml'
   workflow_dispatch:
@@ -62,6 +64,23 @@ jobs:
           xmake dora-test --case=check_web_love_capabilities
           xmake dora-test --case=check_web_player_output -- result/dora-web-player
           xmake dora-test --case=check_web_forbidden_deps -- result/dora-web-player
+      - name: Verify failed bootstrap cleanup in Chromium
+        if: runner.os == 'Linux'
+        run: |
+          npm install --prefix build/godot-bootstrap-browser --no-save --package-lock=false playwright@1.62.1
+          build/godot-bootstrap-browser/node_modules/.bin/playwright install --with-deps chromium
+          mkdir -p build/godot-bootstrap-failure-game
+          cp Tools/Godot/tests/web/bootstrap_failure.lua build/godot-bootstrap-failure-game/init.lua
+          cp -R result/dora-web-player build/godot-bootstrap-failure-player
+          DORA_WEB_GAME_PROFILE=dora-preset DORA_WEB_EAGER_GAME_ASSETS=1 node Projects/xmake/tools/web/package_web_game.mjs build/godot-bootstrap-failure-game build/godot-bootstrap-failure-player
+          DORA_PLAYWRIGHT_MODULE="$PWD/build/godot-bootstrap-browser/node_modules/playwright" node Tools/Godot/tests/web/run_bootstrap_failure.cjs build/godot-bootstrap-failure-player build/godot-bootstrap-failure-results
+      - name: Upload failed bootstrap diagnostics
+        if: always() && runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-bootstrap-cleanup
+          path: build/godot-bootstrap-failure-results/
+          if-no-files-found: warn
       - name: Package deployable Web Player preview
         if: runner.os == 'Linux' && startsWith(github.ref, 'refs/tags/')
         run: |

@@ -1,0 +1,43 @@
+# GodotNode Class
+
+**Description:**
+
+&emsp;&emsp;Creates an experimental [GodotNode](/docs/api/Class/GodotNode) from a native Godot project directory or exported `.pck` pack.
+
+## getUnsupportedReason
+
+```tl
+getUnsupportedReason: function(): string
+```
+
+Returns an empty string when the active GPU/backend supports GodotNode, or a reason for rejection. Call after Dora initializes its renderer. This does not load or check the optional runtime library. On iOS, ordinary Dora requires Apple2 while GodotNode requires Apple4. Generated equivalents are Rust `GodotNode::get_unsupported_reason()`, Wa `dora.GodotNodeGetUnsupportedReason()`.
+
+## __call
+
+```tl
+metamethod __call: function(self: GodotNodeClass, projectPath: string, sceneFile?: string, width?: integer, height?: integer, buffers?: integer): GodotNode | nil
+```
+
+| Parameter | Description |
+| --- | --- |
+| projectPath | Project directory containing `project.godot`, or an exported `.pck` file; resolved through Dora Content. |
+| sceneFile | Godot scene path such as `res://main.tscn`; default empty uses the project main scene. |
+| width / height | Offscreen viewport resolution; defaults to 640 × 360, range 1–8192 per dimension. |
+| buffers | Shared GPU texture count; 2–4, default 3. |
+
+Immediate validation failure returns `nil`. A returned node starts asynchronously: check `running` and `lastError`. A matching native runtime must be available through `DORA_GODOT_LIBRARY` or the platform library name in the asset root (`libdora_godot.dylib` on macOS, `libdora_godot.so` on Linux, `dora_godot.dll` on Windows).
+
+```lua
+local Dora = require("Dora")
+local node = Dora.GodotNode("/absolute/path/to/project", "", 640, 360, 3)
+assert(node)
+node:addTo(Dora.Director.ui)
+```
+
+Apple Silicon macOS Metal and Linux ARM64 EGL/OpenGL have passed GPU tests. Windows WGL also passed source-project and imported-PCK GPU tests with x64 processes on Parallels Windows 11 ARM64; it requires `DORA_GODOT_WINDOWS_GL=1` before host startup. Other platform scopes are documented in the GodotNode instance API.
+
+The same node is available through generated Rust (`GodotNode::new`), Wa (`dora.NewGodotNode`) bindings. Rust/Wa constructors take all five arguments explicitly. These bindings retain the same asynchronous startup and backend requirements.
+
+Web additionally requires the opt-in adapter and a matching separate WASM runtime, served with COOP/COEP. Its source/PCK assets must be present in the Dora game manifest; startup preloads and copies the Godot resource snapshot. Web DOM input, persistence and latency are not yet fully validated.
+
+Godot integration 1.0 does not provide C# GodotNode bindings or Godot .NET/Mono scripts. Existing Dora C# features are retained.

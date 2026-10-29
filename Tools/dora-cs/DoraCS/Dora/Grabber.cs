@@ -20,13 +20,9 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void grabber_set_camera(int64_t self, int64_t val);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void grabber_set_camera_null(int64_t self);
-		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t grabber_get_camera(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void grabber_set_effect(int64_t self, int64_t val);
-		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void grabber_set_effect_null(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t grabber_get_effect(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -80,7 +76,7 @@ namespace Dora
 		{
 			set
 			{
-				if (value == null) Native.grabber_set_camera_null(Raw);
+				if (value == null) Native.grabber_set_camera(Raw, 0);
 				else Native.grabber_set_camera(Raw, value.Raw);
 			}
 			get => Camera.FromOpt(Native.grabber_get_camera(Raw));
@@ -92,7 +88,7 @@ namespace Dora
 		{
 			set
 			{
-				if (value == null) Native.grabber_set_effect_null(Raw);
+				if (value == null) Native.grabber_set_effect(Raw, 0);
 				else Native.grabber_set_effect(Raw, value.Raw);
 			}
 			get => SpriteEffect.FromOpt(Native.grabber_get_effect(Raw));

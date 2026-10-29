@@ -1,0 +1,6 @@
+_libgodot_create_godot_instance
+_libgodot_destroy_godot_instance
+_dora_godot_probe_start
+_dora_godot_probe_stop
+_dora_godot_probe_advance
+_dora_godot_probe_slot

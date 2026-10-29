@@ -33,6 +33,13 @@ xmake and preserve the SDK-specific application output layout. These projects
 are disposable, ignored build artifacts; make durable changes in
 `Projects/xmake/` or the platform's checked-in resources instead.
 
+Dora's iOS physical-device Metal GPU minimum is Apple4, including when using the
+optional Godot runtime. The ordinary deployment target remains iOS 13; the
+experimental Godot framework/test host compiles for iOS 14. The simulator keeps
+supported Dora host tests, but Apple's Apple2 simulator GPU profile cannot run
+Godot's required cube-map texture arrays. A clean unsupported-device rejection
+is not a Godot GPU-output pass. See `Tools/Godot/README.md` for isolated builds.
+
 Default signing is local ad-hoc. A device IPA built this way is **not** an
 installable/distributable release. For authorized device signing, set
 `DORA_IOS_SIGN_IDENTITY` to the installed Apple identity name and

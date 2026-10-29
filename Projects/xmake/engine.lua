@@ -33,7 +33,8 @@ if is_plat("windows") then
 end
 
 target("Dora")
-    set_kind(is_plat("android") and "shared" or "binary")
+    local csharp_native = os.getenv("DORA_BUILD_CSHARP_NATIVE") == "1"
+    set_kind((is_plat("android") or csharp_native) and "shared" or "binary")
     if is_plat("android") then
         set_basename("main")
     end
@@ -55,6 +56,7 @@ target("Dora")
     add_defines(has_config("dora_native_tests") and "DORA_TEST=1" or "DORA_TEST=0")
 
     on_load(function (target)
+        assert(not csharp_native or target:is_plat("windows"), "The C# native host currently supports Windows only")
         import("core.project.config")
         if config.get("dora_native_tests") then
             local repo = assert(config.get("dora_test_repo"), "native tests require a resolved Dora-Example checkout")
@@ -62,12 +64,42 @@ target("Dora")
             target:add("includedirs", path.join(repo, "Test"))
             target:add("files", path.join(repo, "Test/Native/HelloWorldCpp.cpp"))
         end
+        if target:is_plat("macosx") and os.getenv("DORA_BUILD_LIBGODOT_METAL_PROBE") == "1" then
+            target:add("files", rootpath("Tools/LibGodotMetalProbe/DoraMetalProbe.mm"), {force = {mxxflags = {"-fobjc-arc"}}})
+        end
+        if target:is_plat("macosx", "iphoneos", "linux", "windows", "android") and os.getenv("DORA_BUILD_GODOT_NODE_TEST") == "1" then
+            target:add("files", rootpath("Tools/Godot/tests/GodotNodeTest.cpp"),
+                csharp_native and {defines = {"DORA_AS_LIB"}} or nil)
+            if target:is_plat("macosx", "iphoneos") then
+                target:add("files", rootpath("Tools/Godot/tests/GodotResourceProbe.mm"), {force = {mxxflags = {"-fobjc-arc"}}})
+            end
+        end
         local manifest = import("Projects.xmake.manifests.engine", {rootdir = os.projectdir(), anonymous = true})()
         for _, source in ipairs(manifest.sources) do
             local config
             if target:is_plat("windows") and source:endswith(".c") then
                 -- Genuine C units stay in C mode; C++ code uses .cpp.
                 config = {force = {cxflags = {"/TC"}}}
+            end
+            -- Only the native entrypoint and exported C ABI layer use this
+            -- host mode. Keep other engine/vendor units reusable by the GUI.
+            if csharp_native and (source == "Source/Basic/Application.cpp" or source == "Source/Wasm/WasmRuntime.cpp"
+                or source == "Source/Wasm/RustRuntimeBridge.cpp") then
+                config = {defines = {"DORA_AS_LIB"}}
+            end
+            if source == "Source/Basic/Application.cpp" and target:is_plat("macosx")
+                and os.getenv("DORA_BUILD_LIBGODOT_METAL_PROBE") == "1" then
+                config = {defines = {"DORA_LIBGODOT_METAL_PROBE=1"}}
+            end
+            if source == "Source/Basic/Application.cpp" and target:is_plat("macosx", "iphoneos", "linux", "windows", "android")
+                and os.getenv("DORA_BUILD_GODOT_NODE_TEST") == "1" then
+                config = {defines = csharp_native
+                    and {"DORA_GODOT_NODE_TEST=1", "DORA_AS_LIB"}
+                    or {"DORA_GODOT_NODE_TEST=1"}}
+            end
+            if source == "Source/Godot/GodotNode.cpp" and target:is_plat("macosx", "iphoneos", "linux", "windows", "android")
+                and os.getenv("DORA_BUILD_GODOT_NODE_TEST") == "1" then
+                config = {defines = {"DORA_GODOT_NODE_TEST=1"}}
             end
             if source == "Source/Lua/LuaBinding.cpp" or source == "Source/Lua/LuaBindingWeb.cpp"
                 or source == "Source/Lua/LuaCode.cpp" or source == "Source/Lua/LuaCodeWeb.cpp"
@@ -94,6 +126,16 @@ target("Dora")
     end)
 
     if is_plat("macosx") then
+        -- Mode names alone do not enable xmake's optimization/symbol policies.
+        -- Apply the same explicit mode rules already used by the iOS host.
+        add_rules("mode.debug", "mode.release")
+        if os.getenv("DORA_BUILD_LIBGODOT_METAL_PROBE") == "1" then
+            set_targetdir(rootpath("build/godot-metal-probe/dora"))
+        end
+        if os.getenv("DORA_BUILD_GODOT_NODE_TEST") == "1" then
+            set_targetdir(os.getenv("DORA_GODOT_TEST_TARGETDIR")
+                or rootpath("build/godot-runtime/dora"))
+        end
         add_rules("xcode.application")
         before_build(function (target)
             import("Projects.xmake.tools.macos_bundle", {rootdir = DORA_ROOT})(target)
@@ -102,6 +144,7 @@ target("Dora")
         set_toolchains("xcode", {target_minver = "12.0"})
         add_files(rootpath("Projects/macOS/Dora/Info.plist"), rootpath("Projects/macOS/Dora/Assets.xcassets"))
         add_files(rootpath("Source/Basic/Application.mm"), rootpath("Source/Basic/Content.mm"))
+        add_files(rootpath("Source/Godot/GodotRuntimeMetal.mm"), {force = {mxxflags = {"-fobjc-arc"}}})
         for _, resource in ipairs({"Audio", "Doc", "Font", "Image", "Script", "Shader", "dora-wa", "www"}) do
             add_installfiles(rootpath("Assets/" .. resource .. "/**"), {rootdir = rootpath("Assets")})
         end
@@ -123,6 +166,8 @@ target("Dora")
             "GameController", "IOKit", "Metal", "QuartzCore", "Security", "WebKit"
         )
     elseif is_plat("iphoneos") then
+        add_files(rootpath("Source/Godot/GodotRuntimeMetal.mm"), {force = {mxxflags = {"-fobjc-arc"}}})
+        local godot_test = os.getenv("DORA_BUILD_GODOT_NODE_TEST") == "1"
         add_rules("mode.debug", "mode.release")
         -- Match the checked-in Xcode project's DWARF settings; the mode
         -- rules provide -O0 for Debug and size optimization/NDEBUG for iOS Release.
@@ -136,17 +181,19 @@ target("Dora")
             set_values("xcode.mobile_provision", get_config("dora_ios_provision"))
         end
         local apple_device = get_config("appledev") == "simulator" and "simulator" or "device"
-        set_targetdir(rootpath("build/iphoneos/" .. apple_device .. "/" ..
+        local ios_output = godot_test and "build/godot-ios/host/" or "build/iphoneos/"
+        set_targetdir(rootpath(ios_output .. apple_device .. "/" ..
             get_config("arch") .. "/" .. get_config("mode")))
         -- xcode.info_plist/xcassets/storyboard use separate dependency and
         -- generated-file trees, not just object files. Switching SDKs must
         -- never reuse a rule cache pointed at the other bundle directory.
-        set_objectdir(rootpath("build/.objs/iphoneos-" .. apple_device))
-        set_dependir(rootpath("build/.deps/iphoneos-" .. apple_device))
-        set_autogendir(rootpath("build/.gens/iphoneos-" .. apple_device))
+        local ios_cache = godot_test and "godot-ios-" or "iphoneos-"
+        set_objectdir(rootpath("build/.objs/" .. ios_cache .. apple_device))
+        set_dependir(rootpath("build/.deps/" .. ios_cache .. apple_device))
+        set_autogendir(rootpath("build/.gens/" .. ios_cache .. apple_device))
         add_rules("xcode.application")
-        set_values("xcode.bundle_identifier", "IppClub.DoraSSR")
-        set_toolchains("xcode", {target_minver = "13.0"})
+        set_values("xcode.bundle_identifier", godot_test and "org.ippclub.dorassr.godotprototype.ios" or "IppClub.DoraSSR")
+        set_toolchains("xcode", {target_minver = godot_test and "14.0" or "13.0"})
         add_files(
             rootpath("Projects/iOS/Dora/Info.plist"),
             rootpath("Projects/iOS/Dora/Assets.xcassets"),
@@ -154,11 +201,12 @@ target("Dora")
             rootpath("Projects/iOS/Dora/Base.lproj/Main.storyboard")
         )
         add_files(rootpath("Source/Basic/Application.mm"), rootpath("Source/Basic/Content.mm"))
+        local ios_assets = godot_test and "build/godot-ios/test-assets" or "Assets"
         for _, resource in ipairs({"Audio", "Doc", "Font", "Image", "Script", "Shader", "dora-wa", "www"}) do
-            add_installfiles(rootpath("Assets/" .. resource .. "/**"), {rootdir = rootpath("Assets")})
+            add_installfiles(rootpath(ios_assets .. "/" .. resource .. "/**"), {rootdir = rootpath(ios_assets)})
         end
-        add_installfiles(rootpath("Assets/LICENSES"), rootpath("Assets/gamecontrollerdb.txt"), {
-            rootdir = rootpath("Assets")
+        add_installfiles(rootpath(ios_assets .. "/LICENSES"), rootpath(ios_assets .. "/gamecontrollerdb.txt"), {
+            rootdir = rootpath(ios_assets)
         })
         add_includedirs(rootpath("Source/3rdParty/bx/include/compat/ios"))
         add_defines("LUA_USE_IOS", "HAVE_GETHOSTUUID=0")
@@ -179,6 +227,13 @@ target("Dora")
             "GameController", "Metal", "QuartzCore", "Security", "UIKit"
         )
     elseif is_plat("linux") then
+        -- Mode names alone do not enable optimization or the Release exit path.
+        add_rules("mode.debug", "mode.release")
+        add_files(rootpath("Source/Godot/GodotRuntimeGL.cpp"))
+        if os.getenv("DORA_BUILD_GODOT_NODE_TEST") == "1" then
+            set_targetdir(os.getenv("DORA_GODOT_TEST_TARGETDIR")
+                or rootpath("build/godot-runtime/dora"))
+        end
         -- xmake intentionally does not resolve system pkg-config packages
         -- while cross-compiling. Debian/Ubuntu multiarch keeps the DBus
         -- public and generated headers in these canonical locations, which
@@ -204,6 +259,16 @@ target("Dora")
         set_runargs("--asset", rootpath("Assets"))
         set_rundir(DORA_ROOT)
     elseif is_plat("windows") then
+        -- Enable optimization and NDEBUG for the ordinary Release host too.
+        add_rules("mode.debug", "mode.release")
+        add_files(rootpath("Source/Godot/GodotRuntimeGL.cpp"))
+        add_syslinks("opengl32")
+        if os.getenv("DORA_BUILD_GODOT_NODE_TEST") == "1" then
+            set_targetdir(rootpath("build/godot-runtime/dora"))
+        end
+        if csharp_native then
+            set_targetdir(rootpath("build/dora-csharp/native"))
+        end
         add_packages("dora-webview2")
         add_files(rootpath("Source/Basic/CompilerWebViewWin.cpp"))
         add_files(rootpath("Projects/Windows/Dora/Resource.rc"))
@@ -239,6 +304,7 @@ target("Dora")
             os.cp(path.join(runtime_dir, "wa.dll"), target:targetdir())
         end)
     elseif is_plat("android") then
+        add_files(rootpath("Source/Godot/GodotRuntimeGL.cpp"))
         if is_mode("debug") then
             -- Android Studio's LLDB needs C/C++ line tables as well as symbols.
             -- A debug mode name alone does not enable xmake's mode.debug rule.
