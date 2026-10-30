@@ -2708,3 +2708,10 @@ Godot Android Thread平台hook只有JNI attach/detach，未设置priority；现�
 - 当前Android arm64运行库和隔离Debug APK已重建，运行库SHA-256为`49f404e2...bb605`，APK为`4a70f3b4...b1f7f`。API 35 ARM64模拟器、ANGLE/SwiftShader下，2/3/4缓冲各完成1000帧；Intent与环境变量均记录为1，每档初始、三次resize和节点重建均重新绑定direct目标，完成标记全部为`blits=0`。
 - 三档动画、暂停恢复、输入、Android系统IME、节点移除重建、640x360→800x450→320x180→640x360、纹理别名、控制器、同PID Home恢复、PCM和完整退出通过。各客户端produced/completed相等，GPU reader pending/error与PCM underrun均为0。聚合报告为`build/godot-direct02-android/emulator-direct-matrix-v2/verification.json`，其中`direct02_physical_device_accepted=false`。
 - 这只关闭Android direct-target实现与模拟器回归，不关闭DIRECT-02。剩余必须在arm64物理Android设备上以普通nondebuggable Release完成同等2/3/4矩阵；模拟器不证明移动GPU驱动、物理触摸/控制器、真实音频延迟或生产签名。
+
+### 2026-10-30 Android EGL 普通 Release direct-target 基线
+
+- 普通应用加载器现在可从Activity Intent读取严格的`DORA_GODOT_GL_DIRECT=0/1`并镜像到进程环境，使不带原生测试入口的nondebuggable/R8 Release也能显式进入同一Android EGL direct-target实现。生命周期控制器改由目标UID准备私有夹具，完成完整原生退出后只把PNG、结果和控制器配置导出到`Android/media`；驱动全程不使用`adb root`，可复用到非root物理设备。
+- 当前arm64 Release运行库SHA-256为`d3e7328d...3200`；本地QA签名普通APK为`deabdf2b...cb4`，保持普通包名、`debuggable=false`且无原生Godot测试入口。独立控制器APK为`060ac4b1...343`。本地debug证书只用于安装验收，不计生产签名。
+- 在专用API 35 ARM64 AVD `DoraGodotRC1_01a17dc1`、ANGLE/SwiftShader和非root adbd下，2/3/4缓冲普通Release全部通过。客户端GPU帧分别为193/201/200且produced等于completed；GPU reader最终pending/error为0，PCM欠载为0。每档连续动画、暂停/恢复、指针、移除、Wasm trap后继续运行、7张截图、Activity.finish和Director→BGFX→Logger完整退出均通过，direct完成标记均为`blits=0`。
+- 聚合报告为`build/godot-direct02-android/release-direct-matrix-v1/verification.json`。它固定`ordinary_nondebuggable_release=true`、`physical_device=false`、`direct02_accepted=false`；因此只补齐普通Release与非root证据链，不关闭DIRECT-02。下一闸门仍是在arm64物理手机或平板上完成2/3/4的真实移动GPU、触摸/IME、Home、resize和纹理别名完整矩阵。

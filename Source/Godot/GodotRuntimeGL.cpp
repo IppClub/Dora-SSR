@@ -70,6 +70,14 @@ bool loadAPI() {
     auto getAPI=reinterpret_cast<DoraGodotGetAPI>(GetProcAddress(module,"dora_godot_get_api"));
     auto getGL=reinterpret_cast<DoraGodotGetGLAPI>(GetProcAddress(module,"dora_godot_get_gl_api"));
 #else
+#if BX_PLATFORM_ANDROID
+    const auto direct=godotAndroidIntentOption("DORA_GODOT_GL_DIRECT");
+    if (!direct.empty()) {
+        if (direct!="0" && direct!="1") { loaderError="invalid DORA_GODOT_GL_DIRECT Android intent option"; return false; }
+        if (setenv("DORA_GODOT_GL_DIRECT",direct.c_str(),1)!=0) { loaderError="cannot set DORA_GODOT_GL_DIRECT"; return false; }
+        Info("GodotRuntime Android GL direct-target requested={}",direct);
+    }
+#endif
     const char *configured=std::getenv("DORA_GODOT_LIBRARY");
 #if BX_PLATFORM_ANDROID
     std::string path=configured?configured:"libgodot_android.so";
