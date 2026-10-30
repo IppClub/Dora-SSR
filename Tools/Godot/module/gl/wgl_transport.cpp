@@ -37,6 +37,7 @@ int dora_gl_leave(void *p) {
 void *dora_gl_display(void *) { return nullptr; }
 uint32_t dora_gl_framebuffer(void *) { return 0; }
 int dora_gl_desktop(void *) { return 1; }
+int dora_gl_supports_direct_targets(void *p) { return get(p)!=nullptr; }
 void *dora_gl_create(void *host,uint32_t width,uint32_t height,uint32_t buffers) {
     error.clear();
     if (!host || wglGetCurrentContext()!=host || !width || !height || width>8192 || height>8192 || buffers<2 || buffers>4) {

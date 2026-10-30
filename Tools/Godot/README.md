@@ -120,6 +120,27 @@ python3 Tools/Godot/tests/runtime_abi.py --library build/godot-runtime/package/l
 `python3 Tools/Godot/tests/verifier_failures.py`，检查缺失日志和错误日志均不能残留
 成功报告；这项检查不启动引擎，也不代表 GPU 验证通过。
 
+## GL direct-target 验收
+
+设置 `DORA_GODOT_GL_DIRECT=1` 时，WGL 与 Linux desktop EGL 可让 Godot 直接把
+最终颜色附件切换到 Dora/bgfx 管理的 2–4 张 RGBA8 render-target 纹理，绘制后只
+发布 GPU fence，稳态不调用 `glBlitFramebuffer`。该能力由 GL transport 显式声明；
+Android EGL 与 WebGL2 在各自后续任务完成前会拒绝强制启用，不会静默降级。
+
+Linux 预构建宿主和运行库的完整矩阵入口为：
+
+```sh
+python3 Tools/Godot/tests/run_direct_linux.py \
+  --binary build/godot-direct01-linux/host/Dora \
+  --library build/godot-direct01-linux/runtime/package/libdora_godot.so \
+  --output build/godot-direct01-linux/direct-matrix
+```
+
+入口在独立 Weston 会话中依次运行 2/3/4 缓冲，要求动画、暂停/恢复、输入、节点
+重建、resize、纹理别名、PCM 和退出排空通过，并从运行日志核对所有 direct 会话
+均为 `blits=0`。报告会记录实际 renderer；virgl、llvmpipe 等结果不能代替物理显卡
+兼容或性能验收。
+
 ## GPU 粒子动画验收
 
 `tests/particle_project` 同时运行两种真实 `GPUParticles2D`：自定义 `DELTA`

@@ -52,17 +52,26 @@
 - [x] **ANDROID-01｜Android发布交付。** 从最终`b3cb54d5b`精确源码完整重建arm64普通nondebuggable/R8 Release；2/3/4缓冲与缺库共4项、23图全部通过，GPU 576/576、错误与PCM欠载均为0，包清单/许可/JNI一致。模拟器验收后已卸载应用并关闭，报告见`build/godot-rc1-final-candidate-v6/android-release-verification.json`。本地开发证书不计生产签名，真机覆盖单列。
 - [x] **RC-02｜冻结与验收。** 无已知范围内崩溃、死锁、同步或退出缺陷；核心、失败和生命周期回归通过，文档与证据对应同一RC。候选保持PR草稿；合并与公开发布另行执行。
 
-## 后续版本 / 未覆盖边界
+## 后续版本：已完成的实验基础
 
 - [x] **实验｜Windows 多张共享纹理直接渲染。** 新增仅由`DORA_GODOT_GL_DIRECT=1`启用的WGL原型：逐帧把Godot最终render target的颜色附件切换到Dora 2/3/4缓冲槽，直接发布GPU fence，不调用`glBlitFramebuffer`。Windows VM动态矩阵三项各1000帧，动画、暂停/恢复、输入、节点移除重建、三次resize、纹理别名和PCM通过；GPU错误/待处理/音频欠载均为0，日志确认`blits=0`。默认复制路径不变；该实验未进入1.0候选，也未验证物理Windows显卡或性能收益。
 
 - [x] **Windows 图形后端构建边界。** Godot和Dora桥接均保留WGL/D3D12源码，但每个宿主只编入一种桥接，启动后固定该图形后端，不同时创建两套运行时或支持热切换。WGL单后端宿主已完成2/3/4缓冲各1000帧动态回归；D3D12单后端x64宿主也已独立编译链接，配套运行库通过185项ABI检查和后端不匹配安全拒绝。物理机测试ZIP已生成并通过哈希、CRC、全新Windows解包与ABI复验；动态GPU验收仍受下一项硬件范围限制。
 
-- [ ] **实验｜Windows D3D12 共享资源。** 已实现 Dora/bgfx D3D12、Godot D3D12、2缓冲共享资源和CPU fence等待的最小原型，并通过Windows原生ABI 185项检查；Parallels虚拟GPU缺少Godot要求的Shader Model 6.0–6.6，WARP下两个运行时均能选中Basic Render Driver并启动Godot场景，但x64程序随后崩溃在Windows ARM的`xtajit64se`翻译代码区，尚未进入共享句柄导入函数。因此资源导入/动态画面未计通过；须先在原生x64 Windows或支持SM6的物理GPU完成CPU双缓冲验收，再开始2/3/4缓冲双fence纯GPU队列同步。
+## 1.0 之后：全平台 direct-target 优化路线
 
-- [ ] Apple4+ iOS真机共享、多缓冲、生命周期、触摸和音频；当前无可用真机签名证据。
-- [ ] 物理Windows/Linux显卡、Android手机/平板、移动浏览器及物理控制器兼容性矩阵。
-- [ ] 原生x64 Windows D3D12 CPU双缓冲共享验收；通过后实现并验证2/3/4缓冲的Godot→bgfx生产fence与bgfx→Godot回收fence，消除CPU等待。
+以下任务严格按 `DIRECT-01 → DIRECT-02 → DIRECT-03 → DIRECT-04 → DIRECT-05 → DIRECT-06` 推进。目标是让 Godot 直接渲染到 Dora 管理的 2/3/4 缓冲纹理，消除稳态逐帧 GPU blit；它们不属于已冻结的 1.0 RC。
+
+- [x] **DIRECT-01｜通用 GL direct-target 与 Linux EGL。** WGL 的颜色附件替换、发布 fence 和统计已改为按 GL transport 能力启用的共用实现；Linux desktop EGL 可直接借用 bgfx 创建的 RGBA8 render-target，Android/Web 仍显式拒绝并留待后续任务。Ubuntu ARM64/Parallels virgl 下 2/3/4 缓冲各完成 1000 帧，动画、暂停/恢复、输入、节点重建、三次 resize、纹理别名、PCM 与退出排空通过；全部 direct 会话记录 `blits=0`，GPU pending/error 与 PCM 欠载为 0。报告见 `build/godot-direct01-linux/direct-matrix/verification.json`；这是虚拟 GPU 证据，不冒充物理 Linux 显卡。
+- [ ] **DIRECT-02｜Android EGL 真机。** 在 DIRECT-01 共用实现上接入 Android EGL，不维护独立复制算法；使用 arm64 物理手机或平板完成普通 nondebuggable Release 的 2/3/4 缓冲矩阵，覆盖动画、触摸/文本、暂停恢复、节点重建、resize/Activity 生命周期、纹理别名、PCM 与完整退出。要求 `blits=0`、GPU/PCM 排空且无错误；模拟器结果只作回归，不作为本项完成依据。
+- [ ] **DIRECT-03｜WebGL2 direct-target。** 将同一 WebGL2 context 中的宿主 `WebGLTexture` 直接绑定为 Godot 最终颜色目标，保留两个 Wasm 模块的对象名映射和完整 GL 状态隔离；稳态不得 readback、upload 或 blit。完成 Chromium、Firefox、Playwright WebKit 与 macOS 原生 Safari 的 2/3/4 缓冲矩阵，并复验 context loss 安全停止、资源释放和页面重载恢复。
+- [ ] **DIRECT-04｜Metal host-owned render targets。** 由 Dora/bgfx 创建具备 RenderTarget 与 ShaderRead 用途的 RGBA8 `MTLTexture`，Godot 导入后直接设为最终 render target；继续使用 `MTLSharedEvent` 完成生产/消费同步，移除稳态 Metal blit。先在 macOS Apple Silicon 完成 2/3/4 缓冲、resize、生命周期、别名、音频和耐久回归，再在 Apple4+ iPhone/iPad 真机完成同等 GPU 路径及触摸、前后台和音频验收；模拟器与能力拒绝不计正向真机通过。
+- [ ] **DIRECT-05｜Windows D3D12 物理机与纯 GPU fence。** 保留已经独立编译的 D3D12 单后端和共享资源原型；先在原生 x64 Windows、同一支持 Shader Model 6 的物理 GPU 上完成 CPU fence 双缓冲的资源导入与动态画面验收。通过后实现 2/3/4 缓冲的 Godot→bgfx 生产 fence 与 bgfx→Godot 回收 fence，稳态消除 CPU 等待，并覆盖动画、输入、resize、节点重建、纹理别名、PCM、退出排空和后端不匹配拒绝。
+- [ ] **DIRECT-06｜旧 blit 路径收口。** 全部前置平台验收完成后，按后端和驱动能力决定删除旧 blit，或将其保留为显式、可诊断的兼容回退。直接路径与回退路径都必须有独立能力判定、计数/日志和回归测试；不得静默降级。记录各平台相同场景的 GPU 时间、显存、延迟与稳定性对照，确认收益后再改变默认策略。
+
+## 其他未覆盖边界
+
+- [ ] 物理Linux显卡、移动浏览器及物理控制器兼容性矩阵。
 - [ ] 完整IME composition/候选窗口、旋转/多点触控、锁屏/来电/复杂前后台、真实浏览器后台策略。
 - [ ] device/context loss原地恢复、控制器热插拔/震动/多手柄。
 - [ ] 大型项目、复杂资源与插件/GDExtension、更多PCK/导出形式；长期复杂混音与端到端延迟、统一GPU/内存/性能基线。
@@ -73,6 +82,7 @@
 路径相对于仓库；build/本地证据不保证随源码分发。历史证据完整索引见归档。
 
 - `build/godot-runtime/release-optimized-soak-216000/verification.json`
+- `build/godot-direct01-linux/direct-matrix/verification.json`
 - `build/godot-runtime/godot-remote-ci-9297c4b-terminal.json`
 - `build/godot-remote-ci/9297c4b/linux-egl/report/godot-runtime/{ci-linux,ci-linux-release}/verification.json`
 - `build/godot-windows/release-stop-completed/{verification,export-verification}.json`

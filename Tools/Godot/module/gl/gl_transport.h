@@ -11,6 +11,10 @@ int dora_gl_enter(void *transport);
 int dora_gl_leave(void *transport);
 void *dora_gl_display(void *transport);
 int dora_gl_desktop(void *transport);
+// True when this transport may attach borrowed host textures directly to the
+// Godot final render target. Platform rollout is explicit: unsupported
+// transports keep the GPU-blit path and reject a forced direct request.
+int dora_gl_supports_direct_targets(void *transport);
 // Private complete framebuffer for Godot auxiliary draws (0 on native drawables).
 uint32_t dora_gl_framebuffer(void *transport);
 // Producer context, host GPU drained. IDs are borrowed, never deleted here.

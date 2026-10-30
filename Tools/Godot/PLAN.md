@@ -2693,3 +2693,11 @@ Godot Android Thread平台hook只有JNI attach/detach，未设置priority；现�
 - 新增`package_windows_d3d12_test.py`，输出x64宿主、密封运行库、测试Assets/项目、系统信息采集、2/3/4缓冲入口、固定Pillow依赖和源码哈希范围。ZIP SHA-256为`ef12bbfb...95a`，1642文件、解压后270162302字节；1641项payload哈希和ZIP CRC通过。ZIP在Windows全新目录展开后，运行库清单和185项ABI再次通过。
 - 工作区中确认由错误命令生成的`--help/`模块副本和空`nul`文件已移入macOS废纸篓；无关3D/C#/Web等现有改动未修改、未暂存或删除。聚合证据为`build/godot-d3d12-physical/verification.json`，交接包为同目录`DoraGodot-D3D12-Physical-x64.zip`。
 - 本阶段不把Parallels/WARP写成动态D3D12通过。下一闸门是在原生x64 Windows和支持Shader Model 6的物理GPU上先运行`run-d3d12-2.cmd`；双缓冲CPU fence、共享句柄导入、动画/暂停/resize及排空全部通过后，才运行2/3/4矩阵并进入纯GPU双fence实现。
+
+### 2026-10-30 通用 GL direct-target 与 Linux EGL
+
+- 将原先在注册层按 `WINDOWS_ENABLED` 编译期限定的 direct-target 开关改为 GL transport 运行时能力查询。WGL与Linux desktop EGL返回支持；Android EGL和WebGL transport继续返回不支持，因此 `DORA_GODOT_GL_DIRECT=1` 在尚未验收的平台明确失败，不会误进直渲或静默回退。颜色附件替换、Godot原附件恢复、发布fence和`blits=0`统计继续使用同一套注册层逻辑。
+- 新增Linux聚合入口`tests/run_direct_linux.py`，只接受预构建宿主和运行库，在隔离Weston会话依次运行2/3/4缓冲。每项要求1000控制帧、动画、暂停/恢复、输入、节点移除重建、三次resize、取消resize、纹理别名、PCM、GPU读者排空与退出通过，并从原始日志核对direct启用/完成标记及`blits=0`；报告同时固定双端SHA-256并记录实际renderer。
+- Godot 4.6 EGL运行库从当前桥接源码完整重建并通过228项原生ABI检查；包内`libdora_godot.so` SHA-256为`b0f060a4...bbf2`。当前Dora ARM64 Debug测试宿主由xmake 3.1.1从同步后的当前Linux宿主源码完整链接，测试入口符号存在，SHA-256为`ce3c77f8...4322`。
+- Ubuntu 24.04 ARM64 Parallels VM中的2/3/4缓冲矩阵全部通过，每项1000帧；三档均完成5次direct绑定、初始/800×450/320×180/恢复尺寸切换及节点重建，所有direct完成标记为`blits=0`。GPU客户端与读者最终pending/error为0，PCM欠载为0。renderer为Mesa virgl `Apple M1 Pro (Compat)`；该结果只证明虚拟GPU上的Linux EGL功能正确，不是物理Linux显卡兼容或性能证据。
+- 聚合报告为`build/godot-direct01-linux/direct-matrix/verification.json`，底层宿主纹理所有权/代际协议报告为`build/godot-direct01-linux/gl-host-targets/verification.json`。由此关闭DIRECT-01；下一项严格进入Android EGL真机2/3/4缓冲，不提前启用Android direct-target。

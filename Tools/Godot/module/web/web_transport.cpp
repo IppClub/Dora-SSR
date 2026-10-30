@@ -42,6 +42,7 @@ int dora_gl_enter(void *p){return p && enter_boundary();}
 int dora_gl_leave(void *p){return p && leave_boundary();}
 void *dora_gl_display(void *){return nullptr;}
 int dora_gl_desktop(void *){return 0;}
+int dora_gl_supports_direct_targets(void *){return 0;}
 uint32_t dora_gl_framebuffer(void *p){return get(p)?get(p)->auxiliary_fbo:0;}
 void *dora_gl_create(void *host,uint32_t width,uint32_t height,uint32_t buffers){
     error.clear();

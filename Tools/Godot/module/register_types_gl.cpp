@@ -201,16 +201,13 @@ int bind_targets(void *handle,uint32_t width,uint32_t height,const uint32_t *tex
         runtime.error="GL viewport target replacement failed: "+std::string(dora_gl_error()); return 0;
     }
     const char *direct=std::getenv("DORA_GODOT_GL_DIRECT");
-#ifdef WINDOWS_ENABLED
     if (direct && std::strcmp(direct,"1")==0) {
+        if (!dora_gl_supports_direct_targets(runtime.transport)) {
+            runtime.error="DORA_GODOT_GL_DIRECT is not enabled for the current GL transport"; return 0;
+        }
         runtime.direct_targets=true; runtime.direct_frames=0;
         std::fprintf(stderr,"DORA_GODOT_GL_DIRECT enabled buffers=%u size=%ux%u blits=0\n",count,width,height);
     }
-#else
-    if (direct && std::strcmp(direct,"1")==0) {
-        runtime.error="DORA_GODOT_GL_DIRECT is currently a Windows WGL prototype"; return 0;
-    }
-#endif
     runtime.source=source; runtime.width=width; runtime.height=height; runtime.external_targets=true;
     return 1;
 }

@@ -28,6 +28,7 @@ int main() {
     unsigned samples=0;
     for (uint32_t buffers=2;buffers<=4;++buffers) {
         auto *transport=dora_gl_create(host,64,64,buffers); assert(transport);
+        assert(dora_gl_supports_direct_targets(transport));
         std::vector<std::array<GLuint,4>> generations;
         GLuint consumer=0; glGenFramebuffers(1,&consumer);
         uint64_t sequence=0;
