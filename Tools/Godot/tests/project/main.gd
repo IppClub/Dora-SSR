@@ -4,6 +4,7 @@ var focus_test_armed: bool = false
 var controller_focus_expected: bool = false
 var controller_button_release_observed: bool = false
 var controller_axis_release_observed: bool = false
+var release_full_acceptance: bool = false
 
 class AliasStamp:
     extends Control
@@ -49,16 +50,17 @@ class PauseProbe:
 
 
 func _ready() -> void:
-    if OS.get_environment("DORA_GODOT_TEST_RESIZE") == "1":
+    release_full_acceptance = FileAccess.file_exists("res://dora-full-acceptance")
+    if OS.get_environment("DORA_GODOT_TEST_RESIZE") == "1" or release_full_acceptance:
         var probe := ResizeProbe.new()
         probe.process_mode = Node.PROCESS_MODE_ALWAYS
         probe.z_index = 4096
         add_child(probe)
-    if OS.get_environment("DORA_GODOT_TEST_ALIASES") == "1":
+    if OS.get_environment("DORA_GODOT_TEST_ALIASES") == "1" or release_full_acceptance:
         var stamp := AliasStamp.new()
         stamp.z_index = 4095
         add_child(stamp)
-    if OS.get_environment("DORA_GODOT_TEST_AUDIO") == "1":
+    if OS.get_environment("DORA_GODOT_TEST_AUDIO") == "1" or release_full_acceptance:
         # Deterministic stereo signal; all samples originate inside Godot.
         var data := PackedByteArray()
         data.resize(48000 * 4)
@@ -86,8 +88,13 @@ func _ready() -> void:
     print("GODOT_NODE_SCENE boots=", TestState.boots, " root_path_ok=1")
     $Cube.material_override = $Cube.material_override.duplicate()
     $UI/Entry.text_changed.connect(func(text: String) -> void:
-        print("GODOT_NODE_TEXT value=", text))
-    if OS.get_environment("DORA_GODOT_TEST_IME") == "1":
+        print("GODOT_NODE_TEXT value=", text)
+        if release_full_acceptance and text.contains("IME42"):
+            var marker := FileAccess.open("res://ime-accepted", FileAccess.WRITE)
+            if marker:
+                marker.store_string(text)
+                marker.close())
+    if OS.get_environment("DORA_GODOT_TEST_IME") == "1" or release_full_acceptance:
         $UI/Entry.call_deferred("grab_focus")
         call_deferred("_report_ime_focus")
 
@@ -122,6 +129,11 @@ func _input(event: InputEvent) -> void:
             push_error("Embedded mouse state differs from dispatched event")
         if event.pressed:
             print("GODOT_NODE_INPUT_STATE mouse=", int(Input.is_mouse_button_pressed(event.button_index)))
+            if release_full_acceptance:
+                var marker := FileAccess.open("res://touch-accepted", FileAccess.WRITE)
+                if marker:
+                    marker.store_string("%d,%d" % [int(event.position.x), int(event.position.y)])
+                    marker.close()
     if event is InputEventKey and event.keycode == KEY_SPACE:
         if Input.is_key_pressed(KEY_SPACE) != event.pressed or Input.is_action_pressed("ui_accept") != event.pressed:
             push_error("Embedded key/action state differs from dispatched event")

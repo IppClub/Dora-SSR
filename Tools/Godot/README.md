@@ -825,7 +825,7 @@ python3 Tools/Godot/tests/android/run_ordinary_release.py \
 
 目标和控制器需使用同一本地测试证书；模拟器驱动只允许`DoraGodotRC1_`命名的专用AVD，物理设备必须显式传入`--physical-device`。目标保持普通包名和nondebuggable；独立Android framework instrumentation在目标UID内准备夹具，在Lua用例完成后调用`Activity.finish()`并等待SDL/引擎清理，再把扁平证据导出到目标的`Android/media`目录供非root ADB读取。`App.shutdown()`在Android上不退出应用；不能用强停代替完整清理证据。动态用例检查7图、暂停/恢复、指针、Wasm trap后继续渲染、PCM和GPU排空；缺库APK使用`--missing`检查Dora继续运行及正常Activity退出。
 
-普通Release direct-target的2/3/4缓冲基线使用聚合入口：
+普通Release direct-target的2/3/4缓冲完整验收使用聚合入口：
 
 ```sh
 python3 Tools/Godot/tests/android/run_direct_release.py \
@@ -835,7 +835,7 @@ python3 Tools/Godot/tests/android/run_direct_release.py \
   --output /path/to/fresh-direct-evidence
 ```
 
-模拟器改用`--owned-avd DoraGodotRC1_local`且不传`--physical-device`。聚合入口要求普通nondebuggable包、2/3/4缓冲全部启用direct-target并记录`blits=0`；但它只覆盖普通Release基线，报告固定`direct02_accepted=false`，不能代替DIRECT-02要求的真机触摸/IME、Home、resize和纹理别名完整矩阵。模拟器结束后须关闭，报告保留；本地测试签名也不等同生产签名。
+模拟器改用`--owned-avd DoraGodotRC1_local`且不传`--physical-device`。聚合入口要求普通nondebuggable包、2/3/4缓冲全部启用direct-target并记录`blits=0`，同时执行系统触摸、SDL IME提交、同PID Home恢复、三档resize、等量保留纹理别名、PCM及完整退出。只有物理设备上全部通过时报告才写`direct02_accepted=true`；模拟器报告始终为false。首次沉浸式全屏教育弹窗只在检测到系统`android:id/ok`节点时关闭并记录，不向正常真机盲发按键。模拟器结束后须关闭，报告保留；本地测试签名也不等同生产签名。
 
 Android 原生编译可使用 `-Pdora.android.jobs=2` 限制 Ninja 编译与链接并发（1–32）。
 Gradle `--max-workers` 只约束 Gradle 任务，不能约束每个 ABI 内部的 Ninja 并发。

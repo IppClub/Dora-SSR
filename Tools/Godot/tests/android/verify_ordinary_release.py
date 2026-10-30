@@ -42,12 +42,16 @@ def audit_apk(apk, runtime, aapt, missing):
         assert fixture == Path(__file__).with_name('ordinary_release.lua').read_bytes(), 'QA startup source differs'
         for name in ('main.gd', 'main.tscn', 'project.godot'):
             assert 'assets/GodotProject/' + name in names
+        full_project = root / 'Tools/Godot/tests/project'
+        for name in ('main.gd', 'main.tscn', 'project.godot', 'state.gd'):
+            entry = 'assets/GodotProjectFull/' + name
+            assert archive.read(entry) == (full_project / name).read_bytes(), entry
         assert 'assets/ffi-trap.wasm' in names
     return {'apk_sha256': sha(apk.read_bytes()), 'host_sha256': sha(host), 'startup_sha256': sha(fixture),
             'runtime_sha256': None if missing else metadata['library_sha256'], 'notices_sha256': notices,
             'ordinary_application_id': True, 'debuggable': False, 'native_test_entry': False}
 
-def verify_case(case, buffers, missing, direct=False):
+def verify_case(case, buffers, missing, direct=False, full=False):
     log = (case / 'run.log').read_text(errors='replace')
     result = json.loads((case / 'files/result.json').read_text())
     assert result['complete'] is True and result['missing'] is missing
@@ -68,7 +72,8 @@ def verify_case(case, buffers, missing, direct=False):
     else:
         assert len(errors) == 1 and 'unreachable' in errors[0], errors
         assert 'DORA_RELEASE running=1' in log and 'DORA_RELEASE ffi_trap_recovered=1' in log
-        assert 'Godot Engine v4.6' in log and 'GODOT_RELEASE_AUDIO' in log
+        assert 'Godot Engine v4.6' in log
+        assert ('GODOT_NODE_AUDIO' if full else 'GODOT_RELEASE_AUDIO') in log
         assert result['buffers'] == buffers
         enabled = re.findall(r'DORA_GODOT_GL_DIRECT enabled buffers=(\d+) size=(\d+)x(\d+) blits=0', log)
         completed = [int(value) for value in re.findall(r'DORA_GODOT_GL_DIRECT completed frames=(\d+) blits=0', log)]
@@ -78,7 +83,20 @@ def verify_case(case, buffers, missing, direct=False):
             assert completed and all(value > 0 for value in completed), completed
         else:
             assert not enabled and not completed
-        names = ['animated-a', 'animated-b', 'paused-a', 'paused-b', 'resumed', 'input', 'removed']
+        if full:
+            assert result == {'complete': True, 'missing': False, 'full': True, 'captures': 10,
+                              'buffers': buffers, 'aliases': buffers, 'touch': True, 'ime': True,
+                              'background': True, 'foreground': True}
+            assert 'GODOT_NODE_POINTER ' in log and 'GODOT_NODE_TEXT value=IME42' in log
+            assert 'DORA_RELEASE background=1' in log and 'DORA_RELEASE foreground=1' in log
+            sizes = {(int(width), int(height)) for _, width, height in enabled}
+            assert {(640, 360), (800, 450), (320, 180)} <= sizes, sizes
+            assert log.count('DORA_RELEASE alias=') == buffers
+            names = ['animated-a', 'animated-b', 'paused-a', 'paused-b', 'resumed',
+                     'resized-large', 'resized-small', 'aliases', 'full-input', 'aliases-after-remove']
+        else:
+            assert not result.get('full', False)
+            names = ['animated-a', 'animated-b', 'paused-a', 'paused-b', 'resumed', 'input', 'removed']
     assert result['captures'] == len(names)
     images = {n: Image.open(case / 'files' / (n + '.png')).convert('RGB') for n in names}
     assert len({im.size for im in images.values()}) == 1
@@ -103,14 +121,26 @@ def verify_case(case, buffers, missing, direct=False):
         box = (round(w / 2 - 320 * scale * sx), round(h / 2 - 180 * scale * sy),
                round(w / 2 + 320 * scale * sx), round(h / 2 + 180 * scale * sy))
         crops = {n: im.crop(box) for n, im in images.items()}
-        green = lambda im: sum(g > 120 and g > r * 2 and b > r * 2 for r, g, b in pixels(im))
-        assert green(crops['animated-a']) > 100 and green(crops['animated-b']) > 100
         motion = changed(crops['animated-a'], crops['animated-b'])
         resumed = changed(crops['paused-b'], crops['resumed'])
         paused = changed(crops['paused-a'], crops['paused-b'])
         assert motion > 200 and resumed > 200 and paused == 0, (motion, resumed, paused)
-        orange = sum(r > 150 and r > g * 1.3 and g > b * 1.3 for r, g, b in pixels(crops['input']))
-        assert orange > 100 and green(crops['removed']) == 0
+        if full:
+            bg = (25, 35, 49)
+            retained = sum(max(abs(r-bg[0]), abs(g-bg[1]), abs(b-bg[2])) > 30 and not (r > 200 and g < 60 and b > 200)
+                           for r, g, b in pixels(images['aliases-after-remove']))
+            assert retained > 100, retained
+            metrics = {'godot_crop': box, 'animation_changed_pixels': motion,
+                       'resume_changed_pixels': resumed, 'paused_changed_pixels': paused,
+                       'retained_alias_pixels': retained}
+        else:
+            green = lambda im: sum(g > 120 and g > r * 2 and b > r * 2 for r, g, b in pixels(im))
+            assert green(crops['animated-a']) > 100 and green(crops['animated-b']) > 100
+            orange = sum(r > 150 and r > g * 1.3 and g > b * 1.3 for r, g, b in pixels(crops['input']))
+            assert orange > 100 and green(crops['removed']) == 0
+            metrics = {'godot_crop': box, 'animation_changed_pixels': motion,
+                       'resume_changed_pixels': resumed, 'paused_changed_pixels': paused,
+                       'pointer_orange_pixels': orange}
         assert len(clients) == len(readers) == 1
         for p, c, e in clients: assert int(p) > 0 and p == c and e == '0'
         for b, f, waits, signals, pending, c, e in readers:
@@ -120,12 +150,11 @@ def verify_case(case, buffers, missing, direct=False):
         assert len(pcm) == 1
         produced, consumed, nzp, nzc, underruns = map(int, pcm[0])
         assert produced >= consumed > 48000 and nzp > 48000 and nzc > 48000 and underruns == 0, pcm
-        metrics = {'godot_crop': box, 'animation_changed_pixels': motion, 'resume_changed_pixels': resumed,
-                   'paused_changed_pixels': paused, 'pointer_orange_pixels': orange, 'pcm': pcm}
+        metrics['pcm'] = pcm
     life = [n.strip() for group in re.findall(r'destroy: ([^\r\n]+)\.', log) for n in group.split(',')]
     for n in ('Director', 'BGFXDora', 'Logger'): assert life.count(n) == 1, life
     assert life.index('Director') < life.index('BGFXDora') < life.index('Logger')
-    return {'passed': True, 'missing': missing, 'buffers': buffers, 'captures': len(names), 'metrics': metrics,
+    return {'passed': True, 'missing': missing, 'full_acceptance': full, 'buffers': buffers, 'captures': len(names), 'metrics': metrics,
             'direct_targets_requested': direct, 'direct_blits': 0 if direct and not missing else None,
             'gpu_clients': clients, 'gpu_readers': readers, 'ordinary_centers': ordinary,
             'allowed_environment_warnings': warnings,
@@ -136,10 +165,11 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     for n in ('apk', 'runtime-package', 'aapt', 'case'): p.add_argument('--' + n, type=Path, required=True)
     p.add_argument('--buffers', type=int, choices=(2, 3, 4), default=3)
-    p.add_argument('--missing', action='store_true'); p.add_argument('--direct', action='store_true'); a = p.parse_args()
+    p.add_argument('--missing', action='store_true'); p.add_argument('--direct', action='store_true')
+    p.add_argument('--full', action='store_true'); a = p.parse_args()
     report = a.case / 'verification.json'; report.unlink(missing_ok=True)
     artifact = audit_apk(a.apk, a.runtime_package, a.aapt, a.missing)
-    result = verify_case(a.case, a.buffers, a.missing, a.direct)
+    result = verify_case(a.case, a.buffers, a.missing, a.direct, a.full)
     result.update(artifacts=artifact, scope=__doc__)
     report.write_text(json.dumps(result, indent=2) + '\n')
     print(json.dumps(result, indent=2))

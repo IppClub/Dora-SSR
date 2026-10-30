@@ -1,11 +1,20 @@
 package org.dora.godotrc1;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.Instrumentation;
+import android.app.UiAutomation;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
+import android.os.SystemClock;
 import android.util.Log;
+import android.view.InputDevice;
+import android.view.MotionEvent;
+import android.view.accessibility.AccessibilityNodeInfo;
 import java.io.File;
+import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -33,6 +42,60 @@ public final class ReleaseLifecycle extends Instrumentation {
     private static void write(File file, String value) throws Exception {
         Files.write(file.toPath(), value.getBytes(StandardCharsets.UTF_8));
     }
+    private static void waitFor(File file, long deadline, String label) throws Exception {
+        while (!file.isFile()) {
+            if (System.nanoTime() > deadline) throw new IllegalStateException("Timed out waiting for " + label);
+            Thread.sleep(50);
+        }
+    }
+    private int targetPid() {
+        ActivityManager manager = (ActivityManager)getTargetContext().getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningAppProcessInfo process : manager.getRunningAppProcesses())
+            if ("org.ippclub.dorassr".equals(process.processName)) return process.pid;
+        return -1;
+    }
+    private void shell(String command) throws Exception {
+        UiAutomation automation = getUiAutomation();
+        try (ParcelFileDescriptor descriptor = automation.executeShellCommand(command);
+             FileInputStream input = new FileInputStream(descriptor.getFileDescriptor())) {
+            byte[] buffer = new byte[1024];
+            while (input.read(buffer) >= 0) { }
+        }
+    }
+    private void tap(int x, int y) {
+        long now = SystemClock.uptimeMillis();
+        MotionEvent down = MotionEvent.obtain(now, now, MotionEvent.ACTION_DOWN, x, y, 0);
+        down.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+        if (!getUiAutomation().injectInputEvent(down, true)) throw new IllegalStateException("Touch down rejected");
+        down.recycle();
+        MotionEvent up = MotionEvent.obtain(now, now + 60, MotionEvent.ACTION_UP, x, y, 0);
+        up.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+        if (!getUiAutomation().injectInputEvent(up, true)) throw new IllegalStateException("Touch up rejected");
+        up.recycle();
+    }
+    private static AccessibilityNodeInfo findViewId(AccessibilityNodeInfo node, String id) {
+        if (node == null) return null;
+        if (id.equals(node.getViewIdResourceName())) return node;
+        for (int index = 0; index < node.getChildCount(); ++index) {
+            AccessibilityNodeInfo found = findViewId(node.getChild(index), id);
+            if (found != null) return found;
+        }
+        return null;
+    }
+    private boolean dismissImmersiveConfirmation() throws Exception {
+        long deadline = System.nanoTime() + 2_000_000_000L;
+        do {
+            AccessibilityNodeInfo button = findViewId(getUiAutomation().getRootInActiveWindow(), "android:id/ok");
+            if (button != null && button.isClickable()) {
+                if (!button.performAction(AccessibilityNodeInfo.ACTION_CLICK))
+                    throw new IllegalStateException("Immersive confirmation click rejected");
+                Thread.sleep(300);
+                return true;
+            }
+            Thread.sleep(100);
+        } while (System.nanoTime() < deadline);
+        return false;
+    }
     private static void exportEvidence(File source, File destination) throws Exception {
         deleteTree(destination);
         if (!destination.mkdirs()) throw new IllegalStateException("Cannot create " + destination);
@@ -51,6 +114,8 @@ public final class ReleaseLifecycle extends Instrumentation {
             if (buffers < 2 || buffers > 4) throw new IllegalArgumentException("Invalid buffers");
             boolean direct = "1".equals(arguments.getString("direct", "0"));
             boolean missing = "1".equals(arguments.getString("missing", "0"));
+            boolean full = "1".equals(arguments.getString("full", "0"));
+            if (full && missing) throw new IllegalArgumentException("Full acceptance cannot use a missing runtime");
             File fixture = new File(getTargetContext().getFilesDir(), "godot-release");
             deleteTree(fixture);
             if (!fixture.mkdirs()) throw new IllegalStateException("Cannot create " + fixture);
@@ -61,22 +126,46 @@ public final class ReleaseLifecycle extends Instrumentation {
             deleteTree(external);
             write(new File(fixture, "buffers.txt"), Integer.toString(buffers));
             if (missing) write(new File(fixture, "expect-missing"), "1");
+            if (full) write(new File(fixture, "full-acceptance"), "1");
             Intent intent = getTargetContext().getPackageManager()
                 .getLaunchIntentForPackage("org.ippclub.dorassr");
             if (intent == null) throw new IllegalStateException("Missing target activity");
             if (direct) intent.putExtra("DORA_GODOT_GL_DIRECT", "1");
             Activity activity = startActivitySync(intent);
+            int initialPid = targetPid();
+            if (initialPid <= 0) throw new IllegalStateException("Target process not found");
+            boolean immersiveConfirmationDismissed = full && dismissImmersiveConfirmation();
             File complete = new File(fixture, "result.json");
-            long deadline = System.nanoTime() + 90_000_000_000L;
-            while (!complete.isFile()) {
-                if (System.nanoTime() > deadline) throw new IllegalStateException("No Lua completion");
-                Thread.sleep(50);
+            long deadline = System.nanoTime() + (full ? 150_000_000_000L : 90_000_000_000L);
+            if (full) {
+                File exercise = new File(fixture, "exercise.json");
+                waitFor(exercise, deadline, "Lua exercise readiness");
+                JSONObject coordinates = new JSONObject(new String(Files.readAllBytes(exercise.toPath()), StandardCharsets.UTF_8));
+                tap(coordinates.getInt("x"), coordinates.getInt("y"));
+                File project = new File(fixture, "project");
+                waitFor(new File(project, "touch-accepted"), deadline, "Godot touch acceptance");
+                tap(coordinates.getInt("ime_x"), coordinates.getInt("ime_y"));
+                Thread.sleep(500);
+                shell("input text IME42");
+                waitFor(new File(project, "ime-accepted"), deadline, "Godot IME acceptance");
+                shell("input keyevent KEYCODE_HOME");
+                waitFor(new File(fixture, "background-seen"), deadline, "Dora background event");
+                Thread.sleep(2000);
+                Intent resume = getTargetContext().getPackageManager().getLaunchIntentForPackage("org.ippclub.dorassr");
+                if (resume == null) throw new IllegalStateException("Missing target resume intent");
+                if (direct) resume.putExtra("DORA_GODOT_GL_DIRECT", "1");
+                getTargetContext().startActivity(resume);
+                waitFor(new File(fixture, "foreground-seen"), deadline, "Dora foreground event");
+                if (targetPid() != initialPid) throw new IllegalStateException("Target process changed across Home/resume");
             }
+            waitFor(complete, deadline, "Lua completion");
             JSONObject json = new JSONObject(new String(Files.readAllBytes(complete.toPath()), StandardCharsets.UTF_8));
             if (!json.getBoolean("complete")) throw new IllegalStateException("Incomplete Lua result");
+            if (json.optBoolean("full", false) != full) throw new IllegalStateException("Lua full-mode mismatch");
             Log.i("DoraReleaseLifecycle", "QA_ACTIVITY_FINISH_REQUESTED");
-            runOnMainSync(activity::finish);
-            while (!activity.isDestroyed()) {
+            Activity finalActivity = activity;
+            runOnMainSync(finalActivity::finish);
+            while (!finalActivity.isDestroyed()) {
                 if (System.nanoTime() > deadline) throw new IllegalStateException("Activity destruction timed out");
                 Thread.sleep(50);
             }
@@ -85,7 +174,9 @@ public final class ReleaseLifecycle extends Instrumentation {
             runOnMainSync(() -> Log.i("DoraReleaseLifecycle", "QA_ACTIVITY_DESTROYED"));
             exportEvidence(fixture, external);
             write(new File(external, "controller.json"), new JSONObject()
-                .put("buffers", buffers).put("direct", direct).put("missing", missing).toString());
+                .put("buffers", buffers).put("direct", direct).put("missing", missing).put("full", full)
+                .put("initial_pid", initialPid).put("final_pid", targetPid())
+                .put("immersive_confirmation_dismissed", immersiveConfirmationDismissed).toString());
             Log.i("DoraReleaseLifecycle", "QA_EVIDENCE_EXPORTED " + external);
             result.putString("result", "Activity finished after public Lua completion");
             finish(Activity.RESULT_OK, result);

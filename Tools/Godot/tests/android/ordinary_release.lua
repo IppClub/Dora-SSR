@@ -10,11 +10,13 @@ if not C:exist(config) then assert(C:save(config, "3")) end
 local buffers = assert(tonumber(C:load(config)))
 assert(buffers >= 2 and buffers <= 4)
 local missing = C:exist(P(work, "expect-missing"))
+local full = C:exist(P(work, "full-acceptance"))
 local project = P(work, "project")
-assert(C:copy("GodotProject", project))
+assert(C:copy(full and "GodotProjectFull" or "GodotProject", project))
 local cache = P(project, ".godot")
 if not C:exist(cache) then assert(C:mkdir(cache)) end
 assert(C:save(P(cache, "global_script_class_cache.cfg"), "list=[]\n"))
+if full then assert(C:save(P(project, "dora-full-acceptance"), "1")) end
 assert(D.GodotNode.getUnsupportedReason() == "")
 assert(D.Director:beginGameCapture())
 local node = assert(D.GodotNode(project, "", 640, 360, buffers))
@@ -22,7 +24,7 @@ node:addTo(D.Director.ui)
 local size = D.View.size
 local scale = math.min(size.width / 640, size.height / 360) * 0.65
 node.scaleX, node.scaleY = scale, scale
-print(string.format("DORA_RELEASE view=%dx%d scale=%.6f buffers=%d missing=%d", size.width, size.height, scale, buffers, missing and 1 or 0))
+print(string.format("DORA_RELEASE view=%dx%d scale=%.6f buffers=%d missing=%d full=%d", size.width, size.height, scale, buffers, missing and 1 or 0, full and 1 or 0))
 local ordinary = D.DrawNode()
 ordinary:drawPolygon({D.Vec2(-16,-16),D.Vec2(16,-16),D.Vec2(16,16),D.Vec2(-16,16)},D.Color(0xffff00ff))
 ordinary.y = size.height * 0.38
@@ -30,6 +32,21 @@ ordinary:addTo(D.Director.ui, 100)
 local control = D.Node()
 control:addTo(D.Director.ui)
 local ready, ticks, elapsed, pending, captures = false, 0, 0, false, 0
+local aliases = {}
+local exerciseWritten, fullInputCaptured, aliasesRemovedCaptured = false, false, false
+local backgroundSeen, foregroundSeen = false, false
+control:gslot("AppEvent", function(event)
+    if not full then return end
+    if event == "WillEnterBackground" or event == "DidEnterBackground" then
+        backgroundSeen = true
+        assert(C:save(P(work, "background-seen"), event))
+        print("DORA_RELEASE background=1 event=" .. event)
+    elseif event == "WillEnterForeground" or event == "DidEnterForeground" then
+        foregroundSeen = true
+        assert(C:save(P(work, "foreground-seen"), event))
+        print("DORA_RELEASE foreground=1 event=" .. event)
+    end
+end)
 local function capture(name)
     pending = true
     assert(D.Director:captureGameAsync(P(work,name..".png"),function(ok)
@@ -41,7 +58,7 @@ local function capture(name)
 end
 control:schedule(function(dt)
     elapsed = elapsed + dt
-    assert(elapsed < 60, "Release package acceptance timed out")
+    assert(elapsed < (full and 120 or 60), "Release package acceptance timed out")
     ordinary.x = math.sin(elapsed * 2) * size.width * 0.35
     if not ready then
         if missing then
@@ -70,6 +87,65 @@ control:schedule(function(dt)
         return false
     end
     if node then assert(node.running and node.lastError == "",node.lastError) end
+    if full then
+        if ticks == 30 then capture("animated-a") end
+        if ticks == 55 then capture("animated-b") end
+        if ticks == 65 then node:pause();assert(node.paused) end
+        if ticks == 90 then capture("paused-a") end
+        if ticks == 115 then capture("paused-b") end
+        if ticks == 120 then node:resume();assert(not node.paused) end
+        if ticks == 150 then capture("resumed") end
+        if ticks == 152 then
+            assert(not D.Wasm:executeMainFile("ffi-trap.wasm"))
+            print("DORA_RELEASE ffi_trap_recovered=1")
+        end
+        if ticks == 155 then assert(node:resizeViewport(800,450)) end
+        if ticks == 175 then capture("resized-large") end
+        if ticks == 180 then assert(node:resizeViewport(320,180)) end
+        if ticks == 200 then capture("resized-small") end
+        if ticks == 205 then assert(node:resizeViewport(640,360)) end
+        if ticks >= 210 and #aliases < buffers then
+            local texture = node.texture
+            local found = false
+            for _, alias in ipairs(aliases) do if alias.texture == texture then found = true end end
+            if not found then
+                local alias = assert(D.Sprite(texture))
+                alias.effect, alias.blendFunc = node.effect, node.blendFunc
+                alias.scaleX, alias.scaleY = scale * 0.2, scale * 0.2
+                alias.x, alias.y = -size.width * 0.38, (#aliases - (buffers - 1) * 0.5) * 100 * scale
+                alias:addTo(D.Director.ui, 90)
+                aliases[#aliases + 1] = alias
+                print("DORA_RELEASE alias=" .. #aliases)
+            end
+        end
+        if #aliases == buffers and not exerciseWritten then
+            exerciseWritten = true
+            capture("aliases")
+            assert(C:save(P(work,"exercise.json"),string.format(
+                '{"x":%d,"y":%d,"ime_x":%d,"ime_y":%d}',
+                math.floor(size.width/2),math.floor(size.height/2),
+                math.floor(size.width/2),math.floor(size.height/2 + 139 * scale))))
+            print("DORA_RELEASE exercise_ready=1")
+        end
+        local touch = C:exist(P(project,"touch-accepted"))
+        local ime = C:exist(P(project,"ime-accepted"))
+        if exerciseWritten and touch and ime and backgroundSeen and foregroundSeen and not fullInputCaptured then
+            fullInputCaptured = true
+            capture("full-input")
+        elseif fullInputCaptured and not pending and node then
+            node:removeFromParent();node = nil
+        elseif fullInputCaptured and not pending and not aliasesRemovedCaptured then
+            aliasesRemovedCaptured = true
+            capture("aliases-after-remove")
+        elseif aliasesRemovedCaptured and not pending then
+            assert(captures == 10)
+            for _, alias in ipairs(aliases) do alias:removeFromParent() end
+            assert(C:save(P(work,"result.json"),string.format('{"complete":true,"missing":false,"full":true,"captures":10,"buffers":%d,"aliases":%d,"touch":true,"ime":true,"background":true,"foreground":true}',buffers,#aliases)))
+            print(string.format("DORA_RELEASE complete=1 missing=0 full=1 captures=10 aliases=%d",#aliases))
+            D.Director:endGameCapture();D.App:shutdown();return true
+        end
+        return false
+    end
     if ticks == 30 then capture("animated-a") end
     if ticks == 55 then capture("animated-b") end
     if ticks == 65 then node:pause();assert(node.paused) end

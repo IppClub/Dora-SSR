@@ -35,11 +35,34 @@ extern "C" {
 const char *dora_gl_error() { return error.c_str(); }
 int dora_gl_enter(void *p) {
     auto *t=get(p);
-    return t && eglMakeCurrent(t->display,t->surface,t->surface,t->producer);
+    if (!t) return 0;
+    const auto current=eglGetCurrentContext();
+    if (current==t->host) {
+        const auto display=eglGetCurrentDisplay();
+        const auto draw=eglGetCurrentSurface(EGL_DRAW);
+        const auto read=eglGetCurrentSurface(EGL_READ);
+        if (display==EGL_NO_DISPLAY || draw==EGL_NO_SURFACE || read==EGL_NO_SURFACE) {
+            error="current EGL host context has no drawable surface"; return 0;
+        }
+        if (display!=t->display) { error="EGL host display changed"; return 0; }
+        // Android destroys and recreates its window surface across Home/resume
+        // while retaining the host context and share group. Never restore the
+        // producer to the stale surface captured during initial creation.
+        t->draw=draw; t->read=read;
+    } else if (current!=t->producer && current!=EGL_NO_CONTEXT) {
+        error="unexpected current EGL context"; return 0;
+    }
+    if (!eglMakeCurrent(t->display,t->surface,t->surface,t->producer)) {
+        error="cannot activate EGL producer context"; return 0;
+    }
+    return 1;
 }
 int dora_gl_leave(void *p) {
     auto *t=get(p);
-    return t && eglMakeCurrent(t->display,t->draw,t->read,t->host);
+    if (!t || !eglMakeCurrent(t->display,t->draw,t->read,t->host)) {
+        error="cannot restore EGL host context"; return 0;
+    }
+    return 1;
 }
 void *dora_gl_display(void *p) { return get(p)->display; }
 uint32_t dora_gl_framebuffer(void *p) { return get(p)?get(p)->auxiliary_fbo:0; }

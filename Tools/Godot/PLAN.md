@@ -2715,3 +2715,11 @@ Godot Android Thread平台hook只有JNI attach/detach，未设置priority；现�
 - 当前arm64 Release运行库SHA-256为`d3e7328d...3200`；本地QA签名普通APK为`deabdf2b...cb4`，保持普通包名、`debuggable=false`且无原生Godot测试入口。独立控制器APK为`060ac4b1...343`。本地debug证书只用于安装验收，不计生产签名。
 - 在专用API 35 ARM64 AVD `DoraGodotRC1_01a17dc1`、ANGLE/SwiftShader和非root adbd下，2/3/4缓冲普通Release全部通过。客户端GPU帧分别为193/201/200且produced等于completed；GPU reader最终pending/error为0，PCM欠载为0。每档连续动画、暂停/恢复、指针、移除、Wasm trap后继续运行、7张截图、Activity.finish和Director→BGFX→Logger完整退出均通过，direct完成标记均为`blits=0`。
 - 聚合报告为`build/godot-direct02-android/release-direct-matrix-v1/verification.json`。它固定`ordinary_nondebuggable_release=true`、`physical_device=false`、`direct02_accepted=false`；因此只补齐普通Release与非root证据链，不关闭DIRECT-02。下一闸门仍是在arm64物理手机或平板上完成2/3/4的真实移动GPU、触摸/IME、Home、resize和纹理别名完整矩阵。
+
+### 2026-10-30 Android EGL 普通 Release 完整矩阵与 surface 恢复修复
+
+- 普通Release夹具增加只由`full-acceptance`文件启用的完整项目，仍不包含原生Godot测试入口。独立instrumentation在目标UID内驱动系统触摸、SDL IME提交`IME42`、Home与同PID恢复；Lua侧执行640×360→800×450→320×180→640×360、保留与缓冲数相同的纹理别名、节点移除后别名采样、暂停恢复、Wasm trap、PCM和完整退出。首次沉浸式全屏教育弹窗只在发现系统`android:id/ok`时关闭并记录。
+- 首轮完整冒烟发现触摸中心会使LineEdit失焦；改为先验证中心触摸，再按节点缩放计算LineEdit坐标。随后真实暴露Home恢复缺陷：Android重建window surface后，EGL transport仍恢复到创建时缓存的旧draw/read surface，产生`EGL_BAD_SURFACE`，继而host VAO报`GL_INVALID_OPERATION`。传输层现在每次从当前host context进入producer前刷新同display下的draw/read surface，并显式拒绝display/context异常。
+- 新增原生surface-recreate回归，在每个2/3/4缓冲传输会话中销毁并替换host pbuffer；Android模拟器上3600个消费者帧、99个transport像素样本和54个host-owned target样本全部通过，报告为`build/godot-direct02-android/transport-surface-refresh-v1/verification.json`。修复后的arm64 Release运行库SHA-256为`2a6b8d71...94e12`。
+- 普通nondebuggable/R8 APK SHA-256为`db7c5fb4...1adc9`，控制器APK为`0680890c...c02b`。API 35 ARM64模拟器的2/3/4完整矩阵全部通过：客户端GPU帧252/248/246均全部完成，reader pending/error和PCM欠载均为0，direct完成标记全部为`blits=0`；每档10张图并保留2/3/4个纹理别名。聚合报告`build/godot-direct02-android/release-full-matrix-v2/verification.json`明确记录`physical_device=false`、`direct02_accepted=false`。
+- DIRECT-02因此只剩同一普通Release矩阵的arm64物理Android设备运行；模拟器不能证明移动GPU驱动、真实触控硬件或物理音频输出。任务继续保持未勾选，且不提前进入DIRECT-03。

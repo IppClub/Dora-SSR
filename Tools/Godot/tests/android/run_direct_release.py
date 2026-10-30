@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the ordinary nondebuggable Android direct-target 2/3/4 baseline."""
+"""Run the ordinary nondebuggable Android direct-target 2/3/4 acceptance matrix."""
 import argparse
 import hashlib
 import json
@@ -43,7 +43,7 @@ try:
             "--lifecycle-apk", str(args.lifecycle_apk.resolve()),
             "--output", str(case),
             "--buffers", str(buffers),
-            "--direct",
+            "--direct", "--full",
         ]
         if emulator:
             command += ["--owned-avd", args.owned_avd]
@@ -53,7 +53,7 @@ try:
             subprocess.run(command, cwd=root, check=True, stdout=log,
                            stderr=subprocess.STDOUT, timeout=300)
         result = json.loads((case / "verification.json").read_text())
-        assert result["passed"] and result["direct_targets_requested"]
+        assert result["passed"] and result["direct_targets_requested"] and result["full_acceptance"]
         assert result["direct_blits"] == 0 and result["artifacts"]["debuggable"] is False
         assert result["android_emulator"] == emulator
         cases.append({
@@ -63,13 +63,21 @@ try:
             "gpu_readers": result["gpu_readers"],
             "pcm": result["metrics"]["pcm"],
             "blits": result["direct_blits"],
+            "aliases": buffers,
+            "touch": True,
+            "ime": True,
+            "home_resume": True,
+            "resize_sizes": [[640, 360], [800, 450], [320, 180]],
         })
     report = {
         "passed": True,
         "ordinary_nondebuggable_release": True,
         "physical_device": not emulator,
-        "direct02_accepted": False,
-        "scope": "Ordinary nondebuggable Release direct-target 2/3/4 baseline; full DIRECT-02 touch/IME/Home/resize/alias matrix remains required",
+        "direct02_accepted": not emulator,
+        "scope": ("Ordinary nondebuggable Release direct-target 2/3/4 physical-device acceptance: "
+                  "system touch/IME, same-process Home/resume, resize and retained texture aliases"
+                  if not emulator else
+                  "Ordinary nondebuggable Release full matrix on an emulator; not physical-device acceptance"),
         "serial": args.serial,
         "artifacts": {
             "apk_sha256": hashlib.sha256(args.apk.read_bytes()).hexdigest(),

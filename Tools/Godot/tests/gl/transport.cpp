@@ -51,6 +51,14 @@ int main() {
         Dora::GodotFrameRing ring; assert(ring.configure(buffers));
         uint64_t sequence=produce(0,0,1); assert(ring.seed(0,sequence));
         assert(dora_gl_leave(transport));
+        // Android keeps the EGL context but replaces the window surface on
+        // Home/resume. Recreate the host surface and require the transport to
+        // refresh its restore target on the next producer entry.
+        EGLSurface replacement=eglCreatePbufferSurface(display,config,pb); assert(replacement);
+        assert(eglMakeCurrent(display,replacement,replacement,host));
+        assert(eglDestroySurface(display,surface)); surface=replacement;
+        assert(dora_gl_enter(transport)); assert(dora_gl_leave(transport));
+        assert(eglGetCurrentSurface(EGL_DRAW)==surface && eglGetCurrentSurface(EGL_READ)==surface);
         GLuint consumer; glGenFramebuffers(1,&consumer);
         for (uint64_t frame=1;frame<=1200;++frame) {
             auto read=ring.read(frame); assert(read);
