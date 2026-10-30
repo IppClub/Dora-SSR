@@ -1,0 +1,4 @@
+**/__pycache__/
+**/.godot/
+tests/android/lifecycle/.gradle/
+tests/android/lifecycle/app/build/

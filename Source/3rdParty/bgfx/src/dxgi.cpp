@@ -407,7 +407,20 @@ namespace bgfx
 
 			if (NULL == m_adapter)
 			{
-				hr = m_factory->EnumAdapters(0, reinterpret_cast<IDXGIAdapter**>(&m_adapter) );
+				if (BGFX_PCI_ID_SOFTWARE_RASTERIZER == _caps.vendorId)
+				{
+					IDXGIFactory4* factory4 = NULL;
+					hr = m_factory->QueryInterface(IID_PPV_ARGS(&factory4) );
+					if (SUCCEEDED(hr) )
+					{
+						hr = factory4->EnumWarpAdapter(IID_PPV_ARGS(&m_adapter) );
+						DX_RELEASE(factory4, 1);
+					}
+				}
+				else
+				{
+					hr = m_factory->EnumAdapters(0, reinterpret_cast<IDXGIAdapter**>(&m_adapter) );
+				}
 				BX_WARN(SUCCEEDED(hr), "EnumAdapters failed 0x%08x.", hr);
 				m_driverType = D3D_DRIVER_TYPE_UNKNOWN;
 			}

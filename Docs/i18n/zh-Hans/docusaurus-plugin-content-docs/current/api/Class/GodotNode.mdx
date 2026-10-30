@@ -1,0 +1,92 @@
+# GodotNode
+
+**描述：**
+
+&emsp;&emsp;以 [Sprite](/docs/api/Class/Sprite) 显示嵌入的 Godot 项目离屏画面，保留项目的 SceneTree 根节点、当前场景和 autoload。启动和渲染均异步执行。
+
+**类对象：** [GodotNode 类](/docs/api/Class%20Object/GodotNode)。
+
+此接口处于实验阶段。Apple Silicon macOS Metal、Linux ARM64 EGL（Mesa virgl）以及 Windows WGL（Parallels Windows 11 ARM64 上的 x64 进程）已通过原生节点 GPU 测试。Android API35 ARM64 模拟器也已通过共享 EGL 纹理、2／3／4 缓冲、动画、尺寸切换、材质时间、GPU 粒子和场景主动调整输出测试。Android 需要可选的上游 Java 服务与匹配的源码编译运行库，真机仍待验证。需要匹配的原生运行库。目前一个进程仅允许一个活动节点和一个 Godot 项目；移除后重建节点时，运行时与 autoload 会保留到应用退出。
+
+iOS 集成要求 Apple4 或更新的 Metal GPU 能力。当前 Apple 模拟器暴露 Apple2 配置，不支持 Godot 必需的立方体数组纹理；能力拒绝路径已单独验证，不代表 GPU 共享输出通过。
+
+Web 需显式启用 `DORA_WEB_GODOT=1`，提供 COOP／COEP 与匹配的独立 Godot WASM 运行库。Apple M1 Pro 上的 Chrome 156、Firefox 153 和 Playwright WebKit 26.5 已通过 2／3／4 缓冲节点合成、生命周期／尺寸／别名、手动输入和宿主 PCM 测试。Web PCM 在 window 线程按需混音，不再预填充旧 PCM 队列。三个浏览器的半秒双声道输出探针均通过，但不代表设备可听性或端到端延迟验收；移动真机浏览器、真实 Safari、完整系统输入法、长时间音频连续性与延迟仍待覆盖。当前证据范围见 `Tools/Godot/TRACKING.md`。
+
+## 字段
+
+以下字段均为只读。
+
+| 名称 | 类型 | 描述 |
+| --- | --- | --- |
+| projectPath | string | 解析后的 Godot 项目目录或 `.pck` 路径。 |
+| sceneFile | string | 请求的场景路径；空字符串表示项目主场景。 |
+| lastError | string | 最近一次运行错误；未报告错误时为空。 |
+| running | boolean | 是否已完成异步启动且节点处于活动状态。 |
+| paused | boolean | 请求的场景暂停状态。 |
+| viewportSize | Size | 已发布的物理输出纹理尺寸，新输出分配发布时一起更新。 |
+
+## pause / resume
+
+暂停或恢复 Godot SceneTree。渲染继续执行，以便显示当前画面。这些方法向渲染线程提交异步操作，也可在异步启动完成前调用。保留 Godot 原生处理模式，`PROCESS_MODE_ALWAYS` 节点在暂停时仍继续执行。
+
+```tl
+pause: function(self: GodotNode)
+resume: function(self: GodotNode)
+```
+
+## restart
+
+请求重新加载场景。空路径表示重载当前场景。返回值表示请求是否被接受，异步失败通过 `lastError` 报告。autoload 会保留。
+
+```tl
+restart: function(self: GodotNode, sceneFile?: string): boolean
+```
+
+## resizeViewport
+
+```tl
+resizeViewport: function(self: GodotNode, width: integer, height: integer): boolean
+```
+
+在具有匹配原生扩展的 Metal／EGL／WGL 后端上请求新的视口分辨率，每个方向为 1–8192 像素。
+操作异步执行，保留 SceneTree、autoload、暂停状态和音频。返回 `true` 表示请求
+已接受，可检查 `viewportSize` 判断新纹理是否发布。无效尺寸、忙碌、尚未完成启动
+或后端不支持时返回 `false`；就绪节点的同尺寸请求直接成功，不重新分配纹理。
+异步错误通过 `lastError` 报告。没有视口／GL 目标扩展的旧运行库仍可运行固定尺寸节点，
+但尺寸调整返回 `false`。
+
+切换握手会先排空 GPU 工作，可能短暂停顿渲染。GL 由 bgfx 拥有目标纹理、Godot 借用名称；
+Metal 由 bgfx 保留导入的原生纹理。其他 Sprite 已保留的旧纹理引用
+仍有效，并冻结为旧分配最后的画面；节点后续发布新分配的纹理。Sprite 变换继续
+独立控制显示缩放，与原生视口分辨率不同。
+
+具有匹配 output 扩展时，Godot 根 Window 的尺寸变化也会自动协商共享纹理，
+包括项目启动阶段的修改。内容拉伸使用 Godot 原生变换合成为物理输出纹理，
+留边区域透明。连续改尺寸会收敛到最新请求，不重启项目。
+
+## sendPointer / sendPointerMove
+
+转发指针输入，坐标单位为物理输出窗口像素，原点位于左上角，尚未应用 Dora Sprite 变换。Godot 使用原生内容拉伸变换转换为逻辑场景坐标。按键使用 Godot 编号：1 为左键，2 为右键，3 为中键。按下后应发送对应的释放事件。节点的触摸和鼠标事件也会自动转发。
+
+```tl
+sendPointer: function(self: GodotNode, x: number, y: number, button: integer, pressed: boolean)
+sendPointerMove: function(self: GodotNode, x: number, y: number)
+```
+
+## sendKey / sendText
+
+转发具名按键（例如 `"Space"`）或已提交的 UTF-8 文本。按下后应发送对应的释放事件。文本转发尚不包含完整的输入法组合输入支持。宿主失焦时会释放已按下的鼠标和键盘状态。
+
+```tl
+sendKey: function(self: GodotNode, name: string, pressed: boolean)
+sendText: function(self: GodotNode, text: string)
+```
+
+Godot 纹理使用预乘透明度。默认节点着色器和混合模式会同时处理此编码与节点透明度；自定义着色效果或混合模式时需保留这一语义。
+
+音频 ABI 2 由注册到 Godot 的工作线程生产 48 kHz 双声道 PCM，通过有界队列
+送入 Dora 的 SoLoud 混音器；宿主回调只拷贝队列样本，Godot 不占用音频设备。
+上述三个桌面环境和 Android ARM64 模拟器已通过回调测试，物理扬声器可听性和更广泛项目覆盖仍待验证。
+设备丢失恢复和多项目支持仍未实现。Android 在同一原生进程中 Home／返回前台及表面销毁重建已通过；这不代表强制 EGL 上下文丢失恢复。
+
+继承的 `texture` 引用某个环形槽位，后续会随该槽位复用而变化，并非不可变截图。其他 Sprite 保留的纹理引用及原节点移除后的显示，已在所测试的 macOS Metal、Linux ARM64 EGL、Windows WGL 和 Android ARM64 模拟器环境中通过 GPU 检查。音频验收单独记录。

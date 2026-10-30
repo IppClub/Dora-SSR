@@ -4573,6 +4573,42 @@ object class VideoNode : public ISprite
 	static optional VideoNode* create(string filename, bool looped);
 };
 
+object class GodotNode : public ISprite
+{
+    /// Empty when the current GPU/backend supports GodotNode; does not load the runtime library.
+    static string getUnsupportedReason();
+	/// Resolved Godot project directory or exported .pck path.
+	readonly common string projectPath;
+	/// Requested Godot scene path; empty uses the project main scene.
+	readonly common string sceneFile;
+	/// Most recent asynchronous runtime error, or an empty string.
+	readonly common string lastError;
+	/// Whether asynchronous startup completed and the node is active.
+	readonly boolean bool running;
+	/// Requested native SceneTree pause state.
+	readonly boolean bool paused;
+	/// Committed native viewport pixel size; updated after asynchronous texture publication.
+	readonly common Size viewportSize;
+	/// Request a native viewport resize; false when invalid, busy or unsupported.
+	bool resizeViewport(int width, int height);
+	/// Pause the SceneTree; Always-process nodes continue running. Works before startup completes.
+	void pause();
+	/// Resume the SceneTree without rebuilding the project.
+	void resume();
+	/// Request scene reload; empty reloads the current scene. Errors are asynchronous.
+	bool restart(string sceneFile);
+	/// Forward a pointer button in viewport pixels, with top-left origin. Godot button numbering applies.
+	void sendPointer(double x, double y, int button, bool pressed);
+	/// Forward pointer motion in viewport pixels, with top-left origin.
+	void sendPointerMove(double x, double y);
+	/// Forward a named key, such as Space. Pair presses with releases.
+	void sendKey(string name, bool pressed);
+	/// Forward committed UTF-8 text. IME composition is not implemented.
+	void sendText(string text);
+	/// Create an experimental embedded Godot node. Requires a matching optional runtime and supported GPU backend. Only one active node/project is supported.
+	static optional GodotNode* create(string projectPath, string sceneFile, int width, int height, int buffers);
+};
+
 object class TIC80Node : public ISprite
 {
 	/// Creates a new TIC80Node object for running a TIC-80 cart.

@@ -9,7 +9,7 @@ function main()
         c.features[name] = value == "ON" or (value == "AUTO" and c.profile == "dora-preset"
             and name ~= "love" and name ~= "model_3d" and name ~= "music")
     end
-    for _, name in ipairs({"engine", "link_player", "love_probe", "love_pthread_player", "pthreads", "diagnostics", "studio_agent_host", "experimental_main_worker"}) do
+    for _, name in ipairs({"engine", "link_player", "love_probe", "love_pthread_player", "pthreads", "diagnostics", "studio_agent_host", "experimental_main_worker", "godot", "godot_diagnostics"}) do
         c[name] = config.get("dora_web_" .. name)
     end
     assert(not c.features.platformer or (c.features.entity and c.features.physics_2d), "platformer requires entity and physics_2d")
@@ -17,6 +17,7 @@ function main()
     assert(not c.love_pthread_player or (c.pthreads and c.engine and c.love_probe and c.link_player), "Love pthread Player requires pthreads, engine, probes and Player")
     assert(not c.experimental_main_worker or c.pthreads, "main worker requires pthreads")
     assert(not (c.studio_agent_host and c.experimental_main_worker), "Studio host cannot enable experimental main worker")
+    assert(not (c.godot and c.experimental_main_worker), "Godot Web requires the canvas/main-loop owner on the page thread")
     c.root = os.projectdir()
     c.web = path.join(c.root, "Projects/Web")
     c.testweb = config.get("dora_web_testdir")

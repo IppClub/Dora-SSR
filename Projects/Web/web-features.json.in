@@ -19,6 +19,7 @@
   },
   "modules": {
     "lua": true,
+    "godotNode": @DORA_WEB_GODOT_JSON@,
     "content": true,
     "http": true,
     "idbfs": true,

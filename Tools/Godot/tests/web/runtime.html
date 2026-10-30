@@ -1,0 +1,66 @@
+<!doctype html><meta charset="utf-8"><link rel="icon" href="data:,"><title>Real Godot shared WebGL2 probe</title><canvas id="canvas" width="64" height="64"></canvas><pre id="status">running</pre>
+<script src="godot-web-probe.js"></script><script src="dora-godot.js"></script><script type="module">
+import {SharedGLBoundary,sameGLState} from './shared_gl.mjs';
+import {GodotWebBridge} from './runtime_bridge.mjs';
+const canvas=document.querySelector('#canvas'),status=document.querySelector('#status');
+const assert=(condition,message)=>{if(!condition)throw new Error(message)};
+const next=()=>new Promise(resolve=>requestAnimationFrame(resolve));
+try {
+ const host=await createGLProbe({canvas});assert(host._boot(),'host context');
+ const gl=host.GL.currentContext.GLctx,boundary=new SharedGLBoundary(gl);
+ // Save the clean baseline before the host creates private objects. Never start
+ // Godot with arbitrary bgfx bindings or JS program/pixel-transfer cache fields.
+ boundary.states.set('godot',boundary.capture());boundary.activate('host');assert(host._setup(),'host setup');host._texture_create();
+ const godot=await Godot({canvas,noInitialRun:true,locateFile:path=>path.endsWith('.wasm')?'dora-godot.wasm':path,doraBoundary:boundary});
+ const bridge=new GodotWebBridge(host,godot,boundary);bridge.initialize(canvas);
+ const packed=new URLSearchParams(location.search).get('pack')==='1';
+ if(packed){const response=await fetch('project.pck');assert(response.ok,'PCK fetch');godot.FS.writeFile('/project.pck',new Uint8Array(await response.arrayBuffer()));}
+ else {godot.FS.mkdir('/project');for(const file of ['project.godot','main.tscn','main.gd']){const response=await fetch('project/'+file);assert(response.ok,'project fetch '+file);godot.FS.writeFile('/project/'+file,new Uint8Array(await response.arrayBuffer()));}godot.FS.mkdir('/project/.godot');godot.FS.writeFile('/project/.godot/global_script_class_cache.cfg','list=[]\n');}
+ const buffers=Number(new URLSearchParams(location.search).get('buffers')||3);assert([2,3,4].includes(buffers),'buffer count');
+ assert(bridge.open(packed?'/project.pck':'/project','',64,64,buffers),'Godot open: '+bridge.error());
+ const hostIds=Array.from({length:buffers},()=>host._texture_create());bridge.bindTargets(64,64,hostIds);
+ const slots=bridge.targets.map(target=>({...target,read:0n}));
+ assert(slots.every((slot,i)=>godot._dora_web_slot(i)===slot.id),'borrowed Godot slot native IDs');
+ assert(slots.every(slot=>slot.id!==slot.hostId),'independent texture integer namespaces');
+ const seen=new Set();let frames=0,deferrals=0,pixelSamples=0,orientation=null,initialColor=null,pausedColor=null,pauseChecks=0,resumed=false,restarted=false;const deadline=performance.now()+45000;
+ while(frames<360){
+  assert(performance.now()<deadline,'Godot runtime frame timeout');
+  const index=frames%buffers,slot=slots[index];
+  if(!godot._dora_web_can_advance(index,slot.read)){deferrals++;await next();continue;}
+  host._poison();const before=boundary.capture();
+  const sequence=godot._dora_web_advance(index,slot.read);assert(sequence>0n,'Godot advance: '+godot.UTF8ToString(godot._dora_web_error()));sameGLState(before,boundary.capture());
+  assert(godot._dora_web_consumer_begin(index,sequence),'consumer begin');
+  const capture=frames<180||frames===359;
+  assert(host._consume(slot.hostId,capture),'host samples real Godot texture');assert(host._bound_texture()===slot.hostId,'host texture name restored');
+  if(capture){const pixels=[...host.HEAPU8.subarray(host._result(),host._result()+20)];
+  // Godot's canvas uses top-left coordinates. FBO texture y orientation is
+  // recorded below rather than guessed from native GL render-target conventions.
+  const corners=pixels.slice(0,16),normal=[255,0,0,255,0,255,0,255,0,0,255,255,255,255,255,255],flipped=[0,0,255,255,255,255,255,255,255,0,0,255,0,255,0,255];
+  const matches=expected=>corners.every((value,i)=>Math.abs(value-expected[i])<=1);
+  const currentOrientation=matches(normal)?'top-left-at-texture-y0':matches(flipped)?'top-left-at-texture-y1':null;
+  assert(currentOrientation,'Godot corner pixels '+JSON.stringify(pixels));
+  if(orientation===null)orientation=currentOrientation;else assert(orientation===currentOrientation,'stable texture orientation');
+  assert(Math.abs(pixels[19]-255)<=1 && pixels[18]>0,'Godot center pixels '+JSON.stringify(pixels));
+  const color=pixels.slice(16,20);if(!initialColor)initialColor=color;
+  if(frames===59)pausedColor=color;
+  if(frames>=60&&frames<90){assert(color.every((value,i)=>Math.abs(value-pausedColor[i])<=1),'paused GDScript pixels');pauseChecks++;}
+  if(frames===90){assert(color.some((value,i)=>i<3&&value!==pausedColor[i]),'resumed GDScript animation');resumed=true;}
+  if(frames===120){assert(color[0]<=initialColor[0]+1,'restarted scene resets animation');restarted=true;}
+  seen.add(pixels[16]+','+pixels[17]);pixelSamples+=5;}frames++;
+  if(frames===60)assert(godot._dora_web_pause(1),'pause Godot');
+  if(frames===90)assert(godot._dora_web_pause(0),'resume Godot');
+  if(frames===120){const scene=godot.stringToNewUTF8('');try{assert(godot._dora_web_restart(scene),'restart Godot');}finally{godot._free(scene);}}
+  slot.read=BigInt(frames);assert(godot._dora_web_consumer_end(index,slot.read),'consumer end');if(frames<=180)await next();
+ }
+ assert(seen.size>30&&pauseChecks===30&&resumed&&restarted,'real GDScript lifecycle checks');
+ gl.finish();await next();
+ const stats=godot._dora_web_close(),view=new DataView(godot.HEAPU8.buffer),produced=Number(view.getBigUint64(stats+8,true)),completed=Number(view.getBigUint64(stats+16,true)),errors=Number(view.getBigUint64(stats+24,true));
+ assert(produced===frames && completed===frames && !errors,'Godot producer drain');
+ bridge.releaseTargets();
+ for(const slot of slots){assert(gl.isTexture(slot.texture),'Godot must not delete host texture');boundary.forgetTexture(slot.texture);host._release_texture(slot.hostId);}
+ bridge.shutdown();assert(gl.getError()===gl.NO_ERROR,'final GL error');
+ host._poison();assert(gl.getError()===gl.NO_ERROR,'host resources survive Godot teardown');
+ window.result={passed:true,scope:'Real Godot 4.6 Web runtime to independent WASM host GL shader only; Dora node pending',frames,buffers,texture_orientation:orientation,paused_pixel_checks:pauseChecks,resume_verified:resumed,restart_verified:restarted,streamed_frames_without_readback:179,project_form:packed?'pck':'directory',host_owned_targets:true,distinct_native_texture_names:true,pixel_samples:pixelSamples,animated_colors:seen.size,deferred_fence_polls:deferrals,produced,completed,gpu_errors:errors,version:godot.UTF8ToString(godot._dora_web_version()),same_webgl_context:true,independent_wasm_heaps:godot.HEAPU8.buffer!==host.HEAPU8.buffer,renderer:gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL)};
+}catch(error){window.result={passed:false,error:String(error),stack:error.stack};}
+status.textContent=JSON.stringify(window.result,null,2);
+</script>

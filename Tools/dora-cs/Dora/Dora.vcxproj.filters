@@ -1956,6 +1956,15 @@
     <ClCompile Include="..\..\..\Source\Node\VideoNode.cpp">
       <Filter>Node</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Godot\GodotNode.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Godot\GodotAudio.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Godot\GodotRuntimeGL.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\tic80\cart.c">
       <Filter>3rdParty\tic80</Filter>
     </ClCompile>
@@ -4393,6 +4402,12 @@
       <Filter>Resources</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Node\VideoNode.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Godot\GodotBridge.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Godot\GodotNode.h">
       <Filter>Node</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\tic80\api.h">

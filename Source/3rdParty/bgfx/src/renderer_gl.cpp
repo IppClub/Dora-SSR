@@ -2798,11 +2798,20 @@ namespace bgfx { namespace gl
 						: BGFX_CAPS_FORMAT_TEXTURE_NONE
 						;
 
-					if (NULL != glGetInternalformativ)
+					if (NULL != glGetInternalformativ
+#if BX_PLATFORM_EMSCRIPTEN
+                        // WebGL2 only accepts supported sized renderbuffer formats.
+                        && isFramebufferFormatValid(fmt, false, true)
+#endif
+                        )
 					{
-						GLint maxSamples;
+						GLint maxSamples = 0;
 						glGetInternalformativ(GL_RENDERBUFFER
+#if BX_PLATFORM_EMSCRIPTEN
+                            , s_rboFormat[ii]
+#else
 							, s_textureFormat[ii].m_internalFmt
+#endif
 							, GL_SAMPLES
 							, 1
 							, &maxSamples
@@ -2813,6 +2822,8 @@ namespace bgfx { namespace gl
 							: BGFX_CAPS_FORMAT_TEXTURE_NONE
 							;
 
+#if !BX_PLATFORM_EMSCRIPTEN
+                        // Multisample textures are not part of WebGL2.
 						glGetInternalformativ(GL_TEXTURE_2D_MULTISAMPLE
 							, s_textureFormat[ii].m_internalFmt
 							, GL_SAMPLES
@@ -2824,6 +2835,7 @@ namespace bgfx { namespace gl
 							? BGFX_CAPS_FORMAT_TEXTURE_MSAA
 							: BGFX_CAPS_FORMAT_TEXTURE_NONE
 							;
+#endif
 					}
 
 					g_caps.formats[ii] = supported;
@@ -3249,6 +3261,8 @@ namespace bgfx { namespace gl
 
 		void shutdown()
 		{
+			m_glctx.makeCurrent(NULL);
+			shutdownNativeInterop(getRendererType());
 			if (m_vaoSupport)
 			{
 				GL_CHECK(glBindVertexArray(0) );
@@ -6029,8 +6043,8 @@ namespace bgfx { namespace gl
 		{
 			GL_CHECK(glBindTexture(m_target, 0) );
 			GL_CHECK(glDeleteTextures(1, &m_id) );
-			m_id = 0;
 		}
+		m_id = 0;
 
 		if (0 != m_rbo)
 		{
@@ -7633,6 +7647,8 @@ namespace bgfx { namespace gl
 
 		updateResolution(_render->m_resolution);
 
+		encodeNativeFrame(getRendererType(), _render->m_frameNum, NULL, false);
+
 		int64_t timeBegin = bx::getHPCounter();
 		int64_t captureElapsed = 0;
 
@@ -9207,6 +9223,7 @@ namespace bgfx { namespace gl
 		{
 			GL_CHECK(glBindVertexArray(0) );
 		}
+		encodeNativeFrame(getRendererType(), _render->m_frameNum, NULL, true);
 	}
 } } // namespace bgfx
 

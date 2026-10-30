@@ -1,0 +1,10 @@
+{
+  "Tools/dora-cs/DoraCS/Dora/GodotNode.cs": "f7427a9d59b0dc72e504d3cb375604054172bb36d3c451da1ae8af3d9dab7832",
+  "Tools/Godot/tests/bindings/async_error.cs": "a588a5e077a9843b1ad57ee33b60c4668ef178a895716e2677bb16418fd218c0",
+  "Tools/Godot/tests/bindings/main.cs": "5ac355d93e40cc1dae7bb45184dd0bdbe4116ae8e1cfbdf4d71da5cf7bf19c8f",
+  "Tools/Godot/tests/bindings/run_async_error_csharp_windows.py": "80e5593166a1adfcbaa161f992be4a48cd9d2f05130daf9dd93cfa37596623ea",
+  "Tools/Godot/tests/bindings/run_csharp.py": "16d74d0e0c4858bbb343b5b047ed9b0df3795546248f4a611e5edebeaa2e748e",
+  "Tools/Godot/tests/bindings/verify_async_error_csharp.py": "643a3d11376688d926c1a069ebe4a46afc1a517562c7eea499ec866142c20d2a",
+  "Tools/Godot/tests/bindings/windows_capability.py": "4fedc4f8c613ca2c8ad51c71270f45b2ec4fc7e5849e06f587dfe91bb1ccbc87",
+  "Tools/Godot/tests/bindings/native_exports.py": "7f9666ad6b778af453864e115a6de6d89d7e56c75e59eecab93e1fe985bac31a"
+}

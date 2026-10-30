@@ -147,6 +147,8 @@ mod audio_bus;
 pub use audio_bus::AudioBus;
 mod audio_source;
 pub use audio_source::AudioSource;
+mod godot_node;
+pub use godot_node::GodotNode;
 mod video_node;
 pub use video_node::VideoNode;
 mod tic80_node;
@@ -254,6 +256,7 @@ thread_local! {
             AudioBus::type_info(),
             AudioSource::type_info(),
             VideoNode::type_info(),
+            GodotNode::type_info(),
             TIC80Node::type_info(),
             ml::QLearner::type_info(),
             platformer::ActionUpdate::type_info(),

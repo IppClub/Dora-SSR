@@ -107,3 +107,22 @@ Worklet failure tries legacy Web Audio; if both fail, the game continues muted.
 HTML mixer/worklet resources retain integrity checks but may fall back after
 the existing 15-second audio initialization budget. Game WASM/data/assets remain
 required; optional browser API failures retain their normal return semantics.
+
+
+## Optional Godot runtime
+
+`DORA_WEB_GODOT=1 xmake dora-web` includes the experimental GodotNode adapter and
+stages the separately built runtime from `build/godot-web/package` (override with
+`DORA_WEB_GODOT_RUNTIME_DIR`). Build it first with
+`python3 Tools/Godot/build_web_runtime.py --jobs 2`. Keep experimental outputs in
+explicit separate build/probe/player directories. This option requires COOP/COEP
+even with a single-threaded Dora host; the Godot WASM heap uses threads. It cannot
+use the experimental main-worker host. Default builds remain unchanged.
+
+Godot directories/PCKs are prefetched through the verified game manifest before
+main. Directory packages include their `.godot` resource cache. The source and
+Godot resource filesystems are startup snapshots; user:// persistence is not yet
+shared. `DORA_WEB_GODOT_DIAGNOSTICS=1` enables only interop/PCM test logs. Actual
+Chrome/M1 Pro node output, lifecycle/resize/aliases/manual input and PCM tests
+passed; DOM input, low latency, browser coverage and release packaging remain.
+See `Tools/Godot/README.md` for repeatable tests and precise evidence.

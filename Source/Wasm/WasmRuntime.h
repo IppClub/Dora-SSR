@@ -131,6 +131,9 @@ public:
 	};
 
 	WasmInstance();
+	~WasmInstance();
+	void retainObject(Object* object);
+	void releaseObject(Object* object);
 	bool executeMainFile(String filename);
 	void executeMainFileAsync(String filename, const std::function<void(bool)>& handler);
 	void invokeLocal(int32_t funcId);
@@ -152,6 +155,8 @@ private:
 	Own<wasm3::function> _callFunc;
 	Own<wasm3::function> _derefFunc;
 	std::pair<OwnArray<uint8_t>, size_t> _wasm;
+	// Native references owned by exported handles in this Wasm instance.
+	std::unordered_map<Object*, uint32_t> _objectReferences;
 	uint8_t _moduleId = 0;
 };
 

@@ -1628,6 +1628,7 @@ namespace bgfx { namespace d3d12
 		void shutdown()
 		{
 			m_cmd.finish();
+			shutdownNativeInterop(RendererType::Direct3D12);
 			m_batch.destroy();
 
 			preReset();
@@ -5468,6 +5469,9 @@ namespace bgfx { namespace d3d12
 		destroy();
 		m_flags |= BGFX_SAMPLER_INTERNAL_SHARED;
 		m_ptr = (ID3D12Resource*)_ptr;
+		// External producers return shared textures in COMMON. Reset bgfx's
+		// tracked state so its next sampling use emits the required transition.
+		m_state = D3D12_RESOURCE_STATE_COMMON;
 	}
 
 	void TextureD3D12::update(ID3D12GraphicsCommandList* _commandList, uint8_t _side, uint8_t _mip, const Rect& _rect, uint16_t _z, uint16_t _depth, uint16_t _pitch, const Memory* _mem)
@@ -6360,6 +6364,15 @@ namespace bgfx { namespace d3d12
 		{
 			return;
 		}
+
+		// The experimental cross-device bridge publishes resources from Godot's
+		// direct queue. Drain prior bgfx work before its CPU-fence callback opens
+		// or reuses a shared slot, then let the callback publish into COMMON.
+		if (hasNativeFrameCallback() )
+		{
+			m_cmd.finish();
+		}
+		encodeNativeFrame(RendererType::Direct3D12, _render->m_frameNum, m_commandList, false);
 
 		if (_render->m_capture)
 		{
@@ -7476,6 +7489,7 @@ namespace bgfx { namespace d3d12
 		}
 #endif // BX_PLATFORM_WINDOWS
 
+		encodeNativeFrame(RendererType::Direct3D12, _render->m_frameNum, m_commandList, true);
 		m_backBufferColorFence[m_backBufferColorIdx] = kick();
 	}
 

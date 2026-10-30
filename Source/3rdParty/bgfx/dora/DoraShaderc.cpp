@@ -88,13 +88,12 @@ static bool isRendererBuilt(DoraShadercRenderer renderer) {
             return false;
 #endif
         case DoraShadercRenderer_Direct3D11:
+        case DoraShadercRenderer_Direct3D12:
 #if SHADERC_CONFIG_HLSL
             return true;
 #else
             return false;
 #endif
-        case DoraShadercRenderer_Direct3D12:
-            return false;
         case DoraShadercRenderer_Vulkan:
 #if SHADERC_CONFIG_SPIRV
             return true;

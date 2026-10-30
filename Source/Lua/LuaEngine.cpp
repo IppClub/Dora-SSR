@@ -260,7 +260,8 @@ static int dora_trace_back(lua_State* L) {
 	// Deliver diagnostics before the lifecycle fault removes this runtime page.
 	MAIN_THREAD_EM_ASM({
 		const message = '[error] ' + UTF8ToString($0);
-		if (Module['print']) Module['print'](message);
+		const output = Object.getOwnPropertyDescriptor(Module, 'print')?.value;
+		if (typeof output === 'function') output(message);
 		else console.log(message);
 	}, message.c_str());
 #else

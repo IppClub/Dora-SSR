@@ -1,0 +1,16 @@
+config_version=5
+[application]
+config/name="Dora Godot render timing test"
+run/main_scene="res://main.tscn"
+[display]
+window/size/viewport_width=640
+window/size/viewport_height=360
+[physics]
+; First-use GPU particle shader compilation can exceed one second on virgl.
+; Keep physics catch-up clipping out of this render/particle clock oracle.
+common/max_physics_steps_per_frame=512
+[rendering]
+renderer/rendering_method="mobile"
+shader_compiler/shader_cache/enabled=false
+[threading]
+worker_pool/max_threads=3

@@ -1,0 +1,13 @@
+config_version=5
+[application]
+config/name="Dora LibGodot Metal Probe"
+run/main_scene="res://main.tscn"
+[rendering]
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"
+shader_compiler/shader_cache/enabled=false
+[threading]
+worker_pool/max_threads=4
+[physics]
+3d/physics_engine="Dummy"
+2d/physics_engine="Dummy"

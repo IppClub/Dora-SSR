@@ -60,6 +60,7 @@ _is_functions = _is_functions or {}
 -- while native builds without the define retain the existing API.
 _compile_guards = {
 	LoveNode = "DORA_WEB_NO_LOVE",
+	GodotNode = "DORA_WEB_NO_GODOT",
 	VideoNode = "DORA_WEB_NO_VIDEO",
 	HttpServer = "DORA_WEB_MINIMAL",
 	WasmRuntime = "DORA_WEB_MINIMAL",
@@ -183,6 +184,7 @@ local objects = {
 	"VideoNode",
 	"TIC80Node",
 	"LoveNode",
+	"GodotNode",
 	"Platformer::Unit",
 	"Platformer::Face",
 	"Platformer::PlatformCamera",

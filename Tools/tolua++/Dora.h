@@ -1483,6 +1483,26 @@ class TIC80Node : public Sprite
 	static bool mergePng(String outputFile, String coverPngFile, String resourceCartFile, String codeFile = "");
 };
 
+class GodotNode : public Sprite
+{
+    static std::string getUnsupportedReason();
+    tolua_readonly tolua_property__common String projectPath;
+    tolua_readonly tolua_property__common String sceneFile;
+    tolua_readonly tolua_property__common String lastError;
+    tolua_readonly tolua_property__bool bool running;
+    tolua_readonly tolua_property__bool bool paused;
+    tolua_readonly tolua_property__common Size viewportSize;
+    bool resizeViewport(int width, int height);
+    void pause();
+    void resume();
+    bool restart(String sceneFile = "");
+    void sendPointer(double x, double y, int button, bool pressed);
+    void sendPointerMove(double x, double y);
+    void sendKey(String name, bool pressed);
+    void sendText(String text);
+    static GodotNode* create(String projectPath, String sceneFile = "", int width = 640, int height = 360, int buffers = 3);
+};
+
 class LoveNode : public Sprite
 {
 	tolua_readonly tolua_property__common String bootFile;

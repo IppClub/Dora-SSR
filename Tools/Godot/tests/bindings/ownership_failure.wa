@@ -1,0 +1,16 @@
+// Retain the same exported handle multiple times, release once, then trap.
+import "dora"
+#wa:import dora object_retain
+func retain(raw: i64)
+#wa:import dora object_release
+func release(raw: i64)
+func init {
+    node := dora.NewGodotNode("@PROJECT@", "res://main.tscn", 640, 360, 3)
+    if node == nil { panic("node creation failed") }
+    retain(node.GetRaw())
+    retain(node.GetRaw())
+    release(node.GetRaw())
+    println("GODOT_FFI_OWNERSHIP node_created=1 extra_retains=2 explicit_releases=1")
+    sprite := dora.ObjectCastToSprite(node.Object)
+    if sprite == nil { panic("cast failed") }
+}

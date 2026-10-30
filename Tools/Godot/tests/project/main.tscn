@@ -1,0 +1,36 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://main.gd" id="1"]
+[sub_resource type="BoxMesh" id="Box"]
+size = Vector3(1.8, 1.8, 1.8)
+[sub_resource type="StandardMaterial3D" id="Material"]
+albedo_color = Color(0.12, 0.7, 0.95, 1)
+roughness = 0.4
+[sub_resource type="Environment" id="Environment"]
+background_mode = 1
+background_color = Color(0, 0, 0, 0)
+ambient_light_source = 3
+ambient_light_color = Color(0.8, 0.9, 1, 1)
+ambient_light_energy = 0.4
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1")
+[node name="Cube" type="MeshInstance3D" parent="."]
+rotation = Vector3(0.4, 0.65, 0.1)
+mesh = SubResource("Box")
+material_override = SubResource("Material")
+[node name="Camera" type="Camera3D" parent="."]
+position = Vector3(0, 0, 5)
+current = true
+[node name="Light" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.5, -0.6, 0)
+light_energy = 2.0
+[node name="World" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment")
+[node name="UI" type="CanvasLayer" parent="."]
+[node name="Entry" type="LineEdit" parent="UI"]
+offset_left = 180.0
+offset_top = 300.0
+offset_right = 460.0
+offset_bottom = 338.0
+placeholder_text = "Godot native UI / input bridge"

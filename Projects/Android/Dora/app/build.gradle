@@ -1,5 +1,65 @@
 apply plugin: 'com.android.application'
 
+// Optional embedded Godot package; ordinary Dora APKs retain their existing graph.
+def godotEnabled = (project.findProperty('dora.godot') ?: 'false').toString().toBoolean()
+def godotTest = (project.findProperty('dora.godot.test') ?: 'false').toString().toBoolean()
+if (godotTest && !godotEnabled) throw new GradleException('Godot tests require -Pdora.godot=true')
+if (godotEnabled) buildDir = rootProject.file(project.findProperty('dora.godot.buildDir') ?: '../../../build/godot-android/gradle-app')
+def godotJava = rootProject.file('../../../build/godot-android/java/godot-java-4.6.0.stable.aar')
+def godotRuntimePackage = rootProject.file(project.findProperty('dora.godot.runtimePackage') ?: '../../../build/godot-android/package')
+def godotJni = new File(godotRuntimePackage, 'jni')
+// Keep source assets intact when packaging a standalone Godot-enabled game.
+def godotAssets = rootProject.file(godotEnabled && project.findProperty('dora.godot.assets')
+    ? project.findProperty('dora.godot.assets')
+    : (godotTest ? '../../../build/godot-android/test-assets' : '../../../Assets'))
+if (!godotAssets.isDirectory()) throw new GradleException('Dora asset directory does not exist: ' + godotAssets)
+
+def godotNoticeAssets = new File(buildDir, 'generated/godot-notice-assets')
+def readGodotNotices = {
+    def manifestFile = new File(godotRuntimePackage, 'manifest.json')
+    if (!manifestFile.isFile()) throw new GradleException('Missing Godot runtime manifest: ' + manifestFile)
+    def metadata = new groovy.json.JsonSlurper().parse(manifestFile)
+    if (!(metadata.licenses instanceof List) || metadata.licenses.isEmpty()) {
+        throw new GradleException('Godot runtime manifest must declare its licenses')
+    }
+    metadata.licenses.collect { relative ->
+        if (!(relative instanceof String) || relative.isEmpty() || relative.startsWith('/') || relative.contains('\\') || relative.tokenize('/').contains('..')) {
+            throw new GradleException('Invalid Godot license path')
+        }
+        def file = new File(godotRuntimePackage, relative)
+        if (!file.canonicalPath.startsWith(godotRuntimePackage.canonicalPath + File.separator) || !file.isFile()) {
+            throw new GradleException('Godot license is missing or outside the runtime package: ' + relative)
+        }
+        [relative: relative, file: file, sha256: metadata.artifacts[relative]]
+    }
+}
+def prepareGodotNotices = godotEnabled ? tasks.register('prepareGodotNotices') {
+    inputs.file(new File(godotRuntimePackage, 'manifest.json'))
+    inputs.files(provider { readGodotNotices().collect { it.file } })
+    outputs.dir(godotNoticeAssets)
+    doLast {
+        def notices = readGodotNotices()
+        notices.each { notice ->
+            def actual = java.security.MessageDigest.getInstance('SHA-256').digest(notice.file.bytes).encodeHex().toString()
+            if (actual != notice.sha256) throw new GradleException('Godot license checksum mismatch: ' + notice.relative)
+        }
+        delete godotNoticeAssets
+        notices.each { notice ->
+            def target = new File(godotNoticeAssets, 'GodotRuntimeNotices/' + notice.relative)
+            target.parentFile.mkdirs()
+            target.bytes = notice.file.bytes
+        }
+    }
+} : null
+
+def waArtifact = rootProject.file('app/build/xmake-aar/wa.aar')
+// Gradle workers do not limit Ninja's per-ABI compile concurrency.
+def nativeJobs = project.findProperty('dora.android.jobs')?.toString()
+if (nativeJobs != null && !(nativeJobs ==~ /([1-9]|[12][0-9]|3[0-2])/)) {
+    throw new GradleException('dora.android.jobs must be an integer from 1 to 32')
+}
+
+
 // Studio launched from Finder may not inherit Homebrew's PATH. Explicit
 // overrides also support Windows/Linux and CI without a machine-specific path.
 def xmakeExecutable = project.findProperty('dora.xmake') ?: System.getenv('DORA_XMAKE')
@@ -21,14 +81,14 @@ if (doraAbis.isEmpty() || !doraAbis.every { it in ['armeabi-v7a', 'arm64-v8a', '
 
 def prepareXmakeAndroid = tasks.register('prepareXmakeAndroid', Exec) {
 	workingDir rootProject.file('../../..')
-	commandLine xmakeExecutable, 'dora-android-prepare', "--sdk=${android.sdkDirectory}"
+	commandLine xmakeExecutable, 'dora-android-prepare', '-P', rootProject.file('../../..').absolutePath, "--sdk=${android.sdkDirectory}"
 }
 
 android {
-	compileSdk 34
+	compileSdk (godotEnabled ? 35 : 34)
 	buildToolsVersion = '34.0.0'
 	defaultConfig {
-		applicationId "org.ippclub.dorassr"
+		applicationId (godotTest ? "org.ippclub.dorassr.godotprototype" : "org.ippclub.dorassr")
 		minSdkVersion 28
 		targetSdkVersion 34
 		versionCode 122
@@ -40,6 +100,11 @@ android {
 		externalNativeBuild {
 			cmake {
 				arguments '-DANDROID_STL=c++_shared', "-DDORA_XMAKE=${xmakeExecutable}"
+                arguments "-DDORA_GODOT_NODE_TEST=${godotTest ? 'ON' : 'OFF'}"
+                if (nativeJobs != null) {
+                    arguments "-DCMAKE_JOB_POOLS=dora_compile=${nativeJobs}",
+                        '-DCMAKE_JOB_POOL_COMPILE=dora_compile', '-DCMAKE_JOB_POOL_LINK=dora_compile'
+                }
 				targets 'Dora', 'SDL2'
 			}
 		}
@@ -49,6 +114,13 @@ android {
 		release {
 			minifyEnabled true
 			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (godotEnabled) proguardFiles 'src/godot/proguard-rules.pro'
+            if (godotTest) {
+                // Only the isolated prototype ID: run-as collects native GPU
+                // evidence from optimized builds. Ordinary releases stay unchanged.
+                debuggable true
+                signingConfig signingConfigs.debug
+            }
 		}
 	}
 	externalNativeBuild {
@@ -58,11 +130,17 @@ android {
 		}
 	}
 	sourceSets {
-		main.assets.srcDirs = [rootProject.file('../../../Assets')]
+		main.assets.srcDirs = [godotAssets]
+        if (godotEnabled) main.assets.srcDir godotNoticeAssets
+        if (godotEnabled) {
+            main.java.srcDir 'src/godot/java'
+            main.jniLibs.srcDir godotJni
+        }
 	}
 	packagingOptions {
 		jniLibs {
 			pickFirsts += ['**/*.so']
+            if (godotEnabled) keepDebugSymbols += ['**/libgodot_android.so']
 		}
 		resources {
 			excludes += ['classes.dex']
@@ -72,24 +150,30 @@ android {
 		sourceCompatibility '1.8'
 		targetCompatibility '1.8'
 	}
-	ndkVersion '26.1.10909125'
+	ndkVersion (godotEnabled ? '28.1.13356709' : '26.1.10909125')
 	namespace 'org.ippclub.dorassr'
 }
 
 // AGP's Studio model resolves local AARs without executing their builtBy tasks.
 // Bootstrap only a missing artifact so a clean checkout can Sync immediately.
 // Normal builds still run prepareXmakeAndroid to pick up Go/module changes.
-if (!file("$buildDir/xmake-aar/wa.aar").isFile()) {
+if (!waArtifact.isFile()) {
 	logger.lifecycle('Preparing xmake-managed Android Wa runtime for Gradle Sync')
 	project.exec {
 		workingDir rootProject.file('../../..')
-		commandLine xmakeExecutable, 'dora-android-prepare', "--sdk=${android.sdkDirectory}"
+		commandLine xmakeExecutable, 'dora-android-prepare', '-P', rootProject.file('../../..').absolutePath, "--sdk=${android.sdkDirectory}"
 	}
 }
 
 dependencies {
+    if (godotEnabled) {
+        implementation files(godotJava)
+        implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.1.20'
+        implementation 'androidx.fragment:fragment:1.8.6'
+        implementation 'androidx.documentfile:documentfile:1.1.0'
+    }
 	implementation fileTree(include: ['*.jar'], dir: 'libs')
-	implementation files("$buildDir/xmake-aar/wa.aar").builtBy(prepareXmakeAndroid)
+	implementation files(waArtifact).builtBy(prepareXmakeAndroid)
 	androidTestImplementation('androidx.test.ext:junit:1.1.5')
 	androidTestImplementation('androidx.test.espresso:espresso-core:3.4.0', {
 		exclude group: 'com.android.support', module: 'support-annotations'
@@ -101,7 +185,20 @@ dependencies {
 }
 
 tasks.configureEach {
+    // Lint models inspect asset source roots before mergeAssets also runs.
+    if (godotEnabled && ((name.startsWith('merge') && name.endsWith('Assets')) || name.toLowerCase().contains('lint'))) dependsOn prepareGodotNotices
+    if (godotEnabled && name.startsWith('merge') && name.endsWith('NativeLibs')) doFirst {
+        doraAbis.each { abi ->
+            if (!new File(godotJni, "${abi}/libgodot_android.so").isFile()) {
+                throw new GradleException("Build/stage the matching Godot Android bridge for ${abi} first")
+            }
+        }
+    }
 	if (name == 'preBuild') {
 		dependsOn prepareXmakeAndroid
+        if (godotEnabled) doFirst {
+            if (!godotJava.isFile()) throw new GradleException('Run Tools/Godot/prepare_android_aar.py first')
+
+        }
 	}
 }

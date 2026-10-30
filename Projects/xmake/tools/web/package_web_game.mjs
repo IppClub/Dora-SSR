@@ -43,7 +43,7 @@ function isPackageMetadata(relativePath) {
 function collectFiles(directory, prefix = "") {
 	const files = [];
 	for (const item of fs.readdirSync(directory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
-		if (item.name.startsWith(".")) continue;
+		if (item.name.startsWith(".") && !(process.env.DORA_WEB_INCLUDE_GODOT_CACHE === "1" && item.name === ".godot" && fs.existsSync(path.join(directory, "project.godot")))) continue;
 		const relativePath = validatePath(prefix ? `${prefix}/${item.name}` : item.name);
 		const sourcePath = path.join(directory, item.name);
 		if (item.isSymbolicLink()) throw new Error(`symbolic links are not supported: ${relativePath}`);

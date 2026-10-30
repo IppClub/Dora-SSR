@@ -2,7 +2,7 @@ function main(target)
     import("core.project.depend")
     import("lib.detect.find_tool")
     local c = import("Projects.xmake.web.config", {rootdir = os.projectdir(), anonymous = true})()
-    local values = {c.profile, tostring(c.pthreads), tostring(c.studio_agent_host), c.complex or "", tostring(c.link_player), tostring(c.love_probe), c.testweb or ""}
+    local values = {c.profile, tostring(c.pthreads), tostring(c.studio_agent_host), tostring(c.godot), c.complex or "", tostring(c.link_player), tostring(c.love_probe), c.testweb or ""}
     for _, name in ipairs({"physics_2d", "entity", "platformer", "builtin_libs", "ml", "yue", "love", "model_3d", "music", "video"}) do
         table.insert(values, tostring(c.features[name]))
     end
@@ -32,7 +32,7 @@ function main(target)
         if c.testweb then script("check_web_api_parity.mjs") end
         local replacements = {DORA_WEB_PROFILE = c.profile, DORA_WEB_STUDIO_AGENT_HOST_JSON = tostring(not not c.studio_agent_host),
             DORA_WEB_RUST_BRIDGE_JSON = tostring(c.rust), DORA_WEB_THREADS_JSON = tostring(not not c.pthreads),
-            DORA_WEB_CROSS_ORIGIN_ISOLATION_JSON = tostring(not not c.pthreads)}
+            DORA_WEB_CROSS_ORIGIN_ISOLATION_JSON = tostring(not not (c.pthreads or c.godot)), DORA_WEB_GODOT_JSON = tostring(not not c.godot)}
         for feature, enabled in pairs(c.features) do replacements["DORA_WEB_FEATURE_" .. feature:upper() .. "_JSON"] = tostring(enabled) end
         local json = io.readfile(path.join(c.web, "web-features.json.in")):gsub("@([%w_]+)@", function (key) return assert(replacements[key], key) end)
         io.writefile(path.join(c.out, "dora-web-features.json"), json)
@@ -57,7 +57,7 @@ function main(target)
                 script("generate_web_audio_fixture.mjs", {path.join(stage, "Audio/fixture.wav"), path.join(stage, "Audio/fixture.ogg")})
                 script("generate_web_render_fixtures.mjs", {stage})
             end
-            script("package_web_game.mjs", {stage, c.out, "init.lua"}, {DORA_WEB_GAME_PROFILE = c.profile, DORA_WEB_EAGER_GAME_ASSETS = "0"})
+            script("package_web_game.mjs", {stage, c.out, "init.lua"}, {DORA_WEB_GAME_PROFILE = c.profile, DORA_WEB_EAGER_GAME_ASSETS = "0", DORA_WEB_INCLUDE_GODOT_CACHE = c.godot and "1" or "0"})
         end
         if c.love_probe then
             local stage = path.join(c.out, "love-audio-fixture")

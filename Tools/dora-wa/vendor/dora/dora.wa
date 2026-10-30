@@ -1125,7 +1125,7 @@ global ColorTransparent = Color{Color3: Color3{R: 0, G: 0, B: 0}, A: 0}
 
 /* emit */
 
-#wa:import dora emit
+#wa:import dora dora_emit
 func emit(name: i64, callStack: i64)
 
 func Emit(name: string, args: ...interface{}) {

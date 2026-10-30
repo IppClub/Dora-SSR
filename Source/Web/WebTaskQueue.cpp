@@ -36,10 +36,11 @@ namespace {
 
 std::deque<std::function<void()>> tasks;
 bool drainScheduled = false;
+bool stopped = false;
 
 void drainOneTask(void*) {
 	drainScheduled = false;
-	if (tasks.empty()) return;
+	if (stopped || tasks.empty()) return;
 	auto task = std::move(tasks.front());
 	tasks.pop_front();
 #ifdef DORA_WEB_TASK_AUTORELEASE_POOL
@@ -62,6 +63,7 @@ void drainOneTask(void*) {
 } // namespace
 
 void postTask(std::function<void()> task) {
+	if (stopped) return;
 	tasks.push_back(std::move(task));
 	if (!drainScheduled) {
 		drainScheduled = true;
@@ -71,6 +73,11 @@ void postTask(std::function<void()> task) {
 
 size_t pendingTaskCount() {
 	return tasks.size();
+}
+
+void stopTaskQueue() {
+	stopped = true;
+	tasks.clear();
 }
 
 } // namespace Dora::Web

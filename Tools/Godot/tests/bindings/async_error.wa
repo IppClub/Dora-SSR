@@ -1,0 +1,29 @@
+// Actual Wasm3 -> generated Wa binding asynchronous error propagation.
+import "dora"
+import "strings"
+func check(ok: bool) {
+    if !ok { panic("Wa asynchronous Godot binding assertion failed") }
+}
+func init {
+    check(dora.GodotNodeGetUnsupportedReason() == "")
+    node := dora.NewGodotNode("@PROJECT@", "@SCENE@", 640, 360, 3)
+    check(node != nil)
+    check(node.GetLastError() == "" && !node.IsRunning())
+    node.AddTo(dora.Director.GetUI())
+    control := dora.NewNode()
+    control.AddTo(dora.Director.GetUI())
+    println("GODOT_BINDING_ASYNC Wa accepted=1 running=0 error_empty=1")
+    elapsed := 0.0
+    control.Schedule(func(dt: f64) => bool {
+        elapsed += dt
+        check(elapsed < 20)
+        error := node.GetLastError()
+        if error == "" { return false }
+        check(!node.IsRunning())
+        check(strings.Contains(error, "@EXPECTED_ERROR@"))
+        println("GODOT_BINDING_ASYNC Wa error=" + error)
+        node.RemoveFromParent(true)
+        dora.Emit("GodotBindingAsyncError", "Wa", error)
+        return true
+    })
+}

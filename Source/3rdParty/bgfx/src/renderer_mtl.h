@@ -1005,9 +1005,14 @@ namespace bgfx { namespace mtl
 
 		void overrideInternal(uintptr_t _ptr)
 		{
+			// Keep external Metal resources alive for all queued bgfx draws,
+			// even when the producer/node releases its own reference first.
+			// Retain before destroy also supports replacing with the same object.
+			id<MTLTexture> external = id<MTLTexture>(_ptr);
+			[external retain];
 			destroy();
-			m_flags |= BGFX_SAMPLER_INTERNAL_SHARED;
-			m_ptr = id<MTLTexture>(_ptr);
+			m_flags &= ~BGFX_SAMPLER_INTERNAL_SHARED;
+			m_ptr = external;
 		}
 
 		void update(

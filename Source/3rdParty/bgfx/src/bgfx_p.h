@@ -4637,10 +4637,13 @@ namespace bgfx
 			BGFX_CHECK_HANDLE("readTexture", m_textureHandle, _handle);
 
 			const TextureRef& ref = m_textureRef[_handle.idx];
+			// GL reads render-target textures directly through glGetTexImage/FBOs.
+			// Select that path by renderer, including Windows WGL and WebGL.
 			BX_ASSERT(ref.isReadBack()
-				|| ((BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX)
+				|| ((g_caps.rendererType == RendererType::OpenGL
+					|| g_caps.rendererType == RendererType::OpenGLES)
 					&& 0 != (ref.m_flags & BGFX_TEXTURE_RT_MASK)),
-				"Can't read from texture which was not created with BGFX_TEXTURE_READ_BACK.");
+				"Texture readback requires BGFX_TEXTURE_READ_BACK or a GL render target.");
 			BX_ASSERT(_mip < ref.m_numMips, "Invalid mip: %d num mips:", _mip, ref.m_numMips);
 			BX_UNUSED(ref);
 
