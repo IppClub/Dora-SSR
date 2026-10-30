@@ -164,11 +164,14 @@ extern "C" DORA_GODOT_TEST_EXPORT int dora_godot_node_test_main() {
         "DORA_GODOT_TEST_RESIZE","DORA_GODOT_TEST_ALIASES","DORA_GODOT_TEST_AUDIO_STALL",
         "DORA_GODOT_TEST_RESERVATION","DORA_GODOT_TEST_CANCEL_RESIZE","DORA_GODOT_TEST_TIMING",
         "DORA_GODOT_TEST_OUTPUT_CHANGE","DORA_GODOT_TEST_OUTPUT_STARTUP","DORA_GODOT_TEST_BUFFERS",
-        "DORA_GODOT_TEST_IME","DORA_GODOT_TEST_CONTROLLER"};
+        "DORA_GODOT_TEST_IME","DORA_GODOT_TEST_CONTROLLER","DORA_GODOT_GL_DIRECT"};
     for (const char *name:options) {
         const auto value=Dora::godotAndroidIntentOption(name);
         if (!value.empty()) setenv(name,value.c_str(),1);
     }
+    const auto direct=Dora::godotAndroidIntentOption("DORA_GODOT_GL_DIRECT");
+    fprintf(stderr,"GODOT_NODE_GL_DIRECT intent=%s env=%s\n",direct.c_str(),
+        std::getenv("DORA_GODOT_GL_DIRECT")?std::getenv("DORA_GODOT_GL_DIRECT"):"");
 #endif
     project=environmentUtf8("DORA_GODOT_TEST_PROJECT");
     output=environmentUtf8("DORA_GODOT_TEST_OUTPUT");

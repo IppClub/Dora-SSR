@@ -12,6 +12,7 @@ p=argparse.ArgumentParser();p.add_argument('--serial',required=True);p.add_argum
 p.add_argument('--buffers',type=int,choices=[2,3,4],default=3)
 p.add_argument('--runtime-package',type=Path,default=root/'build/godot-android/package',help='Exact sealed runtime package embedded in the APK')
 p.add_argument('--background',action='store_true',help='Send the owned activity Home after animation sampling, then resume the same native process')
+p.add_argument('--direct',action='store_true',help='Enable host-owned EGL direct targets; the caller must validate direct-path log markers')
 for flag in ('audio','audio-stall','resize','cancel-resize','aliases','reservation','ime','controller'):p.add_argument('--'+flag,action='store_true')
 a=p.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=True);report=out/'verification.json';report.unlink(missing_ok=True)
 assert not a.cancel_resize or a.resize
@@ -58,6 +59,7 @@ with tempfile.TemporaryDirectory(prefix='dora-android-project-') as staging:
  with tarfile.open(fileobj=stream,mode='w') as archive:archive.add(staged,arcname='.')
  run(['exec-in','run-as',package,'tar','-xf','-','-C','files/'+project_name],input=stream.getvalue(),capture_output=True)
 options={'DORA_GODOT_TEST_PROJECT':remote_project,'DORA_GODOT_TEST_OUTPUT':remote_results,'DORA_GODOT_TEST_BUFFERS':str(a.buffers)}
+if a.direct:options['DORA_GODOT_GL_DIRECT']='1'
 for flag in ('audio','audio-stall','resize','cancel-resize','aliases','reservation','ime','controller'):
  options['DORA_GODOT_TEST_'+flag.upper().replace('-','_')]='1' if getattr(a,flag.replace('-','_')) else '0'
 if a.case in ('timing','particles'):options['DORA_GODOT_TEST_TIMING']='1'
@@ -169,5 +171,5 @@ if a.ime:
  assert ime and ime['passed'],'Android IME exercise did not execute'
  assert (out/'run.log').read_text(errors='replace').count('GODOT_NODE_IME_FOCUS active=1')>=2
  result['android_ime']=ime
-result.update(android_serial=a.serial,android_package=package,runtime_library_sha256=hashlib.sha256(runtime).hexdigest(),apk_sha256=hashlib.sha256(a.apk.read_bytes()).hexdigest(),android_emulator=capture(['shell','getprop','ro.kernel.qemu'])=='1')
+result.update(android_serial=a.serial,android_package=package,runtime_library_sha256=hashlib.sha256(runtime).hexdigest(),apk_sha256=hashlib.sha256(a.apk.read_bytes()).hexdigest(),android_emulator=capture(['shell','getprop','ro.kernel.qemu'])=='1',direct_targets_requested=a.direct)
 report.write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2))

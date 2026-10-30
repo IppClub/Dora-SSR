@@ -44,14 +44,7 @@ int dora_gl_leave(void *p) {
 void *dora_gl_display(void *p) { return get(p)->display; }
 uint32_t dora_gl_framebuffer(void *p) { return get(p)?get(p)->auxiliary_fbo:0; }
 int dora_gl_desktop(void *p) { return get(p)->api==EGL_OPENGL_API; }
-int dora_gl_supports_direct_targets(void *p) {
-#ifdef ANDROID_ENABLED
-    // Android is enabled only after its physical-device DIRECT-02 gate.
-    (void)p; return 0;
-#else
-    return get(p)!=nullptr;
-#endif
-}
+int dora_gl_supports_direct_targets(void *p) { return get(p)!=nullptr; }
 void *dora_gl_create(void *host, uint32_t width, uint32_t height, uint32_t buffers) {
     error.clear();
     if (!width || !height || width>8192 || height>8192 || buffers<2 || buffers>4

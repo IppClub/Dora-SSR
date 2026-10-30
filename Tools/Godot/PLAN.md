@@ -2701,3 +2701,10 @@ Godot Android Thread平台hook只有JNI attach/detach，未设置priority；现�
 - Godot 4.6 EGL运行库从当前桥接源码完整重建并通过228项原生ABI检查；包内`libdora_godot.so` SHA-256为`b0f060a4...bbf2`。当前Dora ARM64 Debug测试宿主由xmake 3.1.1从同步后的当前Linux宿主源码完整链接，测试入口符号存在，SHA-256为`ce3c77f8...4322`。
 - Ubuntu 24.04 ARM64 Parallels VM中的2/3/4缓冲矩阵全部通过，每项1000帧；三档均完成5次direct绑定、初始/800×450/320×180/恢复尺寸切换及节点重建，所有direct完成标记为`blits=0`。GPU客户端与读者最终pending/error为0，PCM欠载为0。renderer为Mesa virgl `Apple M1 Pro (Compat)`；该结果只证明虚拟GPU上的Linux EGL功能正确，不是物理Linux显卡兼容或性能证据。
 - 聚合报告为`build/godot-direct01-linux/direct-matrix/verification.json`，底层宿主纹理所有权/代际协议报告为`build/godot-direct01-linux/gl-host-targets/verification.json`。由此关闭DIRECT-01；下一项严格进入Android EGL真机2/3/4缓冲，不提前启用Android direct-target。
+
+### 2026-10-30 Android EGL direct-target 模拟器回归
+
+- Android EGL transport 现通过与WGL/Linux相同的运行时能力接口启用direct-target，不增加平台专用复制算法。测试宿主把`DORA_GODOT_GL_DIRECT`从Activity Intent镜像到libc环境；模块在Android改用Godot日志通道记录direct启用/完成标记，避免`stderr`未进入按PID收集的logcat。聚合驱动默认只接受物理设备，需显式`--allow-emulator-regression`才运行模拟器且报告保持未验收状态。
+- 当前Android arm64运行库和隔离Debug APK已重建，运行库SHA-256为`49f404e2...bb605`，APK为`4a70f3b4...b1f7f`。API 35 ARM64模拟器、ANGLE/SwiftShader下，2/3/4缓冲各完成1000帧；Intent与环境变量均记录为1，每档初始、三次resize和节点重建均重新绑定direct目标，完成标记全部为`blits=0`。
+- 三档动画、暂停恢复、输入、Android系统IME、节点移除重建、640x360→800x450→320x180→640x360、纹理别名、控制器、同PID Home恢复、PCM和完整退出通过。各客户端produced/completed相等，GPU reader pending/error与PCM underrun均为0。聚合报告为`build/godot-direct02-android/emulator-direct-matrix-v2/verification.json`，其中`direct02_physical_device_accepted=false`。
+- 这只关闭Android direct-target实现与模拟器回归，不关闭DIRECT-02。剩余必须在arm64物理Android设备上以普通nondebuggable Release完成同等2/3/4矩阵；模拟器不证明移动GPU驱动、物理触摸/控制器、真实音频延迟或生产签名。

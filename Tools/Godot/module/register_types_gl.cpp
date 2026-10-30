@@ -206,7 +206,11 @@ int bind_targets(void *handle,uint32_t width,uint32_t height,const uint32_t *tex
             runtime.error="DORA_GODOT_GL_DIRECT is not enabled for the current GL transport"; return 0;
         }
         runtime.direct_targets=true; runtime.direct_frames=0;
+#ifdef ANDROID_ENABLED
+        print_line(vformat("DORA_GODOT_GL_DIRECT enabled buffers=%d size=%dx%d blits=0",count,width,height));
+#else
         std::fprintf(stderr,"DORA_GODOT_GL_DIRECT enabled buffers=%u size=%ux%u blits=0\n",count,width,height);
+#endif
     }
     runtime.source=source; runtime.width=width; runtime.height=height; runtime.external_targets=true;
     return 1;
@@ -260,8 +264,13 @@ void close(void *handle,DoraGodotStats *stats) {
     RenderingServer::get_singleton()->sync(); dora_gl_drain(runtime.transport);
     if (stats && stats->size>=sizeof(*stats)) *stats={sizeof(*stats),runtime.sequence,
         dora_gl_completed(runtime.transport),dora_gl_errors(runtime.transport),dora_gl_deferred(runtime.transport)};
-    if (runtime.direct_targets)
+    if (runtime.direct_targets) {
+#ifdef ANDROID_ENABLED
+        print_line(vformat("DORA_GODOT_GL_DIRECT completed frames=%d blits=0",runtime.direct_frames));
+#else
         std::fprintf(stderr,"DORA_GODOT_GL_DIRECT completed frames=%llu blits=0\n",(unsigned long long)runtime.direct_frames);
+#endif
+    }
     clear_direct_targets();
     if (runtime.external_targets) dora_gl_clear_targets(runtime.transport);
     release_inputs();

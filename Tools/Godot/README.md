@@ -122,10 +122,11 @@ python3 Tools/Godot/tests/runtime_abi.py --library build/godot-runtime/package/l
 
 ## GL direct-target 验收
 
-设置 `DORA_GODOT_GL_DIRECT=1` 时，WGL 与 Linux desktop EGL 可让 Godot 直接把
+设置 `DORA_GODOT_GL_DIRECT=1` 时，WGL、Linux desktop EGL 与 Android EGL 可让 Godot 直接把
 最终颜色附件切换到 Dora/bgfx 管理的 2–4 张 RGBA8 render-target 纹理，绘制后只
 发布 GPU fence，稳态不调用 `glBlitFramebuffer`。该能力由 GL transport 显式声明；
-Android EGL 与 WebGL2 在各自后续任务完成前会拒绝强制启用，不会静默降级。
+WebGL2 在后续任务完成前会拒绝强制启用，不会静默降级。Android 当前已有模拟器
+回归证据，物理设备验收仍以 `TRACKING.md` 的 DIRECT-02 为准。
 
 Linux 预构建宿主和运行库的完整矩阵入口为：
 
@@ -763,6 +764,20 @@ python3 Tools/Godot/tests/android/run_node.py --serial emulator-5554 \
   --apk build/godot-android/gradle-app/outputs/apk/debug/app-debug.apk \
   --output build/godot-runtime/android-node-local --case lifecycle --buffers 3
 ```
+
+Android EGL direct-target 的 2/3/4 聚合入口为：
+
+```sh
+python3 Tools/Godot/tests/android/run_direct.py --serial DEVICE_SERIAL \
+  --sdk "$ANDROID_HOME" \
+  --apk build/godot-android/gradle-app/outputs/apk/debug/app-debug.apk \
+  --runtime-package build/godot-android/package \
+  --output build/godot-direct02-android/device-matrix
+```
+
+该Debug prototype入口默认要求物理设备；`--allow-emulator-regression` 只用于本地
+模拟器回归。即使在物理设备通过，它也只关闭功能回归，不会把Debug APK冒充普通
+nondebuggable Release验收；聚合报告始终保持`direct02_physical_device_accepted=false`。
 
 测试 APK 使用独立包名 `org.ippclub.dorassr.godotprototype` 和独立测试资源，不替换普通
 Dora 安装。驱动校验 APK 包名、隔离入口和运行库哈希；超时会保留原生进程与所有权记录，
