@@ -837,6 +837,17 @@ python3 Tools/Godot/tests/android/run_direct_release.py \
 
 模拟器改用`--owned-avd DoraGodotRC1_local`且不传`--physical-device`。聚合入口要求普通nondebuggable包、2/3/4缓冲全部启用direct-target并记录`blits=0`，同时执行系统触摸、SDL IME提交、同PID Home恢复、三档resize、等量保留纹理别名、PCM及完整退出。只有物理设备上全部通过时报告才写`direct02_accepted=true`；模拟器报告始终为false。首次沉浸式全屏教育弹窗只在检测到系统`android:id/ok`节点时关闭并记录，不向正常真机盲发按键。模拟器结束后须关闭，报告保留；本地测试签名也不等同生产签名。
 
+需要搬到另一台真机主机时，可生成带完整哈希、同证书检查和ZIP CRC的自校验包：
+
+```sh
+python3 Tools/Godot/package_android_direct_test.py \
+  --sdk "$ANDROID_HOME" --apk /path/to/locally-signed-release.apk \
+  --lifecycle-apk Tools/Godot/tests/android/lifecycle/app/build/outputs/apk/debug/app-debug.apk \
+  --runtime-package /path/to/runtime-package --output /path/to/new-physical-test-bundle
+```
+
+包内`run-physical.sh`和`run-physical.cmd`只接受显式设备序列号与新结果目录，运行前复核全部受管文件；`.venv/`与`results/`是仅有的运行时可写目录。打包报告始终写`physical_device_tested=false`、`direct02_accepted=false`，只有包内真实矩阵完成后生成的结果报告才能改变验收结论。
+
 Android 原生编译可使用 `-Pdora.android.jobs=2` 限制 Ninja 编译与链接并发（1–32）。
 Gradle `--max-workers` 只约束 Gradle 任务，不能约束每个 ABI 内部的 Ninja 并发。
 执行 GPU 时钟等验证时需避免不受控的后台编译使单帧延迟超过测试物理追赶上限；
