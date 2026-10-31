@@ -14,7 +14,7 @@
 - 功能：动态 GPU 画面共享，2/3/4 缓冲，暂停/恢复、场景重启、节点重建、异步 resize/cancel、基础输入、宿主 PCM 音频。
 - 语言：Lua/Teal/TypeScript、Rust、Wa。**移除 GodotNode 的 C# 绑定与专用测试入口；保留 Dora 原有 C# 功能。** 不引入隔离的 C# 生命周期方案；Godot .NET/Mono 项目脚本也不支持。
 - 恢复策略：Web context loss 已验证安全停止与页面重载恢复；原地设备恢复不在 1.0 承诺内。
-- 硬件覆盖按实测标注；新增硬件矩阵不自动阻塞受限范围的 RC，未测环境不宣称通过。
+- 硬件覆盖按实测标注；用户于 2026-10-31 明确接受在缺少物理设备时以虚拟机/模拟器完成当前路线验收。报告仍须标明虚拟后端，不得扩张为物理 GPU、真实触摸或真实音频兼容结论。
 - 本地验收结束后清理任务进程并关闭本任务启动的虚拟机/模拟器，保留报告和截图，不关闭无法确认归属的实例。
 
 ## 已完成
@@ -63,15 +63,15 @@
 以下任务严格按 `DIRECT-01 → DIRECT-02 → DIRECT-03 → DIRECT-04 → DIRECT-05 → DIRECT-06` 推进。目标是让 Godot 直接渲染到 Dora 管理的 2/3/4 缓冲纹理，消除稳态逐帧 GPU blit；它们不属于已冻结的 1.0 RC。
 
 - [x] **DIRECT-01｜通用 GL direct-target 与 Linux EGL。** WGL 的颜色附件替换、发布 fence 和统计已改为按 GL transport 能力启用的共用实现；Linux desktop EGL 可直接借用 bgfx 创建的 RGBA8 render-target，Android 与 Web 后续分别在 DIRECT-02/03 接入。Ubuntu ARM64/Parallels virgl 下 2/3/4 缓冲各完成 1000 帧，动画、暂停/恢复、输入、节点重建、三次 resize、纹理别名、PCM 与退出排空通过；全部 direct 会话记录 `blits=0`，GPU pending/error 与 PCM 欠载为 0。报告见 `build/godot-direct01-linux/direct-matrix/verification.json`；这是虚拟 GPU 证据，不冒充物理 Linux 显卡。
-- [ ] **DIRECT-02｜Android EGL 真机。** Android 已接入 DIRECT-01 共用实现；API 35 ARM64 模拟器上的普通 nondebuggable/R8 Release 已完成 2/3/4 完整矩阵，覆盖系统触摸/IME、同 PID Home 恢复、640×360/800×450/320×180 resize、2/3/4 个保留纹理别名、PCM 和完整退出，全部 `blits=0` 且 GPU/PCM 排空无错误。过程中修复了 Android window surface 重建后 EGL transport 恢复旧 surface 的问题；原生 2/3/4 surface-recreate 回归通过。报告见 `build/godot-direct02-android/release-full-matrix-v2/verification.json`，因 `physical_device=false` 仍明确标记 `direct02_accepted=false`。已生成自校验真机交接包 `build/godot-direct02-android/physical-test-bundle-v2.zip`，其中同样固定未验收状态；剩余闸门仅是在 arm64 物理手机或平板上运行包内同一矩阵，完成前本项保持未勾选。
-- [ ] **DIRECT-03｜WebGL2 direct-target。** 实现已完成：宿主 `WebGLTexture` 以独立对象名导入 Godot Wasm 并直接绑定最终颜色目标，生产桥默认启用，稳态只发布 fence；原生计数验证 360 帧 `direct_publications=360`、`blits=0`。Chromium 156、Firefox 153、Playwright WebKit 26.5 的真实 Dora `GodotNode` 2/3/4 缓冲矩阵均通过，覆盖合成截图、resize、别名、节点重建、输入、PCM 与 GPU 排空；Chrome 的 2/3/4 context loss 安全停止及三缓冲页面重载恢复也通过，最终 Godot WASM SHA-256 为 `5892fbf4…dfa3`。报告见 `build/godot-web/direct-{runtime,node}-*` 与 `build/godot-web/direct-context-loss-final-*`。剩余闸门仅为 macOS 原生 Safari 2/3/4：精确重跑历史通过金样（宿主 `fda4fcc1…4911`、Godot `80982084…205`、旧桥接和旧验收脚本）仍在同一 `running` 边界、首个 Godot 帧前超时且无 JS/WebGL 错误；普通 Safari 在无 WebDriver、无验收脚本时打开同包也保持空白。当前系统 WebKit/Safari 状态阻塞了 direct 判定，需系统重启后通过新增的 `tests/web/run_safari_matrix.py` 一次性完成三档严格验收；不能复用历史 blit 通过记录宣称 direct 已通过，本项继续未勾选。
-- [ ] **DIRECT-04｜Metal host-owned render targets。** 由 Dora/bgfx 创建具备 RenderTarget 与 ShaderRead 用途的 RGBA8 `MTLTexture`，Godot 导入后直接设为最终 render target；继续使用 `MTLSharedEvent` 完成生产/消费同步，移除稳态 Metal blit。先在 macOS Apple Silicon 完成 2/3/4 缓冲、resize、生命周期、别名、音频和耐久回归，再在 Apple4+ iPhone/iPad 真机完成同等 GPU 路径及触摸、前后台和音频验收；模拟器与能力拒绝不计正向真机通过。
-- [ ] **DIRECT-05｜Windows D3D12 物理机与纯 GPU fence。** 保留已经独立编译的 D3D12 单后端和共享资源原型；先在原生 x64 Windows、同一支持 Shader Model 6 的物理 GPU 上完成 CPU fence 双缓冲的资源导入与动态画面验收。通过后实现 2/3/4 缓冲的 Godot→bgfx 生产 fence 与 bgfx→Godot 回收 fence，稳态消除 CPU 等待，并覆盖动画、输入、resize、节点重建、纹理别名、PCM、退出排空和后端不匹配拒绝。
+- [x] **DIRECT-02｜Android EGL。** Android 已接入 DIRECT-01 共用实现；API 35 ARM64 模拟器上的普通 nondebuggable/R8 Release 已完成 2/3/4 完整矩阵，覆盖系统触摸/IME、同 PID Home 恢复、640×360/800×450/320×180 resize、2/3/4 个保留纹理别名、PCM 和完整退出，全部 `blits=0` 且 GPU/PCM 排空无错误。过程中修复了 Android window surface 重建后 EGL transport 恢复旧 surface 的问题；原生 2/3/4 surface-recreate 回归通过。报告见 `build/godot-direct02-android/release-full-matrix-v2/verification.json`；原报告如实保留 `physical_device=false` 与当时的 `direct02_accepted=false`，本项仅因用户后来明确接受虚拟设备验收而关闭，不改写成真机证据。真机交接包继续保留为可选扩展。
+- [x] **DIRECT-03｜WebGL2 direct-target。** 宿主 `WebGLTexture` 以独立对象名导入 Godot Wasm 并直接绑定最终颜色目标，生产桥默认启用，稳态只发布 fence；独立探针 2/3/4 各验证 360 帧 `direct_publications=360`、`blits=0`。Chromium 156、Firefox 153、Playwright WebKit 26.5 与重启后的 macOS 原生 Safari 26.6.2 均完成真实 Dora `GodotNode` 2/3/4 矩阵；Safari 汇总为 1860 控制帧、36 图、330 项像素检查、810 个 direct 完成帧，全部 `steady_state_blits=0`，GPU pending/error 与 PCM 欠载为 0。Chrome 的 2/3/4 context loss 安全停止及三缓冲页面重载恢复也通过。最终 Godot WASM SHA-256 为 `5892fbf4…dfa3`；Safari 报告见 `build/godot-web/direct-node-safari-matrix-after-reboot/verification.json`，其余见 `build/godot-web/direct-{runtime,node}-*` 与 `direct-context-loss-final-*`。
+- [ ] **DIRECT-04｜Metal host-owned render targets。** 由 Dora/bgfx 创建具备 RenderTarget 与 ShaderRead 用途的 RGBA8 `MTLTexture`，Godot 导入后直接设为最终 render target；继续使用 `MTLSharedEvent` 完成生产/消费同步，移除稳态 Metal blit。先在 macOS Apple Silicon 完成 2/3/4 缓冲、resize、生命周期、别名、音频和耐久回归；Apple4+ iOS 路径缺少物理设备时按用户决定改用模拟器验收，并明确不代表真机 GPU、触摸或音频兼容。
+- [ ] **DIRECT-05｜Windows D3D12 与纯 GPU fence。** 保留已经独立编译的 D3D12 单后端和共享资源原型；先在支持 Shader Model 6 且两端可选择同一适配器的 Windows 环境完成 CPU fence 双缓冲资源导入与动态画面验收，缺少物理机时允许使用虚拟机/软件适配器，但必须如实标注。通过后实现 2/3/4 缓冲的 Godot→bgfx 生产 fence 与 bgfx→Godot 回收 fence，稳态消除 CPU 等待，并覆盖动画、输入、resize、节点重建、纹理别名、PCM、退出排空和后端不匹配拒绝。
 - [ ] **DIRECT-06｜旧 blit 路径收口。** 全部前置平台验收完成后，按后端和驱动能力决定删除旧 blit，或将其保留为显式、可诊断的兼容回退。直接路径与回退路径都必须有独立能力判定、计数/日志和回归测试；不得静默降级。记录各平台相同场景的 GPU 时间、显存、延迟与稳定性对照，确认收益后再改变默认策略。
 
 ## 其他未覆盖边界
 
-- [ ] 物理Linux显卡、移动浏览器及物理控制器兼容性矩阵。
+- [ ] 物理Linux显卡、移动浏览器、物理移动设备及物理控制器兼容性矩阵（非当前路线阻塞项）。
 - [ ] 完整IME composition/候选窗口、旋转/多点触控、锁屏/来电/复杂前后台、真实浏览器后台策略。
 - [ ] device/context loss原地恢复、控制器热插拔/震动/多手柄。
 - [ ] 大型项目、复杂资源与插件/GDExtension、更多PCK/导出形式；长期复杂混音与端到端延迟、统一GPU/内存/性能基线。
