@@ -131,6 +131,19 @@ Chrome context-loss/页面重载恢复；原生 Safari 当前受系统 WebKit �
 重启后待执行的 2/3/4 验收以 `TRACKING.md` 的 DIRECT-03 为准。
 Android 当前已有模拟器回归证据，物理设备验收仍以 DIRECT-02 为准。
 
+系统重启后，原生 Safari direct-target 的完整矩阵使用全新输出目录运行：
+
+```sh
+python3 Tools/Godot/tests/web/run_safari_matrix.py \
+  --package build/godot-web/dora-player \
+  --runtime-package build/godot-web/package \
+  --output build/godot-web/direct-node-safari-matrix-after-reboot \
+  --cabi-observer
+```
+
+聚合报告只有在真实 Safari 的 2/3/4 三项严格图像、生命周期、GPU/PCM 排空校验均通过，
+且每项都确认 `direct_target=true`、`steady_state_blits=0` 后才会生成。
+
 Linux 预构建宿主和运行库的完整矩阵入口为：
 
 ```sh
