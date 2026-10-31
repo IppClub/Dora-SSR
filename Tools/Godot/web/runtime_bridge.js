@@ -8,6 +8,7 @@ export class GodotWebBridge {
     g.initConfig({canvas,locale:navigator.language||'en',resizeCanvasOnStart:false});
     if(!g._dora_web_context() || g.GL.currentContext.GLctx!==this.host.GL.currentContext.GLctx)
       throw new Error('Godot and Dora must use the same WebGL2 context');
+    if(!g._dora_web_direct(1))throw new Error('Cannot enable Godot WebGL2 direct targets');
     // Attribute pointers/enables belong to the VAO object, not merely the
     // context's binding. Give Godot's integer name0 a private default VAO so
     // it cannot mutate bgfx's default object across a state boundary.

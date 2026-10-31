@@ -206,8 +206,10 @@ int bind_targets(void *handle,uint32_t width,uint32_t height,const uint32_t *tex
             runtime.error="DORA_GODOT_GL_DIRECT is not enabled for the current GL transport"; return 0;
         }
         runtime.direct_targets=true; runtime.direct_frames=0;
-#ifdef ANDROID_ENABLED
+#if defined(ANDROID_ENABLED)
         print_line(vformat("DORA_GODOT_GL_DIRECT enabled buffers=%d size=%dx%d blits=0",count,width,height));
+#elif defined(WEB_ENABLED)
+        std::printf("DORA_GODOT_GL_DIRECT enabled buffers=%u size=%ux%u blits=0\n",count,width,height);
 #else
         std::fprintf(stderr,"DORA_GODOT_GL_DIRECT enabled buffers=%u size=%ux%u blits=0\n",count,width,height);
 #endif
@@ -265,8 +267,10 @@ void close(void *handle,DoraGodotStats *stats) {
     if (stats && stats->size>=sizeof(*stats)) *stats={sizeof(*stats),runtime.sequence,
         dora_gl_completed(runtime.transport),dora_gl_errors(runtime.transport),dora_gl_deferred(runtime.transport)};
     if (runtime.direct_targets) {
-#ifdef ANDROID_ENABLED
+#if defined(ANDROID_ENABLED)
         print_line(vformat("DORA_GODOT_GL_DIRECT completed frames=%d blits=0",runtime.direct_frames));
+#elif defined(WEB_ENABLED)
+        std::printf("DORA_GODOT_GL_DIRECT completed frames=%llu blits=0\n",(unsigned long long)runtime.direct_frames);
 #else
         std::fprintf(stderr,"DORA_GODOT_GL_DIRECT completed frames=%llu blits=0\n",(unsigned long long)runtime.direct_frames);
 #endif

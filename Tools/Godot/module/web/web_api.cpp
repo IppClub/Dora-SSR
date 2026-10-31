@@ -7,6 +7,9 @@
 #include "../GodotBridgeIME.h"
 #include <emscripten.h>
 #include <emscripten/html5.h>
+#include <cstdlib>
+extern "C" uint64_t dora_gl_web_blits();
+extern "C" uint64_t dora_gl_web_direct_publications();
 namespace {
 DoraGodotAPI api{};DoraGodotGLAPI gl{};DoraGodotGLTargetsAPI targets{};
 DoraGodotAudioAPI audio{};DoraGodotOutputAPI output{};DoraGodotIMEAPI ime{};
@@ -27,6 +30,9 @@ EMSCRIPTEN_KEEPALIVE int dora_web_context(){
     if(context<=0 || emscripten_webgl_make_context_current(context)!=EMSCRIPTEN_RESULT_SUCCESS)return 0;
     return context;
 }
+EMSCRIPTEN_KEEPALIVE int dora_web_direct(int enabled){
+    return !runtime && setenv("DORA_GODOT_GL_DIRECT",enabled?"1":"0",1)==0;
+}
 EMSCRIPTEN_KEEPALIVE int dora_web_open(const char *project,const char *scene,int width,int height,int buffers){
     if(runtime || !load())return 0;
     DoraGodotConfig config{sizeof(config),DORA_GODOT_WEBGL2,(uint32_t)width,(uint32_t)height,(uint32_t)buffers,project,scene,(void*)(uintptr_t)emscripten_webgl_get_current_context()};
@@ -41,6 +47,8 @@ EMSCRIPTEN_KEEPALIVE uint64_t dora_web_advance(unsigned slot,uint64_t read){retu
 EMSCRIPTEN_KEEPALIVE int dora_web_consumer_begin(unsigned slot,uint64_t sequence){return runtime && gl.consumer_begin(runtime,slot,sequence);}
 EMSCRIPTEN_KEEPALIVE int dora_web_consumer_end(unsigned slot,uint64_t read){return runtime && gl.consumer_end(runtime,slot,read);}
 EMSCRIPTEN_KEEPALIVE int dora_web_bind_targets(unsigned width,unsigned height,const unsigned *textures,unsigned count){return runtime && targets.bind(runtime,width,height,textures,count);}
+EMSCRIPTEN_KEEPALIVE uint64_t dora_web_blits(){return dora_gl_web_blits();}
+EMSCRIPTEN_KEEPALIVE uint64_t dora_web_direct_publications(){return dora_gl_web_direct_publications();}
 EMSCRIPTEN_KEEPALIVE int dora_web_pause(int paused){return runtime && api.set_paused(runtime,paused);}
 EMSCRIPTEN_KEEPALIVE int dora_web_restart(const char *scene){return runtime && api.restart_scene(runtime,scene);}
 EMSCRIPTEN_KEEPALIVE int dora_web_input(const DoraGodotInput *event){return runtime && api.input(runtime,event);}

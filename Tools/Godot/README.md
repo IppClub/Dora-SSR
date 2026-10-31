@@ -125,8 +125,10 @@ python3 Tools/Godot/tests/runtime_abi.py --library build/godot-runtime/package/l
 设置 `DORA_GODOT_GL_DIRECT=1` 时，WGL、Linux desktop EGL 与 Android EGL 可让 Godot 直接把
 最终颜色附件切换到 Dora/bgfx 管理的 2–4 张 RGBA8 render-target 纹理，绘制后只
 发布 GPU fence，稳态不调用 `glBlitFramebuffer`。该能力由 GL transport 显式声明；
-WebGL2 在后续任务完成前会拒绝强制启用，不会静默降级。Android 当前已有模拟器
-回归证据，物理设备验收仍以 `TRACKING.md` 的 DIRECT-02 为准。
+Web 生产桥也默认显式启用同一 direct-target 算法，并继续保留旧 blit 实现供后续兼容
+回退决策。WebGL2 已通过 Chromium、Firefox 与 Playwright WebKit 的 2/3/4 缓冲矩阵及
+Chrome context-loss/页面重载恢复；原生 Safari 仍以 `TRACKING.md` 的 DIRECT-03 为准。
+Android 当前已有模拟器回归证据，物理设备验收仍以 DIRECT-02 为准。
 
 Linux 预构建宿主和运行库的完整矩阵入口为：
 
@@ -958,7 +960,7 @@ ANGLE Metal／Apple M1 Pro。PCKPacker 由本机 Godot4.4.1 执行，包由4.6�
 需要 COOP／COEP 响应头，测试 HTTP 服务已设置；普通 Dora Web 构建没有开启该功能。
 
 `web/runtime_bridge.js` 在两个独立模块间映射纹理编号。纹理由宿主创建，Godot 借用
-并 blit 离屏输出；关闭后测试检查宿主纹理仍存在。两者已经严格校验为同一 WebGL2
+并直接作为最终颜色附件绘制；关闭后测试检查宿主纹理仍存在。两者已经严格校验为同一 WebGL2
 context，GPU 命令天然按同一队列排序，Web 路径不调用原生跨 context 的 waitSync，
 不为稳态传图 CPU 等待 fence。完成状态仍由真实 GL fence／最终排空检查。
 

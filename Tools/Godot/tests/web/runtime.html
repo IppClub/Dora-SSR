@@ -54,13 +54,15 @@ try {
  }
  assert(seen.size>30&&pauseChecks===30&&resumed&&restarted,'real GDScript lifecycle checks');
  gl.finish();await next();
+ const blits=Number(godot._dora_web_blits()),directPublications=Number(godot._dora_web_direct_publications());
+ assert(blits===0 && directPublications===frames,'direct target counters '+JSON.stringify({blits,directPublications,frames}));
  const stats=godot._dora_web_close(),view=new DataView(godot.HEAPU8.buffer),produced=Number(view.getBigUint64(stats+8,true)),completed=Number(view.getBigUint64(stats+16,true)),errors=Number(view.getBigUint64(stats+24,true));
  assert(produced===frames && completed===frames && !errors,'Godot producer drain');
  bridge.releaseTargets();
  for(const slot of slots){assert(gl.isTexture(slot.texture),'Godot must not delete host texture');boundary.forgetTexture(slot.texture);host._release_texture(slot.hostId);}
  bridge.shutdown();assert(gl.getError()===gl.NO_ERROR,'final GL error');
  host._poison();assert(gl.getError()===gl.NO_ERROR,'host resources survive Godot teardown');
- window.result={passed:true,scope:'Real Godot 4.6 Web runtime to independent WASM host GL shader only; Dora node pending',frames,buffers,texture_orientation:orientation,paused_pixel_checks:pauseChecks,resume_verified:resumed,restart_verified:restarted,streamed_frames_without_readback:179,project_form:packed?'pck':'directory',host_owned_targets:true,distinct_native_texture_names:true,pixel_samples:pixelSamples,animated_colors:seen.size,deferred_fence_polls:deferrals,produced,completed,gpu_errors:errors,version:godot.UTF8ToString(godot._dora_web_version()),same_webgl_context:true,independent_wasm_heaps:godot.HEAPU8.buffer!==host.HEAPU8.buffer,renderer:gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL)};
+ window.result={passed:true,scope:'Real Godot 4.6 Web runtime direct-target rendering to an independent WASM host GL shader only; Dora node pending',frames,buffers,texture_orientation:orientation,paused_pixel_checks:pauseChecks,resume_verified:resumed,restart_verified:restarted,streamed_frames_without_readback:179,project_form:packed?'pck':'directory',host_owned_targets:true,direct_target:true,blits,direct_publications:directPublications,distinct_native_texture_names:true,pixel_samples:pixelSamples,animated_colors:seen.size,deferred_fence_polls:deferrals,produced,completed,gpu_errors:errors,version:godot.UTF8ToString(godot._dora_web_version()),same_webgl_context:true,independent_wasm_heaps:godot.HEAPU8.buffer!==host.HEAPU8.buffer,renderer:gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL)};
 }catch(error){window.result={passed:false,error:String(error),stack:error.stack};}
 status.textContent=JSON.stringify(window.result,null,2);
 </script>

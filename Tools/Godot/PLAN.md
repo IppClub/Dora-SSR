@@ -2724,3 +2724,10 @@ Godot Android Thread平台hook只有JNI attach/detach，未设置priority；现�
 - 普通nondebuggable/R8 APK SHA-256为`db7c5fb4...1adc9`，控制器APK为`0680890c...c02b`。API 35 ARM64模拟器的2/3/4完整矩阵全部通过：客户端GPU帧252/248/246均全部完成，reader pending/error和PCM欠载均为0，direct完成标记全部为`blits=0`；每档10张图并保留2/3/4个纹理别名。聚合报告`build/godot-direct02-android/release-full-matrix-v2/verification.json`明确记录`physical_device=false`、`direct02_accepted=false`。
 - DIRECT-02因此只剩同一普通Release矩阵的arm64物理Android设备运行；模拟器不能证明移动GPU驱动、真实触控硬件或物理音频输出。任务继续保持未勾选，且不提前进入DIRECT-03。
 - 新增`package_android_direct_test.py`，在交接前复核普通APK、ARM64 ELF运行库、instrumentation target及两APK签名证书一致性，再封装固定脚本、运行库、Pillow依赖、源范围和逐文件哈希。`physical-test-bundle-v2.zip`为约99 MiB，SHA-256 `5c57a525...95295`，26个文件；全新临时目录解压后通过ZIP CRC、25项受管文件复核、允许`.venv/`/`results/`写入及受管文件篡改拒绝。外部报告仍明确`physical_device_tested=false`、`direct02_accepted=false`，不把交接包冒充真机证据。
+
+### 2026-10-31 WebGL2 direct-target 与浏览器矩阵
+
+- Web transport 现在声明通用 direct-target 能力；生产桥在打开 Godot 前显式启用。宿主创建的 `WebGLTexture` 继续通过共享 WebGL2 context 映射到 Godot 独立的 Emscripten GL 名字表，每帧只把 Godot 最终 FBO 的颜色附件切换到当前槽并发布 fence。新增原生计数器区分 direct publication 与 `glBlitFramebuffer`；独立运行库探针的 2/3/4 缓冲各完成360帧，均为 `direct_publications=360`、`blits=0`、GPU错误0。
+- 最终Debug Godot WASM SHA-256为`5892fbf4...dfa3`。真正 Dora `GodotNode` 在Chromium156、Firefox153与Playwright WebKit26.5完成2/3/4缓冲矩阵；每项620控制帧、12张Dora合成截图，覆盖暂停/恢复、重启、resize、2/3/4别名、移除重建、指针/键盘/控制器、PCM与退出排空。所有会话有direct启用/完成的`blits=0`标记，GPU pending/error及PCM欠载为0。报告位于`build/godot-web/direct-node-{chromium-2-4,chromium-3,firefox,webkit}/`。
+- Chrome真实`WEBGL_lose_context`在2/3/4缓冲均安全进入faulted状态，音频、输入、IME与平台服务关闭，reader为`pending=0`且GPU错误0；三缓冲页面重载后重新完成620帧与两次生产C ABI生命周期排空。最终报告为`build/godot-web/direct-context-loss-final-{2,4}/verification.json`和`direct-context-loss-final-reload-3/verification.json`。
+- macOS原生Safari本轮未取得判定：当前direct包与历史上已通过的旧blit包都在页面已为`running`但首个Godot帧之前超时，无JS/WebGL错误；重启Safari、保持窗口前台后仍相同。因此这是当前Safari/WebDriver环境阻塞，不作为direct失败，也不能复用旧结果宣称本轮通过。DIRECT-03保持未勾选，只剩原生Safari 2/3/4矩阵；用户已明确允许DIRECT-02等待真机期间先推进本项。

@@ -15,9 +15,10 @@ struct Slot {
 struct Transport {
     uint32_t width=0,height=0,buffers=0;
     GLuint source_fbo=0,target_fbo=0,auxiliary_fbo=0,auxiliary_color=0;
-    uint64_t sequence=0,completed=0,deferred=0,errors=0;
+    uint64_t sequence=0,completed=0,deferred=0,errors=0,blits=0,direct_publications=0;
     std::array<Slot,4> slots;
 };
+Transport *active_transport=nullptr;
 Transport *get(void *p){return static_cast<Transport*>(p);}
 bool check(Transport *t){const auto code=glGetError();if(code==GL_NO_ERROR)return true;++t->errors;error="WebGL transport error code="+std::to_string(code);return false;}
 EM_JS(int,enter_boundary,(),{
@@ -42,13 +43,15 @@ int dora_gl_enter(void *p){return p && enter_boundary();}
 int dora_gl_leave(void *p){return p && leave_boundary();}
 void *dora_gl_display(void *){return nullptr;}
 int dora_gl_desktop(void *){return 0;}
-int dora_gl_supports_direct_targets(void *){return 0;}
+int dora_gl_supports_direct_targets(void *p){return get(p)!=nullptr;}
+uint64_t dora_gl_web_blits(){return active_transport?active_transport->blits:0;}
+uint64_t dora_gl_web_direct_publications(){return active_transport?active_transport->direct_publications:0;}
 uint32_t dora_gl_framebuffer(void *p){return get(p)?get(p)->auxiliary_fbo:0;}
 void *dora_gl_create(void *host,uint32_t width,uint32_t height,uint32_t buffers){
     error.clear();
     if(!host || (uintptr_t)host!=(uintptr_t)emscripten_webgl_get_current_context() || !width || !height || width>8192 || height>8192 || buffers<2 || buffers>4){error="invalid/current WebGL2 context";return nullptr;}
-    auto *t=new Transport;t->width=width;t->height=height;t->buffers=buffers;
-    if(!dora_gl_enter(t)){delete t;return nullptr;}
+    auto *t=new Transport;t->width=width;t->height=height;t->buffers=buffers;active_transport=t;
+    if(!dora_gl_enter(t)){active_transport=nullptr;delete t;return nullptr;}
     glGenRenderbuffers(1,&t->auxiliary_color);glBindRenderbuffer(GL_RENDERBUFFER,t->auxiliary_color);glRenderbufferStorage(GL_RENDERBUFFER,GL_RGBA8,1,1);
     glGenFramebuffers(1,&t->auxiliary_fbo);glBindFramebuffer(GL_FRAMEBUFFER,t->auxiliary_fbo);glFramebufferRenderbuffer(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_RENDERBUFFER,t->auxiliary_color);
     glGenFramebuffers(1,&t->source_fbo);glGenFramebuffers(1,&t->target_fbo);
@@ -67,6 +70,6 @@ void dora_gl_destroy(void *p){
         glDeleteFramebuffers(1,&t->source_fbo);glDeleteFramebuffers(1,&t->target_fbo);glDeleteFramebuffers(1,&t->auxiliary_fbo);glDeleteRenderbuffers(1,&t->auxiliary_color);
         dora_gl_leave(t);
     }
-    delete t;
+    if(active_transport==t)active_transport=nullptr;delete t;
 }
 }

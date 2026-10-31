@@ -56,6 +56,10 @@ for name in ['aliases','removed','removed-again','recreated']:
 assert aliases[1]['frames']==aliases[2]['frames']==aliases[3]['frames']
 assert any(after>=before for before,after in zip(aliases[0]['frames'],aliases[1]['frames']))
 logs='\n'.join(r['logs']);assert logs.count('DORA_WEB_GODOT_BOOT')==3
+direct_enabled=re.findall(r'DORA_GODOT_GL_DIRECT enabled buffers=(\d+) size=(\d+)x(\d+) blits=0',logs)
+direct_completed=[int(value) for value in re.findall(r'DORA_GODOT_GL_DIRECT completed frames=(\d+) blits=0',logs)]
+assert len(direct_enabled)>=2 and all(int(value[0])==a.buffers for value in direct_enabled),direct_enabled
+assert len(direct_completed)==2 and all(value>0 for value in direct_completed),direct_completed
 for text in ['DORA_WEB_GODOT_POINTER 100,70','DORA_WEB_GODOT_KEY 1 state=1','DORA_WEB_GODOT_KEY 0 state=0','DORA_WEB_NODE_DONE frames=620 aliases='+str(a.buffers)]:assert text in logs,text
 for text in ['DORA_WEB_GODOT_CONTROLLER_BUTTON device=7 pressed=1 state=1','DORA_WEB_GODOT_CONTROLLER_AXIS device=7 value=0.75','DORA_WEB_GODOT_CONTROLLER_FOCUS released=1']:
  assert text in logs,text
@@ -92,5 +96,5 @@ else:
  assert len(audio)==2 and len(tones)==2,(audio,tones)
  for produced,consumed,nonzero_in,nonzero_out,underruns in audio:assert int(produced)>=int(consumed)>0 and int(nonzero_in)>0 and int(nonzero_out)>0 and int(underruns)==0
  for count,left,right in tones:assert int(count)==48000 and abs(int(left)-440)<=2 and abs(int(right)-660)<=2
-r.update(passed=True,scope='Actual Dora GodotNode Web: composited GPU output, C ABI/manual pointer/key, standard controller button/axis/focus release, lifecycle/resize/retained aliases, GPU drain, PCM-to-SoLoud oracle and post-stop platform-service teardown; native DOM input and latency still pending',buffers=a.buffers,stats_evidence='Observed production C ABI and PCM' if a.cabi_observer else 'Native diagnostic logs',pixel_checks=checks,barcodes=frames,aliases=aliases,gpu_clients=clients,gpu_readers=readers,audio=audio,tones=tones,controller_button_axis_forwarding=True,controller_focus_loss_releases_held_input=True,platform_service_teardown=True,host_suspend_resume=bool(r.get('suspension')),images_sha256={name:hashlib.sha256((a.results/(name+'.png')).read_bytes()).hexdigest() for name in images})
+r.update(passed=True,scope='Actual Dora GodotNode Web direct-target rendering: composited GPU output with zero-blit native markers, C ABI/manual pointer/key, standard controller button/axis/focus release, lifecycle/resize/retained aliases, GPU drain, PCM-to-SoLoud oracle and post-stop platform-service teardown; native DOM input and latency still pending',buffers=a.buffers,stats_evidence='Observed production C ABI and PCM' if a.cabi_observer else 'Native diagnostic logs',pixel_checks=checks,barcodes=frames,aliases=aliases,gpu_clients=clients,gpu_readers=readers,audio=audio,tones=tones,direct_target=True,direct_enabled=direct_enabled,direct_completed_frames=direct_completed,steady_state_blits=0,controller_button_axis_forwarding=True,controller_focus_loss_releases_held_input=True,platform_service_teardown=True,host_suspend_resume=bool(r.get('suspension')),images_sha256={name:hashlib.sha256((a.results/(name+'.png')).read_bytes()).hexdigest() for name in images})
 report.write_text(json.dumps(r,indent=2)+'\n');print(json.dumps({key:r[key] for key in ['passed','buffers','controller_frames','pixel_checks','audio','tones']}))
