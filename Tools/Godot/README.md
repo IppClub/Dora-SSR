@@ -124,8 +124,9 @@ python3 Tools/Godot/tests/runtime_abi.py --library build/godot-runtime/package/l
 
 `DORA_GODOT_GL_DIRECT=1`（或 `direct`）强制使用 direct-target，`0`（或 `blit`）
 强制使用兼容 blit，`auto` 按 GL transport 能力选择；无效值和不支持平台上的强制
-direct 会在绑定阶段失败。暂未设置变量时仍使用兼容 blit 默认值，直到同场景的 GPU
-时间、显存和延迟对照完成，但会输出 `DORA_GODOT_GL_TRANSPORT` 诊断，不再静默回退。
+direct 会在绑定阶段失败。未设置变量时，已验收且声明 direct-target 能力的 GL transport
+默认使用 direct；不具备能力时自动回退 blit。驱动兼容问题可显式设置 `0/blit`，无需
+重新编译。所有选择都会输出 `DORA_GODOT_GL_TRANSPORT` 诊断，不做静默回退。
 该诊断在 bind/close 记录 mode、policy、capability、reason、`blits` 与
 `direct_publications`；两个计数器在 WGL、EGL 与 WebGL2 上使用相同实现。
 Linux EGL 还可用同一生产场景做交替顺序的 direct/blit 对照：
@@ -888,6 +889,10 @@ python3 Tools/Godot/tests/android/run_direct_release.py \
   --lifecycle-apk Tools/Godot/tests/android/lifecycle/app/build/outputs/apk/debug/app-debug.apk \
   --output /path/to/fresh-direct-evidence
 ```
+
+默认命令显式请求 direct；要验证“变量未设置时默认 direct”，增加 `--default-policy`。
+单项普通Release要检查兼容回退时，使用 `run_ordinary_release.py --blit`；测试控制器会
+显式传入 `DORA_GODOT_GL_DIRECT=0`，并在报告中记录 `gl_policy=forced-blit`。
 
 模拟器改用`--owned-avd DoraGodotRC1_local`且不传`--physical-device`。聚合入口要求普通nondebuggable包、2/3/4缓冲全部启用direct-target并记录`blits=0`，同时执行系统触摸、SDL IME提交、同PID Home恢复、三档resize、等量保留纹理别名、PCM及完整退出。只有物理设备上全部通过时报告才写`direct02_accepted=true`；模拟器报告始终为false。首次沉浸式全屏教育弹窗只在检测到系统`android:id/ok`节点时关闭并记录，不向正常真机盲发按键。模拟器结束后须关闭，报告保留；本地测试签名也不等同生产签名。
 

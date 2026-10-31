@@ -5,11 +5,12 @@ namespace DoraGodotGLTargetPolicy {
 enum class Mode { Direct, Blit, Error };
 struct Decision { Mode mode; const char *policy; const char *reason; };
 
-// The unset option intentionally keeps the established compatibility default
-// until comparable performance evidence exists, but is always diagnosed.
+// Validated direct-target transports use zero-copy by default. Explicit blit
+// remains available for driver compatibility and diagnostics.
 inline Decision decide(const char *requested,bool direct_capable) {
     if (!requested || !*requested)
-        return {Mode::Blit,"legacy-default","performance-baseline-pending"};
+        return direct_capable ? Decision{Mode::Direct,"default","validated-direct-target"}
+                              : Decision{Mode::Blit,"default","direct-target-unsupported"};
     if (std::strcmp(requested,"0")==0 || std::strcmp(requested,"blit")==0)
         return {Mode::Blit,"forced","explicit-compatibility-fallback"};
     if (std::strcmp(requested,"auto")==0)

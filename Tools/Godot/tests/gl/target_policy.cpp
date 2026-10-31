@@ -7,8 +7,8 @@ static void expect(const char *requested,bool capable,Mode mode,const char *poli
     assert(result.mode==mode && std::strcmp(result.policy,policy)==0 && std::strcmp(result.reason,reason)==0);
 }
 int main() {
-    expect(nullptr,false,Mode::Blit,"legacy-default","performance-baseline-pending");
-    expect("",true,Mode::Blit,"legacy-default","performance-baseline-pending");
+    expect(nullptr,false,Mode::Blit,"default","direct-target-unsupported");
+    expect("",true,Mode::Direct,"default","validated-direct-target");
     expect("0",true,Mode::Blit,"forced","explicit-compatibility-fallback");
     expect("blit",true,Mode::Blit,"forced","explicit-compatibility-fallback");
     expect("auto",true,Mode::Direct,"auto","direct-target-supported");

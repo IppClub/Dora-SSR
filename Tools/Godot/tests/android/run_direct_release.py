@@ -14,6 +14,8 @@ for name in ("sdk", "apk", "runtime-package", "lifecycle-apk", "output"):
 parser.add_argument("--serial", required=True)
 parser.add_argument("--owned-avd")
 parser.add_argument("--physical-device", action="store_true")
+parser.add_argument("--default-policy", action="store_true",
+                    help="Leave DORA_GODOT_GL_DIRECT unset and require the validated direct default")
 args = parser.parse_args()
 
 output = args.output.resolve()
@@ -43,8 +45,10 @@ try:
             "--lifecycle-apk", str(args.lifecycle_apk.resolve()),
             "--output", str(case),
             "--buffers", str(buffers),
-            "--direct", "--full",
+            "--full",
         ]
+        if not args.default_policy:
+            command.append("--direct")
         if emulator:
             command += ["--owned-avd", args.owned_avd]
         else:
@@ -53,7 +57,9 @@ try:
             subprocess.run(command, cwd=root, check=True, stdout=log,
                            stderr=subprocess.STDOUT, timeout=300)
         result = json.loads((case / "verification.json").read_text())
-        assert result["passed"] and result["direct_targets_requested"] and result["full_acceptance"]
+        assert result["passed"] and result["direct_targets_active"] and result["full_acceptance"]
+        assert result["direct_targets_default"] == args.default_policy
+        assert result["direct_targets_requested"] != args.default_policy
         assert result["direct_blits"] == 0 and result["artifacts"]["debuggable"] is False
         assert result["android_emulator"] == emulator
         cases.append({
@@ -74,6 +80,7 @@ try:
         "ordinary_nondebuggable_release": True,
         "physical_device": not emulator,
         "direct02_accepted": not emulator,
+        "default_direct_policy": args.default_policy,
         "scope": ("Ordinary nondebuggable Release direct-target 2/3/4 physical-device acceptance: "
                   "system touch/IME, same-process Home/resume, resize and retained texture aliases"
                   if not emulator else

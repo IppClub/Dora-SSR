@@ -78,7 +78,7 @@ def verify_case(case, buffers, missing, direct=False, full=False):
         enabled = re.findall(r'DORA_GODOT_GL_DIRECT enabled buffers=(\d+) size=(\d+)x(\d+) blits=0', log)
         completed = [int(value) for value in re.findall(r'DORA_GODOT_GL_DIRECT completed frames=(\d+) blits=0', log)]
         if direct:
-            assert 'GodotRuntime Android GL direct-target requested=1' in log
+            assert 'DORA_GODOT_GL_TRANSPORT phase=bind mode=direct ' in log
             assert enabled and all(int(item[0]) == buffers for item in enabled), enabled
             assert completed and all(value > 0 for value in completed), completed
         else:
@@ -155,7 +155,8 @@ def verify_case(case, buffers, missing, direct=False, full=False):
     for n in ('Director', 'BGFXDora', 'Logger'): assert life.count(n) == 1, life
     assert life.index('Director') < life.index('BGFXDora') < life.index('Logger')
     return {'passed': True, 'missing': missing, 'full_acceptance': full, 'buffers': buffers, 'captures': len(names), 'metrics': metrics,
-            'direct_targets_requested': direct, 'direct_blits': 0 if direct and not missing else None,
+            'direct_targets_active': direct, 'direct_targets_requested': direct,
+            'direct_blits': 0 if direct and not missing else None,
             'gpu_clients': clients, 'gpu_readers': readers, 'ordinary_centers': ordinary,
             'allowed_environment_warnings': warnings,
             'log_sha256': sha((case / 'run.log').read_bytes()),

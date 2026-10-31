@@ -17,9 +17,13 @@ p.add_argument('--serial', required=True); p.add_argument('--owned-avd')
 p.add_argument('--physical-device', action='store_true')
 p.add_argument('--buffers', type=int, choices=(2, 3, 4), default=3); p.add_argument('--missing', action='store_true')
 p.add_argument('--direct', action='store_true')
+p.add_argument('--blit', action='store_true', help='Force the compatibility path instead of the validated direct default')
 p.add_argument('--full', action='store_true', help='Exercise touch, IME, Home/resume, resize and retained texture aliases')
 a = p.parse_args()
-assert not a.full or (a.direct and not a.missing), '--full requires --direct and an installed runtime'
+assert not (a.direct and a.blit), '--direct and --blit are mutually exclusive'
+assert not a.full or (not a.blit and not a.missing), '--full requires direct/default policy and an installed runtime'
+effective_direct = not a.blit
+gl_policy = 'forced-direct' if a.direct else ('forced-blit' if a.blit else 'default-direct')
 out = a.output.resolve(); out.mkdir(parents=True, exist_ok=False)
 adb = [str(a.sdk / 'platform-tools/adb'), '-s', a.serial]
 def call(args, **kw): return subprocess.run(adb + args, check=True, timeout=30, **kw)
@@ -52,11 +56,13 @@ badging = subprocess.check_output([str(aapt), 'dump', 'badging', str(a.apk)], te
 activity = re.search(r"launchable-activity: name='([^']+)'", badging); assert activity
 active = {'serial': a.serial, 'avd': a.owned_avd, 'physical_device': not emulator,
           'package': package, 'state': 'starting', 'evidence': external,
-          'artifacts': artifacts, 'buffers': a.buffers, 'missing': a.missing, 'direct': a.direct, 'full': a.full}
+          'artifacts': artifacts, 'buffers': a.buffers, 'missing': a.missing,
+          'direct': a.direct, 'blit': a.blit, 'gl_policy': gl_policy, 'full': a.full}
 state = out / 'active-run.json'; state.write_text(json.dumps(active, indent=2) + '\n')
 instrument_log = (out / 'instrumentation.log').open('wb')
 instrument_command = adb + ['shell', 'am', 'instrument', '-w',
     '-e', 'buffers', str(a.buffers), '-e', 'direct', str(int(a.direct)), '-e', 'missing', str(int(a.missing)),
+    '-e', 'blit', str(int(a.blit)),
     '-e', 'full', str(int(a.full)),
     'org.dora.godotrc1.lifecycle/org.dora.godotrc1.ReleaseLifecycle']
 instrument = subprocess.Popen(instrument_command, stdout=instrument_log, stderr=subprocess.STDOUT)
@@ -96,12 +102,15 @@ assert set(listing) == allowed and {'result.json', 'controller.json'} <= allowed
 for name in listing:
     (files / name).write_bytes(subprocess.check_output(adb + ['exec-out', 'cat', external + '/' + name], timeout=30))
 controller = json.loads((files / 'controller.json').read_text())
-assert controller['buffers'] == a.buffers and controller['direct'] == a.direct, controller
+assert controller['buffers'] == a.buffers and controller['direct'] == effective_direct, controller
+assert controller['gl_policy'] == gl_policy, controller
 assert controller['missing'] == a.missing and controller['full'] == a.full, controller
 assert isinstance(controller['initial_pid'], int) and isinstance(controller['final_pid'], int), controller
-result = verify_case(out, a.buffers, a.missing, a.direct, a.full)
+result = verify_case(out, a.buffers, a.missing, effective_direct, a.full)
 result.update(artifacts=artifacts, controller=controller, serial=a.serial, avd=a.owned_avd, android_emulator=emulator,
               physical_device=not emulator, scope=__doc__,
+              direct_targets_requested=a.direct, direct_targets_default=not a.direct and not a.blit,
+              compatibility_blit_requested=a.blit, gl_policy=gl_policy,
               exit_method='Separate Android framework instrumentation calls Activity.finish after public Lua completion')
 (out / 'verification.json').write_text(json.dumps(result, indent=2) + '\n')
 # A native full shutdown is proven before ending the remaining Android activity.

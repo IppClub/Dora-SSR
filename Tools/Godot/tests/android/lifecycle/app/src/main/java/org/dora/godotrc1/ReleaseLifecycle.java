@@ -113,6 +113,10 @@ public final class ReleaseLifecycle extends Instrumentation {
             int buffers = Integer.parseInt(arguments.getString("buffers", "3"));
             if (buffers < 2 || buffers > 4) throw new IllegalArgumentException("Invalid buffers");
             boolean direct = "1".equals(arguments.getString("direct", "0"));
+            boolean blit = "1".equals(arguments.getString("blit", "0"));
+            if (direct && blit) throw new IllegalArgumentException("Direct and blit are mutually exclusive");
+            boolean directTarget = !blit;
+            String glPolicy = direct ? "forced-direct" : (blit ? "forced-blit" : "default-direct");
             boolean missing = "1".equals(arguments.getString("missing", "0"));
             boolean full = "1".equals(arguments.getString("full", "0"));
             if (full && missing) throw new IllegalArgumentException("Full acceptance cannot use a missing runtime");
@@ -131,6 +135,7 @@ public final class ReleaseLifecycle extends Instrumentation {
                 .getLaunchIntentForPackage("org.ippclub.dorassr");
             if (intent == null) throw new IllegalStateException("Missing target activity");
             if (direct) intent.putExtra("DORA_GODOT_GL_DIRECT", "1");
+            else if (blit) intent.putExtra("DORA_GODOT_GL_DIRECT", "0");
             Activity activity = startActivitySync(intent);
             int initialPid = targetPid();
             if (initialPid <= 0) throw new IllegalStateException("Target process not found");
@@ -154,6 +159,7 @@ public final class ReleaseLifecycle extends Instrumentation {
                 Intent resume = getTargetContext().getPackageManager().getLaunchIntentForPackage("org.ippclub.dorassr");
                 if (resume == null) throw new IllegalStateException("Missing target resume intent");
                 if (direct) resume.putExtra("DORA_GODOT_GL_DIRECT", "1");
+                else if (blit) resume.putExtra("DORA_GODOT_GL_DIRECT", "0");
                 getTargetContext().startActivity(resume);
                 waitFor(new File(fixture, "foreground-seen"), deadline, "Dora foreground event");
                 if (targetPid() != initialPid) throw new IllegalStateException("Target process changed across Home/resume");
@@ -174,7 +180,8 @@ public final class ReleaseLifecycle extends Instrumentation {
             runOnMainSync(() -> Log.i("DoraReleaseLifecycle", "QA_ACTIVITY_DESTROYED"));
             exportEvidence(fixture, external);
             write(new File(external, "controller.json"), new JSONObject()
-                .put("buffers", buffers).put("direct", direct).put("missing", missing).put("full", full)
+                .put("buffers", buffers).put("direct", directTarget).put("gl_policy", glPolicy)
+                .put("missing", missing).put("full", full)
                 .put("initial_pid", initialPid).put("final_pid", targetPid())
                 .put("immersive_confirmation_dismissed", immersiveConfirmationDismissed).toString());
             Log.i("DoraReleaseLifecycle", "QA_EVIDENCE_EXPORTED " + external);

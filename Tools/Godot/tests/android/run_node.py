@@ -59,7 +59,7 @@ with tempfile.TemporaryDirectory(prefix='dora-android-project-') as staging:
  with tarfile.open(fileobj=stream,mode='w') as archive:archive.add(staged,arcname='.')
  run(['exec-in','run-as',package,'tar','-xf','-','-C','files/'+project_name],input=stream.getvalue(),capture_output=True)
 options={'DORA_GODOT_TEST_PROJECT':remote_project,'DORA_GODOT_TEST_OUTPUT':remote_results,'DORA_GODOT_TEST_BUFFERS':str(a.buffers)}
-if a.direct:options['DORA_GODOT_GL_DIRECT']='1'
+options['DORA_GODOT_GL_DIRECT']='1' if a.direct else '0'
 for flag in ('audio','audio-stall','resize','cancel-resize','aliases','reservation','ime','controller'):
  options['DORA_GODOT_TEST_'+flag.upper().replace('-','_')]='1' if getattr(a,flag.replace('-','_')) else '0'
 if a.case in ('timing','particles'):options['DORA_GODOT_TEST_TIMING']='1'
