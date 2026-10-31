@@ -1111,6 +1111,53 @@ pub extern "C" fn dora_3d_camera_get_view_proj(camera: Dora3DHandle, out: *mut f
 	}
 }
 
+// Diagnostics are returned to the caller-owned task, never a process-global last error.
+type GltfDiagnosticVisitor = extern "C" fn(*const c_char, *mut c_void);
+fn emit_gltf_diagnostics(
+	diagnostics: &[model_loader::ImportDiagnostic],
+	visitor: Option<GltfDiagnosticVisitor>,
+	user_data: *mut c_void,
+) {
+	if let Some(visitor) = visitor {
+		for diagnostic in diagnostics {
+			if let Ok(json) = serde_json::to_string(diagnostic) {
+				if let Ok(json) = CString::new(json) {
+					visitor(json.as_ptr(), user_data);
+				}
+			}
+		}
+	}
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_load_gltf_diagnosed(
+	path: *const c_char,
+	visitor: Option<GltfDiagnosticVisitor>,
+	user_data: *mut c_void,
+) -> Dora3DHandle {
+	let Some(path) = opt_str(path) else {
+		return INVALID_HANDLE;
+	};
+	let mut diagnostics = Vec::new();
+	let model = match model_loader::parse_gltf_diagnosed(path, &mut diagnostics) {
+		Some(prepared) => match model_loader::upload_gltf(prepared) {
+			Some(model) => model,
+			None => {
+				diagnostics.push(model_loader::import_diagnostic(
+					"GPU_UPLOAD_FAILED",
+					"upload",
+					std::path::Path::new(path),
+					"Model GPU upload failed",
+				));
+				INVALID_HANDLE
+			}
+		},
+		None => INVALID_HANDLE,
+	};
+	emit_gltf_diagnostics(&diagnostics, visitor, user_data);
+	model
+}
+
 #[no_mangle]
 pub extern "C" fn dora_3d_load_gltf(path: *const c_char) -> Dora3DHandle {
 	let Some(path) = opt_str(path) else {
@@ -1149,6 +1196,41 @@ pub extern "C" fn dora_3d_collect_gltf_dependencies(
 		unsafe { std::slice::from_raw_parts(data, size) }
 	};
 	let Some(dependencies) = model_loader::collect_gltf_dependencies(path, bytes) else {
+		return 0;
+	};
+	for dependency in dependencies {
+		let Ok(dependency) = CString::new(dependency) else {
+			return 0;
+		};
+		visitor(dependency.as_ptr(), user_data);
+	}
+	1
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_collect_gltf_dependencies_diagnosed(
+	path: *const c_char,
+	data: *const u8,
+	size: usize,
+	visitor: Option<GltfDependencyVisitor>,
+	diagnostic_visitor: Option<GltfDiagnosticVisitor>,
+	user_data: *mut c_void,
+) -> i32 {
+	let (Some(path), Some(visitor)) = (opt_str(path), visitor) else {
+		return 0;
+	};
+	if data.is_null() && size != 0 {
+		return 0;
+	}
+	let bytes = if size == 0 {
+		&[]
+	} else {
+		unsafe { std::slice::from_raw_parts(data, size) }
+	};
+	let mut diagnostics = Vec::new();
+	let result = model_loader::collect_gltf_dependencies_diagnosed(path, bytes, &mut diagnostics);
+	emit_gltf_diagnostics(&diagnostics, diagnostic_visitor, user_data);
+	let Some(dependencies) = result else {
 		return 0;
 	};
 	for dependency in dependencies {
@@ -1330,6 +1412,59 @@ pub extern "C" fn dora_3d_parse_gltf_data(
 		}
 	})
 	.unwrap_or(INVALID_HANDLE)
+}
+
+#[no_mangle]
+pub extern "C" fn dora_3d_parse_gltf_data_diagnosed(
+	path: *const c_char,
+	data: *const u8,
+	size: usize,
+	loader: Option<GltfResourceLoader>,
+	diagnostic_visitor: Option<GltfDiagnosticVisitor>,
+	user_data: *mut c_void,
+) -> Dora3DHandle {
+	let (Some(path), Some(loader)) = (opt_str(path), loader) else {
+		return INVALID_HANDLE;
+	};
+	if data.is_null() && size != 0 {
+		return INVALID_HANDLE;
+	}
+	let bytes = if size == 0 {
+		&[]
+	} else {
+		unsafe { std::slice::from_raw_parts(data, size) }
+	};
+	let mut diagnostics = Vec::new();
+	let result = model_loader::parse_gltf_data_diagnosed(
+		path,
+		bytes,
+		|resource_path| {
+			let path = CString::new(resource_path.to_str()?).ok()?;
+			let mut resource_data = std::ptr::null();
+			let mut resource_size = 0;
+			if loader(
+				path.as_ptr(),
+				&mut resource_data,
+				&mut resource_size,
+				user_data,
+			) == 0
+			{
+				return None;
+			}
+			if resource_data.is_null() && resource_size != 0 {
+				return None;
+			}
+			if resource_size == 0 {
+				Some(Vec::new())
+			} else {
+				Some(unsafe { std::slice::from_raw_parts(resource_data, resource_size) }.to_vec())
+			}
+		},
+		&mut diagnostics,
+	)
+	.unwrap_or(INVALID_HANDLE);
+	emit_gltf_diagnostics(&diagnostics, diagnostic_visitor, user_data);
+	result
 }
 
 #[no_mangle]

@@ -26,8 +26,6 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void audio_set_listener(int64_t val);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void audio_set_listener_null();
-		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t audio_get_listener();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t audio_play(int64_t filename, int32_t looping);
@@ -80,7 +78,7 @@ namespace Dora
 		{
 			set
 			{
-				if (value == null) Native.audio_set_listener_null();
+				if (value == null) Native.audio_set_listener(0);
 				else Native.audio_set_listener(value.Raw);
 			}
 			get => Node.FromOpt(Native.audio_get_listener());

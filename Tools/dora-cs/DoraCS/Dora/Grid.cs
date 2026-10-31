@@ -40,8 +40,6 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void grid_set_texture(int64_t self, int64_t val);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void grid_set_texture_null(int64_t self);
-		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t grid_get_texture(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void grid_set_pos(int64_t self, int32_t x, int32_t y, int64_t pos, float z);
@@ -138,7 +136,7 @@ namespace Dora
 		{
 			set
 			{
-				if (value == null) Native.grid_set_texture_null(Raw);
+				if (value == null) Native.grid_set_texture(Raw, 0);
 				else Native.grid_set_texture(Raw, value.Raw);
 			}
 			get => Texture2D.FromOpt(Native.grid_get_texture(Raw));

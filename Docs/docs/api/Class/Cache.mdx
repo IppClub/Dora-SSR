@@ -127,18 +127,28 @@ end)
 getLoadState: function(self: Cache, filename: string): LoadState
 ```
 
-## getLoadError
+## getLoadDiagnostics
 
-**Type:** Function.
+Returns a version-1 JSON snapshot of the latest load for the resolved model path. Calling this getter does not load a resource. Use the same API after `Cache.load`, `Cache.loadAsync`, or a `Model3D` loading attempt.
 
-**Description:**
-
-&emsp;&emsp;Gets the latest Model3D or environment load error.
-
-**Signature:**
 ```tl
-getLoadError: function(self: Cache, filename: string): string
+getLoadDiagnostics: function(self: Cache, filename: string): string
 ```
+
+```lua
+local report = assert(require("json").decode(Cache:getLoadDiagnostics("assets/Fox.glb")))
+for _, diagnostic in ipairs(report.diagnostics) do
+    print(diagnostic.code, diagnostic.resourcePath, diagnostic.textureSlot, diagnostic.message)
+end
+```
+
+The report has `version` (currently 1), `modelPath`, `state`, and `diagnostics`. State is `none`, `loading`, `ready`, `failed`, or `cancelled`. Each diagnostic contains `code`, `severity` (`error` or `warning`), `stage`, `resourcePath`, `textureSlot`, `imageIndex`, `materialIndex`, and `message`. Context fields are JSON null when not applicable. Texture slots use material property paths, for example `pbrMetallicRoughness.baseColorTexture`; indices are zero-based. An embedded image uses the model path as its resource path. Messages are descriptive; branch on codes, not message text.
+
+Reports are stored per resolved path. Concurrent loads of different paths cannot replace each other's diagnostics. Completion and cancellation publish the state before invoking handlers. A returned JSON string is an owning snapshot. Retrying starts a fresh report; successful retries clear previous errors. Cache hits preserve warnings from the original successful import. Ready resources may contain warnings, such as `NO_RENDERABLE_GEOMETRY`, `EXTENSION_VALIDATION_RELAXED`, or `TEXTURE_DIMENSIONS_UNSUPPORTED`; ready does not imply every requested material feature was rendered.
+
+Common error codes include `RESOURCE_NOT_FOUND`, `RESOURCE_READ_FAILED`, `RESOURCE_URI_INVALID`, `GLTF_PARSE_FAILED`, `GLTF_VALIDATION_FAILED`, `BUFFER_MISSING`, `BUFFER_TOO_SHORT`, `IMAGE_BUFFER_RANGE`, `IMAGE_DECODE_FAILED`, `GPU_UPLOAD_FAILED`, and `LOAD_CANCELLED`. Missing/corrupt images identify every material slot using that image. GPU errors without more specific resource context have null indices/slot. Environment failures retain their reason with `ENVIRONMENT_LOAD_FAILED`.
+
+The former plain-text error getter has been removed. Obtain error reasons from `diagnostics` with severity `error`; the structured report is the single error-reporting API. `getLoadState` remains a lightweight polling API.
 
 ## cancelLoad
 

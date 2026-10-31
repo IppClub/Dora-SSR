@@ -127,18 +127,28 @@ end)
 getLoadState: function(self: Cache, filename: string): LoadState
 ```
 
-## getLoadError
+## getLoadDiagnostics
 
-**类型：** 函数。
+返回按模型解析路径保存的最近一次加载报告，格式为 version=1 的 JSON 字符串。此查询不会触发加载；同步 `Cache.load`、异步 `Cache.loadAsync` 和 `Model3D` 加载尝试后使用同一接口。
 
-**描述：**
-
-&emsp;&emsp;获取最近一次 Model3D 或环境资源加载错误。
-
-**签名：**
 ```tl
-getLoadError: function(self: Cache, filename: string): string
+getLoadDiagnostics: function(self: Cache, filename: string): string
 ```
+
+```lua
+local report = assert(require("json").decode(Cache:getLoadDiagnostics("assets/Fox.glb")))
+for _, diagnostic in ipairs(report.diagnostics) do
+    print(diagnostic.code, diagnostic.resourcePath, diagnostic.textureSlot, diagnostic.message)
+end
+```
+
+报告包含 `version`（当前为 1）、`modelPath`、`state`、`diagnostics`。state 为 none、loading、ready、failed 或 cancelled。每条诊断含 `code`、`severity`（error/warning）、`stage`、`resourcePath`、`textureSlot`、`imageIndex`、`materialIndex`、`message`。不适用的上下文字段为 JSON null；索引从 0 开始；纹理槽使用材质属性路径，例如 `pbrMetallicRoughness.baseColorTexture`。嵌入贴图的资源路径为模型路径。message 供阅读，程序应按 code 分支，不解析消息文本。
+
+报告按解析路径隔离，并发加载不同模型不会混用诊断。完成或取消时先发布状态，再调用处理函数。返回字符串是独立快照；重试开启新报告，成功后清除旧错误；缓存命中保留原成功导入中的警告。ready 仍可能含 NO_RENDERABLE_GEOMETRY、EXTENSION_VALIDATION_RELAXED、TEXTURE_DIMENSIONS_UNSUPPORTED 等警告，不代表所有请求的材质特性均已渲染。
+
+常见错误码包括 RESOURCE_NOT_FOUND、RESOURCE_READ_FAILED、RESOURCE_URI_INVALID、GLTF_PARSE_FAILED、GLTF_VALIDATION_FAILED、BUFFER_MISSING、BUFFER_TOO_SHORT、IMAGE_BUFFER_RANGE、IMAGE_DECODE_FAILED、GPU_UPLOAD_FAILED、LOAD_CANCELLED。缺失或损坏贴图会指出使用该图像的各材质槽。无法细分资源的 GPU 错误，其槽和索引为 null。环境资源失败以 ENVIRONMENT_LOAD_FAILED 保留原因。
+
+原纯文本错误查询已移除；从 diagnostics 中 severity=error 的条目读取原因，统一使用这一错误报告接口。getLoadState 保留为轻量状态轮询接口。
 
 ## cancelLoad
 

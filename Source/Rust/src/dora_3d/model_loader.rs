@@ -28,6 +28,91 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Instant;
 
+/// One immutable diagnostic emitted by a single import operation. Never global/last-error state.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportDiagnostic {
+	pub code: String,
+	pub severity: String,
+	pub stage: String,
+	pub resource_path: String,
+	pub texture_slot: Option<String>,
+	pub image_index: Option<usize>,
+	pub material_index: Option<usize>,
+	pub message: String,
+}
+
+pub(super) fn import_diagnostic(
+	code: &str,
+	stage: &str,
+	path: &Path,
+	message: impl ToString,
+) -> ImportDiagnostic {
+	ImportDiagnostic {
+		code: code.into(),
+		severity: "error".into(),
+		stage: stage.into(),
+		resource_path: path.to_string_lossy().into_owned(),
+		texture_slot: None,
+		image_index: None,
+		material_index: None,
+		message: message.to_string(),
+	}
+}
+
+// Include every material use, including extension texture slots, for shared images.
+fn image_diagnostics(
+	document: &Document,
+	image_index: usize,
+	diagnostic: ImportDiagnostic,
+) -> Vec<ImportDiagnostic> {
+	fn visit(value: &Value, prefix: &str, found: &mut Vec<(usize, String)>) {
+		if let Some(object) = value.as_object() {
+			for (key, value) in object {
+				let path = if prefix.is_empty() {
+					key.clone()
+				} else {
+					format!("{prefix}.{key}")
+				};
+				if key.ends_with("Texture") {
+					if let Some(index) = value.get("index").and_then(Value::as_u64) {
+						found.push((index as usize, path.clone()));
+					}
+				}
+				visit(value, &path, found);
+			}
+		}
+	}
+	let mut output = Vec::new();
+	for material in document.materials() {
+		let mut uses = Vec::new();
+		if let Ok(value) =
+			serde_json::to_value(&document.as_json().materials[material.index().unwrap()])
+		{
+			visit(&value, "", &mut uses);
+		}
+		for (texture_index, slot) in uses {
+			if document
+				.textures()
+				.nth(texture_index)
+				.is_some_and(|texture| texture.source().index() == image_index)
+			{
+				let mut d = diagnostic.clone();
+				d.image_index = Some(image_index);
+				d.material_index = material.index();
+				d.texture_slot = Some(slot);
+				output.push(d);
+			}
+		}
+	}
+	if output.is_empty() {
+		let mut d = diagnostic;
+		d.image_index = Some(image_index);
+		output.push(d);
+	}
+	output
+}
+
 #[derive(Debug, Clone)]
 pub struct LoadedModel {
 	pub handle: Dora3DHandle,
@@ -2151,6 +2236,7 @@ fn import_buffers_with<F>(
 	model_path: &Path,
 	mut blob: Option<Vec<u8>>,
 	loader: &mut F,
+	diagnostics: &mut Vec<ImportDiagnostic>,
 ) -> Option<Vec<BufferData>>
 where
 	F: FnMut(&Path) -> Option<Vec<u8>>,
@@ -2158,10 +2244,47 @@ where
 	let mut buffers = Vec::with_capacity(document.buffers().len());
 	for buffer in document.buffers() {
 		let mut bytes = match buffer.source() {
-			BufferSource::Bin => blob.take()?,
-			BufferSource::Uri(uri) => load_resource_uri(model_path, uri, loader)?,
+			BufferSource::Bin => match blob.take() {
+				Some(bytes) => bytes,
+				None => {
+					diagnostics.push(import_diagnostic(
+						"BUFFER_MISSING",
+						"buffers",
+						model_path,
+						"Missing GLB binary chunk",
+					));
+					return None;
+				}
+			},
+			BufferSource::Uri(uri) => match load_resource_uri(model_path, uri, loader) {
+				Some(bytes) => bytes,
+				None => {
+					let path = match resolve_resource_uri(model_path, uri) {
+						Some(ResourceUri::Path(path)) => path,
+						_ => model_path.to_owned(),
+					};
+					diagnostics.push(import_diagnostic(
+						"RESOURCE_READ_FAILED",
+						"buffers",
+						&path,
+						"Buffer resource could not be read or URI is unsupported",
+					));
+					return None;
+				}
+			},
 		};
 		if bytes.len() < buffer.length() {
+			diagnostics.push(import_diagnostic(
+				"BUFFER_TOO_SHORT",
+				"buffers",
+				model_path,
+				format!(
+					"Buffer {}: {} bytes, declared {}",
+					buffer.index(),
+					bytes.len(),
+					buffer.length()
+				),
+			));
 			print_error(&format!(
 				"glTF buffer {} in '{}' is shorter than declared: {} < {}",
 				buffer.index(),
@@ -2179,100 +2302,235 @@ where
 	Some(buffers)
 }
 
-fn decode_image(bytes: &[u8]) -> Option<ImageData> {
-	let image = image::load_from_memory(bytes).ok()?.into_rgba8();
-	let (width, height) = image.dimensions();
-	Some(ImageData {
-		pixels: image.into_raw(),
-		format: ImageFormat::R8G8B8A8,
-		width,
-		height,
-	})
-}
-
 fn import_images_with<F>(
 	document: &Document,
 	model_path: &Path,
 	buffers: &[BufferData],
 	loader: &mut F,
+	diagnostics: &mut Vec<ImportDiagnostic>,
 ) -> Option<Vec<ImageData>>
 where
 	F: FnMut(&Path) -> Option<Vec<u8>>,
 {
 	let mut images = Vec::with_capacity(document.images().len());
 	for image in document.images() {
-		let encoded = match image.source() {
-			ImageSource::Uri { uri, .. } => load_resource_uri(model_path, uri, loader)?,
+		let (encoded, resource_path) = match image.source() {
+			ImageSource::Uri { uri, .. } => {
+				let Some(resource) = resolve_resource_uri(model_path, uri) else {
+					diagnostics.extend(image_diagnostics(
+						document,
+						image.index(),
+						import_diagnostic(
+							"RESOURCE_URI_INVALID",
+							"images",
+							model_path,
+							"Image URI uses an unsupported scheme or invalid encoding",
+						),
+					));
+					return None;
+				};
+				let path = match resource {
+					ResourceUri::Path(path) => path,
+					_ => model_path.to_owned(),
+				};
+				match load_resource_uri(model_path, uri, loader) {
+					Some(bytes) => (bytes, path),
+					None => {
+						diagnostics.extend(image_diagnostics(
+							document,
+							image.index(),
+							import_diagnostic(
+								"RESOURCE_READ_FAILED",
+								"images",
+								&path,
+								"Image resource could not be read or URI is unsupported",
+							),
+						));
+						return None;
+					}
+				}
+			}
 			ImageSource::View { view, .. } => {
-				let buffer = buffers.get(view.buffer().index())?;
-				let begin = view.offset();
-				let end = begin.checked_add(view.length())?;
-				buffer.get(begin..end)?.to_vec()
+				let bytes = buffers.get(view.buffer().index()).and_then(|buffer| {
+					view.offset()
+						.checked_add(view.length())
+						.and_then(|end| buffer.get(view.offset()..end))
+				});
+				let Some(bytes) = bytes else {
+					diagnostics.extend(image_diagnostics(
+						document,
+						image.index(),
+						import_diagnostic(
+							"IMAGE_BUFFER_RANGE",
+							"images",
+							model_path,
+							"Embedded image buffer view exceeds buffer data",
+						),
+					));
+					return None;
+				};
+				(bytes.to_vec(), model_path.to_owned())
 			}
 		};
-		images.push(decode_image(&encoded)?);
+		let decoded = match image::load_from_memory(&encoded) {
+			Ok(image) => image.into_rgba8(),
+			Err(error) => {
+				diagnostics.extend(image_diagnostics(
+					document,
+					image.index(),
+					import_diagnostic("IMAGE_DECODE_FAILED", "images", &resource_path, error),
+				));
+				return None;
+			}
+		};
+		let (width, height) = decoded.dimensions();
+		images.push(ImageData {
+			pixels: decoded.into_raw(),
+			format: ImageFormat::R8G8B8A8,
+			width,
+			height,
+		});
 	}
 	Some(images)
 }
 
 fn parse_gltf_bytes(path: &Path, bytes: &[u8]) -> Option<gltf::Gltf> {
-	let gltf = match gltf::Gltf::from_slice(&bytes) {
+	parse_gltf_bytes_diagnosed(path, bytes, &mut Vec::new())
+}
+
+fn parse_gltf_bytes_diagnosed(
+	path: &Path,
+	bytes: &[u8],
+	diagnostics: &mut Vec<ImportDiagnostic>,
+) -> Option<gltf::Gltf> {
+	use gltf::json::validation::Validate;
+	let gltf = match gltf::Gltf::from_slice_without_validation(bytes) {
 		Ok(gltf) => gltf,
 		Err(error) => {
+			diagnostics.push(import_diagnostic(
+				"GLTF_PARSE_FAILED",
+				"parse",
+				path,
+				&error,
+			));
 			print_error(&format!(
-				"Failed to import glTF '{}': {}. Retrying without extension validation.",
+				"Failed to import glTF '{}': {}",
 				path.display(),
 				error
 			));
-			gltf::Gltf::from_slice_without_validation(&bytes).ok()?
+			return None;
 		}
 	};
-	Some(gltf)
+	let root = gltf.document.as_json();
+	// gltf-json 1.4's primitive validation hook dereferences POSITION before the
+	// generated index validator has a chance to report an error. Guard that edge
+	// explicitly; malformed input must never panic across the native FFI boundary.
+	for (mesh, data) in root.meshes.iter().enumerate() {
+		for (primitive, data) in data.primitives.iter().enumerate() {
+			for index in data.attributes.values() {
+				if index.value() >= root.accessors.len() {
+					diagnostics.push(import_diagnostic("GLTF_VALIDATION_FAILED", "parse", path, format!("Mesh {mesh} primitive {primitive}: attribute accessor {} is outside {} accessors", index.value(), root.accessors.len())));
+					return None;
+				}
+			}
+		}
+	}
+	let mut errors = Vec::new();
+	root.validate(root, gltf::json::Path::new, &mut |path, error| {
+		errors.push((path(), error))
+	});
+	if errors.is_empty() {
+		return Some(gltf);
+	}
+	let extension_only = errors
+		.iter()
+		.all(|(_, error)| *error == gltf::json::validation::Error::Unsupported);
+	let error = gltf::Error::Validation(errors);
+	if extension_only {
+		let mut d = import_diagnostic("EXTENSION_VALIDATION_RELAXED", "parse", path, &error);
+		d.severity = "warning".into();
+		diagnostics.push(d);
+		Some(gltf)
+	} else {
+		diagnostics.push(import_diagnostic(
+			"GLTF_VALIDATION_FAILED",
+			"parse",
+			path,
+			&error,
+		));
+		print_error(&format!(
+			"Failed to import glTF '{}': {}",
+			path.display(),
+			error
+		));
+		None
+	}
 }
 
 fn import_gltf_bytes<F>(
 	path: &Path,
 	bytes: &[u8],
 	mut loader: F,
+	diagnostics: &mut Vec<ImportDiagnostic>,
 ) -> Option<(Document, Vec<BufferData>, Vec<ImageData>)>
 where
 	F: FnMut(&Path) -> Option<Vec<u8>>,
 {
-	let gltf = parse_gltf_bytes(path, bytes)?;
+	let gltf = parse_gltf_bytes_diagnosed(path, bytes, diagnostics)?;
 	let gltf::Gltf { document, blob } = gltf;
-	let buffers = import_buffers_with(&document, path, blob, &mut loader)?;
-	let images = import_images_with(&document, path, &buffers, &mut loader)?;
+	let buffers = import_buffers_with(&document, path, blob, &mut loader, diagnostics)?;
+	let images = import_images_with(&document, path, &buffers, &mut loader, diagnostics)?;
 	Some((document, buffers, images))
 }
 
-fn import_gltf(path: &Path) -> Option<(Document, Vec<BufferData>, Vec<ImageData>)> {
+fn import_gltf(
+	path: &Path,
+	diagnostics: &mut Vec<ImportDiagnostic>,
+) -> Option<(Document, Vec<BufferData>, Vec<ImageData>)> {
 	let path_string = path.to_str()?;
 	let bytes = Content::load_bytes(path_string).or_else(|| {
+		diagnostics.push(import_diagnostic(
+			"RESOURCE_READ_FAILED",
+			"read",
+			path,
+			"Model could not be read through Content",
+		));
 		print_error(&format!(
 			"Failed to read glTF '{}' through Content",
 			path.display()
 		));
 		None
 	})?;
-	import_gltf_bytes(path, &bytes, |resource| {
-		Content::load_bytes(resource.to_str()?)
-	})
+	import_gltf_bytes(
+		path,
+		&bytes,
+		|resource| Content::load_bytes(resource.to_str()?),
+		diagnostics,
+	)
 }
 
 pub fn collect_gltf_dependencies(path: &str, bytes: &[u8]) -> Option<Vec<String>> {
+	collect_gltf_dependencies_diagnosed(path, bytes, &mut Vec::new())
+}
+
+pub fn collect_gltf_dependencies_diagnosed(
+	path: &str,
+	bytes: &[u8],
+	diagnostics: &mut Vec<ImportDiagnostic>,
+) -> Option<Vec<String>> {
 	let model_path = Path::new(path);
-	let gltf = parse_gltf_bytes(model_path, bytes)?;
+	let gltf = parse_gltf_bytes_diagnosed(model_path, bytes, diagnostics)?;
 	let mut dependencies = HashSet::new();
 	for buffer in gltf.document.buffers() {
 		if let BufferSource::Uri(uri) = buffer.source() {
-			if let ResourceUri::Path(resource_path) = resolve_resource_uri(model_path, uri)? {
+			if let Some(ResourceUri::Path(resource_path)) = resolve_resource_uri(model_path, uri) {
 				dependencies.insert(resource_path.to_str()?.to_owned());
 			}
 		}
 	}
 	for image in gltf.document.images() {
 		if let ImageSource::Uri { uri, .. } = image.source() {
-			if let ResourceUri::Path(resource_path) = resolve_resource_uri(model_path, uri)? {
+			if let Some(ResourceUri::Path(resource_path)) = resolve_resource_uri(model_path, uri) {
 				dependencies.insert(resource_path.to_str()?.to_owned());
 			}
 		}
@@ -2371,7 +2629,7 @@ where
 	let model_path = Path::new(path);
 	let gltf = parse_gltf_bytes(model_path, bytes)?;
 	let gltf::Gltf { document, blob } = gltf;
-	let buffers = import_buffers_with(&document, model_path, blob, &mut loader)?;
+	let buffers = import_buffers_with(&document, model_path, blob, &mut loader, &mut Vec::new())?;
 	let scene = scene_root(&document)?;
 	let mut vertices = Vec::new();
 	let mut indices = Vec::new();
@@ -2402,15 +2660,67 @@ pub fn parse_gltf_data<F>(path: &str, bytes: &[u8], loader: F) -> Option<Dora3DH
 where
 	F: FnMut(&Path) -> Option<Vec<u8>>,
 {
+	parse_gltf_data_diagnosed(path, bytes, loader, &mut Vec::new())
+}
+
+pub fn parse_gltf_data_diagnosed<F>(
+	path: &str,
+	bytes: &[u8],
+	loader: F,
+	diagnostics: &mut Vec<ImportDiagnostic>,
+) -> Option<Dora3DHandle>
+where
+	F: FnMut(&Path) -> Option<Vec<u8>>,
+{
 	let path = PathBuf::from(path);
-	let (document, buffers, images) = import_gltf_bytes(&path, bytes, loader)?;
-	prepare_gltf(path, document, buffers, images)
+	let (document, buffers, images) = import_gltf_bytes(&path, bytes, loader, diagnostics)?;
+	prepare_gltf_diagnosed(path, document, buffers, images, diagnostics)
 }
 
 pub fn parse_gltf(path: &str) -> Option<Dora3DHandle> {
+	parse_gltf_diagnosed(path, &mut Vec::new())
+}
+
+pub fn parse_gltf_diagnosed(
+	path: &str,
+	diagnostics: &mut Vec<ImportDiagnostic>,
+) -> Option<Dora3DHandle> {
 	let path = PathBuf::from(path);
-	let (document, buffers, images) = import_gltf(&path)?;
-	prepare_gltf(path, document, buffers, images)
+	let (document, buffers, images) = import_gltf(&path, diagnostics)?;
+	prepare_gltf_diagnosed(path, document, buffers, images, diagnostics)
+}
+
+fn prepare_gltf_diagnosed(
+	path: PathBuf,
+	document: Document,
+	buffers: Vec<BufferData>,
+	images: Vec<ImageData>,
+	diagnostics: &mut Vec<ImportDiagnostic>,
+) -> Option<Dora3DHandle> {
+	for (index, image) in images.iter().enumerate() {
+		if image.width > u16::MAX as u32 || image.height > u16::MAX as u32 {
+			let mut d = import_diagnostic("TEXTURE_DIMENSIONS_UNSUPPORTED", "prepare", &path, format!("Texture {}x{} exceeds the supported 16-bit dimensions; material uses its default texture", image.width, image.height));
+			d.severity = "warning".into();
+			diagnostics.extend(image_diagnostics(&document, index, d));
+		}
+	}
+	let handle = prepare_gltf(path.clone(), document, buffers, images)?;
+	if prepared_registry()
+		.lock()
+		.unwrap()
+		.get(&handle)
+		.is_some_and(|model| model.primitives.is_empty())
+	{
+		let mut d = import_diagnostic(
+			"NO_RENDERABLE_GEOMETRY",
+			"prepare",
+			&path,
+			"Model contains no supported renderable primitives",
+		);
+		d.severity = "warning".into();
+		diagnostics.push(d);
+	}
+	Some(handle)
 }
 
 fn prepare_gltf(
@@ -3761,6 +4071,83 @@ mod tests {
 			panic!("expected morph weights")
 		};
 		weights
+	}
+
+	#[test]
+	fn diagnostics_guard_position_before_upstream_validation_hook() {
+		let mut diagnostics = Vec::new();
+		let bytes = br#"{"asset":{"version":"2.0"},"meshes":[{"primitives":[{"attributes":{"POSITION":999}}]}]}"#;
+		assert!(
+			parse_gltf_bytes_diagnosed(Path::new("position.gltf"), bytes, &mut diagnostics)
+				.is_none()
+		);
+		assert_eq!(diagnostics[0].code, "GLTF_VALIDATION_FAILED");
+		assert!(diagnostics[0].message.contains("999"));
+	}
+
+	#[test]
+	fn diagnostics_reject_structural_validation_errors() {
+		let mut diagnostics = Vec::new();
+		let bytes = br#"{"asset":{"version":"2.0"},"textures":[{"source":42}]}"#;
+		assert!(
+			parse_gltf_bytes_diagnosed(Path::new("bad.gltf"), bytes, &mut diagnostics).is_none()
+		);
+		assert_eq!(diagnostics[0].code, "GLTF_VALIDATION_FAILED");
+		assert_eq!(diagnostics[0].stage, "parse");
+	}
+
+	#[test]
+	fn diagnostics_identify_shared_image_slots_and_do_not_leak_between_imports() {
+		let bytes = br#"{"asset":{"version":"2.0"},"images":[{"uri":"missing.png"}],"textures":[{"source":0}],"materials":[{"pbrMetallicRoughness":{"baseColorTexture":{"index":0}},"normalTexture":{"index":0}}]}"#;
+		let mut diagnostics = Vec::new();
+		assert!(import_gltf_bytes(
+			Path::new("models/a.gltf"),
+			bytes,
+			|_| None,
+			&mut diagnostics
+		)
+		.is_none());
+		assert_eq!(diagnostics.len(), 2);
+		assert!(diagnostics.iter().all(|d| d.code == "RESOURCE_READ_FAILED"
+			&& d.resource_path == "models/missing.png"
+			&& d.image_index == Some(0)
+			&& d.material_index == Some(0)));
+		assert!(diagnostics
+			.iter()
+			.any(|d| d.texture_slot.as_deref() == Some("pbrMetallicRoughness.baseColorTexture")));
+		assert!(diagnostics
+			.iter()
+			.any(|d| d.texture_slot.as_deref() == Some("normalTexture")));
+		let mut next = Vec::new();
+		assert!(parse_gltf_bytes_diagnosed(
+			Path::new("good.gltf"),
+			br#"{"asset":{"version":"2.0"}}"#,
+			&mut next
+		)
+		.is_some());
+		assert!(next.is_empty());
+	}
+
+	#[test]
+	fn diagnostics_distinguish_image_decode_and_buffer_failures() {
+		let bytes = br#"{"asset":{"version":"2.0"},"images":[{"uri":"data:image/png;base64,YmFk"}],"textures":[{"source":0}],"materials":[{"emissiveTexture":{"index":0}}]}"#;
+		let mut diagnostics = Vec::new();
+		assert!(
+			import_gltf_bytes(Path::new("decode.gltf"), bytes, |_| None, &mut diagnostics)
+				.is_none()
+		);
+		assert_eq!(diagnostics[0].code, "IMAGE_DECODE_FAILED");
+		assert_eq!(
+			diagnostics[0].texture_slot.as_deref(),
+			Some("emissiveTexture")
+		);
+		assert!(!diagnostics[0].message.is_empty());
+		let mut diagnostics = Vec::new();
+		let bytes = br#"{"asset":{"version":"2.0"},"buffers":[{"uri":"data:application/octet-stream;base64,AQ==","byteLength":12}]}"#;
+		assert!(
+			import_gltf_bytes(Path::new("short.gltf"), bytes, |_| None, &mut diagnostics).is_none()
+		);
+		assert_eq!(diagnostics[0].code, "BUFFER_TOO_SHORT");
 	}
 
 	#[test]

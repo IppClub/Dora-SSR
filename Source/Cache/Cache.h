@@ -16,7 +16,7 @@ struct Cache {
 	static bool load(String filename);
 	static void loadAsync(String filename, const std::function<void(bool)>& callback);
 	static String getLoadState(String filename);
-	static String getLoadError(String filename);
+	static std::string getLoadDiagnostics(String filename);
 	static bool cancelLoad(String filename);
 	static void setModel3DBudget(uint64_t bytes);
 	static uint64_t getModel3DBudget();

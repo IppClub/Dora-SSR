@@ -205,8 +205,8 @@ String Cache::getLoadState(String filename) {
 	}
 }
 
-String Cache::getLoadError(String filename) {
-	return SharedModel3DCache.getLoadError(filename);
+std::string Cache::getLoadDiagnostics(String filename) {
+	return SharedModel3DCache.getLoadDiagnostics(filename);
 }
 
 bool Cache::cancelLoad(String filename) {

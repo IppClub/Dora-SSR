@@ -37,8 +37,8 @@ DORA_EXPORT void cache_load_async(int64_t filename, int32_t func0, int64_t stack
 DORA_EXPORT int64_t cache_get_load_state(int64_t filename) {
 	return Str_Retain(Cache::getLoadState(*Str_From(filename)));
 }
-DORA_EXPORT int64_t cache_get_load_error(int64_t filename) {
-	return Str_Retain(Cache::getLoadError(*Str_From(filename)));
+DORA_EXPORT int64_t cache_get_load_diagnostics(int64_t filename) {
+	return Str_Retain(Cache::getLoadDiagnostics(*Str_From(filename)));
 }
 DORA_EXPORT int32_t cache_cancel_load(int64_t filename) {
 	return Cache::cancelLoad(*Str_From(filename)) ? 1 : 0;
@@ -71,7 +71,7 @@ static void linkCache(wasm3::module3& mod) {
 	mod.link_optional("*", "cache_load", cache_load);
 	mod.link_optional("*", "cache_load_async", cache_load_async);
 	mod.link_optional("*", "cache_get_load_state", cache_get_load_state);
-	mod.link_optional("*", "cache_get_load_error", cache_get_load_error);
+	mod.link_optional("*", "cache_get_load_diagnostics", cache_get_load_diagnostics);
 	mod.link_optional("*", "cache_cancel_load", cache_cancel_load);
 	mod.link_optional("*", "cache_update_item", cache_update_item);
 	mod.link_optional("*", "cache_update_texture", cache_update_texture);

@@ -30,7 +30,7 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t cache_get_load_state(int64_t filename);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t cache_get_load_error(int64_t filename);
+		public static extern int64_t cache_get_load_diagnostics(int64_t filename);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t cache_cancel_load(int64_t filename);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -100,10 +100,10 @@ namespace Dora
 		{
 			return Bridge.ToString(Native.cache_get_load_state(Bridge.FromString(filename)));
 		}
-		/// <summary>Gets the latest load error for a Model3D or environment resource.</summary>
-		public static string GetLoadError(string filename)
+		/// <summary>Returns a version-1 JSON model diagnostic snapshot with state, paths, codes, severity, stages, texture context and messages.</summary>
+		public static string GetLoadDiagnostics(string filename)
 		{
-			return Bridge.ToString(Native.cache_get_load_error(Bridge.FromString(filename)));
+			return Bridge.ToString(Native.cache_get_load_diagnostics(Bridge.FromString(filename)));
 		}
 		/// <summary>Cancels an active Model3D or environment load.</summary>
 		public static bool CancelLoad(string filename)

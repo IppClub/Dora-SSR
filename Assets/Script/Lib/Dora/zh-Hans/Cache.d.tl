@@ -65,8 +65,8 @@ local record Cache
 	-- 获取 Model3D 或环境资源的加载状态。
 	getLoadState: function(self: Cache, filename: string): LoadState
 
-	-- 获取最近一次 Model3D 或环境资源加载错误。
-	getLoadError: function(self: Cache, filename: string): string
+	-- 获取最近一次模型加载的 version=1 JSON 快照，包含 modelPath、state 和 diagnostics。每项含 code、severity、stage、resourcePath、textureSlot、imageIndex、materialIndex、message；不适用的上下文字段为 null。
+	getLoadDiagnostics: function(self: Cache, filename: string): string
 
 	-- 取消进行中的 Model3D 或环境资源加载。
 	cancelLoad: function(self: Cache, filename: string): boolean

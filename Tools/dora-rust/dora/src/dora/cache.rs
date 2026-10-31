@@ -14,7 +14,7 @@ extern "C" {
 	fn cache_load(filename: i64) -> i32;
 	fn cache_load_async(filename: i64, func0: i32, stack0: i64);
 	fn cache_get_load_state(filename: i64) -> i64;
-	fn cache_get_load_error(filename: i64) -> i64;
+	fn cache_get_load_diagnostics(filename: i64) -> i64;
 	fn cache_cancel_load(filename: i64) -> i32;
 	fn cache_update_item(filename: i64, content: i64);
 	fn cache_update_texture(filename: i64, texture: i64);
@@ -73,9 +73,9 @@ impl Cache {
 	pub fn get_load_state(filename: &str) -> String {
 		unsafe { return crate::dora::to_string(cache_get_load_state(crate::dora::from_string(filename))); }
 	}
-	/// Gets the latest load error for a Model3D or environment resource.
-	pub fn get_load_error(filename: &str) -> String {
-		unsafe { return crate::dora::to_string(cache_get_load_error(crate::dora::from_string(filename))); }
+	/// Returns a version-1 JSON model diagnostic snapshot with state, paths, codes, severity, stages, texture context and messages.
+	pub fn get_load_diagnostics(filename: &str) -> String {
+		unsafe { return crate::dora::to_string(cache_get_load_diagnostics(crate::dora::from_string(filename))); }
 	}
 	/// Cancels an active Model3D or environment load.
 	pub fn cancel_load(filename: &str) -> bool {

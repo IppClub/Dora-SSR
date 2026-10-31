@@ -13,6 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <deque>
 #include <memory>
+#include <vector>
 
 NS_DORA_BEGIN
 
@@ -49,7 +50,7 @@ public:
 	void loadAsync(String filename, const std::function<void(Model3DDef*)>& handler);
 	void loadEnvironmentAsync(String filename, const std::function<void(bool)>& handler);
 	Model3DLoadState getLoadState(String filename) const;
-	String getLoadError(String filename) const;
+	std::string getLoadDiagnostics(String filename) const;
 	bool cancelLoad(String filename);
 	void setBudget(uint64_t bytes);
 	uint64_t getBudget() const noexcept;
@@ -82,6 +83,7 @@ private:
 	struct LoadInfo {
 		Model3DLoadState state = Model3DLoadState::None;
 		std::string error;
+		std::vector<std::string> diagnostics;
 	};
 	std::string resolveKey(String filename) const;
 	bool isCurrent(const std::shared_ptr<Model3DLoadTask>& task) const;

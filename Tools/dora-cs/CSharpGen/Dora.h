@@ -980,7 +980,7 @@ singleton class Director
 	/// </summary>
 	readonly common Node* uI3D @ ui_3d;
 	/// <summary>The persistent root node for system UI that survives regular scene cleanup.</summary>
-	readonly common Node* systemUI;
+	readonly common Node* systemUI @ system_ui;
 	/// <summary>
 	/// The root node for the starting point of a game.
 	/// </summary>
@@ -1027,7 +1027,7 @@ singleton class Director
 	/// </summary>
 	outside void Director_Cleanup @ cleanup();
 	/// <summary>Clears the persistent system UI explicitly.</summary>
-	void clearSystemUI();
+	void clearSystemUI @ clear_system_ui();
 };
 
 /// <summary>
@@ -4077,8 +4077,8 @@ singleton struct Cache
 	static void loadAsync(string filename, function<void(bool success)> handler);
 	/// <summary>Gets the Model3D or environment load state.</summary>
 	static string getLoadState(string filename);
-	/// <summary>Gets the latest load error for a Model3D or environment resource.</summary>
-	static string getLoadError(string filename);
+	/// <summary>Returns a version-1 JSON model diagnostic snapshot with state, paths, codes, severity, stages, texture context and messages.</summary>
+	static string getLoadDiagnostics(string filename);
 	/// <summary>Cancels an active Model3D or environment load.</summary>
 	static bool cancelLoad(string filename);
 	/// <summary>

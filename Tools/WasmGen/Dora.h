@@ -4151,8 +4151,8 @@ singleton struct Cache
 	static void loadAsync(string filename, function<void(bool success)> handler);
 	/// Gets the Model3D or environment load state: "none", "loading", "ready", "failed", or "cancelled".
 	static string getLoadState(string filename);
-	/// Gets the latest load error for a Model3D or environment resource.
-	static string getLoadError(string filename);
+	/// Returns a version-1 JSON model diagnostic snapshot with state, paths, codes, severity, stages, texture context and messages.
+	static string getLoadDiagnostics(string filename);
 	/// Cancels an active Model3D or environment load.
 	static bool cancelLoad(string filename);
 	/// Updates the content of a file loaded in the cache.

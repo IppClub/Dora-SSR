@@ -27,8 +27,8 @@ func cache_load_async(filename: i64, func0: i32, stack0: i64)
 #wa:import dora cache_get_load_state
 func cache_get_load_state(filename: i64) => i64
 
-#wa:import dora cache_get_load_error
-func cache_get_load_error(filename: i64) => i64
+#wa:import dora cache_get_load_diagnostics
+func cache_get_load_diagnostics(filename: i64) => i64
 
 #wa:import dora cache_cancel_load
 func cache_cancel_load(filename: i64) => i32
@@ -88,8 +88,8 @@ func _Cache.LoadAsync(filename: string, handler: func(success: bool)) {
 func _Cache.GetLoadState(filename: string) => string {
 	return FromDoraString(cache_get_load_state(ToDoraString(filename)))
 }
-func _Cache.GetLoadError(filename: string) => string {
-	return FromDoraString(cache_get_load_error(ToDoraString(filename)))
+func _Cache.GetLoadDiagnostics(filename: string) => string {
+	return FromDoraString(cache_get_load_diagnostics(ToDoraString(filename)))
 }
 func _Cache.CancelLoad(filename: string) => bool {
 	return cache_cancel_load(ToDoraString(filename)) != 0

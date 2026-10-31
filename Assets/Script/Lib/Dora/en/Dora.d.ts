@@ -6068,8 +6068,8 @@ class Cache {
 	/** Gets the Model3D or environment load state. */
 	getLoadState(filename: string): "none" | "loading" | "ready" | "failed" | "cancelled";
 
-	/** Gets the latest Model3D or environment load error. */
-	getLoadError(filename: string): string;
+	/** Returns a version-1 JSON snapshot for the latest model load: modelPath, state and diagnostics. Each diagnostic has code, severity, stage, resourcePath, textureSlot, imageIndex, materialIndex and message. Context fields are null when unavailable. */
+	getLoadDiagnostics(filename: string): string;
 
 	/** Cancels an active Model3D or environment load. */
 	cancelLoad(filename: string): boolean;

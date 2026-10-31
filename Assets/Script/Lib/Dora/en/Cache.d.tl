@@ -65,8 +65,8 @@ local record Cache
 	-- Gets the Model3D or environment load state.
 	getLoadState: function(self: Cache, filename: string): LoadState
 
-	-- Gets the latest Model3D or environment load error.
-	getLoadError: function(self: Cache, filename: string): string
+	-- Returns a version-1 JSON snapshot for the latest model load: modelPath, state and diagnostics. Each diagnostic has code, severity, stage, resourcePath, textureSlot, imageIndex, materialIndex and message. Context fields are null when unavailable.
+	getLoadDiagnostics: function(self: Cache, filename: string): string
 
 	-- Cancels an active Model3D or environment load.
 	cancelLoad: function(self: Cache, filename: string): boolean

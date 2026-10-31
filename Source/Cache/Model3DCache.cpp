@@ -16,13 +16,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Async.h"
 
 #include <chrono>
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 
 #ifndef DORA_NO_RUST
 extern "C" {
-uint64_t dora_3d_load_gltf(const char* path);
+uint64_t dora_3d_load_gltf_diagnosed(const char* path, void (*diagnostic)(const char*, void*), void* userData);
 uint64_t dora_3d_parse_gltf(const char* path);
-int32_t dora_3d_collect_gltf_dependencies(const char* path, const uint8_t* data, size_t size, void (*visitor)(const char*, void*), void* userData);
-uint64_t dora_3d_parse_gltf_data(const char* path, const uint8_t* data, size_t size, int32_t (*loader)(const char*, const uint8_t**, size_t*, void*), void* userData);
+int32_t dora_3d_collect_gltf_dependencies_diagnosed(const char* path, const uint8_t* data, size_t size, void (*visitor)(const char*, void*), void (*diagnostic)(const char*, void*), void* userData);
+uint64_t dora_3d_parse_gltf_data_diagnosed(const char* path, const uint8_t* data, size_t size, int32_t (*loader)(const char*, const uint8_t**, size_t*, void*), void (*diagnostic)(const char*, void*), void* userData);
 uint64_t dora_3d_begin_upload_gltf(uint64_t prepared);
 int32_t dora_3d_step_upload_gltf(uint64_t job, uint64_t maxBytes, uint64_t* model, uint64_t* uploadedBytes);
 void dora_3d_cancel_upload_gltf(uint64_t job);
@@ -53,10 +56,39 @@ struct Model3DLoadTask {
 	std::vector<std::string> dependencies;
 	std::unordered_map<std::string, Model3DImportResource> resources;
 	size_t remaining = 0;
-	bool failed = false;
+	std::vector<std::string> diagnostics;
 	bool cancelled = false;
 	std::vector<std::function<void(Model3DDef*)>> handlers;
 };
+
+// Each task owns its collection. Worker callbacks never write the cache report map.
+static void appendModel3DDiagnostic(const char* json, void* userData) {
+	auto diagnostics = static_cast<std::vector<std::string>*>(userData);
+	if (std::find(diagnostics->begin(), diagnostics->end(), json) == diagnostics->end()) diagnostics->emplace_back(json);
+}
+
+static void collectTaskDiagnostic(const char* json, void* userData) {
+	appendModel3DDiagnostic(json, &static_cast<Model3DLoadTask*>(userData)->diagnostics);
+}
+
+static std::string model3DDiagnostic(String code, String stage, String path, String message) {
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+	writer.StartObject();
+	for (auto pair : {std::pair{"code", code}, {"severity", String{"error"}}, {"stage", stage}, {"resourcePath", path}, {"message", message}}) {
+		writer.Key(pair.first); writer.String(pair.second.rawData(), s_cast<rapidjson::SizeType>(pair.second.size()));
+	}
+	writer.Key("textureSlot"); writer.Null(); writer.Key("imageIndex"); writer.Null(); writer.Key("materialIndex"); writer.Null();
+	writer.EndObject(); return {buffer.GetString(), buffer.GetSize()};
+}
+
+static bool hasDiagnosticError(const std::vector<std::string>& diagnostics) {
+	for (const auto& json : diagnostics) {
+		rapidjson::Document d; d.Parse(json.c_str());
+		if (!d.HasParseError() && d.IsObject() && d.HasMember("severity") && d["severity"].IsString() && std::string_view(d["severity"].GetString()) == "error") return true;
+	}
+	return false;
+}
 
 struct Model3DEnvironmentTask {
 	std::string file;
@@ -117,11 +149,12 @@ Model3DCache::~Model3DCache() {
 
 Model3DDef* Model3DCache::load(String filename) {
 #ifdef DORA_NO_RUST
+	_loadInfo[filename.toString()] = {Model3DLoadState::Failed, "3D runtime disabled", {model3DDiagnostic("FEATURE_DISABLED", "read", filename, "3D runtime disabled")}};
 	return nullptr;
 #else
 	std::string file = SharedContent.getFullPath(filename);
-	if (file.empty()) {
-		_loadInfo[filename.toString()] = {Model3DLoadState::Failed, "resource not found"};
+	if (file.empty() || !SharedContent.exist(file)) {
+		_loadInfo[filename.toString()] = {Model3DLoadState::Failed, "resource not found", {model3DDiagnostic("RESOURCE_NOT_FOUND", "read", filename, "Model resource not found")}};
 		return nullptr;
 	}
 	auto it = _models.find(file);
@@ -131,9 +164,11 @@ Model3DDef* Model3DCache::load(String filename) {
 	}
 	cancelLoad(file);
 	_loadInfo[file] = {Model3DLoadState::Loading, {}};
-	uint64_t model = dora_3d_load_gltf(file.c_str());
+	auto& info = _loadInfo[file];
+	uint64_t model = dora_3d_load_gltf_diagnosed(file.c_str(), appendModel3DDiagnostic, &info.diagnostics);
 	if (model == 0) {
-		_loadInfo[file] = {Model3DLoadState::Failed, "glTF parse or GPU upload failed"};
+		info.state = Model3DLoadState::Failed; info.error = "glTF parse or GPU upload failed";
+		if (!hasDiagnosticError(info.diagnostics)) info.diagnostics.push_back(model3DDiagnostic("MODEL_LOAD_FAILED", "load", file, info.error));
 		return nullptr;
 	}
 	Model3DDef* def = Model3DDef::create(model);
@@ -142,7 +177,7 @@ Model3DDef* Model3DCache::load(String filename) {
 	entry.residentBytes = def->getResidentBytes();
 	entry.lastAccess = ++_accessSequence;
 	_models[file] = std::move(entry);
-	_loadInfo[file] = {Model3DLoadState::Ready, {}};
+	info.state = Model3DLoadState::Ready; info.error.clear();
 	trimToBudget();
 	return def;
 #endif // DORA_NO_RUST
@@ -150,11 +185,12 @@ Model3DDef* Model3DCache::load(String filename) {
 
 void Model3DCache::loadAsync(String filename, const std::function<void(Model3DDef*)>& handler) {
 #ifdef DORA_NO_RUST
+	_loadInfo[filename.toString()] = {Model3DLoadState::Failed, "3D runtime disabled", {model3DDiagnostic("FEATURE_DISABLED", "read", filename, "3D runtime disabled")}};
 	handler(nullptr);
 #else
 	std::string file = SharedContent.getFullPath(filename);
-	if (file.empty()) {
-		_loadInfo[filename.toString()] = {Model3DLoadState::Failed, "resource not found"};
+	if (file.empty() || !SharedContent.exist(file)) {
+		_loadInfo[filename.toString()] = {Model3DLoadState::Failed, "resource not found", {model3DDiagnostic("RESOURCE_NOT_FOUND", "read", filename, "Model resource not found")}};
 		handler(nullptr);
 		return;
 	}
@@ -177,6 +213,7 @@ void Model3DCache::loadAsync(String filename, const std::function<void(Model3DDe
 	SharedContent.loadAsyncData(file, [this, task](OwnArray<uint8_t>&& data, size_t size) {
 		if (!isCurrent(task)) return;
 		if (!data || size == 0) {
+			task->diagnostics.push_back(model3DDiagnostic("RESOURCE_READ_FAILED", "read", task->file, "Model could not be read through Content"));
 			completeAsync(task, 0, "failed to read model through Content");
 			return;
 		}
@@ -191,11 +228,12 @@ void Model3DCache::collectDependenciesAsync(const std::shared_ptr<Model3DLoadTas
 #ifndef DORA_NO_RUST
 	SharedAsyncThread.run(
 		[task]() {
-			bool success = dora_3d_collect_gltf_dependencies(
+			bool success = dora_3d_collect_gltf_dependencies_diagnosed(
 				task->file.c_str(),
 				task->data.get(),
 				task->size,
 				collectModel3DDependency,
+				collectTaskDiagnostic,
 				task.get()) != 0;
 			return Values::alloc(success);
 		},
@@ -222,18 +260,10 @@ void Model3DCache::loadDependenciesAsync(const std::shared_ptr<Model3DLoadTask>&
 	for (const auto& dependency : task->dependencies) {
 		SharedContent.loadAsyncData(dependency, [this, task, dependency](OwnArray<uint8_t>&& data, size_t size) {
 			if (!isCurrent(task)) return;
-			if (!data || size == 0) {
-				task->failed = true;
-			} else {
-				task->resources.emplace(dependency, Model3DImportResource {std::move(data), size});
-			}
-			if (--task->remaining == 0) {
-				if (task->failed) {
-					completeAsync(task, 0, "failed to read one or more glTF dependencies");
-				} else {
-					parseDataAsync(task);
-				}
-			}
+			if (data) task->resources.emplace(dependency, Model3DImportResource {std::move(data), size});
+			// Import again with the available resources so a missing image retains its
+			// image/material/slot context. No fallback host I/O is performed.
+			if (--task->remaining == 0) parseDataAsync(task);
 		});
 	}
 #endif // DORA_NO_RUST
@@ -243,11 +273,12 @@ void Model3DCache::parseDataAsync(const std::shared_ptr<Model3DLoadTask>& task) 
 #ifndef DORA_NO_RUST
 	SharedAsyncThread.run(
 		[task]() {
-			return Values::alloc(dora_3d_parse_gltf_data(
+			return Values::alloc(dora_3d_parse_gltf_data_diagnosed(
 				task->file.c_str(),
 				task->data.get(),
 				task->size,
 				loadModel3DResource,
+				collectTaskDiagnostic,
 				task.get()));
 		},
 		[this, task](Own<Values> result) {
@@ -263,6 +294,7 @@ void Model3DCache::parseDataAsync(const std::shared_ptr<Model3DLoadTask>& task) 
 			}
 			uint64_t job = dora_3d_begin_upload_gltf(prepared);
 			if (job == 0) {
+				task->diagnostics.push_back(model3DDiagnostic("GPU_UPLOAD_FAILED", "upload", task->file, "Could not begin model GPU upload"));
 				completeAsync(task, 0, "failed to create GPU upload job");
 				return;
 			}
@@ -277,7 +309,7 @@ void Model3DCache::loadEnvironmentAsync(String filename, const std::function<voi
 #else
 	std::string file = SharedContent.getFullPath(filename);
 	if (file.empty()) {
-		_loadInfo[filename.toString()] = {Model3DLoadState::Failed, "environment resource not found"};
+		_loadInfo[filename.toString()] = {Model3DLoadState::Failed, "environment resource not found", {model3DDiagnostic("RESOURCE_NOT_FOUND", "read", filename, "Environment resource not found")}};
 		handler(false);
 		return;
 	}
@@ -400,6 +432,7 @@ bool Model3DCache::updateUploads() {
 				model = 0;
 			}
 			if (task.type == UploadTask::Type::Model) {
+				if (status < 0) task.modelTask->diagnostics.push_back(model3DDiagnostic("GPU_UPLOAD_FAILED", "upload", task.modelTask->file, "Model GPU upload failed"));
 				completeAsync(task.modelTask, model, status > 0 ? std::string {} : "GPU upload failed");
 			} else {
 				completeEnvironmentAsync(task.environmentTask, status > 0, status > 0 ? std::string {} : "environment GPU upload failed");
@@ -420,7 +453,9 @@ bool Model3DCache::updateUploads() {
 void Model3DCache::completeEnvironmentAsync(const std::shared_ptr<Model3DEnvironmentTask>& task, bool success, std::string error) {
 	if (!isCurrent(task)) return;
 	_environmentTasks.erase(task->file);
-	_loadInfo[task->file] = {success ? Model3DLoadState::Ready : Model3DLoadState::Failed, std::move(error)};
+	std::vector<std::string> diagnostics;
+	if (!success) diagnostics.push_back(model3DDiagnostic("ENVIRONMENT_LOAD_FAILED", "environment", task->file, error));
+	_loadInfo[task->file] = {success ? Model3DLoadState::Ready : Model3DLoadState::Failed, std::move(error), std::move(diagnostics)};
 	auto handlers = std::move(task->handlers);
 	for (const auto& callback : handlers) {
 		callback(success);
@@ -441,10 +476,11 @@ void Model3DCache::completeAsync(const std::shared_ptr<Model3DLoadTask>& task, u
 		entry.residentBytes = def->getResidentBytes();
 		entry.lastAccess = ++_accessSequence;
 		_models[task->file] = std::move(entry);
-		_loadInfo[task->file] = {Model3DLoadState::Ready, {}};
+		_loadInfo[task->file] = {Model3DLoadState::Ready, {}, std::move(task->diagnostics)};
 		trimToBudget();
 	} else {
-		_loadInfo[task->file] = {Model3DLoadState::Failed, std::move(error)};
+		if (!hasDiagnosticError(task->diagnostics)) task->diagnostics.push_back(model3DDiagnostic("MODEL_LOAD_FAILED", "load", task->file, error));
+		_loadInfo[task->file] = {Model3DLoadState::Failed, std::move(error), std::move(task->diagnostics)};
 	}
 	auto handlers = std::move(task->handlers);
 	for (const auto& callback : handlers) {
@@ -457,9 +493,29 @@ Model3DLoadState Model3DCache::getLoadState(String filename) const {
 	return it == _loadInfo.end() ? Model3DLoadState::None : it->second.state;
 }
 
-String Model3DCache::getLoadError(String filename) const {
-	auto it = _loadInfo.find(resolveKey(filename));
-	return it == _loadInfo.end() ? String {} : String {it->second.error};
+std::string Model3DCache::getLoadDiagnostics(String filename) const {
+	auto key = resolveKey(filename);
+	auto it = _loadInfo.find(key);
+	const LoadInfo empty;
+	const auto& info = it == _loadInfo.end() ? empty : it->second;
+	const char* state = "none";
+	switch (info.state) {
+		case Model3DLoadState::Loading: state = "loading"; break;
+		case Model3DLoadState::Ready: state = "ready"; break;
+		case Model3DLoadState::Failed: state = "failed"; break;
+		case Model3DLoadState::Cancelled: state = "cancelled"; break;
+		default: break;
+	}
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+	writer.StartObject(); writer.Key("version"); writer.Int(1);
+	writer.Key("modelPath"); writer.String(key.c_str());
+	writer.Key("state"); writer.String(state); writer.Key("diagnostics"); writer.StartArray();
+	for (const auto& json : info.diagnostics) {
+		rapidjson::Document d; d.Parse(json.c_str());
+		if (!d.HasParseError() && d.IsObject()) d.Accept(writer);
+	}
+	writer.EndArray(); writer.EndObject(); return {buffer.GetString(), buffer.GetSize()};
 }
 
 bool Model3DCache::cancelLoad(String filename) {
@@ -478,6 +534,7 @@ bool Model3DCache::cancelLoad(String filename) {
 				++it;
 			}
 		}
+		_loadInfo[file] = {Model3DLoadState::Cancelled, "load cancelled", {model3DDiagnostic("LOAD_CANCELLED", "cancel", file, "Load cancelled")}};
 		auto handlers = std::move(task->handlers);
 		for (const auto& callback : handlers) callback(nullptr);
 		cancelled = true;
@@ -495,12 +552,10 @@ bool Model3DCache::cancelLoad(String filename) {
 				++it;
 			}
 		}
+		_loadInfo[file] = {Model3DLoadState::Cancelled, "load cancelled", {model3DDiagnostic("LOAD_CANCELLED", "cancel", file, "Load cancelled")}};
 		auto handlers = std::move(task->handlers);
 		for (const auto& callback : handlers) callback(false);
 		cancelled = true;
-	}
-	if (cancelled) {
-		_loadInfo[file] = {Model3DLoadState::Cancelled, "load cancelled"};
 	}
 	return cancelled;
 }

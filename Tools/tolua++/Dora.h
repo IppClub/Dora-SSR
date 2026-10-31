@@ -1398,7 +1398,7 @@ struct Cache
 	static bool load(String filename);
 	static void loadAsync(String filename, tolua_function_void callback);
 	static String getLoadState(String filename);
-	static String getLoadError(String filename);
+	static std::string getLoadDiagnostics(String filename);
 	static bool cancelLoad(String filename);
 	static void update(String filename, String content);
 	static void update(String filename, Texture2D* texture);
