@@ -45,6 +45,10 @@ target("Dora")
     -- required by genuine C units such as the amalgamated Vorbis sources
     -- (alloca is a compiler extension there); it does not turn them into C++.
     set_languages("gnu11", "cxx20")
+    -- A mode name alone does not enable xmake's compiler policies. Keep these
+    -- common to every native host, including direct Android builds: Release
+    -- must define NDEBUG so App.debugging and LLM context dumps are disabled.
+    add_rules("mode.debug", "mode.release")
     add_deps("dora-lua-bindings", "SDL2", "love", "theoradec", "bgfx", "shaderc-lib")
     if is_plat("macosx", "linux", "windows", "iphoneos") then
         add_deps("dora-rust-runtime", "dora-wa-runtime")
@@ -128,9 +132,6 @@ target("Dora")
     end)
 
     if is_plat("macosx") then
-        -- Mode names alone do not enable xmake's optimization/symbol policies.
-        -- Apply the same explicit mode rules already used by the iOS host.
-        add_rules("mode.debug", "mode.release")
         if os.getenv("DORA_BUILD_LIBGODOT_METAL_PROBE") == "1" then
             set_targetdir(rootpath("build/godot-metal-probe/dora"))
         end
@@ -170,7 +171,6 @@ target("Dora")
     elseif is_plat("iphoneos") then
         add_files(rootpath("Source/Godot/GodotRuntimeMetal.mm"), {force = {mxxflags = {"-fobjc-arc"}}})
         local godot_test = os.getenv("DORA_BUILD_GODOT_NODE_TEST") == "1"
-        add_rules("mode.debug", "mode.release")
         -- Match the checked-in Xcode project's DWARF settings; the mode
         -- rules provide -O0 for Debug and size optimization/NDEBUG for iOS Release.
         set_symbols("debug")
@@ -229,8 +229,6 @@ target("Dora")
             "GameController", "Metal", "QuartzCore", "Security", "UIKit"
         )
     elseif is_plat("linux") then
-        -- Mode names alone do not enable optimization or the Release exit path.
-        add_rules("mode.debug", "mode.release")
         add_files(rootpath("Source/Godot/GodotRuntimeGL.cpp"))
         if os.getenv("DORA_BUILD_GODOT_NODE_TEST") == "1" then
             set_targetdir(os.getenv("DORA_GODOT_TEST_TARGETDIR")
@@ -261,8 +259,6 @@ target("Dora")
         set_runargs("--asset", rootpath("Assets"))
         set_rundir(DORA_ROOT)
     elseif is_plat("windows") then
-        -- Enable optimization and NDEBUG for the ordinary Release host too.
-        add_rules("mode.debug", "mode.release")
         -- xmake 3.1.1 treats every Windows Clang driver as MSVC-compatible
         -- and otherwise injects its default MT/MTd runtime. LLVM-MinGW then
         -- receives -nostdlib and loses its CRT and libc++ startup libraries.
@@ -334,11 +330,6 @@ target("Dora")
         end)
     elseif is_plat("android") then
         add_files(rootpath("Source/Godot/GodotRuntimeGL.cpp"))
-        if is_mode("debug") then
-            -- Android Studio's LLDB needs C/C++ line tables as well as symbols.
-            -- A debug mode name alone does not enable xmake's mode.debug rule.
-            set_symbols("debug")
-        end
         add_defines("LUA_USE_LINUX")
         add_linkgroups(rootpath("build/runtime/android/" .. get_config("arch") .. "/" ..
             get_config("mode") .. "/libdora_runtime.a"))
