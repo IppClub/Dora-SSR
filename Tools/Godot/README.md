@@ -580,7 +580,11 @@ python Tools/Godot/package_windows_d3d12_test.py `
 
 解压ZIP后先运行`setup-python.cmd`，再在原生x64 Windows和支持Shader Model 6的物理GPU
 上运行`run-d3d12-2.cmd`。只有双缓冲CPU fence基线通过，才运行
-`run-d3d12-matrix.cmd`验证2/3/4缓冲。Parallels、WARP、ABI检查和包校验均不能替代这一步。
+`run-d3d12-matrix.cmd`验证2/3/4缓冲。物理机缺失时，当前跟踪口径允许使用虚拟机/WARP
+推进功能验收，但报告必须保留软件适配器、虚拟设备和非物理GPU边界。Windows ARM64 可用
+`test_windows.py --arch arm64 --backend D3D12 --warp --mesa-libs C:\path\to\godot-nir`
+构建同架构运行库与宿主并运行；这用于避开
+x64 `xtajit64se` 翻译层，不得把仅有 ARM64 Rust/Wa 产物或 ABI 检查写成共享渲染通过。
 
 自动 IME 宿主改动后，Windows 11 交互会话中的当前 Dora 源码重新用 MSVC 编译，
 并配合先前已验证的 ABI-2 WGL DLL 完成 720 帧、三缓冲、别名和宿主 PCM 回归；GPU

@@ -2746,3 +2746,11 @@ Godot Android Thread平台hook只有JNI attach/detach，未设置priority；现�
 - 三缓冲耐久另完成 196.750 秒、18720 控制帧，其中持续段 18000 帧。第二生命周期 Godot 生产 19148/19148、Dora GPU 读取 19288/19288，reader pending 0、GPU error 0、PCM underrun 0、稳态 blit 0；报告为 `build/godot-direct04-metal/macos-soak-3-18000/verification.json`。先前 12000 帧尝试虽完成帧数但仅 135.969 秒，未达到 180 秒门槛，未计通过。
 - iOS simulator 运行库、framework 与 Dora 宿主均完成编译、链接、ad-hoc 签名和包检查，导出 `_dora_godot_get_metal_targets_api`。专用 iOS 26.5 模拟器只暴露 Apple2，按 Dora Apple2 / Godot Apple4 策略在运行时启动前正确拒绝；报告 `build/godot-direct04-metal/ios-simulator-apple4-rejection/unsupported-gpu.json` 明确为 `rejected_as_expected=true`、`gpu_shared_output_verified=false`、零截图。按用户“缺少真机只用虚拟机”的决定，本项关闭当前实现路线，但不扩张为 Apple4 iOS 共享画面或物理 GPU、触摸、音频兼容结论。
 - Python 入口语法检查通过；macOS 运行时、宿主、矩阵与耐久均实际执行。`test_vm_protocol.py` 本轮因重启后的 Parallels Service 无法连接而未执行成功，这属于虚拟机服务环境失败，不作为 Metal 源码通过证据，也不阻塞本平台实测。iOS 模拟器已关闭；本轮没有启动 Parallels 虚拟机。下一项为 DIRECT-05 Windows D3D12。
+
+### 2026-10-31 Windows ARM64 D3D12 虚拟机路线准备
+
+- 重新审计 DIRECT-05 既有证据：x64 D3D12 宿主与运行库、185 项 ABI、物理测试包均已通过静态门槛，但 Parallels 虚拟 GPU 不提供 Godot 所需 SM6，x64/WARP 则在 `GodotInstance::start()` 返回前崩于 Windows ARM 的 `xtajit64se` 生成代码，尚未触及 `prepare_device` 或 `OpenSharedHandle`。因此不重复旧 x64 包，也不把旧故障归因于共享资源。
+- Godot Windows 构建入口原本已接受 `--arch arm64`；Dora 缺少的是 Windows ARM64 原生语言运行时映射和测试入口。新增 `aarch64-pc-windows-msvc` Rust、`windows/arm64` Go 与 `aarch64-w64-mingw32` C 编译器映射，`test_windows.py` 现接受 `--arch arm64` 并继续执行 PE 架构一致性检查；完整构建也会把 `--backend D3D12` 与显式 `--mesa-libs` 正确传给运行库构建器，不再误建默认 WGL DLL。vendored `x/sys/windows` 只有 386/amd64 的 64 位 WinSock/job 结构，补充等布局的 ARM64 文件后 Wa 才能构建。
+- 本机真实交叉生成 `wa.dll`，`llvm-objdump` 确认为 `coff-arm64`，SHA-256 `ab3f8b46...d6448`；Rust `aarch64-pc-windows-msvc` Debug staticlib 用时 4 分 36 秒完成，archive 成员均为 `coff-arm64`，SHA-256 `21064c08...01d7`。Python、Lua 与 diff whitespace 检查通过；报告为 `build/godot-direct05-windows-arm64/native-runtime-probe/verification.json`。1.1 GiB Rust 中间目录已移入废纸篓，仅保留两份架构证据产物。
+- Windows 11 ARM64 Parallels VM 做了两次有界冷启动。两次均停在 Windows Logo 转圈，`prlctl exec` 从未建立来宾会话；第二次 VM 日志在 `OnExitBootServices` 后不再产生有效启动进展。没有运行任何 D3D12 程序、没有编译 Godot/Dora，也没有 GPU 结论。两次均只终止该精确 VM 进程，最终 Ubuntu x64、Ubuntu ARM64、Windows 11 三台 VM 均为 stopped。
+- DIRECT-05 保持未完成。下一闸门是获得可启动的 Windows ARM64 VM，在同一架构构建 Godot 4.6 D3D12 runtime 与 Dora D3D12 host，以原生 ARM64 WARP 运行双缓冲 CPU-fence 基线；只有共享句柄导入、动态画面、排空和零错误通过后，才进入 2/3/4 缓冲纯 GPU 双 fence。

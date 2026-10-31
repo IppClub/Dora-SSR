@@ -8,9 +8,10 @@ parser=argparse.ArgumentParser()
 parser.add_argument('--skip-build',action='store_true',help='Reuse both the Godot DLL and Dora test host')
 parser.add_argument('--skip-runtime-build',action='store_true',help='Reuse the Godot DLL while building the Dora test host')
 parser.add_argument('--xmake',default='xmake',help='Path to a complete native host xmake installation')
-parser.add_argument('--arch',choices=['x86_64'],default='x86_64')
+parser.add_argument('--arch',choices=['x86_64','arm64'],default='x86_64')
 parser.add_argument('--library',type=Path,help='Unsealed runtime DLL; prefer --runtime-package for handoff testing')
 parser.add_argument('--runtime-package',type=Path,help='Sealed runtime package whose graphics_backend must match --backend')
+parser.add_argument('--mesa-libs',type=Path,help='Godot NIR dependency root required when this command builds a D3D12 runtime')
 parser.add_argument('--project',type=Path,default=root/'Tools/Godot/tests/project')
 parser.add_argument('--results',type=Path,default=root/'build/godot-runtime/node-windows-results')
 parser.add_argument('--jobs',type=int,default=2)
@@ -66,7 +67,12 @@ if args.ime:env['DORA_GODOT_TEST_IME']='1'
 if args.controller:env['DORA_GODOT_TEST_CONTROLLER']='1'
 if not args.skip_build:
     if not args.skip_runtime_build:
-        subprocess.run([sys.executable,str(root/'Tools/Godot/build_windows_runtime.py'),'--jobs',str(args.jobs),'--arch',args.arch],cwd=root,check=True)
+        runtime_build=[sys.executable,str(root/'Tools/Godot/build_windows_runtime.py'),'--jobs',str(args.jobs),
+            '--arch',args.arch,'--backend',args.backend]
+        if args.backend=='D3D12':
+            assert args.mesa_libs and args.mesa_libs.is_dir(), '--mesa-libs is required when building the D3D12 runtime'
+            runtime_build+=['--mesa-libs',str(args.mesa_libs.resolve())]
+        subprocess.run(runtime_build,cwd=root,check=True)
     subprocess.run([args.xmake,'f','-y','-p','windows','-a','x64' if args.arch=='x86_64' else args.arch],cwd=root,env=env,check=True)
     subprocess.run([args.xmake,'build','-j'+str(args.jobs),'Dora'],cwd=root,env=env,check=True)
 binary=root/'build/godot-runtime/dora/Dora.exe';assert binary.is_file() and library.is_file()

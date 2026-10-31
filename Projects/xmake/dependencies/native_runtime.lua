@@ -198,11 +198,12 @@ if is_plat("android") then
 end
 
 if is_plat("windows") then
-    -- Keep the established x86 build, and select matching native runtimes for
-    -- the x64 host needed by the Windows LibGodot bridge.
+    -- Keep the established x86/x64 builds and allow a native ARM64 host for
+    -- virtualized D3D12/WARP validation without Windows x64 translation.
     local windows_arches = {
         x86 = {rust = "i686-pc-windows-msvc", go = "386", cc = "i686-w64-mingw32-gcc", machine = "i686"},
-        x64 = {rust = "x86_64-pc-windows-msvc", go = "amd64", cc = "x86_64-w64-mingw32-gcc", machine = "x86_64"}
+        x64 = {rust = "x86_64-pc-windows-msvc", go = "amd64", cc = "x86_64-w64-mingw32-gcc", machine = "x86_64"},
+        arm64 = {rust = "aarch64-pc-windows-msvc", go = "arm64", cc = "aarch64-w64-mingw32-gcc", machine = "aarch64"}
     }
     windows_arches.x86_64 = windows_arches.x64
     target("dora-rust-runtime")
@@ -215,7 +216,7 @@ if is_plat("windows") then
 
             local rust_dir = path.join(DORA_ROOT, "Source/Rust")
             local selected = assert(windows_arches[target:arch()],
-                "Windows native runtimes support x86/x64; unsupported architecture: " .. target:arch())
+                "Windows native runtimes support x86/x64/arm64; unsupported architecture: " .. target:arch())
             local triple = selected.rust
             local profile = config.mode() == "release" and "release" or "debug"
             local output = runtime_output("dora_runtime.lib")
@@ -267,7 +268,7 @@ if is_plat("windows") then
             import("lib.detect.find_tool")
 
             local selected = assert(windows_arches[target:arch()],
-                "Windows native runtimes support x86/x64; unsupported architecture: " .. target:arch())
+                "Windows native runtimes support x86/x64/arm64; unsupported architecture: " .. target:arch())
             local wa_dir = path.join(DORA_ROOT, "Source/3rdParty/Wa/Source")
             local output = runtime_output("wa.dll")
             local inputs = {
