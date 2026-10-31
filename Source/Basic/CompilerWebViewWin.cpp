@@ -7,7 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "Const/Header.h"
-#if BX_PLATFORM_WINDOWS
+#if BX_PLATFORM_WINDOWS && !defined(__MINGW32__)
 #include "Basic/Application.h"
 #include "Basic/IDEInput.h"
 #include "Basic/Content.h"
@@ -619,6 +619,22 @@ void Application::setIDEWebView(const std::string& requestedAction) {
 			return S_OK;
 		}).Get());
 	if (FAILED(started)) { ideStarting = false; ideState("failed", "Cannot initialize installed WebView2 Runtime"); }
+}
+NS_DORA_END
+#elif BX_PLATFORM_WINDOWS
+#include "Basic/Application.h"
+
+NS_DORA_BEGIN
+void Application::closeCompilerWebView() { }
+void Application::setCompilerWebView(const std::string&, bool enabled) {
+	WarnIf(enabled, "WebView2 integration is unavailable in MinGW builds");
+}
+void Application::pumpIDEWebViewEvents() { }
+void Application::closeIDEWebView() {
+	setIDEWebViewVisible(false);
+}
+void Application::setIDEWebView(const std::string&) {
+	Warn("WebView2 integration is unavailable in MinGW builds");
 }
 NS_DORA_END
 #endif

@@ -20,6 +20,7 @@
 
 #include <algorithm> // for std::find_if
 #include <cassert> // for assert
+#include <exception> // for std::terminate
 #include <sstream> // for std::ostringstream
 #include <utility> // for std::exchange
 

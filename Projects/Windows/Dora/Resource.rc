@@ -9,6 +9,12 @@
 //
 #include "winres.h"
 
+// xmake embeds Dora.manifest separately when using MSVC. MinGW does not
+// accept a standalone .manifest input, so include it in the resource object.
+#ifdef __MINGW32__
+1 24 "Dora.manifest"
+#endif
+
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 

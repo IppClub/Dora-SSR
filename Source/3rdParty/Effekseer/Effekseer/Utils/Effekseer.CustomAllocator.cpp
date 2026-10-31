@@ -23,9 +23,7 @@ void* InternalAlignedMalloc(unsigned int size, unsigned int alignement)
 #if defined(__EMSCRIPTEN__) && __EMSCRIPTEN_minor__ < 38
 	return malloc(size);
 #elif defined(_WIN32)
-	return _mm_malloc(size, alignement);
-#elif defined(__MINGW32__)
-	return _aligned_malloc(alignement, size);
+	return _aligned_malloc(size, alignement);
 #else
 	void* ptr = nullptr;
 	posix_memalign(&ptr, alignement, size);
@@ -38,9 +36,7 @@ void InternalAlignedFree(void* p, unsigned int size)
 #if defined(__EMSCRIPTEN__) && __EMSCRIPTEN_minor__ < 38
 	free(p);
 #elif defined(_WIN32)
-	_mm_free(p);
-#elif defined(__MINGW32__)
-	return _aligned_free(p);
+	_aligned_free(p);
 #else
 	return free(p);
 #endif

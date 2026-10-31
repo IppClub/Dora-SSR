@@ -20,7 +20,7 @@
 #   include <d3d12_x.h>
 #endif // BX_PLATFORM_XBOXONE
 
-#if defined(__MINGW32__) // BK - temp workaround for MinGW until I nuke d3dx12 usage.
+#if defined(__MINGW32__) && !defined(__clang__) // Legacy GCC MinGW workaround.
 extern "C++" {
 #	if defined(__cpp_constexpr)        && __cpp_constexpr        >= 200704L \
 	&& defined(__cpp_inline_variables) && __cpp_inline_variables >= 201606L

@@ -17,6 +17,8 @@ parser.add_argument('--output', type=Path, required=True, help='New bundle direc
 parser.add_argument('--assets', type=Path, default=root / 'Assets')
 parser.add_argument('--project', type=Path, default=root / 'Tools/Godot/tests/project')
 parser.add_argument('--include-symbols', action='store_true', help='Include host PDB files for crash-symbol handoff')
+parser.add_argument('--acceptance-mode', choices=['physical-gpu', 'virtual-warp'], default='physical-gpu',
+                    help='Select native physical-GPU acceptance or Windows VM/WARP validation')
 args = parser.parse_args()
 
 host_dir = args.host_dir.resolve()
@@ -28,7 +30,12 @@ assert not output.exists(), 'Refusing to replace an existing test bundle: ' + st
 runtime_report = verify(runtime)
 runtime_manifest = json.loads((runtime / 'manifest.json').read_text(encoding='utf-8'))
 assert runtime_manifest.get('graphics_backend') == 'd3d12', 'Runtime package is not sealed as d3d12'
-assert runtime_manifest.get('architectures') in (['x86_64'], ['x64']), 'Physical test bundle requires x64 runtime'
+runtime_arches = runtime_manifest.get('architectures')
+assert isinstance(runtime_arches, list) and len(runtime_arches) == 1, 'Runtime package must contain exactly one architecture'
+architecture = {'x64': 'x86_64'}.get(runtime_arches[0], runtime_arches[0])
+assert architecture in ('x86_64', 'arm64'), 'Unsupported Windows test architecture: ' + str(architecture)
+if args.acceptance_mode == 'physical-gpu':
+    assert architecture == 'x86_64', 'Physical test bundle currently requires x64 runtime'
 
 def pe_machine(path):
     with Path(path).open('rb') as file:
@@ -40,8 +47,9 @@ def pe_machine(path):
         return struct.unpack('<H', file.read(2))[0]
 
 runtime_library = runtime / runtime_manifest['library']
-assert pe_machine(host_dir / 'Dora.exe') == 0x8664, 'Dora host is not x86_64'
-assert pe_machine(runtime_library) == 0x8664, 'Godot runtime is not x86_64'
+machine = {'x86_64': 0x8664, 'arm64': 0xAA64}[architecture]
+assert pe_machine(host_dir / 'Dora.exe') == machine, 'Dora host architecture does not match the runtime'
+assert pe_machine(runtime_library) == machine, 'Godot runtime architecture does not match its manifest'
 
 host_output = output / 'build/godot-runtime/dora'
 host_output.mkdir(parents=True)
@@ -99,9 +107,11 @@ if not exist .venv\Scripts\python.exe (
 powershell -NoProfile -ExecutionPolicy Bypass -File collect-system.ps1 || exit /b 3
 set DORA_GODOT_WINDOWS_GL=
 set DORA_GODOT_D3D12_WARP=
-.venv\Scripts\python.exe Tools\Godot\test_windows.py --skip-build --backend D3D12 --buffers BUFFER_COUNT --resize --aliases --runtime-package "%CD%\runtime" --project "%CD%\Tools\Godot\tests\project" --results "%CD%\results\buffers-BUFFER_COUNT"
+.venv\Scripts\python.exe Tools\Godot\test_windows.py --skip-build --backend D3D12 --arch TEST_ARCH WARP_ARG --buffers BUFFER_COUNT --resize --aliases --runtime-package "%CD%\runtime" --project "%CD%\Tools\Godot\tests\project" --results "%CD%\results\buffers-BUFFER_COUNT"
 exit /b %errorlevel%
 '''
+runner = runner.replace('TEST_ARCH', architecture).replace(
+    'WARP_ARG', '--warp' if args.acceptance_mode == 'virtual-warp' else '')
 for buffers in (2, 3, 4):
     (output / f'run-d3d12-{buffers}.cmd').write_text(runner.replace('BUFFER_COUNT', str(buffers)), encoding='utf-8')
 (output / 'run-d3d12-matrix.cmd').write_text(r'''@echo off
@@ -113,19 +123,18 @@ call run-d3d12-4.cmd || exit /b %errorlevel%
 echo D3D12 2/3/4-buffer matrix passed.
 ''', encoding='utf-8')
 
-(output / 'README.txt').write_text('''Dora + Godot D3D12 physical Windows acceptance bundle
+(output / 'README.txt').write_text(('''Dora + Godot D3D12 {title} bundle
 
 Scope
 -----
-This bundle contains an x64 Dora host linked only with the D3D12 Godot bridge,
-an x64 Godot 4.6 D3D12 runtime, the test project, and strict image/GPU-accounting
-verification. It does not contain the WGL bridge and does not claim GPU acceptance
-until a run on native x64 Windows with a Shader Model 6 capable physical adapter passes.
+This bundle contains an {architecture} Dora host linked only with the D3D12 Godot bridge,
+an {architecture} Godot 4.6 D3D12 runtime, the test project, and strict image/GPU-accounting
+verification. It does not contain the WGL bridge. {boundary}
 
 Prerequisites
 -------------
-1. Native x64 Windows 10/11 (not Windows-on-ARM x64 translation).
-2. A physical D3D12 GPU with Shader Model 6 support and current driver.
+1. {prerequisite_os}
+2. {prerequisite_gpu}
 3. Python 3 available through the `py` launcher; internet access is needed only once
    by setup-python.cmd to install the pinned Pillow verifier dependency.
 
@@ -139,8 +148,21 @@ Run
 Evidence is written under results/. Preserve that whole directory. A valid result
 must report passed=true, produced==completed, gpu_errors=0, gpu_pending=0, visible
 animation changes, stable paused frames, resize success, and clean process exit.
-Do not set DORA_GODOT_D3D12_WARP: this package is for physical-hardware acceptance.
-''', encoding='utf-8')
+{warp_note}
+''').format(
+    title='virtual-machine WARP validation' if args.acceptance_mode == 'virtual-warp' else 'physical Windows acceptance',
+    architecture=architecture,
+    boundary=('A passing run proves software-adapter resource sharing and synchronization in a Windows VM, '
+              'not physical GPU/driver acceptance.' if args.acceptance_mode == 'virtual-warp' else
+              'It does not claim GPU acceptance until a native physical-adapter run passes.'),
+    prerequisite_os=('Native Windows 11 ARM64 virtual machine.' if architecture == 'arm64' else
+                     'Native x64 Windows 10/11 (not Windows-on-ARM x64 translation).'),
+    prerequisite_gpu=('D3D12 WARP software adapter; virtual GPU Shader Model support is not required.'
+                      if args.acceptance_mode == 'virtual-warp' else
+                      'A physical D3D12 GPU with Shader Model 6 support and current driver.'),
+    warp_note=('The runner enables --warp explicitly.' if args.acceptance_mode == 'virtual-warp' else
+               'Do not set DORA_GODOT_D3D12_WARP: this package is for physical-hardware acceptance.'),
+), encoding='utf-8')
 
 scope_sources = [
     'Projects/xmake/engine.lua',
@@ -168,10 +190,11 @@ def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 manifest = {
-    'package_format': 'dora-godot-d3d12-physical-test',
+    'package_format': 'dora-godot-d3d12-' + args.acceptance_mode + '-test',
     'package_version': 1,
-    'status': 'compile_and_package_only; physical_GPU_acceptance_pending',
-    'architecture': 'x86_64',
+    'status': 'compile_and_package_only; runtime_acceptance_pending',
+    'acceptance_mode': args.acceptance_mode,
+    'architecture': architecture,
     'host_backend': 'd3d12-only',
     'runtime_backend': runtime_manifest['graphics_backend'],
     'host_sha256': digest(output / 'build/godot-runtime/dora/Dora.exe'),
@@ -188,13 +211,14 @@ manifest['artifacts'] = {
 archive = Path(shutil.make_archive(str(output), 'zip', output.parent, output.name))
 summary = {
     'passed': True,
-    'scope': 'Static structure, x64 PE identity, sealed D3D12 runtime, artifact inventory and ZIP generation; no GPU execution',
+    'scope': 'Static structure, matching PE identity, sealed D3D12 runtime, artifact inventory and ZIP generation; no GPU execution',
     'directory': str(output),
     'archive': str(archive),
     'archive_sha256': digest(archive),
     'files': len(manifest['artifacts']) + 1,
     'bytes': sum(path.stat().st_size for path in output.rglob('*') if path.is_file()),
     'physical_gpu_tested': False,
+    'virtual_warp_tested': False,
 }
 (output.parent / (output.name + '-verification.json')).write_text(json.dumps(summary, indent=2) + '\n', encoding='utf-8')
 print(json.dumps(summary, indent=2))

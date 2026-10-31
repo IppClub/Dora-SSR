@@ -77,7 +77,8 @@ target("Dora")
         local manifest = import("Projects.xmake.manifests.engine", {rootdir = os.projectdir(), anonymous = true})()
         for _, source in ipairs(manifest.sources) do
             local config
-            if target:is_plat("windows") and source:endswith(".c") then
+            if target:is_plat("windows") and get_config("toolchain") ~= "mingw"
+                and source:endswith(".c") then
                 -- Genuine C units stay in C mode; C++ code uses .cpp.
                 config = {force = {cxflags = {"/TC"}}}
             end
@@ -262,6 +263,14 @@ target("Dora")
     elseif is_plat("windows") then
         -- Enable optimization and NDEBUG for the ordinary Release host too.
         add_rules("mode.debug", "mode.release")
+        -- xmake 3.1.1 treats every Windows Clang driver as MSVC-compatible
+        -- and otherwise injects its default MT/MTd runtime. LLVM-MinGW then
+        -- receives -nostdlib and loses its CRT and libc++ startup libraries.
+        -- A non-MSVC runtime marker prevents that default; the MinGW driver
+        -- still selects its own UCRT and libc++ in the normal way.
+        if get_config("toolchain") == "mingw" then
+            set_runtimes("MINGW")
+        end
         -- Retain both adapters in source, but link exactly one Godot bridge
         -- into a host. Like Godot's rendering-driver selection, the backend is
         -- fixed for the lifetime of the process rather than hot-switched.
@@ -283,15 +292,20 @@ target("Dora")
         add_packages("dora-webview2")
         add_files(rootpath("Source/Basic/CompilerWebViewWin.cpp"))
         add_files(rootpath("Projects/Windows/Dora/Resource.rc"))
-        add_files(rootpath("Projects/Windows/Dora/Dora.manifest"))
+        -- xmake's standalone .manifest rule is MSVC-specific. MinGW embeds
+        -- the same file from Resource.rc so cross-built Windows hosts retain
+        -- the requested-execution-level metadata without an unknown input.
+        if get_config("toolchain") ~= "mingw" then
+            add_files(rootpath("Projects/Windows/Dora/Dora.manifest"))
+        end
         add_includedirs(rootpath("Projects/Windows/Dora"))
         add_includedirs(rootpath("Source/3rdParty/bx/include/compat/msvc"))
         add_defines("LUA_USE_WINDOWS", "_CRT_SECURE_NO_WARNINGS", "NOMINMAX")
+        if get_config("toolchain") ~= "mingw" then
+            set_runtimes(is_mode("debug") and "MTd" or "MT")
+        end
         if is_mode("debug") then
-            set_runtimes("MTd")
             add_defines("_ITERATOR_DEBUG_LEVEL=0")
-        else
-            set_runtimes("MT")
         end
         -- Preserve the former Visual Studio settings. Several C translation
         -- units contain UTF-8 Chinese comments whose byte sequences are not
@@ -303,7 +317,11 @@ target("Dora")
         local runtime_dir = rootpath(path.join(
             "build/runtime/windows", get_config("arch"), get_config("mode")
         ))
-        add_links(path.join(runtime_dir, "dora_runtime.lib"))
+        add_links(path.join(runtime_dir,
+            get_config("toolchain") == "mingw" and "libdora_runtime.a" or "dora_runtime.lib"))
+        if get_config("toolchain") == "mingw" then
+            add_syslinks("winpthread")
+        end
         add_syslinks(
             "advapi32", "bcrypt", "crypt32", "dbghelp", "gdi32", "imm32",
             "iphlpapi", "ntdll", "ole32", "psapi", "setupapi", "shell32",

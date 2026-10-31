@@ -18,6 +18,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <random>
 #include <atomic>
 #include <thread>
+#if BX_PLATFORM_WINDOWS
+#include <malloc.h>
+#endif
 
 struct SDL_Window;
 union SDL_Event;
@@ -113,10 +116,10 @@ public:
 	static int mainLogic(Application* app);
 #if BX_PLATFORM_WINDOWS
 	inline void* operator new(size_t i) {
-		return _mm_malloc(i, 16);
+		return _aligned_malloc(i, 16);
 	}
 	inline void operator delete(void* p) {
-		_mm_free(p);
+		_aligned_free(p);
 	}
 #elif BX_PLATFORM_ANDROID
 	PROPERTY_READONLY_CREF(std::string, APKPath);

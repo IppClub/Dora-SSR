@@ -20,6 +20,7 @@
 #if MPT_CXX_AT_LEAST(20)
 #include <bit>
 #endif
+#include <type_traits>
 #include <utility>
 
 #include <cstring>

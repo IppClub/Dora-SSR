@@ -201,9 +201,9 @@ if is_plat("windows") then
     -- Keep the established x86/x64 builds and allow a native ARM64 host for
     -- virtualized D3D12/WARP validation without Windows x64 translation.
     local windows_arches = {
-        x86 = {rust = "i686-pc-windows-msvc", go = "386", cc = "i686-w64-mingw32-gcc", machine = "i686"},
-        x64 = {rust = "x86_64-pc-windows-msvc", go = "amd64", cc = "x86_64-w64-mingw32-gcc", machine = "x86_64"},
-        arm64 = {rust = "aarch64-pc-windows-msvc", go = "arm64", cc = "aarch64-w64-mingw32-gcc", machine = "aarch64"}
+        x86 = {rust_msvc = "i686-pc-windows-msvc", rust_mingw = "i686-pc-windows-gnullvm", go = "386", cc = "i686-w64-mingw32-gcc", machine = "i686"},
+        x64 = {rust_msvc = "x86_64-pc-windows-msvc", rust_mingw = "x86_64-pc-windows-gnullvm", go = "amd64", cc = "x86_64-w64-mingw32-gcc", machine = "x86_64"},
+        arm64 = {rust_msvc = "aarch64-pc-windows-msvc", rust_mingw = "aarch64-pc-windows-gnullvm", go = "arm64", cc = "aarch64-w64-mingw32-gcc", machine = "aarch64"}
     }
     windows_arches.x86_64 = windows_arches.x64
     target("dora-rust-runtime")
@@ -217,9 +217,16 @@ if is_plat("windows") then
             local rust_dir = path.join(DORA_ROOT, "Source/Rust")
             local selected = assert(windows_arches[target:arch()],
                 "Windows native runtimes support x86/x64/arm64; unsupported architecture: " .. target:arch())
-            local triple = selected.rust
+            local mingw = config.get("toolchain") == "mingw"
+            local triple = mingw and selected.rust_mingw or selected.rust_msvc
             local profile = config.mode() == "release" and "release" or "debug"
-            local output = runtime_output("dora_runtime.lib")
+            local output_name = mingw and "libdora_runtime.a" or "dora_runtime.lib"
+            local output = runtime_output(output_name)
+            if os.getenv("DORA_USE_PREBUILT_NATIVE_RUNTIME") == "1" then
+                assert(os.isfile(output),
+                    "prebuilt Windows Rust runtime is missing: " .. output)
+                return
+            end
             local cargo_target_dir = os.getenv("CARGO_TARGET_DIR")
             if not cargo_target_dir then
                 local local_app_data = assert(os.getenv("LOCALAPPDATA"),
@@ -239,6 +246,20 @@ if is_plat("windows") then
                 envs.CARGO_TARGET_DIR = cargo_target_dir
                 local host_toolchain = envs.RUSTUP_TOOLCHAIN or "stable"
                 envs.RUSTUP_TOOLCHAIN = host_toolchain
+                local cc, cxx, ar
+                if mingw then
+                    cc = assert(os.getenv("CC") or target:tool("cc"),
+                        "LLVM-MinGW Rust build requires a C compiler")
+                    cxx = assert(os.getenv("CXX") or target:tool("cxx"),
+                        "LLVM-MinGW Rust build requires a C++ compiler")
+                    ar = assert(os.getenv("AR") or target:tool("ar"),
+                        "LLVM-MinGW Rust build requires an archiver")
+                    local env_triple = triple:gsub("%-", "_")
+                    envs["CC_" .. env_triple] = cc
+                    envs["CXX_" .. env_triple] = cxx
+                    envs["AR_" .. env_triple] = ar
+                    envs["CARGO_TARGET_" .. env_triple:upper() .. "_LINKER"] = cc
+                end
                 os.vrunv("rustup", {
                     "toolchain", "install", host_toolchain, "--profile", "minimal"
                 }, {envs = envs, curdir = rust_dir})
@@ -249,11 +270,11 @@ if is_plat("windows") then
                 end
                 os.vrunv("cargo", argv, {envs = envs, curdir = rust_dir})
                 os.mkdir(path.directory(output))
-                os.cp(path.join(cargo_target_dir, triple, profile, "dora_runtime.lib"), output)
+                os.cp(path.join(cargo_target_dir, triple, profile, output_name), output)
             end, {
                 dependfile = path.join(target:autogendir(), "rules", "dora-rust-runtime.d"),
                 files = inputs,
-                values = {triple, profile, cargo_target_dir},
+                values = {triple, profile, cargo_target_dir, mingw},
                 changed = not os.isfile(output)
             })
         end)
@@ -265,12 +286,18 @@ if is_plat("windows") then
         add_packages("dora_go")
         on_build(function (target)
             import("core.project.depend")
+            import("core.project.config")
             import("lib.detect.find_tool")
 
             local selected = assert(windows_arches[target:arch()],
                 "Windows native runtimes support x86/x64/arm64; unsupported architecture: " .. target:arch())
             local wa_dir = path.join(DORA_ROOT, "Source/3rdParty/Wa/Source")
             local output = runtime_output("wa.dll")
+            if os.getenv("DORA_USE_PREBUILT_NATIVE_RUNTIME") == "1" then
+                assert(os.isfile(output),
+                    "prebuilt Windows Wa runtime is missing: " .. output)
+                return
+            end
             local inputs = {
                 path.join(wa_dir, "go.mod"),
                 path.join(wa_dir, "go.sum"),
@@ -279,7 +306,7 @@ if is_plat("windows") then
             table.join2(inputs, os.files(path.join(wa_dir, "**.go")))
 
             depend.on_changed(function ()
-                local cc = os.getenv("CC")
+                local cc = os.getenv("CC") or (config.get("toolchain") == "mingw" and target:tool("cc"))
                 if not cc then
                     local gcc = find_tool(selected.cc, {force = true})
                         or find_tool("gcc", {force = true})

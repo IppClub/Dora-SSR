@@ -161,12 +161,13 @@ end
 
 local function add_common_target_settings(opt)
     opt = opt or {}
+    local mingw = get_config("toolchain") == "mingw"
 
     apply_apple_toolchain_config()
 
     if not opt.c_only then
         set_exceptions("no-cxx")
-        if is_plat("windows") then
+        if is_plat("windows") and not mingw then
             add_cxxflags("/GR-", {force = true})
         else
             add_cxxflags("-fno-rtti", {force = true})
@@ -185,18 +186,20 @@ local function add_common_target_settings(opt)
             "_CRT_SECURE_NO_DEPRECATE"
         )
 
+        if not mingw then
+            set_runtimes(is_mode("debug") and "MTd" or "MT")
+        end
         if is_mode("debug") then
             add_defines("_ITERATOR_DEBUG_LEVEL=0")
-            set_runtimes("MTd")
-        else
-            set_runtimes("MT")
         end
 
-        add_cxflags("/wd4201", "/wd4324", "/Ob2", {force = true})
-        add_ldflags("/ignore:4221", {force = true})
+        if not mingw then
+            add_cxflags("/wd4201", "/wd4324", "/Ob2", {force = true})
+            add_ldflags("/ignore:4221", {force = true})
+        end
 
         if is_arch("x86", "i386") then
-            add_cxflags("/arch:SSE2", {force = true})
+            add_cxflags(mingw and "-msse2" or "/arch:SSE2", {force = true})
         end
     end
 

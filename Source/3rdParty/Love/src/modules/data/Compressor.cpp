@@ -26,6 +26,7 @@
 #include "libraries/lz4/lz4.h"
 #include "libraries/lz4/lz4hc.h"
 
+#include <new>
 #include <zlib.h>
 
 namespace love

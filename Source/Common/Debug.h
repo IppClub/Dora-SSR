@@ -13,6 +13,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "fmt/format.h"
 
 #include <cassert>
+#include <cstdlib>
+#include <stdexcept>
 
 NS_DORA_BEGIN
 

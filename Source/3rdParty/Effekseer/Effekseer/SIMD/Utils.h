@@ -3,6 +3,9 @@
 #define __EFFEKSEER_SIMD_UTILS_H__
 
 #include <stdlib.h>
+#if defined(_WIN32)
+#include <malloc.h>
+#endif
 #include "../Effekseer.Vector2D.h"
 #include "../Effekseer.Vector3D.h"
 #include "../Effekseer.Matrix43.h"
@@ -27,7 +30,7 @@ public:
 #if defined(__EMSCRIPTEN__) && __EMSCRIPTEN_minor__ < 38
 		return malloc(size);
 #elif defined(_WIN32)
-		return _mm_malloc(size, align);
+		return _aligned_malloc(size, align);
 #else
 		void *ptr = nullptr;
 		posix_memalign(&ptr, align, size);
@@ -38,7 +41,7 @@ public:
 #if defined(__EMSCRIPTEN__) && __EMSCRIPTEN_minor__ < 38
 		free(ptr);
 #elif defined(_WIN32)
-		_mm_free(ptr);
+		_aligned_free(ptr);
 #else
 		return free(ptr);
 #endif
