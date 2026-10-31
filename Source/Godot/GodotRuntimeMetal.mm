@@ -5,6 +5,7 @@
 #include "Godot/GodotBridgeOutput.h"
 #include "Godot/GodotBridgeIME.h"
 #include "Godot/GodotBridgeViewport.h"
+#include "Godot/GodotBridgeMetalTargets.h"
 #include "Godot/GodotFrameRing.h"
 #include "Godot/GodotGpuReads.h"
 #include "Godot/GodotRenderBootQueue.h"
@@ -34,6 +35,7 @@ DoraGodotAudioAPI audioAPI{};
 DoraGodotOutputAPI outputAPI{};
 DoraGodotIMEAPI imeAPI{};
 DoraGodotViewportAPI viewportAPI{};
+DoraGodotMetalTargetsAPI metalTargetsAPI{};
 void *library = nullptr, *activeHandle = nullptr;
 std::atomic<bool> clientReserved{false};
 std::string loaderError;
@@ -85,6 +87,13 @@ bool loadAPI() {
             || outputAPI.abi_version!=DORA_GODOT_OUTPUT_ABI_VERSION || !outputAPI.get_size) {
             loaderError="incompatible Dora/Godot output extension"; return false;
         }
+    }
+    auto getMetalTargets=reinterpret_cast<DoraGodotGetMetalTargetsAPI>(dlsym(library,"dora_godot_get_metal_targets_api"));
+    metalTargetsAPI.size=sizeof(metalTargetsAPI);
+    if (!getMetalTargets || !getMetalTargets(DORA_GODOT_METAL_TARGETS_ABI_VERSION,&metalTargetsAPI)
+        || metalTargetsAPI.size<sizeof(metalTargetsAPI) || metalTargetsAPI.abi_version!=DORA_GODOT_METAL_TARGETS_ABI_VERSION
+        || !metalTargetsAPI.bind) {
+        loaderError="Godot runtime lacks Metal host-target support";return false;
     }
     auto getIME=reinterpret_cast<DoraGodotGetIMEAPI>(dlsym(library,"dora_godot_get_ime_api"));
     if (getIME) {
@@ -139,11 +148,14 @@ class MetalSession final : public GodotSession, public std::enable_shared_from_t
             if (!self->_handle) { self->fail(api.last_error(nullptr)); return; }
             activeHandle=self->_handle;
             if (self->_closing) return;
+            uint64_t nativeTargets[DORA_GODOT_MAX_BUFFERS]{};
+            for (int i=0;i<buffers;++i) nativeTargets[i]=uint64_t(bgfx::getNativeTexture(handles[i]));
+            if (!metalTargetsAPI.bind(self->_handle,width,height,nativeTargets,buffers)) { self->fail(api.last_error(self->_handle));return; }
             for (int i=0;i<buffers;++i) {
                 DoraGodotSlot slot{}; slot.size=sizeof(slot);
                 if (!api.get_slot(self->_handle,i,&slot) || slot.format!=DORA_GODOT_RGBA8) { self->fail("invalid shared Metal slot"); return; }
                 self->_slots[i]={(__bridge id<MTLTexture>)slot.texture,(__bridge id<MTLSharedEvent>)slot.ready_event,(__bridge id<MTLSharedEvent>)slot.consumed_event};
-                if (bgfx::overrideInternal(handles[i],(uintptr_t)slot.texture)!=(uintptr_t)slot.texture) { self->fail("external Metal texture import failed"); return; }
+                if ((uintptr_t)slot.texture!=nativeTargets[i]) { self->fail("Godot returned a different Metal host target"); return; }
             }
             api.set_paused(self->_handle,self->_requestedPaused.load());
             const uint64_t first=api.advance(self->_handle,0,0);
@@ -194,7 +206,7 @@ public:
         _width=width; _height=height;
         _ownsReservation=true;
         _buffers=buffers; _ring.configure(buffers); _reads.configure(buffers);
-        for (int i=0;i<buffers;++i) _pendingHandles.push_back(bgfx::createTexture2D(width,height,false,1,bgfx::TextureFormat::RGBA8,BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP));
+        for (int i=0;i<buffers;++i) _pendingHandles.push_back(bgfx::createTexture2D(width,height,false,1,bgfx::TextureFormat::RGBA8,BGFX_TEXTURE_RT|BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP));
         auto self=shared_from_this();
         const uint32_t resourceFrame=SharedApplication.getFrame()+1;
         const auto handles=_pendingHandles;
@@ -273,13 +285,13 @@ public:
     }
     bool resize(int width,int height) override { return resizeImpl(width,height,false); }
     bool resizeImpl(int width,int height,bool sourceOwned,bool force=false) {
-        if (!_ready || _closing || !viewportAPI.resize) return false;
+        if (!_ready || _closing || !metalTargetsAPI.bind) return false;
         if (!force && width==_width && height==_height) return true;
         _ready=false; _ring.close();
         const auto generation=++_generation;
         std::vector<bgfx::TextureHandle> handles;
         for (uint32_t i=0;i<_buffers;++i) {
-            auto handle=bgfx::createTexture2D(width,height,false,1,bgfx::TextureFormat::RGBA8,BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP);
+            auto handle=bgfx::createTexture2D(width,height,false,1,bgfx::TextureFormat::RGBA8,BGFX_TEXTURE_RT|BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP);
             if (!bgfx::isValid(handle)) { fail("cannot allocate resized Godot texture wrapper"); return false; }
             handles.push_back(handle); _pendingHandles.push_back(handle);
         }
@@ -304,14 +316,16 @@ public:
                                 [marker commit]; [marker waitUntilCompleted];
                                 if (marker.status==MTLCommandBufferStatusError) { self->fail("Metal consumer resize drain failed"); return; }
                             }
-                            if (!self->_reads.replaceSlots() || !viewportAPI.resize(self->_handle,width,height)) {
+                            uint64_t nativeTargets[DORA_GODOT_MAX_BUFFERS]{};
+                            for (uint32_t i=0;i<self->_buffers;++i) nativeTargets[i]=uint64_t(bgfx::getNativeTexture(handles[i]));
+                            if (!self->_reads.replaceSlots() || !metalTargetsAPI.bind(self->_handle,width,height,nativeTargets,self->_buffers)) {
                                 self->fail(api.last_error(self->_handle)); return;
                             }
                             for (uint32_t i=0;i<self->_buffers;++i) {
                                 DoraGodotSlot slot{}; slot.size=sizeof(slot);
                                 if (!api.get_slot(self->_handle,i,&slot) || slot.width!=uint32_t(width) || slot.height!=uint32_t(height)
                                     || slot.format!=DORA_GODOT_RGBA8 || !slot.texture || !slot.ready_event || !slot.consumed_event
-                                    || bgfx::overrideInternal(handles[i],(uintptr_t)slot.texture)!=(uintptr_t)slot.texture) {
+                                    || (uintptr_t)slot.texture!=nativeTargets[i]) {
                                     self->fail("resized Metal texture import failed"); return;
                                 }
                                 self->_slots[i]={(__bridge id<MTLTexture>)slot.texture,(__bridge id<MTLSharedEvent>)slot.ready_event,(__bridge id<MTLSharedEvent>)slot.consumed_event};

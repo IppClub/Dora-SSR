@@ -11,6 +11,7 @@ shutil.copy2(root / 'Source/Godot/GodotBridgeGL.h', source / 'modules/dora_bridg
 shutil.copy2(root / 'Source/Godot/GodotBridgeAudio.h', source / 'modules/dora_bridge/GodotBridgeAudio.h')
 shutil.copy2(root / 'Source/Godot/GodotBridgeGLTargets.h', source / 'modules/dora_bridge/GodotBridgeGLTargets.h')
 shutil.copy2(root / 'Source/Godot/GodotBridgeD3D12.h', source / 'modules/dora_bridge/GodotBridgeD3D12.h')
+shutil.copy2(root / 'Source/Godot/GodotBridgeMetalTargets.h', source / 'modules/dora_bridge/GodotBridgeMetalTargets.h')
 shutil.copy2(root / 'Source/Godot/GodotBridgeViewport.h', source / 'modules/dora_bridge/GodotBridgeViewport.h')
 shutil.copy2(root / 'Source/Godot/GodotBridgeOutput.h', source / 'modules/dora_bridge/GodotBridgeOutput.h')
 shutil.copy2(root / 'Source/Godot/GodotBridgeIME.h', source / 'modules/dora_bridge/GodotBridgeIME.h')
@@ -38,7 +39,7 @@ needle = 'void Main::setup_boot_logo() {\n'
 if '// Dora windowless boot' not in s:
     assert needle in s
     p.write_text(s.replace(needle, needle + '\tif (DisplayServer::get_singleton()->get_name() == "dora-metal") return; // Dora windowless boot\n', 1))
-(source / 'dora_bridge.exports').write_text('_dora_godot_get_api\n_dora_godot_get_audio_api\n_dora_godot_get_viewport_api\n_dora_godot_get_output_api\n_dora_godot_get_ime_api\n')
+(source / 'dora_bridge.exports').write_text('_dora_godot_get_api\n_dora_godot_get_metal_targets_api\n_dora_godot_get_audio_api\n_dora_godot_get_viewport_api\n_dora_godot_get_output_api\n_dora_godot_get_ime_api\n')
 
 # With a threadless dummy driver, node deletion only marks audio playbacks for
 # retirement. Mix the final fade-out and service deferred AudioServer frees

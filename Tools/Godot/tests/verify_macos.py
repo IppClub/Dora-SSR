@@ -62,6 +62,21 @@ report={'passed':True,'platform':args.platform,'capture_size':list(images[names[
         'pointer_key_text_input':True,'global_input_and_action_state':True,'focus_loss_releases_held_input':True,'scene_restart':True,'node_remove_recreate':True,'frames':(1000 if args.resize else 720)+args.soak_frames,
         'changed_animation_pixels':changed('animated-a.png','animated-b.png'),'changed_paused_pixels':0,
         'gpu_accounting':[{'produced':int(p),'completed':int(c),'errors':int(e)} for p,c,e in accounting]}
+if args.platform in ('macOS Metal','iOS Metal'):
+    bindings=re.findall(r'DORA_GODOT_METAL_DIRECT enabled buffers=(\d+) size=(\d+)x(\d+) blits=(\d+)',log)
+    expected_bindings=5 if args.resize else 2
+    assert len(bindings)==expected_bindings, ('Unexpected Metal direct-target generations',bindings)
+    assert all(int(buffers)==args.buffers and int(width)>0 and int(height)>0 and int(blits)==0
+               for buffers,width,height,blits in bindings), bindings
+    direct_completed=re.findall(r'DORA_GODOT_METAL_DIRECT completed frames=(\d+) blits=(\d+) waits=(\d+)',log)
+    assert len(direct_completed)==2 and all(int(frames)>100 and int(blits)==0 for frames,blits,_ in direct_completed), direct_completed
+    report['godot_renderer']='Metal'
+    report['direct_target']=True
+    report['host_owned_render_targets']=True
+    report['buffer_count']=args.buffers
+    report['target_bindings']=[{'width':int(width),'height':int(height)} for _,width,height,_ in bindings]
+    report['steady_state_blits']=0
+    report['producer_completion']=[{'frames':int(frames),'waits':int(waits)} for frames,_,waits in direct_completed]
 if args.ime:
     assert args.platform=='Windows WGL', 'The native OS-injection acceptance currently targets Windows'
     assert log.count('GODOT_NODE_IME_FOCUS active=1')==3, 'Godot LineEdit did not focus for all scene lifetimes'

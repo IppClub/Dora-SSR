@@ -1,6 +1,7 @@
 // Dora/Godot library implementation. Only the versioned C table is exported.
 #include "register_types.h"
 #include "GodotBridge.h"
+#include "GodotBridgeMetalTargets.h"
 #include "GodotBridgeAudio.h"
 #include "GodotBridgeViewport.h"
 #include "GodotAudioQueue.h"
@@ -22,8 +23,11 @@
 #include "scene/main/window.h"
 #include "servers/rendering/rendering_device.h"
 #include "servers/rendering/rendering_server.h"
+#include "servers/rendering/rendering_server_globals.h"
+#include "servers/rendering/storage/texture_storage.h"
 #import <Metal/Metal.h>
 #include <atomic>
+#include <cstdio>
 #include <string>
 #include <set>
 #include <filesystem>
@@ -34,6 +38,7 @@ namespace {
 struct Slot {
     id<MTLTexture> texture;
     id<MTLSharedEvent> ready, consumed;
+    RID rd_texture;
     uint64_t last_read = 0;
 };
 struct Runtime {
@@ -50,7 +55,8 @@ struct Runtime {
     uint32_t width = 0, height = 0, buffers = 0;
     uint64_t sequence = 0, reuse_waits = 0;
     std::atomic<uint64_t> completed{0}, errors{0};
-    bool active = false, paused = false, terminated = false;
+    RID direct_render_target;
+    bool active = false, paused = false, terminated = false, targets_bound = false;
 } runtime;
 DoraGodotOutput output;
 bool output_pending=false;
@@ -71,12 +77,36 @@ void offscreen() {
     rs->viewport_attach_to_screen(viewport, Rect2(), DisplayServer::INVALID_WINDOW_ID);
     rs->viewport_set_update_mode(viewport, RS::VIEWPORT_UPDATE_ALWAYS);
 }
-void draw() {
+void detach_target() {
+    if (runtime.direct_render_target.is_valid())
+        RSG::texture_storage->render_target_set_override(runtime.direct_render_target,RID(),RID(),RID(),RID());
+    runtime.direct_render_target=RID();
+}
+void clear_direct_targets() {
+    detach_target();
+    for (uint32_t i=0;i<runtime.buffers;++i) {
+        if (runtime.slots[i].rd_texture.is_valid()) RenderingDevice::get_singleton()->free_rid(runtime.slots[i].rd_texture);
+        runtime.slots[i].rd_texture=RID();
+    }
+    runtime.targets_bound=false;
+}
+bool select_target(uint32_t index) {
+    if (!runtime.targets_bound || index>=runtime.buffers || !runtime.slots[index].rd_texture.is_valid()) return false;
+    const RID target=output.render_target(runtime.root);
+    if (!target.is_valid()) return false;
+    if (runtime.direct_render_target.is_valid() && runtime.direct_render_target!=target) detach_target();
+    RSG::texture_storage->render_target_set_override(target,runtime.slots[index].rd_texture,RID(),RID(),RID());
+    runtime.direct_render_target=target;
+    return true;
+}
+bool draw(int direct_slot=-1) {
     offscreen();
     output.prepare(runtime.root);
+    if (direct_slot>=0 && !select_target(uint32_t(direct_slot))) return false;
     RenderingServer::get_singleton()->draw(false, DoraGodotRenderTiming::consume());
     Engine::get_singleton()->increment_frames_drawn();
     RenderingServer::get_singleton()->sync();
+    return true;
 }
 void drain() {
     if (runtime.queue) {
@@ -149,8 +179,42 @@ void *open(const DoraGodotConfig *config) {
     runtime.paused = false; runtime.active = true;
     return &runtime;
 }
+int bind_targets(void *handle,uint32_t width,uint32_t height,const uint64_t *textures,uint32_t count) {
+    if (!valid(handle) || !textures || !width || !height || width>8192 || height>8192 || count!=runtime.buffers) return 0;
+    id<MTLDevice> device=runtime.source.device;
+    for (uint32_t i=0;i<count;++i) {
+        if (!textures[i]) return 0;
+        for (uint32_t j=0;j<i;++j) if (textures[i]==textures[j]) return 0;
+        id<MTLTexture> texture=(__bridge id<MTLTexture>)(void*)(uintptr_t)textures[i];
+        if (!texture || texture.device!=device || texture.width!=width || texture.height!=height
+            || texture.pixelFormat!=MTLPixelFormatRGBA8Unorm
+            || !(texture.usage&MTLTextureUsageRenderTarget) || !(texture.usage&MTLTextureUsageShaderRead)) {
+            runtime.error="host Metal target is incompatible";return 0;
+        }
+    }
+    drain();clear_direct_targets();
+    if (runtime.root->get_size()!=Size2i(width,height)) {
+        runtime.root->set_size(Size2i(width,height));
+        if (!draw()) { runtime.error="Godot viewport resize failed before Metal target bind";return 0; }
+    }
+    for (uint32_t i=0;i<count;++i) {
+        auto &slot=runtime.slots[i];
+        slot.texture=(__bridge id<MTLTexture>)(void*)(uintptr_t)textures[i];
+        const uint64_t usage=RenderingDevice::TEXTURE_USAGE_SAMPLING_BIT|RenderingDevice::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
+        slot.rd_texture=RenderingDevice::get_singleton()->texture_create_from_extension(RenderingDevice::TEXTURE_TYPE_2D,
+            RenderingDevice::DATA_FORMAT_R8G8B8A8_UNORM,RenderingDevice::TEXTURE_SAMPLES_1,usage,
+            textures[i],width,height,1,1,1);
+        slot.ready=[device newSharedEvent];slot.consumed=[device newSharedEvent];slot.last_read=0;
+        if (!slot.rd_texture.is_valid() || !slot.ready || !slot.consumed) {
+            runtime.error="Godot could not import host Metal target";clear_direct_targets();return 0;
+        }
+    }
+    runtime.width=width;runtime.height=height;runtime.targets_bound=true;
+    std::fprintf(stderr,"DORA_GODOT_METAL_DIRECT enabled buffers=%u size=%ux%u blits=0\n",count,width,height);
+    return 1;
+}
 int resize_viewport(void *handle,uint32_t width,uint32_t height) {
-    if (!valid(handle) || !width || !height || width>8192 || height>8192) return 0;
+    if (!valid(handle) || runtime.targets_bound || !width || !height || width>8192 || height>8192) return 0;
     // Resize is a lifecycle boundary; steady-state copies stay asynchronous.
     drain();
     Slot replacement[DORA_GODOT_MAX_BUFFERS];
@@ -189,30 +253,22 @@ int get_slot(void *handle, uint32_t index, DoraGodotSlot *out) {
     return 1;
 }
 uint64_t advance(void *handle, uint32_t index, uint64_t last_read) {
-    if (!valid(handle) || index >= runtime.buffers || last_read < runtime.slots[index].last_read) return 0;
+    if (!valid(handle) || !runtime.targets_bound || index >= runtime.buffers || last_read < runtime.slots[index].last_read) return 0;
     output_pending=false;
     auto &slot = runtime.slots[index]; slot.last_read = last_read;
-    if (runtime.instance->iteration()) { runtime.error = "Godot project requested quit"; return 0; }
-    draw();
-    RID current = output.texture(runtime.root);
-    if (runtime.root->get_size()!=Size2i(runtime.width,runtime.height)) { output_pending=true; return 0; }
-    id<MTLTexture> source=(__bridge id<MTLTexture>)(void*)(uintptr_t)RenderingServer::get_singleton()->texture_get_native_handle(current);
-    if (!source || source.width!=runtime.width || source.height!=runtime.height || source.pixelFormat!=MTLPixelFormatRGBA8Unorm) {
-        runtime.error="Godot output texture is incompatible with bound Metal slots"; return 0;
-    }
-    runtime.source=source;
-    const uint64_t sequence=++runtime.sequence;
-    id<MTLCommandBuffer> copy = [runtime.queue commandBuffer];
     if (last_read) {
-        if (slot.consumed.signaledValue < last_read) ++runtime.reuse_waits;
-        [copy encodeWaitForEvent:slot.consumed value:last_read];
+        id<MTLCommandBuffer> wait=[runtime.queue commandBuffer];
+        if (slot.consumed.signaledValue<last_read) ++runtime.reuse_waits;
+        [wait encodeWaitForEvent:slot.consumed value:last_read];[wait commit];
     }
-    id<MTLBlitCommandEncoder> blit = [copy blitCommandEncoder];
-    [blit copyFromTexture:runtime.source sourceSlice:0 sourceLevel:0 sourceOrigin:MTLOriginMake(0,0,0)
-        sourceSize:MTLSizeMake(runtime.width,runtime.height,1) toTexture:slot.texture destinationSlice:0 destinationLevel:0 destinationOrigin:MTLOriginMake(0,0,0)];
-    [blit endEncoding]; [copy encodeSignalEvent:slot.ready value:sequence];
-    [copy addCompletedHandler:^(id<MTLCommandBuffer> done) { if (done.status == MTLCommandBufferStatusError) ++runtime.errors; ++runtime.completed; }];
-    [copy commit];
+    if (runtime.instance->iteration()) { runtime.error = "Godot project requested quit"; return 0; }
+    if (!draw(int(index))) { runtime.error="Godot could not select host Metal target";return 0; }
+    if (runtime.root->get_size()!=Size2i(runtime.width,runtime.height)) { output_pending=true; return 0; }
+    const uint64_t sequence=++runtime.sequence;
+    id<MTLCommandBuffer> signal=[runtime.queue commandBuffer];
+    [signal encodeSignalEvent:slot.ready value:sequence];
+    [signal addCompletedHandler:^(id<MTLCommandBuffer> done) { if (done.status==MTLCommandBufferStatusError) ++runtime.errors; ++runtime.completed; }];
+    [signal commit];
     return sequence;
 }
 #include "runtime_input.inc"
@@ -221,6 +277,9 @@ void close(void *handle, DoraGodotStats *stats) {
     stop_audio_capture();
     drain();
     if (stats && stats->size >= sizeof(*stats)) *stats = {sizeof(*stats), runtime.sequence, runtime.completed.load(), runtime.errors.load(), runtime.reuse_waits};
+    std::fprintf(stderr,"DORA_GODOT_METAL_DIRECT completed frames=%llu blits=0 waits=%llu\n",
+        (unsigned long long)runtime.sequence,(unsigned long long)runtime.reuse_waits);
+    clear_direct_targets();
     for (auto &slot : runtime.slots) { slot.texture = nil; slot.ready = nil; slot.consumed = nil; }
     runtime.source = nil; runtime.active = false; DoraGodotRenderTiming::reset(); DoraGodotIME::reset();
     release_inputs();
@@ -237,6 +296,10 @@ extern "C" DORA_GODOT_EXPORT int dora_godot_get_api(uint32_t requested, DoraGodo
     if (requested != DORA_GODOT_ABI_VERSION || !api || api->size < sizeof(*api)) return 0;
     *api = {sizeof(*api), DORA_GODOT_ABI_VERSION, version, open, last_error, get_slot, advance, input, set_paused, restart_scene, close, shutdown};
     return 1;
+}
+extern "C" DORA_GODOT_EXPORT int dora_godot_get_metal_targets_api(uint32_t requested,DoraGodotMetalTargetsAPI *api) {
+    if (requested!=DORA_GODOT_METAL_TARGETS_ABI_VERSION || !api || api->size<sizeof(*api)) return 0;
+    *api={sizeof(*api),DORA_GODOT_METAL_TARGETS_ABI_VERSION,bind_targets};return 1;
 }
 extern "C" DORA_GODOT_EXPORT int dora_godot_get_audio_api(uint32_t requested,DoraGodotAudioAPI *api) {
     if (requested!=DORA_GODOT_AUDIO_ABI_VERSION || !api || api->size<sizeof(*api)) return 0;

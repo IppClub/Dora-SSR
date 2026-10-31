@@ -1,12 +1,12 @@
 # GodotNode：共享 GPU 纹理集成实验
 
-将固定版本 Godot 4.6 的项目离屏输出作为 Dora Sprite 使用。Metal 后端已验证 Apple Silicon macOS、同一个 MTLDevice 和单个活动节点。Linux ARM64 EGL 和 Windows WGL 后端也已通过真实 GPU 节点测试。LibGodot、Godot 场景树与渲染器实际运行在 Dora 进程内。
+将固定版本 Godot 4.6 的项目离屏输出作为 Dora Sprite 使用。Apple Silicon macOS 上，Dora/bgfx 已可创建 2–4 张 host-owned Metal render target，Godot 导入后直接渲染，双向 GPU event 同步且稳态零 blit。Linux ARM64 EGL、Windows WGL、Android EGL 与 WebGL2 也已通过各自记录范围内的 direct-target 节点测试。LibGodot、Godot 场景树与渲染器实际运行在 Dora 进程内。
 
 直接运行的2D/3D项目与简明操作步骤见 [示例快速开始](examples/README.md)。
 
 当前平台状态、产品决策和待办任务统一维护在 [`TRACKING.md`](TRACKING.md)。`PLAN.md` 保留详细实验过程，不作为当前任务状态的唯一依据。
 
-iOS 兼容策略：普通 Dora 保持 Apple2 GPU Family；可选 GodotNode 要求 Apple4 GPU Family，不满足时可查询原因并安全拒绝。模拟器兼容边界已验证，Apple4+ 真机共享渲染仍待验收，详见 TRACKING.md 的 D-001、IOS-01/02。
+iOS 兼容策略：普通 Dora 保持 Apple2 GPU Family；可选 GodotNode 要求 Apple4 GPU Family，不满足时可查询原因并安全拒绝。Metal host-owned targets 扩展已编入并导出于 iOS simulator runtime/framework，宿主也已完成链接与签名；当前模拟器只暴露 Apple2，因此验证结果是启动前安全拒绝，不能作为 Apple4+ 共享画面、物理 GPU、真实触摸或真实音频证据。详见 TRACKING.md 的 DIRECT-04 与其他未覆盖边界。
 
 Web PCM 更新（2026-10-29）：宿主与 Godot 运行在同一 window 线程时，PCM 在宿主请求时按需混音；不启动 PCM 生产 pthread，不预填充 lookahead 队列。此路径用于避免 Firefox ScriptProcessor 突发回调耗尽异步队列，原生平台继续使用后台生产队列。包含 Web 排空记账修正的新运行库已通过 Chrome/Firefox/Playwright WebKit 的 2/3/4 缓冲矩阵；实际设备输出、长期复杂混音及端到端延迟仍待验收，详见 TRACKING.md 的 WEB-01/02。
 
@@ -157,6 +157,22 @@ python3 Tools/Godot/tests/run_direct_linux.py \
 重建、resize、纹理别名、PCM 和退出排空通过，并从运行日志核对所有 direct 会话
 均为 `blits=0`。报告会记录实际 renderer；virgl、llvmpipe 等结果不能代替物理显卡
 兼容或性能验收。
+
+## Metal host-owned render target 验收
+
+macOS Metal 路径由 Dora/bgfx 创建带 `RenderTarget | ShaderRead` 用途的 RGBA8 纹理，
+Godot 通过版本化 targets ABI 导入同一 `MTLTexture`，直接将它设为最终 render target。
+每个槽使用共享事件分别等待 Dora 消费完成和发布 Godot 生产完成，稳态不调用 Metal blit。
+2/3/4 缓冲功能矩阵与三缓冲 18000 帧耐久报告位于：
+
+- `build/godot-direct04-metal/macos-2/verification.json`
+- `build/godot-direct04-metal/macos-3-v4/verification.json`
+- `build/godot-direct04-metal/macos-4/verification.json`
+- `build/godot-direct04-metal/macos-soak-3-18000/verification.json`
+
+iOS simulator 可用于构建、链接、签名、ABI 导出与 Apple4 能力拒绝检查，但不能执行正向
+Apple4 共享输出。其负向能力报告为
+`build/godot-direct04-metal/ios-simulator-apple4-rejection/unsupported-gpu.json`。
 
 ## GPU 粒子动画验收
 

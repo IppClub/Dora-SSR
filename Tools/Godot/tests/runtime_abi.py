@@ -112,6 +112,13 @@ if a.backend=='D3D12':
     for handle in (None,1):
         for count in (0,2,3,4,5,0xffffffff):
             check(targets.bind(handle,640,360,None,count)==0,'invalid D3D12 target handle/count/array rejected')
+metal_targets_getter=getattr(lib,'dora_godot_get_metal_targets_api',None)
+if a.backend=='Metal':
+    check(metal_targets_getter is not None,'Metal host targets extension present')
+    targets=table(metal_targets_getter,TargetsAPI,'Metal host targets extension')
+    for handle in (None,1):
+        for count in (0,2,3,4,5,0xffffffff):
+            check(targets.bind(handle,640,360,None,count)==0,'invalid Metal target handle/count/array rejected')
 viewport_getter=getattr(lib,'dora_godot_get_viewport_api',None)
 if viewport_getter is not None:
     viewport=table(viewport_getter,ViewportAPI,'viewport extension')
@@ -144,6 +151,7 @@ result={'passed':True,'scope':'real native runtime preboot ABI/parameter/handle 
         'library_sha256':hashlib.sha256(a.library.read_bytes()).hexdigest(),'checks':checks,'gpu_tested':False,
         'output_extension':output_getter is not None,'ime_extension':ime_getter is not None,'gl_targets_extension':targets_getter is not None,'audio_extension':audio_getter is not None,'audio_output_tested':False,
         'd3d12_targets_extension':d3d12_targets_getter is not None,
+        'metal_targets_extension':metal_targets_getter is not None,
         'gl_extension_abi':extension.abi_version if a.backend in ('EGL','WGL') else None,
         'legacy_gl_extension_abi':legacy.abi_version if a.backend in ('EGL','WGL') else None}
 report.write_text(json.dumps(result,indent=2)+'\n')

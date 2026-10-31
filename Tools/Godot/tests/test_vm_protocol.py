@@ -21,7 +21,7 @@ def python(code):
             return result.stdout
         time.sleep(0.2 * (attempt+1))
     raise RuntimeError(result.stderr+result.stdout)
-for name in ['Source/Godot/GodotBridge.h','Source/Godot/GodotBridgeGL.h','Source/Godot/GodotBridgeAudio.h','Source/Godot/GodotAudioQueue.h','Source/Godot/GodotFrameRing.h','Source/Godot/GodotRenderBootQueue.h','Tools/Godot/tests/frame_ring.cpp','Tools/Godot/tests/render_boot.cpp','Tools/Godot/tests/audio_queue.cpp',
+for name in ['Source/Godot/GodotBridge.h','Source/Godot/GodotBridgeGL.h','Source/Godot/GodotBridgeMetalTargets.h','Source/Godot/GodotBridgeAudio.h','Source/Godot/GodotAudioQueue.h','Source/Godot/GodotFrameRing.h','Source/Godot/GodotRenderBootQueue.h','Tools/Godot/tests/frame_ring.cpp','Tools/Godot/tests/render_boot.cpp','Tools/Godot/tests/audio_queue.cpp',
              'Source/Godot/GodotGpuReads.h','Tools/Godot/tests/gpu_reads.cpp','Tools/Godot/tests/bridge_abi.c','Tools/Godot/tests/protocol.sh']:
     path=prefix+'/'+name
     python("import pathlib; p=pathlib.Path('"+path+"'); p.parent.mkdir(parents=True,exist_ok=True); p.write_bytes(b'')")
