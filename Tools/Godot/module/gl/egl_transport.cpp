@@ -3,9 +3,11 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GLES3/gl3.h>
+#include <GLES2/gl2ext.h>
 #include <array>
 #include <string>
 #include <cstring>
+#include <cstdlib>
 namespace {
 thread_local std::string error;
 struct Slot {
@@ -22,6 +24,17 @@ struct Transport {
     uint32_t width=0,height=0,buffers=0;
     GLuint source_fbo=0,target_fbo=0,auxiliary_fbo=0,auxiliary_color=0;
     uint64_t sequence=0,completed=0,deferred=0,errors=0,blits=0,direct_publications=0;
+    bool gpu_timer_supported=false,gpu_timer_reliable=false,gpu_timer_active=false;
+    uint32_t gpu_timer_index=0;
+    uint64_t blit_gpu_time_ns=0,blit_gpu_samples=0,blit_gpu_rejected=0;
+    std::array<GLuint,8> gpu_timer_queries{};
+    std::array<bool,8> gpu_timer_pending{};
+    PFNGLGENQUERIESEXTPROC gen_queries=nullptr;
+    PFNGLDELETEQUERIESEXTPROC delete_queries=nullptr;
+    PFNGLBEGINQUERYEXTPROC begin_query=nullptr;
+    PFNGLENDQUERYEXTPROC end_query=nullptr;
+    PFNGLGETQUERYOBJECTUIVEXTPROC get_query_uiv=nullptr;
+    PFNGLGETQUERYOBJECTUI64VEXTPROC get_query_ui64v=nullptr;
     std::array<Slot,4> slots;
 };
 Transport *get(void *p) { return static_cast<Transport*>(p); }
@@ -29,6 +42,73 @@ bool check(Transport *t) {
     const auto code=glGetError();
     if (code==GL_NO_ERROR) return true;
     ++t->errors; error="OpenGL transport error code="+std::to_string(code); return false;
+}
+bool has_extension(Transport *t,const char *name) {
+    if (t->api==EGL_OPENGL_ES_API) {
+        const auto *extensions=reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS));
+        return extensions && std::strstr(extensions,name);
+    }
+    GLint count=0; glGetIntegerv(GL_NUM_EXTENSIONS,&count);
+    for (GLint i=0;i<count;++i) {
+        const auto *extension=reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS,GLuint(i)));
+        if (extension && std::strcmp(extension,name)==0) return true;
+    }
+    return false;
+}
+template <class T> T load_timer(const char *name) { return reinterpret_cast<T>(eglGetProcAddress(name)); }
+void timer_init(Transport *t) {
+    if (!std::getenv("DORA_GODOT_GL_METRICS") || std::strcmp(std::getenv("DORA_GODOT_GL_METRICS"),"1")!=0
+        || !has_extension(t,"GL_EXT_disjoint_timer_query")) return;
+    t->gen_queries=load_timer<PFNGLGENQUERIESEXTPROC>("glGenQueriesEXT");
+    t->delete_queries=load_timer<PFNGLDELETEQUERIESEXTPROC>("glDeleteQueriesEXT");
+    t->begin_query=load_timer<PFNGLBEGINQUERYEXTPROC>("glBeginQueryEXT");
+    t->end_query=load_timer<PFNGLENDQUERYEXTPROC>("glEndQueryEXT");
+    t->get_query_uiv=load_timer<PFNGLGETQUERYOBJECTUIVEXTPROC>("glGetQueryObjectuivEXT");
+    t->get_query_ui64v=load_timer<PFNGLGETQUERYOBJECTUI64VEXTPROC>("glGetQueryObjectui64vEXT");
+    if (!t->gen_queries || !t->delete_queries || !t->begin_query || !t->end_query
+        || !t->get_query_uiv || !t->get_query_ui64v) return;
+    t->gen_queries(GLsizei(t->gpu_timer_queries.size()),t->gpu_timer_queries.data());
+    t->gpu_timer_supported=check(t);
+    t->gpu_timer_reliable=t->gpu_timer_supported;
+}
+void timer_poll(Transport *t) {
+    if (!t || !t->gpu_timer_supported) return;
+    GLint disjoint=0; glGetIntegerv(GL_GPU_DISJOINT_EXT,&disjoint);
+    for (size_t i=0;i<t->gpu_timer_queries.size();++i) {
+        if (!t->gpu_timer_pending[i]) continue;
+        GLuint available=0;
+        t->get_query_uiv(t->gpu_timer_queries[i],GL_QUERY_RESULT_AVAILABLE_EXT,&available);
+        if (!available) continue;
+        GLuint64 elapsed=0;
+        t->get_query_ui64v(t->gpu_timer_queries[i],GL_QUERY_RESULT_EXT,&elapsed);
+        // GL_EXT_disjoint_timer_query reports nanoseconds. Some virtual GL
+        // drivers advertise the extension but return an absolute timestamp for
+        // TIME_ELAPSED (several seconds for a single 512x512 blit). Reject that
+        // driver rather than publishing a plausible-looking bogus GPU metric.
+        constexpr GLuint64 max_plausible_blit_ns=1000000000ULL;
+        if (disjoint || elapsed>max_plausible_blit_ns || !t->gpu_timer_reliable) {
+            ++t->blit_gpu_rejected;
+            if (elapsed>max_plausible_blit_ns) t->gpu_timer_reliable=false;
+        } else {
+            t->blit_gpu_time_ns+=elapsed; ++t->blit_gpu_samples;
+        }
+        t->gpu_timer_pending[i]=false;
+    }
+}
+void timer_begin(Transport *t) {
+    if (!t || !t->gpu_timer_supported || !t->gpu_timer_reliable) return;
+    timer_poll(t);
+    if (!t->gpu_timer_reliable) return;
+    if (t->gpu_timer_pending[t->gpu_timer_index]) return;
+    t->begin_query(GL_TIME_ELAPSED_EXT,t->gpu_timer_queries[t->gpu_timer_index]);
+    t->gpu_timer_active=true;
+}
+void timer_end(Transport *t) {
+    if (!t || !t->gpu_timer_active) return;
+    t->end_query(GL_TIME_ELAPSED_EXT);
+    t->gpu_timer_pending[t->gpu_timer_index]=true;
+    t->gpu_timer_index=(t->gpu_timer_index+1)%t->gpu_timer_queries.size();
+    t->gpu_timer_active=false;
 }
 }
 extern "C" {
@@ -98,6 +178,7 @@ void *dora_gl_create(void *host, uint32_t width, uint32_t height, uint32_t buffe
         error="EGL producer requires pbuffer or surfaceless support"; dora_gl_destroy(t); return nullptr;
     }
     if (!dora_gl_enter(t)) { error="cannot activate EGL producer"; dora_gl_destroy(t); return nullptr; }
+    timer_init(t);
     // Wayland EGL configs may only support window surfaces. Godot's particle
     // transform-feedback draw still requires a complete framebuffer on Mesa,
     // even with rasterizer discard. Give its auxiliary passes a private FBO.
@@ -129,7 +210,7 @@ void *dora_gl_create(void *host, uint32_t width, uint32_t height, uint32_t buffe
 void dora_gl_destroy(void *p) {
     auto *t=get(p); if (!t) return;
     if (t->producer!=EGL_NO_CONTEXT && dora_gl_enter(t)) {
-        glFinish();
+        glFinish(); timer_poll(t);
         for (auto &s:t->slots) {
             if (s.ready) glDeleteSync(s.ready);
             if (s.consumed) glDeleteSync(s.consumed);
@@ -139,6 +220,7 @@ void dora_gl_destroy(void *p) {
         if (t->auxiliary_color) glDeleteRenderbuffers(1,&t->auxiliary_color);
         if (t->source_fbo) glDeleteFramebuffers(1,&t->source_fbo);
         if (t->target_fbo) glDeleteFramebuffers(1,&t->target_fbo);
+        if (t->gpu_timer_supported) t->delete_queries(GLsizei(t->gpu_timer_queries.size()),t->gpu_timer_queries.data());
     }
     dora_gl_leave(t);
     if (t->surface!=EGL_NO_SURFACE) eglDestroySurface(t->display,t->surface);

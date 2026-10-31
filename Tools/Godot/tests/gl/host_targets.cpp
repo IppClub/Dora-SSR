@@ -26,6 +26,8 @@ int main() {
     assert(host && surface && eglMakeCurrent(display,surface,surface,host));
     printf("GL_TARGETS renderer=%s version=%s\n",glGetString(GL_RENDERER),glGetString(GL_VERSION));
     unsigned samples=0;
+    uint64_t timer_samples=0,timer_rejected=0,timer_time_ns=0;
+    bool timer_supported=false,timer_reliable=false;
     for (uint32_t buffers=2;buffers<=4;++buffers) {
         auto *transport=dora_gl_create(host,64,64,buffers); assert(transport);
         assert(dora_gl_supports_direct_targets(transport));
@@ -83,6 +85,14 @@ int main() {
         }
         glDeleteFramebuffers(1,&consumer);
         assert(dora_gl_enter(transport)); dora_gl_clear_targets(transport); assert(dora_gl_errors(transport)==0);
+        timer_supported=timer_supported || dora_gl_gpu_timer_supported(transport);
+        timer_reliable=timer_reliable || dora_gl_gpu_timer_reliable(transport);
+        timer_samples+=dora_gl_blit_gpu_samples(transport);
+        timer_rejected+=dora_gl_blit_gpu_rejected(transport);
+        timer_time_ns+=dora_gl_blit_gpu_time_ns(transport);
+        if (dora_gl_gpu_timer_supported(transport) && dora_gl_gpu_timer_reliable(transport)) {
+            assert(dora_gl_blit_gpu_samples(transport)>0 && dora_gl_blit_gpu_time_ns(transport)>0);
+        }
         assert(dora_gl_leave(transport)); dora_gl_destroy(transport);
         for (auto &targets:generations) {
             for (uint32_t i=0;i<buffers;++i) assert(glIsTexture(targets[i]));
@@ -90,7 +100,9 @@ int main() {
         }
         assert(glGetError()==GL_NO_ERROR);
     }
-    printf("GL_TARGETS PASS buffers=2,3,4 generations=3 samples=%u host_ownership_preserved=1 direct_publish=1 path_counters=1\n",samples);
+    printf("GL_TARGETS PASS buffers=2,3,4 generations=3 samples=%u host_ownership_preserved=1 direct_publish=1 path_counters=1 timer_supported=%d timer_reliable=%d timer_samples=%llu timer_rejected=%llu timer_time_ns=%llu\n",
+        samples,timer_supported,timer_reliable,(unsigned long long)timer_samples,
+        (unsigned long long)timer_rejected,(unsigned long long)timer_time_ns);
     eglMakeCurrent(display,EGL_NO_SURFACE,EGL_NO_SURFACE,EGL_NO_CONTEXT);
     eglDestroySurface(display,surface); eglDestroyContext(display,host); eglTerminate(display);
 }

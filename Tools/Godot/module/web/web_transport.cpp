@@ -16,6 +16,8 @@ struct Transport {
     uint32_t width=0,height=0,buffers=0;
     GLuint source_fbo=0,target_fbo=0,auxiliary_fbo=0,auxiliary_color=0;
     uint64_t sequence=0,completed=0,deferred=0,errors=0,blits=0,direct_publications=0;
+    bool gpu_timer_supported=false,gpu_timer_reliable=false;
+    uint64_t blit_gpu_time_ns=0,blit_gpu_samples=0,blit_gpu_rejected=0;
     std::array<Slot,4> slots;
 };
 Transport *active_transport=nullptr;
@@ -36,6 +38,9 @@ EM_JS(int,leave_boundary,(),{
 // context/queue, so earlier consumer/producer commands already precede this call.
 // The can_advance/can_produce polls still yield to the host while fences are pending.
 void ordered_wait(GLsync,GLbitfield,GLuint64) {}
+void timer_begin(Transport *) {}
+void timer_end(Transport *) {}
+void timer_poll(Transport *) {}
 }
 extern "C" {
 const char *dora_gl_error(){return error.c_str();}

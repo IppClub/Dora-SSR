@@ -128,6 +128,19 @@ direct 会在绑定阶段失败。暂未设置变量时仍使用兼容 blit 默�
 时间、显存和延迟对照完成，但会输出 `DORA_GODOT_GL_TRANSPORT` 诊断，不再静默回退。
 该诊断在 bind/close 记录 mode、policy、capability、reason、`blits` 与
 `direct_publications`；两个计数器在 WGL、EGL 与 WebGL2 上使用相同实现。
+Linux EGL 还可用同一生产场景做交替顺序的 direct/blit 对照：
+
+```sh
+python3 Tools/Godot/tests/run_gl_ab_linux.py \
+  --binary build/godot-direct01-linux/host/Dora \
+  --library build/godot-direct01-linux/runtime/package/libdora_godot.so \
+  --output build/godot-direct06-linux-ab --repetitions 2
+```
+
+该入口固定宿主和运行库哈希，依次测试 2/3/4 缓冲，记录 Dora profiler、进程
+耗时/RSS、纹理内存及 transport 计数。`DORA_GODOT_GL_METRICS=1` 时 EGL 会异步
+采集 blit timer query；若虚拟驱动把 `TIME_ELAPSED` 错报为秒级绝对时间，报告会将
+样本计入 `blit_gpu_rejected` 并标记 timer 不可靠，绝不会用该值决定默认策略。
 
 direct-target 可让 Godot 把最终颜色附件切换到 Dora/bgfx 管理的 2–4 张 RGBA8
 render-target 纹理，绘制后只发布 GPU fence，稳态不调用 `glBlitFramebuffer`。

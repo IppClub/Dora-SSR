@@ -17,7 +17,25 @@ DORA_BINARY="${DORA_GODOT_DORA_BINARY:-$BUILD/dora/Dora}"
 # Stage assets for this test only. Never edit source Assets/Script/init.lua.
 mkdir -p "$BUILD/test-assets"
 rsync -a "$ROOT/Assets/" "$BUILD/test-assets/"
-printf 'return true\n' > "$BUILD/test-assets/Script/init.lua"
+if [[ -n "${DORA_GODOT_PROFILER_LOG:-}" ]]; then
+    rm -f "$DORA_GODOT_PROFILER_LOG"
+    cat > "$BUILD/test-assets/Script/init.lua" <<'LUA'
+local Dora = require("Dora")
+local listener = Dora.Node()
+listener:gslot("AppWS", function(event)
+    if event.type ~= "Send" then return end
+    local path = os.getenv("DORA_GODOT_PROFILER_LOG")
+    if not path or path == "" then return end
+    local existing = Dora.Content:load(path) or ""
+    assert(Dora.Content:save(path, existing .. event.msg .. "\n"))
+end)
+Dora.Director.ui:addChild(listener)
+Dora.Director.profilerSending = true
+return true
+LUA
+else
+    printf 'return true\n' > "$BUILD/test-assets/Script/init.lua"
+fi
 for FIXTURE in project timing_project; do
     mkdir -p "$ROOT/Tools/Godot/tests/$FIXTURE/.godot"
     printf 'list=[]\n' > "$ROOT/Tools/Godot/tests/$FIXTURE/.godot/global_script_class_cache.cfg"
@@ -34,14 +52,30 @@ else
 fi
 export SDL_AUDIODRIVER=dummy GODOT_SILENCE_ROOT_WARNING=1
 python3 - "$DORA_BINARY" "$BUILD/test-assets" "$RESULTS/run.log" <<'PY'
-import os, subprocess, sys
+import json, os, resource, subprocess, sys, time
+from pathlib import Path
 command=[sys.argv[1],'--asset',sys.argv[2]]
 if not os.environ.get('DISPLAY') and not os.environ.get('WAYLAND_DISPLAY'):
     command=['xvfb-run','-a','-s','-screen 0 1920x1080x24']+command
 with open(sys.argv[3],'w') as log:
     timeout=max(180+int(os.environ.get("DORA_GODOT_TEST_SOAK_FRAMES","0"))/30,
                 120+int(os.environ.get('DORA_GODOT_TEST_CYCLES','0'))*10)
+    before=resource.getrusage(resource.RUSAGE_CHILDREN)
+    started=time.perf_counter()
     result=subprocess.run(command,stdout=log,stderr=subprocess.STDOUT,timeout=timeout)
+    elapsed=time.perf_counter()-started
+    after=resource.getrusage(resource.RUSAGE_CHILDREN)
+metrics=os.environ.get('DORA_GODOT_RESOURCE_METRICS')
+if metrics:
+    Path(metrics).write_text(json.dumps({
+        'wall_seconds':elapsed,
+        'user_seconds':after.ru_utime-before.ru_utime,
+        'system_seconds':after.ru_stime-before.ru_stime,
+        'max_rss_kib':after.ru_maxrss,
+        'voluntary_context_switches':after.ru_nvcsw-before.ru_nvcsw,
+        'involuntary_context_switches':after.ru_nivcsw-before.ru_nivcsw,
+        'exit_code':result.returncode,
+    },indent=2)+'\n')
 sys.exit(result.returncode)
 PY
 if [[ -n "${DORA_GODOT_TEST_CYCLES:-}" ]]; then

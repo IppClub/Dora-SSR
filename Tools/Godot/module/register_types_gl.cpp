@@ -48,6 +48,7 @@ struct Runtime {
     std::string project,scene,error;
     uint32_t width=0,height=0,buffers=0,source=0;
     uint64_t sequence=0,direct_frames=0,blit_base=0,direct_base=0;
+    uint64_t blit_gpu_time_base=0,blit_gpu_samples_base=0,blit_gpu_rejected_base=0;
     RID direct_render_target;
     uint32_t direct_original_color=0;
     bool active=false,paused=false,terminated=false,external_targets=false,direct_targets=false;
@@ -59,11 +60,16 @@ void log_transport(const char *phase,uint32_t buffers,uint32_t width,uint32_t he
     char line[512];
     const auto blits=dora_gl_blits(runtime.transport)-runtime.blit_base;
     const auto direct=dora_gl_direct_publications(runtime.transport)-runtime.direct_base;
+    const auto blit_gpu_time=dora_gl_blit_gpu_time_ns(runtime.transport)-runtime.blit_gpu_time_base;
+    const auto blit_gpu_samples=dora_gl_blit_gpu_samples(runtime.transport)-runtime.blit_gpu_samples_base;
+    const auto blit_gpu_rejected=dora_gl_blit_gpu_rejected(runtime.transport)-runtime.blit_gpu_rejected_base;
     std::snprintf(line,sizeof(line),
-        "DORA_GODOT_GL_TRANSPORT phase=%s mode=%s policy=%s capability=%d reason=%s buffers=%u size=%ux%u blits=%llu direct_publications=%llu",
+        "DORA_GODOT_GL_TRANSPORT phase=%s mode=%s policy=%s capability=%d reason=%s buffers=%u size=%ux%u blits=%llu direct_publications=%llu gpu_timer=%d gpu_timer_reliable=%d blit_gpu_time_ns=%llu blit_gpu_samples=%llu blit_gpu_rejected=%llu",
         phase,DoraGodotGLTargetPolicy::name(runtime.target_policy.mode),runtime.target_policy.policy,
         dora_gl_supports_direct_targets(runtime.transport),runtime.target_policy.reason,buffers,width,height,
-        (unsigned long long)blits,(unsigned long long)direct);
+        (unsigned long long)blits,(unsigned long long)direct,dora_gl_gpu_timer_supported(runtime.transport),
+        dora_gl_gpu_timer_reliable(runtime.transport),(unsigned long long)blit_gpu_time,
+        (unsigned long long)blit_gpu_samples,(unsigned long long)blit_gpu_rejected);
 #if defined(ANDROID_ENABLED)
     print_line(String::utf8(line));
 #elif defined(WEB_ENABLED)
@@ -203,6 +209,9 @@ void *open(const DoraGodotConfig *config) {
     runtime.direct_frames=0;
     runtime.blit_base=dora_gl_blits(runtime.transport);
     runtime.direct_base=dora_gl_direct_publications(runtime.transport);
+    runtime.blit_gpu_time_base=dora_gl_blit_gpu_time_ns(runtime.transport);
+    runtime.blit_gpu_samples_base=dora_gl_blit_gpu_samples(runtime.transport);
+    runtime.blit_gpu_rejected_base=dora_gl_blit_gpu_rejected(runtime.transport);
     runtime.target_policy={DoraGodotGLTargetPolicy::Mode::Blit,"unbound","not-bound"};
     runtime.active=true; runtime.paused=false; return &runtime;
 }

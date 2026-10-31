@@ -52,7 +52,9 @@ static uint64_t copy_slot(void *p,uint32_t source,uint32_t slot,uint64_t last_re
         ++t->errors; error="incomplete shared texture framebuffer"; return 0;
     }
     glDisable(GL_SCISSOR_TEST);
+    timer_begin(t);
     glBlitFramebuffer(0,0,t->width,t->height,0,0,t->width,t->height,GL_COLOR_BUFFER_BIT,GL_NEAREST);
+    timer_end(t);
     ++t->blits;
     glBindFramebuffer(GL_READ_FRAMEBUFFER,old_read);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER,old_draw);
@@ -103,6 +105,7 @@ int dora_gl_consumer_end(void *p,uint32_t slot,uint64_t read) {
 }
 void dora_gl_drain([[maybe_unused]] void *p) {
     glFinish();
+    timer_poll(get(p));
 #if defined(__EMSCRIPTEN__)
     // WebGL2 intentionally hides same-task fence completion, even after a
     // synchronous finish. Record the successful queue drain rather than
@@ -130,10 +133,15 @@ uint64_t dora_gl_deferred(void *p) { return get(p)->deferred; }
 uint64_t dora_gl_errors(void *p) { return get(p)->errors; }
 uint64_t dora_gl_blits(void *p) { auto *t=get(p); return t?t->blits:0; }
 uint64_t dora_gl_direct_publications(void *p) { auto *t=get(p); return t?t->direct_publications:0; }
+int dora_gl_gpu_timer_supported(void *p) { auto *t=get(p); return t&&t->gpu_timer_supported; }
+int dora_gl_gpu_timer_reliable(void *p) { auto *t=get(p); return t&&t->gpu_timer_reliable; }
+uint64_t dora_gl_blit_gpu_time_ns(void *p) { auto *t=get(p); return t?t->blit_gpu_time_ns:0; }
+uint64_t dora_gl_blit_gpu_samples(void *p) { auto *t=get(p); return t?t->blit_gpu_samples:0; }
+uint64_t dora_gl_blit_gpu_rejected(void *p) { auto *t=get(p); return t?t->blit_gpu_rejected:0; }
 
 void dora_gl_clear_targets(void *p) {
     auto *t=get(p); if (!t) return;
-    glFinish(); t->completed=t->sequence;
+    glFinish(); timer_poll(t); t->completed=t->sequence;
     GLint read=0,draw=0;
     glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING,&read); glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING,&draw);
     glBindFramebuffer(GL_READ_FRAMEBUFFER,t->source_fbo);

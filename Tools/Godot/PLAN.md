@@ -2772,3 +2772,10 @@ Godot Android Thread平台hook只有JNI attach/detach，未设置priority；现�
 - DIRECT-06 第一阶段为 GL transport 增加通用、单调的 `blits` 与 `direct_publications` 计数。策略解析支持 `0/blit`、`1/direct` 和 `auto`；无效配置与不支持能力上的强制direct明确失败。每次bind/close输出统一 `DORA_GODOT_GL_TRANSPORT` 行，包含mode、policy、capability、reason和两类计数。未设置变量时仍保留原blit默认，但会明确记录`performance-baseline-pending`，避免静默降级；在同场景性能对照完成前不提前改变默认。
 - macOS本机的协议套件通过，包括2/3/4缓冲所有权、300000帧音频队列、300000帧GPU reader ledger及新增策略矩阵。Ubuntu ARM64 Parallels VM使用Mesa virgl `Apple M1 Pro (Compat)` 实跑共享EGL transport：2/3/4缓冲、三代host-owned纹理、54次像素抽样通过，每代blit/direct publication计数精确匹配；WGL x86_64 与 WebGL2 transport 分别完成 COFF 与 Wasm 对象编译。聚合报告为`build/godot-direct06-policy/verification.json`；虚拟GPU结果是功能证据，不是性能结论。
 - 下一步仍需在相同场景收集direct与blit的GPU时间、显存、延迟和稳定性，并重跑WGL、Android EGL与WebGL2回归；完成这些证据后再决定逐平台把`auto`设为默认、保留显式blit兼容回退，或删除确实不再需要的旧路径。
+
+### 2026-10-31 Linux EGL direct/blit 同场景性能基线
+
+- 新增`tests/run_gl_ab_linux.py`，用同一预构建Dora宿主、Godot运行库和完整GodotNode生产场景交替运行direct/blit，覆盖2/3/4缓冲、动画、暂停/恢复、输入、节点生命周期、三次resize、纹理别名、PCM与退出排空。每项固定二进制SHA-256，采集Dora profiler、进程墙钟/RSS、纹理内存和统一transport计数；`test_linux.sh`只在显式指标变量存在时启用profiler落盘，不改变普通测试路径。
+- EGL blit路径增加仅由`DORA_GODOT_GL_METRICS=1`启用的异步`GL_EXT_disjoint_timer_query`。llvmpipe底层host-owned target测试取得27个可靠样本、0拒绝；生产A/B六项取得1737个blit样本、合计124506446 ns，约71.7 μs/次。direct六项为`blits=0`、1692次publication；blit六项为1737次blit、publication为0。direct/blit的CPU中位数为0.62/0.80 ms，FPS中位数34.085/34.205，墙钟34.397/34.503秒；direct纹理峰值中位数11059200字节，blit为9676800字节。报告为`build/godot-direct06-linux-ab-v4-timer/verification.json`。
+- Parallels virgl的2/3/4六项也全部通过，direct累计1641次publication且零blit，兼容路径累计1636次blit且零publication，CPU、FPS、墙钟和RSS近似。该虚拟驱动虽宣称支持timer query，却把单次`TIME_ELAPSED`返回为约5–6秒的绝对时间；实现现以1秒上限拒绝明显不可能的单次blit值并把timer标为不可靠。三次生命周期各拒绝一个异常样本，最终GPU时间保持0、`gpu_timer_available=false`，原始异常值不进入性能结论。报告为`build/godot-direct06-virgl-ab-v5-reliable-timer.json`。
+- WGL x86_64与WebGL2 transport在新增指标ABI后分别重新生成COFF与Wasm对象，macOS协议套件及Linux EGL共享上下文/三代host纹理/54项像素抽样回归通过。当前数据证明direct稳定消除逐帧blit，并量出llvmpipe上的复制成本，但虚拟GPU、近似FPS及direct额外纹理记账不足以决定全平台默认值；因此仍保留未设置变量时的兼容blit及显式回退。DIRECT-06继续未关闭，下一步依次执行WGL、Android和Web生产动态回归；D3D12维持范围外。

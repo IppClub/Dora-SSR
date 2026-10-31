@@ -19,6 +19,11 @@ int dora_gl_supports_direct_targets(void *transport);
 // without changing the public Godot bridge ABI.
 uint64_t dora_gl_blits(void *transport);
 uint64_t dora_gl_direct_publications(void *transport);
+int dora_gl_gpu_timer_supported(void *transport);
+int dora_gl_gpu_timer_reliable(void *transport);
+uint64_t dora_gl_blit_gpu_time_ns(void *transport);
+uint64_t dora_gl_blit_gpu_samples(void *transport);
+uint64_t dora_gl_blit_gpu_rejected(void *transport);
 // Private complete framebuffer for Godot auxiliary draws (0 on native drawables).
 uint32_t dora_gl_framebuffer(void *transport);
 // Producer context, host GPU drained. IDs are borrowed, never deleted here.

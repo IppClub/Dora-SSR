@@ -18,6 +18,8 @@ struct Transport {
     uint32_t width=0,height=0,buffers=0;
     GLuint source_fbo=0,target_fbo=0;
     uint64_t sequence=0,completed=0,deferred=0,errors=0,blits=0,direct_publications=0;
+    bool gpu_timer_supported=false,gpu_timer_reliable=false;
+    uint64_t blit_gpu_time_ns=0,blit_gpu_samples=0,blit_gpu_rejected=0;
     std::array<Slot,4> slots;
 };
 Transport *get(void *p) { return static_cast<Transport*>(p); }
@@ -25,6 +27,9 @@ bool check(Transport *t) {
     if (glGetError()==GL_NO_ERROR) return true;
     ++t->errors; error="OpenGL WGL transport error"; return false;
 }
+void timer_begin(Transport *) {}
+void timer_end(Transport *) {}
+void timer_poll(Transport *) {}
 }
 extern "C" {
 const char *dora_gl_error() { return error.c_str(); }
