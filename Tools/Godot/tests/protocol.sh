@@ -10,6 +10,8 @@ cd "$ROOT"
 "${CXX:-c++}" -std=c++20 -Wall -Wextra -Werror -I . Tools/Godot/tests/frame_ring.cpp -o "$OUT/frame-ring"
 "${CXX:-c++}" -std=c++20 -Wall -Wextra -Werror -I . Tools/Godot/tests/render_boot.cpp -o "$OUT/render-boot"
 "${CXX:-c++}" -std=c++20 -Wall -Wextra -Werror -I . Tools/Godot/tests/render_timing.cpp -o "$OUT/render-timing"
+"${CXX:-c++}" -std=c++20 -Wall -Wextra -Werror -I . Tools/Godot/tests/gl/target_policy.cpp -o "$OUT/gl-target-policy"
+"$OUT/gl-target-policy"
 "$OUT/render-timing"
 "$OUT/render-boot"
 "$OUT/frame-ring"
@@ -25,7 +27,8 @@ from pathlib import Path
 report={'passed': True, 'scope':'C ABI declaration and backend-independent frame ownership protocol; GPU not tested',
         'system': platform.system(), 'machine': platform.machine(), 'buffers':[2,3,4], 'consumer_frames_per_buffer':100000,'texture_boot_frame_gate':True,'manual_render_time_handoff':True,
         'audio_spsc_stereo_frames':300000,'audio_device_tested':False,'all_slot_gpu_reader_ledger_host_frames':300000,
-        'fresh_embedded_shader_source_boundary':True,'web_task_queue_final_stop':True}
+        'fresh_embedded_shader_source_boundary':True,'web_task_queue_final_stop':True,
+        'gl_target_policy_matrix':True}
 (Path(sys.argv[1])/'verification.json').write_text(json.dumps(report,indent=2)+'\n')
 print(json.dumps(report,indent=2))
 PYREPORT

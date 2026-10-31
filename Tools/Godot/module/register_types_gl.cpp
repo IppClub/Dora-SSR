@@ -15,6 +15,7 @@
 #include "core/config/engine.h"
 #include "servers/audio/audio_driver_dummy.h"
 #include "gl/gl_transport.h"
+#include "gl/target_policy.h"
 #include "gl/display_server_dora_gl.h"
 #include "core/extension/libgodot.h"
 #include "core/extension/godot_instance.h"
@@ -29,6 +30,7 @@
 #include <string>
 #include <set>
 #include <filesystem>
+#include <cstdlib>
 #include <cstring>
 #include <cstdio>
 bool DisplayServerDoraGL::desktop=false;
@@ -45,13 +47,31 @@ struct Runtime {
     void *transport=nullptr;
     std::string project,scene,error;
     uint32_t width=0,height=0,buffers=0,source=0;
-    uint64_t sequence=0,direct_frames=0;
+    uint64_t sequence=0,direct_frames=0,blit_base=0,direct_base=0;
     RID direct_render_target;
     uint32_t direct_original_color=0;
     bool active=false,paused=false,terminated=false,external_targets=false,direct_targets=false;
+    DoraGodotGLTargetPolicy::Decision target_policy{DoraGodotGLTargetPolicy::Mode::Blit,"unbound","not-bound"};
 } runtime;
 DoraGodotOutput output;
 bool output_pending=false;
+void log_transport(const char *phase,uint32_t buffers,uint32_t width,uint32_t height) {
+    char line[512];
+    const auto blits=dora_gl_blits(runtime.transport)-runtime.blit_base;
+    const auto direct=dora_gl_direct_publications(runtime.transport)-runtime.direct_base;
+    std::snprintf(line,sizeof(line),
+        "DORA_GODOT_GL_TRANSPORT phase=%s mode=%s policy=%s capability=%d reason=%s buffers=%u size=%ux%u blits=%llu direct_publications=%llu",
+        phase,DoraGodotGLTargetPolicy::name(runtime.target_policy.mode),runtime.target_policy.policy,
+        dora_gl_supports_direct_targets(runtime.transport),runtime.target_policy.reason,buffers,width,height,
+        (unsigned long long)blits,(unsigned long long)direct);
+#if defined(ANDROID_ENABLED)
+    print_line(String::utf8(line));
+#elif defined(WEB_ENABLED)
+    std::printf("%s\n",line);
+#else
+    std::fprintf(stderr,"%s\n",line);
+#endif
+}
 struct ProducerScope {
     bool ok;
     ProducerScope():ok(dora_gl_enter(runtime.transport)) {}
@@ -180,6 +200,10 @@ void *open(const DoraGodotConfig *config) {
     RID texture=output.texture(runtime.root);
     runtime.source=(uint32_t)RenderingServer::get_singleton()->texture_get_native_handle(texture);
     if (!runtime.source) { runtime.error="Godot viewport has no GL texture"; return nullptr; }
+    runtime.direct_frames=0;
+    runtime.blit_base=dora_gl_blits(runtime.transport);
+    runtime.direct_base=dora_gl_direct_publications(runtime.transport);
+    runtime.target_policy={DoraGodotGLTargetPolicy::Mode::Blit,"unbound","not-bound"};
     runtime.active=true; runtime.paused=false; return &runtime;
 }
 int bind_targets(void *handle,uint32_t width,uint32_t height,const uint32_t *textures,uint32_t count) {
@@ -191,6 +215,14 @@ int bind_targets(void *handle,uint32_t width,uint32_t height,const uint32_t *tex
     ProducerScope scope; if (!scope.ok) return 0;
     RenderingServer::get_singleton()->sync(); dora_gl_drain(runtime.transport);
     clear_direct_targets();
+    const bool direct_capable=dora_gl_supports_direct_targets(runtime.transport)!=0;
+    runtime.target_policy=DoraGodotGLTargetPolicy::decide(std::getenv("DORA_GODOT_GL_DIRECT"),direct_capable);
+    if (runtime.target_policy.mode==DoraGodotGLTargetPolicy::Mode::Error) {
+        log_transport("bind-error",count,width,height);
+        runtime.error=std::string(runtime.target_policy.reason)+"; use DORA_GODOT_GL_DIRECT=0, 1 or auto";
+        return 0;
+    }
+    runtime.direct_targets=runtime.target_policy.mode==DoraGodotGLTargetPolicy::Mode::Direct;
     if (width!=runtime.width || height!=runtime.height) {
         runtime.root->set_size(Size2i(width,height));
         if (!draw()) { runtime.error="Godot resize draw failed"; return 0; }
@@ -200,12 +232,8 @@ int bind_targets(void *handle,uint32_t width,uint32_t height,const uint32_t *tex
     if (!source || !dora_gl_bind_targets(runtime.transport,width,height,textures,count)) {
         runtime.error="GL viewport target replacement failed: "+std::string(dora_gl_error()); return 0;
     }
-    const char *direct=std::getenv("DORA_GODOT_GL_DIRECT");
-    if (direct && std::strcmp(direct,"1")==0) {
-        if (!dora_gl_supports_direct_targets(runtime.transport)) {
-            runtime.error="DORA_GODOT_GL_DIRECT is not enabled for the current GL transport"; return 0;
-        }
-        runtime.direct_targets=true; runtime.direct_frames=0;
+    log_transport("bind",count,width,height);
+    if (runtime.direct_targets) {
 #if defined(ANDROID_ENABLED)
         print_line(vformat("DORA_GODOT_GL_DIRECT enabled buffers=%d size=%dx%d blits=0",count,width,height));
 #elif defined(WEB_ENABLED)
@@ -266,6 +294,7 @@ void close(void *handle,DoraGodotStats *stats) {
     RenderingServer::get_singleton()->sync(); dora_gl_drain(runtime.transport);
     if (stats && stats->size>=sizeof(*stats)) *stats={sizeof(*stats),runtime.sequence,
         dora_gl_completed(runtime.transport),dora_gl_errors(runtime.transport),dora_gl_deferred(runtime.transport)};
+    if (runtime.external_targets) log_transport("close",runtime.buffers,runtime.width,runtime.height);
     if (runtime.direct_targets) {
 #if defined(ANDROID_ENABLED)
         print_line(vformat("DORA_GODOT_GL_DIRECT completed frames=%d blits=0",runtime.direct_frames));

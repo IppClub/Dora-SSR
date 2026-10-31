@@ -61,6 +61,9 @@ int main() {
                 glClearColor((size+1)/255.0f,0.25f,0.5f,1); glClear(GL_COLOR_BUFFER_BIT);
                 assert(dora_gl_publish_async(transport,i,0)==++sequence); dora_gl_drain(transport);
             }
+            const auto generations_completed=generations.size()+1;
+            assert(dora_gl_blits(transport)==generations_completed*buffers);
+            assert(dora_gl_direct_publications(transport)==generations_completed*buffers);
             dora_gl_drain(transport); assert(dora_gl_completed(transport)==sequence);
             glDeleteFramebuffers(1,&producer); glDeleteTextures(1,&source);
             assert(dora_gl_leave(transport));
@@ -87,7 +90,7 @@ int main() {
         }
         assert(glGetError()==GL_NO_ERROR);
     }
-    printf("GL_TARGETS PASS buffers=2,3,4 generations=3 samples=%u host_ownership_preserved=1 direct_publish=1\n",samples);
+    printf("GL_TARGETS PASS buffers=2,3,4 generations=3 samples=%u host_ownership_preserved=1 direct_publish=1 path_counters=1\n",samples);
     eglMakeCurrent(display,EGL_NO_SURFACE,EGL_NO_SURFACE,EGL_NO_CONTEXT);
     eglDestroySurface(display,surface); eglDestroyContext(display,host); eglTerminate(display);
 }

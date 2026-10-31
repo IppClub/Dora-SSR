@@ -12,6 +12,6 @@ python3 - "$OUT" <<'PY'
 import json,sys
 from pathlib import Path
 p=Path(sys.argv[1]);log=(p/'run.log').read_text()
-assert 'GL_TARGETS PASS buffers=2,3,4 generations=3 samples=54 host_ownership_preserved=1 direct_publish=1' in log
-(p/'verification.json').write_text(json.dumps({'passed':True,'scope':'actual shared EGL transport; host ownership and immutable prior generations; Godot/Dora node checked separately','buffers':[2,3,4],'generations':3,'pixel_samples':54,'source_sizes':[64,96,32],'direct_publish':True},indent=2)+'\n')
+assert 'GL_TARGETS PASS buffers=2,3,4 generations=3 samples=54 host_ownership_preserved=1 direct_publish=1 path_counters=1' in log
+(p/'verification.json').write_text(json.dumps({'passed':True,'scope':'actual shared EGL transport; host ownership and immutable prior generations; Godot/Dora node checked separately','buffers':[2,3,4],'generations':3,'pixel_samples':54,'source_sizes':[64,96,32],'direct_publish':True,'path_counters':True},indent=2)+'\n')
 PY

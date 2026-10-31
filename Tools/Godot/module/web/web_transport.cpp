@@ -44,8 +44,8 @@ int dora_gl_leave(void *p){return p && leave_boundary();}
 void *dora_gl_display(void *){return nullptr;}
 int dora_gl_desktop(void *){return 0;}
 int dora_gl_supports_direct_targets(void *p){return get(p)!=nullptr;}
-uint64_t dora_gl_web_blits(){return active_transport?active_transport->blits:0;}
-uint64_t dora_gl_web_direct_publications(){return active_transport?active_transport->direct_publications:0;}
+uint64_t dora_gl_web_blits(){return dora_gl_blits(active_transport);}
+uint64_t dora_gl_web_direct_publications(){return dora_gl_direct_publications(active_transport);}
 uint32_t dora_gl_framebuffer(void *p){return get(p)?get(p)->auxiliary_fbo:0;}
 void *dora_gl_create(void *host,uint32_t width,uint32_t height,uint32_t buffers){
     error.clear();

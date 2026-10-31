@@ -53,9 +53,7 @@ static uint64_t copy_slot(void *p,uint32_t source,uint32_t slot,uint64_t last_re
     }
     glDisable(GL_SCISSOR_TEST);
     glBlitFramebuffer(0,0,t->width,t->height,0,0,t->width,t->height,GL_COLOR_BUFFER_BIT,GL_NEAREST);
-#if defined(__EMSCRIPTEN__)
     ++t->blits;
-#endif
     glBindFramebuffer(GL_READ_FRAMEBUFFER,old_read);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER,old_draw);
     if (scissor) glEnable(GL_SCISSOR_TEST);
@@ -81,9 +79,7 @@ static uint64_t publish_slot(void *p,uint32_t slot,uint64_t last_read,bool queue
     if (s.ready) glDeleteSync(s.ready);
     s.ready=glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,0); glFlush();
     if (!s.ready || !check(t)) return 0;
-#if defined(__EMSCRIPTEN__)
     ++t->direct_publications;
-#endif
     s.sequence=++t->sequence; return s.sequence;
 }
 uint64_t dora_gl_publish(void *p,uint32_t slot,uint64_t last_read) {
@@ -132,6 +128,8 @@ uint64_t dora_gl_completed(void *p) {
 }
 uint64_t dora_gl_deferred(void *p) { return get(p)->deferred; }
 uint64_t dora_gl_errors(void *p) { return get(p)->errors; }
+uint64_t dora_gl_blits(void *p) { auto *t=get(p); return t?t->blits:0; }
+uint64_t dora_gl_direct_publications(void *p) { auto *t=get(p); return t?t->direct_publications:0; }
 
 void dora_gl_clear_targets(void *p) {
     auto *t=get(p); if (!t) return;

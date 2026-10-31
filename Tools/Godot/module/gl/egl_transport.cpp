@@ -21,7 +21,7 @@ struct Transport {
     EGLenum api=EGL_OPENGL_ES_API;
     uint32_t width=0,height=0,buffers=0;
     GLuint source_fbo=0,target_fbo=0,auxiliary_fbo=0,auxiliary_color=0;
-    uint64_t sequence=0,completed=0,deferred=0,errors=0;
+    uint64_t sequence=0,completed=0,deferred=0,errors=0,blits=0,direct_publications=0;
     std::array<Slot,4> slots;
 };
 Transport *get(void *p) { return static_cast<Transport*>(p); }

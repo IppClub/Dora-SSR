@@ -2765,3 +2765,10 @@ Godot Android Thread平台hook只有JNI attach/detach，未设置priority；现�
 - 本轮只启动精确的Windows 11 ARM64 Parallels VM。Mac重启前系统进入“正在查找解决方案”的自动修复界面；重启后再次有界冷启动，画面改为Windows Logo持续转圈，但仍始终未取得IP或来宾工具会话，无法传入v2测试包并执行WARP。正常停止再次卡在stopping后，先以`TERM`等待无效，再只终止该VM对应的`prl_vm_app`进程；最终Windows、Ubuntu ARM64和Ubuntu Rosetta三台VM均为stopped，没有重置或修改虚拟磁盘。
 - 旧VM来自2021年且实际占用约110 GiB、无快照；为避免继续修改该磁盘，新增隔离的`Dora Godot D3D12 WARP`配置。该VM保持stopped，使用EFI ARM64、Secure Boot与TPM、4 CPU、6 GiB内存、共享网络和64 GiB SATA稀疏动态盘，初始实际占用仅1.1 MiB。仅将v2密封包目录以只读方式共享，关闭整机磁盘、用户目录、宿主/来宾应用、来宾目录和云盘共享，剪贴板限制为宿主到来宾。微软官方当前Windows 11 ARM64 26H2英文ISO为8528523264字节；浏览器下载权限尚未获确认，因此未下载、未挂载、未启动新VM，也没有新增运行时结论。
 - DIRECT-05继续未完成。下一步只需在恢复可启动的Windows ARM64 VM后运行v2密封包：先执行双缓冲CPU-fence基线，再执行2/3/4缓冲矩阵；确认共享句柄导入、动态画面、动画/暂停、输入、resize、节点重建、别名、PCM、排空和零错误后，才进入纯GPU生产/回收双fence实现。按当前收敛决定，缺失验收只要求虚拟机/WARP，物理Windows机器不再阻塞本轮；WARP结果只代表软件适配器与虚拟机路径，不代表物理D3D12 GPU或驱动性能。
+
+### 2026-10-31 跳过 Windows ARM64 动态验收并进入旧 blit 收口
+
+- 用户明确决定不再测试 ARM64 Windows并跳过 DIRECT-05。现有 D3D12 ARM64 源码、静态构建、ABI/包校验和 WARP 交接包继续保留，但 `virtual_warp_tested=false` 不改写；本决定不构成动态共享、CPU/纯GPU fence、WARP或物理GPU通过。隔离VM不再下载或安装Windows，保持stopped；D3D12从 DIRECT-06 的默认策略与旧路径删除范围中排除。
+- DIRECT-06 第一阶段为 GL transport 增加通用、单调的 `blits` 与 `direct_publications` 计数。策略解析支持 `0/blit`、`1/direct` 和 `auto`；无效配置与不支持能力上的强制direct明确失败。每次bind/close输出统一 `DORA_GODOT_GL_TRANSPORT` 行，包含mode、policy、capability、reason和两类计数。未设置变量时仍保留原blit默认，但会明确记录`performance-baseline-pending`，避免静默降级；在同场景性能对照完成前不提前改变默认。
+- macOS本机的协议套件通过，包括2/3/4缓冲所有权、300000帧音频队列、300000帧GPU reader ledger及新增策略矩阵。Ubuntu ARM64 Parallels VM使用Mesa virgl `Apple M1 Pro (Compat)` 实跑共享EGL transport：2/3/4缓冲、三代host-owned纹理、54次像素抽样通过，每代blit/direct publication计数精确匹配；WGL x86_64 与 WebGL2 transport 分别完成 COFF 与 Wasm 对象编译。聚合报告为`build/godot-direct06-policy/verification.json`；虚拟GPU结果是功能证据，不是性能结论。
+- 下一步仍需在相同场景收集direct与blit的GPU时间、显存、延迟和稳定性，并重跑WGL、Android EGL与WebGL2回归；完成这些证据后再决定逐平台把`auto`设为默认、保留显式blit兼容回退，或删除确实不再需要的旧路径。

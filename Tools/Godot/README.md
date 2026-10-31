@@ -122,11 +122,16 @@ python3 Tools/Godot/tests/runtime_abi.py --library build/godot-runtime/package/l
 
 ## GL direct-target 验收
 
-设置 `DORA_GODOT_GL_DIRECT=1` 时，WGL、Linux desktop EGL 与 Android EGL 可让 Godot 直接把
-最终颜色附件切换到 Dora/bgfx 管理的 2–4 张 RGBA8 render-target 纹理，绘制后只
-发布 GPU fence，稳态不调用 `glBlitFramebuffer`。该能力由 GL transport 显式声明；
-Web 生产桥也默认显式启用同一 direct-target 算法，并继续保留旧 blit 实现供后续兼容
-回退决策。WebGL2 已通过 Chromium、Firefox 与 Playwright WebKit 的 2/3/4 缓冲矩阵及
+`DORA_GODOT_GL_DIRECT=1`（或 `direct`）强制使用 direct-target，`0`（或 `blit`）
+强制使用兼容 blit，`auto` 按 GL transport 能力选择；无效值和不支持平台上的强制
+direct 会在绑定阶段失败。暂未设置变量时仍使用兼容 blit 默认值，直到同场景的 GPU
+时间、显存和延迟对照完成，但会输出 `DORA_GODOT_GL_TRANSPORT` 诊断，不再静默回退。
+该诊断在 bind/close 记录 mode、policy、capability、reason、`blits` 与
+`direct_publications`；两个计数器在 WGL、EGL 与 WebGL2 上使用相同实现。
+
+direct-target 可让 Godot 把最终颜色附件切换到 Dora/bgfx 管理的 2–4 张 RGBA8
+render-target 纹理，绘制后只发布 GPU fence，稳态不调用 `glBlitFramebuffer`。
+Web 生产桥默认显式强制同一 direct-target 算法。WebGL2 已通过 Chromium、Firefox 与 Playwright WebKit 的 2/3/4 缓冲矩阵及
 Chrome context-loss/页面重载恢复；重启后的系统 Safari 26.6.2 也已完成 2/3/4 矩阵，
 三档均确认 direct-target 且稳态零 blit。Android 当前以 API 35 ARM64 模拟器完成验收；
 这些虚拟设备结果不扩张为物理 GPU、真实触摸或真实音频兼容结论。
