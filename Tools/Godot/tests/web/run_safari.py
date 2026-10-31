@@ -13,6 +13,7 @@ p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('--package',type=Path,required=True)
 p.add_argument('--output',type=Path,required=True)
 p.add_argument('--cabi-observer',action='store_true',help='Validate production C ABI counters when native Info logs are disabled')
+p.add_argument('--instrumentation',type=Path,default=Path(__file__).with_name('acceptance_init.js'),help='Instrumentation script to inject; defaults to the current acceptance harness')
 p.add_argument('--buffers',type=int,choices=[2,3,4],required=True)
 p.add_argument('--driver-port',type=int,default=0,help='WebDriver port; 0 selects a fresh available port')
 a=p.parse_args();package=a.package.resolve();out=a.output.resolve()
@@ -22,7 +23,8 @@ out.mkdir(parents=True);session=None;driver=None;server=None
 endpoint=f'http://127.0.0.1:{a.driver_port}'
 def digest(path):
     with path.open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
-instrumentation=Path(__file__).with_name('acceptance_init.js')
+instrumentation=a.instrumentation.resolve()
+assert instrumentation.is_file(),instrumentation
 names=['dora-player-runtime.js','dora-player-runtime.wasm','dora-player-runtime.data','dora-web-manifest.json','dora-web-features.json','godot/dora-godot.js','godot/dora-godot.wasm','godot/shared_gl.mjs','godot/runtime_bridge.mjs']
 artifacts={name:digest(package/name) for name in names if (package/name).is_file()}
 result={'passed':False,'browser_engine':'safari','browser_headless':False,'artifacts':artifacts,
@@ -91,7 +93,7 @@ try:
     request('POST',f'/session/{session}/url',{'url':f'http://127.0.0.1:{server.server_port}/'})
     deadline=time.monotonic()+180;clicked=False
     while time.monotonic()<deadline:
-        state=execute('return {evidence:window.__doraAcceptance,state:document.documentElement.dataset.doraState,width:innerWidth,height:innerHeight,dpr:devicePixelRatio,crossOriginIsolated,sharedArrayBuffer:typeof SharedArrayBuffer!=="undefined"};')
+        state=execute('return {evidence:window.__doraAcceptance,state:document.documentElement.dataset.doraState,width:innerWidth,height:innerHeight,dpr:devicePixelRatio,crossOriginIsolated,sharedArrayBuffer:typeof SharedArrayBuffer!=="undefined",calledRun:Boolean(Module.calledRun),runDependencies:Module.runDependencies,runtimeReady:Boolean(Module.doraGodotRuntime),bridgeReady:Boolean(Module.doraGodotBridge),bridgeError:Module.doraGodotBridge?.lastError||null,platform:Module.doraWebPlatform?.state||null};')
         result['lastState']=state
         evidence=state['evidence'] or {'logs':[],'errors':[],'warnings':[]}
         if not clicked and any('DORA_WEB_NODE_CAPTURE animated' in line for line in evidence['logs']):

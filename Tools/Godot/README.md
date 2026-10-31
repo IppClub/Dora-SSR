@@ -127,7 +127,8 @@ python3 Tools/Godot/tests/runtime_abi.py --library build/godot-runtime/package/l
 发布 GPU fence，稳态不调用 `glBlitFramebuffer`。该能力由 GL transport 显式声明；
 Web 生产桥也默认显式启用同一 direct-target 算法，并继续保留旧 blit 实现供后续兼容
 回退决策。WebGL2 已通过 Chromium、Firefox 与 Playwright WebKit 的 2/3/4 缓冲矩阵及
-Chrome context-loss/页面重载恢复；原生 Safari 仍以 `TRACKING.md` 的 DIRECT-03 为准。
+Chrome context-loss/页面重载恢复；原生 Safari 当前受系统 WebKit 状态阻塞，精确边界和
+重启后待执行的 2/3/4 验收以 `TRACKING.md` 的 DIRECT-03 为准。
 Android 当前已有模拟器回归证据，物理设备验收仍以 DIRECT-02 为准。
 
 Linux 预构建宿主和运行库的完整矩阵入口为：
