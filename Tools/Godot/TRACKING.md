@@ -1,6 +1,6 @@
 # Godot / Dora 整合 1.0 清单
 
-更新：2026-10-31。当前目标：冻结已有能力，完成修复与交付闭环，不再扩展功能。
+更新：2026-11-01。当前目标：冻结已有能力，完成修复与交付闭环，不再扩展功能。
 使用方法见 [README.md](README.md)；完整旧跟踪文档见 [历史归档](history/2026-10-29-pre-1.0/TRACKING.md)，详细实验和失败记录保留在 [PLAN.md](PLAN.md)。本页仅维护决策、已完成项和待完成项。
 
 当前草稿 [PR #159](https://github.com/IppClub/Dora-SSR/pull/159) 的1.0候选head为`f3764dfe8`、tree为`6cb093d88`。该head的12个工作流全部success；Godot Integration产物离线复核通过。正式Linux双架构基包均不再携带旧`libstdc++`/`libgcc_s`，装入同候选运行库后的最终AppImage已完成包校验、随包动态验收和缺库安全回退。1.0范围内任务已收口；PR仍为草稿，合并、签名/公证和公开发布不包含在本清单内。
@@ -54,6 +54,8 @@
 
 ## 后续版本：已完成的实验基础
 
+- [x] **REALPROJECT-01｜官方开源项目原样运行。** 固定 Godot 官方 `godot-demo-projects` 提交 `52e3004465` 的 `2d/dodge_the_creeps`，用 SHA-256 校验的官方 Godot 4.6 编辑器生成导入缓存，项目源码不作修改。当前 `main` 重建的普通 macOS Release Dora 与 Metal 运行库通过启动、点击、持续动画、物理键InputMap、暂停/恢复、OGG 音频、移除和完整退出；玩家按D实测横移92.8像素，三缓冲完成440个生产帧、稳态零blit、GPU错误/待处理/PCM欠载均为0。测试发现并修复非D3D12后端未注册WARP私有阴影设置的警告，以及桥接键盘事件未填`physical_keycode`导致真实项目动作不响应的问题；原有逻辑键、焦点释放、控制器和双生命周期720帧回归继续通过。报告见 `build/godot-open-source-projects/{dodge-the-creeps-macos-v4,input-regression-current-v4b}/verification.json`；这是一项小型完整2D项目的原生macOS验收，不扩张为其他平台、中大型项目、插件或性能结论。
+
 - [x] **实验｜Windows 多张共享纹理直接渲染。** 新增仅由`DORA_GODOT_GL_DIRECT=1`启用的WGL原型：逐帧把Godot最终render target的颜色附件切换到Dora 2/3/4缓冲槽，直接发布GPU fence，不调用`glBlitFramebuffer`。Windows VM动态矩阵三项各1000帧，动画、暂停/恢复、输入、节点移除重建、三次resize、纹理别名和PCM通过；GPU错误/待处理/音频欠载均为0，日志确认`blits=0`。默认复制路径不变；该实验未进入1.0候选，也未验证物理Windows显卡或性能收益。
 
 - [x] **Windows 图形后端构建边界。** Godot和Dora桥接均保留WGL/D3D12源码，但每个宿主只编入一种桥接，启动后固定该图形后端，不同时创建两套运行时或支持热切换。WGL单后端宿主已完成2/3/4缓冲各1000帧动态回归；D3D12单后端x64宿主也已独立编译链接，配套运行库通过185项ABI检查和后端不匹配安全拒绝。物理机测试ZIP已生成并通过哈希、CRC、全新Windows解包与ABI复验；动态GPU验收仍受下一项硬件范围限制。
@@ -74,7 +76,7 @@
 - [ ] 物理Linux显卡、移动浏览器、物理移动设备及物理控制器兼容性矩阵（非当前路线阻塞项）。
 - [ ] 完整IME composition/候选窗口、旋转/多点触控、锁屏/来电/复杂前后台、真实浏览器后台策略。
 - [ ] device/context loss原地恢复、控制器热插拔/震动/多手柄。
-- [ ] 大型项目、复杂资源与插件/GDExtension、更多PCK/导出形式；长期复杂混音与端到端延迟、统一GPU/内存/性能基线。
+- [ ] 中大型项目、更复杂资源与插件/GDExtension、更多PCK/导出形式；真实开源项目的其他平台矩阵、长期复杂混音与端到端延迟、统一GPU/内存/性能基线。
 - [ ] 多运行时、多活动节点、不同项目切换、运行库卸载和最终关闭后重初始化。
 
 ## 关键证据入口
@@ -127,4 +129,6 @@
 - `build/godot-d3d12-physical/verification.json`
 - `build/godot-direct04-metal/macos-{2,3-v4,4}/verification.json`
 - `build/godot-direct04-metal/macos-soak-3-18000/verification.json`
+- `build/godot-open-source-projects/dodge-the-creeps-macos-v4/verification.json`
+- `build/godot-open-source-projects/input-regression-current-v4b/verification.json`
 - `build/godot-direct04-metal/ios-simulator-apple4-rejection/unsupported-gpu.json`

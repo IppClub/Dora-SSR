@@ -12,6 +12,26 @@ Web PCM 更新（2026-10-29）：宿主与 Godot 运行在同一 window 线程�
 
 ## 构建和验证
 
+官方开源项目回归目前使用 `godotengine/godot-demo-projects` 的
+`2d/dodge_the_creeps`。先用匹配版本的官方 Godot 4.6 编辑器执行一次
+`--headless --path /absolute/path/to/project --import`，再把生成了 `.godot/imported`
+的项目交给普通 macOS Release 宿主：
+
+```sh
+python3 Tools/Godot/tests/run_dodge_the_creeps_macos.py \
+  --app build/macosx/arm64/release/Dora.app \
+  --library build/godot-runtime/release/package/libdora_godot.dylib \
+  --project /absolute/path/to/imported/dodge_the_creeps \
+  --output /absolute/path/to/fresh-results \
+  --upstream-commit 52e30044658448149b04e8f69b475eebbfbd8f6e \
+  --editor-sha256 fc15ceb6280420f117ab4ef62332654db0088078faeeb9025dd814276185ed3b
+```
+
+入口不修改项目源码；它使用 Dora 公共 `GodotNode` API 驱动开始按钮、键盘、暂停、
+恢复、移除和退出，并核对截图变化、三缓冲 Metal direct-target 零 blit、GPU 排空及
+项目 OGG 的非零 PCM/零欠载。该用例只证明小型完整2D项目在原生macOS上的当前组合，
+不替代其他平台、中大型项目、插件、物理音频可听性或性能验收。
+
 Linux 自动回归入口：
 
 ```sh

@@ -123,6 +123,17 @@ if '// Dora D3D12 WARP validation adapter' not in s:
 # ARM64 WARP currently crashes while JIT-compiling Forward Mobile's fragment
 # shadow-receiver path. The Dora bridge sets this project override only for its
 # explicit WARP compatibility mode, before Main::setup2 creates the renderer.
+p = source / 'servers/rendering/rendering_server.cpp'
+s = p.read_text()
+if '// Dora ARM64 WARP shadow receiver setting' not in s:
+    anchor = '\tGLOBAL_DEF_RST("rendering/shading/overrides/force_vertex_shading", false);\n'
+    assert s.count(anchor) == 1
+    s = s.replace(anchor, anchor + '''\t// Dora ARM64 WARP shadow receiver setting. The default keeps every
+\t// non-WARP backend unchanged and prevents an undefined-setting lookup.
+\tGLOBAL_DEF("rendering/shading/overrides/force_disable_shadows", false);
+''', 1)
+    p.write_text(s)
+
 p = source / 'servers/rendering/renderer_rd/forward_mobile/render_forward_mobile.cpp'
 s = p.read_text()
 if '// Dora ARM64 WARP shadow receiver compatibility' not in s:

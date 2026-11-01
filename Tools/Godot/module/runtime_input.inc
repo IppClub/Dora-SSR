@@ -27,7 +27,7 @@ void release_inputs() {
     const auto keys=runtime.held_keys;
     runtime.held_keys.clear();
     for (Key code:keys) {
-        Ref<InputEventKey> key; key.instantiate(); key->set_keycode(code); key->set_pressed(false);
+        Ref<InputEventKey> key; key.instantiate(); key->set_keycode(code); key->set_physical_keycode(code); key->set_pressed(false);
         Input::get_singleton()->parse_input_event(key);
         Input::get_singleton()->flush_buffered_events();
     }
@@ -78,10 +78,14 @@ int input(void *handle, const DoraGodotInput *event) {
         } break;
         case DORA_GODOT_KEY: {
             Ref<InputEventKey> key; key.instantiate(); key->set_pressed(event->pressed);
-            key->set_keycode(find_keycode(String::utf8(event->text ? event->text : "")));
-            if (key->get_keycode()==Key::NONE) return 0;
-            if (event->pressed) runtime.held_keys.insert(key->get_keycode());
-            else runtime.held_keys.erase(key->get_keycode());
+            const Key code=find_keycode(String::utf8(event->text ? event->text : ""));
+            if (code==Key::NONE) return 0;
+            // Dora key names originate from SDL scancodes. Populate both forms
+            // so Godot InputMap actions configured with physical_keycode work,
+            // while scripts reading event.keycode keep their existing behavior.
+            key->set_keycode(code);key->set_physical_keycode(code);
+            if (event->pressed) runtime.held_keys.insert(code);
+            else runtime.held_keys.erase(code);
             key->set_shift_pressed(event->shift); key->set_ctrl_pressed(event->ctrl); key->set_alt_pressed(event->alt); key->set_meta_pressed(event->meta); native = key;
         } break;
         case DORA_GODOT_TEXT: {

@@ -2810,3 +2810,9 @@ Godot Android Thread平台hook只有JNI attach/detach，未设置priority；现�
 - Dora 的 Godot 准备补丁在 Forward Mobile 全局定义中支持私有 `rendering/shading/overrides/force_disable_shadows`；运行库只在显式 `DORA_GODOT_D3D12_WARP=1` 时读取 `DORA_GODOT_D3D12_WARP_COMPAT`。默认 `shadows` 编译 `SHADOWS_DISABLED`，保留逐像素漫反射、镜面和环境光；`vertex` 保留旧的顶点光照规避，`none` 用于复现和诊断。硬件适配器完全不设置这些覆盖项。
 - 默认 `shadows` 档重新完成 2/3/4 缓冲完整矩阵，每项1000控制帧；两生命周期生产/完成分别为 `372/372 + 870/870`、`373/373 + 872/872`、`373/373 + 872/872`，GPU错误为0，resize、动画、暂停/恢复、输入、重启、节点重建、别名和退出均通过。运行库 SHA-256 为 `eddd753c...9efea`，manifest 为 `0477ab7c...036d`；证据包 `build/godot-direct05-windows-arm64/warp-shadow-compat-20261101/warp-shadow-compat-20261101.tar.gz` 的 SHA-256 为 `d24d5392...dd6b`。
 - 当前限制从“WARP 强制顶点光照”缩小为“ARM64 WARP 不接收阴影”。CPU-fence 基线仍不等于双向纯GPU fence；物理 Windows D3D12 GPU仍需验证不启用任何兼容档的完整画质和队列同步。
+
+### 2026-11-01 官方开源项目原样回归
+
+- 固定 Godot 官方 `godot-demo-projects` 的 `2d/dodge_the_creeps`，提交 `52e30044658448149b04e8f69b475eebbfbd8f6e`。项目代码、场景和素材不修改；14项PNG/OGG/WAV/字体资源由官方Godot 4.6编辑器无界面导入，编辑器归档SHA-256为`fc15ceb6...d3b`。测试使用从当前`main`完整重建的普通macOS Release Dora与Metal运行库，不使用原生测试入口。
+- 首次严格运行发现两项真实项目缺口。Forward Mobile补丁会在非D3D12后端读取尚未注册的私有`force_disable_shadows`设置，现为所有后端注册默认`false`，只有显式WARP路径覆盖为`true`。Dora键名源自SDL scancode，但桥接事件只设置逻辑`keycode`；现同时设置`physical_keycode`并在焦点释放时同样补齐，使按物理键配置的Godot InputMap正常工作，同时保留脚本读取逻辑键的既有语义。
+- 最终普通应用报告`build/godot-open-source-projects/dodge-the-creeps-macos-v4/verification.json`通过：9张合成截图，玩家按D横移92.8像素，活动画面变化、暂停两图逐像素一致、恢复继续、移除后画面清空；Metal direct-target三缓冲生产/完成440/440，稳态blit0、GPU错误/待处理0；项目OGG产生非零PCM且欠载0。当前匹配测试宿主的720帧逻辑键、物理状态、焦点释放、控制器、双生命周期、音频和零blit回归也通过，报告为`input-regression-current-v4b/verification.json`。包清单、214项启动前ABI及源码未变哈希另行核对。范围仅为原生macOS上的小型完整2D项目，不代表其他平台、中大型项目、插件、可听性或性能验收。
