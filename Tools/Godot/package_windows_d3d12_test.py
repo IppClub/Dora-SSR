@@ -65,6 +65,10 @@ shutil.copytree(args.project.resolve(), output / 'Tools/Godot/tests/project')
 cache = output / 'Tools/Godot/tests/project/.godot'
 cache.mkdir(parents=True, exist_ok=True)
 (cache / 'global_script_class_cache.cfg').write_text('list=[]\n', encoding='utf-8')
+shutil.copytree(root / 'Tools/Godot/tests/timing_project', output / 'Tools/Godot/tests/timing_project')
+timing_cache = output / 'Tools/Godot/tests/timing_project/.godot'
+timing_cache.mkdir(parents=True, exist_ok=True)
+(timing_cache / 'global_script_class_cache.cfg').write_text('list=[]\n', encoding='utf-8')
 for relative in (
     'Tools/Godot/test_windows.py',
     'Tools/Godot/tests/runtime_abi.py',

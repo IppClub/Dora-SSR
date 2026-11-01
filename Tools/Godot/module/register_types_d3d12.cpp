@@ -40,7 +40,7 @@ namespace {
 struct Slot {
     uint64_t shared_handle=0;
     ID3D12Resource *resource=nullptr;
-    RID texture;
+    RID rd_texture;
     bool published=false;
 };
 struct Runtime {
@@ -52,8 +52,6 @@ struct Runtime {
     Window *root=nullptr;
     ID3D12Device *device=nullptr;
     ID3D12CommandQueue *queue=nullptr;
-    ID3D12CommandAllocator *allocator=nullptr;
-    ID3D12GraphicsCommandList *commands=nullptr;
     ID3D12Fence *fence=nullptr;
     HANDLE event_handle=nullptr;
     std::array<Slot,DORA_GODOT_MAX_BUFFERS> slots{};
@@ -90,30 +88,17 @@ bool wait_queue() {
     }
     ++runtime.cpu_waits;return true;
 }
-bool transition(Slot &slot,D3D12_RESOURCE_STATES before,D3D12_RESOURCE_STATES after) {
-    if (FAILED(runtime.allocator->Reset()) || FAILED(runtime.commands->Reset(runtime.allocator,nullptr))) {
-        runtime.error="Godot D3D12 bridge command reset failed";return false;
-    }
-    D3D12_RESOURCE_BARRIER barrier{};
-    barrier.Type=D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    barrier.Transition.pResource=slot.resource;
-    barrier.Transition.Subresource=D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-    barrier.Transition.StateBefore=before;barrier.Transition.StateAfter=after;
-    runtime.commands->ResourceBarrier(1,&barrier);
-    if (FAILED(runtime.commands->Close())) {
-        runtime.error="Godot D3D12 bridge command close failed";return false;
-    }
-    ID3D12CommandList *lists[]={runtime.commands};
-    runtime.queue->ExecuteCommandLists(1,lists);
-    return wait_queue();
-}
-bool draw() {
+void prepare_output() {
     auto *rs=RenderingServer::get_singleton();
     const RID viewport=runtime.root->get_viewport_rid();
     rs->viewport_set_render_direct_to_screen(viewport,false);
     rs->viewport_attach_to_screen(viewport,Rect2(),DisplayServer::INVALID_WINDOW_ID);
     rs->viewport_set_update_mode(viewport,RS::VIEWPORT_UPDATE_ALWAYS);
     output.prepare(runtime.root);
+}
+bool draw() {
+    auto *rs=RenderingServer::get_singleton();
+    prepare_output();
     rs->draw(false,DoraGodotRenderTiming::consume());
     Engine::get_singleton()->increment_frames_drawn();rs->sync();return true;
 }
@@ -124,9 +109,8 @@ void detach_target() {
 }
 void clear_targets() {
     detach_target();
-    auto *rs=RenderingServer::get_singleton();
     for (uint32_t i=0;i<runtime.buffers;++i) {
-        if (runtime.slots[i].texture.is_valid()) rs->free_rid(runtime.slots[i].texture);
+        if (runtime.slots[i].rd_texture.is_valid()) RenderingDevice::get_singleton()->free_rid(runtime.slots[i].rd_texture);
         if (runtime.slots[i].resource) runtime.slots[i].resource->Release();
         runtime.slots[i]=Slot{};
     }
@@ -137,7 +121,7 @@ bool select_target(uint32_t slot) {
     const RID target=output.render_target(runtime.root);
     if (!target.is_valid()) return false;
     if (runtime.direct_render_target.is_valid() && runtime.direct_render_target!=target) detach_target();
-    RSG::texture_storage->render_target_set_override(target,runtime.slots[slot].texture,RID(),RID(),RID());
+    RSG::texture_storage->render_target_set_override(target,runtime.slots[slot].rd_texture,RID(),RID(),RID());
     runtime.direct_render_target=target;return true;
 }
 bool prepare_device(void *host_device) {
@@ -154,10 +138,7 @@ bool prepare_device(void *host_device) {
     if (godot_luid.HighPart!=host_luid.HighPart || godot_luid.LowPart!=host_luid.LowPart) {
         runtime.error="Godot and Dora D3D12 devices selected different adapters";return false;
     }
-    if (FAILED(runtime.device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,IID_PPV_ARGS(&runtime.allocator))) ||
-        FAILED(runtime.device->CreateCommandList(0,D3D12_COMMAND_LIST_TYPE_DIRECT,runtime.allocator,nullptr,IID_PPV_ARGS(&runtime.commands))) ||
-        FAILED(runtime.commands->Close()) ||
-        FAILED(runtime.device->CreateFence(0,D3D12_FENCE_FLAG_NONE,IID_PPV_ARGS(&runtime.fence)))) {
+    if (FAILED(runtime.device->CreateFence(0,D3D12_FENCE_FLAG_NONE,IID_PPV_ARGS(&runtime.fence)))) {
         runtime.error="Godot D3D12 bridge synchronization object creation failed";return false;
     }
     runtime.event_handle=CreateEventW(nullptr,FALSE,FALSE,nullptr);
@@ -194,6 +175,23 @@ void *open(const DoraGodotConfig *config) {
             (char*)"--disable-render-loop",(char*)"--disable-crash-handler",(char*)"--resolution",(char*)resolution.c_str()};
         runtime.instance=(GodotInstance*)libgodot_create_godot_instance(sizeof(args)/sizeof(args[0]),args,extension_init);
         if (!runtime.instance) { runtime.error="LibGodot D3D12 initialization failed";return nullptr; }
+        if (OS::get_singleton()->get_environment("DORA_GODOT_D3D12_WARP")=="1") {
+            // Current Windows 11 ARM64 WARP crashes in Forward Mobile's
+            // fragment shadow-receiver path. Keep per-pixel diffuse, specular
+            // and ambient lighting, but compile shadows out in the default
+            // compatibility tier. Vertex and none remain diagnostic overrides.
+            String compat=OS::get_singleton()->get_environment("DORA_GODOT_D3D12_WARP_COMPAT").to_lower();
+            if (compat.is_empty()) compat="shadows";
+            const bool force_vertex=compat=="vertex";
+            const bool force_disable_shadows=compat=="shadows";
+            if (compat!="none" && !force_vertex && !force_disable_shadows) {
+                runtime.error="DORA_GODOT_D3D12_WARP_COMPAT must be shadows, vertex or none";return nullptr;
+            }
+            if (force_vertex) ProjectSettings::get_singleton()->set("rendering/shading/overrides/force_vertex_shading",true);
+            if (force_disable_shadows) ProjectSettings::get_singleton()->set("rendering/shading/overrides/force_disable_shadows",true);
+            std::fprintf(stderr,"DORA_GODOT_D3D12_WARP compat=%s force_disable_shadows=%d force_vertex_shading=%d\n",
+                compat.utf8().get_data(),force_disable_shadows,force_vertex);
+        }
         if (!runtime.scene.empty()) ProjectSettings::get_singleton()->set("application/run/main_scene",String::utf8(runtime.scene.c_str()));
         if (!runtime.instance->start()) { runtime.error="Godot D3D12 project startup failed";return nullptr; }
         std::fprintf(stderr,"DORA_GODOT_D3D12_CPU open instance_started\n");
@@ -210,7 +208,12 @@ void *open(const DoraGodotConfig *config) {
         if (runtime.tree->change_scene_to_file(scene)!=OK) { runtime.error="cannot load Godot D3D12 scene";return nullptr; }
     }
     runtime.tree->set_pause(false);runtime.root->set_transparent_background(true);runtime.root->set_disable_input(false);
-    for (int i=0;i<3;++i) { runtime.instance->iteration();draw(); }
+    // Do not submit a temporary Windows swap-chain/offscreen draw before the
+    // host-owned textures are imported. In particular, ARM64 WARP can execute
+    // that queued work asynchronously after open() returns. The scene still
+    // gets its startup iterations; the first draw is made into a bound slot.
+    for (int i=0;i<3;++i) runtime.instance->iteration();
+    std::fprintf(stderr,"DORA_GODOT_D3D12_CPU open warmup_ready\n");
     runtime.active=true;runtime.paused=false;return &runtime;
 }
 int bind_targets(void *handle,uint32_t width,uint32_t height,const uint64_t *handles,uint32_t count) {
@@ -221,17 +224,19 @@ int bind_targets(void *handle,uint32_t width,uint32_t height,const uint64_t *han
         for (uint32_t j=0;j<i;++j) if (handles[i]==handles[j]) return 0;
     }
     RenderingServer::get_singleton()->sync();clear_targets();
-    runtime.root->set_size(Size2i(width,height));draw();
+    runtime.root->set_size(Size2i(width,height));prepare_output();
     for (uint32_t i=0;i<count;++i) {
         auto &slot=runtime.slots[i];slot.shared_handle=handles[i];
         std::fprintf(stderr,"DORA_GODOT_D3D12_CPU bind open slot=%u\n",i);
         if (FAILED(runtime.device->OpenSharedHandle((HANDLE)(uintptr_t)handles[i],IID_PPV_ARGS(&slot.resource)))) {
             runtime.error="Godot D3D12 OpenSharedHandle failed";clear_targets();return 0;
         }
-        slot.texture=RSG::texture_storage->texture_create_from_native_handle(RS::TEXTURE_TYPE_2D,Image::FORMAT_RGBA8,
-            (uint64_t)slot.resource,width,height,1,1,RS::TEXTURE_LAYERED_2D_ARRAY);
-        std::fprintf(stderr,"DORA_GODOT_D3D12_CPU bind import slot=%u valid=%d\n",i,slot.texture.is_valid());
-        if (!slot.texture.is_valid()) { runtime.error="Godot D3D12 external texture import failed";clear_targets();return 0; }
+        const uint64_t usage=RenderingDevice::TEXTURE_USAGE_SAMPLING_BIT|RenderingDevice::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
+        slot.rd_texture=RenderingDevice::get_singleton()->texture_create_from_extension(RenderingDevice::TEXTURE_TYPE_2D,
+            RenderingDevice::DATA_FORMAT_R8G8B8A8_UNORM,RenderingDevice::TEXTURE_SAMPLES_1,usage,
+            (uint64_t)slot.resource,width,height,1,1,1);
+        std::fprintf(stderr,"DORA_GODOT_D3D12_CPU bind import slot=%u valid=%d\n",i,slot.rd_texture.is_valid());
+        if (!slot.rd_texture.is_valid()) { runtime.error="Godot D3D12 external texture import failed";clear_targets();return 0; }
     }
     runtime.width=width;runtime.height=height;runtime.targets_bound=true;
     std::fprintf(stderr,"DORA_GODOT_D3D12_CPU enabled buffers=%u size=%ux%u shared=1\n",count,width,height);
@@ -249,12 +254,14 @@ int get_slot(void *handle,uint32_t index,DoraGodotSlot *slot) {
 uint64_t advance(void *handle,uint32_t index,uint64_t) {
     if (!valid(handle) || !runtime.targets_bound || index>=runtime.buffers) return 0;
     auto &slot=runtime.slots[index];
-    const auto before=slot.published?D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE:D3D12_RESOURCE_STATE_COMMON;
-    if (!transition(slot,before,D3D12_RESOURCE_STATE_RENDER_TARGET) || !select_target(index)) return 0;
+    if (!select_target(index)) return 0;
     output_pending=false;
     if (runtime.instance->iteration()) { runtime.error="Godot project requested quit";return 0; }
     draw();
-    if (!transition(slot,D3D12_RESOURCE_STATE_RENDER_TARGET,D3D12_RESOURCE_STATE_COMMON)) return 0;
+    // Host-owned resources use ALLOW_SIMULTANEOUS_ACCESS. Let Godot's render
+    // list implicitly promote COMMON to RENDER_TARGET and decay it afterwards;
+    // explicit cross-device barriers crash the ARM64 WARP worker.
+    if (!wait_queue()) return 0;
     slot.published=true;runtime.completed=++runtime.sequence;return runtime.sequence;
 }
 #include "runtime_input.inc"
@@ -271,9 +278,8 @@ void shutdown() {
     stop_audio_capture();if (runtime.active) close(&runtime,nullptr);
     if (runtime.instance) { output.close(runtime.root);libgodot_destroy_godot_instance(runtime.instance); }
     runtime.instance=nullptr;runtime.tree=nullptr;runtime.root=nullptr;
-    if (runtime.commands) runtime.commands->Release();if (runtime.allocator) runtime.allocator->Release();
     if (runtime.fence) runtime.fence->Release();if (runtime.event_handle) CloseHandle(runtime.event_handle);
-    runtime.commands=nullptr;runtime.allocator=nullptr;runtime.fence=nullptr;runtime.event_handle=nullptr;
+    runtime.fence=nullptr;runtime.event_handle=nullptr;
     runtime.device=nullptr;runtime.queue=nullptr;runtime.terminated=true;
 }
 }

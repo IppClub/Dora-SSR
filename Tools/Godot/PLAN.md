@@ -2787,3 +2787,26 @@ Godot Android Thread平台hook只有JNI attach/detach，未设置priority；现�
 - 当前Web运行库重新构建，Godot WASM SHA-256为`aee239828e13fa12c54baf1b545f9167e7c1a4c2c51a42f96a387a5207139ab4`。真实Dora GodotNode在Chrome156、Firefox153与Playwright WebKit26.5各完成2/3/4矩阵；每个浏览器1860控制帧、36张合成截图、330项像素检查，两生命周期均为direct且稳态blit=0，reader pending/GPU error/PCM underrun均为0。报告为`build/godot-direct06-web/final-node-{chromium,firefox,webkit}/verification.json`。原生Safari与Chrome context-loss/重载使用未改动的同一Web生产路径，沿用DIRECT-03的既有通过证据，本轮不重复宣称新的Safari执行。
 - WGL动态证据仍来自先前Windows ARM64 VM内的x64 WGL 2/3/4×1000帧；本轮用户明确要求不再测试ARM64 Windows，因此没有重启该VM，也不把x64 COFF编译写成新的GPU通过。当前WGL transport已重新交叉编译，默认选择由已通过的纯策略矩阵覆盖；既有强制direct动态证据与当前改动之间只有共享策略选择和关闭状态指标占位。此限制在跟踪清单保留，不阻塞用户指定范围内的DIRECT-06关闭。
 - 最终决定为“direct默认、blit显式兼容回退”，不删除旧路径。D3D12按DIRECT-05范围豁免继续排除。Android应用/控制器测试包已卸载，专用模拟器已关闭；Parallels虚拟机全程未启动。
+
+### 2026-11-01 Windows ARM64 D3D12 WARP 虚拟机补测
+
+- 在隔离的 `Dora Godot D3D12 WARP` Parallels VM 安装官方 Windows 11 Home ARM64 26H2 build 26300.9457 与 Parallels Tools 27.0.3。测试使用 Microsoft Basic Render Driver；宿主、运行库和测试入口均为 ARM64，不再经过旧 x64 `xtajit64se` 路径。官方安装 ISO SHA-256 为 `8992f2d2...3e9c`。
+- 首轮发现 v2 测试 ZIP 未包含 `timing_project`，打包器已补入该 fixture 及其 Godot cache。随后 bgfx 在 `EnumWarpAdapter` 后因 WARP 额外持有 DXGI factory 引用触发 `RefCount is 2 (expected 1)`；仅对 WARP factory 使用宽松释放后，Dora D3D12 初始化通过。Godot 启动阶段原有三次临时 draw 会在 WARP 内崩溃，改为只迭代场景、等 host-owned target 绑定后再绘制。导入阶段又发现 bridge 把 TextureStorage 包装 RID 交给 render-target override；改为直接 RD extension RID 后，两个共享句柄均成功打开、两个 RGBA8 纹理均成功导入并完成 target bind。
+- 修正后的双缓冲基线通过 185 项启动前 ABI 检查。运行日志确认 Godot 4.6 以 `D3D12 12_0 - Forward Mobile` 使用 `Microsoft Basic Render Driver`，同设备准备完成，slot 0/1 的 `OpenSharedHandle` 和 RD import 均成功，最终输出 `enabled buffers=2 size=640x360 shared=1`。本轮宿主 SHA-256 为 `1175f67f...4265`，运行库为 `a6064000...bca`。
+- 第一个实际 Godot draw 仍以 `0xc0000005` 终止，WER 将故障记录在 `ntdll.dll+0x167040`，Dora 主线程当时正在等待 Godot D3D12 queue fence。为排除显式跨设备 barrier，曾临时用 simultaneous-access 资源与隐式状态提升重跑，故障签名不变；该未证明有效的实验改动已撤回。更关键的是，绑定任何共享纹理之前执行的临时预热 draw 也能在 `d3d10warp.dll` worker 内复现崩溃，说明这台 ARM64 VM 的 Godot D3D12/WARP 首帧绘制本身不稳定，当前结果不能归因于资源导入、双缓冲或 fence 协议。
+- 因双缓冲动态基线未通过，没有运行 3/4 缓冲矩阵，也没有开始纯 GPU 双 fence。结论仅为“WARP 初始化、共享句柄打开、直接纹理导入和 target bind 已验证；动态画面未验证”。精简证据包保存在 `build/godot-direct05-windows-arm64/warp-vm-20261101/evidence-warp-20261101.zip`，SHA-256 为 `bb36a21d...247e4`。保留已证实的打包、bgfx WARP 初始化、延迟首绘和直接 RD RID 修复；物理 Windows D3D12 GPU 仍是后续动态共享验收环境。
+
+### 2026-11-01 Windows ARM64 WARP 根因隔离与 CPU-fence 矩阵通过
+
+- 在同一运行库、共享纹理和双缓冲路径上建立逐级对照：纯2D、空3D、无光照立方体都能连续完成约340–540个生产帧并正常关闭；只要启用默认逐像素 `StandardMaterial3D`，首帧就在WARP worker内以`0xc0000005`崩溃。完整生产场景设置 `rendering/shading/overrides/force_vertex_shading=true` 后完成569个生产帧且错误为0，由此把根因收敛到Godot Forward Mobile逐像素材质着色与当前Windows ARM64 WARP JIT的组合，而不是共享句柄、外部RD纹理或通用3D渲染。
+- 运行库现在仅在显式 `DORA_GODOT_D3D12_WARP=1` 时、`Main::setup`加载项目设置后且`Main::setup2`创建渲染器前强制顶点光照，并输出可审计标记；物理D3D12适配器继续尊重项目原设置。Dora共享资源增加 `ALLOW_SIMULTANEOUS_ACCESS`，Godot队列依靠隐式 `COMMON→RENDER_TARGET` 提升和执行后衰减，移除会使ARM64 WARP崩溃的跨设备显式barrier命令列表，但保留每帧Godot队列signal与CPU等待。
+- D3D12宿主补齐三代resize：为800×450、320×180和恢复640×360重新创建2/3/4张host-owned共享资源，重新导入Godot并发布新Texture2D；旧资源保留至别名释放/渲染器关闭。关闭路径补齐第二生命周期统计，验证器只豁免ARM64 Audit Mode中不影响GodotNode的common-controls原生对话框警告，并明确记录CPU基线没有双向GPU reader fence。
+- 正式WARP矩阵2/3/4缓冲全部通过，每项1000控制帧。两生命周期的生产/完成计数分别为`372/372 + 864/864`、`374/374 + 866/866`、`372/372 + 864/864`，GPU错误均为0；动画、暂停/恢复、指针/键盘/文本、焦点释放、场景重启、节点移除重建、三次resize及2/3/4个保留纹理别名的图像检查均通过。运行库SHA-256为`0bd545e5...1b1be`，manifest为`d84a136e...df25`；证据包`build/godot-direct05-windows-arm64/warp-vm-fixed-20261101/warp-matrix-fixed-20261101.zip`的SHA-256为`f1a66d2d...14365`。
+- 本轮关闭的是“ARM64 WARP + CPU fence”的动态基线，不扩张为物理GPU、逐像素光照兼容或纯GPU同步通过。下一阶段仍是共享生产/回收fence的双向GPU队列同步，并应在物理Windows D3D12 GPU上补验不降级的逐像素材质路径。
+
+### 2026-11-01 ARM64 WARP 阴影接收路径收敛
+
+- 在已通过的顶点光照规避基础上继续做逐项 A/B：保留逐像素光照并分别关闭镜面、改为 Lambert、同时关闭镜面与改 Lambert、关闭环境光，首帧仍以 `0xc0000005` 崩溃；仅 `StandardMaterial3D.disable_receive_shadows=true` 能完成动态生命周期。场景没有实际灯光或环境也会触发失败，说明触发点是 Forward Mobile 片元着色器的阴影接收变体，而不是场景中的阴影内容、Burley、GGX、环境光、共享句柄或 fence。
+- Dora 的 Godot 准备补丁在 Forward Mobile 全局定义中支持私有 `rendering/shading/overrides/force_disable_shadows`；运行库只在显式 `DORA_GODOT_D3D12_WARP=1` 时读取 `DORA_GODOT_D3D12_WARP_COMPAT`。默认 `shadows` 编译 `SHADOWS_DISABLED`，保留逐像素漫反射、镜面和环境光；`vertex` 保留旧的顶点光照规避，`none` 用于复现和诊断。硬件适配器完全不设置这些覆盖项。
+- 默认 `shadows` 档重新完成 2/3/4 缓冲完整矩阵，每项1000控制帧；两生命周期生产/完成分别为 `372/372 + 870/870`、`373/373 + 872/872`、`373/373 + 872/872`，GPU错误为0，resize、动画、暂停/恢复、输入、重启、节点重建、别名和退出均通过。运行库 SHA-256 为 `eddd753c...9efea`，manifest 为 `0477ab7c...036d`；证据包 `build/godot-direct05-windows-arm64/warp-shadow-compat-20261101/warp-shadow-compat-20261101.tar.gz` 的 SHA-256 为 `d24d5392...dd6b`。
+- 当前限制从“WARP 强制顶点光照”缩小为“ARM64 WARP 不接收阴影”。CPU-fence 基线仍不等于双向纯GPU fence；物理 Windows D3D12 GPU仍需验证不启用任何兼容档的完整画质和队列同步。

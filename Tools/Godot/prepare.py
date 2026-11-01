@@ -120,6 +120,28 @@ if '// Dora D3D12 WARP validation adapter' not in s:
 ''', 1)
     p.write_text(s)
 
+# ARM64 WARP currently crashes while JIT-compiling Forward Mobile's fragment
+# shadow-receiver path. The Dora bridge sets this project override only for its
+# explicit WARP compatibility mode, before Main::setup2 creates the renderer.
+p = source / 'servers/rendering/renderer_rd/forward_mobile/render_forward_mobile.cpp'
+s = p.read_text()
+if '// Dora ARM64 WARP shadow receiver compatibility' not in s:
+    anchor = '''\tbool force_vertex_shading = GLOBAL_GET("rendering/shading/overrides/force_vertex_shading");
+\tif (force_vertex_shading) {
+\t\tdefines += "\\n#define USE_VERTEX_LIGHTING\\n";
+\t}
+'''
+    assert s.count(anchor) == 1
+    s = s.replace(anchor, anchor + '''
+\t// Dora ARM64 WARP shadow receiver compatibility. Hardware adapters and
+\t// ordinary Godot builds never set this private project override.
+\tbool force_disable_shadows = GLOBAL_GET("rendering/shading/overrides/force_disable_shadows");
+\tif (force_disable_shadows) {
+\t\tdefines += "\\n#define SHADOWS_DISABLED\\n";
+\t}
+''', 1)
+    p.write_text(s)
+
 # On Unix-hosted MinGW builds, the upstream SharedLibrary builder otherwise
 # keeps the host's .so suffix even though the produced image is a Windows DLL.
 p = source / 'platform/windows/SCsub'

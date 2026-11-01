@@ -414,7 +414,10 @@ namespace bgfx
 					if (SUCCEEDED(hr) )
 					{
 						hr = factory4->EnumWarpAdapter(IID_PPV_ARGS(&m_adapter) );
-						DX_RELEASE(factory4, 1);
+						// Some current WARP implementations retain the factory from the
+						// returned adapter, so the post-Release count can legitimately
+						// remain above the single m_factory reference.
+						DX_RELEASE_W(factory4, 1);
 					}
 				}
 				else

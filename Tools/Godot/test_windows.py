@@ -208,6 +208,11 @@ subprocess.run(command,check=True)
 report_path=results/'verification.json';report=json.loads(report_path.read_text(encoding='utf-8'))
 report['runtime_architecture']={0x8664:'x86_64',0xaa64:'arm64'}.get(machine(library),hex(machine(library)))
 report['d3d12_adapter_scope']='WARP software adapter' if args.warp else 'hardware adapter'
+if args.warp:
+    assert 'DORA_GODOT_D3D12_WARP compat=shadows force_disable_shadows=1 force_vertex_shading=0' in (results/'run.log').read_text(encoding='utf-8',errors='replace')
+    report['warp_compatibility_tier']='disable_receive_shadows'
+    report['warp_force_disable_shadows']=True
+    report['warp_force_vertex_shading']=False
 with library.open('rb') as runtime_file:
     digest=hashlib.sha256()
     for block in iter(lambda:runtime_file.read(1024*1024),b''):digest.update(block)
