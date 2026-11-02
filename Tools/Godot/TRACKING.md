@@ -32,7 +32,7 @@
   - [ ] Windows x64 WGL/OpenGL 与保留的 D3D12 编译边界。
   - [ ] Android arm64 EGL。
   - [ ] Web WebGL2/WASM。
-  - [ ] iOS simulator/device Metal 编译与既有能力拒绝边界。
+  - [x] iOS simulator/device Metal：vendor `template_debug` 静态库与 framework 均完成编译、链接、6项导出和 ad-hoc 签名检查；模拟器 Dora 宿主实际启动并在 Godot 初始化前按 Apple2 / Apple4 门槛正确拒绝，随后卸载应用并关闭模拟器。该结果不宣称 Apple4 GPU 共享通过；详细证据见 `PLAN.md` 的“2026-11-02 vendor SCons iOS 基线”。
 - [ ] **XMAKE-01｜建立 Godot xmake 构建骨架。** 按 `core → drivers → servers → scene → modules → main/platform → dora_bridge` 组织 object/static targets；所有生成物写入构建目录，不污染 vendor 源码。
 - [ ] **XMAKE-02｜迁移代码生成。** 由 xmake 驱动 Godot 版本、模块注册、ClassDB、扩展 API、Shader 和平台所需生成步骤；保留必要的上游 Python 生成器，并建立输入/输出依赖和增量重建测试。
 - [ ] **XMAKE-03｜macOS Metal 首个平台。** 先完成 macOS arm64、`template_release`、Metal、无编辑器、无 Mono、无 Vulkan/OpenGL 的原生 xmake 构建；通过 ABI、导出符号、动态依赖、包清单以及现有 2/3/4 缓冲和真实项目回归后，才关闭该平台的 SCons 生产路径。

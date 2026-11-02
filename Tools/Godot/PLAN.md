@@ -2824,3 +2824,10 @@ Godot Android Thread平台hook只有JNI attach/detach，未设置priority；现�
 - 运行库全局导出与 `dora_bridge.exports` 的6项完全一致，无缺失或额外符号；`otool -L` 动态依赖已记录，包含 Metal/MetalKit/IOSurface 等系统框架以及系统 `libz`、`libc++`，无非系统私有动态库。214项启动前 Metal ABI 检查通过。封装包共3文件、57,745,427字节，manifest/版本/ABI/许可证校验通过；报告为 `build/godot-vendor-migration/{macos-package-verification.json,macos-abi/verification.json}`。
 - 清除指向旧RC隔离目录的本地 xmake project cache 后，当前工作树 Dora 测试宿主完成全量 Debug 构建，用时218.557秒；首次失败只发生在宿主编译前，错误为旧目录不存在，不是 LibGodot 或运行时失败。随后三缓冲动态回归完成1000控制帧和两次生命周期，覆盖动画、暂停/恢复、输入/焦点、控制器、场景重启、节点移除重建、640×360→800×450→320×180→640×360、3个保留纹理别名和宿主PCM。两生命周期生产/完成分别为516/516、560/560，steady-state blit为0，GPU error/pending和PCM underrun均为0；报告为 `build/godot-vendor-migration/macos-node/verification.json`，15张图及原始日志同目录保留。
 - 实测设备为 Apple M1 Pro 16-core GPU，系统报告 Metal 4。构建、ABI、包和动态回归结束后 `git status` 为空，证明 SCons 生成物没有修改受跟踪的 vendor 文件。该证据只关闭 `BASELINE-01` 的 macOS 子项，不替代其余平台的 vendor 重建，也不等于 xmake 原生 Godot 构建已经实现。
+
+### 2026-11-02 vendor SCons iOS 基线
+
+- vendor 树分别以现有 SCons 入口完成 iOS simulator/device arm64 `template_debug` 静态运行库构建。模拟器归档 `libgodot.ios.template_debug.arm64.simulator.a` 的 SHA-256 为 `dd614227…1968`；设备归档 `libgodot.ios.template_debug.arm64.a` 为 `c7629c34…0439`。修正了共享 vendor 输出目录下设备构建误匹配 simulator 归档的问题，设备产物现在按精确文件名选择。
+- 两类归档均成功链接为 `DoraGodot.framework`，只导出版本化 ABI 的6项符号；Mach-O 平台分别为 `IOSSIMULATOR` 与 `IOS`，最低系统版本均为 iOS 14，并完成 ad-hoc 签名、许可证和包清单校验。模拟器 framework 二进制 SHA-256 为 `16cd5235…9d7c`，设备 framework 为 `16dbae52…d1d6`；编译、链接及 manifest 证据保存在 `build/godot-ios/{simulator,device}/`。
+- 当前工作树 Dora 模拟器宿主完成全量 Debug 构建，原始宿主 SHA-256 为 `092a57bf…c2e9`，包内已确认隔离测试入口、原生测试控制器、间接鼠标声明和 `IOSSIMULATOR`/iOS 14 元数据。专用 iOS 26.5 模拟器实际安装并启动宿主后，在 Godot 初始化前按 Dora Apple2 / Godot Apple4 门槛返回 `result=2`、零截图；`build/godot-vendor-migration/ios-simulator-apple4-rejection/unsupported-gpu.json` 记录 `rejected_as_expected=true`、`gpu_shared_output_verified=false`。
+- 测试后已卸载 `org.ippclub.dorassr.godotprototype.ios` 并确认专用模拟器回到 `Shutdown`。该证据关闭 `BASELINE-01` 的 iOS 编译、封装和既有能力拒绝子项，但不证明 Apple4 iOS 设备上的 Metal 共享画面、物理触摸或音频兼容，也不等于 xmake 原生 Godot 构建已经实现。
