@@ -34,6 +34,7 @@
 #include "main/main.h"
 
 #include "os_linuxbsd.h"
+#include "modules/dora_bridge/gl/display_server_dora_gl.h"
 
 static OS_LinuxBSD *os = nullptr;
 
@@ -43,6 +44,7 @@ GDExtensionObjectPtr libgodot_create_godot_instance(int p_argc, char *p_argv[], 
 	ERR_FAIL_COND_V_MSG(instance != nullptr, nullptr, "Only one Godot Instance may be created.");
 
 	os = new OS_LinuxBSD();
+	DisplayServer::register_create_function("dora-gl", DisplayServerDoraGL::create, DisplayServerDoraGL::drivers);
 
 	Error err = Main::setup(p_argv[0], p_argc - 1, &p_argv[1], false);
 	if (err != OK) {

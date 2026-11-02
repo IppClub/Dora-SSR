@@ -34,6 +34,7 @@
 #include "main/main.h"
 
 #include "os_macos.h"
+#include "modules/dora_bridge/display_server_dora_metal.h"
 
 static OS_MacOS *os = nullptr;
 
@@ -43,7 +44,8 @@ GDExtensionObjectPtr libgodot_create_godot_instance(int p_argc, char *p_argv[], 
 	ERR_FAIL_COND_V_MSG(instance != nullptr, nullptr, "Only one Godot Instance may be created.");
 
 	uint32_t remaining_args = p_argc - 1;
-	os = new OS_MacOS_NSApp(p_argv[0], remaining_args, remaining_args > 0 ? &p_argv[1] : nullptr);
+	DisplayServer::register_create_function("dora-metal", DisplayServerDoraMetal::create, DisplayServerDoraMetal::drivers);
+	os = new OS_MacOS_Headless(p_argv[0], remaining_args, remaining_args > 0 ? &p_argv[1] : nullptr);
 
 	@autoreleasepool {
 		Error err = Main::setup(p_argv[0], remaining_args, remaining_args > 0 ? &p_argv[1] : nullptr, false);

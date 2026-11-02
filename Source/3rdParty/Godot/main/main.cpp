@@ -137,6 +137,9 @@
 #endif
 
 #include "modules/modules_enabled.gen.h" // For mono.
+#ifdef MODULE_DORA_BRIDGE_ENABLED
+#include "modules/dora_bridge/runtime_timing.h"
+#endif
 
 #if defined(MODULE_MONO_ENABLED) && defined(TOOLS_ENABLED)
 #include "modules/mono/editor/bindings_generator.h"
@@ -3783,6 +3786,7 @@ Error Main::setup2(bool p_show_boot_logo) {
 }
 
 void Main::setup_boot_logo() {
+	if ((DisplayServer::get_singleton()->get_name() == "dora-metal" || DisplayServer::get_singleton()->get_name() == "dora-gl")) return; // Dora windowless boot
 	GodotProfileZone("setup_boot_logo");
 	MAIN_PRINT("Main: Load Boot Image");
 
@@ -4806,6 +4810,13 @@ bool Main::iteration() {
 	MainFrameTime advance = main_timer_sync.advance(physics_step, physics_ticks_per_second);
 	double process_step = advance.process_step;
 	double scaled_step = process_step * time_scale;
+#ifdef MODULE_DORA_BRIDGE_ENABLED
+	// Dora manual render timing: preserve Main's effective scale and step.
+	const String dora_display = DisplayServer::get_singleton()->get_name();
+	const bool dora_manual_render = dora_display == "dora-metal" || dora_display == "dora-gl" ||
+		(dora_display == "Windows" && OS::get_singleton()->get_environment("DORA_GODOT_WINDOWS_D3D12") == "1");
+	if (dora_manual_render) DoraGodotRenderTiming::enqueue(scaled_step);
+#endif
 
 	Engine::get_singleton()->_process_step = process_step;
 	Engine::get_singleton()->_physics_interpolation_fraction = advance.interpolation_fraction;
@@ -4950,7 +4961,11 @@ bool Main::iteration() {
 								 DisplayServer::get_singleton()->has_additional_outputs()) &&
 			RenderingServer::get_singleton()->is_render_loop_enabled();
 
-	if (wants_present || has_pending_resources_for_processing) {
+	if (
+#ifdef MODULE_DORA_BRIDGE_ENABLED
+			!dora_manual_render &&
+#endif
+			(wants_present || has_pending_resources_for_processing)) {
 		wants_present |= force_redraw_requested;
 		if ((!force_redraw_requested) && OS::get_singleton()->is_in_low_processor_usage_mode()) {
 			if (RenderingServer::get_singleton()->has_changed()) {
@@ -5120,6 +5135,17 @@ void Main::cleanup(bool p_force) {
 	message_queue->flush();
 
 	OS::get_singleton()->delete_main_loop();
+#ifdef MODULE_DORA_BRIDGE_ENABLED
+	// Dora threadless audio shutdown: retire playbacks after nodes are freed.
+	if (DisplayServer::get_singleton() &&
+		(DisplayServer::get_singleton()->get_name() == "dora-metal" || DisplayServer::get_singleton()->get_name() == "dora-gl")) {
+		int32_t final_audio[4096 * 2];
+		for (int i = 0; i < 2; ++i) {
+			AudioDriverDummy::get_dummy_singleton()->mix_audio(4096, final_audio);
+			AudioServer::get_singleton()->update();
+		}
+	}
+#endif
 
 	OS::get_singleton()->_cmdline.clear();
 	OS::get_singleton()->_user_args.clear();

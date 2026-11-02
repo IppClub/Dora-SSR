@@ -34,6 +34,9 @@
 #include "main/main.h"
 
 #include "os_windows.h"
+#ifdef GLES3_ENABLED
+#include "modules/dora_bridge/gl/display_server_dora_gl.h"
+#endif
 
 static OS_Windows *os = nullptr;
 
@@ -43,6 +46,9 @@ GDExtensionObjectPtr libgodot_create_godot_instance(int p_argc, char *p_argv[], 
 	ERR_FAIL_COND_V_MSG(instance != nullptr, nullptr, "Only one Godot Instance may be created at a time.");
 
 	os = new OS_Windows(GetModuleHandle(nullptr));
+#ifdef GLES3_ENABLED
+	DisplayServer::register_create_function("dora-gl", DisplayServerDoraGL::create, DisplayServerDoraGL::drivers);
+#endif
 
 	Error err = Main::setup(p_argv[0], p_argc - 1, &p_argv[1], false);
 	if (err != OK) {
