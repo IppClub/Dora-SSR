@@ -132,15 +132,51 @@ private:
 			memset(this, 0, sizeof(MaterialKey));
 		}
 
+		// Dora particle-key semantic hashing: ignore bitfield padding.
+		uint64_t packed() const {
+			static_assert((PARAM_MAX+1+PARTICLE_FLAG_MAX+3+1+1+3+1+2+1+1+1+1+1+1+1) <= 64);
+			uint64_t value = 0;
+			unsigned int offset = 0;
+			value |= uint64_t(texture_mask) << offset;
+			offset += PARAM_MAX;
+			value |= uint64_t(texture_color) << offset;
+			offset += 1;
+			value |= uint64_t(particle_flags) << offset;
+			offset += PARTICLE_FLAG_MAX;
+			value |= uint64_t(emission_shape) << offset;
+			offset += 3;
+			value |= uint64_t(invalid_key) << offset;
+			offset += 1;
+			value |= uint64_t(has_emission_color) << offset;
+			offset += 1;
+			value |= uint64_t(sub_emitter) << offset;
+			offset += 3;
+			value |= uint64_t(attractor_enabled) << offset;
+			offset += 1;
+			value |= uint64_t(collision_mode) << offset;
+			offset += 2;
+			value |= uint64_t(collision_scale) << offset;
+			offset += 1;
+			value |= uint64_t(turbulence_enabled) << offset;
+			offset += 1;
+			value |= uint64_t(limiter_curve) << offset;
+			offset += 1;
+			value |= uint64_t(alpha_curve) << offset;
+			offset += 1;
+			value |= uint64_t(emission_curve) << offset;
+			offset += 1;
+			value |= uint64_t(has_initial_ramp) << offset;
+			offset += 1;
+			value |= uint64_t(orbit_uses_curve_xyz) << offset;
+			offset += 1;
+			return value;
+		}
 		static uint32_t hash(const MaterialKey &p_key) {
-			return hash_djb2_buffer((const uint8_t *)&p_key, sizeof(MaterialKey));
+			const uint64_t value = p_key.packed();
+			return hash_djb2_buffer((const uint8_t *)&value, sizeof(value));
 		}
-		bool operator==(const MaterialKey &p_key) const {
-			return memcmp(this, &p_key, sizeof(MaterialKey)) == 0;
-		}
-		bool operator<(const MaterialKey &p_key) const {
-			return memcmp(this, &p_key, sizeof(MaterialKey)) < 0;
-		}
+		bool operator==(const MaterialKey &p_key) const { return packed() == p_key.packed(); }
+		bool operator<(const MaterialKey &p_key) const { return packed() < p_key.packed(); }
 	};
 
 	struct ShaderData {

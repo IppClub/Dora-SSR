@@ -55,6 +55,7 @@
 #import "rendering_shader_container_metal.h"
 
 #include "core/io/marshalls.h"
+#include "servers/display/display_server.h"
 #include "core/string/ustring.h"
 #include "core/templates/hash_map.h"
 #include "drivers/apple/foundation_helpers.h"
@@ -2627,6 +2628,10 @@ RenderingDeviceDriverMetal::RenderingDeviceDriverMetal(RenderingContextDriverMet
 	// Always use the lazy strategy on other OSs like iOS, tvOS, or visionOS.
 	_shader_load_strategy = ShaderLoadStrategy::LAZY;
 #endif
+	// Dora embedded Metal: no asynchronous library compilation past shutdown.
+	if (DisplayServer::get_singleton()->get_name() == "dora-metal") {
+		_shader_load_strategy = ShaderLoadStrategy::LAZY;
+	}
 }
 
 RenderingDeviceDriverMetal::~RenderingDeviceDriverMetal() {
