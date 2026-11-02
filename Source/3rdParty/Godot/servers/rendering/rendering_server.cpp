@@ -3740,6 +3740,9 @@ void RenderingServer::init() {
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/global_illumination/voxel_gi/quality", PROPERTY_HINT_ENUM, "Low (4 Cones - Fast),High (6 Cones - Slow)"), 0);
 
 	GLOBAL_DEF_RST("rendering/shading/overrides/force_vertex_shading", false);
+	// Dora ARM64 WARP shadow receiver setting. The default keeps every
+	// non-WARP backend unchanged and prevents an undefined-setting lookup.
+	GLOBAL_DEF("rendering/shading/overrides/force_disable_shadows", false);
 	GLOBAL_DEF("rendering/shading/overrides/force_lambert_over_burley", false);
 	GLOBAL_DEF("rendering/shading/overrides/force_lambert_over_burley.mobile", true);
 

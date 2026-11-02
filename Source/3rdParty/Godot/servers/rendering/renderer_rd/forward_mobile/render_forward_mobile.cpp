@@ -3432,6 +3432,13 @@ RenderForwardMobile::RenderForwardMobile() {
 		defines += "\n#define USE_VERTEX_LIGHTING\n";
 	}
 
+	// Dora ARM64 WARP shadow receiver compatibility. Hardware adapters and
+	// ordinary Godot builds never set this private project override.
+	bool force_disable_shadows = GLOBAL_GET("rendering/shading/overrides/force_disable_shadows");
+	if (force_disable_shadows) {
+		defines += "\n#define SHADOWS_DISABLED\n";
+	}
+
 	bool specular_occlusion = GLOBAL_GET("rendering/reflections/specular_occlusion/enabled");
 	if (!specular_occlusion) {
 		defines += "\n#define SPECULAR_OCCLUSION_DISABLED\n";

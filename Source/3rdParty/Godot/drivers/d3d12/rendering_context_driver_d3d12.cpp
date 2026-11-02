@@ -34,6 +34,7 @@
 
 #include "core/config/engine.h"
 #include "core/config/project_settings.h"
+#include "core/os/os.h"
 #include "core/string/ustring.h"
 #include "core/templates/local_vector.h"
 #include "core/version.h"
@@ -314,6 +315,15 @@ bool RenderingContextDriverD3D12::is_debug_utils_enabled() const {
 }
 
 IDXGIAdapter1 *RenderingContextDriverD3D12::create_adapter(uint32_t p_adapter_index) const {
+	// Dora D3D12 WARP validation adapter; opt-in and never used in production.
+	if (OS::get_singleton()->get_environment("DORA_GODOT_D3D12_WARP") == "1") {
+		if (p_adapter_index != 0) return nullptr;
+		ComPtr<IDXGIFactory4> factory_4;
+		dxgi_factory.As(&factory_4);
+		IDXGIAdapter1 *warp_adapter = nullptr;
+		if (factory_4 && SUCCEEDED(factory_4->EnumWarpAdapter(IID_PPV_ARGS(&warp_adapter)))) return warp_adapter;
+		return nullptr;
+	}
 	ComPtr<IDXGIFactory6> factory_6;
 	dxgi_factory.As(&factory_6);
 
