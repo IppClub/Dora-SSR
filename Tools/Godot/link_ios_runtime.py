@@ -10,7 +10,7 @@ def digest(path):
 p=argparse.ArgumentParser();p.add_argument('--device',choices=['simulator','device'],default='simulator');a=p.parse_args()
 build=root/'build/godot-ios'/a.device;compiled=json.loads((build/'compilation.json').read_text());assert compiled['passed']
 archive=Path(compiled['archive']);assert digest(archive)==compiled['archive_sha256']
-source=build/'deps/godot-4.6-stable';package=build/'package';framework=package/'DoraGodot.framework';framework.mkdir(parents=True,exist_ok=True)
+source=root/'Source/3rdParty/Godot';package=build/'package';framework=package/'DoraGodot.framework';framework.mkdir(parents=True,exist_ok=True)
 manifest=package/'manifest.json';manifest.unlink(missing_ok=True)
 sdk=Path(compiled['sdk']);target='arm64-apple-ios14.0'+('-simulator' if a.device=='simulator' else '')
 clang=subprocess.check_output(['xcrun','--find','clang++'],text=True).strip()

@@ -34,7 +34,9 @@ for directory in args.extra_directory:
 for notice in args.license_file:
     assert notice.is_file() and not (args.output/notice.name).exists(), 'Notice missing or basename collides'
     shutil.copy2(notice,args.output/notice.name)
-manifest={'preparation_script_sha256':hashlib.sha256(Path(__file__).with_name('prepare.py').read_bytes()).hexdigest(),
+manifest={'vendor_validation_script_sha256':hashlib.sha256(Path(__file__).with_name('vendor_source.py').read_bytes()).hexdigest(),
+    'vendor_provenance_sha256':hashlib.sha256((args.source/'UPSTREAM.json').read_bytes()).hexdigest(),
+    'upstream_commit':'89cea143987d564363e15d207438530651d943ac',
     'particle_material_key_header_sha256':hashlib.sha256((args.source/'scene/resources/particle_process_material.h').read_bytes()).hexdigest(),
     'godot_version':'4.6-stable','bridge_abi':1,
     'source':'https://github.com/godotengine/godot/tree/4.6-stable',

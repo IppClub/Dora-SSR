@@ -2,12 +2,11 @@
 """Build pinned LibGodot with one Dora Windows graphics bridge.
 Produces a sealed Debug or optimized Release package; a build is not a GPU pass.
 """
-import argparse,hashlib,json,os,shutil,subprocess,sys,tarfile,urllib.request,venv
+import argparse,json,os,subprocess,sys,venv
 from pathlib import Path
 root=Path(__file__).resolve().parents[2]
 parser=argparse.ArgumentParser()
 parser.add_argument('--build-dir',type=Path)
-parser.add_argument('--archive',type=Path)
 parser.add_argument('--scons',type=Path)
 parser.add_argument('--arch',choices=['x86_64','arm64'],default='x86_64')
 parser.add_argument('--jobs',type=int,default=2)
@@ -17,17 +16,9 @@ parser.add_argument('--mesa-libs',type=Path,help='Installed Godot NIR dependency
 parser.add_argument('--mingw',action='store_true',help='Use MinGW on a native Windows host; automatic when cross-compiling')
 args=parser.parse_args()
 build=(args.build_dir or root/('build/godot-windows-d3d12' if args.backend=='D3D12' else 'build/godot-windows')).resolve()
-deps=build/'deps';deps.mkdir(parents=True,exist_ok=True)
+build.mkdir(parents=True,exist_ok=True)
 assert args.jobs>0
-archive=deps/'godot-4.6-stable.tar.gz'
-if args.archive and args.archive.resolve()!=archive.resolve():shutil.copyfile(args.archive,archive)
-if not archive.exists():
-    urllib.request.urlretrieve('https://codeload.github.com/godotengine/godot/tar.gz/refs/tags/4.6-stable',archive)
-expected='b451eaa16d3abe0c7430e9ce1c4e83b146e5670e5b683dd8995c931fc82b57a0'
-assert hashlib.sha256(archive.read_bytes()).hexdigest()==expected,'Godot source archive checksum mismatch'
-source=deps/'godot-4.6-stable'
-if not source.is_dir():
-    with tarfile.open(archive) as tar:tar.extractall(deps,filter='data')
+source=root/'Source/3rdParty/Godot'
 subprocess.run([sys.executable,str(root/'Tools/Godot/prepare.py'),str(source)],check=True)
 if args.scons:
     scons=args.scons.resolve();assert scons.is_file()

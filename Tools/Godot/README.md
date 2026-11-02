@@ -655,7 +655,7 @@ Linux 上可用 MinGW 交叉编译运行库：
 
 ```sh
 python3 Tools/Godot/build_windows_runtime.py --jobs 2
-python3 Tools/Godot/tests/wgl/build.py --godot-source build/godot-windows/deps/godot-4.6-stable --dora-objects
+python3 Tools/Godot/tests/wgl/build.py --godot-source Source/3rdParty/Godot --dora-objects
 ```
 
 第二步编译两个真实 Windows 测试程序，以及 Dora 的节点和 DLL 加载器对象。

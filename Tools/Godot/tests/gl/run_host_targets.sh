@@ -5,7 +5,7 @@ OUT="${DORA_GODOT_GL_TARGETS_OUTPUT:-$ROOT/build/godot-runtime/gl-host-targets}"
 mkdir -p "$OUT"
 rm -f "$OUT/verification.json"
 "${CXX:-c++}" -std=c++20 -Wall -Wextra -Werror -I "$ROOT" \
- "$ROOT/Tools/Godot/tests/gl/host_targets.cpp" "$ROOT/Tools/Godot/module/gl/egl_transport.cpp" \
+ "$ROOT/Tools/Godot/tests/gl/host_targets.cpp" "$ROOT/Source/3rdParty/Godot/modules/dora_bridge/gl/egl_transport.cpp" \
  -lEGL -lGLESv2 -o "$OUT/test"
 DORA_GODOT_GL_METRICS=1 "$OUT/test" | tee "$OUT/run.log"
 python3 - "$OUT" <<'PY'

@@ -183,8 +183,8 @@ def digest(path):
 
 source_scope = (
     "Source/Godot/GodotRuntimeGL.cpp",
-    "Tools/Godot/module/gl/egl_transport.cpp",
-    "Tools/Godot/module/register_types_gl.cpp",
+    "Source/3rdParty/Godot/modules/dora_bridge/gl/egl_transport.cpp",
+    "Source/3rdParty/Godot/modules/dora_bridge/register_types_gl.cpp",
     "Tools/Godot/package_android_direct_test.py",
     "Tools/Godot/tests/android/lifecycle/app/src/main/java/org/dora/godotrc1/ReleaseLifecycle.java",
     "Tools/Godot/tests/android/ordinary_release.lua",

@@ -1,5 +1,5 @@
 // Actual EGL share-group ownership test; CPU readback is only a test oracle.
-#include "Tools/Godot/module/gl/gl_transport.h"
+#include "Source/3rdParty/Godot/modules/dora_bridge/gl/gl_transport.h"
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GLES3/gl3.h>

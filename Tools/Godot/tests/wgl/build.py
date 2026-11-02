@@ -19,7 +19,7 @@ for name in ['gl','egl']:
     subprocess.run([args.cc,'-O0','-g','-I',str(glad),'-c',str(glad/(name+'.c')),'-o',str(out/(name+'.o'))],check=True)
 for name in ['transport','runtime']:
     sources=[str(root/('Tools/Godot/tests/wgl/'+name+'.cpp'))]
-    if name=='transport':sources.append(str(root/'Tools/Godot/module/gl/wgl_transport.cpp'))
+    if name=='transport':sources.append(str(root/'Source/3rdParty/Godot/modules/dora_bridge/gl/wgl_transport.cpp'))
     subprocess.run([args.cxx,'-std=c++20','-O0','-g','-Wall','-Wextra','-Werror','-Wno-cast-function-type','-I',str(root),'-I',str(glad),
         *(['-municode'] if name=='runtime' else []),*sources,str(out/'gl.o'),str(out/'egl.o'),'-static','-lopengl32','-lgdi32','-luser32','-o',str(out/(name+'.exe'))],check=True)
 if args.dora_objects:

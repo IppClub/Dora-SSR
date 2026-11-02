@@ -2,8 +2,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 BUILD="${DORA_GODOT_BUILD_DIR:-$ROOT/build/godot-linux}"
-SOURCE="$BUILD/deps/godot-4.6-stable"
-ARCHIVE="$BUILD/deps/godot-4.6-stable.tar.gz"
+SOURCE="$ROOT/Source/3rdParty/Godot"
 ARCH="${DORA_GODOT_LINUX_ARCH:-$(uname -m)}"
 TARGET="${DORA_GODOT_TARGET:-template_debug}"
 case "$TARGET" in
@@ -17,12 +16,7 @@ case "$ARCH" in
     *) echo "Unsupported Linux runtime architecture: $ARCH" >&2; exit 2 ;;
 esac
 [[ "$(uname -s)" == Linux ]] || { echo 'Linux host required' >&2; exit 1; }
-mkdir -p "$BUILD/deps"
-if [[ ! -f "$ARCHIVE" ]]; then
-    curl -fL --retry 2 "${DORA_GODOT_ARCHIVE_URL:-https://codeload.github.com/godotengine/godot/tar.gz/refs/tags/4.6-stable}" -o "$ARCHIVE"
-fi
-printf '%s  %s\n' b451eaa16d3abe0c7430e9ce1c4e83b146e5670e5b683dd8995c931fc82b57a0 "$ARCHIVE" | sha256sum -c -
-if [[ ! -d "$SOURCE" ]]; then tar -xzf "$ARCHIVE" -C "$BUILD/deps"; fi
+mkdir -p "$BUILD"
 SCONS="${DORA_GODOT_SCONS:-$BUILD/venv/bin/scons}"
 if [[ -n "${DORA_GODOT_SCONS:-}" && ! -x "$SCONS" ]]; then
     echo "Configured SCons executable is missing: $SCONS" >&2

@@ -13,18 +13,7 @@ esac
     printf 'Godot Metal runtime 1.0 supports macOS arm64 only: %s\n' "$ARCH" >&2
     exit 2
 }
-SOURCE="$BUILD/deps/godot-4.6-stable"
-ARCHIVE="$BUILD/deps/godot-4.6-stable.tar.gz"
-mkdir -p "$BUILD/deps"
-if [[ ! -f "$ARCHIVE" ]]; then
-    if [[ -f "$ROOT/build/godot-metal-probe/deps/godot-4.6-stable.tar.gz" ]]; then
-        cp "$ROOT/build/godot-metal-probe/deps/godot-4.6-stable.tar.gz" "$ARCHIVE"
-    else
-        curl -fL --retry 2 https://codeload.github.com/godotengine/godot/tar.gz/refs/tags/4.6-stable -o "$ARCHIVE"
-    fi
-fi
-printf '%s  %s\n' b451eaa16d3abe0c7430e9ce1c4e83b146e5670e5b683dd8995c931fc82b57a0 "$ARCHIVE" | shasum -a 256 -c -
-if [[ ! -d "$SOURCE" ]]; then tar -xzf "$ARCHIVE" -C "$BUILD/deps"; fi
+SOURCE="$ROOT/Source/3rdParty/Godot"
 if [[ ! -x "$BUILD/venv/bin/scons" ]]; then
     python3 -m venv "$BUILD/venv"
     "$BUILD/venv/bin/pip" install scons==4.11.1

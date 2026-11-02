@@ -20,7 +20,7 @@ remote='/data/local/tmp/dora-godot-01a17dc1/egl-transport'
 subprocess.run(adb+['shell','mkdir','-p',remote],check=True,timeout=30)
 artifacts={};logs={}
 for case,source in [('transport','transport.cpp'),('host-targets','host_targets.cpp')]:
- sources=[root/'Tools/Godot/tests/gl'/source,root/'Tools/Godot/module/gl/egl_transport.cpp']
+ sources=[root/'Tools/Godot/tests/gl'/source,root/'Source/3rdParty/Godot/modules/dora_bridge/gl/egl_transport.cpp']
  binary=out/case
  command=[str(compiler),'-std=c++20','-O0','-g','-Wall','-Wextra','-Werror','-static-libstdc++','-I',str(root)]+[str(s) for s in sources]+['-lEGL','-lGLESv3','-o',str(binary)]
  with (out/(case+'-build.log')).open('w') as log:subprocess.run(command,cwd=root,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=180)

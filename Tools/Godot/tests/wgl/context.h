@@ -1,5 +1,5 @@
 #pragma once
-#include "Tools/Godot/module/gl/wgl_functions.h"
+#include "Source/3rdParty/Godot/modules/dora_bridge/gl/wgl_functions.h"
 #include <cstdio>
 struct WGLTestContext {
     HWND window=nullptr;

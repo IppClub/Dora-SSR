@@ -17,7 +17,7 @@ for FIXTURE in project timing_project; do
     mkdir -p "$ROOT/Tools/Godot/tests/$FIXTURE/.godot"
     printf 'list=[]\n' > "$ROOT/Tools/Godot/tests/$FIXTURE/.godot/global_script_class_cache.cfg"
 done
-export DORA_GODOT_LIBRARY="$BUILD/deps/godot-4.6-stable/bin/libgodot.macos.$TARGET.arm64.dylib"
+export DORA_GODOT_LIBRARY="$ROOT/Source/3rdParty/Godot/bin/libgodot.macos.$TARGET.arm64.dylib"
 export DORA_GODOT_TEST_PROJECT="${DORA_GODOT_TEST_PROJECT:-$ROOT/Tools/Godot/tests/project}"
 export DORA_GODOT_TEST_OUTPUT="$RESULTS"
 ABI=(python3 "$ROOT/Tools/Godot/tests/runtime_abi.py" --library "$DORA_GODOT_LIBRARY" --backend Metal --output "$RESULTS/abi-preboot")

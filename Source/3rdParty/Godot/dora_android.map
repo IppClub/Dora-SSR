@@ -1,0 +1,1 @@
+{ global: dora_godot_get_*; Java_org_godotengine_*; local: *; };
