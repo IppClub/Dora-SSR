@@ -51,7 +51,7 @@ def get_flags():
         "target": "template_debug",
         "use_volk": False,
         "metal": True,
-        "supported": ["metal", "mono"],
+        "supported": ["metal", "mono", "library"],
         "builtin_pcre2_with_jit": False,
     }
 
@@ -151,7 +151,7 @@ def configure(env: "SConsEnvironment"):
     env.Prepend(CPPPATH=["#platform/ios"])
     env.Append(CPPDEFINES=["IOS_ENABLED", "APPLE_EMBEDDED_ENABLED", "UNIX_ENABLED", "COREAUDIO_ENABLED"])
 
-    if env["metal"] and env["simulator"]:
+    if env["metal"] and env["simulator"] and env["library_type"] == "executable":
         print_warning("iOS Simulator does not support the Metal rendering driver")
         env["metal"] = False
 

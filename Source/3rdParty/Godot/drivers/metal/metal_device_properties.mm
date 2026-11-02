@@ -55,7 +55,9 @@
 #import "servers/rendering/renderer_rd/effects/metal_fx.h"
 
 #import <Metal/Metal.h>
+#if !defined(IOS_SIMULATOR)
 #import <MetalFX/MetalFX.h>
+#endif
 #import <spirv_cross.hpp>
 #import <spirv_msl.hpp>
 
@@ -173,6 +175,7 @@ void MetalDeviceProperties::init_features(id<MTLDevice> p_device) {
 		features.use_argument_buffers = false;
 	}
 
+	#if !defined(IOS_SIMULATOR)
 	if (@available(macOS 13.0, iOS 16.0, tvOS 16.0, *)) {
 		features.metal_fx_spatial = [MTLFXSpatialScalerDescriptor supportsDevice:p_device];
 #ifdef METAL_MFXTEMPORAL_ENABLED
@@ -181,6 +184,7 @@ void MetalDeviceProperties::init_features(id<MTLDevice> p_device) {
 		features.metal_fx_temporal = false;
 #endif
 	}
+	#endif
 }
 
 void MetalDeviceProperties::init_limits(id<MTLDevice> p_device) {

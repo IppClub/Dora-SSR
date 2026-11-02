@@ -194,7 +194,8 @@ MainLoop *OS_AppleEmbedded::get_main_loop() const {
 
 void OS_AppleEmbedded::delete_main_loop() {
 	if (main_loop) {
-		main_loop->finalize();
+        // Dora GodotInstance has already finalized the loop.
+        if (!DisplayServer::get_singleton() || DisplayServer::get_singleton()->get_name() != "dora-metal") main_loop->finalize();
 		memdelete(main_loop);
 	}
 
