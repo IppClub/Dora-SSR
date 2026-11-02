@@ -2838,3 +2838,10 @@ Godot Android Thread平台hook只有JNI attach/detach，未设置priority；现�
 - Dora Web core Debug 宿主使用同一密封运行库重新构建，宿主 JS/WASM 分别为594,776/145,423,257字节，SHA-256 为 `679be6c7…2a03` 与 `01287fab…30b4`。首次矩阵在打开浏览器前因本机 Node 搜索路径缺少 Playwright 模块而停止；改为显式使用 Codex 隔离运行时中的 Playwright 后执行，未修改源码或复用旧宿主。
 - Chrome 156.0.8078.79、WebGL2、cross-origin isolation 下，真实 Dora `GodotNode` 2/3/4 缓冲各完成620控制帧与12张合成截图，像素检查分别为94/110/126项。每档覆盖动画、暂停/恢复、输入与焦点释放、控制器、重启、resize、等量保留别名、节点移除重建、PCM和退出排空；两生命周期 direct publication 分别为484和114，稳态 blit为0，GPU pending/error与PCM underrun均为0。聚合报告为 `build/godot-vendor-migration/web-node-chromium/verification.json`。
 - 该证据关闭 `BASELINE-01` 的 Web 编译及当前浏览器动态基线子项，但本轮未重跑 Firefox、Playwright WebKit、原生 Safari或context-loss；这些能力仍由迁移前历史报告承担，后续 xmake Web 平台验收必须用 xmake 产物重新执行相应矩阵。
+
+### 2026-11-02 vendor SCons Android 基线
+
+- vendor 树以 Android NDK 28.1.13356709、API 28、arm64-v8a 完成 `template_release` 标准模块共享运行库构建；启用 EGL/OpenGL ES，关闭 Vulkan、Swappy、LTO和调试符号，并用 `dora_android.map` 收敛导出。`libgodot_android.so` 的 SHA-256 为 `e819e52c…d1e7`，密封包与 NDK 许可证校验通过，编译证据位于 `build/godot-android/release/arm64/compilation.json`。
+- 上游 Java AAR、隔离测试资源与当前 Dora arm64 Debug prototype APK 重新生成，Gradle/Ninja全量构建成功。APK为246,434,149字节、SHA-256 `fcc7742d…82f7`；从 APK 直接解出的 `lib/arm64-v8a/libgodot_android.so` 哈希与上述 vendor 运行库完全一致，排除了旧 APK/旧运行库混用。
+- 专用 API 35 ARM64 AVD `DoraGodotRC1_01a17dc1` 使用 ANGLE/SwiftShader 实际执行 2/3/4 缓冲矩阵，每档1000控制帧、五次 direct target 绑定，两个主要生命周期完成帧分别为441/442、438/442、439/455，稳态 blit为0。动画、暂停/恢复、输入、IME、控制器、后台恢复、resize/cancel、等量别名、PCM、节点重建与退出排空均通过；GPU produced/completed相等，reader pending/error与PCM underrun均为0。聚合报告为 `build/godot-vendor-migration/android-direct-matrix/verification.json`。
+- 测试后已卸载 `org.ippclub.dorassr.godotprototype` 并确认 `adb devices` 无活动设备，专用模拟器进程正常结束。该证据关闭 `BASELINE-01` 的 Android vendor 编译及模拟器动态子项，但测试包是 Debug prototype，`physical_device_functional_regression=false`、`direct02_release_accepted=false` 保持不变；不宣称物理移动 GPU、普通 nondebuggable Release、生产签名或真实触摸/音频硬件兼容。
