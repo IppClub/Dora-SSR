@@ -75,6 +75,7 @@ def get_doc_path():
 
 def get_flags():
     return {
+        "supported": ["library"],
         "arch": "wasm32",
         "target": "template_debug",
         "builtin_pcre2_with_jit": False,

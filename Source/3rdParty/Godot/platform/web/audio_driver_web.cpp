@@ -449,7 +449,7 @@ void AudioDriverWorklet::unlock() {
 
 void AudioDriverWorklet::finish_driver() {
 	quit = true; // Ask thread to quit.
-	thread.wait_to_finish();
+	if (thread.is_started()) thread.wait_to_finish(); // Dora: unused Web driver.
 }
 
 #else // No threads.

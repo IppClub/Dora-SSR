@@ -33,7 +33,19 @@ web_files = [
 if env["target"] == "editor":
     env.add_source_files(web_files, "editor/*.cpp")
 
+if env["library_type"] != "executable":
+    web_files.remove("web_main.cpp")
+
 sys_env = env.Clone()
+# Dora embedded Web library: the host owns main and all frame scheduling.
+if env["library_type"] != "executable":
+    sys_env.Append(LINKFLAGS=["--no-entry"])
+    sys_env["LINKFLAGS"] = [flag for flag in sys_env["LINKFLAGS"] if flag != "-sOFFSCREEN_FRAMEBUFFER=1"]
+    env["EXPORTED_FUNCTIONS"] = [name for name in env["EXPORTED_FUNCTIONS"] if name != "_main"]
+    env["EXPORTED_RUNTIME_METHODS"] = [name for name in env["EXPORTED_RUNTIME_METHODS"] if name != "callMain"]
+    env["EXPORTED_RUNTIME_METHODS"] += ["GL", "FS", "UTF8ToString", "stringToNewUTF8"]
+    env["EXPORTED_FUNCTIONS"] += ['_dora_web_context', '_dora_web_direct', '_dora_web_open', '_dora_web_error', '_dora_web_version', '_dora_web_slot', '_dora_web_can_produce', '_dora_web_can_advance', '_dora_web_advance', '_dora_web_consumer_begin', '_dora_web_consumer_end', '_dora_web_bind_targets', '_dora_web_blits', '_dora_web_direct_publications', '_dora_web_pause', '_dora_web_restart', '_dora_web_input', '_dora_web_output', '_dora_web_ime', '_dora_web_audio_format', '_dora_web_audio_stats', '_dora_web_audio_start', '_dora_web_audio_read', '_dora_web_close', '_dora_web_shutdown']
+
 sys_env.AddJSLibraries(
     [
         "js/libs/library_godot_audio.js",
@@ -106,7 +118,7 @@ if env["dlink_enabled"]:
 else:
     # We use IDBFS. Since Emscripten 1.39.1 it needs to be linked explicitly.
     sys_env.Append(LIBS=["idbfs.js"])
-    build = sys_env.add_program(build_targets, web_files + ["web_runtime.cpp"])
+    build = sys_env.add_program(build_targets, web_files + (["web_runtime.cpp"] if env["library_type"] == "executable" else []))
 
 sys_env.Depends(build[0], sys_env["JS_LIBS"])
 sys_env.Depends(build[0], sys_env["JS_PRE"])

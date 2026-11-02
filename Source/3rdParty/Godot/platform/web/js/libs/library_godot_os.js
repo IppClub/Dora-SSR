@@ -154,7 +154,7 @@ const GodotFS = {
 
 			GodotFS._mount_points.forEach(function (path) {
 				createRecursive(path);
-				FS.mount(IDBFS, {}, path);
+				FS.mount(IDBFS, { autoPersist: true }, path); // Dora embedded user:// persistence.
 			});
 			return new Promise(function (resolve, reject) {
 				FS.syncfs(true, function (err) {
