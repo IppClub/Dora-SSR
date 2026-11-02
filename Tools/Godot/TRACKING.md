@@ -28,7 +28,7 @@
 - [x] **VENDOR-02｜固化 Dora 修改。** 提交 `58b79c23c`、`bef1e3912`、`be70d4912`、`34db79031`、`3233c3fc2`、`aafaa14cd` 分别固化通用 bridge/平台入口/渲染与音频输入、D3D12 WARP 兼容、嵌入稳定性修复、Android、iOS 和 Web 修改；`9f7c07ae1` 移除旧 `Tools/Godot/module` 副本并把构建及测试入口切到 vendor 树。四个 `prepare*.py` 兼容入口现为只读校验器，重复运行后 vendor 源码零变化；Web只读回归、17项包完整性测试和2/3/4缓冲CPU协议测试通过，未据此宣称平台编译或GPU验收。
 - [ ] **BASELINE-01｜建立 SCons 对照基线。** 从未修改的 vendor 工作树构建现有 macOS、Linux、Windows、Android、Web、iOS 运行库，记录命令、工具链、编译宏、生成文件、导出符号、动态依赖、包体和现有运行回归结果。
   - [x] macOS arm64 Metal：vendor `template_release` 完整构建、封装、214项ABI和三缓冲动态回归通过；详细证据见 `PLAN.md` 的“2026-11-02 vendor SCons macOS 基线”。
-  - [ ] Linux x86_64/ARM64 EGL/OpenGL。
+  - [x] Linux x86_64/ARM64 EGL/OpenGL：vendor `template_release` 标准模块运行库分别以原生 ARM64 和交叉 GCC x86_64 完整构建、封装，均为精确架构且只导出6项 bridge ABI。ARM64 Ubuntu VM 中当前 Dora Debug 宿主以 Mesa llvmpipe 实际完成三缓冲1000帧、两次生命周期、direct-target 零 blit、GPU/PCM 零错误回归；x86_64 当前 Dora 测试宿主也完成交叉构建并由 Rosetta 启动至 bgfx EGL，但 Rosetta 在加载 Mesa LLVM AOT 映像时因 segment 数限制终止，故不宣称 x86_64 动态或物理 GPU 通过。两台 VM 均已关闭；详细证据见 `PLAN.md` 的“2026-11-02 vendor SCons Linux 基线”。
   - [ ] Windows x64 WGL/OpenGL 与保留的 D3D12 编译边界。
   - [x] Android arm64 EGL：vendor `template_release` 运行库与当前 Dora Debug prototype APK 完成构建，APK 内运行库哈希与密封包一致；API 35 ARM64 模拟器实际执行 2/3/4 缓冲各1000帧，direct-target 稳态 blit、GPU pending/error 和 PCM underrun 均为0。测试包已卸载且模拟器已关闭；该结果不宣称物理设备或普通 Release 验收，详细证据见 `PLAN.md` 的“2026-11-02 vendor SCons Android 基线”。
   - [x] Web WebGL2/WASM：vendor `template_debug` 运行库与当前 Dora Web 宿主完成构建；Chrome 156 实际执行 2/3/4 缓冲矩阵，每档620控制帧、12张合成截图，direct-target 稳态 blit、GPU pending/error 和 PCM underrun 均为0。此次基线未重跑 Firefox/WebKit/Safari；详细证据见 `PLAN.md` 的“2026-11-02 vendor SCons Web 基线”。
