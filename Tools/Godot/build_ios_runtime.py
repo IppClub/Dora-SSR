@@ -16,7 +16,9 @@ command=[str(scons),'platform=ios','arch=arm64','target=template_debug','library
 report=build/'compilation.json';report.unlink(missing_ok=True)
 with (build/'build.log').open('w') as log:result=subprocess.run(command,cwd=source,stdout=log,stderr=subprocess.STDOUT)
 if result.returncode:raise SystemExit(result.returncode)
-archives=list((source/'bin').glob('libgodot.ios.template_debug.arm64*.a'));assert len(archives)==1,archives
+archives=list((source/'bin').glob('libgodot.ios.template_debug.arm64*.a'))
+archives=[path for path in archives if ('.simulator.' in path.name)==(a.device=='simulator')]
+assert len(archives)==1,archives
 sdk_name='iphonesimulator' if a.device=='simulator' else 'iphoneos'
 sdk=subprocess.check_output(['xcrun','--sdk',sdk_name,'--show-sdk-path'],text=True).strip()
 # Keep the archive as the primary compilation artifact. Framework linkage is a
