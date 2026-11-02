@@ -24,7 +24,7 @@
 
 ## 待完成：按顺序推进
 
-- [ ] **VENDOR-01｜导入上游源码。** 将 Godot 4.6-stable 完整源码以单独提交导入 `Source/3rdParty/Godot`；保留原始文件内容、许可证与第三方声明，增加 `UPSTREAM.md` 和机器可读来源清单，并将目录标记为 vendored。
+- [x] **VENDOR-01｜导入上游源码。** 提交 `199c2c69c` 将 Godot 4.6-stable 完整源码导入 `Source/3rdParty/Godot`：上游 tag 对应 commit `89cea143987d564363e15d207438530651d943ac`，归档 SHA-256 为 `b451eaa1…57a0`。13,842 个上游路径逐项比较 Git mode/blob，缺失、额外和不一致均为 0；另加 `UPSTREAM.md/json` 两个来源文件，保留 MIT 许可证、完整第三方声明，并由既有 `Source/3rdParty/** linguist-vendored` 规则标记为 vendored。
 - [ ] **VENDOR-02｜固化 Dora 修改。** 把 `prepare.py`、`prepare_android.py`、`prepare_ios.py`、`prepare_web.py` 产生的修改转换为 vendor 树中的正常源码；按 bridge、平台入口、渲染共享、音频/输入/IME、WARP 兼容和上游修复拆分提交。转换后准备脚本不得再修改 Godot 源码。
 - [ ] **BASELINE-01｜建立 SCons 对照基线。** 从未修改的 vendor 工作树构建现有 macOS、Linux、Windows、Android、Web、iOS 运行库，记录命令、工具链、编译宏、生成文件、导出符号、动态依赖、包体和现有运行回归结果。
 - [ ] **XMAKE-01｜建立 Godot xmake 构建骨架。** 按 `core → drivers → servers → scene → modules → main/platform → dora_bridge` 组织 object/static targets；所有生成物写入构建目录，不污染 vendor 源码。
