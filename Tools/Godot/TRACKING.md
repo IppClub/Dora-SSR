@@ -27,6 +27,12 @@
 - [x] **VENDOR-01｜导入上游源码。** 提交 `199c2c69c` 将 Godot 4.6-stable 完整源码导入 `Source/3rdParty/Godot`：上游 tag 对应 commit `89cea143987d564363e15d207438530651d943ac`，归档 SHA-256 为 `b451eaa1…57a0`。13,842 个上游路径逐项比较 Git mode/blob，缺失、额外和不一致均为 0；另加 `UPSTREAM.md/json` 两个来源文件，保留 MIT 许可证、完整第三方声明，并由既有 `Source/3rdParty/** linguist-vendored` 规则标记为 vendored。
 - [x] **VENDOR-02｜固化 Dora 修改。** 提交 `58b79c23c`、`bef1e3912`、`be70d4912`、`34db79031`、`3233c3fc2`、`aafaa14cd` 分别固化通用 bridge/平台入口/渲染与音频输入、D3D12 WARP 兼容、嵌入稳定性修复、Android、iOS 和 Web 修改；`9f7c07ae1` 移除旧 `Tools/Godot/module` 副本并把构建及测试入口切到 vendor 树。四个 `prepare*.py` 兼容入口现为只读校验器，重复运行后 vendor 源码零变化；Web只读回归、17项包完整性测试和2/3/4缓冲CPU协议测试通过，未据此宣称平台编译或GPU验收。
 - [ ] **BASELINE-01｜建立 SCons 对照基线。** 从未修改的 vendor 工作树构建现有 macOS、Linux、Windows、Android、Web、iOS 运行库，记录命令、工具链、编译宏、生成文件、导出符号、动态依赖、包体和现有运行回归结果。
+  - [x] macOS arm64 Metal：vendor `template_release` 完整构建、封装、214项ABI和三缓冲动态回归通过；详细证据见 `PLAN.md` 的“2026-11-02 vendor SCons macOS 基线”。
+  - [ ] Linux x86_64/ARM64 EGL/OpenGL。
+  - [ ] Windows x64 WGL/OpenGL 与保留的 D3D12 编译边界。
+  - [ ] Android arm64 EGL。
+  - [ ] Web WebGL2/WASM。
+  - [ ] iOS simulator/device Metal 编译与既有能力拒绝边界。
 - [ ] **XMAKE-01｜建立 Godot xmake 构建骨架。** 按 `core → drivers → servers → scene → modules → main/platform → dora_bridge` 组织 object/static targets；所有生成物写入构建目录，不污染 vendor 源码。
 - [ ] **XMAKE-02｜迁移代码生成。** 由 xmake 驱动 Godot 版本、模块注册、ClassDB、扩展 API、Shader 和平台所需生成步骤；保留必要的上游 Python 生成器，并建立输入/输出依赖和增量重建测试。
 - [ ] **XMAKE-03｜macOS Metal 首个平台。** 先完成 macOS arm64、`template_release`、Metal、无编辑器、无 Mono、无 Vulkan/OpenGL 的原生 xmake 构建；通过 ABI、导出符号、动态依赖、包清单以及现有 2/3/4 缓冲和真实项目回归后，才关闭该平台的 SCons 生产路径。
