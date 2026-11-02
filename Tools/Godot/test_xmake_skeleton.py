@@ -41,7 +41,9 @@ def main() -> None:
     text = TARGETS.read_text(encoding="utf-8")
     declared = re.findall(r'name = "([^"]+)"', text)
     declared += re.findall(r'target\("([^"]+)"\)', text)
-    assert len(declared) == len(EXPECTED) and set(declared) == set(EXPECTED), (declared, EXPECTED)
+    # Platform blocks may reopen a target to append backend-specific link
+    # settings; validate the logical target set rather than raw occurrences.
+    assert set(declared) == set(EXPECTED), (declared, EXPECTED)
     assert 'path.join(os.projectdir(), "build/godot-xmake")' in text
     assert "Source/3rdParty/Godot" in text
     assert "has_config(\"dora_godot_runtime\")" in text

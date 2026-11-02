@@ -10,6 +10,8 @@ for name in ('app', 'library', 'project', 'output'):
     p.add_argument('--' + name, type=Path, required=True)
 p.add_argument('--upstream-commit', required=True)
 p.add_argument('--editor-sha256', required=True)
+p.add_argument('--editor-version', required=True)
+p.add_argument('--host-mode', choices=['debug', 'release', 'unknown'], default='unknown')
 a = p.parse_args()
 assert sys.platform == 'darwin'
 
@@ -61,6 +63,8 @@ try:
         'upstream_project': '2d/dodge_the_creeps',
         'upstream_commit': a.upstream_commit,
         'godot_editor_archive_sha256': a.editor_sha256,
+        'godot_editor_version': a.editor_version,
+        'host_mode': a.host_mode,
         'host_sha256': sha(source_binary),
         'runtime_sha256': sha(library),
         'controller_sha256': sha(template),
@@ -134,7 +138,7 @@ try:
 
     report = {
         'passed': True,
-        'scope': 'Unchanged official open-source Godot project in an ordinary Dora Release host on native macOS Metal; generated .godot imports are produced by the official matching editor. This is not other-platform, large-project, plugin, distribution-signing, physical audio, or performance acceptance.',
+        'scope': f'Unchanged official open-source Godot project in an ordinary Dora {a.host_mode} host on native macOS Metal; generated .godot imports are produced by the recorded official Godot editor version. This is not a claim that the editor and runtime versions match, nor other-platform, large-project, plugin, distribution-signing, physical audio, or performance acceptance.',
         'project': {'name': 'Dodge the Creeps', 'upstream_repository': artifacts['upstream_repository'],
                     'path': artifacts['upstream_project'], 'commit': a.upstream_commit,
                     'source_files_unchanged': True, 'generated_import_cache_used': True},

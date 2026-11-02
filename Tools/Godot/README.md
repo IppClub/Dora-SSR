@@ -100,7 +100,7 @@ python3 Tools/Godot/verify_package.py /absolute/path/to/runtime-package
 python3 Tools/Godot/tests/package_integrity.py
 ```
 
-macOS Release 运行库使用 `DORA_GODOT_TARGET=template_release Tools/Godot/build_runtime.sh`，开启 `optimize=speed`，输出至 `build/godot-runtime/release/package`，日志为 `build-release.log`；默认 Debug 包路径不变。`test_macos.sh` 同样接受该变量选择运行库。Release 运行库与 Release Dora 宿主需分别确认，不能仅凭运行库 target 推断宿主构建模式。
+macOS Release 运行库使用 `DORA_GODOT_TARGET=template_release Tools/Godot/build_runtime.sh`，由原生 xmake 目标以 `-O3`、Metal、macOS 11 最低版本构建，输出至 `build/godot-runtime/release/package`，日志为 `build-release.log`；默认 Debug 包暂保留 SCons 开发回退，不属于 Release 生产路径。`test_macos.sh` 同样接受该变量选择运行库。Release 运行库与 Release Dora 宿主需分别确认，不能仅凭运行库 target 推断宿主构建模式。
 
 已构建的独立 macOS 测试宿主可直接指定运行库验收：
 

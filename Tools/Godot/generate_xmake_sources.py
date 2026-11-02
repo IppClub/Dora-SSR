@@ -15,7 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 GODOT = ROOT / "Source/3rdParty/Godot"
-PROFILE = ROOT / "Projects/xmake/godot/template_release.json"
+DEFAULT_PROFILE = ROOT / "Projects/xmake/godot/template_release.json"
 
 
 class Node:
@@ -127,6 +127,7 @@ def generate(output: Path, profile: dict[str, object]) -> list[Path]:
     all_modules = {
         path.parent.name: f"modules/{path.parent.name}"
         for path in sorted((GODOT / "modules").glob("*/register_types.h"))
+        if not profile.get("register_enabled_only") or path.parent.name in enabled_modules
     }
     call(modules_builders.modules_enabled_builder, out("modules/modules_enabled.gen.h"), [Node(enabled_modules)])
     call(modules_builders.register_module_types_builder, out("modules/register_module_types.gen.cpp"), [Node(all_modules)])
@@ -191,10 +192,12 @@ def generate(output: Path, profile: dict[str, object]) -> list[Path]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, default=ROOT / "build/godot-xmake/generated")
+    parser.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
     args = parser.parse_args()
     output = args.output.resolve()
-    profile = json.loads(PROFILE.read_text(encoding="utf-8"))
-    inputs = [Path(__file__), PROFILE]
+    profile_path = args.profile.resolve()
+    profile = json.loads(profile_path.read_text(encoding="utf-8"))
+    inputs = [Path(__file__), profile_path]
     inputs += [path for path in GODOT.rglob("*.py") if path.is_file()]
     inputs += [path for suffix in ("*.glsl", "*.svg") for path in GODOT.rglob(suffix)]
     inputs += [
@@ -223,7 +226,7 @@ def main() -> None:
     payload = {
         "fingerprint": fingerprint,
         "generator": "Tools/Godot/generate_xmake_sources.py",
-        "profile": PROFILE.relative_to(ROOT).as_posix(),
+        "profile": profile_path.relative_to(ROOT).as_posix(),
         "inputs": len(set(inputs)),
         "outputs": [path.relative_to(output).as_posix() for path in outputs],
     }
