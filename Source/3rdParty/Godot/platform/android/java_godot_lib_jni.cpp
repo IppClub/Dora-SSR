@@ -71,6 +71,12 @@
 static JavaClassWrapper *java_class_wrapper = nullptr;
 static OS_Android *os_android = nullptr;
 static AndroidInputHandler *input_handler = nullptr;
+#include "modules/modules_enabled.gen.h"
+// Dora embedded Android ownership: upstream Java services, host-owned rendering.
+#ifdef MODULE_DORA_BRIDGE_ENABLED
+#include "modules/dora_bridge/android/embedded.h"
+#include "modules/dora_bridge/gl/display_server_dora_gl.h"
+#endif
 static GodotJavaWrapper *godot_java = nullptr;
 static GodotIOJavaWrapper *godot_io_java = nullptr;
 
@@ -88,7 +94,7 @@ static Vector3 gravity;
 static Vector3 magnetometer;
 static Vector3 gyroscope;
 
-static void _terminate(JNIEnv *env, bool p_restart = false) {
+static void _terminate(JNIEnv *env, bool p_restart = false, bool p_embedded_stopped = false) {
 	if (step.get() == STEP_TERMINATED) {
 		return;
 	}
@@ -109,7 +115,7 @@ static void _terminate(JNIEnv *env, bool p_restart = false) {
 	bool restart_on_cleanup = false;
 	if (os_android) {
 		restart_on_cleanup = os_android->is_restart_on_exit_set();
-		os_android->main_loop_end();
+		if (!p_embedded_stopped) os_android->main_loop_end();
 		Main::cleanup();
 		delete os_android;
 	}
@@ -139,6 +145,13 @@ static void _terminate(JNIEnv *env, bool p_restart = false) {
 	}
 }
 
+#ifdef MODULE_DORA_BRIDGE_ENABLED
+void DoraGodotAndroid::cleanup() {
+    _terminate(get_jni_env(), false, true);
+    prepared=false;
+}
+#endif
+
 extern "C" {
 
 JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_setVirtualKeyboardHeight(JNIEnv *env, jclass clazz, jint p_height) {
@@ -166,6 +179,9 @@ JNIEXPORT jboolean JNICALL Java_org_godotengine_godot_GodotLib_initialize(JNIEnv
 	NetSocketAndroid::setup(p_net_utils);
 
 	os_android = new OS_Android(godot_java, godot_io_java, p_use_apk_expansion);
+#ifdef MODULE_DORA_BRIDGE_ENABLED
+    DisplayServer::register_create_function("dora-gl", DisplayServerDoraGL::create, DisplayServerDoraGL::drivers);
+#endif
 
 	return true;
 }
@@ -199,6 +215,15 @@ JNIEXPORT jboolean JNICALL Java_org_godotengine_godot_GodotLib_setup(JNIEnv *env
 		}
 	}
 
+#ifdef MODULE_DORA_BRIDGE_ENABLED
+    bool dora_embedded=false;
+    for (int i=0;i+1<cmdlen;++i) {
+        if (strcmp(cmdline[i],"--display-driver")==0 && strcmp(cmdline[i+1],"dora-gl")==0) dora_embedded=true;
+    }
+#endif
+#ifdef MODULE_DORA_BRIDGE_ENABLED
+    DoraGodotAndroid::host_filesystem=dora_embedded;
+#endif
 	Error err = Main::setup(OS_Android::ANDROID_EXEC_PATH, cmdlen, (char **)cmdline, false);
 	if (cmdline) {
 		if (j_cmdline) {
@@ -218,6 +243,9 @@ JNIEXPORT jboolean JNICALL Java_org_godotengine_godot_GodotLib_setup(JNIEnv *env
 	TTS_Android::setup(p_godot_tts);
 
 	java_class_wrapper = memnew(JavaClassWrapper);
+#ifdef MODULE_DORA_BRIDGE_ENABLED
+    DoraGodotAndroid::prepared=dora_embedded;
+#endif
 	return true;
 }
 

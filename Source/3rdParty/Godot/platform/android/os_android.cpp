@@ -1,3 +1,7 @@
+#include "modules/modules_enabled.gen.h"
+#ifdef MODULE_DORA_BRIDGE_ENABLED
+#include "modules/dora_bridge/android/embedded.h"
+#endif
 /**************************************************************************/
 /*  os_android.cpp                                                        */
 /**************************************************************************/
@@ -103,7 +107,11 @@ void OS_Android::initialize_core() {
 #ifdef TOOLS_ENABLED
 	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_RESOURCES);
 #else
-	if (use_apk_expansion) {
+	if (use_apk_expansion
+#ifdef MODULE_DORA_BRIDGE_ENABLED
+        || DoraGodotAndroid::host_filesystem // Dora host filesystem resources
+#endif
+    ) {
 		FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_RESOURCES);
 	} else {
 		FileAccess::make_default<FileAccessAndroid>(FileAccess::ACCESS_RESOURCES);
@@ -115,7 +123,11 @@ void OS_Android::initialize_core() {
 #ifdef TOOLS_ENABLED
 	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_RESOURCES);
 #else
-	if (use_apk_expansion) {
+	if (use_apk_expansion
+#ifdef MODULE_DORA_BRIDGE_ENABLED
+        || DoraGodotAndroid::host_filesystem // Dora host filesystem resources
+#endif
+    ) {
 		DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_RESOURCES);
 	} else {
 		DirAccess::make_default<DirAccessJAndroid>(DirAccess::ACCESS_RESOURCES);

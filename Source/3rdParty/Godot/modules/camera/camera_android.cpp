@@ -904,6 +904,11 @@ int CameraFeedAndroid::normalize_angle(int p_angle) {
 }
 
 int CameraFeedAndroid::get_display_rotation() {
+    // Dora embedded orientation retains the upstream Android IO service.
+    if (DisplayServer::get_singleton()->get_name()=="dora-gl") {
+        auto *io=OS_Android::get_singleton()->get_godot_io_java();
+        ERR_FAIL_NULL_V(io,0);return io->get_display_rotation();
+    }
 	return DisplayServerAndroid::get_singleton()->get_display_rotation();
 }
 
