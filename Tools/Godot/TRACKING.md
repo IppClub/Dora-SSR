@@ -1,134 +1,69 @@
-# Godot / Dora 整合 1.0 清单
+# Godot / Dora vendor 与 xmake 迁移清单
 
-更新：2026-11-01。当前目标：冻结已有能力，完成修复与交付闭环，不再扩展功能。
-使用方法见 [README.md](README.md)；完整旧跟踪文档见 [历史归档](history/2026-10-29-pre-1.0/TRACKING.md)，详细实验和失败记录保留在 [PLAN.md](PLAN.md)。本页仅维护决策、已完成项和待完成项。
+更新：2026-11-02。当前目标：将固定版本的完整 Godot 源码纳入 Dora 仓库维护，把 LibGodot 构建逐平台迁移到 xmake，并为后续 Dora/Godot 第三方库复用建立可审计的构建基础。
 
-当前草稿 [PR #159](https://github.com/IppClub/Dora-SSR/pull/159) 的1.0候选head为`f3764dfe8`、tree为`6cb093d88`。该head的12个工作流全部success；Godot Integration产物离线复核通过。正式Linux双架构基包均不再携带旧`libstdc++`/`libgcc_s`，装入同候选运行库后的最终AppImage已完成包校验、随包动态验收和缺库安全回退。1.0范围内任务已收口；PR仍为草稿，合并、签名/公证和公开发布不包含在本清单内。
+使用方法见 [README.md](README.md)；截至 2026-11-01 的 1.0、多平台 direct-target、真实项目和 D3D12/WARP 进展已移入 [历史归档](history/2026-11-02-pre-vendor-xmake/TRACKING.md)。更早的原型记录见 [2026-10-29 归档](history/2026-10-29-pre-1.0/TRACKING.md)，详细实验和失败记录继续保留在 [PLAN.md](PLAN.md)。本页只维护当前决策、待办和验收门槛。
 
-## 1.0 范围（已确定）
+## 已确定的决策
 
-- 平台：macOS Apple Silicon、Windows x64、Linux x86_64/ARM64、Web、Android arm64；明确区分原生设备、虚拟机、模拟器与软件渲染的验证范围。普通Dora自身更宽的架构范围不因此缩减。
-- iOS：保留 Dora Apple2 / Godot Apple4 能力查询和安全拒绝；Apple4+ 正向共享暂不列入 1.0 支持承诺。
-- 项目：固定 Godot 4.6 与版本化桥接 ABI，GDScript 项目，目录及已验证的 PCK 加载形式。
-- 运行边界：单运行时、单项目、单活动 GodotNode；可保留多个 Sprite 纹理别名。运行库驻留至进程退出，不承诺切换不同项目或最终 shutdown 后重新初始化。
-- 功能：动态 GPU 画面共享，2/3/4 缓冲，暂停/恢复、场景重启、节点重建、异步 resize/cancel、基础输入、宿主 PCM 音频。
-- 语言：Lua/Teal/TypeScript、Rust、Wa。**移除 GodotNode 的 C# 绑定与专用测试入口；保留 Dora 原有 C# 功能。** 不引入隔离的 C# 生命周期方案；Godot .NET/Mono 项目脚本也不支持。
-- 恢复策略：Web context loss 已验证安全停止与页面重载恢复；原地设备恢复不在 1.0 承诺内。
-- 硬件覆盖按实测标注；用户于 2026-10-31 明确接受在缺少物理设备时以虚拟机/模拟器完成当前路线验收。报告仍须标明虚拟后端，不得扩张为物理 GPU、真实触摸或真实音频兼容结论。
-- 本地验收结束后清理任务进程并关闭本任务启动的虚拟机/模拟器，保留报告和截图，不关闭无法确认归属的实例。
+- [x] 完整 vendor 固定的 Godot 4.6-stable 源码，不使用 submodule；目标目录为 `Source/3rdParty/Godot`。
+- [x] Godot 上游版本、精确 commit、原始归档 SHA-256、导入日期、Dora 修改和许可证必须可追溯。
+- [x] 当前 `prepare*.py` 对上游源码的修改将固化到 vendor 树；`modules/dora_bridge` 成为 vendor 源码的一部分，不再依赖构建时字符串改写。
+- [x] 最终由 xmake 原生描述 Godot 的依赖图、源文件、编译选项和链接流程；Godot 必需的 Python 代码生成器可以继续由 xmake 调用。
+- [x] SCons 在迁移期间只作为行为基线和对照构建，按平台通过等价验收后再移除，不能在首个阶段直接删除。
+- [x] 不实现进程内 LibGodot 销毁后重新初始化。未来不同 Godot 工程的完整卸载与切换采用独立 Worker 进程边界。
+- [x] 不恢复 Godot C# / Mono 支持；Dora 原有 C# 功能保持不变。
+- [x] 第三方库共享必须逐库核对版本、补丁、编译宏、ABI、allocator、CRT、异常/RTTI、全局状态和许可证；vendor 与 xmake 统一本身不等于允许直接共用二进制。
+- [x] 既有 1.0 能力和兼容回退不得因构建迁移而缩减；虚拟机、模拟器、软件渲染和物理设备证据继续分开标注。
 
-## 已完成
+## 当前已完成
 
-- [x] Godot 进程内嵌入、版本化 C ABI、符号隔离；Metal/EGL/WGL/WebGL2 纹理共享与多缓冲同步。
-- [x] 动画、暂停/恢复、重启、节点移除重建、resize/cancel、纹理别名、竞争节点拒绝。
-- [x] 目录与导入资源 PCK；主场景、SceneTree、autoload 语义。基础键鼠/文本/触摸、控制器事件和 PCM 音频已有测试。
-- [x] macOS Apple Silicon 原生 Metal：优化 Release、多缓冲、38.36 分钟/216720 帧耐久、100 轮、普通应用随包/缺库及活动退出。
-- [x] Linux：ARM64 VM virgl/llvmpipe 与原生 x86_64 CI；Debug/普通优化 Release、多缓冲、100 轮、故障恢复、项目边界、随包/缺库和退出。最终修复副本双架构均完成动态随包/缺库验收；x86_64为QEMU用户态+llvmpipe，非物理显卡验收。
-- [x] Windows：ARM64 VM/x64 WGL；动态共享、输入/音频、普通 Release 多缓冲活动/启动中退出、随包/缺库。非物理 x64 显卡验收。
-- [x] Android：已有测试APK 2/3/4共3000帧/45图、IME/Home恢复；新增普通nondebuggable/R8 Release本地验收，SwiftShader 2/3/4与缺库共23图，Wasm trap后继续运行、PCM/GPU排空及Activity.finish完整退出通过。仅开发签名/模拟器，非生产签名或真机验收。
-- [x] Web：core与默认dora-preset双Release（原生诊断关闭）原四浏览器2/3/4完整矩阵通过；最终`b3cb54d5b`又从同候选Web输入重建Godot 4.6运行库、core和默认preset。最终core在Chromium/Firefox/WebKit/原生Safari完成12项，默认preset在Chromium完成3项，合计9300控制帧/180图/1650项像素检查，GPU/PCM排空和退出清理通过。
-- [x] 小型3D glTF双通道动画/空间Shader：macOS、Windows、Linux普通宿主通过，共18图，固定三缓冲。
-- [x] iOS Apple2 模拟器：普通 Dora 180帧/2图；Godot Apple4 能力查询和安全拒绝。simulator/device运行库构建与包清单已有验证。
-- [x] Lua/Teal/TS 与 Rust/Wa 接口、生成入口；Rust/Wa GPU和异步错误反馈已有实测；Wa Emit及Sprite转换注册修复已进入 PR。
-- [x] 可选运行库 v1 清单、来源/版本/文件/许可哈希校验与包校验正反例。
-- [x] PR #159 的9cfae189自身12工作流全部success；Linux产物249源文件、24报告、385图及10项离线复核通过。新增本地改动需下一候选自身CI。
-- [x] C# GodotNode 声明、托管类、类型注册和专用测试撤下；原始文件与实验记录归档。保留SDK和隔离重新生成的SDK均零警告/错误编译；Dora通用C#生成器修复和现有功能保留。
-- [x] 本轮CPU协议回归通过：ABI、多缓冲所有权、音频队列、GPU读者记账、着色器边界和Web队列关闭；不增加GPU运行验收。
+- [x] 原 1.0 与后续 direct-target 进展完整归档，当前跟踪页与历史证据分离。
+- [x] Godot 4.6-stable 源码规模已核对：13,842 个文件，其中 7,873 个 C/C++/Objective-C 源码及头文件；当前 Dora 公共准备脚本只直接修改少量上游文件并注入约 200 KB 的桥接模块。
+- [x] Dora 主构建已统一使用 xmake 3.x，并已有 `Source/3rdParty` 内多库的源码级 xmake 构建模式，可作为 Godot 迁移的组织基础。
 
-- [x] **FFI-01｜本地验收完成：失败模块对象所有权。** 按Wasm实例回收导出Object引用；旧宿主4对象泄漏与修复后0的对照、重复retain/部分release、真实Wa异常和独立Wasm trap通过。新运行库下Rust/Wa共2000帧/30图正常回归通过。Metal嵌入后端固定lazy着色器加载，避开实测的异步编译退出崩溃；跨平台新提交回归归CI-01。非Object类FFI堆分配不作全面无泄漏承诺。
+## 待完成：按顺序推进
 
-- [x] **RC-01｜候选整理完成。** C# Godot支持撤下、通用空栈修复、失败模块Object引用回收、Metal加载策略、3D/故障测试及CI归入单一隔离候选；排除无关缓存/3D改动。最终候选的协议、Dora C#保留能力、跨平台CI和交付形态均已验收。
+- [ ] **VENDOR-01｜导入上游源码。** 将 Godot 4.6-stable 完整源码以单独提交导入 `Source/3rdParty/Godot`；保留原始文件内容、许可证与第三方声明，增加 `UPSTREAM.md` 和机器可读来源清单，并将目录标记为 vendored。
+- [ ] **VENDOR-02｜固化 Dora 修改。** 把 `prepare.py`、`prepare_android.py`、`prepare_ios.py`、`prepare_web.py` 产生的修改转换为 vendor 树中的正常源码；按 bridge、平台入口、渲染共享、音频/输入/IME、WARP 兼容和上游修复拆分提交。转换后准备脚本不得再修改 Godot 源码。
+- [ ] **BASELINE-01｜建立 SCons 对照基线。** 从未修改的 vendor 工作树构建现有 macOS、Linux、Windows、Android、Web、iOS 运行库，记录命令、工具链、编译宏、生成文件、导出符号、动态依赖、包体和现有运行回归结果。
+- [ ] **XMAKE-01｜建立 Godot xmake 构建骨架。** 按 `core → drivers → servers → scene → modules → main/platform → dora_bridge` 组织 object/static targets；所有生成物写入构建目录，不污染 vendor 源码。
+- [ ] **XMAKE-02｜迁移代码生成。** 由 xmake 驱动 Godot 版本、模块注册、ClassDB、扩展 API、Shader 和平台所需生成步骤；保留必要的上游 Python 生成器，并建立输入/输出依赖和增量重建测试。
+- [ ] **XMAKE-03｜macOS Metal 首个平台。** 先完成 macOS arm64、`template_release`、Metal、无编辑器、无 Mono、无 Vulkan/OpenGL 的原生 xmake 构建；通过 ABI、导出符号、动态依赖、包清单以及现有 2/3/4 缓冲和真实项目回归后，才关闭该平台的 SCons 生产路径。
+- [ ] **XMAKE-04｜Linux EGL/OpenGL。** 迁移 Linux x86_64/ARM64 构建，保持无 X11/Wayland 宿主窗口、direct-target、兼容 blit 回退、运行库打包和 AppImage 集成行为。
+- [ ] **XMAKE-05｜Windows WGL/OpenGL。** 迁移 Windows x64 构建，保持符号隔离、WGL direct-target、输入/IME/音频和缺库安全回退；ARM64 Windows 不列入当前验收范围。
+- [ ] **XMAKE-06｜Android EGL。** 迁移 Android arm64 JNI 运行库及 Java/AAR 配套生成，保持 nondebuggable/R8 Release、Activity 生命周期、触摸/IME、Home 恢复和 direct-target 行为。
+- [ ] **XMAKE-07｜WebGL2/WASM。** 迁移 Web 静态运行库、Emscripten 链接和 JS glue，保持独立 Wasm heap、四浏览器矩阵、context loss 安全停止与页面重载恢复。
+- [ ] **XMAKE-08｜iOS Metal。** 迁移 simulator/device 静态库与 framework 打包，保持 Dora Apple2 / Godot Apple4 能力门槛和安全拒绝；Apple4 正向 GPU 共享仍需相应设备证据。
+- [ ] **XMAKE-09｜Windows D3D12。** 迁移保留的 D3D12 单后端构建；WARP CPU-fence 基线继续作为兼容性证据，物理 Windows GPU 和纯 GPU fence 仍单列验收。
+- [ ] **DEPS-01｜第三方库清单与冲突审计。** 生成 Dora、Godot 双方第三方库的版本、补丁、特性、许可证、符号和链接形态矩阵，先识别重复项，不在审计前改变运行库归属。
+- [ ] **DEPS-02｜低风险源码复用。** 优先评估纯 C、无跨边界对象所有权的库；每次只迁移一个库，分别验证静态复用、动态复用、包体、性能和跨进程代码页收益。
+- [ ] **DEPS-03｜高风险依赖隔离。** Godot 修改过的 bundled 库、暴露 C++ ABI、依赖特定 allocator/CRT 或含全局状态的库默认保持独立，除非有完整的双宿主回归和回退方案。
+- [ ] **CLEANUP-01｜移除旧准备与 SCons 生产路径。** 所有目标平台完成 xmake 等价验收后，删除下载归档、运行时源码改写和 SCons 生产入口；保留必要的上游同步工具、来源审计和历史复现说明。
+- [ ] **DOC-01｜更新用户和维护者文档。** 更新构建命令、可选运行库布局、源码与许可证说明、上游升级流程、第三方共享政策、Worker 边界以及故障排查入口。
 
-- [x] **DOC-01｜用户入口完成（本地）。** 提供可编辑2D/3D GDScript项目、共享Lua入口、桌面准备脚本与快速开始；说明运行库、语言/平台范围、异步错误和运行边界。普通macOS实际验收13图，动画/暂停/恢复、2D指针与退出通过；其他平台执行与最终包仍由对应交付任务验收。
+## 每个平台的完成门槛
 
-- [x] **AUDIO-01｜本地排查与修复完成。** 复现Android生产调度延迟叠加消费突发的512帧欠载；线程音频优先级配合6144帧有界预混音后，SwiftShader加三CPU负载的2/3/4共3000帧/45图零欠载，公开源码重建SO字节一致。macOS共享代码1000帧/15图回归通过，保持4096帧。Android预混音增加42.7ms；真机、最终APK和端到端延迟另验。历史旧日志无生产计时，保留其证据边界。
+- xmake 从干净 checkout 独立生成并构建，不读取旧 SCons 构建目录，也不修改 vendor 源码。
+- 编译器、SDK、目标架构、Godot feature flags、Dora bridge ABI 和图形后端与对照基线一致。
+- 导出符号、运行库动态依赖、许可证、manifest 和包内文件通过校验；二进制哈希不要求与 SCons 相同。
+- 现有 ABI/协议测试，以及该平台 2/3/4 缓冲、动画、暂停/恢复、输入、音频、resize、节点重建、退出排空和缺库回退全部通过。
+- 至少一个未经修改的真实 Godot 开源项目通过；测试设备和图形后端按实际证据标注。
+- xmake 失败、可选运行库缺失或后端不匹配时，普通 Dora 功能保持安全可用。
+- 本地验收完成后清理本任务启动的服务、模拟器和虚拟机，保留报告、截图、哈希及构建来源记录。
 
-## 1.0 收口任务（已完成）
+## 上游更新规则
 
-- [x] **EVIDENCE-01｜RC证据归档。** macOS、Windows、Web、Android、iOS能力拒绝及Linux双架构证据均已归档；新增`f3764dfe8` CI终态、Godot Integration产物、最终AppImage动态报告和统一`final-verification.json`。C#原型只保留历史记录。
-- [x] **CI-01｜RC自身回归。** `f3764dfe8`的12个工作流全部completed/success；Godot Integration run `40882737627`和Linux AppImage run `40882737733`通过。Linux EGL产物24份验证报告全部passed、444张PNG保留、JSON无失败标记。Linux CI使用llvmpipe，不替代物理GPU验收。
-- [x] **PKG-01｜最终交付包。** macOS arm64、Windows x64、Web、Android arm64及Linux ARM64/x86_64交付形态完成。最终Linux AppImage分别为`20e65d1a...6724`与`396dd667...f367`；宿主、运行库、ABI、manifest、许可和架构匹配，包内无`libstdc++`/`libgcc_s`。ARM64原生VM与x86_64 QEMU用户态均通过随包动画/GPU同步和缺库回退。Windows/Linux虚拟环境不替代物理显卡；本地签名不等于分发签名/公证。
-- [x] **WEB-01｜Web发布交付。** 最终候选的Godot 4.6 `template_release`、core和默认dora-preset均从隔离源码重建，Web相关输入与`b3cb54d5b`零差异；core完成四浏览器2/3/4，默认preset完成Chromium 2/3/4。部署响应头/MIME、输入、音频、失败、退出和重载沿用同一生产路径既有回归；报告见`build/godot-rc1-final-candidate-v6/web-verification.json`。不包含移动浏览器、物理音频回环或端到端延迟承诺。
-- [x] **ANDROID-01｜Android发布交付。** 从最终`b3cb54d5b`精确源码完整重建arm64普通nondebuggable/R8 Release；2/3/4缓冲与缺库共4项、23图全部通过，GPU 576/576、错误与PCM欠载均为0，包清单/许可/JNI一致。模拟器验收后已卸载应用并关闭，报告见`build/godot-rc1-final-candidate-v6/android-release-verification.json`。本地开发证书不计生产签名，真机覆盖单列。
-- [x] **RC-02｜冻结与验收。** 无已知范围内崩溃、死锁、同步或退出缺陷；核心、失败和生命周期回归通过，文档与证据对应同一RC。候选保持PR草稿；合并与公开发布另行执行。
+1. 上游更新先以独立提交导入，不与 Dora 功能修改混合。
+2. 更新来源清单、版本、commit、归档哈希、许可证和第三方声明差异。
+3. 重新应用或合并 Dora 修改，明确记录冲突和已被上游吸收的修复。
+4. SCons 尚未完全移除前先跑对照构建；之后以最近封存的 xmake 基线比较。
+5. 全平台编译通过不等于迁移完成，仍须满足各平台实际运行与交付门槛。
 
-## 后续版本：已完成的实验基础
+## 当前不纳入本迁移的工作
 
-- [x] **REALPROJECT-01｜官方开源项目原样运行。** 固定 Godot 官方 `godot-demo-projects` 提交 `52e3004465` 的 `2d/dodge_the_creeps`，用 SHA-256 校验的官方 Godot 4.6 编辑器生成导入缓存，项目源码不作修改。当前 `main` 重建的普通 macOS Release Dora 与 Metal 运行库通过启动、点击、持续动画、物理键InputMap、暂停/恢复、OGG 音频、移除和完整退出；玩家按D实测横移92.8像素，三缓冲完成440个生产帧、稳态零blit、GPU错误/待处理/PCM欠载均为0。测试发现并修复非D3D12后端未注册WARP私有阴影设置的警告，以及桥接键盘事件未填`physical_keycode`导致真实项目动作不响应的问题；原有逻辑键、焦点释放、控制器和双生命周期720帧回归继续通过。报告见 `build/godot-open-source-projects/{dodge-the-creeps-macos-v4,input-regression-current-v4b}/verification.json`；这是一项小型完整2D项目的原生macOS验收，不扩张为其他平台、中大型项目、插件或性能结论。
-
-- [x] **实验｜Windows 多张共享纹理直接渲染。** 新增仅由`DORA_GODOT_GL_DIRECT=1`启用的WGL原型：逐帧把Godot最终render target的颜色附件切换到Dora 2/3/4缓冲槽，直接发布GPU fence，不调用`glBlitFramebuffer`。Windows VM动态矩阵三项各1000帧，动画、暂停/恢复、输入、节点移除重建、三次resize、纹理别名和PCM通过；GPU错误/待处理/音频欠载均为0，日志确认`blits=0`。默认复制路径不变；该实验未进入1.0候选，也未验证物理Windows显卡或性能收益。
-
-- [x] **Windows 图形后端构建边界。** Godot和Dora桥接均保留WGL/D3D12源码，但每个宿主只编入一种桥接，启动后固定该图形后端，不同时创建两套运行时或支持热切换。WGL单后端宿主已完成2/3/4缓冲各1000帧动态回归；D3D12单后端x64宿主也已独立编译链接，配套运行库通过185项ABI检查和后端不匹配安全拒绝。物理机测试ZIP已生成并通过哈希、CRC、全新Windows解包与ABI复验；动态GPU验收仍受下一项硬件范围限制。
-
-## 1.0 之后：全平台 direct-target 优化路线
-
-以下任务严格按 `DIRECT-01 → DIRECT-02 → DIRECT-03 → DIRECT-04 → DIRECT-05 → DIRECT-06` 推进。目标是让 Godot 直接渲染到 Dora 管理的 2/3/4 缓冲纹理，消除稳态逐帧 GPU blit；它们不属于已冻结的 1.0 RC。
-
-- [x] **DIRECT-01｜通用 GL direct-target 与 Linux EGL。** WGL 的颜色附件替换、发布 fence 和统计已改为按 GL transport 能力启用的共用实现；Linux desktop EGL 可直接借用 bgfx 创建的 RGBA8 render-target，Android 与 Web 后续分别在 DIRECT-02/03 接入。Ubuntu ARM64/Parallels virgl 下 2/3/4 缓冲各完成 1000 帧，动画、暂停/恢复、输入、节点重建、三次 resize、纹理别名、PCM 与退出排空通过；全部 direct 会话记录 `blits=0`，GPU pending/error 与 PCM 欠载为 0。报告见 `build/godot-direct01-linux/direct-matrix/verification.json`；这是虚拟 GPU 证据，不冒充物理 Linux 显卡。
-- [x] **DIRECT-02｜Android EGL。** Android 已接入 DIRECT-01 共用实现；API 35 ARM64 模拟器上的普通 nondebuggable/R8 Release 已完成 2/3/4 完整矩阵，覆盖系统触摸/IME、同 PID Home 恢复、640×360/800×450/320×180 resize、2/3/4 个保留纹理别名、PCM 和完整退出，全部 `blits=0` 且 GPU/PCM 排空无错误。过程中修复了 Android window surface 重建后 EGL transport 恢复旧 surface 的问题；原生 2/3/4 surface-recreate 回归通过。报告见 `build/godot-direct02-android/release-full-matrix-v2/verification.json`；原报告如实保留 `physical_device=false` 与当时的 `direct02_accepted=false`，本项仅因用户后来明确接受虚拟设备验收而关闭，不改写成真机证据。真机交接包继续保留为可选扩展。
-- [x] **DIRECT-03｜WebGL2 direct-target。** 宿主 `WebGLTexture` 以独立对象名导入 Godot Wasm 并直接绑定最终颜色目标，生产桥默认启用，稳态只发布 fence；独立探针 2/3/4 各验证 360 帧 `direct_publications=360`、`blits=0`。Chromium 156、Firefox 153、Playwright WebKit 26.5 与重启后的 macOS 原生 Safari 26.6.2 均完成真实 Dora `GodotNode` 2/3/4 矩阵；Safari 汇总为 1860 控制帧、36 图、330 项像素检查、810 个 direct 完成帧，全部 `steady_state_blits=0`，GPU pending/error 与 PCM 欠载为 0。Chrome 的 2/3/4 context loss 安全停止及三缓冲页面重载恢复也通过。最终 Godot WASM SHA-256 为 `5892fbf4…dfa3`；Safari 报告见 `build/godot-web/direct-node-safari-matrix-after-reboot/verification.json`，其余见 `build/godot-web/direct-{runtime,node}-*` 与 `direct-context-loss-final-*`。
-- [x] **DIRECT-04｜Metal host-owned render targets。** Dora/bgfx 现创建带 RenderTarget 与 ShaderRead 用途的 RGBA8 `MTLTexture`，Godot 以 RenderingDevice 外部纹理导入并直接设为最终 render target；双向 `MTLSharedEvent` 管理生产与回收，稳态不再 blit。macOS Apple Silicon 的 2/3/4 缓冲各完成 1000 帧/15 图，覆盖 resize、双生命周期、2/3/4 个别名、输入/控制器、PCM 与排空；三缓冲另完成 196.75 秒、18720 帧耐久，全部 `steady_state_blits=0`、GPU 错误/待处理和 PCM 欠载为 0。iOS simulator 运行库、framework 与宿主已编译、链接、签名，Metal targets 扩展导出；Apple2 模拟器在启动前按 Apple4 门槛正确拒绝，`gpu_shared_output_verified=false`。本项按用户的虚拟设备口径关闭实现路线，但不宣称 iOS Apple4 共享画面、物理 GPU、真实触摸或真实音频通过。证据见 `build/godot-direct04-metal/` 与 `build/godot-ios/simulator/`。
-- [x] **DIRECT-05｜Windows D3D12 WARP CPU-fence 基线通过。** Windows 11 ARM64 26H2 Parallels VM 中，Godot 4.6 Forward Mobile 的片元阴影接收变体会使 ARM64 WARP 在首帧以 `0xc0000005` 崩溃；关闭镜面、改 Lambert、关闭环境光均不能规避，只有编译掉阴影接收路径可以稳定运行。显式 WARP 模式因此默认仅关闭阴影接收，保留逐像素漫反射、镜面和环境光；`vertex` 与 `none` 仅保留为诊断档，物理适配器不启用降级。共享纹理使用 `ALLOW_SIMULTANEOUS_ACCESS` 与隐式状态提升/衰减，避免跨设备显式 barrier。2/3/4缓冲各完成1000控制帧，两生命周期合计分别1242/1245/1245个生产帧且全部完成，覆盖动画、暂停/恢复、输入、场景重启、节点重建、640×360→800×450→320×180→640×360、2/3/4个保留纹理别名与完整退出，GPU错误为0。报告见 `build/godot-direct05-windows-arm64/warp-shadow-compat-20261101/evidence/`。这是WARP软件适配器与CPU等待证据；WARP阴影接收、双向纯GPU fence和物理Windows GPU仍未验收。
-- [x] **DIRECT-06｜旧 blit 路径收口。** 具备能力的 WGL/EGL/WebGL2 transport 现默认使用 direct-target；`DORA_GODOT_GL_DIRECT=0/blit` 保留为显式驱动兼容回退，`1/direct`与`auto`继续可用，旧 blit 未删除。Linux llvmpipe/virgl 的同场景2/3/4 A/B证明direct稳定消除全部blit；llvmpipe量得兼容blit约71.7 μs/次，virgl错误timer值会被拒绝。当前Android运行库 `886152cc…e379` 的普通nondebuggable Release在API35 ARM64模拟器以“变量未设置”的默认策略完成2/3/4完整矩阵，共763个生产帧、零blit，触摸/IME/Home/resize/别名/PCM/退出全部通过；显式blit三缓冲另完成199帧且排空无错。当前Web WASM `aee23982…9ab4` 在Chrome156、Firefox153、Playwright WebKit26.5完成真实Dora GodotNode 2/3/4矩阵，全部零blit、GPU/PCM排空无错；Safari与context-loss沿用DIRECT-03已通过且本轮未改动的生产路径。WGL本轮因用户明确排除ARM64 Windows不重跑动态矩阵，保留既有2/3/4×1000帧证据，并以当前源码x64 COFF编译与共享策略单测收口；不宣称新的Windows GPU实测。报告见 `build/godot-direct06-{linux-ab-v4-timer,android,web}/`；D3D12维持范围外。
-
-## 其他未覆盖边界
-
-- [ ] 物理Linux显卡、移动浏览器、物理移动设备及物理控制器兼容性矩阵（非当前路线阻塞项）。
-- [ ] 完整IME composition/候选窗口、旋转/多点触控、锁屏/来电/复杂前后台、真实浏览器后台策略。
-- [ ] device/context loss原地恢复、控制器热插拔/震动/多手柄。
-- [ ] 中大型项目、更复杂资源与插件/GDExtension、更多PCK/导出形式；真实开源项目的其他平台矩阵、长期复杂混音与端到端延迟、统一GPU/内存/性能基线。
-- [ ] 多运行时、多活动节点、不同项目切换、运行库卸载和最终关闭后重初始化。
-
-## 关键证据入口
-
-路径相对于仓库；build/本地证据不保证随源码分发。历史证据完整索引见归档。
-
-- `build/godot-runtime/release-optimized-soak-216000/verification.json`
-- `build/godot-direct01-linux/direct-matrix/verification.json`
-- `build/godot-runtime/godot-remote-ci-9297c4b-terminal.json`
-- `build/godot-remote-ci/9297c4b/linux-egl/report/godot-runtime/{ci-linux,ci-linux-release}/verification.json`
-- `build/godot-windows/release-stop-completed/{verification,export-verification}.json`
-- `build/godot-runtime/android-release-ime-window-matrix/verification.json`
-- `build/godot-web/safari-dpi-matrix/verification.json`
-- `build/godot-project-3d-platforms-v2/verification.json`
-- `build/godot-bindings-async-error-evidence/verification.json`
-- `build/godot-bindings-wa-sprite-cast-red-clean/node-wa/reproduction.json`
-- `build/godot-rc1-no-csharp/scope-verification.json`
-- `build/godot-remote-ci/9297c4b/linux-egl/download-verification.json`
-- `build/godot-remote-ci/9cfae189/linux-egl/download-verification.json`
-- `build/godot-remote-ci/480b3739d/linux-egl/download-verification.json`
-- `build/godot-runtime/rc1-scope-protocol/verification.json`
-- `build/godot-ffi-owner-fix/verification.json`
-- `build/godot-rc1-candidate-final/{verification,publication,remote-initial}.json`
-- `build/godot-user-examples/verification.json`
-- `build/godot-audio-rc1-investigation/verification.json`
-- `build/godot-rc1-delivery/android-release-verification.json`
-- `build/godot-rc1-web-delivery/release-verification.json`
-- `build/godot-rc1-web-delivery/preset-release-verification.json`
-- `build/godot-rc1-final-candidate-v2/macos-package-layout-verification.json`
-- `build/godot-rc1-final-candidate-v2/macos-zip-runtime-verification/verification.json`
-- `build/godot-rc1-final-candidate-v4/linux-arm64-evidence/{package-verification,runtime-verification}.json`
-- `build/godot-rc1-final-candidate-v4/linux-x86_64-evidence/{static-verification,verification}.json`
-- `build/godot-rc1-final-candidate-v4/windows-x64-evidence/{static-verification,verification,provenance}.json`
-- `build/godot-rc1-final-candidate-v5/{candidate,publication}.json`
-- `build/godot-rc1-final-candidate-v5/macos-arm64-evidence/{provenance,package-verification,fresh-package-verification}.json`
-- `build/godot-rc1-final-candidate-v5/windows-x64-evidence/{provenance,static-verification,ordinary-evidence/verification}.json`
-- `build/godot-rc1-final-candidate-v6/{candidate,publication,web-verification}.json`
-- `build/godot-rc1-final-candidate-v6/web-{core,preset}-*-matrix/verification.json`
-- `build/godot-rc1-final-candidate-v6/android-release-verification.json`
-- `build/godot-rc1-final-candidate-v6/linux-appimage-artifacts/ci-appimage-audit.json`
-- `build/godot-rc1-final-candidate-v6/linux-appimage-artifacts/f376-ci-appimage-audit.json`
-- `build/godot-remote-ci/f3764dfe8/linux-egl/runtime-package-verification.json`
-- `build/godot-rc1-final-candidate-v6/linux-appimage-artifacts/f376-final-godot/verification.json`
-- `build/godot-rc1-final-candidate-v6/linux-appimage-artifacts/f376-final-godot/evidence/{aarch-verification,x86-verification}/verification.json`
-- `build/godot-rc1-final-candidate-v6/final-verification.json`
-- `build/godot-rc1-final-candidate-v6/linux-appimage-artifacts/godot-enabled/aarch64/verification.json`
-- `build/godot-rc1-final-candidate-v6/linux-appimage-artifacts/godot-enabled/x86_64/verification.json`
-- `build/godot-direct-shared-prototype/verification.json`
-- `build/godot-wgl-current/verification.json`
-- `build/godot-d3d12-physical/verification.json`
-- `build/godot-direct04-metal/macos-{2,3-v4,4}/verification.json`
-- `build/godot-direct04-metal/macos-soak-3-18000/verification.json`
-- `build/godot-open-source-projects/dodge-the-creeps-macos-v4/verification.json`
-- `build/godot-open-source-projects/input-regression-current-v4b/verification.json`
-- `build/godot-direct04-metal/ios-simulator-apple4-rejection/unsupported-gpu.json`
+- 进程内 LibGodot 重初始化。
+- Godot C# / Mono 项目支持。
+- 多个同时活动的 Godot Worker 或多个同时活动的 GodotNode。
+- 未经审计的一次性全量第三方库合并。
+- 以虚拟 GPU、软件渲染或模拟器结果替代物理设备兼容性声明。
