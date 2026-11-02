@@ -25,6 +25,7 @@ end
 includes("Projects/xmake/dependencies/host_tools.lua")
 includes("Projects/xmake/dependencies/native_runtime.lua")
 includes("Projects/xmake/dependencies/vendor.lua")
+includes("Projects/xmake/godot/targets.lua")
 includes("Projects/xmake/rules/generated_lua.lua")
 if is_plat("wasm") then
     includes("Projects/xmake/web/targets.lua")

@@ -2854,3 +2854,21 @@ Godot Android Thread平台hook只有JNI attach/detach，未设置priority；现�
 - 同一 vendor 树在启用Rosetta的Ubuntu ARM64 VM中以 `x86_64-linux-gnu-gcc/g++/ar/ranlib` 完成 x86_64 `template_release` 标准模块交叉构建，用时44分53.54秒。密封运行库为 x86-64、82,568,264字节，SHA-256 `c27b552c…35847`；manifest 为 `98b24b56…6812f`，依赖为x86_64系统EGL/GLESv2/libm/libc/动态加载器，仍只导出6项 bridge ABI。当前源码的 x86_64 Dora Debug 测试宿主也完成完整交叉构建，包含测试入口，421,305,696字节、SHA-256 `ba781fcf…d1fe`。
 - Rosetta实际启动 x86_64 当前宿主并到达 bgfx EGL 函数装载，但 Mesa llvmpipe 的 x86_64 LLVM AOT 映像被 Rosetta 以 `AOT header specified too many segments` 在Godot场景启动前拒绝；强制 Mesa `softpipe` 仍由同一驱动包加载该LLVM映像并得到相同结果。失败日志分别为 `build/godot-vendor-migration/linux-x86_64-rosetta-{node,softpipe-node}/run.log`，均不计动态通过。由此关闭本次 SCons 对照基线的双架构编译、包、符号和依赖记录，但 x86_64 动态画面与物理GPU仍须在原生x86_64环境补验；后续 `XMAKE-04` 也必须重新用 xmake 产物满足这一边界。
 - 测试期间首次误用了旧普通ARM64宿主，导致180秒超时；日志检查确认其未执行Godot测试入口，精确终止遗留Dora/Xvfb后改用新测试宿主，正式回归通过，未把该失败计作运行库失败。Rosetta VM的任务级离线xmake仓库与既有Rust缓存仅用于宿主构建，修改过的全局xmake配置在关机前按备份原样恢复。最终 Ubuntu ARM64、Ubuntu Rosetta 与 Windows 三台Parallels VM均为 `stopped`，无遗留Dora、Xvfb、xmake、SCons或rustup进程，`git status` 在文档更新前为空。
+
+### 2026-11-02 vendor SCons Windows 基线环境阻塞
+
+- 启动既有 Parallels `Windows 11` VM 后，系统进入自动修复并报告无法修复，日志位置为 `E:\WINDOWS\System32\Logfiles\Srt\SrtTrail.txt`。恢复环境未接收普通 GUI 键盘事件，改用 Parallels 官方 `prlctl send-key-event --scancode 28` 后成功进入“更多恢复选项”；只选择了默认高亮的“继续，退出并继续使用 Windows”，没有执行快速恢复、疑难解答、重置、重装或磁盘修改。
+- 选择继续后虚拟机持续黑屏，`prlctl exec` 在30秒内仍无法通过 Parallels Tools 执行 `cmd.exe /c ver`。因此本轮无法取得当前 vendor 树的 Windows x64 WGL/D3D12 编译或动态证据；该结果仅说明既有 VM 启动环境不可用，不归因于 Godot、Dora bridge 或 D3D12 实现。`BASELINE-01` 的 Windows 子项保持未完成，且没有执行用户已排除的 Windows ARM64 目标测试。
+
+### 2026-11-02 XMAKE-01 Godot 原生构建骨架
+
+- 根构建新增默认关闭的 `dora_godot_runtime` 选项，并引入 `Projects/xmake/godot/targets.lua`。目标图按迁移顺序拆成 `godot-core`、`godot-drivers`、`godot-servers`、`godot-scene`、`godot-modules`、`godot-main-platform`、`godot-dora-bridge` 七个 object target，以及最终 `godot-runtime` static target；依赖链显式串联，避免未来依靠目录通配隐式决定初始化和链接顺序。
+- 所有目标均默认不参与 Dora 普通构建；最终运行库还要求显式 `--dora_godot_runtime=y`。对象目录固定为 `build/godot-xmake/objects/<target>`，库目录固定为 `build/godot-xmake/lib`，后续代码生成根目录固定为 `build/godot-xmake/generated`，vendor 源码目录只作为输入和 include root。
+- `python3 Tools/Godot/test_xmake_skeleton.py` 最初逐项检查八个运行时目标、七条依赖和输出路径；XMAKE-02 加入前置 codegen 后，当前结果为 `validated 9 Godot xmake targets; vendor tree unchanged`。`git diff --check` 通过。该证据只关闭 XMAKE-01 的目标图和输出隔离，不把空骨架冒充可链接运行库；源文件清单、平台宏与实际编译从 XMAKE-03 起分别验收。
+
+### 2026-11-02 XMAKE-02 Godot 代码生成迁移
+
+- 新增 `godot-codegen` phony target，作为 `godot-core` 的前置依赖，由 xmake 查找 Python 3 并调用 `Tools/Godot/generate_xmake_sources.py`。生成器不导入 SCons，也不把文件写回 vendor 树；所有镜像路径均位于 `build/godot-xmake/generated`，使既有 `#include "core/...gen.h"` 等路径可在后续编译阶段通过独立 include root 解析。
+- `Projects/xmake/godot/template_release.json` 固定当前无 Mono 的标准运行时模块集合。生成器复用 Godot 上游 `core_builders`、extension/GDVirtual、module/platform、theme、GLES3 和 RD GLSL builder；SMAA 二进制头保持上游格式。输入内容指纹覆盖 profile、驱动脚本、上游 Python builder、GLSL、SVG、版本/许可文本、控制器库、GDExtension JSON、字体/图片/证书等输入；只有指纹变化、状态缺失或任一输出缺失时才重建。
+- 从当前 SCons vendor 基线枚举出143个 `.gen.h/.gen.cpp/.gen.inc` 文件；xmake生成目录也产生143个相同相对路径，逐文件 SHA-256 比较结果为143/143完全一致、无缺失、无额外文件。该对比同时覆盖版本、模块注册、平台API、GDVirtual/ClassDB包装、GDExtension、GLES3、RD shader及主题资源。
+- `python3 Tools/Godot/test_xmake_codegen.py` 使用独立 `XMAKE_CONFIGDIR` 配置 macOS arm64 release、显式启用 `dora_godot_runtime` 并两次强制执行 `xmake build godot-codegen`；第二次报告 `Godot xmake codegen unchanged: 143 outputs`，全部生成物的mtime与size保持不变。`test_xmake_skeleton.py` 随新增codegen前置目标更新为9目标验证并继续确认vendor树零修改。由此关闭XMAKE-02；源文件清单、编译选项、平台SDK和最终链接尚未迁移，不计入本项。

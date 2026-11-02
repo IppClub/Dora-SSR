@@ -48,6 +48,12 @@ option("dora_music")
     set_description("Build music support")
 option_end()
 
+option("dora_godot_runtime")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Enable the experimental vendored Godot runtime xmake graph")
+option_end()
+
 option("dora_web_pthreads")
     set_default(false)
     set_showmenu(true)
