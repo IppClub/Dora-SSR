@@ -31,7 +31,7 @@
   - [ ] Linux x86_64/ARM64 EGL/OpenGL。
   - [ ] Windows x64 WGL/OpenGL 与保留的 D3D12 编译边界。
   - [ ] Android arm64 EGL。
-  - [ ] Web WebGL2/WASM。
+  - [x] Web WebGL2/WASM：vendor `template_debug` 运行库与当前 Dora Web 宿主完成构建；Chrome 156 实际执行 2/3/4 缓冲矩阵，每档620控制帧、12张合成截图，direct-target 稳态 blit、GPU pending/error 和 PCM underrun 均为0。此次基线未重跑 Firefox/WebKit/Safari；详细证据见 `PLAN.md` 的“2026-11-02 vendor SCons Web 基线”。
   - [x] iOS simulator/device Metal：vendor `template_debug` 静态库与 framework 均完成编译、链接、6项导出和 ad-hoc 签名检查；模拟器 Dora 宿主实际启动并在 Godot 初始化前按 Apple2 / Apple4 门槛正确拒绝，随后卸载应用并关闭模拟器。该结果不宣称 Apple4 GPU 共享通过；详细证据见 `PLAN.md` 的“2026-11-02 vendor SCons iOS 基线”。
 - [ ] **XMAKE-01｜建立 Godot xmake 构建骨架。** 按 `core → drivers → servers → scene → modules → main/platform → dora_bridge` 组织 object/static targets；所有生成物写入构建目录，不污染 vendor 源码。
 - [ ] **XMAKE-02｜迁移代码生成。** 由 xmake 驱动 Godot 版本、模块注册、ClassDB、扩展 API、Shader 和平台所需生成步骤；保留必要的上游 Python 生成器，并建立输入/输出依赖和增量重建测试。

@@ -2831,3 +2831,10 @@ Godot Android Thread平台hook只有JNI attach/detach，未设置priority；现�
 - 两类归档均成功链接为 `DoraGodot.framework`，只导出版本化 ABI 的6项符号；Mach-O 平台分别为 `IOSSIMULATOR` 与 `IOS`，最低系统版本均为 iOS 14，并完成 ad-hoc 签名、许可证和包清单校验。模拟器 framework 二进制 SHA-256 为 `16cd5235…9d7c`，设备 framework 为 `16dbae52…d1d6`；编译、链接及 manifest 证据保存在 `build/godot-ios/{simulator,device}/`。
 - 当前工作树 Dora 模拟器宿主完成全量 Debug 构建，原始宿主 SHA-256 为 `092a57bf…c2e9`，包内已确认隔离测试入口、原生测试控制器、间接鼠标声明和 `IOSSIMULATOR`/iOS 14 元数据。专用 iOS 26.5 模拟器实际安装并启动宿主后，在 Godot 初始化前按 Dora Apple2 / Godot Apple4 门槛返回 `result=2`、零截图；`build/godot-vendor-migration/ios-simulator-apple4-rejection/unsupported-gpu.json` 记录 `rejected_as_expected=true`、`gpu_shared_output_verified=false`。
 - 测试后已卸载 `org.ippclub.dorassr.godotprototype.ios` 并确认专用模拟器回到 `Shutdown`。该证据关闭 `BASELINE-01` 的 iOS 编译、封装和既有能力拒绝子项，但不证明 Apple4 iOS 设备上的 Metal 共享画面、物理触摸或音频兼容，也不等于 xmake 原生 Godot 构建已经实现。
+
+### 2026-11-02 vendor SCons Web 基线
+
+- vendor 树以 Emscripten `5.0.5-git`、SCons 4.11.1 完成 Web wasm32 `template_debug` 标准模块静态运行库构建，启用 threads/WebGL2，关闭 dynamic linking、Vulkan、LTO 和调试符号。密封包通过 manifest、版本、ABI、许可证与逐文件哈希检查；`dora-godot.js` 为500,169字节、SHA-256 `2afe1238…5f6`，`dora-godot.wasm` 为109,454,866字节、SHA-256 `98b32e4d…4fe7`，证据位于 `build/godot-vendor-migration/web/{compilation.json,package/manifest.json}`。
+- Dora Web core Debug 宿主使用同一密封运行库重新构建，宿主 JS/WASM 分别为594,776/145,423,257字节，SHA-256 为 `679be6c7…2a03` 与 `01287fab…30b4`。首次矩阵在打开浏览器前因本机 Node 搜索路径缺少 Playwright 模块而停止；改为显式使用 Codex 隔离运行时中的 Playwright 后执行，未修改源码或复用旧宿主。
+- Chrome 156.0.8078.79、WebGL2、cross-origin isolation 下，真实 Dora `GodotNode` 2/3/4 缓冲各完成620控制帧与12张合成截图，像素检查分别为94/110/126项。每档覆盖动画、暂停/恢复、输入与焦点释放、控制器、重启、resize、等量保留别名、节点移除重建、PCM和退出排空；两生命周期 direct publication 分别为484和114，稳态 blit为0，GPU pending/error与PCM underrun均为0。聚合报告为 `build/godot-vendor-migration/web-node-chromium/verification.json`。
+- 该证据关闭 `BASELINE-01` 的 Web 编译及当前浏览器动态基线子项，但本轮未重跑 Firefox、Playwright WebKit、原生 Safari或context-loss；这些能力仍由迁移前历史报告承担，后续 xmake Web 平台验收必须用 xmake 产物重新执行相应矩阵。
