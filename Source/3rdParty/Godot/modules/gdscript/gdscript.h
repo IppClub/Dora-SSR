@@ -589,6 +589,7 @@ public:
 	virtual String get_type() const override;
 	virtual String get_extension() const override;
 	virtual void finish() override;
+	void reset_embedded_project();
 
 	/* EDITOR FUNCTIONS */
 	virtual Vector<String> get_reserved_words() const override;

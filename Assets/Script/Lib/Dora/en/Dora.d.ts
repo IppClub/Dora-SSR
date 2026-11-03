@@ -8548,6 +8548,10 @@ class GodotNode extends Sprite {
     readonly lastError: string;
     readonly running: boolean;
     readonly paused: boolean;
+    /** True only after project reset has been acknowledged on the logic thread. */
+    readonly unloaded: boolean;
+    /** Removes the node. Callback follows GPU/audio drain and project reset; unsupported/unsafe resets return false with a reason. */
+    unloadAsync(callback: (this: void, ok: boolean, error: string) => void): void;
     /** Committed native pixel size; asynchronous resize updates this after texture publication. */
     readonly viewportSize: Size;
     pause(): void;

@@ -79,6 +79,8 @@ public:
 	static void test_cleanup();
 #endif
 	static int start();
+	// Dora project lifetime only; engine singleton lifetime is unchanged.
+	static void delete_embedded_main_loop();
 
 	static bool iteration();
 	static void force_redraw();

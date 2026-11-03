@@ -40,7 +40,7 @@ After an authorized Dora source change, generate a proposal with the same
 command plus `--propose` into a fresh directory. Inspect `proposal.json` and
 `delta.patch`, update `SOURCE_DELTA.json` to the reviewed proposal, and rerun the
 normal audit. Proposal mode produces no passed verification report. The current
-registry keeps 35 modified and 42 added files (including import metadata), with
+registry keeps 47 modified and 44 added files (including import metadata), with
 no removed upstream files. Source/patch correctness, licenses of external SDKs,
 ABI, actual builds and runtime acceptance remain separate checks.
 

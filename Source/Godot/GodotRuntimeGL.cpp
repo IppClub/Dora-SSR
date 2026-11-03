@@ -412,6 +412,7 @@ public:
             activeSession.reset();
         }
         _handle=nullptr; clientReserved=false;
+        completeClose(false,"Project switching is not implemented in this backend");
     }
     void encode(uint32_t frame,bool end) {
         if (!end) {

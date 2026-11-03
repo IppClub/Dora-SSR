@@ -861,6 +861,44 @@ Error ProjectSettings::_setup(const String &p_path, const String &p_main_pack, b
 	return OK;
 }
 
+void ProjectSettings::reset_embedded_project() {
+	// Preserve engine-registered defaults, discard all settings supplied by the
+	// old project (including custom features, autoloads and global class cache).
+	Vector<StringName> erase;
+	for (KeyValue<StringName, VariantContainer> &entry : props) {
+		if (entry.value.order < NO_BUILTIN_ORDER_BASE) {
+			entry.value.variant = entry.value.initial.duplicate(true);
+			entry.value.persist = false;
+		} else {
+			erase.push_back(entry.key);
+		}
+	}
+	for (const StringName &name : erase) {
+		props.erase(name);
+		custom_prop_info.erase(name);
+	}
+	last_order = NO_BUILTIN_ORDER_BASE;
+	last_save_time = 0;
+	resource_path = String();
+	using_datapack = false;
+	project_loaded = false;
+	custom_features.clear();
+	feature_overrides.clear();
+	// Built-in platform overrides remain engine defaults, even when the next
+	// project does not explicitly list them in its configuration file.
+	for (const KeyValue<StringName, VariantContainer> &entry : props) {
+		const Vector<String> parts = String(entry.key).split(".");
+		for (int i = 1; i < parts.size(); ++i) {
+			feature_overrides[parts[0]].push_back(Pair<StringName, StringName>(parts[i].strip_edges(), entry.key));
+		}
+	}
+	autoloads.clear();
+	global_groups.clear();
+	scene_groups_cache.clear();
+	global_class_list.clear();
+	is_global_class_list_loaded = false;
+}
+
 Error ProjectSettings::setup(const String &p_path, const String &p_main_pack, bool p_upwards, bool p_ignore_override) {
 	Error err = _setup(p_path, p_main_pack, p_upwards, p_ignore_override);
 #ifdef OVERRIDE_ENABLED

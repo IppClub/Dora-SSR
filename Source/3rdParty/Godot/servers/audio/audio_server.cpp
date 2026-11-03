@@ -1623,6 +1623,29 @@ void AudioServer::update() {
 	bus_details_graveyard_frame_old.maybe_cleanup();
 }
 
+void AudioServer::reset_embedded_project() {
+	// Normal stop fades a stream out during a later mix step. That step must
+	// never be emitted into the next project's PCM queue. Remove those pending
+	// playbacks and the partially consumed bus block at this lifetime boundary.
+	lock();
+	for (AudioStreamPlaybackListNode *playback : playback_list) {
+		_delete_stream_playback_list_node(playback);
+	}
+	to_mix = 0;
+	unlock();
+	playback_list.maybe_cleanup();
+	for (AudioStreamPlaybackBusDetails *details : bus_details_graveyard_frame_old) {
+		bus_details_graveyard_frame_old.erase(details, [](AudioStreamPlaybackBusDetails *p) { delete p; });
+	}
+	for (AudioStreamPlaybackBusDetails *details : bus_details_graveyard) {
+		bus_details_graveyard.erase(details, [](AudioStreamPlaybackBusDetails *p) { delete p; });
+	}
+	bus_details_graveyard.maybe_cleanup();
+	bus_details_graveyard_frame_old.maybe_cleanup();
+	set_bus_layout(Ref<AudioBusLayout>(memnew(AudioBusLayout)));
+	set_playback_speed_scale(1.0);
+}
+
 void AudioServer::load_default_bus_layout() {
 	String layout_path = GLOBAL_GET("audio/buses/default_bus_layout");
 

@@ -6,7 +6,7 @@
 
 **Class Object:** [GodotNode Class](/docs/api/Class%20Object/GodotNode).
 
-This API is experimental. Apple Silicon macOS Metal, Linux ARM64 EGL (Mesa virgl), and Windows WGL (x64 process on Parallels Windows 11 ARM64) have passed native node GPU tests. Android API35 ARM64 emulator tests also passed shared EGL textures, 2/3/4 buffers, animation, resize, shader time, GPU particles and source-driven output. Android uses optional upstream Java services and a matching source-built native runtime; physical devices remain unverified. A matching native runtime library is required. The current implementation permits one active node and one process-owned project. Removing and recreating a node keeps that runtime and its autoloads alive until application exit.
+Apple Silicon macOS Metal, Linux ARM64 EGL (Mesa virgl), and Windows WGL (x64 process on Parallels Windows 11 ARM64) have passed native node GPU tests. Android API35 ARM64 emulator tests also passed shared EGL textures, 2/3/4 buffers, animation, resize, shader time, GPU particles and source-driven output. Android uses optional upstream Java services and a matching source-built native runtime; physical devices remain unverified. A matching native runtime library is required. The implementation permits one active node. On macOS Metal, node cleanup unloads project state by default while retaining LibGodot, so a later node can load another project. Other backends still retain the process-owned project and its autoloads until application exit. See `Tools/Godot/PROJECT_SWITCH.md` for compatibility limits.
 
 iOS integration requires Apple4 or newer Metal GPU capabilities. The current Apple simulator exposes an Apple2 profile and cannot run Godot’s required cube-map texture arrays. Its fail-fast capability rejection is tested separately and is not a shared-output GPU pass.
 
@@ -23,7 +23,26 @@ All fields below are read-only.
 | lastError | string | Most recently reported runtime error; empty when none has been reported. |
 | running | boolean | Whether asynchronous startup has finished and the node is active. |
 | paused | boolean | Requested scene pause state. |
+| unloaded | boolean | Project reset completed successfully; running=false alone is not an unload acknowledgement. |
 | viewportSize | Size | Committed physical output texture size. Updates when a new output allocation is published. |
+
+## unloadAsync
+
+```tl
+unloadAsync: function(self: GodotNode, callback: function(ok: boolean, error: string))
+```
+
+Remove the node and await native project unloading. The callback runs on the logic
+thread after GPU readers, PCM production, project cleanup and the single-client
+reservation have been released. `unloaded` becomes true on success. Repeated
+callers, including callers after completion, receive the same result asynchronously.
+
+Project reset is enabled by default with the matching macOS Metal lifecycle
+extension. No experimental environment variable is required. Older runtimes and unsupported
+backends return false with a reason after client cleanup. A false result must not
+be used to start a different project. The Lua `GodotPlayer` module serializes
+switch/unload requests using this acknowledgement. Application exit does not
+promise delivery of queued callbacks after the logic loop has stopped.
 
 ## pause / resume
 

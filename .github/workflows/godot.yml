@@ -3,10 +3,10 @@ name: Godot Integration
 on:
   push:
     branches: [main]
-    paths: ['Source/**', 'Tools/Godot/**', 'Tools/tolua\+\+/**', 'Projects/xmake/**', 'xmake.lua', '.github/workflows/godot.yml']
+    paths: ['Source/**', 'Tools/Godot/**', 'Tools/tolua\+\+/**', 'Projects/xmake/**', 'Assets/Script/Lib/GodotPlayer*', 'xmake.lua', '.github/workflows/godot.yml']
   pull_request:
     branches: [main]
-    paths: ['Source/**', 'Tools/Godot/**', 'Tools/tolua\+\+/**', 'Projects/xmake/**', 'xmake.lua', '.github/workflows/godot.yml']
+    paths: ['Source/**', 'Tools/Godot/**', 'Tools/tolua\+\+/**', 'Projects/xmake/**', 'Assets/Script/Lib/GodotPlayer*', 'xmake.lua', '.github/workflows/godot.yml']
   workflow_dispatch:
 
 permissions:
@@ -43,6 +43,12 @@ jobs:
         run: python3 "$DORA_TEST_REPO/Test/Godot/tests/package_integrity.py"
       - name: Standalone xmake entrypoints and native source variants
         run: python3 "$DORA_TEST_REPO/Test/Godot/test_xmake_only.py"
+      - name: Project discovery, game integrity and archive extraction boundaries
+        run: python3 "$DORA_TEST_REPO/Test/Godot/test_project_delivery.py"
+      - name: Serialized Godot player contracts (bundled Lua, no GPU)
+        run: |
+          xmake build dora-tolua
+          python3 "$DORA_TEST_REPO/Test/Godot/test_godot_player.py"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

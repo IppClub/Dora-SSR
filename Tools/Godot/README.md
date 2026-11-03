@@ -15,6 +15,10 @@ iOS 兼容策略：普通 Dora 保持 Apple2 GPU Family；可选 GodotNode 要�
 
 Web PCM 更新（2026-10-29）：宿主与 Godot 运行在同一 window 线程时，PCM 在宿主请求时按需混音；不启动 PCM 生产 pthread，不预填充 lookahead 队列。此路径用于避免 Firefox ScriptProcessor 突发回调耗尽异步队列，原生平台继续使用后台生产队列。包含 Web 排空记账修正的新运行库已通过 Chrome/Firefox/Playwright WebKit 的 2/3/4 缓冲矩阵；实际设备输出、长期复杂混音及端到端延迟仍待验收，历史证据见 [原整合清单](history/2026-11-02-pre-vendor-xmake/TRACKING.md)，当前迁移状态见 [XMAKE-07](TRACKING.md)。
 
+## 工程导入、导出与试玩
+
+仓库/Git URL/源码 ZIP 的隔离导入、PCK 试玩包导出、归档安装和普通 Dora 试玩入口见 [工程与试玩包](PROJECTS.md)。游戏数据包复用宿主 LibGodot，不重复包含引擎二进制；常驻实例的跨工程卸载/切换已在 [macOS Metal 默认支持](PROJECT_SWITCH.md)，无需实验开关；已提供卸载完成通知及Lua串行控制器，官方2D/3D源码和PCK反复切换通过，正式化和其他平台单列跟踪。
+
 ## 构建和验证
 
 官方开源项目回归目前使用 `godotengine/godot-demo-projects` 的

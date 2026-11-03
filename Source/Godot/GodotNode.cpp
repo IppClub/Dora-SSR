@@ -2,6 +2,7 @@
 #include "Const/Header.h"
 #include "Godot/GodotNode.h"
 #include "Basic/Content.h"
+#include "Basic/Application.h"
 #include "Event/Event.h"
 #include "Cache/ShaderCache.h"
 #include "Shader/ShaderCompiler.h"
@@ -175,6 +176,24 @@ void GodotNode::cleanup() {
     if (_session) { _session->close(); _session.reset(); }
     _running = false;
     Sprite::cleanup();
+}
+void GodotSession::completeClose(bool success, std::string error) {
+    auto state=_unload;
+    if (state->notified.exchange(true)) return;
+    SharedApplication.invokeInLogic([state,success,error=std::move(error)] {
+        state->completed=true; state->success=success; state->error=error;
+        auto callbacks=std::move(state->callbacks);
+        for (const auto &callback:callbacks) if (callback) callback(success,error);
+    });
+}
+void GodotNode::unloadAsync(const std::function<void(bool,std::string)> &callback) {
+    if (_unload->completed) {
+        auto state=_unload;
+        SharedApplication.invokeInLogic([state,callback] { if (callback) callback(state->success,state->error); });
+        return;
+    }
+    if (callback) _unload->callbacks.push_back(callback);
+    removeFromParent(); // cleanup closes the retained session asynchronously
 }
 void GodotNode::pause() { _paused = true; if (_session) _session->pause(true); }
 void GodotNode::resume() { _paused = false; if (_session) _session->pause(false); }

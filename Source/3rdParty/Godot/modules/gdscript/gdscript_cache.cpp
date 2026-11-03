@@ -495,6 +495,13 @@ void GDScriptCache::clear() {
 	singleton->static_gdscript_cache.clear();
 }
 
+void GDScriptCache::reset_embedded_project() {
+	clear();
+	MutexLock lock(singleton->mutex);
+	singleton->dependencies.clear();
+	singleton->cleared = false;
+}
+
 GDScriptCache::GDScriptCache() {
 	singleton = this;
 }

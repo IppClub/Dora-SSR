@@ -139,6 +139,8 @@ public:
 	static void initialize_crypto();
 	static void finalize_crypto();
 	static X509CertificateMbedTLS *get_default_certificates();
+	// Dora: called only after the previous project has released TLS clients.
+	static void reset_embedded_certificates();
 	static void load_default_certificates(const String &p_path);
 	static mbedtls_md_type_t md_type_from_hashtype(HashingContext::HashType p_hash_type, int &r_size);
 

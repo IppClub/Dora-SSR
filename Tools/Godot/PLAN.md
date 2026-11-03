@@ -8,7 +8,7 @@
 
 保持 Godot 4.6-stable 来源、版本、许可证与 Dora 修改可追溯；生成物和对象文件放在独立构建目录，不写入 vendor 源码。受支持配置统一为原生 xmake 唯一构建入口；保留上游构建文件及封存对照，不保留 Dora 的 SCons 安装/调用/回退路径。动态验收缺口独立跟踪。
 
-产品范围保持：Godot 不含 C#/Mono，Dora 原有 C# 保留；Dora Apple2 / Godot Apple4；Windows 本轮验收 x64 WGL，D3D12 适配保留但按用户决定跳过本轮动态验收；不做进程内 LibGodot 重初始化，未来工程切换采用 Worker 进程边界。
+产品范围保持：Godot 不含 C#/Mono，Dora 原有 C# 保留；Dora Apple2 / Godot Apple4；Windows 本轮验收 x64 WGL，D3D12 适配保留但按用户决定跳过本轮动态验收；不做进程内 LibGodot 重初始化；按最新决定保留一个进程内LibGodot，实现项目级卸载与切换，macOS Metal默认开放，其他平台和兼容性缺口见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。
 
 依赖部署固定为完整独立LibGodot：移除第三方库共享开关、宿主提供端、转发层及启动握手，各引擎保留自己的依赖实现。共享实验和撤销任务见[归档](history/2026-11-03-library-sharing-removed/README.md)。
 

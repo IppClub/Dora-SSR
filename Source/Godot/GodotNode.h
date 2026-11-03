@@ -3,8 +3,19 @@
 #include "Node/Sprite.h"
 #include "Godot/GodotBridge.h"
 #include "Godot/GodotBridgeIME.h"
+#include <atomic>
+#include <functional>
+#include <memory>
+#include <string>
+#include <vector>
 
 NS_DORA_BEGIN
+struct GodotUnloadState {
+    std::atomic<bool> notified{false};
+    bool completed=false, success=false;
+    std::string error;
+    std::vector<std::function<void(bool,std::string)>> callbacks;
+};
 class GodotSession;
 class GodotNode : public Sprite {
 public:
@@ -17,6 +28,10 @@ public:
     String getLastError() const noexcept { return _lastError; }
     bool isRunning() const noexcept { return _running; }
     bool isPaused() const noexcept { return _paused; }
+    // Completion runs on the logic thread after native resource drain and
+    // project reset. Multiple callers receive the same terminal result.
+    void unloadAsync(const std::function<void(bool,std::string)> &callback);
+    bool isUnloaded() const noexcept { return _unload->completed && _unload->success; }
     void pause();
     void resume();
     bool restart(String sceneFile = Slice::Empty);
@@ -46,6 +61,7 @@ private:
     int _pixelWidth, _pixelHeight, _buffers;
     bool _running = false, _paused = false;
     std::shared_ptr<GodotSession> _session;
+    std::shared_ptr<GodotUnloadState> _unload=std::make_shared<GodotUnloadState>();
     friend class GodotSession;
     DORA_TYPE_OVERRIDE(GodotNode);
 };
@@ -54,7 +70,7 @@ private:
 // is weakly referenced so removing a node while booting cannot resurrect it.
 class GodotSession {
 public:
-    explicit GodotSession(GodotNode *node) : _node(node) {}
+    explicit GodotSession(GodotNode *node) : _node(node), _unload(node->_unload) {}
     virtual ~GodotSession() = default;
     virtual bool start(const std::string &project, const std::string &scene, int width, int height, int buffers) = 0;
     virtual void step() = 0;
@@ -66,6 +82,7 @@ public:
     // Called when another Dora node takes the singleton text-input service.
     void imeDetached() noexcept { _imeAttached=false; }
 protected:
+    void completeClose(bool success, std::string error={});
     GodotNode *node() const { return _node.get(); }
     void resized(int width,int height) {
         if (auto *target=node()) {
@@ -86,6 +103,7 @@ protected:
     void releaseIME();
 private:
     WRef<GodotNode> _node;
+    std::shared_ptr<GodotUnloadState> _unload;
     uint64_t _imeRevision=0;
     bool _imeAttached=false;
 };

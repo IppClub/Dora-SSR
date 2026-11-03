@@ -349,6 +349,18 @@ X509CertificateMbedTLS *CryptoMbedTLS::get_default_certificates() {
 	return default_certs;
 }
 
+void CryptoMbedTLS::reset_embedded_certificates() {
+	if (default_certs) {
+		memdelete(default_certs);
+		default_certs = nullptr;
+	}
+}
+
+// Internal Dora bridge hook; do not expose mbedTLS headers to the renderer module.
+void dora_godot_reset_certificates() {
+	CryptoMbedTLS::reset_embedded_certificates();
+}
+
 void CryptoMbedTLS::load_default_certificates(const String &p_path) {
 	ERR_FAIL_COND(default_certs != nullptr);
 

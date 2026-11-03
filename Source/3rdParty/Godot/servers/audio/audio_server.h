@@ -458,6 +458,8 @@ public:
 	virtual void finish();
 	virtual void update();
 	virtual void load_default_bus_layout();
+	// Dora: PCM producer must be stopped and joined before resetting a project.
+	void reset_embedded_project();
 
 	/* MISC config */
 

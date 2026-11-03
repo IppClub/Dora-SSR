@@ -65,6 +65,11 @@ bool GodotInstance::start() {
 	if (err != OK) {
 		return false;
 	}
+	return start_embedded_project();
+}
+
+bool GodotInstance::start_embedded_project() {
+	ERR_FAIL_COND_V(started, false);
 	started = Main::start() == EXIT_SUCCESS;
 	if (started) {
 		OS::get_singleton()->get_main_loop()->initialize();

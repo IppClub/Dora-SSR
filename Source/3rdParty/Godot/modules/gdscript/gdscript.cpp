@@ -2211,6 +2211,18 @@ void GDScriptLanguage::finish() {
 	finishing = false;
 }
 
+void GDScriptLanguage::reset_embedded_project() {
+	// Called after ScriptServer::finish_languages(), with no live scene nodes.
+	// Autoload constants use the same array as engine constants and must not
+	// remain visible to the next project's parser.
+	named_globals.clear();
+	globals.clear();
+	global_array.clear();
+	global_array_empty_indexes.clear();
+	_global_array = nullptr;
+	GDScriptCache::reset_embedded_project();
+}
+
 void GDScriptLanguage::profiling_start() {
 #ifdef DEBUG_ENABLED
 	MutexLock lock(mutex);

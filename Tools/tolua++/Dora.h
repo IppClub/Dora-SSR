@@ -1493,6 +1493,8 @@ class GodotNode : public Sprite
     tolua_readonly tolua_property__bool bool paused;
     tolua_readonly tolua_property__common Size viewportSize;
     bool resizeViewport(int width, int height);
+    tolua_readonly tolua_property__bool bool unloaded;
+    void unloadAsync(tolua_function_void callback);
     void pause();
     void resume();
     bool restart(String sceneFile = "");

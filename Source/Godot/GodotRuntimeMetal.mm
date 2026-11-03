@@ -3,6 +3,7 @@
 #include "Godot/GodotNode.h"
 #include "Godot/GodotAudio.h"
 #include "Godot/GodotBridgeOutput.h"
+#include "Godot/GodotBridgeProject.h"
 #include "Godot/GodotBridgeIME.h"
 #include "Godot/GodotBridgeViewport.h"
 #include "Godot/GodotBridgeMetalTargets.h"
@@ -31,6 +32,7 @@ class MetalSession;
 std::shared_ptr<MetalSession> activeSession;
 GodotRenderBootQueue bootQueue;
 DoraGodotAPI api{};
+DoraGodotProjectAPI projectAPI{};
 DoraGodotAudioAPI audioAPI{};
 DoraGodotOutputAPI outputAPI{};
 DoraGodotIMEAPI imeAPI{};
@@ -63,6 +65,14 @@ bool loadAPI() {
         || candidate.abi_version != DORA_GODOT_ABI_VERSION || !candidate.version || !candidate.open || !candidate.last_error || !candidate.get_slot
         || !candidate.advance || !candidate.input || !candidate.set_paused || !candidate.restart_scene || !candidate.close || !candidate.shutdown) {
         loaderError = "incompatible or incomplete Dora/Godot bridge ABI"; return false;
+    }
+    auto getProject=reinterpret_cast<DoraGodotGetProjectAPI>(dlsym(library,"dora_godot_get_project_api"));
+    if (getProject) {
+        projectAPI.size=sizeof(projectAPI);
+        if (!getProject(DORA_GODOT_PROJECT_ABI_VERSION,&projectAPI) || projectAPI.size<sizeof(projectAPI)
+            || projectAPI.abi_version!=DORA_GODOT_PROJECT_ABI_VERSION || !projectAPI.get_state) {
+            loaderError="incompatible Dora/Godot project lifecycle extension";return false;
+        }
     }
     auto getAudio=reinterpret_cast<DoraGodotGetAudioAPI>(dlsym(library,"dora_godot_get_audio_api"));
     if (getAudio) {
@@ -403,6 +413,14 @@ public:
                 }
                 self->_handle=nullptr;
                 clientReserved=false;
+                const bool unloaded=!api.open || (projectAPI.get_state && projectAPI.get_state()==DORA_GODOT_PROJECT_UNLOADED);
+                std::string reason;
+                if (!unloaded) {
+                    reason=api.last_error ? api.last_error(nullptr) : "";
+                    if (reason.empty() || reason=="Godot project requested quit")
+                        reason="project unload requires a compatible runtime with the project lifecycle extension";
+                }
+                self->completeClose(unloaded,std::move(reason));
             }
         });
     }

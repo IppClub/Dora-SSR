@@ -12,6 +12,7 @@ UPSTREAM_ARCHIVE_SHA256 = "b451eaa16d3abe0c7430e9ce1c4e83b146e5670e5b683dd8995c9
 
 BRIDGE_HEADERS = (
     "GodotBridge.h",
+    "GodotBridgeProject.h",
     "GodotBridgeGL.h",
     "GodotBridgeAudio.h",
     "GodotBridgeGLTargets.h",

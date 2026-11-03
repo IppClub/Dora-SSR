@@ -48,6 +48,8 @@ public:
 	bool initialize(GDExtensionInitializationFunction p_init_func);
 
 	bool start();
+	// Dora: start another project without recreating engine singletons.
+	bool start_embedded_project();
 	bool is_started();
 	bool iteration();
 	void stop();

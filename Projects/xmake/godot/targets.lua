@@ -226,6 +226,9 @@ target_end()
 if is_plat("macosx") and is_arch("arm64") and has_config("dora_godot_runtime") then
     includes(path.join(os.projectdir(), "Projects/xmake/godot/macos_arm64_sources.lua"))
     target("godot-runtime")
+        on_config(function (target)
+            target:data_add("linkdepfiles", path.join(godot_root, "dora_bridge.exports"))
+        end)
         add_frameworks(
             "ForceFeedback", "Cocoa", "Carbon", "AudioUnit", "CoreAudio", "CoreMIDI",
             "IOKit", "GameController", "CoreHaptics", "CoreVideo", "AVFoundation",

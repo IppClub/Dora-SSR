@@ -294,6 +294,7 @@ public:
             activeHandle=nullptr;activeSession.reset();
         }
         _handle=nullptr;retireShared();clientReserved=false;_closeRequested=false;
+        completeClose(false,"Project switching is not implemented in this backend");
     }
     void close() override {
         if (_closing.exchange(true) || !_ownsReservation) return;

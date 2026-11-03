@@ -195,6 +195,9 @@ public:
 	void set_builtin_order(const String &p_name);
 	bool is_builtin_setting(const String &p_name) const;
 
+	// Dora: only after the embedded project has been stopped and released.
+	void reset_embedded_project();
+
 	Error setup(const String &p_path, const String &p_main_pack, bool p_upwards = false, bool p_ignore_override = false);
 
 	Error load_custom(const String &p_path);

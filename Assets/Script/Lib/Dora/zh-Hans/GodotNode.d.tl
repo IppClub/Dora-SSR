@@ -9,6 +9,8 @@ local record GodotNode
     readonly lastError: string
     readonly running: boolean
     readonly paused: boolean
+    readonly unloaded: boolean
+    unloadAsync: function(self: GodotNode, callback: function(ok: boolean, error: string))
     readonly viewportSize: Size
     pause: function(self: GodotNode)
     resume: function(self: GodotNode)

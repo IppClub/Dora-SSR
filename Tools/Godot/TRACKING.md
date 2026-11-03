@@ -9,9 +9,17 @@
 - Godot C#/Mono 关闭，Dora C# 保留；Dora Apple2 / Godot Apple4；Windows x64 WGL 为本轮验收后端；保留 D3D12 适配并跳过本轮 D3D12 验收，不新增 Windows ARM64 目标验收。
 - 浏览器验收在宿主执行；不在虚拟机内增加浏览器测试，不自动扩展额外压力轮次。
 - Godot保持完整独立LibGodot运行时，包含各平台原有第三方实现；Dora与Godot分别构建依赖，不复用第三方二进制或宿主codec函数表。共享库实验与相关待办已撤销，[历史完整保留](history/2026-11-03-library-sharing-removed/README.md)。
-- 不做进程内 LibGodot 重初始化；未来完整工程切换采用 Worker 进程。缺少真机时可用 VM/模拟器，明确证据边界。
+- 不做进程内 LibGodot 重初始化；按最新决定保留同一 LibGodot，实现项目级卸载与切换，macOS Metal默认开放，见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)。缺少真机时可用 VM/模拟器，明确证据边界。
 
 ## 已完成
+
+- [x] **PROJECT-DEFAULT-MAC-01｜macOS Metal默认卸载与切换**：移除实验环境开关，按运行库能力默认提供项目卸载；默认配置7次隔离/通知夹具、官方2D/3D源码/PCK交替8次24图、2/3/4缓冲与音频/GPU排空、启动取消、旧库拒绝及分发试玩通过。文档已同步；其余后端和长期兼容性留待办。证据暂存 `build/godot-project-default-v1/`。
+
+- [x] **PROJECT-CONTROLLER-MAC-01｜卸载通知、串行控制与真实项目**：C++/Lua `GodotNode.unloadAsync` 在GPU/音频和项目清理后通知，重复/完成后订阅均支持；生产Lua `GodotPlayer` 以原生通知处理FIFO、失败、超时和关闭。官方2D/3D项目源码/PCK交替8次、24图、公开输入、音频、2/3/4缓冲与GPU排空通过，重复访问后对象/资源计数稳定且场景节点0；修复常驻Renderer相对shader缓存根切换。8项控制器契约、原生取消/未开启拒绝和通知夹具通过。后续已默认化；当前验收仍限macOS；用法见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)，详情暂存 `build/godot-project-controller-v1/`。
+
+- [x] **PROJECT-SWITCH-MAC-01｜同实例项目切换原型**：macOS Metal 显式开关下，同一 LibGodot 完成七次源码/PCK加载，SceneTree逐次重建；静态/资源/Autoload/设置/输入/用户singleton与音频隔离、2/3/4缓冲像素和GPU排空、单活动实例拒绝及无主场景失败恢复通过。默认路径试玩和22项分发测试通过；后续卸载通知及默认化已完成，其他平台与兼容性缺口见待办。用法与边界见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)，细节暂存 `build/godot-project-switch-v1/`。
+
+- [x] **PROJECT-DELIVERY-01｜工程与试玩包基础**：新增仓库/工程识别、Git clone、源码ZIP导入、独立副本Godot4.6资源导入、标准PCK导出、试玩清单与归档/校验安装、普通Dora试玩入口。macOS Metal 已验证 clone→原工程试玩→导出/安装→PCK试玩，导入PNG像素、动态帧、零blit与GPU排空通过；其他平台未验收，常驻实例切换仍见PROJECT-SWITCH-01。命令见[PROJECTS.md](PROJECTS.md)，详情暂存 `build/godot-project-delivery-v1/`。
 
 - [x] **TEST-EXTERNAL-01｜测试外置**：287个 Godot 测试、夹具与独立审计/诊断文件迁入 Dora-Example `Test/Godot` 与 `Test/LibGodotMetalProbe`；xmake 测试宿主、统一套件、CI 和文档已同步。协议、17项包校验、构建回归、原生测试源码编译及可搬移封包夹具通过；生产构建和必需完整性校验保留引擎。新记录暂存 `build/godot-test-move-v1/`，未扩大 GPU/VM 验收。
 
@@ -66,6 +74,8 @@
 - [x] **DOC-01**：[维护指南](MAINTENANCE.md)、构建、升级与封包说明。
 
 ## 待完成
+
+- [ ] **PROJECT-SWITCH-01｜项目切换正式化**：保留同一进程内LibGodot的方向已确认，Metal原型通过；通知/串行控制器与官方2D/3D有界重复切换已通过；继续补树外对象/网络/扩展拒绝和更多失败阶段、复杂游戏/长期与GPU显存稳定性，再按平台逐个接入GL等后端并构建回归。macOS Metal已默认开放；其余后端不作为已完成的全平台能力。
 
 
 执行顺序：最新WGL包的读回、显示、完整回归与官方项目验收已完成；各平台GL读回既定缺口已补齐。D3D12 本轮跳过，不作为 WGL 收口门槛。随后补其他平台回归及 iOS 缺口，第三方库共享及其综合前置审计已撤销，NIR许可随D3D12保留后续；全部受支持配置的 xmake 唯一构建入口已收口；环境受限时推进独立任务，不改变验收门槛。

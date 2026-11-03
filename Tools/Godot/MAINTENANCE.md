@@ -78,11 +78,11 @@ python3 Tools/Godot/verify_package.py /absolute/path/to/package
 
 不能直接对带补丁 vendor 运行上游更新脚本覆盖文件。SCons 对照会生成源码旁文件，必须使用独立 checkout；Dora 入口不原地生成；如手工上游参考构建产生残留，先保存源码清单与生成物，恢复干净输入后再做原生验收。不要直接清空整个 `build`，其中可能保存唯一证据、补丁或 VM 备份。
 
-## 运行时与 Worker 边界
+## 运行时与项目边界
 
-当前是进程内 LibGodot，一次活动运行时；同工程节点移除/重建按既有协议执行。Godot 全局缓存、注册表和线程状态不能据节点销毁视作已完整卸载，因此不实现进程内卸载/重新初始化，也不承诺销毁节点后切换另一个工程。
+当前是进程内 LibGodot、一次活动运行时。按最新用户决定，保留同一 LibGodot 实现项目级卸载和切换；不执行进程内 LibGodot 销毁/重初始化，也不继续 Worker 进程方案。macOS Metal 默认采用项目卸载协议；其他后端仍按既有同工程协议执行。
 
-未来完整工程切换采用独立 Worker 进程：由进程边界承载 LibGodot 生命周期，另行设计项目启动、输入/音频、GPU 句柄所有权、异常退出和资源排空协议。此处是边界约束，不表示 Worker 已实现。Web 浏览器 Worker 是另一种执行环境，不能等同于此进程方案或假定当前 bridge 已支持。
+macOS Metal 已默认启用项目切换，清理场景树及项目状态并重新创建场景树；卸载通知及串行控制器已完成；树外状态、长期资源稳定性与其他平台仍有缺口。使用方式、验收和边界统一见 [PROJECT_SWITCH.md](PROJECT_SWITCH.md)，不能据节点销毁或有界测试通过声称任意工程已完整隔离。
 
 Godot C#/Mono 关闭不影响 Dora 原有 C#；不要通过删掉 Dora 的 C# 绑定来缩小 Godot 包。Dora Apple2 / Godot Apple4 的能力门槛保留，不把 Apple2 模拟器安全拒绝写作 Apple4 渲染通过。
 

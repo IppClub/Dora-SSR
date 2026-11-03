@@ -1,6 +1,7 @@
 // Dora/Godot library implementation. Only the versioned C table is exported.
 #include "register_types.h"
 #include "GodotBridge.h"
+#include "GodotBridgeProject.h"
 #include "GodotBridgeMetalTargets.h"
 #include "GodotBridgeAudio.h"
 #include "GodotBridgeViewport.h"
@@ -10,6 +11,7 @@
 #include "GodotBridgeOutput.h"
 #include "GodotBridgeIME.h"
 #include "runtime_ime.h"
+#include "runtime_project.h"
 #include "core/config/engine.h"
 #include "servers/audio/audio_driver_dummy.h"
 #include "core/extension/libgodot.h"
@@ -28,6 +30,7 @@
 #import <Metal/Metal.h>
 #include <atomic>
 #include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <set>
 #include <filesystem>
@@ -57,6 +60,11 @@ struct Runtime {
     std::atomic<uint64_t> completed{0}, errors{0};
     RID direct_render_target;
     bool active = false, paused = false, terminated = false, targets_bound = false;
+#ifdef MACOS_ENABLED
+    static constexpr bool supports_project_unload = true;
+#else
+    static constexpr bool supports_project_unload = false;
+#endif
 } runtime;
 DoraGodotOutput output;
 bool output_pending=false;
@@ -123,10 +131,10 @@ void *open(const DoraGodotConfig *config) {
         || config->buffer_count < 2 || config->buffer_count > DORA_GODOT_MAX_BUFFERS) {
         runtime.error = "invalid Godot runtime configuration"; return nullptr;
     }
-    if (runtime.active || runtime.terminated || (runtime.instance && !runtime.tree)) {
+    if (runtime.active || runtime.terminated || (runtime.instance && !runtime.tree && !runtime.supports_project_unload)) {
         runtime.error = "Godot runtime is already active or has terminated"; return nullptr;
     }
-    if (runtime.instance && runtime.project != config->project_path) {
+    if (runtime.instance && !runtime.supports_project_unload && runtime.project != config->project_path) {
         runtime.error = "this process already owns a different Godot project"; return nullptr;
     }
     runtime.width = config->width; runtime.height = config->height; runtime.buffers = config->buffer_count;
@@ -145,18 +153,41 @@ void *open(const DoraGodotConfig *config) {
             (char*)"--disable-render-loop", (char*)"--disable-crash-handler", (char*)"--resolution", (char*)resolution.c_str()};
         runtime.instance = (GodotInstance*)libgodot_create_godot_instance(sizeof(args)/sizeof(args[0]), args, extension_init);
         if (!runtime.instance) { runtime.error = "LibGodot initialization failed"; return nullptr; }
+        if (runtime.supports_project_unload) {
+            // Renderer/ShaderRD objects survive projects. A relative user://
+            // cache would silently change roots after the next settings load.
+            const String cache=OS::get_singleton()->get_cache_path().path_join("Dora/LibGodot-4.6/metal");
+            if (DirAccess::make_dir_recursive_absolute(cache)!=OK) {
+                runtime.error="cannot create process-owned Godot shader cache";runtime.terminated=true;return nullptr;
+            }
+            Engine::get_singleton()->set_shader_cache_path(cache);
+            print_line("DORA_GODOT_PROJECT_CACHE "+cache);
+        }
         if (!runtime.scene.empty()) ProjectSettings::get_singleton()->set("application/run/main_scene", String::utf8(runtime.scene.c_str()));
-        if (!runtime.instance->start()) { runtime.error = "Godot project startup failed"; return nullptr; }
+        if (!runtime.instance->start()) { runtime.error = "Godot project startup failed"; runtime.terminated=true; return nullptr; }
+        if (runtime.supports_project_unload && !DoraGodotProject::supported(runtime.error)) { runtime.terminated=true; return nullptr; }
         runtime.tree = Object::cast_to<SceneTree>(OS::get_singleton()->get_main_loop());
         if (!runtime.tree) { runtime.error = "project does not use SceneTree"; return nullptr; }
         runtime.root = runtime.tree->get_root();
         auto *rd = RenderingDevice::get_singleton();
         runtime.queue = (__bridge id<MTLCommandQueue>)(void*)(uintptr_t)rd->get_driver_resource(RenderingDevice::DRIVER_RESOURCE_COMMAND_QUEUE);
+    } else if (runtime.supports_project_unload) {
+        if (!DoraGodotProject::load(runtime.instance, config->project_path, config->scene_path, config->width, config->height, runtime.error)) {
+            // A rejected project never becomes active. Clear partially loaded
+            // settings/resources as well so a subsequent valid open can recover.
+            DoraGodotProject::unload(runtime.instance);
+            runtime.tree=nullptr; runtime.root=nullptr;
+            return nullptr;
+        }
+        runtime.project=config->project_path;
+        runtime.tree=Object::cast_to<SceneTree>(OS::get_singleton()->get_main_loop());
+        runtime.root=runtime.tree->get_root();
     } else {
         runtime.root->set_size(Size2i(config->width,config->height));
         const String scene = runtime.scene.empty() ? String(ProjectSettings::get_singleton()->get("application/run/main_scene")) : String::utf8(runtime.scene.c_str());
         if (runtime.tree->change_scene_to_file(scene) != OK) { runtime.error = "cannot load Godot scene"; return nullptr; }
     }
+    if (runtime.supports_project_unload) print_line(vformat("DORA_GODOT_PROJECT_ID instance=%d tree=%d", uint64_t(runtime.instance->get_instance_id()), uint64_t(runtime.tree->get_instance_id())));
     runtime.tree->set_pause(false);
     runtime.root->set_transparent_background(true);
     runtime.root->set_disable_input(false);
@@ -284,6 +315,16 @@ void close(void *handle, DoraGodotStats *stats) {
     runtime.source = nil; runtime.active = false; DoraGodotRenderTiming::reset(); DoraGodotIME::reset();
     release_inputs();
     runtime.tree->set_pause(true);
+    if (runtime.supports_project_unload && !DoraGodotProject::supported(runtime.error)) {
+        // A native extension or unfinished user thread cannot be safely reset.
+        // Keep the paused tree for final engine shutdown and refuse new opens.
+        runtime.terminated=true;
+        ERR_PRINT(runtime.error.c_str());
+    } else if (runtime.supports_project_unload) {
+        output.close(runtime.root);
+        DoraGodotProject::unload(runtime.instance);
+        runtime.tree=nullptr; runtime.root=nullptr;
+    }
 }
 void shutdown() {
     stop_audio_capture();
@@ -320,5 +361,16 @@ extern "C" DORA_GODOT_EXPORT int dora_godot_get_ime_api(uint32_t requested,DoraG
     *api={sizeof(*api),DORA_GODOT_IME_ABI_VERSION,[](void *handle,DoraGodotIMEState *state) {
         if (!valid(handle) || !state || state->size<sizeof(*state)) return 0;
         DoraGodotIME::snapshot(state);return 1;
+    }};return 1;
+}
+
+extern "C" DORA_GODOT_EXPORT int dora_godot_get_project_api(uint32_t requested,DoraGodotProjectAPI *api) {
+    if (requested!=DORA_GODOT_PROJECT_ABI_VERSION || !api || api->size<sizeof(*api)) return 0;
+    *api={sizeof(*api),DORA_GODOT_PROJECT_ABI_VERSION,[]()->uint32_t {
+        if (runtime.terminated) return DORA_GODOT_PROJECT_TERMINATED;
+        if (!runtime.instance) return DORA_GODOT_PROJECT_UNLOADED;
+        if (!runtime.supports_project_unload) return DORA_GODOT_PROJECT_UNSUPPORTED;
+        if (runtime.active || runtime.tree) return DORA_GODOT_PROJECT_ACTIVE;
+        return DORA_GODOT_PROJECT_UNLOADED;
     }};return 1;
 }

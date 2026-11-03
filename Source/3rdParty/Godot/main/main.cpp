@@ -4778,6 +4778,13 @@ uint32_t Main::frame = 0;
 bool Main::force_redraw_requested = false;
 int Main::iterating = 0;
 
+void Main::delete_embedded_main_loop() {
+	OS::get_singleton()->delete_main_loop();
+	last_ticks = 0;
+	frames = frame = 0;
+	force_redraw_requested = true;
+}
+
 bool Main::is_iterating() {
 	return iterating > 0;
 }
